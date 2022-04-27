@@ -15,7 +15,9 @@ import com.facebook.react.modules.core.DeviceEventManagerModule;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.io.File;
 import android.os.Bundle;
+import android.os.Environment;
 
 import io.keybase.ossifrage.BuildConfig;
 import io.keybase.ossifrage.DarkModePrefHelper;
@@ -33,8 +35,8 @@ import static keybase.Keybase.version;
 public class KeybaseEngine extends ReactContextBaseJavaModule implements KillableModule {
 
     private static final String NAME = "KeybaseEngine";
-    private static final String RPC_META_EVENT_NAME = "META_RPC";
-    private static final String RPC_META_EVENT_ENGINE_RESET = "ENGINE_RESET";
+    private static final String RPC_META_EVENT_NAME = "kb-meta-engine-event";
+    private static final String RPC_META_EVENT_ENGINE_RESET = "kb-engine-reset";
 
     private Boolean started = false;
     private ReactApplicationContext reactContext;
@@ -109,17 +111,35 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
             NativeLogger.warn(NAME + ": Error reading server config", e);
         }
 
+
+        String cacheDir = "";
+        {
+            File dir = this.reactContext.getCacheDir();
+            if (dir != null) {
+                cacheDir = dir.getAbsolutePath();
+            } 
+        }
+
+        String downloadDir = "";
+        {
+            File dir = this.reactContext.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS);
+            if (dir != null) {
+                downloadDir = dir.getAbsolutePath();
+            }
+        }
+
         final Map<String, Object> constants = new HashMap<>();
-        constants.put("metaEventName", RPC_META_EVENT_NAME);
-        constants.put("metaEventEngineReset", RPC_META_EVENT_ENGINE_RESET);
-        constants.put("appVersionName", versionName);
+        constants.put("androidIsDeviceSecure", isDeviceSecure);
+        constants.put("androidIsTestDevice", misTestDevice);
         constants.put("appVersionCode", versionCode);
+        constants.put("appVersionName", versionName);
+        constants.put("darkModeSupported", "0");
+        constants.put("fsCacheDir", cacheDir);
+        constants.put("fsDownloadDir", downloadDir);
         constants.put("guiConfig", readGuiConfig());
-        constants.put("version", version());
-        constants.put("isDeviceSecure", isDeviceSecure);
-        constants.put("isTestDevice", misTestDevice);
         constants.put("serverConfig", serverConfig);
         constants.put("uses24HourClock", DateFormat.is24HourFormat(this.reactContext));
+        constants.put("version", version());
         return constants;
     }
 
@@ -148,7 +168,7 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
     // its own react module. That's because starting up a react module is a bit expensive and we
     // wouldn't be able to lazy load this because we need it on startup.
     @ReactMethod
-    public void getInitialBundleFromNotification(Promise promise) {
+    public void androidGetInitialBundleFromNotification(Promise promise) {
         if (this.initialBundleFromNotification != null) {
             WritableMap map = Arguments.fromBundle(this.initialBundleFromNotification);
             promise.resolve(map);
@@ -160,20 +180,20 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
     }
 
     @ReactMethod
-    public void getInitialShareFileUrl(Promise promise) {
+    public void androidGetInitialShareFileUrl(Promise promise) {
         promise.resolve(this.shareFileUrl);
         this.shareFileUrl = null;
     }
 
     @ReactMethod
-    public void getInitialShareText(Promise promise) {
+    public void androidGetInitialShareText(Promise promise) {
         promise.resolve(this.shareText);
         this.shareText = null;
     }
 
     // Same type as DarkModePreference: 'system' | 'alwaysDark' | 'alwaysLight'
     @ReactMethod
-    public void appColorSchemeChanged(String prefString) {
+    public void androidAppColorSchemeChanged(String prefString) {
         final DarkModePreference pref = DarkModePrefHelper.fromString(prefString);
         final MainActivity activity = (MainActivity) reactContext.getCurrentActivity();
         if (activity != null) {
@@ -182,7 +202,7 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
     }
 
     @ReactMethod
-    public void setApplicationIconBadgeNumber(int badge) {
+    public void androidSetApplicationIconBadgeNumber(int badge) {
         ShortcutBadger.applyCount(this.reactContext, badge);
     }
 

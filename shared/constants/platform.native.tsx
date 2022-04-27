@@ -1,18 +1,7 @@
-import {Dimensions, Platform, NativeModules} from 'react-native'
-import RNFB from 'react-native-blob-util'
+import {Dimensions, Platform} from 'react-native'
+import {NativeModules} from '../util/native-modules.native'
 import * as iPhoneXHelper from 'react-native-iphone-x-helper'
 import Constants from 'expo-constants'
-
-const nativeBridge = NativeModules.KeybaseEngine || {
-  getSecureFlagSetting: async () => Promise.resolve(true),
-  isDeviceSecure: 'fallback',
-  isTestDevice: false,
-  serverConfig: '',
-  setSecureFlagSetting: async () => Promise.resolve(true),
-  uses24HourClock: false,
-  usingSimulator: 'fallback',
-  version: 'fallback',
-}
 
 type SetSecure = (s: boolean) => Promise<boolean> // true on successful write
 type GetSecure = () => Promise<boolean>
@@ -21,14 +10,11 @@ export const setSecureFlagSetting: SetSecure =
   NativeModules?.ScreenProtector?.setSecureFlagSetting ?? (async (_s: boolean) => Promise.resolve(false))
 export const getSecureFlagSetting: GetSecure =
   NativeModules?.ScreenProtector?.getSecureFlagSetting ?? (async () => Promise.resolve(false))
-export const {version, isTestDevice, uses24HourClock} = nativeBridge
+export const {version, androidIsTestDevice, uses24HourClock, androidIsDeviceSecure, fsCacheDir} =
+  NativeModules.KeybaseEngine
 // Currently this is given to us as a boolean, but no real documentation on this, so just in case it changes in the future.
 // Android only field that tells us if there is a lock screen.
-export const isDeviceSecureAndroid: boolean =
-  typeof nativeBridge.isDeviceSecure === 'boolean'
-    ? nativeBridge.isDeviceSecure
-    : nativeBridge.isDeviceSecure === 'true' || false
-
+export const isDeviceSecureAndroid: boolean = androidIsDeviceSecure === '1'
 export const runMode = 'prod'
 
 export const isIOS = Platform.OS === 'ios'
@@ -59,7 +45,7 @@ export const windowHeight = Dimensions.get('window').height
 // See https://material.io/devices/
 export const isLargeScreen = windowHeight >= 667
 
-const _dir = `${RNFB.fs.dirs.CacheDir}/Keybase`
+const _dir = `${fsCacheDir}/Keybase`
 export const logFileDir = _dir
 export const pprofDir = _dir
 export const serverConfigFileName = `${_dir}/keybase.app.serverConfig`

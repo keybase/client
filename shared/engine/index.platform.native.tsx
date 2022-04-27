@@ -1,16 +1,10 @@
-import {NativeModules, NativeEventEmitter} from 'react-native'
+import {NativeEventEmitter} from 'react-native'
+import {NativeModules} from '../util/native-modules.native'
 import {TransportShared, sharedCreateClient, rpcLog} from './transport-shared'
 import {encode} from '@msgpack/msgpack'
 import type {SendArg, incomingRPCCallbackType, connectDisconnectCB} from './index.platform'
 
-const nativeBridge: NativeEventEmitter & {
-  metaEventName: string
-  metaEventEngineReset: string
-  start: () => void
-  reset: () => void
-} = NativeModules.KeybaseEngine
-// @ts-ignore
-const RNEmitter = new NativeEventEmitter(nativeBridge)
+const RNEmitter = new NativeEventEmitter(NativeModules.KeybaseEngine as any)
 
 class NativeTransport extends TransportShared {
   constructor(incomingRPCCallback, connectCallback, disconnectCallback) {
@@ -67,11 +61,11 @@ function createClient(
     client.transport._dispatch(objs)
   }
 
-  nativeBridge.start()
+  NativeModules.KeybaseEngine.start()
 
-  RNEmitter.addListener(nativeBridge.metaEventName, (payload: string) => {
+  RNEmitter.addListener('kb-meta-engine-event', (payload: string) => {
     switch (payload) {
-      case nativeBridge.metaEventEngineReset:
+      case 'kb-engine-reset':
         connectCallback()
     }
   })
@@ -81,7 +75,7 @@ function createClient(
 
 function resetClient() {
   // Tell the RN bridge to reset itself
-  nativeBridge.reset()
+  NativeModules.KeybaseEngine.reset()
 }
 
 export {resetClient, createClient, rpcLog}

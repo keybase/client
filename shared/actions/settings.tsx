@@ -15,7 +15,7 @@ import trim from 'lodash/trim'
 import type * as Container from '../util/container'
 import type * as Types from '../constants/types/settings'
 import type {RPCError} from '../util/errors'
-import {isAndroidNewerThanN, isTestDevice, pprofDir, version} from '../constants/platform'
+import {isAndroidNewerThanN, androidIsTestDevice, pprofDir, version} from '../constants/platform'
 import {writeLogLinesToFile} from '../util/forward-logs'
 
 const onUpdatePGPSettings = async () => {
@@ -527,7 +527,7 @@ const setLockdownMode = async (
 
 const sendFeedback = async (state: Container.TypedState, action: SettingsGen.SendFeedbackPayload) => {
   // We don't want test devices (pre-launch reports) to send us log sends.
-  if (isTestDevice) {
+  if (androidIsTestDevice) {
     return
   }
   const {feedback, sendLogs, sendMaxBytes} = action.payload

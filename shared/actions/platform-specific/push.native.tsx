@@ -1,7 +1,6 @@
 import * as Chat2Gen from '../chat2-gen'
 import * as ConfigGen from '../config-gen'
 import * as Constants from '../../constants/push'
-import * as Types from '../../constants/types/push'
 import * as NotificationsGen from '../notifications-gen'
 import * as ProfileGen from '../profile-gen'
 import * as PushGen from '../push-gen'
@@ -13,15 +12,17 @@ import * as WaitingGen from '../waiting-gen'
 import * as RouteTreeGen from '../route-tree-gen'
 import * as Tabs from '../../constants/tabs'
 import logger from '../../logger'
-import {NativeModules, NativeEventEmitter} from 'react-native'
+import {NativeEventEmitter} from 'react-native'
+import {NativeModules} from '../../util/native-modules.native'
 import {isIOS, isAndroid} from '../../constants/platform'
 import type * as Container from '../../util/container'
+import type * as Types from '../../constants/types/push'
 
 const setApplicationIconBadgeNumber = (n: number) => {
   if (isIOS) {
     PushNotificationIOS.setApplicationIconBadgeNumber(n)
   } else {
-    NativeModules.KeybaseEngine.setApplicationIconBadgeNumber(n)
+    NativeModules.KeybaseEngine.androidSetApplicationIconBadgeNumber?.(n)
   }
 }
 
@@ -58,11 +59,11 @@ const updateAppBadge = (action: NotificationsGen.ReceivedBadgeStatePayload) => {
 const listenForNativeAndroidIntentNotifications = async (
   emitter: (action: Container.TypedActions) => void
 ) => {
-  const pushToken = await NativeModules.Utils.getRegistrationToken()
+  const pushToken = (await NativeModules.Utils.androidGetRegistrationToken?.()) ?? ''
   logger.debug('[PushToken] received new token: ', pushToken)
   emitter(PushGen.createUpdatePushToken({token: pushToken}))
 
-  const RNEmitter = new NativeEventEmitter(NativeModules.KeybaseEngine)
+  const RNEmitter = new NativeEventEmitter(NativeModules.KeybaseEngine as any)
   RNEmitter.addListener('initialIntentFromNotification', evt => {
     const notification = evt && Constants.normalizePush(evt)
     notification && emitter(PushGen.createNotification({notification}))
@@ -261,7 +262,7 @@ function* deletePushToken(state: Container.TypedState, action: ConfigGen.LogoutH
 const requestPermissionsFromNative = async () =>
   isIOS ? PushNotificationIOS.requestPermissions() : Promise.resolve()
 const askNativeIfSystemPushPromptHasBeenShown = () =>
-  isIOS ? NativeModules.PushPrompt.getHasShownPushPrompt() : Promise.resolve(false)
+  isIOS ? NativeModules.PushPrompt?.getHasShownPushPrompt() ?? Promise.resolve(false) : Promise.resolve(false)
 const checkPermissionsFromNative = async () =>
   new Promise(resolve => isIOS && PushNotificationIOS.checkPermissions(resolve))
 const monsterStorageKey = 'shownMonsterPushPrompt'
@@ -376,8 +377,8 @@ function* _checkPermissions(action: ConfigGen.MobileAppStatePayload | null) {
 
 function* getStartupDetailsFromInitialShare() {
   if (isAndroid) {
-    const fileUrl = yield NativeModules.KeybaseEngine.getInitialShareFileUrl()
-    const text = yield NativeModules.KeybaseEngine.getInitialShareText()
+    const fileUrl = yield NativeModules.KeybaseEngine.androidGetInitialShareFileUrl?.() ?? Promise.resolve('')
+    const text = yield NativeModules.KeybaseEngine.androidGetInitialShareText?.() ?? Promise.resolve('')
     return {fileUrl, text}
   } else {
     return null
@@ -411,7 +412,8 @@ function* getStartupDetailsFromInitialPush() {
 }
 
 const getInitialPushAndroid = async () => {
-  const n = await NativeModules.KeybaseEngine.getInitialBundleFromNotification()
+  const n = await (NativeModules.KeybaseEngine.androidGetInitialBundleFromNotification?.() ??
+    Promise.resolve({}))
   const notification = n && Constants.normalizePush(n)
   return notification && PushGen.createNotification({notification})
 }

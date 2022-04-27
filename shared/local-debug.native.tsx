@@ -1,10 +1,9 @@
 /*
  * File to stash local debug changes to. Never check this in with changes
  */
-import {NativeModules, LogBox} from 'react-native'
+import {LogBox} from 'react-native'
+import {NativeModules} from './util/native-modules.native'
 import noop from 'lodash/noop'
-
-const nativeBridge = NativeModules.KeybaseEngine || {test: 'fallback'}
 
 // Toggle this to disable yellowboxes
 LogBox.ignoreAllLogs()
@@ -35,9 +34,7 @@ let config = {
   ignoreDisconnectOverlay: false,
   immediateStateLogging: false, // Don't wait for idle to log state
   isDevApplePushToken: false, // Use a dev push token
-  isTesting:
-    (__DEV__ && nativeBridge.test === '1') ||
-    (NativeModules.Storybook && NativeModules.Storybook.isStorybook), // Is running a unit test
+  isTesting: false, // NativeModules.Storybook.isStorybook, // Is running a unit test
   partyMode: false,
   printOutstandingRPCs: false, // Periodically print rpcs we're waiting for
   printOutstandingTimerListeners: false, // Periodically print listeners to the second clock
@@ -112,9 +109,9 @@ if (PERF) {
   config.userTimings = true
 }
 
-if (nativeBridge.serverConfig) {
+if (NativeModules.KeybaseEngine.serverConfig) {
   try {
-    const serverConfig = JSON.parse(nativeBridge.serverConfig)
+    const serverConfig = JSON.parse(NativeModules.KeybaseEngine.serverConfig)
     if (serverConfig.lastLoggedInUser) {
       const userConfig = serverConfig[serverConfig.lastLoggedInUser] || {}
       if (userConfig.printRPCStats) {

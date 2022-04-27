@@ -1,7 +1,7 @@
 const {path, process, os} = KB
 const {platform, env} = process
 const {join} = path
-export const isTestDevice = false
+export const androidIsTestDevice = false
 export const isMobile = false
 export const isPhone = false
 export const isAndroid = false

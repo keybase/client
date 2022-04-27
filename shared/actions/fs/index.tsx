@@ -947,6 +947,7 @@ const loadDownloadInfo = async (_: Container.TypedState, action: FsGen.LoadDownl
     const res = await RPCTypes.SimpleFSSimpleFSGetDownloadInfoRpcPromise({
       downloadID: action.payload.downloadID,
     })
+
     return FsGen.createLoadedDownloadInfo({
       downloadID: action.payload.downloadID,
       info: {
