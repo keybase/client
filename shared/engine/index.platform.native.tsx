@@ -3,6 +3,7 @@ import {NativeModules} from '../util/native-modules.native'
 import {TransportShared, sharedCreateClient, rpcLog} from './transport-shared'
 import {encode} from '@msgpack/msgpack'
 import type {SendArg, incomingRPCCallbackType, connectDisconnectCB} from './index.platform'
+import logger from '../logger'
 
 const RNEmitter = new NativeEventEmitter(NativeModules.KeybaseEngine as any)
 
@@ -42,7 +43,11 @@ class NativeTransport extends TransportShared {
     if (typeof global.rpcOnGo !== 'function') {
       NativeModules.GoJSIBridge.install()
     }
-    global.rpcOnGo(buf.buffer)
+    try {
+      global.rpcOnGo(buf.buffer)
+    } catch (e) {
+      logger.error('>>>> rpcOnGo JS thrown!', e)
+    }
     return true
   }
 }
@@ -57,16 +62,24 @@ function createClient(
   )
 
   global.rpcOnJs = objs => {
-    // @ts-ignore this does exist
-    client.transport._dispatch(objs)
+    try {
+      // @ts-ignore this does exist
+      client.transport._dispatch(objs)
+    } catch (e) {
+      logger.error('>>>> rpcOnJs JS thrown!', e)
+    }
   }
 
   NativeModules.KeybaseEngine.start()
 
   RNEmitter.addListener('kb-meta-engine-event', (payload: string) => {
-    switch (payload) {
-      case 'kb-engine-reset':
-        connectCallback()
+    try {
+      switch (payload) {
+        case 'kb-engine-reset':
+          connectCallback()
+      }
+    } catch (e) {
+      logger.error('>>>> meta engine event JS thrown!', e)
     }
   })
 
