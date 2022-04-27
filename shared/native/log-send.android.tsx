@@ -1,3 +1,2 @@
-import {NativeModules} from 'react-native'
-
-export default __STORYBOOK__ ? () => {} : NativeModules.KBLogSend.logSend
+import {NativeModules} from '../util/native-modules.native'
+export default NativeModules.LogSend.logSend

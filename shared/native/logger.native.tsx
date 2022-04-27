@@ -1,10 +1,15 @@
-import {NativeModules} from 'react-native'
-import {NativeLogDump} from './logger'
+import {NativeModules} from '../util/native-modules.native'
+import type {NativeLogDump} from './logger'
 import debounce from 'lodash/debounce'
 import {isAndroid} from '../constants/platform'
 
-export type RealNativeLog = (tagsAndLogs: Array<Array<string>>) => void
-const _log: RealNativeLog = __STORYBOOK__ || isAndroid ? () => {} : NativeModules.KBNativeLogger.log
+type TagAndLog = Array<[string, string]>
+
+export type RealNativeLog = (tagsAndLogs: TagAndLog) => void
+const _log: RealNativeLog =
+  __STORYBOOK__ || isAndroid
+    ? (_tagsAndLogs: TagAndLog) => {}
+    : NativeModules.KBNativeLogger?.log ?? (() => {})
 
 // Don't send over the wire immediately. That has horrible performance
 const actuallyLog = debounce(() => {
@@ -32,23 +37,17 @@ const actuallyLog = debounce(() => {
   toSend = []
 }, 5000)
 
-let toSend: Array<[string, string]> = []
+let toSend: TagAndLog = []
 
 const log = (tagPrefix: string, toLog: string) => {
   toSend.push([tagPrefix, toLog])
   actuallyLog()
 }
 
-const dump: NativeLogDump = __STORYBOOK__
-  ? async () => {
-      const p: Promise<Array<string>> = Promise.resolve([])
-      return p
-    }
-  : // eslint-disable-next-line
-    async (...args) => {
-      actuallyLog.flush()
-      return NativeModules.KBNativeLogger.dump(...args)
-    }
+const dump: NativeLogDump = async (prefix: string) => {
+  actuallyLog.flush()
+  return NativeModules.KBNativeLogger?.dump(prefix) ?? Promise.resolve([])
+}
 
 const flush = actuallyLog.flush
 

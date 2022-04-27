@@ -6,6 +6,7 @@ import * as RPCTypes from '../../constants/types/rpc-gen'
 import {TypedState} from '../../util/container'
 import {PermissionsAndroid} from 'react-native'
 import nativeSaga from './common.native'
+import {NativeModules} from '../../util/native-modules.native'
 
 export const ensureDownloadPermissionPromise = async () => {
   const permissionStatus = await PermissionsAndroid.request(
@@ -47,7 +48,7 @@ const finishedRegularDownload = async (state: TypedState, action: FsGen.Finished
     return null
   }
   try {
-    await require('react-native-blob-util').default.android.addCompleteDownload({
+    await NativeModules.Utils.androidAddCompleteDownload?.({
       description: `Keybase downloaded ${downloadInfo.filename}`,
       mime: mimeType,
       path: downloadState.localPath,
@@ -65,8 +66,8 @@ const configureDownload = async () =>
   RPCTypes.SimpleFSSimpleFSConfigureDownloadRpcPromise({
     // Android's cache dir is (when I tried) [app]/cache but Go side uses
     // [app]/.cache by default, which can't be used for sharing to other apps.
-    cacheDirOverride: require('react-native-blob-util').default.fs.dirs.CacheDir,
-    downloadDirOverride: require('react-native-blob-util').default.fs.dirs.DownloadDir,
+    cacheDirOverride: NativeModules.KeybaseEngine.fsCacheDir,
+    downloadDirOverride: NativeModules.KeybaseEngine.fsDownloadDir,
   })
 
 export default function* platformSpecificSaga() {

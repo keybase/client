@@ -20,7 +20,8 @@ import * as Types from '../../constants/types/chat2'
 import type * as FsTypes from '../../constants/types/fs'
 import {getEngine} from '../../engine/require'
 // this CANNOT be an import *, totally screws up the packager
-import {Alert, Linking, NativeModules, ActionSheetIOS, PermissionsAndroid, Vibration} from 'react-native'
+import {Alert, Linking, ActionSheetIOS, PermissionsAndroid, Vibration} from 'react-native'
+import {NativeModules} from '../../util/native-modules.native'
 import Clipboard from '@react-native-clipboard/clipboard'
 import CameraRoll from '@react-native-community/cameraroll'
 import NetInfo, {type NetInfoStateType} from '@react-native-community/netinfo'
@@ -37,7 +38,6 @@ import * as Haptics from 'expo-haptics'
 import {_getNavigator} from '../../constants/router2'
 import type {RPCError} from '../../util/errors'
 import type PermissionsType from 'expo-permissions'
-import type BlobType from 'react-native-blob-util'
 
 const requestPermissionsToWrite = async () => {
   if (isAndroid) {
@@ -141,8 +141,7 @@ export async function saveAttachmentToCameraRoll(filePath: string, mimeType: str
     throw e
   } finally {
     try {
-      const blob = require('react-native-blob-util').default as BlobType
-      blob.fs.unlink(filePath)
+      await NativeModules.Utils.androidUnlink?.(filePath)
     } catch (_) {
       logger.warn('failed to unlink')
     }
@@ -173,7 +172,7 @@ export const showShareActionSheet = async (options: {
   } else {
     if (!options.filePath && options.message) {
       try {
-        await NativeModules.ShareFiles.shareText(options.message, options.mimeType)
+        await NativeModules.ShareFiles?.shareText(options.message, options.mimeType)
         return {completed: true, method: ''}
       } catch (_) {
         return {completed: false, method: ''}
@@ -181,7 +180,7 @@ export const showShareActionSheet = async (options: {
     }
 
     try {
-      await NativeModules.ShareFiles.share(options.filePath, options.mimeType)
+      await NativeModules.ShareFiles?.share(options.filePath ?? '', options.mimeType)
       return {completed: true, method: ''}
     } catch (_) {
       return {completed: false, method: ''}
@@ -191,7 +190,7 @@ export const showShareActionSheet = async (options: {
 
 const openAppSettings = async () => {
   if (isAndroid) {
-    NativeModules.NativeSettings.open()
+    NativeModules.NativeSettings?.open()
   } else {
     const settingsURL = 'app-settings:'
     const can = await Linking.canOpenURL(settingsURL)
@@ -720,8 +719,8 @@ const configureFileAttachmentDownloadForAndroid = async () =>
   RPCChatTypes.localConfigureFileAttachmentDownloadLocalRpcPromise({
     // Android's cache dir is (when I tried) [app]/cache but Go side uses
     // [app]/.cache by default, which can't be used for sharing to other apps.
-    cacheDirOverride: (require('react-native-blob-util').default as BlobType).fs.dirs.CacheDir,
-    downloadDirOverride: (require('react-native-blob-util').default as BlobType).fs.dirs.DownloadDir,
+    cacheDirOverride: NativeModules.KeybaseEngine.fsCacheDir,
+    downloadDirOverride: NativeModules.KeybaseEngine.fsDownloadDir,
   })
 
 const stopAudioRecording = async (
@@ -910,7 +909,7 @@ function* checkNav(
 
 const notifyNativeOfDarkModeChange = (state: Container.TypedState) => {
   if (isAndroid) {
-    NativeModules.KeybaseEngine.appColorSchemeChanged(state.config.darkModePreference)
+    NativeModules.KeybaseEngine.androidAppColorSchemeChanged?.(state.config.darkModePreference ?? '')
   }
 }
 
