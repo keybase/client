@@ -5,8 +5,8 @@ import {useMemoOne, useCallbackOne} from 'use-memo-one'
 export const useMemo = useMemoOne
 export const useCallback = useCallbackOne
 const memoizeShallow = (f: any) => memoize(f, ([a], [b]) => shallowEqual(a, b))
-export {memoizeShallow, memoize}
 const memoize = memoizeOne
+export {memoizeShallow, memoize}
 
 // BEGIN debugging memo
 // import deepEqual from 'lodash/isEqual'

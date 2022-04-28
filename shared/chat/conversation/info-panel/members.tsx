@@ -73,6 +73,9 @@ const MembersTab = (props: Props) => {
     <Kb.SectionList
       stickySectionHeadersEnabled={true}
       keyboardShouldPersistTaps="handled"
+      desktopReactListTypeOverride="variable"
+      desktopItemSizeEstimatorOverride={() => 56}
+      getItemHeight={(item: any) => (item?.username ? 56 : 0)}
       renderSectionHeader={({section}: any) => section?.renderSectionHeader?.({section}) ?? null}
       sections={[
         ...props.commonSections,

@@ -291,12 +291,13 @@ class SectionList<T extends Section<any, any>> extends React.Component<Props<T>,
           {renderElementOrComponentOrNot(this.props.ListHeaderComponent)}
           <SafeReactList
             itemRenderer={(index, key) => this._itemRenderer(index, key, false)}
+            itemSizeEstimator={this.props.desktopItemSizeEstimatorOverride}
             itemSizeGetter={this.getItemSizeGetter()}
             length={this._flat.length}
             // @ts-ignore
             retrigger={this._flat}
             ref={this._listRef}
-            type="variable"
+            type={this.props.desktopReactListTypeOverride ?? 'variable'}
           />
         </Kb.ScrollView>
         {!this.props.disableAbsoluteStickyHeader && stickyHeader}

@@ -139,6 +139,9 @@ export type Props<SectionT extends Section<any, any>> = {
   getSectionHeaderHeight?: (sectionIndex: number) => number
 
   onSectionChange?: (section: SectionT) => void
+
+  desktopReactListTypeOverride?: string
+  desktopItemSizeEstimatorOverride?: () => number
 }
 
 export default class<T extends Section<any, any>> extends React.Component<Props<T>> {
