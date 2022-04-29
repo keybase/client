@@ -155,8 +155,18 @@ export function isEOFError(error: RPCError | Error) {
   )
 }
 
+const ignoredMsgs = ['context deadline exceeded in method keybase.1.SimpleFS.simpleFSSyncStatus']
+const isIgnoredError = (error: RPCError | Error) => {
+  if (isRPCError(error)) {
+    if (ignoredMsgs.some(m => error.desc.includes(m))) {
+      return true
+    }
+  }
+  return false
+}
+
 export function isErrorTransient(error: RPCError | Error) {
   // 'EOF from server' error from rpc library thrown when service
   // restarts no need to show to user
-  return isEOFError(error)
+  return isEOFError(error) || isIgnoredError(error)
 }
