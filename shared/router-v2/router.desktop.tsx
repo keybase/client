@@ -18,7 +18,7 @@ const Tab = createLeftTabNavigator()
 
 type DesktopTabs = typeof Tabs.desktopTabs[number]
 
-const tabRootsVals = Object.values(tabRoots)
+const tabRootsVals = Object.values(tabRoots).filter(root => root != tabRoots[Tabs.fsTab]) // we allow fs root anywhere
 // we don't want the other roots in other stacks
 const routesMinusRoots = (tab: DesktopTabs) => {
   const keepVal = tabRoots[tab]
