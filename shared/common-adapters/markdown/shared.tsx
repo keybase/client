@@ -3,7 +3,7 @@ import React, {PureComponent} from 'react'
 import SimpleMarkdown from 'simple-markdown'
 import Text from '../text'
 import logger from '../../logger'
-import {Props as MarkdownProps} from '.'
+import type {Props as MarkdownProps} from '.'
 import {emojiIndexByChar, emojiRegex, commonTlds} from './emoji-gen'
 import {reactOutput, previewOutput, bigEmojiOutput, markdownStyles, serviceOnlyOutput} from './react'
 
@@ -370,9 +370,7 @@ class SimpleMarkdownComponent extends PureComponent<MarkdownProps, {hasError: bo
 
 const styles = Styles.styleSheetCreate(() => ({
   rootWrapper: Styles.platformStyles({
-    isElectron: {
-      whiteSpace: 'pre',
-    },
+    isElectron: {whiteSpace: 'pre'},
   }),
 }))
 

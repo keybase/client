@@ -19,12 +19,8 @@ import {StyleOverride} from '.'
 import WithTooltip from '../with-tooltip'
 
 const linkStyle = Styles.platformStyles({
-  isElectron: {
-    fontWeight: 'inherit',
-  },
-  isMobile: {
-    fontWeight: undefined,
-  },
+  isElectron: {fontWeight: 'inherit'},
+  isMobile: {fontWeight: undefined},
 })
 
 type KeybaseLinkProps = {

@@ -1,10 +1,10 @@
 import * as Constants from '../../../../constants/chat2'
-import * as Types from '../../../../constants/types/chat2'
+import type * as Types from '../../../../constants/types/chat2'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as Container from '../../../../util/container'
 import * as WalletConstants from '../../../../constants/wallets'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
-import TextMessage, {ReplyProps} from '.'
+import TextMessage, {type ReplyProps} from '.'
 
 type OwnProps = {
   isHighlighted?: boolean
