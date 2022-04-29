@@ -485,6 +485,9 @@ class User extends React.Component<Props, State> {
             {!!this.state.width && (
               <Kb.SectionList
                 key={this.props.username + this.state.width /* forc render on user change or width change */}
+                desktopReactListTypeOverride="variable"
+                desktopItemSizeEstimatorOverride={() => 113}
+                getItemHeight={(item: any) => (item?.usernames ? 113 : 0)}
                 stickySectionHeadersEnabled={true}
                 renderSectionHeader={this._renderSectionHeader}
                 keyExtractor={this._keyExtractor}
@@ -623,7 +626,7 @@ export const styles = Styles.styleSheetCreate(() => ({
     isElectron: {height: avatarSize / 2 + Styles.globalMargins.small},
     isMobile: {padding: Styles.globalMargins.tiny},
   }),
-  reloadable: {paddingTop: Styles.isMobile ? 60 : 0},
+  reloadable: {paddingTop: 60},
   search: Styles.platformStyles({
     common: {
       backgroundColor: Styles.globalColors.black_10,

@@ -158,9 +158,11 @@ class GlobalError extends Component<Props, State> {
             />
           )}
         </Kb.Box>
-        <Kb.Text center={true} type="BodyBig" selectable={true} style={styles.details}>
-          {details}
-        </Kb.Text>
+        <Kb.ScrollView>
+          <Kb.Text center={true} type="BodyBig" selectable={true} style={styles.details}>
+            {details}
+          </Kb.Text>
+        </Kb.ScrollView>
       </Kb.Box>
     )
   }

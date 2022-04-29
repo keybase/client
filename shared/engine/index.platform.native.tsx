@@ -8,7 +8,11 @@ import logger from '../logger'
 const RNEmitter = new NativeEventEmitter(NativeModules.KeybaseEngine as any)
 
 class NativeTransport extends TransportShared {
-  constructor(incomingRPCCallback, connectCallback, disconnectCallback) {
+  constructor(
+    incomingRPCCallback: incomingRPCCallbackType,
+    connectCallback?: connectDisconnectCB,
+    disconnectCallback?: connectDisconnectCB
+  ) {
     super({}, connectCallback, disconnectCallback, incomingRPCCallback)
 
     // We're connected locally so we never get disconnected
@@ -21,14 +25,14 @@ class NativeTransport extends TransportShared {
   }
   is_connected() {
     return true
-  } // eslint-disable-line camelcase
+  }
 
   // Override and disable some built in stuff in TransportShared
   reset() {}
   close() {}
   get_generation() {
     return 1
-  } // eslint-disable-line camelcase
+  }
 
   // A custom send override to write b64 to the react native bridge
   send(msg: SendArg) {
@@ -63,7 +67,6 @@ function createClient(
 
   global.rpcOnJs = objs => {
     try {
-      // @ts-ignore this does exist
       client.transport._dispatch(objs)
     } catch (e) {
       logger.error('>>>> rpcOnJs JS thrown!', e)

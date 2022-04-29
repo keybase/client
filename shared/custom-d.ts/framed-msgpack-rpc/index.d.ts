@@ -1,12 +1,33 @@
 declare module 'framed-msgpack-rpc' {
   export const errors: {
-    UNKNOWN_METHOD: number
-    EOF: number
-    msg: {[key: number]: string}
+    msg: {
+      '0': 'Success'
+      '100': 'No method available'
+      '101': 'EOF from server'
+      UNKNOWN_METHOD: 'No method available'
+      EOF: 'EOF from server'
+      OK: 'Success'
+    }
+    name: {
+      '0': 'OK'
+      '100': 'UNKNOWN_METHOD'
+      '101': 'EOF'
+      UNKNOWN_METHOD: 'UNKNOWN_METHOD'
+      EOF: 'EOF'
+      OK: 'OK'
+    }
+    code: {
+      UNKNOWN_METHOD: 100
+      EOF: 101
+      OK: 0
+    }
+    UNKNOWN_METHOD: 100
+    EOF: 101
+    OK: 0
   }
 
   export const pack: {
-    set_opt(k: string, v: any): void
+    set_opt: (k: string, v: any) => void
   }
 
   export const dispatch: {
@@ -30,6 +51,9 @@ declare module 'framed-msgpack-rpc' {
       packetize_data(d: any): void
       needsConnect: boolean
       connect(b: (err?: any) => void): void
+      _connect_critical_section(cb: any): void
+      _raw_write(msg: string, encoding: 'binary'): void
+      _dispatch(a: any): void
     }
   }
 

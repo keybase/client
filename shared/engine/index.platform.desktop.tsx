@@ -7,26 +7,28 @@ import type {createClientType, incomingRPCCallbackType, connectDisconnectCB} fro
 const {process} = KB
 
 class NativeTransport extends TransportShared {
-  constructor(incomingRPCCallback, connectCallback, disconnectCallback) {
+  constructor(
+    incomingRPCCallback: incomingRPCCallbackType,
+    connectCallback?: connectDisconnectCB,
+    disconnectCallback?: connectDisconnectCB
+  ) {
     console.log('Transport using', socketPath)
     super({path: socketPath}, connectCallback, disconnectCallback, incomingRPCCallback)
     this.needsConnect = true
   }
 
-  _connect_critical_section(cb: any) {
-    // @ts-ignore using private api
+  _connect_critical_section(cb: unknown) {
     super._connect_critical_section(cb)
     windowsHack()
   }
 
   // Override Transport._raw_write -- see transport.iced in
   // framed-msgpack-rpc.
-  _raw_write(msg, encoding) {
+  _raw_write(msg: string, encoding: 'binary') {
     if (printRPCBytes) {
       const b = Buffer.from(msg, encoding)
       logger.debug('[RPC] Writing', b.length, 'bytes:', b.toString('hex'))
     }
-    // @ts-ignore using private api
     super._raw_write(msg, encoding)
   }
 
