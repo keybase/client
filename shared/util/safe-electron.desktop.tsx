@@ -1,13 +1,12 @@
-// TODO deprecate
+// TODO deprecate and replace with contextbridge / messages
 // Helps deal with loading common things from remote.
 import * as Electron from 'electron'
 
-const {process, isRenderer} = KB
-const remote = isRenderer  ? require( '@electron/remote' ) : null
+const remote = KB.constants.isRenderer ? require('@electron/remote') : null
 
 // Main thread only, proxy through remote
 export const getApp = () => {
-  const app = isRenderer ? remote.app : Electron.app
+  const app = KB.constants.isRenderer ? remote.app : Electron.app
   if (!app) {
     throw new Error('Should be impossible')
   }
@@ -17,13 +16,13 @@ export const getApp = () => {
 // some kind of electron bug
 // https://github.com/electron/electron/issues/19125
 export const workingIsDarkMode = () => {
-  const platform = process.platform
-  const isDarwin = platform === 'darwin'
-  return isDarwin && getSystemPreferences().getUserDefault('AppleInterfaceStyle', 'string') == 'Dark'
+  return (
+    KB.constants.isDarwin && getSystemPreferences().getUserDefault('AppleInterfaceStyle', 'string') == 'Dark'
+  )
 }
 
 export const getSystemPreferences = () => {
-  const systemPreferences = isRenderer ? remote.systemPreferences : Electron.systemPreferences
+  const systemPreferences = KB.constants.isRenderer ? remote.systemPreferences : Electron.systemPreferences
   if (!systemPreferences) {
     throw new Error('Should be impossible')
   }

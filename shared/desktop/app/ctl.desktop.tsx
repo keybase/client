@@ -1,11 +1,10 @@
 import * as SafeElectron from '../../util/safe-electron.desktop'
-import {keybaseBinPath} from './paths.desktop'
 import exec from './exec.desktop'
 import {isWindows} from '../../constants/platform'
 import {spawn} from 'child_process'
 
 export function ctlStop(callback: any) {
-  const binPath = keybaseBinPath()
+  const binPath = KB.constants.binPath
   if (isWindows) {
     if (!binPath) {
       if (callback) callback("cannot get keybaseBinPath which shouldn't happen")

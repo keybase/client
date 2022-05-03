@@ -45,10 +45,10 @@ global.KB = {
     get argv() {
       return invalidPreload()
     },
-    env: {},
     get pid() {
       return invalidPreload()
     },
+    env: {},
     get platform() {
       return invalidPreload()
     },

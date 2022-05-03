@@ -13,8 +13,6 @@ import logger from '../../logger'
 import debounce from 'lodash/debounce'
 import {setupDevToolsExtensions} from './dev-tools.desktop'
 
-const {env} = KB.process
-
 let htmlFile = resolveRootAsURL('dist', `main${__DEV__ ? '.dev' : ''}.html`)
 
 const setupDefaultSession = () => {
@@ -203,11 +201,11 @@ const maybeShowWindowOrDock = (win: Electron.BrowserWindow) => {
   const openedAtLogin = Electron.app.getLoginItemSettings().wasOpenedAtLogin
   // app.getLoginItemSettings().restoreState is Mac only, so consider it always on in Windows
   const isRestore =
-    !!env['KEYBASE_RESTORE_UI'] || Electron.app.getLoginItemSettings().restoreState || isWindows
-  const hideWindowOnStart = env['KEYBASE_AUTOSTART'] === '1'
+    !!process.env['KEYBASE_RESTORE_UI'] || Electron.app.getLoginItemSettings().restoreState || isWindows
+  const hideWindowOnStart = process.env['KEYBASE_AUTOSTART'] === '1'
   const openHidden = Electron.app.getLoginItemSettings().wasOpenedAsHidden
-  logger.info('KEYBASE_AUTOSTART =', env['KEYBASE_AUTOSTART'])
-  logger.info('KEYBASE_START_UI =', env['KEYBASE_START_UI'])
+  logger.info('KEYBASE_AUTOSTART =', process.env['KEYBASE_AUTOSTART'])
+  logger.info('KEYBASE_START_UI =', process.env['KEYBASE_START_UI'])
   logger.info('Opened at login:', openedAtLogin)
   logger.info('Is restore:', isRestore)
   logger.info('Open hidden:', openHidden)

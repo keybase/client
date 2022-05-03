@@ -7,7 +7,6 @@ import * as Electron from 'electron'
 import * as Saga from '../../util/saga'
 import logger from '../../logger'
 import {NotifyPopup} from '../../native/notifications'
-import {execFile} from 'child_process'
 import {getEngine} from '../../engine'
 import {isLinux, isWindows, socketPath, defaultUseNativeFrame} from '../../constants/platform.desktop'
 import {kbfsNotification} from '../../util/kbfs-notifications'
@@ -18,9 +17,6 @@ import {skipAppFocusActions} from '../../local-debug.desktop'
 import type * as Container from '../../util/container'
 import {_getNavigator} from '../../constants/router2'
 import type {RPCError} from 'util/errors'
-
-const {resolve} = KB.path
-const {argv, env, pid} = KB.process
 
 export function showShareActionSheet() {
   throw new Error('Show Share Action - unsupported on this platform')
@@ -114,30 +110,7 @@ function* checkRPCOwnership(_: Container.TypedState, action: ConfigGen.DaemonHan
   try {
     logger.info('Checking RPC ownership')
 
-    const localAppData = String(env.LOCALAPPDATA)
-    const binPath = localAppData ? resolve(localAppData, 'Keybase', 'keybase.exe') : 'keybase.exe'
-    const args = ['pipeowner', socketPath]
-    yield Saga.callUntyped(
-      async () =>
-        new Promise<void>((resolve, reject) => {
-          execFile(binPath, args, {windowsHide: true}, (error, stdout) => {
-            if (error) {
-              logger.info(`pipeowner check result: ${stdout.toString()}`)
-              // error will be logged in bootstrap check
-              getEngine().reset()
-              reject(error)
-              return
-            }
-            const result = JSON.parse(stdout.toString())
-            if (result.isOwner) {
-              resolve(undefined)
-              return
-            }
-            logger.info(`pipeowner check result: ${stdout.toString()}`)
-            reject(new Error('pipeowner check failed'))
-          })
-        })
-    )
+    yield Saga.callUntyped(async () => KB.functions.checkRPCOwnership())
     yield Saga.put(
       ConfigGen.createDaemonHandshakeWait({
         increment: false,
@@ -200,14 +173,14 @@ const onShutdown = (action: EngineGen.Keybase1NotifyServiceShutdownPayload) => {
   }
 }
 
-const onConnected = () => {
+const onConnected = async () => {
   // Introduce ourselves to the service
   RPCTypes.configHelloIAmRpcPromise({
     details: {
-      argv: argv,
+      argv: KB.process.argv,
       clientType: RPCTypes.ClientType.guiMain,
       desc: 'Main Renderer',
-      pid,
+      pid: KB.process.pid,
       version: __VERSION__, // eslint-disable-line no-undef
     },
   }).catch(() => {})

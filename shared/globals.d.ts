@@ -57,20 +57,20 @@ interface Console {
 }
 
 declare var KB: {
-  __dirname: string
+  // __dirname: string
   DEV?: any
   /** Use this for debug logs you don't want commited **/
   debugConsoleLog: (nope: never) => void
   electron: {
-    app: {
-      appPath: string
-    }
+    // app: {
+    //   appPath: string
+    // }
     dialog: {
       showOpenDialog: (options: KBElectronOpenDialogOptions) => Promise<Array<string> | undefined>
       showSaveDialog: (options: KBElectronSaveDialogOptions) => Promise<string | undefined>
     }
   }
-  isRenderer: boolean
+  // isRenderer: boolean
   kb: {
     darwinCopyToKBFSTempUploadFile: (p: string) => Promise<string>
     darwinCopyToChatTempUploadFile: (p: string) => Promise<{
@@ -79,23 +79,60 @@ declare var KB: {
     }>
     setEngine: (e: any) => void
   }
-  os: {
-    homedir: string
-  }
+  // os: {
+  //   homedir: string
+  // }
   path: {
     basename: (p: string, ext?: string) => string
     dirname: (p: string) => string
     extname: (p: string) => string
     join: (...paths: Array<string>) => string
-    resolve: (...pathSegments: Array<string>) => string
-    sep: '\\' | '/'
+    // resolve: (...pathSegments: Array<string>) => string
+    //   sep: '\\' | '/'
   }
-  process: {
-    argv: Array<string>
-    env: NodeJS.ProcessEnv
+  // process: {
+  //   argv: Array<string>
+  //     env: {
+  //       KEYBASE_AUTOSTART?: string
+  //       KEYBASE_CRASH_REPORT?: string
+  //       KEYBASE_NO_ENGINE?: string
+  //       KEYBASE_RESTORE_UI?: string
+  //       KEYBASE_START_UI?: string
+  //       LOCALAPPDATA?: string
+  // KEYBASE_RUN_MODE
+  //     }
+  // pid: number
+  // platform: NodeJS.Platform
+  // type: string
+  // }
+  functions: {
+    checkRPCOwnership: () => Promise<void>
+    resolveRoot: (...to: Array<string>) => string
+    resolveRootAsURL: (...to: Array<string>) => string
+    resolveImage: (...to: Array<string>) => string
+    resolveImageAsURL: (...to: Array<string>) => string
+  }
+  constants: {
+    // appPath: string
+    binPath: string
+    cacheRoot: string
+    dataRoot: string
+    guiConfigFilename: string
+    downloadFolder: string
+    isDarwin: boolean
+    isLinux: boolean
+    isMac: boolean
+    isRenderer: boolean
+    isWindows: boolean
+    jsonDebugFileName: string
+    logDir: string
+    pathSep: string
+    runMode: string
     pid: number
-    platform: NodeJS.Platform
-    type: string
+    serverConfigFileName: string
+    socketPath: string
+    uses24HourClock: boolean
+    useFakeEngine: boolean
   }
 }
 

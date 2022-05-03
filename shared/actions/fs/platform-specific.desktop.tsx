@@ -14,10 +14,6 @@ import {spawn, execFile, exec} from 'child_process'
 import {errorToActionOrThrow} from './shared'
 import * as RouteTreeGen from '../route-tree-gen'
 
-const {path} = KB
-const {sep} = path
-const {env} = KB.process
-
 type pathType = 'file' | 'directory'
 
 // pathToURL takes path and converts to (file://) url.
@@ -122,7 +118,10 @@ const escapeBackslash = isWindows
   : (pathElem: string): string => pathElem
 
 const _rebaseKbfsPathToMountLocation = (kbfsPath: Types.Path, mountLocation: string) =>
-  path.resolve(mountLocation, Types.getPathElements(kbfsPath).slice(1).map(escapeBackslash).join(sep))
+  KB.path.resolve(
+    mountLocation,
+    Types.getPathElements(kbfsPath).slice(1).map(escapeBackslash).join(KB.path.sep)
+  )
 
 const openPathInSystemFileManager = async (
   state: TypedState,
@@ -314,7 +313,7 @@ const openSecurityPreferences = () => {
 const installCachedDokan = async () =>
   new Promise<void>((resolve, reject) => {
     logger.info('Invoking dokan installer')
-    const dokanPath = path.resolve(String(env.LOCALAPPDATA), 'Keybase', 'DokanSetup_redist.exe')
+    const dokanPath = KB.path.resolve(String(KB.process.env.LOCALAPPDATA), 'Keybase', 'DokanSetup_redist.exe')
     execFile(dokanPath, [], err => {
       if (err) {
         reject(err)
@@ -322,7 +321,7 @@ const installCachedDokan = async () =>
       }
       // restart the service, particularly kbfsdokan
       // based on desktop/app/start-win-service.js
-      const binPath = path.resolve(String(env.LOCALAPPDATA), 'Keybase', 'keybase.exe')
+      const binPath = KB.path.resolve(String(KB.process.env.LOCALAPPDATA), 'Keybase', 'keybase.exe')
       if (!binPath) {
         reject(new Error('resolve failed'))
         return

@@ -2,7 +2,6 @@ import * as SafeElectron from '../../util/safe-electron.desktop'
 import fs from 'fs'
 import path from 'path'
 import exec from './exec.desktop'
-import {keybaseBinPath} from './paths.desktop'
 import {quit} from './ctl.desktop'
 import {isDarwin} from '../../constants/platform'
 import logger from '../../logger'
@@ -123,7 +122,7 @@ const checkErrors = (
 type CB = (err: Error | null) => void
 const darwinInstall = (dispatch: (action: TypedActions) => void, callback: CB) => {
   logger.info('[Installer]: Installer check starting now')
-  const keybaseBin = keybaseBinPath()
+  const keybaseBin = KB.constants.binPath
   if (!keybaseBin) {
     callback(new Error('No keybase bin path'))
     return

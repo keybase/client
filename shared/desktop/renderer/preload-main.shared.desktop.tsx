@@ -1,6 +1,6 @@
 import path from 'path'
-import os from 'os'
-import {app, type dialog, type BrowserWindow, ipcRenderer} from 'electron'
+// import os from 'os'
+import {type app, type dialog, type BrowserWindow, ipcRenderer} from 'electron'
 // @ts-ignore strict
 import fse from 'fs-extra'
 import type {Engine, WaitingKey} from '../../engine'
@@ -11,29 +11,24 @@ import type {MessageTypes as ChatMessageTypes} from '../../constants/types/rpc-c
 const isRenderer = process.type === 'renderer'
 
 const target = isRenderer ? window : global
-const {argv, platform, env, type} = process
+const {platform} = process
+// const {argv, platform, env, type} = process
 const isDarwin = platform === 'darwin'
 const isWindows = platform === 'win32'
 const isLinux = platform === 'linux'
 
 const remote: {
-  process: {pid: number}
   dialog: typeof dialog
   app: typeof app
   getCurrentWindow: () => BrowserWindow
 } = require(isRenderer ? '@electron/remote' : '@electron/remote/main')
 
-const fromMain = isRenderer ? ipcRenderer.sendSync('KBkeybase', {type: 'setupPreload'}) : {pid: process.pid}
-
-const {pid} = fromMain
-
-const kbProcess = {
-  argv,
-  env,
-  pid,
-  platform,
-  type,
-}
+// const kbProcess = {
+//   argv,
+//   env,
+//   platform,
+//   type,
+// }
 
 const darwinCopyToKBFSTempUploadFile = isDarwin
   ? async (originalFilePath: string) => {
@@ -171,43 +166,54 @@ const showSaveDialog = async (opts: KBElectronSaveDialogOptions) => {
   }
 }
 
-const KB = {
-  __dirname: __dirname,
+const preload: {
+  constants: typeof global.KB['constants']
+  functions: typeof global.KB['functions']
+  // process: typeof global.KB['process']
+} = isRenderer ? ipcRenderer.sendSync('KBkeybase', {type: 'getPreload'}) : {process: {pid: process.pid}}
+
+const KB: typeof global.KB = {
+  // TODO remove
+  // __dirname: __dirname,
+  constants: preload.constants,
   debugConsoleLog,
   electron: {
-    app: {
-      appPath: __STORYSHOT__ ? '' : isRenderer ? remote.app.getAppPath() : app.getAppPath(),
-    },
+    // app: {
+    //   appPath: __STORYSHOT__ ? '' : isRenderer ? remote.app.getAppPath() : app.getAppPath(),
+    // },
     dialog: {
       showOpenDialog,
       showSaveDialog,
     },
   },
-  isRenderer,
+  functions: preload.functions,
+  // isRenderer,
   kb: {
     darwinCopyToChatTempUploadFile,
     darwinCopyToKBFSTempUploadFile,
     setEngine,
   },
-  os: {
-    homedir: os.homedir(),
-  },
+  // TODO remove
+  // os: {
+  //   homedir: os.homedir(),
+  // },
+  // TODO remove
   path: {
     basename: path.basename,
     dirname: path.dirname,
     extname: path.extname,
     join: path.join,
-    resolve: path.resolve,
-    sep: path.sep as any,
+    // resolve: path.resolve,
+    // sep: path.sep as any,
   },
-  process: kbProcess,
+  // process: preload.process,
 }
 
 target.KB = KB
 
-if (isRenderer) {
-  // have to do this else electron blows away process after the initial preload, use this to add it back
-  setTimeout(() => {
-    window.KB.process = kbProcess
-  }, 0)
-}
+// if (isRenderer) {
+//   // have to do this else electron blows away process after the initial preload, use this to add it back
+//   setTimeout(() => {
+//     window.KB.process = preload.process
+//   }, 0)
+// }

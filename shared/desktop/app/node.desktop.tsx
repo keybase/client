@@ -1,6 +1,6 @@
 // Entry point for the node part of the electron app
 // MUST be first
-import './preload.desktop'
+import './setup-KB.desktop'
 // ^^^^^^^^
 import MainWindow, {showDockIcon, closeWindows} from './main-window.desktop'
 import * as Electron from 'electron'
@@ -10,6 +10,7 @@ import menuBar from './menu-bar.desktop'
 import menuHelper from './menu-helper.desktop'
 import os from 'os'
 import fs from 'fs'
+import path from 'path'
 import * as ConfigGen from '../../actions/config-gen'
 import * as DeeplinksGen from '../../actions/deeplinks-gen'
 import {showDevTools, skipSecondaryDevtools, allowMultipleInstances} from '../../local-debug.desktop'
@@ -20,9 +21,7 @@ import {mainWindowDispatch} from '../remote/util.desktop'
 import {quit} from './ctl.desktop'
 import logger from '../../logger'
 import {resolveRoot, resolveRootAsURL} from './resolve-root.desktop'
-
-const {join} = KB.path
-const {env} = KB.process
+import preload from './preload'
 
 require('@electron/remote/main').initialize()
 
@@ -34,7 +33,7 @@ let saltpackFilePath: string | null = null
 Electron.app.commandLine.appendSwitch('disk-cache-size', '1')
 
 const installCrashReporter = () => {
-  if (env.KEYBASE_CRASH_REPORT) {
+  if (process.env.KEYBASE_CRASH_REPORT === '1') {
     console.log(`Adding crash reporting (local). Crash files located in ${Electron.app.getPath('temp')}`)
     Electron.app.setPath('crashDumps', cacheRoot)
     Electron.crashReporter.start({
@@ -276,7 +275,7 @@ type Action =
       }
     }
   | {type: 'showMainWindow'}
-  | {type: 'setupPreload'}
+  | {type: 'getPreload'}
 
 const remoteURL = (windowComponent: string, windowParam: string) =>
   resolveRootAsURL('dist', `${windowComponent}${__DEV__ ? '.dev' : ''}.html?param=${windowParam}`)
@@ -294,13 +293,17 @@ const plumbEvents = () => {
     mainWindow?.webContents.send('KBdispatchAction', action)
   })
 
-  Electron.ipcMain.handle('KBkeybase', (event, action: Action) => {
+  Electron.ipcMain.on('KBkeybase', (event, action: Action) => {
     switch (action.type) {
-      case 'setupPreload':
+      case 'getPreload':
         {
-          event.returnValue = {pid: process.pid}
+          event.returnValue = preload
         }
         break
+    }
+  })
+  Electron.ipcMain.handle('KBkeybase', (_event, action: Action) => {
+    switch (action.type) {
       case 'showMainWindow':
         {
           mainWindow?.show()
@@ -312,7 +315,7 @@ const plumbEvents = () => {
         // TODO change how this works
         try {
           fs.writeFileSync(
-            join(Electron.app.getPath('userData'), 'app-state.json'),
+            path.join(Electron.app.getPath('userData'), 'app-state.json'),
             JSON.stringify({
               changedAtMs: action.payload.changedAtMs,
               isUserActive: action.payload.isUserActive,
@@ -414,6 +417,7 @@ const plumbEvents = () => {
         break
       }
     }
+    return undefined
   })
 }
 

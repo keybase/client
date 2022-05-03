@@ -14,8 +14,6 @@ import type {CustomResponseIncomingCallMapType, IncomingCallMapType} from '.'
 import type {SessionID, SessionIDKey, WaitingHandlerType, MethodKey} from './types'
 import type {TypedState, TypedDispatch} from '../util/container'
 
-const {env} = KB.process
-
 // delay incoming to stop react from queueing too many setState calls and stopping rendering
 // only while debugging for now
 const DEFER_INCOMING_DURING_DEBUG = __DEV__ && false
@@ -358,7 +356,7 @@ const makeEngine = (dispatch: TypedDispatch, getState: () => TypedState) => {
 
   if (!engine) {
     engine =
-      env.KEYBASE_NO_ENGINE || isTesting
+      KB.constants.useFakeEngine || isTesting
         ? (new FakeEngine() as unknown as Engine)
         : new Engine(dispatch, getState)
     if (__DEV__) {

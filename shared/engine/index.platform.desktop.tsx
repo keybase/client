@@ -4,7 +4,6 @@ import {TransportShared, sharedCreateClient, rpcLog} from './transport-shared'
 import {isWindows, socketPath} from '../constants/platform.desktop'
 import {printRPCBytes} from '../local-debug'
 import type {createClientType, incomingRPCCallbackType, connectDisconnectCB} from './index.platform'
-const {process} = KB
 
 class NativeTransport extends TransportShared {
   constructor(
@@ -49,7 +48,7 @@ function windowsHack() {
   // hangs until other random net module operations, at which point it
   // unblocks.  Could be Electron, could be a node-framed-msgpack-rpc
   // bug, who knows.
-  if (!isWindows || process.type !== 'renderer') {
+  if (!isWindows || !KB.constants.isRenderer) {
     return
   }
 
