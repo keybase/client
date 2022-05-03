@@ -276,6 +276,7 @@ type Action =
       }
     }
   | {type: 'showMainWindow'}
+  | {type: 'setupPreload'}
 
 const remoteURL = (windowComponent: string, windowParam: string) =>
   resolveRootAsURL('dist', `${windowComponent}${__DEV__ ? '.dev' : ''}.html?param=${windowParam}`)
@@ -293,8 +294,13 @@ const plumbEvents = () => {
     mainWindow?.webContents.send('KBdispatchAction', action)
   })
 
-  Electron.ipcMain.handle('KBkeybase', (_event, action: Action) => {
+  Electron.ipcMain.handle('KBkeybase', (event, action: Action) => {
     switch (action.type) {
+      case 'setupPreload':
+        {
+          event.returnValue = {pid: process.pid}
+        }
+        break
       case 'showMainWindow':
         {
           mainWindow?.show()

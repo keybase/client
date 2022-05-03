@@ -1,15 +1,15 @@
 import path from 'path'
 import os from 'os'
-import * as Electron from 'electron'
+import {app, type dialog, type BrowserWindow, ipcRenderer} from 'electron'
 // @ts-ignore strict
 import fse from 'fs-extra'
 import type {Engine, WaitingKey} from '../../engine'
 import type {RPCError} from '../../util/errors'
 import type {MessageTypes as FsMessageTypes} from '../../constants/types/rpc-gen'
 import type {MessageTypes as ChatMessageTypes} from '../../constants/types/rpc-chat-gen'
-import type {dialog, BrowserWindow, app} from 'electron'
 
 const isRenderer = process.type === 'renderer'
+
 const target = isRenderer ? window : global
 const {argv, platform, env, type} = process
 const isDarwin = platform === 'darwin'
@@ -23,8 +23,9 @@ const remote: {
   getCurrentWindow: () => BrowserWindow
 } = require(isRenderer ? '@electron/remote' : '@electron/remote/main')
 
-// @ts-ignore strict
-const pid: number = isRenderer ? remote.process.pid : process.pid
+const fromMain = isRenderer ? ipcRenderer.sendSync('KBkeybase', {type: 'setupPreload'}) : {pid: process.pid}
+
+const {pid} = fromMain
 
 const kbProcess = {
   argv,
@@ -170,12 +171,12 @@ const showSaveDialog = async (opts: KBElectronSaveDialogOptions) => {
   }
 }
 
-target.KB = {
+const KB = {
   __dirname: __dirname,
   debugConsoleLog,
   electron: {
     app: {
-      appPath: __STORYSHOT__ ? '' : isRenderer ? remote.app.getAppPath() : Electron.app.getAppPath(),
+      appPath: __STORYSHOT__ ? '' : isRenderer ? remote.app.getAppPath() : app.getAppPath(),
     },
     dialog: {
       showOpenDialog,
@@ -200,8 +201,9 @@ target.KB = {
     sep: path.sep as any,
   },
   process: kbProcess,
-  // punycode, // used by a dep
 }
+
+target.KB = KB
 
 if (isRenderer) {
   // have to do this else electron blows away process after the initial preload, use this to add it back
