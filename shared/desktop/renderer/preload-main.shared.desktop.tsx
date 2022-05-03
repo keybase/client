@@ -9,8 +9,6 @@ import type {MessageTypes as FsMessageTypes} from '../../constants/types/rpc-gen
 import type {MessageTypes as ChatMessageTypes} from '../../constants/types/rpc-chat-gen'
 import type {dialog, BrowserWindow, app} from 'electron'
 
-console.log('aaaa loading preload')
-
 const isRenderer = process.type === 'renderer'
 const target = isRenderer ? window : global
 const {argv, platform, env, type} = process
@@ -202,7 +200,6 @@ target.KB = {
     sep: path.sep as any,
   },
   process: kbProcess,
-  // punycode, // used by a dep
 }
 
 target.setupKB2 = async () => {
@@ -223,5 +220,3 @@ if (isRenderer) {
     window.KB.process = kbProcess
   }, 0)
 }
-
-console.log('aaaa done loading preload', target)

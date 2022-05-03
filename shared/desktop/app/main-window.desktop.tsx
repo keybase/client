@@ -3,7 +3,6 @@ import * as SafeElectron from '../../util/safe-electron.desktop'
 import * as Electron from 'electron'
 import * as ConfigGen from '../../actions/config-gen'
 import * as fs from 'fs'
-import path from 'path'
 import menuHelper from './menu-helper.desktop'
 import {mainWindowDispatch} from '../remote/util.desktop'
 import type {WindowState} from '../../constants/types/config'
@@ -15,14 +14,7 @@ import {setupDevToolsExtensions} from './dev-tools.desktop'
 import {assetRoot, htmlPrefix} from './html-root.desktop'
 
 const {env} = KB.process
-
 let htmlFile = `${htmlPrefix}${assetRoot}main${__DEV__ ? '.dev' : ''}.html`
-console.log(
-  'aaa loading up main window html',
-  assetRoot,
-  htmlFile,
-  `${assetRoot}preload-main${__DEV__ ? '.dev' : ''}.bundle.js`
-)
 
 const setupDefaultSession = () => {
   const ds = Electron.session.defaultSession
