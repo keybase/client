@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
-import {resolveRoot} from '../../../../../desktop/app/resolve-root.desktop'
 import {urlsToImgSet} from '../../../../../common-adapters/icon.desktop'
 import {Props} from '.'
 import SharedTimer, {SharedTimerID} from '../../../../../util/shared-timers'
@@ -158,8 +157,14 @@ const FlameFront = (props: {height: number; stop: boolean}) => {
 
 const explodedIllustrationUrl = (): string =>
   Styles.isDarkMode()
-    ? urlsToImgSet({'68': resolveRoot('images', 'icons', 'dark-pattern-ashes-desktop-400-68.png')}, 68)
-    : urlsToImgSet({'68': resolveRoot('images', 'icons', 'pattern-ashes-desktop-400-68.png')}, 68)
+    ? urlsToImgSet(
+        {'68': [KB2.assetRoot, 'images', 'icons', 'dark-pattern-ashes-desktop-400-68.png'].join('/')},
+        68
+      )
+    : urlsToImgSet(
+        {'68': [KB2.assetRoot, 'images', 'icons', 'pattern-ashes-desktop-400-68.png'].join('')},
+        68
+      )
 
 const styles = Styles.styleSheetCreate(
   () =>
