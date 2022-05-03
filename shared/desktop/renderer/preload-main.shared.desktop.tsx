@@ -9,6 +9,8 @@ import type {MessageTypes as FsMessageTypes} from '../../constants/types/rpc-gen
 import type {MessageTypes as ChatMessageTypes} from '../../constants/types/rpc-chat-gen'
 import type {dialog, BrowserWindow, app} from 'electron'
 
+console.log('aaaa loading preload')
+
 const isRenderer = process.type === 'renderer'
 const target = isRenderer ? window : global
 const {argv, platform, env, type} = process
@@ -203,9 +205,23 @@ target.KB = {
   // punycode, // used by a dep
 }
 
+target.setupKB2 = async () => {
+  const kb2 = await Electron.ipcRenderer.invoke('KBkeybase', {type: 'setupPreloadKB2'})
+  target.KB2 = {
+    ...kb2,
+  }
+
+  // TODO contextBridge
+  target.KB_REMOTE = {
+    // uses24HourClock: async () => Electron.ipcRenderer.invoke('KBkeybase', {type: 'uses24HourClock'}),
+  }
+}
+
 if (isRenderer) {
   // have to do this else electron blows away process after the initial preload, use this to add it back
   setTimeout(() => {
     window.KB.process = kbProcess
   }, 0)
 }
+
+console.log('aaaa done loading preload', target)

@@ -20,7 +20,7 @@ import {_setDarkModePreference} from '../../styles/dark-mode'
 import {isDarwin, isWindows} from '../../constants/platform'
 import {useSelector} from '../../util/container'
 import {isDarkMode} from '../../constants/config'
-import {TypedActions} from '../../actions/typed-actions-gen'
+import type {TypedActions} from '../../actions/typed-actions-gen'
 
 // node side plumbs through initial pref so we avoid flashes
 const darkModeFromNode = window.location.search.match(/darkModePreference=(alwaysLight|alwaysDark|system)/)

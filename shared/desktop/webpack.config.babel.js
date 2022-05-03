@@ -126,28 +126,30 @@ const config = (_, {mode}) => {
       ...(isDev
         ? {}
         : {
-            optimization: {
-              minimizer: [
-                // options from create react app: https://github.com/facebook/create-react-app/blob/master/packages/react-scripts/config/webpack.config.prod.js
-                new TerserPlugin({
-                  parallel: true,
-                  terserOptions: {
-                    parse: {ecma: 8},
-                    compress: {
-                      comparisons: false,
-                      ecma: 5,
-                      inline: 2,
-                      warnings: false,
-                    },
-                    keep_fnames: true,
-                    keep_classnames: true,
-                    mangle: false,
-                    output: {comments: false},
-                    // warnings: 'verbose', // uncomment to see more of what uglify is doing
-                  },
-                }),
-              ],
-            },
+            // TEMP
+            optimization: {minimize: false},
+            // optimization: {
+            //   minimizer: [
+            //     // options from create react app: https://github.com/facebook/create-react-app/blob/master/packages/react-scripts/config/webpack.config.prod.js
+            //     new TerserPlugin({
+            //       parallel: true,
+            //       terserOptions: {
+            //         parse: {ecma: 8},
+            //         compress: {
+            //           comparisons: false,
+            //           ecma: 5,
+            //           inline: 2,
+            //           warnings: false,
+            //         },
+            //         keep_fnames: true,
+            //         keep_classnames: true,
+            //         mangle: false,
+            //         output: {comments: false},
+            //         // warnings: 'verbose', // uncomment to see more of what uglify is doing
+            //       },
+            //     }),
+            //   ],
+            // },
           }),
     }
   }
@@ -256,13 +258,10 @@ const config = (_, {mode}) => {
       ...(isDev
         ? {
             // needed by webpack dev server, fulfilled by preload
-            events: 'KB.DEV.events',
-            // punycode: 'KB.punycode',
-            url: 'KB.DEV.url',
+            // events: 'KB.DEV.events',
+            // url: 'KB.DEV.url',
           }
-        : {
-            // punycode: 'KB.punycode',
-          }),
+        : {}),
     },
     module: {rules: makeRules(false)},
     name: 'Keybase',

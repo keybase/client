@@ -3,19 +3,26 @@ import * as SafeElectron from '../../util/safe-electron.desktop'
 import * as Electron from 'electron'
 import * as ConfigGen from '../../actions/config-gen'
 import * as fs from 'fs'
+import path from 'path'
 import menuHelper from './menu-helper.desktop'
 import {mainWindowDispatch} from '../remote/util.desktop'
 import type {WindowState} from '../../constants/types/config'
 import {showDevTools} from '../../local-debug.desktop'
 import {guiConfigFilename, isDarwin, isWindows, defaultUseNativeFrame} from '../../constants/platform.desktop'
-import {resolveRoot, resolveRootAsURL} from './resolve-root.desktop'
 import logger from '../../logger'
 import debounce from 'lodash/debounce'
 import {setupDevToolsExtensions} from './dev-tools.desktop'
+import {assetRoot, htmlPrefix} from './html-root.desktop'
 
 const {env} = KB.process
 
-let htmlFile = resolveRootAsURL('dist', `main${__DEV__ ? '.dev' : ''}.html`)
+let htmlFile = `${htmlPrefix}${assetRoot}main${__DEV__ ? '.dev' : ''}.html`
+console.log(
+  'aaa loading up main window html',
+  assetRoot,
+  htmlFile,
+  `${assetRoot}preload-main${__DEV__ ? '.dev' : ''}.bundle.js`
+)
 
 const setupDefaultSession = () => {
   const ds = Electron.session.defaultSession
@@ -284,7 +291,7 @@ export default () => {
       devTools: showDevTools,
       nodeIntegration: true,
       nodeIntegrationInWorker: false,
-      preload: resolveRoot('dist', `preload-main${__DEV__ ? '.dev' : ''}.bundle.js`),
+      preload: `${assetRoot}preload-main${__DEV__ ? '.dev' : ''}.bundle.js`,
       spellcheck: !disableSpellCheck,
     },
     width: windowState.width,

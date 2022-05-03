@@ -47,6 +47,8 @@ interface Window {
   DEBUGLogSagasWithNames: any
   DEBUGRootEffects: any
   KB: typeof KB
+  KB2: typeof KB2
+  setupKB2: () => Promise<void>
 }
 
 interface Console {
@@ -56,6 +58,7 @@ interface Console {
   _info: any
 }
 
+// TODO deprecate
 declare var KB: {
   __dirname: string
   DEV?: any
@@ -99,6 +102,15 @@ declare var KB: {
   }
 }
 
+declare var KB2: {
+  // appPath: string
+  assetRoot: string
+  // pathSep: string
+}
+declare var KB_REMOTE: {
+  // uses24HourClock: () => Promise<boolean>
+}
+
 declare namespace NodeJS {
   interface Global {
     DEBUGActionLoop: () => void
@@ -113,5 +125,7 @@ declare namespace NodeJS {
     DEBUGStore: any
     globalLogger: any
     KB: typeof KB
+    KB2: typeof KB2
+    setupKB2: () => Promise<void>
   }
 }

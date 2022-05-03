@@ -1,6 +1,7 @@
 // Entry point for the node part of the electron app
 // MUST be first
 import './preload.desktop'
+import './inject-kb2.desktop'
 // ^^^^^^^^
 import MainWindow, {showDockIcon, closeWindows} from './main-window.desktop'
 import * as Electron from 'electron'
@@ -19,7 +20,7 @@ import {isPathSaltpack} from '../../constants/crypto'
 import {mainWindowDispatch} from '../remote/util.desktop'
 import {quit} from './ctl.desktop'
 import logger from '../../logger'
-import {resolveRoot, resolveRootAsURL} from './resolve-root.desktop'
+import {assetRoot, htmlPrefix} from './html-root.desktop'
 
 const {join} = KB.path
 const {env} = KB.process
@@ -276,9 +277,10 @@ type Action =
       }
     }
   | {type: 'showMainWindow'}
+  | {type: 'setupPreloadKB2'}
 
 const remoteURL = (windowComponent: string, windowParam: string) =>
-  resolveRootAsURL('dist', `${windowComponent}${__DEV__ ? '.dev' : ''}.html?param=${windowParam}`)
+  `${htmlPrefix}${assetRoot}${windowComponent}${__DEV__ ? '.dev' : ''}.html?param=${windowParam}`
 
 const findRemoteComponent = (windowComponent: string, windowParam: string) => {
   const url = remoteURL(windowComponent, windowParam)
@@ -295,6 +297,15 @@ const plumbEvents = () => {
 
   Electron.ipcMain.handle('KBkeybase', (_event, action: Action) => {
     switch (action.type) {
+      // TEMP
+      // case 'uses24HourClock': {
+      //   return Math.random() > 0.5
+      // }
+      case 'setupPreloadKB2':
+        {
+          return KB2
+        }
+        break
       case 'showMainWindow':
         {
           mainWindow?.show()
@@ -373,7 +384,7 @@ const plumbEvents = () => {
             contextIsolation: false,
             nodeIntegration: true,
             nodeIntegrationInWorker: false,
-            preload: resolveRoot('dist', `preload-main${__DEV__ ? '.dev' : ''}.bundle.js`),
+            preload: `${assetRoot}preload-main${__DEV__ ? '.dev' : ''}.bundle.js`,
           },
           ...action.payload.windowOpts,
         }
@@ -408,6 +419,7 @@ const plumbEvents = () => {
         break
       }
     }
+    return undefined
   })
 }
 

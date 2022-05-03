@@ -6,13 +6,14 @@ import logger from '../../logger'
 import {isDarwin, isWindows, isLinux} from '../../constants/platform'
 import {mainWindowDispatch, getMainWindow} from '../remote/util.desktop'
 import {menubar} from 'menubar'
-import {resolveRoot, resolveImage, resolveRootAsURL} from './resolve-root.desktop'
+import {resolveRoot} from './resolve-root.desktop'
 import {showDevTools, skipSecondaryDevtools} from '../../local-debug.desktop'
 import getIcons from '../../menubar/icons'
 import {workingIsDarkMode} from '../../util/safe-electron.desktop'
 import os from 'os'
+import {assetRoot, htmlPrefix} from './html-root.desktop'
 
-const htmlFile = resolveRootAsURL('dist', `menubar${__DEV__ ? '.dev' : ''}.html?param=menubar`)
+const htmlFile = `${htmlPrefix}${assetRoot}menubar${__DEV__ ? '.dev' : ''}.html?param=menubar`
 
 // support dynamic dark mode system bar in big sur
 const useImageTemplate = os.platform() === 'darwin' && parseInt(os.release().split('.')[0], 10) >= 20
@@ -29,7 +30,7 @@ type Bounds = {
 }
 
 export default (menubarWindowIDCallback: (id: number) => void) => {
-  const icon = Electron.nativeImage.createFromPath(resolveImage('menubarIcon', iconPath))
+  const icon = Electron.nativeImage.createFromPath(resolveRoot('images', 'menubarIcon', iconPath))
   if (useImageTemplate && !iconPathIsBadged) {
     icon.setTemplateImage(true)
   }
@@ -43,7 +44,7 @@ export default (menubarWindowIDCallback: (id: number) => void) => {
         contextIsolation: false,
         nodeIntegration: true,
         nodeIntegrationInWorker: false,
-        preload: resolveRoot('dist', `preload-main${__DEV__ ? '.dev' : ''}.bundle.js`),
+        preload: `${assetRoot}preload-main${__DEV__ ? '.dev' : ''}.bundle.js`,
       },
       width: 360,
     },
@@ -66,7 +67,7 @@ export default (menubarWindowIDCallback: (id: number) => void) => {
 
   const updateIcon = () => {
     try {
-      const resolved = resolveImage('menubarIcon', iconPath)
+      const resolved = resolveRoot('images', 'menubarIcon', iconPath)
       const i = Electron.nativeImage.createFromPath(resolved)
       if (useImageTemplate && !iconPathIsBadged) {
         i.setTemplateImage(true)
@@ -102,7 +103,9 @@ export default (menubarWindowIDCallback: (id: number) => void) => {
         if (isWindows) {
           const mw = getMainWindow()
           const overlay =
-            action.payload.desktopAppBadgeCount > 0 ? resolveImage('icons', 'icon-windows-badge.png') : null
+            action.payload.desktopAppBadgeCount > 0
+              ? resolveRoot('images', 'icons', 'icon-windows-badge.png')
+              : null
           // @ts-ignore overlay can be a string but TS is wrong
           mw?.setOverlayIcon(overlay, 'new activity')
         }

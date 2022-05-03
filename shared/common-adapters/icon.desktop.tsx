@@ -3,7 +3,7 @@ import * as Styles from '../styles'
 import * as React from 'react'
 import logger from '../logger'
 import {iconMeta} from './icon.constants-gen'
-import {resolveImageAsURL} from '../desktop/app/resolve-root.desktop'
+import {resolveRoot} from '../desktop/app/resolve-root.desktop'
 import invert from 'lodash/invert'
 import {Props, IconType} from './icon'
 
@@ -159,7 +159,7 @@ const imgName = (
   prefix?: string,
   postfix?: string
 ) =>
-  `${prefix || ''}${resolveImageAsURL(imagesDir, name)}${mult > 1 ? `@${mult}x` : ''}.${ext}${
+  `${prefix || ''}${resolveRoot('images', imagesDir, name)}${mult > 1 ? `@${mult}x` : ''}.${ext}${
     postfix || ''
   } ${mult}x`
 
@@ -176,7 +176,7 @@ export function iconTypeToImgSet(imgMap: any, targetSize: number): any {
     .map(mult => {
       const img: string = imgMap[multsMap[mult]] as string
       if (!img) return null
-      const url = resolveImageAsURL('icons', img)
+      const url = resolveRoot('images', 'icons', img)
       if (Styles.isDarkMode()) url.replace('icon-', 'icon-dark-')
       return `url('${url}.png') ${mult}x`
     })

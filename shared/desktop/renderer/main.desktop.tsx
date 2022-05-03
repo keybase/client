@@ -10,4 +10,6 @@ import '../../why-did-you-render'
 enableMapSet()
 _setSystemIsDarkMode(SafeElectron.workingIsDarkMode())
 _setSystemSupported(isDarwin)
-require('./main2.desktop')
+setupKB2().then(() => {
+  require('./main2.desktop')
+})
