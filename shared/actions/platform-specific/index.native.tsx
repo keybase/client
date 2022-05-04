@@ -17,13 +17,13 @@ import * as RouteTreeGen from '../route-tree-gen'
 import * as LoginGen from '../login-gen'
 import * as Saga from '../../util/saga'
 import * as Types from '../../constants/types/chat2'
+import * as MediaLibrary from 'expo-media-library'
 import type * as FsTypes from '../../constants/types/fs'
 import {getEngine} from '../../engine/require'
 // this CANNOT be an import *, totally screws up the packager
 import {Alert, Linking, ActionSheetIOS, PermissionsAndroid, Vibration} from 'react-native'
 import {NativeModules} from '../../util/native-modules.native'
 import Clipboard from '@react-native-clipboard/clipboard'
-import CameraRoll from '@react-native-community/cameraroll'
 import NetInfo, {type NetInfoStateType} from '@react-native-community/netinfo'
 import PushNotificationIOS from '@react-native-community/push-notification-ios'
 import {isIOS, isAndroid} from '../../constants/platform'
@@ -127,7 +127,7 @@ export async function saveAttachmentToCameraRoll(filePath: string, mimeType: str
   try {
     await requestPermissionsToWrite()
     logger.info(logPrefix + `Attempting to save as ${saveType}`)
-    await CameraRoll.save(fileURL, {type: saveType})
+    await MediaLibrary.saveToLibraryAsync(fileURL)
     logger.info(logPrefix + 'Success')
   } catch (e) {
     // This can fail if the user backgrounds too quickly, so throw up a local notification
