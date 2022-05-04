@@ -158,7 +158,7 @@ export function isEOFError(error: RPCError | Error) {
 const ignoredMsgs = ['context deadline exceeded in method keybase.1.SimpleFS.simpleFSSyncStatus']
 const isIgnoredError = (error: RPCError | Error) => {
   if (isRPCError(error)) {
-    if (ignoredMsgs.some(m => error.desc.includes(m))) {
+    if (ignoredMsgs.some(m => error.message.includes(m))) {
       return true
     }
   }
