@@ -3,7 +3,7 @@ import * as ConfigGen from '../../actions/config-gen'
 import * as Chat2Gen from '../../actions/chat2-gen'
 import * as Electron from 'electron'
 import logger from '../../logger'
-import {isDarwin, isWindows, isLinux} from '../../constants/platform'
+import {isDarwin, isWindows, isLinux, getAssetPath} from '../../constants/platform.desktop'
 import {mainWindowDispatch, getMainWindow} from '../remote/util.desktop'
 import {menubar} from 'menubar'
 import {showDevTools, skipSecondaryDevtools} from '../../local-debug.desktop'
@@ -11,7 +11,6 @@ import getIcons from '../../menubar/icons'
 import {workingIsDarkMode} from '../../util/safe-electron.desktop'
 import os from 'os'
 import {assetRoot, htmlPrefix} from './html-root.desktop'
-import KB2 from '../../util/electron.desktop'
 
 const htmlFile = `${htmlPrefix}${assetRoot}menubar${__DEV__ ? '.dev' : ''}.html?param=menubar`
 
@@ -30,9 +29,7 @@ type Bounds = {
 }
 
 export default (menubarWindowIDCallback: (id: number) => void) => {
-  const icon = Electron.nativeImage.createFromPath(
-    [KB2.assetRoot, 'images', 'menubarIcon', iconPath].join('/')
-  )
+  const icon = Electron.nativeImage.createFromPath(getAssetPath('images', 'menubarIcon', iconPath))
   if (useImageTemplate && !iconPathIsBadged) {
     icon.setTemplateImage(true)
   }
@@ -69,7 +66,7 @@ export default (menubarWindowIDCallback: (id: number) => void) => {
 
   const updateIcon = () => {
     try {
-      const resolved = [KB2.assetRoot, 'images', 'menubarIcon', iconPath].join('/')
+      const resolved = getAssetPath('images', 'menubarIcon', iconPath)
       const i = Electron.nativeImage.createFromPath(resolved)
       if (useImageTemplate && !iconPathIsBadged) {
         i.setTemplateImage(true)
@@ -106,7 +103,7 @@ export default (menubarWindowIDCallback: (id: number) => void) => {
           const mw = getMainWindow()
           const overlay =
             action.payload.desktopAppBadgeCount > 0
-              ? [KB2.assetRoot, 'images', 'icons', 'icon-windows-badge.png'].join('/')
+              ? getAssetPath('images', 'icons', 'icon-windows-badge.png')
               : null
           // @ts-ignore overlay can be a string but TS is wrong
           mw?.setOverlayIcon(overlay, 'new activity')
