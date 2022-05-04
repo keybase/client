@@ -42,11 +42,6 @@ declare type KBElectronSaveDialogOptions = {
 }
 
 interface Window {
-  requestIdleCallback: (
-    callback: (deadline: RequestIdleCallbackDeadline) => void,
-    opts?: RequestIdleCallbackOptions
-  ) => RequestIdleCallbackHandle
-  cancelIdleCallback: (handle: RequestIdleCallbackHandle) => void
   DEBUGEffectById: any
   DEBUGLogSagas: any
   DEBUGLogSagasWithNames: any
@@ -61,6 +56,7 @@ interface Console {
   _info: any
 }
 
+// TODO deprecate
 declare var KB: {
   __dirname: string
   DEV?: any
@@ -75,11 +71,10 @@ declare var KB: {
       showSaveDialog: (options: KBElectronSaveDialogOptions) => Promise<string | undefined>
     }
   }
+  isRenderer: boolean
   kb: {
     darwinCopyToKBFSTempUploadFile: (p: string) => Promise<string>
-    darwinCopyToChatTempUploadFile: (
-      p: string
-    ) => Promise<{
+    darwinCopyToChatTempUploadFile: (p: string) => Promise<{
       outboxID: Buffer
       path: string
     }>

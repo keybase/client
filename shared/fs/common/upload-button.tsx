@@ -1,7 +1,6 @@
-import {namedConnect} from '../../util/container'
+import * as Container from '../../util/container'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
-import {TypedState} from '../../constants/reducer'
 import * as Kb from '../../common-adapters'
 import * as FsGen from '../../actions/fs-gen'
 import * as React from 'react'
@@ -13,11 +12,11 @@ type OwnProps = {
   style?: Styles.StylesCrossPlatform | null
 }
 
-const mapStateToProps = (state: TypedState, ownProps: OwnProps) => ({
+const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => ({
   _pathItem: Constants.getPathItem(state.fs.pathItems, ownProps.path),
 })
 
-const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
+const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProps) => ({
   openAndUploadBoth: Platforms.isDarwin
     ? () => dispatch(FsGen.createOpenAndUpload({parentPath: ownProps.path, type: Types.OpenDialogType.Both}))
     : null,
@@ -126,4 +125,4 @@ const UploadButton = Kb.OverlayParentHOC((props: Kb.PropsWithOverlay<UploadButto
   )
 })
 
-export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'UploadButton')(UploadButton)
+export default Container.connect(mapStateToProps, mapDispatchToProps, mergeProps)(UploadButton)

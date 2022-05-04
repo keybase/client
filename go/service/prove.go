@@ -137,7 +137,7 @@ var choiceProofServices = map[string]int{
 
 func (ph *ProveHandler) ListSomeProofServices(ctx context.Context) (res []string, err error) {
 	ctx = libkb.WithLogTag(ctx, "PV")
-	defer ph.G().CTrace(ctx, fmt.Sprintf("ListSomeProofServices"), &err)()
+	defer ph.G().CTrace(ctx, "ListSomeProofServices", &err)()
 	mctx := libkb.NewMetaContext(ctx, ph.G())
 	var services []string
 	for _, service := range ph.G().GetProofServices().ListServicesThatAcceptNewProofs(mctx) {
@@ -151,7 +151,7 @@ func (ph *ProveHandler) ListSomeProofServices(ctx context.Context) (res []string
 
 func (ph *ProveHandler) ListProofServices(ctx context.Context) (res []string, err error) {
 	ctx = libkb.WithLogTag(ctx, "PV")
-	defer ph.G().CTrace(ctx, fmt.Sprintf("ListProofServices"), &err)()
+	defer ph.G().CTrace(ctx, "ListProofServices", &err)()
 	mctx := libkb.NewMetaContext(ctx, ph.G())
 	return ph.G().GetProofServices().ListServicesThatAcceptNewProofs(mctx), nil
 }

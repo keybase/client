@@ -1,11 +1,11 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-import * as RPCTypes from '../constants/types/rpc-gen'
-import * as Types from '../constants/types/config'
-import * as Tabs from '../constants/tabs'
-import * as ChatTypes from '../constants/types/chat2'
-import * as FsTypes from '../constants/types/fs'
-import HiddenString from '../util/hidden-string'
-import {RPCError} from '../util/errors'
+import type * as RPCTypes from '../constants/types/rpc-gen'
+import type * as Types from '../constants/types/config'
+import type * as Tabs from '../constants/tabs'
+import type * as ChatTypes from '../constants/types/chat2'
+import type * as FsTypes from '../constants/types/fs'
+import type HiddenString from '../util/hidden-string'
+import type {RPCError} from '../util/errors'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of config but is handled by every reducer. NEVER dispatch this
@@ -81,10 +81,10 @@ type _BootstrapStatusLoadedPayload = {
 }
 type _ChangedActivePayload = {readonly userActive: boolean}
 type _ChangedFocusPayload = {readonly appFocused: boolean}
-type _CheckForUpdatePayload = void
+type _CheckForUpdatePayload = undefined
 type _CopyToClipboardPayload = {readonly text: string}
 type _DaemonErrorPayload = {readonly daemonError?: Error}
-type _DaemonHandshakeDonePayload = void
+type _DaemonHandshakeDonePayload = undefined
 type _DaemonHandshakePayload = {readonly firstTimeConnecting: boolean; readonly version: number}
 type _DaemonHandshakeWaitPayload = {
   readonly name: string
@@ -101,8 +101,8 @@ type _FollowerInfoUpdatedPayload = {
   readonly followees: Array<string>
 }
 type _GlobalErrorPayload = {readonly globalError?: Error | RPCError}
-type _InstallerRanPayload = void
-type _LoadOnLoginStartupPayload = void
+type _InstallerRanPayload = undefined
+type _LoadOnLoginStartupPayload = undefined
 type _LoadOnStartPayload = {
   readonly phase:
     | 'initialStartupAsEarlyAsPossible'
@@ -112,7 +112,7 @@ type _LoadOnStartPayload = {
 }
 type _LoadedOnLoginStartupPayload = {readonly status: boolean | null}
 type _LoggedInPayload = {readonly causedBySignup: boolean; readonly causedByStartup: boolean}
-type _LoggedOutPayload = void
+type _LoggedOutPayload = undefined
 type _LogoutAndTryToLogInAsPayload = {readonly username: string}
 type _LogoutHandshakePayload = {readonly version: number}
 type _LogoutHandshakeWaitPayload = {
@@ -120,10 +120,10 @@ type _LogoutHandshakeWaitPayload = {
   readonly version: number
   readonly increment: boolean
 }
-type _LogoutPayload = void
+type _LogoutPayload = undefined
 type _MobileAppStatePayload = {readonly nextAppState: 'active' | 'background' | 'inactive'}
-type _OpenAppSettingsPayload = void
-type _OpenAppStorePayload = void
+type _OpenAppSettingsPayload = undefined
+type _OpenAppStorePayload = undefined
 type _OsNetworkStatusChangedPayload = {
   readonly online: boolean
   readonly type: Types.ConnectionType
@@ -132,7 +132,7 @@ type _OsNetworkStatusChangedPayload = {
 type _PersistRoutePayload = {readonly path?: Array<any>}
 type _PushLoadedPayload = {readonly pushLoaded: boolean}
 type _RemoteWindowWantsPropsPayload = {readonly component: string; readonly param: string}
-type _RestartHandshakePayload = void
+type _RestartHandshakePayload = undefined
 type _SetAccountsPayload = {readonly configuredAccounts: Array<RPCTypes.ConfiguredAccount>}
 type _SetDarkModePreferencePayload = {
   readonly preference: 'system' | 'alwaysDark' | 'alwaysLight' | undefined
@@ -158,14 +158,14 @@ type _SetSystemDarkModePayload = {readonly dark: boolean}
 type _SetUseNativeFramePayload = {readonly useNativeFrame: boolean}
 type _SetUserSwitchingPayload = {readonly userSwitching: boolean}
 type _SetWhatsNewLastSeenVersionPayload = {readonly lastSeenVersion: string}
-type _ShowMainPayload = void
+type _ShowMainPayload = undefined
 type _ShowShareActionSheetPayload = {
   readonly filePath?: string
   readonly message?: string
   readonly mimeType: string
 }
-type _StartHandshakePayload = void
-type _ToggleRuntimeStatsPayload = void
+type _StartHandshakePayload = undefined
+type _ToggleRuntimeStatsPayload = undefined
 type _UpdateCriticalCheckStatusPayload = {
   readonly status: 'critical' | 'suggested' | 'ok'
   readonly message: string
@@ -177,7 +177,7 @@ type _UpdateInfoPayload = {
   readonly message?: string
 }
 type _UpdateMenubarWindowIDPayload = {readonly id: number}
-type _UpdateNowPayload = void
+type _UpdateNowPayload = undefined
 type _UpdateWindowStatePayload = {readonly windowState: Types.WindowState}
 
 // Action Creators
@@ -197,7 +197,7 @@ export const createLogoutAndTryToLogInAs = (
 /**
  * Open a link to the app store
  */
-export const createOpenAppStore = (payload: _OpenAppStorePayload): OpenAppStorePayload => ({
+export const createOpenAppStore = (payload?: _OpenAppStorePayload): OpenAppStorePayload => ({
   payload,
   type: openAppStore,
 })
@@ -244,21 +244,21 @@ export const createLoggedIn = (payload: _LoggedInPayload): LoggedInPayload => ({
 /**
  * desktop only: the installer ran and we can start up
  */
-export const createInstallerRan = (payload: _InstallerRanPayload): InstallerRanPayload => ({
+export const createInstallerRan = (payload?: _InstallerRanPayload): InstallerRanPayload => ({
   payload,
   type: installerRan,
 })
 /**
  * internal to config. should restart the handshake process
  */
-export const createRestartHandshake = (payload: _RestartHandshakePayload): RestartHandshakePayload => ({
+export const createRestartHandshake = (payload?: _RestartHandshakePayload): RestartHandshakePayload => ({
   payload,
   type: restartHandshake,
 })
 /**
  * internal to config. should start the handshake process
  */
-export const createStartHandshake = (payload: _StartHandshakePayload): StartHandshakePayload => ({
+export const createStartHandshake = (payload?: _StartHandshakePayload): StartHandshakePayload => ({
   payload,
   type: startHandshake,
 })
@@ -272,7 +272,7 @@ export const createUpdateWindowState = (payload: _UpdateWindowStatePayload): Upd
 /**
  * mobile only: open the settings page
  */
-export const createOpenAppSettings = (payload: _OpenAppSettingsPayload): OpenAppSettingsPayload => ({
+export const createOpenAppSettings = (payload?: _OpenAppSettingsPayload): OpenAppSettingsPayload => ({
   payload,
   type: openAppSettings,
 })
@@ -280,7 +280,7 @@ export const createOpenAppSettings = (payload: _OpenAppSettingsPayload): OpenApp
  * ready to show the app
  */
 export const createDaemonHandshakeDone = (
-  payload: _DaemonHandshakeDonePayload
+  payload?: _DaemonHandshakeDonePayload
 ): DaemonHandshakeDonePayload => ({payload, type: daemonHandshakeDone})
 /**
  * remote electron window wants props sent
@@ -291,7 +291,7 @@ export const createRemoteWindowWantsProps = (
 /**
  * someone wants to log out
  */
-export const createLogout = (payload: _LogoutPayload): LogoutPayload => ({payload, type: logout})
+export const createLogout = (payload?: _LogoutPayload): LogoutPayload => ({payload, type: logout})
 /**
  * starting the connect process. Things that need to happen before we see the app should call daemonHandshakeWait
  */
@@ -329,7 +329,7 @@ export const createChangedFocus = (payload: _ChangedFocusPayload): ChangedFocusP
   payload,
   type: changedFocus,
 })
-export const createCheckForUpdate = (payload: _CheckForUpdatePayload): CheckForUpdatePayload => ({
+export const createCheckForUpdate = (payload?: _CheckForUpdatePayload): CheckForUpdatePayload => ({
   payload,
   type: checkForUpdate,
 })
@@ -349,14 +349,13 @@ export const createGlobalError = (payload: _GlobalErrorPayload = Object.freeze({
   payload,
   type: globalError,
 })
-export const createLoadOnLoginStartup = (payload: _LoadOnLoginStartupPayload): LoadOnLoginStartupPayload => ({
-  payload,
-  type: loadOnLoginStartup,
-})
+export const createLoadOnLoginStartup = (
+  payload?: _LoadOnLoginStartupPayload
+): LoadOnLoginStartupPayload => ({payload, type: loadOnLoginStartup})
 export const createLoadedOnLoginStartup = (
   payload: _LoadedOnLoginStartupPayload
 ): LoadedOnLoginStartupPayload => ({payload, type: loadedOnLoginStartup})
-export const createLoggedOut = (payload: _LoggedOutPayload): LoggedOutPayload => ({payload, type: loggedOut})
+export const createLoggedOut = (payload?: _LoggedOutPayload): LoggedOutPayload => ({payload, type: loggedOut})
 export const createMobileAppState = (payload: _MobileAppStatePayload): MobileAppStatePayload => ({
   payload,
   type: mobileAppState,
@@ -417,14 +416,13 @@ export const createSetUserSwitching = (payload: _SetUserSwitchingPayload): SetUs
   payload,
   type: setUserSwitching,
 })
-export const createShowMain = (payload: _ShowMainPayload): ShowMainPayload => ({payload, type: showMain})
+export const createShowMain = (payload?: _ShowMainPayload): ShowMainPayload => ({payload, type: showMain})
 export const createShowShareActionSheet = (
   payload: _ShowShareActionSheetPayload
 ): ShowShareActionSheetPayload => ({payload, type: showShareActionSheet})
-export const createToggleRuntimeStats = (payload: _ToggleRuntimeStatsPayload): ToggleRuntimeStatsPayload => ({
-  payload,
-  type: toggleRuntimeStats,
-})
+export const createToggleRuntimeStats = (
+  payload?: _ToggleRuntimeStatsPayload
+): ToggleRuntimeStatsPayload => ({payload, type: toggleRuntimeStats})
 export const createUpdateHTTPSrvInfo = (payload: _UpdateHTTPSrvInfoPayload): UpdateHTTPSrvInfoPayload => ({
   payload,
   type: updateHTTPSrvInfo,
@@ -436,7 +434,7 @@ export const createUpdateInfo = (payload: _UpdateInfoPayload): UpdateInfoPayload
 export const createUpdateMenubarWindowID = (
   payload: _UpdateMenubarWindowIDPayload
 ): UpdateMenubarWindowIDPayload => ({payload, type: updateMenubarWindowID})
-export const createUpdateNow = (payload: _UpdateNowPayload): UpdateNowPayload => ({payload, type: updateNow})
+export const createUpdateNow = (payload?: _UpdateNowPayload): UpdateNowPayload => ({payload, type: updateNow})
 
 // Action Payloads
 export type AndroidSharePayload = {readonly payload: _AndroidSharePayload; readonly type: typeof androidShare}
@@ -669,4 +667,4 @@ export type Actions =
   | UpdateMenubarWindowIDPayload
   | UpdateNowPayload
   | UpdateWindowStatePayload
-  | {type: 'common:resetStore', payload: {}}
+  | {readonly type: 'common:resetStore', readonly payload: undefined}

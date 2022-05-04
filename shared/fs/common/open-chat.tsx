@@ -1,4 +1,4 @@
-import {namedConnect} from '../../util/container'
+import * as Container from '../../util/container'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import * as Kb from '../../common-adapters'
@@ -50,4 +50,4 @@ const mapDispatchToProps = (dispatch, {path}: OwnProps) => ({
 
 const mergeProps = (_, d) => d
 
-export default namedConnect(() => ({}), mapDispatchToProps, mergeProps, 'OpenChat')(OpenChat)
+export default Container.connect(() => ({}), mapDispatchToProps, mergeProps)(OpenChat)

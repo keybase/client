@@ -1,18 +1,18 @@
 // Handles sending requests to the daemon
 import logger from '../logger'
-import Session, {CancelHandlerType} from './session'
+import Session, {type CancelHandlerType} from './session'
 import {initEngine, initEngineSaga} from './require'
-import {RPCError, convertToError} from '../util/errors'
+import {type RPCError, convertToError} from '../util/errors'
 import {isMobile} from '../constants/platform'
 import {localLog} from '../util/forward-logs'
 import {printOutstandingRPCs, isTesting} from '../local-debug'
-import {resetClient, createClient, rpcLog, createClientType} from './index.platform'
+import {resetClient, createClient, rpcLog, type createClientType} from './index.platform'
 import {createBatchChangeWaiting} from '../actions/waiting-gen'
 import engineSaga from './saga'
 import throttle from 'lodash/throttle'
-import {CustomResponseIncomingCallMapType, IncomingCallMapType} from '.'
-import {SessionID, SessionIDKey, WaitingHandlerType, MethodKey} from './types'
-import {TypedState, Dispatch} from '../util/container'
+import type {CustomResponseIncomingCallMapType, IncomingCallMapType} from '.'
+import type {SessionID, SessionIDKey, WaitingHandlerType, MethodKey} from './types'
+import type {TypedState, TypedDispatch} from '../util/container'
 
 const {env} = KB.process
 
@@ -45,7 +45,7 @@ class Engine {
   // App tells us when the sagas are done loading so we can start emitting events
   _sagasAreReady: boolean = false
 
-  static _dispatch: Dispatch
+  static _dispatch: TypedDispatch
 
   // Temporary helper for incoming call maps
   static _getState: () => TypedState
@@ -71,7 +71,7 @@ class Engine {
     return Engine._getState
   }
 
-  constructor(dispatch: Dispatch, getState: () => TypedState) {
+  constructor(dispatch: TypedDispatch, getState: () => TypedState) {
     KB.kb.setEngine(this)
 
     // setup some static vars
@@ -244,13 +244,15 @@ class Engine {
       endHandler: (session: Session) => this._sessionEnded(session),
       incomingCallMap,
       invoke: (method, param, cb) => {
-        const callback = method => (...args) => {
-          // If first argument is set, convert it to an Error type
-          if (args.length > 0 && !!args[0]) {
-            args[0] = convertToError(args[0], method)
+        const callback =
+          method =>
+          (...args) => {
+            // If first argument is set, convert it to an Error type
+            if (args.length > 0 && !!args[0]) {
+              args[0] = convertToError(args[0], method)
+            }
+            cb(...args)
           }
-          cb(...args)
-        }
         this._rpcClient.invoke(method, param || [{}], callback(method))
       },
       sessionID,
@@ -302,7 +304,7 @@ class Engine {
 }
 
 // Dummy engine for snapshotting
-class FakeEngine {
+export class FakeEngine {
   _deadSessionsMap: {[K in SessionIDKey]: Session} = {} // just to bookkeep
   _sessionsMap: {[K in SessionIDKey]: Session} = {}
   constructor() {
@@ -349,7 +351,7 @@ if (__DEV__) {
   engine = global.DEBUGEngine
 }
 
-const makeEngine = (dispatch: Dispatch, getState: () => TypedState) => {
+const makeEngine = (dispatch: TypedDispatch, getState: () => TypedState) => {
   if (__DEV__ && engine) {
     logger.warn('makeEngine called multiple times')
   }
@@ -357,7 +359,7 @@ const makeEngine = (dispatch: Dispatch, getState: () => TypedState) => {
   if (!engine) {
     engine =
       env.KEYBASE_NO_ENGINE || isTesting
-        ? ((new FakeEngine() as unknown) as Engine)
+        ? (new FakeEngine() as unknown as Engine)
         : new Engine(dispatch, getState)
     if (__DEV__) {
       global.DEBUGEngine = engine

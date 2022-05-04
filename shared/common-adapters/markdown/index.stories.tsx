@@ -1,3 +1,4 @@
+/*
 import * as React from 'react'
 import * as ChatConstants from '../../constants/chat2'
 import * as Sb from '../../stories/storybook'
@@ -343,3 +344,6 @@ const load = () => {
 }
 
 export default load
+*/
+
+export default {}

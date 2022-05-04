@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
-import {AllowedColors} from '../../../../common-adapters/text'
 import * as Styles from '../../../../styles'
+import type {AllowedColors} from '../../../../common-adapters/text'
 import {MarkdownMemo} from '../../../../wallets/common'
 
 export type Props = {
@@ -151,35 +151,23 @@ const AccountPayment = (props: Props) => {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      alignItemsCenter: {
-        alignItems: 'center',
-      },
+      alignItemsCenter: {alignItems: 'center'},
       amountContainer: Styles.platformStyles({
         isElectron: {
           alignItems: 'center',
           marginLeft: 'auto',
         },
-        isMobile: {
-          justifyContent: 'space-between',
-        },
+        isMobile: {justifyContent: 'space-between'},
       }),
       button: {
         alignSelf: 'flex-start',
         marginTop: Styles.globalMargins.xtiny,
       },
-      buttonText: {
-        color: Styles.globalColors.white,
-      },
-      flexWrap: {
-        flexWrap: 'wrap',
-      },
-      lineThrough: {
-        textDecorationLine: 'line-through',
-      },
+      buttonText: {color: Styles.globalColors.white},
+      flexWrap: {flexWrap: 'wrap'},
+      lineThrough: {textDecorationLine: 'line-through'},
       memo: Styles.platformStyles({
-        isMobile: {
-          paddingRight: Styles.globalMargins.small,
-        },
+        isMobile: {paddingRight: Styles.globalMargins.small},
       }),
       progressIndicator: Styles.platformStyles({
         // Match height of a line of text

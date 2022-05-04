@@ -3,7 +3,6 @@ import * as Constants from '../../../../../constants/teams'
 import * as Container from '../../../../../util/container'
 import {TeamInviteRow} from '.'
 import {InviteInfo, TeamID} from '../../../../../constants/types/teams'
-import flags from '../../../../../util/feature-flags'
 import {formatPhoneNumber} from '../../../../../util/phone-numbers'
 
 type OwnProps = {
@@ -49,10 +48,6 @@ export default Container.connect(
       label = label === user.phone ? formatPhoneNumber('+' + label) : label
       subLabel = subLabel === user.phone ? formatPhoneNumber('+' + subLabel) : subLabel
     } catch {}
-
-    if (!flags.teamsRedesign && subLabel) {
-      label = `${label} (${subLabel})`
-    }
 
     return {
       firstItem: ownProps.firstItem,

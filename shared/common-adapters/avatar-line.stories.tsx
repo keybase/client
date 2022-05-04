@@ -1,3 +1,4 @@
+/*
 import React from 'react'
 import * as Sb from '../stories/storybook'
 import * as Kb from '.'
@@ -53,3 +54,6 @@ const load = () => {
 }
 
 export default load
+*/
+
+export default {}

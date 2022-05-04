@@ -1,10 +1,10 @@
 import * as Constants from '../../../../constants/chat2'
-import * as Types from '../../../../constants/types/chat2'
+import type * as Types from '../../../../constants/types/chat2'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as Container from '../../../../util/container'
 import * as WalletConstants from '../../../../constants/wallets'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
-import TextMessage, {Props, ReplyProps} from '.'
+import TextMessage, {type ReplyProps} from '.'
 
 type OwnProps = {
   isHighlighted?: boolean
@@ -75,9 +75,7 @@ const getClaimProps = (state: Container.TypedState, ownProps: OwnProps) => {
   return {amount, label}
 }
 
-type MsgType = Props['type']
-
-export default Container.namedConnect(
+export default Container.connect(
   (state: Container.TypedState, ownProps: OwnProps) => {
     const editInfo = Constants.getEditInfo(state, ownProps.message.conversationIDKey)
     const isEditing = !!(editInfo && editInfo.ordinal === ownProps.message.ordinal)
@@ -103,11 +101,10 @@ export default Container.namedConnect(
     text: ownProps.message.decoratedText
       ? ownProps.message.decoratedText.stringValue()
       : ownProps.message.text.stringValue(),
-    type: (ownProps.message.errorReason
-      ? 'error'
-      : ownProps.message.submitState === null
-      ? 'sent'
-      : 'pending') as MsgType,
-  }),
-  'TextMessage'
+    type: ownProps.message.errorReason
+      ? ('error' as const)
+      : !ownProps.message.submitState
+      ? ('sent' as const)
+      : ('pending' as const),
+  })
 )(TextMessage)

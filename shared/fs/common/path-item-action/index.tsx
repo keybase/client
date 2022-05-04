@@ -39,6 +39,7 @@ export type Props = {
 const IconClickable = props => (
   <Kb.WithTooltip tooltip="More actions">
     <Kb.Icon
+      fixOverdraw={true}
       type="iconfont-ellipsis"
       color={props.actionIconWhite ? Styles.globalColors.whiteOrBlueDark : Styles.globalColors.black_50}
       hoverColor={props.actionIconWhite ? null : Styles.globalColors.black}

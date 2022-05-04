@@ -19,12 +19,8 @@ import {StyleOverride} from '.'
 import WithTooltip from '../with-tooltip'
 
 const linkStyle = Styles.platformStyles({
-  isElectron: {
-    fontWeight: 'inherit',
-  },
-  isMobile: {
-    fontWeight: undefined,
-  },
+  isElectron: {fontWeight: 'inherit'},
+  isMobile: {fontWeight: undefined},
 })
 
 type KeybaseLinkProps = {
@@ -35,10 +31,10 @@ type KeybaseLinkProps = {
 
 const KeybaseLink = (props: KeybaseLinkProps) => {
   const dispatch = Container.useDispatch()
-  const onClick = React.useCallback(() => dispatch(DeeplinksGen.createLink({link: props.link})), [
-    dispatch,
-    props.link,
-  ])
+  const onClick = React.useCallback(
+    () => dispatch(DeeplinksGen.createLink({link: props.link})),
+    [dispatch, props.link]
+  )
 
   return (
     <Text
@@ -174,7 +170,10 @@ const ServiceDecoration = (props: Props) => {
     )
   } else if (parsed.typ === RPCChatTypes.UITextDecorationTyp.link) {
     const link = parsed.link.url
-    const openUrl = link.startsWith('http://') || link.startsWith('https://') ? link : 'http://' + link
+    const openUrl =
+      link.toLowerCase().startsWith('http://') || link.toLowerCase().startsWith('https://')
+        ? link
+        : 'http://' + link
     return DeeplinksConstants.linkIsKeybaseLink(link) ? (
       <KeybaseLink link={link} linkStyle={props.styleOverride.link} wrapStyle={props.styles.wrapStyle} />
     ) : parsed.link.punycode ? (
@@ -198,7 +197,7 @@ const ServiceDecoration = (props: Props) => {
       </Text>
     )
   } else if (parsed.typ === RPCChatTypes.UITextDecorationTyp.mailto) {
-    const openUrl = parsed.mailto.url.startsWith('mailto:')
+    const openUrl = parsed.mailto.url.toLowerCase().startsWith('mailto:')
       ? parsed.mailto.url
       : 'mailto:' + parsed.mailto.url
     return (

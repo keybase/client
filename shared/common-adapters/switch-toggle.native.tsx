@@ -3,7 +3,7 @@ import {NativeAnimated, NativeEasing} from './native-wrappers.native'
 import * as Styles from '../styles'
 import {Props} from './switch-toggle'
 
-class SwitchToggle extends React.PureComponent<Props, {}> {
+class SwitchToggle extends React.PureComponent<Props> {
   _offset = new NativeAnimated.Value(this._getOffset())
   _animation: any = null
 
@@ -36,9 +36,11 @@ class SwitchToggle extends React.PureComponent<Props, {}> {
             }),
           },
           this.props.style,
-        ])}
+        ] as any)}
       >
-        <NativeAnimated.View style={Styles.collapseStyles([styles.inner, {marginLeft: this._offset}])} />
+        <NativeAnimated.View
+          style={Styles.collapseStyles([styles.inner, {marginLeft: this._offset}] as any)}
+        />
       </NativeAnimated.View>
     )
   }

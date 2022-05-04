@@ -1,3 +1,4 @@
+/*
 import * as React from 'react'
 import * as Sb from '../../stories/storybook'
 import participants from './participants/index.stories'
@@ -80,3 +81,6 @@ const load = () => {
 }
 
 export default load
+*/
+
+export default {}

@@ -26,7 +26,12 @@ export const Email = () => {
   const waiting = Container.useAnyWaiting(Constants.addEmailWaitingKey)
 
   // clean on unmount
-  React.useEffect(() => () => dispatch(SettingsGen.createClearAddingEmail()), [dispatch])
+  React.useEffect(
+    () => () => {
+      dispatch(SettingsGen.createClearAddingEmail())
+    },
+    [dispatch]
+  )
   // watch for + nav away on success
   React.useEffect(() => {
     if (addedEmail === addEmailInProgress) {
@@ -126,7 +131,12 @@ export const Phone = () => {
   const waiting = Container.useAnyWaiting(Constants.addPhoneNumberWaitingKey)
 
   // clean only errors on unmount so verify screen still has info
-  React.useEffect(() => () => dispatch(SettingsGen.createClearPhoneNumberErrors()), [dispatch])
+  React.useEffect(
+    () => () => {
+      dispatch(SettingsGen.createClearPhoneNumberErrors())
+    },
+    [dispatch]
+  )
   // watch for go to verify
   React.useEffect(() => {
     if (!error && !!pendingVerification) {
@@ -229,7 +239,7 @@ export const VerifyPhone = () => {
   const verifyWaiting = Container.useAnyWaiting(Constants.verifyPhoneNumberWaitingKey)
 
   // clean everything on unmount
-  React.useEffect(() => () => dispatch(SettingsGen.createClearPhoneNumberAdd()), [dispatch])
+  React.useEffect(() => () => {dispatch(SettingsGen.createClearPhoneNumberAdd())}, [dispatch])
   // Clear on success
   React.useEffect(() => {
     if (verificationState === 'success' && !error) {

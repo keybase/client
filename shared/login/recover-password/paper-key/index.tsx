@@ -80,7 +80,6 @@ const styles = Styles.styleSheetCreate(() => ({
 }))
 
 PaperKey.navigationOptions = {
-  header: null,
   headerBottomStyle: {height: undefined},
   headerLeft: null, // no back button
   headerRightActions: () => (

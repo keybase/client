@@ -1,4 +1,5 @@
 import * as ConfigGen from '../config-gen'
+import * as remote from '@electron/remote'
 import * as ConfigConstants from '../../constants/config'
 import * as EngineGen from '../engine-gen-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
@@ -14,8 +15,9 @@ import {quit} from '../../desktop/app/ctl.desktop'
 import {writeLogLinesToFile} from '../../util/forward-logs'
 import InputMonitor from './input-monitor.desktop'
 import {skipAppFocusActions} from '../../local-debug.desktop'
-import * as Container from '../../util/container'
+import type * as Container from '../../util/container'
 import {_getNavigator} from '../../constants/router2'
+import type {RPCError} from 'util/errors'
 
 const {resolve} = KB.path
 const {argv, env, pid} = KB.process
@@ -24,11 +26,16 @@ export function showShareActionSheet() {
   throw new Error('Show Share Action - unsupported on this platform')
 }
 export async function saveAttachmentToCameraRoll() {
-  throw new Error('Save Attachment to camera roll - unsupported on this platform')
+  return new Promise((_, rej) =>
+    rej(new Error('Save Attachment to camera roll - unsupported on this platform'))
+  )
 }
 
 const showMainWindow = () => {
-  Electron.ipcRenderer.invoke('KBkeybase', {type: 'showMainWindow'})
+  Electron.ipcRenderer
+    .invoke('KBkeybase', {type: 'showMainWindow'})
+    .then(() => {})
+    .catch(() => {})
 }
 
 export function displayNewMessageNotification() {
@@ -77,17 +84,20 @@ function* initializeInputMonitor(): Iterable<any> {
       const userActive = type === 'active'
       yield Saga.put(ConfigGen.createChangedActive({userActive}))
       // let node thread save file
-      Electron.ipcRenderer.invoke('KBkeybase', {
-        payload: {changedAtMs: Date.now(), isUserActive: userActive},
-        type: 'activeChanged',
-      })
+      Electron.ipcRenderer
+        .invoke('KBkeybase', {
+          payload: {changedAtMs: Date.now(), isUserActive: userActive},
+          type: 'activeChanged',
+        })
+        .then(() => {})
+        .catch(() => {})
     }
   }
 }
 
 export const dumpLogs = async (action?: ConfigGen.DumpLogsPayload) => {
   const fromRender = await logger.dump()
-  const globalLogger: typeof logger = Electron.remote.getGlobal('globalLogger')
+  const globalLogger: typeof logger = remote.getGlobal('globalLogger')
   const fromMain = await globalLogger.dump()
   await writeLogLinesToFile([...fromRender, ...fromMain])
   // quit as soon as possible
@@ -105,11 +115,11 @@ function* checkRPCOwnership(_: Container.TypedState, action: ConfigGen.DaemonHan
     logger.info('Checking RPC ownership')
 
     const localAppData = String(env.LOCALAPPDATA)
-    var binPath = localAppData ? resolve(localAppData, 'Keybase', 'keybase.exe') : 'keybase.exe'
+    const binPath = localAppData ? resolve(localAppData, 'Keybase', 'keybase.exe') : 'keybase.exe'
     const args = ['pipeowner', socketPath]
     yield Saga.callUntyped(
-      () =>
-        new Promise((resolve, reject) => {
+      async () =>
+        new Promise<void>((resolve, reject) => {
           execFile(binPath, args, {windowsHide: true}, (error, stdout) => {
             if (error) {
               logger.info(`pipeowner check result: ${stdout.toString()}`)
@@ -120,7 +130,7 @@ function* checkRPCOwnership(_: Container.TypedState, action: ConfigGen.DaemonHan
             }
             const result = JSON.parse(stdout.toString())
             if (result.isOwner) {
-              resolve()
+              resolve(undefined)
               return
             }
             logger.info(`pipeowner check result: ${stdout.toString()}`)
@@ -135,11 +145,12 @@ function* checkRPCOwnership(_: Container.TypedState, action: ConfigGen.DaemonHan
         version: action.payload.version,
       })
     )
-  } catch (e) {
+  } catch (error_) {
+    const error = error_ as RPCError
     yield Saga.put(
       ConfigGen.createDaemonHandshakeWait({
         failedFatal: true,
-        failedReason: e.message || 'windows pipe owner fail',
+        failedReason: error.message || 'windows pipe owner fail',
         increment: false,
         name: waitKey,
         version: action.payload.version,
@@ -168,14 +179,14 @@ function* setupReachabilityWatcher() {
 
 const onExit = () => {
   console.log('App exit requested')
-  Electron.remote.app.exit(0)
+  remote.app.exit(0)
 }
 
 const onFSActivity = (state: Container.TypedState, action: EngineGen.Keybase1NotifyFSFSActivityPayload) => {
   kbfsNotification(action.payload.params.notification, NotifyPopup, state)
 }
 
-const onPgpgKeySecret = () =>
+const onPgpgKeySecret = async () =>
   RPCTypes.pgpPgpStorageDismissRpcPromise().catch(err => {
     console.warn('Error in sending pgpPgpStorageDismissRpc:', err)
   })
@@ -185,7 +196,7 @@ const onShutdown = (action: EngineGen.Keybase1NotifyServiceShutdownPayload) => {
   if (isWindows && code !== RPCTypes.ExitCode.restart) {
     console.log('Quitting due to service shutdown with code: ', code)
     // Quit just the app, not the service
-    Electron.remote.app.quit()
+    remote.app.quit()
   }
 }
 
@@ -199,7 +210,7 @@ const onConnected = () => {
       pid,
       version: __VERSION__, // eslint-disable-line no-undef
     },
-  }).catch(_ => {})
+  }).catch(() => {})
 }
 
 const onOutOfDate = (action: EngineGen.Keybase1NotifySessionClientOutOfDatePayload) => {
@@ -216,7 +227,7 @@ const prepareLogSend = async (action: EngineGen.Keybase1LogsendPrepareLogsendPay
   try {
     await dumpLogs()
   } finally {
-    response && response.result()
+    response?.result()
   }
 }
 
@@ -234,7 +245,10 @@ const sendWindowsKBServiceCheck = (
     state.config.daemonHandshakeWaiters.size === 0 &&
     state.config.daemonHandshakeFailedReason === ConfigConstants.noKBFSFailReason
   ) {
-    Electron.ipcRenderer.invoke('KBkeybase', {type: 'requestWindowsStartService'})
+    Electron.ipcRenderer
+      .invoke('KBkeybase', {type: 'requestWindowsStartService'})
+      .then(() => {})
+      .catch(() => {})
   }
 }
 
@@ -277,13 +291,13 @@ const updateNow = async () => {
 
 // don't leak these handlers on hot load
 module?.hot?.dispose(() => {
-  const pm = Electron.remote.powerMonitor
+  const pm = remote.powerMonitor
   pm.removeAllListeners()
 })
 
 function* startPowerMonitor() {
   const channel = Saga.eventChannel(emitter => {
-    const pm = Electron.remote.powerMonitor
+    const pm = remote.powerMonitor
     pm.on('suspend', () => emitter('suspend'))
     pm.on('resume', () => emitter('resume'))
     pm.on('shutdown', () => emitter('shutdown'))
@@ -291,12 +305,13 @@ function* startPowerMonitor() {
     pm.on('unlock-screen', () => emitter('unlock-screen'))
     return () => {}
   }, Saga.buffers.expanding(1))
+  const ef = err => {
+    console.warn('Error sending powerMonitorEvent', err)
+  }
   while (true) {
     const type = yield Saga.take(channel)
     logger.info('Got power change: ', type)
-    RPCTypes.appStatePowerMonitorEventRpcPromise({event: type}).catch(err => {
-      console.warn('Error sending powerMonitorEvent', err)
-    })
+    RPCTypes.appStatePowerMonitorEventRpcPromise({event: type}).catch(ef)
   }
 }
 
@@ -315,11 +330,10 @@ const saveUseNativeFrame = async (state: Container.TypedState) => {
 
 function* initializeUseNativeFrame() {
   try {
-    const val: Saga.RPCPromiseType<typeof RPCTypes.configGuiGetValueRpcPromise> = yield RPCTypes.configGuiGetValueRpcPromise(
-      {
+    const val: Saga.RPCPromiseType<typeof RPCTypes.configGuiGetValueRpcPromise> =
+      yield RPCTypes.configGuiGetValueRpcPromise({
         path: nativeFrameKey,
-      }
-    )
+      })
     const useNativeFrame = val.b === undefined || val.b === null ? defaultUseNativeFrame : val.b
     yield Saga.put(ConfigGen.createSetUseNativeFrame({useNativeFrame}))
   } catch (_) {}
@@ -340,11 +354,10 @@ const saveWindowState = async (state: Container.TypedState) => {
 const notifySoundKey = 'notifySound'
 function* initializeNotifySound() {
   try {
-    const val: Saga.RPCPromiseType<typeof RPCTypes.configGuiGetValueRpcPromise> = yield RPCTypes.configGuiGetValueRpcPromise(
-      {
+    const val: Saga.RPCPromiseType<typeof RPCTypes.configGuiGetValueRpcPromise> =
+      yield RPCTypes.configGuiGetValueRpcPromise({
         path: notifySoundKey,
-      }
-    )
+      })
     const notifySound: boolean | undefined = val.b || undefined
     const state: Container.TypedState = yield Saga.selectState()
     if (notifySound !== undefined && notifySound !== state.config.notifySound) {
@@ -367,11 +380,10 @@ const setNotifySound = async (state: Container.TypedState) => {
 const openAtLoginKey = 'openAtLogin'
 function* initializeOpenAtLogin() {
   try {
-    const val: Saga.RPCPromiseType<typeof RPCTypes.configGuiGetValueRpcPromise> = yield RPCTypes.configGuiGetValueRpcPromise(
-      {
+    const val: Saga.RPCPromiseType<typeof RPCTypes.configGuiGetValueRpcPromise> =
+      yield RPCTypes.configGuiGetValueRpcPromise({
         path: openAtLoginKey,
-      }
-    )
+      })
 
     const openAtLogin: boolean | undefined = val.b || undefined
     const state: Container.TypedState = yield Saga.selectState()
@@ -397,23 +409,23 @@ const setOpenAtLogin = async (state: Container.TypedState) => {
       (await RPCTypes.ctlGetOnLoginStartupRpcPromise()) === RPCTypes.OnLoginStartupStatus.enabled
     if (enabled !== openAtLogin) await setOnLoginStartup(openAtLogin)
   } else {
-    if (Electron.remote.app.getLoginItemSettings().openAtLogin !== openAtLogin) {
+    if (remote.app.getLoginItemSettings().openAtLogin !== openAtLogin) {
       logger.info(`Login item settings changed! now ${openAtLogin}`)
-      Electron.remote.app.setLoginItemSettings({openAtLogin})
+      remote.app.setLoginItemSettings({openAtLogin})
     }
   }
 }
 
 const setOnLoginStartup = async (enabled: boolean) => {
-  RPCTypes.ctlSetOnLoginStartupRpcPromise({enabled}).catch(err => {
+  return RPCTypes.ctlSetOnLoginStartupRpcPromise({enabled}).catch(err => {
     logger.warn(`Error in sending ctlSetOnLoginStartup: ${err.message}`)
   })
 }
 
-export const requestLocationPermission = () => Promise.resolve()
-export const requestAudioPermission = () => Promise.resolve()
+export const requestLocationPermission = async () => Promise.resolve()
+export const requestAudioPermission = async () => Promise.resolve()
 export const clearWatchPosition = () => {}
-export const watchPositionForMap = () => Promise.resolve(0)
+export const watchPositionForMap = async () => Promise.resolve(0)
 
 function* checkNav(
   _state: Container.TypedState,

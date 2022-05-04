@@ -41,7 +41,7 @@ const Connected = (props: OwnProps) => {
 
   const submit = Container.useRPC(RPCChatTypes.localGetNextAttachmentMessageLocalRpcPromise)
 
-  const onSwitchAttachment = async (backInTime: boolean) => {
+  const onSwitchAttachment = (backInTime: boolean) => {
     if (conversationIDKey !== blankMessage.conversationIDKey) {
       submit(
         [

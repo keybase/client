@@ -65,11 +65,8 @@ export const unverifiedInboxUIItemToConversationMeta = (
   const teamname = isTeam ? i.name : ''
   const {retentionPolicy, teamRetentionPolicy} = UIItemToRetentionPolicies(i, isTeam)
 
-  const {
-    notificationsDesktop,
-    notificationsGlobalIgnoreMentions,
-    notificationsMobile,
-  } = parseNotificationSettings(i.notifications)
+  const {notificationsDesktop, notificationsGlobalIgnoreMentions, notificationsMobile} =
+    parseNotificationSettings(i.notifications)
 
   return {
     ...makeConversationMeta(),
@@ -216,11 +213,8 @@ export const updateMetaWithNotificationSettings = (
   old: Types.ConversationMeta,
   notifications: RPCChatTypes.ConversationNotificationInfo | null
 ) => {
-  const {
-    notificationsDesktop,
-    notificationsGlobalIgnoreMentions,
-    notificationsMobile,
-  } = parseNotificationSettings(notifications)
+  const {notificationsDesktop, notificationsGlobalIgnoreMentions, notificationsMobile} =
+    parseNotificationSettings(notifications)
   return {
     ...old,
     notificationsDesktop: notificationsDesktop,
@@ -277,11 +271,8 @@ export const inboxUIItemToConversationMeta = (
   const supersedes = conversationMetadataToMetaSupersedeInfo(i.supersedes)
 
   const isTeam = i.membersType === RPCChatTypes.ConversationMembersType.team
-  const {
-    notificationsDesktop,
-    notificationsGlobalIgnoreMentions,
-    notificationsMobile,
-  } = parseNotificationSettings(i.notifications)
+  const {notificationsDesktop, notificationsGlobalIgnoreMentions, notificationsMobile} =
+    parseNotificationSettings(i.notifications)
 
   const {retentionPolicy, teamRetentionPolicy} = UIItemToRetentionPolicies(i, isTeam)
 
@@ -522,8 +513,8 @@ export const getConversationRetentionPolicy = (
   return conv.retentionPolicy
 }
 
-export const isDecryptingSnippet = (meta: Types.ConversationMeta) =>
-  meta.trustedState === 'requesting' || meta.trustedState === 'untrusted'
+export const isDecryptingSnippet = (trustedState: Types.MetaTrustedState) =>
+  trustedState === 'requesting' || trustedState === 'untrusted'
 
 export const getTeams = (metaMap: Types.MetaMap) =>
   [...metaMap.values()].reduce<Array<string>>((l, meta) => {

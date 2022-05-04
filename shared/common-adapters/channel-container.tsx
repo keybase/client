@@ -11,7 +11,7 @@ type OwnProps = {
   allowFontScaling?: boolean | null
 }
 
-export default Container.namedConnect(
+export default Container.connect(
   () => ({}),
   dispatch => ({
     _onClick: (name: string, convID: Types.ConversationIDKey) =>
@@ -29,6 +29,5 @@ export default Container.namedConnect(
     name: ownProps.name,
     onClick: () => dispatchProps._onClick(ownProps.name, ownProps.convID),
     style: ownProps.style,
-  }),
-  'Channel'
+  })
 )(Channel)

@@ -1,5 +1,6 @@
 // Styles from our designers
-import * as CSS from './css'
+import * as React from 'react'
+import type * as CSS from './css'
 export {default as globalColors} from './colors'
 
 export declare const transition: (...properties: Array<string>) => any
@@ -11,6 +12,7 @@ type _fakeFontDefSeeCommentsOnThisStyle = {
 }
 
 export declare const globalStyles: {
+  fastBackground: _fakeFontDefSeeCommentsOnThisStyle
   fillAbsolute: {
     bottom: 0
     left: 0
@@ -95,10 +97,12 @@ type NamedStyles = {[key: string]: CSS._StylesCrossPlatform}
 // order important!
 export declare function styleSheetCreate<O extends NamedStyles>(styles: () => O): O
 
-type _Elem = Object | null | false | void
 // CollapsibleStyle is a generic version of ?StylesMobile and family,
 // slightly extended to support "isFoo && myStyle".
-export type CollapsibleStyle = _Elem | ReadonlyArray<_Elem>
+type RemovedStyle = false | '' | 0 | null | undefined
+type CollapsibleStyle = CSS.StylesCrossPlatform | RemovedStyle
+
+// TODO better styles that aren't slow
 export declare function collapseStyles(styles: ReadonlyArray<CollapsibleStyle>): any
 
 export declare const windowStyle: {
@@ -120,7 +124,6 @@ export declare function padding(
   paddingLeft: number
 }
 
-export declare const styledCss: any
 export declare const styledKeyframes: any
 export declare const isAndroid: boolean
 export declare const isIOS: boolean
@@ -134,7 +137,7 @@ export declare const dimensionHeight: number
 export declare const headerExtraHeight: number
 
 export {platformStyles, globalMargins, backgroundModeToColor, backgroundModeToTextColor} from './shared'
-export {
+export type {
   StylesDesktop,
   StylesMobile,
   StylesCrossPlatform,
@@ -146,3 +149,4 @@ export {
 } from './css'
 export {default as classNames} from 'classnames'
 export {default as styled} from '@emotion/styled'
+export declare const StyleContext: React.Context<{canFixOverdraw: boolean}>

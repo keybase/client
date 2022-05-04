@@ -51,7 +51,6 @@ const ExplainDevice = (props: Props) => {
 }
 
 ExplainDevice.navigationOptions = {
-  header: null,
   headerBottomStyle: {height: undefined},
   headerLeft: null, // no back button
   headerRightActions: () => (

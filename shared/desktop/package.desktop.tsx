@@ -1,22 +1,22 @@
-import del from 'del'
+import rimraf from 'rimraf'
 import fs from 'fs-extra'
 import klawSync from 'klaw-sync'
 import minimist from 'minimist'
 import os from 'os'
-import packager from 'electron-packager'
+import packager, {type Options} from 'electron-packager'
 import path from 'path'
 import webpack from 'webpack'
 import rootConfig from './webpack.config.babel'
 
 // absolute path relative to this script
-const desktopPath = (...args) => path.join(__dirname, ...args)
+const desktopPath = (...args: Array<string>) => path.join(__dirname, ...args)
 
 // recursively copy a folder over and allow only files with the extensions passed as onlyExts
-const copySyncFolder = (src, target, onlyExts) => {
+const copySyncFolder = (src: string, target: string, onlyExts: Array<string>) => {
   const srcRoot = desktopPath(src)
   const dstRoot = desktopPath(target)
-  const files = klawSync(srcRoot, {
-    filter: item => {
+  const files: Array<{path: string}> = klawSync(srcRoot, {
+    filter: (item: {path: string}) => {
       const ext = path.extname(item.path)
       return !ext || onlyExts.includes(ext)
     },
@@ -31,20 +31,20 @@ const copySync = (src, target, options?) => {
   fs.copySync(desktopPath(src), desktopPath(target), {...options, dereference: true})
 }
 
-const argv = minimist(process.argv.slice(2), {string: ['appVersion']})
+const argv: {[key: string]: any} = minimist(process.argv.slice(2), {string: ['appVersion']})
 
 const appName = 'Keybase'
-const shouldUseAsar = argv.asar || argv.a || false
-const shouldBuildAll = argv.all || false
-const arch = argv.arch ? argv.arch.toString() : os.arch()
-const platform = argv.platform ? argv.platform.toString() : os.platform()
-const appVersion: string = (argv.appVersion as any) || '0.0.0'
-const comment = argv.comment || ''
-const outDir = argv.outDir || ''
-const appCopyright = 'Copyright (c) 2019, Keybase'
+const shouldUseAsar: boolean = argv.asar || argv.a || false
+const shouldBuildAll: boolean = argv.all || false
+const arch: string = argv.arch ? argv.arch.toString() : os.arch()
+const platform: string = argv.platform ? argv.platform.toString() : os.platform()
+const appVersion: string = argv.appVersion || '0.0.0'
+const comment: string = argv.comment || ''
+const outDir: string = argv.outDir || ''
+const appCopyright = 'Copyright (c) 2022, Keybase'
 const companyName = 'Keybase, Inc.'
 
-const packagerOpts: any = {
+const packagerOpts: Options = {
   appBundleId: 'keybase.Electron',
   appCopyright: appCopyright,
   appVersion: appVersion,
@@ -57,7 +57,7 @@ const packagerOpts: any = {
       mirror: 'https://kbelectron.keybase.pub/electron-download/',
     },
   },
-  electronVersion: 0,
+  electronVersion: undefined,
   // macOS file association to saltpack files
   extendInfo: {
     CFBundleDocumentTypes: [
@@ -84,10 +84,10 @@ const packagerOpts: any = {
     ],
   },
   // Any paths placed here will be moved to the final bundle
-  extraResource: [],
+  extraResource: [] as Array<string>,
   helperBundleId: 'keybase.ElectronHelper',
-  icon: null,
-  ignore: ['.map', '/test($|/)', '/tools($|/)', '/release($|/)', '/node_modules($|/)'],
+  icon: undefined,
+  ignore: [/\.map/, /\/test($|\/)/, /\/tools($|\/)/, /\/release($|\/)/, /\/node_modules($|\/)/],
   name: appName,
   protocols: [
     {
@@ -98,8 +98,8 @@ const packagerOpts: any = {
 }
 
 function main() {
-  del.sync(desktopPath('dist'))
-  del.sync(desktopPath('build'))
+  rimraf.sync(desktopPath('dist'))
+  rimraf.sync(desktopPath('build'))
 
   copySync('Icon.png', 'build/desktop/Icon.png')
   copySync('Icon@2x.png', 'build/desktop/Icon@2x.png')
@@ -115,15 +115,15 @@ function main() {
     version: appVersion,
   })
 
-  const icon = argv.icon
-  const saltpackIcon = argv.saltpackIcon
+  const icon: string = argv.icon
+  const saltpackIcon: string = argv.saltpackIcon
 
   if (icon) {
     packagerOpts.icon = icon
   }
 
   if (saltpackIcon) {
-    packagerOpts.extraResource = [...packagerOpts.extraResource, saltpackIcon]
+    packagerOpts.extraResource = [saltpackIcon]
   } else {
     console.warn(
       `Missing 'saltpack.icns' from yarn package arguments. Need an icon to associate ".saltpack" files with Electron on macOS, Windows, and Linux.`
@@ -158,7 +158,7 @@ function startPack() {
       process.exit(1)
     }
 
-    if (stats.hasErrors()) {
+    if (stats?.hasErrors()) {
       console.error(stats.toJson('errors-only').errors)
       process.exit(1)
     }
@@ -167,34 +167,38 @@ function startPack() {
     copySyncFolder('./dist', 'build/desktop/dist', ['.js', '.ttf', '.png', '.html'])
     fs.removeSync(desktopPath('build/desktop/dist/fonts'))
 
-    del(desktopPath('release'))
-      .then(() => {
-        if (shouldBuildAll) {
-          // build for all platforms
-          const archs = ['ia32', 'x64']
-          const platforms = ['linux', 'win32', 'darwin']
-
-          platforms.forEach(plat => {
-            archs.forEach(arch => {
-              pack(plat, arch)
-                .then(postPack(plat, arch))
-                .catch(postPackError)
-            })
-          })
-        } else {
-          pack(platform, arch)
-            .then(postPack(platform, arch))
-            .catch(postPackError)
-        }
+    rimraf.sync(desktopPath('release'))
+    if (shouldBuildAll) {
+      // build for all platforms
+      const aps = [
+        ['x64', 'darwin'],
+        ['arm64', 'darwin'],
+        ['ia32', 'linux'],
+        ['x64', 'linux'],
+        ['x64', 'win32'],
+      ]
+      aps.forEach(([arch, plat]) => {
+        pack(plat, arch).then(postPack(plat, arch)).catch(postPackError)
       })
-      .catch(err => {
-        console.error(err)
-        process.exit(1)
-      })
+    } else {
+      // build both on macos
+      if (platform === 'darwin') {
+        const aps = [
+          ['x64', 'darwin'],
+          ['arm64', 'darwin'],
+        ]
+        aps.forEach(([arch, plat]) => {
+          pack(plat, arch).then(postPack(plat, arch)).catch(postPackError)
+        })
+      } else {
+        pack(platform, arch).then(postPack(platform, arch)).catch(postPackError)
+      }
+    }
   })
 }
 
-function pack(plat, arch: string): Promise<any> {
+// eslint-disable-next-line
+function pack(plat: string, arch: string): Promise<any> {
   // there is no darwin ia32 electron
   if (plat === 'darwin' && arch === 'ia32') return Promise.resolve()
 
@@ -213,6 +217,7 @@ function pack(plat, arch: string): Promise<any> {
   if (plat === 'win32') {
     opts = {
       ...opts,
+      // @ts-ignore does exist on win32
       'version-string': {
         CompanyName: companyName,
         FileDescription: appName,

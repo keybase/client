@@ -1,15 +1,16 @@
 import * as AutoresetGen from './autoreset-gen'
 import * as Constants from '../constants/autoreset'
-import * as Container from '../util/container'
+import type * as Container from '../util/container'
 import * as NotificationsGen from './notifications-gen'
 import * as ProvisionGen from './provision-gen'
 import * as RPCGen from '../constants/types/rpc-gen'
 import * as RecoverPasswordGen from './recover-password-gen'
 import * as RouteTreeGen from './route-tree-gen'
 import * as Saga from '../util/saga'
+import type {RPCError} from '../util/errors'
 import logger from '../logger'
 
-const receivedBadgeState = async (
+const receivedBadgeState = (
   state: Container.TypedState,
   action: NotificationsGen.ReceivedBadgeStatePayload
 ) => {
@@ -26,7 +27,8 @@ const cancelReset = async () => {
   logger.info('Cancelled autoreset from logged-in user')
   try {
     await RPCGen.accountCancelResetRpcPromise(undefined, Constants.cancelResetWaitingKey)
-  } catch (error) {
+  } catch (error_) {
+    const error = error_ as RPCError
     logger.error('Error in CancelAutoreset', error)
     switch (error.code ?? 0) {
       case RPCGen.StatusCode.scnosession:
@@ -59,7 +61,7 @@ function promptReset(
     result: (reset: RPCGen.MessageTypes['keybase.1.loginUi.promptResetAccount']['outParam']) => void
   }
 ) {
-  return Saga.callUntyped(function*() {
+  return Saga.callUntyped(function* () {
     if (params.prompt.t === RPCGen.ResetPromptType.complete) {
       logger.info('Showing final reset screen')
       yield Saga.put(AutoresetGen.createShowFinalResetScreen({hasWallet: params.prompt.complete.hasWallet}))
@@ -70,7 +72,7 @@ function promptReset(
       if (action.payload.action === RPCGen.ResetPromptResponse.confirmReset) {
         yield Saga.put(AutoresetGen.createFinishedReset())
       } else {
-        yield Saga.put(RouteTreeGen.createNavUpToScreen({routeName: 'login'}))
+        yield Saga.put(RouteTreeGen.createNavUpToScreen({name: 'login'}))
       }
     } else {
       logger.info('Starting account reset process')
@@ -112,13 +114,13 @@ function* resetAccount(state: Container.TypedState, action: AutoresetGen.ResetAc
       waitingKey: Constants.enterPipelineWaitingKey,
     })
     yield Saga.put(AutoresetGen.createSubmittedReset({checkEmail: !action.payload.password}))
-  } catch (error) {
+  } catch (error_) {
+    const error = error_ as RPCError
     logger.warn('Error resetting account:', error)
-    yield Saga.put(AutoresetGen.createResetError({error: error}))
+    yield Saga.put(AutoresetGen.createResetError({error}))
   }
 }
-const showFinalResetScreen = (__: AutoresetGen.ShowFinalResetScreenPayload) =>
-  RouteTreeGen.createNavigateAppend({path: ['resetConfirm'], replace: true})
+const showFinalResetScreen = () => RouteTreeGen.createNavigateAppend({path: ['resetConfirm'], replace: true})
 
 function* autoresetSaga() {
   yield* Saga.chainAction2(AutoresetGen.cancelReset, cancelReset)

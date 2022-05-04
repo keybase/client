@@ -1,11 +1,12 @@
 // Helper to deal with service calls in a saga friendly way
+// TODO very undertyped
 import * as RS from 'redux-saga'
 import * as RSE from 'redux-saga/effects'
 import {getEngine} from './require'
 import {sequentially} from '../util/saga'
-import {CommonResponseHandler} from './types'
 import {RPCError} from '../util/errors'
 import {printOutstandingRPCs} from '../local-debug'
+import type {CommonResponseHandler} from './types'
 import isArray from 'lodash/isArray'
 
 type WaitingKey = string | Array<string>
@@ -23,20 +24,21 @@ type EmittedFinished = {
 }
 
 // Wraps a response to update the waiting state
-const makeWaitingResponse = (r, waitingKey) => {
+const makeWaitingResponse = (r: CommonResponseHandler, waitingKey?: WaitingKey) => {
   if (!r || !waitingKey) {
     return r
   }
 
-  const response = {}
+  const response: any = {}
 
   if (r.error) {
     // @ts-ignore codemode issue
-    response.error = (...args) => {
+    response.error = (...args: Array<any>) => {
       // Waiting on the server again
       if (waitingKey) {
         getEngine().dispatchWaitingAction(waitingKey, true, null)
       }
+      // @ts-ignore
       r.error(...args)
     }
   }
@@ -204,9 +206,10 @@ function* call(p: {
         finalError = res.error
       }
     }
-  } catch (e) {
+  } catch (error_) {
+    const error = error_ as any
     // capture errors when we handle the callbacks and treat the whole process as an error
-    finalError = e
+    finalError = error
   } finally {
     // eventChannel will jump to finally when RS.END is emitted
     if (waitingKey) {

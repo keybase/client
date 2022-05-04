@@ -1,3 +1,4 @@
+/*
 import * as React from 'react'
 import {makeRetentionPolicy} from '../../../../constants/teams'
 import {Box} from '../../../../common-adapters'
@@ -169,3 +170,6 @@ const load = () => {
 }
 
 export default load
+*/
+
+export default {}

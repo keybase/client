@@ -1,6 +1,5 @@
 import logger from '../logger'
 import * as React from 'react'
-import unidecode from 'unidecode'
 import debounce from 'lodash/debounce'
 import trim from 'lodash/trim'
 import TeamBuilding, {
@@ -126,7 +125,7 @@ const deriveTeamSoFar = memoize(
     })
 )
 
-const deriveServiceResultCount = memoize((searchResults: Types.SearchResults, query: string) =>
+const _deriveServiceResultCount = memoize((searchResults: Types.SearchResults, query: string) =>
   [...(searchResults.get(trim(query)) ?? new Map<Types.ServiceIdWithContact, Array<Types.User>>()).entries()]
     .map(([key, results]) => [key, results.length] as const)
     .reduce<{[k: string]: number}>((o, [key, num]) => {
@@ -134,16 +133,23 @@ const deriveServiceResultCount = memoize((searchResults: Types.SearchResults, qu
       return o
     }, {})
 )
+const emptyObject = {}
+const deriveServiceResultCount = (searchResults: Types.SearchResults, query: string) => {
+  const val = _deriveServiceResultCount(searchResults, query)
+  if (Object.keys(val)) {
+    return val
+  }
+  return emptyObject
+}
 
 const deriveShowResults = memoize(searchString => !!searchString)
 
 const deriveUserFromUserIdFn = memoize(
-  (searchResults: Array<Types.User> | undefined, recommendations: Array<Types.User> | undefined) => (
-    userId: string
-  ): Types.User | null =>
-    (searchResults || []).filter(u => u.id === userId)[0] ||
-    (recommendations || []).filter(u => u.id === userId)[0] ||
-    null
+  (searchResults: Array<Types.User> | undefined, recommendations: Array<Types.User> | undefined) =>
+    (userId: string): Types.User | null =>
+      (searchResults || []).filter(u => u.id === userId)[0] ||
+      (recommendations || []).filter(u => u.id === userId)[0] ||
+      null
 )
 
 const emptyObj = {}
@@ -210,8 +216,8 @@ const makeDebouncedSearch = (time: number) =>
       service: Types.ServiceIdWithContact,
       includeContacts: boolean,
       limit?: number
-    ) =>
-      requestIdleCallback(() =>
+    ) => {
+      requestIdleCallback(() => {
         dispatch(
           TeamBuildingGen.createSearch({
             includeContacts,
@@ -221,7 +227,8 @@ const makeDebouncedSearch = (time: number) =>
             service,
           })
         )
-      ),
+      })
+    },
     time
   )
 
@@ -261,80 +268,82 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, {namespace, teamI
 
 const deriveOnEnterKeyDown = memoizeShallow(
   (p: {
-    changeText: (s: string) => void
-    highlightedIndex: number
-    onAdd: (id: string) => void
-    onFinishTeamBuilding: () => void
-    onRemove: (id: string) => void
-    searchResults: Array<SearchResult>
-    searchStringIsEmpty: string
-    teamSoFar: Array<Types.SelectedUser>
-  }) => () => {
-    const {onRemove, changeText, searchStringIsEmpty, onFinishTeamBuilding} = p
-    const {searchResults, teamSoFar, highlightedIndex, onAdd} = p
-    const selectedResult = !!searchResults && searchResults[highlightedIndex]
-    if (selectedResult) {
-      // We don't handle cases where they hit enter on someone that is already a
-      // team member
-      if (selectedResult.isPreExistingTeamMember) {
-        return
+      changeText: (s: string) => void
+      highlightedIndex: number
+      onAdd: (id: string) => void
+      onFinishTeamBuilding: () => void
+      onRemove: (id: string) => void
+      searchResults: Array<SearchResult>
+      searchStringIsEmpty: string
+      teamSoFar: Array<Types.SelectedUser>
+    }) =>
+    () => {
+      const {onRemove, changeText, searchStringIsEmpty, onFinishTeamBuilding} = p
+      const {searchResults, teamSoFar, highlightedIndex, onAdd} = p
+      const selectedResult = !!searchResults && searchResults[highlightedIndex]
+      if (selectedResult) {
+        // We don't handle cases where they hit enter on someone that is already a
+        // team member
+        if (selectedResult.isPreExistingTeamMember) {
+          return
+        }
+        if (teamSoFar.filter(u => u.userId === selectedResult.userId).length) {
+          onRemove(selectedResult.userId)
+          changeText('')
+        } else {
+          onAdd(selectedResult.userId)
+        }
+      } else if (searchStringIsEmpty && !!teamSoFar.length) {
+        // They hit enter with an empty search string and a teamSoFar
+        // We'll Finish the team building
+        onFinishTeamBuilding()
       }
-      if (teamSoFar.filter(u => u.userId === selectedResult.userId).length) {
-        onRemove(selectedResult.userId)
-        changeText('')
-      } else {
-        onAdd(selectedResult.userId)
-      }
-    } else if (searchStringIsEmpty && !!teamSoFar.length) {
-      // They hit enter with an empty search string and a teamSoFar
-      // We'll Finish the team building
-      onFinishTeamBuilding()
     }
-  }
 )
 
 const deriveOnSearchForMore = memoizeShallow(
   (p: {
-    search: (q: string, sid: Types.ServiceIdWithContact, limit?: number) => void
-    searchResults: Array<Types.User>
-    searchString: string
-    selectedService: Types.ServiceIdWithContact
-  }) => () => {
-    const {search, searchResults, searchString, selectedService} = p
-    if (searchResults && searchResults.length >= 10) {
-      search(searchString, selectedService, searchResults.length + 20)
+      search: (q: string, sid: Types.ServiceIdWithContact, limit?: number) => void
+      searchResults: Array<Types.User>
+      searchString: string
+      selectedService: Types.ServiceIdWithContact
+    }) =>
+    () => {
+      const {search, searchResults, searchString, selectedService} = p
+      if (searchResults && searchResults.length >= 10) {
+        search(searchString, selectedService, searchResults.length + 20)
+      }
     }
-  }
 )
 
 const deriveOnAdd = memoize(
-  (userFromUserId, dispatchOnAdd, changeText, resetHighlightIndex, incFocusInputCounter) => (
-    userId: string
-  ) => {
-    const user = userFromUserId(userId)
-    if (!user) {
-      logger.error(`Couldn't find Types.User to add for ${userId}`)
+  (userFromUserId, dispatchOnAdd, changeText, resetHighlightIndex, incFocusInputCounter) =>
+    (userId: string) => {
+      const user = userFromUserId(userId)
+      if (!user) {
+        logger.error(`Couldn't find Types.User to add for ${userId}`)
+        changeText('')
+        return
+      }
       changeText('')
-      return
+      dispatchOnAdd(user)
+      resetHighlightIndex(true)
+      incFocusInputCounter()
     }
-    changeText('')
-    dispatchOnAdd(user)
-    resetHighlightIndex(true)
-    incFocusInputCounter()
-  }
 )
 
 const deriveOnChangeText = memoize(
   (
-    onChangeText: (newText: string) => void,
-    search: (text: string, service: Types.ServiceIdWithContact) => void,
-    selectedService: Types.ServiceIdWithContact,
-    resetHighlightIndex: Function
-  ) => (newText: string) => {
-    onChangeText(newText)
-    search(newText, selectedService)
-    resetHighlightIndex()
-  }
+      onChangeText: (newText: string) => void,
+      search: (text: string, service: Types.ServiceIdWithContact) => void,
+      selectedService: Types.ServiceIdWithContact,
+      resetHighlightIndex: Function
+    ) =>
+    (newText: string) => {
+      onChangeText(newText)
+      search(newText, selectedService)
+      resetHighlightIndex()
+    }
 )
 
 const deriveOnDownArrowKeyDown = memoize(
@@ -364,17 +373,18 @@ const deriveRolePickerArrowKeyFns = memoize(
 
 const deriveOnChangeService = memoize(
   (
-    onChangeService: OwnProps['onChangeService'],
-    incFocusInputCounter: OwnProps['incFocusInputCounter'],
-    search: (text: string, service: Types.ServiceIdWithContact) => void,
-    searchString: string
-  ) => (service: Types.ServiceIdWithContact) => {
-    onChangeService(service)
-    incFocusInputCounter()
-    if (!Types.isContactServiceId(service)) {
-      search(searchString, service)
+      onChangeService: OwnProps['onChangeService'],
+      incFocusInputCounter: OwnProps['incFocusInputCounter'],
+      search: (text: string, service: Types.ServiceIdWithContact) => void,
+      searchString: string
+    ) =>
+    (service: Types.ServiceIdWithContact) => {
+      onChangeService(service)
+      incFocusInputCounter()
+      if (!Types.isContactServiceId(service)) {
+        search(searchString, service)
+      }
     }
-  }
 )
 
 const alphabet = 'abcdefghijklmnopqrstuvwxyz'
@@ -421,7 +431,7 @@ export const sortAndSplitRecommendations = memoize(
       if (rec.prettyName || rec.displayLabel) {
         // Use the first letter of the name we will display, but first normalize out
         // any diacritics.
-        const decodedLetter = unidecode(rec.prettyName || rec.displayLabel)
+        const decodedLetter = /*unidecode*/ rec.prettyName || rec.displayLabel
         if (decodedLetter && decodedLetter[0]) {
           const letter = decodedLetter[0].toLowerCase()
           if (isAlpha(letter)) {
@@ -632,12 +642,7 @@ const mergeProps = (
   }
 }
 
-const Connected = Container.namedConnect(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps,
-  'TeamBuilding'
-)(TeamBuilding)
+const Connected: any = Container.connect(mapStateToProps, mapDispatchToProps, mergeProps)(TeamBuilding)
 
 type RealOwnProps = Container.RouteProps<{
   namespace: Types.AllowedNamespace
@@ -694,9 +699,9 @@ class StateWrapperForTeamBuilding extends React.Component<RealOwnProps, LocalSta
         showServiceResultCount={false}
         focusInputCounter={this.state.focusInputCounter}
         incFocusInputCounter={this._incFocusInputCounter}
-        title={Container.getRouteProps(this.props, 'title', '')}
-        goButtonLabel={Container.getRouteProps(this.props, 'goButtonLabel', 'Start')}
-        recommendedHideYourself={Container.getRouteProps(this.props, 'recommendedHideYourself', false)}
+        title={Container.getRouteProps(this.props as any, 'title', '')}
+        goButtonLabel={Container.getRouteProps(this.props as any, 'goButtonLabel', 'Start')}
+        recommendedHideYourself={Container.getRouteProps(this.props as any, 'recommendedHideYourself', false)}
       />
     )
   }

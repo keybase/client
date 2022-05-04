@@ -1,3 +1,4 @@
+/*
 import * as React from 'react'
 import * as Sb from '../../../stories/storybook'
 import {PromptResetAccount, PromptResetPassword} from '.'
@@ -9,3 +10,6 @@ const load = () => {
 }
 
 export default load
+*/
+
+export default {}

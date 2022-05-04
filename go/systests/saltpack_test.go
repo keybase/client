@@ -310,7 +310,7 @@ func TestSaltpackEncryptDecryptForImplicitTeams(t *testing.T) {
 
 	u2.proveRooter()
 
-	//Wait for u1 to add u2 to the implicit team
+	// Wait for u1 to add u2 to the implicit team
 	u2.kickTeamRekeyd()
 	u2.waitForTeamChangedGregor(team.ID, nextSeqno)
 

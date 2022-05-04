@@ -4,9 +4,9 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import capitalize from 'lodash/capitalize'
 import {pluralize} from '../../util/string'
-import {Position} from '../../common-adapters/relative-popup-hoc.types'
-import {TeamRoleType} from '../../constants/types/teams'
-import {StylesCrossPlatform} from '../../styles/css'
+import type {Position} from '../../common-adapters/relative-popup-hoc.types'
+import type {TeamRoleType} from '../../constants/types/teams'
+import type {StylesCrossPlatform} from '../../styles/css'
 
 // Controls the ordering of the role picker
 const orderedRoles: Array<Role<true>> = ['owner', 'admin', 'writer', 'reader', 'setIndividually']
@@ -107,6 +107,9 @@ type RoleRowWrapperProps = {
   role: Role<true>
   plural: boolean
 }
+
+const AnimatedClickableBox = animated(Kb.ClickableBox)
+
 const RoleRowWrapper = (props: RoleRowWrapperProps) => {
   const {role, selected, onSelect, disabledReason, plural} = props
   const roleInfo = rolesMetaInfo(role)
@@ -115,9 +118,7 @@ const RoleRowWrapper = (props: RoleRowWrapperProps) => {
   const style = useSpring({
     ...(Styles.isMobile ? {flexGrow: selected ? 1 : 0} : {height: selected ? 160 : 42}),
     config: {tension: Styles.isMobile ? 250 : 260},
-  })
-  const AnimatedClickableBox = animated(Kb.ClickableBox)
-
+  }) as Styles.StylesCrossPlatform
   return (
     <AnimatedClickableBox onClick={onSelect} style={Styles.collapseStyles([styles.roleRow, style])}>
       <Kb.Divider />
@@ -274,23 +275,25 @@ const RolePicker = <IncludeSetIndividually extends boolean>(props: Props<Include
   return (
     <Kb.Box2 direction="vertical" alignItems="stretch" style={styles.container} fullHeight={Styles.isMobile}>
       {!Styles.isMobile && <Header />}
-      {roles.map(role => {
-        const disabled = props.disabledRoles ? props.disabledRoles[role as string] : undefined
-        if (disabled === null) {
-          return null
-        }
-        const onSelect = disabled ? undefined : () => setSelectedRole(role)
-        return (
-          <RoleRowWrapper
-            key={role as string}
-            role={role}
-            disabledReason={disabled}
-            onSelect={onSelect}
-            selected={selectedRole === role}
-            plural={props.plural ?? false}
-          />
-        )
-      })}
+      <Kb.ScrollView style={styles.innerScroll}>
+        {roles.map(role => {
+          const disabled = props.disabledRoles ? props.disabledRoles[role as string] : undefined
+          if (disabled === null) {
+            return null
+          }
+          const onSelect = disabled ? undefined : () => setSelectedRole(role)
+          return (
+            <RoleRowWrapper
+              key={role as string}
+              role={role}
+              disabledReason={disabled}
+              onSelect={onSelect}
+              selected={selectedRole === role}
+              plural={props.plural ?? false}
+            />
+          )
+        })}
+      </Kb.ScrollView>
 
       <Kb.Box2 fullWidth={true} direction="vertical" style={styles.footer}>
         {props.footerComponent}
@@ -322,9 +325,7 @@ const styles = Styles.styleSheetCreate(
         },
         isMobile: {paddingRight: Styles.globalMargins.tiny, paddingTop: 4},
       }),
-      canText: {
-        color: Styles.globalColors.black,
-      },
+      canText: {color: Styles.globalColors.black},
       checkIcon: {
         left: -24,
         paddingTop: 2,
@@ -335,9 +336,7 @@ const styles = Styles.styleSheetCreate(
         flexGrow: 0,
       },
       container: Styles.platformStyles({
-        common: {
-          backgroundColor: Styles.globalColors.white,
-        },
+        common: {backgroundColor: Styles.globalColors.white},
         isElectron: {
           borderColor: Styles.globalColors.blue,
           borderRadius: Styles.borderRadius,
@@ -351,9 +350,7 @@ const styles = Styles.styleSheetCreate(
           flex: 1,
         },
       }),
-      disabledRow: {
-        opacity: 0.4,
-      },
+      disabledRow: {opacity: 0.4},
       footer: {
         flexGrow: 0,
         justifyContent: 'flex-end',
@@ -365,8 +362,10 @@ const styles = Styles.styleSheetCreate(
         paddingLeft: Styles.globalMargins.small,
         paddingRight: Styles.globalMargins.small,
       },
-      header: {
-        padding: Styles.globalMargins.xsmall,
+      header: {padding: Styles.globalMargins.xsmall},
+      innerScroll: {
+        flexGrow: 1,
+        width: '100%',
       },
       opaqueContainer: Styles.platformStyles({
         isMobile: {
@@ -374,12 +373,8 @@ const styles = Styles.styleSheetCreate(
           paddingTop: 10,
         },
       }),
-      radioButton: Styles.platformStyles({
-        isMobile: {paddingRight: Styles.globalMargins.tiny},
-      }),
-      roleIcon: {
-        paddingRight: Styles.globalMargins.xtiny,
-      },
+      radioButton: Styles.platformStyles({isMobile: {paddingRight: Styles.globalMargins.tiny}}),
+      roleIcon: {paddingRight: Styles.globalMargins.xtiny},
       roleRow: Styles.platformStyles({common: {overflow: 'hidden'}, isMobile: {height: 56}}),
       row: {
         backgroundColor: Styles.globalColors.blueGreyLight,
@@ -389,12 +384,8 @@ const styles = Styles.styleSheetCreate(
         // To push the body out of the zone visible when deselected
         common: {paddingTop: 6},
         // Width of the radio button. Used to align text with title
-        isElectron: {
-          paddingLeft: 22,
-        },
-        isMobile: {
-          paddingLeft: 38,
-        },
+        isElectron: {paddingLeft: 22},
+        isMobile: {paddingLeft: 38},
       }),
       rowChild: Styles.platformStyles({
         common: {
@@ -410,9 +401,7 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       rowPadding: Styles.platformStyles({
-        isElectron: {
-          paddingTop: Styles.globalMargins.xtiny,
-        },
+        isElectron: {paddingTop: Styles.globalMargins.xtiny},
       }),
       rowSelected: {
         position: 'relative',

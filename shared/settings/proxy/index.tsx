@@ -43,7 +43,7 @@ class ProxySettings extends React.Component<Props, State> {
       const addressPort = this.props.proxyData.addressWithPort.split(':')
       if (!addressPort) return
       const address = addressPort.slice(0, addressPort.length - 1).join(':')
-      var port = '8080'
+      let port = '8080'
       if (addressPort.length >= 2) {
         port = addressPort[addressPort.length - 1]
       }
@@ -73,7 +73,7 @@ class ProxySettings extends React.Component<Props, State> {
     const proxyData = {
       addressWithPort: this.state.address + ':' + this.state.port,
       certPinning: this.certPinning(),
-      proxyType: (RPCTypes.ProxyType[this.state.proxyType] as unknown) as RPCTypes.ProxyType,
+      proxyType: RPCTypes.ProxyType[this.state.proxyType] as unknown as RPCTypes.ProxyType,
     }
     this.props.saveProxyData(proxyData)
   }
@@ -91,7 +91,7 @@ class ProxySettings extends React.Component<Props, State> {
   }
 
   proxyTypeSelected = (proxyType: string) => {
-    var cb = () => {}
+    let cb = () => {}
     if (proxyType === 'noProxy') {
       // Setting the proxy type to no proxy collapses the menu including the save button, so save immediately
       cb = this.saveProxySettings

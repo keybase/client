@@ -17,7 +17,7 @@ const remoteUsernameKey = "%{username}"
 const sigHashKey = "%{sig_hash}"
 const kbUaKey = "%{kb_ua}"
 
-//=============================================================================
+// =============================================================================
 
 // Validated configuration from the server
 type GenericSocialProofConfig struct {
@@ -145,7 +145,7 @@ func (c *GenericSocialProofConfig) validateRemoteUsername(remoteUsername string)
 	return nil
 }
 
-//=============================================================================
+// =============================================================================
 // GenericSocialProof
 //
 
@@ -254,7 +254,7 @@ func (rc *GenericSocialProofChecker) CheckStatus(mctx libkb.MetaContext, _ libkb
 	return verifiedSigHint, nil
 }
 
-//=============================================================================
+// =============================================================================
 
 type GenericSocialProofServiceType struct {
 	libkb.BaseServiceType

@@ -1,6 +1,7 @@
 // Copyright 2015 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
 
+//go:build darwin
 // +build darwin
 
 package launchd
@@ -195,18 +196,15 @@ func waitForStatus(wait time.Duration, delay time.Duration, fn loadStatusFn) (*S
 	defer ticker.Stop()
 	resultChan := make(chan serviceStatusResult, 1)
 	go func() {
-		for {
-			select {
-			case <-ticker.C:
-				status, err := fn()
-				if err != nil {
-					resultChan <- serviceStatusResult{status: nil, err: err}
-					return
-				}
-				if status != nil && status.HasRun() {
-					resultChan <- serviceStatusResult{status: status, err: nil}
-					return
-				}
+		for range ticker.C {
+			status, err := fn()
+			if err != nil {
+				resultChan <- serviceStatusResult{status: nil, err: err}
+				return
+			}
+			if status != nil && status.HasRun() {
+				resultChan <- serviceStatusResult{status: status, err: nil}
+				return
 			}
 		}
 	}()
@@ -230,18 +228,15 @@ func waitForExit(wait time.Duration, delay time.Duration, fn loadStatusFn) error
 	defer ticker.Stop()
 	errChan := make(chan error, 1)
 	go func() {
-		for {
-			select {
-			case <-ticker.C:
-				status, err := fn()
-				if err != nil {
-					errChan <- err
-					return
-				}
-				if status == nil || !status.IsRunning() {
-					errChan <- nil
-					return
-				}
+		for range ticker.C {
+			status, err := fn()
+			if err != nil {
+				errChan <- err
+				return
+			}
+			if status == nil || !status.IsRunning() {
+				errChan <- nil
+				return
 			}
 		}
 	}()

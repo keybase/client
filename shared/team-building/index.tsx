@@ -7,9 +7,8 @@ import * as TeamConstants from '../constants/teams'
 import TeamBox from './team-box'
 import Input from './input'
 import {ServiceTabBar} from './service-tab-bar'
-import Flags from '../util/feature-flags'
-import {Props as OriginalRolePickerProps} from '../teams/role-picker'
-import {TeamRoleType, TeamID, noTeamID} from '../constants/types/teams'
+import type {Props as OriginalRolePickerProps} from '../teams/role-picker'
+import {type TeamRoleType, type TeamID, noTeamID} from '../constants/types/teams'
 import {memoize} from '../util/memoize'
 import throttle from 'lodash/throttle'
 import PhoneSearch from './phone-search'
@@ -24,7 +23,7 @@ import {
   serviceIdToLabel,
   serviceIdToSearchPlaceholder,
 } from './shared'
-import {
+import type {
   AllowedNamespace,
   FollowingState,
   GoButtonLabel,
@@ -32,9 +31,8 @@ import {
   SelectedUser,
   ServiceIdWithContact,
 } from '../constants/types/team-building'
-import RolePickerHeaderAction from './role-picker-header-action'
 import {ModalTitle as TeamsModalTitle} from '../teams/common'
-import flags from '../util/feature-flags'
+import type {Section} from '../common-adapters/section-list'
 
 export const numSectionLabel = '0-9'
 
@@ -50,13 +48,17 @@ export type SearchResult = {
   isPreExistingTeamMember: boolean
   isYou: boolean
   followingState: FollowingState
+  isImportButton?: false
+  isSearchHint?: false
 }
 
 export type ImportContactsEntry = {
   isImportButton: true
+  isSearchHint?: false
 }
 
 export type SearchHintEntry = {
+  isImportButton?: false
   isSearchHint: true
 }
 
@@ -69,9 +71,9 @@ export type SearchRecSection = {
 }
 
 const isImportContactsEntry = (x: ResultData): x is ImportContactsEntry =>
-  'isImportButton' in x && x.isImportButton
+  'isImportButton' in x && !!x.isImportButton
 
-const isSearchHintEntry = (x: ResultData): x is SearchHintEntry => 'isSearchHint' in x && x.isSearchHint
+const isSearchHintEntry = (x: ResultData): x is SearchHintEntry => 'isSearchHint' in x && !!x.isSearchHint
 
 export type RolePickerProps = {
   onSelectRole: (role: TeamRoleType) => void
@@ -263,18 +265,18 @@ const FilteredServiceTabBar = (
 // TODO: the type of this is any
 // If we fix this type, we'll need to add a bunch more mobile-only props to Kb.SectionList since this code uses
 // a bunch of the native props.
-const SectionList = Styles.isMobile ? Kb.ReAnimated.createAnimatedComponent(Kb.SectionList) : Kb.SectionList
+const SectionList: typeof Kb.SectionList = Styles.isMobile
+  ? Kb.ReAnimated.createAnimatedComponent(Kb.SectionList)
+  : Kb.SectionList
 
 class TeamBuilding extends React.PureComponent<Props> {
-  static navigationOptions = ({navigation}) => {
-    const namespace = navigation.state.params.namespace
+  static navigationOptions = ({route}) => {
+    const namespace: unknown = route.params.namespace
     const common = {
       modal2: true,
       modal2AvoidTabs: false,
       modal2ClearCover: false,
-      modal2Style: {
-        alignSelf: 'center',
-      },
+      modal2Style: {alignSelf: 'center'},
       modal2Type: 'DefaultFullHeight',
     }
 
@@ -295,7 +297,7 @@ class TeamBuilding extends React.PureComponent<Props> {
   }
   private offset: any = Styles.isMobile ? new Kb.ReAnimated.Value(0) : undefined
 
-  sectionListRef = React.createRef<Kb.SectionList<any>>()
+  sectionListRef = React.createRef<Kb.SectionList<Section<ResultData, SearchRecSection>>>()
   componentDidMount() {
     this.props.fetchUserRecs()
   }
@@ -327,7 +329,7 @@ class TeamBuilding extends React.PureComponent<Props> {
   }
 
   _onScrollToSection = (label: string) => {
-    if (this.sectionListRef && this.sectionListRef.current) {
+    if (this.sectionListRef.current) {
       const ref = this.sectionListRef.current
       const sectionIndex =
         (this.props.recommendations &&
@@ -336,14 +338,12 @@ class TeamBuilding extends React.PureComponent<Props> {
             : this.props.recommendations.findIndex(section => section.label === label))) ||
         -1
       if (sectionIndex >= 0 && Styles.isMobile) {
-        // @ts-ignore RN type not plumbed. see section-list.d.ts
         const node = ref.getNode()
-        node &&
-          node.scrollToLocation({
-            animated: false,
-            itemIndex: 0,
-            sectionIndex,
-          })
+        node?.scrollToLocation({
+          animated: false,
+          itemIndex: 0,
+          sectionIndex,
+        })
       }
     }
   }
@@ -359,8 +359,7 @@ class TeamBuilding extends React.PureComponent<Props> {
     let numData = 0
     let length = dataRowHeight
     let currSectionHeaderIdx = 0
-    for (let i = 0; i < sections.length; i++) {
-      const s = sections[i]
+    for (const s of sections) {
       if (indexInList === currSectionHeaderIdx) {
         // we are the section header
         length = Kb.SectionDivider.height
@@ -517,7 +516,7 @@ class TeamBuilding extends React.PureComponent<Props> {
                   : item.userId
               }}
               getItemLayout={this._getRecLayout}
-              renderItem={({index, item: result, section}: any) =>
+              renderItem={({index, item: result, section}) =>
                 result.isImportButton ? (
                   <ContactsImportButton {...this.props} />
                 ) : result.isSearchHint ? (
@@ -542,8 +541,9 @@ class TeamBuilding extends React.PureComponent<Props> {
                       highlightDetails.section === section &&
                       highlightDetails.index === index
                     }
-                    onAdd={() => this.props.onAdd(result.userId)}
-                    onRemove={() => this.props.onRemove(result.userId)}
+                    userId={result.userId}
+                    onAdd={this.props.onAdd}
+                    onRemove={this.props.onRemove}
                   />
                 )
               }
@@ -588,8 +588,9 @@ class TeamBuilding extends React.PureComponent<Props> {
                 isYou={result.isYou}
                 followingState={result.followingState}
                 highlight={!Styles.isMobile && index === this.props.highlightedIndex}
-                onAdd={() => this.props.onAdd(result.userId)}
-                onRemove={() => this.props.onRemove(result.userId)}
+                userId={result.userId}
+                onAdd={this.props.onAdd}
+                onRemove={this.props.onRemove}
               />
             )}
           />
@@ -606,7 +607,7 @@ class TeamBuilding extends React.PureComponent<Props> {
     this.props.onSearchForMore()
   }, 500)
 
-  onScroll = Styles.isMobile
+  onScroll: undefined | (() => void) = Styles.isMobile
     ? Kb.ReAnimated.event([{nativeEvent: {contentOffset: {y: this.offset}}}], {useNativeDriver: true})
     : undefined
 
@@ -615,9 +616,7 @@ class TeamBuilding extends React.PureComponent<Props> {
       <Kb.Text type="BodyBigLink" onClick={this.props.onClose}>
         Cancel
       </Kb.Text>
-    ) : (
-      undefined
-    )
+    ) : undefined
     switch (this.props.namespace) {
       case 'people': {
         return Styles.isMobile
@@ -628,46 +627,20 @@ class TeamBuilding extends React.PureComponent<Props> {
           : undefined
       }
       case 'teams': {
-        const rightButton =
-          Styles.isMobile && this.props.rolePickerProps ? (
-            <RolePickerHeaderAction
-              onFinishTeamBuilding={this.props.onFinishTeamBuilding}
-              rolePickerProps={this.props.rolePickerProps}
-              count={this.props.teamSoFar.length}
-            />
-          ) : (
-            undefined
-          )
-        if (flags.teamsRedesign) {
-          return {
-            hideBorder: true,
-            leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={this.props.onClose} />,
-            rightButton: Styles.isMobile ? (
-              <Kb.Text
-                type="BodyBigLink"
-                onClick={this.props.teamSoFar.length ? this.props.onFinishTeamBuilding : undefined}
-                style={!this.props.teamSoFar.length && styles.hide}
-              >
-                Done
-              </Kb.Text>
-            ) : (
-              undefined
-            ),
-            title: <TeamsModalTitle teamID={this.props.teamID ?? noTeamID} title="Search people" />,
-          }
+        return {
+          hideBorder: true,
+          leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={this.props.onClose} />,
+          rightButton: Styles.isMobile ? (
+            <Kb.Text
+              type="BodyBigLink"
+              onClick={this.props.teamSoFar.length ? this.props.onFinishTeamBuilding : undefined}
+              style={!this.props.teamSoFar.length && styles.hide}
+            >
+              Done
+            </Kb.Text>
+          ) : undefined,
+          title: <TeamsModalTitle teamID={this.props.teamID ?? noTeamID} title="Search people" />,
         }
-        return Styles.isMobile
-          ? {hideBorder: true, leftButton: mobileCancel, rightButton, title: this.props.title}
-          : {
-              hideBorder: true,
-              title: (
-                <Kb.Box2 direction="vertical" alignItems="center" style={styles.headerContainer}>
-                  <Kb.Avatar teamname={this.props.teamname} size={32} style={styles.teamAvatar} />
-                  <Kb.Text type="Header">{this.props.title}</Kb.Text>
-                  <Kb.Text type="BodyTiny">Add as many members as you would like.</Kb.Text>
-                </Kb.Box2>
-              ),
-            }
       }
       case 'chat2': {
         const rightButton = Styles.isMobile ? (
@@ -678,9 +651,7 @@ class TeamBuilding extends React.PureComponent<Props> {
             type="Success"
             style={!this.props.teamSoFar.length && styles.hide} // Need to hide this so modal can measure correctly
           />
-        ) : (
-          undefined
-        )
+        ) : undefined
         return {hideBorder: true, leftButton: mobileCancel, rightButton, title: this.props.title}
       }
       case 'crypto': {
@@ -692,9 +663,7 @@ class TeamBuilding extends React.PureComponent<Props> {
             type="Success"
             style={!this.props.teamSoFar.length && styles.hide} // Need to hide this so modal can measure correctly
           />
-        ) : (
-          undefined
-        )
+        ) : undefined
         return {hideBorder: true, leftButton: mobileCancel, rightButton, title: this.props.title}
       }
       default: {
@@ -786,15 +755,6 @@ class TeamBuilding extends React.PureComponent<Props> {
               teamBox
             ))}
           {!!props.error && <Kb.Banner color="red">{props.error}</Kb.Banner>}
-          {!!props.teamSoFar.length && Flags.newTeamBuildingForChatAllowMakeTeam && (
-            <Kb.Text type="BodySmall">
-              Add up to 14 more people. Need more?
-              <Kb.Text type="BodySmallPrimaryLink" onClick={props.onMakeItATeam}>
-                {' '}
-                Make it a team.
-              </Kb.Text>
-            </Kb.Text>
-          )}
           {(props.namespace !== 'people' || Styles.isMobile) && (
             <FilteredServiceTabBar
               filterServices={props.filterServices}
@@ -857,9 +817,7 @@ const styles = Styles.styleSheetCreate(
         justifyContent: 'center',
       },
       container: Styles.platformStyles({
-        common: {
-          position: 'relative',
-        },
+        common: {position: 'relative'},
       }),
       emptyContainer: Styles.platformStyles({
         common: {flex: 1},
@@ -898,9 +856,7 @@ const styles = Styles.styleSheetCreate(
         common: {paddingBottom: Styles.globalMargins.small},
       }),
       listContainer: Styles.platformStyles({
-        common: {
-          position: 'relative',
-        },
+        common: {position: 'relative'},
         isElectron: {flex: 1, height: '100%', overflow: 'hidden'},
         isMobile: {
           flexGrow: 1,
@@ -928,9 +884,7 @@ const styles = Styles.styleSheetCreate(
         isMobile: {flex: 1},
       }),
       newChatHeader: Styles.platformStyles({
-        isElectron: {
-          margin: Styles.globalMargins.xsmall,
-        },
+        isElectron: {margin: Styles.globalMargins.xsmall},
       }),
       noResults: {
         flex: 1,

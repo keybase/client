@@ -154,6 +154,7 @@ func main() {
 	defer file.Close()
 
 	if _, err := file.Write(codeMapSource); err != nil {
-		log.Fatalln(err)
+		log.Println(err)
+		return
 	}
 }

@@ -1,5 +1,4 @@
 import * as Types from '../../../constants/types/teams'
-import flags from '../../../util/feature-flags'
 
 // Weights for sorting team members
 // 2 is neutral
@@ -52,7 +51,7 @@ export const getOrderedMemberArray = (
             m.type !== 'restrictedbot' &&
             m.type !== 'bot' &&
             // Reset members are included in the "requests" section for admins
-            !(flags.teamsRedesign && m.status === 'reset' && yourOperations.manageMembers)
+            !(m.status === 'reset' && yourOperations.manageMembers)
         )
     : []
 

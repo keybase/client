@@ -1,3 +1,4 @@
+// @ts-nocheck
 module.hot &&
   module.hot.accept(() => {
     console.log('accepted update in common-adapters/mobile.native')
@@ -295,14 +296,8 @@ module.exports = {
   get NativeWebView() {
     return NativeWrappers.NativeWebView
   },
-  get NavigationEvents() {
-    return Index.NavigationEvents
-  },
   get NewInput() {
     return Index.NewInput
-  },
-  get OrientedImage() {
-    return Index.OrientedImage
   },
   get Overlay() {
     return Index.Overlay
@@ -350,10 +345,10 @@ module.exports = {
     return Index.RadioButton
   },
   get ReAnimated() {
-    return require('react-native-reanimated').default
+    return require('./reanimated').default
   },
   get ReAnimatedEasing() {
-    return require('react-native-reanimated').Easing
+    return require('./reanimated').EasingNode
   },
   get RectButton() {
     return require('react-native-gesture-handler').RectButton
@@ -453,6 +448,9 @@ module.exports = {
   },
   get useMounted() {
     return Index.useMounted
+  },
+  get useSafeAreaInsets() {
+    return Index.useSafeAreaInsets
   },
   get useTimeout() {
     return Index.useTimeout

@@ -6,14 +6,15 @@ import logSend from '../../native/log-send'
 import * as Container from '../../util/container'
 import {isAndroid, version, pprofDir} from '../../constants/platform'
 import {writeLogLinesToFile} from '../../util/forward-logs'
-import {Platform, NativeModules} from 'react-native'
+import {Platform} from 'react-native'
+import {NativeModules} from '../../util/native-modules.native'
 import {getExtraChatLogsForLogSend, getPushTokenForLogSend} from '../../constants/settings'
 
 type OwnProps = Container.RouteProps<{heading: string; feedback: string}>
 
 export type State = {
   sending: boolean
-  sendError: Error | null
+  sendError?: Error
 }
 export type Props = {
   chat: Object
@@ -23,9 +24,8 @@ export type Props = {
   status: Object
 }
 
-const nativeBridge = NativeModules.KeybaseEngine
-const appVersionName = nativeBridge.appVersionName || ''
-const appVersionCode = nativeBridge.appVersionCode || ''
+const appVersionName = NativeModules.KeybaseEngine.appVersionName
+const appVersionCode = NativeModules.KeybaseEngine.appVersionCode
 const mobileOsVersion = Platform.Version
 
 class FeedbackContainer extends React.Component<Props, State> {
@@ -39,10 +39,10 @@ class FeedbackContainer extends React.Component<Props, State> {
   private timeoutID?: ReturnType<typeof setTimeout>
 
   state = {
-    sendError: null,
+    sendError: undefined,
     sending: false,
   }
-  private dumpLogs = () => logger.dump().then(writeLogLinesToFile)
+  private dumpLogs = async () => logger.dump().then(writeLogLinesToFile)
 
   componentWillUnmount() {
     this.mounted = false
@@ -62,7 +62,7 @@ class FeedbackContainer extends React.Component<Props, State> {
       const maybeDump = sendLogs ? this.dumpLogs() : Promise.resolve()
 
       maybeDump
-        .then(() => {
+        .then(async () => {
           logger.info(`Sending ${sendLogs ? 'log' : 'feedback'} to daemon`)
           const extra = sendLogs
             ? {...this.props.status, ...this.props.chat, ...this.props.push}
@@ -82,7 +82,7 @@ class FeedbackContainer extends React.Component<Props, State> {
           logger.info('logSendId is', logSendId)
           if (this.mounted) {
             this.setState({
-              sendError: null,
+              sendError: undefined,
               sending: false,
             })
           }

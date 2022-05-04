@@ -16,7 +16,7 @@ import (
 	"github.com/keybase/go-crypto/openpgp/packet"
 )
 
-//=============================================================================
+// =============================================================================
 
 type BucketDict struct {
 	d map[string][]*GpgPrimaryKey
@@ -52,7 +52,7 @@ func (bd BucketDict) Get0Or1(k string) (ret *GpgPrimaryKey, err error) {
 	return
 }
 
-//=============================================================================
+// =============================================================================
 
 func Uniquify(inp []string) []string {
 	m := make(map[string]bool)
@@ -66,7 +66,7 @@ func Uniquify(inp []string) []string {
 	return ret
 }
 
-//=============================================================================
+// =============================================================================
 
 type GpgBaseKey struct {
 	Type        string
@@ -148,7 +148,7 @@ func (k *GpgBaseKey) ParseBase(line *GpgIndexLine) (err error) {
 	return
 }
 
-//=============================================================================
+// =============================================================================
 
 type GpgFingerprinter interface {
 	SetFingerprint(pgp *PGPFingerprint)
@@ -312,7 +312,7 @@ func (k *GpgPrimaryKey) AddLine(l *GpgIndexLine) (err error) {
 	return err
 }
 
-//=============================================================================
+// =============================================================================
 
 type GpgSubKey struct {
 	GpgBaseKey
@@ -324,7 +324,7 @@ func ParseGpgSubKey(l *GpgIndexLine) (sk *GpgSubKey, err error) {
 	return
 }
 
-//=============================================================================
+// =============================================================================
 
 type GpgIndexElement interface {
 	ToKey() *GpgPrimaryKey
@@ -414,7 +414,7 @@ func (ki *GpgKeyIndex) AllFingerprints() []PGPFingerprint {
 	return ret
 }
 
-//=============================================================================
+// =============================================================================
 
 type GpgIndexLine struct {
 	v      []string
@@ -439,7 +439,7 @@ func (g GpgIndexLine) IsNewKey() bool {
 	return len(g.v) > 0 && (g.v[0] == "sec" || g.v[0] == "pub")
 }
 
-//=============================================================================
+// =============================================================================
 
 type GpgIndexParser struct {
 	Contextified
@@ -533,7 +533,7 @@ func (p *GpgIndexParser) Parse(mctx MetaContext, stream io.Reader) (ki *GpgKeyIn
 	return
 }
 
-//=============================================================================
+// =============================================================================
 
 func ParseGpgIndexStream(mctx MetaContext, stream io.Reader) (ki *GpgKeyIndex, w Warnings, err error) {
 	eng := NewGpgIndexParser(mctx.G())
@@ -542,7 +542,7 @@ func ParseGpgIndexStream(mctx MetaContext, stream io.Reader) (ki *GpgKeyIndex, w
 	return
 }
 
-//=============================================================================
+// =============================================================================
 
 func (g *GpgCLI) Index(mctx MetaContext, secret bool, query string) (ki *GpgKeyIndex, w Warnings, err error) {
 	var k string
@@ -571,4 +571,4 @@ func (g *GpgCLI) Index(mctx MetaContext, secret bool, query string) (ki *GpgKeyI
 	return
 }
 
-//=============================================================================
+// =============================================================================

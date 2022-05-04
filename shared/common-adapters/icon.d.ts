@@ -18,8 +18,10 @@ export type Props = {
   noContainer?: boolean
   onClick?: ((event: React.BaseSyntheticEvent) => void) | null
   onPress?: void // Use onClick, not onPress.,,
+  onLongPress?: () => void // mobile only, rarely used just for debug currently
   onMouseEnter?: (() => void) | null
   onMouseLeave?: (() => void) | null
+  fixOverdraw?: boolean // use fastblank
   style?: IconStyle
   opacity?: boolean
   inheritColor?: boolean

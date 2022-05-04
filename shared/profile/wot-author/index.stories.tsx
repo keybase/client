@@ -1,10 +1,10 @@
+/*
 import * as React from 'react'
 import * as Sb from '../../stories/storybook'
 import {Question1, Question2, Review, Proof} from '.'
 import sortBy from 'lodash/sortBy'
 
 // snapshot of tracker2 assertions: DEBUGStore.getState().tracker2.usernameToDetails.get("mlsteele").assertions
-/* eslint-disable sort-keys */
 const sampleAssertions = {
   'mastodon.social:mlsteele': {
     assertionKey: 'mastodon.social:mlsteele',
@@ -277,7 +277,6 @@ const sampleAssertions = {
     value: 'mlsteele*keybase.io',
   },
 }
-/* eslint-enable sort-keys */
 
 const sampleProofs: Proof[] = sortBy(Object.values(sampleAssertions), x => x.priority).reduce<Array<Proof>>(
   (acc, x: any) => {
@@ -370,3 +369,6 @@ const load = () => {
 }
 
 export default load
+*/
+
+export default {}

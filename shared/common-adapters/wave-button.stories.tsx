@@ -1,3 +1,4 @@
+/*
 import {Box2} from './box'
 import WaveButton from './wave-button'
 import * as React from 'react'
@@ -16,3 +17,6 @@ const load = () => {
 }
 
 export default load
+*/
+
+export default {}

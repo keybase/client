@@ -2,65 +2,60 @@ import * as React from 'react'
 import * as Kb from '../../../../../../common-adapters/index'
 import * as Styles from '../../../../../../styles'
 import logger from '../../../../../../logger'
-import RNVideo from 'react-native-video'
-import {Props} from './video.types'
+import {Video as AVVideo} from 'expo-av'
+import type {Props} from './video.types'
 
-type State = {
-  playingVideo: boolean
-}
+export const Video = (props: Props) => {
+  const {autoPlay, onClick, url, style, width, height} = props
+  const [playingVideo, setPlayingVideo] = React.useState(autoPlay)
 
-export class Video extends React.Component<Props, State> {
-  state = {playingVideo: this.props.autoPlay}
+  const vidRef = React.useRef<AVVideo>(null)
 
-  _onClick = () => {
-    if (this.props.onClick) {
-      this.props.onClick()
+  const _onClick = React.useCallback(() => {
+    if (onClick) {
+      onClick()
       return
     }
-    this.setState(s => ({playingVideo: !s.playingVideo}))
-  }
+    setPlayingVideo(v => !v)
+  }, [setPlayingVideo, onClick])
 
-  render() {
-    /*
-    The react-native-video library thinks any URI that doesn't start with /https?:// to be an asset bundled
+  /*
+    The video library thinks any URI that doesn't start with /https?:// to be an asset bundled
     with the app, and will straight crash of that is not true. Solution here is if we somehow end up with a
     blank URL in a native video component, then just put some bogus string in there that at least doesn't
     send the library down the crasher path.
     */
-    const uri = this.props.url.length > 0 ? this.props.url : 'https://'
-    const source = {
-      uri: `${uri}&autoplay=${this.props.autoPlay ? 'true' : 'false'}&contentforce=true`,
-    }
-    return (
-      <Kb.ClickableBox
-        onClick={this._onClick}
-        style={Styles.collapseStyles([this.props.style, styles.container])}
-      >
-        <RNVideo
-          source={source}
-          onError={e => {
-            logger.error(`Error loading vid: ${JSON.stringify(e)}`)
-          }}
-          resizeMode="contain"
-          style={Styles.collapseStyles([styles.player, this.props.style])}
-          repeat={true}
-          paused={!this.state.playingVideo}
-          muted={true}
-        />
-        <Kb.Box
-          style={Styles.collapseStyles([
-            styles.absoluteContainer,
-            {
-              height: this.props.height,
-              width: this.props.width,
-            },
-          ])}
-        >
-          {!this.state.playingVideo && <Kb.Icon type="icon-play-64" style={styles.playButton} />}
-        </Kb.Box>
-      </Kb.ClickableBox>
-    )
+  const uri = url.length > 0 ? url : 'https://'
+  const source = {
+    uri: `${uri}&autoplay=${autoPlay ? 'true' : 'false'}&contentforce=true`,
   }
+  return (
+    <Kb.ClickableBox onClick={_onClick} style={Styles.collapseStyles([style, styles.container])}>
+      <AVVideo
+        ref={vidRef}
+        source={source}
+        onError={e => {
+          logger.error(`Error loading vid: ${JSON.stringify(e)}`)
+        }}
+        resizeMode="contain"
+        style={Styles.collapseStyles([styles.player, style])}
+        isLooping={true}
+        isMuted={true}
+        shouldPlay={playingVideo}
+      />
+      <Kb.Box
+        style={Styles.collapseStyles([
+          styles.absoluteContainer,
+          {
+            height,
+            width,
+          },
+        ])}
+      >
+        {!playingVideo && <Kb.Icon type="icon-play-64" style={styles.playButton} />}
+      </Kb.Box>
+    </Kb.ClickableBox>
+  )
 }
 
 const styles = Styles.styleSheetCreate(

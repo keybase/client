@@ -14,7 +14,7 @@ import SpecialTopMessage from '../messages/special-top-message'
 import logger from '../../../logger'
 import shallowEqual from 'shallowequal'
 import {ErrorBoundary} from '../../../common-adapters'
-import {Props} from '.'
+import type {Props} from '.'
 import {Waypoint} from 'react-waypoint'
 import debounce from 'lodash/debounce'
 import throttle from 'lodash/throttle'
@@ -56,7 +56,7 @@ class Thread extends React.PureComponent<Props, State> {
   private isScrolling = false
 
   private lastResizeHeight = 0
-  private resizeObserver =
+  private resizeObserver: any =
     // @ts-ignore doesn't know about ResizeObserver
     typeof ResizeObserver !== 'undefined' &&
     // @ts-ignore doesn't know about ResizeObserver
@@ -260,7 +260,7 @@ class Thread extends React.PureComponent<Props, State> {
     }
 
     // Are we prepending older messages?
-    if (snapshot && snapshot.scrollHeight && list && !this.isLockedToBottom()) {
+    if (snapshot?.scrollHeight && list && !this.isLockedToBottom()) {
       requestAnimationFrame(() => {
         const {current} = this.listRef
         if (current) {
@@ -403,7 +403,7 @@ class Thread extends React.PureComponent<Props, State> {
     }
 
     const sel = window.getSelection()
-    if (sel && sel.isCollapsed) {
+    if (sel?.isCollapsed) {
       this.props.onFocusInput()
     }
   }
@@ -519,9 +519,13 @@ class Thread extends React.PureComponent<Props, State> {
     return (
       <ErrorBoundary>
         {debugInfo}
-        <div style={styles.container} onClick={this.handleListClick} onCopyCapture={this.onCopyCapture}>
+        <div
+          style={styles.container as any}
+          onClick={this.handleListClick}
+          onCopyCapture={this.onCopyCapture}
+        >
           <style>{realCSS}</style>
-          <div key={this.props.conversationIDKey} style={styles.list} ref={this.setListRef}>
+          <div key={this.props.conversationIDKey} style={styles.list as any} ref={this.setListRef}>
             <div style={styles.listContents} ref={this.setListContents}>
               {items}
             </div>

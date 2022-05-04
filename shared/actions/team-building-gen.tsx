@@ -1,7 +1,7 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
 
-import * as Types from '../constants/types/team-building'
-import {TeamRoleType, TeamID} from '../constants/types/teams'
+import type * as Types from '../constants/types/team-building'
+import type {TeamRoleType, TeamID} from '../constants/types/teams'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of team-building but is handled by every reducer. NEVER dispatch this
@@ -167,4 +167,4 @@ export type Actions =
   | SelectRolePayload
   | SetErrorPayload
   | TbResetStorePayload
-  | {type: 'common:resetStore', payload: {}}
+  | {readonly type: 'common:resetStore', readonly payload: undefined}

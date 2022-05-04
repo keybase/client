@@ -1,3 +1,4 @@
+/*
 import * as React from 'react'
 import {action, storiesOf, updateStoreDecorator} from '../../../stories/storybook'
 import ChannelTabs from '.'
@@ -19,3 +20,6 @@ const load = () => {
 }
 
 export default load
+*/
+
+export default {}

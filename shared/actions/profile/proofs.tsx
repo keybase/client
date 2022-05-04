@@ -106,7 +106,7 @@ function* addProof(state: TypedState, action: ProfileGen.AddProofPayload) {
   let canceled = false
 
   // We fork off some tasks for watch for events that come from the ui
-  const cancelTask = yield Saga._fork(function*() {
+  const cancelTask = yield Saga._fork(function* () {
     yield Saga.take(ProfileGen.cancelAddProof)
     canceled = true
     if (_promptUsernameResponse) {
@@ -120,7 +120,7 @@ function* addProof(state: TypedState, action: ProfileGen.AddProofPayload) {
     }
   })
 
-  const checkProofTask = yield Saga._fork(function*() {
+  const checkProofTask = yield Saga._fork(function* () {
     while (true) {
       yield Saga.take(ProfileGen.checkProof)
       if (_outputInstructionsResponse) {
@@ -130,7 +130,7 @@ function* addProof(state: TypedState, action: ProfileGen.AddProofPayload) {
     }
   })
 
-  const submitUsernameTask = yield Saga._fork(function*() {
+  const submitUsernameTask = yield Saga._fork(function* () {
     // loop since if we get errors we can get these events multiple times
     while (true) {
       yield Saga.take(ProfileGen.submitUsername)
@@ -194,7 +194,7 @@ function* addProof(state: TypedState, action: ProfileGen.AddProofPayload) {
       // We don't get this directly (yet) so we parse this out
       try {
         const match = instructions.data.match(/<url>(http[s]+):\/\//)
-        const protocol = match && match[1]
+        const protocol = match?.[1]
         actions.push(
           Saga.put(ProfileGen.createUpdatePlatform({platform: protocol === 'https' ? 'https' : 'http'}))
         )
@@ -271,7 +271,8 @@ function* addProof(state: TypedState, action: ProfileGen.AddProofPayload) {
     if (genericService) {
       yield Saga.put(ProfileGen.createUpdatePlatformGenericChecking({checking: false}))
     }
-  } catch (error) {
+  } catch (error_) {
+    const error = error_ as RPCError
     logger.warn('Error making proof')
     yield Saga.put(loadAfter)
     yield Saga.put(ProfileGen.createUpdateErrorText({errorCode: error.code, errorText: error.desc}))
@@ -331,8 +332,8 @@ const submitCryptoAddress = async (
       ProfileGen.createUpdateProofStatus({found: true, status: RPCTypes.ProofStatus.ok}),
       RouteTreeGen.createNavigateAppend({path: ['profileConfirmOrPending']}),
     ]
-  } catch (e) {
-    const error: RPCError = e
+  } catch (error_) {
+    const error = error_ as RPCError
     logger.warn('Error making proof')
     return ProfileGen.createUpdateErrorText({errorCode: error.code, errorText: error.desc})
   }

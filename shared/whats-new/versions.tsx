@@ -152,7 +152,7 @@ export const LastLast = ({seen, onNavigate, onNavigateExternal}: VersionProps) =
         }}
         secondaryButtonText="Read the doc"
         onSecondaryButtonClick={() => {
-          onNavigateExternal('https://keybase.io/docs/chat/phones_and_emails')
+          onNavigateExternal('https://keybase.io/docs/chat/phones-and-emails')
         }}
       >
         You can now start a conversation with a phone number or email address.

@@ -17,7 +17,6 @@ import (
 	"encoding/base64"
 	"encoding/xml"
 	"fmt"
-	"github.com/keybase/client/go/libkb"
 	"io"
 	"io/ioutil"
 	"log"
@@ -28,6 +27,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/keybase/client/go/libkb"
 
 	"golang.org/x/net/context"
 )
@@ -896,7 +897,7 @@ func (s3 *S3) prepare(req *request) error {
 				if strings.ContainsAny(req.bucket, "/:@") {
 					return fmt.Errorf("bad S3 bucket: %q", req.bucket)
 				}
-				req.baseurl = strings.Replace(req.baseurl, "${bucket}", req.bucket, -1)
+				req.baseurl = strings.ReplaceAll(req.baseurl, "${bucket}", req.bucket)
 			}
 			signpath = "/" + req.bucket + signpath
 		}

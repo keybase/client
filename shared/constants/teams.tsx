@@ -2,7 +2,7 @@ import * as Types from './types/teams'
 import * as RPCTypes from './types/rpc-gen'
 import * as RPCChatTypes from './types/rpc-chat-gen'
 import * as ChatTypes from './types/chat2'
-import {getFullRoute} from './router2'
+import {getCurrentTab} from './router2'
 import invert from 'lodash/invert'
 import {teamsTab} from './tabs'
 import {memoize} from '../util/memoize'
@@ -538,16 +538,6 @@ export const getTeamWelcomeMessageByID = (
   teamID: Types.TeamID
 ): RPCChatTypes.WelcomeMessageDisplay | null => state.teams.teamIDToWelcomeMessage.get(teamID) ?? null
 
-export const getSelectedTeams = (): Types.TeamID[] => {
-  const path = getFullRoute()
-  return path.reduce<Array<string>>((names, curr) => {
-    if (curr.routeName === 'team') {
-      curr.params && curr.params.teamID && names.push(curr.params.teamID)
-    }
-    return names
-  }, [])
-}
-
 /**
  *  Gets the number of channels you're subscribed to on a team
  */
@@ -698,10 +688,7 @@ export const chosenChannelsGregorKey = 'chosenChannelsForTeam'
 export const newRequestsGregorPrefix = 'team.request_access:'
 export const newRequestsGregorKey = (teamID: Types.TeamID) => `${newRequestsGregorPrefix}${teamID}`
 
-export const isOnTeamsTab = () => {
-  const path = getFullRoute()
-  return Array.isArray(path) ? path.some(p => p.routeName === teamsTab) : false
-}
+export const isOnTeamsTab = () => getCurrentTab() == teamsTab
 
 // Merge new teamMeta objs into old ones, removing any old teams that are not in the new map
 export const mergeTeamMeta = (oldMap: Types.State['teamMeta'], newMap: Types.State['teamMeta']) => {

@@ -5,15 +5,15 @@ function isBlank(s: string): boolean {
 }
 
 function hasSpaces(s: string): boolean {
-  return s.indexOf(' ') !== -1
+  return s.includes(' ')
 }
 
 function hasPeriod(s: string): boolean {
-  return s.indexOf('.') !== -1
+  return s.includes('.')
 }
 
 function hasAtSign(s: string): boolean {
-  return s.indexOf('@') !== -1
+  return s.includes('@')
 }
 
 function isEmptyOrBlank(thing: string | null): boolean {

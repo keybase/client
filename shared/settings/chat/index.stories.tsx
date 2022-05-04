@@ -1,3 +1,4 @@
+/*
 import * as React from 'react'
 import * as Constants from '../../constants/teams'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
@@ -134,3 +135,6 @@ const load = () => {
 }
 
 export default load
+*/
+
+export default {}

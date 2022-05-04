@@ -5,12 +5,14 @@ import * as UsersGen from './users-gen'
 import * as DeeplinksGen from './deeplinks-gen'
 import * as RouteTreeGen from './route-tree-gen'
 import * as Saga from '../util/saga'
-import * as Container from '../util/container'
+import type * as Container from '../util/container'
+import type {RPCError} from '../util/errors'
 import * as Constants from '../constants/tracker2'
 import * as ProfileConstants from '../constants/profile'
-import {WebOfTrustVerificationType} from '../constants/types/more'
+import type {WebOfTrustVerificationType} from '../constants/types/more'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import logger from '../logger'
+import type {formatPhoneNumberInternational as formatPhoneNumberInternationalType} from '../util/phone-numbers'
 
 const identify3Result = (action: EngineGen.Keybase1Identify3UiIdentify3ResultPayload) =>
   Tracker2Gen.createUpdateResult({
@@ -110,10 +112,11 @@ function* load(state: Container.TypedState, action: Tracker2Gen.LoadPayload) {
       },
       waitingKey: Constants.profileLoadWaitingKey,
     })
-  } catch (err) {
-    if (err.code === RPCTypes.StatusCode.scresolutionfailed) {
+  } catch (error_) {
+    const error = error_ as RPCError
+    if (error.code === RPCTypes.StatusCode.scresolutionfailed) {
       yield Saga.put(Tracker2Gen.createUpdateResult({guiID: action.payload.guiID, result: 'notAUserYet'}))
-    } else if (err.code === RPCTypes.StatusCode.scnotfound) {
+    } else if (error.code === RPCTypes.StatusCode.scnotfound) {
       // we're on the profile page for a user that does not exist. Currently the only way
       // to get here is with an invalid link or deeplink.
       yield Saga.put(
@@ -129,7 +132,7 @@ function* load(state: Container.TypedState, action: Tracker2Gen.LoadPayload) {
       )
     }
     // hooked into reloadable
-    logger.error(`Error loading profile: ${err.message}`)
+    logger.error(`Error loading profile: ${error.message}`)
   }
 }
 
@@ -162,8 +165,9 @@ const loadWebOfTrustEntries = async (
       entries: webOfTrustEntries,
       voucheeUsername: username,
     })
-  } catch (err) {
-    logger.error(`Error loading web-of-trust info: ${err.message}`)
+  } catch (error_) {
+    const error = error_ as RPCError
+    logger.error(`Error loading web-of-trust info: ${error.message}`)
     return false
   }
 }
@@ -191,8 +195,9 @@ const loadFollowers = async (action: Tracker2Gen.LoadPayload) => {
       following: undefined,
       username: action.payload.assertion,
     })
-  } catch (err) {
-    logger.error(`Error loading follower info: ${err.message}`)
+  } catch (error_) {
+    const error = error_ as RPCError
+    logger.error(`Error loading follower info: ${error.message}`)
     return false
   }
 }
@@ -220,8 +225,9 @@ const loadFollowing = async (action: Tracker2Gen.LoadPayload) => {
       following,
       username: action.payload.assertion,
     })
-  } catch (err) {
-    logger.error(`Error loading following info: ${err.message}`)
+  } catch (error_) {
+    const error = error_ as RPCError
+    logger.error(`Error loading following info: ${error.message}`)
     return false
   }
 }
@@ -235,8 +241,9 @@ const getProofSuggestions = async () => {
     return Tracker2Gen.createProofSuggestionsUpdated({
       suggestions: (suggestions || []).map(Constants.rpcSuggestionToAssertion),
     })
-  } catch (e) {
-    logger.error(`Error loading proof suggestions: ${e.message}`)
+  } catch (error_) {
+    const error = error_ as RPCError
+    logger.error(`Error loading proof suggestions: ${error.message}`)
     return false
   }
 }
@@ -299,7 +306,8 @@ const loadNonUserProfile = async (action: Tracker2Gen.LoadNonUserProfilePayload)
           ...res.service,
         })
       } else {
-        const {formatPhoneNumberInternational} = require('../util/phone-numbers')
+        const formatPhoneNumberInternational: typeof formatPhoneNumberInternationalType =
+          require('../util/phone-numbers').formatPhoneNumberInternational
         const formattedName =
           res.assertionKey === 'phone' ? formatPhoneNumberInternational('+' + res.assertionValue) : undefined
         const fullName = res.contact ? res.contact.contactName : ''
@@ -311,13 +319,14 @@ const loadNonUserProfile = async (action: Tracker2Gen.LoadNonUserProfilePayload)
       }
     }
     return false
-  } catch (e) {
-    logger.warn(`Error loading non user profile: ${e.message}`)
+  } catch (error_) {
+    const error = error_ as RPCError
+    logger.warn(`Error loading non user profile: ${error.message}`)
     return false
   }
 }
 
-const refreshTrackerBlock = async (action: Tracker2Gen.UpdatedDetailsPayload) =>
+const refreshTrackerBlock = (action: Tracker2Gen.UpdatedDetailsPayload) =>
   UsersGen.createGetBlockState({
     usernames: [action.payload.username],
   })

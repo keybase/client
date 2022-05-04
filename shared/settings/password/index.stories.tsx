@@ -1,3 +1,4 @@
+/*
 import * as React from 'react'
 import Password from '.'
 import {action, storiesOf} from '../../stories/storybook'
@@ -34,3 +35,6 @@ const load = () => {
 }
 
 export default load
+*/
+
+export default {}

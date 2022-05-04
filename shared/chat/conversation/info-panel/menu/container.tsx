@@ -1,13 +1,13 @@
 import * as TeamConstants from '../../../../constants/teams'
 import * as ChatConstants from '../../../../constants/chat2'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
-import * as React from 'react'
+import type * as React from 'react'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import * as TeamsGen from '../../../../actions/teams-gen'
 import * as ChatGen from '../../../../actions/chat2-gen'
 import * as Container from '../../../../util/container'
-import {InfoPanelMenu, ConvProps} from '.'
-import * as ChatTypes from '../../../../constants/types/chat2'
+import {InfoPanelMenu, type ConvProps} from '.'
+import type * as ChatTypes from '../../../../constants/types/chat2'
 import * as TeamTypes from '../../../../constants/types/teams'
 import * as Styles from '../../../../styles'
 
@@ -24,7 +24,7 @@ export type OwnProps = {
 
 // TODO convProps was being made all the time and thrashing
 // how this works should change. i just normalized this so it doesn't thrash
-export default Container.namedConnect(
+export default Container.connect(
   (state, {conversationIDKey, isSmallTeam, teamID: _teamID, visible}: OwnProps) => {
     let _convPropsFullname: ConvProps['fullname'] | undefined
     let _convPropsIgnored: ConvProps['ignored'] | undefined
@@ -160,7 +160,7 @@ export default Container.namedConnect(
       s._convPropsFullname != null
         ? {
             conversationIDKey: o.conversationIDKey,
-            fullname: s._convPropsFullname!,
+            fullname: s._convPropsFullname,
             ignored: s._convPropsIgnored!,
             muted: s._convPropsMuted!,
             teamID: s._convPropsTeamID!,
@@ -198,6 +198,5 @@ export default Container.namedConnect(
       teamname: s.teamname,
       visible: o.visible,
     }
-  },
-  'TeamDropdownMenu'
+  }
 )(InfoPanelMenu)

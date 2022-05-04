@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import MessagePopup from '../messages/message-popup'
 import * as Styles from '../../../styles'
-import {Props} from '.'
+import type {Props} from '.'
 
 type State = {
   loaded: string
@@ -52,7 +52,10 @@ class _Fullscreen extends React.Component<Props & Kb.OverlayParentProps, State> 
   componentDidMount() {
     this.mounted = true
     if (this.vidRef.current && this.props.autoPlay) {
-      this.vidRef.current.play()
+      this.vidRef.current
+        .play()
+        .then(() => {})
+        .catch(() => {})
     }
   }
 
@@ -102,9 +105,7 @@ class _Fullscreen extends React.Component<Props & Kb.OverlayParentProps, State> 
               >
                 {!this.state.isZoomed ? (
                   <Arrow left={true} onClick={this.props.onPreviousAttachment} />
-                ) : (
-                  undefined
-                )}
+                ) : undefined}
                 <Kb.Box
                   style={Styles.globalStyles.flexGrow}
                   onClick={() => {
@@ -115,9 +116,13 @@ class _Fullscreen extends React.Component<Props & Kb.OverlayParentProps, State> 
                   key={this.props.path}
                 >
                   {!this.props.isVideo ? (
-                    <Kb.OrientedImage
+                    <Kb.Image
                       src={this.props.path}
-                      style={this.state.isZoomed ? styles.imageZoom : styles.imageFit}
+                      style={
+                        this.state.isZoomed
+                          ? (styles.imageZoom as Styles.StylesCrossPlatform)
+                          : (styles.imageFit as Styles.StylesCrossPlatform)
+                      }
                       onLoad={() => {
                         if (this.mounted) {
                           this.setLoaded(this.props.path)
@@ -126,7 +131,7 @@ class _Fullscreen extends React.Component<Props & Kb.OverlayParentProps, State> 
                     />
                   ) : (
                     <video
-                      style={styles.videoFit}
+                      style={styles.videoFit as any}
                       onLoadedMetadata={() => this.setLoaded(this.props.path)}
                       controlsList="nodownload nofullscreen noremoteplayback"
                       controls={true}

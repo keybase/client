@@ -1,14 +1,14 @@
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
-import {AllowedColors} from '../../../../common-adapters/text'
+import type {AllowedColors} from '../../../../common-adapters/text'
 import * as Styles from '../../../../styles'
 import {SimpleTopLine} from './top-line'
 import {BottomLine} from './bottom-line'
 import {Avatars, TeamAvatar} from '../../../avatars'
 import * as RowSizes from '../sizes'
-import * as ChatTypes from '../../../../constants/types/chat2'
+import type * as ChatTypes from '../../../../constants/types/chat2'
 import SwipeConvActions from './swipe-conv-actions'
-import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
+import type * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 
 export type Props = {
   backgroundColor?: string
@@ -27,8 +27,8 @@ export type Props = {
   layoutSnippet?: string
   layoutSnippetDecoration: RPCChatTypes.SnippetDecoration
   onHideConversation: () => void
-  onMuteConversation: () => void
-  onSelectConversation: () => void
+  onMuteConversation: (muted: boolean) => void
+  onSelectConversation?: () => void
   participantNeedToRekey: boolean
   participants: Array<string> | string
   showBold: boolean
@@ -78,6 +78,10 @@ class SmallTeam extends React.PureComponent<Props, State> {
       ? Styles.globalColors.blueGreyDark
       : this.props.backgroundColor
 
+  private onMuteConversation = () => {
+    this.props.onMuteConversation(!this.props.isMuted)
+  }
+
   render() {
     const props = this.props
     const clickProps = {
@@ -90,13 +94,13 @@ class SmallTeam extends React.PureComponent<Props, State> {
       <SwipeConvActions
         isMuted={this.props.isMuted}
         onHideConversation={this.props.onHideConversation}
-        onMuteConversation={this.props.onMuteConversation}
+        onMuteConversation={this.onMuteConversation}
       >
         <SmallTeamBox
           {...clickProps}
           style={Styles.collapseStyles([{backgroundColor: this._backgroundColor()}, styles.container])}
         >
-          <Kb.Box style={Styles.collapseStyles([styles.rowContainer, styles.fastBlank])}>
+          <Kb.Box style={Styles.collapseStyles([styles.rowContainer, styles.fastBlank] as const)}>
             {props.teamname ? (
               <TeamAvatar
                 teamname={props.teamname}
@@ -155,7 +159,7 @@ class SmallTeam extends React.PureComponent<Props, State> {
                     youAreReset={props.youAreReset}
                     showBold={props.showBold}
                     snippet={props.snippet || props.layoutSnippet || ''}
-                    snippetDecoration={props.snippetDecoration ?? props.layoutSnippetDecoration}
+                    snippetDecoration={props.snippetDecoration}
                     subColor={props.subColor}
                     hasResetUsers={props.hasResetUsers}
                     youNeedToRekey={props.youNeedToRekey}
@@ -181,8 +185,8 @@ const styles = Styles.styleSheetCreate(() => ({
       height: RowSizes.smallRowHeight,
     },
     isMobile: {
-      paddingLeft: Styles.globalMargins.xtiny,
-      paddingRight: Styles.globalMargins.xtiny,
+      marginLeft: Styles.globalMargins.xtiny,
+      marginRight: Styles.globalMargins.xtiny,
     },
   }),
   conversationRow: {

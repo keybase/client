@@ -394,6 +394,7 @@ func (u *smuUser) registerForNotifications() {
 	}
 }
 
+// nolint
 func (u *smuUser) waitForNewlyAddedToTeamByID(teamID keybase1.TeamID) {
 	u.ctx.t.Logf("waiting for newly added to team %s", teamID)
 

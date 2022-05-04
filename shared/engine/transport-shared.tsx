@@ -4,7 +4,6 @@ import {printRPC, printRPCWaitingSession} from '../local-debug'
 import {requestIdleCallback} from '../util/idle-callback'
 import * as LocalConsole from '../util/local-console'
 import * as Stats from './stats'
-import {isRemoteDebuggerAttached, isMobile} from '../constants/platform'
 
 const RobustTransport = rpc.transport.RobustTransport
 const RpcClient = rpc.client.Client
@@ -12,21 +11,20 @@ const RpcClient = rpc.client.Client
 rpc.pack.set_opt('encode_lib', '@msgpack/msgpack')
 
 // We basically always log/ensure once all the calls back and forth
-function _wrap<A1, A2, A3, A4, A5, F extends (a1: A1, a2: A2, a3: A3, a4: A4, a5: A5) => void>(options: {
-  handler: F
+function _wrap(options: {
+  handler: (...args: Array<any>) => void
   type: string
   method: string | ((...args: Array<any>) => string)
   reason: string
   extra: Object | ((...args: Array<any>) => Object)
   enforceOnlyOnce: boolean
-}): F {
+}) {
   const {handler, extra, method, type, enforceOnlyOnce, reason} = options
   let once = false
 
-  // @ts-ignore codemode issue
-  const wrapped: F = (a1: A1, a2: A2, a3: A3, a4: A4, a5: A5): void => {
-    const m = typeof method === 'string' ? method : method && method(a1, a2, a3, a4, a5)
-    const e = typeof extra === 'object' ? extra : extra && extra(a1, a2, a3, a4, a5)
+  const wrapped = (...args: Array<any>): void => {
+    const m = typeof method === 'string' ? method : method?.(...args)
+    const e = typeof extra === 'object' ? extra : extra?.(...args)
 
     if (enforceOnlyOnce && once) {
       rpcLog({method: m || 'unknown', reason: 'ignoring multiple result calls', type: 'engineInternal'})
@@ -42,7 +40,7 @@ function _wrap<A1, A2, A3, A4, A5, F extends (a1: A1, a2: A2, a3: A3, a4: A4, a5
         Stats.gotStat(m, type === 'serverToEngine')
       }
 
-      handler(a1, a2, a3, a4, a5)
+      handler(...args)
     }
   }
   return wrapped
@@ -62,14 +60,12 @@ function rpcLog(info: {method: string; reason: string; extra?: Object; type: str
     engineInternal: '=',
     engineToServer: '<< OUT',
     serverToEngine: 'IN >>',
-  }[info.type]
+  }[info.type] as string
 
   requestIdleCallback(
     () => {
       const params = [info.reason, info.method, info.extra].filter(Boolean)
-      if (!isMobile || isRemoteDebuggerAttached) {
-        LocalConsole.green(prefix, info.method, info.reason, ...params)
-      }
+      LocalConsole.green(prefix, info.method, info.reason, ...params)
     },
     {timeout: 1e3}
   )
@@ -86,20 +82,20 @@ type InvokeArgs = {
 class TransportShared extends RobustTransport {
   constructor(
     opts: Object,
-    connectCallback: () => void,
-    disconnectCallback: () => void,
-    incomingRPCCallback: (a: any) => void
+    connectCallback?: () => void,
+    disconnectCallback?: () => void,
+    incomingRPCCallback?: (a: any) => void
   ) {
     super(opts)
 
-    // @ts-ignore codemode issue
+    // @ts-ignore this exists
     this.hooks = {
       connected: () => {
         this.needsConnect = false
-        connectCallback && connectCallback()
+        connectCallback?.()
       },
       eof: () => {
-        disconnectCallback && disconnectCallback()
+        disconnectCallback?.()
       },
     }
 
@@ -110,7 +106,7 @@ class TransportShared extends RobustTransport {
         incomingRPCCallback(payload)
       }
 
-      // @ts-ignore codemode issue
+      // @ts-ignore this exists
       this.set_generic_handler(
         _wrap({
           enforceOnlyOnce: false,
@@ -161,7 +157,6 @@ class TransportShared extends RobustTransport {
   }
 
   unwrap_incoming_error(err: any) {
-    // eslint-disable-line camelcase
     if (!err) {
       return null
     }
@@ -175,9 +170,10 @@ class TransportShared extends RobustTransport {
 
   // Override RobustTransport.invoke.
   invoke(arg: InvokeArgs, cb: any) {
-    if (arg.ctype == undefined) {
-      arg.ctype = rpc.dispatch.COMPRESSION_TYPE_GZIP // default to gzip compression
-    }
+    // don't actually compress
+    // if (arg.ctype == undefined) {
+    //   arg.ctype = rpc.dispatch.COMPRESSION_TYPE_GZIP // default to gzip compression
+    // }
     const wrappedInvoke = _wrap({
       enforceOnlyOnce: true,
       extra: arg.args[0],

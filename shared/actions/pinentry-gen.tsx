@@ -1,5 +1,5 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-import * as RPCTypes from '../constants/types/rpc-gen'
+import type * as RPCTypes from '../constants/types/rpc-gen'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of pinentry but is handled by every reducer. NEVER dispatch this
@@ -10,7 +10,7 @@ export const onCancel = 'pinentry:onCancel'
 export const onSubmit = 'pinentry:onSubmit'
 
 // Payload Types
-type _ClosePayload = void
+type _ClosePayload = undefined
 type _NewPinentryPayload = {
   readonly showTyping: RPCTypes.Feature
   readonly type: RPCTypes.PassphraseType
@@ -20,16 +20,16 @@ type _NewPinentryPayload = {
   readonly cancelLabel?: string
   readonly retryLabel?: string
 }
-type _OnCancelPayload = void
+type _OnCancelPayload = undefined
 type _OnSubmitPayload = {readonly password: string}
 
 // Action Creators
-export const createClose = (payload: _ClosePayload): ClosePayload => ({payload, type: close})
+export const createClose = (payload?: _ClosePayload): ClosePayload => ({payload, type: close})
 export const createNewPinentry = (payload: _NewPinentryPayload): NewPinentryPayload => ({
   payload,
   type: newPinentry,
 })
-export const createOnCancel = (payload: _OnCancelPayload): OnCancelPayload => ({payload, type: onCancel})
+export const createOnCancel = (payload?: _OnCancelPayload): OnCancelPayload => ({payload, type: onCancel})
 export const createOnSubmit = (payload: _OnSubmitPayload): OnSubmitPayload => ({payload, type: onSubmit})
 
 // Action Payloads
@@ -45,4 +45,4 @@ export type Actions =
   | NewPinentryPayload
   | OnCancelPayload
   | OnSubmitPayload
-  | {type: 'common:resetStore', payload: {}}
+  | {readonly type: 'common:resetStore', readonly payload: undefined}

@@ -183,9 +183,7 @@ const AddToChannels = (props: Props) => {
           <Kb.Text type="BodyBigLink" onClick={onCancel}>
             Cancel
           </Kb.Text>
-        ) : (
-          undefined
-        ),
+        ) : undefined,
         rightButton:
           Styles.isMobile && mode === 'others' ? (
             waiting ? (
@@ -195,9 +193,7 @@ const AddToChannels = (props: Props) => {
                 Add
               </Kb.Text>
             )
-          ) : (
-            undefined
-          ),
+          ) : undefined,
         title: <Common.ModalTitle teamID={teamID} title={title} />,
       }}
       footer={
@@ -231,7 +227,7 @@ const AddToChannels = (props: Props) => {
       onClose={onCancel}
     >
       {loadingChannels && !channelMetas?.size ? (
-        <Kb.Box fullWidth={true} style={Styles.globalStyles.flexOne}>
+        <Kb.Box style={Styles.globalStyles.flexOne}>
           <Kb.ProgressIndicator type="Large" />
         </Kb.Box>
       ) : (
@@ -283,7 +279,7 @@ const SelfChannelActions = ({
   selfMode,
 }: {
   meta: ChatTypes.ConversationMeta
-  reloadChannels: () => Promise<undefined>
+  reloadChannels: () => Promise<void>
   selfMode: boolean
 }) => {
   const dispatch = Container.useDispatch()
@@ -323,11 +319,23 @@ const SelfChannelActions = ({
   const convID = ChatTypes.keyToConversationID(meta.conversationIDKey)
   const onLeave = () => {
     setWaiting(true)
-    leaveRPC([{convID}], () => reloadChannels().then(stopWaiting, stopWaiting), stopWaiting)
+    leaveRPC(
+      [{convID}],
+      () => {
+        reloadChannels().then(stopWaiting, stopWaiting)
+      },
+      stopWaiting
+    )
   }
   const onJoin = () => {
     setWaiting(true)
-    joinRPC([{convID}], () => reloadChannels().then(stopWaiting, stopWaiting), stopWaiting)
+    joinRPC(
+      [{convID}],
+      () => {
+        reloadChannels().then(stopWaiting, stopWaiting)
+      },
+      stopWaiting
+    )
   }
 
   const menuItems = [
@@ -401,7 +409,7 @@ type ChannelRowProps = {
   selected: boolean
   onSelect: () => void
   mode: 'self' | 'others'
-  reloadChannels: () => Promise<undefined>
+  reloadChannels: () => Promise<void>
   usernames: string[]
 }
 const ChannelRow = ({channelMeta, mode, selected, onSelect, reloadChannels, usernames}: ChannelRowProps) => {

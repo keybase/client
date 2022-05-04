@@ -1,7 +1,8 @@
+import KB2 from '../util/electron.desktop'
 const {path, process, os} = KB
 const {platform, env} = process
 const {join} = path
-export const isTestDevice = false
+export const androidIsTestDevice = false
 export const isMobile = false
 export const isPhone = false
 export const isAndroid = false
@@ -10,6 +11,7 @@ export const isLargeScreen = true
 export const isIPhoneX = false
 export const isTablet = false
 export const windowHeight = 0 // not implemented on desktop
+export const isDebuggingInChrome = true
 
 export const isElectron = true
 export const isDarwin = platform === 'darwin'
@@ -106,14 +108,8 @@ if (!paths) {
   throw new Error('Unknown OS')
 }
 
-export const {
-  dataRoot,
-  cacheRoot,
-  socketPath,
-  jsonDebugFileName,
-  serverConfigFileName,
-  guiConfigFilename,
-} = paths
+export const {dataRoot, cacheRoot, socketPath, jsonDebugFileName, serverConfigFileName, guiConfigFilename} =
+  paths
 
 export const downloadFolder = __STORYBOOK__ ? '' : env.XDG_DOWNLOAD_DIR || join(os.homedir, 'Downloads')
 
@@ -121,11 +117,6 @@ export const downloadFolder = __STORYBOOK__ ? '' : env.XDG_DOWNLOAD_DIR || join(
 export const pprofDir = ''
 export const version = 'TODO'
 export {runMode}
-
-// Noop – Just for Android
-export const appColorSchemeChanged = () => {}
-
-export const isRemoteDebuggerAttached = false
 
 const getTimeLocale = () => {
   if (!isLinux) {
@@ -146,3 +137,4 @@ const uses24HourClockF = () => {
   }
 }
 export const uses24HourClock = uses24HourClockF()
+export const getAssetPath = (...a: Array<string>) => [KB2.assetRoot, ...a].join('/')

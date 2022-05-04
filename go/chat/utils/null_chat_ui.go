@@ -25,10 +25,12 @@ func (u NullChatUI) ChatThreadStatus(context.Context, chat1.UIChatThreadStatus) 
 func (u NullChatUI) ChatConfirmChannelDelete(context.Context, chat1.ChatConfirmChannelDeleteArg) (bool, error) {
 	return false, nil
 }
-func (u NullChatUI) ChatSearchHit(context.Context, chat1.ChatSearchHitArg) error           { return nil }
-func (u NullChatUI) ChatSearchDone(context.Context, chat1.ChatSearchDoneArg) error         { return nil }
-func (u NullChatUI) ChatSearchInboxHit(context.Context, chat1.ChatSearchInboxHitArg) error { return nil }
-func (u NullChatUI) ChatSearchInboxStart(context.Context) error                            { return nil }
+func (u NullChatUI) ChatSearchHit(context.Context, chat1.ChatSearchHitArg) error   { return nil }
+func (u NullChatUI) ChatSearchDone(context.Context, chat1.ChatSearchDoneArg) error { return nil }
+func (u NullChatUI) ChatSearchInboxHit(context.Context, chat1.ChatSearchInboxHitArg) error {
+	return nil
+}
+func (u NullChatUI) ChatSearchInboxStart(context.Context) error { return nil }
 func (u NullChatUI) ChatSearchInboxDone(context.Context, chat1.ChatSearchInboxDoneArg) error {
 	return nil
 }

@@ -1,6 +1,7 @@
 // A mirror of the remote menubar windows.
+import * as remote from '@electron/remote'
 import * as ChatConstants from '../constants/chat2'
-import * as NotificationTypes from '../constants/types/notifications'
+import type * as NotificationTypes from '../constants/types/notifications'
 import * as FSTypes from '../constants/types/fs'
 import * as Container from '../util/container'
 import * as React from 'react'
@@ -8,11 +9,10 @@ import * as Styles from '../styles'
 import * as Electron from 'electron'
 import {intersect} from '../util/set'
 import useSerializeProps from '../desktop/remote/use-serialize-props.desktop'
-import {serialize} from './remote-serializer.desktop'
+import {serialize, type ProxyProps, type RemoteTlfUpdates} from './remote-serializer.desktop'
 import {isDarwin} from '../constants/platform'
 import {isSystemDarkMode} from '../styles/dark-mode'
 import {uploadsToUploadCountdownHOCProps} from '../fs/footer/upload-container'
-import {ProxyProps, RemoteTlfUpdates} from './remote-serializer.desktop'
 import {mapFilterByKey} from '../util/map'
 import {memoize} from '../util/memoize'
 import shallowEqual from 'shallowequal'
@@ -31,15 +31,15 @@ function useDarkSubscription() {
   const [count, setCount] = React.useState(-1)
   React.useEffect(() => {
     if (isDarwin) {
-      const subscriptionId = Electron.remote.systemPreferences.subscribeNotification(
+      const subscriptionId = remote.systemPreferences.subscribeNotification(
         'AppleInterfaceThemeChangedNotification',
         () => {
           setCount(c => c + 1)
         }
       )
       return () => {
-        if (subscriptionId && Electron.remote.systemPreferences.unsubscribeNotification) {
-          Electron.remote.systemPreferences.unsubscribeNotification(subscriptionId || -1)
+        if (subscriptionId && remote.systemPreferences.unsubscribeNotification) {
+          remote.systemPreferences.unsubscribeNotification(subscriptionId || -1)
         }
       }
     } else {
@@ -54,10 +54,13 @@ function useUpdateBadges(p: WidgetProps, darkCount: number) {
 
   React.useEffect(() => {
     const icon = getIcons(widgetBadge, desktopAppBadgeCount > 0)
-    Electron.ipcRenderer.invoke('KBmenu', {
-      payload: {desktopAppBadgeCount, icon},
-      type: 'showTray',
-    })
+    Electron.ipcRenderer
+      .invoke('KBmenu', {
+        payload: {desktopAppBadgeCount, icon},
+        type: 'showTray',
+      })
+      .then(() => {})
+      .catch(() => {})
   }, [widgetBadge, desktopAppBadgeCount, darkCount])
 }
 
@@ -113,10 +116,10 @@ const RemoteProxy = () => {
   const users = Container.useSelector(s => s.users)
   const {infoMap: _infoMap} = users
 
-  const remoteTlfUpdates = React.useMemo(() => tlfUpdates.map(t => GetRowsFromTlfUpdate(t, uploads)), [
-    tlfUpdates,
-    uploads,
-  ])
+  const remoteTlfUpdates = React.useMemo(
+    () => tlfUpdates.map(t => GetRowsFromTlfUpdate(t, uploads)),
+    [tlfUpdates, uploads]
+  )
 
   const conversationsToSend = React.useMemo(
     () =>

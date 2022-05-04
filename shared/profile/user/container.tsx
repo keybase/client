@@ -25,7 +25,7 @@ const filterWebOfTrustEntries = memoize(
     webOfTrustEntries ? webOfTrustEntries.filter(Constants.showableWotEntry) : []
 )
 
-const connected = Container.namedConnect(
+const connected = Container.connect(
   (state, ownProps: OwnProps) => {
     const username = Container.getRouteProps(ownProps, 'username', '')
     const d = Constants.getDetails(state, username)
@@ -194,8 +194,7 @@ const connected = Container.namedConnect(
       vouchShowButton: stateProps.vouchShowButton,
       webOfTrustEntries: stateProps.webOfTrustEntries,
     }
-  },
-  'Profile2'
+  }
 )(Profile2)
 
 export default connected

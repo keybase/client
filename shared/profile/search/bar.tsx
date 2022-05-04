@@ -18,8 +18,8 @@ const ProfileSearch = (props: Props) => {
       hotkey="k"
       icon="iconfont-search"
       iconColor={color}
-      onChange={() => {}}
-      onFocus={onSearch}
+      onFocus={Styles.isMobile ? undefined : onSearch}
+      onClick={!Styles.isMobile ? undefined : onSearch}
       placeholderColor={color}
       placeholderText={`Search${Styles.isMobile ? '' : ' people'}`}
       size="full-width"
@@ -34,6 +34,7 @@ const styles = Styles.styleSheetCreate(() => ({
     marginRight: Styles.globalMargins.xsmall,
   },
   filterMobile: {
+    height: 40,
     paddingLeft: 0,
     paddingRight: 0,
   },

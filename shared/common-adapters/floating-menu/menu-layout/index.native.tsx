@@ -9,7 +9,7 @@ import Meta from '../../meta'
 import Divider from '../../divider'
 import ScrollView from '../../scroll-view'
 import ProgressIndicator from '../../progress-indicator'
-import {MenuItem, _InnerMenuItem, MenuLayoutProps} from '.'
+import type {MenuItem, MenuLayoutProps} from '.'
 
 type MenuRowProps = {
   centered?: boolean
@@ -125,11 +125,11 @@ const MenuLayout = (props: MenuLayoutProps) => {
           {menuItemsWithDividers.map((mi, idx) =>
             mi === 'Divider' ? (
               idx !== 0 && idx !== props.items.length ? (
-                <Divider style={styles.dividerInScrolleView} />
+                <Divider key={idx} style={styles.dividerInScrolleView} />
               ) : null
             ) : (
               <MenuRow
-                key={mi.title}
+                key={idx}
                 {...mi}
                 index={idx}
                 numItems={menuItemsWithDividers.length}

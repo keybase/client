@@ -85,7 +85,7 @@ const styles = {
   closeIcon: Styles.collapseStyles([
     Styles.desktopStyles.windowDraggingClickable,
     Styles.desktopStyles.clickable,
-  ]),
+  ] as any),
   container: Styles.collapseStyles([
     Styles.globalStyles.flexBoxRow,
     Styles.desktopStyles.noSelect,
@@ -93,7 +93,7 @@ const styles = {
       paddingLeft: 10,
       paddingRight: 10,
     },
-  ]),
+  ] as any),
   defaultContainer: {
     paddingBottom: 6,
     paddingTop: 6,

@@ -1,3 +1,4 @@
+/*
 import * as React from 'react'
 import * as Container from '../util/container'
 import * as Tracker2Constants from '../constants/tracker2'
@@ -153,3 +154,6 @@ const load = () => {
     .add('ProfileCard – Bio - Proofs - Valid - more than maxIcons', Story)
 }
 export default load
+*/
+
+export default {}

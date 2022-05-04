@@ -1,3 +1,4 @@
+/*
 import * as React from 'react'
 import * as Sb from '../stories/storybook'
 import * as Styles from '../styles'
@@ -194,3 +195,6 @@ const outerStyle = Styles.isMobile
   : {display: 'grid', flex: 1, gridTemplateColumns: 'repeat(2, 1fr)', overflow: 'auto'}
 
 export default load
+*/
+
+export default {}

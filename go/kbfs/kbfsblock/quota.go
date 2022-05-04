@@ -103,9 +103,9 @@ func (u *UsageStat) ToProtocol() (res keybase1.UsageStat) {
 	return res
 }
 
-//AccumOne records the usage of one block, whose size is denoted by change
-//A positive change means the block is newly added, negative means the block
-//is deleted. If archive is true, it means the block is archived.
+// AccumOne records the usage of one block, whose size is denoted by change
+// A positive change means the block is newly added, negative means the block
+// is deleted. If archive is true, it means the block is archived.
 func (u *UsageStat) AccumOne(change int, usage UsageType) {
 	if change == 0 {
 		return

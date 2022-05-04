@@ -7,7 +7,7 @@ import * as Kb from '../../../common-adapters'
 import * as Constants from '../../../constants/chat2'
 import * as Styles from '../../../styles'
 import InfoPanelMenu from './menu/container'
-import * as ChatTypes from '../../../constants/types/chat2'
+import type * as ChatTypes from '../../../constants/types/chat2'
 import * as InfoPanelCommon from './common'
 import AddPeople from './add-people'
 

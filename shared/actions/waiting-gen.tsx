@@ -1,6 +1,6 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
 
-import {RPCError} from '../util/errors'
+import type {RPCError} from '../util/errors'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of waiting but is handled by every reducer. NEVER dispatch this
@@ -58,4 +58,4 @@ export type Actions =
   | ClearWaitingPayload
   | DecrementWaitingPayload
   | IncrementWaitingPayload
-  | {type: 'common:resetStore', payload: {}}
+  | {readonly type: 'common:resetStore', readonly payload: undefined}

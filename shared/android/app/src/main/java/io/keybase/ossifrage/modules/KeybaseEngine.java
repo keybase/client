@@ -2,11 +2,9 @@ package io.keybase.ossifrage.modules;
 
 import android.app.KeyguardManager;
 import android.content.Context;
-import android.util.Log;
 import android.text.format.DateFormat;
 
 import com.facebook.react.bridge.Arguments;
-import com.facebook.react.bridge.LifecycleEventListener;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
@@ -15,18 +13,11 @@ import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.module.annotations.ReactModule;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.io.File;
 import android.os.Bundle;
+import android.os.Environment;
 
 import io.keybase.ossifrage.BuildConfig;
 import io.keybase.ossifrage.DarkModePrefHelper;
@@ -35,20 +26,18 @@ import io.keybase.ossifrage.MainActivity;
 import io.keybase.ossifrage.util.GuiConfig;
 import io.keybase.ossifrage.util.ReadFileAsString;
 import keybase.Keybase;
+import me.leolin.shortcutbadger.ShortcutBadger;
 
 import static io.keybase.ossifrage.MainActivity.isTestDevice;
-import static keybase.Keybase.readB64;
 import static keybase.Keybase.version;
-import static keybase.Keybase.writeB64;
 
 @ReactModule(name = "KeybaseEngine")
 public class KeybaseEngine extends ReactContextBaseJavaModule implements KillableModule {
 
     private static final String NAME = "KeybaseEngine";
-    private static final String RPC_EVENT_NAME = "RPC";
-    private static final String RPC_META_EVENT_NAME = "META_RPC";
-    private static final String RPC_META_EVENT_ENGINE_RESET = "ENGINE_RESET";
-    private ExecutorService executor;
+    private static final String RPC_META_EVENT_NAME = "kb-meta-engine-event";
+    private static final String RPC_META_EVENT_ENGINE_RESET = "kb-engine-reset";
+
     private Boolean started = false;
     private ReactApplicationContext reactContext;
     private Bundle initialBundleFromNotification;
@@ -67,35 +56,14 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
         }
     }
 
-    private class ReadFromKBLib implements Runnable {
-        private final ReactApplicationContext reactContext;
+    @ReactMethod
+    public void addListener(String eventName) {
+      // Set up any upstream listeners or background tasks as necessary
+    }
 
-        public ReadFromKBLib(ReactApplicationContext reactContext) {
-            this.reactContext = reactContext;
-        }
-
-        @Override
-        public void run() {
-          do {
-              try {
-                  final String data = readB64();
-
-                  if (!reactContext.hasActiveCatalystInstance()) {
-                      NativeLogger.info(NAME + ": JS Bridge is dead, dropping engine message: " + data);
-                  }
-
-                  reactContext
-                          .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
-                          .emit(KeybaseEngine.RPC_EVENT_NAME, data);
-              } catch (Exception e) {
-                if (e.getMessage().equals("Read error: EOF")) {
-                    NativeLogger.info("Got EOF from read. Likely because of reset.");
-                } else {
-                    NativeLogger.error("Exception in ReadFromKBLib.run", e);
-                }
-              }
-          } while (!Thread.currentThread().isInterrupted() && reactContext.hasActiveCatalystInstance());
-        }
+    @ReactMethod
+    public void removeListeners(Integer count) {
+      // Remove upstream listeners, stop unnecessary background tasks
     }
 
     public KeybaseEngine(final ReactApplicationContext reactContext) {
@@ -103,41 +71,12 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
         NativeLogger.info("KeybaseEngine constructed");
         this.reactContext = reactContext;
         this.misTestDevice = isTestDevice(reactContext);
-
-        reactContext.addLifecycleEventListener(new LifecycleEventListener() {
-            @Override
-            public void onHostResume() {
-                if (started && executor == null) {
-                    executor = Executors.newSingleThreadExecutor();
-                    executor.execute(new ReadFromKBLib(reactContext));
-                }
-            }
-
-            @Override
-            public void onHostPause() {
-            }
-
-            @Override
-            public void onHostDestroy() {
-                destroy();
-            }
-        });
     }
 
     public void destroy() {
         try {
-            if (executor != null) {
-                executor.shutdownNow();
-            }
-
             Keybase.reset();
             relayReset(reactContext);
-            // We often hit this timeout during app resume, e.g. hit the back
-            // button to go to home screen and then tap Keybase app icon again.
-            if (executor != null && !executor.awaitTermination(3, TimeUnit.SECONDS)) {
-                NativeLogger.warn(NAME + ": Executor pool didn't shut down cleanly");
-            }
-            executor = null;
         } catch (Exception e) {
             NativeLogger.error("Exception in KeybaseEngine.destroy", e);
         }
@@ -172,28 +111,36 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
             NativeLogger.warn(NAME + ": Error reading server config", e);
         }
 
+
+        String cacheDir = "";
+        {
+            File dir = this.reactContext.getCacheDir();
+            if (dir != null) {
+                cacheDir = dir.getAbsolutePath();
+            } 
+        }
+
+        String downloadDir = "";
+        {
+            File dir = this.reactContext.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS);
+            if (dir != null) {
+                downloadDir = dir.getAbsolutePath();
+            }
+        }
+
         final Map<String, Object> constants = new HashMap<>();
-        constants.put("eventName", RPC_EVENT_NAME);
-        constants.put("metaEventName", RPC_META_EVENT_NAME);
-        constants.put("metaEventEngineReset", RPC_META_EVENT_ENGINE_RESET);
-        constants.put("appVersionName", versionName);
+        constants.put("androidIsDeviceSecure", isDeviceSecure);
+        constants.put("androidIsTestDevice", misTestDevice);
         constants.put("appVersionCode", versionCode);
+        constants.put("appVersionName", versionName);
+        constants.put("darkModeSupported", "0");
+        constants.put("fsCacheDir", cacheDir);
+        constants.put("fsDownloadDir", downloadDir);
         constants.put("guiConfig", readGuiConfig());
-        constants.put("version", version());
-        constants.put("isDeviceSecure", isDeviceSecure);
-        constants.put("isTestDevice", misTestDevice);
         constants.put("serverConfig", serverConfig);
         constants.put("uses24HourClock", DateFormat.is24HourFormat(this.reactContext));
+        constants.put("version", version());
         return constants;
-    }
-
-    @ReactMethod
-    public void runWithData(String data) {
-      try {
-          writeB64(data);
-      } catch (Exception e) {
-          NativeLogger.error("Exception in KeybaseEngine.runWithData", e);
-      }
     }
 
     @ReactMethod
@@ -211,10 +158,7 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
         NativeLogger.info("KeybaseEngine started");
         try {
             started = true;
-            if (executor == null) {
-                executor = Executors.newSingleThreadExecutor();
-                executor.execute(new ReadFromKBLib(this.reactContext));
-            }
+
         } catch (Exception e) {
             NativeLogger.error("Exception in KeybaseEngine.start", e);
         }
@@ -224,7 +168,7 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
     // its own react module. That's because starting up a react module is a bit expensive and we
     // wouldn't be able to lazy load this because we need it on startup.
     @ReactMethod
-    public void getInitialBundleFromNotification(Promise promise) {
+    public void androidGetInitialBundleFromNotification(Promise promise) {
         if (this.initialBundleFromNotification != null) {
             WritableMap map = Arguments.fromBundle(this.initialBundleFromNotification);
             promise.resolve(map);
@@ -236,25 +180,30 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
     }
 
     @ReactMethod
-    public void getInitialShareFileUrl(Promise promise) {
+    public void androidGetInitialShareFileUrl(Promise promise) {
         promise.resolve(this.shareFileUrl);
         this.shareFileUrl = null;
     }
 
     @ReactMethod
-    public void getInitialShareText(Promise promise) {
+    public void androidGetInitialShareText(Promise promise) {
         promise.resolve(this.shareText);
         this.shareText = null;
     }
 
     // Same type as DarkModePreference: 'system' | 'alwaysDark' | 'alwaysLight'
     @ReactMethod
-    public void appColorSchemeChanged(String prefString) {
+    public void androidAppColorSchemeChanged(String prefString) {
         final DarkModePreference pref = DarkModePrefHelper.fromString(prefString);
         final MainActivity activity = (MainActivity) reactContext.getCurrentActivity();
         if (activity != null) {
           activity.setBackgroundColor(pref);
         }
+    }
+
+    @ReactMethod
+    public void androidSetApplicationIconBadgeNumber(int badge) {
+        ShortcutBadger.applyCount(this.reactContext, badge);
     }
 
     public void setInitialBundleFromNotification(Bundle bundle) {

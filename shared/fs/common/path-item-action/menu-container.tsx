@@ -6,7 +6,6 @@ import * as Container from '../../../util/container'
 import {anyWaiting} from '../../../constants/waiting'
 import {isMobile} from '../../../constants/platform'
 import {memoize} from '../../../util/memoize'
-import flags from '../../../util/feature-flags'
 import Menu from './menu'
 import {FloatingMenuProps} from './types'
 import {getRootLayout, getShareLayout} from './layout'
@@ -177,7 +176,7 @@ const mergeProps = (
         : c(dispatchProps._ignoreTlf)
       : null,
     me: stateProps._username,
-    moveOrCopy: flags.moveOrCopy && layout.moveOrCopy ? c(dispatchProps._moveOrCopy) : null,
+    moveOrCopy: null,
     newFolder: layout.newFolder ? c(dispatchProps._newFolder) : null,
     openChatNonTeam: layout.openChatNonTeam ? c(dispatchProps._openChat) : null,
     openChatTeam: layout.openChatTeam ? c(dispatchProps._openChat) : null,
@@ -196,9 +195,8 @@ const mergeProps = (
   }
 }
 
-export default Container.namedConnect(
+export default Container.connect(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps,
-  'PathItemActionMenu'
 )(Menu)

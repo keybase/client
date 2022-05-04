@@ -100,11 +100,13 @@ const DevicePage = (props: Props) => {
     <Kb.Meta title="revoked" style={styles.meta} backgroundColor={Styles.globalColors.red} />
   ) : null
 
-  let maybeIcon = ({
-    backup: 'icon-paper-key-96',
-    desktop: `icon-computer-background-${props.iconNumber}-96`,
-    mobile: `icon-phone-background-${props.iconNumber}-96`,
-  } as const)[device.type]
+  let maybeIcon = (
+    {
+      backup: 'icon-paper-key-96',
+      desktop: `icon-computer-background-${props.iconNumber}-96`,
+      mobile: `icon-phone-background-${props.iconNumber}-96`,
+    } as const
+  )[device.type]
   const icon = Kb.isValidIconType(maybeIcon) ? maybeIcon : 'icon-computer-96'
 
   const revokeName = {
@@ -144,7 +146,7 @@ const DevicePage = (props: Props) => {
   )
 }
 DevicePage.navigationOptions = {
-  header: undefined,
+  title: '',
 }
 
 const styles = Styles.styleSheetCreate(

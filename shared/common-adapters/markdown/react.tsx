@@ -1,26 +1,24 @@
 import * as React from 'react'
 import SimpleMarkdown from 'simple-markdown'
 import * as Styles from '../../styles'
-import Text, {LineClampType} from '../text'
+import Text, {type LineClampType} from '../text'
 import Box from '../box'
 import Markdown from '../markdown'
-import Emoji, {Props as EmojiProps} from '../emoji'
+import Emoji, {type Props as EmojiProps} from '../emoji'
 import {emojiIndexByName} from './emoji-gen'
 import ServiceDecoration from './service-decoration'
 
-const wrapStyle = Styles.platformStyles({
-  isElectron: {
-    whiteSpace: 'pre-wrap',
-    wordBreak: 'break-word',
-  } as const,
-})
+const electronWrapStyle = {
+  whiteSpace: 'pre-wrap',
+  wordBreak: 'break-word',
+} as const
 
 const markdownStyles = Styles.styleSheetCreate(
   () =>
     ({
       bigTextBlockStyle: Styles.platformStyles({
         isElectron: {
-          ...wrapStyle,
+          ...electronWrapStyle,
           color: 'inherit',
           display: 'block',
           fontWeight: 'inherit',
@@ -31,10 +29,8 @@ const markdownStyles = Styles.styleSheetCreate(
         },
       } as const),
       boldStyle: Styles.platformStyles({
-        common: {
-          ...Styles.globalStyles.fontBold,
-        },
-        isElectron: {color: 'inherit', ...wrapStyle},
+        common: {...Styles.globalStyles.fontBold},
+        isElectron: {color: 'inherit', ...electronWrapStyle},
         isMobile: {color: undefined},
       }),
       get codeSnippetBlockStyle() {
@@ -50,7 +46,7 @@ const markdownStyles = Styles.styleSheetCreate(
             paddingTop: Styles.globalMargins.xtiny,
           },
           isElectron: {
-            ...wrapStyle,
+            ...electronWrapStyle,
             color: Styles.globalColors.black,
             display: 'block',
           },
@@ -74,28 +70,22 @@ const markdownStyles = Styles.styleSheetCreate(
           paddingRight: Styles.globalMargins.xtiny,
         },
         isElectron: {
-          ...wrapStyle,
+          ...electronWrapStyle,
           fontSize: 12,
         },
-        isMobile: {
-          fontSize: 15,
-        },
+        isMobile: {fontSize: 15},
       }),
       italicStyle: Styles.platformStyles({
-        common: {
-          fontStyle: 'italic',
-        },
-        isElectron: {color: 'inherit', fontWeight: 'inherit', ...wrapStyle},
+        common: {fontStyle: 'italic'},
+        isElectron: {color: 'inherit', fontWeight: 'inherit', ...electronWrapStyle},
         isMobile: {color: undefined, fontWeight: undefined},
       }),
       linkStyle: Styles.platformStyles({
         isElectron: {
-          ...wrapStyle,
+          ...electronWrapStyle,
           fontWeight: 'inherit',
         },
-        isMobile: {
-          fontWeight: undefined,
-        },
+        isMobile: {fontWeight: undefined},
       }),
       neutralPreviewStyle: Styles.platformStyles({
         isElectron: {color: 'inherit', fontWeight: 'inherit'},
@@ -117,7 +107,7 @@ const markdownStyles = Styles.styleSheetCreate(
       }),
       strikeStyle: Styles.platformStyles({
         isElectron: {
-          ...wrapStyle,
+          ...electronWrapStyle,
           color: 'inherit',
           fontWeight: 'inherit',
           textDecoration: 'line-through',
@@ -129,9 +119,9 @@ const markdownStyles = Styles.styleSheetCreate(
       }),
       textBlockStyle: Styles.platformStyles({
         isAndroid: {lineHeight: undefined},
-        isElectron: {color: 'inherit', display: 'block', fontWeight: 'inherit', ...wrapStyle},
+        isElectron: {color: 'inherit', display: 'block', fontWeight: 'inherit', ...electronWrapStyle},
       } as const),
-      wrapStyle,
+      wrapStyle: Styles.platformStyles({isElectron: electronWrapStyle}),
     } as const)
 )
 
@@ -140,7 +130,7 @@ const EmojiIfExists = React.memo(
   (
     props: EmojiProps & {
       paragraphTextClassName?: string
-      style?: any
+      style?: Styles.StylesCrossPlatform
       allowFontScaling?: boolean
       lineClamp?: LineClampType
     }
@@ -167,18 +157,18 @@ const reactComponentsForMarkdownType = {
     // basically a port of the old reactFor which we used before
     react: (
       arr: Array<SimpleMarkdown.SingleASTNode>,
-      output: SimpleMarkdown.Output<any>,
+      output: SimpleMarkdown.ReactOutput,
       state: SimpleMarkdown.State
     ) => {
-      var oldKey = state.key
-      var result: Array<SimpleMarkdown.ReactElements> = []
+      const oldKey = state.key
+      const result: Array<SimpleMarkdown.ReactElements | string> = []
 
       // map nestedOutput over the ast, except group any text
       // nodes together into a single string output.
-      var lastResult: string | null = null
-      for (var i = 0; i < arr.length; i++) {
+      let lastResult: SimpleMarkdown.ReactElements = null
+      for (let i = 0; i < arr.length; i++) {
         state.key = '' + i
-        var nodeOut = output(arr[i], state)
+        const nodeOut = output(arr[i], state)
         if (typeof nodeOut === 'string' && typeof lastResult === 'string') {
           lastResult = lastResult + nodeOut
           result[result.length - 1] = lastResult
@@ -335,7 +325,7 @@ const reactComponentsForMarkdownType = {
         allowFontScaling={state.allowFontScaling}
         message={(state.markdownMeta && state.markdownMeta.message) || undefined}
         styleOverride={state.styleOverride}
-        styles={markdownStyles}
+        styles={markdownStyles as any}
         disableBigEmojis={false}
         disableEmojiAnimation={false}
       />
@@ -391,6 +381,7 @@ const bigEmojiOutput: SimpleMarkdown.Output<any> = SimpleMarkdown.outputFor(
         state: SimpleMarkdown.State
       ) => (
         <Emoji
+          style={state.styleOverride?.paragraph}
           emojiName={String(node.content)}
           size={32}
           key={state.key}

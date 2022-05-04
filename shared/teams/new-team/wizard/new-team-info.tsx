@@ -41,7 +41,9 @@ const NewTeamInfo = () => {
   )
   const minLength = parentName ? 2 : 3
 
-  const [name, _setName] = React.useState(teamWizardState.name.substr(parentName ? parentName.length + 1 : 0))
+  const [name, _setName] = React.useState(
+    teamWizardState.name.substring(parentName ? parentName.length + 1 : 0)
+  )
   const teamname = parentName ? `${parentName}.${name}` : name
   const setName = (newName: string) => _setName(newName.replace(/[^a-zA-Z0-9_]/, ''))
   const [teamNameTakenStatus, setTeamNameTakenStatus] = React.useState<number>(0)
@@ -49,6 +51,7 @@ const NewTeamInfo = () => {
 
   // TODO this should check subteams too (ideally in go)
   // Also it shouldn't leak the names of subteams people make to the server
+  // eslint-disable-next-line
   const checkTeamNameTaken = React.useCallback(
     debounce(Container.useRPC(RPCTypes.teamsUntrustedTeamExistsRpcPromise), 100),
     []
@@ -115,9 +118,7 @@ const NewTeamInfo = () => {
               <Kb.Text type="BodyBigLink" onClick={onClose}>
                 Cancel
               </Kb.Text>
-            ) : (
-              undefined
-            )
+            ) : undefined
           ) : (
             <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />
           ),

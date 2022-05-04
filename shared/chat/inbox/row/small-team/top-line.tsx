@@ -3,8 +3,8 @@ import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import shallowEqual from 'shallowequal'
 import TeamMenu from '../../../conversation/info-panel/menu/container'
-import * as ChatTypes from '../../../../constants/types/chat2'
-import {AllowedColors} from '../../../../common-adapters/text'
+import type * as ChatTypes from '../../../../constants/types/chat2'
+import type {AllowedColors} from '../../../../common-adapters/text'
 import {memoize} from '../../../../util/memoize'
 
 type Props = {
@@ -26,7 +26,7 @@ type Props = {
   hasBadge: boolean
 } & Kb.OverlayParentProps
 
-class _SimpleTopLine extends React.Component<Props> {
+class SimpleTopLineInner extends React.Component<Props> {
   shouldComponentUpdate(nextProps: Props) {
     return !shallowEqual(this.props, nextProps, (_, __, key) => {
       if (key === 'participants') {
@@ -54,21 +54,23 @@ class _SimpleTopLine extends React.Component<Props> {
     return Styles.collapseStyles([
       showBold && styles.bold,
       styles.timestamp,
-      subColor !== false && {color: subColor},
+      subColor !== false && ({color: subColor} as any), //sketchy api...
     ])
   })
+
+  private onHidden = () => {
+    this.props.setShowingMenu(false)
+    this.props.onForceHideMenu()
+  }
 
   render() {
     return (
       <Kb.Box style={styles.container}>
-        {this.props.showGear && (
+        {this.props.showGear && (this.props.showingMenu || this.props.forceShowMenu) && (
           <TeamMenu
             visible={this.props.showingMenu || this.props.forceShowMenu}
             attachTo={this.props.getAttachmentRef}
-            onHidden={() => {
-              this.props.setShowingMenu(false)
-              this.props.onForceHideMenu()
-            }}
+            onHidden={this.onHidden}
             hasHeader={true}
             isSmallTeam={true}
             conversationIDKey={this.props.conversationIDKey}
@@ -138,7 +140,7 @@ class _SimpleTopLine extends React.Component<Props> {
     )
   }
 }
-const SimpleTopLine = Kb.OverlayParentHOC(_SimpleTopLine)
+const SimpleTopLine = Kb.OverlayParentHOC(SimpleTopLineInner)
 
 const styles = Styles.styleSheetCreate(
   () =>

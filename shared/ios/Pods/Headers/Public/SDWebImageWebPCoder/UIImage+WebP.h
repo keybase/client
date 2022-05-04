@@ -1,1 +1,0 @@
-../../../SDWebImageWebPCoder/SDWebImageWebPCoder/Classes/UIImage+WebP.h

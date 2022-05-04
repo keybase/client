@@ -1,6 +1,6 @@
-## Keybase [![Build Status](https://travis-ci.org/keybase/client.svg?branch=master)](https://travis-ci.org/keybase/client) [![Build status](https://ci.appveyor.com/api/projects/status/90mxorxtj6vixnum/branch/master?svg=true)](https://ci.appveyor.com/project/keybase/client-x5qrt/branch/master)
+## Keybase [![Build Status](https://travis-ci.com/keybase/client.svg?branch=master)](https://travis-ci.org/keybase/client) [![Build status](https://ci.appveyor.com/api/projects/status/90mxorxtj6vixnum/branch/master?svg=true)](https://ci.appveyor.com/project/keybase/client-x5qrt/branch/master)
 
-Hi, and welcome to the Keybase client repo.  All our client apps (macOS,
+Hi, and welcome to the Keybase client repo. All our client apps (macOS,
 Windows, Linux, iOS, and Android) are being actively developed in this
 repository. Please, dig around.
 
@@ -9,23 +9,22 @@ repository. Please, dig around.
 We'd love you to read our source code. 
 
 But - some of the things in this repo are explorations, and the app you build
-from source just *might not do what it says it's doing*. So, if you just want
+from source just _might not do what it says it's doing_. So, if you just want
 to install Keybase on your computer, you should **[monitor our releases](https://keybase.io/download)** for macOS, Linux, or Windows.
 
 If you're interested in our Docker image releases, please check out **[the Docker README](packaging/linux/docker/README.md)**.
 
 ![Sharing](https://keybase.io/images/github/repo_share.png?)
 
-
 ### Code Layout
 
-* **go**: Core crypto libraries; the Keybase service; the command line client. [Learn More](go/README.md)
-* **shared/{android,ios}**: Android and iOS apps developed with [React Native](https://facebook.github.io/react-native/).
-* **shared/desktop**: Desktop application for macOS, Linux, and Windows, made with the [Electron](https://github.com/atom/electron) framework, sharing React code with react-native.
-* **packaging**: Scripts for releasing packages across the various platforms.
-* **protocol**: Defines the protocol for communication for clients to the Keybase services. Uses [Avro](http://avro.apache.org/docs/1.7.7/). [Learn More](protocol/README.md)
-* **media**: Icons, graphics, media for Keybase apps.
-* **osx**: The macOS Keybase.app, development parallel to an Electron-based application above. [Learn More](osx/README.md)
+- **go**: Core crypto libraries; the Keybase service; the command line client. [Learn More](go/README.md)
+- **shared/{android,ios}**: Android and iOS apps developed with [React Native](https://facebook.github.io/react-native/).
+- **shared/desktop**: Desktop application for macOS, Linux, and Windows, made with the [Electron](https://github.com/atom/electron) framework, sharing React code with react-native.
+- **packaging**: Scripts for releasing packages across the various platforms.
+- **protocol**: Defines the protocol for communication for clients to the Keybase services. Uses [Avro](http://avro.apache.org/docs/1.7.7/). [Learn More](protocol/README.md)
+- **media**: Icons, graphics, media for Keybase apps.
+- **osx**: The macOS Keybase.app, development parallel to an Electron-based application above. [Learn More](osx/README.md)
 
 ### Problems?
 
@@ -44,7 +43,7 @@ We check and update both frequently.
 
 ### License
 
-Most code is released under the New BSD (3 Clause) License.  If subdirectories
+Most code is released under the New BSD (3 Clause) License. If subdirectories
 include a different license, that license applies instead.
 
 ### Development Guidelines
@@ -53,11 +52,11 @@ We check all git commits with pre-commit hooks generated via
 [pre-commit.com](http://pre-commit.com) pre-commit hooks.
 To enable use of these pre-commit hooks:
 
-* [Install](http://pre-commit.com/#install) the `pre-commit` utility. For some common cases:
-  * `pip install pre-commit`
-  * `brew install pre-commit`
-* Remove any existing pre-commit hooks via `rm .git/hooks/pre-commit`
-* Configure via `pre-commit install`
+- [Install](http://pre-commit.com/#install) the `pre-commit` utility. For some common cases:
+  - `pip install pre-commit`
+  - `brew install pre-commit`
+- Remove any existing pre-commit hooks via `rm .git/hooks/pre-commit`
+- Configure via `pre-commit install`
 
 Then proceed as normal.
 
@@ -68,7 +67,6 @@ having failed Jenkins CI. We do not build external PRs because it's a security
 risk to do so without a review first. If your PR is successfully reviewed by a
 member of the Keybase team, then we will merge your commits to a branch on our
 primary fork and build from there.
-
 
 ### Cryptography Notice
 

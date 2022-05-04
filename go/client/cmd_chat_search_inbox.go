@@ -58,11 +58,11 @@ func newCmdChatSearchInbox(cl *libcmdline.CommandLine, g *libkb.GlobalContext) c
 			},
 			cli.IntFlag{
 				Name:  "max-convs-searched",
-				Usage: fmt.Sprintf("Specify the maximum number of conversations to search. Default is all conversations."),
+				Usage: "Specify the maximum number of conversations to search. Default is all conversations.",
 			},
 			cli.IntFlag{
 				Name:  "max-convs-hit",
-				Usage: fmt.Sprintf("Specify the maximum number conversations to return search hits from. Default is unlimited."),
+				Usage: "Specify the maximum number conversations to return search hits from. Default is unlimited.",
 			},
 			cli.BoolFlag{
 				Name:  "names-only",

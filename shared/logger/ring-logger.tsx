@@ -17,7 +17,7 @@ class RingLogger implements Logger {
     this._currentWriteIdx = (this._currentWriteIdx + 1) % this._ringSize
   }
 
-  dump(levelPrefix: LogLevel) {
+  async dump(levelPrefix: LogLevel) {
     const toDump: Array<[LogLevel, number, string]> = []
     for (let i = 0; i < this._ringSize; i++) {
       const idxWrapped = (this._currentWriteIdx + i) % this._ringSize
@@ -32,7 +32,7 @@ class RingLogger implements Logger {
     return p
   }
 
-  flush() {
+  async flush() {
     const p: Promise<void> = Promise.resolve()
     return p
   }

@@ -1,8 +1,6 @@
 import logger from '../logger'
-import * as Types from '../constants/types/config'
 import * as Constants from '../constants/config'
 import * as ChatConstants from '../constants/chat2'
-import * as Tracker2Gen from '../actions/tracker2-gen'
 import * as DevicesGen from '../actions/devices-gen'
 import * as EngineGen from '../actions/engine-gen-gen'
 import * as GregorGen from '../actions/gregor-gen'
@@ -10,9 +8,12 @@ import * as ConfigGen from '../actions/config-gen'
 import * as Stats from '../engine/stats'
 import * as Container from '../util/container'
 import * as RPCTypes from '../constants/types/rpc-gen'
+import type * as Types from '../constants/types/config'
+import type * as Tracker2Gen from '../actions/tracker2-gen'
 import {isEOFError, isErrorTransient} from '../util/errors'
 import {isMobile} from '../constants/platform'
 import {_setSystemIsDarkMode, _setDarkModePreference} from '../styles/dark-mode'
+import isEqual from 'lodash/isEqual'
 
 type Actions =
   | ConfigGen.Actions
@@ -167,8 +168,14 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
   },
   [ConfigGen.followerInfoUpdated]: (draftState, action) => {
     if (draftState.uid === action.payload.uid) {
-      draftState.followers = new Set(action.payload.followers)
-      draftState.following = new Set(action.payload.followees)
+      const newFollowers = new Set(action.payload.followers)
+      if (!isEqual(newFollowers, draftState.followers)) {
+        draftState.followers = newFollowers
+      }
+      const newFollowing = new Set(action.payload.followees)
+      if (!isEqual(newFollowing, draftState.following)) {
+        draftState.following = newFollowing
+      }
     }
   },
   [ConfigGen.loggedIn]: draftState => {

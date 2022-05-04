@@ -4,7 +4,7 @@ import * as React from 'react'
 import * as SettingsConstants from '../../constants/settings'
 import * as SettingsGen from '../../actions/settings-gen'
 import {e164ToDisplay} from '../../util/phone-numbers'
-import {NativeModules} from 'react-native'
+import {NativeModules} from '../../util/native-modules.native'
 import logger from '../../logger'
 
 // Contact info coming from the native contacts library.
@@ -50,8 +50,9 @@ const fetchContacts = async (regionFromState: string): Promise<[Array<Contact>, 
         defaultCountryCode = 'us'
       }
       region = defaultCountryCode
-    } catch (e) {
-      logger.warn(`Error loading default country code: ${e.message}`)
+    } catch (error_) {
+      const error = error_ as any
+      logger.warn(`Error loading default country code: ${error.message}`)
     }
   }
 

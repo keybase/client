@@ -6,8 +6,8 @@ import Text, {getStyle as getTextStyle} from './text.native'
 import {NativeTextInput} from './native-wrappers.native'
 import * as Styles from '../styles'
 import {isIOS, isAndroid} from '../constants/platform'
-import {TextInput} from 'react-native'
-import {KeyboardType, Props, Selection, TextInfo} from './input'
+import type {TextInput} from 'react-native'
+import type {KeyboardType, Props, Selection, TextInfo} from './input'
 import {checkTextInfo} from './input.shared'
 
 type State = {
@@ -26,7 +26,7 @@ class Input extends Component<Props, State> {
 
   private timeoutIds: Array<ReturnType<typeof setTimeout>>
 
-  private setTimeout = (f, n) => {
+  private setTimeout = (f: () => void, n: number) => {
     const id = setTimeout(f, n)
     this.timeoutIds.push(id)
     return id
@@ -69,17 +69,14 @@ class Input extends Component<Props, State> {
 
   // Needed to support wrapping with e.g. a ClickableBox. See
   // https://facebook.github.io/react-native/docs/direct-manipulation.html .
-  setNativeProps = (nativeProps: Object) => {
-    this.input.current && this.input.current.setNativeProps(nativeProps)
+  setNativeProps = (nativeProps: object) => {
+    this.input.current?.setNativeProps(nativeProps)
   }
 
-  private onContentSizeChange = event => {
+  private onContentSizeChange = (event?: {nativeEvent?: {contentSize?: {width: number; height: number}}}) => {
     if (
       this.props.multiline &&
-      event &&
-      event.nativeEvent &&
-      event.nativeEvent.contentSize &&
-      event.nativeEvent.contentSize.height &&
+      event?.nativeEvent?.contentSize?.height &&
       event.nativeEvent.contentSize.width
     ) {
       let height = event.nativeEvent.contentSize.height
@@ -191,12 +188,12 @@ class Input extends Component<Props, State> {
     return this.state.focused ? Styles.globalColors.blue : Styles.globalColors.black_10_on_white
   }
 
-  private rowsToHeight = rows => {
+  private rowsToHeight = (rows: number) => {
     const border = this.props.hideUnderline ? 0 : 1
     return rows * this.lineHeight() + border
   }
 
-  private containerStyle = underlineColor => {
+  private containerStyle = (underlineColor: Styles.Color) => {
     return this.props.small
       ? {
           ...Styles.globalStyles.flexBoxRow,
@@ -241,7 +238,7 @@ class Input extends Component<Props, State> {
     const defaultRowsToShow = Math.min(2, this.props.rowsMax || 2)
     const containerStyle = this.containerStyle(underlineColor)
 
-    const singlelineStyle = Styles.collapseStyles([
+    const singlelineStyle: Styles.StylesCrossPlatform = Styles.collapseStyles([
       styles.commonInput,
       {
         lineHeight: lineHeight,
@@ -252,7 +249,7 @@ class Input extends Component<Props, State> {
       this.props.small ? styles.commonInputSmall : styles.commonInputRegular,
     ])
 
-    const multilineStyle: any = Styles.collapseStyles([
+    const multilineStyle: Styles.StylesCrossPlatform = Styles.collapseStyles([
       styles.commonInput,
       {
         height: undefined,
@@ -267,6 +264,7 @@ class Input extends Component<Props, State> {
 
     // Override height if we received an onContentSizeChange() earlier.
     if (isIOS && this.state.height) {
+      // @ts-ignore we shouldn't reach in here
       multilineStyle.height = this.state.height
     }
 

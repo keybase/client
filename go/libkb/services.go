@@ -14,7 +14,7 @@ import (
 	"golang.org/x/net/context"
 )
 
-//=============================================================================
+// =============================================================================
 
 func MakeProofChecker(mctx MetaContext, c ExternalServicesCollector, l RemoteProofChainLink) (ProofChecker, ProofError) {
 	if c == nil {
@@ -35,7 +35,7 @@ func MakeProofChecker(mctx MetaContext, c ExternalServicesCollector, l RemotePro
 	return pc, nil
 }
 
-//=============================================================================
+// =============================================================================
 
 type BaseServiceType struct {
 	sync.Mutex
@@ -203,7 +203,7 @@ func (t *BaseServiceType) IsNew(mctx MetaContext) bool {
 	return t.displayConf.New
 }
 
-//=============================================================================
+// =============================================================================
 
 type assertionContext struct {
 	mctx MetaContext

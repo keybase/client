@@ -1,10 +1,10 @@
 import * as React from 'react'
-import * as Electron from 'electron'
+import * as remote from '@electron/remote'
 import * as Kb from '../common-adapters'
-import * as ConfigTypes from '../constants/types/config'
 import * as FsTypes from '../constants/types/fs'
 import * as Tabs from '../constants/tabs'
 import * as Styles from '../styles'
+import type * as ConfigTypes from '../constants/types/config'
 import {_setDarkModePreference} from '../styles/dark-mode'
 import ChatContainer from './chat-container.desktop'
 import FilesPreview from './files-container.desktop'
@@ -59,11 +59,11 @@ class MenubarRender extends React.Component<Props, State> {
 
   componentDidMount() {
     this.props.refreshUserFileEdits()
-    Electron.remote.getCurrentWindow().on('show', this.props.refreshUserFileEdits)
+    remote.getCurrentWindow().on('show', this.props.refreshUserFileEdits)
   }
 
   componentWillUnmount() {
-    Electron.remote.getCurrentWindow().removeListener('show', this.props.refreshUserFileEdits)
+    remote.getCurrentWindow().removeListener('show', this.props.refreshUserFileEdits)
   }
 
   render() {
@@ -89,7 +89,7 @@ class MenubarRender extends React.Component<Props, State> {
             styles.topRow,
             {justifyContent: 'flex-end'},
             Styles.desktopStyles.clickable,
-          ])}
+          ] as any)}
         >
           <Kb.Icon
             color={Styles.isDarkMode() ? 'rgba(255, 255, 255, 0.85)' : Styles.globalColors.blueDarker}
@@ -158,7 +158,7 @@ class MenubarRender extends React.Component<Props, State> {
             styles.topRow,
             {justifyContent: 'flex-end'},
             Styles.desktopStyles.clickable,
-          ])}
+          ] as any)}
         >
           <Kb.Icon
             color={Styles.globalColors.blueDarker}
@@ -304,7 +304,7 @@ class MenubarRender extends React.Component<Props, State> {
                 marginRight: Styles.globalMargins.tiny,
                 position: 'relative',
               },
-            ])}
+            ] as any)}
           >
             <Kb.Icon
               color={

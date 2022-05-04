@@ -33,12 +33,14 @@ export const DecryptOutput = () => (
   </>
 )
 
-const navigationOptions = {
-  header: undefined,
+DecryptInput.navigationOptions = {
+  headerShown: true,
   title: 'Decrypt',
 }
-
-DecryptInput.navigationOptions = navigationOptions
-DecryptOutput.navigationOptions = navigationOptions
+DecryptOutput.navigationOptions = {
+  headerLeft: p => <Kb.HeaderLeftCancel {...p} />,
+  headerShown: true,
+  title: 'Decrypt',
+}
 
 export default DecryptInput

@@ -4,7 +4,6 @@ import * as Styles from '../styles'
 import ClickableBox from './clickable-box'
 import Box from './box'
 import {NativeImage} from './native-image.native'
-import flags from '../util/feature-flags'
 import {Props, AvatarSize} from './avatar.render'
 
 const Kb = {
@@ -28,7 +27,7 @@ const borderOffset = -1
 const borderSize = 1
 // Layer on top to extend outside of the image
 
-const Avatar = (props: Props) => {
+const AvatarInner = (props: Props) => {
   const {size} = props
   const borderRadius = (props.isTeam && sizeToTeamBorderRadius.get(size)) || size / 2
   const containerStyle = Styles.collapseStyles([boxStyles[size], props.style])
@@ -56,14 +55,15 @@ const Avatar = (props: Props) => {
             ]}
           />
         )}
-        {(!!props.borderColor || props.isTeam) && (
-          <Kb.Box
-            style={[
-              styles.borderBase,
-              {borderColor: props.borderColor || Styles.globalColors.black_10, borderRadius},
-            ]}
-          />
-        )}
+        {(!!props.borderColor || props.isTeam) &&
+          false && ( // looks better off i think
+            <Kb.Box
+              style={[
+                styles.borderBase,
+                {borderColor: props.borderColor || Styles.globalColors.black_10, borderRadius},
+              ]}
+            />
+          )}
         {props.followIconType && (
           <Kb.Icon
             type={props.followIconType}
@@ -83,6 +83,7 @@ const Avatar = (props: Props) => {
     </Kb.ClickableBox>
   )
 }
+const Avatar = React.memo(AvatarInner)
 
 const makeIconStyle = (size: AvatarSize) => ({height: size, width: size})
 const iconStyles = Styles.styleSheetCreate(() => ({
@@ -148,24 +149,18 @@ const styles = Styles.styleSheetCreate(
         position: 'absolute',
         right: 0,
       },
-      editTeam: flags.teamsRedesign
-        ? ({
-            backgroundColor: Styles.globalColors.blue,
-            borderColor: Styles.globalColors.white,
-            borderRadius: 100,
-            borderStyle: 'solid',
-            borderWidth: 2,
-            bottom: -6,
-            color: Styles.globalColors.whiteOrWhite,
-            padding: 4,
-            position: 'absolute',
-            right: -6,
-          } as const)
-        : ({
-            bottom: -2,
-            position: 'absolute',
-            right: -28,
-          } as const),
+      editTeam: {
+        backgroundColor: Styles.globalColors.blue,
+        borderColor: Styles.globalColors.white,
+        borderRadius: 100,
+        borderStyle: 'solid',
+        borderWidth: 2,
+        bottom: -6,
+        color: Styles.globalColors.whiteOrWhite,
+        padding: 4,
+        position: 'absolute',
+        right: -6,
+      } as const,
     } as const)
 )
 

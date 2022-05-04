@@ -1,11 +1,11 @@
-import * as Types from './types/push'
-import * as RPCTypes from './types/rpc-gen'
 import * as RPCChatTypes from './types/rpc-chat-gen'
 import * as ChatTypes from './types/chat2'
+import type * as Types from './types/push'
+import type * as RPCTypes from './types/rpc-gen'
 import {isIOS} from './platform'
 import {isDevApplePushToken} from '../local-debug'
-import logger from '../logger'
 import {pluralize} from '../util/string'
+import logger from '../logger'
 
 export const tokenType = isIOS ? (isDevApplePushToken ? 'appledev' : 'apple') : 'androidplay'
 export const androidSenderID = '9603251415'
@@ -33,8 +33,8 @@ export const normalizePush = (n: any): Types.PushNotification | undefined => {
       return undefined
     }
 
-    const userInteraction = !!n.userInteraction
     const data = isIOS ? n.data || n._data : n
+    const userInteraction = !!data.userInteraction
     const message = n.message
 
     if (!data) {

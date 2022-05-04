@@ -1,7 +1,7 @@
 // Simple control to show multiple avatars. Just used in chat but could be expanded. Keeping this simple for now
 import shallowEqual from 'shallowequal'
 import logger from '../logger'
-import Avatar, {OwnProps as AvatarProps, AvatarSize} from './avatar'
+import Avatar, {type OwnProps as AvatarProps, type AvatarSize} from './avatar'
 import Box from './box'
 import * as React from 'react'
 import * as Styles from '../styles'
@@ -52,8 +52,12 @@ class MultiAvatar extends React.Component<Props> {
 
     return (
       <Kb.Box style={Styles.collapseStyles([{position: 'relative', width: '100%'}, style])}>
-        <Kb.Avatar {...leftProps} style={leftAvatar(multiPadding, leftProps.style)} size={multiSize} />
-        <Kb.Avatar {...rightProps} style={rightAvatar(multiPadding, rightProps.style)} size={multiSize} />
+        <Kb.Avatar {...leftProps} style={leftAvatar(multiPadding ?? 0, leftProps.style)} size={multiSize} />
+        <Kb.Avatar
+          {...rightProps}
+          style={rightAvatar(multiPadding ?? 0, rightProps.style)}
+          size={multiSize}
+        />
       </Kb.Box>
     )
   }
@@ -64,7 +68,7 @@ const singleStyle = {
   width: '100%',
 }
 
-const leftAvatar = (offset: number = 0, style: Styles.StylesCrossPlatform) =>
+const leftAvatar = (offset: number, style: Styles.StylesCrossPlatform) =>
   Styles.collapseStyles([
     {
       left: 0,
@@ -74,7 +78,7 @@ const leftAvatar = (offset: number = 0, style: Styles.StylesCrossPlatform) =>
     style,
   ])
 
-const rightAvatar = (offset: number = 0, style: Styles.StylesCrossPlatform) =>
+const rightAvatar = (offset: number, style: Styles.StylesCrossPlatform) =>
   Styles.collapseStyles([
     {
       bottom: offset,

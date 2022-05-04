@@ -32,22 +32,24 @@ const rootRows = [
   },
 ]
 
-const getRenderItem = destinationPickerIndex => ({item, section}) =>
-  section.key === 'section-top' ? (
-    <WrapRow>
-      <TlfType name={item.name} destinationPickerIndex={destinationPickerIndex} />
-    </WrapRow>
-  ) : (
-    <WrapRow>
-      <Tlf
-        disabled={false}
-        name={item.name}
-        tlfType={item.tlfType}
-        mixedMode={true}
-        destinationPickerIndex={destinationPickerIndex}
-      />
-    </WrapRow>
-  )
+const getRenderItem =
+  destinationPickerIndex =>
+  ({item, section}) =>
+    section.key === 'section-top' ? (
+      <WrapRow>
+        <TlfType name={item.name} destinationPickerIndex={destinationPickerIndex} />
+      </WrapRow>
+    ) : (
+      <WrapRow>
+        <Tlf
+          disabled={false}
+          name={item.name}
+          tlfType={item.tlfType}
+          mixedMode={true}
+          destinationPickerIndex={destinationPickerIndex}
+        />
+      </WrapRow>
+    )
 
 const renderSectionHeader = ({section}) =>
   section.key === 'banner-sfmi' ? <SfmiBanner /> : <Kb.SectionDivider label={section.title} />
@@ -120,6 +122,7 @@ const Root = ({destinationPickerIndex}: Props) => {
     },
   ]
   const renderItem = React.useMemo(() => getRenderItem(destinationPickerIndex), [destinationPickerIndex])
+
   return (
     <Kb.BoxGrow>
       <Kb.SectionList

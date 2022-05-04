@@ -3,9 +3,9 @@ import * as Styles from '../styles'
 import * as React from 'react'
 import logger from '../logger'
 import {iconMeta} from './icon.constants-gen'
-import {resolveImageAsURL} from '../desktop/app/resolve-root.desktop'
 import invert from 'lodash/invert'
-import {Props, IconType} from './icon'
+import type {Props, IconType} from './icon'
+import {getAssetPath} from '../constants/platform.desktop'
 
 const Icon = React.memo<Props>(
   // @ts-ignore
@@ -68,7 +68,7 @@ const Icon = React.memo<Props>(
         !hasContainer ? style : {},
         onClick ? Styles.desktopStyles.clickable : {},
         props.color ? {color: color} : {},
-      ])
+      ] as any)
 
       iconElement = (
         <img
@@ -107,7 +107,7 @@ const Icon = React.memo<Props>(
 
       const mergedStyle = Styles.collapseStyles([
         fontSizeHint,
-        onClick && Styles.desktopStyles.clickable,
+        onClick && (Styles.desktopStyles.clickable as any),
         inheritStyle,
         colorOverride && {color: colorOverride},
         style,
@@ -159,8 +159,9 @@ const imgName = (
   prefix?: string,
   postfix?: string
 ) =>
-  `${prefix || ''}${resolveImageAsURL(imagesDir, name)}${mult > 1 ? `@${mult}x` : ''}.${ext}${postfix ||
-    ''} ${mult}x`
+  `${prefix || ''}${getAssetPath('images', imagesDir, name)}${mult > 1 ? `@${mult}x` : ''}.${ext}${
+    postfix || ''
+  } ${mult}x`
 
 function iconTypeToSrcSet(type: IconType) {
   const ext = Shared.typeExtension(type)
@@ -175,7 +176,7 @@ export function iconTypeToImgSet(imgMap: any, targetSize: number): any {
     .map(mult => {
       const img: string = imgMap[multsMap[mult]] as string
       if (!img) return null
-      const url = resolveImageAsURL('icons', img)
+      const url = getAssetPath('images', 'icons', img)
       if (Styles.isDarkMode()) url.replace('icon-', 'icon-dark-')
       return `url('${url}.png') ${mult}x`
     })

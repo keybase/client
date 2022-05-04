@@ -9,23 +9,30 @@ import SyncingFolders from './syncing-folders'
 import {IconWithPopup as WhatsNewIconWithPopup} from '../../whats-new/icon/container'
 import * as ReactIs from 'react-is'
 
-type OwnProps = {
-  allowBack: boolean
-  loggedIn: boolean
-  onPop: () => void
-  options: any
-}
 // A mobile-like header for desktop
 
 // Fix this as we figure out what this needs to be
 type Props = {
-  allowBack: boolean
   loggedIn: boolean
-  onPop: () => void
-  options: any
+  options: {
+    headerMode?: string
+    title?: React.ReactNode
+    headerTitle?: React.ReactNode
+    headerLeft?: React.ReactNode
+    headerRightActions?: React.JSXElementConstructor<{}>
+    subHeader?: React.JSXElementConstructor<{}>
+    headerTransparent?: boolean
+    headerHideBorder?: boolean
+    headerBottomStyle: Styles.StylesCrossPlatform
+    headerStyle: Styles.StylesCrossPlatform
+  }
+  back?: boolean
   style?: any
   useNativeFrame: boolean
-  params?: any
+  params?: unknown
+  navigation: {
+    pop: () => void
+  }
 }
 
 const PlainTitle = ({title}) => (
@@ -77,7 +84,7 @@ export const SystemButtons = () => (
   </Kb.Box2>
 )
 
-class Header extends React.PureComponent<Props> {
+class DesktopHeader extends React.PureComponent<Props> {
   componentDidMount() {
     this._registerWindowEvents()
   }
@@ -101,6 +108,11 @@ class Header extends React.PureComponent<Props> {
     win.removeListener('maximize', this._refreshWindowIcons)
     win.removeListener('unmaximize', this._refreshWindowIcons)
   }
+
+  _pop = () => {
+    this.props.back && this.props.navigation.pop()
+  }
+
   render() {
     // TODO add more here as we use more options on the mobile side maybe
     const opt = this.props.options
@@ -150,18 +162,16 @@ class Header extends React.PureComponent<Props> {
     // icons (minimize etc) because the left nav bar pushes it to the right -- unless you're logged
     // out, in which case there's no nav bar and they overlap. So, if we're on Mac, and logged out,
     // push the back arrow down below the system icons.
-    const iconContainerStyle = Styles.collapseStyles([
+    const iconContainerStyle: Styles.StylesCrossPlatform = Styles.collapseStyles([
       styles.iconContainer,
-      !this.props.allowBack && styles.iconContainerInactive,
+      !this.props.back && styles.iconContainerInactive,
       !this.props.loggedIn && Platform.isDarwin && styles.iconContainerDarwin,
-    ])
-    const iconColor =
-      opt.headerBackIconColor ||
-      (this.props.allowBack
-        ? Styles.globalColors.black_50
-        : this.props.loggedIn
-        ? Styles.globalColors.black_10
-        : Styles.globalColors.transparent)
+    ] as const)
+    const iconColor = this.props.back
+      ? Styles.globalColors.black_50
+      : this.props.loggedIn
+      ? Styles.globalColors.black_10
+      : Styles.globalColors.transparent
 
     const whatsNewAttachToRef = React.createRef<Kb.Box2>()
 
@@ -190,15 +200,15 @@ class Header extends React.PureComponent<Props> {
             {opt.headerLeft !== null && (
               <Kb.Box
                 className={Styles.classNames('hover_container', {
-                  hover_background_color_black_10: this.props.allowBack,
+                  hover_background_color_black_10: !!this.props.back,
                 })}
-                onClick={this.props.allowBack ? this.props.onPop : null}
+                onClick={this._pop}
                 style={iconContainerStyle}
               >
                 <Kb.Icon
                   type="iconfont-arrow-left"
                   color={iconColor}
-                  className={Styles.classNames({hover_contained_color_blackOrBlack: this.props.allowBack})}
+                  className={Styles.classNames({hover_contained_color_blackOrBlack: this.props.back})}
                   boxStyle={styles.icon}
                 />
               </Kb.Box>
@@ -206,19 +216,11 @@ class Header extends React.PureComponent<Props> {
             <Kb.Box2 direction="horizontal" style={styles.topRightContainer}>
               <SyncingFolders
                 negative={
-                  this.props.style &&
-                  this.props.style.backgroundColor &&
-                  this.props.style.backgroundColor !== Styles.globalColors.transparent &&
-                  this.props.style.backgroundColor !== Styles.globalColors.white
+                  this.props.style?.backgroundColor !== Styles.globalColors.transparent &&
+                  this.props.style?.backgroundColor !== Styles.globalColors.white
                 }
               />
-              {this.props.loggedIn && (
-                <WhatsNewIconWithPopup
-                  color={opt.whatsNewIconColor}
-                  badgeColor={opt.whatsNewIconColor}
-                  attachToRef={whatsNewAttachToRef}
-                />
-              )}
+              {this.props.loggedIn && <WhatsNewIconWithPopup attachToRef={whatsNewAttachToRef} />}
               {!title && rightActions}
               {windowDecorationsAreNeeded && <SystemButtons />}
             </Kb.Box2>
@@ -227,10 +229,7 @@ class Header extends React.PureComponent<Props> {
             key="bottomBar"
             direction="horizontal"
             fullWidth={true}
-            style={Styles.collapseStyles([
-              opt.headerExpandable ? styles.bottomExpandable : styles.bottom,
-              opt.headerBottomStyle,
-            ])}
+            style={Styles.collapseStyles([styles.bottom, opt.headerBottomStyle])}
           >
             <Kb.Box2 direction="horizontal" style={styles.bottomTitle}>
               {title}
@@ -267,9 +266,7 @@ const styles = Styles.styleSheetCreate(
       bottom: {height: 40 - 1, maxHeight: 40 - 1}, // for border
       bottomExpandable: {minHeight: 40 - 1},
       bottomTitle: {flexGrow: 1, height: '100%', maxHeight: '100%', overflow: 'hidden'},
-      flexOne: {
-        flex: 1,
-      },
+      flexOne: {flex: 1},
       headerBack: Styles.platformStyles({
         isElectron: {
           alignItems: 'center',
@@ -320,9 +317,7 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       iconContainerInactive: Styles.platformStyles({
-        isElectron: {
-          cursor: 'default',
-        },
+        isElectron: {cursor: 'default'},
       }),
       plainContainer: {
         ...Styles.globalStyles.flexGrow,
@@ -335,11 +330,10 @@ const styles = Styles.styleSheetCreate(
     } as const)
 )
 
-export default Container.connect(
-  state => ({useNativeFrame: state.config.useNativeFrame}),
-  () => ({}),
-  (s, _d, o: OwnProps) => ({
-    ...s,
-    ...o,
-  })
-)(Header)
+type HeaderProps = Omit<Props, 'loggedIn' | 'useNativeFrame'>
+
+export default (p: HeaderProps) => {
+  const useNativeFrame = Container.useSelector(state => state.config.useNativeFrame)
+  const loggedIn = Container.useSelector(state => state.config.loggedIn)
+  return <DesktopHeader useNativeFrame={useNativeFrame} loggedIn={loggedIn} {...p} />
+}

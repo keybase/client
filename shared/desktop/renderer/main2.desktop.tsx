@@ -20,7 +20,7 @@ import {_setDarkModePreference} from '../../styles/dark-mode'
 import {isDarwin, isWindows} from '../../constants/platform'
 import {useSelector} from '../../util/container'
 import {isDarkMode} from '../../constants/config'
-import {TypedActions} from '../../actions/typed-actions-gen'
+import type {TypedActions} from '../../actions/typed-actions-gen'
 
 // node side plumbs through initial pref so we avoid flashes
 const darkModeFromNode = window.location.search.match(/darkModePreference=(alwaysLight|alwaysDark|system)/)
@@ -82,19 +82,27 @@ const setupApp = (store, runSagas) => {
   // See if we're connected, and try starting keybase if not
   if (isWindows) {
     setTimeout(() => {
-      Electron.ipcRenderer.invoke('KBkeybase', {type: 'requestWindowsStartService'})
+      Electron.ipcRenderer
+        .invoke('KBkeybase', {type: 'requestWindowsStartService'})
+        .then(() => {})
+        .catch(() => {})
     }, 0)
   }
 
   // After a delay dump logs in case some startup stuff happened
   setTimeout(() => {
     dumpLogs()
+      .then(() => {})
+      .catch(() => {})
   }, 5 * 1000)
 
   // Handle notifications from the service
   store.dispatch(NotificationsGen.createListenForNotifications())
 
-  Electron.ipcRenderer.invoke('KBkeybase', {type: 'appStartedUp'})
+  Electron.ipcRenderer
+    .invoke('KBkeybase', {type: 'appStartedUp'})
+    .then(() => {})
+    .catch(() => {})
 }
 
 const FontLoader = () => (

@@ -38,6 +38,7 @@ export default FollowSuggestions
 const styles = Styles.styleSheetCreate(() => ({
   container: {
     ...Styles.globalStyles.flexBoxColumn,
+    backgroundColor: Styles.globalColors.fastBlank,
     paddingTop: Styles.globalMargins.tiny,
     position: 'relative',
   },
@@ -48,6 +49,7 @@ const styles = Styles.styleSheetCreate(() => ({
   scrollViewContainer: Styles.platformStyles({
     common: {
       ...Styles.globalStyles.flexBoxRow,
+      backgroundColor: Styles.globalColors.fastBlank,
       borderBottomWidth: 1,
       borderColor: Styles.globalColors.black_10,
       paddingBottom: Styles.globalMargins.small,

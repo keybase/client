@@ -95,7 +95,7 @@ const useCustomReacji = (
   return disabled ? {customEmojiGroups: undefined, waiting: false} : {customEmojiGroups, waiting}
 }
 
-const goToAddEmoji = (dispatch: Container.Dispatch, conversationIDKey: Types.ConversationIDKey) => {
+const goToAddEmoji = (dispatch: Container.TypedDispatch, conversationIDKey: Types.ConversationIDKey) => {
   dispatch(
     RouteTreeGen.createNavigateAppend({
       path: [

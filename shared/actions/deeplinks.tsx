@@ -12,8 +12,8 @@ import * as Tabs from '../constants/tabs'
 import * as WalletsGen from './wallets-gen'
 import * as TeamsGen from './teams-gen'
 import * as CryptoGen from '../actions/crypto-gen'
-import * as CryptoTypes from '../constants/types/crypto'
 import * as CrytoConstants from '../constants/crypto'
+import type * as CryptoTypes from '../constants/types/crypto'
 import {validTeamname, validTeamnamePart} from '../constants/teamname'
 import URL from 'url-parse'
 import logger from '../logger'
@@ -74,6 +74,16 @@ const handleKeybaseLink = (action: DeeplinksGen.HandleKeybaseLinkPayload) => {
         logger.warn("Coudn't decode KBFS URI")
         return []
       }
+    case 'convid':
+      if (parts.length === 2) {
+        return [
+          ChatGen.createNavigateToThread({
+            conversationIDKey: parts[1],
+            reason: 'navChanged',
+          }),
+        ]
+      }
+      break
     case 'chat':
       if (parts.length === 2 || parts.length === 3) {
         if (parts[1].includes('#')) {
@@ -93,7 +103,6 @@ const handleKeybaseLink = (action: DeeplinksGen.HandleKeybaseLinkPayload) => {
             return []
           }
           return [
-            RouteTreeGen.createSwitchTab({tab: Tabs.chatTab}),
             ChatGen.createPreviewConversation({
               channelname,
               highlightMessageID,
@@ -108,7 +117,6 @@ const handleKeybaseLink = (action: DeeplinksGen.HandleKeybaseLinkPayload) => {
             return []
           }
           return [
-            RouteTreeGen.createSwitchTab({tab: Tabs.chatTab}),
             ChatGen.createPreviewConversation({
               highlightMessageID,
               participants: parts[1].split(','),

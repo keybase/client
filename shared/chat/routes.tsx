@@ -1,32 +1,28 @@
-import ChatConversation from './conversation/container'
-import ChatEnterPaperkey from './conversation/rekey/enter-paper-key'
-import ChatRoot from './inbox/container'
-import ChatAddToChannel from './conversation/info-panel/add-to-channel/container'
-import ChatAddToChannelNew from './conversation/info-panel/add-to-channel/index.new'
-import ChatAttachmentFullscreen from './conversation/attachment-fullscreen/container'
-import ChatAttachmentGetTitles from './conversation/attachment-get-titles/container'
-import SendToChat from './send-to-chat'
-import {Routable as ChatChooseEmoji} from './conversation/messages/react-button/emoji-picker/container'
-import ChatCreateChannel from './create-channel/container'
-import ChatDeleteHistoryWarning from './delete-history-warning/container'
-import ChatEditChannel from './manage-channels/edit-channel-container'
-import ChatInfoPanel from './conversation/info-panel/container'
-import ChatManageChannels from './manage-channels/container'
-import ChatNewChat from '../team-building/container'
-import ChatPaymentsConfirm from './payments/confirm/container'
-import ChatShowNewTeamDialog from './new-team-dialog-container'
-import ChatLocationPopup from './conversation/input-area/normal/location-popup'
-import ChatUnfurlMapPopup from './conversation/messages/wrapper/unfurl/map/popup'
-import PunycodeLinkWarning from './punycode-link-warning'
-import BlockModal from './blocking/block-modal/container'
-import ChatInstallBot from './conversation/bot/install'
-import ChatInstallBotPick from './conversation/bot/team-picker'
-import ChatForwardMsgPick from './conversation/fwd-msg/team-picker'
-import ChatSearchBot from './conversation/bot/search'
-import ChatConfirmRemoveBot from './conversation/bot/confirm'
-import ChatPDF from './pdf'
+import type ChatConversation from './conversation/container'
+import type ChatEnterPaperkey from './conversation/rekey/enter-paper-key'
+import type ChatRoot from './inbox/container'
+import type ChatAddToChannelNew from './conversation/info-panel/add-to-channel/index.new'
+import type ChatAttachmentFullscreen from './conversation/attachment-fullscreen/container'
+import type ChatAttachmentGetTitles from './conversation/attachment-get-titles/container'
+import type SendToChat from './send-to-chat'
+import type {Routable as ChatChooseEmoji} from './conversation/messages/react-button/emoji-picker/container'
+import type ChatCreateChannel from './create-channel/container'
+import type ChatDeleteHistoryWarning from './delete-history-warning/container'
+import type ChatInfoPanel from './conversation/info-panel/container'
+import type ChatNewChat from '../team-building/container'
+import type ChatPaymentsConfirm from './payments/confirm/container'
+import type ChatShowNewTeamDialog from './new-team-dialog-container'
+import type ChatLocationPopup from './conversation/input-area/normal/location-popup'
+import type ChatUnfurlMapPopup from './conversation/messages/wrapper/unfurl/map/popup'
+import type PunycodeLinkWarning from './punycode-link-warning'
+import type BlockModal from './blocking/block-modal/container'
+import type ChatInstallBot from './conversation/bot/install'
+import type ChatInstallBotPick from './conversation/bot/team-picker'
+import type ChatForwardMsgPick from './conversation/fwd-msg/team-picker'
+import type ChatSearchBot from './conversation/bot/search'
+import type ChatConfirmRemoveBot from './conversation/bot/confirm'
+import type ChatPDF from './pdf'
 import * as ChatConstants from '../constants/chat2'
-import flags from '../util/feature-flags'
 
 export const newRoutes = {
   chatConversation: {getScreen: (): typeof ChatConversation => require('./conversation/container').default},
@@ -34,6 +30,10 @@ export const newRoutes = {
     getScreen: (): typeof ChatEnterPaperkey => require('./conversation/rekey/enter-paper-key').default,
   },
   chatRoot: {
+    getOptions: ({navigation, route}) =>
+      ChatConstants.isSplit
+        ? require('./inbox-and-conversation-2').getOptions({navigation, route})
+        : require('./inbox/defer-loading').getOptions({navigation, route}),
     getScreen: (): typeof ChatRoot =>
       ChatConstants.isSplit
         ? require('./inbox-and-conversation-2').default
@@ -42,15 +42,10 @@ export const newRoutes = {
 }
 
 export const newModalRoutes = {
-  chatAddToChannel: flags.teamsRedesign
-    ? {
-        getScreen: (): typeof ChatAddToChannelNew =>
-          require('./conversation/info-panel/add-to-channel/index.new').default,
-      }
-    : {
-        getScreen: (): typeof ChatAddToChannel =>
-          require('./conversation/info-panel/add-to-channel/container').default,
-      },
+  chatAddToChannel: {
+    getScreen: (): typeof ChatAddToChannelNew =>
+      require('./conversation/info-panel/add-to-channel/index.new').default,
+  },
   chatAttachmentFullscreen: {
     getScreen: (): typeof ChatAttachmentFullscreen =>
       require('./conversation/attachment-fullscreen/container').default,
@@ -78,9 +73,6 @@ export const newModalRoutes = {
   chatDeleteHistoryWarning: {
     getScreen: (): typeof ChatDeleteHistoryWarning => require('./delete-history-warning/container').default,
   },
-  chatEditChannel: {
-    getScreen: (): typeof ChatEditChannel => require('./manage-channels/edit-channel-container').default,
-  },
   chatForwardMsgPick: {
     getScreen: (): typeof ChatForwardMsgPick => require('./conversation/fwd-msg/team-picker').default,
   },
@@ -96,9 +88,6 @@ export const newModalRoutes = {
   chatLocationPreview: {
     getScreen: (): typeof ChatLocationPopup =>
       require('./conversation/input-area/normal/location-popup').default,
-  },
-  chatManageChannels: {
-    getScreen: (): typeof ChatManageChannels => require('./manage-channels/container').default,
   },
   chatNewChat: {getScreen: (): typeof ChatNewChat => require('../team-building/container').default},
   chatPDF: {getScreen: (): typeof ChatPDF => require('./pdf').default},

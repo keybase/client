@@ -1,6 +1,6 @@
 // Entry point for the node part of the electron app
 // MUST be first
-import './preload.desktop'
+import '../renderer/preload.desktop'
 // ^^^^^^^^
 import MainWindow, {showDockIcon, closeWindows} from './main-window.desktop'
 import * as Electron from 'electron'
@@ -19,10 +19,13 @@ import {isPathSaltpack} from '../../constants/crypto'
 import {mainWindowDispatch} from '../remote/util.desktop'
 import {quit} from './ctl.desktop'
 import logger from '../../logger'
-import {resolveRoot, resolveRootAsURL} from './resolve-root.desktop'
+import {assetRoot, htmlPrefix} from './html-root.desktop'
+import KB2 from '../../util/electron.desktop'
 
 const {join} = KB.path
 const {env} = KB.process
+
+require('@electron/remote/main').initialize()
 
 let mainWindow: ReturnType<typeof MainWindow> | null = null
 let appStartedUp = false
@@ -34,9 +37,9 @@ Electron.app.commandLine.appendSwitch('disk-cache-size', '1')
 const installCrashReporter = () => {
   if (env.KEYBASE_CRASH_REPORT) {
     console.log(`Adding crash reporting (local). Crash files located in ${Electron.app.getPath('temp')}`)
+    Electron.app.setPath('crashDumps', cacheRoot)
     Electron.crashReporter.start({
       companyName: 'Keybase',
-      crashesDirectory: cacheRoot,
       productName: 'Keybase',
       submitURL: '',
       uploadToServer: false,
@@ -77,7 +80,7 @@ const focusSelfOnAnotherInstanceLaunching = (commandLine: Array<string>) => {
 
   mainWindow.show()
   if (isWindows || isLinux) {
-    mainWindow && mainWindow.focus()
+    mainWindow?.focus()
   }
 
   // The new instance might be due to a URL schema handler launch.
@@ -199,9 +202,12 @@ const getStartupProcessArgs = () => {
 }
 
 const handleActivate = () => {
-  mainWindow && mainWindow.show()
+  mainWindow?.show()
   const dock = Electron.app.dock
-  dock.show()
+  dock
+    .show()
+    .then(() => {})
+    .catch(() => {})
 }
 
 const handleQuitting = (event: Electron.Event) => {
@@ -271,15 +277,16 @@ type Action =
       }
     }
   | {type: 'showMainWindow'}
+  | {type: 'setupPreloadKB2'}
 
 const remoteURL = (windowComponent: string, windowParam: string) =>
-  resolveRootAsURL('dist', `${windowComponent}${__DEV__ ? '.dev' : ''}.html?param=${windowParam}`)
+  `${htmlPrefix}${assetRoot}${windowComponent}${__DEV__ ? '.dev' : ''}.html?param=${windowParam}`
 
 const findRemoteComponent = (windowComponent: string, windowParam: string) => {
   const url = remoteURL(windowComponent, windowParam)
   return Electron.BrowserWindow.getAllWindows().find(w => {
     const wc = w.webContents
-    return wc && wc.getURL() === url
+    return wc?.getURL() === url
   })
 }
 
@@ -288,8 +295,10 @@ const plumbEvents = () => {
     mainWindow?.webContents.send('KBdispatchAction', action)
   })
 
-  Electron.ipcMain.handle('KBkeybase', async (_event, action: Action) => {
+  Electron.ipcMain.handle('KBkeybase', (_event, action: Action) => {
     switch (action.type) {
+      case 'setupPreloadKB2':
+        return KB2
       case 'showMainWindow':
         {
           mainWindow?.show()
@@ -349,12 +358,12 @@ const plumbEvents = () => {
       }
       case 'rendererNewProps': {
         const w = findRemoteComponent(action.payload.windowComponent, action.payload.windowParam)
-        w && w.emit('KBprops', action.payload.propsStr)
+        w?.emit('KBprops', action.payload.propsStr)
         break
       }
       case 'closeRenderer': {
         const w = findRemoteComponent(action.payload.windowComponent, action.payload.windowParam)
-        w && w.close()
+        w?.close()
         break
       }
       case 'makeRenderer': {
@@ -365,14 +374,17 @@ const plumbEvents = () => {
           show: false, // Start hidden and show when we actually get props
           titleBarStyle: 'customButtonsOnHover' as const,
           webPreferences: {
+            contextIsolation: false,
             nodeIntegration: true,
             nodeIntegrationInWorker: false,
-            preload: resolveRoot('dist', `preload-main${__DEV__ ? '.dev' : ''}.bundle.js`),
+            preload: `${assetRoot}preload${__DEV__ ? '.dev' : ''}.bundle.js`,
           },
           ...action.payload.windowOpts,
         }
 
         const remoteWindow = new Electron.BrowserWindow(opts)
+
+        require('@electron/remote/main').enable(remoteWindow.webContents)
 
         if (action.payload.windowPositionBottomRight && Electron.screen.getPrimaryDisplay()) {
           const {width, height} = Electron.screen.getPrimaryDisplay().workAreaSize
@@ -383,7 +395,10 @@ const plumbEvents = () => {
           )
         }
 
-        remoteWindow.loadURL(remoteURL(action.payload.windowComponent, action.payload.windowParam))
+        remoteWindow
+          .loadURL(remoteURL(action.payload.windowComponent, action.payload.windowParam))
+          .then(() => {})
+          .catch(() => {})
 
         if (action.payload.windowComponent !== 'menubar') {
           menuHelper(remoteWindow)
@@ -397,6 +412,7 @@ const plumbEvents = () => {
         break
       }
     }
+    return undefined
   })
 }
 

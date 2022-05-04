@@ -469,7 +469,7 @@ func TestSyncFresh(t *testing.T) {
 	h, server, uid := setupSyncTests(t, g)
 	defer h.Shutdown()
 
-	//Consume a bunch of messages to the server, and we'll sync them down
+	// Consume a bunch of messages to the server, and we'll sync them down
 	const numMsgs = 20
 	var refMsgs []gregor.InBandMessage
 	for i := 0; i < numMsgs; i++ {
@@ -494,7 +494,7 @@ func TestSyncNonFresh(t *testing.T) {
 	h, server, uid := setupSyncTests(t, g)
 	defer h.Shutdown()
 
-	//Consume a bunch of messages to the server, and we'll sync them down
+	// Consume a bunch of messages to the server, and we'll sync them down
 	const numMsgs = 6
 	const msgLimit = numMsgs / 2
 	var refMsgs []gregor.InBandMessage
@@ -533,7 +533,7 @@ func TestSyncSaveRestoreFresh(t *testing.T) {
 	h, server, uid := setupSyncTests(t, g)
 	defer h.Shutdown()
 
-	//Consume a bunch of messages to the server, and we'll sync them down
+	// Consume a bunch of messages to the server, and we'll sync them down
 	const numMsgs = 6
 	const msgLimit = numMsgs / 2
 	var refReplayMsgs, refConsumeMsgs []gregor.InBandMessage
@@ -583,7 +583,7 @@ func TestSyncSaveRestoreNonFresh(t *testing.T) {
 	h, server, uid := setupSyncTests(t, g)
 	defer h.Shutdown()
 
-	//Consume a bunch of messages to the server, and we'll sync them down
+	// Consume a bunch of messages to the server, and we'll sync them down
 	const numMsgs = 6
 	const msgLimit = numMsgs / 2
 	var refReplayMsgs, refConsumeMsgs []gregor.InBandMessage

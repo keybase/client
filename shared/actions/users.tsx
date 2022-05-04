@@ -10,9 +10,9 @@ import * as TrackerConstants from '../constants/tracker2'
 import * as Tracker2Gen from './tracker2-gen'
 import * as ProfileGen from './profile-gen'
 import * as RouteTreeGen from './route-tree-gen'
-import {TypedState} from '../util/container'
+import type {TypedState} from '../util/container'
 import logger from '../logger'
-import {RPCError} from 'util/errors'
+import type {RPCError} from '../util/errors'
 
 const onIdentifyUpdate = (action: EngineGen.Keybase1NotifyUsersIdentifyUpdatePayload) =>
   UsersGen.createUpdateBrokenState({
@@ -25,7 +25,7 @@ const getBio = async (state: TypedState, action: UsersGen.GetBioPayload) => {
   const {username} = action.payload
 
   const info = state.users.infoMap.get(username)
-  if (info && info.bio) {
+  if (info?.bio) {
     return // don't re-fetch bio if we already have one cached
   }
 
@@ -36,12 +36,12 @@ const getBio = async (state: TypedState, action: UsersGen.GetBioPayload) => {
     }
 
     return UsersGen.createUpdateBio({userCard, username}) // set bio in user infomap
-  } catch (e) {
-    const err: RPCError = e
-    if (Container.isNetworkErr(err.code)) {
+  } catch (error_) {
+    const error = error_ as RPCError
+    if (Container.isNetworkErr(error.code)) {
       logger.info('Network error getting userCard')
     } else {
-      logger.info(err.message)
+      logger.info(error.message)
     }
     return
   }
@@ -49,7 +49,7 @@ const getBio = async (state: TypedState, action: UsersGen.GetBioPayload) => {
 
 const setUserBlocks = async (action: UsersGen.SetUserBlocksPayload) => {
   const {blocks} = action.payload
-  if (blocks && blocks.length) {
+  if (blocks.length) {
     await RPCTypes.userSetUserBlocksRpcPromise({blocks}, Constants.setUserBlocksWaitingKey)
   }
 }
@@ -58,7 +58,7 @@ const getBlockState = async (action: UsersGen.GetBlockStatePayload) => {
   const {usernames} = action.payload
 
   const blocks = await RPCTypes.userGetUserBlocksRpcPromise({usernames}, Constants.getUserBlocksWaitingKey)
-  if (blocks && blocks.length) {
+  if (blocks?.length) {
     return UsersGen.createUpdateBlockState({blocks})
   }
   return
@@ -68,7 +68,7 @@ const reportUser = async (action: UsersGen.ReportUserPayload) => {
   await RPCTypes.userReportUserRpcPromise(action.payload, Constants.reportUserWaitingKey)
 }
 
-const refreshBlockList = async (action: TeamBuildingGen.SearchResultsLoadedPayload) =>
+const refreshBlockList = (action: TeamBuildingGen.SearchResultsLoadedPayload) =>
   action.payload.namespace === 'people' &&
   UsersGen.createGetBlockState({
     usernames: action.payload.users.map(u => u.serviceMap['keybase'] || '').filter(Boolean),
@@ -105,10 +105,11 @@ const wotReact = async (action: UsersGen.WotReactPayload, logger: Saga.SagaLogge
       {allowEmptySigID: false, reaction, sigID, voucher},
       Constants.wotReactWaitingKey
     )
-  } catch (e) {
-    logger.warn('Error from wotReact:', e)
+  } catch (error_) {
+    const error = error_ as RPCError
+    logger.warn('Error from wotReact:', error)
     return ProfileGen.createWotVouchSetError({
-      error: e.desc || `There was an error reviewing the claim.`,
+      error: error.desc || `There was an error reviewing the claim.`,
     })
   }
   return [ProfileGen.createWotVouchSetError({error: ''}), RouteTreeGen.createClearModals()]

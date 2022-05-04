@@ -4,7 +4,6 @@
 package keybase
 
 import (
-	"encoding/base64"
 	"errors"
 	"fmt"
 	"net"
@@ -151,9 +150,9 @@ func setInited() {
 // InitOnce runs the Keybase services (only runs one time)
 func InitOnce(homeDir, mobileSharedHome, logFile, runModeStr string,
 	accessGroupOverride bool, dnsNSFetcher ExternalDNSNSFetcher, nvh NativeVideoHelper,
-	mobileOsVersion string, isIPad bool, installReferrerListener NativeInstallReferrerListener) {
+	mobileOsVersion string, isIPad bool, installReferrerListener NativeInstallReferrerListener, isIOS bool) {
 	startOnce.Do(func() {
-		if err := Init(homeDir, mobileSharedHome, logFile, runModeStr, accessGroupOverride, dnsNSFetcher, nvh, mobileOsVersion, isIPad, installReferrerListener); err != nil {
+		if err := Init(homeDir, mobileSharedHome, logFile, runModeStr, accessGroupOverride, dnsNSFetcher, nvh, mobileOsVersion, isIPad, installReferrerListener, isIOS); err != nil {
 			kbCtx.Log.Errorf("Init error: %s", err)
 		}
 	})
@@ -162,7 +161,7 @@ func InitOnce(homeDir, mobileSharedHome, logFile, runModeStr string,
 // Init runs the Keybase services
 func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 	accessGroupOverride bool, externalDNSNSFetcher ExternalDNSNSFetcher, nvh NativeVideoHelper,
-	mobileOsVersion string, isIPad bool, installReferrerListener NativeInstallReferrerListener) (err error) {
+	mobileOsVersion string, isIPad bool, installReferrerListener NativeInstallReferrerListener, isIOS bool) (err error) {
 	defer func() {
 		err = flattenError(err)
 		if err == nil {
@@ -171,6 +170,19 @@ func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 	}()
 
 	fmt.Printf("Go: Initializing: home: %s mobileSharedHome: %s\n", homeDir, mobileSharedHome)
+	if isIOS {
+		// buffer of bytes
+		buffer = make([]byte, 300*1024)
+	} else {
+		const targetBufferSize = 300 * 1024
+		// bufferSize must be divisible by 3 to ensure that we don't split
+		// our b64 encode across a payload boundary if we go over our buffer
+		// size.
+		const bufferSize = targetBufferSize - (targetBufferSize % 3)
+		// buffer for the conn.Read
+		buffer = make([]byte, bufferSize)
+	}
+
 	var perfLogFile, ekLogFile, guiLogFile string
 	if logFile != "" {
 		fmt.Printf("Go: Using log: %s\n", logFile)
@@ -208,7 +220,7 @@ func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 	if isIPad {
 		suffix = " (iPad)"
 	}
-	fmt.Printf("Go: Mobile OS version is: %q%v\n", mobileOsVersion, suffix)
+	fmt.Printf("Go (GOOS:%s): Mobile OS version is: %q%v\n", runtime.GOOS, mobileOsVersion, suffix)
 	kbCtx.MobileOsVersion = mobileOsVersion
 
 	// 10k uid -> FullName cache entries allowed
@@ -238,22 +250,22 @@ func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 		ChatInboxSourceLocalizeThreads: 2,
 		LinkCacheSize:                  1000,
 	}
-	err = kbCtx.Configure(config, usage)
-	if err != nil {
+	if err = kbCtx.Configure(config, usage); err != nil {
+		fmt.Printf("failed to configure: %s\n", err)
 		return err
 	}
 
 	kbSvc = service.NewService(kbCtx, false)
-	err = kbSvc.StartLoopbackServer(libkb.LoginAttemptOffline)
-	if err != nil {
+	if err = kbSvc.StartLoopbackServer(libkb.LoginAttemptOffline); err != nil {
+		fmt.Printf("failed to start loopback: %s\n", err)
 		return err
 	}
 	kbCtx.SetService()
 	uir := service.NewUIRouter(kbCtx)
 	kbCtx.SetUIRouter(uir)
 	kbCtx.SetDNSNameServerFetcher(dnsNSFetcher)
-	err = kbSvc.SetupCriticalSubServices()
-	if err != nil {
+	if err = kbSvc.SetupCriticalSubServices(); err != nil {
+		fmt.Printf("failed subservices setup: %s\n", err)
 		return err
 	}
 	kbSvc.SetupChatModules(nil)
@@ -279,6 +291,7 @@ func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 
 	// open the connection
 	if err = Reset(); err != nil {
+		fmt.Printf("failed conn setup %s\n", err)
 		return err
 	}
 
@@ -291,9 +304,11 @@ func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 		// before KBFS-on-mobile is ready.
 		kbfsParams.Debug = true                         // false
 		kbfsParams.Mode = libkbfs.InitConstrainedString // libkbfs.InitMinimalString
-		_, _ = libkbfs.Init(
+		if _, err = libkbfs.Init(
 			context.Background(), kbfsCtx, kbfsParams, serviceCn{}, nil,
-			kbCtx.Log)
+			kbCtx.Log); err != nil {
+			fmt.Printf("unable to init KBFS: %s", err)
+		}
 	}()
 
 	return nil
@@ -351,56 +366,50 @@ func LogSend(statusJSON string, feedback string, sendLogs, sendMaxBytes bool, tr
 	return string(logSendID), err
 }
 
-// WriteB64 sends a base64 encoded msgpack rpc payload
-func WriteB64(str string) (err error) {
+// WriteArr sends raw bytes encoded msgpack rpc payload, ios only
+func WriteArr(b []byte) (err error) {
+	bytes := make([]byte, len(b))
+	copy(bytes, b)
 	defer func() { err = flattenError(err) }()
 	if conn == nil {
 		return errors.New("connection not initialized")
 	}
-	data, err := base64.StdEncoding.DecodeString(str)
-	if err != nil {
-		return fmt.Errorf("Base64 decode error: %s; %s", err, str)
-	}
-	n, err := conn.Write(data)
+	n, err := conn.Write(bytes)
 	if err != nil {
 		return fmt.Errorf("Write error: %s", err)
 	}
-	if n != len(data) {
+	if n != len(bytes) {
 		return errors.New("Did not write all the data")
 	}
 	return nil
 }
 
-const targetBufferSize = 300 * 1024
-
-// bufferSize must be divisible by 3 to ensure that we don't split
-// our b64 encode across a payload boundary if we go over our buffer
-// size.
-const bufferSize = targetBufferSize - (targetBufferSize % 3)
+const bufferSize = 1024 * 1024
 
 // buffer for the conn.Read
 var buffer = make([]byte, bufferSize)
 
-// ReadB64 is a blocking read for base64 encoded msgpack rpc data.
+// ReadArr is a blocking read for msgpack rpc data.
 // It is called serially by the mobile run loops.
-func ReadB64() (res string, err error) {
+func ReadArr() (data []byte, err error) {
 	defer func() { err = flattenError(err) }()
 	if conn == nil {
-		return "", errors.New("connection not initialized")
+		return nil, errors.New("connection not initialized")
 	}
 	n, err := conn.Read(buffer)
 	if n > 0 && err == nil {
-		str := base64.StdEncoding.EncodeToString(buffer[0:n])
-		return str, nil
+		return buffer[0:n], nil
 	}
 
 	if err != nil {
 		// Attempt to fix the connection
-		_ = Reset()
-		return "", fmt.Errorf("Read error: %s", err)
+		if ierr := Reset(); ierr != nil {
+			fmt.Printf("failed to Reset: %v\n", ierr)
+		}
+		return nil, fmt.Errorf("Read error: %s", err)
 	}
 
-	return "", nil
+	return nil, nil
 }
 
 // Reset resets the socket connection

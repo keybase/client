@@ -7,11 +7,9 @@ import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Kb from '../../common-adapters'
 import {isMobile} from '../../constants/platform'
 import logger from '../../logger'
-import * as Styles from '../../styles'
 import * as Platform from '../../constants/platform'
-import {StylesTextCrossPlatform} from '../../common-adapters/text'
-// @ts-ignore huh?
-import {NavigationEventPayload, SwitchActions} from '@react-navigation/core'
+import type * as Styles from '../../styles'
+import type {StylesTextCrossPlatform} from '../../common-adapters/text'
 
 const isPathItem = (path: Types.Path) => Types.getPathLevel(path) > 2 || Constants.hasSpecialFileElement(path)
 
@@ -42,7 +40,9 @@ const useFsNonPathSubscriptionEffect = (topic: RPCTypes.SubscriptionTopic) => {
   React.useEffect(() => {
     const subscriptionID = Constants.makeUUID()
     dispatch(FsGen.createSubscribeNonPath({subscriptionID, topic}))
-    return () => dispatch(FsGen.createUnsubscribe({subscriptionID}))
+    return () => {
+      dispatch(FsGen.createUnsubscribe({subscriptionID}))
+    }
   }, [dispatch, topic])
 }
 
@@ -217,8 +217,6 @@ export const useFuseClosedSourceConsent = (
           </Kb.Text>
         }
       />
-    ) : (
-      undefined
-    ),
+    ) : undefined,
   }
 }

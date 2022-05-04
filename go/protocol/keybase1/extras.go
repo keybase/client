@@ -139,7 +139,7 @@ func HashMetaFromString(s string) (ret HashMeta, err error) {
 }
 
 func cieq(s string, t string) bool {
-	return strings.ToLower(s) == strings.ToLower(t)
+	return strings.EqualFold(s, t)
 }
 
 func KBFSRootHashFromString(s string) (ret KBFSRootHash, err error) {
@@ -339,7 +339,7 @@ func PGPFingerprintFromString(s string) (ret PGPFingerprint, err error) {
 	if err != nil {
 		return
 	}
-	copy(ret[:], b[:])
+	copy(ret[:], b)
 	return
 }
 
@@ -375,7 +375,7 @@ func (d DeviceID) ToBytes(out []byte) error {
 	if len(out) != DeviceIDLen {
 		return fmt.Errorf("Need to output to a slice with %d bytes", DeviceIDLen)
 	}
-	copy(out[:], tmp)
+	copy(out, tmp)
 	return nil
 }
 
@@ -775,7 +775,7 @@ func SigIDBaseFromSlice(b []byte) (SigIDBase, error) {
 	if len(b) != len(buf) {
 		return "", errors.New("need a SHA256 hash, got something the wrong length")
 	}
-	copy(buf[:], b[:])
+	copy(buf[:], b)
 	return SigIDBaseFromBytes(buf), nil
 }
 
@@ -986,7 +986,7 @@ func (k *KID) UnmarshalJSON(b []byte) error {
 	if err != nil {
 		return err
 	}
-	*k = KID(kid)
+	*k = kid
 	return nil
 }
 
@@ -1947,7 +1947,7 @@ func (m *MaskB64) UnmarshalJSON(b []byte) error {
 
 func (m *MaskB64) MarshalJSON() ([]byte, error) {
 	s := Quote(base64.StdEncoding.EncodeToString([]byte(*m)))
-	return []byte(s), nil
+	return s, nil
 }
 
 func PublicKeyV1FromPGPKeyV2(keyV2 PublicKeyV2PGPSummary) PublicKey {
@@ -1997,7 +1997,7 @@ func StringToDeviceTypeV2(s string) (d DeviceTypeV2, err error) {
 	deviceType := DeviceTypeV2(s)
 	switch deviceType {
 	case DeviceTypeV2_NONE, DeviceTypeV2_DESKTOP, DeviceTypeV2_MOBILE, DeviceTypeV2_PAPER:
-		//pass
+		// pass
 	default:
 		return DeviceTypeV2_NONE, fmt.Errorf("Unknown DeviceType: %s", deviceType)
 	}
@@ -3139,7 +3139,7 @@ func (p PhoneNumber) String() string {
 	return string(p)
 }
 
-var nonDigits = regexp.MustCompile("[^\\d]")
+var nonDigits = regexp.MustCompile(`[^\d]`)
 
 func PhoneNumberToAssertionValue(phoneNumber string) string {
 	return nonDigits.ReplaceAllString(phoneNumber, "")
@@ -3209,7 +3209,7 @@ func (r BoxAuditAttemptResult) IsOK() bool {
 }
 
 func (a BoxAuditAttempt) String() string {
-	ret := fmt.Sprintf("%s", a.Result)
+	ret := a.Result.String()
 	if a.Error != nil {
 		ret += fmt.Sprintf("\t(error: %s)", *a.Error)
 	}
@@ -3270,7 +3270,7 @@ func (fct *FolderConflictType) UnmarshalText(text []byte) error {
 	case "in conflict and stuck":
 		*fct = FolderConflictType_IN_CONFLICT_AND_STUCK
 	default:
-		return errors.New(fmt.Sprintf("Unknown conflict type: %s", text))
+		return fmt.Errorf("Unknown conflict type: %s", text)
 	}
 	return nil
 }

@@ -24,7 +24,7 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
   ) => dispatch(Chat2Gen.createDismissJourneycard({cardType, conversationIDKey, ordinal})),
 })
 
-export default Container.namedConnect(
+export default Container.connect(
   () => ({}),
   mapDispatchToProps,
   (_stateProps, dispatchProps, ownProps: OwnProps) => {
@@ -42,6 +42,5 @@ export default Container.namedConnect(
       style: ownProps.style,
       visible: ownProps.visible,
     }
-  },
-  'MessagePopupJourneycard'
+  }
 )(Journeycard)

@@ -1,4 +1,5 @@
 import * as Constants from '../constants/people'
+import * as Router2Constants from '../constants/router2'
 import * as Container from '../util/container'
 import * as EngineGen from './engine-gen-gen'
 import * as NotificationsGen from './notifications-gen'
@@ -9,10 +10,10 @@ import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Saga from '../util/saga'
 import * as Tabs from '../constants/tabs'
 import * as TeamBuildingGen from './team-building-gen'
-import * as Types from '../constants/types/people'
 import commonTeamBuildingSaga, {filterForNs} from './team-building'
 import logger from '../logger'
-import {RPCError} from '../util/errors'
+import type * as Types from '../constants/types/people'
+import type {RPCError} from '../util/errors'
 
 // set this to true to have all todo items + a contact joined notification show up all the time
 const debugTodo = false
@@ -162,12 +163,12 @@ const dismissAnnouncement = async (action: PeopleGen.DismissAnnouncementPayload)
 const markViewed = async () => {
   try {
     await RPCTypes.homeHomeMarkViewedRpcPromise()
-  } catch (e) {
-    const err: RPCError = e
-    if (Container.isNetworkErr(err.code)) {
+  } catch (error_) {
+    const error = error_ as RPCError
+    if (Container.isNetworkErr(error.code)) {
       logger.warn('Network error calling homeMarkViewed')
     } else {
-      throw err
+      throw error
     }
   }
 }
@@ -216,7 +217,10 @@ const onTeamBuildingAdded = (_: Container.TypedState, action: TeamBuildingGen.Ad
 
 const maybeMarkViewed = (action: RouteTreeGen.OnNavChangedPayload) => {
   const {prev, next} = action.payload
-  if (prev[2]?.routeName === Tabs.peopleTab && next[2]?.routeName !== Tabs.peopleTab) {
+  if (
+    Router2Constants.getRouteTab(prev) === Tabs.peopleTab &&
+    Router2Constants.getRouteTab(next) !== Tabs.peopleTab
+  ) {
     return PeopleGen.createMarkViewed()
   }
   return false
@@ -227,7 +231,7 @@ function* peopleTeamBuildingSaga() {
   yield* Saga.chainAction2(TeamBuildingGen.addUsersToTeamSoFar, filterForNs('people', onTeamBuildingAdded))
 }
 
-const peopleSaga = function*() {
+const peopleSaga = function* () {
   yield* Saga.chainAction2(PeopleGen.getPeopleData, getPeopleData)
   yield* Saga.chainAction2(PeopleGen.markViewed, markViewed)
   yield* Saga.chainAction(PeopleGen.skipTodo, skipTodo)

@@ -1,3 +1,4 @@
+//go:build !darwin && !windows && !dragonfly && !freebsd && !linux && !netbsd && !openbsd && !solaris
 // +build !darwin,!windows,!dragonfly,!freebsd,!linux,!netbsd,!openbsd,!solaris
 
 package libkb

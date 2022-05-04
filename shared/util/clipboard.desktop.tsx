@@ -5,7 +5,7 @@ export type ClipboardData = {
   title: string
 }
 
-function readImage(): Promise<Buffer | null> {
+async function readImage(): Promise<Buffer | null> {
   return new Promise(resolve => {
     const image = Electron.clipboard.readImage()
     if (!image) {
@@ -18,7 +18,7 @@ function readImage(): Promise<Buffer | null> {
   })
 }
 
-export function readImageFromClipboard(
+export async function readImageFromClipboard(
   event: React.SyntheticEvent,
   willReadData: () => void
 ): Promise<Buffer | null> {

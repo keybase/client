@@ -14,6 +14,8 @@ import (
 	"strings"
 	"unicode"
 	"unicode/utf8"
+
+	"github.com/keybase/client/go/protocol/keybase1"
 )
 
 type ConfigGetter func() string
@@ -399,13 +401,13 @@ func (w Win32) MobileSharedHome(emptyOk bool) string {
 	return w.Home(emptyOk)
 }
 
-func NewHomeFinder(appName string, getHomeFromCmd ConfigGetter, getHomeFromConfig ConfigGetter, getMobileSharedHome ConfigGetter, osname string,
-	getRunMode RunModeGetter, getLog LogGetter, getenv EnvGetter) HomeFinder {
+func NewHomeFinder(appName string, getHomeFromCmd ConfigGetter, getHomeFromConfig ConfigGetter, getMobileSharedHome ConfigGetter,
+	osname string, getRunMode RunModeGetter, getLog LogGetter, getenv EnvGetter) HomeFinder {
 	base := Base{appName, getHomeFromCmd, getHomeFromConfig, getMobileSharedHome, getRunMode, getLog, getenv}
-	switch osname {
-	case "windows":
+	switch runtimeGroup(osname) {
+	case keybase1.RuntimeGroup_WINDOWSLIKE:
 		return Win32{base}
-	case "darwin":
+	case keybase1.RuntimeGroup_DARWINLIKE:
 		return Darwin{Base: base}
 	default:
 		return XdgPosix{base}

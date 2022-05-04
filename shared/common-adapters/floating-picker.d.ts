@@ -10,7 +10,7 @@ export type PickerItem<T> = {
 export type Props<T> = {
   items: PickerItem<T>[] // values must be unique,,
   selectedValue: T | null
-  onSelect: (t: T) => void
+  onSelect: (t: T | null) => void
   header?: React.ReactNode
   prompt?: React.ReactNode
   promptString?: string // used on android as title of selection popup,,

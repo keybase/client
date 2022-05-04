@@ -1,3 +1,4 @@
+/*
 import React from 'react'
 import * as Sb from '../../stories/storybook'
 import ReceiveModal from '.'
@@ -26,3 +27,6 @@ const load = () => {
 }
 
 export default load
+*/
+
+export default {}

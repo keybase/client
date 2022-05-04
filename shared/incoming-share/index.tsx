@@ -33,6 +33,8 @@ export const OriginalOrCompressedButton = ({incomingShareItems}: IncomingSharePr
         ? {compressPreference: RPCTypes.IncomingShareCompressPreference.original}
         : {compressPreference: RPCTypes.IncomingShareCompressPreference.compressed},
     })
+      .then(() => {})
+      .catch(() => {})
   }, [])
 
   // If it's original only, set original in store.
@@ -199,7 +201,7 @@ const IncomingShare = (props: IncomingShareProps) => {
     {sendPaths: [] as Array<string>, text: undefined as string | undefined}
   )
   return (
-    <Kb.Modal header={useHeader(props.incomingShareItems)} footer={useFooter(props.incomingShareItems)}>
+    <Kb.Modal noScrollView={true} header={useHeader(props.incomingShareItems)} footer={useFooter(props.incomingShareItems)}>
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
         <Kb.Box2 direction="vertical" fullWidth={true} style={Styles.globalStyles.flexOne}>
           <MobileSendToChat isFromShareExtension={true} sendPaths={sendPaths} text={text} />
@@ -303,8 +305,6 @@ const IncomingShareMain = () => {
   )
 }
 
-export default IncomingShareMain
-
 const styles = Styles.styleSheetCreate(() => ({
   footer: {
     ...Styles.globalStyles.flexBoxRow,
@@ -339,3 +339,5 @@ const isChatOnly = (items?: Array<RPCTypes.IncomingShareItem>): boolean =>
   items[0].type === RPCTypes.IncomingShareType.text &&
   !!items[0].content &&
   !items[0].originalPath
+
+export default IncomingShareMain

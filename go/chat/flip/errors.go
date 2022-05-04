@@ -268,7 +268,7 @@ type CommitmentCompleteSortError struct {
 }
 
 func (c CommitmentCompleteSortError) Error() string {
-	return fmt.Sprintf("Commitment list wasn't sorted properly; the leader is cheating!")
+	return "Commitment list wasn't sorted properly; the leader is cheating!"
 }
 
 type BadCommitmentCompleteHashError struct {
@@ -298,7 +298,7 @@ func NewReplayError(s string) ReplayError {
 }
 
 func (r ReplayError) Error() string {
-	return fmt.Sprintf("")
+	return ""
 }
 
 type DuplicateCommitmentError struct{}

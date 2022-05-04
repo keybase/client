@@ -29,7 +29,7 @@ const _InfoIcon = (props: Kb.PropsWithOverlay<InfoIconProps>) => (
         Styles.desktopStyles.windowDraggingClickable,
         props.invisible && styles.opacityNone,
         props.style,
-      ])}
+      ] as any)}
     />
     <Kb.FloatingMenu
       items={[
@@ -44,7 +44,7 @@ const _InfoIcon = (props: Kb.PropsWithOverlay<InfoIconProps>) => (
   </>
 )
 
-export const InfoIcon = Container.namedConnect(
+export const InfoIcon = Container.connect(
   state => ({_loggedIn: state.config.loggedIn}),
   dispatch => ({
     _onFeedback: (loggedIn: boolean) => {
@@ -60,8 +60,7 @@ export const InfoIcon = Container.namedConnect(
     ...o,
     onDocumentation: d.onDocumentation,
     onFeedback: () => d._onFeedback(s._loggedIn),
-  }),
-  'SignupInfoIcon'
+  })
 )(Kb.OverlayParentHOC(_InfoIcon))
 
 type HeaderProps = {
@@ -86,7 +85,7 @@ const Header = (props: HeaderProps) => (
   >
     {(props.showInfoIcon || props.showInfoIconRow) && (
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.infoIconContainer}>
-        <InfoIcon invisible={(props.negative as boolean) || (props.showInfoIconRow && !props.showInfoIcon)} />
+        <InfoIcon invisible={props.negative || (props.showInfoIconRow && !props.showInfoIcon)} />
       </Kb.Box2>
     )}
     <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.titleContainer} fullWidth={true}>

@@ -6,10 +6,10 @@ if NOT DEFINED ReleaseRevision set ReleaseRevision=master
 set GOARCH=amd64
 
 set OUTPUT=echo
-if DEFINED SlackBot set OUTPUT=go run %GOPATH%/src/github.com/keybase/slackbot/send/main.go -i=1
+if DEFINED SlackBot set OUTPUT=(cd %GOPATH%/src/github.com/keybase/slackbot/send && go run main.go -i=1)
 
 :: sanity check that the passphrase is set right
-go run %GOPATH%\src\github.com\keybase\client\go\tools\ssss\main.go %0
+(cd %GOPATH%\src\github.com\keybase\client\go\tools\ssss\ && go run main.go %0)
 IF %ERRORLEVEL% NEQ 0 (
   echo Saltpack key not set right, can't build
   EXIT /B 1

@@ -4,8 +4,13 @@ import * as Container from '../util/container'
 import * as TeamBuildingGen from '../actions/team-building-gen'
 import * as Tracker2Gen from '../actions/tracker2-gen'
 import * as TeamsGen from '../actions/teams-gen'
-import * as Types from '../constants/types/users'
 import * as UsersGen from '../actions/users-gen'
+import type * as Types from '../constants/types/users'
+import type {Draft} from 'immer'
+
+type WritableDraft<T> = {
+  -readonly [K in keyof T]: Draft<T[K]>
+}
 
 const initialState: Types.State = Constants.makeState()
 
@@ -17,21 +22,18 @@ type Actions =
   | TeamBuildingGen.SearchResultsLoadedPayload
   | TeamsGen.SetMembersPayload
 
-const updateInfo = (map: Map<string, Types.UserInfo>, username: string, info: Partial<Types.UserInfo>) => {
-  const next = {
-    ...(map.get(username) || null),
-    ...info,
-  }
-
-  // cleanup data structure so its not full of empty items
-  !next.fullname && delete next.fullname
-  !next.broken && delete next.broken
-  !next.bio && delete next.bio
-
-  if (Object.keys(next).length) {
-    map.set(username, next)
+const updateInfo = (
+  map: Map<string, WritableDraft<Types.UserInfo>>,
+  username: string,
+  info: Partial<Types.UserInfo>
+) => {
+  const next = map.get(username)
+  if (next) {
+    Object.keys(info).forEach(key => {
+      next[key] = info[key]
+    })
   } else {
-    map.delete(username)
+    map.set(username, info)
   }
 }
 

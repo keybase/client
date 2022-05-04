@@ -18,8 +18,8 @@ export function ctlStop(callback: any) {
     if (callback) callback(null)
     return
   }
-  var plat = 'darwin'
-  var args = ['ctl', 'stop', '--exclude=app']
+  const plat = 'darwin'
+  const args = ['ctl', 'stop', '--exclude=app']
   exec(binPath, args, plat, 'prod', false, callback)
 }
 
@@ -47,7 +47,7 @@ export function quit(appOnly: boolean = false) {
   }
 
   console.log('Quit the app')
-  ctlStop(function(stopErr: any) {
+  ctlStop(function (stopErr: any) {
     console.log('Done with ctlstop')
     if (stopErr) {
       console.log('Error in ctl stop, when quitting:', stopErr)

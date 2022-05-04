@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
-import {namedConnect} from '../../util/container'
+import * as Container from '../../util/container'
 import Modal from '../modal'
 
 type OwnProps = {}
@@ -49,11 +49,10 @@ const styleTerminal = {
   textAlign: 'left',
 }
 
-export default namedConnect(
+export default Container.connect(
   () => ({}),
   dispatch => ({
     onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
   }),
-  (s, d, o: OwnProps) => ({...o, ...s, ...d}),
-  'Import'
+  (s, d, o: OwnProps) => ({...o, ...s, ...d})
 )(Import)

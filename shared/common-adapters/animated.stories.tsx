@@ -1,3 +1,4 @@
+/*
 import * as React from 'react'
 import * as Sb from '../stories/storybook'
 import * as Kb from '.'
@@ -21,3 +22,6 @@ const styles = Styles.styleSheetCreate(() => ({
 }))
 
 export default load
+*/
+
+export default {}

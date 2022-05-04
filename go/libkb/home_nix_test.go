@@ -1,6 +1,7 @@
 // Copyright 2015 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
 
+//go:build !windows
 // +build !windows
 
 package libkb
@@ -32,28 +33,29 @@ func TestPosix(t *testing.T) {
 }
 
 func TestDarwinHomeFinder(t *testing.T) {
-	hf := NewHomeFinder("keybase", nil, nil, nil, "darwin", func() RunMode { return ProductionRunMode }, makeLogGetter(t), nil)
-	d := hf.ConfigDir()
-	if !strings.HasSuffix(d, "Library/Application Support/Keybase") {
-		t.Errorf("Bad config dir: %s", d)
+	for _, osname := range []string{"darwin", "ios"} {
+		hf := NewHomeFinder("keybase", nil, nil, nil, osname, func() RunMode { return ProductionRunMode }, makeLogGetter(t), nil)
+		d := hf.ConfigDir()
+		if !strings.HasSuffix(d, "Library/Application Support/Keybase") {
+			t.Errorf("Bad config dir: %s", d)
+		}
+		d = hf.CacheDir()
+		if !strings.HasSuffix(d, "Library/Caches/Keybase") {
+			t.Errorf("Bad cache dir: %s", d)
+		}
+		hfInt := NewHomeFinder("keybase", func() string { return "home" }, nil, func() string { return "mobilehome" },
+			osname, func() RunMode { return ProductionRunMode }, makeLogGetter(t), nil)
+		hfDarwin := hfInt.(Darwin)
+		hfDarwin.forceIOS = true
+		hf = hfDarwin
+		d = hf.ConfigDir()
+		require.True(t, strings.HasSuffix(d, "Library/Application Support/Keybase"))
+		require.True(t, strings.HasPrefix(d, "mobilehome"))
+		d = hf.DataDir()
+		require.True(t, strings.HasSuffix(d, "Library/Application Support/Keybase"))
+		require.False(t, strings.HasPrefix(d, "mobilehome"))
+		require.True(t, strings.HasPrefix(d, "home"))
 	}
-	d = hf.CacheDir()
-	if !strings.HasSuffix(d, "Library/Caches/Keybase") {
-		t.Errorf("Bad cache dir: %s", d)
-	}
-	hfInt := NewHomeFinder("keybase", func() string { return "home" }, nil, func() string { return "mobilehome" },
-		"darwin", func() RunMode { return ProductionRunMode }, makeLogGetter(t), nil)
-	hfDarwin := hfInt.(Darwin)
-	hfDarwin.forceIOS = true
-	hf = hfDarwin
-	d = hf.ConfigDir()
-	require.True(t, strings.HasSuffix(d, "Library/Application Support/Keybase"))
-	require.True(t, strings.HasPrefix(d, "mobilehome"))
-	d = hf.DataDir()
-	require.True(t, strings.HasSuffix(d, "Library/Application Support/Keybase"))
-	require.False(t, strings.HasPrefix(d, "mobilehome"))
-	require.True(t, strings.HasPrefix(d, "home"))
-
 }
 
 func TestDarwinHomeFinderInDev(t *testing.T) {

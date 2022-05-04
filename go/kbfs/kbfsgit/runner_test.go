@@ -737,7 +737,7 @@ func TestPushcertOptions(t *testing.T) {
 
 		var output bytes.Buffer
 		r, err := newRunner(ctx, config, "origin",
-			fmt.Sprintf("keybase://private/user1/test"),
+			"keybase://private/user1/test",
 			dotgit, inputReader, &output, testErrput{t})
 		require.NoError(t, err)
 		err = r.processCommands(ctx)

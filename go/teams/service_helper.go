@@ -2094,7 +2094,7 @@ func TeamProfileAddList(ctx context.Context, g *libkb.GlobalContext, username st
 		}
 		disabledReason := ""
 		if !entry.CallerAdmin {
-			disabledReason = fmt.Sprintf("Only admins can add people.")
+			disabledReason = "Only admins can add people."
 		} else if entry.ThemMember {
 			disabledReason = fmt.Sprintf("%v is already a member.", uname.String())
 		}
@@ -2174,7 +2174,7 @@ func FindNextMerkleRootAfterRemoval(mctx libkb.MetaContext, arg keybase1.FindNex
 		}
 	}
 	if logPoint == nil {
-		return res, libkb.NotFoundError{Msg: fmt.Sprintf("no downgraded log point for user found")}
+		return res, libkb.NotFoundError{Msg: "no downgraded log point for user found"}
 	}
 
 	return libkb.FindNextMerkleRootAfterTeamRemoval(mctx, keybase1.FindNextMerkleRootAfterTeamRemovalArg{

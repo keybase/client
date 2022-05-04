@@ -1,23 +1,23 @@
 // Message related constants
 import * as DeviceTypes from '../types/devices'
-import * as MessageTypes from '../types/chat2/message'
-import * as RPCTypes from '../types/rpc-gen'
+import * as FsTypes from '../types/fs'
 import * as RPCChatTypes from '../types/rpc-chat-gen'
 import * as RPCStellarTypes from '../types/rpc-stellar-gen'
-import * as Types from '../types/chat2'
+import * as RPCTypes from '../types/rpc-gen'
 import * as TeamConstants from '../teams'
-import * as FsTypes from '../types/fs'
+import * as Types from '../types/chat2'
 import * as WalletConstants from '../wallets'
 import * as WalletTypes from '../types/wallets'
 import HiddenString from '../../util/hidden-string'
-import {isMobile} from '../platform'
-import {TypedState} from '../reducer'
-import {noConversationIDKey} from '../types/chat2/common'
-import logger from '../../logger'
-import {ServiceId} from 'util/platforms'
-import {assertNever} from '../../util/container'
 import invert from 'lodash/invert'
+import logger from '../../logger'
 import shallowEqual from 'shallowequal'
+import type * as MessageTypes from '../types/chat2/message'
+import type {ServiceId} from 'util/platforms'
+import type {TypedState} from '../reducer'
+import {assertNever} from '../../util/container'
+import {isMobile} from '../platform'
+import {noConversationIDKey} from '../types/chat2/common'
 
 export const getMessageStateExtras = (state: TypedState, conversationIDKey: Types.ConversationIDKey) => {
   const getLastOrdinal = () =>
@@ -741,8 +741,14 @@ const uiMessageToSystemMessage = (
       })
     }
     case RPCChatTypes.MessageSystemType.gitpush: {
-      const {team = '???', pushType = 0, pusher = '???', repoName: repo = '???', repoID = '???', refs = []} =
-        body.gitpush || {}
+      const {
+        team = '???',
+        pushType = 0,
+        pusher = '???',
+        repoName: repo = '???',
+        repoID = '???',
+        refs = [],
+      } = body.gitpush || {}
       return makeMessageSystemGitPush({
         ...minimum,
         pushType,
@@ -1443,6 +1449,7 @@ export const upgradeMessage = (old: Types.Message, m: Types.Message): Types.Mess
     if (!validUpgrade(old, m)) {
       return old
     }
+
     return {...m, ordinal: old.ordinal}
   }
   if (old.type === 'attachment' && m.type === 'attachment') {
@@ -1474,6 +1481,7 @@ export const upgradeMessage = (old: Types.Message, m: Types.Message): Types.Mess
       transferState: old.transferState === 'remoteUploading' ? null : old.transferState,
     }
   }
+
   return m
 }
 

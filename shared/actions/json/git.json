@@ -1,5 +1,5 @@
 {
-  "prelude": ["import * as Types from '../constants/types/git'"],
+  "prelude": ["import type * as Types from '../constants/types/git'"],
   "actions": {
     "loadGit": {},
     "loaded": {"repos": "Map<string, Types.GitInfo>"},

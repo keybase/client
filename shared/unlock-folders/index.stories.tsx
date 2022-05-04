@@ -1,3 +1,4 @@
+/*
 import * as React from 'react'
 import UnlockFolders from './index.desktop'
 import {action, storiesOf} from '../stories/storybook'
@@ -47,3 +48,6 @@ const load = () => {
 }
 
 export default load
+*/
+
+export default {}

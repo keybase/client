@@ -1,3 +1,4 @@
+/*
 import * as React from 'react'
 import Box from './box'
 import Text from './text'
@@ -33,3 +34,6 @@ const load = () => {
 }
 
 export default load
+*/
+
+export default {}

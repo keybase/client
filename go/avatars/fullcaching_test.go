@@ -66,7 +66,7 @@ func TestAvatarsFullCaching(t *testing.T) {
 	convertPath := func(path string) string {
 		path = strings.TrimPrefix(path, "file://")
 		if runtime.GOOS == "windows" {
-			path = strings.Replace(path, `/`, `\`, -1)
+			path = strings.ReplaceAll(path, `/`, `\`)
 			path = path[1:]
 		}
 		return path

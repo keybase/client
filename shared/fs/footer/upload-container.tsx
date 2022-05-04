@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as FsGen from '../../actions/fs-gen'
 import * as Types from '../../constants/types/fs'
-import {compose, namedConnect} from '../../util/container'
+import * as Container from '../../util/container'
 import Upload, {UploadProps} from './upload'
 import UploadCountdownHOC, {UploadCountdownHOCProps} from './upload-countdown-hoc'
 import * as Constants from '../../constants/fs'
@@ -52,10 +52,7 @@ export const uploadsToUploadCountdownHOCProps = (pathItems: Types.PathItems, upl
     // since journal status comes a bit slower, and merging the two causes
     // flakes on our perception of overall upload status.
     endEstimate: enableDebugUploadBanner ? (uploads.endEstimate || 0) + 32000 : uploads.endEstimate || 0,
-    fileName:
-      filePaths.length === 1
-        ? Types.getPathName((filePaths[1] as Types.Path) || Types.stringToPath(''))
-        : null,
+    fileName: filePaths.length === 1 ? Types.getPathName(filePaths[1] || Types.stringToPath('')) : null,
     files: filePaths.length,
     totalSyncingBytes: uploads.totalSyncingBytes,
   }
@@ -68,8 +65,8 @@ const mergeProps = ({_kbfsDaemonStatus, _pathItems, _uploads}, {debugToggleShow}
     isOnline: _kbfsDaemonStatus.onlineStatus !== Types.KbfsDaemonOnlineStatus.Offline,
   } as UploadCountdownHOCProps)
 
-export default compose(
-  namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'ConnectedUpload'),
+export default Container.compose(
+  Container.connect(mapStateToProps, mapDispatchToProps, mergeProps),
   UploadCountdownHOC
 )((props: UploadProps) => {
   return <Upload {...props} />

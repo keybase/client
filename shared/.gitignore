@@ -10,6 +10,7 @@ android/**/*.iml
 android/**/.classpath
 android/**/.project
 android/**/.settings/**
+android/app/.cxx
 
 # iOS
 !default.mode1v3
@@ -34,10 +35,11 @@ project.xcworkspace
 xcuserdata
 shared
 ios/fastlane/README.md
-keybase.framework
+keybase.xcframework
 ios/AppStore_keybase.ios.KeybaseShare.mobileprovision
 ios/AppStore_keybase.ios.mobileprovision
 ios/dist
+ios/Pods
 
 main.jsbundle
 .eslintcache

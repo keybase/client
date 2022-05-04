@@ -6,7 +6,7 @@ export type SectionListRenderItem<ItemT, ExtraT> = (info: {
   index: number
   item: ItemT
   section: Section<ItemT, ExtraT>
-}) => React.ReactNode | null
+}) => React.ReactNode
 
 /**
  * Section is the type for a section in a sectionlist. ItemT is the type of the
@@ -109,6 +109,14 @@ export type Props<SectionT extends Section<any, any>> = {
    */
   keyboardShouldPersistTaps?: boolean | 'always' | 'never' | 'handled'
 
+  keyboardDismissMode?: 'on-drag'
+  scrollEventThrottle?: number
+
+  getItemLayout?: (
+    sections: Array<SectionT>,
+    indexInList: number
+  ) => {index: number; length: number; offset: number}
+
   /**
    * How many items to render in the initial batch
    */
@@ -131,6 +139,15 @@ export type Props<SectionT extends Section<any, any>> = {
   getSectionHeaderHeight?: (sectionIndex: number) => number
 
   onSectionChange?: (section: SectionT) => void
+
+  desktopReactListTypeOverride?: string
+  desktopItemSizeEstimatorOverride?: () => number
 }
 
-export default class<T extends Section<any, any>> extends React.Component<Props<T>> {}
+export default class<T extends Section<any, any>> extends React.Component<Props<T>> {
+  getNode: () =>
+    | {
+        scrollToLocation: (o: {animated: boolean; itemIndex: number; sectionIndex: number}) => void
+      }
+    | undefined
+}

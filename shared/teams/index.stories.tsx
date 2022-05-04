@@ -1,3 +1,4 @@
+/*
 import main from './main/index.stories'
 import common from './common/index.stories'
 import team from './team/index.stories'
@@ -45,3 +46,6 @@ const load = () => {
 }
 
 export default load
+*/
+
+export default {}

@@ -76,7 +76,10 @@ export default function makeMenu(window: Electron.BrowserWindow) {
     submenu: Electron.Menu.buildFromTemplate([
       new Electron.MenuItem({
         click: () => {
-          Electron.shell.openExternal('https://keybase.io')
+          Electron.shell
+            .openExternal('https://keybase.io')
+            .then(() => {})
+            .catch(() => {})
         },
         label: 'Learn More',
       }),
@@ -161,7 +164,7 @@ function setupContextMenu(window: Electron.BrowserWindow) {
                 s =>
                   new Electron.MenuItem({
                     click(_, w) {
-                      w.webContents.replaceMisspelling(s)
+                      w?.webContents?.replaceMisspelling(s)
                     },
                     label: s,
                   })
@@ -169,7 +172,7 @@ function setupContextMenu(window: Electron.BrowserWindow) {
               ...(dictionarySuggestions.length ? [new Electron.MenuItem({type: 'separator'})] : []),
               new Electron.MenuItem({
                 click(_, w) {
-                  w.webContents.session.addWordToSpellCheckerDictionary(props.misspelledWord)
+                  w?.webContents.session.addWordToSpellCheckerDictionary(props.misspelledWord)
                 },
                 label: 'Add to dictionary',
               }),

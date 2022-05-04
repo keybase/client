@@ -1,6 +1,6 @@
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
-import {namedConnect, isMobile, isTablet} from '../../../util/container'
+import * as Container from '../../../util/container'
 import ChatInboxHeader from '.'
 import HiddenString from '../../../util/hidden-string'
 import {appendNewChatBuilder} from '../../../actions/typed-routes'
@@ -9,7 +9,7 @@ type OwnProps = {
   context: 'chat-header' | 'inbox-header'
 }
 
-export default namedConnect(
+export default Container.connect(
   state => {
     const hasLoadedEmptyInbox =
       state.chat2.inboxHasLoaded &&
@@ -17,7 +17,7 @@ export default namedConnect(
       (state.chat2.inboxLayout.smallTeams || []).length === 0 &&
       (state.chat2.inboxLayout.bigTeams || []).length === 0
     const showEmptyInbox = !state.chat2.inboxSearch && hasLoadedEmptyInbox
-    const showStartNewChat = !isMobile && showEmptyInbox
+    const showStartNewChat = !Container.isMobile && showEmptyInbox
     return {
       isSearching: !!state.chat2.inboxSearch,
       showFilter: !showEmptyInbox,
@@ -42,8 +42,7 @@ export default namedConnect(
     onSelectUp: dispatchProps.onSelectUp,
     showFilter: stateProps.showFilter,
     showNewChat: ownProps.context == 'chat-header',
-    showSearch: ownProps.context == 'chat-header' ? !isTablet : isMobile,
+    showSearch: ownProps.context == 'chat-header' ? !Container.isTablet : Container.isMobile,
     showStartNewChat: stateProps.showStartNewChat,
-  }),
-  'ChatInboxHeaderContainer'
+  })
 )(ChatInboxHeader)

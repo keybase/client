@@ -1,3 +1,4 @@
+/*
 import input from './input/index.stories'
 import output from './output/index.stories'
 import recipients from './recipients/index.stories'
@@ -9,3 +10,6 @@ const load = () => {
 }
 
 export default load
+*/
+
+export default {}

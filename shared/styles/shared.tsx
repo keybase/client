@@ -1,7 +1,7 @@
 import {themed as globalColors} from './colors'
 import {isMobile, isIOS, isAndroid, isTablet, isPhone, isElectron} from '../constants/platform'
 import {_StylesCrossPlatform, _StylesMobile, _StylesDesktop} from './css'
-import {Background} from '../common-adapters/text'
+import type {Background} from '../common-adapters/text'
 
 /* eslint-disable sort-keys */
 export const globalMargins = {
@@ -73,40 +73,87 @@ export const util = {
 } as const
 
 // Take common styles and make them work on both. Deals with special cases in lineHeight and etc
-const unifyStyles = (s: any) => ({
-  ...s,
-  ...(Object.prototype.hasOwnProperty.call(s, 'lineHeight') && typeof s.lineHeight === 'number'
-    ? {lineHeight: isMobile ? s.lineHeight : s.lineHeight === 0 ? '0' : `${s.lineHeight}px`}
-    : {}),
-})
-
-type AsStylesCrossPlatform<T> = {
-  [P in keyof T]: P extends keyof _StylesCrossPlatform
-    ? T[P] extends _StylesCrossPlatform[P]
-      ? T[P]
-      : _StylesCrossPlatform[P]
-    : T[P]
+type Unified<T> = {
+  [P in keyof T]: P extends 'lineHeight' ? _StylesCrossPlatform[P] : T[P]
+}
+function unifyStyles<T extends {}>(s_: T): Unified<T> {
+  const s: any = s_
+  return {
+    ...s,
+    ...(Object.prototype.hasOwnProperty.call(s, 'lineHeight') && typeof s.lineHeight === 'number'
+      ? {lineHeight: isMobile ? s.lineHeight : s.lineHeight === 0 ? '0' : `${s.lineHeight}px`}
+      : {}),
+  }
 }
 
+// This is a better literal to literal inferrer but is too slow
+// type Both<X, Y> = {
+//   [P in keyof X | keyof Y]: P extends keyof X
+//     ? P extends keyof Y
+//       ? X[P] | Y[P] // both
+//       : X[P]
+//     : P extends keyof Y
+//     ? Y[P]
+//     : undefined
+// }
+// type AsObj<T> = T extends object ? T : never
+
+// export function platformStyles<
+//   T extends {
+//     common: any
+//     isMobile?: any
+//     isPhone?: any
+//     isTablet?: any
+//     isIOS?: any
+//     isAndroid?: any
+//     isElectron?: any
+//   },
+//   C = T extends {common: infer J} ? J : never,
+//   M = T extends {isMobile: infer J} ? J : never,
+//   P = T extends {isPhone: infer J} ? J : never,
+//   Tab = T extends {isTablet: infer J} ? J : never,
+//   A = T extends {isAndroid: infer J} ? J : never,
+//   I = T extends {isIOS: infer J} ? J : never,
+//   E = T extends {isElectron: infer J} ? J : never,
+//   Elec = Util.Assign<AsObj<C>, AsObj<E>>,
+//   Mob = Util.Assign<
+//     Util.Assign<Util.Assign<Util.Assign<Util.Assign<AsObj<C>, AsObj<I>>, AsObj<M>>, AsObj<P>>, AsObj<Tab>>,
+//     AsObj<A>
+//   >,
+//   OUT = Both<Elec, Mob>
+// >(o: T): OUT {
+//   return {
+//     ...(o.common ? unifyStyles(o.common) : {}),
+//     ...(isMobile && o.isMobile ? o.isMobile : {}),
+//     ...(isIOS && o.isIOS ? o.isIOS : {}),
+//     ...(isAndroid && o.isAndroid ? o.isAndroid : {}),
+//     ...(isPhone && o.isPhone ? o.isPhone : {}),
+//     ...(isTablet && o.isTablet ? o.isTablet : {}),
+//     ...(isElectron && o.isElectron ? unifyStyles(o.isElectron) : {}),
+//   } as OUT
+// }
+
 export function platformStyles<
-  Ret extends C & I & A & M & E,
-  C extends _StylesCrossPlatform = {},
-  M extends _StylesMobile = {},
-  P extends _StylesMobile = {},
-  T extends _StylesMobile = {},
-  I extends _StylesMobile = {},
-  A extends _StylesMobile = {},
-  E extends _StylesDesktop = {}
->(options: {common?: C; isMobile?: M; isPhone?: P; isTablet?: T; isIOS?: I; isAndroid?: A; isElectron?: E}) {
-  return ({
-    ...(options.common ? unifyStyles(options.common) : {}),
-    ...(isMobile && options.isMobile ? options.isMobile : {}),
-    ...(isIOS && options.isIOS ? options.isIOS : {}),
-    ...(isAndroid && options.isAndroid ? options.isAndroid : {}),
-    ...(isPhone && options.isPhone ? options.isPhone : {}),
-    ...(isTablet && options.isTablet ? options.isTablet : {}),
-    ...(isElectron && options.isElectron ? unifyStyles(options.isElectron) : {}),
-  } as any) as AsStylesCrossPlatform<Ret>
+  T extends {
+    common?: _StylesCrossPlatform
+    isMobile?: _StylesMobile
+    isPhone?: _StylesMobile
+    isTablet?: _StylesMobile
+    isIOS?: _StylesMobile
+    isAndroid?: _StylesMobile
+    isElectron?: _StylesDesktop
+  },
+  OUT = _StylesCrossPlatform
+>(o: T): OUT {
+  return {
+    ...(o.common ? unifyStyles(o.common) : {}),
+    ...(isMobile && o.isMobile ? o.isMobile : {}),
+    ...(isIOS && o.isIOS ? o.isIOS : {}),
+    ...(isAndroid && o.isAndroid ? o.isAndroid : {}),
+    ...(isPhone && o.isPhone ? o.isPhone : {}),
+    ...(isTablet && o.isTablet ? o.isTablet : {}),
+    ...(isElectron && o.isElectron ? unifyStyles(o.isElectron) : {}),
+  } as OUT
 }
 
 /* eslint-disable sort-keys */

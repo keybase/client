@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Constants from '../../constants/crypto'
 import * as Container from '../../util/container'
-import * as Types from '../../constants/types/crypto'
+import type * as Types from '../../constants/types/crypto'
 import * as FSGen from '../../actions/fs-gen'
 import * as ConfigGen from '../../actions/config-gen'
 import * as CryptoGen from '../../actions/crypto-gen'
@@ -10,7 +10,7 @@ import * as Chat2Gen from '../../actions/chat2-gen'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Platforms from '../../constants/platform'
-import {IconType} from '../../common-adapters/icon.constants-gen'
+import type {IconType} from '../../common-adapters/icon.constants-gen'
 import {humanizeBytes} from '../../constants/fs'
 import capitalize from 'lodash/capitalize'
 import {getStyle} from '../../common-adapters/text'
@@ -203,11 +203,13 @@ export const OutputActionsBar = (props: OutputActionsBarProps) => {
 
   const onSaveAsText = () => {
     if (operation === Constants.Operations.Sign) {
-      return dispatch(CryptoGen.createDownloadSignedText())
+      dispatch(CryptoGen.createDownloadSignedText())
+      return
     }
 
     if (operation === Constants.Operations.Encrypt) {
-      return dispatch(CryptoGen.createDownloadEncryptedText())
+      dispatch(CryptoGen.createDownloadEncryptedText())
+      return
     }
   }
 
@@ -323,11 +325,13 @@ const OutputFileDestination = (props: {operation: Types.Operations}) => {
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true}>
       <Kb.ButtonBar>
-        <Kb.Button mode="Primary" label={`${operationTitle} to ...`} onClick={() => onOpenFile()} />
+        <Kb.Button mode="Primary" label={`${operationTitle} to ...`} onClick={async () => onOpenFile()} />
       </Kb.ButtonBar>
     </Kb.Box2>
   )
 }
+
+const MobileScroll = Styles.isMobile ? Kb.ScrollView : React.Fragment
 
 export const OperationOutput = (props: OutputProps) => {
   const {operation} = props
@@ -405,7 +409,7 @@ export const OperationOutput = (props: OutputProps) => {
   }
 
   // Text output
-  const MobileScroll = Styles.isMobile ? Kb.ScrollView : React.Fragment
+
   return (
     <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.container}>
       <MobileScroll>

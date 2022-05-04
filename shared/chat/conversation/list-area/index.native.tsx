@@ -8,9 +8,10 @@ import Message from '../messages'
 import SpecialBottomMessage from '../messages/special-bottom-message'
 import SpecialTopMessage from '../messages/special-top-message'
 import logger from '../../../logger'
-import {Animated, ListRenderItemInfo} from 'react-native'
-import {Props, ItemType} from '.'
+import {Animated, type ListRenderItemInfo} from 'react-native'
+import type {Props, ItemType} from '.'
 import {mobileTypingContainerHeight} from '../input-area/normal/typing'
+import {DEBUG_CHAT_DUMP} from '../../../constants/chat2'
 
 const debugEnabled = false
 
@@ -19,7 +20,7 @@ const debug = debugEnabled ? (s: string) => logger.debug('scroll: ' + s) : () =>
 const targetHitArea = 1
 
 // Bookkeep whats animating so it finishes and isn't replaced, if we've animated it we keep the key and use null
-const animatingMap = new Map<string, null | React.ReactElement<any>>()
+const animatingMap = new Map<string, null | React.ReactElement>()
 
 type AnimatedChildProps = {
   animatingKey: string
@@ -62,11 +63,12 @@ const AnimatedChild = React.memo(({children, animatingKey}: AnimatedChildProps) 
 })
 
 type SentProps = {
-  children?: React.ReactElement<any>
+  children?: React.ReactElement
   conversationIDKey: Types.ConversationIDKey
   ordinal: Types.Ordinal
+  prevOrdinal: Types.Ordinal | undefined
 }
-const Sent = React.memo(({children, conversationIDKey, ordinal}: SentProps) => {
+const Sent_ = ({conversationIDKey, ordinal, prevOrdinal}: SentProps) => {
   const you = Container.useSelector(state => state.config.username)
   const message = Container.useSelector(state => state.chat2.messageMap.get(conversationIDKey)?.get(ordinal))
   const youSent = message && message.author === you && message.ordinal !== message.id
@@ -78,6 +80,10 @@ const Sent = React.memo(({children, conversationIDKey, ordinal}: SentProps) => {
     return state
   }
 
+  const children = (
+    <Message key={ordinal} ordinal={ordinal} previous={prevOrdinal} conversationIDKey={conversationIDKey} />
+  )
+
   // if state is null we already animated it
   if (youSent && state === undefined) {
     const c = <AnimatedChild animatingKey={key}>{children}</AnimatedChild>
@@ -86,11 +92,35 @@ const Sent = React.memo(({children, conversationIDKey, ordinal}: SentProps) => {
   } else {
     return children || null
   }
-})
+}
+const Sent = React.memo(Sent_)
 
 // We load the first thread automatically so in order to mark it read
 // we send an action on the first mount once
 let markedInitiallyLoaded = false
+
+let lastProps: Props | undefined
+
+export const DEBUGDump = () => {
+  if (!DEBUG_CHAT_DUMP) {
+    return
+  }
+  if (!lastProps) {
+    return
+  }
+
+  const {messageOrdinals, editingOrdinal, centeredOrdinal, containsLatestMessage, conversationIDKey} =
+    lastProps
+  const output = {
+    centeredOrdinal,
+    containsLatestMessage,
+    conversationIDKey,
+    editingOrdinal,
+    messageOrdinals,
+  }
+  logger.error('chat debug dump: ', JSON.stringify(output))
+  return conversationIDKey
+}
 
 class ConversationList extends React.PureComponent<Props> {
   private mounted = true
@@ -125,14 +155,12 @@ class ConversationList extends React.PureComponent<Props> {
 
       if (this.props.messageOrdinals.length - 1 === ordinalIndex) {
         return (
-          <Sent key={ordinal} ordinal={ordinal} conversationIDKey={this.props.conversationIDKey}>
-            <Message
-              key={ordinal}
-              ordinal={ordinal}
-              previous={prevOrdinal}
-              conversationIDKey={this.props.conversationIDKey}
-            />
-          </Sent>
+          <Sent
+            key={ordinal}
+            ordinal={ordinal}
+            prevOrdinal={prevOrdinal}
+            conversationIDKey={this.props.conversationIDKey}
+          />
         )
       }
 
@@ -174,9 +202,10 @@ class ConversationList extends React.PureComponent<Props> {
     return -1
   }
 
-  private getItemCount = (messageOrdinals: Array<Types.Ordinal>) => {
+  // the component can pass null here sometimes
+  private getItemCount = (messageOrdinals: Array<Types.Ordinal> | null) => {
     if (this.mounted) {
-      return messageOrdinals ? messageOrdinals.length + 2 : 2
+      return (messageOrdinals?.length ?? 0) + 2
     } else {
       // needed else VirtualizedList will yellowbox
       return 0
@@ -301,10 +330,14 @@ class ConversationList extends React.PureComponent<Props> {
   }
 
   render() {
+    if (DEBUG_CHAT_DUMP) {
+      lastProps = this.props // for debugging only
+    }
     return (
       <Kb.ErrorBoundary>
         <Kb.Box style={styles.container}>
           <Kb.NativeVirtualizedList
+            overScrollMode="never"
             contentContainerStyle={styles.contentContainer}
             data={this.props.messageOrdinals}
             inverted={true}

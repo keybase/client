@@ -133,7 +133,6 @@ const ConfirmReset = (_: Props) => {
 }
 ConfirmReset.navigationOptions = {
   gesturesEnabled: false,
-  header: null,
 }
 
 const styles = Styles.styleSheetCreate(() => ({

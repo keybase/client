@@ -26,7 +26,7 @@ func TestEncryptContactResolutionForServer(t *testing.T) {
 	contact := ContactResolution{
 		Description: "Jakob - (216) 555-2222",
 		ResolvedUser: keybase1.User{
-			Uid:      keybase1.UID(34),
+			Uid:      keybase1.UID("34"),
 			Username: "jakob223",
 		},
 	}
@@ -78,7 +78,7 @@ func TestEncryptContactResolutionForServerRevokes(t *testing.T) {
 	contact := ContactResolution{
 		Description: "Jakob - (216) 555-2222",
 		ResolvedUser: keybase1.User{
-			Uid:      keybase1.UID(34),
+			Uid:      keybase1.UID("34"),
 			Username: "jakob223",
 		},
 	}

@@ -1,14 +1,15 @@
 import * as React from 'react'
 import * as Styles from '../styles'
-import ReactList from 'react-list'
+import SafeReactList from './safe-react-list'
 import {Box2} from './box'
 import ScrollView from './scroll-view'
-import {Props, Section, ItemTFromSectionT} from './section-list'
 import debounce from 'lodash/debounce'
 import throttle from 'lodash/throttle'
 import once from 'lodash/once'
 import {memoize} from '../util/memoize'
 import {renderElementOrComponentOrNot} from '../util/util'
+import type RL from 'react-list'
+import type {Props, Section, ItemTFromSectionT} from './section-list'
 
 const Kb = {
   Box2,
@@ -30,19 +31,18 @@ class SectionList<T extends Section<any, any>> extends React.Component<Props<T>,
   _flat: Array<FlatListElement<T>> = []
   _sectionIndexToFlatIndex: Array<number> = []
   state = {currentSectionFlatIndex: 0}
-  _listRef: React.RefObject<any> = React.createRef()
+  _listRef = React.createRef<RL>()
   _mounted = true
 
   componentDidUpdate(prevProps: Props<T>, _: State) {
     if (this.props.sections !== prevProps.sections) {
       // sections changed so let's also reset the onEndReached call
-      this._onEndReached = once(info => this.props.onEndReached && this.props.onEndReached(info))
+      this._onEndReached = once(info => this.props.onEndReached?.(info))
     }
     if (
       this.props.selectedIndex !== -1 &&
       this.props.selectedIndex !== prevProps.selectedIndex &&
       this.props.selectedIndex !== undefined &&
-      this._listRef &&
       this._listRef.current
     ) {
       const index = this._itemIndexToFlatIndex(this.props.selectedIndex)
@@ -56,7 +56,7 @@ class SectionList<T extends Section<any, any>> extends React.Component<Props<T>,
   }
 
   /* Methods from native SectionList */
-  scrollToLocation(params) {
+  scrollToLocation(params?: {sectionIndex: number}) {
     // TODO desktop SectionList is limited to sectionIndex
     const sectionIndex = params?.sectionIndex
     const flatIndex = sectionIndex && this._sectionIndexToFlatIndex[sectionIndex]
@@ -124,18 +124,20 @@ class SectionList<T extends Section<any, any>> extends React.Component<Props<T>,
     } else {
       return (
         <Kb.Box2 direction="vertical" key={`${section.key}:${item.key}`} style={styles.box}>
-          {// @ts-ignore TODO fix this
-          (section.section.renderItem || this.props.renderItem)({
-            index: item.indexWithinSection,
-            item: item.item,
-            section: section.section,
-          })}
+          {
+            // @ts-ignore TODO fix this
+            (section.section.renderItem || this.props.renderItem)({
+              index: item.indexWithinSection,
+              item: item.item,
+              section: section.section,
+            })
+          }
         </Kb.Box2>
       )
     }
   }
 
-  _checkOnEndReached = throttle(target => {
+  _checkOnEndReached = throttle((target: HTMLDivElement) => {
     const diff = target.scrollHeight - (target.scrollTop + target.clientHeight)
     if (diff < 5) {
       this._onEndReached({distanceFromEnd: diff})
@@ -143,7 +145,7 @@ class SectionList<T extends Section<any, any>> extends React.Component<Props<T>,
   }, 100)
 
   // This matches the way onEndReached works for sectionlist on RN
-  _onEndReached = once(info => this.props.onEndReached && this.props.onEndReached(info))
+  _onEndReached = once(info => this.props.onEndReached?.(info))
 
   _checkSticky = () => {
     if (this._listRef.current) {
@@ -172,7 +174,7 @@ class SectionList<T extends Section<any, any>> extends React.Component<Props<T>,
       return
     }
     const visibleRange = this._listRef.current?.getVisibleRange()
-    const sectionIndex = this._flat[visibleRange[0]].sectionIndex
+    const sectionIndex = this._flat[visibleRange?.[0] ?? -1]?.sectionIndex ?? -1
     const section = this.props.sections[sectionIndex]
     section && this.props.onSectionChange(section)
   }
@@ -186,7 +188,7 @@ class SectionList<T extends Section<any, any>> extends React.Component<Props<T>,
     this._checkStickyThrottled()
   }
 
-  private onScroll = e => {
+  private onScroll = (e: {currentTarget?: HTMLDivElement}) => {
     e.currentTarget && this._checkOnEndReached(e.currentTarget)
     // getVisibleRange() is racy, so delay it.
     setTimeout(() => this.onScrollDelayed())
@@ -287,14 +289,15 @@ class SectionList<T extends Section<any, any>> extends React.Component<Props<T>,
           onScroll={this.onScroll}
         >
           {renderElementOrComponentOrNot(this.props.ListHeaderComponent)}
-          <ReactList
+          <SafeReactList
             itemRenderer={(index, key) => this._itemRenderer(index, key, false)}
+            itemSizeEstimator={this.props.desktopItemSizeEstimatorOverride}
             itemSizeGetter={this.getItemSizeGetter()}
             length={this._flat.length}
             // @ts-ignore
             retrigger={this._flat}
             ref={this._listRef}
-            type="variable"
+            type={this.props.desktopReactListTypeOverride ?? 'variable'}
           />
         </Kb.ScrollView>
         {!this.props.disableAbsoluteStickyHeader && stickyHeader}

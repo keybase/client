@@ -1,3 +1,4 @@
+/*
 import React from 'react'
 import {isMobile} from '../../constants/platform'
 import * as Sb from '../../stories/storybook'
@@ -583,3 +584,6 @@ const load = () => {
 const pathItemIconSizes: Array<Size> = [16, 32, 48, 96]
 
 export default load
+*/
+
+export default {}

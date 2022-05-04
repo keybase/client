@@ -2,7 +2,7 @@ import * as Constants from '../../../../../../constants/chat2'
 import * as Chat2Gen from '../../../../../../actions/chat2-gen'
 import * as Types from '../../../../../../constants/types/chat2'
 import * as RPCChatTypes from '../../../../../../constants/types/rpc-chat-gen'
-import {namedConnect} from '../../../../../../util/container'
+import * as Container from '../../../../../../util/container'
 import UnfurlPromptList from '.'
 
 type OwnProps = {
@@ -13,7 +13,7 @@ type OwnProps = {
 const noPrompts = new Set<string>()
 const noMessageID = Types.numberToMessageID(0)
 
-export default namedConnect(
+export default Container.connect(
   (state, {conversationIDKey, ordinal}: OwnProps) => {
     const message = Constants.getMessage(state, conversationIDKey, ordinal)
     const messageID = message && message.type === 'text' ? message.id : noMessageID
@@ -59,7 +59,5 @@ export default namedConnect(
           onetime: domain,
         }),
     })),
-  }),
-
-  'UnfurlPromptList'
+  })
 )(UnfurlPromptList)

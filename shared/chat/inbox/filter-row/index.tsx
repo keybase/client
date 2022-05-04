@@ -216,7 +216,8 @@ const styles = Styles.styleSheetCreate(
       searchBox: Styles.platformStyles({
         common: {flex: 1},
         isElectron: Styles.desktopStyles.windowDraggingClickable,
-        isMobile: {...Styles.padding(Styles.globalMargins.tiny, 0)},
+        // hacky, redo the layout of this component later
+        isTablet: {maxWidth: 270 - 16 * 2},
       }),
       text: Styles.platformStyles({
         common: {

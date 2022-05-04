@@ -1,8 +1,8 @@
-import {namedConnect, isMobile} from '../../../../util/container'
-import * as React from 'react'
+import * as Container from '../../../../util/container'
+import type * as React from 'react'
 import * as Constants from '../../../../constants/chat2'
-import * as Types from '../../../../constants/types/chat2'
-import * as UsersTypes from '../../../../constants/types/users'
+import type * as Types from '../../../../constants/types/chat2'
+import type * as UsersTypes from '../../../../constants/types/users'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import ReactionTooltip from '.'
 
@@ -28,7 +28,7 @@ const emptyStateProps = {
   _usersInfo: new Map<string, UsersTypes.UserInfo>(),
 }
 
-export default namedConnect(
+export default Container.connect(
   (state, ownProps: OwnProps) => {
     const message = Constants.getMessage(state, ownProps.conversationIDKey, ownProps.ordinal)
     if (!message || !Constants.isMessageWithReactions(message)) {
@@ -71,7 +71,7 @@ export default namedConnect(
       }))
       .sort(
         // earliest reactions go at the top
-        (a, b) => ((a.users[0] && a.users[0].timestamp) || 0) - ((b.users[0] && b.users[0].timestamp) || 0)
+        (a, b) => (a.users[0]?.timestamp || 0) - (b.users[0]?.timestamp || 0)
       )
       // strip timestamp
       .map(e => ({
@@ -81,7 +81,7 @@ export default namedConnect(
           username: u.username,
         })),
       }))
-    if (!isMobile && ownProps.emoji) {
+    if (!Container.isMobile && ownProps.emoji) {
       // Filter down to selected emoji
       reactions = reactions.filter(r => r.emoji === ownProps.emoji)
     }
@@ -96,6 +96,5 @@ export default namedConnect(
       reactions,
       visible: ownProps.visible,
     }
-  },
-  'ReactionTooltip'
+  }
 )(ReactionTooltip)

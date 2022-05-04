@@ -294,8 +294,8 @@ const styles = Styles.styleSheetCreate(
     } as const)
 )
 
-const headerTop = (props: HeaderProps) => {
-  return props.status === 'pending' ? styles.pendingHeaderTop : styles.headerTop
+const headerTop = (props: HeaderProps): Styles.StylesCrossPlatform => {
+  return props.status === 'pending' ? styles.pendingHeaderTop : (styles.headerTop as any)
 }
 
 const headerTextStyle = (props: HeaderProps) => {

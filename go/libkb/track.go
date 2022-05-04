@@ -80,14 +80,14 @@ func (ts TrackSet) LenEq(b TrackSet) bool {
 	return len(ts.ids) == len(b.ids)
 }
 
-//=====================================================================
+// =====================================================================
 
 type TrackInstructions struct {
 	Local  bool
 	Remote bool
 }
 
-//=====================================================================
+// =====================================================================
 
 type TrackSummary struct {
 	time     time.Time
@@ -99,7 +99,7 @@ func (s TrackSummary) IsRemote() bool      { return s.isRemote }
 func (s TrackSummary) GetCTime() time.Time { return s.time }
 func (s TrackSummary) Username() string    { return s.username }
 
-//=====================================================================
+// =====================================================================
 
 type TrackLookup struct {
 	Contextified
@@ -401,7 +401,7 @@ func (l *TrackLookup) GetCTime() time.Time {
 	return l.link.GetCTime()
 }
 
-//=====================================================================
+// =====================================================================
 
 func LocalTrackDBKey(tracker, trackee keybase1.UID, expireLocal bool) DbKey {
 	key := fmt.Sprintf("%s-%s", tracker, trackee)
@@ -411,7 +411,7 @@ func LocalTrackDBKey(tracker, trackee keybase1.UID, expireLocal bool) DbKey {
 	return DbKey{Typ: DBLocalTrack, Key: key}
 }
 
-//=====================================================================
+// =====================================================================
 
 func localTrackChainLinkFor(m MetaContext, tracker, trackee keybase1.UID, localExpires bool) (ret *TrackChainLink, err error) {
 	data, _, err := m.G().LocalDb.GetRaw(LocalTrackDBKey(tracker, trackee, localExpires))

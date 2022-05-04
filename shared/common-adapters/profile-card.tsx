@@ -4,8 +4,8 @@ import * as Platforms from '../util/platforms'
 import * as Container from '../util/container'
 import * as ProfileGen from '../actions/profile-gen'
 import * as Tracker2Constants from '../constants/tracker2'
-import * as Tracker2Types from '../constants/types/tracker2'
 import * as Tracker2Gen from '../actions/tracker2-gen'
+import type * as Tracker2Types from '../constants/types/tracker2'
 import capitalize from 'lodash/capitalize'
 import Box, {Box2} from './box'
 import ClickableBox from './clickable-box'
@@ -37,7 +37,7 @@ const Kb = {
 type Props = {
   clickToProfile?: true
   containerStyle?: Styles.StylesCrossPlatform
-  onGoToProfile?: () => void
+  onHide?: () => void
   onLayoutChange?: () => void
   showClose?: true
   username: string
@@ -124,7 +124,7 @@ const ServiceIcons = ({userDetailsAssertions}: ServiceIconsProps) => {
 
 const ProfileCard = ({
   clickToProfile,
-  onGoToProfile,
+  onHide,
   showClose,
   containerStyle,
   onLayoutChange,
@@ -159,7 +159,7 @@ const ProfileCard = ({
   }, [dispatch, username, userDetailsState])
   // signal layout change when it happens, to prevent popup cutoff.
   React.useEffect(() => {
-    onLayoutChange && onLayoutChange()
+    onLayoutChange?.()
   }, [
     onLayoutChange,
     userDetailsAssertions,
@@ -176,8 +176,8 @@ const ProfileCard = ({
 
   const openProfile = React.useCallback(() => {
     dispatch(ProfileGen.createShowUserProfile({username}))
-    onGoToProfile && onGoToProfile()
-  }, [dispatch, onGoToProfile, username])
+    onHide?.()
+  }, [dispatch, onHide, username])
 
   return (
     <Kb.Box2
@@ -229,7 +229,7 @@ const ProfileCard = ({
             style={styles.button}
           />
         ))}
-      <ChatButton small={true} style={styles.button} username={username} />
+      <ChatButton small={true} style={styles.button} username={username} afterClick={onHide} />
     </Kb.Box2>
   )
 }
@@ -266,7 +266,7 @@ export const WithProfileCardPopup = ({username, children, ellipsisStyle}: WithPr
             username={username}
             clickToProfile={true}
             onLayoutChange={onLayoutChange}
-            onGoToProfile={() => setShowing(false)}
+            onHide={() => setShowing(false)}
           />
         }
         items={[]}

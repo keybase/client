@@ -15,8 +15,10 @@ const Kb = {
 type TextProps = {
   children: React.ReactNode
   color?: Styles.Color
+  fixOverdraw?: boolean
   fontSize?: number
   onClick?: ((event: React.BaseSyntheticEvent) => void) | null
+  onLongPress?: (event: React.BaseSyntheticEvent) => void
   opacity?: boolean
   sizeType: SizeType
   style?: Props['style']
@@ -70,10 +72,11 @@ const Text = React.forwardRef<NativeText, TextProps>((p, ref) => {
 
   return (
     <Kb.NativeText
-      style={[styles.text, style, fontSizeStyle, p.style]}
+      style={[styles.text, style, p.fixOverdraw && styles.fixOverdraw, fontSizeStyle, p.style]}
       allowFontScaling={false}
       ref={ref}
       onPress={p.onClick || undefined}
+      onLongPress={p.onLongPress}
       suppressHighlighting={true}
     >
       {p.children}
@@ -141,6 +144,7 @@ const Icon = React.memo<Props>(
 
       icon = (
         <Text
+          fixOverdraw={p.fixOverdraw}
           style={hasContainer ? null : p.style}
           color={color}
           type={p.type}
@@ -148,6 +152,7 @@ const Icon = React.memo<Props>(
           fontSize={p.fontSize}
           sizeType={sizeType}
           onClick={p.onClick}
+          onLongPress={p.onLongPress}
         >
           {code}
         </Text>
@@ -219,6 +224,9 @@ export function castPlatformStyles(styles: any) {
 }
 
 const styles = Styles.styleSheetCreate(() => ({
+  fixOverdraw: {
+    backgroundColor: Styles.globalColors.fastBlank,
+  },
   text: {
     color: Styles.globalColors.black_50, // MUST set this or it can be inherited from outside text
     fontFamily: 'kb',

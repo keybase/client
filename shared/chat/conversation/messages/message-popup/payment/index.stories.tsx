@@ -1,3 +1,4 @@
+/*
 import * as React from 'react'
 import * as Kb from '../../../../../common-adapters'
 import * as Sb from '../../../../../stories/storybook'
@@ -195,3 +196,6 @@ class PaymentPopupMoved extends React.Component<Props, State> {
 }
 
 export default load
+*/
+
+export default {}

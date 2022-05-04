@@ -25,17 +25,18 @@ function useRPC<
   }, [])
 
   const submit = useMemo(
-    () => async (args: ARGS, setResult: (r: RET) => void, setError: (e: RPCError) => void) => {
-      try {
-        const result = await call(...args)
-        if (isMounted.current) {
-          setResult(result)
-        }
-      } catch (e) {
-        if (isMounted.current) {
-          setError(e)
-        }
-      }
+    () => (args: ARGS, setResult: (r: RET) => void, setError: (e: RPCError) => void) => {
+      call(...args)
+        .then((result: RET) => {
+          if (isMounted.current) {
+            setResult(result)
+          }
+        })
+        .catch((error: RPCError) => {
+          if (isMounted.current) {
+            setError(error)
+          }
+        })
     },
     [call]
   )

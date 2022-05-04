@@ -1,7 +1,7 @@
 {
   "prelude": [
-    "import * as Types from '../constants/types/team-building'",
-    "import {TeamRoleType, TeamID} from '../constants/types/teams'"
+    "import type * as Types from '../constants/types/team-building'",
+    "import type {TeamRoleType, TeamID} from '../constants/types/teams'"
   ],
   "actions": {
     "fetchedUserRecs": {"namespace": "Types.AllowedNamespace", "users": "Array<Types.User>"},

@@ -1,10 +1,10 @@
-import {namedConnect} from '../../../util/container'
+import * as Container from '../../../util/container'
 import * as Types from '../../../constants/types/fs'
 import * as RowTypes from './types'
 import * as Constants from '../../../constants/fs'
 import {isMobile} from '../../../constants/platform'
-import {sortRowItems, SortableRowItem} from './sort'
-import Rows, {Props} from './rows'
+import {sortRowItems, type SortableRowItem} from './sort'
+import Rows, {type Props} from './rows'
 import {asRows as topBarAsRow} from '../../top-bar'
 import {memoize} from '../../../util/memoize'
 
@@ -38,7 +38,9 @@ const getStillRows = memoize(
     }, [])
 )
 
-const _getPlaceholderRows = (type): Array<RowTypes.PlaceholderRowItem> => [
+const _getPlaceholderRows = (
+  type: Types.PathType.File | Types.PathType.Folder
+): Array<RowTypes.PlaceholderRowItem> => [
   {key: 'placeholder:1', name: '1', rowType: RowTypes.RowType.Placeholder, type},
   {key: 'placeholder:2', name: '2', rowType: RowTypes.RowType.Placeholder, type},
   {key: 'placeholder:3', name: '3', rowType: RowTypes.RowType.Placeholder, type},
@@ -78,7 +80,10 @@ const _makeInTlfRows = memoize(
   }
 )
 
-const getInTlfItemsFromStateProps = (stateProps, path: Types.Path): Array<RowTypes.NamedRowItem> => {
+const getInTlfItemsFromStateProps = (
+  stateProps: StateProps,
+  path: Types.Path
+): Array<RowTypes.NamedRowItem> => {
   const _pathItem = Constants.getPathItem(stateProps._pathItems, path)
   if (_pathItem.type !== Types.PathType.Folder) {
     return filePlaceholderRows
@@ -114,10 +119,19 @@ const getTlfRowsFromTlfs = memoize(
       }))
 )
 
+type StateProps = {
+  _edits: Types.Edits
+  _filter: string | null
+  _pathItems: Types.PathItems
+  _sortSetting: Types.SortSetting
+  _tlfs: Types.Tlfs
+  _username: string
+}
+
 const getTlfItemsFromStateProps = (
-  stateProps,
-  path,
-  destinationPickerIndex
+  stateProps: StateProps,
+  path: Types.Path,
+  destinationPickerIndex?: number
 ): Array<RowTypes.NamedRowItem> => {
   if (stateProps._tlfs.private.size === 0) {
     // /keybase/private/<me> is always favorited. If it's not there it must be
@@ -135,9 +149,9 @@ const getTlfItemsFromStateProps = (
 }
 
 const getNormalRowItemsFromStateProps = (
-  stateProps,
-  path,
-  destinationPickerIndex
+  stateProps: StateProps,
+  path: Types.Path,
+  destinationPickerIndex?: number
 ): Array<RowTypes.NamedRowItem> => {
   const level = Types.getPathLevel(path)
   switch (level) {
@@ -152,14 +166,14 @@ const getNormalRowItemsFromStateProps = (
 }
 
 const filterable = new Set([RowTypes.RowType.TlfType, RowTypes.RowType.Tlf, RowTypes.RowType.Still])
-const filterRowItems = (rows, filter) =>
+const filterRowItems = (rows: Array<RowTypes.NamedRowItem>, filter: string | null) =>
   filter
     ? rows.filter(
         row => !filterable.has(row.rowType) || row.name.toLowerCase().includes(filter.toLowerCase())
       )
     : rows
 
-export default namedConnect(
+export default Container.connect(
   (state, {path}: OwnProps) => ({
     _edits: state.fs.edits,
     _filter: state.fs.folderViewFilter,
@@ -193,13 +207,12 @@ export default namedConnect(
         // destinationPicker mode or not.
         (!isMobile && typeof o.destinationPickerIndex === 'number'
           ? [
-              {key: 'empty:0', rowType: RowTypes.RowType.Empty},
-              {key: 'empty:1', rowType: RowTypes.RowType.Empty},
+              {key: 'empty:0', rowType: RowTypes.RowType.Empty} as RowTypes.EmptyRowItem,
+              {key: 'empty:1', rowType: RowTypes.RowType.Empty} as RowTypes.EmptyRowItem,
             ]
           : []),
       ],
       path: o.path,
     }
-  },
-  'ConnectedRows'
+  }
 )(Rows)

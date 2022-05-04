@@ -16,7 +16,7 @@ const ChoiceList = ({options}: Props) => {
               Styles.globalStyles.flexBoxRow,
               Styles.desktopStyles.clickable,
               styles.entry,
-            ])}
+            ] as any)}
             key={idx}
             className="cl-entry"
             onClick={() => op.onClick()}

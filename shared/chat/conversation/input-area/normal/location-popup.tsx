@@ -3,7 +3,7 @@ import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import * as Container from '../../../../util/container'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
-import * as Types from '../../../../constants/types/chat2'
+import type * as Types from '../../../../constants/types/chat2'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as ConfigGen from '../../../../actions/config-gen'
 import * as Constants from '../../../../constants/chat2'
@@ -46,6 +46,8 @@ const LocationPopup = (props: Props) => {
       watchID = await watchPositionForMap(() => setLocationDenied(true))
     }
     watchPosition()
+      .then(() => {})
+      .catch(() => {})
     return () => {
       if (watchID !== null) {
         clearWatchPosition(watchID)

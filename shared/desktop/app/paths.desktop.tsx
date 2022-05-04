@@ -7,7 +7,7 @@ const {env} = KB.process
 // Path to keybase executable (darwin only), null if not available
 export function keybaseBinPath() {
   if (os.platform() === 'win32') {
-    var guiAppPath = SafeElectron.getApp().getAppPath()
+    let guiAppPath = SafeElectron.getApp().getAppPath()
     if (env.LOCALAPPDATA && !guiAppPath) {
       guiAppPath = resolve(env.LOCALAPPDATA, 'Keybase', 'Gui', 'resources', 'app')
     }

@@ -36,7 +36,7 @@ export const useAllChannelMetas = (
 ): {
   channelMetas: Map<ChatTypes.ConversationIDKey, ChatTypes.ConversationMeta>
   loadingChannels: boolean
-  reloadChannels: () => Promise<undefined>
+  reloadChannels: () => Promise<void>
 } => {
   const getConversations = Container.useRPC(RPCChatTypes.localGetTLFConversationsLocalRpcPromise)
 
@@ -45,8 +45,8 @@ export const useAllChannelMetas = (
   const [loadingChannels, setLoadingChannels] = React.useState(true)
 
   const reloadChannels = React.useCallback(
-    () =>
-      new Promise<undefined>((resolve, reject) => {
+    async () =>
+      new Promise<void>((resolve, reject) => {
         setLoadingChannels(true)
         getConversations(
           [
@@ -74,6 +74,8 @@ export const useAllChannelMetas = (
   React.useEffect(() => {
     if (!dontCallRPC) {
       reloadChannels()
+        .then(() => {})
+        .catch(() => {})
     }
   }, [reloadChannels, dontCallRPC])
 

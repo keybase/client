@@ -1,10 +1,10 @@
-import * as Types from '../types/chat2'
-import * as UserTypes from '../types/users'
 import * as RPCChatTypes from '../types/rpc-chat-gen'
 import * as RPCTypes from '../types/rpc-gen'
 import * as TeamBuildingConstants from '../team-building'
+import * as Types from '../types/chat2'
+import * as Router2 from '../router2'
+import * as TeamConstants from '../teams'
 import clamp from 'lodash/clamp'
-import {TypedState} from '../reducer'
 import {isMobile, isTablet} from '../platform'
 import {
   noConversationIDKey,
@@ -13,13 +13,13 @@ import {
   conversationIDKeyToString,
   isValidConversationIDKey,
 } from '../types/chat2/common'
-import {getEffectiveRetentionPolicy, getMeta} from './meta'
-import {formatTextForQuoting} from '../../util/chat'
-import * as Router2 from '../router2'
 import HiddenString from '../../util/hidden-string'
+import {formatTextForQuoting} from '../../util/chat'
+import {getEffectiveRetentionPolicy, getMeta} from './meta'
 import {memoize} from '../../util/memoize'
-import * as TeamConstants from '../teams'
-import * as TeamTypes from '../types/teams'
+import type * as TeamTypes from '../types/teams'
+import type * as UserTypes from '../types/users'
+import type {TypedState} from '../reducer'
 
 export const defaultTopReacjis = [
   {name: ':+1:'},
@@ -33,6 +33,9 @@ export const defaultUserReacjis = {skinTone: defaultSkinTone, topReacjis: defaul
 const emptyArray: Array<unknown> = []
 const emptySet = new Set()
 export const isSplit = !isMobile || isTablet // Whether the inbox and conversation panels are visible side-by-side.
+
+// while we're debugging chat issues
+export const DEBUG_CHAT_DUMP = true
 
 // in split mode the root is the 'inbox'
 export const threadRouteName = isSplit ? 'chatRoot' : 'chatConversation'
@@ -243,7 +246,8 @@ export const getHasUnread = (state: TypedState, id: Types.ConversationIDKey) =>
   (state.chat2.unreadMap.get(id) || 0) > 0
 export const getSelectedConversation = (): Types.ConversationIDKey => {
   const maybeVisibleScreen = Router2.getVisibleScreen()
-  if (maybeVisibleScreen?.routeName === threadRouteName) {
+  if (maybeVisibleScreen?.name === threadRouteName) {
+    // @ts-ignore TODO better types
     return maybeVisibleScreen.params?.conversationIDKey ?? noConversationIDKey
   }
   return noConversationIDKey
@@ -311,7 +315,7 @@ export const isUserActivelyLookingAtThisThread = (
     chatThreadSelected =
       (maybeVisibleScreen === null || maybeVisibleScreen === undefined
         ? undefined
-        : maybeVisibleScreen.routeName) === threadRouteName
+        : maybeVisibleScreen.name) === threadRouteName
   }
 
   return (
@@ -452,22 +456,22 @@ export const makeInboxQuery = (
   return {
     computeActiveList: true,
     convIDs: convIDKeys.map(Types.keyToConversationID),
-    memberStatus: (Object.keys(RPCChatTypes.ConversationMemberStatus)
+    memberStatus: Object.keys(RPCChatTypes.ConversationMemberStatus)
       .filter(
         k =>
           typeof RPCChatTypes.ConversationMemberStatus[k as any] === 'number' &&
           (!!allStatuses || !['neverJoined', 'left', 'removed'].includes(k as any))
       )
-      .map(k => RPCChatTypes.ConversationMemberStatus[k as any]) as unknown) as Array<
-      RPCChatTypes.ConversationMemberStatus
-    >,
+      .map(
+        k => RPCChatTypes.ConversationMemberStatus[k as any]
+      ) as unknown as Array<RPCChatTypes.ConversationMemberStatus>,
     readOnly: false,
-    status: (Object.keys(RPCChatTypes.ConversationStatus)
+    status: Object.keys(RPCChatTypes.ConversationStatus)
       .filter(k => typeof RPCChatTypes.ConversationStatus[k as any] === 'number')
       .filter(k => !['ignored', 'blocked', 'reported'].includes(k as any))
-      .map(k => RPCChatTypes.ConversationStatus[k as any]) as unknown) as Array<
-      RPCChatTypes.ConversationStatus
-    >,
+      .map(
+        k => RPCChatTypes.ConversationStatus[k as any]
+      ) as unknown as Array<RPCChatTypes.ConversationStatus>,
     tlfVisibility: RPCTypes.TLFVisibility.private,
     topicType: RPCChatTypes.TopicType.chat,
     unreadOnly: false,

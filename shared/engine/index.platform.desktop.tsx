@@ -2,32 +2,33 @@ import net from 'net'
 import logger from '../logger'
 import {TransportShared, sharedCreateClient, rpcLog} from './transport-shared'
 import {isWindows, socketPath} from '../constants/platform.desktop'
-import {createClientType, incomingRPCCallbackType, connectDisconnectCB} from './index.platform'
 import {printRPCBytes} from '../local-debug'
+import type {createClientType, incomingRPCCallbackType, connectDisconnectCB} from './index.platform'
 const {process} = KB
 
 class NativeTransport extends TransportShared {
-  constructor(incomingRPCCallback, connectCallback, disconnectCallback) {
+  constructor(
+    incomingRPCCallback: incomingRPCCallbackType,
+    connectCallback?: connectDisconnectCB,
+    disconnectCallback?: connectDisconnectCB
+  ) {
     console.log('Transport using', socketPath)
     super({path: socketPath}, connectCallback, disconnectCallback, incomingRPCCallback)
     this.needsConnect = true
   }
 
-  _connect_critical_section(cb: any) {
-    // eslint-disable-line camelcase
-    // @ts-ignore codemode issue
+  _connect_critical_section(cb: unknown) {
     super._connect_critical_section(cb)
     windowsHack()
   }
 
   // Override Transport._raw_write -- see transport.iced in
   // framed-msgpack-rpc.
-  _raw_write(msg, encoding) {
+  _raw_write(msg: string, encoding: 'binary') {
     if (printRPCBytes) {
       const b = Buffer.from(msg, encoding)
       logger.debug('[RPC] Writing', b.length, 'bytes:', b.toString('hex'))
     }
-    // @ts-ignore codemode issue
     super._raw_write(msg, encoding)
   }
 
@@ -52,11 +53,10 @@ function windowsHack() {
     return
   }
 
-  // @ts-ignore codemode issue
-  var fake = net.connect({})
+  const fake = net.connect({port: 9999})
   // net.connect({}) throws; we don't need to see the error, but we
   // do need it not to raise up to the main thread.
-  fake.on('error', function() {})
+  fake.on('error', function () {})
 }
 
 function createClient(

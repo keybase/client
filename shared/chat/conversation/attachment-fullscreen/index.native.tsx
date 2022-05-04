@@ -2,10 +2,10 @@ import * as React from 'react'
 import * as Kb from '../../../common-adapters/mobile.native'
 import * as Styles from '../../../styles'
 import MessagePopup from '../messages/message-popup'
-import {Props} from '.'
-import RNVideo from 'react-native-video'
+import {Video} from 'expo-av'
 import logger from '../../../logger'
 import {ShowToastAfterSaving} from '../messages/attachment/shared'
+import type {Props} from '.'
 
 const {width: screenWidth, height: screenHeight} = Kb.NativeDimensions.get('window')
 
@@ -82,14 +82,14 @@ class _Fullscreen extends React.Component<Props & Kb.OverlayParentProps, {loaded
             centerChildren={true}
             style={styles.videoWrapper}
           >
-            <RNVideo
+            <Video
               source={{uri: `${this.props.path}&contentforce=true`}}
               onError={e => {
                 logger.error(`Error loading vid: ${JSON.stringify(e)}`)
               }}
               onLoad={this._setLoaded}
-              paused={true}
-              controls={true}
+              shouldPlay={false}
+              useNativeControls={true}
               style={{
                 height: Math.max(previewHeight, 100),
                 width: '100%',
@@ -146,7 +146,6 @@ class _Fullscreen extends React.Component<Props & Kb.OverlayParentProps, {loaded
         fullHeight={true}
       >
         {spinner}
-        <Kb.NativeStatusBar hidden={true} />
         <ShowToastAfterSaving transferState={this.props.message.transferState} />
         <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.headerWrapper}>
           <Kb.Text type="Body" onClick={this.props.onClose} style={styles.close}>

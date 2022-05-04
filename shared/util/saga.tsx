@@ -1,14 +1,14 @@
-import logger from '../logger'
-import {LogFn} from '../logger/types'
-import * as RS from 'redux-saga'
-import * as Types from '@redux-saga/types'
-import * as Effects from 'redux-saga/effects'
-import {convertToError} from './errors'
 import * as ConfigGen from '../actions/config-gen'
-import {TypedState} from '../constants/reducer'
-import {TypedActions, TypedActionsMap} from '../actions/typed-actions-gen'
-import put from './typed-put'
+import * as Effects from 'redux-saga/effects'
 import isArray from 'lodash/isArray'
+import logger from '../logger'
+import put from './typed-put'
+import type * as RS from 'redux-saga'
+import type * as Types from '@redux-saga/types'
+import type {LogFn} from '../logger/types'
+import type {TypedActions, TypedActionsMap} from '../actions/typed-actions-gen'
+import type {TypedState} from '../constants/reducer'
+import {convertToError} from './errors'
 
 type ActionType = keyof TypedActionsMap
 
@@ -36,13 +36,13 @@ export class SagaLogger {
 // Useful in safeTakeEveryPure when you have an array of effects you want to run in order
 function* sequentially(effects: Array<any>): Generator<any, Array<any>, any> {
   const results: Array<unknown> = []
-  for (let i = 0; i < effects.length; i++) {
-    results.push(yield effects[i])
+  for (const effect of effects) {
+    results.push(yield effect)
   }
   return results
 }
 
-export type MaybeAction = void | boolean | TypedActions | TypedActions[] | null
+export type MaybeAction = boolean | TypedActions | TypedActions[] | null
 
 type ActionTypes = keyof TypedActionsMap
 export type ChainActionReturn =
@@ -87,89 +87,93 @@ function* chainAction2Impl<Actions extends {readonly type: string}>(
   pattern: Types.Pattern<any>,
   f: (state: TypedState, action: Actions, logger: SagaLogger) => ChainActionReturn
 ) {
-  return yield Effects.takeEvery<TypedActions>(pattern as Types.Pattern<any>, function* chainAction2Helper(
-    action: TypedActions
-  ) {
-    const sl = new SagaLogger(action.type as ActionType, f.name ?? 'unknown')
-    try {
-      let state: TypedState = yield* selectState()
-      // @ts-ignore
-      const toPut = yield Effects.call(f, state, action, sl)
-      // release memory
-      // @ts-ignore
-      action = undefined
-      // @ts-ignore
-      state = undefined
-      if (toPut) {
-        const outActions: Array<TypedActions> = isArray(toPut) ? toPut : [toPut]
-        for (var out of outActions) {
-          if (out) {
-            yield Effects.put(out)
+  return yield Effects.takeEvery<TypedActions>(
+    pattern as any,
+    function* chainAction2Helper(action: TypedActions) {
+      const sl = new SagaLogger(action.type as ActionType, f.name ?? 'unknown')
+      try {
+        let state: TypedState = yield* selectState()
+        // @ts-ignore
+        const toPut = yield Effects.call(f, state, action, sl)
+        // release memory
+        // @ts-ignore
+        action = undefined
+        // @ts-ignore
+        state = undefined
+        if (toPut) {
+          const outActions: Array<TypedActions> = isArray(toPut) ? toPut : [toPut]
+          for (let out of outActions) {
+            if (out) {
+              yield Effects.put(out)
+            }
           }
         }
-      }
-      if (sl.isTagged) {
-        sl.info('-> ok')
-      }
-    } catch (error) {
-      sl.warn(error.message)
-      // Convert to global error so we don't kill the takeEvery loop
-      yield Effects.put(
-        ConfigGen.createGlobalError({
-          globalError: convertToError(error),
-        })
-      )
-    } finally {
-      if (yield Effects.cancelled()) {
-        sl.info('chainAction cancelled')
+        if (sl.isTagged) {
+          sl.info('-> ok')
+        }
+      } catch (error_) {
+        const error = error_ as any
+        sl.warn(error.message)
+        // Convert to global error so we don't kill the takeEvery loop
+        yield Effects.put(
+          ConfigGen.createGlobalError({
+            globalError: convertToError(error),
+          })
+        )
+      } finally {
+        if (yield Effects.cancelled()) {
+          sl.info('chainAction cancelled')
+        }
       }
     }
-  })
+  )
 }
 
-export const chainAction2: ChainAction2 = (chainAction2Impl as unknown) as any
+export const chainAction2: ChainAction2 = chainAction2Impl as unknown as any
 
 function* chainActionImpl<Actions extends {readonly type: string}>(
   pattern: Types.Pattern<any>,
   f: (action: Actions, logger: SagaLogger) => ChainActionReturn
 ) {
-  return yield Effects.takeEvery<TypedActions>(pattern as Types.Pattern<any>, function* chainActionHelper(
-    action: TypedActions
-  ) {
-    const sl = new SagaLogger(action.type as ActionType, f.name ?? 'unknown')
-    try {
-      // @ts-ignore
-      const toPut = yield Effects.call(f, action, sl)
-      // release memory
-      // @ts-ignore
-      action = undefined
-      if (toPut) {
-        const outActions: Array<TypedActions> = isArray(toPut) ? toPut : [toPut]
-        for (var out of outActions) {
-          if (out) {
-            yield Effects.put(out)
+  return yield Effects.takeEvery<TypedActions>(
+    pattern as any,
+    function* chainActionHelper(action: TypedActions) {
+      const sl = new SagaLogger(action.type as ActionType, f.name ?? 'unknown')
+      try {
+        // @ts-ignore
+        const toPut = yield Effects.call(f, action, sl)
+        // release memory
+        // @ts-ignore
+        action = undefined
+        if (toPut) {
+          const outActions: Array<TypedActions> = isArray(toPut) ? toPut : [toPut]
+          for (let out of outActions) {
+            if (out) {
+              yield Effects.put(out)
+            }
           }
         }
-      }
-      if (sl.isTagged) {
-        sl.info('-> ok')
-      }
-    } catch (error) {
-      sl.warn(error.message)
-      // Convert to global error so we don't kill the takeEvery loop
-      yield Effects.put(
-        ConfigGen.createGlobalError({
-          globalError: convertToError(error),
-        })
-      )
-    } finally {
-      if (yield Effects.cancelled()) {
-        sl.info('chainAction cancelled')
+        if (sl.isTagged) {
+          sl.info('-> ok')
+        }
+      } catch (error_) {
+        const error = error_ as any
+        sl.warn(error.message)
+        // Convert to global error so we don't kill the takeEvery loop
+        yield Effects.put(
+          ConfigGen.createGlobalError({
+            globalError: convertToError(error),
+          })
+        )
+      } finally {
+        if (yield Effects.cancelled()) {
+          sl.info('chainAction cancelled')
+        }
       }
     }
-  })
+  )
 }
-export const chainAction: ChainAction = (chainActionImpl as unknown) as any
+export const chainAction: ChainAction = chainActionImpl as unknown as any
 
 function* chainGenerator<
   Actions extends {
@@ -188,12 +192,13 @@ function* chainGenerator<
       if (sl.isTagged) {
         sl.info('-> ok')
       }
-    } catch (error) {
+    } catch (error_) {
+      const error = error_ as any
       sl.warn(error.message)
       // Convert to global error so we don't kill the takeEvery loop
       yield Effects.put(
         ConfigGen.createGlobalError({
-          globalError: convertToError(error),
+          globalError: convertToError(error as Object),
         })
       )
     } finally {

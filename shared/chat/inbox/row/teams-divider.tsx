@@ -45,7 +45,7 @@ const TeamsDivider = React.memo((props: Props) => {
 
   // only show if there's more to load
   const reallyShow = showButton && !!hiddenCount
-  const loadMore = () => RPCChatTypes.localRequestInboxSmallIncreaseRpcPromise().catch(() => {})
+  const loadMore = async () => RPCChatTypes.localRequestInboxSmallIncreaseRpcPromise().catch(() => {})
 
   badgeCount = Math.max(0, badgeCount)
   hiddenCount = Math.max(0, hiddenCount)

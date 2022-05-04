@@ -137,7 +137,7 @@ func (e ServerErrorOverQuota) Error() string {
 		e.Msg, e.Usage, e.Limit, e.Throttled)
 }
 
-//ServerErrorBlockNonExistent is an exportable error from bserver
+// ServerErrorBlockNonExistent is an exportable error from bserver
 type ServerErrorBlockNonExistent struct {
 	Msg string
 }
@@ -158,7 +158,7 @@ func (e ServerErrorBlockNonExistent) Error() string {
 	return "ServerErrorBlockNonExistent{" + e.Msg + "}"
 }
 
-//ServerErrorBlockArchived is an exportable error from bserver
+// ServerErrorBlockArchived is an exportable error from bserver
 type ServerErrorBlockArchived struct {
 	Msg string
 }
@@ -179,7 +179,7 @@ func (e ServerErrorBlockArchived) Error() string {
 	return "ServerErrorBlockArchived{" + e.Msg + "}"
 }
 
-//ServerErrorBlockDeleted is an exportable error from bserver
+// ServerErrorBlockDeleted is an exportable error from bserver
 type ServerErrorBlockDeleted struct {
 	Msg string
 }
@@ -200,7 +200,7 @@ func (e ServerErrorBlockDeleted) Error() string {
 	return "ServerErrorBlockDeleted{" + e.Msg + "}"
 }
 
-//ServerErrorNoPermission is an exportable error from bserver
+// ServerErrorNoPermission is an exportable error from bserver
 type ServerErrorNoPermission struct {
 	Msg string
 }
@@ -221,7 +221,7 @@ func (e ServerErrorNoPermission) Error() string {
 	return "ServerErrorNoPermission{" + e.Msg + "}"
 }
 
-//ServerErrorNonceNonExistent is an exportable error from bserver
+// ServerErrorNonceNonExistent is an exportable error from bserver
 type ServerErrorNonceNonExistent struct {
 	Msg string
 }
@@ -242,7 +242,7 @@ func (e ServerErrorNonceNonExistent) Error() string {
 	return "ServerErrorNonceNonExistent{" + e.Msg + "}"
 }
 
-//ServerErrorMaxRefExceeded is an exportable error from bserver
+// ServerErrorMaxRefExceeded is an exportable error from bserver
 type ServerErrorMaxRefExceeded struct {
 	Msg string
 }

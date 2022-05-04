@@ -1,6 +1,6 @@
 import * as React from 'react'
-import * as Types from '../../../../../constants/types/chat2'
-import * as RPCTypes from '../../../../../constants/types/rpc-gen'
+import type * as Types from '../../../../../constants/types/chat2'
+import type * as RPCTypes from '../../../../../constants/types/rpc-gen'
 import * as Data from './data'
 import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
@@ -12,12 +12,12 @@ import {
   emojiDataToRenderableEmoji,
   getEmojiStr,
   renderEmoji,
-  EmojiData,
-  RenderableEmoji,
+  type EmojiData,
+  type RenderableEmoji,
   RPCToEmojiData,
 } from '../../../../../util/emoji'
-import {Section as _Section} from '../../../../../common-adapters/section-list'
-import * as RPCChatGen from '../../../../../constants/types/rpc-chat-gen'
+import type {Section as _Section} from '../../../../../common-adapters/section-list'
+import type * as RPCChatGen from '../../../../../constants/types/rpc-chat-gen'
 
 // defer loading this until we need to, very expensive
 const _getData = () => {
@@ -188,6 +188,7 @@ const getResultFilter = (emojiGroups?: Array<RPCChatGen.EmojiGroup>) => {
       ...removeObsolete(
         // @ts-ignore type wrong?
         emojiIndex
+          // @ts-ignore type wrong?
           .search(filter, {maxResults: maxEmojiSearchResults})
           .map((res: {id: string}) => emojiNameMap[res.id])
       ),

@@ -9,7 +9,7 @@ type OwnProps = {
   accountID: Types.AccountID
 }
 
-export default Container.namedConnect(
+export default Container.connect(
   (state, {accountID}: OwnProps) => ({
     acceptedAssets:
       state.wallets.trustline.acceptedAssets.get(accountID) ?? Constants.emptyAccountAcceptedAssets,
@@ -24,12 +24,11 @@ export default Container.namedConnect(
       dispatch(WalletsGen.createRefreshTrustlineAcceptedAssets({accountID})),
   }),
   (s, d, _: OwnProps) => ({
-    assets: [...s.acceptedAssets?.keys()]
+    assets: [...(s.acceptedAssets?.keys() ?? [])]
       .map(assetID => s.assetMap.get(assetID) ?? Constants.emptyAssetDescription)
       .map(asset => ({code: asset.code, desc: asset.issuerVerifiedDomain || asset.issuerAccountID})),
     onSetupTrustline: d.onSetupTrustline,
     refresh: d.refresh,
     thisDeviceIsLockedOut: s.thisDeviceIsLockedOut,
-  }),
-  'WalletSettingTrustline'
+  })
 )(WalletSettingTrustline)

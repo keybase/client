@@ -1,9 +1,10 @@
-import {themed, colors, darkColors} from './colors'
-import {resolveImageAsURL} from '../desktop/app/resolve-root.desktop'
+import * as React from 'react'
 import * as Shared from './shared'
-import {isDarkMode} from './dark-mode'
 import styleSheetCreateProxy from './style-sheet-proxy'
-import * as CSS from './css'
+import type * as CSS from './css'
+import {isDarkMode} from './dark-mode'
+import {themed, colors, darkColors} from './colors'
+import {getAssetPath} from '../constants/platform.desktop'
 const {extname, basename} = KB.path
 
 type _Elem = Object | null | false | void
@@ -59,6 +60,7 @@ const font = {
 
 const util = {
   ...Shared.util,
+  fastBackground: {backgroundColor: colors.transparent},
   largeWidthPercent: '70%',
   loadingTextStyle: {
     // this won't really work with dark mode
@@ -115,7 +117,7 @@ export const backgroundURL = (...to: Array<string>) => {
     const guiModePath = `${isDarkMode() ? 'dark-' : ''}${goodPath}`
 
     const images = [1, 2, 3].map(
-      mult => `url('${resolveImageAsURL(guiModePath)}${mult === 1 ? '' : `@${mult}x`}${ext}') ${mult}x`
+      mult => `url('${getAssetPath('images', guiModePath)}${mult === 1 ? '' : `@${mult}x`}${ext}') ${mult}x`
     )
 
     return `-webkit-image-set(${images.join(', ')})`
@@ -126,11 +128,11 @@ export const backgroundURL = (...to: Array<string>) => {
 
 const fixScrollbars = () => {
   // https://www.filamentgroup.com/lab/scrollbars/
-  var parent = document.createElement('div')
+  const parent = document.createElement('div')
   parent.setAttribute('style', 'width:30px;height:30px;')
   parent.classList.add('scrollbar-test')
 
-  var child = document.createElement('div')
+  const child = document.createElement('div')
   child.setAttribute('style', 'width:100%;height:40px')
   parent.appendChild(child)
   document.body.appendChild(parent)
@@ -138,7 +140,7 @@ const fixScrollbars = () => {
   // Measure the child element, if it is not
   // 30px wide the scrollbars are obtrusive.
   // @ts-ignore
-  var scrollbarWidth = 30 - parent.firstChild.clientWidth
+  const scrollbarWidth = 30 - parent.firstChild.clientWidth
   if (scrollbarWidth) {
     document.body.classList.add('layout-scrollbar-obtrusive')
   }
@@ -186,7 +188,12 @@ export const collapseStyles = (styles: ReadonlyArray<CollapsibleStyle>): Object 
   // fast path for a single style that passes. Often we do stuff like
   // collapseStyle([styles.myStyle, this.props.something && {backgroundColor: 'red'}]), so in the false
   // case we can just take styles.myStyle and not render thrash
-  const valid = styles.filter(Boolean)
+  const valid = styles.filter(s => {
+    return !!s && Object.keys(s).length
+  })
+  if (valid.length === 0) {
+    return undefined as any
+  }
   if (valid.length === 1) {
     const s = valid[0]
     if (typeof s === 'object') {
@@ -215,7 +222,9 @@ export {
   padding,
 } from './shared'
 
-export {css as styledCss, keyframes as styledKeyframes} from '@emotion/core'
+// @ts-ignore
+export {keyframes as styledKeyframes} from '@emotion/react'
+// @ts-ignore
 export {default as styled} from '@emotion/styled'
 export {themed as globalColors} from './colors'
 export const statusBarHeight = 0
@@ -226,3 +235,4 @@ export const dimensionWidth = 0
 export const dimensionHeight = 0
 export {isDarkMode} from './dark-mode'
 export const headerExtraHeight = 0
+export const StyleContext = React.createContext({canFixOverdraw: false})

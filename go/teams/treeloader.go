@@ -250,7 +250,7 @@ func (l *Treeloader) loadRecursive(mctx libkb.MetaContext, teamID keybase1.TeamI
 
 func (l *Treeloader) loadAncestors(mctx libkb.MetaContext, teamID keybase1.TeamID,
 	teamName keybase1.TeamName, ch chan notification) (expectedCount int32) {
-	defer mctx.Trace(fmt.Sprintf("Treeloader.loadAncestors"), nil)()
+	defer mctx.Trace("Treeloader.loadAncestors", nil)()
 
 	handleAncestor := func(t keybase1.TeamSigChainState, ancestorTeamName keybase1.TeamName) error {
 		result := l.Converter.ProcessSigchainState(mctx, ancestorTeamName, &t)

@@ -838,7 +838,8 @@ func TestInboxMembershipUpdate(t *testing.T) {
 			convs[6].Conv.Metadata.Version = chat1.ConversationVers(2)
 		}
 	}
-	expected := append(convs, joinedConvs...)
+	expected := convs
+	expected = append(expected, joinedConvs...)
 	sort.Sort(utils.RemoteConvByConvID(expected))
 	sort.Sort(utils.ByConvID(roleUpdates))
 	sort.Sort(utils.RemoteConvByConvID(res))

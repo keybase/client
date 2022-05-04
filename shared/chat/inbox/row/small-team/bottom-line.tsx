@@ -1,8 +1,8 @@
 import React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
-import {AllowedColors} from '../../../../common-adapters/text'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
+import type {AllowedColors} from '../../../../common-adapters/text'
 
 type Props = {
   backgroundColor?: string
@@ -26,13 +26,13 @@ const SnippetDecoration = (type: Kb.IconType, color: string, tooltip?: string) =
       color={color}
       type={type}
       fontSize={Styles.isMobile ? 16 : 12}
-      style={{alignSelf: 'flex-start'}}
+      style={styles.snippetDecoration}
     />
   )
   return tooltip ? <Kb.WithTooltip tooltip={tooltip}>{icon}</Kb.WithTooltip> : icon
 }
 
-const BottomLine = React.memo((props: Props) => {
+const BottomLineInner = (props: Props) => {
   let content: React.ReactNode
   const style = Styles.collapseStyles([
     styles.bottomLine,
@@ -48,6 +48,7 @@ const BottomLine = React.memo((props: Props) => {
     content = (
       <Kb.Text
         type="BodySmallSemibold"
+        fixOverdraw={Styles.isPhone}
         negative={true}
         style={Styles.collapseStyles([
           styles.youAreResetText,
@@ -175,7 +176,8 @@ const BottomLine = React.memo((props: Props) => {
       <Kb.Box style={styles.innerBox}>{content}</Kb.Box>
     </Kb.Box>
   )
-})
+}
+const BottomLine = React.memo(BottomLineInner)
 
 const styles = Styles.styleSheetCreate(
   () =>
@@ -185,14 +187,10 @@ const styles = Styles.styleSheetCreate(
           alignSelf: 'center',
           marginRight: 6,
         },
-        isMobile: {
-          marginTop: 2,
-        },
+        isMobile: {marginTop: 2},
       }),
       bottomLine: Styles.platformStyles({
-        isAndroid: {
-          lineHeight: undefined,
-        },
+        isAndroid: {lineHeight: undefined},
         isElectron: {
           color: Styles.globalColors.black_50,
           display: 'block',
@@ -217,9 +215,7 @@ const styles = Styles.styleSheetCreate(
         alignItems: 'center',
         width: '100%',
       },
-      draftLabel: {
-        color: Styles.globalColors.orange,
-      },
+      draftLabel: {color: Styles.globalColors.orange},
       innerBox: Styles.platformStyles({
         common: {
           ...Styles.globalStyles.flexBoxRow,
@@ -228,13 +224,12 @@ const styles = Styles.styleSheetCreate(
           height: 17,
           position: 'relative',
         },
-        isMobile: {
-          height: 21,
-        },
+        isMobile: {height: 21},
       }),
       outerBox: {
         ...Styles.globalStyles.flexBoxRow,
       },
+      snippetDecoration: {alignSelf: 'flex-start'},
       typingSnippet: {},
       youAreResetText: Styles.platformStyles({
         isElectron: {

@@ -1,6 +1,4 @@
 // RN version of preload
-const {env} = process
-
 // most of KB is for electron
 const invalidPreload = () => {
   throw new Error('invalid preload call on RN')
@@ -24,6 +22,7 @@ global.KB = {
       showSaveDialog: invalidPreload,
     },
   },
+  isRenderer: true,
   kb: {
     darwinCopyToChatTempUploadFile: () => invalidPreload(),
     darwinCopyToKBFSTempUploadFile: () => invalidPreload(),

@@ -1,5 +1,5 @@
 import * as RPCTypes from './rpc-gen'
-import * as Devices from './devices'
+import type * as Devices from './devices'
 import {isWindows} from '../platform'
 import {memoize} from '../../util/memoize'
 // lets not create cycles in flow, lets discuss how to fix this
@@ -279,8 +279,8 @@ export enum NonUploadStaticSyncStatus {
 }
 export type SyncStatusStatic = UploadIcon | NonUploadStaticSyncStatus
 export const LocalConflictStatus = 'local-conflict'
-export type LocalConflictStatus = typeof LocalConflictStatus
-export type PathStatusIcon = LocalConflictStatus | SyncStatusStatic | number // percentage<1. not uploading, and we're syncing down
+export type LocalConflictStatusType = typeof LocalConflictStatus
+export type PathStatusIcon = LocalConflictStatusType | SyncStatusStatic | number // percentage<1. not uploading, and we're syncing down
 
 export type EditID = string
 export enum EditType {
@@ -567,7 +567,7 @@ export const getPathFromRelative = (tlfName: string, tlfType: TlfType, inTlfPath
 export const stringToEditID = (s: string): EditID => s
 export const editIDToString = (s: EditID): string => s
 export const stringToPath = (s: string): Path =>
-  s.indexOf('/') === 0 ? s.replace(/\/+/g, '/').replace(/\/$/, '') : null
+  s.startsWith('/') ? s.replace(/\/+/g, '/').replace(/\/$/, '') : null
 export const pathToString = (p: Path): string => (!p ? '' : p)
 export const stringToLocalPath = (s: string): LocalPath => s
 export const localPathToString = (p: LocalPath): string => p
@@ -577,13 +577,7 @@ export const getPathNameFromElems = (elems: Array<string>): string => {
   return elems[elems.length - 1]
 }
 export const getPathLevel = (p: Path): number => (!p ? 0 : getPathElements(p).length)
-export const getPathParent = (p: Path): Path =>
-  !p
-    ? ''
-    : p
-        .split('/')
-        .slice(0, -1)
-        .join('/')
+export const getPathParent = (p: Path): Path => (!p ? '' : p.split('/').slice(0, -1).join('/'))
 export const getPathElements = memoize((p: Path): Array<string> => (!p ? [] : p.split('/').slice(1)))
 export const getPathFromElements = (elems: Array<string>): Path => [''].concat(elems).join('/')
 export const getVisibilityFromElems = (elems: Array<string>) => {
@@ -603,12 +597,7 @@ export const getVisibilityFromElems = (elems: Array<string>) => {
   }
 }
 export const pathsAreInSameTlf = (path1: Path, path2: Path) =>
-  getPathElements(path1)
-    .slice(0, 3)
-    .join('/') ===
-  getPathElements(path2)
-    .slice(0, 3)
-    .join('/')
+  getPathElements(path1).slice(0, 3).join('/') === getPathElements(path2).slice(0, 3).join('/')
 export const getRPCFolderTypeFromVisibility = (v: Visibility): RPCTypes.FolderType => {
   if (v === null) return RPCTypes.FolderType.unknown
   return RPCTypes.FolderType[v]

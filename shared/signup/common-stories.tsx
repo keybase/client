@@ -1,3 +1,4 @@
+/*
 import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Sb from '../stories/storybook'
@@ -30,3 +31,6 @@ export const storyDecorator = (story: Function) => (
   // @ts-ignore
   <Kb.Box style={styles.decorator}>{propProvider(story)}</Kb.Box>
 )
+*/
+
+export default {}

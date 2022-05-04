@@ -1,5 +1,5 @@
-import {ConversationIDKey} from '../../../constants/types/chat2'
-import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
+import type {ConversationIDKey} from '../../../constants/types/chat2'
+import type * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 
 export type ChatInboxRowItemSmall = {
   type: 'small'
@@ -26,7 +26,6 @@ export type ChatInboxRowItemBigHeader = {
   isTeam?: boolean
   teamname: string
   teamID: string
-  conversationIDKey?: never
   snippet?: string
   snippetDecoration: RPCChatTypes.SnippetDecoration
   time?: number

@@ -7,14 +7,12 @@ import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as AutoresetGen from '../../actions/autoreset-gen'
 import {formatDurationForAutoreset} from '../../util/timestamp'
 
-export type Props = {}
-
-const ResetModal = (_: Props) => {
+const ResetModal = () => {
   const isResetActive = Container.useSelector(state => state.autoreset.active)
   return isResetActive ? <ResetModalImpl /> : null
 }
 
-const ResetModalImpl = (_: Props) => {
+const ResetModalImpl = () => {
   const {active, endTime, error} = Container.useSelector(s => s.autoreset)
   const dispatch = Container.useDispatch()
   React.useEffect(() => {
@@ -22,20 +20,29 @@ const ResetModalImpl = (_: Props) => {
       dispatch(RouteTreeGen.createNavigateUp())
     }
   }, [active, dispatch])
-  let msg = ''
   const now = Date.now()
   const timeLeft = endTime - now
-  if (timeLeft < 0) {
-    msg = 'This account is eligible to be reset.'
-  } else {
-    msg = `This account will reset in ${formatDurationForAutoreset(timeLeft)}.`
-  }
+
+  const msg =
+    timeLeft < 0
+      ? 'This account is eligible to be reset.'
+      : `This account will reset in ${formatDurationForAutoreset(timeLeft)}.`
+
   const onCancelReset = () => {
     dispatch(AutoresetGen.createCancelReset())
   }
 
   return (
-    <Kb.SafeAreaView style={{backgroundColor: Styles.globalColors.white}}>
+    <Kb.SafeAreaView
+      style={{
+        backgroundColor: Styles.globalColors.white,
+        bottom: 0,
+        left: 0,
+        position: 'absolute',
+        right: 0,
+        top: 0,
+      }}
+    >
       <Kb.Modal
         header={{title: 'Account reset initiated'}}
         footer={{
@@ -80,25 +87,14 @@ const ResetModalImpl = (_: Props) => {
               But... it looks like you’re already logged in. Congrats! You should cancel the reset, since
               clearly you have access to your devices.
             </Kb.Text>
-            {/* <Kb.Text type="Body">The reset was triggered by the following device:</Kb.Text>
-    <Kb.Box2 direction="horizontal" gap="small" fullWidth={true} style={styles.deviceContainer}>
-      <Kb.Image src={props.mapURL} style={{height: 100, width: 100}} />
-      <Kb.Box2 direction="vertical">
-        <Kb.Text type="BodySmallExtrabold">iPhone in New York, NY, US</Kb.Text>
-        <Kb.Text type="BodySmall">Verified using the password</Kb.Text>
-        <Kb.Text type="BodySmall">Entered on August 8, 2019</Kb.Text>
-        <Kb.Text type="BodySmall">IP address: 127.0.0.1</Kb.Text>
-      </Kb.Box2>
-    </Kb.Box2> */}
           </Kb.Box2>
         </Kb.Box2>
       </Kb.Modal>
     </Kb.SafeAreaView>
   )
 }
-ResetModal.navigationOptions = {
-  gesturesEnabled: false,
-}
+
+ResetModal.navigationOptions = {gesturesEnabled: false}
 
 const styles = Styles.styleSheetCreate(() => ({
   textContainer: Styles.platformStyles({

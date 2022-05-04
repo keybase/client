@@ -144,7 +144,7 @@ func (c *CmdTeamRemoveMember) Run() error {
 		if curStatus.User != nil && libkb.NewNormalizedUsername(c.Assertion).Eq(libkb.NewNormalizedUsername(curStatus.User.Username)) {
 			prompt = fmt.Sprintf("Are you sure you want to remove yourself from team %s?", c.Team)
 		} else {
-			prompt = fmt.Sprint("Are you sure?")
+			prompt = "Are you sure?"
 		}
 		proceed, err := ui.PromptYesNo(PromptDescriptorRemoveMember, prompt, libkb.PromptDefaultNo)
 		if err != nil {

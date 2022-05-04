@@ -1,10 +1,10 @@
 import captialize from 'lodash/capitalize'
 import * as React from 'react'
 import * as Kb from '../../../../../common-adapters'
-import * as Types from '../../../../../constants/types/chat2'
-import * as CryptoTypes from '../../../../../constants/types/crypto'
 import * as Constants from '../../../../../constants/chat2'
 import * as Styles from '../../../../../styles'
+import type * as Types from '../../../../../constants/types/chat2'
+import type * as CryptoTypes from '../../../../../constants/types/crypto'
 import {getEditStyle, ShowToastAfterSaving} from '../shared'
 import {useMemo} from '../../../../../util/memoize'
 import {isPathSaltpackEncrypted, isPathSaltpackSigned, Operations} from '../../../../../constants/crypto'
@@ -42,7 +42,7 @@ const FileAttachment = React.memo((props: Props) => {
       <ShowToastAfterSaving transferState={props.transferState} />
       <Kb.Box style={Styles.collapseStyles([styles.containerStyle, getEditStyle(isEditing, isHighlighted)])}>
         <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" centerChildren={true}>
-          <Kb.Icon type={iconType} style={styles.iconStyle} onClick={props.onDownload} />
+          <Kb.Icon fixOverdraw={true} type={iconType} style={styles.iconStyle} onClick={props.onDownload} />
           <Kb.Box2 direction="vertical" fullWidth={true} style={styles.titleStyle}>
             {props.fileName === props.title ? (
               // if the title is the filename, don't try to parse it as markdown
@@ -153,9 +153,7 @@ const styles = Styles.styleSheetCreate(
         height: 32,
         width: 32,
       },
-      linkStyle: {
-        color: Styles.globalColors.black_50,
-      },
+      linkStyle: {color: Styles.globalColors.black_50},
       progressContainerStyle: {
         ...Styles.globalStyles.flexBoxRow,
         alignItems: 'center',
@@ -172,17 +170,13 @@ const styles = Styles.styleSheetCreate(
         color: Styles.globalColors.greenDark,
       },
       saltpackOperation: Styles.platformStyles({
-        isTablet: {
-          alignSelf: 'flex-start',
-        },
+        isTablet: {alignSelf: 'flex-start'},
       }),
       saltpackOperationContainer: {
         alignItems: 'flex-start',
         marginTop: Styles.globalMargins.xtiny,
       },
-      titleStyle: {
-        flex: 1,
-      },
+      titleStyle: {flex: 1},
     } as const)
 )
 

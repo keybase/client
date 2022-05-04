@@ -208,7 +208,7 @@ export type OwnProps = {
   contactKey: string
 }
 
-const ConnectedEmailPhoneRow = Container.namedConnect(
+const ConnectedEmailPhoneRow = Container.connect(
   (state, ownProps: OwnProps) => ({
     _emailRow: (state.settings.email.emails && state.settings.email.emails.get(ownProps.contactKey)) || null,
     _phoneRow:
@@ -314,8 +314,7 @@ const ConnectedEmailPhoneRow = Container.namedConnect(
         type: 'phone' as const,
         verified: false,
       }
-  },
-  'ConnectedEmailPhoneRow'
+  }
 )(EmailPhoneRow)
 
 export default ConnectedEmailPhoneRow

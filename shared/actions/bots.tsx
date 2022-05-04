@@ -5,7 +5,7 @@ import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Constants from '../constants/bots'
 import * as EngineGen from './engine-gen-gen'
 import logger from '../logger'
-import {RPCError} from 'util/errors'
+import type {RPCError} from '../util/errors'
 
 const pageSize = 100
 
@@ -34,12 +34,12 @@ const getFeaturedBots = async (_: Container.TypedState, action: BotsGen.GetFeatu
       BotsGen.createUpdateFeaturedBots({bots: bots ?? [], page}),
       BotsGen.createSetLoadedAllBots({loaded: loadedAllBots}),
     ]
-  } catch (e) {
-    const err: RPCError = e
-    if (Container.isNetworkErr(err.code)) {
+  } catch (error_) {
+    const error = error_ as RPCError
+    if (Container.isNetworkErr(error.code)) {
       logger.info('Network error getting featured bots')
     } else {
-      logger.info(err.message)
+      logger.info(error.message)
     }
     return
   }
@@ -58,12 +58,12 @@ const searchFeaturedBots = async (_: Container.TypedState, action: BotsGen.Searc
       return
     }
     return BotsGen.createUpdateFeaturedBots({bots})
-  } catch (e) {
-    const err: RPCError = e
-    if (Container.isNetworkErr(err.code)) {
+  } catch (error_) {
+    const error = error_ as RPCError
+    if (Container.isNetworkErr(error.code)) {
       logger.info('Network error searching featured bots')
     } else {
-      logger.info(err.message)
+      logger.info(error.message)
     }
     return
   }
@@ -94,14 +94,15 @@ const searchFeaturedAndUsers = async (action: BotsGen.SearchFeaturedAndUsersPayl
         Constants.waitingKeyBotSearchUsers
       ),
     ])
-  } catch (err) {
-    logger.info(`searchFeaturedAndUsers: failed to run search: ${err.message}`)
+  } catch (error_) {
+    const error = error_ as RPCError
+    logger.info(`searchFeaturedAndUsers: failed to run search: ${error.message}`)
     return
   }
   return BotsGen.createSetSearchFeaturedAndUsersResults({
     query,
     results: {
-      bots: botRes?.bots ?? [],
+      bots: botRes?.bots || [],
       users: (userRes ?? []).reduce<Array<string>>((l, r) => {
         const username = r?.keybase?.username
         if (username) {

@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters/mobile.native'
 import * as Types from '../../constants/types/chat2'
 import * as Styles from '../../styles'
-import {Gateway} from '@chardskarth/react-gateway'
+import {Portal} from '@gorhom/portal'
 
 type AudioStarterProps = {
   dragY: Kb.NativeAnimated.Value
@@ -86,11 +86,12 @@ const AudioStarter = (props: AudioStarterProps) => {
   }
   return (
     <>
-      <Gateway into="convOverlay">
+      <Portal hostName="convOverlay">
         <Tooltip shouldBeVisible={showToolTip} />
-      </Gateway>
+      </Portal>
       <Kb.TapGestureHandler
         shouldCancelWhenOutside={false}
+        maxDurationMs={Number.MAX_SAFE_INTEGER}
         onHandlerStateChange={({nativeEvent}) => {
           if (!props.recording && nativeEvent.state === Kb.GestureState.BEGAN) {
             tapLive.current = true
@@ -133,6 +134,7 @@ const AudioStarter = (props: AudioStarterProps) => {
       >
         <Kb.PanGestureHandler
           shouldCancelWhenOutside={false}
+          // @ts-ignore
           minDeltaX={0}
           minDeltaY={0}
           onGestureEvent={({nativeEvent}) => {

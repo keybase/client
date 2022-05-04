@@ -47,8 +47,9 @@ class ImageAttachment extends React.PureComponent<Props, State> {
   imageRef: any
 
   state = {loaded: false, loadingVideo: 'notloaded', playingVideo: false} as State
-  private setLoaded = () => this.setState({loaded: true})
-  private setVideoLoaded = () => this.setState({loadingVideo: 'loaded'})
+  private setLoaded = () => this.setState(s => (s.loaded ? null : {loaded: true}))
+  private setVideoLoaded = () =>
+    this.setState(s => (s.loadingVideo === 'loaded' ? null : {loadingVideo: 'loaded'}))
 
   private onClick = () => {
     // Once the user clicks the inline video once, then just let the native controls handle everything else.
@@ -76,6 +77,24 @@ class ImageAttachment extends React.PureComponent<Props, State> {
     return {message}
   })
 
+  private imageRenderStyle = memoize((loaded, height, width) =>
+    Styles.collapseStyles([
+      styles.image,
+      {
+        backgroundColor: loaded ? undefined : Styles.globalColors.fastBlank,
+        height,
+        width,
+      },
+    ])
+  )
+
+  private getStyleOverride = memoize((isEditing, isHighlighted) => ({
+    paragraph: {
+      ...getEditStyle(isEditing, isHighlighted),
+      backgroundColor: Styles.globalColors.black_05_on_white,
+    },
+  }))
+
   render() {
     const progressLabel = Constants.messageAttachmentTransferStateToProgressLabel(this.props.transferState)
     const mobileImageFilename = this.props.message.deviceType === 'mobile'
@@ -90,7 +109,7 @@ class ImageAttachment extends React.PureComponent<Props, State> {
         >
           {(!mobileImageFilename || !Styles.isMobile) && (
             <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny" style={styles.fileNameContainer}>
-              <Kb.Text type="BodyTiny" lineClamp={1}>
+              <Kb.Text type="BodyTiny" lineClamp={1} style={styles.filename}>
                 {mobileImageFilename ? 'Image from mobile' : this.props.fileName}
               </Kb.Text>
               <Kb.Icon
@@ -145,14 +164,11 @@ class ImageAttachment extends React.PureComponent<Props, State> {
                           inlineVideoPlayable={this.props.inlineVideoPlayable}
                           height={this.props.height}
                           width={this.props.width}
-                          style={Styles.collapseStyles([
-                            styles.image,
-                            {
-                              backgroundColor: this.state.loaded ? undefined : Styles.globalColors.fastBlank,
-                              height: this.props.height,
-                              width: this.props.width,
-                            },
-                          ])}
+                          style={this.imageRenderStyle(
+                            this.state.loaded,
+                            this.props.height,
+                            this.props.width
+                          )}
                         />
                         {!this.state.playingVideo && (
                           <Kb.Box
@@ -217,7 +233,7 @@ class ImageAttachment extends React.PureComponent<Props, State> {
                           style={getEditStyle(this.props.isEditing, this.props.isHighlighted)}
                           styleOverride={
                             Styles.isMobile
-                              ? {paragraph: getEditStyle(this.props.isEditing, this.props.isHighlighted)}
+                              ? this.getStyleOverride(this.props.isEditing, this.props.isHighlighted)
                               : undefined
                           }
                           allowFontScaling={true}
@@ -281,11 +297,9 @@ class ImageAttachment extends React.PureComponent<Props, State> {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      absoluteContainer: {
-        position: 'absolute',
-      },
+      absoluteContainer: {position: 'absolute'},
       backgroundContainer: {
-        backgroundColor: Styles.globalColors.black_05,
+        backgroundColor: Styles.globalColors.black_05_on_white,
         borderRadius: Styles.borderRadius,
         maxWidth: 330,
         position: 'relative',
@@ -331,9 +345,8 @@ const styles = Styles.styleSheetCreate(
         paddingLeft: 3,
         paddingRight: 3,
       },
-      fileNameContainer: {
-        paddingRight: Styles.globalMargins.small,
-      },
+      fileNameContainer: {paddingRight: Styles.globalMargins.small},
+      filename: {backgroundColor: Styles.globalColors.fastBlank},
       image: {
         ...Styles.globalStyles.rounded,
         backgroundColor: Styles.globalColors.fastBlank,

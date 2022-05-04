@@ -6,7 +6,7 @@ import ReplyPreview from '.'
 
 type OwnProps = {conversationIDKey: Types.ConversationIDKey}
 
-export default Container.namedConnect(
+export default Container.connect(
   (state, {conversationIDKey}: OwnProps) => {
     const ordinal = Constants.getReplyToOrdinal(state, conversationIDKey)
     const message = ordinal ? Constants.getMessage(state, conversationIDKey, ordinal) : null
@@ -38,6 +38,5 @@ export default Container.namedConnect(
   (dispatch, {conversationIDKey}: OwnProps) => ({
     onCancel: () => dispatch(Chat2Gen.createToggleReplyToMessage({conversationIDKey})),
   }),
-  (s, d, _: OwnProps) => ({...s, ...d}),
-  'ReplyPreview'
+  (s, d, _: OwnProps) => ({...s, ...d})
 )(ReplyPreview)

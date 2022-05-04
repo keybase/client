@@ -203,7 +203,8 @@ func (k NaclDHKeyPublic) GetBinaryKID() keybase1.BinaryKID {
 		byte(kbcrypto.KIDNaclDH),
 	}
 	suffix := byte(kbcrypto.IDSuffixKID)
-	out := append(prefix, k[:]...)
+	out := prefix
+	out = append(out, k[:]...)
 	out = append(out, suffix)
 	return keybase1.BinaryKID(out)
 }

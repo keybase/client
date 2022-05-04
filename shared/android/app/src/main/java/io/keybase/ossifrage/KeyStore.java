@@ -7,7 +7,8 @@ import android.os.Build;
 import android.security.keystore.KeyPermanentlyInvalidatedException;
 import android.util.Base64;
 
-import org.msgpack.MessagePack;
+import org.msgpack.core.MessageBufferPacker;
+import org.msgpack.core.MessagePack;
 
 import java.io.IOException;
 import java.security.InvalidKeyException;
@@ -93,8 +94,13 @@ public class KeyStore implements UnsafeExternalKeyStore {
 
             NativeLogger.info("KeyStore: got " + userNames.size() + " users with stored secrets for " + serviceName);
 
-            MessagePack msgpack = new MessagePack();
-            return msgpack.write(userNames);
+            MessageBufferPacker packer = MessagePack.newDefaultBufferPacker();
+            packer.packArrayHeader(userNames.size());
+            for (String s: userNames) {
+                packer.packString(s);
+            }
+            packer.close();
+            return packer.toByteArray();
         } catch (Exception e) {
             NativeLogger.error("KeyStore: error getting users with stored secrets for " + serviceName, e);
             throw e;

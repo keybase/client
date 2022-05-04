@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters'
-import {Props as IconProps} from '../common-adapters/icon'
-import {AvatarSize} from '../common-adapters/avatar'
+import type {Props as IconProps} from '../common-adapters/icon'
+import type {AvatarSize} from '../common-adapters/avatar'
 import * as Styles from '../styles'
 import shallowEqual from 'shallowequal'
 import memoize from 'lodash/memoize'
@@ -33,7 +33,7 @@ const MobileMutedIcon = (p: {
   isMuted: boolean
   isSelected: boolean
   isLocked: boolean
-}): React.ReactElement<any> | null => {
+}): React.ReactElement | null => {
   const {isMuted, isSelected, isLocked} = p
   const type = isMuted
     ? isSelected
@@ -51,7 +51,7 @@ type StrokedIconProps = IconProps & {
   isHovered: boolean
   isSelected: boolean
 }
-const StrokedIcon = Styles.styled<typeof Kb.Icon, StrokedIconProps>(Kb.Icon)(props => ({
+const StrokedIcon = Styles.styled(Kb.Icon)((props: StrokedIconProps) => ({
   '&.stroke': {
     WebkitTextStroke: `3px ${
       props.isHovered && !props.isSelected
@@ -86,7 +86,7 @@ const DesktopMutedIcon = (p: {
   isMuted: boolean
   isSelected: boolean
   isLocked: boolean
-}): React.ReactElement<any> | null => {
+}): React.ReactElement | null => {
   const {isHovered, isMuted, isSelected, isLocked} = p
   const type = isMuted ? 'iconfont-shh' : isLocked ? 'iconfont-lock' : null
   return type ? (
@@ -109,7 +109,7 @@ const MutedIcon = (p: {
   isMuted: boolean
   isSelected: boolean
   isLocked: boolean
-}): React.ReactElement<any> | null => {
+}): React.ReactElement | null => {
   return Styles.isMobile ? MobileMutedIcon(p) : DesktopMutedIcon(p)
 }
 

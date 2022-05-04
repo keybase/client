@@ -49,7 +49,7 @@ func debug(m metaContext, format string, arg ...interface{}) {
 func debugServiceToString(service keybase1.ProofType) string {
 	s, err := serviceToString(service)
 	if err != nil {
-		return string(service)
+		return fmt.Sprint(service)
 	}
 	return s
 }

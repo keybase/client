@@ -2228,7 +2228,8 @@ func collapseActions(unmergedChains *crChains, unmergedPaths []data.Path,
 		parentPath := *p.ParentPath()
 		mergedParent := parentPath.TailPointer()
 		parentActions, wasParentActions := actionMap[mergedParent]
-		combinedActions := append(parentActions, fileActions...)
+		combinedActions := parentActions
+		combinedActions = append(combinedActions, fileActions...)
 		actionMap[mergedParent] = combinedActions
 		if chain.isFile() {
 			mergedPaths[unmergedMostRecent] = parentPath

@@ -1,3 +1,4 @@
+/*
 import * as React from 'react'
 import * as Sb from '../../stories/storybook'
 import Choice from './choice.desktop'
@@ -65,3 +66,6 @@ const load = () => {
 }
 
 export default load
+*/
+
+export default {}

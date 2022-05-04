@@ -112,9 +112,7 @@ func (fs CacheableFS) EnsureNoSuchFileOutsideRoot(name string) (err error) {
 		if p == "/" {
 			return nil
 		}
-		if strings.HasSuffix(p, "/") {
-			p = p[:len(p)-1]
-		}
+		p = strings.TrimSuffix(p, "/")
 		_, statErr := fs.tlfFS.Stat(path.Join(p, name))
 		switch statErr {
 		case os.ErrNotExist:
