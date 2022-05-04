@@ -266,7 +266,7 @@ const config = (_, {mode}) => {
     target: 'electron-renderer',
   })
   const preloadConfig = merge(commonConfig, {
-    entry: {'preload-main': `./desktop/renderer/preload-main.${isDev ? 'dev' : 'prod'}.desktop.tsx`},
+    entry: {preload: `./desktop/renderer/preload.desktop.tsx`},
     module: {rules: makeRules(true)},
     name: 'Keybase',
     plugins: [],

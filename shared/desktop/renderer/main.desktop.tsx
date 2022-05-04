@@ -6,10 +6,9 @@ import {isDarwin} from '../../constants/platform'
 import * as SafeElectron from '../../util/safe-electron.desktop'
 import {enableMapSet} from 'immer'
 import '../../why-did-you-render'
+import {waitOnKB2Loaded} from '../../util/electron.desktop'
 
 enableMapSet()
 _setSystemIsDarkMode(SafeElectron.workingIsDarkMode())
 _setSystemSupported(isDarwin)
-setupKB2().then(() => {
-  require('./main2.desktop')
-})
+waitOnKB2Loaded(() => require('./main2.desktop'))

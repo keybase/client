@@ -6,12 +6,12 @@ import logger from '../../logger'
 import {isDarwin, isWindows, isLinux} from '../../constants/platform'
 import {mainWindowDispatch, getMainWindow} from '../remote/util.desktop'
 import {menubar} from 'menubar'
-import {resolveRoot} from './resolve-root.desktop'
 import {showDevTools, skipSecondaryDevtools} from '../../local-debug.desktop'
 import getIcons from '../../menubar/icons'
 import {workingIsDarkMode} from '../../util/safe-electron.desktop'
 import os from 'os'
 import {assetRoot, htmlPrefix} from './html-root.desktop'
+import KB2 from '../../util/electron.desktop'
 
 const htmlFile = `${htmlPrefix}${assetRoot}menubar${__DEV__ ? '.dev' : ''}.html?param=menubar`
 
@@ -30,7 +30,9 @@ type Bounds = {
 }
 
 export default (menubarWindowIDCallback: (id: number) => void) => {
-  const icon = Electron.nativeImage.createFromPath(resolveRoot('images', 'menubarIcon', iconPath))
+  const icon = Electron.nativeImage.createFromPath(
+    [KB2.assetRoot, 'images', 'menubarIcon', iconPath].join('/')
+  )
   if (useImageTemplate && !iconPathIsBadged) {
     icon.setTemplateImage(true)
   }
@@ -44,7 +46,7 @@ export default (menubarWindowIDCallback: (id: number) => void) => {
         contextIsolation: false,
         nodeIntegration: true,
         nodeIntegrationInWorker: false,
-        preload: `${assetRoot}preload-main${__DEV__ ? '.dev' : ''}.bundle.js`,
+        preload: `${assetRoot}preload${__DEV__ ? '.dev' : ''}.bundle.js`,
       },
       width: 360,
     },
@@ -67,7 +69,7 @@ export default (menubarWindowIDCallback: (id: number) => void) => {
 
   const updateIcon = () => {
     try {
-      const resolved = resolveRoot('images', 'menubarIcon', iconPath)
+      const resolved = [KB2.assetRoot, 'images', 'menubarIcon', iconPath].join('/')
       const i = Electron.nativeImage.createFromPath(resolved)
       if (useImageTemplate && !iconPathIsBadged) {
         i.setTemplateImage(true)
@@ -104,7 +106,7 @@ export default (menubarWindowIDCallback: (id: number) => void) => {
           const mw = getMainWindow()
           const overlay =
             action.payload.desktopAppBadgeCount > 0
-              ? resolveRoot('images', 'icons', 'icon-windows-badge.png')
+              ? [KB2.assetRoot, 'images', 'icons', 'icon-windows-badge.png'].join('/')
               : null
           // @ts-ignore overlay can be a string but TS is wrong
           mw?.setOverlayIcon(overlay, 'new activity')

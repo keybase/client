@@ -283,7 +283,7 @@ export default () => {
       devTools: showDevTools,
       nodeIntegration: true,
       nodeIntegrationInWorker: false,
-      preload: `${assetRoot}preload-main${__DEV__ ? '.dev' : ''}.bundle.js`,
+      preload: `${assetRoot}preload${__DEV__ ? '.dev' : ''}.bundle.js`,
       spellcheck: !disableSpellCheck,
     },
     width: windowState.width,

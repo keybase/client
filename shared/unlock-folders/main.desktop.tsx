@@ -1,2 +1,3 @@
 // Entry point for the unlock folders render window
-setupKB2().then(() => require('./main2.desktop'))
+import {waitOnKB2Loaded} from '../util/electron.desktop'
+waitOnKB2Loaded(() => require('./main2.desktop'))

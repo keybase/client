@@ -2,8 +2,9 @@ import * as React from 'react'
 import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
 import {urlsToImgSet} from '../../../../../common-adapters/icon.desktop'
-import {Props} from '.'
-import SharedTimer, {SharedTimerID} from '../../../../../util/shared-timers'
+import type {Props} from '.'
+import SharedTimer, {type SharedTimerID} from '../../../../../util/shared-timers'
+import KB2 from '../../../../../util/electron.desktop'
 
 const copyChildren = (children: React.ReactNode): React.ReactNode =>
   // @ts-ignore

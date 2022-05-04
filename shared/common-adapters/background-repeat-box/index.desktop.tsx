@@ -1,15 +1,15 @@
 import * as React from 'react'
 import Box from '../box'
 import * as Styles from '../../styles'
-import {resolveRoot} from '../../desktop/app/resolve-root.desktop'
 import {urlsToImgSet} from '../icon.desktop'
-import {Props} from '.'
+import type {Props} from '.'
+import KB2 from '../../util/electron.desktop'
 
 const BackgroundRepeatBox = (props: Props) => {
   let pattern = ''
   let patternUrl = ''
   if (!props.skipBackground) {
-    pattern = resolveRoot(`../images/icons/${props.imageName}`)
+    pattern = [KB2.assetRoot, `../images/icons/${props.imageName}`].join('/')
     patternUrl = urlsToImgSet({[props.imageHeight]: pattern}, props.imageHeight)
   }
   return (
