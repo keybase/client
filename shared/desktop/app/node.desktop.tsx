@@ -1,6 +1,6 @@
 // Entry point for the node part of the electron app
 // MUST be first
-import './preload.desktop'
+import '../renderer/preload.desktop'
 // ^^^^^^^^
 import MainWindow, {showDockIcon, closeWindows} from './main-window.desktop'
 import * as Electron from 'electron'
@@ -19,7 +19,8 @@ import {isPathSaltpack} from '../../constants/crypto'
 import {mainWindowDispatch} from '../remote/util.desktop'
 import {quit} from './ctl.desktop'
 import logger from '../../logger'
-import {resolveRoot, resolveRootAsURL} from './resolve-root.desktop'
+import {assetRoot, htmlPrefix} from './html-root.desktop'
+import KB2 from '../../util/electron.desktop'
 
 const {join} = KB.path
 const {env} = KB.process
@@ -79,7 +80,7 @@ const focusSelfOnAnotherInstanceLaunching = (commandLine: Array<string>) => {
 
   mainWindow.show()
   if (isWindows || isLinux) {
-    mainWindow && mainWindow.focus()
+    mainWindow?.focus()
   }
 
   // The new instance might be due to a URL schema handler launch.
@@ -201,7 +202,7 @@ const getStartupProcessArgs = () => {
 }
 
 const handleActivate = () => {
-  mainWindow && mainWindow.show()
+  mainWindow?.show()
   const dock = Electron.app.dock
   dock
     .show()
@@ -276,15 +277,16 @@ type Action =
       }
     }
   | {type: 'showMainWindow'}
+  | {type: 'setupPreloadKB2'}
 
 const remoteURL = (windowComponent: string, windowParam: string) =>
-  resolveRootAsURL('dist', `${windowComponent}${__DEV__ ? '.dev' : ''}.html?param=${windowParam}`)
+  `${htmlPrefix}${assetRoot}${windowComponent}${__DEV__ ? '.dev' : ''}.html?param=${windowParam}`
 
 const findRemoteComponent = (windowComponent: string, windowParam: string) => {
   const url = remoteURL(windowComponent, windowParam)
   return Electron.BrowserWindow.getAllWindows().find(w => {
     const wc = w.webContents
-    return wc && wc.getURL() === url
+    return wc?.getURL() === url
   })
 }
 
@@ -295,6 +297,8 @@ const plumbEvents = () => {
 
   Electron.ipcMain.handle('KBkeybase', (_event, action: Action) => {
     switch (action.type) {
+      case 'setupPreloadKB2':
+        return KB2
       case 'showMainWindow':
         {
           mainWindow?.show()
@@ -354,12 +358,12 @@ const plumbEvents = () => {
       }
       case 'rendererNewProps': {
         const w = findRemoteComponent(action.payload.windowComponent, action.payload.windowParam)
-        w && w.emit('KBprops', action.payload.propsStr)
+        w?.emit('KBprops', action.payload.propsStr)
         break
       }
       case 'closeRenderer': {
         const w = findRemoteComponent(action.payload.windowComponent, action.payload.windowParam)
-        w && w.close()
+        w?.close()
         break
       }
       case 'makeRenderer': {
@@ -373,7 +377,7 @@ const plumbEvents = () => {
             contextIsolation: false,
             nodeIntegration: true,
             nodeIntegrationInWorker: false,
-            preload: resolveRoot('dist', `preload-main${__DEV__ ? '.dev' : ''}.bundle.js`),
+            preload: `${assetRoot}preload${__DEV__ ? '.dev' : ''}.bundle.js`,
           },
           ...action.payload.windowOpts,
         }
@@ -408,6 +412,7 @@ const plumbEvents = () => {
         break
       }
     }
+    return undefined
   })
 }
 

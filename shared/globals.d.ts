@@ -56,6 +56,7 @@ interface Console {
   _info: any
 }
 
+// TODO deprecate
 declare var KB: {
   __dirname: string
   DEV?: any

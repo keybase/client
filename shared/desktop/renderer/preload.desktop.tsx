@@ -8,6 +8,7 @@ import type {RPCError} from '../../util/errors'
 import type {MessageTypes as FsMessageTypes} from '../../constants/types/rpc-gen'
 import type {MessageTypes as ChatMessageTypes} from '../../constants/types/rpc-chat-gen'
 import type {dialog, BrowserWindow, app} from 'electron'
+import {injectPreload} from '../../util/electron.desktop'
 
 const isRenderer = process.type === 'renderer'
 const target = isRenderer ? window : global
@@ -200,7 +201,21 @@ target.KB = {
     sep: path.sep as any,
   },
   process: kbProcess,
-  // punycode, // used by a dep
+}
+
+// TODO contextBridge
+if (isRenderer) {
+  Electron.ipcRenderer
+    .invoke('KBkeybase', {type: 'setupPreloadKB2'})
+    .then(kb2impl => {
+      injectPreload(kb2impl)
+    })
+    .catch(e => {
+      throw e
+    })
+} else {
+  const impl = require('../app/kb2-impl.desktop').default
+  injectPreload(impl)
 }
 
 if (isRenderer) {

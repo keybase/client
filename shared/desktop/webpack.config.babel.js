@@ -253,16 +253,7 @@ const config = (_, {mode}) => {
       return map
     }, {}),
     externals: {
-      ...(isDev
-        ? {
-            // needed by webpack dev server, fulfilled by preload
-            events: 'KB.DEV.events',
-            // punycode: 'KB.punycode',
-            url: 'KB.DEV.url',
-          }
-        : {
-            // punycode: 'KB.punycode',
-          }),
+      ...(isDev ? {} : {}),
     },
     module: {rules: makeRules(false)},
     name: 'Keybase',
@@ -275,7 +266,7 @@ const config = (_, {mode}) => {
     target: 'electron-renderer',
   })
   const preloadConfig = merge(commonConfig, {
-    entry: {'preload-main': `./desktop/renderer/preload-main.${isDev ? 'dev' : 'prod'}.desktop.tsx`},
+    entry: {preload: `./desktop/renderer/preload.desktop.tsx`},
     module: {rules: makeRules(true)},
     name: 'Keybase',
     plugins: [],

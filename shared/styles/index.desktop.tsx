@@ -3,8 +3,8 @@ import * as Shared from './shared'
 import styleSheetCreateProxy from './style-sheet-proxy'
 import type * as CSS from './css'
 import {isDarkMode} from './dark-mode'
-import {resolveImageAsURL} from '../desktop/app/resolve-root.desktop'
 import {themed, colors, darkColors} from './colors'
+import KB2 from '../util/electron.desktop'
 const {extname, basename} = KB.path
 
 type _Elem = Object | null | false | void
@@ -117,7 +117,10 @@ export const backgroundURL = (...to: Array<string>) => {
     const guiModePath = `${isDarkMode() ? 'dark-' : ''}${goodPath}`
 
     const images = [1, 2, 3].map(
-      mult => `url('${resolveImageAsURL(guiModePath)}${mult === 1 ? '' : `@${mult}x`}${ext}') ${mult}x`
+      mult =>
+        `url('${[KB2.assetRoot, 'images', guiModePath].join('/')}${
+          mult === 1 ? '' : `@${mult}x`
+        }${ext}') ${mult}x`
     )
 
     return `-webkit-image-set(${images.join(', ')})`

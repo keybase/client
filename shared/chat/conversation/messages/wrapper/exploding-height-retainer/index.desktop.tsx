@@ -1,10 +1,10 @@
 import * as React from 'react'
 import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
-import {resolveRootAsURL} from '../../../../../desktop/app/resolve-root.desktop'
 import {urlsToImgSet} from '../../../../../common-adapters/icon.desktop'
-import {Props} from '.'
-import SharedTimer, {SharedTimerID} from '../../../../../util/shared-timers'
+import type {Props} from '.'
+import SharedTimer, {type SharedTimerID} from '../../../../../util/shared-timers'
+import KB2 from '../../../../../util/electron.desktop'
 
 const copyChildren = (children: React.ReactNode): React.ReactNode =>
   // @ts-ignore
@@ -158,8 +158,14 @@ const FlameFront = (props: {height: number; stop: boolean}) => {
 
 const explodedIllustrationUrl = (): string =>
   Styles.isDarkMode()
-    ? urlsToImgSet({'68': resolveRootAsURL('../images/icons/dark-pattern-ashes-desktop-400-68.png')}, 68)
-    : urlsToImgSet({'68': resolveRootAsURL('../images/icons/pattern-ashes-desktop-400-68.png')}, 68)
+    ? urlsToImgSet(
+        {'68': [KB2.assetRoot, 'images', 'icons', 'dark-pattern-ashes-desktop-400-68.png'].join('/')},
+        68
+      )
+    : urlsToImgSet(
+        {'68': [KB2.assetRoot, 'images', 'icons', 'pattern-ashes-desktop-400-68.png'].join('')},
+        68
+      )
 
 const styles = Styles.styleSheetCreate(
   () =>
