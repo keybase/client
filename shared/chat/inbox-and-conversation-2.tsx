@@ -6,6 +6,7 @@ import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import * as React from 'react'
 import * as Common from '../router-v2/common'
+import type * as Types from '../constants/types/chat2'
 import Header from './header'
 import Conversation from './conversation/container'
 import Inbox from './inbox/container'
@@ -21,7 +22,7 @@ const InboxAndConversation = (props: Props) => {
   const dispatch = Container.useDispatch()
   const inboxSearch = Container.useSelector(state => state.chat2.inboxSearch)
   const infoPanelShowing = Container.useSelector(state => state.chat2.infoPanelShowing)
-  const conversationIDKey = props.route.params?.conversationIDKey
+  const conversationIDKey: Types.ConversationIDKey = props.route.params?.conversationIDKey
   const validConvoID = conversationIDKey && conversationIDKey !== Constants.noConversationIDKey
   const needSelectConvoID = Container.useSelector(state => {
     if (validConvoID) {
@@ -30,7 +31,7 @@ const InboxAndConversation = (props: Props) => {
     const first = state.chat2.inboxLayout?.smallTeams?.[0]
     return first?.convID
   })
-  const navKey = props.route.key
+  const navKey: string = props.route.key
 
   // only on initial mount, auto select a convo if nothing comes in, including pending
   React.useEffect(() => {

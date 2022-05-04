@@ -3366,8 +3366,10 @@ const onUpdateLastCoord = async (action: Chat2Gen.UpdateLastCoordPayload) => {
 
 const openChatFromWidget = ({payload: {conversationIDKey}}: Chat2Gen.OpenChatFromWidgetPayload) => [
   ConfigGen.createShowMain(),
-  RouteTreeGen.createSwitchTab({tab: Tabs.chatTab}),
-  ...(conversationIDKey ? [Chat2Gen.createNavigateToThread({conversationIDKey, reason: 'inboxSmall'})] : []),
+  Chat2Gen.createNavigateToThread({
+    conversationIDKey: conversationIDKey ?? Constants.noConversationIDKey,
+    reason: 'inboxSmall',
+  }),
 ]
 
 const gregorPushState = (
