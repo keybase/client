@@ -1,3 +1,4 @@
+import KB2 from '../util/electron.desktop'
 const {path, process, os} = KB
 const {platform, env} = process
 const {join} = path
@@ -136,3 +137,4 @@ const uses24HourClockF = () => {
   }
 }
 export const uses24HourClock = uses24HourClockF()
+export const getAssetPath = (...a: Array<string>) => [KB2.assetRoot, ...a].join('/')

@@ -5,7 +5,7 @@ import logger from '../logger'
 import {iconMeta} from './icon.constants-gen'
 import invert from 'lodash/invert'
 import type {Props, IconType} from './icon'
-import KB2 from '../util/electron.desktop'
+import {getAssetPath} from '../constants/platform.desktop'
 
 const Icon = React.memo<Props>(
   // @ts-ignore
@@ -159,9 +159,9 @@ const imgName = (
   prefix?: string,
   postfix?: string
 ) =>
-  `${prefix || ''}${[KB2.assetRoot, 'images', imagesDir, name].join('/')}${
-    mult > 1 ? `@${mult}x` : ''
-  }.${ext}${postfix || ''} ${mult}x`
+  `${prefix || ''}${getAssetPath('images', imagesDir, name)}${mult > 1 ? `@${mult}x` : ''}.${ext}${
+    postfix || ''
+  } ${mult}x`
 
 function iconTypeToSrcSet(type: IconType) {
   const ext = Shared.typeExtension(type)
@@ -176,7 +176,7 @@ export function iconTypeToImgSet(imgMap: any, targetSize: number): any {
     .map(mult => {
       const img: string = imgMap[multsMap[mult]] as string
       if (!img) return null
-      const url = [KB2.assetRoot, 'images', 'icons', img].join('/')
+      const url = getAssetPath('images', 'icons', img)
       if (Styles.isDarkMode()) url.replace('icon-', 'icon-dark-')
       return `url('${url}.png') ${mult}x`
     })

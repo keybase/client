@@ -4,7 +4,7 @@ import * as Styles from '../../../../../styles'
 import {urlsToImgSet} from '../../../../../common-adapters/icon.desktop'
 import type {Props} from '.'
 import SharedTimer, {type SharedTimerID} from '../../../../../util/shared-timers'
-import KB2 from '../../../../../util/electron.desktop'
+import {getAssetPath} from '../../../../../constants/platform.desktop'
 
 const copyChildren = (children: React.ReactNode): React.ReactNode =>
   // @ts-ignore
@@ -158,14 +158,8 @@ const FlameFront = (props: {height: number; stop: boolean}) => {
 
 const explodedIllustrationUrl = (): string =>
   Styles.isDarkMode()
-    ? urlsToImgSet(
-        {'68': [KB2.assetRoot, 'images', 'icons', 'dark-pattern-ashes-desktop-400-68.png'].join('/')},
-        68
-      )
-    : urlsToImgSet(
-        {'68': [KB2.assetRoot, 'images', 'icons', 'pattern-ashes-desktop-400-68.png'].join('')},
-        68
-      )
+    ? urlsToImgSet({'68': getAssetPath('images', 'icons', 'dark-pattern-ashes-desktop-400-68.png')}, 68)
+    : urlsToImgSet({'68': getAssetPath('images', 'icons', 'pattern-ashes-desktop-400-68.png')}, 68)
 
 const styles = Styles.styleSheetCreate(
   () =>
