@@ -203,6 +203,7 @@ target.KB = {
   process: kbProcess,
 }
 
+// TODO contextBridge
 if (isRenderer) {
   Electron.ipcRenderer
     .invoke('KBkeybase', {type: 'setupPreloadKB2'})
@@ -216,12 +217,6 @@ if (isRenderer) {
   const impl = require('../app/kb2-impl.desktop').default
   injectPreload(impl)
 }
-
-// TODO contextBridge
-//   target.KB_REMOTE = {
-//     // uses24HourClock: async () => Electron.ipcRenderer.invoke('KBkeybase', {type: 'uses24HourClock'}),
-//   }
-// }
 
 if (isRenderer) {
   // have to do this else electron blows away process after the initial preload, use this to add it back
