@@ -25,8 +25,6 @@ global.KB = {
     basename: invalidPreload,
     dirname: invalidPreload,
     extname: invalidPreload,
-    join: invalidPreload,
     resolve: invalidPreload,
-    sep: '/',
   },
 }

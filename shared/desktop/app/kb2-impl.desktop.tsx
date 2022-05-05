@@ -9,6 +9,10 @@ const platform = process.platform
 if (platform !== 'win32' && platform !== 'darwin' && platform !== 'linux') {
   throw new Error('Invalid platform: ' + platform)
 }
+const pathSep = path.sep
+if (pathSep !== '/' && pathSep !== '\\') {
+  throw new Error('Invalid path sep:' + pathSep)
+}
 
 const kb2: KB2 = {
   assetRoot: path.resolve(__DEV__ ? '.' : app.getAppPath()),
@@ -39,9 +43,10 @@ const kb2: KB2 = {
     clientType: 2, // RPCTypes.ClientType.guiMain,
     desc: 'Main Renderer',
     pid,
-    version: __VERSION__, // eslint-disable-line no-undef
+    version: __VERSION__,
   },
   isRenderer: process.type === 'renderer',
+  pathSep,
   platform,
   windowsBinPath: path.resolve(env.LOCALAPPDATA ?? '', 'Keybase', 'keybase.exe'),
 }

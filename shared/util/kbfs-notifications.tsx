@@ -1,8 +1,8 @@
 import capitalize from 'lodash/capitalize'
-import {FSErrorType, FSNotificationType, FSStatusCode, FSNotification} from '../constants/types/rpc-gen'
+import {FSErrorType, FSNotificationType, FSStatusCode, type FSNotification} from '../constants/types/rpc-gen'
 import {parseFolderNameToUsers} from './kbfs'
-import {TypedState} from '../constants/reducer'
-const {sep} = KB.path
+import {pathSep} from '../constants/platform'
+import type {TypedState} from '../constants/reducer'
 
 type DecodedKBFSError = {
   title: string
@@ -10,7 +10,7 @@ type DecodedKBFSError = {
 }
 
 function usernamesForNotification(notification: FSNotification) {
-  return parseFolderNameToUsers(null, notification.filename.split(sep)[3] || notification.filename).map(
+  return parseFolderNameToUsers(null, notification.filename.split(pathSep)[3] || notification.filename).map(
     i => i.username
   )
 }
@@ -19,10 +19,7 @@ function tlfForNotification(notification: FSNotification): string {
   // The notification.filename is canonical platform independent path.
   // To get the TLF we can look at the first 3 directories.
   // /keybase/private/gabrielh/foo.txt => /keybase/private/gabrielh
-  return notification.filename
-    .split(sep)
-    .slice(0, 4)
-    .join(sep)
+  return notification.filename.split(pathSep).slice(0, 4).join(pathSep)
 }
 
 function decodeKBFSError(user: string, notification: FSNotification): DecodedKBFSError {
@@ -92,8 +89,7 @@ function decodeKBFSError(user: string, notification: FSNotification): DecodedKBF
           }
         } else {
           return {
-            body:
-              'Keybase is using too many file system resources temporarily, and writes will fail until the data syncs to the remote server.',
+            body: 'Keybase is using too many file system resources temporarily, and writes will fail until the data syncs to the remote server.',
             title: 'Keybase: Out of temporary space',
           }
         }
@@ -144,20 +140,22 @@ function decodeKBFSError(user: string, notification: FSNotification): DecodedKBF
 }
 
 export function kbfsNotification(notification: FSNotification, notify: any, state: TypedState) {
-  const action: string | undefined = ({
-    // For now, disable file notifications because they're really annoying and
-    // we now have the syncing indicator.
-    // [FSNotificationType.encrypting]: 'Encrypting and uploading',
-    // [FSNotificationType.decrypting]: 'Decrypting',
-    // [FSNotificationType.signing]: 'Signing and uploading',
-    // [FSNotificationType.verifying]: 'Verifying and downloading',
-    [FSNotificationType.rekeying]: 'Rekeying',
-    // The following notifications just need to be enabled, they get handled
-    // independently.
-    [FSNotificationType.initialized]: '',
-    [FSNotificationType.connection]: '',
-    // [FSNotificationType.syncConfigChanged]: 'Synchronization config changed',
-  } as any)[notification.notificationType] as string
+  const action: string | undefined = (
+    {
+      // For now, disable file notifications because they're really annoying and
+      // we now have the syncing indicator.
+      // [FSNotificationType.encrypting]: 'Encrypting and uploading',
+      // [FSNotificationType.decrypting]: 'Decrypting',
+      // [FSNotificationType.signing]: 'Signing and uploading',
+      // [FSNotificationType.verifying]: 'Verifying and downloading',
+      [FSNotificationType.rekeying]: 'Rekeying',
+      // The following notifications just need to be enabled, they get handled
+      // independently.
+      [FSNotificationType.initialized]: '',
+      [FSNotificationType.connection]: '',
+      // [FSNotificationType.syncConfigChanged]: 'Synchronization config changed',
+    } as any
+  )[notification.notificationType] as string
 
   if (action === undefined && notification.statusCode !== FSStatusCode.error) {
     // Ignore notification types we don't care about.

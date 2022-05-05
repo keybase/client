@@ -175,9 +175,7 @@ target.KB = {
     basename: path.basename,
     dirname: path.dirname,
     extname: path.extname,
-    join: path.join,
     resolve: path.resolve,
-    sep: path.sep as any,
   },
 }
 

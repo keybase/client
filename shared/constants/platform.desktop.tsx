@@ -1,6 +1,5 @@
 import KB2 from '../util/electron.desktop'
-const {path} = KB
-const {join} = path
+import * as Path from '../util/path'
 const {env, platform} = KB2
 export const androidIsTestDevice = false
 export const isMobile = false
@@ -15,6 +14,7 @@ export const isDebuggingInChrome = true
 
 export const dokanPath = KB2.dokanPath
 export const windowsBinPath = KB2.windowsBinPath
+export const pathSep = KB2.pathSep
 
 export const isElectron = true
 export const isDarwin = platform === 'darwin'
@@ -44,7 +44,7 @@ const getLinuxPaths = () => {
   const useXDG = (runMode !== 'devel' || env.KEYBASE_DEVEL_USE_XDG) && !env.KEYBASE_XDG_OVERRIDE
 
   // If XDG_RUNTIME_DIR is defined use that, else use $HOME/.config.
-  const homeConfigDir = (useXDG && env.XDG_CONFIG_HOME) || join(homeEnv, '.config')
+  const homeConfigDir = (useXDG && env.XDG_CONFIG_HOME) || Path.join(homeEnv, '.config')
   const runtimeDir = (useXDG && env.XDG_RUNTIME_DIR) || ''
   const socketDir = (useXDG && runtimeDir) || homeConfigDir
 
@@ -56,16 +56,16 @@ const getLinuxPaths = () => {
     )
   }
 
-  const logDir = `${(useXDG && env.XDG_CACHE_HOME) || `${homeEnv}/.cache`}/${appName}/`
+  const logDir = (useXDG && env.XDG_CACHE_HOME) || Path.join(homeEnv, '.cache', appName)
 
   return {
     cacheRoot: logDir,
-    dataRoot: `${(useXDG && env.XDG_DATA_HOME) || `${homeEnv}/.local/share`}/${appName}/`,
-    guiConfigFilename: `${homeConfigDir}/${appName}/gui_config.json`,
+    dataRoot: (useXDG && env.XDG_DATA_HOME) || Path.join(homeEnv, '.local/share', appName),
+    guiConfigFilename: Path.join(homeConfigDir, appName, 'gui_config.json'),
     jsonDebugFileName: `${logDir}keybase.app.debug`,
     logDir,
     serverConfigFileName: `${logDir}keybase.app.serverConfig`,
-    socketPath: join(socketDir, appName, socketName),
+    socketPath: Path.join(socketDir, appName, socketName),
   }
 }
 
@@ -77,15 +77,15 @@ const getWindowsPaths = () => {
     appdata = appdata.slice(2)
   }
   const dir = `\\\\.\\pipe\\kbservice${appdata}\\${appName}`
-  const logDir = `${env.LOCALAPPDATA || ''}\\${appName}\\`
+  const logDir = Path.joinAddSep(env.LOCALAPPDATA, appName)
   return {
-    cacheRoot: `${env.APPDATA || ''}\\${appName}\\`,
-    dataRoot: `${env.LOCALAPPDATA || ''}\\${appName}\\`,
-    guiConfigFilename: `${env.LOCALAPPDATA || ''}\\${appName}\\gui_config.json`,
+    cacheRoot: Path.joinAddSep(env.APPDATA, appName),
+    dataRoot: Path.joinAddSep(env.LOCALAPPDATA, appName),
+    guiConfigFilename: Path.join(env.LOCALAPPDATA, appName, 'gui_config.json'),
     jsonDebugFileName: `${logDir}keybase.app.debug`,
     logDir,
     serverConfigFileName: `${logDir}keybase.app.serverConfig`,
-    socketPath: join(dir, socketName),
+    socketPath: Path.join(dir, socketName),
   }
 }
 
@@ -101,7 +101,7 @@ const getDarwinPaths = () => {
     jsonDebugFileName: `${logDir}${appName}.app.debug`,
     logDir,
     serverConfigFileName: `${logDir}${appName}.app.serverConfig`,
-    socketPath: join(`${libraryDir}Group Containers/keybase/Library/Caches/${appName}/`, socketName),
+    socketPath: Path.join(`${libraryDir}Group Containers/keybase/Library/Caches`, appName, socketName),
   }
 }
 

@@ -79,9 +79,7 @@ declare var KB: {
     basename: (p: string, ext?: string) => string
     dirname: (p: string) => string
     extname: (p: string) => string
-    join: (...paths: Array<string>) => string
     resolve: (...pathSegments: Array<string>) => string
-    sep: '\\' | '/'
   }
 }
 

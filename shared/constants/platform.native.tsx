@@ -16,6 +16,7 @@ export const {version, androidIsTestDevice, uses24HourClock, androidIsDeviceSecu
 // Android only field that tells us if there is a lock screen.
 export const isDeviceSecureAndroid: boolean = androidIsDeviceSecure === '1'
 export const runMode = 'prod'
+export const pathSep = '/'
 
 export const isIOS = Platform.OS === 'ios'
 export const isAndroid = !isIOS

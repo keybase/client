@@ -34,6 +34,7 @@ export type KB2 = {
     version: string
   }
   isRenderer: boolean
+  pathSep: '/' | '\\'
   platform: 'win32' | 'darwin' | 'linux'
   windowsBinPath: string
 }
@@ -83,6 +84,9 @@ const theKB2: KB2 = {
   },
   get isRenderer() {
     return getStashed().isRenderer
+  },
+  get pathSep() {
+    return getStashed().pathSep
   },
   get platform() {
     return getStashed().platform

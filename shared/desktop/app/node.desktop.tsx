@@ -10,6 +10,7 @@ import menuBar from './menu-bar.desktop'
 import menuHelper from './menu-helper.desktop'
 import os from 'os'
 import fs from 'fs'
+import path from 'path'
 import * as ConfigGen from '../../actions/config-gen'
 import * as DeeplinksGen from '../../actions/deeplinks-gen'
 import {showDevTools, skipSecondaryDevtools, allowMultipleInstances} from '../../local-debug.desktop'
@@ -22,7 +23,6 @@ import logger from '../../logger'
 import {assetRoot, htmlPrefix} from './html-root.desktop'
 import KB2 from '../../util/electron.desktop'
 
-const {join} = KB.path
 const {env} = KB2
 
 require('@electron/remote/main').initialize()
@@ -310,7 +310,7 @@ const plumbEvents = () => {
         // TODO change how this works
         try {
           fs.writeFileSync(
-            join(Electron.app.getPath('userData'), 'app-state.json'),
+            path.join(Electron.app.getPath('userData'), 'app-state.json'),
             JSON.stringify({
               changedAtMs: action.payload.changedAtMs,
               isUserActive: action.payload.isUserActive,
