@@ -4,6 +4,11 @@ import path from 'path'
 import type {KB2} from '../../util/electron.desktop'
 const {env, argv, pid} = process
 
+const platform = process.platform
+if (platform !== 'win32' && platform !== 'darwin' && platform !== 'linux') {
+  throw new Error('Invalid platform: ' + platform)
+}
+
 const kb2: KB2 = {
   assetRoot: path.resolve(__DEV__ ? '.' : app.getAppPath()),
   dokanPath: path.resolve(env.LOCALAPPDATA ?? '', 'Keybase', 'DokanSetup_redist.exe'),
@@ -35,6 +40,7 @@ const kb2: KB2 = {
     version: __VERSION__, // eslint-disable-line no-undef
   },
   isRenderer: process.type === 'renderer',
+  platform,
   windowsBinPath: path.resolve(env.LOCALAPPDATA ?? '', 'Keybase', 'keybase.exe'),
 }
 

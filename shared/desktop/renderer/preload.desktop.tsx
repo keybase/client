@@ -12,7 +12,7 @@ import {injectPreload, type KB2} from '../../util/electron.desktop'
 
 const isRenderer = process.type === 'renderer'
 const target = isRenderer ? window : global
-const {argv, platform, env, type} = process
+const {platform} = process
 const isDarwin = platform === 'darwin'
 const isWindows = platform === 'win32'
 const isLinux = platform === 'linux'
@@ -23,17 +23,6 @@ const remote: {
   app: typeof app
   getCurrentWindow: () => BrowserWindow
 } = require(isRenderer ? '@electron/remote' : '@electron/remote/main')
-
-// @ts-ignore strict
-const pid: number = isRenderer ? remote.process.pid : process.pid
-
-const kbProcess = {
-  argv,
-  env,
-  pid,
-  platform,
-  type,
-}
 
 const darwinCopyToKBFSTempUploadFile = isDarwin
   ? async (originalFilePath: string) => {
@@ -199,7 +188,6 @@ target.KB = {
     resolve: path.resolve,
     sep: path.sep as any,
   },
-  process: kbProcess,
 }
 
 // TODO contextBridge
@@ -219,11 +207,4 @@ if (isRenderer) {
 } else {
   const impl = require('../app/kb2-impl.desktop').default
   injectPreload(impl)
-}
-
-if (isRenderer) {
-  // have to do this else electron blows away process after the initial preload, use this to add it back
-  setTimeout(() => {
-    window.KB.process = kbProcess
-  }, 0)
 }

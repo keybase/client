@@ -90,9 +90,6 @@ declare var KB: {
     resolve: (...pathSegments: Array<string>) => string
     sep: '\\' | '/'
   }
-  process: {
-    platform: NodeJS.Platform
-  }
 }
 
 declare namespace NodeJS {

@@ -1,8 +1,7 @@
 import KB2 from '../util/electron.desktop'
-const {path, process, os} = KB
-const {platform} = process
+const {path, os} = KB
 const {join} = path
-const {env} = KB2
+const {env, platform} = KB2
 export const androidIsTestDevice = false
 export const isMobile = false
 export const isPhone = false

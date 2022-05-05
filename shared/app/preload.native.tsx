@@ -40,10 +40,4 @@ global.KB = {
     resolve: invalidPreload,
     sep: '/',
   },
-  process: {
-    get platform() {
-      return invalidPreload()
-    },
-  },
-  // punycode, // used by a dep
 }
