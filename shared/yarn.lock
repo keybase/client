@@ -1746,11 +1746,6 @@
     sudo-prompt "^9.0.0"
     wcwidth "^1.0.1"
 
-"@react-native-community/geolocation@2.0.2":
-  version "2.0.2"
-  resolved "https://registry.yarnpkg.com/@react-native-community/geolocation/-/geolocation-2.0.2.tgz#ba8b40f560ead8d014740d1cdea970b33f19312e"
-  integrity sha512-tTNXRCgnhJBu79mulQwzabXRpDqfh/uaDqfHVpvF0nX4NTpolpy6mvTRiFg7eWFPGRArsnZz1EYp6rHfJWGgEA==
-
 "@react-native-community/netinfo@8.1.0":
   version "8.1.0"
   resolved "https://registry.yarnpkg.com/@react-native-community/netinfo/-/netinfo-8.1.0.tgz#91ac77588363ded53c417ca67e989f2b56c63d57"
@@ -4700,6 +4695,14 @@ expo-sms@10.1.1:
   version "10.1.1"
   resolved "https://registry.yarnpkg.com/expo-sms/-/expo-sms-10.1.1.tgz#841797dc9ddb7da05dd38d6a09ece99d7409150d"
   integrity sha512-vGxqb6uD1zEd8YSTeL80IS8ghZvLp5tr1i+wAMPWesx+LnnbH/jkJAUIyg9otakOLFoC/DXqmLAke6OqDqSCcg==
+
+expo-task-manager@10.2.1:
+  version "10.2.1"
+  resolved "https://registry.yarnpkg.com/expo-task-manager/-/expo-task-manager-10.2.1.tgz#7f57ad7118736d6f8375bd1be36c748605683a2f"
+  integrity sha512-peT1ZG7VjQkdyTLWsPFTU5/W2dZwz2Il/Q6jjLowMPNN9iIq1qHU273+65PRR3zMRt1YfWh8vQSiHEIypKkxgg==
+  dependencies:
+    "@expo/config-plugins" "^4.0.14"
+    unimodules-app-loader "~3.1.0"
 
 expo@44.0.6:
   version "44.0.6"
@@ -9758,6 +9761,11 @@ unicode-property-aliases-ecmascript@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/unicode-property-aliases-ecmascript/-/unicode-property-aliases-ecmascript-2.0.0.tgz#0a36cb9a585c4f6abd51ad1deddb285c165297c8"
   integrity sha512-5Zfuy9q/DFr4tfO7ZPeVXb1aPoeQSdeFMLpYuFebehDAhbuevLs5yxSZmIFN1tP5F9Wl4IpJrYojg85/zgyZHQ==
+
+unimodules-app-loader@~3.1.0:
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/unimodules-app-loader/-/unimodules-app-loader-3.1.0.tgz#1779d9505275e2da2e25812e142198665a14cb2d"
+  integrity sha512-ykDpkZY3ZUckNQN83YP1eY0uxLHK6cLP4WMa4RWsjx5JX38dFvcXpoE/+X2RZSbIgRcCR1fjyd7H1NHjDuXhuQ==
 
 unimodules-task-manager-interface@~7.1.0:
   version "7.1.1"

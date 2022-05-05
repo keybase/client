@@ -18,6 +18,7 @@ import * as LoginGen from '../login-gen'
 import * as Saga from '../../util/saga'
 import * as Types from '../../constants/types/chat2'
 import * as MediaLibrary from 'expo-media-library'
+import * as TaskManager from 'expo-task-manager'
 import type * as FsTypes from '../../constants/types/fs'
 import {getEngine} from '../../engine/require'
 // this CANNOT be an import *, totally screws up the packager
@@ -31,7 +32,7 @@ import pushSaga, {getStartupDetailsFromInitialPush, getStartupDetailsFromInitial
 import * as Container from '../../util/container'
 import * as Contacts from 'expo-contacts'
 import {launchImageLibraryAsync} from '../../util/expo-image-picker'
-import Geolocation from '@react-native-community/geolocation'
+import * as Location from 'expo-location'
 // @ts-ignore strict
 import {AudioRecorder} from 'react-native-audio'
 import * as Haptics from 'expo-haptics'
@@ -634,6 +635,17 @@ const setPermissionDeniedCommandStatus = (conversationIDKey: Types.ConversationI
     },
   })
 
+enum WatchState {
+  Failed = -1,
+  Disabled = 0,
+  Background = 1,
+  Foreground = 2,
+  Both = 3,
+}
+
+// maintains if we're doing a foreground/background location currently.
+let watchState: WatchState = WatchState.Disabled
+
 const onChatWatchPosition = async (
   action: EngineGen.Chat1ChatUiChatWatchPositionPayload,
   logger: Saga.SagaLogger
@@ -642,6 +654,7 @@ const onChatWatchPosition = async (
   try {
     await requestLocationPermission(action.payload.params.perm)
   } catch (error_) {
+    watchState = WatchState.Failed
     const error = error_ as Error
     logger.info('failed to get location perms: ' + error.message)
     return setPermissionDeniedCommandStatus(
@@ -649,70 +662,162 @@ const onChatWatchPosition = async (
       `Failed to access location. ${error.message}`
     )
   }
-  const watchID = Geolocation.watchPosition(
-    pos => {
-      if (locationEmitter) {
-        locationEmitter(
-          Chat2Gen.createUpdateLastCoord({
-            coord: {accuracy: pos.coords.accuracy, lat: pos.coords.latitude, lon: pos.coords.longitude},
-          })
-        )
-      }
-    },
-    err => {
-      logger.warn(err.message)
-      if (err.code && err.code === 1 && locationEmitter) {
-        locationEmitter(
-          setPermissionDeniedCommandStatus(
-            Types.conversationIDToKey(action.payload.params.convID),
-            `Failed to access location. ${err.message}`
-          )
-        )
-      }
-    },
-    {distanceFilter: 65, enableHighAccuracy: isIOS, maximumAge: isIOS ? 0 : undefined}
-  )
-  response.result(watchID)
+
+  // already running?
+  if (
+    watchState === WatchState.Both ||
+    watchState === WatchState.Background ||
+    watchState === WatchState.Foreground
+  ) {
+    // nothing to do
+  } else {
+    await Location.startLocationUpdatesAsync(locationTaskName, backgroundLocationSettings)
+    //       watchPosition(
+    //   pos => {
+    //     if (locationEmitter) {
+    //       locationEmitter(
+    //         Chat2Gen.createUpdateLastCoord({
+    //           coord: {accuracy: pos.coords.accuracy, lat: pos.coords.latitude, lon: pos.coords.longitude},
+    //         })
+    //       )
+    //     }
+    //   },
+    //   err => {
+    //     logger.warn(err.message)
+    //     if (err.code && err.code === 1 && locationEmitter) {
+    //       locationEmitter(
+    //         setPermissionDeniedCommandStatus(
+    //           Types.conversationIDToKey(action.payload.params.convID),
+    //           `Failed to access location. ${err.message}`
+    //         )
+    //       )
+    //     }
+    //   },
+    //   {distanceFilter: 65, enableHighAccuracy: isIOS, maximumAge: isIOS ? 0 : undefined}
+    // )
+  }
+  if (watchState === WatchState.Foreground) {
+    watchState = WatchState.Both
+  } else {
+    watchState = WatchState.Background
+  }
+  response.result(WatchState.Background)
   return []
 }
 
-export const clearWatchPosition = (watchID: number) => {
-  Geolocation.clearWatch(watchID)
+const locationTaskName = 'background-location-task'
+let locationErrCB
+
+TaskManager.defineTask(locationTaskName, ({data, error}) => {
+  if (error) {
+    locationErrCB?.()
+    return
+  }
+  if (data) {
+    const locations = (data as any).locations as Array<Location.LocationObject>
+    if (locationEmitter && locations.length) {
+      const pos = locations[locations.length - 1]
+      locationEmitter(
+        Chat2Gen.createUpdateLastCoord({
+          coord: {
+            accuracy: Math.floor(pos.coords.accuracy ?? 0),
+            lat: pos.coords.latitude,
+            lon: pos.coords.longitude,
+          },
+        })
+      )
+    }
+  }
+})
+
+export const clearWatchPosition = async (mode: WatchState) => {
+  console.log('aaa clearWatchPosition before', {mode, watchState})
+  if (mode === WatchState.Background) {
+    if (watchState === WatchState.Both) {
+      // keep foreground
+      watchState = WatchState.Foreground
+      return
+    } else if (watchState === WatchState.Background) {
+      // stop
+      watchState = WatchState.Disabled
+      await Location.stopLocationUpdatesAsync(locationTaskName)
+    } else {
+      logger.error('Invalid state clearWatchPosition', mode)
+    }
+  } else if (mode === WatchState.Foreground) {
+    if (watchState === WatchState.Both) {
+      // downgrade to background
+      watchState = WatchState.Background
+      await Location.stopLocationUpdatesAsync(locationTaskName)
+      await Location.startLocationUpdatesAsync(locationTaskName, backgroundLocationSettings)
+    } else if (watchState === WatchState.Foreground) {
+      // stop
+      watchState = WatchState.Disabled
+      await Location.stopLocationUpdatesAsync(locationTaskName)
+    } else {
+      logger.error('Invalid state clearWatchPosition', mode)
+    }
+  } else {
+    logger.error('Invalid mode to clearWatchPosition', mode)
+  }
+  console.log('aaa clearWatchPosition after', {mode, watchState})
 }
 
-const onChatClearWatch = (action: EngineGen.Chat1ChatUiChatClearWatchPayload) => {
-  clearWatchPosition(action.payload.params.id)
+const onChatClearWatch = async () => {
+  await Location.stopLocationUpdatesAsync(locationTaskName)
 }
 
-export const watchPositionForMap = async (errFn: () => void): Promise<number> => {
+const foregroundLocationSettings = {}
+const backgroundLocationSettings = {}
+
+export const watchPositionForMap = async (errFn: () => void): Promise<WatchState> => {
   try {
     await requestLocationPermission(RPCChatTypes.UIWatchPositionPerm.base)
   } catch (e) {
     errFn()
-    return 0
+    watchState = WatchState.Failed
+    return WatchState.Failed
   }
-  const watchID = Geolocation.watchPosition(
-    pos => {
-      if (locationEmitter) {
-        locationEmitter(
-          Chat2Gen.createUpdateLastCoord({
-            coord: {
-              accuracy: Math.floor(pos.coords.accuracy),
-              lat: pos.coords.latitude,
-              lon: pos.coords.longitude,
-            },
-          })
-        )
-      }
-    },
-    err => {
-      if (err.code && err.code === 1) {
-        errFn()
-      }
-    },
-    {distanceFilter: 10, enableHighAccuracy: isIOS, maximumAge: isIOS ? 0 : undefined}
-  )
-  return watchID
+
+  // already running?
+  if (watchState === WatchState.Both || watchState === WatchState.Foreground) {
+    return WatchState.Foreground
+  }
+  // stop background so we can go higher res
+  if (watchState === WatchState.Background) {
+    await Location.stopLocationUpdatesAsync(locationTaskName)
+  }
+
+  await Location.startLocationUpdatesAsync(locationTaskName, foregroundLocationSettings)
+  if (watchState === WatchState.Background) {
+    watchState = WatchState.Both
+  } else {
+    watchState = WatchState.Foreground
+  }
+  return WatchState.Foreground
+
+  // const watchID = Geolocation.watchPosition(
+  //   pos => {
+  //     if (locationEmitter) {
+  //       locationEmitter(
+  //         Chat2Gen.createUpdateLastCoord({
+  //           coord: {
+  //             accuracy: Math.floor(pos.coords.accuracy),
+  //             lat: pos.coords.latitude,
+  //             lon: pos.coords.longitude,
+  //           },
+  //         })
+  //       )
+  //     }
+  //   },
+  //   err => {
+  //     if (err.code && err.code === 1) {
+  //       errFn()
+  //     }
+  //   },
+  //   {distanceFilter: 10, enableHighAccuracy: isIOS, maximumAge: isIOS ? 0 : undefined}
+  // )
+  // return watchID
 }
 
 const configureFileAttachmentDownloadForAndroid = async () =>
