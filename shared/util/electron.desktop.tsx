@@ -5,6 +5,7 @@
 export type KB2 = {
   assetRoot: string
   dokanPath: string
+  downloadFolder: string
   env: {
     APPDATA: string
     HOME: string
@@ -70,6 +71,9 @@ const theKB2: KB2 = {
   },
   get dokanPath() {
     return getStashed().dokanPath
+  },
+  get downloadFolder() {
+    return getStashed().downloadFolder
   },
   get env() {
     return getStashed().env

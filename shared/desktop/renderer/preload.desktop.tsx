@@ -1,5 +1,4 @@
 import path from 'path'
-import os from 'os'
 import * as Electron from 'electron'
 // @ts-ignore strict
 import fse from 'fs-extra'
@@ -136,9 +135,6 @@ const showOpenDialog = async (opts: KBElectronOpenDialogOptions) => {
   }
 }
 
-// A helper to allow console logs while building but have TS catch it
-const debugConsoleLog: () => void = console.log.bind(console) as any
-
 const showSaveDialog = async (opts: KBElectronSaveDialogOptions) => {
   try {
     const {title, message, buttonLabel, defaultPath} = opts
@@ -161,8 +157,6 @@ const showSaveDialog = async (opts: KBElectronSaveDialogOptions) => {
 }
 
 target.KB = {
-  __dirname: __dirname,
-  debugConsoleLog,
   electron: {
     app: {
       appPath: __STORYSHOT__ ? '' : isRenderer ? remote.app.getAppPath() : Electron.app.getAppPath(),
@@ -176,9 +170,6 @@ target.KB = {
     darwinCopyToChatTempUploadFile,
     darwinCopyToKBFSTempUploadFile,
     setEngine,
-  },
-  os: {
-    homedir: os.homedir(),
   },
   path: {
     basename: path.basename,

@@ -58,10 +58,6 @@ interface Console {
 
 // TODO deprecate
 declare var KB: {
-  __dirname: string
-  DEV?: any
-  /** Use this for debug logs you don't want commited **/
-  debugConsoleLog: (nope: never) => void
   electron: {
     app: {
       appPath: string
@@ -78,9 +74,6 @@ declare var KB: {
       path: string
     }>
     setEngine: (e: any) => void
-  }
-  os: {
-    homedir: string
   }
   path: {
     basename: (p: string, ext?: string) => string

@@ -1,5 +1,5 @@
 import KB2 from '../util/electron.desktop'
-const {path, os} = KB
+const {path} = KB
 const {join} = path
 const {env, platform} = KB2
 export const androidIsTestDevice = false
@@ -114,7 +114,7 @@ if (!paths) {
 export const {dataRoot, cacheRoot, socketPath, jsonDebugFileName, serverConfigFileName, guiConfigFilename} =
   paths
 
-export const downloadFolder = __STORYBOOK__ ? '' : env.XDG_DOWNLOAD_DIR || join(os.homedir, 'Downloads')
+export const downloadFolder = __STORYBOOK__ ? '' : env.XDG_DOWNLOAD_DIR || KB2.downloadFolder
 
 // Empty string means let the service figure out the right directory.
 export const pprofDir = ''
