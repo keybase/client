@@ -1,5 +1,4 @@
 import path from 'path'
-import os from 'os'
 import * as Electron from 'electron'
 // @ts-ignore strict
 import fse from 'fs-extra'
@@ -8,11 +7,11 @@ import type {RPCError} from '../../util/errors'
 import type {MessageTypes as FsMessageTypes} from '../../constants/types/rpc-gen'
 import type {MessageTypes as ChatMessageTypes} from '../../constants/types/rpc-chat-gen'
 import type {dialog, BrowserWindow, app} from 'electron'
-import {injectPreload} from '../../util/electron.desktop'
+import {injectPreload, type KB2} from '../../util/electron.desktop'
 
 const isRenderer = process.type === 'renderer'
 const target = isRenderer ? window : global
-const {argv, platform, env, type} = process
+const {platform} = process
 const isDarwin = platform === 'darwin'
 const isWindows = platform === 'win32'
 const isLinux = platform === 'linux'
@@ -23,17 +22,6 @@ const remote: {
   app: typeof app
   getCurrentWindow: () => BrowserWindow
 } = require(isRenderer ? '@electron/remote' : '@electron/remote/main')
-
-// @ts-ignore strict
-const pid: number = isRenderer ? remote.process.pid : process.pid
-
-const kbProcess = {
-  argv,
-  env,
-  pid,
-  platform,
-  type,
-}
 
 const darwinCopyToKBFSTempUploadFile = isDarwin
   ? async (originalFilePath: string) => {
@@ -147,9 +135,6 @@ const showOpenDialog = async (opts: KBElectronOpenDialogOptions) => {
   }
 }
 
-// A helper to allow console logs while building but have TS catch it
-const debugConsoleLog: () => void = console.log.bind(console) as any
-
 const showSaveDialog = async (opts: KBElectronSaveDialogOptions) => {
   try {
     const {title, message, buttonLabel, defaultPath} = opts
@@ -172,8 +157,6 @@ const showSaveDialog = async (opts: KBElectronSaveDialogOptions) => {
 }
 
 target.KB = {
-  __dirname: __dirname,
-  debugConsoleLog,
   electron: {
     app: {
       appPath: __STORYSHOT__ ? '' : isRenderer ? remote.app.getAppPath() : Electron.app.getAppPath(),
@@ -183,32 +166,29 @@ target.KB = {
       showSaveDialog,
     },
   },
-  isRenderer,
   kb: {
     darwinCopyToChatTempUploadFile,
     darwinCopyToKBFSTempUploadFile,
     setEngine,
   },
-  os: {
-    homedir: os.homedir(),
-  },
   path: {
     basename: path.basename,
     dirname: path.dirname,
     extname: path.extname,
-    join: path.join,
     resolve: path.resolve,
-    sep: path.sep as any,
   },
-  process: kbProcess,
 }
 
 // TODO contextBridge
 if (isRenderer) {
   Electron.ipcRenderer
     .invoke('KBkeybase', {type: 'setupPreloadKB2'})
-    .then(kb2impl => {
-      injectPreload(kb2impl)
+    .then((kb2impl: KB2) => {
+      injectPreload({
+        ...kb2impl,
+        // kb2impl is from node's perspective so isRenderer is incorrect for the other side
+        isRenderer: true,
+      })
     })
     .catch(e => {
       throw e
@@ -216,11 +196,4 @@ if (isRenderer) {
 } else {
   const impl = require('../app/kb2-impl.desktop').default
   injectPreload(impl)
-}
-
-if (isRenderer) {
-  // have to do this else electron blows away process after the initial preload, use this to add it back
-  setTimeout(() => {
-    window.KB.process = kbProcess
-  }, 0)
 }

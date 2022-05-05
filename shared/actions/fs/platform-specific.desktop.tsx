@@ -8,14 +8,20 @@ import * as Tabs from '../../constants/tabs'
 import * as remote from '@electron/remote'
 import fs from 'fs'
 import type {TypedState, TypedActions} from '../../util/container'
-import {fileUIName, isWindows, isLinux, dokanPath, windowsBinPath} from '../../constants/platform.desktop'
+import {
+  fileUIName,
+  isWindows,
+  isLinux,
+  dokanPath,
+  windowsBinPath,
+  pathSep,
+} from '../../constants/platform.desktop'
 import logger from '../../logger'
 import {spawn, execFile, exec} from 'child_process'
 import {errorToActionOrThrow} from './shared'
 import * as RouteTreeGen from '../route-tree-gen'
 
 const {path} = KB
-const {sep} = path
 
 type pathType = 'file' | 'directory'
 
@@ -121,7 +127,7 @@ const escapeBackslash = isWindows
   : (pathElem: string): string => pathElem
 
 const _rebaseKbfsPathToMountLocation = (kbfsPath: Types.Path, mountLocation: string) =>
-  path.resolve(mountLocation, Types.getPathElements(kbfsPath).slice(1).map(escapeBackslash).join(sep))
+  path.resolve(mountLocation, Types.getPathElements(kbfsPath).slice(1).map(escapeBackslash).join(pathSep))
 
 const openPathInSystemFileManager = async (
   state: TypedState,

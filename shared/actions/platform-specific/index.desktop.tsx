@@ -21,7 +21,6 @@ import type {RPCError} from 'util/errors'
 import KB2 from '../../util/electron.desktop'
 
 const {resolve} = KB.path
-const {argv, pid} = KB.process
 const {env} = KB2
 
 export function showShareActionSheet() {
@@ -205,15 +204,7 @@ const onShutdown = (action: EngineGen.Keybase1NotifyServiceShutdownPayload) => {
 
 const onConnected = () => {
   // Introduce ourselves to the service
-  RPCTypes.configHelloIAmRpcPromise({
-    details: {
-      argv: argv,
-      clientType: RPCTypes.ClientType.guiMain,
-      desc: 'Main Renderer',
-      pid,
-      version: __VERSION__, // eslint-disable-line no-undef
-    },
-  }).catch(() => {})
+  RPCTypes.configHelloIAmRpcPromise({details: KB2.helloDetails}).catch(() => {})
 }
 
 const onOutOfDate = (action: EngineGen.Keybase1NotifySessionClientOutOfDatePayload) => {

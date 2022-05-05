@@ -58,10 +58,6 @@ interface Console {
 
 // TODO deprecate
 declare var KB: {
-  __dirname: string
-  DEV?: any
-  /** Use this for debug logs you don't want commited **/
-  debugConsoleLog: (nope: never) => void
   electron: {
     app: {
       appPath: string
@@ -71,7 +67,6 @@ declare var KB: {
       showSaveDialog: (options: KBElectronSaveDialogOptions) => Promise<string | undefined>
     }
   }
-  isRenderer: boolean
   kb: {
     darwinCopyToKBFSTempUploadFile: (p: string) => Promise<string>
     darwinCopyToChatTempUploadFile: (p: string) => Promise<{
@@ -80,22 +75,11 @@ declare var KB: {
     }>
     setEngine: (e: any) => void
   }
-  os: {
-    homedir: string
-  }
   path: {
     basename: (p: string, ext?: string) => string
     dirname: (p: string) => string
     extname: (p: string) => string
-    join: (...paths: Array<string>) => string
     resolve: (...pathSegments: Array<string>) => string
-    sep: '\\' | '/'
-  }
-  process: {
-    argv: Array<string>
-    pid: number
-    platform: NodeJS.Platform
-    type: string
   }
 }
 

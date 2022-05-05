@@ -2,9 +2,10 @@
 // instead of having a lot of async logic getting some static values we instead wait to load these values on start before we
 // start drawing. If you need access to these values you need to call `waitOnKB2Loaded`
 // the electron preload scripts will create kb2 on the node side and plumb it back and then call `injectPreload`
-type KB2 = {
+export type KB2 = {
   assetRoot: string
   dokanPath: string
+  downloadFolder: string
   env: {
     APPDATA: string
     HOME: string
@@ -25,6 +26,16 @@ type KB2 = {
     XDG_DOWNLOAD_DIR: string
     XDG_RUNTIME_DIR: string
   }
+  helloDetails: {
+    argv: Array<string>
+    clientType: 2 // RPCTypes.ClientType.guiMain,
+    desc: 'Main Renderer'
+    pid: number
+    version: string
+  }
+  isRenderer: boolean
+  pathSep: '/' | '\\'
+  platform: 'win32' | 'darwin' | 'linux'
   windowsBinPath: string
 }
 
@@ -36,6 +47,7 @@ export const injectPreload = (kb2: KB2) => {
   }
   // we have to stash this in a global due to how preload works, else it clears out the module level variables
   globalThis._fromPreload = kb2
+
   while (kb2Waiters.length) {
     kb2Waiters.shift()?.()
   }
@@ -61,8 +73,23 @@ const theKB2: KB2 = {
   get dokanPath() {
     return getStashed().dokanPath
   },
+  get downloadFolder() {
+    return getStashed().downloadFolder
+  },
   get env() {
     return getStashed().env
+  },
+  get helloDetails() {
+    return getStashed().helloDetails
+  },
+  get isRenderer() {
+    return getStashed().isRenderer
+  },
+  get pathSep() {
+    return getStashed().pathSep
+  },
+  get platform() {
+    return getStashed().platform
   },
   get windowsBinPath() {
     return getStashed().windowsBinPath

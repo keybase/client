@@ -1,11 +1,23 @@
 // implementation of KB2, requires node context! preload will proxy this with the contextBridge
 import {app} from 'electron'
+import os from 'os'
 import path from 'path'
-const {env} = process
+import type {KB2} from '../../util/electron.desktop'
+const {env, argv, pid} = process
 
-const kb2 = {
+const platform = process.platform
+if (platform !== 'win32' && platform !== 'darwin' && platform !== 'linux') {
+  throw new Error('Invalid platform: ' + platform)
+}
+const pathSep = path.sep
+if (pathSep !== '/' && pathSep !== '\\') {
+  throw new Error('Invalid path sep:' + pathSep)
+}
+
+const kb2: KB2 = {
   assetRoot: path.resolve(__DEV__ ? '.' : app.getAppPath()),
   dokanPath: path.resolve(env.LOCALAPPDATA ?? '', 'Keybase', 'DokanSetup_redist.exe'),
+  downloadFolder: path.join(os.homedir(), 'Downloads'),
   env: {
     APPDATA: env['APPDATA'] ?? '',
     HOME: env['HOME'] ?? '',
@@ -26,6 +38,17 @@ const kb2 = {
     XDG_DOWNLOAD_DIR: env['XDG_DOWNLOAD_DIR '] ?? '',
     XDG_RUNTIME_DIR: env['XDG_RUNTIME_DIR'] ?? '',
   },
+  helloDetails: {
+    argv,
+    clientType: 2, // RPCTypes.ClientType.guiMain,
+    desc: 'Main Renderer',
+    pid,
+    version: __VERSION__,
+  },
+  isRenderer: process.type === 'renderer',
+  pathSep,
+  platform,
   windowsBinPath: path.resolve(env.LOCALAPPDATA ?? '', 'Keybase', 'keybase.exe'),
 }
+
 export default kb2
