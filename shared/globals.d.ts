@@ -92,8 +92,6 @@ declare var KB: {
     sep: '\\' | '/'
   }
   process: {
-    argv: Array<string>
-    pid: number
     platform: NodeJS.Platform
     type: string
   }

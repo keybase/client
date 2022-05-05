@@ -2,7 +2,7 @@
 // instead of having a lot of async logic getting some static values we instead wait to load these values on start before we
 // start drawing. If you need access to these values you need to call `waitOnKB2Loaded`
 // the electron preload scripts will create kb2 on the node side and plumb it back and then call `injectPreload`
-type KB2 = {
+export type KB2 = {
   assetRoot: string
   dokanPath: string
   env: {
@@ -24,6 +24,13 @@ type KB2 = {
     XDG_DATA_HOME: string
     XDG_DOWNLOAD_DIR: string
     XDG_RUNTIME_DIR: string
+  }
+  helloDetails: {
+    argv: Array<string>
+    clientType: 2 // RPCTypes.ClientType.guiMain,
+    desc: 'Main Renderer'
+    pid: number
+    version: string
   }
   windowsBinPath: string
 }
@@ -63,6 +70,9 @@ const theKB2: KB2 = {
   },
   get env() {
     return getStashed().env
+  },
+  get helloDetails() {
+    return getStashed().helloDetails
   },
   get windowsBinPath() {
     return getStashed().windowsBinPath

@@ -42,12 +42,6 @@ global.KB = {
     sep: '/',
   },
   process: {
-    get argv() {
-      return invalidPreload()
-    },
-    get pid() {
-      return invalidPreload()
-    },
     get platform() {
       return invalidPreload()
     },

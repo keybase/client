@@ -1,9 +1,10 @@
 // implementation of KB2, requires node context! preload will proxy this with the contextBridge
 import {app} from 'electron'
 import path from 'path'
-const {env} = process
+import type {KB2} from '../../util/electron.desktop'
+const {env, argv, pid} = process
 
-const kb2 = {
+const kb2: KB2 = {
   assetRoot: path.resolve(__DEV__ ? '.' : app.getAppPath()),
   dokanPath: path.resolve(env.LOCALAPPDATA ?? '', 'Keybase', 'DokanSetup_redist.exe'),
   env: {
@@ -25,6 +26,13 @@ const kb2 = {
     XDG_DATA_HOME: env['XDG_DATA_HOME'] ?? '',
     XDG_DOWNLOAD_DIR: env['XDG_DOWNLOAD_DIR '] ?? '',
     XDG_RUNTIME_DIR: env['XDG_RUNTIME_DIR'] ?? '',
+  },
+  helloDetails: {
+    argv,
+    clientType: 2, // RPCTypes.ClientType.guiMain,
+    desc: 'Main Renderer',
+    pid,
+    version: __VERSION__, // eslint-disable-line no-undef
   },
   windowsBinPath: path.resolve(env.LOCALAPPDATA ?? '', 'Keybase', 'keybase.exe'),
 }
