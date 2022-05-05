@@ -23,7 +23,7 @@ import {assetRoot, htmlPrefix} from './html-root.desktop'
 import KB2 from '../../util/electron.desktop'
 
 const {join} = KB.path
-const {env} = KB.process
+const {env} = KB2
 
 require('@electron/remote/main').initialize()
 

@@ -18,9 +18,11 @@ import {skipAppFocusActions} from '../../local-debug.desktop'
 import type * as Container from '../../util/container'
 import {_getNavigator} from '../../constants/router2'
 import type {RPCError} from 'util/errors'
+import KB2 from '../../util/electron.desktop'
 
 const {resolve} = KB.path
-const {argv, env, pid} = KB.process
+const {argv, pid} = KB.process
+const {env} = KB2
 
 export function showShareActionSheet() {
   throw new Error('Show Share Action - unsupported on this platform')
@@ -106,6 +108,7 @@ export const dumpLogs = async (action?: ConfigGen.DumpLogsPayload) => {
   }
 }
 
+// TODO move
 function* checkRPCOwnership(_: Container.TypedState, action: ConfigGen.DaemonHandshakePayload) {
   const waitKey = 'pipeCheckFail'
   yield Saga.put(

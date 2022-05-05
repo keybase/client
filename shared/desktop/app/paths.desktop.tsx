@@ -1,8 +1,9 @@
 import * as SafeElectron from '../../util/safe-electron.desktop'
 import os from 'os'
+import KB2 from '../../util/electron.desktop'
 const {appPath} = KB.electron.app
 const {resolve} = KB.path
-const {env} = KB.process
+const {env} = KB2
 
 // Path to keybase executable (darwin only), null if not available
 export function keybaseBinPath() {
