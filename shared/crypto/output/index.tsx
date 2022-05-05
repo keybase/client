@@ -14,10 +14,10 @@ import type {IconType} from '../../common-adapters/icon.constants-gen'
 import {humanizeBytes} from '../../constants/fs'
 import capitalize from 'lodash/capitalize'
 import {getStyle} from '../../common-adapters/text'
+import * as Path from '../../util/path'
 
-const {electron, path: nodePath} = KB
+const {electron} = KB
 const {showOpenDialog} = electron.dialog
-const {dirname} = nodePath
 
 type OutputProps = {
   operation: Types.Operations
@@ -302,7 +302,7 @@ const OutputFileDestination = (props: {operation: Types.Operations}) => {
   const input = Container.useSelector(state => state.crypto[operation].input.stringValue())
 
   const onOpenFile = async () => {
-    const defaultPath = dirname(input)
+    const defaultPath = Path.dirname(input)
     const options = {
       allowDirectories: true,
       allowFiles: false,

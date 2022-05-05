@@ -172,9 +172,6 @@ target.KB = {
     setEngine,
   },
   path: {
-    basename: path.basename,
-    dirname: path.dirname,
-    extname: path.extname,
     resolve: path.resolve,
   },
 }

@@ -22,9 +22,6 @@ global.KB = {
     setEngine: () => {},
   },
   path: {
-    basename: invalidPreload,
-    dirname: invalidPreload,
-    extname: invalidPreload,
     resolve: invalidPreload,
   },
 }

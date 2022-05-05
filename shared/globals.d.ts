@@ -76,9 +76,6 @@ declare var KB: {
     setEngine: (e: any) => void
   }
   path: {
-    basename: (p: string, ext?: string) => string
-    dirname: (p: string) => string
-    extname: (p: string) => string
     resolve: (...pathSegments: Array<string>) => string
   }
 }
