@@ -34,6 +34,8 @@ const kb2: KB2 = {
     pid,
     version: __VERSION__, // eslint-disable-line no-undef
   },
+  isRenderer: process.type === 'renderer',
   windowsBinPath: path.resolve(env.LOCALAPPDATA ?? '', 'Keybase', 'keybase.exe'),
 }
+
 export default kb2

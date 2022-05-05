@@ -22,7 +22,6 @@ global.KB = {
       showSaveDialog: invalidPreload,
     },
   },
-  isRenderer: true,
   kb: {
     darwinCopyToChatTempUploadFile: () => invalidPreload(),
     darwinCopyToKBFSTempUploadFile: () => invalidPreload(),
@@ -43,9 +42,6 @@ global.KB = {
   },
   process: {
     get platform() {
-      return invalidPreload()
-    },
-    get type() {
       return invalidPreload()
     },
   },

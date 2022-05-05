@@ -8,7 +8,7 @@ import type {RPCError} from '../../util/errors'
 import type {MessageTypes as FsMessageTypes} from '../../constants/types/rpc-gen'
 import type {MessageTypes as ChatMessageTypes} from '../../constants/types/rpc-chat-gen'
 import type {dialog, BrowserWindow, app} from 'electron'
-import {injectPreload} from '../../util/electron.desktop'
+import {injectPreload, type KB2} from '../../util/electron.desktop'
 
 const isRenderer = process.type === 'renderer'
 const target = isRenderer ? window : global
@@ -183,7 +183,6 @@ target.KB = {
       showSaveDialog,
     },
   },
-  isRenderer,
   kb: {
     darwinCopyToChatTempUploadFile,
     darwinCopyToKBFSTempUploadFile,
@@ -207,8 +206,12 @@ target.KB = {
 if (isRenderer) {
   Electron.ipcRenderer
     .invoke('KBkeybase', {type: 'setupPreloadKB2'})
-    .then(kb2impl => {
-      injectPreload(kb2impl)
+    .then((kb2impl: KB2) => {
+      injectPreload({
+        ...kb2impl,
+        // kb2impl is from node's perspective so isRenderer is incorrect for the other side
+        isRenderer: true,
+      })
     })
     .catch(e => {
       throw e

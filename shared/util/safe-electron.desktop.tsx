@@ -1,9 +1,11 @@
 // TODO deprecate
 // Helps deal with loading common things from remote.
 import * as Electron from 'electron'
+import KB2 from './electron.desktop'
 
-const {process, isRenderer} = KB
-const remote = isRenderer  ? require( '@electron/remote' ) : null
+const {isRenderer} = KB2
+const {process} = KB
+const remote = isRenderer ? require('@electron/remote') : null
 
 // Main thread only, proxy through remote
 export const getApp = () => {

@@ -71,7 +71,6 @@ declare var KB: {
       showSaveDialog: (options: KBElectronSaveDialogOptions) => Promise<string | undefined>
     }
   }
-  isRenderer: boolean
   kb: {
     darwinCopyToKBFSTempUploadFile: (p: string) => Promise<string>
     darwinCopyToChatTempUploadFile: (p: string) => Promise<{
@@ -93,7 +92,6 @@ declare var KB: {
   }
   process: {
     platform: NodeJS.Platform
-    type: string
   }
 }
 

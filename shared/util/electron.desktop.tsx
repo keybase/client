@@ -32,6 +32,7 @@ export type KB2 = {
     pid: number
     version: string
   }
+  isRenderer: boolean
   windowsBinPath: string
 }
 
@@ -43,6 +44,7 @@ export const injectPreload = (kb2: KB2) => {
   }
   // we have to stash this in a global due to how preload works, else it clears out the module level variables
   globalThis._fromPreload = kb2
+
   while (kb2Waiters.length) {
     kb2Waiters.shift()?.()
   }
@@ -73,6 +75,9 @@ const theKB2: KB2 = {
   },
   get helloDetails() {
     return getStashed().helloDetails
+  },
+  get isRenderer() {
+    return getStashed().isRenderer
   },
   get windowsBinPath() {
     return getStashed().windowsBinPath
