@@ -8,7 +8,7 @@ import * as Tabs from '../../constants/tabs'
 import * as remote from '@electron/remote'
 import fs from 'fs'
 import type {TypedState, TypedActions} from '../../util/container'
-import {fileUIName, isWindows, isLinux} from '../../constants/platform'
+import {fileUIName, isWindows, isLinux, dokanPath, windowsBinPath} from '../../constants/platform.desktop'
 import logger from '../../logger'
 import {spawn, execFile, exec} from 'child_process'
 import {errorToActionOrThrow} from './shared'
@@ -16,7 +16,6 @@ import * as RouteTreeGen from '../route-tree-gen'
 
 const {path} = KB
 const {sep} = path
-const {env} = KB.process
 
 type pathType = 'file' | 'directory'
 
@@ -314,7 +313,6 @@ const openSecurityPreferences = () => {
 const installCachedDokan = async () =>
   new Promise<void>((resolve, reject) => {
     logger.info('Invoking dokan installer')
-    const dokanPath = path.resolve(String(env.LOCALAPPDATA), 'Keybase', 'DokanSetup_redist.exe')
     execFile(dokanPath, [], err => {
       if (err) {
         reject(err)
@@ -322,13 +320,9 @@ const installCachedDokan = async () =>
       }
       // restart the service, particularly kbfsdokan
       // based on desktop/app/start-win-service.js
-      const binPath = path.resolve(String(env.LOCALAPPDATA), 'Keybase', 'keybase.exe')
-      if (!binPath) {
-        reject(new Error('resolve failed'))
-        return
-      }
-      const rqPath = binPath.replace('keybase.exe', 'keybaserq.exe')
-      const args = [binPath, 'ctl', 'restart']
+
+      const rqPath = windowsBinPath.replace('keybase.exe', 'keybaserq.exe')
+      const args = [windowsBinPath, 'ctl', 'restart']
 
       spawn(rqPath, args, {
         detached: true,

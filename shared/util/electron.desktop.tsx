@@ -4,6 +4,28 @@
 // the electron preload scripts will create kb2 on the node side and plumb it back and then call `injectPreload`
 type KB2 = {
   assetRoot: string
+  dokanPath: string
+  env: {
+    APPDATA: string
+    HOME: string
+    KEYBASE_AUTOSTART: string
+    KEYBASE_CRASH_REPORT: string
+    KEYBASE_DEVEL_USE_XDG: string
+    KEYBASE_RESTORE_UI: string
+    KEYBASE_RUN_MODE: string
+    KEYBASE_START_UI: string
+    KEYBASE_XDG_OVERRIDE: string
+    LANG: string
+    LC_ALL: string
+    LC_TIME: string
+    LOCALAPPDATA: string
+    XDG_CACHE_HOME: string
+    XDG_CONFIG_HOME: string
+    XDG_DATA_HOME: string
+    XDG_DOWNLOAD_DIR: string
+    XDG_RUNTIME_DIR: string
+  }
+  windowsBinPath: string
 }
 
 const kb2Waiters = new Array<() => void>()
@@ -32,9 +54,18 @@ const getStashed = () => {
   return globalThis._fromPreload as KB2
 }
 
-const theKB2 = {
+const theKB2: KB2 = {
   get assetRoot() {
     return getStashed().assetRoot
+  },
+  get dokanPath() {
+    return getStashed().dokanPath
+  },
+  get env() {
+    return getStashed().env
+  },
+  get windowsBinPath() {
+    return getStashed().windowsBinPath
   },
 }
 
