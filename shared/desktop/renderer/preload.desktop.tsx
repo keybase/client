@@ -159,11 +159,23 @@ if (isRenderer) {
               .then(() => {})
               .catch(() => {})
           },
-          openURL: (url: string) => {
-            Electron.ipcRenderer
-              .invoke('KBkeybase', {payload: {url}, type: 'openURL'})
-              .then(() => {})
-              .catch(() => {})
+          openInDefaultDirectory: async (path: string) => {
+            const res = (await Electron.ipcRenderer.invoke('KBkeybase', {
+              payload: {path},
+              type: 'openInDefaultDirectory',
+            })) as boolean
+            if (!res) {
+              throw new Error('openInDefaultDirectory')
+            }
+          },
+          openURL: async (url: string) => {
+            const res = (await Electron.ipcRenderer.invoke('KBkeybase', {
+              payload: {url},
+              type: 'openURL',
+            })) as boolean
+            if (!res) {
+              throw new Error('openURL failed')
+            }
           },
           rendererNewProps: (options: {propsStr: string; windowComponent: string; windowParam: string}) => {
             const {propsStr, windowComponent, windowParam} = options

@@ -291,9 +291,10 @@ type Action =
   | {type: 'closeWindow'}
   | {type: 'minimizeWindow'}
   | {type: 'toggleMaximizeWindow'}
-  | {type: 'openURL'; payload: {url: string}}
+  | {type: 'openURL'; payload: {url: string; options?: {activate: boolean}}}
   | {type: 'showInactive'}
   | {type: 'hideWindow'}
+  | {type: 'openInDefaultDirectory'; payload: {path: string}}
 
 const remoteURL = (windowComponent: string, windowParam: string) =>
   `${htmlPrefix}${assetRoot}${windowComponent}${__DEV__ ? '.dev' : ''}.html?param=${windowParam}`
@@ -412,11 +413,63 @@ const plumbEvents = () => {
   Electron.ipcMain.handle('KBkeybase', async (event, action: Action) => {
     switch (action.type) {
       case 'openURL': {
-        Electron.shell
-          .openExternal(action.payload.url)
-          .then(() => {})
-          .catch(() => {})
-        return
+        const {url, options} = action.payload
+        try {
+          await Electron.shell.openExternal(url, options)
+          return true
+        } catch {
+          return false
+        }
+      }
+      case 'openInDefaultDirectory': {
+        const openPath = action.payload.path
+
+        // pathToURL takes path and converts to (file://) url.
+        // See https://github.com/sindresorhus/file-url
+        const pathToURL = (p: string) => {
+          let goodPath = p.replace(/\\/g, '/')
+
+          // Windows drive letter must be prefixed with a slash
+          if (!goodPath.startsWith('/')) {
+            goodPath = '/' + goodPath
+          }
+
+          return encodeURI('file://' + goodPath).replace(/#/g, '%23')
+        }
+        const prom = new Promise<void>((resolve, reject) => {
+          // Paths in directories might be symlinks, so resolve using
+          // realpath.
+          // For example /keybase/private/gabrielh,chris gets redirected to
+          // /keybase/private/chris,gabrielh.
+          fs.realpath(openPath, (err, resolvedPath) => {
+            if (err) {
+              reject(new Error(`No realpath for ${openPath}`))
+              return
+            }
+            // Convert to URL for openExternal call.
+            // We use openExternal instead of openItem because it
+            // correctly focuses' the Finder, and also uses a newer
+            // native API on macOS.
+            const url = pathToURL(resolvedPath)
+            logger.info('Open URL (directory):', url)
+
+            Electron.shell
+              .openExternal(url, {activate: true})
+              .then(() => {
+                logger.info('Opened directory:', openPath)
+                resolve()
+              })
+              .catch(err => {
+                reject(err)
+              })
+          })
+        })
+        try {
+          await prom
+          return true
+        } catch {
+          return false
+        }
       }
       case 'showInactive': {
         Electron.BrowserWindow.fromWebContents(event.sender)?.showInactive()

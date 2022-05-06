@@ -69,7 +69,8 @@ export type KB2 = {
     darwinCopyToChatTempUploadFile?: (originalFilePath: string) => Promise<{outboxID: Buffer; path: string}>
     darwinCopyToKBFSTempUploadFile?: (originalFilePath: string) => Promise<string>
     minimizeWindow?: () => void
-    openURL?: (url: string) => void
+    openInDefaultDirectory?: (path: string) => Promise<void>
+    openURL?: (url: string, options?: {activate: boolean}) => Promise<void>
     requestWindowsStartService?: () => void
     rendererNewProps?: (options: {propsStr: string; windowComponent: string; windowParam: string}) => void
     makeRenderer?: (options: {

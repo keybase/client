@@ -21,52 +21,11 @@ import {spawn, execFile, exec} from 'child_process'
 import {errorToActionOrThrow} from './shared'
 import * as RouteTreeGen from '../route-tree-gen'
 import * as Path from '../../util/path'
+import KB2 from '../../util/electron.desktop'
+
+const {openInDefaultDirectory, openURL} = KB2.functions
 
 type pathType = 'file' | 'directory'
-
-// pathToURL takes path and converts to (file://) url.
-// See https://github.com/sindresorhus/file-url
-function pathToURL(p: string): string {
-  let goodPath = p.replace(/\\/g, '/')
-
-  // Windows drive letter must be prefixed with a slash
-  if (!goodPath.startsWith('/')) {
-    goodPath = '/' + goodPath
-  }
-
-  return encodeURI('file://' + goodPath).replace(/#/g, '%23')
-}
-
-const openInDefaultDirectory = async (openPath: string): Promise<void> => {
-  return new Promise((resolve, reject) => {
-    // Paths in directories might be symlinks, so resolve using
-    // realpath.
-    // For example /keybase/private/gabrielh,chris gets redirected to
-    // /keybase/private/chris,gabrielh.
-    fs.realpath(openPath, (err, resolvedPath) => {
-      if (err) {
-        reject(new Error(`No realpath for ${openPath}`))
-        return
-      }
-      // Convert to URL for openExternal call.
-      // We use openExternal instead of openItem because it
-      // correctly focuses' the Finder, and also uses a newer
-      // native API on macOS.
-      const url = pathToURL(resolvedPath)
-      logger.info('Open URL (directory):', url)
-
-      remote.shell
-        .openExternal(url, {activate: true})
-        .then(() => {
-          logger.info('Opened directory:', openPath)
-          resolve()
-        })
-        .catch(err => {
-          reject(err)
-        })
-    })
-  })
-}
 
 async function getPathType(openPath: string): Promise<pathType> {
   return new Promise((resolve, reject) => {
@@ -101,7 +60,7 @@ const _openPathInSystemFileManagerPromise = async (openPath: string, isFolder: b
             reject(new Error('unable to open item'))
           })
       } else {
-        openInDefaultDirectory(openPath).then(resolve, reject)
+        openInDefaultDirectory?.(openPath).then(resolve, reject)
       }
     } else {
       remote.shell.showItemInFolder(openPath)
@@ -304,8 +263,7 @@ const uninstallDokan = (state: TypedState) => {
 }
 
 const openSecurityPreferences = () => {
-  remote.shell
-    .openExternal('x-apple.systempreferences:com.apple.preference.security?General', {activate: true})
+  openURL?.('x-apple.systempreferences:com.apple.preference.security?General', {activate: true})
     .then(() => {
       logger.info('Opened Security Preferences')
     })
@@ -446,7 +404,6 @@ function* platformSpecificSaga() {
     yield* Saga.chainAction2(FsGen.driverDisable, uninstallKBFSConfirm)
     yield* Saga.chainAction2(FsGen.driverDisabling, uninstallKBFS)
   }
-  yield* Saga.chainAction2(FsGen.openSecurityPreferences, openSecurityPreferences)
   yield* Saga.chainAction2(FsGen.openSecurityPreferences, openSecurityPreferences)
   yield* Saga.chainAction2(ConfigGen.changedFocus, changedFocus)
   yield* Saga.chainAction2(
