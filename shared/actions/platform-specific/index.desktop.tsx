@@ -19,7 +19,7 @@ import {_getNavigator} from '../../constants/router2'
 import type {RPCError} from 'util/errors'
 import KB2 from '../../util/electron.desktop'
 
-const {showMainWindow, activeChanged} = KB2.functions
+const {showMainWindow, activeChanged, requestWindowsStartService} = KB2.functions
 
 export function showShareActionSheet() {
   throw new Error('Show Share Action - unsupported on this platform')
@@ -204,10 +204,7 @@ const sendWindowsKBServiceCheck = (
     state.config.daemonHandshakeWaiters.size === 0 &&
     state.config.daemonHandshakeFailedReason === ConfigConstants.noKBFSFailReason
   ) {
-    Electron.ipcRenderer
-      .invoke('KBkeybase', {type: 'requestWindowsStartService'})
-      .then(() => {})
-      .catch(() => {})
+    requestWindowsStartService?.()
   }
 }
 

@@ -70,6 +70,7 @@ export type KB2 = {
     darwinCopyToKBFSTempUploadFile?: (originalFilePath: string) => Promise<string>
     minimizeWindow?: () => void
     openURL?: (url: string) => void
+    requestWindowsStartService?: () => void
     showOpenDialog?: (options?: OpenDialogOptions) => Promise<Array<string>>
     showSaveDialog?: (options?: SaveDialogOptions) => Promise<string>
     showTray?: (desktopAppBadgeCount: number, icon: string) => void

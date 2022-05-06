@@ -127,6 +127,12 @@ if (isRenderer) {
               .then(() => {})
               .catch(() => {})
           },
+          requestWindowsStartService: () => {
+            Electron.ipcRenderer
+              .invoke('KBkeybase', {type: 'requestWindowsStartService'})
+              .then(() => {})
+              .catch(() => {})
+          },
           showInactive: () => {
             Electron.ipcRenderer
               .invoke('KBkeybase', {type: 'showInactive'})
