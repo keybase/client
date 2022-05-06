@@ -1,5 +1,4 @@
 import * as Electron from 'electron'
-import fse from 'fs-extra'
 import type {Engine, WaitingKey} from '../../engine'
 import type {RPCError} from '../../util/errors'
 import type {MessageTypes as FsMessageTypes} from '../../constants/types/rpc-gen'
@@ -16,8 +15,6 @@ const target = isRenderer ? window : global
 const {platform} = process
 const isDarwin = platform === 'darwin'
 
-const generateOutboxID = () => Buffer.from([...Array(8)].map(() => Math.floor(Math.random() * 256)))
-
 // filled in
 let engine: Engine | null = null
 const setEngine = (e: Engine) => {
@@ -27,45 +24,8 @@ const setEngine = (e: Engine) => {
   engine = e
 }
 
-const darwinCopyToChatTempUploadFile = isDarwin
-  ? async (originalFilePath: string): Promise<{outboxID: Buffer; path: string}> => {
-      const outboxID = generateOutboxID()
-      const localGetUploadTempFileRpcPromise = async (
-        params: ChatMessageTypes['chat.1.local.getUploadTempFile']['inParam'],
-        waitingKey?: WaitingKey
-      ) => {
-        return new Promise<ChatMessageTypes['chat.1.local.getUploadTempFile']['outParam']>(
-          (resolve, reject) => {
-            if (!engine) {
-              throw new Error('Preload missing engine')
-            }
-            engine._rpcOutgoing({
-              callback: (
-                error: RPCError | null,
-                result: ChatMessageTypes['chat.1.local.getUploadTempFile']['outParam']
-              ) => (error ? reject(error) : resolve(result)),
-              method: 'chat.1.local.getUploadTempFile',
-              params,
-              waitingKey,
-            })
-          }
-        )
-      }
-
-      const dst = await localGetUploadTempFileRpcPromise({
-        filename: originalFilePath,
-        outboxID,
-      })
-      await fse.copy(originalFilePath, dst)
-      return {outboxID, path: dst}
-    }
-  : () => {
-      throw new Error('unsupported platform')
-    }
-
 target.KB = {
   kb: {
-    darwinCopyToChatTempUploadFile,
     setEngine,
   },
 }
@@ -82,7 +42,51 @@ if (isRenderer) {
           isRenderer: true,
         },
         functions: {
+          darwinCopyToChatTempUploadFile: async (originalFilePath: string) => {
+            if (!isDarwin) {
+              throw new Error('Unsupported platform')
+            }
+            const generateOutboxID = () =>
+              Buffer.from([...Array(8)].map(() => Math.floor(Math.random() * 256)))
+            const outboxID = generateOutboxID()
+            const localGetUploadTempFileRpcPromise = async (
+              params: ChatMessageTypes['chat.1.local.getUploadTempFile']['inParam'],
+              waitingKey?: WaitingKey
+            ) => {
+              return new Promise<ChatMessageTypes['chat.1.local.getUploadTempFile']['outParam']>(
+                (resolve, reject) => {
+                  if (!engine) {
+                    throw new Error('Preload missing engine')
+                  }
+                  engine._rpcOutgoing({
+                    callback: (
+                      error: RPCError | null,
+                      result: ChatMessageTypes['chat.1.local.getUploadTempFile']['outParam']
+                    ) => (error ? reject(error) : resolve(result)),
+                    method: 'chat.1.local.getUploadTempFile',
+                    params,
+                    waitingKey,
+                  })
+                }
+              )
+            }
+            const dst = await localGetUploadTempFileRpcPromise({
+              filename: originalFilePath,
+              outboxID,
+            })
+
+            const res = (await Electron.ipcRenderer.invoke('KBkeybase', {
+              payload: {dst, originalFilePath},
+              type: 'darwinCopyToChatTempUploadFile',
+            })) as boolean
+            if (res) {
+              return {outboxID, path: dst}
+            } else {
+              throw new Error("Couldn't save")
+            }
+          },
           darwinCopyToKBFSTempUploadFile: async (originalFilePath: string) => {
+            if (!isDarwin) return ''
             const simpleFSSimpleFSMakeTempDirForUploadRpcPromise = async () =>
               new Promise<FsMessageTypes['keybase.1.SimpleFS.simpleFSMakeTempDirForUpload']['outParam']>(
                 (resolve, reject) => {

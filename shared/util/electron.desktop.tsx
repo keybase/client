@@ -64,6 +64,7 @@ export type KB2 = {
     showOpenDialog?: (options?: OpenDialogOptions) => Promise<Array<string>>
     showSaveDialog?: (options?: SaveDialogOptions) => Promise<string>
     darwinCopyToKBFSTempUploadFile?: (originalFilePath: string) => Promise<string>
+    darwinCopyToChatTempUploadFile?: (originalFilePath: string) => Promise<{outboxID: Buffer; path: string}>
   }
 }
 

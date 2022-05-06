@@ -33,6 +33,9 @@ import {NotifyPopup} from '../../native/notifications'
 import {isIOS} from '../../constants/platform'
 import {privateFolderWithUsers, teamFolder} from '../../constants/config'
 import {saveAttachmentToCameraRoll, showShareActionSheet} from '../platform-specific'
+import KB2 from '../../util/electron'
+
+const {darwinCopyToChatTempUploadFile} = KB2.functions
 
 const onConnect = async () => {
   try {
@@ -2325,10 +2328,8 @@ const attachFromDragAndDrop = async (
   _: Container.TypedState,
   action: Chat2Gen.AttachFromDragAndDropPayload
 ) => {
-  if (Platform.isDarwin) {
-    const paths = await Promise.all(
-      action.payload.paths.map(p => KB.kb.darwinCopyToChatTempUploadFile(p.path))
-    )
+  if (Platform.isDarwin && darwinCopyToChatTempUploadFile) {
+    const paths = await Promise.all(action.payload.paths.map(p => darwinCopyToChatTempUploadFile(p.path)))
     return Chat2Gen.createAttachmentsUpload({
       conversationIDKey: action.payload.conversationIDKey,
       paths,

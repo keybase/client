@@ -284,6 +284,10 @@ type Action =
   | {type: 'showOpenDialog'; payload: {options: OpenDialogOptions}}
   | {type: 'showSaveDialog'; payload: {options: SaveDialogOptions}}
   | {type: 'darwinCopyToKBFSTempUploadFile'; payload: {originalFilePath: string; dir: string}}
+  | {
+      type: 'darwinCopyToChatTempUploadFile'
+      payload: {originalFilePath: string; dst: string; outboxID: string}
+    }
 
 const remoteURL = (windowComponent: string, windowParam: string) =>
   `${htmlPrefix}${assetRoot}${windowComponent}${__DEV__ ? '.dev' : ''}.html?param=${windowParam}`
@@ -386,6 +390,11 @@ const darwinCopyToKBFSTempUploadFile = async (options: {originalFilePath: string
   return dst
 }
 
+const darwinCopyToChatTempUploadFile = async (options: {originalFilePath: string; dst: string}) => {
+  await fse.copy(options.originalFilePath, options.dst)
+  return true
+}
+
 const plumbEvents = () => {
   Electron.nativeTheme.on('updated', () => {
     mainWindowDispatch(ConfigGen.createSetSystemDarkMode({dark: Electron.nativeTheme.shouldUseDarkColors}))
@@ -396,6 +405,13 @@ const plumbEvents = () => {
 
   Electron.ipcMain.handle('KBkeybase', async (_event, action: Action) => {
     switch (action.type) {
+      case 'darwinCopyToChatTempUploadFile': {
+        try {
+          return await darwinCopyToChatTempUploadFile(action.payload)
+        } catch {
+          return false
+        }
+      }
       case 'darwinCopyToKBFSTempUploadFile': {
         try {
           return await darwinCopyToKBFSTempUploadFile(action.payload)
