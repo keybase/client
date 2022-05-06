@@ -538,7 +538,7 @@ const plumbEvents = () => {
       }
       case 'rendererNewProps': {
         const w = findRemoteComponent(action.payload.windowComponent, action.payload.windowParam)
-        w?.emit('KBprops', action.payload.propsStr)
+        w?.webContents.send('KBprops', action.payload.propsStr)
         break
       }
       case 'closeRenderer': {
