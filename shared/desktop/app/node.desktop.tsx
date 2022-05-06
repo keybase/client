@@ -18,11 +18,11 @@ import {showDevTools, skipSecondaryDevtools, allowMultipleInstances} from '../..
 import startWinService from './start-win-service.desktop'
 import {isDarwin, isLinux, isWindows, cacheRoot, socketPath} from '../../constants/platform.desktop'
 import {isPathSaltpack} from '../../constants/crypto'
-import {mainWindowDispatch} from '../remote/util.desktop'
+import {mainWindowDispatch, getMainWindow} from '../remote/util.desktop'
 import {quit} from './ctl.desktop'
 import logger from '../../logger'
 import {assetRoot, htmlPrefix} from './html-root.desktop'
-import KB2 from '../../util/electron.desktop'
+import KB2, {type OpenDialogOptions, type SaveDialogOptions} from '../../util/electron.desktop'
 
 const {env} = KB2.constants
 
@@ -280,6 +280,8 @@ type Action =
   | {type: 'showMainWindow'}
   | {type: 'setupPreloadKB2'}
   | {type: 'winCheckRPCOwnership'}
+  | {type: 'showOpenDialog'; payload: OpenDialogOptions}
+  | {type: 'showSaveDialog'; payload: SaveDialogOptions}
 
 const remoteURL = (windowComponent: string, windowParam: string) =>
   `${htmlPrefix}${assetRoot}${windowComponent}${__DEV__ ? '.dev' : ''}.html?param=${windowParam}`
@@ -314,6 +316,65 @@ const winCheckRPCOwnership = async () => {
   })
 }
 
+// Expose native file picker to components.
+// Improved experience over HTML <input type='file' />
+const showOpenDialog = async (opts: OpenDialogOptions) => {
+  try {
+    const {title, message, buttonLabel, defaultPath, filters} = opts
+    const {allowDirectories, allowFiles, allowMultiselect} = opts
+    // If on Windows or Linux and allowDirectories, prefer allowDirectories.
+    // Can't have both openFile and openDirectory on Windows/Linux
+    // Source: https://www.electronjs.org/docs/api/dialog#dialogshowopendialogbrowserwindow-options
+    const windowsOrLinux = isWindows || isLinux
+    const canAllowFiles = allowDirectories && windowsOrLinux ? false : allowFiles ?? true
+    const allowedProperties = [
+      ...(canAllowFiles ? ['openFile' as const] : []),
+      ...(allowDirectories ? ['openDirectory' as const] : []),
+      ...(allowMultiselect ? ['multiSelections' as const] : []),
+    ]
+    const allowedOptions = {
+      buttonLabel,
+      defaultPath,
+      filters,
+      message,
+      properties: allowedProperties,
+      title,
+    }
+    const mw = getMainWindow()
+    if (!mw) return []
+    const result = await Electron.dialog.showOpenDialog(mw, allowedOptions)
+    if (!result) return []
+    if (result.canceled) return []
+    return result.filePaths
+  } catch (err) {
+    console.warn('Electron failed to launch showOpenDialog')
+    return []
+  }
+}
+
+const showSaveDialog = async (opts: SaveDialogOptions) => {
+  try {
+    const {title, message, buttonLabel, defaultPath} = opts
+    const allowedProperties = ['showOverwriteConfirmation' as const]
+    const allowedOptions = {
+      buttonLabel,
+      defaultPath,
+      message,
+      properties: allowedProperties,
+      title,
+    }
+    const mw = getMainWindow()
+    if (!mw) return []
+    const result = await Electron.dialog.showSaveDialog(mw, allowedOptions)
+    if (!result) return []
+    if (result.canceled) return []
+    return result.filePath
+  } catch (err) {
+    console.warn('Electron failed to launch showSaveDialog')
+    return []
+  }
+}
+
 const plumbEvents = () => {
   Electron.nativeTheme.on('updated', () => {
     mainWindowDispatch(ConfigGen.createSetSystemDarkMode({dark: Electron.nativeTheme.shouldUseDarkColors}))
@@ -324,6 +385,22 @@ const plumbEvents = () => {
 
   Electron.ipcMain.handle('KBkeybase', async (_event, action: Action) => {
     switch (action.type) {
+      case 'showOpenDialog': {
+        try {
+          const res = await showOpenDialog(action.payload)
+          return res
+        } catch {
+          return []
+        }
+      }
+      case 'showSaveDialog': {
+        try {
+          const res = await showSaveDialog(action.payload)
+          return res
+        } catch {
+          return []
+        }
+      }
       case 'winCheckRPCOwnership': {
         try {
           await winCheckRPCOwnership()

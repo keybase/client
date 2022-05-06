@@ -5,12 +5,6 @@ const invalidPreload = () => {
 }
 
 global.KB = {
-  electron: {
-    dialog: {
-      showOpenDialog: invalidPreload,
-      showSaveDialog: invalidPreload,
-    },
-  },
   kb: {
     darwinCopyToChatTempUploadFile: () => invalidPreload(),
     darwinCopyToKBFSTempUploadFile: () => invalidPreload(),

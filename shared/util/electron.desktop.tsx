@@ -2,6 +2,25 @@
 // instead of having a lot of async logic getting some static values we instead wait to load these values on start before we
 // start drawing. If you need access to these values you need to call `waitOnKB2Loaded`
 // the electron preload scripts will create kb2 on the node side and plumb it back and then call `injectPreload`
+
+export type OpenDialogOptions = {
+  allowFiles?: boolean
+  allowDirectories?: boolean
+  allowMultiselect?: boolean
+  buttonLabel?: string
+  defaultPath?: string
+  filters?: Array<{extensions: Array<string>; name: string}>
+  message?: string
+  title?: string
+}
+
+export type SaveDialogOptions = {
+  title?: string
+  defaultPath?: string
+  buttonLabel?: string
+  message?: string
+}
+
 export type KB2 = {
   constants: {
     assetRoot: string
@@ -42,6 +61,8 @@ export type KB2 = {
   }
   functions: {
     winCheckRPCOwnership?: () => Promise<void>
+    showOpenDialog?: (options?: OpenDialogOptions) => Promise<Array<string>>
+    showSaveDialog?: (options?: SaveDialogOptions) => Promise<string>
   }
 }
 

@@ -23,24 +23,6 @@ type RequestIdleCallbackDeadline = {
   timeRemaining: () => number
 }
 
-declare type KBElectronOpenDialogOptions = {
-  allowFiles?: boolean
-  allowDirectories?: boolean
-  allowMultiselect?: boolean
-  buttonLabel?: string
-  defaultPath?: string
-  filters?: Array<{extensions: Array<string>; name: string}>
-  message?: string
-  title?: string
-}
-
-declare type KBElectronSaveDialogOptions = {
-  title?: string
-  defaultPath?: string
-  buttonLabel?: string
-  message?: string
-}
-
 interface Window {
   DEBUGEffectById: any
   DEBUGLogSagas: any
@@ -58,12 +40,6 @@ interface Console {
 
 // TODO deprecate
 declare var KB: {
-  electron: {
-    dialog: {
-      showOpenDialog: (options: KBElectronOpenDialogOptions) => Promise<Array<string> | undefined>
-      showSaveDialog: (options: KBElectronSaveDialogOptions) => Promise<string | undefined>
-    }
-  }
   kb: {
     darwinCopyToKBFSTempUploadFile: (p: string) => Promise<string>
     darwinCopyToChatTempUploadFile: (p: string) => Promise<{

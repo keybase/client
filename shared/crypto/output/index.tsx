@@ -15,9 +15,7 @@ import {humanizeBytes} from '../../constants/fs'
 import capitalize from 'lodash/capitalize'
 import {getStyle} from '../../common-adapters/text'
 import * as Path from '../../util/path'
-
-const {electron} = KB
-const {showOpenDialog} = electron.dialog
+import {pickFiles} from '../../util/pick-files'
 
 type OutputProps = {
   operation: Types.Operations
@@ -303,14 +301,13 @@ const OutputFileDestination = (props: {operation: Types.Operations}) => {
 
   const onOpenFile = async () => {
     const defaultPath = Path.dirname(input)
-    const options = {
+    const filePaths = await pickFiles({
       allowDirectories: true,
       allowFiles: false,
       buttonLabel: 'Select',
       ...(Platforms.isDarwin ? {defaultPath} : {}),
-    }
-    const filePaths = await showOpenDialog(options)
-    if (!filePaths) return
+    })
+    if (!filePaths.length) return
     const path = filePaths[0]
 
     const destinationDir = new Container.HiddenString(path)

@@ -6,22 +6,17 @@ import type {Engine, WaitingKey} from '../../engine'
 import type {RPCError} from '../../util/errors'
 import type {MessageTypes as FsMessageTypes} from '../../constants/types/rpc-gen'
 import type {MessageTypes as ChatMessageTypes} from '../../constants/types/rpc-chat-gen'
-import type {dialog, BrowserWindow, app} from 'electron'
-import {injectPreload, type KB2} from '../../util/electron.desktop'
+import {
+  injectPreload,
+  type KB2,
+  type OpenDialogOptions,
+  type SaveDialogOptions,
+} from '../../util/electron.desktop'
 
 const isRenderer = process.type === 'renderer'
 const target = isRenderer ? window : global
 const {platform} = process
 const isDarwin = platform === 'darwin'
-const isWindows = platform === 'win32'
-const isLinux = platform === 'linux'
-
-const remote: {
-  process: {pid: number}
-  dialog: typeof dialog
-  app: typeof app
-  getCurrentWindow: () => BrowserWindow
-} = require(isRenderer ? '@electron/remote' : '@electron/remote/main')
 
 const darwinCopyToKBFSTempUploadFile = isDarwin
   ? async (originalFilePath: string) => {
@@ -93,76 +88,7 @@ const darwinCopyToChatTempUploadFile = isDarwin
       throw new Error('unsupported platform')
     }
 
-// Expose native file picker to components.
-// Improved experience over HTML <input type='file' />
-const showOpenDialog = async (opts: KBElectronOpenDialogOptions) => {
-  try {
-    const {
-      title,
-      message,
-      buttonLabel,
-      allowDirectories,
-      allowFiles,
-      allowMultiselect,
-      defaultPath,
-      filters,
-    } = opts
-    // If on Windows or Linux and allowDirectories, prefer allowDirectories.
-    // Can't have both openFile and openDirectory on Windows/Linux
-    // Source: https://www.electronjs.org/docs/api/dialog#dialogshowopendialogbrowserwindow-options
-    const windowsOrLinux = isWindows || isLinux
-    const canAllowFiles = allowDirectories && windowsOrLinux ? false : allowFiles ?? true
-    const allowedProperties = [
-      ...(canAllowFiles ? ['openFile' as const] : []),
-      ...(allowDirectories ? ['openDirectory' as const] : []),
-      ...(allowMultiselect ? ['multiSelections' as const] : []),
-    ]
-    const allowedOptions = {
-      buttonLabel,
-      defaultPath,
-      filters,
-      message,
-      properties: allowedProperties,
-      title,
-    }
-    const result = await remote.dialog.showOpenDialog(remote.getCurrentWindow(), allowedOptions)
-    if (!result) return
-    if (result.canceled) return
-    return result.filePaths
-  } catch (err) {
-    console.warn('Electron failed to launch showOpenDialog')
-    return
-  }
-}
-
-const showSaveDialog = async (opts: KBElectronSaveDialogOptions) => {
-  try {
-    const {title, message, buttonLabel, defaultPath} = opts
-    const allowedProperties = ['showOverwriteConfirmation' as const]
-    const allowedOptions = {
-      buttonLabel,
-      defaultPath,
-      message,
-      properties: allowedProperties,
-      title,
-    }
-    const result = await remote.dialog.showSaveDialog(remote.getCurrentWindow(), allowedOptions)
-    if (!result) return
-    if (result.canceled) return
-    return result.filePath
-  } catch (err) {
-    console.warn('Electron failed to launch showSaveDialog')
-    return
-  }
-}
-
 target.KB = {
-  electron: {
-    dialog: {
-      showOpenDialog,
-      showSaveDialog,
-    },
-  },
   kb: {
     darwinCopyToChatTempUploadFile,
     darwinCopyToKBFSTempUploadFile,
@@ -182,6 +108,18 @@ if (isRenderer) {
           isRenderer: true,
         },
         functions: {
+          showOpenDialog: async (options?: OpenDialogOptions) => {
+            return (await Electron.ipcRenderer.invoke('KBkeybase', {
+              payload: options,
+              type: 'showOpenDialog',
+            })) as Array<string>
+          },
+          showSaveDialog: async (options?: SaveDialogOptions) => {
+            return (await Electron.ipcRenderer.invoke('KBkeybase', {
+              payload: options,
+              type: 'showSaveDialog',
+            })) as string
+          },
           winCheckRPCOwnership: async () => {
             const res = (await Electron.ipcRenderer.invoke('KBkeybase', {
               type: 'winCheckRPCOwnership',
