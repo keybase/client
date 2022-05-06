@@ -289,7 +289,6 @@ type Action =
       payload: {originalFilePath: string; dst: string; outboxID: string}
     }
   | {type: 'closeWindow'}
-  | {type: 'isMaximized'}
   | {type: 'minimizeWindow'}
   | {type: 'toggleMaximizeWindow'}
 
