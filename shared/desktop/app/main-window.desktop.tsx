@@ -1,5 +1,4 @@
 import URL from 'url-parse'
-import * as SafeElectron from '../../util/safe-electron.desktop'
 import * as Electron from 'electron'
 import * as ConfigGen from '../../actions/config-gen'
 import * as fs from 'fs'
@@ -130,7 +129,7 @@ const loadWindowState = () => {
       switch (darkMode) {
         case 'system':
           darkModePreference = darkMode
-          isDarkMode = SafeElectron.workingIsDarkMode()
+          isDarkMode = KB2.constants.startDarkMode
           break
         case 'alwaysDark':
           darkModePreference = darkMode

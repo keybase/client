@@ -1,5 +1,5 @@
 // implementation of KB2, requires node context! preload will proxy this with the contextBridge
-import {app} from 'electron'
+import {app, nativeTheme} from 'electron'
 import os from 'os'
 import path from 'path'
 import type {KB2} from '../../util/electron.desktop'
@@ -49,6 +49,7 @@ const kb2: KB2 = {
     isRenderer: process.type === 'renderer',
     pathSep,
     platform,
+    startDarkMode: nativeTheme.shouldUseDarkColors,
     windowsBinPath: path.resolve(env.LOCALAPPDATA ?? '', 'Keybase', 'keybase.exe'),
   },
   functions: {}, // these are filled in preload

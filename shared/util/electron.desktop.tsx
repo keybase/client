@@ -37,6 +37,7 @@ export type KB2 = {
     isRenderer: boolean
     pathSep: '/' | '\\'
     platform: 'win32' | 'darwin' | 'linux'
+    startDarkMode: boolean
     windowsBinPath: string
   }
   functions: {

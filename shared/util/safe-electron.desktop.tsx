@@ -3,7 +3,7 @@
 import * as Electron from 'electron'
 import KB2 from './electron.desktop'
 
-const {isRenderer, platform} = KB2.constants
+const {isRenderer} = KB2.constants
 const remote = isRenderer ? require('@electron/remote') : null
 
 // Main thread only, proxy through remote
@@ -13,13 +13,6 @@ export const getApp = () => {
     throw new Error('Should be impossible')
   }
   return app
-}
-
-// some kind of electron bug
-// https://github.com/electron/electron/issues/19125
-export const workingIsDarkMode = () => {
-  const isDarwin = platform === 'darwin'
-  return isDarwin && getSystemPreferences().getUserDefault('AppleInterfaceStyle', 'string') == 'Dark'
 }
 
 export const getSystemPreferences = () => {

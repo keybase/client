@@ -315,6 +315,9 @@ const winCheckRPCOwnership = async () => {
 }
 
 const plumbEvents = () => {
+  Electron.nativeTheme.on('updated', () => {
+    mainWindowDispatch(ConfigGen.createSetSystemDarkMode({dark: Electron.nativeTheme.shouldUseDarkColors}))
+  })
   Electron.ipcMain.handle('KBdispatchAction', (_: any, action: any) => {
     mainWindow?.webContents.send('KBdispatchAction', action)
   })

@@ -73,6 +73,7 @@ declare var KB: {
       outboxID: Buffer
       path: string
     }>
+    // not needed if the above move over
     setEngine: (e: any) => void
   }
 }

@@ -8,7 +8,6 @@ import {mainWindowDispatch, getMainWindow} from '../remote/util.desktop'
 import {menubar} from 'menubar'
 import {showDevTools, skipSecondaryDevtools} from '../../local-debug.desktop'
 import getIcons from '../../menubar/icons'
-import {workingIsDarkMode} from '../../util/safe-electron.desktop'
 import os from 'os'
 import {assetRoot, htmlPrefix} from './html-root.desktop'
 
@@ -17,7 +16,7 @@ const htmlFile = `${htmlPrefix}${assetRoot}menubar${__DEV__ ? '.dev' : ''}.html?
 // support dynamic dark mode system bar in big sur
 const useImageTemplate = os.platform() === 'darwin' && parseInt(os.release().split('.')[0], 10) >= 20
 
-let iconPath = getIcons('regular', false, workingIsDarkMode())
+let iconPath = getIcons('regular', false, Electron.nativeTheme.shouldUseDarkColors)
 // only use imageTemplate if its not badged, else we lose the orange
 let iconPathIsBadged = false
 
