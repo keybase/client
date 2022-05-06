@@ -60,6 +60,7 @@ export type KB2 = {
     windowsBinPath: string
   }
   functions: {
+    activeChanged?: (changedAtMs: number, isUserActive: boolean) => void
     closeWindow?: () => void
     hideWindow?: () => void
     darwinCopyToChatTempUploadFile?: (originalFilePath: string) => Promise<{outboxID: Buffer; path: string}>
@@ -70,6 +71,7 @@ export type KB2 = {
     showSaveDialog?: (options?: SaveDialogOptions) => Promise<string>
     showTray?: (desktopAppBadgeCount: number, icon: string) => void
     showInactive?: () => void
+    showMainWindow?: () => void
     toggleMaximizeWindow?: () => void
     winCheckRPCOwnership?: () => Promise<void>
   }

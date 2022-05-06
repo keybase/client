@@ -29,15 +29,18 @@ if (isRenderer) {
           isRenderer: true,
         },
         functions: {
-          closeWindow: () => {
+          activeChanged: (changedAtMs: number, isUserActive: boolean) => {
             Electron.ipcRenderer
-              .invoke('KBkeybase', {type: 'closeWindow'})
+              .invoke('KBkeybase', {
+                payload: {changedAtMs, isUserActive},
+                type: 'activeChanged',
+              })
               .then(() => {})
               .catch(() => {})
           },
-          hideWindow: () => {
+          closeWindow: () => {
             Electron.ipcRenderer
-              .invoke('KBkeybase', {type: 'hideWindow'})
+              .invoke('KBkeybase', {type: 'closeWindow'})
               .then(() => {})
               .catch(() => {})
           },
@@ -99,6 +102,12 @@ if (isRenderer) {
               type: 'darwinCopyToKBFSTempUploadFile',
             })) as string
           },
+          hideWindow: () => {
+            Electron.ipcRenderer
+              .invoke('KBkeybase', {type: 'hideWindow'})
+              .then(() => {})
+              .catch(() => {})
+          },
           minimizeWindow: () => {
             Electron.ipcRenderer
               .invoke('KBkeybase', {type: 'minimizeWindow'})
@@ -114,6 +123,12 @@ if (isRenderer) {
           showInactive: () => {
             Electron.ipcRenderer
               .invoke('KBkeybase', {type: 'showInactive'})
+              .then(() => {})
+              .catch(() => {})
+          },
+          showMainWindow: () => {
+            Electron.ipcRenderer
+              .invoke('KBkeybase', {type: 'showMainWindow'})
               .then(() => {})
               .catch(() => {})
           },

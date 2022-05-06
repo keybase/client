@@ -19,6 +19,8 @@ import {_getNavigator} from '../../constants/router2'
 import type {RPCError} from 'util/errors'
 import KB2 from '../../util/electron.desktop'
 
+const {showMainWindow, activeChanged} = KB2.functions
+
 export function showShareActionSheet() {
   throw new Error('Show Share Action - unsupported on this platform')
 }
@@ -26,13 +28,6 @@ export async function saveAttachmentToCameraRoll() {
   return new Promise((_, rej) =>
     rej(new Error('Save Attachment to camera roll - unsupported on this platform'))
   )
-}
-
-const showMainWindow = () => {
-  Electron.ipcRenderer
-    .invoke('KBkeybase', {type: 'showMainWindow'})
-    .then(() => {})
-    .catch(() => {})
 }
 
 export function displayNewMessageNotification() {
@@ -81,13 +76,7 @@ function* initializeInputMonitor(): Iterable<any> {
       const userActive = type === 'active'
       yield Saga.put(ConfigGen.createChangedActive({userActive}))
       // let node thread save file
-      Electron.ipcRenderer
-        .invoke('KBkeybase', {
-          payload: {changedAtMs: Date.now(), isUserActive: userActive},
-          type: 'activeChanged',
-        })
-        .then(() => {})
-        .catch(() => {})
+      activeChanged?.(Date.now(), userActive)
     }
   }
 }
@@ -424,7 +413,7 @@ function* checkNav(
 export function* platformConfigSaga() {
   yield* Saga.chainAction2(ConfigGen.setOpenAtLogin, setOpenAtLogin)
   yield* Saga.chainAction2(ConfigGen.setNotifySound, setNotifySound)
-  yield* Saga.chainAction2(ConfigGen.showMain, showMainWindow)
+  yield* Saga.chainAction2(ConfigGen.showMain, () => showMainWindow?.())
   yield* Saga.chainAction(ConfigGen.dumpLogs, dumpLogs)
   getEngine().registerCustomResponse('keybase.1.logsend.prepareLogsend')
   yield* Saga.chainAction(EngineGen.keybase1LogsendPrepareLogsend, prepareLogSend)
