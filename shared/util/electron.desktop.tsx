@@ -63,6 +63,7 @@ export type KB2 = {
     winCheckRPCOwnership?: () => Promise<void>
     showOpenDialog?: (options?: OpenDialogOptions) => Promise<Array<string>>
     showSaveDialog?: (options?: SaveDialogOptions) => Promise<string>
+    darwinCopyToKBFSTempUploadFile?: (originalFilePath: string) => Promise<string>
   }
 }
 

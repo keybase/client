@@ -1,6 +1,4 @@
-import path from 'path'
 import * as Electron from 'electron'
-// @ts-ignore strict
 import fse from 'fs-extra'
 import type {Engine, WaitingKey} from '../../engine'
 import type {RPCError} from '../../util/errors'
@@ -17,29 +15,6 @@ const isRenderer = process.type === 'renderer'
 const target = isRenderer ? window : global
 const {platform} = process
 const isDarwin = platform === 'darwin'
-
-const darwinCopyToKBFSTempUploadFile = isDarwin
-  ? async (originalFilePath: string) => {
-      const simpleFSSimpleFSMakeTempDirForUploadRpcPromise = async () =>
-        new Promise<FsMessageTypes['keybase.1.SimpleFS.simpleFSMakeTempDirForUpload']['outParam']>(
-          (resolve, reject) => {
-            if (!engine) {
-              throw new Error('Preload missing engine')
-            }
-            engine._rpcOutgoing({
-              callback: (error: RPCError | null, result: string) => (error ? reject(error) : resolve(result)),
-              method: 'keybase.1.SimpleFS.simpleFSMakeTempDirForUpload',
-            })
-          }
-        )
-      const dir = await simpleFSSimpleFSMakeTempDirForUploadRpcPromise()
-      const dst = path.join(dir, path.basename(originalFilePath))
-      await fse.copy(originalFilePath, dst)
-      return dst
-    }
-  : () => {
-      throw new Error('unsupported platform')
-    }
 
 const generateOutboxID = () => Buffer.from([...Array(8)].map(() => Math.floor(Math.random() * 256)))
 
@@ -91,7 +66,6 @@ const darwinCopyToChatTempUploadFile = isDarwin
 target.KB = {
   kb: {
     darwinCopyToChatTempUploadFile,
-    darwinCopyToKBFSTempUploadFile,
     setEngine,
   },
 }
@@ -108,6 +82,26 @@ if (isRenderer) {
           isRenderer: true,
         },
         functions: {
+          darwinCopyToKBFSTempUploadFile: async (originalFilePath: string) => {
+            const simpleFSSimpleFSMakeTempDirForUploadRpcPromise = async () =>
+              new Promise<FsMessageTypes['keybase.1.SimpleFS.simpleFSMakeTempDirForUpload']['outParam']>(
+                (resolve, reject) => {
+                  if (!engine) {
+                    throw new Error('Preload missing engine')
+                  }
+                  engine._rpcOutgoing({
+                    callback: (error: RPCError | null, result: string) =>
+                      error ? reject(error) : resolve(result),
+                    method: 'keybase.1.SimpleFS.simpleFSMakeTempDirForUpload',
+                  })
+                }
+              )
+            const dir = await simpleFSSimpleFSMakeTempDirForUploadRpcPromise()
+            return (await Electron.ipcRenderer.invoke('KBkeybase', {
+              payload: {dir, originalFilePath},
+              type: 'darwinCopyToKBFSTempUploadFile',
+            })) as string
+          },
           showOpenDialog: async (options?: OpenDialogOptions) => {
             return (await Electron.ipcRenderer.invoke('KBkeybase', {
               payload: options,

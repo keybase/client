@@ -41,7 +41,7 @@ interface Console {
 // TODO deprecate
 declare var KB: {
   kb: {
-    darwinCopyToKBFSTempUploadFile: (p: string) => Promise<string>
+    // darwinCopyToKBFSTempUploadFile: (p: string) => Promise<string>
     darwinCopyToChatTempUploadFile: (p: string) => Promise<{
       outboxID: Buffer
       path: string

@@ -11,6 +11,7 @@ import menuHelper from './menu-helper.desktop'
 import os from 'os'
 import fs from 'fs'
 import path from 'path'
+import fse from 'fs-extra'
 import {execFile} from 'child_process'
 import * as ConfigGen from '../../actions/config-gen'
 import * as DeeplinksGen from '../../actions/deeplinks-gen'
@@ -280,8 +281,9 @@ type Action =
   | {type: 'showMainWindow'}
   | {type: 'setupPreloadKB2'}
   | {type: 'winCheckRPCOwnership'}
-  | {type: 'showOpenDialog'; payload: OpenDialogOptions}
-  | {type: 'showSaveDialog'; payload: SaveDialogOptions}
+  | {type: 'showOpenDialog'; payload: {options: OpenDialogOptions}}
+  | {type: 'showSaveDialog'; payload: {options: SaveDialogOptions}}
+  | {type: 'darwinCopyToKBFSTempUploadFile'; payload: {originalFilePath: string; dir: string}}
 
 const remoteURL = (windowComponent: string, windowParam: string) =>
   `${htmlPrefix}${assetRoot}${windowComponent}${__DEV__ ? '.dev' : ''}.html?param=${windowParam}`
@@ -375,6 +377,15 @@ const showSaveDialog = async (opts: SaveDialogOptions) => {
   }
 }
 
+const darwinCopyToKBFSTempUploadFile = async (options: {originalFilePath: string; dir: string}) => {
+  if (!isDarwin) {
+    throw new Error('unsupported platform')
+  }
+  const dst = path.join(options.dir, path.basename(options.originalFilePath))
+  await fse.copy(options.originalFilePath, dst)
+  return dst
+}
+
 const plumbEvents = () => {
   Electron.nativeTheme.on('updated', () => {
     mainWindowDispatch(ConfigGen.createSetSystemDarkMode({dark: Electron.nativeTheme.shouldUseDarkColors}))
@@ -385,18 +396,23 @@ const plumbEvents = () => {
 
   Electron.ipcMain.handle('KBkeybase', async (_event, action: Action) => {
     switch (action.type) {
+      case 'darwinCopyToKBFSTempUploadFile': {
+        try {
+          return await darwinCopyToKBFSTempUploadFile(action.payload)
+        } catch {
+          return ''
+        }
+      }
       case 'showOpenDialog': {
         try {
-          const res = await showOpenDialog(action.payload)
-          return res
+          return await showOpenDialog(action.payload.options)
         } catch {
           return []
         }
       }
       case 'showSaveDialog': {
         try {
-          const res = await showSaveDialog(action.payload)
-          return res
+          return await showSaveDialog(action.payload.options)
         } catch {
           return []
         }

@@ -7,7 +7,6 @@ const invalidPreload = () => {
 global.KB = {
   kb: {
     darwinCopyToChatTempUploadFile: () => invalidPreload(),
-    darwinCopyToKBFSTempUploadFile: () => invalidPreload(),
     setEngine: () => {},
   },
 }
