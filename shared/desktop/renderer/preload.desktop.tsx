@@ -32,6 +32,9 @@ if (isRenderer) {
           closeWindow: async () => {
             await Electron.ipcRenderer.invoke('KBkeybase', {type: 'closeWindow'})
           },
+          hideWindow: async () => {
+            await Electron.ipcRenderer.invoke('KBkeybase', {type: 'hideWindow'})
+          },
           darwinCopyToChatTempUploadFile: async (originalFilePath: string) => {
             if (!isDarwin) {
               throw new Error('Unsupported platform')
@@ -95,6 +98,9 @@ if (isRenderer) {
           },
           openURL: async (url: string) => {
             await Electron.ipcRenderer.invoke('KBkeybase', {payload: {url}, type: 'openURL'})
+          },
+          showInactive: async () => {
+            await Electron.ipcRenderer.invoke('KBkeybase', {type: 'showInactive'})
           },
           showOpenDialog: async (options?: OpenDialogOptions) => {
             return (await Electron.ipcRenderer.invoke('KBkeybase', {

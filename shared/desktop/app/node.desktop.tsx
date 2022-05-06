@@ -292,6 +292,8 @@ type Action =
   | {type: 'minimizeWindow'}
   | {type: 'toggleMaximizeWindow'}
   | {type: 'openURL'; payload: {url: string}}
+  | {type: 'showInactive'}
+  | {type: 'hideWindow'}
 
 const remoteURL = (windowComponent: string, windowParam: string) =>
   `${htmlPrefix}${assetRoot}${windowComponent}${__DEV__ ? '.dev' : ''}.html?param=${windowParam}`
@@ -407,7 +409,7 @@ const plumbEvents = () => {
     mainWindow?.webContents.send('KBdispatchAction', action)
   })
 
-  Electron.ipcMain.handle('KBkeybase', async (_event, action: Action) => {
+  Electron.ipcMain.handle('KBkeybase', async (event, action: Action) => {
     switch (action.type) {
       case 'openURL': {
         Electron.shell
@@ -416,8 +418,16 @@ const plumbEvents = () => {
           .catch(() => {})
         return
       }
+      case 'showInactive': {
+        Electron.BrowserWindow.fromWebContents(event.sender)?.showInactive()
+        return
+      }
+      case 'hideWindow': {
+        Electron.BrowserWindow.fromWebContents(event.sender)?.hide()
+        return
+      }
       case 'closeWindow': {
-        Electron.BrowserWindow.getFocusedWindow()?.close()
+        Electron.BrowserWindow.fromWebContents(event.sender)?.close()
         return
       }
       case 'minimizeWindow': {

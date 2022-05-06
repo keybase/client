@@ -1,5 +1,4 @@
 import * as React from 'react'
-import * as remote from '@electron/remote'
 import * as ConfigGen from '../actions/config-gen'
 import * as Container from '../util/container'
 import * as FsConstants from '../constants/fs'
@@ -12,15 +11,14 @@ import * as Types from '../constants/types/fs'
 import Menubar from './index.desktop'
 import openUrl from '../util/open-url'
 import throttle from 'lodash/throttle'
-import {DeserializeProps} from './remote-serializer.desktop'
+import type {DeserializeProps} from './remote-serializer.desktop'
 import {createOpenPopup as createOpenRekeyPopup} from '../actions/unlock-folders-gen'
 import {isWindows, isDarwin, isLinux} from '../constants/platform'
 import {quit} from '../desktop/app/ctl.desktop'
 import {urlHelper} from '../util/url-helper'
+import KB2 from '../util/electron.desktop'
 
-const hideWindow = () => {
-  remote.getCurrentWindow().hide()
-}
+const {hideWindow} = KB2.functions
 
 const RemoteContainer = () => {
   const state = Container.useRemoteStore<DeserializeProps>()
@@ -47,7 +45,9 @@ const RemoteContainer = () => {
       onHideDiskSpaceBanner={() => dispatch(FsGen.createShowHideDiskSpaceBanner({show: false}))}
       onRekey={() => {
         dispatch(createOpenRekeyPopup())
-        hideWindow()
+        hideWindow?.()
+          .then(() => {})
+          .catch(() => {})
       }}
       openApp={(tab?: Tabs.AppTab) => {
         dispatch(ConfigGen.createShowMain())
@@ -62,7 +62,9 @@ const RemoteContainer = () => {
           }
         }
         // In case dump log doesn't exit for us
-        hideWindow()
+        hideWindow?.()
+          .then(() => {})
+          .catch(() => {})
         setTimeout(() => {
           quit()
         }, 2000)
@@ -70,18 +72,18 @@ const RemoteContainer = () => {
       refreshUserFileEdits={throttle(() => dispatch(FsGen.createUserFileEditsLoad()), 1000 * 5)}
       showBug={() => {
         const version = __VERSION__
-        remote.shell.openExternal(
+        openUrl(
           `https://github.com/keybase/client/issues/new?body=Keybase%20GUI%20Version:%20${encodeURIComponent(
             version
           )}`
         )
-          .then(() => {})
-          .catch(() => {})
       }}
       showHelp={() => {
         const link = urlHelper('help')
         link && openUrl(link)
-        hideWindow()
+        hideWindow?.()
+          .then(() => {})
+          .catch(() => {})
       }}
       showInFinder={() => dispatch(FsGen.createOpenPathInSystemFileManager({path: FsConstants.defaultPath}))}
       updateNow={isWindows || isDarwin ? () => dispatch(ConfigGen.createUpdateNow()) : undefined}
