@@ -11,11 +11,12 @@ import menuHelper from './menu-helper.desktop'
 import os from 'os'
 import fs from 'fs'
 import path from 'path'
+import {execFile} from 'child_process'
 import * as ConfigGen from '../../actions/config-gen'
 import * as DeeplinksGen from '../../actions/deeplinks-gen'
 import {showDevTools, skipSecondaryDevtools, allowMultipleInstances} from '../../local-debug.desktop'
 import startWinService from './start-win-service.desktop'
-import {isDarwin, isLinux, isWindows, cacheRoot} from '../../constants/platform.desktop'
+import {isDarwin, isLinux, isWindows, cacheRoot, socketPath} from '../../constants/platform.desktop'
 import {isPathSaltpack} from '../../constants/crypto'
 import {mainWindowDispatch} from '../remote/util.desktop'
 import {quit} from './ctl.desktop'
@@ -278,6 +279,7 @@ type Action =
     }
   | {type: 'showMainWindow'}
   | {type: 'setupPreloadKB2'}
+  | {type: 'winCheckRPCOwnership'}
 
 const remoteURL = (windowComponent: string, windowParam: string) =>
   `${htmlPrefix}${assetRoot}${windowComponent}${__DEV__ ? '.dev' : ''}.html?param=${windowParam}`
@@ -290,6 +292,28 @@ const findRemoteComponent = (windowComponent: string, windowParam: string) => {
   })
 }
 
+const winCheckRPCOwnership = async () => {
+  const localAppData = String(env.LOCALAPPDATA)
+  const binPath = localAppData ? path.resolve(localAppData, 'Keybase', 'keybase.exe') : 'keybase.exe'
+  const args = ['pipeowner', socketPath]
+  return new Promise<void>((resolve, reject) => {
+    execFile(binPath, args, {windowsHide: true}, (error, stdout) => {
+      if (error) {
+        logger.info(`pipeowner check result: ${stdout.toString()}`)
+        reject(error)
+        return
+      }
+      const result = JSON.parse(stdout.toString())
+      if (result.isOwner) {
+        resolve(undefined)
+        return
+      }
+      logger.info(`pipeowner check result: ${stdout.toString()}`)
+      reject(new Error('pipeowner check failed'))
+    })
+  })
+}
+
 const plumbEvents = () => {
   Electron.ipcMain.handle('KBdispatchAction', (_: any, action: any) => {
     mainWindow?.webContents.send('KBdispatchAction', action)
@@ -297,6 +321,8 @@ const plumbEvents = () => {
 
   Electron.ipcMain.handle('KBkeybase', (_event, action: Action) => {
     switch (action.type) {
+      case 'winCheckRPCOwnership':
+        return winCheckRPCOwnership()
       case 'setupPreloadKB2':
         return KB2
       case 'showMainWindow':

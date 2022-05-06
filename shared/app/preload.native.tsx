@@ -21,7 +21,4 @@ global.KB = {
     darwinCopyToKBFSTempUploadFile: () => invalidPreload(),
     setEngine: () => {},
   },
-  path: {
-    resolve: invalidPreload,
-  },
 }

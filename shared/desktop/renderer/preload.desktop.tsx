@@ -171,9 +171,11 @@ target.KB = {
     darwinCopyToKBFSTempUploadFile,
     setEngine,
   },
-  path: {
-    resolve: path.resolve,
-  },
+}
+
+if (isRenderer) {
+  target.winCheckRPCOwnership = async () =>
+    Electron.ipcRenderer.invoke('KBkeybase', {type: 'winCheckRPCOwnership'})
 }
 
 // TODO contextBridge

@@ -47,6 +47,7 @@ interface Window {
   DEBUGLogSagasWithNames: any
   DEBUGRootEffects: any
   KB: typeof KB
+  winCheckRPCOwnership: typeof winCheckRPCOwnership
 }
 
 interface Console {
@@ -75,10 +76,9 @@ declare var KB: {
     }>
     setEngine: (e: any) => void
   }
-  path: {
-    resolve: (...pathSegments: Array<string>) => string
-  }
 }
+
+declare var winCheckRPCOwnership: () => Promise<void>
 
 declare namespace NodeJS {
   interface Global {
@@ -94,5 +94,6 @@ declare namespace NodeJS {
     DEBUGStore: any
     globalLogger: any
     KB: typeof KB
+    winCheckRPCOwnership: typeof winCheckRPCOwnership
   }
 }

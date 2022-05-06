@@ -20,8 +20,7 @@ import logger from '../../logger'
 import {spawn, execFile, exec} from 'child_process'
 import {errorToActionOrThrow} from './shared'
 import * as RouteTreeGen from '../route-tree-gen'
-
-const {path} = KB
+import * as Path from '../../util/path'
 
 type pathType = 'file' | 'directory'
 
@@ -127,7 +126,7 @@ const escapeBackslash = isWindows
   : (pathElem: string): string => pathElem
 
 const _rebaseKbfsPathToMountLocation = (kbfsPath: Types.Path, mountLocation: string) =>
-  path.resolve(mountLocation, Types.getPathElements(kbfsPath).slice(1).map(escapeBackslash).join(pathSep))
+  Path.join(mountLocation, Types.getPathElements(kbfsPath).slice(1).map(escapeBackslash).join(pathSep))
 
 const openPathInSystemFileManager = async (
   state: TypedState,
