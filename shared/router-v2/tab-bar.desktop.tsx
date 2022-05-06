@@ -1,5 +1,4 @@
 import './tab-bar.css'
-import * as remote from '@electron/remote'
 import * as ConfigGen from '../actions/config-gen'
 import * as LoginGen from '../actions/login-gen'
 import * as Container from '../util/container'
@@ -24,6 +23,9 @@ import HiddenString from '../util/hidden-string'
 import openURL from '../util/open-url'
 import {isLinux} from '../constants/platform'
 import {quit} from '../desktop/app/ctl.desktop'
+import KB2 from '../util/electron.desktop'
+
+const {hideWindow} = KB2.functions
 
 export type Props = {
   navigation: any
@@ -61,7 +63,9 @@ const Header = () => {
       }
     }
     // In case dump log doesn't exit for us
-    remote.getCurrentWindow().hide()
+    hideWindow?.()
+      .then(() => {})
+      .catch(() => {})
     setTimeout(() => {
       quit()
     }, 2000)
