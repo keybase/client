@@ -4,12 +4,15 @@ import * as Chat2Gen from '../../actions/chat2-gen'
 import * as Electron from 'electron'
 import logger from '../../logger'
 import {isDarwin, isWindows, isLinux, getAssetPath} from '../../constants/platform.desktop'
-import {mainWindowDispatch, getMainWindow} from '../remote/util.desktop'
 import {menubar} from 'menubar'
 import {showDevTools, skipSecondaryDevtools} from '../../local-debug.desktop'
+import {getMainWindow} from './main-window.desktop'
 import getIcons from '../../menubar/icons'
 import os from 'os'
 import {assetRoot, htmlPrefix} from './html-root.desktop'
+import KB2 from '../../util/electron.desktop'
+
+const {mainWindowDispatch} = KB2.functions
 
 const htmlFile = `${htmlPrefix}${assetRoot}menubar${__DEV__ ? '.dev' : ''}.html?param=menubar`
 

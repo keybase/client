@@ -16,7 +16,7 @@ export const extname = (path: string) => {
     return ''
   }
 
-  return last.substring(idx + 1)
+  return last.substring(idx)
 }
 
 export const basename = (path: string, extname: string) => {

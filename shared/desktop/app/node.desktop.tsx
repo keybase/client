@@ -2,7 +2,7 @@
 // MUST be first
 import '../renderer/preload.desktop'
 // ^^^^^^^^
-import MainWindow, {showDockIcon, closeWindows} from './main-window.desktop'
+import MainWindow, {showDockIcon, closeWindows, getMainWindow} from './main-window.desktop'
 import * as Electron from 'electron'
 import devTools from './dev-tools.desktop'
 import installer from './installer.desktop'
@@ -19,13 +19,13 @@ import {showDevTools, skipSecondaryDevtools, allowMultipleInstances} from '../..
 import startWinService from './start-win-service.desktop'
 import {isDarwin, isLinux, isWindows, cacheRoot, socketPath} from '../../constants/platform.desktop'
 import {isPathSaltpack} from '../../constants/crypto'
-import {mainWindowDispatch, getMainWindow} from '../remote/util.desktop'
 import {quit} from './ctl.desktop'
 import logger from '../../logger'
 import {assetRoot, htmlPrefix} from './html-root.desktop'
 import KB2, {type OpenDialogOptions, type SaveDialogOptions} from '../../util/electron.desktop'
 
 const {env} = KB2.constants
+const {mainWindowDispatch} = KB2.functions
 
 require('@electron/remote/main').initialize()
 
@@ -478,7 +478,7 @@ const plumbEvents = () => {
         }
       }
       case 'setupPreloadKB2':
-        return KB2
+        return KB2.constants
       case 'showMainWindow':
         {
           mainWindow?.show()

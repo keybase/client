@@ -2,12 +2,14 @@
 // This acts as a fake store for remote windows
 // On the main window we plumb through our props and we 'mirror' the props using this helper
 // We start up and send an action to the main window which then sends us 'props'
-import * as Electron from 'electron'
+import type * as Electron from 'electron'
 import * as remote from '@electron/remote'
-import {mainWindowDispatch} from './util.desktop'
-import {createStore, applyMiddleware, Store} from 'redux'
-import {TypedActions} from '../../actions/typed-actions-gen'
+import {createStore, applyMiddleware, type Store} from 'redux'
+import type {TypedActions} from '../../actions/typed-actions-gen'
 import * as ConfigGen from '../../actions/config-gen'
+import KB2 from '../../util/electron.desktop'
+
+const {mainWindowDispatch} = KB2.functions
 
 const updateStore = 'remoteStore:update'
 // Special action that's not sent

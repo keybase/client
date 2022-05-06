@@ -2,6 +2,7 @@
 // instead of having a lot of async logic getting some static values we instead wait to load these values on start before we
 // start drawing. If you need access to these values you need to call `waitOnKB2Loaded`
 // the electron preload scripts will create kb2 on the node side and plumb it back and then call `injectPreload`
+import type {TypedActions} from '../actions/typed-actions-gen'
 
 export type OpenDialogOptions = {
   allowFiles?: boolean
@@ -63,6 +64,8 @@ export type KB2 = {
     activeChanged?: (changedAtMs: number, isUserActive: boolean) => void
     closeWindow?: () => void
     hideWindow?: () => void
+    // defined for both always
+    mainWindowDispatch: (action: TypedActions) => void
     darwinCopyToChatTempUploadFile?: (originalFilePath: string) => Promise<{outboxID: Buffer; path: string}>
     darwinCopyToKBFSTempUploadFile?: (originalFilePath: string) => Promise<string>
     minimizeWindow?: () => void

@@ -115,11 +115,9 @@ export const backgroundURL = (...to: Array<string>) => {
     const ext = Path.extname(last)
     goodPath[goodPath.length - 1] = Path.basename(last, ext)
     const guiModePath = `${isDarkMode() ? 'dark-' : ''}${goodPath}`
-
     const images = [1, 2, 3].map(
       mult => `url('${getAssetPath('images', guiModePath)}${mult === 1 ? '' : `@${mult}x`}${ext}') ${mult}x`
     )
-
     return `-webkit-image-set(${images.join(', ')})`
   }
 

@@ -3,6 +3,7 @@ import type {WaitingKey} from '../../engine'
 import type {RPCError} from '../../util/errors'
 import type {MessageTypes as FsMessageTypes} from '../../constants/types/rpc-gen'
 import type {MessageTypes as ChatMessageTypes} from '../../constants/types/rpc-chat-gen'
+import type {TypedActions} from '../../actions/typed-actions-gen'
 import {
   injectPreload,
   type KB2,
@@ -21,10 +22,10 @@ const getEngine = () => {
 if (isRenderer) {
   Electron.ipcRenderer
     .invoke('KBkeybase', {type: 'setupPreloadKB2'})
-    .then((kb2impl: KB2) => {
+    .then((kb2consts: KB2['constants']) => {
       injectPreload({
         constants: {
-          ...kb2impl.constants,
+          ...kb2consts,
           // kb2impl is from node's perspective so isRenderer is incorrect for the other side
           isRenderer: true,
         },
@@ -108,6 +109,12 @@ if (isRenderer) {
               .then(() => {})
               .catch(() => {})
           },
+          mainWindowDispatch: (action: TypedActions) => {
+            Electron.ipcRenderer
+              .invoke('KBdispatchAction', action)
+              .then(() => {})
+              .catch(() => {})
+          },
           minimizeWindow: () => {
             Electron.ipcRenderer
               .invoke('KBkeybase', {type: 'minimizeWindow'})
@@ -174,6 +181,19 @@ if (isRenderer) {
       throw e
     })
 } else {
-  const impl = require('../app/kb2-impl.desktop').default
-  injectPreload(impl)
+  const kb2consts = require('../app/kb2-impl.desktop').default
+  const getMainWindow = (): Electron.BrowserWindow | null => {
+    const w = require('electron')
+      .BrowserWindow.getAllWindows()
+      .find(w => w.webContents.getURL().includes('/main.'))
+    return w || null
+  }
+  injectPreload({
+    constants: kb2consts,
+    functions: {
+      mainWindowDispatch: (action: TypedActions) => {
+        getMainWindow()?.webContents.send('KBdispatchAction', action)
+      },
+    },
+  })
 }

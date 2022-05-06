@@ -3,7 +3,6 @@ import * as Electron from 'electron'
 import * as ConfigGen from '../../actions/config-gen'
 import * as fs from 'fs'
 import menuHelper from './menu-helper.desktop'
-import {mainWindowDispatch} from '../remote/util.desktop'
 import type {WindowState} from '../../constants/types/config'
 import {showDevTools} from '../../local-debug.desktop'
 import {guiConfigFilename, isDarwin, isWindows, defaultUseNativeFrame} from '../../constants/platform.desktop'
@@ -14,6 +13,8 @@ import {assetRoot, htmlPrefix} from './html-root.desktop'
 import KB2 from '../../util/electron.desktop'
 
 const {env} = KB2.constants
+const {mainWindowDispatch} = KB2.functions
+
 let htmlFile = `${htmlPrefix}${assetRoot}main${__DEV__ ? '.dev' : ''}.html`
 
 const setupDefaultSession = () => {
@@ -330,4 +331,9 @@ export default () => {
 
   setupWindowEvents(win)
   return win
+}
+
+export const getMainWindow = (): Electron.BrowserWindow | null => {
+  const w = Electron.BrowserWindow.getAllWindows().find(w => w.webContents.getURL().includes('/main.'))
+  return w || null
 }
