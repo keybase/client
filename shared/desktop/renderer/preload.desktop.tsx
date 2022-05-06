@@ -1,5 +1,5 @@
 import * as Electron from 'electron'
-import type {Engine, WaitingKey} from '../../engine'
+import type {WaitingKey} from '../../engine'
 import type {RPCError} from '../../util/errors'
 import type {MessageTypes as FsMessageTypes} from '../../constants/types/rpc-gen'
 import type {MessageTypes as ChatMessageTypes} from '../../constants/types/rpc-chat-gen'
@@ -11,23 +11,10 @@ import {
 } from '../../util/electron.desktop'
 
 const isRenderer = process.type === 'renderer'
-const target = isRenderer ? window : global
-const {platform} = process
-const isDarwin = platform === 'darwin'
+const isDarwin = process.platform === 'darwin'
 
-// filled in
-let engine: Engine | null = null
-const setEngine = (e: Engine) => {
-  if (engine) {
-    throw new Error('only one engine')
-  }
-  engine = e
-}
-
-target.KB = {
-  kb: {
-    setEngine,
-  },
+const getEngine = () => {
+  return require('../../engine').getEngine()
 }
 
 // TODO contextBridge
@@ -55,10 +42,7 @@ if (isRenderer) {
             ) => {
               return new Promise<ChatMessageTypes['chat.1.local.getUploadTempFile']['outParam']>(
                 (resolve, reject) => {
-                  if (!engine) {
-                    throw new Error('Preload missing engine')
-                  }
-                  engine._rpcOutgoing({
+                  getEngine()._rpcOutgoing({
                     callback: (
                       error: RPCError | null,
                       result: ChatMessageTypes['chat.1.local.getUploadTempFile']['outParam']
@@ -90,10 +74,7 @@ if (isRenderer) {
             const simpleFSSimpleFSMakeTempDirForUploadRpcPromise = async () =>
               new Promise<FsMessageTypes['keybase.1.SimpleFS.simpleFSMakeTempDirForUpload']['outParam']>(
                 (resolve, reject) => {
-                  if (!engine) {
-                    throw new Error('Preload missing engine')
-                  }
-                  engine._rpcOutgoing({
+                  getEngine()._rpcOutgoing({
                     callback: (error: RPCError | null, result: string) =>
                       error ? reject(error) : resolve(result),
                     method: 'keybase.1.SimpleFS.simpleFSMakeTempDirForUpload',

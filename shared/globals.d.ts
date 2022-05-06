@@ -1,5 +1,4 @@
 declare var __HOT__: boolean
-declare var __REMOTEDEV__: boolean
 declare var __VERSION__: string
 declare var __STORYBOOK__: boolean
 declare var __STORYSHOT__: boolean
@@ -23,42 +22,9 @@ type RequestIdleCallbackDeadline = {
   timeRemaining: () => number
 }
 
-interface Window {
-  DEBUGEffectById: any
-  DEBUGLogSagas: any
-  DEBUGLogSagasWithNames: any
-  DEBUGRootEffects: any
-  KB: typeof KB
-}
-
 interface Console {
   _log: any
   _warn: any
   _error: any
   _info: any
-}
-
-// TODO deprecate
-declare var KB: {
-  kb: {
-    // not needed if the above move over
-    setEngine: (e: any) => void
-  }
-}
-
-declare namespace NodeJS {
-  interface Global {
-    DEBUGActionLoop: () => void
-    DEBUGEffectById: any
-    DEBUGEngine: any
-    DEBUGLoaded: boolean
-    DEBUGLogSagas: any
-    DEBUGLogSagasWithNames: any
-    DEBUGNavigator: any
-    DEBUGRootEffects: any
-    DEBUGSagaMiddleware: any
-    DEBUGStore: any
-    globalLogger: any
-    KB: typeof KB
-  }
 }
