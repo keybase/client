@@ -71,6 +71,19 @@ export type KB2 = {
     minimizeWindow?: () => void
     openURL?: (url: string) => void
     requestWindowsStartService?: () => void
+    rendererNewProps?: (options: {propsStr: string; windowComponent: string; windowParam: string}) => void
+    makeRenderer?: (options: {
+      windowComponent: string
+      windowOpts: {
+        hasShadow?: boolean
+        height: number
+        transparent?: boolean
+        width: number
+      }
+      windowParam?: string
+      windowPositionBottomRight?: boolean
+    }) => void
+    closeRenderer?: (options: {windowComponent?: string; windowParam?: string}) => void
     showOpenDialog?: (options?: OpenDialogOptions) => Promise<Array<string>>
     showSaveDialog?: (options?: SaveDialogOptions) => Promise<string>
     showTray?: (desktopAppBadgeCount: number, icon: string) => void

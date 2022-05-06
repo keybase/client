@@ -39,6 +39,19 @@ if (isRenderer) {
               .then(() => {})
               .catch(() => {})
           },
+          closeRenderer: (options: {windowComponent?: string; windowParam?: string}) => {
+            const {windowComponent, windowParam} = options
+            Electron.ipcRenderer
+              .invoke('KBkeybase', {
+                payload: {
+                  windowComponent,
+                  windowParam,
+                },
+                type: 'closeRenderer',
+              })
+              .then(() => {})
+              .catch(() => {})
+          },
           closeWindow: () => {
             Electron.ipcRenderer
               .invoke('KBkeybase', {type: 'closeWindow'})
@@ -115,6 +128,31 @@ if (isRenderer) {
               .then(() => {})
               .catch(() => {})
           },
+          makeRenderer: (options: {
+            windowComponent: string
+            windowOpts: {
+              hasShadow?: boolean
+              height: number
+              transparent?: boolean
+              width: number
+            }
+            windowParam?: string
+            windowPositionBottomRight?: boolean
+          }) => {
+            const {windowComponent, windowOpts, windowParam, windowPositionBottomRight} = options
+            Electron.ipcRenderer
+              .invoke('KBkeybase', {
+                payload: {
+                  windowComponent,
+                  windowOpts,
+                  windowParam,
+                  windowPositionBottomRight,
+                },
+                type: 'makeRenderer',
+              })
+              .then(() => {})
+              .catch(() => {})
+          },
           minimizeWindow: () => {
             Electron.ipcRenderer
               .invoke('KBkeybase', {type: 'minimizeWindow'})
@@ -124,6 +162,16 @@ if (isRenderer) {
           openURL: (url: string) => {
             Electron.ipcRenderer
               .invoke('KBkeybase', {payload: {url}, type: 'openURL'})
+              .then(() => {})
+              .catch(() => {})
+          },
+          rendererNewProps: (options: {propsStr: string; windowComponent: string; windowParam: string}) => {
+            const {propsStr, windowComponent, windowParam} = options
+            Electron.ipcRenderer
+              .invoke('KBkeybase', {
+                payload: {propsStr, windowComponent, windowParam},
+                type: 'rendererNewProps',
+              })
               .then(() => {})
               .catch(() => {})
           },
