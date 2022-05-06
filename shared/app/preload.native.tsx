@@ -6,11 +6,6 @@ const invalidPreload = () => {
 
 global.KB = {
   electron: {
-    app: {
-      get appPath() {
-        return invalidPreload()
-      },
-    },
     dialog: {
       showOpenDialog: invalidPreload,
       showSaveDialog: invalidPreload,

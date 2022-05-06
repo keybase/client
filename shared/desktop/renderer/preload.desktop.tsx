@@ -158,9 +158,6 @@ const showSaveDialog = async (opts: KBElectronSaveDialogOptions) => {
 
 target.KB = {
   electron: {
-    app: {
-      appPath: __STORYSHOT__ ? '' : isRenderer ? remote.app.getAppPath() : Electron.app.getAppPath(),
-    },
     dialog: {
       showOpenDialog,
       showSaveDialog,

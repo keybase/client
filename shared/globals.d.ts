@@ -59,9 +59,6 @@ interface Console {
 // TODO deprecate
 declare var KB: {
   electron: {
-    app: {
-      appPath: string
-    }
     dialog: {
       showOpenDialog: (options: KBElectronOpenDialogOptions) => Promise<Array<string> | undefined>
       showSaveDialog: (options: KBElectronSaveDialogOptions) => Promise<string | undefined>
