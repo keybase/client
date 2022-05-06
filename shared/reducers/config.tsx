@@ -67,6 +67,9 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
     draftState.daemonHandshakeRetriesLeft = Constants.maxHandshakeTries
     draftState.daemonHandshakeState = 'starting'
   },
+  [ConfigGen.updateWindowMaxState]: (draftState, action) => {
+    draftState.mainWindowMax = action.payload.max
+  },
   [ConfigGen.logoutHandshake]: (draftState, action) => {
     draftState.logoutHandshakeVersion = action.payload.version
     draftState.logoutHandshakeWaiters = new Map()

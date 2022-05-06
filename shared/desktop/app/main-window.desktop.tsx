@@ -77,6 +77,15 @@ const setupWindowEvents = (win: Electron.BrowserWindow) => {
   }
 
   win.on('close', hideInsteadOfClose)
+
+  if (!isDarwin) {
+    const emitMaxChange = () => {
+      mainWindowDispatch(ConfigGen.createUpdateWindowMaxState({max: win.isMaximized()}))
+    }
+
+    win.on('maximize', emitMaxChange)
+    win.on('unmaximize', emitMaxChange)
+  }
 }
 
 const changeDock = (show: boolean) => {

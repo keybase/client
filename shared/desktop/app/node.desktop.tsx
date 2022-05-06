@@ -288,6 +288,10 @@ type Action =
       type: 'darwinCopyToChatTempUploadFile'
       payload: {originalFilePath: string; dst: string; outboxID: string}
     }
+  | {type: 'closeWindow'}
+  | {type: 'isMaximized'}
+  | {type: 'minimizeWindow'}
+  | {type: 'toggleMaximizeWindow'}
 
 const remoteURL = (windowComponent: string, windowParam: string) =>
   `${htmlPrefix}${assetRoot}${windowComponent}${__DEV__ ? '.dev' : ''}.html?param=${windowParam}`
@@ -405,6 +409,21 @@ const plumbEvents = () => {
 
   Electron.ipcMain.handle('KBkeybase', async (_event, action: Action) => {
     switch (action.type) {
+      case 'closeWindow': {
+        Electron.BrowserWindow.getFocusedWindow()?.close()
+        return
+      }
+      case 'minimizeWindow': {
+        Electron.BrowserWindow.getFocusedWindow()?.minimize()
+        return
+      }
+      case 'toggleMaximizeWindow': {
+        const win = Electron.BrowserWindow.getFocusedWindow()
+        if (win) {
+          win.isMaximized() ? win.unmaximize() : win.maximize()
+        }
+        return
+      }
       case 'darwinCopyToChatTempUploadFile': {
         try {
           return await darwinCopyToChatTempUploadFile(action.payload)

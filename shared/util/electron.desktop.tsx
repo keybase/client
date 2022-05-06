@@ -60,11 +60,14 @@ export type KB2 = {
     windowsBinPath: string
   }
   functions: {
-    winCheckRPCOwnership?: () => Promise<void>
+    closeWindow?: () => Promise<void>
+    darwinCopyToChatTempUploadFile?: (originalFilePath: string) => Promise<{outboxID: Buffer; path: string}>
+    darwinCopyToKBFSTempUploadFile?: (originalFilePath: string) => Promise<string>
+    minimizeWindow?: () => Promise<void>
     showOpenDialog?: (options?: OpenDialogOptions) => Promise<Array<string>>
     showSaveDialog?: (options?: SaveDialogOptions) => Promise<string>
-    darwinCopyToKBFSTempUploadFile?: (originalFilePath: string) => Promise<string>
-    darwinCopyToChatTempUploadFile?: (originalFilePath: string) => Promise<{outboxID: Buffer; path: string}>
+    toggleMaximizeWindow?: () => Promise<void>
+    winCheckRPCOwnership?: () => Promise<void>
   }
 }
 

@@ -29,6 +29,9 @@ if (isRenderer) {
           isRenderer: true,
         },
         functions: {
+          closeWindow: async () => {
+            await Electron.ipcRenderer.invoke('KBkeybase', {type: 'closeWindow'})
+          },
           darwinCopyToChatTempUploadFile: async (originalFilePath: string) => {
             if (!isDarwin) {
               throw new Error('Unsupported platform')
@@ -87,6 +90,9 @@ if (isRenderer) {
               type: 'darwinCopyToKBFSTempUploadFile',
             })) as string
           },
+          minimizeWindow: async () => {
+            await Electron.ipcRenderer.invoke('KBkeybase', {type: 'minimizeWindow'})
+          },
           showOpenDialog: async (options?: OpenDialogOptions) => {
             return (await Electron.ipcRenderer.invoke('KBkeybase', {
               payload: options,
@@ -98,6 +104,9 @@ if (isRenderer) {
               payload: options,
               type: 'showSaveDialog',
             })) as string
+          },
+          toggleMaximizeWindow: async () => {
+            await Electron.ipcRenderer.invoke('KBkeybase', {type: 'toggleMaximizeWindow'})
           },
           winCheckRPCOwnership: async () => {
             const res = (await Electron.ipcRenderer.invoke('KBkeybase', {

@@ -1,6 +1,6 @@
 import uniq from 'lodash/uniq'
-import URL from 'url-parse'
-import * as Types from './types/config'
+import type URL from 'url-parse'
+import type * as Types from './types/config'
 import * as ChatConstants from './chat2'
 import HiddenString from '../util/hidden-string'
 import {defaultUseNativeFrame, runMode} from './platform'
@@ -141,6 +141,7 @@ export const initialState: Types.State = {
   loggedIn: false,
   logoutHandshakeVersion: 1,
   logoutHandshakeWaiters: new Map(),
+  mainWindowMax: false,
   menubarWindowID: 0,
   notifySound: false,
   openAtLogin: true,
