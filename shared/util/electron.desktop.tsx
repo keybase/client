@@ -3,46 +3,51 @@
 // start drawing. If you need access to these values you need to call `waitOnKB2Loaded`
 // the electron preload scripts will create kb2 on the node side and plumb it back and then call `injectPreload`
 export type KB2 = {
-  assetRoot: string
-  dokanPath: string
-  downloadFolder: string
-  env: {
-    APPDATA: string
-    HOME: string
-    KEYBASE_AUTOSTART: string
-    KEYBASE_CRASH_REPORT: string
-    KEYBASE_DEVEL_USE_XDG: string
-    KEYBASE_RESTORE_UI: string
-    KEYBASE_RUN_MODE: string
-    KEYBASE_START_UI: string
-    KEYBASE_XDG_OVERRIDE: string
-    LANG: string
-    LC_ALL: string
-    LC_TIME: string
-    LOCALAPPDATA: string
-    XDG_CACHE_HOME: string
-    XDG_CONFIG_HOME: string
-    XDG_DATA_HOME: string
-    XDG_DOWNLOAD_DIR: string
-    XDG_RUNTIME_DIR: string
+  constants: {
+    assetRoot: string
+    dokanPath: string
+    downloadFolder: string
+    env: {
+      APPDATA: string
+      HOME: string
+      KEYBASE_AUTOSTART: string
+      KEYBASE_CRASH_REPORT: string
+      KEYBASE_DEVEL_USE_XDG: string
+      KEYBASE_RESTORE_UI: string
+      KEYBASE_RUN_MODE: string
+      KEYBASE_START_UI: string
+      KEYBASE_XDG_OVERRIDE: string
+      LANG: string
+      LC_ALL: string
+      LC_TIME: string
+      LOCALAPPDATA: string
+      XDG_CACHE_HOME: string
+      XDG_CONFIG_HOME: string
+      XDG_DATA_HOME: string
+      XDG_DOWNLOAD_DIR: string
+      XDG_RUNTIME_DIR: string
+    }
+    helloDetails: {
+      argv: Array<string>
+      clientType: 2 // RPCTypes.ClientType.guiMain,
+      desc: 'Main Renderer'
+      pid: number
+      version: string
+    }
+    isRenderer: boolean
+    pathSep: '/' | '\\'
+    platform: 'win32' | 'darwin' | 'linux'
+    windowsBinPath: string
   }
-  helloDetails: {
-    argv: Array<string>
-    clientType: 2 // RPCTypes.ClientType.guiMain,
-    desc: 'Main Renderer'
-    pid: number
-    version: string
+  functions: {
+    winCheckRPCOwnership?: () => Promise<void>
   }
-  isRenderer: boolean
-  pathSep: '/' | '\\'
-  platform: 'win32' | 'darwin' | 'linux'
-  windowsBinPath: string
 }
 
 const kb2Waiters = new Array<() => void>()
 
 export const injectPreload = (kb2: KB2) => {
-  if (!kb2 || !kb2.assetRoot) {
+  if (!kb2 || !kb2?.constants?.assetRoot) {
     throw new Error('Invalid kb2 injected')
   }
   // we have to stash this in a global due to how preload works, else it clears out the module level variables
@@ -67,32 +72,11 @@ const getStashed = () => {
 }
 
 const theKB2: KB2 = {
-  get assetRoot() {
-    return getStashed().assetRoot
+  get constants() {
+    return getStashed().constants
   },
-  get dokanPath() {
-    return getStashed().dokanPath
-  },
-  get downloadFolder() {
-    return getStashed().downloadFolder
-  },
-  get env() {
-    return getStashed().env
-  },
-  get helloDetails() {
-    return getStashed().helloDetails
-  },
-  get isRenderer() {
-    return getStashed().isRenderer
-  },
-  get pathSep() {
-    return getStashed().pathSep
-  },
-  get platform() {
-    return getStashed().platform
-  },
-  get windowsBinPath() {
-    return getStashed().windowsBinPath
+  get functions() {
+    return getStashed().functions
   },
 }
 

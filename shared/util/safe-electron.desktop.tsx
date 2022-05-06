@@ -3,7 +3,7 @@
 import * as Electron from 'electron'
 import KB2 from './electron.desktop'
 
-const {isRenderer, platform} = KB2
+const {isRenderer, platform} = KB2.constants
 const remote = isRenderer ? require('@electron/remote') : null
 
 // Main thread only, proxy through remote

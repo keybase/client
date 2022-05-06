@@ -111,7 +111,9 @@ function* checkRPCOwnership(_: Container.TypedState, action: ConfigGen.DaemonHan
   try {
     logger.info('Checking RPC ownership')
 
-    yield Saga.callUntyped(winCheckRPCOwnership)
+    if (KB2.functions.winCheckRPCOwnership) {
+      yield Saga.callUntyped(KB2.functions.winCheckRPCOwnership)
+    }
     yield Saga.put(
       ConfigGen.createDaemonHandshakeWait({
         increment: false,
@@ -178,7 +180,7 @@ const onShutdown = (action: EngineGen.Keybase1NotifyServiceShutdownPayload) => {
 
 const onConnected = () => {
   // Introduce ourselves to the service
-  RPCTypes.configHelloIAmRpcPromise({details: KB2.helloDetails}).catch(() => {})
+  RPCTypes.configHelloIAmRpcPromise({details: KB2.constants.helloDetails}).catch(() => {})
 }
 
 const onOutOfDate = (action: EngineGen.Keybase1NotifySessionClientOutOfDatePayload) => {

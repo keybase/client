@@ -47,7 +47,6 @@ interface Window {
   DEBUGLogSagasWithNames: any
   DEBUGRootEffects: any
   KB: typeof KB
-  winCheckRPCOwnership: typeof winCheckRPCOwnership
 }
 
 interface Console {
@@ -78,8 +77,6 @@ declare var KB: {
   }
 }
 
-declare var winCheckRPCOwnership: () => Promise<void>
-
 declare namespace NodeJS {
   interface Global {
     DEBUGActionLoop: () => void
@@ -94,6 +91,5 @@ declare namespace NodeJS {
     DEBUGStore: any
     globalLogger: any
     KB: typeof KB
-    winCheckRPCOwnership: typeof winCheckRPCOwnership
   }
 }

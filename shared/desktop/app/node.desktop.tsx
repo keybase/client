@@ -24,7 +24,7 @@ import logger from '../../logger'
 import {assetRoot, htmlPrefix} from './html-root.desktop'
 import KB2 from '../../util/electron.desktop'
 
-const {env} = KB2
+const {env} = KB2.constants
 
 require('@electron/remote/main').initialize()
 
@@ -319,10 +319,16 @@ const plumbEvents = () => {
     mainWindow?.webContents.send('KBdispatchAction', action)
   })
 
-  Electron.ipcMain.handle('KBkeybase', (_event, action: Action) => {
+  Electron.ipcMain.handle('KBkeybase', async (_event, action: Action) => {
     switch (action.type) {
-      case 'winCheckRPCOwnership':
-        return winCheckRPCOwnership()
+      case 'winCheckRPCOwnership': {
+        try {
+          await winCheckRPCOwnership()
+          return true
+        } catch {
+          return false
+        }
+      }
       case 'setupPreloadKB2':
         return KB2
       case 'showMainWindow':

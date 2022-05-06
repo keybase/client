@@ -2,7 +2,7 @@ import os from 'os'
 import path from 'path'
 import KB2 from '../../util/electron.desktop'
 import {app} from 'electron'
-const {env} = KB2
+const {env} = KB2.constants
 
 // Path to keybase executable (darwin only), null if not available
 export function keybaseBinPath() {

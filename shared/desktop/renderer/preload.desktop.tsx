@@ -173,20 +173,27 @@ target.KB = {
   },
 }
 
-if (isRenderer) {
-  target.winCheckRPCOwnership = async () =>
-    Electron.ipcRenderer.invoke('KBkeybase', {type: 'winCheckRPCOwnership'})
-}
-
 // TODO contextBridge
 if (isRenderer) {
   Electron.ipcRenderer
     .invoke('KBkeybase', {type: 'setupPreloadKB2'})
     .then((kb2impl: KB2) => {
       injectPreload({
-        ...kb2impl,
-        // kb2impl is from node's perspective so isRenderer is incorrect for the other side
-        isRenderer: true,
+        constants: {
+          ...kb2impl.constants,
+          // kb2impl is from node's perspective so isRenderer is incorrect for the other side
+          isRenderer: true,
+        },
+        functions: {
+          winCheckRPCOwnership: async () => {
+            const res = (await Electron.ipcRenderer.invoke('KBkeybase', {
+              type: 'winCheckRPCOwnership',
+            })) as boolean
+            if (!res) {
+              throw new Error('RPCCheck failed!')
+            }
+          },
+        },
       })
     })
     .catch(e => {

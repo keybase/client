@@ -14,7 +14,7 @@ import {setupDevToolsExtensions} from './dev-tools.desktop'
 import {assetRoot, htmlPrefix} from './html-root.desktop'
 import KB2 from '../../util/electron.desktop'
 
-const {env} = KB2
+const {env} = KB2.constants
 let htmlFile = `${htmlPrefix}${assetRoot}main${__DEV__ ? '.dev' : ''}.html`
 
 const setupDefaultSession = () => {
