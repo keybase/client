@@ -64,6 +64,7 @@ export type KB2 = {
     activeChanged?: (changedAtMs: number, isUserActive: boolean) => void
     closeWindow?: () => void
     hideWindow?: () => void
+    getPathType?: (path: string) => Promise<'file' | 'directory'>
     // defined for both always
     mainWindowDispatch: (action: TypedActions) => void
     darwinCopyToChatTempUploadFile?: (originalFilePath: string) => Promise<{outboxID: Buffer; path: string}>

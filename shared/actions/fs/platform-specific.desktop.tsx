@@ -23,27 +23,7 @@ import * as RouteTreeGen from '../route-tree-gen'
 import * as Path from '../../util/path'
 import KB2 from '../../util/electron.desktop'
 
-const {openInDefaultDirectory, openURL} = KB2.functions
-
-type pathType = 'file' | 'directory'
-
-async function getPathType(openPath: string): Promise<pathType> {
-  return new Promise((resolve, reject) => {
-    fs.stat(openPath, (err, stats) => {
-      if (err) {
-        reject(new Error(`Unable to open/stat file: ${openPath}`))
-        return
-      }
-      if (stats.isFile()) {
-        resolve('file')
-      } else if (stats.isDirectory()) {
-        resolve('directory')
-      } else {
-        reject(new Error(`Unable to open: Not a file or directory`))
-      }
-    })
-  })
-}
+const {openInDefaultDirectory, openURL, getPathType} = KB2.functions
 
 // _openPathInSystemFileManagerPromise opens `openPath` in system file manager.
 // If isFolder is true, it just opens it. Otherwise, it shows it in its parent
@@ -70,8 +50,12 @@ const _openPathInSystemFileManagerPromise = async (openPath: string, isFolder: b
 
 const openLocalPathInSystemFileManager = async (action: FsGen.OpenLocalPathInSystemFileManagerPayload) => {
   try {
-    const pathType = await getPathType(action.payload.localPath)
-    return _openPathInSystemFileManagerPromise(action.payload.localPath, pathType === 'directory')
+    if (getPathType) {
+      const pathType = await getPathType(action.payload.localPath)
+      return _openPathInSystemFileManagerPromise(action.payload.localPath, pathType === 'directory')
+    } else {
+      throw new Error('impossible')
+    }
   } catch (e) {
     return errorToActionOrThrow(e)
   }

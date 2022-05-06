@@ -295,6 +295,7 @@ type Action =
   | {type: 'showInactive'}
   | {type: 'hideWindow'}
   | {type: 'openInDefaultDirectory'; payload: {path: string}}
+  | {type: 'getPathType'; payload: {path: string}}
 
 const remoteURL = (windowComponent: string, windowParam: string) =>
   `${htmlPrefix}${assetRoot}${windowComponent}${__DEV__ ? '.dev' : ''}.html?param=${windowParam}`
@@ -412,6 +413,24 @@ const plumbEvents = () => {
 
   Electron.ipcMain.handle('KBkeybase', async (event, action: Action) => {
     switch (action.type) {
+      case 'getPathType': {
+        const {path} = action.payload
+        return new Promise((resolve, reject) => {
+          fs.stat(path, (err, stats) => {
+            if (err) {
+              reject(new Error(`Unable to open/stat file: ${path}`))
+              return
+            }
+            if (stats.isFile()) {
+              resolve('file')
+            } else if (stats.isDirectory()) {
+              resolve('directory')
+            } else {
+              reject(new Error(`Unable to open: Not a file or directory`))
+            }
+          })
+        })
+      }
       case 'openURL': {
         const {url, options} = action.payload
         try {

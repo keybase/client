@@ -116,6 +116,12 @@ if (isRenderer) {
               type: 'darwinCopyToKBFSTempUploadFile',
             })) as string
           },
+          getPathType: async (path: string) => {
+            return (await Electron.ipcRenderer.invoke('KBkeybase', {
+              payload: {path},
+              type: 'getPathType',
+            })) as 'file' | 'directory'
+          },
           hideWindow: () => {
             Electron.ipcRenderer
               .invoke('KBkeybase', {type: 'hideWindow'})
