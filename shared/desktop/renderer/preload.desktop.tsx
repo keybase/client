@@ -29,11 +29,17 @@ if (isRenderer) {
           isRenderer: true,
         },
         functions: {
-          closeWindow: async () => {
-            await Electron.ipcRenderer.invoke('KBkeybase', {type: 'closeWindow'})
+          closeWindow: () => {
+            Electron.ipcRenderer
+              .invoke('KBkeybase', {type: 'closeWindow'})
+              .then(() => {})
+              .catch(() => {})
           },
-          hideWindow: async () => {
-            await Electron.ipcRenderer.invoke('KBkeybase', {type: 'hideWindow'})
+          hideWindow: () => {
+            Electron.ipcRenderer
+              .invoke('KBkeybase', {type: 'hideWindow'})
+              .then(() => {})
+              .catch(() => {})
           },
           darwinCopyToChatTempUploadFile: async (originalFilePath: string) => {
             if (!isDarwin) {
@@ -93,14 +99,23 @@ if (isRenderer) {
               type: 'darwinCopyToKBFSTempUploadFile',
             })) as string
           },
-          minimizeWindow: async () => {
-            await Electron.ipcRenderer.invoke('KBkeybase', {type: 'minimizeWindow'})
+          minimizeWindow: () => {
+            Electron.ipcRenderer
+              .invoke('KBkeybase', {type: 'minimizeWindow'})
+              .then(() => {})
+              .catch(() => {})
           },
-          openURL: async (url: string) => {
-            await Electron.ipcRenderer.invoke('KBkeybase', {payload: {url}, type: 'openURL'})
+          openURL: (url: string) => {
+            Electron.ipcRenderer
+              .invoke('KBkeybase', {payload: {url}, type: 'openURL'})
+              .then(() => {})
+              .catch(() => {})
           },
-          showInactive: async () => {
-            await Electron.ipcRenderer.invoke('KBkeybase', {type: 'showInactive'})
+          showInactive: () => {
+            Electron.ipcRenderer
+              .invoke('KBkeybase', {type: 'showInactive'})
+              .then(() => {})
+              .catch(() => {})
           },
           showOpenDialog: async (options?: OpenDialogOptions) => {
             return (await Electron.ipcRenderer.invoke('KBkeybase', {
@@ -114,8 +129,20 @@ if (isRenderer) {
               type: 'showSaveDialog',
             })) as string
           },
-          toggleMaximizeWindow: async () => {
-            await Electron.ipcRenderer.invoke('KBkeybase', {type: 'toggleMaximizeWindow'})
+          showTray: (desktopAppBadgeCount: number, icon: string) => {
+            Electron.ipcRenderer
+              .invoke('KBmenu', {
+                payload: {desktopAppBadgeCount, icon},
+                type: 'showTray',
+              })
+              .then(() => {})
+              .catch(() => {})
+          },
+          toggleMaximizeWindow: () => {
+            Electron.ipcRenderer
+              .invoke('KBkeybase', {type: 'toggleMaximizeWindow'})
+              .then(() => {})
+              .catch(() => {})
           },
           winCheckRPCOwnership: async () => {
             const res = (await Electron.ipcRenderer.invoke('KBkeybase', {

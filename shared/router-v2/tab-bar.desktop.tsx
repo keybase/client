@@ -64,8 +64,6 @@ const Header = () => {
     }
     // In case dump log doesn't exit for us
     hideWindow?.()
-      .then(() => {})
-      .catch(() => {})
     setTimeout(() => {
       quit()
     }, 2000)

@@ -50,8 +50,6 @@ const RemoteContainer = () => {
         dispatch(Tracker2Gen.createCloseTracker({guiID}))
         // close immediately
         closeWindow?.()
-          .then(() => {})
-          .catch(() => {})
       }}
       onFollow={() => dispatch(Tracker2Gen.createChangeFollow({follow: true, guiID}))}
       onIgnoreFor24Hours={() => dispatch(Tracker2Gen.createIgnore({guiID}))}

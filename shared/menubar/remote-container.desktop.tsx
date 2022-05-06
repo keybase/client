@@ -47,8 +47,6 @@ const RemoteContainer = () => {
       onRekey={() => {
         dispatch(createOpenRekeyPopup())
         hideWindow?.()
-          .then(() => {})
-          .catch(() => {})
       }}
       openApp={(tab?: Tabs.AppTab) => {
         dispatch(ConfigGen.createShowMain())
@@ -64,8 +62,6 @@ const RemoteContainer = () => {
         }
         // In case dump log doesn't exit for us
         hideWindow?.()
-          .then(() => {})
-          .catch(() => {})
         setTimeout(() => {
           quit()
         }, 2000)
@@ -83,8 +79,6 @@ const RemoteContainer = () => {
         const link = urlHelper('help')
         link && openUrl(link)
         hideWindow?.()
-          .then(() => {})
-          .catch(() => {})
       }}
       showInFinder={() => dispatch(FsGen.createOpenPathInSystemFileManager({path: FsConstants.defaultPath}))}
       updateNow={isWindows || isDarwin ? () => dispatch(ConfigGen.createUpdateNow()) : undefined}
