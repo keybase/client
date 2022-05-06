@@ -88,6 +88,7 @@ export type State = {
   startupLink: string
   startupTab?: Tab
   systemDarkMode: boolean
+  windowShownCount: Map<string, number>
   windowState: WindowState
   uid: string
   userActive: boolean

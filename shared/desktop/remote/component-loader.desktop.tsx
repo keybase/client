@@ -47,6 +47,8 @@ class RemoteComponentLoader extends React.Component<Props> {
     // Show when we get props, unless its the menubar
     if (this.props.showOnProps) {
       showInactive?.()
+        .then(() => {})
+        .catch(() => {})
     }
   }
 

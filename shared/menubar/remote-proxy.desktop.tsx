@@ -99,7 +99,7 @@ const RemoteProxy = () => {
   const {desktopAppBadgeCount, navBadges, widgetBadge} = notifications
 
   const config = Container.useSelector(s => s.config)
-  const {daemonHandshakeState, loggedIn, outOfDate, username} = config
+  const {daemonHandshakeState, loggedIn, outOfDate, username, windowShownCount} = config
   const {httpSrvAddress, httpSrvToken} = config
   const {avatarRefreshCounter: _arc, followers: _followers, following: _following} = config
 
@@ -174,6 +174,7 @@ const RemoteProxy = () => {
     showingDiskSpaceBanner: showingBanner,
     username,
     widgetBadge,
+    windowShownCount,
   }
 
   return <Widget {...p} />

@@ -66,6 +66,7 @@ export const updateInfo = 'config:updateInfo'
 export const updateMenubarWindowID = 'config:updateMenubarWindowID'
 export const updateNow = 'config:updateNow'
 export const updateWindowMaxState = 'config:updateWindowMaxState'
+export const updateWindowShown = 'config:updateWindowShown'
 export const updateWindowState = 'config:updateWindowState'
 
 // Payload Types
@@ -180,6 +181,7 @@ type _UpdateInfoPayload = {
 type _UpdateMenubarWindowIDPayload = {readonly id: number}
 type _UpdateNowPayload = undefined
 type _UpdateWindowMaxStatePayload = {readonly max: boolean}
+type _UpdateWindowShownPayload = {readonly component: string}
 type _UpdateWindowStatePayload = {readonly windowState: Types.WindowState}
 
 // Action Creators
@@ -243,6 +245,13 @@ export const createLoadOnStart = (payload: _LoadOnStartPayload): LoadOnStartPayl
  * If you want to react to being logged in likely you want bootstrapStatusLoaded
  */
 export const createLoggedIn = (payload: _LoggedInPayload): LoggedInPayload => ({payload, type: loggedIn})
+/**
+ * a window was shown
+ */
+export const createUpdateWindowShown = (payload: _UpdateWindowShownPayload): UpdateWindowShownPayload => ({
+  payload,
+  type: updateWindowShown,
+})
 /**
  * desktop only: the installer ran and we can start up
  */
@@ -615,6 +624,10 @@ export type UpdateWindowMaxStatePayload = {
   readonly payload: _UpdateWindowMaxStatePayload
   readonly type: typeof updateWindowMaxState
 }
+export type UpdateWindowShownPayload = {
+  readonly payload: _UpdateWindowShownPayload
+  readonly type: typeof updateWindowShown
+}
 export type UpdateWindowStatePayload = {
   readonly payload: _UpdateWindowStatePayload
   readonly type: typeof updateWindowState
@@ -679,5 +692,6 @@ export type Actions =
   | UpdateMenubarWindowIDPayload
   | UpdateNowPayload
   | UpdateWindowMaxStatePayload
+  | UpdateWindowShownPayload
   | UpdateWindowStatePayload
   | {readonly type: 'common:resetStore', readonly payload: undefined}

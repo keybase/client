@@ -70,6 +70,11 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
   [ConfigGen.updateWindowMaxState]: (draftState, action) => {
     draftState.mainWindowMax = action.payload.max
   },
+  [ConfigGen.updateWindowShown]: (draftState, action) => {
+    const count = draftState.windowShownCount.get(action.payload.component) ?? 0
+    draftState.windowShownCount.set(action.payload.component, count + 1)
+  },
+
   [ConfigGen.logoutHandshake]: (draftState, action) => {
     draftState.logoutHandshakeVersion = action.payload.version
     draftState.logoutHandshakeWaiters = new Map()

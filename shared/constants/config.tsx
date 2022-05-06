@@ -164,6 +164,7 @@ export const initialState: Types.State = {
   userSwitching: false,
   username: '',
   whatsNewLastSeenVersion: '',
+  windowShownCount: new Map(),
   windowState: {
     dockHidden: false,
     height: 800,

@@ -150,6 +150,10 @@ export default (menubarWindowIDCallback: (id: number) => void) => {
       mb.hideWindow()
     })
 
+    mb.window?.on('show', () => {
+      mainWindowDispatch(ConfigGen.createUpdateWindowShown({component: 'menu'}))
+    })
+
     if (isLinux) {
       mb.tray.setToolTip('Show Keybase')
     }

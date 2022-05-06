@@ -23,7 +23,7 @@ const {hideWindow} = KB2.functions
 const RemoteContainer = () => {
   const state = Container.useRemoteStore<DeserializeProps>()
   const {config, ...rest} = state
-  const {username} = config
+  const {username, windowShownCount} = config
   const dispatch = Container.useDispatch()
 
   return (
@@ -42,6 +42,7 @@ const RemoteContainer = () => {
         dispatch(ConfigGen.createShowMain())
         dispatch(RouteTreeGen.createNavigateAppend({path: [Tabs.loginTab]}))
       }}
+      windowShownCount={windowShownCount.get('menu') ?? 0}
       onHideDiskSpaceBanner={() => dispatch(FsGen.createShowHideDiskSpaceBanner({show: false}))}
       onRekey={() => {
         dispatch(createOpenRekeyPopup())

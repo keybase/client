@@ -566,6 +566,10 @@ const plumbEvents = () => {
 
         require('@electron/remote/main').enable(remoteWindow.webContents)
 
+        remoteWindow.on('show', () => {
+          mainWindowDispatch(ConfigGen.createUpdateWindowShown({component: action.payload.windowComponent}))
+        })
+
         if (action.payload.windowPositionBottomRight && Electron.screen.getPrimaryDisplay()) {
           const {width, height} = Electron.screen.getPrimaryDisplay().workAreaSize
           remoteWindow.setPosition(
