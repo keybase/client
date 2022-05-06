@@ -93,6 +93,9 @@ if (isRenderer) {
           minimizeWindow: async () => {
             await Electron.ipcRenderer.invoke('KBkeybase', {type: 'minimizeWindow'})
           },
+          openURL: async (url: string) => {
+            await Electron.ipcRenderer.invoke('KBkeybase', {payload: {url}, type: 'openURL'})
+          },
           showOpenDialog: async (options?: OpenDialogOptions) => {
             return (await Electron.ipcRenderer.invoke('KBkeybase', {
               payload: options,

@@ -64,9 +64,11 @@ export type KB2 = {
     darwinCopyToChatTempUploadFile?: (originalFilePath: string) => Promise<{outboxID: Buffer; path: string}>
     darwinCopyToKBFSTempUploadFile?: (originalFilePath: string) => Promise<string>
     minimizeWindow?: () => Promise<void>
+    openURL?: (url: string) => Promise<void>
     showOpenDialog?: (options?: OpenDialogOptions) => Promise<Array<string>>
     showSaveDialog?: (options?: SaveDialogOptions) => Promise<string>
     toggleMaximizeWindow?: () => Promise<void>
+
     winCheckRPCOwnership?: () => Promise<void>
   }
 }

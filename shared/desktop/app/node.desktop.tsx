@@ -291,6 +291,7 @@ type Action =
   | {type: 'closeWindow'}
   | {type: 'minimizeWindow'}
   | {type: 'toggleMaximizeWindow'}
+  | {type: 'openURL'; payload: {url: string}}
 
 const remoteURL = (windowComponent: string, windowParam: string) =>
   `${htmlPrefix}${assetRoot}${windowComponent}${__DEV__ ? '.dev' : ''}.html?param=${windowParam}`
@@ -408,6 +409,13 @@ const plumbEvents = () => {
 
   Electron.ipcMain.handle('KBkeybase', async (_event, action: Action) => {
     switch (action.type) {
+      case 'openURL': {
+        Electron.shell
+          .openExternal(action.payload.url)
+          .then(() => {})
+          .catch(() => {})
+        return
+      }
       case 'closeWindow': {
         Electron.BrowserWindow.getFocusedWindow()?.close()
         return

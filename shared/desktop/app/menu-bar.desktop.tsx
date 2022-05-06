@@ -92,7 +92,7 @@ export default (menubarWindowIDCallback: (id: number) => void) => {
         iconPathIsBadged = action.payload.desktopAppBadgeCount > 0
         updateIcon()
         const dock = Electron.app.dock
-        if (dock.isVisible()) {
+        if (dock?.isVisible()) {
           Electron.app.badgeCount = action.payload.desktopAppBadgeCount
         }
 
