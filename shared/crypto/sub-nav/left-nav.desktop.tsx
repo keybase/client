@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Constants from '../../constants/crypto'
-import * as Types from '../../constants/types/crypto'
+import type * as Types from '../../constants/types/crypto'
 import NavRow from './nav-row'
 
 type Row = Types.Tab & {

@@ -300,6 +300,8 @@ export type TypedActionsMap = {
   'config:setSystemDarkMode': config.SetSystemDarkModePayload
   'config:updateHTTPSrvInfo': config.UpdateHTTPSrvInfoPayload
   'config:remoteWindowWantsProps': config.RemoteWindowWantsPropsPayload
+  'config:updateWindowShown': config.UpdateWindowShownPayload
+  'config:updateWindowMaxState': config.UpdateWindowMaxStatePayload
   'config:updateWindowState': config.UpdateWindowStatePayload
   'config:setUseNativeFrame': config.SetUseNativeFramePayload
   'config:setWhatsNewLastSeenVersion': config.SetWhatsNewLastSeenVersionPayload

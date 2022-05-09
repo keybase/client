@@ -4,20 +4,22 @@ import * as Chat2Gen from '../../actions/chat2-gen'
 import * as Electron from 'electron'
 import logger from '../../logger'
 import {isDarwin, isWindows, isLinux, getAssetPath} from '../../constants/platform.desktop'
-import {mainWindowDispatch, getMainWindow} from '../remote/util.desktop'
 import {menubar} from 'menubar'
 import {showDevTools, skipSecondaryDevtools} from '../../local-debug.desktop'
+import {getMainWindow} from './main-window.desktop'
 import getIcons from '../../menubar/icons'
-import {workingIsDarkMode} from '../../util/safe-electron.desktop'
 import os from 'os'
 import {assetRoot, htmlPrefix} from './html-root.desktop'
+import KB2 from '../../util/electron.desktop'
+
+const {mainWindowDispatch} = KB2.functions
 
 const htmlFile = `${htmlPrefix}${assetRoot}menubar${__DEV__ ? '.dev' : ''}.html?param=menubar`
 
 // support dynamic dark mode system bar in big sur
 const useImageTemplate = os.platform() === 'darwin' && parseInt(os.release().split('.')[0], 10) >= 20
 
-let iconPath = getIcons('regular', false, workingIsDarkMode())
+let iconPath = getIcons('regular', false, Electron.nativeTheme.shouldUseDarkColors)
 // only use imageTemplate if its not badged, else we lose the orange
 let iconPathIsBadged = false
 
@@ -93,7 +95,7 @@ export default (menubarWindowIDCallback: (id: number) => void) => {
         iconPathIsBadged = action.payload.desktopAppBadgeCount > 0
         updateIcon()
         const dock = Electron.app.dock
-        if (dock.isVisible()) {
+        if (dock?.isVisible()) {
           Electron.app.badgeCount = action.payload.desktopAppBadgeCount
         }
 
@@ -149,6 +151,10 @@ export default (menubarWindowIDCallback: (id: number) => void) => {
     mb.window?.on('close', event => {
       event.preventDefault()
       mb.hideWindow()
+    })
+
+    mb.window?.on('show', () => {
+      mainWindowDispatch(ConfigGen.createUpdateWindowShown({component: 'menu'}))
     })
 
     if (isLinux) {

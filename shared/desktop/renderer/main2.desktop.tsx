@@ -5,19 +5,17 @@ import Main from '../../app/main.desktop'
 import * as Electron from 'electron'
 import * as NotificationsGen from '../../actions/notifications-gen'
 import * as React from 'react'
-import * as ConfigGen from '../../actions/config-gen'
 import ReactDOM from 'react-dom'
 import RemoteProxies from '../remote/proxies.desktop'
 import Root from './container.desktop'
 import configureStore from '../../store/configure-store'
-import * as SafeElectron from '../../util/safe-electron.desktop'
 import {makeEngine} from '../../engine'
 import {disable as disableDragDrop} from '../../util/drag-drop'
 import flags from '../../util/feature-flags'
 import {dumpLogs} from '../../actions/platform-specific/index.desktop'
 import {initDesktopStyles} from '../../styles/index.desktop'
 import {_setDarkModePreference} from '../../styles/dark-mode'
-import {isDarwin, isWindows} from '../../constants/platform'
+import {isWindows} from '../../constants/platform'
 import {useSelector} from '../../util/container'
 import {isDarkMode} from '../../constants/config'
 import type {TypedActions} from '../../actions/typed-actions-gen'
@@ -82,10 +80,7 @@ const setupApp = (store, runSagas) => {
   // See if we're connected, and try starting keybase if not
   if (isWindows) {
     setTimeout(() => {
-      Electron.ipcRenderer
-        .invoke('KBkeybase', {type: 'requestWindowsStartService'})
-        .then(() => {})
-        .catch(() => {})
+      Electron.ipcRenderer.send('KBkeybase', {type: 'requestWindowsStartService'})
     }, 0)
   }
 
@@ -99,10 +94,7 @@ const setupApp = (store, runSagas) => {
   // Handle notifications from the service
   store.dispatch(NotificationsGen.createListenForNotifications())
 
-  Electron.ipcRenderer
-    .invoke('KBkeybase', {type: 'appStartedUp'})
-    .then(() => {})
-    .catch(() => {})
+  Electron.ipcRenderer.send('KBkeybase', {type: 'appStartedUp'})
 }
 
 const FontLoader = () => (
@@ -172,21 +164,6 @@ const setupHMR = _ => {
   accept('../../common-adapters/index.js', () => {})
 }
 
-const setupDarkMode = () => {
-  if (isDarwin && SafeElectron.getSystemPreferences().subscribeNotification) {
-    SafeElectron.getSystemPreferences().subscribeNotification(
-      'AppleInterfaceThemeChangedNotification',
-      () => {
-        store.dispatch(
-          ConfigGen.createSetSystemDarkMode({
-            dark: SafeElectron.workingIsDarkMode(),
-          })
-        )
-      }
-    )
-  }
-}
-
 const load = () => {
   if (global.DEBUGLoaded) {
     // only load once
@@ -200,7 +177,6 @@ const load = () => {
   store = temp.store
   setupApp(store, runSagas)
   setupHMR(store)
-  setupDarkMode()
   render()
 }
 
