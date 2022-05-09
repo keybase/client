@@ -1,10 +1,10 @@
-import * as NetInfo from '@react-native-community/netinfo'
-import * as RPCTypes from './rpc-gen'
-import HiddenString from '../../util/hidden-string'
-import {ConversationIDKey} from './chat2'
-import {DarkModePreference} from '../../styles/dark-mode'
-import {RPCError} from '../../util/errors'
-import {Tab} from '../tabs'
+import type * as NetInfo from '@react-native-community/netinfo'
+import type * as RPCTypes from './rpc-gen'
+import type HiddenString from '../../util/hidden-string'
+import type {ConversationIDKey} from './chat2'
+import type {DarkModePreference} from '../../styles/dark-mode'
+import type {RPCError} from '../../util/errors'
+import type {Tab} from '../tabs'
 
 export type OutOfDate = {
   critical: boolean
