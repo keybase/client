@@ -3,12 +3,11 @@ import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import * as Platform from '../../constants/platform'
 import * as Styles from '../../styles'
+import * as Window from '../../util/window-management'
+import {BrowserWindow} from '../../util/safe-electron.desktop'
 import SyncingFolders from './syncing-folders'
 import {IconWithPopup as WhatsNewIconWithPopup} from '../../whats-new/icon/container'
 import * as ReactIs from 'react-is'
-import KB2 from '../../util/electron.desktop'
-
-const {closeWindow, minimizeWindow, toggleMaximizeWindow} = KB2.functions
 
 // A mobile-like header for desktop
 
@@ -31,7 +30,6 @@ type Props = {
   style?: any
   useNativeFrame: boolean
   params?: unknown
-  isMaximized: boolean
   navigation: {
     pop: () => void
   }
@@ -45,43 +43,72 @@ const PlainTitle = ({title}) => (
   </Kb.Box2>
 )
 
-export const SystemButtons = ({isMaximized}: {isMaximized: boolean}) => (
+export const SystemButtons = () => (
   <Kb.Box2 direction="horizontal">
     <Kb.ClickableBox
       className="hover_background_color_black_05  color_black_50 hover_color_black"
-      onClick={minimizeWindow}
+      onClick={Window.minimizeWindow}
       style={styles.appIconBox}
     >
       <Kb.Icon
         inheritColor={true}
-        onClick={minimizeWindow}
+        onClick={Window.minimizeWindow}
         style={styles.appIcon}
         type="iconfont-app-minimize"
       />
     </Kb.ClickableBox>
     <Kb.ClickableBox
       className="hover_background_color_black_05 color_black_50 hover_color_black"
-      onClick={toggleMaximizeWindow}
+      onClick={Window.toggleMaximizeWindow}
       style={styles.appIconBox}
     >
       <Kb.Icon
         inheritColor={true}
-        onClick={toggleMaximizeWindow}
+        onClick={Window.toggleMaximizeWindow}
         style={styles.appIcon}
-        type={isMaximized ? 'iconfont-app-un-maximize' : 'iconfont-app-maximize'}
+        type={Window.isMaximized() ? 'iconfont-app-un-maximize' : 'iconfont-app-maximize'}
       />
     </Kb.ClickableBox>
     <Kb.ClickableBox
       className="hover_background_color_red hover_color_white color_black_50"
-      onClick={closeWindow}
+      onClick={Window.closeWindow}
       style={styles.appIconBox}
     >
-      <Kb.Icon inheritColor={true} onClick={closeWindow} style={styles.appIcon} type="iconfont-app-close" />
+      <Kb.Icon
+        inheritColor={true}
+        onClick={Window.closeWindow}
+        style={styles.appIcon}
+        type="iconfont-app-close"
+      />
     </Kb.ClickableBox>
   </Kb.Box2>
 )
 
 class DesktopHeader extends React.PureComponent<Props> {
+  componentDidMount() {
+    this._registerWindowEvents()
+  }
+  componentWillUnmount() {
+    this._unregisterWindowEvents()
+  }
+  _refreshWindowIcons = () => this.forceUpdate()
+  // We need to forceUpdate when maximizing and unmaximizing the window to update the
+  // app icon on Windows and Linux.
+  _registerWindowEvents() {
+    if (Platform.isDarwin) return
+    const win = BrowserWindow.getFocusedWindow()
+    if (!win) return
+    win.on('maximize', this._refreshWindowIcons)
+    win.on('unmaximize', this._refreshWindowIcons)
+  }
+  _unregisterWindowEvents() {
+    if (Platform.isDarwin) return
+    const win = BrowserWindow.getFocusedWindow()
+    if (!win) return
+    win.removeListener('maximize', this._refreshWindowIcons)
+    win.removeListener('unmaximize', this._refreshWindowIcons)
+  }
+
   _pop = () => {
     this.props.back && this.props.navigation.pop()
   }
@@ -195,7 +222,7 @@ class DesktopHeader extends React.PureComponent<Props> {
               />
               {this.props.loggedIn && <WhatsNewIconWithPopup attachToRef={whatsNewAttachToRef} />}
               {!title && rightActions}
-              {windowDecorationsAreNeeded && <SystemButtons isMaximized={this.props.isMaximized} />}
+              {windowDecorationsAreNeeded && <SystemButtons />}
             </Kb.Box2>
           </Kb.Box2>
           <Kb.Box2
@@ -303,19 +330,10 @@ const styles = Styles.styleSheetCreate(
     } as const)
 )
 
-type HeaderProps = Omit<Props, 'loggedIn' | 'useNativeFrame' | 'isMaximized'>
+type HeaderProps = Omit<Props, 'loggedIn' | 'useNativeFrame'>
 
 export default (p: HeaderProps) => {
   const useNativeFrame = Container.useSelector(state => state.config.useNativeFrame)
   const loggedIn = Container.useSelector(state => state.config.loggedIn)
-  const isMaximized = Container.useSelector(state => state.config.mainWindowMax)
-  return (
-    <DesktopHeader
-      useNativeFrame={useNativeFrame}
-      loggedIn={loggedIn}
-      key={String(isMaximized)}
-      isMaximized={isMaximized}
-      {...p}
-    />
-  )
+  return <DesktopHeader useNativeFrame={useNativeFrame} loggedIn={loggedIn} {...p} />
 }

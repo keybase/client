@@ -14,8 +14,10 @@ import type {IconType} from '../../common-adapters/icon.constants-gen'
 import {humanizeBytes} from '../../constants/fs'
 import capitalize from 'lodash/capitalize'
 import {getStyle} from '../../common-adapters/text'
-import * as Path from '../../util/path'
-import {pickFiles} from '../../util/pick-files'
+
+const {electron, path: nodePath} = KB
+const {showOpenDialog} = electron.dialog
+const {dirname} = nodePath
 
 type OutputProps = {
   operation: Types.Operations
@@ -300,14 +302,15 @@ const OutputFileDestination = (props: {operation: Types.Operations}) => {
   const input = Container.useSelector(state => state.crypto[operation].input.stringValue())
 
   const onOpenFile = async () => {
-    const defaultPath = Path.dirname(input)
-    const filePaths = await pickFiles({
+    const defaultPath = dirname(input)
+    const options = {
       allowDirectories: true,
       allowFiles: false,
       buttonLabel: 'Select',
       ...(Platforms.isDarwin ? {defaultPath} : {}),
-    })
-    if (!filePaths.length) return
+    }
+    const filePaths = await showOpenDialog(options)
+    if (!filePaths) return
     const path = filePaths[0]
 
     const destinationDir = new Container.HiddenString(path)

@@ -147,14 +147,6 @@
       "component": "string",
       "param": "string"
     },
-    "updateWindowShown": {
-      "_description": "a window was shown",
-      "component": "string"
-    },
-    "updateWindowMaxState": {
-      "_description": "main electron window changed max/min",
-      "max": "boolean"
-    },
     "updateWindowState": {
       "_description": "main electron window wants to store its state",
       "windowState": "Types.WindowState"

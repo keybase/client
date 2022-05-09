@@ -7,8 +7,9 @@ import * as Electron from 'electron'
 import * as Saga from '../../util/saga'
 import logger from '../../logger'
 import {NotifyPopup} from '../../native/notifications'
+import {execFile} from 'child_process'
 import {getEngine} from '../../engine'
-import {isLinux, isWindows, defaultUseNativeFrame} from '../../constants/platform.desktop'
+import {isLinux, isWindows, socketPath, defaultUseNativeFrame} from '../../constants/platform.desktop'
 import {kbfsNotification} from '../../util/kbfs-notifications'
 import {quit} from '../../desktop/app/ctl.desktop'
 import {writeLogLinesToFile} from '../../util/forward-logs'
@@ -19,7 +20,8 @@ import {_getNavigator} from '../../constants/router2'
 import type {RPCError} from 'util/errors'
 import KB2 from '../../util/electron.desktop'
 
-const {showMainWindow, activeChanged, requestWindowsStartService} = KB2.functions
+const {resolve} = KB.path
+const {env} = KB2
 
 export function showShareActionSheet() {
   throw new Error('Show Share Action - unsupported on this platform')
@@ -28,6 +30,13 @@ export async function saveAttachmentToCameraRoll() {
   return new Promise((_, rej) =>
     rej(new Error('Save Attachment to camera roll - unsupported on this platform'))
   )
+}
+
+const showMainWindow = () => {
+  Electron.ipcRenderer
+    .invoke('KBkeybase', {type: 'showMainWindow'})
+    .then(() => {})
+    .catch(() => {})
 }
 
 export function displayNewMessageNotification() {
@@ -76,7 +85,13 @@ function* initializeInputMonitor(): Iterable<any> {
       const userActive = type === 'active'
       yield Saga.put(ConfigGen.createChangedActive({userActive}))
       // let node thread save file
-      activeChanged?.(Date.now(), userActive)
+      Electron.ipcRenderer
+        .invoke('KBkeybase', {
+          payload: {changedAtMs: Date.now(), isUserActive: userActive},
+          type: 'activeChanged',
+        })
+        .then(() => {})
+        .catch(() => {})
     }
   }
 }
@@ -92,6 +107,7 @@ export const dumpLogs = async (action?: ConfigGen.DumpLogsPayload) => {
   }
 }
 
+// TODO move
 function* checkRPCOwnership(_: Container.TypedState, action: ConfigGen.DaemonHandshakePayload) {
   const waitKey = 'pipeCheckFail'
   yield Saga.put(
@@ -100,9 +116,30 @@ function* checkRPCOwnership(_: Container.TypedState, action: ConfigGen.DaemonHan
   try {
     logger.info('Checking RPC ownership')
 
-    if (KB2.functions.winCheckRPCOwnership) {
-      yield Saga.callUntyped(KB2.functions.winCheckRPCOwnership)
-    }
+    const localAppData = String(env.LOCALAPPDATA)
+    const binPath = localAppData ? resolve(localAppData, 'Keybase', 'keybase.exe') : 'keybase.exe'
+    const args = ['pipeowner', socketPath]
+    yield Saga.callUntyped(
+      async () =>
+        new Promise<void>((resolve, reject) => {
+          execFile(binPath, args, {windowsHide: true}, (error, stdout) => {
+            if (error) {
+              logger.info(`pipeowner check result: ${stdout.toString()}`)
+              // error will be logged in bootstrap check
+              getEngine().reset()
+              reject(error)
+              return
+            }
+            const result = JSON.parse(stdout.toString())
+            if (result.isOwner) {
+              resolve(undefined)
+              return
+            }
+            logger.info(`pipeowner check result: ${stdout.toString()}`)
+            reject(new Error('pipeowner check failed'))
+          })
+        })
+    )
     yield Saga.put(
       ConfigGen.createDaemonHandshakeWait({
         increment: false,
@@ -111,8 +148,6 @@ function* checkRPCOwnership(_: Container.TypedState, action: ConfigGen.DaemonHan
       })
     )
   } catch (error_) {
-    // error will be logged in bootstrap check
-    getEngine().reset()
     const error = error_ as RPCError
     yield Saga.put(
       ConfigGen.createDaemonHandshakeWait({
@@ -169,7 +204,7 @@ const onShutdown = (action: EngineGen.Keybase1NotifyServiceShutdownPayload) => {
 
 const onConnected = () => {
   // Introduce ourselves to the service
-  RPCTypes.configHelloIAmRpcPromise({details: KB2.constants.helloDetails}).catch(() => {})
+  RPCTypes.configHelloIAmRpcPromise({details: KB2.helloDetails}).catch(() => {})
 }
 
 const onOutOfDate = (action: EngineGen.Keybase1NotifySessionClientOutOfDatePayload) => {
@@ -204,7 +239,10 @@ const sendWindowsKBServiceCheck = (
     state.config.daemonHandshakeWaiters.size === 0 &&
     state.config.daemonHandshakeFailedReason === ConfigConstants.noKBFSFailReason
   ) {
-    requestWindowsStartService?.()
+    Electron.ipcRenderer
+      .invoke('KBkeybase', {type: 'requestWindowsStartService'})
+      .then(() => {})
+      .catch(() => {})
   }
 }
 
@@ -410,7 +448,7 @@ function* checkNav(
 export function* platformConfigSaga() {
   yield* Saga.chainAction2(ConfigGen.setOpenAtLogin, setOpenAtLogin)
   yield* Saga.chainAction2(ConfigGen.setNotifySound, setNotifySound)
-  yield* Saga.chainAction2(ConfigGen.showMain, () => showMainWindow?.())
+  yield* Saga.chainAction2(ConfigGen.showMain, showMainWindow)
   yield* Saga.chainAction(ConfigGen.dumpLogs, dumpLogs)
   getEngine().registerCustomResponse('keybase.1.logsend.prepareLogsend')
   yield* Saga.chainAction(EngineGen.keybase1LogsendPrepareLogsend, prepareLogSend)

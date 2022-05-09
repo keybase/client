@@ -1,4 +1,4 @@
-import * as Electron from 'electron'
+import * as SafeElectron from '../../util/safe-electron.desktop'
 import {keybaseBinPath} from './paths.desktop'
 import exec from './exec.desktop'
 import {isWindows} from '../../constants/platform'
@@ -29,7 +29,7 @@ function exitApp() {
   // The main window survives. This makes sure to keep exiting until we are actually out.
   // It seems to work even when we have a broken reference to a browser window.
   // (Which happens because our first exit killed the browser window w/o updating our book keeping state)
-  setInterval(() => Electron.app.exit(0), 200)
+  setInterval(() => SafeElectron.getApp().exit(0), 200)
   // If we haven't exited after trying, then let's ensure it happens
   setTimeout(() => exitProcess(), 500)
 }
