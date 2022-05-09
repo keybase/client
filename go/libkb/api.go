@@ -53,7 +53,7 @@ func (s *AppStatusEmbed) GetAppStatus() *AppStatus {
 // allowing us to share the request-making code below in doRequest
 type Requester interface {
 	fixHeaders(m MetaContext, arg APIArg, req *http.Request, nist *NIST) error
-	getCli(needSession bool) (*Client, error)
+	getCli(needSession bool, forceTLS12 bool) (*Client, error)
 	consumeHeaders(m MetaContext, resp *http.Response, nist *NIST) error
 	isExternal() bool
 }
@@ -130,16 +130,19 @@ func (a *APIError) Error() string {
 // ============================================================================
 // BaseApiEngine
 
-func (api *BaseAPIEngine) getCli(cookied bool) (ret *Client, err error) {
+func (api *BaseAPIEngine) getCli(cookied bool, forceTLS12 bool) (ret *Client, err error) {
 	key := 0
 	if cookied {
 		key |= 1
+	}
+	if forceTLS12 {
+		key |= 2
 	}
 	api.clientsMu.Lock()
 	client, found := api.clients[key]
 	if !found {
 		api.G().Log.Debug("| Cli wasn't found; remaking for cookied=%v", cookied)
-		client, err = NewClient(api.G(), api.config, cookied)
+		client, err = NewClient(api.G(), api.config, cookied, forceTLS12)
 		if err != nil {
 			return nil, err
 		}
@@ -274,7 +277,13 @@ func doRequestShared(m MetaContext, api Requester, arg APIArg, req *http.Request
 	if arg.SessionType != APISessionTypeNONE {
 		needSession = true
 	}
-	cli, err := api.getCli(needSession)
+
+	cli, err := api.getCli(needSession,
+		// Somewhere in May 2022, reddit started rejecting Go's TLS 1.3 client. TLS
+		// handshake works but reddit ends up returning 403 or 429. TLS 1.3 from a
+		// curl client still works, and TLS 1.2 in Go works too. So temporarily
+		// force TLS 1.2 here for fetching Reddit proofs.
+		isReddit(req))
 	if err != nil {
 		return
 	}

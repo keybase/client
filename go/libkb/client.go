@@ -144,7 +144,7 @@ func genClientConfigForScrapers(e *Env) (*ClientConfig, error) {
 	}, nil
 }
 
-func NewClient(g *GlobalContext, config *ClientConfig, needCookie bool) (*Client, error) {
+func NewClient(g *GlobalContext, config *ClientConfig, needCookie bool, forceTLS12 bool) (*Client, error) {
 	extraLog := func(ctx context.Context, msg string, args ...interface{}) {}
 	if g.Env.GetExtraNetLogging() {
 		extraLog = func(ctx context.Context, msg string, args ...interface{}) {
@@ -202,6 +202,14 @@ func NewClient(g *GlobalContext, config *ClientConfig, needCookie bool) (*Client
 
 	if config != nil && config.RootCAs != nil {
 		xprt.TLSClientConfig = &tls.Config{RootCAs: config.RootCAs}
+	}
+
+	if forceTLS12 {
+		if xprt.TLSClientConfig == nil {
+			xprt.TLSClientConfig = &tls.Config{}
+		}
+		xprt.TLSClientConfig.MinVersion = tls.VersionTLS12
+		xprt.TLSClientConfig.MaxVersion = tls.VersionTLS12
 	}
 
 	xprt.Proxy = MakeProxy(env)
