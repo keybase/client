@@ -1,6 +1,6 @@
 import KB2 from '../util/electron.desktop'
 import * as Path from '../util/path'
-const {env, platform} = KB2
+const {env, platform} = KB2.constants
 export const androidIsTestDevice = false
 export const isMobile = false
 export const isPhone = false
@@ -12,9 +12,9 @@ export const isTablet = false
 export const windowHeight = 0 // not implemented on desktop
 export const isDebuggingInChrome = true
 
-export const dokanPath = KB2.dokanPath
-export const windowsBinPath = KB2.windowsBinPath
-export const pathSep = KB2.pathSep
+export const dokanPath = KB2.constants.dokanPath
+export const windowsBinPath = KB2.constants.windowsBinPath
+export const pathSep = KB2.constants.pathSep
 
 export const isElectron = true
 export const isDarwin = platform === 'darwin'
@@ -114,7 +114,7 @@ if (!paths) {
 export const {dataRoot, cacheRoot, socketPath, jsonDebugFileName, serverConfigFileName, guiConfigFilename} =
   paths
 
-export const downloadFolder = __STORYBOOK__ ? '' : env.XDG_DOWNLOAD_DIR || KB2.downloadFolder
+export const downloadFolder = __STORYBOOK__ ? '' : env.XDG_DOWNLOAD_DIR || KB2.constants.downloadFolder
 
 // Empty string means let the service figure out the right directory.
 export const pprofDir = ''
@@ -140,4 +140,4 @@ const uses24HourClockF = () => {
   }
 }
 export const uses24HourClock = uses24HourClockF()
-export const getAssetPath = (...a: Array<string>) => [KB2.assetRoot, ...a].join('/')
+export const getAssetPath = (...a: Array<string>) => [KB2.constants.assetRoot, ...a].join('/')

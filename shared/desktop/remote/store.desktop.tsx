@@ -3,11 +3,12 @@
 // On the main window we plumb through our props and we 'mirror' the props using this helper
 // We start up and send an action to the main window which then sends us 'props'
 import * as Electron from 'electron'
-import * as remote from '@electron/remote'
-import {mainWindowDispatch} from './util.desktop'
-import {createStore, applyMiddleware, Store} from 'redux'
-import {TypedActions} from '../../actions/typed-actions-gen'
+import {createStore, applyMiddleware, type Store} from 'redux'
+import type {TypedActions} from '../../actions/typed-actions-gen'
 import * as ConfigGen from '../../actions/config-gen'
+import KB2 from '../../util/electron.desktop'
+
+const {mainWindowDispatch} = KB2.functions
 
 const updateStore = 'remoteStore:update'
 // Special action that's not sent
@@ -19,7 +20,6 @@ type UpdateStoreAction = {
 }
 
 class RemoteStore {
-  _window: Electron.BrowserWindow | null = null
   _store: Store<any, any>
   _gotPropsCallback: (() => void) | null = null // let component know it loaded once so it can show itself. Set to null after calling once
   _deserialize: (arg0: any, arg1: any) => any
@@ -42,9 +42,9 @@ class RemoteStore {
   }
 
   _registerForRemoteUpdate = () => {
-    this._window = remote.getCurrentWindow()
-    // @ts-ignore custom event
-    this._window.on('KBprops', this._onPropsUpdated)
+    Electron.ipcRenderer.on('KBprops', (_event, action) => {
+      this._onPropsUpdated(action)
+    })
   }
 
   _reducer = (state: any, action: any) => {

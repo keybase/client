@@ -5,10 +5,12 @@ import * as ConfigGen from '../actions/config-gen'
 import * as Constants from '../constants/tracker2'
 import * as Container from '../util/container'
 import * as Tracker2Gen from '../actions/tracker2-gen'
-import * as Types from '../constants/types/tracker2'
-import * as remote from '@electron/remote'
+import type * as Types from '../constants/types/tracker2'
 import Tracker from './index.desktop'
-import {DeserializeProps} from './remote-serializer.desktop'
+import type {DeserializeProps} from './remote-serializer.desktop'
+import KB2 from '../util/electron.desktop'
+
+const {closeWindow} = KB2.functions
 
 const noDetails: Types.Details = {
   blocked: false,
@@ -47,8 +49,7 @@ const RemoteContainer = () => {
       onClose={() => {
         dispatch(Tracker2Gen.createCloseTracker({guiID}))
         // close immediately
-        const w = remote.getCurrentWindow()
-        w && w.close()
+        closeWindow?.()
       }}
       onFollow={() => dispatch(Tracker2Gen.createChangeFollow({follow: true, guiID}))}
       onIgnoreFor24Hours={() => dispatch(Tracker2Gen.createIgnore({guiID}))}

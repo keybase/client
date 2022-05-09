@@ -5,7 +5,7 @@ import type * as CSS from './css'
 import {isDarkMode} from './dark-mode'
 import {themed, colors, darkColors} from './colors'
 import {getAssetPath} from '../constants/platform.desktop'
-const {extname, basename} = KB.path
+import * as Path from '../util/path'
 
 type _Elem = Object | null | false | void
 // CollapsibleStyle is a generic version of ?StylesMobile and family,
@@ -112,14 +112,12 @@ export const backgroundURL = (...to: Array<string>) => {
 
   if (goodPath && goodPath.length) {
     const last = goodPath[goodPath.length - 1]
-    const ext = extname(last)
-    goodPath[goodPath.length - 1] = basename(last, ext)
+    const ext = Path.extname(last)
+    goodPath[goodPath.length - 1] = Path.basename(last, ext)
     const guiModePath = `${isDarkMode() ? 'dark-' : ''}${goodPath}`
-
     const images = [1, 2, 3].map(
       mult => `url('${getAssetPath('images', guiModePath)}${mult === 1 ? '' : `@${mult}x`}${ext}') ${mult}x`
     )
-
     return `-webkit-image-set(${images.join(', ')})`
   }
 
