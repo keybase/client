@@ -1,9 +1,9 @@
+import * as ChatTypes from '../constants/types/chat2'
 import * as FSTypes from '../constants/types/fs'
-import type * as ChatTypes from '../constants/types/chat2'
-import type {State as ConfigState} from '../constants/types/config'
-import type {State as NotificationsState} from '../constants/types/notifications'
-import type {State as UsersState, UserInfo} from '../constants/types/users'
-import type {Tab} from '../constants/tabs'
+import {State as ConfigState} from '../constants/types/config'
+import {State as NotificationsState} from '../constants/types/notifications'
+import {State as UsersState, UserInfo} from '../constants/types/users'
+import {Tab} from '../constants/tabs'
 
 export type RemoteTlfUpdates = {
   timestamp: number
@@ -23,7 +23,6 @@ type ConfigHoistedProps =
   | 'httpSrvToken'
   | 'loggedIn'
   | 'username'
-  | 'windowShownCount'
 
 type UsersHoistedProps = 'infoMap'
 
@@ -57,13 +56,7 @@ export type ProxyProps = {
 
 type SerializeProps = Omit<
   ProxyProps,
-  | 'avatarRefreshCounter'
-  | 'followers'
-  | 'following'
-  | 'infoMap'
-  | 'navBadges'
-  | 'conversationsToSend'
-  | 'windowShownCount'
+  'avatarRefreshCounter' | 'followers' | 'following' | 'infoMap' | 'navBadges' | 'conversationsToSend'
 > & {
   avatarRefreshCounter: Array<[string, number]>
   conversationsToSend: Array<Conversation>
@@ -71,7 +64,6 @@ type SerializeProps = Omit<
   following: Array<string>
   infoMap: Array<[string, UserInfo]>
   navBadges: Array<[Tab, number]>
-  windowShownCount: number
 }
 
 export type DeserializeProps = Omit<ProxyProps, ConfigHoistedProps | UsersHoistedProps> & {
@@ -90,7 +82,6 @@ const initialState: DeserializeProps = {
     loggedIn: false,
     outOfDate: undefined,
     username: '',
-    windowShownCount: new Map(),
   },
   conversationsToSend: [],
   darkMode: false,
@@ -120,7 +111,6 @@ export const serialize = (p: ProxyProps): Partial<SerializeProps> => {
     following: [...following],
     infoMap: [...infoMap.entries()],
     navBadges: [...p.navBadges.entries()],
-    windowShownCount: p.windowShownCount.get('menu') ?? 0,
   }
 }
 
@@ -142,7 +132,6 @@ export const deserialize = (
     navBadges,
     outOfDate,
     username,
-    windowShownCount,
     ...rest
   } = props
 
@@ -162,7 +151,6 @@ export const deserialize = (
       loggedIn: loggedIn ?? state.config.loggedIn,
       outOfDate: outOfDate ?? state.config.outOfDate,
       username: username ?? state.config.username,
-      windowShownCount: new Map<string, number>([['menu', windowShownCount]]),
     },
     navBadges: navBadges ? new Map(navBadges) : state.navBadges,
     users: {infoMap: infoMap ? new Map(infoMap) : state.users.infoMap},

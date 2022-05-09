@@ -1,5 +1,5 @@
 import React, {Component} from 'react'
-import type {MenuLayoutProps, MenuItem} from '.'
+import {MenuLayoutProps, MenuItem} from '.'
 import Box from '../../box'
 import Divider from '../../divider'
 import Icon from '../../icon'

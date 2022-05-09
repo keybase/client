@@ -1,4 +1,5 @@
 import * as React from 'react'
+import * as remote from '@electron/remote'
 import * as Kb from '../common-adapters'
 import * as FsTypes from '../constants/types/fs'
 import * as Tabs from '../constants/tabs'
@@ -37,7 +38,6 @@ export type Props = {
   showingDiskSpaceBanner: boolean
   username: string | null
   navBadges: Map<string, number>
-  windowShownCount: number
 
   // UploadCountdownHOCProps
   endEstimate?: number
@@ -57,14 +57,13 @@ class MenubarRender extends React.Component<Props, State> {
   state: State = {showingMenu: false}
   attachmentRef = React.createRef<Kb.Icon>()
 
-  componentDidUpdate(prev: Props) {
-    if (prev.windowShownCount !== this.props.windowShownCount) {
-      this.props.refreshUserFileEdits()
-    }
-  }
-
   componentDidMount() {
     this.props.refreshUserFileEdits()
+    remote.getCurrentWindow().on('show', this.props.refreshUserFileEdits)
+  }
+
+  componentWillUnmount() {
+    remote.getCurrentWindow().removeListener('show', this.props.refreshUserFileEdits)
   }
 
   render() {

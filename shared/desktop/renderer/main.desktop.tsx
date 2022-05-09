@@ -2,14 +2,13 @@
 import '../../util/user-timings'
 import 'react-hot-loader'
 import {_setSystemIsDarkMode, _setSystemSupported} from '../../styles/dark-mode'
-import {isDarwin, isWindows} from '../../constants/platform'
+import {isDarwin} from '../../constants/platform'
+import * as SafeElectron from '../../util/safe-electron.desktop'
 import {enableMapSet} from 'immer'
 import '../../why-did-you-render'
-import KB2, {waitOnKB2Loaded} from '../../util/electron.desktop'
+import {waitOnKB2Loaded} from '../../util/electron.desktop'
 
 enableMapSet()
-waitOnKB2Loaded(() => {
-  _setSystemIsDarkMode(KB2.constants.startDarkMode)
-  _setSystemSupported(isDarwin || isWindows)
-  require('./main2.desktop')
-})
+_setSystemIsDarkMode(SafeElectron.workingIsDarkMode())
+_setSystemSupported(isDarwin)
+waitOnKB2Loaded(() => require('./main2.desktop'))

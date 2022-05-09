@@ -5,7 +5,7 @@ import * as WalletsGen from '../../actions/wallets-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as WalletsType from '../../constants/types/wallets'
 import * as Constants from '../../constants/tracker2'
-import type * as Types from '../../constants/types/tracker2'
+import * as Types from '../../constants/types/tracker2'
 import Assertion from '.'
 import openUrl from '../../util/open-url'
 

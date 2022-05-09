@@ -2,15 +2,17 @@ import * as React from 'react'
 import * as CryptoGen from '../../actions/crypto-gen'
 import * as Constants from '../../constants/crypto'
 import * as FsConstants from '../../constants/fs'
-import type * as Types from '../../constants/types/crypto'
+import * as Types from '../../constants/types/crypto'
 import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Platform from '../../constants/platform'
-import type {IconType} from '../../common-adapters/icon.constants-gen'
+import {IconType} from '../../common-adapters/icon.constants-gen'
 import capitalize from 'lodash/capitalize'
 import HiddenString from '../../util/hidden-string'
-import {pickFiles} from '../../util/pick-files'
+
+const {electron} = KB
+const {showOpenDialog} = electron.dialog
 
 type CommonProps = {
   operation: Types.Operations
@@ -74,11 +76,12 @@ export const TextInput = (props: TextProps) => {
   const onOpenFile = async () => {
     // On Windows and Linux only files will be able to be selected. Their native pickers don't allow for selecting both directories and files at once.
     // To set a directory as input, a user will need to drag the directory into Keybase.
-    const filePaths = await pickFiles({
+    const options = {
       allowDirectories: Platform.isDarwin,
       buttonLabel: 'Select',
-    })
-    if (!filePaths.length) return
+    }
+    const filePaths = await showOpenDialog(options)
+    if (!filePaths) return
     const path = filePaths[0]
     onSetFile(path)
   }

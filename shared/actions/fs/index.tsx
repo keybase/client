@@ -18,9 +18,6 @@ import {tlfToPreferredOrder} from '../../util/kbfs'
 import {errorToActionOrThrow} from './shared'
 import {NotifyPopup} from '../../native/notifications'
 import type {RPCError} from '../../util/errors'
-import KB2 from '../../util/electron'
-
-const {darwinCopyToKBFSTempUploadFile} = KB2.functions
 
 const clientID = Constants.makeUUID()
 
@@ -440,9 +437,9 @@ const loadUploadStatus = async () => {
 }
 
 const uploadFromDragAndDrop = async (_: Container.TypedState, action: FsGen.UploadFromDragAndDropPayload) => {
-  if (Platform.isDarwin && darwinCopyToKBFSTempUploadFile) {
+  if (Platform.isDarwin) {
     const localPaths = await Promise.all(
-      action.payload.localPaths.map(async localPath => darwinCopyToKBFSTempUploadFile(localPath))
+      action.payload.localPaths.map(async localPath => KB.kb.darwinCopyToKBFSTempUploadFile(localPath))
     )
     return localPaths.map(localPath =>
       FsGen.createUpload({

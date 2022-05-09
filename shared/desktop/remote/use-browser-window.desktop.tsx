@@ -1,8 +1,6 @@
 // This hook creates a remote brower window when mounted
 import * as React from 'react'
-import KB2 from '../../util/electron.desktop'
-
-const {makeRenderer, closeRenderer} = KB2.functions
+import * as Electron from 'electron'
 
 export type UseBrowserOptions = {
   windowOpts: {
@@ -21,15 +19,30 @@ function useBrowserWindow(options: UseBrowserOptions) {
   const {windowOpts, windowComponent, windowParam, windowPositionBottomRight} = options
   React.useEffect(() => {
     if (windowComponent) {
-      makeRenderer?.({
-        windowComponent,
-        windowOpts,
-        windowParam,
-        windowPositionBottomRight,
-      })
+      Electron.ipcRenderer
+        .invoke('KBkeybase', {
+          payload: {
+            windowComponent,
+            windowOpts,
+            windowParam,
+            windowPositionBottomRight,
+          },
+          type: 'makeRenderer',
+        })
+        .then(() => {})
+        .catch(() => {})
     }
     return () => {
-      closeRenderer?.({windowComponent, windowParam})
+      Electron.ipcRenderer
+        .invoke('KBkeybase', {
+          payload: {
+            windowComponent,
+            windowParam,
+          },
+          type: 'closeRenderer',
+        })
+        .then(() => {})
+        .catch(() => {})
     }
   }, [windowComponent, windowParam, windowOpts, windowPositionBottomRight])
 }

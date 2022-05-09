@@ -3,10 +3,8 @@
 // If asked we'll send all props, otherwise we do a shallow compare and send the different ones
 import * as React from 'react'
 import * as Container from '../../util/container'
+import * as Electron from 'electron'
 import throttle from 'lodash/throttle'
-import KB2 from '../../util/electron.desktop'
-
-const {rendererNewProps} = KB2.functions
 
 // set this to true to see details of the serialization process
 const debugSerializer = __DEV__ && false
@@ -42,7 +40,13 @@ export default function useSerializeProps<ProxyProps extends {}, SerializeProps 
         if (Object.keys(toSend).length) {
           const propsStr = JSON.stringify(toSend)
           debugSerializer && console.log('[useSerializeProps]: throttled send', propsStr.length, toSend)
-          rendererNewProps?.({propsStr, windowComponent, windowParam})
+          Electron.ipcRenderer
+            .invoke('KBkeybase', {
+              payload: {propsStr, windowComponent, windowParam},
+              type: 'rendererNewProps',
+            })
+            .then(() => {})
+            .catch(() => {})
         }
         lastSent.current = serialized
         lastForceUpdate.current = currentForceUpdate
