@@ -8,8 +8,8 @@ import './upload.css'
 
 type DrawState = 'showing' | 'hiding' | 'hidden'
 const Upload = React.memo((props: UploadProps) => {
-  let {smallMode, showing, files, fileName, totalSyncingBytes, timeLeft, debugToggleShow} = props
-  let [drawState, setDrawState] = React.useState<DrawState>(showing ? 'showing' : 'hidden')
+  const {smallMode, showing, files, fileName, totalSyncingBytes, timeLeft, debugToggleShow} = props
+  const [drawState, setDrawState] = React.useState<DrawState>(showing ? 'showing' : 'hidden')
 
   const height = 40
 

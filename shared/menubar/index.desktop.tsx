@@ -416,7 +416,7 @@ const styles = Styles.styleSheetCreate(() => ({
     right: -2,
     top: -4,
   },
-  flexOne: {flexGrow: 1, backgroundColor: 'red'},
+  flexOne: {flexGrow: 1},
   footer: {width: 360},
   hamburgerIcon: {
     marginRight: Styles.globalMargins.tiny,
