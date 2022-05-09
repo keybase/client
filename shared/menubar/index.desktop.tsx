@@ -332,7 +332,7 @@ class MenubarRender extends React.Component<Props, State> {
           />
         </Kb.Box>
         <OutOfDate outOfDate={this.props.outOfDate} updateNow={this.props.updateNow} />
-        <Kb.ScrollView>
+        <Kb.ScrollView style={styles.flexOne}>
           <ChatContainer convLimit={5} />
           {this.props.kbfsDaemonStatus.rpcStatus === FsTypes.KbfsDaemonRpcStatus.Connected ? (
             <FilesPreview />
@@ -349,6 +349,7 @@ class MenubarRender extends React.Component<Props, State> {
             files={this.props.files}
             fileName={this.props.fileName}
             totalSyncingBytes={this.props.totalSyncingBytes}
+            smallMode={true}
           />
         </Kb.Box>
       </Kb.Box>
@@ -415,6 +416,7 @@ const styles = Styles.styleSheetCreate(() => ({
     right: -2,
     top: -4,
   },
+  flexOne: {flexGrow: 1, backgroundColor: 'red'},
   footer: {width: 360},
   hamburgerIcon: {
     marginRight: Styles.globalMargins.tiny,
