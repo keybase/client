@@ -1,6 +1,4 @@
 import * as Electron from 'electron'
-import type {RPCError} from '../../util/errors'
-import type {MessageTypes as FsMessageTypes} from '../../constants/types/rpc-gen'
 import type {TypedActions} from '../../actions/typed-actions-gen'
 import {
   injectPreload,
@@ -12,10 +10,6 @@ import type {LogLineWithLevelISOTimestamp} from '../../logger/types'
 
 const isRenderer = process.type === 'renderer'
 const isDarwin = process.platform === 'darwin'
-
-const getEngine = () => {
-  throw new Error('NOJIMA')
-}
 
 // TODO contextBridge
 if (isRenderer) {
@@ -77,19 +71,8 @@ if (isRenderer) {
               throw new Error("Couldn't save")
             }
           },
-          darwinCopyToKBFSTempUploadFile: async (originalFilePath: string) => {
+          darwinCopyToKBFSTempUploadFile: async (dir: string, originalFilePath: string) => {
             if (!isDarwin) return ''
-            const simpleFSSimpleFSMakeTempDirForUploadRpcPromise = async () =>
-              new Promise<FsMessageTypes['keybase.1.SimpleFS.simpleFSMakeTempDirForUpload']['outParam']>(
-                (resolve, reject) => {
-                  getEngine()._rpcOutgoing({
-                    callback: (error: RPCError | null, result: string) =>
-                      error ? reject(error) : resolve(result),
-                    method: 'keybase.1.SimpleFS.simpleFSMakeTempDirForUpload',
-                  })
-                }
-              )
-            const dir = await simpleFSSimpleFSMakeTempDirForUploadRpcPromise()
             return (await Electron.ipcRenderer.invoke('KBkeybase', {
               payload: {dir, originalFilePath},
               type: 'darwinCopyToKBFSTempUploadFile',

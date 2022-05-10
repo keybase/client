@@ -1,7 +1,7 @@
 // cross platform view of electron just so actions can type correctly
 type KB2 = {
   functions: {
-    darwinCopyToKBFSTempUploadFile?: (originalFilePath: string) => Promise<string>
+    darwinCopyToKBFSTempUploadFile?: (dir: string, originalFilePath: string) => Promise<string>
     darwinCopyToChatTempUploadFile?: (
       dst: string,
       originalFilePath: string

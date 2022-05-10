@@ -70,7 +70,7 @@ export type KB2 = {
     // defined for both always
     mainWindowDispatch: (action: TypedActions) => void
     darwinCopyToChatTempUploadFile?: (dst: string, originalFilePath: string) => Promise<void>
-    darwinCopyToKBFSTempUploadFile?: (originalFilePath: string) => Promise<string>
+    darwinCopyToKBFSTempUploadFile?: (dir: string, originalFilePath: string) => Promise<string>
     minimizeWindow?: () => void
     openPathInFinder?: (path: string, isFolder: boolean) => Promise<void>
     openURL?: (url: string, options?: {activate: boolean}) => Promise<void>
