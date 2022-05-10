@@ -1318,6 +1318,27 @@
     xcode "^3.0.1"
     xml2js "0.4.23"
 
+"@expo/config-plugins@^4.0.14":
+  version "4.1.4"
+  resolved "https://registry.yarnpkg.com/@expo/config-plugins/-/config-plugins-4.1.4.tgz#08e1a6314dc0f96cd165a748b5997b5ec75a84d0"
+  integrity sha512-fkOjXnSieQfVSWVLKhst0DnCAyeHksvWky1CldFCQllhDB1HHBiP09Z8pamVB783n3qr/1HNZiSp6k2iUcaSoA==
+  dependencies:
+    "@expo/config-types" "^45.0.0"
+    "@expo/json-file" "8.2.36"
+    "@expo/plist" "0.0.18"
+    "@expo/sdk-runtime-versions" "^1.0.0"
+    "@react-native/normalize-color" "^2.0.0"
+    chalk "^4.1.2"
+    debug "^4.3.1"
+    find-up "~5.0.0"
+    getenv "^1.0.0"
+    glob "7.1.6"
+    resolve-from "^5.0.0"
+    semver "^7.3.5"
+    slash "^3.0.0"
+    xcode "^3.0.1"
+    xml2js "0.4.23"
+
 "@expo/config-types@^43.0.1":
   version "43.0.1"
   resolved "https://registry.yarnpkg.com/@expo/config-types/-/config-types-43.0.1.tgz#3e047dccb371741a540980eaff26fb0c95039c30"
@@ -1327,6 +1348,11 @@
   version "44.0.0"
   resolved "https://registry.yarnpkg.com/@expo/config-types/-/config-types-44.0.0.tgz#d3480fe2c99f9e895dae4ebba58b74ed72d03e26"
   integrity sha512-d+gpdKOAhqaD5RmcMzGgKzNtvE1w+GCqpFQNSXLliYlXjj+Tv0eL8EPeAdPtvke0vowpPFwd5McXLA90dgY6Jg==
+
+"@expo/config-types@^45.0.0":
+  version "45.0.0"
+  resolved "https://registry.yarnpkg.com/@expo/config-types/-/config-types-45.0.0.tgz#963c2fdce8fbcbd003758b92ed8a25375f437ef6"
+  integrity sha512-/QGhhLWyaGautgEyU50UJr5YqKJix5t77ePTwreOVAhmZH+ff3nrrtYTTnccx+qF08ZNQmfAyYMCD3rQfzpiJA==
 
 "@expo/config@6.0.6":
   version "6.0.6"
@@ -1380,6 +1406,15 @@
     json5 "^1.0.1"
     write-file-atomic "^2.3.0"
 
+"@expo/json-file@8.2.36":
+  version "8.2.36"
+  resolved "https://registry.yarnpkg.com/@expo/json-file/-/json-file-8.2.36.tgz#62a505cb7f30a34d097386476794680a3f7385ff"
+  integrity sha512-tOZfTiIFA5KmMpdW9KF7bc6CFiGjb0xnbieJhTGlHrLL+ps2G0OkqmuZ3pFEXBOMnJYUVpnSy++52LFxvpa5ZQ==
+  dependencies:
+    "@babel/code-frame" "~7.10.4"
+    json5 "^1.0.1"
+    write-file-atomic "^2.3.0"
+
 "@expo/metro-config@~0.2.6":
   version "0.2.8"
   resolved "https://registry.yarnpkg.com/@expo/metro-config/-/metro-config-0.2.8.tgz#c0fd56723e2fb9bb352e788e8f8fe0e218aaf663"
@@ -1404,6 +1439,15 @@
   version "0.0.17"
   resolved "https://registry.yarnpkg.com/@expo/plist/-/plist-0.0.17.tgz#0f6c594e116f45a28f5ed20998dadb5f3429f88b"
   integrity sha512-5Ul3d/YOYE6mfum0jCE25XUnkKHZ5vGlU/X2275ZmCtGrpRn1Fl8Nq+jQKSaks3NqTfxdyXROi/TgH8Zxeg2wg==
+  dependencies:
+    "@xmldom/xmldom" "~0.7.0"
+    base64-js "^1.2.3"
+    xmlbuilder "^14.0.0"
+
+"@expo/plist@0.0.18":
+  version "0.0.18"
+  resolved "https://registry.yarnpkg.com/@expo/plist/-/plist-0.0.18.tgz#9abcde78df703a88f6d9fa1a557ee2f045d178b0"
+  integrity sha512-+48gRqUiz65R21CZ/IXa7RNBXgAI/uPSdvJqoN9x1hfL44DNbUoWHgHiEXTx7XelcATpDwNTz6sHLfy0iNqf+w==
   dependencies:
     "@xmldom/xmldom" "~0.7.0"
     base64-js "^1.2.3"
@@ -1564,11 +1608,6 @@
   version "1.9.0"
   resolved "https://registry.yarnpkg.com/@react-native-clipboard/clipboard/-/clipboard-1.9.0.tgz#68d6a18545b1f986098d5fb1cd710b53c322e066"
   integrity sha512-O/ohFq1CAQLfoNc376Z3W6gvVcCJlje5AVk0JhsI8Q40hn+NXAWCnOM1bEePfC0uDMtp0/RCK6FotUvkQ6c4Zw==
-
-"@react-native-community/cameraroll@4.1.2":
-  version "4.1.2"
-  resolved "https://registry.yarnpkg.com/@react-native-community/cameraroll/-/cameraroll-4.1.2.tgz#489c6bb6137571540d93c543d5fcf8c652b548ec"
-  integrity sha512-jkdhMByMKD2CZ/5MPeBieYn8vkCfC4MOTouPpBpps3I8N6HUYJk+1JnDdktVYl2WINnqXpQptDA2YptVyifYAg==
 
 "@react-native-community/cli-debugger-ui@^6.0.0-rc.0":
   version "6.0.0"
@@ -4632,6 +4671,13 @@ expo-mail-composer@11.1.1:
   integrity sha512-wxS9HtVkMONhiNJaoBmX9QdcrBlrtOz/VCY2DlkckNIz3nK+34pxTSeIJL6CiknzKWfP4/houjRvn7ywn2Zcyg==
   dependencies:
     query-string "^6.2.0"
+
+expo-media-library@14.1.0:
+  version "14.1.0"
+  resolved "https://registry.yarnpkg.com/expo-media-library/-/expo-media-library-14.1.0.tgz#45302a49444a03d9e6597824bd7295b7bcb38286"
+  integrity sha512-hGXa+4pe6G6WHuNVoGCyBJ6W3VTUg1R63ULIcpXN+mU8k1AfPen/eEFaA3G2FUxdeTvyXJdWZOQY48uDu6I3hg==
+  dependencies:
+    "@expo/config-plugins" "^4.0.14"
 
 expo-modules-autolinking@0.5.5:
   version "0.5.5"
