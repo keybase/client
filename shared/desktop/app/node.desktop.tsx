@@ -290,10 +290,7 @@ type Action =
   | {type: 'showOpenDialog'; payload: {options: OpenDialogOptions}}
   | {type: 'showSaveDialog'; payload: {options: SaveDialogOptions}}
   | {type: 'darwinCopyToKBFSTempUploadFile'; payload: {originalFilePath: string; dir: string}}
-  | {
-      type: 'darwinCopyToChatTempUploadFile'
-      payload: {originalFilePath: string; dst: string; outboxID: string}
-    }
+  | {type: 'darwinCopyToChatTempUploadFile'; payload: {originalFilePath: string; dst: string}}
   | {type: 'closeWindow'}
   | {type: 'minimizeWindow'}
   | {type: 'toggleMaximizeWindow'}

@@ -2,7 +2,10 @@
 type KB2 = {
   functions: {
     darwinCopyToKBFSTempUploadFile?: (originalFilePath: string) => Promise<string>
-    darwinCopyToChatTempUploadFile?: (originalFilePath: string) => Promise<{outboxID: Buffer; path: string}>
+    darwinCopyToChatTempUploadFile?: (
+      dst: string,
+      originalFilePath: string
+    ) => Promise<{outboxID: Buffer; path: string}>
   }
 }
 

@@ -1,8 +1,6 @@
 import * as Electron from 'electron'
-import type {WaitingKey} from '../../engine'
 import type {RPCError} from '../../util/errors'
 import type {MessageTypes as FsMessageTypes} from '../../constants/types/rpc-gen'
-import type {MessageTypes as ChatMessageTypes} from '../../constants/types/rpc-chat-gen'
 import type {TypedActions} from '../../actions/typed-actions-gen'
 import {
   injectPreload,
@@ -16,7 +14,7 @@ const isRenderer = process.type === 'renderer'
 const isDarwin = process.platform === 'darwin'
 
 const getEngine = () => {
-  return require('../../engine').getEngine()
+  throw new Error('NOJIMA')
 }
 
 // TODO contextBridge
@@ -65,42 +63,16 @@ if (isRenderer) {
               .then(() => {})
               .catch(() => {})
           },
-          darwinCopyToChatTempUploadFile: async (originalFilePath: string) => {
+          darwinCopyToChatTempUploadFile: async (dst: string, originalFilePath: string) => {
             if (!isDarwin) {
               throw new Error('Unsupported platform')
             }
-            const generateOutboxID = () =>
-              Buffer.from([...Array(8)].map(() => Math.floor(Math.random() * 256)))
-            const outboxID = generateOutboxID()
-            const localGetUploadTempFileRpcPromise = async (
-              params: ChatMessageTypes['chat.1.local.getUploadTempFile']['inParam'],
-              waitingKey?: WaitingKey
-            ) => {
-              return new Promise<ChatMessageTypes['chat.1.local.getUploadTempFile']['outParam']>(
-                (resolve, reject) => {
-                  getEngine()._rpcOutgoing({
-                    callback: (
-                      error: RPCError | null,
-                      result: ChatMessageTypes['chat.1.local.getUploadTempFile']['outParam']
-                    ) => (error ? reject(error) : resolve(result)),
-                    method: 'chat.1.local.getUploadTempFile',
-                    params,
-                    waitingKey,
-                  })
-                }
-              )
-            }
-            const dst = await localGetUploadTempFileRpcPromise({
-              filename: originalFilePath,
-              outboxID,
-            })
-
             const res = (await Electron.ipcRenderer.invoke('KBkeybase', {
               payload: {dst, originalFilePath},
               type: 'darwinCopyToChatTempUploadFile',
             })) as boolean
             if (res) {
-              return {outboxID, path: dst}
+              return
             } else {
               throw new Error("Couldn't save")
             }

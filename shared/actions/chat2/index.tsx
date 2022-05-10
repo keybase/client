@@ -2329,7 +2329,15 @@ const attachFromDragAndDrop = async (
   action: Chat2Gen.AttachFromDragAndDropPayload
 ) => {
   if (Platform.isDarwin && darwinCopyToChatTempUploadFile) {
-    const paths = await Promise.all(action.payload.paths.map(p => darwinCopyToChatTempUploadFile(p.path)))
+    const paths = await Promise.all(
+      action.payload.paths.map(async p => {
+        const outboxID = Constants.generateOutboxID()
+        const dst = await RPCChatTypes.localGetUploadTempFileRpcPromise({filename: p.path, outboxID})
+        await darwinCopyToChatTempUploadFile(dst, p.path)
+        return {outboxID, path: dst}
+      })
+    )
+
     return Chat2Gen.createAttachmentsUpload({
       conversationIDKey: action.payload.conversationIDKey,
       paths,
