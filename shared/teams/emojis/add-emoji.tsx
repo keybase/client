@@ -10,10 +10,10 @@ import * as ChatTypes from '../../constants/types/chat2'
 import * as ChatConstants from '../../constants/chat2'
 import {AliasInput, Modal} from './common'
 import useRPC from '../../util/use-rpc'
-import pickFiles from '../../util/pick-files'
+import {pickImages} from '../../util/pick-files'
 import kebabCase from 'lodash/kebabCase'
 
-const pickEmojisPromise = async () => pickFiles('Select emoji images to upload')
+const pickEmojisPromise = async () => pickImages('Select emoji images to upload')
 
 type Props = {
   conversationIDKey: ChatTypes.ConversationIDKey

@@ -2,7 +2,7 @@
 // MUST be first
 import '../renderer/preload.desktop'
 // ^^^^^^^^
-import MainWindow, {showDockIcon, closeWindows} from './main-window.desktop'
+import MainWindow, {showDockIcon, closeWindows, getMainWindow} from './main-window.desktop'
 import * as Electron from 'electron'
 import devTools from './dev-tools.desktop'
 import installer from './installer.desktop'
@@ -10,20 +10,22 @@ import menuBar from './menu-bar.desktop'
 import menuHelper from './menu-helper.desktop'
 import os from 'os'
 import fs from 'fs'
+import path from 'path'
+import fse from 'fs-extra'
+import {execFile} from 'child_process'
 import * as ConfigGen from '../../actions/config-gen'
 import * as DeeplinksGen from '../../actions/deeplinks-gen'
 import {showDevTools, skipSecondaryDevtools, allowMultipleInstances} from '../../local-debug.desktop'
 import startWinService from './start-win-service.desktop'
-import {isDarwin, isLinux, isWindows, cacheRoot} from '../../constants/platform.desktop'
+import {isDarwin, isLinux, isWindows, cacheRoot, socketPath} from '../../constants/platform.desktop'
 import {isPathSaltpack} from '../../constants/crypto'
-import {mainWindowDispatch} from '../remote/util.desktop'
 import {quit} from './ctl.desktop'
 import logger from '../../logger'
 import {assetRoot, htmlPrefix} from './html-root.desktop'
-import KB2 from '../../util/electron.desktop'
+import KB2, {type OpenDialogOptions, type SaveDialogOptions} from '../../util/electron.desktop'
 
-const {join} = KB.path
-const {env} = KB.process
+const {env} = KB2.constants
+const {mainWindowDispatch} = KB2.functions
 
 require('@electron/remote/main').initialize()
 
@@ -278,6 +280,22 @@ type Action =
     }
   | {type: 'showMainWindow'}
   | {type: 'setupPreloadKB2'}
+  | {type: 'winCheckRPCOwnership'}
+  | {type: 'showOpenDialog'; payload: {options: OpenDialogOptions}}
+  | {type: 'showSaveDialog'; payload: {options: SaveDialogOptions}}
+  | {type: 'darwinCopyToKBFSTempUploadFile'; payload: {originalFilePath: string; dir: string}}
+  | {
+      type: 'darwinCopyToChatTempUploadFile'
+      payload: {originalFilePath: string; dst: string; outboxID: string}
+    }
+  | {type: 'closeWindow'}
+  | {type: 'minimizeWindow'}
+  | {type: 'toggleMaximizeWindow'}
+  | {type: 'openURL'; payload: {url: string; options?: {activate: boolean}}}
+  | {type: 'showInactive'}
+  | {type: 'hideWindow'}
+  | {type: 'openInDefaultDirectory'; payload: {path: string}}
+  | {type: 'getPathType'; payload: {path: string}}
 
 const remoteURL = (windowComponent: string, windowParam: string) =>
   `${htmlPrefix}${assetRoot}${windowComponent}${__DEV__ ? '.dev' : ''}.html?param=${windowParam}`
@@ -290,15 +308,249 @@ const findRemoteComponent = (windowComponent: string, windowParam: string) => {
   })
 }
 
+const winCheckRPCOwnership = async () => {
+  const localAppData = String(env.LOCALAPPDATA)
+  const binPath = localAppData ? path.resolve(localAppData, 'Keybase', 'keybase.exe') : 'keybase.exe'
+  const args = ['pipeowner', socketPath]
+  return new Promise<void>((resolve, reject) => {
+    execFile(binPath, args, {windowsHide: true}, (error, stdout) => {
+      if (error) {
+        logger.info(`pipeowner check result: ${stdout.toString()}`)
+        reject(error)
+        return
+      }
+      const result = JSON.parse(stdout.toString())
+      if (result.isOwner) {
+        resolve(undefined)
+        return
+      }
+      logger.info(`pipeowner check result: ${stdout.toString()}`)
+      reject(new Error('pipeowner check failed'))
+    })
+  })
+}
+
+// Expose native file picker to components.
+// Improved experience over HTML <input type='file' />
+const showOpenDialog = async (opts: OpenDialogOptions) => {
+  try {
+    const {title, message, buttonLabel, defaultPath, filters} = opts
+    const {allowDirectories, allowFiles, allowMultiselect} = opts
+    // If on Windows or Linux and allowDirectories, prefer allowDirectories.
+    // Can't have both openFile and openDirectory on Windows/Linux
+    // Source: https://www.electronjs.org/docs/api/dialog#dialogshowopendialogbrowserwindow-options
+    const windowsOrLinux = isWindows || isLinux
+    const canAllowFiles = allowDirectories && windowsOrLinux ? false : allowFiles ?? true
+    const allowedProperties = [
+      ...(canAllowFiles ? ['openFile' as const] : []),
+      ...(allowDirectories ? ['openDirectory' as const] : []),
+      ...(allowMultiselect ? ['multiSelections' as const] : []),
+    ]
+    const allowedOptions = {
+      buttonLabel,
+      defaultPath,
+      filters,
+      message,
+      properties: allowedProperties,
+      title,
+    }
+    const mw = getMainWindow()
+    if (!mw) return []
+    const result = await Electron.dialog.showOpenDialog(mw, allowedOptions)
+    if (!result) return []
+    if (result.canceled) return []
+    return result.filePaths
+  } catch (err) {
+    console.warn('Electron failed to launch showOpenDialog')
+    return []
+  }
+}
+
+const showSaveDialog = async (opts: SaveDialogOptions) => {
+  try {
+    const {title, message, buttonLabel, defaultPath} = opts
+    const allowedProperties = ['showOverwriteConfirmation' as const]
+    const allowedOptions = {
+      buttonLabel,
+      defaultPath,
+      message,
+      properties: allowedProperties,
+      title,
+    }
+    const mw = getMainWindow()
+    if (!mw) return []
+    const result = await Electron.dialog.showSaveDialog(mw, allowedOptions)
+    if (!result) return []
+    if (result.canceled) return []
+    return result.filePath
+  } catch (err) {
+    console.warn('Electron failed to launch showSaveDialog')
+    return []
+  }
+}
+
+const darwinCopyToKBFSTempUploadFile = async (options: {originalFilePath: string; dir: string}) => {
+  if (!isDarwin) {
+    throw new Error('unsupported platform')
+  }
+  const dst = path.join(options.dir, path.basename(options.originalFilePath))
+  await fse.copy(options.originalFilePath, dst)
+  return dst
+}
+
+const darwinCopyToChatTempUploadFile = async (options: {originalFilePath: string; dst: string}) => {
+  await fse.copy(options.originalFilePath, options.dst)
+  return true
+}
+
 const plumbEvents = () => {
+  Electron.nativeTheme.on('updated', () => {
+    mainWindowDispatch(ConfigGen.createSetSystemDarkMode({dark: Electron.nativeTheme.shouldUseDarkColors}))
+  })
   Electron.ipcMain.handle('KBdispatchAction', (_: any, action: any) => {
     mainWindow?.webContents.send('KBdispatchAction', action)
   })
 
-  Electron.ipcMain.handle('KBkeybase', (_event, action: Action) => {
+  Electron.ipcMain.handle('KBkeybase', async (event, action: Action) => {
     switch (action.type) {
+      case 'getPathType': {
+        const {path} = action.payload
+        return new Promise((resolve, reject) => {
+          fs.stat(path, (err, stats) => {
+            if (err) {
+              reject(new Error(`Unable to open/stat file: ${path}`))
+              return
+            }
+            if (stats.isFile()) {
+              resolve('file')
+            } else if (stats.isDirectory()) {
+              resolve('directory')
+            } else {
+              reject(new Error(`Unable to open: Not a file or directory`))
+            }
+          })
+        })
+      }
+      case 'openURL': {
+        const {url, options} = action.payload
+        try {
+          await Electron.shell.openExternal(url, options)
+          return true
+        } catch {
+          return false
+        }
+      }
+      case 'openInDefaultDirectory': {
+        const openPath = action.payload.path
+
+        // pathToURL takes path and converts to (file://) url.
+        // See https://github.com/sindresorhus/file-url
+        const pathToURL = (p: string) => {
+          let goodPath = p.replace(/\\/g, '/')
+
+          // Windows drive letter must be prefixed with a slash
+          if (!goodPath.startsWith('/')) {
+            goodPath = '/' + goodPath
+          }
+
+          return encodeURI('file://' + goodPath).replace(/#/g, '%23')
+        }
+        const prom = new Promise<void>((resolve, reject) => {
+          // Paths in directories might be symlinks, so resolve using
+          // realpath.
+          // For example /keybase/private/gabrielh,chris gets redirected to
+          // /keybase/private/chris,gabrielh.
+          fs.realpath(openPath, (err, resolvedPath) => {
+            if (err) {
+              reject(new Error(`No realpath for ${openPath}`))
+              return
+            }
+            // Convert to URL for openExternal call.
+            // We use openExternal instead of openItem because it
+            // correctly focuses' the Finder, and also uses a newer
+            // native API on macOS.
+            const url = pathToURL(resolvedPath)
+            logger.info('Open URL (directory):', url)
+
+            Electron.shell
+              .openExternal(url, {activate: true})
+              .then(() => {
+                logger.info('Opened directory:', openPath)
+                resolve()
+              })
+              .catch(err => {
+                reject(err)
+              })
+          })
+        })
+        try {
+          await prom
+          return true
+        } catch {
+          return false
+        }
+      }
+      case 'showInactive': {
+        Electron.BrowserWindow.fromWebContents(event.sender)?.showInactive()
+        return
+      }
+      case 'hideWindow': {
+        Electron.BrowserWindow.fromWebContents(event.sender)?.hide()
+        return
+      }
+      case 'closeWindow': {
+        Electron.BrowserWindow.fromWebContents(event.sender)?.close()
+        return
+      }
+      case 'minimizeWindow': {
+        Electron.BrowserWindow.getFocusedWindow()?.minimize()
+        return
+      }
+      case 'toggleMaximizeWindow': {
+        const win = Electron.BrowserWindow.getFocusedWindow()
+        if (win) {
+          win.isMaximized() ? win.unmaximize() : win.maximize()
+        }
+        return
+      }
+      case 'darwinCopyToChatTempUploadFile': {
+        try {
+          return await darwinCopyToChatTempUploadFile(action.payload)
+        } catch {
+          return false
+        }
+      }
+      case 'darwinCopyToKBFSTempUploadFile': {
+        try {
+          return await darwinCopyToKBFSTempUploadFile(action.payload)
+        } catch {
+          return ''
+        }
+      }
+      case 'showOpenDialog': {
+        try {
+          return await showOpenDialog(action.payload.options)
+        } catch {
+          return []
+        }
+      }
+      case 'showSaveDialog': {
+        try {
+          return await showSaveDialog(action.payload.options)
+        } catch {
+          return []
+        }
+      }
+      case 'winCheckRPCOwnership': {
+        try {
+          await winCheckRPCOwnership()
+          return true
+        } catch {
+          return false
+        }
+      }
       case 'setupPreloadKB2':
-        return KB2
+        return KB2.constants
       case 'showMainWindow':
         {
           mainWindow?.show()
@@ -310,7 +562,7 @@ const plumbEvents = () => {
         // TODO change how this works
         try {
           fs.writeFileSync(
-            join(Electron.app.getPath('userData'), 'app-state.json'),
+            path.join(Electron.app.getPath('userData'), 'app-state.json'),
             JSON.stringify({
               changedAtMs: action.payload.changedAtMs,
               isUserActive: action.payload.isUserActive,
@@ -358,7 +610,7 @@ const plumbEvents = () => {
       }
       case 'rendererNewProps': {
         const w = findRemoteComponent(action.payload.windowComponent, action.payload.windowParam)
-        w?.emit('KBprops', action.payload.propsStr)
+        w?.webContents.send('KBprops', action.payload.propsStr)
         break
       }
       case 'closeRenderer': {
@@ -385,6 +637,10 @@ const plumbEvents = () => {
         const remoteWindow = new Electron.BrowserWindow(opts)
 
         require('@electron/remote/main').enable(remoteWindow.webContents)
+
+        remoteWindow.on('show', () => {
+          mainWindowDispatch(ConfigGen.createUpdateWindowShown({component: action.payload.windowComponent}))
+        })
 
         if (action.payload.windowPositionBottomRight && Electron.screen.getPrimaryDisplay()) {
           const {width, height} = Electron.screen.getPrimaryDisplay().workAreaSize

@@ -1,4 +1,4 @@
-import * as SafeElectron from '../../util/safe-electron.desktop'
+import * as Electron from 'electron'
 import fs from 'fs'
 import path from 'path'
 import exec from './exec.desktop'
@@ -10,7 +10,7 @@ import zlib from 'zlib'
 import type {TypedActions} from '../../actions/typed-actions-gen'
 import * as FsGen from '../../actions/fs-gen'
 
-const file = path.join(SafeElectron.getApp().getPath('userData'), 'installer.json')
+const file = path.join(Electron.app.getPath('userData'), 'installer.json')
 
 const loadHasPrompted = () => {
   try {
@@ -131,7 +131,7 @@ const darwinInstall = (dispatch: (action: TypedActions) => void, callback: CB) =
   let timeout = 30
   // If the app was opened at login, there might be contention for lots
   // of resources, so let's bump the install timeout to something large.
-  if (SafeElectron.getApp().getLoginItemSettings().wasOpenedAtLogin) {
+  if (Electron.app.getLoginItemSettings().wasOpenedAtLogin) {
     timeout = 90
   }
 

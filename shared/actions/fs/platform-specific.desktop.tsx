@@ -8,79 +8,22 @@ import * as Tabs from '../../constants/tabs'
 import * as remote from '@electron/remote'
 import fs from 'fs'
 import type {TypedState, TypedActions} from '../../util/container'
-import {fileUIName, isWindows, isLinux} from '../../constants/platform'
+import {
+  fileUIName,
+  isWindows,
+  isLinux,
+  dokanPath,
+  windowsBinPath,
+  pathSep,
+} from '../../constants/platform.desktop'
 import logger from '../../logger'
 import {spawn, execFile, exec} from 'child_process'
 import {errorToActionOrThrow} from './shared'
 import * as RouteTreeGen from '../route-tree-gen'
+import * as Path from '../../util/path'
+import KB2 from '../../util/electron.desktop'
 
-const {path} = KB
-const {sep} = path
-const {env} = KB.process
-
-type pathType = 'file' | 'directory'
-
-// pathToURL takes path and converts to (file://) url.
-// See https://github.com/sindresorhus/file-url
-function pathToURL(p: string): string {
-  let goodPath = p.replace(/\\/g, '/')
-
-  // Windows drive letter must be prefixed with a slash
-  if (!goodPath.startsWith('/')) {
-    goodPath = '/' + goodPath
-  }
-
-  return encodeURI('file://' + goodPath).replace(/#/g, '%23')
-}
-
-const openInDefaultDirectory = async (openPath: string): Promise<void> => {
-  return new Promise((resolve, reject) => {
-    // Paths in directories might be symlinks, so resolve using
-    // realpath.
-    // For example /keybase/private/gabrielh,chris gets redirected to
-    // /keybase/private/chris,gabrielh.
-    fs.realpath(openPath, (err, resolvedPath) => {
-      if (err) {
-        reject(new Error(`No realpath for ${openPath}`))
-        return
-      }
-      // Convert to URL for openExternal call.
-      // We use openExternal instead of openItem because it
-      // correctly focuses' the Finder, and also uses a newer
-      // native API on macOS.
-      const url = pathToURL(resolvedPath)
-      logger.info('Open URL (directory):', url)
-
-      remote.shell
-        .openExternal(url, {activate: true})
-        .then(() => {
-          logger.info('Opened directory:', openPath)
-          resolve()
-        })
-        .catch(err => {
-          reject(err)
-        })
-    })
-  })
-}
-
-async function getPathType(openPath: string): Promise<pathType> {
-  return new Promise((resolve, reject) => {
-    fs.stat(openPath, (err, stats) => {
-      if (err) {
-        reject(new Error(`Unable to open/stat file: ${openPath}`))
-        return
-      }
-      if (stats.isFile()) {
-        resolve('file')
-      } else if (stats.isDirectory()) {
-        resolve('directory')
-      } else {
-        reject(new Error(`Unable to open: Not a file or directory`))
-      }
-    })
-  })
-}
+const {openInDefaultDirectory, openURL, getPathType} = KB2.functions
 
 // _openPathInSystemFileManagerPromise opens `openPath` in system file manager.
 // If isFolder is true, it just opens it. Otherwise, it shows it in its parent
@@ -97,7 +40,7 @@ const _openPathInSystemFileManagerPromise = async (openPath: string, isFolder: b
             reject(new Error('unable to open item'))
           })
       } else {
-        openInDefaultDirectory(openPath).then(resolve, reject)
+        openInDefaultDirectory?.(openPath).then(resolve, reject)
       }
     } else {
       remote.shell.showItemInFolder(openPath)
@@ -107,8 +50,12 @@ const _openPathInSystemFileManagerPromise = async (openPath: string, isFolder: b
 
 const openLocalPathInSystemFileManager = async (action: FsGen.OpenLocalPathInSystemFileManagerPayload) => {
   try {
-    const pathType = await getPathType(action.payload.localPath)
-    return _openPathInSystemFileManagerPromise(action.payload.localPath, pathType === 'directory')
+    if (getPathType) {
+      const pathType = await getPathType(action.payload.localPath)
+      return _openPathInSystemFileManagerPromise(action.payload.localPath, pathType === 'directory')
+    } else {
+      throw new Error('impossible')
+    }
   } catch (e) {
     return errorToActionOrThrow(e)
   }
@@ -122,7 +69,7 @@ const escapeBackslash = isWindows
   : (pathElem: string): string => pathElem
 
 const _rebaseKbfsPathToMountLocation = (kbfsPath: Types.Path, mountLocation: string) =>
-  path.resolve(mountLocation, Types.getPathElements(kbfsPath).slice(1).map(escapeBackslash).join(sep))
+  Path.join(mountLocation, Types.getPathElements(kbfsPath).slice(1).map(escapeBackslash).join(pathSep))
 
 const openPathInSystemFileManager = async (
   state: TypedState,
@@ -300,8 +247,7 @@ const uninstallDokan = (state: TypedState) => {
 }
 
 const openSecurityPreferences = () => {
-  remote.shell
-    .openExternal('x-apple.systempreferences:com.apple.preference.security?General', {activate: true})
+  openURL?.('x-apple.systempreferences:com.apple.preference.security?General', {activate: true})
     .then(() => {
       logger.info('Opened Security Preferences')
     })
@@ -314,7 +260,6 @@ const openSecurityPreferences = () => {
 const installCachedDokan = async () =>
   new Promise<void>((resolve, reject) => {
     logger.info('Invoking dokan installer')
-    const dokanPath = path.resolve(String(env.LOCALAPPDATA), 'Keybase', 'DokanSetup_redist.exe')
     execFile(dokanPath, [], err => {
       if (err) {
         reject(err)
@@ -322,13 +267,9 @@ const installCachedDokan = async () =>
       }
       // restart the service, particularly kbfsdokan
       // based on desktop/app/start-win-service.js
-      const binPath = path.resolve(String(env.LOCALAPPDATA), 'Keybase', 'keybase.exe')
-      if (!binPath) {
-        reject(new Error('resolve failed'))
-        return
-      }
-      const rqPath = binPath.replace('keybase.exe', 'keybaserq.exe')
-      const args = [binPath, 'ctl', 'restart']
+
+      const rqPath = windowsBinPath.replace('keybase.exe', 'keybaserq.exe')
+      const args = [windowsBinPath, 'ctl', 'restart']
 
       spawn(rqPath, args, {
         detached: true,
@@ -447,7 +388,6 @@ function* platformSpecificSaga() {
     yield* Saga.chainAction2(FsGen.driverDisable, uninstallKBFSConfirm)
     yield* Saga.chainAction2(FsGen.driverDisabling, uninstallKBFS)
   }
-  yield* Saga.chainAction2(FsGen.openSecurityPreferences, openSecurityPreferences)
   yield* Saga.chainAction2(FsGen.openSecurityPreferences, openSecurityPreferences)
   yield* Saga.chainAction2(ConfigGen.changedFocus, changedFocus)
   yield* Saga.chainAction2(

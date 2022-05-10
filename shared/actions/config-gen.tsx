@@ -65,6 +65,8 @@ export const updateHTTPSrvInfo = 'config:updateHTTPSrvInfo'
 export const updateInfo = 'config:updateInfo'
 export const updateMenubarWindowID = 'config:updateMenubarWindowID'
 export const updateNow = 'config:updateNow'
+export const updateWindowMaxState = 'config:updateWindowMaxState'
+export const updateWindowShown = 'config:updateWindowShown'
 export const updateWindowState = 'config:updateWindowState'
 
 // Payload Types
@@ -178,6 +180,8 @@ type _UpdateInfoPayload = {
 }
 type _UpdateMenubarWindowIDPayload = {readonly id: number}
 type _UpdateNowPayload = undefined
+type _UpdateWindowMaxStatePayload = {readonly max: boolean}
+type _UpdateWindowShownPayload = {readonly component: string}
 type _UpdateWindowStatePayload = {readonly windowState: Types.WindowState}
 
 // Action Creators
@@ -242,6 +246,13 @@ export const createLoadOnStart = (payload: _LoadOnStartPayload): LoadOnStartPayl
  */
 export const createLoggedIn = (payload: _LoggedInPayload): LoggedInPayload => ({payload, type: loggedIn})
 /**
+ * a window was shown
+ */
+export const createUpdateWindowShown = (payload: _UpdateWindowShownPayload): UpdateWindowShownPayload => ({
+  payload,
+  type: updateWindowShown,
+})
+/**
  * desktop only: the installer ran and we can start up
  */
 export const createInstallerRan = (payload?: _InstallerRanPayload): InstallerRanPayload => ({
@@ -262,6 +273,12 @@ export const createStartHandshake = (payload?: _StartHandshakePayload): StartHan
   payload,
   type: startHandshake,
 })
+/**
+ * main electron window changed max/min
+ */
+export const createUpdateWindowMaxState = (
+  payload: _UpdateWindowMaxStatePayload
+): UpdateWindowMaxStatePayload => ({payload, type: updateWindowMaxState})
 /**
  * main electron window wants to store its state
  */
@@ -603,6 +620,14 @@ export type UpdateMenubarWindowIDPayload = {
   readonly type: typeof updateMenubarWindowID
 }
 export type UpdateNowPayload = {readonly payload: _UpdateNowPayload; readonly type: typeof updateNow}
+export type UpdateWindowMaxStatePayload = {
+  readonly payload: _UpdateWindowMaxStatePayload
+  readonly type: typeof updateWindowMaxState
+}
+export type UpdateWindowShownPayload = {
+  readonly payload: _UpdateWindowShownPayload
+  readonly type: typeof updateWindowShown
+}
 export type UpdateWindowStatePayload = {
   readonly payload: _UpdateWindowStatePayload
   readonly type: typeof updateWindowState
@@ -666,5 +691,7 @@ export type Actions =
   | UpdateInfoPayload
   | UpdateMenubarWindowIDPayload
   | UpdateNowPayload
+  | UpdateWindowMaxStatePayload
+  | UpdateWindowShownPayload
   | UpdateWindowStatePayload
   | {readonly type: 'common:resetStore', readonly payload: undefined}

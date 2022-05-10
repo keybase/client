@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Shared from './shared'
 import * as iPhoneXHelper from 'react-native-iphone-x-helper'
-import globalColors, {darkColors} from './colors'
+import globalColors, {darkColors, themed} from './colors'
 import styleSheetCreateProxy from './style-sheet-proxy'
 import {StyleSheet, Dimensions} from 'react-native'
 import {isDarkMode} from './dark-mode'
@@ -64,13 +64,21 @@ const cachedBackground = {
   dark: {backgroundColor: darkColors.fastBlank},
   light: {backgroundColor: globalColors.fastBlank},
 }
-Object.defineProperty(globalStyles, 'fastBackground', {
-  configurable: false,
-  enumerable: true,
-  get() {
-    return cachedBackground[isDarkMode() ? 'dark' : 'light']
-  },
-})
+if (isIOS) {
+  Object.defineProperty(globalStyles, 'fastBackground', {
+    configurable: false,
+    enumerable: true,
+    value: {backgroundColor: themed.fastBlank},
+  })
+} else {
+  Object.defineProperty(globalStyles, 'fastBackground', {
+    configurable: false,
+    enumerable: true,
+    get() {
+      return cachedBackground[isDarkMode() ? 'dark' : 'light']
+    },
+  })
+}
 
 export const statusBarHeight = iPhoneXHelper.getStatusBarHeight(true)
 export const hairlineWidth = StyleSheet.hairlineWidth

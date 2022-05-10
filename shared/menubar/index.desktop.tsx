@@ -1,5 +1,4 @@
 import * as React from 'react'
-import * as remote from '@electron/remote'
 import * as Kb from '../common-adapters'
 import * as FsTypes from '../constants/types/fs'
 import * as Tabs from '../constants/tabs'
@@ -38,6 +37,7 @@ export type Props = {
   showingDiskSpaceBanner: boolean
   username: string | null
   navBadges: Map<string, number>
+  windowShownCount: number
 
   // UploadCountdownHOCProps
   endEstimate?: number
@@ -57,13 +57,14 @@ class MenubarRender extends React.Component<Props, State> {
   state: State = {showingMenu: false}
   attachmentRef = React.createRef<Kb.Icon>()
 
-  componentDidMount() {
-    this.props.refreshUserFileEdits()
-    remote.getCurrentWindow().on('show', this.props.refreshUserFileEdits)
+  componentDidUpdate(prev: Props) {
+    if (prev.windowShownCount !== this.props.windowShownCount) {
+      this.props.refreshUserFileEdits()
+    }
   }
 
-  componentWillUnmount() {
-    remote.getCurrentWindow().removeListener('show', this.props.refreshUserFileEdits)
+  componentDidMount() {
+    this.props.refreshUserFileEdits()
   }
 
   render() {
@@ -332,7 +333,7 @@ class MenubarRender extends React.Component<Props, State> {
           />
         </Kb.Box>
         <OutOfDate outOfDate={this.props.outOfDate} updateNow={this.props.updateNow} />
-        <Kb.ScrollView>
+        <Kb.ScrollView style={styles.flexOne}>
           <ChatContainer convLimit={5} />
           {this.props.kbfsDaemonStatus.rpcStatus === FsTypes.KbfsDaemonRpcStatus.Connected ? (
             <FilesPreview />
@@ -349,6 +350,7 @@ class MenubarRender extends React.Component<Props, State> {
             files={this.props.files}
             fileName={this.props.fileName}
             totalSyncingBytes={this.props.totalSyncingBytes}
+            smallMode={true}
           />
         </Kb.Box>
       </Kb.Box>
@@ -415,6 +417,7 @@ const styles = Styles.styleSheetCreate(() => ({
     right: -2,
     top: -4,
   },
+  flexOne: {flexGrow: 1},
   footer: {width: 360},
   hamburgerIcon: {
     marginRight: Styles.globalMargins.tiny,

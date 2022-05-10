@@ -1,10 +1,8 @@
 import URL from 'url-parse'
-import * as SafeElectron from '../../util/safe-electron.desktop'
 import * as Electron from 'electron'
 import * as ConfigGen from '../../actions/config-gen'
 import * as fs from 'fs'
 import menuHelper from './menu-helper.desktop'
-import {mainWindowDispatch} from '../remote/util.desktop'
 import type {WindowState} from '../../constants/types/config'
 import {showDevTools} from '../../local-debug.desktop'
 import {guiConfigFilename, isDarwin, isWindows, defaultUseNativeFrame} from '../../constants/platform.desktop'
@@ -12,8 +10,11 @@ import logger from '../../logger'
 import debounce from 'lodash/debounce'
 import {setupDevToolsExtensions} from './dev-tools.desktop'
 import {assetRoot, htmlPrefix} from './html-root.desktop'
+import KB2 from '../../util/electron.desktop'
 
-const {env} = KB.process
+const {env} = KB2.constants
+const {mainWindowDispatch} = KB2.functions
+
 let htmlFile = `${htmlPrefix}${assetRoot}main${__DEV__ ? '.dev' : ''}.html`
 
 const setupDefaultSession = () => {
@@ -77,6 +78,15 @@ const setupWindowEvents = (win: Electron.BrowserWindow) => {
   }
 
   win.on('close', hideInsteadOfClose)
+
+  if (!isDarwin) {
+    const emitMaxChange = () => {
+      mainWindowDispatch(ConfigGen.createUpdateWindowMaxState({max: win.isMaximized()}))
+    }
+
+    win.on('maximize', emitMaxChange)
+    win.on('unmaximize', emitMaxChange)
+  }
 }
 
 const changeDock = (show: boolean) => {
@@ -129,7 +139,7 @@ const loadWindowState = () => {
       switch (darkMode) {
         case 'system':
           darkModePreference = darkMode
-          isDarkMode = SafeElectron.workingIsDarkMode()
+          isDarkMode = KB2.constants.startDarkMode
           break
         case 'alwaysDark':
           darkModePreference = darkMode
@@ -201,12 +211,11 @@ const fixWindowsScalingIssue = (win: Electron.BrowserWindow) => {
 const maybeShowWindowOrDock = (win: Electron.BrowserWindow) => {
   const openedAtLogin = Electron.app.getLoginItemSettings().wasOpenedAtLogin
   // app.getLoginItemSettings().restoreState is Mac only, so consider it always on in Windows
-  const isRestore =
-    !!env['KEYBASE_RESTORE_UI'] || Electron.app.getLoginItemSettings().restoreState || isWindows
-  const hideWindowOnStart = env['KEYBASE_AUTOSTART'] === '1'
+  const isRestore = !!env.KEYBASE_RESTORE_UI || Electron.app.getLoginItemSettings().restoreState || isWindows
+  const hideWindowOnStart = env.KEYBASE_AUTOSTART === '1'
   const openHidden = Electron.app.getLoginItemSettings().wasOpenedAsHidden
-  logger.info('KEYBASE_AUTOSTART =', env['KEYBASE_AUTOSTART'])
-  logger.info('KEYBASE_START_UI =', env['KEYBASE_START_UI'])
+  logger.info('KEYBASE_AUTOSTART =', env.KEYBASE_AUTOSTART)
+  logger.info('KEYBASE_START_UI =', env.KEYBASE_START_UI)
   logger.info('Opened at login:', openedAtLogin)
   logger.info('Is restore:', isRestore)
   logger.info('Open hidden:', openHidden)
@@ -322,4 +331,9 @@ export default () => {
 
   setupWindowEvents(win)
   return win
+}
+
+export const getMainWindow = (): Electron.BrowserWindow | null => {
+  const w = Electron.BrowserWindow.getAllWindows().find(w => w.webContents.getURL().includes('/main.'))
+  return w || null
 }
