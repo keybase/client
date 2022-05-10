@@ -64,7 +64,6 @@
     "dependencies": {
         "@chardskarth/react-gateway": "3.0.3",
         "@gorhom/portal": "1.0.12",
-        "@electron/remote": "2.0.5",
         "@emotion/react": "11.8.1",
         "@emotion/styled": "11.8.1",
         "@emotion/native": "11.0.0",

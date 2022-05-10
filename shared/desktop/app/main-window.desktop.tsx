@@ -304,7 +304,6 @@ export default () => {
     setupDevToolsExtensions()
   }
 
-  require('@electron/remote/main').enable(win.webContents)
   win
     .loadURL(htmlFile)
     .then(() => {})

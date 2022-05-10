@@ -35,8 +35,6 @@ import {appStatePowerMonitorEventRpcPromise} from '../../constants/types/rpc-gen
 const {env} = KB2.constants
 const {mainWindowDispatch} = KB2.functions
 
-require('@electron/remote/main').initialize()
-
 let mainWindow: ReturnType<typeof MainWindow> | null = null
 let appStartedUp = false
 let startupURL: string | null = null
@@ -752,8 +750,6 @@ const plumbEvents = () => {
         }
 
         const remoteWindow = new Electron.BrowserWindow(opts)
-
-        require('@electron/remote/main').enable(remoteWindow.webContents)
 
         remoteWindow.on('show', () => {
           mainWindowDispatch(ConfigGen.createUpdateWindowShown({component: action.payload.windowComponent}))
