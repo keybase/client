@@ -5,7 +5,6 @@ import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import * as Tabs from '../../constants/tabs'
-import fs from 'fs'
 import type {TypedState, TypedActions} from '../../util/container'
 import {isWindows, isLinux, dokanPath, windowsBinPath, pathSep} from '../../constants/platform.desktop'
 import logger from '../../logger'
@@ -16,7 +15,13 @@ import * as Path from '../../util/path'
 import KB2 from '../../util/electron.desktop'
 
 const {openPathInFinder, openURL, getPathType, selectFilesToUploadDialog} = KB2.functions
-const {exitApp, relaunchApp, uninstallKBFSDialog, uninstallDokanDialog} = KB2.functions
+const {
+  exitApp,
+  relaunchApp,
+  uninstallKBFSDialog,
+  uninstallDokanDialog,
+  windowsCheckMountFromOtherDokanInstall,
+} = KB2.functions
 
 // _openPathInSystemFileManagerPromise opens `openPath` in system file manager.
 // If isFolder is true, it just opens it. Otherwise, it shows it in its parent
@@ -109,23 +114,6 @@ const fuseStatusToActions =
         ]
   }
 
-const windowsCheckMountFromOtherDokanInstall = async (status: RPCTypes.FuseStatus) =>
-  RPCTypes.kbfsMountGetCurrentMountDirRpcPromise().then(mountPoint =>
-    mountPoint
-      ? new Promise(resolve => fs.access(mountPoint, fs.constants.F_OK, err => resolve(!err))).then(
-          mountExists =>
-            mountExists
-              ? {
-                  ...status,
-                  installAction: RPCTypes.InstallAction.none,
-                  installStatus: RPCTypes.InstallStatus.installed,
-                  kextStarted: true,
-                }
-              : status
-        )
-      : status
-  )
-
 const refreshDriverStatus = async (
   state: TypedState,
   action: FsGen.KbfsDaemonRpcStatusChangedPayload | FsGen.RefreshDriverStatusPayload
@@ -138,7 +126,8 @@ const refreshDriverStatus = async (
       bundleVersion: '',
     })
     if (isWindows && status.installStatus !== RPCTypes.InstallStatus.installed) {
-      status = await windowsCheckMountFromOtherDokanInstall(status)
+      const m = await RPCTypes.kbfsMountGetCurrentMountDirRpcPromise()
+      status = await (windowsCheckMountFromOtherDokanInstall?.(m, status) ?? Promise.resolve(status))
     }
     return fuseStatusToActions(state.fs.sfmi.driverStatus.type)(status)
   }

@@ -30,7 +30,7 @@ import {ctlQuit} from './ctl.desktop'
 import logger from '../../logger'
 import {assetRoot, htmlPrefix} from './html-root.desktop'
 import KB2, {type OpenDialogOptions, type SaveDialogOptions} from '../../util/electron.desktop'
-import {appStatePowerMonitorEventRpcPromise} from '../../constants/types/rpc-gen'
+import * as RPCTypes from '../../constants/types/rpc-gen'
 
 const {env} = KB2.constants
 const {mainWindowDispatch} = KB2.functions
@@ -308,6 +308,13 @@ type Action =
   | {type: 'uninstallDokanDialog'}
   | {type: 'selectFilesToUploadDialog'; payload: {parent: string; type: 'file' | 'directory' | 'both'}}
   | {type: 'ctlQuit'}
+  | {
+      type: 'windowsCheckMountFromOtherDokanInstall'
+      payload: {
+        mountPoint: string
+        status: RPCTypes.FuseStatus
+      }
+    }
 
 const remoteURL = (windowComponent: string, windowParam: string) =>
   `${htmlPrefix}${assetRoot}${windowComponent}${__DEV__ ? '.dev' : ''}.html?param=${windowParam}`
@@ -421,27 +428,27 @@ const plumbEvents = () => {
   })
 
   Electron.powerMonitor.on('suspend', () => {
-    appStatePowerMonitorEventRpcPromise({event: 'suspend'})
+    RPCTypes.appStatePowerMonitorEventRpcPromise({event: 'suspend'})
       .then(() => {})
       .catch(() => {})
   })
   Electron.powerMonitor.on('resume', () => {
-    appStatePowerMonitorEventRpcPromise({event: 'resume'})
+    RPCTypes.appStatePowerMonitorEventRpcPromise({event: 'resume'})
       .then(() => {})
       .catch(() => {})
   })
   Electron.powerMonitor.on('shutdown', () => {
-    appStatePowerMonitorEventRpcPromise({event: 'shutdown'})
+    RPCTypes.appStatePowerMonitorEventRpcPromise({event: 'shutdown'})
       .then(() => {})
       .catch(() => {})
   })
   Electron.powerMonitor.on('lock-screen', () => {
-    appStatePowerMonitorEventRpcPromise({event: 'lock-screen'})
+    RPCTypes.appStatePowerMonitorEventRpcPromise({event: 'lock-screen'})
       .then(() => {})
       .catch(() => {})
   })
   Electron.powerMonitor.on('unlock-screen', () => {
-    appStatePowerMonitorEventRpcPromise({event: 'unlock-screen'})
+    RPCTypes.appStatePowerMonitorEventRpcPromise({event: 'unlock-screen'})
       .then(() => {})
       .catch(() => {})
   })
@@ -501,6 +508,22 @@ const plumbEvents = () => {
 
   Electron.ipcMain.handle('KBkeybase', async (event, action: Action) => {
     switch (action.type) {
+      case 'windowsCheckMountFromOtherDokanInstall': {
+        const {mountPoint, status} = action.payload
+        return mountPoint
+          ? new Promise(resolve => fs.access(mountPoint, fs.constants.F_OK, err => resolve(!err))).then(
+              mountExists =>
+                mountExists
+                  ? {
+                      ...status,
+                      installAction: RPCTypes.InstallAction.none,
+                      installStatus: RPCTypes.InstallStatus.installed,
+                      kextStarted: true,
+                    }
+                  : status
+            )
+          : status
+      }
       case 'ctlQuit': {
         ctlQuit()
         return

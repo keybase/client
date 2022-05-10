@@ -4,6 +4,7 @@
 // the electron preload scripts will create kb2 on the node side and plumb it back and then call `injectPreload`
 import type {TypedActions} from '../actions/typed-actions-gen'
 import type {LogLineWithLevelISOTimestamp} from '../logger/types'
+import type * as RPCTypes from '../constants/types/rpc-gen'
 
 export type OpenDialogOptions = {
   allowFiles?: boolean
@@ -96,6 +97,10 @@ export type KB2 = {
     showMainWindow?: () => void
     toggleMaximizeWindow?: () => void
     winCheckRPCOwnership?: () => Promise<void>
+    windowsCheckMountFromOtherDokanInstall?: (
+      mountPoint: string,
+      status: RPCTypes.FuseStatus
+    ) => Promise<RPCTypes.FuseStatus>
     quitApp?: () => void
     exitApp?: (code: number) => void
     ctlQuit?: () => void

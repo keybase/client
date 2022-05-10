@@ -7,6 +7,7 @@ import {
   type SaveDialogOptions,
 } from '../../util/electron.desktop'
 import type {LogLineWithLevelISOTimestamp} from '../../logger/types'
+import type * as RPCTypes from '../../constants/types/rpc-gen'
 
 const isRenderer = process.type === 'renderer'
 const isDarwin = process.platform === 'darwin'
@@ -238,7 +239,6 @@ if (isRenderer) {
           uninstallKBFSDialog: async () => {
             return Electron.ipcRenderer.invoke('KBkeybase', {type: 'uninstallKBFSDialog'})
           },
-
           winCheckRPCOwnership: async () => {
             const res = (await Electron.ipcRenderer.invoke('KBkeybase', {
               type: 'winCheckRPCOwnership',
@@ -246,6 +246,12 @@ if (isRenderer) {
             if (!res) {
               throw new Error('RPCCheck failed!')
             }
+          },
+          windowsCheckMountFromOtherDokanInstall: async (mountPoint: string, status: RPCTypes.FuseStatus) => {
+            return Electron.ipcRenderer.invoke('KBkeybase', {
+              payload: {mountPoint, status},
+              type: 'windowsCheckMountFromOtherDokanInstall',
+            })
           },
         },
       })
