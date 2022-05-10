@@ -92,6 +92,7 @@ export type KB2 = {
       windowPositionBottomRight?: boolean
     }) => void
     closeRenderer?: (options: {windowComponent?: string; windowParam?: string}) => void
+    readImageFromClipboard?: () => Promise<Buffer | null>
     setOpenAtLogin?: (enabled: boolean) => Promise<void>
     showOpenDialog?: (options: OpenDialogOptions) => Promise<Array<string>>
     showSaveDialog?: (options: SaveDialogOptions) => Promise<string>
@@ -107,6 +108,7 @@ export type KB2 = {
     quitApp?: () => void
     exitApp?: (code: number) => void
     copyToClipboard?: (text: string) => void
+    clipboardAvailableFormats?: () => Promise<Array<string>>
     ctlQuit?: () => void
     relaunchApp?: () => void
     uninstallKBFSDialog?: () => Promise<boolean>

@@ -2,7 +2,6 @@ module.exports = {
   env: {es6: true},
   extends: ['eslint:recommended', 'plugin:@typescript-eslint/recommended-requiring-type-checking'],
   globals: {
-    KB: 'readonly',
     __DEV__: false,
     __HOT__: false,
     __STORYBOOK__: false,

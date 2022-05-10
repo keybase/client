@@ -439,6 +439,17 @@ const plumbEvents = () => {
 
   Electron.ipcMain.handle('KBkeybase', async (event, action: Action) => {
     switch (action.type) {
+      case 'clipboardAvailableFormats': {
+        return Electron.clipboard.availableFormats()
+      }
+      case 'readImageFromClipboard': {
+        const image = Electron.clipboard.readImage()
+        if (!image) {
+          // Nothing to read
+          return null
+        }
+        return image.toPNG()
+      }
       case 'copyToClipboard': {
         Electron.clipboard.writeText(action.payload.text)
         return
