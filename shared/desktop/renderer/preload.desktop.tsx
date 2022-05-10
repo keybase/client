@@ -59,6 +59,12 @@ if (isRenderer) {
               .then(() => {})
               .catch(() => {})
           },
+          ctlQuit: () => {
+            Electron.ipcRenderer
+              .invoke('KBkeybase', {type: 'ctlQuit'})
+              .then(() => {})
+              .catch(() => {})
+          },
           darwinCopyToChatTempUploadFile: async (originalFilePath: string) => {
             if (!isDarwin) {
               throw new Error('Unsupported platform')
@@ -201,6 +207,12 @@ if (isRenderer) {
               .then(() => {})
               .catch(() => {})
           },
+          relaunchApp: () => {
+            Electron.ipcRenderer
+              .invoke('KBkeybase', {type: 'relaunchApp'})
+              .then(() => {})
+              .catch(() => {})
+          },
           rendererNewProps: (options: {propsStr: string; windowComponent: string; windowParam: string}) => {
             const {propsStr, windowComponent, windowParam} = options
             Electron.ipcRenderer
@@ -216,6 +228,12 @@ if (isRenderer) {
               .invoke('KBkeybase', {type: 'requestWindowsStartService'})
               .then(() => {})
               .catch(() => {})
+          },
+          selectFilesToUploadDialog: async (type: 'file' | 'directory' | 'both', parent: string | null) => {
+            return Electron.ipcRenderer.invoke('KBkeybase', {
+              payload: {parent, type},
+              type: 'selectFilesToUploadDialog',
+            })
           },
           setOpenAtLogin: async (enabled: boolean) => {
             return Electron.ipcRenderer.invoke('KBkeybase', {payload: {enabled}, type: 'setOpenAtLogin'})
@@ -259,6 +277,13 @@ if (isRenderer) {
               .then(() => {})
               .catch(() => {})
           },
+          uninstallDokanDialog: async () => {
+            return Electron.ipcRenderer.invoke('KBkeybase', {type: 'uninstallDokanDialog'})
+          },
+          uninstallKBFSDialog: async () => {
+            return Electron.ipcRenderer.invoke('KBkeybase', {type: 'uninstallKBFSDialog'})
+          },
+
           winCheckRPCOwnership: async () => {
             const res = (await Electron.ipcRenderer.invoke('KBkeybase', {
               type: 'winCheckRPCOwnership',

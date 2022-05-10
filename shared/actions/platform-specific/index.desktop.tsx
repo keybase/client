@@ -9,7 +9,6 @@ import {NotifyPopup} from '../../native/notifications'
 import {getEngine} from '../../engine'
 import {isLinux, isWindows, defaultUseNativeFrame} from '../../constants/platform.desktop'
 import {kbfsNotification} from '../../util/kbfs-notifications'
-import {quit} from '../../desktop/app/ctl.desktop'
 import {writeLogLinesToFile} from '../../util/forward-logs'
 import InputMonitor from './input-monitor.desktop'
 import {skipAppFocusActions} from '../../local-debug.desktop'
@@ -26,6 +25,7 @@ const {
   quitApp,
   exitApp,
   setOpenAtLogin,
+  ctlQuit,
 } = KB2.functions
 
 export function showShareActionSheet() {
@@ -94,7 +94,7 @@ export const dumpLogs = async (action?: ConfigGen.DumpLogsPayload) => {
   await writeLogLinesToFile([...fromRender, ...fromMain])
   // quit as soon as possible
   if (action && action.payload.reason === 'quitting through menu') {
-    quit()
+    ctlQuit?.()
   }
 }
 

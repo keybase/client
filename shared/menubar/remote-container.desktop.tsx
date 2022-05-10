@@ -14,11 +14,10 @@ import throttle from 'lodash/throttle'
 import type {DeserializeProps} from './remote-serializer.desktop'
 import {createOpenPopup as createOpenRekeyPopup} from '../actions/unlock-folders-gen'
 import {isWindows, isDarwin, isLinux} from '../constants/platform'
-import {quit} from '../desktop/app/ctl.desktop'
 import {urlHelper} from '../util/url-helper'
 import KB2 from '../util/electron.desktop'
 
-const {hideWindow} = KB2.functions
+const {hideWindow, ctlQuit} = KB2.functions
 
 const RemoteContainer = () => {
   const state = Container.useRemoteStore<DeserializeProps>()
@@ -63,7 +62,7 @@ const RemoteContainer = () => {
         // In case dump log doesn't exit for us
         hideWindow?.()
         setTimeout(() => {
-          quit()
+          ctlQuit?.()
         }, 2000)
       }}
       refreshUserFileEdits={throttle(() => dispatch(FsGen.createUserFileEditsLoad()), 1000 * 5)}

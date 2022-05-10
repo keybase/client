@@ -98,6 +98,14 @@ export type KB2 = {
     winCheckRPCOwnership?: () => Promise<void>
     quitApp?: () => void
     exitApp?: (code: number) => void
+    ctlQuit?: () => void
+    relaunchApp?: () => void
+    uninstallKBFSDialog?: () => Promise<boolean>
+    uninstallDokanDialog?: () => Promise<void>
+    selectFilesToUploadDialog?: (
+      type: 'file' | 'directory' | 'both',
+      parent: string | null
+    ) => Promise<Array<string>>
   }
 }
 

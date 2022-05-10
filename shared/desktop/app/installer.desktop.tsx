@@ -3,7 +3,7 @@ import fs from 'fs'
 import path from 'path'
 import exec from './exec.desktop'
 import {keybaseBinPath} from './paths.desktop'
-import {quit} from './ctl.desktop'
+import {ctlQuit} from './ctl.desktop'
 import {isDarwin} from '../../constants/platform'
 import logger from '../../logger'
 import zlib from 'zlib'
@@ -190,7 +190,7 @@ const darwinInstall = (dispatch: (action: TypedActions) => void, callback: CB) =
         .then(async () =>
           Electron.dialog.showMessageBox({buttons, detail, message}).then(({response}) => {
             if (response === 1) {
-              quit()
+              ctlQuit()
             } else {
               callback(null)
             }

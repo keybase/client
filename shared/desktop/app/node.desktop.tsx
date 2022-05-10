@@ -17,9 +17,16 @@ import * as ConfigGen from '../../actions/config-gen'
 import * as DeeplinksGen from '../../actions/deeplinks-gen'
 import {showDevTools, skipSecondaryDevtools, allowMultipleInstances} from '../../local-debug.desktop'
 import startWinService from './start-win-service.desktop'
-import {isDarwin, isLinux, isWindows, cacheRoot, socketPath} from '../../constants/platform.desktop'
+import {
+  isDarwin,
+  isLinux,
+  isWindows,
+  cacheRoot,
+  socketPath,
+  fileUIName,
+} from '../../constants/platform.desktop'
 import {isPathSaltpack} from '../../constants/crypto'
-import {quit} from './ctl.desktop'
+import {ctlQuit} from './ctl.desktop'
 import logger from '../../logger'
 import {assetRoot, htmlPrefix} from './html-root.desktop'
 import KB2, {type OpenDialogOptions, type SaveDialogOptions} from '../../util/electron.desktop'
@@ -216,7 +223,7 @@ const handleActivate = () => {
 const handleQuitting = (event: Electron.Event) => {
   console.log('Quit through before-quit')
   event.preventDefault()
-  quit()
+  ctlQuit()
 }
 
 const willFinishLaunching = () => {
@@ -301,6 +308,11 @@ type Action =
   | {type: 'quitApp'}
   | {type: 'exitApp'; payload: {code: number}}
   | {type: 'setOpenAtLogin'; payload: {enabled: boolean}}
+  | {type: 'relaunchApp'}
+  | {type: 'uninstallKBFSDialog'}
+  | {type: 'uninstallDokanDialog'}
+  | {type: 'selectFilesToUploadDialog'; payload: {parent: string; type: 'file' | 'directory' | 'both'}}
+  | {type: 'ctlQuit'}
 
 const remoteURL = (windowComponent: string, windowParam: string) =>
   `${htmlPrefix}${assetRoot}${windowComponent}${__DEV__ ? '.dev' : ''}.html?param=${windowParam}`
@@ -445,6 +457,23 @@ const plumbEvents = () => {
 
   Electron.ipcMain.handle('KBkeybase', async (event, action: Action) => {
     switch (action.type) {
+      case 'ctlQuit': {
+        ctlQuit()
+        return
+      }
+      case 'selectFilesToUploadDialog': {
+        const w = Electron.BrowserWindow.getFocusedWindow()
+        if (!w) return []
+        const {filePaths} = await Electron.dialog.showOpenDialog(w, {
+          properties: [
+            'multiSelections' as const,
+            ...(['file', 'both'].includes(action.payload.type) ? (['openFile'] as const) : []),
+            ...(['directory', 'both'].includes(action.payload.type) ? (['openDirectory'] as const) : []),
+          ],
+          title: 'Select a file or folder to upload',
+        })
+        return filePaths
+      }
       case 'setOpenAtLogin': {
         const old = Electron.app.getLoginItemSettings().openAtLogin
         if (old !== action.payload.enabled) {
@@ -454,6 +483,28 @@ const plumbEvents = () => {
       }
       case 'exitApp': {
         return Electron.app.exit(action.payload.code)
+      }
+      case 'uninstallDokanDialog': {
+        await Electron.dialog.showMessageBox({
+          buttons: ['Got it'],
+          detail:
+            'We looked everywhere but did not find a Dokan uninstaller. Please remove it from the Control Panel.',
+          message: 'Please uninstall Dokan from the Control Panel.',
+          type: 'info',
+        })
+        return
+      }
+      case 'uninstallKBFSDialog': {
+        const {response} = await Electron.dialog.showMessageBox({
+          buttons: ['Remove & Restart', 'Cancel'],
+          detail: `Are you sure you want to remove Keybase from ${fileUIName} and restart the app?`,
+          message: `Remove Keybase from ${fileUIName}`,
+          type: 'question',
+        })
+        return response === 0
+      }
+      case 'relaunchApp': {
+        return Electron.app.relaunch()
       }
       case 'quitApp': {
         return Electron.app.quit()
