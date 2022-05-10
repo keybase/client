@@ -63,6 +63,7 @@ export type KB2 = {
     windowsBinPath: string
   }
   functions: {
+    isDirectory?: (path: string) => Promise<boolean>
     activeChanged?: (changedAtMs: number, isUserActive: boolean) => void
     closeWindow?: () => void
     dumpNodeLogger?: () => Promise<Array<LogLineWithLevelISOTimestamp>>
@@ -90,8 +91,8 @@ export type KB2 = {
     }) => void
     closeRenderer?: (options: {windowComponent?: string; windowParam?: string}) => void
     setOpenAtLogin?: (enabled: boolean) => Promise<void>
-    showOpenDialog?: (options?: OpenDialogOptions) => Promise<Array<string>>
-    showSaveDialog?: (options?: SaveDialogOptions) => Promise<string>
+    showOpenDialog?: (options: OpenDialogOptions) => Promise<Array<string>>
+    showSaveDialog?: (options: SaveDialogOptions) => Promise<string>
     showTray?: (desktopAppBadgeCount: number, icon: string) => void
     showInactive?: () => void
     showMainWindow?: () => void

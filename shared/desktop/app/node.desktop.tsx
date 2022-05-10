@@ -315,6 +315,7 @@ type Action =
         status: RPCTypes.FuseStatus
       }
     }
+  | {type: 'isDirectory'; payload: {path: string}}
 
 const remoteURL = (windowComponent: string, windowParam: string) =>
   `${htmlPrefix}${assetRoot}${windowComponent}${__DEV__ ? '.dev' : ''}.html?param=${windowParam}`
@@ -508,6 +509,17 @@ const plumbEvents = () => {
 
   Electron.ipcMain.handle('KBkeybase', async (event, action: Action) => {
     switch (action.type) {
+      case 'isDirectory': {
+        return new Promise(resolve =>
+          fs.lstat(action.payload.path, (err, stats) => {
+            if (err) {
+              resolve(false)
+            } else {
+              resolve(stats.isDirectory())
+            }
+          })
+        )
+      }
       case 'windowsCheckMountFromOtherDokanInstall': {
         const {mountPoint, status} = action.payload
         return mountPoint

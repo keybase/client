@@ -8,9 +8,12 @@ import {
 } from '../../util/electron.desktop'
 import type {LogLineWithLevelISOTimestamp} from '../../logger/types'
 import type * as RPCTypes from '../../constants/types/rpc-gen'
+import type {Action} from '../app/ipctypes'
 
 const isRenderer = process.type === 'renderer'
 const isDarwin = process.platform === 'darwin'
+
+const invoke = async (action: Action) => Electron.ipcRenderer.invoke('KBkeybase', action)
 
 // TODO contextBridge
 if (isRenderer) {
@@ -25,36 +28,23 @@ if (isRenderer) {
         },
         functions: {
           activeChanged: (changedAtMs: number, isUserActive: boolean) => {
-            Electron.ipcRenderer
-              .invoke('KBkeybase', {
-                payload: {changedAtMs, isUserActive},
-                type: 'activeChanged',
-              })
+            invoke({payload: {changedAtMs, isUserActive}, type: 'activeChanged'})
               .then(() => {})
               .catch(() => {})
           },
           closeRenderer: (options: {windowComponent?: string; windowParam?: string}) => {
             const {windowComponent, windowParam} = options
-            Electron.ipcRenderer
-              .invoke('KBkeybase', {
-                payload: {
-                  windowComponent,
-                  windowParam,
-                },
-                type: 'closeRenderer',
-              })
+            invoke({payload: {windowComponent, windowParam}, type: 'closeRenderer'})
               .then(() => {})
               .catch(() => {})
           },
           closeWindow: () => {
-            Electron.ipcRenderer
-              .invoke('KBkeybase', {type: 'closeWindow'})
+            invoke({type: 'closeWindow'})
               .then(() => {})
               .catch(() => {})
           },
           ctlQuit: () => {
-            Electron.ipcRenderer
-              .invoke('KBkeybase', {type: 'ctlQuit'})
+            invoke({type: 'ctlQuit'})
               .then(() => {})
               .catch(() => {})
           },
@@ -62,7 +52,7 @@ if (isRenderer) {
             if (!isDarwin) {
               throw new Error('Unsupported platform')
             }
-            const res = (await Electron.ipcRenderer.invoke('KBkeybase', {
+            const res = (await invoke({
               payload: {dst, originalFilePath},
               type: 'darwinCopyToChatTempUploadFile',
             })) as boolean
@@ -74,33 +64,34 @@ if (isRenderer) {
           },
           darwinCopyToKBFSTempUploadFile: async (dir: string, originalFilePath: string) => {
             if (!isDarwin) return ''
-            return (await Electron.ipcRenderer.invoke('KBkeybase', {
+            return (await invoke({
               payload: {dir, originalFilePath},
               type: 'darwinCopyToKBFSTempUploadFile',
             })) as string
           },
           dumpNodeLogger: async () => {
-            return (await Electron.ipcRenderer.invoke('KBkeybase', {
+            return (await invoke({
               type: 'dumpNodeLogger',
             })) as Array<LogLineWithLevelISOTimestamp>
           },
           exitApp: (code: number) => {
-            Electron.ipcRenderer
-              .invoke('KBkeybase', {payload: {code}, type: 'exitApp'})
+            invoke({payload: {code}, type: 'exitApp'})
               .then(() => {})
               .catch(() => {})
           },
           getPathType: async (path: string) => {
-            return (await Electron.ipcRenderer.invoke('KBkeybase', {
+            return (await invoke({
               payload: {path},
               type: 'getPathType',
             })) as 'file' | 'directory'
           },
           hideWindow: () => {
-            Electron.ipcRenderer
-              .invoke('KBkeybase', {type: 'hideWindow'})
+            invoke({type: 'hideWindow'})
               .then(() => {})
               .catch(() => {})
+          },
+          isDirectory: async (path: string) => {
+            return invoke({payload: {path}, type: 'isDirectory'})
           },
           mainWindowDispatch: (action: TypedActions) => {
             Electron.ipcRenderer
@@ -120,28 +111,26 @@ if (isRenderer) {
             windowPositionBottomRight?: boolean
           }) => {
             const {windowComponent, windowOpts, windowParam, windowPositionBottomRight} = options
-            Electron.ipcRenderer
-              .invoke('KBkeybase', {
-                payload: {
-                  windowComponent,
-                  windowOpts,
-                  windowParam,
-                  windowPositionBottomRight,
-                },
-                type: 'makeRenderer',
-              })
+            invoke({
+              payload: {
+                windowComponent,
+                windowOpts,
+                windowParam,
+                windowPositionBottomRight,
+              },
+              type: 'makeRenderer',
+            })
               .then(() => {})
               .catch(() => {})
           },
           minimizeWindow: () => {
-            Electron.ipcRenderer
-              .invoke('KBkeybase', {type: 'minimizeWindow'})
+            invoke({type: 'minimizeWindow'})
               .then(() => {})
               .catch(() => {})
           },
-          openPathInFinder: async (path: string) => {
-            const res = (await Electron.ipcRenderer.invoke('KBkeybase', {
-              payload: {path},
+          openPathInFinder: async (path: string, isFolder: boolean) => {
+            const res = (await invoke({
+              payload: {isFolder, path},
               type: 'openPathInFinder',
             })) as boolean
             if (!res) {
@@ -149,7 +138,7 @@ if (isRenderer) {
             }
           },
           openURL: async (url: string) => {
-            const res = (await Electron.ipcRenderer.invoke('KBkeybase', {
+            const res = (await invoke({
               payload: {url},
               type: 'openURL',
             })) as boolean
@@ -158,63 +147,57 @@ if (isRenderer) {
             }
           },
           quitApp: () => {
-            Electron.ipcRenderer
-              .invoke('KBkeybase', {type: 'quitApp'})
+            invoke({type: 'quitApp'})
               .then(() => {})
               .catch(() => {})
           },
           relaunchApp: () => {
-            Electron.ipcRenderer
-              .invoke('KBkeybase', {type: 'relaunchApp'})
+            invoke({type: 'relaunchApp'})
               .then(() => {})
               .catch(() => {})
           },
           rendererNewProps: (options: {propsStr: string; windowComponent: string; windowParam: string}) => {
             const {propsStr, windowComponent, windowParam} = options
-            Electron.ipcRenderer
-              .invoke('KBkeybase', {
-                payload: {propsStr, windowComponent, windowParam},
-                type: 'rendererNewProps',
-              })
+            invoke({
+              payload: {propsStr, windowComponent, windowParam},
+              type: 'rendererNewProps',
+            })
               .then(() => {})
               .catch(() => {})
           },
           requestWindowsStartService: () => {
-            Electron.ipcRenderer
-              .invoke('KBkeybase', {type: 'requestWindowsStartService'})
+            invoke({type: 'requestWindowsStartService'})
               .then(() => {})
               .catch(() => {})
           },
           selectFilesToUploadDialog: async (type: 'file' | 'directory' | 'both', parent: string | null) => {
-            return Electron.ipcRenderer.invoke('KBkeybase', {
+            return invoke({
               payload: {parent, type},
               type: 'selectFilesToUploadDialog',
             })
           },
           setOpenAtLogin: async (enabled: boolean) => {
-            return Electron.ipcRenderer.invoke('KBkeybase', {payload: {enabled}, type: 'setOpenAtLogin'})
+            return invoke({payload: {enabled}, type: 'setOpenAtLogin'})
           },
           showInactive: () => {
-            Electron.ipcRenderer
-              .invoke('KBkeybase', {type: 'showInactive'})
+            invoke({type: 'showInactive'})
               .then(() => {})
               .catch(() => {})
           },
           showMainWindow: () => {
-            Electron.ipcRenderer
-              .invoke('KBkeybase', {type: 'showMainWindow'})
+            invoke({type: 'showMainWindow'})
               .then(() => {})
               .catch(() => {})
           },
-          showOpenDialog: async (options?: OpenDialogOptions) => {
-            return (await Electron.ipcRenderer.invoke('KBkeybase', {
-              payload: options,
+          showOpenDialog: async (options: OpenDialogOptions) => {
+            return (await invoke({
+              payload: {options},
               type: 'showOpenDialog',
             })) as Array<string>
           },
-          showSaveDialog: async (options?: SaveDialogOptions) => {
-            return (await Electron.ipcRenderer.invoke('KBkeybase', {
-              payload: options,
+          showSaveDialog: async (options: SaveDialogOptions) => {
+            return (await invoke({
+              payload: {options},
               type: 'showSaveDialog',
             })) as string
           },
@@ -228,19 +211,18 @@ if (isRenderer) {
               .catch(() => {})
           },
           toggleMaximizeWindow: () => {
-            Electron.ipcRenderer
-              .invoke('KBkeybase', {type: 'toggleMaximizeWindow'})
+            invoke({type: 'toggleMaximizeWindow'})
               .then(() => {})
               .catch(() => {})
           },
           uninstallDokanDialog: async () => {
-            return Electron.ipcRenderer.invoke('KBkeybase', {type: 'uninstallDokanDialog'})
+            return invoke({type: 'uninstallDokanDialog'})
           },
           uninstallKBFSDialog: async () => {
-            return Electron.ipcRenderer.invoke('KBkeybase', {type: 'uninstallKBFSDialog'})
+            return invoke({type: 'uninstallKBFSDialog'})
           },
           winCheckRPCOwnership: async () => {
-            const res = (await Electron.ipcRenderer.invoke('KBkeybase', {
+            const res = (await invoke({
               type: 'winCheckRPCOwnership',
             })) as boolean
             if (!res) {
@@ -248,7 +230,7 @@ if (isRenderer) {
             }
           },
           windowsCheckMountFromOtherDokanInstall: async (mountPoint: string, status: RPCTypes.FuseStatus) => {
-            return Electron.ipcRenderer.invoke('KBkeybase', {
+            return invoke({
               payload: {mountPoint, status},
               type: 'windowsCheckMountFromOtherDokanInstall',
             })
