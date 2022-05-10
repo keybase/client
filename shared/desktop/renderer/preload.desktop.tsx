@@ -10,6 +10,7 @@ import {
   type OpenDialogOptions,
   type SaveDialogOptions,
 } from '../../util/electron.desktop'
+import type {LogLineWithLevelISOTimestamp} from '../../logger/types'
 
 const isRenderer = process.type === 'renderer'
 const isDarwin = process.platform === 'darwin'
@@ -116,6 +117,17 @@ if (isRenderer) {
               type: 'darwinCopyToKBFSTempUploadFile',
             })) as string
           },
+          dumpNodeLogger: async () => {
+            return (await Electron.ipcRenderer.invoke('KBkeybase', {
+              type: 'dumpNodeLogger',
+            })) as Array<LogLineWithLevelISOTimestamp>
+          },
+          exitApp: (code: number) => {
+            Electron.ipcRenderer
+              .invoke('KBkeybase', {payload: {code}, type: 'exitApp'})
+              .then(() => {})
+              .catch(() => {})
+          },
           getPathType: async (path: string) => {
             return (await Electron.ipcRenderer.invoke('KBkeybase', {
               payload: {path},
@@ -183,6 +195,12 @@ if (isRenderer) {
               throw new Error('openURL failed')
             }
           },
+          quitApp: () => {
+            Electron.ipcRenderer
+              .invoke('KBkeybase', {type: 'quitApp'})
+              .then(() => {})
+              .catch(() => {})
+          },
           rendererNewProps: (options: {propsStr: string; windowComponent: string; windowParam: string}) => {
             const {propsStr, windowComponent, windowParam} = options
             Electron.ipcRenderer
@@ -198,6 +216,9 @@ if (isRenderer) {
               .invoke('KBkeybase', {type: 'requestWindowsStartService'})
               .then(() => {})
               .catch(() => {})
+          },
+          setOpenAtLogin: async (enabled: boolean) => {
+            return Electron.ipcRenderer.invoke('KBkeybase', {payload: {enabled}, type: 'setOpenAtLogin'})
           },
           showInactive: () => {
             Electron.ipcRenderer

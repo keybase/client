@@ -3,6 +3,7 @@
 // start drawing. If you need access to these values you need to call `waitOnKB2Loaded`
 // the electron preload scripts will create kb2 on the node side and plumb it back and then call `injectPreload`
 import type {TypedActions} from '../actions/typed-actions-gen'
+import type {LogLineWithLevelISOTimestamp} from '../logger/types'
 
 export type OpenDialogOptions = {
   allowFiles?: boolean
@@ -63,6 +64,7 @@ export type KB2 = {
   functions: {
     activeChanged?: (changedAtMs: number, isUserActive: boolean) => void
     closeWindow?: () => void
+    dumpNodeLogger?: () => Promise<Array<LogLineWithLevelISOTimestamp>>
     hideWindow?: () => void
     getPathType?: (path: string) => Promise<'file' | 'directory'>
     // defined for both always
@@ -86,6 +88,7 @@ export type KB2 = {
       windowPositionBottomRight?: boolean
     }) => void
     closeRenderer?: (options: {windowComponent?: string; windowParam?: string}) => void
+    setOpenAtLogin?: (enabled: boolean) => Promise<void>
     showOpenDialog?: (options?: OpenDialogOptions) => Promise<Array<string>>
     showSaveDialog?: (options?: SaveDialogOptions) => Promise<string>
     showTray?: (desktopAppBadgeCount: number, icon: string) => void
@@ -93,6 +96,8 @@ export type KB2 = {
     showMainWindow?: () => void
     toggleMaximizeWindow?: () => void
     winCheckRPCOwnership?: () => Promise<void>
+    quitApp?: () => void
+    exitApp?: (code: number) => void
   }
 }
 
