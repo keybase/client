@@ -123,10 +123,4 @@ const prodLoggers = () => ({
 const logSetup = __DEV__ || __STORYBOOK__ ? devLoggers() : prodLoggers()
 
 const theOnlyLogger = new AggregateLoggerImpl(logSetup)
-
-if (!isMobile && typeof global !== 'undefined') {
-  // So we can easily grab this from the main renderer
-  global.globalLogger = theOnlyLogger
-}
-
 export default theOnlyLogger

@@ -23,6 +23,7 @@ import {quit} from './ctl.desktop'
 import logger from '../../logger'
 import {assetRoot, htmlPrefix} from './html-root.desktop'
 import KB2, {type OpenDialogOptions, type SaveDialogOptions} from '../../util/electron.desktop'
+import {appStatePowerMonitorEventRpcPromise} from '../../constants/types/rpc-gen'
 
 const {env} = KB2.constants
 const {mainWindowDispatch} = KB2.functions
@@ -296,6 +297,10 @@ type Action =
   | {type: 'hideWindow'}
   | {type: 'openInDefaultDirectory'; payload: {path: string}}
   | {type: 'getPathType'; payload: {path: string}}
+  | {type: 'dumpNodeLogger'}
+  | {type: 'quitApp'}
+  | {type: 'exitApp'; payload: {code: number}}
+  | {type: 'setOpenAtLogin'; payload: {enabled: boolean}}
 
 const remoteURL = (windowComponent: string, windowParam: string) =>
   `${htmlPrefix}${assetRoot}${windowComponent}${__DEV__ ? '.dev' : ''}.html?param=${windowParam}`
@@ -407,12 +412,55 @@ const plumbEvents = () => {
   Electron.nativeTheme.on('updated', () => {
     mainWindowDispatch(ConfigGen.createSetSystemDarkMode({dark: Electron.nativeTheme.shouldUseDarkColors}))
   })
+
+  Electron.powerMonitor.on('suspend', () => {
+    appStatePowerMonitorEventRpcPromise({event: 'suspend'})
+      .then(() => {})
+      .catch(() => {})
+  })
+  Electron.powerMonitor.on('resume', () => {
+    appStatePowerMonitorEventRpcPromise({event: 'resume'})
+      .then(() => {})
+      .catch(() => {})
+  })
+  Electron.powerMonitor.on('shutdown', () => {
+    appStatePowerMonitorEventRpcPromise({event: 'shutdown'})
+      .then(() => {})
+      .catch(() => {})
+  })
+  Electron.powerMonitor.on('lock-screen', () => {
+    appStatePowerMonitorEventRpcPromise({event: 'lock-screen'})
+      .then(() => {})
+      .catch(() => {})
+  })
+  Electron.powerMonitor.on('unlock-screen', () => {
+    appStatePowerMonitorEventRpcPromise({event: 'unlock-screen'})
+      .then(() => {})
+      .catch(() => {})
+  })
+
   Electron.ipcMain.handle('KBdispatchAction', (_: any, action: any) => {
     mainWindow?.webContents.send('KBdispatchAction', action)
   })
 
   Electron.ipcMain.handle('KBkeybase', async (event, action: Action) => {
     switch (action.type) {
+      case 'setOpenAtLogin': {
+        const old = Electron.app.getLoginItemSettings().openAtLogin
+        if (old !== action.payload.enabled) {
+          Electron.app.setLoginItemSettings({openAtLogin: action.payload.enabled})
+        }
+        return
+      }
+      case 'exitApp': {
+        return Electron.app.exit(action.payload.code)
+      }
+      case 'quitApp': {
+        return Electron.app.quit()
+      }
+      case 'dumpNodeLogger': {
+        return logger.dump()
+      }
       case 'getPathType': {
         const {path} = action.payload
         return new Promise((resolve, reject) => {
