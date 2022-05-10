@@ -5,7 +5,6 @@ import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import * as Tabs from '../../constants/tabs'
-import * as remote from '@electron/remote'
 import fs from 'fs'
 import type {TypedState, TypedActions} from '../../util/container'
 import {isWindows, isLinux, dokanPath, windowsBinPath, pathSep} from '../../constants/platform.desktop'
@@ -16,7 +15,7 @@ import * as RouteTreeGen from '../route-tree-gen'
 import * as Path from '../../util/path'
 import KB2 from '../../util/electron.desktop'
 
-const {openInDefaultDirectory, openURL, getPathType, selectFilesToUploadDialog} = KB2.functions
+const {openPathInFinder, openURL, getPathType, selectFilesToUploadDialog} = KB2.functions
 const {exitApp, relaunchApp, uninstallKBFSDialog, uninstallDokanDialog} = KB2.functions
 
 // _openPathInSystemFileManagerPromise opens `openPath` in system file manager.
@@ -24,23 +23,7 @@ const {exitApp, relaunchApp, uninstallKBFSDialog, uninstallDokanDialog} = KB2.fu
 // folder. This function does not check if the file exists, or try to convert
 // KBFS paths. Caller should take care of those.
 const _openPathInSystemFileManagerPromise = async (openPath: string, isFolder: boolean): Promise<void> =>
-  new Promise((resolve, reject) => {
-    if (isFolder) {
-      if (isWindows) {
-        remote.shell
-          .openPath(openPath)
-          .then(() => resolve())
-          .catch(() => {
-            reject(new Error('unable to open item'))
-          })
-      } else {
-        openInDefaultDirectory?.(openPath).then(resolve, reject)
-      }
-    } else {
-      remote.shell.showItemInFolder(openPath)
-      resolve()
-    }
-  })
+  openPathInFinder?.(openPath, isFolder)
 
 const openLocalPathInSystemFileManager = async (action: FsGen.OpenLocalPathInSystemFileManagerPayload) => {
   try {

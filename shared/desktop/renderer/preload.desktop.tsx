@@ -183,10 +183,10 @@ if (isRenderer) {
               .then(() => {})
               .catch(() => {})
           },
-          openInDefaultDirectory: async (path: string) => {
+          openPathInFinder: async (path: string) => {
             const res = (await Electron.ipcRenderer.invoke('KBkeybase', {
               payload: {path},
-              type: 'openInDefaultDirectory',
+              type: 'openPathInFinder',
             })) as boolean
             if (!res) {
               throw new Error('openInDefaultDirectory')
