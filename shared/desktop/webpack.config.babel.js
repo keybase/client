@@ -263,14 +263,16 @@ const config = (_, {mode}) => {
           optimization: {splitChunks: {chunks: 'all'}},
         }),
     plugins: makeViewPlugins(entries),
-    target: 'electron-renderer',
+    target: 'web',
+    node: false,
+    // target: 'electron-renderer',
   })
   const preloadConfig = merge(commonConfig, {
     entry: {preload: `./desktop/renderer/preload.desktop.tsx`},
     module: {rules: makeRules(true)},
     name: 'Keybase',
     plugins: [],
-    target: 'electron-main',
+    target: 'electron-preload',
   })
 
   return [nodeConfig, viewConfig, preloadConfig]

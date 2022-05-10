@@ -104,6 +104,7 @@ export type KB2 = {
     ) => Promise<RPCTypes.FuseStatus>
     quitApp?: () => void
     exitApp?: (code: number) => void
+    copyToClipboard?: (text: string) => void
     ctlQuit?: () => void
     relaunchApp?: () => void
     uninstallKBFSDialog?: () => Promise<boolean>

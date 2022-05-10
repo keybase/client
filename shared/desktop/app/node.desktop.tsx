@@ -31,6 +31,7 @@ import logger from '../../logger'
 import {assetRoot, htmlPrefix} from './html-root.desktop'
 import KB2, {type OpenDialogOptions, type SaveDialogOptions} from '../../util/electron.desktop'
 import * as RPCTypes from '../../constants/types/rpc-gen'
+import type {Action} from '../app/ipctypes'
 
 const {env} = KB2.constants
 const {mainWindowDispatch} = KB2.functions
@@ -246,77 +247,6 @@ const willFinishLaunching = () => {
 
 let menubarWindowID = 0
 
-type Action =
-  | {type: 'appStartedUp'}
-  | {
-      type: 'activeChanged'
-      payload: {
-        changedAtMs: number
-        isUserActive: boolean
-      }
-    }
-  | {type: 'requestWindowsStartService'}
-  | {type: 'closeWindows'}
-  | {
-      type: 'makeRenderer'
-      payload: {
-        windowComponent: string
-        windowParam: string
-        windowOpts: {
-          width: number
-          height: number
-        }
-        windowPositionBottomRight: boolean
-      }
-    }
-  | {
-      type: 'closeRenderer'
-      payload: {
-        windowComponent: string
-        windowParam: string
-      }
-    }
-  | {
-      type: 'rendererNewProps'
-      payload: {
-        propsStr: string
-        windowComponent: string
-        windowParam: string
-      }
-    }
-  | {type: 'showMainWindow'}
-  | {type: 'setupPreloadKB2'}
-  | {type: 'winCheckRPCOwnership'}
-  | {type: 'showOpenDialog'; payload: {options: OpenDialogOptions}}
-  | {type: 'showSaveDialog'; payload: {options: SaveDialogOptions}}
-  | {type: 'darwinCopyToKBFSTempUploadFile'; payload: {originalFilePath: string; dir: string}}
-  | {type: 'darwinCopyToChatTempUploadFile'; payload: {originalFilePath: string; dst: string}}
-  | {type: 'closeWindow'}
-  | {type: 'minimizeWindow'}
-  | {type: 'toggleMaximizeWindow'}
-  | {type: 'openURL'; payload: {url: string; options?: {activate: boolean}}}
-  | {type: 'showInactive'}
-  | {type: 'hideWindow'}
-  | {type: 'openPathInFinder'; payload: {path: string; isFolder: boolean}}
-  | {type: 'getPathType'; payload: {path: string}}
-  | {type: 'dumpNodeLogger'}
-  | {type: 'quitApp'}
-  | {type: 'exitApp'; payload: {code: number}}
-  | {type: 'setOpenAtLogin'; payload: {enabled: boolean}}
-  | {type: 'relaunchApp'}
-  | {type: 'uninstallKBFSDialog'}
-  | {type: 'uninstallDokanDialog'}
-  | {type: 'selectFilesToUploadDialog'; payload: {parent: string; type: 'file' | 'directory' | 'both'}}
-  | {type: 'ctlQuit'}
-  | {
-      type: 'windowsCheckMountFromOtherDokanInstall'
-      payload: {
-        mountPoint: string
-        status: RPCTypes.FuseStatus
-      }
-    }
-  | {type: 'isDirectory'; payload: {path: string}}
-
 const remoteURL = (windowComponent: string, windowParam: string) =>
   `${htmlPrefix}${assetRoot}${windowComponent}${__DEV__ ? '.dev' : ''}.html?param=${windowParam}`
 
@@ -509,6 +439,10 @@ const plumbEvents = () => {
 
   Electron.ipcMain.handle('KBkeybase', async (event, action: Action) => {
     switch (action.type) {
+      case 'copyToClipboard': {
+        Electron.clipboard.writeText(action.payload.text)
+        return
+      }
       case 'isDirectory': {
         return new Promise(resolve =>
           fs.lstat(action.payload.path, (err, stats) => {
@@ -761,7 +695,7 @@ const plumbEvents = () => {
         break
       }
       case 'closeRenderer': {
-        const w = findRemoteComponent(action.payload.windowComponent, action.payload.windowParam)
+        const w = findRemoteComponent(action.payload.windowComponent ?? '', action.payload.windowParam ?? '')
         w?.close()
         break
       }
@@ -797,7 +731,7 @@ const plumbEvents = () => {
         }
 
         remoteWindow
-          .loadURL(remoteURL(action.payload.windowComponent, action.payload.windowParam))
+          .loadURL(remoteURL(action.payload.windowComponent, action.payload.windowParam ?? ''))
           .then(() => {})
           .catch(() => {})
 

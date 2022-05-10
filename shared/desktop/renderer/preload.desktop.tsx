@@ -43,6 +43,11 @@ if (isRenderer) {
               .then(() => {})
               .catch(() => {})
           },
+          copyToClipboard: (text: string) => {
+            invoke({payload: {text}, type: 'copyToClipboard'})
+              .then(() => {})
+              .catch(() => {})
+          },
           ctlQuit: () => {
             invoke({type: 'ctlQuit'})
               .then(() => {})
