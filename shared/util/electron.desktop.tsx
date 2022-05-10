@@ -63,10 +63,12 @@ export type KB2 = {
     windowsBinPath: string
   }
   functions: {
+    appStartedUp?: () => void
     isDirectory?: (path: string) => Promise<boolean>
     activeChanged?: (changedAtMs: number, isUserActive: boolean) => void
     closeWindow?: () => void
     dumpNodeLogger?: () => Promise<Array<LogLineWithLevelISOTimestamp>>
+    ipcRendererOn?: (channel: string, cb: (event: any, action: any) => void) => void
     hideWindow?: () => void
     getPathType?: (path: string) => Promise<'file' | 'directory'>
     // defined for both always

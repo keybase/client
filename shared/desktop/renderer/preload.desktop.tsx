@@ -32,6 +32,11 @@ if (isRenderer) {
               .then(() => {})
               .catch(() => {})
           },
+          appStartedUp: () => {
+            invoke({type: 'appStartedUp'})
+              .then(() => {})
+              .catch(() => {})
+          },
           closeRenderer: (options: {windowComponent?: string; windowParam?: string}) => {
             const {windowComponent, windowParam} = options
             invoke({payload: {windowComponent, windowParam}, type: 'closeRenderer'})
@@ -94,6 +99,9 @@ if (isRenderer) {
             invoke({type: 'hideWindow'})
               .then(() => {})
               .catch(() => {})
+          },
+          ipcRendererOn: (channel: string, cb: (event: any, action: any) => void) => {
+            Electron.ipcRenderer.on(channel, cb)
           },
           isDirectory: async (path: string) => {
             return invoke({payload: {path}, type: 'isDirectory'})
