@@ -500,9 +500,18 @@ type Names = keyof Color
 
 const names: Array<Names> = Object.keys(colors) as any
 
-export const themed: {[P in keyof typeof colors]: typeof colors[P]} = names.reduce<Color>(
-  (obj, name) =>
-    Object.defineProperty(obj, name, {
+export const themed: {[P in keyof typeof colors]: typeof colors[P]} = names.reduce<Color>((obj, name) => {
+  if (isIOS) {
+    const {DynamicColorIOS} = require('react-native')
+    // ios actually handles this nicely natively
+    return Object.defineProperty(obj, name, {
+      configurable: false,
+      enumerable: true,
+      // @ts-ignore
+      value: DynamicColorIOS({dark: darkColors[name], light: colors[name]}),
+    })
+  } else {
+    return Object.defineProperty(obj, name, {
       configurable: false,
       enumerable: true,
       get() {
@@ -513,8 +522,8 @@ export const themed: {[P in keyof typeof colors]: typeof colors[P]} = names.redu
 
         return isDarkMode() ? darkColors[name] : colors[name]
       },
-    }),
-  {} as Color
-)
+    })
+  }
+}, {} as Color)
 
 export default colors

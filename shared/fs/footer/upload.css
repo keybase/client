@@ -1,6 +1,6 @@
 @keyframes slideUp {
   from { background-position-y: 0; }
-  to {background-position-y: 200%; }
+  to {background-position-y: -80px; }
 }
 .upload-animation-loop {
   animation: slideUp 2s linear infinite normal;

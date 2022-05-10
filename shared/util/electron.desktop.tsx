@@ -2,18 +2,109 @@
 // instead of having a lot of async logic getting some static values we instead wait to load these values on start before we
 // start drawing. If you need access to these values you need to call `waitOnKB2Loaded`
 // the electron preload scripts will create kb2 on the node side and plumb it back and then call `injectPreload`
-type KB2 = {
-  assetRoot: string
+import type {TypedActions} from '../actions/typed-actions-gen'
+
+export type OpenDialogOptions = {
+  allowFiles?: boolean
+  allowDirectories?: boolean
+  allowMultiselect?: boolean
+  buttonLabel?: string
+  defaultPath?: string
+  filters?: Array<{extensions: Array<string>; name: string}>
+  message?: string
+  title?: string
+}
+
+export type SaveDialogOptions = {
+  title?: string
+  defaultPath?: string
+  buttonLabel?: string
+  message?: string
+}
+
+export type KB2 = {
+  constants: {
+    assetRoot: string
+    dokanPath: string
+    downloadFolder: string
+    env: {
+      APPDATA: string
+      HOME: string
+      KEYBASE_AUTOSTART: string
+      KEYBASE_CRASH_REPORT: string
+      KEYBASE_DEVEL_USE_XDG: string
+      KEYBASE_RESTORE_UI: string
+      KEYBASE_RUN_MODE: string
+      KEYBASE_START_UI: string
+      KEYBASE_XDG_OVERRIDE: string
+      LANG: string
+      LC_ALL: string
+      LC_TIME: string
+      LOCALAPPDATA: string
+      XDG_CACHE_HOME: string
+      XDG_CONFIG_HOME: string
+      XDG_DATA_HOME: string
+      XDG_DOWNLOAD_DIR: string
+      XDG_RUNTIME_DIR: string
+    }
+    helloDetails: {
+      argv: Array<string>
+      clientType: 2 // RPCTypes.ClientType.guiMain,
+      desc: 'Main Renderer'
+      pid: number
+      version: string
+    }
+    isRenderer: boolean
+    pathSep: '/' | '\\'
+    platform: 'win32' | 'darwin' | 'linux'
+    startDarkMode: boolean
+    windowsBinPath: string
+  }
+  functions: {
+    activeChanged?: (changedAtMs: number, isUserActive: boolean) => void
+    closeWindow?: () => void
+    hideWindow?: () => void
+    getPathType?: (path: string) => Promise<'file' | 'directory'>
+    // defined for both always
+    mainWindowDispatch: (action: TypedActions) => void
+    darwinCopyToChatTempUploadFile?: (originalFilePath: string) => Promise<{outboxID: Buffer; path: string}>
+    darwinCopyToKBFSTempUploadFile?: (originalFilePath: string) => Promise<string>
+    minimizeWindow?: () => void
+    openInDefaultDirectory?: (path: string) => Promise<void>
+    openURL?: (url: string, options?: {activate: boolean}) => Promise<void>
+    requestWindowsStartService?: () => void
+    rendererNewProps?: (options: {propsStr: string; windowComponent: string; windowParam: string}) => void
+    makeRenderer?: (options: {
+      windowComponent: string
+      windowOpts: {
+        hasShadow?: boolean
+        height: number
+        transparent?: boolean
+        width: number
+      }
+      windowParam?: string
+      windowPositionBottomRight?: boolean
+    }) => void
+    closeRenderer?: (options: {windowComponent?: string; windowParam?: string}) => void
+    showOpenDialog?: (options?: OpenDialogOptions) => Promise<Array<string>>
+    showSaveDialog?: (options?: SaveDialogOptions) => Promise<string>
+    showTray?: (desktopAppBadgeCount: number, icon: string) => void
+    showInactive?: () => void
+    showMainWindow?: () => void
+    toggleMaximizeWindow?: () => void
+    winCheckRPCOwnership?: () => Promise<void>
+  }
 }
 
 const kb2Waiters = new Array<() => void>()
 
 export const injectPreload = (kb2: KB2) => {
-  if (!kb2 || !kb2.assetRoot) {
+  if (!kb2 || !kb2?.constants?.assetRoot) {
     throw new Error('Invalid kb2 injected')
   }
   // we have to stash this in a global due to how preload works, else it clears out the module level variables
   globalThis._fromPreload = kb2
+
   while (kb2Waiters.length) {
     kb2Waiters.shift()?.()
   }
@@ -32,9 +123,12 @@ const getStashed = () => {
   return globalThis._fromPreload as KB2
 }
 
-const theKB2 = {
-  get assetRoot() {
-    return getStashed().assetRoot
+const theKB2: KB2 = {
+  get constants() {
+    return getStashed().constants
+  },
+  get functions() {
+    return getStashed().functions
   },
 }
 

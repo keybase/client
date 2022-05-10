@@ -10,6 +10,8 @@ import * as React from 'react'
 import * as Kb from '../common-adapters'
 import Loading from '../login/loading'
 import type {Theme} from '@react-navigation/native'
+import {isDarkMode} from '../styles/dark-mode'
+import {colors, darkColors} from '../styles/colors'
 
 export enum AppState {
   UNINIT, // haven't rendered the nav yet
@@ -45,8 +47,11 @@ const useIsDarkChanged = () => {
 
 const useNavKey = (appState: AppState, key: React.MutableRefObject<number>) => {
   const darkChanged = useIsDarkChanged()
-  if (darkChanged) {
-    key.current++
+  // we use special dynamic colors on ios
+  if (!Styles.isIOS) {
+    if (darkChanged) {
+      key.current++
+    }
   }
 
   return appState === AppState.NEEDS_INIT ? -1 : key.current
@@ -141,25 +146,26 @@ const styles = Styles.styleSheetCreate(() => ({
   },
 }))
 
+// nav isn't compatible with dynamiccolorsios so we just reach in just here
 export const theme: Theme = {
   colors: {
     get background() {
-      return Styles.globalColors.fastBlank as string
+      return (isDarkMode() ? darkColors.fastBlank : colors.fastBlank) as string
     },
     get border() {
-      return Styles.globalColors.black_10
+      return (isDarkMode() ? darkColors.black_10 : colors.black_10) as string
     },
     get card() {
-      return Styles.globalColors.fastBlank as string
+      return (isDarkMode() ? darkColors.fastBlank : colors.fastBlank) as string
     },
     get notification() {
-      return Styles.globalColors.black
+      return (isDarkMode() ? darkColors.black : colors.black) as string
     },
     get primary() {
-      return Styles.globalColors.black
+      return (isDarkMode() ? darkColors.black : colors.black) as string
     },
     get text() {
-      return Styles.globalColors.black
+      return (isDarkMode() ? darkColors.black : colors.black) as string
     },
   },
   dark: false,

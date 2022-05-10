@@ -17,5 +17,3 @@ __STORYBOOK__ = false
 
 // We don't storyshot RN
 __STORYSHOT__ = false
-
-require('./preload.native')
