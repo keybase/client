@@ -441,8 +441,9 @@ const loadUploadStatus = async () => {
 
 const uploadFromDragAndDrop = async (_: Container.TypedState, action: FsGen.UploadFromDragAndDropPayload) => {
   if (Platform.isDarwin && darwinCopyToKBFSTempUploadFile) {
+    const dir = await RPCTypes.SimpleFSSimpleFSMakeTempDirForUploadRpcPromise()
     const localPaths = await Promise.all(
-      action.payload.localPaths.map(async localPath => darwinCopyToKBFSTempUploadFile(localPath))
+      action.payload.localPaths.map(async localPath => darwinCopyToKBFSTempUploadFile(dir, localPath))
     )
     return localPaths.map(localPath =>
       FsGen.createUpload({

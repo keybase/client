@@ -4,8 +4,8 @@ import * as Constants from '../../constants/fs'
 import * as Kb from '../../common-adapters'
 import * as FsGen from '../../actions/fs-gen'
 import * as React from 'react'
-import * as Styles from '../../styles'
 import * as Platforms from '../../constants/platform'
+import type * as Styles from '../../styles'
 
 type OwnProps = {
   path: Types.Path

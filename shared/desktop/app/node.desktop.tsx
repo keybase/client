@@ -17,9 +17,16 @@ import * as ConfigGen from '../../actions/config-gen'
 import * as DeeplinksGen from '../../actions/deeplinks-gen'
 import {showDevTools, skipSecondaryDevtools, allowMultipleInstances} from '../../local-debug.desktop'
 import startWinService from './start-win-service.desktop'
-import {isDarwin, isLinux, isWindows, cacheRoot, socketPath} from '../../constants/platform.desktop'
+import {
+  isDarwin,
+  isLinux,
+  isWindows,
+  cacheRoot,
+  socketPath,
+  fileUIName,
+} from '../../constants/platform.desktop'
 import {isPathSaltpack} from '../../constants/crypto'
-import {quit} from './ctl.desktop'
+import {ctlQuit} from './ctl.desktop'
 import logger from '../../logger'
 import {assetRoot, htmlPrefix} from './html-root.desktop'
 import KB2, {type OpenDialogOptions, type SaveDialogOptions} from '../../util/electron.desktop'
@@ -27,8 +34,6 @@ import {appStatePowerMonitorEventRpcPromise} from '../../constants/types/rpc-gen
 
 const {env} = KB2.constants
 const {mainWindowDispatch} = KB2.functions
-
-require('@electron/remote/main').initialize()
 
 let mainWindow: ReturnType<typeof MainWindow> | null = null
 let appStartedUp = false
@@ -216,7 +221,7 @@ const handleActivate = () => {
 const handleQuitting = (event: Electron.Event) => {
   console.log('Quit through before-quit')
   event.preventDefault()
-  quit()
+  ctlQuit()
 }
 
 const willFinishLaunching = () => {
@@ -285,22 +290,24 @@ type Action =
   | {type: 'showOpenDialog'; payload: {options: OpenDialogOptions}}
   | {type: 'showSaveDialog'; payload: {options: SaveDialogOptions}}
   | {type: 'darwinCopyToKBFSTempUploadFile'; payload: {originalFilePath: string; dir: string}}
-  | {
-      type: 'darwinCopyToChatTempUploadFile'
-      payload: {originalFilePath: string; dst: string; outboxID: string}
-    }
+  | {type: 'darwinCopyToChatTempUploadFile'; payload: {originalFilePath: string; dst: string}}
   | {type: 'closeWindow'}
   | {type: 'minimizeWindow'}
   | {type: 'toggleMaximizeWindow'}
   | {type: 'openURL'; payload: {url: string; options?: {activate: boolean}}}
   | {type: 'showInactive'}
   | {type: 'hideWindow'}
-  | {type: 'openInDefaultDirectory'; payload: {path: string}}
+  | {type: 'openPathInFinder'; payload: {path: string; isFolder: boolean}}
   | {type: 'getPathType'; payload: {path: string}}
   | {type: 'dumpNodeLogger'}
   | {type: 'quitApp'}
   | {type: 'exitApp'; payload: {code: number}}
   | {type: 'setOpenAtLogin'; payload: {enabled: boolean}}
+  | {type: 'relaunchApp'}
+  | {type: 'uninstallKBFSDialog'}
+  | {type: 'uninstallDokanDialog'}
+  | {type: 'selectFilesToUploadDialog'; payload: {parent: string; type: 'file' | 'directory' | 'both'}}
+  | {type: 'ctlQuit'}
 
 const remoteURL = (windowComponent: string, windowParam: string) =>
   `${htmlPrefix}${assetRoot}${windowComponent}${__DEV__ ? '.dev' : ''}.html?param=${windowParam}`
@@ -443,8 +450,74 @@ const plumbEvents = () => {
     mainWindow?.webContents.send('KBdispatchAction', action)
   })
 
+  const openInDefaultDirectory = async (openPath: string) => {
+    // pathToURL takes path and converts to (file://) url.
+    // See https://github.com/sindresorhus/file-url
+    const pathToURL = (p: string) => {
+      let goodPath = p.replace(/\\/g, '/')
+
+      // Windows drive letter must be prefixed with a slash
+      if (!goodPath.startsWith('/')) {
+        goodPath = '/' + goodPath
+      }
+
+      return encodeURI('file://' + goodPath).replace(/#/g, '%23')
+    }
+    const prom = new Promise<void>((resolve, reject) => {
+      // Paths in directories might be symlinks, so resolve using
+      // realpath.
+      // For example /keybase/private/gabrielh,chris gets redirected to
+      // /keybase/private/chris,gabrielh.
+      fs.realpath(openPath, (err, resolvedPath) => {
+        if (err) {
+          reject(new Error(`No realpath for ${openPath}`))
+          return
+        }
+        // Convert to URL for openExternal call.
+        // We use openExternal instead of openItem because it
+        // correctly focuses' the Finder, and also uses a newer
+        // native API on macOS.
+        const url = pathToURL(resolvedPath)
+        logger.info('Open URL (directory):', url)
+
+        Electron.shell
+          .openExternal(url, {activate: true})
+          .then(() => {
+            logger.info('Opened directory:', openPath)
+            resolve()
+          })
+          .catch(err => {
+            reject(err)
+          })
+      })
+    })
+    try {
+      await prom
+      return true
+    } catch {
+      return false
+    }
+  }
+
   Electron.ipcMain.handle('KBkeybase', async (event, action: Action) => {
     switch (action.type) {
+      case 'ctlQuit': {
+        ctlQuit()
+        return
+      }
+      case 'selectFilesToUploadDialog': {
+        const w = Electron.BrowserWindow.getFocusedWindow()
+        if (!w) return []
+        const {filePaths} = await Electron.dialog.showOpenDialog(w, {
+          properties: [
+            'multiSelections' as const,
+            ...(['file', 'both'].includes(action.payload.type) ? (['openFile'] as const) : []),
+            ...(['directory', 'both'].includes(action.payload.type) ? (['openDirectory'] as const) : []),
+          ],
+          title: 'Select a file or folder to upload',
+        })
+        return filePaths
+      }
       case 'setOpenAtLogin': {
         const old = Electron.app.getLoginItemSettings().openAtLogin
         if (old !== action.payload.enabled) {
@@ -454,6 +527,28 @@ const plumbEvents = () => {
       }
       case 'exitApp': {
         return Electron.app.exit(action.payload.code)
+      }
+      case 'uninstallDokanDialog': {
+        await Electron.dialog.showMessageBox({
+          buttons: ['Got it'],
+          detail:
+            'We looked everywhere but did not find a Dokan uninstaller. Please remove it from the Control Panel.',
+          message: 'Please uninstall Dokan from the Control Panel.',
+          type: 'info',
+        })
+        return
+      }
+      case 'uninstallKBFSDialog': {
+        const {response} = await Electron.dialog.showMessageBox({
+          buttons: ['Remove & Restart', 'Cancel'],
+          detail: `Are you sure you want to remove Keybase from ${fileUIName} and restart the app?`,
+          message: `Remove Keybase from ${fileUIName}`,
+          type: 'question',
+        })
+        return response === 0
+      }
+      case 'relaunchApp': {
+        return Electron.app.relaunch()
       }
       case 'quitApp': {
         return Electron.app.quit()
@@ -488,52 +583,21 @@ const plumbEvents = () => {
           return false
         }
       }
-      case 'openInDefaultDirectory': {
-        const openPath = action.payload.path
-
-        // pathToURL takes path and converts to (file://) url.
-        // See https://github.com/sindresorhus/file-url
-        const pathToURL = (p: string) => {
-          let goodPath = p.replace(/\\/g, '/')
-
-          // Windows drive letter must be prefixed with a slash
-          if (!goodPath.startsWith('/')) {
-            goodPath = '/' + goodPath
-          }
-
-          return encodeURI('file://' + goodPath).replace(/#/g, '%23')
-        }
-        const prom = new Promise<void>((resolve, reject) => {
-          // Paths in directories might be symlinks, so resolve using
-          // realpath.
-          // For example /keybase/private/gabrielh,chris gets redirected to
-          // /keybase/private/chris,gabrielh.
-          fs.realpath(openPath, (err, resolvedPath) => {
-            if (err) {
-              reject(new Error(`No realpath for ${openPath}`))
-              return
-            }
-            // Convert to URL for openExternal call.
-            // We use openExternal instead of openItem because it
-            // correctly focuses' the Finder, and also uses a newer
-            // native API on macOS.
-            const url = pathToURL(resolvedPath)
-            logger.info('Open URL (directory):', url)
-
-            Electron.shell
-              .openExternal(url, {activate: true})
-              .then(() => {
-                logger.info('Opened directory:', openPath)
-                resolve()
-              })
-              .catch(err => {
-                reject(err)
-              })
-          })
-        })
+      case 'openPathInFinder': {
+        const {isFolder, path} = action.payload
         try {
-          await prom
-          return true
+          if (isFolder) {
+            if (isWindows) {
+              await Electron.shell.openPath(path)
+              return true
+            } else {
+              await openInDefaultDirectory(path)
+              return true
+            }
+          } else {
+            Electron.shell.showItemInFolder(path)
+            return true
+          }
         } catch {
           return false
         }
@@ -683,8 +747,6 @@ const plumbEvents = () => {
         }
 
         const remoteWindow = new Electron.BrowserWindow(opts)
-
-        require('@electron/remote/main').enable(remoteWindow.webContents)
 
         remoteWindow.on('show', () => {
           mainWindowDispatch(ConfigGen.createUpdateWindowShown({component: action.payload.windowComponent}))

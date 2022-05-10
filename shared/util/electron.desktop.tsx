@@ -69,10 +69,10 @@ export type KB2 = {
     getPathType?: (path: string) => Promise<'file' | 'directory'>
     // defined for both always
     mainWindowDispatch: (action: TypedActions) => void
-    darwinCopyToChatTempUploadFile?: (originalFilePath: string) => Promise<{outboxID: Buffer; path: string}>
-    darwinCopyToKBFSTempUploadFile?: (originalFilePath: string) => Promise<string>
+    darwinCopyToChatTempUploadFile?: (dst: string, originalFilePath: string) => Promise<void>
+    darwinCopyToKBFSTempUploadFile?: (dir: string, originalFilePath: string) => Promise<string>
     minimizeWindow?: () => void
-    openInDefaultDirectory?: (path: string) => Promise<void>
+    openPathInFinder?: (path: string, isFolder: boolean) => Promise<void>
     openURL?: (url: string, options?: {activate: boolean}) => Promise<void>
     requestWindowsStartService?: () => void
     rendererNewProps?: (options: {propsStr: string; windowComponent: string; windowParam: string}) => void
@@ -98,6 +98,14 @@ export type KB2 = {
     winCheckRPCOwnership?: () => Promise<void>
     quitApp?: () => void
     exitApp?: (code: number) => void
+    ctlQuit?: () => void
+    relaunchApp?: () => void
+    uninstallKBFSDialog?: () => Promise<boolean>
+    uninstallDokanDialog?: () => Promise<void>
+    selectFilesToUploadDialog?: (
+      type: 'file' | 'directory' | 'both',
+      parent: string | null
+    ) => Promise<Array<string>>
   }
 }
 

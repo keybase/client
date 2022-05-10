@@ -39,7 +39,7 @@ function exitProcess() {
   process.exit(0)
 }
 
-export function quit(appOnly: boolean = false) {
+export function ctlQuit(appOnly: boolean = false) {
   if (appOnly || __DEV__) {
     console.log('Only quitting gui')
     exitApp()

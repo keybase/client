@@ -5,7 +5,7 @@ import * as SettingsGen from '../../actions/settings-gen'
 import flags from '../../util/feature-flags'
 import {closeWindows} from './main-window.desktop'
 import {isDarwin, isLinux} from '../../constants/platform'
-import {quit} from './ctl.desktop'
+import {ctlQuit} from './ctl.desktop'
 import KB2 from '../../util/electron.desktop'
 
 const {mainWindowDispatch} = KB2.functions
@@ -18,7 +18,7 @@ const reallyQuit = () => {
     mainWindowDispatch(ConfigGen.createDumpLogs({reason: 'quitting through menu'}))
   }
   setTimeout(() => {
-    quit()
+    ctlQuit()
   }, 2000)
 }
 

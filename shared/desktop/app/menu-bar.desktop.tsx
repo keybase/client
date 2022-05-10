@@ -59,7 +59,6 @@ export default (menubarWindowIDCallback: (id: number) => void) => {
   })
 
   Electron.app.on('ready', () => {
-    require('@electron/remote/main').enable(mb.window?.webContents)
     mb.window
       ?.loadURL(htmlFile)
       .then(() => {})

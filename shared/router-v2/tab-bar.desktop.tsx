@@ -22,10 +22,9 @@ import RuntimeStats from '../app/runtime-stats'
 import HiddenString from '../util/hidden-string'
 import openURL from '../util/open-url'
 import {isLinux} from '../constants/platform'
-import {quit} from '../desktop/app/ctl.desktop'
 import KB2 from '../util/electron.desktop'
 
-const {hideWindow} = KB2.functions
+const {hideWindow, ctlQuit} = KB2.functions
 
 export type Props = {
   navigation: any
@@ -65,7 +64,7 @@ const Header = () => {
     // In case dump log doesn't exit for us
     hideWindow?.()
     setTimeout(() => {
-      quit()
+      ctlQuit?.()
     }, 2000)
   }
   const onSettings = () => dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.settingsTab}))

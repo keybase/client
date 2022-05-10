@@ -1,8 +1,4 @@
 import * as Electron from 'electron'
-import type {WaitingKey} from '../../engine'
-import type {RPCError} from '../../util/errors'
-import type {MessageTypes as FsMessageTypes} from '../../constants/types/rpc-gen'
-import type {MessageTypes as ChatMessageTypes} from '../../constants/types/rpc-chat-gen'
 import type {TypedActions} from '../../actions/typed-actions-gen'
 import {
   injectPreload,
@@ -14,10 +10,6 @@ import type {LogLineWithLevelISOTimestamp} from '../../logger/types'
 
 const isRenderer = process.type === 'renderer'
 const isDarwin = process.platform === 'darwin'
-
-const getEngine = () => {
-  return require('../../engine').getEngine()
-}
 
 // TODO contextBridge
 if (isRenderer) {
@@ -59,59 +51,28 @@ if (isRenderer) {
               .then(() => {})
               .catch(() => {})
           },
-          darwinCopyToChatTempUploadFile: async (originalFilePath: string) => {
+          ctlQuit: () => {
+            Electron.ipcRenderer
+              .invoke('KBkeybase', {type: 'ctlQuit'})
+              .then(() => {})
+              .catch(() => {})
+          },
+          darwinCopyToChatTempUploadFile: async (dst: string, originalFilePath: string) => {
             if (!isDarwin) {
               throw new Error('Unsupported platform')
             }
-            const generateOutboxID = () =>
-              Buffer.from([...Array(8)].map(() => Math.floor(Math.random() * 256)))
-            const outboxID = generateOutboxID()
-            const localGetUploadTempFileRpcPromise = async (
-              params: ChatMessageTypes['chat.1.local.getUploadTempFile']['inParam'],
-              waitingKey?: WaitingKey
-            ) => {
-              return new Promise<ChatMessageTypes['chat.1.local.getUploadTempFile']['outParam']>(
-                (resolve, reject) => {
-                  getEngine()._rpcOutgoing({
-                    callback: (
-                      error: RPCError | null,
-                      result: ChatMessageTypes['chat.1.local.getUploadTempFile']['outParam']
-                    ) => (error ? reject(error) : resolve(result)),
-                    method: 'chat.1.local.getUploadTempFile',
-                    params,
-                    waitingKey,
-                  })
-                }
-              )
-            }
-            const dst = await localGetUploadTempFileRpcPromise({
-              filename: originalFilePath,
-              outboxID,
-            })
-
             const res = (await Electron.ipcRenderer.invoke('KBkeybase', {
               payload: {dst, originalFilePath},
               type: 'darwinCopyToChatTempUploadFile',
             })) as boolean
             if (res) {
-              return {outboxID, path: dst}
+              return
             } else {
               throw new Error("Couldn't save")
             }
           },
-          darwinCopyToKBFSTempUploadFile: async (originalFilePath: string) => {
+          darwinCopyToKBFSTempUploadFile: async (dir: string, originalFilePath: string) => {
             if (!isDarwin) return ''
-            const simpleFSSimpleFSMakeTempDirForUploadRpcPromise = async () =>
-              new Promise<FsMessageTypes['keybase.1.SimpleFS.simpleFSMakeTempDirForUpload']['outParam']>(
-                (resolve, reject) => {
-                  getEngine()._rpcOutgoing({
-                    callback: (error: RPCError | null, result: string) =>
-                      error ? reject(error) : resolve(result),
-                    method: 'keybase.1.SimpleFS.simpleFSMakeTempDirForUpload',
-                  })
-                }
-              )
-            const dir = await simpleFSSimpleFSMakeTempDirForUploadRpcPromise()
             return (await Electron.ipcRenderer.invoke('KBkeybase', {
               payload: {dir, originalFilePath},
               type: 'darwinCopyToKBFSTempUploadFile',
@@ -177,10 +138,10 @@ if (isRenderer) {
               .then(() => {})
               .catch(() => {})
           },
-          openInDefaultDirectory: async (path: string) => {
+          openPathInFinder: async (path: string) => {
             const res = (await Electron.ipcRenderer.invoke('KBkeybase', {
               payload: {path},
-              type: 'openInDefaultDirectory',
+              type: 'openPathInFinder',
             })) as boolean
             if (!res) {
               throw new Error('openInDefaultDirectory')
@@ -201,6 +162,12 @@ if (isRenderer) {
               .then(() => {})
               .catch(() => {})
           },
+          relaunchApp: () => {
+            Electron.ipcRenderer
+              .invoke('KBkeybase', {type: 'relaunchApp'})
+              .then(() => {})
+              .catch(() => {})
+          },
           rendererNewProps: (options: {propsStr: string; windowComponent: string; windowParam: string}) => {
             const {propsStr, windowComponent, windowParam} = options
             Electron.ipcRenderer
@@ -216,6 +183,12 @@ if (isRenderer) {
               .invoke('KBkeybase', {type: 'requestWindowsStartService'})
               .then(() => {})
               .catch(() => {})
+          },
+          selectFilesToUploadDialog: async (type: 'file' | 'directory' | 'both', parent: string | null) => {
+            return Electron.ipcRenderer.invoke('KBkeybase', {
+              payload: {parent, type},
+              type: 'selectFilesToUploadDialog',
+            })
           },
           setOpenAtLogin: async (enabled: boolean) => {
             return Electron.ipcRenderer.invoke('KBkeybase', {payload: {enabled}, type: 'setOpenAtLogin'})
@@ -259,6 +232,13 @@ if (isRenderer) {
               .then(() => {})
               .catch(() => {})
           },
+          uninstallDokanDialog: async () => {
+            return Electron.ipcRenderer.invoke('KBkeybase', {type: 'uninstallDokanDialog'})
+          },
+          uninstallKBFSDialog: async () => {
+            return Electron.ipcRenderer.invoke('KBkeybase', {type: 'uninstallKBFSDialog'})
+          },
+
           winCheckRPCOwnership: async () => {
             const res = (await Electron.ipcRenderer.invoke('KBkeybase', {
               type: 'winCheckRPCOwnership',

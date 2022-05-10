@@ -13,7 +13,6 @@
     "lib": ["ESNext"],
     "module": "commonjs",
     "paths": {
-      "@electron/remote": ["override-d.ts/@electron-remote/index.d.ts"],
       "react-native-reanimated": ["override-d.ts/react-native-reanimated/react-native-reanimated.d.ts"],
       "@react-native-picker/picker": ["override-d.ts/@react-native-picker/index.d.ts"],
       "@emotion/native": ["override-d.ts/@emotion/index.d.ts"],

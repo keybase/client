@@ -5,17 +5,9 @@ import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import * as Tabs from '../../constants/tabs'
-import * as remote from '@electron/remote'
 import fs from 'fs'
 import type {TypedState, TypedActions} from '../../util/container'
-import {
-  fileUIName,
-  isWindows,
-  isLinux,
-  dokanPath,
-  windowsBinPath,
-  pathSep,
-} from '../../constants/platform.desktop'
+import {isWindows, isLinux, dokanPath, windowsBinPath, pathSep} from '../../constants/platform.desktop'
 import logger from '../../logger'
 import {spawn, execFile, exec} from 'child_process'
 import {errorToActionOrThrow} from './shared'
@@ -23,30 +15,15 @@ import * as RouteTreeGen from '../route-tree-gen'
 import * as Path from '../../util/path'
 import KB2 from '../../util/electron.desktop'
 
-const {openInDefaultDirectory, openURL, getPathType} = KB2.functions
+const {openPathInFinder, openURL, getPathType, selectFilesToUploadDialog} = KB2.functions
+const {exitApp, relaunchApp, uninstallKBFSDialog, uninstallDokanDialog} = KB2.functions
 
 // _openPathInSystemFileManagerPromise opens `openPath` in system file manager.
 // If isFolder is true, it just opens it. Otherwise, it shows it in its parent
 // folder. This function does not check if the file exists, or try to convert
 // KBFS paths. Caller should take care of those.
 const _openPathInSystemFileManagerPromise = async (openPath: string, isFolder: boolean): Promise<void> =>
-  new Promise((resolve, reject) => {
-    if (isFolder) {
-      if (isWindows) {
-        remote.shell
-          .openPath(openPath)
-          .then(() => resolve())
-          .catch(() => {
-            reject(new Error('unable to open item'))
-          })
-      } else {
-        openInDefaultDirectory?.(openPath).then(resolve, reject)
-      }
-    } else {
-      remote.shell.showItemInFolder(openPath)
-      resolve()
-    }
-  })
+  openPathInFinder?.(openPath, isFolder)
 
 const openLocalPathInSystemFileManager = async (action: FsGen.OpenLocalPathInSystemFileManagerPayload) => {
   try {
@@ -188,26 +165,15 @@ const driverEnableFuse = async (action: FsGen.DriverEnablePayload) => {
 }
 
 const uninstallKBFSConfirm = async () => {
-  const action = await new Promise<TypedActions | false>(resolve =>
-    remote.dialog
-      .showMessageBox({
-        buttons: ['Remove & Restart', 'Cancel'],
-        detail: `Are you sure you want to remove Keybase from ${fileUIName} and restart the app?`,
-        message: `Remove Keybase from ${fileUIName}`,
-        type: 'question',
-      })
-      // resp is the index of the button that's clicked
-      .then(({response}) => (response === 0 ? resolve(FsGen.createDriverDisabling()) : resolve(false)))
-      .catch(() => resolve(false))
-  )
-  return action
+  const remove = await (uninstallKBFSDialog?.() ?? Promise.resolve(false))
+  return remove ? FsGen.createDriverDisabling() : false
 }
 
 const uninstallKBFS = async () =>
   RPCTypes.installUninstallKBFSRpcPromise().then(() => {
     // Restart since we had to uninstall KBFS and it's needed by the service (for chat)
-    remote.app.relaunch()
-    remote.app.exit(0)
+    relaunchApp?.()
+    exitApp?.(0)
   })
 
 const uninstallDokanConfirm = async (state: TypedState): Promise<TypedActions | false> => {
@@ -215,19 +181,8 @@ const uninstallDokanConfirm = async (state: TypedState): Promise<TypedActions | 
     return false
   }
   if (!state.fs.sfmi.driverStatus.dokanUninstallExecPath) {
-    const action = await new Promise<TypedActions>(resolve => {
-      remote.dialog
-        .showMessageBox({
-          buttons: ['Got it'],
-          detail:
-            'We looked everywhere but did not find a Dokan uninstaller. Please remove it from the Control Panel.',
-          message: 'Please uninstall Dokan from the Control Panel.',
-          type: 'info',
-        })
-        .then(() => resolve(FsGen.createRefreshDriverStatus()))
-        .catch(() => resolve(FsGen.createRefreshDriverStatus()))
-    })
-    return action
+    await uninstallDokanDialog?.()
+    return FsGen.createRefreshDriverStatus()
   }
   return FsGen.createDriverDisabling()
 }
@@ -282,20 +237,9 @@ const installCachedDokan = async () =>
     .then(() => FsGen.createRefreshDriverStatus())
     .catch(e => errorToActionOrThrow(e))
 
-const openAndUploadToPromise = async (action: FsGen.OpenAndUploadPayload): Promise<Array<string>> => {
-  const res = await remote.dialog.showOpenDialog(remote.getCurrentWindow(), {
-    properties: [
-      'multiSelections' as const,
-      ...(['file', 'both'].includes(action.payload.type) ? (['openFile'] as const) : []),
-      ...(['directory', 'both'].includes(action.payload.type) ? (['openDirectory'] as const) : []),
-    ],
-    title: 'Select a file or folder to upload',
-  })
-  return res.filePaths
-}
-
 const openAndUpload = async (action: FsGen.OpenAndUploadPayload) => {
-  const localPaths = await openAndUploadToPromise(action)
+  const localPaths = await (selectFilesToUploadDialog?.(action.payload.type, action.payload.parentPath) ??
+    Promise.resolve([]))
   return localPaths.map(localPath => FsGen.createUpload({localPath, parentPath: action.payload.parentPath}))
 }
 
