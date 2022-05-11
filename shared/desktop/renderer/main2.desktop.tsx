@@ -62,7 +62,7 @@ const setupStore = () => {
 
 const setupApp = (store, runSagas) => {
   disableDragDrop()
-  const eng = makeEngine(store.dispatch, store.getState)
+  const eng = makeEngine(store.dispatch)
   runSagas && runSagas()
   eng.sagasAreReady()
 

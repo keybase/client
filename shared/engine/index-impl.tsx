@@ -12,7 +12,7 @@ import engineSaga from './saga'
 import throttle from 'lodash/throttle'
 import type {CustomResponseIncomingCallMapType, IncomingCallMapType} from '.'
 import type {SessionID, SessionIDKey, WaitingHandlerType, MethodKey} from './types'
-import type {TypedState, TypedDispatch} from '../util/container'
+import type {TypedDispatch} from '../util/container'
 
 // delay incoming to stop react from queueing too many setState calls and stopping rendering
 // only while debugging for now
@@ -45,9 +45,6 @@ class Engine {
 
   _dispatch: TypedDispatch
 
-  // Temporary helper for incoming call maps
-  _getState: () => TypedState
-
   _queuedChanges: Array<{error: RPCError; increment: boolean; key: WaitingKey}> = []
   dispatchWaitingAction = (key: WaitingKey, waiting: boolean, error: RPCError) => {
     this._queuedChanges.push({error, increment: waiting, key})
@@ -60,14 +57,13 @@ class Engine {
     this._dispatch(createBatchChangeWaiting({changes}))
   }, 500)
 
-  constructor(dispatch: TypedDispatch, getState: () => TypedState) {
+  constructor(dispatch: TypedDispatch) {
     // setup some static vars
     if (DEFER_INCOMING_DURING_DEBUG) {
       this._dispatch = a => setTimeout(() => dispatch(a), 1)
     } else {
       this._dispatch = dispatch
     }
-    this._getState = getState
     this._rpcClient = createClient(
       payload => this._rpcIncoming(payload),
       () => this._onConnected(),
@@ -230,7 +226,6 @@ class Engine {
       dangling,
       dispatch: this._dispatch,
       endHandler: (session: Session) => this._sessionEnded(session),
-      getState: this._getState,
       incomingCallMap,
       invoke: (method, param, cb) => {
         const callback =
@@ -317,7 +312,6 @@ export class FakeEngine {
     return new Session({
       dispatch: () => {},
       endHandler: () => {},
-      getState: () => null,
       incomingCallMap: null,
       invoke: () => {},
       sessionID: 0,
@@ -342,13 +336,13 @@ if (__DEV__) {
   engine = global.DEBUGEngine
 }
 
-const makeEngine = (dispatch: TypedDispatch, getState: () => TypedState) => {
+const makeEngine = (dispatch: TypedDispatch) => {
   if (__DEV__ && engine) {
     logger.warn('makeEngine called multiple times')
   }
 
   if (!engine) {
-    engine = isTesting ? (new FakeEngine() as unknown as Engine) : new Engine(dispatch, getState)
+    engine = isTesting ? (new FakeEngine() as unknown as Engine) : new Engine(dispatch)
     if (__DEV__) {
       global.DEBUGEngine = engine
     }

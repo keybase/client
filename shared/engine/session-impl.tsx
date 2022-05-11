@@ -10,7 +10,7 @@ import {measureStart, measureStop} from '../util/user-timings'
 import {getEngine} from './require'
 import isArray from 'lodash/isArray'
 import type {SessionID, EndHandlerType, MethodKey} from './types'
-import type {TypedState, TypedDispatch} from '../util/container'
+import type {TypedDispatch} from '../util/container'
 
 type WaitingKey = string | Array<string>
 
@@ -45,11 +45,9 @@ class Session {
   _incomingRequests: Array<any> = []
 
   _dispatch: TypedDispatch
-  _getState: () => TypedState
 
   constructor(p: {
     dispatch: TypedDispatch
-    getState: () => TypedState
     sessionID: SessionID
     incomingCallMap: IncomingCallMapType | null
     customResponseIncomingCallMap: CustomResponseIncomingCallMap | null
@@ -68,7 +66,6 @@ class Session {
     this._cancelHandler = p.cancelHandler || null
     this._dangling = p.dangling || false
     this._dispatch = p.dispatch
-    this._getState = p.getState
   }
 
   setId(_: SessionID) {
