@@ -1,9 +1,8 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import * as fs from 'fs'
 import clamp from 'lodash/clamp'
-import {Props} from '.'
+import type {Props} from '.'
 import {ModalTitle} from '../../teams/common'
 import {
   AVATAR_CONTAINER_SIZE,
@@ -11,6 +10,9 @@ import {
   AVATAR_SIZE,
   VIEWPORT_CENTER,
 } from '../../common-adapters/avatar'
+import KB2 from '../../util/electron.desktop'
+
+const {isDirectory} = KB2.functions
 
 type State = {
   dragStartX: number
@@ -107,7 +109,7 @@ class EditAvatar extends React.Component<Props, State> {
     this.setState({dropping: false})
   }
 
-  private onDrop = (e: React.DragEvent<any>) => {
+  private onDrop = async (e: React.DragEvent<any>) => {
     this.setState({dropping: false, error: false, loading: true})
     if (!this.validDrag(e)) {
       return
@@ -121,11 +123,8 @@ class EditAvatar extends React.Component<Props, State> {
       for (const path of paths) {
         // Check if any file is a directory and bail out if not
         try {
-          // We do this synchronously
-          // in testing, this is instantaneous
-          // even when dragging many files
-          const stat = fs.lstatSync(path)
-          if (stat.isDirectory()) {
+          const isDir = await (isDirectory?.(path) ?? Promise.resolve(false))
+          if (isDir) {
             // TODO: Show a red error banner on failure: https://zpl.io/2jlkMLm
             return
           }

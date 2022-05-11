@@ -4,6 +4,7 @@
 // the electron preload scripts will create kb2 on the node side and plumb it back and then call `injectPreload`
 import type {TypedActions} from '../actions/typed-actions-gen'
 import type {LogLineWithLevelISOTimestamp} from '../logger/types'
+import type * as RPCTypes from '../constants/types/rpc-gen'
 
 export type OpenDialogOptions = {
   allowFiles?: boolean
@@ -26,6 +27,7 @@ export type SaveDialogOptions = {
 export type KB2 = {
   constants: {
     assetRoot: string
+    configOverload: object
     dokanPath: string
     downloadFolder: string
     env: {
@@ -62,9 +64,14 @@ export type KB2 = {
     windowsBinPath: string
   }
   functions: {
+    appStartedUp?: () => void
+    isDirectory?: (path: string) => Promise<boolean>
     activeChanged?: (changedAtMs: number, isUserActive: boolean) => void
     closeWindow?: () => void
+    installCachedDokan?: () => Promise<void>
+    uninstallDokan?: (execPath: string) => Promise<void>
     dumpNodeLogger?: () => Promise<Array<LogLineWithLevelISOTimestamp>>
+    ipcRendererOn?: (channel: string, cb: (event: any, action: any) => void) => void
     hideWindow?: () => void
     getPathType?: (path: string) => Promise<'file' | 'directory'>
     // defined for both always
@@ -88,16 +95,23 @@ export type KB2 = {
       windowPositionBottomRight?: boolean
     }) => void
     closeRenderer?: (options: {windowComponent?: string; windowParam?: string}) => void
+    readImageFromClipboard?: () => Promise<Buffer | null>
     setOpenAtLogin?: (enabled: boolean) => Promise<void>
-    showOpenDialog?: (options?: OpenDialogOptions) => Promise<Array<string>>
-    showSaveDialog?: (options?: SaveDialogOptions) => Promise<string>
+    showOpenDialog?: (options: OpenDialogOptions) => Promise<Array<string>>
+    showSaveDialog?: (options: SaveDialogOptions) => Promise<string>
     showTray?: (desktopAppBadgeCount: number, icon: string) => void
     showInactive?: () => void
     showMainWindow?: () => void
     toggleMaximizeWindow?: () => void
     winCheckRPCOwnership?: () => Promise<void>
+    windowsCheckMountFromOtherDokanInstall?: (
+      mountPoint: string,
+      status: RPCTypes.FuseStatus
+    ) => Promise<RPCTypes.FuseStatus>
     quitApp?: () => void
     exitApp?: (code: number) => void
+    copyToClipboard?: (text: string) => void
+    clipboardAvailableFormats?: () => Promise<Array<string>>
     ctlQuit?: () => void
     relaunchApp?: () => void
     uninstallKBFSDialog?: () => Promise<boolean>

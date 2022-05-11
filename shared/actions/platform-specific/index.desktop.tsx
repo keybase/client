@@ -1,8 +1,7 @@
-import * as ConfigGen from '../config-gen'
 import * as ConfigConstants from '../../constants/config'
+import * as ConfigGen from '../config-gen'
 import * as EngineGen from '../engine-gen-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
-import * as Electron from 'electron'
 import * as Saga from '../../util/saga'
 import logger from '../../logger'
 import {NotifyPopup} from '../../native/notifications'
@@ -17,16 +16,8 @@ import {_getNavigator} from '../../constants/router2'
 import type {RPCError} from 'util/errors'
 import KB2 from '../../util/electron.desktop'
 
-const {
-  showMainWindow,
-  activeChanged,
-  requestWindowsStartService,
-  dumpNodeLogger,
-  quitApp,
-  exitApp,
-  setOpenAtLogin,
-  ctlQuit,
-} = KB2.functions
+const {showMainWindow, activeChanged, requestWindowsStartService, dumpNodeLogger} = KB2.functions
+const {quitApp, exitApp, setOpenAtLogin, ctlQuit, copyToClipboard} = KB2.functions
 
 export function showShareActionSheet() {
   throw new Error('Show Share Action - unsupported on this platform')
@@ -196,8 +187,8 @@ const prepareLogSend = async (action: EngineGen.Keybase1LogsendPrepareLogsendPay
   }
 }
 
-const copyToClipboard = (action: ConfigGen.CopyToClipboardPayload) => {
-  Electron.clipboard.writeText(action.payload.text)
+const onCopyToClipboard = (action: ConfigGen.CopyToClipboardPayload) => {
+  copyToClipboard?.(action.payload.text)
 }
 
 const sendWindowsKBServiceCheck = (
@@ -401,7 +392,7 @@ export function* platformConfigSaga() {
   yield* Saga.chainAction2(EngineGen.keybase1NotifyPGPPgpKeyInSecretStoreFile, onPgpgKeySecret)
   yield* Saga.chainAction(EngineGen.keybase1NotifyServiceShutdown, onShutdown)
   yield* Saga.chainAction(EngineGen.keybase1NotifySessionClientOutOfDate, onOutOfDate)
-  yield* Saga.chainAction(ConfigGen.copyToClipboard, copyToClipboard)
+  yield* Saga.chainAction(ConfigGen.copyToClipboard, onCopyToClipboard)
   yield* Saga.chainAction2(ConfigGen.updateNow, updateNow)
   yield* Saga.chainAction2(ConfigGen.checkForUpdate, checkForUpdate)
   yield* Saga.chainAction2(ConfigGen.daemonHandshakeWait, sendWindowsKBServiceCheck)

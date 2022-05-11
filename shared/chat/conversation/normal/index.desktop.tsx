@@ -20,7 +20,7 @@ const Offline = () => (
 
 class Conversation extends React.PureComponent<Props> {
   private onPaste = (e: React.SyntheticEvent) => {
-    readImageFromClipboard(e, () => {})
+    readImageFromClipboard(e)
       .then(clipboardData => {
         if (clipboardData) {
           this.props.onPaste(clipboardData)

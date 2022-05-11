@@ -12,13 +12,13 @@ export const pickImages = async (title: string) => {
   return filePaths ?? []
 }
 
-export const pickFiles = async (options?: OpenDialogOptions) => {
+export const pickFiles = async (options: OpenDialogOptions) => {
   if (!showOpenDialog) return []
   const filePaths = await showOpenDialog(options)
   return filePaths ?? []
 }
 
-export const pickSave = async (options?: SaveDialogOptions) => {
+export const pickSave = async (options: SaveDialogOptions) => {
   if (!showSaveDialog) return []
   const res = await showSaveDialog(options)
   return res

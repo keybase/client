@@ -1,6 +1,7 @@
 // Entry point for the node part of the electron app
 // MUST be first
 import '../renderer/preload.desktop'
+import KB2, {type OpenDialogOptions, type SaveDialogOptions} from '../../util/electron.desktop'
 // ^^^^^^^^
 import MainWindow, {showDockIcon, closeWindows, getMainWindow} from './main-window.desktop'
 import * as Electron from 'electron'
@@ -12,10 +13,9 @@ import os from 'os'
 import fs from 'fs'
 import path from 'path'
 import fse from 'fs-extra'
-import {execFile} from 'child_process'
+import {spawn, execFile, exec} from 'child_process'
 import * as ConfigGen from '../../actions/config-gen'
 import * as DeeplinksGen from '../../actions/deeplinks-gen'
-import {showDevTools, skipSecondaryDevtools, allowMultipleInstances} from '../../local-debug.desktop'
 import startWinService from './start-win-service.desktop'
 import {
   isDarwin,
@@ -24,13 +24,16 @@ import {
   cacheRoot,
   socketPath,
   fileUIName,
+  dokanPath,
+  windowsBinPath,
 } from '../../constants/platform.desktop'
 import {isPathSaltpack} from '../../constants/crypto'
 import {ctlQuit} from './ctl.desktop'
 import logger from '../../logger'
 import {assetRoot, htmlPrefix} from './html-root.desktop'
-import KB2, {type OpenDialogOptions, type SaveDialogOptions} from '../../util/electron.desktop'
-import {appStatePowerMonitorEventRpcPromise} from '../../constants/types/rpc-gen'
+import * as RPCTypes from '../../constants/types/rpc-gen'
+import type {Action} from '../app/ipctypes'
+import {showDevTools, skipSecondaryDevtools, allowMultipleInstances} from './dynamic-config'
 
 const {env} = KB2.constants
 const {mainWindowDispatch} = KB2.functions
@@ -246,69 +249,6 @@ const willFinishLaunching = () => {
 
 let menubarWindowID = 0
 
-type Action =
-  | {type: 'appStartedUp'}
-  | {
-      type: 'activeChanged'
-      payload: {
-        changedAtMs: number
-        isUserActive: boolean
-      }
-    }
-  | {type: 'requestWindowsStartService'}
-  | {type: 'closeWindows'}
-  | {
-      type: 'makeRenderer'
-      payload: {
-        windowComponent: string
-        windowParam: string
-        windowOpts: {
-          width: number
-          height: number
-        }
-        windowPositionBottomRight: boolean
-      }
-    }
-  | {
-      type: 'closeRenderer'
-      payload: {
-        windowComponent: string
-        windowParam: string
-      }
-    }
-  | {
-      type: 'rendererNewProps'
-      payload: {
-        propsStr: string
-        windowComponent: string
-        windowParam: string
-      }
-    }
-  | {type: 'showMainWindow'}
-  | {type: 'setupPreloadKB2'}
-  | {type: 'winCheckRPCOwnership'}
-  | {type: 'showOpenDialog'; payload: {options: OpenDialogOptions}}
-  | {type: 'showSaveDialog'; payload: {options: SaveDialogOptions}}
-  | {type: 'darwinCopyToKBFSTempUploadFile'; payload: {originalFilePath: string; dir: string}}
-  | {type: 'darwinCopyToChatTempUploadFile'; payload: {originalFilePath: string; dst: string}}
-  | {type: 'closeWindow'}
-  | {type: 'minimizeWindow'}
-  | {type: 'toggleMaximizeWindow'}
-  | {type: 'openURL'; payload: {url: string; options?: {activate: boolean}}}
-  | {type: 'showInactive'}
-  | {type: 'hideWindow'}
-  | {type: 'openPathInFinder'; payload: {path: string; isFolder: boolean}}
-  | {type: 'getPathType'; payload: {path: string}}
-  | {type: 'dumpNodeLogger'}
-  | {type: 'quitApp'}
-  | {type: 'exitApp'; payload: {code: number}}
-  | {type: 'setOpenAtLogin'; payload: {enabled: boolean}}
-  | {type: 'relaunchApp'}
-  | {type: 'uninstallKBFSDialog'}
-  | {type: 'uninstallDokanDialog'}
-  | {type: 'selectFilesToUploadDialog'; payload: {parent: string; type: 'file' | 'directory' | 'both'}}
-  | {type: 'ctlQuit'}
-
 const remoteURL = (windowComponent: string, windowParam: string) =>
   `${htmlPrefix}${assetRoot}${windowComponent}${__DEV__ ? '.dev' : ''}.html?param=${windowParam}`
 
@@ -421,27 +361,27 @@ const plumbEvents = () => {
   })
 
   Electron.powerMonitor.on('suspend', () => {
-    appStatePowerMonitorEventRpcPromise({event: 'suspend'})
+    RPCTypes.appStatePowerMonitorEventRpcPromise({event: 'suspend'})
       .then(() => {})
       .catch(() => {})
   })
   Electron.powerMonitor.on('resume', () => {
-    appStatePowerMonitorEventRpcPromise({event: 'resume'})
+    RPCTypes.appStatePowerMonitorEventRpcPromise({event: 'resume'})
       .then(() => {})
       .catch(() => {})
   })
   Electron.powerMonitor.on('shutdown', () => {
-    appStatePowerMonitorEventRpcPromise({event: 'shutdown'})
+    RPCTypes.appStatePowerMonitorEventRpcPromise({event: 'shutdown'})
       .then(() => {})
       .catch(() => {})
   })
   Electron.powerMonitor.on('lock-screen', () => {
-    appStatePowerMonitorEventRpcPromise({event: 'lock-screen'})
+    RPCTypes.appStatePowerMonitorEventRpcPromise({event: 'lock-screen'})
       .then(() => {})
       .catch(() => {})
   })
   Electron.powerMonitor.on('unlock-screen', () => {
-    appStatePowerMonitorEventRpcPromise({event: 'unlock-screen'})
+    RPCTypes.appStatePowerMonitorEventRpcPromise({event: 'unlock-screen'})
       .then(() => {})
       .catch(() => {})
   })
@@ -501,6 +441,75 @@ const plumbEvents = () => {
 
   Electron.ipcMain.handle('KBkeybase', async (event, action: Action) => {
     switch (action.type) {
+      case 'uninstallDokan': {
+        return new Promise<void>(resolve => {
+          try {
+            exec(action.payload.execPath, {windowsHide: true}, () => resolve())
+          } catch (e) {
+            logger.error('uninstallDokan caught', e)
+            resolve(undefined)
+          }
+        })
+      }
+      case 'installCachedDokan': {
+        return new Promise<void>((resolve, reject) => {
+          logger.info('Invoking dokan installer')
+          execFile(dokanPath, [], err => {
+            if (err) {
+              reject(err)
+              return
+            }
+            // restart the service, particularly kbfsdokan
+            // based on desktop/app/start-win-service.js
+            const rqPath = windowsBinPath.replace('keybase.exe', 'keybaserq.exe')
+            const args = [windowsBinPath, 'ctl', 'restart']
+            spawn(rqPath, args, {detached: true, stdio: 'ignore'})
+            resolve(undefined)
+          })
+        })
+      }
+      case 'clipboardAvailableFormats': {
+        return Electron.clipboard.availableFormats()
+      }
+      case 'readImageFromClipboard': {
+        const image = Electron.clipboard.readImage()
+        if (!image) {
+          // Nothing to read
+          return null
+        }
+        return image.toPNG()
+      }
+      case 'copyToClipboard': {
+        Electron.clipboard.writeText(action.payload.text)
+        return
+      }
+      case 'isDirectory': {
+        return new Promise(resolve =>
+          fs.lstat(action.payload.path, (err, stats) => {
+            if (err) {
+              resolve(false)
+            } else {
+              resolve(stats.isDirectory())
+            }
+          })
+        )
+      }
+      case 'windowsCheckMountFromOtherDokanInstall': {
+        const {mountPoint, status} = action.payload
+        return mountPoint
+          ? new Promise(resolve => fs.access(mountPoint, fs.constants.F_OK, err => resolve(!err))).then(
+              mountExists =>
+                mountExists
+                  ? {
+                      ...status,
+                      installAction: RPCTypes.InstallAction.none,
+                      installStatus: RPCTypes.InstallStatus.installed,
+                      kextStarted: true,
+                    }
+                  : status
+            )
+          : status
+      }
       case 'ctlQuit': {
         ctlQuit()
         return
@@ -726,7 +735,7 @@ const plumbEvents = () => {
         break
       }
       case 'closeRenderer': {
-        const w = findRemoteComponent(action.payload.windowComponent, action.payload.windowParam)
+        const w = findRemoteComponent(action.payload.windowComponent ?? '', action.payload.windowParam ?? '')
         w?.close()
         break
       }
@@ -762,7 +771,7 @@ const plumbEvents = () => {
         }
 
         remoteWindow
-          .loadURL(remoteURL(action.payload.windowComponent, action.payload.windowParam))
+          .loadURL(remoteURL(action.payload.windowComponent, action.payload.windowParam ?? ''))
           .then(() => {})
           .catch(() => {})
 
