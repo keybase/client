@@ -1,7 +1,8 @@
 // Incoming and outgoing requests that are in a session
-import {MethodKey, ResponseType} from './types'
-import {invokeType} from './index.platform'
-import {RPCError} from '../util/errors'
+import type {MethodKey, ResponseType} from './types'
+import type {invokeType} from './index.platform'
+import type {RPCError} from '../util/errors'
+import type {TypedActions} from '../util/container'
 
 type SimpleWaiting = (waiting: boolean, err: RPCError | null) => void
 
@@ -30,7 +31,7 @@ class Request {
 
 class IncomingRequest extends Request {
   // Callback in the incomingCallMap
-  _handler: (param: Object | null, request: ResponseType) => void
+  _handler: (param: Object | null, request: ResponseType) => Array<TypedActions> | TypedActions
   _response: ResponseType | null
 
   constructor(
@@ -38,7 +39,7 @@ class IncomingRequest extends Request {
     param: Object,
     response: ResponseType | null,
     waitingHandler: SimpleWaiting,
-    handler: any
+    handler: (param: Object | null, request: ResponseType) => Array<TypedActions> | TypedActions
   ) {
     super(method, param, waitingHandler)
 

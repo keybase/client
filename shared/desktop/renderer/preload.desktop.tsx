@@ -15,8 +15,6 @@ const isDarwin = process.platform === 'darwin'
 
 const invoke = async (action: Action) => Electron.ipcRenderer.invoke('KBkeybase', action)
 
-class EngineProxy {}
-
 // TODO contextBridge
 if (isRenderer) {
   Electron.ipcRenderer
@@ -87,9 +85,6 @@ if (isRenderer) {
           invoke({payload: {code}, type: 'exitApp'})
             .then(() => {})
             .catch(() => {})
-        },
-        getEngineProxy: () => {
-          return new EngineProxy()
         },
         getPathType: async (path: string) => {
           return (await invoke({
