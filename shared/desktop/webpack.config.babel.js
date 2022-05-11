@@ -263,9 +263,10 @@ const config = (_, {mode}) => {
           optimization: {splitChunks: {chunks: 'all'}},
         }),
     plugins: makeViewPlugins(entries),
-    target: 'web',
-    node: false,
-    // target: 'electron-renderer',
+    // TODO switch to web
+    // target: 'web',
+    // node: false,
+    target: 'electron-renderer',
   })
   const preloadConfig = merge(commonConfig, {
     entry: {preload: `./desktop/renderer/preload.desktop.tsx`},
