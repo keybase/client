@@ -68,6 +68,8 @@ export type KB2 = {
     isDirectory?: (path: string) => Promise<boolean>
     activeChanged?: (changedAtMs: number, isUserActive: boolean) => void
     closeWindow?: () => void
+    installCachedDokan?: () => Promise<void>
+    uninstallDokan?: (execPath: string) => Promise<void>
     dumpNodeLogger?: () => Promise<Array<LogLineWithLevelISOTimestamp>>
     ipcRendererOn?: (channel: string, cb: (event: any, action: any) => void) => void
     hideWindow?: () => void

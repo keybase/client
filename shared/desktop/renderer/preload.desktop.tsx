@@ -97,6 +97,14 @@ if (isRenderer) {
             .then(() => {})
             .catch(() => {})
         },
+        installCachedDokan: async () => {
+          try {
+            await invoke({type: 'installCachedDokan'})
+            return
+          } catch {
+            throw new Error('installCachedDokan fail')
+          }
+        },
         ipcRendererOn: (channel: string, cb: (event: any, action: any) => void) => {
           Electron.ipcRenderer.on(channel, cb)
         },
@@ -227,6 +235,9 @@ if (isRenderer) {
           invoke({type: 'toggleMaximizeWindow'})
             .then(() => {})
             .catch(() => {})
+        },
+        uninstallDokan: async (execPath: string) => {
+          return invoke({payload: {execPath}, type: 'uninstallDokan'})
         },
         uninstallDokanDialog: async () => {
           return invoke({type: 'uninstallDokanDialog'})

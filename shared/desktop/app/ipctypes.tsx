@@ -74,3 +74,5 @@ export type Action =
   | {type: 'copyToClipboard'; payload: {text: string}}
   | {type: 'readImageFromClipboard'}
   | {type: 'clipboardAvailableFormats'}
+  | {type: 'installCachedDokan'}
+  | {type: 'uninstallDokan'; payload: {execPath: string}}

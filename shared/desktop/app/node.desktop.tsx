@@ -13,7 +13,7 @@ import os from 'os'
 import fs from 'fs'
 import path from 'path'
 import fse from 'fs-extra'
-import {execFile} from 'child_process'
+import {spawn, execFile, exec} from 'child_process'
 import * as ConfigGen from '../../actions/config-gen'
 import * as DeeplinksGen from '../../actions/deeplinks-gen'
 import startWinService from './start-win-service.desktop'
@@ -24,6 +24,8 @@ import {
   cacheRoot,
   socketPath,
   fileUIName,
+  dokanPath,
+  windowsBinPath,
 } from '../../constants/platform.desktop'
 import {isPathSaltpack} from '../../constants/crypto'
 import {ctlQuit} from './ctl.desktop'
@@ -32,8 +34,6 @@ import {assetRoot, htmlPrefix} from './html-root.desktop'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import type {Action} from '../app/ipctypes'
 import {showDevTools, skipSecondaryDevtools, allowMultipleInstances} from './dynamic-config'
-
-console.log('aaa node', {showDevTools, skipSecondaryDevtools, allowMultipleInstances})
 
 const {env} = KB2.constants
 const {mainWindowDispatch} = KB2.functions
@@ -441,6 +441,33 @@ const plumbEvents = () => {
 
   Electron.ipcMain.handle('KBkeybase', async (event, action: Action) => {
     switch (action.type) {
+      case 'uninstallDokan': {
+        return new Promise<void>(resolve => {
+          try {
+            exec(action.payload.execPath, {windowsHide: true}, () => resolve())
+          } catch (e) {
+            logger.error('uninstallDokan caught', e)
+            resolve(undefined)
+          }
+        })
+      }
+      case 'installCachedDokan': {
+        return new Promise<void>((resolve, reject) => {
+          logger.info('Invoking dokan installer')
+          execFile(dokanPath, [], err => {
+            if (err) {
+              reject(err)
+              return
+            }
+            // restart the service, particularly kbfsdokan
+            // based on desktop/app/start-win-service.js
+            const rqPath = windowsBinPath.replace('keybase.exe', 'keybaserq.exe')
+            const args = [windowsBinPath, 'ctl', 'restart']
+            spawn(rqPath, args, {detached: true, stdio: 'ignore'})
+            resolve(undefined)
+          })
+        })
+      }
       case 'clipboardAvailableFormats': {
         return Electron.clipboard.availableFormats()
       }

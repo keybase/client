@@ -27,7 +27,6 @@ const getConfigOverload = () => {
       console.warn('Invalid local debug file')
     }
   }
-  console.log('aaa config overload', config)
   return config
 }
 
