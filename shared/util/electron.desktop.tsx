@@ -4,7 +4,9 @@
 // the electron preload scripts will create kb2 on the node side and plumb it back and then call `injectPreload`
 import type {TypedActions} from '../actions/typed-actions-gen'
 import type {LogLineWithLevelISOTimestamp} from '../logger/types'
+import type {Engine} from '../engine'
 import type * as RPCTypes from '../constants/types/rpc-gen'
+import type {TypedState, TypedDispatch} from './container'
 
 export type OpenDialogOptions = {
   allowFiles?: boolean
@@ -22,6 +24,11 @@ export type SaveDialogOptions = {
   defaultPath?: string
   buttonLabel?: string
   message?: string
+}
+
+declare class EngineProxy {
+  getEngine: () => Engine
+  makeEngine: (dispatch: TypedDispatch, getState: () => TypedState) => Engine
 }
 
 export type KB2 = {
@@ -64,6 +71,7 @@ export type KB2 = {
     windowsBinPath: string
   }
   functions: {
+    getEngineProxy?: () => EngineProxy
     appStartedUp?: () => void
     isDirectory?: (path: string) => Promise<boolean>
     activeChanged?: (changedAtMs: number, isUserActive: boolean) => void

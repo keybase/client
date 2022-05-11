@@ -264,9 +264,9 @@ const config = (_, {mode}) => {
         }),
     plugins: makeViewPlugins(entries),
     // TODO switch to web
-    // target: 'web',
-    // node: false,
-    target: 'electron-renderer',
+    target: 'web',
+    node: false,
+    // target: 'electron-renderer',
   })
   const preloadConfig = merge(commonConfig, {
     entry: {preload: `./desktop/renderer/preload.desktop.tsx`},
