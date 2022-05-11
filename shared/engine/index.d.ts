@@ -1,6 +1,6 @@
-import Session from './session'
-import {RPCError} from '../util/errors'
-import {IncomingCallMapType, CustomResponseIncomingCallMapType} from '../constants/types/rpc-all-gen'
+import type Session from './session'
+import type {RPCError} from '../util/errors'
+import type {IncomingCallMapType, CustomResponseIncomingCallMapType} from '../constants/types/rpc-all-gen'
 
 export type WaitingKey = string | Array<string>
 export declare class Engine {
@@ -25,4 +25,4 @@ export declare class Engine {
 export declare function getEngine(): Engine
 export declare function makeEngine(arg0: any, arg1: any): Engine
 export default getEngine
-export {IncomingCallMapType, CustomResponseIncomingCallMapType}
+export type {IncomingCallMapType, CustomResponseIncomingCallMapType}
