@@ -5,18 +5,24 @@ import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import * as Tabs from '../../constants/tabs'
-import fs from 'fs'
 import type {TypedState, TypedActions} from '../../util/container'
-import {isWindows, isLinux, dokanPath, windowsBinPath, pathSep} from '../../constants/platform.desktop'
+import {isWindows, isLinux, pathSep} from '../../constants/platform.desktop'
 import logger from '../../logger'
-import {spawn, execFile, exec} from 'child_process'
 import {errorToActionOrThrow} from './shared'
 import * as RouteTreeGen from '../route-tree-gen'
 import * as Path from '../../util/path'
 import KB2 from '../../util/electron.desktop'
 
 const {openPathInFinder, openURL, getPathType, selectFilesToUploadDialog} = KB2.functions
-const {exitApp, relaunchApp, uninstallKBFSDialog, uninstallDokanDialog} = KB2.functions
+const {
+  exitApp,
+  relaunchApp,
+  uninstallKBFSDialog,
+  uninstallDokanDialog,
+  windowsCheckMountFromOtherDokanInstall,
+  installCachedDokan,
+  uninstallDokan,
+} = KB2.functions
 
 // _openPathInSystemFileManagerPromise opens `openPath` in system file manager.
 // If isFolder is true, it just opens it. Otherwise, it shows it in its parent
@@ -109,23 +115,6 @@ const fuseStatusToActions =
         ]
   }
 
-const windowsCheckMountFromOtherDokanInstall = async (status: RPCTypes.FuseStatus) =>
-  RPCTypes.kbfsMountGetCurrentMountDirRpcPromise().then(mountPoint =>
-    mountPoint
-      ? new Promise(resolve => fs.access(mountPoint, fs.constants.F_OK, err => resolve(!err))).then(
-          mountExists =>
-            mountExists
-              ? {
-                  ...status,
-                  installAction: RPCTypes.InstallAction.none,
-                  installStatus: RPCTypes.InstallStatus.installed,
-                  kextStarted: true,
-                }
-              : status
-        )
-      : status
-  )
-
 const refreshDriverStatus = async (
   state: TypedState,
   action: FsGen.KbfsDaemonRpcStatusChangedPayload | FsGen.RefreshDriverStatusPayload
@@ -138,7 +127,8 @@ const refreshDriverStatus = async (
       bundleVersion: '',
     })
     if (isWindows && status.installStatus !== RPCTypes.InstallStatus.installed) {
-      status = await windowsCheckMountFromOtherDokanInstall(status)
+      const m = await RPCTypes.kbfsMountGetCurrentMountDirRpcPromise()
+      status = await (windowsCheckMountFromOtherDokanInstall?.(m, status) ?? Promise.resolve(status))
     }
     return fuseStatusToActions(state.fs.sfmi.driverStatus.type)(status)
   }
@@ -187,18 +177,14 @@ const uninstallDokanConfirm = async (state: TypedState): Promise<TypedActions | 
   return FsGen.createDriverDisabling()
 }
 
-const uninstallDokan = (state: TypedState) => {
+const onUninstallDokan = async (state: TypedState) => {
   if (state.fs.sfmi.driverStatus.type !== Types.DriverStatusType.Enabled) return
   const execPath: string = state.fs.sfmi.driverStatus.dokanUninstallExecPath || ''
   logger.info('Invoking dokan uninstaller', execPath)
-  return new Promise<void>(resolve => {
-    try {
-      exec(execPath, {windowsHide: true}, () => resolve())
-    } catch (e) {
-      logger.error('uninstallDokan caught', e)
-      resolve(undefined)
-    }
-  }).then(() => FsGen.createRefreshDriverStatus())
+  try {
+    await uninstallDokan?.(execPath)
+  } catch {}
+  return FsGen.createRefreshDriverStatus()
 }
 
 const openSecurityPreferences = () => {
@@ -212,30 +198,14 @@ const openSecurityPreferences = () => {
 // Invoking the cached installer package has to happen from the topmost process
 // or it won't be visible to the user. The service also does this to support command line
 // operations.
-const installCachedDokan = async () =>
-  new Promise<void>((resolve, reject) => {
-    logger.info('Invoking dokan installer')
-    execFile(dokanPath, [], err => {
-      if (err) {
-        reject(err)
-        return
-      }
-      // restart the service, particularly kbfsdokan
-      // based on desktop/app/start-win-service.js
-
-      const rqPath = windowsBinPath.replace('keybase.exe', 'keybaserq.exe')
-      const args = [windowsBinPath, 'ctl', 'restart']
-
-      spawn(rqPath, args, {
-        detached: true,
-        stdio: 'ignore',
-      })
-
-      resolve(undefined)
-    })
-  })
-    .then(() => FsGen.createRefreshDriverStatus())
-    .catch(e => errorToActionOrThrow(e))
+const onInstallCachedDokan = async () => {
+  try {
+    await installCachedDokan?.()
+    return FsGen.createRefreshDriverStatus()
+  } catch (e) {
+    return errorToActionOrThrow(e)
+  }
+}
 
 const openAndUpload = async (action: FsGen.OpenAndUploadPayload) => {
   const localPaths = await (selectFilesToUploadDialog?.(action.payload.type, action.payload.parentPath) ??
@@ -324,9 +294,9 @@ function* platformSpecificSaga() {
   yield* Saga.chainAction2([FsGen.userFileEditsLoad], loadUserFileEdits)
   yield* Saga.chainAction(FsGen.openFilesFromWidget, openFilesFromWidget)
   if (isWindows) {
-    yield* Saga.chainAction(FsGen.driverEnable, installCachedDokan)
+    yield* Saga.chainAction(FsGen.driverEnable, onInstallCachedDokan)
     yield* Saga.chainAction2(FsGen.driverDisable as any, uninstallDokanConfirm as any)
-    yield* Saga.chainAction2(FsGen.driverDisabling, uninstallDokan)
+    yield* Saga.chainAction2(FsGen.driverDisabling, onUninstallDokan)
   } else {
     yield* Saga.chainAction(FsGen.driverEnable, driverEnableFuse)
     yield* Saga.chainAction2(FsGen.driverDisable, uninstallKBFSConfirm)

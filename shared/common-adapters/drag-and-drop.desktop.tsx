@@ -1,11 +1,13 @@
 import * as React from 'react'
-import fs from 'fs'
 import * as Styles from '../styles'
 import {Box2} from './box'
 import Icon from './icon'
 import Text from './text'
-import {Props} from './drag-and-drop'
 import logger from '../logger'
+import type {Props} from './drag-and-drop'
+import KB2 from '../util/electron.desktop'
+
+const {isDirectory} = KB2.functions
 
 type State = {
   showDropOverlay: boolean
@@ -14,7 +16,7 @@ type State = {
 class DragAndDrop extends React.PureComponent<Props, State> {
   state = {showDropOverlay: false}
 
-  _onDrop = e => {
+  _onDrop = async e => {
     if (!this._validDrag(e)) return
     const fileList = e.dataTransfer.files
     const paths: Array<string> = fileList.length
@@ -25,11 +27,8 @@ class DragAndDrop extends React.PureComponent<Props, State> {
         for (let path of paths) {
           // Check if any file is a directory and bail out if not
           try {
-            // We do this synchronously
-            // in testing, this is instantaneous
-            // even when dragging many files
-            const stat = fs.lstatSync(path)
-            if (stat.isDirectory()) {
+            const isDir = await (isDirectory?.(path) ?? Promise.resolve(false))
+            if (isDir) {
               // TODO show a red error banner on failure: https://zpl.io/2jlkMLm
               this.setState({showDropOverlay: false})
               return

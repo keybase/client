@@ -2,7 +2,6 @@
 import '../../util/user-timings'
 import Main from '../../app/main.desktop'
 // order of the above 2 must NOT change. needed for patching / hot loading to be correct
-import * as Electron from 'electron'
 import * as NotificationsGen from '../../actions/notifications-gen'
 import * as React from 'react'
 import ReactDOM from 'react-dom'
@@ -19,6 +18,9 @@ import {isWindows} from '../../constants/platform'
 import {useSelector} from '../../util/container'
 import {isDarkMode} from '../../constants/config'
 import type {TypedActions} from '../../actions/typed-actions-gen'
+import KB2 from '../../util/electron.desktop'
+
+const {ipcRendererOn, requestWindowsStartService, appStartedUp} = KB2.functions
 
 // node side plumbs through initial pref so we avoid flashes
 const darkModeFromNode = window.location.search.match(/darkModePreference=(alwaysLight|alwaysDark|system)/)
@@ -64,7 +66,7 @@ const setupApp = (store, runSagas) => {
   runSagas && runSagas()
   eng.sagasAreReady()
 
-  Electron.ipcRenderer.on('KBdispatchAction', (_: any, action: TypedActions) => {
+  ipcRendererOn?.('KBdispatchAction', (_: any, action: TypedActions) => {
     // we MUST convert this else we'll run into issues with redux. See https://github.com/rackt/redux/issues/830
     // This is because this is touched due to the remote proxying. We get a __proto__ which causes the _.isPlainObject check to fail. We use
     setTimeout(() => {
@@ -80,10 +82,7 @@ const setupApp = (store, runSagas) => {
   // See if we're connected, and try starting keybase if not
   if (isWindows) {
     setTimeout(() => {
-      Electron.ipcRenderer
-        .invoke('KBkeybase', {type: 'requestWindowsStartService'})
-        .then(() => {})
-        .catch(() => {})
+      requestWindowsStartService?.()
     }, 0)
   }
 
@@ -97,10 +96,7 @@ const setupApp = (store, runSagas) => {
   // Handle notifications from the service
   store.dispatch(NotificationsGen.createListenForNotifications())
 
-  Electron.ipcRenderer
-    .invoke('KBkeybase', {type: 'appStartedUp'})
-    .then(() => {})
-    .catch(() => {})
+  appStartedUp?.()
 }
 
 const FontLoader = () => (

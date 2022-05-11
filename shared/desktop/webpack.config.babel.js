@@ -263,6 +263,9 @@ const config = (_, {mode}) => {
           optimization: {splitChunks: {chunks: 'all'}},
         }),
     plugins: makeViewPlugins(entries),
+    // TODO switch to web
+    // target: 'web',
+    // node: false,
     target: 'electron-renderer',
   })
   const preloadConfig = merge(commonConfig, {
@@ -270,7 +273,7 @@ const config = (_, {mode}) => {
     module: {rules: makeRules(true)},
     name: 'Keybase',
     plugins: [],
-    target: 'electron-main',
+    target: 'electron-preload',
   })
 
   return [nodeConfig, viewConfig, preloadConfig]
