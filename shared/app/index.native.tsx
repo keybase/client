@@ -69,7 +69,7 @@ const Keybase = () => {
       global.DEBUGStore = storeRef.current
     }
 
-    const eng = makeEngine(cs.store.dispatch, () => cs.store.getState())
+    const eng = makeEngine(cs.store.dispatch)
     cs.runSagas()
     eng.sagasAreReady()
 
