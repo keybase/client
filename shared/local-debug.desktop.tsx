@@ -39,8 +39,6 @@ if (__DEV__) {
   config.userTimings = true
 }
 
-console.log('aaa localdebug', config, KB2.constants.configOverload)
-
 // If performance testing
 if (PERF) {
   console.warn('\n\n\nlocal debug PERF is ONNNNNn!!!!!1!!!11!!!!\nAll console.logs disabled!\n\n\n')
