@@ -234,3 +234,4 @@ export const dimensionHeight = 0
 export {isDarkMode} from './dark-mode'
 export const headerExtraHeight = 0
 export const StyleContext = React.createContext({canFixOverdraw: false})
+export const undynamicColor = (col: any) => col
