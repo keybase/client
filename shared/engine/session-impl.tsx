@@ -130,7 +130,7 @@ class Session {
     if (this._startMethod) {
       measureStop(`engine:${this._startMethod}:${this.getId()}`)
     }
-    this._endHandler && this._endHandler(this)
+    this._endHandler?.(this)
   }
 
   // Start the session normally. Tells engine we're done at the end
@@ -140,7 +140,7 @@ class Session {
 
     // When this request is done the session is done
     const wrappedCallback = (...args) => {
-      this._startCallback && this._startCallback(...args)
+      this._startCallback?.(...args)
       this._startCallback = undefined
       this.end()
     }
@@ -194,7 +194,7 @@ class Session {
       return false
     }
 
-    if (response && response.seqid) {
+    if (response?.seqid) {
       this._seqIDResponded[String(response.seqid)] = false
     }
 
