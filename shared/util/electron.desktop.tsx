@@ -27,6 +27,7 @@ export type SaveDialogOptions = {
 export type KB2 = {
   constants: {
     assetRoot: string
+    configOverload: object
     dokanPath: string
     downloadFolder: string
     env: {

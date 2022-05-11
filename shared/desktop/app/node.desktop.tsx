@@ -1,6 +1,7 @@
 // Entry point for the node part of the electron app
 // MUST be first
 import '../renderer/preload.desktop'
+import KB2, {type OpenDialogOptions, type SaveDialogOptions} from '../../util/electron.desktop'
 // ^^^^^^^^
 import MainWindow, {showDockIcon, closeWindows, getMainWindow} from './main-window.desktop'
 import * as Electron from 'electron'
@@ -15,7 +16,6 @@ import fse from 'fs-extra'
 import {execFile} from 'child_process'
 import * as ConfigGen from '../../actions/config-gen'
 import * as DeeplinksGen from '../../actions/deeplinks-gen'
-import {showDevTools, skipSecondaryDevtools, allowMultipleInstances} from '../../local-debug.desktop'
 import startWinService from './start-win-service.desktop'
 import {
   isDarwin,
@@ -29,9 +29,11 @@ import {isPathSaltpack} from '../../constants/crypto'
 import {ctlQuit} from './ctl.desktop'
 import logger from '../../logger'
 import {assetRoot, htmlPrefix} from './html-root.desktop'
-import KB2, {type OpenDialogOptions, type SaveDialogOptions} from '../../util/electron.desktop'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import type {Action} from '../app/ipctypes'
+import {showDevTools, skipSecondaryDevtools, allowMultipleInstances} from './dynamic-config'
+
+console.log('aaa node', {showDevTools, skipSecondaryDevtools, allowMultipleInstances})
 
 const {env} = KB2.constants
 const {mainWindowDispatch} = KB2.functions
