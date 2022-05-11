@@ -82,10 +82,12 @@ if (isRenderer) {
             type: 'dumpNodeLogger',
           })) as Array<LogLineWithLevelISOTimestamp>
         },
-        engineSend: (m: SendArg) => {
+        engineSend: (m: SendArg, cb: any) => {
           invoke({payload: {m}, type: 'engineSend'})
-            .then(() => {})
-            .catch(() => {})
+            .then(res => cb(res))
+            .catch(e => {
+              console.log('engineSend fail', e)
+            })
         },
         exitApp: (code: number) => {
           invoke({payload: {code}, type: 'exitApp'})

@@ -440,11 +440,22 @@ const plumbEvents = () => {
     }
   }
 
-  const nodeEngine = makeEngine(mainWindowDispatch, () => {})
+  const nodeEngine = makeEngine(mainWindowDispatch)
 
   Electron.ipcMain.handle('KBkeybase', async (event, action: Action) => {
     switch (action.type) {
       case 'engineSend': {
+        console.log('aaa node got enginesend', action)
+        return new Promise<any>((resolve, reject) => {
+          nodeEngine._rpcClient.invoke(action.payload.m, (err, res) => {
+            console.log('aaa node got enginesend invoke', {err, res})
+            if (err) {
+              reject(err)
+            } else {
+              resolve(res)
+            }
+          })
+        })
       }
       case 'uninstallDokan': {
         return new Promise<void>(resolve => {

@@ -92,25 +92,30 @@ class ProxyNativeTransport extends TransportShared {
     return 1
   }
 
-  send(msg: SendArg) {
-    // const packed = encode(msg)
-    // const len = encode(packed.length)
-    // const buf = new Uint8Array(len.length + packed.length)
-    // buf.set(len, 0)
-    // buf.set(packed, len.length)
-    // // Pass data over to the native side to be handled, with JSI!
-    // if (typeof global.rpcOnGo !== 'function') {
-    //   NativeModules.GoJSIBridge.install()
-    // }
-    // try {
-    //   global.rpcOnGo(buf.buffer)
-    // } catch (e) {
-    //   logger.error('>>>> rpcOnGo JS thrown!', e)
-    // }
-
-    engineSend?.(msg)
-    return true
+  invoke(arg, cb) {
+    console.log('aaa proxy native invoke', arg)
+    engineSend?.(arg, cb)
   }
+
+  // send(msg: SendArg) {
+  // const packed = encode(msg)
+  // const len = encode(packed.length)
+  // const buf = new Uint8Array(len.length + packed.length)
+  // buf.set(len, 0)
+  // buf.set(packed, len.length)
+  // // Pass data over to the native side to be handled, with JSI!
+  // if (typeof global.rpcOnGo !== 'function') {
+  //   NativeModules.GoJSIBridge.install()
+  // }
+  // try {
+  //   global.rpcOnGo(buf.buffer)
+  // } catch (e) {
+  //   logger.error('>>>> rpcOnGo JS thrown!', e)
+  // }
+
+  //   engineSend?.(msg)
+  //   return true
+  // }
 }
 
 function createClient(
@@ -118,20 +123,20 @@ function createClient(
   connectCallback: connectDisconnectCB,
   disconnectCallback: connectDisconnectCB
 ) {
-  if (isRenderer) {
+  if (!isRenderer) {
     return sharedCreateClient(new NativeTransport(incomingRPCCallback, connectCallback, disconnectCallback))
   } else {
     const client = sharedCreateClient(
       new ProxyNativeTransport(incomingRPCCallback, connectCallback, disconnectCallback)
     )
 
-    ipcRendererOn?.('engineIncoming', (_e, action) => {
-      try {
-        client.transport._dispatch(action.payload.objs)
-      } catch (e) {
-        logger.error('>>>> rpcOnJs JS thrown!', e)
-      }
-    })
+    // ipcRendererOn?.('engineIncoming', (_e, action) => {
+    //   try {
+    //     client.transport._dispatch(action.payload.objs)
+    //   } catch (e) {
+    //     logger.error('>>>> rpcOnJs JS thrown!', e)
+    //   }
+    // })
 
     return client
   }
