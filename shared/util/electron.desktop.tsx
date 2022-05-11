@@ -5,6 +5,7 @@
 import type {TypedActions} from '../actions/typed-actions-gen'
 import type {LogLineWithLevelISOTimestamp} from '../logger/types'
 import type * as RPCTypes from '../constants/types/rpc-gen'
+import type {SendArg} from '../engine/index.platform'
 
 export type OpenDialogOptions = {
   allowFiles?: boolean
@@ -64,6 +65,7 @@ export type KB2 = {
     windowsBinPath: string
   }
   functions: {
+    engineSend?: (m: SendArg) => void
     appStartedUp?: () => void
     isDirectory?: (path: string) => Promise<boolean>
     activeChanged?: (changedAtMs: number, isUserActive: boolean) => void

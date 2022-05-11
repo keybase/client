@@ -9,6 +9,7 @@ import {
 import type {LogLineWithLevelISOTimestamp} from '../../logger/types'
 import type * as RPCTypes from '../../constants/types/rpc-gen'
 import type {Action} from '../app/ipctypes'
+import type {SendArg} from '../../engine/index.platform'
 
 const isRenderer = process.type === 'renderer'
 const isDarwin = process.platform === 'darwin'
@@ -80,6 +81,11 @@ if (isRenderer) {
           return (await invoke({
             type: 'dumpNodeLogger',
           })) as Array<LogLineWithLevelISOTimestamp>
+        },
+        engineSend: (m: SendArg) => {
+          invoke({payload: {m}, type: 'engineSend'})
+            .then(() => {})
+            .catch(() => {})
         },
         exitApp: (code: number) => {
           invoke({payload: {code}, type: 'exitApp'})

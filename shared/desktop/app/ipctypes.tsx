@@ -1,5 +1,6 @@
 import type {OpenDialogOptions, SaveDialogOptions} from '../../util/electron.desktop'
 import type * as RPCTypes from '../../constants/types/rpc-gen'
+import type {SendArg} from '../../engine/index.platform'
 
 export type Action =
   | {type: 'appStartedUp'}
@@ -76,3 +77,4 @@ export type Action =
   | {type: 'clipboardAvailableFormats'}
   | {type: 'installCachedDokan'}
   | {type: 'uninstallDokan'; payload: {execPath: string}}
+  | {type: 'engineSend'; payload: {m: SendArg}}

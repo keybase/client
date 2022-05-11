@@ -1,11 +1,15 @@
-import net from 'net'
+// import net from 'net'
 import logger from '../logger'
 import {TransportShared, sharedCreateClient, rpcLog} from './transport-shared'
 import {isWindows, socketPath} from '../constants/platform.desktop'
 import {printRPCBytes} from '../local-debug'
+import type {SendArg, createClientType, incomingRPCCallbackType, connectDisconnectCB} from './index.platform'
 import KB2 from '../util/electron.desktop'
-import type {createClientType, incomingRPCCallbackType, connectDisconnectCB} from './index.platform'
 
+const {engineSend, ipcRendererOn} = KB2.functions
+const {isRenderer} = KB2.constants
+
+// used by node
 class NativeTransport extends TransportShared {
   constructor(
     incomingRPCCallback: incomingRPCCallbackType,
@@ -42,6 +46,7 @@ class NativeTransport extends TransportShared {
   }
 }
 
+// used by renderer
 function windowsHack() {
   // This net.connect() is a heinous hack.
   //
@@ -53,10 +58,59 @@ function windowsHack() {
     return
   }
 
+  const net = require('net')
   const fake = net.connect({port: 9999})
   // net.connect({}) throws; we don't need to see the error, but we
   // do need it not to raise up to the main thread.
   fake.on('error', function () {})
+}
+
+class ProxyNativeTransport extends TransportShared {
+  constructor(
+    incomingRPCCallback: incomingRPCCallbackType,
+    connectCallback?: connectDisconnectCB,
+    disconnectCallback?: connectDisconnectCB
+  ) {
+    super({}, connectCallback, disconnectCallback, incomingRPCCallback)
+
+    // We're connected locally so we never get disconnected
+    this.needsConnect = false
+  }
+
+  // We're always connected, so call the callback
+  connect(cb: (err?: any) => void) {
+    cb()
+  }
+  is_connected() {
+    return true
+  }
+
+  // Override and disable some built in stuff in TransportShared
+  reset() {}
+  close() {}
+  get_generation() {
+    return 1
+  }
+
+  send(msg: SendArg) {
+    // const packed = encode(msg)
+    // const len = encode(packed.length)
+    // const buf = new Uint8Array(len.length + packed.length)
+    // buf.set(len, 0)
+    // buf.set(packed, len.length)
+    // // Pass data over to the native side to be handled, with JSI!
+    // if (typeof global.rpcOnGo !== 'function') {
+    //   NativeModules.GoJSIBridge.install()
+    // }
+    // try {
+    //   global.rpcOnGo(buf.buffer)
+    // } catch (e) {
+    //   logger.error('>>>> rpcOnGo JS thrown!', e)
+    // }
+
+    engineSend?.(msg)
+    return true
+  }
 }
 
 function createClient(
@@ -64,7 +118,23 @@ function createClient(
   connectCallback: connectDisconnectCB,
   disconnectCallback: connectDisconnectCB
 ) {
-  return sharedCreateClient(new NativeTransport(incomingRPCCallback, connectCallback, disconnectCallback))
+  if (isRenderer) {
+    return sharedCreateClient(new NativeTransport(incomingRPCCallback, connectCallback, disconnectCallback))
+  } else {
+    const client = sharedCreateClient(
+      new ProxyNativeTransport(incomingRPCCallback, connectCallback, disconnectCallback)
+    )
+
+    ipcRendererOn?.('engineIncoming', (_e, action) => {
+      try {
+        client.transport._dispatch(action.payload.objs)
+      } catch (e) {
+        logger.error('>>>> rpcOnJs JS thrown!', e)
+      }
+    })
+
+    return client
+  }
 }
 
 function resetClient(client: createClientType) {

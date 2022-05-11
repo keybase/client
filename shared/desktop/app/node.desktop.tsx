@@ -34,6 +34,7 @@ import {assetRoot, htmlPrefix} from './html-root.desktop'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import type {Action} from '../app/ipctypes'
 import {showDevTools, skipSecondaryDevtools, allowMultipleInstances} from './dynamic-config'
+import {makeEngine} from '../../engine'
 
 const {env} = KB2.constants
 const {mainWindowDispatch} = KB2.functions
@@ -439,8 +440,12 @@ const plumbEvents = () => {
     }
   }
 
+  const nodeEngine = makeEngine(mainWindowDispatch, () => {})
+
   Electron.ipcMain.handle('KBkeybase', async (event, action: Action) => {
     switch (action.type) {
+      case 'engineSend': {
+      }
       case 'uninstallDokan': {
         return new Promise<void>(resolve => {
           try {
