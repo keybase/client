@@ -131,3 +131,10 @@ export const dimensionWidth = Dimensions.get('window').width
 export const dimensionHeight = Dimensions.get('window').height
 export const headerExtraHeight = isTablet ? 16 : 0
 export const StyleContext = React.createContext({canFixOverdraw: true})
+export const undynamicColor = (col: any) => {
+  // try and unwrap, some things (toggle?) don't seems to like mixed dynamic colors
+  if (typeof col !== 'string' && col.dynamic) {
+    return col.dynamic[isDarkMode() ? 'dark' : 'light']
+  }
+  return col
+}

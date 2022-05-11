@@ -5,7 +5,7 @@ import * as RPCTypes from '../constants/types/rpc-gen'
 import * as RouteTreeGen from './route-tree-gen'
 import * as Saga from '../util/saga'
 import * as Tabs from '../constants/tabs'
-import * as Container from '../util/container'
+import type * as Container from '../util/container'
 import HiddenString from '../util/hidden-string'
 import {logError} from '../util/errors'
 

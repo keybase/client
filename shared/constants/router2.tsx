@@ -21,7 +21,16 @@ export const findVisibleRoute = (arr: Array<Route>, s: NavState): Array<Route> =
   if (!route) {
     return arr
   }
-  const nextArr = [...arr, route]
+
+  let toAdd: Array<Route>
+  // include items in the stack
+  if (s.type === 'stack') {
+    toAdd = s.routes as Array<Route>
+  } else {
+    toAdd = [route]
+  }
+
+  const nextArr = [...arr, ...toAdd]
   return route.state?.routes ? findVisibleRoute(nextArr, route.state) : nextArr
 }
 
@@ -146,9 +155,26 @@ const oldActionToNewActions = (action: RTGActions, navigationState: any, allowAp
     case RouteTreeGen.navUpToScreen: {
       const {name, params} = action.payload
       // find with matching params
-      const path = _getVisiblePathForNavigator(navigationState)
-      const p = path.find(p => p.name === name)
-      return [CommonActions.navigate(name, params ?? p?.params)]
+      // const path = _getVisiblePathForNavigator(navigationState)
+      // const p = path.find(p => p.name === name)
+      // return [CommonActions.navigate(name, params ?? p?.params)]
+
+      const rs = _getNavigator()?.getRootState()
+      // some kind of unknown race, just bail
+      if (!rs) {
+        console.log('Avoiding trying to nav to thread when missing nav state, bailing')
+        return
+      }
+      if (!rs.routes) {
+        console.log('Avoiding trying to nav to thread when malformed nav state, bailing')
+        return
+      }
+
+      const nextState = Container.produce(rs, draft => {
+        navUpHelper(draft as DeepWriteable<NavState>, name, params)
+      })
+
+      return [CommonActions.reset(nextState)]
     }
     case RouteTreeGen.popStack: {
       return [StackActions.popToTop()]
@@ -156,6 +182,40 @@ const oldActionToNewActions = (action: RTGActions, navigationState: any, allowAp
     default:
       return undefined
   }
+}
+type DeepWriteable<T> = {-readonly [P in keyof T]: DeepWriteable<T[P]>}
+
+const navUpHelper = (s: DeepWriteable<NavState>, name: string, params: any) => {
+  const route = s?.routes[s?.index ?? -1] as DeepWriteable<Route>
+  if (!route) {
+    return
+  }
+
+  // found?
+  if (route.name === name && isEqual(route.params, params)) {
+    // selected a root stack? choose just the root item
+    if (route.state?.type === 'stack') {
+      route.state.routes.length = 1
+      route.state.index = 0
+    } else {
+      // leave alone? maybe this never happens
+      route.state = undefined
+    }
+    return
+  }
+
+  // search stack for target
+  if (route.state?.type === 'stack') {
+    const idx = route.state.routes.findIndex(r => r.name === name && isEqual(r.params, params))
+    // found
+    if (idx !== -1) {
+      route.state.index = idx
+      route.state.routes.length = idx + 1
+      return
+    }
+  }
+
+  navUpHelper(route.state, name, params)
 }
 
 type RTGActions =

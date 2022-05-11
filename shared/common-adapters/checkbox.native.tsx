@@ -1,6 +1,6 @@
 import React from 'react'
-import {Props} from './checkbox'
 import Switch from './switch'
+import type {Props} from './checkbox'
 import * as Styles from '../styles'
 
 const Checkbox = (props: Props) => (
