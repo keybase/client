@@ -35,7 +35,6 @@ declare class Session {
   start: (method: string, param: Object | null, callback: null | (() => void)) => void
   constructor(arg0: {
     dispatch: any
-    getState: () => any
     sessionID: number
     incomingCallMap?: IncomingCallMap | null
     customResponseIncomingCallMap?: CustomResponseIncomingCallMap | null
