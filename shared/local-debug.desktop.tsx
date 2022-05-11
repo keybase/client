@@ -1,4 +1,3 @@
-import KB2 from './util/electron.desktop'
 import noop from 'lodash/noop'
 
 // Set this to true if you want to turn off most console logging so you can profile easier
