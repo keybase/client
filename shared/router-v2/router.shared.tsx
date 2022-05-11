@@ -45,13 +45,31 @@ const useIsDarkChanged = () => {
   return darkChanged
 }
 
+const useIsDarkModePreferenceChanged = () => {
+  const darkModePreference = Container.useSelector(state => state.config.darkModePreference)
+  const darkModePreferenceChanged = Container.usePrevious(darkModePreference) !== darkModePreference
+  return darkModePreferenceChanged
+}
+
 const useNavKey = (appState: AppState, key: React.MutableRefObject<number>) => {
+  // const darkModePreference = Container.useSelector(state => state.config.darkModePreference)
   const darkChanged = useIsDarkChanged()
-  // we use special dynamic colors on ios
-  if (!Styles.isIOS) {
-    if (darkChanged) {
+  const darkModePreferenceChanged = useIsDarkModePreferenceChanged()
+  const darkModePreference = Container.useSelector(state => state.config.darkModePreference)
+  console.log('aaa useNavKey', {darkChanged, darkModePreferenceChanged})
+
+  // on ios we can not rerender if its just a system color change
+  if (Styles.isIOS) {
+    // currently auto and that didn't change
+    if (!darkModePreferenceChanged && (darkModePreference === 'system' || !darkModePreference)) {
+      console.log('aaa ignore key change due to system')
+    } else {
       key.current++
+      console.log('aaa update key', key.current)
     }
+  } else {
+    key.current++
+    console.log('aaa update key', key.current)
   }
 
   return appState === AppState.NEEDS_INIT ? -1 : key.current

@@ -324,7 +324,7 @@ const RNApp = React.memo(() => {
 
   const onReady = useInitialStateChangeAfterLinking(goodLinking, onStateChange, loggedIn)
 
-  const DEBUG_RNAPP_RENDER = __DEV__ && false
+  const DEBUG_RNAPP_RENDER = __DEV__ && true
   if (DEBUG_RNAPP_RENDER) {
     console.log('DEBUG RNApp render', {
       appState,
