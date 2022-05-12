@@ -16,6 +16,7 @@ class GlobalError extends React.Component<Props, State> {
   timerID?: ReturnType<typeof setTimeout>
 
   constructor(props: Props) {
+    console.log('bbb global error construted')
     super(props)
 
     this.state = {

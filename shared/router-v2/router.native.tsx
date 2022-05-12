@@ -325,23 +325,8 @@ const useBarStyle = () => {
   return isDarkMode ? 'light-content' : 'dark-content'
 }
 
-const useRedrawKey = () => {
-  const key = React.useRef(0)
-
-  const darkModePreference = Container.useSelector(state => {
-    return state.config.darkModePreference
-  })
-  const darkModePreferenceChanged = Container.usePrevious(darkModePreference) !== darkModePreference
-  if (darkModePreferenceChanged) {
-    key.current++
-  }
-
-  return key.current
-}
-
 const RNApp = React.memo(() => {
   const {loggedInLoaded, loggedIn, appState, onStateChange, navKey, initialState} = Shared.useShared()
-  const redrawKey = useRedrawKey()
   const goodLinking: any = RouterLinking.useReduxToLinking(appState.current)
   // we only send certain params to the container depending on the state so we can remount w/ the right data
   // instead of using useEffect and flashing all the time
@@ -354,7 +339,7 @@ const RNApp = React.memo(() => {
 
   const DEBUG_RNAPP_RENDER = __DEV__ && true
   if (DEBUG_RNAPP_RENDER) {
-    console.log('DEBUG RNApp render', {
+    console.log('bbb DEBUG RNApp render', {
       appState,
       goodLinking,
       initialState,
@@ -368,17 +353,13 @@ const RNApp = React.memo(() => {
   const barStyle = useBarStyle()
 
   return (
-    <Kb.KeyboardAvoidingView
-      key={String(redrawKey)}
-      style={styles.keyboard}
-      behavior={Styles.isIOS ? 'padding' : undefined}
-    >
+    <Kb.KeyboardAvoidingView style={styles.keyboard} behavior={Styles.isIOS ? 'padding' : undefined}>
       <StatusBar barStyle={barStyle} />
       <NavigationContainer
         fallback={<Kb.NativeView style={{backgroundColor: Styles.globalColors.white, flex: 1}} />}
         linking={goodLinking}
         ref={Constants.navigationRef_ as any}
-        key={String(navKey + redrawKey)}
+        key={String(navKey)}
         theme={Shared.theme}
         initialState={initialState}
         onStateChange={onStateChange}

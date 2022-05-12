@@ -519,6 +519,11 @@ export const themed: {[P in keyof typeof colors]: typeof colors[P]} = names.redu
       configurable: false,
       enumerable: true,
       get() {
+        console.log('bbb getter', {
+          name,
+          isDarkModePreference: isDarkModePreference(),
+          isDarkMode: isDarkMode(),
+        })
         // if we're in auto mode, use ios native dynamic colors
         if (isDarkModePreference() === 'system') {
           return iosDynamicColors[name]

@@ -7,10 +7,29 @@ import ResetModal from '../login/reset/modal'
 import GlobalError from './global-errors/container'
 import OutOfDate from './out-of-date'
 import RuntimeStats from './runtime-stats'
+import * as Container from '../util/container'
+
+// on dark mode pref change just redraw the entire world
+const useRedrawKey = () => {
+  const key = React.useRef(0)
+
+  const darkModePreference = Container.useSelector(state => {
+    return state.config.darkModePreference
+  })
+  const darkModePreferenceChanged = Container.usePrevious(darkModePreference) !== darkModePreference
+  if (darkModePreferenceChanged) {
+    console.log('bbb usedredrawkey UP')
+    key.current++
+  }
+
+  return key.current
+}
 
 const Main = () => {
+  const redrawKey = useRedrawKey()
+
   return (
-    <>
+    <React.Fragment key={String(redrawKey)}>
       <Router />
       <PortalHost
         name="popup-root"
@@ -31,7 +50,7 @@ const Main = () => {
       <GlobalError />
       <OutOfDate />
       <RuntimeStats />
-    </>
+    </React.Fragment>
   )
 }
 
