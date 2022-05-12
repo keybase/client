@@ -500,12 +500,17 @@ type Names = keyof Color
 
 const names: Array<Names> = Object.keys(colors) as any
 
-const iosDynamicColors: {[P in keyof typeof colors]: typeof colors[P]} = names.reduce<Color>((obj, name) => {
-  const {DynamicColorIOS} = require('react-native')
-  // @ts-ignore
-  obj[name] = DynamicColorIOS({dark: darkColors[name], light: colors[name]})
-  return obj
-}, {} as Color)
+let iosDynamicColors: {[P in keyof typeof colors]: typeof colors[P]}
+if (isIOS) {
+  iosDynamicColors = names.reduce<Color>((obj, name) => {
+    const {DynamicColorIOS} = require('react-native')
+    // @ts-ignore
+    obj[name] = DynamicColorIOS({dark: darkColors[name], light: colors[name]})
+    return obj
+  }, {} as Color)
+} else {
+  iosDynamicColors = colors
+}
 
 export const themed: {[P in keyof typeof colors]: typeof colors[P]} = names.reduce<Color>((obj, name) => {
   if (isIOS) {
