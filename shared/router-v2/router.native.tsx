@@ -9,7 +9,9 @@ import * as Container from '../util/container'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as RouterLinking from './router-linking.native'
 import * as Common from './common.native'
+import * as ConfigConstants from '../constants/config'
 import {useMemo} from '../util/memoize'
+import {StatusBar} from 'react-native'
 import {HeaderLeftCancel} from '../common-adapters/header-hoc'
 import {NavigationContainer} from '@react-navigation/native'
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs'
@@ -82,6 +84,7 @@ const TabBarIcon = React.memo((props: {isFocused: boolean; routeName: Tabs.Tab})
     // notifications gets badged on native if there's no push, special case
     onSettings && !pushHasPermissions ? 1 : 0
   )
+
   return tabToData[routeName] ? (
     <Kb.NativeView style={styles.container}>
       <Kb.Icon
@@ -312,8 +315,33 @@ enum GoodLinkingState {
 const RootStack = createNoDupeStackNavigator()
 const ModalScreens = makeNavScreens(Shim.shim(modalRoutes, true, false), RootStack.Screen, true)
 
+const useBarStyle = () => {
+  const isDarkMode = Container.useSelector(state => ConfigConstants.isDarkMode(state.config))
+  const darkModePreference = Container.useSelector(state => state.config.darkModePreference)
+
+  if (!darkModePreference || darkModePreference === 'system') {
+    return 'default'
+  }
+  return isDarkMode ? 'light-content' : 'dark-content'
+}
+
+const useRedrawKey = () => {
+  const key = React.useRef(0)
+
+  const darkModePreference = Container.useSelector(state => {
+    return state.config.darkModePreference
+  })
+  const darkModePreferenceChanged = Container.usePrevious(darkModePreference) !== darkModePreference
+  if (darkModePreferenceChanged) {
+    key.current++
+  }
+
+  return key.current
+}
+
 const RNApp = React.memo(() => {
   const {loggedInLoaded, loggedIn, appState, onStateChange, navKey, initialState} = Shared.useShared()
+  const redrawKey = useRedrawKey()
   const goodLinking: any = RouterLinking.useReduxToLinking(appState.current)
   // we only send certain params to the container depending on the state so we can remount w/ the right data
   // instead of using useEffect and flashing all the time
@@ -337,13 +365,20 @@ const RNApp = React.memo(() => {
     })
   }
 
+  const barStyle = useBarStyle()
+
   return (
-    <Kb.KeyboardAvoidingView style={styles.keyboard} behavior={Styles.isIOS ? 'padding' : undefined}>
+    <Kb.KeyboardAvoidingView
+      key={String(redrawKey)}
+      style={styles.keyboard}
+      behavior={Styles.isIOS ? 'padding' : undefined}
+    >
+      <StatusBar barStyle={barStyle} />
       <NavigationContainer
         fallback={<Kb.NativeView style={{backgroundColor: Styles.globalColors.white, flex: 1}} />}
         linking={goodLinking}
         ref={Constants.navigationRef_ as any}
-        key={String(navKey)}
+        key={String(navKey + redrawKey)}
         theme={Shared.theme}
         initialState={initialState}
         onStateChange={onStateChange}

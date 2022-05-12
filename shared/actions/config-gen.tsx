@@ -136,9 +136,7 @@ type _PushLoadedPayload = {readonly pushLoaded: boolean}
 type _RemoteWindowWantsPropsPayload = {readonly component: string; readonly param: string}
 type _RestartHandshakePayload = undefined
 type _SetAccountsPayload = {readonly configuredAccounts: Array<RPCTypes.ConfiguredAccount>}
-type _SetDarkModePreferencePayload = {
-  readonly preference: 'system' | 'alwaysDark' | 'alwaysLight' | undefined
-}
+type _SetDarkModePreferencePayload = {readonly preference: 'system' | 'alwaysDark' | 'alwaysLight'}
 type _SetDefaultUsernamePayload = {readonly username: string}
 type _SetDeletedSelfPayload = {readonly deletedUsername: string}
 type _SetIncomingShareUseOriginalPayload = {readonly useOriginal: boolean}

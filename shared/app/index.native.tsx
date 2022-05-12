@@ -10,7 +10,6 @@ import {Provider, useDispatch} from 'react-redux'
 import {SafeAreaProvider} from 'react-native-safe-area-context'
 import {makeEngine} from '../engine'
 import {GestureHandlerRootView} from 'react-native-gesture-handler'
-import debounce from 'lodash/debounce'
 
 type ConfigureStore = ReturnType<typeof configureStore>
 let _hotCS: ConfigureStore | undefined
@@ -29,12 +28,9 @@ const NativeEventsToRedux = () => {
         dispatch(ConfigGen.createMobileAppState({nextAppState}))
     })
 
-    // must be debounced due to ios calling this multiple times for snapshots
-    const darkSub = Appearance.addChangeListener(
-      debounce(() => {
-        dispatch(ConfigGen.createSetSystemDarkMode({dark: Appearance.getColorScheme() === 'dark'}))
-      }, 100)
-    )
+    const darkSub = Appearance.addChangeListener(() => {
+      dispatch(ConfigGen.createSetSystemDarkMode({dark: Appearance.getColorScheme() === 'dark'}))
+    })
 
     const linkingSub = Linking.addEventListener('url', ({url}: {url: string}) => {
       dispatch(DeeplinksGen.createLink({link: url}))

@@ -1,8 +1,8 @@
 // Darkmode is managed by redux but for things (proxies and etc) to get this value simply the value is
 // copied here
-export type DarkModePreference = 'system' | 'alwaysDark' | 'alwaysLight' | undefined
+export type DarkModePreference = 'system' | 'alwaysDark' | 'alwaysLight'
 
-let darkModePreference: DarkModePreference
+let darkModePreference: DarkModePreference = 'system'
 let systemDarkMode = false
 // supports system level changes
 let systemSupported = false
@@ -21,8 +21,6 @@ export const _setSystemSupported = (supported: boolean) => {
 
 export const isDarkMode = () => {
   switch (darkModePreference) {
-    case undefined:
-      return systemDarkMode
     case 'system':
       return systemDarkMode
     case 'alwaysDark':
