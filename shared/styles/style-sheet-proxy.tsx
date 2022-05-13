@@ -21,21 +21,21 @@ const styleSheetCreate = (f: () => any, transform: Transform) => {
       get() {
         // if this changes we should kill our caches
         const darkModePref = isDarkModePreference()
-        console.log('aaa proxy ', {key, darkModePref, darkModePrefCached})
+        // console.log('aaa proxy ', {key, darkModePref, darkModePrefCached})
         if (darkModePrefCached !== darkModePref) {
-          console.log('aaa proxy cache clear')
+          // console.log('aaa proxy cache clear')
           darkModePrefCached = darkModePref
           darkCached = undefined
           lightCached = undefined
         }
 
         if (isDarkMode()) {
-          // darkCached = darkCached || transform(f())
-          darkCached = transform(f())
+          darkCached = darkCached || transform(f())
+          // darkCached = transform(f())
           return darkCached[key]
         } else {
-          // lightCached = lightCached || transform(f())
-          lightCached = transform(f())
+          lightCached = lightCached || transform(f())
+          //lightCached = transform(f())
           return lightCached[key]
         }
       },

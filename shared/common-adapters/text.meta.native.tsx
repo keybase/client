@@ -3,13 +3,27 @@ import {MetaType, TextType, Background} from './text'
 
 export function defaultColor(backgroundMode: Background | null) {
   return {
-    Announcements: Styles.globalColors.white,
-    Documentation: Styles.globalColors.white,
-    HighRisk: Styles.globalColors.white,
-    Information: Styles.globalColors.brown_75,
-    Normal: Styles.globalColors.white,
-    Success: Styles.globalColors.white,
-    Terminal: Styles.globalColors.white,
+    get Announcements() {
+      return Styles.globalColors.white
+    },
+    get Documentation() {
+      return Styles.globalColors.white
+    },
+    get HighRisk() {
+      return Styles.globalColors.white
+    },
+    get Information() {
+      return Styles.globalColors.brown_75
+    },
+    get Normal() {
+      return Styles.globalColors.white
+    },
+    get Success() {
+      return Styles.globalColors.white
+    },
+    get Terminal() {
+      return Styles.globalColors.white
+    },
   }[backgroundMode || 'Normal']
 }
 
@@ -38,14 +52,23 @@ export function fontSizeToSizeStyle(fontSize: number): {fontSize: number; lineHe
 }
 
 const _metaData = (): {[K in TextType]: MetaType} => {
+  // you CANNOT spread these else the getters dissappear and your colors will be wrong
   const whiteNegative = {
-    negative: Styles.globalColors.white,
-    positive: Styles.globalColors.black,
+    get negative() {
+      return Styles.globalColors.white
+    },
+    get positive() {
+      return Styles.globalColors.black
+    },
   }
 
   const _blueLink = {
-    negative: Styles.globalColors.white,
-    positive: Styles.globalColors.blueDark,
+    get negative() {
+      return Styles.globalColors.white
+    },
+    get positive() {
+      return Styles.globalColors.blueDark
+    },
   }
   return {
     Body: {
@@ -88,16 +111,20 @@ const _metaData = (): {[K in TextType]: MetaType} => {
       },
     },
     BodyPrimaryLink: {
-      colorForBackground: {
-        ..._blueLink,
-        negative: Styles.globalColors.white,
-      },
+      colorForBackground: _blueLink,
       fontSize: 16,
       isLink: true,
       styleOverride: Styles.globalStyles.fontRegular,
     },
     BodySecondaryLink: {
-      colorForBackground: {...whiteNegative, positive: Styles.globalColors.black_50},
+      colorForBackground: {
+        get negative() {
+          return Styles.globalColors.white
+        },
+        get positive() {
+          return Styles.globalColors.black_50
+        },
+      },
       fontSize: 16,
       isLink: true,
       styleOverride: Styles.globalStyles.fontRegular,
@@ -123,43 +150,73 @@ const _metaData = (): {[K in TextType]: MetaType} => {
     },
     BodySmall: {
       colorForBackground: {
-        ...whiteNegative,
-        positive: Styles.globalColors.black_50,
+        get negative() {
+          return Styles.globalColors.white
+        },
+        get positive() {
+          return Styles.globalColors.black_50
+        },
       },
       fontSize: 15,
       styleOverride: Styles.globalStyles.fontRegular,
     },
     BodySmallBold: {
       colorForBackground: {
-        ...whiteNegative,
-        positive: Styles.globalColors.black_50,
+        get negative() {
+          return Styles.globalColors.white
+        },
+        get positive() {
+          return Styles.globalColors.black_50
+        },
       },
       fontSize: 15,
       styleOverride: Styles.globalStyles.fontBold,
     },
     BodySmallError: {
-      colorForBackground: {...whiteNegative, positive: Styles.globalColors.redDark},
+      colorForBackground: {
+        get negative() {
+          return Styles.globalColors.white
+        },
+        get positive() {
+          return Styles.globalColors.redDark
+        },
+      },
       fontSize: 15,
       styleOverride: Styles.globalStyles.fontRegular,
     },
     BodySmallExtrabold: {
       colorForBackground: {
-        ...whiteNegative,
-        positive: Styles.globalColors.black_50,
+        get negative() {
+          return Styles.globalColors.white
+        },
+        get positive() {
+          return Styles.globalColors.black_50
+        },
       },
       fontSize: 15,
       styleOverride: Styles.globalStyles.fontExtrabold,
     },
     BodySmallExtraboldSecondaryLink: {
-      colorForBackground: {...whiteNegative, positive: Styles.globalColors.black_50},
+      colorForBackground: {
+        get negative() {
+          return Styles.globalColors.white
+        },
+        get positive() {
+          return Styles.globalColors.black_50
+        },
+      },
       fontSize: 15,
       isLink: true,
       styleOverride: Styles.globalStyles.fontExtrabold,
     },
     BodySmallItalic: {
       colorForBackground: {
-        ...whiteNegative,
-        positive: Styles.globalColors.black_50,
+        get negative() {
+          return Styles.globalColors.white
+        },
+        get positive() {
+          return Styles.globalColors.black_50
+        },
       },
       fontSize: 15,
       styleOverride: {
@@ -174,23 +231,38 @@ const _metaData = (): {[K in TextType]: MetaType} => {
       styleOverride: Styles.globalStyles.fontRegular,
     },
     BodySmallSecondaryLink: {
-      colorForBackground: {...whiteNegative, positive: Styles.globalColors.black_50},
+      colorForBackground: {
+        get negative() {
+          return Styles.globalColors.white
+        },
+        get positive() {
+          return Styles.globalColors.black_50
+        },
+      },
       fontSize: 15,
       isLink: true,
       styleOverride: Styles.globalStyles.fontRegular,
     },
     BodySmallSemibold: {
       colorForBackground: {
-        ...whiteNegative,
-        positive: Styles.globalColors.black_50,
+        get negative() {
+          return Styles.globalColors.white
+        },
+        get positive() {
+          return Styles.globalColors.black_50
+        },
       },
       fontSize: 15,
       styleOverride: Styles.globalStyles.fontSemibold,
     },
     BodySmallSemiboldItalic: {
       colorForBackground: {
-        ...whiteNegative,
-        positive: Styles.globalColors.black_50,
+        get negative() {
+          return Styles.globalColors.white
+        },
+        get positive() {
+          return Styles.globalColors.black_50
+        },
       },
       fontSize: 15,
       styleOverride: {...Styles.globalStyles.fontSemibold, fontStyle: 'italic'},
@@ -208,43 +280,73 @@ const _metaData = (): {[K in TextType]: MetaType} => {
       styleOverride: {...Styles.globalStyles.fontSemibold, textDecorationLine: undefined},
     },
     BodySmallSuccess: {
-      colorForBackground: {...whiteNegative, positive: Styles.globalColors.greenDark},
+      colorForBackground: {
+        get negative() {
+          return Styles.globalColors.white
+        },
+        get positive() {
+          return Styles.globalColors.greenDark
+        },
+      },
       fontSize: 15,
       styleOverride: Styles.globalStyles.fontRegular,
     },
     BodySmallWallet: {
-      colorForBackground: {...whiteNegative, positive: Styles.globalColors.purpleDark},
+      colorForBackground: {
+        get negative() {
+          return Styles.globalColors.white
+        },
+        get positive() {
+          return Styles.globalColors.purpleDark
+        },
+      },
       fontSize: 15,
       styleOverride: Styles.globalStyles.fontRegular,
     },
     BodyTiny: {
       colorForBackground: {
-        ...whiteNegative,
-        positive: Styles.globalColors.black_50,
+        get negative() {
+          return Styles.globalColors.white
+        },
+        get positive() {
+          return Styles.globalColors.black_50
+        },
       },
       fontSize: 13,
       styleOverride: Styles.globalStyles.fontRegular,
     },
     BodyTinyBold: {
       colorForBackground: {
-        ...whiteNegative,
-        positive: Styles.globalColors.black_50,
+        get negative() {
+          return Styles.globalColors.white
+        },
+        get positive() {
+          return Styles.globalColors.black_50
+        },
       },
       fontSize: 13,
       styleOverride: Styles.globalStyles.fontBold,
     },
     BodyTinyExtrabold: {
       colorForBackground: {
-        ...whiteNegative,
-        positive: Styles.globalColors.black_50,
+        get negative() {
+          return Styles.globalColors.white
+        },
+        get positive() {
+          return Styles.globalColors.black_50
+        },
       },
       fontSize: 13,
       styleOverride: Styles.globalStyles.fontExtrabold,
     },
     BodyTinyLink: {
       colorForBackground: {
-        ...whiteNegative,
-        positive: Styles.globalColors.black_50,
+        get negative() {
+          return Styles.globalColors.white
+        },
+        get positive() {
+          return Styles.globalColors.black_50
+        },
       },
       fontSize: 13,
       isLink: true,
@@ -252,16 +354,24 @@ const _metaData = (): {[K in TextType]: MetaType} => {
     },
     BodyTinySemibold: {
       colorForBackground: {
-        ...whiteNegative,
-        positive: Styles.globalColors.black_50,
+        get negative() {
+          return Styles.globalColors.white
+        },
+        get positive() {
+          return Styles.globalColors.black_50
+        },
       },
       fontSize: 13,
       styleOverride: Styles.globalStyles.fontSemibold,
     },
     BodyTinySemiboldItalic: {
       colorForBackground: {
-        ...whiteNegative,
-        positive: Styles.globalColors.black_50,
+        get negative() {
+          return Styles.globalColors.white
+        },
+        get positive() {
+          return Styles.globalColors.black_50
+        },
       },
       fontSize: 13,
       styleOverride: {
@@ -310,8 +420,12 @@ const _metaData = (): {[K in TextType]: MetaType} => {
     },
     Terminal: {
       colorForBackground: {
-        negative: Styles.globalColors.blueDarker,
-        positive: Styles.globalColors.blueLighter,
+        get negative() {
+          return Styles.globalColors.blueDarker
+        },
+        get positive() {
+          return Styles.globalColors.blueLighter
+        },
       },
       fontSize: 15,
       styleOverride: {
@@ -321,8 +435,12 @@ const _metaData = (): {[K in TextType]: MetaType} => {
     },
     TerminalComment: {
       colorForBackground: {
-        negative: Styles.globalColors.blueLighter_40,
-        positive: Styles.globalColors.blueLighter_40,
+        get negative() {
+          return Styles.globalColors.blueLighter_40
+        },
+        get positive() {
+          return Styles.globalColors.blueLighter_40
+        },
       },
       fontSize: 15,
       styleOverride: {
@@ -332,8 +450,12 @@ const _metaData = (): {[K in TextType]: MetaType} => {
     },
     TerminalEmpty: {
       colorForBackground: {
-        negative: Styles.globalColors.blueLighter_40,
-        positive: Styles.globalColors.blueLighter_40,
+        get negative() {
+          return Styles.globalColors.blueLighter_40
+        },
+        get positive() {
+          return Styles.globalColors.blueLighter_40
+        },
       },
       fontSize: 15,
       styleOverride: {
@@ -344,8 +466,12 @@ const _metaData = (): {[K in TextType]: MetaType} => {
     },
     TerminalInline: {
       colorForBackground: {
-        negative: Styles.globalColors.blueDarker,
-        positive: Styles.globalColors.blueDarker,
+        get negative() {
+          return Styles.globalColors.blueDarker
+        },
+        get positive() {
+          return Styles.globalColors.blueDarker
+        },
       },
       fontSize: 15,
       styleOverride: {
