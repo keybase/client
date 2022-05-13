@@ -10,7 +10,7 @@ import RuntimeStats from './runtime-stats'
 
 const Main = () => {
   return (
-    <React.Fragment key={undefined /*(String(redrawKey)*/}>
+    <>
       <Router />
       <PortalHost
         name="popup-root"
@@ -31,7 +31,7 @@ const Main = () => {
       <GlobalError />
       <OutOfDate />
       <RuntimeStats />
-    </React.Fragment>
+    </>
   )
 }
 
