@@ -125,6 +125,10 @@ function SettingsNav(props: Props) {
           {
             data: [
               {
+                onClick: () => onTabChange(Constants.displayTab),
+                text: 'Display',
+              },
+              {
                 badgeNumber: badgeNumbers.get(TabConstants.settingsTab),
                 onClick: () => onTabChange(Constants.accountTab),
                 text: 'Your account',
@@ -145,10 +149,6 @@ function SettingsNav(props: Props) {
                 badgeNumber: badgeNotifications ? 1 : 0,
                 onClick: () => onTabChange(Constants.notificationsTab),
                 text: 'Notifications',
-              },
-              {
-                onClick: () => onTabChange(Constants.displayTab),
-                text: 'Display',
               },
               ...(isAndroid
                 ? [

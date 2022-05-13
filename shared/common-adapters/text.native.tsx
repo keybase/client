@@ -1,10 +1,10 @@
 import React, {Component} from 'react'
 import openURL from '../util/open-url'
 import {fontSizeToSizeStyle, lineClamp, metaData} from './text.meta.native'
-import * as Styles from '../styles'
 import shallowEqual from 'shallowequal'
 import {NativeClipboard, NativeText, NativeAlert} from './native-wrappers.native'
-import {Props, TextType} from './text'
+import type {Props, TextType} from './text'
+import * as Styles from '../styles'
 
 const modes = ['positive', 'negative']
 
@@ -113,6 +113,8 @@ class Text extends Component<Props> {
 
     const onLongPress =
       this.props.onLongPress || (this.props.onLongPressURL ? this._urlChooseOption : undefined)
+
+    console.log('ccc text style', this.props.children, style)
 
     return (
       <NativeText
