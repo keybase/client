@@ -61,6 +61,14 @@ const _metaData = (): {[K in TextType]: MetaType} => {
       return Styles.globalColors.black
     },
   }
+  const whiteNegative_50 = {
+    get negative() {
+      return Styles.globalColors.white
+    },
+    get positive() {
+      return Styles.globalColors.black_50
+    },
+  }
 
   const _blueLink = {
     get negative() {
@@ -117,14 +125,7 @@ const _metaData = (): {[K in TextType]: MetaType} => {
       styleOverride: Styles.globalStyles.fontRegular,
     },
     BodySecondaryLink: {
-      colorForBackground: {
-        get negative() {
-          return Styles.globalColors.white
-        },
-        get positive() {
-          return Styles.globalColors.black_50
-        },
-      },
+      colorForBackground: whiteNegative_50,
       fontSize: 16,
       isLink: true,
       styleOverride: Styles.globalStyles.fontRegular,
@@ -149,26 +150,12 @@ const _metaData = (): {[K in TextType]: MetaType} => {
       styleOverride: Styles.globalStyles.fontSemibold,
     },
     BodySmall: {
-      colorForBackground: {
-        get negative() {
-          return Styles.globalColors.white
-        },
-        get positive() {
-          return Styles.globalColors.black_50
-        },
-      },
+      colorForBackground: whiteNegative_50,
       fontSize: 15,
       styleOverride: Styles.globalStyles.fontRegular,
     },
     BodySmallBold: {
-      colorForBackground: {
-        get negative() {
-          return Styles.globalColors.white
-        },
-        get positive() {
-          return Styles.globalColors.black_50
-        },
-      },
+      colorForBackground: whiteNegative_50,
       fontSize: 15,
       styleOverride: Styles.globalStyles.fontBold,
     },
@@ -185,39 +172,18 @@ const _metaData = (): {[K in TextType]: MetaType} => {
       styleOverride: Styles.globalStyles.fontRegular,
     },
     BodySmallExtrabold: {
-      colorForBackground: {
-        get negative() {
-          return Styles.globalColors.white
-        },
-        get positive() {
-          return Styles.globalColors.black_50
-        },
-      },
+      colorForBackground: whiteNegative_50,
       fontSize: 15,
       styleOverride: Styles.globalStyles.fontExtrabold,
     },
     BodySmallExtraboldSecondaryLink: {
-      colorForBackground: {
-        get negative() {
-          return Styles.globalColors.white
-        },
-        get positive() {
-          return Styles.globalColors.black_50
-        },
-      },
+      colorForBackground: whiteNegative_50,
       fontSize: 15,
       isLink: true,
       styleOverride: Styles.globalStyles.fontExtrabold,
     },
     BodySmallItalic: {
-      colorForBackground: {
-        get negative() {
-          return Styles.globalColors.white
-        },
-        get positive() {
-          return Styles.globalColors.black_50
-        },
-      },
+      colorForBackground: whiteNegative_50,
       fontSize: 15,
       styleOverride: {
         ...Styles.globalStyles.fontRegular,
@@ -231,39 +197,18 @@ const _metaData = (): {[K in TextType]: MetaType} => {
       styleOverride: Styles.globalStyles.fontRegular,
     },
     BodySmallSecondaryLink: {
-      colorForBackground: {
-        get negative() {
-          return Styles.globalColors.white
-        },
-        get positive() {
-          return Styles.globalColors.black_50
-        },
-      },
+      colorForBackground: whiteNegative_50,
       fontSize: 15,
       isLink: true,
       styleOverride: Styles.globalStyles.fontRegular,
     },
     BodySmallSemibold: {
-      colorForBackground: {
-        get negative() {
-          return Styles.globalColors.white
-        },
-        get positive() {
-          return Styles.globalColors.black_50
-        },
-      },
+      colorForBackground: whiteNegative_50,
       fontSize: 15,
       styleOverride: Styles.globalStyles.fontSemibold,
     },
     BodySmallSemiboldItalic: {
-      colorForBackground: {
-        get negative() {
-          return Styles.globalColors.white
-        },
-        get positive() {
-          return Styles.globalColors.black_50
-        },
-      },
+      colorForBackground: whiteNegative_50,
       fontSize: 15,
       styleOverride: {...Styles.globalStyles.fontSemibold, fontStyle: 'italic'},
     },
@@ -304,75 +249,33 @@ const _metaData = (): {[K in TextType]: MetaType} => {
       styleOverride: Styles.globalStyles.fontRegular,
     },
     BodyTiny: {
-      colorForBackground: {
-        get negative() {
-          return Styles.globalColors.white
-        },
-        get positive() {
-          return Styles.globalColors.black_50
-        },
-      },
+      colorForBackground: whiteNegative_50,
       fontSize: 13,
       styleOverride: Styles.globalStyles.fontRegular,
     },
     BodyTinyBold: {
-      colorForBackground: {
-        get negative() {
-          return Styles.globalColors.white
-        },
-        get positive() {
-          return Styles.globalColors.black_50
-        },
-      },
+      colorForBackground: whiteNegative_50,
       fontSize: 13,
       styleOverride: Styles.globalStyles.fontBold,
     },
     BodyTinyExtrabold: {
-      colorForBackground: {
-        get negative() {
-          return Styles.globalColors.white
-        },
-        get positive() {
-          return Styles.globalColors.black_50
-        },
-      },
+      colorForBackground: whiteNegative_50,
       fontSize: 13,
       styleOverride: Styles.globalStyles.fontExtrabold,
     },
     BodyTinyLink: {
-      colorForBackground: {
-        get negative() {
-          return Styles.globalColors.white
-        },
-        get positive() {
-          return Styles.globalColors.black_50
-        },
-      },
+      colorForBackground: whiteNegative_50,
       fontSize: 13,
       isLink: true,
       styleOverride: Styles.globalStyles.fontRegular,
     },
     BodyTinySemibold: {
-      colorForBackground: {
-        get negative() {
-          return Styles.globalColors.white
-        },
-        get positive() {
-          return Styles.globalColors.black_50
-        },
-      },
+      colorForBackground: whiteNegative_50,
       fontSize: 13,
       styleOverride: Styles.globalStyles.fontSemibold,
     },
     BodyTinySemiboldItalic: {
-      colorForBackground: {
-        get negative() {
-          return Styles.globalColors.white
-        },
-        get positive() {
-          return Styles.globalColors.black_50
-        },
-      },
+      colorForBackground: whiteNegative_50,
       fontSize: 13,
       styleOverride: {
         ...Styles.globalStyles.fontSemibold,

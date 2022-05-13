@@ -25,11 +25,6 @@ class SwitchToggle extends React.PureComponent<Props> {
     this._animation.start()
   }
   render() {
-    console.log(
-      'ccc switch toggle, ',
-      Styles.globalColors.greyDark,
-      Styles.undynamicColor(Styles.globalColors.greyDark)
-    )
     return (
       <NativeAnimated.View
         style={Styles.collapseStyles([
