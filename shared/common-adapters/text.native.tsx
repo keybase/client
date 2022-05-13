@@ -114,8 +114,6 @@ class Text extends Component<Props> {
     const onLongPress =
       this.props.onLongPress || (this.props.onLongPressURL ? this._urlChooseOption : undefined)
 
-    console.log('ccc text style', this.props.children, style)
-
     return (
       <NativeText
         ref={ref => {

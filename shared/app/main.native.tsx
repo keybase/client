@@ -18,7 +18,6 @@ const useRedrawKey = () => {
   })
   const darkModePreferenceChanged = Container.usePrevious(darkModePreference) !== darkModePreference
   if (darkModePreferenceChanged) {
-    console.log('bbb usedredrawkey UP')
     key.current++
   }
 

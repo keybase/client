@@ -20,13 +20,11 @@ module.hot?.accept(() => {
 
 const NativeEventsToRedux = () => {
   const dispatch = useDispatch()
-
   const appStateRef = React.useRef('unknown')
 
   React.useEffect(() => {
     const appStateChangeSub = AppState.addEventListener('change', nextAppState => {
       appStateRef.current = nextAppState
-      console.log('aaa got app state', nextAppState)
       nextAppState !== 'unknown' &&
         nextAppState !== 'extension' &&
         dispatch(ConfigGen.createMobileAppState({nextAppState}))
@@ -37,17 +35,11 @@ const NativeEventsToRedux = () => {
     })
 
     // only watch dark changes if in foreground due to ios calling this to take snapshots
-    const darkSub = Appearance.addChangeListener(
-      // debounce(() => {
-      () => {
-        console.log('aaa got dark sub change', Appearance.getColorScheme(), appStateRef.current)
-
-        if (appStateRef.current === 'active') {
-          dispatch(ConfigGen.createSetSystemDarkMode({dark: Appearance.getColorScheme() === 'dark'}))
-        }
-        // }, 100)
+    const darkSub = Appearance.addChangeListener(() => {
+      if (appStateRef.current === 'active') {
+        dispatch(ConfigGen.createSetSystemDarkMode({dark: Appearance.getColorScheme() === 'dark'}))
       }
-    )
+    })
     const linkingSub = Linking.addEventListener('url', ({url}: {url: string}) => {
       dispatch(DeeplinksGen.createLink({link: url}))
     })
