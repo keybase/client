@@ -10,7 +10,6 @@ import {Provider, useDispatch} from 'react-redux'
 import {SafeAreaProvider} from 'react-native-safe-area-context'
 import {makeEngine} from '../engine'
 import {GestureHandlerRootView} from 'react-native-gesture-handler'
-import debounce from 'lodash/debounce'
 
 type ConfigureStore = ReturnType<typeof configureStore>
 let _hotCS: ConfigureStore | undefined
@@ -21,21 +20,26 @@ module.hot?.accept(() => {
 
 const NativeEventsToRedux = () => {
   const dispatch = useDispatch()
+  const appStateRef = React.useRef('unknown')
 
   React.useEffect(() => {
     const appStateChangeSub = AppState.addEventListener('change', nextAppState => {
+      appStateRef.current = nextAppState
       nextAppState !== 'unknown' &&
         nextAppState !== 'extension' &&
         dispatch(ConfigGen.createMobileAppState({nextAppState}))
+
+      if (nextAppState === 'active') {
+        dispatch(ConfigGen.createSetSystemDarkMode({dark: Appearance.getColorScheme() === 'dark'}))
+      }
     })
 
-    // must be debounced due to ios calling this multiple times for snapshots
-    const darkSub = Appearance.addChangeListener(
-      debounce(() => {
+    // only watch dark changes if in foreground due to ios calling this to take snapshots
+    const darkSub = Appearance.addChangeListener(() => {
+      if (appStateRef.current === 'active') {
         dispatch(ConfigGen.createSetSystemDarkMode({dark: Appearance.getColorScheme() === 'dark'}))
-      }, 100)
-    )
-
+      }
+    })
     const linkingSub = Linking.addEventListener('url', ({url}: {url: string}) => {
       dispatch(DeeplinksGen.createLink({link: url}))
     })

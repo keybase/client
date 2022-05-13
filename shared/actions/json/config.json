@@ -135,7 +135,7 @@
       "isInit?": "boolean"
     },
     "setDarkModePreference": {
-      "preference": ["'system'", "'alwaysDark'", "'alwaysLight'", "undefined"]
+      "preference": ["'system'", "'alwaysDark'", "'alwaysLight'"]
     },
     "setSystemDarkMode": {"dark": "boolean"},
     "updateHTTPSrvInfo": {

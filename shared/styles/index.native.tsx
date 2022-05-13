@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Shared from './shared'
 import * as iPhoneXHelper from 'react-native-iphone-x-helper'
-import globalColors, {darkColors, themed} from './colors'
+import {colors as lightColors, darkColors, themed} from './colors'
 import styleSheetCreateProxy from './style-sheet-proxy'
 import {StyleSheet, Dimensions} from 'react-native'
 import {isDarkMode} from './dark-mode'
@@ -39,7 +39,7 @@ const util = {
   ...Shared.util,
   largeWidthPercent: '70%',
   loadingTextStyle: {
-    backgroundColor: globalColors.greyLight,
+    backgroundColor: lightColors.greyLight,
     height: 16,
   },
   mediumSubNavWidth: isTablet ? 270 : '100%',
@@ -62,7 +62,7 @@ export const globalStyles = {
 
 const cachedBackground = {
   dark: {backgroundColor: darkColors.fastBlank},
-  light: {backgroundColor: globalColors.fastBlank},
+  light: {backgroundColor: lightColors.fastBlank},
 }
 if (isIOS) {
   Object.defineProperty(globalStyles, 'fastBackground', {
@@ -82,8 +82,7 @@ if (isIOS) {
 
 export const statusBarHeight = iPhoneXHelper.getStatusBarHeight(true)
 export const hairlineWidth = StyleSheet.hairlineWidth
-// @ts-ignore TODO fix native styles
-export const styleSheetCreate = obj => styleSheetCreateProxy(obj, o => StyleSheet.create(o))
+export const styleSheetCreate = (obj: any) => styleSheetCreateProxy(obj, o => StyleSheet.create(o))
 export {isDarkMode}
 export const collapseStyles = (
   styles: ReadonlyArray<CollapsibleStyle>

@@ -181,7 +181,7 @@ export const initDesktopStyles = () => {
 }
 
 export const hairlineWidth = 1
-export const styleSheetCreate = (obj: Object) => styleSheetCreateProxy(obj, o => o)
+export const styleSheetCreate = (obj: any) => styleSheetCreateProxy(obj, o => o)
 export const collapseStyles = (styles: ReadonlyArray<CollapsibleStyle>): Object | undefined => {
   // fast path for a single style that passes. Often we do stuff like
   // collapseStyle([styles.myStyle, this.props.something && {backgroundColor: 'red'}]), so in the false
