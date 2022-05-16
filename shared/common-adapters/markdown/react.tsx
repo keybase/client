@@ -230,7 +230,14 @@ const reactComponentsForMarkdownType = {
       node: SimpleMarkdown.SingleASTNode,
       _output: SimpleMarkdown.ReactOutput,
       state: SimpleMarkdown.State
-    ) => <Emoji emojiName={String(node.content).toLowerCase()} size={16} key={state.key} />,
+    ) => (
+      <Emoji
+        emojiName={String(node.content).toLowerCase()}
+        size={16}
+        key={state.key}
+        disableSelecting={state.virtualText}
+      />
+    ),
   },
   fence: {
     react: (

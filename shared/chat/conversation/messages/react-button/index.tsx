@@ -55,7 +55,7 @@ const ButtonBox = Styles.styled(ClickableBox, {
 )
 
 const markdownOverride = {
-  paragraph: {fontSize: Styles.isMobile ? 16 : 18, lineHeight: Styles.isMobile ? 24 : '24px'},
+  paragraph: {fontSize: Styles.isMobile ? 16 : 18, lineHeight: Styles.isMobile ? 24 : '34px'},
 }
 const ReactButtonInner = (props: Props, ref) => {
   const text = props.decorated.length ? props.decorated : props.emoji
@@ -85,13 +85,19 @@ const ReactButtonInner = (props: Props, ref) => {
       >
         <Box2 direction="horizontal" style={styles.emojiWrapper}>
           <Box2 direction="vertical" style={styles.emojiWrapper2}>
-            <Markdown styleOverride={markdownOverride as any} lineClamp={1} smallStandaloneEmoji={true}>
+            <Markdown
+              styleOverride={markdownOverride as any}
+              lineClamp={1}
+              smallStandaloneEmoji={true}
+              virtualText={true}
+            >
               {text}
             </Markdown>
           </Box2>
         </Box2>
         <Text
           type="BodyTinyBold"
+          virtualText={true}
           style={Styles.collapseStyles([styles.count, props.active && styles.countActive])}
         >
           {props.count}

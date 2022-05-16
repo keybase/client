@@ -72,6 +72,7 @@ type Props = {
   type: TextType
   underline?: boolean
   underlineNever?: boolean
+  virtualText?: boolean // desktop only. use css to print text thats uncopyable
 }
 
 type MetaType = {
