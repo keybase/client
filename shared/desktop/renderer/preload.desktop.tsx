@@ -90,7 +90,7 @@ if (isRenderer) {
             cb(null, ret)
             console.log('aaa engine send after2')
           } catch (e) {
-            console.log('aaa engine send fail', e)
+            console.log('aaa engine send fail', method, param, e)
             cb(e, null)
           }
         },

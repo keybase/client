@@ -459,13 +459,7 @@ const plumbEvents = () => {
               }
             })
           } catch (e) {
-            console.log(
-              'aaa node rpc invoke throw ',
-              e,
-              nodeEngine,
-              nodeEngine._rpcClient,
-              nodeEngine._rpcClient.invoke
-            )
+            reject(e)
           }
         })
       }
