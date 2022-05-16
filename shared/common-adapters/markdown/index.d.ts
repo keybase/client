@@ -68,6 +68,8 @@ export type Props = {
   // for example you may want to make paragraphs, italics, etc to be black_50
   // but want blue_30 for the inline code
   styleOverride?: StyleOverride
+
+  virtualText?: boolean // desktop only, see text.desktop
 }
 
 export default class Markdown extends React.Component<Props> {}

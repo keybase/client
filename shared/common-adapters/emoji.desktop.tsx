@@ -1,11 +1,10 @@
 import * as React from 'react'
 import {Emoji} from 'emoji-mart'
+import type {Props} from './emoji'
 
 // Just the single set we use
 // @ts-ignore
 import emojiSet from 'emoji-datasource-apple/img/apple/sheets/64.png'
-
-import {Props} from './emoji'
 
 const backgroundImageFn = (_: string, __: number) => emojiSet
 

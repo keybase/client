@@ -1,8 +1,8 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
-import * as RPCTypes from '../constants/types/rpc-gen'
-import * as Chat2Types from '../constants/types/chat2'
+import type * as RPCTypes from '../constants/types/rpc-gen'
+import type * as Chat2Types from '../constants/types/chat2'
 
 export type EmojiData = {
   category: string
@@ -38,7 +38,8 @@ export const renderEmoji = (
   size: number,
   showTooltip: boolean,
   addTopMarginToCustom?: boolean,
-  customEmojiSize?: number
+  customEmojiSize?: number,
+  virtualText?: boolean
 ) => {
   if (emoji.renderUrl) {
     return (
@@ -52,7 +53,7 @@ export const renderEmoji = (
   }
 
   if (emoji.renderStock) {
-    return <Kb.Emoji size={size} emojiName={emoji.renderStock} />
+    return <Kb.Emoji size={size} emojiName={emoji.renderStock} disableSelecting={virtualText} />
   }
 
   return null

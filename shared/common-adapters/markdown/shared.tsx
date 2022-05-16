@@ -304,6 +304,7 @@ class SimpleMarkdownComponent extends PureComponent<MarkdownProps, {hasError: bo
         markdownMeta: this.props.meta,
         paragraphTextClassName,
         styleOverride,
+        virtualText: this.props.virtualText,
       }
 
       output = this.props.serviceOnly

@@ -600,3 +600,7 @@
 .noLineHeight {
   line-height: unset !important;
 }
+
+.virtualText::before {
+  content: attr(data-virtual-text);
+}

@@ -165,6 +165,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
         }
         type="BodySmallBold"
         usernames={this.props.showUsername}
+        virtualText={true}
       />
     )
     if (this.props.showUsername) {
@@ -214,6 +215,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
               <Kb.Text
                 type="BodyTiny"
                 fixOverdraw={this.canFixOverdraw()}
+                virtualText={true}
                 style={Styles.collapseStyles([this.showCenteredHighlight() && styles.timestampHighlighted])}
               >
                 {formatTimeForChat(this.props.message.timestamp)}
@@ -841,7 +843,7 @@ const styles = Styles.styleSheetCreate(
           lineHeight: 19,
         },
       }),
-      timestampHighlighted: {color: Styles.globalColors.black_50OrBlack_40},
+      timestampHighlighted: {color: 'red' /*Styles.globalColors.black_50OrBlack_40*/},
       usernameCrown: Styles.platformStyles({
         isElectron: {
           alignItems: 'baseline',
