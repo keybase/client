@@ -9,7 +9,7 @@ import {
 import type {LogLineWithLevelISOTimestamp} from '../../logger/types'
 import type * as RPCTypes from '../../constants/types/rpc-gen'
 import type {Action} from '../app/ipctypes'
-import type {SendArg} from '../../engine/index.platform'
+import RPCError from '../../util/rpcerror'
 
 const isRenderer = process.type === 'renderer'
 const isDarwin = process.platform === 'darwin'
@@ -86,12 +86,20 @@ if (isRenderer) {
           try {
             console.log('aaa engine send ', method, param)
             const ret = await invoke({payload: {method, param}, type: 'engineSend'})
-            console.log('aaa engine send after', method, param)
-            cb(null, ret)
-            console.log('aaa engine send after2')
+            console.log('aaa engine send after', method, param, ret)
+            if (ret.err) {
+              cb(
+                // need to remake this as it won't go across the bridge as a class
+                new RPCError(ret.err.message, ret.err.code, ret.err.fields, ret.err.name, ret.err.method),
+                null
+              )
+            } else {
+              cb(null, ret.res)
+            }
           } catch (e) {
-            console.log('aaa engine send fail', method, param, e)
-            cb(e, null)
+            console.log('aaa engine shold never happen ', e)
+            //console.log('aaa engine send fail', method, param, e)
+            //cb(e, null)
           }
         },
         exitApp: (code: number) => {

@@ -48,20 +48,15 @@ function _wrap(options: {
   let once = false
 
   const wrapped = (...args: Array<any>): void => {
-    console.log('aaa in wrapped', args, method)
     const m = typeof method === 'string' ? method : method?.(...args)
-    console.log('aaa in wrapped2', extra)
     const e = typeof extra === 'object' ? extra : extra?.(...args)
-    console.log('aaa in wrapped3')
 
     if (enforceOnlyOnce && once) {
-      console.log('aaa in wrapped about to rpclog')
       rpcLog({method: m || 'unknown', reason: 'ignoring multiple result calls', type: 'engineInternal'})
     } else {
       once = true
 
       if (printRPC) {
-        console.log('aaa in wrapped about to rpclog2')
         rpcLog({extra: e || {}, method: m || 'unknown', reason, type})
       }
 
@@ -186,7 +181,6 @@ class TransportShared extends RobustTransport {
       extra: arg.args[0],
       // @ts-ignore TODO fix this
       handler: (args: InvokeArgs) => {
-        console.log('aaa node transport shared invoking handler')
         super.invoke(
           args,
           _wrap({
