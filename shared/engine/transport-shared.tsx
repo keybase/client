@@ -10,6 +10,32 @@ const RpcClient = rpc.client.Client
 
 rpc.pack.set_opt('encode_lib', '@msgpack/msgpack')
 
+// Logging for rpcs
+function rpcLog(info: {method: string; reason: string; extra?: Object; type: string}): void {
+  console.log('aaa skip rpc log node')
+  // if (!printRPC) {
+  //   return
+  // }
+
+  // if (!printRPCWaitingSession && info.type === 'engineInternal') {
+  //   return
+  // }
+
+  // const prefix = {
+  //   engineInternal: '=',
+  //   engineToServer: '<< OUT',
+  //   serverToEngine: 'IN >>',
+  // }[info.type] as string
+
+  // requestIdleCallback(
+  //   () => {
+  //     const params = [info.reason, info.method, info.extra].filter(Boolean)
+  //     LocalConsole.green(prefix, info.method, info.reason, ...params)
+  //   },
+  //   {timeout: 1e3}
+  // )
+}
+
 // We basically always log/ensure once all the calls back and forth
 function _wrap(options: {
   handler: (...args: Array<any>) => void
@@ -23,15 +49,20 @@ function _wrap(options: {
   let once = false
 
   const wrapped = (...args: Array<any>): void => {
+    console.log('aaa in wrapped', args, method)
     const m = typeof method === 'string' ? method : method?.(...args)
+    console.log('aaa in wrapped2', extra)
     const e = typeof extra === 'object' ? extra : extra?.(...args)
+    console.log('aaa in wrapped3')
 
     if (enforceOnlyOnce && once) {
+      console.log('aaa in wrapped about to rpclog')
       rpcLog({method: m || 'unknown', reason: 'ignoring multiple result calls', type: 'engineInternal'})
     } else {
       once = true
 
       if (printRPC) {
+        console.log('aaa in wrapped about to rpclog2')
         rpcLog({extra: e || {}, method: m || 'unknown', reason, type})
       }
 
@@ -40,35 +71,11 @@ function _wrap(options: {
         Stats.gotStat(m, type === 'serverToEngine')
       }
 
+      console.log('aaa in wrapped about to handler')
       handler(...args)
     }
   }
   return wrapped
-}
-
-// Logging for rpcs
-function rpcLog(info: {method: string; reason: string; extra?: Object; type: string}): void {
-  if (!printRPC) {
-    return
-  }
-
-  if (!printRPCWaitingSession && info.type === 'engineInternal') {
-    return
-  }
-
-  const prefix = {
-    engineInternal: '=',
-    engineToServer: '<< OUT',
-    serverToEngine: 'IN >>',
-  }[info.type] as string
-
-  requestIdleCallback(
-    () => {
-      const params = [info.reason, info.method, info.extra].filter(Boolean)
-      LocalConsole.green(prefix, info.method, info.reason, ...params)
-    },
-    {timeout: 1e3}
-  )
 }
 
 type InvokeArgs = {
@@ -174,11 +181,13 @@ class TransportShared extends RobustTransport {
     // if (arg.ctype == undefined) {
     //   arg.ctype = rpc.dispatch.COMPRESSION_TYPE_GZIP // default to gzip compression
     // }
+    console.log('aaa node transport shared invoking ', arg)
     const wrappedInvoke = _wrap({
       enforceOnlyOnce: true,
       extra: arg.args[0],
       // @ts-ignore TODO fix this
       handler: (args: InvokeArgs) => {
+        console.log('aaa node transport shared invoking handler')
         super.invoke(
           args,
           _wrap({
