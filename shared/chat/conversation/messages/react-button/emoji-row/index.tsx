@@ -40,7 +40,10 @@ class HoverEmoji extends React.Component<
         {renderEmoji(
           RPCUserReacjiToRenderableEmoji(this.props.emoji, !this.state.hovering),
           this.state.hovering ? 22 : 18,
-          false
+          false,
+          undefined,
+          undefined,
+          true
         )}
       </Kb.ClickableBox>
     )

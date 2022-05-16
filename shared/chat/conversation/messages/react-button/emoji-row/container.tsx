@@ -1,10 +1,10 @@
 import * as Container from '../../../../../util/container'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
-import * as Types from '../../../../../constants/types/chat2'
 import * as Constants from '../../../../../constants/chat2'
-import {StylesCrossPlatform} from '../../../../../styles'
-import {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
+import type * as Types from '../../../../../constants/types/chat2'
+import type {StylesCrossPlatform} from '../../../../../styles'
+import type {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
 import EmojiRow from '.'
 
 type OwnProps = {

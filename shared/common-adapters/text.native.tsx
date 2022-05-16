@@ -1,10 +1,10 @@
 import React, {Component} from 'react'
 import openURL from '../util/open-url'
 import {fontSizeToSizeStyle, lineClamp, metaData} from './text.meta.native'
-import * as Styles from '../styles'
 import shallowEqual from 'shallowequal'
 import {NativeClipboard, NativeText, NativeAlert} from './native-wrappers.native'
-import {Props, TextType} from './text'
+import type {Props, TextType} from './text'
+import * as Styles from '../styles'
 
 const modes = ['positive', 'negative']
 

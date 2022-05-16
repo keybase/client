@@ -1,5 +1,4 @@
-import KB2 from '../util/electron.desktop'
-const {pathSep} = KB2.constants
+import {pathSep} from '../constants/platform'
 // simple versions we use in the renderer, definitely doesn't handle edge cases but likely ok as-is
 
 export const join = (...args: Array<string>) => {

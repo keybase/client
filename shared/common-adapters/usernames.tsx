@@ -5,12 +5,12 @@ import * as ProfileGen from '../actions/profile-gen'
 import * as Tracker2Gen from '../actions/tracker2-gen'
 import * as UsersConstants from '../constants/users'
 import Text, {
-  TextType,
-  Background,
-  StylesTextCrossPlatform,
-  AllowedColors,
-  LineClampType,
-  TextTypeBold,
+  type TextType,
+  type Background,
+  type StylesTextCrossPlatform,
+  type AllowedColors,
+  type LineClampType,
+  type TextTypeBold,
 } from './text'
 import {backgroundModeIsNegative} from './text.shared'
 import shallowEqual from 'shallowequal'
@@ -48,6 +48,7 @@ export type Props = {
   usernames: Array<string> | string
   withProfileCardPopup?: boolean
   fixOverdraw?: boolean | 'auto'
+  virtualText?: boolean // desktop only see text.desktop
 } & ({colorFollowing?: false; type: TextType} | {colorFollowing: boolean; type: TextTypeBold})
 
 // Mobile handles spaces correctly so don't insert anything
@@ -122,6 +123,7 @@ const UsernameText = (
               selectable={props.selectable}
               onLongPress={onLongPress}
               lineClamp={props.lineClamp}
+              virtualText={props.virtualText}
               onClick={
                 onUsernameClicked
                   ? evt => {

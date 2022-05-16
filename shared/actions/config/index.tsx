@@ -477,8 +477,6 @@ const loadDarkPrefs = async () => {
     const preference = v.s || undefined
 
     switch (preference) {
-      case undefined:
-        return ConfigGen.createSetDarkModePreference({preference})
       case 'system':
         return ConfigGen.createSetDarkModePreference({preference})
       case 'alwaysDark':

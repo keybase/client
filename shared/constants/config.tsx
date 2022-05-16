@@ -127,7 +127,7 @@ export const initialState: Types.State = {
   daemonHandshakeState: 'starting',
   daemonHandshakeVersion: 1,
   daemonHandshakeWaiters: new Map(),
-  darkModePreference: undefined,
+  darkModePreference: 'system',
   debugDump: [],
   defaultUsername: '',
   deviceID: '',

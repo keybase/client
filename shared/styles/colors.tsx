@@ -1,5 +1,5 @@
 // the _on_white are precomputed colors so we can do less blending on mobile
-import {isDarkMode} from './dark-mode'
+import {isDarkMode, isDarkModePreference} from './dark-mode'
 import {partyMode} from '../local-debug'
 import {isIOS} from '../constants/platform'
 
@@ -500,15 +500,31 @@ type Names = keyof Color
 
 const names: Array<Names> = Object.keys(colors) as any
 
+let iosDynamicColors: {[P in keyof typeof colors]: typeof colors[P]}
+if (isIOS) {
+  iosDynamicColors = names.reduce<Color>((obj, name) => {
+    const {DynamicColorIOS} = require('react-native')
+    // @ts-ignore
+    obj[name] = DynamicColorIOS({dark: darkColors[name], light: colors[name]})
+    return obj
+  }, {} as Color)
+} else {
+  iosDynamicColors = colors
+}
+
 export const themed: {[P in keyof typeof colors]: typeof colors[P]} = names.reduce<Color>((obj, name) => {
   if (isIOS) {
-    const {DynamicColorIOS} = require('react-native')
     // ios actually handles this nicely natively
     return Object.defineProperty(obj, name, {
       configurable: false,
       enumerable: true,
-      // @ts-ignore
-      value: DynamicColorIOS({dark: darkColors[name], light: colors[name]}),
+      get() {
+        // if we're in auto mode, use ios native dynamic colors
+        if (isDarkModePreference() === 'system') {
+          return iosDynamicColors[name]
+        }
+        return isDarkMode() ? darkColors[name] : colors[name]
+      },
     })
   } else {
     return Object.defineProperty(obj, name, {
