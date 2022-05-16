@@ -77,4 +77,4 @@ export type Action =
   | {type: 'clipboardAvailableFormats'}
   | {type: 'installCachedDokan'}
   | {type: 'uninstallDokan'; payload: {execPath: string}}
-  | {type: 'engineSend'; payload: {m: SendArg}}
+  | {type: 'engineSend'; payload: {method: string; param: Array<any>}}

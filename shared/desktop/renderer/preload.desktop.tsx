@@ -82,12 +82,17 @@ if (isRenderer) {
             type: 'dumpNodeLogger',
           })) as Array<LogLineWithLevelISOTimestamp>
         },
-        engineSend: (m: SendArg, cb: any) => {
-          invoke({payload: {m}, type: 'engineSend'})
-            .then(res => cb(res))
-            .catch(e => {
-              console.log('engineSend fail', e)
-            })
+        engineSend: async (method: string, param: Array<any>, cb: any) => {
+          try {
+            console.log('aaa engine send ', method, param)
+            const ret = await invoke({payload: {method, param}, type: 'engineSend'})
+            console.log('aaa engine send after', method, param)
+            cb(null, ret)
+            console.log('aaa engine send after2')
+          } catch (e) {
+            console.log('aaa engine send fail', e)
+            cb(e, null)
+          }
         },
         exitApp: (code: number) => {
           invoke({payload: {code}, type: 'exitApp'})

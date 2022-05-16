@@ -65,7 +65,7 @@ export type KB2 = {
     windowsBinPath: string
   }
   functions: {
-    engineSend?: (m: SendArg) => void
+    engineSend?: (method: string, params: Array<any>, cb: (err: any, data: any) => void) => void
     appStartedUp?: () => void
     isDirectory?: (path: string) => Promise<boolean>
     activeChanged?: (changedAtMs: number, isUserActive: boolean) => void

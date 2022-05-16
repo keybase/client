@@ -94,7 +94,7 @@ class ProxyNativeTransport extends TransportShared {
 
   invoke(arg, cb) {
     console.log('aaa proxy native invoke', arg)
-    engineSend?.(arg, cb)
+    engineSend?.(arg.method, arg.args, cb)
   }
 
   // send(msg: SendArg) {

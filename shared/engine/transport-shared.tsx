@@ -12,28 +12,27 @@ rpc.pack.set_opt('encode_lib', '@msgpack/msgpack')
 
 // Logging for rpcs
 function rpcLog(info: {method: string; reason: string; extra?: Object; type: string}): void {
-  console.log('aaa skip rpc log node')
-  // if (!printRPC) {
-  //   return
-  // }
+  if (!printRPC) {
+    return
+  }
 
-  // if (!printRPCWaitingSession && info.type === 'engineInternal') {
-  //   return
-  // }
+  if (!printRPCWaitingSession && info.type === 'engineInternal') {
+    return
+  }
 
-  // const prefix = {
-  //   engineInternal: '=',
-  //   engineToServer: '<< OUT',
-  //   serverToEngine: 'IN >>',
-  // }[info.type] as string
+  const prefix = {
+    engineInternal: '=',
+    engineToServer: '<< OUT',
+    serverToEngine: 'IN >>',
+  }[info.type] as string
 
-  // requestIdleCallback(
-  //   () => {
-  //     const params = [info.reason, info.method, info.extra].filter(Boolean)
-  //     LocalConsole.green(prefix, info.method, info.reason, ...params)
-  //   },
-  //   {timeout: 1e3}
-  // )
+  requestIdleCallback(
+    () => {
+      const params = [info.reason, info.method, info.extra].filter(Boolean)
+      LocalConsole.green(prefix, info.method, info.reason, ...params)
+    },
+    {timeout: 1e3}
+  )
 }
 
 // We basically always log/ensure once all the calls back and forth

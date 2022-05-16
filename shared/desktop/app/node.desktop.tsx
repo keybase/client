@@ -449,7 +449,8 @@ const plumbEvents = () => {
         console.log('aaa node got enginesend', action)
         return new Promise<any>((resolve, reject) => {
           try {
-            nodeEngine._rpcClient.invoke(action.payload.m, (err, res) => {
+            const {method, param} = action.payload
+            nodeEngine._rpcClient.invoke(method, param, (err, res) => {
               console.log('aaa node got enginesend invoke', {err, res})
               if (err) {
                 reject(err)
@@ -458,7 +459,13 @@ const plumbEvents = () => {
               }
             })
           } catch (e) {
-            console.log('aaa node rpc invoke throw ', e)
+            console.log(
+              'aaa node rpc invoke throw ',
+              e,
+              nodeEngine,
+              nodeEngine._rpcClient,
+              nodeEngine._rpcClient.invoke
+            )
           }
         })
       }
