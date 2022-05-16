@@ -33,7 +33,7 @@ import logger from '../../logger'
 import {assetRoot, htmlPrefix} from './html-root.desktop'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import type {Action} from '../app/ipctypes'
-import {showDevTools, skipSecondaryDevtools, allowMultipleInstances} from './dynamic-config'
+import {configOverload, showDevTools, skipSecondaryDevtools, allowMultipleInstances} from './dynamic-config'
 
 const {env} = KB2.constants
 const {mainWindowDispatch} = KB2.functions
@@ -671,7 +671,10 @@ const plumbEvents = () => {
         }
       }
       case 'setupPreloadKB2':
-        return KB2.constants
+        return {
+          ...KB2.constants,
+          configOverload,
+        }
       case 'showMainWindow':
         {
           mainWindow?.show()

@@ -1,4 +1,5 @@
 import noop from 'lodash/noop'
+import KB2 from './util/electron.desktop'
 
 // Set this to true if you want to turn off most console logging so you can profile easier
 let PERF = false
@@ -36,6 +37,11 @@ if (__DEV__) {
   config.printRPCWaitingSession = false
   config.printRPCStats = true
   config.userTimings = true
+}
+
+config = {
+  ...config,
+  ...KB2.constants.configOverload,
 }
 
 // If performance testing
