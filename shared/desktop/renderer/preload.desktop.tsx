@@ -305,6 +305,7 @@ if (isRenderer) {
     constants: kb2consts,
     functions: {
       mainWindowDispatch: (action: TypedActions) => {
+        console.log('aaa mainWindowDispatch on node', action)
         getMainWindow()?.webContents.send('KBdispatchAction', action)
       },
     },
