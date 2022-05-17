@@ -3,10 +3,10 @@ import logger from '../logger'
 import {TransportShared, sharedCreateClient, rpcLog} from './transport-shared'
 import {isWindows, socketPath} from '../constants/platform.desktop'
 import {printRPCBytes} from '../local-debug'
-import type {SendArg, createClientType, incomingRPCCallbackType, connectDisconnectCB} from './index.platform'
+import type {createClientType, incomingRPCCallbackType, connectDisconnectCB} from './index.platform'
 import KB2 from '../util/electron.desktop'
 
-const {engineSend, ipcRendererOn} = KB2.functions
+const {engineSend, mainWindowDispatch} = KB2.functions
 const {isRenderer} = KB2.constants
 
 // used by node
@@ -17,7 +17,11 @@ class NativeTransport extends TransportShared {
     disconnectCallback?: connectDisconnectCB
   ) {
     console.log('Transport using', socketPath)
-    super({path: socketPath}, connectCallback, disconnectCallback, incomingRPCCallback)
+    // super({path: socketPath}, connectCallback, disconnectCallback, incomingRPCCallback)
+    super({path: socketPath}, connectCallback, disconnectCallback, payload => {
+      console.log('aaaa incoming engine sending to renderer', payload)
+      mainWindowDispatch({payload, type: 'nodeEngineToRenderer'})
+    })
     this.needsConnect = true
   }
 

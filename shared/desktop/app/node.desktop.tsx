@@ -721,6 +721,9 @@ const plumbEvents = () => {
         break
       case 'appStartedUp':
         appStartedUp = true
+        // tell mainwindow we're connected
+        nodeEngine.sagasAreReady()
+
         if (menubarWindowID) {
           mainWindowDispatch(ConfigGen.createUpdateMenubarWindowID({id: menubarWindowID}))
           // reset it
