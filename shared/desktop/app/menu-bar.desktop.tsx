@@ -42,7 +42,7 @@ export default (menubarWindowIDCallback: (id: number) => void) => {
       resizable: false,
       transparent: true,
       webPreferences: {
-        contextIsolation: false,
+        contextIsolation: true,
         nodeIntegration: false,
         nodeIntegrationInWorker: false,
         preload: `${assetRoot}preload${__DEV__ ? '.dev' : ''}.bundle.js`,

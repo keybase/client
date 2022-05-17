@@ -130,8 +130,6 @@ export const injectPreload = (kb2: KB2) => {
   if (!kb2 || !kb2?.constants?.assetRoot) {
     throw new Error('Invalid kb2 injected')
   }
-  // we have to stash this in a global due to how preload works, else it clears out the module level variables
-  globalThis._fromPreload = kb2
 
   while (kb2Waiters.length) {
     kb2Waiters.shift()?.()
