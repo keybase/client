@@ -65,7 +65,6 @@ function _wrap(options: {
         Stats.gotStat(m, type === 'serverToEngine')
       }
 
-      console.log('aaa in wrapped about to handler')
       handler(...args)
     }
   }
@@ -175,7 +174,6 @@ class TransportShared extends RobustTransport {
     // if (arg.ctype == undefined) {
     //   arg.ctype = rpc.dispatch.COMPRESSION_TYPE_GZIP // default to gzip compression
     // }
-    console.log('aaa node transport shared invoking ', arg)
     const wrappedInvoke = _wrap({
       enforceOnlyOnce: true,
       extra: arg.args[0],

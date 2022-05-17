@@ -23,6 +23,6 @@ export declare class Engine {
   }): void
 }
 export declare function getEngine(): Engine
-export declare function makeEngine(dispatch: (a: any) => any, customIncoming?: (payload: any) => void): Engine
+export declare function makeEngine(dispatch: (a: any) => any): Engine
 export default getEngine
 export type {IncomingCallMapType, CustomResponseIncomingCallMapType}

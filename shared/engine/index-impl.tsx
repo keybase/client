@@ -114,7 +114,6 @@ class Engine {
 
   // Called when we reconnect to the server
   _onConnected() {
-    console.log('aaaaaaAAAAAAAAAAAAAAAAAAAAAAAAAAAAa engine connected', this._sagasAreReady)
     this._hasConnected = true
 
     // Sagas already booted so they can get this
@@ -337,7 +336,7 @@ if (__DEV__) {
   engine = global.DEBUGEngine
 }
 
-const makeEngine = (dispatch: TypedDispatch, customIncoming?: incomingRPCCallbackType) => {
+const makeEngine = (dispatch: TypedDispatch) => {
   if (__DEV__ && engine) {
     logger.warn('makeEngine called multiple times')
   }

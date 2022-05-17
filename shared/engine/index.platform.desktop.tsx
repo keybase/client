@@ -1,7 +1,7 @@
 // import net from 'net'
 import logger from '../logger'
 import {TransportShared, sharedCreateClient, rpcLog} from './transport-shared'
-import {isWindows, socketPath} from '../constants/platform.desktop'
+import {socketPath} from '../constants/platform.desktop'
 import {printRPCBytes} from '../local-debug'
 import type {SendArg, createClientType, incomingRPCCallbackType, connectDisconnectCB} from './index.platform'
 import KB2 from '../util/electron.desktop'
@@ -16,18 +16,12 @@ class NativeTransport extends TransportShared {
     connectCallback?: connectDisconnectCB,
     disconnectCallback?: connectDisconnectCB
   ) {
-    console.log('Transport using', socketPath)
     super({path: socketPath}, connectCallback, disconnectCallback, incomingRPCCallback)
-    // super({path: socketPath}, connectCallback, disconnectCallback, payload => {
-    //   console.log('aaaa incoming engine sending to renderer', payload)
-    //   mainWindowDispatch({payload, type: 'nodeEngineToRenderer'})
-    // })
     this.needsConnect = true
   }
 
   _connect_critical_section(cb: unknown) {
     super._connect_critical_section(cb)
-    windowsHack()
   }
 
   // Override Transport._raw_write -- see transport.iced in
@@ -46,30 +40,9 @@ class NativeTransport extends TransportShared {
     if (printRPCBytes) {
       logger.debug('[RPC] Read', m.length, 'bytes:', m.toString('hex'))
     }
-    // super.packetize_data(m)
-    // mainWindowDispatch({payload: m, type: ''})
-    console.log('aaa node send packetize data over ')
+    // @ts-ignore this isn't a typical redux action
     mainWindowDispatch({payload: m}, 'engineIncoming')
   }
-}
-
-// used by renderer
-function windowsHack() {
-  // This net.connect() is a heinous hack.
-  //
-  // On Windows, but *only* in the renderer thread, our RPC connection
-  // hangs until other random net module operations, at which point it
-  // unblocks.  Could be Electron, could be a node-framed-msgpack-rpc
-  // bug, who knows.
-  if (!isWindows || !KB2.constants.isRenderer) {
-    return
-  }
-
-  const net = require('net')
-  const fake = net.connect({port: 9999})
-  // net.connect({}) throws; we don't need to see the error, but we
-  // do need it not to raise up to the main thread.
-  fake.on('error', function () {})
 }
 
 class ProxyNativeTransport extends TransportShared {
@@ -99,27 +72,7 @@ class ProxyNativeTransport extends TransportShared {
     return 1
   }
 
-  // invoke(arg, cb) {
-  //   console.log('aaa proxy native invoke', arg)
-  //   engineSend?.(arg.method, arg.args, cb)
-  // }
-
   send(msg: SendArg) {
-    // const packed = encode(msg)
-    // const len = encode(packed.length)
-    // const buf = new Uint8Array(len.length + packed.length)
-    // buf.set(len, 0)
-    // buf.set(packed, len.length)
-    // // Pass data over to the native side to be handled, with JSI!
-    // if (typeof global.rpcOnGo !== 'function') {
-    //   NativeModules.GoJSIBridge.install()
-    // }
-    // try {
-    //   global.rpcOnGo(buf.buffer)
-    // } catch (e) {
-    //   logger.error('>>>> rpcOnGo JS thrown!', e)
-    // }
-
     engineSend?.(msg)
     return true
   }
@@ -137,12 +90,10 @@ function createClient(
       new ProxyNativeTransport(incomingRPCCallback, connectCallback, disconnectCallback)
     )
 
-    console.log('aaa setting up on call', ipcRendererOn)
+    // plumb back data from the node side
     ipcRendererOn?.('engineIncoming', (_e, action) => {
       try {
-        console.log('aaaa got engineinocming')
         client.transport.packetize_data(new Buffer(action.payload))
-        //        client.transport._dispatch(action.payload.objs)
       } catch (e) {
         logger.error('>>>> rpcOnJs JS thrown!', e)
       }
