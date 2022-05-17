@@ -78,7 +78,7 @@ export type KB2 = {
     hideWindow?: () => void
     getPathType?: (path: string) => Promise<'file' | 'directory'>
     // defined for both always
-    mainWindowDispatch: (action: TypedActions) => void
+    mainWindowDispatch: (action: TypedActions, nodeTypeOverride?: string) => void
     darwinCopyToChatTempUploadFile?: (dst: string, originalFilePath: string) => Promise<void>
     darwinCopyToKBFSTempUploadFile?: (dir: string, originalFilePath: string) => Promise<string>
     minimizeWindow?: () => void

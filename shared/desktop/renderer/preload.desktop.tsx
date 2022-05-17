@@ -140,9 +140,9 @@ if (isRenderer) {
         isDirectory: async (path: string) => {
           return invoke({payload: {path}, type: 'isDirectory'})
         },
-        mainWindowDispatch: (action: TypedActions) => {
+        mainWindowDispatch: (action: TypedActions, nodeTypeOverride?: string) => {
           Electron.ipcRenderer
-            .invoke('KBdispatchAction', action)
+            .invoke(nodeTypeOverride ?? 'KBdispatchAction', action)
             .then(() => {})
             .catch(() => {})
         },
@@ -312,9 +312,9 @@ if (isRenderer) {
   injectPreload({
     constants: kb2consts,
     functions: {
-      mainWindowDispatch: (action: TypedActions) => {
-        console.log('aaa mainWindowDispatch on node', action)
-        getMainWindow()?.webContents.send('KBdispatchAction', action)
+      mainWindowDispatch: (action: TypedActions, nodeTypeOverride?: string) => {
+        console.log('aaa mainWindowDispatch on node', action, nodeTypeOverride)
+        getMainWindow()?.webContents.send(nodeTypeOverride ?? 'KBdispatchAction', action)
       },
     },
   })

@@ -46,7 +46,10 @@ class NativeTransport extends TransportShared {
     if (printRPCBytes) {
       logger.debug('[RPC] Read', m.length, 'bytes:', m.toString('hex'))
     }
-    super.packetize_data(m)
+    // super.packetize_data(m)
+    // mainWindowDispatch({payload: m, type: ''})
+    console.log('aaa node send packetize data over ')
+    mainWindowDispatch({payload: m}, 'engineIncoming')
   }
 }
 
@@ -134,9 +137,12 @@ function createClient(
       new ProxyNativeTransport(incomingRPCCallback, connectCallback, disconnectCallback)
     )
 
+    console.log('aaa setting up on call', ipcRendererOn)
     ipcRendererOn?.('engineIncoming', (_e, action) => {
       try {
-        client.transport._dispatch(action.payload.objs)
+        console.log('aaaa got engineinocming')
+        client.transport.packetize_data(new Buffer(action.payload))
+        //        client.transport._dispatch(action.payload.objs)
       } catch (e) {
         logger.error('>>>> rpcOnJs JS thrown!', e)
       }
