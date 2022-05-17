@@ -82,26 +82,34 @@ if (isRenderer) {
             type: 'dumpNodeLogger',
           })) as Array<LogLineWithLevelISOTimestamp>
         },
-        engineSend: async (method: string, param: Array<any>, cb: any) => {
-          try {
-            console.log('aaa engine send ', method, param)
-            const ret = await invoke({payload: {method, param}, type: 'engineSend'})
-            console.log('aaa engine send after', method, param, ret)
-            if (ret.err) {
-              cb(
-                // need to remake this as it won't go across the bridge as a class
-                new RPCError(ret.err.message, ret.err.code, ret.err.fields, ret.err.name, ret.err.method),
-                null
-              )
-            } else {
-              cb(null, ret.res)
-            }
-          } catch (e) {
-            console.log('aaa engine shold never happen ', e)
-            //console.log('aaa engine send fail', method, param, e)
-            //cb(e, null)
-          }
+        engineSend: (buf: any) => {
+          console.log('aaa engine send ', buf)
+          invoke({payload: {buf}, type: 'engineSend'})
+            .then(() => {})
+            .catch(() => {})
+          //console.log('aaa engine send fail', method, param, e)
+          //cb(e, null)
         },
+        // engineSend: async (method: string, param: Array<any>, cb: any) => {
+        //   try {
+        //     console.log('aaa engine send ', method, param)
+        //     const ret = await invoke({payload: {method, param}, type: 'engineSend'})
+        //     console.log('aaa engine send after', method, param, ret)
+        //     if (ret.err) {
+        //       cb(
+        //         // need to remake this as it won't go across the bridge as a class
+        //         new RPCError(ret.err.message, ret.err.code, ret.err.fields, ret.err.name, ret.err.method),
+        //         null
+        //       )
+        //     } else {
+        //       cb(null, ret.res)
+        //     }
+        //   } catch (e) {
+        //     console.log('aaa engine shold never happen ', e)
+        //     //console.log('aaa engine send fail', method, param, e)
+        //     //cb(e, null)
+        //   }
+        // },
         exitApp: (code: number) => {
           invoke({payload: {code}, type: 'exitApp'})
             .then(() => {})

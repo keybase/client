@@ -447,21 +447,25 @@ const plumbEvents = () => {
     switch (action.type) {
       case 'engineSend': {
         console.log('aaa node got enginesend', action)
-        return new Promise<any>(resolve => {
-          try {
-            const {method, param} = action.payload
-            nodeEngine._rpcClient.invoke(method, param, (err, res) => {
-              console.log('aaa node got enginesend invoke', {err, res})
-              if (err) {
-                resolve({err})
-              } else {
-                resolve({res})
-              }
-            })
-          } catch (err) {
-            resolve({err})
-          }
-        })
+        const {buf} = action.payload
+        nodeEngine._rpcClient.transport.send(buf)
+        // console.log('aaa node got enginesend', action)
+        // return new Promise<any>(resolve => {
+        //   try {
+        //     const {method, param} = action.payload
+        //     nodeEngine._rpcClient.invoke(method, param, (err, res) => {
+        //       console.log('aaa node got enginesend invoke', {err, res})
+        //       if (err) {
+        //         resolve({err})
+        //       } else {
+        //         resolve({res})
+        //       }
+        //     })
+        //   } catch (err) {
+        //     resolve({err})
+        //   }
+        // })
+        return
       }
       case 'uninstallDokan': {
         return new Promise<void>(resolve => {

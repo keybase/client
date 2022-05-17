@@ -3,10 +3,10 @@ import logger from '../logger'
 import {TransportShared, sharedCreateClient, rpcLog} from './transport-shared'
 import {isWindows, socketPath} from '../constants/platform.desktop'
 import {printRPCBytes} from '../local-debug'
-import type {createClientType, incomingRPCCallbackType, connectDisconnectCB} from './index.platform'
+import type {SendArg, createClientType, incomingRPCCallbackType, connectDisconnectCB} from './index.platform'
 import KB2 from '../util/electron.desktop'
 
-const {engineSend, mainWindowDispatch} = KB2.functions
+const {engineSend, mainWindowDispatch, ipcRendererOn} = KB2.functions
 const {isRenderer} = KB2.constants
 
 // used by node
@@ -17,11 +17,11 @@ class NativeTransport extends TransportShared {
     disconnectCallback?: connectDisconnectCB
   ) {
     console.log('Transport using', socketPath)
-    // super({path: socketPath}, connectCallback, disconnectCallback, incomingRPCCallback)
-    super({path: socketPath}, connectCallback, disconnectCallback, payload => {
-      console.log('aaaa incoming engine sending to renderer', payload)
-      mainWindowDispatch({payload, type: 'nodeEngineToRenderer'})
-    })
+    super({path: socketPath}, connectCallback, disconnectCallback, incomingRPCCallback)
+    // super({path: socketPath}, connectCallback, disconnectCallback, payload => {
+    //   console.log('aaaa incoming engine sending to renderer', payload)
+    //   mainWindowDispatch({payload, type: 'nodeEngineToRenderer'})
+    // })
     this.needsConnect = true
   }
 
@@ -96,30 +96,30 @@ class ProxyNativeTransport extends TransportShared {
     return 1
   }
 
-  invoke(arg, cb) {
-    console.log('aaa proxy native invoke', arg)
-    engineSend?.(arg.method, arg.args, cb)
+  // invoke(arg, cb) {
+  //   console.log('aaa proxy native invoke', arg)
+  //   engineSend?.(arg.method, arg.args, cb)
+  // }
+
+  send(msg: SendArg) {
+    // const packed = encode(msg)
+    // const len = encode(packed.length)
+    // const buf = new Uint8Array(len.length + packed.length)
+    // buf.set(len, 0)
+    // buf.set(packed, len.length)
+    // // Pass data over to the native side to be handled, with JSI!
+    // if (typeof global.rpcOnGo !== 'function') {
+    //   NativeModules.GoJSIBridge.install()
+    // }
+    // try {
+    //   global.rpcOnGo(buf.buffer)
+    // } catch (e) {
+    //   logger.error('>>>> rpcOnGo JS thrown!', e)
+    // }
+
+    engineSend?.(msg)
+    return true
   }
-
-  // send(msg: SendArg) {
-  // const packed = encode(msg)
-  // const len = encode(packed.length)
-  // const buf = new Uint8Array(len.length + packed.length)
-  // buf.set(len, 0)
-  // buf.set(packed, len.length)
-  // // Pass data over to the native side to be handled, with JSI!
-  // if (typeof global.rpcOnGo !== 'function') {
-  //   NativeModules.GoJSIBridge.install()
-  // }
-  // try {
-  //   global.rpcOnGo(buf.buffer)
-  // } catch (e) {
-  //   logger.error('>>>> rpcOnGo JS thrown!', e)
-  // }
-
-  //   engineSend?.(msg)
-  //   return true
-  // }
 }
 
 function createClient(
@@ -134,13 +134,13 @@ function createClient(
       new ProxyNativeTransport(incomingRPCCallback, connectCallback, disconnectCallback)
     )
 
-    // ipcRendererOn?.('engineIncoming', (_e, action) => {
-    //   try {
-    //     client.transport._dispatch(action.payload.objs)
-    //   } catch (e) {
-    //     logger.error('>>>> rpcOnJs JS thrown!', e)
-    //   }
-    // })
+    ipcRendererOn?.('engineIncoming', (_e, action) => {
+      try {
+        client.transport._dispatch(action.payload.objs)
+      } catch (e) {
+        logger.error('>>>> rpcOnJs JS thrown!', e)
+      }
+    })
 
     return client
   }
