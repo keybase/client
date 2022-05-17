@@ -241,9 +241,7 @@ const FilteredServiceTabBar = (
   const services = React.useMemo(
     () =>
       props.filterServices
-        ? Constants.allServices.filter(
-            serviceId => props.filterServices && props.filterServices.includes(serviceId)
-          )
+        ? Constants.allServices.filter(serviceId => props.filterServices?.includes(serviceId))
         : Constants.allServices,
     [props.filterServices]
   )
@@ -262,80 +260,27 @@ const FilteredServiceTabBar = (
   )
 }
 
-// TODO: the type of this is any
-// If we fix this type, we'll need to add a bunch more mobile-only props to Kb.SectionList since this code uses
-// a bunch of the native props.
-const SectionList: typeof Kb.SectionList = Styles.isMobile
-  ? Kb.ReAnimated.createAnimatedComponent(Kb.SectionList)
-  : Kb.SectionList
+type SectionListProp = {
+  sectionListRef: React.RefObject<Kb.SectionList<Section<ResultData, SearchRecSection>>>
+}
 
-class TeamBuilding extends React.PureComponent<Props> {
-  static navigationOptions = ({route}) => {
-    const namespace: unknown = route.params.namespace
-    const common = {
-      modal2: true,
-      modal2AvoidTabs: false,
-      modal2ClearCover: false,
-      modal2Style: {alignSelf: 'center'},
-      modal2Type: 'DefaultFullHeight',
-    }
-
-    return namespace === 'people'
-      ? {
-          ...common,
-          modal2AvoidTabs: true,
-          modal2ClearCover: true,
-          modal2Style: {
-            alignSelf: 'flex-start',
-            paddingLeft: Styles.globalMargins.xsmall,
-            paddingRight: Styles.globalMargins.xsmall,
-            paddingTop: Styles.globalMargins.mediumLarge,
-          },
-          modal2Type: 'DefaultFullWidth',
-        }
-      : common
-  }
-  private offset: any = Styles.isMobile ? new Kb.ReAnimated.Value(0) : undefined
-
-  sectionListRef = React.createRef<Kb.SectionList<Section<ResultData, SearchRecSection>>>()
-  componentDidMount() {
-    this.props.fetchUserRecs()
+const TeamAlphabetIndex = (props: Pick<Props, 'recommendations' | 'teamSoFar'> & SectionListProp) => {
+  const {recommendations, teamSoFar, sectionListRef} = props
+  let showNumSection = false
+  let labels: Array<string> = []
+  if (recommendations && recommendations.length > 0) {
+    showNumSection = recommendations[recommendations.length - 1].label === numSectionLabel
+    labels = recommendations.filter(r => r.shortcut && r.label !== numSectionLabel).map(r => r.label)
   }
 
-  _alphabetIndex = () => {
-    let showNumSection = false
-    let labels: Array<string> = []
-    if (this.props.recommendations && this.props.recommendations.length > 0) {
-      showNumSection =
-        this.props.recommendations[this.props.recommendations.length - 1].label === numSectionLabel
-      labels = this.props.recommendations
-        .filter(r => r.shortcut && r.label !== numSectionLabel)
-        .map(r => r.label)
-    }
-    if (!labels.length) {
-      return null
-    }
-    return (
-      <>
-        <AlphabetIndex
-          labels={labels}
-          showNumSection={showNumSection}
-          onScroll={this._onScrollToSection}
-          style={styles.alphabetIndex}
-          measureKey={!!this.props.teamSoFar.length}
-        />
-      </>
-    )
-  }
-
-  _onScrollToSection = (label: string) => {
-    if (this.sectionListRef.current) {
-      const ref = this.sectionListRef.current
+  const _onScrollToSection = (label: string) => {
+    if (sectionListRef.current) {
+      const ref = sectionListRef.current
       const sectionIndex =
-        (this.props.recommendations &&
+        (recommendations &&
           (label === 'numSection'
-            ? this.props.recommendations.length - 1
-            : this.props.recommendations.findIndex(section => section.label === label))) ||
+            ? recommendations.length - 1
+            : recommendations.findIndex(section => section.label === label))) ||
         -1
       if (sectionIndex >= 0 && Styles.isMobile) {
         const node = ref.getNode()
@@ -348,7 +293,222 @@ class TeamBuilding extends React.PureComponent<Props> {
     }
   }
 
-  _getRecLayout = (
+  if (!labels.length) {
+    return null
+  }
+  return (
+    <>
+      <AlphabetIndex
+        labels={labels}
+        showNumSection={showNumSection}
+        onScroll={_onScrollToSection}
+        style={styles.alphabetIndex}
+        measureKey={!!teamSoFar.length}
+      />
+    </>
+  )
+}
+
+const ModalHeader = (
+  props: Pick<
+    Props,
+    'onClose' | 'namespace' | 'teamSoFar' | 'teamID' | 'onFinishTeamBuilding' | 'title' | 'goButtonLabel'
+  >
+) => {
+  const {onClose, namespace, teamSoFar, teamID, onFinishTeamBuilding, title, goButtonLabel} = props
+  const mobileCancel = Styles.isMobile ? (
+    <Kb.Text type="BodyBigLink" onClick={onClose}>
+      Cancel
+    </Kb.Text>
+  ) : undefined
+  switch (namespace) {
+    case 'people': {
+      return Styles.isMobile
+        ? {
+            hideBorder: true,
+            leftButton: mobileCancel,
+          }
+        : undefined
+    }
+    case 'teams': {
+      return {
+        hideBorder: true,
+        leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={onClose} />,
+        rightButton: Styles.isMobile ? (
+          <Kb.Text
+            type="BodyBigLink"
+            onClick={teamSoFar.length ? onFinishTeamBuilding : undefined}
+            style={!teamSoFar.length && styles.hide}
+          >
+            Done
+          </Kb.Text>
+        ) : undefined,
+        title: <TeamsModalTitle teamID={teamID ?? noTeamID} title="Search people" />,
+      }
+    }
+    case 'chat2': {
+      const rightButton = Styles.isMobile ? (
+        <Kb.Button
+          label="Start"
+          onClick={teamSoFar.length ? onFinishTeamBuilding : undefined}
+          small={true}
+          type="Success"
+          style={!teamSoFar.length && styles.hide} // Need to hide this so modal can measure correctly
+        />
+      ) : undefined
+      return {hideBorder: true, leftButton: mobileCancel, rightButton, title: title}
+    }
+    case 'crypto': {
+      const rightButton = Styles.isMobile ? (
+        <Kb.Button
+          label={goButtonLabel ?? 'Start'}
+          onClick={teamSoFar.length ? onFinishTeamBuilding : undefined}
+          small={true}
+          type="Success"
+          style={!teamSoFar.length && styles.hide} // Need to hide this so modal can measure correctly
+        />
+      ) : undefined
+      return {hideBorder: true, leftButton: mobileCancel, rightButton, title: title}
+    }
+    default: {
+      return {hideBorder: true, leftButton: mobileCancel, title: title}
+    }
+  }
+}
+
+const SearchInput = (
+  props: Pick<
+    Props,
+    | 'onChangeText'
+    | 'selectedService'
+    | 'namespace'
+    | 'onDownArrowKeyDown'
+    | 'onUpArrowKeyDown'
+    | 'onEnterKeyDown'
+    | 'searchString'
+    | 'focusInputCounter'
+    | 'onClear'
+    | 'onClose'
+  >
+) => {
+  const {
+    selectedService,
+    onChangeText,
+    namespace,
+    onDownArrowKeyDown,
+    onUpArrowKeyDown,
+    onEnterKeyDown,
+    searchString,
+    focusInputCounter,
+    onClear,
+    onClose,
+  } = props
+  const searchPlaceholder = 'Search ' + serviceIdToSearchPlaceholder(selectedService)
+  return (
+    <Input
+      onChangeText={onChangeText}
+      onClear={namespace === 'people' && !searchString ? onClose : onClear}
+      onDownArrowKeyDown={onDownArrowKeyDown}
+      onUpArrowKeyDown={onUpArrowKeyDown}
+      onEnterKeyDown={onEnterKeyDown}
+      placeholder={searchPlaceholder}
+      searchString={searchString}
+      focusOnMount={!Styles.isMobile || selectedService !== 'keybase'}
+      focusCounter={focusInputCounter}
+    />
+  )
+}
+
+const Suggestions = (props: Pick<Props, 'namespace' | 'selectedService'>) => {
+  const {namespace, selectedService} = props
+  return (
+    <Kb.Box2
+      alignSelf="center"
+      centerChildren={!Styles.isMobile}
+      direction="vertical"
+      fullWidth={true}
+      gap="tiny"
+      style={styles.emptyContainer}
+    >
+      {!Styles.isMobile && (
+        <Kb.Icon
+          fontSize={48}
+          type={serviceIdToIconFont(selectedService)}
+          style={Styles.collapseStyles([
+            !!selectedService && {color: serviceIdToAccentColor(selectedService)},
+          ])}
+        />
+      )}
+      {namespace === 'people' ? (
+        <Kb.Text center={true} style={styles.emptyServiceText} type="BodySmall">
+          Search for anyone on {serviceIdToLabel(selectedService)} and start a chat. Your messages will unlock
+          after they install Keybase and prove their {serviceIdToLabel(selectedService)} username.
+        </Kb.Text>
+      ) : namespace === 'teams' ? (
+        <Kb.Text center={true} style={styles.emptyServiceText} type="BodySmall">
+          Add anyone from {serviceIdToLabel(selectedService)}, then tell them to install Keybase. They will
+          automatically join the team once they sign up and prove their {serviceIdToLabel(selectedService)}{' '}
+          username.
+        </Kb.Text>
+      ) : (
+        <Kb.Text center={true} style={styles.emptyServiceText} type="BodySmall">
+          Start a chat with anyone on {serviceIdToLabel(selectedService)}, then tell them to install Keybase.
+          Your messages will unlock after they sign up and prove their {serviceIdToLabel(selectedService)}{' '}
+          username.
+        </Kb.Text>
+      )}
+    </Kb.Box2>
+  )
+}
+
+const RecsAndRecos = (
+  props: Pick<
+    Props,
+    | 'highlightedIndex'
+    | 'recommendations'
+    | 'onScroll'
+    | 'recommendedHideYourself'
+    | 'namespace'
+    | 'selectedService'
+    | 'onAdd'
+    | 'onRemove'
+    | 'teamSoFar'
+  > &
+    SectionListProp
+) => {
+  const {
+    highlightedIndex,
+    recommendations,
+    sectionListRef,
+    onScroll,
+    recommendedHideYourself,
+    namespace,
+    selectedService,
+    onAdd,
+    onRemove,
+    teamSoFar,
+  } = props
+
+  const _listIndexToSectionAndLocalIndex = memoize(
+    (
+      highlightedIndex: number | null,
+      sections: SearchRecSection[] | null
+    ): {index: number; section: SearchRecSection} | null => {
+      if (highlightedIndex !== null && sections !== null) {
+        let index = highlightedIndex
+        for (const section of sections) {
+          if (index >= section.data.length) {
+            index -= section.data.length
+          } else {
+            return {index, section}
+          }
+        }
+      }
+      return null
+    }
+  )
+
+  const _getRecLayout = (
     sections: Array<SearchRecSection>,
     indexInList: number
   ): {index: number; length: number; offset: number} => {
@@ -386,397 +546,395 @@ class TeamBuilding extends React.PureComponent<Props> {
     return {index: indexInList, length, offset}
   }
 
-  _listIndexToSectionAndLocalIndex = memoize(
-    (
-      highlightedIndex: number | null,
-      sections: SearchRecSection[] | null
-    ): {index: number; section: SearchRecSection} | null => {
-      if (highlightedIndex !== null && sections !== null) {
-        let index = highlightedIndex
-        for (const section of sections) {
-          if (index >= section.data.length) {
-            index -= section.data.length
-          } else {
-            return {index, section}
-          }
-        }
-      }
-      return null
-    }
-  )
-
-  _searchInput = () => {
-    const searchPlaceholder = 'Search ' + serviceIdToSearchPlaceholder(this.props.selectedService)
-    return (
-      <Input
-        onChangeText={this.props.onChangeText}
-        onClear={
-          this.props.namespace === 'people' && !this.props.searchString
-            ? this.props.onClose
-            : this.props.onClear
-        }
-        onDownArrowKeyDown={this.props.onDownArrowKeyDown}
-        onUpArrowKeyDown={this.props.onUpArrowKeyDown}
-        onEnterKeyDown={this.props.onEnterKeyDown}
-        placeholder={searchPlaceholder}
-        searchString={this.props.searchString}
-        focusOnMount={!Styles.isMobile || this.props.selectedService !== 'keybase'}
-        focusCounter={this.props.focusInputCounter}
-      />
-    )
-  }
-
-  _listBody = () => {
-    const ResultRow = this.props.namespace === 'people' ? PeopleResult : UserResult
-    const showRecPending =
-      !this.props.searchString && !this.props.recommendations && this.props.selectedService === 'keybase'
-    const showLoading = !!this.props.searchString && !this.props.searchResults
-    if (showRecPending || showLoading) {
-      return (
-        <Kb.Box2
-          direction="vertical"
-          fullWidth={true}
-          fullHeight={true}
-          gap="xtiny"
-          centerChildren={true}
-          style={styles.loadingContainer}
-        >
-          {showLoading && <Kb.Animation animationType="spinner" style={styles.loadingAnimation} />}
-        </Kb.Box2>
-      )
-    }
-    if (!this.props.showRecs && !this.props.showResults && !!this.props.selectedService) {
-      return (
-        <Kb.Box2
-          alignSelf="center"
-          centerChildren={!Styles.isMobile}
-          direction="vertical"
-          fullWidth={true}
-          gap="tiny"
-          style={styles.emptyContainer}
-        >
-          {!Styles.isMobile && (
-            <Kb.Icon
-              fontSize={48}
-              type={serviceIdToIconFont(this.props.selectedService)}
-              style={Styles.collapseStyles([
-                !!this.props.selectedService && {color: serviceIdToAccentColor(this.props.selectedService)},
-              ])}
-            />
-          )}
-          {this.props.namespace === 'people' ? (
-            <Kb.Text center={true} style={styles.emptyServiceText} type="BodySmall">
-              Search for anyone on {serviceIdToLabel(this.props.selectedService)} and start a chat. Your
-              messages will unlock after they install Keybase and prove their{' '}
-              {serviceIdToLabel(this.props.selectedService)} username.
-            </Kb.Text>
-          ) : this.props.namespace === 'teams' ? (
-            <Kb.Text center={true} style={styles.emptyServiceText} type="BodySmall">
-              Add anyone from {serviceIdToLabel(this.props.selectedService)}, then tell them to install
-              Keybase. They will automatically join the team once they sign up and prove their{' '}
-              {serviceIdToLabel(this.props.selectedService)} username.
-            </Kb.Text>
-          ) : (
-            <Kb.Text center={true} style={styles.emptyServiceText} type="BodySmall">
-              Start a chat with anyone on {serviceIdToLabel(this.props.selectedService)}, then tell them to
-              install Keybase. Your messages will unlock after they sign up and prove their{' '}
-              {serviceIdToLabel(this.props.selectedService)} username.
-            </Kb.Text>
-          )}
-        </Kb.Box2>
-      )
-    }
-    if (this.props.showRecs && this.props.recommendations) {
-      const highlightDetails = this._listIndexToSectionAndLocalIndex(
-        this.props.highlightedIndex,
-        this.props.recommendations
-      )
-      return (
-        <Kb.BoxGrow>
-          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.listContainer}>
-            <SectionList
-              ref={this.sectionListRef}
-              contentContainerStyle={{minHeight: '133%'}}
-              keyboardDismissMode="on-drag"
-              keyboardShouldPersistTaps="handled"
-              stickySectionHeadersEnabled={false}
-              scrollEventThrottle={1}
-              onScroll={this.onScroll}
-              selectedIndex={Styles.isMobile ? undefined : this.props.highlightedIndex || 0}
-              sections={this.props.recommendations}
-              keyExtractor={(item: ResultData, index: number) => {
-                if (!isImportContactsEntry(item) && !isSearchHintEntry(item) && item.contact) {
-                  // Ids for contacts are not guaranteed to be unique
-                  return item.userId + index
-                }
-                return isImportContactsEntry(item)
-                  ? 'Import Contacts'
-                  : isSearchHintEntry(item)
-                  ? 'New User Search Hint'
-                  : item.userId
-              }}
-              getItemLayout={this._getRecLayout}
-              renderItem={({index, item: result, section}) =>
-                result.isImportButton ? (
-                  <ContactsImportButton {...this.props} />
-                ) : result.isSearchHint ? (
-                  <SearchHintText />
-                ) : this.props.recommendedHideYourself && result.isYou ? null : (
-                  <ResultRow
-                    namespace={this.props.namespace}
-                    resultForService={this.props.selectedService}
-                    username={result.username}
-                    prettyName={result.prettyName}
-                    pictureUrl={result.pictureUrl}
-                    displayLabel={result.displayLabel}
-                    services={result.services}
-                    inTeam={result.inTeam}
-                    isPreExistingTeamMember={result.isPreExistingTeamMember}
-                    isYou={result.isYou}
-                    followingState={result.followingState}
-                    highlight={
-                      !Styles.isMobile &&
-                      !!highlightDetails &&
-                      this.props.namespace !== 'people' &&
-                      highlightDetails.section === section &&
-                      highlightDetails.index === index
-                    }
-                    userId={result.userId}
-                    onAdd={this.props.onAdd}
-                    onRemove={this.props.onRemove}
-                  />
-                )
-              }
-              renderSectionHeader={({section: {label}}: any) =>
-                label && (!Styles.isMobile || label !== 'Recommendations') ? (
-                  <Kb.SectionDivider label={label} />
-                ) : null
-              }
-            />
-            {Styles.isMobile && this._alphabetIndex()}
-          </Kb.Box2>
-        </Kb.BoxGrow>
-      )
-    }
-
-    return (
-      <>
-        {this.props.searchResults === undefined || this.props.searchResults?.length ? (
-          <Kb.List
-            reAnimated={true}
-            items={this.props.searchResults || []}
-            onScroll={this.onScroll}
-            selectedIndex={this.props.highlightedIndex || 0}
-            style={styles.list}
-            contentContainerStyle={styles.listContentContainer}
-            keyboardShouldPersistTaps="handled"
-            keyProperty="key"
-            onEndReached={this._onEndReached}
-            onEndReachedThreshold={0.1}
-            renderItem={(index, result) => (
+  const highlightDetails = _listIndexToSectionAndLocalIndex(highlightedIndex, recommendations)
+  return (
+    <Kb.BoxGrow>
+      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.listContainer}>
+        <SectionList
+          ref={sectionListRef}
+          contentContainerStyle={{minHeight: '133%'}}
+          keyboardDismissMode="on-drag"
+          keyboardShouldPersistTaps="handled"
+          stickySectionHeadersEnabled={false}
+          scrollEventThrottle={1}
+          onScroll={onScroll}
+          selectedIndex={Styles.isMobile ? undefined : highlightedIndex || 0}
+          sections={recommendations}
+          keyExtractor={(item: ResultData, index: number) => {
+            if (!isImportContactsEntry(item) && !isSearchHintEntry(item) && item.contact) {
+              // Ids for contacts are not guaranteed to be unique
+              return item.userId + index
+            }
+            return isImportContactsEntry(item)
+              ? 'Import Contacts'
+              : isSearchHintEntry(item)
+              ? 'New User Search Hint'
+              : item.userId
+          }}
+          getItemLayout={_getRecLayout}
+          renderItem={({index, item: result, section}) =>
+            result.isImportButton ? (
+              <ContactsImportButton {...props} />
+            ) : result.isSearchHint ? (
+              <SearchHintText />
+            ) : recommendedHideYourself && result.isYou ? null : (
               <ResultRow
-                key={result.username}
-                resultForService={this.props.selectedService}
+                namespace={namespace}
+                resultForService={selectedService}
                 username={result.username}
                 prettyName={result.prettyName}
                 pictureUrl={result.pictureUrl}
                 displayLabel={result.displayLabel}
                 services={result.services}
-                namespace={this.props.namespace}
                 inTeam={result.inTeam}
                 isPreExistingTeamMember={result.isPreExistingTeamMember}
                 isYou={result.isYou}
                 followingState={result.followingState}
-                highlight={!Styles.isMobile && index === this.props.highlightedIndex}
+                highlight={
+                  !Styles.isMobile &&
+                  !!highlightDetails &&
+                  namespace !== 'people' &&
+                  highlightDetails.section === section &&
+                  highlightDetails.index === index
+                }
                 userId={result.userId}
-                onAdd={this.props.onAdd}
-                onRemove={this.props.onRemove}
+                onAdd={onAdd}
+                onRemove={onRemove}
               />
-            )}
+            )
+          }
+          renderSectionHeader={({section: {label}}: any) =>
+            label && (!Styles.isMobile || label !== 'Recommendations') ? (
+              <Kb.SectionDivider label={label} />
+            ) : null
+          }
+        />
+        {Styles.isMobile && (
+          <TeamAlphabetIndex
+            recommendations={recommendations}
+            sectionListRef={sectionListRef}
+            teamSoFar={teamSoFar}
           />
-        ) : (
-          <Kb.Text type="BodySmall" style={styles.noResults}>
-            Sorry, no results were found.
-          </Kb.Text>
         )}
-      </>
+      </Kb.Box2>
+    </Kb.BoxGrow>
+  )
+}
+
+const ListBody = (
+  props: Pick<
+    Props,
+    | 'namespace'
+    | 'searchString'
+    | 'recommendations'
+    | 'selectedService'
+    | 'showRecs'
+    | 'showResults'
+    | 'searchResults'
+    | 'highlightedIndex'
+    | 'onScroll'
+    | 'recommendedHideYourself'
+    | 'onAdd'
+    | 'onRemove'
+    | 'teamSoFar'
+    | 'onSearchForMore'
+  > &
+    SectionListProp
+) => {
+  const {
+    namespace,
+    searchString,
+    recommendations,
+    selectedService,
+    showRecs,
+    showResults,
+    searchResults,
+    highlightedIndex,
+    sectionListRef,
+    onScroll,
+    recommendedHideYourself,
+    onAdd,
+    onRemove,
+    teamSoFar,
+    onSearchForMore,
+  } = props
+  const ResultRow = namespace === 'people' ? PeopleResult : UserResult
+  const showRecPending = !searchString && !recommendations && selectedService === 'keybase'
+  const showLoading = !!searchString && !searchResults
+
+  if (showRecPending || showLoading) {
+    return (
+      <Kb.Box2
+        direction="vertical"
+        fullWidth={true}
+        fullHeight={true}
+        gap="xtiny"
+        centerChildren={true}
+        style={styles.loadingContainer}
+      >
+        {showLoading && <Kb.Animation animationType="spinner" style={styles.loadingAnimation} />}
+      </Kb.Box2>
     )
   }
-
-  _onEndReached = throttle(() => {
-    this.props.onSearchForMore()
-  }, 500)
-
-  onScroll: undefined | (() => void) = Styles.isMobile
-    ? Kb.ReAnimated.event([{nativeEvent: {contentOffset: {y: this.offset}}}], {useNativeDriver: true})
-    : undefined
-
-  private modalHeader = () => {
-    const mobileCancel = Styles.isMobile ? (
-      <Kb.Text type="BodyBigLink" onClick={this.props.onClose}>
-        Cancel
-      </Kb.Text>
-    ) : undefined
-    switch (this.props.namespace) {
-      case 'people': {
-        return Styles.isMobile
-          ? {
-              hideBorder: true,
-              leftButton: mobileCancel,
-            }
-          : undefined
-      }
-      case 'teams': {
-        return {
-          hideBorder: true,
-          leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={this.props.onClose} />,
-          rightButton: Styles.isMobile ? (
-            <Kb.Text
-              type="BodyBigLink"
-              onClick={this.props.teamSoFar.length ? this.props.onFinishTeamBuilding : undefined}
-              style={!this.props.teamSoFar.length && styles.hide}
-            >
-              Done
-            </Kb.Text>
-          ) : undefined,
-          title: <TeamsModalTitle teamID={this.props.teamID ?? noTeamID} title="Search people" />,
-        }
-      }
-      case 'chat2': {
-        const rightButton = Styles.isMobile ? (
-          <Kb.Button
-            label="Start"
-            onClick={this.props.teamSoFar.length ? this.props.onFinishTeamBuilding : undefined}
-            small={true}
-            type="Success"
-            style={!this.props.teamSoFar.length && styles.hide} // Need to hide this so modal can measure correctly
-          />
-        ) : undefined
-        return {hideBorder: true, leftButton: mobileCancel, rightButton, title: this.props.title}
-      }
-      case 'crypto': {
-        const rightButton = Styles.isMobile ? (
-          <Kb.Button
-            label={this.props.goButtonLabel ?? 'Start'}
-            onClick={this.props.teamSoFar.length ? this.props.onFinishTeamBuilding : undefined}
-            small={true}
-            type="Success"
-            style={!this.props.teamSoFar.length && styles.hide} // Need to hide this so modal can measure correctly
-          />
-        ) : undefined
-        return {hideBorder: true, leftButton: mobileCancel, rightButton, title: this.props.title}
-      }
-      default: {
-        return {hideBorder: true, leftButton: mobileCancel, title: this.props.title}
-      }
-    }
+  if (!showRecs && !showResults && !!selectedService) {
+    return <Suggestions />
   }
 
-  render() {
-    const props = this.props
-
-    let content: React.ReactNode
-    switch (props.selectedService) {
-      case 'email':
-        content = (
-          <EmailSearch
-            continueLabel={props.teamSoFar.length > 0 ? 'Add' : 'Continue'}
-            namespace={props.namespace}
-            teamBuildingSearchResults={props.teamBuildingSearchResults}
-            search={props.search}
-          />
-        )
-        break
-      case 'phone':
-        content = (
-          <PhoneSearch
-            continueLabel={props.teamSoFar.length > 0 ? 'Add' : 'Continue'}
-            namespace={props.namespace}
-            search={props.search}
-            teamBuildingSearchResults={props.teamBuildingSearchResults}
-          />
-        )
-        break
-      default:
-        content = (
-          <>
-            {this._searchInput()}
-            {props.namespace === 'people' && !Styles.isMobile && (
-              <FilteredServiceTabBar
-                filterServices={props.filterServices}
-                selectedService={props.selectedService}
-                onChangeService={props.onChangeService}
-                serviceResultCount={props.serviceResultCount}
-                showServiceResultCount={props.showServiceResultCount}
-                servicesShown={5} // wider bar, show more services
-                minimalBorder={true} // only show bottom border on icon when active
-                offset={1}
-              />
-            )}
-            {this._listBody()}
-            {props.waitingForCreate && (
-              <Kb.Box2 direction="vertical" style={styles.waiting} alignItems="center">
-                <Kb.ProgressIndicator type="Small" white={true} style={styles.waitingProgress} />
-              </Kb.Box2>
-            )}
-          </>
-        )
-    }
-    const teamBox = !!props.teamSoFar.length && (
-      <TeamBox
-        allowPhoneEmail={props.selectedService === 'keybase' && props.includeContacts}
-        onChangeText={props.onChangeText}
-        onDownArrowKeyDown={props.onDownArrowKeyDown}
-        onUpArrowKeyDown={props.onUpArrowKeyDown}
-        onEnterKeyDown={props.onEnterKeyDown}
-        onFinishTeamBuilding={props.onFinishTeamBuilding}
-        onRemove={props.onRemove}
-        teamSoFar={props.teamSoFar}
-        searchString={props.searchString}
-        rolePickerProps={props.rolePickerProps}
-        goButtonLabel={props.goButtonLabel}
-        waitingKey={props.teamID ? TeamConstants.teamWaitingKey(props.teamID) : null}
+  if (showRecs && recommendations) {
+    return (
+      <RecsAndRecos
+        highlightedIndex={highlightedIndex}
+        recommendations={recommendations}
+        sectionListRef={sectionListRef}
+        onScroll={onScroll}
+        recommendedHideYourself={recommendedHideYourself}
+        namespace={namespace}
+        selectedService={selectedService}
+        onAdd={onAdd}
+        onRemove={onRemove}
+        teamSoFar={teamSoFar}
       />
     )
-
-    // If there are no filterServices or if the filterServices has a phone
-    const showContactsBanner =
-      Styles.isMobile && (!props.filterServices || props.filterServices.includes('phone'))
-
-    return (
-      <Kb.Modal2 header={this.modalHeader()}>
-        <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexOne} fullWidth={true}>
-          {teamBox &&
-            (Styles.isMobile ? (
-              <Kb.Box2 direction="horizontal" fullWidth={true}>
-                {teamBox}
-              </Kb.Box2>
-            ) : (
-              teamBox
-            ))}
-          {!!props.error && <Kb.Banner color="red">{props.error}</Kb.Banner>}
-          {(props.namespace !== 'people' || Styles.isMobile) && (
-            <FilteredServiceTabBar
-              filterServices={props.filterServices}
-              selectedService={props.selectedService}
-              onChangeService={props.onChangeService}
-              serviceResultCount={props.serviceResultCount}
-              showServiceResultCount={props.showServiceResultCount}
-              offset={this.offset}
-            />
-          )}
-          {showContactsBanner && (
-            <ContactsBanner
-              {...props}
-              onRedoSearch={() => props.onChangeText(props.searchString)}
-              onRedoRecs={props.fetchUserRecs}
-            />
-          )}
-          {content}
-        </Kb.Box2>
-      </Kb.Modal2>
-    )
   }
+
+  const _onEndReached = throttle(() => {
+    onSearchForMore()
+  }, 500)
+
+  return (
+    <>
+      {searchResults === undefined || searchResults?.length ? (
+        <Kb.List
+          reAnimated={true}
+          items={searchResults || []}
+          onScroll={onScroll}
+          selectedIndex={highlightedIndex || 0}
+          style={styles.list}
+          contentContainerStyle={styles.listContentContainer}
+          keyboardShouldPersistTaps="handled"
+          keyProperty="key"
+          onEndReached={_onEndReached}
+          onEndReachedThreshold={0.1}
+          renderItem={(index, result) => (
+            <ResultRow
+              key={result.username}
+              resultForService={selectedService}
+              username={result.username}
+              prettyName={result.prettyName}
+              pictureUrl={result.pictureUrl}
+              displayLabel={result.displayLabel}
+              services={result.services}
+              namespace={namespace}
+              inTeam={result.inTeam}
+              isPreExistingTeamMember={result.isPreExistingTeamMember}
+              isYou={result.isYou}
+              followingState={result.followingState}
+              highlight={!Styles.isMobile && index === highlightedIndex}
+              userId={result.userId}
+              onAdd={onAdd}
+              onRemove={onRemove}
+            />
+          )}
+        />
+      ) : (
+        <Kb.Text type="BodySmall" style={styles.noResults}>
+          Sorry, no results were found.
+        </Kb.Text>
+      )}
+    </>
+  )
+}
+
+// TODO: the type of this is any
+// If we fix this type, we'll need to add a bunch more mobile-only props to Kb.SectionList since this code uses
+// a bunch of the native props.
+const SectionList: typeof Kb.SectionList = Styles.isMobile
+  ? Kb.ReAnimated.createAnimatedComponent(Kb.SectionList)
+  : Kb.SectionList
+
+const TeamBuilding = (props: Props) => {
+  const {
+    fetchUserRecs,
+    focusInputCounter,
+    goButtonLabel,
+    namespace,
+    onChangeText,
+    onClear,
+    onClose,
+    onDownArrowKeyDown,
+    onEnterKeyDown,
+    onFinishTeamBuilding,
+    onUpArrowKeyDown,
+    recommendations,
+    searchString,
+    selectedService,
+    teamID,
+    teamSoFar,
+    title,
+  } = props
+
+  const offset = React.useRef(Styles.isMobile ? new Kb.ReAnimated.Value(0) : undefined)
+  const sectionListRef = React.useRef<Kb.SectionList<Section<ResultData, SearchRecSection>>>(null)
+
+  React.useEffect(() => {
+    fetchUserRecs()
+    // once
+    // eslint-disable-next-line
+  }, [])
+
+  const onScroll: undefined | (() => void) = Styles.isMobile
+    ? Kb.ReAnimated.event([{nativeEvent: {contentOffset: {y: offset.current}}}], {useNativeDriver: true})
+    : undefined
+
+  let content: React.ReactNode
+  switch (selectedService) {
+    case 'email':
+      content = (
+        <EmailSearch
+          continueLabel={teamSoFar.length > 0 ? 'Add' : 'Continue'}
+          namespace={namespace}
+          teamBuildingSearchResults={teamBuildingSearchResults}
+          search={search}
+        />
+      )
+      break
+    case 'phone':
+      content = (
+        <PhoneSearch
+          continueLabel={teamSoFar.length > 0 ? 'Add' : 'Continue'}
+          namespace={namespace}
+          search={search}
+          teamBuildingSearchResults={teamBuildingSearchResults}
+        />
+      )
+      break
+    default:
+      content = (
+        <>
+          <SearchInput
+            selectedService={selectedService}
+            onChangeText={onChangeText}
+            namespace={namespace}
+            onDownArrowKeyDown={onDownArrowKeyDown}
+            onUpArrowKeyDown={onUpArrowKeyDown}
+            onEnterKeyDown={onEnterKeyDown}
+            searchString={searchString}
+            focusInputCounter={focusInputCounter}
+            onClear={onClear}
+            onClose={onClose}
+          />
+          {namespace === 'people' && !Styles.isMobile && (
+            <FilteredServiceTabBar
+              filterServices={filterServices}
+              selectedService={selectedService}
+              onChangeService={onChangeService}
+              serviceResultCount={serviceResultCount}
+              showServiceResultCount={showServiceResultCount}
+              servicesShown={5} // wider bar, show more services
+              minimalBorder={true} // only show bottom border on icon when active
+              offset={1}
+            />
+          )}
+          <ListBody />
+          {waitingForCreate && (
+            <Kb.Box2 direction="vertical" style={styles.waiting} alignItems="center">
+              <Kb.ProgressIndicator type="Small" white={true} style={styles.waitingProgress} />
+            </Kb.Box2>
+          )}
+        </>
+      )
+  }
+  const teamBox = !!teamSoFar.length && (
+    <TeamBox
+      allowPhoneEmail={selectedService === 'keybase' && includeContacts}
+      onChangeText={onChangeText}
+      onDownArrowKeyDown={onDownArrowKeyDown}
+      onUpArrowKeyDown={onUpArrowKeyDown}
+      onEnterKeyDown={onEnterKeyDown}
+      onFinishTeamBuilding={onFinishTeamBuilding}
+      onRemove={onRemove}
+      teamSoFar={teamSoFar}
+      searchString={searchString}
+      rolePickerProps={rolePickerProps}
+      goButtonLabel={goButtonLabel}
+      waitingKey={teamID ? TeamConstants.teamWaitingKey(teamID) : null}
+    />
+  )
+
+  // If there are no filterServices or if the filterServices has a phone
+  const showContactsBanner = Styles.isMobile && (!filterServices || filterServices.includes('phone'))
+
+  return (
+    <Kb.Modal2
+      header={
+        <ModalHeader
+          onClose={onClose}
+          namespace={namespace}
+          teamSoFar={teamSoFar}
+          teamID={teamID}
+          onFinishTeamBuilding={onFinishTeamBuilding}
+          title={title}
+          goButtonLabel={goButtonLabel}
+        />
+      }
+    >
+      <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexOne} fullWidth={true}>
+        {teamBox &&
+          (Styles.isMobile ? (
+            <Kb.Box2 direction="horizontal" fullWidth={true}>
+              {teamBox}
+            </Kb.Box2>
+          ) : (
+            teamBox
+          ))}
+        {!!error && <Kb.Banner color="red">{error}</Kb.Banner>}
+        {(namespace !== 'people' || Styles.isMobile) && (
+          <FilteredServiceTabBar
+            filterServices={filterServices}
+            selectedService={selectedService}
+            onChangeService={onChangeService}
+            serviceResultCount={serviceResultCount}
+            showServiceResultCount={showServiceResultCount}
+            offset={offset.current}
+          />
+        )}
+        {showContactsBanner && (
+          <ContactsBanner
+            {...props}
+            onRedoSearch={() => onChangeText(searchString)}
+            onRedoRecs={fetchUserRecs}
+          />
+        )}
+        {content}
+      </Kb.Box2>
+    </Kb.Modal2>
+  )
+}
+
+TeamBuilding.navigationOptions = ({route}) => {
+  const namespace: unknown = route.params.namespace
+  const common = {
+    modal2: true,
+    modal2AvoidTabs: false,
+    modal2ClearCover: false,
+    modal2Style: {alignSelf: 'center'},
+    modal2Type: 'DefaultFullHeight',
+  }
+
+  return namespace === 'people'
+    ? {
+        ...common,
+        modal2AvoidTabs: true,
+        modal2ClearCover: true,
+        modal2Style: {
+          alignSelf: 'flex-start',
+          paddingLeft: Styles.globalMargins.xsmall,
+          paddingRight: Styles.globalMargins.xsmall,
+          paddingTop: Styles.globalMargins.mediumLarge,
+        },
+        modal2Type: 'DefaultFullWidth',
+      }
+    : common
 }
 
 const styles = Styles.styleSheetCreate(
