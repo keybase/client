@@ -290,7 +290,7 @@ export default () => {
       backgroundThrottling: false,
       contextIsolation: false,
       devTools: showDevTools,
-      nodeIntegration: true,
+      nodeIntegration: false,
       nodeIntegrationInWorker: false,
       preload: `${assetRoot}preload${__DEV__ ? '.dev' : ''}.bundle.js`,
       spellcheck: !disableSpellCheck,

@@ -764,7 +764,7 @@ const plumbEvents = () => {
           titleBarStyle: 'customButtonsOnHover' as const,
           webPreferences: {
             contextIsolation: false,
-            nodeIntegration: true,
+            nodeIntegration: false,
             nodeIntegrationInWorker: false,
             preload: `${assetRoot}preload${__DEV__ ? '.dev' : ''}.bundle.js`,
           },

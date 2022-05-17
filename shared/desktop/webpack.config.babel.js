@@ -171,6 +171,11 @@ const config = (_, {mode}) => {
   const makeHtmlName = name => `${name}${isDev ? '.dev' : ''}.html`
   const makeViewPlugins = names =>
     [
+      // needed to help webpack and electron renderer
+      new webpack.DefinePlugin({
+        global: 'globalThis',
+        'process.env.NODE_DEBUG': JSON.stringify(process.env.NODE_DEBUG),
+      }),
       ...hmrPlugin,
       // Map since we generate multiple html files
       ...names.map(
@@ -263,10 +268,14 @@ const config = (_, {mode}) => {
           optimization: {splitChunks: {chunks: 'all'}},
         }),
     plugins: makeViewPlugins(entries),
-    // TODO switch to web
-    // target: 'web',
-    // node: false,
-    target: 'electron-renderer',
+    resolve: {
+      alias: {
+        ...commonConfig.resolve.alias,
+        'path-parse': false,
+      },
+    },
+    target: 'web',
+    node: false,
   })
   const preloadConfig = merge(commonConfig, {
     entry: {preload: `./desktop/renderer/preload.desktop.tsx`},

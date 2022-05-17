@@ -4,6 +4,7 @@ import {socketPath} from '../constants/platform.desktop'
 import {printRPCBytes} from '../local-debug'
 import type {SendArg, createClientType, incomingRPCCallbackType, connectDisconnectCB} from './index.platform'
 import KB2 from '../util/electron.desktop'
+import {Buffer} from 'buffer/'
 
 const {engineSend, mainWindowDispatch, ipcRendererOn} = KB2.functions
 const {isRenderer} = KB2.constants
