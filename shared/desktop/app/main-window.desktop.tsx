@@ -288,7 +288,7 @@ export default () => {
     show: false,
     webPreferences: {
       backgroundThrottling: false,
-      contextIsolation: false,
+      contextIsolation: true,
       devTools: showDevTools,
       nodeIntegration: false,
       nodeIntegrationInWorker: false,
