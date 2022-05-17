@@ -1,4 +1,3 @@
-// import net from 'net'
 import logger from '../logger'
 import {TransportShared, sharedCreateClient, rpcLog} from './transport-shared'
 import {socketPath} from '../constants/platform.desktop'

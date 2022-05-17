@@ -67,9 +67,6 @@ const setupApp = (store, runSagas) => {
   eng.sagasAreReady()
 
   ipcRendererOn?.('KBdispatchAction', (_: any, action: TypedActions) => {
-    // if (action.type === 'nodeEngineToRenderer') {
-    //   eng._rpcIncoming(action.payload)
-    // }
     // we MUST convert this else we'll run into issues with redux. See https://github.com/rackt/redux/issues/830
     // This is because this is touched due to the remote proxying. We get a __proto__ which causes the _.isPlainObject check to fail. We use
     setTimeout(() => {
