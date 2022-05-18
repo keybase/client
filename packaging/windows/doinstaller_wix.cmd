@@ -187,26 +187,26 @@ goto:eof
 
 if %DevCert% EQ 0 (
 
-%SIGNTOOL% sign /i digicert /a /tr http://timestamp.digicert.com %~1
-IF %ERRORLEVEL% NEQ 0 (
-  EXIT /B 1
-)
-%SIGNTOOL% sign /i digicert /a /as /fd SHA256 /tr http://timestamp.digicert.com /td SHA256 %~1
-IF %ERRORLEVEL% NEQ 0 (
-  EXIT /B 1
-)
+  %SIGNTOOL% sign /i digicert /a /tr http://timestamp.digicert.com %~1
+  IF %ERRORLEVEL% NEQ 0 (
+    EXIT /B 1
+  )
+  %SIGNTOOL% sign /i digicert /a /as /fd SHA256 /tr http://timestamp.digicert.com /td SHA256 %~1
+  IF %ERRORLEVEL% NEQ 0 (
+    EXIT /B 1
+  )
 
 ) else (
 
-%SIGNTOOL% sign /a /tr http://timestamp.digicert.com %~1
-IF %ERRORLEVEL% NEQ 0 (
-  EXIT /B 1
-)
-%SIGNTOOL% sign /a /as /fd SHA256 /tr http://timestamp.digicert.com /td SHA256 %~1
-IF %ERRORLEVEL% NEQ 0 (
-  EXIT /B 1
-)
-
+  %SIGNTOOL% sign /a /tr http://timestamp.digicert.com %~1
+  IF %ERRORLEVEL% NEQ 0 (
+    EXIT /B 1
+  )
+  %SIGNTOOL% sign /a /as /fd SHA256 /tr http://timestamp.digicert.com /td SHA256 %~1
+  IF %ERRORLEVEL% NEQ 0 (
+    EXIT /B 1
+  )
+  
 )
 
 goto:eof
