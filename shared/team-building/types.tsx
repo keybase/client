@@ -1,5 +1,4 @@
-import {type TeamRoleType, type TeamID} from '../constants/types/teams'
-import type {Props as OriginalRolePickerProps} from '../teams/role-picker'
+import {type TeamID} from '../constants/types/teams'
 import type {
   AllowedNamespace,
   FollowingState,
@@ -43,16 +42,6 @@ export type SearchRecSection = {
   data: Array<ResultData>
 }
 
-export type RolePickerProps = {
-  onSelectRole: (role: TeamRoleType) => void
-  sendNotification: boolean
-  changeSendNotification: (sendNotification: boolean) => void
-  showRolePicker: boolean
-  changeShowRolePicker: (showRolePicker: boolean) => void
-  selectedRole: TeamRoleType
-  disabledRoles: OriginalRolePickerProps<false>['disabledRoles']
-}
-
 export type Props = {
   error?: string
   filterServices?: Array<ServiceIdWithContact>
@@ -75,7 +64,6 @@ export type Props = {
   onSearchForMore: () => void
   onUpArrowKeyDown: () => void
   recommendations: Array<SearchRecSection> | null
-  rolePickerProps?: RolePickerProps
   selectedService: ServiceIdWithContact
   search: (query: string, service: ServiceIdWithContact) => void
   searchResults: Array<SearchResult> | undefined

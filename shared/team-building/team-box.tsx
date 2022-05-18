@@ -4,7 +4,6 @@ import * as React from 'react'
 import * as Styles from '../styles'
 import GoButton from './go-button'
 import UserBubble from './user-bubble'
-import type {RolePickerProps} from './types'
 import type {SelectedUser, GoButtonLabel} from '../constants/types/team-building'
 import {e164ToDisplay} from '../util/phone-numbers'
 
@@ -18,7 +17,6 @@ type Props = {
   onRemove: (userId: string) => void
   onFinishTeamBuilding: () => void
   searchString: string
-  rolePickerProps?: RolePickerProps
   goButtonLabel?: GoButtonLabel
   waitingKey: string | null
 }

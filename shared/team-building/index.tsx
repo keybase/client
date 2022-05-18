@@ -134,7 +134,6 @@ const TeamBuilding = (props: Types.Props) => {
     searchString,
     selectedService,
     serviceResultCount,
-    rolePickerProps,
     error,
     showServiceResultCount,
     teamBuildingSearchResults,
@@ -215,7 +214,7 @@ const TeamBuilding = (props: Types.Props) => {
             onAdd={onAdd}
             onRemove={onRemove}
             teamSoFar={teamSoFar}
-            onSearchForMore={onSearchForMore}
+            onSearchForMore={onSearchForMore /* TODO */}
             offset={offset}
           />
           {waitingForCreate && (
@@ -237,7 +236,6 @@ const TeamBuilding = (props: Types.Props) => {
       onRemove={onRemove}
       teamSoFar={teamSoFar}
       searchString={searchString}
-      rolePickerProps={rolePickerProps}
       goButtonLabel={goButtonLabel}
       waitingKey={teamID ? TeamConstants.teamWaitingKey(teamID) : null}
     />
