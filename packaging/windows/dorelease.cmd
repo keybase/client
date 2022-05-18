@@ -79,7 +79,7 @@ if %UpdateChannel% NEQ "None" (
 if [%UpdateChannel%] NEQ [Smoke] (
     if [%UpdateChannel%] NEQ [SmokeCI] (
         echo "Not a smoke build"
-        goto :no_smokea
+        goto:no_smokea
     )
 )
 
@@ -109,7 +109,7 @@ if [%UpdateChannel%] NEQ [Smoke2] (
     echo "Non Smoke2 build"
     %OUTPUT% "Successfully built Windows with client: %KEYBASE_VERSION%"
     %OUTPUT% "https://prerelease.keybase.io/windows/Keybase_%BUILD_TAG_ENCODED%.%GOARCH%.msi"
-    goto :no_smokeb
+    goto:no_smokeb
 )
 ::Smoke B json
 s3browser-con upload prerelease.keybase.io  %GOPATH%\src\github.com\keybase\client\packaging\windows\%BUILD_TAG%\*.json prerelease.keybase.io/windows-support  || goto:build_error || EXIT /B 1
