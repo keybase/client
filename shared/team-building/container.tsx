@@ -5,8 +5,6 @@ import trim from 'lodash/trim'
 import TeamBuilding from '.'
 import type {SearchResult, SearchRecSection} from './types'
 import {numSectionLabel} from './recs-and-recos'
-import * as WaitingConstants from '../constants/waiting'
-import * as ChatConstants from '../constants/chat2'
 import * as TeamBuildingGen from '../actions/team-building-gen'
 import * as Container from '../util/container'
 import * as Constants from '../constants/team-building'
@@ -103,20 +101,6 @@ const deriveUserFromUserIdFn = memoize(
 )
 
 const emptyMap = new Map()
-
-const deriveOnChangeText = memoize(
-  (
-      onChangeText: (newText: string) => void,
-      search: (text: string, service: Types.ServiceIdWithContact) => void,
-      selectedService: Types.ServiceIdWithContact,
-      resetHighlightIndex: Function
-    ) =>
-    (newText: string) => {
-      onChangeText(newText)
-      search(newText, selectedService)
-      resetHighlightIndex()
-    }
-)
 
 const alphabet = 'abcdefghijklmnopqrstuvwxyz'
 const aCharCode = alphabet.charCodeAt(0)
@@ -298,9 +282,6 @@ const StateWrapperForTeamBuilding = () => {
   const contactsPermissionStatus = Container.useSelector(state => state.settings.contacts.permissionStatus)
   const username = Container.useSelector(state => state.config.username)
   const following = Container.useSelector(state => state.config.following)
-  const waitingForCreate = Container.useSelector(state =>
-    WaitingConstants.anyWaiting(state, ChatConstants.waitingKeyCreating)
-  )
 
   const showingContactsButton =
     Container.isMobile && contactsPermissionStatus !== 'never_ask_again' && !contactsImported
@@ -359,7 +340,12 @@ const StateWrapperForTeamBuilding = () => {
     ? sortAndSplitRecommendations(recommendations, showingContactsButton)
     : null
   const userResultsToShow = showRecs ? flattenRecommendations(recommendationsSections || []) : searchResults
-  const onChangeText = deriveOnChangeText(setSearchString, _search, selectedService, resetHighlightIndex)
+  const onChangeText = (newText: string) => {
+    setSearchString(newText)
+    _search(newText, selectedService)
+    resetHighlightIndex()
+  }
+
   const onClear = () => onChangeText('')
   const onSearchForMore = () => {
     if (searchResults && searchResults.length >= 10) {
@@ -441,7 +427,6 @@ const StateWrapperForTeamBuilding = () => {
     teamID,
     teamSoFar,
     title: _title,
-    waitingForCreate,
   }
 
   return <TeamBuilding {...TEMPPROPS} />

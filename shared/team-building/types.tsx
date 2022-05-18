@@ -71,7 +71,6 @@ export type Props = {
   teamID: TeamID | undefined
   teamSoFar: Array<SelectedUser>
   title: string
-  waitingForCreate: boolean
 }
 
 export type OnScrollProps = {

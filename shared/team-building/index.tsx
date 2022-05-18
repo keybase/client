@@ -1,4 +1,6 @@
 import * as Constants from '../constants/team-building'
+import * as WaitingConstants from '../constants/waiting'
+import * as ChatConstants from '../constants/chat2'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
@@ -138,9 +140,11 @@ const TeamBuilding = (props: Types.Props) => {
     teamID,
     teamSoFar,
     title,
-    waitingForCreate,
   } = props
 
+  const waitingForCreate = Container.useSelector(state =>
+    WaitingConstants.anyWaiting(state, ChatConstants.waitingKeyCreating)
+  )
   const dispatch = Container.useDispatch()
 
   const fetchUserRecs = React.useCallback(() => {
