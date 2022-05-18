@@ -200,26 +200,6 @@ const deriveOnChangeText = memoize(
     }
 )
 
-const deriveOnDownArrowKeyDown = memoize(
-  (maxIndex: number, incHighlightIndex: (maxIndex: number) => void) => () => incHighlightIndex(maxIndex)
-)
-
-const deriveOnChangeService = memoize(
-  (
-      onChangeService: OwnProps['onChangeService'],
-      incFocusInputCounter: OwnProps['incFocusInputCounter'],
-      search: (text: string, service: Types.ServiceIdWithContact) => void,
-      searchString: string
-    ) =>
-    (service: Types.ServiceIdWithContact) => {
-      onChangeService(service)
-      incFocusInputCounter()
-      if (!Types.isContactServiceId(service)) {
-        search(searchString, service)
-      }
-    }
-)
-
 const alphabet = 'abcdefghijklmnopqrstuvwxyz'
 const aCharCode = alphabet.charCodeAt(0)
 const alphaSet = new Set(alphabet)
@@ -400,7 +380,7 @@ const Connected: any = Container.connect(
       teamBuildingSearchResults,
     } = stateProps
     const {
-      onChangeService,
+      onChangeService: _onChangeService,
       filterServices,
       focusInputCounter,
       goButtonLabel,
@@ -456,6 +436,16 @@ const Connected: any = Container.connect(
       teamSoFar,
     })
 
+    const onDownArrowKeyDown = () => incHighlightIndex((userResultsToShow?.length ?? 1) - 1)
+
+    const onChangeService = (service: Types.ServiceIdWithContact) => {
+      _onChangeService(service)
+      incFocusInputCounter()
+      if (!Types.isContactServiceId(service)) {
+        _search(searchString, service)
+      }
+    }
+
     return {
       error,
       filterServices,
@@ -465,11 +455,11 @@ const Connected: any = Container.connect(
       includeContacts: namespace === 'chat2',
       namespace,
       onAdd,
-      onChangeService: deriveOnChangeService(onChangeService, incFocusInputCounter, _search, searchString),
+      onChangeService,
       onChangeText,
       onClear,
       onClose: _onCancelTeamBuilding,
-      onDownArrowKeyDown: deriveOnDownArrowKeyDown((userResultsToShow || []).length - 1, incHighlightIndex),
+      onDownArrowKeyDown,
       onEnterKeyDown,
       onFinishTeamBuilding,
       onRemove,

@@ -115,7 +115,6 @@ const TeamBuilding = (props: Types.Props) => {
     focusInputCounter,
     goButtonLabel,
     highlightedIndex,
-    includeContacts,
     namespace,
     onAdd,
     onChangeService,
@@ -227,7 +226,7 @@ const TeamBuilding = (props: Types.Props) => {
   }
   const teamBox = !!teamSoFar.length && (
     <TeamBox
-      allowPhoneEmail={selectedService === 'keybase' && includeContacts}
+      allowPhoneEmail={selectedService === 'keybase' && namespace === 'chat2'}
       onChangeText={onChangeText}
       onDownArrowKeyDown={onDownArrowKeyDown}
       onUpArrowKeyDown={onUpArrowKeyDown}

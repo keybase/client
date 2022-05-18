@@ -48,7 +48,6 @@ export type Props = {
   focusInputCounter: number
   goButtonLabel?: GoButtonLabel
   highlightedIndex: number | null
-  includeContacts: boolean
   namespace: AllowedNamespace
   onAdd: (userId: string) => void
   onChangeService: (newService: ServiceIdWithContact) => void
