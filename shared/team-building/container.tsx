@@ -3,7 +3,7 @@ import * as React from 'react'
 import debounce from 'lodash/debounce'
 import trim from 'lodash/trim'
 import TeamBuilding from '.'
-import type {SearchResult, SearchRecSection, Props as TeamBuildingProps} from './types'
+import type {SearchResult, SearchRecSection} from './types'
 import {numSectionLabel} from './recs-and-recos'
 import * as WaitingConstants from '../constants/waiting'
 import * as ChatConstants from '../constants/chat2'
@@ -13,30 +13,11 @@ import * as Constants from '../constants/team-building'
 import * as Types from '../constants/types/team-building'
 import type * as TeamTypes from '../constants/types/teams'
 import {requestIdleCallback} from '../util/idle-callback'
-import {memoizeShallow, memoize} from '../util/memoize'
+import {memoize} from '../util/memoize'
 import {getTeamDetails, getTeamMeta} from '../constants/teams'
 import {formatAnyPhoneNumbers} from '../util/phone-numbers'
 import {isMobile} from '../constants/platform'
 import {useRoute} from '@react-navigation/native'
-
-type OwnProps = {
-  decHighlightIndex: () => void
-  filterServices?: Array<Types.ServiceIdWithContact>
-  focusInputCounter: number
-  goButtonLabel?: Types.GoButtonLabel
-  highlightedIndex: number
-  incFocusInputCounter: () => void
-  incHighlightIndex: (maxIndex: number) => void
-  namespace: Types.AllowedNamespace
-  onChangeService: (newService: Types.ServiceIdWithContact) => void
-  onChangeText: (newText: string) => void
-  resetHighlightIndex: (resetToHidden?: boolean) => void
-  searchString: string
-  selectedService: Types.ServiceIdWithContact
-  showServiceResultCount: boolean
-  teamID?: TeamTypes.TeamID
-  title: string
-}
 
 const expensiveDeriveResults = (
   searchResults: Array<Types.User> | undefined,
@@ -122,69 +103,6 @@ const deriveUserFromUserIdFn = memoize(
 )
 
 const emptyMap = new Map()
-
-const makeDebouncedSearch = (time: number) =>
-  debounce(
-    (
-      dispatch: Container.TypedDispatch,
-      namespace: Types.AllowedNamespace,
-      query: string,
-      service: Types.ServiceIdWithContact,
-      includeContacts: boolean,
-      limit?: number
-    ) => {
-      requestIdleCallback(() => {
-        dispatch(
-          TeamBuildingGen.createSearch({
-            includeContacts,
-            limit,
-            namespace,
-            query,
-            service,
-          })
-        )
-      })
-    },
-    time
-  )
-
-const debouncedSearch = makeDebouncedSearch(500) // 500ms debounce on social searches
-const debouncedSearchKeybase = makeDebouncedSearch(200) // 200 ms debounce on keybase searches
-
-const deriveOnEnterKeyDown = memoizeShallow(
-  (p: {
-      changeText: (s: string) => void
-      highlightedIndex: number
-      onAdd: (id: string) => void
-      onFinishTeamBuilding: () => void
-      onRemove: (id: string) => void
-      searchResults: Array<SearchResult>
-      searchStringIsEmpty: string
-      teamSoFar: Array<Types.SelectedUser>
-    }) =>
-    () => {
-      const {onRemove, changeText, searchStringIsEmpty, onFinishTeamBuilding} = p
-      const {searchResults, teamSoFar, highlightedIndex, onAdd} = p
-      const selectedResult = !!searchResults && searchResults[highlightedIndex]
-      if (selectedResult) {
-        // We don't handle cases where they hit enter on someone that is already a
-        // team member
-        if (selectedResult.isPreExistingTeamMember) {
-          return
-        }
-        if (teamSoFar.filter(u => u.userId === selectedResult.userId).length) {
-          onRemove(selectedResult.userId)
-          changeText('')
-        } else {
-          onAdd(selectedResult.userId)
-        }
-      } else if (searchStringIsEmpty && !!teamSoFar.length) {
-        // They hit enter with an empty search string and a teamSoFar
-        // We'll Finish the team building
-        onFinishTeamBuilding()
-      }
-    }
-)
 
 const deriveOnChangeText = memoize(
   (
@@ -296,190 +214,33 @@ const flattenRecommendations = memoize((recommendations: Array<SearchRecSection>
   return result
 })
 
-type TeamBuildingPropsPlusSome = TeamBuildingProps & {
-  [key: string]: any
-}
-const Connected: any = Container.connect(
-  (state: Container.TypedState, ownProps: OwnProps) => {
-    const {namespace, searchString, selectedService, teamID} = ownProps
-    const teamBuildingState = state[namespace].teamBuilding
-    const teamBuildingSearchResults = teamBuildingState.searchResults
-    const userResults: Array<Types.User> | undefined = teamBuildingState.searchResults
-      .get(trim(searchString))
-      ?.get(selectedService)
-
-    const maybeTeamMeta = teamID ? getTeamMeta(state, teamID) : undefined
-    const maybeTeamDetails = teamID ? getTeamDetails(state, teamID) : undefined
-    const preExistingTeamMembers: TeamTypes.TeamDetails['members'] = maybeTeamDetails?.members ?? emptyMap
-
-    const contactsImported = state.settings.contacts.importEnabled
-    const contactsPermissionStatus = state.settings.contacts.permissionStatus
-
-    const showingContactsButton =
-      Container.isMobile && contactsPermissionStatus !== 'never_ask_again' && !contactsImported
-
-    return {
-      error: teamBuildingState.error,
-      recommendations: deriveRecommendation(
-        teamBuildingState.userRecs,
-        teamBuildingState.teamSoFar,
-        state.config.username,
-        state.config.following,
-        preExistingTeamMembers
-      ),
-      searchResults: deriveSearchResults(
-        userResults,
-        teamBuildingState.teamSoFar,
-        state.config.username,
-        state.config.following,
-        preExistingTeamMembers
-      ),
-      sendNotification: teamBuildingState.sendNotification,
-      serviceResultCount: deriveServiceResultCount(teamBuildingState.searchResults, searchString),
-      showServiceResultCount: !isMobile && !!searchString,
-      showingContactsButton,
-      teamBuildingSearchResults,
-      teamSoFar: deriveTeamSoFar(teamBuildingState.teamSoFar),
-      teamname: maybeTeamMeta?.teamname,
-      userFromUserId: deriveUserFromUserIdFn(userResults, teamBuildingState.userRecs),
-      waitingForCreate: WaitingConstants.anyWaiting(state, ChatConstants.waitingKeyCreating),
-    }
-  },
-  (dispatch: Container.TypedDispatch, {namespace, teamID}: OwnProps) => ({
-    _onAdd: (user: Types.User) =>
-      dispatch(TeamBuildingGen.createAddUsersToTeamSoFar({namespace, users: [user]})),
-    _onCancelTeamBuilding: () => dispatch(TeamBuildingGen.createCancelTeamBuilding({namespace})),
-    _search: (query: string, service: Types.ServiceIdWithContact, limit?: number) => {
-      const func = service === 'keybase' ? debouncedSearchKeybase : debouncedSearch
-      return func(dispatch, namespace, query, service, namespace === 'chat2', limit)
+const makeDebouncedSearch = (time: number) =>
+  debounce(
+    (
+      dispatch: Container.TypedDispatch,
+      namespace: Types.AllowedNamespace,
+      query: string,
+      service: Types.ServiceIdWithContact,
+      includeContacts: boolean,
+      limit?: number
+    ) => {
+      requestIdleCallback(() => {
+        dispatch(
+          TeamBuildingGen.createSearch({
+            includeContacts,
+            limit,
+            namespace,
+            query,
+            service,
+          })
+        )
+      })
     },
-    onFinishTeamBuilding: () =>
-      dispatch(
-        namespace === 'teams'
-          ? TeamBuildingGen.createFinishTeamBuilding({namespace, teamID})
-          : TeamBuildingGen.createFinishedTeamBuilding({namespace})
-      ),
-    onRemove: (userId: string) =>
-      dispatch(TeamBuildingGen.createRemoveUsersFromTeamSoFar({namespace, users: [userId]})),
-    onSelectRole: (role: TeamTypes.TeamRoleType) =>
-      namespace === 'teams' && dispatch(TeamBuildingGen.createSelectRole({namespace, role})),
-  }),
+    time
+  )
 
-  (stateProps, dispatchProps, ownProps: OwnProps): TeamBuildingPropsPlusSome => {
-    const {
-      teamSoFar,
-      searchResults,
-      userFromUserId,
-      serviceResultCount,
-      showServiceResultCount,
-      recommendations,
-      waitingForCreate,
-      showingContactsButton,
-      teamname,
-      error,
-      teamBuildingSearchResults,
-    } = stateProps
-    const {
-      onChangeService: _onChangeService,
-      filterServices,
-      focusInputCounter,
-      goButtonLabel,
-      searchString,
-      selectedService,
-      onChangeText: _onChangeText,
-      resetHighlightIndex,
-      incFocusInputCounter,
-      incHighlightIndex,
-      highlightedIndex,
-      namespace,
-      teamID,
-      decHighlightIndex,
-      title,
-    } = ownProps
-    const {onFinishTeamBuilding, _search, _onAdd, onRemove, _onCancelTeamBuilding} = dispatchProps
-
-    const showRecs = !searchString && !!recommendations && selectedService === 'keybase'
-    const recommendationsSections = showRecs
-      ? sortAndSplitRecommendations(recommendations, showingContactsButton)
-      : null
-    const userResultsToShow = showRecs ? flattenRecommendations(recommendationsSections || []) : searchResults
-    const onChangeText = deriveOnChangeText(_onChangeText, _search, selectedService, resetHighlightIndex)
-    const onClear = () => onChangeText('')
-    const onSearchForMore = () => {
-      if (searchResults && searchResults.length >= 10) {
-        _search(searchString, selectedService, searchResults.length + 20)
-      }
-    }
-    const onAdd = (userId: string) => {
-      const user = userFromUserId(userId)
-      if (!user) {
-        logger.error(`Couldn't find Types.User to add for ${userId}`)
-        onChangeText('')
-        return
-      }
-      onChangeText('')
-      _onAdd(user)
-      resetHighlightIndex(true)
-      incFocusInputCounter()
-    }
-
-    const _title = namespace === 'teams' ? `Add to ${teamname}` : title
-
-    const onEnterKeyDown = deriveOnEnterKeyDown({
-      changeText: onChangeText,
-      highlightedIndex: highlightedIndex,
-      onAdd,
-      onFinishTeamBuilding,
-      onRemove,
-      searchResults: userResultsToShow,
-      searchStringIsEmpty: !searchString,
-      teamSoFar,
-    })
-
-    const onDownArrowKeyDown = () => incHighlightIndex((userResultsToShow?.length ?? 1) - 1)
-
-    const onChangeService = (service: Types.ServiceIdWithContact) => {
-      _onChangeService(service)
-      incFocusInputCounter()
-      if (!Types.isContactServiceId(service)) {
-        _search(searchString, service)
-      }
-    }
-
-    return {
-      error,
-      filterServices,
-      focusInputCounter,
-      goButtonLabel,
-      highlightedIndex,
-      includeContacts: namespace === 'chat2',
-      namespace,
-      onAdd,
-      onChangeService,
-      onChangeText,
-      onClear,
-      onClose: _onCancelTeamBuilding,
-      onDownArrowKeyDown,
-      onEnterKeyDown,
-      onFinishTeamBuilding,
-      onRemove,
-      onSearchForMore,
-      onUpArrowKeyDown: decHighlightIndex,
-      recommendations: recommendationsSections,
-      search: _search,
-      searchResults,
-      searchString,
-      selectedService,
-      serviceResultCount,
-      showServiceResultCount: showServiceResultCount && showServiceResultCount,
-      teamBuildingSearchResults,
-      teamID,
-      teamSoFar,
-      title: _title,
-      waitingForCreate,
-    }
-  }
-)(TeamBuilding)
+const debouncedSearch = makeDebouncedSearch(500) // 500ms debounce on social searches
+const debouncedSearchKeybase = makeDebouncedSearch(200) // 200 ms debounce on keybase searches
 
 const StateWrapperForTeamBuilding = () => {
   const route = useRoute()
@@ -493,7 +254,7 @@ const StateWrapperForTeamBuilding = () => {
   // @ts-ignore
   const title: string = route.params?.title ?? ''
   // @ts-ignore
-  const goButtonLabel: string = route.params?.goButtonLabel ?? 'Start'
+  const goButtonLabel: GoButtonLabel = route.params?.goButtonLabel ?? 'Start'
 
   const [focusInputCounter, setFocusInputCounter] = React.useState(0)
   const [highlightedIndex, setHighlightedIndex] = React.useState(0)
@@ -522,28 +283,170 @@ const StateWrapperForTeamBuilding = () => {
     setFocusInputCounter(old => old + 1)
   }, [setFocusInputCounter])
 
-  return (
-    <Connected
-      namespace={namespace}
-      teamID={teamID}
-      filterServices={filterServices}
-      onChangeService={setSelectedService}
-      onChangeText={setSearchString}
-      incHighlightIndex={incHighlightIndex}
-      decHighlightIndex={decHighlightIndex}
-      resetHighlightIndex={resetHighlightIndex}
-      searchString={searchString}
-      selectedService={selectedService}
-      highlightedIndex={highlightedIndex}
-      showServiceResultCount={false}
-      focusInputCounter={focusInputCounter}
-      incFocusInputCounter={incFocusInputCounter}
-      title={title}
-      goButtonLabel={goButtonLabel}
-    />
+  const teamBuildingState = Container.useSelector(state => state[namespace].teamBuilding)
+  const teamBuildingSearchResults = teamBuildingState.searchResults
+  const userResults: Array<Types.User> | undefined = teamBuildingState.searchResults
+    .get(trim(searchString))
+    ?.get(selectedService)
+
+  const maybeTeamMeta = Container.useSelector(state => (teamID ? getTeamMeta(state, teamID) : undefined))
+  const maybeTeamDetails = Container.useSelector(state =>
+    teamID ? getTeamDetails(state, teamID) : undefined
   )
+  const preExistingTeamMembers: TeamTypes.TeamDetails['members'] = maybeTeamDetails?.members ?? emptyMap
+  const contactsImported = Container.useSelector(state => state.settings.contacts.importEnabled)
+  const contactsPermissionStatus = Container.useSelector(state => state.settings.contacts.permissionStatus)
+  const username = Container.useSelector(state => state.config.username)
+  const following = Container.useSelector(state => state.config.following)
+  const waitingForCreate = Container.useSelector(state =>
+    WaitingConstants.anyWaiting(state, ChatConstants.waitingKeyCreating)
+  )
+
+  const showingContactsButton =
+    Container.isMobile && contactsPermissionStatus !== 'never_ask_again' && !contactsImported
+
+  const error = teamBuildingState.error
+  const recommendations = deriveRecommendation(
+    teamBuildingState.userRecs,
+    teamBuildingState.teamSoFar,
+    username,
+    following,
+    preExistingTeamMembers
+  )
+  const searchResults = deriveSearchResults(
+    userResults,
+    teamBuildingState.teamSoFar,
+    username,
+    following,
+    preExistingTeamMembers
+  )
+  const serviceResultCount = deriveServiceResultCount(teamBuildingState.searchResults, searchString)
+  const showServiceResultCount = !isMobile && !!searchString
+  const teamSoFar = deriveTeamSoFar(teamBuildingState.teamSoFar)
+  const teamname = maybeTeamMeta?.teamname
+  const userFromUserId = deriveUserFromUserIdFn(userResults, teamBuildingState.userRecs)
+
+  const dispatch = Container.useDispatch()
+
+  const _onAdd = (user: Types.User) => {
+    dispatch(TeamBuildingGen.createAddUsersToTeamSoFar({namespace, users: [user]}))
+  }
+  const _onCancelTeamBuilding = () => {
+    dispatch(TeamBuildingGen.createCancelTeamBuilding({namespace}))
+  }
+
+  const _search = (query: string, service: Types.ServiceIdWithContact, limit?: number) => {
+    if (service === 'keybase') {
+      debouncedSearchKeybase(dispatch, namespace, query, service, namespace === 'chat2', limit)
+    } else {
+      debouncedSearch(dispatch, namespace, query, service, namespace === 'chat2', limit)
+    }
+  }
+
+  const onFinishTeamBuilding = () => {
+    dispatch(
+      namespace === 'teams'
+        ? TeamBuildingGen.createFinishTeamBuilding({namespace, teamID})
+        : TeamBuildingGen.createFinishedTeamBuilding({namespace})
+    )
+  }
+  const onRemove = (userId: string) => {
+    dispatch(TeamBuildingGen.createRemoveUsersFromTeamSoFar({namespace, users: [userId]}))
+  }
+
+  const showRecs = !searchString && !!recommendations && selectedService === 'keybase'
+  const recommendationsSections = showRecs
+    ? sortAndSplitRecommendations(recommendations, showingContactsButton)
+    : null
+  const userResultsToShow = showRecs ? flattenRecommendations(recommendationsSections || []) : searchResults
+  const onChangeText = deriveOnChangeText(setSearchString, _search, selectedService, resetHighlightIndex)
+  const onClear = () => onChangeText('')
+  const onSearchForMore = () => {
+    if (searchResults && searchResults.length >= 10) {
+      _search(searchString, selectedService, searchResults.length + 20)
+    }
+  }
+  const onAdd = (userId: string) => {
+    const user = userFromUserId(userId)
+    if (!user) {
+      logger.error(`Couldn't find Types.User to add for ${userId}`)
+      onChangeText('')
+      return
+    }
+    onChangeText('')
+    _onAdd(user)
+    resetHighlightIndex(true)
+    incFocusInputCounter()
+  }
+
+  const _title = namespace === 'teams' ? `Add to ${teamname}` : title
+
+  const onEnterKeyDown = () => {
+    const selectedResult = !!userResultsToShow && userResultsToShow[highlightedIndex]
+    if (selectedResult) {
+      // We don't handle cases where they hit enter on someone that is already a
+      // team member
+      if (selectedResult.isPreExistingTeamMember) {
+        return
+      }
+      if (teamSoFar.filter(u => u.userId === selectedResult.userId).length) {
+        onRemove(selectedResult.userId)
+        onChangeText('')
+      } else {
+        onAdd(selectedResult.userId)
+      }
+    } else if (!searchString && !!teamSoFar.length) {
+      // They hit enter with an empty search string and a teamSoFar
+      // We'll Finish the team building
+      onFinishTeamBuilding()
+    }
+  }
+
+  const onDownArrowKeyDown = () => incHighlightIndex((userResultsToShow?.length ?? 1) - 1)
+
+  const onChangeService = (service: Types.ServiceIdWithContact) => {
+    setSelectedService(service)
+    incFocusInputCounter()
+    if (!Types.isContactServiceId(service)) {
+      _search(searchString, service)
+    }
+  }
+
+  const TEMPPROPS = {
+    error,
+    filterServices,
+    focusInputCounter,
+    goButtonLabel,
+    highlightedIndex,
+    namespace,
+    onAdd,
+    onChangeService,
+    onChangeText,
+    onClear,
+    onClose: _onCancelTeamBuilding,
+    onDownArrowKeyDown,
+    onEnterKeyDown,
+    onFinishTeamBuilding,
+    onRemove,
+    onSearchForMore,
+    onUpArrowKeyDown: decHighlightIndex,
+    recommendations: recommendationsSections,
+    search: _search,
+    searchResults,
+    searchString,
+    selectedService,
+    serviceResultCount,
+    showServiceResultCount: showServiceResultCount && showServiceResultCount,
+    teamBuildingSearchResults,
+    teamID,
+    teamSoFar,
+    title: _title,
+    waitingForCreate,
+  }
+
+  return <TeamBuilding {...TEMPPROPS} />
 }
 
-StateWrapperForTeamBuilding.navigationOptions = Connected.navigationOptions
+StateWrapperForTeamBuilding.navigationOptions = TeamBuilding.navigationOptions
 
 export default StateWrapperForTeamBuilding
