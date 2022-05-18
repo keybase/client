@@ -194,18 +194,24 @@ const ContactsBanner = (props: ContactProps & {onRedoSearch: () => void; onRedoR
   )
 }
 
-const ContactsImportButton = (props: ContactProps) => {
+const ContactsImportButton = (
+  props: Pick<
+    Props,
+    'contactsImported' | 'isImportPromptDismissed' | 'contactsPermissionStatus' | 'onImportContacts'
+  >
+) => {
+  const {contactsImported, isImportPromptDismissed, contactsPermissionStatus, onImportContacts} = props
   // If we've imported contacts already, then there's nothing for us to do.
   if (
-    props.contactsImported === undefined ||
-    props.contactsImported ||
-    !props.isImportPromptDismissed ||
-    props.contactsPermissionStatus === 'never_ask_again'
+    contactsImported === undefined ||
+    contactsImported ||
+    !isImportPromptDismissed ||
+    contactsPermissionStatus === 'never_ask_again'
   )
     return null
 
   return (
-    <Kb.ClickableBox onClick={props.onImportContacts}>
+    <Kb.ClickableBox onClick={onImportContacts}>
       <Kb.Box2
         direction="horizontal"
         fullWidth={true}
@@ -264,6 +270,10 @@ type SectionListProp = {
   sectionListRef: React.RefObject<Kb.SectionList<Section<ResultData, SearchRecSection>>>
 }
 
+type OnScrollProps = {
+  onScroll: undefined | (() => void)
+}
+
 const TeamAlphabetIndex = (props: Pick<Props, 'recommendations' | 'teamSoFar'> & SectionListProp) => {
   const {recommendations, teamSoFar, sectionListRef} = props
   let showNumSection = false
@@ -309,7 +319,7 @@ const TeamAlphabetIndex = (props: Pick<Props, 'recommendations' | 'teamSoFar'> &
   )
 }
 
-const ModalHeader = (
+const modalHeaderProps = (
   props: Pick<
     Props,
     'onClose' | 'namespace' | 'teamSoFar' | 'teamID' | 'onFinishTeamBuilding' | 'title' | 'goButtonLabel'
@@ -466,15 +476,19 @@ const RecsAndRecos = (
     Props,
     | 'highlightedIndex'
     | 'recommendations'
-    | 'onScroll'
     | 'recommendedHideYourself'
     | 'namespace'
     | 'selectedService'
     | 'onAdd'
     | 'onRemove'
     | 'teamSoFar'
+    | 'contactsImported'
+    | 'isImportPromptDismissed'
+    | 'contactsPermissionStatus'
+    | 'onImportContacts'
   > &
-    SectionListProp
+    SectionListProp &
+    OnScrollProps
 ) => {
   const {
     highlightedIndex,
@@ -487,7 +501,13 @@ const RecsAndRecos = (
     onAdd,
     onRemove,
     teamSoFar,
+    contactsImported,
+    isImportPromptDismissed,
+    contactsPermissionStatus,
+    onImportContacts,
   } = props
+
+  const ResultRow = namespace === 'people' ? PeopleResult : UserResult
 
   const _listIndexToSectionAndLocalIndex = memoize(
     (
@@ -559,7 +579,7 @@ const RecsAndRecos = (
           scrollEventThrottle={1}
           onScroll={onScroll}
           selectedIndex={Styles.isMobile ? undefined : highlightedIndex || 0}
-          sections={recommendations}
+          sections={recommendations ?? []}
           keyExtractor={(item: ResultData, index: number) => {
             if (!isImportContactsEntry(item) && !isSearchHintEntry(item) && item.contact) {
               // Ids for contacts are not guaranteed to be unique
@@ -574,7 +594,12 @@ const RecsAndRecos = (
           getItemLayout={_getRecLayout}
           renderItem={({index, item: result, section}) =>
             result.isImportButton ? (
-              <ContactsImportButton {...props} />
+              <ContactsImportButton
+                contactsImported={contactsImported}
+                isImportPromptDismissed={isImportPromptDismissed}
+                contactsPermissionStatus={contactsPermissionStatus}
+                onImportContacts={onImportContacts}
+              />
             ) : result.isSearchHint ? (
               <SearchHintText />
             ) : recommendedHideYourself && result.isYou ? null : (
@@ -632,14 +657,18 @@ const ListBody = (
     | 'showResults'
     | 'searchResults'
     | 'highlightedIndex'
-    | 'onScroll'
     | 'recommendedHideYourself'
     | 'onAdd'
     | 'onRemove'
     | 'teamSoFar'
     | 'onSearchForMore'
+    | 'contactsImported'
+    | 'isImportPromptDismissed'
+    | 'contactsPermissionStatus'
+    | 'onImportContacts'
   > &
-    SectionListProp
+    SectionListProp &
+    OnScrollProps
 ) => {
   const {
     namespace,
@@ -657,7 +686,12 @@ const ListBody = (
     onRemove,
     teamSoFar,
     onSearchForMore,
+    contactsImported,
+    isImportPromptDismissed,
+    contactsPermissionStatus,
+    onImportContacts,
   } = props
+
   const ResultRow = namespace === 'people' ? PeopleResult : UserResult
   const showRecPending = !searchString && !recommendations && selectedService === 'keybase'
   const showLoading = !!searchString && !searchResults
@@ -677,7 +711,7 @@ const ListBody = (
     )
   }
   if (!showRecs && !showResults && !!selectedService) {
-    return <Suggestions />
+    return <Suggestions namespace={namespace} selectedService={selectedService} />
   }
 
   if (showRecs && recommendations) {
@@ -693,6 +727,10 @@ const ListBody = (
         onAdd={onAdd}
         onRemove={onRemove}
         teamSoFar={teamSoFar}
+        contactsImported={contactsImported}
+        isImportPromptDismissed={isImportPromptDismissed}
+        contactsPermissionStatus={contactsPermissionStatus}
+        onImportContacts={onImportContacts}
       />
     )
   }
@@ -755,22 +793,44 @@ const SectionList: typeof Kb.SectionList = Styles.isMobile
 const TeamBuilding = (props: Props) => {
   const {
     fetchUserRecs,
+    filterServices,
+    includeContacts,
+    waitingForCreate,
     focusInputCounter,
     goButtonLabel,
+    highlightedIndex,
     namespace,
+    onAdd,
+    onChangeService,
     onChangeText,
     onClear,
     onClose,
     onDownArrowKeyDown,
     onEnterKeyDown,
     onFinishTeamBuilding,
+    onRemove,
+    onSearchForMore,
     onUpArrowKeyDown,
     recommendations,
+    recommendedHideYourself,
+    search,
+    searchResults,
     searchString,
     selectedService,
+    serviceResultCount,
+    showRecs,
+    showResults,
+    rolePickerProps,
+    error,
+    showServiceResultCount,
+    teamBuildingSearchResults,
     teamID,
     teamSoFar,
     title,
+    contactsImported,
+    isImportPromptDismissed,
+    contactsPermissionStatus,
+    onImportContacts,
   } = props
 
   const offset = React.useRef(Styles.isMobile ? new Kb.ReAnimated.Value(0) : undefined)
@@ -782,7 +842,7 @@ const TeamBuilding = (props: Props) => {
     // eslint-disable-next-line
   }, [])
 
-  const onScroll: undefined | (() => void) = Styles.isMobile
+  const onScroll: OnScrollProps['onScroll'] = Styles.isMobile
     ? Kb.ReAnimated.event([{nativeEvent: {contentOffset: {y: offset.current}}}], {useNativeDriver: true})
     : undefined
 
@@ -835,7 +895,27 @@ const TeamBuilding = (props: Props) => {
               offset={1}
             />
           )}
-          <ListBody />
+          <ListBody
+            namespace={namespace}
+            searchString={searchString}
+            recommendations={recommendations}
+            selectedService={selectedService}
+            showRecs={showRecs}
+            showResults={showResults}
+            searchResults={searchResults}
+            highlightedIndex={highlightedIndex}
+            sectionListRef={sectionListRef}
+            onScroll={onScroll}
+            recommendedHideYourself={recommendedHideYourself}
+            onAdd={onAdd}
+            onRemove={onRemove}
+            teamSoFar={teamSoFar}
+            onSearchForMore={onSearchForMore}
+            contactsImported={contactsImported}
+            isImportPromptDismissed={isImportPromptDismissed}
+            contactsPermissionStatus={contactsPermissionStatus}
+            onImportContacts={onImportContacts}
+          />
           {waitingForCreate && (
             <Kb.Box2 direction="vertical" style={styles.waiting} alignItems="center">
               <Kb.ProgressIndicator type="Small" white={true} style={styles.waitingProgress} />
@@ -866,17 +946,15 @@ const TeamBuilding = (props: Props) => {
 
   return (
     <Kb.Modal2
-      header={
-        <ModalHeader
-          onClose={onClose}
-          namespace={namespace}
-          teamSoFar={teamSoFar}
-          teamID={teamID}
-          onFinishTeamBuilding={onFinishTeamBuilding}
-          title={title}
-          goButtonLabel={goButtonLabel}
-        />
-      }
+      header={modalHeaderProps({
+        goButtonLabel,
+        namespace,
+        onClose,
+        onFinishTeamBuilding,
+        teamID,
+        teamSoFar,
+        title,
+      })}
     >
       <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexOne} fullWidth={true}>
         {teamBox &&
