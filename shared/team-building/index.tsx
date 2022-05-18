@@ -1,47 +1,31 @@
-import * as React from 'react'
-import * as Kb from '../common-adapters'
-import * as Styles from '../styles'
-import * as Container from '../util/container'
 import * as Constants from '../constants/team-building'
-import * as TeamConstants from '../constants/teams'
+import * as Container from '../util/container'
+import * as Kb from '../common-adapters'
+import * as React from 'react'
+import * as Styles from '../styles'
 import * as TeamBuildingGen from '../actions/team-building-gen'
-import type * as Types from './types'
-import {ContactsBanner} from './contacts'
-import TeamBox from './team-box'
+import * as TeamConstants from '../constants/teams'
+import EmailSearch from './email-search'
 import Input from './input'
+import PhoneSearch from './phone-search'
+import TeamBox from './team-box'
+import type * as Types from './types'
+import type {Section} from '../common-adapters/section-list'
+import type {ServiceIdWithContact} from '../constants/types/team-building'
+import {ContactsBanner} from './contacts'
+import {ListBody} from './list-body'
+import {ModalTitle as TeamsModalTitle} from '../teams/common'
 import {ServiceTabBar} from './service-tab-bar'
 import {noTeamID} from '../constants/types/teams'
-import {RecsAndRecos} from './recs-and-recos'
-import throttle from 'lodash/throttle'
-import PhoneSearch from './phone-search'
-import EmailSearch from './email-search'
-import PeopleResult from './search-result/people-result'
-import UserResult from './search-result/user-result'
-import {
-  serviceIdToAccentColor,
-  serviceIdToIconFont,
-  serviceIdToLabel,
-  serviceIdToSearchPlaceholder,
-} from './shared'
-import type {ServiceIdWithContact} from '../constants/types/team-building'
-import {ModalTitle as TeamsModalTitle} from '../teams/common'
-import type {Section} from '../common-adapters/section-list'
+import {serviceIdToSearchPlaceholder} from './shared'
 
 const FilteredServiceTabBar = (
   props: Omit<React.ComponentPropsWithoutRef<typeof ServiceTabBar>, 'services'> & {
     filterServices?: Array<ServiceIdWithContact>
   }
 ) => {
-  const {
-    selectedService,
-    onChangeService,
-    serviceResultCount,
-    showServiceResultCount,
-    servicesShown,
-    minimalBorder,
-    offset,
-    filterServices,
-  } = props
+  const {selectedService, onChangeService, serviceResultCount, showServiceResultCount} = props
+  const {servicesShown, minimalBorder, offset, filterServices} = props
   const services = React.useMemo(
     () =>
       filterServices
@@ -49,7 +33,6 @@ const FilteredServiceTabBar = (
         : Constants.allServices,
     [filterServices]
   )
-
   return services.length === 1 && services[0] === 'keybase' ? null : (
     <ServiceTabBar
       services={services}
@@ -78,12 +61,7 @@ const modalHeaderProps = (
   ) : undefined
   switch (namespace) {
     case 'people': {
-      return Styles.isMobile
-        ? {
-            hideBorder: true,
-            leftButton: mobileCancel,
-          }
-        : undefined
+      return Styles.isMobile ? {hideBorder: true, leftButton: mobileCancel} : undefined
     }
     case 'teams': {
       return {
@@ -129,216 +107,6 @@ const modalHeaderProps = (
       return {hideBorder: true, leftButton: mobileCancel, title: title}
     }
   }
-}
-
-const SearchInput = (
-  props: Pick<
-    Types.Props,
-    | 'onChangeText'
-    | 'selectedService'
-    | 'namespace'
-    | 'onDownArrowKeyDown'
-    | 'onUpArrowKeyDown'
-    | 'onEnterKeyDown'
-    | 'searchString'
-    | 'focusInputCounter'
-    | 'onClear'
-    | 'onClose'
-  >
-) => {
-  const {
-    selectedService,
-    onChangeText,
-    namespace,
-    onDownArrowKeyDown,
-    onUpArrowKeyDown,
-    onEnterKeyDown,
-    searchString,
-    focusInputCounter,
-    onClear,
-    onClose,
-  } = props
-  const searchPlaceholder = 'Search ' + serviceIdToSearchPlaceholder(selectedService)
-  return (
-    <Input
-      onChangeText={onChangeText}
-      onClear={namespace === 'people' && !searchString ? onClose : onClear}
-      onDownArrowKeyDown={onDownArrowKeyDown}
-      onUpArrowKeyDown={onUpArrowKeyDown}
-      onEnterKeyDown={onEnterKeyDown}
-      placeholder={searchPlaceholder}
-      searchString={searchString}
-      focusOnMount={!Styles.isMobile || selectedService !== 'keybase'}
-      focusCounter={focusInputCounter}
-    />
-  )
-}
-
-const Suggestions = (props: Pick<Types.Props, 'namespace' | 'selectedService'>) => {
-  const {namespace, selectedService} = props
-  return (
-    <Kb.Box2
-      alignSelf="center"
-      centerChildren={!Styles.isMobile}
-      direction="vertical"
-      fullWidth={true}
-      gap="tiny"
-      style={styles.emptyContainer}
-    >
-      {!Styles.isMobile && (
-        <Kb.Icon
-          fontSize={48}
-          type={serviceIdToIconFont(selectedService)}
-          style={Styles.collapseStyles([
-            !!selectedService && {color: serviceIdToAccentColor(selectedService)},
-          ])}
-        />
-      )}
-      {namespace === 'people' ? (
-        <Kb.Text center={true} style={styles.emptyServiceText} type="BodySmall">
-          Search for anyone on {serviceIdToLabel(selectedService)} and start a chat. Your messages will unlock
-          after they install Keybase and prove their {serviceIdToLabel(selectedService)} username.
-        </Kb.Text>
-      ) : namespace === 'teams' ? (
-        <Kb.Text center={true} style={styles.emptyServiceText} type="BodySmall">
-          Add anyone from {serviceIdToLabel(selectedService)}, then tell them to install Keybase. They will
-          automatically join the team once they sign up and prove their {serviceIdToLabel(selectedService)}{' '}
-          username.
-        </Kb.Text>
-      ) : (
-        <Kb.Text center={true} style={styles.emptyServiceText} type="BodySmall">
-          Start a chat with anyone on {serviceIdToLabel(selectedService)}, then tell them to install Keybase.
-          Your messages will unlock after they sign up and prove their {serviceIdToLabel(selectedService)}{' '}
-          username.
-        </Kb.Text>
-      )}
-    </Kb.Box2>
-  )
-}
-
-const ListBody = (
-  props: Pick<
-    Types.Props,
-    | 'namespace'
-    | 'searchString'
-    | 'recommendations'
-    | 'selectedService'
-    | 'showRecs'
-    | 'showResults'
-    | 'searchResults'
-    | 'highlightedIndex'
-    | 'recommendedHideYourself'
-    | 'onAdd'
-    | 'onRemove'
-    | 'teamSoFar'
-    | 'onSearchForMore'
-  > &
-    Types.SectionListProp &
-    Types.OnScrollProps
-) => {
-  const {
-    namespace,
-    searchString,
-    recommendations,
-    selectedService,
-    showRecs,
-    showResults,
-    searchResults,
-    highlightedIndex,
-    sectionListRef,
-    onScroll,
-    recommendedHideYourself,
-    onAdd,
-    onRemove,
-    teamSoFar,
-    onSearchForMore,
-  } = props
-
-  const ResultRow = namespace === 'people' ? PeopleResult : UserResult
-  const showRecPending = !searchString && !recommendations && selectedService === 'keybase'
-  const showLoading = !!searchString && !searchResults
-
-  if (showRecPending || showLoading) {
-    return (
-      <Kb.Box2
-        direction="vertical"
-        fullWidth={true}
-        fullHeight={true}
-        gap="xtiny"
-        centerChildren={true}
-        style={styles.loadingContainer}
-      >
-        {showLoading && <Kb.Animation animationType="spinner" style={styles.loadingAnimation} />}
-      </Kb.Box2>
-    )
-  }
-  if (!showRecs && !showResults && !!selectedService) {
-    return <Suggestions namespace={namespace} selectedService={selectedService} />
-  }
-
-  if (showRecs && recommendations) {
-    return (
-      <RecsAndRecos
-        highlightedIndex={highlightedIndex}
-        recommendations={recommendations}
-        sectionListRef={sectionListRef}
-        onScroll={onScroll}
-        recommendedHideYourself={recommendedHideYourself}
-        namespace={namespace}
-        selectedService={selectedService}
-        onAdd={onAdd}
-        onRemove={onRemove}
-        teamSoFar={teamSoFar}
-      />
-    )
-  }
-
-  const _onEndReached = throttle(() => {
-    onSearchForMore()
-  }, 500)
-
-  return (
-    <>
-      {searchResults === undefined || searchResults?.length ? (
-        <Kb.List
-          reAnimated={true}
-          items={searchResults || []}
-          onScroll={onScroll}
-          selectedIndex={highlightedIndex || 0}
-          style={styles.list}
-          contentContainerStyle={styles.listContentContainer}
-          keyboardShouldPersistTaps="handled"
-          keyProperty="key"
-          onEndReached={_onEndReached}
-          onEndReachedThreshold={0.1}
-          renderItem={(index, result) => (
-            <ResultRow
-              key={result.username}
-              resultForService={selectedService}
-              username={result.username}
-              prettyName={result.prettyName}
-              pictureUrl={result.pictureUrl}
-              displayLabel={result.displayLabel}
-              services={result.services}
-              namespace={namespace}
-              inTeam={result.inTeam}
-              isPreExistingTeamMember={result.isPreExistingTeamMember}
-              isYou={result.isYou}
-              followingState={result.followingState}
-              highlight={!Styles.isMobile && index === highlightedIndex}
-              userId={result.userId}
-              onAdd={onAdd}
-              onRemove={onRemove}
-            />
-          )}
-        />
-      ) : (
-        <Kb.Text type="BodySmall" style={styles.noResults}>
-          Sorry, no results were found.
-        </Kb.Text>
-      )}
-    </>
-  )
 }
 
 const TeamBuilding = (props: Types.Props) => {
@@ -423,17 +191,16 @@ const TeamBuilding = (props: Types.Props) => {
     default:
       content = (
         <>
-          <SearchInput
-            selectedService={selectedService}
+          <Input
             onChangeText={onChangeText}
-            namespace={namespace}
+            onClear={namespace === 'people' && !searchString ? onClose : onClear}
             onDownArrowKeyDown={onDownArrowKeyDown}
             onUpArrowKeyDown={onUpArrowKeyDown}
             onEnterKeyDown={onEnterKeyDown}
+            placeholder={'Search ' + serviceIdToSearchPlaceholder(selectedService)}
             searchString={searchString}
-            focusInputCounter={focusInputCounter}
-            onClear={onClear}
-            onClose={onClose}
+            focusOnMount={!Styles.isMobile || selectedService !== 'keybase'}
+            focusCounter={focusInputCounter}
           />
           {namespace === 'people' && !Styles.isMobile && (
             <FilteredServiceTabBar
@@ -564,20 +331,6 @@ const styles = Styles.styleSheetCreate(
       container: Styles.platformStyles({
         common: {position: 'relative'},
       }),
-      emptyContainer: Styles.platformStyles({
-        common: {flex: 1},
-        isElectron: {
-          maxWidth: 290,
-          paddingBottom: 40,
-        },
-        isMobile: {maxWidth: '80%'},
-      }),
-      emptyServiceText: Styles.platformStyles({
-        isMobile: {
-          paddingBottom: Styles.globalMargins.small,
-          paddingTop: Styles.globalMargins.small,
-        },
-      }),
       headerContainer: Styles.platformStyles({
         isElectron: {
           marginBottom: Styles.globalMargins.xtiny,
@@ -585,37 +338,12 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       hide: {opacity: 0},
-      list: Styles.platformStyles({
-        common: {paddingBottom: Styles.globalMargins.small},
-      }),
-      listContentContainer: Styles.platformStyles({
-        isMobile: {paddingTop: Styles.globalMargins.xtiny},
-      }),
-      loadingAnimation: Styles.platformStyles({
-        isElectron: {
-          height: 32,
-          width: 32,
-        },
-        isMobile: {
-          height: 48,
-          width: 48,
-        },
-      }),
-      loadingContainer: {
-        flex: 1,
-        justifyContent: 'flex-start',
-      },
       mobileFlex: Styles.platformStyles({
         isMobile: {flex: 1},
       }),
       newChatHeader: Styles.platformStyles({
         isElectron: {margin: Styles.globalMargins.xsmall},
       }),
-      noResults: {
-        flex: 1,
-        textAlign: 'center',
-        ...Styles.padding(Styles.globalMargins.small),
-      },
       peoplePopupStyleClose: Styles.platformStyles({isElectron: {display: 'none'}}),
       shrinkingGap: {flexShrink: 1, height: Styles.globalMargins.xtiny},
       teamAvatar: Styles.platformStyles({
