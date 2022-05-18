@@ -23,10 +23,10 @@ export const KeybaseLinkErrorBody = (props: KeybaseLinkErrorBodyProps) => {
   )
 }
 
-type OwnProps = Container.RouteProps<{errorSource: 'app' | 'sep6' | 'sep7'}>
+type OwnProps = Container.RouteProps<'keybaseLinkError'>
 
 const KeybaseLinkError = (props: OwnProps) => {
-  const errorSource = Container.getRouteProps(props, 'errorSource', 'app')
+  const errorSource = props.route.params?.errorSource ?? 'app'
   const message = Container.useSelector(s => {
     switch (errorSource) {
       case 'app':

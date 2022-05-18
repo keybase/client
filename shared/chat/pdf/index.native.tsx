@@ -4,12 +4,12 @@ import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as ConfigGen from '../../actions/config-gen'
-import {Props} from '.'
+import type {Props} from '.'
 import useFixStatusbar from '../../common-adapters/use-fix-statusbar.native'
 
 const ChatPDF = (props: Props) => {
-  const url = Container.getRouteProps(props, 'url', '')
-  const title = Container.getRouteProps(props, 'title', 'PDF')
+  const url = props.route.params?.url ?? ''
+  const title = props.route.params?.title ?? 'PDF'
   const [error, setError] = React.useState('')
 
   useFixStatusbar()
@@ -47,9 +47,7 @@ const styles = Styles.styleSheetCreate(() => ({
     justifyContent: 'center',
     position: 'absolute',
   },
-  webViewContainer: {
-    margin: Styles.globalMargins.xtiny,
-  },
+  webViewContainer: {margin: Styles.globalMargins.xtiny},
 }))
 
 export default ChatPDF

@@ -1,13 +1,13 @@
-import * as React from 'react'
-import * as TeamsGen from '../../actions/teams-gen'
-import CreateChannel from '.'
 import * as Container from '../../util/container'
+import * as React from 'react'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
-import upperFirst from 'lodash/upperFirst'
-import * as TeamsTypes from '../../constants/types/teams'
 import * as TeamsConstants from '../../constants/teams'
+import * as TeamsGen from '../../actions/teams-gen'
+import * as TeamsTypes from '../../constants/types/teams'
+import CreateChannel from '.'
+import upperFirst from 'lodash/upperFirst'
 
-type OwnProps = Container.RouteProps<{navToChatOnSuccess?: boolean; teamID: TeamsTypes.TeamID}>
+type OwnProps = Container.RouteProps<'chatCreateChannel'>
 
 type Props = {
   _onCreateChannel: (o: {channelname: string; description: string; teamID: TeamsTypes.TeamID}) => void
@@ -47,7 +47,7 @@ const Wrapped = (p: Props) => {
 
 export default Container.connect(
   (state, ownProps: OwnProps) => {
-    const teamID = Container.getRouteProps(ownProps, 'teamID', TeamsTypes.noTeamID)
+    const teamID = ownProps.route.params?.teamID ?? TeamsTypes.noTeamID
     return {
       errorText: upperFirst(state.teams.errorInChannelCreation),
       teamID,
@@ -68,7 +68,7 @@ export default Container.connect(
         TeamsGen.createCreateChannel({
           channelname,
           description,
-          navToChatOnSuccess: Container.getRouteProps(ownProps, 'navToChatOnSuccess', undefined) ?? true,
+          navToChatOnSuccess: ownProps.route.params?.navToChatOnSuccess ?? true,
           teamID,
         })
       ),
