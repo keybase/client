@@ -14,6 +14,7 @@ import * as Tabs from '../../../constants/tabs'
 import {Alert} from 'react-native'
 import {DEBUGDump as DEBUGDumpView} from '../list-area/index.native'
 import {DEBUGDump as DEBUGDumpStore} from '../../../store/configure-store'
+import {getRouteParamsFromRoute} from '../../../router-v2/route-params'
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
@@ -172,13 +173,17 @@ const BadgeHeaderLeftArray = ({conversationIDKey, ...rest}) => {
   return <HeaderLeftArrow badgeNumber={badgeNumber} {...rest} />
 }
 
-export const headerNavigationOptions = (route: any) => ({
-  headerLeft: (props: any) => {
-    const {onLabelLayout, labelStyle, ...rest} = props
-    return <BadgeHeaderLeftArray {...rest} conversationIDKey={route.params?.conversationIDKey} />
-  },
-  headerRight: () => <HeaderAreaRight conversationIDKey={route.params?.conversationIDKey} />,
-  headerTitle: () => <HeaderArea conversationIDKey={route.params?.conversationIDKey} />,
-})
+export const headerNavigationOptions = (route: unknown) => {
+  const conversationIDKey =
+    getRouteParamsFromRoute<'chatConversation'>(route)?.conversationIDKey ?? Constants.noConversationIDKey
+  return {
+    headerLeft: (props: any) => {
+      const {onLabelLayout, labelStyle, ...rest} = props
+      return <BadgeHeaderLeftArray {...rest} conversationIDKey={conversationIDKey} />
+    },
+    headerRight: () => <HeaderAreaRight conversationIDKey={conversationIDKey} />,
+    headerTitle: () => <HeaderArea conversationIDKey={conversationIDKey} />,
+  }
+}
 
 export default HeaderArea

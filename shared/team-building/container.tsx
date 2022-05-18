@@ -1,20 +1,21 @@
-import logger from '../logger'
-import * as React from 'react'
-import debounce from 'lodash/debounce'
-import trim from 'lodash/trim'
-import TeamBuilding from '.'
-import type {SearchResult, SearchRecSection} from './types'
-import {numSectionLabel} from './recs-and-recos'
-import * as TeamBuildingGen from '../actions/team-building-gen'
-import * as Container from '../util/container'
 import * as Constants from '../constants/team-building'
+import * as Container from '../util/container'
+import * as React from 'react'
+import * as TeamBuildingGen from '../actions/team-building-gen'
 import * as Types from '../constants/types/team-building'
+import TeamBuilding from '.'
+import debounce from 'lodash/debounce'
+import logger from '../logger'
+import trim from 'lodash/trim'
 import type * as TeamTypes from '../constants/types/teams'
-import {requestIdleCallback} from '../util/idle-callback'
-import {memoize} from '../util/memoize'
-import {getTeamDetails, getTeamMeta} from '../constants/teams'
+import type {RootRouteProps} from '../router-v2/route-params'
+import type {SearchResult, SearchRecSection} from './types'
 import {formatAnyPhoneNumbers} from '../util/phone-numbers'
+import {getTeamDetails} from '../constants/teams'
 import {isMobile} from '../constants/platform'
+import {memoize} from '../util/memoize'
+import {numSectionLabel} from './recs-and-recos'
+import {requestIdleCallback} from '../util/idle-callback'
 import {useRoute} from '@react-navigation/native'
 
 const expensiveDeriveResults = (
@@ -227,18 +228,11 @@ const debouncedSearch = makeDebouncedSearch(500) // 500ms debounce on social sea
 const debouncedSearchKeybase = makeDebouncedSearch(200) // 200 ms debounce on keybase searches
 
 const StateWrapperForTeamBuilding = () => {
-  const route = useRoute()
-
-  // @ts-ignore
-  const namespace: Types.AllowedNamespace = route.params?.namespace ?? 'chat2'
-  // @ts-ignore
-  const teamID: TeamTypes.TeamID = route.params?.teamID
-  // @ts-ignore
-  const filterServices: undefined | Array<Types.ServiceIdWithContact> = route.params?.filterServices
-  // @ts-ignore
-  const title: string = route.params?.title ?? ''
-  // @ts-ignore
-  const goButtonLabel: GoButtonLabel = route.params?.goButtonLabel ?? 'Start'
+  const {params} = useRoute<RootRouteProps<'peopleTeamBuilder'>>()
+  const namespace = params?.namespace ?? 'chat2'
+  const teamID = params?.teamID
+  const filterServices = params?.filterServices
+  const goButtonLabel = params?.goButtonLabel ?? 'Start'
 
   const [focusInputCounter, setFocusInputCounter] = React.useState(0)
   const [highlightedIndex, setHighlightedIndex] = React.useState(0)
@@ -273,7 +267,6 @@ const StateWrapperForTeamBuilding = () => {
     .get(trim(searchString))
     ?.get(selectedService)
 
-  const maybeTeamMeta = Container.useSelector(state => (teamID ? getTeamMeta(state, teamID) : undefined))
   const maybeTeamDetails = Container.useSelector(state =>
     teamID ? getTeamDetails(state, teamID) : undefined
   )
@@ -304,7 +297,6 @@ const StateWrapperForTeamBuilding = () => {
   const serviceResultCount = deriveServiceResultCount(teamBuildingState.searchResults, searchString)
   const showServiceResultCount = !isMobile && !!searchString
   const teamSoFar = deriveTeamSoFar(teamBuildingState.teamSoFar)
-  const teamname = maybeTeamMeta?.teamname
   const userFromUserId = deriveUserFromUserIdFn(userResults, teamBuildingState.userRecs)
 
   const dispatch = Container.useDispatch()
@@ -365,8 +357,6 @@ const StateWrapperForTeamBuilding = () => {
     incFocusInputCounter()
   }
 
-  const _title = namespace === 'teams' ? `Add to ${teamname}` : title
-
   const onEnterKeyDown = () => {
     const selectedResult = !!userResultsToShow && userResultsToShow[highlightedIndex]
     if (selectedResult) {
@@ -426,7 +416,6 @@ const StateWrapperForTeamBuilding = () => {
     teamBuildingSearchResults,
     teamID,
     teamSoFar,
-    title: _title,
   }
 
   return <TeamBuilding {...TEMPPROPS} />

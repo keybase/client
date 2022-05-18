@@ -1,24 +1,27 @@
-import * as Constants from '../constants/team-building'
-import * as WaitingConstants from '../constants/waiting'
 import * as ChatConstants from '../constants/chat2'
+import * as Constants from '../constants/team-building'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
 import * as Styles from '../styles'
 import * as TeamBuildingGen from '../actions/team-building-gen'
 import * as TeamConstants from '../constants/teams'
+import * as WaitingConstants from '../constants/waiting'
 import EmailSearch from './email-search'
 import Input from './input'
 import PhoneSearch from './phone-search'
 import TeamBox from './team-box'
 import type * as Types from './types'
+import type {RootRouteProps} from '../router-v2/route-params'
 import type {ServiceIdWithContact} from '../constants/types/team-building'
 import {ContactsBanner} from './contacts'
 import {ListBody} from './list-body'
 import {ModalTitle as TeamsModalTitle} from '../teams/common'
 import {ServiceTabBar} from './service-tab-bar'
+import {getTeamMeta} from '../constants/teams'
 import {noTeamID} from '../constants/types/teams'
 import {serviceIdToSearchPlaceholder} from './shared'
+import {useRoute} from '@react-navigation/native'
 
 const FilteredServiceTabBar = (
   props: Omit<React.ComponentPropsWithoutRef<typeof ServiceTabBar>, 'services'> & {
@@ -51,8 +54,10 @@ const FilteredServiceTabBar = (
 const modalHeaderProps = (
   props: Pick<
     Types.Props,
-    'onClose' | 'namespace' | 'teamSoFar' | 'teamID' | 'onFinishTeamBuilding' | 'title' | 'goButtonLabel'
-  >
+    'onClose' | 'namespace' | 'teamSoFar' | 'teamID' | 'onFinishTeamBuilding' | 'goButtonLabel'
+  > & {
+    title: string
+  }
 ) => {
   const {onClose, namespace, teamSoFar, teamID, onFinishTeamBuilding, title, goButtonLabel} = props
   const mobileCancel = Styles.isMobile ? (
@@ -139,8 +144,13 @@ const TeamBuilding = (props: Types.Props) => {
     teamBuildingSearchResults,
     teamID,
     teamSoFar,
-    title,
   } = props
+
+  const route = useRoute<RootRouteProps<'peopleTeamBuilder'>>()
+
+  const maybeTeamMeta = Container.useSelector(state => (teamID ? getTeamMeta(state, teamID) : undefined))
+  const teamname = maybeTeamMeta?.teamname
+  const title = namespace === 'teams' ? `Add to ${teamname}` : route.params?.title ?? ''
 
   const waitingForCreate = Container.useSelector(state =>
     WaitingConstants.anyWaiting(state, ChatConstants.waitingKeyCreating)

@@ -1,10 +1,10 @@
-import CryptoSubNav from './sub-nav'
 import * as Constants from '../constants/crypto'
-import TeamBuilder from '../team-building/container'
-import {EncryptInput, EncryptOutput} from './operations/encrypt'
-import {DecryptInput, DecryptOutput} from './operations/decrypt'
-import {SignInput, SignOutput} from './operations/sign'
-import {VerifyInput, VerifyOutput} from './operations/verify'
+import type CryptoSubNav from './sub-nav'
+import type TeamBuilder from '../team-building/container'
+import type {EncryptInput, EncryptOutput} from './operations/encrypt'
+import type {DecryptInput, DecryptOutput} from './operations/decrypt'
+import type {SignInput, SignOutput} from './operations/sign'
+import type {VerifyInput, VerifyOutput} from './operations/verify'
 
 export const newRoutes = {
   cryptoRoot: {

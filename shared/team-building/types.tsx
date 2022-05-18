@@ -70,7 +70,6 @@ export type Props = {
   teamBuildingSearchResults: SearchResults
   teamID: TeamID | undefined
   teamSoFar: Array<SelectedUser>
-  title: string
 }
 
 export type OnScrollProps = {
