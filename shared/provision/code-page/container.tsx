@@ -1,12 +1,12 @@
+import * as Constants from '../../constants/provision'
+import * as Container from '../../util/container'
+import * as DevicesConstants from '../../constants/devices'
 import * as ProvisionGen from '../../actions/provision-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import CodePage2 from '.'
-import * as Container from '../../util/container'
 import HiddenString from '../../util/hidden-string'
-import * as DevicesConstants from '../../constants/devices'
-import * as Constants from '../../constants/provision'
 
-type OwnProps = Container.RouteProps
+type OwnProps = {}
 
 const prov = Container.connect(
   (state: Container.TypedState) => {

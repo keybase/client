@@ -8,7 +8,7 @@ import * as RPCTypes from '../../constants/types/rpc-gen'
 import {usernameHint} from '../../constants/signup'
 import {anyWaiting} from '../../constants/waiting'
 
-type OwnProps = Container.RouteProps<{fromReset: boolean}>
+type OwnProps = Container.RouteProps<'username'>
 
 const decodeInlineError = inlineRPCError => {
   let inlineError = ''
@@ -60,7 +60,7 @@ export default Container.compose(
       inlineError: s.inlineError,
       inlineSignUpLink: s.inlineSignUpLink,
       onSubmit: (username: string) => !s.waiting && d.onSubmit(username),
-      resetBannerUser: Container.getRouteProps(o, 'fromReset', false) ? s._resetBannerUser : null,
+      resetBannerUser: o.route.params?.fromReset ? s._resetBannerUser : null,
       submittedUsername: s.submittedUsername,
       waiting: s.waiting,
     })
