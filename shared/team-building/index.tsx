@@ -110,12 +110,12 @@ const modalHeaderProps = (
 
 const TeamBuilding = (props: Types.Props) => {
   const {
+    error,
     filterServices,
-    includeContacts,
-    waitingForCreate,
     focusInputCounter,
     goButtonLabel,
     highlightedIndex,
+    includeContacts,
     namespace,
     onAdd,
     onChangeService,
@@ -134,12 +134,12 @@ const TeamBuilding = (props: Types.Props) => {
     searchString,
     selectedService,
     serviceResultCount,
-    error,
     showServiceResultCount,
     teamBuildingSearchResults,
     teamID,
     teamSoFar,
     title,
+    waitingForCreate,
   } = props
 
   const dispatch = Container.useDispatch()

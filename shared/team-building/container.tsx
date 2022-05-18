@@ -445,8 +445,9 @@ const Connected: any = Container.connect(
       namespace,
       teamID,
       decHighlightIndex,
-      title: _title,
+      title,
     } = ownProps
+    const {onFinishTeamBuilding, _search, _onAdd, onRemove, _onCancelTeamBuilding} = dispatchProps
 
     const showRecs = !searchString && !!recommendations && selectedService === 'keybase'
     const recommendationsSections = showRecs
@@ -454,34 +455,23 @@ const Connected: any = Container.connect(
       : null
     const userResultsToShow = showRecs ? flattenRecommendations(recommendationsSections || []) : searchResults
 
-    const onChangeText = deriveOnChangeText(
-      _onChangeText,
-      dispatchProps._search,
-      selectedService,
-      resetHighlightIndex
-    )
+    const onChangeText = deriveOnChangeText(_onChangeText, _search, selectedService, resetHighlightIndex)
 
     const onClear = () => onChangeText('')
 
     const onSearchForMore = deriveOnSearchForMore({
-      search: dispatchProps._search,
+      search: _search,
       searchResults,
       searchString: searchString,
       selectedService: selectedService,
     })
 
-    const onAdd = deriveOnAdd(
-      userFromUserId,
-      dispatchProps._onAdd,
-      onChangeText,
-      resetHighlightIndex,
-      incFocusInputCounter
-    )
+    const onAdd = deriveOnAdd(userFromUserId, _onAdd, onChangeText, resetHighlightIndex, incFocusInputCounter)
 
     // const rolePickerProps: RolePickerProps | undefined =
     //   ownProps.namespace === 'teams'
     //     ? {
-    //         onSelectRole: dispatchProps.onSelectRole,
+    //         onSelectRole: onSelectRole,
     //         sendNotification: stateProps.sendNotification,
     //       }
     //     : undefined
@@ -490,57 +480,49 @@ const Connected: any = Container.connect(
     // functionality elsewhere. Right now it's easier to keep here since the input
     // already catches all keypresses
 
+    const _title = namespace === 'teams' ? `Add to ${teamname}` : title
+
     const onEnterKeyDown = deriveOnEnterKeyDown({
       changeText: onChangeText,
       highlightedIndex: highlightedIndex,
       onAdd,
-      onFinishTeamBuilding: dispatchProps.onFinishTeamBuilding,
-      onRemove: dispatchProps.onRemove,
+      onFinishTeamBuilding,
+      onRemove,
       searchResults: userResultsToShow,
       searchStringIsEmpty: !searchString,
       teamSoFar,
     })
 
-    const title = namespace === 'teams' ? `Add to ${teamname}` : _title
-
     return {
-      error: error,
-      filterServices: filterServices,
-      focusInputCounter: focusInputCounter,
-      goButtonLabel: goButtonLabel,
-      highlightedIndex: highlightedIndex,
+      error,
+      filterServices,
+      focusInputCounter,
+      goButtonLabel,
+      highlightedIndex,
       includeContacts: namespace === 'chat2',
-      namespace: namespace,
+      namespace,
       onAdd,
-      onChangeService: deriveOnChangeService(
-        onChangeService,
-        incFocusInputCounter,
-        dispatchProps._search,
-        searchString
-      ),
+      onChangeService: deriveOnChangeService(onChangeService, incFocusInputCounter, _search, searchString),
       onChangeText,
       onClear,
-      onClose: dispatchProps._onCancelTeamBuilding,
-      onClosePopup: dispatchProps._onCancelTeamBuilding,
+      onClose: _onCancelTeamBuilding,
       onDownArrowKeyDown: deriveOnDownArrowKeyDown((userResultsToShow || []).length - 1, incHighlightIndex),
       onEnterKeyDown,
-      onFinishTeamBuilding: dispatchProps.onFinishTeamBuilding,
-      onMakeItATeam: () => console.log('todo'),
-      onRemove: dispatchProps.onRemove,
+      onFinishTeamBuilding,
+      onRemove,
       onSearchForMore,
       onUpArrowKeyDown: decHighlightIndex,
       recommendations: recommendationsSections,
-      search: dispatchProps._search,
+      search: _search,
       searchResults,
-      searchString: searchString,
-      selectedService: selectedService,
+      searchString,
+      selectedService,
       serviceResultCount,
       showServiceResultCount: showServiceResultCount && showServiceResultCount,
-      teamBuildingSearchResults: teamBuildingSearchResults,
-      teamID: teamID,
+      teamBuildingSearchResults,
+      teamID,
       teamSoFar,
-      teamname: teamname,
-      title,
+      title: _title,
       waitingForCreate,
     }
   }

@@ -47,7 +47,6 @@ export type Props = {
   filterServices?: Array<ServiceIdWithContact>
   focusInputCounter: number
   goButtonLabel?: GoButtonLabel
-  recommendedHideYourself?: boolean
   highlightedIndex: number | null
   includeContacts: boolean
   namespace: AllowedNamespace
@@ -59,21 +58,19 @@ export type Props = {
   onDownArrowKeyDown: () => void
   onEnterKeyDown: () => void
   onFinishTeamBuilding: () => void
-  onMakeItATeam: () => void
   onRemove: (userId: string) => void
   onSearchForMore: () => void
   onUpArrowKeyDown: () => void
   recommendations: Array<SearchRecSection> | null
-  selectedService: ServiceIdWithContact
   search: (query: string, service: ServiceIdWithContact) => void
   searchResults: Array<SearchResult> | undefined
   searchString: string
+  selectedService: ServiceIdWithContact
   serviceResultCount: {[K in ServiceIdWithContact]?: number | null}
   showServiceResultCount: boolean
   teamBuildingSearchResults: SearchResults
   teamID: TeamID | undefined
   teamSoFar: Array<SelectedUser>
-  teamname: string | undefined
   title: string
   waitingForCreate: boolean
 }

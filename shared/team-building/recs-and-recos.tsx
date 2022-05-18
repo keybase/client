@@ -86,14 +86,15 @@ export const RecsAndRecos = (
     Types.Props,
     | 'highlightedIndex'
     | 'recommendations'
-    | 'recommendedHideYourself'
     | 'namespace'
     | 'selectedService'
     | 'onAdd'
     | 'onRemove'
     | 'teamSoFar'
   > &
-    Types.OnScrollProps
+    Types.OnScrollProps & {
+      recommendedHideYourself: boolean
+    }
 ) => {
   const {
     highlightedIndex,
