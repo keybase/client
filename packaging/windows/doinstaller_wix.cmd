@@ -185,7 +185,7 @@ goto:eof
 ::   http://timestamp.comodoca.com/authenticode
 ::   http://timestamp.digicert.com
 
-if %DevCert% NEQ 0 (
+if %DevCert% EQ 0 (
 
 %SIGNTOOL% sign /i digicert /a /tr http://timestamp.digicert.com %~1
 IF %ERRORLEVEL% NEQ 0 (
