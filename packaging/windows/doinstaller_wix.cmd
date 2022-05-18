@@ -185,6 +185,7 @@ goto:eof
 ::   http://timestamp.comodoca.com/authenticode
 ::   http://timestamp.digicert.com
 
+echo "Signing %DevCert%"
 IF %DevCert% NEQ 1 (
 
   %SIGNTOOL% sign /i digicert /a /tr http://timestamp.digicert.com %~1
