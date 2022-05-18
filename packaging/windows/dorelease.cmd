@@ -2,6 +2,7 @@ if NOT DEFINED ClientRevision set ClientRevision=master
 if NOT DEFINED KBFSRevision set KBFSRevision=master
 if NOT DEFINED UpdaterRevision set UpdaterRevision=master
 if NOT DEFINED ReleaseRevision set ReleaseRevision=master
+if NOT DEFINED DevCert set DevCert=0
 
 set GOARCH=amd64
 
