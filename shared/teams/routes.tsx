@@ -40,6 +40,7 @@ import type TeamInviteHistory from './team/invites/invite-history'
 import type Team from './team'
 import type ExternalTeam from './external-team'
 import type * as TeamBuildingTypes from '../constants/types/team-building'
+import type * as TeamTypes from '../constants/types/teams'
 
 export const newRoutes = {
   team: {getScreen: (): typeof Team => require('./team').default},
@@ -180,4 +181,14 @@ type TeamBuilderProps = Partial<{
 
 export type RootParamListTeams = {
   teamsTeamBuilder: TeamBuilderProps
+  contactRestricted: {
+    source: 'newFolder' | 'teamAddSomeFailed' | 'teamAddAllFailed' | 'walletsRequest' | 'misc'
+    usernames: Array<string>
+  }
+  teamsRoot: {
+    namespace: TeamBuildingTypes.AllowedNamespace
+    teamID?: TeamTypes.TeamID
+    filterServices?: Array<TeamBuildingTypes.ServiceIdWithContact>
+    title: string
+  }
 }

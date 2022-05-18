@@ -10,6 +10,7 @@ import type {RootParamListDevices} from '../devices/routes'
 import type {RootParamListCrypto} from '../crypto/routes'
 import type {RootParamListLogin} from '../login/routes'
 import type {RootParamListProvision} from '../provision/routes'
+import type {RootParamListSettings} from '../settings/routes'
 
 // TODO partial could go away when we enforce these params are pushed correctly
 type DeepPartial<Type> = {
@@ -27,6 +28,7 @@ export type RootParamList = DeepPartial<
     RootParamListCrypto &
     RootParamListDevices &
     RootParamListProvision &
+    RootParamListSettings &
     RootParamListGit
 >
 export type RootRouteProps<RouteName extends keyof RootParamList> = RouteProp<RootParamList, RouteName>
