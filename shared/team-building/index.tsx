@@ -5,134 +5,27 @@ import * as Container from '../util/container'
 import * as Constants from '../constants/team-building'
 import * as TeamConstants from '../constants/teams'
 import * as TeamBuildingGen from '../actions/team-building-gen'
-import {ContactsImportButton, ContactsBanner} from './contacts'
+import type * as Types from './types'
+import {ContactsBanner} from './contacts'
 import TeamBox from './team-box'
 import Input from './input'
 import {ServiceTabBar} from './service-tab-bar'
-import type {Props as OriginalRolePickerProps} from '../teams/role-picker'
-import {type TeamRoleType, type TeamID, noTeamID} from '../constants/types/teams'
-import {memoize} from '../util/memoize'
+import {noTeamID} from '../constants/types/teams'
+import {RecsAndRecos} from './recs-and-recos'
 import throttle from 'lodash/throttle'
 import PhoneSearch from './phone-search'
-import AlphabetIndex from './alphabet-index'
 import EmailSearch from './email-search'
 import PeopleResult from './search-result/people-result'
 import UserResult from './search-result/user-result'
-import {userResultHeight} from './search-result/common-result'
 import {
   serviceIdToAccentColor,
   serviceIdToIconFont,
   serviceIdToLabel,
   serviceIdToSearchPlaceholder,
 } from './shared'
-import type {
-  AllowedNamespace,
-  FollowingState,
-  GoButtonLabel,
-  SearchResults,
-  SelectedUser,
-  ServiceIdWithContact,
-} from '../constants/types/team-building'
+import type {ServiceIdWithContact} from '../constants/types/team-building'
 import {ModalTitle as TeamsModalTitle} from '../teams/common'
 import type {Section} from '../common-adapters/section-list'
-
-export const numSectionLabel = '0-9'
-
-export type SearchResult = {
-  contact: boolean
-  userId: string
-  username: string
-  prettyName: string
-  pictureUrl?: string
-  displayLabel: string
-  services: {[K in ServiceIdWithContact]?: string}
-  inTeam: boolean
-  isPreExistingTeamMember: boolean
-  isYou: boolean
-  followingState: FollowingState
-  isImportButton?: false
-  isSearchHint?: false
-}
-
-export type ImportContactsEntry = {
-  isImportButton: true
-  isSearchHint?: false
-}
-
-export type SearchHintEntry = {
-  isImportButton?: false
-  isSearchHint: true
-}
-
-export type ResultData = SearchResult | ImportContactsEntry | SearchHintEntry
-
-export type SearchRecSection = {
-  label: string
-  shortcut: boolean
-  data: Array<ResultData>
-}
-
-const isImportContactsEntry = (x: ResultData): x is ImportContactsEntry =>
-  'isImportButton' in x && !!x.isImportButton
-
-const isSearchHintEntry = (x: ResultData): x is SearchHintEntry => 'isSearchHint' in x && !!x.isSearchHint
-
-export type RolePickerProps = {
-  onSelectRole: (role: TeamRoleType) => void
-  sendNotification: boolean
-  changeSendNotification: (sendNotification: boolean) => void
-  showRolePicker: boolean
-  changeShowRolePicker: (showRolePicker: boolean) => void
-  selectedRole: TeamRoleType
-  disabledRoles: OriginalRolePickerProps<false>['disabledRoles']
-}
-
-export type Props = {
-  error?: string
-  filterServices?: Array<ServiceIdWithContact>
-  focusInputCounter: number
-  goButtonLabel?: GoButtonLabel
-  recommendedHideYourself?: boolean
-  highlightedIndex: number | null
-  includeContacts: boolean
-  namespace: AllowedNamespace
-  onAdd: (userId: string) => void
-  onChangeService: (newService: ServiceIdWithContact) => void
-  onChangeText: (newText: string) => void
-  onClear: () => void
-  onClose: () => void
-  onDownArrowKeyDown: () => void
-  onEnterKeyDown: () => void
-  onFinishTeamBuilding: () => void
-  onMakeItATeam: () => void
-  onRemove: (userId: string) => void
-  onSearchForMore: () => void
-  onUpArrowKeyDown: () => void
-  recommendations: Array<SearchRecSection> | null
-  rolePickerProps?: RolePickerProps
-  selectedService: ServiceIdWithContact
-  search: (query: string, service: ServiceIdWithContact) => void
-  searchResults: Array<SearchResult> | undefined
-  searchString: string
-  serviceResultCount: {[K in ServiceIdWithContact]?: number | null}
-  showRecs: boolean
-  showResults: boolean
-  showServiceResultCount: boolean
-  teamBuildingSearchResults: SearchResults
-  teamID: TeamID | undefined
-  teamSoFar: Array<SelectedUser>
-  teamname: string | undefined
-  title: string
-  waitingForCreate: boolean
-}
-
-const SearchHintText = () => (
-  <Kb.Box2 direction="vertical" style={styles.searchHint}>
-    <Kb.Text type="BodySmall" style={{textAlign: 'center'}}>
-      Search anyone on Keybase by typing a username or a full name.
-    </Kb.Text>
-  </Kb.Box2>
-)
 
 const FilteredServiceTabBar = (
   props: Omit<React.ComponentPropsWithoutRef<typeof ServiceTabBar>, 'services'> & {
@@ -171,61 +64,9 @@ const FilteredServiceTabBar = (
   )
 }
 
-type SectionListProp = {
-  sectionListRef: React.RefObject<Kb.SectionList<Section<ResultData, SearchRecSection>>>
-}
-
-type OnScrollProps = {
-  onScroll: undefined | (() => void)
-}
-
-const TeamAlphabetIndex = (props: Pick<Props, 'recommendations' | 'teamSoFar'> & SectionListProp) => {
-  const {recommendations, teamSoFar, sectionListRef} = props
-  let showNumSection = false
-  let labels: Array<string> = []
-  if (recommendations && recommendations.length > 0) {
-    showNumSection = recommendations[recommendations.length - 1].label === numSectionLabel
-    labels = recommendations.filter(r => r.shortcut && r.label !== numSectionLabel).map(r => r.label)
-  }
-
-  const _onScrollToSection = (label: string) => {
-    if (sectionListRef.current) {
-      const ref = sectionListRef.current
-      const sectionIndex =
-        (recommendations &&
-          (label === 'numSection'
-            ? recommendations.length - 1
-            : recommendations.findIndex(section => section.label === label))) ||
-        -1
-      if (sectionIndex >= 0 && Styles.isMobile) {
-        ref.scrollToLocation({
-          animated: false,
-          itemIndex: 0,
-          sectionIndex,
-        })
-      }
-    }
-  }
-
-  if (!labels.length) {
-    return null
-  }
-  return (
-    <>
-      <AlphabetIndex
-        labels={labels}
-        showNumSection={showNumSection}
-        onScroll={_onScrollToSection}
-        style={styles.alphabetIndex}
-        measureKey={!!teamSoFar.length}
-      />
-    </>
-  )
-}
-
 const modalHeaderProps = (
   props: Pick<
-    Props,
+    Types.Props,
     'onClose' | 'namespace' | 'teamSoFar' | 'teamID' | 'onFinishTeamBuilding' | 'title' | 'goButtonLabel'
   >
 ) => {
@@ -292,7 +133,7 @@ const modalHeaderProps = (
 
 const SearchInput = (
   props: Pick<
-    Props,
+    Types.Props,
     | 'onChangeText'
     | 'selectedService'
     | 'namespace'
@@ -333,7 +174,7 @@ const SearchInput = (
   )
 }
 
-const Suggestions = (props: Pick<Props, 'namespace' | 'selectedService'>) => {
+const Suggestions = (props: Pick<Types.Props, 'namespace' | 'selectedService'>) => {
   const {namespace, selectedService} = props
   return (
     <Kb.Box2
@@ -375,171 +216,9 @@ const Suggestions = (props: Pick<Props, 'namespace' | 'selectedService'>) => {
   )
 }
 
-const RecsAndRecos = (
-  props: Pick<
-    Props,
-    | 'highlightedIndex'
-    | 'recommendations'
-    | 'recommendedHideYourself'
-    | 'namespace'
-    | 'selectedService'
-    | 'onAdd'
-    | 'onRemove'
-    | 'teamSoFar'
-  > &
-    SectionListProp &
-    OnScrollProps
-) => {
-  const {
-    highlightedIndex,
-    recommendations,
-    sectionListRef,
-    onScroll,
-    recommendedHideYourself,
-    namespace,
-    selectedService,
-    onAdd,
-    onRemove,
-    teamSoFar,
-  } = props
-
-  const ResultRow = namespace === 'people' ? PeopleResult : UserResult
-
-  const _listIndexToSectionAndLocalIndex = memoize(
-    (
-      highlightedIndex: number | null,
-      sections: SearchRecSection[] | null
-    ): {index: number; section: SearchRecSection} | null => {
-      if (highlightedIndex !== null && sections !== null) {
-        let index = highlightedIndex
-        for (const section of sections) {
-          if (index >= section.data.length) {
-            index -= section.data.length
-          } else {
-            return {index, section}
-          }
-        }
-      }
-      return null
-    }
-  )
-
-  const _getRecLayout = (
-    sections: Array<SearchRecSection>,
-    indexInList: number
-  ): {index: number; length: number; offset: number} => {
-    const sectionDividerHeight = Kb.SectionDivider.height
-    const dataRowHeight = userResultHeight
-
-    let numSections = 0
-    let numData = 0
-    let length = dataRowHeight
-    let currSectionHeaderIdx = 0
-    for (const s of sections) {
-      if (indexInList === currSectionHeaderIdx) {
-        // we are the section header
-        length = Kb.SectionDivider.height
-        break
-      }
-      numSections++
-      const indexInSection = indexInList - currSectionHeaderIdx - 1
-      if (indexInSection === s.data.length) {
-        // it's the section footer (we don't render footers so 0px).
-        numData += s.data.length
-        length = 0
-        break
-      }
-      if (indexInSection < s.data.length) {
-        // we are in this data
-        numData += indexInSection
-        break
-      }
-      // we're not in this section
-      numData += s.data.length
-      currSectionHeaderIdx += s.data.length + 2 // +2 because footer
-    }
-    const offset = numSections * sectionDividerHeight + numData * dataRowHeight
-    return {index: indexInList, length, offset}
-  }
-
-  const highlightDetails = _listIndexToSectionAndLocalIndex(highlightedIndex, recommendations)
-  return (
-    <Kb.BoxGrow>
-      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.listContainer}>
-        <SectionList
-          ref={sectionListRef}
-          contentContainerStyle={{minHeight: '133%'}}
-          keyboardDismissMode="on-drag"
-          keyboardShouldPersistTaps="handled"
-          stickySectionHeadersEnabled={false}
-          scrollEventThrottle={1}
-          onScroll={onScroll}
-          selectedIndex={Styles.isMobile ? undefined : highlightedIndex || 0}
-          sections={recommendations ?? []}
-          keyExtractor={(item: ResultData, index: number) => {
-            if (!isImportContactsEntry(item) && !isSearchHintEntry(item) && item.contact) {
-              // Ids for contacts are not guaranteed to be unique
-              return item.userId + index
-            }
-            return isImportContactsEntry(item)
-              ? 'Import Contacts'
-              : isSearchHintEntry(item)
-              ? 'New User Search Hint'
-              : item.userId
-          }}
-          getItemLayout={_getRecLayout}
-          renderItem={({index, item: result, section}) =>
-            result.isImportButton ? (
-              <ContactsImportButton />
-            ) : result.isSearchHint ? (
-              <SearchHintText />
-            ) : recommendedHideYourself && result.isYou ? null : (
-              <ResultRow
-                namespace={namespace}
-                resultForService={selectedService}
-                username={result.username}
-                prettyName={result.prettyName}
-                pictureUrl={result.pictureUrl}
-                displayLabel={result.displayLabel}
-                services={result.services}
-                inTeam={result.inTeam}
-                isPreExistingTeamMember={result.isPreExistingTeamMember}
-                isYou={result.isYou}
-                followingState={result.followingState}
-                highlight={
-                  !Styles.isMobile &&
-                  !!highlightDetails &&
-                  namespace !== 'people' &&
-                  highlightDetails.section === section &&
-                  highlightDetails.index === index
-                }
-                userId={result.userId}
-                onAdd={onAdd}
-                onRemove={onRemove}
-              />
-            )
-          }
-          renderSectionHeader={({section: {label}}: any) =>
-            label && (!Styles.isMobile || label !== 'Recommendations') ? (
-              <Kb.SectionDivider label={label} />
-            ) : null
-          }
-        />
-        {Styles.isMobile && (
-          <TeamAlphabetIndex
-            recommendations={recommendations}
-            sectionListRef={sectionListRef}
-            teamSoFar={teamSoFar}
-          />
-        )}
-      </Kb.Box2>
-    </Kb.BoxGrow>
-  )
-}
-
 const ListBody = (
   props: Pick<
-    Props,
+    Types.Props,
     | 'namespace'
     | 'searchString'
     | 'recommendations'
@@ -554,8 +233,8 @@ const ListBody = (
     | 'teamSoFar'
     | 'onSearchForMore'
   > &
-    SectionListProp &
-    OnScrollProps
+    Types.SectionListProp &
+    Types.OnScrollProps
 ) => {
   const {
     namespace,
@@ -662,14 +341,7 @@ const ListBody = (
   )
 }
 
-// TODO: the type of this is any
-// If we fix this type, we'll need to add a bunch more mobile-only props to Kb.SectionList since this code uses
-// a bunch of the native props.
-const SectionList: typeof Kb.SectionList = Styles.isMobile
-  ? Kb.ReAnimated.createAnimatedComponent(Kb.SectionList)
-  : Kb.SectionList
-
-const TeamBuilding = (props: Props) => {
+const TeamBuilding = (props: Types.Props) => {
   const {
     filterServices,
     includeContacts,
@@ -714,7 +386,7 @@ const TeamBuilding = (props: Props) => {
   }, [dispatch, namespace])
 
   const offset = React.useRef(Styles.isMobile ? new Kb.ReAnimated.Value(0) : undefined)
-  const sectionListRef = React.useRef<Kb.SectionList<Section<ResultData, SearchRecSection>>>(null)
+  const sectionListRef = React.useRef<Kb.SectionList<Section<Types.ResultData, Types.SearchRecSection>>>(null)
 
   React.useEffect(() => {
     fetchUserRecs()
@@ -722,7 +394,7 @@ const TeamBuilding = (props: Props) => {
     // eslint-disable-next-line
   }, [])
 
-  const onScroll: OnScrollProps['onScroll'] = Styles.isMobile
+  const onScroll: Types.OnScrollProps['onScroll'] = Styles.isMobile
     ? Kb.ReAnimated.event([{nativeEvent: {contentOffset: {y: offset.current}}}], {useNativeDriver: true})
     : undefined
 
@@ -817,6 +489,8 @@ const TeamBuilding = (props: Props) => {
     />
   )
 
+  const errorBanner = !!error && <Kb.Banner color="red">{error}</Kb.Banner>
+
   // If there are no filterServices or if the filterServices has a phone
   const showContactsBanner = Styles.isMobile && (!filterServices || filterServices.includes('phone'))
 
@@ -833,15 +507,8 @@ const TeamBuilding = (props: Props) => {
       })}
     >
       <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexOne} fullWidth={true}>
-        {teamBox &&
-          (Styles.isMobile ? (
-            <Kb.Box2 direction="horizontal" fullWidth={true}>
-              {teamBox}
-            </Kb.Box2>
-          ) : (
-            teamBox
-          ))}
-        {!!error && <Kb.Banner color="red">{error}</Kb.Banner>}
+        {teamBox}
+        {errorBanner}
         {(namespace !== 'people' || Styles.isMobile) && (
           <FilteredServiceTabBar
             filterServices={filterServices}
@@ -894,12 +561,6 @@ TeamBuilding.navigationOptions = ({route}) => {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      alphabetIndex: {
-        maxHeight: '80%',
-        position: 'absolute',
-        right: 0,
-        top: Styles.globalMargins.large,
-      },
       container: Styles.platformStyles({
         common: {position: 'relative'},
       }),
@@ -926,14 +587,6 @@ const styles = Styles.styleSheetCreate(
       hide: {opacity: 0},
       list: Styles.platformStyles({
         common: {paddingBottom: Styles.globalMargins.small},
-      }),
-      listContainer: Styles.platformStyles({
-        common: {position: 'relative'},
-        isElectron: {flex: 1, height: '100%', overflow: 'hidden'},
-        isMobile: {
-          flexGrow: 1,
-          width: '100%',
-        },
       }),
       listContentContainer: Styles.platformStyles({
         isMobile: {paddingTop: Styles.globalMargins.xtiny},
@@ -964,11 +617,6 @@ const styles = Styles.styleSheetCreate(
         ...Styles.padding(Styles.globalMargins.small),
       },
       peoplePopupStyleClose: Styles.platformStyles({isElectron: {display: 'none'}}),
-      searchHint: {
-        paddingLeft: Styles.globalMargins.xlarge,
-        paddingRight: Styles.globalMargins.xlarge,
-        paddingTop: Styles.globalMargins.xlarge,
-      },
       shrinkingGap: {flexShrink: 1, height: Styles.globalMargins.xtiny},
       teamAvatar: Styles.platformStyles({
         isElectron: {

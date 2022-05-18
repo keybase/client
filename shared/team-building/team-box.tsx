@@ -1,12 +1,12 @@
+import * as Container from '../util/container'
+import * as Kb from '../common-adapters'
 import * as React from 'react'
+import * as Styles from '../styles'
 import GoButton from './go-button'
 import UserBubble from './user-bubble'
-import * as Kb from '../common-adapters'
-import * as Styles from '../styles'
-import * as Container from '../util/container'
-import {SelectedUser, GoButtonLabel} from '../constants/types/team-building'
+import type {RolePickerProps} from './types'
+import type {SelectedUser, GoButtonLabel} from '../constants/types/team-building'
 import {e164ToDisplay} from '../util/phone-numbers'
-import {RolePickerProps} from '.'
 
 type Props = {
   allowPhoneEmail: boolean
@@ -76,17 +76,20 @@ const TeamBox = (props: Props) => {
       {`Keep adding people, or click ${props.goButtonLabel ?? 'Start'} when done.`}
     </Kb.Text>
   )
+
   return Styles.isMobile ? (
-    <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.container}>
-      <Kb.ScrollView
-        horizontal={true}
-        alwaysBounceHorizontal={false}
-        ref={scrollViewRef}
-        contentContainerStyle={styles.scrollContent}
-      >
-        <UserBubbleCollection teamSoFar={props.teamSoFar} onRemove={props.onRemove} />
-        {addMorePrompt}
-      </Kb.ScrollView>
+    <Kb.Box2 direction="horizontal" fullWidth={true}>
+      <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.container}>
+        <Kb.ScrollView
+          horizontal={true}
+          alwaysBounceHorizontal={false}
+          ref={scrollViewRef}
+          contentContainerStyle={styles.scrollContent}
+        >
+          <UserBubbleCollection teamSoFar={props.teamSoFar} onRemove={props.onRemove} />
+          {addMorePrompt}
+        </Kb.ScrollView>
+      </Kb.Box2>
     </Kb.Box2>
   ) : (
     <Kb.Box2 direction="horizontal" style={styles.container} fullWidth={true}>

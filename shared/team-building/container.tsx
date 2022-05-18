@@ -2,13 +2,9 @@ import logger from '../logger'
 import * as React from 'react'
 import debounce from 'lodash/debounce'
 import trim from 'lodash/trim'
-import TeamBuilding, {
-  type RolePickerProps,
-  type SearchResult,
-  type SearchRecSection,
-  numSectionLabel,
-  type Props as TeamBuildingProps,
-} from '.'
+import TeamBuilding from '.'
+import type {RolePickerProps, SearchResult, SearchRecSection, Props as TeamBuildingProps} from './types'
+import {numSectionLabel} from './recs-and-recos'
 import * as WaitingConstants from '../constants/waiting'
 import * as ChatConstants from '../constants/chat2'
 import * as TeamBuildingGen from '../actions/team-building-gen'
