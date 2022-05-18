@@ -16,3 +16,15 @@ export const newModalRoutes = {
   deviceAdd: {getScreen: (): typeof DeviceAdd => require('./add-device/container').default},
   devicePaperKey: {getScreen: (): typeof DevicePaperKey => require('./paper-key').default},
 }
+
+export type RootParamListDevices = {
+  deviceAdd: {
+    highlight: Array<'computer' | 'phone' | 'paper key'>
+  }
+  devicePage: {
+    deviceID: string
+  }
+  deviceRevoke: {
+    deviceID: string
+  }
+}

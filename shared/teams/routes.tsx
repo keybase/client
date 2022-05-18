@@ -39,6 +39,7 @@ import type TeamAddToTeamConfirm from './add-members-wizard/confirm'
 import type TeamInviteHistory from './team/invites/invite-history'
 import type Team from './team'
 import type ExternalTeam from './external-team'
+import type * as TeamBuildingTypes from '../constants/types/team-building'
 
 export const newRoutes = {
   team: {getScreen: (): typeof Team => require('./team').default},
@@ -167,4 +168,16 @@ export const newModalRoutes = {
   teamsTeamBuilder: {
     getScreen: (): typeof TeamsTeamBuilder => require('../team-building/container').default,
   },
+}
+
+type TeamBuilderProps = Partial<{
+  namespace: TeamBuildingTypes.AllowedNamespace
+  teamID: string
+  filterServices: Array<TeamBuildingTypes.ServiceIdWithContact>
+  goButtonLabel: TeamBuildingTypes.GoButtonLabel
+  title: string
+}>
+
+export type RootParamListTeams = {
+  teamsTeamBuilder: TeamBuilderProps
 }

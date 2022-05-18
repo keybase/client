@@ -16,6 +16,7 @@ import type WhatIsStellarModal from './what-is-stellar-modal'
 import type Settings from './wallet/settings/container'
 import type TransactionDetails from './transaction-details/container'
 import type TeamBuilder from '../team-building/container'
+import type * as TeamBuildingTypes from '../constants/types/team-building'
 
 export const sharedRoutes = {
   // TODO connect broken
@@ -69,4 +70,19 @@ export const newModalRoutes = {
   whatIsStellarModal: {
     getScreen: (): typeof WhatIsStellarModal => require('./what-is-stellar-modal').default,
   },
+}
+
+type TeamBuilderProps = Partial<{
+  namespace: TeamBuildingTypes.AllowedNamespace
+  teamID: string
+  filterServices: Array<TeamBuildingTypes.ServiceIdWithContact>
+  goButtonLabel: TeamBuildingTypes.GoButtonLabel
+  title: string
+}>
+
+export type RootParamListWallets = {
+  walletTeamBuilder: TeamBuilderProps
+  keybaseLinkError: {
+    errorSource: 'app' | 'sep6' | 'sep7'
+  }
 }

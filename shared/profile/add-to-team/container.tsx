@@ -1,5 +1,5 @@
 import * as React from 'react'
-import AddToTeam, {AddToTeamProps} from './index'
+import AddToTeam, {type AddToTeamProps} from './index'
 import * as Container from '../../util/container'
 import {memoize} from '../../util/memoize'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
@@ -7,9 +7,9 @@ import * as TeamsGen from '../../actions/teams-gen'
 import * as Constants from '../../constants/teams'
 import * as WaitingConstants from '../../constants/waiting'
 import {sendNotificationFooter} from '../../teams/role-picker'
-import * as Types from '../../constants/types/teams'
+import type * as Types from '../../constants/types/teams'
 
-type OwnProps = Container.RouteProps<{username: string}>
+type OwnProps = Container.RouteProps<'profileAddToTeam'>
 
 const getOwnerDisabledReason = memoize((selected: Set<string>, teamNameToRole) => {
   return [...selected]
@@ -111,7 +111,7 @@ export default Container.connect(
   (state, ownProps: OwnProps) => ({
     _roles: state.teams.teamRoleMap.roles,
     _teams: state.teams.teamMeta,
-    _them: Container.getRouteProps(ownProps, 'username', ''),
+    _them: ownProps.route.params?.username ?? '',
     addUserToTeamsResults: state.teams.addUserToTeamsResults,
     addUserToTeamsState: state.teams.addUserToTeamsState,
     teamProfileAddList: state.teams.teamProfileAddList,
@@ -124,9 +124,7 @@ export default Container.connect(
     },
     clearAddUserToTeamsResults: () => dispatch(TeamsGen.createClearAddUserToTeamsResults()),
     loadTeamList: () =>
-      dispatch(
-        TeamsGen.createGetTeamProfileAddList({username: Container.getRouteProps(ownProps, 'username', '')})
-      ),
+      dispatch(TeamsGen.createGetTeamProfileAddList({username: ownProps.route.params?.username ?? ''})),
     onBack: () => {
       dispatch(RouteTreeGen.createNavigateUp())
       dispatch(TeamsGen.createSetTeamProfileAddList({teamlist: []}))

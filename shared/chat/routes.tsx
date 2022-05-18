@@ -1,3 +1,4 @@
+import type * as ChatTypes from '../constants/types/chat2'
 import type ChatConversation from './conversation/container'
 import type ChatEnterPaperkey from './conversation/rekey/enter-paper-key'
 import type ChatRoot from './inbox/container'
@@ -22,6 +23,9 @@ import type ChatForwardMsgPick from './conversation/fwd-msg/team-picker'
 import type ChatSearchBot from './conversation/bot/search'
 import type ChatConfirmRemoveBot from './conversation/bot/confirm'
 import type ChatPDF from './pdf'
+import type * as TeamBuildingTypes from '../constants/types/team-building'
+import type * as TeamsTypes from '../constants/types/teams'
+import type {RenderableEmoji} from '../util/emoji'
 import * as ChatConstants from '../constants/chat2'
 
 export const newRoutes = {
@@ -108,4 +112,59 @@ export const newModalRoutes = {
   sendToChat: {
     getScreen: (): typeof SendToChat => require('./send-to-chat').default,
   },
+}
+
+type TeamBuilderProps = Partial<{
+  namespace: TeamBuildingTypes.AllowedNamespace
+  teamID: string
+  filterServices: Array<TeamBuildingTypes.ServiceIdWithContact>
+  goButtonLabel: TeamBuildingTypes.GoButtonLabel
+  title: string
+}>
+
+export type RootParamListChat = {
+  chatNewChat: TeamBuilderProps
+  chatConversation: {conversationIDKey: ChatTypes.ConversationIDKey}
+  chatChooseEmoji: {
+    conversationIDKey: ChatTypes.ConversationIDKey
+    small: boolean
+    hideFrequentEmoji: boolean
+    onlyTeamCustomEmoji: boolean
+    onPickAction: (emojiStr: string, renderableEmoji: RenderableEmoji) => void
+    onPickAddToMessageOrdinal: ChatTypes.Ordinal
+    onDidPick: () => void
+  }
+  chatUnfurlMapPopup: {
+    conversationIDKey: ChatTypes.ConversationIDKey
+    coord: ChatTypes.Coordinate
+    isAuthor: boolean
+    author?: string
+    isLiveLocation: boolean
+    url: string
+  }
+  chatCreateChannel: {
+    navToChatOnSuccess?: boolean
+    teamID: TeamsTypes.TeamID
+  }
+  chatDeleteHistoryWarning: {
+    conversationIDKey: ChatTypes.ConversationIDKey
+  }
+  chatShowNewTeamDialog: {
+    conversationIDKey: ChatTypes.ConversationIDKey
+  }
+  chatPDF: {
+    title: string
+    url: string
+  }
+  chatConfirmNavigateExternal: {
+    display: string
+    punycode: string
+    url: string
+  }
+  sendToChat: {
+    canBack: boolean
+    isFromShareExtension: boolean
+    text: string // incoming share (text)
+    sendPaths: Array<string> // KBFS or incoming share (files)
+  }
 }
