@@ -293,8 +293,7 @@ const TeamAlphabetIndex = (props: Pick<Props, 'recommendations' | 'teamSoFar'> &
             : recommendations.findIndex(section => section.label === label))) ||
         -1
       if (sectionIndex >= 0 && Styles.isMobile) {
-        const node = ref.getNode()
-        node?.scrollToLocation({
+        ref.scrollToLocation({
           animated: false,
           itemIndex: 0,
           sectionIndex,
