@@ -45,15 +45,6 @@ export function getRouteProps<O extends _RouteProps<any>, R extends GetRouteType
   return val === undefined ? notSetVal : val
 }
 
-export function getRoutePropsOr<O extends _RouteProps<any>, R extends GetRouteType<O>, K extends keyof R, D>(
-  ownProps: O,
-  key: K,
-  notSetVal: D
-): R[K] | D {
-  const val = ownProps.route.params?.[key]
-  return val === undefined ? notSetVal : val
-}
-
 export type RemoteWindowSerializeProps<P> = {[K in keyof P]-?: (val: P[K], old?: P[K]) => any}
 
 export type TypedDispatch = (action: _TypedActions) => void

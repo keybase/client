@@ -1,18 +1,19 @@
 import * as React from 'react'
-import {WebOfTrustVerificationType} from '../../constants/types/more'
+import type {WebOfTrustVerificationType} from '../../constants/types/more'
 import * as Constants from '../../constants/profile'
 import * as UsersConstants from '../../constants/users'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
-import * as Tracker2Types from '../../constants/types/tracker2'
+import type * as Tracker2Types from '../../constants/types/tracker2'
 import {SiteIcon} from '../../profile/generic/shared'
 import * as ProfileGen from '../../actions/profile-gen'
 import * as UsersGen from '../../actions/users-gen'
 import * as Tracker2Constants from '../../constants/tracker2'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import sortBy from 'lodash/sortBy'
+import type {RouteProps} from 'router-v2/route-params'
 
 // Keep in sync with server limits: https://github.com/keybase/proofs/blob/master/src/wot.iced
 const statementLimit = 700
@@ -91,7 +92,8 @@ export const Question1Wrapper = (
     guiID: string
   }>
 ) => {
-  const voucheeUsername = Container.getRouteProps(props, 'username', '')
+  const voucheeUsername = props.route.params.username
+  Container.getRouteProps(props, 'username', '')
   const guiID = Container.getRouteProps(props, 'guiID', '')
   const nav = Container.useSafeNavigation()
   const dispatch = Container.useDispatch()
@@ -143,16 +145,12 @@ export const Question1Wrapper = (
   )
 }
 
-export const Question2Wrapper = (
-  props: Container.RouteProps<{
-    username: string
-    guiID: string
-    question1Answer: Question1Answer
-  }>
-) => {
-  const voucheeUsername = Container.getRouteProps(props, 'username', '')
-  const guiID = Container.getRouteProps(props, 'guiID', '')
-  const question1Answer = Container.getRoutePropsOr(props, 'question1Answer', 'error')
+export const Question2Wrapper = (props: RouteProps<'profileWotAuthor'>) => {
+  const {params} = props.route
+  const voucheeUsername = params?.username ?? ''
+  const guiID = params?.guiID ?? ''
+  const question1Answer = params?.question1Answer ?? 'error'
+
   const nav = Container.useSafeNavigation()
   const dispatch = Container.useDispatch()
   let error = Container.useSelector(state => state.profile.wotAuthorError)
@@ -590,9 +588,7 @@ const WotModal = (props: WotModalProps) => {
           <Kb.Text onClick={onClose} type="BodyPrimaryLink">
             Cancel
           </Kb.Text>
-        ) : (
-          undefined
-        ),
+        ) : undefined,
         title: 'Web of Trust',
       }}
       mode="DefaultFullHeight"
