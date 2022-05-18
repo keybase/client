@@ -3,20 +3,19 @@ import * as React from 'react'
 import debounce from 'lodash/debounce'
 import trim from 'lodash/trim'
 import TeamBuilding, {
-  RolePickerProps,
-  SearchResult,
-  SearchRecSection,
+  type RolePickerProps,
+  type SearchResult,
+  type SearchRecSection,
   numSectionLabel,
-  Props as TeamBuildingProps,
+  type Props as TeamBuildingProps,
 } from '.'
 import * as WaitingConstants from '../constants/waiting'
 import * as ChatConstants from '../constants/chat2'
 import * as TeamBuildingGen from '../actions/team-building-gen'
-import * as SettingsGen from '../actions/settings-gen'
 import * as Container from '../util/container'
 import * as Constants from '../constants/team-building'
 import * as Types from '../constants/types/team-building'
-import * as TeamTypes from '../constants/types/teams'
+import type * as TeamTypes from '../constants/types/teams'
 import {requestIdleCallback} from '../util/idle-callback'
 import {memoizeShallow, memoize} from '../util/memoize'
 import {getDisabledReasonsForRolePicker, getTeamDetails, getTeamMeta} from '../constants/teams'
@@ -169,15 +168,13 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
     ? getDisabledReasonsForRolePicker(state, ownProps.teamID, null)
     : emptyObj
 
-  const contactProps = {
-    contactsImported: state.settings.contacts.importEnabled,
-    contactsPermissionStatus: state.settings.contacts.permissionStatus,
-    isImportPromptDismissed: state.settings.contacts.importPromptDismissed,
-    numContactsImported: state.settings.contacts.importedCount,
-  }
+  const contactsImported = state.settings.contacts.importEnabled
+  const contactsPermissionStatus = state.settings.contacts.permissionStatus
+
+  const showingContactsButton =
+    Container.isMobile && contactsPermissionStatus !== 'never_ask_again' && !contactsImported
 
   return {
-    ...contactProps,
     disabledRoles,
     error: teamBuildingState.error,
     recommendations: deriveRecommendation(
@@ -199,6 +196,7 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
     serviceResultCount: deriveServiceResultCount(teamBuildingState.searchResults, ownProps.searchString),
     showResults: deriveShowResults(ownProps.searchString),
     showServiceResultCount: !isMobile && deriveShowResults(ownProps.searchString),
+    showingContactsButton,
     teamBuildingSearchResults,
     teamSoFar: deriveTeamSoFar(teamBuildingState.teamSoFar),
     teamname: maybeTeamMeta?.teamname,
@@ -239,17 +237,10 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, {namespace, teamI
   _onAdd: (user: Types.User) =>
     dispatch(TeamBuildingGen.createAddUsersToTeamSoFar({namespace, users: [user]})),
   _onCancelTeamBuilding: () => dispatch(TeamBuildingGen.createCancelTeamBuilding({namespace})),
-  _onImportContactsPermissionsGranted: () =>
-    dispatch(SettingsGen.createEditContactImportEnabled({enable: true, fromSettings: false})),
-  _onImportContactsPermissionsNotGranted: () =>
-    dispatch(SettingsGen.createRequestContactPermissions({fromSettings: false, thenToggleImportOn: true})),
   _search: (query: string, service: Types.ServiceIdWithContact, limit?: number) => {
     const func = service === 'keybase' ? debouncedSearchKeybase : debouncedSearch
     return func(dispatch, namespace, query, service, namespace === 'chat2', limit)
   },
-  fetchUserRecs: () =>
-    dispatch(TeamBuildingGen.createFetchUserRecs({includeContacts: namespace === 'chat2', namespace})),
-  onAskForContactsLater: () => dispatch(SettingsGen.createImportContactsLater()),
   onChangeSendNotification: (sendNotification: boolean) =>
     namespace === 'teams' &&
     dispatch(TeamBuildingGen.createChangeSendNotification({namespace, sendNotification})),
@@ -259,7 +250,6 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, {namespace, teamI
         ? TeamBuildingGen.createFinishTeamBuilding({namespace, teamID})
         : TeamBuildingGen.createFinishedTeamBuilding({namespace})
     ),
-  onLoadContactsSetting: () => dispatch(SettingsGen.createLoadContactImportEnabled()),
   onRemove: (userId: string) =>
     dispatch(TeamBuildingGen.createRemoveUsersFromTeamSoFar({namespace, users: [userId]})),
   onSelectRole: (role: TeamTypes.TeamRoleType) =>
@@ -499,28 +489,8 @@ const mergeProps = (
     showServiceResultCount,
     recommendations,
     waitingForCreate,
+    showingContactsButton,
   } = stateProps
-
-  const showingContactsButton =
-    Container.isMobile &&
-    stateProps.contactsPermissionStatus !== 'never_ask_again' &&
-    !stateProps.contactsImported
-
-  // Contacts props
-  const contactProps = {
-    contactsImported: stateProps.contactsImported,
-    contactsPermissionStatus: stateProps.contactsPermissionStatus,
-    isImportPromptDismissed: stateProps.isImportPromptDismissed,
-    numContactsImported: stateProps.numContactsImported || 0,
-    onAskForContactsLater: dispatchProps.onAskForContactsLater,
-    onImportContacts:
-      stateProps.contactsPermissionStatus === 'never_ask_again'
-        ? undefined
-        : stateProps.contactsPermissionStatus === 'granted'
-        ? dispatchProps._onImportContactsPermissionsGranted
-        : dispatchProps._onImportContactsPermissionsNotGranted,
-    onLoadContactsSetting: dispatchProps.onLoadContactsSetting,
-  }
 
   const showRecs = !ownProps.searchString && !!recommendations && ownProps.selectedService === 'keybase'
   const recommendationsSections = showRecs
@@ -589,9 +559,7 @@ const mergeProps = (
   const title = ownProps.namespace === 'teams' ? `Add to ${stateProps.teamname}` : ownProps.title
 
   return {
-    ...contactProps,
     error: stateProps.error,
-    fetchUserRecs: dispatchProps.fetchUserRecs,
     filterServices: ownProps.filterServices,
     focusInputCounter: ownProps.focusInputCounter,
     goButtonLabel: ownProps.goButtonLabel,

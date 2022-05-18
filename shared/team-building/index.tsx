@@ -4,6 +4,8 @@ import * as Styles from '../styles'
 import * as Container from '../util/container'
 import * as Constants from '../constants/team-building'
 import * as TeamConstants from '../constants/teams'
+import * as TeamBuildingGen from '../actions/team-building-gen'
+import * as SettingsGen from '../actions/settings-gen'
 import TeamBox from './team-box'
 import Input from './input'
 import {ServiceTabBar} from './service-tab-bar'
@@ -85,20 +87,8 @@ export type RolePickerProps = {
   disabledRoles: OriginalRolePickerProps<false>['disabledRoles']
 }
 
-type ContactProps = {
-  contactsImported: boolean | undefined
-  contactsPermissionStatus: string
-  isImportPromptDismissed: boolean
-  numContactsImported: number
-  onAskForContactsLater: () => void
-  onImportContacts: (() => void) | undefined
-  onLoadContactsSetting: () => void
-  selectedService: ServiceIdWithContact
-}
-
-export type Props = ContactProps & {
+export type Props = {
   error?: string
-  fetchUserRecs: () => void
   filterServices?: Array<ServiceIdWithContact>
   focusInputCounter: number
   goButtonLabel?: GoButtonLabel
@@ -120,6 +110,7 @@ export type Props = ContactProps & {
   onUpArrowKeyDown: () => void
   recommendations: Array<SearchRecSection> | null
   rolePickerProps?: RolePickerProps
+  selectedService: ServiceIdWithContact
   search: (query: string, service: ServiceIdWithContact) => void
   searchResults: Array<SearchResult> | undefined
   searchString: string
@@ -135,34 +126,97 @@ export type Props = ContactProps & {
   waitingForCreate: boolean
 }
 
-const ContactsBanner = (props: ContactProps & {onRedoSearch: () => void; onRedoRecs: () => void}) => {
-  const prevNumContactsImported = Container.usePrevious(props.numContactsImported)
+const useContactsProps = () => {
+  const contactsImported = Container.useSelector(state => state.settings.contacts.importEnabled)
+  const contactsPermissionStatus = Container.useSelector(state => state.settings.contacts.permissionStatus)
+  const isImportPromptDismissed = Container.useSelector(
+    state => state.settings.contacts.importPromptDismissed
+  )
+  const numContactsImported = Container.useSelector(state => state.settings.contacts.importedCount || 0)
+
+  const dispatch = Container.useDispatch()
+
+  const onAskForContactsLater = React.useCallback(() => {
+    dispatch(SettingsGen.createImportContactsLater())
+  }, [dispatch])
+
+  const onLoadContactsSetting = React.useCallback(() => {
+    dispatch(SettingsGen.createLoadContactImportEnabled())
+  }, [dispatch])
+
+  const onImportContactsPermissionsGranted = React.useCallback(() => {
+    dispatch(SettingsGen.createEditContactImportEnabled({enable: true, fromSettings: false}))
+  }, [dispatch])
+  const onImportContactsPermissionsNotGranted = React.useCallback(() => {
+    dispatch(SettingsGen.createRequestContactPermissions({fromSettings: false, thenToggleImportOn: true}))
+  }, [dispatch])
+
+  const onImportContacts =
+    contactsPermissionStatus === 'never_ask_again'
+      ? undefined
+      : contactsPermissionStatus === 'granted'
+      ? onImportContactsPermissionsGranted
+      : onImportContactsPermissionsNotGranted
+
+  return {
+    contactsImported,
+    contactsPermissionStatus,
+    isImportPromptDismissed,
+    numContactsImported,
+    onAskForContactsLater,
+    onImportContacts,
+    onLoadContactsSetting,
+  }
+}
+
+const ContactsBanner = (props: {
+  namespace: AllowedNamespace
+  selectedService: ServiceIdWithContact
+  onRedoSearch: () => void
+}) => {
+  const {onRedoSearch, namespace, selectedService} = props
+  const {
+    contactsImported,
+    contactsPermissionStatus,
+    isImportPromptDismissed,
+    numContactsImported,
+    onAskForContactsLater,
+    onImportContacts,
+    onLoadContactsSetting,
+  } = useContactsProps()
+
+  const dispatch = Container.useDispatch()
+
+  const onRedoRecs = React.useCallback(() => {
+    dispatch(TeamBuildingGen.createFetchUserRecs({includeContacts: namespace === 'chat2', namespace}))
+  }, [dispatch, namespace])
+  const prevNumContactsImported = Container.usePrevious(numContactsImported)
 
   // Redo search if # of imported contacts changes
   React.useEffect(() => {
-    if (prevNumContactsImported !== undefined && prevNumContactsImported !== props.numContactsImported) {
-      props.onRedoSearch()
-      props.onRedoRecs()
+    if (prevNumContactsImported !== undefined && prevNumContactsImported !== numContactsImported) {
+      onRedoSearch()
+      onRedoRecs()
     }
-  }, [props, props.numContactsImported, prevNumContactsImported, props.onRedoSearch, props.onRedoRecs])
+  }, [numContactsImported, prevNumContactsImported, onRedoSearch, onRedoRecs])
 
   // Ensure that we know whether contacts are loaded, and if not, that we load
   // the current config setting.
   React.useEffect(() => {
-    if (props.contactsImported === undefined) {
-      props.onLoadContactsSetting()
+    if (contactsImported === undefined) {
+      onLoadContactsSetting()
     }
-  }, [props, props.contactsImported, props.onLoadContactsSetting])
+  }, [contactsImported, onLoadContactsSetting])
 
   // If we've imported contacts already, or the user has dismissed the message,
   // then there's nothing for us to do.
   if (
-    props.contactsImported === undefined ||
-    props.selectedService !== 'keybase' ||
-    props.contactsImported ||
-    props.isImportPromptDismissed ||
-    props.contactsPermissionStatus === 'never_ask_again' ||
-    !props.onImportContacts
+    contactsImported === undefined ||
+    selectedService !== 'keybase' ||
+    contactsImported ||
+    isImportPromptDismissed ||
+    contactsPermissionStatus === 'never_ask_again' ||
+    !onImportContacts
   )
     return null
 
@@ -177,7 +231,7 @@ const ContactsBanner = (props: ContactProps & {onRedoSearch: () => void; onRedoR
           <Kb.Button
             label="Import contacts"
             backgroundColor="blue"
-            onClick={props.onImportContacts}
+            onClick={onImportContacts}
             small={true}
             style={styles.importContactsButton}
           />
@@ -185,7 +239,7 @@ const ContactsBanner = (props: ContactProps & {onRedoSearch: () => void; onRedoR
             label="Skip"
             backgroundColor="blue"
             mode="Secondary"
-            onClick={props.onAskForContactsLater}
+            onClick={onAskForContactsLater}
             small={true}
           />
         </Kb.Box2>
@@ -194,13 +248,10 @@ const ContactsBanner = (props: ContactProps & {onRedoSearch: () => void; onRedoR
   )
 }
 
-const ContactsImportButton = (
-  props: Pick<
-    Props,
-    'contactsImported' | 'isImportPromptDismissed' | 'contactsPermissionStatus' | 'onImportContacts'
-  >
-) => {
-  const {contactsImported, isImportPromptDismissed, contactsPermissionStatus, onImportContacts} = props
+const ContactsImportButton = () => {
+  const {contactsImported, contactsPermissionStatus, isImportPromptDismissed, onImportContacts} =
+    useContactsProps()
+
   // If we've imported contacts already, then there's nothing for us to do.
   if (
     contactsImported === undefined ||
@@ -244,24 +295,34 @@ const FilteredServiceTabBar = (
     filterServices?: Array<ServiceIdWithContact>
   }
 ) => {
+  const {
+    selectedService,
+    onChangeService,
+    serviceResultCount,
+    showServiceResultCount,
+    servicesShown,
+    minimalBorder,
+    offset,
+    filterServices,
+  } = props
   const services = React.useMemo(
     () =>
-      props.filterServices
-        ? Constants.allServices.filter(serviceId => props.filterServices?.includes(serviceId))
+      filterServices
+        ? Constants.allServices.filter(serviceId => filterServices?.includes(serviceId))
         : Constants.allServices,
-    [props.filterServices]
+    [filterServices]
   )
 
   return services.length === 1 && services[0] === 'keybase' ? null : (
     <ServiceTabBar
       services={services}
-      selectedService={props.selectedService}
-      onChangeService={props.onChangeService}
-      serviceResultCount={props.serviceResultCount}
-      showServiceResultCount={props.showServiceResultCount}
-      servicesShown={props.servicesShown}
-      minimalBorder={props.minimalBorder}
-      offset={props.offset}
+      selectedService={selectedService}
+      onChangeService={onChangeService}
+      serviceResultCount={serviceResultCount}
+      showServiceResultCount={showServiceResultCount}
+      servicesShown={servicesShown}
+      minimalBorder={minimalBorder}
+      offset={offset}
     />
   )
 }
@@ -481,10 +542,6 @@ const RecsAndRecos = (
     | 'onAdd'
     | 'onRemove'
     | 'teamSoFar'
-    | 'contactsImported'
-    | 'isImportPromptDismissed'
-    | 'contactsPermissionStatus'
-    | 'onImportContacts'
   > &
     SectionListProp &
     OnScrollProps
@@ -500,10 +557,6 @@ const RecsAndRecos = (
     onAdd,
     onRemove,
     teamSoFar,
-    contactsImported,
-    isImportPromptDismissed,
-    contactsPermissionStatus,
-    onImportContacts,
   } = props
 
   const ResultRow = namespace === 'people' ? PeopleResult : UserResult
@@ -593,12 +646,7 @@ const RecsAndRecos = (
           getItemLayout={_getRecLayout}
           renderItem={({index, item: result, section}) =>
             result.isImportButton ? (
-              <ContactsImportButton
-                contactsImported={contactsImported}
-                isImportPromptDismissed={isImportPromptDismissed}
-                contactsPermissionStatus={contactsPermissionStatus}
-                onImportContacts={onImportContacts}
-              />
+              <ContactsImportButton />
             ) : result.isSearchHint ? (
               <SearchHintText />
             ) : recommendedHideYourself && result.isYou ? null : (
@@ -661,10 +709,6 @@ const ListBody = (
     | 'onRemove'
     | 'teamSoFar'
     | 'onSearchForMore'
-    | 'contactsImported'
-    | 'isImportPromptDismissed'
-    | 'contactsPermissionStatus'
-    | 'onImportContacts'
   > &
     SectionListProp &
     OnScrollProps
@@ -685,10 +729,6 @@ const ListBody = (
     onRemove,
     teamSoFar,
     onSearchForMore,
-    contactsImported,
-    isImportPromptDismissed,
-    contactsPermissionStatus,
-    onImportContacts,
   } = props
 
   const ResultRow = namespace === 'people' ? PeopleResult : UserResult
@@ -726,10 +766,6 @@ const ListBody = (
         onAdd={onAdd}
         onRemove={onRemove}
         teamSoFar={teamSoFar}
-        contactsImported={contactsImported}
-        isImportPromptDismissed={isImportPromptDismissed}
-        contactsPermissionStatus={contactsPermissionStatus}
-        onImportContacts={onImportContacts}
       />
     )
   }
@@ -791,7 +827,6 @@ const SectionList: typeof Kb.SectionList = Styles.isMobile
 
 const TeamBuilding = (props: Props) => {
   const {
-    fetchUserRecs,
     filterServices,
     includeContacts,
     waitingForCreate,
@@ -826,11 +861,13 @@ const TeamBuilding = (props: Props) => {
     teamID,
     teamSoFar,
     title,
-    contactsImported,
-    isImportPromptDismissed,
-    contactsPermissionStatus,
-    onImportContacts,
   } = props
+
+  const dispatch = Container.useDispatch()
+
+  const fetchUserRecs = React.useCallback(() => {
+    dispatch(TeamBuildingGen.createFetchUserRecs({includeContacts: namespace === 'chat2', namespace}))
+  }, [dispatch, namespace])
 
   const offset = React.useRef(Styles.isMobile ? new Kb.ReAnimated.Value(0) : undefined)
   const sectionListRef = React.useRef<Kb.SectionList<Section<ResultData, SearchRecSection>>>(null)
@@ -910,10 +947,6 @@ const TeamBuilding = (props: Props) => {
             onRemove={onRemove}
             teamSoFar={teamSoFar}
             onSearchForMore={onSearchForMore}
-            contactsImported={contactsImported}
-            isImportPromptDismissed={isImportPromptDismissed}
-            contactsPermissionStatus={contactsPermissionStatus}
-            onImportContacts={onImportContacts}
           />
           {waitingForCreate && (
             <Kb.Box2 direction="vertical" style={styles.waiting} alignItems="center">
@@ -977,9 +1010,9 @@ const TeamBuilding = (props: Props) => {
         )}
         {showContactsBanner && (
           <ContactsBanner
-            {...props}
+            namespace={namespace}
             onRedoSearch={() => onChangeText(searchString)}
-            onRedoRecs={fetchUserRecs}
+            selectedService={selectedService}
           />
         )}
         {content}
