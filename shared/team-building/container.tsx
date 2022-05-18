@@ -186,37 +186,6 @@ const deriveOnEnterKeyDown = memoizeShallow(
     }
 )
 
-const deriveOnSearchForMore = memoizeShallow(
-  (p: {
-      search: (q: string, sid: Types.ServiceIdWithContact, limit?: number) => void
-      searchResults: Array<Types.User>
-      searchString: string
-      selectedService: Types.ServiceIdWithContact
-    }) =>
-    () => {
-      const {search, searchResults, searchString, selectedService} = p
-      if (searchResults && searchResults.length >= 10) {
-        search(searchString, selectedService, searchResults.length + 20)
-      }
-    }
-)
-
-const deriveOnAdd = memoize(
-  (userFromUserId, dispatchOnAdd, changeText, resetHighlightIndex, incFocusInputCounter) =>
-    (userId: string) => {
-      const user = userFromUserId(userId)
-      if (!user) {
-        logger.error(`Couldn't find Types.User to add for ${userId}`)
-        changeText('')
-        return
-      }
-      changeText('')
-      dispatchOnAdd(user)
-      resetHighlightIndex(true)
-      incFocusInputCounter()
-    }
-)
-
 const deriveOnChangeText = memoize(
   (
       onChangeText: (newText: string) => void,
@@ -454,31 +423,25 @@ const Connected: any = Container.connect(
       ? sortAndSplitRecommendations(recommendations, showingContactsButton)
       : null
     const userResultsToShow = showRecs ? flattenRecommendations(recommendationsSections || []) : searchResults
-
     const onChangeText = deriveOnChangeText(_onChangeText, _search, selectedService, resetHighlightIndex)
-
     const onClear = () => onChangeText('')
-
-    const onSearchForMore = deriveOnSearchForMore({
-      search: _search,
-      searchResults,
-      searchString: searchString,
-      selectedService: selectedService,
-    })
-
-    const onAdd = deriveOnAdd(userFromUserId, _onAdd, onChangeText, resetHighlightIndex, incFocusInputCounter)
-
-    // const rolePickerProps: RolePickerProps | undefined =
-    //   ownProps.namespace === 'teams'
-    //     ? {
-    //         onSelectRole: onSelectRole,
-    //         sendNotification: stateProps.sendNotification,
-    //       }
-    //     : undefined
-
-    // TODO this should likely live with the role picker if we need this
-    // functionality elsewhere. Right now it's easier to keep here since the input
-    // already catches all keypresses
+    const onSearchForMore = () => {
+      if (searchResults && searchResults.length >= 10) {
+        _search(searchString, selectedService, searchResults.length + 20)
+      }
+    }
+    const onAdd = (userId: string) => {
+      const user = userFromUserId(userId)
+      if (!user) {
+        logger.error(`Couldn't find Types.User to add for ${userId}`)
+        onChangeText('')
+        return
+      }
+      onChangeText('')
+      _onAdd(user)
+      resetHighlightIndex(true)
+      incFocusInputCounter()
+    }
 
     const _title = namespace === 'teams' ? `Add to ${teamname}` : title
 
