@@ -137,8 +137,6 @@ const deriveServiceResultCount = (searchResults: Types.SearchResults, query: str
   return emptyObject
 }
 
-const deriveShowResults = memoize(searchString => !!searchString)
-
 const deriveUserFromUserIdFn = memoize(
   (searchResults: Array<Types.User> | undefined, recommendations: Array<Types.User> | undefined) =>
     (userId: string): Types.User | null =>
@@ -190,8 +188,7 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
     selectedRole: filterRole(teamBuildingState.selectedRole),
     sendNotification: teamBuildingState.sendNotification,
     serviceResultCount: deriveServiceResultCount(teamBuildingState.searchResults, ownProps.searchString),
-    showResults: deriveShowResults(ownProps.searchString),
-    showServiceResultCount: !isMobile && deriveShowResults(ownProps.searchString),
+    showServiceResultCount: !isMobile && !!ownProps.searchString,
     showingContactsButton,
     teamBuildingSearchResults,
     teamSoFar: deriveTeamSoFar(teamBuildingState.teamSoFar),
@@ -594,8 +591,6 @@ const mergeProps = (
     searchString: ownProps.searchString,
     selectedService: ownProps.selectedService,
     serviceResultCount,
-    showRecs,
-    showResults: stateProps.showResults,
     showServiceResultCount: showServiceResultCount && ownProps.showServiceResultCount,
     teamBuildingSearchResults: stateProps.teamBuildingSearchResults,
     teamID: ownProps.teamID,

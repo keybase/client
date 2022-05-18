@@ -1,13 +1,14 @@
-import * as React from 'react'
-import PeopleResult from './search-result/people-result'
-import UserResult from './search-result/user-result'
 import * as Kb from '../common-adapters'
+import * as React from 'react'
 import * as Styles from '../styles'
 import AlphabetIndex from './alphabet-index'
-import {ContactsImportButton} from './contacts'
-import {userResultHeight} from './search-result/common-result'
-import {memoize} from '../util/memoize'
+import PeopleResult from './search-result/people-result'
+import UserResult from './search-result/user-result'
 import type * as Types from './types'
+import type {Section} from '../common-adapters/section-list'
+import {ContactsImportButton} from './contacts'
+import {memoize} from '../util/memoize'
+import {userResultHeight} from './search-result/common-result'
 
 export const numSectionLabel = '0-9'
 
@@ -26,7 +27,9 @@ const SearchHintText = () => (
 )
 
 const TeamAlphabetIndex = (
-  props: Pick<Types.Props, 'recommendations' | 'teamSoFar'> & Types.SectionListProp
+  props: Pick<Types.Props, 'recommendations' | 'teamSoFar'> & {
+    sectionListRef: React.RefObject<Kb.SectionList<Section<Types.ResultData, Types.SearchRecSection>>>
+  }
 ) => {
   const {recommendations, teamSoFar, sectionListRef} = props
   let showNumSection = false
@@ -90,13 +93,11 @@ export const RecsAndRecos = (
     | 'onRemove'
     | 'teamSoFar'
   > &
-    Types.SectionListProp &
     Types.OnScrollProps
 ) => {
   const {
     highlightedIndex,
     recommendations,
-    sectionListRef,
     onScroll,
     recommendedHideYourself,
     namespace,
@@ -106,6 +107,7 @@ export const RecsAndRecos = (
     teamSoFar,
   } = props
 
+  const sectionListRef = React.useRef<Kb.SectionList<Section<Types.ResultData, Types.SearchRecSection>>>(null)
   const ResultRow = namespace === 'people' ? PeopleResult : UserResult
 
   const _listIndexToSectionAndLocalIndex = memoize(

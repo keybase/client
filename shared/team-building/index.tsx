@@ -10,7 +10,6 @@ import Input from './input'
 import PhoneSearch from './phone-search'
 import TeamBox from './team-box'
 import type * as Types from './types'
-import type {Section} from '../common-adapters/section-list'
 import type {ServiceIdWithContact} from '../constants/types/team-building'
 import {ContactsBanner} from './contacts'
 import {ListBody} from './list-body'
@@ -136,8 +135,6 @@ const TeamBuilding = (props: Types.Props) => {
     searchString,
     selectedService,
     serviceResultCount,
-    showRecs,
-    showResults,
     rolePickerProps,
     error,
     showServiceResultCount,
@@ -154,7 +151,6 @@ const TeamBuilding = (props: Types.Props) => {
   }, [dispatch, namespace])
 
   const offset = React.useRef(Styles.isMobile ? new Kb.ReAnimated.Value(0) : undefined)
-  const sectionListRef = React.useRef<Kb.SectionList<Section<Types.ResultData, Types.SearchRecSection>>>(null)
 
   React.useEffect(() => {
     fetchUserRecs()
@@ -217,13 +213,10 @@ const TeamBuilding = (props: Types.Props) => {
           <ListBody
             namespace={namespace}
             searchString={searchString}
-            recommendations={recommendations}
+            recommendations={recommendations /* TODO */}
             selectedService={selectedService}
-            showRecs={showRecs}
-            showResults={showResults}
-            searchResults={searchResults}
-            highlightedIndex={highlightedIndex}
-            sectionListRef={sectionListRef}
+            searchResults={searchResults /* TODO*/}
+            highlightedIndex={highlightedIndex /* TODO */}
             onScroll={onScroll}
             recommendedHideYourself={recommendedHideYourself}
             onAdd={onAdd}

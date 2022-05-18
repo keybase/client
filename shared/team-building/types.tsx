@@ -1,6 +1,4 @@
 import {type TeamRoleType, type TeamID} from '../constants/types/teams'
-import type {Section} from '../common-adapters/section-list'
-import type * as Kb from '../common-adapters'
 import type {Props as OriginalRolePickerProps} from '../teams/role-picker'
 import type {
   AllowedNamespace,
@@ -83,8 +81,6 @@ export type Props = {
   searchResults: Array<SearchResult> | undefined
   searchString: string
   serviceResultCount: {[K in ServiceIdWithContact]?: number | null}
-  showRecs: boolean
-  showResults: boolean
   showServiceResultCount: boolean
   teamBuildingSearchResults: SearchResults
   teamID: TeamID | undefined
@@ -92,10 +88,6 @@ export type Props = {
   teamname: string | undefined
   title: string
   waitingForCreate: boolean
-}
-
-export type SectionListProp = {
-  sectionListRef: React.RefObject<Kb.SectionList<Section<ResultData, SearchRecSection>>>
 }
 
 export type OnScrollProps = {

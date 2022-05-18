@@ -58,8 +58,6 @@ export const ListBody = (
     | 'searchString'
     | 'recommendations'
     | 'selectedService'
-    | 'showRecs'
-    | 'showResults'
     | 'searchResults'
     | 'highlightedIndex'
     | 'recommendedHideYourself'
@@ -68,12 +66,15 @@ export const ListBody = (
     | 'teamSoFar'
     | 'onSearchForMore'
   > &
-    Types.SectionListProp &
     Types.OnScrollProps
 ) => {
-  const {searchString, recommendations, selectedService, showRecs, showResults, searchResults} = props
+  const {searchString, recommendations, selectedService, searchResults} = props
   const {recommendedHideYourself, onAdd, onRemove, teamSoFar, onSearchForMore} = props
-  const {namespace, highlightedIndex, sectionListRef, onScroll} = props
+  const {namespace, highlightedIndex, onScroll} = props
+
+  const showResults = !!searchString
+  const showRecs = !searchString && !!recommendations && selectedService === 'keybase'
+
   const ResultRow = namespace === 'people' ? PeopleResult : UserResult
   const showRecPending = !searchString && !recommendations && selectedService === 'keybase'
   const showLoading = !!searchString && !searchResults
@@ -101,7 +102,6 @@ export const ListBody = (
       <RecsAndRecos
         highlightedIndex={highlightedIndex}
         recommendations={recommendations}
-        sectionListRef={sectionListRef}
         onScroll={onScroll}
         recommendedHideYourself={recommendedHideYourself}
         namespace={namespace}
