@@ -129,7 +129,6 @@ const TeamBuilding = (props: Types.Props) => {
     onSearchForMore,
     onUpArrowKeyDown,
     recommendations,
-    recommendedHideYourself,
     search,
     searchResults,
     searchString,
@@ -157,10 +156,6 @@ const TeamBuilding = (props: Types.Props) => {
     // once
     // eslint-disable-next-line
   }, [])
-
-  const onScroll: Types.OnScrollProps['onScroll'] = Styles.isMobile
-    ? Kb.ReAnimated.event([{nativeEvent: {contentOffset: {y: offset.current}}}], {useNativeDriver: true})
-    : undefined
 
   let content: React.ReactNode
   switch (selectedService) {
@@ -217,12 +212,11 @@ const TeamBuilding = (props: Types.Props) => {
             selectedService={selectedService}
             searchResults={searchResults /* TODO*/}
             highlightedIndex={highlightedIndex /* TODO */}
-            onScroll={onScroll}
-            recommendedHideYourself={recommendedHideYourself}
             onAdd={onAdd}
             onRemove={onRemove}
             teamSoFar={teamSoFar}
             onSearchForMore={onSearchForMore}
+            offset={offset}
           />
           {waitingForCreate && (
             <Kb.Box2 direction="vertical" style={styles.waiting} alignItems="center">

@@ -7,6 +7,7 @@ import * as Styles from '../styles'
 import {RecsAndRecos} from './recs-and-recos'
 import throttle from 'lodash/throttle'
 import * as Shared from './shared'
+import {useRoute} from '@react-navigation/native'
 
 const Suggestions = (props: Pick<Types.Props, 'namespace' | 'selectedService'>) => {
   const {namespace, selectedService} = props
@@ -60,17 +61,22 @@ export const ListBody = (
     | 'selectedService'
     | 'searchResults'
     | 'highlightedIndex'
-    | 'recommendedHideYourself'
     | 'onAdd'
     | 'onRemove'
     | 'teamSoFar'
     | 'onSearchForMore'
-  > &
-    Types.OnScrollProps
+  > & {offset: any}
 ) => {
   const {searchString, recommendations, selectedService, searchResults} = props
-  const {recommendedHideYourself, onAdd, onRemove, teamSoFar, onSearchForMore} = props
-  const {namespace, highlightedIndex, onScroll} = props
+  const {onAdd, onRemove, teamSoFar, onSearchForMore} = props
+  const {namespace, highlightedIndex, offset} = props
+  const route = useRoute()
+  // @ts-ignore
+  const recommendedHideYourself = route?.params?.recommendedHideYourself ?? false
+
+  const onScroll: Types.OnScrollProps['onScroll'] = Styles.isMobile
+    ? Kb.ReAnimated.event([{nativeEvent: {contentOffset: {y: offset.current}}}], {useNativeDriver: true})
+    : undefined
 
   const showResults = !!searchString
   const showRecs = !searchString && !!recommendations && selectedService === 'keybase'
