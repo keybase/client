@@ -288,9 +288,9 @@ export default () => {
     show: false,
     webPreferences: {
       backgroundThrottling: false,
-      contextIsolation: false,
+      contextIsolation: true,
       devTools: showDevTools,
-      nodeIntegration: true,
+      nodeIntegration: false,
       nodeIntegrationInWorker: false,
       preload: `${assetRoot}preload${__DEV__ ? '.dev' : ''}.bundle.js`,
       spellcheck: !disableSpellCheck,

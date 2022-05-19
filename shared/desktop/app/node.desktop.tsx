@@ -763,8 +763,8 @@ const plumbEvents = () => {
           show: false, // Start hidden and show when we actually get props
           titleBarStyle: 'customButtonsOnHover' as const,
           webPreferences: {
-            contextIsolation: false,
-            nodeIntegration: true,
+            contextIsolation: true,
+            nodeIntegration: false,
             nodeIntegrationInWorker: false,
             preload: `${assetRoot}preload${__DEV__ ? '.dev' : ''}.bundle.js`,
           },

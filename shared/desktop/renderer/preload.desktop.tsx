@@ -15,7 +15,6 @@ const isDarwin = process.platform === 'darwin'
 
 const invoke = async (action: Action) => Electron.ipcRenderer.invoke('KBkeybase', action)
 
-// TODO contextBridge
 if (isRenderer) {
   Electron.ipcRenderer
     .invoke('KBkeybase', {type: 'setupPreloadKB2'})
@@ -266,14 +265,19 @@ if (isRenderer) {
           })
         },
       }
-      injectPreload({
+
+      // we have to stash this in a global due to how preload works, else it clears out the module level variables
+      const kb2 = {
         constants: {
           ...kb2consts,
           // kb2impl is from node's perspective so isRenderer is incorrect for the other side
           isRenderer: true,
         },
         functions,
-      })
+      }
+
+      Electron.contextBridge.exposeInMainWorld('_fromPreload', kb2)
+      injectPreload(kb2)
     })
     .catch(e => {
       throw e
@@ -286,12 +290,16 @@ if (isRenderer) {
       .find(w => w.webContents.getURL().includes('/main.'))
     return w || null
   }
-  injectPreload({
+
+  const kb2 = {
     constants: kb2consts,
     functions: {
       mainWindowDispatch: (action: TypedActions, nodeTypeOverride?: string) => {
         getMainWindow()?.webContents.send(nodeTypeOverride ?? 'KBdispatchAction', action)
       },
     },
-  })
+  }
+
+  globalThis._fromPreload = kb2
+  injectPreload(kb2)
 }

@@ -1,4 +1,5 @@
 // Entry point to the chrome part of the app: ORDER IS IMPORTANT
+import './globals.desktop'
 import '../../util/user-timings'
 import 'react-hot-loader'
 import {_setSystemIsDarkMode, _setSystemSupported} from '../../styles/dark-mode'
