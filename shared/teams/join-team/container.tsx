@@ -4,12 +4,12 @@ import JoinTeam from '.'
 import upperFirst from 'lodash/upperFirst'
 import * as Container from '../../util/container'
 
-type OwnProps = Container.RouteProps<{initialTeamname?: string}>
+type OwnProps = Container.RouteProps<'teamJoinTeamDialog'>
 
 export default Container.connect(
   (state, ownProps: OwnProps) => ({
     errorText: upperFirst(state.teams.errorInTeamJoin),
-    initialTeamname: Container.getRouteProps(ownProps, 'initialTeamname', undefined),
+    initialTeamname: ownProps.route.params?.initialTeamname ?? undefined,
     open: state.teams.teamJoinSuccessOpen,
     success: state.teams.teamJoinSuccess,
     successTeamName: state.teams.teamJoinSuccessTeamName,

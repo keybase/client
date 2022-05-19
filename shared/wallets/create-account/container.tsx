@@ -6,7 +6,7 @@ import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {anyWaiting} from '../../constants/waiting'
 import CreateAccount from '.'
 
-type OwnProps = Container.RouteProps<{fromSendForm?: boolean; showOnCreation?: boolean}>
+type OwnProps = Container.RouteProps<'createNewAccount'>
 
 export default Container.connect(
   state => ({
@@ -22,8 +22,8 @@ export default Container.connect(
       dispatch(
         WalletsGen.createCreateNewAccount({
           name,
-          setBuildingTo: Container.getRouteProps(ownProps, 'fromSendForm', undefined),
-          showOnCreation: Container.getRouteProps(ownProps, 'showOnCreation', undefined),
+          setBuildingTo: ownProps.route.params?.fromSendForm,
+          showOnCreation: ownProps.route.params?.showOnCreation,
         })
       )
       dispatch(RouteTreeGen.createNavigateUp())

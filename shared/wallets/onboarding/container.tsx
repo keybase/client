@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as WalletsGen from '../../actions/wallets-gen'
 import * as Constants from '../../constants/wallets'
 import * as Container from '../../util/container'
-import * as Types from '../../constants/types/wallets'
+import type * as Types from '../../constants/types/wallets'
 import {anyErrors} from '../../constants/waiting'
 import Onboarding from '.'
 
@@ -15,7 +15,7 @@ const ConnectedOnboarding = Container.connect(
     const error = anyErrors(state, Constants.acceptDisclaimerWaitingKey)
     const {acceptingDisclaimerDelay} = state.wallets
     return {
-      acceptDisclaimerError: error && error.message ? error.message : '',
+      acceptDisclaimerError: error?.message ?? '',
       acceptingDisclaimerDelay: acceptingDisclaimerDelay,
     }
   },
@@ -37,9 +37,9 @@ const ConnectedOnboarding = Container.connect(
 
 // A wrapper to harmonize the type of OwnProps between the
 // routed case and <Onboarding /> case.
-type RoutedOnboardingProps = Container.RouteProps<OwnProps>
+type RoutedOnboardingProps = Container.RouteProps<'walletOnboarding'>
 export const RoutedOnboarding = (ownProps: RoutedOnboardingProps) => (
-  <ConnectedOnboarding nextScreen={Container.getRouteProps(ownProps, 'nextScreen', 'openWallet')} />
+  <ConnectedOnboarding nextScreen={ownProps.route.params?.nextScreen ?? 'openWallet'} />
 )
 
 export default ConnectedOnboarding

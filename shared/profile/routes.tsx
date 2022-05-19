@@ -1,4 +1,5 @@
 import {newRoutes as PGPRoutes} from './pgp/routes'
+import type {Question1Answer} from '../profile/wot-author'
 import type Profile from './user/container'
 import type ProfileAddToTeam from './add-to-team/container'
 import type ProfileConfirmOrPending from './confirm-or-pending/container'
@@ -13,6 +14,10 @@ import type ProfileProveWebsiteChoice from './prove-website-choice/container'
 import type ProfileRevoke from './revoke/container'
 import type ProfileShowcaseTeamOffer from './showcase-team-offer/container'
 import type {Question1Wrapper, Question2Wrapper, ReviewWrapper} from './wot-author'
+import type * as ImagePicker from 'expo-image-picker'
+import type * as Types from '../constants/types/teams'
+import type {PlatformsExpandedType} from '../constants/types/more'
+import type {SiteIconSet} from '../constants/types/tracker2'
 
 export const newRoutes = {
   profile: {getScreen: (): typeof Profile => require('./user/container').default},
@@ -56,4 +61,41 @@ export const newModalRoutes = {
     getScreen: (): typeof ReviewWrapper => require('./wot-author').ReviewWrapper,
   },
   ...PGPRoutes,
+}
+
+export type RootParamListProfile = {
+  profileWotReview: {
+    sigID: string // sigID of the vouch.
+  }
+  profileWotAuthor: {
+    username: string
+    guiID: string
+  }
+  profileWotAuthorQ2: {
+    username: string
+    guiID: string
+    question1Answer: Question1Answer
+  }
+  profileAddToTeam: {
+    username: string
+  }
+  profileEditAvatar: {
+    // Mobile-only
+    image?: ImagePicker.ImagePickerResult
+    // Team-only
+    sendChatNotification?: boolean
+    showBack?: boolean
+    teamID?: Types.TeamID
+    createdTeam?: boolean
+    wizard?: boolean
+  }
+  profileRevoke: {
+    icon: SiteIconSet
+    platform: PlatformsExpandedType
+    platformHandle: string
+    proofId: string
+  }
+  profile: {
+    username: string
+  }
 }

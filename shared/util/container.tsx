@@ -3,7 +3,6 @@ import {type Draft as _Draft, setAutoFreeze} from 'immer'
 import type {TypedActions as _TypedActions} from '../actions/typed-actions-gen'
 import type {ActionHandler as _ActionHandler} from './make-reducer'
 import type {TypedState as _TypedState} from '../constants/reducer'
-import type {RouteProps as _RouteProps, GetRouteType} from '../route-tree/render-route'
 import {StatusCode} from '../constants/types/rpc-gen'
 import {anyWaiting, anyErrors} from '../constants/waiting'
 import {
@@ -16,6 +15,7 @@ import flowRight from 'lodash/flowRight'
 import typedConnect from './typed-connect'
 import type {Route} from '../constants/types/route-tree'
 import type {NavigationContainerRef} from '@react-navigation/core'
+export {type RouteProps, getRouteParams, getRouteParamsFromRoute} from '../router-v2/route-params'
 
 // don't pay for this in prod builds
 if (!__DEV__) {
@@ -35,24 +35,6 @@ export const networkErrorCodes = [
 ]
 
 export const isNetworkErr = (code: number) => networkErrorCodes.includes(code)
-
-export function getRouteProps<O extends _RouteProps<any>, R extends GetRouteType<O>, K extends keyof R>(
-  ownProps: O,
-  key: K,
-  notSetVal: R[K] // this could go away if we type the routes better and ensure its always passed as a prop
-): R[K] {
-  const val = ownProps.route.params?.[key]
-  return val === undefined ? notSetVal : val
-}
-
-export function getRoutePropsOr<O extends _RouteProps<any>, R extends GetRouteType<O>, K extends keyof R, D>(
-  ownProps: O,
-  key: K,
-  notSetVal: D
-): R[K] | D {
-  const val = ownProps.route.params?.[key]
-  return val === undefined ? notSetVal : val
-}
 
 export type RemoteWindowSerializeProps<P> = {[K in keyof P]-?: (val: P[K], old?: P[K]) => any}
 
@@ -110,7 +92,6 @@ export {isMobile, isIOS, isAndroid, isPhone, isTablet} from '../constants/platfo
 export {anyWaiting, anyErrors} from '../constants/waiting'
 export {safeSubmit, safeSubmitPerMount} from './safe-submit'
 export {useSafeNavigation} from './safe-navigation'
-export type RouteProps<P = {}> = _RouteProps<P>
 export type TypedActions = _TypedActions
 export type TypedState = _TypedState
 export const compose = flowRight

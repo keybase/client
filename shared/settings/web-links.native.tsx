@@ -2,10 +2,11 @@ import * as React from 'react'
 import * as Kb from '../common-adapters/mobile.native'
 import * as Container from '../util/container'
 
-type Props = Container.RouteProps<{url: string; title: string}>
+// this is used by acouple of routes, TODO just make this 'webLinks'
+type Props = Container.RouteProps<'privacyPolicy'>
 
 const WebLinks = (props: Props) => {
-  const uri = Container.getRouteProps(props, 'url', '')
+  const uri = props.route.params?.url ?? ''
   const source = React.useMemo(() => ({uri}), [uri])
 
   return (
@@ -16,7 +17,7 @@ const WebLinks = (props: Props) => {
 }
 WebLinks.navigationOptions = ({route}) => ({
   header: undefined,
-  title: route.params.title,
+  title: Container.getRouteParamsFromRoute<'privacyPolicy'>(route)?.title,
 })
 
 export default WebLinks

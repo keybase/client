@@ -5,7 +5,7 @@ import ProofsList from '.'
 import openURL from '../../../util/open-url'
 import * as Styles from '../../../styles'
 
-type OwnProps = Container.RouteProps
+type OwnProps = {}
 export default Container.connect(
   state => ({_proofSuggestions: state.tracker2.proofSuggestions}),
   dispatch => ({

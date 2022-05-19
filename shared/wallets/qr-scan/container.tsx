@@ -4,7 +4,7 @@ import * as Container from '../../util/container'
 import * as WalletsGen from '../../actions/wallets-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 
-type OwnProps = Container.RouteProps
+type OwnProps = {}
 
 const mapStateToProps = () => ({})
 const mapDispatchToProps = dispatch => ({

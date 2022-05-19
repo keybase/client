@@ -2,24 +2,21 @@ import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Constants from '../../../constants/chat2'
 import * as Container from '../../../util/container'
 import * as React from 'react'
-import * as Types from '../../../constants/types/chat2'
 import * as TeamConstants from '../../../constants/teams'
-import {InfoPanel, Panel} from '.'
+import type * as Types from '../../../constants/types/chat2'
+import {InfoPanel, type Panel} from '.'
 
 type Props = {
   conversationIDKey?: Types.ConversationIDKey
   navigation?: any
-}
+} & Partial<Container.RouteProps<'chatInfoPanel'>>
 
 const InfoPanelConnector = (props: Props) => {
   const storeSelectedTab = Container.useSelector(state => state.chat2.infoPanelSelectedTab)
-  const initialTab =
-    // @ts-ignore
-    typeof props.navigation !== 'undefined' ? Container.getRouteProps(props, 'tab', null) : storeSelectedTab
+  const initialTab = props.route?.params?.tab ?? storeSelectedTab ?? null
 
   const conversationIDKey: Types.ConversationIDKey =
-    props.conversationIDKey ??
-    Container.getRouteProps(props as any, 'conversationIDKey', Constants.noConversationIDKey)
+    props.conversationIDKey ?? props.route?.params?.conversationIDKey ?? Constants.noConversationIDKey
 
   const meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
   const shouldNavigateOut = meta.conversationIDKey === Constants.noConversationIDKey

@@ -1,31 +1,24 @@
-import * as React from 'react'
-import * as Kb from '../../../common-adapters'
-import * as Container from '../../../util/container'
 import * as Constants from '../../../constants/teams'
-import * as Styles from '../../../styles'
-import {ModalTitle} from '../../common'
-import * as Types from '../../../constants/types/teams'
-import * as TeamsGen from '../../../actions/teams-gen'
+import * as Container from '../../../util/container'
+import * as Kb from '../../../common-adapters'
+import * as React from 'react'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
-import type * as ChatTypes from '../../../constants/types/chat2'
+import * as Styles from '../../../styles'
+import * as TeamsGen from '../../../actions/teams-gen'
+import * as Types from '../../../constants/types/teams'
+import {ModalTitle} from '../../common'
 
-type Props = Container.RouteProps<{
-  afterEdit?: () => void
-  channelname: string
-  description: string
-  teamID: Types.TeamID
-  conversationIDKey: ChatTypes.ConversationIDKey
-}>
+type Props = Container.RouteProps<'teamEditChannel'>
 
 const EditChannel = (props: Props) => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
 
-  const teamID = Container.getRouteProps(props, 'teamID', Types.noTeamID)
-  const conversationIDKey = Container.getRouteProps(props, 'conversationIDKey', '')
-  const oldName = Container.getRouteProps(props, 'channelname', '')
-  const oldDescription = Container.getRouteProps(props, 'description', '')
-  const onFinish = Container.getRouteProps(props, 'afterEdit', undefined)
+  const teamID = props.route.params?.teamID ?? Types.noTeamID
+  const conversationIDKey = props.route.params?.conversationIDKey ?? ''
+  const oldName = props.route.params?.channelname ?? ''
+  const oldDescription = props.route.params?.description ?? ''
+  const onFinish = props.route.params?.afterEdit ?? undefined
 
   const [name, _setName] = React.useState(oldName)
   const setName = (newName: string) => _setName(newName.replace(/[^a-zA-Z0-9_-]/, ''))

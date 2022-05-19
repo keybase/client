@@ -1,6 +1,5 @@
-import * as C from '../../util/container'
 import * as React from 'react'
-import * as Types from '../../constants/types/teams'
+import type * as Container from '../../util/container'
 
-export type OwnProps = C.RouteProps<{teamID: string}>
-export default class Container extends React.Component<OwnProps> {}
+export type OwnProps = Container.RouteProps<'teamInviteByContact'>
+export default class InviteByContact extends React.Component<OwnProps> {}

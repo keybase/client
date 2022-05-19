@@ -1,15 +1,15 @@
-import ConfirmSend from '.'
 import * as Constants from '../../constants/wallets'
+import * as Container from '../../util/container'
 import * as ProfileGen from '../../actions/profile-gen'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Tracker2Gen from '../../actions/tracker2-gen'
 import * as WalletsGen from '../../actions/wallets-gen'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
+import ConfirmSend from '.'
 import Participants from './participants/container'
+import type * as Types from '../../constants/types/wallets'
 import {anyWaiting} from '../../constants/waiting'
-import * as Container from '../../util/container'
-import * as Types from '../../constants/types/wallets'
 
-type OwnProps = Container.RouteProps
+type OwnProps = {}
 
 export default Container.connect(
   state => {

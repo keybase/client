@@ -24,3 +24,7 @@ export const newRoutes = {
 
 // No modal routes while not logged in. More plumbing would be necessary to add them, so there is not
 // an empty newModalRoutes here.
+
+export type RootParamListProvision = {
+  username: {fromReset: boolean}
+}

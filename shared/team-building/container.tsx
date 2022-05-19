@@ -644,12 +644,7 @@ const mergeProps = (
 
 const Connected: any = Container.connect(mapStateToProps, mapDispatchToProps, mergeProps)(TeamBuilding)
 
-type RealOwnProps = Container.RouteProps<{
-  namespace: Types.AllowedNamespace
-  teamID?: TeamTypes.TeamID
-  filterServices?: Array<Types.ServiceIdWithContact>
-  title: string
-}>
+type RealOwnProps = Container.RouteProps<'teamsRoot'>
 
 class StateWrapperForTeamBuilding extends React.Component<RealOwnProps, LocalState> {
   static navigationOptions = Connected.navigationOptions
@@ -683,9 +678,9 @@ class StateWrapperForTeamBuilding extends React.Component<RealOwnProps, LocalSta
   render() {
     return (
       <Connected
-        namespace={Container.getRouteProps(this.props, 'namespace', 'chat2')}
-        teamID={Container.getRouteProps(this.props, 'teamID', undefined)}
-        filterServices={Container.getRouteProps(this.props, 'filterServices', undefined)}
+        namespace={this.props.route.params?.namespace ?? 'chat2'}
+        teamID={this.props.route.params?.teamID ?? undefined}
+        filterServices={this.props.route.params?.filterServices ?? undefined}
         onChangeService={this.onChangeService}
         onChangeText={this.onChangeText}
         incHighlightIndex={this.incHighlightIndex}
@@ -699,9 +694,9 @@ class StateWrapperForTeamBuilding extends React.Component<RealOwnProps, LocalSta
         showServiceResultCount={false}
         focusInputCounter={this.state.focusInputCounter}
         incFocusInputCounter={this._incFocusInputCounter}
-        title={Container.getRouteProps(this.props as any, 'title', '')}
-        goButtonLabel={Container.getRouteProps(this.props as any, 'goButtonLabel', 'Start')}
-        recommendedHideYourself={Container.getRouteProps(this.props as any, 'recommendedHideYourself', false)}
+        title={this.props.route.params?.title ?? ''}
+        goButtonLabel={this.props.route.params?.goButtonLabel ?? 'Start'}
+        recommendedHideYourself={this.props.route.params?.recommendedHideYourself ?? false}
       />
     )
   }
