@@ -33,7 +33,7 @@ const ItemRenderer = (p: Common.ItemRendererProps<EmojiData>) => {
       ])}
       gap="small"
     >
-      {renderEmoji(emojiDataToRenderableEmoji(item), 24, false)}
+      {renderEmoji({emoji: emojiDataToRenderableEmoji(item), showTooltip: false, size: 24})}
       <Kb.Text type="BodySmallSemibold">{item.short_name}</Kb.Text>
     </Kb.Box2>
   )

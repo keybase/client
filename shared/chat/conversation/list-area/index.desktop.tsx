@@ -22,11 +22,6 @@ import chunk from 'lodash/chunk'
 import {globalMargins} from '../../../styles/shared'
 import {memoize} from '../../../util/memoize'
 
-// hot reload isn't supported with debouncing currently so just ignore hot here
-if (module.hot) {
-  module.hot.decline()
-}
-
 const ordinalsInAWaypoint = 10
 // pixels away from top/bottom to load/be locked
 const listEdgeSlop = 10
