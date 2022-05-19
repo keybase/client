@@ -100,22 +100,20 @@ EXIT /B 0
 
 :no_smokea
 
-for /f "delims=" %%i in ('go run %GOPATH%\src\github.com\keybase\client\packaging\windows\urlencode.go %BUILD_TAG%') do set BUILD_TAG_ENCODED=%%i
-
 ::Publish smoke updater jsons to S3
 if [%UpdateChannel%] NEQ [Smoke2] (
     echo "Non Smoke2 build"
     %OUTPUT% "Successfully built Windows with client: %KEYBASE_VERSION%"
-    %OUTPUT% "https://prerelease.keybase.io/windows/Keybase_%BUILD_TAG_ENCODED%.%GOARCH%.msi"
+    %OUTPUT% "Build tag: %BUILD_%TAG% GOARCH: %GOARCH%"
+    %OUTPUT% "https://prerelease.keybase.io/windows/"
     goto:no_smokeb
 )
 ::Smoke B json
 s3browser-con upload prerelease.keybase.io  %GOPATH%\src\github.com\keybase\client\packaging\windows\%BUILD_TAG%\*.json prerelease.keybase.io/windows-support  || goto:build_error || EXIT /B 1
 set smokeBSemVer=%KEYBASE_VERSION%
 %GOPATH%\src\github.com\keybase\release\release announce-build --build-a="%SmokeASemVer%" --build-b="%smokeBSemVer%" --platform="windows" || goto:build_error || EXIT /B 1
-set BUILD_TAG_ENCODED=!SmokeASemVer:+=%%2B!
 %OUTPUT% "Successfully built Windows: --build-a=%SmokeASemVer% --build-b=%smokeBSemVer%
-%OUTPUT% "https://prerelease.keybase.io/windows/Keybase_%BUILD_TAG_ENCODED%.%GOARCH%.msi"
+%OUTPUT% "https://prerelease.keybase.io/windows/"
 :no_smokeb
 
 echo %ERRORLEVEL%
