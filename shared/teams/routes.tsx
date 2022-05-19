@@ -40,7 +40,12 @@ import type TeamInviteHistory from './team/invites/invite-history'
 import type Team from './team'
 import type ExternalTeam from './external-team'
 import type * as TeamBuildingTypes from '../constants/types/team-building'
-import type * as TeamTypes from '../constants/types/teams'
+import type * as Types from '../constants/types/teams'
+import type * as ChatTypes from '../constants/types/chat2'
+import {type EmojiData} from '../util/emoji'
+import type {RetentionEntityType} from './team/settings-tab/retention'
+import type {RetentionPolicy} from '../constants/types/retention-policy'
+import type {TabKey} from './channel/tabs'
 
 export const newRoutes = {
   team: {getScreen: (): typeof Team => require('./team').default},
@@ -187,8 +192,98 @@ export type RootParamListTeams = {
   }
   teamsRoot: {
     namespace: TeamBuildingTypes.AllowedNamespace
-    teamID?: TeamTypes.TeamID
+    teamID?: Types.TeamID
     filterServices?: Array<TeamBuildingTypes.ServiceIdWithContact>
     title: string
+    recommendedHideYourself?: boolean
+    goButtonLabel?: TeamBuildingTypes.GoButtonLabel
+  }
+  teamAddEmojiAlias: {
+    conversationIDKey: ChatTypes.ConversationIDKey
+    onChange?: () => void
+    defaultSelected?: EmojiData
+  }
+  teamInviteByEmail: {
+    teamID: string
+  }
+  teamInviteByContact: {
+    teamID: string
+  }
+  teamEditWelcomeMessage: {
+    teamID: Types.TeamID
+  }
+  teamJoinTeamDialog: {
+    initialTeamname?: string
+  }
+  teamAddEmoji: {
+    conversationIDKey: ChatTypes.ConversationIDKey
+    onChange?: () => void
+    teamID: Types.TeamID // not supported yet
+  }
+  teamReallyRemoveMember: {
+    members: string[]
+    teamID: Types.TeamID
+  }
+  teamReallyRemoveChannelMember: {
+    members: string[]
+    conversationIDKey: ChatTypes.ConversationIDKey
+    teamID: Types.TeamID
+  }
+  teamDeleteChannel: {
+    teamID: Types.TeamID
+    // undefined means use the currently selected channels in the store (under the channel tab of the team page)
+    conversationIDKey: ChatTypes.ConversationIDKey | undefined
+  }
+  teamReallyLeaveTeam: {
+    teamID: Types.TeamID
+  }
+  teamRename: {
+    teamname: string
+  }
+  teamExternalTeam: {
+    teamname: string
+  }
+  teamEditTeamDescription: {teamID: Types.TeamID}
+  teamInviteLinksGenerate: {teamID: Types.TeamID}
+  openTeamWarning: {
+    isOpenTeam: boolean
+    teamname: string
+    onCancel: () => void
+    onConfirm: () => void
+  }
+  teamInviteHistory: {teamID: Types.TeamID}
+  retentionWarning: {
+    policy: RetentionPolicy
+    entityType: RetentionEntityType
+    onCancel: (() => void) | null
+    onConfirm: (() => void) | null
+  }
+  teamEditTeamInfo: {teamID: Types.TeamID}
+  team: {
+    teamID: Types.TeamID
+    initialTab?: Types.TabKey
+  }
+  teamEditChannel: {
+    afterEdit?: () => void
+    channelname: string
+    description: string
+    teamID: Types.TeamID
+    conversationIDKey: ChatTypes.ConversationIDKey
+  }
+  teamAddToChannels: {
+    teamID: Types.TeamID
+    usernames: Array<string> | undefined // undefined means the user themself
+  }
+  teamMember: {
+    teamID: Types.TeamID
+    username: string
+  }
+  teamCreateChannels: {teamID: Types.TeamID}
+  teamNewTeamDialog: {subteamOf?: Types.TeamID}
+  teamDeleteTeam: {teamID: Types.TeamID}
+  teamChannel: {
+    teamID: Types.TeamID
+    conversationIDKey: ChatTypes.ConversationIDKey
+    selectedTab?: TabKey
   }
 }

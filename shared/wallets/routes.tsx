@@ -17,6 +17,7 @@ import type Settings from './wallet/settings/container'
 import type TransactionDetails from './transaction-details/container'
 import type TeamBuilder from '../team-building/container'
 import type * as TeamBuildingTypes from '../constants/types/team-building'
+import type * as Types from '../constants/types/wallets'
 
 export const sharedRoutes = {
   // TODO connect broken
@@ -80,9 +81,53 @@ type TeamBuilderProps = Partial<{
   title: string
 }>
 
+// TODO fix up the missing prefix on these routes
 export type RootParamListWallets = {
   walletTeamBuilder: TeamBuilderProps
   keybaseLinkError: {
     errorSource: 'app' | 'sep6' | 'sep7'
+  }
+  setDefaultAccount: {
+    accountID: Types.AccountID
+  }
+  walletOnboarding: {
+    nextScreen: Types.NextScreenAfterAcceptance
+  }
+  transactionDetails: {
+    accountID: Types.AccountID
+    paymentID: Types.PaymentID
+  }
+  sendReceiveForm: {
+    isAdvanced: boolean
+  }
+  pickAssetForm: {
+    // ignored if username is set or isSender===true
+    accountID: string
+    // ignored if isSender===true; if empty, we assume this is for a non-keybaseUser account and just say "this account"
+    username: string
+    isSender: boolean
+  }
+  removeAccount: {
+    accountID: Types.AccountID
+  }
+  createNewAccount: {
+    fromSendForm?: boolean
+    showOnCreation?: boolean
+  }
+  trustline: {
+    accountID: Types.AccountID
+  }
+  receive: {
+    accountID: Types.AccountID
+  }
+  linkExisting: {
+    fromSendForm?: boolean
+    showOnCreation?: boolean
+  }
+  reallyRemoveAccount: {
+    accountID: Types.AccountID
+  }
+  renameAccount: {
+    accountID: Types.AccountID
   }
 }

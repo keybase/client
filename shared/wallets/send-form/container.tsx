@@ -3,12 +3,12 @@ import * as WalletsGen from '../../actions/wallets-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Container from '../../util/container'
 
-type OwnProps = Container.RouteProps<{isAdvanced: boolean}>
+type OwnProps = Container.RouteProps<'sendReceiveForm'>
 
 export default Container.connect(
   state => ({isRequest: state.wallets.building.isRequest}),
   (dispatch, ownProps: OwnProps) => {
-    const isAdvanced = Container.getRouteProps(ownProps, 'isAdvanced', false)
+    const isAdvanced = ownProps.route.params?.isAdvanced ?? false
     return {
       onBack: isAdvanced
         ? () => dispatch(RouteTreeGen.createNavigateUp())
@@ -19,7 +19,7 @@ export default Container.connect(
     }
   },
   ({isRequest}, {onBack, onClose}, ownProps) => ({
-    isAdvanced: Container.getRouteProps(ownProps, 'isAdvanced', false),
+    isAdvanced: ownProps.route.params?.isAdvanced ?? false,
     isRequest,
     onBack,
     onClose,

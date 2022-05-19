@@ -14,10 +14,7 @@ import {pluralize} from '../../../util/string'
 import {memoize} from '../../../util/memoize'
 import {useAllChannelMetas} from '../../common/channel-hooks'
 
-type Props = Container.RouteProps<{
-  teamID: Types.TeamID
-  usernames: Array<string> | undefined // undefined means the user themself
-}>
+type Props = Container.RouteProps<'teamAddToChannels'>
 
 const getChannelsForList = memoize(
   (
@@ -50,10 +47,10 @@ const getChannelsForList = memoize(
 const AddToChannels = (props: Props) => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
-  const teamID = Container.getRouteProps(props, 'teamID', Types.noTeamID)
+  const teamID = props.route.params?.teamID ?? Types.noTeamID
   const myUsername = Container.useSelector(state => state.config.username)
-  const usernames = Container.getRouteProps(props, 'usernames', undefined) ?? [myUsername]
-  const mode = Container.getRouteProps(props, 'usernames', undefined) ? 'others' : 'self'
+  const usernames = props.route.params?.usernames ?? undefined ?? [myUsername]
+  const mode = props.route.params?.usernames ?? undefined ? 'others' : 'self'
 
   const {channelMetas, loadingChannels, reloadChannels} = useAllChannelMetas(teamID)
   const participantMap = Container.useSelector(s => s.chat2.participantMap)

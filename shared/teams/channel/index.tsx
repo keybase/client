@@ -21,11 +21,7 @@ import SettingsList from '../../chat/conversation/info-panel/settings'
 import EmptyRow from '../team/rows/empty-row'
 import isEqual from 'lodash/isEqual'
 
-export type OwnProps = Container.RouteProps<{
-  teamID: Types.TeamID
-  conversationIDKey: ChatTypes.ConversationIDKey
-  selectedTab?: TabKey
-}>
+export type OwnProps = Container.RouteProps<'teamChannel'>
 
 const useLoadDataForChannelPage = (
   teamID: Types.TeamID,
@@ -109,9 +105,9 @@ const SectionList: typeof Kb.SectionList = Styles.isMobile
 
 const emptyMapForUseSelector = new Map<string, Types.MemberInfo>()
 const Channel = (props: OwnProps) => {
-  const teamID = Container.getRouteProps(props, 'teamID', Types.noTeamID)
-  const conversationIDKey = Container.getRouteProps(props, 'conversationIDKey', '')
-  const providedTab = Container.getRouteProps(props, 'selectedTab', undefined)
+  const teamID = props.route.params?.teamID ?? Types.noTeamID
+  const conversationIDKey = props.route.params?.conversationIDKey ?? ''
+  const providedTab = props.route.params?.selectedTab ?? undefined
 
   const {bots, participants: _participants} = Container.useSelector(
     state => ChatConstants.getBotsAndParticipants(state, conversationIDKey, true /* sort */),

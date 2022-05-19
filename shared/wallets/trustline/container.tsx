@@ -7,13 +7,13 @@ import * as Waiting from '../../constants/waiting'
 import debounce from 'lodash/debounce'
 import Trustline from '.'
 
-type OwnProps = Container.RouteProps<{accountID: Types.AccountID}>
+type OwnProps = Container.RouteProps<'trustline'>
 
 const emptyAccountAsset = Constants.makeAssets()
 
 export default Container.connect(
   (state, ownProps: OwnProps) => {
-    const accountID = Container.getRouteProps(ownProps, 'accountID', Types.noAccountID)
+    const accountID = ownProps.route.params?.accountID ?? Types.noAccountID
     return {
       accountAssets: Constants.getAssets(state, accountID),
       canAddTrustline: Constants.getAccount(state, accountID).canAddTrustline,
@@ -30,7 +30,7 @@ export default Container.connect(
     ),
   }),
   (s, d, o: OwnProps) => {
-    const accountID = Container.getRouteProps(o, 'accountID', Types.noAccountID)
+    const accountID = o.route.params?.accountID ?? Types.noAccountID
     const acceptedAssets = s.trustline.acceptedAssets.get(accountID) ?? Constants.emptyAccountAcceptedAssets
     return {
       acceptedAssets: [...acceptedAssets.keys()],

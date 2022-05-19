@@ -34,16 +34,12 @@ export const useBotConversationIDKey = (inConvIDKey?: Types.ConversationIDKey, t
   return conversationIDKey
 }
 
-type LoaderProps = Container.RouteProps<{
-  botUsername: string
-  conversationIDKey?: Types.ConversationIDKey
-  teamID?: TeamTypes.TeamID
-}>
+type LoaderProps = Container.RouteProps<'chatInstallBot'>
 
 const InstallBotPopupLoader = (props: LoaderProps) => {
-  const botUsername = Container.getRouteProps(props, 'botUsername', '')
-  const inConvIDKey = Container.getRouteProps(props, 'conversationIDKey', undefined)
-  const teamID = Container.getRouteProps(props, 'teamID', undefined)
+  const botUsername = props.route.params?.botUsername ?? ''
+  const inConvIDKey = props.route.params?.conversationIDKey ?? undefined
+  const teamID = props.route.params?.teamID ?? undefined
   const conversationIDKey = useBotConversationIDKey(inConvIDKey, teamID)
   return <InstallBotPopup botUsername={botUsername} conversationIDKey={conversationIDKey} />
 }

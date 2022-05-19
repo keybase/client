@@ -1,32 +1,33 @@
-import type * as ChatTypes from '../constants/types/chat2'
-import type ChatConversation from './conversation/container'
-import type ChatEnterPaperkey from './conversation/rekey/enter-paper-key'
-import type ChatRoot from './inbox/container'
+import * as ChatConstants from '../constants/chat2'
+import type * as Types from '../constants/types/chat2'
+import type * as TeamBuildingTypes from '../constants/types/team-building'
+import type * as TeamsTypes from '../constants/types/teams'
+import type BlockModal from './blocking/block-modal/container'
 import type ChatAddToChannelNew from './conversation/info-panel/add-to-channel/index.new'
 import type ChatAttachmentFullscreen from './conversation/attachment-fullscreen/container'
 import type ChatAttachmentGetTitles from './conversation/attachment-get-titles/container'
-import type SendToChat from './send-to-chat'
-import type {Routable as ChatChooseEmoji} from './conversation/messages/react-button/emoji-picker/container'
+import type ChatConfirmRemoveBot from './conversation/bot/confirm'
+import type ChatConversation from './conversation/container'
 import type ChatCreateChannel from './create-channel/container'
 import type ChatDeleteHistoryWarning from './delete-history-warning/container'
+import type ChatEnterPaperkey from './conversation/rekey/enter-paper-key'
+import type ChatForwardMsgPick from './conversation/fwd-msg/team-picker'
 import type ChatInfoPanel from './conversation/info-panel/container'
-import type ChatNewChat from '../team-building/container'
-import type ChatPaymentsConfirm from './payments/confirm/container'
-import type ChatShowNewTeamDialog from './new-team-dialog-container'
-import type ChatLocationPopup from './conversation/input-area/normal/location-popup'
-import type ChatUnfurlMapPopup from './conversation/messages/wrapper/unfurl/map/popup'
-import type PunycodeLinkWarning from './punycode-link-warning'
-import type BlockModal from './blocking/block-modal/container'
 import type ChatInstallBot from './conversation/bot/install'
 import type ChatInstallBotPick from './conversation/bot/team-picker'
-import type ChatForwardMsgPick from './conversation/fwd-msg/team-picker'
-import type ChatSearchBot from './conversation/bot/search'
-import type ChatConfirmRemoveBot from './conversation/bot/confirm'
+import type ChatLocationPopup from './conversation/input-area/normal/location-popup'
+import type ChatNewChat from '../team-building/container'
 import type ChatPDF from './pdf'
-import type * as TeamBuildingTypes from '../constants/types/team-building'
-import type * as TeamsTypes from '../constants/types/teams'
+import type ChatPaymentsConfirm from './payments/confirm/container'
+import type ChatRoot from './inbox/container'
+import type ChatSearchBot from './conversation/bot/search'
+import type ChatShowNewTeamDialog from './new-team-dialog-container'
+import type ChatUnfurlMapPopup from './conversation/messages/wrapper/unfurl/map/popup'
+import type PunycodeLinkWarning from './punycode-link-warning'
+import type SendToChat from './send-to-chat'
 import type {RenderableEmoji} from '../util/emoji'
-import * as ChatConstants from '../constants/chat2'
+import type {Routable as ChatChooseEmoji} from './conversation/messages/react-button/emoji-picker/container'
+import type {BlockModalContext} from './blocking/block-modal'
 
 export const newRoutes = {
   chatConversation: {getScreen: (): typeof ChatConversation => require('./conversation/container').default},
@@ -124,19 +125,19 @@ type TeamBuilderProps = Partial<{
 
 export type RootParamListChat = {
   chatNewChat: TeamBuilderProps
-  chatConversation: {conversationIDKey: ChatTypes.ConversationIDKey}
+  chatConversation: {conversationIDKey: Types.ConversationIDKey}
   chatChooseEmoji: {
-    conversationIDKey: ChatTypes.ConversationIDKey
+    conversationIDKey: Types.ConversationIDKey
     small: boolean
     hideFrequentEmoji: boolean
     onlyTeamCustomEmoji: boolean
     onPickAction: (emojiStr: string, renderableEmoji: RenderableEmoji) => void
-    onPickAddToMessageOrdinal: ChatTypes.Ordinal
+    onPickAddToMessageOrdinal: Types.Ordinal
     onDidPick: () => void
   }
   chatUnfurlMapPopup: {
-    conversationIDKey: ChatTypes.ConversationIDKey
-    coord: ChatTypes.Coordinate
+    conversationIDKey: Types.ConversationIDKey
+    coord: Types.Coordinate
     isAuthor: boolean
     author?: string
     isLiveLocation: boolean
@@ -146,12 +147,8 @@ export type RootParamListChat = {
     navToChatOnSuccess?: boolean
     teamID: TeamsTypes.TeamID
   }
-  chatDeleteHistoryWarning: {
-    conversationIDKey: ChatTypes.ConversationIDKey
-  }
-  chatShowNewTeamDialog: {
-    conversationIDKey: ChatTypes.ConversationIDKey
-  }
+  chatDeleteHistoryWarning: {conversationIDKey: Types.ConversationIDKey}
+  chatShowNewTeamDialog: {conversationIDKey: Types.ConversationIDKey}
   chatPDF: {
     title: string
     url: string
@@ -166,5 +163,57 @@ export type RootParamListChat = {
     isFromShareExtension: boolean
     text: string // incoming share (text)
     sendPaths: Array<string> // KBFS or incoming share (files)
+  }
+  chatLocationPreview: {conversationIDKey: Types.ConversationIDKey}
+  chatBlockingModal: {
+    blockUserByDefault?: boolean
+    context?: BlockModalContext
+    convID?: string
+    others?: Array<string>
+    team?: string
+    username?: string
+  }
+  chatAttachmentGetTitles: {
+    conversationIDKey: Types.ConversationIDKey
+    pathAndOutboxIDs: Array<Types.PathAndOutboxID>
+    selectConversationWithReason?: 'extension' | 'files'
+    // If tlfName is set, we'll use Chat2Gen.createAttachmentsUpload. Otherwise
+    // Chat2Gen.createAttachFromDragAndDrop is used.
+    tlfName?: string
+    // don't use the drag drop functionality, just upload the outbox IDs
+    noDragDrop?: Boolean
+  }
+  chatAddToChannel: {
+    conversationIDKey: Types.ConversationIDKey
+    teamID: TeamsTypes.TeamID
+  }
+  chatForwardMsgPick: {
+    srcConvID: Types.ConversationIDKey
+    ordinal: Types.Ordinal
+  }
+  chatAttachmentFullscreen: {
+    conversationIDKey: Types.ConversationIDKey
+    ordinal: Types.Ordinal
+  }
+  chatInstallBot: {
+    botUsername: string
+    conversationIDKey?: Types.ConversationIDKey
+    teamID?: TeamsTypes.TeamID
+  }
+  chatInstallBotPick: {
+    botUsername: string
+  }
+  chatSearchBots: {
+    conversationIDKey?: Types.ConversationIDKey
+    teamID?: TeamsTypes.TeamID
+  }
+  chatConfirmRemoveBot: {
+    botUsername: string
+    conversationIDKey?: Types.ConversationIDKey
+    teamID?: TeamsTypes.TeamID
+  }
+  chatInfoPanel: {
+    conversationIDKey?: Types.ConversationIDKey
+    tab?: 'settings' | 'members' | 'attachments' | 'bots'
   }
 }

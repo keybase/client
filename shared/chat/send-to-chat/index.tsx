@@ -98,7 +98,7 @@ export const MobileSendToChat = (props: Props) => {
 }
 
 const DesktopSendToChat = (props: RoutableProps) => {
-  const sendPaths = Container.getRouteProps(props, 'sendPaths', undefined) ?? []
+  const sendPaths = props.route.params?.sendPaths ?? []
   const [title, setTitle] = React.useState('')
   const [conversationIDKey, setConversationIDKey] = React.useState(ChatConstants.noConversationIDKey)
   const [convName, setConvName] = React.useState('')
