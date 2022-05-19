@@ -13,10 +13,6 @@ export type RootParamListSettings = {
     heading: string
     feedback: string
   }
-  'settingsTabs.feedbackTab': {
-    heading: string
-    feedback: string
-  }
   inviteSent: {
     email: string
     link: string
