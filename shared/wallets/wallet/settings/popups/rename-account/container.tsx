@@ -7,11 +7,11 @@ import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import {anyWaiting} from '../../../../../constants/waiting'
 import RenameAccount from '.'
 
-type OwnProps = Container.RouteProps<{accountID: Types.AccountID}>
+type OwnProps = Container.RouteProps<'renameAccount'>
 
 export default Container.connect(
   (state, ownProps: OwnProps) => {
-    const accountID = Container.getRouteProps(ownProps, 'accountID', Types.noAccountID)
+    const accountID = ownProps.route.params?.accountID ?? Types.noAccountID
     const selectedAccount = Constants.getAccount(state, accountID)
     return {
       accountID,

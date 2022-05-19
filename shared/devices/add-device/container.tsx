@@ -5,8 +5,7 @@ import * as ProvisionGen from '../../actions/provision-gen'
 import * as Constants from '../../constants/devices'
 import AddDevice from '.'
 
-type OwnProps = Container.RouteProps<{highlight: Array<'computer' | 'phone' | 'paper key'>}>
-
+type OwnProps = Container.RouteProps<'deviceAdd'>
 const noHighlight = []
 
 export default Container.connect(
@@ -20,6 +19,6 @@ export default Container.connect(
   (s, d, o: OwnProps) => ({
     ...s,
     ...d,
-    highlight: Container.getRouteProps(o, 'highlight', noHighlight),
+    highlight: o.route.params?.highlight ?? noHighlight,
   })
 )(AddDevice)

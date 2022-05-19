@@ -9,11 +9,11 @@ import Rekey from './rekey/container'
 import {headerNavigationOptions} from './header-area/container'
 import {useFocusEffect, useNavigation} from '@react-navigation/core'
 import {tabBarStyle} from '../../router-v2/common'
-import type * as Types from '../../constants/types/chat2'
+import type {RouteProps} from '../../router-v2/route-params'
 
 type ConvoType = 'error' | 'noConvo' | 'rekey' | 'youAreReset' | 'normal' | 'rekey'
 
-type SwitchProps = Container.RouteProps<{conversationIDKey: Types.ConversationIDKey}>
+type SwitchProps = RouteProps<'chatConversation'>
 const hideTabBarStyle = {display: 'none'}
 
 // due to timing issues if we go between convos we can 'lose track' of focus in / out
@@ -59,7 +59,7 @@ const Conversation = (p: SwitchProps) => {
     }, [tabNav])
   )
 
-  const conversationIDKey = Container.getRouteProps(p, 'conversationIDKey', Constants.noConversationIDKey)
+  const conversationIDKey = p.route.params?.conversationIDKey ?? Constants.noConversationIDKey
   const meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
 
   let type: ConvoType

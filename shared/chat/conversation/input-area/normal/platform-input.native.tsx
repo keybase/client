@@ -21,7 +21,6 @@ import {isOpen} from '../../../../util/keyboard'
 import {parseUri, launchCameraAsync, launchImageLibraryAsync} from '../../../../util/expo-image-picker'
 import {standardTransformer} from '../suggestors/common'
 import {useSuggestors} from '../suggestors'
-import {AnimatedIcon} from './platform-input-animation.native'
 import {
   skipAnimations,
   useSharedValue,
@@ -136,6 +135,7 @@ const Buttons = (p: ButtonsProps) => {
   )
 }
 
+const AnimatedIcon = Kb.ReAnimated.createAnimatedComponent(Kb.Icon)
 const AnimatedExpand = (() => {
   if (skipAnimations) {
     return React.memo(() => {

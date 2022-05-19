@@ -1,23 +1,18 @@
 import * as React from 'react'
 import * as Container from '../../../util/container'
-import * as Types from '../../../constants/types/chat2'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Kb from '../../../common-adapters'
 import * as Constants from '../../../constants/chat2'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
-import * as TeamTypes from '../../../constants/types/teams'
+import type * as Types from '../../../constants/types/chat2'
 import {useBotConversationIDKey} from './install'
 
-type LoaderProps = Container.RouteProps<{
-  botUsername: string
-  conversationIDKey?: Types.ConversationIDKey
-  teamID?: TeamTypes.TeamID
-}>
+type LoaderProps = Container.RouteProps<'chatConfirmRemoveBot'>
 
 const ConfirmBotRemoveLoader = (props: LoaderProps) => {
-  const botUsername = Container.getRouteProps(props, 'botUsername', '')
-  const inConvIDKey = Container.getRouteProps(props, 'conversationIDKey', undefined)
-  const teamID = Container.getRouteProps(props, 'teamID', undefined)
+  const botUsername = props.route.params?.botUsername ?? ''
+  const inConvIDKey = props.route.params?.conversationIDKey ?? undefined
+  const teamID = props.route.params?.teamID ?? undefined
   const conversationIDKey = useBotConversationIDKey(inConvIDKey, teamID)
   return <ConfirmBotRemove botUsername={botUsername} conversationIDKey={conversationIDKey} />
 }

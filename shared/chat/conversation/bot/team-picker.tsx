@@ -10,10 +10,10 @@ import {Avatars, TeamAvatar} from '../../avatars'
 import debounce from 'lodash/debounce'
 import logger from '../../../logger'
 
-type Props = Container.RouteProps<{botUsername: string}>
+type Props = Container.RouteProps<'chatInstallBotPick'>
 
 const BotTeamPicker = (props: Props) => {
-  const botUsername = Container.getRouteProps(props, 'botUsername', '')
+  const botUsername = props.route.params?.botUsername ?? ''
   const [term, setTerm] = React.useState('')
   const [results, setResults] = React.useState<Array<RPCChatTypes.ConvSearchHit>>([])
   const [waiting, setWaiting] = React.useState(false)
@@ -93,9 +93,7 @@ const BotTeamPicker = (props: Props) => {
           <Kb.Text type="BodyBigLink" onClick={onClose}>
             {'Cancel'}
           </Kb.Text>
-        ) : (
-          undefined
-        ),
+        ) : undefined,
         title: 'Add to team or chat',
       }}
     >

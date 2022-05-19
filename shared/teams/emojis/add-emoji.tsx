@@ -20,7 +20,7 @@ type Props = {
   onChange?: () => void
   teamID: TeamsTypes.TeamID // not supported yet
 }
-type RoutableProps = Container.RouteProps<Props>
+type RoutableProps = Container.RouteProps<'teamAddEmoji'>
 
 // don't prefill on mobile since it's always a long random string.
 const filePathToDefaultAlias = Styles.isMobile
@@ -196,13 +196,9 @@ export const AddEmojiModal = (props: Props) => {
 }
 
 const AddEmojiModalWrapper = (routableProps: RoutableProps) => {
-  const conversationIDKey = Container.getRouteProps(
-    routableProps,
-    'conversationIDKey',
-    ChatConstants.noConversationIDKey
-  )
-  const teamID = Container.getRouteProps(routableProps, 'teamID', TeamsTypes.noTeamID)
-  const onChange = Container.getRouteProps(routableProps, 'onChange', undefined)
+  const conversationIDKey = routableProps.route.params?.conversationIDKey ?? ChatConstants.noConversationIDKey
+  const teamID = routableProps.route.params?.teamID ?? TeamsTypes.noTeamID
+  const onChange = routableProps.route.params?.onChange ?? undefined
   return <AddEmojiModal conversationIDKey={conversationIDKey} teamID={teamID} onChange={onChange} />
 }
 export default AddEmojiModalWrapper

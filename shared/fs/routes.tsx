@@ -1,4 +1,5 @@
 import type FsRoot from './container'
+import type * as FSTypes from '../constants/types/fs'
 import type {BarePreview} from './filepreview'
 import type ConfirmDelete from './common/path-item-action/confirm-delete/container'
 import type KextPermission from './banner/system-file-manager-integration-banner/kext-permission-popup-container'
@@ -20,4 +21,16 @@ export const newModalRoutes = {
       require('./banner/system-file-manager-integration-banner/kext-permission-popup-container')
         .default as typeof KextPermission,
   },
+}
+
+export type RootParamListFS = {
+  destinationPicker: {
+    index: number
+  }
+  confirmDelete: {
+    path: FSTypes.Path
+    mode: 'row' | 'screen'
+  }
+  fsRoot: {path: FSTypes.Path}
+  barePreview: {path: FSTypes.Path}
 }

@@ -1,16 +1,16 @@
-import * as WaitingConstants from '../../constants/waiting'
-import * as Types from '../../constants/types/devices'
 import * as Constants from '../../constants/devices'
-import * as DevicesGen from '../../actions/devices-gen'
-import DeviceRevoke from '.'
 import * as Container from '../../util/container'
+import * as DevicesGen from '../../actions/devices-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
+import * as WaitingConstants from '../../constants/waiting'
+import DeviceRevoke from '.'
+import type * as Types from '../../constants/types/devices'
 
-type OwnProps = Container.RouteProps<{deviceID: string}>
+type OwnProps = Container.RouteProps<'deviceRevoke'>
 
 export default Container.connect(
   (state, ownProps: OwnProps) => {
-    const selectedDeviceID = Container.getRouteProps(ownProps, 'deviceID', '')
+    const selectedDeviceID = ownProps.route.params?.deviceID ?? ''
     return {
       _endangeredTLFs: Constants.getEndangeredTLFs(state, selectedDeviceID),
       device: Constants.getDevice(state, selectedDeviceID),

@@ -4,23 +4,27 @@ import * as Styles from '../../../styles'
 import * as Container from '../../../util/container'
 import * as Types from '../../../constants/types/teams'
 import {memoize} from '../../../util/memoize'
-import {Section} from '../../../common-adapters/section-list'
 import {useTeamDetailsSubscribe} from '../../subscriber'
 import {ModalTitle} from '../../common'
 import {InviteItem} from './invite-item'
+import type {Section} from '../../../common-adapters/section-list'
 
-type Props = Container.RouteProps<{teamID: Types.TeamID}>
+type Props = Container.RouteProps<'teamInviteHistory'>
 
-const splitInviteLinks = memoize((inviteLinks?: Array<Types.InviteLink>): {
-  invalid: Array<Types.InviteLink>
-  valid: Array<Types.InviteLink>
-} => ({
-  invalid: [...(inviteLinks || [])].filter(i => !i.isValid),
-  valid: [...(inviteLinks || [])].filter(i => i.isValid),
-}))
+const splitInviteLinks = memoize(
+  (
+    inviteLinks?: Array<Types.InviteLink>
+  ): {
+    invalid: Array<Types.InviteLink>
+    valid: Array<Types.InviteLink>
+  } => ({
+    invalid: [...(inviteLinks || [])].filter(i => !i.isValid),
+    valid: [...(inviteLinks || [])].filter(i => i.isValid),
+  })
+)
 
 const InviteHistory = (props: Props) => {
-  const teamID = Container.getRouteProps(props, 'teamID', Types.noTeamID)
+  const teamID = props.route.params?.teamID ?? Types.noTeamID
   useTeamDetailsSubscribe(teamID)
   const teamDetails = Container.useSelector(s => s.teams.teamDetails.get(teamID))
   const loading = !teamDetails
@@ -75,12 +79,8 @@ const InviteHistory = (props: Props) => {
           <Kb.Text type="BodyBigLink" onClick={onClose}>
             Close
           </Kb.Text>
-        ) : (
-          undefined
-        ),
-        rightButton: Styles.isMobile ? (
-          undefined
-        ) : (
+        ) : undefined,
+        rightButton: Styles.isMobile ? undefined : (
           <Kb.Button mode="Secondary" label="Generate link" small={true} onClick={onGenerate} />
         ),
         title: <ModalTitle title="Invite links" teamID={teamID} />,

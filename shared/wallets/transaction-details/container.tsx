@@ -7,16 +7,17 @@ import * as WalletsGen from '../../actions/wallets-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {getFullname} from '../../constants/users'
 import openURL from '../../util/open-url'
-import TransactionDetails, {NotLoadingProps} from '.'
+import TransactionDetails, {type NotLoadingProps} from '.'
 import {anyWaiting} from '../../constants/waiting'
 
-type OwnProps = Container.RouteProps<{accountID: Types.AccountID; paymentID: Types.PaymentID}>
+type OwnProps = Container.RouteProps<'transactionDetails'>
 
 export default Container.connect(
   (state, ownProps: OwnProps) => {
     const you = state.config.username
-    const accountID = Container.getRouteProps(ownProps, 'accountID', Types.noAccountID)
-    const paymentID = Container.getRouteProps(ownProps, 'paymentID', Types.noPaymentID)
+    const {params} = ownProps.route
+    const accountID = params?.accountID ?? Types.noAccountID
+    const paymentID = params?.paymentID ?? Types.noPaymentID
     const _transaction = Constants.getPayment(state, accountID, paymentID)
     const yourInfoAndCounterparty = Constants.paymentToYourInfoAndCounterparty(_transaction)
     // Transaction can briefly be empty when status changes
@@ -43,7 +44,7 @@ export default Container.connect(
     onCancelPayment: () =>
       dispatch(
         WalletsGen.createCancelPayment({
-          paymentID: Container.getRouteProps(ownProps, 'paymentID', Types.noPaymentID),
+          paymentID: ownProps.route.params?.paymentID ?? Types.noPaymentID,
           showAccount: true,
         })
       ),
@@ -52,8 +53,8 @@ export default Container.connect(
     onLoadPaymentDetail: () =>
       dispatch(
         WalletsGen.createLoadPaymentDetail({
-          accountID: Container.getRouteProps(ownProps, 'accountID', Types.noAccountID),
-          paymentID: Container.getRouteProps(ownProps, 'paymentID', Types.noPaymentID),
+          accountID: ownProps.route.params?.accountID ?? Types.noAccountID,
+          paymentID: ownProps.route.params?.paymentID ?? Types.noPaymentID,
         })
       ),
     onShowProfile: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),

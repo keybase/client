@@ -4,16 +4,13 @@ import * as Container from '../util/container'
 import * as Styles from '../styles'
 import openURL from '../util/open-url'
 
-type PunycodeLinkWarningProps = Container.RouteProps<{
-  display: string
-  punycode: string
-  url: string
-}>
+type PunycodeLinkWarningProps = Container.RouteProps<'chatConfirmNavigateExternal'>
 
 const PunycodeLinkWarning = (props: PunycodeLinkWarningProps) => {
-  const url = Container.getRouteProps(props, 'url', '')
-  const display = Container.getRouteProps(props, 'display', '')
-  const punycode = Container.getRouteProps(props, 'punycode', '')
+  const {params} = props.route
+  const url = params?.url ?? ''
+  const display = params?.display ?? ''
+  const punycode = params?.punycode ?? ''
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   const onCancel = () => dispatch(nav.safeNavigateUpPayload())

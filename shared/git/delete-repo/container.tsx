@@ -2,17 +2,17 @@ import * as React from 'react'
 import * as GitGen from '../../actions/git-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Constants from '../../constants/git'
-import DeleteRepo, {Props} from '.'
+import DeleteRepo, {type Props} from '.'
 import * as Container from '../../util/container'
 
-type OwnProps = Container.RouteProps<{id: string}>
+type OwnProps = Container.RouteProps<'gitDeleteRepo'>
 
 const NullWrapper = (props: Props) => (props.name ? <DeleteRepo {...props} /> : null)
 
 export default Container.connect(
   (state, ownProps: OwnProps) => {
     const gitMap = Constants.getIdToGit(state)
-    const id = Container.getRouteProps(ownProps, 'id', '')
+    const id = ownProps.route.params?.id ?? ''
     const git = gitMap.get(id) || Constants.makeGitInfo()
 
     return {

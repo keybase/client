@@ -4,7 +4,7 @@ import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import openURL from '../../../util/open-url'
 import EnterUsername from '.'
 
-type OwnProps = Container.RouteProps
+type OwnProps = {}
 
 const ConnectedEnterUsername = Container.connect(
   state => {
