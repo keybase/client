@@ -1,15 +1,15 @@
-import * as TeamsGen from '../../actions/teams-gen'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Constants from '../../constants/teams'
-import * as Types from '../../constants/types/teams'
-import {InviteByEmailDesktop} from '.'
 import * as Container from '../../util/container'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
+import * as TeamsGen from '../../actions/teams-gen'
+import type * as Types from '../../constants/types/teams'
+import {InviteByEmailDesktop} from '.'
 
-type OwnProps = Container.RouteProps<{teamID: string}>
+type OwnProps = Container.RouteProps<'teamInviteByEmail'>
 
 export default Container.connect(
   (state, ownProps: OwnProps) => {
-    const teamID = Container.getRouteProps(ownProps, 'teamID', '')
+    const teamID = ownProps.route.params?.teamID ?? ''
     const {teamname} = Constants.getTeamMeta(state, teamID)
     const inviteError = Constants.getEmailInviteError(state)
     return {
@@ -32,7 +32,7 @@ export default Container.connect(
     onClearInviteError: d.onClearInviteError,
     onClose: d.onClose,
     onInvite: (invitees: string, role: Types.TeamRoleType) => {
-      const teamID = Container.getRouteProps(o, 'teamID', '')
+      const teamID = o.route.params?.teamID ?? ''
       d._onInvite(s.name, teamID, invitees, role)
     },
   })

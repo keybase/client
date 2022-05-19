@@ -8,7 +8,7 @@ import * as TeamsGen from '../../actions/teams-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {memoize} from '../../util/memoize'
 
-type Props = Container.RouteProps<{members: string[]; teamID: Types.TeamID}>
+type Props = Container.RouteProps<'teamReallyRemoveMember'>
 
 const getSubteamNames = memoize(
   (state: Container.TypedState, teamID: Types.TeamID): [string[], Types.TeamID[]] => {
@@ -18,8 +18,8 @@ const getSubteamNames = memoize(
 )
 
 const ConfirmKickOut = (props: Props) => {
-  const members = Container.getRouteProps(props, 'members', [])
-  const teamID = Container.getRouteProps(props, 'teamID', Types.noTeamID)
+  const members = props.route.params?.members ?? []
+  const teamID = props.route.params?.teamID ?? Types.noTeamID
   const [subteamsToo, setSubteamsToo] = React.useState(false)
 
   const [subteams, subteamIDs] = Container.useSelector(state => getSubteamNames(state, teamID))

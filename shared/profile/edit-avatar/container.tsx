@@ -6,32 +6,23 @@ import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Constants from '../../constants/profile'
 import * as TeamsConstants from '../../constants/teams'
 import * as Container from '../../util/container'
-import * as Types from '../../constants/types/teams'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
+import type * as Types from '../../constants/types/teams'
 import {anyErrors, anyWaiting} from '../../constants/waiting'
-import * as ImagePicker from 'expo-image-picker'
 
-type OwnProps = Container.RouteProps<{
-  // Mobile-only
-  image?: ImagePicker.ImagePickerResult
-  // Team-only
-  sendChatNotification?: boolean
-  showBack?: boolean
-  teamID?: Types.TeamID
-  createdTeam?: boolean
-  wizard?: boolean
-}>
+type OwnProps = Container.RouteProps<'profileEditAvatar'>
 
 const cancelledImage = {cancelled: true as const}
 
 export default Container.connect(
   (state, ownProps: OwnProps) => {
-    const teamID = Container.getRouteProps(ownProps, 'teamID', undefined)
+    const {params} = ownProps.route
+    const teamID = params?.teamID
     return {
-      createdTeam: Container.getRouteProps(ownProps, 'createdTeam', undefined) ?? false,
+      createdTeam: params?.createdTeam ?? false,
       error: anyErrors(state, Constants.uploadAvatarWaitingKey),
-      image: Container.getRouteProps(ownProps, 'image', undefined) ?? cancelledImage,
-      sendChatNotification: Container.getRouteProps(ownProps, 'sendChatNotification', undefined) ?? false,
+      image: params?.image ?? cancelledImage,
+      sendChatNotification: params?.sendChatNotification ?? false,
       submitting: anyWaiting(state, Constants.uploadAvatarWaitingKey),
       teamID,
       teamname: teamID ? TeamsConstants.getTeamNameFromID(state, teamID) : undefined,
@@ -61,6 +52,7 @@ export default Container.connect(
     },
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => {
+    const {params} = ownProps.route
     let error = ''
     if (stateProps.error) {
       error =
@@ -70,7 +62,7 @@ export default Container.connect(
           ? 'Connection lost. Please check your network and try again.'
           : 'This image format is not supported.'
     }
-    const wizard = Container.getRouteProps(ownProps, 'wizard', false)
+    const wizard = params?.wizard ?? false
     const bothProps = {
       error,
       image: stateProps.image?.cancelled ? undefined : stateProps.image,
@@ -106,7 +98,7 @@ export default Container.connect(
             }
           },
           onSkip: dispatchProps.onSkip,
-          showBack: Container.getRouteProps(ownProps, 'showBack', false),
+          showBack: params?.showBack ?? false,
           teamID: stateProps.teamID,
           teamname: stateProps.teamname!,
           type: 'team' as const,

@@ -24,7 +24,7 @@ import {
 } from './rows'
 import isEqual from 'lodash/isEqual'
 
-type Props = Container.RouteProps<{teamID: Types.TeamID; initialTab?: Types.TabKey}>
+type Props = Container.RouteProps<'team'>
 
 // keep track during session
 const lastSelectedTabs = {}
@@ -84,8 +84,8 @@ const SectionList: typeof Kb.SectionList = Styles.isMobile
   : Kb.SectionList
 
 const Team = (props: Props) => {
-  const teamID = Container.getRouteProps(props, 'teamID', Types.noTeamID)
-  const initialTab = Container.getRouteProps(props, 'initialTab', undefined)
+  const teamID = props.route.params?.teamID ?? Types.noTeamID
+  const initialTab = props.route.params?.initialTab ?? undefined
   const [selectedTab, setSelectedTab] = useTabsState(teamID, initialTab)
 
   const teamDetails = Container.useSelector(state => Constants.getTeamDetails(state, teamID))

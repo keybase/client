@@ -1,14 +1,14 @@
-import Settings from '.'
-import * as Container from '../../../util/container'
-import {anyWaiting} from '../../../constants/waiting'
 import * as Constants from '../../../constants/wallets'
-import {IconType} from '../../../common-adapters/icon.constants-gen'
+import * as Container from '../../../util/container'
 import * as IconUtils from '../../../common-adapters/icon.shared'
-import * as Types from '../../../constants/types/wallets'
-import * as WalletsGen from '../../../actions/wallets-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
+import * as WalletsGen from '../../../actions/wallets-gen'
+import Settings from '.'
+import type * as Types from '../../../constants/types/wallets'
+import type {IconType} from '../../../common-adapters/icon.constants-gen'
+import {anyWaiting} from '../../../constants/waiting'
 
-type OwnProps = Container.RouteProps
+type OwnProps = {}
 
 // Note: `props.user` is only the Keybase username if this is the primary
 // account. Non-primary accounts are not associated with usernames.

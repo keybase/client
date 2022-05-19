@@ -5,28 +5,28 @@ import * as Kb from '../../common-adapters'
 import * as Kbfs from '../../fs/common'
 import * as Styles from '../../styles'
 import * as Chat2Gen from '../../actions/chat2-gen'
-import * as ChatTypes from '../../constants/types/chat2'
 import * as ChatConstants from '../../constants/chat2'
 import * as Container from '../../util/container'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
+import type * as ChatTypes from '../../constants/types/chat2'
 import HiddenString from '../../util/hidden-string'
 import ConversationList from './conversation-list/conversation-list'
 import ChooseConversation from './conversation-list/choose-conversation'
 
 type Props = {
   canBack?: boolean
-
   isFromShareExtension?: boolean
   text?: string // incoming share (text)
   sendPaths?: Array<string> // KBFS or incoming share (files)
 }
-type RoutableProps = Container.RouteProps<Props>
+type RoutableProps = Container.RouteProps<'sendToChat'>
 
 const MobileSendToChatRoutable = (props: RoutableProps) => {
-  const canBack = Container.getRouteProps(props, 'canBack', false)
-  const isFromShareExtension = Container.getRouteProps(props, 'isFromShareExtension', undefined)
-  const sendPaths = Container.getRouteProps(props, 'sendPaths', undefined)
-  const text = Container.getRouteProps(props, 'text', undefined)
+  const {params} = props.route
+  const canBack = params?.canBack ?? false
+  const isFromShareExtension = params?.isFromShareExtension ?? undefined
+  const sendPaths = params?.sendPaths ?? undefined
+  const text = params?.text ?? undefined
 
   const dispatch = Container.useDispatch()
   const onCancel = () => dispatch(RouteTreeGen.createClearModals())
@@ -98,7 +98,7 @@ export const MobileSendToChat = (props: Props) => {
 }
 
 const DesktopSendToChat = (props: RoutableProps) => {
-  const sendPaths = Container.getRouteProps(props, 'sendPaths', undefined) ?? []
+  const sendPaths = props.route.params?.sendPaths ?? []
   const [title, setTitle] = React.useState('')
   const [conversationIDKey, setConversationIDKey] = React.useState(ChatConstants.noConversationIDKey)
   const [convName, setConvName] = React.useState('')

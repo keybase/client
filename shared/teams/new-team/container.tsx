@@ -6,11 +6,11 @@ import upperFirst from 'lodash/upperFirst'
 import * as Constants from '../../constants/teams'
 import * as Types from '../../constants/types/teams'
 
-type OwnProps = Container.RouteProps<{subteamOf?: Types.TeamID}>
+type OwnProps = Container.RouteProps<'teamNewTeamDialog'>
 
 export default Container.connect(
   (state, ownProps: OwnProps) => {
-    const subteamOf = Container.getRouteProps(ownProps, 'subteamOf', undefined) || Types.noTeamID
+    const subteamOf = ownProps.route.params?.subteamOf ?? Types.noTeamID
     const baseTeam = Constants.getTeamMeta(state, subteamOf).teamname
     return {
       baseTeam,

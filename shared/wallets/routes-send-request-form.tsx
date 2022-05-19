@@ -1,9 +1,9 @@
 import * as Constants from '../constants/wallets'
-import ChooseAsset from './send-form/choose-asset/container'
-import PickAsset from './send-form/pick-asset'
-import ConfirmForm from './confirm-form/container'
-import QRScan from './qr-scan/container'
-import SendForm from './send-form/container'
+import type ChooseAsset from './send-form/choose-asset/container'
+import type PickAsset from './send-form/pick-asset'
+import type ConfirmForm from './confirm-form/container'
+import type QRScan from './qr-scan/container'
+import type SendForm from './send-form/container'
 
 export const newModalRoutes = {
   [Constants.chooseAssetFormRouteKey]: {

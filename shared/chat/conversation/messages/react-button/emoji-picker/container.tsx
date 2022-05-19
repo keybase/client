@@ -29,7 +29,7 @@ type Props = {
   onPickAction?: (emoji: string, renderableEmoji: RenderableEmoji) => void
 }
 
-type RoutableProps = Container.RouteProps<Props>
+type RoutableProps = Container.RouteProps<'chatChooseEmoji'>
 
 const useReacji = ({conversationIDKey, onDidPick, onPickAction, onPickAddToMessageOrdinal}: Props) => {
   const topReacjis = Container.useSelector(state => state.chat2.userReacjis.topReacjis)
@@ -348,23 +348,13 @@ const styles = Styles.styleSheetCreate(
 )
 
 export const Routable = (routableProps: RoutableProps) => {
-  const conversationIDKey = Container.getRouteProps(
-    routableProps,
-    'conversationIDKey',
-    Constants.noConversationIDKey
-  )
-  const small = Container.getRouteProps(routableProps, 'small', undefined)
-  const hideFrequentEmoji = Container.getRouteProps(routableProps, 'hideFrequentEmoji', undefined)
-  const onlyTeamCustomEmoji = Container.getRouteProps(routableProps, 'onlyTeamCustomEmoji', undefined)
-  const onPickAction = Container.getRouteProps(routableProps, 'onPickAction', undefined)
-  const onPickAddToMessageOrdinal = Container.getRouteProps(
-    routableProps,
-    'onPickAddToMessageOrdinal',
-    undefined
-  )
+  const {params} = routableProps.route
+  const small = params?.small
+  const {hideFrequentEmoji, onlyTeamCustomEmoji, onPickAction, onPickAddToMessageOrdinal} = params ?? {}
+  const conversationIDKey = params?.conversationIDKey ?? Constants.noConversationIDKey
   const dispatch = Container.useDispatch()
   const navigateUp = () => dispatch(RouteTreeGen.createNavigateUp())
-  const _onDidPick = Container.getRouteProps(routableProps, 'onDidPick', undefined)
+  const _onDidPick = params?.onDidPick
   const onDidPick = _onDidPick
     ? () => {
         _onDidPick()

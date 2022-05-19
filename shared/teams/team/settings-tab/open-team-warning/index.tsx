@@ -4,12 +4,7 @@ import * as Styles from '../../../../styles'
 import * as Container from '../../../../util/container'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 
-type Props = Container.RouteProps<{
-  isOpenTeam: boolean
-  teamname: string
-  onCancel: () => void
-  onConfirm: () => void
-}>
+type Props = Container.RouteProps<'openTeamWarning'>
 
 const Wrapper = ({children, onBack}: {children: React.ReactNode; onBack: () => void}) =>
   Styles.isMobile ? (
@@ -24,9 +19,9 @@ const Wrapper = ({children, onBack}: {children: React.ReactNode; onBack: () => v
 
 const OpenTeamWarning = (props: Props) => {
   const [enabled, setEnabled] = React.useState(false)
-  const isOpenTeam = Container.getRouteProps(props, 'isOpenTeam', false)
-  const teamname = Container.getRouteProps(props, 'teamname', '')
-  const onConfirmCallback = Container.getRouteProps(props, 'onConfirm', () => undefined)
+  const isOpenTeam = props.route.params?.isOpenTeam ?? false
+  const teamname = props.route.params?.teamname ?? ''
+  const onConfirmCallback = props.route.params?.onConfirm ?? (() => undefined)
 
   const dispatch = Container.useDispatch()
 

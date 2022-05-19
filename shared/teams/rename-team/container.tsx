@@ -5,12 +5,12 @@ import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Constants from '../../constants/teams'
 import RenameTeam from '.'
 
-type OwnProps = Container.RouteProps<{teamname: string}>
+type OwnProps = Container.RouteProps<'teamRename'>
 
 export default Container.connect(
   (state, ownProps: OwnProps) => ({
     error: Container.anyErrors(state, Constants.teamRenameWaitingKey),
-    teamname: Container.getRouteProps(ownProps, 'teamname', ''),
+    teamname: ownProps.route.params?.teamname ?? '',
     waiting: Container.anyWaiting(state, Constants.teamRenameWaitingKey),
   }),
   dispatch => ({

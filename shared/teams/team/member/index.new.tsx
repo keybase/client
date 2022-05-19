@@ -1,28 +1,28 @@
-import * as React from 'react'
-import * as Kb from '../../../common-adapters'
-import * as Styles from '../../../styles'
-import * as RPCTypes from '../../../constants/types/rpc-gen'
-import * as Constants from '../../../constants/teams'
-import * as Types from '../../../constants/types/teams'
-import * as Container from '../../../util/container'
 import * as Chat2Gen from '../../../actions/chat2-gen'
+import * as Constants from '../../../constants/teams'
+import * as Container from '../../../util/container'
+import * as Kb from '../../../common-adapters'
 import * as ProfileGen from '../../../actions/profile-gen'
-import {useAllChannelMetas} from '../../common/channel-hooks'
-import logger from '../../../logger'
-import {pluralize} from '../../../util/string'
-import {FloatingRolePicker} from '../../role-picker'
-import RoleButton from '../../role-button'
+import * as RPCTypes from '../../../constants/types/rpc-gen'
+import * as React from 'react'
+import * as Styles from '../../../styles'
 import * as TeamsGen from '../../../actions/teams-gen'
-import {useTeamDetailsSubscribe} from '../../subscriber'
-import {formatTimeForTeamMember, formatTimeRelativeToNow} from '../../../util/timestamp'
-import {Section as _Section} from '../../../common-adapters/section-list'
+import * as Types from '../../../constants/types/teams'
+import RoleButton from '../../role-button'
 import isEqual from 'lodash/isEqual'
+import logger from '../../../logger'
+import type {Section as _Section} from '../../../common-adapters/section-list'
+import {FloatingRolePicker} from '../../role-picker'
+import {formatTimeForTeamMember, formatTimeRelativeToNow} from '../../../util/timestamp'
+import {pluralize} from '../../../util/string'
+import {useAllChannelMetas} from '../../common/channel-hooks'
+import {useTeamDetailsSubscribe} from '../../subscriber'
 
 type Props = {
   teamID: Types.TeamID
   username: string
 }
-type OwnProps = Container.RouteProps<Props>
+type OwnProps = Container.RouteProps<'teamMember'>
 
 type TeamTreeRowNotIn = {
   teamID: Types.TeamID
@@ -142,8 +142,8 @@ const SectionList: typeof Kb.SectionList = Styles.isMobile
 
 const TeamMember = (props: OwnProps) => {
   const dispatch = Container.useDispatch()
-  const username = Container.getRouteProps(props, 'username', '')
-  const teamID = Container.getRouteProps(props, 'teamID', Types.noTeamID)
+  const username = props.route.params?.username ?? ''
+  const teamID = props.route.params?.teamID ?? Types.noTeamID
 
   const isMe = username == Container.useSelector(state => state.config.username)
   const loading = Container.useSelector(state => {

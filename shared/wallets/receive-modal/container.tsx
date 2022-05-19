@@ -5,37 +5,35 @@ import * as WalletsGen from '../../actions/wallets-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import Receive from '.'
 
-export type OwnProps = Container.RouteProps<{accountID: Types.AccountID}>
+export type OwnProps = Container.RouteProps<'receive'>
 
-const mapStateToProps = (state, ownProps) => {
-  const accountID = Container.getRouteProps(ownProps, 'accountID', Types.noAccountID)
-  const account = Constants.getAccount(state, accountID)
-  return {
-    accountName: account.name,
-    federatedAddress: Constants.getFederatedAddress(state, accountID),
-    isDefaultAccount: account.isDefault,
-    stellarAddress: accountID,
-  }
-}
-
-const mapDispatchToProps = (dispatch, ownProps) => ({
-  navigateUp: () => dispatch(RouteTreeGen.createNavigateUp()),
-  onRequest: () => {
-    const accountID = Container.getRouteProps(ownProps, 'accountID', Types.noAccountID)
-    dispatch(RouteTreeGen.createNavigateUp())
-    dispatch(
-      WalletsGen.createOpenSendRequestForm({
-        from: accountID,
-        isRequest: true,
-      })
-    )
+export default Container.connect(
+  (state, ownProps: OwnProps) => {
+    const accountID = ownProps.route.params?.accountID ?? Types.noAccountID
+    const account = Constants.getAccount(state, accountID)
+    return {
+      accountName: account.name,
+      federatedAddress: Constants.getFederatedAddress(state, accountID),
+      isDefaultAccount: account.isDefault,
+      stellarAddress: accountID,
+    }
   },
-})
-
-const mergeProps = (stateProps, dispatchProps) => ({
-  ...stateProps,
-  onClose: dispatchProps.navigateUp,
-  onRequest: dispatchProps.onRequest,
-})
-
-export default Container.connect(mapStateToProps, mapDispatchToProps, mergeProps)(Receive)
+  (dispatch, ownProps: OwnProps) => ({
+    navigateUp: () => dispatch(RouteTreeGen.createNavigateUp()),
+    onRequest: () => {
+      const accountID = ownProps.route.params?.accountID ?? Types.noAccountID
+      dispatch(RouteTreeGen.createNavigateUp())
+      dispatch(
+        WalletsGen.createOpenSendRequestForm({
+          from: accountID,
+          isRequest: true,
+        })
+      )
+    },
+  }),
+  (stateProps, dispatchProps) => ({
+    ...stateProps,
+    onClose: dispatchProps.navigateUp,
+    onRequest: dispatchProps.onRequest,
+  })
+)(Receive)

@@ -11,10 +11,10 @@ import {pluralize} from '../util/string'
 import {memoize} from '../util/memoize'
 import capitalize from 'lodash/capitalize'
 
-type Props = Container.RouteProps<{teamname: string}>
+type Props = Container.RouteProps<'teamExternalTeam'>
 
 const ExternalTeam = (props: Props) => {
-  const teamname = Container.getRouteProps(props, 'teamname', '')
+  const teamname = props.route.params?.teamname ?? ''
 
   const getTeamInfo = Container.useRPC(RPCGen.teamsGetUntrustedTeamInfoRpcPromise)
   const [teamInfo, setTeamInfo] = React.useState<RPCGen.UntrustedTeamInfo | null>(null)

@@ -4,12 +4,12 @@ import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as Container from '../../../util/container'
 import * as Constants from '../../../constants/teams'
 import * as Types from '../../../constants/types/teams'
-import ReallyLeaveTeam, {Props} from '.'
+import ReallyLeaveTeam, {type Props} from '.'
 import LastOwnerDialog from './last-owner'
 import {anyWaiting} from '../../../constants/waiting'
 import {useTeamDetailsSubscribeMountOnly} from '../../subscriber'
 
-type OwnProps = Container.RouteProps<{teamID: Types.TeamID}>
+type OwnProps = Container.RouteProps<'teamReallyLeaveTeam'>
 type ExtraProps = {_leaving: boolean; lastOwner: boolean; stillLoadingTeam: boolean; teamID: Types.TeamID}
 
 const RenderLastOwner = (p: Props & ExtraProps) => {
@@ -29,7 +29,7 @@ const RenderLastOwner = (p: Props & ExtraProps) => {
 
 export default Container.connect(
   (state, ownProps: OwnProps) => {
-    const teamID = Container.getRouteProps(ownProps, 'teamID', Types.noTeamID)
+    const teamID = ownProps.route.params?.teamID ?? Types.noTeamID
     const {teamname} = Constants.getTeamMeta(state, teamID)
     const {settings, members} = Constants.getTeamDetails(state, teamID)
     const lastOwner = Constants.isLastOwner(state, teamID)

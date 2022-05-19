@@ -10,7 +10,7 @@ import {Platform} from 'react-native'
 import {NativeModules} from '../../util/native-modules.native'
 import {getExtraChatLogsForLogSend, getPushTokenForLogSend} from '../../constants/settings'
 
-type OwnProps = Container.RouteProps<{heading: string; feedback: string}>
+type OwnProps = Container.RouteProps<'settingsTabs.feedbackTab'>
 
 export type State = {
   sending: boolean
@@ -138,7 +138,7 @@ const connected = Container.connect(
   (s, d, o: OwnProps) => ({
     ...s,
     ...d,
-    feedback: Container.getRouteProps(o, 'feedback', ''),
+    feedback: o.route.params?.feedback ?? '',
   })
 )(FeedbackContainer)
 

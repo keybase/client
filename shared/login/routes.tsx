@@ -65,3 +65,9 @@ export const newModalRoutes = {
   },
   ...require('./recover-password/routes').newModalRoutes,
 }
+
+export type RootParamListLogin = {
+  resetWaiting: {
+    pipelineStarted: boolean
+  }
+}

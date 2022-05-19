@@ -1,35 +1,43 @@
-import type {RouteProp, NavigationProp} from '@react-navigation/native'
-import type {Question1Answer} from '../profile/wot-author'
-import type {ConversationIDKey} from '../constants/types/chat2'
-import type * as TeamBuildingTypes from '../constants/types/team-building'
-
-type TeamBuilderProps = {
-  namespace?: TeamBuildingTypes.AllowedNamespace
-  teamID?: string
-  filterServices?: Array<TeamBuildingTypes.ServiceIdWithContact>
-  goButtonLabel?: TeamBuildingTypes.GoButtonLabel
-  title?: string
-}
+import type {RouteProp} from '@react-navigation/native'
+import type {RootParamListGit} from '../git/routes'
+import type {RootParamListPeople} from '../people/routes'
+import type {RootParamListProfile} from '../profile/routes'
+import type {RootParamListFS} from '../fs/routes'
+import type {RootParamListTeams} from '../teams/routes'
+import type {RootParamListChat} from '../chat/routes'
+import type {RootParamListWallets} from '../wallets/routes'
+import type {RootParamListDevices} from '../devices/routes'
+import type {RootParamListCrypto} from '../crypto/routes'
+import type {RootParamListLogin} from '../login/routes'
+import type {RootParamListProvision} from '../provision/routes'
+import type {RootParamListSettings} from '../settings/routes'
 
 // TODO partial could go away when we enforce these params are pushed correctly
-export type RootParamList = Partial<{
-  walletTeamBuilder: TeamBuilderProps
-  teamsTeamBuilder: TeamBuilderProps
-  peopleTeamBuilder: TeamBuilderProps
-  chatNewChat: TeamBuilderProps
-  cryptoTeamBuilder: TeamBuilderProps
-  chatConversation: {conversationIDKey?: ConversationIDKey}
-  profileWotAuthor: {
-    username?: string
-    guiID?: string
-    question1Answer?: Question1Answer
-  }
-}>
+type DeepPartial<Type> = {
+  [Property in keyof Type]?: Partial<Type[Property]>
+}
+
+export type RootParamList = DeepPartial<
+  RootParamListLogin &
+    RootParamListWallets &
+    RootParamListChat &
+    RootParamListTeams &
+    RootParamListFS &
+    RootParamListPeople &
+    RootParamListProfile &
+    RootParamListCrypto &
+    RootParamListDevices &
+    RootParamListProvision &
+    RootParamListSettings &
+    RootParamListGit
+>
 export type RootRouteProps<RouteName extends keyof RootParamList> = RouteProp<RootParamList, RouteName>
 
 export type RouteProps<RouteName extends keyof RootParamList> = {
   route: RouteProp<RootParamList, RouteName>
-  navigation: NavigationProp<RootParamList>
+  navigation: {
+    pop: () => void
+  }
 }
 
 export function getRouteParams<T extends keyof RootParamList>(ownProps: any): RootParamList[T] | undefined {

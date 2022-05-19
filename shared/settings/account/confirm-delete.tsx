@@ -61,21 +61,16 @@ const ConfirmDeleteAddress = (props: Props) => (
   />
 )
 
-type OwnProps = Container.RouteProps<{
-  address: string
-  searchable: boolean
-  type: 'email' | 'phone'
-  lastEmail?: boolean
-}>
+type OwnProps = Container.RouteProps<'settingsDeleteAddress'>
 
 const DeleteModal = (props: OwnProps) => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
-
-  const itemAddress = Container.getRouteProps(props, 'address', '')
-  const itemType = Container.getRouteProps(props, 'type', 'email')
-  const itemSearchable = Container.getRouteProps(props, 'searchable', false)
-  const lastEmail = Container.getRouteProps(props, 'lastEmail', false)
+  const {params} = props.route
+  const itemAddress = params?.address ?? ''
+  const itemType = params?.type ?? 'email'
+  const itemSearchable = params?.searchable ?? false
+  const lastEmail = params?.lastEmail ?? false
 
   const onCancel = React.useCallback(() => dispatch(nav.safeNavigateUpPayload()), [dispatch, nav])
   const onConfirm = React.useCallback(() => {
