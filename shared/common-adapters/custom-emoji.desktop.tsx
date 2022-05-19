@@ -4,7 +4,7 @@ import Image from './image'
 import Text from './text'
 import {Box2} from './box'
 import WithTooltip from './with-tooltip'
-import {Props} from './custom-emoji'
+import type {Props} from './custom-emoji'
 
 const Kb = {
   Box2,
@@ -14,7 +14,7 @@ const Kb = {
 }
 
 const CustomEmoji = (props: Props) => {
-  const {size, src, alias} = props
+  const {size, src, alias, style} = props
   return (
     <Kb.Box2
       direction="horizontal"
@@ -24,6 +24,7 @@ const CustomEmoji = (props: Props) => {
         {
           height: size,
           width: size,
+          ...style,
         },
       ])}
     >

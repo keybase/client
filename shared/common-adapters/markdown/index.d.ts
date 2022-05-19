@@ -41,6 +41,8 @@ export type StyleOverride = {
   mailto?: StylesTextCrossPlatform
   preview?: StylesTextCrossPlatform
   kbfsPath?: StylesTextCrossPlatform
+  emoji?: StylesTextCrossPlatform
+  customEmoji?: StylesTextCrossPlatform
 }
 
 export type Props = {

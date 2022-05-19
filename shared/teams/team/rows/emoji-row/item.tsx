@@ -81,11 +81,11 @@ const ItemRow = ({conversationIDKey, emoji, firstItem, reloadEmojis, teamID}: Ow
             style={styles.container}
             gap="small"
           >
-            {renderEmoji(
-              emojiDataToRenderableEmoji(RPCToEmojiData(emoji, false)),
-              Styles.isMobile ? 32 : 26,
-              false
-            )}
+            {renderEmoji({
+              emoji: emojiDataToRenderableEmoji(RPCToEmojiData(emoji, false)),
+              showTooltip: false,
+              size: Styles.isMobile ? 32 : 26,
+            })}
             <Kb.Text type="Body" style={styles.alias}>{`:${emoji.alias}:`}</Kb.Text>
             {!Styles.isMobile && emoji.creationInfo && (
               <Kb.Text type="Body" style={styles.date}>

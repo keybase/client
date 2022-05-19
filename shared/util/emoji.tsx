@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
+import * as Styles from '../styles'
 import type * as RPCTypes from '../constants/types/rpc-gen'
 import type * as Chat2Types from '../constants/types/chat2'
 
@@ -33,27 +34,29 @@ export type RenderableEmoji = {
   renderUrl?: string
 }
 
-export const renderEmoji = (
-  emoji: RenderableEmoji,
-  size: number,
-  showTooltip: boolean,
-  addTopMarginToCustom?: boolean,
-  customEmojiSize?: number,
+export const renderEmoji = (opts: {
+  emoji: RenderableEmoji
+  size: number
+  showTooltip: boolean
+  customEmojiSize?: number
   virtualText?: boolean
-) => {
+  customStyle?: Styles.StylesCrossPlatform
+  style?: Styles.StylesCrossPlatform
+}) => {
+  const {emoji, size, showTooltip, customEmojiSize, virtualText, customStyle, style} = opts
   if (emoji.renderUrl) {
     return (
       <Kb.CustomEmoji
         size={customEmojiSize ?? size}
         src={emoji.renderUrl}
         alias={showTooltip ? emoji.aliasForCustom : undefined}
-        addTopMargin={addTopMarginToCustom}
+        style={customStyle}
       />
     )
   }
 
   if (emoji.renderStock) {
-    return <Kb.Emoji size={size} emojiName={emoji.renderStock} disableSelecting={virtualText} />
+    return <Kb.Emoji size={size} emojiName={emoji.renderStock} disableSelecting={virtualText} style={style} />
   }
 
   return null
