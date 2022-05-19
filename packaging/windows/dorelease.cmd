@@ -100,9 +100,7 @@ EXIT /B 0
 
 :no_smokea
 
-setlocal ENABLEDELAYEDEXPANSION
-
-set BUILD_TAG_ENCODED=!BUILD_TAG:+=%%2B!
+for /f "delims=" %%i in ('go run %GOPATH%\src\github.com\keybase\client\packaging\windows\urlencode.go %BUILD_TAG%') do set BUILD_TAG_ENCODED=%%i
 
 ::Publish smoke updater jsons to S3
 if [%UpdateChannel%] NEQ [Smoke2] (
