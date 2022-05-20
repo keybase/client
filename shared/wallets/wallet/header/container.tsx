@@ -37,12 +37,10 @@ export default Container.connect(
           ],
         })
       ),
-    onBuy: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['partners']})),
     onSettings: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['settings']})),
   }),
   (stateProps, dispatchProps, _: OwnProps) => ({
     ...stateProps,
-    onBuy: dispatchProps.onBuy,
     onReceive: () => dispatchProps._onReceive(stateProps.accountID),
     onSettings: dispatchProps.onSettings,
   })

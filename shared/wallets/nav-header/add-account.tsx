@@ -46,7 +46,7 @@ const mapDispatchToProps = dispatch => ({
   onAddNew: () => {
     dispatch(
       RouteTreeGen.createNavigateAppend({
-        path: [{props: {backButton: false, showOnCreation: true}, selected: 'createNewAccount'}],
+        path: [{props: {showOnCreation: true}, selected: 'createNewAccount'}],
       })
     )
   },

@@ -8,6 +8,7 @@ import * as Constants from '../../constants/tracker2'
 import type * as Types from '../../constants/types/tracker2'
 import Assertion from '.'
 import openUrl from '../../util/open-url'
+import type {PlatformsExpandedType} from '../../constants/types/more'
 
 type OwnProps = {
   isSuggestion?: boolean
@@ -92,7 +93,7 @@ export default Container.connect(
       dispatch(ProfileGen.createAddProof({platform: type, reason: 'profile'})),
     _onHideStellar: (hidden: boolean) => dispatch(ProfileGen.createHideStellar({hidden})),
     _onRecheck: (sigID: string) => dispatch(ProfileGen.createRecheckProof({sigID})),
-    _onRevokeProof: (type: string, value: string, id: string, icon: Types.SiteIconSet) =>
+    _onRevokeProof: (type: PlatformsExpandedType, value: string, id: string, icon: Types.SiteIconSet) =>
       dispatch(
         RouteTreeGen.createNavigateAppend({
           path: [
@@ -131,7 +132,7 @@ export default Container.connect(
       onRevoke: () => {
         if (stateProps.siteIconFull)
           dispatchProps._onRevokeProof(
-            stateProps.type,
+            stateProps.type as PlatformsExpandedType,
             stateProps.value,
             stateProps._sigID,
             stateProps.siteIconFull

@@ -70,4 +70,5 @@ export type RootParamListLogin = {
   resetWaiting: {
     pipelineStarted: boolean
   }
+  feedback: undefined
 }

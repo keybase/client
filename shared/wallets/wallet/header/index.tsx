@@ -1,9 +1,9 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Container from '../../../util/container'
-import {useSafeAreaInsets} from '../../../common-adapters/safe-area-view'
-import * as Types from '../../../constants/types/wallets'
 import * as Styles from '../../../styles'
+import type * as Types from '../../../constants/types/wallets'
+import {useSafeAreaInsets} from '../../../common-adapters/safe-area-view'
 import {SendButton, SmallAccountID} from '../../common'
 import MaybeSwitcher from './maybe-switcher'
 

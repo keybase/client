@@ -18,9 +18,7 @@ export default Container.connect(
     onAddNew: () => {
       dispatch(
         RouteTreeGen.createNavigateAppend({
-          path: [
-            {props: {backButton: Container.isMobile, showOnCreation: true}, selected: 'createNewAccount'},
-          ],
+          path: [{props: {showOnCreation: true}, selected: 'createNewAccount'}],
         })
       )
     },

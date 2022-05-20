@@ -157,7 +157,6 @@ const InstallBotPopup = (props: Props) => {
             props: {
               botUsername,
               conversationIDKey,
-              namespace: 'chat2',
             },
             selected: 'chatConfirmRemoveBot',
           },

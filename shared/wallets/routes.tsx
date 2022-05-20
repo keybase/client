@@ -118,4 +118,7 @@ export type RootParamListWallets = {
   reallyRemoveAccount: {accountID: Types.AccountID}
   renameAccount: {accountID: Types.AccountID}
   settings: undefined
+  qrScan: undefined
+  confirmForm: undefined
+  chooseAssetForm: undefined
 }

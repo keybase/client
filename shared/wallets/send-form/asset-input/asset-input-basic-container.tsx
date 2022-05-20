@@ -24,12 +24,7 @@ export default Container.connect(
     onChangeDisplayUnit: () => {
       dispatch(
         RouteTreeGen.createNavigateAppend({
-          path: [
-            {
-              props: {},
-              selected: Constants.chooseAssetFormRouteKey,
-            },
-          ],
+          path: [Constants.chooseAssetFormRouteKey],
         })
       )
     },
