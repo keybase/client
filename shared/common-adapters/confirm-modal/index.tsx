@@ -1,13 +1,13 @@
 import * as React from 'react'
-import WaitingButton from '../waiting-button'
-import {Box2} from '../box'
-import ButtonBar from '../button-bar'
-import {Banner, BannerParagraph} from '../banner'
-import Icon from '../icon'
-import Text from '../text'
-import Modal from '../modal'
 import * as Styles from '../../styles'
-import {IconType} from '../icon.constants-gen'
+import ButtonBar from '../button-bar'
+import Icon from '../icon'
+import Modal from '../modal'
+import Text from '../text'
+import WaitingButton from '../waiting-button'
+import type {IconType} from '../icon.constants-gen'
+import {Banner, BannerParagraph} from '../banner'
+import {Box2} from '../box'
 
 // generally one of icon or header will be given
 export type Props = {
@@ -118,12 +118,8 @@ const ConfirmModal = (props: Props) => (
 )
 
 const styles = Styles.styleSheetCreate(() => ({
-  button: {
-    flex: 1,
-  },
-  buttonBar: {
-    minHeight: undefined,
-  },
+  button: {flex: 1},
+  buttonBar: {minHeight: undefined},
   container: Styles.platformStyles({
     isElectron: {
       ...Styles.padding(0, Styles.globalMargins.xlarge),

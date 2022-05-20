@@ -55,20 +55,39 @@ export const newRoutes = {
   resetEnterPassword: {getScreen: (): typeof EnterPassword => require('./reset/password').EnterPassword},
   resetKnowPassword: {getScreen: (): typeof KnowPassword => require('./reset/password').KnowPassword},
   resetWaiting: {getScreen: (): typeof Waiting => require('./reset/waiting').default},
-  ...require('../provision/routes').newRoutes,
-  ...require('./recover-password/routes').newRoutes,
-  ...require('./signup/routes').newRoutes,
+  ...require('../provision/routes-sub').newRoutes,
+  ...require('./recover-password/routes-sub').newRoutes,
 }
 export const newModalRoutes = {
   proxySettingsModal: {
     getScreen: (): typeof ProxySettingsPopup => require('../settings/proxy/container').default,
   },
-  ...require('./recover-password/routes').newModalRoutes,
+  ...require('./recover-password/routes-sub').newModalRoutes,
 }
 
 export type RootParamListLogin = {
-  resetWaiting: {
-    pipelineStarted: boolean
-  }
+  codePage: undefined
+  error: undefined
   feedback: undefined
+  forgotUsername: undefined
+  gpgSign: undefined
+  login: undefined
+  paperkey: undefined
+  password: undefined
+  proxySettingsModal: undefined
+  recoverPasswordDeviceSelector: undefined
+  recoverPasswordError: undefined
+  recoverPasswordErrorModal: undefined
+  recoverPasswordExplainDevice: undefined
+  recoverPasswordPaperKey: undefined
+  recoverPasswordPromptResetAccount: undefined
+  recoverPasswordPromptResetPassword: undefined
+  recoverPasswordSetPassword: undefined
+  resetConfirm: undefined
+  resetEnterPassword: undefined
+  resetKnowPassword: undefined
+  resetWaiting: {pipelineStarted: boolean}
+  selectOtherDevice: undefined
+  setPublicName: undefined
+  username: {fromReset: boolean}
 }

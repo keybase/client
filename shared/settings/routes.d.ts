@@ -40,4 +40,19 @@ export type RootParamListSettings = {
   'settingsTabs.walletsTab': undefined
   'settingsTabs.contactsTab': undefined
   'settingsTabs.whatsNewTab': undefined
+  deleteConfirm: undefined
+  disableCertPinningModal: undefined
+  modalFeedback: undefined
+  settingsAddEmail: undefined
+  settingsAddPhone: undefined
+  settingsVerifyPhone: undefined
+  settingsRoot: undefined
+  terms: undefined
+  checkPassphraseBeforeDeleteAccount: undefined
+  settingsContactsJoined: undefined
+  settingsPushPrompt: undefined
+  addEmail: undefined
+  addPhone: undefined
+  dbNukeConfirm: undefined
+  removeDevice: undefined
 }
