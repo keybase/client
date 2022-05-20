@@ -432,6 +432,11 @@ body {
 .emoji-mart-search input {
   border-radius: 4px;
 }
+
+.center-emojis .emoji-mart-emoji > span {
+    vertical-align: middle;
+}
+
 .darkMode .emoji-mart {
   color: rgba(255, 255, 255, 0.85);
   border: 1px solid rgba(0, 0, 0, 0.85);
