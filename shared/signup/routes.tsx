@@ -39,4 +39,8 @@ export type RootParamListSignup = {
   signupSendFeedbackLoggedIn: undefined
   signupSendFeedbackLoggedOut: undefined
   signupVerifyPhoneNumber: undefined
+  signupError: undefined
+  signupInviteCode: undefined
+  signupRequestInvite: undefined
+  signupRequestInviteSuccess: undefined
 }

@@ -27,4 +27,6 @@ type TeamBuilderProps = Partial<{
 
 export type RootParamListPeople = {
   peopleTeamBuilder: TeamBuilderProps
+  accountSwitcher: undefined
+  peopleRoot: undefined
 }

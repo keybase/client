@@ -47,7 +47,10 @@ export type RootParamListSettings = {
   settingsAddPhone: undefined
   settingsVerifyPhone: undefined
   settingsRoot: undefined
-  terms: undefined
+  terms: {
+    url: string
+    title: string
+  }
   checkPassphraseBeforeDeleteAccount: undefined
   settingsContactsJoined: undefined
   settingsPushPrompt: undefined

@@ -29,7 +29,20 @@ export type RootParamList = DeepPartial<
     RootParamListCrypto &
     RootParamListDevices &
     RootParamListSettings &
-    RootParamListGit
+    RootParamListGit & {
+      'tabs.chatTab': undefined
+      'tabs.cryptoTab': undefined
+      'tabs.devicesTab': undefined
+      'tabs.folderTab': undefined
+      'tabs.loginTab': undefined
+      'tabs.peopleTab': undefined
+      'tabs.searchTab': undefined
+      'tabs.settingsTab': undefined
+      'tabs.teamsTab': undefined
+      'tabs.gitTab': undefined
+      'tabs.fsTab': undefined
+      'tabs.walletsTab': undefined
+    }
 >
 
 type RouteKeys = keyof RootParamList
