@@ -83,13 +83,12 @@ type TeamBuilderProps = Partial<{
 
 // TODO fix up the missing prefix on these routes
 export type RootParamListWallets = {
+  whatIsStellarModal: undefined
   walletTeamBuilder: TeamBuilderProps
   keybaseLinkError: {
     errorSource: 'app' | 'sep6' | 'sep7'
   }
-  setDefaultAccount: {
-    accountID: Types.AccountID
-  }
+  setDefaultAccount: {accountID: Types.AccountID}
   walletOnboarding: {
     nextScreen: Types.NextScreenAfterAcceptance
   }
@@ -97,9 +96,7 @@ export type RootParamListWallets = {
     accountID: Types.AccountID
     paymentID: Types.PaymentID
   }
-  sendReceiveForm: {
-    isAdvanced: boolean
-  }
+  sendReceiveForm: {isAdvanced: boolean}
   pickAssetForm: {
     // ignored if username is set or isSender===true
     accountID: string
@@ -107,27 +104,18 @@ export type RootParamListWallets = {
     username: string
     isSender: boolean
   }
-  removeAccount: {
-    accountID: Types.AccountID
-  }
+  removeAccount: {accountID: Types.AccountID}
   createNewAccount: {
     fromSendForm?: boolean
     showOnCreation?: boolean
   }
-  trustline: {
-    accountID: Types.AccountID
-  }
-  receive: {
-    accountID: Types.AccountID
-  }
+  trustline: {accountID: Types.AccountID}
+  receive: {accountID: Types.AccountID}
   linkExisting: {
     fromSendForm?: boolean
     showOnCreation?: boolean
   }
-  reallyRemoveAccount: {
-    accountID: Types.AccountID
-  }
-  renameAccount: {
-    accountID: Types.AccountID
-  }
+  reallyRemoveAccount: {accountID: Types.AccountID}
+  renameAccount: {accountID: Types.AccountID}
+  settings: undefined
 }

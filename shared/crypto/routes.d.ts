@@ -12,4 +12,8 @@ type TeamBuilderProps = Partial<{
 }>
 export type RootParamListCrypto = {
   cryptoTeamBuilder: TeamBuilderProps
+  encryptTab: undefined
+  decryptTab: undefined
+  signTab: undefined
+  verifyTab: undefined
 }
