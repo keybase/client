@@ -6,30 +6,17 @@ export const typePrefix = 'dev:'
 export const debugCount = 'dev:debugCount'
 export const updateDebugConfig = 'dev:updateDebugConfig'
 
-// Payload Types
-type _DebugCountPayload = undefined
-type _UpdateDebugConfigPayload = {
+// Action Creators
+export const createDebugCount = (payload?: undefined) => ({payload, type: debugCount as typeof debugCount})
+export const createUpdateDebugConfig = (payload: {
   readonly dumbFilter: string
   readonly dumbFullscreen: boolean
   readonly dumbIndex: number
-}
-
-// Action Creators
-export const createDebugCount = (payload?: _DebugCountPayload): DebugCountPayload => ({
-  payload,
-  type: debugCount,
-})
-export const createUpdateDebugConfig = (payload: _UpdateDebugConfigPayload): UpdateDebugConfigPayload => ({
-  payload,
-  type: updateDebugConfig,
-})
+}) => ({payload, type: updateDebugConfig as typeof updateDebugConfig})
 
 // Action Payloads
-export type DebugCountPayload = {readonly payload: _DebugCountPayload; readonly type: typeof debugCount}
-export type UpdateDebugConfigPayload = {
-  readonly payload: _UpdateDebugConfigPayload
-  readonly type: typeof updateDebugConfig
-}
+export type DebugCountPayload = ReturnType<typeof createDebugCount>
+export type UpdateDebugConfigPayload = ReturnType<typeof createUpdateDebugConfig>
 
 // All Actions
 // prettier-ignore

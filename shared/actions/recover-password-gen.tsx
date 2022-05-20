@@ -24,159 +24,95 @@ export const submitPassword = 'recover-password:submitPassword'
 export const submitResetPassword = 'recover-password:submitResetPassword'
 export const submitResetPrompt = 'recover-password:submitResetPrompt'
 
-// Payload Types
-type _AbortDeviceSelectPayload = undefined
-type _AbortPaperKeyPayload = undefined
-type _CompleteResetPasswordPayload = undefined
-type _DisplayDeviceSelectPayload = {readonly devices: Array<Types.Device>; readonly replaceRoute?: boolean}
-type _DisplayErrorPayload = {readonly error: HiddenString}
-type _PromptResetPasswordPayload = undefined
-type _ResetResetPasswordStatePayload = undefined
-type _RestartRecoveryPayload = undefined
-type _SetPaperKeyErrorPayload = {readonly error: HiddenString}
-type _SetPasswordErrorPayload = {readonly error: HiddenString}
-type _ShowExplainDevicePayload = {readonly type: RPCTypes.DeviceType; readonly name: string}
-type _StartRecoverPasswordPayload = {
+// Action Creators
+export const createAbortDeviceSelect = (payload?: undefined) => ({
+  payload,
+  type: abortDeviceSelect as typeof abortDeviceSelect,
+})
+export const createAbortPaperKey = (payload?: undefined) => ({
+  payload,
+  type: abortPaperKey as typeof abortPaperKey,
+})
+export const createCompleteResetPassword = (payload?: undefined) => ({
+  payload,
+  type: completeResetPassword as typeof completeResetPassword,
+})
+export const createDisplayDeviceSelect = (payload: {
+  readonly devices: Array<Types.Device>
+  readonly replaceRoute?: boolean
+}) => ({payload, type: displayDeviceSelect as typeof displayDeviceSelect})
+export const createDisplayError = (payload: {readonly error: HiddenString}) => ({
+  payload,
+  type: displayError as typeof displayError,
+})
+export const createPromptResetPassword = (payload?: undefined) => ({
+  payload,
+  type: promptResetPassword as typeof promptResetPassword,
+})
+export const createResetResetPasswordState = (payload?: undefined) => ({
+  payload,
+  type: resetResetPasswordState as typeof resetResetPasswordState,
+})
+export const createRestartRecovery = (payload?: undefined) => ({
+  payload,
+  type: restartRecovery as typeof restartRecovery,
+})
+export const createSetPaperKeyError = (payload: {readonly error: HiddenString}) => ({
+  payload,
+  type: setPaperKeyError as typeof setPaperKeyError,
+})
+export const createSetPasswordError = (payload: {readonly error: HiddenString}) => ({
+  payload,
+  type: setPasswordError as typeof setPasswordError,
+})
+export const createShowExplainDevice = (payload: {
+  readonly type: RPCTypes.DeviceType
+  readonly name: string
+}) => ({payload, type: showExplainDevice as typeof showExplainDevice})
+export const createStartRecoverPassword = (payload: {
   readonly username: string
   readonly abortProvisioning?: boolean
   readonly replaceRoute?: boolean
-}
-type _SubmitDeviceSelectPayload = {readonly id: string}
-type _SubmitPaperKeyPayload = {readonly paperKey: HiddenString}
-type _SubmitPasswordPayload = {readonly password: HiddenString}
-type _SubmitResetPasswordPayload = {readonly action: RPCTypes.ResetPromptResponse}
-type _SubmitResetPromptPayload = {readonly action: RPCTypes.ResetPromptResponse}
-
-// Action Creators
-export const createAbortDeviceSelect = (payload?: _AbortDeviceSelectPayload): AbortDeviceSelectPayload => ({
+}) => ({payload, type: startRecoverPassword as typeof startRecoverPassword})
+export const createSubmitDeviceSelect = (payload: {readonly id: string}) => ({
   payload,
-  type: abortDeviceSelect,
+  type: submitDeviceSelect as typeof submitDeviceSelect,
 })
-export const createAbortPaperKey = (payload?: _AbortPaperKeyPayload): AbortPaperKeyPayload => ({
+export const createSubmitPaperKey = (payload: {readonly paperKey: HiddenString}) => ({
   payload,
-  type: abortPaperKey,
+  type: submitPaperKey as typeof submitPaperKey,
 })
-export const createCompleteResetPassword = (
-  payload?: _CompleteResetPasswordPayload
-): CompleteResetPasswordPayload => ({payload, type: completeResetPassword})
-export const createDisplayDeviceSelect = (
-  payload: _DisplayDeviceSelectPayload
-): DisplayDeviceSelectPayload => ({payload, type: displayDeviceSelect})
-export const createDisplayError = (payload: _DisplayErrorPayload): DisplayErrorPayload => ({
+export const createSubmitPassword = (payload: {readonly password: HiddenString}) => ({
   payload,
-  type: displayError,
+  type: submitPassword as typeof submitPassword,
 })
-export const createPromptResetPassword = (
-  payload?: _PromptResetPasswordPayload
-): PromptResetPasswordPayload => ({payload, type: promptResetPassword})
-export const createResetResetPasswordState = (
-  payload?: _ResetResetPasswordStatePayload
-): ResetResetPasswordStatePayload => ({payload, type: resetResetPasswordState})
-export const createRestartRecovery = (payload?: _RestartRecoveryPayload): RestartRecoveryPayload => ({
+export const createSubmitResetPassword = (payload: {readonly action: RPCTypes.ResetPromptResponse}) => ({
   payload,
-  type: restartRecovery,
+  type: submitResetPassword as typeof submitResetPassword,
 })
-export const createSetPaperKeyError = (payload: _SetPaperKeyErrorPayload): SetPaperKeyErrorPayload => ({
+export const createSubmitResetPrompt = (payload: {readonly action: RPCTypes.ResetPromptResponse}) => ({
   payload,
-  type: setPaperKeyError,
-})
-export const createSetPasswordError = (payload: _SetPasswordErrorPayload): SetPasswordErrorPayload => ({
-  payload,
-  type: setPasswordError,
-})
-export const createShowExplainDevice = (payload: _ShowExplainDevicePayload): ShowExplainDevicePayload => ({
-  payload,
-  type: showExplainDevice,
-})
-export const createStartRecoverPassword = (
-  payload: _StartRecoverPasswordPayload
-): StartRecoverPasswordPayload => ({payload, type: startRecoverPassword})
-export const createSubmitDeviceSelect = (payload: _SubmitDeviceSelectPayload): SubmitDeviceSelectPayload => ({
-  payload,
-  type: submitDeviceSelect,
-})
-export const createSubmitPaperKey = (payload: _SubmitPaperKeyPayload): SubmitPaperKeyPayload => ({
-  payload,
-  type: submitPaperKey,
-})
-export const createSubmitPassword = (payload: _SubmitPasswordPayload): SubmitPasswordPayload => ({
-  payload,
-  type: submitPassword,
-})
-export const createSubmitResetPassword = (
-  payload: _SubmitResetPasswordPayload
-): SubmitResetPasswordPayload => ({payload, type: submitResetPassword})
-export const createSubmitResetPrompt = (payload: _SubmitResetPromptPayload): SubmitResetPromptPayload => ({
-  payload,
-  type: submitResetPrompt,
+  type: submitResetPrompt as typeof submitResetPrompt,
 })
 
 // Action Payloads
-export type AbortDeviceSelectPayload = {
-  readonly payload: _AbortDeviceSelectPayload
-  readonly type: typeof abortDeviceSelect
-}
-export type AbortPaperKeyPayload = {
-  readonly payload: _AbortPaperKeyPayload
-  readonly type: typeof abortPaperKey
-}
-export type CompleteResetPasswordPayload = {
-  readonly payload: _CompleteResetPasswordPayload
-  readonly type: typeof completeResetPassword
-}
-export type DisplayDeviceSelectPayload = {
-  readonly payload: _DisplayDeviceSelectPayload
-  readonly type: typeof displayDeviceSelect
-}
-export type DisplayErrorPayload = {readonly payload: _DisplayErrorPayload; readonly type: typeof displayError}
-export type PromptResetPasswordPayload = {
-  readonly payload: _PromptResetPasswordPayload
-  readonly type: typeof promptResetPassword
-}
-export type ResetResetPasswordStatePayload = {
-  readonly payload: _ResetResetPasswordStatePayload
-  readonly type: typeof resetResetPasswordState
-}
-export type RestartRecoveryPayload = {
-  readonly payload: _RestartRecoveryPayload
-  readonly type: typeof restartRecovery
-}
-export type SetPaperKeyErrorPayload = {
-  readonly payload: _SetPaperKeyErrorPayload
-  readonly type: typeof setPaperKeyError
-}
-export type SetPasswordErrorPayload = {
-  readonly payload: _SetPasswordErrorPayload
-  readonly type: typeof setPasswordError
-}
-export type ShowExplainDevicePayload = {
-  readonly payload: _ShowExplainDevicePayload
-  readonly type: typeof showExplainDevice
-}
-export type StartRecoverPasswordPayload = {
-  readonly payload: _StartRecoverPasswordPayload
-  readonly type: typeof startRecoverPassword
-}
-export type SubmitDeviceSelectPayload = {
-  readonly payload: _SubmitDeviceSelectPayload
-  readonly type: typeof submitDeviceSelect
-}
-export type SubmitPaperKeyPayload = {
-  readonly payload: _SubmitPaperKeyPayload
-  readonly type: typeof submitPaperKey
-}
-export type SubmitPasswordPayload = {
-  readonly payload: _SubmitPasswordPayload
-  readonly type: typeof submitPassword
-}
-export type SubmitResetPasswordPayload = {
-  readonly payload: _SubmitResetPasswordPayload
-  readonly type: typeof submitResetPassword
-}
-export type SubmitResetPromptPayload = {
-  readonly payload: _SubmitResetPromptPayload
-  readonly type: typeof submitResetPrompt
-}
+export type AbortDeviceSelectPayload = ReturnType<typeof createAbortDeviceSelect>
+export type AbortPaperKeyPayload = ReturnType<typeof createAbortPaperKey>
+export type CompleteResetPasswordPayload = ReturnType<typeof createCompleteResetPassword>
+export type DisplayDeviceSelectPayload = ReturnType<typeof createDisplayDeviceSelect>
+export type DisplayErrorPayload = ReturnType<typeof createDisplayError>
+export type PromptResetPasswordPayload = ReturnType<typeof createPromptResetPassword>
+export type ResetResetPasswordStatePayload = ReturnType<typeof createResetResetPasswordState>
+export type RestartRecoveryPayload = ReturnType<typeof createRestartRecovery>
+export type SetPaperKeyErrorPayload = ReturnType<typeof createSetPaperKeyError>
+export type SetPasswordErrorPayload = ReturnType<typeof createSetPasswordError>
+export type ShowExplainDevicePayload = ReturnType<typeof createShowExplainDevice>
+export type StartRecoverPasswordPayload = ReturnType<typeof createStartRecoverPassword>
+export type SubmitDeviceSelectPayload = ReturnType<typeof createSubmitDeviceSelect>
+export type SubmitPaperKeyPayload = ReturnType<typeof createSubmitPaperKey>
+export type SubmitPasswordPayload = ReturnType<typeof createSubmitPassword>
+export type SubmitResetPasswordPayload = ReturnType<typeof createSubmitResetPassword>
+export type SubmitResetPromptPayload = ReturnType<typeof createSubmitResetPrompt>
 
 // All Actions
 // prettier-ignore

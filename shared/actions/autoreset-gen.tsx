@@ -18,111 +18,77 @@ export const startAccountReset = 'autoreset:startAccountReset'
 export const submittedReset = 'autoreset:submittedReset'
 export const updateAutoresetState = 'autoreset:updateAutoresetState'
 
-// Payload Types
-type _CancelResetPayload = undefined
-type _DisplayProgressPayload = {readonly endTime: number; readonly needVerify: boolean}
-type _FinishedResetPayload = undefined
-type _ResetAccountPayload = {readonly password?: HiddenString}
-type _ResetCancelledPayload = undefined
-type _ResetErrorPayload = {readonly error: RPCError}
-type _SetUsernamePayload = {readonly username: string}
-type _ShowFinalResetScreenPayload = {readonly hasWallet: boolean}
-type _StartAccountResetPayload = {readonly skipPassword: boolean; readonly username?: string}
-type _SubmittedResetPayload = {readonly checkEmail: boolean}
-type _UpdateAutoresetStatePayload = {readonly active: boolean; readonly endTime: number}
-
 // Action Creators
 /**
  * Cancel an autoreset for the currently logged-in account. Don't use with a temporary (web) session
  */
-export const createCancelReset = (payload?: _CancelResetPayload): CancelResetPayload => ({
-  payload,
-  type: cancelReset,
-})
+export const createCancelReset = (payload?: undefined) => ({payload, type: cancelReset as typeof cancelReset})
 /**
  * Cancelled an account reset.
  */
-export const createResetCancelled = (payload?: _ResetCancelledPayload): ResetCancelledPayload => ({
+export const createResetCancelled = (payload?: undefined) => ({
   payload,
-  type: resetCancelled,
+  type: resetCancelled as typeof resetCancelled,
 })
 /**
  * Show the screen where the user chooses whether to actually reset their account or cancel out
  */
-export const createShowFinalResetScreen = (
-  payload: _ShowFinalResetScreenPayload
-): ShowFinalResetScreenPayload => ({payload, type: showFinalResetScreen})
+export const createShowFinalResetScreen = (payload: {readonly hasWallet: boolean}) => ({
+  payload,
+  type: showFinalResetScreen as typeof showFinalResetScreen,
+})
 /**
  * Start the account reset process in the GUI.
  */
-export const createStartAccountReset = (payload: _StartAccountResetPayload): StartAccountResetPayload => ({
-  payload,
-  type: startAccountReset,
-})
+export const createStartAccountReset = (payload: {
+  readonly skipPassword: boolean
+  readonly username?: string
+}) => ({payload, type: startAccountReset as typeof startAccountReset})
 /**
  * Tell the server to put an account into the reset pipeline.
  * If no password is provided, the user will need to click a confirmation link in an email or text.
  */
-export const createResetAccount = (
-  payload: _ResetAccountPayload = Object.freeze({})
-): ResetAccountPayload => ({payload, type: resetAccount})
-export const createDisplayProgress = (payload: _DisplayProgressPayload): DisplayProgressPayload => ({
+export const createResetAccount = (payload: {readonly password?: HiddenString} = {}) => ({
   payload,
-  type: displayProgress,
+  type: resetAccount as typeof resetAccount,
 })
-export const createFinishedReset = (payload?: _FinishedResetPayload): FinishedResetPayload => ({
+export const createDisplayProgress = (payload: {readonly endTime: number; readonly needVerify: boolean}) => ({
   payload,
-  type: finishedReset,
+  type: displayProgress as typeof displayProgress,
 })
-export const createResetError = (payload: _ResetErrorPayload): ResetErrorPayload => ({
+export const createFinishedReset = (payload?: undefined) => ({
   payload,
-  type: resetError,
+  type: finishedReset as typeof finishedReset,
 })
-export const createSetUsername = (payload: _SetUsernamePayload): SetUsernamePayload => ({
+export const createResetError = (payload: {readonly error: RPCError}) => ({
   payload,
-  type: setUsername,
+  type: resetError as typeof resetError,
 })
-export const createSubmittedReset = (payload: _SubmittedResetPayload): SubmittedResetPayload => ({
+export const createSetUsername = (payload: {readonly username: string}) => ({
   payload,
-  type: submittedReset,
+  type: setUsername as typeof setUsername,
 })
-export const createUpdateAutoresetState = (
-  payload: _UpdateAutoresetStatePayload
-): UpdateAutoresetStatePayload => ({payload, type: updateAutoresetState})
+export const createSubmittedReset = (payload: {readonly checkEmail: boolean}) => ({
+  payload,
+  type: submittedReset as typeof submittedReset,
+})
+export const createUpdateAutoresetState = (payload: {
+  readonly active: boolean
+  readonly endTime: number
+}) => ({payload, type: updateAutoresetState as typeof updateAutoresetState})
 
 // Action Payloads
-export type CancelResetPayload = {readonly payload: _CancelResetPayload; readonly type: typeof cancelReset}
-export type DisplayProgressPayload = {
-  readonly payload: _DisplayProgressPayload
-  readonly type: typeof displayProgress
-}
-export type FinishedResetPayload = {
-  readonly payload: _FinishedResetPayload
-  readonly type: typeof finishedReset
-}
-export type ResetAccountPayload = {readonly payload: _ResetAccountPayload; readonly type: typeof resetAccount}
-export type ResetCancelledPayload = {
-  readonly payload: _ResetCancelledPayload
-  readonly type: typeof resetCancelled
-}
-export type ResetErrorPayload = {readonly payload: _ResetErrorPayload; readonly type: typeof resetError}
-export type SetUsernamePayload = {readonly payload: _SetUsernamePayload; readonly type: typeof setUsername}
-export type ShowFinalResetScreenPayload = {
-  readonly payload: _ShowFinalResetScreenPayload
-  readonly type: typeof showFinalResetScreen
-}
-export type StartAccountResetPayload = {
-  readonly payload: _StartAccountResetPayload
-  readonly type: typeof startAccountReset
-}
-export type SubmittedResetPayload = {
-  readonly payload: _SubmittedResetPayload
-  readonly type: typeof submittedReset
-}
-export type UpdateAutoresetStatePayload = {
-  readonly payload: _UpdateAutoresetStatePayload
-  readonly type: typeof updateAutoresetState
-}
+export type CancelResetPayload = ReturnType<typeof createCancelReset>
+export type DisplayProgressPayload = ReturnType<typeof createDisplayProgress>
+export type FinishedResetPayload = ReturnType<typeof createFinishedReset>
+export type ResetAccountPayload = ReturnType<typeof createResetAccount>
+export type ResetCancelledPayload = ReturnType<typeof createResetCancelled>
+export type ResetErrorPayload = ReturnType<typeof createResetError>
+export type SetUsernamePayload = ReturnType<typeof createSetUsername>
+export type ShowFinalResetScreenPayload = ReturnType<typeof createShowFinalResetScreen>
+export type StartAccountResetPayload = ReturnType<typeof createStartAccountReset>
+export type SubmittedResetPayload = ReturnType<typeof createSubmittedReset>
+export type UpdateAutoresetStatePayload = ReturnType<typeof createUpdateAutoresetState>
 
 // All Actions
 // prettier-ignore

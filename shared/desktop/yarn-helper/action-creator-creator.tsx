@@ -46,9 +46,6 @@ export const resetStore = 'common:resetStore' // not a part of ${ns} but is hand
 export const typePrefix = '${ns}:'
 ${compileActions(ns, actions, compileReduxTypeConstant)}
 
-// Payload Types
-${compileActions(ns, actions, compilePayloadTypes)}
-
 // Action Creators
 ${compileActions(ns, actions, compileActionCreator)}
 
@@ -111,31 +108,24 @@ function printPayload(p: ActionDesc) {
 }
 
 function compileActionPayloads(_: ActionNS, actionName: ActionName) {
-  return `export type ${capitalize(actionName)}Payload = {readonly payload: _${capitalize(
-    actionName
-  )}Payload, readonly type: typeof ${actionName}}`
-}
-
-function compilePayloadTypes(_: ActionNS, actionName: ActionName, desc: ActionDesc) {
-  return `type _${capitalize(actionName)}Payload = ${printPayload(desc)}`
+  return `export type ${capitalize(actionName)}Payload = ReturnType<typeof create${capitalize(actionName)}>`
 }
 
 function compileActionCreator(_: ActionNS, actionName: ActionName, desc: ActionDesc) {
-  return (
-    (desc._description
-      ? `/**
+  const hasPayload = !!payloadKeys(desc).length
+  const assignPayload = payloadOptional(desc)
+  const comment = desc._description
+    ? `/**
      * ${Array.isArray(desc._description) ? desc._description.join('\n* ') : desc._description}
      */
     `
-      : '') +
-    `export const create${capitalize(actionName)} = (payload${
-      payloadKeys(desc).length ? '' : '?'
-    }: _${capitalize(actionName)}Payload${payloadOptional(desc) ? ' = Object.freeze({})' : ''}): ${capitalize(
-      actionName
-    )}Payload => (
-  { payload, type: ${actionName}, }
+    : ''
+  const payload = hasPayload
+    ? `payload: ${printPayload(desc)}${assignPayload ? ' = {}' : ''}`
+    : 'payload?: undefined'
+  return `${comment}export const create${capitalize(actionName)} = (${payload}) => (
+  {payload, type: ${actionName} as typeof ${actionName}}
 )`
-  )
 }
 
 function compileReduxTypeConstant(ns: ActionNS, actionName: ActionName, _: ActionDesc) {
