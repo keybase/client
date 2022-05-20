@@ -216,4 +216,7 @@ export type RootParamListChat = {
     conversationIDKey?: Types.ConversationIDKey
     tab?: 'settings' | 'members' | 'attachments' | 'bots'
   }
+  chatEnterPaperkey: undefined
+  chatRoot: undefined
+  chatPaymentsConfirm: undefined
 }
