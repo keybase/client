@@ -57,11 +57,16 @@ const ButtonBox = Styles.styled(ClickableBox, {
 const markdownOverride = {
   customEmoji: {
     height: Styles.isMobile ? 26 : 18,
+    marginTop: Styles.isMobile ? 0 : 4,
     width: Styles.isMobile ? 20 : 18,
-    marginTop: Styles.isMobile ? 0 : 1,
   },
-  emoji: {height: 20},
-  paragraph: {height: Styles.isMobile ? 20 : 17},
+  emoji: {
+    height: Styles.isMobile ? 20 : 21,
+  },
+  paragraph: {
+    height: Styles.isMobile ? 20 : 18,
+    ...(Styles.isMobile ? {} : {display: 'flex', fontSize: 14}),
+  },
 }
 const ReactButtonInner = (props: Props, ref) => {
   const text = props.decorated.length ? props.decorated : props.emoji
@@ -84,7 +89,7 @@ const ReactButtonInner = (props: Props, ref) => {
     >
       <Box2 centerChildren={true} fullHeight={true} direction="horizontal" style={styles.container}>
         <Box2 direction="horizontal" style={styles.containerInner} gap="xtiny">
-          <Box2 direction="vertical">
+          <Box2 direction="vertical" className="center-emojis">
             <Markdown
               styleOverride={markdownOverride as any}
               lineClamp={1}
@@ -258,9 +263,9 @@ const styles = Styles.styleSheetCreate(
       },
       container: {
         height: 20,
+        minWidth: 40,
         paddingLeft: 6,
         paddingRight: 6,
-        width: 40,
       },
       containerInner: {
         alignItems: 'center',
@@ -269,7 +274,6 @@ const styles = Styles.styleSheetCreate(
       count: {
         color: Styles.globalColors.black_50,
         position: 'relative',
-        top: 1,
       },
       countActive: {color: Styles.globalColors.blueDark},
       emoji: {height: 25},
