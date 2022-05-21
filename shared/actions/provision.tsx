@@ -15,7 +15,9 @@ import type {RPCError} from '../util/errors'
 import type * as Container from '../constants/reducer'
 import {devicesTab as settingsDevicesTab} from '../constants/settings'
 
-const devicesRoot = isMobile ? [Tabs.settingsTab, settingsDevicesTab] : [Tabs.devicesTab, 'devicesRoot']
+const devicesRoot = isMobile
+  ? ([Tabs.settingsTab, settingsDevicesTab] as const)
+  : ([Tabs.devicesTab, 'devicesRoot'] as const)
 
 type ValidCallback =
   | 'keybase.1.gpgUi.selectKey'

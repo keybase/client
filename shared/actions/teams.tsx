@@ -81,7 +81,7 @@ const promptInviteLinkJoin =
       if (!deeplink) {
         yield Saga.put(
           RouteTreeGen.createNavigateAppend({
-            path: [{props: params, selected: 'teamInviteLinkJoin'}],
+            path: ['teamInviteLinkJoin'],
             replace: true,
           })
         )
@@ -94,15 +94,15 @@ function* joinTeam(_: TypedState, action: TeamsGen.JoinTeamPayload) {
   const {teamname, deeplink} = action.payload
 
   /*
-    In the deeplink flow, a modal is displayed which runs `joinTeam` (or an
-    alternative flow, but we're not concerned with that here). In that case,
-    we can fully manage the UX from inside of this handler.
-
-    In the "Join team" flow, user pastes their link into the input box, which
-    then calls `joinTeam` on its own. Since we need to switch to another modal,
-    we simply plumb `deeplink` into the `promptInviteLinkJoin` handler and
-    do the nav in the modal.
-  */
+      In the deeplink flow, a modal is displayed which runs `joinTeam` (or an
+      alternative flow, but we're not concerned with that here). In that case,
+      we can fully manage the UX from inside of this handler.
+  
+      In the "Join team" flow, user pastes their link into the input box, which
+      then calls `joinTeam` on its own. Since we need to switch to another modal,
+      we simply plumb `deeplink` into the `promptInviteLinkJoin` handler and
+      do the nav in the modal.
+    */
 
   yield Saga.all([
     Saga.put(TeamsGen.createSetTeamJoinError({error: ''})),

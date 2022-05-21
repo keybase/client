@@ -75,6 +75,7 @@ export const newModalRoutes = {
 
 type TeamBuilderProps = Partial<{
   namespace: TeamBuildingTypes.AllowedNamespace
+  recommendedHideYourself?: boolean
   teamID: string
   filterServices: Array<TeamBuildingTypes.ServiceIdWithContact>
   goButtonLabel: TeamBuildingTypes.GoButtonLabel

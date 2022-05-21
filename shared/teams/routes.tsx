@@ -179,6 +179,7 @@ export const newModalRoutes = {
 type TeamBuilderProps = Partial<{
   namespace: TeamBuildingTypes.AllowedNamespace
   teamID: string
+  recommendedHideYourself?: boolean
   filterServices: Array<TeamBuildingTypes.ServiceIdWithContact>
   goButtonLabel: TeamBuildingTypes.GoButtonLabel
   title: string
@@ -277,4 +278,10 @@ export type RootParamListTeams = {
   teamAddToTeamEmail: undefined
   teamAddToTeamPhone: undefined
   teamInviteLinkJoin: undefined
+  teamWizard1TeamPurpose: undefined
+  teamWizard2TeamInfo: undefined
+  teamWizard4TeamSize: undefined
+  teamWizard5Channels: undefined
+  teamWizard6Subteams: undefined
+  teamWizardSubteamMembers: undefined
 }

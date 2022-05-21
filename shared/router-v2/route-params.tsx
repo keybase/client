@@ -11,6 +11,7 @@ import type {RootParamListCrypto} from '../crypto/routes'
 import type {RootParamListLogin} from '../login/routes'
 import type {RootParamListSettings} from '../settings/routes'
 import type {RootParamListSignup} from '../signup/routes'
+import type {RootParamListIncomingShare} from '../incoming-share/routes'
 
 // TODO partial could go away when we enforce these params are pushed correctly
 type DeepPartial<Type> = {
@@ -18,7 +19,8 @@ type DeepPartial<Type> = {
 }
 
 export type RootParamList = DeepPartial<
-  RootParamListSignup &
+  RootParamListIncomingShare &
+    RootParamListSignup &
     RootParamListLogin &
     RootParamListWallets &
     RootParamListChat &
@@ -47,7 +49,7 @@ export type RootParamList = DeepPartial<
 
 type RouteKeys = keyof RootParamList
 type Distribute<U> = U extends RouteKeys ? {selected: U; props: RootParamList[U]} : never
-export type NavigateAppendType = Array<RouteKeys | Distribute<RouteKeys>>
+export type NavigateAppendType = ReadonlyArray<RouteKeys | Distribute<RouteKeys>>
 
 export type RootRouteProps<RouteName extends keyof RootParamList> = RouteProp<RootParamList, RouteName>
 

@@ -18,6 +18,7 @@ export const newModalRoutes = {
 }
 
 type TeamBuilderProps = Partial<{
+  recommendedHideYourself?: boolean
   namespace: TeamBuildingTypes.AllowedNamespace
   teamID: string
   filterServices: Array<TeamBuildingTypes.ServiceIdWithContact>

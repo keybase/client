@@ -117,6 +117,7 @@ export const newModalRoutes = {
 
 type TeamBuilderProps = Partial<{
   namespace: TeamBuildingTypes.AllowedNamespace
+  recommendedHideYourself?: boolean
   teamID: string
   filterServices: Array<TeamBuildingTypes.ServiceIdWithContact>
   goButtonLabel: TeamBuildingTypes.GoButtonLabel
@@ -217,6 +218,5 @@ export type RootParamListChat = {
     tab?: 'settings' | 'members' | 'attachments' | 'bots'
   }
   chatEnterPaperkey: undefined
-  chatConversation: {conversationIDKey?: Types.ConversationIDKey}
   chatPaymentsConfirm: undefined
 }

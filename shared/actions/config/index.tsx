@@ -310,7 +310,7 @@ const startLogoutHandshakeIfAllowed = async (state: Container.TypedState) => {
     } else {
       return [
         RouteTreeGen.createNavigateAppend({path: [Tabs.settingsTab]}),
-        RouteTreeGen.createNavigateAppend({path: ['changePassword']}),
+        RouteTreeGen.createNavigateAppend({path: [SettingsConstants.passwordTab]}),
       ]
     }
   }
