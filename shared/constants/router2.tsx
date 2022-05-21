@@ -85,9 +85,7 @@ const oldActionToNewActions = (action: RTGActions, navigationState: any, allowAp
       if (!navigationState) {
         return
       }
-      const p = action.payload.path.last
-        ? action.payload.path.last()
-        : action.payload.path[action.payload.path.length - 1]
+      const p = action.payload.path[action.payload.path.length - 1]
       if (!p) {
         return
       }
