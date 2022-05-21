@@ -126,7 +126,8 @@ type TeamBuilderProps = Partial<{
 
 export type RootParamListChat = {
   chatNewChat: TeamBuilderProps
-  chatConversation: {conversationIDKey: Types.ConversationIDKey}
+  chatConversation: {conversationIDKey?: Types.ConversationIDKey}
+  chatRoot: {conversationIDKey?: Types.ConversationIDKey}
   chatChooseEmoji: {
     conversationIDKey: Types.ConversationIDKey
     small: boolean

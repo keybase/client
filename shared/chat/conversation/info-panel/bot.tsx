@@ -261,7 +261,7 @@ const BotTab = (props: Props) => {
   const onBotAdd = () => {
     dispatch(
       RouteTreeGen.createNavigateAppend({
-        path: [{props: {conversationIDKey, namespace: 'chat2'}, selected: 'chatSearchBots'}],
+        path: [{props: {conversationIDKey}, selected: 'chatSearchBots'}],
       })
     )
   }
@@ -270,7 +270,7 @@ const BotTab = (props: Props) => {
       RouteTreeGen.createNavigateAppend({
         path: [
           {
-            props: {botUsername: username, conversationIDKey, namespace: 'chat2'},
+            props: {botUsername: username, conversationIDKey},
             selected: 'chatInstallBot',
           },
         ],

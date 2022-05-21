@@ -284,4 +284,6 @@ export type RootParamListTeams = {
   teamWizard5Channels: undefined
   teamWizard6Subteams: undefined
   teamWizardSubteamMembers: undefined
+  teamAddToTeamConfirm: undefined
+  teamAddToTeamFromWhere: undefined
 }

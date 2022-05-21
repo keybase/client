@@ -47,7 +47,6 @@ const Connected = Container.connect(
               props: {
                 botUsername: username,
                 conversationIDKey: ownProps.message.conversationIDKey,
-                namespace: 'chat2',
               },
               selected: 'chatInstallBot',
             },

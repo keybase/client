@@ -122,4 +122,5 @@ export type RootParamListWallets = {
   qrScan: undefined
   confirmForm: undefined
   chooseAssetForm: undefined
+  sep7Confirm: undefined
 }
