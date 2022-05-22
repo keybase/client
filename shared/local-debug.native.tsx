@@ -25,6 +25,7 @@ window.console._info = window.console.info
 const PERF = false
 
 let config = {
+  allowMultipleInstances: false,
   enableActionLogging: true, // Log actions to the log
   enableStoreLogging: false, // Log full store changes
   featureFlagsOverride: '', // Override feature flags
@@ -41,7 +42,9 @@ let config = {
   printRPCBytes: false, // Print raw b64-encoded bytes going over the wire
   printRPCStats: false, // print detailed info on stats
   printRPCWaitingSession: false,
+  showDevTools: false,
   skipAppFocusActions: false,
+  skipSecondaryDevtools: true,
   userTimings: false, // Add user timings api to timeline in chrome
   virtualListMarks: false, // If true add constraints to items in virtual lists so we can tell when measuring is incorrect
 }
@@ -119,6 +122,7 @@ if (NativeModules.KeybaseEngine.serverConfig) {
 }
 
 export const {
+  allowMultipleInstances,
   enableActionLogging,
   enableStoreLogging,
   featureFlagsOverride,
@@ -134,6 +138,8 @@ export const {
   printRPC,
   printRPCBytes,
   printRPCStats,
+  showDevTools,
+  skipSecondaryDevtools,
   userTimings,
   virtualListMarks,
 } = config

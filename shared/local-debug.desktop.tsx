@@ -1,10 +1,10 @@
 import noop from 'lodash/noop'
 import KB2 from './util/electron.desktop'
-
 // Set this to true if you want to turn off most console logging so you can profile easier
 let PERF = false
 
 let config = {
+  allowMultipleInstances: false, // let more run
   enableActionLogging: true, // Log actions to the log
   enableStoreLogging: false, // Log full store changes
   featureFlagsOverride: '', // Override feature flags
@@ -21,7 +21,9 @@ let config = {
   printRPCBytes: false, // Print raw bytes going over the wire
   printRPCStats: false, // Print more detailed stats about rpcs
   printRPCWaitingSession: false, // session / waiting info
+  showDevTools: false,
   skipAppFocusActions: false, // dont emit actions when going foreground/background, helpful while working on other actions stuff
+  skipSecondaryDevtools: true,
   userTimings: false, // Add user timings api to timeline in chrome
   virtualListMarks: false, // If true add constraints to items in virtual lists so we can tell when measuring is incorrect
 }
@@ -34,8 +36,10 @@ if (__DEV__) {
   config.printOutstandingRPCs = true
   config.printOutstandingTimerListeners = true
   config.printRPC = true
-  config.printRPCWaitingSession = false
   config.printRPCStats = true
+  config.printRPCWaitingSession = false
+  config.showDevTools = true
+  config.skipSecondaryDevtools = true
   config.userTimings = true
 }
 
@@ -75,6 +79,9 @@ if (PERF) {
 }
 
 export const {
+  showDevTools,
+  allowMultipleInstances,
+  skipSecondaryDevtools,
   enableActionLogging,
   enableStoreLogging,
   featureFlagsOverride,

@@ -55,7 +55,18 @@ const ButtonBox = Styles.styled(ClickableBox, {
 )
 
 const markdownOverride = {
-  paragraph: {fontSize: Styles.isMobile ? 16 : 18, lineHeight: Styles.isMobile ? 24 : '34px'},
+  customEmoji: {
+    height: Styles.isMobile ? 26 : 18,
+    marginTop: Styles.isMobile ? 0 : 4,
+    width: Styles.isMobile ? 20 : 18,
+  },
+  emoji: {
+    height: Styles.isMobile ? 20 : 21,
+  },
+  paragraph: {
+    height: Styles.isMobile ? 20 : 18,
+    ...(Styles.isMobile ? {} : {display: 'flex', fontSize: 14}),
+  },
 }
 const ReactButtonInner = (props: Props, ref) => {
   const text = props.decorated.length ? props.decorated : props.emoji
@@ -76,15 +87,9 @@ const ReactButtonInner = (props: Props, ref) => {
         props.style,
       ])}
     >
-      <Box2
-        centerChildren={true}
-        fullHeight={true}
-        direction="horizontal"
-        gap="xtiny"
-        style={styles.container}
-      >
-        <Box2 direction="horizontal" style={styles.emojiWrapper}>
-          <Box2 direction="vertical" style={styles.emojiWrapper2}>
+      <Box2 centerChildren={true} fullHeight={true} direction="horizontal" style={styles.container}>
+        <Box2 direction="horizontal" style={styles.containerInner} gap="xtiny">
+          <Box2 direction="vertical" className="center-emojis">
             <Markdown
               styleOverride={markdownOverride as any}
               lineClamp={1}
@@ -94,14 +99,14 @@ const ReactButtonInner = (props: Props, ref) => {
               {text}
             </Markdown>
           </Box2>
+          <Text
+            type="BodyTinyBold"
+            virtualText={true}
+            style={Styles.collapseStyles([styles.count, props.active && styles.countActive])}
+          >
+            {props.count}
+          </Text>
         </Box2>
-        <Text
-          type="BodyTinyBold"
-          virtualText={true}
-          style={Styles.collapseStyles([styles.count, props.active && styles.countActive])}
-        >
-          {props.count}
-        </Text>
       </Box2>
     </ButtonBox>
   )
@@ -249,27 +254,26 @@ const styles = Styles.styleSheetCreate(
         borderStyle: 'solid',
       },
       buttonBox: {
+        alignItems: 'center',
         backgroundColor: Styles.globalColors.white,
         borderWidth: 1,
         height: Styles.isMobile ? 30 : 24,
+        justifyContent: 'center',
         ...Styles.transition('border-color', 'background-color', 'box-shadow'),
       },
-      container: Styles.platformStyles({
-        common: {
-          alignItems: 'center',
-          justifyContent: 'center',
-          paddingLeft: 6,
-          paddingRight: 6,
-        },
-        isElectron: {
-          paddingBottom: Styles.globalMargins.tiny,
-          paddingTop: Styles.globalMargins.tiny,
-        },
-      }),
+      container: {
+        height: 20,
+        minWidth: 40,
+        paddingLeft: 6,
+        paddingRight: 6,
+      },
+      containerInner: {
+        alignItems: 'center',
+        height: 24,
+      },
       count: {
         color: Styles.globalColors.black_50,
         position: 'relative',
-        top: 1,
       },
       countActive: {color: Styles.globalColors.blueDark},
       emoji: {height: 25},
@@ -285,20 +289,6 @@ const styles = Styles.styleSheetCreate(
           position: 'absolute',
         },
         isMobile: {marginTop: 2},
-      }),
-      emojiWrapper: Styles.platformStyles({
-        common: {
-          alignItems: 'center',
-          height: '100%',
-        },
-      }),
-      emojiWrapper2: {
-        alignItems: 'flex-end',
-        height: 22,
-        justifyContent: 'flex-end',
-      },
-      emojiWrapperCustom: Styles.platformStyles({
-        isMobile: {height: 89},
       }),
       newReactionButtonBox: Styles.platformStyles({
         common: {width: 37},
