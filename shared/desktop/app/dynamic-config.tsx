@@ -31,6 +31,3 @@ const getConfigOverload = () => {
 }
 
 export const configOverload = getConfigOverload()
-export const allowMultipleInstances: boolean = configOverload?.allowMultipleInstances ?? __DEV__
-export const showDevTools: boolean = configOverload?.showDevTools ?? __DEV__
-export const skipSecondaryDevtools: boolean = configOverload?.skipSecondaryDevtools ?? __DEV__
