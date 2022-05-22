@@ -247,15 +247,15 @@ export const EmojiPickerDesktop = (props: Props) => {
           style={styles.footerContainer}
           gap="small"
         >
-          {renderEmoji(
-            emojiDataToRenderableEmoji(
+          {renderEmoji({
+            emoji: emojiDataToRenderableEmoji(
               hoveredEmoji,
               getSkinToneModifierStrIfAvailable(hoveredEmoji, currentSkinTone),
               currentSkinTone
             ),
-            36,
-            false
-          )}
+            showTooltip: false,
+            size: 36,
+          })}
           {hoveredEmoji.teamname ? (
             <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexOne}>
               <Kb.Text type="BodyBig" lineClamp={1}>

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/url"
 	"os"
-	"strings"
 )
 
 func usage() {
@@ -17,7 +16,6 @@ func main() {
 		usage()
 		os.Exit(3)
 	}
-	fmt.Println(strings.ReplaceAll(url.QueryEscape(args[1]), "%", "%%"))
-
+	fmt.Println(url.QueryEscape(args[1]))
 	os.Exit(0)
 }
