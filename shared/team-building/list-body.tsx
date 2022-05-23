@@ -323,7 +323,6 @@ export const ListBody = (
   }
 
   const _onSearchForMore = () => {
-    console.log('aaa on search for more', searchResults?.length ?? 0)
     onSearchForMore(searchResults?.length ?? 0)
   }
 

@@ -241,7 +241,7 @@ const TeamBuilding = () => {
             namespace={namespace}
             searchString={searchString}
             selectedService={selectedService}
-            highlightedIndex={highlightedIndex /* TODO */}
+            highlightedIndex={highlightedIndex}
             onAdd={onAdd}
             onRemove={onRemove}
             teamSoFar={teamSoFar}
