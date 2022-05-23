@@ -2,6 +2,7 @@ if NOT DEFINED ClientRevision set ClientRevision=master
 if NOT DEFINED KBFSRevision set KBFSRevision=master
 if NOT DEFINED UpdaterRevision set UpdaterRevision=master
 if NOT DEFINED ReleaseRevision set ReleaseRevision=master
+if NOT DEFINED DevCert set DevCert=0
 
 set GOARCH=amd64
 
@@ -78,7 +79,7 @@ if %UpdateChannel% NEQ "None" (
 if [%UpdateChannel%] NEQ [Smoke] (
     if [%UpdateChannel%] NEQ [SmokeCI] (
         echo "Not a smoke build"
-        goto :no_smokea
+        goto:no_smokea
     )
 )
 
@@ -99,24 +100,20 @@ EXIT /B 0
 
 :no_smokea
 
-setlocal ENABLEDELAYEDEXPANSION
-
-set BUILD_TAG_ENCODED=!BUILD_TAG:+=%%2B!
-
 ::Publish smoke updater jsons to S3
 if [%UpdateChannel%] NEQ [Smoke2] (
     echo "Non Smoke2 build"
     %OUTPUT% "Successfully built Windows with client: %KEYBASE_VERSION%"
-    %OUTPUT% "https://prerelease.keybase.io/windows/Keybase_%BUILD_TAG_ENCODED%.%GOARCH%.msi"
-    goto :no_smokeb
+    %OUTPUT% "Build tag: %BUILD_%TAG% GOARCH: %GOARCH%"
+    %OUTPUT% "https://prerelease.keybase.io/windows/"
+    goto:no_smokeb
 )
 ::Smoke B json
 s3browser-con upload prerelease.keybase.io  %GOPATH%\src\github.com\keybase\client\packaging\windows\%BUILD_TAG%\*.json prerelease.keybase.io/windows-support  || goto:build_error || EXIT /B 1
 set smokeBSemVer=%KEYBASE_VERSION%
 %GOPATH%\src\github.com\keybase\release\release announce-build --build-a="%SmokeASemVer%" --build-b="%smokeBSemVer%" --platform="windows" || goto:build_error || EXIT /B 1
-set BUILD_TAG_ENCODED=!SmokeASemVer:+=%%2B!
 %OUTPUT% "Successfully built Windows: --build-a=%SmokeASemVer% --build-b=%smokeBSemVer%
-%OUTPUT% "https://prerelease.keybase.io/windows/Keybase_%BUILD_TAG_ENCODED%.%GOARCH%.msi"
+%OUTPUT% "https://prerelease.keybase.io/windows/"
 :no_smokeb
 
 echo %ERRORLEVEL%

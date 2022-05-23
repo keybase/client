@@ -43,6 +43,7 @@ if [ -n "$kbfs_commit" ]; then
   cd "$kbfs_dir"
   echo "Checking out $kbfs_commit on kbfs (will reset to $kbfs_branch)"
   git fetch
+  git reset --hard
   git clean -f
   git checkout "$kbfs_commit"
   # tell gobuild.sh (called via "yarn run rn-gobuild-ios" below) to use our local commit
@@ -57,6 +58,7 @@ if [ -n "$client_commit" ]; then
   cd "$client_dir"
   echo "Checking out $client_commit on client (will reset to $client_branch)"
   git fetch
+  git reset --hard
   git clean -f
   git checkout "$client_commit"
 else
@@ -69,11 +71,16 @@ git log -n 3
 
 cd "$shared_dir"
 
-if [ ! "$cache_npm" = "1" ]; then
-  echo "Cleaning up main node_modules from previous runs"
-  yarn install --pure-lockfile --ignore-optional --prefer-offline --check-files
-fi
+echo "Cleaning up main node_modules from previous runs"
+rm -rf node_modules
+yarn modules
+echo "Ensuring correct"
+yarn --check-files
 
+echo "Cocoapods"
+cd ios
+pod install
+cd ..
 
 if [ ! "$cache_go_lib" = "1" ]; then
   echo "Building Go library"

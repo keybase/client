@@ -22,7 +22,6 @@ popd
 :: wix (specifically heat) has a bad time with marking folders for deletion on uninstall if any
 :: of the folders in our distribution only contain folders (i.e. no non-folder files). so step into
 :: every folder in our distribution recursively, and create an empty file wherever necessary.
-echo off
 pushd %GOPATH%\src\github.com\keybase\client\shared\desktop\release\win32-x64\Keybase-win32-x64
 
 :: this is necessary to use variables inside a for loop
