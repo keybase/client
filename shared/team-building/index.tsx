@@ -1,5 +1,4 @@
 import * as ChatConstants from '../constants/chat2'
-import * as Constants from '../constants/team-building'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
@@ -15,18 +14,16 @@ import TeamBox from './team-box'
 import debounce from 'lodash/debounce'
 import logger from '../logger'
 import trim from 'lodash/trim'
-import type * as Types from './types'
 import type {RootRouteProps} from '../router-v2/route-params'
 import {ContactsBanner} from './contacts'
 import {ListBody} from './list-body'
-import {ModalTitle as TeamsModalTitle} from '../teams/common'
-import {ServiceTabBar} from './service-tab-bar'
 import {getTeamMeta} from '../constants/teams'
 import {memoize} from '../util/memoize'
-import {noTeamID} from '../constants/types/teams'
 import {requestIdleCallback} from '../util/idle-callback'
 import {serviceIdToSearchPlaceholder} from './shared'
 import {useRoute} from '@react-navigation/native'
+import {FilteredServiceTabBar} from './filtered-service-tab-bar'
+import {modalHeaderProps} from './modal-header-props'
 
 const deriveTeamSoFar = memoize(
   (teamSoFar: Set<TeamBuildingTypes.User>): Array<TeamBuildingTypes.SelectedUser> =>
@@ -94,95 +91,6 @@ const makeDebouncedSearch = (time: number) =>
   )
 const debouncedSearch = makeDebouncedSearch(500) // 500ms debounce on social searches
 const debouncedSearchKeybase = makeDebouncedSearch(200) // 200 ms debounce on keybase searches
-
-const FilteredServiceTabBar = (
-  props: Omit<React.ComponentPropsWithoutRef<typeof ServiceTabBar>, 'services'> & {
-    filterServices?: Array<TeamBuildingTypes.ServiceIdWithContact>
-  }
-) => {
-  const {selectedService, onChangeService} = props
-  const {servicesShown, minimalBorder, offset, filterServices} = props
-
-  const services = React.useMemo(
-    () =>
-      filterServices
-        ? Constants.allServices.filter(serviceId => filterServices?.includes(serviceId))
-        : Constants.allServices,
-    [filterServices]
-  )
-  return services.length === 1 && services[0] === 'keybase' ? null : (
-    <ServiceTabBar
-      services={services}
-      selectedService={selectedService}
-      onChangeService={onChangeService}
-      servicesShown={servicesShown}
-      minimalBorder={minimalBorder}
-      offset={offset}
-    />
-  )
-}
-
-const modalHeaderProps = (
-  props: Pick<Types.Props, 'onClose' | 'namespace' | 'teamID' | 'onFinishTeamBuilding' | 'goButtonLabel'> & {
-    title: string
-    hasTeamSoFar: boolean
-  }
-) => {
-  const {onClose, namespace, hasTeamSoFar, teamID, onFinishTeamBuilding, title, goButtonLabel} = props
-  const mobileCancel = Styles.isMobile ? (
-    <Kb.Text type="BodyBigLink" onClick={onClose}>
-      Cancel
-    </Kb.Text>
-  ) : undefined
-  switch (namespace) {
-    case 'people': {
-      return Styles.isMobile ? {hideBorder: true, leftButton: mobileCancel} : undefined
-    }
-    case 'teams': {
-      return {
-        hideBorder: true,
-        leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={onClose} />,
-        rightButton: Styles.isMobile ? (
-          <Kb.Text
-            type="BodyBigLink"
-            onClick={hasTeamSoFar ? onFinishTeamBuilding : undefined}
-            style={!hasTeamSoFar && styles.hide}
-          >
-            Done
-          </Kb.Text>
-        ) : undefined,
-        title: <TeamsModalTitle teamID={teamID ?? noTeamID} title="Search people" />,
-      }
-    }
-    case 'chat2': {
-      const rightButton = Styles.isMobile ? (
-        <Kb.Button
-          label="Start"
-          onClick={hasTeamSoFar ? onFinishTeamBuilding : undefined}
-          small={true}
-          type="Success"
-          style={!hasTeamSoFar && styles.hide} // Need to hide this so modal can measure correctly
-        />
-      ) : undefined
-      return {hideBorder: true, leftButton: mobileCancel, rightButton, title: title}
-    }
-    case 'crypto': {
-      const rightButton = Styles.isMobile ? (
-        <Kb.Button
-          label={goButtonLabel ?? 'Start'}
-          onClick={hasTeamSoFar ? onFinishTeamBuilding : undefined}
-          small={true}
-          type="Success"
-          style={!hasTeamSoFar && styles.hide} // Need to hide this so modal can measure correctly
-        />
-      ) : undefined
-      return {hideBorder: true, leftButton: mobileCancel, rightButton, title: title}
-    }
-    default: {
-      return {hideBorder: true, leftButton: mobileCancel, title: title}
-    }
-  }
-}
 
 const TeamBuilding = () => {
   const {params} = useRoute<RootRouteProps<'peopleTeamBuilder'>>()
@@ -465,7 +373,6 @@ const styles = Styles.styleSheetCreate(
           marginTop: Styles.globalMargins.small + 2,
         },
       }),
-      hide: {opacity: 0},
       mobileFlex: Styles.platformStyles({
         isMobile: {flex: 1},
       }),
