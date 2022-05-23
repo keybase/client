@@ -10,6 +10,7 @@ import type {
   withDelay as withDelayType,
   withRepeat as withRepeatType,
   EasingNode as EasingNodeType,
+  useAnimatedScrollHandler as useAnimatedScrollHandlerType,
 } from 'react-native-reanimated'
 
 let ReAnimated: typeof ReAnimatedType
@@ -20,6 +21,7 @@ let useAnimatedStyle: typeof useAnimatedStyleType
 let withTiming: typeof withTimingType
 let withDelay: typeof withDelayType
 let EasingNode: typeof EasingNodeType
+let useAnimatedScrollHandler: typeof useAnimatedScrollHandlerType
 
 if (!skipAnimations) {
   const rnr = require('react-native-reanimated')
@@ -31,6 +33,7 @@ if (!skipAnimations) {
   withRepeat = rnr.withRepeat
   withTiming = rnr.withTiming
   withDelay = rnr.withDelay
+  useAnimatedScrollHandler = rnr.useAnimatedScrollHandler
   if (isDebuggingInChrome) {
     console.log('DEBUG: Real ReAnimated enabled, yet in chrome. Might not work!')
   }
@@ -83,6 +86,7 @@ if (!skipAnimations) {
     ease: (_: any) => 0,
     inOut: (_: any) => 0,
   } as any
+  useAnimatedScrollHandler = () => () => {}
   if (!isDebuggingInChrome) {
     console.log('DEBUG: Mock ReAnimated enabled, yet not in chrome. Some animations will be missing')
   }
@@ -97,5 +101,6 @@ export {
   withTiming,
   withDelay,
   withRepeat,
+  useAnimatedScrollHandler,
 }
 export default ReAnimated

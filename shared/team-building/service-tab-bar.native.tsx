@@ -2,7 +2,15 @@ import * as React from 'react'
 import * as Kb from '../common-adapters/mobile.native'
 import * as Styles from '../styles'
 import {serviceIdToIconFont, serviceIdToAccentColor, serviceIdToLongLabel, serviceIdToBadge} from './shared'
-import {Props, IconProps} from './service-tab-bar'
+import type {Props, IconProps} from './service-tab-bar'
+import {
+  useSharedValue,
+  useAnimatedStyle,
+  interpolate,
+  withSpring,
+  withDelay,
+  Extrapolation,
+} from 'react-native-reanimated'
 
 export const labelHeight = 34
 
@@ -52,26 +60,31 @@ const TabletBottomBorderExtension = React.memo((props: {offset: number; services
 })
 
 const ServiceIcon = React.memo((props: IconProps) => {
-  const color = props.isActive ? serviceIdToAccentColor(props.service) : Styles.globalColors.black
+  const {offset, isActive, service, label, onClick} = props
+  const color = isActive ? serviceIdToAccentColor(service) : Styles.globalColors.black
 
-  const opacity = Kb.ReAnimated.interpolateNode(props.offset, {
-    inputRange: [-9999, 0, 40, 9999],
-    outputRange: [1, 1, 0, 0],
-  })
-  const width = Kb.ReAnimated.interpolateNode(props.offset, {
-    inputRange: [-9999, -100, 0, 100, 9999],
-    outputRange: [bigWidth + 5, bigWidth + 5, bigWidth, smallWidth, smallWidth],
-  })
-  const translateY = Kb.ReAnimated.interpolateNode(props.offset, {
-    inputRange: [-100, 0, 100, 9999],
-    outputRange: [0, 0, -8, -8],
-  })
+  const opacity = 1
+  const width = bigWidth
+  const translateY = 0
+
+  // const opacity = Kb.ReAnimated.interpolateNode(offset, {
+  //   inputRange: [-9999, 0, 40, 9999],
+  //   outputRange: [1, 1, 0, 0],
+  // })
+  // const width = Kb.ReAnimated.interpolateNode(offset, {
+  //   inputRange: [-9999, -100, 0, 100, 9999],
+  //   outputRange: [bigWidth + 5, bigWidth + 5, bigWidth, smallWidth, smallWidth],
+  // })
+  // const translateY = Kb.ReAnimated.interpolateNode(offset, {
+  //   inputRange: [-100, 0, 100, 9999],
+  //   outputRange: [0, 0, -8, -8],
+  // })
 
   return (
-    <Kb.ClickableBox onClick={() => props.onClick(props.service)} style={{position: 'relative'}}>
+    <Kb.ClickableBox onClick={() => onClick(service)} style={{position: 'relative'}}>
       <AnimatedBox2 direction="vertical" style={[styles.serviceIconContainer, {width}]}>
         <Kb.Box2 direction="vertical" style={{position: 'relative'}}>
-          {serviceIdToBadge(props.service) && (
+          {serviceIdToBadge(service) && (
             <Kb.Badge
               border={true}
               height={9}
@@ -80,12 +93,12 @@ const ServiceIcon = React.memo((props: IconProps) => {
               leftRightPadding={0}
             />
           )}
-          <Kb.Icon fontSize={18} type={serviceIdToIconFont(props.service)} color={color} />
+          <Kb.Icon fontSize={18} type={serviceIdToIconFont(service)} color={color} />
         </Kb.Box2>
         <AnimatedBox2 direction="vertical" style={[styles.labelContainer, {opacity}]}>
           <Kb.Box2 direction="vertical" style={{height: labelHeight, width: 74}}>
             <Kb.Box2 direction="vertical">
-              {props.label.map((label, i) => (
+              {label.map((label, i) => (
                 <Kb.Text
                   key={i}
                   center={true}
@@ -104,8 +117,8 @@ const ServiceIcon = React.memo((props: IconProps) => {
         direction="horizontal"
         fullWidth={true}
         style={Styles.collapseStyles([
-          props.isActive ? styles.activeTabBar : styles.inactiveTabBar,
-          props.isActive && {backgroundColor: serviceIdToAccentColor(props.service)},
+          isActive ? styles.activeTabBar : styles.inactiveTabBar,
+          isActive && {backgroundColor: serviceIdToAccentColor(service)},
           {transform: [{translateY}]},
         ] as any)}
       />
@@ -113,95 +126,112 @@ const ServiceIcon = React.memo((props: IconProps) => {
   )
 })
 
-const delay = (after: Kb.ReAnimated.Adaptable<number>) => {
-  const {greaterOrEq, Clock, Value, startClock, stopClock, cond, set, defined, block, add} = Kb.ReAnimated
-  const clock = new Clock()
-  const time = new Value(400)
-  const when = new Value(0)
-  return block([
-    startClock(clock),
-    cond(defined(when), 0, [set(when, add(clock, time))]),
-    cond(greaterOrEq(clock, when), block([stopClock(clock), after]), 0),
-  ])
-}
+// const delay = (after: Kb.ReAnimated.Adaptable<number>) => {
+//   const {greaterOrEq, Clock, Value, startClock, stopClock, cond, set, defined, block, add} = Kb.ReAnimated
+//   const clock = new Clock()
+//   const time = new Value(400)
+//   const when = new Value(0)
+//   return block([
+//     startClock(clock),
+//     cond(defined(when), 0, [set(when, add(clock, time))]),
+//     cond(greaterOrEq(clock, when), block([stopClock(clock), after]), 0),
+//   ])
+// }
 
-const initialBounce = () => {
-  const {Clock, Value, startClock, stopClock, cond, spring, block, SpringUtils} = Kb.ReAnimated
-  const clock = new Clock()
+// const initialBounce = () => {
+//   const {Clock, Value, startClock, stopClock, cond, spring, block, SpringUtils} = Kb.ReAnimated
+//   const clock = new Clock()
 
-  const state = {
-    finished: new Value(0),
-    position: new Value(0),
-    time: new Value(0),
-    velocity: new Value(800),
-  }
+//   const state = {
+//     finished: new Value(0),
+//     position: new Value(0),
+//     time: new Value(0),
+//     velocity: new Value(800),
+//   }
 
-  const config = {
-    ...SpringUtils.makeDefaultConfig(),
-    toValue: new Value(0),
-  }
+//   const config = {
+//     ...SpringUtils.makeDefaultConfig(),
+//     toValue: new Value(0),
+//   }
 
-  return delay(
-    block([
-      startClock(clock),
-      spring(clock, state, config),
-      cond(state.finished, stopClock(clock)),
-      state.position,
-    ])
+//   return delay(
+//     block([
+//       startClock(clock),
+//       spring(clock, state, config),
+//       cond(state.finished, stopClock(clock)),
+//       state.position,
+//     ])
+//   )
+// }
+
+export const ServiceTabBar = (props: Props) => {
+  const {onChangeService, offset, services, selectedService} = props
+
+  const onClick = React.useCallback(
+    service => {
+      onChangeService(service)
+    },
+    [onChangeService]
   )
-}
 
-export class ServiceTabBar extends React.PureComponent<Props> {
-  private onClick = service => {
-    this.props.onChangeService(service)
-  }
+  // const height = Kb.ReAnimated.interpolateNode(offset, {
+  //   inputRange: [-9999, 0, 100, 9999],
+  //   outputRange: [72, 72, 48, 48],
+  // })
+  // const translateY = Kb.ReAnimated.interpolateNode(offset, {
+  //   inputRange: [-9999, 0, 100, 9999],
+  //   outputRange: [0, 0, 8, 8],
+  // })
 
-  private bounce = initialBounce()
+  // const bounce = useSharedValue(400)
 
-  render() {
-    const props = this.props
+  const bounceX = useSharedValue(40)
 
-    const height = Kb.ReAnimated.interpolateNode(props.offset, {
-      inputRange: [-9999, 0, 100, 9999],
-      outputRange: [72, 72, 48, 48],
+  React.useEffect(() => {
+    bounceX.value = 0
+  }, [bounceX])
+
+  const animatedStyles = useAnimatedStyle(() => {
+    const translateX = withDelay(100, withSpring(bounceX.value, {}))
+    const translateY = 0 /*interpolate(offset.value, [0, 100], [0, 8], {
+      extrapolateLeft: Extrapolation.CLAMP,
+      extrapolateRight: Extrapolation.CLAMP,
+    })*/
+    const height = interpolate(offset.value, [0, 100], [72, 48], {
+      extrapolateLeft: Extrapolation.CLAMP,
+      extrapolateRight: Extrapolation.CLAMP,
     })
-    const translateY = Kb.ReAnimated.interpolateNode(props.offset, {
-      inputRange: [-9999, 0, 100, 9999],
-      outputRange: [0, 0, 8, 8],
-    })
+    return {
+      height,
+      transform: [{translateX}, {translateY}] as any,
+    }
+  })
 
-    return (
-      <Kb.ReAnimated.ScrollView
-        horizontal={true}
-        showsHorizontalScrollIndicator={false}
-        scrollEventThrottle={1000}
-        keyboardDismissMode="on-drag"
-        keyboardShouldPersistTaps="handled"
-        contentContainerStyle={Styles.collapseStyles([{height: '100%'}, Styles.isTablet && {width: '100%'}])}
-        style={{
-          flexGrow: 0,
-          flexShrink: 0,
-          height,
-          transform: [{translateX: this.bounce}, {translateY}] as any,
-          width: '100%',
-        }}
-      >
-        {props.services.map(service => (
-          <ServiceIcon
-            key={service}
-            offset={props.offset}
-            service={service}
-            label={serviceIdToLongLabel(service)}
-            onClick={this.onClick}
-            isActive={props.selectedService === service}
-          />
-        ))}
-        {Styles.isTablet ? (
-          <TabletBottomBorderExtension offset={props.offset} servicesCount={props.services.length} />
-        ) : null}
-      </Kb.ReAnimated.ScrollView>
-    )
-  }
+  return (
+    <Kb.ReAnimated.ScrollView
+      horizontal={true}
+      showsHorizontalScrollIndicator={false}
+      scrollEventThrottle={1000}
+      keyboardDismissMode="on-drag"
+      keyboardShouldPersistTaps="handled"
+      contentContainerStyle={Styles.collapseStyles([{height: '100%'}, Styles.isTablet && {width: '100%'}])}
+      style={[styles.scroll, animatedStyles]}
+    >
+      {services.map(service => (
+        <ServiceIcon
+          key={service}
+          offset={offset}
+          service={service}
+          label={serviceIdToLongLabel(service)}
+          onClick={onClick}
+          isActive={selectedService === service}
+        />
+      ))}
+      {Styles.isTablet ? (
+        <TabletBottomBorderExtension offset={offset} servicesCount={services.length} />
+      ) : null}
+    </Kb.ReAnimated.ScrollView>
+  )
 }
 
 const styles = Styles.styleSheetCreate(
@@ -233,6 +263,11 @@ const styles = Styles.styleSheetCreate(
         overflow: 'hidden',
       },
       pendingAnimation: {height: 17, width: 17},
+      scroll: {
+        flexGrow: 0,
+        flexShrink: 0,
+        width: '100%',
+      },
       serviceIconContainer: {
         alignSelf: 'center',
         height: '100%',
