@@ -1,10 +1,9 @@
 import * as React from 'react'
-import * as Electron from 'electron'
 import * as Kb from '../common-adapters'
-import * as ConfigTypes from '../constants/types/config'
 import * as FsTypes from '../constants/types/fs'
 import * as Tabs from '../constants/tabs'
 import * as Styles from '../styles'
+import type * as ConfigTypes from '../constants/types/config'
 import {_setDarkModePreference} from '../styles/dark-mode'
 import ChatContainer from './chat-container.desktop'
 import FilesPreview from './files-container.desktop'
@@ -38,6 +37,7 @@ export type Props = {
   showingDiskSpaceBanner: boolean
   username: string | null
   navBadges: Map<string, number>
+  windowShownCount: number
 
   // UploadCountdownHOCProps
   endEstimate?: number
@@ -57,13 +57,14 @@ class MenubarRender extends React.Component<Props, State> {
   state: State = {showingMenu: false}
   attachmentRef = React.createRef<Kb.Icon>()
 
-  componentDidMount() {
-    this.props.refreshUserFileEdits()
-    Electron.remote.getCurrentWindow().on('show', this.props.refreshUserFileEdits)
+  componentDidUpdate(prev: Props) {
+    if (prev.windowShownCount !== this.props.windowShownCount) {
+      this.props.refreshUserFileEdits()
+    }
   }
 
-  componentWillUnmount() {
-    Electron.remote.getCurrentWindow().removeListener('show', this.props.refreshUserFileEdits)
+  componentDidMount() {
+    this.props.refreshUserFileEdits()
   }
 
   render() {
@@ -89,7 +90,7 @@ class MenubarRender extends React.Component<Props, State> {
             styles.topRow,
             {justifyContent: 'flex-end'},
             Styles.desktopStyles.clickable,
-          ])}
+          ] as any)}
         >
           <Kb.Icon
             color={Styles.isDarkMode() ? 'rgba(255, 255, 255, 0.85)' : Styles.globalColors.blueDarker}
@@ -158,7 +159,7 @@ class MenubarRender extends React.Component<Props, State> {
             styles.topRow,
             {justifyContent: 'flex-end'},
             Styles.desktopStyles.clickable,
-          ])}
+          ] as any)}
         >
           <Kb.Icon
             color={Styles.globalColors.blueDarker}
@@ -304,7 +305,7 @@ class MenubarRender extends React.Component<Props, State> {
                 marginRight: Styles.globalMargins.tiny,
                 position: 'relative',
               },
-            ])}
+            ] as any)}
           >
             <Kb.Icon
               color={
@@ -332,7 +333,7 @@ class MenubarRender extends React.Component<Props, State> {
           />
         </Kb.Box>
         <OutOfDate outOfDate={this.props.outOfDate} updateNow={this.props.updateNow} />
-        <Kb.ScrollView>
+        <Kb.ScrollView style={styles.flexOne}>
           <ChatContainer convLimit={5} />
           {this.props.kbfsDaemonStatus.rpcStatus === FsTypes.KbfsDaemonRpcStatus.Connected ? (
             <FilesPreview />
@@ -349,6 +350,7 @@ class MenubarRender extends React.Component<Props, State> {
             files={this.props.files}
             fileName={this.props.fileName}
             totalSyncingBytes={this.props.totalSyncingBytes}
+            smallMode={true}
           />
         </Kb.Box>
       </Kb.Box>
@@ -415,6 +417,7 @@ const styles = Styles.styleSheetCreate(() => ({
     right: -2,
     top: -4,
   },
+  flexOne: {flexGrow: 1},
   footer: {width: 360},
   hamburgerIcon: {
     marginRight: Styles.globalMargins.tiny,

@@ -1,19 +1,16 @@
-import * as React from 'react'
-import * as Styles from '../../../styles'
 import * as Constants from '../../../constants/teams'
-import * as Types from '../../../constants/types/teams'
-import * as ChatTypes from '../../../constants/types/chat2'
-import * as TeamsGen from '../../../actions/teams-gen'
-import * as Kb from '../../../common-adapters'
 import * as Container from '../../../util/container'
-import {useAllChannelMetas} from '../../common/channel-hooks'
+import * as Kb from '../../../common-adapters'
+import * as React from 'react'
+import * as RouteTreeGen from '../../../actions/route-tree-gen'
+import * as Styles from '../../../styles'
+import * as TeamsGen from '../../../actions/teams-gen'
+import * as Types from '../../../constants/types/teams'
+import type * as ChatTypes from '../../../constants/types/chat2'
 import {pluralize} from '../../../util/string'
+import {useAllChannelMetas} from '../../common/channel-hooks'
 
-type Props = Container.RouteProps<{
-  teamID: Types.TeamID
-  // undefined means use the currently selected channels in the store (under the channel tab of the team page)
-  conversationIDKey: ChatTypes.ConversationIDKey | undefined
-}>
+type Props = Container.RouteProps<'teamDeleteChannel'>
 
 const Header = () => (
   <>
@@ -27,8 +24,8 @@ const getTeamSelectedCount = (state: Container.TypedState, teamID: Types.TeamID)
 }
 
 const DeleteChannel = (props: Props) => {
-  const teamID = Container.getRouteProps(props, 'teamID', Types.noTeamID)
-  const routePropChannel = Container.getRouteProps(props, 'conversationIDKey', undefined)
+  const teamID = props.route.params?.teamID ?? Types.noTeamID
+  const routePropChannel = props.route.params?.conversationIDKey ?? undefined
   const storeSelectedChannels = Container.useSelector(state => getTeamSelectedCount(state, teamID))
 
   // When the channels get deleted, the values in the store are gone but we should keep displaying the same thing.
@@ -41,7 +38,7 @@ const DeleteChannel = (props: Props) => {
   }
 
   const {channelMetas} = useAllChannelMetas(teamID)
-  var channelnames: string[] = []
+  let channelnames: string[] = []
 
   channelIDs.forEach(channelID => {
     const conversationMeta = channelMetas?.get(channelID)
@@ -49,7 +46,7 @@ const DeleteChannel = (props: Props) => {
     channelnames.push(channelname)
   })
 
-  var deleteMsg: string
+  let deleteMsg: string
   if (channelnames.length == 1) {
     deleteMsg = `#${channelnames[0]}`
   } else if (channelnames.length == 2) {
@@ -81,12 +78,17 @@ const DeleteChannel = (props: Props) => {
     )
   }
 
+  const onCancel = () => {
+    dispatch(RouteTreeGen.createNavigateUp())
+  }
+
   return (
     <Kb.ConfirmModal
       confirmText={`Delete ${pluralize('channel', channelnames.length)}`}
       description="This cannot be undone. All messages in the channel will be lost."
       header={<Header />}
       onConfirm={onDelete}
+      onCancel={onCancel}
       prompt={
         <Kb.Text type="Header" center={true} style={styles.prompt}>
           Delete {deleteMsg}?

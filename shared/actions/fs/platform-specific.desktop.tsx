@@ -4,112 +4,41 @@ import * as Saga from '../../util/saga'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
-import * as Electron from 'electron'
 import * as Tabs from '../../constants/tabs'
-import fs from 'fs'
-import {TypedState, TypedActions} from '../../util/container'
-import {fileUIName, isWindows, isLinux} from '../../constants/platform'
+import type {TypedState, TypedActions} from '../../util/container'
+import {isWindows, isLinux, pathSep} from '../../constants/platform.desktop'
 import logger from '../../logger'
-import {spawn, execFile, exec} from 'child_process'
 import {errorToActionOrThrow} from './shared'
 import * as RouteTreeGen from '../route-tree-gen'
+import * as Path from '../../util/path'
+import KB2 from '../../util/electron.desktop'
 
-const {path} = KB
-const {sep} = path
-const {env} = KB.process
-
-type pathType = 'file' | 'directory'
-
-// pathToURL takes path and converts to (file://) url.
-// See https://github.com/sindresorhus/file-url
-function pathToURL(p: string): string {
-  let goodPath = p.replace(/\\/g, '/')
-
-  // Windows drive letter must be prefixed with a slash
-  if (goodPath[0] !== '/') {
-    goodPath = '/' + goodPath
-  }
-
-  return encodeURI('file://' + goodPath).replace(/#/g, '%23')
-}
-
-const openInDefaultDirectory = (openPath: string): Promise<void> => {
-  return new Promise((resolve, reject) => {
-    // Paths in directories might be symlinks, so resolve using
-    // realpath.
-    // For example /keybase/private/gabrielh,chris gets redirected to
-    // /keybase/private/chris,gabrielh.
-    fs.realpath(openPath, (err, resolvedPath) => {
-      if (err) {
-        reject(new Error(`No realpath for ${openPath}: ${err}`))
-        return
-      }
-      // Convert to URL for openExternal call.
-      // We use openExternal instead of openItem because it
-      // correctly focuses' the Finder, and also uses a newer
-      // native API on macOS.
-      const url = pathToURL(resolvedPath)
-      logger.info('Open URL (directory):', url)
-
-      Electron.remote.shell
-        .openExternal(url, {activate: true})
-        .then(() => {
-          logger.info('Opened directory:', openPath)
-          resolve()
-        })
-        .catch(err => {
-          reject(err)
-        })
-    })
-  })
-}
-
-function getPathType(openPath: string): Promise<pathType> {
-  return new Promise((resolve, reject) => {
-    fs.stat(openPath, (err, stats) => {
-      if (err) {
-        reject(new Error(`Unable to open/stat file: ${openPath}`))
-        return
-      }
-      if (stats.isFile()) {
-        resolve('file')
-      } else if (stats.isDirectory()) {
-        resolve('directory')
-      } else {
-        reject(new Error(`Unable to open: Not a file or directory`))
-      }
-    })
-  })
-}
+const {openPathInFinder, openURL, getPathType, selectFilesToUploadDialog} = KB2.functions
+const {
+  exitApp,
+  relaunchApp,
+  uninstallKBFSDialog,
+  uninstallDokanDialog,
+  windowsCheckMountFromOtherDokanInstall,
+  installCachedDokan,
+  uninstallDokan,
+} = KB2.functions
 
 // _openPathInSystemFileManagerPromise opens `openPath` in system file manager.
 // If isFolder is true, it just opens it. Otherwise, it shows it in its parent
 // folder. This function does not check if the file exists, or try to convert
 // KBFS paths. Caller should take care of those.
-const _openPathInSystemFileManagerPromise = (openPath: string, isFolder: boolean): Promise<void> =>
-  new Promise((resolve, reject) => {
-    if (isFolder) {
-      if (isWindows) {
-        Electron.remote.shell.openPath(openPath).then(error => {
-          if (error) {
-            reject(new Error('unable to open item'))
-          } else {
-            resolve()
-          }
-        })
-      } else {
-        openInDefaultDirectory(openPath).then(resolve, reject)
-      }
-    } else {
-      Electron.remote.shell.showItemInFolder(openPath)
-      resolve()
-    }
-  })
+const _openPathInSystemFileManagerPromise = async (openPath: string, isFolder: boolean): Promise<void> =>
+  openPathInFinder?.(openPath, isFolder)
 
 const openLocalPathInSystemFileManager = async (action: FsGen.OpenLocalPathInSystemFileManagerPayload) => {
   try {
-    const pathType = await getPathType(action.payload.localPath)
-    return _openPathInSystemFileManagerPromise(action.payload.localPath, pathType === 'directory')
+    if (getPathType) {
+      const pathType = await getPathType(action.payload.localPath)
+      return _openPathInSystemFileManagerPromise(action.payload.localPath, pathType === 'directory')
+    } else {
+      throw new Error('impossible')
+    }
   } catch (e) {
     return errorToActionOrThrow(e)
   }
@@ -123,9 +52,12 @@ const escapeBackslash = isWindows
   : (pathElem: string): string => pathElem
 
 const _rebaseKbfsPathToMountLocation = (kbfsPath: Types.Path, mountLocation: string) =>
-  path.resolve(mountLocation, Types.getPathElements(kbfsPath).slice(1).map(escapeBackslash).join(sep))
+  Path.join(mountLocation, Types.getPathElements(kbfsPath).slice(1).map(escapeBackslash).join(pathSep))
 
-const openPathInSystemFileManager = (state: TypedState, action: FsGen.OpenPathInSystemFileManagerPayload) =>
+const openPathInSystemFileManager = async (
+  state: TypedState,
+  action: FsGen.OpenPathInSystemFileManagerPayload
+) =>
   state.fs.sfmi.driverStatus.type === Types.DriverStatusType.Enabled && state.fs.sfmi.directMountDir
     ? _openPathInSystemFileManagerPromise(
         _rebaseKbfsPathToMountLocation(action.payload.path, state.fs.sfmi.directMountDir),
@@ -133,7 +65,7 @@ const openPathInSystemFileManager = (state: TypedState, action: FsGen.OpenPathIn
           Constants.parsePath(action.payload.path).kind
         ) || Constants.getPathItem(state.fs.pathItems, action.payload.path).type === Types.PathType.Folder
       ).catch(e => errorToActionOrThrow(action.payload.path, e))
-    : (new Promise((resolve, reject) => {
+    : new Promise<void>((resolve, reject) => {
         if (state.fs.sfmi.driverStatus.type !== Types.DriverStatusType.Enabled) {
           // This usually indicates a developer error as
           // openPathInSystemFileManager shouldn't be used when FUSE integration
@@ -143,18 +75,14 @@ const openPathInSystemFileManager = (state: TypedState, action: FsGen.OpenPathIn
           logger.warn('empty directMountDir') // if this happens it might be a race?
           resolve()
         }
-      }) as Promise<void>)
+      })
 
 const fuseStatusToUninstallExecPath = isWindows
   ? (status: RPCTypes.FuseStatus) => {
-      const field =
-        status &&
-        status.status &&
-        status.status.fields &&
-        status.status.fields.find(({key}) => key === 'uninstallString')
-      return field && field.value
+      const field = status?.status?.fields?.find(({key}) => key === 'uninstallString')
+      return field?.value
     }
-  : (_: RPCTypes.FuseStatus | null) => null
+  : () => null
 
 const fuseStatusToActions =
   (previousStatusType: Types.DriverStatusType) => (status: RPCTypes.FuseStatus | null) => {
@@ -187,23 +115,6 @@ const fuseStatusToActions =
         ]
   }
 
-const windowsCheckMountFromOtherDokanInstall = (status: RPCTypes.FuseStatus) =>
-  RPCTypes.kbfsMountGetCurrentMountDirRpcPromise().then(mountPoint =>
-    mountPoint
-      ? new Promise(resolve => fs.access(mountPoint, fs.constants.F_OK, err => resolve(!err))).then(
-          mountExists =>
-            mountExists
-              ? {
-                  ...status,
-                  installAction: RPCTypes.InstallAction.none,
-                  installStatus: RPCTypes.InstallStatus.installed,
-                  kextStarted: true,
-                }
-              : status
-        )
-      : status
-  )
-
 const refreshDriverStatus = async (
   state: TypedState,
   action: FsGen.KbfsDaemonRpcStatusChangedPayload | FsGen.RefreshDriverStatusPayload
@@ -216,7 +127,8 @@ const refreshDriverStatus = async (
       bundleVersion: '',
     })
     if (isWindows && status.installStatus !== RPCTypes.InstallStatus.installed) {
-      status = await windowsCheckMountFromOtherDokanInstall(status)
+      const m = await RPCTypes.kbfsMountGetCurrentMountDirRpcPromise()
+      status = await (windowsCheckMountFromOtherDokanInstall?.(m, status) ?? Promise.resolve(status))
     }
     return fuseStatusToActions(state.fs.sfmi.driverStatus.type)(status)
   }
@@ -224,9 +136,7 @@ const refreshDriverStatus = async (
 }
 
 const fuseInstallResultIsKextPermissionError = (result: RPCTypes.InstallResult): boolean =>
-  !!result &&
-  !!result.componentResults &&
-  result.componentResults.findIndex(
+  result?.componentResults?.findIndex(
     c => c.name === 'fuse' && c.exitCode === Constants.ExitCodeFuseKextPermissionError
   ) !== -1
 
@@ -245,66 +155,40 @@ const driverEnableFuse = async (action: FsGen.DriverEnablePayload) => {
 }
 
 const uninstallKBFSConfirm = async () => {
-  const action = await new Promise<TypedActions | false>(resolve =>
-    Electron.remote.dialog
-      .showMessageBox({
-        buttons: ['Remove & Restart', 'Cancel'],
-        detail: `Are you sure you want to remove Keybase from ${fileUIName} and restart the app?`,
-        message: `Remove Keybase from ${fileUIName}`,
-        type: 'question',
-      })
-      // resp is the index of the button that's clicked
-      .then(({response}) => (response === 0 ? resolve(FsGen.createDriverDisabling()) : resolve(false)))
-  )
-  return action
+  const remove = await (uninstallKBFSDialog?.() ?? Promise.resolve(false))
+  return remove ? FsGen.createDriverDisabling() : false
 }
 
-const uninstallKBFS = () =>
+const uninstallKBFS = async () =>
   RPCTypes.installUninstallKBFSRpcPromise().then(() => {
     // Restart since we had to uninstall KBFS and it's needed by the service (for chat)
-    Electron.remote.app.relaunch()
-    Electron.remote.app.exit(0)
+    relaunchApp?.()
+    exitApp?.(0)
   })
 
-// @ts-ignore
-const uninstallDokanConfirm = async (state: TypedState) => {
+const uninstallDokanConfirm = async (state: TypedState): Promise<TypedActions | false> => {
   if (state.fs.sfmi.driverStatus.type !== Types.DriverStatusType.Enabled) {
     return false
   }
   if (!state.fs.sfmi.driverStatus.dokanUninstallExecPath) {
-    const action = await new Promise<TypedActions>(resolve =>
-      Electron.remote.dialog
-        .showMessageBox({
-          buttons: ['Got it'],
-          detail:
-            'We looked everywhere but did not find a Dokan uninstaller. Please remove it from the Control Panel.',
-          message: 'Please uninstall Dokan from the Control Panel.',
-          type: 'info',
-        })
-        .then(() => resolve(FsGen.createRefreshDriverStatus()))
-    )
-    return action
+    await uninstallDokanDialog?.()
+    return FsGen.createRefreshDriverStatus()
   }
   return FsGen.createDriverDisabling()
 }
 
-const uninstallDokan = (state: TypedState) => {
+const onUninstallDokan = async (state: TypedState) => {
   if (state.fs.sfmi.driverStatus.type !== Types.DriverStatusType.Enabled) return
   const execPath: string = state.fs.sfmi.driverStatus.dokanUninstallExecPath || ''
   logger.info('Invoking dokan uninstaller', execPath)
-  return new Promise<void>(resolve => {
-    try {
-      exec(execPath, {windowsHide: true}, () => resolve())
-    } catch (e) {
-      logger.error('uninstallDokan caught', e)
-      resolve(undefined)
-    }
-  }).then(() => FsGen.createRefreshDriverStatus())
+  try {
+    await uninstallDokan?.(execPath)
+  } catch {}
+  return FsGen.createRefreshDriverStatus()
 }
 
 const openSecurityPreferences = () => {
-  Electron.remote.shell
-    .openExternal('x-apple.systempreferences:com.apple.preference.security?General', {activate: true})
+  openURL?.('x-apple.systempreferences:com.apple.preference.security?General', {activate: true})
     .then(() => {
       logger.info('Opened Security Preferences')
     })
@@ -314,54 +198,22 @@ const openSecurityPreferences = () => {
 // Invoking the cached installer package has to happen from the topmost process
 // or it won't be visible to the user. The service also does this to support command line
 // operations.
-const installCachedDokan = () =>
-  new Promise((resolve, reject) => {
-    logger.info('Invoking dokan installer')
-    const dokanPath = path.resolve(String(env.LOCALAPPDATA), 'Keybase', 'DokanSetup_redist.exe')
-    execFile(dokanPath, [], err => {
-      if (err) {
-        reject(err)
-        return
-      }
-      // restart the service, particularly kbfsdokan
-      // based on desktop/app/start-win-service.js
-      const binPath = path.resolve(String(env.LOCALAPPDATA), 'Keybase', 'keybase.exe')
-      if (!binPath) {
-        reject(new Error('resolve failed'))
-        return
-      }
-      const rqPath = binPath.replace('keybase.exe', 'keybaserq.exe')
-      const args = [binPath, 'ctl', 'restart']
-
-      spawn(rqPath, args, {
-        detached: true,
-        stdio: 'ignore',
-      })
-
-      resolve(undefined)
-    })
-  })
-    .then(() => FsGen.createRefreshDriverStatus())
-    .catch(e => errorToActionOrThrow(e))
-
-const openAndUploadToPromise = (action: FsGen.OpenAndUploadPayload): Promise<Array<string>> =>
-  Electron.remote.dialog
-    .showOpenDialog(Electron.remote.getCurrentWindow(), {
-      properties: [
-        'multiSelections' as const,
-        ...(['file', 'both'].includes(action.payload.type) ? (['openFile'] as const) : []),
-        ...(['directory', 'both'].includes(action.payload.type) ? (['openDirectory'] as const) : []),
-      ],
-      title: 'Select a file or folder to upload',
-    })
-    .then(res => res.filePaths)
+const onInstallCachedDokan = async () => {
+  try {
+    await installCachedDokan?.()
+    return FsGen.createRefreshDriverStatus()
+  } catch (e) {
+    return errorToActionOrThrow(e)
+  }
+}
 
 const openAndUpload = async (action: FsGen.OpenAndUploadPayload) => {
-  const localPaths = await openAndUploadToPromise(action)
+  const localPaths = await (selectFilesToUploadDialog?.(action.payload.type, action.payload.parentPath) ??
+    Promise.resolve([]))
   return localPaths.map(localPath => FsGen.createUpload({localPath, parentPath: action.payload.parentPath}))
 }
 
-const loadUserFileEdits = async (_: TypedState) => {
+const loadUserFileEdits = async () => {
   try {
     const writerEdits = await RPCTypes.SimpleFSSimpleFSUserEditHistoryRpcPromise()
     return FsGen.createUserFileEditsLoaded({
@@ -410,9 +262,9 @@ const refreshMountDirs = async (
   ]
 }
 
-export const ensureDownloadPermissionPromise = () => Promise.resolve()
+export const ensureDownloadPermissionPromise = async () => Promise.resolve()
 
-const setSfmiBannerDismissed = (
+const setSfmiBannerDismissed = async (
   _: TypedState,
   action: FsGen.SetSfmiBannerDismissedPayload | FsGen.DriverEnablePayload | FsGen.DriverDisablePayload
 ) => {
@@ -442,15 +294,14 @@ function* platformSpecificSaga() {
   yield* Saga.chainAction2([FsGen.userFileEditsLoad], loadUserFileEdits)
   yield* Saga.chainAction(FsGen.openFilesFromWidget, openFilesFromWidget)
   if (isWindows) {
-    yield* Saga.chainAction(FsGen.driverEnable, installCachedDokan)
+    yield* Saga.chainAction(FsGen.driverEnable, onInstallCachedDokan)
     yield* Saga.chainAction2(FsGen.driverDisable as any, uninstallDokanConfirm as any)
-    yield* Saga.chainAction2(FsGen.driverDisabling, uninstallDokan)
+    yield* Saga.chainAction2(FsGen.driverDisabling, onUninstallDokan)
   } else {
     yield* Saga.chainAction(FsGen.driverEnable, driverEnableFuse)
     yield* Saga.chainAction2(FsGen.driverDisable, uninstallKBFSConfirm)
     yield* Saga.chainAction2(FsGen.driverDisabling, uninstallKBFS)
   }
-  yield* Saga.chainAction2(FsGen.openSecurityPreferences, openSecurityPreferences)
   yield* Saga.chainAction2(FsGen.openSecurityPreferences, openSecurityPreferences)
   yield* Saga.chainAction2(ConfigGen.changedFocus, changedFocus)
   yield* Saga.chainAction2(

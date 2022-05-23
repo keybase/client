@@ -45,14 +45,14 @@ class InviteGeneratedRender extends Component<Props> {
 }
 
 const styles = Styles.styleSheetCreate(() => ({
-  icon: Styles.collapseStyles([
-    Styles.desktopStyles.clickable,
-    {
+  icon: Styles.platformStyles({
+    isElectron: {
+      ...Styles.desktopStyles.clickable,
       position: 'absolute',
       right: Styles.globalMargins.small,
       top: Styles.globalMargins.small,
     },
-  ]),
+  }),
   linkContainer: {
     ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',

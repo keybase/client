@@ -6,11 +6,11 @@ import * as Types from '../../constants/types/teams'
 import ReallyDeleteTeam from '.'
 import {anyWaiting} from '../../constants/waiting'
 
-type OwnProps = Container.RouteProps<{teamID: Types.TeamID}>
+type OwnProps = Container.RouteProps<'teamDeleteTeam'>
 
 export default Container.connect(
   (state, ownProps: OwnProps) => {
-    const teamID = Container.getRouteProps(ownProps, 'teamID', Types.noTeamID)
+    const teamID = ownProps.route.params?.teamID ?? Types.noTeamID
     const {teamname} = Constants.getTeamMeta(state, teamID)
     const teamDetails = Constants.getTeamDetails(state, teamID)
     return {

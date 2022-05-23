@@ -15,11 +15,11 @@ class TeeLogger implements Logger {
     this._otherLoggers.map(l => l.log(...args))
   }
 
-  dump = (levelPrefix: LogLevel) => {
+  dump = async (levelPrefix: LogLevel) => {
     return this._loggerToDumpFrom.dump(levelPrefix)
   }
 
-  flush = () => {
+  flush = async () => {
     return this._loggerToDumpFrom.flush()
   }
 }

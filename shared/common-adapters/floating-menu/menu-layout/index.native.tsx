@@ -9,7 +9,7 @@ import Meta from '../../meta'
 import Divider from '../../divider'
 import ScrollView from '../../scroll-view'
 import ProgressIndicator from '../../progress-indicator'
-import {MenuItem, _InnerMenuItem, MenuLayoutProps} from '.'
+import type {MenuItem, MenuLayoutProps} from '.'
 
 type MenuRowProps = {
   centered?: boolean

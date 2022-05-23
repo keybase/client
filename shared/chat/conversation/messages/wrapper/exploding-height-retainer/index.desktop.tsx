@@ -1,10 +1,10 @@
 import * as React from 'react'
 import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
-import {resolveRootAsURL} from '../../../../../desktop/app/resolve-root.desktop'
 import {urlsToImgSet} from '../../../../../common-adapters/icon.desktop'
-import {Props} from '.'
-import SharedTimer, {SharedTimerID} from '../../../../../util/shared-timers'
+import type {Props} from '.'
+import SharedTimer, {type SharedTimerID} from '../../../../../util/shared-timers'
+import {getAssetPath} from '../../../../../constants/platform.desktop'
 
 const copyChildren = (children: React.ReactNode): React.ReactNode =>
   // @ts-ignore
@@ -140,7 +140,7 @@ const FlameFront = (props: {height: number; stop: boolean}) => {
   const children: Array<React.ReactNode> = []
   for (let i = 0; i < numBoxes; i++) {
     children.push(
-      <Kb.Box style={styles.flame}>
+      <Kb.Box key={String(i)} style={styles.flame}>
         <Kb.Animation
           animationType={Styles.isDarkMode() ? 'darkExploding' : 'exploding'}
           width={64}
@@ -158,8 +158,8 @@ const FlameFront = (props: {height: number; stop: boolean}) => {
 
 const explodedIllustrationUrl = (): string =>
   Styles.isDarkMode()
-    ? urlsToImgSet({'68': resolveRootAsURL('../images/icons/dark-pattern-ashes-desktop-400-68.png')}, 68)
-    : urlsToImgSet({'68': resolveRootAsURL('../images/icons/pattern-ashes-desktop-400-68.png')}, 68)
+    ? urlsToImgSet({'68': getAssetPath('images', 'icons', 'dark-pattern-ashes-desktop-400-68.png')}, 68)
+    : urlsToImgSet({'68': getAssetPath('images', 'icons', 'pattern-ashes-desktop-400-68.png')}, 68)
 
 const styles = Styles.styleSheetCreate(
   () =>
@@ -213,7 +213,7 @@ const AshBox = Styles.styled.div(
       width: '100%',
     },
   },
-  () => styles.ashBox
+  () => styles.ashBox as any
 )
 
 export default ExplodingHeightRetainer

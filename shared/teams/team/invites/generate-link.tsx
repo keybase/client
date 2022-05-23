@@ -13,7 +13,7 @@ import {InlineDropdown} from '../../../common-adapters/dropdown'
 import {pluralize} from '../../../util/string'
 import {InviteItem} from './invite-item'
 
-type Props = Container.RouteProps<{teamID: Types.TeamID}>
+type Props = Container.RouteProps<'teamInviteLinksGenerate'>
 
 type RolePickerProps = {
   isRolePickerOpen: boolean
@@ -72,7 +72,7 @@ const GenerateLinkModal = (props: Props) => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
 
-  const teamID = Container.getRouteProps(props, 'teamID', Types.noTeamID)
+  const teamID = props.route.params?.teamID ?? Types.noTeamID
   const teamname = Container.useSelector(state => Constants.getTeamMeta(state, teamID).teamname)
   useTeamDetailsSubscribe(teamID)
   const teamDetails = Container.useSelector(s => s.teams.teamDetails.get(teamID))

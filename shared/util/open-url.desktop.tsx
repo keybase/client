@@ -1,11 +1,3 @@
-import * as Electron from 'electron'
-
-const openURL = (url: string | null) => {
-  if (!url) {
-    console.warn('openURL received empty url')
-    return
-  }
-  Electron.remote.shell.openExternal(url)
-}
-
+import KB2 from './electron.desktop'
+const {openURL} = KB2.functions
 export default openURL

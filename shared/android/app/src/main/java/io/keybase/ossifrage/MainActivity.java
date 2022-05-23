@@ -1,5 +1,5 @@
 package io.keybase.ossifrage;
-
+import expo.modules.ReactActivityDelegateWrapper;
 import android.annotation.TargetApi;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -24,22 +24,14 @@ import com.facebook.react.ReactActivityDelegate;
 import com.facebook.react.ReactApplication;
 import com.facebook.react.ReactInstanceManager;
 import com.facebook.react.bridge.Arguments;
-import com.facebook.react.bridge.Dynamic;
 import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.ReactActivity;
-import com.facebook.react.bridge.ReadableArray;
-import com.facebook.react.bridge.ReadableMap;
-import com.facebook.react.bridge.ReadableMapKeySetIterator;
-import com.facebook.react.bridge.ReadableType;
-import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 import com.facebook.react.modules.core.PermissionListener;
 
 import com.facebook.react.ReactRootView;
-import com.swmansion.gesturehandler.react.RNGestureHandlerEnabledRootView;
 
-import android.view.KeyEvent;
 import com.github.emilioicai.hwkeyboardevent.HWKeyboardEventModule;
 
 import java.io.File;
@@ -50,21 +42,13 @@ import java.io.OutputStream;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
 import java.util.UUID;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-
-import io.keybase.ossifrage.modules.AppearanceModule;
 import io.keybase.ossifrage.modules.KeybaseEngine;
 import io.keybase.ossifrage.modules.NativeLogger;
 import io.keybase.ossifrage.util.DNSNSFetcher;
 import io.keybase.ossifrage.util.GuiConfig;
 import io.keybase.ossifrage.util.VideoHelper;
-import javassist.bytecode.ExceptionTable;
 import keybase.Keybase;
 
 import static keybase.Keybase.initOnce;
@@ -128,8 +112,9 @@ public class MainActivity extends ReactActivity {
     }
     String mobileOsVersion = Integer.toString(android.os.Build.VERSION.SDK_INT);
     boolean isIPad = false;
+    boolean isIOS = false;
     initOnce(context.getFilesDir().getPath(), "", context.getFileStreamPath("service.log").getAbsolutePath(), "prod", false,
-      new DNSNSFetcher(), new VideoHelper(), mobileOsVersion, isIPad, new KBInstallReferrerListener(context));
+      new DNSNSFetcher(), new VideoHelper(), mobileOsVersion, isIPad, new KBInstallReferrerListener(context), isIOS);
 
   }
 
@@ -162,7 +147,6 @@ public class MainActivity extends ReactActivity {
     setupKBRuntime(this, true);
     super.onCreate(null);
 
-
     new android.os.Handler().postDelayed(new Runnable() {
       public void run() {
         try {
@@ -172,18 +156,7 @@ public class MainActivity extends ReactActivity {
     }, 300);
 
     KeybasePushNotificationListenerService.createNotificationChannel(this);
-
     updateIsUsingHardwareKeyboard();
-  }
-
-  @Override
-  protected ReactActivityDelegate createReactActivityDelegate() {
-    return new ReactActivityDelegate(this, getMainComponentName()) {
-      @Override
-      protected ReactRootView createRootView() {
-        return new RNGestureHandlerEnabledRootView(MainActivity.this);
-      }
-    };
   }
 
   @Override
@@ -275,7 +248,6 @@ public class MainActivity extends ReactActivity {
     private IntentEmitter(Intent intent) {
       this.intent = intent;
     }
-
 
     public void emit() {
       // Here we are just reading from the notification bundle.
@@ -396,7 +368,6 @@ public class MainActivity extends ReactActivity {
     NativeLogger.info("Activity onPause");
     super.onResume();
     Keybase.setAppStateForeground();
-
     // Emit the intent data to JS
     Intent intent = getIntent();
     if (intent != null) {
@@ -437,14 +408,6 @@ public class MainActivity extends ReactActivity {
   public void onConfigurationChanged(Configuration newConfig) {
     super.onConfigurationChanged(newConfig);
     ReactInstanceManager instanceManager = ((ReactApplication) getApplication()).getReactNativeHost().getReactInstanceManager();
-
-    if (instanceManager != null) {
-      //instanceManager.onConfigurationChanged(newConfig);
-      ReactContext currentContext = instanceManager.getCurrentReactContext();
-      if (currentContext != null) {
-        currentContext.getNativeModule(AppearanceModule.class).onConfigurationChanged();
-      }
-    }
 
     try {
       setBackgroundColor(GuiConfig.getInstance(getFilesDir()).getDarkMode());

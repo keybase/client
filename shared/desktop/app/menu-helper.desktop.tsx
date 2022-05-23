@@ -5,8 +5,10 @@ import * as SettingsGen from '../../actions/settings-gen'
 import flags from '../../util/feature-flags'
 import {closeWindows} from './main-window.desktop'
 import {isDarwin, isLinux} from '../../constants/platform'
-import {mainWindowDispatch} from '../remote/util.desktop'
-import {quit} from './ctl.desktop'
+import {ctlQuit} from './ctl.desktop'
+import KB2 from '../../util/electron.desktop'
+
+const {mainWindowDispatch} = KB2.functions
 
 const reallyQuit = () => {
   closeWindows()
@@ -16,7 +18,7 @@ const reallyQuit = () => {
     mainWindowDispatch(ConfigGen.createDumpLogs({reason: 'quitting through menu'}))
   }
   setTimeout(() => {
-    quit()
+    ctlQuit()
   }, 2000)
 }
 
@@ -76,7 +78,10 @@ export default function makeMenu(window: Electron.BrowserWindow) {
     submenu: Electron.Menu.buildFromTemplate([
       new Electron.MenuItem({
         click: () => {
-          Electron.shell.openExternal('https://keybase.io')
+          Electron.shell
+            .openExternal('https://keybase.io')
+            .then(() => {})
+            .catch(() => {})
         },
         label: 'Learn More',
       }),

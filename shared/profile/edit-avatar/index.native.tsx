@@ -38,6 +38,8 @@ const AvatarUploadWrapper = (props: Props) => {
   React.useEffect(() => {
     if (!props.wizard && noImage) {
       onChooseNewAvatar()
+        .then(() => {})
+        .catch(() => {})
     }
   }, [noImage, props.wizard, onChooseNewAvatar])
 

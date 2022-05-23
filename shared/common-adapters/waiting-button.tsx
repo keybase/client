@@ -1,5 +1,6 @@
 import * as React from 'react'
-import Button from './button'
+import {default as Button, Props as ButtonProps} from './button'
+import ClickableBox from './clickable-box'
 import * as Container from '../util/container'
 import * as WaitingConstants from '../constants/waiting'
 
@@ -7,16 +8,8 @@ const Kb = {
   Button,
 }
 
-type ButtonProps = React.ComponentProps<typeof Button>
-
-export type OwnProps = {
-  onlyDisable?: boolean // Must supply waiting key if this is true,
-  waitingKey: Array<string> | string | null
-} & ButtonProps
-
 export type Props = {
   onlyDisable?: boolean
-  storeWaiting: boolean
   waitingKey: Array<string> | string | null
 } & ButtonProps
 
@@ -32,48 +25,34 @@ export type Props = {
  *  waiting store (store.waiting), which will be set by a saga somewhere.
  */
 
-class WaitingButton extends React.Component<Props, {localWaiting: boolean}> {
-  static defaultProps = {
-    mode: 'Primary',
-    type: 'Default',
-  }
-  state = {localWaiting: false}
+const WaitingButton = React.forwardRef<ClickableBox, Props>((props, ref) => {
+  const {onlyDisable, waitingKey, ...buttonProps} = props
+  const storeWaiting = Container.useSelector(state =>
+    typeof waitingKey === 'string'
+      ? WaitingConstants.anyWaiting(state, waitingKey)
+      : WaitingConstants.anyWaiting(state, ...(waitingKey || []))
+  )
 
-  _onClick = (event: React.BaseSyntheticEvent) => {
-    if (!this.props.waitingKey) {
-      this.setState({localWaiting: true})
-    }
-    this.props.onClick && this.props.onClick(event)
-  }
+  const [localWaiting, setLocalWaiting] = React.useState(false)
 
-  render() {
-    if (this.props.onlyDisable && !this.props.waitingKey) {
-      throw new Error('WaitingButton onlyDisable should only be used with a waiting key')
-    }
-    const waiting = this.props.storeWaiting || this.state.localWaiting
-    const {onlyDisable, storeWaiting, waitingKey, ...buttonProps} = this.props
-    return (
-      <Kb.Button
-        {...buttonProps}
-        onClick={this._onClick}
-        disabled={this.props.onlyDisable ? waiting || this.props.disabled : this.props.disabled}
-        waiting={this.props.onlyDisable ? false : waiting}
-      />
-    )
+  if (onlyDisable && !waitingKey) {
+    throw new Error('WaitingButton onlyDisable should only be used with a waiting key')
   }
-}
+  const waiting = storeWaiting || localWaiting
+  return (
+    <Kb.Button
+      ref={ref}
+      {...buttonProps}
+      onClick={event => {
+        if (!waitingKey) {
+          setLocalWaiting(true)
+        }
+        buttonProps.onClick?.(event)
+      }}
+      disabled={onlyDisable ? waiting || props.disabled : props.disabled}
+      waiting={onlyDisable ? false : waiting}
+    />
+  )
+})
 
-const ConnectedWaitingButton = Container.connect(
-  (state, ownProps: OwnProps) => {
-    const waitingKey = ownProps.waitingKey || ''
-    return {
-      storeWaiting:
-        typeof waitingKey === 'string'
-          ? WaitingConstants.anyWaiting(state, waitingKey)
-          : WaitingConstants.anyWaiting(state, ...waitingKey),
-    }
-  },
-  () => ({}),
-  (s, d, o: OwnProps) => ({...o, ...s, ...d})
-)(WaitingButton)
-export default ConnectedWaitingButton
+export default WaitingButton

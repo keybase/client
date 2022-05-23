@@ -1,6 +1,6 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-import * as RPCTypes from '../constants/types/rpc-gen'
-import * as Types from '../constants/types/chat2'
+import type * as RPCTypes from '../constants/types/rpc-gen'
+import type * as Types from '../constants/types/chat2'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of bots but is handled by every reducer. NEVER dispatch this
@@ -99,4 +99,4 @@ export type Actions =
   | SetLoadedAllBotsPayload
   | SetSearchFeaturedAndUsersResultsPayload
   | UpdateFeaturedBotsPayload
-  | {type: 'common:resetStore', payload: {}}
+  | {readonly type: 'common:resetStore', readonly payload: undefined}

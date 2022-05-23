@@ -1,7 +1,7 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-import * as RPCTypes from '../constants/types/rpc-gen'
-import * as Types from '../constants/types/profile'
-import * as More from '../constants/types/more'
+import type * as RPCTypes from '../constants/types/rpc-gen'
+import type * as Types from '../constants/types/profile'
+import type * as More from '../constants/types/more'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of profile but is handled by every reducer. NEVER dispatch this
@@ -48,30 +48,30 @@ export const wotVouchSetError = 'profile:wotVouchSetError'
 
 // Payload Types
 type _AddProofPayload = {readonly platform: string; readonly reason: 'appLink' | 'profile'}
-type _BackToProfilePayload = void
-type _CancelAddProofPayload = void
-type _CancelPgpGenPayload = void
-type _CheckProofPayload = void
-type _CleanupUsernamePayload = void
-type _ClearPlatformGenericPayload = void
-type _EditAvatarPayload = void
+type _BackToProfilePayload = undefined
+type _CancelAddProofPayload = undefined
+type _CancelPgpGenPayload = undefined
+type _CheckProofPayload = undefined
+type _CleanupUsernamePayload = undefined
+type _ClearPlatformGenericPayload = undefined
+type _EditAvatarPayload = undefined
 type _EditProfilePayload = {readonly bio: string; readonly fullname: string; readonly location: string}
 type _FinishBlockUserPayload = {readonly error?: string}
-type _FinishRevokingPayload = void
+type _FinishRevokingPayload = undefined
 type _FinishedWithKeyGenPayload = {readonly shouldStoreKeyOnServer: boolean}
-type _GeneratePgpPayload = void
+type _GeneratePgpPayload = undefined
 type _HideStellarPayload = {readonly hidden: boolean}
 type _OnClickAvatarPayload = {readonly username: string; readonly openWebsite?: boolean}
 type _ProofParamsReceivedPayload = {readonly params: Types.ProveGenericParams}
 type _RecheckProofPayload = {readonly sigID: string}
 type _RevokeFinishPayload = {readonly error?: string}
 type _ShowUserProfilePayload = {readonly username: string}
-type _SubmitBTCAddressPayload = void
+type _SubmitBTCAddressPayload = undefined
 type _SubmitBlockUserPayload = {readonly username: string}
 type _SubmitRevokeProofPayload = {readonly proofId: string}
 type _SubmitUnblockUserPayload = {readonly username: string; readonly guiID: string}
-type _SubmitUsernamePayload = void
-type _SubmitZcashAddressPayload = void
+type _SubmitUsernamePayload = undefined
+type _SubmitZcashAddressPayload = undefined
 type _UpdateErrorTextPayload = {readonly errorText: string; readonly errorCode?: number}
 type _UpdatePgpInfoPayload = {
   readonly pgpEmail1?: string
@@ -108,30 +108,30 @@ export const createUpdatePgpInfo = (
   payload: _UpdatePgpInfoPayload = Object.freeze({})
 ): UpdatePgpInfoPayload => ({payload, type: updatePgpInfo})
 export const createAddProof = (payload: _AddProofPayload): AddProofPayload => ({payload, type: addProof})
-export const createBackToProfile = (payload: _BackToProfilePayload): BackToProfilePayload => ({
+export const createBackToProfile = (payload?: _BackToProfilePayload): BackToProfilePayload => ({
   payload,
   type: backToProfile,
 })
-export const createCancelAddProof = (payload: _CancelAddProofPayload): CancelAddProofPayload => ({
+export const createCancelAddProof = (payload?: _CancelAddProofPayload): CancelAddProofPayload => ({
   payload,
   type: cancelAddProof,
 })
-export const createCancelPgpGen = (payload: _CancelPgpGenPayload): CancelPgpGenPayload => ({
+export const createCancelPgpGen = (payload?: _CancelPgpGenPayload): CancelPgpGenPayload => ({
   payload,
   type: cancelPgpGen,
 })
-export const createCheckProof = (payload: _CheckProofPayload): CheckProofPayload => ({
+export const createCheckProof = (payload?: _CheckProofPayload): CheckProofPayload => ({
   payload,
   type: checkProof,
 })
-export const createCleanupUsername = (payload: _CleanupUsernamePayload): CleanupUsernamePayload => ({
+export const createCleanupUsername = (payload?: _CleanupUsernamePayload): CleanupUsernamePayload => ({
   payload,
   type: cleanupUsername,
 })
 export const createClearPlatformGeneric = (
-  payload: _ClearPlatformGenericPayload
+  payload?: _ClearPlatformGenericPayload
 ): ClearPlatformGenericPayload => ({payload, type: clearPlatformGeneric})
-export const createEditAvatar = (payload: _EditAvatarPayload): EditAvatarPayload => ({
+export const createEditAvatar = (payload?: _EditAvatarPayload): EditAvatarPayload => ({
   payload,
   type: editAvatar,
 })
@@ -142,7 +142,7 @@ export const createEditProfile = (payload: _EditProfilePayload): EditProfilePayl
 export const createFinishBlockUser = (
   payload: _FinishBlockUserPayload = Object.freeze({})
 ): FinishBlockUserPayload => ({payload, type: finishBlockUser})
-export const createFinishRevoking = (payload: _FinishRevokingPayload): FinishRevokingPayload => ({
+export const createFinishRevoking = (payload?: _FinishRevokingPayload): FinishRevokingPayload => ({
   payload,
   type: finishRevoking,
 })
@@ -150,7 +150,7 @@ export const createFinishedWithKeyGen = (payload: _FinishedWithKeyGenPayload): F
   payload,
   type: finishedWithKeyGen,
 })
-export const createGeneratePgp = (payload: _GeneratePgpPayload): GeneratePgpPayload => ({
+export const createGeneratePgp = (payload?: _GeneratePgpPayload): GeneratePgpPayload => ({
   payload,
   type: generatePgp,
 })
@@ -176,7 +176,7 @@ export const createShowUserProfile = (payload: _ShowUserProfilePayload): ShowUse
   payload,
   type: showUserProfile,
 })
-export const createSubmitBTCAddress = (payload: _SubmitBTCAddressPayload): SubmitBTCAddressPayload => ({
+export const createSubmitBTCAddress = (payload?: _SubmitBTCAddressPayload): SubmitBTCAddressPayload => ({
   payload,
   type: submitBTCAddress,
 })
@@ -192,14 +192,13 @@ export const createSubmitUnblockUser = (payload: _SubmitUnblockUserPayload): Sub
   payload,
   type: submitUnblockUser,
 })
-export const createSubmitUsername = (payload: _SubmitUsernamePayload): SubmitUsernamePayload => ({
+export const createSubmitUsername = (payload?: _SubmitUsernamePayload): SubmitUsernamePayload => ({
   payload,
   type: submitUsername,
 })
-export const createSubmitZcashAddress = (payload: _SubmitZcashAddressPayload): SubmitZcashAddressPayload => ({
-  payload,
-  type: submitZcashAddress,
-})
+export const createSubmitZcashAddress = (
+  payload?: _SubmitZcashAddressPayload
+): SubmitZcashAddressPayload => ({payload, type: submitZcashAddress})
 export const createUpdateErrorText = (payload: _UpdateErrorTextPayload): UpdateErrorTextPayload => ({
   payload,
   type: updateErrorText,
@@ -411,4 +410,4 @@ export type Actions =
   | UploadAvatarPayload
   | WotVouchPayload
   | WotVouchSetErrorPayload
-  | {type: 'common:resetStore', payload: {}}
+  | {readonly type: 'common:resetStore', readonly payload: undefined}

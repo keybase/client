@@ -136,7 +136,9 @@ const CoinFlipResultDeck = (props: DeckType) => (
     fullWidth={true}
     style={Styles.collapseStyles([styles.cards, !props.hand && styles.noMarginTop])}
   >
-    {props.deck && props.deck.map(card => <Card key={card} card={card} hand={props.hand} />)}
+    {props.deck?.map(card => (
+      <Card key={card} card={card} hand={props.hand} />
+    ))}
   </Kb.Box2>
 )
 
@@ -219,14 +221,15 @@ type ShuffleType = {
 
 const CoinFlipResultShuffle = (props: ShuffleType) => (
   <Kb.Box2 direction="vertical" alignSelf="flex-start" gap="xtiny" style={styles.listContainer}>
-    {props.shuffle &&
-      props.shuffle.slice(0, 5).map((item, i) => <CoinFlipResultShuffleItem key={i} item={item} index={i} />)}
+    {props.shuffle?.slice(0, 5).map((item, i) => (
+      <CoinFlipResultShuffleItem key={i} item={item} index={i} />
+    ))}
     {props.shuffle && props.shuffle.length > 5 && (
       <Kb.Box2 direction="horizontal" style={styles.listFullContainer}>
         <Kb.Text selectable={true} type="BodySmallBold" style={styles.listFull}>
           Full shuffle:{' '}
           <Kb.Text selectable={true} type="BodySmall" style={styles.listFull}>
-            {props.shuffle && props.shuffle.join(', ')}
+            {props.shuffle?.join(', ')}
           </Kb.Text>
         </Kb.Text>
       </Kb.Box2>

@@ -1,5 +1,5 @@
 // the _on_white are precomputed colors so we can do less blending on mobile
-import {isDarkMode} from './dark-mode'
+import {isDarkMode, isDarkModePreference} from './dark-mode'
 import {partyMode} from '../local-debug'
 import {isIOS} from '../constants/platform'
 
@@ -114,7 +114,7 @@ export const colors = {
     return this.brown_75
   },
   brown_75_on_white: 'rgb(117,87,78)',
-  fastBlank: isIOS ? '#FFFFFF' : undefined, // on iOS overdraw is eliminiated if we use white, on Android it's eliminated if it's transparent /shrug
+  fastBlank: isIOS ? '#FFFFFF' : 'transparent', // on iOS overdraw is eliminated if we use white, on Android it's eliminated if it's transparent /shrug
   green: '#37BD99',
   greenDark: '#189e7a',
   get greenDarkOrBlack() {
@@ -335,7 +335,7 @@ export const darkColors: {[P in keyof typeof colors]: string | undefined} = {
     return colors.yellow
   },
   brown_75_on_white: 'rgb(117,87,78)',
-  fastBlank: isIOS ? '#191919' : undefined, // on iOS overdraw is eliminated if we use solid color, on Android it's eliminated if it's transparent /shrug
+  fastBlank: isIOS ? '#191919' : 'transparent', // on iOS overdraw is eliminated if we use solid color, on Android it's eliminated if it's transparent /shrug
   green: '#37BD99',
   greenDark: '#189e7a',
   get greenDarkOrBlack() {
@@ -500,9 +500,34 @@ type Names = keyof Color
 
 const names: Array<Names> = Object.keys(colors) as any
 
-export const themed: {[P in keyof typeof colors]: typeof colors[P]} = names.reduce<Color>(
-  (obj, name) =>
-    Object.defineProperty(obj, name, {
+let iosDynamicColors: {[P in keyof typeof colors]: typeof colors[P]}
+if (isIOS) {
+  iosDynamicColors = names.reduce<Color>((obj, name) => {
+    const {DynamicColorIOS} = require('react-native')
+    // @ts-ignore
+    obj[name] = DynamicColorIOS({dark: darkColors[name], light: colors[name]})
+    return obj
+  }, {} as Color)
+} else {
+  iosDynamicColors = colors
+}
+
+export const themed: {[P in keyof typeof colors]: typeof colors[P]} = names.reduce<Color>((obj, name) => {
+  if (isIOS) {
+    // ios actually handles this nicely natively
+    return Object.defineProperty(obj, name, {
+      configurable: false,
+      enumerable: true,
+      get() {
+        // if we're in auto mode, use ios native dynamic colors
+        if (isDarkModePreference() === 'system') {
+          return iosDynamicColors[name]
+        }
+        return isDarkMode() ? darkColors[name] : colors[name]
+      },
+    })
+  } else {
+    return Object.defineProperty(obj, name, {
       configurable: false,
       enumerable: true,
       get() {
@@ -513,8 +538,8 @@ export const themed: {[P in keyof typeof colors]: typeof colors[P]} = names.redu
 
         return isDarkMode() ? darkColors[name] : colors[name]
       },
-    }),
-  {} as Color
-)
+    })
+  }
+}, {} as Color)
 
 export default colors

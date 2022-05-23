@@ -13,10 +13,7 @@ import {pluralize} from '../../../../util/string'
 import {memoize} from '../../../../util/memoize'
 import {ModalTitle, useChannelParticipants} from '../../../../teams/common'
 
-type Props = Container.RouteProps<{
-  conversationIDKey: ChatTypes.ConversationIDKey
-  teamID: TeamTypes.TeamID
-}>
+type Props = Container.RouteProps<'chatAddToChannel'>
 
 const sortMembers = memoize((members: TeamTypes.TeamDetails['members']) =>
   [...members.values()]
@@ -25,12 +22,8 @@ const sortMembers = memoize((members: TeamTypes.TeamDetails['members']) =>
 )
 
 const AddToChannel = (props: Props) => {
-  const conversationIDKey = Container.getRouteProps(
-    props,
-    'conversationIDKey',
-    ChatConstants.noConversationIDKey
-  )
-  const teamID = Container.getRouteProps(props, 'teamID', TeamTypes.noTeamID)
+  const conversationIDKey = props.route.params?.conversationIDKey ?? ChatConstants.noConversationIDKey
+  const teamID = props.route.params?.teamID ?? TeamTypes.noTeamID
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
 
@@ -81,9 +74,7 @@ const AddToChannel = (props: Props) => {
           <Kb.Text type="BodyBigLink" onClick={onClose}>
             Cancel
           </Kb.Text>
-        ) : (
-          undefined
-        ),
+        ) : undefined,
         rightButton: Styles.isMobile && toAdd.size && (
           <Kb.Text type="BodyBigLink" onClick={waiting ? undefined : onAdd}>
             Add

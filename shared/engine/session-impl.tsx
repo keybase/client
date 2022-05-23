@@ -1,11 +1,16 @@
-import {SessionID, EndHandlerType, MethodKey} from './types'
-import {StatusCode, CustomResponseIncomingCallMap, IncomingCallMapType} from '../constants/types/rpc-gen'
-import {rpcLog, invokeType} from './index.platform'
+import {
+  StatusCode,
+  type CustomResponseIncomingCallMap,
+  type IncomingCallMapType,
+} from '../constants/types/rpc-gen'
+import {rpcLog, type invokeType} from './index.platform'
 import {IncomingRequest, OutgoingRequest} from './request'
 import {RPCError} from '../util/errors'
 import {measureStart, measureStop} from '../util/user-timings'
 import {getEngine} from './require'
 import isArray from 'lodash/isArray'
+import type {SessionID, EndHandlerType, MethodKey} from './types'
+import type {TypedDispatch} from '../util/container'
 
 type WaitingKey = string | Array<string>
 
@@ -24,7 +29,6 @@ class Session {
   // Sequence IDs we've seen. Value is true if we've responded (often we get cancel after we've replied)
   _seqIDResponded: {[K in string]: boolean} = {}
   // If you want to know about being cancelled
-  // eslint-disable-next-line no-use-before-define
   _cancelHandler: CancelHandlerType | null
   // If true this session exists forever
   _dangling: boolean
@@ -40,7 +44,10 @@ class Session {
   _outgoingRequests: Array<any> = []
   _incomingRequests: Array<any> = []
 
+  _dispatch: TypedDispatch
+
   constructor(p: {
+    dispatch: TypedDispatch
     sessionID: SessionID
     incomingCallMap: IncomingCallMapType | null
     customResponseIncomingCallMap: CustomResponseIncomingCallMap | null
@@ -58,6 +65,7 @@ class Session {
     this._endHandler = p.endHandler
     this._cancelHandler = p.cancelHandler || null
     this._dangling = p.dangling || false
+    this._dispatch = p.dispatch
   }
 
   setId(_: SessionID) {
@@ -119,7 +127,7 @@ class Session {
     if (this._startMethod) {
       measureStop(`engine:${this._startMethod}:${this.getId()}`)
     }
-    this._endHandler && this._endHandler(this)
+    this._endHandler?.(this)
   }
 
   // Start the session normally. Tells engine we're done at the end
@@ -129,7 +137,7 @@ class Session {
 
     // When this request is done the session is done
     const wrappedCallback = (...args) => {
-      this._startCallback && this._startCallback(...args)
+      this._startCallback?.(...args)
       this._startCallback = undefined
       this.end()
     }
@@ -183,7 +191,7 @@ class Session {
       return false
     }
 
-    if (response && response.seqid) {
+    if (response?.seqid) {
       this._seqIDResponded[String(response.seqid)] = false
     }
 
@@ -193,10 +201,7 @@ class Session {
     const actions = incomingRequest.handle()
 
     const arr = isArray(actions) ? actions : [actions]
-    // @ts-ignore codemode issue
-    const dispatch = getEngine().deprecatedGetDispatch()
-    // @ts-ignore codemode issue
-    arr.forEach(a => !!a && dispatch(a))
+    arr.forEach(a => !!a && this._dispatch(a))
 
     return true
   }

@@ -1,7 +1,15 @@
 import {parseUri, launchImageLibraryAsync} from './expo-image-picker'
+import {type OpenDialogOptions, type SaveDialogOptions} from './electron.desktop'
 
-const pickFiles = async (_: string): Promise<Array<string>> => {
+export const pickImages = async (_: string): Promise<Array<string>> => {
   const result = await launchImageLibraryAsync('photo')
-  return result.cancelled === true ? [] : [parseUri(result)]
+  return result.cancelled ? [] : [parseUri(result)]
 }
-export default pickFiles
+
+export const pickFiles = async (_options: OpenDialogOptions) => {
+  throw new Error('No supported platform')
+}
+
+export const pickSave = async (_options: SaveDialogOptions) => {
+  throw new Error('No supported platform')
+}

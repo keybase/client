@@ -1,11 +1,11 @@
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
-import * as Types from '../../../../constants/types/teams'
 import * as Container from '../../../../util/container'
 import * as TeamsGen from '../../../../actions/teams-gen'
+import type * as Types from '../../../../constants/types/teams'
 import {typeToLabel} from '../../../../constants/teams'
-import {BoolTypeMap, MemberStatus, TeamRoleType} from '../../../../constants/types/teams'
+import type {BoolTypeMap, MemberStatus, TeamRoleType} from '../../../../constants/types/teams'
 import MenuHeader from '../menu-header.new'
 
 export type Props = {
@@ -44,20 +44,21 @@ const showCrown: BoolTypeMap = {
 // you're changing one remember to change the other.
 
 export const TeamMemberRow = (props: Props) => {
-  let crown, fullNameLabel, resetLabel
+  const {roleType, fullName} = props
   const active = props.status === 'active'
-  if (active && props.roleType && showCrown[props.roleType]) {
-    crown = (
-      <Kb.Icon type={('iconfont-crown-' + props.roleType) as any} style={styles.crownIcon} fontSize={10} />
-    )
-  }
-  if (props.fullName && active) {
-    fullNameLabel = (
+  const crown =
+    active && roleType && showCrown[roleType] ? (
+      <Kb.Icon type={('iconfont-crown-' + roleType) as Kb.IconType} style={styles.crownIcon} fontSize={10} />
+    ) : null
+
+  const fullNameLabel =
+    fullName && active ? (
       <Kb.Text style={styles.fullNameLabel} type="BodySmall" lineClamp={1}>
-        {props.fullName} •
+        {fullName} •
       </Kb.Text>
-    )
-  }
+    ) : null
+
+  let resetLabel: string | undefined = undefined
   if (!active) {
     resetLabel = props.youCanManageMembers
       ? 'Has reset their account'
@@ -69,9 +70,8 @@ export const TeamMemberRow = (props: Props) => {
     resetLabel = ' • Needs to update Keybase'
   }
 
-  const roleLabel = !!active && !!props.roleType && typeToLabel[props.roleType]
+  const roleLabel = !!active && !!roleType && typeToLabel[roleType]
   const isYou = props.you === props.username
-
   const teamID = props.teamID
 
   const dispatch = Container.useDispatch()
@@ -83,6 +83,9 @@ export const TeamMemberRow = (props: Props) => {
   const onSelect = (selected: boolean) => {
     dispatch(TeamsGen.createTeamSetMemberSelected({selected, teamID, username: props.username}))
   }
+
+  const canEnterMemberPage = props.youCanManageMembers && active && !props.needsPUK
+  const onClick = anySelected ? () => onSelect(!selected) : canEnterMemberPage ? props.onClick : undefined
 
   const checkCircle = (
     <Kb.CheckCircle
@@ -96,10 +99,14 @@ export const TeamMemberRow = (props: Props) => {
   const body = (
     <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center">
       <Kb.Avatar username={props.username} size={32} />
-
       <Kb.Box2 direction="vertical" style={styles.nameContainer}>
         <Kb.Box style={Styles.globalStyles.flexBoxRow}>
-          <Kb.ConnectedUsernames type="BodyBold" usernames={props.username} colorFollowing={true} />
+          <Kb.ConnectedUsernames
+            type="BodyBold"
+            usernames={props.username}
+            colorFollowing={true}
+            onUsernameClicked={onClick}
+          />
         </Kb.Box>
 
         <Kb.Box2 direction="horizontal" centerChildren={true} alignSelf="flex-start">
@@ -113,7 +120,7 @@ export const TeamMemberRow = (props: Props) => {
             />
           )}
           <Kb.Text type="BodySmall">
-            {!!active && !!props.roleType && typeToLabel[props.roleType]}
+            {!!active && !!roleType && typeToLabel[roleType]}
             {resetLabel}
           </Kb.Text>
         </Kb.Box2>
@@ -213,7 +220,6 @@ export const TeamMemberRow = (props: Props) => {
     </Kb.Box2>
   )
 
-  const canEnterMemberPage = props.youCanManageMembers && active && !props.needsPUK
   const massActionsProps = props.youCanManageMembers
     ? {
         containerStyleOverride: styles.listItemMargin,
@@ -221,6 +227,7 @@ export const TeamMemberRow = (props: Props) => {
         iconStyleOverride: styles.checkCircle,
       }
     : {}
+
   return (
     <Kb.ListItem2
       {...massActionsProps}
@@ -231,7 +238,8 @@ export const TeamMemberRow = (props: Props) => {
       body={body}
       firstItem={props.firstItem}
       style={selected ? styles.selected : styles.unselected}
-      onClick={anySelected ? () => onSelect(!selected) : canEnterMemberPage ? props.onClick : undefined}
+      innerStyle={selected ? styles.selected : styles.unselected}
+      onClick={onClick}
     />
   )
 }

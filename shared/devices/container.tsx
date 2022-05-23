@@ -4,13 +4,13 @@ import * as DevicesGen from '../actions/devices-gen'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
 import * as RouteTreeGen from '../actions/route-tree-gen'
-import * as Types from '../constants/types/devices'
-import Devices, {Props, Item} from '.'
+import type * as Types from '../constants/types/devices'
+import Devices, {type Props, type Item} from '.'
 import partition from 'lodash/partition'
 import {HeaderTitle, HeaderRightActions} from './nav-header/container'
 import {intersect} from '../util/set'
 
-type OwnProps = Container.RouteProps
+type OwnProps = {}
 
 const sortDevices = (a: Types.Device, b: Types.Device) => {
   if (a.currentDevice) return -1
@@ -45,12 +45,8 @@ const ReloadableDevices = (props: Props) => {
 }
 
 ReloadableDevices.navigationOptions = Container.isMobile
-  ? {
-      header: undefined,
-      title: 'Devices',
-    }
+  ? {title: 'Devices'}
   : {
-      header: undefined,
       headerRightActions: HeaderRightActions,
       headerTitle: HeaderTitle,
       title: 'Devices',

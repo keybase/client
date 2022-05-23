@@ -1,7 +1,6 @@
+// @ts-nocheck
+/* eslint-disable */
 module.exports = {
-  get Animated() {
-    return require('./animated').default
-  },
   get Animation() {
     return require('./animation').default
   },
@@ -121,6 +120,12 @@ module.exports = {
   get HeaderHocWrapper() {
     return require('./header-hoc').HeaderHocWrapper
   },
+  get HeaderLeftBlank() {
+    return require('./header-hoc').HeaderLeftBlank
+  },
+  get HeaderLeftCancel() {
+    return require('./header-hoc').HeaderLeftCancel
+  },
   get HotKey() {
     return require('./hot-key').HotKey
   },
@@ -190,14 +195,8 @@ module.exports = {
   get NameWithIcon() {
     return require('./name-with-icon').default
   },
-  get NavigationEvents() {
-    return require('@react-navigation/core').NavigationEvents
-  },
   get NewInput() {
     return require('./new-input').default
-  },
-  get OrientedImage() {
-    return require('./oriented-image').default
   },
   get Overlay() {
     return require('./overlay').default
@@ -298,9 +297,6 @@ module.exports = {
   get Toast() {
     return require('./toast').default
   },
-  get Transition() {
-    return require('./animated').Transition
-  },
   get Video() {
     return require('./video').default
   },
@@ -315,9 +311,6 @@ module.exports = {
   },
   get WithTooltip() {
     return require('./with-tooltip').default
-  },
-  get animated() {
-    return require('./animated').animated
   },
   get isValidIconType() {
     return require('./icon.shared').isValidIconType
@@ -346,8 +339,8 @@ module.exports = {
   get usePopup() {
     return require('./use-popup').usePopup
   },
-  get useSafeArea() {
-    return require('./safe-area-view').useSafeArea
+  get useSafeAreaInsets() {
+    return require('./safe-area-view').useSafeAreaInsets
   },
   get useTimeout() {
     return require('./use-timers').useTimeout

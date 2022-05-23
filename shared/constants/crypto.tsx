@@ -207,7 +207,7 @@ export const getStatusCodeMessage = (
   const offlineMessage = `You are offline.`
   const genericMessage = `Failed to ${operation} ${type}.`
 
-  var wrongTypeHelpText = ``
+  let wrongTypeHelpText = ``
   if (operation === Operations.Verify) {
     wrongTypeHelpText = ` Did you mean to decrypt it?` // just a guess. could get specific expected type from Cause with more effort.
   } else if (operation === Operations.Decrypt) {

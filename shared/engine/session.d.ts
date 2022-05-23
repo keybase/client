@@ -1,16 +1,16 @@
-import {
+import type {
   CustomResponseIncomingCallMap as KBCustomResponseIncomingCallMap,
   IncomingCallMapType as KBIncomingCallMap,
 } from '../constants/types/rpc-gen'
-import {
+import type {
   CustomResponseIncomingCallMap as ChatCustomResponseIncomingCallMap,
   IncomingCallMapType as ChatIncomingCallMap,
 } from '../constants/types/rpc-chat-gen'
-import {
+import type {
   CustomResponseIncomingCallMap as GregorCustomResponseIncomingCallMap,
   IncomingCallMapType as GregorIncomingCallMap,
 } from '../constants/types/rpc-gregor-gen'
-import {
+import type {
   CustomResponseIncomingCallMap as SellarCustomResponseIncomingCallMap,
   IncomingCallMapType as SellarIncomingCallMap,
 } from '../constants/types/rpc-stellar-gen'
@@ -34,6 +34,7 @@ declare class Session {
   incomingCall: (method: string, param: Object, response: Object | null) => boolean
   start: (method: string, param: Object | null, callback: null | (() => void)) => void
   constructor(arg0: {
+    dispatch: any
     sessionID: number
     incomingCallMap?: IncomingCallMap | null
     customResponseIncomingCallMap?: CustomResponseIncomingCallMap | null

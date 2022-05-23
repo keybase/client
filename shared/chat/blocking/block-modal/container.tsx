@@ -1,29 +1,22 @@
-import * as Container from '../../../util/container'
-import * as RouteTreeGen from '../../../actions/route-tree-gen'
-import BlockModal, {BlockType, NewBlocksMap, ReportSettings, BlockModalContext} from '.'
-import * as UsersGen from '../../../actions/users-gen'
-import * as TeamsGen from '../../../actions/teams-gen'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Constants from '../../../constants/users'
+import * as Container from '../../../util/container'
+import * as RouteTreeGen from '../../../actions/route-tree-gen'
+import * as TeamsGen from '../../../actions/teams-gen'
+import * as UsersGen from '../../../actions/users-gen'
+import BlockModal, {type BlockType, type NewBlocksMap, type ReportSettings} from '.'
 import {leaveTeamWaitingKey} from '../../../constants/teams'
 
-type OwnProps = Container.RouteProps<{
-  blockUserByDefault?: boolean
-  context?: BlockModalContext
-  convID?: string
-  others?: Array<string>
-  team?: string
-  username?: string
-}>
+type OwnProps = Container.RouteProps<'chatBlockingModal'>
 
 export default Container.connect(
   (state: Container.TypedState, ownProps: OwnProps) => {
-    const teamname = Container.getRouteProps(ownProps, 'team', undefined)
+    const teamname = ownProps.route.params?.team ?? undefined
     const waitingForLeave = teamname ? Container.anyWaiting(state, leaveTeamWaitingKey(teamname)) : false
     const waitingForBlocking = Container.anyWaiting(state, Constants.setUserBlocksWaitingKey)
     const waitingForReport = Container.anyWaiting(state, Constants.reportUserWaitingKey)
-    let others = Container.getRouteProps(ownProps, 'others', undefined)
-    let adderUsername = Container.getRouteProps(ownProps, 'username', undefined)
+    let others = ownProps.route.params?.others ?? undefined
+    let adderUsername = ownProps.route.params?.username ?? undefined
     if (others?.length === 1 && !adderUsername) {
       adderUsername = others[0]
       others = undefined
@@ -32,9 +25,9 @@ export default Container.connect(
     return {
       _allKnownBlocks: state.users.blockMap,
       adderUsername,
-      blockUserByDefault: Container.getRouteProps(ownProps, 'blockUserByDefault', false),
-      context: Container.getRouteProps(ownProps, 'context', undefined),
-      convID: Container.getRouteProps(ownProps, 'convID', undefined),
+      blockUserByDefault: ownProps.route.params?.blockUserByDefault ?? false,
+      context: ownProps.route.params?.context ?? undefined,
+      convID: ownProps.route.params?.convID ?? undefined,
       finishWaiting: waitingForLeave || waitingForBlocking || waitingForReport,
       loadingWaiting: Container.anyWaiting(state, Constants.getUserBlocksWaitingKey),
       otherUsernames: others && others.length > 0 ? others : undefined,
@@ -80,7 +73,7 @@ export default Container.connect(
           setFollowBlock: userBlocks.followBlocked,
           username,
         }))
-      if (blocks && blocks.length) {
+      if (blocks.length) {
         dispatch(UsersGen.createSetUserBlocks({blocks}))
       }
     },

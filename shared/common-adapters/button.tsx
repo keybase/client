@@ -1,14 +1,14 @@
 /* eslint-disable sort-keys */
-import Badge from './badge'
-import {Box, Box2} from './box'
-import ClickableBox from './clickable-box'
-import Icon, {SizeType} from './icon'
-import WithTooltip from './with-tooltip'
-import * as React from 'react'
-import Text, {StylesTextCrossPlatform} from './text'
-import * as Styles from '../styles'
 import './button.css'
-import {IconType} from './icon.constants-gen'
+import * as React from 'react'
+import * as Styles from '../styles'
+import Badge from './badge'
+import ClickableBox from './clickable-box'
+import Icon, {type SizeType} from './icon'
+import Text, {type StylesTextCrossPlatform} from './text'
+import WithTooltip from './with-tooltip'
+import type {IconType} from './icon.constants-gen'
+import {Box, Box2} from './box'
 
 const Kb = {
   Badge,
@@ -83,13 +83,13 @@ const Progress = ({small, white}: {small?: boolean; white: boolean}) => {
   )
 }
 
-const Button = React.forwardRef<ClickableBox, Props>((props: Props, ref: React.Ref<ClickableBox>) => {
+const ButtonInner = (props: Props, ref: React.Ref<ClickableBox>) => {
   const {mode = 'Primary', type = 'Default'} = props
   let containerStyle: Styles.StylesCrossPlatform = props.backgroundColor
     ? backgroundColorContainerStyles[mode as any]
     : containerStyles[(mode + type) as any]
   let labelStyle: StylesTextCrossPlatform = props.backgroundColor
-    ? (backgroundColorLabelStyles[mode + (mode === 'Secondary' ? '' : props.backgroundColor)] as any)
+    ? backgroundColorLabelStyles[mode + (mode === 'Secondary' ? '' : props.backgroundColor)]
     : labelStyles[mode + type]
 
   if (props.fullWidth) {
@@ -224,7 +224,8 @@ const Button = React.forwardRef<ClickableBox, Props>((props: Props, ref: React.R
   }
 
   return content
-})
+}
+const Button = React.forwardRef<ClickableBox, Props>(ButtonInner)
 
 const typeToColorName = {
   Default: 'blue',
@@ -358,17 +359,20 @@ const labelStyles: any = Styles.styleSheetCreate(() => {
     ...commonLabel(),
     color: Styles.globalColors.whiteOrWhite,
   }
+  const secondaryLabel = {
+    backgroundColor: Styles.globalColors.fastBlank,
+  }
   return {
     PrimaryDefault: primaryWhiteBgLabel,
     PrimarySuccess: primaryWhiteBgLabel,
     PrimaryDanger: primaryWhiteBgLabel,
     PrimaryWallet: primaryWhiteBgLabel,
     PrimaryDim: {...primaryWhiteBgLabel, color: Styles.globalColors.black},
-    SecondaryDefault: {...commonLabel(), color: Styles.globalColors.blueDark},
-    SecondarySuccess: {...commonLabel(), color: Styles.globalColors.greenDark},
-    SecondaryDanger: {...commonLabel(), color: Styles.globalColors.redDark},
-    SecondaryWallet: {...commonLabel(), color: Styles.globalColors.purpleDark},
-    SecondaryDim: {...commonLabel(), color: Styles.globalColors.black_50},
+    SecondaryDefault: {...commonLabel(), ...secondaryLabel, color: Styles.globalColors.blueDark},
+    SecondarySuccess: {...commonLabel(), ...secondaryLabel, color: Styles.globalColors.greenDark},
+    SecondaryDanger: {...commonLabel(), ...secondaryLabel, color: Styles.globalColors.redDark},
+    SecondaryWallet: {...commonLabel(), ...secondaryLabel, color: Styles.globalColors.purpleDark},
+    SecondaryDim: {...commonLabel(), ...secondaryLabel, color: Styles.globalColors.black_50},
   }
 })
 

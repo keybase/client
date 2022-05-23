@@ -1,7 +1,7 @@
 import * as React from 'react'
-import * as Types from '../../../../constants/types/chat2'
-import {Box2, ClickableBox, Icon, Text, EmojiIfExists} from '../../../../common-adapters'
-import {Props as ClickableBoxProps} from '../../../../common-adapters/clickable-box'
+import type * as Types from '../../../../constants/types/chat2'
+import {Box2, ClickableBox, Icon, Text, Markdown} from '../../../../common-adapters'
+import type {Props as ClickableBoxProps} from '../../../../common-adapters/clickable-box'
 import * as Styles from '../../../../styles'
 import DelayInterval from './delay-interval'
 
@@ -54,11 +54,22 @@ const ButtonBox = Styles.styled(ClickableBox, {
       }
 )
 
-const standardEmojiPattern = /^:([^:])+:$/
-
-const ReactButton = React.forwardRef<ClickableBox, Props>((props, ref) => {
+const markdownOverride = {
+  customEmoji: {
+    height: Styles.isMobile ? 26 : 18,
+    marginTop: Styles.isMobile ? 0 : 4,
+    width: Styles.isMobile ? 20 : 18,
+  },
+  emoji: {
+    height: Styles.isMobile ? 20 : 21,
+  },
+  paragraph: {
+    height: Styles.isMobile ? 20 : 18,
+    ...(Styles.isMobile ? {} : {display: 'flex', fontSize: 14}),
+  },
+}
+const ReactButtonInner = (props: Props, ref) => {
   const text = props.decorated.length ? props.decorated : props.emoji
-  const isStandardEmoji = !!props.emoji.match(standardEmojiPattern)
   return (
     <ButtonBox
       noEffect={false}
@@ -76,31 +87,32 @@ const ReactButton = React.forwardRef<ClickableBox, Props>((props, ref) => {
         props.style,
       ])}
     >
-      <Box2
-        centerChildren={true}
-        fullHeight={true}
-        direction="horizontal"
-        gap="xtiny"
-        style={styles.container}
-      >
-        <Box2 direction="horizontal" style={styles.emojiWrapper}>
-          <EmojiIfExists
-            paragraphTextClassName={Styles.classNames({noLineHeight: isStandardEmoji})}
-            size={Styles.isMobile ? 16 : 18}
-            lineClamp={1}
-            emojiName={text}
-          />
+      <Box2 centerChildren={true} fullHeight={true} direction="horizontal" style={styles.container}>
+        <Box2 direction="horizontal" style={styles.containerInner} gap="xtiny">
+          <Box2 direction="vertical" className="center-emojis">
+            <Markdown
+              styleOverride={markdownOverride as any}
+              lineClamp={1}
+              smallStandaloneEmoji={true}
+              virtualText={true}
+            >
+              {text}
+            </Markdown>
+          </Box2>
+          <Text
+            type="BodyTinyBold"
+            virtualText={true}
+            style={Styles.collapseStyles([styles.count, props.active && styles.countActive])}
+          >
+            {props.count}
+          </Text>
         </Box2>
-        <Text
-          type="BodyTinyBold"
-          style={Styles.collapseStyles([styles.count, props.active && styles.countActive])}
-        >
-          {props.count}
-        </Text>
       </Box2>
     </ButtonBox>
   )
-})
+}
+
+const ReactButton = React.forwardRef<ClickableBox, Props>(ReactButtonInner)
 
 const iconCycle = ['iconfont-reacji', 'iconfont-reacji', 'iconfont-reacji', 'iconfont-reacji'] as const
 export type NewReactionButtonProps = {
@@ -128,7 +140,7 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
 
   _setShowingPicker = (showingPicker: boolean) => {
     this.setState(s => (s.showingPicker === showingPicker ? null : {showingPicker}))
-    this.props.onShowPicker && this.props.onShowPicker(showingPicker)
+    this.props.onShowPicker?.(showingPicker)
   }
 
   _onAddReaction = ({colons}: {colons: string}) => {
@@ -173,7 +185,7 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
 
   componentWillUnmount() {
     this._stopCycle()
-    this.props.onShowPicker && this.props.onShowPicker(false)
+    this.props.onShowPicker?.(false)
   }
 
   render() {
@@ -217,7 +229,7 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
                   !Styles.isMobile && (this.props.showBorder ? {top: 4} : {top: 1}),
                   !this.state.applyClasses &&
                     (iconIndex === this.state.iconIndex
-                      ? {transform: 'translateX(-8px)'}
+                      ? ({transform: 'translateX(-8px)'} as any)
                       : {transform: 'translateX(22px)'}),
                 ])}
                 className={this._getClass(iconIndex)}
@@ -242,29 +254,29 @@ const styles = Styles.styleSheetCreate(
         borderStyle: 'solid',
       },
       buttonBox: {
+        alignItems: 'center',
         backgroundColor: Styles.globalColors.white,
         borderWidth: 1,
         height: Styles.isMobile ? 30 : 24,
+        justifyContent: 'center',
         ...Styles.transition('border-color', 'background-color', 'box-shadow'),
       },
-      container: Styles.platformStyles({
-        common: {
-          paddingLeft: 6,
-          paddingRight: 6,
-        },
-        isElectron: {
-          paddingBottom: Styles.globalMargins.tiny,
-          paddingTop: Styles.globalMargins.tiny,
-        },
-      }),
+      container: {
+        height: 20,
+        minWidth: 40,
+        paddingLeft: 6,
+        paddingRight: 6,
+      },
+      containerInner: {
+        alignItems: 'center',
+        height: 24,
+      },
       count: {
         color: Styles.globalColors.black_50,
         position: 'relative',
-        top: 1,
       },
-      countActive: {
-        color: Styles.globalColors.blueDark,
-      },
+      countActive: {color: Styles.globalColors.blueDark},
+      emoji: {height: 25},
       emojiContainer: Styles.platformStyles({
         isElectron: {
           ...Styles.desktopStyles.boxShadow,
@@ -278,13 +290,8 @@ const styles = Styles.styleSheetCreate(
         },
         isMobile: {marginTop: 2},
       }),
-      emojiWrapper: Styles.platformStyles({
-        isMobile: {marginTop: -2},
-      }),
       newReactionButtonBox: Styles.platformStyles({
-        common: {
-          width: 37,
-        },
+        common: {width: 37},
         isElectron: {
           minHeight: 18,
           overflow: 'hidden',

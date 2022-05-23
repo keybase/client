@@ -3,11 +3,11 @@ import * as Constants from '../../constants/devices'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import DevicePage from '.'
 
-type OwnProps = Container.RouteProps<{deviceID: string}>
+type OwnProps = Container.RouteProps<'devicePage'>
 
 export default Container.connect(
   (state: Container.TypedState, ownProps: OwnProps) => {
-    const id = Container.getRouteProps(ownProps, 'deviceID', '')
+    const id = ownProps.route.params?.deviceID ?? ''
     return {iconNumber: Constants.getDeviceIconNumber(state, id), id}
   },
   dispatch => ({

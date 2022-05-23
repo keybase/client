@@ -7,14 +7,14 @@ import * as Constants from '../../constants/teams'
 import * as Types from '../../constants/types/teams'
 import {computeWelcomeMessageTextRaw} from '../../chat/conversation/messages/cards/team-journey/util'
 
-type Props = Container.RouteProps<{teamID: Types.TeamID}>
+type Props = Container.RouteProps<'teamEditWelcomeMessage'>
 
 // welcomeMessageMaxLen is duplicated at
 // go/chat/server.go:welcomeMessageMaxLen; keep the values in sync!
 const welcomeMessageMaxLen = 400
 
 const EditTeamWelcomeMessage = (props: Props) => {
-  const teamID = Container.getRouteProps(props, 'teamID', Types.noTeamID)
+  const teamID = props.route.params?.teamID ?? Types.noTeamID
 
   if (teamID === Types.noTeamID) {
     throw new Error(`There was a problem loading the welcome message page, please report this error.`)
@@ -42,6 +42,7 @@ const EditTeamWelcomeMessage = (props: Props) => {
   React.useEffect(() => {
     if (!waiting && wasWaiting && !error) dispatch(nav.safeNavigateUpPayload())
   }, [waiting, wasWaiting, nav, dispatch, error])
+
   return (
     <Kb.Modal
       mode="Default"
@@ -91,8 +92,8 @@ const EditTeamWelcomeMessage = (props: Props) => {
             type="BodySmall"
             style={Styles.collapseStyles([
               styles.info,
-              !(welcomeMessage.set && welcomeMessage.raw.length === 0) && {visibility: 'hidden'},
-            ])}
+              !(welcomeMessage.set && welcomeMessage.raw.length === 0) && {visibility: 'hidden' as const},
+            ] as any)}
           >
             No welcome note will be shown to new members.
           </Kb.Text>

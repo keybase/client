@@ -1,14 +1,26 @@
 import * as React from 'react'
-import {Draft as _Draft} from 'immer'
-import {TypedActions as _TypedActions} from '../actions/typed-actions-gen'
-import {ActionHandler as _ActionHandler} from './make-reducer'
-import {TypedState as _TypedState} from '../constants/reducer'
-import {RouteProps as _RouteProps, GetRouteType} from '../route-tree/render-route'
+import {type Draft as _Draft, setAutoFreeze} from 'immer'
+import type {TypedActions as _TypedActions} from '../actions/typed-actions-gen'
+import type {ActionHandler as _ActionHandler} from './make-reducer'
+import type {TypedState as _TypedState} from '../constants/reducer'
 import {StatusCode} from '../constants/types/rpc-gen'
 import {anyWaiting, anyErrors} from '../constants/waiting'
+import {
+  useSelector as RRuseSelector,
+  useDispatch as RRuseDispatch,
+  type TypedUseSelectorHook,
+} from 'react-redux'
+import type {Dispatch as RRDispatch} from 'redux'
 import flowRight from 'lodash/flowRight'
-import {useSelector as RRuseSelector, useDispatch as RRuseDispatch} from 'react-redux'
 import typedConnect from './typed-connect'
+import type {Route} from '../constants/types/route-tree'
+import type {NavigationContainerRef} from '@react-navigation/core'
+export {type RouteProps, getRouteParams, getRouteParamsFromRoute} from '../router-v2/route-params'
+
+// don't pay for this in prod builds
+if (!__DEV__) {
+  setAutoFreeze(false)
+}
 
 // to keep fallback objects static for react
 export const emptyArray: Array<any> = []
@@ -23,24 +35,6 @@ export const networkErrorCodes = [
 ]
 
 export const isNetworkErr = (code: number) => networkErrorCodes.includes(code)
-
-export function getRouteProps<O extends _RouteProps<any>, R extends GetRouteType<O>, K extends keyof R>(
-  ownProps: O,
-  key: K,
-  notSetVal: R[K] // this could go away if we type the routes better and ensure its always passed as a prop
-): R[K] {
-  const val = ownProps.navigation.getParam(key)
-  return val === undefined ? notSetVal : val
-}
-
-export function getRoutePropsOr<O extends _RouteProps<any>, R extends GetRouteType<O>, K extends keyof R, D>(
-  ownProps: O,
-  key: K,
-  notSetVal: D
-): R[K] | D {
-  const val = ownProps.navigation.getParam(key)
-  return val === undefined ? notSetVal : val
-}
 
 export type RemoteWindowSerializeProps<P> = {[K in keyof P]-?: (val: P[K], old?: P[K]) => any}
 
@@ -78,17 +72,18 @@ export function useDepChangeEffect(f: () => void, deps: Array<unknown>) {
   }, deps)
 }
 
-export type Route = {
+export type RouteDef = {
   getScreen: () => React.ComponentType<any>
+  getOptions?: (p: {navigation: NavigationContainerRef<{}>; route: Route}) => Object
   screen?: React.ComponentType
 }
-export type RouteMap = {[K in string]: Route}
+export type RouteMap = {[K in string]: RouteDef}
 
 export const assertNever = (_: never) => undefined
 
-export const timeoutPromise = (timeMs: number) =>
-  new Promise(resolve => {
-    setTimeout(() => resolve(undefined), timeMs)
+export const timeoutPromise = async (timeMs: number) =>
+  new Promise<void>(resolve => {
+    setTimeout(() => resolve(), timeMs)
   })
 
 const connect = typedConnect
@@ -97,23 +92,21 @@ export {isMobile, isIOS, isAndroid, isPhone, isTablet} from '../constants/platfo
 export {anyWaiting, anyErrors} from '../constants/waiting'
 export {safeSubmit, safeSubmitPerMount} from './safe-submit'
 export {useSafeNavigation} from './safe-navigation'
-export type RouteProps<P = {}> = _RouteProps<P>
 export type TypedActions = _TypedActions
 export type TypedState = _TypedState
 export const compose = flowRight
 export {default as hoistNonReactStatic} from 'hoist-non-react-statics'
-export {produce, castDraft, castImmutable} from 'immer'
+export {produce, castDraft, castImmutable, current} from 'immer'
 export type Draft<T> = _Draft<T>
 export {default as HiddenString} from './hidden-string'
 export {default as makeReducer} from './make-reducer'
 export type ActionHandler<S, A> = _ActionHandler<S, A>
 export {default as useRPC} from './use-rpc'
 export {default as useSafeCallback} from './use-safe-callback'
-export {default as useFocusBlur} from './use-focus-blur'
 export {default as useWatchActions} from './use-watch-actions'
 export type RootState = _TypedState
-export const useDispatch = RRuseDispatch
-export const useSelector = RRuseSelector
+export const useDispatch = () => RRuseDispatch<RRDispatch<_TypedActions>>()
+export const useSelector: TypedUseSelectorHook<RootState> = RRuseSelector
 
 // BEGIN debugging connect
 // import isEqual from 'lodash/isEqual'

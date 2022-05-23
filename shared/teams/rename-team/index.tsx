@@ -97,7 +97,7 @@ class RenameTeam extends React.Component<Props, {error: string; newName: string}
               style={Styles.collapseStyles([
                 styles.inputContainer,
                 this.props.error && styles.inputContainerError,
-              ])}
+              ] as const)}
               fullWidth={true}
             >
               <Kb.PlainInput

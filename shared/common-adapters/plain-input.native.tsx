@@ -172,7 +172,7 @@ class PlainInput extends Component<InternalProps> {
     if (isIOS) {
       delete textStyle.lineHeight
     }
-    return collapseStyles([styles.common, textStyle])
+    return collapseStyles([styles.common, textStyle] as any)
   }
 
   _getMultilineStyle = () => {

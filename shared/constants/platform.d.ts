@@ -1,5 +1,3 @@
-import {DarkModePreference} from 'styles/dark-mode'
-
 export const runMode: string
 
 export const isMobile: boolean
@@ -9,6 +7,7 @@ export const isLargeScreen: boolean
 export const isTablet: boolean
 export const isPhone: boolean
 export const windowHeight: number
+export const pathSep: '/' | '\\'
 
 export const isElectron: boolean
 export const isDarwin: boolean
@@ -20,15 +19,13 @@ export const isDebuggingInChrome: boolean // only useful in RN
 
 export const isAndroidNewerThanN: boolean
 export const defaultUseNativeFrame: boolean
-export const isTestDevice: boolean
-export const isRemoteDebuggerAttached: boolean
+export const androidIsTestDevice: boolean
 
-export declare const downloadFolder: string
-export declare const fileUIName: string
-export declare const version: string
-export declare const pprofDir: string
-export declare const serverConfigFileName: string
-export declare const shortcutSymbol: string
-export declare const realDeviceName: string
-export declare const uses24HourClock: boolean
-export const appColorSchemeChanged: (pref: DarkModePreference) => void
+export const downloadFolder: string
+export const fileUIName: string
+export const version: string
+export const pprofDir: string
+export const serverConfigFileName: string
+export const shortcutSymbol: string
+export const realDeviceName: string
+export const uses24HourClock: boolean

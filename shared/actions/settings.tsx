@@ -1,21 +1,22 @@
-import logger from '../logger'
-import * as Tabs from '../constants/tabs'
 import * as ChatTypes from '../constants/types/rpc-chat-gen'
-import * as Saga from '../util/saga'
-import * as Types from '../constants/types/settings'
-import * as Constants from '../constants/settings'
 import * as ConfigGen from './config-gen'
+import * as Constants from '../constants/settings'
 import * as EngineGen from './engine-gen-gen'
-import * as RouteTreeGen from './route-tree-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
+import * as RouteTreeGen from './route-tree-gen'
+import * as Router2Constants from '../constants/router2'
+import * as Saga from '../util/saga'
 import * as SettingsGen from './settings-gen'
+import * as Tabs from '../constants/tabs'
 import * as WaitingGen from './waiting-gen'
-import trim from 'lodash/trim'
-import {isAndroidNewerThanN, isTestDevice, pprofDir, version} from '../constants/platform'
-import {writeLogLinesToFile} from '../util/forward-logs'
-import {RPCError} from '../util/errors'
-import * as Container from '../util/container'
+import logger from '../logger'
 import openURL from '../util/open-url'
+import trim from 'lodash/trim'
+import type * as Container from '../util/container'
+import type * as Types from '../constants/types/settings'
+import type {RPCError} from '../util/errors'
+import {isAndroidNewerThanN, androidIsTestDevice, pprofDir, version} from '../constants/platform'
+import {writeLogLinesToFile} from '../util/forward-logs'
 
 const onUpdatePGPSettings = async () => {
   try {
@@ -113,8 +114,8 @@ const toggleNotifications = async (state: Container.TypedState) => {
     Constants.settingsWaitingKey
   )
 
-  if (!result || !result.body || JSON.parse(result.body).status.code !== 0) {
-    throw new Error(`Invalid response ${result || '(no result)'}`)
+  if (!result || !result.body || JSON.parse(result.body)?.status?.code !== 0) {
+    throw new Error(`Invalid response ${result?.body || '(no result)'}`)
   }
 
   return SettingsGen.createNotificationsSaved()
@@ -155,7 +156,7 @@ const refreshInvites = async () => {
       uid: string
       username: string
     }>
-  } = JSON.parse((json && json.body) ?? '')
+  } = JSON.parse(json?.body ?? '')
 
   const acceptedInvites: Array<Types.Invitation> = []
   const pendingInvites: Array<Types.Invitation> = []
@@ -526,7 +527,7 @@ const setLockdownMode = async (
 
 const sendFeedback = async (state: Container.TypedState, action: SettingsGen.SendFeedbackPayload) => {
   // We don't want test devices (pre-launch reports) to send us log sends.
-  if (isTestDevice) {
+  if (androidIsTestDevice) {
     return
   }
   const {feedback, sendLogs, sendMaxBytes} = action.payload
@@ -673,7 +674,7 @@ const loadHasRandomPW = async (state: Container.TypedState) => {
 }
 
 // Mark that we are not randomPW anymore if we got a password change.
-const passwordChanged = async (action: EngineGen.Keybase1NotifyUsersPasswordChangedPayload) => {
+const passwordChanged = (action: EngineGen.Keybase1NotifyUsersPasswordChangedPayload) => {
   const randomPW = action.payload.params.state === RPCTypes.PassphraseState.random
   return SettingsGen.createLoadedHasRandomPw({randomPW})
 }
@@ -835,8 +836,8 @@ const maybeClearAddedEmail = (state: Container.TypedState, action: RouteTreeGen.
   // Clear "check your inbox" in settings when you leave the settings tab
   if (
     state.settings.email.addedEmail &&
-    prev[2]?.routeName === Tabs.settingsTab &&
-    next[2]?.routeName !== Tabs.settingsTab
+    Router2Constants.getRouteTab(prev) === Tabs.settingsTab &&
+    Router2Constants.getRouteTab(next) !== Tabs.settingsTab
   ) {
     return SettingsGen.createClearAddedEmail()
   }

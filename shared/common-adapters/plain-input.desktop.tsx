@@ -3,7 +3,6 @@ import * as Styles from '../styles'
 import {getStyle as getTextStyle} from './text.desktop'
 import pick from 'lodash/pick'
 import logger from '../logger'
-import {_StylesDesktop} from '../styles/css'
 import {InternalProps, TextInfo, Selection} from './plain-input'
 import {checkTextInfo} from './input.shared'
 
@@ -307,7 +306,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
   }
 }
 
-const StyledTextArea = Styles.styled.textarea<'textarea'>(
+const StyledTextArea = Styles.styled.textarea(
   // @ts-ignore
   (props: {placeholderColor: any; placeholderTextType: any}) => {
     const placeholderStyle = props.placeholderTextType ? getTextStyle(props.placeholderTextType) : {}
@@ -322,7 +321,7 @@ const StyledTextArea = Styles.styled.textarea<'textarea'>(
   }
 )
 
-const StyledInput = Styles.styled.input<'input'>(
+const StyledInput = Styles.styled.input(
   // @ts-ignore
   (props: {placeholderColor: any; placeholderTextType: any}) => {
     const placeholderStyle = props.placeholderTextType ? getTextStyle(props.placeholderTextType) : {}

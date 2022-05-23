@@ -1,8 +1,8 @@
 import * as Container from '../../../../util/container'
-import * as React from 'react'
+import type * as React from 'react'
 import * as Constants from '../../../../constants/chat2'
-import * as Types from '../../../../constants/types/chat2'
-import * as UsersTypes from '../../../../constants/types/users'
+import type * as Types from '../../../../constants/types/chat2'
+import type * as UsersTypes from '../../../../constants/types/users'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import ReactionTooltip from '.'
 
@@ -71,7 +71,7 @@ export default Container.connect(
       }))
       .sort(
         // earliest reactions go at the top
-        (a, b) => ((a.users[0] && a.users[0].timestamp) || 0) - ((b.users[0] && b.users[0].timestamp) || 0)
+        (a, b) => (a.users[0]?.timestamp || 0) - (b.users[0]?.timestamp || 0)
       )
       // strip timestamp
       .map(e => ({

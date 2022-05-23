@@ -6,8 +6,8 @@ import * as NotificationsGen from './notifications-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Saga from '../util/saga'
 import * as Tabs from '../constants/tabs'
-import {TypedState} from '../util/container'
-import {logError, RPCError} from '../util/errors'
+import type {TypedState} from '../util/container'
+import {logError, type RPCError} from '../util/errors'
 
 const load = async (state: TypedState) => {
   if (!state.config.loggedIn) {

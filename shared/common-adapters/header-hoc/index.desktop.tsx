@@ -16,11 +16,11 @@ export const HeaderHocHeader = ({
   rightActions,
   theme = 'light',
 }: Props) => (
-  <Box style={Styles.collapseStyles([_headerStyle, _headerStyleThemed[theme], headerStyle])}>
+  <Box style={Styles.collapseStyles([_headerStyle, _headerStyleThemed[theme], headerStyle] as any)}>
     {customComponent}
     {onCancel && (
       <Icon
-        style={Styles.collapseStyles([_styleClose, _styleCloseThemed[theme]])}
+        style={Styles.collapseStyles([_styleClose, _styleCloseThemed[theme]] as any)}
         type="iconfont-close"
         onClick={onCancel}
       />
@@ -161,24 +161,29 @@ const styles = Styles.styleSheetCreate(() => ({
   }),
 }))
 
+const noop = () => {}
+export const HeaderLeftBlank = () => (
+  <LeftAction badgeNumber={0} leftAction="back" onLeftAction={noop} style={{opacity: 0}} />
+)
+
 export const HeaderLeftArrow = hp =>
-  hp.scene.index === 0 ? null : (
+  hp.canGoBack ? (
     <LeftAction
       badgeNumber={0}
       leftAction="back"
       onLeftAction={hp.onPress} // react navigation makes sure this onPress can only happen once
       customIconColor={hp.tintColor}
     />
-  )
+  ) : null
 
 export const HeaderLeftCancel = hp =>
-  hp.scene.index === 0 ? null : (
+  hp.canGoBack ? (
     <LeftAction
       badgeNumber={0}
       leftAction="cancel"
       onLeftAction={hp.onPress} // react navigation makes sure this onPress can only happen once
       customIconColor={hp.tintColor}
     />
-  )
+  ) : null
 
 export default HeaderHoc

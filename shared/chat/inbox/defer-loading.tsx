@@ -1,22 +1,17 @@
 import * as React from 'react'
-import * as Container from '../../util/container'
 import Inbox from './container'
-
-// temp before nav 5
-// @ts-ignore
-import {withNavigationFocus} from '@react-navigation/core'
-
-type Props = Container.RouteProps<{}> & {isFocused: boolean}
+import {useIsFocused, useNavigationState} from '@react-navigation/core'
 
 // keep track of this even on unmount, else if you background / foreground you'll lose it
 let _everFocused = false
+const DeferedInner = () => {
+  const isFocused = useIsFocused()
+  const navKey = useNavigationState(state => state.key)
+  _everFocused = _everFocused || isFocused
+  return _everFocused ? <Inbox navKey={navKey} /> : null
+}
 
-const Deferred = withNavigationFocus((props: Props) => {
-  _everFocused = _everFocused || props.isFocused
-  return _everFocused ? <Inbox navKey={props.navigation.state.key} /> : null
-})
-
-// @ts-ignore TS doesn't understand hoisting
-Deferred.navigationOptions = Inbox.navigationOptions
+const Deferred = React.memo(DeferedInner, () => true)
 
 export default Deferred
+export {getOptions} from './container'

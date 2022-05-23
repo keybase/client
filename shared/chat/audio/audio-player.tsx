@@ -62,7 +62,7 @@ type Props = {
 }
 
 const AudioPlayer = (props: Props) => {
-  const vidRef = React.useRef<AudioVideo>(null)
+  const seekRef = React.useRef<null | ((n: number) => void)>(null)
   const [timeStart, setTimeStart] = React.useState(0)
   const [timeLeft, setTimeLeft] = React.useState(props.duration)
   const [timePaused, setTimePaused] = React.useState(0)
@@ -95,9 +95,7 @@ const AudioPlayer = (props: Props) => {
         setTimeStart(0)
         setTimePaused(0)
         setTimePauseButton(0)
-        if (vidRef.current) {
-          vidRef.current.seek(0)
-        }
+        seekRef.current?.(0)
       } else {
         setTimeLeft(newTimeLeft)
       }
@@ -130,7 +128,7 @@ const AudioPlayer = (props: Props) => {
         />
         <Kb.Text type="BodyTiny">{formatAudioRecordDuration(timeLeft)}</Kb.Text>
       </Kb.Box2>
-      {props.url.length > 0 && <AudioVideo ref={vidRef} url={props.url} paused={paused} />}
+      {props.url.length > 0 && <AudioVideo seekRef={seekRef} url={props.url} paused={paused} />}
     </Kb.Box2>
   )
 }

@@ -1,32 +1,19 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters/mobile.native'
 import * as Styles from '../styles'
-import * as Container from '../util/container'
-import RouterSwitcheroo from '../router-v2/switcheroo'
-import {GatewayDest} from '@chardskarth/react-gateway'
+import Router from '../router-v2/router'
+import {PortalHost} from '@gorhom/portal'
 import ResetModal from '../login/reset/modal'
 import GlobalError from './global-errors/container'
 import OutOfDate from './out-of-date'
 import RuntimeStats from './runtime-stats'
-import {getBarStyle} from '../common-adapters/use-fix-statusbar.native'
 
-type Props = {}
-
-const ViewForGatewayDest = (props: any) => <Kb.NativeView {...props} />
-
-const Main = (_: Props) => {
-  // just used to trigger statusbar
-  // @ts-ignore TS can't understand this implicit relationship
-  const _darkMode = Container.useSelector(state => state.config.systemDarkMode)
-  // @ts-ignore TS can't understand this implicit relationship
-  const _darkPref = Container.useSelector(state => state.config.darkModePreference)
+const Main = () => {
   return (
     <>
-      <Kb.NativeStatusBar key={Styles.isDarkMode() ? 'dark' : 'light'} barStyle={getBarStyle()} />
-      <RouterSwitcheroo />
-      <GatewayDest
+      <Router />
+      <PortalHost
         name="popup-root"
-        component={ViewForGatewayDest}
         // @ts-ignore
         pointerEvents="box-none"
         style={Styles.globalStyles.fillAbsolute}
@@ -36,13 +23,9 @@ const Main = (_: Props) => {
         pointerEvents="box-none"
         behavior={Styles.isIOS ? 'padding' : undefined}
       >
-        <GatewayDest
-          name="keyboard-avoiding-root"
-          component={ViewForGatewayDest}
-          // @ts-ignore
-          pointerEvents="box-none"
-          style={styles.gatewayDest}
-        />
+        <Kb.Box2 direction="vertical" pointerEvents="box-none" fullWidth={true} style={styles.portalParent}>
+          <PortalHost name="keyboard-avoiding-root" />
+        </Kb.Box2>
       </Kb.KeyboardAvoidingView>
       <ResetModal />
       <GlobalError />
@@ -53,7 +36,7 @@ const Main = (_: Props) => {
 }
 
 const styles = Styles.styleSheetCreate(() => ({
-  gatewayDest: {flexGrow: 1, width: '100%'},
+  portalParent: {flexGrow: 1, position: 'relative'},
 }))
 
 export default Main

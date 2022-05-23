@@ -1,6 +1,6 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-import * as RPCTypes from '../constants/types/rpc-gen'
-import * as Types from '../constants/types/fs'
+import type * as RPCTypes from '../constants/types/rpc-gen'
+import type * as Types from '../constants/types/fs'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of fs but is handled by every reducer. NEVER dispatch this
@@ -110,7 +110,7 @@ export const waitForKbfsDaemon = 'fs:waitForKbfsDaemon'
 
 // Payload Types
 type _CancelDownloadPayload = {readonly downloadID: string}
-type _CheckKbfsDaemonRpcStatusPayload = void
+type _CheckKbfsDaemonRpcStatusPayload = undefined
 type _CommitEditPayload = {readonly editID: Types.EditID}
 type _CopyPayload = {readonly destinationParentPath: Types.Path}
 type _DeleteFilePayload = {readonly path: Types.Path}
@@ -119,15 +119,15 @@ type _DismissDownloadPayload = {readonly downloadID: string}
 type _DismissRedbarPayload = {readonly index: number}
 type _DismissUploadPayload = {readonly uploadID: string}
 type _DownloadPayload = {readonly path: Types.Path}
-type _DriverDisablePayload = void
-type _DriverDisablingPayload = void
+type _DriverDisablePayload = undefined
+type _DriverDisablingPayload = undefined
 type _DriverEnablePayload = {readonly isRetry?: boolean | null}
-type _DriverKextPermissionErrorPayload = void
+type _DriverKextPermissionErrorPayload = undefined
 type _EditErrorPayload = {readonly editID: Types.EditID; readonly error: string}
 type _EditSuccessPayload = {readonly editID: Types.EditID}
 type _FavoriteIgnoreErrorPayload = {readonly path: Types.Path}
 type _FavoriteIgnorePayload = {readonly path: Types.Path}
-type _FavoritesLoadPayload = void
+type _FavoritesLoadPayload = undefined
 type _FavoritesLoadedPayload = {
   readonly private: Types.TlfList
   readonly public: Types.TlfList
@@ -145,7 +145,7 @@ type _FolderListLoadedPayload = {
   readonly path: Types.Path
   readonly pathItems: Map<Types.Path, Types.PathItem>
 }
-type _GetOnlineStatusPayload = void
+type _GetOnlineStatusPayload = undefined
 type _JournalUpdatePayload = {
   readonly syncingPaths: Array<Types.Path>
   readonly totalSyncingBytes: number
@@ -156,14 +156,14 @@ type _KbfsDaemonRpcStatusChangedPayload = {readonly rpcStatus: Types.KbfsDaemonR
 type _LetResetUserBackInPayload = {readonly id: RPCTypes.TeamID; readonly username: string}
 type _LoadAdditionalTlfPayload = {readonly tlfPath: Types.Path}
 type _LoadDownloadInfoPayload = {readonly downloadID: string}
-type _LoadDownloadStatusPayload = void
+type _LoadDownloadStatusPayload = undefined
 type _LoadFileContextPayload = {readonly path: Types.Path}
-type _LoadFilesTabBadgePayload = void
+type _LoadFilesTabBadgePayload = undefined
 type _LoadPathInfoPayload = {readonly path: Types.Path}
 type _LoadPathMetadataPayload = {readonly path: Types.Path}
-type _LoadSettingsPayload = void
+type _LoadSettingsPayload = undefined
 type _LoadTlfSyncConfigPayload = {readonly tlfPath: Types.Path}
-type _LoadUploadStatusPayload = void
+type _LoadUploadStatusPayload = undefined
 type _LoadedAdditionalTlfPayload = {readonly tlf: Types.Tlf; readonly tlfPath: Types.Path}
 type _LoadedDownloadInfoPayload = {readonly downloadID: string; readonly info: Types.DownloadInfo}
 type _LoadedDownloadStatusPayload = {
@@ -180,18 +180,18 @@ type _OpenAndUploadPayload = {readonly type: Types.OpenDialogType; readonly pare
 type _OpenFilesFromWidgetPayload = {readonly path: Types.Path; readonly type: Types.PathType}
 type _OpenLocalPathInSystemFileManagerPayload = {readonly localPath: string}
 type _OpenPathInSystemFileManagerPayload = {readonly path: Types.Path}
-type _OpenSecurityPreferencesPayload = void
+type _OpenSecurityPreferencesPayload = undefined
 type _OverallSyncStatusChangedPayload = {
   readonly progress: Types.SyncingFoldersProgress
   readonly diskSpaceStatus: Types.DiskSpaceStatus
 }
 type _PathItemLoadedPayload = {readonly path: Types.Path; readonly pathItem: Types.PathItem}
 type _PickAndUploadPayload = {readonly type: Types.MobilePickType; readonly parentPath: Types.Path}
-type _PlaceholderActionPayload = void
-type _PollJournalStatusPayload = void
+type _PlaceholderActionPayload = undefined
+type _PollJournalStatusPayload = undefined
 type _RedbarPayload = {readonly error: string}
-type _RefreshDriverStatusPayload = void
-type _RefreshMountDirsAfter10sPayload = void
+type _RefreshDriverStatusPayload = undefined
+type _RefreshMountDirsAfter10sPayload = undefined
 type _SaveMediaPayload = {readonly path: Types.Path}
 type _SetCriticalUpdatePayload = {readonly val: boolean}
 type _SetDebugLevelPayload = {readonly level: string}
@@ -214,7 +214,7 @@ type _SetSfmiBannerDismissedPayload = {readonly dismissed: boolean}
 type _SetSpaceAvailableNotificationThresholdPayload = {readonly spaceAvailableNotificationThreshold: number}
 type _SetTlfSoftErrorPayload = {readonly path: Types.Path; readonly softError: Types.SoftError | null}
 type _SetTlfSyncConfigPayload = {readonly enabled: boolean; readonly tlfPath: Types.Path}
-type _SetTlfsAsUnloadedPayload = void
+type _SetTlfsAsUnloadedPayload = undefined
 type _SettingsLoadedPayload = {readonly settings?: Types.Settings}
 type _ShareNativePayload = {readonly path: Types.Path}
 type _ShowHideDiskSpaceBannerPayload = {readonly show: boolean}
@@ -234,15 +234,15 @@ type _TlfSyncConfigLoadedPayload = {
   readonly tlfName: string
   readonly syncConfig: Types.TlfSyncConfig
 }
-type _UninstallKBFSConfirmPayload = void
+type _UninstallKBFSConfirmPayload = undefined
 type _UnsubscribePayload = {readonly subscriptionID: string}
 type _UploadFromDragAndDropPayload = {readonly parentPath: Types.Path; readonly localPaths: Array<string>}
 type _UploadPayload = {readonly parentPath: Types.Path; readonly localPath: string}
-type _UserFileEditsLoadPayload = void
+type _UserFileEditsLoadPayload = undefined
 type _UserFileEditsLoadedPayload = {readonly tlfUpdates: Types.UserTlfUpdates}
-type _UserInPayload = void
-type _UserOutPayload = void
-type _WaitForKbfsDaemonPayload = void
+type _UserInPayload = undefined
+type _UserOutPayload = undefined
+type _WaitForKbfsDaemonPayload = undefined
 
 // Action Creators
 export const createCancelDownload = (payload: _CancelDownloadPayload): CancelDownloadPayload => ({
@@ -250,7 +250,7 @@ export const createCancelDownload = (payload: _CancelDownloadPayload): CancelDow
   type: cancelDownload,
 })
 export const createCheckKbfsDaemonRpcStatus = (
-  payload: _CheckKbfsDaemonRpcStatusPayload
+  payload?: _CheckKbfsDaemonRpcStatusPayload
 ): CheckKbfsDaemonRpcStatusPayload => ({payload, type: checkKbfsDaemonRpcStatus})
 export const createCommitEdit = (payload: _CommitEditPayload): CommitEditPayload => ({
   payload,
@@ -278,11 +278,11 @@ export const createDismissUpload = (payload: _DismissUploadPayload): DismissUplo
   type: dismissUpload,
 })
 export const createDownload = (payload: _DownloadPayload): DownloadPayload => ({payload, type: download})
-export const createDriverDisable = (payload: _DriverDisablePayload): DriverDisablePayload => ({
+export const createDriverDisable = (payload?: _DriverDisablePayload): DriverDisablePayload => ({
   payload,
   type: driverDisable,
 })
-export const createDriverDisabling = (payload: _DriverDisablingPayload): DriverDisablingPayload => ({
+export const createDriverDisabling = (payload?: _DriverDisablingPayload): DriverDisablingPayload => ({
   payload,
   type: driverDisabling,
 })
@@ -290,7 +290,7 @@ export const createDriverEnable = (
   payload: _DriverEnablePayload = Object.freeze({})
 ): DriverEnablePayload => ({payload, type: driverEnable})
 export const createDriverKextPermissionError = (
-  payload: _DriverKextPermissionErrorPayload
+  payload?: _DriverKextPermissionErrorPayload
 ): DriverKextPermissionErrorPayload => ({payload, type: driverKextPermissionError})
 export const createEditError = (payload: _EditErrorPayload): EditErrorPayload => ({payload, type: editError})
 export const createEditSuccess = (payload: _EditSuccessPayload): EditSuccessPayload => ({
@@ -304,7 +304,7 @@ export const createFavoriteIgnore = (payload: _FavoriteIgnorePayload): FavoriteI
 export const createFavoriteIgnoreError = (
   payload: _FavoriteIgnoreErrorPayload
 ): FavoriteIgnoreErrorPayload => ({payload, type: favoriteIgnoreError})
-export const createFavoritesLoad = (payload: _FavoritesLoadPayload): FavoritesLoadPayload => ({
+export const createFavoritesLoad = (payload?: _FavoritesLoadPayload): FavoritesLoadPayload => ({
   payload,
   type: favoritesLoad,
 })
@@ -329,7 +329,7 @@ export const createFolderListLoaded = (payload: _FolderListLoadedPayload): Folde
   payload,
   type: folderListLoaded,
 })
-export const createGetOnlineStatus = (payload: _GetOnlineStatusPayload): GetOnlineStatusPayload => ({
+export const createGetOnlineStatus = (payload?: _GetOnlineStatusPayload): GetOnlineStatusPayload => ({
   payload,
   type: getOnlineStatus,
 })
@@ -355,15 +355,14 @@ export const createLoadDownloadInfo = (payload: _LoadDownloadInfoPayload): LoadD
   payload,
   type: loadDownloadInfo,
 })
-export const createLoadDownloadStatus = (payload: _LoadDownloadStatusPayload): LoadDownloadStatusPayload => ({
-  payload,
-  type: loadDownloadStatus,
-})
+export const createLoadDownloadStatus = (
+  payload?: _LoadDownloadStatusPayload
+): LoadDownloadStatusPayload => ({payload, type: loadDownloadStatus})
 export const createLoadFileContext = (payload: _LoadFileContextPayload): LoadFileContextPayload => ({
   payload,
   type: loadFileContext,
 })
-export const createLoadFilesTabBadge = (payload: _LoadFilesTabBadgePayload): LoadFilesTabBadgePayload => ({
+export const createLoadFilesTabBadge = (payload?: _LoadFilesTabBadgePayload): LoadFilesTabBadgePayload => ({
   payload,
   type: loadFilesTabBadge,
 })
@@ -375,7 +374,7 @@ export const createLoadPathMetadata = (payload: _LoadPathMetadataPayload): LoadP
   payload,
   type: loadPathMetadata,
 })
-export const createLoadSettings = (payload: _LoadSettingsPayload): LoadSettingsPayload => ({
+export const createLoadSettings = (payload?: _LoadSettingsPayload): LoadSettingsPayload => ({
   payload,
   type: loadSettings,
 })
@@ -383,7 +382,7 @@ export const createLoadTlfSyncConfig = (payload: _LoadTlfSyncConfigPayload): Loa
   payload,
   type: loadTlfSyncConfig,
 })
-export const createLoadUploadStatus = (payload: _LoadUploadStatusPayload): LoadUploadStatusPayload => ({
+export const createLoadUploadStatus = (payload?: _LoadUploadStatusPayload): LoadUploadStatusPayload => ({
   payload,
   type: loadUploadStatus,
 })
@@ -431,7 +430,7 @@ export const createOpenPathInSystemFileManager = (
   payload: _OpenPathInSystemFileManagerPayload
 ): OpenPathInSystemFileManagerPayload => ({payload, type: openPathInSystemFileManager})
 export const createOpenSecurityPreferences = (
-  payload: _OpenSecurityPreferencesPayload
+  payload?: _OpenSecurityPreferencesPayload
 ): OpenSecurityPreferencesPayload => ({payload, type: openSecurityPreferences})
 export const createOverallSyncStatusChanged = (
   payload: _OverallSyncStatusChangedPayload
@@ -444,20 +443,20 @@ export const createPickAndUpload = (payload: _PickAndUploadPayload): PickAndUplo
   payload,
   type: pickAndUpload,
 })
-export const createPlaceholderAction = (payload: _PlaceholderActionPayload): PlaceholderActionPayload => ({
+export const createPlaceholderAction = (payload?: _PlaceholderActionPayload): PlaceholderActionPayload => ({
   payload,
   type: placeholderAction,
 })
-export const createPollJournalStatus = (payload: _PollJournalStatusPayload): PollJournalStatusPayload => ({
+export const createPollJournalStatus = (payload?: _PollJournalStatusPayload): PollJournalStatusPayload => ({
   payload,
   type: pollJournalStatus,
 })
 export const createRedbar = (payload: _RedbarPayload): RedbarPayload => ({payload, type: redbar})
 export const createRefreshDriverStatus = (
-  payload: _RefreshDriverStatusPayload
+  payload?: _RefreshDriverStatusPayload
 ): RefreshDriverStatusPayload => ({payload, type: refreshDriverStatus})
 export const createRefreshMountDirsAfter10s = (
-  payload: _RefreshMountDirsAfter10sPayload
+  payload?: _RefreshMountDirsAfter10sPayload
 ): RefreshMountDirsAfter10sPayload => ({payload, type: refreshMountDirsAfter10s})
 export const createSaveMedia = (payload: _SaveMediaPayload): SaveMediaPayload => ({payload, type: saveMedia})
 export const createSetCriticalUpdate = (payload: _SetCriticalUpdatePayload): SetCriticalUpdatePayload => ({
@@ -522,7 +521,7 @@ export const createSetTlfSyncConfig = (payload: _SetTlfSyncConfigPayload): SetTl
   payload,
   type: setTlfSyncConfig,
 })
-export const createSetTlfsAsUnloaded = (payload: _SetTlfsAsUnloadedPayload): SetTlfsAsUnloadedPayload => ({
+export const createSetTlfsAsUnloaded = (payload?: _SetTlfsAsUnloadedPayload): SetTlfsAsUnloadedPayload => ({
   payload,
   type: setTlfsAsUnloaded,
 })
@@ -567,7 +566,7 @@ export const createTlfSyncConfigLoaded = (
   payload: _TlfSyncConfigLoadedPayload
 ): TlfSyncConfigLoadedPayload => ({payload, type: tlfSyncConfigLoaded})
 export const createUninstallKBFSConfirm = (
-  payload: _UninstallKBFSConfirmPayload
+  payload?: _UninstallKBFSConfirmPayload
 ): UninstallKBFSConfirmPayload => ({payload, type: uninstallKBFSConfirm})
 export const createUnsubscribe = (payload: _UnsubscribePayload): UnsubscribePayload => ({
   payload,
@@ -577,16 +576,16 @@ export const createUpload = (payload: _UploadPayload): UploadPayload => ({payloa
 export const createUploadFromDragAndDrop = (
   payload: _UploadFromDragAndDropPayload
 ): UploadFromDragAndDropPayload => ({payload, type: uploadFromDragAndDrop})
-export const createUserFileEditsLoad = (payload: _UserFileEditsLoadPayload): UserFileEditsLoadPayload => ({
+export const createUserFileEditsLoad = (payload?: _UserFileEditsLoadPayload): UserFileEditsLoadPayload => ({
   payload,
   type: userFileEditsLoad,
 })
 export const createUserFileEditsLoaded = (
   payload: _UserFileEditsLoadedPayload
 ): UserFileEditsLoadedPayload => ({payload, type: userFileEditsLoaded})
-export const createUserIn = (payload: _UserInPayload): UserInPayload => ({payload, type: userIn})
-export const createUserOut = (payload: _UserOutPayload): UserOutPayload => ({payload, type: userOut})
-export const createWaitForKbfsDaemon = (payload: _WaitForKbfsDaemonPayload): WaitForKbfsDaemonPayload => ({
+export const createUserIn = (payload?: _UserInPayload): UserInPayload => ({payload, type: userIn})
+export const createUserOut = (payload?: _UserOutPayload): UserOutPayload => ({payload, type: userOut})
+export const createWaitForKbfsDaemon = (payload?: _WaitForKbfsDaemonPayload): WaitForKbfsDaemonPayload => ({
   payload,
   type: waitForKbfsDaemon,
 })
@@ -1040,4 +1039,4 @@ export type Actions =
   | UserInPayload
   | UserOutPayload
   | WaitForKbfsDaemonPayload
-  | {type: 'common:resetStore', payload: {}}
+  | {readonly type: 'common:resetStore', readonly payload: undefined}

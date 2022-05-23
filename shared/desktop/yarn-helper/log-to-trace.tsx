@@ -30,7 +30,7 @@ type Event = {
 
 const [, , guiOrCore, logfile, outfile, ..._swimlanes] = process.argv
 // Good params?
-if (['gui', 'core'].indexOf(guiOrCore) === -1 || !logfile || !outfile) {
+if (!['gui', 'core'].includes(guiOrCore) || !logfile || !outfile) {
   console.log('Usage: node log-to-trace (gui|core) logfile outfile [filter1] [filter2]')
   process.exit(1)
 }
@@ -120,17 +120,11 @@ const convertCoreLine = (line: string): Info | undefined => {
   if (_tags) {
     const match = tagsReg.exec(_tags)
     if (match && match[1]) {
-      tags = match[1]
-        .split(',')
-        .sort()
-        .join(',')
+      tags = match[1].split(',').sort().join(',')
     }
   }
 
-  const typeAndMethod = _typeAndMethod
-    .replace(methodResultReg, '')
-    .replace(methodPrefixReg, '')
-    .trim()
+  const typeAndMethod = _typeAndMethod.replace(methodResultReg, '').replace(methodPrefixReg, '').trim()
 
   let type = ''
   const _type = typeAndMethodReg.exec(typeAndMethod)

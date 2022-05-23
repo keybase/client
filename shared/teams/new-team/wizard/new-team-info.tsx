@@ -51,6 +51,7 @@ const NewTeamInfo = () => {
 
   // TODO this should check subteams too (ideally in go)
   // Also it shouldn't leak the names of subteams people make to the server
+  // eslint-disable-next-line
   const checkTeamNameTaken = React.useCallback(
     debounce(Container.useRPC(RPCTypes.teamsUntrustedTeamExistsRpcPromise), 100),
     []

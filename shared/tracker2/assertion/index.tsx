@@ -448,7 +448,10 @@ const styles = Styles.styleSheetCreate(
         isMobile: {position: 'relative', top: -2},
       }),
       strikeThrough: {textDecorationLine: 'line-through'},
-      textContainer: {flexGrow: 1, flexShrink: 1, marginTop: -1},
+      textContainer: Styles.platformStyles({
+        common: {flexGrow: 1, flexShrink: 1, marginTop: -1},
+        isMobile: {backgroundColor: Styles.globalColors.fastBlank},
+      }),
       tooltip: Styles.platformStyles({isElectron: {display: 'inline-flex'}}),
       username: Styles.platformStyles({
         common: {letterSpacing: 0.2},

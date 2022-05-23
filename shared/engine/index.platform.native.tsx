@@ -1,26 +1,18 @@
-import {NativeModules, NativeEventEmitter} from 'react-native'
-import logger from '../logger'
+import {NativeEventEmitter} from 'react-native'
+import {NativeModules} from '../util/native-modules.native'
 import {TransportShared, sharedCreateClient, rpcLog} from './transport-shared'
-import {toByteArray, fromByteArray} from 'base64-js'
 import {encode} from '@msgpack/msgpack'
-import toBuffer from 'typedarray-to-buffer'
-import {printRPCBytes} from '../local-debug'
-import {measureStart, measureStop} from '../util/user-timings'
-import {SendArg, incomingRPCCallbackType, connectDisconnectCB} from './index.platform'
+import type {SendArg, incomingRPCCallbackType, connectDisconnectCB} from './index.platform'
+import logger from '../logger'
 
-const nativeBridge: NativeEventEmitter & {
-  runWithData: (arg0: string) => void
-  eventName: string
-  metaEventName: string
-  metaEventEngineReset: string
-  start: () => void
-  reset: () => void
-} = NativeModules.KeybaseEngine
-// @ts-ignore
-const RNEmitter = new NativeEventEmitter(nativeBridge)
+const RNEmitter = new NativeEventEmitter(NativeModules.KeybaseEngine as any)
 
 class NativeTransport extends TransportShared {
-  constructor(incomingRPCCallback, connectCallback, disconnectCallback) {
+  constructor(
+    incomingRPCCallback: incomingRPCCallbackType,
+    connectCallback?: connectDisconnectCB,
+    disconnectCallback?: connectDisconnectCB
+  ) {
     super({}, connectCallback, disconnectCallback, incomingRPCCallback)
 
     // We're connected locally so we never get disconnected
@@ -33,14 +25,14 @@ class NativeTransport extends TransportShared {
   }
   is_connected() {
     return true
-  } // eslint-disable-line camelcase
+  }
 
   // Override and disable some built in stuff in TransportShared
   reset() {}
   close() {}
   get_generation() {
     return 1
-  } // eslint-disable-line camelcase
+  }
 
   // A custom send override to write b64 to the react native bridge
   send(msg: SendArg) {
@@ -51,12 +43,15 @@ class NativeTransport extends TransportShared {
     const buf = new Uint8Array(len.length + packed.length)
     buf.set(len, 0)
     buf.set(packed, len.length)
-    const b64 = fromByteArray(buf)
-    if (printRPCBytes) {
-      logger.debug('[RPC] Writing', b64.length, 'chars:', b64)
+    // Pass data over to the native side to be handled, with JSI!
+    if (typeof global.rpcOnGo !== 'function') {
+      NativeModules.GoJSIBridge.install()
     }
-    // Pass data over to the native side to be handled
-    nativeBridge.runWithData(b64)
+    try {
+      global.rpcOnGo(buf.buffer)
+    } catch (e) {
+      logger.error('>>>> rpcOnGo JS thrown!', e)
+    }
     return true
   }
 }
@@ -70,27 +65,24 @@ function createClient(
     new NativeTransport(incomingRPCCallback, connectCallback, disconnectCallback)
   )
 
-  nativeBridge.start()
-
-  let packetizeCount = 0
-  // This is how the RN side writes back to us
-  RNEmitter.addListener(nativeBridge.eventName, (payload: string) => {
-    if (printRPCBytes) {
-      logger.debug('[RPC] Read', payload.length, 'chars:', payload)
+  global.rpcOnJs = objs => {
+    try {
+      client.transport._dispatch(objs)
+    } catch (e) {
+      logger.error('>>>> rpcOnJs JS thrown!', e)
     }
+  }
 
-    const buffer = toBuffer(toByteArray(payload))
-    const measureName = `packetize${packetizeCount++}:${buffer.length}`
-    measureStart(measureName)
-    const ret = client.transport.packetize_data(buffer)
-    measureStop(measureName)
-    return ret
-  })
+  NativeModules.KeybaseEngine.start()
 
-  RNEmitter.addListener(nativeBridge.metaEventName, (payload: string) => {
-    switch (payload) {
-      case nativeBridge.metaEventEngineReset:
-        connectCallback()
+  RNEmitter.addListener('kb-meta-engine-event', (payload: string) => {
+    try {
+      switch (payload) {
+        case 'kb-engine-reset':
+          connectCallback()
+      }
+    } catch (e) {
+      logger.error('>>>> meta engine event JS thrown!', e)
     }
   })
 
@@ -99,7 +91,7 @@ function createClient(
 
 function resetClient() {
   // Tell the RN bridge to reset itself
-  nativeBridge.reset()
+  NativeModules.KeybaseEngine.reset()
 }
 
 export {resetClient, createClient, rpcLog}

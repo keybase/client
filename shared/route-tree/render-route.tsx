@@ -1,12 +1,14 @@
+// TODO deprecate and use type in create*Navigator call
 export type RouteProps<T extends {[key: string]: any}> = {
   navigation: {
-    getParam<K extends keyof T>(key: K): T[K] | undefined
     pop: () => void
-    isFirstRouteInParent: () => boolean
     state: {
       key: string
       routeName: string
     }
+  }
+  route: {
+    params: T
   }
 }
 

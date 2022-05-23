@@ -1,17 +1,17 @@
+import * as Constants from '../../../../constants/fs'
+import * as Container from '../../../../util/container'
 import * as FsGen from '../../../../actions/fs-gen'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
-import * as Container from '../../../../util/container'
 import ReallyDelete from '.'
-import * as Types from '../../../../constants/types/fs'
-import * as Constants from '../../../../constants/fs'
 
-type OwnProps = Container.RouteProps<{path: Types.Path; mode: 'row' | 'screen'}>
+type OwnProps = Container.RouteProps<'confirmDelete'>
 
 export default Container.connect(
   () => ({}),
   (dispatch, ownProps: OwnProps) => {
-    const path = Container.getRouteProps(ownProps, 'path', null)
-    const mode = Container.getRouteProps(ownProps, 'mode', 'row')
+    const {params} = ownProps.route
+    const path = params?.path ?? null
+    const mode = params?.mode ?? 'row'
     return {
       onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
       onDelete: () => {
@@ -30,7 +30,7 @@ export default Container.connect(
     }
   },
   (_, dispatchProps, ownProps: OwnProps) => {
-    const path = Container.getRouteProps(ownProps, 'path', null)
+    const path = ownProps.route.params?.path ?? null
     return {
       onBack: dispatchProps.onBack,
       onDelete: dispatchProps.onDelete,

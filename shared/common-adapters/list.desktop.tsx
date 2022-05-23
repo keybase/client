@@ -1,15 +1,15 @@
-import React, {PureComponent} from 'react'
-import ReactList from 'react-list'
 import * as Styles from '../styles'
+import * as React from 'react'
+import SafeReactList from './safe-react-list'
 import logger from '../logger'
-import throttle from 'lodash/throttle'
 import once from 'lodash/once'
+import throttle from 'lodash/throttle'
+import type RL from 'react-list'
+import type {Props} from './list'
 import {renderElementOrComponentOrNot} from '../util/util'
 
-import {Props} from './list'
-
-class List extends PureComponent<Props<any>> {
-  _list: ReactList | null = null
+class List extends React.PureComponent<Props<any>> {
+  _list: RL | null = null
   _itemRender = (index: number, _: number | string): JSX.Element => {
     // ReactList has an issue where it caches the list length into its own state so can ask
     // for indices outside of the items...
@@ -79,7 +79,7 @@ class List extends PureComponent<Props<any>> {
             onScroll={this.props.onEndReached ? this._onScroll : undefined}
           >
             {renderElementOrComponentOrNot(this.props.ListHeaderComponent)}
-            <ReactList
+            <SafeReactList
               ref={this._setListRef}
               useTranslate3d={false}
               useStaticSize={!!this.props.fixedHeight}

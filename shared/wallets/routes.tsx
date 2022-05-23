@@ -16,7 +16,8 @@ import type WhatIsStellarModal from './what-is-stellar-modal'
 import type Settings from './wallet/settings/container'
 import type TransactionDetails from './transaction-details/container'
 import type TeamBuilder from '../team-building/container'
-import type Partners from './partners/container'
+import type * as TeamBuildingTypes from '../constants/types/team-building'
+import type * as Types from '../constants/types/wallets'
 
 export const sharedRoutes = {
   // TODO connect broken
@@ -30,11 +31,9 @@ export const sharedRoutes = {
 export const newRoutes = {
   walletsRoot: isPhone
     ? {getScreen: () => require('./wallet/container').default}
-    : // MUST use screen and not getScreen for subnavs!
-      {
-        get screen() {
-          return require('./wallets-sub-nav').default
-        },
+    : {
+        getScreen: () => require('./wallets-sub-nav').default,
+        skipShim: true,
       },
   ...sharedRoutes, // these are valid inside AND outside the subnav
 }
@@ -46,7 +45,6 @@ export const newModalRoutes = {
   },
   keybaseLinkError: {getScreen: (): typeof KeybaseLinkError => require('../deeplinks/error').default},
   linkExisting: {getScreen: (): typeof LinkExisting => require('./link-existing/container').default},
-  partners: {getScreen: (): typeof Partners => require('./partners/container').default},
   reallyRemoveAccount: {
     getScreen: (): typeof ReallyRemoveAccountPopup =>
       require('./wallet/settings/popups').ReallyRemoveAccountPopup,
@@ -73,4 +71,63 @@ export const newModalRoutes = {
   whatIsStellarModal: {
     getScreen: (): typeof WhatIsStellarModal => require('./what-is-stellar-modal').default,
   },
+}
+
+type TeamBuilderProps = Partial<{
+  namespace: TeamBuildingTypes.AllowedNamespace
+  teamID: string
+  filterServices: Array<TeamBuildingTypes.ServiceIdWithContact>
+  goButtonLabel: TeamBuildingTypes.GoButtonLabel
+  title: string
+}>
+
+// TODO fix up the missing prefix on these routes
+export type RootParamListWallets = {
+  walletTeamBuilder: TeamBuilderProps
+  keybaseLinkError: {
+    errorSource: 'app' | 'sep6' | 'sep7'
+  }
+  setDefaultAccount: {
+    accountID: Types.AccountID
+  }
+  walletOnboarding: {
+    nextScreen: Types.NextScreenAfterAcceptance
+  }
+  transactionDetails: {
+    accountID: Types.AccountID
+    paymentID: Types.PaymentID
+  }
+  sendReceiveForm: {
+    isAdvanced: boolean
+  }
+  pickAssetForm: {
+    // ignored if username is set or isSender===true
+    accountID: string
+    // ignored if isSender===true; if empty, we assume this is for a non-keybaseUser account and just say "this account"
+    username: string
+    isSender: boolean
+  }
+  removeAccount: {
+    accountID: Types.AccountID
+  }
+  createNewAccount: {
+    fromSendForm?: boolean
+    showOnCreation?: boolean
+  }
+  trustline: {
+    accountID: Types.AccountID
+  }
+  receive: {
+    accountID: Types.AccountID
+  }
+  linkExisting: {
+    fromSendForm?: boolean
+    showOnCreation?: boolean
+  }
+  reallyRemoveAccount: {
+    accountID: Types.AccountID
+  }
+  renameAccount: {
+    accountID: Types.AccountID
+  }
 }

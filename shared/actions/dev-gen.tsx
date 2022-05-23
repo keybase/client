@@ -7,7 +7,7 @@ export const debugCount = 'dev:debugCount'
 export const updateDebugConfig = 'dev:updateDebugConfig'
 
 // Payload Types
-type _DebugCountPayload = void
+type _DebugCountPayload = undefined
 type _UpdateDebugConfigPayload = {
   readonly dumbFilter: string
   readonly dumbFullscreen: boolean
@@ -15,7 +15,7 @@ type _UpdateDebugConfigPayload = {
 }
 
 // Action Creators
-export const createDebugCount = (payload: _DebugCountPayload): DebugCountPayload => ({
+export const createDebugCount = (payload?: _DebugCountPayload): DebugCountPayload => ({
   payload,
   type: debugCount,
 })
@@ -36,4 +36,4 @@ export type UpdateDebugConfigPayload = {
 export type Actions =
   | DebugCountPayload
   | UpdateDebugConfigPayload
-  | {type: 'common:resetStore', payload: {}}
+  | {readonly type: 'common:resetStore', readonly payload: undefined}

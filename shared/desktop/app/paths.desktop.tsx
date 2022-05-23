@@ -1,26 +1,26 @@
-import * as SafeElectron from '../../util/safe-electron.desktop'
 import os from 'os'
-const {appPath} = KB.electron.app
-const {resolve} = KB.path
-const {env} = KB.process
+import path from 'path'
+import KB2 from '../../util/electron.desktop'
+import {app} from 'electron'
+const {env} = KB2.constants
 
 // Path to keybase executable (darwin only), null if not available
 export function keybaseBinPath() {
   if (os.platform() === 'win32') {
-    var guiAppPath = SafeElectron.getApp().getAppPath()
+    let guiAppPath = app.getAppPath()
     if (env.LOCALAPPDATA && !guiAppPath) {
-      guiAppPath = resolve(env.LOCALAPPDATA, 'Keybase', 'Gui', 'resources', 'app')
+      guiAppPath = path.resolve(env.LOCALAPPDATA, 'Keybase', 'Gui', 'resources', 'app')
     }
     if (!guiAppPath) {
       console.log('No keybase bin path')
       return null
     }
-    const kbPath = resolve(guiAppPath, '..', '..', '..')
+    const kbPath = path.resolve(guiAppPath, '..', '..', '..')
     console.log(`expected path to keybase binaries is ${kbPath}`)
-    return resolve(String(kbPath), 'keybase.exe')
+    return path.resolve(String(kbPath), 'keybase.exe')
   }
   if (os.platform() === 'darwin') {
-    return resolve(appPath, '..', '..', '..', 'Contents', 'SharedSupport', 'bin', 'keybase')
+    return path.resolve(app.getAppPath(), '..', '..', '..', 'Contents', 'SharedSupport', 'bin', 'keybase')
   } else {
     return null
   }

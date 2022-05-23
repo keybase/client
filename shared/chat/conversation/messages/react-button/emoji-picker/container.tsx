@@ -29,7 +29,7 @@ type Props = {
   onPickAction?: (emoji: string, renderableEmoji: RenderableEmoji) => void
 }
 
-type RoutableProps = Container.RouteProps<Props>
+type RoutableProps = Container.RouteProps<'chatChooseEmoji'>
 
 const useReacji = ({conversationIDKey, onDidPick, onPickAction, onPickAddToMessageOrdinal}: Props) => {
   const topReacjis = Container.useSelector(state => state.chat2.userReacjis.topReacjis)
@@ -95,7 +95,7 @@ const useCustomReacji = (
   return disabled ? {customEmojiGroups: undefined, waiting: false} : {customEmojiGroups, waiting}
 }
 
-const goToAddEmoji = (dispatch: Container.Dispatch, conversationIDKey: Types.ConversationIDKey) => {
+const goToAddEmoji = (dispatch: Container.TypedDispatch, conversationIDKey: Types.ConversationIDKey) => {
   dispatch(
     RouteTreeGen.createNavigateAppend({
       path: [
@@ -247,15 +247,15 @@ export const EmojiPickerDesktop = (props: Props) => {
           style={styles.footerContainer}
           gap="small"
         >
-          {renderEmoji(
-            emojiDataToRenderableEmoji(
+          {renderEmoji({
+            emoji: emojiDataToRenderableEmoji(
               hoveredEmoji,
               getSkinToneModifierStrIfAvailable(hoveredEmoji, currentSkinTone),
               currentSkinTone
             ),
-            36,
-            false
-          )}
+            showTooltip: false,
+            size: 36,
+          })}
           {hoveredEmoji.teamname ? (
             <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexOne}>
               <Kb.Text type="BodyBig" lineClamp={1}>
@@ -348,23 +348,13 @@ const styles = Styles.styleSheetCreate(
 )
 
 export const Routable = (routableProps: RoutableProps) => {
-  const conversationIDKey = Container.getRouteProps(
-    routableProps,
-    'conversationIDKey',
-    Constants.noConversationIDKey
-  )
-  const small = Container.getRouteProps(routableProps, 'small', undefined)
-  const hideFrequentEmoji = Container.getRouteProps(routableProps, 'hideFrequentEmoji', undefined)
-  const onlyTeamCustomEmoji = Container.getRouteProps(routableProps, 'onlyTeamCustomEmoji', undefined)
-  const onPickAction = Container.getRouteProps(routableProps, 'onPickAction', undefined)
-  const onPickAddToMessageOrdinal = Container.getRouteProps(
-    routableProps,
-    'onPickAddToMessageOrdinal',
-    undefined
-  )
+  const {params} = routableProps.route
+  const small = params?.small
+  const {hideFrequentEmoji, onlyTeamCustomEmoji, onPickAction, onPickAddToMessageOrdinal} = params ?? {}
+  const conversationIDKey = params?.conversationIDKey ?? Constants.noConversationIDKey
   const dispatch = Container.useDispatch()
   const navigateUp = () => dispatch(RouteTreeGen.createNavigateUp())
-  const _onDidPick = Container.getRouteProps(routableProps, 'onDidPick', undefined)
+  const _onDidPick = params?.onDidPick
   const onDidPick = _onDidPick
     ? () => {
         _onDidPick()

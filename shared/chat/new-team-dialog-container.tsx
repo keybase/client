@@ -1,4 +1,3 @@
-import * as Types from '../constants/types/chat2'
 import * as TeamsGen from '../actions/teams-gen'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as ChatConstants from '../constants/chat2'
@@ -6,7 +5,7 @@ import * as Container from '../util/container'
 import NewTeamDialog from '../teams/new-team'
 import upperFirst from 'lodash/upperFirst'
 
-type OwnProps = Container.RouteProps<{conversationIDKey: Types.ConversationIDKey}>
+type OwnProps = Container.RouteProps<'chatShowNewTeamDialog'>
 
 export default Container.connect(
   state => ({
@@ -19,11 +18,7 @@ export default Container.connect(
     onSubmit: (teamname: string) => {
       dispatch(
         TeamsGen.createCreateNewTeamFromConversation({
-          conversationIDKey: Container.getRouteProps(
-            ownProps,
-            'conversationIDKey',
-            ChatConstants.noConversationIDKey
-          ),
+          conversationIDKey: ownProps.route.params?.conversationIDKey ?? ChatConstants.noConversationIDKey,
           teamname,
         })
       )

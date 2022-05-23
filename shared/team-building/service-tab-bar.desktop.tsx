@@ -2,9 +2,9 @@ import * as React from 'react'
 import * as Kb from '../common-adapters/index'
 import * as Styles from '../styles'
 import {serviceIdToIconFont, serviceIdToAccentColor, serviceIdToLongLabel, serviceIdToBadge} from './shared'
-import {ServiceIdWithContact} from '../constants/types/team-building'
-import {Props, IconProps} from './service-tab-bar'
 import difference from 'lodash/difference'
+import type {ServiceIdWithContact} from '../constants/types/team-building'
+import type {Props, IconProps} from './service-tab-bar'
 
 const ServiceIcon = (props: IconProps) => {
   const [hover, setHover] = React.useState(false)
@@ -132,10 +132,8 @@ const MoreNetworkItem = (props: {service: ServiceIdWithContact}) => (
 const undefToNull = (n: number | undefined | null): number | null => (n === undefined ? null : n)
 
 export const ServiceTabBar = (props: Props) => {
-  const [
-    lastSelectedUnlockedService,
-    setLastSelectedUnlockedService,
-  ] = React.useState<ServiceIdWithContact | null>(null)
+  const [lastSelectedUnlockedService, setLastSelectedUnlockedService] =
+    React.useState<ServiceIdWithContact | null>(null)
   const {services, onChangeService: propsOnChangeService, servicesShown: nLocked = 3} = props
   const onChangeService = React.useCallback(
     (service: ServiceIdWithContact) => {
@@ -163,6 +161,7 @@ export const ServiceTabBar = (props: Props) => {
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.tabBarContainer}>
       {frontServices.map(service => (
         <ServiceIcon
+          offset={0}
           key={service}
           service={service}
           label={serviceIdToLongLabel(service)}

@@ -3,13 +3,6 @@ import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import {PeoplePageList} from './index.shared'
 import {Props} from '.'
-import ProfileSearch from '../profile/search/bar'
-
-export const Header = (_: Props) => (
-  <Kb.Box2 direction="horizontal" style={styles.header}>
-    <ProfileSearch />
-  </Kb.Box2>
-)
 
 const People = (props: Props) => (
   <Kb.ScrollView style={styles.container}>

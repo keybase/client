@@ -10,11 +10,13 @@ type Props = {
   small?: boolean
   style?: Styles.StylesCrossPlatform
   username: string
+  afterClick?: () => void
 }
 
-const ChatButton = ({small, style, username}: Props) => {
+const ChatButton = ({small, style, username, afterClick}: Props) => {
   const dispatch = Container.useDispatch()
   const chat = () => {
+    afterClick?.()
     dispatch(ConfigGen.createShowMain())
     dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'tracker'}))
   }

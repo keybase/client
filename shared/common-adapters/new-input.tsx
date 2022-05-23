@@ -2,8 +2,7 @@ import * as React from 'react'
 import PlainInput, {PropsWithInput} from './plain-input'
 import Box, {Box2} from './box'
 import Icon, {IconType} from './icon'
-import Text from './text'
-import {getStyle as getTextStyle} from './text'
+import Text, {getStyle as getTextStyle} from './text'
 import * as Styles from '../styles'
 import './input.css'
 
@@ -93,9 +92,8 @@ class ReflessNewInput extends React.Component<Props & RefProps, State> {
     )
   }
 }
-const NewInput = React.forwardRef<PlainInput, Props>((props, ref) => (
-  <ReflessNewInput {...props} forwardedRef={ref} />
-))
+const NewInputInner = (props, ref) => <ReflessNewInput {...props} forwardedRef={ref} />
+const NewInput = React.forwardRef<PlainInput, Props>(NewInputInner)
 
 const styles = Styles.styleSheetCreate(
   () =>

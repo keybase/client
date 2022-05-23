@@ -10,17 +10,17 @@ import * as ChatTypes from '../../constants/types/chat2'
 import * as ChatConstants from '../../constants/chat2'
 import {AliasInput, Modal} from './common'
 import useRPC from '../../util/use-rpc'
-import pickFiles from '../../util/pick-files'
+import {pickImages} from '../../util/pick-files'
 import kebabCase from 'lodash/kebabCase'
 
-const pickEmojisPromise = () => pickFiles('Select emoji images to upload')
+const pickEmojisPromise = async () => pickImages('Select emoji images to upload')
 
 type Props = {
   conversationIDKey: ChatTypes.ConversationIDKey
   onChange?: () => void
   teamID: TeamsTypes.TeamID // not supported yet
 }
-type RoutableProps = Container.RouteProps<Props>
+type RoutableProps = Container.RouteProps<'teamAddEmoji'>
 
 // don't prefill on mobile since it's always a long random string.
 const filePathToDefaultAlias = Styles.isMobile
@@ -159,16 +159,13 @@ const useStuff = (conversationIDKey: ChatTypes.ConversationIDKey, onChange?: () 
 }
 
 export const AddEmojiModal = (props: Props) => {
-  const {
-    addFiles,
-    bannerError,
-    clearErrors,
-    clearFiles,
-    doAddEmojis,
-    emojisToAdd,
-    waitingAddEmojis,
-  } = useStuff(props.conversationIDKey, props.onChange)
-  const pick = () => pickEmojisPromise().then(addFiles)
+  const {addFiles, bannerError, clearErrors, clearFiles, doAddEmojis, emojisToAdd, waitingAddEmojis} =
+    useStuff(props.conversationIDKey, props.onChange)
+  const pick = () => {
+    pickEmojisPromise()
+      .then(addFiles)
+      .catch(() => {})
+  }
   return !emojisToAdd.length ? (
     <Modal
       title="Add emoji"
@@ -199,13 +196,9 @@ export const AddEmojiModal = (props: Props) => {
 }
 
 const AddEmojiModalWrapper = (routableProps: RoutableProps) => {
-  const conversationIDKey = Container.getRouteProps(
-    routableProps,
-    'conversationIDKey',
-    ChatConstants.noConversationIDKey
-  )
-  const teamID = Container.getRouteProps(routableProps, 'teamID', TeamsTypes.noTeamID)
-  const onChange = Container.getRouteProps(routableProps, 'onChange', undefined)
+  const conversationIDKey = routableProps.route.params?.conversationIDKey ?? ChatConstants.noConversationIDKey
+  const teamID = routableProps.route.params?.teamID ?? TeamsTypes.noTeamID
+  const onChange = routableProps.route.params?.onChange ?? undefined
   return <AddEmojiModal conversationIDKey={conversationIDKey} teamID={teamID} onChange={onChange} />
 }
 export default AddEmojiModalWrapper
@@ -224,7 +217,7 @@ const usePickFiles = (addFiles: (filePaths: Array<string>) => void) => {
     filesToAdd.length && addFiles(filesToAdd)
     setDragOver(false)
   }
-  const pick = () => pickEmojisPromise().then(addFiles)
+  const pick = async () => pickEmojisPromise().then(addFiles)
   return {dragOver, onDragLeave, onDragOver, onDrop, pick}
 }
 

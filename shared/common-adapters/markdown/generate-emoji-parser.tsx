@@ -39,7 +39,7 @@ const commonTlds = [
 
 // from https://github.com/twitter/twemoji/blob/gh-pages/twemoji-generator.js
 function UTF162JSON(text) {
-  let r: Array<string> = []
+  const r: Array<string> = []
   for (let i = 0; i < text.length; i++) {
     r.push('\\u' + ('000' + text.charCodeAt(i).toString(16)).slice(-4))
   }
@@ -106,8 +106,16 @@ function buildEmojiFile() {
     .join('|')
   const data = `/* eslint-disable */
 export const emojiRegex = new RegExp(\`^(${regLiterals}|${regIndex})\`)
-export const emojiIndexByName = JSON.parse(\`${JSON.stringify(emojiIndexByName, null, 2)}\`)
-export const emojiIndexByChar = JSON.parse(\`${JSON.stringify(emojiIndexByChar, null, 2)}\`)
+export const emojiIndexByName: {[key: string]: string} = JSON.parse(\`${JSON.stringify(
+    emojiIndexByName,
+    null,
+    2
+  )}\`)
+export const emojiIndexByChar: {[key: string]: string}  = JSON.parse(\`${JSON.stringify(
+    emojiIndexByChar,
+    null,
+    2
+  )}\`)
 export const commonTlds = ${JSON.stringify(commonTlds)}
 `
 

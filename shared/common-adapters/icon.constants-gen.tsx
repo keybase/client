@@ -10,10616 +10,9502 @@ type IconMeta = {
   requireDark?: string
 }
 
-export type IconType =
-  | 'icon-GPG-export'
-  | 'icon-addon-file-downloading'
-  | 'icon-addon-file-uploading'
-  | 'icon-addon-file-uploading-error'
-  | 'icon-addon-file-uploading-offline'
-  | 'icon-addon-lock-16'
-  | 'icon-addon-lock-22'
-  | 'icon-addon-lock-active-16'
-  | 'icon-addon-lock-active-22'
-  | 'icon-addon-lock-hover-16'
-  | 'icon-airdrop-logo-16'
-  | 'icon-airdrop-logo-32'
-  | 'icon-airdrop-logo-48'
-  | 'icon-airdrop-logo-64'
-  | 'icon-bitcoin-logo-48'
-  | 'icon-bitcoin-logo-64'
-  | 'icon-coin-heads-48-48'
-  | 'icon-coin-tails-48-48'
-  | 'icon-computer-32'
-  | 'icon-computer-48'
-  | 'icon-computer-64'
-  | 'icon-computer-96'
-  | 'icon-computer-background-1-32'
-  | 'icon-computer-background-1-48'
-  | 'icon-computer-background-1-64'
-  | 'icon-computer-background-1-96'
-  | 'icon-computer-background-10-32'
-  | 'icon-computer-background-10-48'
-  | 'icon-computer-background-10-64'
-  | 'icon-computer-background-10-96'
-  | 'icon-computer-background-2-32'
-  | 'icon-computer-background-2-48'
-  | 'icon-computer-background-2-64'
-  | 'icon-computer-background-2-96'
-  | 'icon-computer-background-3-32'
-  | 'icon-computer-background-3-48'
-  | 'icon-computer-background-3-64'
-  | 'icon-computer-background-3-96'
-  | 'icon-computer-background-4-32'
-  | 'icon-computer-background-4-48'
-  | 'icon-computer-background-4-64'
-  | 'icon-computer-background-4-96'
-  | 'icon-computer-background-5-32'
-  | 'icon-computer-background-5-48'
-  | 'icon-computer-background-5-64'
-  | 'icon-computer-background-5-96'
-  | 'icon-computer-background-6-32'
-  | 'icon-computer-background-6-48'
-  | 'icon-computer-background-6-64'
-  | 'icon-computer-background-6-96'
-  | 'icon-computer-background-7-32'
-  | 'icon-computer-background-7-48'
-  | 'icon-computer-background-7-64'
-  | 'icon-computer-background-7-96'
-  | 'icon-computer-background-8-32'
-  | 'icon-computer-background-8-48'
-  | 'icon-computer-background-8-64'
-  | 'icon-computer-background-8-96'
-  | 'icon-computer-background-9-32'
-  | 'icon-computer-background-9-48'
-  | 'icon-computer-background-9-64'
-  | 'icon-computer-background-9-96'
-  | 'icon-computer-revoke-48'
-  | 'icon-computer-revoke-64'
-  | 'icon-computer-revoke-background-1-32'
-  | 'icon-computer-revoke-background-1-48'
-  | 'icon-computer-revoke-background-1-64'
-  | 'icon-computer-revoke-background-10-32'
-  | 'icon-computer-revoke-background-10-48'
-  | 'icon-computer-revoke-background-10-64'
-  | 'icon-computer-revoke-background-2-32'
-  | 'icon-computer-revoke-background-2-48'
-  | 'icon-computer-revoke-background-2-64'
-  | 'icon-computer-revoke-background-3-32'
-  | 'icon-computer-revoke-background-3-48'
-  | 'icon-computer-revoke-background-3-64'
-  | 'icon-computer-revoke-background-4-32'
-  | 'icon-computer-revoke-background-4-48'
-  | 'icon-computer-revoke-background-4-64'
-  | 'icon-computer-revoke-background-5-32'
-  | 'icon-computer-revoke-background-5-48'
-  | 'icon-computer-revoke-background-5-64'
-  | 'icon-computer-revoke-background-6-32'
-  | 'icon-computer-revoke-background-6-48'
-  | 'icon-computer-revoke-background-6-64'
-  | 'icon-computer-revoke-background-7-32'
-  | 'icon-computer-revoke-background-7-48'
-  | 'icon-computer-revoke-background-7-64'
-  | 'icon-computer-revoke-background-8-32'
-  | 'icon-computer-revoke-background-8-48'
-  | 'icon-computer-revoke-background-8-64'
-  | 'icon-computer-revoke-background-9-32'
-  | 'icon-computer-revoke-background-9-48'
-  | 'icon-computer-revoke-background-9-64'
-  | 'icon-computer-success-32'
-  | 'icon-computer-success-48'
-  | 'icon-computer-success-background-1-32'
-  | 'icon-computer-success-background-1-48'
-  | 'icon-computer-success-background-10-32'
-  | 'icon-computer-success-background-10-48'
-  | 'icon-computer-success-background-2-32'
-  | 'icon-computer-success-background-2-48'
-  | 'icon-computer-success-background-3-32'
-  | 'icon-computer-success-background-3-48'
-  | 'icon-computer-success-background-4-32'
-  | 'icon-computer-success-background-4-48'
-  | 'icon-computer-success-background-5-32'
-  | 'icon-computer-success-background-5-48'
-  | 'icon-computer-success-background-6-32'
-  | 'icon-computer-success-background-6-48'
-  | 'icon-computer-success-background-7-32'
-  | 'icon-computer-success-background-7-48'
-  | 'icon-computer-success-background-8-32'
-  | 'icon-computer-success-background-8-48'
-  | 'icon-computer-success-background-9-32'
-  | 'icon-computer-success-background-9-48'
-  | 'icon-dark-addon-file-downloading'
-  | 'icon-dark-addon-file-uploading'
-  | 'icon-dark-addon-file-uploading-error'
-  | 'icon-dark-addon-file-uploading-offline'
-  | 'icon-dark-addon-lock-16'
-  | 'icon-dark-addon-lock-22'
-  | 'icon-dark-addon-lock-hover-16'
-  | 'icon-dark-computer-revoke-background-1-32'
-  | 'icon-dark-computer-revoke-background-1-48'
-  | 'icon-dark-computer-revoke-background-1-64'
-  | 'icon-dark-computer-revoke-background-10-32'
-  | 'icon-dark-computer-revoke-background-10-48'
-  | 'icon-dark-computer-revoke-background-10-64'
-  | 'icon-dark-computer-revoke-background-2-32'
-  | 'icon-dark-computer-revoke-background-2-48'
-  | 'icon-dark-computer-revoke-background-2-64'
-  | 'icon-dark-computer-revoke-background-3-32'
-  | 'icon-dark-computer-revoke-background-3-48'
-  | 'icon-dark-computer-revoke-background-3-64'
-  | 'icon-dark-computer-revoke-background-4-32'
-  | 'icon-dark-computer-revoke-background-4-48'
-  | 'icon-dark-computer-revoke-background-4-64'
-  | 'icon-dark-computer-revoke-background-5-32'
-  | 'icon-dark-computer-revoke-background-5-48'
-  | 'icon-dark-computer-revoke-background-5-64'
-  | 'icon-dark-computer-revoke-background-6-32'
-  | 'icon-dark-computer-revoke-background-6-48'
-  | 'icon-dark-computer-revoke-background-6-64'
-  | 'icon-dark-computer-revoke-background-7-32'
-  | 'icon-dark-computer-revoke-background-7-48'
-  | 'icon-dark-computer-revoke-background-7-64'
-  | 'icon-dark-computer-revoke-background-8-32'
-  | 'icon-dark-computer-revoke-background-8-48'
-  | 'icon-dark-computer-revoke-background-8-64'
-  | 'icon-dark-computer-revoke-background-9-32'
-  | 'icon-dark-computer-revoke-background-9-48'
-  | 'icon-dark-computer-revoke-background-9-64'
-  | 'icon-dark-computer-success-32'
-  | 'icon-dark-computer-success-48'
-  | 'icon-dark-computer-success-background-1-32'
-  | 'icon-dark-computer-success-background-1-48'
-  | 'icon-dark-computer-success-background-10-32'
-  | 'icon-dark-computer-success-background-10-48'
-  | 'icon-dark-computer-success-background-2-32'
-  | 'icon-dark-computer-success-background-2-48'
-  | 'icon-dark-computer-success-background-3-32'
-  | 'icon-dark-computer-success-background-3-48'
-  | 'icon-dark-computer-success-background-4-32'
-  | 'icon-dark-computer-success-background-4-48'
-  | 'icon-dark-computer-success-background-5-32'
-  | 'icon-dark-computer-success-background-5-48'
-  | 'icon-dark-computer-success-background-6-32'
-  | 'icon-dark-computer-success-background-6-48'
-  | 'icon-dark-computer-success-background-7-32'
-  | 'icon-dark-computer-success-background-7-48'
-  | 'icon-dark-computer-success-background-8-32'
-  | 'icon-dark-computer-success-background-8-48'
-  | 'icon-dark-computer-success-background-9-32'
-  | 'icon-dark-computer-success-background-9-48'
-  | 'icon-dark-dns-48'
-  | 'icon-dark-dns-64'
-  | 'icon-dark-email-remove-48'
-  | 'icon-dark-email-remove-64'
-  | 'icon-dark-email-remove-96'
-  | 'icon-dark-empty-channels-103-96'
-  | 'icon-dark-empty-confused-96-96'
-  | 'icon-dark-empty-emoji-126-96'
-  | 'icon-dark-empty-lone-wolf-116-96'
-  | 'icon-dark-empty-people-search-112-96'
-  | 'icon-dark-empty-subteams-164-96'
-  | 'icon-dark-empty-team-small-96'
-  | 'icon-dark-empty-wot-118-96'
-  | 'icon-dark-fancy-bomb-desktop-150-72'
-  | 'icon-dark-fancy-bomb-mobile-226-96'
-  | 'icon-dark-fancy-email-sent-144-x-48'
-  | 'icon-dark-fancy-email-sent-192-x-64'
-  | 'icon-dark-fancy-encrypted-computer-desktop-150-72'
-  | 'icon-dark-fancy-encrypted-computer-mobile-226-96'
-  | 'icon-dark-fancy-encrypted-phone-mobile-226-96'
-  | 'icon-dark-fancy-finder-132-96'
-  | 'icon-dark-fancy-finder-enabled-132-96'
-  | 'icon-dark-fancy-revoked-computer-desktop-150-72'
-  | 'icon-dark-fancy-revoked-computer-mobile-226-96'
-  | 'icon-dark-fancy-revoked-phone-desktop-150-72'
-  | 'icon-dark-fancy-revoked-phone-mobile-226-96'
-  | 'icon-dark-fancy-unfurl-preview-desktop-96-96'
-  | 'icon-dark-fancy-unfurl-preview-mobile-128-128'
-  | 'icon-dark-fancy-user-card-desktop-80-99'
-  | 'icon-dark-fancy-user-card-mobile-120-149'
-  | 'icon-dark-file-16'
-  | 'icon-dark-file-32'
-  | 'icon-dark-file-48'
-  | 'icon-dark-file-64'
-  | 'icon-dark-file-96'
-  | 'icon-dark-file-delete-48'
-  | 'icon-dark-file-delete-64'
-  | 'icon-dark-file-placeholder-32'
-  | 'icon-dark-file-saltpack-32'
-  | 'icon-dark-file-saltpack-64'
-  | 'icon-dark-file-txt-48'
-  | 'icon-dark-file-txt-64'
-  | 'icon-dark-file-uploading-48'
-  | 'icon-dark-file-uploading-64'
-  | 'icon-dark-folder-16'
-  | 'icon-dark-folder-32'
-  | 'icon-dark-folder-48'
-  | 'icon-dark-folder-64'
-  | 'icon-dark-folder-copy-32'
-  | 'icon-dark-folder-copy-48'
-  | 'icon-dark-folder-default-96'
-  | 'icon-dark-folder-move-32'
-  | 'icon-dark-folder-move-48'
-  | 'icon-dark-folder-placeholder-32'
-  | 'icon-dark-folder-private-16'
-  | 'icon-dark-folder-private-32'
-  | 'icon-dark-folder-private-48'
-  | 'icon-dark-folder-private-64'
-  | 'icon-dark-folder-private-96'
-  | 'icon-dark-folder-public-16'
-  | 'icon-dark-folder-public-32'
-  | 'icon-dark-folder-public-48'
-  | 'icon-dark-folder-public-64'
-  | 'icon-dark-folder-public-96'
-  | 'icon-dark-folder-success-48'
-  | 'icon-dark-folder-team-16'
-  | 'icon-dark-folder-team-32'
-  | 'icon-dark-folder-team-48'
-  | 'icon-dark-folder-team-64'
-  | 'icon-dark-folder-team-96'
-  | 'icon-dark-follow-me-21'
-  | 'icon-dark-follow-me-28'
-  | 'icon-dark-following-21'
-  | 'icon-dark-following-28'
-  | 'icon-dark-github-logo-16'
-  | 'icon-dark-github-logo-32'
-  | 'icon-dark-github-logo-48'
-  | 'icon-dark-github-logo-64'
-  | 'icon-dark-message-deletion-32'
-  | 'icon-dark-message-deletion-48'
-  | 'icon-dark-message-deletion-64'
-  | 'icon-dark-message-retention-32'
-  | 'icon-dark-message-retention-48'
-  | 'icon-dark-message-retention-64'
-  | 'icon-dark-mutual-follow-21'
-  | 'icon-dark-mutual-follow-28'
-  | 'icon-dark-onboarding-chat-32'
-  | 'icon-dark-onboarding-chat-48'
-  | 'icon-dark-onboarding-computer-48'
-  | 'icon-dark-onboarding-email-add-32'
-  | 'icon-dark-onboarding-email-add-48'
-  | 'icon-dark-onboarding-email-searchable-48'
-  | 'icon-dark-onboarding-email-verify-32'
-  | 'icon-dark-onboarding-email-verify-48'
-  | 'icon-dark-onboarding-folder-32'
-  | 'icon-dark-onboarding-folder-48'
-  | 'icon-dark-onboarding-follow-32'
-  | 'icon-dark-onboarding-follow-48'
-  | 'icon-dark-onboarding-git-32'
-  | 'icon-dark-onboarding-git-48'
-  | 'icon-dark-onboarding-number-new-32'
-  | 'icon-dark-onboarding-number-new-48'
-  | 'icon-dark-onboarding-number-verify-32'
-  | 'icon-dark-onboarding-number-verify-48'
-  | 'icon-dark-onboarding-paper-key-32'
-  | 'icon-dark-onboarding-paper-key-48'
-  | 'icon-dark-onboarding-phone-32'
-  | 'icon-dark-onboarding-proofs-32'
-  | 'icon-dark-onboarding-proofs-48'
-  | 'icon-dark-onboarding-team-32'
-  | 'icon-dark-onboarding-team-48'
-  | 'icon-dark-onboarding-team-avatar-32'
-  | 'icon-dark-onboarding-team-avatar-48'
-  | 'icon-dark-onboarding-team-publicity-32'
-  | 'icon-dark-onboarding-team-publicity-48'
-  | 'icon-dark-onboarding-user-avatar-32'
-  | 'icon-dark-onboarding-user-avatar-48'
-  | 'icon-dark-onboarding-user-info-32'
-  | 'icon-dark-onboarding-user-info-48'
-  | 'icon-dark-paper-key-32'
-  | 'icon-dark-paper-key-48'
-  | 'icon-dark-paper-key-64'
-  | 'icon-dark-paper-key-96'
-  | 'icon-dark-paper-key-revoke-48'
-  | 'icon-dark-paper-key-revoke-64'
-  | 'icon-dark-phone-number-remove-48'
-  | 'icon-dark-phone-number-remove-64'
-  | 'icon-dark-phone-number-remove-96'
-  | 'icon-dark-phone-revoke-background-1-32'
-  | 'icon-dark-phone-revoke-background-1-48'
-  | 'icon-dark-phone-revoke-background-1-64'
-  | 'icon-dark-phone-revoke-background-10-32'
-  | 'icon-dark-phone-revoke-background-10-48'
-  | 'icon-dark-phone-revoke-background-10-64'
-  | 'icon-dark-phone-revoke-background-2-32'
-  | 'icon-dark-phone-revoke-background-2-48'
-  | 'icon-dark-phone-revoke-background-2-64'
-  | 'icon-dark-phone-revoke-background-3-32'
-  | 'icon-dark-phone-revoke-background-3-48'
-  | 'icon-dark-phone-revoke-background-3-64'
-  | 'icon-dark-phone-revoke-background-4-32'
-  | 'icon-dark-phone-revoke-background-4-48'
-  | 'icon-dark-phone-revoke-background-4-64'
-  | 'icon-dark-phone-revoke-background-5-32'
-  | 'icon-dark-phone-revoke-background-5-48'
-  | 'icon-dark-phone-revoke-background-5-64'
-  | 'icon-dark-phone-revoke-background-6-32'
-  | 'icon-dark-phone-revoke-background-6-48'
-  | 'icon-dark-phone-revoke-background-6-64'
-  | 'icon-dark-phone-revoke-background-7-32'
-  | 'icon-dark-phone-revoke-background-7-48'
-  | 'icon-dark-phone-revoke-background-7-64'
-  | 'icon-dark-phone-revoke-background-8-32'
-  | 'icon-dark-phone-revoke-background-8-48'
-  | 'icon-dark-phone-revoke-background-8-64'
-  | 'icon-dark-phone-revoke-background-9-32'
-  | 'icon-dark-phone-revoke-background-9-48'
-  | 'icon-dark-phone-revoke-background-9-64'
-  | 'icon-dark-phone-success-32'
-  | 'icon-dark-phone-success-48'
-  | 'icon-dark-phone-success-background-1-32'
-  | 'icon-dark-phone-success-background-1-48'
-  | 'icon-dark-phone-success-background-10-32'
-  | 'icon-dark-phone-success-background-10-48'
-  | 'icon-dark-phone-success-background-2-32'
-  | 'icon-dark-phone-success-background-2-48'
-  | 'icon-dark-phone-success-background-3-32'
-  | 'icon-dark-phone-success-background-3-48'
-  | 'icon-dark-phone-success-background-4-32'
-  | 'icon-dark-phone-success-background-4-48'
-  | 'icon-dark-phone-success-background-5-32'
-  | 'icon-dark-phone-success-background-5-48'
-  | 'icon-dark-phone-success-background-6-32'
-  | 'icon-dark-phone-success-background-6-48'
-  | 'icon-dark-phone-success-background-7-32'
-  | 'icon-dark-phone-success-background-7-48'
-  | 'icon-dark-phone-success-background-8-32'
-  | 'icon-dark-phone-success-background-8-48'
-  | 'icon-dark-phone-success-background-9-32'
-  | 'icon-dark-phone-success-background-9-48'
-  | 'icon-dark-placeholder-avatar-192'
-  | 'icon-dark-placeholder-avatar-256'
-  | 'icon-dark-placeholder-avatar-32'
-  | 'icon-dark-placeholder-avatar-960'
-  | 'icon-dark-placeholder-avatar-circular-32'
-  | 'icon-dark-placeholder-avatar-circular-48'
-  | 'icon-dark-placeholder-avatar-circular-reversed-32'
-  | 'icon-dark-placeholder-avatar-circular-reversed-48'
-  | 'icon-dark-placeholder-avatar-lighter-192'
-  | 'icon-dark-placeholder-avatar-lighter-256'
-  | 'icon-dark-placeholder-avatar-lighter-960'
-  | 'icon-dark-placeholder-secret-user-16'
-  | 'icon-dark-placeholder-secret-user-32'
-  | 'icon-dark-placeholder-secret-user-48'
-  | 'icon-dark-placeholder-secret-user-64'
-  | 'icon-dark-poop-32'
-  | 'icon-dark-poop-48'
-  | 'icon-dark-poop-64'
-  | 'icon-dark-poop-96'
-  | 'icon-dark-proof-pending'
-  | 'icon-dark-proof-published'
-  | 'icon-dark-proof-success'
-  | 'icon-dark-proof-unfinished'
-  | 'icon-dark-repo-personal-add-48'
-  | 'icon-dark-repo-personal-delete-48'
-  | 'icon-dark-repo-team-add-48'
-  | 'icon-dark-repo-team-delete-48'
-  | 'icon-dark-shh-19-16'
-  | 'icon-dark-shh-26-21'
-  | 'icon-dark-shh-active-19-16'
-  | 'icon-dark-shh-hover-19-16'
-  | 'icon-dark-stellar-coins-stacked-inflation-48'
-  | 'icon-dark-stellar-coins-stacked-inflation-64'
-  | 'icon-dark-team-delete-28'
-  | 'icon-dark-team-git-16'
-  | 'icon-dark-team-leave-28'
-  | 'icon-dark-team-placeholder-avatar-112'
-  | 'icon-dark-team-placeholder-avatar-16'
-  | 'icon-dark-team-placeholder-avatar-192'
-  | 'icon-dark-team-placeholder-avatar-256'
-  | 'icon-dark-team-placeholder-avatar-32'
-  | 'icon-dark-team-placeholder-avatar-48'
-  | 'icon-dark-team-placeholder-avatar-64'
-  | 'icon-dark-team-placeholder-avatar-80'
-  | 'icon-dark-team-placeholder-avatar-960'
-  | 'icon-dark-wallet-add-48'
-  | 'icon-dark-wallet-add-64'
-  | 'icon-dark-wallet-placeholder-add-32'
-  | 'icon-dark-wallet-remove-48'
-  | 'icon-dark-wallet-remove-64'
-  | 'icon-decrypt-64'
-  | 'icon-dns-48'
-  | 'icon-dns-64'
-  | 'icon-email-add-48'
-  | 'icon-email-add-64'
-  | 'icon-email-add-96'
-  | 'icon-email-remove-48'
-  | 'icon-email-remove-64'
-  | 'icon-email-remove-96'
-  | 'icon-emoji-keybase'
-  | 'icon-emoji-nycto-a'
-  | 'icon-emoji-nycto-b'
-  | 'icon-emoji-nycto-c'
-  | 'icon-emoji-nycto-d'
-  | 'icon-emoji-nycto-e'
-  | 'icon-emoji-nycto-f'
-  | 'icon-emoji-nycto-g'
-  | 'icon-emoji-nycto-h'
-  | 'icon-emoji-nycto-i'
-  | 'icon-emoji-nycto-j'
-  | 'icon-emoji-nycto-k'
-  | 'icon-emoji-nycto-l'
-  | 'icon-emoji-nycto-m'
-  | 'icon-emoji-nycto-n'
-  | 'icon-emoji-nycto-o'
-  | 'icon-emoji-nycto-p'
-  | 'icon-emoji-nycto-q'
-  | 'icon-emoji-nycto-r'
-  | 'icon-emoji-nycto-s'
-  | 'icon-emoji-nycto-t'
-  | 'icon-emoji-nycto-u'
-  | 'icon-emoji-nycto-v'
-  | 'icon-emoji-nycto-w'
-  | 'icon-emoji-nycto-x'
-  | 'icon-emoji-nycto-y'
-  | 'icon-emoji-nycto-z'
-  | 'icon-empty-channels-103-96'
-  | 'icon-empty-confused-96-96'
-  | 'icon-empty-emoji-126-96'
-  | 'icon-empty-lone-wolf-116-96'
-  | 'icon-empty-people-search-112-96'
-  | 'icon-empty-subteams-164-96'
-  | 'icon-empty-team-small-96'
-  | 'icon-empty-wot-118-96'
-  | 'icon-encrypt-64'
-  | 'icon-facebook-continue'
-  | 'icon-facebook-logo-16'
-  | 'icon-facebook-logo-24'
-  | 'icon-facebook-logo-32'
-  | 'icon-facebook-logo-48'
-  | 'icon-facebook-logo-64'
-  | 'icon-fancy-bomb-desktop-150-72'
-  | 'icon-fancy-bomb-mobile-226-96'
-  | 'icon-fancy-contact-import-mobile-72-96'
-  | 'icon-fancy-email-sent-144-x-48'
-  | 'icon-fancy-email-sent-192-x-64'
-  | 'icon-fancy-encrypted-computer-desktop-150-72'
-  | 'icon-fancy-encrypted-computer-mobile-226-96'
-  | 'icon-fancy-encrypted-phone-desktop-150-72'
-  | 'icon-fancy-encrypted-phone-mobile-226-96'
-  | 'icon-fancy-finder-132-96'
-  | 'icon-fancy-finder-enabled-132-96'
-  | 'icon-fancy-folder-file-inexistant-desktop-153-94'
-  | 'icon-fancy-folder-file-inexistant-mobile-188-120'
-  | 'icon-fancy-hellobot-hi-96'
-  | 'icon-fancy-location-phone-desktop-150-72'
-  | 'icon-fancy-location-phone-mobile-226-96'
-  | 'icon-fancy-no-access-desktop-96-94'
-  | 'icon-fancy-no-access-mobile-128-125'
-  | 'icon-fancy-revoked-computer-desktop-150-72'
-  | 'icon-fancy-revoked-computer-mobile-226-96'
-  | 'icon-fancy-revoked-phone-desktop-150-72'
-  | 'icon-fancy-revoked-phone-mobile-226-96'
-  | 'icon-fancy-stellar-receiving-desktop-98-86'
-  | 'icon-fancy-stellar-receiving-mobile-149-129'
-  | 'icon-fancy-stellar-sending-desktop-98-86'
-  | 'icon-fancy-stellar-sending-mobile-149-129'
-  | 'icon-fancy-unfurl-preview-desktop-96-96'
-  | 'icon-fancy-unfurl-preview-mobile-128-128'
-  | 'icon-fancy-user-card-desktop-80-99'
-  | 'icon-fancy-user-card-mobile-120-149'
-  | 'icon-file-16'
-  | 'icon-file-32'
-  | 'icon-file-48'
-  | 'icon-file-64'
-  | 'icon-file-96'
-  | 'icon-file-delete-48'
-  | 'icon-file-delete-64'
-  | 'icon-file-placeholder-32'
-  | 'icon-file-saltpack-32'
-  | 'icon-file-saltpack-64'
-  | 'icon-file-txt-48'
-  | 'icon-file-txt-64'
-  | 'icon-file-uploading-48'
-  | 'icon-file-uploading-64'
-  | 'icon-film-64'
-  | 'icon-folder-16'
-  | 'icon-folder-32'
-  | 'icon-folder-48'
-  | 'icon-folder-64'
-  | 'icon-folder-copy-32'
-  | 'icon-folder-copy-48'
-  | 'icon-folder-default-96'
-  | 'icon-folder-move-32'
-  | 'icon-folder-move-48'
-  | 'icon-folder-placeholder-32'
-  | 'icon-folder-private-16'
-  | 'icon-folder-private-32'
-  | 'icon-folder-private-48'
-  | 'icon-folder-private-64'
-  | 'icon-folder-private-96'
-  | 'icon-folder-public-16'
-  | 'icon-folder-public-32'
-  | 'icon-folder-public-48'
-  | 'icon-folder-public-64'
-  | 'icon-folder-public-96'
-  | 'icon-folder-success-48'
-  | 'icon-folder-team-16'
-  | 'icon-folder-team-32'
-  | 'icon-folder-team-48'
-  | 'icon-folder-team-64'
-  | 'icon-folder-team-96'
-  | 'icon-follow-me-21'
-  | 'icon-follow-me-28'
-  | 'icon-follow-me-32'
-  | 'icon-following-21'
-  | 'icon-following-28'
-  | 'icon-following-32'
-  | 'icon-github-logo-16'
-  | 'icon-github-logo-24'
-  | 'icon-github-logo-32'
-  | 'icon-github-logo-48'
-  | 'icon-github-logo-64'
-  | 'icon-hacker-news-logo-16'
-  | 'icon-hacker-news-logo-24'
-  | 'icon-hacker-news-logo-32'
-  | 'icon-hacker-news-logo-48'
-  | 'icon-hacker-news-logo-64'
-  | 'icon-illustration-attention-64'
-  | 'icon-illustration-contact-restrictions-96'
-  | 'icon-illustration-emoji-add-460-96'
-  | 'icon-illustration-emoji-alias-460-96'
-  | 'icon-illustration-encrypted-116-96'
-  | 'icon-illustration-exploding-messages-240'
-  | 'icon-illustration-friends-96'
-  | 'icon-illustration-happy-chat-96'
-  | 'icon-illustration-invite-friends-460-96'
-  | 'icon-illustration-long-time-96'
-  | 'icon-illustration-mars-rover'
-  | 'icon-illustration-mars-rover-background'
-  | 'icon-illustration-mars-rover-foreground'
-  | 'icon-illustration-secure-116-96'
-  | 'icon-illustration-sleepy-96'
-  | 'icon-illustration-stellar-payments-200-188'
-  | 'icon-illustration-subteams-380'
-  | 'icon-illustration-teams-180'
-  | 'icon-illustration-teams-216'
-  | 'icon-illustration-teams-80'
-  | 'icon-illustration-teams-96'
-  | 'icon-illustration-teams-channels-460-96'
-  | 'icon-illustration-teams-feature-profile-460-64'
-  | 'icon-illustration-teams-invite-links-blue-460-96'
-  | 'icon-illustration-teams-invite-links-green-460-96'
-  | 'icon-illustration-teams-invite-links-grey-460-96'
-  | 'icon-illustration-teams-subteams-460-96'
-  | 'icon-illustration-teams-zen-460-96'
-  | 'icon-illustration-welcome-96'
-  | 'icon-illustration-wot-460-96'
-  | 'icon-illustration-zen-240-180'
-  | 'icon-invite-link-48'
-  | 'icon-keybase-logo-128'
-  | 'icon-keybase-logo-16'
-  | 'icon-keybase-logo-24'
-  | 'icon-keybase-logo-32'
-  | 'icon-keybase-logo-64'
-  | 'icon-keybase-logo-80'
-  | 'icon-keybase-logo-logged-out-64'
-  | 'icon-keybase-logo-logged-out-80'
-  | 'icon-keybase-wordmark-128-48'
-  | 'icon-message-deletion-32'
-  | 'icon-message-deletion-48'
-  | 'icon-message-deletion-64'
-  | 'icon-message-exploding-260'
-  | 'icon-message-retention-32'
-  | 'icon-message-retention-48'
-  | 'icon-message-retention-64'
-  | 'icon-mutual-follow-21'
-  | 'icon-mutual-follow-28'
-  | 'icon-mutual-follow-32'
-  | 'icon-nav-chat-32'
-  | 'icon-nav-chat-40'
-  | 'icon-nav-chat-selected-32'
-  | 'icon-nav-chat-selected-40'
-  | 'icon-nav-devices-32'
-  | 'icon-nav-devices-selected-32'
-  | 'icon-nav-folders-32'
-  | 'icon-nav-folders-40'
-  | 'icon-nav-folders-selected-32'
-  | 'icon-nav-folders-selected-40'
-  | 'icon-nav-people-32'
-  | 'icon-nav-people-40'
-  | 'icon-nav-people-selected-32'
-  | 'icon-nav-people-selected-40'
-  | 'icon-nav-settings-32'
-  | 'icon-nav-settings-40'
-  | 'icon-nav-settings-selected-32'
-  | 'icon-nav-settings-selected-40'
-  | 'icon-onboarding-chat-32'
-  | 'icon-onboarding-chat-48'
-  | 'icon-onboarding-computer-48'
-  | 'icon-onboarding-email-add-32'
-  | 'icon-onboarding-email-add-48'
-  | 'icon-onboarding-email-searchable-48'
-  | 'icon-onboarding-email-verify-32'
-  | 'icon-onboarding-email-verify-48'
-  | 'icon-onboarding-folder-32'
-  | 'icon-onboarding-folder-48'
-  | 'icon-onboarding-follow-32'
-  | 'icon-onboarding-follow-48'
-  | 'icon-onboarding-git-32'
-  | 'icon-onboarding-git-48'
-  | 'icon-onboarding-number-new-32'
-  | 'icon-onboarding-number-new-48'
-  | 'icon-onboarding-number-verify-32'
-  | 'icon-onboarding-number-verify-48'
-  | 'icon-onboarding-paper-key-32'
-  | 'icon-onboarding-paper-key-48'
-  | 'icon-onboarding-phone-32'
-  | 'icon-onboarding-phone-48'
-  | 'icon-onboarding-proofs-32'
-  | 'icon-onboarding-proofs-48'
-  | 'icon-onboarding-team-32'
-  | 'icon-onboarding-team-48'
-  | 'icon-onboarding-team-avatar-32'
-  | 'icon-onboarding-team-avatar-48'
-  | 'icon-onboarding-team-publicity-32'
-  | 'icon-onboarding-team-publicity-48'
-  | 'icon-onboarding-user-avatar-32'
-  | 'icon-onboarding-user-avatar-48'
-  | 'icon-onboarding-user-info-32'
-  | 'icon-onboarding-user-info-48'
-  | 'icon-paper-key-32'
-  | 'icon-paper-key-48'
-  | 'icon-paper-key-64'
-  | 'icon-paper-key-96'
-  | 'icon-paper-key-revoke-48'
-  | 'icon-paper-key-revoke-64'
-  | 'icon-pgp-key-16'
-  | 'icon-pgp-key-24'
-  | 'icon-pgp-key-32'
-  | 'icon-pgp-key-48'
-  | 'icon-pgp-key-64'
-  | 'icon-pgp-key-import-48'
-  | 'icon-pgp-key-import-64'
-  | 'icon-pgp-key-new-48'
-  | 'icon-pgp-key-new-64'
-  | 'icon-phone-32'
-  | 'icon-phone-48'
-  | 'icon-phone-64'
-  | 'icon-phone-96'
-  | 'icon-phone-background-1-32'
-  | 'icon-phone-background-1-48'
-  | 'icon-phone-background-1-64'
-  | 'icon-phone-background-1-96'
-  | 'icon-phone-background-10-32'
-  | 'icon-phone-background-10-48'
-  | 'icon-phone-background-10-64'
-  | 'icon-phone-background-10-96'
-  | 'icon-phone-background-2-32'
-  | 'icon-phone-background-2-48'
-  | 'icon-phone-background-2-64'
-  | 'icon-phone-background-2-96'
-  | 'icon-phone-background-3-32'
-  | 'icon-phone-background-3-48'
-  | 'icon-phone-background-3-64'
-  | 'icon-phone-background-3-96'
-  | 'icon-phone-background-4-32'
-  | 'icon-phone-background-4-48'
-  | 'icon-phone-background-4-64'
-  | 'icon-phone-background-4-96'
-  | 'icon-phone-background-5-32'
-  | 'icon-phone-background-5-48'
-  | 'icon-phone-background-5-64'
-  | 'icon-phone-background-5-96'
-  | 'icon-phone-background-6-32'
-  | 'icon-phone-background-6-48'
-  | 'icon-phone-background-6-64'
-  | 'icon-phone-background-6-96'
-  | 'icon-phone-background-7-32'
-  | 'icon-phone-background-7-48'
-  | 'icon-phone-background-7-64'
-  | 'icon-phone-background-7-96'
-  | 'icon-phone-background-8-32'
-  | 'icon-phone-background-8-48'
-  | 'icon-phone-background-8-64'
-  | 'icon-phone-background-8-96'
-  | 'icon-phone-background-9-32'
-  | 'icon-phone-background-9-48'
-  | 'icon-phone-background-9-64'
-  | 'icon-phone-background-9-96'
-  | 'icon-phone-number-add-48'
-  | 'icon-phone-number-add-64'
-  | 'icon-phone-number-add-96'
-  | 'icon-phone-number-remove-48'
-  | 'icon-phone-number-remove-64'
-  | 'icon-phone-number-remove-96'
-  | 'icon-phone-revoke-48'
-  | 'icon-phone-revoke-64'
-  | 'icon-phone-revoke-background-1-32'
-  | 'icon-phone-revoke-background-1-48'
-  | 'icon-phone-revoke-background-1-64'
-  | 'icon-phone-revoke-background-10-32'
-  | 'icon-phone-revoke-background-10-48'
-  | 'icon-phone-revoke-background-10-64'
-  | 'icon-phone-revoke-background-2-32'
-  | 'icon-phone-revoke-background-2-48'
-  | 'icon-phone-revoke-background-2-64'
-  | 'icon-phone-revoke-background-3-32'
-  | 'icon-phone-revoke-background-3-48'
-  | 'icon-phone-revoke-background-3-64'
-  | 'icon-phone-revoke-background-4-32'
-  | 'icon-phone-revoke-background-4-48'
-  | 'icon-phone-revoke-background-4-64'
-  | 'icon-phone-revoke-background-5-32'
-  | 'icon-phone-revoke-background-5-48'
-  | 'icon-phone-revoke-background-5-64'
-  | 'icon-phone-revoke-background-6-32'
-  | 'icon-phone-revoke-background-6-48'
-  | 'icon-phone-revoke-background-6-64'
-  | 'icon-phone-revoke-background-7-32'
-  | 'icon-phone-revoke-background-7-48'
-  | 'icon-phone-revoke-background-7-64'
-  | 'icon-phone-revoke-background-8-32'
-  | 'icon-phone-revoke-background-8-48'
-  | 'icon-phone-revoke-background-8-64'
-  | 'icon-phone-revoke-background-9-32'
-  | 'icon-phone-revoke-background-9-48'
-  | 'icon-phone-revoke-background-9-64'
-  | 'icon-phone-success-32'
-  | 'icon-phone-success-48'
-  | 'icon-phone-success-background-1-32'
-  | 'icon-phone-success-background-1-48'
-  | 'icon-phone-success-background-10-32'
-  | 'icon-phone-success-background-10-48'
-  | 'icon-phone-success-background-2-32'
-  | 'icon-phone-success-background-2-48'
-  | 'icon-phone-success-background-3-32'
-  | 'icon-phone-success-background-3-48'
-  | 'icon-phone-success-background-4-32'
-  | 'icon-phone-success-background-4-48'
-  | 'icon-phone-success-background-5-32'
-  | 'icon-phone-success-background-5-48'
-  | 'icon-phone-success-background-6-32'
-  | 'icon-phone-success-background-6-48'
-  | 'icon-phone-success-background-7-32'
-  | 'icon-phone-success-background-7-48'
-  | 'icon-phone-success-background-8-32'
-  | 'icon-phone-success-background-8-48'
-  | 'icon-phone-success-background-9-32'
-  | 'icon-phone-success-background-9-48'
-  | 'icon-placeholder-avatar-192'
-  | 'icon-placeholder-avatar-256'
-  | 'icon-placeholder-avatar-32'
-  | 'icon-placeholder-avatar-960'
-  | 'icon-placeholder-avatar-circular-32'
-  | 'icon-placeholder-avatar-circular-48'
-  | 'icon-placeholder-avatar-circular-reversed-32'
-  | 'icon-placeholder-avatar-circular-reversed-48'
-  | 'icon-placeholder-avatar-lighter-192'
-  | 'icon-placeholder-avatar-lighter-256'
-  | 'icon-placeholder-avatar-lighter-32'
-  | 'icon-placeholder-avatar-lighter-960'
-  | 'icon-placeholder-secret-user-16'
-  | 'icon-placeholder-secret-user-32'
-  | 'icon-placeholder-secret-user-48'
-  | 'icon-placeholder-secret-user-64'
-  | 'icon-play-64'
-  | 'icon-poop-32'
-  | 'icon-poop-48'
-  | 'icon-poop-64'
-  | 'icon-poop-96'
-  | 'icon-powered-by-giphy-120-26'
-  | 'icon-proof-broken'
-  | 'icon-proof-pending'
-  | 'icon-proof-published'
-  | 'icon-proof-success'
-  | 'icon-proof-unfinished'
-  | 'icon-reddit-logo-16'
-  | 'icon-reddit-logo-24'
-  | 'icon-reddit-logo-32'
-  | 'icon-reddit-logo-48'
-  | 'icon-reddit-logo-64'
-  | 'icon-repo-personal-add-48'
-  | 'icon-repo-personal-delete-48'
-  | 'icon-repo-team-add-48'
-  | 'icon-repo-team-delete-48'
-  | 'icon-search-facebook-active-32'
-  | 'icon-search-facebook-active-40'
-  | 'icon-search-facebook-inactive-32'
-  | 'icon-search-facebook-inactive-40'
-  | 'icon-search-github-active-32'
-  | 'icon-search-github-active-40'
-  | 'icon-search-github-inactive-32'
-  | 'icon-search-github-inactive-40'
-  | 'icon-search-hacker-news-active-32'
-  | 'icon-search-hacker-news-active-40'
-  | 'icon-search-hacker-news-inactive-32'
-  | 'icon-search-hacker-news-inactive-40'
-  | 'icon-search-keybase-active-32'
-  | 'icon-search-keybase-active-40'
-  | 'icon-search-keybase-inactive-32'
-  | 'icon-search-keybase-inactive-40'
-  | 'icon-search-reddit-active-32'
-  | 'icon-search-reddit-active-40'
-  | 'icon-search-reddit-inactive-32'
-  | 'icon-search-reddit-inactive-40'
-  | 'icon-search-twitter-active-32'
-  | 'icon-search-twitter-active-40'
-  | 'icon-search-twitter-inactive-32'
-  | 'icon-search-twitter-inactive-40'
-  | 'icon-shh-19-16'
-  | 'icon-shh-26-21'
-  | 'icon-shh-active-19-16'
-  | 'icon-shh-active-26-21'
-  | 'icon-shh-hover-19-16'
-  | 'icon-sign-64'
-  | 'icon-skull-32'
-  | 'icon-skull-48'
-  | 'icon-skull-64'
-  | 'icon-skull-96'
-  | 'icon-stellar-coins-receiving-16'
-  | 'icon-stellar-coins-receiving-32'
-  | 'icon-stellar-coins-receiving-48'
-  | 'icon-stellar-coins-receiving-64'
-  | 'icon-stellar-coins-sending-16'
-  | 'icon-stellar-coins-sending-32'
-  | 'icon-stellar-coins-sending-48'
-  | 'icon-stellar-coins-sending-64'
-  | 'icon-stellar-coins-stacked-16'
-  | 'icon-stellar-coins-stacked-32'
-  | 'icon-stellar-coins-stacked-48'
-  | 'icon-stellar-coins-stacked-64'
-  | 'icon-stellar-coins-stacked-inflation-48'
-  | 'icon-stellar-coins-stacked-inflation-64'
-  | 'icon-team-delete-28'
-  | 'icon-team-git-16'
-  | 'icon-team-leave-28'
-  | 'icon-team-placeholder-avatar-112'
-  | 'icon-team-placeholder-avatar-16'
-  | 'icon-team-placeholder-avatar-176'
-  | 'icon-team-placeholder-avatar-192'
-  | 'icon-team-placeholder-avatar-256'
-  | 'icon-team-placeholder-avatar-32'
-  | 'icon-team-placeholder-avatar-48'
-  | 'icon-team-placeholder-avatar-64'
-  | 'icon-team-placeholder-avatar-80'
-  | 'icon-team-placeholder-avatar-960'
-  | 'icon-team-sparkles-64-40'
-  | 'icon-teams-add-email-list-64'
-  | 'icon-teams-add-number-list-64'
-  | 'icon-teams-add-phone-contacts-64'
-  | 'icon-teams-add-search-64'
-  | 'icon-teams-channel-64'
-  | 'icon-teams-size-big-64'
-  | 'icon-teams-size-small-64'
-  | 'icon-teams-type-business-64'
-  | 'icon-teams-type-community-64'
-  | 'icon-teams-type-notsure-64'
-  | 'icon-teams-type-squad-64'
-  | 'icon-terminal-32'
-  | 'icon-terminal-48'
-  | 'icon-twitter-logo-16'
-  | 'icon-twitter-logo-24'
-  | 'icon-twitter-logo-32'
-  | 'icon-twitter-logo-48'
-  | 'icon-twitter-logo-64'
-  | 'icon-user-add-32'
-  | 'icon-verify-64'
-  | 'icon-wallet-32'
-  | 'icon-wallet-48'
-  | 'icon-wallet-64'
-  | 'icon-wallet-add-48'
-  | 'icon-wallet-add-64'
-  | 'icon-wallet-open-32'
-  | 'icon-wallet-open-48'
-  | 'icon-wallet-open-64'
-  | 'icon-wallet-placeholder-add-32'
-  | 'icon-wallet-receive-48'
-  | 'icon-wallet-receive-64'
-  | 'icon-wallet-remove-48'
-  | 'icon-wallet-remove-64'
-  | 'icon-wallet-secret-key-48'
-  | 'icon-wallet-secret-key-64'
-  | 'icon-wallet-to-wallet-32'
-  | 'icon-wallet-to-wallet-48'
-  | 'icon-website-16'
-  | 'icon-website-24'
-  | 'icon-website-32'
-  | 'icon-website-48'
-  | 'icon-website-64'
-  | 'icon-windows-badge'
-  | 'icon-zcash-logo-48'
-  | 'icon-zcash-logo-64'
-  | 'iconfont-add'
-  | 'iconfont-add-solid'
-  | 'iconfont-airplane'
-  | 'iconfont-app-close'
-  | 'iconfont-app-maximize'
-  | 'iconfont-app-minimize'
-  | 'iconfont-app-un-maximize'
-  | 'iconfont-apple'
-  | 'iconfont-arrow-down'
-  | 'iconfont-arrow-full-down'
-  | 'iconfont-arrow-full-up'
-  | 'iconfont-arrow-left'
-  | 'iconfont-arrow-right'
-  | 'iconfont-arrow-up'
-  | 'iconfont-attachment'
-  | 'iconfont-basketball'
-  | 'iconfont-block'
-  | 'iconfont-bomb'
-  | 'iconfont-bomb-solid'
-  | 'iconfont-boom'
-  | 'iconfont-bot'
-  | 'iconfont-calculate'
-  | 'iconfont-calculator'
-  | 'iconfont-camera'
-  | 'iconfont-camera-solid'
-  | 'iconfont-campfire'
-  | 'iconfont-campfire-burning'
-  | 'iconfont-campfire-out'
-  | 'iconfont-caret-down'
-  | 'iconfont-caret-right'
-  | 'iconfont-chat'
-  | 'iconfont-check'
-  | 'iconfont-checkbox'
-  | 'iconfont-circle'
-  | 'iconfont-clipboard'
-  | 'iconfont-clock'
-  | 'iconfont-clock-reversed'
-  | 'iconfont-clock-solid'
-  | 'iconfont-close'
-  | 'iconfont-cloud'
-  | 'iconfont-club'
-  | 'iconfont-coin'
-  | 'iconfont-coin-flip'
-  | 'iconfont-coin-stack'
-  | 'iconfont-collapse'
-  | 'iconfont-compose'
-  | 'iconfont-contact-book'
-  | 'iconfont-contact-card'
-  | 'iconfont-copy'
-  | 'iconfont-crown'
-  | 'iconfont-crown-admin'
-  | 'iconfont-crown-owner'
-  | 'iconfont-diamond'
-  | 'iconfont-dollar-sign'
-  | 'iconfont-download'
-  | 'iconfont-download-2'
-  | 'iconfont-edit'
-  | 'iconfont-ellipsis'
-  | 'iconfont-emoji'
-  | 'iconfont-envelope'
-  | 'iconfont-envelope-solid'
-  | 'iconfont-exclamation'
-  | 'iconfont-expand'
-  | 'iconfont-file'
-  | 'iconfont-file-solid'
-  | 'iconfont-film'
-  | 'iconfont-film-solid'
-  | 'iconfont-filter'
-  | 'iconfont-finder'
-  | 'iconfont-fire'
-  | 'iconfont-flag'
-  | 'iconfont-folder-downloads'
-  | 'iconfont-folder-dropdown'
-  | 'iconfont-folder-new'
-  | 'iconfont-folder-open'
-  | 'iconfont-folder-private'
-  | 'iconfont-folder-private-me'
-  | 'iconfont-folder-public'
-  | 'iconfont-folder-public-me'
-  | 'iconfont-folder-up'
-  | 'iconfont-forward'
-  | 'iconfont-gear'
-  | 'iconfont-gif'
-  | 'iconfont-hamburger'
-  | 'iconfont-hand-wave'
-  | 'iconfont-hash'
-  | 'iconfont-heart'
-  | 'iconfont-hide'
-  | 'iconfont-hourglass'
-  | 'iconfont-identity-bitcoin'
-  | 'iconfont-identity-devices'
-  | 'iconfont-identity-facebook'
-  | 'iconfont-identity-github'
-  | 'iconfont-identity-hn'
-  | 'iconfont-identity-mastodon'
-  | 'iconfont-identity-pgp'
-  | 'iconfont-identity-reddit'
-  | 'iconfont-identity-stellar'
-  | 'iconfont-identity-twitter'
-  | 'iconfont-identity-website'
-  | 'iconfont-identity-zcash'
-  | 'iconfont-info'
-  | 'iconfont-keybase'
-  | 'iconfont-leave'
-  | 'iconfont-link'
-  | 'iconfont-location'
-  | 'iconfont-lock'
-  | 'iconfont-mailbox'
-  | 'iconfont-mention'
-  | 'iconfont-mic'
-  | 'iconfont-mic-solid'
-  | 'iconfont-music'
-  | 'iconfont-nav-2-chat'
-  | 'iconfont-nav-2-crypto'
-  | 'iconfont-nav-2-devices'
-  | 'iconfont-nav-2-files'
-  | 'iconfont-nav-2-fm'
-  | 'iconfont-nav-2-git'
-  | 'iconfont-nav-2-hamburger'
-  | 'iconfont-nav-2-more'
-  | 'iconfont-nav-2-people'
-  | 'iconfont-nav-2-robot'
-  | 'iconfont-nav-2-settings'
-  | 'iconfont-nav-2-teams'
-  | 'iconfont-nav-2-wallets'
-  | 'iconfont-new'
-  | 'iconfont-number-pad'
-  | 'iconfont-open-browser'
-  | 'iconfont-password'
-  | 'iconfont-pause'
-  | 'iconfont-pawprint'
-  | 'iconfont-people'
-  | 'iconfont-people-solid'
-  | 'iconfont-person'
-  | 'iconfont-person-raisedarms'
-  | 'iconfont-phone-contact'
-  | 'iconfont-photo-library'
-  | 'iconfont-pin'
-  | 'iconfont-pin-solid'
-  | 'iconfont-play'
-  | 'iconfont-proof-broken'
-  | 'iconfont-proof-good'
-  | 'iconfont-proof-pending'
-  | 'iconfont-proof-placeholder'
-  | 'iconfont-qr-code'
-  | 'iconfont-question-mark'
-  | 'iconfont-radio'
-  | 'iconfont-radio-solid'
-  | 'iconfont-reacji'
-  | 'iconfont-refresh'
-  | 'iconfont-reload'
-  | 'iconfont-remove'
-  | 'iconfont-reply'
-  | 'iconfont-return'
-  | 'iconfont-rip'
-  | 'iconfont-root'
-  | 'iconfont-search'
-  | 'iconfont-share'
-  | 'iconfont-share-android'
-  | 'iconfont-shh'
-  | 'iconfont-skull'
-  | 'iconfont-sort-alpha'
-  | 'iconfont-spade'
-  | 'iconfont-star'
-  | 'iconfont-stellar-request'
-  | 'iconfont-stellar-send'
-  | 'iconfont-stop'
-  | 'iconfont-success'
-  | 'iconfont-team'
-  | 'iconfont-team-join'
-  | 'iconfont-team-leave'
-  | 'iconfont-text-code'
-  | 'iconfont-thunderbolt'
-  | 'iconfont-timer'
-  | 'iconfont-timer-solid'
-  | 'iconfont-trash'
-  | 'iconfont-typing'
-  | 'iconfont-unhide'
-  | 'iconfont-unlock'
-  | 'iconfont-upload'
-  | 'iconfont-upload-2'
-  | 'iconfont-user-block'
-  | 'iconfont-verify'
-  | 'iconfont-video-library'
-  | 'iconfont-wallet-transfer'
-  | 'iconfont-warning'
-  | 'iconfont-wave-2'
-  | 'iconfont-wrenches'
-  | 'illustration-bg-provisioning-blue'
-  | 'illustration-bg-provisioning-green'
-  | 'illustration-security-preferences'
-  | 'illustration-turn-on-notifications'
-  | 'release-4.7.0-dark-mode'
-  | 'release-4.7.0-fast-user-switching'
-  | 'release-4.7.0-keybase-fm'
-  | 'release-4.7.0-pinned-messages'
-  | 'release-4.8.0-audio-messages'
-  | 'release-4.8.0-file-sync'
-  | 'release-5.1.0-blocking'
-  | 'release-5.2.0-bots'
-  | 'release-5.2.0-crypto'
-  | 'release-5.3.0-ipad'
-  | 'release-5.3.0-open-teams'
-  | 'release-5.4.0-emoji'
-  | 'release-5.4.0-pony'
-
-export const iconMeta: {[k in IconType]: IconMeta} = {
+export const iconMeta = {
   'icon-GPG-export': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-GPG-export.png')
+    get require(): string {
+      return require('../images/icons/icon-GPG-export.png') as string
     },
-  },
+  } as IconMeta,
   'icon-addon-file-downloading': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-addon-file-downloading',
-    get require() {
-      return require('../images/icons/icon-addon-file-downloading.png')
+    get require(): string {
+      return require('../images/icons/icon-addon-file-downloading.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-addon-file-downloading.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-addon-file-downloading.png') as string
     },
-  },
+  } as IconMeta,
   'icon-addon-file-uploading': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-addon-file-uploading',
-    get require() {
-      return require('../images/icons/icon-addon-file-uploading.png')
+    get require(): string {
+      return require('../images/icons/icon-addon-file-uploading.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-addon-file-uploading.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-addon-file-uploading.png') as string
     },
-  },
+  } as IconMeta,
   'icon-addon-file-uploading-error': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-addon-file-uploading-error',
-    get require() {
-      return require('../images/icons/icon-addon-file-uploading-error.png')
+    get require(): string {
+      return require('../images/icons/icon-addon-file-uploading-error.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-addon-file-uploading-error.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-addon-file-uploading-error.png') as string
     },
-  },
+  } as IconMeta,
   'icon-addon-file-uploading-offline': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-addon-file-uploading-offline',
-    get require() {
-      return require('../images/icons/icon-addon-file-uploading-offline.png')
+    get require(): string {
+      return require('../images/icons/icon-addon-file-uploading-offline.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-addon-file-uploading-offline.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-addon-file-uploading-offline.png') as string
     },
-  },
+  } as IconMeta,
   'icon-addon-lock-16': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-addon-lock-16',
-    get require() {
-      return require('../images/icons/icon-addon-lock-16.png')
+    get require(): string {
+      return require('../images/icons/icon-addon-lock-16.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-addon-lock-16.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-addon-lock-16.png') as string
     },
-  },
+  } as IconMeta,
   'icon-addon-lock-22': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-addon-lock-22',
-    get require() {
-      return require('../images/icons/icon-addon-lock-22.png')
+    get require(): string {
+      return require('../images/icons/icon-addon-lock-22.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-addon-lock-22.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-addon-lock-22.png') as string
     },
-  },
+  } as IconMeta,
   'icon-addon-lock-active-16': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-addon-lock-active-16.png')
+    get require(): string {
+      return require('../images/icons/icon-addon-lock-active-16.png') as string
     },
-  },
+  } as IconMeta,
   'icon-addon-lock-active-22': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-addon-lock-active-22.png')
+    get require(): string {
+      return require('../images/icons/icon-addon-lock-active-22.png') as string
     },
-  },
+  } as IconMeta,
   'icon-addon-lock-hover-16': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-addon-lock-hover-16',
-    get require() {
-      return require('../images/icons/icon-addon-lock-hover-16.png')
+    get require(): string {
+      return require('../images/icons/icon-addon-lock-hover-16.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-addon-lock-hover-16.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-addon-lock-hover-16.png') as string
     },
-  },
+  } as IconMeta,
   'icon-airdrop-logo-16': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-airdrop-logo-16.png')
+    get require(): string {
+      return require('../images/icons/icon-airdrop-logo-16.png') as string
     },
-  },
+  } as IconMeta,
   'icon-airdrop-logo-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-airdrop-logo-32.png')
+    get require(): string {
+      return require('../images/icons/icon-airdrop-logo-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-airdrop-logo-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-airdrop-logo-48.png')
+    get require(): string {
+      return require('../images/icons/icon-airdrop-logo-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-airdrop-logo-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-airdrop-logo-64.png')
+    get require(): string {
+      return require('../images/icons/icon-airdrop-logo-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-bitcoin-logo-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-bitcoin-logo-48.png')
+    get require(): string {
+      return require('../images/icons/icon-bitcoin-logo-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-bitcoin-logo-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-bitcoin-logo-64.png')
+    get require(): string {
+      return require('../images/icons/icon-bitcoin-logo-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-coin-heads-48-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-coin-heads-48-48.png')
+    get require(): string {
+      return require('../images/icons/icon-coin-heads-48-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-coin-tails-48-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-coin-tails-48-48.png')
+    get require(): string {
+      return require('../images/icons/icon-coin-tails-48-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-computer-32.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-computer-48.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-computer-64.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-computer-96.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-background-1-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-computer-background-1-32.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-background-1-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-background-1-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-computer-background-1-48.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-background-1-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-background-1-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-computer-background-1-64.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-background-1-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-background-1-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-computer-background-1-96.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-background-1-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-background-10-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-computer-background-10-32.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-background-10-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-background-10-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-computer-background-10-48.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-background-10-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-background-10-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-computer-background-10-64.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-background-10-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-background-10-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-computer-background-10-96.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-background-10-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-background-2-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-computer-background-2-32.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-background-2-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-background-2-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-computer-background-2-48.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-background-2-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-background-2-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-computer-background-2-64.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-background-2-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-background-2-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-computer-background-2-96.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-background-2-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-background-3-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-computer-background-3-32.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-background-3-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-background-3-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-computer-background-3-48.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-background-3-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-background-3-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-computer-background-3-64.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-background-3-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-background-3-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-computer-background-3-96.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-background-3-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-background-4-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-computer-background-4-32.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-background-4-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-background-4-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-computer-background-4-48.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-background-4-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-background-4-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-computer-background-4-64.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-background-4-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-background-4-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-computer-background-4-96.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-background-4-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-background-5-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-computer-background-5-32.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-background-5-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-background-5-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-computer-background-5-48.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-background-5-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-background-5-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-computer-background-5-64.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-background-5-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-background-5-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-computer-background-5-96.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-background-5-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-background-6-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-computer-background-6-32.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-background-6-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-background-6-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-computer-background-6-48.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-background-6-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-background-6-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-computer-background-6-64.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-background-6-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-background-6-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-computer-background-6-96.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-background-6-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-background-7-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-computer-background-7-32.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-background-7-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-background-7-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-computer-background-7-48.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-background-7-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-background-7-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-computer-background-7-64.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-background-7-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-background-7-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-computer-background-7-96.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-background-7-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-background-8-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-computer-background-8-32.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-background-8-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-background-8-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-computer-background-8-48.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-background-8-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-background-8-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-computer-background-8-64.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-background-8-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-background-8-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-computer-background-8-96.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-background-8-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-background-9-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-computer-background-9-32.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-background-9-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-background-9-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-computer-background-9-48.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-background-9-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-background-9-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-computer-background-9-64.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-background-9-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-background-9-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-computer-background-9-96.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-background-9-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-revoke-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-computer-revoke-48.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-revoke-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-revoke-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-computer-revoke-64.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-revoke-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-revoke-background-1-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-1-32',
-    get require() {
-      return require('../images/icons/icon-computer-revoke-background-1-32.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-revoke-background-1-32.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-computer-revoke-background-1-32.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-computer-revoke-background-1-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-revoke-background-1-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-1-48',
-    get require() {
-      return require('../images/icons/icon-computer-revoke-background-1-48.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-revoke-background-1-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-computer-revoke-background-1-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-computer-revoke-background-1-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-revoke-background-1-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-1-64',
-    get require() {
-      return require('../images/icons/icon-computer-revoke-background-1-64.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-revoke-background-1-64.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-computer-revoke-background-1-64.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-computer-revoke-background-1-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-revoke-background-10-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-10-32',
-    get require() {
-      return require('../images/icons/icon-computer-revoke-background-10-32.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-revoke-background-10-32.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-computer-revoke-background-10-32.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-computer-revoke-background-10-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-revoke-background-10-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-10-48',
-    get require() {
-      return require('../images/icons/icon-computer-revoke-background-10-48.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-revoke-background-10-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-computer-revoke-background-10-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-computer-revoke-background-10-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-revoke-background-10-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-10-64',
-    get require() {
-      return require('../images/icons/icon-computer-revoke-background-10-64.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-revoke-background-10-64.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-computer-revoke-background-10-64.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-computer-revoke-background-10-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-revoke-background-2-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-2-32',
-    get require() {
-      return require('../images/icons/icon-computer-revoke-background-2-32.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-revoke-background-2-32.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-computer-revoke-background-2-32.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-computer-revoke-background-2-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-revoke-background-2-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-2-48',
-    get require() {
-      return require('../images/icons/icon-computer-revoke-background-2-48.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-revoke-background-2-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-computer-revoke-background-2-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-computer-revoke-background-2-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-revoke-background-2-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-2-64',
-    get require() {
-      return require('../images/icons/icon-computer-revoke-background-2-64.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-revoke-background-2-64.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-computer-revoke-background-2-64.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-computer-revoke-background-2-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-revoke-background-3-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-3-32',
-    get require() {
-      return require('../images/icons/icon-computer-revoke-background-3-32.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-revoke-background-3-32.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-computer-revoke-background-3-32.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-computer-revoke-background-3-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-revoke-background-3-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-3-48',
-    get require() {
-      return require('../images/icons/icon-computer-revoke-background-3-48.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-revoke-background-3-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-computer-revoke-background-3-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-computer-revoke-background-3-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-revoke-background-3-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-3-64',
-    get require() {
-      return require('../images/icons/icon-computer-revoke-background-3-64.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-revoke-background-3-64.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-computer-revoke-background-3-64.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-computer-revoke-background-3-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-revoke-background-4-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-4-32',
-    get require() {
-      return require('../images/icons/icon-computer-revoke-background-4-32.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-revoke-background-4-32.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-computer-revoke-background-4-32.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-computer-revoke-background-4-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-revoke-background-4-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-4-48',
-    get require() {
-      return require('../images/icons/icon-computer-revoke-background-4-48.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-revoke-background-4-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-computer-revoke-background-4-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-computer-revoke-background-4-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-revoke-background-4-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-4-64',
-    get require() {
-      return require('../images/icons/icon-computer-revoke-background-4-64.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-revoke-background-4-64.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-computer-revoke-background-4-64.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-computer-revoke-background-4-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-revoke-background-5-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-5-32',
-    get require() {
-      return require('../images/icons/icon-computer-revoke-background-5-32.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-revoke-background-5-32.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-computer-revoke-background-5-32.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-computer-revoke-background-5-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-revoke-background-5-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-5-48',
-    get require() {
-      return require('../images/icons/icon-computer-revoke-background-5-48.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-revoke-background-5-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-computer-revoke-background-5-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-computer-revoke-background-5-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-revoke-background-5-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-5-64',
-    get require() {
-      return require('../images/icons/icon-computer-revoke-background-5-64.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-revoke-background-5-64.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-computer-revoke-background-5-64.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-computer-revoke-background-5-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-revoke-background-6-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-6-32',
-    get require() {
-      return require('../images/icons/icon-computer-revoke-background-6-32.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-revoke-background-6-32.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-computer-revoke-background-6-32.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-computer-revoke-background-6-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-revoke-background-6-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-6-48',
-    get require() {
-      return require('../images/icons/icon-computer-revoke-background-6-48.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-revoke-background-6-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-computer-revoke-background-6-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-computer-revoke-background-6-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-revoke-background-6-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-6-64',
-    get require() {
-      return require('../images/icons/icon-computer-revoke-background-6-64.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-revoke-background-6-64.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-computer-revoke-background-6-64.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-computer-revoke-background-6-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-revoke-background-7-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-7-32',
-    get require() {
-      return require('../images/icons/icon-computer-revoke-background-7-32.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-revoke-background-7-32.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-computer-revoke-background-7-32.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-computer-revoke-background-7-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-revoke-background-7-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-7-48',
-    get require() {
-      return require('../images/icons/icon-computer-revoke-background-7-48.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-revoke-background-7-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-computer-revoke-background-7-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-computer-revoke-background-7-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-revoke-background-7-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-7-64',
-    get require() {
-      return require('../images/icons/icon-computer-revoke-background-7-64.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-revoke-background-7-64.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-computer-revoke-background-7-64.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-computer-revoke-background-7-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-revoke-background-8-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-8-32',
-    get require() {
-      return require('../images/icons/icon-computer-revoke-background-8-32.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-revoke-background-8-32.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-computer-revoke-background-8-32.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-computer-revoke-background-8-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-revoke-background-8-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-8-48',
-    get require() {
-      return require('../images/icons/icon-computer-revoke-background-8-48.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-revoke-background-8-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-computer-revoke-background-8-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-computer-revoke-background-8-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-revoke-background-8-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-8-64',
-    get require() {
-      return require('../images/icons/icon-computer-revoke-background-8-64.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-revoke-background-8-64.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-computer-revoke-background-8-64.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-computer-revoke-background-8-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-revoke-background-9-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-9-32',
-    get require() {
-      return require('../images/icons/icon-computer-revoke-background-9-32.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-revoke-background-9-32.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-computer-revoke-background-9-32.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-computer-revoke-background-9-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-revoke-background-9-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-9-48',
-    get require() {
-      return require('../images/icons/icon-computer-revoke-background-9-48.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-revoke-background-9-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-computer-revoke-background-9-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-computer-revoke-background-9-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-revoke-background-9-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-9-64',
-    get require() {
-      return require('../images/icons/icon-computer-revoke-background-9-64.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-revoke-background-9-64.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-computer-revoke-background-9-64.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-computer-revoke-background-9-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-success-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-success-32',
-    get require() {
-      return require('../images/icons/icon-computer-success-32.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-success-32.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-computer-success-32.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-computer-success-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-success-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-success-48',
-    get require() {
-      return require('../images/icons/icon-computer-success-48.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-success-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-computer-success-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-computer-success-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-success-background-1-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-success-background-1-32',
-    get require() {
-      return require('../images/icons/icon-computer-success-background-1-32.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-success-background-1-32.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-computer-success-background-1-32.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-computer-success-background-1-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-success-background-1-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-success-background-1-48',
-    get require() {
-      return require('../images/icons/icon-computer-success-background-1-48.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-success-background-1-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-computer-success-background-1-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-computer-success-background-1-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-success-background-10-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-success-background-10-32',
-    get require() {
-      return require('../images/icons/icon-computer-success-background-10-32.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-success-background-10-32.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-computer-success-background-10-32.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-computer-success-background-10-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-success-background-10-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-success-background-10-48',
-    get require() {
-      return require('../images/icons/icon-computer-success-background-10-48.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-success-background-10-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-computer-success-background-10-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-computer-success-background-10-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-success-background-2-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-success-background-2-32',
-    get require() {
-      return require('../images/icons/icon-computer-success-background-2-32.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-success-background-2-32.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-computer-success-background-2-32.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-computer-success-background-2-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-success-background-2-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-success-background-2-48',
-    get require() {
-      return require('../images/icons/icon-computer-success-background-2-48.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-success-background-2-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-computer-success-background-2-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-computer-success-background-2-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-success-background-3-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-success-background-3-32',
-    get require() {
-      return require('../images/icons/icon-computer-success-background-3-32.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-success-background-3-32.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-computer-success-background-3-32.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-computer-success-background-3-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-success-background-3-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-success-background-3-48',
-    get require() {
-      return require('../images/icons/icon-computer-success-background-3-48.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-success-background-3-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-computer-success-background-3-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-computer-success-background-3-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-success-background-4-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-success-background-4-32',
-    get require() {
-      return require('../images/icons/icon-computer-success-background-4-32.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-success-background-4-32.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-computer-success-background-4-32.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-computer-success-background-4-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-success-background-4-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-success-background-4-48',
-    get require() {
-      return require('../images/icons/icon-computer-success-background-4-48.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-success-background-4-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-computer-success-background-4-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-computer-success-background-4-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-success-background-5-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-success-background-5-32',
-    get require() {
-      return require('../images/icons/icon-computer-success-background-5-32.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-success-background-5-32.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-computer-success-background-5-32.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-computer-success-background-5-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-success-background-5-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-success-background-5-48',
-    get require() {
-      return require('../images/icons/icon-computer-success-background-5-48.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-success-background-5-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-computer-success-background-5-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-computer-success-background-5-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-success-background-6-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-success-background-6-32',
-    get require() {
-      return require('../images/icons/icon-computer-success-background-6-32.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-success-background-6-32.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-computer-success-background-6-32.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-computer-success-background-6-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-success-background-6-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-success-background-6-48',
-    get require() {
-      return require('../images/icons/icon-computer-success-background-6-48.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-success-background-6-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-computer-success-background-6-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-computer-success-background-6-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-success-background-7-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-success-background-7-32',
-    get require() {
-      return require('../images/icons/icon-computer-success-background-7-32.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-success-background-7-32.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-computer-success-background-7-32.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-computer-success-background-7-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-success-background-7-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-success-background-7-48',
-    get require() {
-      return require('../images/icons/icon-computer-success-background-7-48.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-success-background-7-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-computer-success-background-7-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-computer-success-background-7-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-success-background-8-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-success-background-8-32',
-    get require() {
-      return require('../images/icons/icon-computer-success-background-8-32.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-success-background-8-32.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-computer-success-background-8-32.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-computer-success-background-8-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-success-background-8-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-success-background-8-48',
-    get require() {
-      return require('../images/icons/icon-computer-success-background-8-48.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-success-background-8-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-computer-success-background-8-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-computer-success-background-8-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-success-background-9-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-success-background-9-32',
-    get require() {
-      return require('../images/icons/icon-computer-success-background-9-32.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-success-background-9-32.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-computer-success-background-9-32.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-computer-success-background-9-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-computer-success-background-9-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-success-background-9-48',
-    get require() {
-      return require('../images/icons/icon-computer-success-background-9-48.png')
+    get require(): string {
+      return require('../images/icons/icon-computer-success-background-9-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-computer-success-background-9-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-computer-success-background-9-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-addon-file-downloading': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-addon-file-downloading.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-addon-file-downloading.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-addon-file-uploading': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-addon-file-uploading.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-addon-file-uploading.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-addon-file-uploading-error': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-addon-file-uploading-error.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-addon-file-uploading-error.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-addon-file-uploading-offline': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-addon-file-uploading-offline.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-addon-file-uploading-offline.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-addon-lock-16': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-addon-lock-16.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-addon-lock-16.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-addon-lock-22': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-addon-lock-22.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-addon-lock-22.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-addon-lock-hover-16': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-addon-lock-hover-16.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-addon-lock-hover-16.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-computer-revoke-background-1-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-computer-revoke-background-1-32.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-computer-revoke-background-1-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-computer-revoke-background-1-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-computer-revoke-background-1-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-computer-revoke-background-1-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-computer-revoke-background-1-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-computer-revoke-background-1-64.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-computer-revoke-background-1-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-computer-revoke-background-10-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-computer-revoke-background-10-32.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-computer-revoke-background-10-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-computer-revoke-background-10-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-computer-revoke-background-10-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-computer-revoke-background-10-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-computer-revoke-background-10-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-computer-revoke-background-10-64.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-computer-revoke-background-10-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-computer-revoke-background-2-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-computer-revoke-background-2-32.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-computer-revoke-background-2-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-computer-revoke-background-2-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-computer-revoke-background-2-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-computer-revoke-background-2-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-computer-revoke-background-2-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-computer-revoke-background-2-64.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-computer-revoke-background-2-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-computer-revoke-background-3-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-computer-revoke-background-3-32.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-computer-revoke-background-3-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-computer-revoke-background-3-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-computer-revoke-background-3-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-computer-revoke-background-3-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-computer-revoke-background-3-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-computer-revoke-background-3-64.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-computer-revoke-background-3-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-computer-revoke-background-4-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-computer-revoke-background-4-32.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-computer-revoke-background-4-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-computer-revoke-background-4-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-computer-revoke-background-4-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-computer-revoke-background-4-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-computer-revoke-background-4-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-computer-revoke-background-4-64.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-computer-revoke-background-4-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-computer-revoke-background-5-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-computer-revoke-background-5-32.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-computer-revoke-background-5-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-computer-revoke-background-5-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-computer-revoke-background-5-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-computer-revoke-background-5-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-computer-revoke-background-5-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-computer-revoke-background-5-64.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-computer-revoke-background-5-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-computer-revoke-background-6-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-computer-revoke-background-6-32.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-computer-revoke-background-6-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-computer-revoke-background-6-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-computer-revoke-background-6-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-computer-revoke-background-6-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-computer-revoke-background-6-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-computer-revoke-background-6-64.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-computer-revoke-background-6-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-computer-revoke-background-7-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-computer-revoke-background-7-32.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-computer-revoke-background-7-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-computer-revoke-background-7-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-computer-revoke-background-7-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-computer-revoke-background-7-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-computer-revoke-background-7-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-computer-revoke-background-7-64.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-computer-revoke-background-7-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-computer-revoke-background-8-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-computer-revoke-background-8-32.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-computer-revoke-background-8-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-computer-revoke-background-8-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-computer-revoke-background-8-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-computer-revoke-background-8-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-computer-revoke-background-8-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-computer-revoke-background-8-64.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-computer-revoke-background-8-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-computer-revoke-background-9-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-computer-revoke-background-9-32.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-computer-revoke-background-9-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-computer-revoke-background-9-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-computer-revoke-background-9-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-computer-revoke-background-9-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-computer-revoke-background-9-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-computer-revoke-background-9-64.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-computer-revoke-background-9-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-computer-success-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-computer-success-32.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-computer-success-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-computer-success-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-computer-success-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-computer-success-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-computer-success-background-1-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-computer-success-background-1-32.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-computer-success-background-1-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-computer-success-background-1-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-computer-success-background-1-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-computer-success-background-1-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-computer-success-background-10-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-computer-success-background-10-32.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-computer-success-background-10-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-computer-success-background-10-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-computer-success-background-10-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-computer-success-background-10-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-computer-success-background-2-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-computer-success-background-2-32.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-computer-success-background-2-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-computer-success-background-2-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-computer-success-background-2-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-computer-success-background-2-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-computer-success-background-3-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-computer-success-background-3-32.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-computer-success-background-3-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-computer-success-background-3-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-computer-success-background-3-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-computer-success-background-3-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-computer-success-background-4-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-computer-success-background-4-32.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-computer-success-background-4-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-computer-success-background-4-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-computer-success-background-4-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-computer-success-background-4-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-computer-success-background-5-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-computer-success-background-5-32.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-computer-success-background-5-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-computer-success-background-5-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-computer-success-background-5-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-computer-success-background-5-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-computer-success-background-6-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-computer-success-background-6-32.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-computer-success-background-6-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-computer-success-background-6-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-computer-success-background-6-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-computer-success-background-6-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-computer-success-background-7-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-computer-success-background-7-32.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-computer-success-background-7-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-computer-success-background-7-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-computer-success-background-7-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-computer-success-background-7-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-computer-success-background-8-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-computer-success-background-8-32.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-computer-success-background-8-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-computer-success-background-8-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-computer-success-background-8-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-computer-success-background-8-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-computer-success-background-9-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-computer-success-background-9-32.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-computer-success-background-9-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-computer-success-background-9-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-computer-success-background-9-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-computer-success-background-9-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-dns-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-dns-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-dns-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-dns-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-dns-64.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-dns-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-email-remove-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-email-remove-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-email-remove-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-email-remove-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-email-remove-64.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-email-remove-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-email-remove-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-email-remove-96.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-email-remove-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-empty-channels-103-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-empty-channels-103-96.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-empty-channels-103-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-empty-confused-96-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-empty-confused-96-96.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-empty-confused-96-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-empty-emoji-126-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-empty-emoji-126-96.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-empty-emoji-126-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-empty-lone-wolf-116-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-empty-lone-wolf-116-96.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-empty-lone-wolf-116-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-empty-people-search-112-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-empty-people-search-112-96.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-empty-people-search-112-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-empty-subteams-164-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-empty-subteams-164-96.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-empty-subteams-164-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-empty-team-small-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-empty-team-small-96.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-empty-team-small-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-empty-wot-118-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-empty-wot-118-96.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-empty-wot-118-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-fancy-bomb-desktop-150-72': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-fancy-bomb-desktop-150-72.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-fancy-bomb-desktop-150-72.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-fancy-bomb-mobile-226-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-fancy-bomb-mobile-226-96.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-fancy-bomb-mobile-226-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-fancy-email-sent-144-x-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-fancy-email-sent-144-x-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-fancy-email-sent-144-x-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-fancy-email-sent-192-x-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-fancy-email-sent-192-x-64.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-fancy-email-sent-192-x-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-fancy-encrypted-computer-desktop-150-72': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-fancy-encrypted-computer-desktop-150-72.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-fancy-encrypted-computer-desktop-150-72.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-fancy-encrypted-computer-mobile-226-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-fancy-encrypted-computer-mobile-226-96.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-fancy-encrypted-computer-mobile-226-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-fancy-encrypted-phone-mobile-226-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-fancy-encrypted-phone-mobile-226-96.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-fancy-encrypted-phone-mobile-226-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-fancy-finder-132-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-fancy-finder-132-96.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-fancy-finder-132-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-fancy-finder-enabled-132-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-fancy-finder-enabled-132-96.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-fancy-finder-enabled-132-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-fancy-revoked-computer-desktop-150-72': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-fancy-revoked-computer-desktop-150-72.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-fancy-revoked-computer-desktop-150-72.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-fancy-revoked-computer-mobile-226-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-fancy-revoked-computer-mobile-226-96.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-fancy-revoked-computer-mobile-226-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-fancy-revoked-phone-desktop-150-72': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-fancy-revoked-phone-desktop-150-72.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-fancy-revoked-phone-desktop-150-72.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-fancy-revoked-phone-mobile-226-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-fancy-revoked-phone-mobile-226-96.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-fancy-revoked-phone-mobile-226-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-fancy-unfurl-preview-desktop-96-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-fancy-unfurl-preview-desktop-96-96.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-fancy-unfurl-preview-desktop-96-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-fancy-unfurl-preview-mobile-128-128': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-fancy-unfurl-preview-mobile-128-128.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-fancy-unfurl-preview-mobile-128-128.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-fancy-user-card-desktop-80-99': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-fancy-user-card-desktop-80-99.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-fancy-user-card-desktop-80-99.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-fancy-user-card-mobile-120-149': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-fancy-user-card-mobile-120-149.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-fancy-user-card-mobile-120-149.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-file-16': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-file-16.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-file-16.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-file-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-file-32.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-file-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-file-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-file-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-file-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-file-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-file-64.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-file-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-file-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-file-96.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-file-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-file-delete-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-file-delete-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-file-delete-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-file-delete-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-file-delete-64.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-file-delete-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-file-placeholder-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-file-placeholder-32.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-file-placeholder-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-file-saltpack-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-file-saltpack-32.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-file-saltpack-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-file-saltpack-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-file-saltpack-64.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-file-saltpack-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-file-txt-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-file-txt-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-file-txt-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-file-txt-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-file-txt-64.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-file-txt-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-file-uploading-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-file-uploading-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-file-uploading-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-file-uploading-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-file-uploading-64.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-file-uploading-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-folder-16': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-folder-16.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-folder-16.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-folder-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-folder-32.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-folder-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-folder-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-folder-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-folder-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-folder-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-folder-64.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-folder-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-folder-copy-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-folder-copy-32.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-folder-copy-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-folder-copy-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-folder-copy-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-folder-copy-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-folder-default-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-folder-default-96.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-folder-default-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-folder-move-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-folder-move-32.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-folder-move-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-folder-move-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-folder-move-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-folder-move-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-folder-placeholder-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-folder-placeholder-32.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-folder-placeholder-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-folder-private-16': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-folder-private-16.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-folder-private-16.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-folder-private-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-folder-private-32.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-folder-private-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-folder-private-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-folder-private-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-folder-private-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-folder-private-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-folder-private-64.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-folder-private-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-folder-private-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-folder-private-96.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-folder-private-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-folder-public-16': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-folder-public-16.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-folder-public-16.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-folder-public-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-folder-public-32.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-folder-public-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-folder-public-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-folder-public-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-folder-public-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-folder-public-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-folder-public-64.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-folder-public-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-folder-public-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-folder-public-96.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-folder-public-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-folder-success-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-folder-success-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-folder-success-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-folder-team-16': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-folder-team-16.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-folder-team-16.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-folder-team-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-folder-team-32.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-folder-team-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-folder-team-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-folder-team-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-folder-team-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-folder-team-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-folder-team-64.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-folder-team-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-folder-team-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-folder-team-96.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-folder-team-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-follow-me-21': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-follow-me-21.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-follow-me-21.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-follow-me-28': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-follow-me-28.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-follow-me-28.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-following-21': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-following-21.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-following-21.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-following-28': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-following-28.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-following-28.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-github-logo-16': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-github-logo-16.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-github-logo-16.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-github-logo-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-github-logo-32.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-github-logo-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-github-logo-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-github-logo-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-github-logo-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-github-logo-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-github-logo-64.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-github-logo-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-message-deletion-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-message-deletion-32.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-message-deletion-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-message-deletion-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-message-deletion-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-message-deletion-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-message-deletion-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-message-deletion-64.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-message-deletion-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-message-retention-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-message-retention-32.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-message-retention-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-message-retention-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-message-retention-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-message-retention-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-message-retention-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-message-retention-64.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-message-retention-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-mutual-follow-21': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-mutual-follow-21.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-mutual-follow-21.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-mutual-follow-28': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-mutual-follow-28.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-mutual-follow-28.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-onboarding-chat-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-onboarding-chat-32.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-onboarding-chat-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-onboarding-chat-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-onboarding-chat-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-onboarding-chat-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-onboarding-computer-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-onboarding-computer-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-onboarding-computer-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-onboarding-email-add-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-onboarding-email-add-32.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-onboarding-email-add-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-onboarding-email-add-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-onboarding-email-add-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-onboarding-email-add-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-onboarding-email-searchable-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-onboarding-email-searchable-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-onboarding-email-searchable-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-onboarding-email-verify-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-onboarding-email-verify-32.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-onboarding-email-verify-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-onboarding-email-verify-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-onboarding-email-verify-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-onboarding-email-verify-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-onboarding-folder-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-onboarding-folder-32.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-onboarding-folder-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-onboarding-folder-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-onboarding-folder-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-onboarding-folder-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-onboarding-follow-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-onboarding-follow-32.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-onboarding-follow-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-onboarding-follow-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-onboarding-follow-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-onboarding-follow-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-onboarding-git-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-onboarding-git-32.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-onboarding-git-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-onboarding-git-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-onboarding-git-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-onboarding-git-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-onboarding-number-new-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-onboarding-number-new-32.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-onboarding-number-new-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-onboarding-number-new-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-onboarding-number-new-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-onboarding-number-new-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-onboarding-number-verify-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-onboarding-number-verify-32.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-onboarding-number-verify-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-onboarding-number-verify-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-onboarding-number-verify-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-onboarding-number-verify-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-onboarding-paper-key-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-onboarding-paper-key-32.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-onboarding-paper-key-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-onboarding-paper-key-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-onboarding-paper-key-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-onboarding-paper-key-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-onboarding-phone-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-onboarding-phone-32.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-onboarding-phone-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-onboarding-proofs-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-onboarding-proofs-32.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-onboarding-proofs-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-onboarding-proofs-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-onboarding-proofs-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-onboarding-proofs-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-onboarding-team-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-onboarding-team-32.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-onboarding-team-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-onboarding-team-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-onboarding-team-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-onboarding-team-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-onboarding-team-avatar-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-onboarding-team-avatar-32.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-onboarding-team-avatar-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-onboarding-team-avatar-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-onboarding-team-avatar-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-onboarding-team-avatar-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-onboarding-team-publicity-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-onboarding-team-publicity-32.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-onboarding-team-publicity-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-onboarding-team-publicity-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-onboarding-team-publicity-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-onboarding-team-publicity-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-onboarding-user-avatar-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-onboarding-user-avatar-32.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-onboarding-user-avatar-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-onboarding-user-avatar-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-onboarding-user-avatar-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-onboarding-user-avatar-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-onboarding-user-info-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-onboarding-user-info-32.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-onboarding-user-info-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-onboarding-user-info-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-onboarding-user-info-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-onboarding-user-info-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-paper-key-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-paper-key-32.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-paper-key-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-paper-key-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-paper-key-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-paper-key-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-paper-key-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-paper-key-64.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-paper-key-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-paper-key-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-paper-key-96.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-paper-key-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-paper-key-revoke-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-paper-key-revoke-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-paper-key-revoke-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-paper-key-revoke-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-paper-key-revoke-64.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-paper-key-revoke-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-phone-number-remove-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-phone-number-remove-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-phone-number-remove-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-phone-number-remove-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-phone-number-remove-64.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-phone-number-remove-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-phone-number-remove-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-phone-number-remove-96.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-phone-number-remove-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-phone-revoke-background-1-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-phone-revoke-background-1-32.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-phone-revoke-background-1-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-phone-revoke-background-1-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-phone-revoke-background-1-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-phone-revoke-background-1-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-phone-revoke-background-1-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-phone-revoke-background-1-64.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-phone-revoke-background-1-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-phone-revoke-background-10-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-phone-revoke-background-10-32.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-phone-revoke-background-10-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-phone-revoke-background-10-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-phone-revoke-background-10-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-phone-revoke-background-10-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-phone-revoke-background-10-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-phone-revoke-background-10-64.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-phone-revoke-background-10-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-phone-revoke-background-2-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-phone-revoke-background-2-32.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-phone-revoke-background-2-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-phone-revoke-background-2-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-phone-revoke-background-2-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-phone-revoke-background-2-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-phone-revoke-background-2-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-phone-revoke-background-2-64.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-phone-revoke-background-2-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-phone-revoke-background-3-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-phone-revoke-background-3-32.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-phone-revoke-background-3-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-phone-revoke-background-3-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-phone-revoke-background-3-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-phone-revoke-background-3-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-phone-revoke-background-3-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-phone-revoke-background-3-64.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-phone-revoke-background-3-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-phone-revoke-background-4-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-phone-revoke-background-4-32.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-phone-revoke-background-4-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-phone-revoke-background-4-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-phone-revoke-background-4-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-phone-revoke-background-4-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-phone-revoke-background-4-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-phone-revoke-background-4-64.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-phone-revoke-background-4-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-phone-revoke-background-5-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-phone-revoke-background-5-32.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-phone-revoke-background-5-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-phone-revoke-background-5-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-phone-revoke-background-5-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-phone-revoke-background-5-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-phone-revoke-background-5-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-phone-revoke-background-5-64.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-phone-revoke-background-5-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-phone-revoke-background-6-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-phone-revoke-background-6-32.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-phone-revoke-background-6-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-phone-revoke-background-6-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-phone-revoke-background-6-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-phone-revoke-background-6-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-phone-revoke-background-6-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-phone-revoke-background-6-64.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-phone-revoke-background-6-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-phone-revoke-background-7-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-phone-revoke-background-7-32.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-phone-revoke-background-7-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-phone-revoke-background-7-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-phone-revoke-background-7-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-phone-revoke-background-7-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-phone-revoke-background-7-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-phone-revoke-background-7-64.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-phone-revoke-background-7-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-phone-revoke-background-8-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-phone-revoke-background-8-32.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-phone-revoke-background-8-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-phone-revoke-background-8-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-phone-revoke-background-8-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-phone-revoke-background-8-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-phone-revoke-background-8-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-phone-revoke-background-8-64.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-phone-revoke-background-8-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-phone-revoke-background-9-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-phone-revoke-background-9-32.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-phone-revoke-background-9-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-phone-revoke-background-9-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-phone-revoke-background-9-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-phone-revoke-background-9-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-phone-revoke-background-9-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-phone-revoke-background-9-64.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-phone-revoke-background-9-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-phone-success-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-phone-success-32.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-phone-success-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-phone-success-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-phone-success-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-phone-success-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-phone-success-background-1-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-phone-success-background-1-32.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-phone-success-background-1-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-phone-success-background-1-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-phone-success-background-1-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-phone-success-background-1-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-phone-success-background-10-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-phone-success-background-10-32.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-phone-success-background-10-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-phone-success-background-10-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-phone-success-background-10-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-phone-success-background-10-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-phone-success-background-2-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-phone-success-background-2-32.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-phone-success-background-2-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-phone-success-background-2-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-phone-success-background-2-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-phone-success-background-2-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-phone-success-background-3-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-phone-success-background-3-32.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-phone-success-background-3-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-phone-success-background-3-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-phone-success-background-3-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-phone-success-background-3-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-phone-success-background-4-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-phone-success-background-4-32.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-phone-success-background-4-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-phone-success-background-4-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-phone-success-background-4-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-phone-success-background-4-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-phone-success-background-5-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-phone-success-background-5-32.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-phone-success-background-5-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-phone-success-background-5-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-phone-success-background-5-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-phone-success-background-5-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-phone-success-background-6-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-phone-success-background-6-32.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-phone-success-background-6-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-phone-success-background-6-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-phone-success-background-6-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-phone-success-background-6-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-phone-success-background-7-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-phone-success-background-7-32.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-phone-success-background-7-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-phone-success-background-7-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-phone-success-background-7-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-phone-success-background-7-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-phone-success-background-8-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-phone-success-background-8-32.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-phone-success-background-8-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-phone-success-background-8-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-phone-success-background-8-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-phone-success-background-8-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-phone-success-background-9-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-phone-success-background-9-32.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-phone-success-background-9-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-phone-success-background-9-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-phone-success-background-9-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-phone-success-background-9-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-placeholder-avatar-192': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-placeholder-avatar-192.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-placeholder-avatar-192.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-placeholder-avatar-256': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-placeholder-avatar-256.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-placeholder-avatar-256.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-placeholder-avatar-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-placeholder-avatar-32.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-placeholder-avatar-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-placeholder-avatar-960': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-placeholder-avatar-960.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-placeholder-avatar-960.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-placeholder-avatar-circular-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-placeholder-avatar-circular-32.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-placeholder-avatar-circular-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-placeholder-avatar-circular-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-placeholder-avatar-circular-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-placeholder-avatar-circular-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-placeholder-avatar-circular-reversed-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-placeholder-avatar-circular-reversed-32.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-placeholder-avatar-circular-reversed-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-placeholder-avatar-circular-reversed-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-placeholder-avatar-circular-reversed-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-placeholder-avatar-circular-reversed-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-placeholder-avatar-lighter-192': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-placeholder-avatar-lighter-192.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-placeholder-avatar-lighter-192.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-placeholder-avatar-lighter-256': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-placeholder-avatar-lighter-256.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-placeholder-avatar-lighter-256.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-placeholder-avatar-lighter-960': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-placeholder-avatar-lighter-960.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-placeholder-avatar-lighter-960.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-placeholder-secret-user-16': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-placeholder-secret-user-16.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-placeholder-secret-user-16.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-placeholder-secret-user-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-placeholder-secret-user-32.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-placeholder-secret-user-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-placeholder-secret-user-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-placeholder-secret-user-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-placeholder-secret-user-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-placeholder-secret-user-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-placeholder-secret-user-64.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-placeholder-secret-user-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-poop-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-poop-32.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-poop-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-poop-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-poop-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-poop-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-poop-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-poop-64.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-poop-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-poop-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-poop-96.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-poop-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-proof-pending': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-proof-pending.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-proof-pending.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-proof-published': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-proof-published.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-proof-published.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-proof-success': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-proof-success.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-proof-success.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-proof-unfinished': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-proof-unfinished.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-proof-unfinished.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-repo-personal-add-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-repo-personal-add-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-repo-personal-add-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-repo-personal-delete-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-repo-personal-delete-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-repo-personal-delete-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-repo-team-add-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-repo-team-add-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-repo-team-add-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-repo-team-delete-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-repo-team-delete-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-repo-team-delete-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-shh-19-16': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-shh-19-16.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-shh-19-16.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-shh-26-21': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-shh-26-21.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-shh-26-21.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-shh-active-19-16': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-shh-active-19-16.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-shh-active-19-16.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-shh-hover-19-16': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-shh-hover-19-16.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-shh-hover-19-16.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-stellar-coins-stacked-inflation-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-stellar-coins-stacked-inflation-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-stellar-coins-stacked-inflation-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-stellar-coins-stacked-inflation-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-stellar-coins-stacked-inflation-64.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-stellar-coins-stacked-inflation-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-team-delete-28': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-team-delete-28.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-team-delete-28.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-team-git-16': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-team-git-16.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-team-git-16.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-team-leave-28': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-team-leave-28.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-team-leave-28.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-team-placeholder-avatar-112': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-team-placeholder-avatar-112.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-team-placeholder-avatar-112.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-team-placeholder-avatar-16': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-team-placeholder-avatar-16.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-team-placeholder-avatar-16.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-team-placeholder-avatar-192': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-team-placeholder-avatar-192.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-team-placeholder-avatar-192.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-team-placeholder-avatar-256': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-team-placeholder-avatar-256.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-team-placeholder-avatar-256.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-team-placeholder-avatar-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-team-placeholder-avatar-32.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-team-placeholder-avatar-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-team-placeholder-avatar-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-team-placeholder-avatar-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-team-placeholder-avatar-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-team-placeholder-avatar-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-team-placeholder-avatar-64.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-team-placeholder-avatar-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-team-placeholder-avatar-80': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-team-placeholder-avatar-80.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-team-placeholder-avatar-80.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-team-placeholder-avatar-960': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-team-placeholder-avatar-960.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-team-placeholder-avatar-960.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-wallet-add-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-wallet-add-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-wallet-add-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-wallet-add-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-wallet-add-64.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-wallet-add-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-wallet-placeholder-add-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-wallet-placeholder-add-32.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-wallet-placeholder-add-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-wallet-remove-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-wallet-remove-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-wallet-remove-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dark-wallet-remove-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-wallet-remove-64.png')
+    get require(): string {
+      return require('../images/icons/icon-dark-wallet-remove-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-decrypt-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-decrypt-64.png')
+    get require(): string {
+      return require('../images/icons/icon-decrypt-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dns-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-dns-48',
-    get require() {
-      return require('../images/icons/icon-dns-48.png')
+    get require(): string {
+      return require('../images/icons/icon-dns-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-dns-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-dns-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-dns-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-dns-64',
-    get require() {
-      return require('../images/icons/icon-dns-64.png')
+    get require(): string {
+      return require('../images/icons/icon-dns-64.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-dns-64.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-dns-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-email-add-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-email-add-48.png')
+    get require(): string {
+      return require('../images/icons/icon-email-add-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-email-add-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-email-add-64.png')
+    get require(): string {
+      return require('../images/icons/icon-email-add-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-email-add-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-email-add-96.png')
+    get require(): string {
+      return require('../images/icons/icon-email-add-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-email-remove-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-email-remove-48',
-    get require() {
-      return require('../images/icons/icon-email-remove-48.png')
+    get require(): string {
+      return require('../images/icons/icon-email-remove-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-email-remove-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-email-remove-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-email-remove-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-email-remove-64',
-    get require() {
-      return require('../images/icons/icon-email-remove-64.png')
+    get require(): string {
+      return require('../images/icons/icon-email-remove-64.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-email-remove-64.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-email-remove-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-email-remove-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-email-remove-96',
-    get require() {
-      return require('../images/icons/icon-email-remove-96.png')
+    get require(): string {
+      return require('../images/icons/icon-email-remove-96.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-email-remove-96.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-email-remove-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-emoji-keybase': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-emoji-keybase.png')
+    get require(): string {
+      return require('../images/icons/icon-emoji-keybase.png') as string
     },
-  },
+  } as IconMeta,
   'icon-emoji-nycto-a': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-emoji-nycto-a.png')
+    get require(): string {
+      return require('../images/icons/icon-emoji-nycto-a.png') as string
     },
-  },
+  } as IconMeta,
   'icon-emoji-nycto-b': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-emoji-nycto-b.png')
+    get require(): string {
+      return require('../images/icons/icon-emoji-nycto-b.png') as string
     },
-  },
+  } as IconMeta,
   'icon-emoji-nycto-c': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-emoji-nycto-c.png')
+    get require(): string {
+      return require('../images/icons/icon-emoji-nycto-c.png') as string
     },
-  },
+  } as IconMeta,
   'icon-emoji-nycto-d': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-emoji-nycto-d.png')
+    get require(): string {
+      return require('../images/icons/icon-emoji-nycto-d.png') as string
     },
-  },
+  } as IconMeta,
   'icon-emoji-nycto-e': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-emoji-nycto-e.png')
+    get require(): string {
+      return require('../images/icons/icon-emoji-nycto-e.png') as string
     },
-  },
+  } as IconMeta,
   'icon-emoji-nycto-f': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-emoji-nycto-f.png')
+    get require(): string {
+      return require('../images/icons/icon-emoji-nycto-f.png') as string
     },
-  },
+  } as IconMeta,
   'icon-emoji-nycto-g': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-emoji-nycto-g.png')
+    get require(): string {
+      return require('../images/icons/icon-emoji-nycto-g.png') as string
     },
-  },
+  } as IconMeta,
   'icon-emoji-nycto-h': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-emoji-nycto-h.png')
+    get require(): string {
+      return require('../images/icons/icon-emoji-nycto-h.png') as string
     },
-  },
+  } as IconMeta,
   'icon-emoji-nycto-i': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-emoji-nycto-i.png')
+    get require(): string {
+      return require('../images/icons/icon-emoji-nycto-i.png') as string
     },
-  },
+  } as IconMeta,
   'icon-emoji-nycto-j': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-emoji-nycto-j.png')
+    get require(): string {
+      return require('../images/icons/icon-emoji-nycto-j.png') as string
     },
-  },
+  } as IconMeta,
   'icon-emoji-nycto-k': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-emoji-nycto-k.png')
+    get require(): string {
+      return require('../images/icons/icon-emoji-nycto-k.png') as string
     },
-  },
+  } as IconMeta,
   'icon-emoji-nycto-l': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-emoji-nycto-l.png')
+    get require(): string {
+      return require('../images/icons/icon-emoji-nycto-l.png') as string
     },
-  },
+  } as IconMeta,
   'icon-emoji-nycto-m': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-emoji-nycto-m.png')
+    get require(): string {
+      return require('../images/icons/icon-emoji-nycto-m.png') as string
     },
-  },
+  } as IconMeta,
   'icon-emoji-nycto-n': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-emoji-nycto-n.png')
+    get require(): string {
+      return require('../images/icons/icon-emoji-nycto-n.png') as string
     },
-  },
+  } as IconMeta,
   'icon-emoji-nycto-o': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-emoji-nycto-o.png')
+    get require(): string {
+      return require('../images/icons/icon-emoji-nycto-o.png') as string
     },
-  },
+  } as IconMeta,
   'icon-emoji-nycto-p': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-emoji-nycto-p.png')
+    get require(): string {
+      return require('../images/icons/icon-emoji-nycto-p.png') as string
     },
-  },
+  } as IconMeta,
   'icon-emoji-nycto-q': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-emoji-nycto-q.png')
+    get require(): string {
+      return require('../images/icons/icon-emoji-nycto-q.png') as string
     },
-  },
+  } as IconMeta,
   'icon-emoji-nycto-r': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-emoji-nycto-r.png')
+    get require(): string {
+      return require('../images/icons/icon-emoji-nycto-r.png') as string
     },
-  },
+  } as IconMeta,
   'icon-emoji-nycto-s': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-emoji-nycto-s.png')
+    get require(): string {
+      return require('../images/icons/icon-emoji-nycto-s.png') as string
     },
-  },
+  } as IconMeta,
   'icon-emoji-nycto-t': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-emoji-nycto-t.png')
+    get require(): string {
+      return require('../images/icons/icon-emoji-nycto-t.png') as string
     },
-  },
+  } as IconMeta,
   'icon-emoji-nycto-u': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-emoji-nycto-u.png')
+    get require(): string {
+      return require('../images/icons/icon-emoji-nycto-u.png') as string
     },
-  },
+  } as IconMeta,
   'icon-emoji-nycto-v': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-emoji-nycto-v.png')
+    get require(): string {
+      return require('../images/icons/icon-emoji-nycto-v.png') as string
     },
-  },
+  } as IconMeta,
   'icon-emoji-nycto-w': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-emoji-nycto-w.png')
+    get require(): string {
+      return require('../images/icons/icon-emoji-nycto-w.png') as string
     },
-  },
+  } as IconMeta,
   'icon-emoji-nycto-x': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-emoji-nycto-x.png')
+    get require(): string {
+      return require('../images/icons/icon-emoji-nycto-x.png') as string
     },
-  },
+  } as IconMeta,
   'icon-emoji-nycto-y': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-emoji-nycto-y.png')
+    get require(): string {
+      return require('../images/icons/icon-emoji-nycto-y.png') as string
     },
-  },
+  } as IconMeta,
   'icon-emoji-nycto-z': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-emoji-nycto-z.png')
+    get require(): string {
+      return require('../images/icons/icon-emoji-nycto-z.png') as string
     },
-  },
+  } as IconMeta,
   'icon-empty-channels-103-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-empty-channels-103-96',
-    get require() {
-      return require('../images/icons/icon-empty-channels-103-96.png')
+    get require(): string {
+      return require('../images/icons/icon-empty-channels-103-96.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-empty-channels-103-96.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-empty-channels-103-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-empty-confused-96-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-empty-confused-96-96',
-    get require() {
-      return require('../images/icons/icon-empty-confused-96-96.png')
+    get require(): string {
+      return require('../images/icons/icon-empty-confused-96-96.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-empty-confused-96-96.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-empty-confused-96-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-empty-emoji-126-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-empty-emoji-126-96',
-    get require() {
-      return require('../images/icons/icon-empty-emoji-126-96.png')
+    get require(): string {
+      return require('../images/icons/icon-empty-emoji-126-96.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-empty-emoji-126-96.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-empty-emoji-126-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-empty-lone-wolf-116-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-empty-lone-wolf-116-96',
-    get require() {
-      return require('../images/icons/icon-empty-lone-wolf-116-96.png')
+    get require(): string {
+      return require('../images/icons/icon-empty-lone-wolf-116-96.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-empty-lone-wolf-116-96.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-empty-lone-wolf-116-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-empty-people-search-112-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-empty-people-search-112-96',
-    get require() {
-      return require('../images/icons/icon-empty-people-search-112-96.png')
+    get require(): string {
+      return require('../images/icons/icon-empty-people-search-112-96.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-empty-people-search-112-96.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-empty-people-search-112-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-empty-subteams-164-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-empty-subteams-164-96',
-    get require() {
-      return require('../images/icons/icon-empty-subteams-164-96.png')
+    get require(): string {
+      return require('../images/icons/icon-empty-subteams-164-96.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-empty-subteams-164-96.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-empty-subteams-164-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-empty-team-small-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-empty-team-small-96',
-    get require() {
-      return require('../images/icons/icon-empty-team-small-96.png')
+    get require(): string {
+      return require('../images/icons/icon-empty-team-small-96.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-empty-team-small-96.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-empty-team-small-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-empty-wot-118-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-empty-wot-118-96',
-    get require() {
-      return require('../images/icons/icon-empty-wot-118-96.png')
+    get require(): string {
+      return require('../images/icons/icon-empty-wot-118-96.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-empty-wot-118-96.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-empty-wot-118-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-encrypt-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-encrypt-64.png')
+    get require(): string {
+      return require('../images/icons/icon-encrypt-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-facebook-continue': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-facebook-continue.png')
+    get require(): string {
+      return require('../images/icons/icon-facebook-continue.png') as string
     },
-  },
+  } as IconMeta,
   'icon-facebook-logo-16': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-facebook-logo-16.png')
+    get require(): string {
+      return require('../images/icons/icon-facebook-logo-16.png') as string
     },
-  },
+  } as IconMeta,
   'icon-facebook-logo-24': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-facebook-logo-24.png')
+    get require(): string {
+      return require('../images/icons/icon-facebook-logo-24.png') as string
     },
-  },
+  } as IconMeta,
   'icon-facebook-logo-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-facebook-logo-32.png')
+    get require(): string {
+      return require('../images/icons/icon-facebook-logo-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-facebook-logo-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-facebook-logo-48.png')
+    get require(): string {
+      return require('../images/icons/icon-facebook-logo-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-facebook-logo-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-facebook-logo-64.png')
+    get require(): string {
+      return require('../images/icons/icon-facebook-logo-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-fancy-bomb-desktop-150-72': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-fancy-bomb-desktop-150-72',
-    get require() {
-      return require('../images/icons/icon-fancy-bomb-desktop-150-72.png')
+    get require(): string {
+      return require('../images/icons/icon-fancy-bomb-desktop-150-72.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-fancy-bomb-desktop-150-72.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-fancy-bomb-desktop-150-72.png') as string
     },
-  },
+  } as IconMeta,
   'icon-fancy-bomb-mobile-226-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-fancy-bomb-mobile-226-96',
-    get require() {
-      return require('../images/icons/icon-fancy-bomb-mobile-226-96.png')
+    get require(): string {
+      return require('../images/icons/icon-fancy-bomb-mobile-226-96.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-fancy-bomb-mobile-226-96.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-fancy-bomb-mobile-226-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-fancy-contact-import-mobile-72-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-fancy-contact-import-mobile-72-96.png')
+    get require(): string {
+      return require('../images/icons/icon-fancy-contact-import-mobile-72-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-fancy-email-sent-144-x-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-fancy-email-sent-144-x-48',
-    get require() {
-      return require('../images/icons/icon-fancy-email-sent-144-x-48.png')
+    get require(): string {
+      return require('../images/icons/icon-fancy-email-sent-144-x-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-fancy-email-sent-144-x-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-fancy-email-sent-144-x-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-fancy-email-sent-192-x-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-fancy-email-sent-192-x-64',
-    get require() {
-      return require('../images/icons/icon-fancy-email-sent-192-x-64.png')
+    get require(): string {
+      return require('../images/icons/icon-fancy-email-sent-192-x-64.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-fancy-email-sent-192-x-64.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-fancy-email-sent-192-x-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-fancy-encrypted-computer-desktop-150-72': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-fancy-encrypted-computer-desktop-150-72',
-    get require() {
-      return require('../images/icons/icon-fancy-encrypted-computer-desktop-150-72.png')
+    get require(): string {
+      return require('../images/icons/icon-fancy-encrypted-computer-desktop-150-72.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-fancy-encrypted-computer-desktop-150-72.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-fancy-encrypted-computer-desktop-150-72.png') as string
     },
-  },
+  } as IconMeta,
   'icon-fancy-encrypted-computer-mobile-226-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-fancy-encrypted-computer-mobile-226-96',
-    get require() {
-      return require('../images/icons/icon-fancy-encrypted-computer-mobile-226-96.png')
+    get require(): string {
+      return require('../images/icons/icon-fancy-encrypted-computer-mobile-226-96.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-fancy-encrypted-computer-mobile-226-96.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-fancy-encrypted-computer-mobile-226-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-fancy-encrypted-phone-desktop-150-72': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-fancy-encrypted-phone-desktop-150-72.png')
+    get require(): string {
+      return require('../images/icons/icon-fancy-encrypted-phone-desktop-150-72.png') as string
     },
-  },
+  } as IconMeta,
   'icon-fancy-encrypted-phone-mobile-226-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-fancy-encrypted-phone-mobile-226-96',
-    get require() {
-      return require('../images/icons/icon-fancy-encrypted-phone-mobile-226-96.png')
+    get require(): string {
+      return require('../images/icons/icon-fancy-encrypted-phone-mobile-226-96.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-fancy-encrypted-phone-mobile-226-96.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-fancy-encrypted-phone-mobile-226-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-fancy-finder-132-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-fancy-finder-132-96',
-    get require() {
-      return require('../images/icons/icon-fancy-finder-132-96.png')
+    get require(): string {
+      return require('../images/icons/icon-fancy-finder-132-96.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-fancy-finder-132-96.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-fancy-finder-132-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-fancy-finder-enabled-132-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-fancy-finder-enabled-132-96',
-    get require() {
-      return require('../images/icons/icon-fancy-finder-enabled-132-96.png')
+    get require(): string {
+      return require('../images/icons/icon-fancy-finder-enabled-132-96.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-fancy-finder-enabled-132-96.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-fancy-finder-enabled-132-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-fancy-folder-file-inexistant-desktop-153-94': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-fancy-folder-file-inexistant-desktop-153-94.png')
+    get require(): string {
+      return require('../images/icons/icon-fancy-folder-file-inexistant-desktop-153-94.png') as string
     },
-  },
+  } as IconMeta,
   'icon-fancy-folder-file-inexistant-mobile-188-120': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-fancy-folder-file-inexistant-mobile-188-120.png')
+    get require(): string {
+      return require('../images/icons/icon-fancy-folder-file-inexistant-mobile-188-120.png') as string
     },
-  },
+  } as IconMeta,
   'icon-fancy-hellobot-hi-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-fancy-hellobot-hi-96.png')
+    get require(): string {
+      return require('../images/icons/icon-fancy-hellobot-hi-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-fancy-location-phone-desktop-150-72': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-fancy-location-phone-desktop-150-72.png')
+    get require(): string {
+      return require('../images/icons/icon-fancy-location-phone-desktop-150-72.png') as string
     },
-  },
+  } as IconMeta,
   'icon-fancy-location-phone-mobile-226-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-fancy-location-phone-mobile-226-96.png')
+    get require(): string {
+      return require('../images/icons/icon-fancy-location-phone-mobile-226-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-fancy-no-access-desktop-96-94': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-fancy-no-access-desktop-96-94.png')
+    get require(): string {
+      return require('../images/icons/icon-fancy-no-access-desktop-96-94.png') as string
     },
-  },
+  } as IconMeta,
   'icon-fancy-no-access-mobile-128-125': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-fancy-no-access-mobile-128-125.png')
+    get require(): string {
+      return require('../images/icons/icon-fancy-no-access-mobile-128-125.png') as string
     },
-  },
+  } as IconMeta,
   'icon-fancy-revoked-computer-desktop-150-72': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-fancy-revoked-computer-desktop-150-72',
-    get require() {
-      return require('../images/icons/icon-fancy-revoked-computer-desktop-150-72.png')
+    get require(): string {
+      return require('../images/icons/icon-fancy-revoked-computer-desktop-150-72.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-fancy-revoked-computer-desktop-150-72.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-fancy-revoked-computer-desktop-150-72.png') as string
     },
-  },
+  } as IconMeta,
   'icon-fancy-revoked-computer-mobile-226-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-fancy-revoked-computer-mobile-226-96',
-    get require() {
-      return require('../images/icons/icon-fancy-revoked-computer-mobile-226-96.png')
+    get require(): string {
+      return require('../images/icons/icon-fancy-revoked-computer-mobile-226-96.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-fancy-revoked-computer-mobile-226-96.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-fancy-revoked-computer-mobile-226-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-fancy-revoked-phone-desktop-150-72': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-fancy-revoked-phone-desktop-150-72',
-    get require() {
-      return require('../images/icons/icon-fancy-revoked-phone-desktop-150-72.png')
+    get require(): string {
+      return require('../images/icons/icon-fancy-revoked-phone-desktop-150-72.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-fancy-revoked-phone-desktop-150-72.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-fancy-revoked-phone-desktop-150-72.png') as string
     },
-  },
+  } as IconMeta,
   'icon-fancy-revoked-phone-mobile-226-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-fancy-revoked-phone-mobile-226-96',
-    get require() {
-      return require('../images/icons/icon-fancy-revoked-phone-mobile-226-96.png')
+    get require(): string {
+      return require('../images/icons/icon-fancy-revoked-phone-mobile-226-96.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-fancy-revoked-phone-mobile-226-96.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-fancy-revoked-phone-mobile-226-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-fancy-stellar-receiving-desktop-98-86': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-fancy-stellar-receiving-desktop-98-86.png')
+    get require(): string {
+      return require('../images/icons/icon-fancy-stellar-receiving-desktop-98-86.png') as string
     },
-  },
+  } as IconMeta,
   'icon-fancy-stellar-receiving-mobile-149-129': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-fancy-stellar-receiving-mobile-149-129.png')
+    get require(): string {
+      return require('../images/icons/icon-fancy-stellar-receiving-mobile-149-129.png') as string
     },
-  },
+  } as IconMeta,
   'icon-fancy-stellar-sending-desktop-98-86': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-fancy-stellar-sending-desktop-98-86.png')
+    get require(): string {
+      return require('../images/icons/icon-fancy-stellar-sending-desktop-98-86.png') as string
     },
-  },
+  } as IconMeta,
   'icon-fancy-stellar-sending-mobile-149-129': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-fancy-stellar-sending-mobile-149-129.png')
+    get require(): string {
+      return require('../images/icons/icon-fancy-stellar-sending-mobile-149-129.png') as string
     },
-  },
+  } as IconMeta,
   'icon-fancy-unfurl-preview-desktop-96-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-fancy-unfurl-preview-desktop-96-96',
-    get require() {
-      return require('../images/icons/icon-fancy-unfurl-preview-desktop-96-96.png')
+    get require(): string {
+      return require('../images/icons/icon-fancy-unfurl-preview-desktop-96-96.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-fancy-unfurl-preview-desktop-96-96.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-fancy-unfurl-preview-desktop-96-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-fancy-unfurl-preview-mobile-128-128': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-fancy-unfurl-preview-mobile-128-128',
-    get require() {
-      return require('../images/icons/icon-fancy-unfurl-preview-mobile-128-128.png')
+    get require(): string {
+      return require('../images/icons/icon-fancy-unfurl-preview-mobile-128-128.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-fancy-unfurl-preview-mobile-128-128.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-fancy-unfurl-preview-mobile-128-128.png') as string
     },
-  },
+  } as IconMeta,
   'icon-fancy-user-card-desktop-80-99': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-fancy-user-card-desktop-80-99',
-    get require() {
-      return require('../images/icons/icon-fancy-user-card-desktop-80-99.png')
+    get require(): string {
+      return require('../images/icons/icon-fancy-user-card-desktop-80-99.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-fancy-user-card-desktop-80-99.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-fancy-user-card-desktop-80-99.png') as string
     },
-  },
+  } as IconMeta,
   'icon-fancy-user-card-mobile-120-149': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-fancy-user-card-mobile-120-149',
-    get require() {
-      return require('../images/icons/icon-fancy-user-card-mobile-120-149.png')
+    get require(): string {
+      return require('../images/icons/icon-fancy-user-card-mobile-120-149.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-fancy-user-card-mobile-120-149.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-fancy-user-card-mobile-120-149.png') as string
     },
-  },
+  } as IconMeta,
   'icon-file-16': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-file-16',
-    get require() {
-      return require('../images/icons/icon-file-16.png')
+    get require(): string {
+      return require('../images/icons/icon-file-16.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-file-16.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-file-16.png') as string
     },
-  },
+  } as IconMeta,
   'icon-file-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-file-32',
-    get require() {
-      return require('../images/icons/icon-file-32.png')
+    get require(): string {
+      return require('../images/icons/icon-file-32.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-file-32.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-file-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-file-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-file-48',
-    get require() {
-      return require('../images/icons/icon-file-48.png')
+    get require(): string {
+      return require('../images/icons/icon-file-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-file-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-file-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-file-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-file-64',
-    get require() {
-      return require('../images/icons/icon-file-64.png')
+    get require(): string {
+      return require('../images/icons/icon-file-64.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-file-64.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-file-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-file-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-file-96',
-    get require() {
-      return require('../images/icons/icon-file-96.png')
+    get require(): string {
+      return require('../images/icons/icon-file-96.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-file-96.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-file-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-file-delete-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-file-delete-48',
-    get require() {
-      return require('../images/icons/icon-file-delete-48.png')
+    get require(): string {
+      return require('../images/icons/icon-file-delete-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-file-delete-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-file-delete-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-file-delete-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-file-delete-64',
-    get require() {
-      return require('../images/icons/icon-file-delete-64.png')
+    get require(): string {
+      return require('../images/icons/icon-file-delete-64.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-file-delete-64.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-file-delete-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-file-placeholder-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-file-placeholder-32',
-    get require() {
-      return require('../images/icons/icon-file-placeholder-32.png')
+    get require(): string {
+      return require('../images/icons/icon-file-placeholder-32.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-file-placeholder-32.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-file-placeholder-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-file-saltpack-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-file-saltpack-32',
-    get require() {
-      return require('../images/icons/icon-file-saltpack-32.png')
+    get require(): string {
+      return require('../images/icons/icon-file-saltpack-32.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-file-saltpack-32.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-file-saltpack-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-file-saltpack-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-file-saltpack-64',
-    get require() {
-      return require('../images/icons/icon-file-saltpack-64.png')
+    get require(): string {
+      return require('../images/icons/icon-file-saltpack-64.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-file-saltpack-64.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-file-saltpack-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-file-txt-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-file-txt-48',
-    get require() {
-      return require('../images/icons/icon-file-txt-48.png')
+    get require(): string {
+      return require('../images/icons/icon-file-txt-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-file-txt-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-file-txt-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-file-txt-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-file-txt-64',
-    get require() {
-      return require('../images/icons/icon-file-txt-64.png')
+    get require(): string {
+      return require('../images/icons/icon-file-txt-64.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-file-txt-64.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-file-txt-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-file-uploading-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-file-uploading-48',
-    get require() {
-      return require('../images/icons/icon-file-uploading-48.png')
+    get require(): string {
+      return require('../images/icons/icon-file-uploading-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-file-uploading-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-file-uploading-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-file-uploading-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-file-uploading-64',
-    get require() {
-      return require('../images/icons/icon-file-uploading-64.png')
+    get require(): string {
+      return require('../images/icons/icon-file-uploading-64.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-file-uploading-64.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-file-uploading-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-film-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-film-64.png')
+    get require(): string {
+      return require('../images/icons/icon-film-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-folder-16': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-folder-16',
-    get require() {
-      return require('../images/icons/icon-folder-16.png')
+    get require(): string {
+      return require('../images/icons/icon-folder-16.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-folder-16.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-folder-16.png') as string
     },
-  },
+  } as IconMeta,
   'icon-folder-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-folder-32',
-    get require() {
-      return require('../images/icons/icon-folder-32.png')
+    get require(): string {
+      return require('../images/icons/icon-folder-32.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-folder-32.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-folder-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-folder-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-folder-48',
-    get require() {
-      return require('../images/icons/icon-folder-48.png')
+    get require(): string {
+      return require('../images/icons/icon-folder-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-folder-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-folder-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-folder-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-folder-64',
-    get require() {
-      return require('../images/icons/icon-folder-64.png')
+    get require(): string {
+      return require('../images/icons/icon-folder-64.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-folder-64.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-folder-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-folder-copy-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-folder-copy-32',
-    get require() {
-      return require('../images/icons/icon-folder-copy-32.png')
+    get require(): string {
+      return require('../images/icons/icon-folder-copy-32.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-folder-copy-32.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-folder-copy-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-folder-copy-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-folder-copy-48',
-    get require() {
-      return require('../images/icons/icon-folder-copy-48.png')
+    get require(): string {
+      return require('../images/icons/icon-folder-copy-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-folder-copy-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-folder-copy-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-folder-default-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-folder-default-96',
-    get require() {
-      return require('../images/icons/icon-folder-default-96.png')
+    get require(): string {
+      return require('../images/icons/icon-folder-default-96.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-folder-default-96.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-folder-default-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-folder-move-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-folder-move-32',
-    get require() {
-      return require('../images/icons/icon-folder-move-32.png')
+    get require(): string {
+      return require('../images/icons/icon-folder-move-32.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-folder-move-32.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-folder-move-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-folder-move-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-folder-move-48',
-    get require() {
-      return require('../images/icons/icon-folder-move-48.png')
+    get require(): string {
+      return require('../images/icons/icon-folder-move-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-folder-move-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-folder-move-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-folder-placeholder-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-folder-placeholder-32',
-    get require() {
-      return require('../images/icons/icon-folder-placeholder-32.png')
+    get require(): string {
+      return require('../images/icons/icon-folder-placeholder-32.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-folder-placeholder-32.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-folder-placeholder-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-folder-private-16': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-folder-private-16',
-    get require() {
-      return require('../images/icons/icon-folder-private-16.png')
+    get require(): string {
+      return require('../images/icons/icon-folder-private-16.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-folder-private-16.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-folder-private-16.png') as string
     },
-  },
+  } as IconMeta,
   'icon-folder-private-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-folder-private-32',
-    get require() {
-      return require('../images/icons/icon-folder-private-32.png')
+    get require(): string {
+      return require('../images/icons/icon-folder-private-32.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-folder-private-32.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-folder-private-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-folder-private-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-folder-private-48',
-    get require() {
-      return require('../images/icons/icon-folder-private-48.png')
+    get require(): string {
+      return require('../images/icons/icon-folder-private-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-folder-private-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-folder-private-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-folder-private-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-folder-private-64',
-    get require() {
-      return require('../images/icons/icon-folder-private-64.png')
+    get require(): string {
+      return require('../images/icons/icon-folder-private-64.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-folder-private-64.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-folder-private-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-folder-private-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-folder-private-96',
-    get require() {
-      return require('../images/icons/icon-folder-private-96.png')
+    get require(): string {
+      return require('../images/icons/icon-folder-private-96.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-folder-private-96.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-folder-private-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-folder-public-16': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-folder-public-16',
-    get require() {
-      return require('../images/icons/icon-folder-public-16.png')
+    get require(): string {
+      return require('../images/icons/icon-folder-public-16.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-folder-public-16.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-folder-public-16.png') as string
     },
-  },
+  } as IconMeta,
   'icon-folder-public-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-folder-public-32',
-    get require() {
-      return require('../images/icons/icon-folder-public-32.png')
+    get require(): string {
+      return require('../images/icons/icon-folder-public-32.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-folder-public-32.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-folder-public-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-folder-public-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-folder-public-48',
-    get require() {
-      return require('../images/icons/icon-folder-public-48.png')
+    get require(): string {
+      return require('../images/icons/icon-folder-public-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-folder-public-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-folder-public-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-folder-public-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-folder-public-64',
-    get require() {
-      return require('../images/icons/icon-folder-public-64.png')
+    get require(): string {
+      return require('../images/icons/icon-folder-public-64.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-folder-public-64.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-folder-public-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-folder-public-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-folder-public-96',
-    get require() {
-      return require('../images/icons/icon-folder-public-96.png')
+    get require(): string {
+      return require('../images/icons/icon-folder-public-96.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-folder-public-96.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-folder-public-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-folder-success-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-folder-success-48',
-    get require() {
-      return require('../images/icons/icon-folder-success-48.png')
+    get require(): string {
+      return require('../images/icons/icon-folder-success-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-folder-success-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-folder-success-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-folder-team-16': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-folder-team-16',
-    get require() {
-      return require('../images/icons/icon-folder-team-16.png')
+    get require(): string {
+      return require('../images/icons/icon-folder-team-16.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-folder-team-16.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-folder-team-16.png') as string
     },
-  },
+  } as IconMeta,
   'icon-folder-team-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-folder-team-32',
-    get require() {
-      return require('../images/icons/icon-folder-team-32.png')
+    get require(): string {
+      return require('../images/icons/icon-folder-team-32.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-folder-team-32.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-folder-team-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-folder-team-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-folder-team-48',
-    get require() {
-      return require('../images/icons/icon-folder-team-48.png')
+    get require(): string {
+      return require('../images/icons/icon-folder-team-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-folder-team-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-folder-team-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-folder-team-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-folder-team-64',
-    get require() {
-      return require('../images/icons/icon-folder-team-64.png')
+    get require(): string {
+      return require('../images/icons/icon-folder-team-64.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-folder-team-64.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-folder-team-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-folder-team-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-folder-team-96',
-    get require() {
-      return require('../images/icons/icon-folder-team-96.png')
+    get require(): string {
+      return require('../images/icons/icon-folder-team-96.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-folder-team-96.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-folder-team-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-follow-me-21': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-follow-me-21',
-    get require() {
-      return require('../images/icons/icon-follow-me-21.png')
+    get require(): string {
+      return require('../images/icons/icon-follow-me-21.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-follow-me-21.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-follow-me-21.png') as string
     },
-  },
+  } as IconMeta,
   'icon-follow-me-28': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-follow-me-28',
-    get require() {
-      return require('../images/icons/icon-follow-me-28.png')
+    get require(): string {
+      return require('../images/icons/icon-follow-me-28.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-follow-me-28.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-follow-me-28.png') as string
     },
-  },
+  } as IconMeta,
   'icon-follow-me-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-follow-me-32.png')
+    get require(): string {
+      return require('../images/icons/icon-follow-me-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-following-21': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-following-21',
-    get require() {
-      return require('../images/icons/icon-following-21.png')
+    get require(): string {
+      return require('../images/icons/icon-following-21.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-following-21.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-following-21.png') as string
     },
-  },
+  } as IconMeta,
   'icon-following-28': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-following-28',
-    get require() {
-      return require('../images/icons/icon-following-28.png')
+    get require(): string {
+      return require('../images/icons/icon-following-28.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-following-28.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-following-28.png') as string
     },
-  },
+  } as IconMeta,
   'icon-following-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-following-32.png')
+    get require(): string {
+      return require('../images/icons/icon-following-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-github-logo-16': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-github-logo-16',
-    get require() {
-      return require('../images/icons/icon-github-logo-16.png')
+    get require(): string {
+      return require('../images/icons/icon-github-logo-16.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-github-logo-16.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-github-logo-16.png') as string
     },
-  },
+  } as IconMeta,
   'icon-github-logo-24': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-github-logo-24.png')
+    get require(): string {
+      return require('../images/icons/icon-github-logo-24.png') as string
     },
-  },
+  } as IconMeta,
   'icon-github-logo-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-github-logo-32',
-    get require() {
-      return require('../images/icons/icon-github-logo-32.png')
+    get require(): string {
+      return require('../images/icons/icon-github-logo-32.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-github-logo-32.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-github-logo-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-github-logo-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-github-logo-48',
-    get require() {
-      return require('../images/icons/icon-github-logo-48.png')
+    get require(): string {
+      return require('../images/icons/icon-github-logo-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-github-logo-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-github-logo-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-github-logo-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-github-logo-64',
-    get require() {
-      return require('../images/icons/icon-github-logo-64.png')
+    get require(): string {
+      return require('../images/icons/icon-github-logo-64.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-github-logo-64.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-github-logo-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-hacker-news-logo-16': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-hacker-news-logo-16.png')
+    get require(): string {
+      return require('../images/icons/icon-hacker-news-logo-16.png') as string
     },
-  },
+  } as IconMeta,
   'icon-hacker-news-logo-24': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-hacker-news-logo-24.png')
+    get require(): string {
+      return require('../images/icons/icon-hacker-news-logo-24.png') as string
     },
-  },
+  } as IconMeta,
   'icon-hacker-news-logo-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-hacker-news-logo-32.png')
+    get require(): string {
+      return require('../images/icons/icon-hacker-news-logo-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-hacker-news-logo-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-hacker-news-logo-48.png')
+    get require(): string {
+      return require('../images/icons/icon-hacker-news-logo-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-hacker-news-logo-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-hacker-news-logo-64.png')
+    get require(): string {
+      return require('../images/icons/icon-hacker-news-logo-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-illustration-attention-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-illustration-attention-64.png')
+    get require(): string {
+      return require('../images/icons/icon-illustration-attention-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-illustration-contact-restrictions-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-illustration-contact-restrictions-96.png')
+    get require(): string {
+      return require('../images/icons/icon-illustration-contact-restrictions-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-illustration-emoji-add-460-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-illustration-emoji-add-460-96.png')
+    get require(): string {
+      return require('../images/icons/icon-illustration-emoji-add-460-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-illustration-emoji-alias-460-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-illustration-emoji-alias-460-96.png')
+    get require(): string {
+      return require('../images/icons/icon-illustration-emoji-alias-460-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-illustration-encrypted-116-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-illustration-encrypted-116-96.png')
+    get require(): string {
+      return require('../images/icons/icon-illustration-encrypted-116-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-illustration-exploding-messages-240': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-illustration-exploding-messages-240.png')
+    get require(): string {
+      return require('../images/icons/icon-illustration-exploding-messages-240.png') as string
     },
-  },
+  } as IconMeta,
   'icon-illustration-friends-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-illustration-friends-96.png')
+    get require(): string {
+      return require('../images/icons/icon-illustration-friends-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-illustration-happy-chat-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-illustration-happy-chat-96.png')
+    get require(): string {
+      return require('../images/icons/icon-illustration-happy-chat-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-illustration-invite-friends-460-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-illustration-invite-friends-460-96.png')
+    get require(): string {
+      return require('../images/icons/icon-illustration-invite-friends-460-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-illustration-long-time-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-illustration-long-time-96.png')
+    get require(): string {
+      return require('../images/icons/icon-illustration-long-time-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-illustration-mars-rover': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-illustration-mars-rover.png')
+    get require(): string {
+      return require('../images/icons/icon-illustration-mars-rover.png') as string
     },
-  },
+  } as IconMeta,
   'icon-illustration-mars-rover-background': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-illustration-mars-rover-background.png')
+    get require(): string {
+      return require('../images/icons/icon-illustration-mars-rover-background.png') as string
     },
-  },
+  } as IconMeta,
   'icon-illustration-mars-rover-foreground': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-illustration-mars-rover-foreground.png')
+    get require(): string {
+      return require('../images/icons/icon-illustration-mars-rover-foreground.png') as string
     },
-  },
+  } as IconMeta,
   'icon-illustration-secure-116-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-illustration-secure-116-96.png')
+    get require(): string {
+      return require('../images/icons/icon-illustration-secure-116-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-illustration-sleepy-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-illustration-sleepy-96.png')
+    get require(): string {
+      return require('../images/icons/icon-illustration-sleepy-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-illustration-stellar-payments-200-188': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-illustration-stellar-payments-200-188.png')
+    get require(): string {
+      return require('../images/icons/icon-illustration-stellar-payments-200-188.png') as string
     },
-  },
+  } as IconMeta,
   'icon-illustration-subteams-380': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-illustration-subteams-380.png')
+    get require(): string {
+      return require('../images/icons/icon-illustration-subteams-380.png') as string
     },
-  },
+  } as IconMeta,
   'icon-illustration-teams-180': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-illustration-teams-180.png')
+    get require(): string {
+      return require('../images/icons/icon-illustration-teams-180.png') as string
     },
-  },
+  } as IconMeta,
   'icon-illustration-teams-216': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-illustration-teams-216.png')
+    get require(): string {
+      return require('../images/icons/icon-illustration-teams-216.png') as string
     },
-  },
+  } as IconMeta,
   'icon-illustration-teams-80': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-illustration-teams-80.png')
+    get require(): string {
+      return require('../images/icons/icon-illustration-teams-80.png') as string
     },
-  },
+  } as IconMeta,
   'icon-illustration-teams-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-illustration-teams-96.png')
+    get require(): string {
+      return require('../images/icons/icon-illustration-teams-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-illustration-teams-channels-460-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-illustration-teams-channels-460-96.png')
+    get require(): string {
+      return require('../images/icons/icon-illustration-teams-channels-460-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-illustration-teams-feature-profile-460-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-illustration-teams-feature-profile-460-64.png')
+    get require(): string {
+      return require('../images/icons/icon-illustration-teams-feature-profile-460-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-illustration-teams-invite-links-blue-460-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-illustration-teams-invite-links-blue-460-96.png')
+    get require(): string {
+      return require('../images/icons/icon-illustration-teams-invite-links-blue-460-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-illustration-teams-invite-links-green-460-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-illustration-teams-invite-links-green-460-96.png')
+    get require(): string {
+      return require('../images/icons/icon-illustration-teams-invite-links-green-460-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-illustration-teams-invite-links-grey-460-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-illustration-teams-invite-links-grey-460-96.png')
+    get require(): string {
+      return require('../images/icons/icon-illustration-teams-invite-links-grey-460-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-illustration-teams-subteams-460-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-illustration-teams-subteams-460-96.png')
+    get require(): string {
+      return require('../images/icons/icon-illustration-teams-subteams-460-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-illustration-teams-zen-460-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-illustration-teams-zen-460-96.png')
+    get require(): string {
+      return require('../images/icons/icon-illustration-teams-zen-460-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-illustration-welcome-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-illustration-welcome-96.png')
+    get require(): string {
+      return require('../images/icons/icon-illustration-welcome-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-illustration-wot-460-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-illustration-wot-460-96.png')
+    get require(): string {
+      return require('../images/icons/icon-illustration-wot-460-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-illustration-zen-240-180': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-illustration-zen-240-180.png')
+    get require(): string {
+      return require('../images/icons/icon-illustration-zen-240-180.png') as string
     },
-  },
+  } as IconMeta,
   'icon-invite-link-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-invite-link-48.png')
+    get require(): string {
+      return require('../images/icons/icon-invite-link-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-keybase-logo-128': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-keybase-logo-128.png')
+    get require(): string {
+      return require('../images/icons/icon-keybase-logo-128.png') as string
     },
-  },
+  } as IconMeta,
   'icon-keybase-logo-16': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-keybase-logo-16.png')
+    get require(): string {
+      return require('../images/icons/icon-keybase-logo-16.png') as string
     },
-  },
+  } as IconMeta,
   'icon-keybase-logo-24': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-keybase-logo-24.png')
+    get require(): string {
+      return require('../images/icons/icon-keybase-logo-24.png') as string
     },
-  },
+  } as IconMeta,
   'icon-keybase-logo-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-keybase-logo-32.png')
+    get require(): string {
+      return require('../images/icons/icon-keybase-logo-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-keybase-logo-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-keybase-logo-64.png')
+    get require(): string {
+      return require('../images/icons/icon-keybase-logo-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-keybase-logo-80': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-keybase-logo-80.png')
+    get require(): string {
+      return require('../images/icons/icon-keybase-logo-80.png') as string
     },
-  },
+  } as IconMeta,
   'icon-keybase-logo-logged-out-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-keybase-logo-logged-out-64.png')
+    get require(): string {
+      return require('../images/icons/icon-keybase-logo-logged-out-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-keybase-logo-logged-out-80': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-keybase-logo-logged-out-80.png')
+    get require(): string {
+      return require('../images/icons/icon-keybase-logo-logged-out-80.png') as string
     },
-  },
+  } as IconMeta,
   'icon-keybase-wordmark-128-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-keybase-wordmark-128-48.png')
+    get require(): string {
+      return require('../images/icons/icon-keybase-wordmark-128-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-message-deletion-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-message-deletion-32',
-    get require() {
-      return require('../images/icons/icon-message-deletion-32.png')
+    get require(): string {
+      return require('../images/icons/icon-message-deletion-32.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-message-deletion-32.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-message-deletion-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-message-deletion-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-message-deletion-48',
-    get require() {
-      return require('../images/icons/icon-message-deletion-48.png')
+    get require(): string {
+      return require('../images/icons/icon-message-deletion-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-message-deletion-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-message-deletion-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-message-deletion-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-message-deletion-64',
-    get require() {
-      return require('../images/icons/icon-message-deletion-64.png')
+    get require(): string {
+      return require('../images/icons/icon-message-deletion-64.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-message-deletion-64.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-message-deletion-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-message-exploding-260': {
     extension: 'gif',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-message-exploding-260.gif')
+    get require(): string {
+      return require('../images/icons/icon-message-exploding-260.gif') as string
     },
-  },
+  } as IconMeta,
   'icon-message-retention-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-message-retention-32',
-    get require() {
-      return require('../images/icons/icon-message-retention-32.png')
+    get require(): string {
+      return require('../images/icons/icon-message-retention-32.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-message-retention-32.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-message-retention-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-message-retention-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-message-retention-48',
-    get require() {
-      return require('../images/icons/icon-message-retention-48.png')
+    get require(): string {
+      return require('../images/icons/icon-message-retention-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-message-retention-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-message-retention-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-message-retention-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-message-retention-64',
-    get require() {
-      return require('../images/icons/icon-message-retention-64.png')
+    get require(): string {
+      return require('../images/icons/icon-message-retention-64.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-message-retention-64.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-message-retention-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-mutual-follow-21': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-mutual-follow-21',
-    get require() {
-      return require('../images/icons/icon-mutual-follow-21.png')
+    get require(): string {
+      return require('../images/icons/icon-mutual-follow-21.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-mutual-follow-21.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-mutual-follow-21.png') as string
     },
-  },
+  } as IconMeta,
   'icon-mutual-follow-28': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-mutual-follow-28',
-    get require() {
-      return require('../images/icons/icon-mutual-follow-28.png')
+    get require(): string {
+      return require('../images/icons/icon-mutual-follow-28.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-mutual-follow-28.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-mutual-follow-28.png') as string
     },
-  },
+  } as IconMeta,
   'icon-mutual-follow-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-mutual-follow-32.png')
+    get require(): string {
+      return require('../images/icons/icon-mutual-follow-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-nav-chat-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-nav-chat-32.png')
+    get require(): string {
+      return require('../images/icons/icon-nav-chat-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-nav-chat-40': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-nav-chat-40.png')
+    get require(): string {
+      return require('../images/icons/icon-nav-chat-40.png') as string
     },
-  },
+  } as IconMeta,
   'icon-nav-chat-selected-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-nav-chat-selected-32.png')
+    get require(): string {
+      return require('../images/icons/icon-nav-chat-selected-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-nav-chat-selected-40': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-nav-chat-selected-40.png')
+    get require(): string {
+      return require('../images/icons/icon-nav-chat-selected-40.png') as string
     },
-  },
+  } as IconMeta,
   'icon-nav-devices-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-nav-devices-32.png')
+    get require(): string {
+      return require('../images/icons/icon-nav-devices-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-nav-devices-selected-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-nav-devices-selected-32.png')
+    get require(): string {
+      return require('../images/icons/icon-nav-devices-selected-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-nav-folders-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-nav-folders-32.png')
+    get require(): string {
+      return require('../images/icons/icon-nav-folders-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-nav-folders-40': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-nav-folders-40.png')
+    get require(): string {
+      return require('../images/icons/icon-nav-folders-40.png') as string
     },
-  },
+  } as IconMeta,
   'icon-nav-folders-selected-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-nav-folders-selected-32.png')
+    get require(): string {
+      return require('../images/icons/icon-nav-folders-selected-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-nav-folders-selected-40': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-nav-folders-selected-40.png')
+    get require(): string {
+      return require('../images/icons/icon-nav-folders-selected-40.png') as string
     },
-  },
+  } as IconMeta,
   'icon-nav-people-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-nav-people-32.png')
+    get require(): string {
+      return require('../images/icons/icon-nav-people-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-nav-people-40': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-nav-people-40.png')
+    get require(): string {
+      return require('../images/icons/icon-nav-people-40.png') as string
     },
-  },
+  } as IconMeta,
   'icon-nav-people-selected-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-nav-people-selected-32.png')
+    get require(): string {
+      return require('../images/icons/icon-nav-people-selected-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-nav-people-selected-40': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-nav-people-selected-40.png')
+    get require(): string {
+      return require('../images/icons/icon-nav-people-selected-40.png') as string
     },
-  },
+  } as IconMeta,
   'icon-nav-settings-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-nav-settings-32.png')
+    get require(): string {
+      return require('../images/icons/icon-nav-settings-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-nav-settings-40': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-nav-settings-40.png')
+    get require(): string {
+      return require('../images/icons/icon-nav-settings-40.png') as string
     },
-  },
+  } as IconMeta,
   'icon-nav-settings-selected-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-nav-settings-selected-32.png')
+    get require(): string {
+      return require('../images/icons/icon-nav-settings-selected-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-nav-settings-selected-40': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-nav-settings-selected-40.png')
+    get require(): string {
+      return require('../images/icons/icon-nav-settings-selected-40.png') as string
     },
-  },
+  } as IconMeta,
   'icon-onboarding-chat-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-onboarding-chat-32',
-    get require() {
-      return require('../images/icons/icon-onboarding-chat-32.png')
+    get require(): string {
+      return require('../images/icons/icon-onboarding-chat-32.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-onboarding-chat-32.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-onboarding-chat-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-onboarding-chat-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-onboarding-chat-48',
-    get require() {
-      return require('../images/icons/icon-onboarding-chat-48.png')
+    get require(): string {
+      return require('../images/icons/icon-onboarding-chat-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-onboarding-chat-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-onboarding-chat-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-onboarding-computer-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-onboarding-computer-48',
-    get require() {
-      return require('../images/icons/icon-onboarding-computer-48.png')
+    get require(): string {
+      return require('../images/icons/icon-onboarding-computer-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-onboarding-computer-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-onboarding-computer-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-onboarding-email-add-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-onboarding-email-add-32',
-    get require() {
-      return require('../images/icons/icon-onboarding-email-add-32.png')
+    get require(): string {
+      return require('../images/icons/icon-onboarding-email-add-32.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-onboarding-email-add-32.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-onboarding-email-add-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-onboarding-email-add-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-onboarding-email-add-48',
-    get require() {
-      return require('../images/icons/icon-onboarding-email-add-48.png')
+    get require(): string {
+      return require('../images/icons/icon-onboarding-email-add-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-onboarding-email-add-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-onboarding-email-add-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-onboarding-email-searchable-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-onboarding-email-searchable-48',
-    get require() {
-      return require('../images/icons/icon-onboarding-email-searchable-48.png')
+    get require(): string {
+      return require('../images/icons/icon-onboarding-email-searchable-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-onboarding-email-searchable-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-onboarding-email-searchable-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-onboarding-email-verify-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-onboarding-email-verify-32',
-    get require() {
-      return require('../images/icons/icon-onboarding-email-verify-32.png')
+    get require(): string {
+      return require('../images/icons/icon-onboarding-email-verify-32.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-onboarding-email-verify-32.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-onboarding-email-verify-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-onboarding-email-verify-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-onboarding-email-verify-48',
-    get require() {
-      return require('../images/icons/icon-onboarding-email-verify-48.png')
+    get require(): string {
+      return require('../images/icons/icon-onboarding-email-verify-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-onboarding-email-verify-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-onboarding-email-verify-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-onboarding-folder-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-onboarding-folder-32',
-    get require() {
-      return require('../images/icons/icon-onboarding-folder-32.png')
+    get require(): string {
+      return require('../images/icons/icon-onboarding-folder-32.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-onboarding-folder-32.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-onboarding-folder-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-onboarding-folder-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-onboarding-folder-48',
-    get require() {
-      return require('../images/icons/icon-onboarding-folder-48.png')
+    get require(): string {
+      return require('../images/icons/icon-onboarding-folder-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-onboarding-folder-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-onboarding-folder-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-onboarding-follow-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-onboarding-follow-32',
-    get require() {
-      return require('../images/icons/icon-onboarding-follow-32.png')
+    get require(): string {
+      return require('../images/icons/icon-onboarding-follow-32.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-onboarding-follow-32.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-onboarding-follow-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-onboarding-follow-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-onboarding-follow-48',
-    get require() {
-      return require('../images/icons/icon-onboarding-follow-48.png')
+    get require(): string {
+      return require('../images/icons/icon-onboarding-follow-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-onboarding-follow-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-onboarding-follow-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-onboarding-git-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-onboarding-git-32',
-    get require() {
-      return require('../images/icons/icon-onboarding-git-32.png')
+    get require(): string {
+      return require('../images/icons/icon-onboarding-git-32.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-onboarding-git-32.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-onboarding-git-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-onboarding-git-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-onboarding-git-48',
-    get require() {
-      return require('../images/icons/icon-onboarding-git-48.png')
+    get require(): string {
+      return require('../images/icons/icon-onboarding-git-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-onboarding-git-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-onboarding-git-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-onboarding-number-new-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-onboarding-number-new-32',
-    get require() {
-      return require('../images/icons/icon-onboarding-number-new-32.png')
+    get require(): string {
+      return require('../images/icons/icon-onboarding-number-new-32.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-onboarding-number-new-32.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-onboarding-number-new-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-onboarding-number-new-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-onboarding-number-new-48',
-    get require() {
-      return require('../images/icons/icon-onboarding-number-new-48.png')
+    get require(): string {
+      return require('../images/icons/icon-onboarding-number-new-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-onboarding-number-new-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-onboarding-number-new-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-onboarding-number-verify-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-onboarding-number-verify-32',
-    get require() {
-      return require('../images/icons/icon-onboarding-number-verify-32.png')
+    get require(): string {
+      return require('../images/icons/icon-onboarding-number-verify-32.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-onboarding-number-verify-32.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-onboarding-number-verify-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-onboarding-number-verify-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-onboarding-number-verify-48',
-    get require() {
-      return require('../images/icons/icon-onboarding-number-verify-48.png')
+    get require(): string {
+      return require('../images/icons/icon-onboarding-number-verify-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-onboarding-number-verify-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-onboarding-number-verify-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-onboarding-paper-key-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-onboarding-paper-key-32',
-    get require() {
-      return require('../images/icons/icon-onboarding-paper-key-32.png')
+    get require(): string {
+      return require('../images/icons/icon-onboarding-paper-key-32.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-onboarding-paper-key-32.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-onboarding-paper-key-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-onboarding-paper-key-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-onboarding-paper-key-48',
-    get require() {
-      return require('../images/icons/icon-onboarding-paper-key-48.png')
+    get require(): string {
+      return require('../images/icons/icon-onboarding-paper-key-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-onboarding-paper-key-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-onboarding-paper-key-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-onboarding-phone-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-onboarding-phone-32',
-    get require() {
-      return require('../images/icons/icon-onboarding-phone-32.png')
+    get require(): string {
+      return require('../images/icons/icon-onboarding-phone-32.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-onboarding-phone-32.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-onboarding-phone-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-onboarding-phone-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-onboarding-phone-48.png')
+    get require(): string {
+      return require('../images/icons/icon-onboarding-phone-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-onboarding-proofs-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-onboarding-proofs-32',
-    get require() {
-      return require('../images/icons/icon-onboarding-proofs-32.png')
+    get require(): string {
+      return require('../images/icons/icon-onboarding-proofs-32.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-onboarding-proofs-32.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-onboarding-proofs-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-onboarding-proofs-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-onboarding-proofs-48',
-    get require() {
-      return require('../images/icons/icon-onboarding-proofs-48.png')
+    get require(): string {
+      return require('../images/icons/icon-onboarding-proofs-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-onboarding-proofs-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-onboarding-proofs-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-onboarding-team-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-onboarding-team-32',
-    get require() {
-      return require('../images/icons/icon-onboarding-team-32.png')
+    get require(): string {
+      return require('../images/icons/icon-onboarding-team-32.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-onboarding-team-32.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-onboarding-team-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-onboarding-team-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-onboarding-team-48',
-    get require() {
-      return require('../images/icons/icon-onboarding-team-48.png')
+    get require(): string {
+      return require('../images/icons/icon-onboarding-team-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-onboarding-team-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-onboarding-team-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-onboarding-team-avatar-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-onboarding-team-avatar-32',
-    get require() {
-      return require('../images/icons/icon-onboarding-team-avatar-32.png')
+    get require(): string {
+      return require('../images/icons/icon-onboarding-team-avatar-32.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-onboarding-team-avatar-32.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-onboarding-team-avatar-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-onboarding-team-avatar-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-onboarding-team-avatar-48',
-    get require() {
-      return require('../images/icons/icon-onboarding-team-avatar-48.png')
+    get require(): string {
+      return require('../images/icons/icon-onboarding-team-avatar-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-onboarding-team-avatar-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-onboarding-team-avatar-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-onboarding-team-publicity-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-onboarding-team-publicity-32',
-    get require() {
-      return require('../images/icons/icon-onboarding-team-publicity-32.png')
+    get require(): string {
+      return require('../images/icons/icon-onboarding-team-publicity-32.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-onboarding-team-publicity-32.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-onboarding-team-publicity-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-onboarding-team-publicity-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-onboarding-team-publicity-48',
-    get require() {
-      return require('../images/icons/icon-onboarding-team-publicity-48.png')
+    get require(): string {
+      return require('../images/icons/icon-onboarding-team-publicity-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-onboarding-team-publicity-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-onboarding-team-publicity-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-onboarding-user-avatar-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-onboarding-user-avatar-32',
-    get require() {
-      return require('../images/icons/icon-onboarding-user-avatar-32.png')
+    get require(): string {
+      return require('../images/icons/icon-onboarding-user-avatar-32.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-onboarding-user-avatar-32.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-onboarding-user-avatar-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-onboarding-user-avatar-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-onboarding-user-avatar-48',
-    get require() {
-      return require('../images/icons/icon-onboarding-user-avatar-48.png')
+    get require(): string {
+      return require('../images/icons/icon-onboarding-user-avatar-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-onboarding-user-avatar-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-onboarding-user-avatar-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-onboarding-user-info-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-onboarding-user-info-32',
-    get require() {
-      return require('../images/icons/icon-onboarding-user-info-32.png')
+    get require(): string {
+      return require('../images/icons/icon-onboarding-user-info-32.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-onboarding-user-info-32.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-onboarding-user-info-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-onboarding-user-info-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-onboarding-user-info-48',
-    get require() {
-      return require('../images/icons/icon-onboarding-user-info-48.png')
+    get require(): string {
+      return require('../images/icons/icon-onboarding-user-info-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-onboarding-user-info-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-onboarding-user-info-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-paper-key-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-paper-key-32',
-    get require() {
-      return require('../images/icons/icon-paper-key-32.png')
+    get require(): string {
+      return require('../images/icons/icon-paper-key-32.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-paper-key-32.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-paper-key-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-paper-key-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-paper-key-48',
-    get require() {
-      return require('../images/icons/icon-paper-key-48.png')
+    get require(): string {
+      return require('../images/icons/icon-paper-key-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-paper-key-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-paper-key-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-paper-key-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-paper-key-64',
-    get require() {
-      return require('../images/icons/icon-paper-key-64.png')
+    get require(): string {
+      return require('../images/icons/icon-paper-key-64.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-paper-key-64.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-paper-key-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-paper-key-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-paper-key-96',
-    get require() {
-      return require('../images/icons/icon-paper-key-96.png')
+    get require(): string {
+      return require('../images/icons/icon-paper-key-96.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-paper-key-96.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-paper-key-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-paper-key-revoke-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-paper-key-revoke-48',
-    get require() {
-      return require('../images/icons/icon-paper-key-revoke-48.png')
+    get require(): string {
+      return require('../images/icons/icon-paper-key-revoke-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-paper-key-revoke-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-paper-key-revoke-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-paper-key-revoke-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-paper-key-revoke-64',
-    get require() {
-      return require('../images/icons/icon-paper-key-revoke-64.png')
+    get require(): string {
+      return require('../images/icons/icon-paper-key-revoke-64.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-paper-key-revoke-64.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-paper-key-revoke-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-pgp-key-16': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-pgp-key-16.png')
+    get require(): string {
+      return require('../images/icons/icon-pgp-key-16.png') as string
     },
-  },
+  } as IconMeta,
   'icon-pgp-key-24': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-pgp-key-24.png')
+    get require(): string {
+      return require('../images/icons/icon-pgp-key-24.png') as string
     },
-  },
+  } as IconMeta,
   'icon-pgp-key-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-pgp-key-32.png')
+    get require(): string {
+      return require('../images/icons/icon-pgp-key-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-pgp-key-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-pgp-key-48.png')
+    get require(): string {
+      return require('../images/icons/icon-pgp-key-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-pgp-key-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-pgp-key-64.png')
+    get require(): string {
+      return require('../images/icons/icon-pgp-key-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-pgp-key-import-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-pgp-key-import-48.png')
+    get require(): string {
+      return require('../images/icons/icon-pgp-key-import-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-pgp-key-import-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-pgp-key-import-64.png')
+    get require(): string {
+      return require('../images/icons/icon-pgp-key-import-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-pgp-key-new-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-pgp-key-new-48.png')
+    get require(): string {
+      return require('../images/icons/icon-pgp-key-new-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-pgp-key-new-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-pgp-key-new-64.png')
+    get require(): string {
+      return require('../images/icons/icon-pgp-key-new-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-phone-32.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-phone-48.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-phone-64.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-phone-96.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-background-1-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-phone-background-1-32.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-background-1-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-background-1-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-phone-background-1-48.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-background-1-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-background-1-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-phone-background-1-64.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-background-1-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-background-1-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-phone-background-1-96.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-background-1-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-background-10-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-phone-background-10-32.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-background-10-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-background-10-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-phone-background-10-48.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-background-10-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-background-10-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-phone-background-10-64.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-background-10-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-background-10-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-phone-background-10-96.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-background-10-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-background-2-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-phone-background-2-32.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-background-2-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-background-2-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-phone-background-2-48.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-background-2-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-background-2-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-phone-background-2-64.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-background-2-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-background-2-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-phone-background-2-96.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-background-2-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-background-3-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-phone-background-3-32.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-background-3-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-background-3-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-phone-background-3-48.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-background-3-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-background-3-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-phone-background-3-64.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-background-3-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-background-3-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-phone-background-3-96.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-background-3-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-background-4-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-phone-background-4-32.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-background-4-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-background-4-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-phone-background-4-48.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-background-4-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-background-4-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-phone-background-4-64.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-background-4-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-background-4-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-phone-background-4-96.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-background-4-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-background-5-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-phone-background-5-32.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-background-5-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-background-5-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-phone-background-5-48.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-background-5-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-background-5-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-phone-background-5-64.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-background-5-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-background-5-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-phone-background-5-96.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-background-5-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-background-6-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-phone-background-6-32.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-background-6-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-background-6-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-phone-background-6-48.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-background-6-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-background-6-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-phone-background-6-64.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-background-6-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-background-6-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-phone-background-6-96.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-background-6-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-background-7-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-phone-background-7-32.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-background-7-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-background-7-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-phone-background-7-48.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-background-7-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-background-7-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-phone-background-7-64.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-background-7-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-background-7-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-phone-background-7-96.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-background-7-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-background-8-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-phone-background-8-32.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-background-8-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-background-8-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-phone-background-8-48.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-background-8-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-background-8-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-phone-background-8-64.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-background-8-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-background-8-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-phone-background-8-96.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-background-8-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-background-9-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-phone-background-9-32.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-background-9-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-background-9-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-phone-background-9-48.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-background-9-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-background-9-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-phone-background-9-64.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-background-9-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-background-9-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-phone-background-9-96.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-background-9-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-number-add-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-phone-number-add-48.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-number-add-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-number-add-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-phone-number-add-64.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-number-add-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-number-add-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-phone-number-add-96.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-number-add-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-number-remove-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-number-remove-48',
-    get require() {
-      return require('../images/icons/icon-phone-number-remove-48.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-number-remove-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-phone-number-remove-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-phone-number-remove-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-number-remove-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-number-remove-64',
-    get require() {
-      return require('../images/icons/icon-phone-number-remove-64.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-number-remove-64.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-phone-number-remove-64.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-phone-number-remove-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-number-remove-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-number-remove-96',
-    get require() {
-      return require('../images/icons/icon-phone-number-remove-96.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-number-remove-96.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-phone-number-remove-96.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-phone-number-remove-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-revoke-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-phone-revoke-48.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-revoke-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-revoke-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-phone-revoke-64.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-revoke-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-revoke-background-1-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-1-32',
-    get require() {
-      return require('../images/icons/icon-phone-revoke-background-1-32.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-revoke-background-1-32.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-phone-revoke-background-1-32.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-phone-revoke-background-1-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-revoke-background-1-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-1-48',
-    get require() {
-      return require('../images/icons/icon-phone-revoke-background-1-48.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-revoke-background-1-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-phone-revoke-background-1-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-phone-revoke-background-1-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-revoke-background-1-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-1-64',
-    get require() {
-      return require('../images/icons/icon-phone-revoke-background-1-64.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-revoke-background-1-64.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-phone-revoke-background-1-64.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-phone-revoke-background-1-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-revoke-background-10-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-10-32',
-    get require() {
-      return require('../images/icons/icon-phone-revoke-background-10-32.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-revoke-background-10-32.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-phone-revoke-background-10-32.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-phone-revoke-background-10-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-revoke-background-10-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-10-48',
-    get require() {
-      return require('../images/icons/icon-phone-revoke-background-10-48.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-revoke-background-10-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-phone-revoke-background-10-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-phone-revoke-background-10-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-revoke-background-10-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-10-64',
-    get require() {
-      return require('../images/icons/icon-phone-revoke-background-10-64.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-revoke-background-10-64.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-phone-revoke-background-10-64.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-phone-revoke-background-10-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-revoke-background-2-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-2-32',
-    get require() {
-      return require('../images/icons/icon-phone-revoke-background-2-32.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-revoke-background-2-32.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-phone-revoke-background-2-32.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-phone-revoke-background-2-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-revoke-background-2-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-2-48',
-    get require() {
-      return require('../images/icons/icon-phone-revoke-background-2-48.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-revoke-background-2-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-phone-revoke-background-2-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-phone-revoke-background-2-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-revoke-background-2-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-2-64',
-    get require() {
-      return require('../images/icons/icon-phone-revoke-background-2-64.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-revoke-background-2-64.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-phone-revoke-background-2-64.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-phone-revoke-background-2-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-revoke-background-3-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-3-32',
-    get require() {
-      return require('../images/icons/icon-phone-revoke-background-3-32.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-revoke-background-3-32.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-phone-revoke-background-3-32.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-phone-revoke-background-3-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-revoke-background-3-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-3-48',
-    get require() {
-      return require('../images/icons/icon-phone-revoke-background-3-48.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-revoke-background-3-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-phone-revoke-background-3-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-phone-revoke-background-3-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-revoke-background-3-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-3-64',
-    get require() {
-      return require('../images/icons/icon-phone-revoke-background-3-64.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-revoke-background-3-64.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-phone-revoke-background-3-64.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-phone-revoke-background-3-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-revoke-background-4-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-4-32',
-    get require() {
-      return require('../images/icons/icon-phone-revoke-background-4-32.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-revoke-background-4-32.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-phone-revoke-background-4-32.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-phone-revoke-background-4-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-revoke-background-4-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-4-48',
-    get require() {
-      return require('../images/icons/icon-phone-revoke-background-4-48.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-revoke-background-4-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-phone-revoke-background-4-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-phone-revoke-background-4-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-revoke-background-4-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-4-64',
-    get require() {
-      return require('../images/icons/icon-phone-revoke-background-4-64.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-revoke-background-4-64.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-phone-revoke-background-4-64.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-phone-revoke-background-4-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-revoke-background-5-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-5-32',
-    get require() {
-      return require('../images/icons/icon-phone-revoke-background-5-32.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-revoke-background-5-32.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-phone-revoke-background-5-32.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-phone-revoke-background-5-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-revoke-background-5-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-5-48',
-    get require() {
-      return require('../images/icons/icon-phone-revoke-background-5-48.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-revoke-background-5-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-phone-revoke-background-5-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-phone-revoke-background-5-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-revoke-background-5-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-5-64',
-    get require() {
-      return require('../images/icons/icon-phone-revoke-background-5-64.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-revoke-background-5-64.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-phone-revoke-background-5-64.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-phone-revoke-background-5-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-revoke-background-6-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-6-32',
-    get require() {
-      return require('../images/icons/icon-phone-revoke-background-6-32.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-revoke-background-6-32.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-phone-revoke-background-6-32.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-phone-revoke-background-6-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-revoke-background-6-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-6-48',
-    get require() {
-      return require('../images/icons/icon-phone-revoke-background-6-48.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-revoke-background-6-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-phone-revoke-background-6-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-phone-revoke-background-6-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-revoke-background-6-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-6-64',
-    get require() {
-      return require('../images/icons/icon-phone-revoke-background-6-64.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-revoke-background-6-64.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-phone-revoke-background-6-64.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-phone-revoke-background-6-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-revoke-background-7-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-7-32',
-    get require() {
-      return require('../images/icons/icon-phone-revoke-background-7-32.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-revoke-background-7-32.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-phone-revoke-background-7-32.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-phone-revoke-background-7-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-revoke-background-7-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-7-48',
-    get require() {
-      return require('../images/icons/icon-phone-revoke-background-7-48.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-revoke-background-7-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-phone-revoke-background-7-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-phone-revoke-background-7-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-revoke-background-7-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-7-64',
-    get require() {
-      return require('../images/icons/icon-phone-revoke-background-7-64.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-revoke-background-7-64.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-phone-revoke-background-7-64.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-phone-revoke-background-7-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-revoke-background-8-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-8-32',
-    get require() {
-      return require('../images/icons/icon-phone-revoke-background-8-32.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-revoke-background-8-32.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-phone-revoke-background-8-32.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-phone-revoke-background-8-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-revoke-background-8-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-8-48',
-    get require() {
-      return require('../images/icons/icon-phone-revoke-background-8-48.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-revoke-background-8-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-phone-revoke-background-8-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-phone-revoke-background-8-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-revoke-background-8-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-8-64',
-    get require() {
-      return require('../images/icons/icon-phone-revoke-background-8-64.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-revoke-background-8-64.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-phone-revoke-background-8-64.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-phone-revoke-background-8-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-revoke-background-9-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-9-32',
-    get require() {
-      return require('../images/icons/icon-phone-revoke-background-9-32.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-revoke-background-9-32.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-phone-revoke-background-9-32.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-phone-revoke-background-9-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-revoke-background-9-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-9-48',
-    get require() {
-      return require('../images/icons/icon-phone-revoke-background-9-48.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-revoke-background-9-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-phone-revoke-background-9-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-phone-revoke-background-9-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-revoke-background-9-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-9-64',
-    get require() {
-      return require('../images/icons/icon-phone-revoke-background-9-64.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-revoke-background-9-64.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-phone-revoke-background-9-64.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-phone-revoke-background-9-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-success-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-success-32',
-    get require() {
-      return require('../images/icons/icon-phone-success-32.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-success-32.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-phone-success-32.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-phone-success-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-success-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-success-48',
-    get require() {
-      return require('../images/icons/icon-phone-success-48.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-success-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-phone-success-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-phone-success-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-success-background-1-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-success-background-1-32',
-    get require() {
-      return require('../images/icons/icon-phone-success-background-1-32.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-success-background-1-32.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-phone-success-background-1-32.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-phone-success-background-1-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-success-background-1-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-success-background-1-48',
-    get require() {
-      return require('../images/icons/icon-phone-success-background-1-48.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-success-background-1-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-phone-success-background-1-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-phone-success-background-1-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-success-background-10-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-success-background-10-32',
-    get require() {
-      return require('../images/icons/icon-phone-success-background-10-32.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-success-background-10-32.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-phone-success-background-10-32.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-phone-success-background-10-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-success-background-10-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-success-background-10-48',
-    get require() {
-      return require('../images/icons/icon-phone-success-background-10-48.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-success-background-10-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-phone-success-background-10-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-phone-success-background-10-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-success-background-2-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-success-background-2-32',
-    get require() {
-      return require('../images/icons/icon-phone-success-background-2-32.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-success-background-2-32.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-phone-success-background-2-32.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-phone-success-background-2-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-success-background-2-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-success-background-2-48',
-    get require() {
-      return require('../images/icons/icon-phone-success-background-2-48.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-success-background-2-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-phone-success-background-2-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-phone-success-background-2-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-success-background-3-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-success-background-3-32',
-    get require() {
-      return require('../images/icons/icon-phone-success-background-3-32.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-success-background-3-32.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-phone-success-background-3-32.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-phone-success-background-3-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-success-background-3-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-success-background-3-48',
-    get require() {
-      return require('../images/icons/icon-phone-success-background-3-48.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-success-background-3-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-phone-success-background-3-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-phone-success-background-3-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-success-background-4-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-success-background-4-32',
-    get require() {
-      return require('../images/icons/icon-phone-success-background-4-32.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-success-background-4-32.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-phone-success-background-4-32.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-phone-success-background-4-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-success-background-4-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-success-background-4-48',
-    get require() {
-      return require('../images/icons/icon-phone-success-background-4-48.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-success-background-4-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-phone-success-background-4-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-phone-success-background-4-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-success-background-5-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-success-background-5-32',
-    get require() {
-      return require('../images/icons/icon-phone-success-background-5-32.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-success-background-5-32.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-phone-success-background-5-32.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-phone-success-background-5-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-success-background-5-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-success-background-5-48',
-    get require() {
-      return require('../images/icons/icon-phone-success-background-5-48.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-success-background-5-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-phone-success-background-5-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-phone-success-background-5-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-success-background-6-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-success-background-6-32',
-    get require() {
-      return require('../images/icons/icon-phone-success-background-6-32.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-success-background-6-32.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-phone-success-background-6-32.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-phone-success-background-6-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-success-background-6-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-success-background-6-48',
-    get require() {
-      return require('../images/icons/icon-phone-success-background-6-48.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-success-background-6-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-phone-success-background-6-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-phone-success-background-6-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-success-background-7-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-success-background-7-32',
-    get require() {
-      return require('../images/icons/icon-phone-success-background-7-32.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-success-background-7-32.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-phone-success-background-7-32.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-phone-success-background-7-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-success-background-7-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-success-background-7-48',
-    get require() {
-      return require('../images/icons/icon-phone-success-background-7-48.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-success-background-7-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-phone-success-background-7-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-phone-success-background-7-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-success-background-8-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-success-background-8-32',
-    get require() {
-      return require('../images/icons/icon-phone-success-background-8-32.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-success-background-8-32.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-phone-success-background-8-32.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-phone-success-background-8-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-success-background-8-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-success-background-8-48',
-    get require() {
-      return require('../images/icons/icon-phone-success-background-8-48.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-success-background-8-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-phone-success-background-8-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-phone-success-background-8-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-success-background-9-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-success-background-9-32',
-    get require() {
-      return require('../images/icons/icon-phone-success-background-9-32.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-success-background-9-32.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-phone-success-background-9-32.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-phone-success-background-9-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-phone-success-background-9-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-success-background-9-48',
-    get require() {
-      return require('../images/icons/icon-phone-success-background-9-48.png')
+    get require(): string {
+      return require('../images/icons/icon-phone-success-background-9-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-phone-success-background-9-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-phone-success-background-9-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-placeholder-avatar-192': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-placeholder-avatar-192',
-    get require() {
-      return require('../images/icons/icon-placeholder-avatar-192.png')
+    get require(): string {
+      return require('../images/icons/icon-placeholder-avatar-192.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-placeholder-avatar-192.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-placeholder-avatar-192.png') as string
     },
-  },
+  } as IconMeta,
   'icon-placeholder-avatar-256': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-placeholder-avatar-256',
-    get require() {
-      return require('../images/icons/icon-placeholder-avatar-256.png')
+    get require(): string {
+      return require('../images/icons/icon-placeholder-avatar-256.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-placeholder-avatar-256.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-placeholder-avatar-256.png') as string
     },
-  },
+  } as IconMeta,
   'icon-placeholder-avatar-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-placeholder-avatar-32',
-    get require() {
-      return require('../images/icons/icon-placeholder-avatar-32.png')
+    get require(): string {
+      return require('../images/icons/icon-placeholder-avatar-32.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-placeholder-avatar-32.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-placeholder-avatar-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-placeholder-avatar-960': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-placeholder-avatar-960',
-    get require() {
-      return require('../images/icons/icon-placeholder-avatar-960.png')
+    get require(): string {
+      return require('../images/icons/icon-placeholder-avatar-960.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-placeholder-avatar-960.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-placeholder-avatar-960.png') as string
     },
-  },
+  } as IconMeta,
   'icon-placeholder-avatar-circular-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-placeholder-avatar-circular-32',
-    get require() {
-      return require('../images/icons/icon-placeholder-avatar-circular-32.png')
+    get require(): string {
+      return require('../images/icons/icon-placeholder-avatar-circular-32.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-placeholder-avatar-circular-32.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-placeholder-avatar-circular-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-placeholder-avatar-circular-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-placeholder-avatar-circular-48',
-    get require() {
-      return require('../images/icons/icon-placeholder-avatar-circular-48.png')
+    get require(): string {
+      return require('../images/icons/icon-placeholder-avatar-circular-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-placeholder-avatar-circular-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-placeholder-avatar-circular-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-placeholder-avatar-circular-reversed-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-placeholder-avatar-circular-reversed-32',
-    get require() {
-      return require('../images/icons/icon-placeholder-avatar-circular-reversed-32.png')
+    get require(): string {
+      return require('../images/icons/icon-placeholder-avatar-circular-reversed-32.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-placeholder-avatar-circular-reversed-32.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-placeholder-avatar-circular-reversed-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-placeholder-avatar-circular-reversed-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-placeholder-avatar-circular-reversed-48',
-    get require() {
-      return require('../images/icons/icon-placeholder-avatar-circular-reversed-48.png')
+    get require(): string {
+      return require('../images/icons/icon-placeholder-avatar-circular-reversed-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-placeholder-avatar-circular-reversed-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-placeholder-avatar-circular-reversed-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-placeholder-avatar-lighter-192': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-placeholder-avatar-lighter-192',
-    get require() {
-      return require('../images/icons/icon-placeholder-avatar-lighter-192.png')
+    get require(): string {
+      return require('../images/icons/icon-placeholder-avatar-lighter-192.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-placeholder-avatar-lighter-192.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-placeholder-avatar-lighter-192.png') as string
     },
-  },
+  } as IconMeta,
   'icon-placeholder-avatar-lighter-256': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-placeholder-avatar-lighter-256',
-    get require() {
-      return require('../images/icons/icon-placeholder-avatar-lighter-256.png')
+    get require(): string {
+      return require('../images/icons/icon-placeholder-avatar-lighter-256.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-placeholder-avatar-lighter-256.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-placeholder-avatar-lighter-256.png') as string
     },
-  },
+  } as IconMeta,
   'icon-placeholder-avatar-lighter-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-placeholder-avatar-lighter-32.png')
+    get require(): string {
+      return require('../images/icons/icon-placeholder-avatar-lighter-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-placeholder-avatar-lighter-960': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-placeholder-avatar-lighter-960',
-    get require() {
-      return require('../images/icons/icon-placeholder-avatar-lighter-960.png')
+    get require(): string {
+      return require('../images/icons/icon-placeholder-avatar-lighter-960.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-placeholder-avatar-lighter-960.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-placeholder-avatar-lighter-960.png') as string
     },
-  },
+  } as IconMeta,
   'icon-placeholder-secret-user-16': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-placeholder-secret-user-16',
-    get require() {
-      return require('../images/icons/icon-placeholder-secret-user-16.png')
+    get require(): string {
+      return require('../images/icons/icon-placeholder-secret-user-16.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-placeholder-secret-user-16.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-placeholder-secret-user-16.png') as string
     },
-  },
+  } as IconMeta,
   'icon-placeholder-secret-user-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-placeholder-secret-user-32',
-    get require() {
-      return require('../images/icons/icon-placeholder-secret-user-32.png')
+    get require(): string {
+      return require('../images/icons/icon-placeholder-secret-user-32.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-placeholder-secret-user-32.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-placeholder-secret-user-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-placeholder-secret-user-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-placeholder-secret-user-48',
-    get require() {
-      return require('../images/icons/icon-placeholder-secret-user-48.png')
+    get require(): string {
+      return require('../images/icons/icon-placeholder-secret-user-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-placeholder-secret-user-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-placeholder-secret-user-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-placeholder-secret-user-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-placeholder-secret-user-64',
-    get require() {
-      return require('../images/icons/icon-placeholder-secret-user-64.png')
+    get require(): string {
+      return require('../images/icons/icon-placeholder-secret-user-64.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-placeholder-secret-user-64.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-placeholder-secret-user-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-play-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-play-64.png')
+    get require(): string {
+      return require('../images/icons/icon-play-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-poop-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-poop-32',
-    get require() {
-      return require('../images/icons/icon-poop-32.png')
+    get require(): string {
+      return require('../images/icons/icon-poop-32.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-poop-32.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-poop-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-poop-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-poop-48',
-    get require() {
-      return require('../images/icons/icon-poop-48.png')
+    get require(): string {
+      return require('../images/icons/icon-poop-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-poop-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-poop-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-poop-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-poop-64',
-    get require() {
-      return require('../images/icons/icon-poop-64.png')
+    get require(): string {
+      return require('../images/icons/icon-poop-64.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-poop-64.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-poop-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-poop-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-poop-96',
-    get require() {
-      return require('../images/icons/icon-poop-96.png')
+    get require(): string {
+      return require('../images/icons/icon-poop-96.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-poop-96.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-poop-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-powered-by-giphy-120-26': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-powered-by-giphy-120-26.png')
+    get require(): string {
+      return require('../images/icons/icon-powered-by-giphy-120-26.png') as string
     },
-  },
+  } as IconMeta,
   'icon-proof-broken': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-proof-broken.png')
+    get require(): string {
+      return require('../images/icons/icon-proof-broken.png') as string
     },
-  },
+  } as IconMeta,
   'icon-proof-pending': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-proof-pending',
-    get require() {
-      return require('../images/icons/icon-proof-pending.png')
+    get require(): string {
+      return require('../images/icons/icon-proof-pending.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-proof-pending.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-proof-pending.png') as string
     },
-  },
+  } as IconMeta,
   'icon-proof-published': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-proof-published',
-    get require() {
-      return require('../images/icons/icon-proof-published.png')
+    get require(): string {
+      return require('../images/icons/icon-proof-published.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-proof-published.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-proof-published.png') as string
     },
-  },
+  } as IconMeta,
   'icon-proof-success': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-proof-success',
-    get require() {
-      return require('../images/icons/icon-proof-success.png')
+    get require(): string {
+      return require('../images/icons/icon-proof-success.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-proof-success.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-proof-success.png') as string
     },
-  },
+  } as IconMeta,
   'icon-proof-unfinished': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-proof-unfinished',
-    get require() {
-      return require('../images/icons/icon-proof-unfinished.png')
+    get require(): string {
+      return require('../images/icons/icon-proof-unfinished.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-proof-unfinished.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-proof-unfinished.png') as string
     },
-  },
+  } as IconMeta,
   'icon-reddit-logo-16': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-reddit-logo-16.png')
+    get require(): string {
+      return require('../images/icons/icon-reddit-logo-16.png') as string
     },
-  },
+  } as IconMeta,
   'icon-reddit-logo-24': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-reddit-logo-24.png')
+    get require(): string {
+      return require('../images/icons/icon-reddit-logo-24.png') as string
     },
-  },
+  } as IconMeta,
   'icon-reddit-logo-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-reddit-logo-32.png')
+    get require(): string {
+      return require('../images/icons/icon-reddit-logo-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-reddit-logo-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-reddit-logo-48.png')
+    get require(): string {
+      return require('../images/icons/icon-reddit-logo-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-reddit-logo-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-reddit-logo-64.png')
+    get require(): string {
+      return require('../images/icons/icon-reddit-logo-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-repo-personal-add-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-repo-personal-add-48',
-    get require() {
-      return require('../images/icons/icon-repo-personal-add-48.png')
+    get require(): string {
+      return require('../images/icons/icon-repo-personal-add-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-repo-personal-add-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-repo-personal-add-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-repo-personal-delete-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-repo-personal-delete-48',
-    get require() {
-      return require('../images/icons/icon-repo-personal-delete-48.png')
+    get require(): string {
+      return require('../images/icons/icon-repo-personal-delete-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-repo-personal-delete-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-repo-personal-delete-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-repo-team-add-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-repo-team-add-48',
-    get require() {
-      return require('../images/icons/icon-repo-team-add-48.png')
+    get require(): string {
+      return require('../images/icons/icon-repo-team-add-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-repo-team-add-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-repo-team-add-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-repo-team-delete-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-repo-team-delete-48',
-    get require() {
-      return require('../images/icons/icon-repo-team-delete-48.png')
+    get require(): string {
+      return require('../images/icons/icon-repo-team-delete-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-repo-team-delete-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-repo-team-delete-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-search-facebook-active-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-search-facebook-active-32.png')
+    get require(): string {
+      return require('../images/icons/icon-search-facebook-active-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-search-facebook-active-40': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-search-facebook-active-40.png')
+    get require(): string {
+      return require('../images/icons/icon-search-facebook-active-40.png') as string
     },
-  },
+  } as IconMeta,
   'icon-search-facebook-inactive-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-search-facebook-inactive-32.png')
+    get require(): string {
+      return require('../images/icons/icon-search-facebook-inactive-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-search-facebook-inactive-40': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-search-facebook-inactive-40.png')
+    get require(): string {
+      return require('../images/icons/icon-search-facebook-inactive-40.png') as string
     },
-  },
+  } as IconMeta,
   'icon-search-github-active-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-search-github-active-32.png')
+    get require(): string {
+      return require('../images/icons/icon-search-github-active-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-search-github-active-40': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-search-github-active-40.png')
+    get require(): string {
+      return require('../images/icons/icon-search-github-active-40.png') as string
     },
-  },
+  } as IconMeta,
   'icon-search-github-inactive-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-search-github-inactive-32.png')
+    get require(): string {
+      return require('../images/icons/icon-search-github-inactive-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-search-github-inactive-40': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-search-github-inactive-40.png')
+    get require(): string {
+      return require('../images/icons/icon-search-github-inactive-40.png') as string
     },
-  },
+  } as IconMeta,
   'icon-search-hacker-news-active-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-search-hacker-news-active-32.png')
+    get require(): string {
+      return require('../images/icons/icon-search-hacker-news-active-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-search-hacker-news-active-40': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-search-hacker-news-active-40.png')
+    get require(): string {
+      return require('../images/icons/icon-search-hacker-news-active-40.png') as string
     },
-  },
+  } as IconMeta,
   'icon-search-hacker-news-inactive-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-search-hacker-news-inactive-32.png')
+    get require(): string {
+      return require('../images/icons/icon-search-hacker-news-inactive-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-search-hacker-news-inactive-40': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-search-hacker-news-inactive-40.png')
+    get require(): string {
+      return require('../images/icons/icon-search-hacker-news-inactive-40.png') as string
     },
-  },
+  } as IconMeta,
   'icon-search-keybase-active-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-search-keybase-active-32.png')
+    get require(): string {
+      return require('../images/icons/icon-search-keybase-active-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-search-keybase-active-40': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-search-keybase-active-40.png')
+    get require(): string {
+      return require('../images/icons/icon-search-keybase-active-40.png') as string
     },
-  },
+  } as IconMeta,
   'icon-search-keybase-inactive-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-search-keybase-inactive-32.png')
+    get require(): string {
+      return require('../images/icons/icon-search-keybase-inactive-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-search-keybase-inactive-40': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-search-keybase-inactive-40.png')
+    get require(): string {
+      return require('../images/icons/icon-search-keybase-inactive-40.png') as string
     },
-  },
+  } as IconMeta,
   'icon-search-reddit-active-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-search-reddit-active-32.png')
+    get require(): string {
+      return require('../images/icons/icon-search-reddit-active-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-search-reddit-active-40': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-search-reddit-active-40.png')
+    get require(): string {
+      return require('../images/icons/icon-search-reddit-active-40.png') as string
     },
-  },
+  } as IconMeta,
   'icon-search-reddit-inactive-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-search-reddit-inactive-32.png')
+    get require(): string {
+      return require('../images/icons/icon-search-reddit-inactive-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-search-reddit-inactive-40': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-search-reddit-inactive-40.png')
+    get require(): string {
+      return require('../images/icons/icon-search-reddit-inactive-40.png') as string
     },
-  },
+  } as IconMeta,
   'icon-search-twitter-active-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-search-twitter-active-32.png')
+    get require(): string {
+      return require('../images/icons/icon-search-twitter-active-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-search-twitter-active-40': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-search-twitter-active-40.png')
+    get require(): string {
+      return require('../images/icons/icon-search-twitter-active-40.png') as string
     },
-  },
+  } as IconMeta,
   'icon-search-twitter-inactive-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-search-twitter-inactive-32.png')
+    get require(): string {
+      return require('../images/icons/icon-search-twitter-inactive-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-search-twitter-inactive-40': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-search-twitter-inactive-40.png')
+    get require(): string {
+      return require('../images/icons/icon-search-twitter-inactive-40.png') as string
     },
-  },
+  } as IconMeta,
   'icon-shh-19-16': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-shh-19-16',
-    get require() {
-      return require('../images/icons/icon-shh-19-16.png')
+    get require(): string {
+      return require('../images/icons/icon-shh-19-16.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-shh-19-16.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-shh-19-16.png') as string
     },
-  },
+  } as IconMeta,
   'icon-shh-26-21': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-shh-26-21',
-    get require() {
-      return require('../images/icons/icon-shh-26-21.png')
+    get require(): string {
+      return require('../images/icons/icon-shh-26-21.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-shh-26-21.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-shh-26-21.png') as string
     },
-  },
+  } as IconMeta,
   'icon-shh-active-19-16': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-shh-active-19-16',
-    get require() {
-      return require('../images/icons/icon-shh-active-19-16.png')
+    get require(): string {
+      return require('../images/icons/icon-shh-active-19-16.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-shh-active-19-16.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-shh-active-19-16.png') as string
     },
-  },
+  } as IconMeta,
   'icon-shh-active-26-21': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-shh-active-26-21.png')
+    get require(): string {
+      return require('../images/icons/icon-shh-active-26-21.png') as string
     },
-  },
+  } as IconMeta,
   'icon-shh-hover-19-16': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-shh-hover-19-16',
-    get require() {
-      return require('../images/icons/icon-shh-hover-19-16.png')
+    get require(): string {
+      return require('../images/icons/icon-shh-hover-19-16.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-shh-hover-19-16.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-shh-hover-19-16.png') as string
     },
-  },
+  } as IconMeta,
   'icon-sign-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-sign-64.png')
+    get require(): string {
+      return require('../images/icons/icon-sign-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-skull-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-skull-32.png')
+    get require(): string {
+      return require('../images/icons/icon-skull-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-skull-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-skull-48.png')
+    get require(): string {
+      return require('../images/icons/icon-skull-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-skull-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-skull-64.png')
+    get require(): string {
+      return require('../images/icons/icon-skull-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-skull-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-skull-96.png')
+    get require(): string {
+      return require('../images/icons/icon-skull-96.png') as string
     },
-  },
+  } as IconMeta,
   'icon-stellar-coins-receiving-16': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-stellar-coins-receiving-16.png')
+    get require(): string {
+      return require('../images/icons/icon-stellar-coins-receiving-16.png') as string
     },
-  },
+  } as IconMeta,
   'icon-stellar-coins-receiving-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-stellar-coins-receiving-32.png')
+    get require(): string {
+      return require('../images/icons/icon-stellar-coins-receiving-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-stellar-coins-receiving-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-stellar-coins-receiving-48.png')
+    get require(): string {
+      return require('../images/icons/icon-stellar-coins-receiving-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-stellar-coins-receiving-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-stellar-coins-receiving-64.png')
+    get require(): string {
+      return require('../images/icons/icon-stellar-coins-receiving-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-stellar-coins-sending-16': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-stellar-coins-sending-16.png')
+    get require(): string {
+      return require('../images/icons/icon-stellar-coins-sending-16.png') as string
     },
-  },
+  } as IconMeta,
   'icon-stellar-coins-sending-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-stellar-coins-sending-32.png')
+    get require(): string {
+      return require('../images/icons/icon-stellar-coins-sending-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-stellar-coins-sending-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-stellar-coins-sending-48.png')
+    get require(): string {
+      return require('../images/icons/icon-stellar-coins-sending-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-stellar-coins-sending-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-stellar-coins-sending-64.png')
+    get require(): string {
+      return require('../images/icons/icon-stellar-coins-sending-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-stellar-coins-stacked-16': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-stellar-coins-stacked-16.png')
+    get require(): string {
+      return require('../images/icons/icon-stellar-coins-stacked-16.png') as string
     },
-  },
+  } as IconMeta,
   'icon-stellar-coins-stacked-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-stellar-coins-stacked-32.png')
+    get require(): string {
+      return require('../images/icons/icon-stellar-coins-stacked-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-stellar-coins-stacked-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-stellar-coins-stacked-48.png')
+    get require(): string {
+      return require('../images/icons/icon-stellar-coins-stacked-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-stellar-coins-stacked-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-stellar-coins-stacked-64.png')
+    get require(): string {
+      return require('../images/icons/icon-stellar-coins-stacked-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-stellar-coins-stacked-inflation-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-stellar-coins-stacked-inflation-48',
-    get require() {
-      return require('../images/icons/icon-stellar-coins-stacked-inflation-48.png')
+    get require(): string {
+      return require('../images/icons/icon-stellar-coins-stacked-inflation-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-stellar-coins-stacked-inflation-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-stellar-coins-stacked-inflation-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-stellar-coins-stacked-inflation-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-stellar-coins-stacked-inflation-64',
-    get require() {
-      return require('../images/icons/icon-stellar-coins-stacked-inflation-64.png')
+    get require(): string {
+      return require('../images/icons/icon-stellar-coins-stacked-inflation-64.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-stellar-coins-stacked-inflation-64.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-stellar-coins-stacked-inflation-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-team-delete-28': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-team-delete-28',
-    get require() {
-      return require('../images/icons/icon-team-delete-28.png')
+    get require(): string {
+      return require('../images/icons/icon-team-delete-28.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-team-delete-28.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-team-delete-28.png') as string
     },
-  },
+  } as IconMeta,
   'icon-team-git-16': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-team-git-16',
-    get require() {
-      return require('../images/icons/icon-team-git-16.png')
+    get require(): string {
+      return require('../images/icons/icon-team-git-16.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-team-git-16.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-team-git-16.png') as string
     },
-  },
+  } as IconMeta,
   'icon-team-leave-28': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-team-leave-28',
-    get require() {
-      return require('../images/icons/icon-team-leave-28.png')
+    get require(): string {
+      return require('../images/icons/icon-team-leave-28.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-team-leave-28.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-team-leave-28.png') as string
     },
-  },
+  } as IconMeta,
   'icon-team-placeholder-avatar-112': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-team-placeholder-avatar-112',
-    get require() {
-      return require('../images/icons/icon-team-placeholder-avatar-112.png')
+    get require(): string {
+      return require('../images/icons/icon-team-placeholder-avatar-112.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-team-placeholder-avatar-112.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-team-placeholder-avatar-112.png') as string
     },
-  },
+  } as IconMeta,
   'icon-team-placeholder-avatar-16': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-team-placeholder-avatar-16',
-    get require() {
-      return require('../images/icons/icon-team-placeholder-avatar-16.png')
+    get require(): string {
+      return require('../images/icons/icon-team-placeholder-avatar-16.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-team-placeholder-avatar-16.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-team-placeholder-avatar-16.png') as string
     },
-  },
+  } as IconMeta,
   'icon-team-placeholder-avatar-176': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-team-placeholder-avatar-176.png')
+    get require(): string {
+      return require('../images/icons/icon-team-placeholder-avatar-176.png') as string
     },
-  },
+  } as IconMeta,
   'icon-team-placeholder-avatar-192': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-team-placeholder-avatar-192',
-    get require() {
-      return require('../images/icons/icon-team-placeholder-avatar-192.png')
+    get require(): string {
+      return require('../images/icons/icon-team-placeholder-avatar-192.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-team-placeholder-avatar-192.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-team-placeholder-avatar-192.png') as string
     },
-  },
+  } as IconMeta,
   'icon-team-placeholder-avatar-256': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-team-placeholder-avatar-256',
-    get require() {
-      return require('../images/icons/icon-team-placeholder-avatar-256.png')
+    get require(): string {
+      return require('../images/icons/icon-team-placeholder-avatar-256.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-team-placeholder-avatar-256.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-team-placeholder-avatar-256.png') as string
     },
-  },
+  } as IconMeta,
   'icon-team-placeholder-avatar-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-team-placeholder-avatar-32',
-    get require() {
-      return require('../images/icons/icon-team-placeholder-avatar-32.png')
+    get require(): string {
+      return require('../images/icons/icon-team-placeholder-avatar-32.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-team-placeholder-avatar-32.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-team-placeholder-avatar-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-team-placeholder-avatar-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-team-placeholder-avatar-48',
-    get require() {
-      return require('../images/icons/icon-team-placeholder-avatar-48.png')
+    get require(): string {
+      return require('../images/icons/icon-team-placeholder-avatar-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-team-placeholder-avatar-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-team-placeholder-avatar-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-team-placeholder-avatar-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-team-placeholder-avatar-64',
-    get require() {
-      return require('../images/icons/icon-team-placeholder-avatar-64.png')
+    get require(): string {
+      return require('../images/icons/icon-team-placeholder-avatar-64.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-team-placeholder-avatar-64.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-team-placeholder-avatar-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-team-placeholder-avatar-80': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-team-placeholder-avatar-80',
-    get require() {
-      return require('../images/icons/icon-team-placeholder-avatar-80.png')
+    get require(): string {
+      return require('../images/icons/icon-team-placeholder-avatar-80.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-team-placeholder-avatar-80.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-team-placeholder-avatar-80.png') as string
     },
-  },
+  } as IconMeta,
   'icon-team-placeholder-avatar-960': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-team-placeholder-avatar-960',
-    get require() {
-      return require('../images/icons/icon-team-placeholder-avatar-960.png')
+    get require(): string {
+      return require('../images/icons/icon-team-placeholder-avatar-960.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-team-placeholder-avatar-960.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-team-placeholder-avatar-960.png') as string
     },
-  },
+  } as IconMeta,
   'icon-team-sparkles-64-40': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-team-sparkles-64-40.png')
+    get require(): string {
+      return require('../images/icons/icon-team-sparkles-64-40.png') as string
     },
-  },
+  } as IconMeta,
   'icon-teams-add-email-list-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-teams-add-email-list-64.png')
+    get require(): string {
+      return require('../images/icons/icon-teams-add-email-list-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-teams-add-number-list-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-teams-add-number-list-64.png')
+    get require(): string {
+      return require('../images/icons/icon-teams-add-number-list-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-teams-add-phone-contacts-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-teams-add-phone-contacts-64.png')
+    get require(): string {
+      return require('../images/icons/icon-teams-add-phone-contacts-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-teams-add-search-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-teams-add-search-64.png')
+    get require(): string {
+      return require('../images/icons/icon-teams-add-search-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-teams-channel-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-teams-channel-64.png')
+    get require(): string {
+      return require('../images/icons/icon-teams-channel-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-teams-size-big-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-teams-size-big-64.png')
+    get require(): string {
+      return require('../images/icons/icon-teams-size-big-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-teams-size-small-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-teams-size-small-64.png')
+    get require(): string {
+      return require('../images/icons/icon-teams-size-small-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-teams-type-business-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-teams-type-business-64.png')
+    get require(): string {
+      return require('../images/icons/icon-teams-type-business-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-teams-type-community-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-teams-type-community-64.png')
+    get require(): string {
+      return require('../images/icons/icon-teams-type-community-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-teams-type-notsure-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-teams-type-notsure-64.png')
+    get require(): string {
+      return require('../images/icons/icon-teams-type-notsure-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-teams-type-squad-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-teams-type-squad-64.png')
+    get require(): string {
+      return require('../images/icons/icon-teams-type-squad-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-terminal-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-terminal-32.png')
+    get require(): string {
+      return require('../images/icons/icon-terminal-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-terminal-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-terminal-48.png')
+    get require(): string {
+      return require('../images/icons/icon-terminal-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-twitter-logo-16': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-twitter-logo-16.png')
+    get require(): string {
+      return require('../images/icons/icon-twitter-logo-16.png') as string
     },
-  },
+  } as IconMeta,
   'icon-twitter-logo-24': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-twitter-logo-24.png')
+    get require(): string {
+      return require('../images/icons/icon-twitter-logo-24.png') as string
     },
-  },
+  } as IconMeta,
   'icon-twitter-logo-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-twitter-logo-32.png')
+    get require(): string {
+      return require('../images/icons/icon-twitter-logo-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-twitter-logo-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-twitter-logo-48.png')
+    get require(): string {
+      return require('../images/icons/icon-twitter-logo-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-twitter-logo-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-twitter-logo-64.png')
+    get require(): string {
+      return require('../images/icons/icon-twitter-logo-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-user-add-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-user-add-32.png')
+    get require(): string {
+      return require('../images/icons/icon-user-add-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-verify-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-verify-64.png')
+    get require(): string {
+      return require('../images/icons/icon-verify-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-wallet-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-wallet-32.png')
+    get require(): string {
+      return require('../images/icons/icon-wallet-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-wallet-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-wallet-48.png')
+    get require(): string {
+      return require('../images/icons/icon-wallet-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-wallet-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-wallet-64.png')
+    get require(): string {
+      return require('../images/icons/icon-wallet-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-wallet-add-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-wallet-add-48',
-    get require() {
-      return require('../images/icons/icon-wallet-add-48.png')
+    get require(): string {
+      return require('../images/icons/icon-wallet-add-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-wallet-add-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-wallet-add-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-wallet-add-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-wallet-add-64',
-    get require() {
-      return require('../images/icons/icon-wallet-add-64.png')
+    get require(): string {
+      return require('../images/icons/icon-wallet-add-64.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-wallet-add-64.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-wallet-add-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-wallet-open-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-wallet-open-32.png')
+    get require(): string {
+      return require('../images/icons/icon-wallet-open-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-wallet-open-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-wallet-open-48.png')
+    get require(): string {
+      return require('../images/icons/icon-wallet-open-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-wallet-open-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-wallet-open-64.png')
+    get require(): string {
+      return require('../images/icons/icon-wallet-open-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-wallet-placeholder-add-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-wallet-placeholder-add-32',
-    get require() {
-      return require('../images/icons/icon-wallet-placeholder-add-32.png')
+    get require(): string {
+      return require('../images/icons/icon-wallet-placeholder-add-32.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-wallet-placeholder-add-32.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-wallet-placeholder-add-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-wallet-receive-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-wallet-receive-48.png')
+    get require(): string {
+      return require('../images/icons/icon-wallet-receive-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-wallet-receive-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-wallet-receive-64.png')
+    get require(): string {
+      return require('../images/icons/icon-wallet-receive-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-wallet-remove-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-wallet-remove-48',
-    get require() {
-      return require('../images/icons/icon-wallet-remove-48.png')
+    get require(): string {
+      return require('../images/icons/icon-wallet-remove-48.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-wallet-remove-48.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-wallet-remove-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-wallet-remove-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-wallet-remove-64',
-    get require() {
-      return require('../images/icons/icon-wallet-remove-64.png')
+    get require(): string {
+      return require('../images/icons/icon-wallet-remove-64.png') as string
     },
-    get requireDark() {
-      return require('../images/icons/icon-dark-wallet-remove-64.png')
+    get requireDark(): string {
+      return require('../images/icons/icon-dark-wallet-remove-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-wallet-secret-key-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-wallet-secret-key-48.png')
+    get require(): string {
+      return require('../images/icons/icon-wallet-secret-key-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-wallet-secret-key-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-wallet-secret-key-64.png')
+    get require(): string {
+      return require('../images/icons/icon-wallet-secret-key-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-wallet-to-wallet-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-wallet-to-wallet-32.png')
+    get require(): string {
+      return require('../images/icons/icon-wallet-to-wallet-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-wallet-to-wallet-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-wallet-to-wallet-48.png')
+    get require(): string {
+      return require('../images/icons/icon-wallet-to-wallet-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-website-16': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-website-16.png')
+    get require(): string {
+      return require('../images/icons/icon-website-16.png') as string
     },
-  },
+  } as IconMeta,
   'icon-website-24': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-website-24.png')
+    get require(): string {
+      return require('../images/icons/icon-website-24.png') as string
     },
-  },
+  } as IconMeta,
   'icon-website-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-website-32.png')
+    get require(): string {
+      return require('../images/icons/icon-website-32.png') as string
     },
-  },
+  } as IconMeta,
   'icon-website-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-website-48.png')
+    get require(): string {
+      return require('../images/icons/icon-website-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-website-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-website-64.png')
+    get require(): string {
+      return require('../images/icons/icon-website-64.png') as string
     },
-  },
+  } as IconMeta,
   'icon-windows-badge': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-windows-badge.png')
+    get require(): string {
+      return require('../images/icons/icon-windows-badge.png') as string
     },
-  },
+  } as IconMeta,
   'icon-zcash-logo-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-zcash-logo-48.png')
+    get require(): string {
+      return require('../images/icons/icon-zcash-logo-48.png') as string
     },
-  },
+  } as IconMeta,
   'icon-zcash-logo-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    get require() {
-      return require('../images/icons/icon-zcash-logo-64.png')
+    get require(): string {
+      return require('../images/icons/icon-zcash-logo-64.png') as string
     },
-  },
+  } as IconMeta,
   'iconfont-add': {
     charCode: 0xe900,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-add-solid': {
     charCode: 0xe9c8,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-airplane': {
     charCode: 0xe9bb,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-app-close': {
     charCode: 0xe987,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-app-maximize': {
     charCode: 0xe988,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-app-minimize': {
     charCode: 0xe989,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-app-un-maximize': {
     charCode: 0xe999,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-apple': {
     charCode: 0xe9b9,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-arrow-down': {
     charCode: 0xe901,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-arrow-full-down': {
     charCode: 0xe902,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-arrow-full-up': {
     charCode: 0xe903,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-arrow-left': {
     charCode: 0xe904,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-arrow-right': {
     charCode: 0xe905,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-arrow-up': {
     charCode: 0xe906,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-attachment': {
     charCode: 0xe907,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-basketball': {
     charCode: 0xe9ba,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-block': {
     charCode: 0xe994,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-bomb': {
     charCode: 0xe9d1,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-bomb-solid': {
     charCode: 0xe908,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-boom': {
     charCode: 0xe909,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-bot': {
     charCode: 0xe9b2,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-calculate': {
     charCode: 0xe990,
     gridSize: 24,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-calculator': {
     charCode: 0xe991,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-camera': {
     charCode: 0xe90a,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-camera-solid': {
     charCode: 0xe90b,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-campfire': {
     charCode: 0xe9cb,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-campfire-burning': {
     charCode: 0xe9b3,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-campfire-out': {
     charCode: 0xe9b4,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-caret-down': {
     charCode: 0xe90c,
     gridSize: 8,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-caret-right': {
     charCode: 0xe90d,
     gridSize: 8,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-chat': {
     charCode: 0xe90e,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-check': {
     charCode: 0xe90f,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-checkbox': {
     charCode: 0xe9bd,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-circle': {
     charCode: 0xe974,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-clipboard': {
     charCode: 0xe910,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-clock': {
     charCode: 0xe961,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-clock-reversed': {
     charCode: 0xe962,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-clock-solid': {
     charCode: 0xe911,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-close': {
     charCode: 0xe912,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-cloud': {
     charCode: 0xe973,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-club': {
     charCode: 0xe976,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-coin': {
     charCode: 0xe971,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-coin-flip': {
     charCode: 0xe9a1,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-coin-stack': {
     charCode: 0xe972,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-collapse': {
     charCode: 0xe993,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-compose': {
     charCode: 0xe913,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-contact-book': {
     charCode: 0xe96e,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-contact-card': {
     charCode: 0xe96d,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-copy': {
     charCode: 0xe9bf,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-crown': {
     charCode: 0xe9ca,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-crown-admin': {
     charCode: 0xe914,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-crown-owner': {
     charCode: 0xe915,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-diamond': {
     charCode: 0xe977,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-dollar-sign': {
     charCode: 0xe916,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-download': {
     charCode: 0xe918,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-download-2': {
     charCode: 0xe917,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-edit': {
     charCode: 0xe919,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-ellipsis': {
     charCode: 0xe91a,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-emoji': {
     charCode: 0xe91b,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-envelope': {
     charCode: 0xe9b5,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-envelope-solid': {
     charCode: 0xe9c2,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-exclamation': {
     charCode: 0xe91c,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-expand': {
     charCode: 0xe992,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-file': {
     charCode: 0xe975,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-file-solid': {
     charCode: 0xe9c5,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-film': {
     charCode: 0xe9a9,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-film-solid': {
     charCode: 0xe9c4,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-filter': {
     charCode: 0xe986,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-finder': {
     charCode: 0xe91e,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-fire': {
     charCode: 0xe91f,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-flag': {
     charCode: 0xe9be,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-folder-downloads': {
     charCode: 0xe920,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-folder-dropdown': {
     charCode: 0xe921,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-folder-new': {
     charCode: 0xe922,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-folder-open': {
     charCode: 0xe923,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-folder-private': {
     charCode: 0xe924,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-folder-private-me': {
     charCode: 0xe925,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-folder-public': {
     charCode: 0xe926,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-folder-public-me': {
     charCode: 0xe927,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-folder-up': {
     charCode: 0xe928,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-forward': {
     charCode: 0xe9c9,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-gear': {
     charCode: 0xe929,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-gif': {
     charCode: 0xe99c,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-hamburger': {
     charCode: 0xe92a,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-hand-wave': {
     charCode: 0xe92b,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-hash': {
     charCode: 0xe9ab,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-heart': {
     charCode: 0xe978,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-hide': {
     charCode: 0xe98a,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-hourglass': {
     charCode: 0xe9a6,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-identity-bitcoin': {
     charCode: 0xe92c,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-identity-devices': {
     charCode: 0xe92d,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-identity-facebook': {
     charCode: 0xe92e,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-identity-github': {
     charCode: 0xe92f,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-identity-hn': {
     charCode: 0xe930,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-identity-mastodon': {
     charCode: 0xe970,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-identity-pgp': {
     charCode: 0xe931,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-identity-reddit': {
     charCode: 0xe932,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-identity-stellar': {
     charCode: 0xe96f,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-identity-twitter': {
     charCode: 0xe933,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-identity-website': {
     charCode: 0xe934,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-identity-zcash': {
     charCode: 0xe935,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-info': {
     charCode: 0xe936,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-keybase': {
     charCode: 0xe937,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-leave': {
     charCode: 0xe938,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-link': {
     charCode: 0xe939,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-location': {
     charCode: 0xe9a2,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-lock': {
     charCode: 0xe93a,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-mailbox': {
     charCode: 0xe98f,
     gridSize: 24,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-mention': {
     charCode: 0xe93b,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-mic': {
     charCode: 0xe99d,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-mic-solid': {
     charCode: 0xe9c3,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-music': {
     charCode: 0xe9bc,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-nav-2-chat': {
     charCode: 0xe97d,
     gridSize: 24,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-nav-2-crypto': {
     charCode: 0xe9af,
     gridSize: 24,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-nav-2-devices': {
     charCode: 0xe982,
     gridSize: 24,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-nav-2-files': {
     charCode: 0xe97e,
     gridSize: 24,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-nav-2-fm': {
     charCode: 0xe9ce,
     gridSize: 24,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-nav-2-git': {
     charCode: 0xe981,
     gridSize: 24,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-nav-2-hamburger': {
     charCode: 0xe98b,
     gridSize: 24,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-nav-2-more': {
     charCode: 0xe984,
     gridSize: 24,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-nav-2-people': {
     charCode: 0xe97c,
     gridSize: 24,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-nav-2-robot': {
     charCode: 0xe99b,
     gridSize: 24,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-nav-2-settings': {
     charCode: 0xe983,
     gridSize: 24,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-nav-2-teams': {
     charCode: 0xe97f,
     gridSize: 24,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-nav-2-wallets': {
     charCode: 0xe980,
     gridSize: 24,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-new': {
     charCode: 0xe946,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-number-pad': {
     charCode: 0xe996,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-open-browser': {
     charCode: 0xe949,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-password': {
     charCode: 0xe98d,
     gridSize: 24,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-pause': {
     charCode: 0xe9a3,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-pawprint': {
     charCode: 0xe9b8,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-people': {
     charCode: 0xe94a,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-people-solid': {
     charCode: 0xe9c7,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-person': {
     charCode: 0xe9a7,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-person-raisedarms': {
     charCode: 0xe9b6,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-phone-contact': {
     charCode: 0xe97b,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-photo-library': {
     charCode: 0xe9ac,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-pin': {
     charCode: 0xe9a8,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-pin-solid': {
     charCode: 0xe9c6,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-play': {
     charCode: 0xe99e,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-proof-broken': {
     charCode: 0xe94b,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-proof-good': {
     charCode: 0xe94c,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-proof-pending': {
     charCode: 0xe94d,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-proof-placeholder': {
     charCode: 0xe94e,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-qr-code': {
     charCode: 0xe94f,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-question-mark': {
     charCode: 0xe950,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-radio': {
     charCode: 0xe997,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-radio-solid': {
     charCode: 0xe998,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-reacji': {
     charCode: 0xe951,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-refresh': {
     charCode: 0xe956,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-reload': {
     charCode: 0xe97a,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-remove': {
     charCode: 0xe957,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-reply': {
     charCode: 0xe995,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-return': {
     charCode: 0xe96a,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-rip': {
     charCode: 0xe9a5,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-root': {
     charCode: 0xe9a0,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-search': {
     charCode: 0xe958,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-share': {
     charCode: 0xe9aa,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-share-android': {
     charCode: 0xe9c0,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-shh': {
     charCode: 0xe959,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-skull': {
     charCode: 0xe98c,
     gridSize: 24,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-sort-alpha': {
     charCode: 0xe9cc,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-spade': {
     charCode: 0xe979,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-star': {
     charCode: 0xe95a,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-stellar-request': {
     charCode: 0xe955,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-stellar-send': {
     charCode: 0xe95b,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-stop': {
     charCode: 0xe99f,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-success': {
     charCode: 0xe95c,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-team': {
     charCode: 0xe9cd,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-team-join': {
     charCode: 0xe95d,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-team-leave': {
     charCode: 0xe95e,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-text-code': {
     charCode: 0xe95f,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-thunderbolt': {
     charCode: 0xe960,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-timer': {
     charCode: 0xe963,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-timer-solid': {
     charCode: 0xe9d0,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-trash': {
     charCode: 0xe964,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-typing': {
     charCode: 0xe9b7,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-unhide': {
     charCode: 0xe99a,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-unlock': {
     charCode: 0xe9b1,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-upload': {
     charCode: 0xe967,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-upload-2': {
     charCode: 0xe966,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-user-block': {
     charCode: 0xe9a4,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-verify': {
     charCode: 0xe9b0,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-video-library': {
     charCode: 0xe9ad,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-wallet-transfer': {
     charCode: 0xe985,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-warning': {
     charCode: 0xe9ae,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-wave-2': {
     charCode: 0xe98e,
     gridSize: 24,
     isFont: true,
-  },
+  } as IconMeta,
   'iconfont-wrenches': {
     charCode: 0xe969,
     gridSize: 16,
     isFont: true,
-  },
+  } as IconMeta,
   'illustration-bg-provisioning-blue': {
     extension: 'png',
     imagesDir: 'illustrations',
     isFont: false,
-    get require() {
-      return require('../images/illustrations/illustration-bg-provisioning-blue.png')
+    get require(): string {
+      return require('../images/illustrations/illustration-bg-provisioning-blue.png') as string
     },
-  },
+  } as IconMeta,
   'illustration-bg-provisioning-green': {
     extension: 'png',
     imagesDir: 'illustrations',
     isFont: false,
-    get require() {
-      return require('../images/illustrations/illustration-bg-provisioning-green.png')
+    get require(): string {
+      return require('../images/illustrations/illustration-bg-provisioning-green.png') as string
     },
-  },
+  } as IconMeta,
   'illustration-security-preferences': {
     extension: 'png',
     imagesDir: 'illustrations',
     isFont: false,
-    get require() {
-      return require('../images/illustrations/illustration-security-preferences.png')
+    get require(): string {
+      return require('../images/illustrations/illustration-security-preferences.png') as string
     },
-  },
+  } as IconMeta,
   'illustration-turn-on-notifications': {
     extension: 'png',
     imagesDir: 'illustrations',
     isFont: false,
-    get require() {
-      return require('../images/illustrations/illustration-turn-on-notifications.png')
+    get require(): string {
+      return require('../images/illustrations/illustration-turn-on-notifications.png') as string
     },
-  },
+  } as IconMeta,
   'release-4.7.0-dark-mode': {
     extension: 'png',
     imagesDir: 'releases',
     isFont: false,
-    get require() {
-      return require('../images/releases/release-4.7.0-dark-mode.png')
+    get require(): string {
+      return require('../images/releases/release-4.7.0-dark-mode.png') as string
     },
-  },
+  } as IconMeta,
   'release-4.7.0-fast-user-switching': {
     extension: 'png',
     imagesDir: 'releases',
     isFont: false,
-    get require() {
-      return require('../images/releases/release-4.7.0-fast-user-switching.png')
+    get require(): string {
+      return require('../images/releases/release-4.7.0-fast-user-switching.png') as string
     },
-  },
+  } as IconMeta,
   'release-4.7.0-keybase-fm': {
     extension: 'png',
     imagesDir: 'releases',
     isFont: false,
-    get require() {
-      return require('../images/releases/release-4.7.0-keybase-fm.png')
+    get require(): string {
+      return require('../images/releases/release-4.7.0-keybase-fm.png') as string
     },
-  },
+  } as IconMeta,
   'release-4.7.0-pinned-messages': {
     extension: 'png',
     imagesDir: 'releases',
     isFont: false,
-    get require() {
-      return require('../images/releases/release-4.7.0-pinned-messages.png')
+    get require(): string {
+      return require('../images/releases/release-4.7.0-pinned-messages.png') as string
     },
-  },
+  } as IconMeta,
   'release-4.8.0-audio-messages': {
     extension: 'png',
     imagesDir: 'releases',
     isFont: false,
-    get require() {
-      return require('../images/releases/release-4.8.0-audio-messages.png')
+    get require(): string {
+      return require('../images/releases/release-4.8.0-audio-messages.png') as string
     },
-  },
+  } as IconMeta,
   'release-4.8.0-file-sync': {
     extension: 'png',
     imagesDir: 'releases',
     isFont: false,
-    get require() {
-      return require('../images/releases/release-4.8.0-file-sync.png')
+    get require(): string {
+      return require('../images/releases/release-4.8.0-file-sync.png') as string
     },
-  },
+  } as IconMeta,
   'release-5.1.0-blocking': {
     extension: 'png',
     imagesDir: 'releases',
     isFont: false,
-    get require() {
-      return require('../images/releases/release-5.1.0-blocking.png')
+    get require(): string {
+      return require('../images/releases/release-5.1.0-blocking.png') as string
     },
-  },
+  } as IconMeta,
   'release-5.2.0-bots': {
     extension: 'png',
     imagesDir: 'releases',
     isFont: false,
-    get require() {
-      return require('../images/releases/release-5.2.0-bots.png')
+    get require(): string {
+      return require('../images/releases/release-5.2.0-bots.png') as string
     },
-  },
+  } as IconMeta,
   'release-5.2.0-crypto': {
     extension: 'png',
     imagesDir: 'releases',
     isFont: false,
-    get require() {
-      return require('../images/releases/release-5.2.0-crypto.png')
+    get require(): string {
+      return require('../images/releases/release-5.2.0-crypto.png') as string
     },
-  },
+  } as IconMeta,
   'release-5.3.0-ipad': {
     extension: 'png',
     imagesDir: 'releases',
     isFont: false,
-    get require() {
-      return require('../images/releases/release-5.3.0-ipad.png')
+    get require(): string {
+      return require('../images/releases/release-5.3.0-ipad.png') as string
     },
-  },
+  } as IconMeta,
   'release-5.3.0-open-teams': {
     extension: 'png',
     imagesDir: 'releases',
     isFont: false,
-    get require() {
-      return require('../images/releases/release-5.3.0-open-teams.png')
+    get require(): string {
+      return require('../images/releases/release-5.3.0-open-teams.png') as string
     },
-  },
+  } as IconMeta,
   'release-5.4.0-emoji': {
     extension: 'png',
     imagesDir: 'releases',
     isFont: false,
-    get require() {
-      return require('../images/releases/release-5.4.0-emoji.png')
+    get require(): string {
+      return require('../images/releases/release-5.4.0-emoji.png') as string
     },
-  },
+  } as IconMeta,
   'release-5.4.0-pony': {
     extension: 'png',
     imagesDir: 'releases',
     isFont: false,
-    get require() {
-      return require('../images/releases/release-5.4.0-pony.png')
+    get require(): string {
+      return require('../images/releases/release-5.4.0-pony.png') as string
     },
-  },
-}
+  } as IconMeta,
+} as const
+export type IconType = keyof typeof iconMeta

@@ -6,11 +6,11 @@ import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as WaitingGen from '../../../actions/waiting-gen'
 import {useAllChannelMetas} from '../../../teams/common/channel-hooks'
-import * as Types from '../../../constants/types/chat2'
+import type * as Types from '../../../constants/types/chat2'
 import * as TeamTypes from '../../../constants/types/teams'
 import * as TeamConstants from '../../../constants/teams'
 import * as Constants from '../../../constants/chat2'
-import * as RPCTypes from '../../../constants/types/rpc-gen'
+import type * as RPCTypes from '../../../constants/types/rpc-gen'
 import openURL from '../../../util/open-url'
 import ChannelPicker from './channel-picker'
 
@@ -34,16 +34,12 @@ export const useBotConversationIDKey = (inConvIDKey?: Types.ConversationIDKey, t
   return conversationIDKey
 }
 
-type LoaderProps = Container.RouteProps<{
-  botUsername: string
-  conversationIDKey?: Types.ConversationIDKey
-  teamID?: TeamTypes.TeamID
-}>
+type LoaderProps = Container.RouteProps<'chatInstallBot'>
 
 const InstallBotPopupLoader = (props: LoaderProps) => {
-  const botUsername = Container.getRouteProps(props, 'botUsername', '')
-  const inConvIDKey = Container.getRouteProps(props, 'conversationIDKey', undefined)
-  const teamID = Container.getRouteProps(props, 'teamID', undefined)
+  const botUsername = props.route.params?.botUsername ?? ''
+  const inConvIDKey = props.route.params?.conversationIDKey ?? undefined
+  const teamID = props.route.params?.teamID ?? undefined
   const conversationIDKey = useBotConversationIDKey(inConvIDKey, teamID)
   return <InstallBotPopup botUsername={botUsername} conversationIDKey={conversationIDKey} />
 }
@@ -90,7 +86,7 @@ const InstallBotPopup = (props: Props) => {
   const isBot = teamRole === 'bot' || teamRole === 'restrictedbot' ? true : undefined
 
   const readOnly = Container.useSelector(state =>
-    meta && meta.teamname ? !TeamConstants.getCanPerformByID(state, meta.teamID).manageBots : false
+    meta?.teamname ? !TeamConstants.getCanPerformByID(state, meta.teamID).manageBots : false
   )
   const settings = Container.useSelector(state =>
     conversationIDKey
@@ -99,7 +95,7 @@ const InstallBotPopup = (props: Props) => {
   )
   let teamname: string | null | undefined
   let teamID: TeamTypes.TeamID = TeamTypes.noTeamID
-  if (meta && meta.teamname) {
+  if (meta?.teamname) {
     teamID = meta.teamID
     teamname = meta.teamname
   }
@@ -465,9 +461,7 @@ const InstallBotPopup = (props: Props) => {
           <Kb.Text type="BodyBigLink" onClick={onLeftAction}>
             {installScreen ? backButton : inTeam || readOnly ? 'Close' : 'Cancel'}
           </Kb.Text>
-        ) : (
-          undefined
-        ),
+        ) : undefined,
         title: channelPickerScreen ? 'Channels' : '',
       }}
       footer={
@@ -602,8 +596,9 @@ const PermsList = (props: PermsListProps) => {
             <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
               <Kb.Text type="BodySemibold">In these channels:</Kb.Text>
               {props.settings.convs?.map(convID => (
-                <Kb.Text type="Body" key={convID}>{`• #${props.channelMetas?.get(convID)?.channelname ??
-                  ''}`}</Kb.Text>
+                <Kb.Text type="Body" key={convID}>{`• #${
+                  props.channelMetas?.get(convID)?.channelname ?? ''
+                }`}</Kb.Text>
               ))}
             </Kb.Box2>
           )}

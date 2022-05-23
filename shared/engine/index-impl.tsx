@@ -1,20 +1,18 @@
 // Handles sending requests to the daemon
 import logger from '../logger'
-import Session, {CancelHandlerType} from './session'
+import Session, {type CancelHandlerType} from './session'
 import {initEngine, initEngineSaga} from './require'
-import {RPCError, convertToError} from '../util/errors'
+import {type RPCError, convertToError} from '../util/errors'
 import {isMobile} from '../constants/platform'
 import {localLog} from '../util/forward-logs'
 import {printOutstandingRPCs, isTesting} from '../local-debug'
-import {resetClient, createClient, rpcLog, createClientType} from './index.platform'
+import {resetClient, createClient, rpcLog, type createClientType} from './index.platform'
 import {createBatchChangeWaiting} from '../actions/waiting-gen'
 import engineSaga from './saga'
 import throttle from 'lodash/throttle'
-import {CustomResponseIncomingCallMapType, IncomingCallMapType} from '.'
-import {SessionID, SessionIDKey, WaitingHandlerType, MethodKey} from './types'
-import {TypedState, Dispatch} from '../util/container'
-
-const {env} = KB.process
+import type {CustomResponseIncomingCallMapType, IncomingCallMapType} from '.'
+import type {SessionID, SessionIDKey, WaitingHandlerType, MethodKey} from './types'
+import type {TypedDispatch} from '../util/container'
 
 // delay incoming to stop react from queueing too many setState calls and stopping rendering
 // only while debugging for now
@@ -45,10 +43,7 @@ class Engine {
   // App tells us when the sagas are done loading so we can start emitting events
   _sagasAreReady: boolean = false
 
-  static _dispatch: Dispatch
-
-  // Temporary helper for incoming call maps
-  static _getState: () => TypedState
+  _dispatch: TypedDispatch
 
   _queuedChanges: Array<{error: RPCError; increment: boolean; key: WaitingKey}> = []
   dispatchWaitingAction = (key: WaitingKey, waiting: boolean, error: RPCError) => {
@@ -59,28 +54,16 @@ class Engine {
   _throttledDispatchWaitingAction = throttle(() => {
     const changes = this._queuedChanges
     this._queuedChanges = []
-    Engine._dispatch(createBatchChangeWaiting({changes}))
+    this._dispatch(createBatchChangeWaiting({changes}))
   }, 500)
 
-  // TODO deprecate
-  deprecatedGetDispatch = () => {
-    return Engine._dispatch
-  }
-  // TODO deprecate
-  deprecatedGetGetState = () => {
-    return Engine._getState
-  }
-
-  constructor(dispatch: Dispatch, getState: () => TypedState) {
-    KB.kb.setEngine(this)
-
+  constructor(dispatch: TypedDispatch) {
     // setup some static vars
     if (DEFER_INCOMING_DURING_DEBUG) {
-      Engine._dispatch = a => setTimeout(() => dispatch(a), 1)
+      this._dispatch = a => setTimeout(() => dispatch(a), 1)
     } else {
-      Engine._dispatch = dispatch
+      this._dispatch = dispatch
     }
-    Engine._getState = getState
     this._rpcClient = createClient(
       payload => this._rpcIncoming(payload),
       () => this._onConnected(),
@@ -116,7 +99,7 @@ class Engine {
   }
 
   _onDisconnect() {
-    Engine._dispatch({payload: undefined, type: 'engine-gen:disconnected'})
+    this._dispatch({payload: undefined, type: 'engine-gen:disconnected'})
   }
 
   // We want to dispatch the connect action but only after sagas boot up
@@ -124,9 +107,9 @@ class Engine {
     this._sagasAreReady = true
     if (this._hasConnected) {
       // dispatch the action version
-      Engine._dispatch({payload: undefined, type: 'engine-gen:connected'})
+      this._dispatch({payload: undefined, type: 'engine-gen:connected'})
     }
-    Engine._dispatch({payload: {phase: 'initialStartupAsEarlyAsPossible'}, type: 'config:loadOnStart'})
+    this._dispatch({payload: {phase: 'initialStartupAsEarlyAsPossible'}, type: 'config:loadOnStart'})
   }
 
   // Called when we reconnect to the server
@@ -136,7 +119,7 @@ class Engine {
     // Sagas already booted so they can get this
     if (this._sagasAreReady) {
       // dispatch the action version
-      Engine._dispatch({payload: undefined, type: 'engine-gen:connected'})
+      this._dispatch({payload: undefined, type: 'engine-gen:connected'})
     }
   }
 
@@ -202,7 +185,7 @@ class Engine {
           .map((p, idx) => (idx ? capitalize(p) : p))
           .join('')
         // @ts-ignore can't really type this easily
-        Engine._dispatch({payload: {params: param, ...extra}, type: `engine-gen:${type}`})
+        this._dispatch({payload: {params: param, ...extra}, type: `engine-gen:${type}`})
       }
     }
   }
@@ -241,16 +224,19 @@ class Engine {
       cancelHandler,
       customResponseIncomingCallMap,
       dangling,
+      dispatch: this._dispatch,
       endHandler: (session: Session) => this._sessionEnded(session),
       incomingCallMap,
       invoke: (method, param, cb) => {
-        const callback = method => (...args) => {
-          // If first argument is set, convert it to an Error type
-          if (args.length > 0 && !!args[0]) {
-            args[0] = convertToError(args[0], method)
+        const callback =
+          method =>
+          (...args) => {
+            // If first argument is set, convert it to an Error type
+            if (args.length > 0 && !!args[0]) {
+              args[0] = convertToError(args[0], method)
+            }
+            cb(...args)
           }
-          cb(...args)
-        }
         this._rpcClient.invoke(method, param || [{}], callback(method))
       },
       sessionID,
@@ -302,7 +288,7 @@ class Engine {
 }
 
 // Dummy engine for snapshotting
-class FakeEngine {
+export class FakeEngine {
   _deadSessionsMap: {[K in SessionIDKey]: Session} = {} // just to bookkeep
   _sessionsMap: {[K in SessionIDKey]: Session} = {}
   constructor() {
@@ -324,6 +310,7 @@ class FakeEngine {
     ____: boolean = false
   ) {
     return new Session({
+      dispatch: () => {},
       endHandler: () => {},
       incomingCallMap: null,
       invoke: () => {},
@@ -349,16 +336,13 @@ if (__DEV__) {
   engine = global.DEBUGEngine
 }
 
-const makeEngine = (dispatch: Dispatch, getState: () => TypedState) => {
+const makeEngine = (dispatch: TypedDispatch) => {
   if (__DEV__ && engine) {
     logger.warn('makeEngine called multiple times')
   }
 
   if (!engine) {
-    engine =
-      env.KEYBASE_NO_ENGINE || isTesting
-        ? ((new FakeEngine() as unknown) as Engine)
-        : new Engine(dispatch, getState)
+    engine = isTesting ? (new FakeEngine() as unknown as Engine) : new Engine(dispatch)
     if (__DEV__) {
       global.DEBUGEngine = engine
     }

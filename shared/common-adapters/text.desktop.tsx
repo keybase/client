@@ -4,7 +4,7 @@ import * as React from 'react'
 import openURL from '../util/open-url'
 import {fontSizeToSizeStyle, lineClamp, metaData} from './text.meta.desktop'
 import shallowEqual from 'shallowequal'
-import {Props, TextType, _StylesTextCrossPlatform} from './text'
+import type {Props, TextType, _StylesTextCrossPlatform} from './text'
 
 class Text extends React.Component<Props> {
   _spanRef = React.createRef<HTMLSpanElement>()
@@ -52,10 +52,11 @@ class Text extends React.Component<Props> {
       lineClamp5: props.lineClamp === 5,
       selectable: props.selectable,
       text_center: props.center,
+      virtualText: props.virtualText,
     })
   }
 
-  _urlClick = (e: React.MouseEvent<HTMLSpanElement, MouseEvent>) => {
+  _urlClick = (e: React.MouseEvent<HTMLSpanElement>) => {
     if (!this.props.onClickURL) {
       return
     }
@@ -75,8 +76,9 @@ class Text extends React.Component<Props> {
         className={this._className(this.props)}
         onClick={this.props.onClick || (this.props.onClickURL && this._urlClick) || undefined}
         style={Styles.collapseStyles([this.props.style])}
+        data-virtual-text={this.props.virtualText ? this.props.children : undefined}
       >
-        {this.props.children}
+        {this.props.virtualText ? null : this.props.children}
       </span>
     )
   }

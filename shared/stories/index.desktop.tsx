@@ -1,4 +1,3 @@
-/* eslint-disable import/no-extraneous-dependencies, import/no-unresolved, import/extensions */
 /*
 import * as React from 'react'
 import * as Sb from './storybook'

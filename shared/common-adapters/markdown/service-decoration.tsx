@@ -1,6 +1,6 @@
 import React from 'react'
 import * as Container from '../../util/container'
-import * as Types from '../../constants/types/chat2'
+import type * as Types from '../../constants/types/chat2'
 import * as WalletTypes from '../../constants/types/wallets'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as DeeplinksConstants from '../../constants/deeplinks'
@@ -13,18 +13,14 @@ import Mention from '../mention-container'
 import Channel from '../channel-container'
 import KbfsPath from '../../fs/common/kbfs-path'
 import MaybeMention from '../../chat/conversation/maybe-mention'
-import Text, {StylesTextCrossPlatform} from '../text'
+import Text, {type StylesTextCrossPlatform} from '../text'
 import {emojiDataToRenderableEmoji, renderEmoji, RPCToEmojiData} from '../../util/emoji'
-import {StyleOverride} from '.'
+import type {StyleOverride} from '.'
 import WithTooltip from '../with-tooltip'
 
 const linkStyle = Styles.platformStyles({
-  isElectron: {
-    fontWeight: 'inherit',
-  },
-  isMobile: {
-    fontWeight: undefined,
-  },
+  isElectron: {fontWeight: 'inherit'},
+  isMobile: {fontWeight: undefined},
 })
 
 type KeybaseLinkProps = {
@@ -237,16 +233,18 @@ const ServiceDecoration = (props: Props) => {
       />
     )
   } else if (parsed.typ === RPCChatTypes.UITextDecorationTyp.emoji) {
-    return renderEmoji(
-      emojiDataToRenderableEmoji(RPCToEmojiData(parsed.emoji, props.disableEmojiAnimation)),
-      parsed.emoji.isBig && !props.disableBigEmojis
-        ? 32
-        : parsed.emoji.isReacji && !Styles.isMobile
-        ? 18
-        : 16,
-      !parsed.emoji.isReacji,
-      true
-    )
+    return renderEmoji({
+      customStyle: props.styleOverride.customEmoji,
+      emoji: emojiDataToRenderableEmoji(RPCToEmojiData(parsed.emoji, props.disableEmojiAnimation)),
+      showTooltip: !parsed.emoji.isReacji,
+      size:
+        parsed.emoji.isBig && !props.disableBigEmojis
+          ? 32
+          : parsed.emoji.isReacji && !Styles.isMobile
+          ? 18
+          : 16,
+      style: props.styleOverride.emoji,
+    })
   }
   return null
 }

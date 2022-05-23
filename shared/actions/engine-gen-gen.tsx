@@ -1,8 +1,8 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
 
-import * as chat1Types from '../constants/types/rpc-chat-gen'
-import * as keybase1Types from '../constants/types/rpc-gen'
-import * as stellar1Types from '../constants/types/rpc-stellar-gen'
+import type * as chat1Types from '../constants/types/rpc-chat-gen'
+import type * as keybase1Types from '../constants/types/rpc-gen'
+import type * as stellar1Types from '../constants/types/rpc-stellar-gen'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of engine-gen but is handled by every reducer. NEVER dispatch this
@@ -657,8 +657,8 @@ type _Chat1NotifyChatNewChatActivityPayload = {
     sessionID: number
   }
 }
-type _ConnectedPayload = void
-type _DisconnectedPayload = void
+type _ConnectedPayload = undefined
+type _DisconnectedPayload = undefined
 type _Keybase1GpgUiConfirmDuplicateKeyChosenPayload = {
   readonly params: keybase1Types.MessageTypes['keybase.1.gpgUi.confirmDuplicateKeyChosen']['inParam'] & {
     sessionID: number
@@ -2204,8 +2204,8 @@ export const createChat1NotifyChatChatWelcomeMessageLoaded = (
 export const createChat1NotifyChatNewChatActivity = (
   payload: _Chat1NotifyChatNewChatActivityPayload
 ): Chat1NotifyChatNewChatActivityPayload => ({payload, type: chat1NotifyChatNewChatActivity})
-export const createConnected = (payload: _ConnectedPayload): ConnectedPayload => ({payload, type: connected})
-export const createDisconnected = (payload: _DisconnectedPayload): DisconnectedPayload => ({
+export const createConnected = (payload?: _ConnectedPayload): ConnectedPayload => ({payload, type: connected})
+export const createDisconnected = (payload?: _DisconnectedPayload): DisconnectedPayload => ({
   payload,
   type: disconnected,
 })
@@ -3862,4 +3862,4 @@ export type Actions =
   | Stellar1NotifyRecentPaymentsUpdatePayload
   | Stellar1NotifyRequestStatusNotificationPayload
   | Stellar1UiPaymentReviewedPayload
-  | {type: 'common:resetStore', payload: {}}
+  | {readonly type: 'common:resetStore', readonly payload: undefined}

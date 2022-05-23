@@ -300,6 +300,8 @@ export type TypedActionsMap = {
   'config:setSystemDarkMode': config.SetSystemDarkModePayload
   'config:updateHTTPSrvInfo': config.UpdateHTTPSrvInfoPayload
   'config:remoteWindowWantsProps': config.RemoteWindowWantsPropsPayload
+  'config:updateWindowShown': config.UpdateWindowShownPayload
+  'config:updateWindowMaxState': config.UpdateWindowMaxStatePayload
   'config:updateWindowState': config.UpdateWindowStatePayload
   'config:setUseNativeFrame': config.SetUseNativeFramePayload
   'config:setWhatsNewLastSeenVersion': config.SetWhatsNewLastSeenVersionPayload
@@ -793,13 +795,15 @@ export type TypedActionsMap = {
   'recover-password:displayError': recoverpassword.DisplayErrorPayload
   'route-tree:navigateAppend': routetree.NavigateAppendPayload
   'route-tree:navigateUp': routetree.NavigateUpPayload
+  'route-tree:navigateUpNoop': routetree.NavigateUpNoopPayload
   'route-tree:clearModals': routetree.ClearModalsPayload
   'route-tree:navUpToScreen': routetree.NavUpToScreenPayload
   'route-tree:switchLoggedIn': routetree.SwitchLoggedInPayload
   'route-tree:switchTab': routetree.SwitchTabPayload
-  'route-tree:resetStack': routetree.ResetStackPayload
+  'route-tree:popStack': routetree.PopStackPayload
   'route-tree:onNavChanged': routetree.OnNavChangedPayload
   'route-tree:setParams': routetree.SetParamsPayload
+  'route-tree:tabLongPress': routetree.TabLongPressPayload
   'settings:addPhoneNumber': settings.AddPhoneNumberPayload
   'settings:addedPhoneNumber': settings.AddedPhoneNumberPayload
   'settings:resendVerificationForPhoneNumber': settings.ResendVerificationForPhoneNumberPayload
@@ -1179,5 +1183,5 @@ export type TypedActionsMap = {
   'wallets:setTrustlineExpanded': wallets.SetTrustlineExpandedPayload
   'wallets:staticConfigLoaded': wallets.StaticConfigLoadedPayload
   'wallets:setSEP6Message': wallets.SetSEP6MessagePayload
-  'common:resetStore': {type: 'common:resetStore'; payload: {}}
+  'common:resetStore': {readonly type: 'common:resetStore'; readonly payload: undefined}
 }

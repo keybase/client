@@ -69,7 +69,7 @@ const ConflictBanner = (props: Props) => {
       return null
     }
     case Types.ConflictStateType.ManualResolvingLocalView: {
-      const conflictState = props.conflictState as Types.ConflictStateManualResolvingLocalView
+      const conflictState = props.conflictState
       const {finishRes, helpAction} = getActions(props)
       return (
         <Kb.Banner color="yellow">

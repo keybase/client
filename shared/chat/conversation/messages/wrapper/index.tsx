@@ -1,8 +1,8 @@
 import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../../../styles'
-import * as Types from '../../../../constants/types/chat2'
 import * as Constants from '../../../../constants/chat2'
+import type * as Types from '../../../../constants/types/chat2'
 import SystemCreateTeam from '../system-create-team/container'
 import SystemAddedToTeam from '../system-added-to-team/container'
 import SystemChangeRetention from '../system-change-retention/container'
@@ -149,6 +149,8 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
     (this.props.message.type === 'text' || this.props.message.type === 'attachment') &&
     this.props.message.exploding
 
+  private canFixOverdraw = () => !this.props.isPendingPayment && !this.showCenteredHighlight()
+
   private authorAndContent = (children: React.ReactNode) => {
     let result
     const username = (
@@ -157,11 +159,13 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
         colorFollowing={true}
         colorYou={true}
         onUsernameClicked={this.onAuthorClick}
-        style={Styles.collapseStyles([
-          this.showCenteredHighlight() && this.props.youAreAuthor && styles.usernameHighlighted,
-        ])}
+        fixOverdraw={this.canFixOverdraw()}
+        style={
+          this.showCenteredHighlight() && this.props.youAreAuthor ? styles.usernameHighlighted : undefined
+        }
         type="BodySmallBold"
         usernames={this.props.showUsername}
+        virtualText={true}
       />
     )
     if (this.props.showUsername) {
@@ -210,10 +214,9 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
               )}
               <Kb.Text
                 type="BodyTiny"
-                style={Styles.collapseStyles([
-                  styles.timestamp,
-                  this.showCenteredHighlight() && styles.timestampHighlighted,
-                ])}
+                fixOverdraw={this.canFixOverdraw()}
+                virtualText={true}
+                style={Styles.collapseStyles([this.showCenteredHighlight() && styles.timestampHighlighted])}
               >
                 {formatTimeForChat(this.props.message.timestamp)}
               </Kb.Text>
@@ -232,6 +235,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
     } else {
       result = children
     }
+
     return this.props.isPendingPayment ? (
       <PendingPaymentBackground key="pendingBackground">{result}</PendingPaymentBackground>
     ) : (
@@ -379,7 +383,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
           styles.container,
           this.showCenteredHighlight() && styles.centeredOrdinal,
           !this.props.showUsername && styles.containerNoUsername,
-        ]),
+        ] as const),
       }
       return this.props.decorate
         ? {
@@ -387,7 +391,6 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
             onLongPress: this.props.toggleShowingMenu,
             onPress: this.dismissKeyboard,
             onSwipeLeft: this.props.onSwipeLeft,
-            underlayColor: Styles.globalColors.blueLighter3,
           }
         : props
     } else {
@@ -633,7 +636,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
                       style={Styles.collapseStyles([
                         styles.emojiRow,
                         this.props.isLastInThread && styles.emojiRowLast,
-                      ])}
+                      ] as const)}
                     />
                   )}
                 <Kb.Box>
@@ -679,7 +682,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
       return null
     }
     return (
-      <>
+      <Styles.StyleContext.Provider value={{canFixOverdraw: this.canFixOverdraw()}}>
         <LongPressable
           {...this.containerProps()}
           children={[
@@ -700,14 +703,13 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
           ]}
         />
         {this.popup()}
-      </>
+      </Styles.StyleContext.Provider>
     )
   }
 }
 
 const WrapperMessage = Kb.OverlayParentHOC(_WrapperMessage)
 
-const fast = {backgroundColor: Styles.globalColors.fastBlank}
 const styles = Styles.styleSheetCreate(
   () =>
     ({
@@ -801,7 +803,6 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       failUnderline: {color: Styles.globalColors.redDark, textDecorationLine: 'underline'},
-      fast,
       menuButtons: Styles.platformStyles({
         common: {
           alignSelf: 'flex-start',
@@ -834,9 +835,7 @@ const styles = Styles.styleSheetCreate(
       }),
       paddingLeftTiny: {paddingLeft: Styles.globalMargins.tiny},
       send: Styles.platformStyles({
-        isElectron: {
-          pointerEvents: 'none',
-        },
+        isElectron: {pointerEvents: 'none'},
       }),
       timestamp: Styles.platformStyles({
         isElectron: {
@@ -844,7 +843,7 @@ const styles = Styles.styleSheetCreate(
           lineHeight: 19,
         },
       }),
-      timestampHighlighted: {color: Styles.globalColors.black_50OrBlack_40},
+      timestampHighlighted: {color: 'red' /*Styles.globalColors.black_50OrBlack_40*/},
       usernameCrown: Styles.platformStyles({
         isElectron: {
           alignItems: 'baseline',

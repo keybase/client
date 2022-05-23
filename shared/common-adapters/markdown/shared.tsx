@@ -3,7 +3,7 @@ import React, {PureComponent} from 'react'
 import SimpleMarkdown from 'simple-markdown'
 import Text from '../text'
 import logger from '../../logger'
-import {Props as MarkdownProps} from '.'
+import type {Props as MarkdownProps} from '.'
 import {emojiIndexByChar, emojiRegex, commonTlds} from './emoji-gen'
 import {reactOutput, previewOutput, bigEmojiOutput, markdownStyles, serviceOnlyOutput} from './react'
 
@@ -48,16 +48,14 @@ const wrapInParagraph = (
 const wordBoundaryLookBehind = /\B$/
 // Wraps the match to also check that the behind is not a text, but a boundary (like a space)
 // i.e. "foo" fails but "foo " passes.
-const wordBoundryLookBehindMatch = (matchFn: SimpleMarkdown.MatchFunction) => (
-  source: string,
-  state: SimpleMarkdown.State,
-  prevCapture: string
-) => {
-  if (wordBoundaryLookBehind.exec(prevCapture)) {
-    return matchFn(source, state, prevCapture)
+const wordBoundryLookBehindMatch =
+  (matchFn: SimpleMarkdown.MatchFunction) =>
+  (source: string, state: SimpleMarkdown.State, prevCapture: string) => {
+    if (wordBoundaryLookBehind.exec(prevCapture)) {
+      return matchFn(source, state, prevCapture)
+    }
+    return null
   }
-  return null
-}
 
 // Rules are defined here, the react components for these types are defined in markdown-react.js
 const rules: {[type: string]: SimpleMarkdown.ParserRule} = {
@@ -151,7 +149,7 @@ const rules: {[type: string]: SimpleMarkdown.ParserRule} = {
     // match: SimpleMarkdown.blockRegex(/^ *(`{3,}|~{3,}) *(\S+)? *\n([\s\S]+?)\s*\1 *(?:\n *)+\n/),
     // ours: three ticks (anywhere) and remove any newlines in front and one in back
     order: 0,
-    parse: function(
+    parse: function (
       capture: SimpleMarkdown.Capture,
       _nestedParse: SimpleMarkdown.Parser,
       _state: SimpleMarkdown.State
@@ -213,9 +211,11 @@ const rules: {[type: string]: SimpleMarkdown.ParserRule} = {
       const preContent: Array<SimpleMarkdown.SingleASTNode> =
         Styles.isMobile && !!capture[1]
           ? wrapInParagraph(nestedParse, capture[1], state)
-          : (SimpleMarkdown.parseInline(nestedParse, capture[1], state) as Array<
-              SimpleMarkdown.SingleASTNode
-            >)
+          : (SimpleMarkdown.parseInline(
+              nestedParse,
+              capture[1],
+              state
+            ) as Array<SimpleMarkdown.SingleASTNode>)
       return {
         content: [...preContent, {content: capture[2], type: 'fence'}],
         type: 'blockQuote',
@@ -279,7 +279,10 @@ class SimpleMarkdownComponent extends PureComponent<MarkdownProps, {hasError: bo
   render() {
     if (this.state.hasError) {
       return (
-        <Text type="Body" style={Styles.collapseStyles([styles.rootWrapper, markdownStyles.wrapStyle])}>
+        <Text
+          type="Body"
+          style={Styles.collapseStyles([styles.rootWrapper, markdownStyles.wrapStyle] as const)}
+        >
           {this.props.children || ''}
         </Text>
       )
@@ -301,6 +304,7 @@ class SimpleMarkdownComponent extends PureComponent<MarkdownProps, {hasError: bo
         markdownMeta: this.props.meta,
         paragraphTextClassName,
         styleOverride,
+        virtualText: this.props.virtualText,
       }
 
       output = this.props.serviceOnly
@@ -314,7 +318,10 @@ class SimpleMarkdownComponent extends PureComponent<MarkdownProps, {hasError: bo
       logger.error('Error parsing markdown')
       logger.debug('Error parsing markdown', e)
       return (
-        <Text type="Body" style={Styles.collapseStyles([styles.rootWrapper, markdownStyles.wrapStyle])}>
+        <Text
+          type="Body"
+          style={Styles.collapseStyles([styles.rootWrapper, markdownStyles.wrapStyle] as const)}
+        >
           {this.props.children || ''}
         </Text>
       )
@@ -364,9 +371,7 @@ class SimpleMarkdownComponent extends PureComponent<MarkdownProps, {hasError: bo
 
 const styles = Styles.styleSheetCreate(() => ({
   rootWrapper: Styles.platformStyles({
-    isElectron: {
-      whiteSpace: 'pre',
-    },
+    isElectron: {whiteSpace: 'pre'},
   }),
 }))
 

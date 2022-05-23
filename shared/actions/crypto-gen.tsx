@@ -1,7 +1,7 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
 
-import * as Types from '../constants/types/crypto'
-import HiddenString from '../util/hidden-string'
+import type * as Types from '../constants/types/crypto'
+import type HiddenString from '../util/hidden-string'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of crypto but is handled by every reducer. NEVER dispatch this
@@ -31,8 +31,8 @@ export const setRecipients = 'crypto:setRecipients'
 // Payload Types
 type _ClearInputPayload = {readonly operation: Types.Operations}
 type _ClearRecipientsPayload = {readonly operation: Types.Operations}
-type _DownloadEncryptedTextPayload = void
-type _DownloadSignedTextPayload = void
+type _DownloadEncryptedTextPayload = undefined
+type _DownloadSignedTextPayload = undefined
 type _OnOperationErrorPayload = {readonly operation: Types.Operations; readonly errorMessage: HiddenString}
 type _OnOperationSuccessPayload = {
   readonly input: any
@@ -144,15 +144,14 @@ export const createClearInput = (payload: _ClearInputPayload): ClearInputPayload
  * Download the encrypted output to a text file
  */
 export const createDownloadEncryptedText = (
-  payload: _DownloadEncryptedTextPayload
+  payload?: _DownloadEncryptedTextPayload
 ): DownloadEncryptedTextPayload => ({payload, type: downloadEncryptedText})
 /**
  * Download the signed output to a text file
  */
-export const createDownloadSignedText = (payload: _DownloadSignedTextPayload): DownloadSignedTextPayload => ({
-  payload,
-  type: downloadSignedText,
-})
+export const createDownloadSignedText = (
+  payload?: _DownloadSignedTextPayload
+): DownloadSignedTextPayload => ({payload, type: downloadSignedText})
 /**
  * On saltpack RPC error response
  */
@@ -338,4 +337,4 @@ export type Actions =
   | SetInputPayload
   | SetInputThrottledPayload
   | SetRecipientsPayload
-  | {type: 'common:resetStore', payload: {}}
+  | {readonly type: 'common:resetStore', readonly payload: undefined}

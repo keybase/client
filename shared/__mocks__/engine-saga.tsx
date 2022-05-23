@@ -1,3 +1,4 @@
+/*
 if (!__STORYBOOK__) {
   throw new Error('Invalid load of mock')
 }
@@ -10,3 +11,5 @@ function* call(_: {
 }): any {}
 
 export default call
+*/
+export default {}

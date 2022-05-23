@@ -8,9 +8,12 @@ const Screenprotector = () => {
   const getIsMounted = Kb.useMounted()
 
   React.useEffect(() => {
-    getSecureFlagSetting().then(secureFlag => {
-      getIsMounted() && setSecureFlag(secureFlag)
-    })
+    getSecureFlagSetting()
+      .then(secureFlag => {
+        getIsMounted() && setSecureFlag(secureFlag)
+      })
+      .then(() => {})
+      .catch(() => {})
   }, [getIsMounted])
 
   const changeSecureFlagOption = async (nextValue: boolean) => {

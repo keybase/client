@@ -1,8 +1,8 @@
 import * as React from 'react'
-import * as Types from '../../../../constants/types/chat2'
 import * as Constants from '../../../../constants/chat2'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
+import type * as Types from '../../../../constants/types/chat2'
 import {useMemo} from '../../../../util/memoize'
 import {sharedStyles} from '../shared-styles'
 
@@ -112,7 +112,6 @@ export type Props = {
   claim?: ClaimProps
   isEditing: boolean
   isHighlighted?: boolean
-  // eslint-disable-next-line
   message: Types.MessageText
   reply?: ReplyProps
   text: string
@@ -121,11 +120,15 @@ export type Props = {
 
 const MessageText = ({claim, isEditing, isHighlighted, message, reply, text, type}: Props) => {
   const wrappedMeta = useMemo(() => ({message}), [message])
+  const styleOverride = useMemo(
+    () => (Styles.isMobile ? {paragraph: getStyle(type, isEditing, isHighlighted)} : undefined),
+    [type, isEditing, isHighlighted]
+  )
   const markdown = (
     <Kb.Markdown
       style={getStyle(type, isEditing, isHighlighted)}
       meta={wrappedMeta}
-      styleOverride={Styles.isMobile ? {paragraph: getStyle(type, isEditing, isHighlighted)} : undefined}
+      styleOverride={styleOverride}
       allowFontScaling={true}
     >
       {text}
@@ -153,9 +156,13 @@ const getStyle = (type: Props['type'], isEditing: boolean, isHighlighted?: boole
   if (isHighlighted) {
     return Styles.collapseStyles([sharedStyles.sent, sharedStyles.highlighted])
   } else if (type === 'sent') {
-    return isEditing ? sharedStyles.sentEditing : sharedStyles.sent
+    return isEditing
+      ? sharedStyles.sentEditing
+      : Styles.collapseStyles([sharedStyles.sent, Styles.globalStyles.fastBackground])
   } else {
-    return isEditing ? sharedStyles.pendingFailEditing : sharedStyles.pendingFail
+    return isEditing
+      ? sharedStyles.pendingFailEditing
+      : Styles.collapseStyles([sharedStyles.pendingFail, Styles.globalStyles.fastBackground])
   }
 }
 const styles = Styles.styleSheetCreate(

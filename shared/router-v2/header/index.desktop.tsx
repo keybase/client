@@ -3,29 +3,38 @@ import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import * as Platform from '../../constants/platform'
 import * as Styles from '../../styles'
-import * as Window from '../../util/window-management'
-import {BrowserWindow} from '../../util/safe-electron.desktop'
 import SyncingFolders from './syncing-folders'
 import {IconWithPopup as WhatsNewIconWithPopup} from '../../whats-new/icon/container'
 import * as ReactIs from 'react-is'
+import KB2 from '../../util/electron.desktop'
 
-type OwnProps = {
-  allowBack: boolean
-  loggedIn: boolean
-  onPop: () => void
-  options: any
-}
+const {closeWindow, minimizeWindow, toggleMaximizeWindow} = KB2.functions
+
 // A mobile-like header for desktop
 
 // Fix this as we figure out what this needs to be
 type Props = {
-  allowBack: boolean
   loggedIn: boolean
-  onPop: () => void
-  options: any
+  options: {
+    headerMode?: string
+    title?: React.ReactNode
+    headerTitle?: React.ReactNode
+    headerLeft?: React.ReactNode
+    headerRightActions?: React.JSXElementConstructor<{}>
+    subHeader?: React.JSXElementConstructor<{}>
+    headerTransparent?: boolean
+    headerHideBorder?: boolean
+    headerBottomStyle: Styles.StylesCrossPlatform
+    headerStyle: Styles.StylesCrossPlatform
+  }
+  back?: boolean
   style?: any
   useNativeFrame: boolean
-  params?: any
+  params?: unknown
+  isMaximized: boolean
+  navigation: {
+    pop: () => void
+  }
 }
 
 const PlainTitle = ({title}) => (
@@ -36,71 +45,47 @@ const PlainTitle = ({title}) => (
   </Kb.Box2>
 )
 
-export const SystemButtons = () => (
+export const SystemButtons = ({isMaximized}: {isMaximized: boolean}) => (
   <Kb.Box2 direction="horizontal">
     <Kb.ClickableBox
       className="hover_background_color_black_05  color_black_50 hover_color_black"
-      onClick={Window.minimizeWindow}
+      onClick={minimizeWindow}
       style={styles.appIconBox}
     >
       <Kb.Icon
         inheritColor={true}
-        onClick={Window.minimizeWindow}
+        onClick={minimizeWindow}
         style={styles.appIcon}
         type="iconfont-app-minimize"
       />
     </Kb.ClickableBox>
     <Kb.ClickableBox
       className="hover_background_color_black_05 color_black_50 hover_color_black"
-      onClick={Window.toggleMaximizeWindow}
+      onClick={toggleMaximizeWindow}
       style={styles.appIconBox}
     >
       <Kb.Icon
         inheritColor={true}
-        onClick={Window.toggleMaximizeWindow}
+        onClick={toggleMaximizeWindow}
         style={styles.appIcon}
-        type={Window.isMaximized() ? 'iconfont-app-un-maximize' : 'iconfont-app-maximize'}
+        type={isMaximized ? 'iconfont-app-un-maximize' : 'iconfont-app-maximize'}
       />
     </Kb.ClickableBox>
     <Kb.ClickableBox
       className="hover_background_color_red hover_color_white color_black_50"
-      onClick={Window.closeWindow}
+      onClick={closeWindow}
       style={styles.appIconBox}
     >
-      <Kb.Icon
-        inheritColor={true}
-        onClick={Window.closeWindow}
-        style={styles.appIcon}
-        type="iconfont-app-close"
-      />
+      <Kb.Icon inheritColor={true} onClick={closeWindow} style={styles.appIcon} type="iconfont-app-close" />
     </Kb.ClickableBox>
   </Kb.Box2>
 )
 
-class Header extends React.PureComponent<Props> {
-  componentDidMount() {
-    this._registerWindowEvents()
+class DesktopHeader extends React.PureComponent<Props> {
+  _pop = () => {
+    this.props.back && this.props.navigation.pop()
   }
-  componentWillUnmount() {
-    this._unregisterWindowEvents()
-  }
-  _refreshWindowIcons = () => this.forceUpdate()
-  // We need to forceUpdate when maximizing and unmaximizing the window to update the
-  // app icon on Windows and Linux.
-  _registerWindowEvents() {
-    if (Platform.isDarwin) return
-    const win = BrowserWindow.getFocusedWindow()
-    if (!win) return
-    win.on('maximize', this._refreshWindowIcons)
-    win.on('unmaximize', this._refreshWindowIcons)
-  }
-  _unregisterWindowEvents() {
-    if (Platform.isDarwin) return
-    const win = BrowserWindow.getFocusedWindow()
-    if (!win) return
-    win.removeListener('maximize', this._refreshWindowIcons)
-    win.removeListener('unmaximize', this._refreshWindowIcons)
-  }
+
   render() {
     // TODO add more here as we use more options on the mobile side maybe
     const opt = this.props.options
@@ -150,18 +135,16 @@ class Header extends React.PureComponent<Props> {
     // icons (minimize etc) because the left nav bar pushes it to the right -- unless you're logged
     // out, in which case there's no nav bar and they overlap. So, if we're on Mac, and logged out,
     // push the back arrow down below the system icons.
-    const iconContainerStyle = Styles.collapseStyles([
+    const iconContainerStyle: Styles.StylesCrossPlatform = Styles.collapseStyles([
       styles.iconContainer,
-      !this.props.allowBack && styles.iconContainerInactive,
+      !this.props.back && styles.iconContainerInactive,
       !this.props.loggedIn && Platform.isDarwin && styles.iconContainerDarwin,
-    ])
-    const iconColor =
-      opt.headerBackIconColor ||
-      (this.props.allowBack
-        ? Styles.globalColors.black_50
-        : this.props.loggedIn
-        ? Styles.globalColors.black_10
-        : Styles.globalColors.transparent)
+    ] as const)
+    const iconColor = this.props.back
+      ? Styles.globalColors.black_50
+      : this.props.loggedIn
+      ? Styles.globalColors.black_10
+      : Styles.globalColors.transparent
 
     const whatsNewAttachToRef = React.createRef<Kb.Box2>()
 
@@ -190,15 +173,15 @@ class Header extends React.PureComponent<Props> {
             {opt.headerLeft !== null && (
               <Kb.Box
                 className={Styles.classNames('hover_container', {
-                  hover_background_color_black_10: this.props.allowBack,
+                  hover_background_color_black_10: !!this.props.back,
                 })}
-                onClick={this.props.allowBack ? this.props.onPop : null}
+                onClick={this._pop}
                 style={iconContainerStyle}
               >
                 <Kb.Icon
                   type="iconfont-arrow-left"
                   color={iconColor}
-                  className={Styles.classNames({hover_contained_color_blackOrBlack: this.props.allowBack})}
+                  className={Styles.classNames({hover_contained_color_blackOrBlack: this.props.back})}
                   boxStyle={styles.icon}
                 />
               </Kb.Box>
@@ -206,31 +189,20 @@ class Header extends React.PureComponent<Props> {
             <Kb.Box2 direction="horizontal" style={styles.topRightContainer}>
               <SyncingFolders
                 negative={
-                  this.props.style &&
-                  this.props.style.backgroundColor &&
-                  this.props.style.backgroundColor !== Styles.globalColors.transparent &&
-                  this.props.style.backgroundColor !== Styles.globalColors.white
+                  this.props.style?.backgroundColor !== Styles.globalColors.transparent &&
+                  this.props.style?.backgroundColor !== Styles.globalColors.white
                 }
               />
-              {this.props.loggedIn && (
-                <WhatsNewIconWithPopup
-                  color={opt.whatsNewIconColor}
-                  badgeColor={opt.whatsNewIconColor}
-                  attachToRef={whatsNewAttachToRef}
-                />
-              )}
+              {this.props.loggedIn && <WhatsNewIconWithPopup attachToRef={whatsNewAttachToRef} />}
               {!title && rightActions}
-              {windowDecorationsAreNeeded && <SystemButtons />}
+              {windowDecorationsAreNeeded && <SystemButtons isMaximized={this.props.isMaximized} />}
             </Kb.Box2>
           </Kb.Box2>
           <Kb.Box2
             key="bottomBar"
             direction="horizontal"
             fullWidth={true}
-            style={Styles.collapseStyles([
-              opt.headerExpandable ? styles.bottomExpandable : styles.bottom,
-              opt.headerBottomStyle,
-            ])}
+            style={Styles.collapseStyles([styles.bottom, opt.headerBottomStyle])}
           >
             <Kb.Box2 direction="horizontal" style={styles.bottomTitle}>
               {title}
@@ -267,9 +239,7 @@ const styles = Styles.styleSheetCreate(
       bottom: {height: 40 - 1, maxHeight: 40 - 1}, // for border
       bottomExpandable: {minHeight: 40 - 1},
       bottomTitle: {flexGrow: 1, height: '100%', maxHeight: '100%', overflow: 'hidden'},
-      flexOne: {
-        flex: 1,
-      },
+      flexOne: {flex: 1},
       headerBack: Styles.platformStyles({
         isElectron: {
           alignItems: 'center',
@@ -320,9 +290,7 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       iconContainerInactive: Styles.platformStyles({
-        isElectron: {
-          cursor: 'default',
-        },
+        isElectron: {cursor: 'default'},
       }),
       plainContainer: {
         ...Styles.globalStyles.flexGrow,
@@ -335,11 +303,19 @@ const styles = Styles.styleSheetCreate(
     } as const)
 )
 
-export default Container.connect(
-  state => ({useNativeFrame: state.config.useNativeFrame}),
-  () => ({}),
-  (s, _d, o: OwnProps) => ({
-    ...s,
-    ...o,
-  })
-)(Header)
+type HeaderProps = Omit<Props, 'loggedIn' | 'useNativeFrame' | 'isMaximized'>
+
+export default (p: HeaderProps) => {
+  const useNativeFrame = Container.useSelector(state => state.config.useNativeFrame)
+  const loggedIn = Container.useSelector(state => state.config.loggedIn)
+  const isMaximized = Container.useSelector(state => state.config.mainWindowMax)
+  return (
+    <DesktopHeader
+      useNativeFrame={useNativeFrame}
+      loggedIn={loggedIn}
+      key={String(isMaximized)}
+      isMaximized={isMaximized}
+      {...p}
+    />
+  )
+}

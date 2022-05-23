@@ -1,41 +1,24 @@
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Constants from '../../../constants/chat2'
-import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
-import * as Types from '../../../constants/types/chat2'
-import * as FsTypes from '../../../constants/types/fs'
-import GetTitles, {Info} from '.'
 import * as Container from '../../../util/container'
+import * as FsTypes from '../../../constants/types/fs'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
+import GetTitles, {type Info} from '.'
+import type * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
+import type * as Types from '../../../constants/types/chat2'
 
-type OwnProps = Container.RouteProps<{
-  conversationIDKey: Types.ConversationIDKey
-  pathAndOutboxIDs: Array<Types.PathAndOutboxID>
-  selectConversationWithReason?: 'extension' | 'files'
-  // If tlfName is set, we'll use Chat2Gen.createAttachmentsUpload. Otherwise
-  // Chat2Gen.createAttachFromDragAndDrop is used.
-  tlfName?: string
-  // don't use the drag drop functionality, just upload the outbox IDs
-  noDragDrop?: Boolean
-}>
+type OwnProps = Container.RouteProps<'chatAttachmentGetTitles'>
 
 const noOutboxIds: Array<Types.PathAndOutboxID> = []
 
 export default Container.connect(
   () => ({}),
   (dispatch: Container.TypedDispatch, ownProps: OwnProps) => {
-    const conversationIDKey = Container.getRouteProps(
-      ownProps,
-      'conversationIDKey',
-      Constants.noConversationIDKey
-    )
-    const tlfName = Container.getRouteProps(ownProps, 'tlfName', undefined)
-    const noDragDrop = Container.getRouteProps(ownProps, 'noDragDrop', false)
-    const pathAndOutboxIDs = Container.getRouteProps(ownProps, 'pathAndOutboxIDs', noOutboxIds)
-    const selectConversationWithReason = Container.getRouteProps(
-      ownProps,
-      'selectConversationWithReason',
-      undefined
-    )
+    const conversationIDKey = ownProps.route.params?.conversationIDKey ?? Constants.noConversationIDKey
+    const tlfName = ownProps.route.params?.tlfName ?? undefined
+    const noDragDrop = ownProps.route.params?.noDragDrop ?? false
+    const pathAndOutboxIDs = ownProps.route.params?.pathAndOutboxIDs ?? noOutboxIds
+    const selectConversationWithReason = ownProps.route.params?.selectConversationWithReason ?? undefined
     return {
       onCancel: () => {
         dispatch(
@@ -76,7 +59,7 @@ export default Container.connect(
     }
   },
   (_, dispatchProps, ownProps: OwnProps) => {
-    const pathAndOutboxIDs = Container.getRouteProps(ownProps, 'pathAndOutboxIDs', noOutboxIds)
+    const pathAndOutboxIDs = ownProps.route.params?.pathAndOutboxIDs ?? noOutboxIds
     return {
       onCancel: dispatchProps.onCancel,
       onSubmit: dispatchProps.onSubmit,

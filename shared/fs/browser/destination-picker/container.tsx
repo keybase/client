@@ -1,19 +1,17 @@
-import * as Container from '../../../util/container'
-import {memoize} from '../../../util/memoize'
-import DestinationPicker from '.'
-import * as Types from '../../../constants/types/fs'
 import * as Constants from '../../../constants/fs'
+import * as Container from '../../../util/container'
 import * as FsGen from '../../../actions/fs-gen'
-import {isMobile} from '../../../constants/platform'
-import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as React from 'react'
+import * as RouteTreeGen from '../../../actions/route-tree-gen'
+import * as Types from '../../../constants/types/fs'
+import DestinationPicker from '.'
 import {OriginalOrCompressedButton} from '../../../incoming-share'
+import {isMobile} from '../../../constants/platform'
+import {memoize} from '../../../util/memoize'
 
-type OwnProps = Container.RouteProps<{
-  index: number
-}>
+type OwnProps = Container.RouteProps<'destinationPicker'>
 
-const getIndex = (ownProps: OwnProps) => Container.getRouteProps(ownProps, 'index', 0)
+const getIndex = (ownProps: OwnProps) => ownProps.route.params?.index ?? 0
 const getDestinationParentPath = (dp: Types.DestinationPicker, ownProps: OwnProps): Types.Path =>
   dp.destinationParentPath[getIndex(ownProps)] ||
   (dp.source.type === Types.DestinationPickerSource.MoveOrCopy
@@ -61,9 +59,7 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
   const headerRightButton =
     destPicker.source.type === Types.DestinationPickerSource.IncomingShare ? (
       <OriginalOrCompressedButton incomingShareItems={destPicker.source.source} />
-    ) : (
-      undefined
-    )
+    ) : undefined
 
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()

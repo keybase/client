@@ -1,11 +1,11 @@
 import * as React from 'react'
-import {Props} from './video'
-import Box from './box'
 import * as Styles from '../styles'
-import {useVideoSizer, CheckURL} from './video.shared'
-import RNVideo from 'react-native-video'
-import {StatusBar} from 'react-native'
+import Box from './box'
+import type {Props} from './video'
 import useFixStatusbar from './use-fix-statusbar.native'
+import {StatusBar} from 'react-native'
+import {Video as AVVideo} from 'expo-av'
+import {useVideoSizer, CheckURL} from './video.shared'
 
 const Kb = {
   Box,
@@ -32,26 +32,25 @@ const Video = (props: Props) => {
         <Kb.Box
           style={styles.container}
           onLayout={event =>
-            event &&
-            event.nativeEvent &&
-            event.nativeEvent.layout &&
+            event?.nativeEvent?.layout &&
             setContainerSize(event.nativeEvent.layout.height, event.nativeEvent.layout.width)
           }
         >
-          <RNVideo
+          <AVVideo
             source={{uri: props.url}}
             onError={e => {
               props.onUrlError && props.onUrlError(JSON.stringify(e))
             }}
-            controls={true}
-            onFullscreenPlayerDidDismiss={() => {
-              StatusBar.setHidden(false)
+            useNativeControls={true}
+            shouldPlay={true}
+            onFullscreenUpdate={event => {
+              if (event.fullscreenUpdate === AVVideo.FULLSCREEN_UPDATE_PLAYER_DID_DISMISS) {
+                StatusBar.setHidden(false)
+              }
             }}
-            onLoad={loaded =>
-              loaded &&
-              loaded.naturalSize &&
-              setVideoNaturalSize(loaded.naturalSize.height, loaded.naturalSize.width)
-            }
+            onReadyForDisplay={event => {
+              setVideoNaturalSize(event.naturalSize.height, event.naturalSize.width)
+            }}
             style={videoSize}
           />
         </Kb.Box>

@@ -1,22 +1,65 @@
 import * as React from 'react'
 import * as Constants from '../../constants/chat2'
-import * as Types from '../../constants/types/chat2'
 import * as Container from '../../util/container'
 import Normal from './normal/container'
 import NoConversation from './no-conversation'
 import Error from './error/container'
 import YouAreReset from './you-are-reset'
 import Rekey from './rekey/container'
-import HeaderArea from './header-area/container'
-// @ts-ignore
-import {withNavigationFocus} from '@react-navigation/core'
+import {headerNavigationOptions} from './header-area/container'
+import {useFocusEffect, useNavigation} from '@react-navigation/core'
+import {tabBarStyle} from '../../router-v2/common'
+import type {RouteProps} from '../../router-v2/route-params'
 
 type ConvoType = 'error' | 'noConvo' | 'rekey' | 'youAreReset' | 'normal' | 'rekey'
 
-type SwitchProps = Container.RouteProps<{conversationIDKey: Types.ConversationIDKey}>
+type SwitchProps = RouteProps<'chatConversation'>
+const hideTabBarStyle = {display: 'none'}
 
-let Conversation = (p: SwitchProps) => {
-  const conversationIDKey = Container.getRouteProps(p, 'conversationIDKey', Constants.noConversationIDKey)
+// due to timing issues if we go between convos we can 'lose track' of focus in / out
+// so instead we keep a count and only bring back the tab if we're entirely gone
+let focusRefCount = 0
+
+let showDeferId: any = 0
+const deferChangeTabOptions = (tabNav, tabBarStyle, defer) => {
+  if (showDeferId) {
+    clearTimeout(showDeferId)
+  }
+  if (tabNav) {
+    if (defer) {
+      showDeferId = setTimeout(() => {
+        tabNav.setOptions({tabBarStyle})
+      }, 1)
+    } else {
+      tabNav.setOptions({tabBarStyle})
+    }
+  }
+}
+
+const Conversation = (p: SwitchProps) => {
+  const navigation = useNavigation()
+  let tabNav: any = navigation.getParent()
+  if (tabNav?.getState()?.type !== 'tab') {
+    tabNav = undefined
+  }
+
+  useFocusEffect(
+    React.useCallback(() => {
+      if (!Container.isPhone) {
+        return
+      }
+      ++focusRefCount
+      deferChangeTabOptions(tabNav, hideTabBarStyle, false)
+      return () => {
+        --focusRefCount
+        if (focusRefCount === 0) {
+          deferChangeTabOptions(tabNav, tabBarStyle, true)
+        }
+      }
+    }, [tabNav])
+  )
+
+  const conversationIDKey = p.route.params?.conversationIDKey ?? Constants.noConversationIDKey
   const meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
 
   let type: ConvoType
@@ -38,7 +81,7 @@ let Conversation = (p: SwitchProps) => {
 
   switch (type) {
     case 'error':
-      return <Error conversationIDKey={conversationIDKey} />
+      return <Error key={conversationIDKey} conversationIDKey={conversationIDKey} />
     case 'noConvo':
       // When navigating back to the inbox on mobile, we deselect
       // conversationIDKey by called mobileChangeSelection. This results in
@@ -52,26 +95,22 @@ let Conversation = (p: SwitchProps) => {
       // To solve this we render a blank screen on mobile conversation views with "noConvo"
       return Container.isPhone ? null : <NoConversation />
     case 'normal':
-      return <Normal conversationIDKey={conversationIDKey} />
+      // the id as key is so we entirely force a top down redraw to ensure nothing is possibly from another convo
+      return <Normal key={conversationIDKey} conversationIDKey={conversationIDKey} />
     case 'youAreReset':
       return <YouAreReset />
     case 'rekey':
-      return <Rekey conversationIDKey={conversationIDKey} />
+      return <Rekey key={conversationIDKey} conversationIDKey={conversationIDKey} />
     default:
       return <NoConversation />
   }
 }
 
-if (Container.isMobile) {
-  Conversation = withNavigationFocus(Conversation)
-}
-
 // @ts-ignore
-Conversation.navigationOptions = {
-  header: undefined,
-  headerLeft: null,
-  headerTitle: () => <HeaderArea />,
-}
+Conversation.navigationOptions = ({route}) => ({
+  ...headerNavigationOptions(route),
+  needsSafe: true,
+})
 
 const ConversationMemoed = React.memo(Conversation)
 Container.hoistNonReactStatic(ConversationMemoed, Conversation)

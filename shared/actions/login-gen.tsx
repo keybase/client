@@ -1,7 +1,7 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
 
-import HiddenString from '../util/hidden-string'
-import {RPCError} from '../util/errors'
+import type HiddenString from '../util/hidden-string'
+import type {RPCError} from '../util/errors'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of login but is handled by every reducer. NEVER dispatch this
@@ -12,13 +12,13 @@ export const login = 'login:login'
 export const loginError = 'login:loginError'
 
 // Payload Types
-type _LoadIsOnlinePayload = void
+type _LoadIsOnlinePayload = undefined
 type _LoadedIsOnlinePayload = {readonly isOnline: boolean}
 type _LoginErrorPayload = {readonly error?: RPCError}
 type _LoginPayload = {readonly username: string; readonly password: HiddenString}
 
 // Action Creators
-export const createLoadIsOnline = (payload: _LoadIsOnlinePayload): LoadIsOnlinePayload => ({
+export const createLoadIsOnline = (payload?: _LoadIsOnlinePayload): LoadIsOnlinePayload => ({
   payload,
   type: loadIsOnline,
 })
@@ -48,4 +48,4 @@ export type Actions =
   | LoadedIsOnlinePayload
   | LoginErrorPayload
   | LoginPayload
-  | {type: 'common:resetStore', payload: {}}
+  | {readonly type: 'common:resetStore', readonly payload: undefined}

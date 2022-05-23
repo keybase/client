@@ -6,69 +6,47 @@ import SmallTeam from './small-team/container'
 import {BigTeamsLabel} from './big-teams-label'
 import {Box} from '../../../common-adapters'
 import {globalStyles, globalMargins, isMobile} from '../../../styles'
-import * as Types from '../../../constants/types/chat2'
-import * as TeamTypes from '../../../constants/types/teams'
-import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
+import type * as Types from '../../../constants/types/chat2'
 
-type MakeRowOptions = {
-  channelname: string
-  conversationIDKey: Types.ConversationIDKey
-  isTeam: boolean
-  navKey: string
-  selected?: boolean
-  snippet?: string
-  snippetDecoration: RPCChatTypes.SnippetDecoration
-  teamname: string
-  teamID: TeamTypes.TeamID
-  time?: number
-  type: 'small' | 'bigHeader' | 'bigTeamsLabel' | 'big'
-}
-
-const makeRow = (options: MakeRowOptions) => {
-  if (options.type === 'bigTeamsLabel') {
+const makeRow = (item: Types.ChatInboxRowItem, navKey: string) => {
+  if (item.type === 'bigTeamsLabel') {
     return (
       <Box style={_bigTeamLabelStyle} key="bigTeamsLabel">
         <BigTeamsLabel />
       </Box>
     )
   }
-  switch (options.type) {
+  switch (item.type) {
     case 'bigHeader':
       return (
-        <BigTeamHeader
-          key={options.teamname}
-          teamname={options.teamname}
-          teamID={options.teamID}
-          conversationIDKey={options.conversationIDKey}
-          navKey={options.navKey}
-        />
+        <BigTeamHeader key={item.teamname} teamname={item.teamname} teamID={item.teamID} navKey={navKey} />
       )
     case 'big':
       return (
         <BigTeamChannel
-          key={options.conversationIDKey}
-          conversationIDKey={options.conversationIDKey}
-          channelname={options.channelname}
-          selected={options.selected ?? false}
-          navKey={options.navKey}
+          key={item.conversationIDKey}
+          conversationIDKey={item.conversationIDKey}
+          channelname={item.channelname}
+          selected={item.selected}
+          navKey={navKey}
         />
       )
     case 'small':
       return (
         <SmallTeam
-          key={options.conversationIDKey}
-          conversationIDKey={options.conversationIDKey}
-          isTeam={options.isTeam}
-          navKey={options.navKey}
-          name={options.teamname}
-          selected={options.selected ?? false}
-          time={options.time || 0}
-          snippet={options.snippet}
-          snippetDecoration={options.snippetDecoration}
+          key={item.conversationIDKey}
+          conversationIDKey={item.conversationIDKey}
+          isTeam={item.isTeam}
+          navKey={navKey}
+          name={item.teamname}
+          selected={item.selected}
+          time={item.time || 0}
+          snippet={item.snippet}
+          snippetDecoration={item.snippetDecoration}
         />
       )
   }
-  logger.error(`Unhandled row type ${options.type}`)
+  logger.error(`Unhandled row type ${item.type}`)
   return null
 }
 

@@ -23,6 +23,7 @@ import users from './users'
 import waiting from './waiting'
 import wallets from './wallets'
 import {combineReducers} from 'redux'
+import logger from '../logger'
 
 const reducers = {
   autoreset,
@@ -81,6 +82,11 @@ export type TypedState = {
   wallets: ReturnType<typeof wallets>
 }
 
-export default function(state: TypedState | undefined, action: any): TypedState {
-  return rootReducer(state, action)
+export default function (state: TypedState | undefined, action: any): TypedState {
+  try {
+    return rootReducer(state, action)
+  } catch (e) {
+    logger.error('Reducer threw!', e)
+    throw e
+  }
 }

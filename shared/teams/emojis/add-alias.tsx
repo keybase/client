@@ -8,8 +8,8 @@ import * as ChatTypes from '../../constants/types/chat2'
 import * as ChatConstants from '../../constants/chat2'
 import {EmojiPickerDesktop} from '../../chat/conversation/messages/react-button/emoji-picker/container'
 import {
-  EmojiData,
-  RenderableEmoji,
+  type EmojiData,
+  type RenderableEmoji,
   emojiDataToRenderableEmoji,
   getEmojiStr,
   renderEmoji,
@@ -22,7 +22,7 @@ type Props = {
   onChange?: () => void
   defaultSelected?: EmojiData
 }
-type RoutableProps = Container.RouteProps<Props>
+type RoutableProps = Container.RouteProps<'teamAddEmojiAlias'>
 
 type ChosenEmoji = {
   emojiStr: string
@@ -192,7 +192,7 @@ const SelectedEmoji = (props: SelectedEmojiProps) => {
   return (
     <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.emoji}>
       {props.chosen ? (
-        renderEmoji(props.chosen.renderableEmoji, singleEmojiWidth, false)
+        renderEmoji({emoji: props.chosen.renderableEmoji, showTooltip: false, size: singleEmojiWidth})
       ) : (
         <Kb.Icon type="iconfont-emoji" fontSize={Styles.isMobile ? 20 : 16} />
       )}
@@ -230,13 +230,10 @@ const styles = Styles.styleSheetCreate(() => ({
 }))
 
 const AddEmojiAliasWrapper = (routableProps: RoutableProps) => {
-  const conversationIDKey = Container.getRouteProps(
-    routableProps,
-    'conversationIDKey',
-    ChatConstants.noConversationIDKey
-  )
-  const defaultSelected = Container.getRouteProps(routableProps, 'defaultSelected', undefined)
-  const onChange = Container.getRouteProps(routableProps, 'onChange', undefined)
+  const {params} = routableProps.route
+  const conversationIDKey = params?.conversationIDKey ?? ChatConstants.noConversationIDKey
+  const defaultSelected = params?.defaultSelected
+  const onChange = params?.onChange
   return (
     <AddAliasModal
       conversationIDKey={conversationIDKey}

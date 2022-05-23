@@ -3,6 +3,6 @@
 // DON'T use es6 stuff here
 
 beforeEach(() => {
-  require('../app/preload.native')
+  // require('../app/preload.native')
 })
 afterEach(() => {})

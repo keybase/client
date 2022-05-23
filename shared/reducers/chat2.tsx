@@ -1,13 +1,13 @@
 import * as Chat2Gen from '../actions/chat2-gen'
-import * as TeamBuildingGen from '../actions/team-building-gen'
 import * as BotsGen from '../actions/bots-gen'
 import * as EngineGen from '../actions/engine-gen-gen'
 import * as Constants from '../constants/chat2'
 import * as Container from '../util/container'
 import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
-import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Types from '../constants/types/chat2'
-import * as TeamTypes from '../constants/types/teams'
+import type * as TeamBuildingGen from '../actions/team-building-gen'
+import type * as RPCTypes from '../constants/types/rpc-gen'
+import type * as TeamTypes from '../constants/types/teams'
 import {editTeambuildingDraft} from './team-building'
 import {teamBuilderReducerCreator} from '../team-building/reducer-helper'
 import logger from '../logger'
@@ -846,10 +846,15 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
         }
         // We might have a placeholder for this message in there with ordinal of its own ID, let's
         // get rid of it if that is the case
-        if (message.id) {
+        const lookupID = message.id || existing?.id
+        if (lookupID) {
           const map = oldMessageMap.get(conversationIDKey)
-          const oldMsg = map?.get(Types.numberToOrdinal(message.id))
-          if (oldMsg?.type === 'placeholder' && oldMsg.ordinal !== message.ordinal) {
+          const oldMsg = map?.get(Types.numberToOrdinal(lookupID))
+          if (
+            oldMsg?.type === 'placeholder' &&
+            // don't delete the placeholder if we're just about to replace it ourselves
+            oldMsg.ordinal !== message.ordinal
+          ) {
             logger.info(`messagesAdd: removing old placeholder: ${oldMsg.ordinal}`)
             removedOrdinals.push(oldMsg.ordinal)
           }

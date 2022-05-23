@@ -1,8 +1,7 @@
-import * as Constants from '../../constants/chat2'
 import * as React from 'react'
 import * as Styles from '../../styles'
-import * as T from './index.d'
-import * as Types from '../../constants/types/chat2'
+import type * as T from './index.d'
+import type * as Types from '../../constants/types/chat2'
 import AutoSizer from 'react-virtualized-auto-sizer'
 import BigTeamsDivider from './row/big-teams-divider'
 import BuildTeam from './row/build-team'
@@ -58,7 +57,7 @@ class Inbox extends React.Component<T.Props, State> {
   }
 
   private mounted: boolean = false
-  private list: VariableSizeList | null = null
+  private listRef = React.createRef<VariableSizeList>()
 
   private dragList = React.createRef<HTMLDivElement>()
 
@@ -78,8 +77,8 @@ class Inbox extends React.Component<T.Props, State> {
       listRowsResized = true
     }
 
-    if (listRowsResized && this.list) {
-      this.list.resetAfterIndex(0, true)
+    if (listRowsResized && this.listRef.current) {
+      this.listRef.current.resetAfterIndex(0, true)
       // ^ this will force an update so just do it once instead of twice
       return false
     }
@@ -196,25 +195,10 @@ class Inbox extends React.Component<T.Props, State> {
       )
     }
 
-    const conversationIDKey: Types.ConversationIDKey = row.conversationIDKey || Constants.noConversationIDKey
-    const teamname = row.teamname || ''
-
     // pointer events on so you can click even right after a scroll
     return (
       <div style={Styles.collapseStyles([divStyle, {pointerEvents: 'auto'}])}>
-        {makeRow({
-          channelname: (row.type === 'big' && row.channelname) || '',
-          conversationIDKey,
-          isTeam: row.isTeam || false,
-          navKey: this.props.navKey,
-          selected: row.type === 'big' || row.type === 'small' ? row.selected : false,
-          snippet: row.snippet,
-          snippetDecoration: row.snippetDecoration,
-          teamID: (row.type === 'bigHeader' && row.teamID) || '',
-          teamname,
-          time: row.time || undefined,
-          type: row.type,
-        })}
+        {makeRow(row, this.props.navKey)}
       </div>
     )
   }
@@ -306,10 +290,6 @@ class Inbox extends React.Component<T.Props, State> {
     this.scrollDiv.current.scrollBy({behavior: 'smooth', top})
   }
 
-  private setRef = (list: VariableSizeList | null) => {
-    this.list = list
-  }
-
   private listChild = ({index, style}: {index: number; style: Object}) => this.itemRenderer(index, style)
 
   private onDragOver = (e: React.DragEvent<HTMLDivElement>) => {
@@ -372,7 +352,7 @@ class Inbox extends React.Component<T.Props, State> {
                 <VariableSizeList
                   height={height}
                   width={width}
-                  ref={this.setRef}
+                  ref={this.listRef}
                   outerRef={this.scrollDiv}
                   onItemsRendered={this.onItemsRendered}
                   itemCount={this.props.rows.length}

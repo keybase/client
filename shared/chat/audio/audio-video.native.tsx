@@ -1,29 +1,60 @@
 import * as React from 'react'
-import RNVideo from 'react-native-video'
-import {Props} from './audio-video'
+import * as Container from '../../util/container'
+import {Audio} from 'expo-av'
+import type {Props} from './audio-video'
 
-class AudioVideo extends React.Component<Props> {
-  private vidRef = React.createRef<RNVideo>()
-  seek = (seconds: number) => {
-    if (this.vidRef.current) {
-      this.vidRef.current.seek(seconds)
+const AudioVideo = (props: Props) => {
+  const {url, seekRef, paused} = props
+  const soundRef = React.useRef<Audio.Sound | null>(null)
+  React.useEffect(() => {
+    if (url) {
+      Audio.Sound.createAsync({uri: url})
+        .then(({sound}) => {
+          soundRef.current = sound
+        })
+        .catch(() => {})
     }
-  }
-  render() {
-    if (this.props.url.length === 0 || !this.props.url.match(/^(file|https?):/)) {
-      // try not to crash out on iOS
-      return null
+  }, [soundRef, url])
+
+  const seek = React.useCallback(
+    (seconds: number) => {
+      soundRef.current
+        ?.setPositionAsync(seconds * 1000)
+        .then(() => {})
+        .catch(() => {})
+      if (paused) {
+        soundRef.current
+          ?.pauseAsync()
+          .then(() => {})
+          .catch(() => {})
+      }
+    },
+    [soundRef, paused]
+  )
+  React.useEffect(() => {
+    seekRef.current = seek
+  }, [seekRef, seek])
+
+  const lastPaused = Container.usePrevious(paused)
+  React.useEffect(() => {
+    if (!soundRef.current || paused === lastPaused) {
+      return
     }
-    return (
-      <RNVideo
-        ref={this.vidRef}
-        source={{uri: this.props.url}}
-        style={{height: 0, width: 0}}
-        paused={this.props.paused}
-        ignoreSilentSwitch="ignore"
-      />
-    )
-  }
+
+    if (paused) {
+      soundRef.current
+        ?.pauseAsync()
+        .then(() => {})
+        .catch(() => {})
+    } else {
+      soundRef.current
+        ?.playAsync()
+        .then(() => {})
+        .catch(() => {})
+    }
+  }, [paused, lastPaused, soundRef])
+
+  return null
 }
 
 export default AudioVideo

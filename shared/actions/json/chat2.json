@@ -1,11 +1,11 @@
 {
   "prelude": [
-    "import * as RPCChatTypes from '../constants/types/rpc-chat-gen'",
-    "import * as Types from '../constants/types/chat2'",
-    "import * as TeamsTypes from '../constants/types/teams'",
-    "import HiddenString from '../util/hidden-string'",
-    "import {RetentionPolicy} from '../constants/types/retention-policy'",
-    "import {AmpTracker} from '../chat/audio/amptracker'"
+    "import type * as RPCChatTypes from '../constants/types/rpc-chat-gen'",
+    "import type * as Types from '../constants/types/chat2'",
+    "import type * as TeamsTypes from '../constants/types/teams'",
+    "import type HiddenString from '../util/hidden-string'",
+    "import type {RetentionPolicy} from '../constants/types/retention-policy'",
+    "import type {AmpTracker} from '../chat/audio/amptracker'"
   ],
   "actions": {
     "toggleSmallTeamsExpanded": {},

@@ -1,19 +1,12 @@
 /*
  * File to stash local debug changes to. Never check this in with changes
  */
-import {NativeModules, YellowBox} from 'react-native'
+import {LogBox} from 'react-native'
+import {NativeModules} from './util/native-modules.native'
 import noop from 'lodash/noop'
 
-const nativeBridge = NativeModules.KeybaseEngine || {test: 'fallback'}
-
 // Toggle this to disable yellowboxes
-console.disableYellowBox = false
-//
-// Ignore some yellowboxes on 3rd party libs we can't control
-YellowBox.ignoreWarnings([
-  "Module RNFetchBlob requires main queue setup since it overrides `constantsToExport` but doesn't implement `requiresMainQueueSetup`. In a future release React Native will default to initializing all native modules on a background thread unless explicitly opted-out of.",
-  "Module RCTCameraManager requires main queue setup since it overrides `constantsToExport` but doesn't implement `requiresMainQueueSetup`. In a future release React Native will default to initializing all native modules on a background thread unless explicitly opted-out of.",
-])
+LogBox.ignoreAllLogs()
 
 // store the vanilla console helpers
 window.console._log = window.console.log
@@ -22,9 +15,11 @@ window.console._error = window.console.error
 window.console._info = window.console.info
 
 // uncomment this to watch the RN bridge traffic: https://github.com/facebook/react-native/commit/77e48f17824870d30144a583be77ec5c9cf9f8c5
-// require('react-native/Libraries/BatchedBridge/MessageQueue').spy(msg => console._log('queuespy: ', msg, JSON.stringify(msg).length))
+// require('react-native/Libraries/BatchedBridge/MessageQueue').spy(msg =>
+//   console._log('queuespy: ', msg, JSON.stringify(msg).length)
+// )
 // uncomment this to watch for event loop stalls: https://github.com/facebook/react-native/blob/0.59-stable/Libraries/Interaction/BridgeSpyStallHandler.js
-// require('InteractionStallDebugger').install({thresholdMS: 100})
+// require('react-native/Libraries/Interaction/InteractionStallDebugger').install({thresholdMS: 100})
 
 // Set this to true if you want to turn off most console logging so you can profile easier
 const PERF = false
@@ -39,9 +34,7 @@ let config = {
   ignoreDisconnectOverlay: false,
   immediateStateLogging: false, // Don't wait for idle to log state
   isDevApplePushToken: false, // Use a dev push token
-  isTesting:
-    (__DEV__ && nativeBridge.test === '1') ||
-    (NativeModules.Storybook && NativeModules.Storybook.isStorybook), // Is running a unit test
+  isTesting: false, // NativeModules.Storybook.isStorybook, // Is running a unit test
   partyMode: false,
   printOutstandingRPCs: false, // Periodically print rpcs we're waiting for
   printOutstandingTimerListeners: false, // Periodically print listeners to the second clock
@@ -51,7 +44,7 @@ let config = {
   printRPCWaitingSession: false,
   showDevTools: false,
   skipAppFocusActions: false,
-  skipSecondaryDevtools: false,
+  skipSecondaryDevtools: true,
   userTimings: false, // Add user timings api to timeline in chrome
   virtualListMarks: false, // If true add constraints to items in virtual lists so we can tell when measuring is incorrect
 }
@@ -76,6 +69,27 @@ if (__DEV__) {
   // MessageQueue.spy(msg => console._log('queuespy: ', msg, JSON.stringify(msg).length))
 }
 
+// uncomment if doing local archive builds
+// const debuggingOnLocalArchiveBuild = true
+// if (debuggingOnLocalArchiveBuild) {
+//   for (let i = 0; i < 50; ++i) {
+//     console.log('TEMP dev push token!')
+//   }
+//   config.isDevApplePushToken = true
+// }
+
+// const debuggingReleaseBuild = false
+// if (debuggingReleaseBuild) {
+//   for (let i = 0; i < 50; ++i) {
+//     console.log('TEMP debug release build one')
+//   }
+//   // in release we don't get console logs on ios, so instead use native logger and edit the objc side
+//   window.console.log = (...a) => NativeModules.KBNativeLogger.log([['e', a.join(' ')]])
+//   window.console.warn = window.console.log
+//   window.console.error = window.console.log
+//   window.console.info = window.console.log
+// }
+
 if (PERF) {
   console.warn('\n\n\nlocal debug PERF is ONNNNNn!!!!!1!!!11!!!!\nAll console.logs disabled!\n\n\n')
 
@@ -95,9 +109,9 @@ if (PERF) {
   config.userTimings = true
 }
 
-if (nativeBridge.serverConfig) {
+if (NativeModules.KeybaseEngine.serverConfig) {
   try {
-    const serverConfig = JSON.parse(nativeBridge.serverConfig)
+    const serverConfig = JSON.parse(NativeModules.KeybaseEngine.serverConfig)
     if (serverConfig.lastLoggedInUser) {
       const userConfig = serverConfig[serverConfig.lastLoggedInUser] || {}
       if (userConfig.printRPCStats) {

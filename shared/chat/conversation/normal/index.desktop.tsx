@@ -8,7 +8,7 @@ import ListArea from '../list-area/container'
 import PinnedMessage from '../pinned-message/container'
 import ThreadLoadStatus from '../load-status/container'
 import ThreadSearch from '../search/container'
-import {Props} from '.'
+import type {Props} from '.'
 import {readImageFromClipboard} from '../../../util/clipboard.desktop'
 import '../conversation.css'
 
@@ -20,11 +20,13 @@ const Offline = () => (
 
 class Conversation extends React.PureComponent<Props> {
   private onPaste = (e: React.SyntheticEvent) => {
-    readImageFromClipboard(e, () => {}).then(clipboardData => {
-      if (clipboardData) {
-        this.props.onPaste(clipboardData)
-      }
-    })
+    readImageFromClipboard(e)
+      .then(clipboardData => {
+        if (clipboardData) {
+          this.props.onPaste(clipboardData)
+        }
+      })
+      .catch(() => {})
   }
 
   private hotKeys = ['mod+f']

@@ -1,4 +1,2 @@
-import * as React from 'react'
-
-type Props = {}
-export default class HeaderArea extends React.Component<Props> {}
+declare function headerNavigationOptions(route: any): Object
+export {headerNavigationOptions}

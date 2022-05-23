@@ -15,12 +15,12 @@ class ConsoleLogger implements Logger {
   // Replaced in constructor
   log = () => {}
 
-  dump() {
+  async dump() {
     const p: Promise<Array<LogLineWithLevel>> = Promise.resolve([])
     return p
   }
 
-  flush() {
+  async flush() {
     const p: Promise<void> = Promise.resolve()
     return p
   }

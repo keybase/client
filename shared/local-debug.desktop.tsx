@@ -1,11 +1,10 @@
-import {jsonDebugFileName, serverConfigFileName} from './constants/platform.desktop'
 import noop from 'lodash/noop'
-
+import KB2 from './util/electron.desktop'
 // Set this to true if you want to turn off most console logging so you can profile easier
 let PERF = false
 
 let config = {
-  allowMultipleInstances: false, // Multiple instances of the app
+  allowMultipleInstances: false, // let more run
   enableActionLogging: true, // Log actions to the log
   enableStoreLogging: false, // Log full store changes
   featureFlagsOverride: '', // Override feature flags
@@ -22,57 +21,31 @@ let config = {
   printRPCBytes: false, // Print raw bytes going over the wire
   printRPCStats: false, // Print more detailed stats about rpcs
   printRPCWaitingSession: false, // session / waiting info
-  showDevTools: false, // Show devtools on start
+  showDevTools: false,
   skipAppFocusActions: false, // dont emit actions when going foreground/background, helpful while working on other actions stuff
-  skipSecondaryDevtools: true, // Don't show devtools for menubar/trackers etc
+  skipSecondaryDevtools: true,
   userTimings: false, // Add user timings api to timeline in chrome
   virtualListMarks: false, // If true add constraints to items in virtual lists so we can tell when measuring is incorrect
 }
 
 // Developer settings
 if (__DEV__) {
-  config.allowMultipleInstances = true
   config.enableActionLogging = false
   config.enableStoreLogging = true
   config.filterActionLogs = null // '^chat|entity'
   config.printOutstandingRPCs = true
   config.printOutstandingTimerListeners = true
   config.printRPC = true
-  config.printRPCWaitingSession = false
   config.printRPCStats = true
+  config.printRPCWaitingSession = false
+  config.showDevTools = true
+  config.skipSecondaryDevtools = true
   config.userTimings = true
 }
 
-if (!__STORYBOOK__) {
-  const fs = require('fs')
-  // Load overrides from server config
-  if (fs.existsSync(serverConfigFileName)) {
-    try {
-      const serverConfig = JSON.parse(fs.readFileSync(serverConfigFileName, 'utf8'))
-      if (serverConfig.lastLoggedInUser) {
-        const userConfig = serverConfig[serverConfig.lastLoggedInUser] || {}
-        if (userConfig.printRPCStats) {
-          config.printRPCStats = true
-        }
-      }
-    } catch (e) {
-      console.warn('Invalid server config')
-    }
-  }
-
-  // Load overrides from a local json file
-  if (fs.existsSync(jsonDebugFileName)) {
-    try {
-      const pathJson = JSON.parse(fs.readFileSync(jsonDebugFileName, 'utf8'))
-      console.log('Loaded', jsonDebugFileName, pathJson)
-      config = {...config, ...pathJson}
-      if (Object.prototype.hasOwnProperty.call(pathJson, 'PERF')) {
-        PERF = pathJson.PERF
-      }
-    } catch (e) {
-      console.warn('Invalid local debug file')
-    }
-  }
+config = {
+  ...config,
+  ...KB2.constants.configOverload,
 }
 
 // If performance testing
@@ -106,7 +79,9 @@ if (PERF) {
 }
 
 export const {
+  showDevTools,
   allowMultipleInstances,
+  skipSecondaryDevtools,
   enableActionLogging,
   enableStoreLogging,
   featureFlagsOverride,
@@ -123,9 +98,7 @@ export const {
   printRPCBytes,
   printRPCWaitingSession,
   printRPCStats,
-  showDevTools,
   skipAppFocusActions,
-  skipSecondaryDevtools,
   userTimings,
   virtualListMarks,
 } = config

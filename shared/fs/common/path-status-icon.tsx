@@ -12,7 +12,7 @@ type Props = {
   showTooltipOnPressMobile?: boolean
 }
 
-function getIcon(status: Types.LocalConflictStatus | Types.NonUploadStaticSyncStatus): Kb.IconType {
+function getIcon(status: Types.LocalConflictStatusType | Types.NonUploadStaticSyncStatus): Kb.IconType {
   switch (status) {
     case Types.NonUploadStaticSyncStatus.AwaitingToSync:
       return 'iconfont-clock'
@@ -29,7 +29,7 @@ function getIcon(status: Types.LocalConflictStatus | Types.NonUploadStaticSyncSt
   }
 }
 
-function getColor(status: Types.LocalConflictStatus | Types.NonUploadStaticSyncStatus) {
+function getColor(status: Types.LocalConflictStatusType | Types.NonUploadStaticSyncStatus) {
   switch (status) {
     case Types.NonUploadStaticSyncStatus.AwaitingToSync:
     case Types.NonUploadStaticSyncStatus.OnlineOnly:
@@ -88,6 +88,7 @@ const PathStatusIcon = (props: Props) =>
         <UploadIcon uploadIcon={props.statusIcon} style={styles.iconNonFont} />
       ) : (
         <Kb.Icon
+          fixOverdraw={true}
           type={getIcon(props.statusIcon)}
           sizeType="Small"
           style={styles.iconFont}
@@ -96,7 +97,7 @@ const PathStatusIcon = (props: Props) =>
       )}
     </Kb.WithTooltip>
   ) : props.isTlfType ? (
-    <Kb.Icon type="iconfont-root" sizeType="Small" style={styles.iconFont} />
+    <Kb.Icon fixOverdraw={true} type="iconfont-root" sizeType="Small" style={styles.iconFont} />
   ) : (
     <Kb.Box style={styles.placeholder} />
   )

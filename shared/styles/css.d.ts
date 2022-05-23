@@ -1,5 +1,5 @@
-import {CSSProperties} from 'react'
-import {ViewStyle, TextStyle, ImageStyle} from 'react-native'
+import type {CSSProperties} from 'react'
+import type {ViewStyle, TextStyle, ImageStyle} from 'react-native'
 
 export type Color = null | string
 type _StylesDesktopOverride = {
@@ -106,15 +106,19 @@ type StyleKeys =
   | 'wordWrap'
   | 'zIndex'
 
-export type _StylesDesktop = Pick<CSSProperties, StyleKeys> & _StylesDesktopOverride
-export type StylesDesktop = _StylesDesktop | undefined | null | false | Array<StylesDesktop>
+export type _StylesDesktop = _StylesDesktopOverride &
+  Pick<CSSProperties, Exclude<StyleKeys, keyof _StylesDesktopOverride>>
+
+type _StylesDesktopFalsy = _StylesDesktop | undefined | null | false
+export type StylesDesktop = _StylesDesktopFalsy | ReadonlyArray<_StylesDesktopFalsy>
 
 type _StylesMobileOverride = {
   textAlignVertical?: 'auto' | 'top' | 'bottom' | 'center'
 }
 
 export type _StylesMobile = ViewStyle & TextStyle & ImageStyle & _StylesMobileOverride
-export type StylesMobile = _StylesMobile | undefined | null | false | Array<StylesMobile>
+type _StylesMobileFalsy = _StylesMobile | undefined | null | false
+export type StylesMobile = _StylesMobileFalsy | ReadonlyArray<_StylesMobileFalsy>
 
 // override some problematic styles
 type _StylesCrossPlatformOverride = {
@@ -127,20 +131,13 @@ export type _StylesCrossPlatform = {
   [k in keyof _StylesDesktop]: k extends keyof _StylesCrossPlatformOverride // use override
     ? _StylesCrossPlatformOverride[k] // or if its shared between desktop and mobile choose one which extends the other
     : k extends keyof _StylesMobile
-    ? _StylesMobile[k] extends _StylesDesktop[k]
-      ? _StylesMobile[k]
-      : _StylesDesktop[k] extends _StylesMobile[k]
-      ? _StylesDesktop[k]
-      : never
+    ? _StylesMobile[k] & _StylesDesktop[k]
     : never
 }
 
-export type StylesCrossPlatform = _StylesCrossPlatform | undefined | null | false | Array<StylesCrossPlatform>
+type _StylesCrossPlatformFalsy = _StylesCrossPlatform | undefined | null | false
+export type StylesCrossPlatform = _StylesCrossPlatformFalsy | Array<_StylesCrossPlatformFalsy>
 
 export type _CustomStyles<K extends string, C> = Omit<_StylesCrossPlatform, K> & C
-export type CustomStyles<K extends string, C> =
-  | _CustomStyles<K, C>
-  | undefined
-  | null
-  | false
-  | Array<CustomStyles<K, C>>
+export type _CustomStylesFalsy<K extends string, C> = _CustomStyles<K, C> | undefined | null | false
+export type CustomStyles<K extends string, C> = _CustomStylesFalsy<K, C> | Array<_CustomStylesFalsy<K, C>>

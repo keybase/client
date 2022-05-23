@@ -1,9 +1,9 @@
 import React from 'react'
 import {NativeAnimated, NativeEasing} from './native-wrappers.native'
 import * as Styles from '../styles'
-import {Props} from './switch-toggle'
+import type {Props} from './switch-toggle'
 
-class SwitchToggle extends React.PureComponent<Props, {}> {
+class SwitchToggle extends React.PureComponent<Props> {
   _offset = new NativeAnimated.Value(this._getOffset())
   _animation: any = null
 
@@ -15,7 +15,7 @@ class SwitchToggle extends React.PureComponent<Props, {}> {
     if (prevProps.on === this.props.on) {
       return
     }
-    this._animation && this._animation.stop()
+    this._animation?.stop()
     this._animation = NativeAnimated.timing(this._offset, {
       duration: 100,
       easing: NativeEasing.linear,
@@ -32,13 +32,18 @@ class SwitchToggle extends React.PureComponent<Props, {}> {
           {
             backgroundColor: this._offset.interpolate({
               inputRange: [disabledOffset, enabledOffset],
-              outputRange: [Styles.globalColors.greyDark, Styles.globalColors[this.props.color]],
+              outputRange: [
+                Styles.undynamicColor(Styles.globalColors.greyDark),
+                Styles.undynamicColor(Styles.globalColors[this.props.color]),
+              ],
             }),
           },
           this.props.style,
-        ])}
+        ] as any)}
       >
-        <NativeAnimated.View style={Styles.collapseStyles([styles.inner, {marginLeft: this._offset}])} />
+        <NativeAnimated.View
+          style={Styles.collapseStyles([styles.inner, {marginLeft: this._offset}] as any)}
+        />
       </NativeAnimated.View>
     )
   }
@@ -51,7 +56,7 @@ const enabledOffset = 22
 
 const styles = Styles.styleSheetCreate(() => ({
   inner: {
-    backgroundColor: Styles.globalColors.white,
+    backgroundColor: Styles.undynamicColor(Styles.globalColors.white),
     borderRadius: 12,
     height: 24,
     width: 24,

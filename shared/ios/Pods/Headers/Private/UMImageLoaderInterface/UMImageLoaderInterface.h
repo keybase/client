@@ -1,1 +1,0 @@
-../../../../../node_modules/unimodules-image-loader-interface/ios/UMImageLoaderInterface/UMImageLoaderInterface.h

@@ -86,7 +86,6 @@ const EnterUsername = (props: Props) => {
 }
 
 EnterUsername.navigationOptions = {
-  header: null,
   headerBottomStyle: {height: undefined},
   headerLeft: null, // no back button
   headerRightActions: () => (

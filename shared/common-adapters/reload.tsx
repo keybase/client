@@ -10,9 +10,10 @@ import ScrollView from './scroll-view'
 import Text from './text'
 import Button from './button'
 import Icon from './icon'
-import {RPCError} from '../util/errors'
 import {settingsTab} from '../constants/tabs'
 import {feedbackTab} from '../constants/settings'
+import {useFocusEffect} from '@react-navigation/core'
+import type {RPCError} from '../util/errors'
 
 const Kb = {
   Box2,
@@ -80,25 +81,28 @@ export type Props = {
   title?: string
 }
 
-class Reloadable extends React.PureComponent<Props> {
-  componentDidMount() {
-    this.props.reloadOnMount && this.props.onReload()
+const Reloadable = (props: Props) => {
+  const {reloadOnMount, onReload} = props
+  useFocusEffect(
+    React.useCallback(() => {
+      reloadOnMount && onReload()
+      return () => {}
+      // TODO should have onReload but too many flakey containers use this
+      // eslint-disable-next-line
+    }, [reloadOnMount])
+  )
+  if (!props.needsReload) {
+    return props.children
   }
-
-  render() {
-    if (!this.props.needsReload) {
-      return this.props.children
-    }
-    return (
-      <Reload
-        onBack={this.props.onBack}
-        onReload={this.props.onReload}
-        onFeedback={this.props.onFeedback}
-        reason={this.props.reason}
-        style={this.props.style}
-      />
-    )
-  }
+  return (
+    <Reload
+      onBack={props.onBack}
+      onReload={props.onReload}
+      onFeedback={props.onFeedback}
+      reason={props.reason}
+      style={props.style}
+    />
+  )
 }
 
 const styles = Styles.styleSheetCreate(() => ({
@@ -190,4 +194,4 @@ export default Container.connect(
     style: ownProps.style,
     title: ownProps.title,
   })
-)(Reloadable)
+)(Reloadable as any)

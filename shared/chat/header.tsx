@@ -1,17 +1,18 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters'
-import * as Types from '../constants/types/chat2'
 import * as Constants from '../constants/chat2'
 import * as TeamConstants from '../constants/teams'
 import * as Platforms from '../constants/platform'
 import * as Chat2Gen from '../actions/chat2-gen'
-import {appendNewChatBuilder} from '../actions/typed-routes'
 import * as Styles from '../styles'
 import * as Container from '../util/container'
 import ChatInboxHeader from './inbox/header/container'
+import {appendNewChatBuilder} from '../actions/typed-routes'
+import type * as Types from '../constants/types/chat2'
 
 type OwnProps = {
   navigation: any
+  route: any
 }
 
 type Props = {
@@ -54,7 +55,7 @@ const Header = (p: Props) => {
     <Kb.Markdown
       smallStandaloneEmoji={true}
       style={styles.desc}
-      styleOverride={descStyleOverride}
+      styleOverride={descStyleOverride as any}
       lineClamp={1}
       selectable={true}
     >
@@ -90,7 +91,7 @@ const Header = (p: Props) => {
       <Kb.Markdown
         smallStandaloneEmoji={true}
         style={{...styles.desc, flex: 1}}
-        styleOverride={descStyleOverride}
+        styleOverride={descStyleOverride as any}
         lineClamp={1}
         selectable={true}
       >
@@ -262,11 +263,11 @@ const styles = Styles.styleSheetCreate(
           wordBreak: 'break-all',
         },
         isMobile: {
-          color: Styles.globalColors.black_50,
+          color: Styles.globalColors.black_50 as any,
           fontSize: 15,
           lineHeight: 19,
         },
-      }),
+      } as any),
       right: Styles.platformStyles({
         common: {
           flex: 1,
@@ -288,8 +289,8 @@ const Connected = Container.connect(
     // temp until nav 5 when this all goes away
     const _conversationIDKey =
       (Container.isTablet
-        ? ownProps.navigation.state.params?.conversationIDKey
-        : ownProps.navigation.state.routes[0]?.params?.conversationIDKey) ?? Constants.noConversationIDKey
+        ? ownProps.route.params?.conversationIDKey
+        : ownProps.route.params?.conversationIDKey) ?? Constants.noConversationIDKey
     const userInfo = state.users.infoMap
     const _meta = Constants.getMeta(state, _conversationIDKey)
     const participantInfo = Constants.getParticipantInfo(state, _conversationIDKey)

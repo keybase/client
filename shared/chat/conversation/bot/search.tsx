@@ -1,17 +1,15 @@
 import * as React from 'react'
 import * as Container from '../../../util/container'
 import * as Kb from '../../../common-adapters'
-import * as Types from '../../../constants/types/chat2'
 import * as Constants from '../../../constants/bots'
 import * as BotsGen from '../../../actions/bots-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
-import * as RPCTypes from '../../../constants/types/rpc-gen'
 import * as Styles from '../../../styles'
-import * as TeamTypes from '../../../constants/types/teams'
+import type * as RPCTypes from '../../../constants/types/rpc-gen'
 import {Bot} from '../info-panel/bot'
 import debounce from 'lodash/debounce'
 
-type Props = Container.RouteProps<{conversationIDKey?: Types.ConversationIDKey; teamID?: TeamTypes.TeamID}>
+type Props = Container.RouteProps<'chatSearchBots'>
 
 const renderSectionHeader = ({section}: any) => {
   return <Kb.SectionDivider label={section.title} />
@@ -21,10 +19,8 @@ const userEmptyPlaceholder = '---EMPTYUSERS---'
 const resultEmptyPlaceholder = '---EMPTYRESULT---'
 
 const SearchBotPopup = (props: Props) => {
-  const conversationIDKey = Container.getRouteProps(props, 'conversationIDKey', undefined)
-  const teamID = Container.getRouteProps(props, 'teamID', undefined)
-
-  // state
+  const conversationIDKey = props.route.params?.conversationIDKey ?? undefined
+  const teamID = props.route.params?.teamID ?? undefined
   const [lastQuery, setLastQuery] = React.useState('')
   const featuredBotsMap = Container.useSelector(state => state.chat2.featuredBotsMap)
   const results = Container.useSelector(state => state.chat2.botSearchResults)
@@ -32,7 +28,6 @@ const SearchBotPopup = (props: Props) => {
     Constants.waitingKeyBotSearchUsers,
     Constants.waitingKeyBotSearchFeatured
   )
-  // dispatch
   const dispatch = Container.useDispatch()
   const onClose = () => {
     dispatch(RouteTreeGen.createClearModals())
@@ -62,7 +57,6 @@ const SearchBotPopup = (props: Props) => {
       })
     )
   }
-  // lifecycle
   React.useEffect(() => {
     dispatch(BotsGen.createSetSearchFeaturedAndUsersResults({query: '', results: undefined}))
     dispatch(BotsGen.createGetFeaturedBots({}))
@@ -130,18 +124,17 @@ const SearchBotPopup = (props: Props) => {
   return (
     <Kb.Modal
       onClose={onClose}
+      noScrollView={true}
       header={{
         leftButton: Styles.isMobile ? (
           <Kb.Text type="BodyBigLink" onClick={onClose}>
             {'Cancel'}
           </Kb.Text>
-        ) : (
-          undefined
-        ),
+        ) : undefined,
         title: 'Add a bot',
       }}
     >
-      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.modal}>
+      <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.modal}>
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.inputContainer}>
           <Kb.SearchFilter
             size="full-width"
@@ -155,6 +148,7 @@ const SearchBotPopup = (props: Props) => {
           renderSectionHeader={renderSectionHeader}
           stickySectionHeadersEnabled={true}
           sections={[usersSection, botSection]}
+          style={{flexGrow: 1}}
         />
       </Kb.Box2>
     </Kb.Modal>
@@ -163,14 +157,10 @@ const SearchBotPopup = (props: Props) => {
 
 const styles = Styles.styleSheetCreate(() => ({
   inputContainer: Styles.platformStyles({
-    isElectron: {
-      padding: Styles.globalMargins.tiny,
-    },
+    isElectron: {padding: Styles.globalMargins.tiny},
   }),
   modal: Styles.platformStyles({
-    isElectron: {
-      height: 500,
-    },
+    isElectron: {height: 500},
   }),
 }))
 

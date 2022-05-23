@@ -1,18 +1,10 @@
 import * as React from 'react'
-import * as Types from '../../../../constants/types/chat2'
-import {Box, Box2} from '../../../../common-adapters'
+import * as Styles from '../../../../styles'
+import * as Kb from '../../../../common-adapters'
+import type * as Types from '../../../../constants/types/chat2'
 import ReactButton from '../react-button/container'
 import ReactionTooltip from '../reaction-tooltip/container'
 import EmojiRow from '../react-button/emoji-row/container'
-import {
-  borderRadius,
-  classNames,
-  globalColors,
-  globalMargins,
-  isMobile,
-  platformStyles,
-  styleSheetCreate,
-} from '../../../../styles'
 
 export type Props = {
   btnClassName?: string
@@ -27,7 +19,7 @@ type State = {
   showMobileTooltip: boolean
 }
 
-class ReactionsRow extends React.Component<Props, State> {
+class ReactionsRow extends React.PureComponent<Props, State> {
   state = {
     activeEmoji: '',
     showMobileTooltip: false,
@@ -52,15 +44,15 @@ class ReactionsRow extends React.Component<Props, State> {
 
   render() {
     return this.props.emojis.length === 0 ? null : (
-      <Box2 direction="horizontal" gap="xtiny" fullWidth={true} style={styles.container}>
+      <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true} style={styles.container}>
         {this.props.emojis.map(emoji => (
-          <Box
+          <Kb.Box
             onMouseOver={() => this._setHoveringButton(true, emoji)}
             onMouseLeave={() => this._setHoveringButton(false, emoji)}
             key={emoji}
           >
             <ReactButton
-              ref={ref => (this._attachmentRefs[emoji] = ref)}
+              ref={(ref: React.Component<any>) => (this._attachmentRefs[emoji] = ref)}
               className={this.props.btnClassName}
               conversationIDKey={this.props.conversationIDKey}
               emoji={emoji}
@@ -76,9 +68,9 @@ class ReactionsRow extends React.Component<Props, State> {
               ordinal={this.props.ordinal}
               visible={this.state.activeEmoji === emoji}
             />
-          </Box>
+          </Kb.Box>
         ))}
-        {isMobile ? (
+        {Styles.isMobile ? (
           <ReactButton
             conversationIDKey={this.props.conversationIDKey}
             ref={this._setNewAttachmentRef as any}
@@ -90,7 +82,7 @@ class ReactionsRow extends React.Component<Props, State> {
           />
         ) : (
           <EmojiRow
-            className={classNames([this.props.btnClassName, this.props.newBtnClassName])}
+            className={Styles.classNames([this.props.btnClassName, this.props.newBtnClassName])}
             conversationIDKey={this.props.conversationIDKey}
             ordinal={this.props.ordinal}
             style={styles.emojiRow}
@@ -102,31 +94,31 @@ class ReactionsRow extends React.Component<Props, State> {
           ordinal={this.props.ordinal}
           visible={this.state.showMobileTooltip}
         />
-      </Box2>
+      </Kb.Box2>
     )
   }
 }
 
-const styles = styleSheetCreate(
+const styles = Styles.styleSheetCreate(
   () =>
     ({
-      button: {marginBottom: globalMargins.tiny},
+      button: {marginBottom: Styles.globalMargins.tiny},
       container: {
         alignItems: 'flex-start',
         flexWrap: 'wrap',
         paddingRight: 66,
-        paddingTop: globalMargins.tiny,
+        paddingTop: Styles.globalMargins.tiny,
       },
       emojiRow: {
-        backgroundColor: globalColors.white,
-        borderColor: globalColors.black_10,
-        borderRadius,
+        backgroundColor: Styles.globalColors.white,
+        borderColor: Styles.globalColors.black_10,
+        borderRadius: Styles.borderRadius,
         borderStyle: 'solid',
         borderWidth: 1,
-        marginBottom: globalMargins.tiny,
-        paddingRight: globalMargins.xtiny,
+        marginBottom: Styles.globalMargins.tiny,
+        paddingRight: Styles.globalMargins.xtiny,
       },
-      visibilityHidden: platformStyles({isElectron: {visibility: 'hidden'}}),
+      visibilityHidden: Styles.platformStyles({isElectron: {visibility: 'hidden'}}),
     } as const)
 )
 

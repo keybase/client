@@ -4,25 +4,17 @@ import Revoke from '.'
 import * as Constants from '../../constants/profile'
 import * as Waiting from '../../constants/waiting'
 import * as Container from '../../util/container'
-import {PlatformsExpandedType} from '../../constants/types/more'
-import {SiteIconSet} from '../../constants/types/tracker2'
 
-type OwnProps = Container.RouteProps<{
-  icon: SiteIconSet
-  platform: PlatformsExpandedType
-  platformHandle: string
-  proofId: string
-}>
-
+type OwnProps = Container.RouteProps<'profileRevoke'>
 const noIcon = []
 
 export default Container.connect(
   (state, ownProps: OwnProps) => ({
     errorMessage: state.profile.revokeError,
-    icon: Container.getRouteProps(ownProps, 'icon', noIcon),
+    icon: ownProps.route.params?.icon ?? noIcon,
     isWaiting: Waiting.anyWaiting(state, Constants.waitingKey),
-    platform: Container.getRouteProps(ownProps, 'platform', 'http'),
-    platformHandle: Container.getRouteProps(ownProps, 'platformHandle', ''),
+    platform: ownProps.route.params?.platform ?? 'http',
+    platformHandle: ownProps.route.params?.platformHandle ?? '',
   }),
   (dispatch, ownProps: OwnProps) => ({
     onCancel: () => {
@@ -30,7 +22,7 @@ export default Container.connect(
       dispatch(RouteTreeGen.createClearModals())
     },
     onRevoke: () => {
-      const proofId = Container.getRouteProps(ownProps, 'proofId', '')
+      const proofId = ownProps.route.params?.proofId ?? ''
       proofId && dispatch(ProfileGen.createSubmitRevokeProof({proofId}))
       dispatch(RouteTreeGen.createClearModals())
     },

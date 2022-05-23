@@ -3,7 +3,6 @@ import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import * as Container from '../../../../util/container'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
-import * as Types from '../../../../constants/types/chat2'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as ConfigGen from '../../../../actions/config-gen'
 import * as Constants from '../../../../constants/chat2'
@@ -11,18 +10,16 @@ import LocationMap from '../../../location-map'
 import HiddenString from '../../../../util/hidden-string'
 import {clearWatchPosition, watchPositionForMap} from '../../../../actions/platform-specific'
 
-type Props = Container.RouteProps<{conversationIDKey: Types.ConversationIDKey}>
+type Props = Container.RouteProps<'chatLocationPreview'>
 
 const LocationPopup = (props: Props) => {
-  // state
-  const conversationIDKey = Container.getRouteProps(props, 'conversationIDKey', Constants.noConversationIDKey)
+  const conversationIDKey = props.route.params?.conversationIDKey ?? Constants.noConversationIDKey
   const httpSrvAddress = Container.useSelector(state => state.config.httpSrvAddress)
   const httpSrvToken = Container.useSelector(state => state.config.httpSrvToken)
   const location = Container.useSelector(state => state.chat2.lastCoord)
   const username = Container.useSelector(state => state.config.username)
   const [mapLoaded, setMapLoaded] = React.useState(false)
   const [locationDenied, setLocationDenied] = React.useState(false)
-  // dispatch
   const dispatch = Container.useDispatch()
   const onClose = () => {
     dispatch(RouteTreeGen.createClearModals())
@@ -39,13 +36,14 @@ const LocationPopup = (props: Props) => {
       })
     )
   }
-  // lifecycle
   React.useEffect(() => {
     let watchID: number | null
     async function watchPosition() {
       watchID = await watchPositionForMap(() => setLocationDenied(true))
     }
     watchPosition()
+      .then(() => {})
+      .catch(() => {})
     return () => {
       if (watchID !== null) {
         clearWatchPosition(watchID)
@@ -53,7 +51,6 @@ const LocationPopup = (props: Props) => {
     }
   }, [])
 
-  // render
   const width = Math.ceil(Styles.dimensionWidth)
   const height = Math.ceil(Styles.dimensionHeight - 320)
   const mapSrc = location

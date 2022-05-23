@@ -2,14 +2,7 @@ import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import WhatsNew from './container'
-import {Position} from '../common-adapters/relative-popup-hoc.types'
-
-type Props = {
-  attachTo: () => Kb.Box2 | null
-  onHidden: () => void
-  position: Position
-  positionFallbacks?: Position[]
-}
+import type {Props} from './popup'
 
 const Popup = (props: Props) => {
   return (

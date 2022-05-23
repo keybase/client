@@ -38,13 +38,11 @@ export const HeaderRightActions = Container.connect(
           ],
         })
       ),
-    onBuy: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['partners']})),
     onSettings: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['settings']})),
   }),
   (s, d, _) => ({
     loading: s._accountID === Types.noAccountID,
     noDisclaimer: s.noDisclaimer,
-    onBuy: d.onBuy,
     onReceive: () => d._onReceive(s._accountID),
     onSettings: d.onSettings,
   })

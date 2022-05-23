@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Types from '../../constants/types/teams'
-import * as ChatTypes from '../../constants/types/chat2'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
@@ -10,23 +9,19 @@ import * as Chat2Gen from '../../actions/chat2-gen'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as UsersGen from '../../actions/users-gen'
 import * as BotsGen from '../../actions/bots-gen'
-import {Section} from '../../common-adapters/section-list'
+import type * as ChatTypes from '../../constants/types/chat2'
+import type {Section} from '../../common-adapters/section-list'
 import {useAttachmentSections} from '../../chat/conversation/info-panel/attachments'
 import {SelectionPopup, useChannelParticipants} from '../common'
-import ChannelTabs from './tabs'
+import ChannelTabs, {type TabKey} from './tabs'
 import ChannelHeader from './header'
-import {TabKey} from './tabs'
 import ChannelMemberRow from './rows/member-row'
 import BotRow from '../team/rows/bot-row/bot/container'
 import SettingsList from '../../chat/conversation/info-panel/settings'
 import EmptyRow from '../team/rows/empty-row'
 import isEqual from 'lodash/isEqual'
 
-export type OwnProps = Container.RouteProps<{
-  teamID: Types.TeamID
-  conversationIDKey: ChatTypes.ConversationIDKey
-  selectedTab?: TabKey
-}>
+export type OwnProps = Container.RouteProps<'teamChannel'>
 
 const useLoadDataForChannelPage = (
   teamID: Types.TeamID,
@@ -108,11 +103,11 @@ const SectionList: typeof Kb.SectionList = Styles.isMobile
   ? Kb.ReAnimated.createAnimatedComponent(Kb.SectionList)
   : Kb.SectionList
 
-const emptyMapForUseSelector = new Map()
+const emptyMapForUseSelector = new Map<string, Types.MemberInfo>()
 const Channel = (props: OwnProps) => {
-  const teamID = Container.getRouteProps(props, 'teamID', Types.noTeamID)
-  const conversationIDKey = Container.getRouteProps(props, 'conversationIDKey', '')
-  const providedTab = Container.getRouteProps(props, 'selectedTab', undefined)
+  const teamID = props.route.params?.teamID ?? Types.noTeamID
+  const conversationIDKey = props.route.params?.conversationIDKey ?? ''
+  const providedTab = props.route.params?.selectedTab ?? undefined
 
   const {bots, participants: _participants} = Container.useSelector(
     state => ChatConstants.getBotsAndParticipants(state, conversationIDKey, true /* sort */),
@@ -134,7 +129,7 @@ const Channel = (props: OwnProps) => {
   const headerSection = {
     data: ['header', 'tabs'],
     key: 'headerSection',
-    renderItem: ({item}) =>
+    renderItem: ({item}: {item: string | {title?: string}}) =>
       item === 'header' ? (
         <ChannelHeader teamID={teamID} conversationIDKey={conversationIDKey} />
       ) : (
@@ -236,7 +231,7 @@ const Channel = (props: OwnProps) => {
       )
   }
 
-  const renderSectionHeader = ({section}) =>
+  const renderSectionHeader = ({section}: {section: {title?: string}}) =>
     section.title ? <Kb.SectionDivider label={section.title} /> : null
 
   // Animation
@@ -248,36 +243,36 @@ const Channel = (props: OwnProps) => {
   )
 
   return (
-    <>
-      <Kb.SafeAreaViewTop />
-      <Kb.Box style={styles.container}>
-        {Styles.isMobile && (
-          <MobileHeader channelname={meta.channelname} teamname={teamname} offset={offset.current} />
-        )}
-        <SectionList
-          renderSectionHeader={renderSectionHeader}
-          stickySectionHeadersEnabled={Styles.isMobile}
-          sections={sections}
-          contentContainerStyle={styles.listContentContainer}
-          style={styles.list}
-          onScroll={onScroll.current}
-        />
-        <SelectionPopup
-          selectedTab={selectedTab === 'members' ? 'channelMembers' : ''}
-          conversationIDKey={conversationIDKey}
-          teamID={teamID}
-        />
-      </Kb.Box>
-    </>
+    <Kb.Box style={styles.container}>
+      {Styles.isMobile && (
+        <MobileHeader channelname={meta.channelname} teamname={teamname} offset={offset.current} />
+      )}
+      <SectionList
+        renderSectionHeader={renderSectionHeader}
+        stickySectionHeadersEnabled={Styles.isMobile}
+        sections={sections}
+        contentContainerStyle={styles.listContentContainer}
+        style={styles.list}
+        onScroll={onScroll.current}
+      />
+      <SelectionPopup
+        selectedTab={selectedTab === 'members' ? 'channelMembers' : ''}
+        conversationIDKey={conversationIDKey}
+        teamID={teamID}
+      />
+    </Kb.Box>
   )
 }
 Channel.navigationOptions = () => ({
   headerHideBorder: true,
+  headerTitle: '',
   underNotch: true,
 })
 
 const startAnimationOffset = 40
-const AnimatedBox2 = Styles.isMobile ? Kb.ReAnimated.createAnimatedComponent(Kb.Box2) : undefined
+const AnimatedBox2: typeof Kb.Box2 = Styles.isMobile
+  ? Kb.ReAnimated.createAnimatedComponent(Kb.Box2)
+  : undefined
 const MobileHeader = ({
   channelname,
   teamname,
@@ -285,16 +280,16 @@ const MobileHeader = ({
 }: {
   channelname: string
   teamname: string
-  offset: any
+  offset: number
 }) => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   const onBack = () => dispatch(nav.safeNavigateUpPayload())
-  const top = Kb.ReAnimated.interpolate(offset, {
+  const top: number = Kb.ReAnimated.interpolateNode(offset, {
     inputRange: [-9999, startAnimationOffset, startAnimationOffset + 40, 99999999],
     outputRange: [40, 40, 0, 0],
   })
-  const opacity = Kb.ReAnimated.interpolate(offset, {
+  const opacity: number = Kb.ReAnimated.interpolateNode(offset, {
     inputRange: [-9999, 0, 1, 9999],
     outputRange: [0, 0, 1, 1],
   })
@@ -341,9 +336,6 @@ const styles = Styles.styleSheetCreate(() => ({
       ...Styles.globalStyles.fillAbsolute,
       ...Styles.globalStyles.flexBoxColumn,
       alignItems: 'stretch',
-    },
-    isMobile: {
-      marginTop: 40,
     },
   }),
   listContentContainer: Styles.platformStyles({

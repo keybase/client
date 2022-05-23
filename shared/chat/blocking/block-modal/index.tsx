@@ -165,7 +165,7 @@ class BlockModal extends React.PureComponent<Props, State> {
     // First get a current setting from a checkbox, if user has checked anything.
     const {newBlocks} = this.state
     const current = newBlocks.get(username)
-    if (current && current[which] !== undefined) {
+    if (current?.[which] !== undefined) {
       return current[which] || false
     }
     // If we don't have a checkbox, check the store for current block value.
@@ -192,7 +192,7 @@ class BlockModal extends React.PureComponent<Props, State> {
   setReportReasonForUsername = (username: string, reason: string) => {
     const {newBlocks} = this.state
     const current = newBlocks.get(username)
-    if (current && current.report) {
+    if (current?.report) {
       current.report.reason = reason
       newBlocks.set(username, current)
       this.setState({newBlocks: new Map(newBlocks)})
@@ -219,7 +219,7 @@ class BlockModal extends React.PureComponent<Props, State> {
   setExtraNotesForUsername = (username: string, extraNotes: string) => {
     const {newBlocks} = this.state
     const current = newBlocks.get(username)
-    if (current && current.report) {
+    if (current?.report) {
       current.report.extraNotes = extraNotes
       newBlocks.set(username, current)
       this.setState({newBlocks: new Map(newBlocks)})
@@ -229,7 +229,7 @@ class BlockModal extends React.PureComponent<Props, State> {
   setIncludeTranscriptForUsername = (username: string, includeTranscript: boolean) => {
     const {newBlocks} = this.state
     const current = newBlocks.get(username)
-    if (current && current.report) {
+    if (current?.report) {
       current.report.includeTranscript = includeTranscript
       newBlocks.set(username, current)
       this.setState({newBlocks: new Map(newBlocks)})
@@ -308,9 +308,7 @@ class BlockModal extends React.PureComponent<Props, State> {
         <Kb.Text onClick={this.props.onClose} type="BodyPrimaryLink">
           Cancel
         </Kb.Text>
-      ) : (
-        undefined
-      ),
+      ) : undefined,
       title: <Kb.Icon type="iconfont-user-block" sizeType="Big" color={Styles.globalColors.red} />,
     }
 
@@ -349,7 +347,7 @@ class BlockModal extends React.PureComponent<Props, State> {
       </React.Fragment>
     )
 
-    var items: Array<Item> = ['topStuff']
+    const items: Array<Item> = ['topStuff']
     this.props.otherUsernames?.forEach(username => items.push({username}))
     return (
       <Kb.Modal

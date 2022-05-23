@@ -5,27 +5,24 @@ import * as FsConstants from '../constants/fs'
 import * as FsGen from '../actions/fs-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as RouteTreeGen from '../actions/route-tree-gen'
-import * as Electron from 'electron'
 import * as SettingsGen from '../actions/settings-gen'
 import * as Tabs from '../constants/tabs'
 import * as Types from '../constants/types/fs'
 import Menubar from './index.desktop'
 import openUrl from '../util/open-url'
 import throttle from 'lodash/throttle'
-import {DeserializeProps} from './remote-serializer.desktop'
+import type {DeserializeProps} from './remote-serializer.desktop'
 import {createOpenPopup as createOpenRekeyPopup} from '../actions/unlock-folders-gen'
 import {isWindows, isDarwin, isLinux} from '../constants/platform'
-import {quit} from '../desktop/app/ctl.desktop'
 import {urlHelper} from '../util/url-helper'
+import KB2 from '../util/electron.desktop'
 
-const hideWindow = () => {
-  Electron.remote.getCurrentWindow().hide()
-}
+const {hideWindow, ctlQuit} = KB2.functions
 
 const RemoteContainer = () => {
   const state = Container.useRemoteStore<DeserializeProps>()
   const {config, ...rest} = state
-  const {username} = config
+  const {username, windowShownCount} = config
   const dispatch = Container.useDispatch()
 
   return (
@@ -44,10 +41,11 @@ const RemoteContainer = () => {
         dispatch(ConfigGen.createShowMain())
         dispatch(RouteTreeGen.createNavigateAppend({path: [Tabs.loginTab]}))
       }}
+      windowShownCount={windowShownCount.get('menu') ?? 0}
       onHideDiskSpaceBanner={() => dispatch(FsGen.createShowHideDiskSpaceBanner({show: false}))}
       onRekey={() => {
         dispatch(createOpenRekeyPopup())
-        hideWindow()
+        hideWindow?.()
       }}
       openApp={(tab?: Tabs.AppTab) => {
         dispatch(ConfigGen.createShowMain())
@@ -62,15 +60,15 @@ const RemoteContainer = () => {
           }
         }
         // In case dump log doesn't exit for us
-        hideWindow()
+        hideWindow?.()
         setTimeout(() => {
-          quit()
+          ctlQuit?.()
         }, 2000)
       }}
       refreshUserFileEdits={throttle(() => dispatch(FsGen.createUserFileEditsLoad()), 1000 * 5)}
       showBug={() => {
         const version = __VERSION__
-        Electron.remote.shell.openExternal(
+        openUrl(
           `https://github.com/keybase/client/issues/new?body=Keybase%20GUI%20Version:%20${encodeURIComponent(
             version
           )}`
@@ -79,7 +77,7 @@ const RemoteContainer = () => {
       showHelp={() => {
         const link = urlHelper('help')
         link && openUrl(link)
-        hideWindow()
+        hideWindow?.()
       }}
       showInFinder={() => dispatch(FsGen.createOpenPathInSystemFileManager({path: FsConstants.defaultPath}))}
       updateNow={isWindows || isDarwin ? () => dispatch(ConfigGen.createUpdateNow()) : undefined}

@@ -1,6 +1,6 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
 
-import * as Types from '../constants/types/git'
+import type * as Types from '../constants/types/git'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of git but is handled by every reducer. NEVER dispatch this
@@ -21,16 +21,16 @@ export const setTeamRepoSettings = 'git:setTeamRepoSettings'
 
 // Payload Types
 type _BadgeAppForGitPayload = {readonly ids: Set<string>}
-type _ClearBadgesPayload = void
+type _ClearBadgesPayload = undefined
 type _CreatePersonalRepoPayload = {readonly name: string}
 type _CreateTeamRepoPayload = {readonly name: string; readonly teamname: string; readonly notifyTeam: boolean}
 type _DeletePersonalRepoPayload = {readonly name: string}
 type _DeleteTeamRepoPayload = {readonly name: string; readonly teamname: string; readonly notifyTeam: boolean}
-type _LoadGitPayload = void
+type _LoadGitPayload = undefined
 type _LoadedPayload = {readonly repos: Map<string, Types.GitInfo>}
 type _NavigateToTeamRepoPayload = {readonly repoID: string; readonly teamname: string}
-type _RepoCreatedPayload = void
-type _RepoDeletedPayload = void
+type _RepoCreatedPayload = undefined
+type _RepoDeletedPayload = undefined
 type _SetErrorPayload = {readonly error?: Error}
 type _SetTeamRepoSettingsPayload = {
   readonly chatDisabled: boolean
@@ -43,7 +43,7 @@ type _SetTeamRepoSettingsPayload = {
 /**
  * clears badges in the rows
  */
-export const createClearBadges = (payload: _ClearBadgesPayload): ClearBadgesPayload => ({
+export const createClearBadges = (payload?: _ClearBadgesPayload): ClearBadgesPayload => ({
   payload,
   type: clearBadges,
 })
@@ -67,17 +67,17 @@ export const createDeleteTeamRepo = (payload: _DeleteTeamRepoPayload): DeleteTea
   payload,
   type: deleteTeamRepo,
 })
-export const createLoadGit = (payload: _LoadGitPayload): LoadGitPayload => ({payload, type: loadGit})
+export const createLoadGit = (payload?: _LoadGitPayload): LoadGitPayload => ({payload, type: loadGit})
 export const createLoaded = (payload: _LoadedPayload): LoadedPayload => ({payload, type: loaded})
 export const createNavigateToTeamRepo = (payload: _NavigateToTeamRepoPayload): NavigateToTeamRepoPayload => ({
   payload,
   type: navigateToTeamRepo,
 })
-export const createRepoCreated = (payload: _RepoCreatedPayload): RepoCreatedPayload => ({
+export const createRepoCreated = (payload?: _RepoCreatedPayload): RepoCreatedPayload => ({
   payload,
   type: repoCreated,
 })
-export const createRepoDeleted = (payload: _RepoDeletedPayload): RepoDeletedPayload => ({
+export const createRepoDeleted = (payload?: _RepoDeletedPayload): RepoDeletedPayload => ({
   payload,
   type: repoDeleted,
 })
@@ -141,4 +141,4 @@ export type Actions =
   | RepoDeletedPayload
   | SetErrorPayload
   | SetTeamRepoSettingsPayload
-  | {type: 'common:resetStore', payload: {}}
+  | {readonly type: 'common:resetStore', readonly payload: undefined}

@@ -60,7 +60,7 @@ function startHot() {
   }
 
   const hitServer = () => {
-    var req = http.get('http://localhost:4000/dist/node.dev.bundle.js', () => {
+    const req = http.get('http://localhost:4000/dist/node.dev.bundle.js', () => {
       // require in case we're trying to yarn install electron!
       const electron = require('electron')
       // @ts-ignore

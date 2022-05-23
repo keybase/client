@@ -10,12 +10,11 @@ import {useTeamLinkPopup} from './common'
 import {pluralize} from '../util/string'
 import {memoize} from '../util/memoize'
 import capitalize from 'lodash/capitalize'
-import {headerDefaultStyle} from '../router-v2/router'
 
-type Props = Container.RouteProps<{teamname: string}>
+type Props = Container.RouteProps<'teamExternalTeam'>
 
 const ExternalTeam = (props: Props) => {
-  const teamname = Container.getRouteProps(props, 'teamname', '')
+  const teamname = props.route.params?.teamname ?? ''
 
   const getTeamInfo = Container.useRPC(RPCGen.teamsGetUntrustedTeamInfoRpcPromise)
   const [teamInfo, setTeamInfo] = React.useState<RPCGen.UntrustedTeamInfo | null>(null)
@@ -72,7 +71,6 @@ ExternalTeam.navigationOptions = {
   header: undefined,
   headerBottomStyle: {height: undefined},
   headerHideBorder: true,
-  headerStyle: {...headerDefaultStyle, borderBottomWidth: 0},
   title: ' ', // hack: trick router shim so it doesn't add a safe area around us
 }
 

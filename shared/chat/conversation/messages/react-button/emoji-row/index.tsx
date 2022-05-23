@@ -1,10 +1,10 @@
 import * as React from 'react'
 import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
-import * as Types from '../../../../../constants/types/chat2'
-import * as RPCTypes from '../../../../../constants/types/rpc-gen'
+import type * as Types from '../../../../../constants/types/chat2'
+import type * as RPCTypes from '../../../../../constants/types/rpc-gen'
 import {EmojiPickerDesktop} from '../emoji-picker/container'
-import {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
+import type {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
 import {renderEmoji, RPCUserReacjiToRenderableEmoji} from '../../../../../util/emoji'
 
 type Props = {
@@ -37,11 +37,12 @@ class HoverEmoji extends React.Component<
         hoverColor={Styles.globalColors.transparent}
         style={styles.emojiBox}
       >
-        {renderEmoji(
-          RPCUserReacjiToRenderableEmoji(this.props.emoji, !this.state.hovering),
-          this.state.hovering ? 22 : 18,
-          false
-        )}
+        {renderEmoji({
+          emoji: RPCUserReacjiToRenderableEmoji(this.props.emoji, !this.state.hovering),
+          showTooltip: false,
+          size: this.state.hovering ? 22 : 18,
+          virtualText: true,
+        })}
       </Kb.ClickableBox>
     )
   }
@@ -51,7 +52,7 @@ class EmojiRow extends React.Component<Props, {showingPicker: boolean}> {
   state = {showingPicker: false}
   _attachmentRef = React.createRef<Kb.Box2>()
   _setShowingPicker = (showingPicker: boolean) => {
-    this.props.onShowingEmojiPicker && this.props.onShowingEmojiPicker(showingPicker)
+    this.props.onShowingEmojiPicker?.(showingPicker)
     this.setState(s => (s.showingPicker === showingPicker ? null : {showingPicker}))
   }
   _showPicker = () => this._setShowingPicker(true)

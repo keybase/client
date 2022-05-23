@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Constants from '../../constants/crypto'
 import * as Container from '../../util/container'
-import * as Types from '../../constants/types/crypto'
+import type * as Types from '../../constants/types/crypto'
 import * as FSGen from '../../actions/fs-gen'
 import * as ConfigGen from '../../actions/config-gen'
 import * as CryptoGen from '../../actions/crypto-gen'
@@ -10,14 +10,12 @@ import * as Chat2Gen from '../../actions/chat2-gen'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Platforms from '../../constants/platform'
-import {IconType} from '../../common-adapters/icon.constants-gen'
+import type {IconType} from '../../common-adapters/icon.constants-gen'
 import {humanizeBytes} from '../../constants/fs'
 import capitalize from 'lodash/capitalize'
 import {getStyle} from '../../common-adapters/text'
-
-const {electron, path: nodePath} = KB
-const {showOpenDialog} = electron.dialog
-const {dirname} = nodePath
+import * as Path from '../../util/path'
+import {pickFiles} from '../../util/pick-files'
 
 type OutputProps = {
   operation: Types.Operations
@@ -203,11 +201,13 @@ export const OutputActionsBar = (props: OutputActionsBarProps) => {
 
   const onSaveAsText = () => {
     if (operation === Constants.Operations.Sign) {
-      return dispatch(CryptoGen.createDownloadSignedText())
+      dispatch(CryptoGen.createDownloadSignedText())
+      return
     }
 
     if (operation === Constants.Operations.Encrypt) {
-      return dispatch(CryptoGen.createDownloadEncryptedText())
+      dispatch(CryptoGen.createDownloadEncryptedText())
+      return
     }
   }
 
@@ -300,15 +300,14 @@ const OutputFileDestination = (props: {operation: Types.Operations}) => {
   const input = Container.useSelector(state => state.crypto[operation].input.stringValue())
 
   const onOpenFile = async () => {
-    const defaultPath = dirname(input)
-    const options = {
+    const defaultPath = Path.dirname(input)
+    const filePaths = await pickFiles({
       allowDirectories: true,
       allowFiles: false,
       buttonLabel: 'Select',
       ...(Platforms.isDarwin ? {defaultPath} : {}),
-    }
-    const filePaths = await showOpenDialog(options)
-    if (!filePaths) return
+    })
+    if (!filePaths.length) return
     const path = filePaths[0]
 
     const destinationDir = new Container.HiddenString(path)
@@ -323,11 +322,13 @@ const OutputFileDestination = (props: {operation: Types.Operations}) => {
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true}>
       <Kb.ButtonBar>
-        <Kb.Button mode="Primary" label={`${operationTitle} to ...`} onClick={() => onOpenFile()} />
+        <Kb.Button mode="Primary" label={`${operationTitle} to ...`} onClick={async () => onOpenFile()} />
       </Kb.ButtonBar>
     </Kb.Box2>
   )
 }
+
+const MobileScroll = Styles.isMobile ? Kb.ScrollView : React.Fragment
 
 export const OperationOutput = (props: OutputProps) => {
   const {operation} = props
@@ -405,7 +406,7 @@ export const OperationOutput = (props: OutputProps) => {
   }
 
   // Text output
-  const MobileScroll = Styles.isMobile ? Kb.ScrollView : React.Fragment
+
   return (
     <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.container}>
       <MobileScroll>

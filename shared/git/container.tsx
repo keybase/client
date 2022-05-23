@@ -1,19 +1,19 @@
-import * as React from 'react'
-import Git, {Props as GitProps} from '.'
-import * as GitGen from '../actions/git-gen'
-import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Constants from '../constants/git'
-import * as Types from '../constants/types/git'
-import * as Kb from '../common-adapters'
-import {anyWaiting} from '../constants/waiting'
 import * as Container from '../util/container'
+import * as GitGen from '../actions/git-gen'
+import * as Kb from '../common-adapters'
+import * as React from 'react'
+import * as RouteTreeGen from '../actions/route-tree-gen'
+import Git, {type Props as GitProps} from '.'
 import sortBy from 'lodash/sortBy'
-import {memoize} from '../util/memoize'
+import type * as Types from '../constants/types/git'
 import {HeaderTitle, HeaderRightActions} from './nav-header'
+import {anyWaiting} from '../constants/waiting'
+import {memoize} from '../util/memoize'
 
-type TabsStateOwnProps = Container.RouteProps<{expandedSet: Set<string>}>
+type TabsStateOwnProps = Container.RouteProps<'gitRoot'>
 
-type OwnProps = TabsStateOwnProps & {}
+type OwnProps = TabsStateOwnProps
 
 const getRepos = memoize((git: Map<string, Types.GitInfo>) =>
   sortBy([...git.values()], ['teamname', 'name']).reduce<{personals: Array<string>; teams: Array<string>}>(
@@ -52,11 +52,9 @@ const GitReloadable = (p: Omit<GitProps & ExtraProps, 'onToggleExpand'>) => {
 }
 GitReloadable.navigationOptions = Container.isMobile
   ? {
-      header: undefined,
       title: 'Git',
     }
   : {
-      header: undefined,
       headerRightActions: HeaderRightActions,
       headerTitle: HeaderTitle,
       title: 'Git',
@@ -66,7 +64,7 @@ const emptySet = new Set<string>()
 export default Container.connect(
   (state: Container.TypedState, ownProps: OwnProps) => ({
     error: Constants.getError(state),
-    initialExpandedSet: Container.getRouteProps(ownProps, 'expandedSet', emptySet),
+    initialExpandedSet: ownProps.route.params?.expandedSet ?? emptySet,
     loading: anyWaiting(state, Constants.loadingWaitingKey),
     ...getRepos(Constants.getIdToGit(state)),
   }),

@@ -1,11 +1,11 @@
 {
   "prelude": [
-    "import * as Types from '../constants/types/config'",
-    "import * as Tabs from '../constants/tabs'",
-    "import * as ChatTypes from '../constants/types/chat2'",
-    "import * as FsTypes from '../constants/types/fs'",
-    "import HiddenString from '../util/hidden-string'",
-    "import {RPCError} from '../util/errors'"
+    "import type * as Types from '../constants/types/config'",
+    "import type * as Tabs from '../constants/tabs'",
+    "import type * as ChatTypes from '../constants/types/chat2'",
+    "import type * as FsTypes from '../constants/types/fs'",
+    "import type HiddenString from '../util/hidden-string'",
+    "import type {RPCError} from '../util/errors'"
   ],
   "actions": {
     "startHandshake": {
@@ -135,7 +135,7 @@
       "isInit?": "boolean"
     },
     "setDarkModePreference": {
-      "preference": ["'system'", "'alwaysDark'", "'alwaysLight'", "undefined"]
+      "preference": ["'system'", "'alwaysDark'", "'alwaysLight'"]
     },
     "setSystemDarkMode": {"dark": "boolean"},
     "updateHTTPSrvInfo": {
@@ -146,6 +146,14 @@
       "_description": "remote electron window wants props sent",
       "component": "string",
       "param": "string"
+    },
+    "updateWindowShown": {
+      "_description": "a window was shown",
+      "component": "string"
+    },
+    "updateWindowMaxState": {
+      "_description": "main electron window changed max/min",
+      "max": "boolean"
     },
     "updateWindowState": {
       "_description": "main electron window wants to store its state",

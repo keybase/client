@@ -26,7 +26,7 @@ const hgaps = new Map(
   ])
 )
 
-const Box2 = React.forwardRef((props: Box2Props, ref: React.Ref<View>) => {
+const Box2Inner = (props: Box2Props, ref: React.Ref<View>) => {
   const {direction, fullHeight, fullWidth, centerChildren, alignSelf, alignItems, noShrink} = props
   const {collapsable = true} = props
   const {style, onLayout, pointerEvents, children, gap, gapStart, gapEnd} = props
@@ -113,7 +113,8 @@ const Box2 = React.forwardRef((props: Box2Props, ref: React.Ref<View>) => {
       {gappedChildren}
     </View>
   )
-})
+}
+const Box2 = React.forwardRef(Box2Inner)
 
 const common = {
   alignItems: 'stretch',

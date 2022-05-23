@@ -1,9 +1,8 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import * as fs from 'fs'
 import clamp from 'lodash/clamp'
-import {Props} from '.'
+import type {Props} from '.'
 import {ModalTitle} from '../../teams/common'
 import {
   AVATAR_CONTAINER_SIZE,
@@ -11,6 +10,9 @@ import {
   AVATAR_SIZE,
   VIEWPORT_CENTER,
 } from '../../common-adapters/avatar'
+import KB2 from '../../util/electron.desktop'
+
+const {isDirectory} = KB2.functions
 
 type State = {
   dragStartX: number
@@ -37,7 +39,7 @@ type State = {
 
 class EditAvatar extends React.Component<Props, State> {
   private file: HTMLInputElement | null = null
-  private image = React.createRef()
+  private imageRef = React.createRef<Kb.Image>()
   private timerID?: ReturnType<typeof setTimeout>
 
   constructor(props: Props) {
@@ -107,7 +109,7 @@ class EditAvatar extends React.Component<Props, State> {
     this.setState({dropping: false})
   }
 
-  private onDrop = (e: React.DragEvent<any>) => {
+  private onDrop = async (e: React.DragEvent<any>) => {
     this.setState({dropping: false, error: false, loading: true})
     if (!this.validDrag(e)) {
       return
@@ -121,11 +123,8 @@ class EditAvatar extends React.Component<Props, State> {
       for (const path of paths) {
         // Check if any file is a directory and bail out if not
         try {
-          // We do this synchronously
-          // in testing, this is instantaneous
-          // even when dragging many files
-          const stat = fs.lstatSync(path)
-          if (stat.isDirectory()) {
+          const isDir = await (isDirectory?.(path) ?? Promise.resolve(false))
+          if (isDir) {
             // TODO: Show a red error banner on failure: https://zpl.io/2jlkMLm
             return
           }
@@ -159,7 +158,7 @@ class EditAvatar extends React.Component<Props, State> {
     this.setState({error: true, hasPreview: false, loading: false})
   }
 
-  private onImageLoad = (e: React.SyntheticEvent<any>) => {
+  private onImageLoad = (e: React.BaseSyntheticEvent) => {
     // TODO: Make RPC to check file size and warn them before they try submitting.
 
     let height = AVATAR_SIZE
@@ -222,12 +221,12 @@ class EditAvatar extends React.Component<Props, State> {
   }
 
   private onMouseDown = (e: React.MouseEvent) => {
-    if (!this.state.hasPreview || !this.image) return
+    if (!this.state.hasPreview || !this.imageRef) return
 
     // Grab the values now. The event object will be nullified by the time setState is called.
     const {pageX, pageY} = e
 
-    const img = this.image.current
+    const img = this.imageRef.current
 
     this.setState(s => ({
       dragStartX: pageX,
@@ -241,9 +240,9 @@ class EditAvatar extends React.Component<Props, State> {
   }
 
   private onMouseUp = () => {
-    if (!this.state.hasPreview || !this.image) return
+    if (!this.state.hasPreview || !this.imageRef) return
 
-    const img = this.image.current
+    const img = this.imageRef.current
 
     this.setState(s => ({
       // @ts-ignore codemode issue
@@ -416,8 +415,8 @@ class EditAvatar extends React.Component<Props, State> {
                 <Kb.ProgressIndicator type="Large" style={styles.spinner} />
               </Kb.Box2>
             )}
-            <Kb.OrientedImage
-              forwardedRef={this.image}
+            <Kb.Image
+              ref={this.imageRef}
               src={this.state.imageSource}
               style={Styles.platformStyles({
                 isElectron: {
@@ -504,23 +503,25 @@ const hoverStyles = Styles.styleSheetCreate(
     } as const)
 )
 
-const HoverBox = Styles.styled(Kb.Box)(() => ({
-  '&.filled': hoverStyles.filled,
-  '&.filled:active': {cursor: '-webkit-grabbing'},
-  '&.filled:hover': hoverStyles.filledHover,
-  '&:hover': hoverStyles.hover,
-  '&:hover .icon': hoverStyles.hoverIcon,
-  '.dropping &': hoverStyles.dropping,
-  '.dropping & .icon': hoverStyles.droppingIcon,
-  ...hoverStyles.hoverContainer,
-}))
+const HoverBox = Styles.styled(Kb.Box)(
+  () =>
+    ({
+      '&.filled': hoverStyles.filled,
+      '&.filled:active': {cursor: '-webkit-grabbing'},
+      '&.filled:hover': hoverStyles.filledHover,
+      '&:hover': hoverStyles.hover,
+      '&:hover .icon': hoverStyles.hoverIcon,
+      '.dropping &': hoverStyles.dropping,
+      '.dropping & .icon': hoverStyles.droppingIcon,
+      ...hoverStyles.hoverContainer,
+    } as any)
+)
 
 const styles = Styles.styleSheetCreate(() => ({
   container: {
     ...Styles.globalStyles.flexBoxColumn,
     ...Styles.padding(Styles.globalMargins.xlarge, 0),
     alignItems: 'center',
-    minWidth: undefined,
   },
   createdBanner: {
     backgroundColor: Styles.globalColors.green,

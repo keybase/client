@@ -1,10 +1,10 @@
 import React, {Component} from 'react'
 import openURL from '../util/open-url'
 import {fontSizeToSizeStyle, lineClamp, metaData} from './text.meta.native'
-import * as Styles from '../styles'
 import shallowEqual from 'shallowequal'
 import {NativeClipboard, NativeText, NativeAlert} from './native-wrappers.native'
-import {Props, TextType} from './text'
+import type {Props, TextType} from './text'
+import * as Styles from '../styles'
 
 const modes = ['positive', 'negative']
 
@@ -21,7 +21,10 @@ const styles = Styles.styleSheetCreate(() =>
       })
       return map
     },
-    {center: {textAlign: 'center'}}
+    {
+      center: {textAlign: 'center'},
+      fixOverdraw: {backgroundColor: Styles.globalColors.fastBlank},
+    }
   )
 )
 
@@ -89,8 +92,13 @@ class Text extends Component<Props> {
     let style
     if (!Object.keys(dynamicStyle).length) {
       style =
-        this.props.style || this.props.center
-          ? [baseStyle, this.props.center && styles.center, this.props.style]
+        this.props.style || this.props.center || this.props.fixOverdraw
+          ? [
+              baseStyle,
+              this.props.center && styles.center,
+              this.props.fixOverdraw && styles.fixOverdraw,
+              this.props.style,
+            ]
           : baseStyle
     } else {
       style = [baseStyle, dynamicStyle, this.props.center && styles.center, this.props.style]

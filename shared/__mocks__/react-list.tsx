@@ -1,3 +1,4 @@
+/*
 import * as React from 'react'
 import clamp from 'lodash/clamp'
 
@@ -24,3 +25,5 @@ class ReactListMock extends React.Component<Props, {}> {
 }
 
 export default ReactListMock
+*/
+export default {}

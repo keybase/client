@@ -135,8 +135,8 @@ const compressRow = (totalWidth: number, row: Array<Image>) => {
     const totalCompression = groupWidth(compressed) - totalWidth
     // figure out how much we will compress this pass
     let imageComp = Math.ceil(totalCompression / numCompressables(compressed))
-    for (let i = 0; i < compressed.length; i++) {
-      compressed[i].compress(imageComp)
+    for (const c of compressed) {
+      c.compress(imageComp)
       const newWidth = groupWidth(compressed)
       if (newWidth <= totalWidth) {
         // done here, compression has succeeded
@@ -170,8 +170,8 @@ const expandRow = (totalWidth: number, row: Array<Image>) => {
       // if this rounds down into 0, then just set to the remaining distance to be expanded into
       imageExp = totalWidth - groupWidth(expanded)
     }
-    for (let i = 0; i < expanded.length; i++) {
-      expanded[i].expand(imageExp)
+    for (const e of expanded) {
+      e.expand(imageExp)
       if (groupWidth(expanded) >= totalWidth) {
         return expanded
       }

@@ -62,19 +62,13 @@ const ChooseComponent = (props: ChooseComponentProps) => {
 }
 
 ChooseComponent.navigationOptions = (ownProps: OwnProps) => {
-  const path = Container.getRouteProps(ownProps, 'path', Constants.defaultPath)
+  const path = ownProps.route.params?.path ?? Constants.defaultPath
   return Container.isMobile
     ? {
-        header: (
-          <MobileHeader
-            path={path}
-            onBack={ownProps.navigation.isFirstRouteInParent() ? undefined : ownProps.navigation.pop}
-          />
-        ),
+        header: () => <MobileHeader path={path} onBack={ownProps.navigation.pop} />,
         useHeaderHeight: () => useMobileHeaderHeight(path),
       }
     : {
-        header: undefined,
         headerRightActions: () => <Actions path={path} onTriggerFilterMobile={() => {}} />,
         headerTitle: () => <Title path={path} />,
         subHeader: MainBanner,
@@ -82,11 +76,11 @@ ChooseComponent.navigationOptions = (ownProps: OwnProps) => {
       }
 }
 
-type OwnProps = Container.RouteProps<{path: Types.Path}>
+type OwnProps = Container.RouteProps<'fsRoot'>
 
 const Connected = Container.connect(
   (state, ownProps: OwnProps) => {
-    const path = Container.getRouteProps(ownProps, 'path', Constants.defaultPath)
+    const path = ownProps.route.params?.path ?? Constants.defaultPath
     return {
       _pathItem: Constants.getPathItem(state.fs.pathItems, path),
       kbfsDaemonStatus: state.fs.kbfsDaemonStatus,
@@ -94,7 +88,7 @@ const Connected = Container.connect(
   },
   (dispatch, ownProps) => ({
     emitBarePreview: () => {
-      const path = Container.getRouteProps(ownProps, 'path', Constants.defaultPath)
+      const path = ownProps.route.params?.path ?? Constants.defaultPath
       dispatch(RouteTreeGen.createNavigateUp())
       dispatch(
         RouteTreeGen.createNavigateAppend({
@@ -104,7 +98,7 @@ const Connected = Container.connect(
     },
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => {
-    const path = Container.getRouteProps(ownProps, 'path', Constants.defaultPath)
+    const path = ownProps.route.params?.path ?? Constants.defaultPath
     const isDefinitelyFolder =
       Types.getPathElements(path).length <= 3 && !Constants.hasSpecialFileElement(path)
     return {

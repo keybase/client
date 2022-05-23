@@ -18,6 +18,7 @@ type TextProps = {
   fixOverdraw?: boolean
   fontSize?: number
   onClick?: ((event: React.BaseSyntheticEvent) => void) | null
+  onLongPress?: (event: React.BaseSyntheticEvent) => void
   opacity?: boolean
   sizeType: SizeType
   style?: Props['style']
@@ -75,6 +76,7 @@ const Text = React.forwardRef<NativeText, TextProps>((p, ref) => {
       allowFontScaling={false}
       ref={ref}
       onPress={p.onClick || undefined}
+      onLongPress={p.onLongPress}
       suppressHighlighting={true}
     >
       {p.children}
@@ -150,6 +152,7 @@ const Icon = React.memo<Props>(
           fontSize={p.fontSize}
           sizeType={sizeType}
           onClick={p.onClick}
+          onLongPress={p.onLongPress}
         >
           {code}
         </Text>

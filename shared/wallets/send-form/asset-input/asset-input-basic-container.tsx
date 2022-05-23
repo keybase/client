@@ -6,44 +6,42 @@ import * as Constants from '../../../constants/wallets'
 
 type OwnProps = {}
 
-const mapStateToProps = state => {
-  const {amount, currency} = state.wallets.building
-  return {
-    bottomLabel: '', // TODO
-    currencyLoading: currency === '',
-    displayUnit: Constants.getCurrencyAndSymbol(state, currency) || currency,
-    // TODO differentiate between an asset (7 digits) and a display currency (2 digits) below
-    numDecimalsAllowed: Constants.numDecimalsAllowedForCurrency(currency),
-    topLabel: '', // TODO
-    value: amount,
-  }
-}
-
-const mapDispatchToProps = dispatch => ({
-  onChangeAmount: (amount: string) => dispatch(WalletsGen.createSetBuildingAmount({amount})),
-  onChangeDisplayUnit: () => {
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [
-          {
-            props: {},
-            selected: Constants.chooseAssetFormRouteKey,
-          },
-        ],
-      })
-    )
+export default Container.connect(
+  state => {
+    const {amount, currency} = state.wallets.building
+    return {
+      bottomLabel: '', // TODO
+      currencyLoading: currency === '',
+      displayUnit: Constants.getCurrencyAndSymbol(state, currency) || currency,
+      // TODO differentiate between an asset (7 digits) and a display currency (2 digits) below
+      numDecimalsAllowed: Constants.numDecimalsAllowedForCurrency(currency),
+      topLabel: '', // TODO
+      value: amount,
+    }
   },
-})
-
-const mergeProps = (stateProps, dispatchProps, _: OwnProps) => ({
-  bottomLabel: stateProps.bottomLabel,
-  currencyLoading: stateProps.currencyLoading,
-  displayUnit: stateProps.displayUnit,
-  numDecimalsAllowed: stateProps.numDecimalsAllowed,
-  onChangeAmount: dispatchProps.onChangeAmount,
-  onChangeDisplayUnit: dispatchProps.onChangeDisplayUnit,
-  topLabel: stateProps.topLabel,
-  value: stateProps.value,
-})
-
-export default Container.connect(mapStateToProps, mapDispatchToProps, mergeProps)(AssetInputBasic)
+  dispatch => ({
+    onChangeAmount: (amount: string) => dispatch(WalletsGen.createSetBuildingAmount({amount})),
+    onChangeDisplayUnit: () => {
+      dispatch(
+        RouteTreeGen.createNavigateAppend({
+          path: [
+            {
+              props: {},
+              selected: Constants.chooseAssetFormRouteKey,
+            },
+          ],
+        })
+      )
+    },
+  }),
+  (stateProps, dispatchProps, _: OwnProps) => ({
+    bottomLabel: stateProps.bottomLabel,
+    currencyLoading: stateProps.currencyLoading,
+    displayUnit: stateProps.displayUnit,
+    numDecimalsAllowed: stateProps.numDecimalsAllowed,
+    onChangeAmount: dispatchProps.onChangeAmount,
+    onChangeDisplayUnit: dispatchProps.onChangeDisplayUnit,
+    topLabel: stateProps.topLabel,
+    value: stateProps.value,
+  })
+)(AssetInputBasic)

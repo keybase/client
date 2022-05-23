@@ -1,7 +1,7 @@
 import * as Constants from '../../../constants/chat2'
 import * as React from 'react'
 import * as Chat2Gen from '../../../actions/chat2-gen'
-import * as Types from '../../../constants/types/chat2'
+import type * as Types from '../../../constants/types/chat2'
 import * as Container from '../../../util/container'
 import * as Kb from '../../../common-adapters'
 import {InviteBanner} from '.'
@@ -95,12 +95,19 @@ export default Container.connect(
       dismissed: stateProps._dismissed,
       hasMessages: stateProps.hasMessages,
       onDismiss: dispatchProps.onDismiss,
-      openSMS: (phoneNumber: string) => openSMS(['+' + phoneNumber], installMessage),
-      openShareSheet: () =>
+      openSMS: (phoneNumber: string) => {
+        openSMS(['+' + phoneNumber], installMessage)
+          .then(() => {})
+          .catch(() => {})
+      },
+      openShareSheet: () => {
         showShareActionSheet({
           message: installMessage,
           mimeType: 'text/plain',
-        }),
+        })
+          .then(() => {})
+          .catch(() => {})
+      },
       type,
       usernameToContactName: stateProps._participantInfo.contactName,
       users,

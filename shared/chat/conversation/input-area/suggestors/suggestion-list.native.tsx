@@ -1,11 +1,11 @@
-import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
-import {NativeFlatList} from '../../../../common-adapters/native-wrappers.native'
-import * as Styles from '../../../../styles'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
-import {Props} from './suggestion-list'
-import {BotCommandUpdateStatus} from '../normal/shared'
+import * as React from 'react'
+import * as Styles from '../../../../styles'
 import noop from 'lodash/noop'
+import type {Props} from './suggestion-list'
+import {BotCommandUpdateStatus} from '../normal/shared'
+import {NativeFlatList} from '../../../../common-adapters/native-wrappers.native'
 
 const SuggestionList = (props: Props) => (
   <Kb.Box2

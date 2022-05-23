@@ -12,11 +12,11 @@ import {imgMaxWidthRaw} from '../messages/attachment/image/image-render'
 
 const blankMessage = Constants.makeMessageAttachment({})
 
-type OwnProps = Container.RouteProps<{conversationIDKey: Types.ConversationIDKey; ordinal: Types.Ordinal}>
+type OwnProps = Container.RouteProps<'chatAttachmentFullscreen'>
 
 const Connected = (props: OwnProps) => {
-  const conversationIDKey = Container.getRouteProps(props, 'conversationIDKey', Constants.noConversationIDKey)
-  const inOrdinal = Container.getRouteProps(props, 'ordinal', 0)
+  const conversationIDKey = props.route.params?.conversationIDKey ?? Constants.noConversationIDKey
+  const inOrdinal = props.route.params?.ordinal ?? 0
   const [ordinal, setOrdinal] = React.useState(inOrdinal)
   const [autoPlay, setAutoPlay] = React.useState(true)
   const dispatch = Container.useDispatch()
@@ -41,7 +41,7 @@ const Connected = (props: OwnProps) => {
 
   const submit = Container.useRPC(RPCChatTypes.localGetNextAttachmentMessageLocalRpcPromise)
 
-  const onSwitchAttachment = async (backInTime: boolean) => {
+  const onSwitchAttachment = (backInTime: boolean) => {
     if (conversationIDKey !== blankMessage.conversationIDKey) {
       submit(
         [

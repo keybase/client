@@ -7,6 +7,7 @@ export type UploadProps = {
   totalSyncingBytes: number
   timeLeft: string
   debugToggleShow?: () => void
+  smallMode?: boolean
 }
 
 export default class extends React.PureComponent<UploadProps> {}

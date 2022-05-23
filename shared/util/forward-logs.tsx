@@ -18,7 +18,7 @@ const {localLog, localWarn, localError} = isMobile
       localWarn: console.warn.bind(console) as Log,
     }
 
-const writeLogLinesToFile: (lines: Array<LogLineWithLevelISOTimestamp>) => Promise<void> = (
+const writeLogLinesToFile: (lines: Array<LogLineWithLevelISOTimestamp>) => Promise<void> = async (
   lines: Array<LogLineWithLevelISOTimestamp>
 ) => {
   if (!isMobile) {

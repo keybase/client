@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
-import {IconType} from '../common-adapters/icon.constants-gen'
+import type {IconType} from '../common-adapters/icon.constants-gen'
 
 type Props = {
   children?: React.ReactNode
@@ -80,51 +80,54 @@ const NewFeature = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  badgeContainerStyle: {
-    color: Styles.globalColors.transparent,
-  },
-  badgeStyle: {
-    backgroundColor: Styles.globalColors.blue,
-    marginRight: Styles.globalMargins.xsmall,
-    marginTop: 13,
-  },
-  buttonRowContainer: {
-    ...Styles.globalStyles.flexWrap,
-    alignSelf: 'flex-start',
-    justifyContent: 'space-between',
-  },
-  buttons: {
-    // Apply margins to buttons so that when they wrap there is vertical space between them
-    marginTop: Styles.globalMargins.xsmall,
-  },
-  contentContainer: Styles.platformStyles({
-    common: {
-      ...Styles.globalStyles.rounded,
-      backgroundColor: Styles.globalColors.white,
-      flexShrink: 1,
-      paddingBottom: Styles.globalMargins.tiny,
-      paddingLeft: Styles.globalMargins.small,
-      paddingRight: Styles.globalMargins.small,
-      paddingTop: Styles.globalMargins.tiny,
-    },
-    isTablet: {
-      maxWidth: 460,
-    },
-  }),
-  image: {
-    alignSelf: 'center',
-    maxHeight: 150,
-    maxWidth: 300,
-  },
-  imageContainer: Styles.platformStyles({
-    common: {
-      marginTop: Styles.globalMargins.tiny,
-    },
-  }),
-  rowContainer: {
-    alignSelf: 'flex-start',
-  },
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      badgeContainerStyle: {
+        color: Styles.globalColors.transparent,
+      },
+      badgeStyle: {
+        backgroundColor: Styles.globalColors.blue,
+        marginRight: Styles.globalMargins.xsmall,
+        marginTop: 13,
+      },
+      buttonRowContainer: {
+        ...Styles.globalStyles.flexWrap,
+        alignSelf: 'flex-start',
+        justifyContent: 'space-between',
+      },
+      buttons: {
+        // Apply margins to buttons so that when they wrap there is vertical space between them
+        marginTop: Styles.globalMargins.xsmall,
+      },
+      contentContainer: Styles.platformStyles({
+        common: {
+          ...Styles.globalStyles.rounded,
+          backgroundColor: Styles.globalColors.white,
+          flexShrink: 1,
+          paddingBottom: Styles.globalMargins.tiny,
+          paddingLeft: Styles.globalMargins.small,
+          paddingRight: Styles.globalMargins.small,
+          paddingTop: Styles.globalMargins.tiny,
+        },
+        isTablet: {
+          maxWidth: 460,
+        },
+      }),
+      image: {
+        alignSelf: 'center',
+        maxHeight: 150,
+        maxWidth: 300,
+      },
+      imageContainer: Styles.platformStyles({
+        common: {
+          marginTop: Styles.globalMargins.tiny,
+        },
+      }),
+      rowContainer: {
+        alignSelf: 'flex-start',
+      },
+    } as const)
+)
 
 export default NewFeature

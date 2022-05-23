@@ -5,8 +5,7 @@ import fs from 'fs'
 
 type ActionNS = string
 type ActionName = string
-type ActionDesc = any
-
+type ActionDesc = {[K in string]: string | Array<string>}
 type Actions = {[K in ActionName]: ActionDesc}
 
 type FileDesc = {
@@ -18,9 +17,9 @@ type CompileActionFn = (ns: ActionNS, actionName: ActionName, desc: ActionDesc) 
 
 const reservedPayloadKeys = ['_description']
 const typeMap: Array<string> = []
-const cleanName = c => c.replace(/-/g, '')
+const cleanName = (c: string) => c.replace(/-/g, '')
 
-const payloadHasType = (payload, toFind) => {
+const payloadHasType = (payload: ActionDesc, toFind: RegExp) => {
   return Object.keys(payload).some(param => {
     const ps = payload[param]
     if (Array.isArray(ps)) {
@@ -30,12 +29,12 @@ const payloadHasType = (payload, toFind) => {
     }
   })
 }
-const actionHasType = (actions, toFind) =>
+const actionHasType = (actions: Actions, toFind: RegExp) =>
   Object.keys(actions).some(key => payloadHasType(actions[key], toFind))
 
 function compile(ns: ActionNS, {prelude, actions}: FileDesc): string {
   const rpcGenImport = actionHasType(actions, /(^|\W)RPCTypes\./)
-    ? "import * as RPCTypes from '../constants/types/rpc-gen'"
+    ? "import type * as RPCTypes from '../constants/types/rpc-gen'"
     : ''
 
   return `// NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
@@ -57,7 +56,7 @@ ${compileActions(ns, actions, compileActionCreator)}
 ${compileActions(ns, actions, compileActionPayloads)}
 
 // All Actions
-${compileAllActionsType(actions)}  | {type: 'common:resetStore', payload: {}}
+${compileAllActionsType(actions)}  | {readonly type: 'common:resetStore', readonly payload: undefined}
 `
 }
 
@@ -89,23 +88,26 @@ function capitalize(s: string): string {
   return s[0].toUpperCase() + s.slice(1)
 }
 
-function payloadKeys(p: Object) {
+function payloadKeys(p: ActionDesc) {
   return Object.keys(p).filter(key => !reservedPayloadKeys.includes(key))
 }
 
-function payloadOptional(p: Object) {
+function payloadOptional(p: ActionDesc) {
   const keys = payloadKeys(p)
   return keys.length && keys.every(key => key.endsWith('?'))
 }
 
-function printPayload(p: Object) {
+function printPayload(p: ActionDesc) {
   return payloadKeys(p).length
     ? '{' +
         payloadKeys(p)
-          .map(key => `readonly ${key}: ${Array.isArray(p[key]) ? p[key].join(' | ') : p[key]}`)
+          .map(key => {
+            const val = p[key]
+            return `readonly ${key}: ${Array.isArray(val) ? val.join(' | ') : val}`
+          })
           .join(',\n') +
         '}'
-    : 'void'
+    : 'undefined'
 }
 
 function compileActionPayloads(_: ActionNS, actionName: ActionName) {
@@ -126,9 +128,11 @@ function compileActionCreator(_: ActionNS, actionName: ActionName, desc: ActionD
      */
     `
       : '') +
-    `export const create${capitalize(actionName)} = (payload: _${capitalize(actionName)}Payload${
-      payloadOptional(desc) ? ' = Object.freeze({})' : ''
-    }): ${capitalize(actionName)}Payload => (
+    `export const create${capitalize(actionName)} = (payload${
+      payloadKeys(desc).length ? '' : '?'
+    }: _${capitalize(actionName)}Payload${payloadOptional(desc) ? ' = Object.freeze({})' : ''}): ${capitalize(
+      actionName
+    )}Payload => (
   { payload, type: ${actionName}, }
 )`
   )
@@ -138,7 +142,7 @@ function compileReduxTypeConstant(ns: ActionNS, actionName: ActionName, _: Actio
   return `export const ${actionName} = '${ns}:${actionName}'`
 }
 
-function makeTypedActions(created) {
+function makeTypedActions(created: Array<string>) {
   return `// NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
 /* eslint-disable no-unused-vars,no-use-before-define */
   ${created.map(c => `import * as ${cleanName(c)} from './${c}-gen'`).join('\n')}
@@ -146,7 +150,7 @@ function makeTypedActions(created) {
   export type TypedActions = ${created.map(c => `${cleanName(c)}.Actions`).join(' | ')}
 
   export type TypedActionsMap = {${typeMap.join(',\n')},
-    'common:resetStore': {type: 'common:resetStore', payload: {}}
+    'common:resetStore': {readonly type: 'common:resetStore', readonly payload: undefined}
   }
 `
 }
@@ -161,9 +165,9 @@ function main() {
       const ns = path.basename(file, '.json')
       created.push(ns)
       console.log(`Generating ${ns}`)
-      const desc = json5.parse(fs.readFileSync(path.join(root, file), {encoding: 'utf8'}))
+      const desc: FileDesc = json5.parse(fs.readFileSync(path.join(root, file), {encoding: 'utf8'}))
       const outPath = path.join(root, '..', ns + '-gen.tsx')
-      const generated = prettier.format(compile(ns, desc), {
+      const generated: string = prettier.format(compile(ns, desc), {
         ...prettier.resolveConfig.sync(outPath),
         parser: 'typescript',
       })
@@ -174,7 +178,7 @@ function main() {
   console.log(`Generating typed-actions-gen`)
   const outPath = path.join(root, '..', 'typed-actions-gen.tsx')
   const typedActions = makeTypedActions(created)
-  const generated = prettier.format(typedActions, {
+  const generated: string = prettier.format(typedActions, {
     ...prettier.resolveConfig.sync(outPath),
     parser: 'typescript',
   })

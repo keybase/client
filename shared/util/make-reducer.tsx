@@ -1,5 +1,5 @@
-import {TypedActionsMap, TypedActions} from '../actions/typed-actions-gen'
-import {produce, Draft} from 'immer'
+import type {TypedActionsMap, TypedActions} from '../actions/typed-actions-gen'
+import {produce, type Draft} from 'immer'
 
 type GetTypes<A> = A extends {type: string} ? A['type'] : never
 
@@ -22,9 +22,7 @@ function makeReducer<A, S>(
     if (!actionReducer) {
       return state
     }
-    return produce(state, (draft: Draft<S>) => {
-      return actionReducer(draft, action)
-    })
+    return produce(state, (draft: Draft<S>) => actionReducer(draft, action))
   }
 }
 

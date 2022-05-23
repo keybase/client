@@ -1,8 +1,6 @@
 import logger from '../logger'
-import * as Types from '../constants/types/config'
 import * as Constants from '../constants/config'
 import * as ChatConstants from '../constants/chat2'
-import * as Tracker2Gen from '../actions/tracker2-gen'
 import * as DevicesGen from '../actions/devices-gen'
 import * as EngineGen from '../actions/engine-gen-gen'
 import * as GregorGen from '../actions/gregor-gen'
@@ -10,6 +8,8 @@ import * as ConfigGen from '../actions/config-gen'
 import * as Stats from '../engine/stats'
 import * as Container from '../util/container'
 import * as RPCTypes from '../constants/types/rpc-gen'
+import type * as Types from '../constants/types/config'
+import type * as Tracker2Gen from '../actions/tracker2-gen'
 import {isEOFError, isErrorTransient} from '../util/errors'
 import {isMobile} from '../constants/platform'
 import {_setSystemIsDarkMode, _setDarkModePreference} from '../styles/dark-mode'
@@ -67,6 +67,14 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
     draftState.daemonHandshakeRetriesLeft = Constants.maxHandshakeTries
     draftState.daemonHandshakeState = 'starting'
   },
+  [ConfigGen.updateWindowMaxState]: (draftState, action) => {
+    draftState.mainWindowMax = action.payload.max
+  },
+  [ConfigGen.updateWindowShown]: (draftState, action) => {
+    const count = draftState.windowShownCount.get(action.payload.component) ?? 0
+    draftState.windowShownCount.set(action.payload.component, count + 1)
+  },
+
   [ConfigGen.logoutHandshake]: (draftState, action) => {
     draftState.logoutHandshakeVersion = action.payload.version
     draftState.logoutHandshakeWaiters = new Map()

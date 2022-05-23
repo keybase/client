@@ -80,7 +80,7 @@ const upperCaseFirst = {
 
 const formatRelativeCalendarForFS = (dontUpperCase: boolean, token: string, date: Date, baseDate: Date) => {
   if (token === 'other') {
-    return dateFns.isSameYear(date, baseDate) ? "EEE MMM d yyyy 'at' p" : "EEE MMM d 'at' p"
+    return dateFns.isSameYear(date, baseDate) ? "EEE MMM d 'at' p" : "EEE MMM d yyyy 'at' p"
   }
 
   return dontUpperCase ? noUpperCaseFirst[token] : upperCaseFirst[token]
