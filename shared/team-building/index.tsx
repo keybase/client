@@ -26,7 +26,6 @@ import {formatAnyPhoneNumbers} from '../util/phone-numbers'
 import {getTeamMeta, getTeamDetails} from '../constants/teams'
 import {memoize} from '../util/memoize'
 import {noTeamID} from '../constants/types/teams'
-import {numSectionLabel} from './recs-and-recos'
 import {requestIdleCallback} from '../util/idle-callback'
 import {serviceIdToSearchPlaceholder} from './shared'
 import {useRoute} from '@react-navigation/native'
@@ -58,7 +57,6 @@ const expensiveDeriveResults = (
   })
 
 const deriveSearchResults = memoize(expensiveDeriveResults)
-const deriveRecommendation = memoize(expensiveDeriveResults)
 
 const deriveTeamSoFar = memoize(
   (teamSoFar: Set<TeamBuildingTypes.User>): Array<TeamBuildingTypes.SelectedUser> =>
@@ -123,88 +121,6 @@ const deriveUserFromUserIdFn = memoize(
 )
 
 const emptyMap = new Map()
-
-const alphabet = 'abcdefghijklmnopqrstuvwxyz'
-const aCharCode = alphabet.charCodeAt(0)
-const alphaSet = new Set(alphabet)
-const isAlpha = (letter: string) => alphaSet.has(letter)
-const letterToAlphaIndex = (letter: string) => letter.charCodeAt(0) - aCharCode
-
-// Returns array with 28 entries
-// 0 - "Recommendations" section
-// 1-26 - a-z sections
-// 27 - 0-9 section
-export const sortAndSplitRecommendations = memoize(
-  (
-    results: Unpacked<typeof deriveSearchResults>,
-    showingContactsButton: boolean
-  ): Array<Types.SearchRecSection> | null => {
-    if (!results) return null
-
-    const sections: Array<Types.SearchRecSection> = [
-      ...(showingContactsButton
-        ? [
-            {
-              data: [{isImportButton: true as const}],
-              label: '',
-              shortcut: false,
-            },
-          ]
-        : []),
-
-      {
-        data: [],
-        label: 'Recommendations',
-        shortcut: false,
-      },
-    ]
-    const recSectionIdx = sections.length - 1
-    const numSectionIdx = recSectionIdx + 27
-    results.forEach(rec => {
-      if (!rec.contact) {
-        sections[recSectionIdx].data.push(rec)
-        return
-      }
-      if (rec.prettyName || rec.displayLabel) {
-        // Use the first letter of the name we will display, but first normalize out
-        // any diacritics.
-        const decodedLetter = /*unidecode*/ rec.prettyName || rec.displayLabel
-        if (decodedLetter && decodedLetter[0]) {
-          const letter = decodedLetter[0].toLowerCase()
-          if (isAlpha(letter)) {
-            // offset 1 to skip recommendations
-            const sectionIdx = letterToAlphaIndex(letter) + recSectionIdx + 1
-            if (!sections[sectionIdx]) {
-              sections[sectionIdx] = {
-                data: [],
-                label: letter.toUpperCase(),
-                shortcut: true,
-              }
-            }
-            sections[sectionIdx].data.push(rec)
-          } else {
-            if (!sections[numSectionIdx]) {
-              sections[numSectionIdx] = {
-                data: [],
-                label: numSectionLabel,
-                shortcut: true,
-              }
-            }
-            sections[numSectionIdx].data.push(rec)
-          }
-        }
-      }
-    })
-    if (results.length < 5) {
-      sections.push({
-        data: [{isSearchHint: true as const}],
-        label: '',
-        shortcut: false,
-      })
-    }
-    return sections.filter(s => s && s.data && s.data.length > 0)
-  }
-)
 
 const makeDebouncedSearch = (time: number) =>
   debounce(
@@ -364,22 +280,10 @@ const TeamBuilding = () => {
     teamID ? getTeamDetails(state, teamID) : undefined
   )
   const preExistingTeamMembers: TeamTypes.TeamDetails['members'] = maybeTeamDetails?.members ?? emptyMap
-  const contactsImported = Container.useSelector(state => state.settings.contacts.importEnabled)
-  const contactsPermissionStatus = Container.useSelector(state => state.settings.contacts.permissionStatus)
   const username = Container.useSelector(state => state.config.username)
   const following = Container.useSelector(state => state.config.following)
 
-  const showingContactsButton =
-    Container.isMobile && contactsPermissionStatus !== 'never_ask_again' && !contactsImported
-
   const error = teamBuildingState.error
-  const _recommendations = deriveRecommendation(
-    teamBuildingState.userRecs,
-    teamBuildingState.teamSoFar,
-    username,
-    following,
-    preExistingTeamMembers
-  )
   const searchResults = deriveSearchResults(
     userResults,
     teamBuildingState.teamSoFar,
@@ -417,11 +321,6 @@ const TeamBuilding = () => {
     dispatch(TeamBuildingGen.createRemoveUsersFromTeamSoFar({namespace, users: [userId]}))
   }
 
-  const showRecs = !searchString && !!_recommendations && selectedService === 'keybase'
-  const recommendations = showRecs
-    ? sortAndSplitRecommendations(_recommendations, showingContactsButton)
-    : null
-  // const userResultsToShow = showRecs ? flattenRecommendations(recommendations || []) : searchResults
   const onChangeText = (newText: string) => {
     setSearchString(newText)
     search(newText, selectedService)
@@ -529,7 +428,6 @@ const TeamBuilding = () => {
             enterInputCounter={enterInputCounter}
             namespace={namespace}
             searchString={searchString}
-            recommendations={recommendations /* TODO */}
             selectedService={selectedService}
             searchResults={searchResults /* TODO*/}
             highlightedIndex={highlightedIndex /* TODO */}

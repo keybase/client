@@ -1,3 +1,4 @@
+import type {TeamBuilderProps} from '../team-building/container'
 import {isPhone} from '../constants/platform'
 import type CreateNewAccount from './create-account/container'
 import type LinkExisting from './link-existing/container'
@@ -16,7 +17,6 @@ import type WhatIsStellarModal from './what-is-stellar-modal'
 import type Settings from './wallet/settings/container'
 import type TransactionDetails from './transaction-details/container'
 import type TeamBuilder from '../team-building/container'
-import type * as TeamBuildingTypes from '../constants/types/team-building'
 import type * as Types from '../constants/types/wallets'
 
 export const sharedRoutes = {
@@ -72,14 +72,6 @@ export const newModalRoutes = {
     getScreen: (): typeof WhatIsStellarModal => require('./what-is-stellar-modal').default,
   },
 }
-
-type TeamBuilderProps = Partial<{
-  namespace: TeamBuildingTypes.AllowedNamespace
-  teamID: string
-  filterServices: Array<TeamBuildingTypes.ServiceIdWithContact>
-  goButtonLabel: TeamBuildingTypes.GoButtonLabel
-  title: string
-}>
 
 // TODO fix up the missing prefix on these routes
 export type RootParamListWallets = {
