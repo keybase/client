@@ -3,7 +3,7 @@ import * as Kb from '../../../../../common-adapters/mobile.native'
 import * as Styles from '../../../../../styles'
 import {memoize} from '../../../../../util/memoize'
 import logger from '../../../../../logger'
-import {Video} from 'expo-av'
+import {Video, AVPlaybackStatus} from 'expo-av'
 import type {Props} from './image-render.types'
 
 type State = {
@@ -35,6 +35,16 @@ export class ImageRender extends React.Component<Props, State> {
 
   private getSizeStyle = memoize((s, height, width) => Styles.collapseStyles([s, {height, width}]))
   private getFISource = memoize(uri => ({uri}))
+  _videoRef = React.createRef<Video>()
+  _onPlaybackStatusUpdate = async (status: AVPlaybackStatus) => {
+    if (!status.isLoaded) {
+      return
+    }
+
+    if (status.didJustFinish) {
+      await this._videoRef.current?.setPositionAsync(0)
+    }
+  }
 
   render() {
     if (this.props.inlineVideoPlayable && this.props.videoSrc.length > 0) {
@@ -48,6 +58,8 @@ export class ImageRender extends React.Component<Props, State> {
         >
           {this.state.showVideo ? (
             <Video
+              ref={this._videoRef}
+              onPlaybackStatusUpdate={this._onPlaybackStatusUpdate}
               source={source}
               useNativeControls={true}
               onLoad={this._allLoads}
