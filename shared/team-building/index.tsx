@@ -249,9 +249,6 @@ const TeamBuilding = () => {
   const teamSoFar = deriveTeamSoFar(teamBuildingState.teamSoFar)
   const userFromUserId = deriveUserFromUserIdFn(userResults, teamBuildingState.userRecs)
 
-  const _onAdd = (user: TeamBuildingTypes.User) => {
-    dispatch(TeamBuildingGen.createAddUsersToTeamSoFar({namespace, users: [user]}))
-  }
   const onClose = () => {
     dispatch(TeamBuildingGen.createCancelTeamBuilding({namespace}))
   }
@@ -295,7 +292,7 @@ const TeamBuilding = () => {
       return
     }
     onChangeText('')
-    _onAdd(user)
+    dispatch(TeamBuildingGen.createAddUsersToTeamSoFar({namespace, users: [user]}))
     setHighlightedIndex(-1)
     incFocusInputCounter()
   }
@@ -309,10 +306,9 @@ const TeamBuilding = () => {
   }
 
   const route = useRoute<RootRouteProps<'peopleTeamBuilder'>>()
-
-  const maybeTeamMeta = Container.useSelector(state => (teamID ? getTeamMeta(state, teamID) : undefined))
-  const teamname = maybeTeamMeta?.teamname
-  const title = namespace === 'teams' ? `Add to ${teamname}` : route.params?.title ?? ''
+  const title = Container.useSelector(state =>
+    namespace === 'teams' ? `Add to ${getTeamMeta(state, teamID ?? '').teamname}` : route.params?.title ?? ''
+  )
 
   const waitingForCreate = Container.useSelector(state =>
     WaitingConstants.anyWaiting(state, ChatConstants.waitingKeyCreating)
