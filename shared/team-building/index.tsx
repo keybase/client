@@ -54,17 +54,6 @@ const deriveTeamSoFar = memoize(
     })
 )
 
-const deriveUserFromUserIdFn = memoize(
-  (
-      searchResults: Array<TeamBuildingTypes.User> | undefined,
-      recommendations: Array<TeamBuildingTypes.User> | undefined
-    ) =>
-    (userId: string): TeamBuildingTypes.User | null =>
-      (searchResults || []).filter(u => u.id === userId)[0] ||
-      (recommendations || []).filter(u => u.id === userId)[0] ||
-      null
-)
-
 const makeDebouncedSearch = (time: number) =>
   debounce(
     (
@@ -76,15 +65,7 @@ const makeDebouncedSearch = (time: number) =>
       limit?: number
     ) => {
       requestIdleCallback(() => {
-        dispatch(
-          TeamBuildingGen.createSearch({
-            includeContacts,
-            limit,
-            namespace,
-            query,
-            service,
-          })
-        )
+        dispatch(TeamBuildingGen.createSearch({includeContacts, limit, namespace, query, service}))
       })
     },
     time
@@ -123,14 +104,12 @@ const TeamBuilding = () => {
   }, [setEnterInputCounter])
 
   const teamBuildingState = Container.useSelector(state => state[namespace].teamBuilding)
-  const teamBuildingSearchResults = teamBuildingState.searchResults
   const userResults: Array<TeamBuildingTypes.User> | undefined = teamBuildingState.searchResults
     .get(trim(searchString))
     ?.get(selectedService)
 
   const error = teamBuildingState.error
   const teamSoFar = deriveTeamSoFar(teamBuildingState.teamSoFar)
-  const userFromUserId = deriveUserFromUserIdFn(userResults, teamBuildingState.userRecs)
 
   const onClose = () => {
     dispatch(TeamBuildingGen.createCancelTeamBuilding({namespace}))
@@ -168,7 +147,10 @@ const TeamBuilding = () => {
     }
   }
   const onAdd = (userId: string) => {
-    const user = userFromUserId(userId)
+    const user =
+      userResults?.filter(u => u.id === userId)?.[0] ??
+      teamBuildingState.userRecs?.filter(u => u.id === userId)?.[0]
+
     if (!user) {
       logger.error(`Couldn't find Types.User to add for ${userId}`)
       onChangeText('')
@@ -217,7 +199,6 @@ const TeamBuilding = () => {
         <EmailSearch
           continueLabel={teamSoFar.length > 0 ? 'Add' : 'Continue'}
           namespace={namespace}
-          teamBuildingSearchResults={teamBuildingSearchResults}
           search={search}
         />
       )
@@ -228,7 +209,6 @@ const TeamBuilding = () => {
           continueLabel={teamSoFar.length > 0 ? 'Add' : 'Continue'}
           namespace={namespace}
           search={search}
-          teamBuildingSearchResults={teamBuildingSearchResults}
         />
       )
       break

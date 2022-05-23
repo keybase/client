@@ -13,11 +13,13 @@ type PhoneSearchProps = {
   continueLabel: string
   namespace: AllowedNamespace
   search: (query: string, service: 'phone') => void
-  teamBuildingSearchResults: Types.SearchResults
 }
 
 const PhoneSearch = (props: PhoneSearchProps) => {
   const {namespace} = props
+  const teamBuildingSearchResults = Container.useSelector(
+    state => state[namespace].teamBuilding.searchResults
+  )
   const [isPhoneValid, setPhoneValidity] = React.useState(false)
   const [phoneNumber, setPhoneNumber] = React.useState('')
   const [phoneInputKey, setPhoneInputKey] = React.useState(0)
@@ -39,7 +41,7 @@ const PhoneSearch = (props: PhoneSearchProps) => {
   }
 
   const user: Types.User | undefined = isPhoneValid
-    ? props.teamBuildingSearchResults.get(phoneNumber)?.get('phone')?.[0]
+    ? teamBuildingSearchResults.get(phoneNumber)?.get('phone')?.[0]
     : undefined
 
   const canSubmit = !!user && !waiting && isPhoneValid
