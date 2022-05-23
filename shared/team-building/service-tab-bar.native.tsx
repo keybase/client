@@ -24,7 +24,7 @@ const smallWidth = serviceMinWidthWhenSmall(Styles.dimensionWidth)
 const bigWidth = Math.max(smallWidth, 92)
 const AnimatedBox2 = Kb.ReAnimated.createAnimatedComponent(Kb.Box2)
 
-// On tablet add an additional "serivce" item that is only a bottom border that extends to the end of the ScrollView
+// On tablet add an additional "service" item that is only a bottom border that extends to the end of the ScrollView
 const TabletBottomBorderExtension = React.memo((props: {offset: number; servicesCount: number}) => {
   const translateY = Kb.ReAnimated.interpolateNode(props.offset, {
     inputRange: [-100, 0, 100, 9999],
@@ -99,12 +99,6 @@ const ServiceIcon = React.memo((props: IconProps) => {
             </Kb.Box2>
           </Kb.Box2>
         </AnimatedBox2>
-        {!!props.showCount && props.count === null && (
-          <Kb.Animation animationType="spinner" style={styles.pendingAnimation} />
-        )}
-        {!!props.showCount && props.count !== null && (
-          <Kb.Text type="BodyTinySemibold">{props.count && props.count === 11 ? '10+' : props.count}</Kb.Text>
-        )}
       </AnimatedBox2>
       <AnimatedBox2
         direction="horizontal"
@@ -118,8 +112,6 @@ const ServiceIcon = React.memo((props: IconProps) => {
     </Kb.ClickableBox>
   )
 })
-
-const undefToNull = (n: number | undefined | null): number | null => (n === undefined ? null : n)
 
 const delay = (after: Kb.ReAnimated.Adaptable<number>) => {
   const {greaterOrEq, Clock, Value, startClock, stopClock, cond, set, defined, block, add} = Kb.ReAnimated
@@ -201,8 +193,6 @@ export class ServiceTabBar extends React.PureComponent<Props> {
             service={service}
             label={serviceIdToLongLabel(service)}
             onClick={this.onClick}
-            count={undefToNull(props.serviceResultCount[service])}
-            showCount={false}
             isActive={props.selectedService === service}
           />
         ))}

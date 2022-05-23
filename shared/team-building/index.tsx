@@ -57,28 +57,6 @@ const deriveTeamSoFar = memoize(
     })
 )
 
-const _deriveServiceResultCount = memoize((searchResults: TeamBuildingTypes.SearchResults, query: string) =>
-  [
-    ...(
-      searchResults.get(trim(query)) ??
-      new Map<TeamBuildingTypes.ServiceIdWithContact, Array<TeamBuildingTypes.User>>()
-    ).entries(),
-  ]
-    .map(([key, results]) => [key, results.length] as const)
-    .reduce<{[k: string]: number}>((o, [key, num]) => {
-      o[key] = num
-      return o
-    }, {})
-)
-const emptyObject = {}
-const deriveServiceResultCount = (searchResults: TeamBuildingTypes.SearchResults, query: string) => {
-  const val = _deriveServiceResultCount(searchResults, query)
-  if (Object.keys(val)) {
-    return val
-  }
-  return emptyObject
-}
-
 const deriveUserFromUserIdFn = memoize(
   (
       searchResults: Array<TeamBuildingTypes.User> | undefined,
@@ -122,8 +100,9 @@ const FilteredServiceTabBar = (
     filterServices?: Array<TeamBuildingTypes.ServiceIdWithContact>
   }
 ) => {
-  const {selectedService, onChangeService, serviceResultCount} = props
+  const {selectedService, onChangeService} = props
   const {servicesShown, minimalBorder, offset, filterServices} = props
+
   const services = React.useMemo(
     () =>
       filterServices
@@ -136,7 +115,6 @@ const FilteredServiceTabBar = (
       services={services}
       selectedService={selectedService}
       onChangeService={onChangeService}
-      serviceResultCount={serviceResultCount}
       servicesShown={servicesShown}
       minimalBorder={minimalBorder}
       offset={offset}
@@ -145,14 +123,12 @@ const FilteredServiceTabBar = (
 }
 
 const modalHeaderProps = (
-  props: Pick<
-    Types.Props,
-    'onClose' | 'namespace' | 'teamSoFar' | 'teamID' | 'onFinishTeamBuilding' | 'goButtonLabel'
-  > & {
+  props: Pick<Types.Props, 'onClose' | 'namespace' | 'teamID' | 'onFinishTeamBuilding' | 'goButtonLabel'> & {
     title: string
+    hasTeamSoFar: boolean
   }
 ) => {
-  const {onClose, namespace, teamSoFar, teamID, onFinishTeamBuilding, title, goButtonLabel} = props
+  const {onClose, namespace, hasTeamSoFar, teamID, onFinishTeamBuilding, title, goButtonLabel} = props
   const mobileCancel = Styles.isMobile ? (
     <Kb.Text type="BodyBigLink" onClick={onClose}>
       Cancel
@@ -169,8 +145,8 @@ const modalHeaderProps = (
         rightButton: Styles.isMobile ? (
           <Kb.Text
             type="BodyBigLink"
-            onClick={teamSoFar.length ? onFinishTeamBuilding : undefined}
-            style={!teamSoFar.length && styles.hide}
+            onClick={hasTeamSoFar ? onFinishTeamBuilding : undefined}
+            style={!hasTeamSoFar && styles.hide}
           >
             Done
           </Kb.Text>
@@ -182,10 +158,10 @@ const modalHeaderProps = (
       const rightButton = Styles.isMobile ? (
         <Kb.Button
           label="Start"
-          onClick={teamSoFar.length ? onFinishTeamBuilding : undefined}
+          onClick={hasTeamSoFar ? onFinishTeamBuilding : undefined}
           small={true}
           type="Success"
-          style={!teamSoFar.length && styles.hide} // Need to hide this so modal can measure correctly
+          style={!hasTeamSoFar && styles.hide} // Need to hide this so modal can measure correctly
         />
       ) : undefined
       return {hideBorder: true, leftButton: mobileCancel, rightButton, title: title}
@@ -194,10 +170,10 @@ const modalHeaderProps = (
       const rightButton = Styles.isMobile ? (
         <Kb.Button
           label={goButtonLabel ?? 'Start'}
-          onClick={teamSoFar.length ? onFinishTeamBuilding : undefined}
+          onClick={hasTeamSoFar ? onFinishTeamBuilding : undefined}
           small={true}
           type="Success"
-          style={!teamSoFar.length && styles.hide} // Need to hide this so modal can measure correctly
+          style={!hasTeamSoFar && styles.hide} // Need to hide this so modal can measure correctly
         />
       ) : undefined
       return {hideBorder: true, leftButton: mobileCancel, rightButton, title: title}
@@ -245,7 +221,6 @@ const TeamBuilding = () => {
     ?.get(selectedService)
 
   const error = teamBuildingState.error
-  const serviceResultCount = deriveServiceResultCount(teamBuildingState.searchResults, searchString)
   const teamSoFar = deriveTeamSoFar(teamBuildingState.teamSoFar)
   const userFromUserId = deriveUserFromUserIdFn(userResults, teamBuildingState.userRecs)
 
@@ -368,7 +343,6 @@ const TeamBuilding = () => {
               filterServices={filterServices}
               selectedService={selectedService}
               onChangeService={onChangeService}
-              serviceResultCount={serviceResultCount}
               servicesShown={5} // wider bar, show more services
               minimalBorder={true} // only show bottom border on icon when active
               offset={1}
@@ -421,11 +395,11 @@ const TeamBuilding = () => {
     <Kb.Modal2
       header={modalHeaderProps({
         goButtonLabel,
+        hasTeamSoFar: teamSoFar.length > 0,
         namespace,
         onClose,
         onFinishTeamBuilding,
         teamID,
-        teamSoFar,
         title,
       })}
     >
@@ -437,7 +411,6 @@ const TeamBuilding = () => {
             filterServices={filterServices}
             selectedService={selectedService}
             onChangeService={onChangeService}
-            serviceResultCount={serviceResultCount}
             offset={offset.current}
           />
         )}
