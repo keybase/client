@@ -47,7 +47,7 @@ export type Props = {
   filterServices?: Array<ServiceIdWithContact>
   focusInputCounter: number
   goButtonLabel?: GoButtonLabel
-  highlightedIndex: number | null
+  highlightedIndex: number
   namespace: AllowedNamespace
   onAdd: (userId: string) => void
   onChangeService: (newService: ServiceIdWithContact) => void

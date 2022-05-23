@@ -1,12 +1,13 @@
+import * as Container from '../util/container'
+import * as Kb from '../common-adapters'
+import * as React from 'react'
+import * as Shared from './shared'
+import * as Styles from '../styles'
 import PeopleResult from './search-result/people-result'
 import UserResult from './search-result/user-result'
-import type * as Types from './types'
-import * as React from 'react'
-import * as Kb from '../common-adapters'
-import * as Styles from '../styles'
-import {RecsAndRecos} from './recs-and-recos'
 import throttle from 'lodash/throttle'
-import * as Shared from './shared'
+import type * as Types from './types'
+import {RecsAndRecos} from './recs-and-recos'
 import {useRoute} from '@react-navigation/native'
 
 const Suggestions = (props: Pick<Types.Props, 'namespace' | 'selectedService'>) => {
@@ -52,6 +53,20 @@ const Suggestions = (props: Pick<Types.Props, 'namespace' | 'selectedService'>) 
   )
 }
 
+// Flatten list of recommendation sections. After recommendations are organized
+// in sections, we also need a flat list of all recommendations to be able to
+// know how many we have in total (including "fake" "import contacts" row), and
+// which one is currently highlighted, to support keyboard events.
+//
+// Resulting list may have nulls in place of fake rows.
+const flattenRecommendations = (recommendations: Array<Types.SearchRecSection>) => {
+  const result: Array<Types.SearchResult | null> = []
+  for (const section of recommendations) {
+    result.push(...section.data.map(rec => ('isImportButton' in rec || 'isSearchHint' in rec ? null : rec)))
+  }
+  return result
+}
+
 export const ListBody = (
   props: Pick<
     Types.Props,
@@ -65,11 +80,16 @@ export const ListBody = (
     | 'onRemove'
     | 'teamSoFar'
     | 'onSearchForMore'
-  > & {offset: any}
+    | 'onChangeText'
+    | 'onFinishTeamBuilding'
+  > & {
+    offset: any
+    enterInputCounter: number
+  }
 ) => {
   const {searchString, recommendations, selectedService, searchResults} = props
-  const {onAdd, onRemove, teamSoFar, onSearchForMore} = props
-  const {namespace, highlightedIndex, offset} = props
+  const {onAdd, onRemove, teamSoFar, onSearchForMore, onChangeText} = props
+  const {namespace, highlightedIndex, offset, enterInputCounter, onFinishTeamBuilding} = props
   const route = useRoute()
   // @ts-ignore
   const recommendedHideYourself = route?.params?.recommendedHideYourself ?? false
@@ -78,12 +98,39 @@ export const ListBody = (
     ? Kb.ReAnimated.event([{nativeEvent: {contentOffset: {y: offset.current}}}], {useNativeDriver: true})
     : undefined
 
+  const oldEnterInputCounter = Container.usePrevious(enterInputCounter)
+
   const showResults = !!searchString
   const showRecs = !searchString && !!recommendations && selectedService === 'keybase'
 
   const ResultRow = namespace === 'people' ? PeopleResult : UserResult
   const showRecPending = !searchString && !recommendations && selectedService === 'keybase'
   const showLoading = !!searchString && !searchResults
+
+  Container.useDepChangeEffect(() => {
+    if (oldEnterInputCounter !== enterInputCounter) {
+      const userResultsToShow = showRecs ? flattenRecommendations(recommendations || []) : searchResults
+      const selectedResult =
+        !!userResultsToShow && userResultsToShow[highlightedIndex % userResultsToShow.length]
+      if (selectedResult) {
+        // We don't handle cases where they hit enter on someone that is already a
+        // team member
+        if (selectedResult.isPreExistingTeamMember) {
+          return
+        }
+        if (teamSoFar.filter(u => u.userId === selectedResult.userId).length) {
+          onRemove(selectedResult.userId)
+          onChangeText('')
+        } else {
+          onAdd(selectedResult.userId)
+        }
+      } else if (!searchString && !!teamSoFar.length) {
+        // They hit enter with an empty search string and a teamSoFar
+        // We'll Finish the team building
+        onFinishTeamBuilding()
+      }
+    }
+  }, [oldEnterInputCounter, enterInputCounter])
 
   if (showRecPending || showLoading) {
     return (

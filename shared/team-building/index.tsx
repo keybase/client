@@ -207,20 +207,6 @@ export const sortAndSplitRecommendations = memoize(
   }
 )
 
-// Flatten list of recommendation sections. After recommendations are organized
-// in sections, we also need a flat list of all recommendations to be able to
-// know how many we have in total (including "fake" "import contacts" row), and
-// which one is currently highlighted, to support keyboard events.
-//
-// Resulting list may have nulls in place of fake rows.
-const flattenRecommendations = memoize((recommendations: Array<Types.SearchRecSection>) => {
-  const result: Array<Types.SearchResult | null> = []
-  for (const section of recommendations) {
-    result.push(...section.data.map(rec => ('isImportButton' in rec || 'isSearchHint' in rec ? null : rec)))
-  }
-  return result
-})
-
 const makeDebouncedSearch = (time: number) =>
   debounce(
     (
@@ -341,36 +327,6 @@ const modalHeaderProps = (
 }
 
 const TeamBuilding = () => {
-  // const {
-  //   error,
-  //   filterServices,
-  //   focusInputCounter,
-  //   goButtonLabel,
-  //   highlightedIndex,
-  //   namespace,
-  //   onAdd,
-  //   onChangeService,
-  //   onChangeText,
-  //   onClear,
-  //   onClose,
-  //   onDownArrowKeyDown,
-  //   onEnterKeyDown,
-  //   onFinishTeamBuilding,
-  //   onRemove,
-  //   onSearchForMore,
-  //   onUpArrowKeyDown,
-  //   recommendations,
-  //   search,
-  //   searchResults,
-  //   searchString,
-  //   selectedService,
-  //   serviceResultCount,
-  //   showServiceResultCount,
-  //   teamBuildingSearchResults,
-  //   teamID,
-  //   teamSoFar,
-  // } = props
-
   const {params} = useRoute<RootRouteProps<'peopleTeamBuilder'>>()
   const namespace = params?.namespace ?? 'chat2'
   const teamID = params?.teamID
@@ -378,32 +334,27 @@ const TeamBuilding = () => {
   const goButtonLabel = params?.goButtonLabel ?? 'Start'
 
   const [focusInputCounter, setFocusInputCounter] = React.useState(0)
+  const [enterInputCounter, setEnterInputCounter] = React.useState(0)
   const [highlightedIndex, setHighlightedIndex] = React.useState(0)
   const [searchString, setSearchString] = React.useState('')
   const [selectedService, setSelectedService] =
     React.useState<TeamBuildingTypes.ServiceIdWithContact>('keybase')
 
-  const incHighlightIndex = React.useCallback(
-    (maxIndex: number) => {
-      setHighlightedIndex(old => Math.min(old + 1, maxIndex))
-    },
-    [setHighlightedIndex]
-  )
+  const onDownArrowKeyDown = React.useCallback(() => {
+    setHighlightedIndex(old => old + 1)
+  }, [setHighlightedIndex])
 
   const onUpArrowKeyDown = React.useCallback(() => {
     setHighlightedIndex(old => (old < 1 ? 0 : old - 1))
   }, [setHighlightedIndex])
 
-  const resetHighlightIndex = React.useCallback(
-    (resetToHidden?: boolean) => {
-      setHighlightedIndex(resetToHidden ? -1 : 0)
-    },
-    [setHighlightedIndex]
-  )
-
   const incFocusInputCounter = React.useCallback(() => {
     setFocusInputCounter(old => old + 1)
   }, [setFocusInputCounter])
+
+  const onEnterKeyDown = React.useCallback(() => {
+    setEnterInputCounter(old => old + 1)
+  }, [setEnterInputCounter])
 
   const teamBuildingState = Container.useSelector(state => state[namespace].teamBuilding)
   const teamBuildingSearchResults = teamBuildingState.searchResults
@@ -473,11 +424,11 @@ const TeamBuilding = () => {
   const recommendations = showRecs
     ? sortAndSplitRecommendations(_recommendations, showingContactsButton)
     : null
-  const userResultsToShow = showRecs ? flattenRecommendations(recommendations || []) : searchResults
+  // const userResultsToShow = showRecs ? flattenRecommendations(recommendations || []) : searchResults
   const onChangeText = (newText: string) => {
     setSearchString(newText)
     search(newText, selectedService)
-    resetHighlightIndex()
+    setHighlightedIndex(0)
   }
 
   const onClear = () => onChangeText('')
@@ -495,32 +446,9 @@ const TeamBuilding = () => {
     }
     onChangeText('')
     _onAdd(user)
-    resetHighlightIndex(true)
+    setHighlightedIndex(-1)
     incFocusInputCounter()
   }
-
-  const onEnterKeyDown = () => {
-    const selectedResult = !!userResultsToShow && userResultsToShow[highlightedIndex]
-    if (selectedResult) {
-      // We don't handle cases where they hit enter on someone that is already a
-      // team member
-      if (selectedResult.isPreExistingTeamMember) {
-        return
-      }
-      if (teamSoFar.filter(u => u.userId === selectedResult.userId).length) {
-        onRemove(selectedResult.userId)
-        onChangeText('')
-      } else {
-        onAdd(selectedResult.userId)
-      }
-    } else if (!searchString && !!teamSoFar.length) {
-      // They hit enter with an empty search string and a teamSoFar
-      // We'll Finish the team building
-      onFinishTeamBuilding()
-    }
-  }
-
-  const onDownArrowKeyDown = () => incHighlightIndex((userResultsToShow?.length ?? 1) - 1)
 
   const onChangeService = (service: TeamBuildingTypes.ServiceIdWithContact) => {
     setSelectedService(service)
@@ -602,6 +530,7 @@ const TeamBuilding = () => {
             />
           )}
           <ListBody
+            enterInputCounter={enterInputCounter}
             namespace={namespace}
             searchString={searchString}
             recommendations={recommendations /* TODO */}
@@ -611,8 +540,10 @@ const TeamBuilding = () => {
             onAdd={onAdd}
             onRemove={onRemove}
             teamSoFar={teamSoFar}
+            onChangeText={onChangeText}
             onSearchForMore={onSearchForMore /* TODO */}
             offset={offset}
+            onFinishTeamBuilding={onFinishTeamBuilding}
           />
           {waitingForCreate && (
             <Kb.Box2 direction="vertical" style={styles.waiting} alignItems="center">
