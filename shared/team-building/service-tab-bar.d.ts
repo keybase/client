@@ -6,7 +6,6 @@ export type Props = {
   selectedService: ServiceIdWithContact
   onChangeService: (newService: ServiceIdWithContact) => void
   serviceResultCount: {[K in ServiceIdWithContact]?: number | null}
-  showServiceResultCount: boolean
   servicesShown?: number
   minimalBorder?: boolean
   offset: number

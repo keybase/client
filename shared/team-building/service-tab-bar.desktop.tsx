@@ -167,7 +167,7 @@ export const ServiceTabBar = (props: Props) => {
           label={serviceIdToLongLabel(service)}
           onClick={onChangeService}
           count={undefToNull(props.serviceResultCount[service])}
-          showCount={props.showServiceResultCount}
+          showCount={false}
           isActive={props.selectedService === service}
           minimalBorder={props.minimalBorder}
         />

@@ -96,17 +96,8 @@ export const RecsAndRecos = (
       recommendedHideYourself: boolean
     }
 ) => {
-  const {
-    highlightedIndex,
-    recommendations,
-    onScroll,
-    recommendedHideYourself,
-    namespace,
-    selectedService,
-    onAdd,
-    onRemove,
-    teamSoFar,
-  } = props
+  const {highlightedIndex, recommendations, onScroll, recommendedHideYourself, namespace} = props
+  const {selectedService, onAdd, onRemove, teamSoFar} = props
 
   const sectionListRef = React.useRef<Kb.SectionList<Section<Types.ResultData, Types.SearchRecSection>>>(null)
   const ResultRow = namespace === 'people' ? PeopleResult : UserResult
@@ -215,7 +206,6 @@ export const RecsAndRecos = (
                 highlight={
                   !Styles.isMobile &&
                   !!highlightDetails &&
-                  namespace !== 'people' &&
                   highlightDetails.section === section &&
                   highlightDetails.index === index
                 }

@@ -24,7 +24,6 @@ import {ModalTitle as TeamsModalTitle} from '../teams/common'
 import {ServiceTabBar} from './service-tab-bar'
 import {formatAnyPhoneNumbers} from '../util/phone-numbers'
 import {getTeamMeta, getTeamDetails} from '../constants/teams'
-import {isMobile} from '../constants/platform'
 import {memoize} from '../util/memoize'
 import {noTeamID} from '../constants/types/teams'
 import {numSectionLabel} from './recs-and-recos'
@@ -239,7 +238,7 @@ const FilteredServiceTabBar = (
     filterServices?: Array<TeamBuildingTypes.ServiceIdWithContact>
   }
 ) => {
-  const {selectedService, onChangeService, serviceResultCount, showServiceResultCount} = props
+  const {selectedService, onChangeService, serviceResultCount} = props
   const {servicesShown, minimalBorder, offset, filterServices} = props
   const services = React.useMemo(
     () =>
@@ -254,7 +253,6 @@ const FilteredServiceTabBar = (
       selectedService={selectedService}
       onChangeService={onChangeService}
       serviceResultCount={serviceResultCount}
-      showServiceResultCount={showServiceResultCount}
       servicesShown={servicesShown}
       minimalBorder={minimalBorder}
       offset={offset}
@@ -390,7 +388,6 @@ const TeamBuilding = () => {
     preExistingTeamMembers
   )
   const serviceResultCount = deriveServiceResultCount(teamBuildingState.searchResults, searchString)
-  const showServiceResultCount = !isMobile && !!searchString
   const teamSoFar = deriveTeamSoFar(teamBuildingState.teamSoFar)
   const userFromUserId = deriveUserFromUserIdFn(userResults, teamBuildingState.userRecs)
 
@@ -523,7 +520,6 @@ const TeamBuilding = () => {
               selectedService={selectedService}
               onChangeService={onChangeService}
               serviceResultCount={serviceResultCount}
-              showServiceResultCount={showServiceResultCount}
               servicesShown={5} // wider bar, show more services
               minimalBorder={true} // only show bottom border on icon when active
               offset={1}
@@ -595,7 +591,6 @@ const TeamBuilding = () => {
             selectedService={selectedService}
             onChangeService={onChangeService}
             serviceResultCount={serviceResultCount}
-            showServiceResultCount={showServiceResultCount}
             offset={offset.current}
           />
         )}

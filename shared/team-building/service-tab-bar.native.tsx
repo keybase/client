@@ -202,7 +202,7 @@ export class ServiceTabBar extends React.PureComponent<Props> {
             label={serviceIdToLongLabel(service)}
             onClick={this.onClick}
             count={undefToNull(props.serviceResultCount[service])}
-            showCount={props.showServiceResultCount}
+            showCount={false}
             isActive={props.selectedService === service}
           />
         ))}

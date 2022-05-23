@@ -109,7 +109,7 @@ export const ListBody = (
 
   Container.useDepChangeEffect(() => {
     if (oldEnterInputCounter !== enterInputCounter) {
-      const userResultsToShow = showRecs ? flattenRecommendations(recommendations || []) : searchResults
+      const userResultsToShow = showRecs ? flattenRecommendations(recommendations) : searchResults
       const selectedResult =
         !!userResultsToShow && userResultsToShow[highlightedIndex % userResultsToShow.length]
       if (selectedResult) {
