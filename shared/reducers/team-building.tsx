@@ -62,8 +62,8 @@ export const editTeambuildingDraft = (
       draftState.userRecs = action.payload.users
     },
     [TeamBuildingGen.search]: (draftState, action) => {
-      const {query, service, limit = draftState.searchLimit} = action.payload
-      draftState.searchLimit = limit
+      const {query, service, limit} = action.payload
+      draftState.searchLimit = limit ?? 11
       draftState.searchQuery = trim(query)
       draftState.selectedService = service
     },

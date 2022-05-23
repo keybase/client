@@ -328,9 +328,9 @@ const TeamBuilding = () => {
   }
 
   const onClear = () => onChangeText('')
-  const onSearchForMore = () => {
-    if (searchResults && searchResults.length >= 10) {
-      search(searchString, selectedService, searchResults.length + 20)
+  const onSearchForMore = (len: number) => {
+    if (len >= 10) {
+      search(searchString, selectedService, len + 20)
     }
   }
   const onAdd = (userId: string) => {
@@ -435,7 +435,7 @@ const TeamBuilding = () => {
             onRemove={onRemove}
             teamSoFar={teamSoFar}
             onChangeText={onChangeText}
-            onSearchForMore={onSearchForMore /* TODO */}
+            onSearchForMore={onSearchForMore}
             offset={offset}
             onFinishTeamBuilding={onFinishTeamBuilding}
           />

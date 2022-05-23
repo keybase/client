@@ -58,7 +58,7 @@ export type Props = {
   onEnterKeyDown: () => void
   onFinishTeamBuilding: () => void
   onRemove: (userId: string) => void
-  onSearchForMore: () => void
+  onSearchForMore: (len: number) => void
   onUpArrowKeyDown: () => void
   recommendations: Array<SearchRecSection> | null
   search: (query: string, service: ServiceIdWithContact) => void

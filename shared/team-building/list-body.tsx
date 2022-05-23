@@ -210,7 +210,6 @@ export const ListBody = (
   const {params} = useRoute<RootRouteProps<'peopleTeamBuilder'>>()
   const recommendedHideYourself = params?.recommendedHideYourself ?? false
   const teamID = params?.teamID
-
   const {searchString, selectedService, searchResults} = props
   const {onAdd, onRemove, teamSoFar, onSearchForMore, onChangeText} = props
   const {namespace, highlightedIndex, offset, enterInputCounter, onFinishTeamBuilding} = props
@@ -311,9 +310,12 @@ export const ListBody = (
     )
   }
 
-  const _onEndReached = throttle(() => {
-    onSearchForMore()
-  }, 500)
+  const _onSearchForMore = () => {
+    console.log('aaa on search for more', searchResults?.length ?? 0)
+    onSearchForMore(searchResults?.length ?? 0)
+  }
+
+  const _onEndReached = throttle(_onSearchForMore, 500)
 
   return (
     <>
