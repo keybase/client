@@ -15,48 +15,18 @@ import TeamBox from './team-box'
 import debounce from 'lodash/debounce'
 import logger from '../logger'
 import trim from 'lodash/trim'
-import type * as TeamTypes from '../constants/types/teams'
 import type * as Types from './types'
 import type {RootRouteProps} from '../router-v2/route-params'
 import {ContactsBanner} from './contacts'
 import {ListBody} from './list-body'
 import {ModalTitle as TeamsModalTitle} from '../teams/common'
 import {ServiceTabBar} from './service-tab-bar'
-import {formatAnyPhoneNumbers} from '../util/phone-numbers'
-import {getTeamMeta, getTeamDetails} from '../constants/teams'
+import {getTeamMeta} from '../constants/teams'
 import {memoize} from '../util/memoize'
 import {noTeamID} from '../constants/types/teams'
 import {requestIdleCallback} from '../util/idle-callback'
 import {serviceIdToSearchPlaceholder} from './shared'
 import {useRoute} from '@react-navigation/native'
-
-const expensiveDeriveResults = (
-  searchResults: Array<TeamBuildingTypes.User> | undefined,
-  teamSoFar: Set<TeamBuildingTypes.User>,
-  myUsername: string,
-  followingState: Set<string>,
-  preExistingTeamMembers: Map<string, TeamTypes.MemberInfo>
-) =>
-  searchResults &&
-  searchResults.map(info => {
-    const label = info.label || ''
-    return {
-      contact: !!info.contact,
-      displayLabel: formatAnyPhoneNumbers(label),
-      followingState: Constants.followStateHelperWithId(myUsername, followingState, info.serviceMap.keybase),
-      inTeam: [...teamSoFar].some(u => u.id === info.id),
-      isPreExistingTeamMember: preExistingTeamMembers.has(info.id),
-      isYou: info.username === myUsername,
-      key: [info.id, info.prettyName, info.label, String(!!info.contact)].join('&'),
-      pictureUrl: info.pictureUrl,
-      prettyName: formatAnyPhoneNumbers(info.prettyName),
-      services: info.serviceMap,
-      userId: info.id,
-      username: info.username,
-    }
-  })
-
-const deriveSearchResults = memoize(expensiveDeriveResults)
 
 const deriveTeamSoFar = memoize(
   (teamSoFar: Set<TeamBuildingTypes.User>): Array<TeamBuildingTypes.SelectedUser> =>
@@ -119,8 +89,6 @@ const deriveUserFromUserIdFn = memoize(
       (recommendations || []).filter(u => u.id === userId)[0] ||
       null
 )
-
-const emptyMap = new Map()
 
 const makeDebouncedSearch = (time: number) =>
   debounce(
@@ -276,21 +244,7 @@ const TeamBuilding = () => {
     .get(trim(searchString))
     ?.get(selectedService)
 
-  const maybeTeamDetails = Container.useSelector(state =>
-    teamID ? getTeamDetails(state, teamID) : undefined
-  )
-  const preExistingTeamMembers: TeamTypes.TeamDetails['members'] = maybeTeamDetails?.members ?? emptyMap
-  const username = Container.useSelector(state => state.config.username)
-  const following = Container.useSelector(state => state.config.following)
-
   const error = teamBuildingState.error
-  const searchResults = deriveSearchResults(
-    userResults,
-    teamBuildingState.teamSoFar,
-    username,
-    following,
-    preExistingTeamMembers
-  )
   const serviceResultCount = deriveServiceResultCount(teamBuildingState.searchResults, searchString)
   const teamSoFar = deriveTeamSoFar(teamBuildingState.teamSoFar)
   const userFromUserId = deriveUserFromUserIdFn(userResults, teamBuildingState.userRecs)
@@ -429,7 +383,6 @@ const TeamBuilding = () => {
             namespace={namespace}
             searchString={searchString}
             selectedService={selectedService}
-            searchResults={searchResults /* TODO*/}
             highlightedIndex={highlightedIndex /* TODO */}
             onAdd={onAdd}
             onRemove={onRemove}

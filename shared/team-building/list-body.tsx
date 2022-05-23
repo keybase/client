@@ -1,4 +1,5 @@
 import * as Container from '../util/container'
+import trim from 'lodash/trim'
 import type {RootRouteProps} from '../router-v2/route-params'
 import {getTeamDetails} from '../constants/teams'
 import * as Constants from '../constants/team-building'
@@ -194,7 +195,6 @@ export const ListBody = (
     | 'namespace'
     | 'searchString'
     | 'selectedService'
-    | 'searchResults'
     | 'highlightedIndex'
     | 'onAdd'
     | 'onRemove'
@@ -210,7 +210,7 @@ export const ListBody = (
   const {params} = useRoute<RootRouteProps<'peopleTeamBuilder'>>()
   const recommendedHideYourself = params?.recommendedHideYourself ?? false
   const teamID = params?.teamID
-  const {searchString, selectedService, searchResults} = props
+  const {searchString, selectedService} = props
   const {onAdd, onRemove, teamSoFar, onSearchForMore, onChangeText} = props
   const {namespace, highlightedIndex, offset, enterInputCounter, onFinishTeamBuilding} = props
 
@@ -226,6 +226,18 @@ export const ListBody = (
   const teamBuildingState = Container.useSelector(state => state[namespace].teamBuilding)
   const _recommendations = deriveRecommendation(
     teamBuildingState.userRecs,
+    teamBuildingState.teamSoFar,
+    username,
+    following,
+    preExistingTeamMembers
+  )
+
+  const userResults: Array<TeamBuildingTypes.User> | undefined = teamBuildingState.searchResults
+    .get(trim(searchString))
+    ?.get(selectedService)
+
+  const searchResults = deriveSearchResults(
+    userResults,
     teamBuildingState.teamSoFar,
     username,
     following,
