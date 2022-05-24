@@ -235,7 +235,7 @@ const TeamBuilding = () => {
               onChangeService={onChangeService}
               servicesShown={5} // wider bar, show more services
               minimalBorder={true} // only show bottom border on icon when active
-              offset={1}
+              offset={offset}
             />
           )}
           <ListBody

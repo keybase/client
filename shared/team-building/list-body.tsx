@@ -245,11 +245,7 @@ export const ListBody = (
     preExistingTeamMembers
   )
 
-  const onScroll = useAnimatedScrollHandler({onScroll: e => (offset.value = e.contentOffset.y)})
-  // const onScroll: Types.OnScrollProps['onScroll'] = Styles.isMobile
-  //   ? Kb.ReAnimated.event([{nativeEvent: {contentOffset: {y: offset.current}}}], {useNativeDriver: true})
-  //   : undefined
-
+  const onScroll: any = useAnimatedScrollHandler({onScroll: e => (offset.value = e.contentOffset.y)})
   const oldEnterInputCounter = Container.usePrevious(enterInputCounter)
 
   const showResults = !!searchString

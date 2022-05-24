@@ -3,13 +3,15 @@ import * as Kb from '../common-adapters/mobile.native'
 import * as Styles from '../styles'
 import {serviceIdToIconFont, serviceIdToAccentColor, serviceIdToLongLabel, serviceIdToBadge} from './shared'
 import type {Props, IconProps} from './service-tab-bar'
-import {
+import Animated, {
   useSharedValue,
   useAnimatedStyle,
   interpolate,
   withSpring,
   withDelay,
+  withTiming,
   Extrapolation,
+  type SharedValue,
 } from 'react-native-reanimated'
 
 export const labelHeight = 34
@@ -30,59 +32,81 @@ const serviceMinWidthWhenSmall = (containerWidth: number) => {
 
 const smallWidth = serviceMinWidthWhenSmall(Styles.dimensionWidth)
 const bigWidth = Math.max(smallWidth, 92)
-const AnimatedBox2 = Kb.ReAnimated.createAnimatedComponent(Kb.Box2)
+const AnimatedBox2 = Animated.createAnimatedComponent(Kb.Box2)
 
 // On tablet add an additional "service" item that is only a bottom border that extends to the end of the ScrollView
-const TabletBottomBorderExtension = React.memo((props: {offset: number; servicesCount: number}) => {
-  const translateY = Kb.ReAnimated.interpolateNode(props.offset, {
-    inputRange: [-100, 0, 100, 9999],
-    outputRange: [0, 0, -8, -8],
-  })
+const TabletBottomBorderExtension = React.memo(
+  (props: {offset?: SharedValue<number>; servicesCount: number}) => {
+    const {offset} = props
+    const animatedStyles = useAnimatedStyle(() => {
+      const translateY = offset
+        ? interpolate(offset.value, [0, 100], [0, -8], {
+            extrapolateLeft: Extrapolation.CLAMP,
+            extrapolateRight: Extrapolation.CLAMP,
+          })
+        : 0
+      return {transform: [{translateY}]}
+    })
 
-  return (
-    <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={{position: 'relative'}}>
-      <AnimatedBox2
-        direction="horizontal"
-        fullWidth={true}
-        style={Styles.collapseStyles([
-          {
-            borderBottomWidth: 1,
-            borderColor: Styles.globalColors.black_10,
-            bottom: 0,
-            height: 2,
-            position: 'absolute',
-          },
-          {transform: [{translateY}]},
-        ] as any)}
-      />
-    </Kb.Box2>
-  )
-})
+    return (
+      <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={{position: 'relative'}}>
+        <AnimatedBox2
+          direction="horizontal"
+          fullWidth={true}
+          style={[
+            {
+              borderBottomWidth: 1,
+              borderColor: Styles.globalColors.black_10,
+              bottom: 0,
+              height: 2,
+              position: 'absolute',
+            },
+            animatedStyles,
+          ]}
+        />
+      </Kb.Box2>
+    )
+  }
+)
 
 const ServiceIcon = React.memo((props: IconProps) => {
   const {offset, isActive, service, label, onClick} = props
   const color = isActive ? serviceIdToAccentColor(service) : Styles.globalColors.black
 
-  const opacity = 1
-  const width = bigWidth
-  const translateY = 0
-
-  // const opacity = Kb.ReAnimated.interpolateNode(offset, {
-  //   inputRange: [-9999, 0, 40, 9999],
-  //   outputRange: [1, 1, 0, 0],
-  // })
-  // const width = Kb.ReAnimated.interpolateNode(offset, {
-  //   inputRange: [-9999, -100, 0, 100, 9999],
-  //   outputRange: [bigWidth + 5, bigWidth + 5, bigWidth, smallWidth, smallWidth],
-  // })
-  // const translateY = Kb.ReAnimated.interpolateNode(offset, {
-  //   inputRange: [-100, 0, 100, 9999],
-  //   outputRange: [0, 0, -8, -8],
-  // })
+  const animatedWidth = useAnimatedStyle(() => {
+    const width = offset
+      ? withTiming(
+          interpolate(offset.value, [-100, 0, 100], [bigWidth + 5, bigWidth, smallWidth], {
+            extrapolateLeft: Extrapolation.CLAMP,
+            extrapolateRight: Extrapolation.CLAMP,
+          }),
+          {duration: 10}
+        )
+      : 0
+    return {width}
+  })
+  const animatedOpacity = useAnimatedStyle(() => {
+    const opacity = offset
+      ? interpolate(offset.value, [0, 40], [1, 0], {
+          extrapolateLeft: Extrapolation.CLAMP,
+          extrapolateRight: Extrapolation.CLAMP,
+        })
+      : 0
+    return {opacity}
+  })
+  const animatedTransform = useAnimatedStyle(() => {
+    const translateY = offset
+      ? interpolate(offset.value, [0, 100], [0, -8], {
+          extrapolateLeft: Extrapolation.CLAMP,
+          extrapolateRight: Extrapolation.CLAMP,
+        })
+      : 0
+    return {transform: [{translateY}]}
+  })
 
   return (
     <Kb.ClickableBox onClick={() => onClick(service)} style={{position: 'relative'}}>
-      <AnimatedBox2 direction="vertical" style={[styles.serviceIconContainer, {width}]}>
+      <AnimatedBox2 direction="vertical" style={[styles.serviceIconContainer, animatedWidth]}>
         <Kb.Box2 direction="vertical" style={{position: 'relative'}}>
           {serviceIdToBadge(service) && (
             <Kb.Badge
@@ -95,7 +119,7 @@ const ServiceIcon = React.memo((props: IconProps) => {
           )}
           <Kb.Icon fontSize={18} type={serviceIdToIconFont(service)} color={color} />
         </Kb.Box2>
-        <AnimatedBox2 direction="vertical" style={[styles.labelContainer, {opacity}]}>
+        <AnimatedBox2 direction="vertical" style={[styles.labelContainer, animatedOpacity]}>
           <Kb.Box2 direction="vertical" style={{height: labelHeight, width: 74}}>
             <Kb.Box2 direction="vertical">
               {label.map((label, i) => (
@@ -116,57 +140,19 @@ const ServiceIcon = React.memo((props: IconProps) => {
       <AnimatedBox2
         direction="horizontal"
         fullWidth={true}
-        style={Styles.collapseStyles([
+        style={[
           isActive ? styles.activeTabBar : styles.inactiveTabBar,
           isActive && {backgroundColor: serviceIdToAccentColor(service)},
-          {transform: [{translateY}]},
-        ] as any)}
+          animatedTransform,
+        ]}
       />
     </Kb.ClickableBox>
   )
 })
 
-// const delay = (after: Kb.ReAnimated.Adaptable<number>) => {
-//   const {greaterOrEq, Clock, Value, startClock, stopClock, cond, set, defined, block, add} = Kb.ReAnimated
-//   const clock = new Clock()
-//   const time = new Value(400)
-//   const when = new Value(0)
-//   return block([
-//     startClock(clock),
-//     cond(defined(when), 0, [set(when, add(clock, time))]),
-//     cond(greaterOrEq(clock, when), block([stopClock(clock), after]), 0),
-//   ])
-// }
-
-// const initialBounce = () => {
-//   const {Clock, Value, startClock, stopClock, cond, spring, block, SpringUtils} = Kb.ReAnimated
-//   const clock = new Clock()
-
-//   const state = {
-//     finished: new Value(0),
-//     position: new Value(0),
-//     time: new Value(0),
-//     velocity: new Value(800),
-//   }
-
-//   const config = {
-//     ...SpringUtils.makeDefaultConfig(),
-//     toValue: new Value(0),
-//   }
-
-//   return delay(
-//     block([
-//       startClock(clock),
-//       spring(clock, state, config),
-//       cond(state.finished, stopClock(clock)),
-//       state.position,
-//     ])
-//   )
-// }
-
 export const ServiceTabBar = (props: Props) => {
   const {onChangeService, offset, services, selectedService} = props
-
+  const bounceX = useSharedValue(40)
   const onClick = React.useCallback(
     service => {
       onChangeService(service)
@@ -174,44 +160,37 @@ export const ServiceTabBar = (props: Props) => {
     [onChangeService]
   )
 
-  // const height = Kb.ReAnimated.interpolateNode(offset, {
-  //   inputRange: [-9999, 0, 100, 9999],
-  //   outputRange: [72, 72, 48, 48],
-  // })
-  // const translateY = Kb.ReAnimated.interpolateNode(offset, {
-  //   inputRange: [-9999, 0, 100, 9999],
-  //   outputRange: [0, 0, 8, 8],
-  // })
-
-  // const bounce = useSharedValue(400)
-
-  const bounceX = useSharedValue(40)
-
   React.useEffect(() => {
     bounceX.value = 0
   }, [bounceX])
 
   const animatedStyles = useAnimatedStyle(() => {
     const translateX = withDelay(100, withSpring(bounceX.value, {}))
-    const translateY = 0 /*interpolate(offset.value, [0, 100], [0, 8], {
-      extrapolateLeft: Extrapolation.CLAMP,
-      extrapolateRight: Extrapolation.CLAMP,
-    })*/
-    const height = interpolate(offset.value, [0, 100], [72, 48], {
-      extrapolateLeft: Extrapolation.CLAMP,
-      extrapolateRight: Extrapolation.CLAMP,
-    })
-    return {
-      height,
-      transform: [{translateX}, {translateY}] as any,
-    }
+    const translateY = offset
+      ? interpolate(offset.value, [0, 100], [0, 8], {
+          extrapolateLeft: Extrapolation.CLAMP,
+          extrapolateRight: Extrapolation.CLAMP,
+        })
+      : 0
+
+    // withTiming workaround due to https://github.com/software-mansion/react-native-reanimated/issues/1947#issuecomment-942413134
+    const height = offset
+      ? withTiming(
+          interpolate(offset.value, [0, 100], [72, 48], {
+            extrapolateLeft: Extrapolation.CLAMP,
+            extrapolateRight: Extrapolation.CLAMP,
+          }),
+          {duration: 10}
+        )
+      : 0
+    return {height, transform: [{translateX}, {translateY}]}
   })
 
   return (
-    <Kb.ReAnimated.ScrollView
+    <Animated.ScrollView
       horizontal={true}
       showsHorizontalScrollIndicator={false}
-      scrollEventThrottle={1000}
+      scrollEventThrottle={16}
       keyboardDismissMode="on-drag"
       keyboardShouldPersistTaps="handled"
       contentContainerStyle={Styles.collapseStyles([{height: '100%'}, Styles.isTablet && {width: '100%'}])}
@@ -230,7 +209,7 @@ export const ServiceTabBar = (props: Props) => {
       {Styles.isTablet ? (
         <TabletBottomBorderExtension offset={offset} servicesCount={services.length} />
       ) : null}
-    </Kb.ReAnimated.ScrollView>
+    </Animated.ScrollView>
   )
 }
 
