@@ -29,7 +29,8 @@ const shimNewRoute = (Original: any, isModal: boolean, isLoggedOut: boolean) => 
     }
 
     // TODO remove and make all root views have a good background
-    wrap = <Kb.NativeView style={styles.keyboard}>{wrap}</Kb.NativeView>
+    // on android we make the modals have a white background, else its transparent
+    wrap = <Kb.NativeView style={isModal ? styles.keyboardModal : styles.keyboard}>{wrap}</Kb.NativeView>
     return wrap
   })
   Container.hoistNonReactStatic(ShimmedNew, Original)
@@ -41,6 +42,12 @@ const styles = Styles.styleSheetCreate(
     ({
       keyboard: {
         backgroundColor: Styles.globalColors.fastBlank,
+        flexGrow: 1,
+        maxHeight: '100%',
+        position: 'relative',
+      },
+      keyboardModal: {
+        backgroundColor: Styles.isAndroid ? Styles.globalColors.white : Styles.globalColors.fastBlank,
         flexGrow: 1,
         maxHeight: '100%',
         position: 'relative',
