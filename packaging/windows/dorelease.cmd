@@ -7,7 +7,7 @@ if NOT DEFINED DevCert set DevCert=0
 set GOARCH=amd64
 
 set OUTPUT=echo
-if DEFINED SlackBot set OUTPUT=(cd %GOPATH%/src/github.com/keybase/slackbot/send && go run main.go -i=1)
+if DEFINED SlackBot set OUTPUT=keybase chat send %CHATCHANNEL%
 
 :: sanity check that the passphrase is set right
 (cd %GOPATH%\src\github.com\keybase\client\go\tools\ssss\ && go run main.go %0)
