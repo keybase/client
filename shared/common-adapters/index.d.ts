@@ -107,5 +107,3 @@ export {isValidIconType} from './icon.shared'
 export {default as Video} from './video'
 export {default as WebView} from './web-view'
 export {default as WithTooltip} from './with-tooltip'
-// convenience plumbing for rn animated things, no desktop impl
-export const ReAnimated: any

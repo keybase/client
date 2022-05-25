@@ -5,10 +5,11 @@ import AlphabetIndex from './alphabet-index'
 import PeopleResult from './search-result/people-result'
 import UserResult from './search-result/user-result'
 import type * as Types from './types'
-import type {Section} from '../common-adapters/section-list'
 import {ContactsImportButton} from './contacts'
 import {memoize} from '../util/memoize'
 import {userResultHeight} from './search-result/common-result'
+import {createAnimatedComponent} from '../common-adapters/reanimated'
+import type {Props as SectionListProps, Section as SectionType} from '../common-adapters/section-list'
 
 export const numSectionLabel = '0-9'
 
@@ -28,7 +29,7 @@ const SearchHintText = () => (
 
 const TeamAlphabetIndex = (
   props: Pick<Types.Props, 'recommendations' | 'teamSoFar'> & {
-    sectionListRef: React.RefObject<Kb.SectionList<Section<Types.ResultData, Types.SearchRecSection>>>
+    sectionListRef: React.RefObject<Kb.SectionList<SectionType<Types.ResultData, Types.SearchRecSection>>>
   }
 ) => {
   const {recommendations, teamSoFar, sectionListRef} = props
@@ -74,12 +75,9 @@ const TeamAlphabetIndex = (
   )
 }
 
-// TODO: the type of this is any
-// If we fix this type, we'll need to add a bunch more mobile-only props to Kb.SectionList since this code uses
-// a bunch of the native props.
-const SectionList: typeof Kb.SectionList = Styles.isMobile
-  ? Kb.ReAnimated.createAnimatedComponent(Kb.SectionList)
-  : Kb.SectionList
+const SectionList = createAnimatedComponent<
+  SectionListProps<SectionType<Types.ResultData, Types.SearchRecSection>>
+>(Kb.SectionList as any)
 
 export const RecsAndRecos = (
   props: Pick<
@@ -99,7 +97,8 @@ export const RecsAndRecos = (
   const {highlightedIndex, recommendations, onScroll, recommendedHideYourself, namespace} = props
   const {selectedService, onAdd, onRemove, teamSoFar} = props
 
-  const sectionListRef = React.useRef<Kb.SectionList<Section<Types.ResultData, Types.SearchRecSection>>>(null)
+  const sectionListRef =
+    React.useRef<Kb.SectionList<SectionType<Types.ResultData, Types.SearchRecSection>>>(null)
   const ResultRow = namespace === 'people' ? PeopleResult : UserResult
 
   const _listIndexToSectionAndLocalIndex = memoize(

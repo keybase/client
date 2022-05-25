@@ -186,7 +186,6 @@ const TeamBuilding = () => {
   }, [dispatch, namespace])
 
   const offset = useSharedValue(0)
-  // React.useRef(Styles.isMobile ? new Kb.ReAnimated.Value(0) : undefined)
 
   React.useEffect(() => {
     fetchUserRecs()

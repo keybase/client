@@ -2,8 +2,9 @@ import * as React from 'react'
 import * as Kb from '../common-adapters/mobile.native'
 import * as Styles from '../styles'
 import {serviceIdToIconFont, serviceIdToAccentColor, serviceIdToLongLabel, serviceIdToBadge} from './shared'
+import {ScrollView} from 'react-native'
 import type {Props, IconProps} from './service-tab-bar'
-import Animated, {
+import {
   useSharedValue,
   useAnimatedStyle,
   interpolate,
@@ -12,7 +13,8 @@ import Animated, {
   withTiming,
   Extrapolation,
   type SharedValue,
-} from 'react-native-reanimated'
+  createAnimatedComponent,
+} from '../common-adapters/reanimated'
 
 export const labelHeight = 34
 
@@ -32,7 +34,8 @@ const serviceMinWidthWhenSmall = (containerWidth: number) => {
 
 const smallWidth = serviceMinWidthWhenSmall(Styles.dimensionWidth)
 const bigWidth = Math.max(smallWidth, 92)
-const AnimatedBox2 = Animated.createAnimatedComponent(Kb.Box2)
+const AnimatedBox2 = createAnimatedComponent(Kb.Box2)
+const AnimatedScrollView = createAnimatedComponent(ScrollView)
 
 // On tablet add an additional "service" item that is only a bottom border that extends to the end of the ScrollView
 const TabletBottomBorderExtension = React.memo(
@@ -187,7 +190,7 @@ export const ServiceTabBar = (props: Props) => {
   })
 
   return (
-    <Animated.ScrollView
+    <AnimatedScrollView
       horizontal={true}
       showsHorizontalScrollIndicator={false}
       scrollEventThrottle={16}
@@ -209,7 +212,7 @@ export const ServiceTabBar = (props: Props) => {
       {Styles.isTablet ? (
         <TabletBottomBorderExtension offset={offset} servicesCount={services.length} />
       ) : null}
-    </Animated.ScrollView>
+    </AnimatedScrollView>
   )
 }
 

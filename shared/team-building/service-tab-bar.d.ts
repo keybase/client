@@ -1,6 +1,6 @@
 import * as React from 'react'
 import type {ServiceIdWithContact} from '../constants/types/team-building'
-import type {SharedValue} from 'react-native-reanimated'
+import type {SharedValue} from '../common-adapters/reanimated'
 
 export type Props = {
   services: Array<ServiceIdWithContact>

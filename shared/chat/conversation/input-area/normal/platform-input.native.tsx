@@ -22,6 +22,7 @@ import {parseUri, launchCameraAsync, launchImageLibraryAsync} from '../../../../
 import {standardTransformer} from '../suggestors/common'
 import {useSuggestors} from '../suggestors'
 import {
+  createAnimatedComponent,
   skipAnimations,
   useSharedValue,
   useAnimatedStyle,
@@ -135,7 +136,7 @@ const Buttons = (p: ButtonsProps) => {
   )
 }
 
-const AnimatedIcon = Kb.ReAnimated.createAnimatedComponent(Kb.Icon)
+const AnimatedIcon = createAnimatedComponent(Kb.Icon)
 const AnimatedExpand = (() => {
   if (skipAnimations) {
     return React.memo(() => {
@@ -439,7 +440,7 @@ const PlatformInput = (p: Props) => {
   )
 }
 
-const AnimatedPlainInput = Kb.ReAnimated.createAnimatedComponent(Kb.PlainInput)
+const AnimatedPlainInput = createAnimatedComponent(Kb.PlainInput)
 const AnimatedInput = (() => {
   if (skipAnimations) {
     return React.forwardRef<any, any>((p: any, ref) => {

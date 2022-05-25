@@ -10,7 +10,6 @@ import * as TeamsGen from '../../actions/teams-gen'
 import * as UsersGen from '../../actions/users-gen'
 import * as BotsGen from '../../actions/bots-gen'
 import type * as ChatTypes from '../../constants/types/chat2'
-import type {Section} from '../../common-adapters/section-list'
 import {useAttachmentSections} from '../../chat/conversation/info-panel/attachments'
 import {SelectionPopup, useChannelParticipants} from '../common'
 import ChannelTabs, {type TabKey} from './tabs'
@@ -20,6 +19,8 @@ import BotRow from '../team/rows/bot-row/bot/container'
 import SettingsList from '../../chat/conversation/info-panel/settings'
 import EmptyRow from '../team/rows/empty-row'
 import isEqual from 'lodash/isEqual'
+import {createAnimatedComponent} from '../../common-adapters/reanimated'
+import type {Props as SectionListProps, Section as SectionType} from '../../common-adapters/section-list'
 
 export type OwnProps = Container.RouteProps<'teamChannel'>
 
@@ -99,9 +100,9 @@ const useTabsState = (
 
 const makeSingleRow = (key: string, renderItem: () => React.ReactNode) => ({data: ['row'], key, renderItem})
 
-const SectionList: typeof Kb.SectionList = Styles.isMobile
-  ? Kb.ReAnimated.createAnimatedComponent(Kb.SectionList)
-  : Kb.SectionList
+const SectionList = createAnimatedComponent<SectionListProps<SectionType<string, {title?: string}>>>(
+  Kb.SectionList as any
+)
 
 const emptyMapForUseSelector = new Map<string, Types.MemberInfo>()
 const Channel = (props: OwnProps) => {
@@ -149,7 +150,7 @@ const Channel = (props: OwnProps) => {
     true // variable width
   )
 
-  const sections: Array<Section<string, {title?: string}>> = [headerSection]
+  const sections: Array<SectionType<string, {title?: string}>> = [headerSection]
   switch (selectedTab) {
     case 'members':
       sections.push({
@@ -234,26 +235,14 @@ const Channel = (props: OwnProps) => {
   const renderSectionHeader = ({section}: {section: {title?: string}}) =>
     section.title ? <Kb.SectionDivider label={section.title} /> : null
 
-  // Animation
-  const offset = React.useRef(Styles.isMobile ? new Kb.ReAnimated.Value(0) : undefined)
-  const onScroll = React.useRef(
-    Styles.isMobile
-      ? Kb.ReAnimated.event([{nativeEvent: {contentOffset: {y: offset.current}}}], {useNativeDriver: true})
-      : undefined
-  )
-
   return (
     <Kb.Box style={styles.container}>
-      {Styles.isMobile && (
-        <MobileHeader channelname={meta.channelname} teamname={teamname} offset={offset.current} />
-      )}
       <SectionList
         renderSectionHeader={renderSectionHeader}
         stickySectionHeadersEnabled={Styles.isMobile}
         sections={sections}
         contentContainerStyle={styles.listContentContainer}
         style={styles.list}
-        onScroll={onScroll.current}
       />
       <SelectionPopup
         selectedTab={selectedTab === 'members' ? 'channelMembers' : ''}
@@ -268,48 +257,6 @@ Channel.navigationOptions = () => ({
   headerTitle: '',
   underNotch: true,
 })
-
-const startAnimationOffset = 40
-const AnimatedBox2: typeof Kb.Box2 = Styles.isMobile
-  ? Kb.ReAnimated.createAnimatedComponent(Kb.Box2)
-  : undefined
-const MobileHeader = ({
-  channelname,
-  teamname,
-  offset,
-}: {
-  channelname: string
-  teamname: string
-  offset: number
-}) => {
-  const dispatch = Container.useDispatch()
-  const nav = Container.useSafeNavigation()
-  const onBack = () => dispatch(nav.safeNavigateUpPayload())
-  const top: number = Kb.ReAnimated.interpolateNode(offset, {
-    inputRange: [-9999, startAnimationOffset, startAnimationOffset + 40, 99999999],
-    outputRange: [40, 40, 0, 0],
-  })
-  const opacity: number = Kb.ReAnimated.interpolateNode(offset, {
-    inputRange: [-9999, 0, 1, 9999],
-    outputRange: [0, 0, 1, 1],
-  })
-  return (
-    <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="flex-start" style={styles.header}>
-      <AnimatedBox2
-        style={[styles.smallHeader, {opacity, top}]}
-        gap="tiny"
-        direction="horizontal"
-        centerChildren={true}
-        fullWidth={true}
-        fullHeight={true}
-      >
-        <Kb.Avatar size={16} teamname={teamname} />
-        <Kb.Text type="BodyBig">#{channelname}</Kb.Text>
-      </AnimatedBox2>
-      <Kb.BackButton onClick={onBack} style={styles.backButton} />
-    </Kb.Box2>
-  )
-}
 
 const styles = Styles.styleSheetCreate(() => ({
   backButton: {
