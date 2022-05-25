@@ -33,7 +33,7 @@ PODS:
     - UMTaskManagerInterface
   - EXMailComposer (11.1.1):
     - ExpoModulesCore
-  - EXMediaLibrary (14.1.0):
+  - EXMediaLibrary (14.0.1):
     - ExpoModulesCore
     - React-Core
   - EXPermissions (13.1.1):
@@ -636,7 +636,7 @@ SPEC CHECKSUMS:
   EXKeepAwake: bf48d7f740a5cd2befed6cf9a49911d385c6c47d
   EXLocation: 013b5d07cca26c2d15d998766322e70b7a228b57
   EXMailComposer: 290c110c14c1a022de752e85b8a9eea820a3ee5c
-  EXMediaLibrary: 84cddf988a089e28070790438caf58d8b265b37a
+  EXMediaLibrary: 843669e1d9d38965057830138609ee99ef260cf1
   EXPermissions: 2f8db9cfb1919d6c6776f462bb2c5a903e423b2a
   Expo: 534e51e607aba8229293297da5585f4b26f50fa1
   ExpoHaptics: 0d0b69b2414755a4057ffad0a10315902c0ea1b7

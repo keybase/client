@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
-import * as Flow from '../../util/flow'
 import * as Types from '../../constants/types/fs'
 import {fileUIName} from '../../constants/platform'
 
@@ -99,7 +98,6 @@ const ConflictBanner = (props: Props) => {
       )
     }
     default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(props.conflictState)
       return <Kb.Text type="Body">'Unknown conflictState: ' + conflictState</Kb.Text>
   }
 }

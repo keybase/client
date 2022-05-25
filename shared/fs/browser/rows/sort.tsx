@@ -1,6 +1,5 @@
 import * as Types from '../../../constants/types/fs'
 import * as RowTypes from './types'
-import * as Flow from '../../../util/flow'
 import {memoize} from '../../../util/memoize'
 import logger from '../../../logger'
 
@@ -22,45 +21,46 @@ const getLastModifiedTimeStamp = (a: SortableRowItem) =>
 
 // This handles comparisons that aren't affected by asc/desc setting.
 const getCommonComparer = memoize(
-  (meUsername: string) => (a: SortableRowItem, b: SortableRowItem): number => {
-    // See if any of them are newly created folders.
-    const aIsNewFolder = a.rowType === RowTypes.RowType.NewFolder
-    const bIsNewFolder = b.rowType === RowTypes.RowType.NewFolder
-    if (aIsNewFolder && !bIsNewFolder) {
-      return -1
-    }
-    if (!aIsNewFolder && bIsNewFolder) {
-      return 1
-    }
+  (meUsername: string) =>
+    (a: SortableRowItem, b: SortableRowItem): number => {
+      // See if any of them are newly created folders.
+      const aIsNewFolder = a.rowType === RowTypes.RowType.NewFolder
+      const bIsNewFolder = b.rowType === RowTypes.RowType.NewFolder
+      if (aIsNewFolder && !bIsNewFolder) {
+        return -1
+      }
+      if (!aIsNewFolder && bIsNewFolder) {
+        return 1
+      }
 
-    if (a.rowType === RowTypes.RowType.Tlf && b.rowType === RowTypes.RowType.Tlf) {
-      // Both are TLFs.
+      if (a.rowType === RowTypes.RowType.Tlf && b.rowType === RowTypes.RowType.Tlf) {
+        // Both are TLFs.
 
-      // First, if meUsername is set (i.e. user logged in), try to put user's
-      // own TLF at first.
-      if (meUsername) {
-        const aIsMe = a.name === meUsername
-        const bIsMe = b.name === meUsername
-        if (aIsMe && !bIsMe) {
+        // First, if meUsername is set (i.e. user logged in), try to put user's
+        // own TLF at first.
+        if (meUsername) {
+          const aIsMe = a.name === meUsername
+          const bIsMe = b.name === meUsername
+          if (aIsMe && !bIsMe) {
+            return -1
+          }
+          if (!aIsMe && bIsMe) {
+            return 1
+          }
+        }
+
+        // Then, inspect if any of them has isNew set. This only applies to TLF
+        // lists.
+        if (a.isNew && !b.isNew) {
           return -1
         }
-        if (!aIsMe && bIsMe) {
+        if (!a.isNew && b.isNew) {
           return 1
         }
       }
 
-      // Then, inspect if any of them has isNew set. This only applies to TLF
-      // lists.
-      if (a.isNew && !b.isNew) {
-        return -1
-      }
-      if (!a.isNew && b.isNew) {
-        return 1
-      }
+      return 0
     }
-
-    return 0
-  }
 )
 
 const getComparerBySortBy = (sortBy: 'name' | 'time'): PathItemComparer => {
@@ -82,25 +82,23 @@ const getComparerBySortBy = (sortBy: 'name' | 'time'): PathItemComparer => {
       return (a: SortableRowItem, b: SortableRowItem): number =>
         getLastModifiedTimeStamp(b) - getLastModifiedTimeStamp(a)
     default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(sortBy)
       throw new Error('invalid SortBy: ' + sortBy)
   }
 }
 
-const getComparer = (sortSetting: Types.SortSetting, meUsername: string) => (
-  a: SortableRowItem,
-  b: SortableRowItem
-): number => {
-  const commonCompare = getCommonComparer(meUsername)(a, b)
-  if (commonCompare !== 0) {
-    return commonCompare
+const getComparer =
+  (sortSetting: Types.SortSetting, meUsername: string) =>
+  (a: SortableRowItem, b: SortableRowItem): number => {
+    const commonCompare = getCommonComparer(meUsername)(a, b)
+    if (commonCompare !== 0) {
+      return commonCompare
+    }
+
+    const multiplier = getOrder(sortSetting) === 'desc' ? -1 : 1
+
+    const sortByCompare = getComparerBySortBy(getSortBy(sortSetting))(a, b)
+    return sortByCompare * multiplier
   }
-
-  const multiplier = getOrder(sortSetting) === 'desc' ? -1 : 1
-
-  const sortByCompare = getComparerBySortBy(getSortBy(sortSetting))(a, b)
-  return sortByCompare * multiplier
-}
 
 export const sortRowItems: (
   items: Array<SortableRowItem>,

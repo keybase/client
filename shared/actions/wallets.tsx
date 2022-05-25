@@ -9,7 +9,6 @@ import * as Chat2Gen from './chat2-gen'
 import * as ConfigGen from './config-gen'
 import * as NotificationsGen from './notifications-gen'
 import * as RouteTreeGen from './route-tree-gen'
-import * as Flow from '../util/flow'
 import * as Router2Constants from '../constants/router2'
 import HiddenString from '../util/hidden-string'
 import _logger from '../logger'
@@ -523,7 +522,7 @@ const loadAssets = async (state: TypedState, action: LoadAssetsActions, logger: 
       accountID = state.wallets.selectedAccount
       break
     default:
-      return Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
+      return
   }
 
   // should be impossible

@@ -4,7 +4,6 @@ import * as Styles from '../styles'
 import {AllowedColors} from '../common-adapters/text'
 import {assertionToDisplay} from '../common-adapters/usernames'
 import * as Tabs from './tabs'
-import * as Flow from '../util/flow'
 import * as SettingsConstants from './settings'
 import invert from 'lodash/invert'
 import {TypedState} from './reducer'
@@ -614,7 +613,6 @@ export const paymentToYourInfoAndCounterparty = (
         yourRole: 'senderOnly',
       }
     default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(p.delta)
       throw new Error(`Unexpected delta ${p.delta}`)
   }
 }

@@ -1,4 +1,3 @@
-import * as Flow from '../../util/flow'
 import * as React from 'react'
 import {formatDuration} from '../../util/timestamp'
 import {UploadProps} from './upload'
@@ -74,7 +73,6 @@ const UploadCountdownHOC = (Upload: React.ComponentType<UploadProps>) =>
               mode: newGlueTTL > 0 ? Mode.Sticky : Mode.Hidden,
             }
           default:
-            Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(mode)
             return null
         }
       })
@@ -139,7 +137,6 @@ const UploadCountdownHOC = (Upload: React.ComponentType<UploadProps>) =>
                 mode,
               }
         default:
-          Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(mode)
           return null
       }
     }

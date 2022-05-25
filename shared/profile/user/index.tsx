@@ -13,7 +13,6 @@ import Measure from './measure'
 import Teams from './teams/container'
 import shallowEqual from 'shallowequal'
 import * as RPCTypes from '../../constants/types/rpc-gen'
-import * as Flow from '../../util/flow'
 import type * as Types from '../../constants/types/tracker2'
 import {SiteIcon} from '../generic/shared'
 import {HeaderLeftArrow} from '../../common-adapters/header-hoc'
@@ -62,7 +61,6 @@ const colorTypeToStyle = (type: 'red' | 'green' | 'blue') => {
     case 'blue':
       return styles.typedBackgroundBlue
     default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(type)
       return styles.typedBackgroundRed
   }
 }

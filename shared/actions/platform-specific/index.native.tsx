@@ -11,7 +11,6 @@ import * as ProfileGen from '../profile-gen'
 import * as SettingsGen from '../settings-gen'
 import * as WaitingGen from '../waiting-gen'
 import * as EngineGen from '../engine-gen-gen'
-import * as Flow from '../../util/flow'
 import * as Tabs from '../../constants/tabs'
 import * as RouteTreeGen from '../route-tree-gen'
 import * as LoginGen from '../login-gen'
@@ -219,7 +218,6 @@ const updateChangedFocus = (action: ConfigGen.MobileAppStatePayload) => {
       logState = RPCTypes.MobileAppState.inactive
       break
     default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action.payload.nextAppState)
       appFocused = false
       logState = RPCTypes.MobileAppState.foreground
   }

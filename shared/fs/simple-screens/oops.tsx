@@ -2,7 +2,6 @@ import * as React from 'react'
 import * as Types from '../../constants/types/fs'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import * as Flow from '../../util/flow'
 import * as Container from '../../util/container'
 import {isMobile} from '../../constants/platform'
 
@@ -115,7 +114,6 @@ const Oops = (props: OwnProps) => {
     case Types.SoftError.Nonexistent:
       return <NonExistent {...props} openParent={openParent} />
     default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(props.reason)
       return null
   }
 }
