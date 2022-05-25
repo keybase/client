@@ -5,7 +5,6 @@ import * as Constants from '../../constants/chat2'
 import * as Container from '../../util/container'
 import * as DeeplinksGen from '../deeplinks-gen'
 import * as EngineGen from '../engine-gen-gen'
-import * as Flow from '../../util/flow'
 import * as FsConstants from '../../constants/fs'
 import * as FsTypes from '../../constants/types/fs'
 import * as GregorConstants from '../../constants/gregor'
@@ -86,7 +85,6 @@ const inboxRefresh = (
       reason = 'inboxStale'
       break
     default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
   }
 
   logger.info(`Inbox refresh due to ${reason ?? '???'}`)
@@ -172,7 +170,6 @@ const rpcMetaRequestConversationIDKeys = (
       keys = [action.payload.conversationIDKey].filter(Constants.isValidConversationIDKey)
       break
     default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
       throw new Error('Invalid action passed to unboxRows')
   }
   return Constants.getConversationIDKeyMetasToLoad(keys, state.chat2.metaMap)
@@ -1125,7 +1122,6 @@ function* loadMoreMessages(
       forceClear = true
       break
     default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
   }
 
   if (!key || !Constants.isValidConversationIDKey(key)) {
@@ -1270,7 +1266,6 @@ function* getUnreadline(
       key = action.payload.conversationIDKey
       break
     default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action.type)
       key = action.payload.conversationIDKey
   }
 

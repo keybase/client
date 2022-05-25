@@ -3,7 +3,6 @@ import * as Types from '../../../constants/types/fs'
 import * as Constants from '../../../constants/fs'
 import * as Kb from '../../../common-adapters'
 import {fileUIName} from '../../../constants/platform'
-import * as Flow from '../../../util/flow'
 import * as Styles from '../../../styles'
 import * as Container from '../../../util/container'
 import * as FsGen from '../../../actions/fs-gen'
@@ -54,7 +53,6 @@ const backgroundToTextStyle = (background: Background) => {
     case Background.Black:
       return styles.textWhite
     default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(background)
       return styles.textWhite
   }
 }
@@ -70,7 +68,6 @@ const backgroundToBackgroundColor = (background: Background) => {
     case Background.Black:
       return Styles.globalColors.black
     default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(background)
       return Styles.globalColors.black
   }
 }

@@ -1,7 +1,6 @@
 import * as Types from './types/fs'
 import * as RPCTypes from './types/rpc-gen'
 import * as FsGen from '../actions/fs-gen'
-import * as Flow from '../util/flow'
 import * as Tabs from './tabs'
 import * as SettingsConstants from './settings'
 import {TypedState} from '../util/container'
@@ -132,10 +131,10 @@ export const makeTlf = (p: Partial<Types.Tlf>): Types.Tlf => {
     teamId: teamId || '',
     tlfMtime: tlfMtime || 0,
     /* See comment in constants/types/fs.js
-  needsRekey: false,
-  waitingForParticipantUnlock: I.List(),
-  youCanUnlock: I.List(),
-  */
+      needsRekey: false,
+      waitingForParticipantUnlock: I.List(),
+      youCanUnlock: I.List(),
+      */
   }
 }
 
@@ -427,7 +426,6 @@ export const getTlfListFromType = (tlfs: Types.Tlfs, tlfType: Types.TlfType): Ty
     case Types.TlfType.Team:
       return tlfs.team
     default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(tlfType)
       return new Map()
   }
 }
@@ -491,7 +489,6 @@ export const getTlfFromTlfs = (tlfs: Types.Tlfs, tlfType: Types.TlfType, name: s
     case Types.TlfType.Team:
       return tlfs.team.get(name) || unknownTlf
     default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(tlfType)
       return unknownTlf
   }
 }
@@ -677,7 +674,6 @@ export const canChat = (path: Types.Path) => {
     case Types.PathKind.InTeamTlf:
       return true
     default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(parsedPath)
       return false
   }
 }
@@ -735,7 +731,6 @@ const isPathEnabledForSync = (syncConfig: Types.TlfSyncConfig, path: Types.Path)
       // potential ".." traversal as well.
       return syncConfig.enabledPaths.includes(path)
     default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(syncConfig)
       return false
   }
 }
@@ -834,7 +829,6 @@ export const getPathStatusIconInMergeProps = (
       return inProgress.bytesFetched / inProgress.bytesTotal
     }
     default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(pathItem.prefetchStatus)
       return Types.NonUploadStaticSyncStatus.Unknown
   }
 }

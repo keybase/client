@@ -4,7 +4,9 @@ import FloatingBox from './floating-box'
 import Box from './box'
 import {useTimeout} from './use-timers'
 import {NativeAnimated, NativeEasing} from './native-wrappers.native'
-import {Props} from './toast'
+import type {Props} from './toast'
+import {colors, darkColors} from '../styles/colors'
+import {isDarkMode} from '../styles/dark-mode'
 
 const Kb = {
   Box,
@@ -51,6 +53,7 @@ const Toast = (props: Props) => {
     }
     return noop
   }, [shouldRender])
+
   return shouldRender ? (
     <Kb.FloatingBox dest="keyboard-avoiding-root">
       <Kb.Box pointerEvents="none" style={styles.wrapper}>
@@ -68,31 +71,36 @@ const Toast = (props: Props) => {
   ) : null
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  container: {
-    alignItems: 'center',
-    backgroundColor: Styles.globalColors.black,
-    borderRadius: 70,
-    borderWidth: 0,
-    display: 'flex',
-    height: 140,
-    justifyContent: 'center',
-    margin: Styles.globalMargins.xtiny,
-    paddingBottom: Styles.globalMargins.xtiny,
-    paddingLeft: Styles.globalMargins.tiny,
-    paddingRight: Styles.globalMargins.tiny,
-    paddingTop: Styles.globalMargins.xtiny,
-    width: 140,
-  },
-  wrapper: {
-    alignItems: 'center',
-    bottom: 0,
-    justifyContent: 'center',
-    left: 0,
-    position: 'absolute',
-    right: 0,
-    top: 0,
-  },
-}))
+const styles = Styles.styleSheetCreate(() => {
+  return {
+    container: {
+      alignItems: 'center',
+      // RN bugs with animated dynamicColors so have to use the raw ones
+      // known bug this won't work if the dark mode changes dynamic on ios currently
+      backgroundColor: isDarkMode() ? darkColors.black : colors.black,
+      borderRadius: 140,
+      borderWidth: 0,
+      display: 'flex',
+      height: 140,
+      justifyContent: 'center',
+      margin: Styles.globalMargins.xtiny,
+      overflow: 'hidden',
+      paddingBottom: Styles.globalMargins.xtiny,
+      paddingLeft: Styles.globalMargins.tiny,
+      paddingRight: Styles.globalMargins.tiny,
+      paddingTop: Styles.globalMargins.xtiny,
+      width: 140,
+    },
+    wrapper: {
+      alignItems: 'center',
+      bottom: 0,
+      justifyContent: 'center',
+      left: 0,
+      position: 'absolute',
+      right: 0,
+      top: 0,
+    },
+  }
+})
 
 export default Toast

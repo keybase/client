@@ -1,5 +1,4 @@
 import React, {PureComponent} from 'react'
-import * as Flow from '../util/flow'
 import AutoSizer from 'react-virtualized-auto-sizer'
 import {FixedSizeList, VariableSizeList} from 'react-window'
 import {Props} from './list2'
@@ -78,7 +77,6 @@ class List2<T> extends PureComponent<Props<T>> {
             case 'variable':
               return this._variable({getItemLayout: this.props.itemHeight.getItemLayout, height, width})
             default:
-              Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(this.props.itemHeight)
               return null
           }
         }}

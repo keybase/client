@@ -1,5 +1,4 @@
 import * as React from 'react'
-import * as Flow from '../../../util/flow'
 import * as Styles from '../../../styles'
 import * as Kb from '../../../common-adapters'
 import * as RowTypes from './types'
@@ -76,7 +75,6 @@ class Rows extends React.PureComponent<Props> {
       case RowTypes.RowType.Header:
         return item.node
       default:
-        Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(item)
         return (
           <WrapRow>
             <Kb.Text type="BodySmallError">This should not happen.</Kb.Text>
