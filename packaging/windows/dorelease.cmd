@@ -104,7 +104,7 @@ EXIT /B 0
 if [%UpdateChannel%] NEQ [Smoke2] (
     echo "Non Smoke2 build"
     %OUTPUT% "Successfully built Windows with client: %KEYBASE_VERSION%"
-    %OUTPUT% "Build tag: %BUILD_%TAG% GOARCH: %GOARCH%"
+    %OUTPUT% "Build tag: %BUILD_TAG% GOARCH: %GOARCH%"
     %OUTPUT% "https://prerelease.keybase.io/windows/"
     goto:no_smokeb
 )
