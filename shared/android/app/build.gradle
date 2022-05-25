@@ -206,6 +206,7 @@ android {
 
     buildTypes {
         debug {
+            applicationIdSuffix ".debug"
             if (nativeArchitectures) {
                 ndk {
                     abiFilters nativeArchitectures.split(',')
