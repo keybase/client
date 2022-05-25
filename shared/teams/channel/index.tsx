@@ -120,8 +120,6 @@ const Channel = (props: OwnProps) => {
   const teamMembers = Container.useSelector(
     state => state.teams.teamIDToMembers.get(teamID) ?? emptyMapForUseSelector
   )
-  const teamname = Container.useSelector(state => Constants.getTeamMeta(state, teamID).teamname)
-
   const [selectedTab, setSelectedTab] = useTabsState(conversationIDKey, providedTab)
   useLoadDataForChannelPage(teamID, conversationIDKey, selectedTab, meta, _participants, bots)
   const participants = useChannelParticipants(teamID, conversationIDKey)
