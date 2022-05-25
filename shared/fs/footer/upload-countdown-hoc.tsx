@@ -137,7 +137,6 @@ const UploadCountdownHOC = (Upload: React.ComponentType<UploadProps>) =>
                 mode,
               }
         default:
-          Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(mode)
           return null
       }
     }
