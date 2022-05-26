@@ -369,6 +369,10 @@ const RNApp = React.memo(() => {
           key="root"
           screenOptions={{
             animationEnabled: false,
+            // in RNN the background theme is used several times in the stack which causes overdraw if we set it in the theme
+            // if we don't set it in the theme when modals pop the underlying card's background will visibly thrash while a modal slides up
+            // this lets us override the card's background so we can not overdraw and not thrash
+            cardStyle: Styles.isAndroid ? {backgroundColor: Styles.globalColors.white} : undefined,
             headerLeft: () => <HeaderLeftCancel />,
             headerShown: false, // eventually do this after we pull apart modal2 etc
             presentation: 'modal',
