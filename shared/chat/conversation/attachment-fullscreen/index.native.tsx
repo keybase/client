@@ -156,10 +156,9 @@ class _Fullscreen extends React.Component<Props & Kb.OverlayParentProps, {loaded
           </Kb.Text>
         </Kb.Box2>
         <Kb.BoxGrow>{content}</Kb.BoxGrow>
-        <Kb.Icon
-          type="iconfont-ellipsis"
+        <Kb.Button
+          icon="iconfont-ellipsis"
           style={styles.headerFooter}
-          color={Styles.globalColors.blueDark}
           onClick={this.props.toggleShowingMenu}
         />
         <MessagePopup
@@ -200,10 +199,12 @@ const styles = Styles.styleSheetCreate(
       headerFooter: {
         ...Styles.globalStyles.flexBoxRow,
         alignItems: 'center',
-        bottom: 0,
+        backgroundColor: Styles.globalColors.blackOrBlack,
         flexShrink: 0,
-        height: 44,
+        height: 34,
+        width: 34,
         left: Styles.globalMargins.small,
+        bottom: Styles.globalMargins.small,
         position: 'absolute',
         zIndex: 3,
       },
