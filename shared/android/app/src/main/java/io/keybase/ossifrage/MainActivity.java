@@ -356,7 +356,7 @@ public class MainActivity extends ReactActivity {
 
   @Override
   protected void onResume() {
-    NativeLogger.info("Activity onPause");
+    NativeLogger.info("Activity onResume");
     super.onResume();
     Keybase.setAppStateForeground();
     // Emit the intent data to JS
