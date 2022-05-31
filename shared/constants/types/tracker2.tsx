@@ -45,7 +45,14 @@ export type Assertion = {
   wotProof?: RPCTypes.WotProof
 }
 
-export type DetailsState = 'checking' | 'valid' | 'broken' | 'needsUpgrade' | 'error' | 'notAUserYet'
+export type DetailsState =
+  | 'checking'
+  | 'valid'
+  | 'broken'
+  | 'needsUpgrade'
+  | 'error'
+  | 'notAUserYet'
+  | 'unknown'
 
 export type Details = {
   assertions?: Map<string, Assertion>
