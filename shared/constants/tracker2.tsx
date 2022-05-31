@@ -19,7 +19,7 @@ export const noDetails = Object.freeze<Types.Details>({
   reason: '',
   resetBrokeTrack: false,
   showTracker: false,
-  state: 'checking',
+  state: 'unknown',
   stellarHidden: false,
   teamShowcase: emptyArray,
   username: '',
