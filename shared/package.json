@@ -68,7 +68,7 @@
         "@emotion/styled": "11.8.1",
         "@emotion/native": "11.0.0",
         "@msgpack/msgpack": "2.7.2",
-        "@react-native-community/geolocation": "2.0.2",
+        "@react-native-community/geolocation": "2.1.0",
         "@react-native-community/netinfo": "8.1.0",
         "@react-native-community/push-notification-ios": "1.10.1",
         "@react-navigation/core": "6.2.1",

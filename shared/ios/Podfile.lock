@@ -268,8 +268,8 @@ PODS:
   - React-jsinspector (0.67.3)
   - React-logger (0.67.3):
     - glog
-  - react-native-geolocation (2.0.2):
-    - React
+  - react-native-geolocation (2.1.0):
+    - React-Core
   - react-native-hw-keyboard-event (0.0.4):
     - React
   - react-native-netinfo (8.1.0):
@@ -661,7 +661,7 @@ SPEC CHECKSUMS:
   React-jsiexecutor: 15ea57ead631a11fad57634ff69f78e797113a39
   React-jsinspector: 1e1e03345cf6d47779e2061d679d0a87d9ae73d8
   React-logger: 1e10789cb84f99288479ba5f20822ce43ced6ffe
-  react-native-geolocation: c956aeb136625c23e0dce0467664af2c437888c9
+  react-native-geolocation: 69f4fd37650b8e7fee91816d395e62dd16f5ab8d
   react-native-hw-keyboard-event: b517cefb8d5c659a38049c582de85ff43337dc53
   react-native-netinfo: 379ba2af7d2abcec0c062267abe1c9a977c72bf9
   react-native-safe-area-context: 114e9a74df2643012b9d6cc1460b94f3b6a90780
