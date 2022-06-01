@@ -27,10 +27,10 @@ import {
   TouchableOpacity as NativeTouchableOpacity,
   TouchableWithoutFeedback as NativeTouchableWithoutFeedback,
   View as NativeView,
+  VirtualizedList as NativeVirtualizedList,
 } from 'react-native'
 import NativeScrollView from './scroll-view.native'
 import {NativeImage, FastImage as NativeFastImage} from './native-image.native'
-import NativeVirtualizedList from './virtualized-list.native'
 import {WebView as NativeWebView} from 'react-native-webview'
 import {Picker as NativePicker} from '@react-native-picker/picker'
 
