@@ -170,9 +170,6 @@ module.exports = {
   get LoadingLine() {
     return Index.LoadingLine
   },
-  get LongPressGestureHandler() {
-    return require('react-native-gesture-handler').LongPressGestureHandler
-  },
   get Markdown() {
     return Index.Markdown
   },
