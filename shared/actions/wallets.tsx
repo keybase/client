@@ -18,7 +18,7 @@ import * as TeamBuildingGen from './team-building-gen'
 import commonTeamBuildingSaga, {filterForNs} from './team-building'
 import {RPCError} from '../util/errors'
 import openURL from '../util/open-url'
-import {isMobile} from '../constants/platform'
+import {isMobile, isTablet} from '../constants/platform'
 import type {TypedActions, TypedState} from '../util/container'
 
 const stateToBuildRequestParams = (state: TypedState) => ({
@@ -1095,8 +1095,15 @@ const checkDisclaimer = async (_: WalletsGen.CheckDisclaimerPayload, logger: Sag
   }
 }
 
-const rejectDisclaimer = () =>
-  isMobile ? RouteTreeGen.createNavigateUp() : RouteTreeGen.createSwitchTab({tab: Tabs.peopleTab})
+const rejectDisclaimer = () => {
+  if (isMobile) {
+    if (isTablet) {
+      return RouteTreeGen.createSwitchTab({tab: Tabs.peopleTab})
+    }
+    return RouteTreeGen.createNavigateUp()
+  }
+  return RouteTreeGen.createSwitchTab({tab: Tabs.peopleTab})
+}
 
 const loadMobileOnlyMode = async (
   action: WalletsGen.LoadMobileOnlyModePayload | WalletsGen.SelectAccountPayload,
