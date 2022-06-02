@@ -15,7 +15,7 @@ export const {version, androidIsTestDevice, uses24HourClock, androidIsDeviceSecu
   NativeModules.KeybaseEngine
 // Currently this is given to us as a boolean, but no real documentation on this, so just in case it changes in the future.
 // Android only field that tells us if there is a lock screen.
-export const isDeviceSecureAndroid: boolean = androidIsDeviceSecure === '1'
+export const isDeviceSecureAndroid = androidIsDeviceSecure
 export const runMode = 'prod'
 export const pathSep = '/'
 
