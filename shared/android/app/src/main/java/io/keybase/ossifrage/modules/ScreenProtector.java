@@ -77,6 +77,6 @@ public class ScreenProtector extends ReactContextBaseJavaModule {
 
     @Override
     public String getName() {
-        return "ScreenProtector";
+        return "AndroidScreenProtector";
     }
 }

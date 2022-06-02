@@ -20,7 +20,7 @@ public class NativeSettings extends ReactContextBaseJavaModule {
 
     @Override
     public String getName() {
-        return "NativeSettings";
+        return "AndroidSettings";
     }
 
     @ReactMethod

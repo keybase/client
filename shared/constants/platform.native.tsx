@@ -7,9 +7,10 @@ type SetSecure = (s: boolean) => Promise<boolean> // true on successful write
 type GetSecure = () => Promise<boolean>
 
 export const setSecureFlagSetting: SetSecure =
-  NativeModules?.ScreenProtector?.setSecureFlagSetting ?? (async (_s: boolean) => Promise.resolve(false))
+  NativeModules?.AndroidScreenProtector?.setSecureFlagSetting ??
+  (async (_s: boolean) => Promise.resolve(false))
 export const getSecureFlagSetting: GetSecure =
-  NativeModules?.ScreenProtector?.getSecureFlagSetting ?? (async () => Promise.resolve(false))
+  NativeModules?.AndroidScreenProtector?.getSecureFlagSetting ?? (async () => Promise.resolve(false))
 export const {version, androidIsTestDevice, uses24HourClock, androidIsDeviceSecure, fsCacheDir} =
   NativeModules.KeybaseEngine
 // Currently this is given to us as a boolean, but no real documentation on this, so just in case it changes in the future.

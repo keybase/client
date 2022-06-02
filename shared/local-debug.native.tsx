@@ -84,7 +84,7 @@ if (__DEV__) {
 //     console.log('TEMP debug release build one')
 //   }
 //   // in release we don't get console logs on ios, so instead use native logger and edit the objc side
-//   window.console.log = (...a) => NativeModules.KBNativeLogger.log([['e', a.join(' ')]])
+//   window.console.log = (...a) => NativeModules.NativeLogger.log([['e', a.join(' ')]])
 //   window.console.warn = window.console.log
 //   window.console.error = window.console.log
 //   window.console.info = window.console.log

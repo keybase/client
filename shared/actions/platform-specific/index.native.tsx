@@ -171,7 +171,7 @@ export const showShareActionSheet = async (options: {
   } else {
     if (!options.filePath && options.message) {
       try {
-        await NativeModules.ShareFiles?.shareText(options.message, options.mimeType)
+        await NativeModules.AndroidShareFiles?.shareText(options.message, options.mimeType)
         return {completed: true, method: ''}
       } catch (_) {
         return {completed: false, method: ''}
@@ -179,7 +179,7 @@ export const showShareActionSheet = async (options: {
     }
 
     try {
-      await NativeModules.ShareFiles?.share(options.filePath ?? '', options.mimeType)
+      await NativeModules.AndroidShareFiles?.share(options.filePath ?? '', options.mimeType)
       return {completed: true, method: ''}
     } catch (_) {
       return {completed: false, method: ''}
@@ -189,7 +189,7 @@ export const showShareActionSheet = async (options: {
 
 const openAppSettings = async () => {
   if (isAndroid) {
-    NativeModules.NativeSettings?.open()
+    NativeModules.AndroidSettings?.open()
   } else {
     const settingsURL = 'app-settings:'
     const can = await Linking.canOpenURL(settingsURL)
