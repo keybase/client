@@ -1,12 +1,12 @@
 import * as Constants from '../../constants/login'
 import * as Kb from '../../common-adapters/mobile.native'
-import * as Styles from '../../styles'
-import UserCard from '../user-card'
-import {Props as InputProps} from '../../common-adapters/labeled-input'
-import Dropdown from './dropdown.native'
 import * as React from 'react'
+import * as Styles from '../../styles'
+import Dropdown from './dropdown.native'
+import UserCard from '../user-card'
+import type {Props as InputProps} from '../../common-adapters/labeled-input'
+import type {Props} from '.'
 import {isDeviceSecureAndroid, isAndroidNewerThanM, isAndroid} from '../../constants/platform.native'
-import {Props} from '.'
 
 type State = {
   scrollViewHeight?: number
@@ -84,13 +84,7 @@ class LoginRender extends React.Component<Props, State> {
               >
                 Forgot password?
               </Kb.Text>
-              <Kb.Text
-                style={{
-                  alignSelf: 'center',
-                }}
-                type="BodySmallSecondaryLink"
-                onClick={this.props.onFeedback}
-              >
+              <Kb.Text center={true} type="BodySmallSecondaryLink" onClick={this.props.onFeedback}>
                 Problems logging in?
               </Kb.Text>
             </UserCard>
