@@ -7,18 +7,19 @@ type NativeModulesType = {
     androidGetInitialBundleFromNotification?: () => Promise<any>
     androidGetInitialShareFileUrl?: () => Promise<string>
     androidGetInitialShareText?: () => Promise<string>
-    androidIsDeviceSecure: '0' | '1'
-    androidIsTestDevice: '0' | '1'
     androidSetApplicationIconBadgeNumber?: (n: number) => void
+    reset: () => void
+    start: () => void
+
+    androidIsDeviceSecure: boolean
+    androidIsTestDevice: boolean
     appVersionCode: string
     appVersionName: string
-    darkModeSupported: '0' | '1'
+    darkModeSupported: boolean
     fsCacheDir: string
     fsDownloadDir: string
     guiConfig: string
-    reset: () => void
     serverConfig: string
-    start: () => void
     uses24HourClock: boolean
     version: string
   }
@@ -76,7 +77,6 @@ type NativeModulesType = {
 }
 
 const NativeModules = RNNativeModules as NativeModulesType
-console.log('aaaa', NativeModules, NativeModules.KeybaseEngine, Object.keys(NativeModules))
 
 // sanity check
 if (!NativeModules.KeybaseEngine) {

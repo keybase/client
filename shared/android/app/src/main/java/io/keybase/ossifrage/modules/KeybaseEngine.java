@@ -133,7 +133,7 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
         constants.put("androidIsTestDevice", misTestDevice);
         constants.put("appVersionCode", versionCode);
         constants.put("appVersionName", versionName);
-        constants.put("darkModeSupported", "0");
+        constants.put("darkModeSupported", false);
         constants.put("fsCacheDir", cacheDir);
         constants.put("fsDownloadDir", downloadDir);
         constants.put("guiConfig", readGuiConfig());
