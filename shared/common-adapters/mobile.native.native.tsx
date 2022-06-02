@@ -428,9 +428,6 @@ module.exports = {
   get ZoomableBox() {
     return require('./zoomable-box').ZoomableBox
   },
-  get ZoomableImage() {
-    return require('./zoomable-image.native').default
-  },
   get isValidIconType() {
     return Index.isValidIconType
   },

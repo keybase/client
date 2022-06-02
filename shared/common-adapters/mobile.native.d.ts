@@ -21,6 +21,5 @@ export {
   Swipeable,
   TapGestureHandler,
 }
-export {default as ZoomableImage} from './zoomable-image.native'
 export {LayoutAnimation} from 'react-native'
 export {useSafeAreaInsets} from 'react-native-safe-area-context'
