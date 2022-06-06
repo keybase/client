@@ -1,16 +1,18 @@
-import * as Tabs from '../constants/tabs'
 import * as ChatConstants from '../constants/chat2'
-import * as Shared from './router.shared'
-import * as Kb from '../common-adapters/mobile.native'
-import {getStateFromPath} from '@react-navigation/native'
 import * as Container from '../util/container'
-import {tabRoots} from './routes'
-import * as DeeplinksGen from '../actions/deeplinks-gen'
 import * as DeeplinksConstants from '../constants/deeplinks'
+import * as DeeplinksGen from '../actions/deeplinks-gen'
+import * as Kb from '../common-adapters/mobile.native'
+import * as Shared from './router.shared'
+import * as Tabs from '../constants/tabs'
+import type * as ConfigTypes from '../constants/types/config'
+import {getStateFromPath} from '@react-navigation/native'
+import {tabRoots} from './routes'
 
 const tabs: ReadonlyArray<Tabs.Tab> = Container.isTablet ? Tabs.tabletTabs : Tabs.phoneTabs
 
 type OptionsType = {
+  androidShare?: ConfigTypes.State['androidShare']
   dispatch: Container.TypedDispatch
   startupTab?: string
   showMonster: boolean
@@ -19,7 +21,7 @@ type OptionsType = {
 }
 
 const makeLinking = (options: OptionsType) => {
-  const {dispatch, startupTab, showMonster, startupFollowUser, startupConversation} = options
+  const {androidShare, dispatch, startupTab, showMonster, startupFollowUser, startupConversation} = options
   const config = Container.produce(
     {
       initialRouteName: 'loggedIn',
@@ -68,6 +70,8 @@ const makeLinking = (options: OptionsType) => {
           url = `keybase://convid/${startupConversation}`
           // TODO support actual existing chat links
           //keybase://chat/${conv}/${messageID}`
+        } else if (androidShare) {
+          url = `keybase://incoming-share`
         } else if (startupFollowUser) {
           url = `keybase://profile/show/${startupFollowUser}`
         } else {
@@ -107,11 +111,13 @@ export const useReduxToLinking = (appState: Shared.AppState) => {
     return ChatConstants.isValidConversationIDKey(startupConversation) ? startupConversation : undefined
   })
   const showMonster = Container.useSelector(ShowMonsterSelector)
+  const androidShare = Container.useSelector(state => state.config.androidShare)
   const startupFollowUser = Container.useSelector(state => state.config.startupFollowUser)
   const dispatch = Container.useDispatch()
 
   return appState === Shared.AppState.NEEDS_INIT
     ? makeLinking({
+        androidShare,
         dispatch,
         showMonster,
         startupConversation,

@@ -33,7 +33,7 @@ PODS:
     - UMTaskManagerInterface
   - EXMailComposer (11.1.1):
     - ExpoModulesCore
-  - EXMediaLibrary (14.1.0):
+  - EXMediaLibrary (14.0.1):
     - ExpoModulesCore
     - React-Core
   - EXPermissions (13.1.1):
@@ -268,8 +268,8 @@ PODS:
   - React-jsinspector (0.67.3)
   - React-logger (0.67.3):
     - glog
-  - react-native-geolocation (2.0.2):
-    - React
+  - react-native-geolocation (2.1.0):
+    - React-Core
   - react-native-hw-keyboard-event (0.0.4):
     - React
   - react-native-netinfo (8.1.0):
@@ -636,7 +636,7 @@ SPEC CHECKSUMS:
   EXKeepAwake: bf48d7f740a5cd2befed6cf9a49911d385c6c47d
   EXLocation: 013b5d07cca26c2d15d998766322e70b7a228b57
   EXMailComposer: 290c110c14c1a022de752e85b8a9eea820a3ee5c
-  EXMediaLibrary: 84cddf988a089e28070790438caf58d8b265b37a
+  EXMediaLibrary: 843669e1d9d38965057830138609ee99ef260cf1
   EXPermissions: 2f8db9cfb1919d6c6776f462bb2c5a903e423b2a
   Expo: 534e51e607aba8229293297da5585f4b26f50fa1
   ExpoHaptics: 0d0b69b2414755a4057ffad0a10315902c0ea1b7
@@ -661,7 +661,7 @@ SPEC CHECKSUMS:
   React-jsiexecutor: 15ea57ead631a11fad57634ff69f78e797113a39
   React-jsinspector: 1e1e03345cf6d47779e2061d679d0a87d9ae73d8
   React-logger: 1e10789cb84f99288479ba5f20822ce43ced6ffe
-  react-native-geolocation: c956aeb136625c23e0dce0467664af2c437888c9
+  react-native-geolocation: 69f4fd37650b8e7fee91816d395e62dd16f5ab8d
   react-native-hw-keyboard-event: b517cefb8d5c659a38049c582de85ff43337dc53
   react-native-netinfo: 379ba2af7d2abcec0c062267abe1c9a977c72bf9
   react-native-safe-area-context: 114e9a74df2643012b9d6cc1460b94f3b6a90780

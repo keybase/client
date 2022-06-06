@@ -1,6 +1,5 @@
 import logger from '../../logger'
 import {log} from '../../native/log/logui'
-import * as Flow from '../../util/flow'
 import * as ConfigGen from '../config-gen'
 import * as GregorGen from '../gregor-gen'
 import * as SettingsGen from '../settings-gen'
@@ -457,7 +456,6 @@ function* criticalOutOfDateCheck() {
           message = s.critical.message
           break
         default:
-          Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(s)
       }
       yield Saga.put(ConfigGen.createUpdateCriticalCheckStatus({message: message || '', status}))
     } catch (e) {

@@ -31,7 +31,7 @@ public class ShareFiles extends ReactContextBaseJavaModule {
 
     @Override
     public String getName() {
-        return "ShareFiles";
+        return "AndroidShareFiles";
     }
 
     @ReactMethod

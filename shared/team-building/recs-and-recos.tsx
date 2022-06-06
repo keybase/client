@@ -241,33 +241,6 @@ const styles = Styles.styleSheetCreate(
         right: 0,
         top: Styles.globalMargins.large,
       },
-      // container: Styles.platformStyles({
-      //   common: {position: 'relative'},
-      // }),
-      // emptyContainer: Styles.platformStyles({
-      //   common: {flex: 1},
-      //   isElectron: {
-      //     maxWidth: 290,
-      //     paddingBottom: 40,
-      //   },
-      //   isMobile: {maxWidth: '80%'},
-      // }),
-      // emptyServiceText: Styles.platformStyles({
-      //   isMobile: {
-      //     paddingBottom: Styles.globalMargins.small,
-      //     paddingTop: Styles.globalMargins.small,
-      //   },
-      // }),
-      // headerContainer: Styles.platformStyles({
-      //   isElectron: {
-      //     marginBottom: Styles.globalMargins.xtiny,
-      //     marginTop: Styles.globalMargins.small + 2,
-      //   },
-      // }),
-      // hide: {opacity: 0},
-      // list: Styles.platformStyles({
-      //   common: {paddingBottom: Styles.globalMargins.small},
-      // }),
       listContainer: Styles.platformStyles({
         common: {position: 'relative'},
         isElectron: {flex: 1, height: '100%', overflow: 'hidden'},
@@ -276,55 +249,10 @@ const styles = Styles.styleSheetCreate(
           width: '100%',
         },
       }),
-      // listContentContainer: Styles.platformStyles({
-      //   isMobile: {paddingTop: Styles.globalMargins.xtiny},
-      // }),
-      // loadingAnimation: Styles.platformStyles({
-      //   isElectron: {
-      //     height: 32,
-      //     width: 32,
-      //   },
-      //   isMobile: {
-      //     height: 48,
-      //     width: 48,
-      //   },
-      // }),
-      // loadingContainer: {
-      //   flex: 1,
-      //   justifyContent: 'flex-start',
-      // },
-      // mobileFlex: Styles.platformStyles({
-      //   isMobile: {flex: 1},
-      // }),
-      // newChatHeader: Styles.platformStyles({
-      //   isElectron: {margin: Styles.globalMargins.xsmall},
-      // }),
-      // noResults: {
-      //   flex: 1,
-      //   textAlign: 'center',
-      //   ...Styles.padding(Styles.globalMargins.small),
-      // },
-      // peoplePopupStyleClose: Styles.platformStyles({isElectron: {display: 'none'}}),
       searchHint: {
         paddingLeft: Styles.globalMargins.xlarge,
         paddingRight: Styles.globalMargins.xlarge,
         paddingTop: Styles.globalMargins.xlarge,
       },
-      // shrinkingGap: {flexShrink: 1, height: Styles.globalMargins.xtiny},
-      // teamAvatar: Styles.platformStyles({
-      //   isElectron: {
-      //     alignSelf: 'center',
-      //     position: 'absolute',
-      //     top: -16,
-      //   },
-      // }),
-      // waiting: {
-      //   ...Styles.globalStyles.fillAbsolute,
-      //   backgroundColor: Styles.globalColors.black_20,
-      // },
-      // waitingProgress: {
-      //   height: 48,
-      //   width: 48,
-      // },
     } as const)
 )

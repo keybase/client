@@ -2,7 +2,6 @@ import * as React from 'react'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import * as Types from '../../constants/types/fs'
-import * as Flow from '../../util/flow'
 
 export type SortBarProps = {
   sortByNameAsc?: () => void
@@ -23,7 +22,6 @@ const getTextFromSortSetting = (sortSetting: Types.SortSetting) => {
     case Types.SortSetting.TimeDesc:
       return 'Older first'
     default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(sortSetting)
       return 'Name A to Z'
   }
 }

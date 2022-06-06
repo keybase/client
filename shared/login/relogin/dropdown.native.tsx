@@ -1,16 +1,8 @@
 import logger from '../../logger'
-import {
-  Box,
-  Icon,
-  Text,
-  NativeTouchableWithoutFeedback,
-  NativePicker,
-  NativeModal,
-} from '../../common-adapters/mobile.native'
+import * as Kb from '../../common-adapters/mobile.native'
 import * as React from 'react'
 import * as Styles from '../../styles'
-import {isIOS} from '../../constants/platform'
-import {ConfiguredAccount} from '../../constants/types/config'
+import type {ConfiguredAccount} from '../../constants/types/config'
 
 type Props = {
   type: 'Username'
@@ -103,12 +95,16 @@ class Dropdown extends React.Component<Props, State> {
   }
 
   _renderLabelAndCaret() {
-    return [
-      <Text key="text" type="Header" style={styles.orangeText}>
-        {this._label(this.state.value)}
-      </Text>,
-      <Icon key="icon" type="iconfont-caret-down" style={styles.icon} sizeType="Tiny" />,
-    ]
+    return (
+      <>
+        <Kb.Text key="text" type="Header" style={styles.orangeText}>
+          {this._label(this.state.value)}
+        </Kb.Text>
+        {Styles.isAndroid ? null : (
+          <Kb.Icon key="icon" type="iconfont-caret-down" style={styles.icon} sizeType="Tiny" />
+        )}
+      </>
+    )
   }
 
   _renderPicker(style: Object, selectOnChange: boolean) {
@@ -139,16 +135,16 @@ class Dropdown extends React.Component<Props, State> {
     }
 
     return (
-      <NativePicker
+      <Kb.NativePicker
         style={style}
         selectedValue={this.state.value}
         onValueChange={onValueChange}
         itemStyle={styles.item}
       >
         {items.map(i => (
-          <NativePicker.Item {...i} key={i.label} />
+          <Kb.NativePicker.Item {...i} key={i.label} />
         ))}
-      </NativePicker>
+      </Kb.NativePicker>
     )
   }
 
@@ -158,38 +154,38 @@ class Dropdown extends React.Component<Props, State> {
     // everything else.
     // TODO: Clean this up to be less tricky
     return (
-      <Box style={{...styles.container, ...this.props.style}}>
+      <Kb.Box style={{...styles.container, ...this.props.style}}>
         {this._renderLabelAndCaret()}
         {this._renderPicker(styles.pickerAndroid, true)}
-      </Box>
+      </Kb.Box>
     )
   }
 
   _renderIOS() {
     return (
-      <NativeTouchableWithoutFeedback onPress={() => this._showModal(true)}>
-        <Box style={{...styles.container, ...this.props.style}}>
-          <NativeModal
+      <Kb.NativeTouchableWithoutFeedback onPress={() => this._showModal(true)}>
+        <Kb.Box style={{...styles.container, ...this.props.style}}>
+          <Kb.NativeModal
             animationType="slide"
             transparent={true}
             visible={this.state.modalVisible}
             onRequestClose={() => this._showModal(false)}
           >
-            <Box style={styles.pickerContainer}>
-              <NativeTouchableWithoutFeedback onPress={() => this._showModal(false)}>
-                <Box style={{flex: 1}} />
-              </NativeTouchableWithoutFeedback>
+            <Kb.Box style={styles.pickerContainer}>
+              <Kb.NativeTouchableWithoutFeedback onPress={() => this._showModal(false)}>
+                <Kb.Box style={{flex: 1}} />
+              </Kb.NativeTouchableWithoutFeedback>
               {this._renderPicker(styles.pickerIOS, false)}
-            </Box>
-          </NativeModal>
+            </Kb.Box>
+          </Kb.NativeModal>
           {this._renderLabelAndCaret()}
-        </Box>
-      </NativeTouchableWithoutFeedback>
+        </Kb.Box>
+      </Kb.NativeTouchableWithoutFeedback>
     )
   }
 
   render() {
-    return isIOS ? this._renderIOS() : this._renderAndroid()
+    return Styles.isIOS ? this._renderIOS() : this._renderAndroid()
   }
 }
 

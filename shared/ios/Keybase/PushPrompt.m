@@ -15,17 +15,19 @@
 
 #pragma mark - RCTBridgeModule
 
-RCT_EXPORT_MODULE(PushPrompt);
+RCT_EXPORT_MODULE(IOSPushPrompt);
 
-+ (BOOL)requiresMainQueueSetup
-{
++ (BOOL)requiresMainQueueSetup {
   return NO;
 }
 
-RCT_REMAP_METHOD(getHasShownPushPrompt, getHasShownPushPromptWithResolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
-{
-  UNUserNotificationCenter *current = UNUserNotificationCenter.currentNotificationCenter;
-  [current getNotificationSettingsWithCompletionHandler:^(UNNotificationSettings * _Nonnull settings) {
+RCT_REMAP_METHOD(getHasShownPushPrompt, getHasShownPushPromptWithResolver
+                 : (RCTPromiseResolveBlock)resolve rejecter
+                 : (RCTPromiseRejectBlock)reject) {
+  UNUserNotificationCenter *current =
+      UNUserNotificationCenter.currentNotificationCenter;
+  [current getNotificationSettingsWithCompletionHandler:^(
+               UNNotificationSettings *_Nonnull settings) {
     if (settings.authorizationStatus == UNAuthorizationStatusNotDetermined) {
       // We haven't asked yet
       resolve(@FALSE);

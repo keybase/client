@@ -2,7 +2,6 @@ import * as React from 'react'
 import * as Constants from '../../constants/provision'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import * as Flow from '../../util/flow'
 import QRImage from './qr-image'
 import QRScan from './qr-scan/container'
 import {isAndroid} from '../../constants/platform'
@@ -121,7 +120,6 @@ class CodePage2 extends React.Component<Props, State> {
         content = <EnterText {...this.props} code={this.state.code} setCode={this._setCode} />
         break
       default:
-        Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(this.state.tab)
     }
     return (
       <Kb.Box2

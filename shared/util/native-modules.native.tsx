@@ -1,4 +1,5 @@
 import {NativeModules as RNNativeModules} from 'react-native'
+import {isIOS} from '../constants/platform.native'
 
 type NativeModulesType = {
   KeybaseEngine: {
@@ -6,18 +7,19 @@ type NativeModulesType = {
     androidGetInitialBundleFromNotification?: () => Promise<any>
     androidGetInitialShareFileUrl?: () => Promise<string>
     androidGetInitialShareText?: () => Promise<string>
-    androidIsDeviceSecure: '0' | '1'
-    androidIsTestDevice: '0' | '1'
     androidSetApplicationIconBadgeNumber?: (n: number) => void
+    reset: () => void
+    start: () => void
+
+    androidIsDeviceSecure: boolean
+    androidIsTestDevice: boolean
     appVersionCode: string
     appVersionName: string
-    darkModeSupported: '0' | '1'
+    darkModeSupported: boolean
     fsCacheDir: string
     fsDownloadDir: string
     guiConfig: string
-    reset: () => void
     serverConfig: string
-    start: () => void
     uses24HourClock: boolean
     version: string
   }
@@ -49,30 +51,63 @@ type NativeModulesType = {
       cpuProfileDir: string
     ) => Promise<string>
   }
+  NativeLogger?: {
+    log: (tagsAndLogs: Array<[string, string]>) => void
+    dump: (prefix: string) => Promise<Array<string>>
+  }
   // android only start
-  ScreenProtector?: {
+  AndroidScreenProtector?: {
     setSecureFlagSetting: (s: boolean) => Promise<boolean>
     getSecureFlagSetting: () => Promise<boolean>
   }
-  ShareFiles?: {
+  AndroidShareFiles?: {
     shareText: (text: string, mimeType: string) => Promise<boolean>
     share: (text: string, mimeType: string) => Promise<boolean>
   }
-  NativeSettings?: {
+  AndroidSettings?: {
     open: () => void
   }
   // android only end
 
   // ios only start
-  PushPrompt?: {
+  IOSPushPrompt?: {
     getHasShownPushPrompt: () => Promise<boolean>
-  }
-  KBNativeLogger?: {
-    log: (tagsAndLogs: Array<[string, string]>) => void
-    dump: (prefix: string) => Promise<Array<string>>
   }
   // ios only end
 }
 
 const NativeModules = RNNativeModules as NativeModulesType
+
+// sanity check
+if (!NativeModules.KeybaseEngine) {
+  throw new Error('Missing native KeybaseEngine')
+}
+if (!NativeModules.GoJSIBridge) {
+  throw new Error('Missing native GoJSIBridge')
+}
+if (!NativeModules.Utils) {
+  throw new Error('Missing native Utils')
+}
+if (!NativeModules.LogSend) {
+  throw new Error('Missing native LogSend')
+}
+if (!NativeModules.NativeLogger) {
+  throw new Error('Missing native NativeLogger')
+}
+if (isIOS) {
+  if (!NativeModules.IOSPushPrompt) {
+    throw new Error('Missing native IOSPushPrompt')
+  }
+} else {
+  if (!NativeModules.AndroidScreenProtector) {
+    throw new Error('Missing native AndroidScreenProtector')
+  }
+  if (!NativeModules.AndroidShareFiles) {
+    throw new Error('Missing native AndroidShareFiles')
+  }
+  if (!NativeModules.AndroidSettings) {
+    throw new Error('Missing native AndroidSettings')
+  }
+}
+
 export {NativeModules}

@@ -198,8 +198,8 @@ RCT_EXPORT_METHOD(start) { [sharedEngine start:self]; }
       NSDownloadsDirectory, NSUserDomainMask, YES) firstObject];
 
   return @{
-    @"androidIsDeviceSecure" : @"0",
-    @"androidIsTestDevice" : @"0",
+    @"androidIsDeviceSecure" : @NO,
+    @"androidIsTestDevice" : @NO,
     @"appVersionCode" : appBuildString,
     @"appVersionName" : appVersionString,
     @"darkModeSupported" : darkModeSupported,

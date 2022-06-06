@@ -262,7 +262,9 @@ function* deletePushToken(state: Container.TypedState, action: ConfigGen.LogoutH
 const requestPermissionsFromNative = async () =>
   isIOS ? PushNotificationIOS.requestPermissions() : Promise.resolve()
 const askNativeIfSystemPushPromptHasBeenShown = () =>
-  isIOS ? NativeModules.PushPrompt?.getHasShownPushPrompt() ?? Promise.resolve(false) : Promise.resolve(false)
+  isIOS
+    ? NativeModules.IOSPushPrompt?.getHasShownPushPrompt() ?? Promise.resolve(false)
+    : Promise.resolve(false)
 const checkPermissionsFromNative = async () =>
   new Promise(resolve => isIOS && PushNotificationIOS.checkPermissions(resolve))
 const monsterStorageKey = 'shownMonsterPushPrompt'

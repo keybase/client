@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Types from '../../../constants/types/fs'
-import * as Flow from '../../../util/flow'
 import * as Container from '../../../util/container'
 import {FloatingMenuProps} from './types'
 import Menu from './menu-container'
@@ -23,7 +22,6 @@ const ChooseView = (props: Props) => {
   ) {
     return <Confirm path={props.path} floatingMenuProps={props.floatingMenuProps} />
   } else {
-    Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(props.view)
     return null
   }
 }

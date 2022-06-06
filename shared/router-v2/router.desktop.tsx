@@ -12,6 +12,7 @@ import type {RouteMap} from '../util/container'
 import * as Shim from './shim.desktop'
 import * as Common from './common.desktop'
 import {HeaderLeftCancel} from '../common-adapters/header-hoc'
+import Header from './header/index.desktop'
 
 export const headerDefaultStyle = Common.headerDefaultStyle
 const Tab = createLeftTabNavigator()
@@ -113,7 +114,14 @@ const AppTabs = React.memo(
 const LoggedOutStack = createNoDupeStackNavigator()
 const LoggedOutScreens = makeNavScreens(Shim.shim(loggedOutRoutes, false, true), LoggedOutStack.Screen, false)
 const LoggedOut = React.memo(() => (
-  <LoggedOutStack.Navigator initialRouteName="login" screenOptions={{headerShown: false} as const}>
+  <LoggedOutStack.Navigator
+    initialRouteName="login"
+    screenOptions={{
+      header: ({navigation}) => (
+        <Header navigation={navigation} options={{headerBottomStyle: {height: 0}, headerHideBorder: true}} />
+      ),
+    }}
+  >
     {LoggedOutScreens}
   </LoggedOutStack.Navigator>
 ))
