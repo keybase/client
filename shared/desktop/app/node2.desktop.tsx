@@ -26,7 +26,7 @@ import {
 import {isPathSaltpack} from '../../constants/crypto'
 import {ctlQuit} from './ctl.desktop'
 import logger from '../../logger'
-import {assetRoot, htmlPrefix} from './html-root.desktop'
+import {htmlRoot, htmlPrefix} from './html-root.desktop'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import type {Action} from '../app/ipctypes'
 import {showDevTools, skipSecondaryDevtools, allowMultipleInstances} from '../../local-debug.desktop'
@@ -246,7 +246,7 @@ const willFinishLaunching = () => {
 let menubarWindowID = 0
 
 const remoteURL = (windowComponent: string, windowParam: string) =>
-  `${htmlPrefix}${assetRoot}${windowComponent}${__DEV__ ? '.dev' : ''}.html?param=${windowParam}`
+  `${htmlPrefix}${htmlRoot}${windowComponent}${__DEV__ ? '.dev' : ''}.html?param=${windowParam}`
 
 const findRemoteComponent = (windowComponent: string, windowParam: string) => {
   const url = remoteURL(windowComponent, windowParam)
@@ -746,7 +746,7 @@ const plumbEvents = () => {
             contextIsolation: false,
             nodeIntegration: true,
             nodeIntegrationInWorker: false,
-            preload: `${assetRoot}preload${__DEV__ ? '.dev' : ''}.bundle.js`,
+            preload: `${htmlRoot}preload${__DEV__ ? '.dev' : ''}.bundle.js`,
           },
           ...action.payload.windowOpts,
         }
