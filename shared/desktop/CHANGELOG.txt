@@ -1,1 +1,1 @@
-• Fix KBFS Finder integration on macOS Monterey
+• Various bug fixes and performance enhancements
