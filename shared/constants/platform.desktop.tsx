@@ -1,6 +1,7 @@
 import KB2 from '../util/electron.desktop'
 import * as Path from '../util/path'
 const {env, platform} = KB2.constants
+
 export const androidIsTestDevice = false
 export const isMobile = false
 export const isPhone = false
