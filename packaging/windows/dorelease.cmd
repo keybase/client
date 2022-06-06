@@ -7,7 +7,7 @@ if NOT DEFINED DevCert set DevCert=0
 set GOARCH=amd64
 
 set OUTPUT=echo
-if DEFINED SlackBot set OUTPUT=(cd %GOPATH%/src/github.com/keybase/slackbot/send && go run main.go -i=1)
+if DEFINED SlackBot set OUTPUT=cmd /c %KEYBASE_LOCATION% chat send %CHATCHANNEL%
 
 :: sanity check that the passphrase is set right
 (cd %GOPATH%\src\github.com\keybase\client\go\tools\ssss\ && go run main.go %0)
@@ -104,7 +104,7 @@ EXIT /B 0
 if [%UpdateChannel%] NEQ [Smoke2] (
     echo "Non Smoke2 build"
     %OUTPUT% "Successfully built Windows with client: %KEYBASE_VERSION%"
-    %OUTPUT% "Build tag: %BUILD_%TAG% GOARCH: %GOARCH%"
+    %OUTPUT% "Build tag: %BUILD_TAG% GOARCH: %GOARCH%"
     %OUTPUT% "https://prerelease.keybase.io/windows/"
     goto:no_smokeb
 )

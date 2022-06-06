@@ -86,7 +86,8 @@ class SmallTeam extends React.PureComponent<Props, State> {
     const props = this.props
     const clickProps = {
       onClick: props.onSelectConversation,
-      ...(Styles.isMobile ? {onLongPress: this._onForceShowMenu} : {}),
+      // its invalid to use onLongPress with no onClick
+      ...(Styles.isMobile ? {onLongPress: props.onSelectConversation && this._onForceShowMenu} : {}),
       onMouseLeave: this._onMouseLeave,
       onMouseOver: this._onMouseOver,
     }

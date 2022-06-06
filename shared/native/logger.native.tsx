@@ -7,9 +7,7 @@ type TagAndLog = Array<[string, string]>
 
 export type RealNativeLog = (tagsAndLogs: TagAndLog) => void
 const _log: RealNativeLog =
-  __STORYBOOK__ || isAndroid
-    ? (_tagsAndLogs: TagAndLog) => {}
-    : NativeModules.KBNativeLogger?.log ?? (() => {})
+  __STORYBOOK__ || isAndroid ? (_tagsAndLogs: TagAndLog) => {} : NativeModules.NativeLogger?.log ?? (() => {})
 
 // Don't send over the wire immediately. That has horrible performance
 const actuallyLog = debounce(() => {
@@ -17,7 +15,7 @@ const actuallyLog = debounce(() => {
     // Using console.log on android is ~3x faster.
     for (const ts of toSend) {
       const [tagPrefix, toLog] = ts
-      const formatted = `${tagPrefix}KBNativeLogger: ${toLog}`
+      const formatted = `${tagPrefix}NativeLogger: ${toLog}`
       switch (tagPrefix) {
         case 'w':
           console.warn(formatted)
@@ -46,7 +44,7 @@ const log = (tagPrefix: string, toLog: string) => {
 
 const dump: NativeLogDump = async (prefix: string) => {
   actuallyLog.flush()
-  return NativeModules.KBNativeLogger?.dump(prefix) ?? Promise.resolve([])
+  return NativeModules.NativeLogger?.dump(prefix) ?? Promise.resolve([])
 }
 
 const flush = actuallyLog.flush

@@ -1,5 +1,9 @@
-import * as Flow from '../util/flow'
+import * as Types from './types/wallets'
 import * as RPCTypes from './types/rpc-stellar-gen'
+import * as Styles from '../styles'
+import {AllowedColors} from '../common-adapters/text'
+import {assertionToDisplay} from '../common-adapters/usernames'
+import * as Tabs from './tabs'
 import * as SettingsConstants from './settings'
 import * as Styles from '../styles'
 import * as Tabs from './tabs'
@@ -614,7 +618,6 @@ export const paymentToYourInfoAndCounterparty = (
         yourRole: 'senderOnly',
       }
     default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(p.delta)
       throw new Error(`Unexpected delta ${p.delta}`)
   }
 }

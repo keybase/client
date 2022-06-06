@@ -1,23 +1,22 @@
-import * as React from 'react'
-import ProfileSearch from '../search/bar'
-import * as Kb from '../../common-adapters'
 import * as Constants from '../../constants/tracker2'
+import * as Kb from '../../common-adapters'
+import * as RPCTypes from '../../constants/types/rpc-gen'
+import * as React from 'react'
 import * as Styles from '../../styles'
-import chunk from 'lodash/chunk'
-import upperFirst from 'lodash/upperFirst'
-import Bio from '../../tracker2/bio/container'
-import Assertion from '../../tracker2/assertion/container'
 import Actions from './actions/container'
+import Assertion from '../../tracker2/assertion/container'
+import Bio from '../../tracker2/bio/container'
 import Friend from './friend/container'
 import Measure from './measure'
+import ProfileSearch from '../search/bar'
 import Teams from './teams/container'
+import chunk from 'lodash/chunk'
 import shallowEqual from 'shallowequal'
-import * as RPCTypes from '../../constants/types/rpc-gen'
-import * as Flow from '../../util/flow'
 import type * as Types from '../../constants/types/tracker2'
-import {SiteIcon} from '../generic/shared'
-import {HeaderLeftArrow} from '../../common-adapters/header-hoc'
 import type {RPCError} from '../../util/errors'
+import upperFirst from 'lodash/upperFirst'
+import {HeaderLeftArrow} from '../../common-adapters/header-hoc'
+import {SiteIcon} from '../generic/shared'
 
 export type BackgroundColorType = 'red' | 'green' | 'blue'
 
@@ -62,7 +61,6 @@ const colorTypeToStyle = (type: 'red' | 'green' | 'blue') => {
     case 'blue':
       return styles.typedBackgroundBlue
     default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(type)
       return styles.typedBackgroundRed
   }
 }
@@ -248,72 +246,64 @@ export type BioTeamProofsProps = {
   fullName?: string
   title: string
 }
-export class BioTeamProofs extends React.PureComponent<BioTeamProofsProps> {
-  render() {
-    const addIdentity = this.props.onAddIdentity ? (
-      <Kb.ButtonBar style={styles.addIdentityContainer}>
-        <Kb.Button
-          fullWidth={true}
-          onClick={this.props.onAddIdentity}
-          style={styles.addIdentityButton}
-          mode="Secondary"
-          label="Add more identities"
-        />
-      </Kb.ButtonBar>
-    ) : null
-    return Styles.isMobile ? (
-      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.bioAndProofs}>
-        {!!this.props.reason && (
-          <Kb.Text
-            type="BodySmallSemibold"
-            negative={true}
-            center={true}
-            style={Styles.collapseStyles([styles.reason, colorTypeToStyle(this.props.backgroundColorType)])}
-          >
-            {this.props.reason}
-          </Kb.Text>
-        )}
-        <Kb.Box2 direction="vertical" fullWidth={true} style={{position: 'relative'}}>
-          <Kb.Box2
-            direction="vertical"
-            fullWidth={true}
-            style={Styles.collapseStyles([
-              styles.backgroundColor,
-              colorTypeToStyle(this.props.backgroundColorType),
-            ])}
-          />
-        </Kb.Box2>
-        <BioLayout {...this.props} />
-        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.proofsArea}>
-          <Teams username={this.props.username} />
-          <Proofs {...this.props} />
-          {addIdentity}
-        </Kb.Box2>
-      </Kb.Box2>
-    ) : (
-      <>
+const BioTeamProofs = (props: BioTeamProofsProps) => {
+  const addIdentity = props.onAddIdentity ? (
+    <Kb.ButtonBar style={styles.addIdentityContainer}>
+      <Kb.Button
+        fullWidth={true}
+        onClick={props.onAddIdentity}
+        style={styles.addIdentityButton}
+        mode="Secondary"
+        label="Add more identities"
+      />
+    </Kb.ButtonBar>
+  ) : null
+  return Styles.isMobile ? (
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.bioAndProofs}>
+      {!!props.reason && (
+        <Kb.Text
+          type="BodySmallSemibold"
+          negative={true}
+          center={true}
+          style={Styles.collapseStyles([styles.reason, colorTypeToStyle(props.backgroundColorType)])}
+        >
+          {props.reason}
+        </Kb.Text>
+      )}
+      <Kb.Box2 direction="vertical" fullWidth={true} style={{position: 'relative'}}>
         <Kb.Box2
           direction="vertical"
           fullWidth={true}
-          style={Styles.collapseStyles([
-            styles.backgroundColor,
-            colorTypeToStyle(this.props.backgroundColorType),
-          ])}
+          style={Styles.collapseStyles([styles.backgroundColor, colorTypeToStyle(props.backgroundColorType)])}
         />
-        <Kb.Box2 key="bioTeam" direction="horizontal" fullWidth={true} style={styles.bioAndProofs}>
-          <BioLayout {...this.props} />
-          <Kb.Box2 direction="vertical" style={styles.proofs}>
-            <Kb.Text type="BodySmallSemibold" negative={true} center={true} style={styles.reason}>
-              {this.props.reason}
-            </Kb.Text>
-            <Teams username={this.props.username} />
-            <Proofs {...this.props} />
-            {addIdentity}
-          </Kb.Box2>
+      </Kb.Box2>
+      <BioLayout {...props} />
+      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.proofsArea}>
+        <Teams username={props.username} />
+        <Proofs {...props} />
+        {addIdentity}
+      </Kb.Box2>
+    </Kb.Box2>
+  ) : (
+    <>
+      <Kb.Box2
+        direction="vertical"
+        fullWidth={true}
+        style={Styles.collapseStyles([styles.backgroundColor, colorTypeToStyle(props.backgroundColorType)])}
+      />
+      <Kb.Box2 key="bioTeam" direction="horizontal" fullWidth={true} style={styles.bioAndProofs}>
+        <BioLayout {...props} />
+        <Kb.Box2 direction="vertical" style={styles.proofs}>
+          <Kb.Text type="BodySmallSemibold" negative={true} center={true} style={styles.reason}>
+            {props.reason}
+          </Kb.Text>
+          <Teams username={props.username} />
+          <Proofs {...props} />
+          {addIdentity}
         </Kb.Box2>
-      </>
-    )
-  }
+      </Kb.Box2>
+    </>
+  )
 }
 
 type State = {
@@ -479,9 +469,6 @@ class User extends React.Component<Props, State> {
         >
           <Kb.Box2 direction="vertical" style={styles.innerContainer}>
             {!Styles.isMobile && <Measure onMeasured={this._onMeasured} />}
-            <Kb.SafeAreaViewTop
-              style={Styles.collapseStyles([colorTypeToStyle(this.props.backgroundColorType), styles.noGrow])}
-            />
             {!!this.state.width && (
               <Kb.SectionList
                 key={this.props.username + this.state.width /* forc render on user change or width change */}

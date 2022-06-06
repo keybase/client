@@ -1,7 +1,7 @@
 import * as React from 'react'
 import Toast from './toast'
 import {Box2} from './box'
-import Icon, {IconType} from './icon'
+import Icon, {type IconType} from './icon'
 import Text from './text'
 import * as Styles from '../styles'
 

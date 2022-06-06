@@ -1,5 +1,4 @@
 import React, {PureComponent} from 'react'
-import * as Flow from '../util/flow'
 import {FlatList, View} from 'react-native'
 import * as Styles from '../styles'
 import {smallHeight, largeHeight} from './list-item2'
@@ -29,7 +28,6 @@ class List2<T> extends PureComponent<Props<T>> {
       case 'variable':
         return {...this.props.itemHeight.getItemLayout(index, data ? data[index] : undefined)}
       default:
-        Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(this.props.itemHeight)
         return {index, length: 0, offset: 0}
     }
   }

@@ -148,9 +148,9 @@ const styles = Styles.styleSheetCreate(
       },
       summaryRow: {
         ...Styles.globalStyles.flexBoxRow,
-        alignItems: 'flex-start',
+        alignItems: 'center',
         flexShrink: 0,
-        justifyContent: 'flex-start',
+        justifyContent: 'center',
         paddingBottom: Styles.globalMargins.tiny,
         paddingLeft: Styles.globalMargins.xsmall,
         paddingRight: Styles.globalMargins.xsmall,
