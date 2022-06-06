@@ -287,12 +287,19 @@ class ConversationList extends React.PureComponent<Props> {
     if (!list) {
       return
     }
-    const index =
+    const _index =
       this.props.centeredOrdinal === undefined ? -1 : this.getOrdinalIndex(this.props.centeredOrdinal)
-    if (index >= 0) {
-      debug(`scrollToCentered: ordinal: ${this.props.centeredOrdinal} index: ${index}`)
+    if (_index >= 0) {
+      const index = _index + 1 // include the top item
+      debug(
+        `scrollToCentered: ordinal: ${this.props.centeredOrdinal} index: ${index} len: ${this.props.messageOrdinals.length}`
+      )
       this.scrollCenterTarget = index
-      list.scrollToIndex({animated: false, index, viewPosition: 0.5})
+      list.scrollToIndex({
+        animated: false,
+        index,
+        viewPosition: 0.5,
+      })
     }
   }
 

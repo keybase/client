@@ -1,7 +1,6 @@
 import * as Types from '../../../constants/types/fs'
 import * as Constants from '../../../constants/fs'
 import {isMobile, isIOS} from '../../../constants/platform'
-import * as Flow from '../../../util/flow'
 
 export type Layout = {
   delete: boolean
@@ -100,7 +99,6 @@ const getRawLayout = (
         sendToOtherApp: pathItem.type === Types.PathType.File && isMobile,
       }
     default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(parsedPath)
       return empty
   }
 }

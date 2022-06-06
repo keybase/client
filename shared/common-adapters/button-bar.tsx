@@ -1,6 +1,10 @@
 import * as React from 'react'
+import * as Styles from '../styles'
 import Box from './box'
-import {globalStyles, isMobile, collapseStyles, isTablet} from '../styles'
+
+const Kb = {
+  Box,
+}
 
 type Props = {
   direction: 'row' | 'column'
@@ -20,7 +24,7 @@ class ButtonBar extends React.PureComponent<Props> {
   }
 
   _spacing = () => {
-    if (this.props.direction === 'row' && this.props.small && !isMobile) {
+    if (this.props.direction === 'row' && this.props.small && !Styles.isMobile) {
       return SmallSpacer
     }
 
@@ -47,18 +51,18 @@ class ButtonBar extends React.PureComponent<Props> {
     }, [])
 
     const minHeight = {
-      minHeight: isMobile ? (this.props.small ? 64 : 72) : this.props.small ? 44 : 64,
+      minHeight: Styles.isMobile ? (this.props.small ? 64 : 72) : this.props.small ? 44 : 64,
     }
 
-    const style = collapseStyles([
+    const style = Styles.collapseStyles([
       {
         alignItems: this.props.fullWidth ? 'stretch' : 'center',
         width: '100%',
-        ...(isTablet ? {maxWidth: 460} : {}),
+        // ...(isTablet ? {maxWidth: 460} : {}),
         ...(this.props.direction === 'column'
-          ? {...globalStyles.flexBoxColumn}
+          ? {...Styles.globalStyles.flexBoxColumn}
           : {
-              ...globalStyles.flexBoxRow,
+              ...Styles.globalStyles.flexBoxRow,
               justifyContent: this.props.align,
               ...minHeight,
             }),
@@ -66,22 +70,22 @@ class ButtonBar extends React.PureComponent<Props> {
       this.props.style,
     ])
 
-    return <Box style={style}>{childrenWithSpacing}</Box>
+    return <Kb.Box style={style}>{childrenWithSpacing}</Kb.Box>
   }
 }
 
 // Note explicitly not using globalMargins here. We don't necessarily want this spacing to change ever
-const BigSpacer = () => <Box style={bigSpacerStyle} />
+const BigSpacer = () => <Kb.Box style={bigSpacerStyle} />
 const bigSpacerStyle = {
   flexShrink: 0,
   height: 8,
   width: 8,
 }
-const SmallSpacer = () => <Box style={smallSpacerStyle} />
+const SmallSpacer = () => <Kb.Box style={smallSpacerStyle} />
 const smallSpacerStyle = {
   flexShrink: 0,
-  height: isMobile ? 8 : 4,
-  width: isMobile ? 8 : 4,
+  height: Styles.isMobile ? 8 : 4,
+  width: Styles.isMobile ? 8 : 4,
 }
 
 export default ButtonBar

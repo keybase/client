@@ -4,7 +4,6 @@ import * as Container from '../util/container'
 import * as DeeplinksGen from './deeplinks-gen'
 import * as ConfigGen from './config-gen'
 import * as EngineGen from './engine-gen-gen'
-import * as Platform from '../constants/platform'
 import * as ProfileGen from './profile-gen'
 import * as RouteTreeGen from './route-tree-gen'
 import * as Saga from '../util/saga'
@@ -137,7 +136,7 @@ const handleKeybaseLink = (action: DeeplinksGen.HandleKeybaseLinkPayload) => {
       }
       break
     case 'incoming-share':
-      return Platform.isIOS && RouteTreeGen.createNavigateAppend({path: ['incomingShareNew']})
+      return RouteTreeGen.createNavigateAppend({path: ['incomingShareNew']})
     case 'team-invite-link':
       return TeamsGen.createOpenInviteLink({
         inviteID: parts[1],
