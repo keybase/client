@@ -1,5 +1,5 @@
 // implementation of KB2, requires node context! preload will proxy this with the contextBridge
-import {nativeTheme} from 'electron'
+import {app, nativeTheme} from 'electron'
 import os from 'os'
 import path from 'path'
 import type {KB2} from '../../util/electron.desktop'
@@ -15,6 +15,7 @@ if (pathSep !== '/' && pathSep !== '\\') {
 }
 
 const kb2: KB2['constants'] = {
+  assetRoot: path.resolve(__DEV__ ? '.' : app.getAppPath()),
   configOverload: {}, // filled in later
   dokanPath: path.resolve(env.LOCALAPPDATA ?? '', 'Keybase', 'DokanSetup_redist.exe'),
   downloadFolder: path.join(os.homedir(), 'Downloads'),
