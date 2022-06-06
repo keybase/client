@@ -34,22 +34,31 @@ const AudioRecorder = (props: Props) => {
   const ampScale = useSharedValue(0)
   const dragY = useSharedValue(0)
   const initialBounce = useSharedValue(0)
-  initialBounce.value = withTiming(1, {
-    easing: Easing.elastic(1),
-  })
+
   const ampTracker = React.useRef(new AmpTracker()).current
   const [visible, setVisible] = React.useState(false)
-  // const [closingDown, setClosingDown] = React.useState(false)
+  const [closingDown, setClosingDown] = React.useState(false)
   const audioRecording = Container.useSelector(state => state.chat2.audioRecording.get(conversationIDKey))
   const locked = audioRecording?.isLocked ?? false
-  const closingDown = useSharedValue(false)
+
+  console.log('bbb audio recorder', {visible, initialBounce})
+  React.useEffect(() => {
+    if (visible) {
+      initialBounce.value = withTiming(1, {
+        duration: 500,
+        easing: Easing.elastic(1),
+      })
+    } else {
+      initialBounce.value = 0
+    }
+  }, [visible])
 
   const dispatch = Container.useDispatch()
   const meteringCb = React.useCallback(
     (inamp: number) => {
       const amp = unifyAmp(inamp)
       ampTracker.addAmp(amp)
-      if (!closingDownRef.value) {
+      if (!closingDown) {
         ampScale.value = withTiming(ampToScale(amp), {duration: 100})
       }
     },
@@ -85,15 +94,20 @@ const AudioRecorder = (props: Props) => {
   // render
   const noShow = !Constants.showAudioRecording(audioRecording)
   if (!visible && !noShow) {
-    closingDownRef.current = false
-    setVisible(true)
     setClosingDown(false)
-  } else if (visible && noShow && !closingDown.value) {
-    closingDownRef.current = true
+    setVisible(true)
+  } else if (visible && noShow && !closingDown) {
     setClosingDown(true)
     initialBounce.value = withTiming(0)
     setTimeout(() => setVisible(false), 500)
   }
+
+  React.useEffect(() => {
+    if (closingDown || locked) {
+      dragY.value = 0
+    }
+  }, [locked, closingDown, dragY])
+
   // const recording =
   //   !!audioRecording &&
   //   (audioRecording.status === Types.AudioRecordingStatus.INITIAL ||
@@ -118,7 +132,7 @@ const AudioRecorder = (props: Props) => {
           >
             <AudioButton
               ampScale={ampScale}
-              closeDown={closingDown}
+              closingDown={closingDown}
               dragY={dragY}
               locked={locked}
               sendRecording={sendRecording}
@@ -126,7 +140,7 @@ const AudioRecorder = (props: Props) => {
               stageRecording={stageRecording}
             />
             <AudioSlideToCancel
-              closeDown={closingDown}
+              closingDown={closingDown}
               locked={locked}
               onCancel={onCancel}
               translate={initialBounce}
@@ -141,7 +155,7 @@ const AudioRecorder = (props: Props) => {
 
 type ButtonProps = {
   ampScale: SharedValue<number>
-  closeDown: SharedValue<boolean>
+  closingDown: boolean
   dragY: SharedValue<number>
   locked: boolean
   sendRecording: () => void
@@ -156,8 +170,8 @@ const ampToScale = (amp: number) => {
 }
 
 const AudioButton = (props: ButtonProps) => {
-  const {initialBounce, locked, closeDown, ampScale, dragY, sendRecording, stageRecording} = props
-  console.log('bbb audiobutton render', closeDown)
+  const {initialBounce, locked, closingDown, ampScale, dragY, sendRecording, stageRecording} = props
+  console.log('bbb audiobutton render', {initialBounce})
   const innerScale = useSharedValue(0)
   const outerScale = useSharedValue(0)
   const sendTranslate = useSharedValue(0)
@@ -179,14 +193,15 @@ const AudioButton = (props: ButtonProps) => {
   }, [locked, sendTranslate])
 
   React.useEffect(() => {
-    if (!closeDown) {
+    console.log('bbb audiobutton useeffect ', {closingDown})
+    if (!closingDown) {
       return
     }
     outerScale.value = withTiming(0)
     innerScale.value = withTiming(0)
     sendTranslate.value = withTiming(0)
     ampScale.value = withTiming(0)
-  }, [closeDown, innerScale, outerScale, sendTranslate, ampScale])
+  }, [closingDown, innerScale, outerScale, sendTranslate, ampScale])
 
   const innerSize = 28
   const ampSize = 34
@@ -196,12 +211,12 @@ const AudioButton = (props: ButtonProps) => {
     transform: [{scale: outerScale.value}],
   }))
   const ampSizeStyle = useAnimatedStyle(() => ({
-    transform: [{translateY: ampOffsetY.value + dragY.value}, {scale: ampScale.value}],
+    transform: [{translateY: ampOffsetY.value + (locked ? 0 : dragY.value)}, {scale: ampScale.value}],
   }))
   const innerSizeStyle = useAnimatedStyle(() => {
-    console.log('bbb inner size style', innerScale.value, closeDown)
+    console.log('bbb inner size style', innerScale.value, closingDown)
     return {
-      transform: [{translateY: innerOffsetY.value + dragY.value}, {scale: innerScale.value}],
+      transform: [{translateY: innerOffsetY.value + (locked ? 0 : dragY.value)}, {scale: innerScale.value}],
     }
   })
   const upArrowStyle = useAnimatedStyle(() => ({
@@ -259,7 +274,7 @@ const AudioButton = (props: ButtonProps) => {
       <Animated.View
         style={[
           {
-            backgroundColor: 'yellow', // locked ? Styles.globalColors.red : Styles.globalColors.blue,
+            backgroundColor: locked ? Styles.globalColors.red : Styles.globalColors.blue,
             borderRadius: innerSize / 2,
             height: innerSize,
             position: 'absolute',
@@ -329,7 +344,7 @@ const AudioButton = (props: ButtonProps) => {
 }
 
 type CancelProps = {
-  closingDown: SharedValue<boolean>
+  closingDown: boolean
   locked: boolean
   onCancel: () => void
   translate: SharedValue<number>
@@ -339,10 +354,10 @@ const AudioSlideToCancel = (props: CancelProps) => {
   const cancelTranslate = useSharedValue(0)
   const {closingDown, translate, locked, onCancel} = props
   React.useEffect(() => {
-    if (closingDown.value) {
+    if (closingDown) {
       cancelTranslate.value = withTiming(1)
     }
-  }, [closeDown, cancelTranslate])
+  }, [closingDown, cancelTranslate])
 
   const cancelStyle = useAnimatedStyle(() => ({
     transform: [{translateY: interpolate(cancelTranslate.value, [0, 1], [0, 85])}],
