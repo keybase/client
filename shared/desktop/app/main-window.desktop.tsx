@@ -9,13 +9,13 @@ import {guiConfigFilename, isDarwin, isWindows, defaultUseNativeFrame} from '../
 import logger from '../../logger'
 import debounce from 'lodash/debounce'
 import {setupDevToolsExtensions} from './dev-tools.desktop'
-import {assetRoot, htmlPrefix} from './html-root.desktop'
+import {htmlRoot, htmlPrefix} from './html-root.desktop'
 import KB2 from '../../util/electron.desktop'
 
 const {env} = KB2.constants
 const {mainWindowDispatch} = KB2.functions
 
-let htmlFile = `${htmlPrefix}${assetRoot}main${__DEV__ ? '.dev' : ''}.html`
+let htmlFile = `${htmlPrefix}${htmlRoot}main${__DEV__ ? '.dev' : ''}.html`
 
 const setupDefaultSession = () => {
   const ds = Electron.session.defaultSession
@@ -292,7 +292,7 @@ export default () => {
       devTools: showDevTools,
       nodeIntegration: true,
       nodeIntegrationInWorker: false,
-      preload: `${assetRoot}preload${__DEV__ ? '.dev' : ''}.bundle.js`,
+      preload: `${htmlRoot}preload${__DEV__ ? '.dev' : ''}.bundle.js`,
       spellcheck: !disableSpellCheck,
     },
     width: windowState.width,
