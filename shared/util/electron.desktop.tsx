@@ -26,6 +26,7 @@ export type SaveDialogOptions = {
 
 export type KB2 = {
   constants: {
+    assetRoot: string
     configOverload: object
     dokanPath: string
     downloadFolder: string
@@ -125,7 +126,7 @@ export type KB2 = {
 const kb2Waiters = new Array<() => void>()
 
 export const injectPreload = (kb2: KB2) => {
-  if (!kb2 || !kb2?.constants?.env) {
+  if (!kb2 || !kb2?.constants?.assetRoot) {
     throw new Error('Invalid kb2 injected')
   }
   // we have to stash this in a global due to how preload works, else it clears out the module level variables

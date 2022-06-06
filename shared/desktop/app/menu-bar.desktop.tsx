@@ -9,12 +9,12 @@ import {showDevTools, skipSecondaryDevtools} from '../../local-debug'
 import {getMainWindow} from './main-window.desktop'
 import getIcons from '../../menubar/icons'
 import os from 'os'
-import {htmlRoot, htmlPrefix} from './html-root.desktop'
+import {assetRoot, htmlPrefix} from './html-root.desktop'
 import KB2 from '../../util/electron.desktop'
 
 const {mainWindowDispatch} = KB2.functions
 
-const htmlFile = `${htmlPrefix}${htmlRoot}menubar${__DEV__ ? '.dev' : ''}.html?param=menubar`
+const htmlFile = `${htmlPrefix}${assetRoot}menubar${__DEV__ ? '.dev' : ''}.html?param=menubar`
 
 // support dynamic dark mode system bar in big sur
 const useImageTemplate = os.platform() === 'darwin' && parseInt(os.release().split('.')[0], 10) >= 20
@@ -45,7 +45,7 @@ export default (menubarWindowIDCallback: (id: number) => void) => {
         contextIsolation: false,
         nodeIntegration: true,
         nodeIntegrationInWorker: false,
-        preload: `${htmlRoot}preload${__DEV__ ? '.dev' : ''}.bundle.js`,
+        preload: `${assetRoot}preload${__DEV__ ? '.dev' : ''}.bundle.js`,
       },
       width: 360,
     },
