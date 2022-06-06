@@ -1,13 +1,13 @@
-import * as React from 'react'
-import AddToTeam, {type AddToTeamProps} from './index'
+import * as Constants from '../../constants/teams'
 import * as Container from '../../util/container'
-import {memoize} from '../../util/memoize'
+import * as React from 'react'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as TeamsGen from '../../actions/teams-gen'
-import * as Constants from '../../constants/teams'
 import * as WaitingConstants from '../../constants/waiting'
-import {sendNotificationFooter} from '../../teams/role-picker'
+import AddToTeam, {type AddToTeamProps} from './index'
 import type * as Types from '../../constants/types/teams'
+import {memoize} from '../../util/memoize'
+import {sendNotificationFooter} from '../../teams/role-picker'
 
 type OwnProps = Container.RouteProps<'profileAddToTeam'>
 
@@ -41,6 +41,8 @@ type State = {
 }
 
 export class AddToTeamStateWrapper extends React.Component<ExtraProps & AddToTeamProps, State> {
+  static navigationOptions = AddToTeam.navigationOptions
+
   state = {
     rolePickerOpen: false,
     selectedRole: 'writer' as const,

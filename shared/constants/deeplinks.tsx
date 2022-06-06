@@ -40,7 +40,7 @@ export const isValidLink = (link: string) => {
     case 'team-page':
       return argArrayGood(parts, 3)
     case 'incoming-share':
-      return argArrayGood(parts, 1)
+      return true
     case 'team-invite-link':
       return argArrayGood(parts, 1)
   }

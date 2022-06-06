@@ -24,8 +24,8 @@ type Props = {
     subHeader?: React.JSXElementConstructor<{}>
     headerTransparent?: boolean
     headerHideBorder?: boolean
-    headerBottomStyle: Styles.StylesCrossPlatform
-    headerStyle: Styles.StylesCrossPlatform
+    headerBottomStyle?: Styles.StylesCrossPlatform
+    headerStyle?: Styles.StylesCrossPlatform
   }
   back?: boolean
   style?: any

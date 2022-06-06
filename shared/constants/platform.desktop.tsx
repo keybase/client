@@ -1,6 +1,7 @@
 import KB2 from '../util/electron.desktop'
 import * as Path from '../util/path'
 const {env, platform} = KB2.constants
+
 export const androidIsTestDevice = false
 export const isMobile = false
 export const isPhone = false
@@ -140,4 +141,4 @@ const uses24HourClockF = () => {
   }
 }
 export const uses24HourClock = uses24HourClockF()
-export const getAssetPath = (...a: Array<string>) => [KB2.constants.assetRoot, ...a].join('/')
+export const getAssetPath = (...a: Array<string>) => KB2.constants.assetRoot + a.join('/')

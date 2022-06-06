@@ -9,7 +9,6 @@ import * as Chat2Gen from './chat2-gen'
 import * as ConfigGen from './config-gen'
 import * as NotificationsGen from './notifications-gen'
 import * as RouteTreeGen from './route-tree-gen'
-import * as Flow from '../util/flow'
 import * as Router2Constants from '../constants/router2'
 import HiddenString from '../util/hidden-string'
 import _logger from '../logger'
@@ -19,7 +18,7 @@ import * as TeamBuildingGen from './team-building-gen'
 import commonTeamBuildingSaga, {filterForNs} from './team-building'
 import {RPCError} from '../util/errors'
 import openURL from '../util/open-url'
-import {isMobile} from '../constants/platform'
+import {isMobile, isTablet} from '../constants/platform'
 import type {TypedActions, TypedState} from '../util/container'
 
 const stateToBuildRequestParams = (state: TypedState) => ({
@@ -523,7 +522,7 @@ const loadAssets = async (state: TypedState, action: LoadAssetsActions, logger: 
       accountID = state.wallets.selectedAccount
       break
     default:
-      return Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
+      return
   }
 
   // should be impossible
@@ -878,7 +877,7 @@ const navigateToAccount = (action: WalletsGen.SelectAccountPayload) => {
   return [
     RouteTreeGen.createClearModals(),
     RouteTreeGen.createSwitchTab({tab: Constants.rootWalletTab}),
-    ...(isMobile ? [RouteTreeGen.createNavUpToScreen({name: SettingsConstants.walletsTab})] : []),
+    RouteTreeGen.createNavUpToScreen({name: isMobile ? SettingsConstants.walletsTab : 'walletsRoot'}),
   ]
 }
 
@@ -1096,8 +1095,15 @@ const checkDisclaimer = async (_: WalletsGen.CheckDisclaimerPayload, logger: Sag
   }
 }
 
-const rejectDisclaimer = () =>
-  isMobile ? RouteTreeGen.createNavigateUp() : RouteTreeGen.createSwitchTab({tab: Tabs.peopleTab})
+const rejectDisclaimer = () => {
+  if (isMobile) {
+    if (isTablet) {
+      return RouteTreeGen.createSwitchTab({tab: Tabs.peopleTab})
+    }
+    return RouteTreeGen.createNavigateUp()
+  }
+  return RouteTreeGen.createSwitchTab({tab: Tabs.peopleTab})
+}
 
 const loadMobileOnlyMode = async (
   action: WalletsGen.LoadMobileOnlyModePayload | WalletsGen.SelectAccountPayload,

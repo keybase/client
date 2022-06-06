@@ -1,6 +1,6 @@
 import * as React from 'react'
-import {Position} from './relative-popup-hoc.types'
-import {StylesCrossPlatform} from '../styles'
+import type {Position} from './relative-popup-hoc.types'
+import type {StylesCrossPlatform} from '../styles'
 
 export type Props = {
   children: React.ReactNode

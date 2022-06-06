@@ -10,7 +10,7 @@ import keybase.Keybase;
 import static io.keybase.ossifrage.MainActivity.isTestDevice;
 
 public class LogSend extends ReactContextBaseJavaModule {
-    private static final String NAME = "KBLogSend";
+    private static final String NAME = "LogSend";
     private boolean misTestDevice;
 
     public LogSend(final ReactApplicationContext reactContext) {

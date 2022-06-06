@@ -12,7 +12,7 @@ import {makeEngine} from '../engine'
 import {GestureHandlerRootView} from 'react-native-gesture-handler'
 
 type ConfigureStore = ReturnType<typeof configureStore>
-let _hotCS: ConfigureStore | undefined
+let _store: ConfigureStore | undefined
 
 module.hot?.accept(() => {
   console.log('accepted update in shared/index.native')
@@ -54,39 +54,30 @@ const NativeEventsToRedux = () => {
   return null
 }
 
-const Keybase = () => {
-  const storeRef = React.useRef<ConfigureStore>()
-
-  const makeStore = () => {
-    if (storeRef.current) {
-      return
-    }
-    // we're reloading
-    if (__DEV__ && _hotCS) {
-      storeRef.current = _hotCS
-      return
-    }
-
-    const cs = configureStore()
-    storeRef.current = cs
-    if (__DEV__) {
-      global.DEBUGStore = storeRef.current
-    }
-
-    const eng = makeEngine(cs.store.dispatch)
-    cs.runSagas()
-    eng.sagasAreReady()
-
-    // On mobile there is no installer
-    cs.store.dispatch(ConfigGen.createInstallerRan())
+const ensureStore = () => {
+  if (_store) {
+    return
   }
-  makeStore()
+  _store = configureStore()
+  if (__DEV__) {
+    global.DEBUGStore = _store
+  }
 
-  if (!storeRef.current) return null // never happens
+  const eng = makeEngine(_store.store.dispatch)
+  _store.runSagas()
+  eng.sagasAreReady()
 
+  // On mobile there is no installer
+  _store.store.dispatch(ConfigGen.createInstallerRan())
+}
+
+// on android this can be recreated a bunch so our engine/store / etc should live outside
+const Keybase = () => {
+  ensureStore()
+  if (!_store) return null // never happens
   return (
     <GestureHandlerRootView style={styles.gesture}>
-      <Provider store={storeRef.current.store}>
+      <Provider store={_store.store}>
         <PortalProvider>
           <SafeAreaProvider>
             <Styles.StyleContext.Provider value={{canFixOverdraw: true}}>

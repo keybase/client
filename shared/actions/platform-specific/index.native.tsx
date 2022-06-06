@@ -11,7 +11,6 @@ import * as ProfileGen from '../profile-gen'
 import * as SettingsGen from '../settings-gen'
 import * as WaitingGen from '../waiting-gen'
 import * as EngineGen from '../engine-gen-gen'
-import * as Flow from '../../util/flow'
 import * as Tabs from '../../constants/tabs'
 import * as RouteTreeGen from '../route-tree-gen'
 import * as LoginGen from '../login-gen'
@@ -172,7 +171,7 @@ export const showShareActionSheet = async (options: {
   } else {
     if (!options.filePath && options.message) {
       try {
-        await NativeModules.ShareFiles?.shareText(options.message, options.mimeType)
+        await NativeModules.AndroidShareFiles?.shareText(options.message, options.mimeType)
         return {completed: true, method: ''}
       } catch (_) {
         return {completed: false, method: ''}
@@ -180,7 +179,7 @@ export const showShareActionSheet = async (options: {
     }
 
     try {
-      await NativeModules.ShareFiles?.share(options.filePath ?? '', options.mimeType)
+      await NativeModules.AndroidShareFiles?.share(options.filePath ?? '', options.mimeType)
       return {completed: true, method: ''}
     } catch (_) {
       return {completed: false, method: ''}
@@ -190,7 +189,7 @@ export const showShareActionSheet = async (options: {
 
 const openAppSettings = async () => {
   if (isAndroid) {
-    NativeModules.NativeSettings?.open()
+    NativeModules.AndroidSettings?.open()
   } else {
     const settingsURL = 'app-settings:'
     const can = await Linking.canOpenURL(settingsURL)
@@ -219,7 +218,6 @@ const updateChangedFocus = (action: ConfigGen.MobileAppStatePayload) => {
       logState = RPCTypes.MobileAppState.inactive
       break
     default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action.payload.nextAppState)
       appFocused = false
       logState = RPCTypes.MobileAppState.foreground
   }

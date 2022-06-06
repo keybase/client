@@ -5,7 +5,6 @@ import * as FsGen from '../fs-gen'
 import * as ConfigGen from '../config-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Saga from '../../util/saga'
-import * as Flow from '../../util/flow'
 import * as Tabs from '../../constants/tabs'
 import * as NotificationsGen from '../notifications-gen'
 import * as Types from '../../constants/types/fs'
@@ -184,7 +183,6 @@ const getSyncConfigFromRPC = (
           : [],
       })
     default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(config.mode)
       return Constants.tlfSyncDisabled
   }
 }
@@ -266,7 +264,6 @@ const getPrefetchStatusFromRPC = (
     case RPCTypes.PrefetchStatus.complete:
       return Constants.prefetchComplete
     default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(prefetchStatus)
       return Constants.prefetchNotStarted
   }
 }
@@ -829,7 +826,6 @@ const onNotifyFSOverallSyncSyncStatusChanged = (
       case Types.DiskSpaceStatus.Ok:
         break
       default:
-        Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(diskSpaceStatus)
     }
   }
   return actions

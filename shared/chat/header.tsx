@@ -142,7 +142,7 @@ const Header = (p: Props) => {
                 </Kb.Text>
               </Kb.Box2>
             ) : null}
-            {muted && (
+            {!!muted && (
               <Kb.Icon
                 type="iconfont-shh"
                 style={styles.shhIconStyle}
@@ -152,9 +152,9 @@ const Header = (p: Props) => {
               />
             )}
           </Kb.Box2>
-          {renderDescription && (
+          {!!renderDescription && (
             <Kb.Box2 direction="vertical" style={styles.descriptionContainer} fullWidth={true}>
-              {fullName && withoutSelf && withoutSelf.length === 1 ? (
+              {!!fullName && !!withoutSelf && withoutSelf.length === 1 ? (
                 <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.descriptionTextContainer}>
                   <Kb.ConnectedUsernames
                     colorFollowing={true}
@@ -165,7 +165,7 @@ const Header = (p: Props) => {
                     usernames={withoutSelf[0]}
                     onUsernameClicked="profile"
                   />
-                  {description && (
+                  {!!description && (
                     <>
                       <Kb.Text type="BodySmall" style={styles.desc}>
                         &nbsp;•&nbsp;

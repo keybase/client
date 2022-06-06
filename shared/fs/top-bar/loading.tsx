@@ -3,7 +3,6 @@ import * as Container from '../../util/container'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import * as Kb from '../../common-adapters'
-import * as Flow from '../../util/flow'
 import * as Styles from '../../styles'
 
 // The behavior is to only show spinner when user first time lands on a screen
@@ -45,7 +44,6 @@ const mergeProps = (stateProps, _, {path}: OwnProps) => {
       }
       return {show: false}
     default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(parsedPath)
       return {show: false}
   }
 }

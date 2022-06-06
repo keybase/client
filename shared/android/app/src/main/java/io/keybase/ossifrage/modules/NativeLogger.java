@@ -18,7 +18,7 @@ import java.util.regex.Pattern;
 
 
 public class NativeLogger extends ReactContextBaseJavaModule {
-    private static final String NAME = "KBNativeLogger";
+    private static final String NAME = "NativeLogger";
     private static final String RN_NAME = "ReactNativeJS";
 
 

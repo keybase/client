@@ -4,7 +4,6 @@ import Box from './box'
 import Icon from './icon'
 import ProgressIndicator from './progress-indicator'
 import Text from './text'
-import * as Flow from '../util/flow'
 
 const Kb = {
   Box,
@@ -104,7 +103,6 @@ const computeNextState = (props: Props, state: State, now: Date): null | SaveSta
     }
 
     default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(saveState)
       throw new Error(`Unexpected state ${saveState}`)
   }
 }
@@ -199,12 +197,12 @@ class SaveIndicator extends React.Component<Props, State> {
           </>
         )
       default:
-        Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(saveState)
         throw new Error(`Unexpected state ${saveState}`)
     }
   }
 
   render() {
+    return null // TEMP
     return (
       <Kb.Box style={Styles.collapseStyles([defaultStyle, this.props.style] as any)}>
         {this.getChildren()}
