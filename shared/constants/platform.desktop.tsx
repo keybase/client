@@ -140,4 +140,4 @@ const uses24HourClockF = () => {
   }
 }
 export const uses24HourClock = uses24HourClockF()
-export const getAssetPath = (...a: Array<string>) => [KB2.constants.assetRoot, ...a].join('/')
+export const getAssetPath = (...a: Array<string>) => KB2.constants.assetRoot + a.join('/')
