@@ -15,11 +15,12 @@ import Animated, {
   Easing,
   useAnimatedStyle,
   useSharedValue,
-  // interpolate,
+  interpolate,
   withTiming,
   type SharedValue,
   // useDerivedValue,
   runOnJS,
+  Extrapolation,
 } from 'react-native-reanimated'
 
 type Props = {
@@ -28,7 +29,7 @@ type Props = {
 }
 
 // hook to help deal with visibility request changing. we animate in / out and truly hide when we're done animating
-const useVisible = (reduxVisible: boolean, dragY: SharedValue<number>) => {
+const useVisible = (reduxVisible: boolean, dragX: SharedValue<number>, dragY: SharedValue<number>) => {
   console.log('ccc usevisible', reduxVisible)
   const [visible, setVisible] = React.useState(reduxVisible)
   const initialBounce = useSharedValue(reduxVisible ? 1 : 0)
@@ -48,9 +49,10 @@ const useVisible = (reduxVisible: boolean, dragY: SharedValue<number>) => {
         })
 
     if (!reduxVisible) {
+      dragX.value = withTiming(0)
       dragY.value = withTiming(0)
     }
-  }, [initialBounce, visible, reduxVisible, dragY])
+  }, [initialBounce, visible, reduxVisible, dragX, dragY])
   return {initialBounce, visible}
 }
 
@@ -96,6 +98,7 @@ const useRecording = (conversationIDKey: Types.ConversationIDKey) => {
 
 const AudioRecorder = (props: Props) => {
   const {conversationIDKey} = props
+  const dragX = useSharedValue(0)
   const dragY = useSharedValue(0)
   // const closingDown = useSharedValue(0)
   // const [closingDown, setClosingDown] = React.useState(false)
@@ -103,9 +106,13 @@ const AudioRecorder = (props: Props) => {
   // if redux wants us to show or not, we animate before we change our internal state
   const reduxVisible = Constants.showAudioRecording(audioRecording)
   const locked = audioRecording?.isLocked ?? false
-  const {initialBounce, visible} = useVisible(reduxVisible, dragY)
+  const {initialBounce, visible} = useVisible(reduxVisible, dragX, dragY)
   const {ampScale, enableRecording, stopRecording} = useRecording(conversationIDKey)
 
+  const dispatch = Container.useDispatch()
+  const onCancel = React.useCallback(() => {
+    dispatch(Chat2Gen.createStopAudioRecording({conversationIDKey, stopType: Types.AudioStopType.CANCEL}))
+  }, [dispatch, conversationIDKey])
   // const onCancel = React.useCallback(() => {
   //   dispatch(Chat2Gen.createStopAudioRecording({conversationIDKey, stopType: Types.AudioStopType.CANCEL}))
   // }, [dispatch, conversationIDKey])
@@ -142,6 +149,7 @@ const AudioRecorder = (props: Props) => {
       <AudioStarter
         conversationIDKey={conversationIDKey}
         dragY={dragY}
+        dragX={dragX}
         enableRecording={enableRecording}
         stopRecording={stopRecording}
         iconStyle={props.iconStyle}
@@ -153,7 +161,7 @@ const AudioRecorder = (props: Props) => {
             <AmpCircle initialBounce={initialBounce} ampScale={ampScale} dragY={dragY} locked={locked} />
             <InnerCircle initialBounce={initialBounce} dragY={dragY} locked={locked} />
             <LockHint initialBounce={initialBounce} locked={locked} />
-            <CancelHint initialBounce={initialBounce} locked={locked} />
+            <CancelHint onCancel={onCancel} initialBounce={initialBounce} locked={locked} dragX={dragX} />
             {/*<AudioButton
               ampScale={ampScale}
               closingDown={closingDown}
@@ -251,29 +259,39 @@ const LockHint = (props: {initialBounce: SharedValue<number>; locked: boolean}) 
     </Animated.View>
   )
 }
+
+const AnimatedIcon = Animated.createAnimatedComponent(Kb.Icon)
+
 const CancelHint = (props: {
   initialBounce: SharedValue<number>
+  dragX: SharedValue<number>
   locked: boolean
+  onCancel: () => void
   conversationIDKey: Types.ConversationIDKey
 }) => {
-  const {locked, initialBounce, conversationIDKey} = props
+  const {locked, initialBounce, onCancel, dragX} = props
   const animatedStyle = useAnimatedStyle(() => ({
     opacity: initialBounce.value,
     transform: [{translateX: 160 - initialBounce.value * 220}],
   }))
-  const dispatch = Container.useDispatch()
-  const onCancel = React.useCallback(() => {
-    dispatch(Chat2Gen.createStopAudioRecording({conversationIDKey, stopType: Types.AudioStopType.CANCEL}))
-  }, [dispatch, conversationIDKey])
+
+  const arrowStyle = useAnimatedStyle(() => ({
+    opacity: initialBounce.value * interpolate(dragX.value, [-50, 0], [0, 1], Extrapolation.CLAMP),
+  }))
+  const closeStyle = useAnimatedStyle(() => ({
+    opacity: initialBounce.value * interpolate(dragX.value, [-50, 0], [1, 0], Extrapolation.CLAMP),
+  }))
+
   return (
     <Animated.View style={[styles.cancelHintStyle, animatedStyle]}>
-      <Kb.Icon
+      <AnimatedIcon
         sizeType="Tiny"
-        type={locked ? 'iconfont-close' : 'iconfont-arrow-left'}
-        style={styles.cancelHintIcon}
+        type={'iconfont-arrow-left'}
+        style={[styles.cancelHintIcon, arrowStyle]}
       />
+      <AnimatedIcon sizeType="Tiny" type={'iconfont-close'} style={[styles.cancelHintIcon, closeStyle]} />
       <Kb.Text type={locked ? 'BodySmallPrimaryLink' : 'BodySmall'} onClick={onCancel}>
-        Slide to cancel
+        {locked ? 'Cancel' : 'Slide to cancel'}
       </Kb.Text>
     </Animated.View>
   )
@@ -479,13 +497,18 @@ const styles = Styles.styleSheetCreate(() => ({
     ...circleAroundIcon(Styles.isTablet ? 2000 : 750),
     backgroundColor: Styles.globalColors.white,
   },
-  cancelHintIcon: {paddingRight: 6},
+  cancelHintIcon: {
+    left: 0,
+    position: 'absolute',
+  },
   cancelHintStyle: {
     ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
     bottom: micCenterBottom - 10,
+    paddingLeft: 20,
     position: 'absolute' as const,
     right: micCenterRight,
+    width: 140,
   },
   container: {
     ...Styles.globalStyles.fillAbsolute,

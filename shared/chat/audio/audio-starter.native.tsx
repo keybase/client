@@ -21,6 +21,7 @@ import Animated, {
 
 type Props = {
   conversationIDKey: Types.ConversationIDKey
+  dragX: SharedValue<number>
   dragY: SharedValue<number>
   iconStyle?: Kb.IconStyle
   enableRecording: () => void
@@ -51,14 +52,14 @@ const Tooltip = (props: {onHide: () => void}) => {
   )
 }
 
-const maxCancelDrift = -20
+const maxCancelDrift = -120
 const maxLockDrift = -100
 const _AudioStarter = (props: Props) => {
-  const {stopRecording, enableRecording, iconStyle, dragY, conversationIDKey} = props
+  const {stopRecording, enableRecording, iconStyle, dragX, dragY, conversationIDKey} = props
   const [showToolTip, setShowToolTip] = React.useState(false)
   const dispatch = Container.useDispatch()
   const lockRecording = React.useCallback(() => {
-    // dispatch(Chat2Gen.createLockAudioRecording({conversationIDKey}))
+    dispatch(Chat2Gen.createLockAudioRecording({conversationIDKey}))
   }, [dispatch, conversationIDKey])
 
   const onHideTooltip = React.useCallback(() => {
@@ -120,6 +121,7 @@ const _AudioStarter = (props: Props) => {
     translationX.value = e.translationX
     translationY.value = e.translationY
     dragY.value = interpolate(e.translationY, [maxLockDrift, 0], [maxLockDrift, 0], Extrapolation.CLAMP)
+    dragX.value = interpolate(e.translationX, [maxCancelDrift, 0], [maxCancelDrift, 0], Extrapolation.CLAMP)
 
     if (e.translationX < maxCancelDrift) {
       console.log('aaa panning stop rec')
