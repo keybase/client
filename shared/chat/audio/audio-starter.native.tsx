@@ -1,4 +1,6 @@
 import * as React from 'react'
+import * as Container from '../../util/container'
+import * as Chat2Gen from '../../actions/chat2-gen'
 import * as Kb from '../../common-adapters/mobile.native'
 import * as Styles from '../../styles'
 import * as Types from '../../constants/types/chat2'
@@ -17,10 +19,10 @@ import Animated, {
   type SharedValue,
 } from 'react-native-reanimated'
 
-type AudioStarterProps = {
+type Props = {
+  conversationIDKey: Types.ConversationIDKey
   dragY: SharedValue<number>
   iconStyle?: Kb.IconStyle
-  lockRecording: () => void
   enableRecording: () => void
   stopRecording: (st: Types.AudioStopType) => void
 }
@@ -51,9 +53,14 @@ const Tooltip = (props: {onHide: () => void}) => {
 
 const maxCancelDrift = -20
 const maxLockDrift = -100
-const _AudioStarter = (props: AudioStarterProps) => {
-  const {lockRecording, stopRecording, enableRecording, iconStyle, dragY} = props
+const _AudioStarter = (props: Props) => {
+  const {stopRecording, enableRecording, iconStyle, dragY, conversationIDKey} = props
   const [showToolTip, setShowToolTip] = React.useState(false)
+  const dispatch = Container.useDispatch()
+  const lockRecording = React.useCallback(() => {
+    // dispatch(Chat2Gen.createLockAudioRecording({conversationIDKey}))
+  }, [dispatch, conversationIDKey])
+
   const onHideTooltip = React.useCallback(() => {
     setShowToolTip(false)
   }, [])
