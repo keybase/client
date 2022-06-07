@@ -39,8 +39,8 @@ const useVisible = (reduxVisible: boolean, dragY: SharedValue<number>) => {
     }
     initialBounce.value = reduxVisible
       ? withTiming(1, {
-          duration: 200,
-          easing: Easing.elastic(1),
+          duration: 300,
+          easing: Easing.elastic(2),
         })
       : withTiming(0, {duration: 200}, () => {
           // hide after we're done animating
@@ -152,6 +152,8 @@ const AudioRecorder = (props: Props) => {
             <BigBackground initialBounce={initialBounce} />
             <AmpCircle initialBounce={initialBounce} ampScale={ampScale} dragY={dragY} locked={locked} />
             <InnerCircle initialBounce={initialBounce} dragY={dragY} locked={locked} />
+            <LockHint initialBounce={initialBounce} locked={locked} />
+            <CancelHint initialBounce={initialBounce} locked={locked} />
             {/*<AudioButton
               ampScale={ampScale}
               closingDown={closingDown}
@@ -233,6 +235,47 @@ const InnerCircle = (props: {
         animatedStyle,
       ]}
     />
+  )
+}
+
+const LockHint = (props: {initialBounce: SharedValue<number>; locked: boolean}) => {
+  const {locked, initialBounce} = props
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: locked ? withTiming(0) : 1,
+    transform: [{translateY: 50 - initialBounce.value * 150}],
+  }))
+  return (
+    <Animated.View style={[styles.lockHintStyle, animatedStyle]}>
+      <Kb.Icon type="iconfont-arrow-up" sizeType="Tiny" />
+      <Kb.Icon type="iconfont-lock" />
+    </Animated.View>
+  )
+}
+const CancelHint = (props: {
+  initialBounce: SharedValue<number>
+  locked: boolean
+  conversationIDKey: Types.ConversationIDKey
+}) => {
+  const {locked, initialBounce, conversationIDKey} = props
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: initialBounce.value,
+    transform: [{translateX: 160 - initialBounce.value * 220}],
+  }))
+  const dispatch = Container.useDispatch()
+  const onCancel = React.useCallback(() => {
+    dispatch(Chat2Gen.createStopAudioRecording({conversationIDKey, stopType: Types.AudioStopType.CANCEL}))
+  }, [dispatch, conversationIDKey])
+  return (
+    <Animated.View style={[styles.cancelHintStyle, animatedStyle]}>
+      <Kb.Icon
+        sizeType="Tiny"
+        type={locked ? 'iconfont-close' : 'iconfont-arrow-left'}
+        style={styles.cancelHintIcon}
+      />
+      <Kb.Text type={locked ? 'BodySmallPrimaryLink' : 'BodySmall'} onClick={onCancel}>
+        Slide to cancel
+      </Kb.Text>
+    </Animated.View>
   )
 }
 
@@ -318,14 +361,6 @@ const InnerCircle = (props: {
 //         </Animated.View>
 //       ) : (
 //         <>
-//           <Animated.View style={[{bottom: 160, position: 'absolute', right: 50}, upArrowStyle]}>
-//             <View>
-//               <Kb.Icon type="iconfont-arrow-up" sizeType="Tiny" />
-//             </View>
-//           </Animated.View>
-//           <Animated.View style={[{bottom: 130, position: 'absolute', right: 45}, lockStyle]}>
-//             <Kb.Icon type="iconfont-lock" />
-//           </Animated.View>
 //         </>
 //       )}
 
@@ -420,11 +455,10 @@ const InnerCircle = (props: {
 //   )
 // }
 
-const circleAroundIcon = (size: number) => {
-  const micCenterRight = 54
-  const micCenterBottom = 26
+const micCenterRight = 54
+const micCenterBottom = 26
+const centerAroundIcon = (size: number) => {
   return {
-    borderRadius: size / 2,
     bottom: micCenterBottom - size / 2,
     height: size,
     position: 'absolute' as const,
@@ -432,6 +466,10 @@ const circleAroundIcon = (size: number) => {
     width: size,
   }
 }
+const circleAroundIcon = (size: number) => ({
+  ...centerAroundIcon(size),
+  borderRadius: size / 2,
+})
 
 const styles = Styles.styleSheetCreate(() => ({
   ampCircleStyle: {
@@ -441,12 +479,24 @@ const styles = Styles.styleSheetCreate(() => ({
     ...circleAroundIcon(Styles.isTablet ? 2000 : 750),
     backgroundColor: Styles.globalColors.white,
   },
+  cancelHintIcon: {paddingRight: 6},
+  cancelHintStyle: {
+    ...Styles.globalStyles.flexBoxRow,
+    alignItems: 'center',
+    bottom: micCenterBottom - 10,
+    position: 'absolute' as const,
+    right: micCenterRight,
+  },
   container: {
     ...Styles.globalStyles.fillAbsolute,
     justifyContent: 'flex-start',
   },
   innerCircleStyle: {
     ...circleAroundIcon(84),
+  },
+  lockHintStyle: {
+    ...centerAroundIcon(32),
+    alignItems: 'center',
   },
 }))
 
