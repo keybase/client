@@ -264,6 +264,7 @@ const LockHint = (props: {initialBounce: SVN; locked: boolean; dragY: SVN}) => {
 }
 
 const AnimatedIcon = Animated.createAnimatedComponent(Kb.Icon)
+const AnimatedText = Animated.createAnimatedComponent(Kb.Text)
 
 const CancelHint = (props: {
   initialBounce: SVN
@@ -280,24 +281,53 @@ const CancelHint = (props: {
 
   const arrowStyle = useAnimatedStyle(() => ({
     opacity: initialBounce.value * interpolate(dragX.value, [-50, 0], [0, 1], Extrapolation.CLAMP),
+    transform: [{translateX: 160 - initialBounce.value * 220}, {translateY: -4}],
   }))
   const closeStyle = useAnimatedStyle(() => ({
     opacity: initialBounce.value * interpolate(dragX.value, [-50, 0], [1, 0], Extrapolation.CLAMP),
+    transform: [{translateX: 160 - initialBounce.value * 220}, {translateY: -4}],
+  }))
+  const textStyle = useAnimatedStyle(() => ({
+    // opacity: initialBounce.value * interpolate(dragX.value, [-50, 0], [1, 0], Extrapolation.CLAMP),
+    transform: [
+      {
+        translateX:
+          180 - initialBounce.value * 220 - interpolate(dragX.value, [-50, 0], [10, 0], Extrapolation.CLAMP),
+      },
+    ],
   }))
 
   return (
-    <Animated.View style={[styles.cancelHintStyle, animatedStyle]}>
+    <>
       <AnimatedIcon
         sizeType="Tiny"
         type={'iconfont-arrow-left'}
-        style={[styles.cancelHintIcon, arrowStyle]}
+        style={[styles.cancelHintStyle, arrowStyle]}
       />
-      <AnimatedIcon sizeType="Tiny" type={'iconfont-close'} style={[styles.cancelHintIcon, closeStyle]} />
-      <Kb.Text type={locked ? 'BodySmallPrimaryLink' : 'BodySmall'} onClick={onCancel}>
+      <AnimatedIcon sizeType="Tiny" type={'iconfont-close'} style={[styles.cancelHintStyle, closeStyle]} />
+      <AnimatedText
+        type={locked ? 'BodySmallPrimaryLink' : 'BodySmall'}
+        onClick={onCancel}
+        style={[styles.cancelHintStyle, textStyle]}
+      >
         {locked ? 'Cancel' : 'Slide to cancel'}
-      </Kb.Text>
-    </Animated.View>
+      </AnimatedText>
+    </>
   )
+
+  // return (
+  //   <Animated.View style={[styles.cancelHintStyle, animatedStyle]}>
+  //     <AnimatedIcon
+  //       sizeType="Tiny"
+  //       type={'iconfont-arrow-left'}
+  //       style={[styles.cancelHintIcon, arrowStyle]}
+  //     />
+  //     <AnimatedIcon sizeType="Tiny" type={'iconfont-close'} style={[styles.cancelHintIcon, closeStyle]} />
+  //     <AnimatedText type={locked ? 'BodySmallPrimaryLink' : 'BodySmall'} onClick={onCancel}>
+  //       {locked ? 'Cancel' : 'Slide to cancel'}
+  //     </AnimatedText>
+  //   </Animated.View>
+  // )
 }
 
 // const AudioButton = (props: ButtonProps) => {
