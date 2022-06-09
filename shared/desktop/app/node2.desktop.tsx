@@ -175,6 +175,17 @@ const handleCrashes = () => {
   })
 }
 
+const stopNav = () => {
+  Electron.app.on('web-contents-created', (_, contents) => {
+    contents.on('will-navigate', event => {
+      event.preventDefault()
+    })
+    contents.setWindowOpenHandler(() => {
+      return {action: 'deny'}
+    })
+  })
+}
+
 // On Windows and Linux startup, open-file and open-url arguments will be
 // passed via process.argv instead of via Electron event arguments.
 const getStartupProcessArgs = () => {
@@ -802,6 +813,7 @@ const plumbEvents = () => {
 
 const start = () => {
   handleCrashes()
+  stopNav()
   installCrashReporter()
 
   if (appShouldDieOnStartup()) {
