@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../../../../../common-adapters/mobile.native'
 import * as Styles from '../../../../../styles'
+import {RectButton} from 'react-native-gesture-handler'
 import type {Props} from '.'
 
 let openSwipeRef: React.RefObject<Kb.Swipeable> | undefined
@@ -20,12 +21,12 @@ const Action = (p: {
   })
   return (
     <Kb.NativeAnimated.View style={{flex: 1, transform: [{translateX: trans}]}}>
-      <Kb.RectButton style={[styles.rightAction, {backgroundColor: color as string}]} onPress={onClick}>
+      <RectButton style={[styles.rightAction, {backgroundColor: color as string}]} onPress={onClick}>
         <Kb.Icon type={iconType} color={Styles.globalColors.white} />
         <Kb.Text type="BodySmall" style={styles.actionText}>
           {text}
         </Kb.Text>
-      </Kb.RectButton>
+      </RectButton>
     </Kb.NativeAnimated.View>
   )
 }
