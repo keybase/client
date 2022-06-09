@@ -29,7 +29,7 @@ type Props = {
 }
 
 // hook to help deal with visibility request changing. we animate in / out and truly hide when we're done animating
-const useVisible = (reduxVisible: boolean, locked: boolean, dragX: SVN, dragY: SVN) => {
+const useVisible = (reduxVisible: boolean, dragX: SVN, dragY: SVN) => {
   const [visible, setVisible] = React.useState(reduxVisible)
   const initialBounce = useSharedValue(reduxVisible ? 1 : 0)
   React.useEffect(() => {
@@ -95,7 +95,7 @@ const AudioRecorder = (props: Props) => {
   // if redux wants us to show or not, we animate before we change our internal state
   const reduxVisible = Constants.showAudioRecording(audioRecording)
   const locked = audioRecording?.isLocked ?? false
-  const {initialBounce, visible} = useVisible(reduxVisible, locked, dragX, dragY)
+  const {initialBounce, visible} = useVisible(reduxVisible, dragX, dragY)
   const {ampScale, enableRecording, stopRecording} = useRecording(conversationIDKey)
   const dispatch = Container.useDispatch()
   const onCancel = React.useCallback(() => {
