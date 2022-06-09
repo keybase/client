@@ -85,7 +85,6 @@ const _AudioStarter = (props: Props) => {
   }
 
   const onTapEnd = () => {
-    console.log('aaa on tap end', {locked})
     // we're locked, ignore the tap
     if (!locked) {
       stopRecording(Types.AudioStopType.RELEASE)
