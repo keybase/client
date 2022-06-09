@@ -78,10 +78,6 @@ const _AudioStarter = (props: Props) => {
     tapStartTimerRef.current = setTimeout(() => {
       if (stillGesturing.value) {
         enableRecording()
-        // TEMP testing js thread
-        setTimeout(() => {
-          // debugger
-        }, 1000)
       } else {
         setShowToolTip(true)
       }
@@ -89,18 +85,11 @@ const _AudioStarter = (props: Props) => {
   }
 
   const onTapEnd = () => {
+    console.log('aaa on tap end', {locked})
     // we're locked, ignore the tap
-    if (locked) {
-      return
-    } else {
+    if (!locked) {
       stopRecording(Types.AudioStopType.RELEASE)
     }
-    // if (translationX.value < maxCancelDrift) {
-    //   stopRecording(Types.AudioStopType.CANCEL)
-    // } else if (translationY.value < maxLockDrift) {
-    //   lockRecording()
-    // } else {
-    // }
   }
 
   const tapStart = useSharedValue(0)
@@ -120,19 +109,22 @@ const _AudioStarter = (props: Props) => {
       stillGesturing.value = false
       runOnJS(onTapEnd)()
     })
+    .enabled(!locked)
 
-  const panGesture = Gesture.Pan().onUpdate(e => {
-    translationX.value = e.translationX
-    translationY.value = e.translationY
-    dragY.value = interpolate(e.translationY, [maxLockDrift, 0], [maxLockDrift, 0], Extrapolation.CLAMP)
-    dragX.value = interpolate(e.translationX, [maxCancelDrift, 0], [maxCancelDrift, 0], Extrapolation.CLAMP)
+  const panGesture = Gesture.Pan()
+    .onUpdate(e => {
+      translationX.value = e.translationX
+      translationY.value = e.translationY
+      dragY.value = interpolate(e.translationY, [maxLockDrift, 0], [maxLockDrift, 0], Extrapolation.CLAMP)
+      dragX.value = interpolate(e.translationX, [maxCancelDrift, 0], [maxCancelDrift, 0], Extrapolation.CLAMP)
 
-    if (e.translationX < maxCancelDrift) {
-      runOnJS(stopRecording)(Types.AudioStopType.CANCEL)
-    } else if (e.translationY < maxLockDrift) {
-      runOnJS(lockRecording)()
-    }
-  })
+      if (e.translationX < maxCancelDrift) {
+        runOnJS(stopRecording)(Types.AudioStopType.CANCEL)
+      } else if (e.translationY < maxLockDrift) {
+        runOnJS(lockRecording)()
+      }
+    })
+    .enabled(!locked)
   const composedGesture = Gesture.Simultaneous(tapGesture, panGesture)
   return (
     <>

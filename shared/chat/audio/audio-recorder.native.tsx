@@ -79,13 +79,7 @@ const useRecording = (conversationIDKey: Types.ConversationIDKey) => {
   }, [dispatch, conversationIDKey, ampTracker, meteringCb])
   const stopRecording = React.useCallback(
     (stopType: Types.AudioStopType) => {
-      dispatch(
-        Chat2Gen.createStopAudioRecording({
-          amps: ampTracker,
-          conversationIDKey,
-          stopType: Types.AudioStopType.CANCEL, // TEMP always cancel
-        })
-      )
+      dispatch(Chat2Gen.createStopAudioRecording({amps: ampTracker, conversationIDKey, stopType}))
     },
     [dispatch, ampTracker, conversationIDKey]
   )
@@ -97,8 +91,6 @@ const AudioRecorder = (props: Props) => {
   const {conversationIDKey} = props
   const dragX = useSharedValue(0)
   const dragY = useSharedValue(0)
-  // const closingDown = useSharedValue(0)
-  // const [closingDown, setClosingDown] = React.useState(false)
   const audioRecording = Container.useSelector(state => state.chat2.audioRecording.get(conversationIDKey))
   // if redux wants us to show or not, we animate before we change our internal state
   const reduxVisible = Constants.showAudioRecording(audioRecording)
@@ -109,37 +101,6 @@ const AudioRecorder = (props: Props) => {
   const onCancel = React.useCallback(() => {
     dispatch(Chat2Gen.createStopAudioRecording({conversationIDKey, stopType: Types.AudioStopType.CANCEL}))
   }, [dispatch, conversationIDKey])
-  // const onCancel = React.useCallback(() => {
-  //   dispatch(Chat2Gen.createStopAudioRecording({conversationIDKey, stopType: Types.AudioStopType.CANCEL}))
-  // }, [dispatch, conversationIDKey])
-  // const sendRecording = React.useCallback(() => stopRecording(Types.AudioStopType.SEND), [stopRecording])
-  // const stageRecording = React.useCallback(() => {
-  //   stopRecording(Types.AudioStopType.STOPBUTTON)
-  // }, [stopRecording])
-
-  // render
-  // const noShow = !Constants.showAudioRecording(audioRecording)
-  // if (!visible && !noShow) {
-  //   closingDown.value = 0
-  //   // setClosingDown(false)
-  //   setVisible(true)
-  // } else if (visible && noShow && !closingDown.value) {
-  //   closingDown.value = 1
-  //   // setClosingDown(true)
-  //   initialBounce.value = withTiming(0)
-  //   setTimeout(() => setVisible(false), 500)
-  // }
-
-  // React.useEffect(() => {
-  //   if (closingDown.value || locked) {
-  //     dragY.value = 0
-  //   }
-  // }, [locked, closingDown, dragY])
-
-  // const recording =
-  //   !!audioRecording &&
-  //   (audioRecording.status === Types.AudioRecordingStatus.INITIAL ||
-  //     audioRecording.status === Types.AudioRecordingStatus.RECORDING)
   return (
     <>
       <AudioStarter
