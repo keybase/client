@@ -17,6 +17,7 @@ import Animated, {
   useSharedValue,
   interpolate,
   withTiming,
+  withSpring,
   type SharedValue,
   // useDerivedValue,
   runOnJS,
@@ -41,10 +42,7 @@ const useVisible = (reduxVisible: boolean, locked: boolean, dragX: SVN, dragY: S
       setVisible(true)
     }
     initialBounce.value = reduxVisible
-      ? withTiming(1, {
-          duration: 300,
-          easing: Easing.elastic(2),
-        })
+      ? withSpring(1)
       : withTiming(0, {duration: 200}, () => {
           // hide after we're done animating
           runOnJS(setVisible)(false)
@@ -84,7 +82,7 @@ const useRecording = (conversationIDKey: Types.ConversationIDKey) => {
     dispatch(Chat2Gen.createAttemptAudioRecording({conversationIDKey, meteringCb}))
   }, [dispatch, conversationIDKey, ampTracker, meteringCb])
   const stopRecording = React.useCallback(
-    (/*stopType: Types.AudioStopType*/) => {
+    (stopType: Types.AudioStopType) => {
       dispatch(
         Chat2Gen.createStopAudioRecording({
           amps: ampTracker,
@@ -163,10 +161,28 @@ const AudioRecorder = (props: Props) => {
         {!visible ? null : (
           <Animated.View style={styles.container} pointerEvents="box-none">
             <BigBackground initialBounce={initialBounce} />
-            <AmpCircle initialBounce={initialBounce} ampScale={ampScale} dragY={dragY} locked={locked} />
-            <InnerCircle initialBounce={initialBounce} dragY={dragY} locked={locked} />
-            <LockHint initialBounce={initialBounce} dragY={dragY} locked={locked} />
+            <AmpCircle
+              initialBounce={initialBounce}
+              ampScale={ampScale}
+              dragX={dragX}
+              dragY={dragY}
+              locked={locked}
+            />
+            <InnerCircle
+              initialBounce={initialBounce}
+              dragX={dragX}
+              dragY={dragY}
+              locked={locked}
+              stopRecording={stopRecording}
+            />
+            <LockHint initialBounce={initialBounce} dragX={dragX} dragY={dragY} locked={locked} />
             <CancelHint onCancel={onCancel} initialBounce={initialBounce} locked={locked} dragX={dragX} />
+            <SendRecordingButton
+              initialBounce={initialBounce}
+              locked={locked}
+              stopRecording={stopRecording}
+            />
+
             {/*<AudioButton
               ampScale={ampScale}
               closingDown={closingDown}
@@ -210,9 +226,17 @@ const BigBackground = (props: {initialBounce: SVN}) => {
   return <Animated.View pointerEvents="box-none" style={[styles.bigBackgroundStyle, animatedStyle]} />
 }
 
-const AmpCircle = (props: {ampScale: SVN; dragY: SVN; initialBounce: SVN; locked: boolean}) => {
-  const {ampScale, dragY, initialBounce, locked} = props
+const dragXOpacity = (dragX: SVN, dragY: SVN) => {
+  'worklet'
+  // worklet needs this locally for some reason
+  const dragDistanceX = -50
+  return dragY.value < -10 ? 1 : interpolate(dragX.value, [dragDistanceX, 0], [0, 1], Extrapolation.CLAMP)
+}
+
+const AmpCircle = (props: {ampScale: SVN; dragX: SVN; dragY: SVN; initialBounce: SVN; locked: boolean}) => {
+  const {ampScale, dragX, dragY, initialBounce, locked} = props
   const animatedStyle = useAnimatedStyle(() => ({
+    opacity: withTiming(dragXOpacity(dragX, dragY)),
     transform: [{translateY: locked ? 0 : dragY.value}, {scale: ampScale.value * initialBounce.value}],
   }))
   return (
@@ -226,36 +250,55 @@ const AmpCircle = (props: {ampScale: SVN; dragY: SVN; initialBounce: SVN; locked
   )
 }
 
-const InnerCircle = (props: {dragY: SVN; initialBounce: SVN; locked: boolean}) => {
-  const {dragY, initialBounce, locked} = props
-  const animatedStyle = useAnimatedStyle(() => ({
+const InnerCircle = (props: {
+  dragX: SVN
+  dragY: SVN
+  initialBounce: SVN
+  locked: boolean
+  stopRecording: (stopType: Types.AudioStopType) => void
+}) => {
+  const {dragX, dragY, initialBounce, locked, stopRecording} = props
+  const circleStyle = useAnimatedStyle(() => ({
+    opacity: withTiming(dragXOpacity(dragX, dragY)),
     transform: [{translateY: locked ? 0 : dragY.value}, {scale: initialBounce.value}],
   }))
+  const stopStyle = useAnimatedStyle(() => ({opacity: locked ? withTiming(1) : 0}))
+  const onStop = React.useCallback(() => {
+    stopRecording(Types.AudioStopType.STOPBUTTON)
+  }, [stopRecording])
   return (
     <Animated.View
       style={[
         styles.innerCircleStyle,
         {backgroundColor: locked ? Styles.globalColors.red : Styles.globalColors.blue},
-        animatedStyle,
+        circleStyle,
       ]}
-    />
+    >
+      <AnimatedIcon
+        type="iconfont-stop"
+        color={Styles.globalColors.whiteOrWhite}
+        onClick={onStop}
+        style={stopStyle}
+      />
+    </Animated.View>
   )
 }
 
-const LockHint = (props: {initialBounce: SVN; locked: boolean; dragY: SVN}) => {
-  const {locked, initialBounce, dragY} = props
+const LockHint = (props: {initialBounce: SVN; locked: boolean; dragX: SVN; dragY: SVN}) => {
+  const {locked, initialBounce, dragX, dragY} = props
   const slideAmount = 150
-  const dragDistance = -50
   const spaceBetween = 20
   const deltaY = 50
   const arrowStyle = useAnimatedStyle(() => ({
     opacity: locked
       ? withTiming(0)
-      : interpolate(dragY.value, [dragDistance, 0], [0, 1], Extrapolation.CLAMP),
+      : initialBounce.value *
+        interpolate(dragY.value, [dragDistanceX, 0], [0, 1], Extrapolation.CLAMP) *
+        dragXOpacity(dragX, dragY),
     transform: [{translateX: 10}, {translateY: deltaY - initialBounce.value * slideAmount}],
   }))
   const lockStyle = useAnimatedStyle(() => ({
-    opacity: locked ? withTiming(0) : 1,
+    opacity: locked ? withTiming(0) : initialBounce.value * dragXOpacity(dragX, dragY),
     transform: [
       {translateX: 5},
       {
@@ -263,7 +306,7 @@ const LockHint = (props: {initialBounce: SVN; locked: boolean; dragY: SVN}) => {
           deltaY +
           spaceBetween -
           initialBounce.value * slideAmount -
-          interpolate(dragY.value, [dragDistance, 0], [spaceBetween, 0], Extrapolation.CLAMP),
+          interpolate(dragY.value, [dragDistanceX, 0], [spaceBetween, 0], Extrapolation.CLAMP),
       },
     ],
   }))
@@ -278,37 +321,33 @@ const LockHint = (props: {initialBounce: SVN; locked: boolean; dragY: SVN}) => {
 const AnimatedIcon = Animated.createAnimatedComponent(Kb.Icon)
 const AnimatedText = Animated.createAnimatedComponent(Kb.Text)
 
-const CancelHint = (props: {
-  initialBounce: SVN
-  dragX: SVN
-  locked: boolean
-  onCancel: () => void
-  conversationIDKey: Types.ConversationIDKey
-}) => {
+const dragDistanceX = -50
+
+const CancelHint = (props: {initialBounce: SVN; dragX: SVN; locked: boolean; onCancel: () => void}) => {
   const {locked, initialBounce, onCancel, dragX} = props
   const deltaX = 180
   const slideAmount = 220
-  const dragDistance = -50
   const spaceBetween = 20
   const arrowStyle = useAnimatedStyle(() => ({
     opacity: locked
       ? withTiming(0)
-      : initialBounce.value * interpolate(dragX.value, [dragDistance, 0], [0, 1], Extrapolation.CLAMP),
+      : initialBounce.value * interpolate(dragX.value, [dragDistanceX, 0], [0, 1], Extrapolation.CLAMP),
     transform: [{translateX: deltaX - spaceBetween - initialBounce.value * slideAmount}, {translateY: -4}],
   }))
   const closeStyle = useAnimatedStyle(() => ({
     opacity: locked
       ? withTiming(0)
-      : initialBounce.value * interpolate(dragX.value, [dragDistance, 0], [1, 0], Extrapolation.CLAMP),
+      : initialBounce.value * interpolate(dragX.value, [dragDistanceX, 0], [1, 0], Extrapolation.CLAMP),
     transform: [{translateX: deltaX - spaceBetween - initialBounce.value * slideAmount}, {translateY: -4}],
   }))
   const textStyle = useAnimatedStyle(() => ({
+    opacity: initialBounce.value,
     transform: [
       {
         translateX:
           deltaX -
           initialBounce.value * slideAmount -
-          interpolate(dragX.value, [dragDistance, 0], [8, 0], Extrapolation.CLAMP),
+          interpolate(dragX.value, [dragDistanceX, 0], [8, 0], Extrapolation.CLAMP),
       },
     ],
   }))
@@ -332,157 +371,31 @@ const CancelHint = (props: {
   )
 }
 
-// const AudioButton = (props: ButtonProps) => {
-//   const {initialBounce, locked, closingDown, ampScale, dragY, sendRecording, stageRecording} = props
-//   console.log('bbb audiobutton render', {initialBounce})
-//   const innerScale = useSharedValue(0)
-//   const sendTranslate = useSharedValue(0)
-//   const innerOffsetY = useSharedValue(-34)
-//   const ampOffsetY = useSharedValue(-31)
-//   const micOffsetY = useSharedValue(-34)
-
-//   innerScale.value = withTiming(3, {easing: Easing.elastic(1)})
-//   React.useEffect(() => {
-//     if (locked) {
-//       sendTranslate.value = withTiming(1, {
-//         easing: Easing.elastic(1),
-//       })
-//     }
-//   }, [locked, sendTranslate])
-
-//   // React.useEffect(() => {
-//   //   console.log('bbb audiobutton useeffect ', {closingDown})
-//   //   if (!closingDown) {
-//   //     return
-//   //   }
-//   //   outerScale.value = withTiming(0)
-//   //   innerScale.value = withTiming(0)
-//   //   sendTranslate.value = withTiming(0)
-//   //   ampScale.value = withTiming(0)
-//   // }, [closingDown, innerScale, outerScale, sendTranslate, ampScale])
-
-//   const innerSizeStyle = useAnimatedStyle(() => {
-//     console.log('bbb inner size style', innerScale.value, closingDown.value)
-//     return {
-//       transform: [{translateY: innerOffsetY.value + (locked ? 0 : dragY.value)}, {scale: innerScale.value}],
-//     }
-//   })
-//   const upArrowStyle = useAnimatedStyle(() => ({
-//     opacity: initialBounce.value,
-//     transform: [{translateY: interpolate(initialBounce.value, [0, 1], [180, 0])}],
-//   }))
-//   const lockStyle = useAnimatedStyle(() => ({
-//     opacity: initialBounce.value,
-//     transform: [
-//       {translateY: interpolate(initialBounce.value, [0, 1], [180, 0])},
-//       {translateY: interpolate(dragY.value, [-70, 0], [-10, 0])},
-//     ],
-//   }))
-//   const arrowFullUpStyle = useAnimatedStyle(() => ({
-//     opacity: initialBounce.value,
-//     transform: [{translateY: interpolate(sendTranslate.value, [0, 1], [180, 0])}],
-//   }))
-//   const micStyle = useAnimatedStyle(() => ({
-//     transform: [{translateY: micOffsetY.value + dragY.value}],
-//   }))
-
-//   return (
-//     <>
-//       {locked ? (
-//         <Animated.View style={[{bottom: 130, position: 'absolute', right: 42}, arrowFullUpStyle]}>
-//           <View
-//             style={{
-//               alignItems: 'center',
-//               backgroundColor: Styles.globalColors.blue,
-//               borderRadius: 16,
-//               height: 32,
-//               justifyContent: 'center',
-//               width: 32,
-//             }}
-//           >
-//             <Kb.ClickableBox
-//               onClick={sendRecording}
-//               style={{alignItems: 'center', height: 32, justifyContent: 'center', width: 32}}
-//             >
-//               <Kb.Icon
-//                 color={Styles.globalColors.whiteOrWhite}
-//                 sizeType="Small"
-//                 type="iconfont-arrow-full-up"
-//               />
-//             </Kb.ClickableBox>
-//           </View>
-//         </Animated.View>
-//       ) : (
-//         <>
-//         </>
-//       )}
-
-//       {!locked ? (
-//         <Animated.View style={[{position: 'absolute', right: 44, top: -4}, micStyle]}>
-//           <Kb.Icon type="iconfont-mic" color={Styles.globalColors.whiteOrWhite} />
-//         </Animated.View>
-//       ) : (
-//         <View
-//           style={{
-//             bottom: 22,
-//             height: 48,
-//             justifyContent: 'center',
-//             position: 'absolute',
-//             right: 19,
-//             width: 48,
-//           }}
-//         >
-//           <Kb.Icon type="iconfont-stop" color={Styles.globalColors.whiteOrWhite} onClick={stageRecording} />
-//         </View>
-//       )}
-//     </>
-//   )
-// }
-
-// type CancelProps = {
-//   closingDown: SharedValue<number>
-//   locked: boolean
-//   onCancel: () => void
-//   translate: SharedValue<number>
-// }
-
-// const AudioSlideToCancel = (props: CancelProps) => {
-//   const cancelTranslate = useSharedValue(0)
-//   const {closingDown, translate, locked, onCancel} = props
-//   React.useEffect(() => {
-//     if (closingDown.value) {
-//       cancelTranslate.value = withTiming(1)
-//     }
-//   }, [closingDown, cancelTranslate])
-
-//   const cancelStyle = useAnimatedStyle(() => ({
-//     transform: [{translateY: interpolate(cancelTranslate.value, [0, 1], [0, 85])}],
-//   }))
-//   const transStyle = useAnimatedStyle(() => ({
-//     opacity: translate.value,
-//     transform: [{translateX: interpolate(translate.value, [0, 1], [-10, -125])}],
-//   }))
-
-//   return locked ? (
-//     <Animated.View style={[{bottom: 27, left: 100, position: 'absolute'}, cancelStyle]}>
-//       <Kb.ClickableBox onClick={onCancel} style={{alignItems: 'center', height: 30}}>
-//         <Kb.Text type="BodyBigLink">Cancel</Kb.Text>
-//       </Kb.ClickableBox>
-//     </Animated.View>
-//   ) : (
-//     <Animated.View
-//       pointerEvents="box-none"
-//       style={[{bottom: 35, position: 'absolute', right: 0}, transStyle]}
-//     >
-//       <Kb.Box2 direction="horizontal" gap="tiny" centerChildren={true}>
-//         <Kb.Icon sizeType="Tiny" type="iconfont-arrow-left" />
-//         <Kb.Text type="BodySmall" onClick={onCancel}>
-//           Slide to cancel
-//         </Kb.Text>
-//       </Kb.Box2>
-//     </Animated.View>
-//   )
-// }
+const SendRecordingButton = (props: {
+  initialBounce: SVN
+  locked: boolean
+  stopRecording: (stopType: Types.AudioStopType) => void
+}) => {
+  const {initialBounce, locked, stopRecording} = props
+  const buttonStyle = useAnimatedStyle(() => ({
+    opacity: locked ? initialBounce.value : withTiming(0),
+    transform: [{translateY: withTiming(locked ? -100 : 50)}],
+  }))
+  const onSend = React.useCallback(() => {
+    stopRecording(Types.AudioStopType.SEND)
+  }, [stopRecording])
+  return (
+    <Animated.View style={[styles.sendRecordingButtonStyle, buttonStyle]}>
+      <Kb.Icon
+        padding="tiny"
+        color={Styles.globalColors.whiteOrWhite}
+        onClick={onSend}
+        sizeType="Small"
+        type="iconfont-arrow-full-up"
+      />
+    </Animated.View>
+  )
+}
 
 // type CounterProps = {
 //   initialBounce: SharedValue<number>
@@ -551,9 +464,17 @@ const styles = Styles.styleSheetCreate(() => ({
   },
   innerCircleStyle: {
     ...circleAroundIcon(84),
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   lockHintStyle: {
     ...centerAroundIcon(32),
+  },
+  sendRecordingButtonStyle: {
+    ...circleAroundIcon(32),
+    alignItems: 'center',
+    backgroundColor: Styles.globalColors.blue,
+    justifyContent: 'center',
   },
 }))
 
