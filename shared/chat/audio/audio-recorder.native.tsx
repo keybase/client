@@ -5,21 +5,18 @@ import * as Constants from '../../constants/chat2'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as Chat2Gen from '../../actions/chat2-gen'
-// import {formatAudioRecordDuration} from '../../util/timestamp'
+import {formatAudioRecordDuration} from '../../util/timestamp'
 import {isIOS} from '../../constants/platform'
 import {AmpTracker} from './amptracker'
 import AudioStarter from './audio-starter.native'
 import {Portal} from '@gorhom/portal'
-// import {View} from 'react-native'
 import Animated, {
-  Easing,
   useAnimatedStyle,
   useSharedValue,
   interpolate,
   withTiming,
   withSpring,
   type SharedValue,
-  // useDerivedValue,
   runOnJS,
   Extrapolation,
 } from 'react-native-reanimated'
@@ -33,7 +30,6 @@ type Props = {
 
 // hook to help deal with visibility request changing. we animate in / out and truly hide when we're done animating
 const useVisible = (reduxVisible: boolean, locked: boolean, dragX: SVN, dragY: SVN) => {
-  console.log('ccc usevisible', reduxVisible)
   const [visible, setVisible] = React.useState(reduxVisible)
   const initialBounce = useSharedValue(reduxVisible ? 1 : 0)
   React.useEffect(() => {
@@ -109,8 +105,6 @@ const AudioRecorder = (props: Props) => {
   const locked = audioRecording?.isLocked ?? false
   const {initialBounce, visible} = useVisible(reduxVisible, locked, dragX, dragY)
   const {ampScale, enableRecording, stopRecording} = useRecording(conversationIDKey)
-  console.log('ddd audio recorder', {locked, reduxVisible})
-
   const dispatch = Container.useDispatch()
   const onCancel = React.useCallback(() => {
     dispatch(Chat2Gen.createStopAudioRecording({conversationIDKey, stopType: Types.AudioStopType.CANCEL}))
@@ -182,40 +176,13 @@ const AudioRecorder = (props: Props) => {
               locked={locked}
               stopRecording={stopRecording}
             />
-
-            {/*<AudioButton
-              ampScale={ampScale}
-              closingDown={closingDown}
-              dragY={dragY}
-              locked={locked}
-              sendRecording={sendRecording}
-              initialBounce={initialBounce}
-              stageRecording={stageRecording}
-            />
-            <AudioSlideToCancel
-              closingDown={closingDown}
-              locked={locked}
-              onCancel={onCancel}
-              translate={initialBounce}
-            />
             <AudioCounter initialBounce={initialBounce} />
-            */}
           </Animated.View>
         )}
       </Portal>
     </>
   )
 }
-
-// type ButtonProps = {
-//   ampScale: SharedValue<number>
-//   closingDown: SharedValue<number>
-//   dragY: SharedValue<number>
-//   locked: boolean
-//   sendRecording: () => void
-//   initialBounce: SharedValue<number>
-//   stageRecording: () => void
-// }
 
 const BigBackground = (props: {initialBounce: SVN}) => {
   const {initialBounce} = props
@@ -397,29 +364,25 @@ const SendRecordingButton = (props: {
   )
 }
 
-// type CounterProps = {
-//   initialBounce: SharedValue<number>
-// }
-
-// const AudioCounter = (props: CounterProps) => {
-//   const {initialBounce} = props
-//   const [seconds, setSeconds] = React.useState(0)
-//   const [startTime] = React.useState(Date.now())
-//   React.useEffect(() => {
-//     const timer = setTimeout(() => {
-//       setSeconds((Date.now() - startTime) / 1000)
-//     }, 1000)
-//     return () => clearTimeout(timer)
-//   }, [seconds, startTime])
-//   const durationStyle = useAnimatedStyle(() => ({
-//     opacity: initialBounce.value,
-//   }))
-//   return (
-//     <Animated.View style={[{bottom: 35, left: 10, position: 'absolute'}, durationStyle]}>
-//       <Kb.Text type="BodyBold">{formatAudioRecordDuration(seconds * 1000)}</Kb.Text>
-//     </Animated.View>
-//   )
-// }
+const AudioCounter = (props: {initialBounce: SVN}) => {
+  const {initialBounce} = props
+  const [seconds, setSeconds] = React.useState(0)
+  const startTime = React.useRef(Date.now()).current
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      setSeconds((Date.now() - startTime) / 1000)
+    }, 1000)
+    return () => clearTimeout(timer)
+  }, [seconds, startTime])
+  const durationStyle = useAnimatedStyle(() => ({
+    opacity: initialBounce.value,
+  }))
+  return (
+    <Animated.View style={[styles.audioCounterStyle, durationStyle]}>
+      <Kb.Text type="BodyBold">{formatAudioRecordDuration(seconds * 1000)}</Kb.Text>
+    </Animated.View>
+  )
+}
 
 const micCenterRight = 54
 const micCenterBottom = 26
@@ -440,6 +403,11 @@ const circleAroundIcon = (size: number) => ({
 const styles = Styles.styleSheetCreate(() => ({
   ampCircleStyle: {
     ...circleAroundIcon(34),
+  },
+  audioCounterStyle: {
+    bottom: micCenterBottom - 10,
+    left: 10,
+    position: 'absolute',
   },
   bigBackgroundStyle: {
     ...circleAroundIcon(Styles.isTablet ? 2000 : 750),

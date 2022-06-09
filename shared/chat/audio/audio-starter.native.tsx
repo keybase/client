@@ -60,7 +60,6 @@ const _AudioStarter = (props: Props) => {
   const [showToolTip, setShowToolTip] = React.useState(false)
   const dispatch = Container.useDispatch()
   const lockRecording = React.useCallback(() => {
-    console.log('ddd locking')
     dispatch(Chat2Gen.createLockAudioRecording({conversationIDKey}))
   }, [dispatch, conversationIDKey])
 
@@ -76,9 +75,7 @@ const _AudioStarter = (props: Props) => {
   }, [])
   // after the initial tap see if we're still gesturing. if so we start to record, if not we show the tooltip
   const onTapStart = () => {
-    console.log('aaa ontapped')
     tapStartTimerRef.current = setTimeout(() => {
-      console.log('aaa ontapped timeout', stillGesturing.value)
       if (stillGesturing.value) {
         enableRecording()
         // TEMP testing js thread
@@ -131,13 +128,10 @@ const _AudioStarter = (props: Props) => {
     dragX.value = interpolate(e.translationX, [maxCancelDrift, 0], [maxCancelDrift, 0], Extrapolation.CLAMP)
 
     if (e.translationX < maxCancelDrift) {
-      console.log('aaa panning stop rec')
       runOnJS(stopRecording)(Types.AudioStopType.CANCEL)
     } else if (e.translationY < maxLockDrift) {
-      console.log('aaa panning lock rec')
       runOnJS(lockRecording)()
     }
-    console.log('aaa panning', e.translationX, e.translationY)
   })
   const composedGesture = Gesture.Simultaneous(tapGesture, panGesture)
   return (
