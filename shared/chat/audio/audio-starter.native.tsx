@@ -26,6 +26,7 @@ type Props = {
   iconStyle?: Kb.IconStyle
   enableRecording: () => void
   stopRecording: (st: Types.AudioStopType) => void
+  locked: boolean
 }
 
 const Tooltip = (props: {onHide: () => void}) => {
@@ -55,10 +56,11 @@ const Tooltip = (props: {onHide: () => void}) => {
 const maxCancelDrift = -120
 const maxLockDrift = -100
 const _AudioStarter = (props: Props) => {
-  const {stopRecording, enableRecording, iconStyle, dragX, dragY, conversationIDKey} = props
+  const {stopRecording, enableRecording, iconStyle, dragX, dragY, conversationIDKey, locked} = props
   const [showToolTip, setShowToolTip] = React.useState(false)
   const dispatch = Container.useDispatch()
   const lockRecording = React.useCallback(() => {
+    console.log('ddd locking')
     dispatch(Chat2Gen.createLockAudioRecording({conversationIDKey}))
   }, [dispatch, conversationIDKey])
 
@@ -90,12 +92,17 @@ const _AudioStarter = (props: Props) => {
   }
 
   const onTapEnd = () => {
+    // we're locked, ignore the tap
+    if (locked) {
+      return
+    } else {
+      stopRecording(Types.AudioStopType.RELEASE)
+    }
     // if (translationX.value < maxCancelDrift) {
     //   stopRecording(Types.AudioStopType.CANCEL)
     // } else if (translationY.value < maxLockDrift) {
     //   lockRecording()
     // } else {
-    stopRecording(Types.AudioStopType.RELEASE)
     // }
   }
 

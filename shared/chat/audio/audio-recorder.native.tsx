@@ -31,7 +31,7 @@ type Props = {
 }
 
 // hook to help deal with visibility request changing. we animate in / out and truly hide when we're done animating
-const useVisible = (reduxVisible: boolean, dragX: SVN, dragY: SVN) => {
+const useVisible = (reduxVisible: boolean, locked: boolean, dragX: SVN, dragY: SVN) => {
   console.log('ccc usevisible', reduxVisible)
   const [visible, setVisible] = React.useState(reduxVisible)
   const initialBounce = useSharedValue(reduxVisible ? 1 : 0)
@@ -55,6 +55,7 @@ const useVisible = (reduxVisible: boolean, dragX: SVN, dragY: SVN) => {
       dragY.value = withTiming(0)
     }
   }, [initialBounce, visible, reduxVisible, dragX, dragY])
+
   return {initialBounce, visible}
 }
 
@@ -108,8 +109,9 @@ const AudioRecorder = (props: Props) => {
   // if redux wants us to show or not, we animate before we change our internal state
   const reduxVisible = Constants.showAudioRecording(audioRecording)
   const locked = audioRecording?.isLocked ?? false
-  const {initialBounce, visible} = useVisible(reduxVisible, dragX, dragY)
+  const {initialBounce, visible} = useVisible(reduxVisible, locked, dragX, dragY)
   const {ampScale, enableRecording, stopRecording} = useRecording(conversationIDKey)
+  console.log('ddd audio recorder', {locked, reduxVisible})
 
   const dispatch = Container.useDispatch()
   const onCancel = React.useCallback(() => {
@@ -154,6 +156,7 @@ const AudioRecorder = (props: Props) => {
         dragX={dragX}
         enableRecording={enableRecording}
         stopRecording={stopRecording}
+        locked={locked}
         iconStyle={props.iconStyle}
       />
       <Portal hostName="convOverlay">
@@ -241,9 +244,15 @@ const InnerCircle = (props: {dragY: SVN; initialBounce: SVN; locked: boolean}) =
 
 const LockHint = (props: {initialBounce: SVN; locked: boolean; dragY: SVN}) => {
   const {locked, initialBounce, dragY} = props
+  const slideAmount = 150
+  const dragDistance = -50
+  const spaceBetween = 20
+  const deltaY = 50
   const arrowStyle = useAnimatedStyle(() => ({
-    opacity: locked ? withTiming(0) : 1,
-    transform: [{translateX: 10}, {translateY: 50 - initialBounce.value * 150}],
+    opacity: locked
+      ? withTiming(0)
+      : interpolate(dragY.value, [dragDistance, 0], [0, 1], Extrapolation.CLAMP),
+    transform: [{translateX: 10}, {translateY: deltaY - initialBounce.value * slideAmount}],
   }))
   const lockStyle = useAnimatedStyle(() => ({
     opacity: locked ? withTiming(0) : 1,
@@ -251,7 +260,10 @@ const LockHint = (props: {initialBounce: SVN; locked: boolean; dragY: SVN}) => {
       {translateX: 5},
       {
         translateY:
-          68 - initialBounce.value * 150 - interpolate(dragY.value, [-50, 0], [10, 0], Extrapolation.CLAMP),
+          deltaY +
+          spaceBetween -
+          initialBounce.value * slideAmount -
+          interpolate(dragY.value, [dragDistance, 0], [spaceBetween, 0], Extrapolation.CLAMP),
       },
     ],
   }))
@@ -274,24 +286,29 @@ const CancelHint = (props: {
   conversationIDKey: Types.ConversationIDKey
 }) => {
   const {locked, initialBounce, onCancel, dragX} = props
-  const animatedStyle = useAnimatedStyle(() => ({
-    opacity: initialBounce.value,
-    transform: [{translateX: 160 - initialBounce.value * 220}],
-  }))
-
+  const deltaX = 180
+  const slideAmount = 220
+  const dragDistance = -50
+  const spaceBetween = 20
   const arrowStyle = useAnimatedStyle(() => ({
-    opacity: initialBounce.value * interpolate(dragX.value, [-50, 0], [0, 1], Extrapolation.CLAMP),
-    transform: [{translateX: 160 - initialBounce.value * 220}, {translateY: -4}],
+    opacity: locked
+      ? withTiming(0)
+      : initialBounce.value * interpolate(dragX.value, [dragDistance, 0], [0, 1], Extrapolation.CLAMP),
+    transform: [{translateX: deltaX - spaceBetween - initialBounce.value * slideAmount}, {translateY: -4}],
   }))
   const closeStyle = useAnimatedStyle(() => ({
-    opacity: initialBounce.value * interpolate(dragX.value, [-50, 0], [1, 0], Extrapolation.CLAMP),
-    transform: [{translateX: 160 - initialBounce.value * 220}, {translateY: -4}],
+    opacity: locked
+      ? withTiming(0)
+      : initialBounce.value * interpolate(dragX.value, [dragDistance, 0], [1, 0], Extrapolation.CLAMP),
+    transform: [{translateX: deltaX - spaceBetween - initialBounce.value * slideAmount}, {translateY: -4}],
   }))
   const textStyle = useAnimatedStyle(() => ({
     transform: [
       {
         translateX:
-          180 - initialBounce.value * 220 - interpolate(dragX.value, [-50, 0], [10, 0], Extrapolation.CLAMP),
+          deltaX -
+          initialBounce.value * slideAmount -
+          interpolate(dragX.value, [dragDistance, 0], [8, 0], Extrapolation.CLAMP),
       },
     ],
   }))
