@@ -23,13 +23,15 @@ import Animated, {
   Extrapolation,
 } from 'react-native-reanimated'
 
+type SVN = SharedValue<number>
+
 type Props = {
   conversationIDKey: Types.ConversationIDKey
   iconStyle?: Kb.IconStyle
 }
 
 // hook to help deal with visibility request changing. we animate in / out and truly hide when we're done animating
-const useVisible = (reduxVisible: boolean, dragX: SharedValue<number>, dragY: SharedValue<number>) => {
+const useVisible = (reduxVisible: boolean, dragX: SVN, dragY: SVN) => {
   console.log('ccc usevisible', reduxVisible)
   const [visible, setVisible] = React.useState(reduxVisible)
   const initialBounce = useSharedValue(reduxVisible ? 1 : 0)
@@ -160,7 +162,7 @@ const AudioRecorder = (props: Props) => {
             <BigBackground initialBounce={initialBounce} />
             <AmpCircle initialBounce={initialBounce} ampScale={ampScale} dragY={dragY} locked={locked} />
             <InnerCircle initialBounce={initialBounce} dragY={dragY} locked={locked} />
-            <LockHint initialBounce={initialBounce} locked={locked} />
+            <LockHint initialBounce={initialBounce} dragY={dragY} locked={locked} />
             <CancelHint onCancel={onCancel} initialBounce={initialBounce} locked={locked} dragX={dragX} />
             {/*<AudioButton
               ampScale={ampScale}
@@ -196,7 +198,7 @@ const AudioRecorder = (props: Props) => {
 //   stageRecording: () => void
 // }
 
-const BigBackground = (props: {initialBounce: SharedValue<number>}) => {
+const BigBackground = (props: {initialBounce: SVN}) => {
   const {initialBounce} = props
   const animatedStyle = useAnimatedStyle(() => ({
     opacity: initialBounce.value * 0.9,
@@ -205,12 +207,7 @@ const BigBackground = (props: {initialBounce: SharedValue<number>}) => {
   return <Animated.View pointerEvents="box-none" style={[styles.bigBackgroundStyle, animatedStyle]} />
 }
 
-const AmpCircle = (props: {
-  ampScale: SharedValue<number>
-  dragY: SharedValue<number>
-  initialBounce: SharedValue<number>
-  locked: boolean
-}) => {
+const AmpCircle = (props: {ampScale: SVN; dragY: SVN; initialBounce: SVN; locked: boolean}) => {
   const {ampScale, dragY, initialBounce, locked} = props
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{translateY: locked ? 0 : dragY.value}, {scale: ampScale.value * initialBounce.value}],
@@ -226,11 +223,7 @@ const AmpCircle = (props: {
   )
 }
 
-const InnerCircle = (props: {
-  dragY: SharedValue<number>
-  initialBounce: SharedValue<number>
-  locked: boolean
-}) => {
+const InnerCircle = (props: {dragY: SVN; initialBounce: SVN; locked: boolean}) => {
   const {dragY, initialBounce, locked} = props
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{translateY: locked ? 0 : dragY.value}, {scale: initialBounce.value}],
@@ -246,25 +239,35 @@ const InnerCircle = (props: {
   )
 }
 
-const LockHint = (props: {initialBounce: SharedValue<number>; locked: boolean}) => {
-  const {locked, initialBounce} = props
-  const animatedStyle = useAnimatedStyle(() => ({
+const LockHint = (props: {initialBounce: SVN; locked: boolean; dragY: SVN}) => {
+  const {locked, initialBounce, dragY} = props
+  const arrowStyle = useAnimatedStyle(() => ({
     opacity: locked ? withTiming(0) : 1,
-    transform: [{translateY: 50 - initialBounce.value * 150}],
+    transform: [{translateX: 10}, {translateY: 50 - initialBounce.value * 150}],
+  }))
+  const lockStyle = useAnimatedStyle(() => ({
+    opacity: locked ? withTiming(0) : 1,
+    transform: [
+      {translateX: 5},
+      {
+        translateY:
+          68 - initialBounce.value * 150 - interpolate(dragY.value, [-50, 0], [10, 0], Extrapolation.CLAMP),
+      },
+    ],
   }))
   return (
-    <Animated.View style={[styles.lockHintStyle, animatedStyle]}>
-      <Kb.Icon type="iconfont-arrow-up" sizeType="Tiny" />
-      <Kb.Icon type="iconfont-lock" />
-    </Animated.View>
+    <>
+      <AnimatedIcon type="iconfont-arrow-up" sizeType="Tiny" style={[styles.lockHintStyle, arrowStyle]} />
+      <AnimatedIcon type="iconfont-lock" style={[styles.lockHintStyle, lockStyle]} />
+    </>
   )
 }
 
 const AnimatedIcon = Animated.createAnimatedComponent(Kb.Icon)
 
 const CancelHint = (props: {
-  initialBounce: SharedValue<number>
-  dragX: SharedValue<number>
+  initialBounce: SVN
+  dragX: SVN
   locked: boolean
   onCancel: () => void
   conversationIDKey: Types.ConversationIDKey
@@ -519,7 +522,6 @@ const styles = Styles.styleSheetCreate(() => ({
   },
   lockHintStyle: {
     ...centerAroundIcon(32),
-    alignItems: 'center',
   },
 }))
 
