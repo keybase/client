@@ -288,7 +288,6 @@ const CancelHint = (props: {
     transform: [{translateX: 160 - initialBounce.value * 220}, {translateY: -4}],
   }))
   const textStyle = useAnimatedStyle(() => ({
-    // opacity: initialBounce.value * interpolate(dragX.value, [-50, 0], [1, 0], Extrapolation.CLAMP),
     transform: [
       {
         translateX:
@@ -314,20 +313,6 @@ const CancelHint = (props: {
       </AnimatedText>
     </>
   )
-
-  // return (
-  //   <Animated.View style={[styles.cancelHintStyle, animatedStyle]}>
-  //     <AnimatedIcon
-  //       sizeType="Tiny"
-  //       type={'iconfont-arrow-left'}
-  //       style={[styles.cancelHintIcon, arrowStyle]}
-  //     />
-  //     <AnimatedIcon sizeType="Tiny" type={'iconfont-close'} style={[styles.cancelHintIcon, closeStyle]} />
-  //     <AnimatedText type={locked ? 'BodySmallPrimaryLink' : 'BodySmall'} onClick={onCancel}>
-  //       {locked ? 'Cancel' : 'Slide to cancel'}
-  //     </AnimatedText>
-  //   </Animated.View>
-  // )
 }
 
 // const AudioButton = (props: ButtonProps) => {
