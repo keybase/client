@@ -203,7 +203,7 @@ const config = (_, {mode}) => {
     script-src ${
       htmlWebpackPlugin.options.isDev
         ? "file: http://localhost:4000 chrome-extension://react-developer-tools 'unsafe-eval'"
-        : "'self' 'sha256-gBKeEkQtnPGkGBsS6cpgPBgpI3Z1LehhkqagsAKMxUE='"
+        : "'self'"
     };
     connect-src http://127.0.0.1:* ${
       htmlWebpackPlugin.options.isDev ? 'ws://localhost:4000 http://localhost:4000' : ''
@@ -215,11 +215,6 @@ const config = (_, {mode}) => {
             <div title="loading..." style="flex: 1;background-color: #f5f5f5"></div>
         </div>
         <div id="modal-root"></div>
-        ${
-          htmlWebpackPlugin.options.isDev
-            ? ''
-            : "<script>window.eval = global.eval = function () { throw new Error('Sorry, this app does not support window.eval().')}</script>"
-        }
         ${htmlWebpackPlugin.files.js.map(js => `<script src="${js}"></script>`).join('\n')} </body>
 </html>
               `,
