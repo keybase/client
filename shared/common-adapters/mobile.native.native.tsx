@@ -113,9 +113,6 @@ module.exports = {
   get FloatingPicker() {
     return Index.FloatingPicker
   },
-  get GestureState() {
-    return require('react-native-gesture-handler').State
-  },
   get Header() {
     return Index.Header
   },
@@ -169,9 +166,6 @@ module.exports = {
   },
   get LoadingLine() {
     return Index.LoadingLine
-  },
-  get LongPressGestureHandler() {
-    return require('react-native-gesture-handler').LongPressGestureHandler
   },
   get Markdown() {
     return Index.Markdown
@@ -305,9 +299,6 @@ module.exports = {
   get OverlayParentHOC() {
     return Index.OverlayParentHOC
   },
-  get PanGestureHandler() {
-    return require('react-native-gesture-handler').PanGestureHandler
-  },
   get Placeholder() {
     return Index.Placeholder
   },
@@ -349,9 +340,6 @@ module.exports = {
   },
   get ReAnimatedEasing() {
     return require('./reanimated').EasingNode
-  },
-  get RectButton() {
-    return require('react-native-gesture-handler').RectButton
   },
   get Reloadable() {
     return Index.Reloadable
@@ -398,9 +386,6 @@ module.exports = {
   get Tabs() {
     return Index.Tabs
   },
-  get TapGestureHandler() {
-    return require('react-native-gesture-handler').TapGestureHandler
-  },
   get Text() {
     return Index.Text
   },
@@ -427,9 +412,6 @@ module.exports = {
   },
   get ZoomableBox() {
     return require('./zoomable-box').ZoomableBox
-  },
-  get ZoomableImage() {
-    return require('./zoomable-image.native').default
   },
   get isValidIconType() {
     return Index.isValidIconType

@@ -1,189 +1,146 @@
 import * as React from 'react'
+import * as Container from '../../util/container'
+import * as Chat2Gen from '../../actions/chat2-gen'
 import * as Kb from '../../common-adapters/mobile.native'
-import * as Types from '../../constants/types/chat2'
 import * as Styles from '../../styles'
+import * as Types from '../../constants/types/chat2'
+import {Gesture, GestureDetector} from 'react-native-gesture-handler'
 import {Portal} from '@gorhom/portal'
+import {View} from 'react-native'
+import Animated, {
+  Extrapolation,
+  interpolate,
+  runOnJS,
+  useAnimatedStyle,
+  useSharedValue,
+  withDelay,
+  withSequence,
+  withTiming,
+  type SharedValue,
+} from 'react-native-reanimated'
 
-type AudioStarterProps = {
-  dragY: Kb.NativeAnimated.Value
-  locked: boolean
-  recording: boolean
+type Props = {
+  conversationIDKey: Types.ConversationIDKey
+  dragX: SharedValue<number>
+  dragY: SharedValue<number>
   iconStyle?: Kb.IconStyle
-  lockRecording: () => void
   enableRecording: () => void
   stopRecording: (st: Types.AudioStopType) => void
+  locked: boolean
 }
 
-const maxCancelDrift = -20
-const maxLockDrift = -70
-
-type TooltipProps = {
-  shouldBeVisible: boolean
-}
-
-const Tooltip = (props: TooltipProps) => {
-  const opacity = React.useRef(new Kb.NativeAnimated.Value(0)).current
-  const [visible, setVisible] = React.useState(false)
-  const {shouldBeVisible} = props
-  React.useEffect(() => {
-    if (shouldBeVisible) {
-      setVisible(true)
-      Kb.NativeAnimated.timing(opacity, {
-        duration: 200,
-        toValue: 1,
-        useNativeDriver: true,
-      }).start()
-    } else {
-      Kb.NativeAnimated.timing(opacity, {
-        duration: 200,
-        toValue: 0,
-        useNativeDriver: true,
-      }).start(() => setVisible(false))
-    }
-  }, [shouldBeVisible, opacity])
-  return visible ? (
-    <Kb.NativeAnimated.View style={{opacity}}>
+const Tooltip = (props: {onHide: () => void}) => {
+  const {onHide} = props
+  const opacity = useSharedValue(0)
+  opacity.value = withSequence(
+    withTiming(1, {duration: 200}),
+    withDelay(
+      1000,
+      withTiming(0, {duration: 200}, () => {
+        runOnJS(onHide)()
+      })
+    )
+  )
+  const animatedStyles = useAnimatedStyle(() => ({opacity: opacity.value}))
+  return (
+    <Animated.View style={animatedStyles}>
       <Kb.Box2 direction="horizontal" style={styles.tooltipContainer}>
-        <Kb.Text type="BodySmall" style={{color: Styles.globalColors.white}}>
+        <Kb.Text type="BodySmall" negative={true}>
           Hold to record audio.
         </Kb.Text>
       </Kb.Box2>
-    </Kb.NativeAnimated.View>
-  ) : null
+    </Animated.View>
+  )
 }
 
-const AudioStarter = (props: AudioStarterProps) => {
-  let longPressTimer: null | ReturnType<typeof setTimeout>
-  const locked = React.useRef<boolean>(false)
-  const tapLive = React.useRef<boolean>(false)
-  const tapRef = React.useRef(null)
-  const panRef = React.useRef(null)
-  const recordTimeRef = React.useRef(0)
+const maxCancelDrift = -120
+const maxLockDrift = -100
+const _AudioStarter = (props: Props) => {
+  const {stopRecording, enableRecording, iconStyle, dragX, dragY, conversationIDKey, locked} = props
   const [showToolTip, setShowToolTip] = React.useState(false)
-  const showToolTipFalseLater = Kb.useTimeout(() => {
+  const dispatch = Container.useDispatch()
+  const lockRecording = React.useCallback(() => {
+    dispatch(Chat2Gen.createLockAudioRecording({conversationIDKey}))
+  }, [dispatch, conversationIDKey])
+
+  const onHideTooltip = React.useCallback(() => {
     setShowToolTip(false)
-  }, 2000)
+  }, [])
+  const stillGesturing = useSharedValue(false)
+  const tapStartTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
   React.useEffect(() => {
-    if (locked.current && !props.locked) {
-      locked.current = false
+    return () => {
+      tapStartTimerRef.current && clearTimeout(tapStartTimerRef.current)
     }
-  }, [props.locked])
-  const animateDown = () => {
-    Kb.NativeAnimated.timing(props.dragY, {
-      duration: 400,
-      easing: Kb.NativeEasing.elastic(1),
-      toValue: 0,
-      useNativeDriver: true,
-    }).start(() => props.dragY.setValue(0))
+  }, [])
+  // after the initial tap see if we're still gesturing. if so we start to record, if not we show the tooltip
+  const onTapStart = () => {
+    tapStartTimerRef.current = setTimeout(() => {
+      if (stillGesturing.value) {
+        enableRecording()
+      } else {
+        setShowToolTip(true)
+      }
+    }, 100)
   }
-  const lockRecording = () => {
-    animateDown()
-    props.lockRecording()
+
+  const onTapEnd = () => {
+    // we're locked, ignore the tap
+    if (!locked) {
+      stopRecording(Types.AudioStopType.RELEASE)
+    }
   }
-  const stopRecording = (stopType: Types.AudioStopType) => {
-    animateDown()
-    props.stopRecording(stopType)
-  }
+
+  const tapStart = useSharedValue(0)
+  const translationX = useSharedValue(0)
+  const translationY = useSharedValue(0)
+  const tapGesture = Gesture.Tap()
+    .maxDuration(Number.MAX_SAFE_INTEGER)
+    .shouldCancelWhenOutside(false)
+    .onBegin(() => {
+      stillGesturing.value = true
+      // mark the time
+      tapStart.value = Date.now()
+      // start the timer, when the timer fires we start recording
+      runOnJS(onTapStart)()
+    })
+    .onEnd(() => {
+      stillGesturing.value = false
+      runOnJS(onTapEnd)()
+    })
+    .enabled(!locked)
+
+  const panGesture = Gesture.Pan()
+    .onUpdate(e => {
+      translationX.value = e.translationX
+      translationY.value = e.translationY
+      dragY.value = interpolate(e.translationY, [maxLockDrift, 0], [maxLockDrift, 0], Extrapolation.CLAMP)
+      dragX.value = interpolate(e.translationX, [maxCancelDrift, 0], [maxCancelDrift, 0], Extrapolation.CLAMP)
+
+      if (e.translationX < maxCancelDrift) {
+        runOnJS(stopRecording)(Types.AudioStopType.CANCEL)
+      } else if (e.translationY < maxLockDrift) {
+        runOnJS(lockRecording)()
+      }
+    })
+    .enabled(!locked)
+  const composedGesture = Gesture.Simultaneous(tapGesture, panGesture)
   return (
     <>
-      <Portal hostName="convOverlay">
-        <Tooltip shouldBeVisible={showToolTip} />
-      </Portal>
-      <Kb.TapGestureHandler
-        shouldCancelWhenOutside={false}
-        maxDurationMs={Number.MAX_SAFE_INTEGER}
-        onHandlerStateChange={({nativeEvent}) => {
-          if (!props.recording && nativeEvent.state === Kb.GestureState.BEGAN) {
-            tapLive.current = true
-            if (!longPressTimer) {
-              recordTimeRef.current = Date.now()
-              longPressTimer = setTimeout(() => {
-                if (tapLive.current) {
-                  props.enableRecording()
-                  setShowToolTip(false)
-                }
-              }, 100)
-            }
-          }
-          if (
-            nativeEvent.state === Kb.GestureState.ACTIVE ||
-            nativeEvent.state === Kb.GestureState.END ||
-            nativeEvent.state === Kb.GestureState.CANCELLED ||
-            nativeEvent.state === Kb.GestureState.FAILED
-          ) {
-            longPressTimer && clearTimeout(longPressTimer)
-            tapLive.current = false
-            longPressTimer = null
-            if (!props.recording && Date.now() - recordTimeRef.current <= 100) {
-              setShowToolTip(true)
-              showToolTipFalseLater()
-            }
-            if (props.recording && nativeEvent.state === Kb.GestureState.END) {
-              if (nativeEvent.x < maxCancelDrift) {
-                stopRecording(Types.AudioStopType.CANCEL)
-              } else if (nativeEvent.y < maxLockDrift) {
-                lockRecording()
-              } else {
-                stopRecording(Types.AudioStopType.RELEASE)
-              }
-            }
-          }
-        }}
-        ref={tapRef}
-        simultaneousHandlers={panRef}
-      >
-        <Kb.PanGestureHandler
-          shouldCancelWhenOutside={false}
-          // @ts-ignore
-          minDeltaX={0}
-          minDeltaY={0}
-          onGestureEvent={({nativeEvent}) => {
-            if (locked.current) {
-              return
-            }
-            if (nativeEvent.translationY < maxLockDrift) {
-              locked.current = true
-              lockRecording()
-            }
-            if (nativeEvent.translationX < maxCancelDrift) {
-              longPressTimer && clearTimeout(longPressTimer)
-              longPressTimer = null
-              stopRecording(Types.AudioStopType.CANCEL)
-            }
-            if (!locked.current && nativeEvent.translationY <= 0) {
-              props.dragY.setValue(nativeEvent.translationY)
-            }
-          }}
-          onHandlerStateChange={({nativeEvent}) => {
-            if (nativeEvent.state === Kb.GestureState.END) {
-              if (locked.current) {
-                return
-              }
-              if (nativeEvent.y < maxLockDrift) {
-                lockRecording()
-              }
-              if (nativeEvent.x < maxCancelDrift) {
-                longPressTimer && clearTimeout(longPressTimer)
-                longPressTimer = null
-                stopRecording(Types.AudioStopType.CANCEL)
-              } else {
-                longPressTimer && clearTimeout(longPressTimer)
-                longPressTimer = null
-                stopRecording(Types.AudioStopType.RELEASE)
-              }
-            }
-          }}
-          ref={panRef}
-          simultaneousHandlers={tapRef}
-        >
-          <Kb.NativeView>
-            <Kb.Icon type="iconfont-mic" style={props.iconStyle} />
-          </Kb.NativeView>
-        </Kb.PanGestureHandler>
-      </Kb.TapGestureHandler>
+      {showToolTip && (
+        <Portal hostName="convOverlay">
+          <Tooltip onHide={onHideTooltip} />
+        </Portal>
+      )}
+      <View>
+        <GestureDetector gesture={composedGesture}>
+          <Kb.Icon type="iconfont-mic" style={iconStyle} />
+        </GestureDetector>
+      </View>
     </>
   )
 }
+const AudioStarter = React.memo(_AudioStarter)
 
 const styles = Styles.styleSheetCreate(() => ({
   tooltipContainer: {

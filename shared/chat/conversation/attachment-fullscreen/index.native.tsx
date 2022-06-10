@@ -99,29 +99,13 @@ class _Fullscreen extends React.Component<Props & Kb.OverlayParentProps, {loaded
           </Kb.Box2>
         )
       } else {
-        if (Styles.isIOS) {
-          content = (
-            <AutoMaxSizeImage
-              source={{uri: `${this.props.path}`}}
-              onLoad={this._setLoaded}
-              opacity={this.state.loaded ? 1 : 0}
-            />
-          )
-        } else {
-          content = (
-            <Kb.ZoomableImage
-              uri={this.props.path}
-              onLoad={this._setLoaded}
-              style={{
-                height: '100%',
-                opacity: this.state.loaded ? 1 : 0,
-                overflow: 'hidden',
-                position: 'relative',
-                width: '100%',
-              }}
-            />
-          )
-        }
+        content = (
+          <AutoMaxSizeImage
+            source={{uri: `${this.props.path}`}}
+            onLoad={this._setLoaded}
+            opacity={this.state.loaded ? 1 : 0}
+          />
+        )
       }
     }
     if (!this.state.loaded) {

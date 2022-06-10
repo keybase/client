@@ -10,470 +10,400 @@ import {isIOS} from '../../constants/platform'
 import {AmpTracker} from './amptracker'
 import AudioStarter from './audio-starter.native'
 import {Portal} from '@gorhom/portal'
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  interpolate,
+  withTiming,
+  withSpring,
+  type SharedValue,
+  runOnJS,
+  Extrapolation,
+} from 'react-native-reanimated'
+
+type SVN = SharedValue<number>
 
 type Props = {
   conversationIDKey: Types.ConversationIDKey
   iconStyle?: Kb.IconStyle
 }
 
-const unifyAmp = (amp: number) => {
-  return isIOS ? 10 ** (amp * 0.05) : Math.min(1.0, amp / 22000)
+// hook to help deal with visibility request changing. we animate in / out and truly hide when we're done animating
+const useVisible = (reduxVisible: boolean, dragX: SVN, dragY: SVN) => {
+  const [visible, setVisible] = React.useState(reduxVisible)
+  const initialBounce = useSharedValue(reduxVisible ? 1 : 0)
+  React.useEffect(() => {
+    // not showing somehow? immediately show
+    if (!visible && reduxVisible) {
+      setVisible(true)
+    }
+    initialBounce.value = reduxVisible
+      ? withSpring(1)
+      : withTiming(0, {duration: 200}, () => {
+          // hide after we're done animating
+          runOnJS(setVisible)(false)
+        })
+
+    if (!reduxVisible) {
+      dragX.value = withTiming(0)
+      dragY.value = withTiming(0)
+    }
+  }, [initialBounce, visible, reduxVisible, dragX, dragY])
+
+  return {initialBounce, visible}
 }
 
-const AudioRecorder = (props: Props) => {
-  const {conversationIDKey} = props
-  const ampScale = React.useRef(new Kb.NativeAnimated.Value(0)).current
-  const dragY = React.useRef(new Kb.NativeAnimated.Value(0)).current
-  const slideTranslate = React.useRef(new Kb.NativeAnimated.Value(0)).current
+const useRecording = (conversationIDKey: Types.ConversationIDKey) => {
   const ampTracker = React.useRef(new AmpTracker()).current
-  const [visible, setVisible] = React.useState(false)
-  const [closingDown, setClosingDown] = React.useState(false)
-  const audioRecording = Container.useSelector(state => state.chat2.audioRecording.get(conversationIDKey))
-  const closingDownRef = React.useRef(false)
-
-  const dispatch = Container.useDispatch()
+  const ampScale = useSharedValue(0)
+  const unifyAmp = (amp: number) => {
+    return isIOS ? 10 ** (amp * 0.05) : Math.min(1.0, amp / 22000)
+  }
+  const ampToScale = (amp: number) => {
+    const maxScale = 8
+    const minScale = 3
+    return minScale + amp * (maxScale - minScale)
+  }
   const meteringCb = React.useCallback(
     (inamp: number) => {
       const amp = unifyAmp(inamp)
       ampTracker.addAmp(amp)
-      if (!closingDownRef.current) {
-        Kb.NativeAnimated.timing(ampScale, {
-          duration: 100,
-          toValue: ampToScale(amp),
-          useNativeDriver: true,
-        }).start()
-      }
+      ampScale.value = withTiming(ampToScale(amp), {duration: 100})
     },
     [ampTracker, ampScale]
   )
-  const onCancel = React.useCallback(() => {
-    dispatch(Chat2Gen.createStopAudioRecording({conversationIDKey, stopType: Types.AudioStopType.CANCEL}))
-  }, [dispatch, conversationIDKey])
-  const lockRecording = React.useCallback(() => {
-    dispatch(Chat2Gen.createLockAudioRecording({conversationIDKey}))
-  }, [dispatch, conversationIDKey])
+  const dispatch = Container.useDispatch()
   const enableRecording = React.useCallback(() => {
     ampTracker.reset()
     dispatch(Chat2Gen.createAttemptAudioRecording({conversationIDKey, meteringCb}))
   }, [dispatch, conversationIDKey, ampTracker, meteringCb])
   const stopRecording = React.useCallback(
     (stopType: Types.AudioStopType) => {
-      dispatch(
-        Chat2Gen.createStopAudioRecording({
-          amps: ampTracker,
-          conversationIDKey,
-          stopType,
-        })
-      )
+      dispatch(Chat2Gen.createStopAudioRecording({amps: ampTracker, conversationIDKey, stopType}))
     },
     [dispatch, ampTracker, conversationIDKey]
   )
-  const sendRecording = React.useCallback(() => stopRecording(Types.AudioStopType.SEND), [stopRecording])
-  const stageRecording = React.useCallback(() => {
-    stopRecording(Types.AudioStopType.STOPBUTTON)
-  }, [stopRecording])
 
-  // render
-  const noShow = !Constants.showAudioRecording(audioRecording)
-  if (!visible && !noShow) {
-    closingDownRef.current = false
-    setVisible(true)
-    setClosingDown(false)
-  } else if (visible && noShow && !closingDown) {
-    closingDownRef.current = true
-    setClosingDown(true)
-    setTimeout(() => setVisible(false), 500)
-  }
-  const locked = audioRecording ? audioRecording.isLocked : false
-  const recording =
-    !!audioRecording &&
-    (audioRecording.status === Types.AudioRecordingStatus.INITIAL ||
-      audioRecording.status === Types.AudioRecordingStatus.RECORDING)
+  return {ampScale, enableRecording, stopRecording}
+}
+
+const AudioRecorder = (props: Props) => {
+  const {conversationIDKey} = props
+  const dragX = useSharedValue(0)
+  const dragY = useSharedValue(0)
+  const audioRecording = Container.useSelector(state => state.chat2.audioRecording.get(conversationIDKey))
+  // if redux wants us to show or not, we animate before we change our internal state
+  const reduxVisible = Constants.showAudioRecording(audioRecording)
+  const locked = audioRecording?.isLocked ?? false
+  const {initialBounce, visible} = useVisible(reduxVisible, dragX, dragY)
+  const {ampScale, enableRecording, stopRecording} = useRecording(conversationIDKey)
+  const dispatch = Container.useDispatch()
+  const onCancel = React.useCallback(() => {
+    dispatch(Chat2Gen.createStopAudioRecording({conversationIDKey, stopType: Types.AudioStopType.CANCEL}))
+  }, [dispatch, conversationIDKey])
   return (
     <>
       <AudioStarter
+        conversationIDKey={conversationIDKey}
         dragY={dragY}
-        locked={locked}
-        lockRecording={lockRecording}
-        recording={recording}
+        dragX={dragX}
         enableRecording={enableRecording}
         stopRecording={stopRecording}
+        locked={locked}
         iconStyle={props.iconStyle}
       />
-      {!visible ? null : (
-        <Portal hostName="convOverlay">
-          <Kb.Box2
-            direction="vertical"
-            fullHeight={true}
-            fullWidth={true}
-            style={styles.container}
-            pointerEvents="box-none"
-          >
-            <AudioButton
+      <Portal hostName="convOverlay">
+        {!visible ? null : (
+          <Animated.View style={styles.container} pointerEvents="box-none">
+            <BigBackground initialBounce={initialBounce} />
+            <AmpCircle
+              initialBounce={initialBounce}
               ampScale={ampScale}
-              closeDown={closingDown}
+              dragX={dragX}
               dragY={dragY}
               locked={locked}
-              sendRecording={sendRecording}
-              slideTranslate={slideTranslate}
-              stageRecording={stageRecording}
             />
-            <AudioSlideToCancel
-              closeDown={closingDown}
+            <InnerCircle
+              initialBounce={initialBounce}
+              dragX={dragX}
+              dragY={dragY}
               locked={locked}
-              onCancel={onCancel}
-              translate={slideTranslate}
+              stopRecording={stopRecording}
             />
-            <AudioCounter closeDown={closingDown} slideTranslate={slideTranslate} />
-          </Kb.Box2>
-        </Portal>
-      )}
+            <LockHint initialBounce={initialBounce} dragX={dragX} dragY={dragY} locked={locked} />
+            <CancelHint onCancel={onCancel} initialBounce={initialBounce} locked={locked} dragX={dragX} />
+            <SendRecordingButton
+              initialBounce={initialBounce}
+              locked={locked}
+              stopRecording={stopRecording}
+            />
+            <AudioCounter initialBounce={initialBounce} />
+          </Animated.View>
+        )}
+      </Portal>
     </>
   )
 }
 
-type ButtonProps = {
-  ampScale: Kb.NativeAnimated.Value
-  closeDown: boolean
-  dragY: Kb.NativeAnimated.Value
+const BigBackground = (props: {initialBounce: SVN}) => {
+  const {initialBounce} = props
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: initialBounce.value * 0.9,
+    transform: [{scale: initialBounce.value}],
+  }))
+  return <Animated.View pointerEvents="box-none" style={[styles.bigBackgroundStyle, animatedStyle]} />
+}
+
+const dragXOpacity = (dragX: SVN, dragY: SVN) => {
+  'worklet'
+  // worklet needs this locally for some reason
+  const dragDistanceX = -50
+  return dragY.value < -10 ? 1 : interpolate(dragX.value, [dragDistanceX, 0], [0, 1], Extrapolation.CLAMP)
+}
+
+const AmpCircle = (props: {ampScale: SVN; dragX: SVN; dragY: SVN; initialBounce: SVN; locked: boolean}) => {
+  const {ampScale, dragX, dragY, initialBounce, locked} = props
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: withTiming(dragXOpacity(dragX, dragY)),
+    transform: [{translateY: locked ? 0 : dragY.value}, {scale: ampScale.value * initialBounce.value}],
+  }))
+  return (
+    <Animated.View
+      style={[
+        styles.ampCircleStyle,
+        {backgroundColor: locked ? Styles.globalColors.redLight : Styles.globalColors.blueLighterOrBlueLight},
+        animatedStyle,
+      ]}
+    />
+  )
+}
+
+const InnerCircle = (props: {
+  dragX: SVN
+  dragY: SVN
+  initialBounce: SVN
   locked: boolean
-  sendRecording: () => void
-  slideTranslate: Kb.NativeAnimated.Value
-  stageRecording: () => void
+  stopRecording: (stopType: Types.AudioStopType) => void
+}) => {
+  const {dragX, dragY, initialBounce, locked, stopRecording} = props
+  const circleStyle = useAnimatedStyle(() => ({
+    opacity: withTiming(dragXOpacity(dragX, dragY)),
+    transform: [{translateY: locked ? 0 : dragY.value}, {scale: initialBounce.value}],
+  }))
+  const stopStyle = useAnimatedStyle(() => ({opacity: locked ? withTiming(1) : 0}))
+  const onStop = React.useCallback(() => {
+    stopRecording(Types.AudioStopType.STOPBUTTON)
+  }, [stopRecording])
+  return (
+    <Animated.View
+      style={[
+        styles.innerCircleStyle,
+        {backgroundColor: locked ? Styles.globalColors.red : Styles.globalColors.blue},
+        circleStyle,
+      ]}
+    >
+      <AnimatedIcon
+        type="iconfont-stop"
+        color={Styles.globalColors.whiteOrWhite}
+        onClick={onStop}
+        style={stopStyle}
+      />
+    </Animated.View>
+  )
 }
 
-const maxScale = 8
-const minScale = 3
-const ampToScale = (amp: number) => {
-  return minScale + amp * (maxScale - minScale)
-}
-
-const AudioButton = (props: ButtonProps) => {
-  const {slideTranslate, locked, closeDown, ampScale} = props
-  const innerScale = React.useRef(new Kb.NativeAnimated.Value(0)).current
-  const outerScale = React.useRef(new Kb.NativeAnimated.Value(0)).current
-  const sendTranslate = React.useRef(new Kb.NativeAnimated.Value(0)).current
-  const innerOffsetY = React.useRef(new Kb.NativeAnimated.Value(-34)).current
-  const ampOffsetY = React.useRef(new Kb.NativeAnimated.Value(-31)).current
-  const micOffsetY = React.useRef(new Kb.NativeAnimated.Value(-34)).current
-  // lifecycle
-  React.useEffect(() => {
-    Kb.NativeAnimated.parallel(
-      [
-        Kb.NativeAnimated.timing(innerScale, {
-          easing: Kb.NativeEasing.elastic(1),
-          toValue: 3,
-          useNativeDriver: true,
-        }),
-        Kb.NativeAnimated.timing(outerScale, {
-          duration: 200,
-          easing: Kb.NativeEasing.inOut(Kb.NativeEasing.ease),
-          toValue: Styles.isTablet ? 40 : 15,
-          useNativeDriver: true,
-        }),
-        Kb.NativeAnimated.timing(slideTranslate, {
-          easing: Kb.NativeEasing.elastic(1),
-          toValue: 1,
-          useNativeDriver: true,
-        }),
-      ],
-      {stopTogether: false}
-    ).start()
-  }, [innerScale, outerScale, slideTranslate])
-  React.useEffect(() => {
-    if (locked) {
-      Kb.NativeAnimated.timing(sendTranslate, {
-        easing: Kb.NativeEasing.elastic(1),
-        toValue: 1,
-        useNativeDriver: true,
-      }).start()
-    }
-  }, [locked, sendTranslate])
-  React.useEffect(() => {
-    if (closeDown) {
-      Kb.NativeAnimated.parallel(
-        [
-          Kb.NativeAnimated.timing(outerScale, {
-            toValue: 0,
-            useNativeDriver: true,
-          }),
-          Kb.NativeAnimated.timing(innerScale, {
-            toValue: 0,
-            useNativeDriver: true,
-          }),
-          Kb.NativeAnimated.timing(slideTranslate, {
-            toValue: 0,
-            useNativeDriver: true,
-          }),
-          Kb.NativeAnimated.timing(sendTranslate, {
-            toValue: 0,
-            useNativeDriver: true,
-          }),
-          Kb.NativeAnimated.timing(ampScale, {
-            toValue: 0,
-            useNativeDriver: true,
-          }),
-        ],
-        {stopTogether: false}
-      ).start()
-    }
-  }, [closeDown, innerScale, outerScale, slideTranslate, sendTranslate, ampScale])
-
-  const innerSize = 28
-  const ampSize = 34
-  const outerSize = 50
+const LockHint = (props: {initialBounce: SVN; locked: boolean; dragX: SVN; dragY: SVN}) => {
+  const {locked, initialBounce, dragX, dragY} = props
+  const slideAmount = 150
+  const spaceBetween = 20
+  const deltaY = 50
+  const arrowStyle = useAnimatedStyle(() => ({
+    opacity: locked
+      ? withTiming(0)
+      : initialBounce.value *
+        interpolate(dragY.value, [dragDistanceX, 0], [0, 1], Extrapolation.CLAMP) *
+        dragXOpacity(dragX, dragY),
+    transform: [{translateX: 10}, {translateY: deltaY - initialBounce.value * slideAmount}],
+  }))
+  const lockStyle = useAnimatedStyle(() => ({
+    opacity: locked ? withTiming(0) : initialBounce.value * dragXOpacity(dragX, dragY),
+    transform: [
+      {translateX: 5},
+      {
+        translateY:
+          deltaY +
+          spaceBetween -
+          initialBounce.value * slideAmount -
+          interpolate(dragY.value, [dragDistanceX, 0], [spaceBetween, 0], Extrapolation.CLAMP),
+      },
+    ],
+  }))
   return (
     <>
-      <Kb.NativeAnimated.View
-        pointerEvents="box-none"
-        style={{
-          backgroundColor: Styles.globalColors.white,
-          borderRadius: outerSize / 2,
-          bottom: 20,
-          height: outerSize,
-          opacity: 0.9,
-          position: 'absolute',
-          right: 30,
-          transform: [{scale: outerScale}],
-          width: outerSize,
-        }}
-      />
-      <Kb.NativeAnimated.View
-        style={{
-          backgroundColor: props.locked
-            ? Styles.globalColors.redLight
-            : Styles.globalColors.blueLighterOrBlueLight,
-          borderRadius: ampSize / 2,
-          height: ampSize,
-          position: 'absolute',
-          right: 40,
-          transform: [{translateY: Kb.NativeAnimated.add(ampOffsetY, props.dragY)}, {scale: props.ampScale}],
-          width: ampSize,
-        }}
-      />
-      <Kb.NativeAnimated.View
-        style={{
-          backgroundColor: props.locked ? Styles.globalColors.red : Styles.globalColors.blue,
-          borderRadius: innerSize / 2,
-          height: innerSize,
-          position: 'absolute',
-          right: 43,
-          transform: [{translateY: Kb.NativeAnimated.add(innerOffsetY, props.dragY)}, {scale: innerScale}],
-          width: innerSize,
-        }}
-      />
-
-      {!props.locked ? (
-        <>
-          <Kb.NativeAnimated.View
-            style={{
-              bottom: 160,
-              opacity: props.slideTranslate,
-              position: 'absolute',
-              right: 50,
-              transform: [
-                {
-                  translateY: props.slideTranslate.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [180, 0],
-                  }),
-                },
-              ],
-            }}
-          >
-            <Kb.NativeView>
-              <Kb.Icon type="iconfont-arrow-up" sizeType="Tiny" />
-            </Kb.NativeView>
-          </Kb.NativeAnimated.View>
-          <Kb.NativeAnimated.View
-            style={{
-              bottom: 130,
-              opacity: props.slideTranslate,
-              position: 'absolute',
-              right: 45,
-              transform: [
-                {
-                  translateY: props.slideTranslate.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [180, 0],
-                  }),
-                },
-                {
-                  translateY: props.dragY.interpolate({
-                    inputRange: [-70, 0],
-                    outputRange: [-10, 0],
-                  }),
-                },
-              ],
-            }}
-          >
-            <Kb.Icon type="iconfont-lock" />
-          </Kb.NativeAnimated.View>
-        </>
-      ) : (
-        <Kb.NativeAnimated.View
-          style={{
-            bottom: 130,
-            opacity: sendTranslate,
-            position: 'absolute',
-            right: 42,
-            transform: [{translateY: sendTranslate.interpolate({inputRange: [0, 1], outputRange: [180, 0]})}],
-          }}
-        >
-          <Kb.NativeView
-            style={{
-              alignItems: 'center',
-              backgroundColor: Styles.globalColors.blue,
-              borderRadius: 16,
-              height: 32,
-              justifyContent: 'center',
-              width: 32,
-            }}
-          >
-            <Kb.ClickableBox
-              onClick={props.sendRecording}
-              style={{alignItems: 'center', height: 32, justifyContent: 'center', width: 32}}
-            >
-              <Kb.Icon
-                color={Styles.globalColors.whiteOrWhite}
-                sizeType="Small"
-                type="iconfont-arrow-full-up"
-              />
-            </Kb.ClickableBox>
-          </Kb.NativeView>
-        </Kb.NativeAnimated.View>
-      )}
-
-      {!props.locked ? (
-        <Kb.NativeAnimated.View
-          style={{
-            position: 'absolute',
-            right: 44,
-            top: -4,
-            transform: [{translateY: Kb.NativeAnimated.add(micOffsetY, props.dragY)}],
-          }}
-        >
-          <Kb.Icon type="iconfont-mic" color={Styles.globalColors.whiteOrWhite} />
-        </Kb.NativeAnimated.View>
-      ) : (
-        <Kb.TapGestureHandler onHandlerStateChange={props.stageRecording}>
-          <Kb.NativeView
-            style={{
-              bottom: 22,
-              height: 48,
-              justifyContent: 'center',
-              position: 'absolute',
-              right: 19,
-              width: 48,
-            }}
-          >
-            <Kb.Icon type="iconfont-stop" color={Styles.globalColors.whiteOrWhite} />
-          </Kb.NativeView>
-        </Kb.TapGestureHandler>
-      )}
+      <AnimatedIcon type="iconfont-arrow-up" sizeType="Tiny" style={[styles.lockHintStyle, arrowStyle]} />
+      <AnimatedIcon type="iconfont-lock" style={[styles.lockHintStyle, lockStyle]} />
     </>
   )
 }
 
-type CancelProps = {
-  closeDown: boolean
-  locked: boolean
-  onCancel: () => void
-  translate: Kb.NativeAnimated.Value
-}
+const AnimatedIcon = Animated.createAnimatedComponent(Kb.Icon)
+const AnimatedText = Animated.createAnimatedComponent(Kb.Text)
 
-const AudioSlideToCancel = (props: CancelProps) => {
-  const cancelTranslate = React.useRef(new Kb.NativeAnimated.Value(0)).current
-  const {closeDown} = props
-  React.useEffect(() => {
-    if (closeDown) {
-      Kb.NativeAnimated.timing(cancelTranslate, {
-        toValue: 1,
-        useNativeDriver: true,
-      }).start()
-    }
-  }, [closeDown, cancelTranslate])
-  return props.locked ? (
-    <Kb.NativeAnimated.View
-      style={{
-        bottom: 27,
-        left: 100,
-        position: 'absolute',
-        transform: [
-          {
-            translateY: cancelTranslate.interpolate({
-              inputRange: [0, 1],
-              outputRange: [0, 85],
-            }),
-          },
-        ],
-      }}
-    >
-      <Kb.ClickableBox onClick={props.onCancel} style={{alignItems: 'center', height: 30}}>
-        <Kb.Text type="BodyBigLink">Cancel</Kb.Text>
-      </Kb.ClickableBox>
-    </Kb.NativeAnimated.View>
-  ) : (
-    <Kb.NativeAnimated.View
-      pointerEvents="box-none"
-      style={{
-        bottom: 35,
-        opacity: props.translate,
-        position: 'absolute',
-        right: 0,
-        transform: [
-          {
-            translateX: props.translate.interpolate({
-              inputRange: [0, 1],
-              outputRange: [-10, -125],
-            }),
-          },
-        ],
-      }}
-    >
-      <Kb.Box2 direction="horizontal" gap="tiny" centerChildren={true}>
-        <Kb.Icon sizeType="Tiny" type="iconfont-arrow-left" />
-        <Kb.Text type="BodySmall" onClick={props.onCancel}>
-          Slide to cancel
-        </Kb.Text>
-      </Kb.Box2>
-    </Kb.NativeAnimated.View>
+const dragDistanceX = -50
+
+const CancelHint = (props: {initialBounce: SVN; dragX: SVN; locked: boolean; onCancel: () => void}) => {
+  const {locked, initialBounce, onCancel, dragX} = props
+  const deltaX = 180
+  const slideAmount = 220
+  const spaceBetween = 20
+  const arrowStyle = useAnimatedStyle(() => ({
+    opacity: locked
+      ? withTiming(0)
+      : initialBounce.value * interpolate(dragX.value, [dragDistanceX, 0], [0, 1], Extrapolation.CLAMP),
+    transform: [{translateX: deltaX - spaceBetween - initialBounce.value * slideAmount}, {translateY: -4}],
+  }))
+  const closeStyle = useAnimatedStyle(() => ({
+    opacity: locked
+      ? withTiming(0)
+      : initialBounce.value * interpolate(dragX.value, [dragDistanceX, 0], [1, 0], Extrapolation.CLAMP),
+    transform: [{translateX: deltaX - spaceBetween - initialBounce.value * slideAmount}, {translateY: -4}],
+  }))
+  const textStyle = useAnimatedStyle(() => ({
+    opacity: initialBounce.value,
+    transform: [
+      {
+        translateX:
+          deltaX -
+          initialBounce.value * slideAmount -
+          interpolate(dragX.value, [dragDistanceX, 0], [8, 0], Extrapolation.CLAMP),
+      },
+    ],
+  }))
+
+  return (
+    <>
+      <AnimatedIcon
+        sizeType="Tiny"
+        type={'iconfont-arrow-left'}
+        style={[styles.cancelHintStyle, arrowStyle]}
+      />
+      <AnimatedIcon sizeType="Tiny" type={'iconfont-close'} style={[styles.cancelHintStyle, closeStyle]} />
+      <AnimatedText
+        type={locked ? 'BodySmallPrimaryLink' : 'BodySmall'}
+        onClick={onCancel}
+        style={[styles.cancelHintStyle, textStyle]}
+      >
+        {locked ? 'Cancel' : 'Slide to cancel'}
+      </AnimatedText>
+    </>
   )
 }
 
-type CounterProps = {
-  closeDown: boolean
-  slideTranslate: Kb.NativeAnimated.Value
+const SendRecordingButton = (props: {
+  initialBounce: SVN
+  locked: boolean
+  stopRecording: (stopType: Types.AudioStopType) => void
+}) => {
+  const {initialBounce, locked, stopRecording} = props
+  const buttonStyle = useAnimatedStyle(() => ({
+    opacity: locked ? initialBounce.value : withTiming(0),
+    transform: [{translateY: withTiming(locked ? -100 : 50)}],
+  }))
+  const onSend = React.useCallback(() => {
+    stopRecording(Types.AudioStopType.SEND)
+  }, [stopRecording])
+  return (
+    <Animated.View style={[styles.sendRecordingButtonStyle, buttonStyle]}>
+      <Kb.Icon
+        padding="tiny"
+        color={Styles.globalColors.whiteOrWhite}
+        onClick={onSend}
+        sizeType="Small"
+        type="iconfont-arrow-full-up"
+      />
+    </Animated.View>
+  )
 }
 
-const AudioCounter = (props: CounterProps) => {
+const AudioCounter = (props: {initialBounce: SVN}) => {
+  const {initialBounce} = props
   const [seconds, setSeconds] = React.useState(0)
-  const [startTime] = React.useState(Date.now())
+  const startTime = React.useRef(Date.now()).current
   React.useEffect(() => {
     const timer = setTimeout(() => {
       setSeconds((Date.now() - startTime) / 1000)
     }, 1000)
     return () => clearTimeout(timer)
   }, [seconds, startTime])
+  const durationStyle = useAnimatedStyle(() => ({
+    opacity: initialBounce.value,
+  }))
   return (
-    <Kb.NativeAnimated.View
-      style={{
-        bottom: 35,
-        left: 10,
-        opacity: props.slideTranslate,
-        position: 'absolute',
-      }}
-    >
+    <Animated.View style={[styles.audioCounterStyle, durationStyle]}>
       <Kb.Text type="BodyBold">{formatAudioRecordDuration(seconds * 1000)}</Kb.Text>
-    </Kb.NativeAnimated.View>
+    </Animated.View>
   )
 }
 
+const micCenterRight = 54
+const micCenterBottom = 26
+const centerAroundIcon = (size: number) => {
+  return {
+    bottom: micCenterBottom - size / 2,
+    height: size,
+    position: 'absolute' as const,
+    right: micCenterRight - size / 2,
+    width: size,
+  }
+}
+const circleAroundIcon = (size: number) => ({
+  ...centerAroundIcon(size),
+  borderRadius: size / 2,
+})
+
 const styles = Styles.styleSheetCreate(() => ({
+  ampCircleStyle: {
+    ...circleAroundIcon(34),
+  },
+  audioCounterStyle: {
+    bottom: micCenterBottom - 10,
+    left: 10,
+    position: 'absolute',
+  },
+  bigBackgroundStyle: {
+    ...circleAroundIcon(Styles.isTablet ? 2000 : 750),
+    backgroundColor: Styles.globalColors.white,
+  },
+  cancelHintIcon: {
+    left: 0,
+    position: 'absolute',
+  },
+  cancelHintStyle: {
+    ...Styles.globalStyles.flexBoxRow,
+    alignItems: 'center',
+    bottom: micCenterBottom - 10,
+    paddingLeft: 20,
+    position: 'absolute' as const,
+    right: micCenterRight,
+    width: 140,
+  },
   container: {
     ...Styles.globalStyles.fillAbsolute,
-    justifyContent: 'flex-end',
-    padding: Styles.globalMargins.tiny + 3,
+    justifyContent: 'flex-start',
+  },
+  innerCircleStyle: {
+    ...circleAroundIcon(84),
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  lockHintStyle: {
+    ...centerAroundIcon(32),
+  },
+  sendRecordingButtonStyle: {
+    ...circleAroundIcon(32),
+    alignItems: 'center',
+    backgroundColor: Styles.globalColors.blue,
+    justifyContent: 'center',
   },
 }))
 

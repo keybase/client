@@ -88,40 +88,42 @@ const stopAudioRecording = (
 ) => {
   const {conversationIDKey, stopType, amps} = action.payload
   const info = draftState.audioRecording.get(conversationIDKey)
-  if (info) {
-    let nextStatus: Types.AudioRecordingStatus = info.status
-    if (nextStatus === Types.AudioRecordingStatus.CANCELLED) {
-      return
-    }
-    let nextPath = info.path
-    if (info.isLocked) {
-      switch (stopType) {
-        case Types.AudioStopType.CANCEL:
-          nextStatus = Types.AudioRecordingStatus.CANCELLED
-          nextPath = ''
-          break
-        case Types.AudioStopType.SEND:
-          nextStatus = Types.AudioRecordingStatus.STOPPED
-          break
-        case Types.AudioStopType.STOPBUTTON:
-          nextStatus = Types.AudioRecordingStatus.STAGED
-          break
-      }
-    } else {
-      switch (stopType) {
-        case Types.AudioStopType.CANCEL:
-          nextStatus = Types.AudioRecordingStatus.CANCELLED
-          nextPath = ''
-          break
-        default:
-          nextStatus = Types.AudioRecordingStatus.STOPPED
-      }
-    }
-    info.amps = amps
-    info.path = nextPath
-    info.recordEnd = Constants.isStoppedAudioRecordingStatus(nextStatus) ? Date.now() : undefined
-    info.status = nextStatus
+  if (!info) {
+    return
   }
+  let nextStatus: Types.AudioRecordingStatus = info.status
+  if (nextStatus === Types.AudioRecordingStatus.CANCELLED) {
+    return
+  }
+  let nextPath = info.path
+  if (info.isLocked) {
+    switch (stopType) {
+      case Types.AudioStopType.CANCEL:
+        nextStatus = Types.AudioRecordingStatus.CANCELLED
+        nextPath = ''
+        break
+      case Types.AudioStopType.SEND:
+        nextStatus = Types.AudioRecordingStatus.STOPPED
+        break
+      case Types.AudioStopType.STOPBUTTON:
+        nextStatus = Types.AudioRecordingStatus.STAGED
+        break
+    }
+  } else {
+    switch (stopType) {
+      case Types.AudioStopType.CANCEL:
+        nextStatus = Types.AudioRecordingStatus.CANCELLED
+        nextPath = ''
+        break
+      default:
+        nextStatus = Types.AudioRecordingStatus.STOPPED
+    }
+  }
+  info.amps = amps
+  info.path = nextPath
+  info.recordEnd = Constants.isStoppedAudioRecordingStatus(nextStatus) ? Date.now() : undefined
+  info.status = nextStatus
+  info.isLocked = false
 }
 
 const audioActions: Container.ActionHandler<Actions, Types.State> = {
