@@ -3007,7 +3007,12 @@ babel-plugin-polyfill-regenerator@^0.3.0:
   dependencies:
     "@babel/helper-define-polyfill-provider" "^0.3.1"
 
-babel-plugin-react-native-web@0.17.6, babel-plugin-react-native-web@~0.17.1:
+babel-plugin-react-native-web@0.17.7:
+  version "0.17.7"
+  resolved "https://registry.yarnpkg.com/babel-plugin-react-native-web/-/babel-plugin-react-native-web-0.17.7.tgz#1580e27a2e3c6692127535d3880fe1e247ef6414"
+  integrity sha512-UBLfIsfU3vi//Ab4i0WSWAfm1whLTK9uJoH0RPZ6a67eS/h9JGYjKy7+1RpHxSBviHi9NIMiYfWseTLjyIsE1g==
+
+babel-plugin-react-native-web@~0.17.1:
   version "0.17.6"
   resolved "https://registry.yarnpkg.com/babel-plugin-react-native-web/-/babel-plugin-react-native-web-0.17.6.tgz#0d5f9de28ef0ffa94093c325cf8143bf01de6ed9"
   integrity sha512-A7Y0mCNF7JNiqf4w90SNUc+fQ6sST/S0O8+1Lx5NP0EOqqqsjut0y3HQvbmCfRMXTzdo3gxaWmYoSCfjozBIhg==
@@ -5178,10 +5183,10 @@ fresh@0.5.2:
   resolved "https://registry.yarnpkg.com/fresh/-/fresh-0.5.2.tgz#3d8cadd90d976569fa835ab1f8e4b23a105605a7"
   integrity sha1-PYyt2Q2XZWn6g1qx+OSyOhBWBac=
 
-fs-extra@10.0.1:
-  version "10.0.1"
-  resolved "https://registry.yarnpkg.com/fs-extra/-/fs-extra-10.0.1.tgz#27de43b4320e833f6867cc044bfce29fdf0ef3b8"
-  integrity sha512-NbdoVMZso2Lsrn/QwLXOy6rm0ufY2zEOKCDzJR/0kBsb0E6qed0P3iYK+Ath3BfvXEeu4JhEtXLgILx5psUfag==
+fs-extra@10.1.0:
+  version "10.1.0"
+  resolved "https://registry.yarnpkg.com/fs-extra/-/fs-extra-10.1.0.tgz#02873cfbc4084dde127eaa5f9905eef2325d1abf"
+  integrity sha512-oRXApq54ETRj4eMiFzGnHWGy+zo5raudjuxN0b8H7s/RU2oW0Wvsx9O0ACRN/kRq9E8Vu/ReskGB5o3ji+FzHQ==
   dependencies:
     graceful-fs "^4.2.0"
     jsonfile "^6.0.1"
@@ -6840,10 +6845,10 @@ memoize-one@6.0.0:
   resolved "https://registry.yarnpkg.com/memoize-one/-/memoize-one-5.2.1.tgz#8337aa3c4335581839ec01c3d594090cebe8f00e"
   integrity sha512-zYiwtZUcYyXKo/np96AGZAckk+FWWsUdJ3cHGGmld7+AhvcWmQyGCYUh1hc4Q/pkOhb65dQR/pqCyK0cOaHz4Q==
 
-menubar@9.0.1:
-  version "9.0.1"
-  resolved "https://registry.yarnpkg.com/menubar/-/menubar-9.0.1.tgz#49d8d73ee0b515d6621d644fa96647e3dfc8ac3c"
-  integrity sha512-r4NdeG3CDb9BQ0w8WffWw2JT+Pugn22hKCb4niNuXMzK3WphY+RX2WmTPlZdIZfpNxVNKAo/mbuGfVP6LGGeJw==
+menubar@9.2.0:
+  version "9.2.0"
+  resolved "https://registry.yarnpkg.com/menubar/-/menubar-9.2.0.tgz#dcded4ccd29fda14a19062d1e984c87ab08bbf88"
+  integrity sha512-4nSIaf6WIy7CoXQ4Gok8hHinkLxnQO80fD9VP+VpOkQ6ByWLRyHwDlq0EEUcwVH73GASye0nEPO+PwxV5kyT6Q==
   dependencies:
     electron-positioner "^4.1.0"
 
