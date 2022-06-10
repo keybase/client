@@ -1,3 +1,4 @@
+// this is loaded up by login/routes
 import type CodePage from './code-page/container'
 import type ErrorView from './error/container'
 import type ForgotUsername from './forgot-username'
@@ -24,7 +25,3 @@ export const newRoutes = {
 
 // No modal routes while not logged in. More plumbing would be necessary to add them, so there is not
 // an empty newModalRoutes here.
-
-export type RootParamListProvision = {
-  username: {fromReset: boolean}
-}

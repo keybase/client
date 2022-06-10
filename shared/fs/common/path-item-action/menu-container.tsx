@@ -7,7 +7,7 @@ import {anyWaiting} from '../../../constants/waiting'
 import {isMobile} from '../../../constants/platform'
 import {memoize} from '../../../util/memoize'
 import Menu from './menu'
-import {FloatingMenuProps} from './types'
+import type {FloatingMenuProps} from './types'
 import {getRootLayout, getShareLayout} from './layout'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as Util from '../../../util/kbfs'
@@ -75,11 +75,12 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, {mode, path}: Own
     dispatch(FsGen.createSaveMedia({path}))
   },
   _sendAttachmentToChat: () => {
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [{props: {sendPaths: [path]}, selected: 'sendToChat'}],
-      })
-    )
+    path &&
+      dispatch(
+        RouteTreeGen.createNavigateAppend({
+          path: [{props: {sendPaths: [path]}, selected: 'sendToChat'}],
+        })
+      )
   },
   _sendToOtherApp: () => {
     dispatch(FsGen.createShareNative({path}))
@@ -195,8 +196,4 @@ const mergeProps = (
   }
 }
 
-export default Container.connect(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps,
-)(Menu)
+export default Container.connect(mapStateToProps, mapDispatchToProps, mergeProps)(Menu)

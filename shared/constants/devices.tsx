@@ -36,9 +36,9 @@ export const makeDevice = (d?: Partial<Types.Device>): Types.Device =>
 
 export const devicesTabLocation = Container.isMobile
   ? Container.isTablet
-    ? [Tabs.settingsTab]
-    : [Tabs.settingsTab, SettingsConstants.devicesTab]
-  : [Tabs.devicesTab]
+    ? ([Tabs.settingsTab] as const)
+    : ([Tabs.settingsTab, SettingsConstants.devicesTab] as const)
+  : ([Tabs.devicesTab] as const)
 export const waitingKey = 'devices:devicesPage'
 
 export const isWaiting = (state: Container.TypedState) => WaitingConstants.anyWaiting(state, waitingKey)

@@ -14,7 +14,7 @@ deb_pkgver="${pkgver/_/-}"
 deb_pkgver="${deb_pkgver/+/.}"
 pkgrel=1
 arch=('i686' 'x86_64')
-depends=(fuse libxss gtk2 lsof) # don't change this without changing the SRCINFO template too
+depends=(fuse libxss gtk3 lsof) # don't change this without changing the SRCINFO template too
                                 # also make sure to change the keybase-git PKGBUILD
 provides=(keybase keybase-gui kbfs)
 # keybase-release is a deprecated AUR package

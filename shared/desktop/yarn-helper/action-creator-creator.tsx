@@ -46,9 +46,6 @@ export const resetStore = 'common:resetStore' // not a part of ${ns} but is hand
 export const typePrefix = '${ns}:'
 ${compileActions(ns, actions, compileReduxTypeConstant)}
 
-// Payload Types
-${compileActions(ns, actions, compilePayloadTypes)}
-
 // Action Creators
 ${compileActions(ns, actions, compileActionCreator)}
 
@@ -111,31 +108,24 @@ function printPayload(p: ActionDesc) {
 }
 
 function compileActionPayloads(_: ActionNS, actionName: ActionName) {
-  return `export type ${capitalize(actionName)}Payload = {readonly payload: _${capitalize(
-    actionName
-  )}Payload, readonly type: typeof ${actionName}}`
-}
-
-function compilePayloadTypes(_: ActionNS, actionName: ActionName, desc: ActionDesc) {
-  return `type _${capitalize(actionName)}Payload = ${printPayload(desc)}`
+  return `export type ${capitalize(actionName)}Payload = ReturnType<typeof create${capitalize(actionName)}>`
 }
 
 function compileActionCreator(_: ActionNS, actionName: ActionName, desc: ActionDesc) {
-  return (
-    (desc._description
-      ? `/**
+  const hasPayload = !!payloadKeys(desc).length
+  const assignPayload = payloadOptional(desc)
+  const comment = desc._description
+    ? `/**
      * ${Array.isArray(desc._description) ? desc._description.join('\n* ') : desc._description}
      */
     `
-      : '') +
-    `export const create${capitalize(actionName)} = (payload${
-      payloadKeys(desc).length ? '' : '?'
-    }: _${capitalize(actionName)}Payload${payloadOptional(desc) ? ' = Object.freeze({})' : ''}): ${capitalize(
-      actionName
-    )}Payload => (
-  { payload, type: ${actionName}, }
+    : ''
+  const payload = hasPayload
+    ? `payload: ${printPayload(desc)}${assignPayload ? ' = {}' : ''}`
+    : 'payload?: undefined'
+  return `${comment}export const create${capitalize(actionName)} = (${payload}) => (
+  {payload, type: ${actionName} as typeof ${actionName}}
 )`
-  )
 }
 
 function compileReduxTypeConstant(ns: ActionNS, actionName: ActionName, _: ActionDesc) {
@@ -144,14 +134,13 @@ function compileReduxTypeConstant(ns: ActionNS, actionName: ActionName, _: Actio
 
 function makeTypedActions(created: Array<string>) {
   return `// NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-/* eslint-disable no-unused-vars,no-use-before-define */
-  ${created.map(c => `import * as ${cleanName(c)} from './${c}-gen'`).join('\n')}
+  ${created.map(c => `import type * as ${cleanName(c)} from './${c}-gen'`).join('\n')}
 
   export type TypedActions = ${created.map(c => `${cleanName(c)}.Actions`).join(' | ')}
 
-  export type TypedActionsMap = {${typeMap.join(',\n')},
-    'common:resetStore': {readonly type: 'common:resetStore', readonly payload: undefined}
-  }
+  type DiscriminateUnion<T, K extends keyof T, V extends T[K]> = T extends Record<K, V> ? T : never
+  type MapDiscriminatedUnion<T extends Record<K, string>, K extends keyof T> = { [V in T[K]]: DiscriminateUnion<T, K, V> };
+  export type TypedActionsMap = MapDiscriminatedUnion<TypedActions, 'type'>
 `
 }
 

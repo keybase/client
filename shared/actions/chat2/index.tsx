@@ -1182,6 +1182,8 @@ function* loadMoreMessages(
         return arr
       }, [])
 
+      logger.info(`thread load ordinals ${messages.map(m => m.ordinal)}`)
+
       const moreToLoad = uiMessages.pagination ? !uiMessages.pagination.last : true
       yield Saga.put(Chat2Gen.createUpdateMoreToLoad({conversationIDKey, moreToLoad}))
 

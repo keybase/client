@@ -302,17 +302,14 @@ const startLogoutHandshakeIfAllowed = async (state: Container.TypedState) => {
   if (canLogoutRes.canLogout) {
     return startLogoutHandshake(state)
   } else {
-    const heading = canLogoutRes.reason
     if (Platform.isMobile) {
       return RouteTreeGen.createNavigateAppend({
-        path: [Tabs.settingsTab, {props: {heading}, selected: SettingsConstants.passwordTab}],
+        path: [Tabs.settingsTab, SettingsConstants.passwordTab],
       })
     } else {
       return [
         RouteTreeGen.createNavigateAppend({path: [Tabs.settingsTab]}),
-        RouteTreeGen.createNavigateAppend({
-          path: [{props: {heading}, selected: 'changePassword'}],
-        }),
+        RouteTreeGen.createNavigateAppend({path: [SettingsConstants.passwordTab]}),
       ]
     }
   }

@@ -37,7 +37,7 @@ require (
 	github.com/keybase/go-framed-msgpack-rpc v0.0.0-20211118173254-f892386581e8
 	github.com/keybase/go-jsonw v0.0.0-20200131153605-3e5b58caddd9
 	github.com/keybase/go-kext v0.0.0-20211119181951-8d5d2e919472
-	github.com/keybase/go-keychain v0.0.0-20211119201326-e02f34051621
+	github.com/keybase/go-keychain v0.0.0-20220610143837-c2ce06069005
 	github.com/keybase/go-logging v0.0.0-20211118164508-35a15a9fa71a
 	github.com/keybase/go-merkle-tree v0.0.0-20211118173306-f89b06604d00
 	github.com/keybase/go-porterstemmer v1.0.2-0.20181016185745-521f1ed5c3f7
@@ -46,7 +46,6 @@ require (
 	github.com/keybase/go-triplesec-insecure v0.0.0-20211118164850-99654891ba7c
 	github.com/keybase/go-updater v0.0.0-20200416153205-e86066838ee4
 	github.com/keybase/go-winio v0.4.12-0.20180913221037-b1d96ab97b58
-	github.com/keybase/go.dbus v0.0.0-20200324223359-a94be52c0b03
 	github.com/keybase/golang-ico v0.0.0-20181117022008-819cbeb217c9
 	github.com/keybase/gomounts v0.0.0-20180302000443-349507f4d353
 	github.com/keybase/keybase-test-vectors v1.0.12-0.20200309162119-ea1e58fecd5d
@@ -89,6 +88,8 @@ require (
 	rsc.io/qr v0.2.0
 	stathat.com/c/ramcache v1.0.0
 )
+
+require github.com/keybase/dbus v0.0.0-20220506165403-5aa21ea2c23a
 
 require (
 	4d63.com/gochecknoglobals v0.1.0 // indirect

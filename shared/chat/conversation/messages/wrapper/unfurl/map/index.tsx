@@ -1,9 +1,9 @@
 import * as React from 'react'
-import * as Types from '../../../../../../constants/types/chat2'
 import * as Kb from '../../../../../../common-adapters/index'
 import * as Container from '../../../../../../util/container'
 import * as RouteTreeGen from '../../../../../../actions/route-tree-gen'
 import * as Styles from '../../../../../../styles'
+import type * as Types from '../../../../../../constants/types/chat2'
 import {imgMaxWidth} from '../../../attachment/image/image-render'
 import {formatDurationForLocation} from '../../../../../../util/timestamp'
 import UnfurlImage from '../image'
@@ -39,7 +39,6 @@ const UnfurlMap = (props: Props) => {
                   coord: props.coord,
                   isAuthor: props.isAuthor,
                   isLiveLocation: !!props.liveLocationEndTime && !props.isLiveLocationDone,
-                  namespace: 'chat2',
                   url: props.url,
                 },
                 selected: 'chatUnfurlMapPopup',

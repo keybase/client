@@ -585,6 +585,8 @@ github.com/keybase/clockwork v0.1.1-0.20161209210251-976f45f4a979 h1:WABVkjKJ3Uj
 github.com/keybase/clockwork v0.1.1-0.20161209210251-976f45f4a979/go.mod h1:2j97e0ZjlWYV7dDdV8BjKwMUmBbXu6zZF8FAa9gXRss=
 github.com/keybase/colly v1.1.1-0.20190207010505-9a56fbe6c0e6 h1:hoXrE+3fW2AmnHoof9Ku8AOstWwHrUXzH6foinVm3b4=
 github.com/keybase/colly v1.1.1-0.20190207010505-9a56fbe6c0e6/go.mod h1:3snKIsJiqivo/Dk6EoBi8+s3a6fAUIrXSZnLm0UuAls=
+github.com/keybase/dbus v0.0.0-20220506165403-5aa21ea2c23a h1:K0EAzgzEQHW4Y5lxrmvPMltmlRDzlhLfGmots9EHUTI=
+github.com/keybase/dbus v0.0.0-20220506165403-5aa21ea2c23a/go.mod h1:YPNKjjE7Ubp9dTbnWvsP3HT+hYnY6TfXzubYTBeUxc8=
 github.com/keybase/fuse v0.0.0-20210104232444-d36009698767 h1:/Uj9mWIW4Jz4pft2y9E0HdtWG6GmhdF6HZoBuKozmdQ=
 github.com/keybase/fuse v0.0.0-20210104232444-d36009698767/go.mod h1:cjPaptLUKOKyHi9SzTNvBjeUcwATSI+54jtxSA8h1Nc=
 github.com/keybase/go-billy v3.1.1-0.20180828145748-b5a7b7bc2074+incompatible h1:HpmQ1ozzHbMaeBSMbE1C5dLpHKf5fi51j6mp5O1yVjo=
@@ -601,8 +603,10 @@ github.com/keybase/go-jsonw v0.0.0-20200131153605-3e5b58caddd9 h1:pIRdSfdpjVi7pp
 github.com/keybase/go-jsonw v0.0.0-20200131153605-3e5b58caddd9/go.mod h1:lofKQwj13L0/7ji5VYaY0257JDlQE2BRRf+rI2Vk1rU=
 github.com/keybase/go-kext v0.0.0-20211119181951-8d5d2e919472 h1:ktFxtm1E86J6eRVNV4yc6rEqLUqNpCl1XIzAj/BA4So=
 github.com/keybase/go-kext v0.0.0-20211119181951-8d5d2e919472/go.mod h1:bUS/0vnskIuEA7bUQJfn71yB1Rnkq/PFRR18JUzFfyQ=
-github.com/keybase/go-keychain v0.0.0-20211119201326-e02f34051621 h1:aMQ7pA4f06yOVXSulygyGvy4xA94fyzjUGs0iqQdMOI=
-github.com/keybase/go-keychain v0.0.0-20211119201326-e02f34051621/go.mod h1:enrU/ug069Om7vWxuFE6nikLI2BZNwevMiGSo43Kt5w=
+github.com/keybase/go-keychain v0.0.0-20220506172723-c18928ccd7f2 h1:Qh9gCBYNeGqpMv7SMVGgansYlZgnMkuPOQZpoZNxSJs=
+github.com/keybase/go-keychain v0.0.0-20220506172723-c18928ccd7f2/go.mod h1:5p1xgRXY2da7ggc/67EZO7WlWAZ8TXftfCU6RtvWZJ0=
+github.com/keybase/go-keychain v0.0.0-20220610143837-c2ce06069005 h1:0uT5p980qZwIkSkOHuMgGLUMbz39d6cqQk7eaOE3uso=
+github.com/keybase/go-keychain v0.0.0-20220610143837-c2ce06069005/go.mod h1:5p1xgRXY2da7ggc/67EZO7WlWAZ8TXftfCU6RtvWZJ0=
 github.com/keybase/go-logging v0.0.0-20211118164508-35a15a9fa71a h1:hhJ2v5vhrdujcygf31Efr3IgC/VNU9PAArJJrr5uuYE=
 github.com/keybase/go-logging v0.0.0-20211118164508-35a15a9fa71a/go.mod h1:enFJstuZoiMNKrKXxhv7NVsh4hE4O5ngu7V6MKsp+Ek=
 github.com/keybase/go-merkle-tree v0.0.0-20211118173306-f89b06604d00 h1:iM1A1hK0wWdWPLGJAzSTqPBO5BKMkF+Gtwn5+rHRVMw=
@@ -619,8 +623,6 @@ github.com/keybase/go-updater v0.0.0-20200416153205-e86066838ee4 h1:cJQhKHM2jJPI
 github.com/keybase/go-updater v0.0.0-20200416153205-e86066838ee4/go.mod h1:NHV2eGm30MdsRWb1m7ZPciBDX8FVIS6D/xZjmmfdU0Y=
 github.com/keybase/go-winio v0.4.12-0.20180913221037-b1d96ab97b58 h1:W3c3cQc7Fe2LWwa9gz1qyOBfJwuMNcnVIoHP9joEUzI=
 github.com/keybase/go-winio v0.4.12-0.20180913221037-b1d96ab97b58/go.mod h1:Rcswqyeiwun4CF+RpzSNllKs3nO8Es5HZIhl+8YCm94=
-github.com/keybase/go.dbus v0.0.0-20200324223359-a94be52c0b03 h1:k9rCqucCsPpBKDh9gDwk3U46TcNd7jpKahed9JGICGY=
-github.com/keybase/go.dbus v0.0.0-20200324223359-a94be52c0b03/go.mod h1:a8clEhrrGV/d76/f9r2I41BwANMihfZYV9C223vaxqE=
 github.com/keybase/golang-ico v0.0.0-20181117022008-819cbeb217c9 h1:O4kEXd3yzbpHCRqwjbsBNKlanp52zXjKP6nFh9VSGy0=
 github.com/keybase/golang-ico v0.0.0-20181117022008-819cbeb217c9/go.mod h1:t9Db0X8VAAJTL82huV2G56KTYUeVET8THTLSjyWpE4o=
 github.com/keybase/goleveldb v1.0.1-0.20211106225230-2a53fac0721c h1:h+M+JPfSB1uYe2N2+PLwJ7R2I1OLCb6CIEhI+S4KpEM=

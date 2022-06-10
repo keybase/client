@@ -48,7 +48,6 @@ const SearchBotPopup = (props: Props) => {
             props: {
               botUsername: username,
               conversationIDKey,
-              namespace: 'chat2',
               teamID,
             },
             selected: 'chatInstallBot',

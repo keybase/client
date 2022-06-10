@@ -125,1198 +125,757 @@ export const updateInviteLinkDetails = 'teams:updateInviteLinkDetails'
 export const updateTopic = 'teams:updateTopic'
 export const uploadTeamAvatar = 'teams:uploadTeamAvatar'
 
-// Payload Types
-type _AddMembersWizardAddMembersPayload = {
-  readonly members: Array<Types.AddingMember>
-  readonly assertionsInTeam: Array<string>
-}
-type _AddMembersWizardPushMembersPayload = {readonly members: Array<Types.AddingMember>}
-type _AddMembersWizardRemoveMemberPayload = {readonly assertion: string}
-type _AddMembersWizardSetDefaultChannelsPayload = {
-  readonly toAdd?: Array<Types.ChannelNameID>
-  readonly toRemove?: Types.ChannelNameID
-}
-type _AddParticipantPayload = {
-  readonly teamID: Types.TeamID
-  readonly conversationIDKey: ChatTypes.ConversationIDKey
-}
-type _AddTeamWithChosenChannelsPayload = {readonly teamID: Types.TeamID}
-type _AddToTeamPayload = {
-  readonly teamID: Types.TeamID
-  readonly users: Array<{assertion: string; role: Types.TeamRoleType}>
-  readonly sendChatNotification: boolean
-  readonly fromTeamBuilder?: boolean
-}
-type _AddUserToTeamsPayload = {
-  readonly role: Types.TeamRoleType
-  readonly teams: Array<string>
-  readonly user: string
-}
-type _AddedToTeamPayload = {readonly error?: string; readonly fromTeamBuilder?: boolean}
-type _CancelAddMembersWizardPayload = undefined
-type _ChannelSetMemberSelectedPayload = {
-  readonly conversationIDKey: ChatTypes.ConversationIDKey
-  readonly username: string
-  readonly selected: boolean
-  readonly clearAll?: boolean
-}
-type _CheckRequestedAccessPayload = {readonly teamname: string}
-type _ClearAddUserToTeamsResultsPayload = undefined
-type _ClearNavBadgesPayload = undefined
-type _CreateChannelPayload = {
-  readonly teamID: Types.TeamID
-  readonly channelname: string
-  readonly description: string | null
-  readonly navToChatOnSuccess: boolean
-}
-type _CreateChannelsPayload = {readonly teamID: Types.TeamID; readonly channelnames: Array<string>}
-type _CreateNewTeamFromConversationPayload = {
-  readonly conversationIDKey: ChatTypes.ConversationIDKey
-  readonly teamname: string
-}
-type _CreateNewTeamPayload = {
-  readonly fromChat?: boolean
-  readonly joinSubteam: boolean
-  readonly teamname: string
-  readonly thenAddMembers?: Omit<_AddToTeamPayload, 'teamID'>
-}
-type _DeleteChannelConfirmedPayload = {
-  readonly teamID: Types.TeamID
-  readonly conversationIDKey: ChatTypes.ConversationIDKey
-}
-type _DeleteMultiChannelsConfirmedPayload = {
-  readonly teamID: Types.TeamID
-  readonly channels: Array<ChatTypes.ConversationIDKey>
-}
-type _DeleteTeamPayload = {readonly teamID: Types.TeamID}
-type _EditMembershipPayload = {
-  readonly teamID: Types.TeamID
-  readonly usernames: Array<string>
-  readonly role: Types.TeamRoleType
-}
-type _EditTeamDescriptionPayload = {readonly teamID: Types.TeamID; readonly description: string}
-type _FinishNewTeamWizardPayload = undefined
-type _FinishedAddMembersWizardPayload = undefined
-type _FinishedNewTeamWizardPayload = {readonly teamID: Types.TeamID}
-type _GetActivityForTeamsPayload = undefined
-type _GetMembersPayload = {readonly teamID: Types.TeamID}
-type _GetTeamProfileAddListPayload = {readonly username: string}
-type _GetTeamRetentionPolicyPayload = {readonly teamID: Types.TeamID}
-type _GetTeamsPayload = {readonly _subscribe?: boolean; readonly forceReload?: boolean}
-type _IgnoreRequestPayload = {
-  readonly teamID: Types.TeamID
-  readonly teamname: string
-  readonly username: string
-}
-type _InviteToTeamByEmailPayload = {
-  readonly invitees: string
-  readonly role: Types.TeamRoleType
-  readonly teamID: Types.TeamID
-  readonly teamname: string
-  readonly loadingKey?: string
-}
-type _InviteToTeamByPhonePayload = {
-  readonly teamID: Types.TeamID
-  readonly teamname: string
-  readonly role: Types.TeamRoleType
-  readonly phoneNumber: string
-  readonly fullName: string
-  readonly loadingKey?: string
-}
-type _JoinTeamPayload = {readonly teamname: string; readonly deeplink?: boolean}
-type _LaunchNewTeamWizardOrModalPayload = {readonly subteamOf?: Types.TeamID}
-type _LeaveTeamPayload = {
-  readonly teamname: string
-  readonly permanent: boolean
-  readonly context: 'teams' | 'chat'
-}
-type _LeftTeamPayload = {readonly teamname: string; readonly context: 'teams' | 'chat'}
-type _LoadTeamChannelListPayload = {readonly teamID: Types.TeamID}
-type _LoadTeamPayload = {readonly _subscribe?: boolean; readonly teamID: Types.TeamID}
-type _LoadTeamTreePayload = {readonly teamID: Types.TeamID; readonly username: string}
-type _LoadWelcomeMessagePayload = {readonly teamID: Types.TeamID}
-type _LoadedWelcomeMessagePayload = {
-  readonly teamID: Types.TeamID
-  readonly message: RPCChatTypes.WelcomeMessageDisplay
-}
-type _ManageChatChannelsPayload = {readonly teamID: Types.TeamID}
-type _OpenInviteLinkPayload = {readonly inviteID: string; readonly inviteKey: string}
-type _ReAddToTeamPayload = {readonly teamID: Types.TeamID; readonly username: string}
-type _RemoveMemberPayload = {readonly teamID: Types.TeamID; readonly username: string}
-type _RemoveParticipantPayload = {
-  readonly teamID: Types.TeamID
-  readonly conversationIDKey: ChatTypes.ConversationIDKey
-}
-type _RemovePendingInvitePayload = {readonly teamID: Types.TeamID; readonly inviteID: string}
-type _RenameTeamPayload = {readonly oldName: string; readonly newName: string}
-type _RequestInviteLinkDetailsPayload = undefined
-type _RespondToInviteLinkPayload = {readonly accept: boolean}
-type _SaveChannelMembershipPayload = {
-  readonly teamID: Types.TeamID
-  readonly oldChannelState: Types.ChannelMembershipState
-  readonly newChannelState: Types.ChannelMembershipState
-}
-type _SaveTeamRetentionPolicyPayload = {readonly teamID: Types.TeamID; readonly policy: RetentionPolicy}
-type _SetActivityLevelsPayload = {readonly levels: Types.ActivityLevels}
-type _SetAddMembersWizardIndividualRolePayload = {
-  readonly assertion: string
-  readonly role: Types.AddingMemberTeamRoleType
-}
-type _SetAddMembersWizardRolePayload = {readonly role: Types.AddingMemberTeamRoleType | 'setIndividually'}
-type _SetAddUserToTeamsResultsPayload = {readonly error: boolean; readonly results: string}
-type _SetChannelCreationErrorPayload = {readonly error: string}
-type _SetChannelSelectedPayload = {
-  readonly teamID: Types.TeamID
-  readonly channel: string
-  readonly selected: boolean
-  readonly clearAll?: boolean
-}
-type _SetCreatingChannelsPayload = {readonly creatingChannels: boolean}
-type _SetEditDescriptionErrorPayload = {readonly error: string}
-type _SetEditMemberErrorPayload = {
-  readonly error: string
-  readonly teamID: Types.TeamID
-  readonly username: string
-}
-type _SetEmailInviteErrorPayload = {readonly message: string; readonly malformed: Array<string>}
-type _SetJustFinishedAddMembersWizardPayload = {readonly justFinished: boolean}
-type _SetMemberActivityDetailsPayload = {
-  readonly activityMap: Map<Types.TeamID, number>
-  readonly username: string
-}
-type _SetMemberPublicityPayload = {readonly teamID: Types.TeamID; readonly showcase: boolean}
-type _SetMembersPayload = {readonly teamID: Types.TeamID; readonly members: Map<string, Types.MemberInfo>}
-type _SetNewTeamInfoPayload = {
-  readonly deletedTeams: Array<RPCTypes.DeletedTeamInfo>
-  readonly newTeams: Set<Types.TeamID>
-  readonly teamIDToResetUsers: Map<Types.TeamID, Set<string>>
-}
-type _SetNewTeamRequestsPayload = {readonly newTeamRequests: Map<Types.TeamID, Set<string>>}
-type _SetPublicityPayload = {readonly teamID: Types.TeamID; readonly settings: Types.PublicitySettings}
-type _SetSubteamFilterPayload = {readonly filter: string; readonly parentTeam?: Types.TeamID}
-type _SetTeamAccessRequestsPendingPayload = {readonly accessRequestsPending: Set<Types.Teamname>}
-type _SetTeamCreationErrorPayload = {readonly error: string}
-type _SetTeamInfoPayload = {
-  readonly teamnames: Set<Types.Teamname>
-  readonly teamNameToID: Map<Types.Teamname, string>
-  readonly teamMeta: Map<Types.TeamID, Types.TeamMeta>
-}
-type _SetTeamInviteErrorPayload = {readonly error: string}
-type _SetTeamJoinErrorPayload = {readonly error: string}
-type _SetTeamJoinSuccessPayload = {
-  readonly open: boolean
-  readonly success: boolean
-  readonly teamname: string
-}
-type _SetTeamListFilterSortPayload = {readonly filter?: string; readonly sortOrder?: Types.TeamListSort}
-type _SetTeamLoadingInvitesPayload = {
-  readonly teamname: string
-  readonly loadingKey: string
-  readonly isLoading: boolean
-}
-type _SetTeamProfileAddListPayload = {readonly teamlist: Array<Types.TeamProfileAddList>}
-type _SetTeamRetentionPolicyPayload = {
-  readonly teamID: Types.TeamID
-  readonly retentionPolicy: RetentionPolicy
-}
-type _SetTeamRoleMapLatestKnownVersionPayload = {readonly version: number}
-type _SetTeamRoleMapPayload = {readonly map: Types.TeamRoleMap}
-type _SetTeamSawChatBannerPayload = undefined
-type _SetTeamSawSubteamsBannerPayload = undefined
-type _SetTeamVersionPayload = {readonly teamID: Types.TeamID; readonly version: Types.TeamVersion}
-type _SetTeamWizardAvatarPayload = {readonly crop?: Types.AvatarCrop; readonly filename?: string}
-type _SetTeamWizardChannelsPayload = {readonly channels: Array<string>}
-type _SetTeamWizardErrorPayload = {readonly error: string}
-type _SetTeamWizardNameDescriptionPayload = {
-  readonly teamname: string
-  readonly description: string
-  readonly openTeam: boolean
-  readonly openTeamJoinRole: Types.TeamRoleType
-  readonly profileShowcase: boolean
-  readonly addYourself: boolean
-}
-type _SetTeamWizardSubteamMembersPayload = {readonly members: Array<string>}
-type _SetTeamWizardSubteamsPayload = {readonly subteams: Array<string>}
-type _SetTeamWizardTeamSizePayload = {readonly isBig: boolean}
-type _SetTeamWizardTeamTypePayload = {readonly teamType: Types.TeamWizardTeamType}
-type _SetTeamsWithChosenChannelsPayload = {readonly teamsWithChosenChannels: Set<Types.TeamID>}
-type _SetUpdatedChannelNamePayload = {
-  readonly teamID: Types.TeamID
-  readonly conversationIDKey: ChatTypes.ConversationIDKey
-  readonly newChannelName: string
-}
-type _SetUpdatedTopicPayload = {
-  readonly teamID: Types.TeamID
-  readonly conversationIDKey: ChatTypes.ConversationIDKey
-  readonly newTopic: string
-}
-type _SetWelcomeMessageErrorPayload = {readonly error: string}
-type _SetWelcomeMessagePayload = {
-  readonly teamID: Types.TeamID
-  readonly message: RPCChatTypes.WelcomeMessage
-}
-type _SettingsErrorPayload = {readonly error: string}
-type _ShowTeamByNamePayload = {
-  readonly teamname: string
-  readonly initialTab?: Types.TabKey
-  readonly join?: boolean
-  readonly addMembers?: boolean
-}
-type _StartAddMembersWizardPayload = {readonly teamID: Types.TeamID}
-type _StartNewTeamWizardPayload = undefined
-type _TeamChannelListLoadedPayload = {
-  readonly teamID: Types.TeamID
-  readonly channels: Map<ChatTypes.ConversationIDKey, Types.TeamChannelInfo>
-}
-type _TeamCreatedPayload = {
-  readonly fromChat: boolean
-  readonly teamID: Types.TeamID
-  readonly teamname: string
-}
-type _TeamLoadedPayload = {readonly teamID: Types.TeamID; readonly team: RPCTypes.AnnotatedTeam}
-type _TeamSeenPayload = {readonly teamID: Types.TeamID}
-type _TeamSetMemberSelectedPayload = {
-  readonly teamID: Types.TeamID
-  readonly username: string
-  readonly selected: boolean
-  readonly clearAll?: boolean
-}
-type _ToggleInvitesCollapsedPayload = {readonly teamID: Types.TeamID}
-type _UnsubscribeTeamDetailsPayload = {readonly teamID: Types.TeamID}
-type _UnsubscribeTeamListPayload = undefined
-type _UpdateChannelNamePayload = {
-  readonly teamID: Types.TeamID
-  readonly conversationIDKey: ChatTypes.ConversationIDKey
-  readonly newChannelName: string
-}
-type _UpdateInviteLinkDetailsPayload = {readonly details: RPCTypes.InviteLinkDetails}
-type _UpdateTopicPayload = {
-  readonly teamID: Types.TeamID
-  readonly conversationIDKey: ChatTypes.ConversationIDKey
-  readonly newTopic: string
-}
-type _UploadTeamAvatarPayload = {
-  readonly crop?: RPCTypes.ImageCropRect
-  readonly filename: string
-  readonly sendChatNotification: boolean
-  readonly teamname: string
-}
-
 // Action Creators
 /**
  * Called by the modal if the key is missing
  */
-export const createRequestInviteLinkDetails = (
-  payload?: _RequestInviteLinkDetailsPayload
-): RequestInviteLinkDetailsPayload => ({payload, type: requestInviteLinkDetails})
+export const createRequestInviteLinkDetails = (payload?: undefined) => ({
+  payload,
+  type: requestInviteLinkDetails as typeof requestInviteLinkDetails,
+})
 /**
  * Called either by the join team UI or invite links when the modal appears
  */
-export const createJoinTeam = (payload: _JoinTeamPayload): JoinTeamPayload => ({payload, type: joinTeam})
+export const createJoinTeam = (payload: {readonly teamname: string; readonly deeplink?: boolean}) => ({
+  payload,
+  type: joinTeam as typeof joinTeam,
+})
 /**
  * Change the set of default channels we're adding these users to.
  */
 export const createAddMembersWizardSetDefaultChannels = (
-  payload: _AddMembersWizardSetDefaultChannelsPayload = Object.freeze({})
-): AddMembersWizardSetDefaultChannelsPayload => ({payload, type: addMembersWizardSetDefaultChannels})
+  payload: {readonly toAdd?: Array<Types.ChannelNameID>; readonly toRemove?: Types.ChannelNameID} = {}
+) => ({payload, type: addMembersWizardSetDefaultChannels as typeof addMembersWizardSetDefaultChannels})
 /**
  * Clear new team wizard state and nav to team.
  */
-export const createFinishedNewTeamWizard = (
-  payload: _FinishedNewTeamWizardPayload
-): FinishedNewTeamWizardPayload => ({payload, type: finishedNewTeamWizard})
+export const createFinishedNewTeamWizard = (payload: {readonly teamID: Types.TeamID}) => ({
+  payload,
+  type: finishedNewTeamWizard as typeof finishedNewTeamWizard,
+})
 /**
  * Completes the invite link decision flow, processed by joinTeam
  */
-export const createRespondToInviteLink = (
-  payload: _RespondToInviteLinkPayload
-): RespondToInviteLinkPayload => ({payload, type: respondToInviteLink})
+export const createRespondToInviteLink = (payload: {readonly accept: boolean}) => ({
+  payload,
+  type: respondToInviteLink as typeof respondToInviteLink,
+})
 /**
  * Don't eagerly reload team list anymore.
  */
-export const createUnsubscribeTeamList = (
-  payload?: _UnsubscribeTeamListPayload
-): UnsubscribeTeamListPayload => ({payload, type: unsubscribeTeamList})
+export const createUnsubscribeTeamList = (payload?: undefined) => ({
+  payload,
+  type: unsubscribeTeamList as typeof unsubscribeTeamList,
+})
 /**
  * Edit the role of one or more members in a team
  */
-export const createEditMembership = (payload: _EditMembershipPayload): EditMembershipPayload => ({
-  payload,
-  type: editMembership,
-})
+export const createEditMembership = (payload: {
+  readonly teamID: Types.TeamID
+  readonly usernames: Array<string>
+  readonly role: Types.TeamRoleType
+}) => ({payload, type: editMembership as typeof editMembership})
 /**
  * Fetch activity levels.
  */
-export const createGetActivityForTeams = (
-  payload?: _GetActivityForTeamsPayload
-): GetActivityForTeamsPayload => ({payload, type: getActivityForTeams})
+export const createGetActivityForTeams = (payload?: undefined) => ({
+  payload,
+  type: getActivityForTeams as typeof getActivityForTeams,
+})
 /**
  * First stage of the invite link process, opens the modal
  */
-export const createOpenInviteLink = (payload: _OpenInviteLinkPayload): OpenInviteLinkPayload => ({
+export const createOpenInviteLink = (payload: {readonly inviteID: string; readonly inviteKey: string}) => ({
   payload,
-  type: openInviteLink,
+  type: openInviteLink as typeof openInviteLink,
 })
 /**
  * Gets the team retention policy and stores in `state.entities.teams.teamIDToRetentionPolicy`.
  */
-export const createGetTeamRetentionPolicy = (
-  payload: _GetTeamRetentionPolicyPayload
-): GetTeamRetentionPolicyPayload => ({payload, type: getTeamRetentionPolicy})
+export const createGetTeamRetentionPolicy = (payload: {readonly teamID: Types.TeamID}) => ({
+  payload,
+  type: getTeamRetentionPolicy as typeof getTeamRetentionPolicy,
+})
 /**
  * Load info for rendering the channel list on the team page.
  */
-export const createLoadTeamChannelList = (
-  payload: _LoadTeamChannelListPayload
-): LoadTeamChannelListPayload => ({payload, type: loadTeamChannelList})
+export const createLoadTeamChannelList = (payload: {readonly teamID: Types.TeamID}) => ({
+  payload,
+  type: loadTeamChannelList as typeof loadTeamChannelList,
+})
 /**
  * Load team details if we are stale.
  *
  * `_subscribe` is for use by teams/subscriber only.
  */
-export const createLoadTeam = (payload: _LoadTeamPayload): LoadTeamPayload => ({payload, type: loadTeam})
+export const createLoadTeam = (payload: {readonly _subscribe?: boolean; readonly teamID: Types.TeamID}) => ({
+  payload,
+  type: loadTeam as typeof loadTeam,
+})
 /**
  * Load team list if we are stale.
  *
  * `_subscribe` is for use by teams/subscriber only.
  */
-export const createGetTeams = (payload: _GetTeamsPayload = Object.freeze({})): GetTeamsPayload => ({
-  payload,
-  type: getTeams,
-})
+export const createGetTeams = (
+  payload: {readonly _subscribe?: boolean; readonly forceReload?: boolean} = {}
+) => ({payload, type: getTeams as typeof getTeams})
 /**
  * Load welcome message for new team members
  */
-export const createLoadWelcomeMessage = (payload: _LoadWelcomeMessagePayload): LoadWelcomeMessagePayload => ({
+export const createLoadWelcomeMessage = (payload: {readonly teamID: Types.TeamID}) => ({
   payload,
-  type: loadWelcomeMessage,
+  type: loadWelcomeMessage as typeof loadWelcomeMessage,
 })
 /**
  * Loaded channel list for team.
  */
-export const createTeamChannelListLoaded = (
-  payload: _TeamChannelListLoadedPayload
-): TeamChannelListLoadedPayload => ({payload, type: teamChannelListLoaded})
+export const createTeamChannelListLoaded = (payload: {
+  readonly teamID: Types.TeamID
+  readonly channels: Map<ChatTypes.ConversationIDKey, Types.TeamChannelInfo>
+}) => ({payload, type: teamChannelListLoaded as typeof teamChannelListLoaded})
 /**
  * Loaded welcome message for new team members
  */
-export const createLoadedWelcomeMessage = (
-  payload: _LoadedWelcomeMessagePayload
-): LoadedWelcomeMessagePayload => ({payload, type: loadedWelcomeMessage})
+export const createLoadedWelcomeMessage = (payload: {
+  readonly teamID: Types.TeamID
+  readonly message: RPCChatTypes.WelcomeMessageDisplay
+}) => ({payload, type: loadedWelcomeMessage as typeof loadedWelcomeMessage})
 /**
  * Nav away from add members wizard and clear related state.
  */
-export const createCancelAddMembersWizard = (
-  payload?: _CancelAddMembersWizardPayload
-): CancelAddMembersWizardPayload => ({payload, type: cancelAddMembersWizard})
+export const createCancelAddMembersWizard = (payload?: undefined) => ({
+  payload,
+  type: cancelAddMembersWizard as typeof cancelAddMembersWizard,
+})
 /**
  * Nav away from add members wizard and clear related state.
  */
-export const createFinishedAddMembersWizard = (
-  payload?: _FinishedAddMembersWizardPayload
-): FinishedAddMembersWizardPayload => ({payload, type: finishedAddMembersWizard})
+export const createFinishedAddMembersWizard = (payload?: undefined) => ({
+  payload,
+  type: finishedAddMembersWizard as typeof finishedAddMembersWizard,
+})
 /**
  * Remove a pending member from the add members wizard.
  */
-export const createAddMembersWizardRemoveMember = (
-  payload: _AddMembersWizardRemoveMemberPayload
-): AddMembersWizardRemoveMemberPayload => ({payload, type: addMembersWizardRemoveMember})
+export const createAddMembersWizardRemoveMember = (payload: {readonly assertion: string}) => ({
+  payload,
+  type: addMembersWizardRemoveMember as typeof addMembersWizardRemoveMember,
+})
 /**
  * Rename a subteam
  */
-export const createRenameTeam = (payload: _RenameTeamPayload): RenameTeamPayload => ({
+export const createRenameTeam = (payload: {readonly oldName: string; readonly newName: string}) => ({
   payload,
-  type: renameTeam,
+  type: renameTeam as typeof renameTeam,
 })
 /**
  * Saves the details from the API in the store, prompting the user to make a decision
  */
-export const createUpdateInviteLinkDetails = (
-  payload: _UpdateInviteLinkDetailsPayload
-): UpdateInviteLinkDetailsPayload => ({payload, type: updateInviteLinkDetails})
+export const createUpdateInviteLinkDetails = (payload: {readonly details: RPCTypes.InviteLinkDetails}) => ({
+  payload,
+  type: updateInviteLinkDetails as typeof updateInviteLinkDetails,
+})
 /**
  * Set filtering and sort order for main team list. Leaves existing for undefinted params.
  */
 export const createSetTeamListFilterSort = (
-  payload: _SetTeamListFilterSortPayload = Object.freeze({})
-): SetTeamListFilterSortPayload => ({payload, type: setTeamListFilterSort})
+  payload: {readonly filter?: string; readonly sortOrder?: Types.TeamListSort} = {}
+) => ({payload, type: setTeamListFilterSort as typeof setTeamListFilterSort})
 /**
  * Set filtering for the subteams tab.
  */
-export const createSetSubteamFilter = (payload: _SetSubteamFilterPayload): SetSubteamFilterPayload => ({
-  payload,
-  type: setSubteamFilter,
-})
+export const createSetSubteamFilter = (payload: {
+  readonly filter: string
+  readonly parentTeam?: Types.TeamID
+}) => ({payload, type: setSubteamFilter as typeof setSubteamFilter})
 /**
  * Set map of activity levels for all teams and channels.
  */
-export const createSetActivityLevels = (payload: _SetActivityLevelsPayload): SetActivityLevelsPayload => ({
+export const createSetActivityLevels = (payload: {readonly levels: Types.ActivityLevels}) => ({
   payload,
-  type: setActivityLevels,
+  type: setActivityLevels as typeof setActivityLevels,
 })
 /**
  * Set the role for a pending member in the add member wizard.
  */
-export const createSetAddMembersWizardIndividualRole = (
-  payload: _SetAddMembersWizardIndividualRolePayload
-): SetAddMembersWizardIndividualRolePayload => ({payload, type: setAddMembersWizardIndividualRole})
+export const createSetAddMembersWizardIndividualRole = (payload: {
+  readonly assertion: string
+  readonly role: Types.AddingMemberTeamRoleType
+}) => ({payload, type: setAddMembersWizardIndividualRole as typeof setAddMembersWizardIndividualRole})
 /**
  * Set the role for the add members wizard.
  */
-export const createSetAddMembersWizardRole = (
-  payload: _SetAddMembersWizardRolePayload
-): SetAddMembersWizardRolePayload => ({payload, type: setAddMembersWizardRole})
+export const createSetAddMembersWizardRole = (payload: {
+  readonly role: Types.AddingMemberTeamRoleType | 'setIndividually'
+}) => ({payload, type: setAddMembersWizardRole as typeof setAddMembersWizardRole})
 /**
  * Set welcome message for new team members
  */
-export const createSetWelcomeMessage = (payload: _SetWelcomeMessagePayload): SetWelcomeMessagePayload => ({
-  payload,
-  type: setWelcomeMessage,
-})
+export const createSetWelcomeMessage = (payload: {
+  readonly teamID: Types.TeamID
+  readonly message: RPCChatTypes.WelcomeMessage
+}) => ({payload, type: setWelcomeMessage as typeof setWelcomeMessage})
 /**
  * Set which requests we haven't seen yet for a team.
  */
-export const createSetNewTeamRequests = (payload: _SetNewTeamRequestsPayload): SetNewTeamRequestsPayload => ({
-  payload,
-  type: setNewTeamRequests,
-})
+export const createSetNewTeamRequests = (payload: {
+  readonly newTeamRequests: Map<Types.TeamID, Set<string>>
+}) => ({payload, type: setNewTeamRequests as typeof setNewTeamRequests})
 /**
  * Sets the retention policy for a team. The store will be updated automatically.
  */
-export const createSaveTeamRetentionPolicy = (
-  payload: _SaveTeamRetentionPolicyPayload
-): SaveTeamRetentionPolicyPayload => ({payload, type: saveTeamRetentionPolicy})
+export const createSaveTeamRetentionPolicy = (payload: {
+  readonly teamID: Types.TeamID
+  readonly policy: RetentionPolicy
+}) => ({payload, type: saveTeamRetentionPolicy as typeof saveTeamRetentionPolicy})
 /**
  * Sets whether a channel is selected on the team page
  */
-export const createSetChannelSelected = (payload: _SetChannelSelectedPayload): SetChannelSelectedPayload => ({
-  payload,
-  type: setChannelSelected,
-})
+export const createSetChannelSelected = (payload: {
+  readonly teamID: Types.TeamID
+  readonly channel: string
+  readonly selected: boolean
+  readonly clearAll?: boolean
+}) => ({payload, type: setChannelSelected as typeof setChannelSelected})
 /**
  * Sets whether a member is selected on the team page
  */
-export const createChannelSetMemberSelected = (
-  payload: _ChannelSetMemberSelectedPayload
-): ChannelSetMemberSelectedPayload => ({payload, type: channelSetMemberSelected})
+export const createChannelSetMemberSelected = (payload: {
+  readonly conversationIDKey: ChatTypes.ConversationIDKey
+  readonly username: string
+  readonly selected: boolean
+  readonly clearAll?: boolean
+}) => ({payload, type: channelSetMemberSelected as typeof channelSetMemberSelected})
 /**
  * Sets whether a member is selected on the team page
  */
-export const createTeamSetMemberSelected = (
-  payload: _TeamSetMemberSelectedPayload
-): TeamSetMemberSelectedPayload => ({payload, type: teamSetMemberSelected})
+export const createTeamSetMemberSelected = (payload: {
+  readonly teamID: Types.TeamID
+  readonly username: string
+  readonly selected: boolean
+  readonly clearAll?: boolean
+}) => ({payload, type: teamSetMemberSelected as typeof teamSetMemberSelected})
 /**
  * Setup store and navigate to start of add members wizard.
  */
-export const createStartAddMembersWizard = (
-  payload: _StartAddMembersWizardPayload
-): StartAddMembersWizardPayload => ({payload, type: startAddMembersWizard})
+export const createStartAddMembersWizard = (payload: {readonly teamID: Types.TeamID}) => ({
+  payload,
+  type: startAddMembersWizard as typeof startAddMembersWizard,
+})
 /**
  * Should be called when user is trying to add new assertions to the wizard
  */
-export const createAddMembersWizardPushMembers = (
-  payload: _AddMembersWizardPushMembersPayload
-): AddMembersWizardPushMembersPayload => ({payload, type: addMembersWizardPushMembers})
+export const createAddMembersWizardPushMembers = (payload: {
+  readonly members: Array<Types.AddingMember>
+}) => ({payload, type: addMembersWizardPushMembers as typeof addMembersWizardPushMembers})
 /**
  * Stop listening for team details for this team
  */
-export const createUnsubscribeTeamDetails = (
-  payload: _UnsubscribeTeamDetailsPayload
-): UnsubscribeTeamDetailsPayload => ({payload, type: unsubscribeTeamDetails})
+export const createUnsubscribeTeamDetails = (payload: {readonly teamID: Types.TeamID}) => ({
+  payload,
+  type: unsubscribeTeamDetails as typeof unsubscribeTeamDetails,
+})
 /**
  * Takes a member list and appends it to wizard state, using assertionsInTeam as a filter. When filtering, it also maintains membersAlreadyInTeam list.
  */
-export const createAddMembersWizardAddMembers = (
-  payload: _AddMembersWizardAddMembersPayload
-): AddMembersWizardAddMembersPayload => ({payload, type: addMembersWizardAddMembers})
+export const createAddMembersWizardAddMembers = (payload: {
+  readonly members: Array<Types.AddingMember>
+  readonly assertionsInTeam: Array<string>
+}) => ({payload, type: addMembersWizardAddMembers as typeof addMembersWizardAddMembers})
 /**
  * Toggle whether invites are collapsed in the member list for this team
  */
-export const createToggleInvitesCollapsed = (
-  payload: _ToggleInvitesCollapsedPayload
-): ToggleInvitesCollapsedPayload => ({payload, type: toggleInvitesCollapsed})
+export const createToggleInvitesCollapsed = (payload: {readonly teamID: Types.TeamID}) => ({
+  payload,
+  type: toggleInvitesCollapsed as typeof toggleInvitesCollapsed,
+})
 /**
  * Tries to show a team with this name whether the user is in the team or not.
  * For teams we are not in:
  * - with teamsRedesign on go to external team page
  * - with teamsRedesign off noop
  */
-export const createShowTeamByName = (payload: _ShowTeamByNamePayload): ShowTeamByNamePayload => ({
-  payload,
-  type: showTeamByName,
-})
+export const createShowTeamByName = (payload: {
+  readonly teamname: string
+  readonly initialTab?: Types.TabKey
+  readonly join?: boolean
+  readonly addMembers?: boolean
+}) => ({payload, type: showTeamByName as typeof showTeamByName})
 /**
  * User has viewed this team. Clear related badges.
  */
-export const createTeamSeen = (payload: _TeamSeenPayload): TeamSeenPayload => ({payload, type: teamSeen})
+export const createTeamSeen = (payload: {readonly teamID: Types.TeamID}) => ({
+  payload,
+  type: teamSeen as typeof teamSeen,
+})
 /**
  * We successfully left a team
  */
-export const createLeftTeam = (payload: _LeftTeamPayload): LeftTeamPayload => ({payload, type: leftTeam})
-export const createAddParticipant = (payload: _AddParticipantPayload): AddParticipantPayload => ({
+export const createLeftTeam = (payload: {readonly teamname: string; readonly context: 'teams' | 'chat'}) => ({
   payload,
-  type: addParticipant,
+  type: leftTeam as typeof leftTeam,
 })
-export const createAddTeamWithChosenChannels = (
-  payload: _AddTeamWithChosenChannelsPayload
-): AddTeamWithChosenChannelsPayload => ({payload, type: addTeamWithChosenChannels})
-export const createAddToTeam = (payload: _AddToTeamPayload): AddToTeamPayload => ({payload, type: addToTeam})
-export const createAddUserToTeams = (payload: _AddUserToTeamsPayload): AddUserToTeamsPayload => ({
+export const createAddParticipant = (payload: {
+  readonly teamID: Types.TeamID
+  readonly conversationIDKey: ChatTypes.ConversationIDKey
+}) => ({payload, type: addParticipant as typeof addParticipant})
+export const createAddTeamWithChosenChannels = (payload: {readonly teamID: Types.TeamID}) => ({
   payload,
-  type: addUserToTeams,
+  type: addTeamWithChosenChannels as typeof addTeamWithChosenChannels,
 })
-export const createAddedToTeam = (payload: _AddedToTeamPayload = Object.freeze({})): AddedToTeamPayload => ({
+export const createAddToTeam = (payload: {
+  readonly teamID: Types.TeamID
+  readonly users: Array<{assertion: string; role: Types.TeamRoleType}>
+  readonly sendChatNotification: boolean
+  readonly fromTeamBuilder?: boolean
+}) => ({payload, type: addToTeam as typeof addToTeam})
+export const createAddUserToTeams = (payload: {
+  readonly role: Types.TeamRoleType
+  readonly teams: Array<string>
+  readonly user: string
+}) => ({payload, type: addUserToTeams as typeof addUserToTeams})
+export const createAddedToTeam = (
+  payload: {readonly error?: string; readonly fromTeamBuilder?: boolean} = {}
+) => ({payload, type: addedToTeam as typeof addedToTeam})
+export const createCheckRequestedAccess = (payload: {readonly teamname: string}) => ({
   payload,
-  type: addedToTeam,
+  type: checkRequestedAccess as typeof checkRequestedAccess,
 })
-export const createCheckRequestedAccess = (
-  payload: _CheckRequestedAccessPayload
-): CheckRequestedAccessPayload => ({payload, type: checkRequestedAccess})
-export const createClearAddUserToTeamsResults = (
-  payload?: _ClearAddUserToTeamsResultsPayload
-): ClearAddUserToTeamsResultsPayload => ({payload, type: clearAddUserToTeamsResults})
-export const createClearNavBadges = (payload?: _ClearNavBadgesPayload): ClearNavBadgesPayload => ({
+export const createClearAddUserToTeamsResults = (payload?: undefined) => ({
   payload,
-  type: clearNavBadges,
+  type: clearAddUserToTeamsResults as typeof clearAddUserToTeamsResults,
 })
-export const createCreateChannel = (payload: _CreateChannelPayload): CreateChannelPayload => ({
+export const createClearNavBadges = (payload?: undefined) => ({
   payload,
-  type: createChannel,
+  type: clearNavBadges as typeof clearNavBadges,
 })
-export const createCreateChannels = (payload: _CreateChannelsPayload): CreateChannelsPayload => ({
+export const createCreateChannel = (payload: {
+  readonly teamID: Types.TeamID
+  readonly channelname: string
+  readonly description: string | null
+  readonly navToChatOnSuccess: boolean
+}) => ({payload, type: createChannel as typeof createChannel})
+export const createCreateChannels = (payload: {
+  readonly teamID: Types.TeamID
+  readonly channelnames: Array<string>
+}) => ({payload, type: createChannels as typeof createChannels})
+export const createCreateNewTeam = (payload: {
+  readonly fromChat?: boolean
+  readonly joinSubteam: boolean
+  readonly teamname: string
+  readonly thenAddMembers?: {
+    users: Array<{assertion: string; role: Types.TeamRoleType}>
+    sendChatNotification: boolean
+    fromTeamBuilder?: boolean
+  }
+}) => ({payload, type: createNewTeam as typeof createNewTeam})
+export const createCreateNewTeamFromConversation = (payload: {
+  readonly conversationIDKey: ChatTypes.ConversationIDKey
+  readonly teamname: string
+}) => ({payload, type: createNewTeamFromConversation as typeof createNewTeamFromConversation})
+export const createDeleteChannelConfirmed = (payload: {
+  readonly teamID: Types.TeamID
+  readonly conversationIDKey: ChatTypes.ConversationIDKey
+}) => ({payload, type: deleteChannelConfirmed as typeof deleteChannelConfirmed})
+export const createDeleteMultiChannelsConfirmed = (payload: {
+  readonly teamID: Types.TeamID
+  readonly channels: Array<ChatTypes.ConversationIDKey>
+}) => ({payload, type: deleteMultiChannelsConfirmed as typeof deleteMultiChannelsConfirmed})
+export const createDeleteTeam = (payload: {readonly teamID: Types.TeamID}) => ({
   payload,
-  type: createChannels,
+  type: deleteTeam as typeof deleteTeam,
 })
-export const createCreateNewTeam = (payload: _CreateNewTeamPayload): CreateNewTeamPayload => ({
+export const createEditTeamDescription = (payload: {
+  readonly teamID: Types.TeamID
+  readonly description: string
+}) => ({payload, type: editTeamDescription as typeof editTeamDescription})
+export const createFinishNewTeamWizard = (payload?: undefined) => ({
   payload,
-  type: createNewTeam,
+  type: finishNewTeamWizard as typeof finishNewTeamWizard,
 })
-export const createCreateNewTeamFromConversation = (
-  payload: _CreateNewTeamFromConversationPayload
-): CreateNewTeamFromConversationPayload => ({payload, type: createNewTeamFromConversation})
-export const createDeleteChannelConfirmed = (
-  payload: _DeleteChannelConfirmedPayload
-): DeleteChannelConfirmedPayload => ({payload, type: deleteChannelConfirmed})
-export const createDeleteMultiChannelsConfirmed = (
-  payload: _DeleteMultiChannelsConfirmedPayload
-): DeleteMultiChannelsConfirmedPayload => ({payload, type: deleteMultiChannelsConfirmed})
-export const createDeleteTeam = (payload: _DeleteTeamPayload): DeleteTeamPayload => ({
+export const createGetMembers = (payload: {readonly teamID: Types.TeamID}) => ({
   payload,
-  type: deleteTeam,
+  type: getMembers as typeof getMembers,
 })
-export const createEditTeamDescription = (
-  payload: _EditTeamDescriptionPayload
-): EditTeamDescriptionPayload => ({payload, type: editTeamDescription})
-export const createFinishNewTeamWizard = (
-  payload?: _FinishNewTeamWizardPayload
-): FinishNewTeamWizardPayload => ({payload, type: finishNewTeamWizard})
-export const createGetMembers = (payload: _GetMembersPayload): GetMembersPayload => ({
+export const createGetTeamProfileAddList = (payload: {readonly username: string}) => ({
   payload,
-  type: getMembers,
+  type: getTeamProfileAddList as typeof getTeamProfileAddList,
 })
-export const createGetTeamProfileAddList = (
-  payload: _GetTeamProfileAddListPayload
-): GetTeamProfileAddListPayload => ({payload, type: getTeamProfileAddList})
-export const createIgnoreRequest = (payload: _IgnoreRequestPayload): IgnoreRequestPayload => ({
+export const createIgnoreRequest = (payload: {
+  readonly teamID: Types.TeamID
+  readonly teamname: string
+  readonly username: string
+}) => ({payload, type: ignoreRequest as typeof ignoreRequest})
+export const createInviteToTeamByEmail = (payload: {
+  readonly invitees: string
+  readonly role: Types.TeamRoleType
+  readonly teamID: Types.TeamID
+  readonly teamname: string
+  readonly loadingKey?: string
+}) => ({payload, type: inviteToTeamByEmail as typeof inviteToTeamByEmail})
+export const createInviteToTeamByPhone = (payload: {
+  readonly teamID: Types.TeamID
+  readonly teamname: string
+  readonly role: Types.TeamRoleType
+  readonly phoneNumber: string
+  readonly fullName: string
+  readonly loadingKey?: string
+}) => ({payload, type: inviteToTeamByPhone as typeof inviteToTeamByPhone})
+export const createLaunchNewTeamWizardOrModal = (payload: {readonly subteamOf?: Types.TeamID} = {}) => ({
   payload,
-  type: ignoreRequest,
+  type: launchNewTeamWizardOrModal as typeof launchNewTeamWizardOrModal,
 })
-export const createInviteToTeamByEmail = (
-  payload: _InviteToTeamByEmailPayload
-): InviteToTeamByEmailPayload => ({payload, type: inviteToTeamByEmail})
-export const createInviteToTeamByPhone = (
-  payload: _InviteToTeamByPhonePayload
-): InviteToTeamByPhonePayload => ({payload, type: inviteToTeamByPhone})
-export const createLaunchNewTeamWizardOrModal = (
-  payload: _LaunchNewTeamWizardOrModalPayload = Object.freeze({})
-): LaunchNewTeamWizardOrModalPayload => ({payload, type: launchNewTeamWizardOrModal})
-export const createLeaveTeam = (payload: _LeaveTeamPayload): LeaveTeamPayload => ({payload, type: leaveTeam})
-export const createLoadTeamTree = (payload: _LoadTeamTreePayload): LoadTeamTreePayload => ({
+export const createLeaveTeam = (payload: {
+  readonly teamname: string
+  readonly permanent: boolean
+  readonly context: 'teams' | 'chat'
+}) => ({payload, type: leaveTeam as typeof leaveTeam})
+export const createLoadTeamTree = (payload: {readonly teamID: Types.TeamID; readonly username: string}) => ({
   payload,
-  type: loadTeamTree,
+  type: loadTeamTree as typeof loadTeamTree,
 })
-export const createManageChatChannels = (payload: _ManageChatChannelsPayload): ManageChatChannelsPayload => ({
+export const createManageChatChannels = (payload: {readonly teamID: Types.TeamID}) => ({
   payload,
-  type: manageChatChannels,
+  type: manageChatChannels as typeof manageChatChannels,
 })
-export const createReAddToTeam = (payload: _ReAddToTeamPayload): ReAddToTeamPayload => ({
+export const createReAddToTeam = (payload: {readonly teamID: Types.TeamID; readonly username: string}) => ({
   payload,
-  type: reAddToTeam,
+  type: reAddToTeam as typeof reAddToTeam,
 })
-export const createRemoveMember = (payload: _RemoveMemberPayload): RemoveMemberPayload => ({
+export const createRemoveMember = (payload: {readonly teamID: Types.TeamID; readonly username: string}) => ({
   payload,
-  type: removeMember,
+  type: removeMember as typeof removeMember,
 })
-export const createRemoveParticipant = (payload: _RemoveParticipantPayload): RemoveParticipantPayload => ({
+export const createRemoveParticipant = (payload: {
+  readonly teamID: Types.TeamID
+  readonly conversationIDKey: ChatTypes.ConversationIDKey
+}) => ({payload, type: removeParticipant as typeof removeParticipant})
+export const createRemovePendingInvite = (payload: {
+  readonly teamID: Types.TeamID
+  readonly inviteID: string
+}) => ({payload, type: removePendingInvite as typeof removePendingInvite})
+export const createSaveChannelMembership = (payload: {
+  readonly teamID: Types.TeamID
+  readonly oldChannelState: Types.ChannelMembershipState
+  readonly newChannelState: Types.ChannelMembershipState
+}) => ({payload, type: saveChannelMembership as typeof saveChannelMembership})
+export const createSetAddUserToTeamsResults = (payload: {
+  readonly error: boolean
+  readonly results: string
+}) => ({payload, type: setAddUserToTeamsResults as typeof setAddUserToTeamsResults})
+export const createSetChannelCreationError = (payload: {readonly error: string}) => ({
   payload,
-  type: removeParticipant,
+  type: setChannelCreationError as typeof setChannelCreationError,
 })
-export const createRemovePendingInvite = (
-  payload: _RemovePendingInvitePayload
-): RemovePendingInvitePayload => ({payload, type: removePendingInvite})
-export const createSaveChannelMembership = (
-  payload: _SaveChannelMembershipPayload
-): SaveChannelMembershipPayload => ({payload, type: saveChannelMembership})
-export const createSetAddUserToTeamsResults = (
-  payload: _SetAddUserToTeamsResultsPayload
-): SetAddUserToTeamsResultsPayload => ({payload, type: setAddUserToTeamsResults})
-export const createSetChannelCreationError = (
-  payload: _SetChannelCreationErrorPayload
-): SetChannelCreationErrorPayload => ({payload, type: setChannelCreationError})
-export const createSetCreatingChannels = (
-  payload: _SetCreatingChannelsPayload
-): SetCreatingChannelsPayload => ({payload, type: setCreatingChannels})
-export const createSetEditDescriptionError = (
-  payload: _SetEditDescriptionErrorPayload
-): SetEditDescriptionErrorPayload => ({payload, type: setEditDescriptionError})
-export const createSetEditMemberError = (payload: _SetEditMemberErrorPayload): SetEditMemberErrorPayload => ({
+export const createSetCreatingChannels = (payload: {readonly creatingChannels: boolean}) => ({
   payload,
-  type: setEditMemberError,
+  type: setCreatingChannels as typeof setCreatingChannels,
 })
-export const createSetEmailInviteError = (
-  payload: _SetEmailInviteErrorPayload
-): SetEmailInviteErrorPayload => ({payload, type: setEmailInviteError})
-export const createSetJustFinishedAddMembersWizard = (
-  payload: _SetJustFinishedAddMembersWizardPayload
-): SetJustFinishedAddMembersWizardPayload => ({payload, type: setJustFinishedAddMembersWizard})
-export const createSetMemberActivityDetails = (
-  payload: _SetMemberActivityDetailsPayload
-): SetMemberActivityDetailsPayload => ({payload, type: setMemberActivityDetails})
-export const createSetMemberPublicity = (payload: _SetMemberPublicityPayload): SetMemberPublicityPayload => ({
+export const createSetEditDescriptionError = (payload: {readonly error: string}) => ({
   payload,
-  type: setMemberPublicity,
+  type: setEditDescriptionError as typeof setEditDescriptionError,
 })
-export const createSetMembers = (payload: _SetMembersPayload): SetMembersPayload => ({
+export const createSetEditMemberError = (payload: {
+  readonly error: string
+  readonly teamID: Types.TeamID
+  readonly username: string
+}) => ({payload, type: setEditMemberError as typeof setEditMemberError})
+export const createSetEmailInviteError = (payload: {
+  readonly message: string
+  readonly malformed: Array<string>
+}) => ({payload, type: setEmailInviteError as typeof setEmailInviteError})
+export const createSetJustFinishedAddMembersWizard = (payload: {readonly justFinished: boolean}) => ({
   payload,
-  type: setMembers,
+  type: setJustFinishedAddMembersWizard as typeof setJustFinishedAddMembersWizard,
 })
-export const createSetNewTeamInfo = (payload: _SetNewTeamInfoPayload): SetNewTeamInfoPayload => ({
+export const createSetMemberActivityDetails = (payload: {
+  readonly activityMap: Map<Types.TeamID, number>
+  readonly username: string
+}) => ({payload, type: setMemberActivityDetails as typeof setMemberActivityDetails})
+export const createSetMemberPublicity = (payload: {
+  readonly teamID: Types.TeamID
+  readonly showcase: boolean
+}) => ({payload, type: setMemberPublicity as typeof setMemberPublicity})
+export const createSetMembers = (payload: {
+  readonly teamID: Types.TeamID
+  readonly members: Map<string, Types.MemberInfo>
+}) => ({payload, type: setMembers as typeof setMembers})
+export const createSetNewTeamInfo = (payload: {
+  readonly deletedTeams: Array<RPCTypes.DeletedTeamInfo>
+  readonly newTeams: Set<Types.TeamID>
+  readonly teamIDToResetUsers: Map<Types.TeamID, Set<string>>
+}) => ({payload, type: setNewTeamInfo as typeof setNewTeamInfo})
+export const createSetPublicity = (payload: {
+  readonly teamID: Types.TeamID
+  readonly settings: Types.PublicitySettings
+}) => ({payload, type: setPublicity as typeof setPublicity})
+export const createSetTeamAccessRequestsPending = (payload: {
+  readonly accessRequestsPending: Set<Types.Teamname>
+}) => ({payload, type: setTeamAccessRequestsPending as typeof setTeamAccessRequestsPending})
+export const createSetTeamCreationError = (payload: {readonly error: string}) => ({
   payload,
-  type: setNewTeamInfo,
+  type: setTeamCreationError as typeof setTeamCreationError,
 })
-export const createSetPublicity = (payload: _SetPublicityPayload): SetPublicityPayload => ({
+export const createSetTeamInfo = (payload: {
+  readonly teamnames: Set<Types.Teamname>
+  readonly teamNameToID: Map<Types.Teamname, string>
+  readonly teamMeta: Map<Types.TeamID, Types.TeamMeta>
+}) => ({payload, type: setTeamInfo as typeof setTeamInfo})
+export const createSetTeamInviteError = (payload: {readonly error: string}) => ({
   payload,
-  type: setPublicity,
+  type: setTeamInviteError as typeof setTeamInviteError,
 })
-export const createSetTeamAccessRequestsPending = (
-  payload: _SetTeamAccessRequestsPendingPayload
-): SetTeamAccessRequestsPendingPayload => ({payload, type: setTeamAccessRequestsPending})
-export const createSetTeamCreationError = (
-  payload: _SetTeamCreationErrorPayload
-): SetTeamCreationErrorPayload => ({payload, type: setTeamCreationError})
-export const createSetTeamInfo = (payload: _SetTeamInfoPayload): SetTeamInfoPayload => ({
+export const createSetTeamJoinError = (payload: {readonly error: string}) => ({
   payload,
-  type: setTeamInfo,
+  type: setTeamJoinError as typeof setTeamJoinError,
 })
-export const createSetTeamInviteError = (payload: _SetTeamInviteErrorPayload): SetTeamInviteErrorPayload => ({
+export const createSetTeamJoinSuccess = (payload: {
+  readonly open: boolean
+  readonly success: boolean
+  readonly teamname: string
+}) => ({payload, type: setTeamJoinSuccess as typeof setTeamJoinSuccess})
+export const createSetTeamLoadingInvites = (payload: {
+  readonly teamname: string
+  readonly loadingKey: string
+  readonly isLoading: boolean
+}) => ({payload, type: setTeamLoadingInvites as typeof setTeamLoadingInvites})
+export const createSetTeamProfileAddList = (payload: {
+  readonly teamlist: Array<Types.TeamProfileAddList>
+}) => ({payload, type: setTeamProfileAddList as typeof setTeamProfileAddList})
+export const createSetTeamRetentionPolicy = (payload: {
+  readonly teamID: Types.TeamID
+  readonly retentionPolicy: RetentionPolicy
+}) => ({payload, type: setTeamRetentionPolicy as typeof setTeamRetentionPolicy})
+export const createSetTeamRoleMap = (payload: {readonly map: Types.TeamRoleMap}) => ({
   payload,
-  type: setTeamInviteError,
+  type: setTeamRoleMap as typeof setTeamRoleMap,
 })
-export const createSetTeamJoinError = (payload: _SetTeamJoinErrorPayload): SetTeamJoinErrorPayload => ({
+export const createSetTeamRoleMapLatestKnownVersion = (payload: {readonly version: number}) => ({
   payload,
-  type: setTeamJoinError,
+  type: setTeamRoleMapLatestKnownVersion as typeof setTeamRoleMapLatestKnownVersion,
 })
-export const createSetTeamJoinSuccess = (payload: _SetTeamJoinSuccessPayload): SetTeamJoinSuccessPayload => ({
+export const createSetTeamSawChatBanner = (payload?: undefined) => ({
   payload,
-  type: setTeamJoinSuccess,
+  type: setTeamSawChatBanner as typeof setTeamSawChatBanner,
 })
-export const createSetTeamLoadingInvites = (
-  payload: _SetTeamLoadingInvitesPayload
-): SetTeamLoadingInvitesPayload => ({payload, type: setTeamLoadingInvites})
-export const createSetTeamProfileAddList = (
-  payload: _SetTeamProfileAddListPayload
-): SetTeamProfileAddListPayload => ({payload, type: setTeamProfileAddList})
-export const createSetTeamRetentionPolicy = (
-  payload: _SetTeamRetentionPolicyPayload
-): SetTeamRetentionPolicyPayload => ({payload, type: setTeamRetentionPolicy})
-export const createSetTeamRoleMap = (payload: _SetTeamRoleMapPayload): SetTeamRoleMapPayload => ({
+export const createSetTeamSawSubteamsBanner = (payload?: undefined) => ({
   payload,
-  type: setTeamRoleMap,
+  type: setTeamSawSubteamsBanner as typeof setTeamSawSubteamsBanner,
 })
-export const createSetTeamRoleMapLatestKnownVersion = (
-  payload: _SetTeamRoleMapLatestKnownVersionPayload
-): SetTeamRoleMapLatestKnownVersionPayload => ({payload, type: setTeamRoleMapLatestKnownVersion})
-export const createSetTeamSawChatBanner = (
-  payload?: _SetTeamSawChatBannerPayload
-): SetTeamSawChatBannerPayload => ({payload, type: setTeamSawChatBanner})
-export const createSetTeamSawSubteamsBanner = (
-  payload?: _SetTeamSawSubteamsBannerPayload
-): SetTeamSawSubteamsBannerPayload => ({payload, type: setTeamSawSubteamsBanner})
-export const createSetTeamVersion = (payload: _SetTeamVersionPayload): SetTeamVersionPayload => ({
-  payload,
-  type: setTeamVersion,
-})
+export const createSetTeamVersion = (payload: {
+  readonly teamID: Types.TeamID
+  readonly version: Types.TeamVersion
+}) => ({payload, type: setTeamVersion as typeof setTeamVersion})
 export const createSetTeamWizardAvatar = (
-  payload: _SetTeamWizardAvatarPayload = Object.freeze({})
-): SetTeamWizardAvatarPayload => ({payload, type: setTeamWizardAvatar})
-export const createSetTeamWizardChannels = (
-  payload: _SetTeamWizardChannelsPayload
-): SetTeamWizardChannelsPayload => ({payload, type: setTeamWizardChannels})
-export const createSetTeamWizardError = (payload: _SetTeamWizardErrorPayload): SetTeamWizardErrorPayload => ({
+  payload: {readonly crop?: Types.AvatarCrop; readonly filename?: string} = {}
+) => ({payload, type: setTeamWizardAvatar as typeof setTeamWizardAvatar})
+export const createSetTeamWizardChannels = (payload: {readonly channels: Array<string>}) => ({
   payload,
-  type: setTeamWizardError,
+  type: setTeamWizardChannels as typeof setTeamWizardChannels,
 })
-export const createSetTeamWizardNameDescription = (
-  payload: _SetTeamWizardNameDescriptionPayload
-): SetTeamWizardNameDescriptionPayload => ({payload, type: setTeamWizardNameDescription})
-export const createSetTeamWizardSubteamMembers = (
-  payload: _SetTeamWizardSubteamMembersPayload
-): SetTeamWizardSubteamMembersPayload => ({payload, type: setTeamWizardSubteamMembers})
-export const createSetTeamWizardSubteams = (
-  payload: _SetTeamWizardSubteamsPayload
-): SetTeamWizardSubteamsPayload => ({payload, type: setTeamWizardSubteams})
-export const createSetTeamWizardTeamSize = (
-  payload: _SetTeamWizardTeamSizePayload
-): SetTeamWizardTeamSizePayload => ({payload, type: setTeamWizardTeamSize})
-export const createSetTeamWizardTeamType = (
-  payload: _SetTeamWizardTeamTypePayload
-): SetTeamWizardTeamTypePayload => ({payload, type: setTeamWizardTeamType})
-export const createSetTeamsWithChosenChannels = (
-  payload: _SetTeamsWithChosenChannelsPayload
-): SetTeamsWithChosenChannelsPayload => ({payload, type: setTeamsWithChosenChannels})
-export const createSetUpdatedChannelName = (
-  payload: _SetUpdatedChannelNamePayload
-): SetUpdatedChannelNamePayload => ({payload, type: setUpdatedChannelName})
-export const createSetUpdatedTopic = (payload: _SetUpdatedTopicPayload): SetUpdatedTopicPayload => ({
+export const createSetTeamWizardError = (payload: {readonly error: string}) => ({
   payload,
-  type: setUpdatedTopic,
+  type: setTeamWizardError as typeof setTeamWizardError,
 })
-export const createSetWelcomeMessageError = (
-  payload: _SetWelcomeMessageErrorPayload
-): SetWelcomeMessageErrorPayload => ({payload, type: setWelcomeMessageError})
-export const createSettingsError = (payload: _SettingsErrorPayload): SettingsErrorPayload => ({
+export const createSetTeamWizardNameDescription = (payload: {
+  readonly teamname: string
+  readonly description: string
+  readonly openTeam: boolean
+  readonly openTeamJoinRole: Types.TeamRoleType
+  readonly profileShowcase: boolean
+  readonly addYourself: boolean
+}) => ({payload, type: setTeamWizardNameDescription as typeof setTeamWizardNameDescription})
+export const createSetTeamWizardSubteamMembers = (payload: {readonly members: Array<string>}) => ({
   payload,
-  type: settingsError,
+  type: setTeamWizardSubteamMembers as typeof setTeamWizardSubteamMembers,
 })
-export const createStartNewTeamWizard = (
-  payload?: _StartNewTeamWizardPayload
-): StartNewTeamWizardPayload => ({payload, type: startNewTeamWizard})
-export const createTeamCreated = (payload: _TeamCreatedPayload): TeamCreatedPayload => ({
+export const createSetTeamWizardSubteams = (payload: {readonly subteams: Array<string>}) => ({
   payload,
-  type: teamCreated,
+  type: setTeamWizardSubteams as typeof setTeamWizardSubteams,
 })
-export const createTeamLoaded = (payload: _TeamLoadedPayload): TeamLoadedPayload => ({
+export const createSetTeamWizardTeamSize = (payload: {readonly isBig: boolean}) => ({
   payload,
-  type: teamLoaded,
+  type: setTeamWizardTeamSize as typeof setTeamWizardTeamSize,
 })
-export const createUpdateChannelName = (payload: _UpdateChannelNamePayload): UpdateChannelNamePayload => ({
+export const createSetTeamWizardTeamType = (payload: {readonly teamType: Types.TeamWizardTeamType}) => ({
   payload,
-  type: updateChannelName,
+  type: setTeamWizardTeamType as typeof setTeamWizardTeamType,
 })
-export const createUpdateTopic = (payload: _UpdateTopicPayload): UpdateTopicPayload => ({
+export const createSetTeamsWithChosenChannels = (payload: {
+  readonly teamsWithChosenChannels: Set<Types.TeamID>
+}) => ({payload, type: setTeamsWithChosenChannels as typeof setTeamsWithChosenChannels})
+export const createSetUpdatedChannelName = (payload: {
+  readonly teamID: Types.TeamID
+  readonly conversationIDKey: ChatTypes.ConversationIDKey
+  readonly newChannelName: string
+}) => ({payload, type: setUpdatedChannelName as typeof setUpdatedChannelName})
+export const createSetUpdatedTopic = (payload: {
+  readonly teamID: Types.TeamID
+  readonly conversationIDKey: ChatTypes.ConversationIDKey
+  readonly newTopic: string
+}) => ({payload, type: setUpdatedTopic as typeof setUpdatedTopic})
+export const createSetWelcomeMessageError = (payload: {readonly error: string}) => ({
   payload,
-  type: updateTopic,
+  type: setWelcomeMessageError as typeof setWelcomeMessageError,
 })
-export const createUploadTeamAvatar = (payload: _UploadTeamAvatarPayload): UploadTeamAvatarPayload => ({
+export const createSettingsError = (payload: {readonly error: string}) => ({
   payload,
-  type: uploadTeamAvatar,
+  type: settingsError as typeof settingsError,
 })
+export const createStartNewTeamWizard = (payload?: undefined) => ({
+  payload,
+  type: startNewTeamWizard as typeof startNewTeamWizard,
+})
+export const createTeamCreated = (payload: {
+  readonly fromChat: boolean
+  readonly teamID: Types.TeamID
+  readonly teamname: string
+}) => ({payload, type: teamCreated as typeof teamCreated})
+export const createTeamLoaded = (payload: {
+  readonly teamID: Types.TeamID
+  readonly team: RPCTypes.AnnotatedTeam
+}) => ({payload, type: teamLoaded as typeof teamLoaded})
+export const createUpdateChannelName = (payload: {
+  readonly teamID: Types.TeamID
+  readonly conversationIDKey: ChatTypes.ConversationIDKey
+  readonly newChannelName: string
+}) => ({payload, type: updateChannelName as typeof updateChannelName})
+export const createUpdateTopic = (payload: {
+  readonly teamID: Types.TeamID
+  readonly conversationIDKey: ChatTypes.ConversationIDKey
+  readonly newTopic: string
+}) => ({payload, type: updateTopic as typeof updateTopic})
+export const createUploadTeamAvatar = (payload: {
+  readonly crop?: RPCTypes.ImageCropRect
+  readonly filename: string
+  readonly sendChatNotification: boolean
+  readonly teamname: string
+}) => ({payload, type: uploadTeamAvatar as typeof uploadTeamAvatar})
 
 // Action Payloads
-export type AddMembersWizardAddMembersPayload = {
-  readonly payload: _AddMembersWizardAddMembersPayload
-  readonly type: typeof addMembersWizardAddMembers
-}
-export type AddMembersWizardPushMembersPayload = {
-  readonly payload: _AddMembersWizardPushMembersPayload
-  readonly type: typeof addMembersWizardPushMembers
-}
-export type AddMembersWizardRemoveMemberPayload = {
-  readonly payload: _AddMembersWizardRemoveMemberPayload
-  readonly type: typeof addMembersWizardRemoveMember
-}
-export type AddMembersWizardSetDefaultChannelsPayload = {
-  readonly payload: _AddMembersWizardSetDefaultChannelsPayload
-  readonly type: typeof addMembersWizardSetDefaultChannels
-}
-export type AddParticipantPayload = {
-  readonly payload: _AddParticipantPayload
-  readonly type: typeof addParticipant
-}
-export type AddTeamWithChosenChannelsPayload = {
-  readonly payload: _AddTeamWithChosenChannelsPayload
-  readonly type: typeof addTeamWithChosenChannels
-}
-export type AddToTeamPayload = {readonly payload: _AddToTeamPayload; readonly type: typeof addToTeam}
-export type AddUserToTeamsPayload = {
-  readonly payload: _AddUserToTeamsPayload
-  readonly type: typeof addUserToTeams
-}
-export type AddedToTeamPayload = {readonly payload: _AddedToTeamPayload; readonly type: typeof addedToTeam}
-export type CancelAddMembersWizardPayload = {
-  readonly payload: _CancelAddMembersWizardPayload
-  readonly type: typeof cancelAddMembersWizard
-}
-export type ChannelSetMemberSelectedPayload = {
-  readonly payload: _ChannelSetMemberSelectedPayload
-  readonly type: typeof channelSetMemberSelected
-}
-export type CheckRequestedAccessPayload = {
-  readonly payload: _CheckRequestedAccessPayload
-  readonly type: typeof checkRequestedAccess
-}
-export type ClearAddUserToTeamsResultsPayload = {
-  readonly payload: _ClearAddUserToTeamsResultsPayload
-  readonly type: typeof clearAddUserToTeamsResults
-}
-export type ClearNavBadgesPayload = {
-  readonly payload: _ClearNavBadgesPayload
-  readonly type: typeof clearNavBadges
-}
-export type CreateChannelPayload = {
-  readonly payload: _CreateChannelPayload
-  readonly type: typeof createChannel
-}
-export type CreateChannelsPayload = {
-  readonly payload: _CreateChannelsPayload
-  readonly type: typeof createChannels
-}
-export type CreateNewTeamFromConversationPayload = {
-  readonly payload: _CreateNewTeamFromConversationPayload
-  readonly type: typeof createNewTeamFromConversation
-}
-export type CreateNewTeamPayload = {
-  readonly payload: _CreateNewTeamPayload
-  readonly type: typeof createNewTeam
-}
-export type DeleteChannelConfirmedPayload = {
-  readonly payload: _DeleteChannelConfirmedPayload
-  readonly type: typeof deleteChannelConfirmed
-}
-export type DeleteMultiChannelsConfirmedPayload = {
-  readonly payload: _DeleteMultiChannelsConfirmedPayload
-  readonly type: typeof deleteMultiChannelsConfirmed
-}
-export type DeleteTeamPayload = {readonly payload: _DeleteTeamPayload; readonly type: typeof deleteTeam}
-export type EditMembershipPayload = {
-  readonly payload: _EditMembershipPayload
-  readonly type: typeof editMembership
-}
-export type EditTeamDescriptionPayload = {
-  readonly payload: _EditTeamDescriptionPayload
-  readonly type: typeof editTeamDescription
-}
-export type FinishNewTeamWizardPayload = {
-  readonly payload: _FinishNewTeamWizardPayload
-  readonly type: typeof finishNewTeamWizard
-}
-export type FinishedAddMembersWizardPayload = {
-  readonly payload: _FinishedAddMembersWizardPayload
-  readonly type: typeof finishedAddMembersWizard
-}
-export type FinishedNewTeamWizardPayload = {
-  readonly payload: _FinishedNewTeamWizardPayload
-  readonly type: typeof finishedNewTeamWizard
-}
-export type GetActivityForTeamsPayload = {
-  readonly payload: _GetActivityForTeamsPayload
-  readonly type: typeof getActivityForTeams
-}
-export type GetMembersPayload = {readonly payload: _GetMembersPayload; readonly type: typeof getMembers}
-export type GetTeamProfileAddListPayload = {
-  readonly payload: _GetTeamProfileAddListPayload
-  readonly type: typeof getTeamProfileAddList
-}
-export type GetTeamRetentionPolicyPayload = {
-  readonly payload: _GetTeamRetentionPolicyPayload
-  readonly type: typeof getTeamRetentionPolicy
-}
-export type GetTeamsPayload = {readonly payload: _GetTeamsPayload; readonly type: typeof getTeams}
-export type IgnoreRequestPayload = {
-  readonly payload: _IgnoreRequestPayload
-  readonly type: typeof ignoreRequest
-}
-export type InviteToTeamByEmailPayload = {
-  readonly payload: _InviteToTeamByEmailPayload
-  readonly type: typeof inviteToTeamByEmail
-}
-export type InviteToTeamByPhonePayload = {
-  readonly payload: _InviteToTeamByPhonePayload
-  readonly type: typeof inviteToTeamByPhone
-}
-export type JoinTeamPayload = {readonly payload: _JoinTeamPayload; readonly type: typeof joinTeam}
-export type LaunchNewTeamWizardOrModalPayload = {
-  readonly payload: _LaunchNewTeamWizardOrModalPayload
-  readonly type: typeof launchNewTeamWizardOrModal
-}
-export type LeaveTeamPayload = {readonly payload: _LeaveTeamPayload; readonly type: typeof leaveTeam}
-export type LeftTeamPayload = {readonly payload: _LeftTeamPayload; readonly type: typeof leftTeam}
-export type LoadTeamChannelListPayload = {
-  readonly payload: _LoadTeamChannelListPayload
-  readonly type: typeof loadTeamChannelList
-}
-export type LoadTeamPayload = {readonly payload: _LoadTeamPayload; readonly type: typeof loadTeam}
-export type LoadTeamTreePayload = {readonly payload: _LoadTeamTreePayload; readonly type: typeof loadTeamTree}
-export type LoadWelcomeMessagePayload = {
-  readonly payload: _LoadWelcomeMessagePayload
-  readonly type: typeof loadWelcomeMessage
-}
-export type LoadedWelcomeMessagePayload = {
-  readonly payload: _LoadedWelcomeMessagePayload
-  readonly type: typeof loadedWelcomeMessage
-}
-export type ManageChatChannelsPayload = {
-  readonly payload: _ManageChatChannelsPayload
-  readonly type: typeof manageChatChannels
-}
-export type OpenInviteLinkPayload = {
-  readonly payload: _OpenInviteLinkPayload
-  readonly type: typeof openInviteLink
-}
-export type ReAddToTeamPayload = {readonly payload: _ReAddToTeamPayload; readonly type: typeof reAddToTeam}
-export type RemoveMemberPayload = {readonly payload: _RemoveMemberPayload; readonly type: typeof removeMember}
-export type RemoveParticipantPayload = {
-  readonly payload: _RemoveParticipantPayload
-  readonly type: typeof removeParticipant
-}
-export type RemovePendingInvitePayload = {
-  readonly payload: _RemovePendingInvitePayload
-  readonly type: typeof removePendingInvite
-}
-export type RenameTeamPayload = {readonly payload: _RenameTeamPayload; readonly type: typeof renameTeam}
-export type RequestInviteLinkDetailsPayload = {
-  readonly payload: _RequestInviteLinkDetailsPayload
-  readonly type: typeof requestInviteLinkDetails
-}
-export type RespondToInviteLinkPayload = {
-  readonly payload: _RespondToInviteLinkPayload
-  readonly type: typeof respondToInviteLink
-}
-export type SaveChannelMembershipPayload = {
-  readonly payload: _SaveChannelMembershipPayload
-  readonly type: typeof saveChannelMembership
-}
-export type SaveTeamRetentionPolicyPayload = {
-  readonly payload: _SaveTeamRetentionPolicyPayload
-  readonly type: typeof saveTeamRetentionPolicy
-}
-export type SetActivityLevelsPayload = {
-  readonly payload: _SetActivityLevelsPayload
-  readonly type: typeof setActivityLevels
-}
-export type SetAddMembersWizardIndividualRolePayload = {
-  readonly payload: _SetAddMembersWizardIndividualRolePayload
-  readonly type: typeof setAddMembersWizardIndividualRole
-}
-export type SetAddMembersWizardRolePayload = {
-  readonly payload: _SetAddMembersWizardRolePayload
-  readonly type: typeof setAddMembersWizardRole
-}
-export type SetAddUserToTeamsResultsPayload = {
-  readonly payload: _SetAddUserToTeamsResultsPayload
-  readonly type: typeof setAddUserToTeamsResults
-}
-export type SetChannelCreationErrorPayload = {
-  readonly payload: _SetChannelCreationErrorPayload
-  readonly type: typeof setChannelCreationError
-}
-export type SetChannelSelectedPayload = {
-  readonly payload: _SetChannelSelectedPayload
-  readonly type: typeof setChannelSelected
-}
-export type SetCreatingChannelsPayload = {
-  readonly payload: _SetCreatingChannelsPayload
-  readonly type: typeof setCreatingChannels
-}
-export type SetEditDescriptionErrorPayload = {
-  readonly payload: _SetEditDescriptionErrorPayload
-  readonly type: typeof setEditDescriptionError
-}
-export type SetEditMemberErrorPayload = {
-  readonly payload: _SetEditMemberErrorPayload
-  readonly type: typeof setEditMemberError
-}
-export type SetEmailInviteErrorPayload = {
-  readonly payload: _SetEmailInviteErrorPayload
-  readonly type: typeof setEmailInviteError
-}
-export type SetJustFinishedAddMembersWizardPayload = {
-  readonly payload: _SetJustFinishedAddMembersWizardPayload
-  readonly type: typeof setJustFinishedAddMembersWizard
-}
-export type SetMemberActivityDetailsPayload = {
-  readonly payload: _SetMemberActivityDetailsPayload
-  readonly type: typeof setMemberActivityDetails
-}
-export type SetMemberPublicityPayload = {
-  readonly payload: _SetMemberPublicityPayload
-  readonly type: typeof setMemberPublicity
-}
-export type SetMembersPayload = {readonly payload: _SetMembersPayload; readonly type: typeof setMembers}
-export type SetNewTeamInfoPayload = {
-  readonly payload: _SetNewTeamInfoPayload
-  readonly type: typeof setNewTeamInfo
-}
-export type SetNewTeamRequestsPayload = {
-  readonly payload: _SetNewTeamRequestsPayload
-  readonly type: typeof setNewTeamRequests
-}
-export type SetPublicityPayload = {readonly payload: _SetPublicityPayload; readonly type: typeof setPublicity}
-export type SetSubteamFilterPayload = {
-  readonly payload: _SetSubteamFilterPayload
-  readonly type: typeof setSubteamFilter
-}
-export type SetTeamAccessRequestsPendingPayload = {
-  readonly payload: _SetTeamAccessRequestsPendingPayload
-  readonly type: typeof setTeamAccessRequestsPending
-}
-export type SetTeamCreationErrorPayload = {
-  readonly payload: _SetTeamCreationErrorPayload
-  readonly type: typeof setTeamCreationError
-}
-export type SetTeamInfoPayload = {readonly payload: _SetTeamInfoPayload; readonly type: typeof setTeamInfo}
-export type SetTeamInviteErrorPayload = {
-  readonly payload: _SetTeamInviteErrorPayload
-  readonly type: typeof setTeamInviteError
-}
-export type SetTeamJoinErrorPayload = {
-  readonly payload: _SetTeamJoinErrorPayload
-  readonly type: typeof setTeamJoinError
-}
-export type SetTeamJoinSuccessPayload = {
-  readonly payload: _SetTeamJoinSuccessPayload
-  readonly type: typeof setTeamJoinSuccess
-}
-export type SetTeamListFilterSortPayload = {
-  readonly payload: _SetTeamListFilterSortPayload
-  readonly type: typeof setTeamListFilterSort
-}
-export type SetTeamLoadingInvitesPayload = {
-  readonly payload: _SetTeamLoadingInvitesPayload
-  readonly type: typeof setTeamLoadingInvites
-}
-export type SetTeamProfileAddListPayload = {
-  readonly payload: _SetTeamProfileAddListPayload
-  readonly type: typeof setTeamProfileAddList
-}
-export type SetTeamRetentionPolicyPayload = {
-  readonly payload: _SetTeamRetentionPolicyPayload
-  readonly type: typeof setTeamRetentionPolicy
-}
-export type SetTeamRoleMapLatestKnownVersionPayload = {
-  readonly payload: _SetTeamRoleMapLatestKnownVersionPayload
-  readonly type: typeof setTeamRoleMapLatestKnownVersion
-}
-export type SetTeamRoleMapPayload = {
-  readonly payload: _SetTeamRoleMapPayload
-  readonly type: typeof setTeamRoleMap
-}
-export type SetTeamSawChatBannerPayload = {
-  readonly payload: _SetTeamSawChatBannerPayload
-  readonly type: typeof setTeamSawChatBanner
-}
-export type SetTeamSawSubteamsBannerPayload = {
-  readonly payload: _SetTeamSawSubteamsBannerPayload
-  readonly type: typeof setTeamSawSubteamsBanner
-}
-export type SetTeamVersionPayload = {
-  readonly payload: _SetTeamVersionPayload
-  readonly type: typeof setTeamVersion
-}
-export type SetTeamWizardAvatarPayload = {
-  readonly payload: _SetTeamWizardAvatarPayload
-  readonly type: typeof setTeamWizardAvatar
-}
-export type SetTeamWizardChannelsPayload = {
-  readonly payload: _SetTeamWizardChannelsPayload
-  readonly type: typeof setTeamWizardChannels
-}
-export type SetTeamWizardErrorPayload = {
-  readonly payload: _SetTeamWizardErrorPayload
-  readonly type: typeof setTeamWizardError
-}
-export type SetTeamWizardNameDescriptionPayload = {
-  readonly payload: _SetTeamWizardNameDescriptionPayload
-  readonly type: typeof setTeamWizardNameDescription
-}
-export type SetTeamWizardSubteamMembersPayload = {
-  readonly payload: _SetTeamWizardSubteamMembersPayload
-  readonly type: typeof setTeamWizardSubteamMembers
-}
-export type SetTeamWizardSubteamsPayload = {
-  readonly payload: _SetTeamWizardSubteamsPayload
-  readonly type: typeof setTeamWizardSubteams
-}
-export type SetTeamWizardTeamSizePayload = {
-  readonly payload: _SetTeamWizardTeamSizePayload
-  readonly type: typeof setTeamWizardTeamSize
-}
-export type SetTeamWizardTeamTypePayload = {
-  readonly payload: _SetTeamWizardTeamTypePayload
-  readonly type: typeof setTeamWizardTeamType
-}
-export type SetTeamsWithChosenChannelsPayload = {
-  readonly payload: _SetTeamsWithChosenChannelsPayload
-  readonly type: typeof setTeamsWithChosenChannels
-}
-export type SetUpdatedChannelNamePayload = {
-  readonly payload: _SetUpdatedChannelNamePayload
-  readonly type: typeof setUpdatedChannelName
-}
-export type SetUpdatedTopicPayload = {
-  readonly payload: _SetUpdatedTopicPayload
-  readonly type: typeof setUpdatedTopic
-}
-export type SetWelcomeMessageErrorPayload = {
-  readonly payload: _SetWelcomeMessageErrorPayload
-  readonly type: typeof setWelcomeMessageError
-}
-export type SetWelcomeMessagePayload = {
-  readonly payload: _SetWelcomeMessagePayload
-  readonly type: typeof setWelcomeMessage
-}
-export type SettingsErrorPayload = {
-  readonly payload: _SettingsErrorPayload
-  readonly type: typeof settingsError
-}
-export type ShowTeamByNamePayload = {
-  readonly payload: _ShowTeamByNamePayload
-  readonly type: typeof showTeamByName
-}
-export type StartAddMembersWizardPayload = {
-  readonly payload: _StartAddMembersWizardPayload
-  readonly type: typeof startAddMembersWizard
-}
-export type StartNewTeamWizardPayload = {
-  readonly payload: _StartNewTeamWizardPayload
-  readonly type: typeof startNewTeamWizard
-}
-export type TeamChannelListLoadedPayload = {
-  readonly payload: _TeamChannelListLoadedPayload
-  readonly type: typeof teamChannelListLoaded
-}
-export type TeamCreatedPayload = {readonly payload: _TeamCreatedPayload; readonly type: typeof teamCreated}
-export type TeamLoadedPayload = {readonly payload: _TeamLoadedPayload; readonly type: typeof teamLoaded}
-export type TeamSeenPayload = {readonly payload: _TeamSeenPayload; readonly type: typeof teamSeen}
-export type TeamSetMemberSelectedPayload = {
-  readonly payload: _TeamSetMemberSelectedPayload
-  readonly type: typeof teamSetMemberSelected
-}
-export type ToggleInvitesCollapsedPayload = {
-  readonly payload: _ToggleInvitesCollapsedPayload
-  readonly type: typeof toggleInvitesCollapsed
-}
-export type UnsubscribeTeamDetailsPayload = {
-  readonly payload: _UnsubscribeTeamDetailsPayload
-  readonly type: typeof unsubscribeTeamDetails
-}
-export type UnsubscribeTeamListPayload = {
-  readonly payload: _UnsubscribeTeamListPayload
-  readonly type: typeof unsubscribeTeamList
-}
-export type UpdateChannelNamePayload = {
-  readonly payload: _UpdateChannelNamePayload
-  readonly type: typeof updateChannelName
-}
-export type UpdateInviteLinkDetailsPayload = {
-  readonly payload: _UpdateInviteLinkDetailsPayload
-  readonly type: typeof updateInviteLinkDetails
-}
-export type UpdateTopicPayload = {readonly payload: _UpdateTopicPayload; readonly type: typeof updateTopic}
-export type UploadTeamAvatarPayload = {
-  readonly payload: _UploadTeamAvatarPayload
-  readonly type: typeof uploadTeamAvatar
-}
+export type AddMembersWizardAddMembersPayload = ReturnType<typeof createAddMembersWizardAddMembers>
+export type AddMembersWizardPushMembersPayload = ReturnType<typeof createAddMembersWizardPushMembers>
+export type AddMembersWizardRemoveMemberPayload = ReturnType<typeof createAddMembersWizardRemoveMember>
+export type AddMembersWizardSetDefaultChannelsPayload = ReturnType<
+  typeof createAddMembersWizardSetDefaultChannels
+>
+export type AddParticipantPayload = ReturnType<typeof createAddParticipant>
+export type AddTeamWithChosenChannelsPayload = ReturnType<typeof createAddTeamWithChosenChannels>
+export type AddToTeamPayload = ReturnType<typeof createAddToTeam>
+export type AddUserToTeamsPayload = ReturnType<typeof createAddUserToTeams>
+export type AddedToTeamPayload = ReturnType<typeof createAddedToTeam>
+export type CancelAddMembersWizardPayload = ReturnType<typeof createCancelAddMembersWizard>
+export type ChannelSetMemberSelectedPayload = ReturnType<typeof createChannelSetMemberSelected>
+export type CheckRequestedAccessPayload = ReturnType<typeof createCheckRequestedAccess>
+export type ClearAddUserToTeamsResultsPayload = ReturnType<typeof createClearAddUserToTeamsResults>
+export type ClearNavBadgesPayload = ReturnType<typeof createClearNavBadges>
+export type CreateChannelPayload = ReturnType<typeof createCreateChannel>
+export type CreateChannelsPayload = ReturnType<typeof createCreateChannels>
+export type CreateNewTeamFromConversationPayload = ReturnType<typeof createCreateNewTeamFromConversation>
+export type CreateNewTeamPayload = ReturnType<typeof createCreateNewTeam>
+export type DeleteChannelConfirmedPayload = ReturnType<typeof createDeleteChannelConfirmed>
+export type DeleteMultiChannelsConfirmedPayload = ReturnType<typeof createDeleteMultiChannelsConfirmed>
+export type DeleteTeamPayload = ReturnType<typeof createDeleteTeam>
+export type EditMembershipPayload = ReturnType<typeof createEditMembership>
+export type EditTeamDescriptionPayload = ReturnType<typeof createEditTeamDescription>
+export type FinishNewTeamWizardPayload = ReturnType<typeof createFinishNewTeamWizard>
+export type FinishedAddMembersWizardPayload = ReturnType<typeof createFinishedAddMembersWizard>
+export type FinishedNewTeamWizardPayload = ReturnType<typeof createFinishedNewTeamWizard>
+export type GetActivityForTeamsPayload = ReturnType<typeof createGetActivityForTeams>
+export type GetMembersPayload = ReturnType<typeof createGetMembers>
+export type GetTeamProfileAddListPayload = ReturnType<typeof createGetTeamProfileAddList>
+export type GetTeamRetentionPolicyPayload = ReturnType<typeof createGetTeamRetentionPolicy>
+export type GetTeamsPayload = ReturnType<typeof createGetTeams>
+export type IgnoreRequestPayload = ReturnType<typeof createIgnoreRequest>
+export type InviteToTeamByEmailPayload = ReturnType<typeof createInviteToTeamByEmail>
+export type InviteToTeamByPhonePayload = ReturnType<typeof createInviteToTeamByPhone>
+export type JoinTeamPayload = ReturnType<typeof createJoinTeam>
+export type LaunchNewTeamWizardOrModalPayload = ReturnType<typeof createLaunchNewTeamWizardOrModal>
+export type LeaveTeamPayload = ReturnType<typeof createLeaveTeam>
+export type LeftTeamPayload = ReturnType<typeof createLeftTeam>
+export type LoadTeamChannelListPayload = ReturnType<typeof createLoadTeamChannelList>
+export type LoadTeamPayload = ReturnType<typeof createLoadTeam>
+export type LoadTeamTreePayload = ReturnType<typeof createLoadTeamTree>
+export type LoadWelcomeMessagePayload = ReturnType<typeof createLoadWelcomeMessage>
+export type LoadedWelcomeMessagePayload = ReturnType<typeof createLoadedWelcomeMessage>
+export type ManageChatChannelsPayload = ReturnType<typeof createManageChatChannels>
+export type OpenInviteLinkPayload = ReturnType<typeof createOpenInviteLink>
+export type ReAddToTeamPayload = ReturnType<typeof createReAddToTeam>
+export type RemoveMemberPayload = ReturnType<typeof createRemoveMember>
+export type RemoveParticipantPayload = ReturnType<typeof createRemoveParticipant>
+export type RemovePendingInvitePayload = ReturnType<typeof createRemovePendingInvite>
+export type RenameTeamPayload = ReturnType<typeof createRenameTeam>
+export type RequestInviteLinkDetailsPayload = ReturnType<typeof createRequestInviteLinkDetails>
+export type RespondToInviteLinkPayload = ReturnType<typeof createRespondToInviteLink>
+export type SaveChannelMembershipPayload = ReturnType<typeof createSaveChannelMembership>
+export type SaveTeamRetentionPolicyPayload = ReturnType<typeof createSaveTeamRetentionPolicy>
+export type SetActivityLevelsPayload = ReturnType<typeof createSetActivityLevels>
+export type SetAddMembersWizardIndividualRolePayload = ReturnType<
+  typeof createSetAddMembersWizardIndividualRole
+>
+export type SetAddMembersWizardRolePayload = ReturnType<typeof createSetAddMembersWizardRole>
+export type SetAddUserToTeamsResultsPayload = ReturnType<typeof createSetAddUserToTeamsResults>
+export type SetChannelCreationErrorPayload = ReturnType<typeof createSetChannelCreationError>
+export type SetChannelSelectedPayload = ReturnType<typeof createSetChannelSelected>
+export type SetCreatingChannelsPayload = ReturnType<typeof createSetCreatingChannels>
+export type SetEditDescriptionErrorPayload = ReturnType<typeof createSetEditDescriptionError>
+export type SetEditMemberErrorPayload = ReturnType<typeof createSetEditMemberError>
+export type SetEmailInviteErrorPayload = ReturnType<typeof createSetEmailInviteError>
+export type SetJustFinishedAddMembersWizardPayload = ReturnType<typeof createSetJustFinishedAddMembersWizard>
+export type SetMemberActivityDetailsPayload = ReturnType<typeof createSetMemberActivityDetails>
+export type SetMemberPublicityPayload = ReturnType<typeof createSetMemberPublicity>
+export type SetMembersPayload = ReturnType<typeof createSetMembers>
+export type SetNewTeamInfoPayload = ReturnType<typeof createSetNewTeamInfo>
+export type SetNewTeamRequestsPayload = ReturnType<typeof createSetNewTeamRequests>
+export type SetPublicityPayload = ReturnType<typeof createSetPublicity>
+export type SetSubteamFilterPayload = ReturnType<typeof createSetSubteamFilter>
+export type SetTeamAccessRequestsPendingPayload = ReturnType<typeof createSetTeamAccessRequestsPending>
+export type SetTeamCreationErrorPayload = ReturnType<typeof createSetTeamCreationError>
+export type SetTeamInfoPayload = ReturnType<typeof createSetTeamInfo>
+export type SetTeamInviteErrorPayload = ReturnType<typeof createSetTeamInviteError>
+export type SetTeamJoinErrorPayload = ReturnType<typeof createSetTeamJoinError>
+export type SetTeamJoinSuccessPayload = ReturnType<typeof createSetTeamJoinSuccess>
+export type SetTeamListFilterSortPayload = ReturnType<typeof createSetTeamListFilterSort>
+export type SetTeamLoadingInvitesPayload = ReturnType<typeof createSetTeamLoadingInvites>
+export type SetTeamProfileAddListPayload = ReturnType<typeof createSetTeamProfileAddList>
+export type SetTeamRetentionPolicyPayload = ReturnType<typeof createSetTeamRetentionPolicy>
+export type SetTeamRoleMapLatestKnownVersionPayload = ReturnType<
+  typeof createSetTeamRoleMapLatestKnownVersion
+>
+export type SetTeamRoleMapPayload = ReturnType<typeof createSetTeamRoleMap>
+export type SetTeamSawChatBannerPayload = ReturnType<typeof createSetTeamSawChatBanner>
+export type SetTeamSawSubteamsBannerPayload = ReturnType<typeof createSetTeamSawSubteamsBanner>
+export type SetTeamVersionPayload = ReturnType<typeof createSetTeamVersion>
+export type SetTeamWizardAvatarPayload = ReturnType<typeof createSetTeamWizardAvatar>
+export type SetTeamWizardChannelsPayload = ReturnType<typeof createSetTeamWizardChannels>
+export type SetTeamWizardErrorPayload = ReturnType<typeof createSetTeamWizardError>
+export type SetTeamWizardNameDescriptionPayload = ReturnType<typeof createSetTeamWizardNameDescription>
+export type SetTeamWizardSubteamMembersPayload = ReturnType<typeof createSetTeamWizardSubteamMembers>
+export type SetTeamWizardSubteamsPayload = ReturnType<typeof createSetTeamWizardSubteams>
+export type SetTeamWizardTeamSizePayload = ReturnType<typeof createSetTeamWizardTeamSize>
+export type SetTeamWizardTeamTypePayload = ReturnType<typeof createSetTeamWizardTeamType>
+export type SetTeamsWithChosenChannelsPayload = ReturnType<typeof createSetTeamsWithChosenChannels>
+export type SetUpdatedChannelNamePayload = ReturnType<typeof createSetUpdatedChannelName>
+export type SetUpdatedTopicPayload = ReturnType<typeof createSetUpdatedTopic>
+export type SetWelcomeMessageErrorPayload = ReturnType<typeof createSetWelcomeMessageError>
+export type SetWelcomeMessagePayload = ReturnType<typeof createSetWelcomeMessage>
+export type SettingsErrorPayload = ReturnType<typeof createSettingsError>
+export type ShowTeamByNamePayload = ReturnType<typeof createShowTeamByName>
+export type StartAddMembersWizardPayload = ReturnType<typeof createStartAddMembersWizard>
+export type StartNewTeamWizardPayload = ReturnType<typeof createStartNewTeamWizard>
+export type TeamChannelListLoadedPayload = ReturnType<typeof createTeamChannelListLoaded>
+export type TeamCreatedPayload = ReturnType<typeof createTeamCreated>
+export type TeamLoadedPayload = ReturnType<typeof createTeamLoaded>
+export type TeamSeenPayload = ReturnType<typeof createTeamSeen>
+export type TeamSetMemberSelectedPayload = ReturnType<typeof createTeamSetMemberSelected>
+export type ToggleInvitesCollapsedPayload = ReturnType<typeof createToggleInvitesCollapsed>
+export type UnsubscribeTeamDetailsPayload = ReturnType<typeof createUnsubscribeTeamDetails>
+export type UnsubscribeTeamListPayload = ReturnType<typeof createUnsubscribeTeamList>
+export type UpdateChannelNamePayload = ReturnType<typeof createUpdateChannelName>
+export type UpdateInviteLinkDetailsPayload = ReturnType<typeof createUpdateInviteLinkDetails>
+export type UpdateTopicPayload = ReturnType<typeof createUpdateTopic>
+export type UploadTeamAvatarPayload = ReturnType<typeof createUploadTeamAvatar>
 
 // All Actions
 // prettier-ignore

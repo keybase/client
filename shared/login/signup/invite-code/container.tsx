@@ -11,7 +11,7 @@ export default Container.connect(
   }),
   dispatch => ({
     onBack: () => dispatch(SignupGen.createGoBackAndClearErrors()),
-    onRequestInvite: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['requestInvite']})),
+    onRequestInvite: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['signupRequestInvite']})),
     onSubmit: (inviteCode: string) => dispatch(SignupGen.createCheckInviteCode({inviteCode})),
   }),
   (s, d, o: OwnProps) => ({...o, ...s, ...d})

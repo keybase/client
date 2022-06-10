@@ -2,11 +2,11 @@ import React, {PureComponent} from 'react'
 import {FlatList, View} from 'react-native'
 import * as Styles from '../styles'
 import {smallHeight, largeHeight} from './list-item2'
-import Animated from './reanimated'
-import {Props} from './list2'
+import {createAnimatedComponent} from './reanimated'
+import type {Props} from './list2'
 import noop from 'lodash/noop'
 
-const AnimatedFlatList = Animated.createAnimatedComponent(FlatList)
+const AnimatedFlatList = createAnimatedComponent(FlatList)
 
 class List2<T> extends PureComponent<Props<T>> {
   static defaultProps = {

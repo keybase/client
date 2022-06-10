@@ -15,10 +15,7 @@ const AddBotRow = (props: Props) => {
       RouteTreeGen.createNavigateAppend({
         path: [
           {
-            props: {
-              namespace: 'chat2',
-              teamID,
-            },
+            props: {teamID},
             selected: 'chatSearchBots',
           },
         ],

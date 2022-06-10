@@ -23,7 +23,7 @@
       "fromChat?": "boolean",
       "joinSubteam": "boolean",
       "teamname": "string",
-      "thenAddMembers?": "Omit<_AddToTeamPayload, 'teamID'>"
+      "thenAddMembers?": "{users: Array<{assertion: string; role: Types.TeamRoleType}>; sendChatNotification: boolean; fromTeamBuilder?: boolean}"
     },
     "createNewTeamFromConversation": {
       "conversationIDKey": "ChatTypes.ConversationIDKey",

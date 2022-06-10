@@ -18,86 +18,59 @@ export const showDevicePage = 'devices:showDevicePage'
 export const showPaperKeyPage = 'devices:showPaperKeyPage'
 export const showRevokePage = 'devices:showRevokePage'
 
-// Payload Types
-type _BadgeAppForDevicesPayload = {readonly ids: Array<string>}
-type _ClearBadgesPayload = undefined
-type _EndangeredTLFsLoadedPayload = {readonly deviceID: Types.DeviceID; readonly tlfs: Array<string>}
-type _LoadPayload = undefined
-type _LoadedPayload = {readonly devices: Array<Types.Device>}
-type _PaperKeyCreatedPayload = {readonly paperKey: HiddenString}
-type _RevokePayload = {readonly deviceID: Types.DeviceID}
-type _RevokedPayload = {
+// Action Creators
+export const createBadgeAppForDevices = (payload: {readonly ids: Array<string>}) => ({
+  payload,
+  type: badgeAppForDevices as typeof badgeAppForDevices,
+})
+export const createClearBadges = (payload?: undefined) => ({payload, type: clearBadges as typeof clearBadges})
+export const createEndangeredTLFsLoaded = (payload: {
+  readonly deviceID: Types.DeviceID
+  readonly tlfs: Array<string>
+}) => ({payload, type: endangeredTLFsLoaded as typeof endangeredTLFsLoaded})
+export const createLoad = (payload?: undefined) => ({payload, type: load as typeof load})
+export const createLoaded = (payload: {readonly devices: Array<Types.Device>}) => ({
+  payload,
+  type: loaded as typeof loaded,
+})
+export const createPaperKeyCreated = (payload: {readonly paperKey: HiddenString}) => ({
+  payload,
+  type: paperKeyCreated as typeof paperKeyCreated,
+})
+export const createRevoke = (payload: {readonly deviceID: Types.DeviceID}) => ({
+  payload,
+  type: revoke as typeof revoke,
+})
+export const createRevoked = (payload: {
   readonly deviceID: Types.DeviceID
   readonly wasCurrentDevice: boolean
   readonly deviceName: string
-}
-type _ShowDevicePagePayload = {readonly deviceID: Types.DeviceID}
-type _ShowPaperKeyPagePayload = undefined
-type _ShowRevokePagePayload = {readonly deviceID: Types.DeviceID}
-
-// Action Creators
-export const createBadgeAppForDevices = (payload: _BadgeAppForDevicesPayload): BadgeAppForDevicesPayload => ({
+}) => ({payload, type: revoked as typeof revoked})
+export const createShowDevicePage = (payload: {readonly deviceID: Types.DeviceID}) => ({
   payload,
-  type: badgeAppForDevices,
+  type: showDevicePage as typeof showDevicePage,
 })
-export const createClearBadges = (payload?: _ClearBadgesPayload): ClearBadgesPayload => ({
+export const createShowPaperKeyPage = (payload?: undefined) => ({
   payload,
-  type: clearBadges,
+  type: showPaperKeyPage as typeof showPaperKeyPage,
 })
-export const createEndangeredTLFsLoaded = (
-  payload: _EndangeredTLFsLoadedPayload
-): EndangeredTLFsLoadedPayload => ({payload, type: endangeredTLFsLoaded})
-export const createLoad = (payload?: _LoadPayload): LoadPayload => ({payload, type: load})
-export const createLoaded = (payload: _LoadedPayload): LoadedPayload => ({payload, type: loaded})
-export const createPaperKeyCreated = (payload: _PaperKeyCreatedPayload): PaperKeyCreatedPayload => ({
+export const createShowRevokePage = (payload: {readonly deviceID: Types.DeviceID}) => ({
   payload,
-  type: paperKeyCreated,
-})
-export const createRevoke = (payload: _RevokePayload): RevokePayload => ({payload, type: revoke})
-export const createRevoked = (payload: _RevokedPayload): RevokedPayload => ({payload, type: revoked})
-export const createShowDevicePage = (payload: _ShowDevicePagePayload): ShowDevicePagePayload => ({
-  payload,
-  type: showDevicePage,
-})
-export const createShowPaperKeyPage = (payload?: _ShowPaperKeyPagePayload): ShowPaperKeyPagePayload => ({
-  payload,
-  type: showPaperKeyPage,
-})
-export const createShowRevokePage = (payload: _ShowRevokePagePayload): ShowRevokePagePayload => ({
-  payload,
-  type: showRevokePage,
+  type: showRevokePage as typeof showRevokePage,
 })
 
 // Action Payloads
-export type BadgeAppForDevicesPayload = {
-  readonly payload: _BadgeAppForDevicesPayload
-  readonly type: typeof badgeAppForDevices
-}
-export type ClearBadgesPayload = {readonly payload: _ClearBadgesPayload; readonly type: typeof clearBadges}
-export type EndangeredTLFsLoadedPayload = {
-  readonly payload: _EndangeredTLFsLoadedPayload
-  readonly type: typeof endangeredTLFsLoaded
-}
-export type LoadPayload = {readonly payload: _LoadPayload; readonly type: typeof load}
-export type LoadedPayload = {readonly payload: _LoadedPayload; readonly type: typeof loaded}
-export type PaperKeyCreatedPayload = {
-  readonly payload: _PaperKeyCreatedPayload
-  readonly type: typeof paperKeyCreated
-}
-export type RevokePayload = {readonly payload: _RevokePayload; readonly type: typeof revoke}
-export type RevokedPayload = {readonly payload: _RevokedPayload; readonly type: typeof revoked}
-export type ShowDevicePagePayload = {
-  readonly payload: _ShowDevicePagePayload
-  readonly type: typeof showDevicePage
-}
-export type ShowPaperKeyPagePayload = {
-  readonly payload: _ShowPaperKeyPagePayload
-  readonly type: typeof showPaperKeyPage
-}
-export type ShowRevokePagePayload = {
-  readonly payload: _ShowRevokePagePayload
-  readonly type: typeof showRevokePage
-}
+export type BadgeAppForDevicesPayload = ReturnType<typeof createBadgeAppForDevices>
+export type ClearBadgesPayload = ReturnType<typeof createClearBadges>
+export type EndangeredTLFsLoadedPayload = ReturnType<typeof createEndangeredTLFsLoaded>
+export type LoadPayload = ReturnType<typeof createLoad>
+export type LoadedPayload = ReturnType<typeof createLoaded>
+export type PaperKeyCreatedPayload = ReturnType<typeof createPaperKeyCreated>
+export type RevokePayload = ReturnType<typeof createRevoke>
+export type RevokedPayload = ReturnType<typeof createRevoked>
+export type ShowDevicePagePayload = ReturnType<typeof createShowDevicePage>
+export type ShowPaperKeyPagePayload = ReturnType<typeof createShowPaperKeyPage>
+export type ShowRevokePagePayload = ReturnType<typeof createShowRevokePage>
 
 // All Actions
 // prettier-ignore

@@ -1,17 +1,14 @@
 import React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
-import * as Types from '../constants/types/whats-new'
-import * as Tabs from '../constants/tabs'
-import {VersionProps} from './versions'
+import type * as Types from '../constants/types/whats-new'
+import type * as Tabs from '../constants/tabs'
+import type {VersionProps} from './versions'
+import type {NavigateAppendPayload} from '../actions/route-tree-gen'
 
 type Props = {
   onBack: () => void
-  onNavigate: (props: {
-    fromKey?: string
-    path: Array<{props?: {}; selected: string}>
-    replace?: boolean
-  }) => void
+  onNavigate: (props: NavigateAppendPayload['payload']) => void
   onNavigateExternal: (url: string) => void
   onSwitchTab: (tab: Tabs.AppTab) => void
   seenVersions: {[key: string]: boolean}
@@ -66,19 +63,8 @@ class WhatsNew extends React.PureComponent<Props> {
   }
 
   render() {
-    const {
-      currentVersion,
-      lastVersion,
-      lastLastVersion,
-      noVersion,
-      Current,
-      Last,
-      LastLast,
-      seenVersions,
-      onNavigate,
-      onNavigateExternal,
-      onSwitchTab,
-    } = this.props
+    const {currentVersion, lastVersion, lastLastVersion, noVersion, Current, Last} = this.props
+    const {LastLast, seenVersions, onNavigate, onNavigateExternal, onSwitchTab} = this.props
     return (
       <Wrapper>
         {Current && (

@@ -9,8 +9,9 @@ import type {RootParamListWallets} from '../wallets/routes'
 import type {RootParamListDevices} from '../devices/routes'
 import type {RootParamListCrypto} from '../crypto/routes'
 import type {RootParamListLogin} from '../login/routes'
-import type {RootParamListProvision} from '../provision/routes'
 import type {RootParamListSettings} from '../settings/routes'
+import type {RootParamListSignup} from '../signup/routes'
+import type {RootParamListIncomingShare} from '../incoming-share/routes'
 
 // TODO partial could go away when we enforce these params are pushed correctly
 type DeepPartial<Type> = {
@@ -18,7 +19,9 @@ type DeepPartial<Type> = {
 }
 
 export type RootParamList = DeepPartial<
-  RootParamListLogin &
+  RootParamListIncomingShare &
+    RootParamListSignup &
+    RootParamListLogin &
     RootParamListWallets &
     RootParamListChat &
     RootParamListTeams &
@@ -27,10 +30,27 @@ export type RootParamList = DeepPartial<
     RootParamListProfile &
     RootParamListCrypto &
     RootParamListDevices &
-    RootParamListProvision &
     RootParamListSettings &
-    RootParamListGit
+    RootParamListGit & {
+      'tabs.chatTab': undefined
+      'tabs.cryptoTab': undefined
+      'tabs.devicesTab': undefined
+      'tabs.folderTab': undefined
+      'tabs.loginTab': undefined
+      'tabs.peopleTab': undefined
+      'tabs.searchTab': undefined
+      'tabs.settingsTab': undefined
+      'tabs.teamsTab': undefined
+      'tabs.gitTab': undefined
+      'tabs.fsTab': undefined
+      'tabs.walletsTab': undefined
+    }
 >
+
+type RouteKeys = keyof RootParamList
+type Distribute<U> = U extends RouteKeys ? {selected: U; props: RootParamList[U]} : never
+export type NavigateAppendType = ReadonlyArray<RouteKeys | Distribute<RouteKeys>>
+
 export type RootRouteProps<RouteName extends keyof RootParamList> = RouteProp<RootParamList, RouteName>
 
 export type RouteProps<RouteName extends keyof RootParamList> = {

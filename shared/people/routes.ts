@@ -1,7 +1,6 @@
 import type PeopleRoot from './container'
-import type TeamBuilder from '../team-building/container'
+import type {default as TeamBuilder, TeamBuilderProps} from '../team-building/container'
 import type AccountSwitcher from '../router-v2/account-switcher/container'
-import type * as TeamBuildingTypes from '../constants/types/team-building'
 
 export const newRoutes = {
   peopleRoot: {
@@ -17,14 +16,8 @@ export const newModalRoutes = {
   peopleTeamBuilder: {getScreen: (): typeof TeamBuilder => require('../team-building/container').default},
 }
 
-type TeamBuilderProps = Partial<{
-  namespace: TeamBuildingTypes.AllowedNamespace
-  teamID: string
-  filterServices: Array<TeamBuildingTypes.ServiceIdWithContact>
-  goButtonLabel: TeamBuildingTypes.GoButtonLabel
-  title: string
-}>
-
 export type RootParamListPeople = {
   peopleTeamBuilder: TeamBuilderProps
+  accountSwitcher: undefined
+  peopleRoot: undefined
 }

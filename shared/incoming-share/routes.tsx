@@ -5,3 +5,7 @@ export const newModalRoutes = {
     getScreen: (): typeof IncomingShareChat => require('.').default,
   },
 }
+
+export type RootParamListIncomingShare = {
+  incomingShareNew: undefined
+}

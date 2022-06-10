@@ -14,73 +14,43 @@ export const onBackFromPaperKey = 'unlock-folders:onBackFromPaperKey'
 export const openPopup = 'unlock-folders:openPopup'
 export const toPaperKeyInput = 'unlock-folders:toPaperKeyInput'
 
-// Payload Types
-type _CheckPaperKeyDonePayload = {readonly error?: string}
-type _CheckPaperKeyPayload = {readonly paperKey: string}
-type _CloseDonePayload = undefined
-type _ClosePopupPayload = undefined
-type _FinishPayload = undefined
-type _NewRekeyPopupPayload = {
+// Action Creators
+export const createCheckPaperKey = (payload: {readonly paperKey: string}) => ({
+  payload,
+  type: checkPaperKey as typeof checkPaperKey,
+})
+export const createCheckPaperKeyDone = (payload: {readonly error?: string} = {}) => ({
+  payload,
+  type: checkPaperKeyDone as typeof checkPaperKeyDone,
+})
+export const createCloseDone = (payload?: undefined) => ({payload, type: closeDone as typeof closeDone})
+export const createClosePopup = (payload?: undefined) => ({payload, type: closePopup as typeof closePopup})
+export const createFinish = (payload?: undefined) => ({payload, type: finish as typeof finish})
+export const createNewRekeyPopup = (payload: {
   readonly sessionID: number
   readonly devices: Array<RPCTypes.Device>
   readonly problemSet: RPCTypes.ProblemSet
-}
-type _OnBackFromPaperKeyPayload = undefined
-type _OpenPopupPayload = undefined
-type _ToPaperKeyInputPayload = undefined
-
-// Action Creators
-export const createCheckPaperKey = (payload: _CheckPaperKeyPayload): CheckPaperKeyPayload => ({
+}) => ({payload, type: newRekeyPopup as typeof newRekeyPopup})
+export const createOnBackFromPaperKey = (payload?: undefined) => ({
   payload,
-  type: checkPaperKey,
+  type: onBackFromPaperKey as typeof onBackFromPaperKey,
 })
-export const createCheckPaperKeyDone = (
-  payload: _CheckPaperKeyDonePayload = Object.freeze({})
-): CheckPaperKeyDonePayload => ({payload, type: checkPaperKeyDone})
-export const createCloseDone = (payload?: _CloseDonePayload): CloseDonePayload => ({payload, type: closeDone})
-export const createClosePopup = (payload?: _ClosePopupPayload): ClosePopupPayload => ({
+export const createOpenPopup = (payload?: undefined) => ({payload, type: openPopup as typeof openPopup})
+export const createToPaperKeyInput = (payload?: undefined) => ({
   payload,
-  type: closePopup,
-})
-export const createFinish = (payload?: _FinishPayload): FinishPayload => ({payload, type: finish})
-export const createNewRekeyPopup = (payload: _NewRekeyPopupPayload): NewRekeyPopupPayload => ({
-  payload,
-  type: newRekeyPopup,
-})
-export const createOnBackFromPaperKey = (
-  payload?: _OnBackFromPaperKeyPayload
-): OnBackFromPaperKeyPayload => ({payload, type: onBackFromPaperKey})
-export const createOpenPopup = (payload?: _OpenPopupPayload): OpenPopupPayload => ({payload, type: openPopup})
-export const createToPaperKeyInput = (payload?: _ToPaperKeyInputPayload): ToPaperKeyInputPayload => ({
-  payload,
-  type: toPaperKeyInput,
+  type: toPaperKeyInput as typeof toPaperKeyInput,
 })
 
 // Action Payloads
-export type CheckPaperKeyDonePayload = {
-  readonly payload: _CheckPaperKeyDonePayload
-  readonly type: typeof checkPaperKeyDone
-}
-export type CheckPaperKeyPayload = {
-  readonly payload: _CheckPaperKeyPayload
-  readonly type: typeof checkPaperKey
-}
-export type CloseDonePayload = {readonly payload: _CloseDonePayload; readonly type: typeof closeDone}
-export type ClosePopupPayload = {readonly payload: _ClosePopupPayload; readonly type: typeof closePopup}
-export type FinishPayload = {readonly payload: _FinishPayload; readonly type: typeof finish}
-export type NewRekeyPopupPayload = {
-  readonly payload: _NewRekeyPopupPayload
-  readonly type: typeof newRekeyPopup
-}
-export type OnBackFromPaperKeyPayload = {
-  readonly payload: _OnBackFromPaperKeyPayload
-  readonly type: typeof onBackFromPaperKey
-}
-export type OpenPopupPayload = {readonly payload: _OpenPopupPayload; readonly type: typeof openPopup}
-export type ToPaperKeyInputPayload = {
-  readonly payload: _ToPaperKeyInputPayload
-  readonly type: typeof toPaperKeyInput
-}
+export type CheckPaperKeyDonePayload = ReturnType<typeof createCheckPaperKeyDone>
+export type CheckPaperKeyPayload = ReturnType<typeof createCheckPaperKey>
+export type CloseDonePayload = ReturnType<typeof createCloseDone>
+export type ClosePopupPayload = ReturnType<typeof createClosePopup>
+export type FinishPayload = ReturnType<typeof createFinish>
+export type NewRekeyPopupPayload = ReturnType<typeof createNewRekeyPopup>
+export type OnBackFromPaperKeyPayload = ReturnType<typeof createOnBackFromPaperKey>
+export type OpenPopupPayload = ReturnType<typeof createOpenPopup>
+export type ToPaperKeyInputPayload = ReturnType<typeof createToPaperKeyInput>
 
 // All Actions
 // prettier-ignore

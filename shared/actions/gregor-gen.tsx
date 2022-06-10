@@ -11,51 +11,35 @@ export const pushState = 'gregor:pushState'
 export const updateCategory = 'gregor:updateCategory'
 export const updateReachable = 'gregor:updateReachable'
 
-// Payload Types
-type _CheckReachabilityPayload = undefined
-type _PushOOBMPayload = {readonly messages: Array<RPCTypesGregor.OutOfBandMessage>}
-type _PushStatePayload = {
+// Action Creators
+export const createCheckReachability = (payload?: undefined) => ({
+  payload,
+  type: checkReachability as typeof checkReachability,
+})
+export const createPushOOBM = (payload: {readonly messages: Array<RPCTypesGregor.OutOfBandMessage>}) => ({
+  payload,
+  type: pushOOBM as typeof pushOOBM,
+})
+export const createPushState = (payload: {
   readonly state: Array<{md: RPCTypesGregor.Metadata; item: RPCTypesGregor.Item}>
   readonly reason: RPCTypes.PushReason
-}
-type _UpdateCategoryPayload = {
+}) => ({payload, type: pushState as typeof pushState})
+export const createUpdateCategory = (payload: {
   readonly category: string
   readonly body: string
   readonly dtime?: {offset: number; time: number}
-}
-type _UpdateReachablePayload = {readonly reachable: RPCTypes.Reachable}
-
-// Action Creators
-export const createCheckReachability = (payload?: _CheckReachabilityPayload): CheckReachabilityPayload => ({
+}) => ({payload, type: updateCategory as typeof updateCategory})
+export const createUpdateReachable = (payload: {readonly reachable: RPCTypes.Reachable}) => ({
   payload,
-  type: checkReachability,
-})
-export const createPushOOBM = (payload: _PushOOBMPayload): PushOOBMPayload => ({payload, type: pushOOBM})
-export const createPushState = (payload: _PushStatePayload): PushStatePayload => ({payload, type: pushState})
-export const createUpdateCategory = (payload: _UpdateCategoryPayload): UpdateCategoryPayload => ({
-  payload,
-  type: updateCategory,
-})
-export const createUpdateReachable = (payload: _UpdateReachablePayload): UpdateReachablePayload => ({
-  payload,
-  type: updateReachable,
+  type: updateReachable as typeof updateReachable,
 })
 
 // Action Payloads
-export type CheckReachabilityPayload = {
-  readonly payload: _CheckReachabilityPayload
-  readonly type: typeof checkReachability
-}
-export type PushOOBMPayload = {readonly payload: _PushOOBMPayload; readonly type: typeof pushOOBM}
-export type PushStatePayload = {readonly payload: _PushStatePayload; readonly type: typeof pushState}
-export type UpdateCategoryPayload = {
-  readonly payload: _UpdateCategoryPayload
-  readonly type: typeof updateCategory
-}
-export type UpdateReachablePayload = {
-  readonly payload: _UpdateReachablePayload
-  readonly type: typeof updateReachable
-}
+export type CheckReachabilityPayload = ReturnType<typeof createCheckReachability>
+export type PushOOBMPayload = ReturnType<typeof createPushOOBM>
+export type PushStatePayload = ReturnType<typeof createPushState>
+export type UpdateCategoryPayload = ReturnType<typeof createUpdateCategory>
+export type UpdateReachablePayload = ReturnType<typeof createUpdateReachable>
 
 // All Actions
 // prettier-ignore

@@ -114,7 +114,7 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
   _onInstallBot: (message: Types.Message) => {
     dispatch(
       RouteTreeGen.createNavigateAppend({
-        path: [{props: {botUsername: message.author, navToChat: true}, selected: 'chatInstallBotPick'}],
+        path: [{props: {botUsername: message.author}, selected: 'chatInstallBotPick'}],
       })
     )
   },

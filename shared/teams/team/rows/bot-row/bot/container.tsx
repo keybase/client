@@ -1,12 +1,12 @@
-import * as Constants from '../../../../../constants/teams'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
-import * as Tracker2Gen from '../../../../../actions/tracker2-gen'
+import * as Constants from '../../../../../constants/teams'
 import * as ProfileGen from '../../../../../actions/profile-gen'
-import * as Types from '../../../../../constants/types/teams'
-import * as RPCTypes from '../../../../../constants/types/rpc-gen'
-import {TeamBotRow} from './'
 import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
-import {connect, isMobile} from '../../../../../util/container'
+import * as Tracker2Gen from '../../../../../actions/tracker2-gen'
+import * as Container from '../../../../../util/container'
+import type * as RPCTypes from '../../../../../constants/types/rpc-gen'
+import type * as Types from '../../../../../constants/types/teams'
+import {TeamBotRow} from './'
 
 type OwnProps = {
   teamID: Types.TeamID
@@ -15,7 +15,7 @@ type OwnProps = {
 
 const blankInfo = Constants.initialMemberInfo
 
-export default connect(
+export default Container.connect(
   (state, {teamID, username}: OwnProps) => {
     const {teamname} = Constants.getTeamMeta(state, teamID)
     const teamDetails = Constants.getTeamDetails(state, teamID)
@@ -45,7 +45,7 @@ export default connect(
   },
   (dispatch, ownProps: OwnProps) => ({
     _onShowTracker: (username: string) => {
-      if (isMobile) {
+      if (Container.isMobile) {
         dispatch(ProfileGen.createShowUserProfile({username}))
       } else {
         dispatch(Tracker2Gen.createShowUser({asTracker: true, username}))
@@ -66,7 +66,6 @@ export default connect(
             {
               props: {
                 botUsername: ownProps.username,
-                namespace: 'chat2',
                 teamID: ownProps.teamID,
               },
               selected: 'chatInstallBot',
@@ -81,7 +80,6 @@ export default connect(
             {
               props: {
                 botUsername: ownProps.username,
-                namespace: 'chat2',
                 teamID: ownProps.teamID,
               },
               selected: 'chatConfirmRemoveBot',

@@ -1,13 +1,13 @@
-import * as React from 'react'
-import * as Container from '../../../../util/container'
 import * as Constants from '../../../../constants/teams'
-import * as Types from '../../../../constants/types/teams'
-import {AddPeopleHow} from '.'
+import * as Container from '../../../../util/container'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
+import * as Styles from '../../../../styles'
+import openURL from '../../../../util/open-url'
+import type * as React from 'react'
+import type * as Types from '../../../../constants/types/teams'
+import {AddPeopleHow} from '.'
 import {appendNewTeamBuilder} from '../../../../actions/typed-routes'
 import {teamsTab} from '../../../../constants/tabs'
-import openURL from '../../../../util/open-url'
-import * as Styles from '../../../../styles'
 
 type OwnProps = {
   attachTo?: () => React.Component<any> | null

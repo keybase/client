@@ -12,63 +12,38 @@ export const showPermissionsPrompt = 'push:showPermissionsPrompt'
 export const updateHasPermissions = 'push:updateHasPermissions'
 export const updatePushToken = 'push:updatePushToken'
 
-// Payload Types
-type _NotificationPayload = {readonly notification: Types.PushNotification}
-type _RejectPermissionsPayload = undefined
-type _RequestPermissionsPayload = undefined
-type _ShowPermissionsPromptPayload = {
-  readonly show?: boolean
-  readonly persistSkip?: boolean
-  readonly justSignedUp?: boolean
-}
-type _UpdateHasPermissionsPayload = {readonly hasPermissions: boolean}
-type _UpdatePushTokenPayload = {readonly token: string}
-
 // Action Creators
-export const createNotification = (payload: _NotificationPayload): NotificationPayload => ({
+export const createNotification = (payload: {readonly notification: Types.PushNotification}) => ({
   payload,
-  type: notification,
+  type: notification as typeof notification,
 })
-export const createRejectPermissions = (payload?: _RejectPermissionsPayload): RejectPermissionsPayload => ({
+export const createRejectPermissions = (payload?: undefined) => ({
   payload,
-  type: rejectPermissions,
+  type: rejectPermissions as typeof rejectPermissions,
 })
-export const createRequestPermissions = (
-  payload?: _RequestPermissionsPayload
-): RequestPermissionsPayload => ({payload, type: requestPermissions})
+export const createRequestPermissions = (payload?: undefined) => ({
+  payload,
+  type: requestPermissions as typeof requestPermissions,
+})
 export const createShowPermissionsPrompt = (
-  payload: _ShowPermissionsPromptPayload = Object.freeze({})
-): ShowPermissionsPromptPayload => ({payload, type: showPermissionsPrompt})
-export const createUpdateHasPermissions = (
-  payload: _UpdateHasPermissionsPayload
-): UpdateHasPermissionsPayload => ({payload, type: updateHasPermissions})
-export const createUpdatePushToken = (payload: _UpdatePushTokenPayload): UpdatePushTokenPayload => ({
+  payload: {readonly show?: boolean; readonly persistSkip?: boolean; readonly justSignedUp?: boolean} = {}
+) => ({payload, type: showPermissionsPrompt as typeof showPermissionsPrompt})
+export const createUpdateHasPermissions = (payload: {readonly hasPermissions: boolean}) => ({
   payload,
-  type: updatePushToken,
+  type: updateHasPermissions as typeof updateHasPermissions,
+})
+export const createUpdatePushToken = (payload: {readonly token: string}) => ({
+  payload,
+  type: updatePushToken as typeof updatePushToken,
 })
 
 // Action Payloads
-export type NotificationPayload = {readonly payload: _NotificationPayload; readonly type: typeof notification}
-export type RejectPermissionsPayload = {
-  readonly payload: _RejectPermissionsPayload
-  readonly type: typeof rejectPermissions
-}
-export type RequestPermissionsPayload = {
-  readonly payload: _RequestPermissionsPayload
-  readonly type: typeof requestPermissions
-}
-export type ShowPermissionsPromptPayload = {
-  readonly payload: _ShowPermissionsPromptPayload
-  readonly type: typeof showPermissionsPrompt
-}
-export type UpdateHasPermissionsPayload = {
-  readonly payload: _UpdateHasPermissionsPayload
-  readonly type: typeof updateHasPermissions
-}
-export type UpdatePushTokenPayload = {
-  readonly payload: _UpdatePushTokenPayload
-  readonly type: typeof updatePushToken
-}
+export type NotificationPayload = ReturnType<typeof createNotification>
+export type RejectPermissionsPayload = ReturnType<typeof createRejectPermissions>
+export type RequestPermissionsPayload = ReturnType<typeof createRequestPermissions>
+export type ShowPermissionsPromptPayload = ReturnType<typeof createShowPermissionsPrompt>
+export type UpdateHasPermissionsPayload = ReturnType<typeof createUpdateHasPermissions>
+export type UpdatePushTokenPayload = ReturnType<typeof createUpdatePushToken>
 
 // All Actions
 // prettier-ignore

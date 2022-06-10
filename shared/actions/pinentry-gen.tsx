@@ -9,9 +9,9 @@ export const newPinentry = 'pinentry:newPinentry'
 export const onCancel = 'pinentry:onCancel'
 export const onSubmit = 'pinentry:onSubmit'
 
-// Payload Types
-type _ClosePayload = undefined
-type _NewPinentryPayload = {
+// Action Creators
+export const createClose = (payload?: undefined) => ({payload, type: close as typeof close})
+export const createNewPinentry = (payload: {
   readonly showTyping: RPCTypes.Feature
   readonly type: RPCTypes.PassphraseType
   readonly prompt: string
@@ -19,24 +19,18 @@ type _NewPinentryPayload = {
   readonly submitLabel?: string
   readonly cancelLabel?: string
   readonly retryLabel?: string
-}
-type _OnCancelPayload = undefined
-type _OnSubmitPayload = {readonly password: string}
-
-// Action Creators
-export const createClose = (payload?: _ClosePayload): ClosePayload => ({payload, type: close})
-export const createNewPinentry = (payload: _NewPinentryPayload): NewPinentryPayload => ({
+}) => ({payload, type: newPinentry as typeof newPinentry})
+export const createOnCancel = (payload?: undefined) => ({payload, type: onCancel as typeof onCancel})
+export const createOnSubmit = (payload: {readonly password: string}) => ({
   payload,
-  type: newPinentry,
+  type: onSubmit as typeof onSubmit,
 })
-export const createOnCancel = (payload?: _OnCancelPayload): OnCancelPayload => ({payload, type: onCancel})
-export const createOnSubmit = (payload: _OnSubmitPayload): OnSubmitPayload => ({payload, type: onSubmit})
 
 // Action Payloads
-export type ClosePayload = {readonly payload: _ClosePayload; readonly type: typeof close}
-export type NewPinentryPayload = {readonly payload: _NewPinentryPayload; readonly type: typeof newPinentry}
-export type OnCancelPayload = {readonly payload: _OnCancelPayload; readonly type: typeof onCancel}
-export type OnSubmitPayload = {readonly payload: _OnSubmitPayload; readonly type: typeof onSubmit}
+export type ClosePayload = ReturnType<typeof createClose>
+export type NewPinentryPayload = ReturnType<typeof createNewPinentry>
+export type OnCancelPayload = ReturnType<typeof createOnCancel>
+export type OnSubmitPayload = ReturnType<typeof createOnSubmit>
 
 // All Actions
 // prettier-ignore

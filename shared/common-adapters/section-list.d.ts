@@ -127,7 +127,7 @@ export type Props<SectionT extends Section<any, any>> = {
 
   /**
    * Fires at most once per frame during scrolling. The frequency of the events
-   * can be contolled using the scrollEventThrottle prop.
+   * can be controlled using the scrollEventThrottle prop.
    */
   onScroll?: (event: ReactNative.NativeSyntheticEvent<ReactNative.NativeScrollEvent>) => void
 
@@ -145,9 +145,5 @@ export type Props<SectionT extends Section<any, any>> = {
 }
 
 export default class<T extends Section<any, any>> extends React.Component<Props<T>> {
-  getNode: () =>
-    | {
-        scrollToLocation: (o: {animated: boolean; itemIndex: number; sectionIndex: number}) => void
-      }
-    | undefined
+  scrollToLocation: (o: {animated: boolean; itemIndex: number; sectionIndex: number}) => void
 }

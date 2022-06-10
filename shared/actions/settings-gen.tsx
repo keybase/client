@@ -88,721 +88,473 @@ export const updateDefaultPhoneNumberCountry = 'settings:updateDefaultPhoneNumbe
 export const verifiedPhoneNumber = 'settings:verifiedPhoneNumber'
 export const verifyPhoneNumber = 'settings:verifyPhoneNumber'
 
-// Payload Types
-type _AddEmailPayload = {readonly email: string; readonly searchable: boolean}
-type _AddPhoneNumberPayload = {readonly searchable: boolean; readonly phoneNumber: string}
-type _AddedEmailPayload = {readonly email: string; readonly error?: string}
-type _AddedPhoneNumberPayload = {
+// Action Creators
+/**
+ * Add a phone number and kick off a text message with a verification code.
+ */
+export const createAddPhoneNumber = (payload: {
   readonly searchable: boolean
-  readonly error?: string
   readonly phoneNumber: string
-}
-type _CertificatePinningToggledPayload = {readonly toggled?: boolean}
-type _CheckPasswordPayload = {readonly password: HiddenString}
-type _ClearAddedEmailPayload = undefined
-type _ClearAddedPhonePayload = undefined
-type _ClearAddingEmailPayload = undefined
-type _ClearPhoneNumberAddPayload = undefined
-type _ClearPhoneNumberErrorsPayload = undefined
-type _ContactSettingsErrorPayload = {readonly error: string}
-type _ContactSettingsRefreshPayload = undefined
-type _ContactSettingsRefreshedPayload = {readonly settings: RPCTypes.ContactSettings}
-type _ContactSettingsSavedPayload = {
+}) => ({payload, type: addPhoneNumber as typeof addPhoneNumber})
+/**
+ * An email was just marked as verified
+ */
+export const createEmailVerified = (payload: {readonly email: string}) => ({
+  payload,
+  type: emailVerified as typeof emailVerified,
+})
+/**
+ * An error occurred on the contact settings screen
+ */
+export const createContactSettingsError = (payload: {readonly error: string}) => ({
+  payload,
+  type: contactSettingsError as typeof contactSettingsError,
+})
+/**
+ * An error occurred on the unfurl settings screen
+ */
+export const createUnfurlSettingsError = (payload: {readonly error: string}) => ({
+  payload,
+  type: unfurlSettingsError as typeof unfurlSettingsError,
+})
+/**
+ * An error occurred while trying to send feedback to Keybase
+ */
+export const createFeedbackSent = (payload: {readonly error?: Error} = {}) => ({
+  payload,
+  type: feedbackSent as typeof feedbackSent,
+})
+/**
+ * Cancel adding a phone number.
+ */
+export const createClearPhoneNumberAdd = (payload?: undefined) => ({
+  payload,
+  type: clearPhoneNumberAdd as typeof clearPhoneNumberAdd,
+})
+/**
+ * Clear only error from phone number add flow.
+ */
+export const createClearPhoneNumberErrors = (payload?: undefined) => ({
+  payload,
+  type: clearPhoneNumberErrors as typeof clearPhoneNumberErrors,
+})
+/**
+ * Load whether config says we've enabled contact importing and check OS contacts permission status.
+ */
+export const createLoadContactImportEnabled = (payload?: undefined) => ({
+  payload,
+  type: loadContactImportEnabled as typeof loadContactImportEnabled,
+})
+/**
+ * Refresh Chat contact settings
+ */
+export const createContactSettingsRefresh = (payload?: undefined) => ({
+  payload,
+  type: contactSettingsRefresh as typeof contactSettingsRefresh,
+})
+/**
+ * Refresh unfurl settings
+ */
+export const createUnfurlSettingsRefresh = (payload?: undefined) => ({
+  payload,
+  type: unfurlSettingsRefresh as typeof unfurlSettingsRefresh,
+})
+/**
+ * Refreshed Chat contact settings available
+ */
+export const createContactSettingsRefreshed = (payload: {readonly settings: RPCTypes.ContactSettings}) => ({
+  payload,
+  type: contactSettingsRefreshed as typeof contactSettingsRefreshed,
+})
+/**
+ * Refreshed Chat contact settings available
+ */
+export const createContactSettingsSaved = (payload: {
   readonly enabled: boolean
   readonly indirectFollowees: boolean
   readonly teamsEnabled: boolean
   readonly teamsList: Types.ContactSettingsTeamsList
-}
-type _DbNukePayload = undefined
-type _DeleteAccountForeverPayload = {readonly passphrase?: HiddenString}
-type _EditContactImportEnabledPayload = {readonly enable: boolean; readonly fromSettings?: boolean}
-type _EditEmailPayload = {
+}) => ({payload, type: contactSettingsSaved as typeof contactSettingsSaved})
+/**
+ * Refreshed unfurl settings available
+ */
+export const createUnfurlSettingsRefreshed = (payload: {
+  readonly mode: RPCChatTypes.UnfurlMode
+  readonly whitelist: Array<string>
+}) => ({payload, type: unfurlSettingsRefreshed as typeof unfurlSettingsRefreshed})
+/**
+ * Resend verification code for a phone number that's already added.
+ */
+export const createResendVerificationForPhoneNumber = (payload: {readonly phoneNumber: string}) => ({
+  payload,
+  type: resendVerificationForPhoneNumber as typeof resendVerificationForPhoneNumber,
+})
+/**
+ * Reset state used for adding an email.
+ */
+export const createClearAddingEmail = (payload?: undefined) => ({
+  payload,
+  type: clearAddingEmail as typeof clearAddingEmail,
+})
+/**
+ * Reset state used for showing we just added a phone number.
+ */
+export const createClearAddedPhone = (payload?: undefined) => ({
+  payload,
+  type: clearAddedPhone as typeof clearAddedPhone,
+})
+/**
+ * Reset state used for showing we just added an email.
+ */
+export const createClearAddedEmail = (payload?: undefined) => ({
+  payload,
+  type: clearAddedEmail as typeof clearAddedEmail,
+})
+/**
+ * Submit a verification code for a phone number
+ */
+export const createVerifyPhoneNumber = (payload: {readonly phoneNumber: string; readonly code: string}) => ({
+  payload,
+  type: verifyPhoneNumber as typeof verifyPhoneNumber,
+})
+/**
+ * Update unfurl settings from settings screen
+ */
+export const createUnfurlSettingsSaved = (payload: {
+  readonly mode: RPCChatTypes.UnfurlMode
+  readonly whitelist: Array<string>
+}) => ({payload, type: unfurlSettingsSaved as typeof unfurlSettingsSaved})
+/**
+ * We just attempted to add a phone number and either got an error or the number is pending verification.
+ */
+export const createAddedPhoneNumber = (payload: {
+  readonly searchable: boolean
+  readonly error?: string
+  readonly phoneNumber: string
+}) => ({payload, type: addedPhoneNumber as typeof addedPhoneNumber})
+/**
+ * We verified a phone number or hit an error.
+ */
+export const createVerifiedPhoneNumber = (payload: {
+  readonly error?: string
+  readonly phoneNumber: string
+}) => ({payload, type: verifiedPhoneNumber as typeof verifiedPhoneNumber})
+export const createAddEmail = (payload: {readonly email: string; readonly searchable: boolean}) => ({
+  payload,
+  type: addEmail as typeof addEmail,
+})
+export const createAddedEmail = (payload: {readonly email: string; readonly error?: string}) => ({
+  payload,
+  type: addedEmail as typeof addedEmail,
+})
+export const createCertificatePinningToggled = (payload: {readonly toggled?: boolean} = {}) => ({
+  payload,
+  type: certificatePinningToggled as typeof certificatePinningToggled,
+})
+export const createCheckPassword = (payload: {readonly password: HiddenString}) => ({
+  payload,
+  type: checkPassword as typeof checkPassword,
+})
+export const createDbNuke = (payload?: undefined) => ({payload, type: dbNuke as typeof dbNuke})
+export const createDeleteAccountForever = (payload: {readonly passphrase?: HiddenString} = {}) => ({
+  payload,
+  type: deleteAccountForever as typeof deleteAccountForever,
+})
+export const createEditContactImportEnabled = (payload: {
+  readonly enable: boolean
+  readonly fromSettings?: boolean
+}) => ({payload, type: editContactImportEnabled as typeof editContactImportEnabled})
+export const createEditEmail = (payload: {
   readonly email: string
   readonly delete?: boolean
   readonly makePrimary?: boolean
   readonly makeSearchable?: boolean
   readonly verify?: boolean
-}
-type _EditPhonePayload = {readonly phone: string; readonly delete?: boolean; readonly setSearchable?: boolean}
-type _EmailVerifiedPayload = {readonly email: string}
-type _FeedbackSentPayload = {readonly error?: Error}
-type _ImportContactsLaterPayload = undefined
-type _InvitesClearErrorPayload = undefined
-type _InvitesReclaimPayload = {readonly inviteId: string}
-type _InvitesRefreshPayload = undefined
-type _InvitesRefreshedPayload = {readonly invites: Types.InvitesState}
-type _InvitesSendPayload = {readonly email: string; readonly message?: string}
-type _InvitesSentPayload = {readonly error?: Error}
-type _LoadContactImportEnabledPayload = undefined
-type _LoadDefaultPhoneNumberCountryPayload = undefined
-type _LoadHasRandomPwPayload = undefined
-type _LoadLockdownModePayload = undefined
-type _LoadProxyDataPayload = undefined
-type _LoadRememberPasswordPayload = undefined
-type _LoadSettingsPayload = undefined
-type _LoadedCheckPasswordPayload = {readonly checkPasswordIsCorrect?: boolean}
-type _LoadedContactImportEnabledPayload = {readonly enabled: boolean}
-type _LoadedContactPermissionsPayload = {readonly status: 'granted' | 'never_ask_again' | 'undetermined'}
-type _LoadedHasRandomPwPayload = {readonly randomPW: boolean}
-type _LoadedLockdownModePayload = {readonly status?: boolean}
-type _LoadedProxyDataPayload = {readonly proxyData: RPCTypes.ProxyData}
-type _LoadedRememberPasswordPayload = {readonly remember: boolean}
-type _LoadedSettingsPayload = {
-  readonly emails?: Map<string, Types.EmailRow>
-  readonly phones?: Map<string, Types.PhoneRow>
-}
-type _LoadedUserCountryCodePayload = {readonly code?: string}
-type _LoginBrowserViaWebAuthTokenPayload = undefined
-type _NotificationsRefreshPayload = undefined
-type _NotificationsRefreshedPayload = {readonly notifications: Map<string, Types.NotificationsGroupState>}
-type _NotificationsSavedPayload = undefined
-type _NotificationsTogglePayload = {readonly group: string; readonly name?: string}
-type _OnChangeLockdownModePayload = {readonly enabled: boolean}
-type _OnChangeNewEmailPayload = {readonly email: string}
-type _OnChangeNewPasswordConfirmPayload = {readonly password: HiddenString}
-type _OnChangeNewPasswordPayload = {readonly password: HiddenString}
-type _OnChangeRememberPasswordPayload = {readonly remember: boolean}
-type _OnChangeShowPasswordPayload = undefined
-type _OnSubmitNewEmailPayload = undefined
-type _OnSubmitNewPasswordPayload = {readonly thenSignOut: boolean}
-type _OnUpdateEmailErrorPayload = {readonly error: Error}
-type _OnUpdatePGPSettingsPayload = undefined
-type _OnUpdatePasswordErrorPayload = {readonly error: Error}
-type _OnUpdatedPGPSettingsPayload = {readonly hasKeys: boolean}
-type _ProcessorProfilePayload = {readonly durationSeconds: number}
-type _RequestContactPermissionsPayload = {
-  readonly thenToggleImportOn?: boolean
-  readonly fromSettings?: boolean
-}
-type _ResendVerificationForPhoneNumberPayload = {readonly phoneNumber: string}
-type _ResetCheckPasswordIsCorrectPayload = undefined
-type _SaveProxyDataPayload = {readonly proxyData: RPCTypes.ProxyData}
-type _SendFeedbackPayload = {
+}) => ({payload, type: editEmail as typeof editEmail})
+export const createEditPhone = (payload: {
+  readonly phone: string
+  readonly delete?: boolean
+  readonly setSearchable?: boolean
+}) => ({payload, type: editPhone as typeof editPhone})
+export const createImportContactsLater = (payload?: undefined) => ({
+  payload,
+  type: importContactsLater as typeof importContactsLater,
+})
+export const createInvitesClearError = (payload?: undefined) => ({
+  payload,
+  type: invitesClearError as typeof invitesClearError,
+})
+export const createInvitesReclaim = (payload: {readonly inviteId: string}) => ({
+  payload,
+  type: invitesReclaim as typeof invitesReclaim,
+})
+export const createInvitesRefresh = (payload?: undefined) => ({
+  payload,
+  type: invitesRefresh as typeof invitesRefresh,
+})
+export const createInvitesRefreshed = (payload: {readonly invites: Types.InvitesState}) => ({
+  payload,
+  type: invitesRefreshed as typeof invitesRefreshed,
+})
+export const createInvitesSend = (payload: {readonly email: string; readonly message?: string}) => ({
+  payload,
+  type: invitesSend as typeof invitesSend,
+})
+export const createInvitesSent = (payload: {readonly error?: Error} = {}) => ({
+  payload,
+  type: invitesSent as typeof invitesSent,
+})
+export const createLoadDefaultPhoneNumberCountry = (payload?: undefined) => ({
+  payload,
+  type: loadDefaultPhoneNumberCountry as typeof loadDefaultPhoneNumberCountry,
+})
+export const createLoadHasRandomPw = (payload?: undefined) => ({
+  payload,
+  type: loadHasRandomPw as typeof loadHasRandomPw,
+})
+export const createLoadLockdownMode = (payload?: undefined) => ({
+  payload,
+  type: loadLockdownMode as typeof loadLockdownMode,
+})
+export const createLoadProxyData = (payload?: undefined) => ({
+  payload,
+  type: loadProxyData as typeof loadProxyData,
+})
+export const createLoadRememberPassword = (payload?: undefined) => ({
+  payload,
+  type: loadRememberPassword as typeof loadRememberPassword,
+})
+export const createLoadSettings = (payload?: undefined) => ({
+  payload,
+  type: loadSettings as typeof loadSettings,
+})
+export const createLoadedCheckPassword = (payload: {readonly checkPasswordIsCorrect?: boolean} = {}) => ({
+  payload,
+  type: loadedCheckPassword as typeof loadedCheckPassword,
+})
+export const createLoadedContactImportEnabled = (payload: {readonly enabled: boolean}) => ({
+  payload,
+  type: loadedContactImportEnabled as typeof loadedContactImportEnabled,
+})
+export const createLoadedContactPermissions = (payload: {
+  readonly status: 'granted' | 'never_ask_again' | 'undetermined'
+}) => ({payload, type: loadedContactPermissions as typeof loadedContactPermissions})
+export const createLoadedHasRandomPw = (payload: {readonly randomPW: boolean}) => ({
+  payload,
+  type: loadedHasRandomPw as typeof loadedHasRandomPw,
+})
+export const createLoadedLockdownMode = (payload: {readonly status?: boolean} = {}) => ({
+  payload,
+  type: loadedLockdownMode as typeof loadedLockdownMode,
+})
+export const createLoadedProxyData = (payload: {readonly proxyData: RPCTypes.ProxyData}) => ({
+  payload,
+  type: loadedProxyData as typeof loadedProxyData,
+})
+export const createLoadedRememberPassword = (payload: {readonly remember: boolean}) => ({
+  payload,
+  type: loadedRememberPassword as typeof loadedRememberPassword,
+})
+export const createLoadedSettings = (
+  payload: {readonly emails?: Map<string, Types.EmailRow>; readonly phones?: Map<string, Types.PhoneRow>} = {}
+) => ({payload, type: loadedSettings as typeof loadedSettings})
+export const createLoadedUserCountryCode = (payload: {readonly code?: string} = {}) => ({
+  payload,
+  type: loadedUserCountryCode as typeof loadedUserCountryCode,
+})
+export const createLoginBrowserViaWebAuthToken = (payload?: undefined) => ({
+  payload,
+  type: loginBrowserViaWebAuthToken as typeof loginBrowserViaWebAuthToken,
+})
+export const createNotificationsRefresh = (payload?: undefined) => ({
+  payload,
+  type: notificationsRefresh as typeof notificationsRefresh,
+})
+export const createNotificationsRefreshed = (payload: {
+  readonly notifications: Map<string, Types.NotificationsGroupState>
+}) => ({payload, type: notificationsRefreshed as typeof notificationsRefreshed})
+export const createNotificationsSaved = (payload?: undefined) => ({
+  payload,
+  type: notificationsSaved as typeof notificationsSaved,
+})
+export const createNotificationsToggle = (payload: {readonly group: string; readonly name?: string}) => ({
+  payload,
+  type: notificationsToggle as typeof notificationsToggle,
+})
+export const createOnChangeLockdownMode = (payload: {readonly enabled: boolean}) => ({
+  payload,
+  type: onChangeLockdownMode as typeof onChangeLockdownMode,
+})
+export const createOnChangeNewEmail = (payload: {readonly email: string}) => ({
+  payload,
+  type: onChangeNewEmail as typeof onChangeNewEmail,
+})
+export const createOnChangeNewPassword = (payload: {readonly password: HiddenString}) => ({
+  payload,
+  type: onChangeNewPassword as typeof onChangeNewPassword,
+})
+export const createOnChangeNewPasswordConfirm = (payload: {readonly password: HiddenString}) => ({
+  payload,
+  type: onChangeNewPasswordConfirm as typeof onChangeNewPasswordConfirm,
+})
+export const createOnChangeRememberPassword = (payload: {readonly remember: boolean}) => ({
+  payload,
+  type: onChangeRememberPassword as typeof onChangeRememberPassword,
+})
+export const createOnChangeShowPassword = (payload?: undefined) => ({
+  payload,
+  type: onChangeShowPassword as typeof onChangeShowPassword,
+})
+export const createOnSubmitNewEmail = (payload?: undefined) => ({
+  payload,
+  type: onSubmitNewEmail as typeof onSubmitNewEmail,
+})
+export const createOnSubmitNewPassword = (payload: {readonly thenSignOut: boolean}) => ({
+  payload,
+  type: onSubmitNewPassword as typeof onSubmitNewPassword,
+})
+export const createOnUpdateEmailError = (payload: {readonly error: Error}) => ({
+  payload,
+  type: onUpdateEmailError as typeof onUpdateEmailError,
+})
+export const createOnUpdatePGPSettings = (payload?: undefined) => ({
+  payload,
+  type: onUpdatePGPSettings as typeof onUpdatePGPSettings,
+})
+export const createOnUpdatePasswordError = (payload: {readonly error: Error}) => ({
+  payload,
+  type: onUpdatePasswordError as typeof onUpdatePasswordError,
+})
+export const createOnUpdatedPGPSettings = (payload: {readonly hasKeys: boolean}) => ({
+  payload,
+  type: onUpdatedPGPSettings as typeof onUpdatedPGPSettings,
+})
+export const createProcessorProfile = (payload: {readonly durationSeconds: number}) => ({
+  payload,
+  type: processorProfile as typeof processorProfile,
+})
+export const createRequestContactPermissions = (
+  payload: {readonly thenToggleImportOn?: boolean; readonly fromSettings?: boolean} = {}
+) => ({payload, type: requestContactPermissions as typeof requestContactPermissions})
+export const createResetCheckPasswordIsCorrect = (payload?: undefined) => ({
+  payload,
+  type: resetCheckPasswordIsCorrect as typeof resetCheckPasswordIsCorrect,
+})
+export const createSaveProxyData = (payload: {readonly proxyData: RPCTypes.ProxyData}) => ({
+  payload,
+  type: saveProxyData as typeof saveProxyData,
+})
+export const createSendFeedback = (payload: {
   readonly feedback: string
   readonly sendLogs: boolean
   readonly sendMaxBytes: boolean
-}
-type _SentVerificationEmailPayload = {readonly email: string}
-type _SetContactImportedCountPayload = {readonly count?: number; readonly error?: string}
-type _ShowContactsJoinedModalPayload = {readonly resolved: Array<RPCTypes.ProcessedContact>}
-type _StopPayload = {readonly exitCode: RPCTypes.ExitCode}
-type _TracePayload = {readonly durationSeconds: number}
-type _UnfurlSettingsErrorPayload = {readonly error: string}
-type _UnfurlSettingsRefreshPayload = undefined
-type _UnfurlSettingsRefreshedPayload = {
-  readonly mode: RPCChatTypes.UnfurlMode
-  readonly whitelist: Array<string>
-}
-type _UnfurlSettingsSavedPayload = {readonly mode: RPCChatTypes.UnfurlMode; readonly whitelist: Array<string>}
-type _UpdateDefaultPhoneNumberCountryPayload = {readonly country: string}
-type _VerifiedPhoneNumberPayload = {readonly error?: string; readonly phoneNumber: string}
-type _VerifyPhoneNumberPayload = {readonly phoneNumber: string; readonly code: string}
-
-// Action Creators
-/**
- * Add a phone number and kick off a text message with a verification code.
- */
-export const createAddPhoneNumber = (payload: _AddPhoneNumberPayload): AddPhoneNumberPayload => ({
+}) => ({payload, type: sendFeedback as typeof sendFeedback})
+export const createSentVerificationEmail = (payload: {readonly email: string}) => ({
   payload,
-  type: addPhoneNumber,
+  type: sentVerificationEmail as typeof sentVerificationEmail,
 })
-/**
- * An email was just marked as verified
- */
-export const createEmailVerified = (payload: _EmailVerifiedPayload): EmailVerifiedPayload => ({
-  payload,
-  type: emailVerified,
-})
-/**
- * An error occurred on the contact settings screen
- */
-export const createContactSettingsError = (
-  payload: _ContactSettingsErrorPayload
-): ContactSettingsErrorPayload => ({payload, type: contactSettingsError})
-/**
- * An error occurred on the unfurl settings screen
- */
-export const createUnfurlSettingsError = (
-  payload: _UnfurlSettingsErrorPayload
-): UnfurlSettingsErrorPayload => ({payload, type: unfurlSettingsError})
-/**
- * An error occurred while trying to send feedback to Keybase
- */
-export const createFeedbackSent = (
-  payload: _FeedbackSentPayload = Object.freeze({})
-): FeedbackSentPayload => ({payload, type: feedbackSent})
-/**
- * Cancel adding a phone number.
- */
-export const createClearPhoneNumberAdd = (
-  payload?: _ClearPhoneNumberAddPayload
-): ClearPhoneNumberAddPayload => ({payload, type: clearPhoneNumberAdd})
-/**
- * Clear only error from phone number add flow.
- */
-export const createClearPhoneNumberErrors = (
-  payload?: _ClearPhoneNumberErrorsPayload
-): ClearPhoneNumberErrorsPayload => ({payload, type: clearPhoneNumberErrors})
-/**
- * Load whether config says we've enabled contact importing and check OS contacts permission status.
- */
-export const createLoadContactImportEnabled = (
-  payload?: _LoadContactImportEnabledPayload
-): LoadContactImportEnabledPayload => ({payload, type: loadContactImportEnabled})
-/**
- * Refresh Chat contact settings
- */
-export const createContactSettingsRefresh = (
-  payload?: _ContactSettingsRefreshPayload
-): ContactSettingsRefreshPayload => ({payload, type: contactSettingsRefresh})
-/**
- * Refresh unfurl settings
- */
-export const createUnfurlSettingsRefresh = (
-  payload?: _UnfurlSettingsRefreshPayload
-): UnfurlSettingsRefreshPayload => ({payload, type: unfurlSettingsRefresh})
-/**
- * Refreshed Chat contact settings available
- */
-export const createContactSettingsRefreshed = (
-  payload: _ContactSettingsRefreshedPayload
-): ContactSettingsRefreshedPayload => ({payload, type: contactSettingsRefreshed})
-/**
- * Refreshed Chat contact settings available
- */
-export const createContactSettingsSaved = (
-  payload: _ContactSettingsSavedPayload
-): ContactSettingsSavedPayload => ({payload, type: contactSettingsSaved})
-/**
- * Refreshed unfurl settings available
- */
-export const createUnfurlSettingsRefreshed = (
-  payload: _UnfurlSettingsRefreshedPayload
-): UnfurlSettingsRefreshedPayload => ({payload, type: unfurlSettingsRefreshed})
-/**
- * Resend verification code for a phone number that's already added.
- */
-export const createResendVerificationForPhoneNumber = (
-  payload: _ResendVerificationForPhoneNumberPayload
-): ResendVerificationForPhoneNumberPayload => ({payload, type: resendVerificationForPhoneNumber})
-/**
- * Reset state used for adding an email.
- */
-export const createClearAddingEmail = (payload?: _ClearAddingEmailPayload): ClearAddingEmailPayload => ({
-  payload,
-  type: clearAddingEmail,
-})
-/**
- * Reset state used for showing we just added a phone number.
- */
-export const createClearAddedPhone = (payload?: _ClearAddedPhonePayload): ClearAddedPhonePayload => ({
-  payload,
-  type: clearAddedPhone,
-})
-/**
- * Reset state used for showing we just added an email.
- */
-export const createClearAddedEmail = (payload?: _ClearAddedEmailPayload): ClearAddedEmailPayload => ({
-  payload,
-  type: clearAddedEmail,
-})
-/**
- * Submit a verification code for a phone number
- */
-export const createVerifyPhoneNumber = (payload: _VerifyPhoneNumberPayload): VerifyPhoneNumberPayload => ({
-  payload,
-  type: verifyPhoneNumber,
-})
-/**
- * Update unfurl settings from settings screen
- */
-export const createUnfurlSettingsSaved = (
-  payload: _UnfurlSettingsSavedPayload
-): UnfurlSettingsSavedPayload => ({payload, type: unfurlSettingsSaved})
-/**
- * We just attempted to add a phone number and either got an error or the number is pending verification.
- */
-export const createAddedPhoneNumber = (payload: _AddedPhoneNumberPayload): AddedPhoneNumberPayload => ({
-  payload,
-  type: addedPhoneNumber,
-})
-/**
- * We verified a phone number or hit an error.
- */
-export const createVerifiedPhoneNumber = (
-  payload: _VerifiedPhoneNumberPayload
-): VerifiedPhoneNumberPayload => ({payload, type: verifiedPhoneNumber})
-export const createAddEmail = (payload: _AddEmailPayload): AddEmailPayload => ({payload, type: addEmail})
-export const createAddedEmail = (payload: _AddedEmailPayload): AddedEmailPayload => ({
-  payload,
-  type: addedEmail,
-})
-export const createCertificatePinningToggled = (
-  payload: _CertificatePinningToggledPayload = Object.freeze({})
-): CertificatePinningToggledPayload => ({payload, type: certificatePinningToggled})
-export const createCheckPassword = (payload: _CheckPasswordPayload): CheckPasswordPayload => ({
-  payload,
-  type: checkPassword,
-})
-export const createDbNuke = (payload?: _DbNukePayload): DbNukePayload => ({payload, type: dbNuke})
-export const createDeleteAccountForever = (
-  payload: _DeleteAccountForeverPayload = Object.freeze({})
-): DeleteAccountForeverPayload => ({payload, type: deleteAccountForever})
-export const createEditContactImportEnabled = (
-  payload: _EditContactImportEnabledPayload
-): EditContactImportEnabledPayload => ({payload, type: editContactImportEnabled})
-export const createEditEmail = (payload: _EditEmailPayload): EditEmailPayload => ({payload, type: editEmail})
-export const createEditPhone = (payload: _EditPhonePayload): EditPhonePayload => ({payload, type: editPhone})
-export const createImportContactsLater = (
-  payload?: _ImportContactsLaterPayload
-): ImportContactsLaterPayload => ({payload, type: importContactsLater})
-export const createInvitesClearError = (payload?: _InvitesClearErrorPayload): InvitesClearErrorPayload => ({
-  payload,
-  type: invitesClearError,
-})
-export const createInvitesReclaim = (payload: _InvitesReclaimPayload): InvitesReclaimPayload => ({
-  payload,
-  type: invitesReclaim,
-})
-export const createInvitesRefresh = (payload?: _InvitesRefreshPayload): InvitesRefreshPayload => ({
-  payload,
-  type: invitesRefresh,
-})
-export const createInvitesRefreshed = (payload: _InvitesRefreshedPayload): InvitesRefreshedPayload => ({
-  payload,
-  type: invitesRefreshed,
-})
-export const createInvitesSend = (payload: _InvitesSendPayload): InvitesSendPayload => ({
-  payload,
-  type: invitesSend,
-})
-export const createInvitesSent = (payload: _InvitesSentPayload = Object.freeze({})): InvitesSentPayload => ({
-  payload,
-  type: invitesSent,
-})
-export const createLoadDefaultPhoneNumberCountry = (
-  payload?: _LoadDefaultPhoneNumberCountryPayload
-): LoadDefaultPhoneNumberCountryPayload => ({payload, type: loadDefaultPhoneNumberCountry})
-export const createLoadHasRandomPw = (payload?: _LoadHasRandomPwPayload): LoadHasRandomPwPayload => ({
-  payload,
-  type: loadHasRandomPw,
-})
-export const createLoadLockdownMode = (payload?: _LoadLockdownModePayload): LoadLockdownModePayload => ({
-  payload,
-  type: loadLockdownMode,
-})
-export const createLoadProxyData = (payload?: _LoadProxyDataPayload): LoadProxyDataPayload => ({
-  payload,
-  type: loadProxyData,
-})
-export const createLoadRememberPassword = (
-  payload?: _LoadRememberPasswordPayload
-): LoadRememberPasswordPayload => ({payload, type: loadRememberPassword})
-export const createLoadSettings = (payload?: _LoadSettingsPayload): LoadSettingsPayload => ({
-  payload,
-  type: loadSettings,
-})
-export const createLoadedCheckPassword = (
-  payload: _LoadedCheckPasswordPayload = Object.freeze({})
-): LoadedCheckPasswordPayload => ({payload, type: loadedCheckPassword})
-export const createLoadedContactImportEnabled = (
-  payload: _LoadedContactImportEnabledPayload
-): LoadedContactImportEnabledPayload => ({payload, type: loadedContactImportEnabled})
-export const createLoadedContactPermissions = (
-  payload: _LoadedContactPermissionsPayload
-): LoadedContactPermissionsPayload => ({payload, type: loadedContactPermissions})
-export const createLoadedHasRandomPw = (payload: _LoadedHasRandomPwPayload): LoadedHasRandomPwPayload => ({
-  payload,
-  type: loadedHasRandomPw,
-})
-export const createLoadedLockdownMode = (
-  payload: _LoadedLockdownModePayload = Object.freeze({})
-): LoadedLockdownModePayload => ({payload, type: loadedLockdownMode})
-export const createLoadedProxyData = (payload: _LoadedProxyDataPayload): LoadedProxyDataPayload => ({
-  payload,
-  type: loadedProxyData,
-})
-export const createLoadedRememberPassword = (
-  payload: _LoadedRememberPasswordPayload
-): LoadedRememberPasswordPayload => ({payload, type: loadedRememberPassword})
-export const createLoadedSettings = (
-  payload: _LoadedSettingsPayload = Object.freeze({})
-): LoadedSettingsPayload => ({payload, type: loadedSettings})
-export const createLoadedUserCountryCode = (
-  payload: _LoadedUserCountryCodePayload = Object.freeze({})
-): LoadedUserCountryCodePayload => ({payload, type: loadedUserCountryCode})
-export const createLoginBrowserViaWebAuthToken = (
-  payload?: _LoginBrowserViaWebAuthTokenPayload
-): LoginBrowserViaWebAuthTokenPayload => ({payload, type: loginBrowserViaWebAuthToken})
-export const createNotificationsRefresh = (
-  payload?: _NotificationsRefreshPayload
-): NotificationsRefreshPayload => ({payload, type: notificationsRefresh})
-export const createNotificationsRefreshed = (
-  payload: _NotificationsRefreshedPayload
-): NotificationsRefreshedPayload => ({payload, type: notificationsRefreshed})
-export const createNotificationsSaved = (
-  payload?: _NotificationsSavedPayload
-): NotificationsSavedPayload => ({payload, type: notificationsSaved})
-export const createNotificationsToggle = (
-  payload: _NotificationsTogglePayload
-): NotificationsTogglePayload => ({payload, type: notificationsToggle})
-export const createOnChangeLockdownMode = (
-  payload: _OnChangeLockdownModePayload
-): OnChangeLockdownModePayload => ({payload, type: onChangeLockdownMode})
-export const createOnChangeNewEmail = (payload: _OnChangeNewEmailPayload): OnChangeNewEmailPayload => ({
-  payload,
-  type: onChangeNewEmail,
-})
-export const createOnChangeNewPassword = (
-  payload: _OnChangeNewPasswordPayload
-): OnChangeNewPasswordPayload => ({payload, type: onChangeNewPassword})
-export const createOnChangeNewPasswordConfirm = (
-  payload: _OnChangeNewPasswordConfirmPayload
-): OnChangeNewPasswordConfirmPayload => ({payload, type: onChangeNewPasswordConfirm})
-export const createOnChangeRememberPassword = (
-  payload: _OnChangeRememberPasswordPayload
-): OnChangeRememberPasswordPayload => ({payload, type: onChangeRememberPassword})
-export const createOnChangeShowPassword = (
-  payload?: _OnChangeShowPasswordPayload
-): OnChangeShowPasswordPayload => ({payload, type: onChangeShowPassword})
-export const createOnSubmitNewEmail = (payload?: _OnSubmitNewEmailPayload): OnSubmitNewEmailPayload => ({
-  payload,
-  type: onSubmitNewEmail,
-})
-export const createOnSubmitNewPassword = (
-  payload: _OnSubmitNewPasswordPayload
-): OnSubmitNewPasswordPayload => ({payload, type: onSubmitNewPassword})
-export const createOnUpdateEmailError = (payload: _OnUpdateEmailErrorPayload): OnUpdateEmailErrorPayload => ({
-  payload,
-  type: onUpdateEmailError,
-})
-export const createOnUpdatePGPSettings = (
-  payload?: _OnUpdatePGPSettingsPayload
-): OnUpdatePGPSettingsPayload => ({payload, type: onUpdatePGPSettings})
-export const createOnUpdatePasswordError = (
-  payload: _OnUpdatePasswordErrorPayload
-): OnUpdatePasswordErrorPayload => ({payload, type: onUpdatePasswordError})
-export const createOnUpdatedPGPSettings = (
-  payload: _OnUpdatedPGPSettingsPayload
-): OnUpdatedPGPSettingsPayload => ({payload, type: onUpdatedPGPSettings})
-export const createProcessorProfile = (payload: _ProcessorProfilePayload): ProcessorProfilePayload => ({
-  payload,
-  type: processorProfile,
-})
-export const createRequestContactPermissions = (
-  payload: _RequestContactPermissionsPayload = Object.freeze({})
-): RequestContactPermissionsPayload => ({payload, type: requestContactPermissions})
-export const createResetCheckPasswordIsCorrect = (
-  payload?: _ResetCheckPasswordIsCorrectPayload
-): ResetCheckPasswordIsCorrectPayload => ({payload, type: resetCheckPasswordIsCorrect})
-export const createSaveProxyData = (payload: _SaveProxyDataPayload): SaveProxyDataPayload => ({
-  payload,
-  type: saveProxyData,
-})
-export const createSendFeedback = (payload: _SendFeedbackPayload): SendFeedbackPayload => ({
-  payload,
-  type: sendFeedback,
-})
-export const createSentVerificationEmail = (
-  payload: _SentVerificationEmailPayload
-): SentVerificationEmailPayload => ({payload, type: sentVerificationEmail})
 export const createSetContactImportedCount = (
-  payload: _SetContactImportedCountPayload = Object.freeze({})
-): SetContactImportedCountPayload => ({payload, type: setContactImportedCount})
-export const createShowContactsJoinedModal = (
-  payload: _ShowContactsJoinedModalPayload
-): ShowContactsJoinedModalPayload => ({payload, type: showContactsJoinedModal})
-export const createStop = (payload: _StopPayload): StopPayload => ({payload, type: stop})
-export const createTrace = (payload: _TracePayload): TracePayload => ({payload, type: trace})
-export const createUpdateDefaultPhoneNumberCountry = (
-  payload: _UpdateDefaultPhoneNumberCountryPayload
-): UpdateDefaultPhoneNumberCountryPayload => ({payload, type: updateDefaultPhoneNumberCountry})
+  payload: {readonly count?: number; readonly error?: string} = {}
+) => ({payload, type: setContactImportedCount as typeof setContactImportedCount})
+export const createShowContactsJoinedModal = (payload: {
+  readonly resolved: Array<RPCTypes.ProcessedContact>
+}) => ({payload, type: showContactsJoinedModal as typeof showContactsJoinedModal})
+export const createStop = (payload: {readonly exitCode: RPCTypes.ExitCode}) => ({
+  payload,
+  type: stop as typeof stop,
+})
+export const createTrace = (payload: {readonly durationSeconds: number}) => ({
+  payload,
+  type: trace as typeof trace,
+})
+export const createUpdateDefaultPhoneNumberCountry = (payload: {readonly country: string}) => ({
+  payload,
+  type: updateDefaultPhoneNumberCountry as typeof updateDefaultPhoneNumberCountry,
+})
 
 // Action Payloads
-export type AddEmailPayload = {readonly payload: _AddEmailPayload; readonly type: typeof addEmail}
-export type AddPhoneNumberPayload = {
-  readonly payload: _AddPhoneNumberPayload
-  readonly type: typeof addPhoneNumber
-}
-export type AddedEmailPayload = {readonly payload: _AddedEmailPayload; readonly type: typeof addedEmail}
-export type AddedPhoneNumberPayload = {
-  readonly payload: _AddedPhoneNumberPayload
-  readonly type: typeof addedPhoneNumber
-}
-export type CertificatePinningToggledPayload = {
-  readonly payload: _CertificatePinningToggledPayload
-  readonly type: typeof certificatePinningToggled
-}
-export type CheckPasswordPayload = {
-  readonly payload: _CheckPasswordPayload
-  readonly type: typeof checkPassword
-}
-export type ClearAddedEmailPayload = {
-  readonly payload: _ClearAddedEmailPayload
-  readonly type: typeof clearAddedEmail
-}
-export type ClearAddedPhonePayload = {
-  readonly payload: _ClearAddedPhonePayload
-  readonly type: typeof clearAddedPhone
-}
-export type ClearAddingEmailPayload = {
-  readonly payload: _ClearAddingEmailPayload
-  readonly type: typeof clearAddingEmail
-}
-export type ClearPhoneNumberAddPayload = {
-  readonly payload: _ClearPhoneNumberAddPayload
-  readonly type: typeof clearPhoneNumberAdd
-}
-export type ClearPhoneNumberErrorsPayload = {
-  readonly payload: _ClearPhoneNumberErrorsPayload
-  readonly type: typeof clearPhoneNumberErrors
-}
-export type ContactSettingsErrorPayload = {
-  readonly payload: _ContactSettingsErrorPayload
-  readonly type: typeof contactSettingsError
-}
-export type ContactSettingsRefreshPayload = {
-  readonly payload: _ContactSettingsRefreshPayload
-  readonly type: typeof contactSettingsRefresh
-}
-export type ContactSettingsRefreshedPayload = {
-  readonly payload: _ContactSettingsRefreshedPayload
-  readonly type: typeof contactSettingsRefreshed
-}
-export type ContactSettingsSavedPayload = {
-  readonly payload: _ContactSettingsSavedPayload
-  readonly type: typeof contactSettingsSaved
-}
-export type DbNukePayload = {readonly payload: _DbNukePayload; readonly type: typeof dbNuke}
-export type DeleteAccountForeverPayload = {
-  readonly payload: _DeleteAccountForeverPayload
-  readonly type: typeof deleteAccountForever
-}
-export type EditContactImportEnabledPayload = {
-  readonly payload: _EditContactImportEnabledPayload
-  readonly type: typeof editContactImportEnabled
-}
-export type EditEmailPayload = {readonly payload: _EditEmailPayload; readonly type: typeof editEmail}
-export type EditPhonePayload = {readonly payload: _EditPhonePayload; readonly type: typeof editPhone}
-export type EmailVerifiedPayload = {
-  readonly payload: _EmailVerifiedPayload
-  readonly type: typeof emailVerified
-}
-export type FeedbackSentPayload = {readonly payload: _FeedbackSentPayload; readonly type: typeof feedbackSent}
-export type ImportContactsLaterPayload = {
-  readonly payload: _ImportContactsLaterPayload
-  readonly type: typeof importContactsLater
-}
-export type InvitesClearErrorPayload = {
-  readonly payload: _InvitesClearErrorPayload
-  readonly type: typeof invitesClearError
-}
-export type InvitesReclaimPayload = {
-  readonly payload: _InvitesReclaimPayload
-  readonly type: typeof invitesReclaim
-}
-export type InvitesRefreshPayload = {
-  readonly payload: _InvitesRefreshPayload
-  readonly type: typeof invitesRefresh
-}
-export type InvitesRefreshedPayload = {
-  readonly payload: _InvitesRefreshedPayload
-  readonly type: typeof invitesRefreshed
-}
-export type InvitesSendPayload = {readonly payload: _InvitesSendPayload; readonly type: typeof invitesSend}
-export type InvitesSentPayload = {readonly payload: _InvitesSentPayload; readonly type: typeof invitesSent}
-export type LoadContactImportEnabledPayload = {
-  readonly payload: _LoadContactImportEnabledPayload
-  readonly type: typeof loadContactImportEnabled
-}
-export type LoadDefaultPhoneNumberCountryPayload = {
-  readonly payload: _LoadDefaultPhoneNumberCountryPayload
-  readonly type: typeof loadDefaultPhoneNumberCountry
-}
-export type LoadHasRandomPwPayload = {
-  readonly payload: _LoadHasRandomPwPayload
-  readonly type: typeof loadHasRandomPw
-}
-export type LoadLockdownModePayload = {
-  readonly payload: _LoadLockdownModePayload
-  readonly type: typeof loadLockdownMode
-}
-export type LoadProxyDataPayload = {
-  readonly payload: _LoadProxyDataPayload
-  readonly type: typeof loadProxyData
-}
-export type LoadRememberPasswordPayload = {
-  readonly payload: _LoadRememberPasswordPayload
-  readonly type: typeof loadRememberPassword
-}
-export type LoadSettingsPayload = {readonly payload: _LoadSettingsPayload; readonly type: typeof loadSettings}
-export type LoadedCheckPasswordPayload = {
-  readonly payload: _LoadedCheckPasswordPayload
-  readonly type: typeof loadedCheckPassword
-}
-export type LoadedContactImportEnabledPayload = {
-  readonly payload: _LoadedContactImportEnabledPayload
-  readonly type: typeof loadedContactImportEnabled
-}
-export type LoadedContactPermissionsPayload = {
-  readonly payload: _LoadedContactPermissionsPayload
-  readonly type: typeof loadedContactPermissions
-}
-export type LoadedHasRandomPwPayload = {
-  readonly payload: _LoadedHasRandomPwPayload
-  readonly type: typeof loadedHasRandomPw
-}
-export type LoadedLockdownModePayload = {
-  readonly payload: _LoadedLockdownModePayload
-  readonly type: typeof loadedLockdownMode
-}
-export type LoadedProxyDataPayload = {
-  readonly payload: _LoadedProxyDataPayload
-  readonly type: typeof loadedProxyData
-}
-export type LoadedRememberPasswordPayload = {
-  readonly payload: _LoadedRememberPasswordPayload
-  readonly type: typeof loadedRememberPassword
-}
-export type LoadedSettingsPayload = {
-  readonly payload: _LoadedSettingsPayload
-  readonly type: typeof loadedSettings
-}
-export type LoadedUserCountryCodePayload = {
-  readonly payload: _LoadedUserCountryCodePayload
-  readonly type: typeof loadedUserCountryCode
-}
-export type LoginBrowserViaWebAuthTokenPayload = {
-  readonly payload: _LoginBrowserViaWebAuthTokenPayload
-  readonly type: typeof loginBrowserViaWebAuthToken
-}
-export type NotificationsRefreshPayload = {
-  readonly payload: _NotificationsRefreshPayload
-  readonly type: typeof notificationsRefresh
-}
-export type NotificationsRefreshedPayload = {
-  readonly payload: _NotificationsRefreshedPayload
-  readonly type: typeof notificationsRefreshed
-}
-export type NotificationsSavedPayload = {
-  readonly payload: _NotificationsSavedPayload
-  readonly type: typeof notificationsSaved
-}
-export type NotificationsTogglePayload = {
-  readonly payload: _NotificationsTogglePayload
-  readonly type: typeof notificationsToggle
-}
-export type OnChangeLockdownModePayload = {
-  readonly payload: _OnChangeLockdownModePayload
-  readonly type: typeof onChangeLockdownMode
-}
-export type OnChangeNewEmailPayload = {
-  readonly payload: _OnChangeNewEmailPayload
-  readonly type: typeof onChangeNewEmail
-}
-export type OnChangeNewPasswordConfirmPayload = {
-  readonly payload: _OnChangeNewPasswordConfirmPayload
-  readonly type: typeof onChangeNewPasswordConfirm
-}
-export type OnChangeNewPasswordPayload = {
-  readonly payload: _OnChangeNewPasswordPayload
-  readonly type: typeof onChangeNewPassword
-}
-export type OnChangeRememberPasswordPayload = {
-  readonly payload: _OnChangeRememberPasswordPayload
-  readonly type: typeof onChangeRememberPassword
-}
-export type OnChangeShowPasswordPayload = {
-  readonly payload: _OnChangeShowPasswordPayload
-  readonly type: typeof onChangeShowPassword
-}
-export type OnSubmitNewEmailPayload = {
-  readonly payload: _OnSubmitNewEmailPayload
-  readonly type: typeof onSubmitNewEmail
-}
-export type OnSubmitNewPasswordPayload = {
-  readonly payload: _OnSubmitNewPasswordPayload
-  readonly type: typeof onSubmitNewPassword
-}
-export type OnUpdateEmailErrorPayload = {
-  readonly payload: _OnUpdateEmailErrorPayload
-  readonly type: typeof onUpdateEmailError
-}
-export type OnUpdatePGPSettingsPayload = {
-  readonly payload: _OnUpdatePGPSettingsPayload
-  readonly type: typeof onUpdatePGPSettings
-}
-export type OnUpdatePasswordErrorPayload = {
-  readonly payload: _OnUpdatePasswordErrorPayload
-  readonly type: typeof onUpdatePasswordError
-}
-export type OnUpdatedPGPSettingsPayload = {
-  readonly payload: _OnUpdatedPGPSettingsPayload
-  readonly type: typeof onUpdatedPGPSettings
-}
-export type ProcessorProfilePayload = {
-  readonly payload: _ProcessorProfilePayload
-  readonly type: typeof processorProfile
-}
-export type RequestContactPermissionsPayload = {
-  readonly payload: _RequestContactPermissionsPayload
-  readonly type: typeof requestContactPermissions
-}
-export type ResendVerificationForPhoneNumberPayload = {
-  readonly payload: _ResendVerificationForPhoneNumberPayload
-  readonly type: typeof resendVerificationForPhoneNumber
-}
-export type ResetCheckPasswordIsCorrectPayload = {
-  readonly payload: _ResetCheckPasswordIsCorrectPayload
-  readonly type: typeof resetCheckPasswordIsCorrect
-}
-export type SaveProxyDataPayload = {
-  readonly payload: _SaveProxyDataPayload
-  readonly type: typeof saveProxyData
-}
-export type SendFeedbackPayload = {readonly payload: _SendFeedbackPayload; readonly type: typeof sendFeedback}
-export type SentVerificationEmailPayload = {
-  readonly payload: _SentVerificationEmailPayload
-  readonly type: typeof sentVerificationEmail
-}
-export type SetContactImportedCountPayload = {
-  readonly payload: _SetContactImportedCountPayload
-  readonly type: typeof setContactImportedCount
-}
-export type ShowContactsJoinedModalPayload = {
-  readonly payload: _ShowContactsJoinedModalPayload
-  readonly type: typeof showContactsJoinedModal
-}
-export type StopPayload = {readonly payload: _StopPayload; readonly type: typeof stop}
-export type TracePayload = {readonly payload: _TracePayload; readonly type: typeof trace}
-export type UnfurlSettingsErrorPayload = {
-  readonly payload: _UnfurlSettingsErrorPayload
-  readonly type: typeof unfurlSettingsError
-}
-export type UnfurlSettingsRefreshPayload = {
-  readonly payload: _UnfurlSettingsRefreshPayload
-  readonly type: typeof unfurlSettingsRefresh
-}
-export type UnfurlSettingsRefreshedPayload = {
-  readonly payload: _UnfurlSettingsRefreshedPayload
-  readonly type: typeof unfurlSettingsRefreshed
-}
-export type UnfurlSettingsSavedPayload = {
-  readonly payload: _UnfurlSettingsSavedPayload
-  readonly type: typeof unfurlSettingsSaved
-}
-export type UpdateDefaultPhoneNumberCountryPayload = {
-  readonly payload: _UpdateDefaultPhoneNumberCountryPayload
-  readonly type: typeof updateDefaultPhoneNumberCountry
-}
-export type VerifiedPhoneNumberPayload = {
-  readonly payload: _VerifiedPhoneNumberPayload
-  readonly type: typeof verifiedPhoneNumber
-}
-export type VerifyPhoneNumberPayload = {
-  readonly payload: _VerifyPhoneNumberPayload
-  readonly type: typeof verifyPhoneNumber
-}
+export type AddEmailPayload = ReturnType<typeof createAddEmail>
+export type AddPhoneNumberPayload = ReturnType<typeof createAddPhoneNumber>
+export type AddedEmailPayload = ReturnType<typeof createAddedEmail>
+export type AddedPhoneNumberPayload = ReturnType<typeof createAddedPhoneNumber>
+export type CertificatePinningToggledPayload = ReturnType<typeof createCertificatePinningToggled>
+export type CheckPasswordPayload = ReturnType<typeof createCheckPassword>
+export type ClearAddedEmailPayload = ReturnType<typeof createClearAddedEmail>
+export type ClearAddedPhonePayload = ReturnType<typeof createClearAddedPhone>
+export type ClearAddingEmailPayload = ReturnType<typeof createClearAddingEmail>
+export type ClearPhoneNumberAddPayload = ReturnType<typeof createClearPhoneNumberAdd>
+export type ClearPhoneNumberErrorsPayload = ReturnType<typeof createClearPhoneNumberErrors>
+export type ContactSettingsErrorPayload = ReturnType<typeof createContactSettingsError>
+export type ContactSettingsRefreshPayload = ReturnType<typeof createContactSettingsRefresh>
+export type ContactSettingsRefreshedPayload = ReturnType<typeof createContactSettingsRefreshed>
+export type ContactSettingsSavedPayload = ReturnType<typeof createContactSettingsSaved>
+export type DbNukePayload = ReturnType<typeof createDbNuke>
+export type DeleteAccountForeverPayload = ReturnType<typeof createDeleteAccountForever>
+export type EditContactImportEnabledPayload = ReturnType<typeof createEditContactImportEnabled>
+export type EditEmailPayload = ReturnType<typeof createEditEmail>
+export type EditPhonePayload = ReturnType<typeof createEditPhone>
+export type EmailVerifiedPayload = ReturnType<typeof createEmailVerified>
+export type FeedbackSentPayload = ReturnType<typeof createFeedbackSent>
+export type ImportContactsLaterPayload = ReturnType<typeof createImportContactsLater>
+export type InvitesClearErrorPayload = ReturnType<typeof createInvitesClearError>
+export type InvitesReclaimPayload = ReturnType<typeof createInvitesReclaim>
+export type InvitesRefreshPayload = ReturnType<typeof createInvitesRefresh>
+export type InvitesRefreshedPayload = ReturnType<typeof createInvitesRefreshed>
+export type InvitesSendPayload = ReturnType<typeof createInvitesSend>
+export type InvitesSentPayload = ReturnType<typeof createInvitesSent>
+export type LoadContactImportEnabledPayload = ReturnType<typeof createLoadContactImportEnabled>
+export type LoadDefaultPhoneNumberCountryPayload = ReturnType<typeof createLoadDefaultPhoneNumberCountry>
+export type LoadHasRandomPwPayload = ReturnType<typeof createLoadHasRandomPw>
+export type LoadLockdownModePayload = ReturnType<typeof createLoadLockdownMode>
+export type LoadProxyDataPayload = ReturnType<typeof createLoadProxyData>
+export type LoadRememberPasswordPayload = ReturnType<typeof createLoadRememberPassword>
+export type LoadSettingsPayload = ReturnType<typeof createLoadSettings>
+export type LoadedCheckPasswordPayload = ReturnType<typeof createLoadedCheckPassword>
+export type LoadedContactImportEnabledPayload = ReturnType<typeof createLoadedContactImportEnabled>
+export type LoadedContactPermissionsPayload = ReturnType<typeof createLoadedContactPermissions>
+export type LoadedHasRandomPwPayload = ReturnType<typeof createLoadedHasRandomPw>
+export type LoadedLockdownModePayload = ReturnType<typeof createLoadedLockdownMode>
+export type LoadedProxyDataPayload = ReturnType<typeof createLoadedProxyData>
+export type LoadedRememberPasswordPayload = ReturnType<typeof createLoadedRememberPassword>
+export type LoadedSettingsPayload = ReturnType<typeof createLoadedSettings>
+export type LoadedUserCountryCodePayload = ReturnType<typeof createLoadedUserCountryCode>
+export type LoginBrowserViaWebAuthTokenPayload = ReturnType<typeof createLoginBrowserViaWebAuthToken>
+export type NotificationsRefreshPayload = ReturnType<typeof createNotificationsRefresh>
+export type NotificationsRefreshedPayload = ReturnType<typeof createNotificationsRefreshed>
+export type NotificationsSavedPayload = ReturnType<typeof createNotificationsSaved>
+export type NotificationsTogglePayload = ReturnType<typeof createNotificationsToggle>
+export type OnChangeLockdownModePayload = ReturnType<typeof createOnChangeLockdownMode>
+export type OnChangeNewEmailPayload = ReturnType<typeof createOnChangeNewEmail>
+export type OnChangeNewPasswordConfirmPayload = ReturnType<typeof createOnChangeNewPasswordConfirm>
+export type OnChangeNewPasswordPayload = ReturnType<typeof createOnChangeNewPassword>
+export type OnChangeRememberPasswordPayload = ReturnType<typeof createOnChangeRememberPassword>
+export type OnChangeShowPasswordPayload = ReturnType<typeof createOnChangeShowPassword>
+export type OnSubmitNewEmailPayload = ReturnType<typeof createOnSubmitNewEmail>
+export type OnSubmitNewPasswordPayload = ReturnType<typeof createOnSubmitNewPassword>
+export type OnUpdateEmailErrorPayload = ReturnType<typeof createOnUpdateEmailError>
+export type OnUpdatePGPSettingsPayload = ReturnType<typeof createOnUpdatePGPSettings>
+export type OnUpdatePasswordErrorPayload = ReturnType<typeof createOnUpdatePasswordError>
+export type OnUpdatedPGPSettingsPayload = ReturnType<typeof createOnUpdatedPGPSettings>
+export type ProcessorProfilePayload = ReturnType<typeof createProcessorProfile>
+export type RequestContactPermissionsPayload = ReturnType<typeof createRequestContactPermissions>
+export type ResendVerificationForPhoneNumberPayload = ReturnType<
+  typeof createResendVerificationForPhoneNumber
+>
+export type ResetCheckPasswordIsCorrectPayload = ReturnType<typeof createResetCheckPasswordIsCorrect>
+export type SaveProxyDataPayload = ReturnType<typeof createSaveProxyData>
+export type SendFeedbackPayload = ReturnType<typeof createSendFeedback>
+export type SentVerificationEmailPayload = ReturnType<typeof createSentVerificationEmail>
+export type SetContactImportedCountPayload = ReturnType<typeof createSetContactImportedCount>
+export type ShowContactsJoinedModalPayload = ReturnType<typeof createShowContactsJoinedModal>
+export type StopPayload = ReturnType<typeof createStop>
+export type TracePayload = ReturnType<typeof createTrace>
+export type UnfurlSettingsErrorPayload = ReturnType<typeof createUnfurlSettingsError>
+export type UnfurlSettingsRefreshPayload = ReturnType<typeof createUnfurlSettingsRefresh>
+export type UnfurlSettingsRefreshedPayload = ReturnType<typeof createUnfurlSettingsRefreshed>
+export type UnfurlSettingsSavedPayload = ReturnType<typeof createUnfurlSettingsSaved>
+export type UpdateDefaultPhoneNumberCountryPayload = ReturnType<typeof createUpdateDefaultPhoneNumberCountry>
+export type VerifiedPhoneNumberPayload = ReturnType<typeof createVerifiedPhoneNumber>
+export type VerifyPhoneNumberPayload = ReturnType<typeof createVerifyPhoneNumber>
 
 // All Actions
 // prettier-ignore
