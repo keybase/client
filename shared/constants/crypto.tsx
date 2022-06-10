@@ -1,10 +1,10 @@
-import * as TeamBuildingConstants from './team-building'
-import * as RPCTypes from './types/rpc-gen'
-import * as Types from './types/crypto'
 import * as Platform from '../constants/platform'
+import * as RPCTypes from './types/rpc-gen'
+import * as TeamBuildingConstants from './team-building'
 import HiddenString from '../util/hidden-string'
-import {IconType} from '../common-adapters/icon.constants-gen'
-import {RPCError} from '../util/errors'
+import type * as Types from './types/crypto'
+import type {IconType} from '../common-adapters/icon.constants-gen'
+import type {RPCError} from '../util/errors'
 
 export const saltpackDocumentation = 'https://saltpack.org'
 
@@ -41,7 +41,7 @@ export const decryptTab = 'decryptTab'
 export const signTab = 'signTab'
 export const verifyTab = 'verifyTab'
 
-// Output route keys - Mobile onlye
+// Output route keys - Mobile only
 export const encryptOutput = 'encryptOutput'
 export const decryptOutput = 'decryptOutput'
 export const signOutput = 'signOutput'

@@ -18,4 +18,6 @@ export const newModalRoutes = {
 
 export type RootParamListPeople = {
   peopleTeamBuilder: TeamBuilderProps
+  accountSwitcher: undefined
+  peopleRoot: undefined
 }

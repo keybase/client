@@ -117,7 +117,8 @@ export const newModalRoutes = {
 
 export type RootParamListChat = {
   chatNewChat: TeamBuilderProps
-  chatConversation: {conversationIDKey: Types.ConversationIDKey}
+  chatConversation: {conversationIDKey?: Types.ConversationIDKey}
+  chatRoot: {conversationIDKey?: Types.ConversationIDKey}
   chatChooseEmoji: {
     conversationIDKey: Types.ConversationIDKey
     small: boolean
@@ -208,4 +209,6 @@ export type RootParamListChat = {
     conversationIDKey?: Types.ConversationIDKey
     tab?: 'settings' | 'members' | 'attachments' | 'bots'
   }
+  chatEnterPaperkey: undefined
+  chatPaymentsConfirm: undefined
 }

@@ -11,35 +11,29 @@ export const loadedIsOnline = 'login:loadedIsOnline'
 export const login = 'login:login'
 export const loginError = 'login:loginError'
 
-// Payload Types
-type _LoadIsOnlinePayload = undefined
-type _LoadedIsOnlinePayload = {readonly isOnline: boolean}
-type _LoginErrorPayload = {readonly error?: RPCError}
-type _LoginPayload = {readonly username: string; readonly password: HiddenString}
-
 // Action Creators
-export const createLoadIsOnline = (payload?: _LoadIsOnlinePayload): LoadIsOnlinePayload => ({
+export const createLoadIsOnline = (payload?: undefined) => ({
   payload,
-  type: loadIsOnline,
+  type: loadIsOnline as typeof loadIsOnline,
 })
-export const createLoadedIsOnline = (payload: _LoadedIsOnlinePayload): LoadedIsOnlinePayload => ({
+export const createLoadedIsOnline = (payload: {readonly isOnline: boolean}) => ({
   payload,
-  type: loadedIsOnline,
+  type: loadedIsOnline as typeof loadedIsOnline,
 })
-export const createLogin = (payload: _LoginPayload): LoginPayload => ({payload, type: login})
-export const createLoginError = (payload: _LoginErrorPayload = Object.freeze({})): LoginErrorPayload => ({
+export const createLogin = (payload: {readonly username: string; readonly password: HiddenString}) => ({
   payload,
-  type: loginError,
+  type: login as typeof login,
+})
+export const createLoginError = (payload: {readonly error?: RPCError} = {}) => ({
+  payload,
+  type: loginError as typeof loginError,
 })
 
 // Action Payloads
-export type LoadIsOnlinePayload = {readonly payload: _LoadIsOnlinePayload; readonly type: typeof loadIsOnline}
-export type LoadedIsOnlinePayload = {
-  readonly payload: _LoadedIsOnlinePayload
-  readonly type: typeof loadedIsOnline
-}
-export type LoginErrorPayload = {readonly payload: _LoginErrorPayload; readonly type: typeof loginError}
-export type LoginPayload = {readonly payload: _LoginPayload; readonly type: typeof login}
+export type LoadIsOnlinePayload = ReturnType<typeof createLoadIsOnline>
+export type LoadedIsOnlinePayload = ReturnType<typeof createLoadedIsOnline>
+export type LoginErrorPayload = ReturnType<typeof createLoginError>
+export type LoginPayload = ReturnType<typeof createLogin>
 
 // All Actions
 // prettier-ignore

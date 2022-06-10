@@ -30,3 +30,17 @@ export const newModalRoutes = {
     getScreen: (): typeof SignupVerifyPhoneNumber => require('./phone-number/verify-container').default,
   },
 }
+
+export type RootParamListSignup = {
+  signupEnterDevicename: undefined
+  signupEnterEmail: undefined
+  signupEnterPhoneNumber: undefined
+  signupEnterUsername: undefined
+  signupSendFeedbackLoggedIn: undefined
+  signupSendFeedbackLoggedOut: undefined
+  signupVerifyPhoneNumber: undefined
+  signupError: undefined
+  signupInviteCode: undefined
+  signupRequestInvite: undefined
+  signupRequestInviteSuccess: undefined
+}

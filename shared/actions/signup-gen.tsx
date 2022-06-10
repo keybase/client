@@ -23,156 +23,91 @@ export const restartSignup = 'signup:restartSignup'
 export const setJustSignedUpEmail = 'signup:setJustSignedUpEmail'
 export const signedup = 'signup:signedup'
 
-// Payload Types
-type _CheckDevicenamePayload = {readonly devicename: string}
-type _CheckInviteCodePayload = {readonly inviteCode: string}
-type _CheckPasswordPayload = {readonly pass1: HiddenString; readonly pass2: HiddenString}
-type _CheckUsernamePayload = {readonly username: string}
-type _CheckedDevicenamePayload = {readonly devicename: string; readonly error?: string}
-type _CheckedInviteCodePayload = {readonly inviteCode: string; readonly error?: string}
-type _CheckedUsernamePayload = {
+// Action Creators
+export const createCheckDevicename = (payload: {readonly devicename: string}) => ({
+  payload,
+  type: checkDevicename as typeof checkDevicename,
+})
+export const createCheckInviteCode = (payload: {readonly inviteCode: string}) => ({
+  payload,
+  type: checkInviteCode as typeof checkInviteCode,
+})
+export const createCheckPassword = (payload: {
+  readonly pass1: HiddenString
+  readonly pass2: HiddenString
+}) => ({payload, type: checkPassword as typeof checkPassword})
+export const createCheckUsername = (payload: {readonly username: string}) => ({
+  payload,
+  type: checkUsername as typeof checkUsername,
+})
+export const createCheckedDevicename = (payload: {readonly devicename: string; readonly error?: string}) => ({
+  payload,
+  type: checkedDevicename as typeof checkedDevicename,
+})
+export const createCheckedInviteCode = (payload: {readonly inviteCode: string; readonly error?: string}) => ({
+  payload,
+  type: checkedInviteCode as typeof checkedInviteCode,
+})
+export const createCheckedUsername = (payload: {
   readonly username: string
   readonly usernameTaken?: string
   readonly error: string
-}
-type _ClearJustSignedUpEmailPayload = undefined
-type _GoBackAndClearErrorsPayload = undefined
-type _RequestAutoInvitePayload = {readonly username?: string}
-type _RequestInvitePayload = {readonly email: string; readonly name: string}
-type _RequestedAutoInvitePayload = {readonly inviteCode?: string; readonly error?: boolean}
-type _RequestedInvitePayload = {
+}) => ({payload, type: checkedUsername as typeof checkedUsername})
+export const createClearJustSignedUpEmail = (payload?: undefined) => ({
+  payload,
+  type: clearJustSignedUpEmail as typeof clearJustSignedUpEmail,
+})
+export const createGoBackAndClearErrors = (payload?: undefined) => ({
+  payload,
+  type: goBackAndClearErrors as typeof goBackAndClearErrors,
+})
+export const createRequestAutoInvite = (payload: {readonly username?: string} = {}) => ({
+  payload,
+  type: requestAutoInvite as typeof requestAutoInvite,
+})
+export const createRequestInvite = (payload: {readonly email: string; readonly name: string}) => ({
+  payload,
+  type: requestInvite as typeof requestInvite,
+})
+export const createRequestedAutoInvite = (
+  payload: {readonly inviteCode?: string; readonly error?: boolean} = {}
+) => ({payload, type: requestedAutoInvite as typeof requestedAutoInvite})
+export const createRequestedInvite = (payload: {
   readonly email: string
   readonly name: string
   readonly emailError?: string
   readonly nameError?: string
-}
-type _RestartSignupPayload = undefined
-type _SetJustSignedUpEmailPayload = {readonly email: string}
-type _SignedupPayload = {readonly error?: RPCError}
-
-// Action Creators
-export const createCheckDevicename = (payload: _CheckDevicenamePayload): CheckDevicenamePayload => ({
+}) => ({payload, type: requestedInvite as typeof requestedInvite})
+export const createRestartSignup = (payload?: undefined) => ({
   payload,
-  type: checkDevicename,
+  type: restartSignup as typeof restartSignup,
 })
-export const createCheckInviteCode = (payload: _CheckInviteCodePayload): CheckInviteCodePayload => ({
+export const createSetJustSignedUpEmail = (payload: {readonly email: string}) => ({
   payload,
-  type: checkInviteCode,
+  type: setJustSignedUpEmail as typeof setJustSignedUpEmail,
 })
-export const createCheckPassword = (payload: _CheckPasswordPayload): CheckPasswordPayload => ({
+export const createSignedup = (payload: {readonly error?: RPCError} = {}) => ({
   payload,
-  type: checkPassword,
-})
-export const createCheckUsername = (payload: _CheckUsernamePayload): CheckUsernamePayload => ({
-  payload,
-  type: checkUsername,
-})
-export const createCheckedDevicename = (payload: _CheckedDevicenamePayload): CheckedDevicenamePayload => ({
-  payload,
-  type: checkedDevicename,
-})
-export const createCheckedInviteCode = (payload: _CheckedInviteCodePayload): CheckedInviteCodePayload => ({
-  payload,
-  type: checkedInviteCode,
-})
-export const createCheckedUsername = (payload: _CheckedUsernamePayload): CheckedUsernamePayload => ({
-  payload,
-  type: checkedUsername,
-})
-export const createClearJustSignedUpEmail = (
-  payload?: _ClearJustSignedUpEmailPayload
-): ClearJustSignedUpEmailPayload => ({payload, type: clearJustSignedUpEmail})
-export const createGoBackAndClearErrors = (
-  payload?: _GoBackAndClearErrorsPayload
-): GoBackAndClearErrorsPayload => ({payload, type: goBackAndClearErrors})
-export const createRequestAutoInvite = (
-  payload: _RequestAutoInvitePayload = Object.freeze({})
-): RequestAutoInvitePayload => ({payload, type: requestAutoInvite})
-export const createRequestInvite = (payload: _RequestInvitePayload): RequestInvitePayload => ({
-  payload,
-  type: requestInvite,
-})
-export const createRequestedAutoInvite = (
-  payload: _RequestedAutoInvitePayload = Object.freeze({})
-): RequestedAutoInvitePayload => ({payload, type: requestedAutoInvite})
-export const createRequestedInvite = (payload: _RequestedInvitePayload): RequestedInvitePayload => ({
-  payload,
-  type: requestedInvite,
-})
-export const createRestartSignup = (payload?: _RestartSignupPayload): RestartSignupPayload => ({
-  payload,
-  type: restartSignup,
-})
-export const createSetJustSignedUpEmail = (
-  payload: _SetJustSignedUpEmailPayload
-): SetJustSignedUpEmailPayload => ({payload, type: setJustSignedUpEmail})
-export const createSignedup = (payload: _SignedupPayload = Object.freeze({})): SignedupPayload => ({
-  payload,
-  type: signedup,
+  type: signedup as typeof signedup,
 })
 
 // Action Payloads
-export type CheckDevicenamePayload = {
-  readonly payload: _CheckDevicenamePayload
-  readonly type: typeof checkDevicename
-}
-export type CheckInviteCodePayload = {
-  readonly payload: _CheckInviteCodePayload
-  readonly type: typeof checkInviteCode
-}
-export type CheckPasswordPayload = {
-  readonly payload: _CheckPasswordPayload
-  readonly type: typeof checkPassword
-}
-export type CheckUsernamePayload = {
-  readonly payload: _CheckUsernamePayload
-  readonly type: typeof checkUsername
-}
-export type CheckedDevicenamePayload = {
-  readonly payload: _CheckedDevicenamePayload
-  readonly type: typeof checkedDevicename
-}
-export type CheckedInviteCodePayload = {
-  readonly payload: _CheckedInviteCodePayload
-  readonly type: typeof checkedInviteCode
-}
-export type CheckedUsernamePayload = {
-  readonly payload: _CheckedUsernamePayload
-  readonly type: typeof checkedUsername
-}
-export type ClearJustSignedUpEmailPayload = {
-  readonly payload: _ClearJustSignedUpEmailPayload
-  readonly type: typeof clearJustSignedUpEmail
-}
-export type GoBackAndClearErrorsPayload = {
-  readonly payload: _GoBackAndClearErrorsPayload
-  readonly type: typeof goBackAndClearErrors
-}
-export type RequestAutoInvitePayload = {
-  readonly payload: _RequestAutoInvitePayload
-  readonly type: typeof requestAutoInvite
-}
-export type RequestInvitePayload = {
-  readonly payload: _RequestInvitePayload
-  readonly type: typeof requestInvite
-}
-export type RequestedAutoInvitePayload = {
-  readonly payload: _RequestedAutoInvitePayload
-  readonly type: typeof requestedAutoInvite
-}
-export type RequestedInvitePayload = {
-  readonly payload: _RequestedInvitePayload
-  readonly type: typeof requestedInvite
-}
-export type RestartSignupPayload = {
-  readonly payload: _RestartSignupPayload
-  readonly type: typeof restartSignup
-}
-export type SetJustSignedUpEmailPayload = {
-  readonly payload: _SetJustSignedUpEmailPayload
-  readonly type: typeof setJustSignedUpEmail
-}
-export type SignedupPayload = {readonly payload: _SignedupPayload; readonly type: typeof signedup}
+export type CheckDevicenamePayload = ReturnType<typeof createCheckDevicename>
+export type CheckInviteCodePayload = ReturnType<typeof createCheckInviteCode>
+export type CheckPasswordPayload = ReturnType<typeof createCheckPassword>
+export type CheckUsernamePayload = ReturnType<typeof createCheckUsername>
+export type CheckedDevicenamePayload = ReturnType<typeof createCheckedDevicename>
+export type CheckedInviteCodePayload = ReturnType<typeof createCheckedInviteCode>
+export type CheckedUsernamePayload = ReturnType<typeof createCheckedUsername>
+export type ClearJustSignedUpEmailPayload = ReturnType<typeof createClearJustSignedUpEmail>
+export type GoBackAndClearErrorsPayload = ReturnType<typeof createGoBackAndClearErrors>
+export type RequestAutoInvitePayload = ReturnType<typeof createRequestAutoInvite>
+export type RequestInvitePayload = ReturnType<typeof createRequestInvite>
+export type RequestedAutoInvitePayload = ReturnType<typeof createRequestedAutoInvite>
+export type RequestedInvitePayload = ReturnType<typeof createRequestedInvite>
+export type RestartSignupPayload = ReturnType<typeof createRestartSignup>
+export type SetJustSignedUpEmailPayload = ReturnType<typeof createSetJustSignedUpEmail>
+export type SignedupPayload = ReturnType<typeof createSignedup>
 
 // All Actions
 // prettier-ignore

@@ -45,11 +45,7 @@ const BotTeamPicker = (props: Props) => {
       RouteTreeGen.createNavigateAppend({
         path: [
           {
-            props: {
-              botUsername,
-              conversationIDKey,
-              namespace: 'chat2',
-            },
+            props: {botUsername, conversationIDKey},
             selected: 'chatInstallBot',
           },
         ],

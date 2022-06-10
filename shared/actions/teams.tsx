@@ -81,7 +81,7 @@ const promptInviteLinkJoin =
       if (!deeplink) {
         yield Saga.put(
           RouteTreeGen.createNavigateAppend({
-            path: [{props: params, selected: 'teamInviteLinkJoin'}],
+            path: ['teamInviteLinkJoin'],
             replace: true,
           })
         )
@@ -94,15 +94,15 @@ function* joinTeam(_: TypedState, action: TeamsGen.JoinTeamPayload) {
   const {teamname, deeplink} = action.payload
 
   /*
-    In the deeplink flow, a modal is displayed which runs `joinTeam` (or an
-    alternative flow, but we're not concerned with that here). In that case,
-    we can fully manage the UX from inside of this handler.
-
-    In the "Join team" flow, user pastes their link into the input box, which
-    then calls `joinTeam` on its own. Since we need to switch to another modal,
-    we simply plumb `deeplink` into the `promptInviteLinkJoin` handler and
-    do the nav in the modal.
-  */
+        In the deeplink flow, a modal is displayed which runs `joinTeam` (or an
+        alternative flow, but we're not concerned with that here). In that case,
+        we can fully manage the UX from inside of this handler.
+    
+        In the "Join team" flow, user pastes their link into the input box, which
+        then calls `joinTeam` on its own. Since we need to switch to another modal,
+        we simply plumb `deeplink` into the `promptInviteLinkJoin` handler and
+        do the nav in the modal.
+      */
 
   yield Saga.all([
     Saga.put(TeamsGen.createSetTeamJoinError({error: ''})),
@@ -1554,13 +1554,11 @@ const loadTeamTreeActivity = async (
 
 const launchNewTeamWizardOrModal = (action: TeamsGen.LaunchNewTeamWizardOrModalPayload) => {
   return action.payload.subteamOf
-    ? RouteTreeGen.createNavigateAppend({path: [{selected: 'teamWizard2TeamInfo'}]})
+    ? RouteTreeGen.createNavigateAppend({path: ['teamWizard2TeamInfo']})
     : TeamsGen.createStartNewTeamWizard()
 }
-const startNewTeamWizard = () =>
-  RouteTreeGen.createNavigateAppend({path: [{selected: 'teamWizard1TeamPurpose'}]})
-const setTeamWizardTeamType = () =>
-  RouteTreeGen.createNavigateAppend({path: [{selected: 'teamWizard2TeamInfo'}]})
+const startNewTeamWizard = () => RouteTreeGen.createNavigateAppend({path: ['teamWizard1TeamPurpose']})
+const setTeamWizardTeamType = () => RouteTreeGen.createNavigateAppend({path: ['teamWizard2TeamInfo']})
 const setTeamWizardNameDescription = () =>
   RouteTreeGen.createNavigateAppend({
     path: [
@@ -1577,7 +1575,7 @@ const setTeamWizardAvatar = (state: TypedState) => {
       const parentTeamMeta = Constants.getTeamMeta(state, parentTeamID ?? '')
       // If it's just you, don't show the subteam members screen empty
       if (parentTeamMeta.memberCount > 1) {
-        return RouteTreeGen.createNavigateAppend({path: [{selected: 'teamWizardSubteamMembers'}]})
+        return RouteTreeGen.createNavigateAppend({path: ['teamWizardSubteamMembers']})
       } else {
         return TeamsGen.createStartAddMembersWizard({teamID: Types.newTeamWizardTeamID})
       }
@@ -1586,18 +1584,17 @@ const setTeamWizardAvatar = (state: TypedState) => {
     case 'other':
       return TeamsGen.createStartAddMembersWizard({teamID: Types.newTeamWizardTeamID})
     case 'project':
-      return RouteTreeGen.createNavigateAppend({path: [{selected: 'teamWizard5Channels'}]})
+      return RouteTreeGen.createNavigateAppend({path: ['teamWizard5Channels']})
     case 'community':
-      return RouteTreeGen.createNavigateAppend({path: [{selected: 'teamWizard4TeamSize'}]})
+      return RouteTreeGen.createNavigateAppend({path: ['teamWizard4TeamSize']})
   }
 }
 const setTeamWizardSubteamMembers = () => RouteTreeGen.createNavigateAppend({path: ['teamAddToTeamConfirm']})
 const setTeamWizardTeamSize = (action: TeamsGen.SetTeamWizardTeamSizePayload) =>
   action.payload.isBig
-    ? RouteTreeGen.createNavigateAppend({path: [{selected: 'teamWizard5Channels'}]})
+    ? RouteTreeGen.createNavigateAppend({path: ['teamWizard5Channels']})
     : TeamsGen.createStartAddMembersWizard({teamID: Types.newTeamWizardTeamID})
-const setTeamWizardChannels = () =>
-  RouteTreeGen.createNavigateAppend({path: [{selected: 'teamWizard6Subteams'}]})
+const setTeamWizardChannels = () => RouteTreeGen.createNavigateAppend({path: ['teamWizard6Subteams']})
 const setTeamWizardSubteams = () => TeamsGen.createStartAddMembersWizard({teamID: Types.newTeamWizardTeamID})
 const startAddMembersWizard = (/*action: TeamsGen.StartAddMembersWizardPayload*/) =>
   RouteTreeGen.createNavigateAppend({path: ['teamAddToTeamFromWhere']})

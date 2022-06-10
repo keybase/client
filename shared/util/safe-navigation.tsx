@@ -1,9 +1,9 @@
 import * as React from 'react'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import {useIsFocused} from '@react-navigation/core'
+import type {NavigateAppendType} from '../router-v2/route-params'
 
-type Path = Array<string | {props?: any; selected?: string}>
-type SafeNavigateAppendArg = {path: Path; replace?: boolean}
+type SafeNavigateAppendArg = {path: NavigateAppendType; replace?: boolean}
 
 export const useSafeNavigation = () => {
   const isFocused = useIsFocused()

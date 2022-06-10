@@ -196,18 +196,10 @@ export type RootParamListTeams = {
     onChange?: () => void
     defaultSelected?: EmojiData
   }
-  teamInviteByEmail: {
-    teamID: string
-  }
-  teamInviteByContact: {
-    teamID: string
-  }
-  teamEditWelcomeMessage: {
-    teamID: Types.TeamID
-  }
-  teamJoinTeamDialog: {
-    initialTeamname?: string
-  }
+  teamInviteByEmail: {teamID: string}
+  teamInviteByContact: {teamID: string}
+  teamEditWelcomeMessage: {teamID: Types.TeamID}
+  teamJoinTeamDialog: {initialTeamname?: string}
   teamAddEmoji: {
     conversationIDKey: ChatTypes.ConversationIDKey
     onChange?: () => void
@@ -227,15 +219,9 @@ export type RootParamListTeams = {
     // undefined means use the currently selected channels in the store (under the channel tab of the team page)
     conversationIDKey: ChatTypes.ConversationIDKey | undefined
   }
-  teamReallyLeaveTeam: {
-    teamID: Types.TeamID
-  }
-  teamRename: {
-    teamname: string
-  }
-  teamExternalTeam: {
-    teamname: string
-  }
+  teamReallyLeaveTeam: {teamID: Types.TeamID}
+  teamRename: {teamname: string}
+  teamExternalTeam: {teamname: string}
   teamEditTeamDescription: {teamID: Types.TeamID}
   teamInviteLinksGenerate: {teamID: Types.TeamID}
   openTeamWarning: {
@@ -279,4 +265,17 @@ export type RootParamListTeams = {
     conversationIDKey: ChatTypes.ConversationIDKey
     selectedTab?: TabKey
   }
+  'tabs.teamsTab': undefined
+  teamAddToTeamContacts: undefined
+  teamAddToTeamEmail: undefined
+  teamAddToTeamPhone: undefined
+  teamInviteLinkJoin: undefined
+  teamWizard1TeamPurpose: undefined
+  teamWizard2TeamInfo: undefined
+  teamWizard4TeamSize: undefined
+  teamWizard5Channels: undefined
+  teamWizard6Subteams: undefined
+  teamWizardSubteamMembers: undefined
+  teamAddToTeamConfirm: undefined
+  teamAddToTeamFromWhere: undefined
 }

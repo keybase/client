@@ -1,11 +1,11 @@
-import * as React from 'react'
 import * as Chat2Gen from '../../actions/chat2-gen'
-import * as Types from '../../constants/types/chat2'
 import * as Constants from '../../constants/chat2'
 import * as Container from '../../util/container'
-import HiddenString from '../../util/hidden-string'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
+import HiddenString from '../../util/hidden-string'
 import InboxSearch from '.'
+import type * as React from 'react'
+import type * as Types from '../../constants/types/chat2'
 
 type OwnProps = {
   header?: React.ReactElement | null
@@ -20,7 +20,7 @@ export default Container.connect(
     onInstallBot: (username: string) =>
       dispatch(
         RouteTreeGen.createNavigateAppend({
-          path: [{props: {botUsername: username, navToChat: false}, selected: 'chatInstallBotPick'}],
+          path: [{props: {botUsername: username}, selected: 'chatInstallBotPick'}],
         })
       ),
     onSelectConversation: (

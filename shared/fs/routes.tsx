@@ -33,4 +33,5 @@ export type RootParamListFS = {
   }
   fsRoot: {path: FSTypes.Path}
   barePreview: {path: FSTypes.Path}
+  kextPermission: undefined
 }

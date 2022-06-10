@@ -49,7 +49,7 @@ export default Container.connect(
     _onInstallBot: (username: string) => {
       dispatch(
         RouteTreeGen.createNavigateAppend({
-          path: [{props: {botUsername: username, navToChat: false}, selected: 'chatInstallBotPick'}],
+          path: [{props: {botUsername: username}, selected: 'chatInstallBotPick'}],
         })
       )
     },

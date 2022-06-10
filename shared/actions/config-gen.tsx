@@ -69,9 +69,177 @@ export const updateWindowMaxState = 'config:updateWindowMaxState'
 export const updateWindowShown = 'config:updateWindowShown'
 export const updateWindowState = 'config:updateWindowState'
 
-// Payload Types
-type _AndroidSharePayload = {readonly url?: string; readonly text?: string}
-type _BootstrapStatusLoadedPayload = {
+// Action Creators
+/**
+ * Intent fired with a share url
+ */
+export const createAndroidShare = (payload: {readonly url?: string; readonly text?: string} = {}) => ({
+  payload,
+  type: androidShare as typeof androidShare,
+})
+/**
+ * Log out the current user, keeping secrets stored.
+ * Then prefill the username for provisioned another user to log in.
+ */
+export const createLogoutAndTryToLogInAs = (payload: {readonly username: string}) => ({
+  payload,
+  type: logoutAndTryToLogInAs as typeof logoutAndTryToLogInAs,
+})
+/**
+ * Open a link to the app store
+ */
+export const createOpenAppStore = (payload?: undefined) => ({
+  payload,
+  type: openAppStore as typeof openAppStore,
+})
+/**
+ * Save critical check status
+ */
+export const createUpdateCriticalCheckStatus = (payload: {
+  readonly status: 'critical' | 'suggested' | 'ok'
+  readonly message: string
+}) => ({payload, type: updateCriticalCheckStatus as typeof updateCriticalCheckStatus})
+/**
+ * Sent whenever the mobile file picker encounters an error.
+ */
+export const createFilePickerError = (payload: {readonly error: Error}) => ({
+  payload,
+  type: filePickerError as typeof filePickerError,
+})
+/**
+ * Set the latest version number that a user has seen from Gregor.
+ * This is used to set the badged state of the 'What's New' radio icon
+ */
+export const createSetWhatsNewLastSeenVersion = (payload: {readonly lastSeenVersion: string}) => ({
+  payload,
+  type: setWhatsNewLastSeenVersion as typeof setWhatsNewLastSeenVersion,
+})
+/**
+ * Stores the startup file path when launching Keybase from a cold start beofre log in
+ */
+export const createSetStartupFile = (payload: {readonly startupFile: HiddenString}) => ({
+  payload,
+  type: setStartupFile as typeof setStartupFile,
+})
+/**
+ * This action is dispatched multiple times with various flags.
+ * If you want to do something as a result of startup or login listen to this.
+ */
+export const createLoadOnStart = (payload: {
+  readonly phase:
+    | 'initialStartupAsEarlyAsPossible'
+    | 'connectedToDaemonForFirstTime'
+    | 'reloggedIn'
+    | 'startupOrReloginButNotInARush'
+}) => ({payload, type: loadOnStart as typeof loadOnStart})
+/**
+ * Used internally to know we were logged in.
+ * If you want to react to being logged in likely you want bootstrapStatusLoaded
+ */
+export const createLoggedIn = (payload: {
+  readonly causedBySignup: boolean
+  readonly causedByStartup: boolean
+}) => ({payload, type: loggedIn as typeof loggedIn})
+/**
+ * a window was shown
+ */
+export const createUpdateWindowShown = (payload: {readonly component: string}) => ({
+  payload,
+  type: updateWindowShown as typeof updateWindowShown,
+})
+/**
+ * desktop only: the installer ran and we can start up
+ */
+export const createInstallerRan = (payload?: undefined) => ({
+  payload,
+  type: installerRan as typeof installerRan,
+})
+/**
+ * internal to config. should restart the handshake process
+ */
+export const createRestartHandshake = (payload?: undefined) => ({
+  payload,
+  type: restartHandshake as typeof restartHandshake,
+})
+/**
+ * internal to config. should start the handshake process
+ */
+export const createStartHandshake = (payload?: undefined) => ({
+  payload,
+  type: startHandshake as typeof startHandshake,
+})
+/**
+ * main electron window changed max/min
+ */
+export const createUpdateWindowMaxState = (payload: {readonly max: boolean}) => ({
+  payload,
+  type: updateWindowMaxState as typeof updateWindowMaxState,
+})
+/**
+ * main electron window wants to store its state
+ */
+export const createUpdateWindowState = (payload: {readonly windowState: Types.WindowState}) => ({
+  payload,
+  type: updateWindowState as typeof updateWindowState,
+})
+/**
+ * mobile only: open the settings page
+ */
+export const createOpenAppSettings = (payload?: undefined) => ({
+  payload,
+  type: openAppSettings as typeof openAppSettings,
+})
+/**
+ * ready to show the app
+ */
+export const createDaemonHandshakeDone = (payload?: undefined) => ({
+  payload,
+  type: daemonHandshakeDone as typeof daemonHandshakeDone,
+})
+/**
+ * remote electron window wants props sent
+ */
+export const createRemoteWindowWantsProps = (payload: {
+  readonly component: string
+  readonly param: string
+}) => ({payload, type: remoteWindowWantsProps as typeof remoteWindowWantsProps})
+/**
+ * someone wants to log out
+ */
+export const createLogout = (payload?: undefined) => ({payload, type: logout as typeof logout})
+/**
+ * starting the connect process. Things that need to happen before we see the app should call daemonHandshakeWait
+ */
+export const createDaemonHandshake = (payload: {
+  readonly firstTimeConnecting: boolean
+  readonly version: number
+}) => ({payload, type: daemonHandshake as typeof daemonHandshake})
+/**
+ * starting the logout process. Things that need to happen before we see the app should call logoutHandshakeWait
+ */
+export const createLogoutHandshake = (payload: {readonly version: number}) => ({
+  payload,
+  type: logoutHandshake as typeof logoutHandshake,
+})
+/**
+ * subsystems that need to do things during boot need to call this to register that we should wait.
+ */
+export const createDaemonHandshakeWait = (payload: {
+  readonly name: string
+  readonly version: number
+  readonly increment: boolean
+  readonly failedReason?: string
+  readonly failedFatal?: true
+}) => ({payload, type: daemonHandshakeWait as typeof daemonHandshakeWait})
+/**
+ * subsystems that need to do things during logout need to call this to register that we should wait.
+ */
+export const createLogoutHandshakeWait = (payload: {
+  readonly name: string
+  readonly version: number
+  readonly increment: boolean
+}) => ({payload, type: logoutHandshakeWait as typeof logoutHandshakeWait})
+export const createBootstrapStatusLoaded = (payload: {
   readonly deviceID: string
   readonly deviceName: string
   readonly fullname: string
@@ -80,70 +248,96 @@ type _BootstrapStatusLoadedPayload = {
   readonly uid: string
   readonly username: string
   readonly userReacjis: RPCTypes.UserReacjis
-}
-type _ChangedActivePayload = {readonly userActive: boolean}
-type _ChangedFocusPayload = {readonly appFocused: boolean}
-type _CheckForUpdatePayload = undefined
-type _CopyToClipboardPayload = {readonly text: string}
-type _DaemonErrorPayload = {readonly daemonError?: Error}
-type _DaemonHandshakeDonePayload = undefined
-type _DaemonHandshakePayload = {readonly firstTimeConnecting: boolean; readonly version: number}
-type _DaemonHandshakeWaitPayload = {
-  readonly name: string
-  readonly version: number
-  readonly increment: boolean
-  readonly failedReason?: string
-  readonly failedFatal?: true
-}
-type _DumpLogsPayload = {readonly reason: 'quitting through menu'}
-type _FilePickerErrorPayload = {readonly error: Error}
-type _FollowerInfoUpdatedPayload = {
+}) => ({payload, type: bootstrapStatusLoaded as typeof bootstrapStatusLoaded})
+export const createChangedActive = (payload: {readonly userActive: boolean}) => ({
+  payload,
+  type: changedActive as typeof changedActive,
+})
+export const createChangedFocus = (payload: {readonly appFocused: boolean}) => ({
+  payload,
+  type: changedFocus as typeof changedFocus,
+})
+export const createCheckForUpdate = (payload?: undefined) => ({
+  payload,
+  type: checkForUpdate as typeof checkForUpdate,
+})
+export const createCopyToClipboard = (payload: {readonly text: string}) => ({
+  payload,
+  type: copyToClipboard as typeof copyToClipboard,
+})
+export const createDaemonError = (payload: {readonly daemonError?: Error} = {}) => ({
+  payload,
+  type: daemonError as typeof daemonError,
+})
+export const createDumpLogs = (payload: {readonly reason: 'quitting through menu'}) => ({
+  payload,
+  type: dumpLogs as typeof dumpLogs,
+})
+export const createFollowerInfoUpdated = (payload: {
   readonly uid: string
   readonly followers: Array<string>
   readonly followees: Array<string>
-}
-type _GlobalErrorPayload = {readonly globalError?: Error | RPCError}
-type _InstallerRanPayload = undefined
-type _LoadOnLoginStartupPayload = undefined
-type _LoadOnStartPayload = {
-  readonly phase:
-    | 'initialStartupAsEarlyAsPossible'
-    | 'connectedToDaemonForFirstTime'
-    | 'reloggedIn'
-    | 'startupOrReloginButNotInARush'
-}
-type _LoadedOnLoginStartupPayload = {readonly status: boolean | null}
-type _LoggedInPayload = {readonly causedBySignup: boolean; readonly causedByStartup: boolean}
-type _LoggedOutPayload = undefined
-type _LogoutAndTryToLogInAsPayload = {readonly username: string}
-type _LogoutHandshakePayload = {readonly version: number}
-type _LogoutHandshakeWaitPayload = {
-  readonly name: string
-  readonly version: number
-  readonly increment: boolean
-}
-type _LogoutPayload = undefined
-type _MobileAppStatePayload = {readonly nextAppState: 'active' | 'background' | 'inactive'}
-type _OpenAppSettingsPayload = undefined
-type _OpenAppStorePayload = undefined
-type _OsNetworkStatusChangedPayload = {
+}) => ({payload, type: followerInfoUpdated as typeof followerInfoUpdated})
+export const createGlobalError = (payload: {readonly globalError?: Error | RPCError} = {}) => ({
+  payload,
+  type: globalError as typeof globalError,
+})
+export const createLoadOnLoginStartup = (payload?: undefined) => ({
+  payload,
+  type: loadOnLoginStartup as typeof loadOnLoginStartup,
+})
+export const createLoadedOnLoginStartup = (payload: {readonly status: boolean | null}) => ({
+  payload,
+  type: loadedOnLoginStartup as typeof loadedOnLoginStartup,
+})
+export const createLoggedOut = (payload?: undefined) => ({payload, type: loggedOut as typeof loggedOut})
+export const createMobileAppState = (payload: {
+  readonly nextAppState: 'active' | 'background' | 'inactive'
+}) => ({payload, type: mobileAppState as typeof mobileAppState})
+export const createOsNetworkStatusChanged = (payload: {
   readonly online: boolean
   readonly type: Types.ConnectionType
   readonly isInit?: boolean
-}
-type _PersistRoutePayload = {readonly path?: Array<any>}
-type _PushLoadedPayload = {readonly pushLoaded: boolean}
-type _RemoteWindowWantsPropsPayload = {readonly component: string; readonly param: string}
-type _RestartHandshakePayload = undefined
-type _SetAccountsPayload = {readonly configuredAccounts: Array<RPCTypes.ConfiguredAccount>}
-type _SetDarkModePreferencePayload = {readonly preference: 'system' | 'alwaysDark' | 'alwaysLight'}
-type _SetDefaultUsernamePayload = {readonly username: string}
-type _SetDeletedSelfPayload = {readonly deletedUsername: string}
-type _SetIncomingShareUseOriginalPayload = {readonly useOriginal: boolean}
-type _SetNavigatorPayload = {readonly navigator: any}
-type _SetNotifySoundPayload = {readonly notifySound: boolean}
-type _SetOpenAtLoginPayload = {readonly openAtLogin: boolean}
-type _SetStartupDetailsPayload = {
+}) => ({payload, type: osNetworkStatusChanged as typeof osNetworkStatusChanged})
+export const createPersistRoute = (payload: {readonly path?: Array<any>} = {}) => ({
+  payload,
+  type: persistRoute as typeof persistRoute,
+})
+export const createPushLoaded = (payload: {readonly pushLoaded: boolean}) => ({
+  payload,
+  type: pushLoaded as typeof pushLoaded,
+})
+export const createSetAccounts = (payload: {
+  readonly configuredAccounts: Array<RPCTypes.ConfiguredAccount>
+}) => ({payload, type: setAccounts as typeof setAccounts})
+export const createSetDarkModePreference = (payload: {
+  readonly preference: 'system' | 'alwaysDark' | 'alwaysLight'
+}) => ({payload, type: setDarkModePreference as typeof setDarkModePreference})
+export const createSetDefaultUsername = (payload: {readonly username: string}) => ({
+  payload,
+  type: setDefaultUsername as typeof setDefaultUsername,
+})
+export const createSetDeletedSelf = (payload: {readonly deletedUsername: string}) => ({
+  payload,
+  type: setDeletedSelf as typeof setDeletedSelf,
+})
+export const createSetIncomingShareUseOriginal = (payload: {readonly useOriginal: boolean}) => ({
+  payload,
+  type: setIncomingShareUseOriginal as typeof setIncomingShareUseOriginal,
+})
+export const createSetNavigator = (payload: {readonly navigator: any}) => ({
+  payload,
+  type: setNavigator as typeof setNavigator,
+})
+export const createSetNotifySound = (payload: {readonly notifySound: boolean}) => ({
+  payload,
+  type: setNotifySound as typeof setNotifySound,
+})
+export const createSetOpenAtLogin = (payload: {readonly openAtLogin: boolean}) => ({
+  payload,
+  type: setOpenAtLogin as typeof setOpenAtLogin,
+})
+export const createSetStartupDetails = (payload: {
   readonly startupWasFromPush: boolean
   readonly startupConversation?: ChatTypes.ConversationIDKey
   readonly startupLink: string
@@ -152,484 +346,103 @@ type _SetStartupDetailsPayload = {
   readonly startupSharePath?: FsTypes.LocalPath
   readonly startupShareText?: string
   readonly startupPushPayload?: string
-}
-type _SetStartupFilePayload = {readonly startupFile: HiddenString}
-type _SetSystemDarkModePayload = {readonly dark: boolean}
-type _SetUseNativeFramePayload = {readonly useNativeFrame: boolean}
-type _SetUserSwitchingPayload = {readonly userSwitching: boolean}
-type _SetWhatsNewLastSeenVersionPayload = {readonly lastSeenVersion: string}
-type _ShowMainPayload = undefined
-type _ShowShareActionSheetPayload = {
+}) => ({payload, type: setStartupDetails as typeof setStartupDetails})
+export const createSetSystemDarkMode = (payload: {readonly dark: boolean}) => ({
+  payload,
+  type: setSystemDarkMode as typeof setSystemDarkMode,
+})
+export const createSetUseNativeFrame = (payload: {readonly useNativeFrame: boolean}) => ({
+  payload,
+  type: setUseNativeFrame as typeof setUseNativeFrame,
+})
+export const createSetUserSwitching = (payload: {readonly userSwitching: boolean}) => ({
+  payload,
+  type: setUserSwitching as typeof setUserSwitching,
+})
+export const createShowMain = (payload?: undefined) => ({payload, type: showMain as typeof showMain})
+export const createShowShareActionSheet = (payload: {
   readonly filePath?: string
   readonly message?: string
   readonly mimeType: string
-}
-type _StartHandshakePayload = undefined
-type _ToggleRuntimeStatsPayload = undefined
-type _UpdateCriticalCheckStatusPayload = {
-  readonly status: 'critical' | 'suggested' | 'ok'
-  readonly message: string
-}
-type _UpdateHTTPSrvInfoPayload = {readonly address: string; readonly token: string}
-type _UpdateInfoPayload = {
+}) => ({payload, type: showShareActionSheet as typeof showShareActionSheet})
+export const createToggleRuntimeStats = (payload?: undefined) => ({
+  payload,
+  type: toggleRuntimeStats as typeof toggleRuntimeStats,
+})
+export const createUpdateHTTPSrvInfo = (payload: {readonly address: string; readonly token: string}) => ({
+  payload,
+  type: updateHTTPSrvInfo as typeof updateHTTPSrvInfo,
+})
+export const createUpdateInfo = (payload: {
   readonly isOutOfDate: boolean
   readonly critical: boolean
   readonly message?: string
-}
-type _UpdateMenubarWindowIDPayload = {readonly id: number}
-type _UpdateNowPayload = undefined
-type _UpdateWindowMaxStatePayload = {readonly max: boolean}
-type _UpdateWindowShownPayload = {readonly component: string}
-type _UpdateWindowStatePayload = {readonly windowState: Types.WindowState}
-
-// Action Creators
-/**
- * Intent fired with a share url
- */
-export const createAndroidShare = (
-  payload: _AndroidSharePayload = Object.freeze({})
-): AndroidSharePayload => ({payload, type: androidShare})
-/**
- * Log out the current user, keeping secrets stored.
- * Then prefill the username for provisioned another user to log in.
- */
-export const createLogoutAndTryToLogInAs = (
-  payload: _LogoutAndTryToLogInAsPayload
-): LogoutAndTryToLogInAsPayload => ({payload, type: logoutAndTryToLogInAs})
-/**
- * Open a link to the app store
- */
-export const createOpenAppStore = (payload?: _OpenAppStorePayload): OpenAppStorePayload => ({
+}) => ({payload, type: updateInfo as typeof updateInfo})
+export const createUpdateMenubarWindowID = (payload: {readonly id: number}) => ({
   payload,
-  type: openAppStore,
+  type: updateMenubarWindowID as typeof updateMenubarWindowID,
 })
-/**
- * Save critical check status
- */
-export const createUpdateCriticalCheckStatus = (
-  payload: _UpdateCriticalCheckStatusPayload
-): UpdateCriticalCheckStatusPayload => ({payload, type: updateCriticalCheckStatus})
-/**
- * Sent whenever the mobile file picker encounters an error.
- */
-export const createFilePickerError = (payload: _FilePickerErrorPayload): FilePickerErrorPayload => ({
-  payload,
-  type: filePickerError,
-})
-/**
- * Set the latest version number that a user has seen from Gregor.
- * This is used to set the badged state of the 'What's New' radio icon
- */
-export const createSetWhatsNewLastSeenVersion = (
-  payload: _SetWhatsNewLastSeenVersionPayload
-): SetWhatsNewLastSeenVersionPayload => ({payload, type: setWhatsNewLastSeenVersion})
-/**
- * Stores the startup file path when launching Keybase from a cold start beofre log in
- */
-export const createSetStartupFile = (payload: _SetStartupFilePayload): SetStartupFilePayload => ({
-  payload,
-  type: setStartupFile,
-})
-/**
- * This action is dispatched multiple times with various flags.
- * If you want to do something as a result of startup or login listen to this.
- */
-export const createLoadOnStart = (payload: _LoadOnStartPayload): LoadOnStartPayload => ({
-  payload,
-  type: loadOnStart,
-})
-/**
- * Used internally to know we were logged in.
- * If you want to react to being logged in likely you want bootstrapStatusLoaded
- */
-export const createLoggedIn = (payload: _LoggedInPayload): LoggedInPayload => ({payload, type: loggedIn})
-/**
- * a window was shown
- */
-export const createUpdateWindowShown = (payload: _UpdateWindowShownPayload): UpdateWindowShownPayload => ({
-  payload,
-  type: updateWindowShown,
-})
-/**
- * desktop only: the installer ran and we can start up
- */
-export const createInstallerRan = (payload?: _InstallerRanPayload): InstallerRanPayload => ({
-  payload,
-  type: installerRan,
-})
-/**
- * internal to config. should restart the handshake process
- */
-export const createRestartHandshake = (payload?: _RestartHandshakePayload): RestartHandshakePayload => ({
-  payload,
-  type: restartHandshake,
-})
-/**
- * internal to config. should start the handshake process
- */
-export const createStartHandshake = (payload?: _StartHandshakePayload): StartHandshakePayload => ({
-  payload,
-  type: startHandshake,
-})
-/**
- * main electron window changed max/min
- */
-export const createUpdateWindowMaxState = (
-  payload: _UpdateWindowMaxStatePayload
-): UpdateWindowMaxStatePayload => ({payload, type: updateWindowMaxState})
-/**
- * main electron window wants to store its state
- */
-export const createUpdateWindowState = (payload: _UpdateWindowStatePayload): UpdateWindowStatePayload => ({
-  payload,
-  type: updateWindowState,
-})
-/**
- * mobile only: open the settings page
- */
-export const createOpenAppSettings = (payload?: _OpenAppSettingsPayload): OpenAppSettingsPayload => ({
-  payload,
-  type: openAppSettings,
-})
-/**
- * ready to show the app
- */
-export const createDaemonHandshakeDone = (
-  payload?: _DaemonHandshakeDonePayload
-): DaemonHandshakeDonePayload => ({payload, type: daemonHandshakeDone})
-/**
- * remote electron window wants props sent
- */
-export const createRemoteWindowWantsProps = (
-  payload: _RemoteWindowWantsPropsPayload
-): RemoteWindowWantsPropsPayload => ({payload, type: remoteWindowWantsProps})
-/**
- * someone wants to log out
- */
-export const createLogout = (payload?: _LogoutPayload): LogoutPayload => ({payload, type: logout})
-/**
- * starting the connect process. Things that need to happen before we see the app should call daemonHandshakeWait
- */
-export const createDaemonHandshake = (payload: _DaemonHandshakePayload): DaemonHandshakePayload => ({
-  payload,
-  type: daemonHandshake,
-})
-/**
- * starting the logout process. Things that need to happen before we see the app should call logoutHandshakeWait
- */
-export const createLogoutHandshake = (payload: _LogoutHandshakePayload): LogoutHandshakePayload => ({
-  payload,
-  type: logoutHandshake,
-})
-/**
- * subsystems that need to do things during boot need to call this to register that we should wait.
- */
-export const createDaemonHandshakeWait = (
-  payload: _DaemonHandshakeWaitPayload
-): DaemonHandshakeWaitPayload => ({payload, type: daemonHandshakeWait})
-/**
- * subsystems that need to do things during logout need to call this to register that we should wait.
- */
-export const createLogoutHandshakeWait = (
-  payload: _LogoutHandshakeWaitPayload
-): LogoutHandshakeWaitPayload => ({payload, type: logoutHandshakeWait})
-export const createBootstrapStatusLoaded = (
-  payload: _BootstrapStatusLoadedPayload
-): BootstrapStatusLoadedPayload => ({payload, type: bootstrapStatusLoaded})
-export const createChangedActive = (payload: _ChangedActivePayload): ChangedActivePayload => ({
-  payload,
-  type: changedActive,
-})
-export const createChangedFocus = (payload: _ChangedFocusPayload): ChangedFocusPayload => ({
-  payload,
-  type: changedFocus,
-})
-export const createCheckForUpdate = (payload?: _CheckForUpdatePayload): CheckForUpdatePayload => ({
-  payload,
-  type: checkForUpdate,
-})
-export const createCopyToClipboard = (payload: _CopyToClipboardPayload): CopyToClipboardPayload => ({
-  payload,
-  type: copyToClipboard,
-})
-export const createDaemonError = (payload: _DaemonErrorPayload = Object.freeze({})): DaemonErrorPayload => ({
-  payload,
-  type: daemonError,
-})
-export const createDumpLogs = (payload: _DumpLogsPayload): DumpLogsPayload => ({payload, type: dumpLogs})
-export const createFollowerInfoUpdated = (
-  payload: _FollowerInfoUpdatedPayload
-): FollowerInfoUpdatedPayload => ({payload, type: followerInfoUpdated})
-export const createGlobalError = (payload: _GlobalErrorPayload = Object.freeze({})): GlobalErrorPayload => ({
-  payload,
-  type: globalError,
-})
-export const createLoadOnLoginStartup = (
-  payload?: _LoadOnLoginStartupPayload
-): LoadOnLoginStartupPayload => ({payload, type: loadOnLoginStartup})
-export const createLoadedOnLoginStartup = (
-  payload: _LoadedOnLoginStartupPayload
-): LoadedOnLoginStartupPayload => ({payload, type: loadedOnLoginStartup})
-export const createLoggedOut = (payload?: _LoggedOutPayload): LoggedOutPayload => ({payload, type: loggedOut})
-export const createMobileAppState = (payload: _MobileAppStatePayload): MobileAppStatePayload => ({
-  payload,
-  type: mobileAppState,
-})
-export const createOsNetworkStatusChanged = (
-  payload: _OsNetworkStatusChangedPayload
-): OsNetworkStatusChangedPayload => ({payload, type: osNetworkStatusChanged})
-export const createPersistRoute = (
-  payload: _PersistRoutePayload = Object.freeze({})
-): PersistRoutePayload => ({payload, type: persistRoute})
-export const createPushLoaded = (payload: _PushLoadedPayload): PushLoadedPayload => ({
-  payload,
-  type: pushLoaded,
-})
-export const createSetAccounts = (payload: _SetAccountsPayload): SetAccountsPayload => ({
-  payload,
-  type: setAccounts,
-})
-export const createSetDarkModePreference = (
-  payload: _SetDarkModePreferencePayload
-): SetDarkModePreferencePayload => ({payload, type: setDarkModePreference})
-export const createSetDefaultUsername = (payload: _SetDefaultUsernamePayload): SetDefaultUsernamePayload => ({
-  payload,
-  type: setDefaultUsername,
-})
-export const createSetDeletedSelf = (payload: _SetDeletedSelfPayload): SetDeletedSelfPayload => ({
-  payload,
-  type: setDeletedSelf,
-})
-export const createSetIncomingShareUseOriginal = (
-  payload: _SetIncomingShareUseOriginalPayload
-): SetIncomingShareUseOriginalPayload => ({payload, type: setIncomingShareUseOriginal})
-export const createSetNavigator = (payload: _SetNavigatorPayload): SetNavigatorPayload => ({
-  payload,
-  type: setNavigator,
-})
-export const createSetNotifySound = (payload: _SetNotifySoundPayload): SetNotifySoundPayload => ({
-  payload,
-  type: setNotifySound,
-})
-export const createSetOpenAtLogin = (payload: _SetOpenAtLoginPayload): SetOpenAtLoginPayload => ({
-  payload,
-  type: setOpenAtLogin,
-})
-export const createSetStartupDetails = (payload: _SetStartupDetailsPayload): SetStartupDetailsPayload => ({
-  payload,
-  type: setStartupDetails,
-})
-export const createSetSystemDarkMode = (payload: _SetSystemDarkModePayload): SetSystemDarkModePayload => ({
-  payload,
-  type: setSystemDarkMode,
-})
-export const createSetUseNativeFrame = (payload: _SetUseNativeFramePayload): SetUseNativeFramePayload => ({
-  payload,
-  type: setUseNativeFrame,
-})
-export const createSetUserSwitching = (payload: _SetUserSwitchingPayload): SetUserSwitchingPayload => ({
-  payload,
-  type: setUserSwitching,
-})
-export const createShowMain = (payload?: _ShowMainPayload): ShowMainPayload => ({payload, type: showMain})
-export const createShowShareActionSheet = (
-  payload: _ShowShareActionSheetPayload
-): ShowShareActionSheetPayload => ({payload, type: showShareActionSheet})
-export const createToggleRuntimeStats = (
-  payload?: _ToggleRuntimeStatsPayload
-): ToggleRuntimeStatsPayload => ({payload, type: toggleRuntimeStats})
-export const createUpdateHTTPSrvInfo = (payload: _UpdateHTTPSrvInfoPayload): UpdateHTTPSrvInfoPayload => ({
-  payload,
-  type: updateHTTPSrvInfo,
-})
-export const createUpdateInfo = (payload: _UpdateInfoPayload): UpdateInfoPayload => ({
-  payload,
-  type: updateInfo,
-})
-export const createUpdateMenubarWindowID = (
-  payload: _UpdateMenubarWindowIDPayload
-): UpdateMenubarWindowIDPayload => ({payload, type: updateMenubarWindowID})
-export const createUpdateNow = (payload?: _UpdateNowPayload): UpdateNowPayload => ({payload, type: updateNow})
+export const createUpdateNow = (payload?: undefined) => ({payload, type: updateNow as typeof updateNow})
 
 // Action Payloads
-export type AndroidSharePayload = {readonly payload: _AndroidSharePayload; readonly type: typeof androidShare}
-export type BootstrapStatusLoadedPayload = {
-  readonly payload: _BootstrapStatusLoadedPayload
-  readonly type: typeof bootstrapStatusLoaded
-}
-export type ChangedActivePayload = {
-  readonly payload: _ChangedActivePayload
-  readonly type: typeof changedActive
-}
-export type ChangedFocusPayload = {readonly payload: _ChangedFocusPayload; readonly type: typeof changedFocus}
-export type CheckForUpdatePayload = {
-  readonly payload: _CheckForUpdatePayload
-  readonly type: typeof checkForUpdate
-}
-export type CopyToClipboardPayload = {
-  readonly payload: _CopyToClipboardPayload
-  readonly type: typeof copyToClipboard
-}
-export type DaemonErrorPayload = {readonly payload: _DaemonErrorPayload; readonly type: typeof daemonError}
-export type DaemonHandshakeDonePayload = {
-  readonly payload: _DaemonHandshakeDonePayload
-  readonly type: typeof daemonHandshakeDone
-}
-export type DaemonHandshakePayload = {
-  readonly payload: _DaemonHandshakePayload
-  readonly type: typeof daemonHandshake
-}
-export type DaemonHandshakeWaitPayload = {
-  readonly payload: _DaemonHandshakeWaitPayload
-  readonly type: typeof daemonHandshakeWait
-}
-export type DumpLogsPayload = {readonly payload: _DumpLogsPayload; readonly type: typeof dumpLogs}
-export type FilePickerErrorPayload = {
-  readonly payload: _FilePickerErrorPayload
-  readonly type: typeof filePickerError
-}
-export type FollowerInfoUpdatedPayload = {
-  readonly payload: _FollowerInfoUpdatedPayload
-  readonly type: typeof followerInfoUpdated
-}
-export type GlobalErrorPayload = {readonly payload: _GlobalErrorPayload; readonly type: typeof globalError}
-export type InstallerRanPayload = {readonly payload: _InstallerRanPayload; readonly type: typeof installerRan}
-export type LoadOnLoginStartupPayload = {
-  readonly payload: _LoadOnLoginStartupPayload
-  readonly type: typeof loadOnLoginStartup
-}
-export type LoadOnStartPayload = {readonly payload: _LoadOnStartPayload; readonly type: typeof loadOnStart}
-export type LoadedOnLoginStartupPayload = {
-  readonly payload: _LoadedOnLoginStartupPayload
-  readonly type: typeof loadedOnLoginStartup
-}
-export type LoggedInPayload = {readonly payload: _LoggedInPayload; readonly type: typeof loggedIn}
-export type LoggedOutPayload = {readonly payload: _LoggedOutPayload; readonly type: typeof loggedOut}
-export type LogoutAndTryToLogInAsPayload = {
-  readonly payload: _LogoutAndTryToLogInAsPayload
-  readonly type: typeof logoutAndTryToLogInAs
-}
-export type LogoutHandshakePayload = {
-  readonly payload: _LogoutHandshakePayload
-  readonly type: typeof logoutHandshake
-}
-export type LogoutHandshakeWaitPayload = {
-  readonly payload: _LogoutHandshakeWaitPayload
-  readonly type: typeof logoutHandshakeWait
-}
-export type LogoutPayload = {readonly payload: _LogoutPayload; readonly type: typeof logout}
-export type MobileAppStatePayload = {
-  readonly payload: _MobileAppStatePayload
-  readonly type: typeof mobileAppState
-}
-export type OpenAppSettingsPayload = {
-  readonly payload: _OpenAppSettingsPayload
-  readonly type: typeof openAppSettings
-}
-export type OpenAppStorePayload = {readonly payload: _OpenAppStorePayload; readonly type: typeof openAppStore}
-export type OsNetworkStatusChangedPayload = {
-  readonly payload: _OsNetworkStatusChangedPayload
-  readonly type: typeof osNetworkStatusChanged
-}
-export type PersistRoutePayload = {readonly payload: _PersistRoutePayload; readonly type: typeof persistRoute}
-export type PushLoadedPayload = {readonly payload: _PushLoadedPayload; readonly type: typeof pushLoaded}
-export type RemoteWindowWantsPropsPayload = {
-  readonly payload: _RemoteWindowWantsPropsPayload
-  readonly type: typeof remoteWindowWantsProps
-}
-export type RestartHandshakePayload = {
-  readonly payload: _RestartHandshakePayload
-  readonly type: typeof restartHandshake
-}
-export type SetAccountsPayload = {readonly payload: _SetAccountsPayload; readonly type: typeof setAccounts}
-export type SetDarkModePreferencePayload = {
-  readonly payload: _SetDarkModePreferencePayload
-  readonly type: typeof setDarkModePreference
-}
-export type SetDefaultUsernamePayload = {
-  readonly payload: _SetDefaultUsernamePayload
-  readonly type: typeof setDefaultUsername
-}
-export type SetDeletedSelfPayload = {
-  readonly payload: _SetDeletedSelfPayload
-  readonly type: typeof setDeletedSelf
-}
-export type SetIncomingShareUseOriginalPayload = {
-  readonly payload: _SetIncomingShareUseOriginalPayload
-  readonly type: typeof setIncomingShareUseOriginal
-}
-export type SetNavigatorPayload = {readonly payload: _SetNavigatorPayload; readonly type: typeof setNavigator}
-export type SetNotifySoundPayload = {
-  readonly payload: _SetNotifySoundPayload
-  readonly type: typeof setNotifySound
-}
-export type SetOpenAtLoginPayload = {
-  readonly payload: _SetOpenAtLoginPayload
-  readonly type: typeof setOpenAtLogin
-}
-export type SetStartupDetailsPayload = {
-  readonly payload: _SetStartupDetailsPayload
-  readonly type: typeof setStartupDetails
-}
-export type SetStartupFilePayload = {
-  readonly payload: _SetStartupFilePayload
-  readonly type: typeof setStartupFile
-}
-export type SetSystemDarkModePayload = {
-  readonly payload: _SetSystemDarkModePayload
-  readonly type: typeof setSystemDarkMode
-}
-export type SetUseNativeFramePayload = {
-  readonly payload: _SetUseNativeFramePayload
-  readonly type: typeof setUseNativeFrame
-}
-export type SetUserSwitchingPayload = {
-  readonly payload: _SetUserSwitchingPayload
-  readonly type: typeof setUserSwitching
-}
-export type SetWhatsNewLastSeenVersionPayload = {
-  readonly payload: _SetWhatsNewLastSeenVersionPayload
-  readonly type: typeof setWhatsNewLastSeenVersion
-}
-export type ShowMainPayload = {readonly payload: _ShowMainPayload; readonly type: typeof showMain}
-export type ShowShareActionSheetPayload = {
-  readonly payload: _ShowShareActionSheetPayload
-  readonly type: typeof showShareActionSheet
-}
-export type StartHandshakePayload = {
-  readonly payload: _StartHandshakePayload
-  readonly type: typeof startHandshake
-}
-export type ToggleRuntimeStatsPayload = {
-  readonly payload: _ToggleRuntimeStatsPayload
-  readonly type: typeof toggleRuntimeStats
-}
-export type UpdateCriticalCheckStatusPayload = {
-  readonly payload: _UpdateCriticalCheckStatusPayload
-  readonly type: typeof updateCriticalCheckStatus
-}
-export type UpdateHTTPSrvInfoPayload = {
-  readonly payload: _UpdateHTTPSrvInfoPayload
-  readonly type: typeof updateHTTPSrvInfo
-}
-export type UpdateInfoPayload = {readonly payload: _UpdateInfoPayload; readonly type: typeof updateInfo}
-export type UpdateMenubarWindowIDPayload = {
-  readonly payload: _UpdateMenubarWindowIDPayload
-  readonly type: typeof updateMenubarWindowID
-}
-export type UpdateNowPayload = {readonly payload: _UpdateNowPayload; readonly type: typeof updateNow}
-export type UpdateWindowMaxStatePayload = {
-  readonly payload: _UpdateWindowMaxStatePayload
-  readonly type: typeof updateWindowMaxState
-}
-export type UpdateWindowShownPayload = {
-  readonly payload: _UpdateWindowShownPayload
-  readonly type: typeof updateWindowShown
-}
-export type UpdateWindowStatePayload = {
-  readonly payload: _UpdateWindowStatePayload
-  readonly type: typeof updateWindowState
-}
+export type AndroidSharePayload = ReturnType<typeof createAndroidShare>
+export type BootstrapStatusLoadedPayload = ReturnType<typeof createBootstrapStatusLoaded>
+export type ChangedActivePayload = ReturnType<typeof createChangedActive>
+export type ChangedFocusPayload = ReturnType<typeof createChangedFocus>
+export type CheckForUpdatePayload = ReturnType<typeof createCheckForUpdate>
+export type CopyToClipboardPayload = ReturnType<typeof createCopyToClipboard>
+export type DaemonErrorPayload = ReturnType<typeof createDaemonError>
+export type DaemonHandshakeDonePayload = ReturnType<typeof createDaemonHandshakeDone>
+export type DaemonHandshakePayload = ReturnType<typeof createDaemonHandshake>
+export type DaemonHandshakeWaitPayload = ReturnType<typeof createDaemonHandshakeWait>
+export type DumpLogsPayload = ReturnType<typeof createDumpLogs>
+export type FilePickerErrorPayload = ReturnType<typeof createFilePickerError>
+export type FollowerInfoUpdatedPayload = ReturnType<typeof createFollowerInfoUpdated>
+export type GlobalErrorPayload = ReturnType<typeof createGlobalError>
+export type InstallerRanPayload = ReturnType<typeof createInstallerRan>
+export type LoadOnLoginStartupPayload = ReturnType<typeof createLoadOnLoginStartup>
+export type LoadOnStartPayload = ReturnType<typeof createLoadOnStart>
+export type LoadedOnLoginStartupPayload = ReturnType<typeof createLoadedOnLoginStartup>
+export type LoggedInPayload = ReturnType<typeof createLoggedIn>
+export type LoggedOutPayload = ReturnType<typeof createLoggedOut>
+export type LogoutAndTryToLogInAsPayload = ReturnType<typeof createLogoutAndTryToLogInAs>
+export type LogoutHandshakePayload = ReturnType<typeof createLogoutHandshake>
+export type LogoutHandshakeWaitPayload = ReturnType<typeof createLogoutHandshakeWait>
+export type LogoutPayload = ReturnType<typeof createLogout>
+export type MobileAppStatePayload = ReturnType<typeof createMobileAppState>
+export type OpenAppSettingsPayload = ReturnType<typeof createOpenAppSettings>
+export type OpenAppStorePayload = ReturnType<typeof createOpenAppStore>
+export type OsNetworkStatusChangedPayload = ReturnType<typeof createOsNetworkStatusChanged>
+export type PersistRoutePayload = ReturnType<typeof createPersistRoute>
+export type PushLoadedPayload = ReturnType<typeof createPushLoaded>
+export type RemoteWindowWantsPropsPayload = ReturnType<typeof createRemoteWindowWantsProps>
+export type RestartHandshakePayload = ReturnType<typeof createRestartHandshake>
+export type SetAccountsPayload = ReturnType<typeof createSetAccounts>
+export type SetDarkModePreferencePayload = ReturnType<typeof createSetDarkModePreference>
+export type SetDefaultUsernamePayload = ReturnType<typeof createSetDefaultUsername>
+export type SetDeletedSelfPayload = ReturnType<typeof createSetDeletedSelf>
+export type SetIncomingShareUseOriginalPayload = ReturnType<typeof createSetIncomingShareUseOriginal>
+export type SetNavigatorPayload = ReturnType<typeof createSetNavigator>
+export type SetNotifySoundPayload = ReturnType<typeof createSetNotifySound>
+export type SetOpenAtLoginPayload = ReturnType<typeof createSetOpenAtLogin>
+export type SetStartupDetailsPayload = ReturnType<typeof createSetStartupDetails>
+export type SetStartupFilePayload = ReturnType<typeof createSetStartupFile>
+export type SetSystemDarkModePayload = ReturnType<typeof createSetSystemDarkMode>
+export type SetUseNativeFramePayload = ReturnType<typeof createSetUseNativeFrame>
+export type SetUserSwitchingPayload = ReturnType<typeof createSetUserSwitching>
+export type SetWhatsNewLastSeenVersionPayload = ReturnType<typeof createSetWhatsNewLastSeenVersion>
+export type ShowMainPayload = ReturnType<typeof createShowMain>
+export type ShowShareActionSheetPayload = ReturnType<typeof createShowShareActionSheet>
+export type StartHandshakePayload = ReturnType<typeof createStartHandshake>
+export type ToggleRuntimeStatsPayload = ReturnType<typeof createToggleRuntimeStats>
+export type UpdateCriticalCheckStatusPayload = ReturnType<typeof createUpdateCriticalCheckStatus>
+export type UpdateHTTPSrvInfoPayload = ReturnType<typeof createUpdateHTTPSrvInfo>
+export type UpdateInfoPayload = ReturnType<typeof createUpdateInfo>
+export type UpdateMenubarWindowIDPayload = ReturnType<typeof createUpdateMenubarWindowID>
+export type UpdateNowPayload = ReturnType<typeof createUpdateNow>
+export type UpdateWindowMaxStatePayload = ReturnType<typeof createUpdateWindowMaxState>
+export type UpdateWindowShownPayload = ReturnType<typeof createUpdateWindowShown>
+export type UpdateWindowStatePayload = ReturnType<typeof createUpdateWindowState>
 
 // All Actions
 // prettier-ignore

@@ -1,4 +1,4 @@
-import {newRoutes as PGPRoutes} from './pgp/routes'
+import {newRoutes as PGPRoutes} from './pgp/routes-sub'
 import type {Question1Answer} from '../profile/wot-author'
 import type Profile from './user/container'
 import type ProfileAddToTeam from './add-to-team/container'
@@ -98,4 +98,19 @@ export type RootParamListProfile = {
   profile: {
     username: string
   }
+
+  profileConfirmOrPending: undefined
+  profileEdit: undefined
+  profileGenericEnterUsername: undefined
+  profileGenericProofResult: undefined
+  profilePostProof: undefined
+  profileProofsList: undefined
+  profileProveEnterUsername: undefined
+  profileProveWebsiteChoice: undefined
+  profileShowcaseTeamOffer: undefined
+  profileFinished: undefined
+  profileGenerate: undefined
+  profileImport: undefined
+  profilePgp: undefined
+  profileProvideInfo: undefined
 }

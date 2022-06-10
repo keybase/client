@@ -2,7 +2,7 @@ import {WalletList} from '.'
 import * as Constants from '../../constants/wallets'
 import * as Container from '../../util/container'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
-import * as Styles from '../../styles'
+import type * as Styles from '../../styles'
 import {anyWaiting} from '../../constants/waiting'
 
 type OwnProps = {
@@ -18,7 +18,7 @@ export default Container.connect(
     onAddNew: () =>
       dispatch(
         RouteTreeGen.createNavigateAppend({
-          path: [{props: {backButton: false, showOnCreation: true}, selected: 'createNewAccount'}],
+          path: [{props: {showOnCreation: true}, selected: 'createNewAccount'}],
         })
       ),
     onLinkExisting: () =>

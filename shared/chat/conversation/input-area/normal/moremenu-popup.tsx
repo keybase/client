@@ -33,7 +33,7 @@ const MoreMenuPopup = (props: Props) => {
       RouteTreeGen.createNavigateAppend({
         path: [
           {
-            props: {conversationIDKey, namespace: 'chat2'},
+            props: {conversationIDKey},
             selected: 'chatLocationPreview',
           },
         ],
