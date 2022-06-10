@@ -23,6 +23,8 @@ import {
   type Section,
 } from './rows'
 import isEqual from 'lodash/isEqual'
+import {createAnimatedComponent} from '../../common-adapters/reanimated'
+import type {Props as SectionListProps, Section as SectionType} from '../../common-adapters/section-list'
 
 type Props = Container.RouteProps<'team'>
 
@@ -79,9 +81,7 @@ const useLoadFeaturedBots = (teamDetails: Types.TeamDetails, shouldLoad: boolean
   }, [shouldLoad, _bots, featuredBotsMap, dispatch])
 }
 
-const SectionList: typeof Kb.SectionList = Styles.isMobile
-  ? Kb.ReAnimated.createAnimatedComponent(Kb.SectionList)
-  : Kb.SectionList
+const SectionList = createAnimatedComponent<SectionListProps<SectionType<Section>>>(Kb.SectionList as any)
 
 const Team = (props: Props) => {
   const teamID = props.route.params?.teamID ?? Types.noTeamID
@@ -152,14 +152,6 @@ const Team = (props: Props) => {
       break
   }
 
-  // Animation
-  const offset = React.useRef(Styles.isMobile ? new Kb.ReAnimated.Value(0) : undefined)
-  const onScroll = React.useRef(
-    Styles.isMobile
-      ? Kb.ReAnimated.event([{nativeEvent: {contentOffset: {y: offset.current}}}], {useNativeDriver: true})
-      : undefined
-  )
-
   const renderSectionHeader = React.useCallback(
     ({section}) =>
       section.title ? (
@@ -181,7 +173,6 @@ const Team = (props: Props) => {
           sections={sections}
           contentContainerStyle={styles.listContentContainer}
           style={styles.list}
-          onScroll={onScroll.current}
         />
         <SelectionPopup
           selectedTab={
@@ -194,7 +185,6 @@ const Team = (props: Props) => {
   )
 }
 
-// {Styles.isMobile && <MobileHeader teamID={teamID} offset={offset.current} />}
 Team.navigationOptions = {
   headerHideBorder: true,
   headerTitle: '',

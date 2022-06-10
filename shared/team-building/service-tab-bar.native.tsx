@@ -2,7 +2,19 @@ import * as React from 'react'
 import * as Kb from '../common-adapters/mobile.native'
 import * as Styles from '../styles'
 import {serviceIdToIconFont, serviceIdToAccentColor, serviceIdToLongLabel, serviceIdToBadge} from './shared'
-import {Props, IconProps} from './service-tab-bar'
+import {ScrollView} from 'react-native'
+import type {Props, IconProps} from './service-tab-bar'
+import {
+  useSharedValue,
+  useAnimatedStyle,
+  interpolate,
+  withSpring,
+  withDelay,
+  withTiming,
+  Extrapolation,
+  type SharedValue,
+  createAnimatedComponent,
+} from '../common-adapters/reanimated'
 
 export const labelHeight = 34
 
@@ -22,56 +34,84 @@ const serviceMinWidthWhenSmall = (containerWidth: number) => {
 
 const smallWidth = serviceMinWidthWhenSmall(Styles.dimensionWidth)
 const bigWidth = Math.max(smallWidth, 92)
-const AnimatedBox2 = Kb.ReAnimated.createAnimatedComponent(Kb.Box2)
+const AnimatedBox2 = createAnimatedComponent(Kb.Box2)
+const AnimatedScrollView = createAnimatedComponent(ScrollView)
 
-// On tablet add an additional "serivce" item that is only a bottom border that extends to the end of the ScrollView
-const TabletBottomBorderExtension = React.memo((props: {offset: number; servicesCount: number}) => {
-  const translateY = Kb.ReAnimated.interpolateNode(props.offset, {
-    inputRange: [-100, 0, 100, 9999],
-    outputRange: [0, 0, -8, -8],
-  })
+// On tablet add an additional "service" item that is only a bottom border that extends to the end of the ScrollView
+const TabletBottomBorderExtension = React.memo(
+  (props: {offset?: SharedValue<number>; servicesCount: number}) => {
+    const {offset} = props
+    const animatedStyles = useAnimatedStyle(() => {
+      const translateY = offset
+        ? interpolate(offset.value, [0, 100], [0, -8], {
+            extrapolateLeft: Extrapolation.CLAMP,
+            extrapolateRight: Extrapolation.CLAMP,
+          })
+        : 0
+      return {transform: [{translateY}]}
+    })
 
-  return (
-    <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={{position: 'relative'}}>
-      <AnimatedBox2
-        direction="horizontal"
-        fullWidth={true}
-        style={Styles.collapseStyles([
-          {
-            borderBottomWidth: 1,
-            borderColor: Styles.globalColors.black_10,
-            bottom: 0,
-            height: 2,
-            position: 'absolute',
-          },
-          {transform: [{translateY}]},
-        ] as any)}
-      />
-    </Kb.Box2>
-  )
-})
+    return (
+      <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={{position: 'relative'}}>
+        <AnimatedBox2
+          direction="horizontal"
+          fullWidth={true}
+          style={[
+            {
+              borderBottomWidth: 1,
+              borderColor: Styles.globalColors.black_10,
+              bottom: 0,
+              height: 2,
+              position: 'absolute',
+            },
+            animatedStyles,
+          ]}
+        />
+      </Kb.Box2>
+    )
+  }
+)
 
 const ServiceIcon = React.memo((props: IconProps) => {
-  const color = props.isActive ? serviceIdToAccentColor(props.service) : Styles.globalColors.black
+  const {offset, isActive, service, label, onClick} = props
+  const color = isActive ? serviceIdToAccentColor(service) : Styles.globalColors.black
 
-  const opacity = Kb.ReAnimated.interpolateNode(props.offset, {
-    inputRange: [-9999, 0, 40, 9999],
-    outputRange: [1, 1, 0, 0],
+  const animatedWidth = useAnimatedStyle(() => {
+    const width = offset
+      ? withTiming(
+          interpolate(offset.value, [-100, 0, 100], [bigWidth + 5, bigWidth, smallWidth], {
+            extrapolateLeft: Extrapolation.CLAMP,
+            extrapolateRight: Extrapolation.CLAMP,
+          }),
+          {duration: 10}
+        )
+      : 0
+    return {width}
   })
-  const width = Kb.ReAnimated.interpolateNode(props.offset, {
-    inputRange: [-9999, -100, 0, 100, 9999],
-    outputRange: [bigWidth + 5, bigWidth + 5, bigWidth, smallWidth, smallWidth],
+  const animatedOpacity = useAnimatedStyle(() => {
+    const opacity = offset
+      ? interpolate(offset.value, [0, 40], [1, 0], {
+          extrapolateLeft: Extrapolation.CLAMP,
+          extrapolateRight: Extrapolation.CLAMP,
+        })
+      : 0
+    return {opacity}
   })
-  const translateY = Kb.ReAnimated.interpolateNode(props.offset, {
-    inputRange: [-100, 0, 100, 9999],
-    outputRange: [0, 0, -8, -8],
+  const animatedTransform = useAnimatedStyle(() => {
+    const translateY = offset
+      ? interpolate(offset.value, [0, 100], [0, -8], {
+          extrapolateLeft: Extrapolation.CLAMP,
+          extrapolateRight: Extrapolation.CLAMP,
+        })
+      : 0
+    return {transform: [{translateY}]}
   })
 
   return (
-    <Kb.ClickableBox onClick={() => props.onClick(props.service)} style={{position: 'relative'}}>
-      <AnimatedBox2 direction="vertical" style={[styles.serviceIconContainer, {width}]}>
+    <Kb.ClickableBox onClick={() => onClick(service)} style={{position: 'relative'}}>
+      <AnimatedBox2 direction="vertical" style={[styles.serviceIconContainer, animatedWidth]}>
         <Kb.Box2 direction="vertical" style={{position: 'relative'}}>
-          {serviceIdToBadge(props.service) && (
+          {serviceIdToBadge(service) && (
             <Kb.Badge
               border={true}
               height={9}
@@ -80,12 +120,12 @@ const ServiceIcon = React.memo((props: IconProps) => {
               leftRightPadding={0}
             />
           )}
-          <Kb.Icon fontSize={18} type={serviceIdToIconFont(props.service)} color={color} />
+          <Kb.Icon fontSize={18} type={serviceIdToIconFont(service)} color={color} />
         </Kb.Box2>
-        <AnimatedBox2 direction="vertical" style={[styles.labelContainer, {opacity}]}>
+        <AnimatedBox2 direction="vertical" style={[styles.labelContainer, animatedOpacity]}>
           <Kb.Box2 direction="vertical" style={{height: labelHeight, width: 74}}>
             <Kb.Box2 direction="vertical">
-              {props.label.map((label, i) => (
+              {label.map((label, i) => (
                 <Kb.Text
                   key={i}
                   center={true}
@@ -99,119 +139,81 @@ const ServiceIcon = React.memo((props: IconProps) => {
             </Kb.Box2>
           </Kb.Box2>
         </AnimatedBox2>
-        {!!props.showCount && props.count === null && (
-          <Kb.Animation animationType="spinner" style={styles.pendingAnimation} />
-        )}
-        {!!props.showCount && props.count !== null && (
-          <Kb.Text type="BodyTinySemibold">{props.count && props.count === 11 ? '10+' : props.count}</Kb.Text>
-        )}
       </AnimatedBox2>
       <AnimatedBox2
         direction="horizontal"
         fullWidth={true}
-        style={Styles.collapseStyles([
-          props.isActive ? styles.activeTabBar : styles.inactiveTabBar,
-          props.isActive && {backgroundColor: serviceIdToAccentColor(props.service)},
-          {transform: [{translateY}]},
-        ] as any)}
+        style={[
+          isActive ? styles.activeTabBar : styles.inactiveTabBar,
+          isActive && {backgroundColor: serviceIdToAccentColor(service)},
+          animatedTransform,
+        ]}
       />
     </Kb.ClickableBox>
   )
 })
 
-const undefToNull = (n: number | undefined | null): number | null => (n === undefined ? null : n)
-
-const delay = (after: Kb.ReAnimated.Adaptable<number>) => {
-  const {greaterOrEq, Clock, Value, startClock, stopClock, cond, set, defined, block, add} = Kb.ReAnimated
-  const clock = new Clock()
-  const time = new Value(400)
-  const when = new Value(0)
-  return block([
-    startClock(clock),
-    cond(defined(when), 0, [set(when, add(clock, time))]),
-    cond(greaterOrEq(clock, when), block([stopClock(clock), after]), 0),
-  ])
-}
-
-const initialBounce = () => {
-  const {Clock, Value, startClock, stopClock, cond, spring, block, SpringUtils} = Kb.ReAnimated
-  const clock = new Clock()
-
-  const state = {
-    finished: new Value(0),
-    position: new Value(0),
-    time: new Value(0),
-    velocity: new Value(800),
-  }
-
-  const config = {
-    ...SpringUtils.makeDefaultConfig(),
-    toValue: new Value(0),
-  }
-
-  return delay(
-    block([
-      startClock(clock),
-      spring(clock, state, config),
-      cond(state.finished, stopClock(clock)),
-      state.position,
-    ])
+export const ServiceTabBar = (props: Props) => {
+  const {onChangeService, offset, services, selectedService} = props
+  const bounceX = useSharedValue(40)
+  const onClick = React.useCallback(
+    service => {
+      onChangeService(service)
+    },
+    [onChangeService]
   )
-}
 
-export class ServiceTabBar extends React.PureComponent<Props> {
-  private onClick = service => {
-    this.props.onChangeService(service)
-  }
+  React.useEffect(() => {
+    bounceX.value = 0
+  }, [bounceX])
 
-  private bounce = initialBounce()
+  const animatedStyles = useAnimatedStyle(() => {
+    const translateX = withDelay(100, withSpring(bounceX.value, {}))
+    const translateY = offset
+      ? interpolate(offset.value, [0, 100], [0, 8], {
+          extrapolateLeft: Extrapolation.CLAMP,
+          extrapolateRight: Extrapolation.CLAMP,
+        })
+      : 0
 
-  render() {
-    const props = this.props
+    // withTiming workaround due to https://github.com/software-mansion/react-native-reanimated/issues/1947#issuecomment-942413134
+    const height = offset
+      ? withTiming(
+          interpolate(offset.value, [0, 100], [72, 48], {
+            extrapolateLeft: Extrapolation.CLAMP,
+            extrapolateRight: Extrapolation.CLAMP,
+          }),
+          {duration: 10}
+        )
+      : 0
+    return {height, transform: [{translateX}, {translateY}]}
+  })
 
-    const height = Kb.ReAnimated.interpolateNode(props.offset, {
-      inputRange: [-9999, 0, 100, 9999],
-      outputRange: [72, 72, 48, 48],
-    })
-    const translateY = Kb.ReAnimated.interpolateNode(props.offset, {
-      inputRange: [-9999, 0, 100, 9999],
-      outputRange: [0, 0, 8, 8],
-    })
-
-    return (
-      <Kb.ReAnimated.ScrollView
-        horizontal={true}
-        showsHorizontalScrollIndicator={false}
-        scrollEventThrottle={1000}
-        keyboardDismissMode="on-drag"
-        keyboardShouldPersistTaps="handled"
-        contentContainerStyle={Styles.collapseStyles([{height: '100%'}, Styles.isTablet && {width: '100%'}])}
-        style={{
-          flexGrow: 0,
-          flexShrink: 0,
-          height,
-          transform: [{translateX: this.bounce}, {translateY}] as any,
-          width: '100%',
-        }}
-      >
-        {props.services.map(service => (
-          <ServiceIcon
-            key={service}
-            offset={props.offset}
-            service={service}
-            label={serviceIdToLongLabel(service)}
-            onClick={this.onClick}
-            count={undefToNull(props.serviceResultCount[service])}
-            showCount={props.showServiceResultCount}
-            isActive={props.selectedService === service}
-          />
-        ))}
-        {Styles.isTablet ? (
-          <TabletBottomBorderExtension offset={props.offset} servicesCount={props.services.length} />
-        ) : null}
-      </Kb.ReAnimated.ScrollView>
-    )
-  }
+  return (
+    <AnimatedScrollView
+      horizontal={true}
+      showsHorizontalScrollIndicator={false}
+      scrollEventThrottle={16}
+      keyboardDismissMode="on-drag"
+      keyboardShouldPersistTaps="handled"
+      contentContainerStyle={Styles.collapseStyles([{height: '100%'}, Styles.isTablet && {width: '100%'}])}
+      style={[styles.scroll, animatedStyles]}
+    >
+      {services.map(service => (
+        <ServiceIcon
+          key={service}
+          offset={offset}
+          service={service}
+          label={serviceIdToLongLabel(service)}
+          onClick={onClick}
+          isActive={selectedService === service}
+        />
+      ))}
+      {Styles.isTablet ? (
+        <TabletBottomBorderExtension offset={offset} servicesCount={services.length} />
+      ) : null}
+    </AnimatedScrollView>
+  )
 }
 
 const styles = Styles.styleSheetCreate(
@@ -243,6 +245,11 @@ const styles = Styles.styleSheetCreate(
         overflow: 'hidden',
       },
       pendingAnimation: {height: 17, width: 17},
+      scroll: {
+        flexGrow: 0,
+        flexShrink: 0,
+        width: '100%',
+      },
       serviceIconContainer: {
         alignSelf: 'center',
         height: '100%',

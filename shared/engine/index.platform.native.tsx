@@ -34,12 +34,10 @@ class NativeTransport extends TransportShared {
     return 1
   }
 
-  // A custom send override to write b64 to the react native bridge
+  // A custom send override to write to the react native bridge
   send(msg: SendArg) {
     const packed = encode(msg)
     const len = encode(packed.length)
-    // We have to write b64 encoded data over the RN bridge
-
     const buf = new Uint8Array(len.length + packed.length)
     buf.set(len, 0)
     buf.set(packed, len.length)

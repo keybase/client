@@ -53,14 +53,6 @@ const ServiceIcon = (props: IconProps) => {
               </Kb.Text>
             ))}
           </Kb.Box2>
-          {!!props.showCount &&
-            (props.count !== null ? (
-              <Kb.Text type="BodyTinySemibold">
-                {props.count && props.count > 10 ? '10+' : props.count}
-              </Kb.Text>
-            ) : (
-              <Kb.Animation animationType="spinner" style={styles.pendingAnimation} />
-            ))}
         </Kb.Box2>
       </Kb.Box2>
       <Kb.Box2
@@ -129,8 +121,6 @@ const MoreNetworkItem = (props: {service: ServiceIdWithContact}) => (
   </Kb.Box2>
 )
 
-const undefToNull = (n: number | undefined | null): number | null => (n === undefined ? null : n)
-
 export const ServiceTabBar = (props: Props) => {
   const [lastSelectedUnlockedService, setLastSelectedUnlockedService] =
     React.useState<ServiceIdWithContact | null>(null)
@@ -161,13 +151,10 @@ export const ServiceTabBar = (props: Props) => {
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.tabBarContainer}>
       {frontServices.map(service => (
         <ServiceIcon
-          offset={0}
           key={service}
           service={service}
           label={serviceIdToLongLabel(service)}
           onClick={onChangeService}
-          count={undefToNull(props.serviceResultCount[service])}
-          showCount={props.showServiceResultCount}
           isActive={props.selectedService === service}
           minimalBorder={props.minimalBorder}
         />
@@ -192,17 +179,13 @@ const styles = Styles.styleSheetCreate(
         top: 10,
       },
       badgeStyle: {backgroundColor: Styles.globalColors.blue},
-      inactiveTabBar: {
-        height: 2,
-      },
+      inactiveTabBar: {height: 2},
       label: {
         marginTop: Styles.globalMargins.xtiny,
         minWidth: 64,
       },
       moreNetworkItemIcon: {marginRight: Styles.globalMargins.tiny},
-      moreNetworks0: {
-        flex: 1,
-      },
+      moreNetworks0: {flex: 1},
       moreNetworks1: {
         paddingBottom: Styles.globalMargins.tiny,
         paddingLeft: Styles.globalMargins.xsmall,
@@ -233,13 +216,9 @@ const styles = Styles.styleSheetCreate(
         maxWidth: '100%',
         width: '100%',
       },
-      moreText: {
-        color: Styles.globalColors.black_50,
-      },
+      moreText: {color: Styles.globalColors.black_50},
       pendingAnimation: {height: 10, width: 10},
-      serviceIconBox: {
-        marginTop: 14,
-      },
+      serviceIconBox: {marginTop: 14},
       serviceIconContainer: {
         flex: 1,
         height: 70,
@@ -248,9 +227,7 @@ const styles = Styles.styleSheetCreate(
         maxWidth: 72,
         minWidth: 40,
       },
-      serviceIconContainerInner: {
-        justifyContent: 'flex-start',
-      },
+      serviceIconContainerInner: {justifyContent: 'flex-start'},
       serviceIconFlex: {
         flex: 1,
         maxWidth: 90,

@@ -1,16 +1,8 @@
-import type * as TeamBuildingTypes from '../constants/types/team-building'
+import type {TeamBuilderProps} from '../team-building/container'
 declare const newRoutes: {}
 declare const newModalRoutes: {}
 export {newRoutes, newModalRoutes}
 
-type TeamBuilderProps = Partial<{
-  recommendedHideYourself?: boolean
-  namespace: TeamBuildingTypes.AllowedNamespace
-  teamID: string
-  filterServices: Array<TeamBuildingTypes.ServiceIdWithContact>
-  goButtonLabel: TeamBuildingTypes.GoButtonLabel
-  title: string
-}>
 export type RootParamListCrypto = {
   cryptoRoot: undefined
   cryptoTeamBuilder: TeamBuilderProps

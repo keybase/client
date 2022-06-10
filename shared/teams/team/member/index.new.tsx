@@ -11,12 +11,13 @@ import * as Types from '../../../constants/types/teams'
 import RoleButton from '../../role-button'
 import isEqual from 'lodash/isEqual'
 import logger from '../../../logger'
-import type {Section as _Section} from '../../../common-adapters/section-list'
 import {FloatingRolePicker} from '../../role-picker'
 import {formatTimeForTeamMember, formatTimeRelativeToNow} from '../../../util/timestamp'
 import {pluralize} from '../../../util/string'
 import {useAllChannelMetas} from '../../common/channel-hooks'
 import {useTeamDetailsSubscribe} from '../../subscriber'
+import {createAnimatedComponent} from '../../../common-adapters/reanimated'
+import type {Props as SectionListProps, Section as SectionType} from '../../../common-adapters/section-list'
 
 type Props = {
   teamID: Types.TeamID
@@ -134,11 +135,9 @@ const useNavUpIfRemovedFromTeam = (teamID: Types.TeamID, username: string) => {
 }
 
 type Extra = {title: React.ReactElement}
-type Section = _Section<TeamTreeRowIn, Extra> | _Section<TeamTreeRowNotIn, Extra>
+type Section = SectionType<TeamTreeRowIn | TeamTreeRowNotIn, Extra>
 
-const SectionList: typeof Kb.SectionList = Styles.isMobile
-  ? Kb.ReAnimated.createAnimatedComponent(Kb.SectionList)
-  : Kb.SectionList
+const SectionList = createAnimatedComponent<SectionListProps<Section>>(Kb.SectionList as any)
 
 const TeamMember = (props: OwnProps) => {
   const dispatch = Container.useDispatch()
@@ -180,6 +179,7 @@ const TeamMember = (props: OwnProps) => {
   const nodesInSection: Section = {
     data: nodesIn,
     key: 'section-nodes',
+    // @ts-ignore TODO differentiate the type
     renderItem: ({item, index}: {item: TeamTreeRowIn; index: number}) => (
       <NodeInRow
         node={item}
@@ -203,19 +203,12 @@ const TeamMember = (props: OwnProps) => {
   const nodesNotInSection = {
     data: nodesNotIn,
     key: 'section-add-nodes',
+    // @ts-ignore TODO differentiate the type
     renderItem: ({item, index}: {item: TeamTreeRowNotIn; index: number}) => (
       <NodeNotInRow node={item} idx={index} username={username} />
     ),
     title: makeTitle(isMe ? 'You are not in:' : `${username} is not in:`),
   }
-
-  // Animation
-  const offset = React.useRef(Styles.isMobile ? new Kb.ReAnimated.Value(0) : undefined)
-  const onScroll = React.useRef(
-    Styles.isMobile
-      ? Kb.ReAnimated.event([{nativeEvent: {contentOffset: {y: offset.current}}}], {useNativeDriver: true})
-      : undefined
-  )
 
   const sections = [
     ...(nodesIn.length > 0 ? [nodesInSection] : []),
@@ -268,48 +261,13 @@ const TeamMember = (props: OwnProps) => {
           </>
         </Kb.Banner>
       )}
-      {Styles.isMobile && <MobileHeader username={username} offset={offset.current} />}
-      <SectionList<Section>
+      <SectionList
         stickySectionHeadersEnabled={false}
         renderSectionHeader={({section}) => <Kb.SectionDivider label={section.title} />}
         sections={sections}
         ListHeaderComponent={<TeamMemberHeader teamID={teamID} username={username} />}
         keyExtractor={item => `member:${username}:${item.teamname}`}
-        onScroll={onScroll.current}
       />
-    </Kb.Box2>
-  )
-}
-
-const startAnimationOffset = 40
-const AnimatedBox2 = Styles.isMobile ? Kb.ReAnimated.createAnimatedComponent(Kb.Box2) : undefined
-const MobileHeader = ({username, offset}: {username: string; offset: any}) => {
-  const dispatch = Container.useDispatch()
-  const nav = Container.useSafeNavigation()
-  const onBack = () => dispatch(nav.safeNavigateUpPayload())
-  const top = Kb.ReAnimated.interpolateNode(offset, {
-    inputRange: [-9999, startAnimationOffset, startAnimationOffset + 40, 99999999],
-    outputRange: [40, 40, 0, 0],
-  })
-  const opacity = Kb.ReAnimated.interpolateNode(offset, {
-    inputRange: [-9999, 0, 1, 9999],
-    outputRange: [0, 0, 1, 1],
-  })
-  return (
-    <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="flex-start" style={styles.mobileHeader}>
-      <Kb.SafeAreaViewTop />
-      <AnimatedBox2
-        style={[styles.smallHeader, {opacity, top}]}
-        gap="tiny"
-        direction="horizontal"
-        centerChildren={true}
-        fullWidth={true}
-        fullHeight={true}
-      >
-        <Kb.Avatar size={16} username={username} />
-        <Kb.ConnectedUsernames usernames={username} colorFollowing={true} type="BodyBig" />
-      </AnimatedBox2>
-      <Kb.BackButton onClick={onBack} style={styles.backButton} />
     </Kb.Box2>
   )
 }

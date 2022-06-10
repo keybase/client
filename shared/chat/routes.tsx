@@ -1,6 +1,6 @@
+import type {TeamBuilderProps} from '../team-building/container'
 import * as ChatConstants from '../constants/chat2'
 import type * as Types from '../constants/types/chat2'
-import type * as TeamBuildingTypes from '../constants/types/team-building'
 import type * as TeamsTypes from '../constants/types/teams'
 import type BlockModal from './blocking/block-modal/container'
 import type ChatAddToChannelNew from './conversation/info-panel/add-to-channel/index.new'
@@ -114,15 +114,6 @@ export const newModalRoutes = {
     getScreen: (): typeof SendToChat => require('./send-to-chat').default,
   },
 }
-
-type TeamBuilderProps = Partial<{
-  namespace: TeamBuildingTypes.AllowedNamespace
-  recommendedHideYourself?: boolean
-  teamID: string
-  filterServices: Array<TeamBuildingTypes.ServiceIdWithContact>
-  goButtonLabel: TeamBuildingTypes.GoButtonLabel
-  title: string
-}>
 
 export type RootParamListChat = {
   chatNewChat: TeamBuilderProps
