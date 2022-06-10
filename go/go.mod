@@ -37,7 +37,7 @@ require (
 	github.com/keybase/go-framed-msgpack-rpc v0.0.0-20211118173254-f892386581e8
 	github.com/keybase/go-jsonw v0.0.0-20200131153605-3e5b58caddd9
 	github.com/keybase/go-kext v0.0.0-20211119181951-8d5d2e919472
-	github.com/keybase/go-keychain v0.0.0-20220506172723-c18928ccd7f2
+	github.com/keybase/go-keychain v0.0.0-20220610143837-c2ce06069005
 	github.com/keybase/go-logging v0.0.0-20211118164508-35a15a9fa71a
 	github.com/keybase/go-merkle-tree v0.0.0-20211118173306-f89b06604d00
 	github.com/keybase/go-porterstemmer v1.0.2-0.20181016185745-521f1ed5c3f7
