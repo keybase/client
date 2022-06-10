@@ -29,6 +29,7 @@ import logger from '../../logger'
 import {assetRoot, htmlPrefix} from './html-root.desktop'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import type {Action} from '../app/ipctypes'
+import {makeEngine} from '../../engine'
 import {showDevTools, skipSecondaryDevtools, allowMultipleInstances} from '../../local-debug.desktop'
 
 const {env} = KB2.constants
@@ -171,6 +172,17 @@ const handleCrashes = () => {
         win.reload()
       })
     }
+  })
+}
+
+const stopNav = () => {
+  Electron.app.on('web-contents-created', (_, contents) => {
+    contents.on('will-navigate', event => {
+      event.preventDefault()
+    })
+    contents.setWindowOpenHandler(() => {
+      return {action: 'deny'}
+    })
   })
 }
 
@@ -435,8 +447,17 @@ const plumbEvents = () => {
     }
   }
 
+  // we use this engine to proxy calls to the service from the renderer
+  const nodeEngine = makeEngine(mainWindowDispatch)
+
   Electron.ipcMain.handle('KBkeybase', async (event, action: Action) => {
     switch (action.type) {
+      case 'engineSend': {
+        const {buf} = action.payload
+        // @ts-ignore reaching into internals here
+        nodeEngine._rpcClient.transport.send(buf)
+        return
+      }
       case 'uninstallDokan': {
         return new Promise<void>(resolve => {
           try {
@@ -692,6 +713,9 @@ const plumbEvents = () => {
         break
       case 'appStartedUp':
         appStartedUp = true
+        // tell mainwindow we're connected
+        nodeEngine.sagasAreReady()
+
         if (menubarWindowID) {
           mainWindowDispatch(ConfigGen.createUpdateMenubarWindowID({id: menubarWindowID}))
           // reset it
@@ -743,8 +767,8 @@ const plumbEvents = () => {
           show: false, // Start hidden and show when we actually get props
           titleBarStyle: 'customButtonsOnHover' as const,
           webPreferences: {
-            contextIsolation: false,
-            nodeIntegration: true,
+            contextIsolation: true,
+            nodeIntegration: false,
             nodeIntegrationInWorker: false,
             preload: `${assetRoot}preload${__DEV__ ? '.dev' : ''}.bundle.js`,
           },
@@ -789,6 +813,7 @@ const plumbEvents = () => {
 
 const start = () => {
   handleCrashes()
+  stopNav()
   installCrashReporter()
 
   if (appShouldDieOnStartup()) {
