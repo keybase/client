@@ -24,6 +24,7 @@ import {serviceIdToSearchPlaceholder} from './shared'
 import {useRoute} from '@react-navigation/native'
 import {FilteredServiceTabBar} from './filtered-service-tab-bar'
 import {modalHeaderProps} from './modal-header-props'
+import {useSharedValue} from '../common-adapters/reanimated'
 
 const deriveTeamSoFar = memoize(
   (teamSoFar: Set<TeamBuildingTypes.User>): Array<TeamBuildingTypes.SelectedUser> =>
@@ -184,7 +185,7 @@ const TeamBuilding = () => {
     dispatch(TeamBuildingGen.createFetchUserRecs({includeContacts: namespace === 'chat2', namespace}))
   }, [dispatch, namespace])
 
-  const offset = React.useRef(Styles.isMobile ? new Kb.ReAnimated.Value(0) : undefined)
+  const offset = useSharedValue(0)
 
   React.useEffect(() => {
     fetchUserRecs()
@@ -233,7 +234,7 @@ const TeamBuilding = () => {
               onChangeService={onChangeService}
               servicesShown={5} // wider bar, show more services
               minimalBorder={true} // only show bottom border on icon when active
-              offset={1}
+              offset={offset}
             />
           )}
           <ListBody
@@ -299,7 +300,7 @@ const TeamBuilding = () => {
             filterServices={filterServices}
             selectedService={selectedService}
             onChangeService={onChangeService}
-            offset={offset.current}
+            offset={offset}
           />
         )}
         {showContactsBanner && (

@@ -92,6 +92,7 @@ const config = (_, {mode}) => {
 
     const alias = {
       'react-native$': 'react-native-web',
+      'react-native-reanimated': false,
     }
     if (isHot) {
       // hot loader

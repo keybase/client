@@ -17,6 +17,7 @@ import UserResult from './search-result/user-result'
 import throttle from 'lodash/throttle'
 import type * as Types from './types'
 import {useRoute} from '@react-navigation/native'
+import {useAnimatedScrollHandler} from '../common-adapters/reanimated'
 
 const Suggestions = (props: Pick<Types.Props, 'namespace' | 'selectedService'>) => {
   const {namespace, selectedService} = props
@@ -244,10 +245,7 @@ export const ListBody = (
     preExistingTeamMembers
   )
 
-  const onScroll: Types.OnScrollProps['onScroll'] = Styles.isMobile
-    ? Kb.ReAnimated.event([{nativeEvent: {contentOffset: {y: offset.current}}}], {useNativeDriver: true})
-    : undefined
-
+  const onScroll: any = useAnimatedScrollHandler({onScroll: e => (offset.value = e.contentOffset.y)})
   const oldEnterInputCounter = Container.usePrevious(enterInputCounter)
 
   const showResults = !!searchString
