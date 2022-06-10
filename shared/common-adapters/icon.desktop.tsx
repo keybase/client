@@ -27,7 +27,8 @@ const Icon = React.memo<Props>(
     const onClick = props.onClick
       ? (e: React.BaseSyntheticEvent) => {
           e.stopPropagation()
-          props.onClick?.(e)
+          // @ts-ignore
+          props.onClick?.(props.onClick.length ? e : undefined) // only pass params to functions that need them, helps with electron bridge
         }
       : undefined
 
