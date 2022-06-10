@@ -64,6 +64,7 @@ export type KB2 = {
     windowsBinPath: string
   }
   functions: {
+    engineSend?: (buff: unknown) => void
     appStartedUp?: () => void
     isDirectory?: (path: string) => Promise<boolean>
     activeChanged?: (changedAtMs: number, isUserActive: boolean) => void
@@ -75,7 +76,7 @@ export type KB2 = {
     hideWindow?: () => void
     getPathType?: (path: string) => Promise<'file' | 'directory'>
     // defined for both always
-    mainWindowDispatch: (action: TypedActions) => void
+    mainWindowDispatch: (action: TypedActions, nodeTypeOverride?: string) => void
     darwinCopyToChatTempUploadFile?: (dst: string, originalFilePath: string) => Promise<void>
     darwinCopyToKBFSTempUploadFile?: (dir: string, originalFilePath: string) => Promise<string>
     minimizeWindow?: () => void
@@ -129,8 +130,6 @@ export const injectPreload = (kb2: KB2) => {
   if (!kb2 || !kb2?.constants?.assetRoot) {
     throw new Error('Invalid kb2 injected')
   }
-  // we have to stash this in a global due to how preload works, else it clears out the module level variables
-  globalThis._fromPreload = kb2
 
   while (kb2Waiters.length) {
     kb2Waiters.shift()?.()

@@ -171,6 +171,11 @@ const config = (_, {mode}) => {
   const makeHtmlName = name => `${name}${isDev ? '.dev' : ''}.html`
   const makeViewPlugins = names =>
     [
+      // needed to help webpack and electron renderer
+      new webpack.DefinePlugin({
+        global: 'globalThis',
+        'process.env.NODE_DEBUG': JSON.stringify(process.env.NODE_DEBUG),
+      }),
       ...hmrPlugin,
       // Map since we generate multiple html files
       ...names.map(
@@ -198,7 +203,7 @@ const config = (_, {mode}) => {
     script-src ${
       htmlWebpackPlugin.options.isDev
         ? "file: http://localhost:4000 chrome-extension://react-developer-tools 'unsafe-eval'"
-        : "'self' 'sha256-gBKeEkQtnPGkGBsS6cpgPBgpI3Z1LehhkqagsAKMxUE='"
+        : "'self'"
     };
     connect-src http://127.0.0.1:* ${
       htmlWebpackPlugin.options.isDev ? 'ws://localhost:4000 http://localhost:4000' : ''
@@ -210,11 +215,6 @@ const config = (_, {mode}) => {
             <div title="loading..." style="flex: 1;background-color: #f5f5f5"></div>
         </div>
         <div id="modal-root"></div>
-        ${
-          htmlWebpackPlugin.options.isDev
-            ? ''
-            : "<script>window.eval = global.eval = function () { throw new Error('Sorry, this app does not support window.eval().')}</script>"
-        }
         ${htmlWebpackPlugin.files.js.map(js => `<script src="${js}"></script>`).join('\n')} </body>
 </html>
               `,
@@ -263,10 +263,14 @@ const config = (_, {mode}) => {
           optimization: {splitChunks: {chunks: 'all'}},
         }),
     plugins: makeViewPlugins(entries),
-    // TODO switch to web
-    // target: 'web',
-    // node: false,
-    target: 'electron-renderer',
+    resolve: {
+      alias: {
+        ...commonConfig.resolve.alias,
+        'path-parse': false,
+      },
+    },
+    target: 'web',
+    node: false,
   })
   const preloadConfig = merge(commonConfig, {
     entry: {preload: `./desktop/renderer/preload.desktop.tsx`},

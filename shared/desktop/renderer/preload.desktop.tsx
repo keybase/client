@@ -15,7 +15,6 @@ const isDarwin = process.platform === 'darwin'
 
 const invoke = async (action: Action) => Electron.ipcRenderer.invoke('KBkeybase', action)
 
-// TODO contextBridge
 if (isRenderer) {
   Electron.ipcRenderer
     .invoke('KBkeybase', {type: 'setupPreloadKB2'})
@@ -81,6 +80,12 @@ if (isRenderer) {
             type: 'dumpNodeLogger',
           })) as Array<LogLineWithLevelISOTimestamp>
         },
+        engineSend: (buf: unknown) => {
+          // @ts-ignore
+          invoke({payload: {buf}, type: 'engineSend'})
+            .then(() => {})
+            .catch(() => {})
+        },
         exitApp: (code: number) => {
           invoke({payload: {code}, type: 'exitApp'})
             .then(() => {})
@@ -111,9 +116,9 @@ if (isRenderer) {
         isDirectory: async (path: string) => {
           return invoke({payload: {path}, type: 'isDirectory'})
         },
-        mainWindowDispatch: (action: TypedActions) => {
+        mainWindowDispatch: (action: TypedActions, nodeTypeOverride?: string) => {
           Electron.ipcRenderer
-            .invoke('KBdispatchAction', action)
+            .invoke(nodeTypeOverride ?? 'KBdispatchAction', action)
             .then(() => {})
             .catch(() => {})
         },
@@ -260,14 +265,19 @@ if (isRenderer) {
           })
         },
       }
-      injectPreload({
+
+      // we have to stash this in a global due to how preload works, else it clears out the module level variables
+      const kb2 = {
         constants: {
           ...kb2consts,
           // kb2impl is from node's perspective so isRenderer is incorrect for the other side
           isRenderer: true,
         },
         functions,
-      })
+      }
+
+      Electron.contextBridge.exposeInMainWorld('_fromPreload', kb2)
+      injectPreload(kb2)
     })
     .catch(e => {
       throw e
@@ -280,12 +290,16 @@ if (isRenderer) {
       .find(w => w.webContents.getURL().includes('/main.'))
     return w || null
   }
-  injectPreload({
+
+  const kb2 = {
     constants: kb2consts,
     functions: {
-      mainWindowDispatch: (action: TypedActions) => {
-        getMainWindow()?.webContents.send('KBdispatchAction', action)
+      mainWindowDispatch: (action: TypedActions, nodeTypeOverride?: string) => {
+        getMainWindow()?.webContents.send(nodeTypeOverride ?? 'KBdispatchAction', action)
       },
     },
-  })
+  }
+
+  globalThis._fromPreload = kb2
+  injectPreload(kb2)
 }
