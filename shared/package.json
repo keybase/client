@@ -105,7 +105,6 @@
         "lodash": "4.17.21",
         "lottie-react-native": "5.0.1",
         "lottie-ios": "3.2.3",
-        "lottie-react-web": "keybase/lottie-react-web#nojima/keybase-fixes-off-214",
         "memoize-one": "6.0.0",
         "menubar": "9.2.0",
         "mousetrap": "1.6.5",
