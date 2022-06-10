@@ -53,14 +53,6 @@ const ServiceIcon = (props: IconProps) => {
               </Kb.Text>
             ))}
           </Kb.Box2>
-          {!!props.showCount &&
-            (props.count !== null ? (
-              <Kb.Text type="BodyTinySemibold">
-                {props.count && props.count > 10 ? '10+' : props.count}
-              </Kb.Text>
-            ) : (
-              <Kb.Animation animationType="spinner" style={styles.pendingAnimation} />
-            ))}
         </Kb.Box2>
       </Kb.Box2>
       <Kb.Box2
@@ -129,8 +121,6 @@ const MoreNetworkItem = (props: {service: ServiceIdWithContact}) => (
   </Kb.Box2>
 )
 
-const undefToNull = (n: number | undefined | null): number | null => (n === undefined ? null : n)
-
 export const ServiceTabBar = (props: Props) => {
   const [lastSelectedUnlockedService, setLastSelectedUnlockedService] =
     React.useState<ServiceIdWithContact | null>(null)
@@ -166,8 +156,6 @@ export const ServiceTabBar = (props: Props) => {
           service={service}
           label={serviceIdToLongLabel(service)}
           onClick={onChangeService}
-          count={undefToNull(props.serviceResultCount[service])}
-          showCount={props.showServiceResultCount}
           isActive={props.selectedService === service}
           minimalBorder={props.minimalBorder}
         />

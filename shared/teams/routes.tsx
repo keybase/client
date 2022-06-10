@@ -1,3 +1,4 @@
+import type {TeamBuilderProps} from '../team-building/container'
 import type TeamMemberNew from './team/member/index.new'
 import type TeamsRoot from './container'
 import type ContactRestricted from '../team-building/contact-restricted'
@@ -175,14 +176,6 @@ export const newModalRoutes = {
     getScreen: (): typeof TeamsTeamBuilder => require('../team-building/container').default,
   },
 }
-
-type TeamBuilderProps = Partial<{
-  namespace: TeamBuildingTypes.AllowedNamespace
-  teamID: string
-  filterServices: Array<TeamBuildingTypes.ServiceIdWithContact>
-  goButtonLabel: TeamBuildingTypes.GoButtonLabel
-  title: string
-}>
 
 export type RootParamListTeams = {
   teamsTeamBuilder: TeamBuilderProps

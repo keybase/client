@@ -4,8 +4,8 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as TeamBuildingGen from '../../actions/team-building-gen'
 import * as Constants from '../../constants/team-building'
-import * as Types from '../../constants/types/team-building'
-import {AllowedNamespace} from '../../constants/types/team-building'
+import type * as Types from '../../constants/types/team-building'
+import type {AllowedNamespace} from '../../constants/types/team-building'
 import {validateEmailAddress} from '../../util/email-address'
 import {UserMatchMention} from '../phone-search'
 import ContinueButton from '../continue-button'
@@ -14,10 +14,12 @@ type EmailSearchProps = {
   continueLabel: string
   namespace: AllowedNamespace
   search: (query: string, service: 'email') => void
-  teamBuildingSearchResults: Types.SearchResults
 }
 
-const EmailSearch = ({continueLabel, namespace, search, teamBuildingSearchResults}: EmailSearchProps) => {
+const EmailSearch = ({continueLabel, namespace, search}: EmailSearchProps) => {
+  const teamBuildingSearchResults = Container.useSelector(
+    state => state[namespace].teamBuilding.searchResults
+  )
   const [isEmailValid, setEmailValidity] = React.useState(false)
   const [emailString, setEmailString] = React.useState('')
   const waiting = Container.useAnyWaiting(Constants.searchWaitingKey)
