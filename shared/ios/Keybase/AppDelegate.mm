@@ -17,7 +17,7 @@
 
 #import <UserNotifications/UserNotifications.h>
 #import <keybase/keybase.h>
-
+#import <React/RCTLinkingManager.h>
 #import <React/RCTAppSetupUtils.h>
 #import <React/RCTBridge.h>
 #import <React/RCTBundleURLProvider.h>

@@ -1,4 +1,5 @@
 #import "LogSend.h"
+#import <keybase/keybase.h>
 
 @implementation LogSend
 
