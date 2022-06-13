@@ -64,7 +64,7 @@ function create(crashHandler: (err: any) => void) {
 }
 
 function run() {
-  middleWare && middleWare.run(mainSaga)
+  middleWare?.run(mainSaga)
 }
 
 export {create, run}

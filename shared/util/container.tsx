@@ -15,7 +15,10 @@ import flowRight from 'lodash/flowRight'
 import typedConnect from './typed-connect'
 import type {Route} from '../constants/types/route-tree'
 import type {NavigationContainerRef} from '@react-navigation/core'
+import type {createListenerMiddleware} from '@reduxjs/toolkit'
+export type ListenerMiddleware = ReturnType<typeof createListenerMiddleware>
 export {type RouteProps, getRouteParams, getRouteParamsFromRoute} from '../router-v2/route-params'
+export {listenAction, type ListenerApi} from './redux-toolkit'
 
 // don't pay for this in prod builds
 if (!__DEV__) {

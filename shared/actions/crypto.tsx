@@ -9,9 +9,10 @@ import * as CryptoGen from './crypto-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Platform from '../constants/platform'
 import HiddenString from '../util/hidden-string'
-import type {TypedState} from '../util/container'
+import {type TypedState, listenAction} from '../util/container'
 import type {RPCError} from '../util/errors'
 import commonTeamBuildingSaga, {filterForNs} from './team-building'
+import logger from '../logger'
 
 type OperationActionArgs = {
   operation: Types.Operations
@@ -61,7 +62,7 @@ const onSetRecipients = (state: TypedState) => {
   return actions
 }
 
-const handleSaltpackOpenFile = (action: CryptoGen.OnSaltpackOpenFilePayload) => {
+const handleSaltpackOpenFile = (_, action: CryptoGen.OnSaltpackOpenFilePayload) => {
   const {operation} = action.payload
   const tab = Constants.CryptoSubTabs[operation]
   return RouteTreeGen.createNavigateAppend({
@@ -71,10 +72,9 @@ const handleSaltpackOpenFile = (action: CryptoGen.OnSaltpackOpenFilePayload) => 
 
 // Mobile is split into two routes (input and output). This Saga handler
 // transitions to the output route on success
-const handleOperationSuccessNavigation = (action: CryptoGen.OnOperationSuccessPayload) => {
+const handleOperationSuccessNavigation = (_, action: CryptoGen.OnOperationSuccessPayload) => {
   const {operation} = action.payload
   const outputRoute = Constants.outputRoute.get(operation) as Types.CryptoOutputRoute
-
   return RouteTreeGen.createNavigateAppend({
     path: [outputRoute],
   })
@@ -82,7 +82,7 @@ const handleOperationSuccessNavigation = (action: CryptoGen.OnOperationSuccessPa
 
 // more of a debounce to keep things simple
 let throttleSetInputCurrentAction: CryptoGen.SetInputPayload | undefined
-const throttleSetInput = async (action: CryptoGen.SetInputPayload) => {
+const throttleSetInput = async (_, action: CryptoGen.SetInputPayload) => {
   throttleSetInputCurrentAction = action
   await Container.timeoutPromise(100)
   return throttleSetInputCurrentAction === action
@@ -304,11 +304,7 @@ const makeOperationAction = (p: OperationActionArgs) => {
   }
 }
 
-const saltpackEncrypt = async (
-  state: TypedState,
-  action: CryptoGen.SaltpackEncryptPayload,
-  logger: Saga.SagaLogger
-) => {
+const saltpackEncrypt = async (state: TypedState, action: CryptoGen.SaltpackEncryptPayload) => {
   const {username} = state.config
   const {destinationDir, input, recipients, type, options} = action.payload
   switch (type) {
@@ -389,7 +385,7 @@ const saltpackEncrypt = async (
   }
 }
 
-const saltpackDecrypt = async (action: CryptoGen.SaltpackDecryptPayload, logger: Saga.SagaLogger) => {
+const saltpackDecrypt = async (_, action: CryptoGen.SaltpackDecryptPayload) => {
   const {destinationDir, input, type} = action.payload
 
   switch (type) {
@@ -469,11 +465,7 @@ const saltpackDecrypt = async (action: CryptoGen.SaltpackDecryptPayload, logger:
   }
 }
 
-const saltpackSign = async (
-  state: TypedState,
-  action: CryptoGen.SaltpackSignPayload,
-  logger: Saga.SagaLogger
-) => {
+const saltpackSign = async (state: TypedState, action: CryptoGen.SaltpackSignPayload) => {
   const {username} = state.config
   const {destinationDir, input, type} = action.payload
   switch (type) {
@@ -537,7 +529,7 @@ const saltpackSign = async (
   }
 }
 
-const saltpackVerify = async (action: CryptoGen.SaltpackVerifyPayload, logger: Saga.SagaLogger) => {
+const saltpackVerify = async (_, action: CryptoGen.SaltpackVerifyPayload) => {
   const {destinationDir, input, type} = action.payload
   switch (type) {
     case 'file': {
@@ -614,13 +606,13 @@ const saltpackVerify = async (action: CryptoGen.SaltpackVerifyPayload, logger: S
   }
 }
 
-const saltpackStart = (action: EngineGen.Keybase1NotifySaltpackSaltpackOperationStartPayload) =>
+const saltpackStart = (_, action: EngineGen.Keybase1NotifySaltpackSaltpackOperationStartPayload) =>
   CryptoGen.createSaltpackStart({
     filename: new HiddenString(action.payload.params.filename),
     operation: RPCTypes.SaltpackOperationType[action.payload.params.opType] as Types.Operations,
   })
 
-const saltpackProgress = (action: EngineGen.Keybase1NotifySaltpackSaltpackOperationProgressPayload) =>
+const saltpackProgress = (_, action: EngineGen.Keybase1NotifySaltpackSaltpackOperationProgressPayload) =>
   CryptoGen.createSaltpackProgress({
     bytesComplete: action.payload.params.bytesComplete,
     bytesTotal: action.payload.params.bytesTotal,
@@ -628,7 +620,7 @@ const saltpackProgress = (action: EngineGen.Keybase1NotifySaltpackSaltpackOperat
     operation: RPCTypes.SaltpackOperationType[action.payload.params.opType] as Types.Operations,
   })
 
-const saltpackDone = (action: EngineGen.Keybase1NotifySaltpackSaltpackOperationDonePayload) =>
+const saltpackDone = (_, action: EngineGen.Keybase1NotifySaltpackSaltpackOperationDonePayload) =>
   CryptoGen.createSaltpackDone({
     filename: new HiddenString(action.payload.params.filename),
     operation: RPCTypes.SaltpackOperationType[action.payload.params.opType] as Types.Operations,
@@ -675,10 +667,10 @@ function* teamBuildingSaga() {
 }
 
 function* cryptoSaga() {
-  yield* Saga.chainAction2(CryptoGen.downloadEncryptedText, downloadEncryptedText)
-  yield* Saga.chainAction2(CryptoGen.downloadSignedText, downloadSignedText)
-  yield* Saga.chainAction(CryptoGen.setInput, throttleSetInput)
-  yield* Saga.chainAction2(
+  listenAction(CryptoGen.setInput, throttleSetInput)
+  listenAction(CryptoGen.downloadEncryptedText, downloadEncryptedText)
+  listenAction(CryptoGen.downloadSignedText, downloadSignedText)
+  listenAction(
     [
       CryptoGen.setInputThrottled,
       CryptoGen.setRecipients,
@@ -689,16 +681,16 @@ function* cryptoSaga() {
     ],
     handleRunOperation
   )
-  yield* Saga.chainAction2(CryptoGen.saltpackEncrypt, saltpackEncrypt)
-  yield* Saga.chainAction(CryptoGen.saltpackDecrypt, saltpackDecrypt)
-  yield* Saga.chainAction2(CryptoGen.saltpackSign, saltpackSign)
-  yield* Saga.chainAction(CryptoGen.saltpackVerify, saltpackVerify)
-  yield* Saga.chainAction(CryptoGen.onSaltpackOpenFile, handleSaltpackOpenFile)
-  yield* Saga.chainAction(EngineGen.keybase1NotifySaltpackSaltpackOperationStart, saltpackStart)
-  yield* Saga.chainAction(EngineGen.keybase1NotifySaltpackSaltpackOperationProgress, saltpackProgress)
-  yield* Saga.chainAction(EngineGen.keybase1NotifySaltpackSaltpackOperationDone, saltpackDone)
+  listenAction(CryptoGen.saltpackEncrypt, saltpackEncrypt)
+  listenAction(CryptoGen.saltpackSign, saltpackSign)
+  listenAction(CryptoGen.saltpackDecrypt, saltpackDecrypt)
+  listenAction(CryptoGen.saltpackVerify, saltpackVerify)
+  listenAction(CryptoGen.onSaltpackOpenFile, handleSaltpackOpenFile)
+  listenAction(EngineGen.keybase1NotifySaltpackSaltpackOperationStart, saltpackStart)
+  listenAction(EngineGen.keybase1NotifySaltpackSaltpackOperationProgress, saltpackProgress)
+  listenAction(EngineGen.keybase1NotifySaltpackSaltpackOperationDone, saltpackDone)
   if (Platform.isMobile) {
-    yield* Saga.chainAction(CryptoGen.onOperationSuccess, handleOperationSuccessNavigation)
+    listenAction(CryptoGen.onOperationSuccess, handleOperationSuccessNavigation)
   }
   yield* teamBuildingSaga()
 }
