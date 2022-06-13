@@ -12,4 +12,4 @@ else
     echo "X11UseLocalhost No" >> /etc/ssh/sshd_config
     systemctl restart sshd
 fi
-yum install -y xorg-x11-apps
+#yum install -y xorg-x11-apps
