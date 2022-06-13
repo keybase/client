@@ -15,7 +15,9 @@ import com.facebook.react.ReactNativeHost;
 import com.facebook.react.ReactPackage;
 import com.facebook.react.bridge.NativeModule;
 import com.facebook.react.bridge.ReactApplicationContext;
+import com.facebook.react.config.ReactFeatureFlags;
 import com.facebook.soloader.SoLoader;
+import com.rndiffapp.newarchitecture.MainApplicationReactNativeHost;
 import com.facebook.react.bridge.JSIModulePackage;
 import com.swmansion.reanimated.ReanimatedJSIModulePackage;
 
@@ -41,6 +43,8 @@ public class MainApplication extends Application implements ReactApplication {
     public void onCreate() {
         NativeLogger.info("MainApplication created");
         super.onCreate();
+        // If you opted-in for the New Architecture, we enable the TurboModule system
+        ReactFeatureFlags.useTurboModules = BuildConfig.IS_NEW_ARCHITECTURE_ENABLED;
         SoLoader.init(this, /* native exopackage */ false);
         initializeFlipper(this, getReactNativeHost().getReactInstanceManager());
         ApplicationLifecycleDispatcher.onApplicationCreate(this);
@@ -138,8 +142,16 @@ public class MainApplication extends Application implements ReactApplication {
                     return new ReanimatedJSIModulePackage();
                 }
     });
+
+    private final ReactNativeHost mNewArchitectureNativeHost =
+      new MainApplicationReactNativeHost(this);
+
     @Override
     public ReactNativeHost getReactNativeHost() {
-        return mReactNativeHost;
+        if (BuildConfig.IS_NEW_ARCHITECTURE_ENABLED) {
+          return mNewArchitectureNativeHost;
+        } else {
+          return mReactNativeHost;
+        }
     }
 }

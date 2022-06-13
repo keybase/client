@@ -1,48 +1,45 @@
 //
-//  AppDelegate.m
+//  AppDelegate.mm
 //  Keybase
 //
 //  Created by Chris Nojima on 9/28/16.
 //  Copyright © 2016 Keybase. All rights reserved.
 //
 #import "AppDelegate.h"
+
 #import "Engine.h"
 #import "Fs.h"
 #import "LogSend.h"
 #import "Pusher.h"
 #import <AVFoundation/AVFoundation.h>
 #import <RNCPushNotificationIOS.h>
-#import <React/RCTBundleURLProvider.h>
-#import <React/RCTConvert.h>
-#import <React/RCTLinkingManager.h>
-#import <React/RCTRootView.h>
+#import <RNHWKeyboardEvent.h>
+
 #import <UserNotifications/UserNotifications.h>
 #import <keybase/keybase.h>
 
-#ifdef FB_SONARKIT_ENABLED
-#import <FlipperKit/FlipperClient.h>
-#import <FlipperKitLayoutPlugin/FlipperKitLayoutPlugin.h>
-#import <FlipperKitNetworkPlugin/FlipperKitNetworkPlugin.h>
-#import <FlipperKitReactPlugin/FlipperKitReactPlugin.h>
-#import <FlipperKitUserDefaultsPlugin/FKUserDefaultsPlugin.h>
-#import <SKIOSNetworkPlugin/SKIOSNetworkAdapter.h>
+#import <React/RCTAppSetupUtils.h>
+#import <React/RCTBridge.h>
+#import <React/RCTBundleURLProvider.h>
+#import <React/RCTRootView.h>
+#if RCT_NEW_ARCH_ENABLED
+#import <React/CoreModulesPlugins.h>
+#import <React/RCTCxxBridgeDelegate.h>
+#import <React/RCTFabricSurfaceHostingProxyRootView.h>
+#import <React/RCTSurfacePresenter.h>
+#import <React/RCTSurfacePresenterBridgeAdapter.h>
+#import <ReactCommon/RCTTurboModuleManager.h>
+#import <react/config/ReactNativeConfig.h>
 
-static void InitializeFlipper(UIApplication *application) {
-  FlipperClient *client = [FlipperClient sharedClient];
-  SKDescriptorMapper *layoutDescriptorMapper =
-      [[SKDescriptorMapper alloc] initWithDefaults];
-  [client addPlugin:[[FlipperKitLayoutPlugin alloc]
-                            initWithRootNode:application
-                        withDescriptorMapper:layoutDescriptorMapper]];
-  [client addPlugin:[[FKUserDefaultsPlugin alloc] initWithSuiteName:nil]];
-  [client addPlugin:[FlipperKitReactPlugin new]];
-  [client addPlugin:[[FlipperKitNetworkPlugin alloc]
-                        initWithNetworkAdapter:[SKIOSNetworkAdapter new]]];
-  [client start];
+@interface AppDelegate () <RCTCxxBridgeDelegate,
+                           RCTTurboModuleManagerDelegate> {
+  RCTTurboModuleManager *_turboModuleManager;
+  RCTSurfacePresenterBridgeAdapter *_bridgeAdapter;
+  std::shared_ptr<const facebook::react::ReactNativeConfig> _reactNativeConfig;
+  facebook::react::ContextContainer::Shared _contextContainer;
 }
+@end
 #endif
-
-#import <RNHWKeyboardEvent.h>
 
 static const DDLogLevel ddLogLevel = DDLogLevelDebug;
 
@@ -93,8 +90,19 @@ static const DDLogLevel ddLogLevel = DDLogLevelDebug;
 
 - (BOOL)application:(UIApplication *)application
     didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
-#ifdef FB_SONARKIT_ENABLED
-  InitializeFlipper(application);
+  RCTAppSetupPrepareApp(application);
+  RCTBridge *bridge = [[RCTBridge alloc] initWithDelegate:self
+                                            launchOptions:launchOptions];
+#if RCT_NEW_ARCH_ENABLED
+  _contextContainer =
+      std::make_shared<facebook::react::ContextContainer const>();
+  _reactNativeConfig =
+      std::make_shared<facebook::react::EmptyReactNativeConfig const>();
+  _contextContainer->insert("ReactNativeConfig", _reactNativeConfig);
+  _bridgeAdapter = [[RCTSurfacePresenterBridgeAdapter alloc]
+        initWithBridge:bridge
+      contextContainer:_contextContainer];
+  bridge.surfacePresenter = _bridgeAdapter.surfacePresenter;
 #endif
 
   // allow audio to be mixed
@@ -108,17 +116,12 @@ static const DDLogLevel ddLogLevel = DDLogLevelDebug;
       [UNUserNotificationCenter currentNotificationCenter];
   center.delegate = self;
 
-  RCTBridge *bridge = [[RCTBridge alloc] initWithDelegate:self
-                                            launchOptions:launchOptions];
-  RCTRootView *rootView = [[RCTRootView alloc] initWithBridge:bridge
-                                                   moduleName:@"Keybase"
-                                            initialProperties:nil];
+  UIView *rootView = RCTAppSetupDefaultRootView(bridge, @"Keybase", nil);
   if (@available(iOS 13.0, *)) {
     rootView.backgroundColor = [UIColor systemBackgroundColor];
   } else {
     rootView.backgroundColor = [UIColor whiteColor];
   }
-
   self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
   UIViewController *rootViewController = [UIViewController new];
   rootViewController.view = rootView;
@@ -159,22 +162,43 @@ static const DDLogLevel ddLogLevel = DDLogLevelDebug;
 
 - (NSURL *)sourceURLForBridge:(RCTBridge *)bridge {
 #if DEBUG
-  // uncomment to get a prod bundle. If you set this it remembers so set it back
-  // and re-run to reset it!
-  // [[RCTBundleURLProvider sharedSettings] setEnableDev: false];
-
-  // This is a mildly hacky solution to mock out some code when we're in
-  // storybook mode. The code that handles this is in `shared/metro.config.js`.
-  // NSString *bundlerURL = IS_STORYBOOK ? @"storybook-index" : @"normal-index";
-  NSString *bundlerURL = @"index";
   return
-      [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:bundlerURL
-                                                     fallbackResource:nil];
+      [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@"index"];
 #else
   return [[NSBundle mainBundle] URLForResource:@"main"
                                  withExtension:@"jsbundle"];
 #endif
 }
+
+#if RCT_NEW_ARCH_ENABLED
+#pragma mark - RCTCxxBridgeDelegate
+- (std::unique_ptr<facebook::react::JSExecutorFactory>)
+    jsExecutorFactoryForBridge:(RCTBridge *)bridge {
+  _turboModuleManager =
+      [[RCTTurboModuleManager alloc] initWithBridge:bridge
+                                           delegate:self
+                                          jsInvoker:bridge.jsCallInvoker];
+  return RCTAppSetupDefaultJsExecutorFactory(bridge, _turboModuleManager);
+}
+#pragma mark RCTTurboModuleManagerDelegate
+- (Class)getModuleClassFromName:(const char *)name {
+  return RCTCoreModulesClassProvider(name);
+}
+- (std::shared_ptr<facebook::react::TurboModule>)
+    getTurboModule:(const std::string &)name
+         jsInvoker:(std::shared_ptr<facebook::react::CallInvoker>)jsInvoker {
+  return nullptr;
+}
+- (std::shared_ptr<facebook::react::TurboModule>)
+    getTurboModule:(const std::string &)name
+        initParams:
+            (const facebook::react::ObjCTurboModule::InitParams &)params {
+  return nullptr;
+}
+- (id<RCTTurboModule>)getModuleInstanceFromClass:(Class)moduleClass {
+  return RCTAppSetupDefaultModuleFromClass(moduleClass);
+}
+#endif
 
 - (void)application:(UIApplication *)application
     performFetchWithCompletionHandler:
