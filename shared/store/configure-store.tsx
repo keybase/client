@@ -1,12 +1,14 @@
+import * as ReduxToolKit from '@reduxjs/toolkit'
+import {listenerMiddleware} from '../util/redux-toolkit'
 import * as ConfigGen from '../actions/config-gen'
 import * as DevGen from '../actions/dev-gen'
 import logger from '../logger'
-import rootReducer from '../reducers'
+import {reducers} from '../reducers'
 import type {TypedState} from '../constants/reducer'
 import {DEBUG_CHAT_DUMP} from '../constants/chat2'
 import {actionLogger} from './action-logger'
 import {convertToError} from '../util/errors'
-import {createStore, applyMiddleware, type Store} from 'redux'
+import {type Store} from 'redux'
 import {enableStoreLogging, enableActionLogging} from '../local-debug'
 import {hookMiddleware} from './hook-middleware'
 import {isMobile} from '../constants/platform'
@@ -122,6 +124,7 @@ if (__DEV__) {
 const freezeMiddleware = _store => next => action => next(Object.freeze(action))
 
 const middlewares = [
+  listenerMiddleware.middleware,
   errorCatching,
   sagaMiddleware,
   ...(__DEV__ ? [freezeMiddleware] : []),
@@ -138,8 +141,14 @@ if (__DEV__ && typeof window !== 'undefined') {
   }
 }
 
-export default function configureStore() {
-  const store = createStore(rootReducer, undefined, applyMiddleware(...middlewares))
+export default function makeStore() {
+  const store = ReduxToolKit.configureStore({
+    devTools: false,
+    // @ts-ignore we prefer our typing to what the toolkit gives
+    reducer: reducers,
+    middleware: () => middlewares,
+  })
+  // @ts-ignore
   theStore = store
 
   if (module.hot && !isMobile) {

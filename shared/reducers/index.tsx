@@ -22,10 +22,8 @@ import unlockFolders from './unlock-folders'
 import users from './users'
 import waiting from './waiting'
 import wallets from './wallets'
-import {combineReducers} from 'redux'
-import logger from '../logger'
 
-const reducers = {
+export const reducers = {
   autoreset,
   chat2,
   config,
@@ -52,9 +50,6 @@ const reducers = {
   wallets,
 }
 
-// this is to help TS make this type more static so it emits cleanly
-const rootReducer: any = combineReducers(reducers as any)
-
 export type TypedState = {
   autoreset: ReturnType<typeof autoreset>
   chat2: ReturnType<typeof chat2>
@@ -80,13 +75,4 @@ export type TypedState = {
   users: ReturnType<typeof users>
   waiting: ReturnType<typeof waiting>
   wallets: ReturnType<typeof wallets>
-}
-
-export default function (state: TypedState | undefined, action: any): TypedState {
-  try {
-    return rootReducer(state, action)
-  } catch (e) {
-    logger.error('Reducer threw!', e)
-    throw e
-  }
 }

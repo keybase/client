@@ -7,7 +7,7 @@ import * as React from 'react'
 import ReactDOM from 'react-dom'
 import RemoteProxies from '../remote/proxies.desktop'
 import Root from './container.desktop'
-import configureStore from '../../store/configure-store'
+import makeStore from '../../store/configure-store'
 import {makeEngine} from '../../engine'
 import {disable as disableDragDrop} from '../../util/drag-drop'
 import flags from '../../util/feature-flags'
@@ -46,7 +46,7 @@ const setupStore = () => {
   let store = _store
   let runSagas: any
   if (!_store) {
-    const configured = configureStore()
+    const configured = makeStore()
     store = configured.store
     runSagas = configured.runSagas
 

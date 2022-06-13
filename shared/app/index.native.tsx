@@ -3,7 +3,7 @@ import * as Styles from '../styles'
 import * as DeeplinksGen from '../actions/deeplinks-gen'
 import * as React from 'react'
 import Main from './main.native'
-import configureStore from '../store/configure-store'
+import makeStore from '../store/configure-store'
 import {AppRegistry, AppState, Appearance, Linking} from 'react-native'
 import {PortalProvider} from '@gorhom/portal'
 import {Provider, useDispatch} from 'react-redux'
@@ -11,7 +11,7 @@ import {SafeAreaProvider} from 'react-native-safe-area-context'
 import {makeEngine} from '../engine'
 import {GestureHandlerRootView} from 'react-native-gesture-handler'
 
-type ConfigureStore = ReturnType<typeof configureStore>
+type ConfigureStore = ReturnType<typeof makeStore>
 let _store: ConfigureStore | undefined
 
 module.hot?.accept(() => {
@@ -58,7 +58,7 @@ const ensureStore = () => {
   if (_store) {
     return
   }
-  _store = configureStore()
+  _store = makeStore()
   if (__DEV__) {
     global.DEBUGStore = _store
   }
