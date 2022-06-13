@@ -603,8 +603,6 @@ github.com/keybase/go-jsonw v0.0.0-20200131153605-3e5b58caddd9 h1:pIRdSfdpjVi7pp
 github.com/keybase/go-jsonw v0.0.0-20200131153605-3e5b58caddd9/go.mod h1:lofKQwj13L0/7ji5VYaY0257JDlQE2BRRf+rI2Vk1rU=
 github.com/keybase/go-kext v0.0.0-20211119181951-8d5d2e919472 h1:ktFxtm1E86J6eRVNV4yc6rEqLUqNpCl1XIzAj/BA4So=
 github.com/keybase/go-kext v0.0.0-20211119181951-8d5d2e919472/go.mod h1:bUS/0vnskIuEA7bUQJfn71yB1Rnkq/PFRR18JUzFfyQ=
-github.com/keybase/go-keychain v0.0.0-20220506172723-c18928ccd7f2 h1:Qh9gCBYNeGqpMv7SMVGgansYlZgnMkuPOQZpoZNxSJs=
-github.com/keybase/go-keychain v0.0.0-20220506172723-c18928ccd7f2/go.mod h1:5p1xgRXY2da7ggc/67EZO7WlWAZ8TXftfCU6RtvWZJ0=
 github.com/keybase/go-keychain v0.0.0-20220610143837-c2ce06069005 h1:0uT5p980qZwIkSkOHuMgGLUMbz39d6cqQk7eaOE3uso=
 github.com/keybase/go-keychain v0.0.0-20220610143837-c2ce06069005/go.mod h1:5p1xgRXY2da7ggc/67EZO7WlWAZ8TXftfCU6RtvWZJ0=
 github.com/keybase/go-logging v0.0.0-20211118164508-35a15a9fa71a h1:hhJ2v5vhrdujcygf31Efr3IgC/VNU9PAArJJrr5uuYE=
