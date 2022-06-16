@@ -88,6 +88,8 @@ const useRecording = (conversationIDKey: Types.ConversationIDKey) => {
 }
 
 const AudioRecorder = (props: Props) => {
+  // TEMP to see if this is the root of the freezing issues
+  return null
   const {conversationIDKey} = props
   const dragX = useSharedValue(0)
   const dragY = useSharedValue(0)
