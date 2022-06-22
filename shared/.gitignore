@@ -27,6 +27,7 @@ android/app/.cxx
 *.xccheckout
 *.xcscmblueprint
 *.xcuserstate
+ios/.xcode.env.local
 .DS_Store
 Carthage/Build
 DerivedData
@@ -35,6 +36,10 @@ project.xcworkspace
 xcuserdata
 shared
 ios/fastlane/README.md
+**/fastlane/test_output
+**/fastlane/report.xml
+**/fastlane/Preview.html
+**/fastlane/screenshots
 keybase.xcframework
 ios/AppStore_keybase.ios.KeybaseShare.mobileprovision
 ios/AppStore_keybase.ios.mobileprovision
