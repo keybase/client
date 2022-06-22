@@ -23,6 +23,7 @@ type TextProps = {
   sizeType: SizeType
   style?: Props['style']
   type: IconType
+  pointerEvents?: 'box-none' | 'none' | 'box-only' | 'auto' | undefined
 }
 type Writeable<T> = {-readonly [P in keyof T]: T[P]}
 const Text = React.forwardRef<NativeText, TextProps>((p, ref) => {
@@ -153,6 +154,7 @@ const Icon = React.memo<Props>(
           sizeType={sizeType}
           onClick={p.onClick}
           onLongPress={p.onLongPress}
+          pointerEvents={p.pointerEvents}
         >
           {code}
         </Text>

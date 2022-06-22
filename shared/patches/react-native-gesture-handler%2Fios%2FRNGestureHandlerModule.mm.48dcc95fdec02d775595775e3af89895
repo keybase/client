@@ -1,0 +1,16 @@
+diff --git a/RNGestureHandlerModule.mm b/RNGestureHandlerModule.mm
+index d3d0453..7d3e508 100644
+--- a/RNGestureHandlerModule.mm
++++ b/RNGestureHandlerModule.mm
+@@ -60,7 +60,10 @@ RCT_EXPORT_MODULE()
+ 
+ - (void)invalidate
+ {
+-    [_manager dropAllGestureHandlers];
++    RNGestureHandlerManager *handlerManager = _manager;
++    dispatch_async(dispatch_get_main_queue(), ^{
++        [handlerManager dropAllGestureHandlers];
++    });
+     
+     _manager = nil;
+     
