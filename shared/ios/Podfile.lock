@@ -361,7 +361,7 @@ PODS:
     - React-Core
     - SDWebImage (~> 5.12.1)
     - SDWebImageWebPCoder (~> 0.8.4)
-  - RNGestureHandler (2.4.1):
+  - RNGestureHandler (2.4.2):
     - React-Core
   - RNReanimated (2.8.0):
     - DoubleConversion
@@ -684,7 +684,7 @@ SPEC CHECKSUMS:
   RNCPicker: f6c760d4b314585ff35165d8640d7917ae30afb1
   RNCPushNotificationIOS: 87b8d16d3ede4532745e05b03c42cff33a36cc45
   RNFastImage: ebb19e12093e819d982a41eda1527053624f4dd7
-  RNGestureHandler: 4f4986408310a43f1606c391f38f76e0d6e790d5
+  RNGestureHandler: 61628a2c859172551aa2100d3e73d1e57878392f
   RNReanimated: 46cdb89ca59ab7181334f4ed05a70e82ddb36751
   RNScreens: 40a2cb40a02a609938137a1e0acfbf8fc9eebf19
   SDWebImage: 53179a2dba77246efa8a9b85f5c5b21f8f43e38f

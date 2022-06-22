@@ -88,8 +88,6 @@ const useRecording = (conversationIDKey: Types.ConversationIDKey) => {
 }
 
 const AudioRecorder = (props: Props) => {
-  // TEMP to see if this is the root of the freezing issues
-  return null
   const {conversationIDKey} = props
   const dragX = useSharedValue(0)
   const dragY = useSharedValue(0)
@@ -114,8 +112,8 @@ const AudioRecorder = (props: Props) => {
         locked={locked}
         iconStyle={props.iconStyle}
       />
-      <Portal hostName="convOverlay">
-        {!visible ? null : (
+      {!visible ? null : (
+        <Portal hostName="convOverlay">
           <Animated.View style={styles.container} pointerEvents="box-none">
             <BigBackground initialBounce={initialBounce} />
             <AmpCircle
@@ -141,8 +139,8 @@ const AudioRecorder = (props: Props) => {
             />
             <AudioCounter initialBounce={initialBounce} />
           </Animated.View>
-        )}
-      </Portal>
+        </Portal>
+      )}
     </>
   )
 }
