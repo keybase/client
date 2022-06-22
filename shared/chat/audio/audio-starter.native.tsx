@@ -23,7 +23,6 @@ type Props = {
   conversationIDKey: Types.ConversationIDKey
   dragX: SharedValue<number>
   dragY: SharedValue<number>
-  iconStyle?: Kb.IconStyle
   enableRecording: () => void
   stopRecording: (st: Types.AudioStopType) => void
   locked: boolean
@@ -43,7 +42,7 @@ const Tooltip = (props: {onHide: () => void}) => {
   )
   const animatedStyles = useAnimatedStyle(() => ({opacity: opacity.value}))
   return (
-    <Animated.View style={animatedStyles}>
+    <Animated.View style={animatedStyles} pointerEvents="none">
       <Kb.Box2 direction="horizontal" style={styles.tooltipContainer}>
         <Kb.Text type="BodySmall" negative={true}>
           Hold to record audio.
@@ -56,7 +55,7 @@ const Tooltip = (props: {onHide: () => void}) => {
 const maxCancelDrift = -120
 const maxLockDrift = -100
 const _AudioStarter = (props: Props) => {
-  const {stopRecording, enableRecording, iconStyle, dragX, dragY, conversationIDKey, locked} = props
+  const {stopRecording, enableRecording, dragX, dragY, conversationIDKey, locked} = props
   const [showToolTip, setShowToolTip] = React.useState(false)
   const dispatch = Container.useDispatch()
   const lockRecording = React.useCallback(() => {
@@ -75,6 +74,7 @@ const _AudioStarter = (props: Props) => {
   }, [])
   // after the initial tap see if we're still gesturing. if so we start to record, if not we show the tooltip
   const onTapStart = () => {
+    tapStartTimerRef.current && clearTimeout(tapStartTimerRef.current)
     tapStartTimerRef.current = setTimeout(() => {
       if (stillGesturing.value) {
         enableRecording()
@@ -98,6 +98,7 @@ const _AudioStarter = (props: Props) => {
     .maxDuration(Number.MAX_SAFE_INTEGER)
     .shouldCancelWhenOutside(false)
     .onBegin(() => {
+      // console.log('aaa tapon begin')
       stillGesturing.value = true
       // mark the time
       tapStart.value = Date.now()
@@ -105,6 +106,7 @@ const _AudioStarter = (props: Props) => {
       runOnJS(onTapStart)()
     })
     .onEnd(() => {
+      // console.log('aaa tapon end')
       stillGesturing.value = false
       runOnJS(onTapEnd)()
     })
@@ -134,7 +136,7 @@ const _AudioStarter = (props: Props) => {
       )}
       <View>
         <GestureDetector gesture={composedGesture}>
-          <Kb.Icon type="iconfont-mic" style={iconStyle} />
+          <Kb.Icon type="iconfont-mic" style={styles.audioRecorderIconStyle} />
         </GestureDetector>
       </View>
     </>
@@ -143,6 +145,7 @@ const _AudioStarter = (props: Props) => {
 const AudioStarter = React.memo(_AudioStarter)
 
 const styles = Styles.styleSheetCreate(() => ({
+  audioRecorderIconStyle: {padding: Styles.globalMargins.tiny},
   tooltipContainer: {
     backgroundColor: Styles.globalColors.black,
     borderRadius: Styles.borderRadius,

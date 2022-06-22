@@ -25,30 +25,62 @@ type SVN = SharedValue<number>
 
 type Props = {
   conversationIDKey: Types.ConversationIDKey
-  iconStyle?: Kb.IconStyle
 }
 
 // hook to help deal with visibility request changing. we animate in / out and truly hide when we're done animating
 const useVisible = (reduxVisible: boolean, dragX: SVN, dragY: SVN) => {
   const [visible, setVisible] = React.useState(reduxVisible)
   const initialBounce = useSharedValue(reduxVisible ? 1 : 0)
-  React.useEffect(() => {
-    // not showing somehow? immediately show
-    if (!visible && reduxVisible) {
-      setVisible(true)
-    }
-    initialBounce.value = reduxVisible
-      ? withSpring(1)
-      : withTiming(0, {duration: 200}, () => {
-          // hide after we're done animating
-          runOnJS(setVisible)(false)
-        })
+  // console.log('aaa initalbounce set', {reduxVisible, visible, initialBounce: initialBounce.value})
+  // const prevReduxVisible = Container.usePrevious(reduxVisible)
 
-    if (!reduxVisible) {
-      dragX.value = withTiming(0)
-      dragY.value = withTiming(0)
+  // we need to show
+  Container.useDepChangeEffect(() => {
+    if (reduxVisible && !visible) {
+      // console.log('aaa uffect show overlay')
+      setVisible(true) // set visible
     }
-  }, [initialBounce, visible, reduxVisible, dragX, dragY])
+  }, [reduxVisible])
+
+  // we are requesting a hide, animate it
+  Container.useDepChangeEffect(() => {
+    if (reduxVisible || !visible) {
+      return // nothing to do
+    }
+    // console.log('aaa uffect animate, tehn hide overlay')
+    initialBounce.value = withTiming(0, {duration: 200}, (finished?: boolean) => {
+      // console.log('aaa ueffect end hiding', {finished})
+      // hide after we're done animating
+      if (finished) {
+        runOnJS(setVisible)(false)
+      }
+    })
+    dragX.value = withTiming(0)
+    dragY.value = withTiming(0)
+  }, [reduxVisible])
+
+  // when actually showing, animate it in
+  // Container.useDepChangeEffect(() => {
+  //   if (visible) {
+  //     initialBounce.value = withSpring(1)
+  //   }
+  // }, [visible])
+
+  // console.log('aaa useEffect called', {reduxVisible, prevReduxVisible})
+  // // not showing? immediately show
+  // if (!visible && reduxVisible) {
+  //   setVisible(true)
+  // }
+
+  // if (prevReduxVisible !== reduxVisible) {
+  //   console.log('aaa initialbounce change', reduxVisible ? 1 : 0)
+
+  //     if (!reduxVisible) {
+  //       dragX.value = withTiming(0)
+  //       dragY.value = withTiming(0)
+  //     }
+  //   }
+  // }, [initialBounce, visible, reduxVisible, dragX, dragY, prevReduxVisible])
 
   return {initialBounce, visible}
 }
@@ -79,7 +111,13 @@ const useRecording = (conversationIDKey: Types.ConversationIDKey) => {
   }, [dispatch, conversationIDKey, ampTracker, meteringCb])
   const stopRecording = React.useCallback(
     (stopType: Types.AudioStopType) => {
-      dispatch(Chat2Gen.createStopAudioRecording({amps: ampTracker, conversationIDKey, stopType}))
+      dispatch(
+        Chat2Gen.createStopAudioRecording({
+          amps: ampTracker,
+          conversationIDKey,
+          stopType: Types.AudioStopType.CANCEL /* TEMP*/,
+        })
+      )
     },
     [dispatch, ampTracker, conversationIDKey]
   )
@@ -87,7 +125,52 @@ const useRecording = (conversationIDKey: Types.ConversationIDKey) => {
   return {ampScale, enableRecording, stopRecording}
 }
 
+const Overlay = React.memo(
+  (props: {
+    initialBounce: SVN
+    ampScale: SVN
+    dragX: SVN
+    dragY: SVN
+    locked: boolean
+    stopRecording: () => void
+    onCancel: () => void
+  }) => {
+    // console.log('aaa Overlay render')
+    const {initialBounce, ampScale, dragX, dragY, locked, stopRecording, onCancel} = props
+    React.useEffect(() => {
+      // console.log('aaa Overlay render set initial bounce')
+      initialBounce.value = withSpring(1)
+    }, [initialBounce])
+    return (
+      <Portal hostName="convOverlay">
+        <Animated.View style={styles.container} pointerEvents="box-none">
+          <BigBackground initialBounce={initialBounce} />
+          <AmpCircle
+            initialBounce={initialBounce}
+            ampScale={ampScale}
+            dragX={dragX}
+            dragY={dragY}
+            locked={locked}
+          />
+          <InnerCircle
+            initialBounce={initialBounce}
+            dragX={dragX}
+            dragY={dragY}
+            locked={locked}
+            stopRecording={stopRecording}
+          />
+          <LockHint initialBounce={initialBounce} dragX={dragX} dragY={dragY} locked={locked} />
+          <CancelHint onCancel={onCancel} initialBounce={initialBounce} locked={locked} dragX={dragX} />
+          <SendRecordingButton initialBounce={initialBounce} locked={locked} stopRecording={stopRecording} />
+          <AudioCounter initialBounce={initialBounce} />
+        </Animated.View>
+      </Portal>
+    )
+  }
+)
+
 const AudioRecorder = (props: Props) => {
+  // console.log('aaa AudioRecorder render')
   const {conversationIDKey} = props
   const dragX = useSharedValue(0)
   const dragY = useSharedValue(0)
@@ -110,48 +193,30 @@ const AudioRecorder = (props: Props) => {
         enableRecording={enableRecording}
         stopRecording={stopRecording}
         locked={locked}
-        iconStyle={props.iconStyle}
       />
       {!visible ? null : (
-        <Portal hostName="convOverlay">
-          <Animated.View style={styles.container} pointerEvents="box-none">
-            <BigBackground initialBounce={initialBounce} />
-            <AmpCircle
-              initialBounce={initialBounce}
-              ampScale={ampScale}
-              dragX={dragX}
-              dragY={dragY}
-              locked={locked}
-            />
-            <InnerCircle
-              initialBounce={initialBounce}
-              dragX={dragX}
-              dragY={dragY}
-              locked={locked}
-              stopRecording={stopRecording}
-            />
-            <LockHint initialBounce={initialBounce} dragX={dragX} dragY={dragY} locked={locked} />
-            <CancelHint onCancel={onCancel} initialBounce={initialBounce} locked={locked} dragX={dragX} />
-            <SendRecordingButton
-              initialBounce={initialBounce}
-              locked={locked}
-              stopRecording={stopRecording}
-            />
-            <AudioCounter initialBounce={initialBounce} />
-          </Animated.View>
-        </Portal>
+        <Overlay
+          initialBounce={initialBounce}
+          ampScale={ampScale}
+          dragX={dragX}
+          dragY={dragY}
+          locked={locked}
+          stopRecording={stopRecording}
+          onCancel={onCancel}
+        />
       )}
     </>
   )
 }
 
 const BigBackground = (props: {initialBounce: SVN}) => {
+  // console.log('aaa big background render')
   const {initialBounce} = props
   const animatedStyle = useAnimatedStyle(() => ({
     opacity: initialBounce.value * 0.9,
     transform: [{scale: initialBounce.value}],
   }))
-  return <Animated.View pointerEvents="box-none" style={[styles.bigBackgroundStyle, animatedStyle]} />
+  return <Animated.View pointerEvents="none" style={[styles.bigBackgroundStyle, animatedStyle]} />
 }
 
 const dragXOpacity = (dragX: SVN, dragY: SVN) => {
@@ -169,6 +234,7 @@ const AmpCircle = (props: {ampScale: SVN; dragX: SVN; dragY: SVN; initialBounce:
   }))
   return (
     <Animated.View
+      pointerEvents="none"
       style={[
         styles.ampCircleStyle,
         {backgroundColor: locked ? Styles.globalColors.redLight : Styles.globalColors.blueLighterOrBlueLight},
@@ -196,6 +262,7 @@ const InnerCircle = (props: {
   }, [stopRecording])
   return (
     <Animated.View
+      pointerEvents="none"
       style={[
         styles.innerCircleStyle,
         {backgroundColor: locked ? Styles.globalColors.red : Styles.globalColors.blue},
@@ -290,7 +357,7 @@ const CancelHint = (props: {initialBounce: SVN; dragX: SVN; locked: boolean; onC
       <AnimatedIcon sizeType="Tiny" type={'iconfont-close'} style={[styles.cancelHintStyle, closeStyle]} />
       <AnimatedText
         type={locked ? 'BodySmallPrimaryLink' : 'BodySmall'}
-        onClick={onCancel}
+        onClick={locked ? onCancel : undefined /* dont let them click while its animating */}
         style={[styles.cancelHintStyle, textStyle]}
       >
         {locked ? 'Cancel' : 'Slide to cancel'}

@@ -117,7 +117,7 @@ const Buttons = (p: ButtonsProps) => {
       {!hasText && (
         <Kb.Box2 direction="horizontal" alignItems="flex-end">
           <Kb.Icon onClick={openFilePicker} padding="tiny" type="iconfont-camera" fixOverdraw={true} />
-          <AudioRecorder conversationIDKey={conversationIDKey} iconStyle={styles.audioRecorderIconStyle} />
+          <AudioRecorder conversationIDKey={conversationIDKey} />
           <Kb.Icon onClick={openMoreMenu} padding="tiny" type="iconfont-add" fixOverdraw={true} />
         </Kb.Box2>
       )}
@@ -374,17 +374,15 @@ const PlatformInput = (p: Props) => {
     [whichMenu, toggleShowingPopup]
   )
 
+  const onLayout = React.useCallback((p: LayoutEvent) => {
+    const {nativeEvent} = p
+    const {layout} = nativeEvent
+    const {height} = layout
+    setHeight(height)
+  }, [])
+
   return (
-    <Kb.Box2
-      direction="vertical"
-      fullWidth={true}
-      onLayout={(p: LayoutEvent) => {
-        const {nativeEvent} = p
-        const {layout} = nativeEvent
-        const {height} = layout
-        setHeight(height)
-      }}
-    >
+    <Kb.Box2 direction="vertical" fullWidth={true} onLayout={onLayout}>
       {popup}
       {menu}
       {showTypingStatus && !popup && <Typing conversationIDKey={conversationIDKey} />}
@@ -471,7 +469,6 @@ const styles = Styles.styleSheetCreate(
         flexShrink: 0,
         minHeight: 32,
       },
-      audioRecorderIconStyle: {padding: Styles.globalMargins.tiny},
       container: {
         alignItems: 'center',
         backgroundColor: Styles.globalColors.fastBlank,
