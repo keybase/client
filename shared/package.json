@@ -138,6 +138,7 @@
         "typedarray-to-buffer": "4.0.0",
         "url-parse": "1.5.10",
         "use-memo-one": "1.1.2",
+        "process": "keybase/nullModule",
         "util": "0.12.4"
     },
     "devDependencies": {
