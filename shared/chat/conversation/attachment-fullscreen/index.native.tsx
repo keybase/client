@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../../common-adapters/mobile.native'
 import * as Styles from '../../../styles'
 import MessagePopup from '../messages/message-popup'
-import {Video} from 'expo-av'
+import {Video, ResizeMode} from 'expo-av'
 import logger from '../../../logger'
 import {ShowToastAfterSaving} from '../messages/attachment/shared'
 import type {Props} from '.'
@@ -50,7 +50,7 @@ class AutoMaxSizeImage extends React.Component<
       >
         <Kb.NativeFastImage
           {...this.props}
-          resizeMode="contain"
+          resizeMode={ResizeMode.CONTAIN}
           style={Styles.collapseStyles([
             styles.fastImage,
             {
@@ -94,7 +94,7 @@ class _Fullscreen extends React.Component<Props & Kb.OverlayParentProps, {loaded
                 height: Math.max(previewHeight, 100),
                 width: '100%',
               }}
-              resizeMode="contain"
+              resizeMode={ResizeMode.CONTAIN}
             />
           </Kb.Box2>
         )
@@ -184,12 +184,12 @@ const styles = Styles.styleSheetCreate(
         ...Styles.globalStyles.flexBoxRow,
         alignItems: 'center',
         backgroundColor: Styles.globalColors.blackOrBlack,
+        bottom: Styles.globalMargins.small,
         flexShrink: 0,
         height: 34,
-        width: 34,
         left: Styles.globalMargins.small,
-        bottom: Styles.globalMargins.small,
         position: 'absolute',
+        width: 34,
         zIndex: 3,
       },
       headerWrapper: {backgroundColor: Styles.globalColors.blackOrBlack},

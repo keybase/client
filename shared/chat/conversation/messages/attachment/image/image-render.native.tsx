@@ -3,7 +3,7 @@ import * as Kb from '../../../../../common-adapters/mobile.native'
 import * as Styles from '../../../../../styles'
 import {memoize} from '../../../../../util/memoize'
 import logger from '../../../../../logger'
-import {Video, AVPlaybackStatus} from 'expo-av'
+import {Video, ResizeMode, AVPlaybackStatus} from 'expo-av'
 import type {Props} from './image-render.types'
 
 type State = {
@@ -66,7 +66,7 @@ export class ImageRender extends React.Component<Props, State> {
               onError={this.onErrorVid}
               shouldPlay={true}
               style={this.getSizeStyle(styles.video, height, width)}
-              resizeMode="contain"
+              resizeMode={ResizeMode.CONTAIN}
             />
           ) : (
             <Kb.NativeFastImage

@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../../../../../common-adapters/index'
 import * as Styles from '../../../../../../styles'
 import logger from '../../../../../../logger'
-import {Video as AVVideo} from 'expo-av'
+import {Video as AVVideo, ResizeMode} from 'expo-av'
 import type {Props} from './video.types'
 
 export const Video = (props: Props) => {
@@ -20,11 +20,11 @@ export const Video = (props: Props) => {
   }, [setPlayingVideo, onClick])
 
   /*
-    The video library thinks any URI that doesn't start with /https?:// to be an asset bundled
-    with the app, and will straight crash of that is not true. Solution here is if we somehow end up with a
-    blank URL in a native video component, then just put some bogus string in there that at least doesn't
-    send the library down the crasher path.
-    */
+      The video library thinks any URI that doesn't start with /https?:// to be an asset bundled
+      with the app, and will straight crash of that is not true. Solution here is if we somehow end up with a
+      blank URL in a native video component, then just put some bogus string in there that at least doesn't
+      send the library down the crasher path.
+      */
   const uri = url.length > 0 ? url : 'https://'
   const source = {
     uri: `${uri}&autoplay=${autoPlay ? 'true' : 'false'}&contentforce=true`,
@@ -37,7 +37,7 @@ export const Video = (props: Props) => {
         onError={e => {
           logger.error(`Error loading vid: ${JSON.stringify(e)}`)
         }}
-        resizeMode="contain"
+        resizeMode={ResizeMode.CONTAIN}
         style={Styles.collapseStyles([styles.player, style])}
         isLooping={true}
         isMuted={true}
