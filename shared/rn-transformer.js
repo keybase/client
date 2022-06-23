@@ -5,6 +5,14 @@ module.exports.transform = function (p) {
   if (p.filename.endsWith('.desktop.tsx')) {
     throw new Error('Electron polluting RN' + p.filename)
   }
+  console.log('aaa', p.filename)
+  if (p.filename === 'process') {
+    return upstreamTransformer.transform({
+      filename: p.filename,
+      options: p.options,
+      src: 'module.export = ""',
+    })
+  }
   if (p.filename.endsWith('css')) {
     return upstreamTransformer.transform({
       filename: p.filename,
