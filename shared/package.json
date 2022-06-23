@@ -37,8 +37,8 @@
         "start-hot": "yarn run _helper start-hot",
         "start-prod": "yarn run _helper start-prod",
         "rn-start": "./react-native/packageAndBuild.sh",
-        "rn-gobuild-ios": "./react-native/gobuild.sh ios",
-        "rn-gobuild-android": "./react-native/gobuild.sh android",
+        "rn-gobuild-ios": "./react-native/gobuild.sh ios && yarn postinstall",
+        "rn-gobuild-android": "./react-native/gobuild.sh android && yarn postinstall",
         "rn-packager-wipe-cache": "watchman watch-del-all && rm -rf node_modules && yarn && node ./react-native/wipe-cache.js",
         "rn-download-android-bundle-prod": "curl -o ~/Desktop/bundle.prod.js 'http://localhost:8081/index.bundle?platform=android&dev=false&minify=false&app=io.keybase.ossifrage&modulesOnly=false&runModule=true'",
         "rn-download-android-bundle-debug": "curl -o ~/Desktop/bundle.dev.js 'http://localhost:8081/index.bundle?platform=android&dev=true&minify=false&app=io.keybase.ossifrage&modulesOnly=false&runModule=true'",
@@ -86,13 +86,13 @@
         "emoji-datasource": "5.0.1",
         "emoji-datasource-apple": "5.0.1",
         "emoji-mart": "3.0.1",
-        "expo": "45.0.5",
+        "expo": "45.0.6",
         "expo-av": "11.2.3",
         "expo-barcode-scanner": "11.3.0",
         "expo-contacts": "10.2.0",
         "expo-haptics": "11.2.0",
-        "expo-file-system": "13.1.4",
-        "expo-image-picker": "13.1.0",
+        "expo-file-system": "14.0.0",
+        "expo-image-picker": "13.1.1",
         "expo-location": "14.2.2",
         "expo-mail-composer": "11.2.0",
         "expo-media-library": "14.1.0",
@@ -219,10 +219,7 @@
         "webpack-merge": "5.8.0"
     },
     "resolutions": {
-        "**/purepack": "keybase/nullModule",
-        "react-devtools-core": "4.21.0",
-        "**/@types/react-native": "0.66.16",
-        "**/expo-file-system": "13.1.4"
+        "**/purepack": "keybase/nullModule"
     },
     "expo": {
         "autolinking": {

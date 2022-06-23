@@ -3,7 +3,7 @@ import * as path from 'path'
 import * as crypto from 'crypto'
 import * as child_process from 'child_process'
 
-const modulesRoot = path.join(__dirname, '../../node_modules')
+const patchRoot = path.join(__dirname, '../..')
 
 export default () => {
   try {
@@ -15,11 +15,11 @@ export default () => {
       const parts = filenamePlusHash.split('.')
       const hash = parts.pop()
       const filename = parts.join('.')
-      const fullDir = path.join(__dirname, '../../node_modules', path.dirname(decoded))
+      const fullDir = path.join(__dirname, '../..', path.dirname(decoded))
       const fullPath = path.join(fullDir, filename)
 
       // sanity check path
-      const rel = path.relative(modulesRoot, fullPath)
+      const rel = path.relative(patchRoot, fullPath)
       if (!rel || rel.startsWith('..') || path.isAbsolute(rel)) {
         console.log('Skipping patch due to rel: ', fullPath, rel)
       }

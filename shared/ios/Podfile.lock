@@ -21,7 +21,7 @@ PODS:
     - ExpoModulesCore
   - EXErrorRecovery (3.1.0):
     - ExpoModulesCore
-  - EXFileSystem (13.1.4):
+  - EXFileSystem (14.0.0):
     - ExpoModulesCore
   - EXFont (10.1.0):
     - ExpoModulesCore
@@ -37,11 +37,11 @@ PODS:
     - React-Core
   - EXPermissions (13.2.0):
     - ExpoModulesCore
-  - Expo (45.0.5):
+  - Expo (45.0.6):
     - ExpoModulesCore
   - ExpoHaptics (11.2.0):
     - ExpoModulesCore
-  - ExpoImagePicker (13.1.0):
+  - ExpoImagePicker (13.1.1):
     - ExpoModulesCore
   - ExpoKeepAwake (10.1.1):
     - ExpoModulesCore
@@ -671,16 +671,16 @@ SPEC CHECKSUMS:
   EXConstants: fdbe52259365b6a6faaa5e99a3b82cfa6bc2eb61
   EXContacts: 0111049e342dc033fa39e9c477e681ec2fccc07b
   EXErrorRecovery: 3ce46e5d42e53c0371ff048a7f0cbc959968ef4a
-  EXFileSystem: 08a3033ac372b6346becf07839e1ccef26fb1058
+  EXFileSystem: 2aa2d9289f84bca9532b9ccbd81504fa31eb1ded
   EXFont: 04235cc22e6fef86028feb67db452978dc6f240f
   EXImageLoader: b88e053d760f85a82405b1db2de4abf11978fc9f
   EXLocation: f9811c5a78e07894429e7e0620b30f2395564fc0
   EXMailComposer: 2e5fdf265f3a1d5d5ef03724ce361cdedb0f546f
   EXMediaLibrary: 84cddf988a089e28070790438caf58d8b265b37a
   EXPermissions: 3dbb869e7f96a5711314f73d48ddc2f28009a7f6
-  Expo: b9fff0a1eac0f424fc68ea49b4347fb308e52e17
+  Expo: 3df4af520db4f37f9821ba732ce9ac0dc67bb7b8
   ExpoHaptics: ad58ec96a25e57579c14a47c7d71f0de0de8656a
-  ExpoImagePicker: 75304d6349a753a3c391fa544c070c1162075998
+  ExpoImagePicker: d9d6b4f29db437fc7796f13cee5f133f5b4b5f7c
   ExpoKeepAwake: c0c494b442ecd8122974c13b93ccfb57bd408e88
   ExpoModulesCore: e4278a668e8c13c0269ed8b8a4200989deea2973
   EXSMS: 26f6d61a00a3a3fb125a233d81b1d3ab48303cef

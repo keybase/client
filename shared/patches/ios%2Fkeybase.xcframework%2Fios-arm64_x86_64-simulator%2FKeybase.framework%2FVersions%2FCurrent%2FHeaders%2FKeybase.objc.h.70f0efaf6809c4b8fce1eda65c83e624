@@ -1,0 +1,13 @@
+diff --git a/Keybase.objc.h b/Keybase.objc.h
+index f8ce5f8..ea3d186 100644
+--- a/Keybase.objc.h
++++ b/Keybase.objc.h
+@@ -6,7 +6,7 @@
+ #ifndef __Keybase_H__
+ #define __Keybase_H__
+ 
+-@import Foundation;
++#include <Foundation/Foundation.h>
+ #include "ref.h"
+ #include "Universe.objc.h"
+ 
