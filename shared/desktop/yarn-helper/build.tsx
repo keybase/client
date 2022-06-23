@@ -8,13 +8,12 @@ const outputStats = false
 
 const commands = {
   'build-dev': {
-    env: {BABEL_ENV: 'yarn', NO_SERVER: 'true'},
+    env: {NO_SERVER: 'true'},
     help: 'Make a development build of the js code',
     shell: `${webpackCmd} --mode development --progress --profile`,
   },
   'build-prod': {
     env: {
-      BABEL_ENV: 'yarn',
       NO_SERVER: 'true',
       STATS: outputStats ? 'true' : 'false',
     },
@@ -25,11 +24,9 @@ const commands = {
   },
   'hot-server': {
     code: hotServer,
-    env: {BABEL_ENV: 'yarn'},
     help: 'Start the webpack hot reloading code server (needed by yarn run start-hot)',
   },
   package: {
-    env: {BABEL_ENV: 'yarn'},
     help: 'Package up the production js code',
     shell: `yarn _node ${spaceArg} desktop/package.desktop.tsx`,
   },

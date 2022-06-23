@@ -7,6 +7,7 @@ import merge from 'webpack-merge'
 import path from 'path'
 import webpack from 'webpack'
 import HtmlWebpackPlugin from 'html-webpack-plugin'
+const ReactRefreshWebpackPlugin = require('@pmmmwh/react-refresh-webpack-plugin')
 
 // When we start the hot server we want to build the main/dll without hot reloading statically
 const config = (_, {mode}) => {
@@ -21,7 +22,7 @@ const config = (_, {mode}) => {
       options: {
         cacheDirectory: true,
         ignore: [/\.(native|ios|android)\.(ts|js)x?$/],
-        plugins: [...(isHot && !nodeThread ? ['react-hot-loader/babel'] : [])],
+        plugins: [...(isHot && !nodeThread ? ['react-refresh/babel'] : [])],
         presets: [
           ['@babel/preset-env', {debug: false, modules: false, targets: {electron: '19.0.4'}}],
           '@babel/preset-typescript',
@@ -94,10 +95,6 @@ const config = (_, {mode}) => {
       'react-native$': 'react-native-web',
       'react-native-reanimated': false,
     }
-    if (isHot) {
-      // hot loader
-      alias['react-dom'] = '@hot-loader/react-dom'
-    }
     if (isDev) {
       // enable why did you render
       alias['react-redux'] = 'react-redux/dist/react-redux.js'
@@ -122,6 +119,7 @@ const config = (_, {mode}) => {
       ],
       resolve: {
         alias,
+        fallback: {process: false},
         extensions: ['.desktop.js', '.desktop.tsx', '.web.js', '.js', '.jsx', '.tsx', '.ts', '.json'],
       },
       ...(isDev
@@ -168,7 +166,6 @@ const config = (_, {mode}) => {
     target: 'electron-main',
   })
 
-  const hmrPlugin = isHot && isDev ? [new webpack.HotModuleReplacementPlugin()] : []
   const makeHtmlName = name => `${name}${isDev ? '.dev' : ''}.html`
   const makeViewPlugins = names =>
     [
@@ -177,7 +174,7 @@ const config = (_, {mode}) => {
         global: 'globalThis',
         'process.env.NODE_DEBUG': JSON.stringify(process.env.NODE_DEBUG),
       }),
-      ...hmrPlugin,
+      ...(isHot ? [new ReactRefreshWebpackPlugin()] : []),
       // Map since we generate multiple html files
       ...names.map(
         name =>

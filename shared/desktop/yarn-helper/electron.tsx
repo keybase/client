@@ -25,7 +25,7 @@ const commands = {
   },
   'start-hot': {
     code: startHot,
-    env: {BABEL_ENV: 'yarn', HOT: 'true'},
+    env: {HOT: 'true'},
     help: 'Start electron with hot reloading (needs yarn run hot-server)',
   },
   'start-prod': {
