@@ -119,7 +119,6 @@ const config = (_, {mode}) => {
       ],
       resolve: {
         alias,
-        fallback: {process: false},
         extensions: ['.desktop.js', '.desktop.tsx', '.web.js', '.js', '.jsx', '.tsx', '.ts', '.json'],
       },
       ...(isDev
@@ -266,6 +265,7 @@ const config = (_, {mode}) => {
         ...commonConfig.resolve.alias,
         'path-parse': false,
       },
+      fallback: {process: false},
     },
     target: 'web',
     node: false,
