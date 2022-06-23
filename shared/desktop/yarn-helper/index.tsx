@@ -116,6 +116,9 @@ const getMsgPack = () => {
     const url = `https://kbelectron.keybase.pub/misc/${file}`
     const prefix = path.resolve(__dirname, '..', '..', 'node_modules')
     const dlpath = path.resolve(prefix, '.cache')
+    try {
+      fs.mkdirSync(dlpath)
+    } catch {}
     if (!fs.existsSync(path.resolve(dlpath, file))) {
       console.log('Missing msgpack-cpp, downloading')
       exec(`curl -L -o ${dlpath}/${file} ${url}`)
