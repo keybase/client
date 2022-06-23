@@ -115,10 +115,13 @@ const getMsgPack = () => {
     const file = `msgpack-cxx-${ver}.tar.gz`
     const url = `https://kbelectron.keybase.pub/misc/${file}`
     const prefix = path.resolve(__dirname, '..', '..', 'node_modules')
-    if (!fs.existsSync(path.resolve(prefix, file))) {
+    const dlpath = path.resolve(prefix, '.cache')
+    if (!fs.existsSync(path.resolve(dlpath, file))) {
       console.log('Missing msgpack-cpp, downloading')
-      exec(`curl -L -o ${prefix}/${file} ${url}`)
-      exec(`cd node_modules ; tar -xvf ${file}`)
+      exec(`curl -L -o ${dlpath}/${file} ${url}`)
+    }
+    if (!fs.existsSync(path.resolve(prefix, file))) {
+      exec(`cd node_modules ; tar -xf .cache/${file}`)
     }
   }
 }
