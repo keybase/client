@@ -434,10 +434,10 @@ PODS:
   - RNScreens (3.13.1):
     - React-Core
     - React-RCTImage
-  - SDWebImage (5.12.5):
-    - SDWebImage/Core (= 5.12.5)
-  - SDWebImage/Core (5.12.5)
-  - SDWebImageWebPCoder (0.8.4):
+  - SDWebImage (5.12.6):
+    - SDWebImage/Core (= 5.12.6)
+  - SDWebImage/Core (5.12.6)
+  - SDWebImageWebPCoder (0.8.5):
     - libwebp (~> 1.0)
     - SDWebImage/Core (~> 5.10)
   - Yoga (1.14.0)
@@ -730,8 +730,8 @@ SPEC CHECKSUMS:
   RNGestureHandler: bad495418bcbd3ab47017a38d93d290ebd406f50
   RNReanimated: 64573e25e078ae6bec03b891586d50b9ec284393
   RNScreens: 40a2cb40a02a609938137a1e0acfbf8fc9eebf19
-  SDWebImage: 0905f1b7760fc8ac4198cae0036600d67478751e
-  SDWebImageWebPCoder: f93010f3f6c031e2f8fb3081ca4ee6966c539815
+  SDWebImage: a47aea9e3d8816015db4e523daff50cfd294499d
+  SDWebImageWebPCoder: 908b83b6adda48effe7667cd2b7f78c897e5111d
   Yoga: 99652481fcd320aefa4a7ef90095b95acd181952
   ZXingObjC: fdbb269f25dd2032da343e06f10224d62f537bdb
 
