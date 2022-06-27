@@ -1,5 +1,5 @@
-import {NativeModules as RNNativeModules} from 'react-native'
-import {isIOS} from '../constants/platform.native'
+import {NativeModules as RNNativeModules, Platform} from 'react-native'
+const isIOS = Platform.OS === 'ios'
 
 type NativeModulesType = {
   KeybaseEngine: {
