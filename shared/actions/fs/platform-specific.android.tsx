@@ -3,7 +3,7 @@ import * as Saga from '../../util/saga'
 import * as FsGen from '../fs-gen'
 import * as Constants from '../../constants/fs'
 import * as RPCTypes from '../../constants/types/rpc-gen'
-import {TypedState} from '../../util/container'
+import * as Container from '../../util/container'
 import {PermissionsAndroid} from 'react-native'
 import nativeSaga from './common.native'
 import {NativeModules} from '../../util/native-modules.native'
@@ -27,7 +27,10 @@ export const ensureDownloadPermissionPromise = async () => {
 
 const finishedRegularDownloadIDs = new Set<string>()
 
-const finishedRegularDownload = async (state: TypedState, action: FsGen.FinishedRegularDownloadPayload) => {
+const finishedRegularDownload = async (
+  state: Container.TypedState,
+  action: FsGen.FinishedRegularDownloadPayload
+) => {
   const {downloadID, mimeType} = action.payload
 
   // This is fired from a hook and can happen more than once per downloadID.
@@ -72,6 +75,6 @@ const configureDownload = async () =>
 
 export default function* platformSpecificSaga() {
   yield Saga.spawn(nativeSaga)
-  yield* Saga.chainAction2(FsGen.finishedRegularDownload, finishedRegularDownload)
-  yield* Saga.chainAction2(FsGen.kbfsDaemonRpcStatusChanged, configureDownload)
+  Container.listenAction(FsGen.finishedRegularDownload, finishedRegularDownload)
+  Container.listenAction(FsGen.kbfsDaemonRpcStatusChanged, configureDownload)
 }
