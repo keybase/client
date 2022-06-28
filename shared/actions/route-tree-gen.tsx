@@ -2,7 +2,6 @@
 
 import type * as Tabs from '../constants/tabs'
 import type * as Types from '../constants/types/route-tree'
-import type {NavigateAppendType} from '../router-v2/route-params'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of route-tree but is handled by every reducer. NEVER dispatch this
@@ -72,7 +71,7 @@ export const createSetParams = (payload: {readonly params: Object; readonly key:
 })
 export const createNavigateAppend = (payload: {
   readonly fromKey?: string
-  readonly path: NavigateAppendType
+  readonly path: any
   readonly replace?: boolean
 }) => ({payload, type: navigateAppend as typeof navigateAppend})
 export const createNavigateUp = (payload: {readonly fromKey?: string} = {}) => ({
@@ -101,15 +100,15 @@ export type TabLongPressPayload = ReturnType<typeof createTabLongPress>
 // All Actions
 // prettier-ignore
 export type Actions =
-    | ClearModalsPayload
-    | NavUpToScreenPayload
-    | NavigateAppendPayload
-    | NavigateUpNoopPayload
-    | NavigateUpPayload
-    | OnNavChangedPayload
-    | PopStackPayload
-    | SetParamsPayload
-    | SwitchLoggedInPayload
-    | SwitchTabPayload
-    | TabLongPressPayload
-    | { readonly type: 'common:resetStore', readonly payload: undefined }
+  | ClearModalsPayload
+  | NavUpToScreenPayload
+  | NavigateAppendPayload
+  | NavigateUpNoopPayload
+  | NavigateUpPayload
+  | OnNavChangedPayload
+  | PopStackPayload
+  | SetParamsPayload
+  | SwitchLoggedInPayload
+  | SwitchTabPayload
+  | TabLongPressPayload
+  | {readonly type: 'common:resetStore', readonly payload: undefined}

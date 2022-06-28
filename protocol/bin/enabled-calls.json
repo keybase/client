@@ -46,7 +46,7 @@
   "chat.1.local.joinConversationByIDLocal": {"promise": true},
   "chat.1.local.leaveConversationLocal": {"promise": true},
   "chat.1.local.listPublicBotCommandsLocal": {"promise": true},
-  "chat.1.local.loadGallery": {"engineSaga": true},
+  "chat.1.local.loadGallery": {"engineListener": true},
   "chat.1.local.locationDenied": {"promise": true},
   "chat.1.local.locationUpdate": {"promise": true},
   "chat.1.local.makeAudioPreview": {"promise": true},

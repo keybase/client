@@ -1236,7 +1236,11 @@ function* maybeKickedFromTeam() {
   yield Saga.put(Chat2Gen.createNavigateToInbox())
 }
 
-function* getUnreadline(state: Container.TypedState, action: Chat2Gen.SelectedConversationPayload) {
+const getUnreadline = async (
+  state: Container.TypedState,
+  action: Chat2Gen.SelectedConversationPayload,
+  listenerApi: Container.ListenerApi
+) => {
   // Get the conversationIDKey
   let key: Types.ConversationIDKey | null = null
   switch (action.type) {
@@ -1261,14 +1265,13 @@ function* getUnreadline(state: Container.TypedState, action: Chat2Gen.SelectedCo
 
   const {readMsgID} = state.chat2.metaMap.get(conversationIDKey) ?? Constants.makeConversationMeta()
   try {
-    const unreadlineRes: Saga.RPCPromiseType<typeof RPCChatTypes.localGetUnreadlineRpcPromise> =
-      yield RPCChatTypes.localGetUnreadlineRpcPromise({
-        convID,
-        identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-        readMsgID: readMsgID < 0 ? 0 : readMsgID,
-      })
+    const unreadlineRes = await RPCChatTypes.localGetUnreadlineRpcPromise({
+      convID,
+      identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+      readMsgID: readMsgID < 0 ? 0 : readMsgID,
+    })
     const unreadlineID = unreadlineRes.unreadlineID ? unreadlineRes.unreadlineID : 0
-    yield Saga.put(
+    listenerApi.dispatch(
       Chat2Gen.createUpdateUnreadline({
         conversationIDKey,
         messageID: Types.numberToMessageID(unreadlineID),
@@ -1277,7 +1280,8 @@ function* getUnreadline(state: Container.TypedState, action: Chat2Gen.SelectedCo
   } catch (error) {
     if (error instanceof RPCError) {
       if (error.code === RPCTypes.StatusCode.scchatnotinteam) {
-        yield* maybeKickedFromTeam()
+        listenerApi.dispatch(Chat2Gen.createInboxRefresh({reason: 'maybeKickedFromTeam'}))
+        listenerApi.dispatch(Chat2Gen.createNavigateToInbox())
       }
     }
     // ignore this error in general
@@ -1440,44 +1444,62 @@ const messageRetry = (_: unknown, action: Chat2Gen.MessageRetryPayload) => {
   )
 }
 
-function* loadAttachmentView(_: Container.TypedState, action: Chat2Gen.LoadAttachmentViewPayload) {
+const loadAttachmentView = async (
+  _: Container.TypedState,
+  action: Chat2Gen.LoadAttachmentViewPayload,
+  listenerApi: Container.ListenerApi
+) => {
   const {conversationIDKey, viewType, fromMsgID} = action.payload
-
-  const onHit = (hit: RPCChatTypes.MessageTypes['chat.1.chatUi.chatLoadGalleryHit']['inParam']) =>
-    Saga.callUntyped(function* () {
-      const state = yield* Saga.selectState()
-      const {username, getLastOrdinal, devicename} = Constants.getMessageStateExtras(state, conversationIDKey)
-
-      const message = Constants.uiMessageToMessage(
-        conversationIDKey,
-        hit.message,
-        username,
-        getLastOrdinal,
-        devicename
-      )
-      if (message) {
-        yield Saga.put(Chat2Gen.createAddAttachmentViewMessage({conversationIDKey, message, viewType}))
-      }
-    })
-
   try {
-    const res: RPCChatTypes.MessageTypes['chat.1.local.loadGallery']['outParam'] =
-      yield RPCChatTypes.localLoadGalleryRpcSaga({
-        incomingCallMap: {'chat.1.chatUi.chatLoadGalleryHit': onHit},
+    const res = await RPCChatTypes.localLoadGalleryRpcListener(
+      {
         params: {
           convID: Types.keyToConversationID(conversationIDKey),
           fromMsgID,
           num: 50,
           typ: viewType,
         },
-      })
-    yield Saga.put(
+        incomingCallMap: {
+          'chat.1.chatUi.chatLoadGalleryHit': (
+            hit: RPCChatTypes.MessageTypes['chat.1.chatUi.chatLoadGalleryHit']['inParam']
+          ) => {
+            console.log('aaa got hit', hit)
+            const state = listenerApi.getState()
+            const {username, getLastOrdinal, devicename} = Constants.getMessageStateExtras(
+              state,
+              conversationIDKey
+            )
+            const message = Constants.uiMessageToMessage(
+              conversationIDKey,
+              hit.message,
+              username,
+              getLastOrdinal,
+              devicename
+            )
+
+            console.log('aaa got hit message', message?.ordinal)
+            if (message) {
+              // listenerApi.dispatch(
+              return Chat2Gen.createAddAttachmentViewMessage({conversationIDKey, message, viewType})
+              // )
+            }
+            return false
+          },
+        },
+      },
+      listenerApi
+    )
+
+    console.log('aaa got done')
+    listenerApi.dispatch(
       Chat2Gen.createSetAttachmentViewStatus({conversationIDKey, last: res.last, status: 'success', viewType})
     )
   } catch (error) {
     if (error instanceof RPCError) {
       logger.error('failed to load attachment view: ' + error.message)
-      yield Saga.put(Chat2Gen.createSetAttachmentViewStatus({conversationIDKey, status: 'error', viewType}))
+      listenerApi.dispatch(
+        Chat2Gen.createSetAttachmentViewStatus({conversationIDKey, status: 'error', viewType})
+      )
     }
   }
 }
@@ -3776,10 +3798,7 @@ function* chat2Saga() {
   )
 
   // get the unread (orange) line
-  yield* Saga.chainGenerator<Chat2Gen.SelectedConversationPayload>(
-    Chat2Gen.selectedConversation,
-    getUnreadline
-  )
+  Container.listenAction(Chat2Gen.selectedConversation, getUnreadline)
 
   Container.listenAction(Chat2Gen.messageRetry, messageRetry)
   yield* Saga.chainGenerator<Chat2Gen.MessageSendPayload>(Chat2Gen.messageSend, messageSend)
@@ -3955,10 +3974,7 @@ function* chat2Saga() {
 
   Container.listenAction(Chat2Gen.updateLastCoord, onUpdateLastCoord)
 
-  yield* Saga.chainGenerator<Chat2Gen.LoadAttachmentViewPayload>(
-    Chat2Gen.loadAttachmentView,
-    loadAttachmentView
-  )
+  Container.listenAction(Chat2Gen.loadAttachmentView, loadAttachmentView)
 
   Container.listenAction(Chat2Gen.selectedConversation, ensureSelectedMeta)
 

@@ -1,7 +1,7 @@
 // Handles sending requests to the daemon
 import logger from '../logger'
 import Session, {type CancelHandlerType} from './session'
-import {initEngine, initEngineSaga} from './require'
+import {initEngine, initEngineListener, initEngineSaga} from './require'
 import {type RPCError, convertToError} from '../util/errors'
 import {isMobile} from '../constants/platform'
 import {localLog} from '../util/forward-logs'
@@ -9,6 +9,7 @@ import {printOutstandingRPCs, isTesting} from '../local-debug'
 import {resetClient, createClient, rpcLog, type createClientType} from './index.platform'
 import {createBatchChangeWaiting} from '../actions/waiting-gen'
 import engineSaga from './saga'
+import engineListener from './listener'
 import throttle from 'lodash/throttle'
 import type {CustomResponseIncomingCallMapType, IncomingCallMapType} from '.'
 import type {SessionID, SessionIDKey, WaitingHandlerType, MethodKey} from './types'
@@ -348,6 +349,7 @@ const makeEngine = (dispatch: TypedDispatch) => {
     }
     initEngine(engine as any)
     initEngineSaga(engineSaga)
+    initEngineListener(engineListener)
   }
   return engine
 }

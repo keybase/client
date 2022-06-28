@@ -1,5 +1,6 @@
 // Helper to get engine and break require loops
 import {Engine} from '.'
+export type {ListenerApi} from '../util/redux-toolkit'
 
 let _engine: Engine
 export function initEngine(e: Engine) {
@@ -26,4 +27,12 @@ export function initEngineSaga(es: EngineSaga) {
 export function getEngineSaga() {
   // TODO codemod issue
   return _engineSaga as any
+}
+
+let _engineListener: any
+export function initEngineListener(l: any) {
+  _engineListener = l
+}
+export function getEngineListener() {
+  return _engineListener as any
 }
