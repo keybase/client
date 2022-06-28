@@ -36,7 +36,7 @@ const onLoggedOut = (state: Container.TypedState) => {
   return undefined
 }
 
-const onLog = (action: EngineGen.Keybase1LogUiLogPayload) => {
+const onLog = (_: unknown, action: EngineGen.Keybase1LogUiLogPayload) => {
   log(action.payload.params)
 }
 
@@ -49,14 +49,14 @@ const onDisconnected = () => {
   return ConfigGen.createDaemonError({daemonError: new Error('Disconnected')})
 }
 
-const onTrackingInfo = (action: EngineGen.Keybase1NotifyTrackingTrackingInfoPayload) =>
+const onTrackingInfo = (_: unknown, action: EngineGen.Keybase1NotifyTrackingTrackingInfoPayload) =>
   ConfigGen.createFollowerInfoUpdated({
     followees: action.payload.params.followees || [],
     followers: action.payload.params.followers || [],
     uid: action.payload.params.uid,
   })
 
-const onHTTPSrvInfoUpdated = (action: EngineGen.Keybase1NotifyServiceHTTPSrvInfoUpdatePayload) =>
+const onHTTPSrvInfoUpdated = (_: unknown, action: EngineGen.Keybase1NotifyServiceHTTPSrvInfoUpdatePayload) =>
   ConfigGen.createUpdateHTTPSrvInfo({
     address: action.payload.params.info.address,
     token: action.payload.params.info.token,
@@ -419,6 +419,7 @@ const updateServerConfig = async (state: Container.TypedState, action: ConfigGen
   })
 
 const newNavigation = (
+  _: unknown,
   action:
     | RouteTreeGen.SetParamsPayload
     | RouteTreeGen.NavigateAppendPayload
@@ -505,7 +506,7 @@ const logoutAndTryToLogInAs = async (
   return ConfigGen.createSetDefaultUsername({username: action.payload.username})
 }
 
-const gregorPushState = (action: GregorGen.PushStatePayload) => {
+const gregorPushState = (_: unknown, action: GregorGen.PushStatePayload) => {
   const actions: Array<Container.TypedActions> = []
   const items = action.payload.state
   const lastSeenItem = items.find(i => i.item && i.item.category === 'whatsNewLastSeenVersion')
@@ -586,11 +587,11 @@ const emitStartupOnLoadLoggedIn = (_: Container.TypedState, action: ConfigGen.Lo
 function* configSaga() {
   // Start the handshake process. This means we tell all sagas we're handshaking with the daemon. If another
   // saga needs to do something before we leave the loading screen they should call daemonHandshakeWait
-  yield* Saga.chainAction2([ConfigGen.restartHandshake, ConfigGen.startHandshake], startHandshake)
+  Container.listenAction([ConfigGen.restartHandshake, ConfigGen.startHandshake], startHandshake)
   // When there are no more waiters, we can show the actual app
-  yield* Saga.chainAction2(ConfigGen.daemonHandshakeWait, maybeDoneWithDaemonHandshake)
+  Container.listenAction(ConfigGen.daemonHandshakeWait, maybeDoneWithDaemonHandshake)
   // darkmode
-  yield* Saga.chainAction2(ConfigGen.daemonHandshake, loadDarkPrefs)
+  Container.listenAction(ConfigGen.daemonHandshake, loadDarkPrefs)
   // Re-get info about our account if you log in/we're done handshaking/became reachable
   yield* Saga.chainGenerator<
     ConfigGen.LoggedInPayload | ConfigGen.DaemonHandshakePayload | GregorGen.UpdateReachablePayload
@@ -606,14 +607,14 @@ function* configSaga() {
     loadDaemonAccounts
   )
 
-  yield* Saga.chainAction2(ConfigGen.daemonHandshakeDone, emitStartupOnLoadNotInARush)
-  yield* Saga.chainAction2(ConfigGen.daemonHandshakeDone, emitStartupOnLoadDaemonConnectedOnce)
-  yield* Saga.chainAction2(ConfigGen.loggedIn, emitStartupOnLoadLoggedIn)
-  yield* Saga.chainAction2(ConfigGen.loggedIn, emitStartupOnLoadNotInARushLoggedIn)
+  Container.listenAction(ConfigGen.daemonHandshakeDone, emitStartupOnLoadNotInARush)
+  Container.listenAction(ConfigGen.daemonHandshakeDone, emitStartupOnLoadDaemonConnectedOnce)
+  Container.listenAction(ConfigGen.loggedIn, emitStartupOnLoadLoggedIn)
+  Container.listenAction(ConfigGen.loggedIn, emitStartupOnLoadNotInARushLoggedIn)
 
-  yield* Saga.chainAction2(ConfigGen.logoutAndTryToLogInAs, logoutAndTryToLogInAs)
+  Container.listenAction(ConfigGen.logoutAndTryToLogInAs, logoutAndTryToLogInAs)
 
-  yield* Saga.chainAction(
+  Container.listenAction(
     [
       RouteTreeGen.setParams,
       RouteTreeGen.navigateAppend,
@@ -627,10 +628,10 @@ function* configSaga() {
     newNavigation
   )
   // If you start logged in we don't get the incoming call from the daemon so we generate our own here
-  yield* Saga.chainAction2(ConfigGen.daemonHandshakeDone, emitInitialLoggedIn)
+  Container.listenAction(ConfigGen.daemonHandshakeDone, emitInitialLoggedIn)
 
   // Like handshake but in reverse, ask sagas to do stuff before we tell the server to log us out
-  yield* Saga.chainAction2(ConfigGen.logout, startLogoutHandshakeIfAllowed)
+  Container.listenAction(ConfigGen.logout, startLogoutHandshakeIfAllowed)
   // Give time for all waiters to register and allow the case where there are no waiters
   yield* Saga.chainGenerator<ConfigGen.LogoutHandshakePayload>(ConfigGen.logoutHandshake, allowLogoutWaiters)
   yield* Saga.chainGenerator<ConfigGen.LogoutHandshakeWaitPayload>(
@@ -638,38 +639,38 @@ function* configSaga() {
     maybeDoneWithLogoutHandshake
   )
   // When we're all done lets clean up
-  yield* Saga.chainAction2(ConfigGen.loggedOut, resetGlobalStore)
+  Container.listenAction(ConfigGen.loggedOut, resetGlobalStore)
   // Store per user server config info
-  yield* Saga.chainAction2(ConfigGen.loadOnStart, updateServerConfig)
+  Container.listenAction(ConfigGen.loadOnStart, updateServerConfig)
 
-  yield* Saga.chainAction2(ConfigGen.setDeletedSelf, showDeletedSelfRootPage)
+  Container.listenAction(ConfigGen.setDeletedSelf, showDeletedSelfRootPage)
 
-  yield* Saga.chainAction2(EngineGen.keybase1NotifySessionLoggedIn, onLoggedIn)
-  yield* Saga.chainAction2(EngineGen.keybase1NotifySessionLoggedOut, onLoggedOut)
-  yield* Saga.chainAction(EngineGen.keybase1LogUiLog, onLog)
-  yield* Saga.chainAction2(EngineGen.connected, onConnected)
-  yield* Saga.chainAction2(EngineGen.disconnected, onDisconnected)
-  yield* Saga.chainAction(EngineGen.keybase1NotifyTrackingTrackingInfo, onTrackingInfo)
-  yield* Saga.chainAction(EngineGen.keybase1NotifyServiceHTTPSrvInfoUpdate, onHTTPSrvInfoUpdated)
+  Container.listenAction(EngineGen.keybase1NotifySessionLoggedIn, onLoggedIn)
+  Container.listenAction(EngineGen.keybase1NotifySessionLoggedOut, onLoggedOut)
+  Container.listenAction(EngineGen.keybase1LogUiLog, onLog)
+  Container.listenAction(EngineGen.connected, onConnected)
+  Container.listenAction(EngineGen.disconnected, onDisconnected)
+  Container.listenAction(EngineGen.keybase1NotifyTrackingTrackingInfo, onTrackingInfo)
+  Container.listenAction(EngineGen.keybase1NotifyServiceHTTPSrvInfoUpdate, onHTTPSrvInfoUpdated)
 
   // Listen for updates to `whatsNewLastSeenVersion`
-  yield* Saga.chainAction(GregorGen.pushState, gregorPushState)
+  Container.listenAction(GregorGen.pushState, gregorPushState)
 
-  yield* Saga.chainAction2(SettingsGen.loadedSettings, maybeLoadAppLink)
+  Container.listenAction(SettingsGen.loadedSettings, maybeLoadAppLink)
 
-  yield* Saga.chainAction2(ConfigGen.setDarkModePreference, saveDarkPrefs)
-  yield* Saga.chainAction2(ConfigGen.loadOnStart, getFollowerInfo)
+  Container.listenAction(ConfigGen.setDarkModePreference, saveDarkPrefs)
+  Container.listenAction(ConfigGen.loadOnStart, getFollowerInfo)
 
-  yield* Saga.chainAction2(ConfigGen.toggleRuntimeStats, toggleRuntimeStats)
+  Container.listenAction(ConfigGen.toggleRuntimeStats, toggleRuntimeStats)
 
-  yield* Saga.chainAction2(PushGen.showPermissionsPrompt, onShowPermissionsPrompt)
-  yield* Saga.chainAction2(ConfigGen.androidShare, onAndroidShare)
+  Container.listenAction(PushGen.showPermissionsPrompt, onShowPermissionsPrompt)
+  Container.listenAction(ConfigGen.androidShare, onAndroidShare)
 
   // Kick off platform specific stuff
   yield Saga.spawn(PlatformSpecific.platformConfigSaga)
   yield Saga.spawn(criticalOutOfDateCheck)
 
-  yield* Saga.chainAction2(ConfigGen.loadOnLoginStartup, loadOnLoginStartup)
+  Container.listenAction(ConfigGen.loadOnLoginStartup, loadOnLoginStartup)
 }
 
 export default configSaga
