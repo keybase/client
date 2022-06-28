@@ -138,7 +138,7 @@ const getPeopleData = async (state: Container.TypedState, action: PeopleGen.GetP
   }
 }
 
-const dismissWotNotifications = async (action: PeopleGen.DismissWotNotificationsPayload) => {
+const dismissWotNotifications = async (_: unknown, action: PeopleGen.DismissWotNotificationsPayload) => {
   try {
     await RPCTypes.wotDismissWotNotificationsRpcPromise({
       vouchee: action.payload.vouchee,
@@ -149,12 +149,12 @@ const dismissWotNotifications = async (action: PeopleGen.DismissWotNotifications
   }
 }
 
-const receivedBadgeState = (action: NotificationsGen.ReceivedBadgeStatePayload) =>
+const receivedBadgeState = (_: unknown, action: NotificationsGen.ReceivedBadgeStatePayload) =>
   PeopleGen.createBadgeAppForWotNotifications({
     updates: new Map<string, Types.WotUpdate>(Object.entries(action.payload.badgeState.wotUpdates || {})),
   })
 
-const dismissAnnouncement = async (action: PeopleGen.DismissAnnouncementPayload) => {
+const dismissAnnouncement = async (_: unknown, action: PeopleGen.DismissAnnouncementPayload) => {
   await RPCTypes.homeHomeDismissAnnouncementRpcPromise({
     i: action.payload.id,
   })
@@ -173,7 +173,7 @@ const markViewed = async () => {
   }
 }
 
-const skipTodo = async (action: PeopleGen.SkipTodoPayload) => {
+const skipTodo = async (_: unknown, action: PeopleGen.SkipTodoPayload) => {
   try {
     await RPCTypes.homeHomeSkipTodoTypeRpcPromise({
       t: RPCTypes.HomeScreenTodoType[action.payload.type],
@@ -215,7 +215,7 @@ const onTeamBuildingAdded = (_: Container.TypedState, action: TeamBuildingGen.Ad
   ]
 }
 
-const maybeMarkViewed = (action: RouteTreeGen.OnNavChangedPayload) => {
+const maybeMarkViewed = (_: unknown, action: RouteTreeGen.OnNavChangedPayload) => {
   const {prev, next} = action.payload
   if (
     Router2Constants.getRouteTab(prev) === Tabs.peopleTab &&
@@ -232,15 +232,15 @@ function* peopleTeamBuildingSaga() {
 }
 
 const peopleSaga = function* () {
-  yield* Saga.chainAction2(PeopleGen.getPeopleData, getPeopleData)
-  yield* Saga.chainAction2(PeopleGen.markViewed, markViewed)
-  yield* Saga.chainAction(PeopleGen.skipTodo, skipTodo)
-  yield* Saga.chainAction(PeopleGen.dismissAnnouncement, dismissAnnouncement)
-  yield* Saga.chainAction(NotificationsGen.receivedBadgeState, receivedBadgeState)
-  yield* Saga.chainAction(PeopleGen.dismissWotNotifications, dismissWotNotifications)
-  yield* Saga.chainAction2(EngineGen.keybase1HomeUIHomeUIRefresh, homeUIRefresh)
-  yield* Saga.chainAction2(EngineGen.connected, connected)
-  yield* Saga.chainAction(RouteTreeGen.onNavChanged, maybeMarkViewed)
+  Container.listenAction(PeopleGen.getPeopleData, getPeopleData)
+  Container.listenAction(PeopleGen.markViewed, markViewed)
+  Container.listenAction(PeopleGen.skipTodo, skipTodo)
+  Container.listenAction(PeopleGen.dismissAnnouncement, dismissAnnouncement)
+  Container.listenAction(NotificationsGen.receivedBadgeState, receivedBadgeState)
+  Container.listenAction(PeopleGen.dismissWotNotifications, dismissWotNotifications)
+  Container.listenAction(EngineGen.keybase1HomeUIHomeUIRefresh, homeUIRefresh)
+  Container.listenAction(EngineGen.connected, connected)
+  Container.listenAction(RouteTreeGen.onNavChanged, maybeMarkViewed)
   yield* peopleTeamBuildingSaga()
 }
 

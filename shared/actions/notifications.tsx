@@ -4,7 +4,6 @@ import * as EngineGen from './engine-gen-gen'
 import * as NotificationsGen from './notifications-gen'
 import * as FsGen from './fs-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
-import * as Saga from '../util/saga'
 import * as Container from '../util/container'
 import logger from '../logger'
 import {isMobile} from '../constants/platform'
@@ -54,7 +53,7 @@ const setupNotifications = async () => {
   }
 }
 
-const createBadgeState = (action: EngineGen.Keybase1NotifyBadgesBadgeStatePayload) =>
+const createBadgeState = (_: unknown, action: EngineGen.Keybase1NotifyBadgesBadgeStatePayload) =>
   NotificationsGen.createReceivedBadgeState({badgeState: action.payload.params.badgeState})
 
 const receivedBadgeState = (
@@ -68,12 +67,12 @@ const receivedBadgeState = (
   ]
 }
 
-const receivedRootAuditError = (action: EngineGen.Keybase1NotifyAuditRootAuditErrorPayload) =>
+const receivedRootAuditError = (_: unknown, action: EngineGen.Keybase1NotifyAuditRootAuditErrorPayload) =>
   ConfigGen.createGlobalError({
     globalError: new Error(`Keybase is buggy, please report this: ${action.payload.params.message}`),
   })
 
-const receivedBoxAuditError = (action: EngineGen.Keybase1NotifyAuditBoxAuditErrorPayload) =>
+const receivedBoxAuditError = (_: unknown, action: EngineGen.Keybase1NotifyAuditBoxAuditErrorPayload) =>
   ConfigGen.createGlobalError({
     globalError: new Error(
       `Keybase had a problem loading a team, please report this with \`keybase log send\`: ${action.payload.params.message}`
@@ -81,11 +80,11 @@ const receivedBoxAuditError = (action: EngineGen.Keybase1NotifyAuditBoxAuditErro
   })
 
 function* notificationsSaga() {
-  yield* Saga.chainAction2(NotificationsGen.receivedBadgeState, receivedBadgeState)
-  yield* Saga.chainAction(EngineGen.keybase1NotifyAuditRootAuditError, receivedRootAuditError)
-  yield* Saga.chainAction(EngineGen.keybase1NotifyAuditBoxAuditError, receivedBoxAuditError)
-  yield* Saga.chainAction2(EngineGen.connected, setupNotifications)
-  yield* Saga.chainAction(EngineGen.keybase1NotifyBadgesBadgeState, createBadgeState)
+  Container.listenAction(NotificationsGen.receivedBadgeState, receivedBadgeState)
+  Container.listenAction(EngineGen.keybase1NotifyAuditRootAuditError, receivedRootAuditError)
+  Container.listenAction(EngineGen.keybase1NotifyAuditBoxAuditError, receivedBoxAuditError)
+  Container.listenAction(EngineGen.connected, setupNotifications)
+  Container.listenAction(EngineGen.keybase1NotifyBadgesBadgeState, createBadgeState)
 }
 
 export default notificationsSaga

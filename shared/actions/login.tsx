@@ -104,8 +104,8 @@ const loginError = () => ConfigGen.createSetUserSwitching({userSwitching: false}
 function* loginSaga() {
   // Actually log in
   yield* Saga.chainGenerator<LoginGen.LoginPayload>(LoginGen.login, login)
-  yield* Saga.chainAction2(LoginGen.loadIsOnline, loadIsOnline)
-  yield* Saga.chainAction2(LoginGen.loginError, loginError)
+  Container.listenAction(LoginGen.loadIsOnline, loadIsOnline)
+  Container.listenAction(LoginGen.loginError, loginError)
 }
 
 export default loginSaga

@@ -9,13 +9,12 @@ import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Saga from '../util/saga'
 import * as Tabs from '../constants/tabs'
 import logger from '../logger'
-import {isMobile} from '../constants/platform'
 import HiddenString from '../util/hidden-string'
 import type {RPCError} from '../util/errors'
-import type * as Container from '../constants/reducer'
+import * as Container from '../util/container'
 import {devicesTab as settingsDevicesTab} from '../constants/settings'
 
-const devicesRoot = isMobile
+const devicesRoot = Container.isMobile
   ? ([Tabs.settingsTab, settingsDevicesTab] as const)
   : ([Tabs.devicesTab, 'devicesRoot'] as const)
 
@@ -436,7 +435,7 @@ function* startProvisioning(state: Container.TypedState) {
       params: {
         clientType: RPCTypes.ClientType.guiMain,
         deviceName: '',
-        deviceType: isMobile ? 'mobile' : 'desktop',
+        deviceType: Container.isMobile ? 'mobile' : 'desktop',
         doUserSwitch: true,
         paperKey: '',
         username: username,
@@ -530,7 +529,7 @@ const submitTextCode = (state: Container.TypedState) =>
   ProvisioningManager.getSingleton().submitTextCode(state)
 const submitGPGMethod = (state: Container.TypedState, action: ProvisionGen.SubmitGPGMethodPayload) =>
   ProvisioningManager.getSingleton().submitGPGMethod(state, action)
-const submitGPGSignOK = (action: ProvisionGen.SubmitGPGSignOKPayload) =>
+const submitGPGSignOK = (_: unknown, action: ProvisionGen.SubmitGPGSignOKPayload) =>
   ProvisioningManager.getSingleton().submitGPGSignOK(action)
 const submitPasswordOrPaperkey = (
   state: Container.TypedState,
@@ -566,7 +565,7 @@ const showPaperkeyPage = (state: Container.TypedState) =>
   !state.provision.error.stringValue() &&
   RouteTreeGen.createNavigateAppend({path: ['paperkey'], replace: true})
 
-const showFinalErrorPage = (action: ProvisionGen.ShowFinalErrorPagePayload) => {
+const showFinalErrorPage = (_: unknown, action: ProvisionGen.ShowFinalErrorPagePayload) => {
   const parentPath = action.payload.fromDeviceAdd ? devicesRoot : (['login'] as const)
   const replace = !action.payload.fromDeviceAdd
   const path = ['error'] as const
@@ -592,7 +591,7 @@ const showUsernameEmailPage = async (
   })
 }
 
-const forgotUsername = async (action: ProvisionGen.ForgotUsernamePayload) => {
+const forgotUsername = async (_: unknown, action: ProvisionGen.ForgotUsernamePayload) => {
   if (action.payload.email) {
     try {
       await RPCTypes.accountRecoverUsernameWithEmailRpcPromise(
@@ -646,28 +645,25 @@ function* provisionSaga() {
   yield* Saga.chainGenerator<ProvisionGen.AddNewDevicePayload>(ProvisionGen.addNewDevice, addNewDevice)
 
   // Submits
-  yield* Saga.chainAction2(ProvisionGen.submitDeviceSelect, submitDeviceSelect)
-  yield* Saga.chainAction2(ProvisionGen.submitDeviceName, submitDeviceName)
-  yield* Saga.chainAction2(ProvisionGen.submitTextCode, submitTextCode)
-  yield* Saga.chainAction2(ProvisionGen.submitGPGMethod, submitGPGMethod)
-  yield* Saga.chainAction(ProvisionGen.submitGPGSignOK, submitGPGSignOK)
-  yield* Saga.chainAction2(
-    [ProvisionGen.submitPassword, ProvisionGen.submitPaperkey],
-    submitPasswordOrPaperkey
-  )
+  Container.listenAction(ProvisionGen.submitDeviceSelect, submitDeviceSelect)
+  Container.listenAction(ProvisionGen.submitDeviceName, submitDeviceName)
+  Container.listenAction(ProvisionGen.submitTextCode, submitTextCode)
+  Container.listenAction(ProvisionGen.submitGPGMethod, submitGPGMethod)
+  Container.listenAction(ProvisionGen.submitGPGSignOK, submitGPGSignOK)
+  Container.listenAction([ProvisionGen.submitPassword, ProvisionGen.submitPaperkey], submitPasswordOrPaperkey)
 
   // Screens
-  yield* Saga.chainAction2(ProvisionGen.startProvision, showUsernameEmailPage)
-  yield* Saga.chainAction2(ProvisionGen.showDeviceListPage, showDeviceListPage)
-  yield* Saga.chainAction2(ProvisionGen.showNewDeviceNamePage, showNewDeviceNamePage)
-  yield* Saga.chainAction2(ProvisionGen.showCodePage, showCodePage)
-  yield* Saga.chainAction2(ProvisionGen.showGPGPage, showGPGPage)
-  yield* Saga.chainAction2(ProvisionGen.showPasswordPage, showPasswordPage)
-  yield* Saga.chainAction2(ProvisionGen.showPaperkeyPage, showPaperkeyPage)
-  yield* Saga.chainAction(ProvisionGen.showFinalErrorPage, showFinalErrorPage)
-  yield* Saga.chainAction(ProvisionGen.forgotUsername, forgotUsername)
+  Container.listenAction(ProvisionGen.startProvision, showUsernameEmailPage)
+  Container.listenAction(ProvisionGen.showDeviceListPage, showDeviceListPage)
+  Container.listenAction(ProvisionGen.showNewDeviceNamePage, showNewDeviceNamePage)
+  Container.listenAction(ProvisionGen.showCodePage, showCodePage)
+  Container.listenAction(ProvisionGen.showGPGPage, showGPGPage)
+  Container.listenAction(ProvisionGen.showPasswordPage, showPasswordPage)
+  Container.listenAction(ProvisionGen.showPaperkeyPage, showPaperkeyPage)
+  Container.listenAction(ProvisionGen.showFinalErrorPage, showFinalErrorPage)
+  Container.listenAction(ProvisionGen.forgotUsername, forgotUsername)
 
-  yield* Saga.chainAction2(ProvisionGen.cancelProvision, maybeCancelProvision)
+  Container.listenAction(ProvisionGen.cancelProvision, maybeCancelProvision)
   yield* Saga.chainGenerator(ProvisionGen.backToDeviceList, backToDeviceList)
 }
 
