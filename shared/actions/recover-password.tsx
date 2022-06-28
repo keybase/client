@@ -9,6 +9,7 @@ import * as RouteTreeGen from './route-tree-gen'
 import * as Saga from '../util/saga'
 import HiddenString from '../util/hidden-string'
 import {RPCError} from '../util/errors'
+import logger from '../logger'
 
 const chooseDevice =
   (replaceRoute: boolean) =>
@@ -141,11 +142,7 @@ const getPaperKeyOrPw = (
   })
 }
 
-function* startRecoverPassword(
-  _: any,
-  action: RecoverPasswordGen.StartRecoverPasswordPayload,
-  logger: Saga.SagaLogger
-) {
+function* startRecoverPassword(_: unknown, action: RecoverPasswordGen.StartRecoverPasswordPayload) {
   if (action.payload.abortProvisioning) {
     yield Saga.put(ProvisionGen.createCancelProvision())
   }
@@ -188,7 +185,7 @@ function* startRecoverPassword(
   }
 }
 
-const displayDeviceSelect = (action: RecoverPasswordGen.DisplayDeviceSelectPayload) => {
+const displayDeviceSelect = (_: unknown, action: RecoverPasswordGen.DisplayDeviceSelectPayload) => {
   return RouteTreeGen.createNavigateAppend({
     path: ['recoverPasswordDeviceSelector'],
     replace: !!action.payload.replaceRoute,
@@ -224,12 +221,12 @@ function* recoverPasswordSaga() {
     RecoverPasswordGen.startRecoverPassword,
     startRecoverPassword
   )
-  yield* Saga.chainAction(RecoverPasswordGen.displayDeviceSelect, displayDeviceSelect)
-  yield* Saga.chainAction2(RecoverPasswordGen.showExplainDevice, showExplainDevice)
-  yield* Saga.chainAction2(RecoverPasswordGen.displayError, displayError)
-  yield* Saga.chainAction2(RecoverPasswordGen.restartRecovery, restartRecovery)
-  yield* Saga.chainAction2(RecoverPasswordGen.promptResetPassword, promptResetPassword)
-  yield* Saga.chainAction2(RecoverPasswordGen.completeResetPassword, completeResetPassword)
+  Container.listenAction(RecoverPasswordGen.displayDeviceSelect, displayDeviceSelect)
+  Container.listenAction(RecoverPasswordGen.showExplainDevice, showExplainDevice)
+  Container.listenAction(RecoverPasswordGen.displayError, displayError)
+  Container.listenAction(RecoverPasswordGen.restartRecovery, restartRecovery)
+  Container.listenAction(RecoverPasswordGen.promptResetPassword, promptResetPassword)
+  Container.listenAction(RecoverPasswordGen.completeResetPassword, completeResetPassword)
 }
 
 export default recoverPasswordSaga

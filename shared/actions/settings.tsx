@@ -12,7 +12,7 @@ import * as WaitingGen from './waiting-gen'
 import logger from '../logger'
 import openURL from '../util/open-url'
 import trim from 'lodash/trim'
-import type * as Container from '../util/container'
+import * as Container from '../util/container'
 import type * as Types from '../constants/types/settings'
 import type {RPCError} from '../util/errors'
 import {isAndroidNewerThanN, androidIsTestDevice, pprofDir, version} from '../constants/platform'
@@ -121,7 +121,7 @@ const toggleNotifications = async (state: Container.TypedState) => {
   return SettingsGen.createNotificationsSaved()
 }
 
-const reclaimInvite = async (action: SettingsGen.InvitesReclaimPayload) => {
+const reclaimInvite = async (_: unknown, action: SettingsGen.InvitesReclaimPayload) => {
   try {
     await RPCTypes.apiserverPostRpcPromise(
       {
@@ -195,7 +195,7 @@ const refreshInvites = async () => {
   })
 }
 
-const sendInvite = async (action: SettingsGen.InvitesSendPayload) => {
+const sendInvite = async (_: unknown, action: SettingsGen.InvitesSendPayload) => {
   try {
     const {email, message} = action.payload
     const args = [{key: 'email', value: trim(email)}]
@@ -336,8 +336,7 @@ const deleteAccountForever = async (
 
 const loadSettings = async (
   state: Container.TypedState,
-  _: SettingsGen.LoadSettingsPayload | ConfigGen.BootstrapStatusLoadedPayload,
-  logger: Saga.SagaLogger
+  _: SettingsGen.LoadSettingsPayload | ConfigGen.BootstrapStatusLoadedPayload
 ) => {
   if (!state.config.loggedIn) {
     return false
@@ -368,11 +367,7 @@ const loadSettings = async (
 const visFromBoolean = (searchable: boolean): ChatTypes.Keybase1.IdentityVisibility =>
   searchable ? ChatTypes.Keybase1.IdentityVisibility.public : ChatTypes.Keybase1.IdentityVisibility.private
 
-const editEmail = async (
-  state: Container.TypedState,
-  action: SettingsGen.EditEmailPayload,
-  logger: Saga.SagaLogger
-) => {
+const editEmail = async (state: Container.TypedState, action: SettingsGen.EditEmailPayload) => {
   // TODO: consider allowing more than one action here
   // TODO: handle errors
   if (action.payload.delete) {
@@ -402,7 +397,7 @@ const editEmail = async (
   logger.warn('Empty editEmail action')
   return false
 }
-const editPhone = async (action: SettingsGen.EditPhonePayload, logger: Saga.SagaLogger) => {
+const editPhone = async (_: unknown, action: SettingsGen.EditPhonePayload) => {
   // TODO: handle errors
   let acted = false
   if (action.payload.delete) {
@@ -461,11 +456,11 @@ function* processorProfile(_: Container.TypedState, action: SettingsGen.Processo
   yield Saga.put(WaitingGen.createDecrementWaiting({key: Constants.processorProfileInProgressKey}))
 }
 
-const rememberPassword = async (action: SettingsGen.OnChangeRememberPasswordPayload) => {
+const rememberPassword = async (_: unknown, action: SettingsGen.OnChangeRememberPasswordPayload) => {
   await RPCTypes.configSetRememberPassphraseRpcPromise({remember: action.payload.remember})
 }
 
-const checkPassword = async (action: SettingsGen.CheckPasswordPayload) => {
+const checkPassword = async (_: unknown, action: SettingsGen.CheckPasswordPayload) => {
   const res = await RPCTypes.accountPassphraseCheckRpcPromise(
     {passphrase: action.payload.password.stringValue()},
     Constants.checkPasswordWaitingKey
@@ -498,7 +493,7 @@ const loadProxyData = async () => {
   }
 }
 
-const saveProxyData = async (proxyDataPayload: SettingsGen.SaveProxyDataPayload) => {
+const saveProxyData = async (_: unknown, proxyDataPayload: SettingsGen.SaveProxyDataPayload) => {
   try {
     await RPCTypes.configSetProxyDataRpcPromise(proxyDataPayload.payload)
   } catch (err) {
@@ -674,17 +669,17 @@ const loadHasRandomPW = async (state: Container.TypedState) => {
 }
 
 // Mark that we are not randomPW anymore if we got a password change.
-const passwordChanged = (action: EngineGen.Keybase1NotifyUsersPasswordChangedPayload) => {
+const passwordChanged = (_: unknown, action: EngineGen.Keybase1NotifyUsersPasswordChangedPayload) => {
   const randomPW = action.payload.params.state === RPCTypes.PassphraseState.random
   return SettingsGen.createLoadedHasRandomPw({randomPW})
 }
 
-const stop = async (action: SettingsGen.StopPayload) => {
+const stop = async (_: unknown, action: SettingsGen.StopPayload) => {
   await RPCTypes.ctlStopRpcPromise({exitCode: action.payload.exitCode})
   return false as const
 }
 
-const addPhoneNumber = async (action: SettingsGen.AddPhoneNumberPayload, logger: Saga.SagaLogger) => {
+const addPhoneNumber = async (_: unknown, action: SettingsGen.AddPhoneNumberPayload) => {
   logger.info('adding phone number')
   const {phoneNumber, searchable} = action.payload
   const visibility = searchable ? RPCTypes.IdentityVisibility.public : RPCTypes.IdentityVisibility.private
@@ -704,8 +699,8 @@ const addPhoneNumber = async (action: SettingsGen.AddPhoneNumberPayload, logger:
 }
 
 const resendVerificationForPhoneNumber = async (
-  action: SettingsGen.ResendVerificationForPhoneNumberPayload,
-  logger: Saga.SagaLogger
+  _: unknown,
+  action: SettingsGen.ResendVerificationForPhoneNumberPayload
 ) => {
   const {phoneNumber} = action.payload
   logger.info(`resending verification code for ${phoneNumber}`)
@@ -723,7 +718,7 @@ const resendVerificationForPhoneNumber = async (
   }
 }
 
-const verifyPhoneNumber = async (action: SettingsGen.VerifyPhoneNumberPayload, logger: Saga.SagaLogger) => {
+const verifyPhoneNumber = async (_: unknown, action: SettingsGen.VerifyPhoneNumberPayload) => {
   logger.info('verifying phone number')
   const {code, phoneNumber} = action.payload
   try {
@@ -743,8 +738,7 @@ const verifyPhoneNumber = async (action: SettingsGen.VerifyPhoneNumberPayload, l
 
 const loadContactImportEnabled = async (
   state: Container.TypedState,
-  action: SettingsGen.LoadContactImportEnabledPayload | ConfigGen.LoadOnStartPayload,
-  logger: Saga.SagaLogger
+  action: SettingsGen.LoadContactImportEnabledPayload | ConfigGen.LoadOnStartPayload
 ) => {
   if (!state.config.loggedIn) {
     return
@@ -774,8 +768,7 @@ const loadContactImportEnabled = async (
 
 const editContactImportEnabled = async (
   state: Container.TypedState,
-  action: SettingsGen.EditContactImportEnabledPayload,
-  logger: Saga.SagaLogger
+  action: SettingsGen.EditContactImportEnabledPayload
 ) => {
   if (!state.config.username) {
     logger.warn('no username')
@@ -791,11 +784,7 @@ const editContactImportEnabled = async (
   return SettingsGen.createLoadContactImportEnabled()
 }
 
-const addEmail = async (
-  state: Container.TypedState,
-  action: SettingsGen.AddEmailPayload,
-  logger: Saga.SagaLogger
-) => {
+const addEmail = async (state: Container.TypedState, action: SettingsGen.AddEmailPayload) => {
   if (state.settings.email.error) {
     logger.info('email error; bailing')
     return
@@ -819,8 +808,8 @@ const addEmail = async (
 }
 
 const emailAddressVerified = (
-  action: EngineGen.Keybase1NotifyEmailAddressEmailAddressVerifiedPayload,
-  logger: Saga.SagaLogger
+  _: unknown,
+  action: EngineGen.Keybase1NotifyEmailAddressEmailAddressVerifiedPayload
 ) => {
   logger.info('email verified')
   return SettingsGen.createEmailVerified({email: action.payload.params.emailAddress})
@@ -845,65 +834,65 @@ const maybeClearAddedEmail = (state: Container.TypedState, action: RouteTreeGen.
 }
 
 function* settingsSaga() {
-  yield* Saga.chainAction(SettingsGen.invitesReclaim, reclaimInvite)
-  yield* Saga.chainAction2(SettingsGen.invitesRefresh, refreshInvites)
-  yield* Saga.chainAction(SettingsGen.invitesSend, sendInvite)
+  Container.listenAction(SettingsGen.invitesReclaim, reclaimInvite)
+  Container.listenAction(SettingsGen.invitesRefresh, refreshInvites)
+  Container.listenAction(SettingsGen.invitesSend, sendInvite)
   yield* Saga.chainGenerator<SettingsGen.NotificationsRefreshPayload>(
     SettingsGen.notificationsRefresh,
     refreshNotifications
   )
-  yield* Saga.chainAction2(SettingsGen.notificationsToggle, toggleNotifications)
-  yield* Saga.chainAction2(SettingsGen.dbNuke, dbNuke)
-  yield* Saga.chainAction2(SettingsGen.deleteAccountForever, deleteAccountForever)
-  yield* Saga.chainAction2(SettingsGen.loadSettings, loadSettings)
-  yield* Saga.chainAction2(SettingsGen.onSubmitNewPassword, onSubmitNewPassword)
-  yield* Saga.chainAction2(SettingsGen.onUpdatePGPSettings, onUpdatePGPSettings)
+  Container.listenAction(SettingsGen.notificationsToggle, toggleNotifications)
+  Container.listenAction(SettingsGen.dbNuke, dbNuke)
+  Container.listenAction(SettingsGen.deleteAccountForever, deleteAccountForever)
+  Container.listenAction(SettingsGen.loadSettings, loadSettings)
+  Container.listenAction(SettingsGen.onSubmitNewPassword, onSubmitNewPassword)
+  Container.listenAction(SettingsGen.onUpdatePGPSettings, onUpdatePGPSettings)
   yield* Saga.chainGenerator<SettingsGen.TracePayload>(SettingsGen.trace, trace)
   yield* Saga.chainGenerator<SettingsGen.ProcessorProfilePayload>(
     SettingsGen.processorProfile,
     processorProfile
   )
-  yield* Saga.chainAction2(SettingsGen.loadRememberPassword, getRememberPassword)
-  yield* Saga.chainAction(SettingsGen.onChangeRememberPassword, rememberPassword)
-  yield* Saga.chainAction2(SettingsGen.loadLockdownMode, loadLockdownMode)
-  yield* Saga.chainAction2(SettingsGen.onChangeLockdownMode, setLockdownMode)
-  yield* Saga.chainAction2(SettingsGen.sendFeedback, sendFeedback)
-  yield* Saga.chainAction2(SettingsGen.contactSettingsRefresh, contactSettingsRefresh)
-  yield* Saga.chainAction2(SettingsGen.contactSettingsSaved, contactSettingsSaved)
-  yield* Saga.chainAction2(SettingsGen.unfurlSettingsRefresh, unfurlSettingsRefresh)
-  yield* Saga.chainAction2(SettingsGen.unfurlSettingsSaved, unfurlSettingsSaved)
-  yield* Saga.chainAction2(SettingsGen.loadHasRandomPw, loadHasRandomPW)
-  yield* Saga.chainAction(EngineGen.keybase1NotifyUsersPasswordChanged, passwordChanged)
+  Container.listenAction(SettingsGen.loadRememberPassword, getRememberPassword)
+  Container.listenAction(SettingsGen.onChangeRememberPassword, rememberPassword)
+  Container.listenAction(SettingsGen.loadLockdownMode, loadLockdownMode)
+  Container.listenAction(SettingsGen.onChangeLockdownMode, setLockdownMode)
+  Container.listenAction(SettingsGen.sendFeedback, sendFeedback)
+  Container.listenAction(SettingsGen.contactSettingsRefresh, contactSettingsRefresh)
+  Container.listenAction(SettingsGen.contactSettingsSaved, contactSettingsSaved)
+  Container.listenAction(SettingsGen.unfurlSettingsRefresh, unfurlSettingsRefresh)
+  Container.listenAction(SettingsGen.unfurlSettingsSaved, unfurlSettingsSaved)
+  Container.listenAction(SettingsGen.loadHasRandomPw, loadHasRandomPW)
+  Container.listenAction(EngineGen.keybase1NotifyUsersPasswordChanged, passwordChanged)
 
-  yield* Saga.chainAction(SettingsGen.stop, stop)
+  Container.listenAction(SettingsGen.stop, stop)
 
-  yield* Saga.chainAction(SettingsGen.checkPassword, checkPassword)
+  Container.listenAction(SettingsGen.checkPassword, checkPassword)
 
-  yield* Saga.chainAction2(SettingsGen.loadProxyData, loadProxyData)
-  yield* Saga.chainAction(SettingsGen.saveProxyData, saveProxyData)
+  Container.listenAction(SettingsGen.loadProxyData, loadProxyData)
+  Container.listenAction(SettingsGen.saveProxyData, saveProxyData)
 
   // Phone numbers
-  yield* Saga.chainAction2(SettingsGen.loadDefaultPhoneNumberCountry, loadDefaultPhoneNumberCountry)
-  yield* Saga.chainAction(SettingsGen.editPhone, editPhone)
-  yield* Saga.chainAction(SettingsGen.addPhoneNumber, addPhoneNumber)
-  yield* Saga.chainAction(SettingsGen.verifyPhoneNumber, verifyPhoneNumber)
-  yield* Saga.chainAction(SettingsGen.resendVerificationForPhoneNumber, resendVerificationForPhoneNumber)
+  Container.listenAction(SettingsGen.loadDefaultPhoneNumberCountry, loadDefaultPhoneNumberCountry)
+  Container.listenAction(SettingsGen.editPhone, editPhone)
+  Container.listenAction(SettingsGen.addPhoneNumber, addPhoneNumber)
+  Container.listenAction(SettingsGen.verifyPhoneNumber, verifyPhoneNumber)
+  Container.listenAction(SettingsGen.resendVerificationForPhoneNumber, resendVerificationForPhoneNumber)
 
   // Contacts
-  yield* Saga.chainAction2(
+  Container.listenAction(
     [SettingsGen.loadContactImportEnabled, ConfigGen.loadOnStart],
     loadContactImportEnabled
   )
-  yield* Saga.chainAction2(SettingsGen.editContactImportEnabled, editContactImportEnabled)
+  Container.listenAction(SettingsGen.editContactImportEnabled, editContactImportEnabled)
 
   // Emails
-  yield* Saga.chainAction2(SettingsGen.editEmail, editEmail)
-  yield* Saga.chainAction2(SettingsGen.addEmail, addEmail)
-  yield* Saga.chainAction2(SettingsGen.onSubmitNewEmail, onSubmitNewEmail)
-  yield* Saga.chainAction(EngineGen.keybase1NotifyEmailAddressEmailAddressVerified, emailAddressVerified)
+  Container.listenAction(SettingsGen.editEmail, editEmail)
+  Container.listenAction(SettingsGen.addEmail, addEmail)
+  Container.listenAction(SettingsGen.onSubmitNewEmail, onSubmitNewEmail)
+  Container.listenAction(EngineGen.keybase1NotifyEmailAddressEmailAddressVerified, emailAddressVerified)
 
-  yield* Saga.chainAction2(RouteTreeGen.onNavChanged, maybeClearAddedEmail)
-  yield* Saga.chainAction2(SettingsGen.loginBrowserViaWebAuthToken, loginBrowserViaWebAuthToken)
+  Container.listenAction(RouteTreeGen.onNavChanged, maybeClearAddedEmail)
+  Container.listenAction(SettingsGen.loginBrowserViaWebAuthToken, loginBrowserViaWebAuthToken)
 }
 
 export default settingsSaga
