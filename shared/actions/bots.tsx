@@ -1,5 +1,4 @@
 import * as BotsGen from './bots-gen'
-import * as Saga from '../util/saga'
 import * as Container from '../util/container'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Constants from '../constants/bots'
@@ -9,7 +8,10 @@ import type {RPCError} from '../util/errors'
 
 const pageSize = 100
 
-const onFeaturedBotsUpdate = (action: EngineGen.Keybase1NotifyFeaturedBotsFeaturedBotsUpdatePayload) => {
+const onFeaturedBotsUpdate = (
+  _: unknown,
+  action: EngineGen.Keybase1NotifyFeaturedBotsFeaturedBotsUpdatePayload
+) => {
   const {bots, limit, offset} = action.payload.params
   const loadedAllBots = !bots || bots.length < pageSize
   const page = offset / (limit ?? pageSize)
@@ -69,7 +71,7 @@ const searchFeaturedBots = async (_: Container.TypedState, action: BotsGen.Searc
   }
 }
 
-const searchFeaturedAndUsers = async (action: BotsGen.SearchFeaturedAndUsersPayload) => {
+const searchFeaturedAndUsers = async (_: unknown, action: BotsGen.SearchFeaturedAndUsersPayload) => {
   const {query} = action.payload
   let botRes: RPCTypes.SearchRes | null | undefined
   let userRes: Array<RPCTypes.APIUserSearchResult> | null | undefined
@@ -115,10 +117,10 @@ const searchFeaturedAndUsers = async (action: BotsGen.SearchFeaturedAndUsersPayl
 }
 
 function* botsSaga() {
-  yield* Saga.chainAction2(BotsGen.getFeaturedBots, getFeaturedBots)
-  yield* Saga.chainAction2(BotsGen.searchFeaturedBots, searchFeaturedBots)
-  yield* Saga.chainAction(BotsGen.searchFeaturedAndUsers, searchFeaturedAndUsers)
-  yield* Saga.chainAction(EngineGen.keybase1NotifyFeaturedBotsFeaturedBotsUpdate, onFeaturedBotsUpdate)
+  Container.listenAction(BotsGen.getFeaturedBots, getFeaturedBots)
+  Container.listenAction(BotsGen.searchFeaturedBots, searchFeaturedBots)
+  Container.listenAction(BotsGen.searchFeaturedAndUsers, searchFeaturedAndUsers)
+  Container.listenAction(EngineGen.keybase1NotifyFeaturedBotsFeaturedBotsUpdate, onFeaturedBotsUpdate)
 }
 
 export default botsSaga
