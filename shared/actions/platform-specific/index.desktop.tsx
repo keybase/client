@@ -355,11 +355,7 @@ export const requestAudioPermission = async () => Promise.resolve()
 export const clearWatchPosition = () => {}
 export const watchPositionForMap = async () => Promise.resolve(0)
 
-function* checkNav(
-  _state: Container.TypedState,
-  action: ConfigGen.DaemonHandshakePayload,
-  logger: Saga.SagaLogger
-) {
+function* checkNav(_state: Container.TypedState, action: ConfigGen.DaemonHandshakePayload) {
   // have one
   if (_getNavigator()) {
     return

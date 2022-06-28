@@ -1,37 +1,12 @@
 import * as ConfigGen from '../actions/config-gen'
 import * as Effects from 'redux-saga/effects'
-import isArray from 'lodash/isArray'
 import logger from '../logger'
 import put from './typed-put'
 import type * as RS from 'redux-saga'
 import type * as Types from '@redux-saga/types'
-import type {LogFn} from '../logger/types'
-import type {TypedActions, TypedActionsMap} from '../actions/typed-actions-gen'
+import type {TypedActions} from '../actions/typed-actions-gen'
 import type {TypedState} from '../constants/reducer'
 import {convertToError} from './errors'
-
-type ActionType = keyof TypedActionsMap
-
-export class SagaLogger {
-  error: LogFn
-  warn: LogFn
-  info: LogFn
-  debug: LogFn
-  isTagged = false
-  constructor(actionType: ActionType, fcnTag: string) {
-    const prefix = `${fcnTag} [${actionType}]:`
-    this.debug = (...args) => logger.debug(prefix, ...args)
-    this.error = (...args) => logger.error(prefix, ...args)
-    this.info = (...args) => logger.info(prefix, ...args)
-    this.warn = (...args) => logger.warn(prefix, ...args)
-  }
-  // call this first in your saga if you want chainAction / chainGenerator to log
-  // before and after you run
-  tag = () => {
-    this.info('->')
-    this.isTagged = true
-  }
-}
 
 // Useful in safeTakeEveryPure when you have an array of effects you want to run in order
 function* sequentially(effects: Array<any>): Generator<any, Array<any>, any> {
@@ -44,157 +19,22 @@ function* sequentially(effects: Array<any>): Generator<any, Array<any>, any> {
 
 export type MaybeAction = boolean | TypedActions | TypedActions[] | null
 
-type ActionTypes = keyof TypedActionsMap
-export type ChainActionReturn =
-  | void
-  | TypedActions
-  | null
-  | boolean
-  | Array<ChainActionReturn>
-  | Promise<ChainActionReturn>
-//
-// Get the values of an Array. i.e. ValuesOf<["FOO", "BAR"]> => "FOO" | "BAR"
-type ValuesOf<T extends any[]> = T[number]
-
-interface ChainAction2 {
-  <AT extends ActionTypes>(
-    actions: AT,
-    handler: (state: TypedState, action: TypedActionsMap[AT], logger: SagaLogger) => ChainActionReturn
-  ): Generator<void, void, void>
-
-  <AT extends ActionTypes[]>(
-    actions: AT,
-    handler: (
-      state: TypedState,
-      action: TypedActionsMap[ValuesOf<AT>],
-      logger: SagaLogger
-    ) => ChainActionReturn
-  ): Generator<void, void, void>
-}
-interface ChainAction {
-  <AT extends ActionTypes>(
-    actions: AT,
-    handler: (action: TypedActionsMap[AT], logger: SagaLogger) => ChainActionReturn
-  ): Generator<void, void, void>
-
-  <AT extends ActionTypes[]>(
-    actions: AT,
-    handler: (action: TypedActionsMap[ValuesOf<AT>], logger: SagaLogger) => ChainActionReturn
-  ): Generator<void, void, void>
-}
-
-function* chainAction2Impl<Actions extends {readonly type: string}>(
-  pattern: Types.Pattern<any>,
-  f: (state: TypedState, action: Actions, logger: SagaLogger) => ChainActionReturn
-) {
-  return yield Effects.takeEvery<TypedActions>(
-    pattern as any,
-    function* chainAction2Helper(action: TypedActions) {
-      const sl = new SagaLogger(action.type as ActionType, f.name ?? 'unknown')
-      try {
-        let state: TypedState = yield* selectState()
-        // @ts-ignore
-        const toPut = yield Effects.call(f, state, action, sl)
-        // release memory
-        // @ts-ignore
-        action = undefined
-        // @ts-ignore
-        state = undefined
-        if (toPut) {
-          const outActions: Array<TypedActions> = isArray(toPut) ? toPut : [toPut]
-          for (let out of outActions) {
-            if (out) {
-              yield Effects.put(out)
-            }
-          }
-        }
-        if (sl.isTagged) {
-          sl.info('-> ok')
-        }
-      } catch (error_) {
-        const error = error_ as any
-        sl.warn(error.message)
-        // Convert to global error so we don't kill the takeEvery loop
-        yield Effects.put(
-          ConfigGen.createGlobalError({
-            globalError: convertToError(error),
-          })
-        )
-      } finally {
-        if (yield Effects.cancelled()) {
-          sl.info('chainAction cancelled')
-        }
-      }
-    }
-  )
-}
-
-export const chainAction2: ChainAction2 = chainAction2Impl as unknown as any
-
-function* chainActionImpl<Actions extends {readonly type: string}>(
-  pattern: Types.Pattern<any>,
-  f: (action: Actions, logger: SagaLogger) => ChainActionReturn
-) {
-  return yield Effects.takeEvery<TypedActions>(
-    pattern as any,
-    function* chainActionHelper(action: TypedActions) {
-      const sl = new SagaLogger(action.type as ActionType, f.name ?? 'unknown')
-      try {
-        // @ts-ignore
-        const toPut = yield Effects.call(f, action, sl)
-        // release memory
-        // @ts-ignore
-        action = undefined
-        if (toPut) {
-          const outActions: Array<TypedActions> = isArray(toPut) ? toPut : [toPut]
-          for (let out of outActions) {
-            if (out) {
-              yield Effects.put(out)
-            }
-          }
-        }
-        if (sl.isTagged) {
-          sl.info('-> ok')
-        }
-      } catch (error_) {
-        const error = error_ as any
-        sl.warn(error.message)
-        // Convert to global error so we don't kill the takeEvery loop
-        yield Effects.put(
-          ConfigGen.createGlobalError({
-            globalError: convertToError(error),
-          })
-        )
-      } finally {
-        if (yield Effects.cancelled()) {
-          sl.info('chainAction cancelled')
-        }
-      }
-    }
-  )
-}
-export const chainAction: ChainAction = chainActionImpl as unknown as any
-
 function* chainGenerator<
   Actions extends {
     readonly type: string
   }
 >(
   pattern: Types.Pattern<any>,
-  f: (state: TypedState, action: Actions, logger: SagaLogger) => Generator<any, any, any>
+  f: (state: TypedState, action: Actions) => Generator<any, any, any>
 ): Generator<any, void, any> {
   // @ts-ignore TODO fix
   return yield Effects.takeEvery<Actions>(pattern, function* chainGeneratorHelper(action: Actions) {
-    const sl = new SagaLogger(action.type as ActionType, f.name ?? 'unknown')
     try {
       const state: TypedState = yield* selectState()
-      yield* f(state, action, sl)
-      if (sl.isTagged) {
-        sl.info('-> ok')
-      }
+      yield* f(state, action)
     } catch (error_) {
       const error = error_ as any
-      sl.warn(error.message)
+      logger.warn(error.message)
       // Convert to global error so we don't kill the takeEvery loop
       yield Effects.put(
         ConfigGen.createGlobalError({
@@ -203,7 +43,7 @@ function* chainGenerator<
       )
     } finally {
       if (yield Effects.cancelled()) {
-        sl.info('chainGenerator cancelled')
+        logger.info('chainGenerator cancelled')
       }
     }
   })
