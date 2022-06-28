@@ -9,7 +9,7 @@ import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Platform from '../constants/platform'
 import HiddenString from '../util/hidden-string'
 import type {RPCError} from '../util/errors'
-import commonTeamBuildingSaga, {filterForNs} from './team-building'
+import {commonListenActions, filterForNs} from './team-building'
 import logger from '../logger'
 
 type OperationActionArgs = {
@@ -656,14 +656,6 @@ const downloadSignedText = async (state: Container.TypedState) => {
   })
 }
 
-function* teamBuildingSaga() {
-  yield* commonTeamBuildingSaga('crypto')
-
-  // This action is used to hook into the TeamBuildingGen.finishedTeamBuilding action.
-  // We want this so that we can figure out which user(s) havbe been selected and pass that result over to store.crypto.encrypt.recipients
-  Container.listenAction(TeamBuildingGen.finishedTeamBuilding, filterForNs('crypto', onSetRecipients))
-}
-
 function* cryptoSaga() {
   Container.listenAction(CryptoGen.setInput, throttleSetInput)
   Container.listenAction(CryptoGen.downloadEncryptedText, downloadEncryptedText)
@@ -690,7 +682,10 @@ function* cryptoSaga() {
   if (Platform.isMobile) {
     Container.listenAction(CryptoGen.onOperationSuccess, handleOperationSuccessNavigation)
   }
-  yield* teamBuildingSaga()
+  commonListenActions('crypto')
+  // This action is used to hook into the TeamBuildingGen.finishedTeamBuilding action.
+  // We want this so that we can figure out which user(s) havbe been selected and pass that result over to store.crypto.encrypt.recipients
+  Container.listenAction(TeamBuildingGen.finishedTeamBuilding, filterForNs('crypto', onSetRecipients))
 }
 
 export default cryptoSaga

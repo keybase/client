@@ -19,7 +19,7 @@ import * as Chat2Gen from './chat2-gen'
 import * as GregorGen from './gregor-gen'
 import * as GregorConstants from '../constants/gregor'
 import * as Router2Constants from '../constants/router2'
-import commonTeamBuildingSaga, {filterForNs} from './team-building'
+import {commonListenActions, filterForNs} from './team-building'
 import {uploadAvatarWaitingKey} from '../constants/profile'
 import openSMS from '../util/sms'
 import {RPCError, convertToError, logError} from '../util/errors'
@@ -95,15 +95,15 @@ function* joinTeam(_: Container.TypedState, action: TeamsGen.JoinTeamPayload) {
   const {teamname, deeplink} = action.payload
 
   /*
-                  In the deeplink flow, a modal is displayed which runs `joinTeam` (or an
-                  alternative flow, but we're not concerned with that here). In that case,
-                  we can fully manage the UX from inside of this handler.
-              
-                  In the "Join team" flow, user pastes their link into the input box, which
-                  then calls `joinTeam` on its own. Since we need to switch to another modal,
-                  we simply plumb `deeplink` into the `promptInviteLinkJoin` handler and
-                  do the nav in the modal.
-                */
+                    In the deeplink flow, a modal is displayed which runs `joinTeam` (or an
+                    alternative flow, but we're not concerned with that here). In that case,
+                    we can fully manage the UX from inside of this handler.
+                
+                    In the "Join team" flow, user pastes their link into the input box, which
+                    then calls `joinTeam` on its own. Since we need to switch to another modal,
+                    we simply plumb `deeplink` into the `promptInviteLinkJoin` handler and
+                    do the nav in the modal.
+                  */
 
   yield Saga.all([
     Saga.put(TeamsGen.createSetTeamJoinError({error: ''})),
@@ -1436,16 +1436,6 @@ function addThemToTeamFromTeamBuilder(
   ]
 }
 
-function* teamBuildingSaga() {
-  yield* commonTeamBuildingSaga('teams')
-
-  Container.listenAction(
-    TeamBuildingGen.finishTeamBuilding,
-    filterForNs('teams', addThemToTeamFromTeamBuilder)
-  )
-  Container.listenAction(TeamsGen.addedToTeam, closeTeamBuilderOrSetError)
-}
-
 async function showTeamByName(_: unknown, action: TeamsGen.ShowTeamByNamePayload) {
   const {teamname, initialTab, addMembers, join} = action.payload
   let teamID: string
@@ -1848,7 +1838,12 @@ const teamsSaga = function* () {
   Container.listenAction(TeamsGen.loadTeamChannelList, loadTeamChannelList)
 
   // Hook up the team building sub saga
-  yield* teamBuildingSaga()
+  commonListenActions('teams')
+  Container.listenAction(
+    TeamBuildingGen.finishTeamBuilding,
+    filterForNs('teams', addThemToTeamFromTeamBuilder)
+  )
+  Container.listenAction(TeamsGen.addedToTeam, closeTeamBuilderOrSetError)
 }
 
 export default teamsSaga

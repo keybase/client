@@ -26,7 +26,7 @@ import * as UsersGen from '../users-gen'
 import * as WaitingGen from '../waiting-gen'
 import * as WalletTypes from '../../constants/types/wallets'
 import * as WalletsGen from '../wallets-gen'
-import commonTeamBuildingSaga, {filterForNs} from '../team-building'
+import {commonListenActions, filterForNs} from '../team-building'
 import {RPCError} from '../../util/errors'
 import {NotifyPopup} from '../../native/notifications'
 import {isIOS} from '../../constants/platform'
@@ -3449,14 +3449,6 @@ const createConversationFromTeamBuilder = (
   }),
 ]
 
-export function* chatTeamBuildingSaga() {
-  yield* commonTeamBuildingSaga('chat2')
-  Container.listenAction(
-    TeamBuildingGen.finishedTeamBuilding,
-    filterForNs('chat2', createConversationFromTeamBuilder)
-  )
-}
-
 const setInboxNumSmallRows = async (
   state: Container.TypedState,
   action: Chat2Gen.SetInboxNumSmallRowsPayload
@@ -3982,7 +3974,12 @@ function* chat2Saga() {
 
   Container.listenAction(Chat2Gen.dismissBlockButtons, dismissBlockButtons)
 
-  yield* chatTeamBuildingSaga()
+  commonListenActions('chat2')
+  Container.listenAction(
+    TeamBuildingGen.finishedTeamBuilding,
+    filterForNs('chat2', createConversationFromTeamBuilder)
+  )
+
   Container.listenAction(EngineGen.chat1NotifyChatChatConvUpdate, onChatConvUpdate)
 
   Container.listenAction(RouteTreeGen.onNavChanged, maybeChangeChatSelection)

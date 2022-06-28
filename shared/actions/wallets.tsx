@@ -15,7 +15,7 @@ import * as TeamBuildingGen from './team-building-gen'
 import * as Types from '../constants/types/wallets'
 import * as WalletsGen from './wallets-gen'
 import HiddenString from '../util/hidden-string'
-import commonTeamBuildingSaga, {filterForNs} from './team-building'
+import {commonListenActions, filterForNs} from './team-building'
 import logger from '../logger'
 import openURL from '../util/open-url'
 import {RPCError} from '../util/errors'
@@ -1589,11 +1589,6 @@ const onTeamBuildingAdded = (_: Container.TypedState, action: TeamBuildingGen.Ad
   ]
 }
 
-function* teamBuildingSaga() {
-  yield* commonTeamBuildingSaga('wallets')
-  Container.listenAction(TeamBuildingGen.addUsersToTeamSoFar, filterForNs('wallets', onTeamBuildingAdded))
-}
-
 function* walletsSaga() {
   Container.listenAction(WalletsGen.createNewAccount, createNewAccount)
   Container.listenAction(
@@ -1733,7 +1728,8 @@ function* walletsSaga() {
   yield* Saga.chainGenerator<ConfigGen.DaemonHandshakePayload>(ConfigGen.daemonHandshake, loadStaticConfig)
   Container.listenAction(WalletsGen.assetDeposit, assetDeposit)
   Container.listenAction(WalletsGen.assetWithdraw, assetWithdraw)
-  yield* teamBuildingSaga()
+  commonListenActions('wallets')
+  Container.listenAction(TeamBuildingGen.addUsersToTeamSoFar, filterForNs('wallets', onTeamBuildingAdded))
 }
 
 export default walletsSaga

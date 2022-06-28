@@ -9,7 +9,7 @@ import * as RouteTreeGen from './route-tree-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Tabs from '../constants/tabs'
 import * as TeamBuildingGen from './team-building-gen'
-import commonTeamBuildingSaga, {filterForNs} from './team-building'
+import {commonListenActions, filterForNs} from './team-building'
 import logger from '../logger'
 import type * as Types from '../constants/types/people'
 import type {RPCError} from '../util/errors'
@@ -225,11 +225,6 @@ const maybeMarkViewed = (_: unknown, action: RouteTreeGen.OnNavChangedPayload) =
   return false
 }
 
-function* peopleTeamBuildingSaga() {
-  yield* commonTeamBuildingSaga('people')
-  Container.listenAction(TeamBuildingGen.addUsersToTeamSoFar, filterForNs('people', onTeamBuildingAdded))
-}
-
 const peopleSaga = function* () {
   Container.listenAction(PeopleGen.getPeopleData, getPeopleData)
   Container.listenAction(PeopleGen.markViewed, markViewed)
@@ -240,7 +235,8 @@ const peopleSaga = function* () {
   Container.listenAction(EngineGen.keybase1HomeUIHomeUIRefresh, homeUIRefresh)
   Container.listenAction(EngineGen.connected, connected)
   Container.listenAction(RouteTreeGen.onNavChanged, maybeMarkViewed)
-  yield* peopleTeamBuildingSaga()
+  commonListenActions('people')
+  Container.listenAction(TeamBuildingGen.addUsersToTeamSoFar, filterForNs('people', onTeamBuildingAdded))
 }
 
 export default peopleSaga

@@ -177,7 +177,7 @@ const maybeCancelTeamBuilding =
     return false
   }
 
-export default function* commonSagas(namespace: TeamBuildingTypes.AllowedNamespace) {
+export const commonListenActions = (namespace: TeamBuildingTypes.AllowedNamespace) => {
   Container.listenAction(TeamBuildingGen.search, filterForNs(namespace, search))
   Container.listenAction(TeamBuildingGen.fetchUserRecs, filterForNs(namespace, fetchUserRecs))
   Container.listenAction(RouteTreeGen.onNavChanged, maybeCancelTeamBuilding(namespace))
