@@ -1,4 +1,3 @@
-import * as Saga from '../util/saga'
 import * as Container from '../util/container'
 import type * as Types from '../constants/types/crypto'
 import * as Constants from '../constants/crypto'
@@ -9,7 +8,6 @@ import * as CryptoGen from './crypto-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Platform from '../constants/platform'
 import HiddenString from '../util/hidden-string'
-import {type TypedState, listenAction} from '../util/container'
 import type {RPCError} from '../util/errors'
 import commonTeamBuildingSaga, {filterForNs} from './team-building'
 import logger from '../logger'
@@ -25,7 +23,7 @@ type OperationActionArgs = {
 
 type SetRecipientsSagaActions = CryptoGen.SetRecipientsPayload | CryptoGen.SetEncryptOptionsPayload
 // Get list of users from crypto TeamBuilding for encrypt operation
-const onSetRecipients = (state: TypedState) => {
+const onSetRecipients = (state: Container.TypedState) => {
   const {username: currentUser} = state.config
   const {options} = state.crypto.encrypt
 
@@ -97,7 +95,7 @@ const throttleSetInput = async (_, action: CryptoGen.SetInputPayload) => {
  * 3. User changes options to Encrypt operation (after input is added)
  */
 const handleRunOperation = (
-  state: TypedState,
+  state: Container.TypedState,
   action:
     | CryptoGen.SetInputThrottledPayload
     | CryptoGen.SetRecipientsPayload
@@ -304,7 +302,7 @@ const makeOperationAction = (p: OperationActionArgs) => {
   }
 }
 
-const saltpackEncrypt = async (state: TypedState, action: CryptoGen.SaltpackEncryptPayload) => {
+const saltpackEncrypt = async (state: Container.TypedState, action: CryptoGen.SaltpackEncryptPayload) => {
   const {username} = state.config
   const {destinationDir, input, recipients, type, options} = action.payload
   switch (type) {
@@ -465,7 +463,7 @@ const saltpackDecrypt = async (_, action: CryptoGen.SaltpackDecryptPayload) => {
   }
 }
 
-const saltpackSign = async (state: TypedState, action: CryptoGen.SaltpackSignPayload) => {
+const saltpackSign = async (state: Container.TypedState, action: CryptoGen.SaltpackSignPayload) => {
   const {username} = state.config
   const {destinationDir, input, type} = action.payload
   switch (type) {
@@ -626,7 +624,7 @@ const saltpackDone = (_, action: EngineGen.Keybase1NotifySaltpackSaltpackOperati
     operation: RPCTypes.SaltpackOperationType[action.payload.params.opType] as Types.Operations,
   })
 
-const downloadEncryptedText = async (state: TypedState) => {
+const downloadEncryptedText = async (state: Container.TypedState) => {
   const {output, outputSenderUsername, outputSenderFullname, outputSigned} = state.crypto.encrypt
   const result = await RPCTypes.saltpackSaltpackSaveCiphertextToFileRpcPromise({
     ciphertext: output.stringValue(),
@@ -642,7 +640,7 @@ const downloadEncryptedText = async (state: TypedState) => {
   })
 }
 
-const downloadSignedText = async (state: TypedState) => {
+const downloadSignedText = async (state: Container.TypedState) => {
   const {output, outputSenderUsername, outputSenderFullname, outputSigned} = state.crypto.sign
   const result = await RPCTypes.saltpackSaltpackSaveSignedMsgToFileRpcPromise({
     signedMsg: output.stringValue(),
@@ -663,14 +661,14 @@ function* teamBuildingSaga() {
 
   // This action is used to hook into the TeamBuildingGen.finishedTeamBuilding action.
   // We want this so that we can figure out which user(s) havbe been selected and pass that result over to store.crypto.encrypt.recipients
-  yield* Saga.chainAction2(TeamBuildingGen.finishedTeamBuilding, filterForNs('crypto', onSetRecipients))
+  Container.listenAction(TeamBuildingGen.finishedTeamBuilding, filterForNs('crypto', onSetRecipients))
 }
 
 function* cryptoSaga() {
-  listenAction(CryptoGen.setInput, throttleSetInput)
-  listenAction(CryptoGen.downloadEncryptedText, downloadEncryptedText)
-  listenAction(CryptoGen.downloadSignedText, downloadSignedText)
-  listenAction(
+  Container.listenAction(CryptoGen.setInput, throttleSetInput)
+  Container.listenAction(CryptoGen.downloadEncryptedText, downloadEncryptedText)
+  Container.listenAction(CryptoGen.downloadSignedText, downloadSignedText)
+  Container.listenAction(
     [
       CryptoGen.setInputThrottled,
       CryptoGen.setRecipients,
@@ -681,16 +679,16 @@ function* cryptoSaga() {
     ],
     handleRunOperation
   )
-  listenAction(CryptoGen.saltpackEncrypt, saltpackEncrypt)
-  listenAction(CryptoGen.saltpackSign, saltpackSign)
-  listenAction(CryptoGen.saltpackDecrypt, saltpackDecrypt)
-  listenAction(CryptoGen.saltpackVerify, saltpackVerify)
-  listenAction(CryptoGen.onSaltpackOpenFile, handleSaltpackOpenFile)
-  listenAction(EngineGen.keybase1NotifySaltpackSaltpackOperationStart, saltpackStart)
-  listenAction(EngineGen.keybase1NotifySaltpackSaltpackOperationProgress, saltpackProgress)
-  listenAction(EngineGen.keybase1NotifySaltpackSaltpackOperationDone, saltpackDone)
+  Container.listenAction(CryptoGen.saltpackEncrypt, saltpackEncrypt)
+  Container.listenAction(CryptoGen.saltpackSign, saltpackSign)
+  Container.listenAction(CryptoGen.saltpackDecrypt, saltpackDecrypt)
+  Container.listenAction(CryptoGen.saltpackVerify, saltpackVerify)
+  Container.listenAction(CryptoGen.onSaltpackOpenFile, handleSaltpackOpenFile)
+  Container.listenAction(EngineGen.keybase1NotifySaltpackSaltpackOperationStart, saltpackStart)
+  Container.listenAction(EngineGen.keybase1NotifySaltpackSaltpackOperationProgress, saltpackProgress)
+  Container.listenAction(EngineGen.keybase1NotifySaltpackSaltpackOperationDone, saltpackDone)
   if (Platform.isMobile) {
-    listenAction(CryptoGen.onOperationSuccess, handleOperationSuccessNavigation)
+    Container.listenAction(CryptoGen.onOperationSuccess, handleOperationSuccessNavigation)
   }
   yield* teamBuildingSaga()
 }

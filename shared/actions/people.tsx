@@ -7,7 +7,6 @@ import * as PeopleGen from './people-gen'
 import * as ProfileGen from './profile-gen'
 import * as RouteTreeGen from './route-tree-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
-import * as Saga from '../util/saga'
 import * as Tabs from '../constants/tabs'
 import * as TeamBuildingGen from './team-building-gen'
 import commonTeamBuildingSaga, {filterForNs} from './team-building'
@@ -228,7 +227,7 @@ const maybeMarkViewed = (_: unknown, action: RouteTreeGen.OnNavChangedPayload) =
 
 function* peopleTeamBuildingSaga() {
   yield* commonTeamBuildingSaga('people')
-  yield* Saga.chainAction2(TeamBuildingGen.addUsersToTeamSoFar, filterForNs('people', onTeamBuildingAdded))
+  Container.listenAction(TeamBuildingGen.addUsersToTeamSoFar, filterForNs('people', onTeamBuildingAdded))
 }
 
 const peopleSaga = function* () {

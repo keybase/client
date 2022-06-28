@@ -2,13 +2,12 @@ import logger from '../../logger'
 import * as FsGen from '../fs-gen'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
-import * as Saga from '../../util/saga'
-import type {TypedState} from '../../constants/reducer'
+import * as Container from '../../util/container'
 import {parseUri, launchImageLibraryAsync} from '../../util/expo-image-picker'
 import {errorToActionOrThrow} from './shared'
 import {saveAttachmentToCameraRoll, showShareActionSheet} from '../platform-specific'
 
-const pickAndUploadToPromise = async (_: TypedState, action: FsGen.PickAndUploadPayload) => {
+const pickAndUploadToPromise = async (_: Container.TypedState, action: FsGen.PickAndUploadPayload) => {
   try {
     const result = await launchImageLibraryAsync(action.payload.type)
     return result.cancelled
@@ -23,7 +22,7 @@ const pickAndUploadToPromise = async (_: TypedState, action: FsGen.PickAndUpload
 }
 
 const finishedDownloadWithIntent = async (
-  state: TypedState,
+  state: Container.TypedState,
   action: FsGen.FinishedDownloadWithIntentPayload
 ) => {
   const {downloadID, downloadIntent, mimeType} = action.payload
@@ -60,6 +59,6 @@ const finishedDownloadWithIntent = async (
 }
 
 export default function* nativeSaga() {
-  yield* Saga.chainAction2(FsGen.pickAndUpload, pickAndUploadToPromise)
-  yield* Saga.chainAction2(FsGen.finishedDownloadWithIntent, finishedDownloadWithIntent)
+  Container.listenAction(FsGen.pickAndUpload, pickAndUploadToPromise)
+  Container.listenAction(FsGen.finishedDownloadWithIntent, finishedDownloadWithIntent)
 }

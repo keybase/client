@@ -15,7 +15,7 @@ import logger from '../../logger'
 import {NativeEventEmitter} from 'react-native'
 import {NativeModules} from '../../util/native-modules.native'
 import {isIOS, isAndroid} from '../../constants/platform'
-import type * as Container from '../../util/container'
+import * as Container from '../../util/container'
 import type * as Types from '../../constants/types/push'
 
 const setApplicationIconBadgeNumber = (n: number) => {
@@ -27,7 +27,7 @@ const setApplicationIconBadgeNumber = (n: number) => {
 }
 
 let lastCount = -1
-const updateAppBadge = (action: NotificationsGen.ReceivedBadgeStatePayload) => {
+const updateAppBadge = (_: unknown, action: NotificationsGen.ReceivedBadgeStatePayload) => {
   const count = action.payload.badgeState.bigTeamBadgeCount + action.payload.badgeState.smallTeamBadgeCount
   setApplicationIconBadgeNumber(count)
   // Only do this native call if the count actually changed, not over and over if its zero
@@ -438,14 +438,14 @@ function* pushSaga() {
     PushGen.requestPermissions,
     requestPermissions
   )
-  yield* Saga.chainAction2([PushGen.showPermissionsPrompt, PushGen.rejectPermissions], neverShowMonsterAgain)
+  Container.listenAction([PushGen.showPermissionsPrompt, PushGen.rejectPermissions], neverShowMonsterAgain)
   yield* Saga.chainGenerator<ConfigGen.MobileAppStatePayload>(ConfigGen.mobileAppState, checkPermissions)
 
   // Token handling
-  yield* Saga.chainAction2([PushGen.updatePushToken, ConfigGen.bootstrapStatusLoaded], uploadPushToken)
+  Container.listenAction([PushGen.updatePushToken, ConfigGen.bootstrapStatusLoaded], uploadPushToken)
   yield* Saga.chainGenerator<ConfigGen.LogoutHandshakePayload>(ConfigGen.logoutHandshake, deletePushToken)
 
-  yield* Saga.chainAction(NotificationsGen.receivedBadgeState, updateAppBadge)
+  Container.listenAction(NotificationsGen.receivedBadgeState, updateAppBadge)
   yield* Saga.chainGenerator<PushGen.NotificationPayload>(PushGen.notification, handlePush)
   yield* Saga.chainGenerator<ConfigGen.DaemonHandshakePayload>(ConfigGen.daemonHandshake, setupPushEventLoop)
   yield Saga.spawn(initialPermissionsCheck)
