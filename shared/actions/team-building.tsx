@@ -4,13 +4,12 @@ import * as RouterConstants from '../constants/router2'
 import * as TeamBuildingTypes from '../constants/types/team-building'
 import * as TeamBuildingGen from './team-building-gen'
 import * as RouteTreeGen from './route-tree-gen'
-import * as Saga from '../util/saga'
 import * as RPCTypes from '../constants/types/rpc-gen'
-import type {TypedState} from '../constants/reducer'
+import * as Container from '../util/container'
 import {validateEmailAddress} from '../util/email-address'
 import type {RPCError} from 'util/errors'
 
-const closeTeamBuilding = (_: TypedState) => {
+const closeTeamBuilding = (_: Container.TypedState) => {
   const modals = RouterConstants.getModalStack()
   const routeNames = [...namespaceToRoute.values()]
   const routeName = modals[modals.length - 1]?.name
@@ -84,7 +83,10 @@ async function specialContactSearch(users: TeamBuildingTypes.User[], query: stri
   return users
 }
 
-const search = async (state: TypedState, {payload: {namespace, includeContacts}}: SearchOrRecAction) => {
+const search = async (
+  state: Container.TypedState,
+  {payload: {namespace, includeContacts}}: SearchOrRecAction
+) => {
   const {searchQuery, selectedService, searchLimit} = state[namespace].teamBuilding
   // We can only ask the api for at most 100 results
   if (searchLimit > 100) {
@@ -114,7 +116,7 @@ const search = async (state: TypedState, {payload: {namespace, includeContacts}}
 }
 
 const fetchUserRecs = async (
-  state: TypedState,
+  state: Container.TypedState,
   {payload: {namespace, includeContacts}}: SearchOrRecAction
 ) => {
   try {
@@ -160,7 +162,8 @@ const namespaceToRoute = new Map([
 ])
 
 const maybeCancelTeamBuilding =
-  (namespace: TeamBuildingTypes.AllowedNamespace) => (action: RouteTreeGen.OnNavChangedPayload) => {
+  (namespace: TeamBuildingTypes.AllowedNamespace) =>
+  (_: unknown, action: RouteTreeGen.OnNavChangedPayload) => {
     const {prev, next} = action.payload
 
     const wasTeamBuilding = namespaceToRoute.get(namespace) === prev[prev.length - 1]?.name
@@ -175,11 +178,11 @@ const maybeCancelTeamBuilding =
   }
 
 export default function* commonSagas(namespace: TeamBuildingTypes.AllowedNamespace) {
-  yield* Saga.chainAction2(TeamBuildingGen.search, filterForNs(namespace, search))
-  yield* Saga.chainAction2(TeamBuildingGen.fetchUserRecs, filterForNs(namespace, fetchUserRecs))
-  yield* Saga.chainAction(RouteTreeGen.onNavChanged, maybeCancelTeamBuilding(namespace))
+  Container.listenAction(TeamBuildingGen.search, filterForNs(namespace, search))
+  Container.listenAction(TeamBuildingGen.fetchUserRecs, filterForNs(namespace, fetchUserRecs))
+  Container.listenAction(RouteTreeGen.onNavChanged, maybeCancelTeamBuilding(namespace))
   // Navigation, before creating
-  yield* Saga.chainAction2(
+  Container.listenAction(
     [TeamBuildingGen.cancelTeamBuilding, TeamBuildingGen.finishedTeamBuilding],
     filterForNs(namespace, closeTeamBuilding)
   )

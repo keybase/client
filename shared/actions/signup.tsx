@@ -11,7 +11,7 @@ import * as SettingsGen from './settings-gen'
 import * as PushGen from './push-gen'
 import {isMobile} from '../constants/platform'
 import type {RPCError} from '../util/errors'
-import type * as Container from '../util/container'
+import * as Container from '../util/container'
 
 // Helpers ///////////////////////////////////////////////////////////
 // returns true if there are no errors, we check all errors at every transition just to be extra careful
@@ -107,11 +107,7 @@ const requestInvite = async (state: Container.TypedState) => {
   }
 }
 
-const checkUsername = async (
-  state: Container.TypedState,
-  _: SignupGen.CheckUsernamePayload,
-  logger: Saga.SagaLogger
-) => {
+const checkUsername = async (state: Container.TypedState, _: SignupGen.CheckUsernamePayload) => {
   logger.info(`checking ${state.signup.username}`)
   if (!noErrors(state)) {
     return false
@@ -237,25 +233,25 @@ const maybeClearJustSignedUpEmail = (
 
 const signupSaga = function* () {
   // validation actions
-  yield* Saga.chainAction2(SignupGen.requestInvite, requestInvite)
-  yield* Saga.chainAction2(SignupGen.checkUsername, checkUsername)
-  yield* Saga.chainAction2(SignupGen.requestAutoInvite, requestAutoInvite)
-  yield* Saga.chainAction2([SignupGen.requestedAutoInvite, SignupGen.checkInviteCode], checkInviteCode)
-  yield* Saga.chainAction2(SignupGen.checkDevicename, checkDevicename)
+  Container.listenAction(SignupGen.requestInvite, requestInvite)
+  Container.listenAction(SignupGen.checkUsername, checkUsername)
+  Container.listenAction(SignupGen.requestAutoInvite, requestAutoInvite)
+  Container.listenAction([SignupGen.requestedAutoInvite, SignupGen.checkInviteCode], checkInviteCode)
+  Container.listenAction(SignupGen.checkDevicename, checkDevicename)
 
   // move to next screen actions
-  yield* Saga.chainAction2(SignupGen.requestedInvite, showInviteSuccessOnNoErrors)
-  yield* Saga.chainAction2(SignupGen.checkedUsername, showDeviceScreenOnNoErrors)
-  yield* Saga.chainAction2(SignupGen.requestedAutoInvite, showInviteScreen)
-  yield* Saga.chainAction2(SignupGen.checkedInviteCode, showUserOnNoErrors)
-  yield* Saga.chainAction2(SignupGen.signedup, showErrorOrCleanupAfterSignup)
-  yield* Saga.chainAction2(SignupGen.signedup, setEmailVisibilityAfterSignup)
+  Container.listenAction(SignupGen.requestedInvite, showInviteSuccessOnNoErrors)
+  Container.listenAction(SignupGen.checkedUsername, showDeviceScreenOnNoErrors)
+  Container.listenAction(SignupGen.requestedAutoInvite, showInviteScreen)
+  Container.listenAction(SignupGen.checkedInviteCode, showUserOnNoErrors)
+  Container.listenAction(SignupGen.signedup, showErrorOrCleanupAfterSignup)
+  Container.listenAction(SignupGen.signedup, setEmailVisibilityAfterSignup)
 
-  yield* Saga.chainAction2(RouteTreeGen.onNavChanged, maybeClearJustSignedUpEmail)
+  Container.listenAction(RouteTreeGen.onNavChanged, maybeClearJustSignedUpEmail)
 
   // actually make the signup call
   yield* Saga.chainGenerator(SignupGen.checkedDevicename, reallySignupOnNoErrors)
-  yield* Saga.chainAction2(SignupGen.goBackAndClearErrors, goBackAndClearErrors)
+  Container.listenAction(SignupGen.goBackAndClearErrors, goBackAndClearErrors)
 }
 
 export default signupSaga
