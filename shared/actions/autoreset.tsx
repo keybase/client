@@ -1,6 +1,6 @@
 import * as AutoresetGen from './autoreset-gen'
 import * as Constants from '../constants/autoreset'
-import type * as Container from '../util/container'
+import * as Container from '../util/container'
 import * as NotificationsGen from './notifications-gen'
 import * as ProvisionGen from './provision-gen'
 import * as RPCGen from '../constants/types/rpc-gen'
@@ -91,7 +91,7 @@ const displayProgressEngine = (
     })
   )
 
-const displayProgress = (action: AutoresetGen.DisplayProgressPayload) =>
+const displayProgress = (_: unknown, action: AutoresetGen.DisplayProgressPayload) =>
   RouteTreeGen.createNavigateAppend({
     path: [{props: {pipelineStarted: !action.payload.needVerify}, selected: 'resetWaiting'}],
     replace: true,
@@ -123,12 +123,12 @@ function* resetAccount(state: Container.TypedState, action: AutoresetGen.ResetAc
 const showFinalResetScreen = () => RouteTreeGen.createNavigateAppend({path: ['resetConfirm'], replace: true})
 
 function* autoresetSaga() {
-  yield* Saga.chainAction2(AutoresetGen.cancelReset, cancelReset)
-  yield* Saga.chainAction(AutoresetGen.displayProgress, displayProgress)
-  yield* Saga.chainAction2(AutoresetGen.finishedReset, finishedReset)
-  yield* Saga.chainAction(AutoresetGen.showFinalResetScreen, showFinalResetScreen)
-  yield* Saga.chainAction2(AutoresetGen.startAccountReset, startAccountReset)
-  yield* Saga.chainAction2(NotificationsGen.receivedBadgeState, receivedBadgeState)
+  Container.listenAction(AutoresetGen.cancelReset, cancelReset)
+  Container.listenAction(AutoresetGen.displayProgress, displayProgress)
+  Container.listenAction(AutoresetGen.finishedReset, finishedReset)
+  Container.listenAction(AutoresetGen.showFinalResetScreen, showFinalResetScreen)
+  Container.listenAction(AutoresetGen.startAccountReset, startAccountReset)
+  Container.listenAction(NotificationsGen.receivedBadgeState, receivedBadgeState)
   yield* Saga.chainGenerator(AutoresetGen.resetAccount, resetAccount)
 }
 

@@ -10,7 +10,7 @@ import * as RouteTreeGen from '../route-tree-gen'
 import * as Tracker2Gen from '../tracker2-gen'
 import * as Tracker2Constants from '../../constants/tracker2'
 import openURL from '../../util/open-url'
-import {TypedState} from '../../util/container'
+import * as Container from '../../util/container'
 
 type ValidCallback =
   | 'keybase.1.proveUi.checking'
@@ -27,7 +27,7 @@ type CustomResp<T extends ValidCallback> = {
   result: (res: RPCTypes.MessageTypes[T]['outParam']) => void
 }
 
-const checkProof = async (state: TypedState) => {
+const checkProof = async (state: Container.TypedState) => {
   const sigID = state.profile.sigID
   const isGeneric = !!state.profile.platformGeneric
   if (!sigID) {
@@ -64,14 +64,14 @@ const checkProof = async (state: TypedState) => {
   }
 }
 
-const recheckProof = async (state: TypedState, action: ProfileGen.RecheckProofPayload) => {
+const recheckProof = async (state: Container.TypedState, action: ProfileGen.RecheckProofPayload) => {
   await RPCTypes.proveCheckProofRpcPromise({sigID: action.payload.sigID}, Constants.waitingKey)
   return Tracker2Gen.createShowUser({asTracker: false, username: state.config.username})
 }
 
 // only let one of these happen at a time
 let addProofInProgress = false
-function* addProof(state: TypedState, action: ProfileGen.AddProofPayload) {
+function* addProof(state: Container.TypedState, action: ProfileGen.AddProofPayload) {
   const service = More.asPlatformsExpandedType(action.payload.platform)
   const genericService = service ? null : action.payload.platform
   // Special cases
@@ -141,7 +141,7 @@ function* addProof(state: TypedState, action: ProfileGen.AddProofPayload) {
             errorText: '',
           })
         )
-        const state: TypedState = yield* Saga.selectState()
+        const state: Container.TypedState = yield* Saga.selectState()
         _promptUsernameResponse.result(state.profile.username)
         // eslint is confused i think
         // eslint-disable-next-line require-atomic-updates
@@ -302,7 +302,7 @@ function* addProof(state: TypedState, action: ProfileGen.AddProofPayload) {
 }
 
 const submitCryptoAddress = async (
-  state: TypedState,
+  state: Container.TypedState,
   action: ProfileGen.SubmitBTCAddressPayload | ProfileGen.SubmitZcashAddressPayload
 ) => {
   if (!state.profile.usernameValid) {
@@ -340,10 +340,10 @@ const submitCryptoAddress = async (
 }
 
 function* proofsSaga() {
-  yield* Saga.chainAction2([ProfileGen.submitBTCAddress, ProfileGen.submitZcashAddress], submitCryptoAddress)
+  Container.listenAction([ProfileGen.submitBTCAddress, ProfileGen.submitZcashAddress], submitCryptoAddress)
   yield* Saga.chainGenerator<ProfileGen.AddProofPayload>(ProfileGen.addProof, addProof)
-  yield* Saga.chainAction2(ProfileGen.checkProof, checkProof)
-  yield* Saga.chainAction2(ProfileGen.recheckProof, recheckProof)
+  Container.listenAction(ProfileGen.checkProof, checkProof)
+  Container.listenAction(ProfileGen.recheckProof, recheckProof)
 }
 
 export {proofsSaga}
