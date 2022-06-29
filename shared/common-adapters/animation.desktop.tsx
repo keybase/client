@@ -25,10 +25,15 @@ const Animation = (props: Props) => {
   const animationData = useAnimationData(animationType)
   React.useEffect(() => {
     if (element.current) {
+      lottieInstance.current?.destroy()
       lottieInstance.current = lottie.loadAnimation({
         animationData,
         container: element.current,
       })
+    }
+    return () => {
+      lottieInstance.current?.destroy()
+      lottieInstance.current = null
     }
   }, [animationData])
   return (
