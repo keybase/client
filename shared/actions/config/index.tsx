@@ -81,14 +81,15 @@ const getFollowerInfo = (state: Container.TypedState, action: ConfigGen.LoadOnSt
 
 // set to true so we reget status when we're reachable again
 let wasUnreachable = false
-function* loadDaemonBootstrapStatus(
+const loadDaemonBootstrapStatus = async (
   _: Container.TypedState,
   action:
     | ConfigGen.LoggedInPayload
     | ConfigGen.DaemonHandshakePayload
     | GregorGen.UpdateReachablePayload
-    | ConfigGen.LoggedOutPayload
-) {
+    | ConfigGen.LoggedOutPayload,
+  listenerApi: Container.ListenerApi
+) => {
   // Ignore the 'fake' loggedIn cause we'll get the daemonHandshake and we don't want to do this twice
   if (action.type === ConfigGen.loggedIn && action.payload.causedByStartup) {
     return
@@ -98,9 +99,8 @@ function* loadDaemonBootstrapStatus(
     wasUnreachable = true
   }
 
-  function* makeCall() {
-    const s: Saga.RPCPromiseType<typeof RPCTypes.configGetBootstrapStatusRpcPromise> =
-      yield RPCTypes.configGetBootstrapStatusRpcPromise()
+  const makeCall = async () => {
+    const s = await RPCTypes.configGetBootstrapStatusRpcPromise()
     const loadedAction = ConfigGen.createBootstrapStatusLoaded({
       deviceID: s.deviceID,
       deviceName: s.deviceName,
@@ -112,11 +112,11 @@ function* loadDaemonBootstrapStatus(
       username: s.username,
     })
     logger.info(`[Bootstrap] loggedIn: ${loadedAction.payload.loggedIn ? 1 : 0}`)
-    yield Saga.put(loadedAction)
+    listenerApi.dispatch(loadedAction)
     // set HTTP srv info
     if (s.httpSrvInfo) {
       logger.info(`[Bootstrap] http server: addr: ${s.httpSrvInfo.address} token: ${s.httpSrvInfo.token}`)
-      yield Saga.put(
+      listenerApi.dispatch(
         ConfigGen.createUpdateHTTPSrvInfo({address: s.httpSrvInfo.address, token: s.httpSrvInfo.token})
       )
     } else {
@@ -125,9 +125,9 @@ function* loadDaemonBootstrapStatus(
 
     // if we're logged in act like getAccounts is done already
     if (action.type === ConfigGen.daemonHandshake && loadedAction.payload.loggedIn) {
-      const newState: Container.TypedState = yield* Saga.selectState()
+      const newState = listenerApi.getState()
       if (newState.config.daemonHandshakeWaiters.get(getAccountsWaitKey)) {
-        yield Saga.put(
+        listenerApi.dispatch(
           ConfigGen.createDaemonHandshakeWait({
             increment: false,
             name: getAccountsWaitKey,
@@ -140,15 +140,15 @@ function* loadDaemonBootstrapStatus(
 
   switch (action.type) {
     case ConfigGen.daemonHandshake:
-      yield Saga.put(
+      listenerApi.dispatch(
         ConfigGen.createDaemonHandshakeWait({
           increment: true,
           name: 'config.getBootstrapStatus',
           version: action.payload.version,
         })
       )
-      yield* makeCall()
-      yield Saga.put(
+      await makeCall()
+      listenerApi.dispatch(
         ConfigGen.createDaemonHandshakeWait({
           increment: false,
           name: 'config.getBootstrapStatus',
@@ -159,14 +159,14 @@ function* loadDaemonBootstrapStatus(
     case GregorGen.updateReachable:
       if (action.payload.reachable === RPCTypes.Reachable.yes && wasUnreachable) {
         wasUnreachable = false // reset it
-        yield* makeCall()
+        await makeCall()
       }
       break
     case ConfigGen.loggedIn:
-      yield* makeCall()
+      await makeCall()
       break
     case ConfigGen.loggedOut:
-      yield* makeCall()
+      await makeCall()
       break
   }
 }
@@ -593,9 +593,10 @@ function* configSaga() {
   // darkmode
   Container.listenAction(ConfigGen.daemonHandshake, loadDarkPrefs)
   // Re-get info about our account if you log in/we're done handshaking/became reachable
-  yield* Saga.chainGenerator<
-    ConfigGen.LoggedInPayload | ConfigGen.DaemonHandshakePayload | GregorGen.UpdateReachablePayload
-  >([ConfigGen.loggedIn, ConfigGen.daemonHandshake, GregorGen.updateReachable], loadDaemonBootstrapStatus)
+  Container.listenAction(
+    [ConfigGen.loggedIn, ConfigGen.daemonHandshake, GregorGen.updateReachable],
+    loadDaemonBootstrapStatus
+  )
   // Load the known accounts if you revoke / handshake / logout
   yield* Saga.chainGenerator<
     | DevicesGen.RevokedPayload
