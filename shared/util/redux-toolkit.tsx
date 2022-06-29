@@ -1,4 +1,5 @@
-import {createListenerMiddleware} from '@reduxjs/toolkit'
+import {createListenerMiddleware, type ForkedTask} from '@reduxjs/toolkit'
+import * as ConfigGen from '../actions/config-gen'
 import type {TypedActions, TypedActionsMap} from '../actions/typed-actions-gen'
 import type {TypedState} from '../constants/reducer'
 import isArray from 'lodash/isArray'
@@ -8,7 +9,9 @@ type TypedDispatch = (action: TypedActions) => void
 export type ListenerApi = {
   take: (matcher: (a: TypedActions) => boolean, timeoutms?: number) => unknown
   dispatch: TypedDispatch
+  delay: (ms: number) => Promise<void>
   getState: () => TypedState
+  fork: (effect: () => Promise<void>) => ForkedTask<never>
 }
 
 export const listenerMiddleware = createListenerMiddleware()
@@ -59,3 +62,17 @@ const listenActionImpl = (
 }
 
 export const listenAction: ListenAction = listenActionImpl as unknown as any
+
+export const spawn = (effect: (listenerApi: ListenerApi) => Promise<void>) => {
+  listenerMiddleware.startListening({
+    effect: async (_action, listenerApi) => {
+      const task = listenerApi.fork(async () => {
+        await effect(listenerApi as any)
+        return
+      })
+      await task.result
+      console.log('Spawned effect ended')
+    },
+    type: ConfigGen.initListenerLoops,
+  })
+}

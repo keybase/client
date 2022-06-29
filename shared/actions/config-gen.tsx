@@ -24,6 +24,7 @@ export const dumpLogs = 'config:dumpLogs'
 export const filePickerError = 'config:filePickerError'
 export const followerInfoUpdated = 'config:followerInfoUpdated'
 export const globalError = 'config:globalError'
+export const initListenerLoops = 'config:initListenerLoops'
 export const installerRan = 'config:installerRan'
 export const loadOnLoginStartup = 'config:loadOnLoginStartup'
 export const loadOnStart = 'config:loadOnStart'
@@ -76,6 +77,13 @@ export const updateWindowState = 'config:updateWindowState'
 export const createAndroidShare = (payload: {readonly url?: string; readonly text?: string} = {}) => ({
   payload,
   type: androidShare as typeof androidShare,
+})
+/**
+ * Internal action just to start saga-like spawn processes
+ */
+export const createInitListenerLoops = (payload?: undefined) => ({
+  payload,
+  type: initListenerLoops as typeof initListenerLoops,
 })
 /**
  * Log out the current user, keeping secrets stored.
@@ -399,6 +407,7 @@ export type DumpLogsPayload = ReturnType<typeof createDumpLogs>
 export type FilePickerErrorPayload = ReturnType<typeof createFilePickerError>
 export type FollowerInfoUpdatedPayload = ReturnType<typeof createFollowerInfoUpdated>
 export type GlobalErrorPayload = ReturnType<typeof createGlobalError>
+export type InitListenerLoopsPayload = ReturnType<typeof createInitListenerLoops>
 export type InstallerRanPayload = ReturnType<typeof createInstallerRan>
 export type LoadOnLoginStartupPayload = ReturnType<typeof createLoadOnLoginStartup>
 export type LoadOnStartPayload = ReturnType<typeof createLoadOnStart>
@@ -461,6 +470,7 @@ export type Actions =
   | FilePickerErrorPayload
   | FollowerInfoUpdatedPayload
   | GlobalErrorPayload
+  | InitListenerLoopsPayload
   | InstallerRanPayload
   | LoadOnLoginStartupPayload
   | LoadOnStartPayload

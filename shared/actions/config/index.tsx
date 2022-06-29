@@ -215,14 +215,15 @@ const maybeDoneWithDaemonHandshake = (
 // normally this wouldn't be worth it but this is startup
 const getAccountsWaitKey = 'config.getAccounts'
 
-function* loadDaemonAccounts(
+const loadDaemonAccounts = async (
   state: Container.TypedState,
   action:
     | DevicesGen.RevokedPayload
     | ConfigGen.DaemonHandshakePayload
     | ConfigGen.LoggedOutPayload
-    | ConfigGen.LoggedInPayload
-) {
+    | ConfigGen.LoggedInPayload,
+  listenerApi: Container.ListenerApi
+) => {
   // ignore since we handle handshake
   if (action.type === ConfigGen.loggedIn && action.payload.causedByStartup) {
     return
@@ -241,7 +242,7 @@ function* loadDaemonAccounts(
 
   try {
     if (handshakeWait) {
-      yield Saga.put(
+      listenerApi.dispatch(
         ConfigGen.createDaemonHandshakeWait({
           increment: true,
           name: getAccountsWaitKey,
@@ -250,16 +251,14 @@ function* loadDaemonAccounts(
       )
     }
 
-    const configuredAccounts: Array<RPCTypes.ConfiguredAccount> =
-      yield RPCTypes.loginGetConfiguredAccountsRpcPromise()
-    const loadedAction = ConfigGen.createSetAccounts({configuredAccounts})
-    yield Saga.put(loadedAction)
+    const configuredAccounts = (await RPCTypes.loginGetConfiguredAccountsRpcPromise()) ?? []
+    listenerApi.dispatch(ConfigGen.createSetAccounts({configuredAccounts}))
 
     if (handshakeWait) {
       // someone dismissed this already?
-      const newState: Container.TypedState = yield* Saga.selectState()
+      const newState = listenerApi.getState()
       if (newState.config.daemonHandshakeWaiters.get(getAccountsWaitKey)) {
-        yield Saga.put(
+        listenerApi.dispatch(
           ConfigGen.createDaemonHandshakeWait({
             increment: false,
             name: getAccountsWaitKey,
@@ -271,9 +270,9 @@ function* loadDaemonAccounts(
   } catch (error) {
     if (handshakeWait) {
       // someone dismissed this already?
-      const newState: Container.TypedState = yield* Saga.selectState()
+      const newState = listenerApi.getState()
       if (newState.config.daemonHandshakeWaiters.get(getAccountsWaitKey)) {
-        yield Saga.put(
+        listenerApi.dispatch(
           ConfigGen.createDaemonHandshakeWait({
             failedReason: "Can't get accounts",
             increment: false,
@@ -284,7 +283,6 @@ function* loadDaemonAccounts(
       }
     }
   }
-  return
 }
 
 const showDeletedSelfRootPage = () => [
@@ -320,9 +318,9 @@ const startLogoutHandshake = (state: Container.TypedState) =>
 
 // This assumes there's at least a single waiter to trigger this, so if that ever changes you'll have to add
 // stuff to trigger this due to a timeout if there's no listeners or something
-function* maybeDoneWithLogoutHandshake(state: Container.TypedState) {
+const maybeDoneWithLogoutHandshake = async (state: Container.TypedState) => {
   if (state.config.logoutHandshakeWaiters.size <= 0) {
-    yield RPCTypes.loginLogoutRpcPromise({force: false, keepSecrets: false})
+    await RPCTypes.loginLogoutRpcPromise({force: false, keepSecrets: false})
   }
 }
 
@@ -391,16 +389,20 @@ const emitInitialLoggedIn = (state: Container.TypedState) => {
   return state.config.loggedIn && ConfigGen.createLoggedIn({causedBySignup: false, causedByStartup: true})
 }
 
-function* allowLogoutWaiters(_: Container.TypedState, action: ConfigGen.LogoutHandshakePayload) {
-  yield Saga.put(
+const allowLogoutWaiters = async (
+  _: Container.TypedState,
+  action: ConfigGen.LogoutHandshakePayload,
+  listenerApi: Container.ListenerApi
+) => {
+  listenerApi.dispatch(
     ConfigGen.createLogoutHandshakeWait({
       increment: true,
       name: 'nullhandshake',
       version: action.payload.version,
     })
   )
-  yield Saga.delay(10)
-  yield Saga.put(
+  await listenerApi.delay(10)
+  listenerApi.dispatch(
     ConfigGen.createLogoutHandshakeWait({
       increment: false,
       name: 'nullhandshake',
@@ -433,13 +435,12 @@ const newNavigation = (
   Router2.dispatchOldAction(action)
 }
 
-function* criticalOutOfDateCheck() {
-  yield Saga.delay(60 * 1000) // don't bother checking during startup
+const criticalOutOfDateCheck = async (listenerApi: Container.ListenerApi) => {
+  await listenerApi.delay(60_000) // don't bother checking during startup
   // check every hour
   while (true) {
     try {
-      const s: Saga.RPCPromiseType<typeof RPCTypes.configGetUpdateInfo2RpcPromise> =
-        yield RPCTypes.configGetUpdateInfo2RpcPromise({})
+      const s = await RPCTypes.configGetUpdateInfo2RpcPromise({})
       let status: ConfigGen.UpdateCriticalCheckStatusPayload['payload']['status'] = 'ok'
       let message: string | null = null
       switch (s.status) {
@@ -455,7 +456,7 @@ function* criticalOutOfDateCheck() {
           break
         default:
       }
-      yield Saga.put(ConfigGen.createUpdateCriticalCheckStatus({message: message || '', status}))
+      listenerApi.dispatch(ConfigGen.createUpdateCriticalCheckStatus({message: message || '', status}))
     } catch (e) {
       logger.warn("Can't call critical check", e)
     }
@@ -463,7 +464,7 @@ function* criticalOutOfDateCheck() {
     if (Platform.isMobile) {
       return
     }
-    yield Saga.delay(3600 * 1000) // 1 hr
+    await listenerApi.delay(3_600_000) // 1 hr
   }
 }
 
@@ -598,12 +599,7 @@ function* configSaga() {
     loadDaemonBootstrapStatus
   )
   // Load the known accounts if you revoke / handshake / logout
-  yield* Saga.chainGenerator<
-    | DevicesGen.RevokedPayload
-    | ConfigGen.DaemonHandshakePayload
-    | ConfigGen.LoggedOutPayload
-    | ConfigGen.LoggedInPayload
-  >(
+  Container.listenAction(
     [DevicesGen.revoked, ConfigGen.daemonHandshake, ConfigGen.loggedOut, ConfigGen.loggedIn],
     loadDaemonAccounts
   )
@@ -634,11 +630,8 @@ function* configSaga() {
   // Like handshake but in reverse, ask sagas to do stuff before we tell the server to log us out
   Container.listenAction(ConfigGen.logout, startLogoutHandshakeIfAllowed)
   // Give time for all waiters to register and allow the case where there are no waiters
-  yield* Saga.chainGenerator<ConfigGen.LogoutHandshakePayload>(ConfigGen.logoutHandshake, allowLogoutWaiters)
-  yield* Saga.chainGenerator<ConfigGen.LogoutHandshakeWaitPayload>(
-    ConfigGen.logoutHandshakeWait,
-    maybeDoneWithLogoutHandshake
-  )
+  Container.listenAction(ConfigGen.logoutHandshake, allowLogoutWaiters)
+  Container.listenAction(ConfigGen.logoutHandshakeWait, maybeDoneWithLogoutHandshake)
   // When we're all done lets clean up
   Container.listenAction(ConfigGen.loggedOut, resetGlobalStore)
   // Store per user server config info
@@ -669,7 +662,9 @@ function* configSaga() {
 
   // Kick off platform specific stuff
   yield Saga.spawn(PlatformSpecific.platformConfigSaga)
-  yield Saga.spawn(criticalOutOfDateCheck)
+
+  // Container.listenAction(ConfigGen.initListenerLoops, criticalOutOfDateCheck)
+  Container.spawn(criticalOutOfDateCheck)
 
   Container.listenAction(ConfigGen.loadOnLoginStartup, loadOnLoginStartup)
 }

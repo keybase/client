@@ -12,7 +12,7 @@ import {type Store} from 'redux'
 import {enableStoreLogging, enableActionLogging} from '../local-debug'
 import {hookMiddleware} from './hook-middleware'
 import {isMobile} from '../constants/platform'
-import {run as runSagas, create as createSagaMiddleware} from './configure-sagas'
+import {run as _runSagas, create as createSagaMiddleware} from './configure-sagas'
 
 let theStore: Store<any, any>
 
@@ -157,5 +157,13 @@ export default function makeStore() {
     })
   }
 
-  return {runSagas, store}
+  return {
+    runSagas: () => {
+      // register our listeners
+      _runSagas()
+      // start our 'forks'
+      store.dispatch(ConfigGen.createInitListenerLoops())
+    },
+    store,
+  }
 }
