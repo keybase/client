@@ -71,18 +71,22 @@ export const dumpLogs = async (_?: unknown, action?: ConfigGen.DumpLogsPayload) 
   }
 }
 
-function* checkRPCOwnership(_: Container.TypedState, action: ConfigGen.DaemonHandshakePayload) {
+const checkRPCOwnership = async (
+  _: Container.TypedState,
+  action: ConfigGen.DaemonHandshakePayload,
+  listenerApi: Container.ListenerApi
+) => {
   const waitKey = 'pipeCheckFail'
-  yield Saga.put(
+  listenerApi.dispatch(
     ConfigGen.createDaemonHandshakeWait({increment: true, name: waitKey, version: action.payload.version})
   )
   try {
     logger.info('Checking RPC ownership')
 
     if (KB2.functions.winCheckRPCOwnership) {
-      yield Saga.callUntyped(KB2.functions.winCheckRPCOwnership)
+      await KB2.functions.winCheckRPCOwnership()
     }
-    yield Saga.put(
+    listenerApi.dispatch(
       ConfigGen.createDaemonHandshakeWait({
         increment: false,
         name: waitKey,
@@ -93,7 +97,7 @@ function* checkRPCOwnership(_: Container.TypedState, action: ConfigGen.DaemonHan
     // error will be logged in bootstrap check
     getEngine().reset()
     const error = error_ as RPCError
-    yield Saga.put(
+    listenerApi.dispatch(
       ConfigGen.createDaemonHandshakeWait({
         failedFatal: true,
         failedReason: error.message || 'windows pipe owner fail',
@@ -320,7 +324,11 @@ export const requestAudioPermission = async () => Promise.resolve()
 export const clearWatchPosition = () => {}
 export const watchPositionForMap = async () => Promise.resolve(0)
 
-function* checkNav(_state: Container.TypedState, action: ConfigGen.DaemonHandshakePayload) {
+const checkNav = async (
+  _state: Container.TypedState,
+  action: ConfigGen.DaemonHandshakePayload,
+  listenerApi: Container.ListenerApi
+) => {
   // have one
   if (_getNavigator()) {
     return
@@ -329,15 +337,16 @@ function* checkNav(_state: Container.TypedState, action: ConfigGen.DaemonHandsha
   const name = 'desktopNav'
   const {version} = action.payload
 
-  yield Saga.put(ConfigGen.createDaemonHandshakeWait({increment: true, name, version}))
+  listenerApi.dispatch(ConfigGen.createDaemonHandshakeWait({increment: true, name, version}))
+  // eslint-disable-next-line
   while (true) {
     logger.info('Waiting on nav')
-    yield Saga.take(ConfigGen.setNavigator)
+    await listenerApi.take(a => a.type === ConfigGen.setNavigator)
     if (_getNavigator()) {
       break
     }
   }
-  yield Saga.put(ConfigGen.createDaemonHandshakeWait({increment: false, name, version}))
+  listenerApi.dispatch(ConfigGen.createDaemonHandshakeWait({increment: false, name, version}))
 }
 
 export function* platformConfigSaga() {
@@ -362,9 +371,9 @@ export function* platformConfigSaga() {
   Container.listenAction(ConfigGen.updateWindowState, saveWindowState)
 
   if (isWindows) {
-    yield* Saga.chainGenerator<ConfigGen.DaemonHandshakePayload>(ConfigGen.daemonHandshake, checkRPCOwnership)
+    Container.listenAction(ConfigGen.daemonHandshake, checkRPCOwnership)
   }
-  yield* Saga.chainGenerator<ConfigGen.DaemonHandshakePayload>(ConfigGen.daemonHandshake, checkNav)
+  Container.listenAction(ConfigGen.daemonHandshake, checkNav)
 
   Container.spawn(initializeUseNativeFrame)
   Container.spawn(initializeNotifySound)
