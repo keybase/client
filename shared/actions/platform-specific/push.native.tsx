@@ -57,22 +57,20 @@ const updateAppBadge = (_: unknown, action: NotificationsGen.ReceivedBadgeStateP
 // At startup the flow above can be racy, since we may not have registered the
 // event listener before the event is emitted. In that case you can always use
 // `getInitialPushAndroid`.
-const listenForNativeAndroidIntentNotifications = async (
-  emitter: (action: Container.TypedActions) => void
-) => {
+const listenForNativeAndroidIntentNotifications = async (listenerApi: Container.ListenerApi) => {
   const pushToken = (await NativeModules.Utils.androidGetRegistrationToken?.()) ?? ''
   logger.debug('[PushToken] received new token: ', pushToken)
-  emitter(PushGen.createUpdatePushToken({token: pushToken}))
+  listenerApi.dispatch(PushGen.createUpdatePushToken({token: pushToken}))
 
   const RNEmitter = new NativeEventEmitter(NativeModules.KeybaseEngine as any)
   RNEmitter.addListener('initialIntentFromNotification', evt => {
     const notification = evt && Constants.normalizePush(evt)
-    notification && emitter(PushGen.createNotification({notification}))
+    notification && listenerApi.dispatch(PushGen.createNotification({notification}))
   })
 
   RNEmitter.addListener('onShareData', evt => {
     logger.debug('[ShareDataIntent]', evt)
-    emitter(
+    listenerApi.dispatch(
       ConfigGen.createAndroidShare({
         text: evt.text,
         url: evt.localPath,
@@ -81,10 +79,10 @@ const listenForNativeAndroidIntentNotifications = async (
   })
 }
 
-const listenForPushNotificationsFromJS = (emitter: (action: Container.TypedActions) => void) => {
+const listenForPushNotificationsFromJS = (listenerApi: Container.ListenerApi) => {
   const onRegister = (token: string) => {
     logger.debug('[PushToken] received new token: ', token)
-    emitter(PushGen.createUpdatePushToken({token}))
+    listenerApi.dispatch(PushGen.createUpdatePushToken({token}))
   }
 
   const onNotification = (n: Object) => {
@@ -93,7 +91,7 @@ const listenForPushNotificationsFromJS = (emitter: (action: Container.TypedActio
     if (!notification) {
       return
     }
-    emitter(PushGen.createNotification({notification}))
+    listenerApi.dispatch(PushGen.createNotification({notification}))
   }
 
   isIOS && PushNotificationIOS.addEventListener('notification', onNotification)
@@ -101,23 +99,13 @@ const listenForPushNotificationsFromJS = (emitter: (action: Container.TypedActio
   isIOS && PushNotificationIOS.addEventListener('register', onRegister)
 }
 
-function* setupPushEventLoop() {
-  const pushChannel = yield Saga.eventChannel(emitter => {
-    if (isAndroid) {
-      listenForNativeAndroidIntentNotifications(emitter)
-        .then(() => {})
-        .catch(() => {})
-    } else {
-      listenForPushNotificationsFromJS(emitter)
-    }
-
-    // we never unsubscribe
-    return () => {}
-  }, Saga.buffers.expanding(10))
-
-  while (true) {
-    const action = yield Saga.take(pushChannel)
-    yield Saga.put(action)
+const setupPushEventLoop = async (_s: unknown, _a: unknown, listenerApi: Container.ListenerApi) => {
+  if (isAndroid) {
+    listenForNativeAndroidIntentNotifications(listenerApi)
+      .then(() => {})
+      .catch(() => {})
+  } else {
+    listenForPushNotificationsFromJS(listenerApi)
   }
 }
 
@@ -459,7 +447,7 @@ function* pushSaga() {
 
   Container.listenAction(NotificationsGen.receivedBadgeState, updateAppBadge)
   yield* Saga.chainGenerator<PushGen.NotificationPayload>(PushGen.notification, handlePush)
-  yield* Saga.chainGenerator<ConfigGen.DaemonHandshakePayload>(ConfigGen.daemonHandshake, setupPushEventLoop)
+  Container.listenAction(ConfigGen.daemonHandshake, setupPushEventLoop)
   Container.spawn(initialPermissionsCheck, 'initialPermissionsCheck')
 }
 
