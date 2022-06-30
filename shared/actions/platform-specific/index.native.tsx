@@ -227,7 +227,7 @@ const updateChangedFocus = (_: unknown, action: ConfigGen.MobileAppStatePayload)
 }
 
 let _lastPersist = ''
-function* persistRoute(_state: Container.TypedState, action: ConfigGen.PersistRoutePayload) {
+const persistRoute = async (_state: Container.TypedState, action: ConfigGen.PersistRoutePayload) => {
   const path = action.payload.path
   let param = {}
   let routeName = Tabs.peopleTab
@@ -256,16 +256,11 @@ function* persistRoute(_state: Container.TypedState, action: ConfigGen.PersistRo
   if (_lastPersist === s) {
     return
   }
-  yield Saga.spawn(async () =>
-    RPCTypes.configGuiSetValueRpcPromise({
-      path: 'ui.routeState2',
-      value: {isNull: false, s},
-    })
-      .then(() => {
-        _lastPersist = s
-      })
-      .catch(() => {})
-  )
+  await RPCTypes.configGuiSetValueRpcPromise({
+    path: 'ui.routeState2',
+    value: {isNull: false, s},
+  })
+  _lastPersist = s
 }
 
 // only send when different, we get called a bunch where this doesn't actually change
@@ -384,21 +379,25 @@ function* loadStartupDetails() {
   )
 }
 
-function* waitForStartupDetails(state: Container.TypedState, action: ConfigGen.DaemonHandshakePayload) {
+const waitForStartupDetails = async (
+  state: Container.TypedState,
+  action: ConfigGen.DaemonHandshakePayload,
+  listenerApi: Container.ListenerApi
+) => {
   // loadStartupDetails finished already
   if (state.config.startupDetailsLoaded) {
     return
   }
   // Else we have to wait for the loadStartupDetails to finish
-  yield Saga.put(
+  listenerApi.dispatch(
     ConfigGen.createDaemonHandshakeWait({
       increment: true,
       name: 'platform.native-waitStartupDetails',
       version: action.payload.version,
     })
   )
-  yield Saga.take(ConfigGen.setStartupDetails)
-  yield Saga.put(
+  await listenerApi.take(action => action.type === ConfigGen.setStartupDetails)
+  listenerApi.dispatch(
     ConfigGen.createDaemonHandshakeWait({
       increment: false,
       name: 'platform.native-waitStartupDetails',
@@ -495,22 +494,21 @@ const askForContactPermissions = async () => {
   return isAndroid ? askForContactPermissionsAndroid() : askForContactPermissionsIOS()
 }
 
-function* requestContactPermissions(
+const requestContactPermissions = async (
   _: Container.TypedState,
-  action: SettingsGen.RequestContactPermissionsPayload
-) {
+  action: SettingsGen.RequestContactPermissionsPayload,
+  listenerApi: Container.ListenerApi
+) => {
   const {thenToggleImportOn} = action.payload
-  yield Saga.put(WaitingGen.createIncrementWaiting({key: SettingsConstants.importContactsWaitingKey}))
-  const result: Saga.RPCPromiseType<typeof askForContactPermissions> = yield askForContactPermissions()
+  listenerApi.dispatch(WaitingGen.createIncrementWaiting({key: SettingsConstants.importContactsWaitingKey}))
+  const result = await askForContactPermissions()
   if (result === 'granted' && thenToggleImportOn) {
-    yield Saga.put(
+    listenerApi.dispatch(
       SettingsGen.createEditContactImportEnabled({enable: true, fromSettings: action.payload.fromSettings})
     )
   }
-  yield Saga.sequentially([
-    Saga.put(SettingsGen.createLoadedContactPermissions({status: result})),
-    Saga.put(WaitingGen.createDecrementWaiting({key: SettingsConstants.importContactsWaitingKey})),
-  ])
+  listenerApi.dispatch(SettingsGen.createLoadedContactPermissions({status: result}))
+  listenerApi.dispatch(WaitingGen.createDecrementWaiting({key: SettingsConstants.importContactsWaitingKey}))
 }
 
 const manageContactsCache = async (
@@ -873,14 +871,11 @@ const notifyNativeOfDarkModeChange = (state: Container.TypedState) => {
 }
 
 export function* platformConfigSaga() {
-  yield* Saga.chainGenerator<ConfigGen.PersistRoutePayload>(ConfigGen.persistRoute, persistRoute)
+  Container.listenAction(ConfigGen.persistRoute, persistRoute)
   Container.listenAction(ConfigGen.mobileAppState, updateChangedFocus)
   Container.listenAction(ConfigGen.openAppSettings, openAppSettings)
   Container.listenAction(ConfigGen.copyToClipboard, copyToClipboard)
-  yield* Saga.chainGenerator<ConfigGen.DaemonHandshakePayload>(
-    ConfigGen.daemonHandshake,
-    waitForStartupDetails
-  )
+  Container.listenAction(ConfigGen.daemonHandshake, waitForStartupDetails)
   Container.listenAction(ConfigGen.openAppStore, openAppStore)
   Container.listenAction(ConfigGen.filePickerError, handleFilePickerError)
   Container.listenAction(ProfileGen.editAvatar, editAvatar)
@@ -896,10 +891,8 @@ export function* platformConfigSaga() {
     [SettingsGen.loadedContactImportEnabled, ConfigGen.mobileAppState],
     loadContactPermissions
   )
-  yield* Saga.chainGenerator<SettingsGen.RequestContactPermissionsPayload>(
-    SettingsGen.requestContactPermissions,
-    requestContactPermissions
-  )
+
+  Container.listenAction(SettingsGen.requestContactPermissions, requestContactPermissions)
   Container.listenAction(
     [SettingsGen.loadedContactImportEnabled, EngineGen.chat1ChatUiTriggerContactSync],
     manageContactsCache
