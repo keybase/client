@@ -36,43 +36,25 @@ export function clearAllNotifications() {
   throw new Error('Clear all notifications not available on this platform')
 }
 
-function* handleWindowFocusEvents() {
-  const channel = Saga.eventChannel(emitter => {
-    window.addEventListener('focus', () => emitter('focus'))
-    window.addEventListener('blur', () => emitter('blur'))
-    return () => {}
-  }, Saga.buffers.expanding(1))
-  while (true) {
-    const type = yield Saga.take(channel)
+const handleWindowFocusEvents = (listenerApi: Container.ListenerApi) => {
+  const handle = (appFocused: boolean) => {
     if (skipAppFocusActions) {
       console.log('Skipping app focus actions!')
     } else {
-      switch (type) {
-        case 'focus':
-          yield Saga.put(ConfigGen.createChangedFocus({appFocused: true}))
-          break
-        case 'blur':
-          yield Saga.put(ConfigGen.createChangedFocus({appFocused: false}))
-          break
-      }
+      listenerApi.dispatch(ConfigGen.createChangedFocus({appFocused}))
     }
   }
+  window.addEventListener('focus', () => handle(true))
+  window.addEventListener('blur', () => handle(false))
 }
 
-function* initializeInputMonitor(): Iterable<any> {
+const initializeInputMonitor = (listenerApi: Container.ListenerApi) => {
   const inputMonitor = new InputMonitor()
-  const channel = Saga.eventChannel(emitter => {
-    inputMonitor.notifyActive = isActive => emitter(isActive ? 'active' : 'inactive')
-    return () => {}
-  }, Saga.buffers.expanding(1))
-
-  while (true) {
-    const type = yield Saga.take(channel)
+  inputMonitor.notifyActive = (userActive: boolean) => {
     if (skipAppFocusActions) {
       console.log('Skipping app focus actions!')
     } else {
-      const userActive = type === 'active'
-      yield Saga.put(ConfigGen.createChangedActive({userActive}))
+      listenerApi.dispatch(ConfigGen.createChangedActive({userActive}))
       // let node thread save file
       activeChanged?.(Date.now(), userActive)
     }
@@ -126,19 +108,12 @@ function* checkRPCOwnership(_: Container.TypedState, action: ConfigGen.DaemonHan
 const initOsNetworkStatus = () =>
   ConfigGen.createOsNetworkStatusChanged({isInit: true, online: navigator.onLine, type: 'notavailable'})
 
-function* setupReachabilityWatcher() {
-  const channel = Saga.eventChannel(emitter => {
-    window.addEventListener('online', () => emitter('online'))
-    window.addEventListener('offline', () => emitter('offline'))
-    return () => {}
-  }, Saga.buffers.sliding(1))
-
-  while (true) {
-    const status = yield Saga.take(channel)
-    yield Saga.put(
-      ConfigGen.createOsNetworkStatusChanged({online: status === 'online', type: 'notavailable'})
-    )
+const setupReachabilityWatcher = (listenerApi: Container.ListenerApi) => {
+  const handler = (online: boolean) => {
+    listenerApi.dispatch(ConfigGen.createOsNetworkStatusChanged({online, type: 'notavailable'}))
   }
+  window.addEventListener('online', () => handler(true))
+  window.addEventListener('offline', () => handler(false))
 }
 
 const onExit = () => {
@@ -205,16 +180,16 @@ const sendWindowsKBServiceCheck = (
   }
 }
 
-function* startOutOfDateCheckLoop() {
-  while (1) {
+const startOutOfDateCheckLoop = async (listenerApi: Container.ListenerApi) => {
+  // eslint-disable-next-line
+  while (true) {
     try {
-      const toPut = yield checkForUpdate()
-      yield Saga.put(toPut)
-      yield Saga.delay(3600 * 1000) // 1 hr
+      const action = await checkForUpdate()
+      listenerApi.dispatch(action)
     } catch (err) {
       logger.warn('error getting update info: ', err)
-      yield Saga.delay(3600 * 1000) // 1 hr
     }
+    await listenerApi.delay(3_600_000) // 1 hr
   }
 }
 
@@ -255,14 +230,11 @@ const saveUseNativeFrame = async (state: Container.TypedState) => {
   })
 }
 
-function* initializeUseNativeFrame() {
+const initializeUseNativeFrame = async (listenerApi: Container.ListenerApi) => {
   try {
-    const val: Saga.RPCPromiseType<typeof RPCTypes.configGuiGetValueRpcPromise> =
-      yield RPCTypes.configGuiGetValueRpcPromise({
-        path: nativeFrameKey,
-      })
+    const val = await RPCTypes.configGuiGetValueRpcPromise({path: nativeFrameKey})
     const useNativeFrame = val.b === undefined || val.b === null ? defaultUseNativeFrame : val.b
-    yield Saga.put(ConfigGen.createSetUseNativeFrame({useNativeFrame}))
+    listenerApi.dispatch(ConfigGen.createSetUseNativeFrame({useNativeFrame}))
   } catch (_) {}
 }
 
@@ -279,16 +251,13 @@ const saveWindowState = async (state: Container.TypedState) => {
 }
 
 const notifySoundKey = 'notifySound'
-function* initializeNotifySound() {
+const initializeNotifySound = async (listenerApi: Container.ListenerApi) => {
   try {
-    const val: Saga.RPCPromiseType<typeof RPCTypes.configGuiGetValueRpcPromise> =
-      yield RPCTypes.configGuiGetValueRpcPromise({
-        path: notifySoundKey,
-      })
+    const val = await RPCTypes.configGuiGetValueRpcPromise({path: notifySoundKey})
     const notifySound: boolean | undefined = val.b || undefined
-    const state: Container.TypedState = yield Saga.selectState()
+    const state = listenerApi.getState()
     if (notifySound !== undefined && notifySound !== state.config.notifySound) {
-      yield Saga.put(ConfigGen.createSetNotifySound({notifySound}))
+      listenerApi.dispatch(ConfigGen.createSetNotifySound({notifySound}))
     }
   } catch (_) {}
 }
@@ -305,17 +274,13 @@ const setNotifySound = async (state: Container.TypedState) => {
 }
 
 const openAtLoginKey = 'openAtLogin'
-function* initializeOpenAtLogin() {
+const initializeOpenAtLogin = async (listenerApi: Container.ListenerApi) => {
   try {
-    const val: Saga.RPCPromiseType<typeof RPCTypes.configGuiGetValueRpcPromise> =
-      yield RPCTypes.configGuiGetValueRpcPromise({
-        path: openAtLoginKey,
-      })
-
+    const val = await RPCTypes.configGuiGetValueRpcPromise({path: openAtLoginKey})
     const openAtLogin: boolean | undefined = val.b || undefined
-    const state: Container.TypedState = yield Saga.selectState()
+    const state = listenerApi.getState()
     if (openAtLogin !== undefined && openAtLogin !== state.config.openAtLogin) {
-      yield Saga.put(ConfigGen.createSetOpenAtLogin({openAtLogin}))
+      listenerApi.dispatch(ConfigGen.createSetOpenAtLogin({openAtLogin}))
     }
   } catch (_) {}
 }
@@ -401,11 +366,11 @@ export function* platformConfigSaga() {
   }
   yield* Saga.chainGenerator<ConfigGen.DaemonHandshakePayload>(ConfigGen.daemonHandshake, checkNav)
 
-  yield Saga.spawn(initializeUseNativeFrame)
-  yield Saga.spawn(initializeNotifySound)
-  yield Saga.spawn(initializeOpenAtLogin)
-  yield Saga.spawn(initializeInputMonitor)
-  yield Saga.spawn(handleWindowFocusEvents)
-  yield Saga.spawn(setupReachabilityWatcher)
-  yield Saga.spawn(startOutOfDateCheckLoop)
+  Container.spawn(initializeUseNativeFrame)
+  Container.spawn(initializeNotifySound)
+  Container.spawn(initializeOpenAtLogin)
+  Container.spawn(initializeInputMonitor)
+  Container.spawn(handleWindowFocusEvents)
+  Container.spawn(setupReachabilityWatcher)
+  Container.spawn(startOutOfDateCheckLoop)
 }

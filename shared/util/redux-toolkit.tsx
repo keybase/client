@@ -63,7 +63,7 @@ const listenActionImpl = (
 
 export const listenAction: ListenAction = listenActionImpl as unknown as any
 
-export const spawn = (effect: (listenerApi: ListenerApi) => Promise<void>) => {
+export const spawn = (effect: (listenerApi: ListenerApi) => void | Promise<void>) => {
   listenerMiddleware.startListening({
     effect: async (_action, listenerApi) => {
       const task = listenerApi.fork(async () => {

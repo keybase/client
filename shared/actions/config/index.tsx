@@ -438,6 +438,7 @@ const newNavigation = (
 const criticalOutOfDateCheck = async (listenerApi: Container.ListenerApi) => {
   await listenerApi.delay(60_000) // don't bother checking during startup
   // check every hour
+  // eslint-disable-next-line
   while (true) {
     try {
       const s = await RPCTypes.configGetUpdateInfo2RpcPromise({})
@@ -663,9 +664,7 @@ function* configSaga() {
   // Kick off platform specific stuff
   yield Saga.spawn(PlatformSpecific.platformConfigSaga)
 
-  // Container.listenAction(ConfigGen.initListenerLoops, criticalOutOfDateCheck)
   Container.spawn(criticalOutOfDateCheck)
-
   Container.listenAction(ConfigGen.loadOnLoginStartup, loadOnLoginStartup)
 }
 
