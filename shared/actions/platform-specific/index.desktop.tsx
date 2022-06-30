@@ -2,7 +2,6 @@ import * as ConfigConstants from '../../constants/config'
 import * as ConfigGen from '../config-gen'
 import * as EngineGen from '../engine-gen-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
-import * as Saga from '../../util/saga'
 import logger from '../../logger'
 import {NotifyPopup} from '../../native/notifications'
 import {getEngine} from '../../engine'
@@ -321,8 +320,7 @@ const onSetOpenAtLogin = async (state: Container.TypedState) => {
 
 export const requestLocationPermission = async () => Promise.resolve()
 export const requestAudioPermission = async () => Promise.resolve()
-export const clearWatchPosition = () => {}
-export const watchPositionForMap = async () => Promise.resolve(0)
+export const watchPositionForMap = async () => Promise.resolve(() => {})
 
 const checkNav = async (
   _state: Container.TypedState,
@@ -338,15 +336,18 @@ const checkNav = async (
   const {version} = action.payload
 
   listenerApi.dispatch(ConfigGen.createDaemonHandshakeWait({increment: true, name, version}))
-  // eslint-disable-next-line
-  while (true) {
-    logger.info('Waiting on nav')
-    await listenerApi.take(a => a.type === ConfigGen.setNavigator)
-    if (_getNavigator()) {
-      break
+  try {
+    // eslint-disable-next-line
+    while (true) {
+      logger.info('Waiting on nav')
+      await listenerApi.take(a => a.type === ConfigGen.setNavigator)
+      if (_getNavigator()) {
+        break
+      }
     }
+  } finally {
+    listenerApi.dispatch(ConfigGen.createDaemonHandshakeWait({increment: false, name, version}))
   }
-  listenerApi.dispatch(ConfigGen.createDaemonHandshakeWait({increment: false, name, version}))
 }
 
 export function* platformConfigSaga() {
@@ -375,11 +376,11 @@ export function* platformConfigSaga() {
   }
   Container.listenAction(ConfigGen.daemonHandshake, checkNav)
 
-  Container.spawn(initializeUseNativeFrame)
-  Container.spawn(initializeNotifySound)
-  Container.spawn(initializeOpenAtLogin)
-  Container.spawn(initializeInputMonitor)
-  Container.spawn(handleWindowFocusEvents)
-  Container.spawn(setupReachabilityWatcher)
-  Container.spawn(startOutOfDateCheckLoop)
+  Container.spawn(initializeUseNativeFrame, 'initializeUseNativeFrame')
+  Container.spawn(initializeNotifySound, 'initializeNotifySound')
+  Container.spawn(initializeOpenAtLogin, 'initializeOpenAtLogin')
+  Container.spawn(initializeInputMonitor, 'initializeInputMonitor')
+  Container.spawn(handleWindowFocusEvents, 'handleWindowFocusEvents')
+  Container.spawn(setupReachabilityWatcher, 'setupReachabilityWatcher')
+  Container.spawn(startOutOfDateCheckLoop, 'startOutOfDateCheckLoop')
 }

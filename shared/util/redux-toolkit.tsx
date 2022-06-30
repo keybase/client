@@ -63,7 +63,7 @@ const listenActionImpl = (
 
 export const listenAction: ListenAction = listenActionImpl as unknown as any
 
-export const spawn = (effect: (listenerApi: ListenerApi) => void | Promise<void>) => {
+export const spawn = (effect: (listenerApi: ListenerApi) => void | Promise<void>, name?: string) => {
   listenerMiddleware.startListening({
     effect: async (_action, listenerApi) => {
       const task = listenerApi.fork(async () => {
@@ -71,7 +71,7 @@ export const spawn = (effect: (listenerApi: ListenerApi) => void | Promise<void>
         return
       })
       await task.result
-      console.log('Spawned effect ended')
+      console.log('Spawned effect ended', name ?? '')
     },
     type: ConfigGen.initListenerLoops,
   })

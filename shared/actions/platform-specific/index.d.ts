@@ -1,4 +1,4 @@
-import * as Saga from '../../util/saga'
+import * as Container from '../../util/container'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 
 type NextURI = string
@@ -15,8 +15,7 @@ export declare function showShareActionSheet(options: {
 export declare function saveAttachmentToCameraRoll(fileURL: string, mimeType: string): Promise<void>
 export declare function requestLocationPermission(mode: RPCChatTypes.UIWatchPositionPerm): Promise<void>
 export declare function requestAudioPermission(): Promise<void>
-export declare function clearWatchPosition(watchID: number): void
-export declare function watchPositionForMap(errFn: () => void): Promise<number>
+export declare function watchPositionForMap(dispatch: Container.TypedDispatch): Promise<() => void>
 
 export declare function displayNewMessageNotification(
   text: string,

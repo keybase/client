@@ -8,7 +8,7 @@ import * as ConfigGen from '../../../../actions/config-gen'
 import * as Constants from '../../../../constants/chat2'
 import LocationMap from '../../../location-map'
 import HiddenString from '../../../../util/hidden-string'
-import {clearWatchPosition, watchPositionForMap} from '../../../../actions/platform-specific'
+import {watchPositionForMap} from '../../../../actions/platform-specific'
 
 type Props = Container.RouteProps<'chatLocationPreview'>
 
@@ -37,19 +37,18 @@ const LocationPopup = (props: Props) => {
     )
   }
   React.useEffect(() => {
-    let watchID: number | null
-    async function watchPosition() {
-      watchID = await watchPositionForMap(() => setLocationDenied(true))
-    }
-    watchPosition()
-      .then(() => {})
-      .catch(() => {})
+    let unwatch: undefined | (() => void)
+    watchPositionForMap(dispatch)
+      .then(unsub => {
+        unwatch = unsub
+      })
+      .catch(() => {
+        setLocationDenied(true)
+      })
     return () => {
-      if (watchID !== null) {
-        clearWatchPosition(watchID)
-      }
+      unwatch?.()
     }
-  }, [])
+  }, [dispatch])
 
   const width = Math.ceil(Styles.dimensionWidth)
   const height = Math.ceil(Styles.dimensionHeight - 320)

@@ -23,7 +23,7 @@ import {getEngine} from '../../engine/require'
 import {Alert, Linking, ActionSheetIOS, PermissionsAndroid, Vibration} from 'react-native'
 import {NativeModules} from '../../util/native-modules.native'
 import Clipboard from '@react-native-clipboard/clipboard'
-import NetInfo, {type NetInfoStateType} from '@react-native-community/netinfo'
+import NetInfo from '@react-native-community/netinfo'
 import PushNotificationIOS from '@react-native-community/push-notification-ios'
 import {isIOS, isAndroid} from '../../constants/platform'
 import pushSaga, {getStartupDetailsFromInitialPush, getStartupDetailsFromInitialShare} from './push.native'
@@ -289,16 +289,10 @@ const initOsNetworkStatus = async () => {
   return ConfigGen.createOsNetworkStatusChanged({isInit: true, online: type !== 'none', type})
 }
 
-function* setupNetInfoWatcher() {
-  const channel = Saga.eventChannel(emitter => {
-    NetInfo.addEventListener(({type}) => emitter(type))
-    return () => {}
-  }, Saga.buffers.sliding(1))
-
-  while (true) {
-    const status: NetInfoStateType = yield Saga.take(channel)
-    yield Saga.put(ConfigGen.createOsNetworkStatusChanged({online: status !== 'none', type: status}))
-  }
+const setupNetInfoWatcher = (listenerApi: Container.ListenerApi) => {
+  NetInfo.addEventListener(({type}) => {
+    listenerApi.dispatch(ConfigGen.createOsNetworkStatusChanged({online: type !== 'none', type}))
+  })
 }
 
 // TODO rewrite this, v slow
@@ -603,23 +597,6 @@ const showContactsJoinedModal = (_: unknown, action: SettingsGen.ShowContactsJoi
     ? [RouteTreeGen.createNavigateAppend({path: ['settingsContactsJoined']})]
     : []
 
-let locationEmitter: ((input: unknown) => void) | null = null
-
-function* setupLocationUpdateLoop() {
-  if (locationEmitter) {
-    return
-  }
-  const locationChannel = yield Saga.eventChannel(emitter => {
-    locationEmitter = emitter
-    // we never unsubscribe
-    return () => {}
-  }, Saga.buffers.expanding(10))
-  while (true) {
-    const action = yield Saga.take(locationChannel)
-    yield Saga.put(action)
-  }
-}
-
 const setPermissionDeniedCommandStatus = (conversationIDKey: Types.ConversationIDKey, text: string) =>
   Chat2Gen.createSetCommandStatusInfo({
     conversationIDKey,
@@ -630,7 +607,11 @@ const setPermissionDeniedCommandStatus = (conversationIDKey: Types.ConversationI
     },
   })
 
-const onChatWatchPosition = async (_: unknown, action: EngineGen.Chat1ChatUiChatWatchPositionPayload) => {
+const onChatWatchPosition = async (
+  _: unknown,
+  action: EngineGen.Chat1ChatUiChatWatchPositionPayload,
+  listenerApi: Container.ListenerApi
+) => {
   const response = action.payload.response
   try {
     await requestLocationPermission(action.payload.params.perm)
@@ -644,18 +625,16 @@ const onChatWatchPosition = async (_: unknown, action: EngineGen.Chat1ChatUiChat
   }
   const watchID = Geolocation.watchPosition(
     pos => {
-      if (locationEmitter) {
-        locationEmitter(
-          Chat2Gen.createUpdateLastCoord({
-            coord: {accuracy: pos.coords.accuracy, lat: pos.coords.latitude, lon: pos.coords.longitude},
-          })
-        )
-      }
+      listenerApi.dispatch(
+        Chat2Gen.createUpdateLastCoord({
+          coord: {accuracy: pos.coords.accuracy, lat: pos.coords.latitude, lon: pos.coords.longitude},
+        })
+      )
     },
     err => {
       logger.warn(err.message)
-      if (err.code && err.code === 1 && locationEmitter) {
-        locationEmitter(
+      if (err.code && err.code === 1) {
+        listenerApi.dispatch(
           setPermissionDeniedCommandStatus(
             Types.conversationIDToKey(action.payload.params.convID),
             `Failed to access location. ${err.message}`
@@ -669,43 +648,32 @@ const onChatWatchPosition = async (_: unknown, action: EngineGen.Chat1ChatUiChat
   return []
 }
 
-export const clearWatchPosition = (watchID: number) => {
-  Geolocation.clearWatch(watchID)
-}
-
 const onChatClearWatch = (_: unknown, action: EngineGen.Chat1ChatUiChatClearWatchPayload) => {
-  clearWatchPosition(action.payload.params.id)
+  Geolocation.clearWatch(action.payload.params.id)
 }
 
-export const watchPositionForMap = async (errFn: () => void): Promise<number> => {
-  try {
-    await requestLocationPermission(RPCChatTypes.UIWatchPositionPerm.base)
-  } catch (e) {
-    errFn()
-    return 0
-  }
+export const watchPositionForMap = async (dispatch: Container.TypedDispatch) => {
+  await requestLocationPermission(RPCChatTypes.UIWatchPositionPerm.base)
   const watchID = Geolocation.watchPosition(
     pos => {
-      if (locationEmitter) {
-        locationEmitter(
-          Chat2Gen.createUpdateLastCoord({
-            coord: {
-              accuracy: Math.floor(pos.coords.accuracy),
-              lat: pos.coords.latitude,
-              lon: pos.coords.longitude,
-            },
-          })
-        )
-      }
+      dispatch(
+        Chat2Gen.createUpdateLastCoord({
+          coord: {
+            accuracy: Math.floor(pos.coords.accuracy),
+            lat: pos.coords.latitude,
+            lon: pos.coords.longitude,
+          },
+        })
+      )
     },
     err => {
       if (err.code && err.code === 1) {
-        errFn()
+        throw new Error('watch failed')
       }
     },
     {distanceFilter: 10, enableHighAccuracy: isIOS, maximumAge: isIOS ? 0 : undefined}
   )
-  return watchID
+  return () => Geolocation.clearWatch(watchID)
 }
 
 const configureFileAttachmentDownloadForAndroid = async () =>
@@ -869,7 +837,11 @@ const onPersistRoute = async () => {
   return ConfigGen.createPersistRoute({path})
 }
 
-function* checkNav(_state: Container.TypedState, action: ConfigGen.DaemonHandshakePayload) {
+const checkNav = async (
+  _state: Container.TypedState,
+  action: ConfigGen.DaemonHandshakePayload,
+  listenerApi: Container.ListenerApi
+) => {
   // have one
   if (_getNavigator()) {
     return
@@ -878,16 +850,20 @@ function* checkNav(_state: Container.TypedState, action: ConfigGen.DaemonHandsha
   const name = 'mobileNav'
   const {version} = action.payload
 
-  yield Saga.put(ConfigGen.createDaemonHandshakeWait({increment: true, name, version}))
-  while (true) {
-    logger.info('Waiting on nav')
-    yield Saga.take(ConfigGen.setNavigator)
-    if (_getNavigator()) {
-      break
+  listenerApi.dispatch(ConfigGen.createDaemonHandshakeWait({increment: true, name, version}))
+  try {
+    // eslint-disable-next-line
+    while (true) {
+      logger.info('Waiting on nav')
+      await listenerApi.take(action => action.type === ConfigGen.setNavigator)
+      if (_getNavigator()) {
+        break
+      }
+      logger.info('Waiting on nav, got setNavigator but nothing in constants?')
     }
-    logger.info('Waiting on nav, got setNavigator but nothing in constants?')
+  } finally {
+    listenerApi.dispatch(ConfigGen.createDaemonHandshakeWait({increment: false, name, version}))
   }
-  yield Saga.put(ConfigGen.createDaemonHandshakeWait({increment: false, name, version}))
 }
 
 const notifyNativeOfDarkModeChange = (state: Container.TypedState) => {
@@ -934,15 +910,11 @@ export function* platformConfigSaga() {
   getEngine().registerCustomResponse('chat.1.chatUi.chatWatchPosition')
   Container.listenAction(EngineGen.chat1ChatUiChatWatchPosition, onChatWatchPosition)
   Container.listenAction(EngineGen.chat1ChatUiChatClearWatch, onChatClearWatch)
-  yield* Saga.chainGenerator<ConfigGen.DaemonHandshakePayload>(
-    ConfigGen.daemonHandshake,
-    setupLocationUpdateLoop
-  )
   if (isAndroid) {
     Container.listenAction(ConfigGen.daemonHandshake, configureFileAttachmentDownloadForAndroid)
   }
 
-  yield* Saga.chainGenerator<ConfigGen.DaemonHandshakePayload>(ConfigGen.daemonHandshake, checkNav)
+  Container.listenAction(ConfigGen.daemonHandshake, checkNav)
   Container.listenAction(ConfigGen.setDarkModePreference, notifyNativeOfDarkModeChange)
 
   // Audio
@@ -956,5 +928,5 @@ export function* platformConfigSaga() {
   // Start this immediately instead of waiting so we can do more things in parallel
   yield Saga.spawn(loadStartupDetails)
   yield Saga.spawn(pushSaga)
-  yield Saga.spawn(setupNetInfoWatcher)
+  Container.spawn(setupNetInfoWatcher, 'setupNetInfoWatcher')
 }

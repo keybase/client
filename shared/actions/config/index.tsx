@@ -664,7 +664,7 @@ function* configSaga() {
   // Kick off platform specific stuff
   yield Saga.spawn(PlatformSpecific.platformConfigSaga)
 
-  Container.spawn(criticalOutOfDateCheck)
+  Container.spawn(criticalOutOfDateCheck, 'criticalOutOfDateCheck')
   Container.listenAction(ConfigGen.loadOnLoginStartup, loadOnLoginStartup)
 }
 
