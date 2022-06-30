@@ -267,7 +267,13 @@ const askNativeIfSystemPushPromptHasBeenShown = () =>
     ? NativeModules.IOSPushPrompt?.getHasShownPushPrompt() ?? Promise.resolve(false)
     : Promise.resolve(false)
 const checkPermissionsFromNative = async () =>
-  new Promise(resolve => isIOS && PushNotificationIOS.checkPermissions(resolve))
+  new Promise<{alert?: boolean; badge?: boolean; sound?: boolean}>(resolve => {
+    if (isIOS) {
+      PushNotificationIOS.checkPermissions(perms => resolve(perms))
+    } else {
+      resolve({})
+    }
+  })
 const monsterStorageKey = 'shownMonsterPushPrompt'
 
 const neverShowMonsterAgain = async (
@@ -316,24 +322,20 @@ function* requestPermissions() {
   }
 }
 
-function* initialPermissionsCheck() {
-  const hasPermissions = yield _checkPermissions(null)
+const initialPermissionsCheck = async (listenerApi: Container.ListenerApi) => {
+  const hasPermissions = await _checkPermissions(null, listenerApi)
   if (hasPermissions) {
     // Get the token
-    yield Saga.spawn(requestPermissionsFromNative)
+    await requestPermissionsFromNative()
   } else {
-    const shownNativePushPromptTask = yield Saga._fork(askNativeIfSystemPushPromptHasBeenShown)
-    const shownMonsterPushPromptTask = yield Saga._fork(async () => {
-      try {
-        const v = await RPCTypes.configGuiGetValueRpcPromise({path: `ui.${monsterStorageKey}`})
-        return !!v.b
-      } catch (_) {
-        return false
-      }
-    })
-    const [shownNativePushPrompt, shownMonsterPushPrompt] = yield Saga.join([
-      shownNativePushPromptTask,
-      shownMonsterPushPromptTask,
+    const shownNativePushPromptTask = askNativeIfSystemPushPromptHasBeenShown
+    const shownMonsterPushPromptTask = async () => {
+      const v = await RPCTypes.configGuiGetValueRpcPromise({path: `ui.${monsterStorageKey}`})
+      return !!v.b
+    }
+    const [shownNativePushPrompt, shownMonsterPushPrompt] = await Promise.all([
+      Container.neverThrowPromiseFunc(shownNativePushPromptTask),
+      Container.neverThrowPromiseFunc(shownMonsterPushPromptTask),
     ])
     logger.info(
       '[PushInitialCheck] shownNativePushPrompt:',
@@ -343,16 +345,23 @@ function* initialPermissionsCheck() {
     )
     if (!shownNativePushPrompt && !shownMonsterPushPrompt) {
       logger.info('[PushInitialCheck] no permissions, never shown prompt, now show prompt')
-      yield Saga.put(PushGen.createShowPermissionsPrompt({show: true}))
+      listenerApi.dispatch(PushGen.createShowPermissionsPrompt({show: true}))
     }
   }
 }
 
-function* checkPermissions(_: Container.TypedState, action: ConfigGen.MobileAppStatePayload) {
-  yield* _checkPermissions(action)
+const checkPermissions = async (
+  _: Container.TypedState,
+  action: ConfigGen.MobileAppStatePayload,
+  listenerApi: Container.ListenerApi
+) => {
+  await _checkPermissions(action, listenerApi)
 }
 // Call when we foreground and on app start, action is null on app start. Returns if you have permissions
-function* _checkPermissions(action: ConfigGen.MobileAppStatePayload | null) {
+const _checkPermissions = async (
+  action: ConfigGen.MobileAppStatePayload | null,
+  listenerApi: Container.ListenerApi
+) => {
   // Only recheck on foreground, not background
   if (action && action.payload.nextAppState !== 'active') {
     logger.info('[PushCheck] skip on backgrounding')
@@ -360,20 +369,20 @@ function* _checkPermissions(action: ConfigGen.MobileAppStatePayload | null) {
   }
 
   logger.debug(`[PushCheck] checking ${action ? 'on foreground' : 'on startup'}`)
-  const permissions = yield checkPermissionsFromNative()
+  const permissions = await checkPermissionsFromNative()
   if (permissions.alert || permissions.badge) {
-    const state: Container.TypedState = yield* Saga.selectState()
+    const state = listenerApi.getState()
     if (!state.push.hasPermissions) {
       logger.info('[PushCheck] enabled: getting token')
-      yield Saga.put(PushGen.createUpdateHasPermissions({hasPermissions: true}))
-      yield requestPermissionsFromNative()
+      listenerApi.dispatch(PushGen.createUpdateHasPermissions({hasPermissions: true}))
+      await requestPermissionsFromNative()
     } else {
       logger.info('[PushCheck] enabled already')
     }
     return true
   } else {
     logger.info('[PushCheck] disabled')
-    yield Saga.put(PushGen.createUpdateHasPermissions({hasPermissions: false}))
+    listenerApi.dispatch(PushGen.createUpdateHasPermissions({hasPermissions: false}))
     return false
   }
 }
@@ -442,7 +451,7 @@ function* pushSaga() {
     requestPermissions
   )
   Container.listenAction([PushGen.showPermissionsPrompt, PushGen.rejectPermissions], neverShowMonsterAgain)
-  yield* Saga.chainGenerator<ConfigGen.MobileAppStatePayload>(ConfigGen.mobileAppState, checkPermissions)
+  Container.listenAction(ConfigGen.mobileAppState, checkPermissions)
 
   // Token handling
   Container.listenAction([PushGen.updatePushToken, ConfigGen.bootstrapStatusLoaded], uploadPushToken)
@@ -451,7 +460,7 @@ function* pushSaga() {
   Container.listenAction(NotificationsGen.receivedBadgeState, updateAppBadge)
   yield* Saga.chainGenerator<PushGen.NotificationPayload>(PushGen.notification, handlePush)
   yield* Saga.chainGenerator<ConfigGen.DaemonHandshakePayload>(ConfigGen.daemonHandshake, setupPushEventLoop)
-  yield Saga.spawn(initialPermissionsCheck)
+  Container.spawn(initialPermissionsCheck, 'initialPermissionsCheck')
 }
 
 export default pushSaga

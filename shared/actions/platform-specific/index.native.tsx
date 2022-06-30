@@ -910,6 +910,7 @@ export function* platformConfigSaga() {
 
   // Start this immediately instead of waiting so we can do more things in parallel
   Container.spawn(loadStartupDetails, 'loadStartupDetails')
+  // TODO not saga
   yield Saga.spawn(pushSaga)
   Container.spawn(setupNetInfoWatcher, 'setupNetInfoWatcher')
 }
