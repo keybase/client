@@ -17,6 +17,7 @@ import {NativeModules} from '../../util/native-modules.native'
 import {isIOS, isAndroid} from '../../constants/platform'
 import * as Container from '../../util/container'
 import type * as Types from '../../constants/types/push'
+import type * as ChatTypes from '../../constants/types/chat2'
 
 const setApplicationIconBadgeNumber = (n: number) => {
   if (isIOS) {
@@ -377,35 +378,37 @@ function* _checkPermissions(action: ConfigGen.MobileAppStatePayload | null) {
   }
 }
 
-function* getStartupDetailsFromInitialShare() {
+const getStartupDetailsFromInitialShare = async () => {
   if (isAndroid) {
-    const fileUrl = yield NativeModules.KeybaseEngine.androidGetInitialShareFileUrl?.() ?? Promise.resolve('')
-    const text = yield NativeModules.KeybaseEngine.androidGetInitialShareText?.() ?? Promise.resolve('')
+    const fileUrl = await (NativeModules.KeybaseEngine.androidGetInitialShareFileUrl?.() ??
+      Promise.resolve(''))
+    const text = await (NativeModules.KeybaseEngine.androidGetInitialShareText?.() ?? Promise.resolve(''))
     return {fileUrl, text}
   } else {
-    return null
+    return Promise.resolve(undefined)
   }
 }
 
-function* getStartupDetailsFromInitialPush() {
-  const {push, pushTimeout}: {push: PushGen.NotificationPayload; pushTimeout: boolean} = yield Saga.race({
-    push: isAndroid ? getInitialPushAndroid() : getInitialPushiOS(),
-    pushTimeout: Saga.delay(10),
-  })
-  if (pushTimeout || !push) {
+const getStartupDetailsFromInitialPush = async () => {
+  const push = await Promise.race([
+    isAndroid ? getInitialPushAndroid() : getInitialPushiOS(),
+    Container.timeoutPromise(10),
+  ])
+  if (!push) {
     return null
   }
 
+  // TODO push is any here
   const notification = push.payload.notification
   if (notification.type === 'follow') {
     if (notification.username) {
-      return {startupFollowUser: notification.username}
+      return {startupFollowUser: notification.username as string}
     }
   } else if (notification.type === 'chat.newmessage' || notification.type === 'chat.newmessageSilent_2') {
     if (notification.conversationIDKey) {
       return {
-        startupConversation: notification.conversationIDKey,
-        startupPushPayload: notification.unboxPayload,
+        startupConversation: notification.conversationIDKey as ChatTypes.ConversationIDKey,
+        startupPushPayload: notification.unboxPayload as string,
       }
     }
   }

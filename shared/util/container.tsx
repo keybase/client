@@ -82,6 +82,14 @@ export type RouteDef = {
 }
 export type RouteMap = {[K in string]: RouteDef}
 
+export async function neverThrowPromiseFunc<T>(f: () => Promise<T>) {
+  try {
+    return await f()
+  } catch {
+    return undefined
+  }
+}
+
 export const assertNever = (_: never) => undefined
 
 export const timeoutPromise = async (timeMs: number) =>

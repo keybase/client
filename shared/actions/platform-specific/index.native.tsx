@@ -291,7 +291,7 @@ const setupNetInfoWatcher = (listenerApi: Container.ListenerApi) => {
 }
 
 // TODO rewrite this, v slow
-function* loadStartupDetails() {
+const loadStartupDetails = async (listenerApi: Container.ListenerApi) => {
   let startupWasFromPush = false
   let startupConversation: Types.ConversationIDKey | undefined = undefined
   let startupPushPayload: string | undefined = undefined
@@ -301,40 +301,30 @@ function* loadStartupDetails() {
   let startupSharePath: FsTypes.LocalPath | undefined = undefined
   let startupShareText: string | undefined = undefined
 
-  const routeStateTask = yield Saga._fork(async () => {
-    try {
-      const v = await RPCTypes.configGuiGetValueRpcPromise({path: 'ui.routeState2'})
-      return v.s || ''
-    } catch (_) {
-      return undefined
-    }
-  })
-  // eslint-disable-next-line
-  const linkTask = yield Saga._fork(Linking.getInitialURL)
-  // const linkTask: Promise<string | null> = yield Saga._fork(Linking.getInitialURL)
-  const initialPush = yield Saga._fork(getStartupDetailsFromInitialPush)
-  const initialShare = yield Saga._fork(getStartupDetailsFromInitialShare)
-  const joined = yield Saga.join([routeStateTask, linkTask, initialPush, initialShare])
-  const [routeState, link, push, share] = joined
-
+  const [routeState, link, push, share] = await Promise.all([
+    Container.neverThrowPromiseFunc(() =>
+      RPCTypes.configGuiGetValueRpcPromise({path: 'ui.routeState2'}).then(v => v.s || '')
+    ),
+    Container.neverThrowPromiseFunc(Linking.getInitialURL),
+    Container.neverThrowPromiseFunc(getStartupDetailsFromInitialPush),
+    Container.neverThrowPromiseFunc(getStartupDetailsFromInitialShare),
+  ] as const)
   logger.info('routeState load', routeState)
 
   // Clear last value to be extra safe bad things don't hose us forever
-  yield Saga._fork(async () => {
-    try {
-      await RPCTypes.configGuiSetValueRpcPromise({
-        path: 'ui.routeState2',
-        value: {isNull: false, s: ''},
-      })
-    } catch (_) {}
-  })
+  try {
+    await RPCTypes.configGuiSetValueRpcPromise({
+      path: 'ui.routeState2',
+      value: {isNull: false, s: ''},
+    })
+  } catch (_) {}
 
   // Top priority, push
   if (push) {
     logger.info('initialState: push', push.startupConversation, push.startupFollowUser)
     startupWasFromPush = true
     startupConversation = push.startupConversation
-    startupFollowUser = push.startupFollowUser
+    startupFollowUser = push.startupFollowUser ?? ''
     startupPushPayload = push.startupPushPayload
   } else if (link) {
     logger.info('initialState: link', link)
@@ -365,7 +355,7 @@ function* loadStartupDetails() {
     startupTab = undefined
   }
 
-  yield Saga.put(
+  listenerApi.dispatch(
     ConfigGen.createSetStartupDetails({
       startupConversation,
       startupFollowUser,
@@ -919,7 +909,7 @@ export function* platformConfigSaga() {
   Container.listenAction(RouteTreeGen.onNavChanged, onPersistRoute)
 
   // Start this immediately instead of waiting so we can do more things in parallel
-  yield Saga.spawn(loadStartupDetails)
+  Container.spawn(loadStartupDetails, 'loadStartupDetails')
   yield Saga.spawn(pushSaga)
   Container.spawn(setupNetInfoWatcher, 'setupNetInfoWatcher')
 }
