@@ -4,38 +4,77 @@
 package libkb
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
+	"os/user"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"strings"
 	"unicode"
 	"unicode/utf8"
+
+	"github.com/keybase/client/go/protocol/keybase1"
 )
 
 type ConfigGetter func() string
 type RunModeGetter func() RunMode
+type EnvGetter func(s string) string
 
 type Base struct {
 	appName             string
-	getHome             ConfigGetter
+	getHomeFromCmd      ConfigGetter
+	getHomeFromConfig   ConfigGetter
 	getMobileSharedHome ConfigGetter
 	getRunMode          RunModeGetter
 	getLog              LogGetter
+	getenvFunc          EnvGetter
 }
 
 type HomeFinder interface {
 	CacheDir() string
+	SharedCacheDir() string
 	ConfigDir() string
+	DownloadsDir() string
 	Home(emptyOk bool) string
 	MobileSharedHome(emptyOk bool) string
 	DataDir() string
+	SharedDataDir() string
 	RuntimeDir() string
 	Normalize(s string) string
 	LogDir() string
 	ServiceSpawnDir() (string, error)
 	SandboxCacheDir() string // For macOS
 	InfoDir() string
+	IsNonstandardHome() (bool, error)
+}
+
+func (b Base) getHome() string {
+	if b.getHomeFromCmd != nil {
+		ret := b.getHomeFromCmd()
+		if ret != "" {
+			return ret
+		}
+	}
+	if b.getHomeFromConfig != nil {
+		ret := b.getHomeFromConfig()
+		if ret != "" {
+			return ret
+		}
+	}
+	return ""
+}
+
+func (b Base) IsNonstandardHome() (bool, error) {
+	return false, fmt.Errorf("unsupported on %s", runtime.GOOS)
+}
+
+func (b Base) getenv(s string) string {
+	if b.getenvFunc != nil {
+		return b.getenvFunc(s)
+	}
+	return os.Getenv(s)
 }
 
 func (b Base) Join(elem ...string) string { return filepath.Join(elem...) }
@@ -47,40 +86,80 @@ type XdgPosix struct {
 func (x XdgPosix) Normalize(s string) string { return s }
 
 func (x XdgPosix) Home(emptyOk bool) string {
-	var ret string
-	if x.getHome != nil {
-		ret = x.getHome()
-	}
+	ret := x.getHome()
 	if len(ret) == 0 && !emptyOk {
-		ret = os.Getenv("HOME")
+		ret = x.getenv("HOME")
 	}
-	return ret
+	if ret == "" {
+		return ""
+	}
+	resolved, err := filepath.Abs(ret)
+	if err != nil {
+		return ret
+	}
+	return resolved
+}
+
+// IsNonstandardHome is true if the home directory gleaned via cmdline,
+// env, or config is different from that in /etc/passwd.
+func (x XdgPosix) IsNonstandardHome() (bool, error) {
+	passed := x.Home(false)
+	if passed == "" {
+		return false, nil
+	}
+	passwd, err := user.Current()
+	if err != nil {
+		return false, err
+	}
+	passwdAbs, err := filepath.Abs(passwd.HomeDir)
+	if err != nil {
+		return false, err
+	}
+	passedAbs, err := filepath.Abs(passed)
+	if err != nil {
+		return false, err
+	}
+	return passedAbs != passwdAbs, nil
 }
 
 func (x XdgPosix) MobileSharedHome(emptyOk bool) string {
 	return x.Home(emptyOk)
 }
 
-func (x XdgPosix) dirHelper(env string, prefixDirs ...string) string {
-	var prfx string
-	prfx = os.Getenv(env)
-	if len(prfx) == 0 {
-		h := x.Home(false)
-		v := append([]string{h}, prefixDirs...)
-		prfx = x.Join(v...)
-	}
+func (x XdgPosix) dirHelper(xdgEnvVar string, prefixDirs ...string) string {
 	appName := x.appName
 	if x.getRunMode() != ProductionRunMode {
 		appName = appName + "." + string(x.getRunMode())
 	}
-	return x.Join(prfx, appName)
+
+	isNonstandard, isNonstandardErr := x.IsNonstandardHome()
+	xdgSpecified := x.getenv(xdgEnvVar)
+
+	// If the user specified a nonstandard home directory, or there's no XDG
+	// environment variable present, use the home directory from the
+	// commandline/environment/config.
+	if (isNonstandardErr == nil && isNonstandard) || xdgSpecified == "" {
+		alternateDir := x.Join(append([]string{x.Home(false)}, prefixDirs...)...)
+		return x.Join(alternateDir, appName)
+	}
+
+	// Otherwise, use the XDG standard.
+	return x.Join(xdgSpecified, appName)
 }
 
 func (x XdgPosix) ConfigDir() string       { return x.dirHelper("XDG_CONFIG_HOME", ".config") }
 func (x XdgPosix) CacheDir() string        { return x.dirHelper("XDG_CACHE_HOME", ".cache") }
+func (x XdgPosix) SharedCacheDir() string  { return x.CacheDir() }
 func (x XdgPosix) SandboxCacheDir() string { return "" } // Unsupported
 func (x XdgPosix) DataDir() string         { return x.dirHelper("XDG_DATA_HOME", ".local", "share") }
-
+func (x XdgPosix) SharedDataDir() string   { return x.DataDir() }
+func (x XdgPosix) DownloadsDir() string {
+	xdgSpecified := x.getenv("XDG_DOWNLOAD_DIR")
+	if xdgSpecified != "" {
+		return xdgSpecified
+	}
+	return filepath.Join(x.Home(false), "Downloads")
+}
 func (x XdgPosix) RuntimeDir() string { return x.dirHelper("XDG_RUNTIME_DIR", ".config") }
 func (x XdgPosix) InfoDir() string    { return x.RuntimeDir() }
 
@@ -121,13 +200,32 @@ func (d Darwin) appDir(dirs ...string) string {
 	appName := toUpper(d.appName)
 	runMode := d.getRunMode()
 	if runMode != ProductionRunMode {
-		appName = appName + toUpper(string(runMode))
+		appName += toUpper(string(runMode))
 	}
 	dirs = append(dirs, appName)
 	return filepath.Join(dirs...)
 }
 
-func (d Darwin) CacheDir() string { return d.appDir(d.Home(false), "Library", "Caches") }
+func (d Darwin) sharedHome() string {
+	homeDir := d.Home(false)
+	if d.isIOS() {
+		// check if we have a shared container path, and if so, that is where the shared home is.
+		sharedHome := d.getMobileSharedHome()
+		if len(sharedHome) > 0 {
+			homeDir = sharedHome
+		}
+	}
+	return homeDir
+}
+
+func (d Darwin) CacheDir() string {
+	return d.appDir(d.Home(false), "Library", "Caches")
+}
+
+func (d Darwin) SharedCacheDir() string {
+	return d.appDir(d.sharedHome(), "Library", "Caches")
+}
+
 func (d Darwin) SandboxCacheDir() string {
 	if d.isIOS() {
 		return ""
@@ -138,18 +236,13 @@ func (d Darwin) SandboxCacheDir() string {
 	return d.appDir(d.Home(false), "Library", "Group Containers", "keybase", "Library", "Caches")
 }
 func (d Darwin) ConfigDir() string {
-	homeDir := d.Home(false)
-	if d.isIOS() {
-		// check if we have a shared container path, and if so, that is where the config should go.
-		sharedHome := d.getMobileSharedHome()
-		if len(sharedHome) > 0 {
-			homeDir = sharedHome
-		}
-	}
-	return d.appDir(homeDir, "Library", "Application Support")
+	return d.appDir(d.sharedHome(), "Library", "Application Support")
 }
 func (d Darwin) DataDir() string {
 	return d.appDir(d.Home(false), "Library", "Application Support")
+}
+func (d Darwin) SharedDataDir() string {
+	return d.appDir(d.sharedHome(), "Library", "Application Support")
 }
 func (d Darwin) RuntimeDir() string               { return d.CacheDir() }
 func (d Darwin) ServiceSpawnDir() (string, error) { return d.RuntimeDir(), nil }
@@ -167,19 +260,20 @@ func (d Darwin) InfoDir() string {
 	// If the user is explicitly passing in a HomeDirectory, make the PID file directory
 	// local to that HomeDir. This way it's possible to have multiple keybases in parallel
 	// running for a given run mode, without having to explicitly specify a PID file.
-	if d.getHome != nil && d.getHome() != "" {
+	if d.getHome() != "" {
 		return d.CacheDir()
 	}
 	return d.appDir(os.TempDir())
 }
 
+func (d Darwin) DownloadsDir() string {
+	return filepath.Join(d.Home(false), "Downloads")
+}
+
 func (d Darwin) Home(emptyOk bool) string {
-	var ret string
-	if d.getHome != nil {
-		ret = d.getHome()
-	}
+	ret := d.getHome()
 	if len(ret) == 0 && !emptyOk {
-		ret = os.Getenv("HOME")
+		ret = d.getenv("HOME")
 	}
 	return ret
 }
@@ -190,7 +284,7 @@ func (d Darwin) MobileSharedHome(emptyOk bool) string {
 		ret = d.getMobileSharedHome()
 	}
 	if len(ret) == 0 && !emptyOk {
-		ret = os.Getenv("MOBILE_SHARED_HOME")
+		ret = d.getenv("MOBILE_SHARED_HOME")
 	}
 	return ret
 }
@@ -228,19 +322,21 @@ func (w Win32) Normalize(s string) string {
 }
 
 func (w Win32) CacheDir() string                 { return w.Home(false) }
+func (w Win32) SharedCacheDir() string           { return w.CacheDir() }
 func (w Win32) SandboxCacheDir() string          { return "" } // Unsupported
 func (w Win32) ConfigDir() string                { return w.Home(false) }
 func (w Win32) DataDir() string                  { return w.Home(false) }
+func (w Win32) SharedDataDir() string            { return w.DataDir() }
 func (w Win32) RuntimeDir() string               { return w.Home(false) }
 func (w Win32) InfoDir() string                  { return w.RuntimeDir() }
 func (w Win32) ServiceSpawnDir() (string, error) { return w.RuntimeDir(), nil }
 func (w Win32) LogDir() string                   { return w.Home(false) }
 
 func (w Win32) deriveFromTemp() (ret string) {
-	tmp := os.Getenv("TEMP")
+	tmp := w.getenv("TEMP")
 	if len(tmp) == 0 {
 		w.getLog().Info("No 'TEMP' environment variable found")
-		tmp = os.Getenv("TMP")
+		tmp = w.getenv("TMP")
 		if len(tmp) == 0 {
 			w.getLog().Fatalf("No 'TMP' environment variable found")
 		}
@@ -261,12 +357,18 @@ func (w Win32) deriveFromTemp() (ret string) {
 	return
 }
 
-func (w Win32) Home(emptyOk bool) string {
-	var ret string
-
-	if w.getHome != nil {
-		ret = w.getHome()
+func (w Win32) DownloadsDir() string {
+	// Prefer to use USERPROFILE instead of w.Home() because the latter goes
+	// into APPDATA.
+	user, err := user.Current()
+	if err != nil {
+		return filepath.Join(w.Home(false), "Downloads")
 	}
+	return filepath.Join(user.HomeDir, "Downloads")
+}
+
+func (w Win32) Home(emptyOk bool) string {
+	ret := w.getHome()
 	if len(ret) == 0 && !emptyOk {
 		ret, _ = LocalDataDir()
 		if len(ret) == 0 {
@@ -286,7 +388,7 @@ func (w Win32) Home(emptyOk bool) string {
 			// Capitalize the first letter
 			r, n := utf8.DecodeRuneInString(runModeName)
 			runModeName = string(unicode.ToUpper(r)) + runModeName[n:]
-			packageName = packageName + runModeName
+			packageName += runModeName
 		}
 	}
 
@@ -299,13 +401,13 @@ func (w Win32) MobileSharedHome(emptyOk bool) string {
 	return w.Home(emptyOk)
 }
 
-func NewHomeFinder(appName string, getHome ConfigGetter, getMobileSharedHome ConfigGetter, osname string,
-	getRunMode RunModeGetter, getLog LogGetter) HomeFinder {
-	base := Base{appName, getHome, getMobileSharedHome, getRunMode, getLog}
-	switch osname {
-	case "windows":
+func NewHomeFinder(appName string, getHomeFromCmd ConfigGetter, getHomeFromConfig ConfigGetter, getMobileSharedHome ConfigGetter,
+	osname string, getRunMode RunModeGetter, getLog LogGetter, getenv EnvGetter) HomeFinder {
+	base := Base{appName, getHomeFromCmd, getHomeFromConfig, getMobileSharedHome, getRunMode, getLog, getenv}
+	switch runtimeGroup(osname) {
+	case keybase1.RuntimeGroup_WINDOWSLIKE:
 		return Win32{base}
-	case "darwin":
+	case keybase1.RuntimeGroup_DARWINLIKE:
 		return Darwin{Base: base}
 	default:
 		return XdgPosix{base}

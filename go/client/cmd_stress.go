@@ -1,6 +1,7 @@
 // Copyright 2015 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
 
+//go:build !production
 // +build !production
 
 // this command is only for testing purposes
@@ -216,7 +217,7 @@ func (c *CmdStress) listTrackers() {
 		return
 	}
 	ucli := keybase1.UserClient{Cli: cli}
-	_, err = ucli.ListTrackers2(context.TODO(), keybase1.ListTrackers2Arg{})
+	_, err = ucli.ListTrackersUnverified(context.TODO(), keybase1.ListTrackersUnverifiedArg{})
 	if err != nil {
 		c.G().Log.Warning("list followers error: %s", err)
 	}
@@ -279,7 +280,7 @@ func (c *CmdStress) logout() {
 		c.G().Log.Warning("GetLoginClient error: %s", err)
 		return
 	}
-	err = cli.Logout(context.TODO(), 0)
+	err = cli.Logout(context.TODO(), keybase1.LogoutArg{})
 	if err != nil {
 		c.G().Log.Warning("Logout error: %s", err)
 		return

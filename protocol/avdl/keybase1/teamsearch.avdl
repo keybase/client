@@ -1,0 +1,27 @@
+@namespace("keybase.1")
+
+protocol teamSearch {
+    import idl "common.avdl";
+
+    record TeamSearchItem {
+        TeamID id;
+        string name;
+        union { null, string } description;
+        int memberCount;
+        Time lastActive;
+        boolean isDemoted;
+        boolean inTeam; // not valid when refreshing all open teams
+    }
+
+    // returned by the server when syncing open teams
+    record TeamSearchExport {
+        map<TeamID, TeamSearchItem> items;
+        array<TeamID> suggested;
+    }
+
+    // local RPC for searching
+    record TeamSearchRes {
+        array<TeamSearchItem> results;
+    }
+    TeamSearchRes teamSearch(union { null, UID } uid, string query, int limit, boolean useRemote);
+}

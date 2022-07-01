@@ -31,13 +31,16 @@ func (d DeviceCloneState) IsClone() bool {
 	return d.Clones > 1
 }
 
-func UpdateDeviceCloneState(m MetaContext) (before int, after int, err error) {
+func UpdateDeviceCloneState(m MetaContext) (before, after int, err error) {
 	d, err := GetDeviceCloneState(m)
+	if err != nil {
+		return 0, 0, err
+	}
 	before = d.Clones
 
 	prior, stage := d.Prior, d.Stage
 	if prior == "" {
-		//first run
+		// first run
 		prior = DefaultCloneTokenValue
 	}
 	if stage == "" {
@@ -45,8 +48,7 @@ func UpdateDeviceCloneState(m MetaContext) (before int, after int, err error) {
 		if err != nil {
 			return 0, 0, err
 		}
-		err = SetDeviceCloneState(m, DeviceCloneState{Prior: prior, Stage: stage, Clones: d.Clones})
-		if err != nil {
+		if err = SetDeviceCloneState(m, DeviceCloneState{Prior: prior, Stage: stage, Clones: d.Clones}); err != nil {
 			return 0, 0, err
 		}
 	}
@@ -60,16 +62,14 @@ func UpdateDeviceCloneState(m MetaContext) (before int, after int, err error) {
 			"prior":     S{Val: prior},
 			"stage":     S{Val: stage},
 		},
-		MetaContext: m,
 	}
 	var res cloneDetectionResponse
-	err = m.G().API.PostDecode(arg, &res)
-	if err != nil {
+	if err = m.G().API.PostDecode(m, arg, &res); err != nil {
 		return 0, 0, err
 	}
 
-	err = SetDeviceCloneState(m, DeviceCloneState{Prior: res.Token, Stage: "", Clones: res.Clones})
 	after = res.Clones
+	err = SetDeviceCloneState(m, DeviceCloneState{Prior: res.Token, Stage: "", Clones: after})
 	return before, after, err
 }
 
@@ -81,8 +81,11 @@ func deviceCloneJSONPaths(m MetaContext) (string, string, string) {
 	return p, s, c
 }
 
-func GetDeviceCloneState(m MetaContext) (DeviceCloneState, error) {
+func GetDeviceCloneState(m MetaContext) (state DeviceCloneState, err error) {
 	reader, err := newDeviceCloneStateReader(m)
+	if err != nil {
+		return state, err
+	}
 	pPath, sPath, cPath := deviceCloneJSONPaths(m)
 	p, _ := reader.GetStringAtPath(pPath)
 	s, _ := reader.GetStringAtPath(sPath)
@@ -90,10 +93,13 @@ func GetDeviceCloneState(m MetaContext) (DeviceCloneState, error) {
 	if c < 1 {
 		c = 1
 	}
-	return DeviceCloneState{Prior: p, Stage: s, Clones: c}, err
+	state = DeviceCloneState{Prior: p, Stage: s, Clones: c}
+	m.Debug("GetDeviceCloneState: %+v", state)
+	return state, nil
 }
 
 func SetDeviceCloneState(m MetaContext, d DeviceCloneState) error {
+	m.Debug("SetDeviceCloneState: %+v", d)
 	writer, err := newDeviceCloneStateWriter(m)
 	if err != nil {
 		return err
@@ -106,26 +112,28 @@ func SetDeviceCloneState(m MetaContext, d DeviceCloneState) error {
 	// transaction.
 	defer func() {
 		if tx != nil {
-			tx.Rollback()
-			tx.Abort()
+			err := tx.Rollback()
+			if err != nil {
+				m.Debug("SetDeviceCloneState: rollback error: %+v", err)
+			}
+			err = tx.Abort()
+			if err != nil {
+				m.Debug("SetDeviceCloneState: abort error: %+v", err)
+			}
 		}
 	}()
 
 	pPath, sPath, cPath := deviceCloneJSONPaths(m)
-	err = writer.SetStringAtPath(pPath, d.Prior)
-	if err != nil {
+	if err = writer.SetStringAtPath(pPath, d.Prior); err != nil {
 		return err
 	}
-	err = writer.SetStringAtPath(sPath, d.Stage)
-	if err != nil {
+	if err = writer.SetStringAtPath(sPath, d.Stage); err != nil {
 		return err
 	}
-	err = writer.SetIntAtPath(cPath, d.Clones)
-	if err != nil {
+	if err = writer.SetIntAtPath(cPath, d.Clones); err != nil {
 		return err
 	}
-	err = tx.Commit()
-	if err != nil {
+	if err = tx.Commit(); err != nil {
 		return err
 	}
 

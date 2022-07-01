@@ -1,8 +1,8 @@
 @namespace("chat.1")
 protocol gregor {
 
-    import idl "github.com/keybase/client/go/protocol/gregor1" as gregor1;
-    import idl "github.com/keybase/client/go/protocol/keybase1" as keybase1;
+    import idl "../gregor1" as gregor1;
+    import idl "../keybase1" as keybase1;
 
     record GenericPayload {
         @lint("ignore")
@@ -30,6 +30,7 @@ protocol gregor {
         InboxVers inboxVers;
         TopicType topicType;
         union { null, UnreadUpdate } unreadUpdate;
+        keybase1.TeamRole untrustedTeamRole;
 
         // Optionally the server can send down the new set of max messages
         array<MessageSummary> maxMsgs;
@@ -114,10 +115,18 @@ protocol gregor {
         gregor1.DeviceID deviceID;
         ConversationID convID;
         boolean typing;
+        @mpackkey("t")
+        TeamType teamType;
+    }
+
+    record TeamMemberRoleUpdate {
+        TLFID tlfID;
+        keybase1.TeamRole role;
     }
 
     record UpdateConversationMembership {
         InboxVers inboxVers;
+        union { null, TeamMemberRoleUpdate } teamMemberRoleUpdate;
         array<ConversationMember> joined;
         array<ConversationMember> removed;
         array<ConversationMember> reset;
@@ -127,8 +136,14 @@ protocol gregor {
         array<UnreadUpdate> unreadUpdates;
     }
 
-    record TeamChannelUpdate {
-        TLFID teamID;
+    record ConversationUpdate {
+      ConversationID convID;
+      ConversationExistence existence;
+    }
+
+    record UpdateConversations {
+        InboxVers inboxVers;
+        array<ConversationUpdate> convUpdates;
     }
 
     record SetConvRetentionUpdate {
@@ -159,5 +174,4 @@ protocol gregor {
         array<ConversationID> convIDs;
         InboxVers inboxVers;
     }
-
 }

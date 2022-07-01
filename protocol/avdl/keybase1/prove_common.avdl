@@ -88,9 +88,21 @@ protocol proveCommon {
     ROOTER_100001
   }
 
-  record ProofServiceGroup {
-    // TODO need to spec out
-    string id;
+  record SelectorEntry {
+    // Exactly one of Is* is true
+    boolean isIndex;
+    int index;
+    boolean isKey;
+    string key;
+    boolean isAll;
+    boolean isContents;
+  }
+
+  record ParamProofJSON {
+    @jsonkey("sig_hash")
+    SigID sigHash;
+    @jsonkey("kb_username")
+    string kbUsername;
   }
 
   record ParamProofUsernameConfig {
@@ -104,14 +116,38 @@ protocol proveCommon {
     string domain;
     @jsonkey("display_name")
     string displayName;
-    union { null, ProofServiceGroup } group;
-    ParamProofUsernameConfig username;
+    string description;
+    @jsonkey("username")
+    ParamProofUsernameConfig usernameConfig;
+    @jsonkey("brand_color")
+    string brandColor;
     @jsonkey("prefill_url")
     string prefillUrl;
+    @jsonkey("profile_url")
+    string profileUrl;
     @jsonkey("check_url")
     string checkUrl;
     @jsonkey("check_path")
-    array<string> checkPath;
+    array<SelectorEntry> checkPath;
+    @jsonkey("avatar_path")
+    array<SelectorEntry> avatarPath;
   }
 
+  record ServiceDisplayConfig {
+    @jsonkey("creation_disabled")
+    boolean creationDisabled;
+    int priority;
+    string key;
+    union { null, string } group;
+    boolean new;
+    @jsonkey("logo_key")
+    string logoKey;
+  }
+
+  record ExternalServiceConfig {
+    @jsonkey("schema_version")
+    int schemaVersion;
+    union { null, ServiceDisplayConfig } display;
+    union { null, ParamProofServiceConfig } config;
+  }
 }

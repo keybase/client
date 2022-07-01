@@ -1,0 +1,108 @@
+@namespace("keybase.1")
+
+protocol identify3Ui {
+
+  import idl "identify3_common.avdl";
+
+  // showTracker is called when Go wants to force the frontend to show a tracker popup
+  // (rather than the frontend app triggering the action). In this case, the Go side comes
+  // up with a unique Identify3GUIID.
+  void identify3ShowTracker(
+    Identify3GUIID guiID,         // id used to tie these things together
+    Identify3Assertion assertion, // username or bob@twitter etc
+    IdentifyReason reason,
+    boolean forceDisplay=false
+  );
+
+  enum Identify3RowState {
+    CHECKING_1,
+    VALID_2,
+    ERROR_3,
+    WARNING_4,
+    REVOKED_5
+  }
+
+  enum Identify3RowColor {
+    BLUE_1,
+    RED_2,
+    BLACK_3,
+    GREEN_4,
+    GRAY_5,
+    YELLOW_6,
+    ORANGE_7
+  }
+
+  enum Identify3ResultType {
+    OK_0,
+    BROKEN_1,
+    NEEDS_UPGRADE_2,
+    CANCELED_3
+  }
+
+  record Identify3RowMeta {
+    Identify3RowColor color;
+    string label;
+  }
+
+  record Identify3Row {
+    Identify3GUIID guiID;          // id used to tie these things together
+    string key;                    // e.g., "twitter", "web", "github", "btc", "pgp"
+    string value;                  // e.g., "bob", "foo.com", "1BYzrCvfbn81dfiksmD1Bdgt8pgLi1SD7Z", "8EFBE2E4DD56B35273634E8F6052B2AD31A6631C"
+    int priority;                  // Display priority. Lesser means higher.
+    @lint("ignore")
+    string siteURL;                // https://twitter.com/bob
+    array<SizedImage> siteIcon;
+    array<SizedImage> siteIconDarkmode;
+    array<SizedImage> siteIconFull;
+    array<SizedImage> siteIconFullDarkmode;
+    @lint("ignore")
+    string proofURL;               // http://twitter.com/bob/post/1234
+    SigID sigID;                   // so we can later revoke the sig....
+    Time ctime;                    // sometimes it's zero.
+    Identify3RowState state;       // 'checking' | 'valid' | 'error' | 'warning' | 'revoked',
+    array<Identify3RowMeta> metas; // things like 'upgraded' | 'new' | 'unreachable' | 'pending' | 'deleted' | 'none' | 'ignored', but can be anything
+    Identify3RowColor color;       // 'blue' | 'red' | 'black' | 'green' | 'gray' | 'yellow' | 'orange'
+    union { null, KID } kid;       // in the case of PGP key, also send the KID so that we can revoke by kid
+
+    // wotProof is a summary of the proof for web-of-trust.
+    // Passed back from gui to service for wot proofs list. If omitted, proof is ineligible (e.g. stellar).
+    union { null, WotProof } wotProof;
+  }
+
+  record Identify3Summary {
+    Identify3GUIID guiID;          // id used to tie these things together
+    int numProofsToCheck;
+  }
+
+  void identify3Summary(
+    Identify3Summary summary
+  ) oneway;
+
+  @lint("ignore")
+  void identify3UpdateRow(
+    Identify3Row row
+  ) oneway;
+
+  @lint("ignore")
+  void identify3UserReset(
+    Identify3GUIID guiID           // id used to tie these things together
+  ) oneway;
+
+  void identify3UpdateUserCard(
+    Identify3GUIID guiID,          // id used to tie these things together
+    UserCard card
+  ) oneway;
+
+  void identify3TrackerTimedOut(
+    Identify3GUIID guiID           // id used to tie these things together
+  ) oneway;
+
+  // Until this RPC arrives, the frontend should show grayed-out buttons. Then, once it does,
+  // it can render buttons for the next actions.
+  void identify3Result(
+    Identify3GUIID guiID,          // id used to tie these things together
+    Identify3ResultType result
+  ) oneway;
+
+
+}

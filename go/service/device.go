@@ -4,9 +4,11 @@
 package service
 
 import (
+	"encoding/json"
 	"errors"
 
 	"github.com/keybase/client/go/engine"
+	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
@@ -17,13 +19,15 @@ import (
 type DeviceHandler struct {
 	*BaseHandler
 	libkb.Contextified
+	gregor *gregorHandler
 }
 
 // NewDeviceHandler creates a DeviceHandler for the xp transport.
-func NewDeviceHandler(xp rpc.Transporter, g *libkb.GlobalContext) *DeviceHandler {
+func NewDeviceHandler(xp rpc.Transporter, g *libkb.GlobalContext, gregor *gregorHandler) *DeviceHandler {
 	return &DeviceHandler{
 		BaseHandler:  NewBaseHandler(g, xp),
 		Contextified: libkb.NewContextified(g),
+		gregor:       gregor,
 	}
 }
 
@@ -79,8 +83,60 @@ func (h *DeviceHandler) CheckDeviceNameFormat(_ context.Context, arg keybase1.Ch
 	return false, errors.New(libkb.CheckDeviceName.Hint)
 }
 
-func (h *DeviceHandler) CheckDeviceNameForUser(_ context.Context, arg keybase1.CheckDeviceNameForUserArg) error {
-	_, err := h.G().API.Get(libkb.APIArg{
+type _deviceChange struct {
+	DeviceID string `json:"device_id"`
+}
+
+func LoopAndDismissForDeviceChangeNotifications(mctx libkb.MetaContext, dismisser libkb.GregorState,
+	gregorState gregor.State, exceptedDeviceID string) (err error) {
+
+	items, err := gregorState.Items()
+	if err != nil {
+		return err
+	}
+	var body _deviceChange
+	for _, item := range items {
+		category := item.Category().String()
+		if !(category == "device.revoked" || category == "device.new") {
+			continue
+		}
+		err := json.Unmarshal(item.Body().Bytes(), &body)
+		if err != nil {
+			return err
+		}
+		itemID := item.Metadata().MsgID()
+		if body.DeviceID != exceptedDeviceID {
+			mctx.Debug("dismissing device notification %s for %s", category, body.DeviceID)
+			err := dismisser.DismissItem(mctx.Ctx(), nil, itemID)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func (h *DeviceHandler) DismissDeviceChangeNotifications(c context.Context) (err error) {
+	mctx := libkb.NewMetaContext(c, h.G())
+	defer mctx.Trace("DismissDeviceChangeNotifications", &err)()
+
+	gcli, err := h.gregor.getGregorCli()
+	if err != nil {
+		return err
+	}
+	state, err := gcli.StateMachineState(c, nil, true)
+	if err != nil {
+		return err
+	}
+	activeDeviceID := h.G().ActiveDevice.DeviceID().String()
+	dismisser := h.G().GregorState
+	err = LoopAndDismissForDeviceChangeNotifications(mctx, dismisser, state, activeDeviceID)
+	return err
+}
+
+func (h *DeviceHandler) CheckDeviceNameForUser(ctx context.Context, arg keybase1.CheckDeviceNameForUserArg) error {
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	_, err := mctx.G().API.Get(mctx, libkb.APIArg{
 		Endpoint:    "device/check_name",
 		SessionType: libkb.APISessionTypeNONE,
 		Args: libkb.HTTPArgs{

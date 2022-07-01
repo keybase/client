@@ -202,6 +202,13 @@ typedef void (^KBOnFuseStatus)(NSError *error, KBRFuseStatus *fuseStatus);
 
 - (void)uninstall:(KBCompletion)completion {
   NSDictionary *params = @{@"destination": self.destination, @"kextID": self.kextID};
+
+  if (![self.helperTool exists]) {
+    DDLogDebug(@"FUSE wasn't installed (no helper), so no-op");
+    completion(nil);
+    return;
+  }
+
   DDLogDebug(@"Helper: kextUninstall(%@)", params);
   [self.helperTool.helper sendRequest:@"kextUninstall" params:@[params] completion:^(NSError *error, id value) {
     completion(error);

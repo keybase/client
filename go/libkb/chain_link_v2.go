@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/keybase/client/go/msgpack"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-codec/codec"
 )
@@ -32,14 +33,16 @@ const (
 	SigchainV2TypePGPUpdate                   SigchainV2Type = 13
 	SigchainV2TypePerUserKey                  SigchainV2Type = 14
 	SigchainV2TypeWalletStellar               SigchainV2Type = 15
+	SigchainV2TypeWotVouch                    SigchainV2Type = 16
+	SigchainV2TypeWotVouchWithRevoke          SigchainV2Type = 17
+	SigchainV2TypeWotReact                    SigchainV2Type = 18
 
 	// Team link types
 	// If you add a new one be sure to get all of these too:
 	// - A corresponding libkb.LinkType in constants.go
 	// - SigchainV2TypeFromV1TypeTeams
 	// - SigChainV2Type.IsSupportedTeamType
-	// - SigChainV2Type.RequiresAdminPermission
-	// - SigChainV2Type.TeamAllowStub
+	// - SigChainV2Type.TeamAllowStubWithAdminFlag
 	// - TeamSigChainPlayer.addInnerLink (add a case)
 	SigchainV2TypeTeamRoot             SigchainV2Type = 33
 	SigchainV2TypeTeamNewSubteam       SigchainV2Type = 34
@@ -56,6 +59,7 @@ const (
 	// Note that 45 is skipped, since it's retired; used to be LegacyTLFUpgrade
 	SigchainV2TypeTeamSettings     SigchainV2Type = 46
 	SigchainV2TypeTeamKBFSSettings SigchainV2Type = 47
+	SigchainV2TypeTeamBotSettings  SigchainV2Type = 48
 )
 
 // NeedsSignature is untrue of most supported link types. If a link can
@@ -101,6 +105,7 @@ func (t SigchainV2Type) IsSupportedUserType() bool {
 		SigchainV2TypeSubkey,
 		SigchainV2TypePGPUpdate,
 		SigchainV2TypePerUserKey,
+		SigchainV2TypeWotVouchWithRevoke,
 		SigchainV2TypeWalletStellar:
 		return true
 	default:
@@ -129,7 +134,8 @@ func (t SigchainV2Type) IsSupportedTeamType() bool {
 		SigchainV2TypeTeamDeleteSubteam,
 		SigchainV2TypeTeamDeleteUpPointer,
 		SigchainV2TypeTeamKBFSSettings,
-		SigchainV2TypeTeamSettings:
+		SigchainV2TypeTeamSettings,
+		SigchainV2TypeTeamBotSettings:
 		return true
 	default:
 		return false
@@ -140,12 +146,13 @@ func (t SigchainV2Type) RequiresAtLeastRole() keybase1.TeamRole {
 	if !t.IsSupportedTeamType() {
 		// Links from the future require a bare minimum.
 		// They should be checked later by a code update that busts the cache.
-		return keybase1.TeamRole_READER
+		return keybase1.TeamRole_RESTRICTEDBOT
 	}
 	switch t {
-	case SigchainV2TypeTeamRoot,
-		SigchainV2TypeTeamLeave:
-		return keybase1.TeamRole_READER
+	case SigchainV2TypeTeamLeave:
+		return keybase1.TeamRole_RESTRICTEDBOT
+	case SigchainV2TypeTeamRoot:
+		return keybase1.TeamRole_BOT
 	case SigchainV2TypeTeamRotateKey,
 		SigchainV2TypeTeamKBFSSettings:
 		return keybase1.TeamRole_WRITER
@@ -155,16 +162,7 @@ func (t SigchainV2Type) RequiresAtLeastRole() keybase1.TeamRole {
 }
 
 func (t SigchainV2Type) TeamAllowStubWithAdminFlag(isAdmin bool) bool {
-	role := keybase1.TeamRole_READER
 	if isAdmin {
-		role = keybase1.TeamRole_ADMIN
-	}
-	return t.TeamAllowStub(role)
-}
-
-// Whether the type can be stubbed for a team member with role
-func (t SigchainV2Type) TeamAllowStub(role keybase1.TeamRole) bool {
-	if role.IsAdminOrAbove() {
 		// Links cannot be stubbed for owners and admins
 		return false
 	}
@@ -172,7 +170,10 @@ func (t SigchainV2Type) TeamAllowStub(role keybase1.TeamRole) bool {
 	case SigchainV2TypeTeamNewSubteam,
 		SigchainV2TypeTeamRenameSubteam,
 		SigchainV2TypeTeamDeleteSubteam,
-		SigchainV2TypeTeamInvite:
+		SigchainV2TypeTeamInvite,
+		SigchainV2TypeTeamSettings,
+		SigchainV2TypeTeamKBFSSettings,
+		SigchainV2TypeTeamBotSettings:
 		return true
 	default:
 		// Disallow stubbing of other known links.
@@ -181,27 +182,63 @@ func (t SigchainV2Type) TeamAllowStub(role keybase1.TeamRole) bool {
 	}
 }
 
-// OuterLinkV2 is the second version of Keybase sigchain signatures.
-type OuterLinkV2 struct {
-	_struct  bool           `codec:",toarray"`
-	Version  int            `codec:"version"`
+type OuterLinkV2Partial0 struct {
+	_struct  bool           `codec:",toarray"` //nolint
+	Version  SigVersion     `codec:"version"`
 	Seqno    keybase1.Seqno `codec:"seqno"`
 	Prev     LinkID         `codec:"prev"`
 	Curr     LinkID         `codec:"curr"`
 	LinkType SigchainV2Type `codec:"type"`
-	// -- Links exist in the wild that are missing fields below this line.
+}
+
+type OuterLinkV2Partial1 struct {
+	_struct  bool             `codec:",toarray"` //nolint
+	Version  SigVersion       `codec:"version"`
+	Seqno    keybase1.Seqno   `codec:"seqno"`
+	Prev     LinkID           `codec:"prev"`
+	Curr     LinkID           `codec:"curr"`
+	LinkType SigchainV2Type   `codec:"type"`
+	SeqType  keybase1.SeqType `codec:"seqtype"`
+}
+
+type OuterLinkV2Partial2 struct {
+	_struct             bool                   `codec:",toarray"` //nolint
+	Version             SigVersion             `codec:"version"`
+	Seqno               keybase1.Seqno         `codec:"seqno"`
+	Prev                LinkID                 `codec:"prev"`
+	Curr                LinkID                 `codec:"curr"`
+	LinkType            SigchainV2Type         `codec:"type"`
+	SeqType             keybase1.SeqType       `codec:"seqtype"`
+	IgnoreIfUnsupported SigIgnoreIfUnsupported `codec:"ignore_if_unsupported"`
+}
+
+// OuterLinkV2 is the second version of Keybase sigchain signatures.
+type OuterLinkV2 struct {
+	_struct  bool           `codec:",toarray"` //nolint
+	Version  SigVersion     `codec:"version"`
+	Seqno    keybase1.Seqno `codec:"seqno"`
+	Prev     LinkID         `codec:"prev"`
+	Curr     LinkID         `codec:"curr"`
+	LinkType SigchainV2Type `codec:"type"`
+	// -- Links exist in the wild that are missing fields below this line (see Partial0)
 	SeqType keybase1.SeqType `codec:"seqtype"`
-	// -- Links exist in the wild that are missing fields below this line too.
+	// -- Links exist in the wild that are missing fields below this line too (see Partial1)
 	// Whether the link can be ignored by clients that do not support its link type.
 	// This does _not_ mean the link can be ignored if the client supports the link type.
 	// When it comes to stubbing, if the link is unsupported and this bit is set then
 	// - it can be stubbed for non-admins
 	// - it cannot be stubbed for admins
 	IgnoreIfUnsupported SigIgnoreIfUnsupported `codec:"ignore_if_unsupported"`
+	// -- Links exist in the wild that are missing fields below this line too (see Partial2)
+	// If not provided, both of these are nil, and highSkip in the inner link is set to nil.
+	// Note that a link providing HighSkipSeqno == 0 and HighSkipHash == nil is valid
+	// (and mandatory) for an initial link.
+	HighSkipSeqno *keybase1.Seqno `codec:"high_skip_seqno"`
+	HighSkipHash  *LinkID         `codec:"high_skip_hash"`
 }
 
 func (o OuterLinkV2) Encode() ([]byte, error) {
-	return MsgpackEncode(o)
+	return msgpack.Encode(o)
 }
 
 type OuterLinkV2WithMetadata struct {
@@ -234,7 +271,94 @@ type SigHasRevokes bool
 
 func (b SigIgnoreIfUnsupported) Bool() bool { return bool(b) }
 
+func encodeOuterLink(
+	m MetaContext,
+	v1LinkType LinkType,
+	seqno keybase1.Seqno,
+	innerLinkJSON []byte,
+	prevLinkID LinkID,
+	hasRevokes SigHasRevokes,
+	seqType keybase1.SeqType,
+	ignoreIfUnsupported SigIgnoreIfUnsupported,
+	highSkip *HighSkip,
+) ([]byte, error) {
+	var encodedOuterLink []byte
+
+	currLinkID := ComputeLinkID(innerLinkJSON)
+
+	v2LinkType, err := SigchainV2TypeFromV1TypeAndRevocations(string(v1LinkType), hasRevokes, ignoreIfUnsupported)
+	if err != nil {
+		return encodedOuterLink, err
+	}
+
+	// When 2.3 links are mandatory, it will be invalid for highSkip == nil,
+	// so the featureflag check will be removed and the nil check will result
+	// in an error.
+	allowHighSkips := m.G().Env.GetFeatureFlags().HasFeature(EnvironmentFeatureAllowHighSkips)
+	var highSkipSeqno *keybase1.Seqno
+	var highSkipHash *LinkID
+	if highSkip != nil && allowHighSkips {
+		highSkipSeqno = &highSkip.Seqno
+		highSkipHash = &highSkip.Hash
+	}
+	return encodeOuterLinkWithLinkID(v2LinkType, seqno, currLinkID, prevLinkID, seqType, ignoreIfUnsupported, highSkipSeqno, highSkipHash)
+}
+
+func encodeOuterLinkWithLinkID(
+	v2LinkType SigchainV2Type,
+	seqno keybase1.Seqno,
+	currLinkID LinkID,
+	prevLinkID LinkID,
+	seqType keybase1.SeqType,
+	ignoreIfUnsupported SigIgnoreIfUnsupported,
+	highSkipSeqno *keybase1.Seqno,
+	highSkipHash *LinkID,
+) ([]byte, error) {
+
+	var encodedOuterLink []byte
+	var err error
+
+	if highSkipSeqno != nil && highSkipHash != nil {
+		outerLink := OuterLinkV2{
+			Version:             2,
+			Seqno:               seqno,
+			Prev:                prevLinkID,
+			Curr:                currLinkID,
+			LinkType:            v2LinkType,
+			SeqType:             seqType,
+			IgnoreIfUnsupported: ignoreIfUnsupported,
+			HighSkipSeqno:       highSkipSeqno,
+			HighSkipHash:        highSkipHash,
+		}
+		encodedOuterLink, err = outerLink.Encode()
+	} else {
+		// This is a helper struct. When the code for Sigchain 2.3
+		// is released, it is possible some clients will still post 2.2
+		// links, i.e., without high_skip information. Due to a bug
+		// in Keybase's fork of go-codec, omitempty does not work
+		// for arrays. So, we send up the serialization of the
+		// appropriate struct depending on whether we are making a 2.3 link.
+		// When 2.3 links are mandatory, this struct can be deleted.
+		encodedOuterLink, err = msgpack.Encode(OuterLinkV2Partial2{
+			Version:             2,
+			Seqno:               seqno,
+			Prev:                prevLinkID,
+			Curr:                currLinkID,
+			LinkType:            v2LinkType,
+			SeqType:             seqType,
+			IgnoreIfUnsupported: ignoreIfUnsupported,
+		})
+	}
+
+	if err != nil {
+		return encodedOuterLink, err
+	}
+
+	return encodedOuterLink, err
+}
+
 func MakeSigchainV2OuterSig(
+	m MetaContext,
 	signingKey GenericKey,
 	v1LinkType LinkType,
 	seqno keybase1.Seqno,
@@ -243,35 +367,75 @@ func MakeSigchainV2OuterSig(
 	hasRevokes SigHasRevokes,
 	seqType keybase1.SeqType,
 	ignoreIfUnsupported SigIgnoreIfUnsupported,
+	highSkip *HighSkip,
 ) (sig string, sigid keybase1.SigID, linkID LinkID, err error) {
-	currLinkID := ComputeLinkID(innerLinkJSON)
 
-	v2LinkType, err := SigchainV2TypeFromV1TypeAndRevocations(string(v1LinkType), hasRevokes, ignoreIfUnsupported)
+	encodedOuterLink, err := encodeOuterLink(m, v1LinkType, seqno, innerLinkJSON, prevLinkID, hasRevokes, seqType, ignoreIfUnsupported, highSkip)
 	if err != nil {
 		return sig, sigid, linkID, err
 	}
+	var sigIDBase keybase1.SigIDBase
 
-	outerLink := OuterLinkV2{
-		Version:             2,
-		Seqno:               seqno,
-		Prev:                prevLinkID,
-		Curr:                currLinkID,
-		LinkType:            v2LinkType,
-		SeqType:             seqType,
-		IgnoreIfUnsupported: ignoreIfUnsupported,
-	}
-	encodedOuterLink, err := outerLink.Encode()
+	sig, sigIDBase, err = signingKey.SignToString(encodedOuterLink)
 	if err != nil {
 		return sig, sigid, linkID, err
 	}
-
-	sig, sigid, err = signingKey.SignToString(encodedOuterLink)
-	if err != nil {
-		return sig, sigid, linkID, err
-	}
+	params := keybase1.SigIDSuffixParametersFromTypeAndVersion(string(v1LinkType), keybase1.SigVersion(2))
+	sigid = sigIDBase.ToSigID(params)
 
 	linkID = ComputeLinkID(encodedOuterLink)
 	return sig, sigid, linkID, nil
+}
+
+func (o OuterLinkV2) EncodeTruncateHighSkips() ([]byte, error) {
+	return encodeOuterLinkWithLinkID(o.LinkType, o.Seqno, o.Curr, o.Prev, o.SeqType, o.IgnoreIfUnsupported, o.HighSkipSeqno, o.HighSkipHash)
+}
+
+func (o OuterLinkV2) EncodePartial(numFields int) ([]byte, error) {
+	switch numFields {
+	case 5:
+		return msgpack.Encode(OuterLinkV2Partial0{
+			Version:  2,
+			Seqno:    o.Seqno,
+			Prev:     o.Prev,
+			Curr:     o.Curr,
+			LinkType: o.LinkType,
+		})
+	case 6:
+		return msgpack.Encode(OuterLinkV2Partial1{
+			Version:  2,
+			Seqno:    o.Seqno,
+			Prev:     o.Prev,
+			Curr:     o.Curr,
+			LinkType: o.LinkType,
+			SeqType:  o.SeqType,
+		})
+	case 7:
+		return msgpack.Encode(OuterLinkV2Partial2{
+			Version:             2,
+			Seqno:               o.Seqno,
+			Prev:                o.Prev,
+			Curr:                o.Curr,
+			LinkType:            o.LinkType,
+			SeqType:             o.SeqType,
+			IgnoreIfUnsupported: o.IgnoreIfUnsupported,
+		})
+	case 9:
+		return msgpack.Encode(OuterLinkV2{
+			Version:             2,
+			Seqno:               o.Seqno,
+			Prev:                o.Prev,
+			Curr:                o.Curr,
+			LinkType:            o.LinkType,
+			SeqType:             o.SeqType,
+			IgnoreIfUnsupported: o.IgnoreIfUnsupported,
+			HighSkipHash:        o.HighSkipHash,
+			HighSkipSeqno:       o.HighSkipSeqno,
+		})
+	default:
+		return nil, fmt.Errorf("Cannot encode sig2 partial with %d fields", numFields)
+	}
+
 }
 
 func DecodeStubbedOuterLinkV2(b64encoded string) (*OuterLinkV2WithMetadata, error) {
@@ -279,8 +443,11 @@ func DecodeStubbedOuterLinkV2(b64encoded string) (*OuterLinkV2WithMetadata, erro
 	if err != nil {
 		return nil, err
 	}
+	if !msgpack.IsEncodedMsgpackArray(payload) {
+		return nil, ChainLinkError{"expected a msgpack array but got leading junk"}
+	}
 	var ol OuterLinkV2
-	if err = MsgpackDecode(&ol, payload); err != nil {
+	if err = msgpack.Decode(&ol, payload); err != nil {
 		return nil, err
 	}
 	return &OuterLinkV2WithMetadata{OuterLinkV2: ol, raw: payload}, nil
@@ -314,18 +481,31 @@ func (o OuterLinkV2WithMetadata) Verify(ctx VerifyContext) (kid keybase1.KID, er
 	return o.kid, nil
 }
 
+func (t SigchainV2Type) SigIDSuffixParams(v keybase1.SigVersion) keybase1.SigIDSuffixParameters {
+	return keybase1.SigIDSuffixParameters{
+		IsUserSig:       t.IsSupportedUserType(),
+		IsWalletStellar: (t == SigchainV2TypeWalletStellar),
+		SigVersion:      v,
+	}
+}
+
 func DecodeOuterLinkV2(armored string) (*OuterLinkV2WithMetadata, error) {
-	payload, kid, sigID, err := SigExtractPayloadAndKID(armored)
+	payload, kid, sigIDBase, err := SigExtractPayloadAndKID(armored)
 	if err != nil {
 		return nil, err
 	}
+	if !msgpack.IsEncodedMsgpackArray(payload) {
+		return nil, ChainLinkError{"expected a msgpack array but got leading junk"}
+	}
+
 	var ol OuterLinkV2
-	if err := MsgpackDecode(&ol, payload); err != nil {
+	if err := msgpack.Decode(&ol, payload); err != nil {
 		return nil, err
 	}
+	params := ol.LinkType.SigIDSuffixParams(keybase1.SigVersion(2))
 	ret := OuterLinkV2WithMetadata{
 		OuterLinkV2: ol,
-		sigID:       sigID,
+		sigID:       sigIDBase.ToSigID(params),
 		raw:         payload,
 		kid:         kid,
 		sig:         armored,
@@ -370,6 +550,14 @@ func SigchainV2TypeFromV1TypeAndRevocations(s string, hasRevocations SigHasRevok
 		ret = SigchainV2TypePerUserKey
 	case string(LinkTypeWalletStellar):
 		ret = SigchainV2TypeWalletStellar
+	case string(LinkTypeWotVouch):
+		if hasRevocations {
+			ret = SigchainV2TypeWotVouchWithRevoke
+		} else {
+			ret = SigchainV2TypeWotVouch
+		}
+	case string(LinkTypeWotReact):
+		ret = SigchainV2TypeWotReact
 	default:
 		teamRes, teamErr := SigchainV2TypeFromV1TypeTeams(s)
 		if teamErr == nil {
@@ -419,6 +607,8 @@ func SigchainV2TypeFromV1TypeTeams(s string) (ret SigchainV2Type, err error) {
 		ret = SigchainV2TypeTeamKBFSSettings
 	case LinkTypeSettings:
 		ret = SigchainV2TypeTeamSettings
+	case LinkTypeTeamBotSettings:
+		ret = SigchainV2TypeTeamBotSettings
 	default:
 		return SigchainV2TypeNone, ChainLinkError{fmt.Sprintf("Unknown team sig v1 type: %s", s)}
 	}
@@ -426,54 +616,94 @@ func SigchainV2TypeFromV1TypeTeams(s string) (ret SigchainV2Type, err error) {
 	return ret, err
 }
 
+func mismatchError(format string, arg ...interface{}) error {
+	return SigchainV2MismatchedFieldError{fmt.Sprintf(format, arg...)}
+}
+
 func (o OuterLinkV2) AssertFields(
-	version int,
+	version SigVersion,
 	seqno keybase1.Seqno,
 	prev LinkID,
 	curr LinkID,
 	linkType SigchainV2Type,
 	seqType keybase1.SeqType,
 	ignoreIfUnsupported SigIgnoreIfUnsupported,
+	highSkip *HighSkip,
 ) (err error) {
-	mkErr := func(format string, arg ...interface{}) error {
-		return SigchainV2MismatchedFieldError{fmt.Sprintf(format, arg...)}
-	}
 	if o.Version != version {
-		return mkErr("version field (%d != %d)", o.Version, version)
+		return mismatchError("version field (%d != %d)", o.Version, version)
 	}
 	if o.Seqno != seqno {
-		return mkErr("seqno field: (%d != %d)", o.Seqno, seqno)
+		return mismatchError("seqno field: (%d != %d)", o.Seqno, seqno)
 	}
 	if !o.Prev.Eq(prev) {
-		return mkErr("prev pointer: (%s != !%s)", o.Prev, prev)
+		return mismatchError("prev pointer: (%s != !%s)", o.Prev, prev)
 	}
 	if !o.Curr.Eq(curr) {
-		return mkErr("curr pointer: (%s != %s)", o.Curr, curr)
+		return mismatchError("curr pointer: (%s != %s)", o.Curr, curr)
 	}
 	if !(linkType == SigchainV2TypeNone && ignoreIfUnsupported) && o.LinkType != linkType {
-		return mkErr("link type: (%d != %d)", o.LinkType, linkType)
+		return mismatchError("link type: (%d != %d)", o.LinkType, linkType)
 	}
 	if o.SeqType != seqType {
-		return mkErr("seq type: (%d != %d)", o.SeqType, seqType)
+		return mismatchError("seq type: (%d != %d)", o.SeqType, seqType)
 	}
 	if o.IgnoreIfUnsupported != ignoreIfUnsupported {
-		return mkErr("ignore_if_unsupported: (%v != %v)", o.IgnoreIfUnsupported, ignoreIfUnsupported)
+		return mismatchError("ignore_if_unsupported: (%v != %v)", o.IgnoreIfUnsupported, ignoreIfUnsupported)
 	}
+
+	err = o.assertHighSkip(highSkip)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (o OuterLinkV2) assertHighSkip(highSkip *HighSkip) error {
+	if highSkip == nil && o.HighSkipSeqno != nil {
+		return mismatchError("provided HighSkipSeqno (%d) in outer link but not in inner link", o.HighSkipSeqno)
+	}
+	if highSkip == nil && o.HighSkipHash != nil {
+		return mismatchError("provided HighSkipHash (%v) in outer link but not in inner link", o.HighSkipHash)
+	}
+
+	// o.HighSkipHash may be nil even if highSkip is not, so we don't check it
+	if highSkip != nil && o.HighSkipSeqno == nil {
+		return mismatchError("provided HighSkip in inner link but not HighSkipSeqno in outer link")
+	}
+
+	if highSkip == nil {
+		return nil
+	}
+
+	if *o.HighSkipSeqno != highSkip.Seqno {
+		return mismatchError("highSkip.Seqno field outer (%d)/inner (%d) mismatch", *o.HighSkipSeqno, highSkip.Seqno)
+	}
+
+	if o.HighSkipHash == nil && highSkip.Hash != nil {
+		return mismatchError("Provided HighSkip.Hash in outer link but not inner.")
+	}
+	if o.HighSkipHash != nil && highSkip.Hash == nil {
+		return mismatchError("Provided HighSkip.Hash in inner link but not outer.")
+	}
+
+	if o.HighSkipHash != nil && !o.HighSkipHash.Eq(highSkip.Hash) {
+		return mismatchError("highSkip.Hash field outer (%v)/inner (%v) mismatch", o.HighSkipHash, highSkip.Hash)
+	}
+
 	return nil
 }
 
 func (o OuterLinkV2) AssertSomeFields(
-	version int,
+	version SigVersion,
 	seqno keybase1.Seqno,
 ) (err error) {
-	mkErr := func(format string, arg ...interface{}) error {
-		return SigchainV2MismatchedFieldError{fmt.Sprintf(format, arg...)}
-	}
 	if o.Version != version {
-		return mkErr("version field (%d != %d)", o.Version, version)
+		return mismatchError("version field (%d != %d)", o.Version, version)
 	}
 	if o.Seqno != seqno {
-		return mkErr("seqno field: (%d != %d)", o.Seqno, seqno)
+		return mismatchError("seqno field: (%d != %d)", o.Seqno, seqno)
 	}
 	return nil
 }

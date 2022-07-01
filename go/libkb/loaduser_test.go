@@ -76,6 +76,8 @@ func TestRevokedKeys(t *testing.T) {
 
 func BenchmarkLoadSigChains(b *testing.B) {
 	tc := SetupTest(b, "benchmark load user", 1)
+	defer tc.Cleanup()
+
 	u, err := LoadUser(NewLoadUserByNameArg(tc.G, "t_george"))
 	if err != nil {
 		b.Fatal(err)
@@ -86,7 +88,7 @@ func BenchmarkLoadSigChains(b *testing.B) {
 	u.sigChainMem = nil
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		if err = u.LoadSigChains(NewMetaContextForTest(tc), &u.leaf, false); err != nil {
+		if err = u.LoadSigChains(NewMetaContextForTest(tc), &u.leaf, false, StubModeStubbed); err != nil {
 			b.Fatal(err)
 		}
 		u.sigChainMem = nil
@@ -95,6 +97,8 @@ func BenchmarkLoadSigChains(b *testing.B) {
 
 func BenchmarkLoadUserPlusKeys(b *testing.B) {
 	tc := SetupTest(b, "bench_user_plus_keys", 1)
+	defer tc.Cleanup()
+
 	u, err := LoadUser(NewLoadUserByNameArg(tc.G, "t_george"))
 	if err != nil {
 		b.Fatal(err)

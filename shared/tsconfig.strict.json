@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "noImplicitAny": true,
+    "tsBuildInfoFile": "./.tsOuts/.tsOutStrict/cache",
+    "outDir": "./.tsOuts/.tsOutStrict/emit"
+  },
+  "files": [],
+  "include": ["./**/*"]
+}

@@ -3,6 +3,7 @@ package attachments
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"image"
 	"image/color"
 	"image/color/palette"
@@ -14,12 +15,15 @@ import (
 	"io/ioutil"
 	"strings"
 
-	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 
-	"golang.org/x/net/context"
-
+	_ "github.com/keybase/golang-ico" // for image decoding
 	"github.com/nfnt/resize"
+	"golang.org/x/image/bmp"
+	_ "golang.org/x/image/bmp" // for image decoding
+	"golang.org/x/image/tiff"
+	"golang.org/x/net/context"
 
 	"camlistore.org/pkg/images"
 )
@@ -40,18 +44,43 @@ type PreviewRes struct {
 	PreviewDurationMs int
 }
 
+func IsFatalImageErr(err error) bool {
+	switch err {
+	case image.ErrFormat,
+		bmp.ErrUnsupported:
+		return true
+	}
+	switch err.(type) {
+	case png.FormatError,
+		png.UnsupportedError,
+		tiff.FormatError,
+		tiff.UnsupportedError,
+		jpeg.FormatError,
+		jpeg.UnsupportedError:
+		return true
+	}
+	return false
+}
+
 // Preview creates preview assets from src.  It returns an in-memory BufferSource
 // and the content type of the preview asset.
-func Preview(ctx context.Context, g *globals.Context, log utils.DebugLabeler, src io.Reader, contentType,
-	basename string) (*PreviewRes, error) {
+func Preview(ctx context.Context, log utils.DebugLabeler, src ReadResetter, contentType,
+	basename string, nvh types.NativeVideoHelper) (res *PreviewRes, err error) {
+	defer func() {
+		if IsFatalImageErr(err) {
+			log.Debug(ctx, "squashing %v", err)
+			err = nil
+			res = nil
+		}
+	}()
 	switch contentType {
-	case "image/jpeg", "image/png":
+	case "image/jpeg", "image/png", "image/vnd.microsoft.icon", "image/x-icon":
 		return previewImage(ctx, log, src, basename, contentType)
 	case "image/gif":
 		return previewGIF(ctx, log, src, basename)
 	}
 	if strings.HasPrefix(contentType, "video") {
-		pre, err := previewVideo(ctx, g, log, src, basename)
+		pre, err := previewVideo(ctx, log, src, basename, nvh)
 		if err == nil {
 			log.Debug(ctx, "Preview: found video preview for filename: %s contentType: %s", basename,
 				contentType)
@@ -59,13 +88,13 @@ func Preview(ctx context.Context, g *globals.Context, log utils.DebugLabeler, sr
 		}
 		log.Debug(ctx, "Preview: failed to get video preview for filename: %s contentType: %s err: %s",
 			basename, contentType, err)
-		return previewVideoBlank(ctx, g, log, src, basename)
+		return previewVideoBlank(ctx, log, src, basename)
 	}
 	return nil, nil
 }
 
 // previewVideoBlank previews a video by inserting a black rectangle with a play button on it.
-func previewVideoBlank(ctx context.Context, g *globals.Context, log utils.DebugLabeler, src io.Reader,
+func previewVideoBlank(ctx context.Context, log utils.DebugLabeler, src io.Reader,
 	basename string) (res *PreviewRes, err error) {
 	const width, height = 300, 150
 	img := image.NewNRGBA(image.Rect(0, 0, width, height))
@@ -100,7 +129,16 @@ func previewVideoBlank(ctx context.Context, g *globals.Context, log utils.DebugL
 
 // previewImage will resize a single-frame image.
 func previewImage(ctx context.Context, log utils.DebugLabeler, src io.Reader, basename, contentType string) (res *PreviewRes, err error) {
-	defer log.Trace(ctx, func() error { return err }, "previewImage")()
+	defer func() {
+		// decoding ico images can cause a panic, let's catch anything here.
+		// https://github.com/biessek/golang-ico/issues/4
+		if r := recover(); r != nil {
+			log.Debug(ctx, "Recovered %v", r)
+			res = nil
+			err = fmt.Errorf("unable to preview image: %v", r)
+		}
+	}()
+	defer log.Trace(ctx, &err, "previewImage")()
 	// images.Decode in camlistore correctly handles exif orientation information.
 	log.Debug(ctx, "previewImage: decoding image")
 	img, _, err := images.Decode(src, nil)
@@ -115,12 +153,13 @@ func previewImage(ctx context.Context, log utils.DebugLabeler, src io.Reader, ba
 	var buf bytes.Buffer
 
 	var encodeContentType string
-	if contentType == "image/png" {
+	switch contentType {
+	case "image/vnd.microsoft.icon", "image/x-icon", "image/png":
 		encodeContentType = "image/png"
 		if err := png.Encode(&buf, preview); err != nil {
 			return nil, err
 		}
-	} else {
+	default:
 		encodeContentType = "image/jpeg"
 		if err := jpeg.Encode(&buf, preview, &jpeg.Options{Quality: 90}); err != nil {
 			return nil, err
@@ -237,7 +276,7 @@ func previewDimensions(origBounds image.Rectangle) (uint, uint) {
 	newWidth, newHeight := origWidth, origHeight
 	// Preserve aspect ratio
 	if origWidth > previewImageWidth {
-		newHeight = uint(origHeight * previewImageWidth / origWidth)
+		newHeight = origHeight * previewImageWidth / origWidth
 		if newHeight < 1 {
 			newHeight = 1
 		}
@@ -245,7 +284,7 @@ func previewDimensions(origBounds image.Rectangle) (uint, uint) {
 	}
 
 	if newHeight > previewImageHeight {
-		newWidth = uint(newWidth * previewImageHeight / newHeight)
+		newWidth = newWidth * previewImageHeight / newHeight
 		if newWidth < 1 {
 			newWidth = 1
 		}
@@ -260,7 +299,7 @@ func previewDimensions(origBounds image.Rectangle) (uint, uint) {
 func imageToPaletted(img image.Image) *image.Paletted {
 	b := img.Bounds()
 	pm := image.NewPaletted(b, palette.Plan9)
-	draw.FloydSteinberg.Draw(pm, b, img, image.ZP)
+	draw.FloydSteinberg.Draw(pm, b, img, image.Point{})
 	return pm
 }
 

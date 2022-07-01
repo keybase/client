@@ -30,6 +30,7 @@ func newCmdChatCreateChannel(cl *libcmdline.CommandLine, g *libkb.GlobalContext)
 		ArgumentHelp: "<team name> <channel name>",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(NewCmdChatCreateChannelRunner(g), "create-channel", c)
+			cl.SetLogForward(libcmdline.LogForwardNone)
 		},
 		Flags: mustGetChatFlags("topic-type"),
 	}
@@ -65,9 +66,9 @@ func (c *CmdChatCreateChannel) Run() error {
 		dui.Printf("To edit %s's channels, you must join the team.\n", c.teamName)
 		dui.Printf("Try `keybase team add-member %s --user=%s --role=admin`\n\n", c.teamName, c.G().Env.GetUsername())
 		return nil
+	default:
+		return err
 	}
-
-	return err
 }
 
 func (c *CmdChatCreateChannel) ParseArgv(ctx *cli.Context) error {

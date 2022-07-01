@@ -115,7 +115,8 @@
     },
     "ping": {
       "request": [],
-      "response": "string"
+      "response": "string",
+      "compression_type": "none"
     },
     "version": {
       "request": [
@@ -196,5 +197,6 @@
       }
     }
   },
-  "namespace": "gregor.1"
+  "namespace": "gregor.1",
+  "compression_type": "gzip"
 }

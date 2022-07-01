@@ -15,8 +15,6 @@ import (
 	"syscall"
 	"time"
 
-	"golang.org/x/net/context"
-
 	"github.com/keybase/client/go/client"
 	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/install"
@@ -27,6 +25,7 @@ import (
 	"github.com/keybase/client/go/service"
 	"github.com/keybase/client/go/uidmap"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"golang.org/x/net/context"
 )
 
 var cmd libcmdline.Command
@@ -42,6 +41,7 @@ func handleQuickVersion() bool {
 }
 
 func keybaseExit(exitCode int) {
+	logger.Shutdown()
 	logger.RestoreConsoleMode()
 	os.Exit(exitCode)
 }
@@ -76,7 +76,8 @@ func main() {
 		time.Sleep(100 * time.Millisecond)
 	}
 
-	e2 := g.Shutdown()
+	mctx := libkb.NewMetaContextTODO(g)
+	e2 := g.Shutdown(mctx)
 	if err == nil {
 		err = e2
 	}
@@ -99,7 +100,7 @@ func tryToDisableProcessTracing(log logger.Logger, e *libkb.Env) {
 		return
 	}
 
-	if !e.GetFeatureFlags().Admin() {
+	if !e.GetFeatureFlags().Admin(e.GetUID()) {
 		// Admin only for now
 		return
 	}
@@ -134,6 +135,58 @@ func checkSystemUser(log logger.Logger) {
 	}
 }
 
+func osPreconfigure(g *libkb.GlobalContext) {
+	switch libkb.RuntimeGroup() {
+	case keybase1.RuntimeGroup_LINUXLIKE:
+		// On Linux, we used to put the mountdir in a different location, and
+		// then we changed it, and also added a default mountdir config var so
+		// we'll know if the user has changed it.
+		// Update the mountdir to the new location, but only if they're still
+		// using the old mountpoint *and* they haven't changed it since we
+		// added a default. This functionality was originally in the
+		// run_keybase script.
+
+		configReader := g.Env.GetConfig()
+		if configReader == nil {
+			// some commands don't configure config.
+			return
+		}
+
+		userMountdir := configReader.GetMountDir()
+		userMountdirDefault := configReader.GetMountDirDefault()
+		oldMountdirDefault := g.Env.GetOldMountDirDefault()
+		mountdirDefault := g.Env.GetMountDirDefault()
+
+		// User has not set a mountdir yet; e.g., on initial install.
+		nonexistentMountdir := userMountdir == ""
+
+		// User does not have a mountdirdefault; e.g., if last used Keybase
+		// before the change mentioned above.
+		nonexistentMountdirDefault := userMountdirDefault == ""
+
+		usingOldMountdirByDefault := userMountdir == oldMountdirDefault && (userMountdirDefault == oldMountdirDefault || nonexistentMountdirDefault)
+
+		shouldResetMountdir := nonexistentMountdir || usingOldMountdirByDefault
+
+		if nonexistentMountdirDefault || shouldResetMountdir {
+			configWriter := g.Env.GetConfigWriter()
+			if configWriter == nil {
+				// some commands don't configure config.
+				return
+			}
+
+			// Set the user's mountdirdefault to the current one if it's
+			// currently empty.
+			_ = configWriter.SetStringAtPath("mountdirdefault", mountdirDefault)
+
+			if shouldResetMountdir {
+				_ = configWriter.SetStringAtPath("mountdir", mountdirDefault)
+			}
+		}
+	default:
+	}
+}
+
 func mainInner(g *libkb.GlobalContext, startupErrors []error) error {
 	cl := libcmdline.NewCommandLine(true, client.GetExtraFlags())
 	cl.AddCommands(client.GetCommands(cl, g))
@@ -146,7 +199,7 @@ func mainInner(g *libkb.GlobalContext, startupErrors []error) error {
 		g.Log.Errorf("Error parsing command line arguments: %s\n\n", err)
 		if _, isHelp := cmd.(*libcmdline.CmdSpecificHelp); isHelp {
 			// Parse returned the help command for this command, so run it:
-			cmd.Run()
+			_ = cmd.Run()
 		}
 		return errParseArgs
 	}
@@ -179,6 +232,11 @@ func mainInner(g *libkb.GlobalContext, startupErrors []error) error {
 	logStartupIssues(startupErrors, g.Log)
 	tryToDisableProcessTracing(g.Log, g.Env)
 
+	// Don't configure mountdir on a nofork command like nix configure redirector.
+	if cl.GetForkCmd() != libcmdline.NoFork {
+		osPreconfigure(g)
+	}
+
 	if err := configOtherLibraries(g); err != nil {
 		return err
 	}
@@ -192,19 +250,25 @@ func mainInner(g *libkb.GlobalContext, startupErrors []error) error {
 		// Errors that come up in printing this warning are logged but ignored.
 		client.PrintOutOfDateWarnings(g)
 	}
+
+	// Warn the user if there is an account reset in progress
+	if !cl.IsService() && !cl.SkipAccountResetCheck() {
+		// Errors that come up in printing this warning are logged but ignored.
+		client.PrintAccountResetWarning(g)
+	}
 	return err
 }
 
 func configOtherLibraries(g *libkb.GlobalContext) error {
 	// Set our UID -> Username mapping service
 	g.SetUIDMapper(uidmap.NewUIDMap(g.Env.GetUIDMapFullNameCacheSize()))
+	g.SetServiceSummaryMapper(uidmap.NewServiceSummaryMap(1000))
 	return nil
 }
 
 // AutoFork? Standalone? ClientServer? Brew service?  This function deals with the
 // various run configurations that we can run in.
 func configureProcesses(g *libkb.GlobalContext, cl *libcmdline.CommandLine, cmd *libcmdline.Command) (err error) {
-
 	g.Log.Debug("+ configureProcesses")
 	defer func() {
 		g.Log.Debug("- configureProcesses -> %v", err)
@@ -215,7 +279,7 @@ func configureProcesses(g *libkb.GlobalContext, cl *libcmdline.CommandLine, cmd 
 	if cl.IsService() {
 		g.Log.Debug("| in configureProcesses, is service")
 		if runtime.GOOS == "linux" {
-			g.Log.Debug("| calling AutoInstall")
+			g.Log.Debug("| calling AutoInstall for Linux")
 			_, err := install.AutoInstall(g, "", false, 10*time.Second, g.Log)
 			if err != nil {
 				return err
@@ -239,7 +303,7 @@ func configureProcesses(g *libkb.GlobalContext, cl *libcmdline.CommandLine, cmd 
 		if err != nil {
 			return err
 		}
-		err = svc.StartLoopbackServer()
+		err = svc.StartLoopbackServer(libkb.LoginAttemptOffline)
 		if err != nil {
 			return err
 		}
@@ -276,13 +340,11 @@ func configureProcesses(g *libkb.GlobalContext, cl *libcmdline.CommandLine, cmd 
 		if err != nil {
 			return err
 		}
-	} else {
+	} else if fc == libcmdline.ForceFork || g.Env.GetAutoFork() {
 		// If this command warrants an autofork, do it now.
-		if fc == libcmdline.ForceFork || g.Env.GetAutoFork() {
-			newProc, err = client.AutoForkServer(g, cl)
-			if err != nil {
-				return err
-			}
+		newProc, err = client.AutoForkServer(g, cl)
+		if err != nil {
+			return err
 		}
 	}
 
@@ -294,6 +356,11 @@ func configureProcesses(g *libkb.GlobalContext, cl *libcmdline.CommandLine, cmd 
 		if err = client.FixVersionClash(g, cl); err != nil {
 			return err
 		}
+	}
+
+	// Ignore error
+	if err = client.WarnOutdatedKBFS(g, cl); err != nil {
+		g.Log.Debug("| Could not do kbfs versioncheck: %s", err)
 	}
 
 	g.Log.Debug("| After forks; newProc=%v", newProc)
@@ -365,32 +432,35 @@ func configurePath(g *libkb.GlobalContext, cl *libcmdline.CommandLine) error {
 
 func HandleSignals(g *libkb.GlobalContext) {
 	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt, syscall.SIGTERM, os.Kill)
+	// Note: os.Kill can't be trapped.
+	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+
+	mctx := libkb.NewMetaContextTODO(g)
 	for {
 		s := <-c
 		if s != nil {
-			g.Log.Debug("trapped signal %v", s)
+			mctx.Debug("trapped signal %v", s)
 
 			// if the current command has a Stop function, then call it.
 			// It will do its own stopping of the process and calling
 			// shutdown
 			if stop, ok := cmd.(client.Stopper); ok {
-				g.Log.Debug("Stopping command cleanly via stopper")
+				mctx.Debug("Stopping command cleanly via stopper")
 				stop.Stop(keybase1.ExitCode_OK)
 				return
 			}
 
 			// if the current command has a Cancel function, then call it:
 			if canc, ok := cmd.(client.Canceler); ok {
-				g.Log.Debug("canceling running command")
+				mctx.Debug("canceling running command")
 				if err := canc.Cancel(); err != nil {
-					g.Log.Warning("error canceling command: %s", err)
+					mctx.Warning("error canceling command: %s", err)
 				}
 			}
 
-			g.Log.Debug("calling shutdown")
-			g.Shutdown()
-			g.Log.Error("interrupted")
+			mctx.Debug("calling shutdown")
+			_ = g.Shutdown(mctx)
+			mctx.Error("interrupted")
 			keybaseExit(3)
 		}
 	}

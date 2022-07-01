@@ -99,12 +99,6 @@ type ExternalLogger interface {
 	Log(level keybase1.LogLevel, format string, args []interface{})
 }
 
-type entry struct {
-	level  keybase1.LogLevel
-	format string
-	args   []interface{}
-}
-
 type Standard struct {
 	internal       *logging.Logger
 	filename       string
@@ -354,15 +348,6 @@ func MakeParentDirs(filename string) error {
 		err = os.MkdirAll(dir, permDir)
 		if err != nil {
 			return err
-		}
-	}
-	return nil
-}
-
-func PickFirstError(errors ...error) error {
-	for _, e := range errors {
-		if e != nil {
-			return e
 		}
 	}
 	return nil

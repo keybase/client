@@ -30,6 +30,47 @@ func newImplicitTLFID(public bool) keybase1.TLFID {
 	return keybase1.TLFID(hex.EncodeToString(idBytes))
 }
 
+func TestImplicitRaceCreateTLFs(t *testing.T) {
+	tc := SetupTest(t, "team", 1)
+	defer tc.Cleanup()
+	u, err := kbtest.CreateAndSignupFakeUser("t", tc.G)
+	require.NoError(t, err)
+	displayName := u.Username
+	_, _, _, err = LookupImplicitTeam(context.TODO(), tc.G, displayName, false, ImplicitTeamOptions{})
+	require.Error(t, err)
+	require.IsType(t, TeamDoesNotExistError{}, err)
+	createdTeam, _, impTeamName, err := LookupOrCreateImplicitTeam(context.TODO(), tc.G, displayName, false)
+	require.NoError(t, err)
+	tlfid0 := createdTeam.LatestKBFSTLFID()
+	require.False(t, impTeamName.IsPublic)
+	require.True(t, tlfid0.IsNil())
+	tlfid1 := newImplicitTLFID(true)
+	n := 4
+	doneCh := make(chan struct{}, n+1)
+	for i := 0; i < n; i++ {
+		go func() {
+			err = CreateTLF(context.TODO(), tc.G, keybase1.CreateTLFArg{TeamID: createdTeam.ID, TlfID: tlfid1})
+			require.NoError(t, err)
+			doneCh <- struct{}{}
+		}()
+	}
+	for i := 0; i < n; i++ {
+		select {
+		case <-doneCh:
+		case <-time.After(time.Minute):
+			t.Fatal("failed to get racing racers back")
+		}
+		tc.G.Log.Debug("Got finisher %d", i)
+	}
+	// second time, LookupOrCreate should Lookup the team just created.
+	createdTeam2, _, impTeamName2, err := LookupOrCreateImplicitTeam(context.TODO(), tc.G, displayName, false)
+	require.NoError(t, err)
+	tlfid2 := createdTeam2.LatestKBFSTLFID()
+	require.Equal(t, createdTeam.ID, createdTeam2.ID)
+	require.Equal(t, impTeamName, impTeamName2, "public: %v", false)
+	require.Equal(t, tlfid1, tlfid2, "the right TLFID came back")
+}
+
 func TestLookupImplicitTeams(t *testing.T) {
 	tc := SetupTest(t, "team", 1)
 	defer tc.Cleanup()
@@ -44,7 +85,7 @@ func TestLookupImplicitTeams(t *testing.T) {
 
 	lookupAndCreate := func(displayName string, public bool) {
 		t.Logf("displayName:%v public:%v", displayName, public)
-		_, _, _, err := LookupImplicitTeam(context.TODO(), tc.G, displayName, public)
+		_, _, _, err := LookupImplicitTeam(context.TODO(), tc.G, displayName, public, ImplicitTeamOptions{})
 		require.Error(t, err)
 		require.IsType(t, TeamDoesNotExistError{}, err)
 
@@ -59,6 +100,10 @@ func TestLookupImplicitTeams(t *testing.T) {
 		err = CreateTLF(context.TODO(), tc.G, keybase1.CreateTLFArg{TeamID: createdTeam.ID, TlfID: tlfid1})
 		require.NoError(t, err)
 
+		// We can double this, and it still should work (and noop the second Time)
+		err = CreateTLF(context.TODO(), tc.G, keybase1.CreateTLFArg{TeamID: createdTeam.ID, TlfID: tlfid1})
+		require.NoError(t, err)
+
 		// second time, LookupOrCreate should Lookup the team just created.
 		createdTeam2, _, impTeamName2, err := LookupOrCreateImplicitTeam(context.TODO(), tc.G, displayName,
 			public)
@@ -68,7 +113,7 @@ func TestLookupImplicitTeams(t *testing.T) {
 		require.Equal(t, impTeamName, impTeamName2, "public: %v", public)
 		require.Equal(t, tlfid1, tlfid2, "the right TLFID came back")
 
-		lookupTeam, _, impTeamName, err := LookupImplicitTeam(context.TODO(), tc.G, displayName, public)
+		lookupTeam, _, impTeamName, err := LookupImplicitTeam(context.TODO(), tc.G, displayName, public, ImplicitTeamOptions{})
 		require.NoError(t, err)
 		require.Equal(t, createdTeam.ID, lookupTeam.ID)
 
@@ -123,7 +168,7 @@ func TestImplicitPukless(t *testing.T) {
 	team, _, _, err := LookupOrCreateImplicitTeam(context.Background(), tcs[0].G, displayName, false /*isPublic*/)
 	require.NoError(t, err)
 
-	team2, _, _, err := LookupImplicitTeam(context.Background(), tcs[0].G, displayName, false /*isPublic*/)
+	team2, _, _, err := LookupImplicitTeam(context.Background(), tcs[0].G, displayName, false /*isPublic*/, ImplicitTeamOptions{})
 	require.NoError(t, err)
 	require.Equal(t, team.ID, team2.ID)
 
@@ -140,13 +185,13 @@ func TestImplicitPukless(t *testing.T) {
 	require.Equal(t, keybase1.TeamRole_OWNER, u0Role)
 	u1Role, err := team.chain().GetUserRole(fus[1].GetUserVersion())
 	require.True(t, err != nil || u1Role == keybase1.TeamRole_NONE, "u1 should not yet be a member")
-	t.Logf("invites: %v", spew.Sdump(team.chain().inner.ActiveInvites))
-	itype, err := keybase1.TeamInviteTypeFromString("keybase", true)
+	t.Logf("invites: %v", spew.Sdump(team.chain().ActiveInvites()))
+	itype, err := TeamInviteTypeFromString(tcs[0].MetaContext(), "keybase")
 	require.NoError(t, err, "should be able to make invite type for 'keybase'")
 	invite, err := team.chain().FindActiveInvite(fus[1].GetUserVersion().TeamInviteName(), itype)
 	require.NoError(t, err, "team should have invite for the puk-less user")
 	require.Equal(t, keybase1.TeamRole_OWNER, invite.Role)
-	require.Len(t, team.chain().inner.ActiveInvites, 1, "number of invites")
+	require.Len(t, team.chain().ActiveInvites(), 1, "number of invites")
 }
 
 // Test loading an implicit team as a #reader.
@@ -187,7 +232,7 @@ func TestImplicitDisplayTeamNameParse(t *testing.T) {
 	// It will probably fail because <uid>@keybase is the wrong format.
 
 	makeAssertionContext := func() libkb.AssertionContext {
-		return libkb.MakeAssertionContext(externals.NewProofServices(tc.G))
+		return libkb.MakeAssertionContext(libkb.NewMetaContext(context.Background(), tc.G), externals.NewProofServices(tc.G))
 	}
 
 	for _, public := range []bool{true, false} {
@@ -206,15 +251,15 @@ func TestImplicitDisplayTeamNameParse(t *testing.T) {
 				Writers: keybase1.ImplicitTeamUserSet{
 					KeybaseUsers: []string{"alice", "bob"},
 					UnresolvedUsers: []keybase1.SocialAssertion{
-						keybase1.SocialAssertion{User: "twwwww", Service: keybase1.SocialAssertionService("twitter")},
-						keybase1.SocialAssertion{User: "reeeee", Service: keybase1.SocialAssertionService("reddit")},
+						{User: "twwwww", Service: keybase1.SocialAssertionService("twitter")},
+						{User: "reeeee", Service: keybase1.SocialAssertionService("reddit")},
 					},
 				},
 				Readers: keybase1.ImplicitTeamUserSet{
 					KeybaseUsers: []string{"trust", "worthy"},
 					UnresolvedUsers: []keybase1.SocialAssertion{
-						keybase1.SocialAssertion{User: "ghhhh", Service: keybase1.SocialAssertionService("github")},
-						keybase1.SocialAssertion{User: "fbbbb", Service: keybase1.SocialAssertionService("facebook")},
+						{User: "ghhhh", Service: keybase1.SocialAssertionService("github")},
+						{User: "fbbbb", Service: keybase1.SocialAssertionService("facebook")},
 					},
 				},
 				ConflictInfo: conflictInfo,
@@ -268,7 +313,7 @@ func TestLookupImplicitTeamResolvedSocialAssertion(t *testing.T) {
 	require.NoError(t, err)
 	// Note: t_tracy has no PUK so she shows up as an invite.
 	require.Len(t, owners, 1)
-	require.Len(t, team.chain().inner.ActiveInvites, 1, "number of invites")
+	require.Len(t, team.chain().ActiveInvites(), 1, "number of invites")
 
 	teamDisplay, err := team.ImplicitTeamDisplayNameString(context.TODO())
 	require.NoError(t, err)
@@ -294,7 +339,7 @@ func TestImplicitTeamRotate(t *testing.T) {
 		require.Equal(t, keybase1.PerTeamKeyGeneration(1), team.Generation())
 
 		t.Logf("rotate the key")
-		err = team.Rotate(context.TODO())
+		err = team.Rotate(context.TODO(), keybase1.RotationType_VISIBLE)
 		require.NoError(t, err)
 
 		t.Logf("load as other member")
@@ -325,7 +370,7 @@ func TestLoggedOutPublicTeamLoad(t *testing.T) {
 	createdTeam, _, impTeamName, err := LookupOrCreateImplicitTeam(context.TODO(), tc.G, u.Username, true)
 	require.NoError(t, err)
 	require.Equal(t, true, impTeamName.IsPublic)
-	err = tc.G.Logout()
+	err = tc.Logout()
 	require.NoError(t, err)
 
 	for i := 0; i < 2; i++ {
@@ -353,18 +398,13 @@ func TestImplicitInvalidLinks(t *testing.T) {
 	teamObj, _, _, err := LookupOrCreateImplicitTeam(context.Background(), tcs[0].G, impteamName, false /*isPublic*/)
 	require.NoError(t, err)
 
-	RequirePrecheckError := func(err error) {
-		require.Error(t, err)
-		require.IsType(t, PrecheckAppendError{}, err)
-	}
-
 	{
 		// Adding entirely new member should be illegal
 		req := keybase1.TeamChangeReq{
 			Owners: []keybase1.UserVersion{pam.GetUserVersion()},
 		}
 		err := teamObj.ChangeMembership(context.Background(), req)
-		RequirePrecheckError(err)
+		requirePrecheckError(t, err)
 	}
 
 	{
@@ -375,13 +415,13 @@ func TestImplicitInvalidLinks(t *testing.T) {
 			ID:   NewInviteID(),
 		}
 		err := teamObj.postInvite(context.Background(), invite, keybase1.TeamRole_OWNER)
-		RequirePrecheckError(err)
+		requirePrecheckError(t, err)
 	}
 
 	{
 		// Adding new social invite never works
 		_, err := teamObj.inviteSBSMember(context.Background(), ann.Username+"@rooter", keybase1.TeamRole_OWNER)
-		RequirePrecheckError(err)
+		requirePrecheckError(t, err)
 	}
 
 	{
@@ -390,7 +430,7 @@ func TestImplicitInvalidLinks(t *testing.T) {
 			None: []keybase1.UserVersion{bob.GetUserVersion()},
 		}
 		err := teamObj.ChangeMembership(context.Background(), req)
-		RequirePrecheckError(err)
+		requirePrecheckError(t, err)
 	}
 
 	{
@@ -398,7 +438,7 @@ func TestImplicitInvalidLinks(t *testing.T) {
 		invite, _, found := teamObj.FindActiveKeybaseInvite(cat.GetUID())
 		require.True(t, found)
 		err := removeInviteID(context.Background(), teamObj, invite.Id)
-		RequirePrecheckError(err)
+		requirePrecheckError(t, err)
 	}
 }
 
@@ -494,22 +534,26 @@ func TestReAddMemberWithSameUV(t *testing.T) {
 	jun := fus[2] // pukless user
 	hal := fus[3] // pukless user (eldest=0)
 
-	kbtest.ResetAccount(*tcs[3], fus[3])
+	tcAnn := tcs[0] // crypto user
+	tcBob := tcs[1] // crypto user
+	tcHal := tcs[3] // pukless user (eldest=0)
+
+	kbtest.ResetAccount(*tcHal, hal) // reset hal
 
 	impteamName := strings.Join([]string{ann.Username, bob.Username, jun.Username, hal.Username}, ",")
 	t.Logf("ann creates an implicit team: %v", impteamName)
-	teamObj, _, _, err := LookupOrCreateImplicitTeam(context.Background(), tcs[0].G, impteamName, false /*isPublic*/)
+	teamObj, _, _, err := LookupOrCreateImplicitTeam(context.Background(), tcAnn.G, impteamName, false /*isPublic*/)
 	require.NoError(t, err)
 
 	t.Logf("created team id: %s", teamObj.ID)
 
-	err = reAddMemberAfterResetInner(context.Background(), tcs[0].G, teamObj.ID, bob.Username)
+	err = reAddMemberAfterResetInner(context.Background(), tcAnn.G, teamObj.ID, bob.Username)
 	require.IsType(t, UserHasNotResetError{}, err)
 
-	err = ReAddMemberAfterReset(context.Background(), tcs[0].G, teamObj.ID, jun.Username)
-	require.NoError(t, err)
+	err = ReAddMemberAfterReset(context.Background(), tcAnn.G, teamObj.ID, jun.Username)
+	require.NoError(t, err) // error should be suppressed
 
-	err = reAddMemberAfterResetInner(context.Background(), tcs[0].G, teamObj.ID, hal.Username)
+	err = reAddMemberAfterResetInner(context.Background(), tcAnn.G, teamObj.ID, hal.Username)
 	require.IsType(t, UserHasNotResetError{}, err)
 
 	// Now, the fun part (bug CORE-8099):
@@ -520,13 +564,136 @@ func TestReAddMemberWithSameUV(t *testing.T) {
 	// (it's an implicit team weirdness - "invite" link has no way of
 	// removing old membership).
 
-	kbtest.ResetAccount(*tcs[1], fus[1])
-	err = ReAddMemberAfterReset(context.Background(), tcs[0].G, teamObj.ID, bob.Username)
+	kbtest.ResetAccount(*tcBob, bob) // reset bob
+	err = reAddMemberAfterResetInner(context.Background(), tcAnn.G, teamObj.ID, bob.Username)
 	require.NoError(t, err)
 
 	// Subsequent calls should start UserHasNotResetErrorin again
-	err = reAddMemberAfterResetInner(context.Background(), tcs[0].G, teamObj.ID, bob.Username)
+	err = reAddMemberAfterResetInner(context.Background(), tcAnn.G, teamObj.ID, bob.Username)
 	require.IsType(t, UserHasNotResetError{}, err)
+}
+
+func TestBotMember(t *testing.T) {
+	fus, tcs, cleanup := setupNTests(t, 4)
+	defer cleanup()
+
+	ann := fus[0]             // crypto user
+	bob := fus[1]             // crypto user
+	botua := fus[2]           // bot user
+	restrictedBotua := fus[3] // restricted bot user
+
+	impteamName := strings.Join([]string{ann.Username, bob.Username}, ",")
+	t.Logf("ann creates an implicit team: %v", impteamName)
+	teamObj, _, _, err := LookupOrCreateImplicitTeam(context.Background(), tcs[0].G, impteamName, false /*isPublic*/)
+	require.NoError(t, err)
+
+	t.Logf("created team id: %s", teamObj.ID)
+	_, err = AddMemberByID(context.TODO(), tcs[0].G, teamObj.ID, botua.Username, keybase1.TeamRole_BOT, nil, nil /* emailInviteMsg */)
+	require.NoError(t, err)
+	_, err = AddMemberByID(context.TODO(), tcs[0].G, teamObj.ID, restrictedBotua.Username, keybase1.TeamRole_RESTRICTEDBOT, &keybase1.TeamBotSettings{}, nil /* emailInviteMsg */)
+	require.NoError(t, err)
+	team, err := Load(context.Background(), tcs[2].G, keybase1.LoadTeamArg{ID: teamObj.ID})
+	require.NoError(t, err)
+
+	members, err := team.Members()
+	require.NoError(t, err)
+	require.Len(t, members.Bots, 1)
+	require.Equal(t, botua.User.GetUID(), members.Bots[0].Uid)
+	require.Len(t, members.RestrictedBots, 1)
+	require.Equal(t, restrictedBotua.User.GetUID(), members.RestrictedBots[0].Uid)
+
+	team, err = Load(context.Background(), tcs[3].G, keybase1.LoadTeamArg{ID: teamObj.ID})
+	require.NoError(t, err)
+
+	members, err = team.Members()
+	require.NoError(t, err)
+	require.Len(t, members.Bots, 1)
+	require.Equal(t, botua.User.GetUID(), members.Bots[0].Uid)
+	require.Len(t, members.RestrictedBots, 1)
+	require.Equal(t, restrictedBotua.User.GetUID(), members.RestrictedBots[0].Uid)
+
+	kbtest.ResetAccount(*tcs[2], botua)
+	err = ReAddMemberAfterReset(context.Background(), tcs[0].G, teamObj.ID, botua.Username)
+	require.Error(t, err)
+
+	err = botua.Login(tcs[2].G)
+	require.NoError(t, err)
+	err = kbtest.AssertProvisioned(*tcs[2])
+	require.NoError(t, err)
+
+	err = ReAddMemberAfterReset(context.Background(), tcs[0].G, teamObj.ID, botua.Username)
+	require.NoError(t, err)
+	// Subsequent calls should have UserHasNotResetError
+	err = reAddMemberAfterResetInner(context.Background(), tcs[0].G, teamObj.ID, botua.Username)
+	require.IsType(t, UserHasNotResetError{}, err)
+
+	team, err = Load(context.Background(), tcs[3].G, keybase1.LoadTeamArg{ID: teamObj.ID})
+	require.NoError(t, err)
+
+	members, err = team.Members()
+	require.NoError(t, err)
+
+	kbtest.ResetAccount(*tcs[3], restrictedBotua)
+	team, err = Load(context.Background(), tcs[2].G, keybase1.LoadTeamArg{ID: teamObj.ID})
+	require.NoError(t, err)
+
+	members, err = team.Members()
+	require.NoError(t, err)
+	// RESTRICTEDBOT invites not supported
+	err = ReAddMemberAfterReset(context.Background(), tcs[0].G, teamObj.ID, restrictedBotua.Username)
+	require.Error(t, err)
+
+	err = restrictedBotua.Login(tcs[3].G)
+	require.NoError(t, err)
+	err = kbtest.AssertProvisioned(*tcs[3])
+	require.NoError(t, err)
+
+	err = ReAddMemberAfterReset(context.Background(), tcs[0].G, teamObj.ID, restrictedBotua.Username)
+	require.NoError(t, err)
+
+	// Subsequent calls should have UserHasNotResetError
+	err = reAddMemberAfterResetInner(context.Background(), tcs[0].G, teamObj.ID, restrictedBotua.Username)
+	require.IsType(t, UserHasNotResetError{}, err)
+
+	team, err = Load(context.Background(), tcs[0].G, keybase1.LoadTeamArg{ID: teamObj.ID})
+	require.NoError(t, err)
+	members, err = team.Members()
+	require.NoError(t, err)
+	require.Len(t, members.Bots, 1)
+	require.Equal(t, botua.User.GetUID(), members.Bots[0].Uid)
+	require.Len(t, members.RestrictedBots, 1)
+	require.Equal(t, restrictedBotua.User.GetUID(), members.RestrictedBots[0].Uid)
+
+	// we can change bot memberships, but cannot have a non-bot like role
+	err = EditMemberByID(context.TODO(), tcs[0].G, teamObj.ID, botua.Username, keybase1.TeamRole_RESTRICTEDBOT, &keybase1.TeamBotSettings{})
+	require.NoError(t, err)
+
+	err = EditMemberByID(context.TODO(), tcs[0].G, teamObj.ID, restrictedBotua.Username, keybase1.TeamRole_WRITER, nil)
+	require.Error(t, err)
+
+	err = EditMemberByID(context.TODO(), tcs[0].G, teamObj.ID, restrictedBotua.Username, keybase1.TeamRole_BOT, nil)
+	require.NoError(t, err)
+
+	team, err = Load(context.Background(), tcs[0].G, keybase1.LoadTeamArg{ID: teamObj.ID})
+	require.NoError(t, err)
+	members, err = team.Members()
+	require.NoError(t, err)
+	require.Len(t, members.Bots, 1)
+	require.Equal(t, restrictedBotua.User.GetUID(), members.Bots[0].Uid)
+	require.Len(t, members.RestrictedBots, 1)
+	require.Equal(t, botua.User.GetUID(), members.RestrictedBots[0].Uid)
+
+	err = RemoveMemberByID(context.TODO(), tcs[0].G, teamObj.ID, botua.Username)
+	require.NoError(t, err)
+	err = RemoveMemberByID(context.TODO(), tcs[0].G, teamObj.ID, restrictedBotua.Username)
+	require.NoError(t, err)
+
+	team, err = Load(context.Background(), tcs[0].G, keybase1.LoadTeamArg{ID: teamObj.ID})
+	require.NoError(t, err)
+	members, err = team.Members()
+	require.NoError(t, err)
+	require.Len(t, members.Bots, 0)
+	require.Len(t, members.RestrictedBots, 0)
 }
 
 func TestGetTeamIDRPC(t *testing.T) {
@@ -549,4 +716,169 @@ func TestGetTeamIDRPC(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, teamObj.ID, res)
 	}
+}
+
+func TestInvalidPhoneNumberAssertion(t *testing.T) {
+	fus, tcs, cleanup := setupNTests(t, 1)
+	defer cleanup()
+
+	// Make sure we are stopped from creating an implicit team with bad number.
+	// This will also stop a conversation from being created if someone tries
+	// to chat with invalid phone number assertion.
+	badNumbers := []string{"111", "12345678", "48111"}
+	for _, bad := range badNumbers {
+		displayName := keybase1.ImplicitTeamDisplayName{
+			IsPublic: false,
+			Writers: keybase1.ImplicitTeamUserSet{
+				KeybaseUsers: []string{fus[0].Username},
+				UnresolvedUsers: []keybase1.SocialAssertion{
+					{
+						User:    bad,
+						Service: keybase1.SocialAssertionService("phone"),
+					},
+				},
+			},
+		}
+		t.Logf("Trying name: %q", displayName.String())
+		_, _, err := CreateImplicitTeam(context.Background(), tcs[0].G, displayName)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "bad phone number given")
+	}
+
+	// Some numbers are stopped at assertion parsing level.
+	superBadNumbers := []string{"012345678"}
+	for _, bad := range superBadNumbers {
+		displayName := fmt.Sprintf("%s@phone,%s", bad, fus[0].Username)
+		_, err := ResolveImplicitTeamDisplayName(context.Background(), tcs[0].G, displayName, false)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "Invalid phone number")
+	}
+}
+
+func TestCaseSensitiveDisplayNames(t *testing.T) {
+	fus, tcs, cleanup := setupNTests(t, 1)
+	defer cleanup()
+
+	upEmail := strings.ToUpper(fus[0].Email)
+	displayNameInput := fmt.Sprintf("%s,[%s]@email", fus[0].Username, upEmail)
+	_, _, _, err := LookupOrCreateImplicitTeam(context.Background(), tcs[0].G, displayNameInput, false /*isPublic*/)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "Display name is not normalized")
+	require.Contains(t, err.Error(), upEmail)
+
+	rooter := fmt.Sprintf("%s@hackernews", strings.ToUpper(fus[0].Username))
+	displayNameInput = fmt.Sprintf("%s,%s", fus[0].Username, rooter)
+	_, _, _, err = LookupOrCreateImplicitTeam(context.Background(), tcs[0].G, displayNameInput, false /*isPublic*/)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "Display name is not normalized")
+	require.Contains(t, err.Error(), rooter)
+}
+
+func TestReAddMemberAfterResetWithRestrictiveContactSettings(t *testing.T) {
+	fus, tcs, cleanup := setupNTestsWithPukless(t, 3, 1)
+	defer cleanup()
+
+	ann := fus[0] // crypto user
+	bob := fus[1] // crypto user
+	jun := fus[2] // pukless user
+
+	tcAnn := tcs[0] // crypto user
+	tcBob := tcs[1] // crypto user
+	tcJun := tcs[2] // pukless user
+
+	impteamName := strings.Join([]string{ann.Username, bob.Username, jun.Username}, ",")
+	t.Logf("ann creates an implicit team: %v", impteamName)
+	teamObj, _, _, err := LookupOrCreateImplicitTeam(context.Background(), tcAnn.G, impteamName, false /*isPublic*/)
+	require.NoError(t, err)
+
+	t.Logf("created team id: %s", teamObj.ID)
+
+	// bob resets
+	kbtest.ResetAccount(*tcBob, bob)
+
+	// bob sets contact settings
+	err = bob.Login(tcBob.G)
+	require.NoError(t, err)
+	kbtest.SetContactSettings(*tcBob, bob, keybase1.ContactSettings{
+		Enabled:              true,
+		AllowFolloweeDegrees: 0,
+	})
+	err = tcBob.Logout()
+	require.NoError(t, err)
+
+	err = reAddMemberAfterResetInner(context.Background(), tcAnn.G, teamObj.ID, bob.Username)
+	require.NoError(t, err) // changing contact settings doesn't affect existing teams
+
+	// jun resets
+	kbtest.ResetAccount(*tcJun, jun)
+
+	// jun sets contact settings
+	err = jun.Login(tcJun.G)
+	require.NoError(t, err)
+	kbtest.SetContactSettings(*tcJun, jun, keybase1.ContactSettings{
+		Enabled:              true,
+		AllowFolloweeDegrees: 0,
+	})
+	err = tcJun.Logout()
+	require.NoError(t, err)
+
+	err = reAddMemberAfterResetInner(context.Background(), tcAnn.G, teamObj.ID, jun.Username)
+	require.NoError(t, err) // changing contact settings doesn't affect existing teams
+}
+
+func TestLookupImplicitTeamWithRestrictiveContactSettings(t *testing.T) {
+	fus, tcs, cleanup := setupNTests(t, 3)
+	defer cleanup()
+
+	ann := fus[0]
+	bob := fus[1]
+	jun := fus[2]
+
+	tcAnn := tcs[0]
+	tcBob := tcs[1]
+	tcJun := tcs[2]
+
+	// jun sets contact settings
+	err := jun.Login(tcJun.G)
+	require.NoError(t, err)
+	kbtest.SetContactSettings(*tcJun, jun, keybase1.ContactSettings{
+		Enabled:              true,
+		AllowFolloweeDegrees: 1,
+	})
+
+	// can't create implicit team with a user with restrictive contact settings
+	impteamName := strings.Join([]string{ann.Username, bob.Username, jun.Username}, ",")
+	_, _, _, err = LookupOrCreateImplicitTeam(context.Background(), tcAnn.G, impteamName, false /*isPublic*/)
+	require.Error(t, err)
+	require.IsType(t, err, libkb.TeamContactSettingsBlockError{})
+	usernames := err.(libkb.TeamContactSettingsBlockError).BlockedUsernames()
+	require.Equal(t, 1, len(usernames))
+	require.Equal(t, libkb.NewNormalizedUsername(jun.Username), usernames[0])
+
+	// jun follows ann
+	_, err = kbtest.RunTrack(*tcJun, jun, ann.Username)
+	require.NoError(t, err)
+	err = tcJun.Logout()
+	require.NoError(t, err)
+
+	// try creating implicit team again; should succeed
+	teamObj, _, _, err := LookupOrCreateImplicitTeam(context.Background(), tcAnn.G, impteamName, false /*isPublic*/)
+	require.NoError(t, err)
+
+	t.Logf("created implicit team: %v; team id: %s", impteamName, teamObj.ID)
+
+	// bob sets contact settings
+	err = bob.Login(tcBob.G)
+	require.NoError(t, err)
+	kbtest.SetContactSettings(*tcBob, bob, keybase1.ContactSettings{
+		Enabled:              true,
+		AllowFolloweeDegrees: 0,
+	})
+	err = tcBob.Logout()
+	require.NoError(t, err)
+
+	// changing contact settings doesn't affect existing teams
+	teamObj2, _, _, err := LookupOrCreateImplicitTeam(context.Background(), tcAnn.G, impteamName, false /*isPublic*/)
+	require.NoError(t, err)
+	require.Equal(t, teamObj.ID, teamObj2.ID)
 }

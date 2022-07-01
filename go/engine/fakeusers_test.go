@@ -4,9 +4,10 @@
 package engine
 
 import (
+	"testing"
+
 	"github.com/keybase/client/go/libkb"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func createFakeUserWithNoKeys(tc libkb.TestContext) (username, passphrase string) {
@@ -19,11 +20,16 @@ func createFakeUserWithNoKeys(tc libkb.TestContext) (username, passphrase string
 		m = m.WithNewProvisionalLoginContext()
 
 		// going to just run the join step of signup engine
-		if err := s.genPassphraseStream(m, passphrase); err != nil {
+		if err := s.genPassphraseStream(m, passphrase, false /* randomPW */); err != nil {
 			return err
 		}
 
-		if err := s.join(m, username, email, libkb.TestInvitationCode, true); err != nil {
+		if err := s.join(m, SignupEngineRunArg{
+			Username:   username,
+			Email:      email,
+			InviteCode: libkb.TestInvitationCode,
+			SkipMail:   true,
+		}); err != nil {
 			return err
 		}
 		m = m.CommitProvisionalLogin()
@@ -56,9 +62,14 @@ func createFakeUserWithPGPOnly(t *testing.T, tc libkb.TestContext) *FakeUser {
 	// post PGP keys below. This isn't a modern use for our software, but we have this code
 	// to emulate old accounts provisioned by deprecated login paths.
 	m = m.WithNewProvisionalLoginContext()
-	err := s.genPassphraseStream(m, fu.Passphrase)
+	err := s.genPassphraseStream(m, fu.Passphrase, false /* randomPW */)
 	require.NoError(t, err)
-	err = s.join(m, fu.Username, fu.Email, libkb.TestInvitationCode, true)
+	err = s.join(m, SignupEngineRunArg{
+		Username:   fu.Username,
+		Email:      fu.Email,
+		InviteCode: libkb.TestInvitationCode,
+		SkipMail:   true,
+	})
 	require.NoError(t, err)
 	err = s.fakeLKS(m)
 	require.NoError(t, err)
@@ -105,11 +116,16 @@ func createFakeUserWithPGPPubOnly(t *testing.T, tc libkb.TestContext) *FakeUser 
 
 	f := func() error {
 		m = m.WithNewProvisionalLoginContext()
-		if err := s.genPassphraseStream(m, fu.Passphrase); err != nil {
+		if err := s.genPassphraseStream(m, fu.Passphrase, false /* randomPW */); err != nil {
 			return err
 		}
 
-		if err := s.join(m, fu.Username, fu.Email, libkb.TestInvitationCode, true); err != nil {
+		if err := s.join(m, SignupEngineRunArg{
+			Username:   fu.Username,
+			Email:      fu.Email,
+			InviteCode: libkb.TestInvitationCode,
+			SkipMail:   true,
+		}); err != nil {
 			return err
 		}
 
@@ -149,11 +165,16 @@ func createFakeUserWithPGPMult(t *testing.T, tc libkb.TestContext) *FakeUser {
 
 	f := func() error {
 		m = m.WithNewProvisionalLoginContext()
-		if err := s.genPassphraseStream(m, fu.Passphrase); err != nil {
+		if err := s.genPassphraseStream(m, fu.Passphrase, false /* randomPW */); err != nil {
 			return err
 		}
 
-		if err := s.join(m, fu.Username, fu.Email, libkb.TestInvitationCode, true); err != nil {
+		if err := s.join(m, SignupEngineRunArg{
+			Username:   fu.Username,
+			Email:      fu.Email,
+			InviteCode: libkb.TestInvitationCode,
+			SkipMail:   true,
+		}); err != nil {
 			t.Fatal(err)
 		}
 
@@ -186,57 +207,6 @@ func createFakeUserWithPGPMult(t *testing.T, tc libkb.TestContext) *FakeUser {
 	return fu
 }
 
-// multiple pgp keys, but only the one with fu.Email associated w/
-// keybase account
-func createFakeUserWithPGPMultSubset(t *testing.T, tc libkb.TestContext, alternateEmail string) *FakeUser {
-	fu := NewFakeUserOrBust(t, "login")
-	if err := tc.GenerateGPGKeyring(fu.Email, alternateEmail); err != nil {
-		t.Fatal(err)
-	}
-
-	secui := &libkb.TestSecretUI{Passphrase: fu.Passphrase}
-	s := NewSignupEngine(tc.G, nil)
-	uis := libkb.UIs{
-		GPGUI:    newGPGSelectEmailUI(tc.G, fu.Email),
-		SecretUI: secui,
-		LogUI:    tc.G.UI.GetLogUI(),
-		LoginUI:  &libkb.TestLoginUI{Username: fu.Username},
-	}
-	m := NewMetaContextForTest(tc).WithUIs(uis)
-
-	f := func() error {
-		m = m.WithNewProvisionalLoginContext()
-		if err := s.genPassphraseStream(m, fu.Passphrase); err != nil {
-			return err
-		}
-
-		if err := s.join(m, fu.Username, fu.Email, libkb.TestInvitationCode, true); err != nil {
-			t.Fatal(err)
-		}
-
-		fu.User = s.GetMe()
-
-		// fake the lks:
-		if err := s.fakeLKS(m); err != nil {
-			return err
-		}
-
-		// this will add the GPG key for fu.Email to their account
-		if err := s.addGPG(m, false, false); err != nil {
-			return err
-		}
-		m = m.CommitProvisionalLogin()
-		return nil
-	}
-
-	if err := f(); err != nil {
-		t.Fatal(err)
-	}
-	// now it should have two pgp keys...
-
-	return fu
-}
-
 func createFakeUserWithPGPSibkey(tc libkb.TestContext) *FakeUser {
 	fu := CreateAndSignupFakeUser(tc, "pgp")
 
@@ -246,7 +216,9 @@ func createFakeUserWithPGPSibkey(tc libkb.TestContext) *FakeUser {
 			SubkeyBits:  768,
 		},
 	}
-	arg.Gen.MakeAllIds(tc.G)
+	if err := arg.Gen.MakeAllIds(tc.G); err != nil {
+		tc.T.Fatal(err)
+	}
 	uis := libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
 		SecretUI: fu.NewSecretUI(),
@@ -269,7 +241,9 @@ func createFakeUserWithPGPSibkeyPaper(tc libkb.TestContext) *FakeUser {
 			SubkeyBits:  768,
 		},
 	}
-	arg.Gen.MakeAllIds(tc.G)
+	if err := arg.Gen.MakeAllIds(tc.G); err != nil {
+		tc.T.Fatal(err)
+	}
 	uis := libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
 		SecretUI: fu.NewSecretUI(),
@@ -294,7 +268,9 @@ func createFakeUserWithPGPSibkeyPushed(tc libkb.TestContext) *FakeUser {
 		PushSecret: true,
 		NoSave:     true,
 	}
-	arg.Gen.MakeAllIds(tc.G)
+	if err := arg.Gen.MakeAllIds(tc.G); err != nil {
+		tc.T.Fatal(err)
+	}
 	uis := libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
 		SecretUI: fu.NewSecretUI(),
@@ -319,7 +295,28 @@ func createFakeUserWithPGPSibkeyPushedPaper(tc libkb.TestContext) *FakeUser {
 		PushSecret: true,
 		NoSave:     true,
 	}
-	arg.Gen.MakeAllIds(tc.G)
+	if err := arg.Gen.MakeAllIds(tc.G); err != nil {
+		tc.T.Fatal(err)
+	}
+	uis := libkb.UIs{
+		LogUI:    tc.G.UI.GetLogUI(),
+		SecretUI: fu.NewSecretUI(),
+	}
+	eng := NewPGPKeyImportEngine(tc.G, arg)
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	err := RunEngine2(m, eng)
+	if err != nil {
+		tc.T.Fatal(err)
+	}
+	return fu
+}
+
+func createFakeUserWithPGPSibkeyPregen(tc libkb.TestContext, pregen *libkb.PGPKeyBundle) *FakeUser {
+	fu := CreateAndSignupFakeUser(tc, "pgp")
+
+	arg := PGPKeyImportEngineArg{
+		Pregen: pregen,
+	}
 	uis := libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
 		SecretUI: fu.NewSecretUI(),

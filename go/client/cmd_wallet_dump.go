@@ -12,7 +12,6 @@ import (
 
 type cmdWalletDump struct {
 	libkb.Contextified
-	address string
 }
 
 func newCmdWalletDump(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -32,7 +31,8 @@ func (c *cmdWalletDump) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
-func (c *cmdWalletDump) Run() error {
+func (c *cmdWalletDump) Run() (err error) {
+	defer transformStellarCLIError(&err)
 	protocols := []rpc.Protocol{
 		NewSecretUIProtocol(c.G()),
 	}
@@ -62,8 +62,12 @@ func (c *cmdWalletDump) Run() error {
 			dui.Printf("Name: %v\n", account.Name)
 		}
 		dui.Printf("AccountID: %v\n", account.AccountID)
-		for j, signer := range account.Signers {
+		accountBundle := bundle.AccountBundles[account.AccountID]
+		for j, signer := range accountBundle.Signers {
 			dui.Printf("Signers[%v]: %v\n", j, signer.SecureNoLogString())
+		}
+		if len(accountBundle.Signers) == 0 {
+			dui.Printf("Signers[0]: not present in bundle\n")
 		}
 		dui.Printf("Mode: %v\n", account.Mode)
 	}

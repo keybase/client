@@ -9,7 +9,7 @@ import (
 type Teamer interface {
 	// LookupOrCreate either lookups or creates a team that corresponds to the given Folder
 	// Does not create new named teams.
-	LookupOrCreate(ctx context.Context, folder keybase1.Folder) (teamID keybase1.TeamIDWithVisibility, err error)
+	LookupOrCreate(ctx context.Context, folder keybase1.FolderHandle) (teamID keybase1.TeamIDWithVisibility, err error)
 }
 
 // Cryptoer handles crypto operations to encrypt and decrypt data as it is

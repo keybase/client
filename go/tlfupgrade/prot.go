@@ -222,28 +222,28 @@ func (o GetTLFForUpgradeRes) DeepCopy() GetTLFForUpgradeRes {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.Tlfavailable__),
 		Delay__: (func(x *GetTLFForUpgradeDelayRes) *GetTLFForUpgradeDelayRes {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.Delay__),
 		Err__: (func(x *GetTLFForUpgradeErrRes) *GetTLFForUpgradeErrRes {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.Err__),
 		Disabled__: (func(x *GetTLFForUpgradeDisabledRes) *GetTLFForUpgradeDisabledRes {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := x.DeepCopy()
 			return &tmp
 		})(o.Disabled__),
 	}

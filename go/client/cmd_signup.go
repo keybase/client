@@ -36,6 +36,18 @@ func NewCmdSignup(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comman
 				Name:  "username",
 				Usage: "Specify a username.",
 			},
+			cli.BoolFlag{
+				Name:  "no-email",
+				Usage: "Do not signup with email.",
+			},
+			cli.BoolFlag{
+				Name:  "set-password",
+				Usage: "Ask for password (optional by default).",
+			},
+			cli.BoolFlag{
+				Name:  "force",
+				Usage: "(dangerous) Ignore any reasons not to signup right now",
+			},
 		},
 	}
 
@@ -61,22 +73,30 @@ type CmdSignup struct {
 	fields   *PromptFields
 	prompter *Prompter
 
-	scli              keybase1.SignupClient
-	ccli              keybase1.ConfigClient
-	code              string
-	requestedInvite   bool
-	fullname          string
-	notes             string
-	passphrase        string
-	storeSecret       bool
-	defaultEmail      string
-	defaultUsername   string
-	defaultPassphrase string
-	defaultDevice     string
-	doPrompt          bool
-	skipMail          bool
-	genPGP            bool
-	genPaper          bool
+	scli               keybase1.SignupClient
+	ccli               keybase1.ConfigClient
+	code               string
+	requestedInvite    bool
+	fullname           string
+	notes              string
+	passphrase         string
+	storeSecret        bool
+	defaultEmail       string
+	defaultUsername    string
+	defaultPassphrase  string
+	doPromptPassphrase bool
+	noEmail            bool
+	randomPassphrase   bool
+	defaultDevice      string
+	doPrompt           bool
+	skipMail           bool
+	genPGP             bool
+	genPaper           bool
+	force              bool
+
+	// Test option to not call to requestInvitationCode for bypassing
+	// invitation code.
+	noInvitationCodeBypass bool
 }
 
 func NewCmdSignupRunner(g *libkb.GlobalContext) *CmdSignup {
@@ -89,16 +109,40 @@ func NewCmdSignupRunner(g *libkb.GlobalContext) *CmdSignup {
 func (s *CmdSignup) SetTest() {
 	s.skipMail = true
 	s.genPaper = true
+	// Signup test users with passwords by default.
+	s.doPromptPassphrase = true
 }
 
 func (s *CmdSignup) SetTestWithPaper(b bool) {
 	s.skipMail = true
 	s.genPaper = b
+	// Signup test users with passwords by default.
+	s.doPromptPassphrase = true
 }
 
-func (s *CmdSignup) ParseArgv(ctx *cli.Context) error {
+func (s *CmdSignup) SetNoPassphrasePrompt() {
+	// Do not prompt for passphrase, for testing.
+	s.doPromptPassphrase = false
+}
+
+func (s *CmdSignup) SetNoInvitationCodeBypass() {
+	// This will result in deterministic invitation code prompt unless it's
+	// been provided via command argument or env var. Otherwise prompt is
+	// affected by whether API server allows us to skip invite code (see
+	// requestInvitationCode).
+
+	// Used in tests. If the test is checking prompts that occurred, it should
+	// use this to avoid invitation code bypass behaviour that may differ
+	// between testing environments.
+	s.noInvitationCodeBypass = true
+}
+
+func (s *CmdSignup) SetNoEmail() {
+	s.noEmail = true
+}
+
+func (s *CmdSignup) ParseArgv(ctx *cli.Context) (err error) {
 	nargs := len(ctx.Args())
-	var err error
 
 	s.code = ctx.String("invite-code")
 	if s.code == "" {
@@ -106,13 +150,24 @@ func (s *CmdSignup) ParseArgv(ctx *cli.Context) error {
 		s.code = os.Getenv("KEYBASE_INVITATION_CODE")
 	}
 
-	s.defaultEmail = ctx.String("email")
 	s.defaultUsername = ctx.String("username")
 	s.defaultPassphrase = ctx.String("passphrase")
 	s.defaultDevice = ctx.String("device")
 	if s.defaultDevice == "" {
 		s.defaultDevice = "home computer"
 	}
+	// If using prompter mode (non-batch), we do not ask for password by
+	// default and user is signing up in no-passphrase mode - that is unless
+	// --set-password flag is used. Only then we are prompting for password.
+	s.doPromptPassphrase = ctx.Bool("set-password")
+
+	s.defaultEmail = ctx.String("email")
+	s.noEmail = ctx.Bool("no-email")
+	if (s.defaultEmail != "") && s.noEmail {
+		return fmt.Errorf("cannot pass --no-email and non-empty --email")
+	}
+
+	s.force = ctx.Bool("force")
 
 	if ctx.Bool("batch") {
 		s.fields = &PromptFields{
@@ -125,9 +180,13 @@ func (s *CmdSignup) ParseArgv(ctx *cli.Context) error {
 
 		s.passphrase = s.defaultPassphrase
 		s.genPGP = ctx.Bool("pgp")
-		s.genPaper = true
+		s.genPaper = !ctx.Bool("skip-paperkey")
 		s.doPrompt = false
 		s.storeSecret = true
+		s.randomPassphrase = ctx.Bool("no-passphrase")
+		if s.randomPassphrase && s.defaultPassphrase != "" {
+			return fmt.Errorf("cannot pass both --no-passphrase and --passphrase")
+		}
 	} else {
 		s.doPrompt = true
 	}
@@ -147,11 +206,10 @@ Welcome to keybase.io!
    - your profile on keybase is https://keybase.io/%s
    - type 'keybase help' for more instructions
 
-Keybase is in alpha and we'll be rolling out new features soon. Report bugs
-to us at https://github.com/keybase/keybase-issues
+Found a bug? Please report it with %skeybase log send%s
 
 Enjoy!
-`, username, username)
+`, username, username, "`", "`")
 	return s.G().UI.GetTerminalUI().Output(msg)
 }
 
@@ -162,13 +220,15 @@ func (s *CmdSignup) Run() (err error) {
 		return err
 	}
 
-	if err = s.checkRegistered(); err != nil {
-		return err
+	if !s.force {
+		if err = s.checkRegistered(); err != nil {
+			return err
+		}
 	}
 
-	if s.code == "" {
+	if s.code == "" && !s.noInvitationCodeBypass {
 		// Eat the error here - we prompt the user in that case
-		s.requestInvitationCode()
+		_ = s.requestInvitationCode()
 	}
 
 	if err = s.trySignup(); err != nil {
@@ -179,8 +239,7 @@ func (s *CmdSignup) Run() (err error) {
 		return err
 	}
 
-	s.successMessage()
-	return nil
+	return s.successMessage()
 }
 
 func (s *CmdSignup) checkRegistered() (err error) {
@@ -188,7 +247,7 @@ func (s *CmdSignup) checkRegistered() (err error) {
 	s.G().Log.Debug("+ clientModeSignupEngine::CheckRegistered")
 	defer s.G().Log.Debug("- clientModeSignupEngine::CheckRegistered -> %s", libkb.ErrToOk(err))
 
-	var rres keybase1.GetCurrentStatusRes
+	var rres keybase1.CurrentStatus
 
 	if rres, err = s.ccli.GetCurrentStatus(context.TODO(), 0); err != nil {
 		return err
@@ -227,15 +286,19 @@ func (s *CmdSignup) prompt() (err error) {
 		return
 	}
 
-	f := s.fields.passphraseRetry
-	if f.Disabled || libkb.IsYes(f.GetValue()) {
-		var res keybase1.GetPassphraseRes
-		res, err = PromptPassphrase(s.G())
-		if err != nil {
-			return
+	if s.doPromptPassphrase {
+		f := s.fields.passphraseRetry
+		if f.Disabled || libkb.IsYes(f.GetValue()) {
+			var res keybase1.GetPassphraseRes
+			res, err = PromptPassphrase(s.G())
+			if err != nil {
+				return
+			}
+			s.passphrase = res.Passphrase
+			s.storeSecret = res.StoreSecret
 		}
-		s.passphrase = res.Passphrase
-		s.storeSecret = res.StoreSecret
+	} else {
+		s.randomPassphrase = true
 	}
 
 	return
@@ -253,18 +316,27 @@ func (s *CmdSignup) trySignup() (err error) {
 }
 
 func (s *CmdSignup) runEngine() (retry bool, err error) {
+	if s.randomPassphrase && s.passphrase != "" {
+		return false, fmt.Errorf("Requested random passphrase but passphrase was provided")
+	}
 
 	rarg := keybase1.SignupArg{
 		Username:    s.fields.username.GetValue(),
-		Email:       s.fields.email.GetValue(),
 		InviteCode:  s.fields.code.GetValue(),
 		Passphrase:  s.passphrase,
+		RandomPw:    s.randomPassphrase,
 		StoreSecret: true,
 		DeviceName:  s.fields.deviceName.GetValue(),
 		DeviceType:  keybase1.DeviceType_DESKTOP,
 		SkipMail:    s.skipMail,
 		GenPGPBatch: s.genPGP,
 		GenPaper:    s.genPaper,
+	}
+	if s.fields.email != nil {
+		email := s.fields.email.GetValue()
+		if email != "" {
+			rarg.Email = email
+		}
 	}
 	res, err := s.scli.Signup(context.TODO(), rarg)
 	if err == nil {
@@ -358,6 +430,7 @@ func (s *CmdSignup) MakePrompter() {
 	}
 
 	email := &Field{
+		Disabled:         s.noEmail,
 		Defval:           s.defaultEmail,
 		Name:             "email",
 		Prompt:           "Your email address",
@@ -495,6 +568,7 @@ func (s *CmdSignup) handlePostError(inerr error) (retry bool, err error) {
 	}
 
 	if !s.doPrompt {
+		err = inerr
 		retry = false
 	}
 

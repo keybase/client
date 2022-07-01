@@ -38,6 +38,14 @@ func (r *RemoteNet) SubmitRelayPayment(ctx context.Context, post stellar1.Paymen
 	return SubmitRelayPayment(ctx, r.G(), post)
 }
 
+func (r *RemoteNet) SubmitPathPayment(mctx libkb.MetaContext, post stellar1.PathPaymentPost) (stellar1.PaymentResult, error) {
+	return SubmitPathPayment(mctx, post)
+}
+
+func (r *RemoteNet) SubmitMultiPayment(ctx context.Context, post stellar1.PaymentMultiPost) (stellar1.SubmitMultiRes, error) {
+	return SubmitMultiPayment(ctx, r.G(), post)
+}
+
 func (r *RemoteNet) SubmitRelayClaim(ctx context.Context, post stellar1.RelayClaimPost) (stellar1.RelayClaimResult, error) {
 	return SubmitRelayClaim(ctx, r.G(), post)
 }
@@ -54,16 +62,20 @@ func (r *RemoteNet) NextAutoClaim(ctx context.Context) (*stellar1.AutoClaim, err
 	return NextAutoClaim(ctx, r.G())
 }
 
-func (r *RemoteNet) RecentPayments(ctx context.Context, accountID stellar1.AccountID, cursor *stellar1.PageCursor, limit int, skipPending bool) (stellar1.PaymentsPage, error) {
-	return RecentPayments(ctx, r.G(), accountID, cursor, limit, skipPending)
+func (r *RemoteNet) RecentPayments(ctx context.Context, arg RecentPaymentsArg) (stellar1.PaymentsPage, error) {
+	return RecentPayments(ctx, r.G(), arg)
 }
 
 func (r *RemoteNet) PendingPayments(ctx context.Context, accountID stellar1.AccountID, limit int) ([]stellar1.PaymentSummary, error) {
 	return PendingPayments(ctx, r.G(), accountID, limit)
 }
 
-func (r *RemoteNet) PaymentDetails(ctx context.Context, txID string) (res stellar1.PaymentDetails, err error) {
-	return PaymentDetails(ctx, r.G(), txID)
+func (r *RemoteNet) PaymentDetails(ctx context.Context, accountID stellar1.AccountID, txID string) (res stellar1.PaymentDetails, err error) {
+	return PaymentDetails(ctx, r.G(), accountID, txID)
+}
+
+func (r *RemoteNet) PaymentDetailsGeneric(ctx context.Context, txID string) (res stellar1.PaymentDetails, err error) {
+	return PaymentDetailsGeneric(ctx, r.G(), txID)
 }
 
 func (r *RemoteNet) GetAccountDisplayCurrency(ctx context.Context, accountID stellar1.AccountID) (string, error) {
@@ -96,4 +108,51 @@ func (r *RemoteNet) IsAccountMobileOnly(ctx context.Context, accountID stellar1.
 
 func (r *RemoteNet) SetAccountMobileOnly(ctx context.Context, accountID stellar1.AccountID) error {
 	return SetAccountMobileOnly(ctx, r.G(), accountID)
+}
+
+func (r *RemoteNet) MakeAccountAllDevices(ctx context.Context, accountID stellar1.AccountID) error {
+	return MakeAccountAllDevices(ctx, r.G(), accountID)
+}
+
+func (r *RemoteNet) ServerTimeboundsRecommendation(ctx context.Context) (stellar1.TimeboundsRecommendation, error) {
+	return ServerTimeboundsRecommendation(ctx, r.G())
+}
+
+func (r *RemoteNet) SetInflationDestination(ctx context.Context, signedTx string) error {
+	return SetInflationDestination(ctx, r.G(), signedTx)
+}
+
+func (r *RemoteNet) GetInflationDestinations(ctx context.Context) (ret []stellar1.PredefinedInflationDestination, err error) {
+	return GetInflationDestinations(ctx, r.G())
+}
+
+func (r *RemoteNet) NetworkOptions(ctx context.Context) (stellar1.NetworkOptions, error) {
+	return NetworkOptions(ctx, r.G())
+}
+
+func (r *RemoteNet) DetailsPlusPayments(ctx context.Context, accountID stellar1.AccountID) (stellar1.DetailsPlusPayments, error) {
+	return DetailsPlusPayments(ctx, r.G(), accountID)
+}
+func (r *RemoteNet) AllDetailsPlusPayments(mctx libkb.MetaContext) ([]stellar1.DetailsPlusPayments, error) {
+	return AllDetailsPlusPayments(mctx)
+}
+
+func (r *RemoteNet) ChangeTrustline(ctx context.Context, signedTx string) error {
+	return ChangeTrustline(ctx, r.G(), signedTx)
+}
+
+func (r *RemoteNet) FindPaymentPath(mctx libkb.MetaContext, query stellar1.PaymentPathQuery) (stellar1.PaymentPath, error) {
+	return FindPaymentPath(mctx, query)
+}
+
+func (r *RemoteNet) PostAnyTransaction(mctx libkb.MetaContext, signedTx string) error {
+	return PostAnyTransaction(mctx, signedTx)
+}
+
+func (r *RemoteNet) FuzzyAssetSearch(mctx libkb.MetaContext, arg stellar1.FuzzyAssetSearchArg) ([]stellar1.Asset, error) {
+	return FuzzyAssetSearch(mctx, arg)
+}
+
+func (r *RemoteNet) ListPopularAssets(mctx libkb.MetaContext, arg stellar1.ListPopularAssetsArg) (stellar1.AssetListResult, error) {
+	return ListPopularAssets(mctx, arg)
 }

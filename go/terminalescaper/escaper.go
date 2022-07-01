@@ -12,45 +12,46 @@ type EscapeCode []byte
 var keyEscape byte = 27
 var vt100EscapeCodes = []EscapeCode{
 	// Foreground colors
-	EscapeCode{keyEscape, '[', '3', '0', 'm'},
-	EscapeCode{keyEscape, '[', '3', '1', 'm'},
-	EscapeCode{keyEscape, '[', '3', '2', 'm'},
-	EscapeCode{keyEscape, '[', '3', '3', 'm'},
-	EscapeCode{keyEscape, '[', '3', '4', 'm'},
-	EscapeCode{keyEscape, '[', '3', '5', 'm'},
-	EscapeCode{keyEscape, '[', '3', '6', 'm'},
-	EscapeCode{keyEscape, '[', '3', '7', 'm'},
-	EscapeCode{keyEscape, '[', '9', '0', 'm'},
+	{keyEscape, '[', '3', '0', 'm'},
+	{keyEscape, '[', '3', '1', 'm'},
+	{keyEscape, '[', '3', '2', 'm'},
+	{keyEscape, '[', '3', '3', 'm'},
+	{keyEscape, '[', '3', '4', 'm'},
+	{keyEscape, '[', '3', '5', 'm'},
+	{keyEscape, '[', '3', '6', 'm'},
+	{keyEscape, '[', '3', '7', 'm'},
+	{keyEscape, '[', '9', '0', 'm'},
 	// Reset foreground color
-	EscapeCode{keyEscape, '[', '3', '9', 'm'},
+	{keyEscape, '[', '3', '9', 'm'},
 	// Bold
-	EscapeCode{keyEscape, '[', '1', 'm'},
+	{keyEscape, '[', '1', 'm'},
 	// Italic
-	EscapeCode{keyEscape, '[', '3', 'm'},
+	{keyEscape, '[', '3', 'm'},
 	// Underline
-	EscapeCode{keyEscape, '[', '4', 'm'},
+	{keyEscape, '[', '4', 'm'},
 	// Reset bold (or doubly underline according to ECMA-48; fallback is code [22m)
 	// See https://en.wikipedia.org/wiki/ANSI_escape_code#SGR_(Select_Graphic_Rendition)_parameters
-	EscapeCode{keyEscape, '[', '2', '1', 'm'},
+	{keyEscape, '[', '2', '1', 'm'},
 	// Normal intensity
-	EscapeCode{keyEscape, '[', '2', '2', 'm'},
+	{keyEscape, '[', '2', '2', 'm'},
 	// Reset italic
-	EscapeCode{keyEscape, '[', '2', '3', 'm'},
+	{keyEscape, '[', '2', '3', 'm'},
 	// Reset underline
-	EscapeCode{keyEscape, '[', '2', '4', 'm'},
+	{keyEscape, '[', '2', '4', 'm'},
 	// Reset all formatting
-	EscapeCode{keyEscape, '[', '0', 'm'},
+	{keyEscape, '[', '0', 'm'},
 }
 
 // Clean escapes the UTF8 encoded string provided as input so it is safe to print on a unix terminal.
 // It removes non printing characters and substitutes the vt100 escape character 0x1b with '^['.
 func Clean(s string) string {
 	return replace(func(r rune) rune {
-		if r >= 32 && r != 127 { // Values below 32 (and 127) are special non printing characters (i.e. DEL, ESC, carriage return).
+		switch {
+		case r >= 32 && r != 127: // Values below 32 (and 127) are special non printing characters (i.e. DEL, ESC, carriage return).
 			return r
-		} else if r == '\n' || r == '\t' { // Allow newlines and tabs.
+		case r == '\n' || r == '\t': // Allow newlines and tabs.
 			return r
-		} else if r == rune(keyEscape) {
+		case r == rune(keyEscape):
 			// Start of a vt100 escape sequence. If not a color, we will
 			// substitute it with '^[' (this is how it is usually shown, i.e.
 			// in vim).
@@ -100,19 +101,20 @@ func replace(mapping func(rune) rune, s string) string {
 
 		b = make([]byte, len(s)+utf8.UTFMax)
 		nbytes = copy(b, s[:i])
-		if r >= 0 {
+		switch {
+		case r >= 0:
 			if r <= utf8.RuneSelf {
 				b[nbytes] = byte(r)
 				nbytes++
 			} else {
 				nbytes += utf8.EncodeRune(b[nbytes:], r)
 			}
-		} else if r == -1 && isStartOfColorCode(s, i) {
+		case r == -1 && isStartOfColorCode(s, i):
 			// This branch is NOT part of strings.Map
 			// Allow color codes.
 			b[nbytes] = byte(c)
 			nbytes++
-		} else if r == -1 {
+		case r == -1:
 			// This else branch is NOT part of strings.Map
 			// Substitute escape code with ^[ to nullify it.
 			b[nbytes] = byte('^')
@@ -150,7 +152,8 @@ func replace(mapping func(rune) rune, s string) string {
 
 		// b is not big enough or r is not a ASCII rune.
 		// The isStartOfColorCode check is NOT part of strings.Map
-		if r >= 0 {
+		switch {
+		case r >= 0:
 			if nbytes+utf8.UTFMax >= len(b) {
 				// Grow the buffer.
 				nb := make([]byte, 2*len(b))
@@ -158,12 +161,12 @@ func replace(mapping func(rune) rune, s string) string {
 				b = nb
 			}
 			nbytes += utf8.EncodeRune(b[nbytes:], r)
-		} else if r == -1 && isStartOfColorCode(s, i) {
+		case r == -1 && isStartOfColorCode(s, i):
 			// This branch is NOT part of strings.Map
 			// Allow color codes.
 			b[nbytes] = byte(c)
 			nbytes++
-		} else if r == -1 { // This else branch is NOT part of strings.Map, but mirrors the preceding if branch
+		case r == -1: // This else branch is NOT part of strings.Map, but mirrors the preceding if branch
 			if nbytes+2 >= len(b) {
 				// Grow the buffer.
 				nb := make([]byte, 2*len(b))

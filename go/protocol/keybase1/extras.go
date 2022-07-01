@@ -12,14 +12,18 @@ import (
 	"encoding/base64"
 	"encoding/binary"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"math"
+	"reflect"
 	"regexp"
 	"sort"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/keybase/client/go/kbtime"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	jsonw "github.com/keybase/go-jsonw"
 )
@@ -64,6 +68,8 @@ const (
 	KidVersion = 0x1
 )
 
+const redactedReplacer = "[REDACTED]"
+
 func Unquote(data []byte) string {
 	return strings.Trim(string(data), "\"")
 }
@@ -86,6 +92,10 @@ func (b BinaryKID) ToKID() KID {
 
 func (k KID) ToBinaryKID() BinaryKID {
 	return BinaryKID(k.ToBytes())
+}
+
+func (b BinaryKID) Equal(c BinaryKID) bool {
+	return bytes.Equal([]byte(b), []byte(c))
 }
 
 func KIDFromStringChecked(s string) (KID, error) {
@@ -126,6 +136,10 @@ func HashMetaFromString(s string) (ret HashMeta, err error) {
 		return ret, err
 	}
 	return HashMeta(b), nil
+}
+
+func cieq(s string, t string) bool {
+	return strings.EqualFold(s, t)
 }
 
 func KBFSRootHashFromString(s string) (ret KBFSRootHash, err error) {
@@ -272,7 +286,7 @@ func (k KID) Match(q string, exact bool) bool {
 	}
 
 	if exact {
-		return strings.ToLower(k.String()) == strings.ToLower(q)
+		return cieq(k.String(), q)
 	}
 
 	if strings.HasPrefix(k.String(), strings.ToLower(q)) {
@@ -325,7 +339,7 @@ func PGPFingerprintFromString(s string) (ret PGPFingerprint, err error) {
 	if err != nil {
 		return
 	}
-	copy(ret[:], b[:])
+	copy(ret[:], b)
 	return
 }
 
@@ -361,7 +375,7 @@ func (d DeviceID) ToBytes(out []byte) error {
 	if len(out) != DeviceIDLen {
 		return fmt.Errorf("Need to output to a slice with %d bytes", DeviceIDLen)
 	}
-	copy(out[:], tmp)
+	copy(out, tmp)
 	return nil
 }
 
@@ -372,6 +386,10 @@ func DeviceIDFromSlice(b []byte) (DeviceID, error) {
 	var x [DeviceIDLen]byte
 	copy(x[:], b)
 	return DeviceIDFromBytes(x), nil
+}
+
+func LinkIDFromByte32(b [32]byte) LinkID {
+	return LinkID(hex.EncodeToString(b[:]))
 }
 
 func DeviceIDFromString(s string) (DeviceID, error) {
@@ -412,6 +430,12 @@ func (l LinkID) Eq(l2 LinkID) bool {
 func (l LinkID) IsNil() bool {
 	return len(l) == 0
 }
+
+func (l LinkID) String() string {
+	return string(l)
+}
+
+func NilTeamID() TeamID { return TeamID("") }
 
 func (s Seqno) Eq(s2 Seqno) bool {
 	return s == s2
@@ -624,30 +648,6 @@ func (s SigID) Exists() bool {
 
 func (s SigID) String() string { return string(s) }
 
-func (s SigID) Equal(t SigID) bool {
-	return s == t
-}
-
-func (s SigID) Match(q string, exact bool) bool {
-	if s.IsNil() {
-		return false
-	}
-
-	if exact {
-		return strings.ToLower(s.ToString(true)) == strings.ToLower(q)
-	}
-
-	if strings.HasPrefix(s.ToString(true), strings.ToLower(q)) {
-		return true
-	}
-
-	return false
-}
-
-func (s SigID) NotEqual(t SigID) bool {
-	return !s.Equal(t)
-}
-
 func (s SigID) ToDisplayString(verbose bool) string {
 	if verbose {
 		return string(s)
@@ -655,45 +655,38 @@ func (s SigID) ToDisplayString(verbose bool) string {
 	return fmt.Sprintf("%s...", s[0:SigIDQueryMin])
 }
 
-func (s SigID) ToString(suffix bool) string {
-	if len(s) == 0 {
-		return ""
+func (s SigID) PrefixMatch(q string, exact bool) bool {
+	if s.IsNil() {
+		return false
 	}
-	if suffix {
-		return string(s)
+
+	if exact {
+		return cieq(string(s), q)
 	}
-	return string(s[0 : len(s)-2])
+
+	if strings.HasPrefix(strings.ToLower(string(s)), strings.ToLower(q)) {
+		return true
+	}
+
+	return false
 }
 
-func SigIDFromString(s string, suffix bool) (SigID, error) {
-	blen := SIG_ID_LEN
-	if suffix {
-		blen++
-	}
+func SigIDFromString(s string) (SigID, error) {
+	// Add 1 extra byte for the suffix
+	blen := SIG_ID_LEN + 1
 	if len(s) != hex.EncodedLen(blen) {
-		return "", fmt.Errorf("Invalid SigID string length: %d, expected %d (suffix = %v)", len(s), hex.EncodedLen(blen), suffix)
+		return "", fmt.Errorf("Invalid SigID string length: %d, expected %d", len(s), hex.EncodedLen(blen))
 	}
-	if suffix {
-		return SigID(s), nil
+	s = strings.ToLower(s)
+	// Throw the outcome away, but we're checking that we can decode the value as hex
+	_, err := hex.DecodeString(s)
+	if err != nil {
+		return "", err
 	}
-	return SigID(fmt.Sprintf("%s%02x", s, SIG_ID_SUFFIX)), nil
+	return SigID(s), nil
 }
 
-func SigIDFromBytes(b [SIG_ID_LEN]byte) SigID {
-	s := hex.EncodeToString(b[:])
-	return SigID(fmt.Sprintf("%s%02x", s, SIG_ID_SUFFIX))
-}
-
-func SigIDFromSlice(b []byte) (SigID, error) {
-	if len(b) != SIG_ID_LEN {
-		return "", fmt.Errorf("invalid byte slice for SigID: len == %d, expected %d", len(b), SIG_ID_LEN)
-	}
-	var x [SIG_ID_LEN]byte
-	copy(x[:], b)
-	return SigIDFromBytes(x), nil
-}
-
-func (s SigID) toBytes() []byte {
+func (s SigID) ToBytes() []byte {
 	b, err := hex.DecodeString(string(s))
 	if err != nil {
 		return nil
@@ -701,12 +694,156 @@ func (s SigID) toBytes() []byte {
 	return b[0:SIG_ID_LEN]
 }
 
+func (s SigID) StripSuffix() SigIDBase {
+	l := hex.EncodedLen(SIG_ID_LEN)
+	if len(s) == l {
+		return SigIDBase(string(s))
+	}
+	return SigIDBase(string(s[0:l]))
+}
+
+func (s SigID) Eq(t SigID) bool {
+	b := s.ToBytes()
+	c := t.ToBytes()
+	if b == nil || c == nil {
+		return false
+	}
+	return hmac.Equal(b, c)
+}
+
+type SigIDMapKey string
+
+// ToMapKey returns the string representation (hex-encoded) of a SigID with the hardcoded 0x0f suffix
+// (for backward comptability with on-disk storage).
+func (s SigID) ToMapKey() SigIDMapKey {
+	return SigIDMapKey(s.StripSuffix().ToSigIDLegacy().String())
+}
+
 func (s SigID) ToMediumID() string {
-	return encode(s.toBytes())
+	return encode(s.ToBytes())
 }
 
 func (s SigID) ToShortID() string {
-	return encode(s.toBytes()[0:SIG_SHORT_ID_BYTES])
+	return encode(s.ToBytes()[0:SIG_SHORT_ID_BYTES])
+}
+
+// SigIDBase is a 64-character long hex encoding of the SHA256 of a signature, without
+// any suffix. You get a SigID by adding either a 0f or a 22 suffix.
+type SigIDBase string
+
+func (s SigIDBase) String() string {
+	return string(s)
+}
+
+func SigIDBaseFromBytes(b [SIG_ID_LEN]byte) SigIDBase {
+	s := hex.EncodeToString(b[:])
+	return SigIDBase(s)
+}
+
+// MarshalJSON output the SigIDBase as a full SigID to be compatible
+// with legacy versions of the app.
+func (s SigIDBase) MarshalJSON() ([]byte, error) {
+	return Quote(s.ToSigIDLegacy().String()), nil
+}
+
+// UnmarshalJSON will accept either a SigID or a SigIDBase, and can
+// strip off the suffix.
+func (s *SigIDBase) UnmarshalJSON(b []byte) error {
+	tmp := Unquote(b)
+
+	l := hex.EncodedLen(SIG_ID_LEN)
+	if len(tmp) == l {
+		base, err := SigIDBaseFromString(tmp)
+		if err != nil {
+			return err
+		}
+		*s = base
+		return nil
+	}
+
+	// If we didn't get a sigID the right size, try to strip off the suffix.
+	sigID, err := SigIDFromString(tmp)
+	if err != nil {
+		return err
+	}
+	*s = sigID.StripSuffix()
+	return nil
+}
+
+func SigIDBaseFromSlice(b []byte) (SigIDBase, error) {
+	var buf [32]byte
+	if len(b) != len(buf) {
+		return "", errors.New("need a SHA256 hash, got something the wrong length")
+	}
+	copy(buf[:], b)
+	return SigIDBaseFromBytes(buf), nil
+}
+
+func SigIDBaseFromString(s string) (SigIDBase, error) {
+	b, err := hex.DecodeString(s)
+	if err != nil {
+		return "", err
+	}
+	return SigIDBaseFromSlice(b)
+}
+
+func (s SigIDBase) EqSigID(t SigID) bool {
+	return cieq(s.String(), t.StripSuffix().String())
+}
+
+// SigIDSuffixParameters specify how to turn a 64-character SigIDBase into a 66-character SigID,
+// via the two suffixes. In the future, there might be a third, 38, in use.
+type SigIDSuffixParameters struct {
+	IsUserSig       bool       // true for user, false for team
+	IsWalletStellar bool       // exceptional sig type for backwards compatibility
+	SigVersion      SigVersion // 1,2 or 3 supported now
+}
+
+func SigIDSuffixParametersFromTypeAndVersion(typ string, vers SigVersion) SigIDSuffixParameters {
+	return SigIDSuffixParameters{
+		IsUserSig:       !strings.HasPrefix(typ, "teams."),
+		IsWalletStellar: (typ == "wallet.stellar"),
+		SigVersion:      vers,
+	}
+}
+
+func (s SigIDSuffixParameters) String() string {
+	if s.IsWalletStellar && s.SigVersion == 2 {
+		return "22"
+	}
+	if s.IsUserSig {
+		return "0f"
+	}
+	switch s.SigVersion {
+	case 2:
+		return "22"
+	case 3:
+		return "38"
+	default:
+		return "0f"
+	}
+}
+
+func (s SigIDBase) ToSigID(p SigIDSuffixParameters) SigID {
+	return SigID(string(s) + p.String())
+}
+
+// ToSigIDLegacy does what all of Keybase used to do, which is to always assign a 0x0f
+// suffix to SigIDBases to get SigIDs.
+func (s SigIDBase) ToSigIDLegacy() SigID {
+	return s.ToSigID(SigIDSuffixParameters{IsUserSig: true, IsWalletStellar: false, SigVersion: 1})
+}
+
+func (s SigIDBase) Eq(t SigIDBase) bool {
+	return cieq(string(s), string(t))
+}
+
+func (s SigIDBase) ToBytes() []byte {
+	x, err := hex.DecodeString(string(s))
+	if err != nil {
+		return nil
+	}
+	return x
 }
 
 func encode(b []byte) string {
@@ -717,7 +854,10 @@ func FromTime(t Time) time.Time {
 	if t == 0 {
 		return time.Time{}
 	}
-	return time.Unix(0, int64(t)*1000000)
+	// t is in millisecond.
+	tSec := int64(t) / 1000
+	tNanoSecOffset := (int64(t) - tSec*1000) * 1000000
+	return time.Unix(tSec, tNanoSecOffset)
 }
 
 func (t Time) Time() time.Time {
@@ -728,21 +868,12 @@ func (t Time) UnixSeconds() int64 {
 	return t.Time().Unix()
 }
 
-func (t Time) UnixMilliseconds() int64 {
-	return t.Time().UnixNano() / 1e6
-}
-
-func (t Time) UnixMicroseconds() int64 {
-	return t.Time().UnixNano() / 1e3
-}
-
 func ToTime(t time.Time) Time {
-	// the result of calling UnixNano on the zero Time is undefined.
-	// https://golang.org/pkg/time/#Time.UnixNano
 	if t.IsZero() {
 		return 0
 	}
-	return Time(t.UnixNano() / 1000000)
+
+	return Time(t.Unix()*1000 + (int64(t.Nanosecond()) / 1000000))
 }
 
 func ToTimePtr(t *time.Time) *Time {
@@ -767,7 +898,10 @@ func FormatTime(t Time) string {
 }
 
 func FromUnixTime(u UnixTime) time.Time {
-	return FromTime(Time(u * 1000))
+	if u == 0 {
+		return time.Time{}
+	}
+	return time.Unix(int64(u), 0)
 }
 
 func (u UnixTime) Time() time.Time {
@@ -776,14 +910,6 @@ func (u UnixTime) Time() time.Time {
 
 func (u UnixTime) UnixSeconds() int64 {
 	return int64(u)
-}
-
-func (u UnixTime) UnixMilliseconds() int64 {
-	return int64(u) * 1000
-}
-
-func (u UnixTime) UnixMicroseconds() int64 {
-	return int64(u) * 1000000
 }
 
 func ToUnixTime(t time.Time) UnixTime {
@@ -860,7 +986,7 @@ func (k *KID) UnmarshalJSON(b []byte) error {
 	if err != nil {
 		return err
 	}
-	*k = KID(kid)
+	*k = kid
 	return nil
 }
 
@@ -908,7 +1034,7 @@ func (k *KID) Size() int {
 }
 
 func (s *SigID) UnmarshalJSON(b []byte) error {
-	sigID, err := SigIDFromString(Unquote(b), true)
+	sigID, err := SigIDFromString(Unquote(b))
 	if err != nil {
 		return err
 	}
@@ -917,7 +1043,7 @@ func (s *SigID) UnmarshalJSON(b []byte) error {
 }
 
 func (s *SigID) MarshalJSON() ([]byte, error) {
-	return Quote(s.ToString(true)), nil
+	return Quote(s.String()), nil
 }
 
 func (f Folder) ToString() string {
@@ -934,6 +1060,23 @@ func (f Folder) ToString() string {
 }
 
 func (f Folder) String() string {
+	return f.ToString()
+}
+
+func (f FolderHandle) ToString() string {
+	prefix := "<unrecognized>"
+	switch f.FolderType {
+	case FolderType_PRIVATE:
+		prefix = "private"
+	case FolderType_PUBLIC:
+		prefix = "public"
+	case FolderType_TEAM:
+		prefix = "team"
+	}
+	return prefix + "/" + f.Name
+}
+
+func (f FolderHandle) String() string {
 	return f.ToString()
 }
 
@@ -1022,6 +1165,9 @@ func (r BlockReferenceCount) String() string {
 }
 
 func (sa SocialAssertion) String() string {
+	if sa.Service == "email" {
+		return fmt.Sprintf("[%s]@email", sa.User)
+	}
 	return fmt.Sprintf("%s@%s", sa.User, sa.Service)
 }
 
@@ -1218,13 +1364,26 @@ func (t TLFID) ToBytes() []byte {
 	return b
 }
 
+func (t TLFID) Eq(u TLFID) bool {
+	return t == u
+}
+
+func (b TLFIdentifyBehavior) UnblockThenForceIDTable() bool {
+	switch b {
+	case TLFIdentifyBehavior_GUI_PROFILE:
+		return true
+	default:
+		return false
+	}
+}
+
 func (b TLFIdentifyBehavior) AlwaysRunIdentify() bool {
 	switch b {
 	case TLFIdentifyBehavior_CHAT_CLI,
 		TLFIdentifyBehavior_CHAT_GUI,
-		TLFIdentifyBehavior_CHAT_GUI_STRICT,
 		TLFIdentifyBehavior_SALTPACK,
-		TLFIdentifyBehavior_KBFS_CHAT:
+		TLFIdentifyBehavior_KBFS_CHAT,
+		TLFIdentifyBehavior_GUI_PROFILE:
 		return true
 	default:
 		return false
@@ -1234,7 +1393,7 @@ func (b TLFIdentifyBehavior) AlwaysRunIdentify() bool {
 func (b TLFIdentifyBehavior) CanUseUntrackedFastPath() bool {
 	switch b {
 	case TLFIdentifyBehavior_CHAT_GUI,
-		TLFIdentifyBehavior_CHAT_GUI_STRICT,
+		TLFIdentifyBehavior_FS_GUI,
 		TLFIdentifyBehavior_SALTPACK,
 		TLFIdentifyBehavior_RESOLVE_AND_CHECK:
 		return true
@@ -1247,8 +1406,9 @@ func (b TLFIdentifyBehavior) CanUseUntrackedFastPath() bool {
 
 func (b TLFIdentifyBehavior) WarningInsteadOfErrorOnBrokenTracks() bool {
 	switch b {
-	case TLFIdentifyBehavior_CHAT_GUI:
-		// The chat GUI (in non-strict mode) is specifically exempted from broken
+	case TLFIdentifyBehavior_CHAT_GUI,
+		TLFIdentifyBehavior_FS_GUI:
+		// The chat GUI is specifically exempted from broken
 		// track errors, because people need to be able to use it to ask each other
 		// about the fact that proofs are broken.
 		return true
@@ -1257,9 +1417,22 @@ func (b TLFIdentifyBehavior) WarningInsteadOfErrorOnBrokenTracks() bool {
 	}
 }
 
+func (b TLFIdentifyBehavior) NotifyGUIAboutBreaks() bool {
+	switch b {
+	case TLFIdentifyBehavior_FS_GUI:
+		// Technically chat needs this too but is done in go/chat by itself and
+		// doesn't use this. So we only put FS_GUI here.
+		return true
+	default:
+		return false
+	}
+}
+
 func (b TLFIdentifyBehavior) SkipUserCard() bool {
 	switch b {
-	case TLFIdentifyBehavior_CHAT_GUI, TLFIdentifyBehavior_RESOLVE_AND_CHECK:
+	case TLFIdentifyBehavior_CHAT_GUI,
+		TLFIdentifyBehavior_FS_GUI,
+		TLFIdentifyBehavior_RESOLVE_AND_CHECK:
 		// We don't need to bother loading a user card in these cases.
 		return true
 	default:
@@ -1291,13 +1464,14 @@ func (b TLFIdentifyBehavior) AllowDeletedUsers() bool {
 func (b TLFIdentifyBehavior) ShouldSuppressTrackerPopups() bool {
 	switch b {
 	case TLFIdentifyBehavior_CHAT_GUI,
-		TLFIdentifyBehavior_CHAT_GUI_STRICT,
+		TLFIdentifyBehavior_FS_GUI,
 		TLFIdentifyBehavior_CHAT_CLI,
 		TLFIdentifyBehavior_KBFS_REKEY,
 		TLFIdentifyBehavior_KBFS_QR,
 		TLFIdentifyBehavior_SALTPACK,
 		TLFIdentifyBehavior_RESOLVE_AND_CHECK,
-		TLFIdentifyBehavior_KBFS_CHAT:
+		TLFIdentifyBehavior_KBFS_CHAT,
+		TLFIdentifyBehavior_KBFS_INIT:
 		// These are identifies that either happen without user interaction at
 		// all, or happen while you're staring at some Keybase UI that can
 		// report errors on its own. No popups needed.
@@ -1315,6 +1489,18 @@ func (b TLFIdentifyBehavior) SkipExternalChecks() bool {
 	switch b {
 	case TLFIdentifyBehavior_KBFS_QR,
 		TLFIdentifyBehavior_KBFS_REKEY:
+		return true
+	default:
+		return false
+	}
+}
+
+// ShouldRefreshChatView indicates that when the identify is complete, we
+// should update the chat system's view of the computed track breaks (also
+// affects username coloring in the GUI).
+func (b TLFIdentifyBehavior) ShouldRefreshChatView() bool {
+	switch b {
+	case TLFIdentifyBehavior_GUI_PROFILE, TLFIdentifyBehavior_CLI:
 		return true
 	default:
 		return false
@@ -1405,6 +1591,18 @@ func (u UserVersionVector) Equal(u2 UserVersionVector) bool {
 		return false
 	}
 	return true
+}
+
+func ToDurationMsec(d time.Duration) DurationMsec {
+	return DurationMsec(d / time.Millisecond)
+}
+
+func (d DurationMsec) Duration() time.Duration {
+	return time.Duration(d) * time.Millisecond
+}
+
+func ToDurationSec(d time.Duration) DurationSec {
+	return DurationSec(d / time.Second)
 }
 
 func (d DurationSec) Duration() time.Duration {
@@ -1552,6 +1750,10 @@ func (s ChatConversationID) String() string {
 	return hex.EncodeToString(s)
 }
 
+func (s ChatConversationID) Bytes() []byte {
+	return s
+}
+
 // IsOlderThan returns true if any of the versions of u are older than v
 func (u UserPlusAllKeys) IsOlderThan(v UserPlusAllKeys) bool {
 	if u.Base.Uvv.SigChain < v.Base.Uvv.SigChain {
@@ -1571,6 +1773,9 @@ func (u UserPlusKeysV2AllIncarnations) IsOlderThan(v UserPlusKeysV2AllIncarnatio
 	if u.Uvv.Id < v.Uvv.Id {
 		return true
 	}
+	if u.Uvv.CachedAt < v.Uvv.CachedAt {
+		return true
+	}
 	return false
 }
 
@@ -1578,13 +1783,13 @@ func (u UserPlusKeysV2AllIncarnations) AllDeviceNames() []string {
 	var names []string
 
 	for _, k := range u.Current.DeviceKeys {
-		if k.DeviceDescription != "" && (k.DeviceType == "mobile" || k.DeviceType == "desktop") {
+		if k.DeviceDescription != "" {
 			names = append(names, k.DeviceDescription)
 		}
 	}
 	for _, v := range u.PastIncarnations {
 		for _, k := range v.DeviceKeys {
-			if k.DeviceDescription != "" && (k.DeviceType == "mobile" || k.DeviceType == "desktop") {
+			if k.DeviceDescription != "" {
 				names = append(names, k.DeviceDescription)
 			}
 		}
@@ -1742,7 +1947,7 @@ func (m *MaskB64) UnmarshalJSON(b []byte) error {
 
 func (m *MaskB64) MarshalJSON() ([]byte, error) {
 	s := Quote(base64.StdEncoding.EncodeToString([]byte(*m)))
-	return []byte(s), nil
+	return s, nil
 }
 
 func PublicKeyV1FromPGPKeyV2(keyV2 PublicKeyV2PGPSummary) PublicKey {
@@ -1775,6 +1980,36 @@ func PublicKeyV1FromDeviceKeyV2(keyV2 PublicKeyV2NaCl) PublicKey {
 		ETime:             keyV2.Base.ETime,
 		IsRevoked:         (keyV2.Base.Revocation != nil),
 	}
+}
+
+const (
+	DeviceTypeV2_NONE    DeviceTypeV2 = "none"
+	DeviceTypeV2_PAPER   DeviceTypeV2 = "backup"
+	DeviceTypeV2_DESKTOP DeviceTypeV2 = "desktop"
+	DeviceTypeV2_MOBILE  DeviceTypeV2 = "mobile"
+)
+
+func (d DeviceTypeV2) String() string {
+	return string(d)
+}
+
+func StringToDeviceTypeV2(s string) (d DeviceTypeV2, err error) {
+	deviceType := DeviceTypeV2(s)
+	switch deviceType {
+	case DeviceTypeV2_NONE, DeviceTypeV2_DESKTOP, DeviceTypeV2_MOBILE, DeviceTypeV2_PAPER:
+		// pass
+	default:
+		return DeviceTypeV2_NONE, fmt.Errorf("Unknown DeviceType: %s", deviceType)
+	}
+	return deviceType, nil
+}
+
+// defaults to Desktop
+func (dt *DeviceTypeV2) ToDeviceType() DeviceType {
+	if *dt == DeviceTypeV2_MOBILE {
+		return DeviceType_MOBILE
+	}
+	return DeviceType_DESKTOP
 }
 
 func RevokedKeyV1FromDeviceKeyV2(keyV2 PublicKeyV2NaCl) RevokedKey {
@@ -1920,6 +2155,12 @@ func (t TeamMembers) AllUIDs() []UID {
 	for _, u := range t.Readers {
 		m[u.Uid] = true
 	}
+	for _, u := range t.Bots {
+		m[u.Uid] = true
+	}
+	for _, u := range t.RestrictedBots {
+		m[u.Uid] = true
+	}
 	var all []UID
 	for u := range m {
 		all = append(all, u)
@@ -1941,6 +2182,12 @@ func (t TeamMembers) AllUserVersions() []UserVersion {
 	for _, u := range t.Readers {
 		m[u.Uid] = u
 	}
+	for _, u := range t.Bots {
+		m[u.Uid] = u
+	}
+	for _, u := range t.RestrictedBots {
+		m[u.Uid] = u
+	}
 	var all []UserVersion
 	for _, uv := range m {
 		all = append(all, uv)
@@ -1960,9 +2207,9 @@ func (s TeamMemberStatus) IsDeleted() bool {
 	return s == TeamMemberStatus_DELETED
 }
 
-func FilterInactiveMembers(arg []TeamMemberDetails) (ret []TeamMemberDetails) {
+func FilterInactiveReadersWriters(arg []TeamMemberDetails) (ret []TeamMemberDetails) {
 	for _, v := range arg {
-		if v.Status.IsActive() {
+		if v.Status.IsActive() || (v.Role != TeamRole_READER && v.Role != TeamRole_WRITER) {
 			ret = append(ret, v)
 		}
 	}
@@ -2011,6 +2258,7 @@ func validatePart(s string) (err error) {
 func TeamNameFromString(s string) (TeamName, error) {
 	ret := TeamName{}
 
+	s = strings.ToLower(s)
 	parts := strings.Split(s, ".")
 	if len(parts) == 0 {
 		return ret, errors.New("team names cannot be empty")
@@ -2027,6 +2275,10 @@ func TeamNameFromString(s string) (TeamName, error) {
 		tmp[i] = stringToTeamNamePart(part)
 	}
 	return TeamName{Parts: tmp}, nil
+}
+
+func (p TeamNamePart) String() string {
+	return string(p)
 }
 
 func (t TeamName) AssertEqString(s string) error {
@@ -2106,6 +2358,10 @@ func (t TeamName) RootAncestorName() TeamName {
 	}
 }
 
+func (t TeamName) RootID() TeamID {
+	return t.RootAncestorName().ToTeamID(false)
+}
+
 func (t TeamName) Parent() (TeamName, error) {
 	if len(t.Parts) == 0 {
 		return t, fmt.Errorf("empty team name")
@@ -2173,6 +2429,28 @@ func (u UserPlusKeysV2AllIncarnations) ToUserVersion() UserVersion {
 	return u.Current.ToUserVersion()
 }
 
+func (u UserPlusKeysV2AllIncarnations) GetPerUserKeyAtSeqno(uv UserVersion, seqno Seqno, merkleSeqno Seqno) (*PerUserKey, error) {
+	incarnations := u.AllIncarnations()
+	for _, incarnation := range incarnations {
+		if incarnation.EldestSeqno == uv.EldestSeqno {
+			if incarnation.Reset != nil && incarnation.Reset.MerkleRoot.Seqno <= merkleSeqno {
+				return nil, nil
+			}
+			if len(incarnation.PerUserKeys) == 0 {
+				return nil, nil
+			}
+			for i := range incarnation.PerUserKeys {
+				perUserKey := incarnation.PerUserKeys[len(incarnation.PerUserKeys)-1-i]
+				if perUserKey.Seqno <= seqno {
+					return &perUserKey, nil
+				}
+			}
+			return nil, fmt.Errorf("didn't find per user key at seqno %d for uv %v", seqno, uv)
+		}
+	}
+	return nil, fmt.Errorf("didn't find uv %v in upak", uv)
+}
+
 // Can return nil.
 func (u UserPlusKeysV2) GetLatestPerUserKey() *PerUserKey {
 	if len(u.PerUserKeys) > 0 {
@@ -2237,16 +2515,61 @@ func (r TeamRole) IsAdminOrAbove() bool {
 	return r.IsOrAbove(TeamRole_ADMIN)
 }
 
-func (r TeamRole) IsReaderOrAbove() bool {
-	return r.IsOrAbove(TeamRole_READER)
-}
-
 func (r TeamRole) IsWriterOrAbove() bool {
 	return r.IsOrAbove(TeamRole_WRITER)
 }
 
+func (r TeamRole) IsReaderOrAbove() bool {
+	return r.IsOrAbove(TeamRole_READER)
+}
+
+func (r TeamRole) IsBotOrAbove() bool {
+	return r.IsOrAbove(TeamRole_BOT)
+}
+
+func (r TeamRole) IsRestrictedBotOrAbove() bool {
+	return r.IsOrAbove(TeamRole_RESTRICTEDBOT)
+}
+
+func (r TeamRole) IsBotLike() bool {
+	switch r {
+	case TeamRole_BOT, TeamRole_RESTRICTEDBOT:
+		return true
+	}
+	return false
+}
+
+func (r TeamRole) IsRestrictedBot() bool {
+	return r == TeamRole_RESTRICTEDBOT
+}
+
+func (r TeamRole) teamRoleForOrderingOnly() int {
+	switch r {
+	case TeamRole_NONE:
+		return 0
+	case TeamRole_RESTRICTEDBOT:
+		return 1
+	case TeamRole_BOT:
+		return 2
+	case TeamRole_READER,
+		TeamRole_WRITER,
+		TeamRole_ADMIN,
+		TeamRole_OWNER:
+		return int(r) + 2
+	default:
+		return 0
+	}
+}
+
 func (r TeamRole) IsOrAbove(min TeamRole) bool {
-	return int(r) >= int(min)
+	return r.teamRoleForOrderingOnly() >= min.teamRoleForOrderingOnly()
+}
+
+func (r TeamRole) HumanString() string {
+	if r.IsRestrictedBot() {
+		return "restricted bot"
+	}
+	return strings.ToLower(r.String())
 }
 
 type idSchema struct {
@@ -2281,26 +2604,6 @@ func (i TeamInviteID) Eq(i2 TeamInviteID) bool {
 	return string(i) == string(i2)
 }
 
-func TeamInviteTypeFromString(s string, isDev bool) (TeamInviteType, error) {
-	switch s {
-	case "keybase":
-		return NewTeamInviteTypeDefault(TeamInviteCategory_KEYBASE), nil
-	case "email":
-		return NewTeamInviteTypeDefault(TeamInviteCategory_EMAIL), nil
-	case "twitter", "github", "facebook", "reddit", "hackernews", "pgp", "http", "https", "dns":
-		return NewTeamInviteTypeWithSbs(TeamInviteSocialNetwork(s)), nil
-	case "seitan_invite_token":
-		return NewTeamInviteTypeDefault(TeamInviteCategory_SEITAN), nil
-	default:
-		if isDev && s == "rooter" {
-			return NewTeamInviteTypeWithSbs(TeamInviteSocialNetwork(s)), nil
-		}
-		// Don't want to break existing clients if we see an unknown invite
-		// type.
-		return NewTeamInviteTypeWithUnknown(s), nil
-	}
-}
-
 func (t TeamInviteType) String() (string, error) {
 	c, err := t.C()
 	if err != nil {
@@ -2311,6 +2614,8 @@ func (t TeamInviteType) String() (string, error) {
 		return "keybase", nil
 	case TeamInviteCategory_EMAIL:
 		return "email", nil
+	case TeamInviteCategory_PHONE:
+		return "phone", nil
 	case TeamInviteCategory_SBS:
 		return string(t.Sbs()), nil
 	case TeamInviteCategory_SEITAN:
@@ -2338,7 +2643,7 @@ func (a TeamInviteType) Eq(b TeamInviteType) bool {
 	switch ac {
 	case TeamInviteCategory_KEYBASE:
 		return true
-	case TeamInviteCategory_EMAIL:
+	case TeamInviteCategory_EMAIL, TeamInviteCategory_PHONE:
 		return true
 	case TeamInviteCategory_SBS:
 		return a.Sbs() == b.Sbs()
@@ -2359,6 +2664,160 @@ func (t TeamInvite) KeybaseUserVersion() (UserVersion, error) {
 	}
 
 	return ParseUserVersion(UserVersionPercentForm(t.Name))
+}
+
+// TeamMaxUsesInfinite is a value for max_uses field which makes team invite
+// multiple use, with infinite number of uses.
+const TeamMaxUsesInfinite = TeamInviteMaxUses(-1)
+
+func NewTeamInviteFiniteUses(maxUses int) (v TeamInviteMaxUses, err error) {
+	if maxUses <= 0 {
+		return v, errors.New("non-infinite uses with nonpositive maxUses")
+	}
+	return TeamInviteMaxUses(maxUses), nil
+}
+
+func (e *TeamInviteMaxUses) IsNotNilAndValid() bool {
+	return e != nil && (*e > 0 || *e == TeamMaxUsesInfinite)
+}
+
+func max(a, b int) int {
+	if a >= b {
+		return a
+	}
+	return b
+}
+
+func (ti TeamInvite) UsesLeftString(alreadyUsed int) string {
+	if ti.IsInfiniteUses() {
+		return "unlimited uses left"
+	}
+	var maxUses int
+	if ti.MaxUses == nil {
+		maxUses = 1
+	} else {
+		maxUses = int(*ti.MaxUses)
+	}
+	return formatItems("use", "uses", max(maxUses-alreadyUsed, 0))
+}
+
+func (ti TeamInvite) IsInfiniteUses() bool {
+	return ti.MaxUses != nil && *ti.MaxUses == TeamMaxUsesInfinite
+}
+
+func (ti TeamInvite) IsUsedUp(alreadyUsed int) bool {
+	maxUses := ti.MaxUses
+	if maxUses == nil {
+		return alreadyUsed >= 1
+	}
+	if *maxUses == TeamMaxUsesInfinite {
+		return false
+	}
+	return alreadyUsed >= int(*maxUses)
+}
+
+func (ti TeamInvite) IsExpired(now time.Time) bool {
+	if ti.Etime == nil {
+		return false
+	}
+	etime := FromUnixTime(*ti.Etime)
+	return now.After(etime)
+}
+
+func formatItems(singular string, plural string, count int) string {
+	if count == 1 {
+		return "1 " + singular
+	}
+	return fmt.Sprintf("%d %s", count, plural)
+}
+
+// ComputeValidity is used for invitelinks, but is accurate for other invites as well.
+// It computes whether the invite is still valid (i.e., if it can still be used),
+// and a short description of when it was invalidated or under what conditions it can
+// be later invalidated.
+func (md TeamInviteMetadata) ComputeValidity(now time.Time,
+	userLog map[UserVersion][]UserLogPoint) (isValid bool, validityDescription string) {
+
+	isInvalid := false
+	invalidationAction := ""
+	var invalidationTime *time.Time
+	var usedInviteCount int
+	code, _ := md.Status.Code()
+	switch code {
+	case TeamInviteMetadataStatusCode_ACTIVE:
+		isExpired := md.Invite.IsExpired(now)
+		if isExpired {
+			expireTime := md.Invite.Etime.Time()
+			invalidationTime = &expireTime
+		}
+		usedInvites := md.UsedInvites
+		// If this is an old-style invite that was completed; it wouldn't be ACTIVE anymore,
+		// so we can assume len(usedInvites) is correct, since it should be empty (implying
+		// the invite is not UsedUp.
+		isUsedUp := md.Invite.IsUsedUp(len(usedInvites))
+		if isUsedUp {
+			// implies usedInvites is nonempty
+			usedInvites := md.UsedInvites
+			teamUserLogPoint := usedInvites[len(usedInvites)-1]
+			logPoint := userLog[teamUserLogPoint.Uv][teamUserLogPoint.LogPoint]
+			usedUpTime := logPoint.SigMeta.Time.Time()
+			if invalidationTime == nil || usedUpTime.Before(*invalidationTime) {
+				invalidationTime = &usedUpTime
+			}
+		}
+		if isExpired || isUsedUp {
+			isInvalid = true
+			invalidationAction = "Expired"
+		}
+		usedInviteCount = len(usedInvites)
+	case TeamInviteMetadataStatusCode_OBSOLETE:
+		isInvalid = true
+		invalidationAction = "Obsoleted"
+		// no invalidation time for obsoletes
+		usedInviteCount = 0
+	case TeamInviteMetadataStatusCode_CANCELLED:
+		isInvalid = true
+		invalidationAction = "Cancelled"
+		cancelTime := md.Status.Cancelled().TeamSigMeta.SigMeta.Time.Time()
+		invalidationTime = &cancelTime
+		usedInviteCount = len(md.UsedInvites)
+	case TeamInviteMetadataStatusCode_COMPLETED:
+		isInvalid = true
+		invalidationAction = "Completed"
+		completeTime := md.Status.Completed().TeamSigMeta.SigMeta.Time.Time()
+		invalidationTime = &completeTime
+		usedInviteCount = 1
+	default:
+		return false, fmt.Sprintf("unknown invite status %v", code)
+	}
+
+	if isInvalid {
+		ret := ""
+		ret += invalidationAction
+		if invalidationTime != nil {
+			invalidationDeltaFormatted := kbtime.RelTime(*invalidationTime, now, "", "")
+			ret += " " + invalidationDeltaFormatted + " ago"
+		}
+		return false, ret
+	}
+
+	if md.Invite.Etime == nil && md.Invite.IsInfiniteUses() {
+		return true, "Does not expire"
+	}
+
+	ret := "Expires"
+	if md.Invite.Etime != nil {
+		expirationTimeConverted := FromUnixTime(*md.Invite.Etime)
+		expirationDeltaFormatted := kbtime.RelTime(expirationTimeConverted, now, "", "")
+		ret += " in " + expirationDeltaFormatted
+	}
+	if md.Invite.Etime != nil && !md.Invite.IsInfiniteUses() {
+		ret += " or"
+	}
+	if !md.Invite.IsInfiniteUses() {
+		ret += " after " + md.Invite.UsesLeftString(usedInviteCount)
+	}
+	return true, ret
 }
 
 func (m MemberInfo) TeamName() (TeamName, error) {
@@ -2389,8 +2848,8 @@ func (n ImplicitTeamDisplayName) String() string {
 	return name
 }
 
-func (c ImplicitTeamConflictInfo) IsConflict() bool {
-	return c.Generation > ConflictGeneration(0)
+func (c *ImplicitTeamConflictInfo) IsConflict() bool {
+	return c != nil && c.Generation > ConflictGeneration(0)
 }
 
 const (
@@ -2458,6 +2917,14 @@ func ParseUserVersion(s UserVersionPercentForm) (res UserVersion, err error) {
 	}, nil
 }
 
+func (p StringKVPair) BoolValue() bool {
+	i, err := strconv.ParseBool(p.Value)
+	if err != nil {
+		return false
+	}
+	return i
+}
+
 func (p StringKVPair) IntValue() int {
 	i, err := strconv.Atoi(p.Value)
 	if err != nil {
@@ -2480,8 +2947,33 @@ func (r *GitRepoResult) GetIfOk() (res GitRepoInfo, err error) {
 	return res, fmt.Errorf("git repo unknown error")
 }
 
-func (req *TeamChangeReq) AddUVWithRole(uv UserVersion, role TeamRole) error {
+func (r GitRepoInfo) FullName() string {
+	switch r.Folder.FolderType {
+	case FolderType_PRIVATE:
+		return string(r.LocalMetadata.RepoName)
+	case FolderType_TEAM:
+		return r.Folder.Name + "/" + string(r.LocalMetadata.RepoName)
+	default:
+		return "<repo type error>"
+	}
+}
+
+func (req *TeamChangeReq) AddUVWithRole(uv UserVersion, role TeamRole,
+	botSettings *TeamBotSettings) error {
+	if !role.IsRestrictedBot() && botSettings != nil {
+		return fmt.Errorf("Unexpected botSettings for role %v", role)
+	}
 	switch role {
+	case TeamRole_RESTRICTEDBOT:
+		if botSettings == nil {
+			return fmt.Errorf("Cannot add a RESTRICTEDBOT with nil TeamBotSettings")
+		}
+		if req.RestrictedBots == nil {
+			req.RestrictedBots = make(map[UserVersion]TeamBotSettings)
+		}
+		req.RestrictedBots[uv] = *botSettings
+	case TeamRole_BOT:
+		req.Bots = append(req.Bots, uv)
 	case TeamRole_READER:
 		req.Readers = append(req.Readers, uv)
 	case TeamRole_WRITER:
@@ -2496,6 +2988,16 @@ func (req *TeamChangeReq) AddUVWithRole(uv UserVersion, role TeamRole) error {
 	return nil
 }
 
+func (req *TeamChangeReq) RestrictedBotUVs() (ret []UserVersion) {
+	for uv := range req.RestrictedBots {
+		ret = append(ret, uv)
+	}
+	return ret
+}
+
+// CompleteInviteID adds to the `completed_invites` field, and signals that the
+// invite can never be used again. It's used for SBS, Keybase, SeitanV1, and
+// SeitanV2 invites.
 func (req *TeamChangeReq) CompleteInviteID(inviteID TeamInviteID, uv UserVersionPercentForm) {
 	if req.CompletedInvites == nil {
 		req.CompletedInvites = make(map[TeamInviteID]UserVersionPercentForm)
@@ -2503,7 +3005,15 @@ func (req *TeamChangeReq) CompleteInviteID(inviteID TeamInviteID, uv UserVersion
 	req.CompletedInvites[inviteID] = uv
 }
 
+// UseInviteID adds to the `used_invites` field. It is used for SeitanInvitelink invites,
+// which can be used multiple times.
+func (req *TeamChangeReq) UseInviteID(inviteID TeamInviteID, uv UserVersionPercentForm) {
+	req.UsedInvites = append(req.UsedInvites, TeamUsedInvite{InviteID: inviteID, Uv: uv})
+}
+
 func (req *TeamChangeReq) GetAllAdds() (ret []UserVersion) {
+	ret = append(ret, req.RestrictedBotUVs()...)
+	ret = append(ret, req.Bots...)
 	ret = append(ret, req.Readers...)
 	ret = append(ret, req.Writers...)
 	ret = append(ret, req.Admins...)
@@ -2587,12 +3097,1158 @@ func (path Path) String() string {
 	}
 	switch pathType {
 	case PathType_KBFS:
-		return path.Kbfs()
+		return path.Kbfs().Path
 	case PathType_KBFS_ARCHIVED:
 		return path.KbfsArchived().Path
 	case PathType_LOCAL:
 		return path.Local()
 	default:
 		return ""
+	}
+}
+
+func (se *SelectorEntry) UnmarshalJSON(b []byte) error {
+	if err := json.Unmarshal(b, &se.Index); err == nil {
+		se.IsIndex = true
+		return nil
+	}
+
+	if err := json.Unmarshal(b, &se.Key); err == nil {
+		se.IsKey = true
+		return nil
+	}
+
+	m := make(map[string]bool)
+	if err := json.Unmarshal(b, &m); err != nil {
+		return fmt.Errorf("invalid selector (not dict)")
+	}
+	ok1, ok2 := m["all"]
+	if ok1 && ok2 {
+		se.IsAll = true
+		return nil
+	}
+	ok1, ok2 = m["contents"]
+	if ok1 && ok2 {
+		se.IsContents = true
+		return nil
+	}
+	return fmt.Errorf("invalid selector (not recognized)")
+}
+
+func (p PhoneNumber) String() string {
+	return string(p)
+}
+
+var nonDigits = regexp.MustCompile(`[^\d]`)
+
+func PhoneNumberToAssertionValue(phoneNumber string) string {
+	return nonDigits.ReplaceAllString(phoneNumber, "")
+}
+
+func (p PhoneNumber) AssertionValue() string {
+	return PhoneNumberToAssertionValue(p.String())
+}
+
+func (d TeamData) ID() TeamID {
+	return d.Chain.Id
+}
+
+func (d TeamData) IsPublic() bool {
+	return d.Chain.Public
+}
+
+func (d FastTeamData) ID() TeamID {
+	return d.Chain.ID
+}
+
+func (d FastTeamData) IsPublic() bool {
+	return d.Chain.Public
+}
+
+func (d HiddenTeamChain) ID() TeamID {
+	return d.Id
+}
+
+func (d HiddenTeamChain) IsPublic() bool {
+	return d.Public
+}
+
+func (d HiddenTeamChain) Summary() string {
+	type pair struct {
+		g       PerTeamKeyGeneration
+		q       Seqno
+		stubbed bool
+	}
+	var arr []pair
+	for g, q := range d.ReaderPerTeamKeys {
+		var full bool
+		if d.Inner != nil {
+			_, full = d.Inner[q]
+		}
+		arr = append(arr, pair{g: g, q: q, stubbed: !full})
+	}
+	sort.Slice(arr, func(i, j int) bool { return arr[i].g < arr[j].g })
+	return fmt.Sprintf("{Team:%s, Last:%d, ReaderPerTeamKeys: %+v}", d.Id, d.Last, arr)
+}
+
+func (f FullName) String() string {
+	return string(f)
+}
+
+func (h BoxSummaryHash) String() string {
+	return string(h)
+}
+
+func (r BoxAuditAttemptResult) IsOK() bool {
+	switch r {
+	case BoxAuditAttemptResult_OK_VERIFIED, BoxAuditAttemptResult_OK_NOT_ATTEMPTED_ROLE, BoxAuditAttemptResult_OK_NOT_ATTEMPTED_OPENTEAM, BoxAuditAttemptResult_OK_NOT_ATTEMPTED_SUBTEAM:
+		return true
+	default:
+		return false
+	}
+}
+
+func (a BoxAuditAttempt) String() string {
+	ret := a.Result.String()
+	if a.Error != nil {
+		ret += fmt.Sprintf("\t(error: %s)", *a.Error)
+	}
+	if a.Rotated {
+		ret += "\t(team rotated)"
+	}
+	return ret
+}
+
+func (c ContactComponent) ValueString() string {
+	switch {
+	case c.Email != nil:
+		return string(*c.Email)
+	case c.PhoneNumber != nil:
+		return string(*c.PhoneNumber)
+	default:
+		return ""
+	}
+}
+
+func (c ContactComponent) AssertionType() string {
+	switch {
+	case c.Email != nil:
+		return "email"
+	case c.PhoneNumber != nil:
+		return "phone"
+	default:
+		return ""
+	}
+}
+
+func (c ContactComponent) FormatDisplayLabel(addLabel bool) string {
+	if addLabel && c.Label != "" {
+		return fmt.Sprintf("%s (%s)", c.ValueString(), c.Label)
+	}
+	return c.ValueString()
+}
+
+func (fct FolderConflictType) MarshalText() ([]byte, error) {
+	switch fct {
+	case FolderConflictType_NONE:
+		return []byte("none"), nil
+	case FolderConflictType_IN_CONFLICT:
+		return []byte("in conflict"), nil
+	case FolderConflictType_IN_CONFLICT_AND_STUCK:
+		return []byte("in conflict and stuck"), nil
+	default:
+		return []byte(fmt.Sprintf("unknown conflict type: %d", fct)), nil
+	}
+}
+
+func (fct *FolderConflictType) UnmarshalText(text []byte) error {
+	switch string(text) {
+	case "none":
+		*fct = FolderConflictType_NONE
+	case "in conflict":
+		*fct = FolderConflictType_IN_CONFLICT
+	case "in conflict and stuck":
+		*fct = FolderConflictType_IN_CONFLICT_AND_STUCK
+	default:
+		return fmt.Errorf("Unknown conflict type: %s", text)
+	}
+	return nil
+}
+
+func (h *HiddenTeamChain) Tail() *HiddenTeamChainLink {
+	last := h.Last
+	if last == Seqno(0) {
+		return nil
+	}
+	ret, ok := h.Inner[last]
+	if !ok {
+		return nil
+	}
+	return &ret
+}
+
+func (h *HiddenTeamChain) TailTriple() *LinkTriple {
+	last := h.Last
+	if last == Seqno(0) {
+		return nil
+	}
+	link, ok := h.Outer[last]
+	if !ok {
+		return nil
+	}
+	return &LinkTriple{
+		Seqno:   last,
+		LinkID:  link,
+		SeqType: SeqType_TEAM_PRIVATE_HIDDEN,
+	}
+}
+
+func (s Signer) UserVersion() UserVersion {
+	return UserVersion{
+		Uid:         s.U,
+		EldestSeqno: s.E,
+	}
+}
+
+func (p PerTeamSeedCheck) Hash() (*PerTeamSeedCheckPostImage, error) {
+	if p.Version != PerTeamSeedCheckVersion_V1 {
+		return nil, errors.New("can only handle PerTeamKeySeedCheck V1")
+	}
+	ret := sha256.Sum256(p.Value[:])
+	return &PerTeamSeedCheckPostImage{
+		Version: PerTeamSeedCheckVersion_V1,
+		Value:   PerTeamSeedCheckValuePostImage(ret[:]),
+	}, nil
+}
+
+func (p PerTeamSeedCheckPostImage) Eq(p2 PerTeamSeedCheckPostImage) bool {
+	return (p.Version == p2.Version) && hmac.Equal(p.Value[:], p2.Value[:])
+}
+
+func (r HiddenTeamChainRatchetSet) Flat() []LinkTripleAndTime {
+	if r.Ratchets == nil {
+		return nil
+	}
+	var ret []LinkTripleAndTime
+	for _, v := range r.Ratchets {
+		ret = append(ret, v)
+	}
+	return ret
+}
+
+func (r HiddenTeamChainRatchetSet) IsEmpty() bool {
+	return r.Ratchets == nil || len(r.Ratchets) == 0
+}
+
+func (r HiddenTeamChainRatchetSet) Max() Seqno {
+	var ret Seqno
+	if r.Ratchets == nil {
+		return ret
+	}
+	for _, v := range r.Ratchets {
+		if v.Triple.Seqno > ret {
+			ret = v.Triple.Seqno
+		}
+	}
+	return ret
+}
+
+func (r HiddenTeamChainRatchetSet) MaxTriple() *LinkTriple {
+	if r.Ratchets == nil {
+		return nil
+	}
+	var out LinkTriple
+	for _, v := range r.Ratchets {
+		if v.Triple.Seqno > out.Seqno {
+			out = v.Triple
+		}
+	}
+	return &out
+}
+
+func (r *HiddenTeamChain) MaxTriple() *LinkTriple {
+	tail := r.TailTriple()
+	rat := r.RatchetSet.MaxTriple()
+	if rat == nil && tail == nil {
+		return nil
+	}
+	if rat == nil {
+		return tail
+	}
+	if tail == nil {
+		return rat
+	}
+	if tail.Seqno > rat.Seqno {
+		return tail
+	}
+	return rat
+}
+
+func (r *HiddenTeamChainRatchetSet) init() {
+	if r.Ratchets == nil {
+		r.Ratchets = make(map[RatchetType]LinkTripleAndTime)
+	}
+}
+
+func (r *HiddenTeamChainRatchetSet) Merge(r2 HiddenTeamChainRatchetSet) (updated bool) {
+	r.init()
+	if r2.Ratchets == nil {
+		return false
+	}
+	for k, v := range r2.Ratchets {
+		if r.Add(k, v) {
+			updated = true
+		}
+	}
+	return updated
+}
+
+func (r *HiddenTeamChainRatchetSet) Add(t RatchetType, v LinkTripleAndTime) (changed bool) {
+	r.init()
+	found, ok := r.Ratchets[t]
+	if (v.Triple.SeqType == SeqType_TEAM_PRIVATE_HIDDEN) && (!ok || v.Triple.Seqno > found.Triple.Seqno) {
+		r.Ratchets[t] = v
+		changed = true
+	}
+	return changed
+}
+
+func (r LinkTripleAndTime) Clashes(r2 LinkTripleAndTime) bool {
+	l1 := r.Triple
+	l2 := r2.Triple
+	return (l1.Seqno == l2.Seqno && l1.SeqType == l2.SeqType && !l1.LinkID.Eq(l2.LinkID))
+}
+
+func (r MerkleRootV2) Eq(s MerkleRootV2) bool {
+	return r.Seqno == s.Seqno && r.HashMeta.Eq(s.HashMeta)
+}
+
+func (d *HiddenTeamChain) GetLastCommittedSeqno() Seqno {
+	if d == nil {
+		return 0
+	}
+	return d.LastCommittedSeqno
+}
+
+func (d *HiddenTeamChain) GetOuter() map[Seqno]LinkID {
+	if d == nil {
+		return nil
+	}
+	return d.Outer
+}
+
+func (d *HiddenTeamChain) PopulateLastFull() {
+	if d == nil {
+		return
+	}
+	if d.LastFull != Seqno(0) {
+		return
+	}
+	for i := Seqno(1); i <= d.Last; i++ {
+		_, found := d.Inner[i]
+		if !found {
+			break
+		}
+		d.LastFull = i
+	}
+}
+
+func (d *HiddenTeamChain) LastFullPopulateIfUnset() Seqno {
+	if d == nil {
+		return Seqno(0)
+	}
+	if d.LastFull == Seqno(0) {
+		d.PopulateLastFull()
+	}
+	return d.LastFull
+}
+
+func (d *HiddenTeamChain) Merge(newData HiddenTeamChain) (updated bool, err error) {
+
+	for seqno, link := range newData.Outer {
+		existing, ok := d.Outer[seqno]
+		if ok && !existing.Eq(link) {
+			return false, fmt.Errorf("bad merge since at seqno %d, link clash: %s != %s", seqno, existing, link)
+		}
+		if ok {
+			continue
+		}
+		d.Outer[seqno] = link
+		updated = true
+		if seqno > d.Last {
+			d.Last = seqno
+		}
+	}
+
+	for q, i := range newData.Inner {
+		_, found := d.Inner[q]
+		if found {
+			continue
+		}
+		d.Inner[q] = i
+		if ptk, ok := i.Ptk[PTKType_READER]; ok {
+			d.ReaderPerTeamKeys[ptk.Ptk.Gen] = q
+		}
+
+		// If we previously loaded full links up to d.LastFull, but this is d.LastFull+1,
+		// then we can safely bump the pointer one foward.
+		if q == d.LastFull+Seqno(1) {
+			d.LastFull = q
+		}
+		updated = true
+	}
+	if newData.Last > d.Last {
+		d.Last = newData.Last
+	}
+
+	if newData.LastCommittedSeqno > d.LastCommittedSeqno {
+		d.LastCommittedSeqno = newData.LastCommittedSeqno
+		updated = true
+	}
+
+	for k, v := range newData.LastPerTeamKeys {
+		existing, ok := d.LastPerTeamKeys[k]
+		if !ok || existing < v {
+			d.LastPerTeamKeys[k] = v
+		}
+	}
+
+	for k, v := range newData.MerkleRoots {
+		existing, ok := d.MerkleRoots[k]
+		if ok && !existing.Eq(v) {
+			return false, fmt.Errorf("bad merge since at seqno %d, merkle root clash: %+v != %+v", k, existing, v)
+		}
+		if ok {
+			continue
+		}
+		d.MerkleRoots[k] = v
+		updated = true
+	}
+
+	if d.RatchetSet.Merge(newData.RatchetSet) {
+		updated = true
+	}
+
+	for k := range d.LinkReceiptTimes {
+		if k <= newData.LastCommittedSeqno {
+			// This link has been committed to the blind tree, no need to keep
+			// track of it any more
+			delete(d.LinkReceiptTimes, k)
+			updated = true
+		}
+	}
+
+	for k, v := range newData.LinkReceiptTimes {
+		if _, found := d.LinkReceiptTimes[k]; !found {
+			if d.LinkReceiptTimes == nil {
+				d.LinkReceiptTimes = make(map[Seqno]Time)
+			}
+			d.LinkReceiptTimes[k] = v
+			updated = true
+		}
+	}
+
+	return updated, nil
+}
+
+func (h HiddenTeamChain) HasSeqno(s Seqno) bool {
+	_, found := h.Outer[s]
+	return found
+}
+
+func NewHiddenTeamChain(id TeamID) *HiddenTeamChain {
+	return &HiddenTeamChain{
+		Id:                id,
+		Subversion:        1, // We are now on Version 1.1
+		LastPerTeamKeys:   make(map[PTKType]Seqno),
+		ReaderPerTeamKeys: make(map[PerTeamKeyGeneration]Seqno),
+		Outer:             make(map[Seqno]LinkID),
+		Inner:             make(map[Seqno]HiddenTeamChainLink),
+		MerkleRoots:       make(map[Seqno]MerkleRootV2),
+	}
+}
+
+func (h *HiddenTeamChain) Tombstone() (changed bool) {
+	if h.Tombstoned {
+		return false
+	}
+	h.LastPerTeamKeys = make(map[PTKType]Seqno)
+	h.ReaderPerTeamKeys = make(map[PerTeamKeyGeneration]Seqno)
+	h.Outer = make(map[Seqno]LinkID)
+	h.Inner = make(map[Seqno]HiddenTeamChainLink)
+	h.Tombstoned = true
+	return true
+}
+
+func (h *HiddenTeamChain) Freeze() (changed bool) {
+	if h.Frozen {
+		return false
+	}
+	h.LastPerTeamKeys = make(map[PTKType]Seqno)
+	h.ReaderPerTeamKeys = make(map[PerTeamKeyGeneration]Seqno)
+	h.Inner = make(map[Seqno]HiddenTeamChainLink)
+	newOuter := make(map[Seqno]LinkID)
+	if h.Last != Seqno(0) {
+		newOuter[h.Last] = h.Outer[h.Last]
+	}
+	h.Outer = newOuter
+	h.Frozen = true
+	return true
+}
+
+func (h HiddenTeamChain) LastReaderPerTeamKeyLinkID() (ret LinkID) {
+	seqno, ok := h.LastPerTeamKeys[PTKType_READER]
+	if !ok {
+		return ret
+	}
+	tmp, ok := h.Outer[seqno]
+	if !ok {
+		return ret
+	}
+	return tmp
+}
+
+func (h *HiddenTeamChain) GetReaderPerTeamKeyAtGeneration(g PerTeamKeyGeneration) (ret PerTeamKey, found bool) {
+	if h == nil {
+		return ret, false
+	}
+	q, ok := h.ReaderPerTeamKeys[g]
+	if !ok {
+		return ret, false
+	}
+	inner, ok := h.Inner[q]
+	if !ok {
+		return ret, false
+	}
+	key, ok := inner.Ptk[PTKType_READER]
+	if !ok {
+		return ret, false
+	}
+	return key.Ptk, true
+}
+
+func (h *HiddenTeamChain) MaxReaderPerTeamKey() *PerTeamKey {
+	if h == nil {
+		return nil
+	}
+	seqno, ok := h.LastPerTeamKeys[PTKType_READER]
+	if !ok {
+		return nil
+	}
+	inner, ok := h.Inner[seqno]
+	if !ok {
+		return nil
+	}
+	ptk, ok := inner.Ptk[PTKType_READER]
+	if !ok {
+		return nil
+	}
+	return &ptk.Ptk
+}
+
+func (h *HiddenTeamChain) MaxReaderPerTeamKeyGeneration() PerTeamKeyGeneration {
+	k := h.MaxReaderPerTeamKey()
+	if k == nil {
+		return PerTeamKeyGeneration(0)
+	}
+	return k.Gen
+}
+
+func (h *HiddenTeamChain) KeySummary() string {
+	if h == nil {
+		return "Ø"
+	}
+	return fmt.Sprintf("{last:%d, lastPerTeamKeys:%+v, readerPerTeamKeys: %+v}", h.Last, h.LastPerTeamKeys, h.ReaderPerTeamKeys)
+}
+
+func (h *HiddenTeamChain) LinkAndKeySummary() string {
+	if h == nil {
+		return "empty"
+	}
+	ks := h.KeySummary()
+	return fmt.Sprintf("{nOuterlinks: %d, nInnerLinks:%d, keys:%s}", len(h.Outer), len(h.Inner), ks)
+}
+
+func (h *TeamData) KeySummary() string {
+	if h == nil {
+		return "Ø"
+	}
+	var p []PerTeamKeyGeneration
+	for k := range h.PerTeamKeySeedsUnverified {
+		p = append(p, k)
+	}
+	m := make(map[PerTeamKeyGeneration]bool)
+	for _, v := range h.ReaderKeyMasks {
+		for k := range v {
+			m[k] = true
+		}
+	}
+	var r []PerTeamKeyGeneration
+	for k := range m {
+		r = append(r, k)
+	}
+	return fmt.Sprintf("{ptksu:%v, rkms:%v, sigchain:%s}", p, r, h.Chain.KeySummary())
+}
+
+func (s TeamSigChainState) UserRole(user UserVersion) TeamRole {
+	points := s.UserLog[user]
+	if len(points) == 0 {
+		return TeamRole_NONE
+	}
+	role := points[len(points)-1].Role
+	return role
+}
+
+func (s TeamSigChainState) GetUserLastJoinTime(user UserVersion) (time Time, err error) {
+	if s.UserRole(user) == TeamRole_NONE {
+		return 0, fmt.Errorf("In GetUserLastJoinTime: User %s is not a member of team %v", user.Uid, s.Id)
+	}
+	// Look for the latest join event, i.e. the latest transition from a role NONE to a different valid one.
+	points := s.UserLog[user]
+	for i := len(points) - 1; i > -1; i-- {
+		if points[i].Role == TeamRole_NONE {
+			// this is the last time in the sigchain this user has role none
+			// (note that it cannot be the last link in the chain, otherwise the
+			// user would have role NONE), so the link after this one is the one
+			// where they joined the team last.
+			return points[i+1].SigMeta.Time, nil
+		}
+	}
+	// If the user never had role none, they joined at the time of their first
+	// UserLog entry (they need to have at least one, else again their role would be
+	// NONE).
+	return points[0].SigMeta.Time, nil
+}
+
+// GetUserLastRoleChangeTime returns the time of the last role change for user
+// in team. If the user left the team as a last change, the time of such leave
+// event is returned. If the user was never in the team, then this function
+// returns time=0 and wasMember=false.
+func (s TeamSigChainState) GetUserLastRoleChangeTime(user UserVersion) (time Time, wasMember bool) {
+	points := s.UserLog[user]
+	if len(points) == 0 {
+		return 0, false
+	}
+	return points[len(points)-1].SigMeta.Time, true
+}
+
+func (s TeamSigChainState) KeySummary() string {
+	var v []PerTeamKeyGeneration
+	for k := range s.PerTeamKeys {
+		v = append(v, k)
+	}
+	return fmt.Sprintf("{maxPTK:%d, ptk:%v}", s.MaxPerTeamKeyGeneration, v)
+}
+
+func (s TeamSigChainState) HasAnyStubbedLinks() bool {
+	for _, v := range s.StubbedLinks {
+		if v {
+			return true
+		}
+	}
+	return false
+}
+
+func (s TeamSigChainState) ListSubteams() (res []TeamIDAndName) {
+	type Entry struct {
+		ID   TeamID
+		Name TeamName
+		// Seqno of the last cached rename of this team
+		Seqno Seqno
+	}
+	// Use a map to deduplicate names. If there is a subteam name
+	// collision, take the one with the latest (parent) seqno
+	// modifying its name.
+	// A collision could occur if you were removed from a team
+	// and miss its renaming or deletion to stubbing.
+	resMap := make(map[string] /*TeamName*/ Entry)
+	for subteamID, points := range s.SubteamLog {
+		if len(points) == 0 {
+			// this should never happen
+			continue
+		}
+		lastPoint := points[len(points)-1]
+		if lastPoint.Name.IsNil() {
+			// the subteam has been deleted
+			continue
+		}
+		entry := Entry{
+			ID:    subteamID,
+			Name:  lastPoint.Name,
+			Seqno: lastPoint.Seqno,
+		}
+		existing, ok := resMap[entry.Name.String()]
+		replace := !ok || (entry.Seqno >= existing.Seqno)
+		if replace {
+			resMap[entry.Name.String()] = entry
+		}
+	}
+	for _, entry := range resMap {
+		res = append(res, TeamIDAndName{
+			Id:   entry.ID,
+			Name: entry.Name,
+		})
+	}
+	return res
+}
+
+func (s TeamSigChainState) GetAllUVs() (res []UserVersion) {
+	for uv := range s.UserLog {
+		if s.UserRole(uv) != TeamRole_NONE {
+			res = append(res, uv)
+		}
+	}
+	return res
+}
+
+func (s TeamSigChainState) ActiveInvites() (ret []TeamInvite) {
+	for _, md := range s.InviteMetadatas {
+		if code, err := md.Status.Code(); err == nil &&
+			code == TeamInviteMetadataStatusCode_ACTIVE {
+			ret = append(ret, md.Invite)
+		}
+	}
+	return ret
+}
+
+func (h *HiddenTeamChain) IsStale() bool {
+	if h == nil {
+		return false
+	}
+	max := h.RatchetSet.Max()
+	if max < h.LatestSeqnoHint {
+		max = h.LatestSeqnoHint
+	}
+	if max == Seqno(0) {
+		return false
+	}
+	_, fresh := h.Outer[max]
+	return !fresh
+}
+
+func (k TeamEphemeralKey) Ctime() Time {
+	typ, err := k.KeyType()
+	if err != nil {
+		return 0
+	}
+	switch typ {
+	case TeamEphemeralKeyType_TEAM:
+		return k.Team().Metadata.Ctime
+	case TeamEphemeralKeyType_TEAMBOT:
+		return k.Teambot().Metadata.Ctime
+	default:
+		return 0
+	}
+}
+
+func (k TeamEphemeralKeyBoxed) Ctime() Time {
+	typ, err := k.KeyType()
+	if err != nil {
+		return 0
+	}
+	switch typ {
+	case TeamEphemeralKeyType_TEAM:
+		return k.Team().Metadata.Ctime
+	case TeamEphemeralKeyType_TEAMBOT:
+		return k.Teambot().Metadata.Ctime
+	default:
+		return 0
+	}
+}
+
+func (k TeamEphemeralKey) Generation() EkGeneration {
+	typ, err := k.KeyType()
+	if err != nil {
+		return 0
+	}
+	switch typ {
+	case TeamEphemeralKeyType_TEAM:
+		return k.Team().Metadata.Generation
+	case TeamEphemeralKeyType_TEAMBOT:
+		return k.Teambot().Metadata.Generation
+	default:
+		return 0
+	}
+}
+
+func (k TeamEphemeralKey) Material() Bytes32 {
+	typ, err := k.KeyType()
+	if err != nil {
+		return [32]byte{}
+	}
+	switch typ {
+	case TeamEphemeralKeyType_TEAM:
+		return k.Team().Seed
+	case TeamEphemeralKeyType_TEAMBOT:
+		return k.Teambot().Seed
+	default:
+		return [32]byte{}
+	}
+}
+
+func (k TeamEphemeralKeyBoxed) Generation() EkGeneration {
+	typ, err := k.KeyType()
+	if err != nil {
+		return 0
+	}
+	switch typ {
+	case TeamEphemeralKeyType_TEAM:
+		return k.Team().Metadata.Generation
+	case TeamEphemeralKeyType_TEAMBOT:
+		return k.Teambot().Metadata.Generation
+	default:
+		return 0
+	}
+}
+
+func (k TeamEphemeralKeyType) IsTeambot() bool {
+	return k == TeamEphemeralKeyType_TEAMBOT
+}
+
+func (k TeamEphemeralKeyType) IsTeam() bool {
+	return k == TeamEphemeralKeyType_TEAM
+}
+
+// IsLimited returns if the network is considered limited based on the type.
+func (s MobileNetworkState) IsLimited() bool {
+	switch s {
+	case MobileNetworkState_WIFI, MobileNetworkState_NOTAVAILABLE:
+		return false
+	default:
+		return true
+	}
+}
+
+func (k TeambotKey) Generation() int {
+	return int(k.Metadata.Generation)
+}
+
+func (k TeambotKey) Material() Bytes32 {
+	return k.Seed
+}
+
+func (r APIUserSearchResult) GetStringIDForCompare() string {
+	switch {
+	case r.Contact != nil:
+		return fmt.Sprintf("%s%s", r.Contact.DisplayName, r.Contact.DisplayLabel)
+	case r.Imptofu != nil:
+		return fmt.Sprintf("%s%s", r.Imptofu.PrettyName, r.Imptofu.Label)
+	case r.Keybase != nil:
+		return r.Keybase.Username
+	default:
+		return ""
+	}
+}
+
+func NewPathWithKbfsPath(path string) Path {
+	return NewPathWithKbfs(KBFSPath{Path: path})
+}
+
+func (p PerTeamKey) Equal(q PerTeamKey) bool {
+	return p.EncKID.Equal(q.EncKID) && p.SigKID.Equal(q.SigKID)
+}
+
+func (b BotToken) IsNil() bool {
+	return len(b) == 0
+}
+
+func (b BotToken) Exists() bool {
+	return !b.IsNil()
+}
+
+func (b BotToken) String() string {
+	return string(b)
+}
+
+var botTokenRxx = regexp.MustCompile(`^[a-zA-Z0-9_-]{32}$`)
+
+func NewBotToken(s string) (BotToken, error) {
+	if !botTokenRxx.MatchString(s) {
+		return BotToken(""), errors.New("bad bot token")
+	}
+	return BotToken(s), nil
+}
+
+func (b BadgeConversationInfo) IsEmpty() bool {
+	return b.UnreadMessages == 0 && b.BadgeCount == 0
+}
+
+func (s *TeamBotSettings) Eq(o *TeamBotSettings) bool {
+	return reflect.DeepEqual(s, o)
+}
+
+func (s *TeamBotSettings) ConvIDAllowed(strCID string) bool {
+	if s == nil {
+		return true
+	}
+	for _, strConvID := range s.Convs {
+		if strCID == strConvID {
+			return true
+		}
+	}
+	return len(s.Convs) == 0
+}
+
+func (b UserBlockedBody) Summarize() UserBlockedSummary {
+	ret := UserBlockedSummary{
+		Blocker: b.Username,
+		Blocks:  make(map[string][]UserBlockState),
+	}
+	for _, block := range b.Blocks {
+		if block.Chat != nil {
+			ret.Blocks[block.Username] = append(ret.Blocks[block.Username], UserBlockState{UserBlockType_CHAT, *block.Chat})
+		}
+		if block.Follow != nil {
+			ret.Blocks[block.Username] = append(ret.Blocks[block.Username], UserBlockState{UserBlockType_FOLLOW, *block.Follow})
+		}
+	}
+	return ret
+}
+
+func FilterMembersDetails(membMap map[string]struct{}, details []TeamMemberDetails) (res []TeamMemberDetails) {
+	res = []TeamMemberDetails{}
+	for _, member := range details {
+		if _, ok := membMap[member.Username]; ok {
+			res = append(res, member)
+		}
+	}
+	return res
+}
+
+func FilterTeamDetailsForMembers(usernames []string, details TeamDetails) TeamDetails {
+	membMap := make(map[string]struct{})
+	for _, username := range usernames {
+		membMap[username] = struct{}{}
+	}
+	res := details.DeepCopy()
+	res.Members.Owners = FilterMembersDetails(membMap, res.Members.Owners)
+	res.Members.Admins = FilterMembersDetails(membMap, res.Members.Admins)
+	res.Members.Writers = FilterMembersDetails(membMap, res.Members.Writers)
+	res.Members.Readers = FilterMembersDetails(membMap, res.Members.Readers)
+	res.Members.Bots = FilterMembersDetails(membMap, res.Members.Bots)
+	res.Members.RestrictedBots = FilterMembersDetails(membMap, res.Members.RestrictedBots)
+	return res
+}
+
+func (b FeaturedBot) DisplayName() string {
+	if b.BotAlias == "" {
+		return b.BotUsername
+	}
+	return fmt.Sprintf("%s (%s)", b.BotAlias, b.BotUsername)
+}
+
+func (b FeaturedBot) Owner() string {
+	if b.OwnerTeam != nil {
+		return *b.OwnerTeam
+	}
+	if b.OwnerUser != nil {
+		return *b.OwnerUser
+	}
+	return ""
+}
+
+func (b FeaturedBot) Eq(o FeaturedBot) bool {
+	return b.BotAlias == o.BotAlias &&
+		b.Description == o.Description &&
+		b.ExtendedDescription == o.ExtendedDescription &&
+		b.BotUsername == o.BotUsername &&
+		b.Owner() == o.Owner()
+}
+
+func (a SearchArg) String() string {
+	// Don't leak user's query string
+	return fmt.Sprintf("Limit: %d, Offset: %d", a.Limit, a.Offset)
+}
+func (a SearchLocalArg) String() string {
+	// Don't leak user's query string
+	return fmt.Sprintf("Limit: %d, SkipCache: %v", a.Limit, a.SkipCache)
+}
+
+func (b FeaturedBotsRes) Eq(o FeaturedBotsRes) bool {
+	if len(b.Bots) != len(o.Bots) {
+		return false
+	}
+	for i, bot := range b.Bots {
+		if !bot.Eq(o.Bots[i]) {
+			return false
+		}
+	}
+	return true
+}
+
+// Redact modifies the given ClientDetails struct
+func (d *ClientDetails) Redact() {
+	tmp := fmt.Sprintf("%v", d.Argv)
+	re := regexp.MustCompile(`\b(chat|fs|encrypt|git|accept-invite|wallet\s+send|wallet\s+import|passphrase\s+check)\b`)
+	if mtch := re.FindString(tmp); len(mtch) > 0 {
+		d.Argv = []string{d.Argv[0], mtch, redactedReplacer}
+	}
+
+	for i, arg := range d.Argv {
+		if strings.Contains(arg, "paperkey") && i+1 < len(d.Argv) && !strings.HasPrefix(d.Argv[i+1], "-") {
+			d.Argv[i+1] = redactedReplacer
+		}
+	}
+}
+
+func (s UserSummarySet) Usernames() (ret []string) {
+	for _, x := range s.Users {
+		ret = append(ret, x.Username)
+	}
+	return ret
+}
+
+func (x InstrumentationStat) AppendStat(y InstrumentationStat) InstrumentationStat {
+	x.Mtime = ToTime(time.Now())
+	x.NumCalls += y.NumCalls
+	x.TotalDur += y.TotalDur
+	if y.MaxDur > x.MaxDur {
+		x.MaxDur = y.MaxDur
+	}
+	if y.MinDur < x.MinDur {
+		x.MinDur = y.MinDur
+	}
+
+	x.TotalSize += y.TotalSize
+	if y.MaxSize > x.MaxSize {
+		x.MaxSize = y.MaxSize
+	}
+	if y.MinSize < x.MinSize {
+		x.MinSize = y.MinSize
+	}
+
+	x.AvgDur = x.TotalDur / DurationMsec(x.NumCalls)
+	x.AvgSize = x.TotalSize / int64(x.NumCalls)
+	return x
+}
+
+func (e TeamSearchExport) Hash() string {
+	l := make([]TeamSearchItem, 0, len(e.Items))
+	for _, item := range e.Items {
+		l = append(l, item)
+	}
+	sort.Slice(l, func(i, j int) bool {
+		return l[i].Id.Less(l[j].Id)
+	})
+	hasher := sha256.New()
+	for _, team := range l {
+		log := math.Floor(math.Log10(float64(team.MemberCount)))
+		rounder := int(math.Pow(10, log))
+		value := (team.MemberCount / rounder) * rounder
+		hasher.Write(team.Id.ToBytes())
+		hasher.Write([]byte(fmt.Sprintf("%d", value)))
+	}
+	for _, id := range e.Suggested {
+		hasher.Write(id.ToBytes())
+	}
+	return hex.EncodeToString(hasher.Sum(nil))
+}
+
+// web-of-trust
+// In order of descending quality.
+// Keep in sync with:
+// - server helpers/wot.ts
+// - gui WebOfTrustVerificationType
+const (
+	UsernameVerificationType_IN_PERSON  = "in_person"
+	UsernameVerificationType_VIDEO      = "video"
+	UsernameVerificationType_AUDIO      = "audio"
+	UsernameVerificationType_PROOFS     = "proofs"
+	UsernameVerificationType_OTHER_CHAT = "other_chat"
+	UsernameVerificationType_FAMILIAR   = "familiar"
+	UsernameVerificationType_OTHER      = "other"
+)
+
+var UsernameVerificationTypeMap = map[string]UsernameVerificationType{
+	"in_person":  UsernameVerificationType_IN_PERSON,
+	"proofs":     UsernameVerificationType_PROOFS,
+	"video":      UsernameVerificationType_VIDEO,
+	"audio":      UsernameVerificationType_AUDIO,
+	"other_chat": UsernameVerificationType_OTHER_CHAT,
+	"familiar":   UsernameVerificationType_FAMILIAR,
+	"other":      UsernameVerificationType_OTHER,
+}
+
+func (fsc FolderSyncConfig) Equal(other FolderSyncConfig) bool {
+	if fsc.Mode != other.Mode {
+		return false
+	}
+	if len(fsc.Paths) != len(other.Paths) {
+		return false
+	}
+	for i, p := range fsc.Paths {
+		if p != other.Paths[i] {
+			return false
+		}
+	}
+	return true
+}
+
+func (t SeitanIKeyInvitelink) String() string {
+	return string(t)
+}
+
+// UserRolePairsHaveOwner check if a list of UserRolePair has user with role
+// OWNER.
+func UserRolePairsHaveOwner(users []UserRolePair) bool {
+	for _, urp := range users {
+		if urp.Role == TeamRole_OWNER {
+			return true
+		}
+	}
+	return false
+}
+
+func (e EmailAddress) String() string {
+	return string(e)
+}
+
+func NewTeamSigMeta(sigMeta SignatureMetadata, uv UserVersion) TeamSignatureMetadata {
+	return TeamSignatureMetadata{SigMeta: sigMeta, Uv: uv}
+}
+
+func NewTeamInviteMetadata(invite TeamInvite, teamSigMeta TeamSignatureMetadata) TeamInviteMetadata {
+	return TeamInviteMetadata{
+		Invite:      invite,
+		TeamSigMeta: teamSigMeta,
+		Status:      NewTeamInviteMetadataStatusWithActive(),
+	}
+}
+
+func (a AnnotatedTeam) ToLegacyTeamDetails() TeamDetails {
+	var members TeamMembersDetails
+	for _, member := range a.Members {
+		switch member.Role {
+		case TeamRole_RESTRICTEDBOT:
+			members.RestrictedBots = append(members.RestrictedBots, member)
+		case TeamRole_BOT:
+			members.Bots = append(members.Bots, member)
+		case TeamRole_READER:
+			members.Readers = append(members.Readers, member)
+		case TeamRole_WRITER:
+			members.Writers = append(members.Writers, member)
+		case TeamRole_ADMIN:
+			members.Admins = append(members.Admins, member)
+		case TeamRole_OWNER:
+			members.Owners = append(members.Owners, member)
+		}
+	}
+
+	annotatedActiveInvites := make(map[TeamInviteID]AnnotatedTeamInvite)
+	for _, annotatedInvite := range a.Invites {
+		code, _ := annotatedInvite.InviteMetadata.Status.Code()
+		if code != TeamInviteMetadataStatusCode_ACTIVE {
+			continue
+		}
+		annotatedActiveInvites[annotatedInvite.InviteMetadata.Invite.Id] = annotatedInvite
+	}
+
+	return TeamDetails{
+		Name:                   a.Name,
+		Members:                members,
+		KeyGeneration:          a.KeyGeneration,
+		AnnotatedActiveInvites: annotatedActiveInvites,
+		Settings:               a.Settings,
+		Showcase:               a.Showcase,
 	}
 }

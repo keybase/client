@@ -1,0 +1,9 @@
+@namespace("keybase.1")
+
+protocol identify3Common {
+
+  @typedef("string") record Identify3Assertion {}
+  @typedef("string") @lint("ignore") record Identify3GUIID {}
+
+}
+

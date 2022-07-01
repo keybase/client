@@ -7,6 +7,7 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
+	"net/http"
 	"net/url"
 	"strconv"
 
@@ -35,6 +36,10 @@ type I struct {
 	Val int
 }
 
+type I64 struct {
+	Val int64
+}
+
 type U struct {
 	Val uint64
 }
@@ -61,6 +66,7 @@ func NewHTTPArgs() HTTPArgs {
 
 func (s S) String() string    { return s.Val }
 func (i I) String() string    { return strconv.Itoa(i.Val) }
+func (i I64) String() string  { return strconv.FormatInt(i.Val, 10) }
 func (u U) String() string    { return strconv.FormatUint(u.Val, 10) }
 func (h UHex) String() string { return fmt.Sprintf("%016x", h.Val) }
 func (b B) String() string {
@@ -87,4 +93,19 @@ func HTTPArgsFromKeyValuePair(key string, val HTTPValue) HTTPArgs {
 	ret := HTTPArgs{}
 	ret[key] = val
 	return ret
+}
+
+type ClosingRoundTripper struct {
+	rt http.RoundTripper
+}
+
+func NewClosingRoundTripper(rt http.RoundTripper) *ClosingRoundTripper {
+	return &ClosingRoundTripper{
+		rt: rt,
+	}
+}
+
+func (t ClosingRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
+	req.Close = true
+	return t.rt.RoundTrip(req)
 }

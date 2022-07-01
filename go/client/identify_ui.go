@@ -11,90 +11,141 @@ import (
 )
 
 type IdentifyUIServer struct {
+	libkb.Contextified
 	ui libkb.IdentifyUI
 }
 
 func NewIdentifyUIProtocol(g *libkb.GlobalContext) rpc.Protocol {
-	return keybase1.IdentifyUiProtocol(&IdentifyUIServer{g.UI.GetIdentifyUI()})
+	return keybase1.IdentifyUiProtocol(&IdentifyUIServer{
+		Contextified: libkb.NewContextified(g),
+		ui:           g.UI.GetIdentifyUI(),
+	})
 }
 
 func NewIdentifyTrackUIProtocol(g *libkb.GlobalContext) rpc.Protocol {
 	ui := g.UI.GetIdentifyTrackUI()
-	return keybase1.IdentifyUiProtocol(&IdentifyUIServer{ui})
+	return keybase1.IdentifyUiProtocol(&IdentifyUIServer{
+		Contextified: libkb.NewContextified(g),
+		ui:           ui,
+	})
+}
+
+func (i *IdentifyUIServer) newMetaContext(ctx context.Context) libkb.MetaContext {
+	return libkb.NewMetaContext(ctx, i.G())
 }
 
 func (i *IdentifyUIServer) DelegateIdentifyUI(_ context.Context) (int, error) {
 	return 0, libkb.UIDelegationUnavailableError{}
 }
 
-func (i *IdentifyUIServer) Confirm(_ context.Context, arg keybase1.ConfirmArg) (keybase1.ConfirmResult, error) {
-	return i.ui.Confirm(&arg.Outcome)
+func (i *IdentifyUIServer) Confirm(ctx context.Context, arg keybase1.ConfirmArg) (keybase1.ConfirmResult, error) {
+	return i.ui.Confirm(i.newMetaContext(ctx), &arg.Outcome)
 }
 
-func (i *IdentifyUIServer) FinishWebProofCheck(_ context.Context, arg keybase1.FinishWebProofCheckArg) error {
-	i.ui.FinishWebProofCheck(arg.Rp, arg.Lcr)
+func (i *IdentifyUIServer) FinishWebProofCheck(ctx context.Context, arg keybase1.FinishWebProofCheckArg) error {
+	return i.ui.FinishWebProofCheck(i.newMetaContext(ctx), arg.Rp, arg.Lcr)
+}
+
+func (i *IdentifyUIServer) FinishSocialProofCheck(ctx context.Context, arg keybase1.FinishSocialProofCheckArg) error {
+	return i.ui.FinishSocialProofCheck(i.newMetaContext(ctx), arg.Rp, arg.Lcr)
+}
+
+func (i *IdentifyUIServer) DisplayCryptocurrency(ctx context.Context, arg keybase1.DisplayCryptocurrencyArg) error {
+	return i.ui.DisplayCryptocurrency(i.newMetaContext(ctx), arg.C)
+}
+
+func (i *IdentifyUIServer) DisplayStellarAccount(ctx context.Context, arg keybase1.DisplayStellarAccountArg) error {
+	return i.ui.DisplayStellarAccount(i.newMetaContext(ctx), arg.A)
+}
+
+func (i *IdentifyUIServer) DisplayKey(ctx context.Context, arg keybase1.DisplayKeyArg) error {
+	return i.ui.DisplayKey(i.newMetaContext(ctx), arg.Key)
+}
+
+func (i *IdentifyUIServer) ReportLastTrack(ctx context.Context, arg keybase1.ReportLastTrackArg) error {
+	return i.ui.ReportLastTrack(i.newMetaContext(ctx), arg.Track)
+}
+
+func (i *IdentifyUIServer) LaunchNetworkChecks(ctx context.Context, arg keybase1.LaunchNetworkChecksArg) error {
 	return nil
 }
 
-func (i *IdentifyUIServer) FinishSocialProofCheck(_ context.Context, arg keybase1.FinishSocialProofCheckArg) error {
-	i.ui.FinishSocialProofCheck(arg.Rp, arg.Lcr)
-	return nil
+func (i *IdentifyUIServer) DisplayTrackStatement(ctx context.Context, arg keybase1.DisplayTrackStatementArg) error {
+	return i.ui.DisplayTrackStatement(i.newMetaContext(ctx), arg.Stmt)
 }
 
-func (i *IdentifyUIServer) DisplayCryptocurrency(_ context.Context, arg keybase1.DisplayCryptocurrencyArg) error {
-	i.ui.DisplayCryptocurrency(arg.C)
-	return nil
+func (i *IdentifyUIServer) ReportTrackToken(ctx context.Context, arg keybase1.ReportTrackTokenArg) error {
+	return i.ui.ReportTrackToken(i.newMetaContext(ctx), arg.TrackToken)
 }
 
-func (i *IdentifyUIServer) DisplayKey(_ context.Context, arg keybase1.DisplayKeyArg) error {
-	i.ui.DisplayKey(arg.Key)
-	return nil
+func (i *IdentifyUIServer) DisplayUserCard(ctx context.Context, arg keybase1.DisplayUserCardArg) error {
+	return i.ui.DisplayUserCard(i.newMetaContext(ctx), arg.Card)
 }
 
-func (i *IdentifyUIServer) ReportLastTrack(_ context.Context, arg keybase1.ReportLastTrackArg) error {
-	i.ui.ReportLastTrack(arg.Track)
-	return nil
+func (i *IdentifyUIServer) Start(ctx context.Context, arg keybase1.StartArg) error {
+	return i.ui.Start(i.newMetaContext(ctx), arg.Username, arg.Reason, arg.ForceDisplay)
 }
 
-func (i *IdentifyUIServer) LaunchNetworkChecks(_ context.Context, arg keybase1.LaunchNetworkChecksArg) error {
-	return nil
+func (i *IdentifyUIServer) Cancel(ctx context.Context, sessionID int) error {
+	return i.ui.Cancel(i.newMetaContext(ctx))
 }
 
-func (i *IdentifyUIServer) DisplayTrackStatement(_ context.Context, arg keybase1.DisplayTrackStatementArg) error {
-	i.ui.DisplayTrackStatement(arg.Stmt)
-	return nil
+func (i *IdentifyUIServer) Finish(ctx context.Context, sessionID int) error {
+	return i.ui.Finish(i.newMetaContext(ctx))
 }
 
-func (i *IdentifyUIServer) ReportTrackToken(_ context.Context, arg keybase1.ReportTrackTokenArg) error {
-	i.ui.ReportTrackToken(arg.TrackToken)
-	return nil
+func (i *IdentifyUIServer) Dismiss(ctx context.Context, arg keybase1.DismissArg) error {
+	return i.ui.Dismiss(i.newMetaContext(ctx), arg.Username, arg.Reason)
 }
 
-func (i *IdentifyUIServer) DisplayUserCard(_ context.Context, arg keybase1.DisplayUserCardArg) error {
-	i.ui.DisplayUserCard(arg.Card)
-	return nil
+func (i *IdentifyUIServer) DisplayTLFCreateWithInvite(ctx context.Context, arg keybase1.DisplayTLFCreateWithInviteArg) error {
+	return i.ui.DisplayTLFCreateWithInvite(i.newMetaContext(ctx), arg)
 }
 
-func (i *IdentifyUIServer) Start(_ context.Context, arg keybase1.StartArg) error {
-	i.ui.Start(arg.Username, arg.Reason, arg.ForceDisplay)
-	return nil
+func NewNullIdentifyUIProtocol() rpc.Protocol {
+	return keybase1.IdentifyUiProtocol(&nullIdentifyUI{})
 }
 
-func (i *IdentifyUIServer) Cancel(_ context.Context, sessionID int) error {
-	i.ui.Cancel()
+type nullIdentifyUI struct{}
+
+func (c nullIdentifyUI) Start(context.Context, keybase1.StartArg) error {
 	return nil
 }
-
-func (i *IdentifyUIServer) Finish(_ context.Context, sessionID int) error {
-	i.ui.Finish()
+func (c nullIdentifyUI) FinishWebProofCheck(context.Context, keybase1.FinishWebProofCheckArg) error {
 	return nil
 }
-
-func (i *IdentifyUIServer) Dismiss(_ context.Context, arg keybase1.DismissArg) error {
-	i.ui.Dismiss(arg.Username, arg.Reason)
+func (c nullIdentifyUI) FinishSocialProofCheck(context.Context, keybase1.FinishSocialProofCheckArg) error {
 	return nil
 }
-
-func (i *IdentifyUIServer) DisplayTLFCreateWithInvite(_ context.Context, arg keybase1.DisplayTLFCreateWithInviteArg) error {
-	return i.ui.DisplayTLFCreateWithInvite(arg)
+func (c nullIdentifyUI) Confirm(context.Context, keybase1.ConfirmArg) (keybase1.ConfirmResult, error) {
+	return keybase1.ConfirmResult{}, nil
 }
+func (c nullIdentifyUI) DisplayCryptocurrency(context.Context, keybase1.DisplayCryptocurrencyArg) error {
+	return nil
+}
+func (c nullIdentifyUI) DisplayStellarAccount(context.Context, keybase1.DisplayStellarAccountArg) error {
+	return nil
+}
+func (c nullIdentifyUI) DisplayKey(context.Context, keybase1.DisplayKeyArg) error { return nil }
+func (c nullIdentifyUI) ReportLastTrack(context.Context, keybase1.ReportLastTrackArg) error {
+	return nil
+}
+func (c nullIdentifyUI) LaunchNetworkChecks(context.Context, keybase1.LaunchNetworkChecksArg) error {
+	return nil
+}
+func (c nullIdentifyUI) DisplayTrackStatement(context.Context, keybase1.DisplayTrackStatementArg) error {
+	return nil
+}
+func (c nullIdentifyUI) DisplayUserCard(context.Context, keybase1.DisplayUserCardArg) error {
+	return nil
+}
+func (c nullIdentifyUI) ReportTrackToken(context.Context, keybase1.ReportTrackTokenArg) error {
+	return nil
+}
+func (c nullIdentifyUI) Cancel(context.Context, int) error { return nil }
+func (c nullIdentifyUI) Finish(context.Context, int) error { return nil }
+func (c nullIdentifyUI) DisplayTLFCreateWithInvite(context.Context, keybase1.DisplayTLFCreateWithInviteArg) error {
+	return nil
+}
+func (c nullIdentifyUI) Dismiss(context.Context, keybase1.DismissArg) error { return nil }
+func (c nullIdentifyUI) DelegateIdentifyUI(context.Context) (int, error)    { return 0, nil }

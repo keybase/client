@@ -6,6 +6,7 @@ package externals
 import (
 	"testing"
 
+	libkb "github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
 )
@@ -36,15 +37,16 @@ var nsatests = []nsatest{
 	{in: "BOB@facebook", out: keybase1.SocialAssertion{User: "bob", Service: "facebook"}, ok: true},
 	{in: "Akalin.Com@web", out: keybase1.SocialAssertion{User: "akalin.com", Service: "web"}, ok: true},
 	{in: "alice@gubble.SoCiAl", out: keybase1.SocialAssertion{User: "alice", Service: "gubble.social"}, ok: true},
-	{in: "alice@gubble", out: keybase1.SocialAssertion{}, ok: false},
-	{in: "sadtimes@nousers.notsocial", out: keybase1.SocialAssertion{}, ok: false},
+	{in: "a@gubble.SoCiAl", out: keybase1.SocialAssertion{}, ok: false},            // username check fails
+	{in: "alice@gubble", out: keybase1.SocialAssertion{}, ok: false},               // invalid service
+	{in: "sadtimes@nousers.notsocial", out: keybase1.SocialAssertion{}, ok: false}, // invalid service
 }
 
 func TestNormalizeSocialAssertion(t *testing.T) {
 	tc := setupTest(t, "NormalizeSocialAssertion", 1)
 	defer tc.Cleanup()
 	for _, test := range nsatests {
-		out, ok := NormalizeSocialAssertion(tc.G, test.in)
+		out, ok := NormalizeSocialAssertion(libkb.NewMetaContextForTest(tc), test.in)
 
 		require.Equal(t, test.out, out)
 		require.Equal(t, test.ok, ok)

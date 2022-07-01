@@ -1,11 +1,11 @@
 {
-  "prelude": ["import * as Types from '../constants/types/push'"],
+  "prelude": ["import type * as Types from '../constants/types/push'"],
   "actions": {
     "rejectPermissions": {},
     "requestPermissions": {},
-    "showPermissionsPrompt": { "show": "boolean" },
-    "updatePushToken": { "token": "string", },
-    "updateHasPermissions": { "hasPermissions": "boolean" },
-    "notification": { "notification": "Types.PushNotification" }
+    "showPermissionsPrompt": {"show?": "boolean", "persistSkip?": "boolean", "justSignedUp?": "boolean"},
+    "updatePushToken": {"token": "string"},
+    "updateHasPermissions": {"hasPermissions": "boolean"},
+    "notification": {"notification": "Types.PushNotification"}
   }
 }

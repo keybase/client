@@ -9,6 +9,7 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/kbtest"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
 )
@@ -108,7 +109,7 @@ func TestSeitanKnownSamples(t *testing.T) {
 
 	expectedIKey := SeitanIKey("raw2ewqp249dyod4")
 	var expectedSIKey SeitanSIKey
-	copy(expectedSIKey[:], fromB64("Yqbj8NgHkIG03wfZX/dxpBpqFoXPXNXyQr+MnvCMbS4=")[:])
+	copy(expectedSIKey[:], fromB64("Yqbj8NgHkIG03wfZX/dxpBpqFoXPXNXyQr+MnvCMbS4="))
 	expectedInviteID := SCTeamInviteID("24189cc0ad5851ac52404ee99c7c9c27")
 
 	var secretKey keybase1.Bytes32
@@ -250,4 +251,94 @@ func TestParseSeitanTokenFromPaste(t *testing.T) {
 		require.Equal(t, unit.expectedS, maybeSeitan)
 		require.Equal(t, unit.expectedB, keepSecret)
 	}
+}
+
+func TestTeamInviteSeitanFailures(t *testing.T) {
+	tc := SetupTest(t, "team", 1)
+	defer tc.Cleanup()
+
+	tc.Tp.SkipSendingSystemChatMessages = true
+
+	user2, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
+	require.NoError(t, err)
+	kbtest.Logout(tc)
+
+	admin, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
+	require.NoError(t, err)
+
+	teamName, teamID := createTeam2(tc)
+	t.Logf("Created team %q", teamName.String())
+
+	token, err := CreateSeitanToken(context.Background(), tc.G,
+		teamName.String(), keybase1.TeamRole_WRITER, keybase1.SeitanKeyLabel{})
+	require.NoError(t, err)
+
+	t.Logf("Created token %q", token)
+
+	kbtest.LogoutAndLoginAs(tc, user2)
+
+	// Generate invitation id, but make AKey with different IKey.
+	// Simulate "replay attack" or similar.
+	ikey, err := ParseIKeyFromString(string(token))
+	require.NoError(t, err)
+	sikey, err := ikey.GenerateSIKey()
+	require.NoError(t, err)
+	inviteID, err := sikey.GenerateTeamInviteID()
+	require.NoError(t, err)
+
+	ikey2, err := GenerateIKey() // ikey2 is not the ikey from token.
+	require.NoError(t, err)
+	sikey2, err := ikey2.GenerateSIKey()
+	require.NoError(t, err)
+	unixNow := time.Now().Unix()
+	badAkey, badEncoded, err := sikey2.GenerateAcceptanceKey(user2.GetUID(), user2.EldestSeqno, unixNow)
+	require.NoError(t, err)
+
+	err = postSeitanV1(tc.MetaContext(), acceptedSeitanV1{
+		akey:     badAkey,
+		encoded:  badEncoded,
+		unixNow:  unixNow,
+		inviteID: inviteID,
+	})
+	require.NoError(t, err)
+
+	teamInviteID, err := inviteID.TeamInviteID()
+	require.NoError(t, err)
+
+	t.Logf("handle synthesized rekeyd command")
+	kbtest.LogoutAndLoginAs(tc, admin)
+
+	msg := keybase1.TeamSeitanMsg{
+		TeamID: teamID,
+		Seitans: []keybase1.TeamSeitanRequest{{
+			InviteID:    teamInviteID,
+			Uid:         user2.GetUID(),
+			EldestSeqno: user2.EldestSeqno,
+			Akey:        keybase1.SeitanAKey(badEncoded),
+			Role:        keybase1.TeamRole_WRITER,
+			UnixCTime:   unixNow,
+		}},
+	}
+
+	API := libkb.NewAPIArgRecorder(tc.G.API)
+	tc.G.API = API
+	err = HandleTeamSeitan(context.TODO(), tc.G, msg)
+	// Seitan handler does not fail, but ignores the request.
+	require.NoError(t, err)
+	records := API.GetFilteredRecordsAndReset(func(rec *libkb.APIRecord) bool {
+		return rec.Arg.Endpoint == "team/reject_invite_acceptance"
+	})
+	// not an InviteLink, nothing to reject
+	require.Len(t, records, 0, "no invite link acceptances were rejected")
+
+	t.Logf("invite should still be there")
+	t0, err := GetTeamByNameForTest(context.Background(), tc.G, teamName.String(), false /* public */, true /* needAdmin */)
+	require.NoError(t, err)
+	require.Equal(t, 1, t0.NumActiveInvites(), "invite should still be active")
+	require.EqualValues(t, t0.CurrentSeqno(), 2)
+
+	t.Logf("user should not be in team")
+	role, err := t0.MemberRole(context.Background(), user2.GetUserVersion())
+	require.NoError(t, err)
+	require.Equal(t, keybase1.TeamRole_NONE, role, "user role")
 }

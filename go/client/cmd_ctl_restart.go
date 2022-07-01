@@ -1,6 +1,7 @@
 // Copyright 2015 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
 
+//go:build !darwin
 // +build !darwin
 
 package client
@@ -51,7 +52,7 @@ func (s *CmdCtlRestart) Run() error {
 		return err
 	}
 	if err = cli.Stop(context.TODO(), keybase1.StopArg{ExitCode: keybase1.ExitCode_RESTART}); err != nil {
-		s.G().Log.Warning("Stop failed: %s", err)
+		s.G().Log.Warning("Stop in Restart failed: %s", err)
 		return err
 	}
 

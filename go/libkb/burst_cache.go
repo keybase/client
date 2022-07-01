@@ -2,9 +2,10 @@ package libkb
 
 import (
 	"fmt"
+	"time"
+
 	lru "github.com/hashicorp/golang-lru"
 	"golang.org/x/net/context"
-	"time"
 )
 
 // BurstCachce is an LRU+SingleFlighter useful for absorbing short-lived bursts
@@ -13,7 +14,7 @@ import (
 // of the first request.
 type BurstCache struct {
 	Contextified
-	locktab   LockTable
+	locktab   *LockTable
 	lru       *lru.Cache
 	cacheLife time.Duration
 	cacheName string
@@ -37,6 +38,7 @@ func NewBurstCache(g *GlobalContext, cacheSize int, cacheLife time.Duration, cac
 	return &BurstCache{
 		Contextified: NewContextified(g),
 		lru:          lru,
+		locktab:      NewLockTable(),
 		cacheLife:    cacheLife,
 		cacheName:    cacheName,
 	}
@@ -58,8 +60,7 @@ type BurstCacheLoader func() (obj interface{}, err error)
 // Return the object as an interface{}, so the caller needs to cast out of this burst cache.
 func (b *BurstCache) Load(ctx context.Context, key BurstCacheKey, loader BurstCacheLoader) (ret interface{}, err error) {
 	ctx = WithLogTag(ctx, "BC")
-
-	defer b.G().CVTrace(ctx, VLog0, fmt.Sprintf("BurstCache(%s)#Load(%s)", b.cacheName, key.String()), func() error { return err })()
+	defer b.G().CVTrace(ctx, VLog0, fmt.Sprintf("BurstCache(%s)#Load(%s)", b.cacheName, key.String()), &err)()
 
 	lock := b.locktab.AcquireOnName(ctx, b.G(), key.String())
 	defer lock.Release(ctx)

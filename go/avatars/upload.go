@@ -9,6 +9,7 @@ import (
 	"io"
 	"mime/multipart"
 	"os"
+	"time"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -36,7 +37,7 @@ func UploadImage(mctx libkb.MetaContext, filename string, teamID *keybase1.TeamI
 	mpart := multipart.NewWriter(&body)
 
 	if err := addFile(mpart, "avatar", filename); err != nil {
-		mctx.CDebugf("addFile error: %s", err)
+		mctx.Debug("addFile error: %s", err)
 		return err
 	}
 
@@ -48,15 +49,30 @@ func UploadImage(mctx libkb.MetaContext, filename string, teamID *keybase1.TeamI
 	}
 
 	if teamID != nil {
-		mpart.WriteField("team_id", string(*teamID))
+		err := mpart.WriteField("team_id", string(*teamID))
+		if err != nil {
+			return err
+		}
 	}
 
 	if crop != nil {
-		mctx.CDebugf("Adding crop fields: %+v", crop)
-		mpart.WriteField("x0", fmt.Sprintf("%d", crop.X0))
-		mpart.WriteField("y0", fmt.Sprintf("%d", crop.Y0))
-		mpart.WriteField("x1", fmt.Sprintf("%d", crop.X1))
-		mpart.WriteField("y1", fmt.Sprintf("%d", crop.Y1))
+		mctx.Debug("Adding crop fields: %+v", crop)
+		err := mpart.WriteField("x0", fmt.Sprintf("%d", crop.X0))
+		if err != nil {
+			return err
+		}
+		err = mpart.WriteField("y0", fmt.Sprintf("%d", crop.Y0))
+		if err != nil {
+			return err
+		}
+		err = mpart.WriteField("x1", fmt.Sprintf("%d", crop.X1))
+		if err != nil {
+			return err
+		}
+		err = mpart.WriteField("y1", fmt.Sprintf("%d", crop.Y1))
+		if err != nil {
+			return err
+		}
 	}
 
 	if err := mpart.Close(); err != nil {
@@ -70,16 +86,18 @@ func UploadImage(mctx libkb.MetaContext, filename string, teamID *keybase1.TeamI
 		endpoint = "image/upload_user_avatar"
 	}
 
-	mctx.CDebugf("Running POST to %s", endpoint)
+	mctx.Debug("Running POST to %s", endpoint)
 
 	arg := libkb.APIArg{
-		Endpoint:    endpoint,
-		SessionType: libkb.APISessionTypeREQUIRED,
+		Endpoint:       endpoint,
+		SessionType:    libkb.APISessionTypeREQUIRED,
+		InitialTimeout: 5 * time.Minute,
+		RetryCount:     1,
 	}
 
-	_, err = mctx.G().API.PostRaw(arg, mpart.FormDataContentType(), &body)
+	_, err = mctx.G().API.PostRaw(mctx, arg, mpart.FormDataContentType(), &body)
 	if err != nil {
-		mctx.CDebugf("post error: %s", err)
+		mctx.Debug("post error: %s", err)
 		return err
 	}
 

@@ -1,3 +1,4 @@
+//go:build linux && !android
 // +build linux,!android
 
 package systemd
@@ -23,28 +24,32 @@ import (
 //
 // This function prints loud warnings because we only ever run it when
 // IsRunningSystemd is true, in which case all of these errors are unexpected.
-//
-// NOTE: This logic is duplicated in run_keybase. If you make changes here,
-// keep them in sync.
 func IsUserSystemdRunning() bool {
 	c := exec.Command("systemctl", "--user", "is-system-running")
 	output, err := c.Output()
 	// Ignore non-zero-exit-status errors, because of "degraded" below.
 	_, isExitError := err.(*exec.ExitError)
 	if err != nil && !isExitError {
-		os.Stderr.WriteString(fmt.Sprintf("Failed to run systemctl: %s\n", err))
+		os.Stderr.WriteString(fmt.Sprintf("Failed to run systemctl: check user manager status: %s\n", err))
 		return false
 	}
 	outputStr := strings.TrimSpace(string(output))
-	// "degraded" just means that some service has failed to start. That could
-	// be a totally unrelated application on the user's machine, so we treat it
-	// the same as "running".
-	if outputStr == "running" || outputStr == "degraded" {
+
+	switch outputStr {
+	case "running":
 		return true
-	} else if outputStr == "" {
-		os.Stderr.WriteString(fmt.Sprintf("Failed to reach user-level systemd daemon.\n"))
+	case "degraded":
+		// "degraded" just means that some service has failed to start. That
+		// could be a totally unrelated application on the user's machine, so
+		// we treat it the same as "running". Other methods of detecting this
+		// have turned out to be inconsistent across machines, like checking
+		// the status of dbus or init.scope, or even `systemd-run --user true`.
+		// If this is a false positive, user should specify KEYBASE_SYSTEMD=0.
+		return true
+	case "":
+		os.Stderr.WriteString("Failed to reach user-level systemd daemon.\n")
 		return false
-	} else {
+	default:
 		os.Stderr.WriteString(fmt.Sprintf("Systemd reported an unexpected status: %s\n", outputStr))
 		return false
 	}
@@ -67,8 +72,7 @@ func IsSocketActivated() bool {
 // open in the environment, return that socket. Otherwise return (nil, nil).
 // Currently only implemented for systemd on Linux.
 func GetListenerFromEnvironment() (net.Listener, error) {
-	// NOTE: If we ever set unsetEnv=true, we need to change IsSocketActivated above.
-	listeners, err := sdActivation.Listeners(false /* unsetEnv */)
+	listeners, err := sdActivation.Listeners()
 	if err != nil {
 		// Errors here (e.g. out of file descriptors, maybe?) aren't even
 		// returned by go-systemd right now, but they could be in the future.
@@ -88,5 +92,5 @@ func GetListenerFromEnvironment() (net.Listener, error) {
 }
 
 func NotifyStartupFinished() {
-	sdDaemon.SdNotify(false /* unsetEnv */, "READY=1")
+	_, _ = sdDaemon.SdNotify(false /* unsetEnv */, "READY=1")
 }

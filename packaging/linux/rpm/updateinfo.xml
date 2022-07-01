@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<updates>
+  <update from="code@keybase.io" status="stable" type="feature" version="1">
+    <id>KEYBASE-RELEASE-2.11</id>
+    <title>Keybase 2.11</title>
+    <release>Keybase 2.11 Release</release>
+    <issued date="2018-12-04 12:00:00"/>
+    <description>Chat: URL previews, performance improvement updates. Other: team creation flow UI upgrades, bugfixes.</description>
+    <pkglist>
+      <collection>
+        <name>Keybase</name>
+        <package arch="x86_64" name="keybase" release="1" version="2.11.0.20181115195458.06d3f3f3c4"></package>
+        <package arch="i386" name="keybase" release="1" version="2.11.0.20181115195458.06d3f3f3c4"></package>
+      </collection>
+    </pkglist>
+  </update>
+  <update from="code@keybase.io" status="stable" type="security" version="1">
+    <id>KEYBASE-ADVISORY-KB002</id>
+    <title>keybase-redirector privilege escalation fix</title>
+    <release>Keybase 2.08</release>
+    <issued date="2018-12-17 12:00:00"/>
+    <references>
+        <reference href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2018-18629" id="CVE-2018-18629" type="cve"/>
+    </references>
+    <description>Patches KB002: Local Privilege escalation on Linux via keybase-redirector. See MITRE CVE-2018-18629 and https://keybase.io/docs/secadv/kb002.</description>
+    <pkglist>
+      <collection>
+        <name>Keybase</name>
+        <package arch="x86_64" name="keybase" release="1" version="2.8.0.20181023124437.06221a8264">
+            <reboot_suggested>True</reboot_suggested>
+        </package>
+        <package arch="i386" name="keybase" release="1" version="2.8.0.20181023124437.06221a8264">
+            <reboot_suggested>True</reboot_suggested>
+        </package>
+      </collection>
+    </pkglist>
+  </update>
+</updates>

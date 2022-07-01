@@ -36,6 +36,10 @@ func (h *HomeHandler) HomeSkipTodoType(ctx context.Context, typ keybase1.HomeScr
 	return h.home.SkipTodoType(ctx, typ)
 }
 
+func (h *HomeHandler) HomeDismissAnnouncement(ctx context.Context, id keybase1.HomeScreenAnnouncementID) error {
+	return h.home.DismissAnnouncement(ctx, id)
+}
+
 func (h *HomeHandler) HomeActionTaken(ctx context.Context) error {
 	return h.home.ActionTaken(ctx)
 }

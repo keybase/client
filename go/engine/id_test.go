@@ -33,7 +33,7 @@ func runIdentify(tc *libkb.TestContext, username string) (idUI *FakeIdentifyUI, 
 	if err != nil {
 		return idUI, nil, err
 	}
-	res, err = eng.Result()
+	res, err = eng.Result(m)
 	if err != nil {
 		return idUI, nil, err
 	}
@@ -68,13 +68,14 @@ func checkDougProofs(tb libkb.TestingTB, idUI *FakeIdentifyUI, user *keybase1.Us
 func checkKeyedProfile(tb libkb.TestingTB, idUI *FakeIdentifyUI, them *keybase1.UserPlusKeysV2, name string, expectedProofs map[string]string) {
 	if them == nil {
 		tb.Fatal("nil 'them' user")
-	}
-	exported := &keybase1.User{
-		Uid:      them.GetUID(),
-		Username: them.GetName(),
-	}
-	if !reflect.DeepEqual(idUI.User, exported) {
-		tb.Fatal("LaunchNetworkChecks User not equal to result user.", idUI.User, exported)
+	} else {
+		exported := &keybase1.User{
+			Uid:      them.GetUID(),
+			Username: them.GetName(),
+		}
+		if !reflect.DeepEqual(idUI.User, exported) {
+			tb.Fatal("LaunchNetworkChecks User not equal to result user.", idUI.User, exported)
+		}
 	}
 
 	if !reflect.DeepEqual(expectedProofs, idUI.Proofs) {
@@ -149,7 +150,7 @@ func TestIdPGPNotEldest(t *testing.T) {
 	// create new user, then add pgp key
 	u := CreateAndSignupFakeUser(tc, "login")
 	uis := libkb.UIs{LogUI: tc.G.UI.GetLogUI(), SecretUI: u.NewSecretUI()}
-	_, _, key := armorKey(t, tc, u.Email)
+	_, _, key := genPGPKeyAndArmor(t, tc, u.Email)
 	eng, err := NewPGPKeyImportEngineFromBytes(tc.G, []byte(key), true)
 	require.NoError(t, err)
 
@@ -171,7 +172,8 @@ func TestIdGenericSocialProof(t *testing.T) {
 
 	// create new user and have them prove a gubble.social account
 	fu := CreateAndSignupFakeUser(tc, "login")
-	_proveGubbleSocial(tc, fu, libkb.KeybaseSignatureV2, false /* promptPosted */)
+	proveGubbleSocial(tc, fu, libkb.KeybaseSignatureV2)
+	proveGubbleCloud(tc, fu, libkb.KeybaseSignatureV2)
 	Logout(tc)
 
 	fu2 := CreateAndSignupFakeUser(tc, "login")
@@ -180,17 +182,18 @@ func TestIdGenericSocialProof(t *testing.T) {
 	idUI, result, err := runIdentify(&tc, fu.Username)
 	require.NoError(t, err)
 
-	// NOTE this will break once CORE-8658 is implemented
-	require.Equal(t, keybase1.ProofResult{
-		State:  keybase1.ProofState_TEMP_FAILURE,
-		Status: keybase1.ProofStatus_BASE_HARD_ERROR,
-		Desc:   "Not implemented",
-	},
-		idUI.ProofResults["gubble.social"].ProofResult,
-	)
+	expectedResult := keybase1.ProofResult{
+		State:  keybase1.ProofState_OK,
+		Status: keybase1.ProofStatus_OK,
+		Desc:   "",
+	}
+
+	require.Equal(t, expectedResult, idUI.ProofResults["gubble.social"].ProofResult)
+	require.Equal(t, expectedResult, idUI.ProofResults["gubble.cloud"].ProofResult)
 
 	checkKeyedProfile(t, idUI, &result.Upk.Current, fu.Username, map[string]string{
 		"gubble.social": fu.Username,
+		"gubble.cloud":  fu.Username,
 	})
 }
 
@@ -208,10 +211,11 @@ type FakeIdentifyUI struct {
 	DisplayTLFArg   keybase1.DisplayTLFCreateWithInviteArg
 	DisplayTLFCount int
 	FakeConfirm     bool
+	LastTrack       *keybase1.TrackSummary
 	sync.Mutex
 }
 
-func (ui *FakeIdentifyUI) FinishWebProofCheck(proof keybase1.RemoteProof, result keybase1.LinkCheckResult) error {
+func (ui *FakeIdentifyUI) FinishWebProofCheck(_ libkb.MetaContext, proof keybase1.RemoteProof, result keybase1.LinkCheckResult) error {
 	ui.Lock()
 	defer ui.Unlock()
 	if ui.Proofs == nil {
@@ -229,7 +233,7 @@ func (ui *FakeIdentifyUI) FinishWebProofCheck(proof keybase1.RemoteProof, result
 	return nil
 }
 
-func (ui *FakeIdentifyUI) FinishSocialProofCheck(proof keybase1.RemoteProof, result keybase1.LinkCheckResult) error {
+func (ui *FakeIdentifyUI) FinishSocialProofCheck(_ libkb.MetaContext, proof keybase1.RemoteProof, result keybase1.LinkCheckResult) error {
 	ui.Lock()
 	defer ui.Unlock()
 	if ui.Proofs == nil {
@@ -246,7 +250,7 @@ func (ui *FakeIdentifyUI) FinishSocialProofCheck(proof keybase1.RemoteProof, res
 	return nil
 }
 
-func (ui *FakeIdentifyUI) Confirm(outcome *keybase1.IdentifyOutcome) (result keybase1.ConfirmResult, err error) {
+func (ui *FakeIdentifyUI) Confirm(_ libkb.MetaContext, outcome *keybase1.IdentifyOutcome) (result keybase1.ConfirmResult, err error) {
 	ui.Lock()
 	defer ui.Unlock()
 
@@ -262,11 +266,16 @@ func (ui *FakeIdentifyUI) Confirm(outcome *keybase1.IdentifyOutcome) (result key
 	result.RemoteConfirmed = bypass && !outcome.TrackOptions.ExpiringLocal
 	return
 }
-func (ui *FakeIdentifyUI) DisplayCryptocurrency(keybase1.Cryptocurrency) error {
+
+func (ui *FakeIdentifyUI) DisplayCryptocurrency(libkb.MetaContext, keybase1.Cryptocurrency) error {
 	return nil
 }
 
-func (ui *FakeIdentifyUI) DisplayKey(ik keybase1.IdentifyKey) error {
+func (ui *FakeIdentifyUI) DisplayStellarAccount(libkb.MetaContext, keybase1.StellarAccount) error {
+	return nil
+}
+
+func (ui *FakeIdentifyUI) DisplayKey(_ libkb.MetaContext, ik keybase1.IdentifyKey) error {
 	ui.Lock()
 	defer ui.Unlock()
 	if ui.Keys == nil {
@@ -285,45 +294,46 @@ func (ui *FakeIdentifyUI) DisplayKey(ik keybase1.IdentifyKey) error {
 	ui.DisplayKeyCalls++
 	return nil
 }
-func (ui *FakeIdentifyUI) ReportLastTrack(*keybase1.TrackSummary) error {
+func (ui *FakeIdentifyUI) ReportLastTrack(_ libkb.MetaContext, summary *keybase1.TrackSummary) error {
+	ui.LastTrack = summary
 	return nil
 }
 
-func (ui *FakeIdentifyUI) Start(username string, _ keybase1.IdentifyReason, _ bool) error {
+func (ui *FakeIdentifyUI) Start(_ libkb.MetaContext, username string, _ keybase1.IdentifyReason, _ bool) error {
 	ui.Lock()
 	defer ui.Unlock()
 	ui.StartCount++
 	return nil
 }
 
-func (ui *FakeIdentifyUI) Cancel() error {
+func (ui *FakeIdentifyUI) Cancel(libkb.MetaContext) error {
 	return nil
 }
 
-func (ui *FakeIdentifyUI) Finish() error {
+func (ui *FakeIdentifyUI) Finish(libkb.MetaContext) error {
 	return nil
 }
 
-func (ui *FakeIdentifyUI) Dismiss(_ string, _ keybase1.DismissReason) error {
+func (ui *FakeIdentifyUI) Dismiss(_ libkb.MetaContext, _ string, _ keybase1.DismissReason) error {
 	return nil
 }
 
-func (ui *FakeIdentifyUI) LaunchNetworkChecks(id *keybase1.Identity, user *keybase1.User) error {
+func (ui *FakeIdentifyUI) LaunchNetworkChecks(_ libkb.MetaContext, id *keybase1.Identity, user *keybase1.User) error {
 	ui.Lock()
 	defer ui.Unlock()
 	ui.User = user
 	return nil
 }
 
-func (ui *FakeIdentifyUI) DisplayTrackStatement(string) error {
+func (ui *FakeIdentifyUI) DisplayTrackStatement(libkb.MetaContext, string) error {
 	return nil
 }
 
-func (ui *FakeIdentifyUI) DisplayUserCard(keybase1.UserCard) error {
+func (ui *FakeIdentifyUI) DisplayUserCard(libkb.MetaContext, keybase1.UserCard) error {
 	return nil
 }
 
-func (ui *FakeIdentifyUI) ReportTrackToken(tok keybase1.TrackToken) error {
+func (ui *FakeIdentifyUI) ReportTrackToken(_ libkb.MetaContext, tok keybase1.TrackToken) error {
 	ui.Token = tok
 	return nil
 }
@@ -331,7 +341,7 @@ func (ui *FakeIdentifyUI) ReportTrackToken(tok keybase1.TrackToken) error {
 func (ui *FakeIdentifyUI) SetStrict(b bool) {
 }
 
-func (ui *FakeIdentifyUI) DisplayTLFCreateWithInvite(arg keybase1.DisplayTLFCreateWithInviteArg) error {
+func (ui *FakeIdentifyUI) DisplayTLFCreateWithInvite(_ libkb.MetaContext, arg keybase1.DisplayTLFCreateWithInviteArg) error {
 	ui.DisplayTLFCount++
 	ui.DisplayTLFArg = arg
 	return nil

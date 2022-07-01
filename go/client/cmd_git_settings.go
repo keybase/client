@@ -134,11 +134,10 @@ func (c *CmdGitSettings) getSettings(ctx context.Context, repoID keybase1.RepoID
 	return nil
 }
 
-func (c *CmdGitSettings) folder() keybase1.Folder {
-	return keybase1.Folder{
+func (c *CmdGitSettings) folder() keybase1.FolderHandle {
+	return keybase1.FolderHandle{
 		Name:       c.teamName.String(),
 		FolderType: keybase1.FolderType_TEAM,
-		Private:    true,
 	}
 }
 

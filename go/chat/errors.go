@@ -4,9 +4,16 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"time"
 
+	"github.com/keybase/client/go/chat/types"
+	"github.com/keybase/client/go/ephemeral"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/gregor1"
+	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/teams"
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"golang.org/x/net/context"
 )
 
@@ -14,32 +21,19 @@ var ErrChatServerTimeout = errors.New("timeout calling chat server")
 var ErrDuplicateConnection = errors.New("error calling chat server")
 var ErrKeyServerTimeout = errors.New("timeout calling into key server")
 
-type InternalError interface {
-	// verbose error info for debugging but not user display
-	InternalError() string
-}
-
-type UnboxingError interface {
-	InternalError
-	Error() string
-	Inner() error
-	IsPermanent() bool
-	ExportType() chat1.MessageUnboxedErrorType
-	VersionKind() chat1.VersionKind
-	VersionNumber() int
-	IsCritical() bool
-}
-
-var _ error = (UnboxingError)(nil)
-
-func NewPermanentUnboxingError(inner error) UnboxingError {
+func NewPermanentUnboxingError(inner error) types.UnboxingError {
 	return PermanentUnboxingError{inner}
 }
 
 type PermanentUnboxingError struct{ inner error }
 
 func (e PermanentUnboxingError) Error() string {
-	return fmt.Sprintf("error unboxing chat message: %s", e.inner.Error())
+	switch err := e.inner.(type) {
+	case EphemeralUnboxingError, NotAuthenticatedForThisDeviceError:
+		return err.Error()
+	default:
+		return fmt.Sprintf("Unable to decrypt chat message: %s", err.Error())
+	}
 }
 
 func (e PermanentUnboxingError) IsPermanent() bool { return true }
@@ -52,7 +46,7 @@ func (e PermanentUnboxingError) ExportType() chat1.MessageUnboxedErrorType {
 		return err.ExportType()
 	case EphemeralUnboxingError:
 		return chat1.MessageUnboxedErrorType_EPHEMERAL
-	case NotAuthenticatedForThisDeviceError:
+	case NotAuthenticatedForThisDeviceError, InvalidMACError:
 		return chat1.MessageUnboxedErrorType_PAIRWISE_MISSING
 	default:
 		return chat1.MessageUnboxedErrorType_MISC
@@ -88,23 +82,37 @@ func (e PermanentUnboxingError) IsCritical() bool {
 
 func (e PermanentUnboxingError) InternalError() string {
 	switch err := e.Inner().(type) {
-	case InternalError:
+	case types.InternalError:
 		return err.InternalError()
 	default:
 		return err.Error()
 	}
 }
 
-//=============================================================================
+func (e PermanentUnboxingError) ToStatus() (status keybase1.Status) {
+	if ee, ok := e.inner.(libkb.ExportableError); ok {
+		status = ee.ToStatus()
+		status.Desc = e.Error()
+	} else {
+		status = keybase1.Status{
+			Name: "GENERIC",
+			Code: libkb.SCGeneric,
+			Desc: e.Error(),
+		}
+	}
+	return status
+}
 
-func NewTransientUnboxingError(inner error) UnboxingError {
+// =============================================================================
+
+func NewTransientUnboxingError(inner error) types.UnboxingError {
 	return TransientUnboxingError{inner}
 }
 
 type TransientUnboxingError struct{ inner error }
 
 func (e TransientUnboxingError) Error() string {
-	return fmt.Sprintf("error unboxing chat message (transient): %s", e.inner.Error())
+	return fmt.Sprintf("Unable to decrypt chat message (transient): %s", e.inner.Error())
 }
 
 func (e TransientUnboxingError) IsPermanent() bool { return false }
@@ -129,46 +137,62 @@ func (e TransientUnboxingError) IsCritical() bool {
 
 func (e TransientUnboxingError) InternalError() string {
 	switch err := e.Inner().(type) {
-	case InternalError:
+	case types.InternalError:
 		return err.InternalError()
 	default:
 		return err.Error()
 	}
 }
 
-//=============================================================================
+func (e TransientUnboxingError) ToStatus() (status keybase1.Status) {
+	if ee, ok := e.inner.(libkb.ExportableError); ok {
+		status = ee.ToStatus()
+		status.Desc = e.Error()
+	} else {
+		status = keybase1.Status{
+			Name: "GENERIC",
+			Code: libkb.SCGeneric,
+			Desc: e.Error(),
+		}
+	}
+	return status
+}
 
-type EphemeralAlreadyExpiredError struct{ inner error }
+// =============================================================================
+
+type EphemeralAlreadyExpiredError struct{}
 
 func NewEphemeralAlreadyExpiredError() EphemeralAlreadyExpiredError {
 	return EphemeralAlreadyExpiredError{}
 }
 
 func (e EphemeralAlreadyExpiredError) Error() string {
-	return "Unable to decrypt already exploded message"
+	return "Exploding message is expired"
 }
 
 func (e EphemeralAlreadyExpiredError) InternalError() string {
 	return e.Error()
 }
 
-//=============================================================================
+// =============================================================================
 
-type EphemeralUnboxingError struct{ inner error }
+type EphemeralUnboxingError struct {
+	inner ephemeral.EphemeralKeyError
+}
 
-func NewEphemeralUnboxingError(inner error) EphemeralUnboxingError {
+func NewEphemeralUnboxingError(inner ephemeral.EphemeralKeyError) EphemeralUnboxingError {
 	return EphemeralUnboxingError{inner}
 }
 
 func (e EphemeralUnboxingError) Error() string {
-	return "Unable to decrypt exploding message. Missing keys"
+	return e.inner.HumanError()
 }
 
 func (e EphemeralUnboxingError) InternalError() string {
 	return e.inner.Error()
 }
 
-//=============================================================================
+// =============================================================================
 
 type PublicTeamEphemeralKeyError struct{}
 
@@ -177,22 +201,28 @@ func NewPublicTeamEphemeralKeyError() PublicTeamEphemeralKeyError {
 }
 
 func (e PublicTeamEphemeralKeyError) Error() string {
-	return "Cannot use ephemeral messages for a public team."
+	return "Cannot use exploding messages for a public team."
 }
 
-//=============================================================================
+// =============================================================================
 
-type NotAuthenticatedForThisDeviceError struct{}
+type NotAuthenticatedForThisDeviceError struct{ inner ephemeral.EphemeralKeyError }
 
-func NewNotAuthenticatedForThisDeviceError() NotAuthenticatedForThisDeviceError {
-	return NotAuthenticatedForThisDeviceError{}
+func NewNotAuthenticatedForThisDeviceError(mctx libkb.MetaContext, memberCtime *keybase1.Time,
+	contentCtime gregor1.Time) NotAuthenticatedForThisDeviceError {
+	inner := ephemeral.NewNotAuthenticatedForThisDeviceError(mctx, memberCtime, contentCtime)
+	return NotAuthenticatedForThisDeviceError{inner: inner}
 }
 
 func (e NotAuthenticatedForThisDeviceError) Error() string {
-	return "this message is not authenticated for this device"
+	return e.inner.HumanError()
 }
 
-//=============================================================================
+func (e NotAuthenticatedForThisDeviceError) InternalError() string {
+	return e.inner.Error()
+}
+
+// =============================================================================
 
 type InvalidMACError struct{}
 
@@ -204,7 +234,7 @@ func (e InvalidMACError) Error() string {
 	return "invalid MAC"
 }
 
-//=============================================================================
+// =============================================================================
 
 type ConsistencyErrorCode int
 
@@ -240,7 +270,7 @@ func NewChatThreadConsistencyError(code ConsistencyErrorCode, msg string, format
 	}
 }
 
-//=============================================================================
+// =============================================================================
 
 type BoxingError struct {
 	Msg  string
@@ -255,7 +285,7 @@ func NewBoxingError(msg string, perm bool) BoxingError {
 }
 
 func (e BoxingError) Error() string {
-	return fmt.Sprintf("boxing error: %s perm: %v", e.Msg, e.Perm)
+	return fmt.Sprintf("encryption error: %s perm: %v", e.Msg, e.Perm)
 }
 
 func (e BoxingError) IsImmediateFail() (chat1.OutboxErrorType, bool) {
@@ -265,10 +295,33 @@ func (e BoxingError) IsImmediateFail() (chat1.OutboxErrorType, bool) {
 	return 0, false
 }
 
-//=============================================================================
+// =============================================================================
+
+type RestrictedBotChannelError struct{}
+
+func NewRestrictedBotChannelError() RestrictedBotChannelError {
+	return RestrictedBotChannelError{}
+}
+
+func (e RestrictedBotChannelError) Error() string {
+	return "bot restricted from sending to this channel"
+}
+
+func (e RestrictedBotChannelError) IsImmediateFail() (chat1.OutboxErrorType, bool) {
+	return chat1.OutboxErrorType_RESTRICTEDBOT, true
+}
+
+// =============================================================================
 
 type BoxingCryptKeysError struct {
 	Err error
+}
+
+// Cause implements the pkg/errors Cause() method, also cloned in libkb via HumanError,
+// so that we know which error to show to the human being using keybase (rather than
+// for our own internal uses).
+func (e BoxingCryptKeysError) Cause() error {
+	return e.Err
 }
 
 func NewBoxingCryptKeysError(err error) BoxingCryptKeysError {
@@ -292,7 +345,7 @@ func (e BoxingCryptKeysError) IsImmediateFail() (chat1.OutboxErrorType, bool) {
 	return 0, false
 }
 
-//=============================================================================
+// =============================================================================
 
 type BodyHashInvalid struct{}
 
@@ -354,7 +407,7 @@ func NewBodyVersionError(version chat1.BodyPlaintextVersion, defaultBody chat1.B
 	}
 }
 
-//=============================================================================
+// =============================================================================
 
 type HeaderMismatchError struct {
 	Field string
@@ -370,7 +423,7 @@ func NewHeaderMismatchError(field string) HeaderMismatchError {
 	return HeaderMismatchError{Field: field}
 }
 
-//=============================================================================
+// =============================================================================
 
 type OfflineError struct {
 }
@@ -382,25 +435,32 @@ func (e OfflineError) Error() string {
 type OfflineClient struct {
 }
 
-func (e OfflineClient) Call(ctx context.Context, method string, arg interface{}, res interface{}) error {
+func (e OfflineClient) Call(ctx context.Context, method string, arg interface{},
+	res interface{}, timeout time.Duration) error {
 	return OfflineError{}
 }
 
-func (e OfflineClient) Notify(ctx context.Context, method string, arg interface{}) error {
+func (e OfflineClient) CallCompressed(ctx context.Context, method string, arg interface{},
+	res interface{}, ctype rpc.CompressionType, timeout time.Duration) error {
 	return OfflineError{}
 }
 
-//=============================================================================
+func (e OfflineClient) Notify(ctx context.Context, method string, arg interface{}, timeout time.Duration) error {
+	return OfflineError{}
+}
+
+// =============================================================================
 
 type DuplicateTopicNameError struct {
-	TopicName string
+	Conv chat1.ConversationLocal
 }
 
 func (e DuplicateTopicNameError) Error() string {
-	return fmt.Sprintf("channel name %s is already in use", e.TopicName)
+	return fmt.Sprintf("channel name %s is already in use in %v",
+		e.Conv.GetTopicName(), e.Conv.Info.TlfName)
 }
 
-//=============================================================================
+// =============================================================================
 
 type ImpteamBadteamError struct {
 	Msg string
@@ -410,7 +470,7 @@ func (e ImpteamBadteamError) Error() string {
 	return fmt.Sprintf("bad iteam found in conv: %s", e.Msg)
 }
 
-//=============================================================================
+// =============================================================================
 
 type UnknownTLFNameError struct {
 	tlfName string
@@ -426,15 +486,17 @@ func (e UnknownTLFNameError) Error() string {
 	return fmt.Sprintf("unknown conversation name: %s", e.tlfName)
 }
 
-//=============================================================================
+// =============================================================================
 
 type AttachmentUploadError struct {
-	Msg string
+	Msg  string
+	Perm bool
 }
 
-func NewAttachmentUploadError(msg string) AttachmentUploadError {
+func NewAttachmentUploadError(msg string, perm bool) AttachmentUploadError {
 	return AttachmentUploadError{
-		Msg: msg,
+		Msg:  msg,
+		Perm: perm,
 	}
 }
 
@@ -442,7 +504,11 @@ func (e AttachmentUploadError) Error() string {
 	return fmt.Sprintf("attachment failed to upload; %s", e.Msg)
 }
 
-//=============================================================================
+func (e AttachmentUploadError) IsImmediateFail() (chat1.OutboxErrorType, bool) {
+	return chat1.OutboxErrorType_MISC, e.Perm
+}
+
+// =============================================================================
 
 type SenderTestImmediateFailError struct {
 }
@@ -455,7 +521,7 @@ func (e SenderTestImmediateFailError) IsImmediateFail() (chat1.OutboxErrorType, 
 	return chat1.OutboxErrorType_MISC, true
 }
 
-//=============================================================================
+// =============================================================================
 
 type DecryptionKeyNotFoundError struct {
 	generation            int
@@ -475,7 +541,7 @@ func (e DecryptionKeyNotFoundError) Error() string {
 		e.generation, e.kbfsEncrypted, e.public)
 }
 
-//=============================================================================
+// =============================================================================
 
 type OfflineErrorKind int
 
@@ -501,17 +567,40 @@ func IsOfflineError(err error) OfflineErrorKind {
 	switch err {
 	case context.DeadlineExceeded:
 		fallthrough
-	case context.Canceled:
-		fallthrough
 	case ErrChatServerTimeout:
 		return OfflineErrorKindOfflineReconnect
 	case ErrDuplicateConnection:
 		return OfflineErrorKindOfflineBasic
 	}
+
+	// Unfortunately, Go throws these without a type and they can occasionally
+	// propagate up. The strings were copied from
+	// https://golang.org/src/crypto/tls/conn.go
+	switch err.Error() {
+	case "tls: use of closed connection",
+		"tls: protocol is shutdown":
+		return OfflineErrorKindOfflineReconnect
+	}
 	return OfflineErrorKindOnline
 }
 
-//=============================================================================
+func IsRekeyError(err error) (typ chat1.ConversationErrorType, ok bool) {
+	switch err := err.(type) {
+	case types.UnboxingError:
+		return IsRekeyError(err.Inner())
+	case libkb.NeedSelfRekeyError:
+		return chat1.ConversationErrorType_SELFREKEYNEEDED, true
+	case libkb.NeedOtherRekeyError:
+		return chat1.ConversationErrorType_OTHERREKEYNEEDED, true
+	default:
+		if teams.IsTeamReadError(err) {
+			return chat1.ConversationErrorType_OTHERREKEYNEEDED, true
+		}
+	}
+	return chat1.ConversationErrorType_NONE, false
+}
+
+// =============================================================================
 
 type FTLError struct {
 	msg string
@@ -523,4 +612,32 @@ func NewFTLError(s string) error {
 
 func (f FTLError) Error() string {
 	return fmt.Sprintf("FTL Error: %s", f.msg)
+}
+
+// =============================================================================
+
+type DevStoragePermissionDeniedError struct {
+	role keybase1.TeamRole
+}
+
+func NewDevStoragePermissionDeniedError(role keybase1.TeamRole) error {
+	return &DevStoragePermissionDeniedError{role: role}
+}
+
+func (e *DevStoragePermissionDeniedError) Error() string {
+	return fmt.Sprintf("role %q is not high enough", e.role)
+}
+
+// =============================================================================
+
+type DevStorageAdminOnlyError struct {
+	msg string
+}
+
+func NewDevStorageAdminOnlyError(msg string) error {
+	return &DevStorageAdminOnlyError{msg: msg}
+}
+
+func (e *DevStorageAdminOnlyError) Error() string {
+	return fmt.Sprintf("found a conversation and a message, but role checking failed: %s", e.msg)
 }

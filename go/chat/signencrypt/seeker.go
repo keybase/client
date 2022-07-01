@@ -4,9 +4,9 @@ import (
 	"context"
 	"io"
 
+	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/kbcrypto"
-	"github.com/keybase/client/go/logger"
 
 	lru "github.com/hashicorp/golang-lru"
 )
@@ -27,7 +27,7 @@ type decodingReadSeeker struct {
 
 var _ io.ReadSeeker = (*decodingReadSeeker)(nil)
 
-func NewDecodingReadSeeker(ctx context.Context, log logger.Logger, source io.ReadSeeker, size int64,
+func NewDecodingReadSeeker(ctx context.Context, g *globals.Context, source io.ReadSeeker, size int64,
 	encKey SecretboxKey, verifyKey VerifyKey, signaturePrefix kbcrypto.SignaturePrefix, nonce Nonce,
 	c *lru.Cache) io.ReadSeeker {
 	if c == nil {
@@ -35,7 +35,7 @@ func NewDecodingReadSeeker(ctx context.Context, log logger.Logger, source io.Rea
 		c, _ = lru.New(20)
 	}
 	return &decodingReadSeeker{
-		DebugLabeler: utils.NewDebugLabeler(log, "DecodingReadSeeker", true),
+		DebugLabeler: utils.NewDebugLabeler(g.ExternalG(), "DecodingReadSeeker", true),
 		source:       source,
 		size:         size,
 		chunks:       c,
@@ -126,7 +126,7 @@ func (r *decodingReadSeeker) getReadaheadFactor() int64 {
 }
 
 func (r *decodingReadSeeker) Read(res []byte) (n int, err error) {
-	defer r.Trace(r.ctx, func() error { return err }, "Read(%v,%v)", r.offset, len(res))()
+	defer r.Trace(r.ctx, &err, "Read(%v,%v)", r.offset, len(res))()
 	if r.offset >= r.size {
 		return 0, io.EOF
 	}
@@ -170,7 +170,7 @@ func (r *decodingReadSeeker) Read(res []byte) (n int, err error) {
 	}
 
 	r.Debug(r.ctx, "Read: len(chunkPlainText): %v", len(chunkPlaintext))
-	plainText := r.extractPlaintext(chunkPlaintext, int64(num), chunks)
+	plainText := r.extractPlaintext(chunkPlaintext, num, chunks)
 	copy(res, plainText)
 	numRead := int64(len(plainText))
 	r.Debug(r.ctx, "Read: len(pt): %v", len(plainText))
@@ -179,7 +179,7 @@ func (r *decodingReadSeeker) Read(res []byte) (n int, err error) {
 }
 
 func (r *decodingReadSeeker) Seek(offset int64, whence int) (res int64, err error) {
-	defer r.Trace(r.ctx, func() error { return err }, "Seek(%v,%v)", offset, whence)()
+	defer r.Trace(r.ctx, &err, "Seek(%v,%v)", offset, whence)()
 	switch whence {
 	case io.SeekStart:
 		r.offset = offset

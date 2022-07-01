@@ -28,7 +28,7 @@
 
 - (instancetype)initWithConfig:(KBEnvConfig *)config {
   if ((self = [self initWithConfig:config name:@"Privileged Helper" info:@"Runs privileged tasks" image:[KBIcons imageForIcon:KBIconExtension]])) {
-    
+
   }
   return self;
 }
@@ -83,13 +83,24 @@
 
   NSString *alertText = @"Keybase is about to upgrade the Keybase file system, allowing end-to-end encrypted files from right inside your Finder.";
   NSString *infoText = @"";
-  if ([bundleVersion isOrderedSame:[KBSemVersion version:@"1.0.31"]]) {
+
+  BOOL multiUser = [bundleVersion isOrderedSame:[KBSemVersion version:@"1.0.31"]];
+  BOOL activeDirectory = [bundleVersion isOrderedSame:[KBSemVersion version:@"1.0.35"]];
+  BOOL bigSurFuse = [bundleVersion isOrderedSame:[KBSemVersion version:@"1.0.47"]];
+
+  if (multiUser) {
     alertText = @"New Keybase feature: multiple users in macOS";
     // Use a division slash instead of a regular / to avoid weird line breaks.
     infoText = @"Previously, only one user of this computer could find their Keybase files at \u2215keybase. With this update, \u2215keybase will now support multiple users on the same computer by linking to user-specific Keybase directories in \u2215Volumes.\n\nYou may need to enter your password for this update.";
-  } else if ([bundleVersion isOrderedSame:[KBSemVersion version:@"1.0.32"]]) {
+  } else if (activeDirectory) {
     alertText = @"Keybase helper update";
-    infoText = @"This Keybase release contains security updates to the helper tool.\n\nYou may need to enter your password for this update.";
+    infoText = @"This Keybase release fixes a regression in macOS installs that use Active Directory for user management.\n\nYou may need to enter your password for this update.";
+  } else if (bigSurFuse) {
+    alertText = @"Keybase helper update";
+    infoText = @"This Keybase release contains a new version of macFuse which adds KBFS support for Big Sur and M1 devices.\n\nYou may need to enter your password for this update. A system reboot may also be needed.";
+  } else {
+    alertText = @"Keybase helper update";
+    infoText = @"This Keybase release contains bugfixes and security updates to the Keybase installer helper tool.\n\nYou may need to enter your password for this update.";
   }
   NSAlert *alert = [[NSAlert alloc] init];
   [alert setMessageText:alertText];
@@ -97,6 +108,14 @@
   [alert addButtonWithTitle:@"Got it!"];
   [alert setAlertStyle:NSAlertStyleInformational];
   [alert runModal]; // ignore response
+}
+
+- (BOOL)exists {
+  return [NSFileManager.defaultManager fileExistsAtPath:HELPER_LOCATION isDirectory:nil];
+}
+
+- (BOOL)isCriticalUpdate:(KBSemVersion *)runningVersion {
+  return [runningVersion isLessThan:[KBSemVersion version:@"1.0.44"]];
 }
 
 - (void)refreshComponent:(KBRefreshComponentCompletion)completion {
@@ -112,17 +131,28 @@
 
   [self.helper sendRequest:@"version" params:nil completion:^(NSError *error, NSDictionary *versions) {
     if (error) {
-      self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusError installAction:KBRInstallActionReinstall info:info error:error];
+      self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusNotInstalled installAction:KBRInstallActionReinstall info:info error:nil];
+      // If we couldn't run this, just act like it is a very old version running that we don't know how to
+      // talk to so we can still run checks on the bundle version
+      KBSemVersion *runningVersion = [KBSemVersion version:@"1.0.0" build:nil];
+      [self doInstallAlert:bundleVersion runningVersion:runningVersion];
       completion(self.componentStatus);
     } else {
       DDLogDebug(@"Helper version: %@", versions);
       KBSemVersion *runningVersion = [KBSemVersion version:KBIfNull(versions[@"version"], @"") build:nil];
       if (runningVersion) info[@"Version"] = [runningVersion description];
+      DDLogInfo(@"Running Version: %@", runningVersion);
       if ([bundleVersion isGreaterThan:runningVersion]) {
-        if (bundleVersion) info[@"Bundle Version"] = [bundleVersion description];
-        self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusInstalled installAction:KBRInstallActionUpgrade info:info error:nil];
-        [self doInstallAlert:bundleVersion runningVersion:runningVersion];
-        completion(self.componentStatus);
+        if ([self isCriticalUpdate:runningVersion]) {
+          DDLogInfo(@"Critical update found: bundle: %@ running: %@", bundleVersion, runningVersion);
+          self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusError installAction:KBRInstallActionUpgrade info:info error:KBMakeError(KBErrorCodeFuseCriticalUpdate, @"FUSE critical update")];
+          completion(self.componentStatus);
+        } else {
+          if (bundleVersion) info[@"Bundle Version"] = [bundleVersion description];
+          self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusInstalled installAction:KBRInstallActionUpgrade info:info error:nil];
+          [self doInstallAlert:bundleVersion runningVersion:runningVersion];
+          completion(self.componentStatus);
+        }
       } else {
         self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusInstalled installAction:KBRInstallActionNone info:info error:nil];
         completion(self.componentStatus);
@@ -133,6 +163,11 @@
 
 - (void)install:(KBCompletion)completion {
   [self refreshComponent:^(KBComponentStatus *cs) {
+    // check for an error from refresh, and just abort if it gives us one
+    if (cs.error != nil) {
+      completion(cs.error);
+      return;
+    }
     if ([cs needsInstallOrUpgrade]) {
       [self _install:completion];
     } else {

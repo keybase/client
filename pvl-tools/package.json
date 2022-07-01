@@ -5,7 +5,8 @@
   "main": "reader.iced",
   "scripts": {
     "build": "./tool.iced",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "modules": "yarn install --pure-lockfile --ignore-optional"
   },
   "author": "",
   "dependencies": {

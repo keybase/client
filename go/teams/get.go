@@ -30,25 +30,6 @@ func GetForTeamManagementByStringName(ctx context.Context, g *libkb.GlobalContex
 	return team, nil
 }
 
-func GetForDisplayByStringName(ctx context.Context, g *libkb.GlobalContext, name string) (*Team, error) {
-	// assume private team
-	public := false
-
-	team, err := Load(ctx, g, keybase1.LoadTeamArg{
-		Name:                      name,
-		Public:                    public,
-		ForceRepoll:               true,
-		AllowNameLookupBurstCache: true,
-	})
-	if err != nil {
-		return nil, fixupTeamGetError(ctx, g, err, name, public)
-	}
-	if team.IsImplicit() {
-		return nil, fmt.Errorf("cannot display implicit team by name")
-	}
-	return team, nil
-}
-
 func GetForTeamManagementByTeamID(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID, needAdmin bool) (*Team, error) {
 	team, err := Load(ctx, g, keybase1.LoadTeamArg{
 		ID:          id,
@@ -83,6 +64,25 @@ func GetMaybeAdminByStringName(ctx context.Context, g *libkb.GlobalContext, name
 	if err != nil {
 		return nil, fixupTeamGetError(ctx, g, err, name, public)
 	}
+	return getMaybeAdmin(ctx, g, team)
+}
+
+func GetMaybeAdminByID(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID, public bool) (*Team, error) {
+	// Find out our up-to-date role.
+	team, err := Load(ctx, g, keybase1.LoadTeamArg{
+		ID:                        id,
+		Public:                    public,
+		ForceRepoll:               true,
+		RefreshUIDMapper:          true,
+		AllowNameLookupBurstCache: true,
+	})
+	if err != nil {
+		return nil, fixupTeamGetError(ctx, g, err, id.String(), public)
+	}
+	return getMaybeAdmin(ctx, g, team)
+}
+
+func getMaybeAdmin(ctx context.Context, g *libkb.GlobalContext, team *Team) (*Team, error) {
 	me, err := loadUserVersionByUID(ctx, g, g.Env.GetUID())
 	if err != nil {
 		return nil, err
@@ -95,8 +95,8 @@ func GetMaybeAdminByStringName(ctx context.Context, g *libkb.GlobalContext, name
 		// Will hit the cache _unless_ we had a cached non-admin team
 		// and are now an admin.
 		team, err = Load(ctx, g, keybase1.LoadTeamArg{
-			Name:                      name,
-			Public:                    public,
+			ID:                        team.ID,
+			Public:                    team.IsPublic(),
 			NeedAdmin:                 true,
 			AllowNameLookupBurstCache: true,
 		})

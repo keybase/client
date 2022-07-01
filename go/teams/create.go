@@ -9,17 +9,23 @@ import (
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/teams/hidden"
 	jsonw "github.com/keybase/go-jsonw"
 )
 
 func CreateImplicitTeam(ctx context.Context, g *libkb.GlobalContext, impTeam keybase1.ImplicitTeamDisplayName) (res keybase1.TeamID, teamName keybase1.TeamName, err error) {
-	defer g.CTrace(ctx, "CreateImplicitTeam", func() error { return err })()
+	defer g.CTrace(ctx, "CreateImplicitTeam", &err)()
 
 	teamName, err = NewImplicitTeamName()
 	if err != nil {
 		return res, teamName, err
 	}
 	teamID := teamName.ToTeamID(impTeam.IsPublic)
+
+	merkleRoot, err := g.MerkleClient.FetchRootFromServer(libkb.NewMetaContext(ctx, g), libkb.TeamMerkleFreshnessForAdmin)
+	if err != nil {
+		return res, teamName, err
+	}
 
 	perUserKeyUpgradeSoft(ctx, g, "create-implicit-team")
 
@@ -92,10 +98,12 @@ func CreateImplicitTeam(ctx context.Context, g *libkb.GlobalContext, impTeam key
 	}
 
 	members := SCTeamMembers{
-		Owners:  &[]SCTeamMember{},
-		Admins:  &[]SCTeamMember{},
-		Writers: &[]SCTeamMember{},
-		Readers: &[]SCTeamMember{},
+		Owners:         &[]SCTeamMember{},
+		Admins:         &[]SCTeamMember{},
+		Writers:        &[]SCTeamMember{},
+		Readers:        &[]SCTeamMember{},
+		Bots:           &[]SCTeamMember{},
+		RestrictedBots: &[]SCTeamMember{},
 	}
 	if len(owners) > 0 {
 		members.Owners = &owners
@@ -112,6 +120,7 @@ func CreateImplicitTeam(ctx context.Context, g *libkb.GlobalContext, impTeam key
 			ID:   NewInviteID(),
 		})
 	}
+
 	for _, assertion := range impTeam.Readers.UnresolvedUsers {
 		readerInvites = append(readerInvites, SCTeamInvite{
 			Type: assertion.TeamInviteType(),
@@ -136,29 +145,30 @@ func CreateImplicitTeam(ctx context.Context, g *libkb.GlobalContext, impTeam key
 	// Post the team
 	return teamID, teamName,
 		makeSigAndPostRootTeam(ctx, g, me, members, invites, secretboxRecipients, teamName.String(),
-			teamID, impTeam.IsPublic, true, nil)
+			teamID, impTeam.IsPublic, true, nil, *merkleRoot)
 }
 
 func makeSigAndPostRootTeam(ctx context.Context, g *libkb.GlobalContext, me libkb.UserForSignatures, members SCTeamMembers,
 	invites *SCTeamInvites, secretboxRecipients map[keybase1.UserVersion]keybase1.PerUserKey, name string,
-	teamID keybase1.TeamID, public, implicit bool, settings *SCTeamSettings) (err error) {
-	defer g.Trace("makeSigAndPostRootTeam", func() error { return err })()
-	g.Log.CDebugf(ctx, "makeSigAndPostRootTeam get device keys")
-	deviceSigningKey, err := g.ActiveDevice.SigningKey()
+	teamID keybase1.TeamID, public, implicit bool, settings *SCTeamSettings, merkleRoot libkb.MerkleRoot) (err error) {
+	mctx := libkb.NewMetaContext(ctx, g)
+	defer g.Trace("makeSigAndPostRootTeam", &err)()
+	mctx.Debug("makeSigAndPostRootTeam get device keys")
+	deviceSigningKey, err := mctx.G().ActiveDevice.SigningKey()
 	if err != nil {
 		return err
 	}
-	deviceEncryptionKey, err := g.ActiveDevice.EncryptionKey()
+	deviceEncryptionKey, err := mctx.G().ActiveDevice.EncryptionKey()
 	if err != nil {
 		return err
 	}
 
 	// These boxes will get posted along with the sig below.
-	m, err := NewTeamKeyManager(g)
+	m, err := NewTeamKeyManager(mctx.G(), teamID)
 	if err != nil {
 		return err
 	}
-	secretboxes, err := m.SharedSecretBoxes(libkb.NewMetaContext(ctx, g), deviceEncryptionKey, secretboxRecipients)
+	secretboxes, err := m.SharedSecretBoxes(mctx, deviceEncryptionKey, secretboxRecipients)
 	if err != nil {
 		return err
 	}
@@ -172,9 +182,14 @@ func makeSigAndPostRootTeam(ctx context.Context, g *libkb.GlobalContext, me libk
 		return err
 	}
 
-	g.Log.CDebugf(ctx, "makeSigAndPostRootTeam make sigs")
+	mctx.Debug("makeSigAndPostRootTeam make sigs")
 	teamSection, err := makeRootTeamSection(name, teamID, members, invites, perTeamSigningKey.GetKID(),
 		perTeamEncryptionKey.GetKID(), public, implicit, settings)
+	if err != nil {
+		return err
+	}
+
+	err = addSummaryHash(&teamSection, secretboxes)
 	if err != nil {
 		return err
 	}
@@ -184,7 +199,7 @@ func makeSigAndPostRootTeam(ctx context.Context, g *libkb.GlobalContext, me libk
 	// sign it, *twice*. The first time with the per-team signing key, to
 	// produce the reverse sig, and the second time with the device signing
 	// key, after the reverse sig has been written in.
-	sigBodyBeforeReverse, err := TeamRootSig(g, me, deviceSigningKey, teamSection)
+	sigBodyBeforeReverse, err := TeamRootSig(g, me, deviceSigningKey, teamSection, merkleRoot)
 	if err != nil {
 		return err
 	}
@@ -201,7 +216,10 @@ func makeSigAndPostRootTeam(ctx context.Context, g *libkb.GlobalContext, me libk
 	// accidentally capture different global state (like ctime and merkle
 	// seqno).
 	sigBodyAfterReverse := sigBodyBeforeReverse
-	sigBodyAfterReverse.SetValueAtPath("body.team.per_team_key.reverse_sig", jsonw.NewString(reverseSig))
+	err = sigBodyAfterReverse.SetValueAtPath("body.team.per_team_key.reverse_sig", jsonw.NewString(reverseSig))
+	if err != nil {
+		return err
+	}
 
 	sigJSONAfterReverse, err := sigBodyAfterReverse.Marshal()
 	if err != nil {
@@ -209,6 +227,7 @@ func makeSigAndPostRootTeam(ctx context.Context, g *libkb.GlobalContext, me libk
 	}
 	seqType := seqTypeForTeamPublicness(public)
 	v2Sig, _, _, err := libkb.MakeSigchainV2OuterSig(
+		mctx,
 		deviceSigningKey,
 		libkb.LinkTypeTeamRoot,
 		1, /* seqno */
@@ -217,6 +236,7 @@ func makeSigAndPostRootTeam(ctx context.Context, g *libkb.GlobalContext, me libk
 		libkb.SigHasRevokes(false),
 		seqType,
 		libkb.SigIgnoreIfUnsupported(false),
+		nil,
 	)
 	if err != nil {
 		return err
@@ -233,21 +253,21 @@ func makeSigAndPostRootTeam(ctx context.Context, g *libkb.GlobalContext, me libk
 			Encryption: perTeamEncryptionKey.GetKID(),
 			Signing:    perTeamSigningKey.GetKID(),
 		},
+		Version: libkb.KeybaseSignatureV2,
 	}
 
 	err = precheckLinkToPost(ctx, g, sigMultiItem, nil, me.ToUserVersion())
 	if err != nil {
-		g.Log.CDebugf(ctx, "cannot post link (precheck): %v", err)
+		mctx.Debug("cannot post link (precheck): %v", err)
 		return err
 	}
 
-	g.Log.CDebugf(ctx, "makeSigAndPostRootTeam post sigs")
+	mctx.Debug("makeSigAndPostRootTeam post sigs")
 	payload := make(libkb.JSONPayload)
 	payload["sigs"] = []interface{}{sigMultiItem}
 	payload["per_team_key"] = secretboxes
 
-	_, err = g.API.PostJSON(libkb.APIArg{
-		NetContext:  ctx,
+	_, err = mctx.G().API.PostJSON(mctx, libkb.APIArg{
 		Endpoint:    "sig/multi",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		JSONPayload: payload,
@@ -255,12 +275,12 @@ func makeSigAndPostRootTeam(ctx context.Context, g *libkb.GlobalContext, me libk
 	if err != nil {
 		return err
 	}
-	g.Log.CDebugf(ctx, "makeSigAndPostRootTeam created team: %v", teamID)
+	mctx.Debug("makeSigAndPostRootTeam created team: %v", teamID)
 	return nil
 }
 
 func CreateRootTeam(ctx context.Context, g *libkb.GlobalContext, nameString string, settings keybase1.TeamSettings) (res *keybase1.TeamID, err error) {
-	defer g.CTraceTimed(ctx, "CreateRootTeam", func() error { return err })()
+	defer g.CTrace(ctx, "CreateRootTeam", &err)()
 
 	perUserKeyUpgradeSoft(ctx, g, "create-root-team")
 
@@ -270,6 +290,11 @@ func CreateRootTeam(ctx context.Context, g *libkb.GlobalContext, nameString stri
 	}
 	if !name.IsRootTeam() {
 		return nil, fmt.Errorf("cannot create root team with subteam name: %v", nameString)
+	}
+
+	merkleRoot, err := g.MerkleClient.FetchRootFromServer(libkb.NewMetaContext(ctx, g), libkb.TeamMerkleFreshnessForAdmin)
+	if err != nil {
+		return nil, err
 	}
 
 	g.Log.CDebugf(ctx, "CreateRootTeam load me")
@@ -287,10 +312,12 @@ func CreateRootTeam(ctx context.Context, g *libkb.GlobalContext, nameString stri
 	}
 
 	members := SCTeamMembers{
-		Owners:  &[]SCTeamMember{SCTeamMember(me.ToUserVersion())},
-		Admins:  &[]SCTeamMember{},
-		Writers: &[]SCTeamMember{},
-		Readers: &[]SCTeamMember{},
+		Owners:         &[]SCTeamMember{SCTeamMember(me.ToUserVersion())},
+		Admins:         &[]SCTeamMember{},
+		Writers:        &[]SCTeamMember{},
+		Readers:        &[]SCTeamMember{},
+		Bots:           &[]SCTeamMember{},
+		RestrictedBots: &[]SCTeamMember{},
 	}
 
 	var scSettings *SCTeamSettings
@@ -305,13 +332,14 @@ func CreateRootTeam(ctx context.Context, g *libkb.GlobalContext, nameString stri
 	teamID := name.ToPrivateTeamID()
 
 	err = makeSigAndPostRootTeam(ctx, g, me, members, nil,
-		secretboxRecipients, name.String(), teamID, false, false, scSettings)
+		secretboxRecipients, name.String(), teamID, false, false, scSettings, *merkleRoot)
 	return &teamID, err
 }
 
 func CreateSubteam(ctx context.Context, g *libkb.GlobalContext, subteamBasename string,
 	parentName keybase1.TeamName, addSelfAs keybase1.TeamRole) (ret *keybase1.TeamID, err error) {
-	defer g.CTrace(ctx, "CreateSubteam", func() error { return err })()
+	defer g.CTrace(ctx, "CreateSubteam", &err)()
+	mctx := libkb.NewMetaContext(ctx, g)
 
 	subteamName, err := parentName.Append(subteamBasename)
 	if err != nil {
@@ -322,14 +350,23 @@ func CreateSubteam(ctx context.Context, g *libkb.GlobalContext, subteamBasename 
 	public := false
 	subteamID := NewSubteamID(public)
 
-	perUserKeyUpgradeSoft(ctx, g, "create-subteam")
-
-	me, err := loadMeForSignatures(ctx, g)
+	err = ForceMerkleRootUpdateByTeamID(mctx, parentName.ToPrivateTeamID())
+	if err != nil {
+		return nil, err
+	}
+	merkleRoot, err := g.MerkleClient.FetchRootFromServer(libkb.NewMetaContext(ctx, g), libkb.TeamMerkleFreshnessForAdmin)
 	if err != nil {
 		return nil, err
 	}
 
-	deviceSigningKey, err := g.ActiveDevice.SigningKey()
+	perUserKeyUpgradeSoft(ctx, mctx.G(), "create-subteam")
+
+	me, err := loadMeForSignatures(ctx, mctx.G())
+	if err != nil {
+		return nil, err
+	}
+
+	deviceSigningKey, err := mctx.G().ActiveDevice.SigningKey()
 	if err != nil {
 		return nil, err
 	}
@@ -354,7 +391,7 @@ func CreateSubteam(ctx context.Context, g *libkb.GlobalContext, subteamBasename 
 	// starts a root team, and so making that link is very similar to what the
 	// CreateTeamEngine does.
 
-	newSubteamSig, err := generateNewSubteamSigForParentChain(g, me, deviceSigningKey, parentTeam.chain(), subteamName, subteamID, admin)
+	newSubteamSig, ratchet, err := generateNewSubteamSigForParentChain(mctx, me, deviceSigningKey, parentTeam.chain(), subteamName, subteamID, admin)
 	if err != nil {
 		return nil, err
 	}
@@ -367,7 +404,7 @@ func CreateSubteam(ctx context.Context, g *libkb.GlobalContext, subteamBasename 
 
 	subteamHeadSig, secretboxes, err := generateHeadSigForSubteamChain(ctx, g, me,
 		deviceSigningKey, parentTeam.chain(), subteamName, subteamID, admin,
-		allParentAdmins, addSelfAs)
+		allParentAdmins, addSelfAs, *merkleRoot)
 	if err != nil {
 		return nil, err
 	}
@@ -385,8 +422,9 @@ func CreateSubteam(ctx context.Context, g *libkb.GlobalContext, subteamBasename 
 	payload := make(libkb.JSONPayload)
 	payload["sigs"] = []interface{}{newSubteamSig, subteamHeadSig}
 	payload["per_team_key"] = secretboxes
+	ratchet.AddToJSONPayload(payload)
 
-	_, err = g.API.PostJSON(libkb.APIArg{
+	_, err = g.API.PostJSON(mctx, libkb.APIArg{
 		Endpoint:    "sig/multi",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		JSONPayload: payload,
@@ -425,22 +463,24 @@ func makeRootTeamSection(teamName string, teamID keybase1.TeamID, members SCTeam
 	return teamSection, nil
 }
 
-func generateNewSubteamSigForParentChain(g *libkb.GlobalContext, me libkb.UserForSignatures, signingKey libkb.GenericKey, parentTeam *TeamSigChainState, subteamName keybase1.TeamName, subteamID keybase1.TeamID, admin *SCTeamAdmin) (item *libkb.SigMultiItem, err error) {
-	newSubteamSigBody, err := NewSubteamSig(g, me, signingKey, parentTeam, subteamName, subteamID, admin)
+func generateNewSubteamSigForParentChain(m libkb.MetaContext, me libkb.UserForSignatures, signingKey libkb.GenericKey, parentTeam *TeamSigChainState, subteamName keybase1.TeamName, subteamID keybase1.TeamID, admin *SCTeamAdmin) (item *libkb.SigMultiItem, r *hidden.Ratchet, err error) {
+	newSubteamSigBody, ratchet, err := NewSubteamSig(m, me, signingKey, parentTeam, subteamName, subteamID, admin)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	newSubteamSigJSON, err := newSubteamSigBody.Marshal()
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	prevLinkID, err := libkb.ImportLinkID(parentTeam.GetLatestLinkID())
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	seqType := seqTypeForTeamPublicness(parentTeam.IsPublic())
+
 	v2Sig, _, _, err := libkb.MakeSigchainV2OuterSig(
+		m,
 		signingKey,
 		libkb.LinkTypeNewSubteam,
 		parentTeam.GetLatestSeqno()+1,
@@ -449,9 +489,10 @@ func generateNewSubteamSigForParentChain(g *libkb.GlobalContext, me libkb.UserFo
 		libkb.SigHasRevokes(false),
 		seqType,
 		libkb.SigIgnoreIfUnsupported(false),
+		nil,
 	)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	item = &libkb.SigMultiItem{
@@ -461,28 +502,31 @@ func generateNewSubteamSigForParentChain(g *libkb.GlobalContext, me libkb.UserFo
 		SeqType:    seqType,
 		SigInner:   string(newSubteamSigJSON),
 		TeamID:     parentTeam.GetID(),
+		Version:    libkb.KeybaseSignatureV2,
 	}
-	return item, nil
+	return item, ratchet, nil
 }
 
 func generateHeadSigForSubteamChain(ctx context.Context, g *libkb.GlobalContext, me libkb.UserForSignatures,
 	signingKey libkb.GenericKey, parentTeam *TeamSigChainState, subteamName keybase1.TeamName,
 	subteamID keybase1.TeamID, admin *SCTeamAdmin, allParentAdmins []keybase1.UserVersion,
-	addSelfAs keybase1.TeamRole) (item *libkb.SigMultiItem, boxes *PerTeamSharedSecretBoxes, err error) {
+	addSelfAs keybase1.TeamRole, merkleRoot libkb.MerkleRoot) (item *libkb.SigMultiItem, boxes *PerTeamSharedSecretBoxes, err error) {
 	deviceEncryptionKey, err := g.ActiveDevice.EncryptionKey()
 	if err != nil {
 		return
 	}
 
 	members := SCTeamMembers{
-		Owners:  &[]SCTeamMember{},
-		Admins:  &[]SCTeamMember{},
-		Writers: &[]SCTeamMember{},
-		Readers: &[]SCTeamMember{},
+		Owners:         &[]SCTeamMember{},
+		Admins:         &[]SCTeamMember{},
+		Writers:        &[]SCTeamMember{},
+		Readers:        &[]SCTeamMember{},
+		Bots:           &[]SCTeamMember{},
+		RestrictedBots: &[]SCTeamMember{},
 	}
 
 	memSet := newMemberSet()
-	_, err = memSet.loadGroup(ctx, g, allParentAdmins, true /* store recipients */, true /* force poll */)
+	_, err = memSet.loadGroup(ctx, g, allParentAdmins, storeMemberKindRecipient, true /* force poll */)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -491,6 +535,8 @@ func generateHeadSigForSubteamChain(ctx context.Context, g *libkb.GlobalContext,
 		meUV := me.ToUserVersion()
 		memList := []SCTeamMember{SCTeamMember(meUV)}
 		switch addSelfAs {
+		case keybase1.TeamRole_BOT:
+			members.Bots = &memList
 		case keybase1.TeamRole_READER:
 			members.Readers = &memList
 		case keybase1.TeamRole_WRITER:
@@ -499,12 +545,17 @@ func generateHeadSigForSubteamChain(ctx context.Context, g *libkb.GlobalContext,
 			members.Admins = &memList
 		case keybase1.TeamRole_OWNER:
 			return nil, nil, errors.New("Cannot add self as owner to a subteam")
+		case keybase1.TeamRole_RESTRICTEDBOT:
+			return nil, nil, errors.New("Cannot add self as restricted bot to a subteam")
 		}
-		memSet.loadMember(ctx, g, meUV, true /* store recipient */, false /* force poll */)
+		_, err := memSet.addMember(ctx, g, meUV, storeMemberKindRecipient, false /* force poll */)
+		if err != nil {
+			return nil, nil, err
+		}
 	}
 
 	// These boxes will get posted along with the sig below.
-	m, err := NewTeamKeyManager(g)
+	m, err := NewTeamKeyManager(g, subteamID)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -529,7 +580,12 @@ func generateHeadSigForSubteamChain(ctx context.Context, g *libkb.GlobalContext,
 		return
 	}
 
-	subteamHeadSigBodyBeforeReverse, err := SubteamHeadSig(g, me, signingKey, teamSection)
+	err = addSummaryHash(&teamSection, boxes)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	subteamHeadSigBodyBeforeReverse, err := SubteamHeadSig(g, me, signingKey, teamSection, merkleRoot)
 	if err != nil {
 		return
 	}
@@ -548,7 +604,10 @@ func generateHeadSigForSubteamChain(ctx context.Context, g *libkb.GlobalContext,
 	// accidentally capture different global state (like ctime and merkle
 	// seqno).
 	subteamHeadSigBodyAfterReverse := subteamHeadSigBodyBeforeReverse
-	subteamHeadSigBodyAfterReverse.SetValueAtPath("body.team.per_team_key.reverse_sig", jsonw.NewString(reverseSig))
+	err = subteamHeadSigBodyAfterReverse.SetValueAtPath("body.team.per_team_key.reverse_sig", jsonw.NewString(reverseSig))
+	if err != nil {
+		return nil, nil, err
+	}
 
 	subteamHeadSigJSON, err := subteamHeadSigBodyAfterReverse.Marshal()
 	if err != nil {
@@ -557,6 +616,7 @@ func generateHeadSigForSubteamChain(ctx context.Context, g *libkb.GlobalContext,
 
 	seqType := seqTypeForTeamPublicness(parentTeam.IsPublic())
 	v2Sig, _, _, err := libkb.MakeSigchainV2OuterSig(
+		libkb.NewMetaContext(ctx, g),
 		signingKey,
 		libkb.LinkTypeSubteamHead,
 		1, /* seqno */
@@ -565,6 +625,7 @@ func generateHeadSigForSubteamChain(ctx context.Context, g *libkb.GlobalContext,
 		libkb.SigHasRevokes(false),
 		seqType,
 		libkb.SigIgnoreIfUnsupported(false),
+		nil,
 	)
 	if err != nil {
 		return
@@ -624,6 +685,6 @@ func perUserKeyUpgradeSoft(ctx context.Context, g *libkb.GlobalContext, reason s
 	eng := engine.NewPerUserKeyUpgrade(g, arg)
 	err := engine.RunEngine2(m, eng)
 	if err != nil {
-		m.CDebugf("PerUserKeyUpgrade failed (%s): %v", reason, err)
+		m.Debug("PerUserKeyUpgrade failed (%s): %v", reason, err)
 	}
 }

@@ -1,0 +1,8 @@
+@namespace("keybase.1")
+
+protocol NotifyInviteFriends {
+  import idl "invite_friends.avdl";
+
+  void updateInviteCounts(InviteCounts counts) oneway;
+
+}

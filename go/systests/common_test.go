@@ -5,9 +5,13 @@ package systests
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 	"testing"
 	"time"
+
+	"net/http"
+	_ "net/http/pprof"
 
 	"github.com/keybase/client/go/externalstest"
 	"github.com/keybase/client/go/libkb"
@@ -16,6 +20,15 @@ import (
 	"github.com/stretchr/testify/require"
 	context "golang.org/x/net/context"
 )
+
+func TestMain(m *testing.M) {
+	if os.Getenv("KEYBASE_SYSTESTS_DEBUG") != "" {
+		go func() {
+			_ = http.ListenAndServe("localhost:8080", nil)
+		}()
+	}
+	os.Exit(m.Run())
+}
 
 func setupTest(t libkb.TestingTB, nm string) *libkb.TestContext {
 	tc := externalstest.SetupTest(t, nm, 2)
@@ -155,7 +168,7 @@ func getActiveDevicesAndKeys(tc *libkb.TestContext, username string) ([]*libkb.D
 	activeDevices := []*libkb.Device{}
 	for _, device := range user.GetComputedKeyFamily().GetAllDevices() {
 		if device.Status != nil && *device.Status == libkb.DeviceStatusActive {
-			activeDevices = append(activeDevices, device)
+			activeDevices = append(activeDevices, device.Device)
 		}
 	}
 	return activeDevices, append(sibkeys, subkeys...)

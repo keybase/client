@@ -8,8 +8,12 @@ import (
 
 	context "golang.org/x/net/context"
 
+	"github.com/keybase/client/go/chat/storage"
+	"github.com/keybase/client/go/chat/types"
+	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/stretchr/testify/require"
 )
 
@@ -33,10 +37,11 @@ func TestInboxSourceUpdateRace(t *testing.T) {
 		MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body: "HIHI",
 		}),
-	}, 0, nil)
+	}, 0, nil, nil, nil)
 	require.NoError(t, err)
 
-	ib, err := tc.ChatG.InboxSource.Read(ctx, u.User.GetUID().ToBytes(), nil, true, nil, nil)
+	ib, _, err := tc.ChatG.InboxSource.Read(ctx, u.User.GetUID().ToBytes(),
+		types.ConversationLocalizerBlocking, types.InboxSourceDataSourceAll, nil, nil)
 	require.NoError(t, err)
 	require.Equal(t, chat1.InboxVers(0), ib.Version, "wrong version")
 
@@ -61,7 +66,8 @@ func TestInboxSourceUpdateRace(t *testing.T) {
 	}()
 	wg.Wait()
 
-	ib, err = tc.ChatG.InboxSource.Read(ctx, u.User.GetUID().ToBytes(), nil, true, nil, nil)
+	ib, _, err = tc.ChatG.InboxSource.Read(ctx, u.User.GetUID().ToBytes(),
+		types.ConversationLocalizerBlocking, types.InboxSourceDataSourceAll, nil, nil)
 	require.NoError(t, err)
 	require.Equal(t, chat1.InboxVers(1), ib.Version, "wrong version")
 }
@@ -80,7 +86,8 @@ func TestInboxSourceSkipAhead(t *testing.T) {
 	uid := u.User.GetUID().ToBytes()
 
 	assertInboxVersion := func(v int) {
-		ib, err := tc.ChatG.InboxSource.Read(ctx, u.User.GetUID().ToBytes(), nil, true, nil, nil)
+		ib, _, err := tc.ChatG.InboxSource.Read(ctx, u.User.GetUID().ToBytes(),
+			types.ConversationLocalizerBlocking, types.InboxSourceDataSourceAll, nil, nil)
 		require.Equal(t, chat1.InboxVers(v), ib.Version, "wrong version")
 		require.NoError(t, err)
 	}
@@ -104,7 +111,12 @@ func TestInboxSourceSkipAhead(t *testing.T) {
 
 	t.Logf("add message but drop oobm")
 
-	boxed, _, _, _, _, err := sender.Prepare(ctx, chat1.MessagePlaintext{
+	rc := utils.RemoteConv(conv)
+	localConvs, _, err := tc.Context().InboxSource.Localize(ctx, uid, []types.RemoteConversation{rc},
+		types.ConversationLocalizerBlocking)
+	require.NoError(t, err)
+	require.Equal(t, 1, len(localConvs))
+	prepareRes, err := sender.Prepare(ctx, chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
 			Conv:        conv.Metadata.IdTriple,
 			Sender:      u.User.GetUID().ToBytes(),
@@ -115,12 +127,13 @@ func TestInboxSourceSkipAhead(t *testing.T) {
 		MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body: "HIHI",
 		}),
-	}, chat1.ConversationMembersType_KBFS, &conv)
+	}, chat1.ConversationMembersType_KBFS, &localConvs[0], nil)
 	require.NoError(t, err)
+	boxed := prepareRes.Boxed
 
 	postRes, err := ri.PostRemote(ctx, chat1.PostRemoteArg{
 		ConversationID: conv.GetConvID(),
-		MessageBoxed:   *boxed,
+		MessageBoxed:   boxed,
 	})
 	require.NoError(t, err)
 	boxed.ServerHeader = &postRes.MsgHeader
@@ -148,10 +161,77 @@ func TestInboxSourceSkipAhead(t *testing.T) {
 
 	t.Logf("receive oobm with version light years ahead of its current one")
 	_, err = tc.ChatG.InboxSource.NewMessage(context.TODO(), u.User.GetUID().ToBytes(), chat1.InboxVers(100),
-		conv.GetConvID(), *boxed, nil)
+		conv.GetConvID(), boxed, nil)
 	require.NoError(t, err)
 	assertInboxVersion(100)
 
 	t.Logf("sync was triggered")
 	require.Equal(t, 1, syncCalled)
+}
+
+func TestInboxSourceLocalOnly(t *testing.T) {
+	ctc := makeChatTestContext(t, "TestInboxSourceLocalOnly", 1)
+	defer ctc.cleanup()
+	users := ctc.users()
+	useRemoteMock = false
+	defer func() { useRemoteMock = true }()
+
+	listener := newServerChatListener()
+	ctc.as(t, users[0]).h.G().NotifyRouter.AddListener(listener)
+	ctc.world.Tcs[users[0].Username].ChatG.UIInboxLoader = types.DummyUIInboxLoader{}
+	ctc.world.Tcs[users[0].Username].ChatG.Syncer.(*Syncer).isConnected = true
+
+	ctx := ctc.as(t, users[0]).startCtx
+	tc := ctc.world.Tcs[users[0].Username]
+	uid := users[0].User.GetUID().ToBytes()
+
+	conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
+		chat1.ConversationMembersType_IMPTEAMNATIVE)
+	consumeNewConversation(t, listener, conv.Id)
+
+	attempt := func(mode types.InboxSourceDataSourceTyp, success bool) {
+		ib, err := tc.Context().InboxSource.ReadUnverified(ctx, uid, mode,
+			&chat1.GetInboxQuery{
+				ConvID: &conv.Id,
+			})
+		if success {
+			require.NoError(t, err)
+			require.Equal(t, 1, len(ib.ConvsUnverified))
+			require.Equal(t, conv.Id, ib.ConvsUnverified[0].GetConvID())
+		} else {
+			require.Error(t, err)
+			require.IsType(t, storage.MissError{}, err)
+		}
+	}
+
+	attempt(types.InboxSourceDataSourceAll, true)
+	attempt(types.InboxSourceDataSourceLocalOnly, true)
+	require.NoError(t, tc.Context().InboxSource.Clear(ctx, uid, nil))
+	attempt(types.InboxSourceDataSourceLocalOnly, false)
+	attempt(types.InboxSourceDataSourceRemoteOnly, true)
+	attempt(types.InboxSourceDataSourceLocalOnly, false)
+	attempt(types.InboxSourceDataSourceAll, true)
+	attempt(types.InboxSourceDataSourceLocalOnly, true)
+}
+
+func TestChatConversationDeleted(t *testing.T) {
+	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
+		switch mt {
+		case chat1.ConversationMembersType_TEAM:
+		default:
+			return
+		}
+		ctc := makeChatTestContext(t, "TestChatConversationDeleted", 1)
+		defer ctc.cleanup()
+		users := ctc.users()
+		ctx := context.TODO()
+		uid := gregor1.UID(users[0].User.GetUID().ToBytes())
+		ctc.as(t, users[0])
+		g := ctc.world.Tcs[users[0].Username].Context()
+		_, _, err := g.InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking, types.InboxSourceDataSourceRemoteOnly, nil,
+			&chat1.GetInboxLocalQuery{
+				ConvIDs: []chat1.ConversationID{chat1.ConversationID("dead")},
+			})
+		require.NoError(t, err)
+	})
 }

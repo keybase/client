@@ -29,6 +29,7 @@ func newCmdChatReAddMember(cl *libcmdline.CommandLine, g *libkb.GlobalContext) c
 		ArgumentHelp: "<conversation> <username>",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(NewCmdChatReAddMemberRunner(g), "readd-member", c)
+			cl.SetLogForward(libcmdline.LogForwardNone)
 		},
 		Flags: mustGetChatFlags("topic-type"),
 	}
@@ -41,11 +42,8 @@ func (c *CmdChatReAddMember) Run() error {
 	if err != nil {
 		return err
 	}
-	if c.resolvingRequest.TlfName != "" {
-		if err = annotateResolvingRequest(c.G(), &c.resolvingRequest); err != nil {
-			return err
-		}
-	}
+	// force imp team, since anything else doesn't make sense
+	c.resolvingRequest.MembersType = chat1.ConversationMembersType_IMPTEAMNATIVE
 	conversation, _, err := resolver.Resolve(ctx, c.resolvingRequest, chatConversationResolvingBehavior{
 		CreateIfNotExists: false,
 		MustNotExist:      false,

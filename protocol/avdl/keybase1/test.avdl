@@ -25,4 +25,18 @@ protocol test {
     For testing crashes.
     */
   void panic(string message);
+
+  /**
+    For testing airdrop reg.
+   */
+  void testAirdropReg();
+
+  record Generic {
+    map<string, Generic> m;
+    array<Generic> a;
+    union { null, string } s;
+    union { null, int } i;
+  }
+  Generic echo(Generic arg);
+
 }

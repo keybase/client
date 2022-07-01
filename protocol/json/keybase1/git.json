@@ -221,7 +221,7 @@
       "name": "GitRepoInfo",
       "fields": [
         {
-          "type": "Folder",
+          "type": "FolderHandle",
           "name": "folder"
         },
         {
@@ -280,7 +280,7 @@
       "request": [
         {
           "name": "folder",
-          "type": "Folder"
+          "type": "FolderHandle"
         },
         {
           "name": "repoID",
@@ -301,7 +301,7 @@
       "request": [
         {
           "name": "folder",
-          "type": "Folder"
+          "type": "FolderHandle"
         },
         {
           "name": "repoName",
@@ -314,7 +314,7 @@
       "request": [
         {
           "name": "folder",
-          "type": "Folder"
+          "type": "FolderHandle"
         }
       ],
       "response": {
@@ -415,7 +415,7 @@
       "request": [
         {
           "name": "folder",
-          "type": "Folder"
+          "type": "FolderHandle"
         },
         {
           "name": "repoID",
@@ -428,7 +428,7 @@
       "request": [
         {
           "name": "folder",
-          "type": "Folder"
+          "type": "FolderHandle"
         },
         {
           "name": "repoID",

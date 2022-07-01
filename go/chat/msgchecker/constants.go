@@ -3,19 +3,19 @@ package msgchecker
 import "github.com/keybase/client/go/protocol/chat1"
 
 const (
-	TextMessageMaxLength     = 10000
-	DevTextMessageMaxLength  = 1000000
-	ReactionMessageMaxLength = 50
-	HeadlineMaxLength        = 280
-	TopicMaxLength           = 20
-	PaymentTextMaxLength     = 240
+	TextMessageMaxLength        = 10000
+	DevTextMessageMaxLength     = 1000000
+	ReactionMessageMaxLength    = 10000
+	HeadlineMaxLength           = 280
+	TopicMaxLength              = 20
+	RequestPaymentTextMaxLength = 240
 )
 
 const (
 	BoxedTextMessageBodyMaxLength           = 11000
 	DevBoxedTextMessageBodyMaxLength        = 1100000
 	BoxedEditMessageBodyMaxLength           = 11000
-	BoxedReactionMessageBodyMaxLength       = 150
+	BoxedReactionMessageBodyMaxLength       = 10000
 	BoxedHeadlineMessageBodyMaxLength       = 380
 	BoxedMetadataMessageBodyMaxLength       = 200
 	BoxedJoinMessageBodyMaxLength           = 200
@@ -24,13 +24,15 @@ const (
 	BoxedDeleteHistoryMessageBodyMaxLength  = 200
 	BoxedSendPaymentMessageBodyMaxLength    = 200
 	BoxedRequestPaymentMessageBodyMaxLength = 500
+	BoxedSanityLength                       = 5000000
 )
 
 func getMaxTextLength(topicType chat1.TopicType) (textMsgLength int) {
 	switch topicType {
 	case chat1.TopicType_CHAT:
 		textMsgLength = TextMessageMaxLength
-	case chat1.TopicType_DEV, chat1.TopicType_KBFSFILEEDIT:
+	case chat1.TopicType_DEV, chat1.TopicType_KBFSFILEEDIT, chat1.TopicType_EMOJI,
+		chat1.TopicType_EMOJICROSS:
 		textMsgLength = DevTextMessageMaxLength
 	default:
 		textMsgLength = TextMessageMaxLength
@@ -42,7 +44,8 @@ func getBoxedMaxTextLength(topicType chat1.TopicType) (textMsgLength int) {
 	switch topicType {
 	case chat1.TopicType_CHAT:
 		textMsgLength = BoxedTextMessageBodyMaxLength
-	case chat1.TopicType_DEV, chat1.TopicType_KBFSFILEEDIT:
+	case chat1.TopicType_DEV, chat1.TopicType_KBFSFILEEDIT, chat1.TopicType_EMOJI,
+		chat1.TopicType_EMOJICROSS:
 		textMsgLength = DevBoxedTextMessageBodyMaxLength
 	default:
 		textMsgLength = BoxedTextMessageBodyMaxLength

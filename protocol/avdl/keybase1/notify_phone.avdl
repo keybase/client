@@ -1,0 +1,6 @@
+@namespace("keybase.1")
+protocol NotifyPhoneNumber {
+  import idl "common.avdl";
+
+  void phoneNumbersChanged(array<UserPhoneNumber> list, string category, PhoneNumber phoneNumber) oneway;
+}

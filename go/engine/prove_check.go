@@ -53,15 +53,15 @@ func (e *ProveCheck) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (e *ProveCheck) Run(m libkb.MetaContext) error {
-	found, status, state, err := libkb.CheckPostedViaSigID(m, e.sigID)
+	found, status, state, err := libkb.CheckPosted(m, e.sigID)
 	if err != nil {
 		return err
 	}
 	e.found = found
-	e.status = keybase1.ProofStatus(status)
+	e.status = status
 	e.state = state
 
-	m.CDebugf("looking for ChainLink for %s", e.sigID)
+	m.Debug("looking for ChainLink for %s", e.sigID)
 	me, err := libkb.LoadMe(libkb.NewLoadUserArgWithMetaContext(m).WithPublicKeyOptional())
 	if err != nil {
 		return err
@@ -70,12 +70,12 @@ func (e *ProveCheck) Run(m libkb.MetaContext) error {
 	if link == nil {
 		return fmt.Errorf("no chain link found for %s", e.sigID)
 	}
-	m.CDebugf("chain link found: (%T)", link.Typed())
+	m.Debug("chain link found: (%T)", link.Typed())
 	if rlink, ok := link.Typed().(libkb.RemoteProofChainLink); ok {
 		e.proofText = rlink.ProofText()
-		m.CDebugf("chain link proof text: %q", e.proofText)
+		m.Debug("chain link proof text: %q", e.proofText)
 	} else {
-		m.CWarningf("chain link had invalid type: %T", link.Typed())
+		m.Warning("chain link had invalid type: %T", link.Typed())
 	}
 	return nil
 }

@@ -13,9 +13,7 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
-type ReadCloser struct {
-	f keybase1.Stream
-}
+type ReadCloser struct{}
 
 type ReadCloseSeeker interface {
 	io.ReadCloser

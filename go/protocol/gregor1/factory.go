@@ -142,7 +142,7 @@ func (o ObjFactory) MakeDismissalByIDs(uid gregor.UID, msgid gregor.MsgID, devid
 	if err != nil {
 		return nil, err
 	}
-	ourIds := make([]MsgID, len(ids), len(ids))
+	ourIds := make([]MsgID, len(ids))
 	for i, id := range ids {
 		ourIds[i] = MsgID(id.Bytes())
 	}
@@ -191,7 +191,7 @@ func (its itemSlice) Less(i, j int) bool {
 }
 
 func (o ObjFactory) MakeState(items []gregor.Item) (gregor.State, error) {
-	var ourItems itemSlice
+	ourItems := make(itemSlice, 0, len(items))
 	for _, item := range items {
 		ourItem, err := castItem(item)
 		if err != nil {
@@ -260,6 +260,27 @@ func (o ObjFactory) MakeTimeOrOffsetFromTime(t time.Time) (gregor.TimeOrOffset, 
 
 func (o ObjFactory) MakeTimeOrOffsetFromOffset(d time.Duration) (gregor.TimeOrOffset, error) {
 	return TimeOrOffset{Offset_: DurationMsec(d / time.Millisecond)}, nil
+}
+
+func (o ObjFactory) ExportTimeOrOffset(t gregor.TimeOrOffset) TimeOrOffset {
+	if t.Time() != nil {
+		return TimeOrOffset{
+			Time_: ToTime(*t.Time()),
+		}
+	}
+	if t.Offset() != nil {
+		return TimeOrOffset{
+			Offset_: DurationMsec(*t.Offset() / time.Millisecond),
+		}
+	}
+	return TimeOrOffset{}
+}
+
+func (o ObjFactory) ExportTimeOrOffsets(ts []gregor.TimeOrOffset) (res []TimeOrOffset) {
+	for _, t := range ts {
+		res = append(res, o.ExportTimeOrOffset(t))
+	}
+	return res
 }
 
 func (o ObjFactory) MakeReminderID(u gregor.UID, msgid gregor.MsgID, seqno int) (gregor.ReminderID, error) {

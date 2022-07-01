@@ -1,7 +1,7 @@
 ## Keybase [![Build Status](https://travis-ci.org/keybase/client.svg?branch=master)](https://travis-ci.org/keybase/client) [![Build status](https://ci.appveyor.com/api/projects/status/90mxorxtj6vixnum/branch/master?svg=true)](https://ci.appveyor.com/project/keybase/client-x5qrt/branch/master)
 
 This repository contains the Keybase core crypto libraries, command-line
-utility, and local Keybase service.  All code is written in the [Go
+utility, and local Keybase service. All code is written in the [Go
 Language](https://golang.org), making heavy use of Go's
 [OpenPGP](https://godoc.org/golang.org/x/crypto/openpgp) and
 [NaCl](https://godoc.org/golang.org/x/crypto/nacl)
@@ -26,7 +26,7 @@ instructions](https://keybase.io/download).
 ### Building
 
 Here's how to build the command line client on Linux or OSX. You need to
-have both Git and **Go 1.9 or higher** installed. (Run `go version` to
+have both Git and **Go 1.17 or higher** installed. (Run `go version` to
 see what version you have.)
 
 ```bash
@@ -37,8 +37,12 @@ mkdir ~/gopath
 export GOPATH="$HOME/gopath"     # Consider putting this in your ~/.bashrc.
 export PATH="$PATH:$GOPATH/bin"  # Ditto.
 
-# Now for the actual clone and build.
-go get github.com/keybase/client/go/keybase
+# Now for the actual clone and build. Currently the Keybase client depends
+# on go.mod replace directives, so a `go get` of the repository cannot be
+# used. You should use `git` to clone the repository instead.
+# See https://github.com/golang/go/issues/30354 for more details.
+git clone https://github.com/keybase/client.git
+cd client/go
 go install -tags production github.com/keybase/client/go/keybase
 
 # If you did the PATH bit above, this should just work.
@@ -79,6 +83,12 @@ keybase --standalone id max
 ```bash
 cd $GOPATH/src/github.com/keybase/client/go/test
 ./run_tests.sh
+```
+
+### Calculate package dependenies
+
+```bash
+make gen-deps
 ```
 
 ### License

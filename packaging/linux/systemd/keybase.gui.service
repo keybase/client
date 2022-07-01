@@ -1,18 +1,42 @@
 [Unit]
 Description=Keybase GUI
-Wants=keybase.service kbfs.service
+# Do not issue a hard dependency on service, because
+# gui can reconnect to a restarted service.
+Wants=keybase.service
 
 [Service]
 Type=simple
-ExecStart=/opt/keybase/Keybase
-# The environment file lets run_keybase pass along KEYBASE_START_UI. The
-# autostart file will set that to suppress showing the main window during boot.
-# %t is the XDG_RUNTIME_DIR, and the leading - means it's ok if the file is
-# missing.
+
+# We used to store GUI env vars in keybase.gui.env.
+# The postinstall autorestarter needs to know $DISPLAY
+# in order to restart the GUI properly, but if it's already in
+# this env file, the unit will use this value.
+# After you run `run_keybase` the first time, $DISPLAY will be stored
+# in keybase.env, but for the initial install, we need this file.
+# We can remove this when most clients have upgraded.
 EnvironmentFile=-%t/keybase/keybase.gui.env
+
+EnvironmentFile=-%h/.config/keybase/keybase.autogen.env
+EnvironmentFile=-%h/.config/keybase/keybase.env
+
+ExecStart=/opt/keybase/Keybase
+
+# After starting, we clear the KEYBASE_AUTOSTART variable so the next time
+# systemctl --start keybase.gui is called, it will be maximized.
+# Autostart scripts must set KEYBASE_AUTOSTART=1 in the systemd
+# environment on every call in order to start the gui in a minimized state.
+# The official Linux packages use run_keybase, which imports the
+# environment variable into systemd during autostart.
+# We need to shell out because systemctl is sometimes in /bin and sometimes in
+# /usr/bin depending on the distro
+ExecStartPost=/usr/bin/env systemctl --user unset-environment KEYBASE_AUTOSTART
 
 # We don't set Restart=, since a GUI crash is probably visible to the user.
 
+# Only kill main Electron process, which kills the others. But if that fails,
+# systemd will send a SIGKILL to all Electron processes.
+KillMode=process
+
 # We don't have an [Install] section, since the app is intended to be started
-# from ~/.config/autostart. Running it in e.g. an SSH session is unlikely to be
-# correct.
+# from ~/.config/autostart (or the user's window manager's autostart
+# configuration). Enabling it in e.g. an SSH session is unlikely to be correct.

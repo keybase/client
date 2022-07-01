@@ -1,0 +1,34 @@
+{
+  "protocol": "NotifyPhoneNumber",
+  "imports": [
+    {
+      "path": "common.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [],
+  "messages": {
+    "phoneNumbersChanged": {
+      "request": [
+        {
+          "name": "list",
+          "type": {
+            "type": "array",
+            "items": "UserPhoneNumber"
+          }
+        },
+        {
+          "name": "category",
+          "type": "string"
+        },
+        {
+          "name": "phoneNumber",
+          "type": "PhoneNumber"
+        }
+      ],
+      "response": null,
+      "oneway": true
+    }
+  },
+  "namespace": "keybase.1"
+}

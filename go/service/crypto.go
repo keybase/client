@@ -71,19 +71,19 @@ func (c *CryptoHandler) secretUIMaker(sessionID int, reason string) func() libkb
 }
 
 func (c *CryptoHandler) SignED25519(ctx context.Context, arg keybase1.SignED25519Arg) (keybase1.ED25519SignatureInfo, error) {
-	return engine.SignED25519(ctx, c.G(), c.secretUIMaker(arg.SessionID, arg.Reason), arg)
+	return engine.SignED25519(ctx, c.G(), arg)
 }
 
 func (c *CryptoHandler) SignED25519ForKBFS(ctx context.Context, arg keybase1.SignED25519ForKBFSArg) (keybase1.ED25519SignatureInfo, error) {
-	return engine.SignED25519ForKBFS(ctx, c.G(), c.secretUIMaker(arg.SessionID, arg.Reason), arg)
+	return engine.SignED25519ForKBFS(ctx, c.G(), arg)
 }
 
 func (c *CryptoHandler) SignToString(ctx context.Context, arg keybase1.SignToStringArg) (string, error) {
-	return engine.SignToString(ctx, c.G(), c.secretUIMaker(arg.SessionID, arg.Reason), arg)
+	return engine.SignToString(ctx, c.G(), arg)
 }
 
 func (c *CryptoHandler) UnboxBytes32(ctx context.Context, arg keybase1.UnboxBytes32Arg) (keybase1.Bytes32, error) {
-	return engine.UnboxBytes32(ctx, c.G(), c.secretUIMaker(arg.SessionID, arg.Reason), arg)
+	return engine.UnboxBytes32(ctx, c.G(), arg)
 }
 
 func (c *CryptoHandler) UnboxBytes32Any(ctx context.Context, arg keybase1.UnboxBytes32AnyArg) (keybase1.UnboxAnyRes, error) {

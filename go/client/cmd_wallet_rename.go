@@ -47,11 +47,12 @@ func (c *cmdWalletRename) ParseArgv(ctx *cli.Context) (err error) {
 }
 
 func (c *cmdWalletRename) Run() (err error) {
+	defer transformStellarCLIError(&err)
 	cli, err := GetWalletClient(c.G())
 	if err != nil {
 		return err
 	}
-	err = cli.ChangeWalletAccountNameLocal(context.TODO(), stellar1.ChangeWalletAccountNameLocalArg{
+	_, err = cli.ChangeWalletAccountNameLocal(context.TODO(), stellar1.ChangeWalletAccountNameLocalArg{
 		AccountID: c.AccountID,
 		NewName:   c.Name,
 	})

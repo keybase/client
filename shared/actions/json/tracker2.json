@@ -1,0 +1,75 @@
+{
+  "prelude": ["import type * as Types from '../constants/types/tracker2'"],
+  "actions": {
+    "load": {
+      "assertion": "string",
+      "forceDisplay?": "boolean",
+      "fromDaemon?": "boolean",
+      "guiID": "string",
+      "ignoreCache?": "boolean",
+      "reason": "string",
+      "inTracker": "boolean"
+    },
+    "updatedDetails": {
+      "guiID": "string",
+      "bio": "string",
+      "fullname": "string",
+      "location": "string",
+      "unverifiedFollowersCount": "number",
+      "unverifiedFollowingCount": "number",
+      "stellarHidden": "boolean",
+      "username": "string",
+      "teamShowcase": "Array<Types.TeamShowcase>",
+      "blocked": "boolean",
+      "hidFromFollowers": "boolean"
+    },
+    "updateResult": {
+      "guiID": "string",
+      "result": "Types.DetailsState",
+      "reason?": "string",
+    },
+    "closeTracker": {
+      "guiID": "string"
+    },
+    "changeFollow": {
+      "guiID": "string",
+      "follow": "boolean"
+    },
+    "ignore": {
+      "guiID": "string"
+    },
+    "updateFollows": {
+      "username": "string",
+      "following?": "Array<{fullname: string, username: string}>",
+      "followers?": "Array<{fullname: string, username: string}>"
+    },
+    "updateWotEntries": {
+      "voucheeUsername": "string",
+      "entries": "Array<Types.WebOfTrustEntry>"
+    },
+    "getProofSuggestions": {},
+    "proofSuggestionsUpdated": {"suggestions": "ReadonlyArray<Types.Assertion>"},
+    "showUser": {
+      "_description": "Short term until new nav, a convenience to show a card from inside the app",
+      "asTracker": "boolean",
+      "username": "string",
+      "skipNav?": "boolean"
+    },
+    "loadNonUserProfile": {"assertion": "string"},
+    "loadedNonUserProfile": {
+      "assertion": "string",
+      "assertionKey": "string",
+      "assertionValue": "string",
+      "formattedName?": "string",
+      "bio?": "string",
+      "description": "string",
+      "fullName?": "string",
+      "location?": "string",
+      "pictureUrl?": "string",
+      "siteIcon": "Array<Types.SiteIcon>",
+      "siteIconDarkmode": "Array<Types.SiteIcon>",
+      "siteIconFull": "Array<Types.SiteIcon>",
+      "siteIconFullDarkmode": "Array<Types.SiteIcon>"
+    }
+  }
+}

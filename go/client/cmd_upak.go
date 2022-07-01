@@ -18,8 +18,9 @@ import (
 
 type cmdUPAK struct {
 	libkb.Contextified
-	uid keybase1.UID
-	kid keybase1.KID
+	uid       keybase1.UID
+	kid       keybase1.KID
+	unstubbed bool
 }
 
 func NewCmdUPAK(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -31,6 +32,10 @@ func NewCmdUPAK(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command 
 			cli.StringFlag{
 				Name:  "k, kid",
 				Usage: "KID to query",
+			},
+			cli.BoolFlag{
+				Name:  "unstubbed",
+				Usage: "Get unstubbed version",
 			},
 		},
 		Action: func(c *cli.Context) {
@@ -44,12 +49,11 @@ func (c *cmdUPAK) Run() error {
 	if err != nil {
 		return err
 	}
-
 	if err = RegisterProtocolsWithContext(nil, c.G()); err != nil {
 		return err
 	}
 
-	res, err := userClient.GetUPAK(context.Background(), c.uid)
+	res, err := userClient.GetUPAK(context.Background(), keybase1.GetUPAKArg{Uid: c.uid, Unstubbed: c.unstubbed})
 	if err != nil {
 		return err
 	}
@@ -71,7 +75,7 @@ func (c *cmdUPAK) Run() error {
 		}
 	}
 
-	c.G().UI.GetTerminalUI().Output(string(jsonOut) + "\n")
+	_ = c.G().UI.GetTerminalUI().Output(string(jsonOut) + "\n")
 	return nil
 }
 
@@ -85,6 +89,7 @@ func (c *cmdUPAK) ParseArgv(ctx *cli.Context) error {
 		return err
 	}
 	kid := ctx.String("kid")
+	c.unstubbed = ctx.Bool("unstubbed")
 	if len(kid) > 0 {
 		c.kid, err = keybase1.KIDFromStringChecked(kid)
 		if err != nil {

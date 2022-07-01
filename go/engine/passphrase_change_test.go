@@ -276,7 +276,9 @@ func TestPassphraseChangeAfterPubkeyLogin(t *testing.T) {
 	Logout(tc)
 
 	secui := u.NewSecretUI()
-	u.LoginWithSecretUI(secui, tc.G)
+	if err := u.LoginWithSecretUI(secui, tc.G); err != nil {
+		t.Fatal(err)
+	}
 	if !secui.CalledGetPassphrase {
 		t.Errorf("get keybase passphrase not called")
 	}
@@ -673,14 +675,15 @@ func TestPassphraseChangeLoggedOutBackupKeySecretStorePGP(t *testing.T) {
 		},
 		PushSecret: true,
 	}
-	arg.Gen.MakeAllIds(tc.G)
+	err := arg.Gen.MakeAllIds(tc.G)
+	require.NoError(t, err)
 	uis := libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
 		SecretUI: u.NewSecretUI(),
 	}
 	eng := NewPGPKeyImportEngine(tc.G, arg)
 	m := NewMetaContextForTest(tc).WithUIs(uis)
-	err := RunEngine2(m, eng)
+	err = RunEngine2(m, eng)
 	if err != nil {
 		tc.T.Fatal(err)
 	}
@@ -746,14 +749,15 @@ func TestPassphraseChangePGP3SecMultiple(t *testing.T) {
 		NoSave:     true,
 		AllowMulti: true,
 	}
-	parg.Gen.MakeAllIds(tc.G)
+	err := parg.Gen.MakeAllIds(tc.G)
+	require.NoError(t, err)
 	uis := libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
 		SecretUI: u.NewSecretUI(),
 	}
 	peng := NewPGPKeyImportEngine(tc.G, parg)
 	m := NewMetaContextForTest(tc).WithUIs(uis)
-	err := RunEngine2(m, peng)
+	err = RunEngine2(m, peng)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -820,10 +824,11 @@ func TestPassphraseGenerationStored(t *testing.T) {
 	defer tc.Cleanup()
 
 	u := CreateAndSignupFakeUser(tc, "login")
+	mctx := tc.MetaContext()
 
 	// All of the keys initially created with the user should be stored as
 	// passphrase generation 1.
-	skbKeyringFile, err := libkb.LoadSKBKeyring(u.NormalizedUsername(), tc.G)
+	skbKeyringFile, err := libkb.LoadSKBKeyring(mctx, u.NormalizedUsername())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -864,7 +869,8 @@ func TestPassphraseGenerationStored(t *testing.T) {
 			SubkeyBits:  768,
 		},
 	}
-	pgpArg.Gen.MakeAllIds(tc.G)
+	err = pgpArg.Gen.MakeAllIds(tc.G)
+	require.NoError(t, err)
 	pgpEng := NewPGPKeyImportEngine(tc.G, pgpArg)
 	uis = libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
@@ -879,7 +885,7 @@ func TestPassphraseGenerationStored(t *testing.T) {
 	//
 	// Finally, check that the new key (and only the new key) is marked as ppgen 2.
 	//
-	finalSKBKeyringFile, err := libkb.LoadSKBKeyring(u.NormalizedUsername(), tc.G)
+	finalSKBKeyringFile, err := libkb.LoadSKBKeyring(mctx, u.NormalizedUsername())
 	if err != nil {
 		t.Fatal(err)
 	}

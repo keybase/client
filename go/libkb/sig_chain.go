@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/buger/jsonparser"
+	"github.com/keybase/client/go/jsonparserw"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
@@ -39,13 +40,16 @@ type ChainLinks []*ChainLink
 //    consuming client can safely ignore those details.
 //
 
+type BaseSigChain interface {
+	VerifyChain(m MetaContext) (err error)
+	GetComputedKeyInfos() (cki *ComputedKeyInfos)
+}
 type SigChain struct {
 	Contextified
 
 	uid               keybase1.UID
 	username          NormalizedUsername
 	chainLinks        ChainLinks // all the links we know about, starting with seqno 1
-	idVerified        bool
 	loadedFromLinkOne bool
 	wasFullyCached    bool
 
@@ -56,9 +60,10 @@ type SigChain struct {
 	// If we've made local modifications to our chain, mark it here;
 	// there's a slight lag on the server and we might not get the
 	// new chain tail if we query the server right after an update.
-	localChainTail *MerkleTriple
+	localChainTail                 *MerkleTriple
+	localChainNextHighSkipOverride *HighSkip
 
-	// When the local chain was updated.
+	// When the local chains were updated.
 	localChainUpdateTime time.Time
 
 	// The sequence number of the first chain link in the current subchain. For
@@ -206,42 +211,64 @@ func (sc *SigChain) VerifiedChainLinks(fp PGPFingerprint) (ret ChainLinks) {
 		start = i
 	}
 	if start >= 0 {
-		ret = ChainLinks(sc.chainLinks[start:])
+		ret = sc.chainLinks[start:]
 	}
 	return ret
 }
 
-func (sc *SigChain) Bump(mt MerkleTriple) {
+// Bump updates the latest seqno and high skip pointers during
+// multisig posts. isHighDelegator is true iff the sig making
+// causing the bump is high (e.g., for a sibkey).
+func (sc *SigChain) Bump(mt MerkleTriple, isHighDelegator bool) {
 	mt.Seqno = sc.GetLastKnownSeqno() + 1
 	sc.G().Log.Debug("| Bumping SigChain LastKnownSeqno to %d", mt.Seqno)
 	sc.localChainTail = &mt
 	sc.localChainUpdateTime = sc.G().Clock().Now()
+	if isHighDelegator {
+		highSkip := NewHighSkip(mt.Seqno, mt.LinkID)
+		sc.localChainNextHighSkipOverride = &highSkip
+	}
 }
 
-func (sc *SigChain) LoadFromServer(m MetaContext, t *MerkleTriple, selfUID keybase1.UID) (dirtyTail *MerkleTriple, err error) {
+type sigCompression3Type int
+
+const (
+	sigCompression3Unstubbed sigCompression3Type = 1
+	sigCompression3Stubbed   sigCompression3Type = 2
+)
+
+func (sc *SigChain) LoadFromServer(m MetaContext, t *MerkleTriple, selfUID keybase1.UID, stubMode StubMode, unstubs map[keybase1.Seqno]LinkID) (dirtyTail *MerkleTriple, err error) {
 	m, tbs := m.WithTimeBuckets()
 	low := sc.GetLastLoadedSeqno()
+	lenPrev := sc.Len()
 	sc.loadedFromLinkOne = (low == keybase1.Seqno(0) || low == keybase1.Seqno(-1))
 
-	m.CDebugf("+ Load SigChain from server (uid=%s, low=%d)", sc.uid, low)
-	defer func() { m.CDebugf("- Loaded SigChain -> %s", ErrToOk(err)) }()
+	m.Debug("+ Load SigChain from server (uid=%s, low=%d)", sc.uid, low)
+	defer func() { m.Debug("- Loaded SigChain -> %s", ErrToOk(err)) }()
 
-	resp, finisher, err := sc.G().API.GetResp(APIArg{
+	// Signal if you want to read deleted sig chains for debugging, requires
+	// admin permissions to be honored on the server.
+	readDeleted := m.G().Env.GetReadDeletedSigChain()
+
+	c3 := sigCompression3Unstubbed
+	if stubMode == StubModeStubbed {
+		c3 = sigCompression3Stubbed
+	}
+
+	resp, finisher, err := sc.G().API.GetResp(m, APIArg{
 		Endpoint:    "sig/get",
 		SessionType: APISessionTypeOPTIONAL,
 		Args: HTTPArgs{
-			"uid":           UIDArg(sc.uid),
-			"low":           I{int(low)},
-			"v2_compressed": B{true},
+			"uid":          UIDArg(sc.uid),
+			"low":          I{int(low)},
+			"read_deleted": B{readDeleted},
+			"c3":           I{int(c3)},
 		},
-		MetaContext: m,
 	})
 	if err != nil {
 		return
 	}
-	if finisher != nil {
-		defer finisher()
-	}
+	defer finisher()
 
 	recordFin := tbs.Record("SigChain.LoadFromServer.ReadAll")
 	body, err := ioutil.ReadAll(resp.Body)
@@ -250,7 +277,15 @@ func (sc *SigChain) LoadFromServer(m MetaContext, t *MerkleTriple, selfUID keyba
 		return nil, err
 	}
 	recordFin()
-	return sc.LoadServerBody(m, body, low, t, selfUID)
+	dirtyTail, err = sc.LoadServerBody(m, body, low, t, selfUID)
+	if err != nil {
+		return nil, err
+	}
+	err = sc.checkUnstubs(lenPrev, unstubs)
+	if err != nil {
+		return nil, err
+	}
+	return dirtyTail, nil
 }
 
 func (sc *SigChain) LoadServerBody(m MetaContext, body []byte, low keybase1.Seqno, t *MerkleTriple, selfUID keybase1.UID) (dirtyTail *MerkleTriple, err error) {
@@ -258,12 +293,22 @@ func (sc *SigChain) LoadServerBody(m MetaContext, body []byte, low keybase1.Seqn
 	// has not interacted with the deleted user. The idea being if you have
 	// interacted (chatted, etc) with this user you should still verify their
 	// sigchain. Otherwise you can ignore it.
-	if val, err := jsonparser.GetInt(body, "status", "code"); err == nil {
-		if keybase1.StatusCode(val) == keybase1.StatusCode_SCDeleted {
-			// Do not bother trying to read the sigchain - user is
-			// deleted.
-			return nil, UserDeletedError{}
-		}
+	var val int64
+	val, err = jsonparserw.GetInt(body, "status", "code")
+
+	// Server should always reply with a valid status code
+	if err != nil {
+		return nil, err
+	}
+
+	if keybase1.StatusCode(val) == keybase1.StatusCode_SCDeleted {
+		// Do not bother trying to read the sigchain - user is
+		// deleted.
+		return nil, UserDeletedError{}
+	}
+
+	if keybase1.StatusCode(val) != keybase1.StatusCode_SCOk {
+		m.Debug("SigChain#LoadServerBody: got unexpected status code (%d) but continuing", val)
 	}
 
 	foundTail := false
@@ -272,14 +317,32 @@ func (sc *SigChain) LoadServerBody(m MetaContext, body []byte, low keybase1.Seqn
 	var tail *ChainLink
 
 	numEntries := 0
+	var travErr error
+	var linkErr error
 
-	jsonparser.ArrayEach(body, func(value []byte, dataType jsonparser.ValueType, offset int, inErr error) {
+	_, travErr = jsonparserw.ArrayEach(body, func(value []byte, dataType jsonparser.ValueType, offset int, inErr error) {
 
 		var link *ChainLink
-		if link, err = ImportLinkFromServer(m, sc, value, selfUID); err != nil {
-			m.CDebugf("ImportLinkFromServer error: %s", err)
+		var tmpErr error
+
+		// MK (2020.03.09): This error is actually never generated by buger/jsonparse, but
+		// maybe that might change in the future. If so, let's handle it.
+		if inErr != nil {
+			m.Debug("ImportLinkFromServer: jsonparser failed with error %s", inErr)
+			linkErr = inErr
 			return
 		}
+
+		// NOTE: there isn't a good way to signal to ArrayEach to early-out of the traversal.
+		// If we do hit such an error, we set linkErr with the last-error wins strategy.
+		// And any linkErr being set is enough to kill the chain reconstruction.
+		link, tmpErr = ImportLinkFromServer(m, sc, value, selfUID)
+		if tmpErr != nil {
+			m.Debug("ImportLinkFromServer error at link %d: %s", numEntries+1, tmpErr)
+			linkErr = tmpErr
+			return
+		}
+
 		if link.GetSeqno() <= low {
 			return
 		}
@@ -288,25 +351,45 @@ func (sc *SigChain) LoadServerBody(m MetaContext, body []byte, low keybase1.Seqn
 		putLinkToCache(m, link)
 
 		if selfUID.Equal(link.GetUID()) {
-			m.CDebugf("| Setting isOwnNewLinkFromServer=true for seqno %d", link.GetSeqno())
+			m.Debug("| Setting isOwnNewLinkFromServer=true for seqno %d", link.GetSeqno())
 			link.isOwnNewLinkFromServer = true
 		}
 		links = append(links, link)
-		if !foundTail && t != nil {
-			if foundTail, err = link.checkAgainstMerkleTree(t); err != nil {
+
+		// If haven't found a tail yet, and we got a triple from the server, and the
+		// link isn't stubbed, then let's check this link against what we got from the
+		// tree. This might generate a failure (if the hashes clash) or just a "not found"
+		// which is something we can try again in a future link. Note that there could be a race
+		// between when we asked the tree for the tail, and when we fetched the chainlinks,
+		// so we can't just check the last link, we need to check all.
+		if !foundTail && t != nil && !link.IsStubbed() {
+			foundTail, tmpErr = link.checkAgainstMerkleTree(t)
+			if tmpErr != nil {
+				m.Debug("checkAgainstMerkleTree failure error at link %d: %s", numEntries+1, tmpErr)
+				linkErr = tmpErr
 				return
 			}
 		}
-
 		tail = link
 		numEntries++
 	}, "sigs")
 
-	if err != nil {
+	// We hit this error condition if there was an error iterating through the chain above.
+	// Note that ArrayEach doesn't allow a better to propagate an error, so we use this locally
+	// scoped error to signal that one of the links failed to import. Last writer wins here.
+	if linkErr != nil {
+		m.Debug("SigChain#LoadServerBody: failing due to bad chainlink: %s", linkErr)
 		return nil, err
 	}
 
-	m.CDebugf("| Got back %d new entries", numEntries)
+	// travErr is generated when ArrayEach hit a failure (not the callback we pass to it).
+	// We'll get this if the JSON the server sent back is broken or malformed.
+	if travErr != nil {
+		m.Debug("SigChain#LoadServerBody: traverse error: %s", travErr)
+		return nil, travErr
+	}
+
+	m.Debug("| Got back %d new entries", numEntries)
 
 	if t != nil && !foundTail {
 		err = NewServerChainError("Failed to reach (%s, %d) in server response",
@@ -320,8 +403,9 @@ func (sc *SigChain) LoadServerBody(m MetaContext, body []byte, low keybase1.Seqn
 		// If we've stored a `last` and it's less than the one
 		// we just loaded, then nuke it.
 		if sc.localChainTail != nil && sc.localChainTail.Less(*dirtyTail) {
-			m.CDebugf("| Clear cached last (%d < %d)", sc.localChainTail.Seqno, dirtyTail.Seqno)
+			m.Debug("| Clear cached last (%d < %d)", sc.localChainTail.Seqno, dirtyTail.Seqno)
 			sc.localChainTail = nil
+			sc.localChainNextHighSkipOverride = nil
 			sc.localCki = nil
 		}
 	}
@@ -342,14 +426,44 @@ func (sc *SigChain) getFirstSeqno() (ret keybase1.Seqno) {
 	return ret
 }
 
-func (sc *SigChain) VerifyChain(m MetaContext) (err error) {
-	defer m.CTrace("SigChain#VerifyChain", func() error { return err })()
+func (sc *SigChain) VerifyChain(mctx MetaContext, uid keybase1.UID) (err error) {
+	defer mctx.Trace(fmt.Sprintf("SigChain#VerifyChain(%s)", uid), &err)()
+	defer mctx.PerfTrace(fmt.Sprintf("SigChain#VerifyChain(%s)", uid), &err)()
+	start := time.Now()
+	defer func() {
+		var message string
+		if err == nil {
+			message = fmt.Sprintf("Verified sig chain for %s", uid)
+		} else {
+			message = fmt.Sprintf("Failed to verify sigchain for %s", uid)
+		}
+		mctx.G().RuntimeStats.PushPerfEvent(keybase1.PerfEvent{
+			EventType: keybase1.PerfEventType_USERCHAIN,
+			Message:   message,
+			Ctime:     keybase1.ToTime(start),
+		})
+	}()
+
+	expectedNextHighSkip := NewInitialHighSkip()
+	firstUnverifiedChainIdx := 0
+outer:
 	for i := len(sc.chainLinks) - 1; i >= 0; i-- {
 		curr := sc.chainLinks[i]
-		m.VLogf(VLog1, "| verify link %d (%s)", i, curr.id)
+		mctx.VLogf(VLog1, "| verify link %d (%s)", i, curr.id)
 		if curr.chainVerified {
-			m.CDebugf("| short-circuit at link %d", i)
-			break
+			expectedNextHighSkipPre, err := curr.ExpectedNextHighSkip(mctx, uid)
+
+			switch err.(type) {
+			case UserReverifyNeededError:
+				mctx.Debug("Continuing verification at link %d due to uncomputed high skip.", i)
+			case nil:
+				mctx.Debug("| short-circuit at link %d", i)
+				expectedNextHighSkip = expectedNextHighSkipPre
+				firstUnverifiedChainIdx = i + 1
+				break outer
+			default:
+				return err
+			}
 		}
 		if err = curr.VerifyLink(); err != nil {
 			return err
@@ -369,6 +483,24 @@ func (sc *SigChain) VerifyChain(m MetaContext) (err error) {
 			return err
 		}
 		curr.markChainVerified()
+	}
+
+	for i := firstUnverifiedChainIdx; i < len(sc.chainLinks); i++ {
+		curr := sc.chainLinks[i]
+		curr.computedHighSkip = &expectedNextHighSkip
+
+		// If the sigchain claims an HighSkip, make sure it matches our
+		// computation.
+		if highSkip := curr.GetHighSkip(); highSkip != nil {
+			err = highSkip.AssertEqualsExpected(*curr.computedHighSkip)
+			if err != nil {
+				return err
+			}
+		}
+		expectedNextHighSkip, err = curr.ExpectedNextHighSkip(mctx, uid)
+		if err != nil {
+			return err
+		}
 	}
 
 	return err
@@ -395,6 +527,18 @@ func (sc SigChain) GetLastKnownID() (ret LinkID) {
 		ret = sc.GetLastLoadedID()
 	}
 	return
+}
+
+// GetExpectedNextHighSkip returns the HighSkip expected for a new link to be
+// added to the chain.  It can only be called after VerifyChain is completed.
+func (sc SigChain) GetExpectedNextHighSkip(mctx MetaContext, uid keybase1.UID) (HighSkip, error) {
+	if sc.localChainNextHighSkipOverride != nil {
+		return *sc.localChainNextHighSkipOverride, nil
+	}
+	if len(sc.chainLinks) == 0 {
+		return NewInitialHighSkip(), nil
+	}
+	return sc.GetLastLink().ExpectedNextHighSkip(mctx, uid)
 }
 
 func (sc SigChain) GetFirstLink() *ChainLink {
@@ -447,18 +591,41 @@ func (sc *SigChain) Store(m MetaContext) (err error) {
 	return nil
 }
 
+func (sc *SigChain) checkUnstubs(low int, unstubs map[keybase1.Seqno]LinkID) error {
+
+	if unstubs == nil {
+		return nil
+	}
+
+	hits := make(map[keybase1.Seqno]bool)
+	for _, link := range sc.chainLinks[low:] {
+		q := link.GetSeqno()
+		if id, found := unstubs[q]; found && !id.Eq(link.id) {
+			return NewChainLinkBadUnstubError(fmt.Sprintf("Bad unstub for seqno %d: %s != %s", link.GetSeqno(), id, link.id))
+		}
+		hits[q] = true
+	}
+	for q := range unstubs {
+		if !hits[q] {
+			return NewChainLinkBadUnstubError(fmt.Sprintf("Expected seqno=%d to be unstubbed, but it wasn't", q))
+		}
+	}
+
+	return nil
+}
+
 // Some users (6) managed to reuse eldest keys after a sigchain reset, without
 // using the "eldest" link type, before the server prohibited this. To clients,
 // that means their chains don't appear to reset. We hardcode these cases.
 const resetReason = "hardcoded reset"
 
 var hardcodedResets = map[keybase1.LinkID]SpecialChainLink{
-	"f6dae096194690cfee8974b0e10a99ecac2cc8e4f9383516a1f626f614e566e0": SpecialChainLink{UID: keybase1.UID("2d5c41137d7d9108dbdaa2160ba7e200"), Seqno: keybase1.Seqno(11), Reason: resetReason},
-	"8d7c1a0c99186f972afc5d3624aca2f88ddc3a5dbf84e826ef0b520c31a78aa3": SpecialChainLink{UID: keybase1.UID("f1c263462dd526695c458af924977719"), Seqno: keybase1.Seqno(18), Reason: resetReason},
-	"b489635b4243ef80836a0c4515ed7e30e146f0041704931df280c72e28e9d0fe": SpecialChainLink{UID: keybase1.UID("8dbf0f1617e285befa93d3da54b68419"), Seqno: keybase1.Seqno(8), Reason: resetReason},
-	"bc898feeb7a2717e23dc1f457dc18902fb9157bf86374b2a0b1aaba4f2831bee": SpecialChainLink{UID: keybase1.UID("372c1cbd72e4f851a74d232478a72319"), Seqno: keybase1.Seqno(2), Reason: resetReason},
-	"91cb1b2c3c76d2ad54be47b034a3f544da9ea8405f6eb68a929ef5fb98914436": SpecialChainLink{UID: keybase1.UID("12e124d5d1ff6179f3aab88100b93d19"), Seqno: keybase1.Seqno(5), Reason: resetReason},
-	"af381fd3a43e22edc2ac1f271e3270b92038e4a820de335d179d34eb780f8796": SpecialChainLink{UID: keybase1.UID("a07089770463db10994c8727177eef19"), Seqno: keybase1.Seqno(12), Reason: resetReason},
+	"f6dae096194690cfee8974b0e10a99ecac2cc8e4f9383516a1f626f614e566e0": {UID: keybase1.UID("2d5c41137d7d9108dbdaa2160ba7e200"), Seqno: keybase1.Seqno(11), Reason: resetReason},
+	"8d7c1a0c99186f972afc5d3624aca2f88ddc3a5dbf84e826ef0b520c31a78aa3": {UID: keybase1.UID("f1c263462dd526695c458af924977719"), Seqno: keybase1.Seqno(8), Reason: resetReason},
+	"b489635b4243ef80836a0c4515ed7e30e146f0041704931df280c72e28e9d0fe": {UID: keybase1.UID("8dbf0f1617e285befa93d3da54b68419"), Seqno: keybase1.Seqno(8), Reason: resetReason},
+	"bc898feeb7a2717e23dc1f457dc18902fb9157bf86374b2a0b1aaba4f2831bee": {UID: keybase1.UID("372c1cbd72e4f851a74d232478a72319"), Seqno: keybase1.Seqno(2), Reason: resetReason},
+	"91cb1b2c3c76d2ad54be47b034a3f544da9ea8405f6eb68a929ef5fb98914436": {UID: keybase1.UID("12e124d5d1ff6179f3aab88100b93d19"), Seqno: keybase1.Seqno(5), Reason: resetReason},
+	"af381fd3a43e22edc2ac1f271e3270b92038e4a820de335d179d34eb780f8796": {UID: keybase1.UID("a07089770463db10994c8727177eef19"), Seqno: keybase1.Seqno(12), Reason: resetReason},
 }
 
 // GetCurrentSubchain takes the given sigchain and walks backward until it
@@ -545,7 +712,7 @@ func isSubchainStart(m MetaContext, currentLink *ChainLink, prevLink *ChainLink,
 	// v2 sigs were introduced. If either the current or previous sig is v2,
 	// short circuit here. This is important because stubbed links (introduced
 	// with v2) break the eldest_kid check for case 3.
-	if currentLink.unpacked.sigVersion > 1 || prevLink.unpacked.sigVersion > 1 {
+	if currentLink.unpacked.sigVersion > KeybaseSignatureV1 || prevLink.unpacked.sigVersion > KeybaseSignatureV1 {
 		return false, nil
 	}
 	// case 3
@@ -556,11 +723,11 @@ func isSubchainStart(m MetaContext, currentLink *ChainLink, prevLink *ChainLink,
 	// case 4
 	found, _, err := currentLink.checkSpecialLinksTable(hardcodedResets, uid, "harcoded resets")
 	if err != nil {
-		m.CWarningf("Error in isSubchainStart: %s", err.Error())
+		m.Warning("Error in isSubchainStart: %s", err.Error())
 		return false, err
 	}
 	if found {
-		m.CDebugf("Sigchain playback hit hardcoded reset at %s for %s", currentLink.LinkID(), uid)
+		m.Debug("Sigchain playback hit hardcoded reset at %s for %s", currentLink.LinkID(), uid)
 	}
 	return found, nil
 }
@@ -578,12 +745,11 @@ func (sc *SigChain) Dump(w io.Writer) {
 // verifySubchain verifies the given subchain and outputs a yes/no answer
 // on whether or not it's well-formed, and also yields ComputedKeyInfos for
 // all keys found in the process, including those that are now retired.
-func (sc *SigChain) verifySubchain(m MetaContext, kf KeyFamily, links ChainLinks) (cached bool, cki *ComputedKeyInfos, err error) {
-	un := sc.username
+func verifySubchain(m MetaContext, un NormalizedUsername, kf KeyFamily, links ChainLinks) (cached bool, cki *ComputedKeyInfos, err error) {
 
-	m.CDebugf("+ verifySubchain")
+	m.Debug("+ verifySubchain")
 	defer func() {
-		m.CDebugf("- verifySubchain -> %v, %s", cached, ErrToOk(err))
+		m.Debug("- verifySubchain -> %v, %s", cached, ErrToOk(err))
 	}()
 
 	if len(links) == 0 {
@@ -594,16 +760,16 @@ func (sc *SigChain) verifySubchain(m MetaContext, kf KeyFamily, links ChainLinks
 	last := links[len(links)-1]
 	if cki = last.GetSigCheckCache(); cki != nil {
 		if cki.IsStaleVersion() {
-			m.CDebugf("Ignoring cached CKI, since the version is old (%d < %d)", cki.Version, ComputedKeyInfosVersionCurrent)
+			m.Debug("Ignoring cached CKI, since the version is old (%d < %d)", cki.Version, ComputedKeyInfosVersionCurrent)
 		} else {
 			cached = true
-			m.CDebugf("Skipped verification (cached): %s", last.id)
+			m.Debug("Skipped verification (cached): %s", last.id)
 			return cached, cki, err
 		}
 	}
 
-	cki = NewComputedKeyInfos(sc.G())
-	ckf := ComputedKeyFamily{kf: &kf, cki: cki, Contextified: sc.Contextified}
+	cki = NewComputedKeyInfos(m.G())
+	ckf := ComputedKeyFamily{kf: &kf, cki: cki, Contextified: NewContextified(m.G())}
 
 	first := true
 	seenInflatedWalletStellarLink := false
@@ -614,7 +780,7 @@ func (sc *SigChain) verifySubchain(m MetaContext, kf KeyFamily, links ChainLinks
 			return cached, cki, err
 		}
 		if isBad {
-			m.CDebugf("Ignoring bad chain link with link ID %s: %s", link.LinkID(), reason)
+			m.Debug("Ignoring bad chain link with link ID %s: %s", link.LinkID(), reason)
 			continue
 		}
 
@@ -634,17 +800,16 @@ func (sc *SigChain) verifySubchain(m MetaContext, kf KeyFamily, links ChainLinks
 				// So that the server can't roll back someone's active wallet address.
 				return cached, cki, SigchainV2StubbedDisallowed{}
 			}
-			sc.G().VDL.Log(VLog1, "| Skipping over stubbed-out link: %s", link.id)
+			m.VLogf(VLog1, "| Skipping over stubbed-out link: %s", link.id)
 			continue
 		}
 
 		tcl, w := NewTypedChainLink(link)
 		if w != nil {
-			w.Warn(sc.G())
+			w.Warn(m.G())
 		}
 
-		sc.G().VDL.Log(VLog1, "| Verify link: %s %v %v", link.id, link.chainVerified, link.hashVerified)
-
+		m.VLogf(VLog1, "| Verify link: %s %v %v", link.id, link.chainVerified, link.hashVerified)
 		if first {
 			if err = ckf.InsertEldestLink(tcl, un); err != nil {
 				return cached, cki, err
@@ -661,12 +826,12 @@ func (sc *SigChain) verifySubchain(m MetaContext, kf KeyFamily, links ChainLinks
 		isModifyingKeys := isDelegating || tcl.Type() == string(DelegationTypePGPUpdate)
 		isFinalLink := (linkIndex == len(links)-1)
 		hasRevocations := link.HasRevocations()
-		sc.G().VDL.Log(VLog1, "| isDelegating: %v, isModifyingKeys: %v, isFinalLink: %v, hasRevocations: %v",
+		m.VLogf(VLog1, "| isDelegating: %v, isModifyingKeys: %v, isFinalLink: %v, hasRevocations: %v",
 			isDelegating, isModifyingKeys, isFinalLink, hasRevocations)
 
 		if pgpcl, ok := tcl.(*PGPUpdateChainLink); ok {
 			if hash := pgpcl.GetPGPFullHash(); hash != "" {
-				m.CDebugf("| Setting active PGP hash for %s: %s", pgpcl.kid, hash)
+				m.Debug("| Setting active PGP hash for %s: %s", pgpcl.kid, hash)
 				ckf.SetActivePGPHash(pgpcl.kid, hash)
 			}
 		}
@@ -674,7 +839,7 @@ func (sc *SigChain) verifySubchain(m MetaContext, kf KeyFamily, links ChainLinks
 		if isModifyingKeys || isFinalLink || hasRevocations {
 			err = link.VerifySigWithKeyFamily(ckf)
 			if err != nil {
-				m.CDebugf("| Failure in VerifySigWithKeyFamily: %s", err)
+				m.Debug("| Failure in VerifySigWithKeyFamily: %s", err)
 				return cached, cki, err
 			}
 		}
@@ -682,7 +847,7 @@ func (sc *SigChain) verifySubchain(m MetaContext, kf KeyFamily, links ChainLinks
 		if isDelegating {
 			err = ckf.Delegate(tcl)
 			if err != nil {
-				m.CDebugf("| Failure in Delegate: %s", err)
+				m.Debug("| Failure in Delegate: %s", err)
 				return cached, cki, err
 			}
 		}
@@ -697,14 +862,14 @@ func (sc *SigChain) verifySubchain(m MetaContext, kf KeyFamily, links ChainLinks
 		if _, ok := tcl.(*WalletStellarChainLink); ok {
 			// Assert that wallet chain links are be >= v2.
 			// They must be v2 in order to be stubbable later for privacy.
-			if link.unpacked.sigVersion < 2 {
+			if link.unpacked.sigVersion < KeybaseSignatureV2 {
 				return cached, cki, SigchainV2Required{}
 			}
 			seenInflatedWalletStellarLink = true
 		}
 
 		if err = tcl.VerifyReverseSig(ckf); err != nil {
-			m.CDebugf("| Failure in VerifyReverseSig: %s", err)
+			m.Debug("| Failure in VerifyReverseSig: %s", err)
 			return cached, cki, err
 		}
 
@@ -715,26 +880,21 @@ func (sc *SigChain) verifySubchain(m MetaContext, kf KeyFamily, links ChainLinks
 		if err = ckf.UpdateDevices(tcl); err != nil {
 			return cached, cki, err
 		}
-
-		if err != nil {
-			m.CDebugf("| bailing out on error: %s", err)
-			return cached, cki, err
-		}
 	}
 
 	last.PutSigCheckCache(cki)
 	return cached, cki, err
 }
 
-func (sc *SigChain) verifySigsAndComputeKeysCurrent(m MetaContext, eldest keybase1.KID, ckf *ComputedKeyFamily) (cached bool, linksConsumed int, err error) {
+func (sc *SigChain) verifySigsAndComputeKeysCurrent(m MetaContext, eldest keybase1.KID, ckf *ComputedKeyFamily, uid keybase1.UID) (cached bool, linksConsumed int, err error) {
 
 	cached = false
-	m.CDebugf("+ verifySigsAndComputeKeysCurrent for user %s (eldest = %s)", sc.uid, eldest)
+	m.Debug("+ verifySigsAndComputeKeysCurrent for user %s (eldest = %s)", sc.uid, eldest)
 	defer func() {
-		m.CDebugf("- verifySigsAndComputeKeysCurrent for user %s -> %s", sc.uid, ErrToOk(err))
+		m.Debug("- verifySigsAndComputeKeysCurrent for user %s -> %s", sc.uid, ErrToOk(err))
 	}()
 
-	if err = sc.VerifyChain(m); err != nil {
+	if err = sc.VerifyChain(m, uid); err != nil {
 		return cached, 0, err
 	}
 
@@ -759,7 +919,7 @@ func (sc *SigChain) verifySigsAndComputeKeysCurrent(m MetaContext, eldest keybas
 	sc.currentSubchainStart = 0
 
 	if ckf.kf == nil || eldest.IsNil() {
-		m.CDebugf("| VerifyWithKey short-circuit, since no Key available")
+		m.Debug("| VerifyWithKey short-circuit, since no Key available")
 		sc.localCki = NewComputedKeyInfos(sc.G())
 		ckf.cki = sc.localCki
 		return cached, 0, err
@@ -776,7 +936,7 @@ func (sc *SigChain) verifySigsAndComputeKeysCurrent(m MetaContext, eldest keybas
 	}
 
 	if len(links) == 0 {
-		m.CDebugf("| Empty chain after we limited to eldest %s", eldest)
+		m.Debug("| Empty chain after we limited to eldest %s", eldest)
 		eldestKey, _ := ckf.FindKeyWithKIDUnsafe(eldest)
 		sc.localCki = NewComputedKeyInfos(sc.G())
 		err = sc.localCki.InsertServerEldestKey(eldestKey, sc.username)
@@ -784,7 +944,7 @@ func (sc *SigChain) verifySigsAndComputeKeysCurrent(m MetaContext, eldest keybas
 		return cached, 0, err
 	}
 
-	if cached, ckf.cki, err = sc.verifySubchain(m, *ckf.kf, links); err != nil {
+	if cached, ckf.cki, err = verifySubchain(m, sc.username, *ckf.kf, links); err != nil {
 		return cached, len(links), err
 	}
 
@@ -809,9 +969,9 @@ func (c ChainLinks) omittingNRightmostLinks(n int) ChainLinks {
 
 // VerifySigsAndComputeKeys iterates over all potentially all incarnations of the user, trying to compute
 // multiple subchains. It returns (bool, error), where bool is true if the load hit the cache, and false otherwise.
-func (sc *SigChain) VerifySigsAndComputeKeys(m MetaContext, eldest keybase1.KID, ckf *ComputedKeyFamily) (bool, error) {
+func (sc *SigChain) VerifySigsAndComputeKeys(m MetaContext, eldest keybase1.KID, ckf *ComputedKeyFamily, uid keybase1.UID) (bool, error) {
 	// First consume the currently active sigchain.
-	cached, numLinksConsumed, err := sc.verifySigsAndComputeKeysCurrent(m, eldest, ckf)
+	cached, numLinksConsumed, err := sc.verifySigsAndComputeKeysCurrent(m, eldest, ckf, uid)
 	if err != nil || ckf.kf == nil {
 		return cached, err
 	}
@@ -822,11 +982,12 @@ func (sc *SigChain) VerifySigsAndComputeKeys(m MetaContext, eldest keybase1.KID,
 	historicalLinks := sc.chainLinks.omittingNRightmostLinks(numLinksConsumed)
 
 	if len(historicalLinks) > 0 {
-		m.CDebugf("After consuming %d links, there are %d historical links left",
+		m.Debug("After consuming %d links, there are %d historical links left",
 			numLinksConsumed, len(historicalLinks))
 		// ignore error here, since it shouldn't kill the overall load if historical subchains don't run
 		// correctly.
-		cached, _ = sc.verifySigsAndComputeKeysHistorical(m, historicalLinks, *ckf.kf)
+		cached, prevSubchains, _ := verifySigsAndComputeKeysHistorical(m, sc.uid, sc.username, historicalLinks, *ckf.kf)
+		sc.prevSubchains = prevSubchains
 		if !cached {
 			allCached = false
 		}
@@ -835,16 +996,14 @@ func (sc *SigChain) VerifySigsAndComputeKeys(m MetaContext, eldest keybase1.KID,
 	return allCached, nil
 }
 
-func (sc *SigChain) verifySigsAndComputeKeysHistorical(m MetaContext, allLinks ChainLinks, kf KeyFamily) (allCached bool, err error) {
+func verifySigsAndComputeKeysHistorical(m MetaContext, uid keybase1.UID, username NormalizedUsername, allLinks ChainLinks, kf KeyFamily) (allCached bool, prevSubchains []ChainLinks, err error) {
 
-	defer m.CTrace("verifySigsAndComputeKeysHistorical", func() error { return err })()
+	defer m.Trace("verifySigsAndComputeKeysHistorical", &err)()
 	var cached bool
-
-	var prevSubchains []ChainLinks
 
 	for {
 		if len(allLinks) == 0 {
-			m.CDebugf("Ending iteration through previous subchains; no further links")
+			m.Debug("Ending iteration through previous subchains; no further links")
 			break
 		}
 
@@ -854,21 +1013,21 @@ func (sc *SigChain) verifySigsAndComputeKeysHistorical(m MetaContext, allLinks C
 		seqno := link.GetSeqno()
 
 		if eldest.IsNil() {
-			m.CDebugf("Ending iteration through previous subchains; saw a nil eldest (@%d)", seqno)
+			m.Debug("Ending iteration through previous subchains; saw a nil eldest (@%d)", seqno)
 			break
 		}
-		m.CDebugf("Examining subchain that ends at %d with eldest %s", seqno, eldest)
+		m.Debug("Examining subchain that ends at %d with eldest %s", seqno, eldest)
 
 		var links ChainLinks
-		links, err = cropToRightmostSubchain(m, allLinks, eldest, sc.uid)
+		links, err = cropToRightmostSubchain(m, allLinks, eldest, uid)
 		if err != nil {
-			m.CInfof("Error backtracking all links from %d: %s", seqno, err)
+			m.Info("Error backtracking all links from %d: %s", seqno, err)
 			break
 		}
 
-		cached, _, err = sc.verifySubchain(m, kf, links)
+		cached, _, err = verifySubchain(m, username, kf, links)
 		if err != nil {
-			m.CInfof("Error verifying subchain from %d: %s", seqno, err)
+			m.Info("Error verifying subchain from %d: %s", seqno, err)
 			break
 		}
 		if !cached {
@@ -878,14 +1037,13 @@ func (sc *SigChain) verifySigsAndComputeKeysHistorical(m MetaContext, allLinks C
 		allLinks = allLinks.omittingNRightmostLinks(len(links))
 	}
 	reverseListOfChainLinks(prevSubchains)
-	m.CDebugf("Loaded %d additional historical subchains", len(prevSubchains))
-	sc.prevSubchains = prevSubchains
-	return allCached, nil
+	m.Debug("Loaded %d additional historical subchains", len(prevSubchains))
+	return allCached, prevSubchains, nil
 }
 
 func (sc *SigChain) GetLinkFromSeqno(seqno keybase1.Seqno) *ChainLink {
 	for _, link := range sc.chainLinks {
-		if link.GetSeqno() == keybase1.Seqno(seqno) {
+		if link.GetSeqno() == seqno {
 			return link
 		}
 	}
@@ -894,7 +1052,13 @@ func (sc *SigChain) GetLinkFromSeqno(seqno keybase1.Seqno) *ChainLink {
 
 func (sc *SigChain) GetLinkFromSigID(id keybase1.SigID) *ChainLink {
 	for _, link := range sc.chainLinks {
-		if link.GetSigID().Equal(id) {
+		if len(link.GetSigID()) == 0 {
+			// sigID might not be set for stubbed links on other users. If you're looking
+			// for a specific link by sigID of another user (e.g. for web-of-trust), then
+			// an intermediate stubbed link might otherwise cause a panic if it's not skipped.
+			continue
+		}
+		if link.GetSigID().Eq(id) {
 			return link
 		}
 	}
@@ -905,14 +1069,14 @@ func (sc *SigChain) GetLinkFromSigID(id keybase1.SigID) *ChainLink {
 // with a SigID that starts with query.
 func (sc *SigChain) GetLinkFromSigIDQuery(query string) *ChainLink {
 	for _, link := range sc.chainLinks {
-		if link.GetSigID().Match(query, false) {
+		if link.GetSigID().PrefixMatch(query, false) {
 			return link
 		}
 	}
 	return nil
 }
 
-//========================================================================
+// ========================================================================
 
 type ChainType struct {
 	DbType          ObjType
@@ -928,8 +1092,13 @@ var PublicChain = &ChainType{
 	GetMerkleTriple: func(u *MerkleUserLeaf) *MerkleTriple { return u.public },
 }
 
-//========================================================================
+// ========================================================================
 
+type BaseSigChainLoader interface {
+	Load() (ret *BaseSigChain, err error)
+	LoadFromServer() (err error)
+	VerifySigsAndComputeKeys() (err error)
+}
 type SigChainLoader struct {
 	MetaContextified
 	user                 *User
@@ -941,13 +1110,17 @@ type SigChainLoader struct {
 	ckf                  ComputedKeyFamily
 	dirtyTail            *MerkleTriple
 	currentSubchainStart keybase1.Seqno
+	stubMode             StubMode
 
 	// The preloaded sigchain; maybe we're loading a user that already was
 	// loaded, and here's the existing sigchain.
 	preload *SigChain
+
+	// links that arg getting unstubbed in this load need to match the given linkIDs
+	unstubs map[keybase1.Seqno]LinkID
 }
 
-//========================================================================
+// ========================================================================
 
 func (l *SigChainLoader) LoadLastLinkIDFromStorage() (mt *MerkleTriple, err error) {
 	var tmp MerkleTriple
@@ -977,17 +1150,17 @@ func (l *SigChainLoader) AccessPreload() bool {
 
 func (l *SigChainLoader) LoadLinksFromStorage() (err error) {
 	uid := l.user.GetUID()
-	defer l.M().CTraceTimed(fmt.Sprintf("SigChainLoader.LoadFromStorage(%s)", uid),
-		func() error { return err })()
+	defer l.M().Trace(fmt.Sprintf("SigChainLoader.LoadFromStorage(%s)", uid),
+		&err)()
 	var mt *MerkleTriple
 
 	if mt, err = l.LoadLastLinkIDFromStorage(); err != nil || mt == nil || mt.LinkID == nil {
-		l.M().CDebugf("| short-circuting LoadLinksFromStorage: LoadLastLinkIDFromStorage returned err=%v", err)
+		l.M().Debug("| short-circuting LoadLinksFromStorage: LoadLastLinkIDFromStorage returned err=%v", err)
 		if mt == nil {
-			l.M().CDebugf("| mt (MerkleTriple) nil result from load last link ID from storage")
+			l.M().Debug("| mt (MerkleTriple) nil result from load last link ID from storage")
 		}
 		if mt != nil && mt.LinkID == nil {
-			l.M().CDebugf("| mt (MerkleTriple) from storage has a nil link ID")
+			l.M().Debug("| mt (MerkleTriple) from storage has a nil link ID")
 		}
 		return err
 	}
@@ -997,7 +1170,7 @@ func (l *SigChainLoader) LoadLinksFromStorage() (err error) {
 		return err
 	}
 	if currentLink == nil {
-		l.M().CDebugf("tried to load previous link ID %s, but link not found", mt.LinkID.String())
+		l.M().Debug("tried to load previous link ID %s, but link not found", mt.LinkID.String())
 		return nil
 	}
 	links := ChainLinks{currentLink}
@@ -1024,7 +1197,7 @@ func (l *SigChainLoader) LoadLinksFromStorage() (err error) {
 			return err
 		}
 		if prevLink == nil {
-			l.M().CDebugf("tried to load previous link ID %s, but link not found", currentLink.GetPrev())
+			l.M().Debug("tried to load previous link ID %s, but link not found", currentLink.GetPrev())
 			return nil
 		}
 
@@ -1042,13 +1215,55 @@ func (l *SigChainLoader) LoadLinksFromStorage() (err error) {
 	}
 
 	reverse(links)
-	l.M().CDebugf("| Loaded %d links", len(links))
+	l.M().Debug("| Loaded %d links", len(links))
 
+	// Set the links field in the loader object. We're going to mutate this field just below,
+	// in the next step of loading.
 	l.links = links
+
+	// Now that we've set the links array above, we're going to potentially discard the stubbed links,
+	// and then set a mapping of (seqno -> linkID) so that the server doesn't lie on an unstubbing.
+	l.maybeDiscardStubbedLinks()
+
 	return
 }
 
-//========================================================================
+// maybeDiscardStubbedLinks will look at the sigchain links loaded from the DB and will maybe throw
+// some away on the basis of (a) if we're in StubModeUnstubbed load mode (meaning we don't want any stubs);
+// and (b) there are some stubs found. But it won't totally throw the stubs away; instead, it will put them
+// in map to check that server eventually unstubs the right values (by mapping Seqno -> LinkID).
+func (l *SigChainLoader) maybeDiscardStubbedLinks() {
+
+	if l.stubMode == StubModeStubbed {
+		return
+	}
+
+	firstStubbedLink := -1
+	for i, link := range l.links {
+		if link.IsStubbed() {
+			firstStubbedLink = i
+			l.M().Debug("| Breaking at first stub, which we'll overwrite: %s", link.id)
+			break
+		}
+	}
+
+	if firstStubbedLink < 0 {
+		l.M().Debug("| want an unstubbed load, but all links unstubbed, so nothing to do")
+		return
+	}
+
+	// Keep track of all links that we're going to unstub; we're going to require that
+	// the server sends down linkIDs as we previously wrote down to storage.
+	l.unstubs = make(map[keybase1.Seqno]LinkID)
+	for _, link := range l.links[firstStubbedLink:] {
+		l.unstubs[link.GetSeqno()] = link.id
+	}
+
+	// The only links we're leaving are the unstubbed links.
+	l.links = l.links[0:firstStubbedLink]
+}
+
+// ========================================================================
 
 func (l *SigChainLoader) MakeSigChain() error {
 	sc := &SigChain{
@@ -1065,14 +1280,14 @@ func (l *SigChainLoader) MakeSigChain() error {
 	return nil
 }
 
-//========================================================================
+// ========================================================================
 
 func (l *SigChainLoader) GetKeyFamily() (err error) {
 	l.ckf.kf = l.user.GetKeyFamily()
 	return
 }
 
-//========================================================================
+// ========================================================================
 
 func (l *SigChainLoader) GetMerkleTriple() (ret *MerkleTriple) {
 	if l.leaf != nil {
@@ -1081,7 +1296,7 @@ func (l *SigChainLoader) GetMerkleTriple() (ret *MerkleTriple) {
 	return
 }
 
-//========================================================================
+// ========================================================================
 
 func (sc *SigChain) CheckFreshness(srv *MerkleTriple) (current bool, err error) {
 	cli := sc.GetCurrentTailTriple()
@@ -1149,13 +1364,30 @@ func (sc *SigChain) CheckFreshness(srv *MerkleTriple) (current bool, err error) 
 	return
 }
 
-//========================================================================
+// ========================================================================
 
 func (l *SigChainLoader) CheckFreshness() (current bool, err error) {
 	return l.chain.CheckFreshness(l.GetMerkleTriple())
 }
 
-//========================================================================
+// ========================================================================
+
+func (sc *SigChain) HasStubs() bool {
+	for _, link := range sc.chainLinks {
+		if link.IsStubbed() {
+			return true
+		}
+	}
+	return len(sc.chainLinks) != 0
+}
+
+// ========================================================================
+
+func (l *SigChainLoader) HasStubs() bool {
+	return l.chain.HasStubs()
+}
+
+// ========================================================================
 
 func (l *SigChainLoader) selfUID() (uid keybase1.UID) {
 	if !l.self {
@@ -1164,22 +1396,29 @@ func (l *SigChainLoader) selfUID() (uid keybase1.UID) {
 	return l.user.GetUID()
 }
 
-//========================================================================
+// ========================================================================
 
 func (l *SigChainLoader) LoadFromServer() (err error) {
 	srv := l.GetMerkleTriple()
-	l.dirtyTail, err = l.chain.LoadFromServer(l.M(), srv, l.selfUID())
-	return
+
+	l.dirtyTail, err = l.chain.LoadFromServer(l.M(), srv, l.selfUID(), l.stubMode, l.unstubs)
+
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
-//========================================================================
+// ========================================================================
 
 func (l *SigChainLoader) VerifySigsAndComputeKeys() (err error) {
-	l.M().CDebugf("VerifySigsAndComputeKeys(): l.leaf: %v, l.leaf.eldest: %v, l.ckf: %v", l.leaf, l.leaf.eldest, l.ckf)
+	l.M().Debug("VerifySigsAndComputeKeys(): l.leaf: %v, l.leaf.eldest: %v, l.ckf: %v", l.leaf, l.leaf.eldest, l.ckf)
 	if l.ckf.kf == nil {
 		return nil
 	}
-	_, err = l.chain.VerifySigsAndComputeKeys(l.M(), l.leaf.eldest, &l.ckf)
+
+	uid := l.user.GetUID()
+	_, err = l.chain.VerifySigsAndComputeKeys(l.M(), l.leaf.eldest, &l.ckf, uid)
 	if err != nil {
 		return err
 	}
@@ -1197,7 +1436,7 @@ func (l *SigChainLoader) StoreTail() (err error) {
 		return nil
 	}
 	err = l.G().LocalDb.PutObj(l.dbKey(), nil, l.dirtyTail)
-	l.M().CDebugf("| Storing dirtyTail @ %d (%v)", l.dirtyTail.Seqno, l.dirtyTail)
+	l.M().Debug("| Storing dirtyTail @ %d (%v)", l.dirtyTail.Seqno, l.dirtyTail)
 	if err == nil {
 		l.dirtyTail = nil
 	}
@@ -1232,13 +1471,13 @@ func (l *SigChainLoader) Load() (ret *SigChain, err error) {
 
 	uid := l.user.GetUID()
 
-	l.M().CDebugf("+ SigChainLoader#Load(%s)", uid)
+	l.M().Debug("+ SigChainLoader#Load(%s)", uid)
 	defer func() {
-		l.M().CDebugf("- SigChainLoader#Load(%s) -> (%v, %s)", uid, (ret != nil), ErrToOk(err))
+		l.M().Debug("- SigChainLoader#Load(%s) -> (%v, %s)", uid, (ret != nil), ErrToOk(err))
 	}()
 
 	stage := func(s string) {
-		l.M().CDebugf("| SigChainLoader#Load(%s) %s", uid, s)
+		l.M().Debug("| SigChainLoader#Load(%s) %s", uid, s)
 	}
 
 	stage("GetFingerprint")
@@ -1262,7 +1501,7 @@ func (l *SigChainLoader) Load() (ret *SigChain, err error) {
 	}
 	ret = l.chain
 	stage("VerifyChain")
-	if err = l.chain.VerifyChain(l.M()); err != nil {
+	if err = l.chain.VerifyChain(l.M(), uid); err != nil {
 		return nil, err
 	}
 	stage("CheckFreshness")
@@ -1277,16 +1516,16 @@ func (l *SigChainLoader) Load() (ret *SigChain, err error) {
 	} else if l.chain.GetComputedKeyInfosWithVersionBust() == nil {
 		// The chain tip doesn't have a cached cki, probably because new
 		// signatures have shown up since the last time we loaded it.
-		l.M().CDebugf("| Need to reverify chain since we don't have ComputedKeyInfos")
+		l.M().Debug("| Need to reverify chain since we don't have ComputedKeyInfos")
 	} else if !l.merkleTreeEldestMatchesLastLinkEldest() {
 		// CheckFreshness above might've decided our chain tip hasn't moved,
 		// but we might still need to proceed with the rest of the load if the
 		// eldest KID has changed.
-		l.M().CDebugf("| Merkle leaf doesn't match the chain tip.")
+		l.M().Debug("| Merkle leaf doesn't match the chain tip.")
 	} else {
 		// The chain tip has a cached cki, AND the current eldest kid matches
 		// it. Use what's cached and short circuit.
-		l.M().CDebugf("| Sigchain was fully cached. Short-circuiting verification.")
+		l.M().Debug("| Sigchain was fully cached. Short-circuiting verification.")
 		ret.wasFullyCached = true
 		stage("VerifySig (in fully cached)")
 
@@ -1302,13 +1541,13 @@ func (l *SigChainLoader) Load() (ret *SigChain, err error) {
 	}
 
 	stage("VerifyChain")
-	if err = l.chain.VerifyChain(l.M()); err != nil {
+	if err = l.chain.VerifyChain(l.M(), uid); err != nil {
 		return nil, err
 	}
 
 	stage("StoreChain")
 	if err = l.chain.Store(l.M()); err != nil {
-		l.M().CDebugf("| continuing past error storing chain links: %s", err)
+		l.M().Debug("| continuing past error storing chain links: %s", err)
 	}
 	stage("VerifySig")
 	if err = l.VerifySigsAndComputeKeys(); err != nil {
@@ -1316,7 +1555,7 @@ func (l *SigChainLoader) Load() (ret *SigChain, err error) {
 	}
 	stage("Store")
 	if err = l.Store(); err != nil {
-		l.M().CDebugf("| continuing past error storing chain: %s", err)
+		l.M().Debug("| continuing past error storing chain: %s", err)
 	}
 
 	return ret, nil

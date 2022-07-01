@@ -10,10 +10,12 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/badges"
+	"github.com/keybase/client/go/chat"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/gregor"
 	grclient "github.com/keybase/client/go/gregor/client"
 	"github.com/keybase/client/go/gregor/storage"
+	grutils "github.com/keybase/client/go/gregor/utils"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
@@ -35,36 +37,54 @@ func broadcastMessageTesting(t *testing.T, h *gregorHandler, m gregor1.Message) 
 	return nil
 }
 
-func TestGregorHandler(t *testing.T) {
+func setupGregorTest(t *testing.T) (libkb.TestContext, *globals.Context) {
 	tc := libkb.SetupTest(t, "gregor", 2)
+	g := globals.NewContext(tc.G, &globals.ChatContext{})
+	g.CtxFactory = chat.NewCtxFactory(g)
+	return tc, g
+}
+
+func TestGregorHandler(t *testing.T) {
+	tc, g := setupGregorTest(t)
 	defer tc.Cleanup()
 
 	tc.G.SetService()
 
 	listener := newNlistener(t)
-	tc.G.NotifyRouter.SetListener(listener)
+	tc.G.NotifyRouter.AddListener(listener)
 
 	user, err := kbtest.CreateAndSignupFakeUser("gregr", tc.G)
 	require.NoError(t, err)
 
-	var h *gregorHandler
-	h = newGregorHandler(globals.NewContext(tc.G, &globals.ChatContext{}))
+	h := newGregorHandler(g)
 	h.Init()
 	h.testingEvents = newTestingEvents()
+	_, err = h.resetGregorClient(context.TODO(), gregor1.UID(user.User.GetUID().ToBytes()), gregor1.DeviceID{})
+	require.NoError(t, err)
 	require.Equal(t, "gregor", h.HandlerName(), "wrong name")
 
 	kbUID := user.User.GetUID()
 	gUID := gregor1.UID(kbUID.ToBytes())
 
+	h.PushHandler(newKBFSFavoritesHandler(tc.G))
+
 	m := gregor1.Message{
-		Oobm_: &gregor1.OutOfBandMessage{
-			Uid_:    gUID,
-			System_: "kbfs.favorites",
-			Body_:   gregor1.Body(`{"action": "delete", "tlf":"/private/t_alice,t_bob"}`),
+		Ibm_: &gregor1.InBandMessage{
+			StateUpdate_: &gregor1.StateUpdateMessage{
+				Md_: gregor1.Metadata{
+					Uid_:   gUID,
+					MsgID_: newMsgID(),
+				},
+				Creation_: &gregor1.Item{
+					Category_: "kbfs.favorites",
+					Body_:     gregor1.Body(`{"action": "delete", "tlf":"/private/t_alice,t_bob"}`),
+				},
+			},
 		},
 	}
 
-	broadcastMessageTesting(t, h, m)
+	err = broadcastMessageTesting(t, h, m)
+	require.NoError(t, err)
 	require.Equal(t, 1, len(listener.favoritesChanged), "num faves failure")
 	require.Equal(t, kbUID, listener.favoritesChanged[0], "wrong uid")
 }
@@ -132,13 +152,13 @@ func newShowTrackerPopupIdentifyUI() *showTrackerPopupIdentifyUI {
 
 var _ libkb.IdentifyUI = (*showTrackerPopupIdentifyUI)(nil)
 
-func (ui *showTrackerPopupIdentifyUI) Start(name string, reason keybase1.IdentifyReason, force bool) error {
+func (ui *showTrackerPopupIdentifyUI) Start(_ libkb.MetaContext, name string, reason keybase1.IdentifyReason, force bool) error {
 	ui.startCh <- name
 	return nil
 }
 
 // Overriding the Dismiss method lets us test that it gets called.
-func (ui *showTrackerPopupIdentifyUI) Dismiss(username string, _ keybase1.DismissReason) error {
+func (ui *showTrackerPopupIdentifyUI) Dismiss(_ libkb.MetaContext, username string, _ keybase1.DismissReason) error {
 	ui.dismissCh <- username
 	return nil
 }
@@ -147,7 +167,7 @@ func (ui *showTrackerPopupIdentifyUI) Dismiss(username string, _ keybase1.Dismis
 // given UID into a gregorHandler, the result is that a TrackEngine gets run
 // for that user.
 func TestShowTrackerPopupMessage(t *testing.T) {
-	tc := libkb.SetupTest(t, "gregor", 2)
+	tc, g := setupGregorTest(t)
 	defer tc.Cleanup()
 
 	tc.G.SetService()
@@ -169,10 +189,11 @@ func TestShowTrackerPopupMessage(t *testing.T) {
 	tracker, err := kbtest.CreateAndSignupFakeUser("gregr", tc.G)
 	require.NoError(t, err)
 
-	var h *gregorHandler
-	h = newGregorHandler(globals.NewContext(tc.G, &globals.ChatContext{}))
+	h := newGregorHandler(g)
 	h.Init()
 	h.testingEvents = newTestingEvents()
+	_, err = h.resetGregorClient(context.TODO(), gregor1.UID(tracker.User.GetUID().ToBytes()), gregor1.DeviceID{})
+	require.NoError(t, err)
 
 	h.PushHandler(idhandler)
 
@@ -192,7 +213,8 @@ func TestShowTrackerPopupMessage(t *testing.T) {
 		},
 	}
 
-	broadcastMessageTesting(t, h, m)
+	err = broadcastMessageTesting(t, h, m)
+	require.NoError(t, err)
 	select {
 	case name := <-identifyUI.startCh:
 		require.Equal(t, trackee.Username, name, "wrong username")
@@ -219,7 +241,8 @@ func TestShowTrackerPopupMessage(t *testing.T) {
 			},
 		},
 	}
-	broadcastMessageTesting(t, h, dismissal)
+	err = broadcastMessageTesting(t, h, dismissal)
+	require.NoError(t, err)
 	select {
 	case name := <-identifyUI.dismissCh:
 		require.Equal(t, trackee.User.GetName(), name, "wrong dismiss")
@@ -230,7 +253,7 @@ func TestShowTrackerPopupMessage(t *testing.T) {
 
 func newMsgID() gregor1.MsgID {
 	ret := make([]byte, 16)
-	rand.Read(ret)
+	_, _ = rand.Read(ret)
 	return ret
 }
 
@@ -294,7 +317,7 @@ func (m mockGregord) ConsumePublishMessage(_ context.Context, _ gregor1.Message)
 	return errors.New("unimplemented")
 }
 func (m mockGregord) Ping(_ context.Context) (string, error) {
-	return "pong", nil
+	return "", nil
 }
 func (m mockGregord) State(ctx context.Context, arg gregor1.StateArg) (gregor1.State, error) {
 	state, err := m.sm.State(ctx, arg.Uid, arg.Deviceid, arg.TimeOrOffset)
@@ -382,20 +405,19 @@ func newGregordMock(logger logger.Logger) mockGregord {
 	return mockGregord{sm: sm, fc: fc, log: logger}
 }
 
-func setupSyncTests(t *testing.T, tc libkb.TestContext) (*gregorHandler, mockGregord, gregor1.UID) {
-	var err error
-	user, err := kbtest.CreateAndSignupFakeUser("gregr", tc.G)
-	if err != nil {
-		t.Fatal(err)
-	}
+func setupSyncTests(t *testing.T, g *globals.Context) (*gregorHandler, mockGregord, gregor1.UID) {
+	user, err := kbtest.CreateAndSignupFakeUser("gregr", g.ExternalG())
+	require.NoError(t, err)
 	uid := gregor1.UID(user.User.GetUID().ToBytes())
+	deviceID := gregor1.DeviceID{}
 
-	var h *gregorHandler
-	h = newGregorHandler(globals.NewContext(tc.G, &globals.ChatContext{}))
+	h := newGregorHandler(g)
 	h.Init()
 	h.testingEvents = newTestingEvents()
+	_, err = h.resetGregorClient(context.TODO(), uid, deviceID)
+	require.NoError(t, err)
 
-	server := newGregordMock(tc.G.Log)
+	server := newGregordMock(g.ExternalG().Log)
 
 	return h, server, uid
 }
@@ -412,7 +434,7 @@ func checkMessages(t *testing.T, source string, msgs []gregor.InBandMessage,
 }
 
 func doServerSync(t *testing.T, h *gregorHandler, srv mockGregord) ([]gregor.InBandMessage, []gregor.InBandMessage) {
-	_, token, _, _ := h.loggedIn(context.TODO())
+	_, token, _, _, _ := h.loggedIn(context.TODO())
 	pctime := h.gregorCli.StateMachineLatestCTime(context.TODO())
 	ctime := gregor1.Time(0)
 	if pctime != nil {
@@ -439,21 +461,22 @@ func doServerSync(t *testing.T, h *gregorHandler, srv mockGregord) ([]gregor.InB
 }
 
 func TestSyncFresh(t *testing.T) {
-	tc := libkb.SetupTest(t, "gregor", 2)
+	tc, g := setupGregorTest(t)
 	defer tc.Cleanup()
 	tc.G.SetService()
 
 	// Set up client and server
-	h, server, uid := setupSyncTests(t, tc)
+	h, server, uid := setupSyncTests(t, g)
 	defer h.Shutdown()
 
-	//Consume a bunch of messages to the server, and we'll sync them down
+	// Consume a bunch of messages to the server, and we'll sync them down
 	const numMsgs = 20
 	var refMsgs []gregor.InBandMessage
 	for i := 0; i < numMsgs; i++ {
 		msg := server.newIbm(uid)
 		refMsgs = append(refMsgs, msg.ToInBandMessage())
-		server.ConsumeMessage(context.TODO(), msg)
+		err := server.ConsumeMessage(context.TODO(), msg)
+		require.NoError(t, err)
 	}
 
 	// Sync messages down and see if we get 20
@@ -463,23 +486,25 @@ func TestSyncFresh(t *testing.T) {
 }
 
 func TestSyncNonFresh(t *testing.T) {
-	tc := libkb.SetupTest(t, "gregor", 2)
+	tc, g := setupGregorTest(t)
 	defer tc.Cleanup()
 	tc.G.SetService()
 
 	// Set up client and server
-	h, server, uid := setupSyncTests(t, tc)
+	h, server, uid := setupSyncTests(t, g)
 	defer h.Shutdown()
 
-	//Consume a bunch of messages to the server, and we'll sync them down
+	// Consume a bunch of messages to the server, and we'll sync them down
 	const numMsgs = 6
 	const msgLimit = numMsgs / 2
 	var refMsgs []gregor.InBandMessage
 	for i := 0; i < numMsgs; i++ {
 		msg := server.newIbm(uid)
-		server.ConsumeMessage(context.TODO(), msg)
+		err := server.ConsumeMessage(context.TODO(), msg)
+		require.NoError(t, err)
 		if i < msgLimit {
-			broadcastMessageTesting(t, h, msg)
+			err := broadcastMessageTesting(t, h, msg)
+			require.NoError(t, err)
 			// We end up picking up the last one in the sync, since its
 			// CTime is equal to when we start the sync, so just add it
 			if i == msgLimit-1 {
@@ -500,23 +525,25 @@ func TestSyncNonFresh(t *testing.T) {
 }
 
 func TestSyncSaveRestoreFresh(t *testing.T) {
-	tc := libkb.SetupTest(t, "gregor", 2)
+	tc, g := setupGregorTest(t)
 	defer tc.Cleanup()
 	tc.G.SetService()
 
 	// Set up client and server
-	h, server, uid := setupSyncTests(t, tc)
+	h, server, uid := setupSyncTests(t, g)
 	defer h.Shutdown()
 
-	//Consume a bunch of messages to the server, and we'll sync them down
+	// Consume a bunch of messages to the server, and we'll sync them down
 	const numMsgs = 6
 	const msgLimit = numMsgs / 2
 	var refReplayMsgs, refConsumeMsgs []gregor.InBandMessage
 	for i := 0; i < numMsgs; i++ {
 		msg := server.newIbm(uid)
-		server.ConsumeMessage(context.TODO(), msg)
+		err := server.ConsumeMessage(context.TODO(), msg)
+		require.NoError(t, err)
 		if i < msgLimit {
-			broadcastMessageTesting(t, h, msg)
+			err := broadcastMessageTesting(t, h, msg)
+			require.NoError(t, err)
 			// We end up picking up the last one in the sync, since its
 			// CTime is equal to when we start the sync, so just add it
 			if i == msgLimit-1 {
@@ -535,9 +562,11 @@ func TestSyncSaveRestoreFresh(t *testing.T) {
 	}
 
 	// Create a new gregor handler, this will restore our saved state
-	h = newGregorHandler(globals.NewContext(tc.G, &globals.ChatContext{}))
+	h = newGregorHandler(g)
 	h.testingEvents = newTestingEvents()
 	h.Init()
+	_, err = h.resetGregorClient(context.TODO(), uid, gregor1.DeviceID{})
+	require.NoError(t, err)
 
 	// Sync from the server
 	replayedMessages, consumedMessages := doServerSync(t, h, server)
@@ -546,23 +575,25 @@ func TestSyncSaveRestoreFresh(t *testing.T) {
 }
 
 func TestSyncSaveRestoreNonFresh(t *testing.T) {
-	tc := libkb.SetupTest(t, "gregor", 2)
+	tc, g := setupGregorTest(t)
 	defer tc.Cleanup()
 	tc.G.SetService()
 
 	// Set up client and server
-	h, server, uid := setupSyncTests(t, tc)
+	h, server, uid := setupSyncTests(t, g)
 	defer h.Shutdown()
 
-	//Consume a bunch of messages to the server, and we'll sync them down
+	// Consume a bunch of messages to the server, and we'll sync them down
 	const numMsgs = 6
 	const msgLimit = numMsgs / 2
 	var refReplayMsgs, refConsumeMsgs []gregor.InBandMessage
 	for i := 0; i < numMsgs; i++ {
 		msg := server.newIbm(uid)
-		server.ConsumeMessage(context.TODO(), msg)
+		err := server.ConsumeMessage(context.TODO(), msg)
+		require.NoError(t, err)
 		if i < msgLimit {
-			broadcastMessageTesting(t, h, msg)
+			err := broadcastMessageTesting(t, h, msg)
+			require.NoError(t, err)
 			// We end up picking up the last one in the sync, since its
 			// CTime is equal to when we start the sync, so just add it
 			if i == msgLimit-1 {
@@ -582,9 +613,11 @@ func TestSyncSaveRestoreNonFresh(t *testing.T) {
 	}
 
 	// Create a new gregor handler, this will restore our saved state
-	h = newGregorHandler(globals.NewContext(tc.G, nil))
+	h = newGregorHandler(g)
 	h.testingEvents = newTestingEvents()
 	h.Init()
+	_, err = h.resetGregorClient(context.TODO(), uid, gregor1.DeviceID{})
+	require.NoError(t, err)
 
 	// Turn off fresh replay
 	h.firstConnect = false
@@ -596,27 +629,73 @@ func TestSyncSaveRestoreNonFresh(t *testing.T) {
 }
 
 func TestSyncDismissal(t *testing.T) {
-	tc := libkb.SetupTest(t, "gregor", 2)
+	tc, g := setupGregorTest(t)
 	defer tc.Cleanup()
 	tc.G.SetService()
 
 	// Set up client and server
-	h, server, uid := setupSyncTests(t, tc)
+	h, server, uid := setupSyncTests(t, g)
 	defer h.Shutdown()
 
 	// Consume msg
 	msg := server.newIbm(uid)
-	server.ConsumeMessage(context.TODO(), msg)
+	err := server.ConsumeMessage(context.TODO(), msg)
+	require.NoError(t, err)
 
 	// Dismiss message
 	dismissal := server.newDismissal(uid, msg)
-	server.ConsumeMessage(context.TODO(), dismissal.(gregor1.Message))
+	err = server.ConsumeMessage(context.TODO(), dismissal.(gregor1.Message))
+	require.NoError(t, err)
 
 	// Sync from the server
 	replayedMessages, consumedMessages := doServerSync(t, h, server)
 	var refReplayMsgs, refConsumeMsgs []gregor.InBandMessage
 	checkMessages(t, "replayed messages", replayedMessages, refReplayMsgs)
 	checkMessages(t, "consumed messages", consumedMessages, refConsumeMsgs)
+}
+
+func TestMessagesAddedDuringProcessing(t *testing.T) {
+	tc, g := setupGregorTest(t)
+	defer tc.Cleanup()
+	tc.G.SetService()
+	// Set up client and server
+	h, server, uid := setupSyncTests(t, g)
+	defer h.Shutdown()
+
+	totalNumberOfMessages := 10
+	numberToDoAsync := 5
+	// create a bunch of messages to be processed
+	var msgs []gregor1.Message
+	for i := 1; i <= totalNumberOfMessages; i++ {
+		msg := server.newIbm(uid)
+		msgs = append(msgs, msg)
+	}
+
+	blockUntilDone := make(chan struct{})
+	// fire off some of them asynchronously
+	go func() {
+		for i := 0; i < numberToDoAsync; i++ {
+			err := server.ConsumeMessage(context.TODO(), msgs[i])
+			require.NoError(t, err)
+		}
+		blockUntilDone <- struct{}{}
+	}()
+	// do the rest synchronously
+	for i := numberToDoAsync; i < totalNumberOfMessages; i++ {
+		err := server.ConsumeMessage(context.TODO(), msgs[i])
+		require.NoError(t, err)
+	}
+
+	// block until everything has had a chance to get called
+	select {
+	case <-blockUntilDone:
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "async messages not consumed")
+	}
+
+	// all of the messages should have been consumed
+	_, consumedMessages := doServerSync(t, h, server)
+	require.Equal(t, len(consumedMessages), totalNumberOfMessages)
 }
 
 type dummyRemoteClient struct {
@@ -628,14 +707,14 @@ func (d dummyRemoteClient) GetUnreadUpdateFull(ctx context.Context, vers chat1.I
 }
 
 func TestGregorBadgesIBM(t *testing.T) {
-	tc := libkb.SetupTest(t, "gregor", 2)
+	tc, g := setupGregorTest(t)
 	defer tc.Cleanup()
 	tc.G.SetService()
 	listener := newNlistener(t)
-	tc.G.NotifyRouter.SetListener(listener)
+	tc.G.NotifyRouter.AddListener(listener)
 
 	// Set up client and server
-	h, server, uid := setupSyncTests(t, tc)
+	h, server, uid := setupSyncTests(t, g)
 	defer h.Shutdown()
 	h.badger = badges.NewBadger(tc.G)
 	t.Logf("client setup complete")
@@ -657,8 +736,9 @@ func TestGregorBadgesIBM(t *testing.T) {
 	ri := func() chat1.RemoteInterface {
 		return dummyRemoteClient{RemoteClient: chat1.RemoteClient{Cli: h.cli}}
 	}
-	require.NoError(t, h.badger.Resync(context.TODO(), ri, h.gregorCli, nil))
+	badgerResync(context.TODO(), t, h.badger, ri, h.gregorCli)
 
+	listener.getBadgeState(t) // skip one since resync sends 2
 	bs := listener.getBadgeState(t)
 	require.Equal(t, 1, bs.NewTlfs, "one new tlf")
 
@@ -671,21 +751,21 @@ func TestGregorBadgesIBM(t *testing.T) {
 	require.NoError(t, err)
 	t.Logf("client sync complete")
 
-	require.NoError(t, h.badger.Resync(context.TODO(), ri, h.gregorCli, nil))
+	badgerResync(context.TODO(), t, h.badger, ri, h.gregorCli)
 
 	bs = listener.getBadgeState(t)
 	require.Equal(t, 1, bs.NewTlfs, "no more badges")
 }
 
 func TestGregorTeamBadges(t *testing.T) {
-	tc := libkb.SetupTest(t, "gregor", 2)
+	tc, g := setupGregorTest(t)
 	defer tc.Cleanup()
 	tc.G.SetService()
 	listener := newNlistener(t)
-	tc.G.NotifyRouter.SetListener(listener)
+	tc.G.NotifyRouter.AddListener(listener)
 
 	// Set up client and server
-	h, server, uid := setupSyncTests(t, tc)
+	h, server, uid := setupSyncTests(t, g)
 	defer h.Shutdown()
 	h.badger = badges.NewBadger(tc.G)
 	t.Logf("client setup complete")
@@ -695,7 +775,7 @@ func TestGregorTeamBadges(t *testing.T) {
 	fakeUID := keybase1.MakeTestUID(1)
 	msg := server.newIbm2(uid, gregor1.Category("team.newly_added_to_team"), gregor1.Body([]byte(`[{"id": "`+teamID+`","name": "teamname"}]`)))
 	require.NoError(t, server.ConsumeMessage(context.TODO(), msg))
-	msg = server.newIbm2(uid, gregor1.Category("team.request_access"), gregor1.Body([]byte(`[{"id": "`+teamID+`","name": "teamname"}]`)))
+	msg = server.newIbm2(uid, gregor1.Category("team.request_access:"+teamID), gregor1.Body([]byte(`{"id": "`+teamID+`","username": "username"}`)))
 	require.NoError(t, server.ConsumeMessage(context.TODO(), msg))
 	msg = server.newIbm2(uid, gregor1.Category("team.member_out_from_reset"), gregor1.Body([]byte(`{"reset_user": {"uid":"`+fakeUID.String()+`","username":"alice"},"team_name": "teamname"}`)))
 	require.NoError(t, server.ConsumeMessage(context.TODO(), msg))
@@ -709,13 +789,13 @@ func TestGregorTeamBadges(t *testing.T) {
 	ri := func() chat1.RemoteInterface {
 		return dummyRemoteClient{RemoteClient: chat1.RemoteClient{Cli: h.cli}}
 	}
-	require.NoError(t, h.badger.Resync(context.TODO(), ri, h.gregorCli, nil))
+	badgerResync(context.TODO(), t, h.badger, ri, h.gregorCli)
 
+	listener.getBadgeState(t) // skip one since resync sends 2
 	bs := listener.getBadgeState(t)
-	require.Equal(t, 1, len(bs.NewTeamNames), "one new team name")
-	require.Equal(t, "teamname", bs.NewTeamNames[0])
-	require.Equal(t, 1, len(bs.NewTeamAccessRequests), "one team access request")
-	require.Equal(t, "teamname", bs.NewTeamAccessRequests[0])
+	require.Equal(t, 1, len(bs.NewTeams), "one new team name")
+	require.Equal(t, teamID, bs.NewTeams[0])
+	require.Equal(t, 1, bs.NewTeamAccessRequestCount, "one team access request")
 	require.Equal(t, 1, len(bs.TeamsWithResetUsers), "one team member out due to reset")
 	require.Equal(t, "teamname", bs.TeamsWithResetUsers[0].Teamname)
 	require.Equal(t, "alice", bs.TeamsWithResetUsers[0].Username)
@@ -725,14 +805,14 @@ func TestGregorTeamBadges(t *testing.T) {
 // TestGregorBadgesOOBM doesn't actually use out of band messages.
 // Instead it feeds chat updates directly to badger. So it's a pretty weak test.
 func TestGregorBadgesOOBM(t *testing.T) {
-	tc := libkb.SetupTest(t, "gregor", 2)
+	tc, g := setupGregorTest(t)
 	defer tc.Cleanup()
 	tc.G.SetService()
 	listener := newNlistener(t)
-	tc.G.NotifyRouter.SetListener(listener)
+	tc.G.NotifyRouter.AddListener(listener)
 
 	// Set up client and server
-	h, _, _ := setupSyncTests(t, tc)
+	h, _, _ := setupSyncTests(t, g)
 	defer h.Shutdown()
 	h.badger = badges.NewBadger(tc.G)
 	t.Logf("client setup complete")
@@ -763,8 +843,9 @@ func TestGregorBadgesOOBM(t *testing.T) {
 			{ConvID: chat1.ConversationID(`c`), UnreadMessages: 3},
 		},
 		InboxSyncStatus: chat1.SyncInboxResType_CLEAR,
-	})
-	h.badger.Send(context.TODO())
+	}, false)
+	err := h.badger.Send(context.TODO())
+	require.NoError(t, err)
 	bs = listener.getBadgeState(t)
 	require.Equal(t, 1, badgeStateStats(bs).UnreadChatConversations, "unread chat convs")
 	require.Equal(t, 3, badgeStateStats(bs).UnreadChatMessages, "unread chat messages")
@@ -777,32 +858,36 @@ func TestGregorBadgesOOBM(t *testing.T) {
 }
 
 func TestSyncDismissalExistingState(t *testing.T) {
-	tc := libkb.SetupTest(t, "gregor", 2)
+	tc, g := setupGregorTest(t)
 	defer tc.Cleanup()
 	tc.G.SetService()
 
 	// Set up client and server
-	h, server, uid := setupSyncTests(t, tc)
+	h, server, uid := setupSyncTests(t, g)
 	defer h.Shutdown()
 
 	var refReplayMsgs, refConsumeMsgs []gregor.InBandMessage
 
 	// Consume msg
 	msg := server.newIbm(uid)
-	server.ConsumeMessage(context.TODO(), msg)
+	err := server.ConsumeMessage(context.TODO(), msg)
+	require.NoError(t, err)
 
 	// Broadcast msg
-	broadcastMessageTesting(t, h, msg)
+	err = broadcastMessageTesting(t, h, msg)
+	require.NoError(t, err)
 
 	// Consume another message but don't broadcast
 	msg2 := server.newIbm(uid)
-	server.ConsumeMessage(context.TODO(), msg2)
+	err = server.ConsumeMessage(context.TODO(), msg2)
+	require.NoError(t, err)
 	refConsumeMsgs = append(refConsumeMsgs, msg2.ToInBandMessage())
 	refReplayMsgs = append(refReplayMsgs, msg2.ToInBandMessage())
 
 	// Dismiss message
 	dismissal := server.newDismissal(uid, msg)
-	server.ConsumeMessage(context.TODO(), dismissal.(gregor1.Message))
+	err = server.ConsumeMessage(context.TODO(), dismissal.(gregor1.Message))
+	require.NoError(t, err)
 	refReplayMsgs = append(refReplayMsgs, dismissal.ToInBandMessage())
 	refConsumeMsgs = append(refConsumeMsgs, dismissal.ToInBandMessage())
 
@@ -814,33 +899,36 @@ func TestSyncDismissalExistingState(t *testing.T) {
 }
 
 func TestSyncFutureDismissals(t *testing.T) {
-
-	tc := libkb.SetupTest(t, "gregor", 2)
+	tc, g := setupGregorTest(t)
 	defer tc.Cleanup()
 	tc.G.SetService()
 
 	// Set up client and server
-	h, server, uid := setupSyncTests(t, tc)
+	h, server, uid := setupSyncTests(t, g)
 	defer h.Shutdown()
 
 	var refReplayMsgs, refConsumeMsgs []gregor.InBandMessage
 
 	// Consume msg
 	msg := server.newIbm(uid)
-	server.ConsumeMessage(context.TODO(), msg)
+	err := server.ConsumeMessage(context.TODO(), msg)
+	require.NoError(t, err)
 	refConsumeMsgs = append(refConsumeMsgs, msg.ToInBandMessage())
 	refReplayMsgs = append(refReplayMsgs, msg.ToInBandMessage())
 
 	// Broadcast msg
-	broadcastMessageTesting(t, h, msg)
+	err = broadcastMessageTesting(t, h, msg)
+	require.NoError(t, err)
 
 	// Consume another message but don't broadcast
 	msg2 := server.newIbm(uid)
-	server.ConsumeMessage(context.TODO(), msg2)
+	err = server.ConsumeMessage(context.TODO(), msg2)
+	require.NoError(t, err)
 
 	// Dismiss message
 	dismissal := server.newDismissal(uid, msg2)
-	server.ConsumeMessage(context.TODO(), dismissal.(gregor1.Message))
+	err = server.ConsumeMessage(context.TODO(), dismissal.(gregor1.Message))
+	require.NoError(t, err)
 
 	// Sync from the server
 	h.firstConnect = false
@@ -850,23 +938,24 @@ func TestSyncFutureDismissals(t *testing.T) {
 }
 
 func TestBroadcastRepeat(t *testing.T) {
-
-	tc := libkb.SetupTest(t, "gregor", 2)
+	tc, g := setupGregorTest(t)
 	defer tc.Cleanup()
 
 	tc.G.SetService()
 
-	_, err := kbtest.CreateAndSignupFakeUser("gregr", tc.G)
+	u, err := kbtest.CreateAndSignupFakeUser("gregr", tc.G)
 	if err != nil {
 		t.Fatal(err)
 	}
+	uid := gregor1.UID(u.GetUID().ToBytes())
 
-	var h *gregorHandler
-	h = newGregorHandler(globals.NewContext(tc.G, nil))
+	h := newGregorHandler(g)
 	h.Init()
 	h.testingEvents = newTestingEvents()
+	_, err = h.resetGregorClient(context.TODO(), uid, gregor1.DeviceID{})
+	require.NoError(t, err)
 
-	m, err := h.templateMessage()
+	m, err := grutils.TemplateMessage(uid)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -875,7 +964,7 @@ func TestBroadcastRepeat(t *testing.T) {
 		Body_:     gregor1.Body([]byte("mike")),
 	}
 
-	m2, err := h.templateMessage()
+	m2, err := grutils.TemplateMessage(uid)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -884,9 +973,11 @@ func TestBroadcastRepeat(t *testing.T) {
 		Body_:     gregor1.Body([]byte("mike!!")),
 	}
 
-	broadcastMessageTesting(t, h, *m)
-	broadcastMessageTesting(t, h, *m2)
-	err = broadcastMessageTesting(t, h, *m)
+	err = broadcastMessageTesting(t, h, m)
+	require.NoError(t, err)
+	err = broadcastMessageTesting(t, h, m2)
+	require.NoError(t, err)
+	err = broadcastMessageTesting(t, h, m)
 	require.Error(t, err)
 	require.Equal(t, "ignored repeat message", err.Error())
 }
@@ -907,12 +998,12 @@ func badgeStateStats(bs keybase1.BadgeState) (res BadgeStateStats) {
 }
 
 func TestLocalDismissals(t *testing.T) {
-	tc := libkb.SetupTest(t, "gregor", 2)
+	tc, g := setupGregorTest(t)
 	defer tc.Cleanup()
 	tc.G.SetService()
 
 	// Set up client and server
-	h, server, uid := setupSyncTests(t, tc)
+	h, server, uid := setupSyncTests(t, g)
 	defer h.Shutdown()
 
 	var refReplayMsgs []gregor.InBandMessage
@@ -964,10 +1055,10 @@ func (f flakeyIncomingClient) ConsumeMessage(ctx context.Context, m gregor1.Mess
 }
 
 func TestOfflineConsume(t *testing.T) {
-	tc := libkb.SetupTest(t, "gregor", 2)
+	tc, g := setupGregorTest(t)
 	defer tc.Cleanup()
 	tc.G.SetService()
-	h, server, uid := setupSyncTests(t, tc)
+	h, server, uid := setupSyncTests(t, g)
 	defer h.Shutdown()
 
 	fclient := newFlakeyIncomingClient(func() gregor1.IncomingInterface { return server })
@@ -1029,4 +1120,19 @@ func TestOfflineConsume(t *testing.T) {
 	require.Equal(t, msg.ToInBandMessage().Metadata().MsgID().String(),
 		items[0].Metadata().MsgID().String())
 
+}
+
+func badgerResync(ctx context.Context, t testing.TB, b *badges.Badger, chatRemote func() chat1.RemoteInterface,
+	gcli *grclient.Client) {
+	iboxVersion, err := b.GetInboxVersionForTest(ctx)
+	require.NoError(t, err)
+	b.G().Log.Debug("Badger: Resync(): using inbox version: %v", iboxVersion)
+	update, err := chatRemote().GetUnreadUpdateFull(ctx, iboxVersion)
+	require.NoError(t, err)
+
+	state, err := gcli.StateMachineState(ctx, nil, false)
+	require.NoError(t, err)
+
+	b.PushChatFullUpdate(ctx, update)
+	b.PushState(ctx, state)
 }

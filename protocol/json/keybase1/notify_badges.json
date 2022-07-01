@@ -6,7 +6,7 @@
       "type": "idl"
     },
     {
-      "path": "github.com/keybase/client/go/protocol/gregor1",
+      "path": "../gregor1",
       "type": "idl",
       "import_as": "gregor1"
     }
@@ -23,6 +23,10 @@
       "name": "TeamMemberOutReset",
       "fields": [
         {
+          "type": "TeamID",
+          "name": "teamID"
+        },
+        {
           "type": "string",
           "name": "teamname"
         },
@@ -37,6 +41,71 @@
         {
           "type": "gregor1.MsgID",
           "name": "id"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "DeletedTeamInfo",
+      "fields": [
+        {
+          "type": "string",
+          "name": "teamName"
+        },
+        {
+          "type": "string",
+          "name": "deletedBy"
+        },
+        {
+          "type": "gregor1.MsgID",
+          "name": "id"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "WalletAccountInfo",
+      "fields": [
+        {
+          "type": "string",
+          "name": "accountID"
+        },
+        {
+          "type": "int",
+          "name": "numUnread"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ResetState",
+      "fields": [
+        {
+          "type": "Time",
+          "name": "endTime",
+          "jsonkey": "end_time"
+        },
+        {
+          "type": "boolean",
+          "name": "active"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "WotUpdate",
+      "fields": [
+        {
+          "type": "string",
+          "name": "voucher"
+        },
+        {
+          "type": "string",
+          "name": "vouchee"
+        },
+        {
+          "type": "WotStatusType",
+          "name": "status"
         }
       ]
     },
@@ -66,6 +135,40 @@
           "name": "homeTodoItems"
         },
         {
+          "type": "int",
+          "name": "unverifiedEmails"
+        },
+        {
+          "type": "int",
+          "name": "unverifiedPhones"
+        },
+        {
+          "type": "int",
+          "name": "smallTeamBadgeCount"
+        },
+        {
+          "type": "int",
+          "name": "bigTeamBadgeCount"
+        },
+        {
+          "type": "int",
+          "name": "newTeamAccessRequestCount"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "DeviceID"
+          },
+          "name": "newDevices"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "DeviceID"
+          },
+          "name": "revokedDevices"
+        },
+        {
           "type": {
             "type": "array",
             "items": "BadgeConversationInfo"
@@ -82,16 +185,16 @@
         {
           "type": {
             "type": "array",
-            "items": "string"
+            "items": "TeamID"
           },
-          "name": "newTeamNames"
+          "name": "newTeams"
         },
         {
           "type": {
             "type": "array",
-            "items": "string"
+            "items": "DeletedTeamInfo"
           },
-          "name": "newTeamAccessRequests"
+          "name": "deletedTeams"
         },
         {
           "type": {
@@ -99,6 +202,25 @@
             "items": "TeamMemberOutReset"
           },
           "name": "teamsWithResetUsers"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "WalletAccountInfo"
+          },
+          "name": "unreadWalletAccounts"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "WotUpdate",
+            "keys": "string"
+          },
+          "name": "wotUpdates"
+        },
+        {
+          "type": "ResetState",
+          "name": "resetState"
         }
       ]
     },
@@ -111,12 +233,8 @@
           "name": "convID"
         },
         {
-          "type": {
-            "type": "map",
-            "values": "int",
-            "keys": "DeviceType"
-          },
-          "name": "badgeCounts"
+          "type": "int",
+          "name": "badgeCount"
         },
         {
           "type": "int",

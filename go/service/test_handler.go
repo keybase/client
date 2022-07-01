@@ -6,6 +6,7 @@ package service
 import (
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	airdrop "github.com/keybase/client/go/stellar/airdrop"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"golang.org/x/net/context"
 )
@@ -24,9 +25,9 @@ func NewTestHandler(xp rpc.Transporter, g *libkb.GlobalContext) *TestHandler {
 
 func (t TestHandler) Test(ctx context.Context, arg keybase1.TestArg) (test keybase1.Test, err error) {
 	client := t.rpcClient()
-	cbArg := keybase1.TestCallbackArg{Name: arg.Name, SessionID: arg.SessionID}
+	cbArg := keybase1.TestCallbackArg(arg)
 	var cbReply string
-	err = client.Call(ctx, "keybase.1.test.testCallback", []interface{}{cbArg}, &cbReply)
+	err = client.Call(ctx, "keybase.1.test.testCallback", []interface{}{cbArg}, &cbReply, 0)
 	if err != nil {
 		return
 	}
@@ -45,4 +46,14 @@ func (t TestHandler) Panic(_ context.Context, message string) error {
 		panic(message)
 	}()
 	return nil
+}
+
+func (t TestHandler) TestAirdropReg(ctx context.Context) error {
+	mctx := libkb.NewMetaContext(ctx, t.G()).WithLogTag("ADREG")
+	cli := airdrop.NewClient()
+	return cli.Register(mctx)
+}
+
+func (t TestHandler) Echo(ctx context.Context, arg keybase1.Generic) (keybase1.Generic, error) {
+	return arg, nil
 }

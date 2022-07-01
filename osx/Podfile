@@ -10,7 +10,7 @@ target "Installer" do
   pod "ObjectiveSugar"
   pod "GBCli"
   pod "Slash"
-  pod "MPMessagePack"
+  pod "MPMessagePack", :path => "MPMessagePack"
   pod "KBKit", :path => "KBKit"
 end
 
@@ -21,7 +21,7 @@ target "Status" do
   pod "ObjectiveSugar"
   pod "GBCli"
   pod "Slash"
-  pod "MPMessagePack"
+  pod "MPMessagePack", :path => "MPMessagePack"
   pod "KBKit", :path => "KBKit"
 end
 
@@ -29,6 +29,7 @@ end
 # here to a minimum.
 target "keybase.Helper" do
   platform :osx, "10.10"
-  pod "MPMessagePack"
+  pod "MPMessagePack", :path => "MPMessagePack"
+
 end
 

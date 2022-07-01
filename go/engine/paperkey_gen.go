@@ -29,6 +29,7 @@ type PaperKeyGenArg struct {
 	SigningKey     libkb.GenericKey      // optional
 	EncryptionKey  libkb.NaclDHKeyPair   // optional
 	PerUserKeyring *libkb.PerUserKeyring // optional
+	IsEldest       bool
 }
 
 // PaperKeyGen is an engine.
@@ -36,8 +37,9 @@ type PaperKeyGen struct {
 	arg *PaperKeyGenArg
 
 	// keys of the generated paper key
-	sigKey libkb.GenericKey
-	encKey libkb.NaclDHKeyPair
+	sigKey   libkb.GenericKey
+	encKey   libkb.NaclDHKeyPair
+	deviceID keybase1.DeviceID
 
 	libkb.Contextified
 }
@@ -59,7 +61,7 @@ func (e *PaperKeyGen) Name() string {
 func (e *PaperKeyGen) Prereqs() Prereqs {
 	// only need a device if pushing keys
 	return Prereqs{
-		Device: !e.arg.SkipPush,
+		Device: !e.arg.SkipPush && !e.arg.IsEldest,
 	}
 }
 
@@ -81,8 +83,12 @@ func (e *PaperKeyGen) EncKey() libkb.NaclDHKeyPair {
 	return e.encKey
 }
 
+func (e *PaperKeyGen) DeviceID() keybase1.DeviceID {
+	return e.deviceID
+}
+
 func (e *PaperKeyGen) DeviceWithKeys() *libkb.DeviceWithKeys {
-	return libkb.NewDeviceWithKeysOnly(e.sigKey, e.encKey)
+	return libkb.NewDeviceWithKeysOnly(e.sigKey, e.encKey, libkb.KeychainModeNone)
 }
 
 // Run starts the engine.
@@ -122,7 +128,7 @@ func (e *PaperKeyGen) Run(m libkb.MetaContext) error {
 		return nil
 	}
 
-	e.G().KeyfamilyChanged(e.getUID())
+	e.G().KeyfamilyChanged(m.Ctx(), e.getUID())
 
 	return nil
 }
@@ -139,7 +145,7 @@ func (e *PaperKeyGen) getUID() keybase1.UID {
 
 func (e *PaperKeyGen) syncPUK(m libkb.MetaContext) error {
 	// Sync the per-user-key keyring before updating other things.
-	pukring, err := e.getPerUserKeyring()
+	pukring, err := e.getPerUserKeyring(m)
 	if err != nil {
 		return err
 	}
@@ -187,9 +193,9 @@ func (e *PaperKeyGen) makeEncKey(seed []byte) error {
 }
 
 func (e *PaperKeyGen) getClientHalfFromSecretStore(m libkb.MetaContext) (clientHalf libkb.LKSecClientHalf, ppgen libkb.PassphraseGeneration, err error) {
-	defer m.CTrace("PaperKeyGen#getClientHalfFromSecretStore", func() error { return err })
+	defer m.Trace("PaperKeyGen#getClientHalfFromSecretStore", &err)
 
-	secretStore := libkb.NewSecretStore(e.G(), e.arg.Me.GetNormalizedName())
+	secretStore := libkb.NewSecretStore(m, e.arg.Me.GetNormalizedName())
 	if secretStore == nil {
 		return clientHalf, ppgen, errors.New("No secret store available")
 	}
@@ -224,7 +230,7 @@ func (e *PaperKeyGen) getClientHalfFromSecretStore(m libkb.MetaContext) (clientH
 }
 
 func (e *PaperKeyGen) push(m libkb.MetaContext) (err error) {
-	defer m.CTrace("PaperKeyGen#push", func() error { return err })()
+	defer m.Trace("PaperKeyGen#push", &err)()
 	if e.arg.SkipPush {
 		return nil
 	}
@@ -240,24 +246,46 @@ func (e *PaperKeyGen) push(m libkb.MetaContext) (err error) {
 	if err != nil {
 		return err
 	}
+	e.deviceID = backupDev.ID
 
 	// create lks halves for this device.  Note that they aren't used for
 	// local, encrypted storage of the paper keys, but just for recovery
 	// purposes.
 	m.Dump()
 
+	// Clear the passphrase stream if it's outdated, just in case some
+	// other device changed the passphrase.
+	if err := m.G().ActiveDevice.ClearPassphraseStreamCacheIfOutdated(m); err != nil {
+		return err
+	}
+
 	var ppgen libkb.PassphraseGeneration
 	var clientHalf libkb.LKSecClientHalf
 	if stream := m.PassphraseStream(); stream != nil {
-		m.CDebugf("Got cached passphrase stream")
+		m.Debug("Got cached passphrase stream")
 		clientHalf = stream.LksClientHalf()
 		ppgen = stream.Generation()
 	} else {
-		m.CDebugf("Got nil passphrase stream; going to secret store")
+		m.Debug("Got nil passphrase stream; going to secret store")
 		// stream was nil, so we must have loaded lks from the secret
 		// store.
 		clientHalf, ppgen, err = e.getClientHalfFromSecretStore(m)
-		if err != nil {
+		switch err.(type) {
+		case nil:
+		case libkb.SecretStoreError:
+			// as a last resort try to prompt the user for their passphrase if
+			// the SecretUI is present
+			if m.UIs().HasUI(libkb.SecretUIKind) {
+				if pps, _, perr := libkb.GetPassphraseStreamViaPrompt(m); pps != nil {
+					clientHalf = pps.LksClientHalf()
+					ppgen = pps.Generation()
+				} else if perr != nil {
+					return perr
+				} else {
+					return err
+				}
+			}
+		default:
 			return err
 		}
 	}
@@ -270,19 +298,23 @@ func (e *PaperKeyGen) push(m libkb.MetaContext) (err error) {
 		return err
 	}
 
-	if err := libkb.PostDeviceLKS(m, backupDev.ID, libkb.DeviceTypePaper, backupLks.GetServerHalf(), backupLks.Generation(), ctext, e.encKey.GetKID()); err != nil {
+	if err := libkb.PostDeviceLKS(m, backupDev.ID, keybase1.DeviceTypeV2_PAPER, backupLks.GetServerHalf(), backupLks.Generation(), ctext, e.encKey.GetKID()); err != nil {
 		return err
 	}
 
 	// push the paper signing key
 	sigDel := libkb.Delegator{
-		NewKey:         e.sigKey,
-		DelegationType: libkb.DelegationTypeSibkey,
-		Expire:         libkb.NaclEdDSAExpireIn,
-		ExistingKey:    e.arg.SigningKey,
-		Me:             e.arg.Me,
-		Device:         backupDev,
-		Contextified:   libkb.NewContextified(e.G()),
+		NewKey:       e.sigKey,
+		Expire:       libkb.NaclEdDSAExpireIn,
+		Me:           e.arg.Me,
+		Device:       backupDev,
+		Contextified: libkb.NewContextified(e.G()),
+	}
+	if e.arg.IsEldest {
+		sigDel.DelegationType = libkb.DelegationTypeEldest
+	} else {
+		sigDel.DelegationType = libkb.DelegationTypeSibkey
+		sigDel.ExistingKey = e.arg.SigningKey
 	}
 
 	// push the paper encryption key
@@ -301,15 +333,15 @@ func (e *PaperKeyGen) push(m libkb.MetaContext) (err error) {
 		return err
 	}
 
-	m.CDebugf("PaperKeyGen#push running delegators")
+	m.Debug("PaperKeyGen#push running delegators")
 	return libkb.DelegatorAggregator(m, []libkb.Delegator{sigDel, sigEnc}, nil, pukBoxes, nil, nil)
 }
 
 func (e *PaperKeyGen) makePerUserKeyBoxes(m libkb.MetaContext) ([]keybase1.PerUserKeyBox, error) {
-	m.CDebugf("PaperKeyGen#makePerUserKeyBoxes")
+	m.Debug("PaperKeyGen#makePerUserKeyBoxes")
 
 	var pukBoxes []keybase1.PerUserKeyBox
-	pukring, err := e.getPerUserKeyring()
+	pukring, err := e.getPerUserKeyring(m)
 	if err != nil {
 		return nil, err
 	}
@@ -325,15 +357,15 @@ func (e *PaperKeyGen) makePerUserKeyBoxes(m libkb.MetaContext) ([]keybase1.PerUs
 		}
 		pukBoxes = append(pukBoxes, pukBox)
 	}
-	m.CDebugf("PaperKeyGen#makePerUserKeyBoxes -> %v", len(pukBoxes))
+	m.Debug("PaperKeyGen#makePerUserKeyBoxes -> %v", len(pukBoxes))
 	return pukBoxes, nil
 }
 
-func (e *PaperKeyGen) getPerUserKeyring() (ret *libkb.PerUserKeyring, err error) {
+func (e *PaperKeyGen) getPerUserKeyring(mctx libkb.MetaContext) (ret *libkb.PerUserKeyring, err error) {
 	ret = e.arg.PerUserKeyring
 	if ret != nil {
 		return
 	}
-	ret, err = e.G().GetPerUserKeyring()
+	ret, err = e.G().GetPerUserKeyring(mctx.Ctx())
 	return
 }

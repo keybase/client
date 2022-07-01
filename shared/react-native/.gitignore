@@ -18,30 +18,10 @@ node_modules
 Carthage/Build
 DerivedData
 build/
-npm-debug.log
 project.xcworkspace
 xcuserdata
-Pods
 shared
 fastlane/README.md
 
-keybase.framework
-
-main.jsbundle
-
-# Android
-#
-android/local.properties
-android/.gradle
-android/keybaselib/keybaselib.aar
-android/.idea
 *.iml
 index.bundle
-
-# iOS
-ios/AppStore_keybase.ios.KeybaseShare.mobileprovision
-ios/AppStore_keybase.ios.mobileprovision
-
-# Builds
-ios/dist
-android/dist

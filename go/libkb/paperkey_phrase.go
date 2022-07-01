@@ -61,7 +61,7 @@ func (p PaperKeyPhrase) Version() (uint8, error) {
 func (p PaperKeyPhrase) InvalidWords() (words []string) {
 	for _, w := range p.words() {
 		// in secwords.go:
-		if !validWord(w) {
+		if !ValidSecWord(w) {
 			words = append(words, w)
 		}
 	}
@@ -99,7 +99,7 @@ func NewPaperKeyPhraseCheckVersion(m MetaContext, passphrase string) (ret PaperK
 		return ret, err
 	}
 	if version != PaperKeyVersion {
-		m.CDebugf("paper version mismatch: generated paper key version = %d, libkb version = %d", version, PaperKeyVersion)
+		m.Debug("paper version mismatch: generated paper key version = %d, libkb version = %d", version, PaperKeyVersion)
 		return ret, KeyVersionError{}
 	}
 	return paperPhrase, nil

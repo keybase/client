@@ -83,7 +83,7 @@ func (e *PaperKey) Run(m libkb.MetaContext) error {
 				Index:  i,
 			})
 		if err != nil {
-			m.CWarningf("prompt error: %s", err)
+			m.Warning("prompt error: %s", err)
 			return err
 		}
 		if revoke {
@@ -162,4 +162,8 @@ func (e *PaperKey) SigKey() libkb.GenericKey {
 
 func (e *PaperKey) EncKey() libkb.GenericKey {
 	return e.gen.EncKey()
+}
+
+func (e *PaperKey) DeviceID() keybase1.DeviceID {
+	return e.gen.DeviceID()
 }

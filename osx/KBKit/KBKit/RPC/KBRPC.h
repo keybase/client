@@ -3009,8 +3009,8 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 - (void)getConfiguredAccounts:(void (^)(NSError *error, NSArray *items))completion;
 
 /*!
- Performs login. deviceType should be libkb.DeviceTypeDesktop
- or libkb.DeviceTypeMobile. usernameOrEmail is optional.
+ Performs login. deviceType should be keybase1.DeviceTypeV2_DESKTOP
+ or keybase1.DeviceTypeV2_MOBILE. usernameOrEmail is optional.
  If the current device isn't provisioned, this function will
  provision it.
 

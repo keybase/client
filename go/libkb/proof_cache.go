@@ -4,6 +4,7 @@
 package libkb
 
 import (
+	"fmt"
 	"sync"
 	"time"
 
@@ -14,21 +15,25 @@ import (
 
 type CheckResult struct {
 	Contextified
-	Status  ProofError // Or nil if it was a success
-	Time    time.Time  // When the last check was
-	PvlHash string     // Added after other fields. Some entries may not have this packed.
+	Status       ProofError // Or nil if it was a success
+	VerifiedHint *SigHint   // client provided verified hint if any
+	Time         time.Time  // When the last check was
+	PvlHash      string     // Added after other fields. Some entries may not have this packed.
 }
 
 func (cr CheckResult) Pack() *jsonw.Wrapper {
 	p := jsonw.NewDictionary()
 	if cr.Status != nil {
 		s := jsonw.NewDictionary()
-		s.SetKey("code", jsonw.NewInt(int(cr.Status.GetProofStatus())))
-		s.SetKey("desc", jsonw.NewString(cr.Status.GetDesc()))
-		p.SetKey("status", s)
+		_ = s.SetKey("code", jsonw.NewInt(int(cr.Status.GetProofStatus())))
+		_ = s.SetKey("desc", jsonw.NewString(cr.Status.GetDesc()))
+		_ = p.SetKey("status", s)
+		if cr.VerifiedHint != nil {
+			_ = p.SetKey("verified_hint", cr.VerifiedHint.MarshalToJSON())
+		}
 	}
-	p.SetKey("time", jsonw.NewInt64(cr.Time.Unix()))
-	p.SetKey("pvlhash", jsonw.NewString(cr.PvlHash))
+	_ = p.SetKey("time", jsonw.NewInt64(cr.Time.Unix()))
+	_ = p.SetKey("pvlhash", jsonw.NewString(cr.PvlHash))
 	return p
 }
 
@@ -75,23 +80,29 @@ func NewCheckResult(g *GlobalContext, jw *jsonw.Wrapper) (res *CheckResult, err 
 
 	jw.AtKey("time").GetInt64Void(&t, &err)
 	jw.AtKey("pvlhash").GetStringVoid(&pvlHash, &ignoreErr)
+	verifiedHint, err := NewSigHint(jw.AtKey("verified_hint"))
+	if err != nil {
+		return nil, err
+	}
+
 	status := jw.AtKey("status")
 	var pe ProofError
-
 	if !status.IsNil() {
 		status.AtKey("desc").GetStringVoid(&desc, &err)
 		status.AtKey("code").GetIntVoid(&code, &err)
 		pe = NewProofError(keybase1.ProofStatus(code), desc)
 	}
-	if err == nil {
-		res = &CheckResult{
-			Contextified: NewContextified(g),
-			Status:       pe,
-			Time:         time.Unix(t, 0),
-			PvlHash:      pvlHash,
-		}
+	if err != nil {
+		return nil, err
 	}
-	return
+	res = &CheckResult{
+		Contextified: NewContextified(g),
+		Status:       pe,
+		VerifiedHint: verifiedHint,
+		Time:         time.Unix(t, 0),
+		PvlHash:      pvlHash,
+	}
+	return res, nil
 }
 
 type ProofCache struct {
@@ -171,6 +182,15 @@ func (pc *ProofCache) memPut(sid keybase1.SigID, cr CheckResult) {
 	pc.lru.Add(sid, cr)
 }
 
+func (pc *ProofCache) memDelete(sid keybase1.SigID) {
+	if err := pc.setup(); err != nil {
+		return
+	}
+	pc.RLock()
+	defer pc.RUnlock()
+	pc.lru.Remove(sid)
+}
+
 func (pc *ProofCache) Get(sid keybase1.SigID, pvlHash keybase1.MerkleStoreKitHash) *CheckResult {
 	if pc == nil {
 		return nil
@@ -197,7 +217,7 @@ func (pc *ProofCache) Get(sid keybase1.SigID, pvlHash keybase1.MerkleStoreKitHas
 }
 
 func (pc *ProofCache) dbKey(sid keybase1.SigID) (DbKey, string) {
-	sidstr := sid.ToString(true)
+	sidstr := sid.String()
 	key := DbKey{Typ: DBProofCheck, Key: sidstr}
 	return key, sidstr
 }
@@ -252,16 +272,33 @@ func (pc *ProofCache) dbPut(sid keybase1.SigID, cr CheckResult) error {
 	return pc.G().LocalDb.Put(dbkey, []DbKey{}, jw)
 }
 
-func (pc *ProofCache) Put(sid keybase1.SigID, pe ProofError, pvlHash keybase1.MerkleStoreKitHash) error {
+func (pc *ProofCache) dbDelete(sid keybase1.SigID) error {
+	if pc.noDisk {
+		return nil
+	}
+	dbkey, _ := pc.dbKey(sid)
+	return pc.G().LocalDb.Delete(dbkey)
+}
+
+func (pc *ProofCache) Put(sid keybase1.SigID, lcr *LinkCheckResult, pvlHash keybase1.MerkleStoreKitHash) error {
 	if pc == nil {
 		return nil
 	}
 	cr := CheckResult{
 		Contextified: pc.Contextified,
-		Status:       pe,
+		Status:       lcr.err,
+		VerifiedHint: lcr.verifiedHint,
 		Time:         pc.G().Clock().Now(),
 		PvlHash:      string(pvlHash),
 	}
 	pc.memPut(sid, cr)
 	return pc.dbPut(sid, cr)
+}
+
+func (pc *ProofCache) Delete(sid keybase1.SigID) error {
+	if pc == nil {
+		return fmt.Errorf("nil ProofCache")
+	}
+	pc.memDelete(sid)
+	return pc.dbDelete(sid)
 }

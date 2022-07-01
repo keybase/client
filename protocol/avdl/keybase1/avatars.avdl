@@ -17,5 +17,7 @@ protocol avatars {
         string name;
         @jsonkey("formats")
         array<AvatarFormat> formats;
+        @jsonkey("typ")
+        AvatarUpdateType typ;
     }
 }

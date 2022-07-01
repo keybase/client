@@ -17,7 +17,6 @@ import (
 // CmdSimpleFSPs is the 'fs ps' command.
 type CmdSimpleFSPs struct {
 	libkb.Contextified
-	path    keybase1.Path
 	recurse bool
 }
 
@@ -53,7 +52,7 @@ func getPathString(path keybase1.Path) string {
 		return ""
 	}
 	if pathType == keybase1.PathType_KBFS {
-		return path.Kbfs()
+		return path.Kbfs().Path
 	}
 	return path.Local()
 }

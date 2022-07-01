@@ -1,11 +1,1 @@
-• Inbox performance improvements
-• More polish around the app
-• Better feedback on buttons that are waiting for the server to respond
-
-Improved error handling in these flows:
-    • Loading the home page on spotty networks
-    • Various operations on the files tab
-    • Creating / deleting git repositories
-    • Leaving a team
-
-• 64 bit windows build
+• Various bug fixes and performance enhancements

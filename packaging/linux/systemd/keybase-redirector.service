@@ -1,0 +1,17 @@
+[Unit]
+Description=Keybase Root Redirector for KBFS
+Wants=keybase.service
+
+[Service]
+Type=simple
+
+EnvironmentFile=-%h/.config/keybase/keybase.autogen.env
+EnvironmentFile=-%h/.config/keybase/keybase.env
+
+# Abort if root redirector is explicitly disabled
+ExecStartPre=/usr/bin/keybase --use-root-config-file config get --direct --assert-false --assert-ok-on-nil disable-root-redirector
+ExecStart=/usr/bin/keybase-redirector /keybase
+Restart=on-failure
+
+[Install]
+WantedBy=default.target

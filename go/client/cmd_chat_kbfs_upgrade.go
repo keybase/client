@@ -24,6 +24,7 @@ func newCmdChatKBFSUpgrade(cl *libcmdline.CommandLine, g *libkb.GlobalContext) c
 		Action: func(c *cli.Context) {
 			cmd := &CmdChatKBFSUpgrade{Contextified: libkb.NewContextified(g)}
 			cl.ChooseCommand(cmd, "kbfs-upgrade", c)
+			cl.SetLogForward(libcmdline.LogForwardNone)
 		},
 		Flags: getConversationResolverFlags(),
 	}

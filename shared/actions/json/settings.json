@@ -1,19 +1,108 @@
 {
   "prelude": [
-    "import * as Types from '../constants/types/settings'",
-    "import HiddenString from '../util/hidden-string'"
+    "import type * as RPCChatTypes from '../constants/types/rpc-chat-gen'",
+    "import type * as Types from '../constants/types/settings'",
+    "import type HiddenString from '../util/hidden-string'"
   ],
   "actions": {
+    "addPhoneNumber": {
+      "_description": "Add a phone number and kick off a text message with a verification code.",
+      "searchable": "boolean",
+      "phoneNumber": "string"
+    },
+    "addedPhoneNumber": {
+      "_description": "We just attempted to add a phone number and either got an error or the number is pending verification.",
+      "searchable": "boolean",
+      "error?": "string",
+      "phoneNumber": "string"
+    },
+    "resendVerificationForPhoneNumber": {
+      "_description": "Resend verification code for a phone number that's already added.",
+      "phoneNumber": "string"
+    },
+    "verifyPhoneNumber": {
+      "_description": "Submit a verification code for a phone number",
+      "phoneNumber": "string",
+      "code": "string"
+    },
+    "verifiedPhoneNumber": {
+      "_description": "We verified a phone number or hit an error.",
+      "error?": "string",
+      "phoneNumber": "string"
+    },
+    "clearPhoneNumberAdd": {
+      "_description": "Cancel adding a phone number."
+    },
+    "clearPhoneNumberErrors": {
+      "_description": "Clear only error from phone number add flow."
+    },
     "dbNuke": {},
-    "deleteAccountForever": {},
+    "deleteAccountForever": {
+      "passphrase?": "HiddenString"
+    },
+    "editEmail": {
+      "email": "string",
+      "delete?": "boolean",
+      "makePrimary?": "boolean",
+      "makeSearchable?": "boolean",
+      "verify?": "boolean"
+    },
+    "editPhone": {
+      "phone": "string",
+      "delete?": "boolean",
+      "setSearchable?": "boolean"
+    },
+    "sentVerificationEmail": {
+      "email": "string"
+    },
+    "emailVerified": {
+      "_description": "An email was just marked as verified",
+      "email": "string"
+    },
+    "loadContactImportEnabled": {
+      "_description": "Load whether config says we've enabled contact importing and check OS contacts permission status."
+    },
+    "loadedContactImportEnabled": {
+      "enabled": "boolean"
+    },
+    "loadedContactPermissions": {
+      "status": ["'granted'", "'never_ask_again'", "'undetermined'"]
+    },
+    "requestContactPermissions": {
+      "thenToggleImportOn?": "boolean",
+      "fromSettings?": "boolean"
+    },
+    "editContactImportEnabled": {
+      "enable": "boolean",
+      "fromSettings?": "boolean"
+    },
+    "showContactsJoinedModal": {
+      "resolved": "Array<RPCTypes.ProcessedContact>"
+    },
+    "importContactsLater": {},
+    "setContactImportedCount": {
+      "count?": "number",
+      "error?": "string"
+    },
+    "loadedUserCountryCode": {
+      "code?": "string"
+    },
+    "addEmail": {
+      "email": "string",
+      "searchable": "boolean"
+    },
+    "addedEmail": {
+      "email": "string",
+      "error?": "string"
+    },
+    "clearAddingEmail": {"_description": "Reset state used for adding an email."},
+    "clearAddedEmail": {"_description": "Reset state used for showing we just added an email."},
+    "clearAddedPhone": {
+      "_description": "Reset state used for showing we just added a phone number."
+    },
     "invitesClearError": {},
     "invitesReclaim": {
       "inviteId": "string"
-    },
-    "invitesReclaimed": {
-      "canError": {
-        "errorText": "string"
-      }
     },
     "invitesRefresh": {},
     "invitesRefreshed": {
@@ -21,64 +110,65 @@
     },
     "invitesSend": {
       "email": "string",
-      "message": "?string"
+      "message?": "string"
     },
     "invitesSent": {
-      "canError": {
-        "error": "Error"
-      }
+      "error?": "Error"
     },
-    "loadRememberPassphrase": {},
-    "loadedRememberPassphrase": {
+    "loadRememberPassword": {},
+    "loadedRememberPassword": {
       "remember": "boolean"
     },
     "loadSettings": {},
     "loadedSettings": {
-      "emailState": "Types.EmailState"
+      "emails?": "Map<string, Types.EmailRow>",
+      "phones?": "Map<string, Types.PhoneRow>"
     },
     "loadLockdownMode": {},
     "loadedLockdownMode": {
-      "status": "?boolean"
+      "status?": "boolean"
     },
     "onChangeLockdownMode": {
       "enabled": "boolean"
     },
     "notificationsRefresh": {},
     "notificationsRefreshed": {
-      "notifications": "Types.NotificationsState"
+      "notifications": "Map<string, Types.NotificationsGroupState>"
     },
     "notificationsSaved": {},
     "notificationsToggle": {
-      "group": "Types.NotificationGroups",
-      "name?": "?string"
+      "group": "string",
+      "name?": "string"
     },
     "onChangeNewEmail": {
       "email": "string"
     },
-    "onChangeNewPassphrase": {
-      "passphrase": "HiddenString"
+    "onChangeNewPassword": {
+      "password": "HiddenString"
     },
-    "onChangeNewPassphraseConfirm": {
-      "passphrase": "HiddenString"
+    "onChangeNewPasswordConfirm": {
+      "password": "HiddenString"
     },
-    "onChangeRememberPassphrase": {
+    "onChangeRememberPassword": {
       "remember": "boolean"
     },
-    "onChangeShowPassphrase": {},
+    "onChangeShowPassword": {},
     "onSubmitNewEmail": {},
-    "onSubmitNewPassphrase": {},
+    "onSubmitNewPassword": {
+      "thenSignOut": "boolean"
+    },
     "onUpdateEmailError": {
       "error": "Error"
     },
     "onUpdatePGPSettings": {},
-    "onUpdatePassphraseError": {
+    "onUpdatePasswordError": {
       "error": "Error"
     },
     "onUpdatedPGPSettings": {
       "hasKeys": "boolean"
     },
-    "setAllowDeleteAccount": {
-      "allow": "boolean"
+    "stop": {
+      "exitCode": "RPCTypes.ExitCode"
     },
     "trace": {
       "durationSeconds": "number"
@@ -86,8 +176,75 @@
     "processorProfile": {
       "durationSeconds": "number"
     },
-    "waitingForResponse": {
-      "waiting": "boolean"
-    }
+    "unfurlSettingsSaved": {
+      "_description": "Update unfurl settings from settings screen",
+      "mode": "RPCChatTypes.UnfurlMode",
+      "whitelist": "Array<string>"
+    },
+    "unfurlSettingsRefresh": {
+      "_description": "Refresh unfurl settings"
+    },
+    "unfurlSettingsRefreshed": {
+      "_description": "Refreshed unfurl settings available",
+      "mode": "RPCChatTypes.UnfurlMode",
+      "whitelist": "Array<string>"
+    },
+    "unfurlSettingsError": {
+      "_description": "An error occurred on the unfurl settings screen",
+      "error": "string"
+    },
+    "contactSettingsError": {
+      "_description": "An error occurred on the contact settings screen",
+      "error": "string"
+    },
+    "contactSettingsRefresh": {
+      "_description": "Refresh Chat contact settings"
+    },
+    "contactSettingsRefreshed": {
+      "_description": "Refreshed Chat contact settings available",
+      "settings": "RPCTypes.ContactSettings"
+    },
+    "contactSettingsSaved": {
+      "_description": "Refreshed Chat contact settings available",
+      "enabled": "boolean",
+      "indirectFollowees": "boolean",
+      "teamsEnabled": "boolean",
+      "teamsList": "Types.ContactSettingsTeamsList"
+    },
+    "loadHasRandomPw": {},
+    "loadedHasRandomPw": {
+      "randomPW": "boolean"
+    },
+    "resetCheckPasswordIsCorrect": {},
+    "checkPassword": {
+      "password": "HiddenString"
+    },
+    "loadedCheckPassword": {
+      "checkPasswordIsCorrect?": "boolean"
+    },
+    "sendFeedback": {
+      "feedback": "string",
+      "sendLogs": "boolean",
+      "sendMaxBytes": "boolean"
+    },
+    "feedbackSent": {
+      "_description": "An error occurred while trying to send feedback to Keybase",
+      "error?": "Error"
+    },
+    "loadProxyData": {},
+    "loadedProxyData": {
+      "proxyData": "RPCTypes.ProxyData"
+    },
+    "saveProxyData": {
+      "proxyData": "RPCTypes.ProxyData"
+    },
+    "certificatePinningToggled": {
+      "toggled?": "boolean"
+    },
+    "loadDefaultPhoneNumberCountry": {},
+    "updateDefaultPhoneNumberCountry": {
+      "country": "string"
+    },
+    "loginBrowserViaWebAuthToken": {}
   }
 }

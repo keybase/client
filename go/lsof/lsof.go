@@ -132,7 +132,10 @@ func parseProcessLines(lines []string) (Process, error) {
 			}
 			break
 		} else {
-			p.fillField(line)
+			err := p.fillField(line)
+			if err != nil {
+				return p, err
+			}
 		}
 	}
 	return p, nil
@@ -146,7 +149,8 @@ func parseAppendProcessLines(processes []Process, linesChunk []string) ([]Proces
 	if err != nil {
 		return processes, linesChunk, err
 	}
-	processesAfter := append(processes, process)
+	processesAfter := processes
+	processesAfter = append(processesAfter, process)
 	linesChunkAfter := []string{}
 	return processesAfter, linesChunkAfter, nil
 }
@@ -178,7 +182,10 @@ func parse(s string) ([]Process, error) {
 }
 
 func run(args []string) ([]Process, error) {
-	command := "/usr/sbin/lsof"
+	// Some systems (Arch, Debian) install lsof in /usr/bin and others (centos)
+	// install it in /usr/sbin, even though regular users can use it too. FreeBSD,
+	// on the other hand, puts it in /usr/local/sbin. So do not specify absolute path.
+	command := "lsof"
 	args = append([]string{"-w"}, args...)
 	output, err := exec.Command(command, args...).Output()
 	if err != nil {

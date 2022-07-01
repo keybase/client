@@ -15,7 +15,7 @@ mkdir -p $build_dest
 # Flirting with custom configuration but xcodebuild archive will only do Release
 # configuration.
 xcode_configuration="Release"
-code_sign_identity="98767D13871765E702355A74358822D31C0EF51A" # "Developer ID Application: Keybase, Inc. (99229SGT5K)"
+code_sign_identity="9FC3A5BC09FA2EE307C04060C918486411869B65" # "Developer ID Application: Keybase, Inc. (99229SGT5K)"
 
 echo "Plist: $plist"
 app_version="`/usr/libexec/plistBuddy -c "Print :CFBundleShortVersionString" $plist`"
@@ -69,16 +69,16 @@ xCode has trouble signing with Developer IDs properly so we need to re-sign.
 NOTE: If codesigning fails (ambiguous certificate) you need to manually delete
 the (old) March 12th version of the certificate from your Keychain.
 
-Re-signing using identitiy:
+Re-signing using identity:
 
 $code_sign_identity
 
 "
 
 helper="$app_name.app/Contents/Library/LaunchServices/keybase.Helper"
-codesign --verbose --force --preserve-metadata=identifier,entitlements --timestamp=none --sign "$code_sign_identity" "$helper"
+codesign --verbose -o library --force --timestamp --options runtime --preserve-metadata=identifier,entitlements --sign "$code_sign_identity" "$helper"
 
-codesign --verbose --force --deep --timestamp=none --sign "$code_sign_identity" $app_name.app
+codesign --verbose -o library --force  --deep --timestamp --options runtime --sign  "$code_sign_identity"  $app_name.app
 echo " "
 
 echo "Checking app..."

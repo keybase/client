@@ -1,0 +1,76 @@
+@namespace("chat.1")
+
+protocol emoji {
+  import idl "common.avdl";
+  import idl "../gregor1" as gregor1;
+
+  enum EmojiLoadSourceTyp {
+    HTTPSRV_0,
+    STR_1
+  }
+
+  variant EmojiLoadSource switch (EmojiLoadSourceTyp typ) {
+    case HTTPSRV: string;
+    case STR: string;
+  }
+
+  enum EmojiRemoteSourceTyp {
+    MESSAGE_0,
+    STOCKALIAS_1
+  }
+
+  record EmojiMessage {
+    ConversationID convID;
+    MessageID msgID;
+    boolean isAlias;
+  }
+
+  record EmojiStockAlias {
+    string text;
+    string username;
+    gregor1.Time time;
+  }
+
+  variant EmojiRemoteSource switch (EmojiRemoteSourceTyp typ) {
+    case MESSAGE: EmojiMessage;
+    case STOCKALIAS: EmojiStockAlias;
+  }
+
+  record HarvestedEmoji {
+    string alias;
+    boolean isBig;
+    boolean isCrossTeam;
+    EmojiRemoteSource source;
+  }
+
+  record EmojiCreationInfo {
+    string username;
+    gregor1.Time time;
+  }
+
+  record Emoji {
+    string alias;
+    boolean isBig;
+    boolean isReacji;
+    boolean isCrossTeam;
+    boolean isAlias;
+    EmojiLoadSource source;
+    EmojiLoadSource noAnimSource;
+    EmojiRemoteSource remoteSource;
+    union { null, EmojiCreationInfo } creationInfo;
+    union { null, string } teamname;
+  }
+
+  record EmojiGroup {
+    string name; // a team name or a impteam conv name
+    array<Emoji> emojis;
+  }
+
+  record UserEmojis {
+    array<EmojiGroup> emojis;
+  }  
+
+  record EmojiStorage {
+    map<string, EmojiRemoteSource> mapping;
+  }
+}

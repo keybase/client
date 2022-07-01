@@ -15,7 +15,7 @@ type CmdChatAPI struct {
 }
 
 func newCmdChatAPI(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
-	return newCmdAPI(cl, NewCmdChatAPIRunner(g), "JSON api", chatAPIDoc)
+	return newCmdAPI(cl, NewCmdChatAPIRunner(g), "JSON API", chatAPIDoc)
 }
 
 func NewCmdChatAPIRunner(g *libkb.GlobalContext) *CmdChatAPI {

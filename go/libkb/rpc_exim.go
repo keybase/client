@@ -16,14 +16,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/keybase/client/go/kbcrypto"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-crypto/openpgp"
 	pgpErrors "github.com/keybase/go-crypto/openpgp/errors"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	pkgErrors "github.com/pkg/errors"
+	"golang.org/x/net/context"
 )
 
 func (sh SigHint) Export() *keybase1.SigHint {
@@ -67,7 +66,7 @@ func (l LinkCheckResult) Export() keybase1.LinkCheckResult {
 		}
 	}
 	if l.hint != nil {
-		ret.Hint = l.hint.Export()
+		ret.Hint = l.GetHint().Export()
 	}
 	ret.TmpTrackExpireTime = keybase1.ToTime(l.tmpTrackExpireTime)
 	ret.BreaksTracking = bt
@@ -94,19 +93,19 @@ func ExportRemoteProof(p RemoteProofChainLink) keybase1.RemoteProof {
 	}
 }
 
-func (is IdentifyState) ExportToUncheckedIdentity(g *GlobalContext) *keybase1.Identity {
-	return is.res.ExportToUncheckedIdentity(g)
+func (is IdentifyState) ExportToUncheckedIdentity(mctx MetaContext) *keybase1.Identity {
+	return is.res.ExportToUncheckedIdentity(mctx)
 }
 
-func (ir IdentifyOutcome) ExportToUncheckedIdentity(g *GlobalContext) *keybase1.Identity {
+func (ir IdentifyOutcome) ExportToUncheckedIdentity(mctx MetaContext) *keybase1.Identity {
 	tmp := keybase1.Identity{
-		Status: ExportErrorAsStatus(g, ir.Error),
+		Status: ExportErrorAsStatus(mctx.G(), ir.Error),
 	}
 	if ir.TrackUsed != nil {
 		tmp.WhenLastTracked = keybase1.ToTime(ir.TrackUsed.GetCTime())
 	}
 
-	pc := ir.ProofChecksSorted()
+	pc := ir.ProofChecksSorted(mctx)
 	tmp.Proofs = make([]keybase1.IdentifyRow, len(pc))
 	for j, p := range pc {
 		tmp.Proofs[j] = p.ExportToIdentifyRow(j)
@@ -142,7 +141,7 @@ func ExportProofError(pe ProofError) (ret keybase1.ProofResult) {
 }
 
 func ImportProofError(e keybase1.ProofResult) ProofError {
-	ps := keybase1.ProofStatus(e.Status)
+	ps := e.Status
 	if ps == keybase1.ProofStatus_OK {
 		return nil
 	}
@@ -150,29 +149,32 @@ func ImportProofError(e keybase1.ProofResult) ProofError {
 }
 
 func ExportErrorAsStatus(g *GlobalContext, e error) (ret *keybase1.Status) {
-	if e == nil {
+	switch e {
+	case nil:
 		return nil
-	}
-
-	if e == io.EOF {
+	case io.EOF:
 		return &keybase1.Status{
 			Code: SCStreamEOF,
 			Name: "STREAM_EOF",
 		}
-	}
-
-	if e == pgpErrors.ErrKeyIncorrect {
+	case pgpErrors.ErrKeyIncorrect:
 		return &keybase1.Status{
 			Code: SCKeyNoActive,
 			Name: "SC_KEY_NO_ACTIVE",
 			Desc: "No PGP key found",
+		}
+	case context.Canceled:
+		return &keybase1.Status{
+			Code: SCCanceled,
+			Name: "SC_CANCELED",
+			Desc: "Canceled",
 		}
 	}
 
 	// Before checking to see if an error implements ExportableError, peel off
 	// any wrappers from the `errors` package (KBFS uses these). This is a
 	// no-op for other types.
-	e = pkgErrors.Cause(e)
+	e = HumanError(e)
 	if ee, ok := e.(ExportableError); ok {
 		tmp := ee.ToStatus()
 		return &tmp
@@ -189,7 +191,7 @@ func ExportErrorAsStatus(g *GlobalContext, e error) (ret *keybase1.Status) {
 	}
 }
 
-//=============================================================================
+// =============================================================================
 
 func MakeWrapError(g *GlobalContext) func(e error) interface{} {
 	return func(e error) interface{} {
@@ -229,7 +231,7 @@ func (c ErrorUnwrapper) UnwrapError(arg interface{}) (appError error, dispatchEr
 var _ rpc.ErrorUnwrapper = NewContextifiedErrorUnwrapper(nil)
 var _ rpc.ErrorUnwrapper = ErrorUnwrapper{}
 
-//=============================================================================
+// =============================================================================
 
 func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 	if s == nil {
@@ -260,6 +262,8 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 		return NoSessionError{}
 	case SCKeyCorrupted:
 		return KeyCorruptedError{s.Desc}
+	case SCOffline:
+		return OfflineError{}
 	case SCKeyInUse:
 		var fp *PGPFingerprint
 		if len(s.Desc) > 0 {
@@ -300,6 +304,12 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 		return IdentifyDidNotCompleteError{}
 	case SCSibkeyAlreadyExists:
 		return SibkeyAlreadyExistsError{}
+	case SCSigCreationDisallowed:
+		service := ""
+		if len(s.Fields) > 0 && s.Fields[0].Key == "remote_service" {
+			service = s.Fields[0].Value
+		}
+		return ServiceDoesNotSupportNewProofsError{Service: service}
 	case SCNoUI:
 		return NoUIError{Which: s.Desc}
 	case SCNoUIDelegation:
@@ -354,8 +364,7 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 	case SCKeyNoPGPEncryption:
 		ret := NoPGPEncryptionKeyError{User: s.Desc}
 		for _, field := range s.Fields {
-			switch field.Key {
-			case "HasKeybaseEncryptionKey":
+			if field.Key == "HasKeybaseEncryptionKey" {
 				ret.HasKeybaseEncryptionKey = true
 			}
 		}
@@ -418,16 +427,24 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 		for _, field := range s.Fields {
 			switch field.Key {
 			case "Cause":
-				ret.Cause = fmt.Errorf(field.Value)
+				ret.Cause.Err = fmt.Errorf(field.Value)
+			case "Code":
+				if code, err := strconv.Atoi(field.Value); err == nil {
+					ret.Cause.StatusCode = code
+				}
 			}
 		}
 		return ret
 	case SCSigCannotVerify:
-		ret := kbcrypto.VerificationError{}
+		ret := VerificationError{}
 		for _, field := range s.Fields {
 			switch field.Key {
 			case "Cause":
-				ret.Cause = fmt.Errorf(field.Value)
+				ret.Cause.Err = fmt.Errorf(field.Value)
+			case "Code":
+				if code, err := strconv.Atoi(field.Value); err == nil {
+					ret.Cause.StatusCode = code
+				}
 			}
 		}
 		return ret
@@ -440,8 +457,7 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 	case SCGenericAPIError:
 		var code int
 		for _, field := range s.Fields {
-			switch field.Key {
-			case "code":
+			if field.Key == "code" {
 				var err error
 				code, err = strconv.Atoi(field.Value)
 				if err != nil && g != nil {
@@ -457,16 +473,26 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 		return ChatInternalError{}
 	case SCChatStalePreviousState:
 		return ChatStalePreviousStateError{}
+	case SCChatEphemeralRetentionPolicyViolatedError:
+		var maxAge gregor1.DurationSec
+		for _, field := range s.Fields {
+			if field.Key == "MaxAge" {
+				dur, err := time.ParseDuration(field.Value)
+				if err == nil {
+					maxAge = gregor1.ToDurationSec(dur)
+				}
+			}
+		}
+		return ChatEphemeralRetentionPolicyViolatedError{maxAge}
 	case SCChatConvExists:
 		var convID chat1.ConversationID
 		for _, field := range s.Fields {
-			switch field.Key {
-			case "ConvID":
+			if field.Key == "ConvID" {
 				bs, err := chat1.MakeConvID(field.Value)
 				if err != nil && g != nil {
 					g.Log.Warning("error parsing ChatConvExistsError")
 				}
-				convID = chat1.ConversationID(bs)
+				convID = bs
 			}
 		}
 		return ChatConvExistsError{
@@ -475,8 +501,7 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 	case SCChatUnknownTLFID:
 		var tlfID chat1.TLFID
 		for _, field := range s.Fields {
-			switch field.Key {
-			case "TlfID":
+			if field.Key == "TlfID" {
 				var err error
 				tlfID, err = chat1.MakeTLFID(field.Value)
 				if err != nil && g != nil {
@@ -490,8 +515,7 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 	case SCChatNotInConv:
 		var uid gregor1.UID
 		for _, field := range s.Fields {
-			switch field.Key {
-			case "UID":
+			if field.Key == "UID" {
 				val, err := hex.DecodeString(field.Value)
 				if err != nil && g != nil {
 					g.Log.Warning("error parsing chat not in conv UID")
@@ -505,8 +529,7 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 	case SCChatNotInTeam:
 		var uid gregor1.UID
 		for _, field := range s.Fields {
-			switch field.Key {
-			case "UID":
+			if field.Key == "UID" {
 				val, err := hex.DecodeString(field.Value)
 				if err != nil && g != nil {
 					g.Log.Warning("error parsing chat not in conv UID")
@@ -520,8 +543,7 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 	case SCChatTLFFinalized:
 		var tlfID chat1.TLFID
 		for _, field := range s.Fields {
-			switch field.Key {
-			case "TlfID":
+			if field.Key == "TlfID" {
 				var err error
 				tlfID, err = chat1.MakeTLFID(field.Value)
 				if err != nil && g != nil {
@@ -539,10 +561,8 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 	case SCChatRateLimit:
 		var rlimit chat1.RateLimit
 		for _, field := range s.Fields {
-			switch field.Key {
-			case "RateLimit":
-				var err error
-				err = json.Unmarshal([]byte(field.Value), &rlimit)
+			if field.Key == "RateLimit" {
+				err := json.Unmarshal([]byte(field.Value), &rlimit)
 				if err != nil && g != nil {
 					g.Log.Warning("error parsing chat rate limit: %s", err.Error())
 				}
@@ -570,8 +590,7 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 	case SCChatMessageCollision:
 		var headerHash string
 		for _, field := range s.Fields {
-			switch field.Key {
-			case "HeaderHash":
+			if field.Key == "HeaderHash" {
 				headerHash = field.Value
 			}
 		}
@@ -581,8 +600,7 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 	case SCChatDuplicateMessage:
 		var soutboxID string
 		for _, field := range s.Fields {
-			switch field.Key {
-			case "OutboxID":
+			if field.Key == "OutboxID" {
 				soutboxID = field.Value
 			}
 		}
@@ -592,11 +610,28 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 		}
 	case SCChatClientError:
 		return ChatClientError{Msg: s.Desc}
+	case SCChatUsersAlreadyInConversationError:
+		var uids []keybase1.UID
+		for _, field := range s.Fields {
+			if field.Key == "uid" {
+				uids = append(uids, keybase1.UID(field.Value))
+			}
+		}
+		return ChatUsersAlreadyInConversationError{Uids: uids}
+	case SCChatBadConversationError:
+		var msg string
+		for _, field := range s.Fields {
+			if field.Key == "Msg" {
+				msg = field.Value
+			}
+		}
+		return ChatBadConversationError{
+			Msg: msg,
+		}
 	case SCNeedSelfRekey:
 		ret := NeedSelfRekeyError{Msg: s.Desc}
 		for _, field := range s.Fields {
-			switch field.Key {
-			case "Tlf":
+			if field.Key == "Tlf" {
 				ret.Tlf = field.Value
 			}
 		}
@@ -604,8 +639,7 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 	case SCNeedOtherRekey:
 		ret := NeedOtherRekeyError{Msg: s.Desc}
 		for _, field := range s.Fields {
-			switch field.Key {
-			case "Tlf":
+			if field.Key == "Tlf" {
 				ret.Tlf = field.Value
 			}
 		}
@@ -629,7 +663,13 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 	case SCRevokeCurrentDevice:
 		return RevokeCurrentDeviceError{}
 	case SCRevokeLastDevice:
-		return RevokeLastDeviceError{}
+		e := RevokeLastDeviceError{}
+		for _, field := range s.Fields {
+			if field.Key == "NoPassphrase" {
+				e.NoPassphrase = field.BoolValue()
+			}
+		}
+		return e
 	case SCRevokeLastDevicePGP:
 		return RevokeLastDevicePGPError{}
 	case SCTeamKeyMaskNotFound:
@@ -648,8 +688,7 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 	case SCGitInvalidRepoName:
 		e := InvalidRepoNameError{}
 		for _, field := range s.Fields {
-			switch field.Key {
-			case "Name":
+			if field.Key == "Name" {
 				e.Name = field.Value
 			}
 		}
@@ -670,8 +709,7 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 	case SCGitRepoDoesntExist:
 		e := RepoDoesntExistError{}
 		for _, field := range s.Fields {
-			switch field.Key {
-			case "Name":
+			if field.Key == "Name" {
 				e.Name = field.Value
 			}
 		}
@@ -721,8 +759,6 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 			}
 		}
 		return e
-	case SCTeamFTLOutdated:
-		return NewTeamFTLOutdatedError(s.Desc)
 	case SCFeatureFlag:
 		var feature Feature
 		for _, field := range s.Fields {
@@ -731,6 +767,35 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 			}
 		}
 		return NewFeatureFlagError(s.Desc, feature)
+	case SCNoPaperKeys:
+		return NoPaperKeysError{}
+	case SCTeamContactSettingsBlock:
+		e := TeamContactSettingsBlockError{}
+		for _, field := range s.Fields {
+			switch field.Key {
+			case "uids":
+				e.blockedUIDs = parseUIDsFromString(field.Value)
+			case "usernames":
+				e.blockedUsernames = parseUsernamesFromString(field.Value)
+			}
+		}
+		return e
+	case SCAssertionParseError:
+		e := AssertionParseError{}
+		for _, field := range s.Fields {
+			switch field.Key {
+			case "err":
+				e.err = field.Value
+			case "reason":
+				s, err := strconv.Atoi(field.Value)
+				if err == nil {
+					reason := AssertionParseErrorReason(s)
+					e.reason = reason
+				}
+			}
+		}
+		return e
+
 	default:
 		ase := AppStatusError{
 			Code:   s.Code,
@@ -745,7 +810,7 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 	}
 }
 
-//=============================================================================
+// =============================================================================
 
 func (a AppStatusError) ToStatus() keybase1.Status {
 	var fields []keybase1.StringKVPair
@@ -761,19 +826,19 @@ func (a AppStatusError) ToStatus() keybase1.Status {
 	}
 }
 
-//=============================================================================
+// =============================================================================
 
 func ExportTrackDiff(d TrackDiff) (res *keybase1.TrackDiff) {
 	if d != nil {
 		res = &keybase1.TrackDiff{
-			Type:          keybase1.TrackDiffType(d.GetTrackDiffType()),
+			Type:          d.GetTrackDiffType(),
 			DisplayMarkup: d.ToDisplayString(),
 		}
 	}
 	return
 }
 
-//=============================================================================
+// =============================================================================
 
 func ImportPGPFingerprintSlice(fp []byte) (ret *PGPFingerprint) {
 	if fp == nil {
@@ -788,7 +853,7 @@ func ImportPGPFingerprintSlice(fp []byte) (ret *PGPFingerprint) {
 	return &tmp
 }
 
-//=============================================================================
+// =============================================================================
 
 func (s TrackSummary) Export(username string) (ret keybase1.TrackSummary) {
 	ret.Time = keybase1.ToTime(s.time)
@@ -819,7 +884,7 @@ func ExportTrackSummary(l *TrackLookup, username string) *keybase1.TrackSummary 
 	return &tmp
 }
 
-//=============================================================================
+// =============================================================================
 
 func (ir *IdentifyOutcome) Export(g *GlobalContext) *keybase1.IdentifyOutcome {
 	v := make([]string, len(ir.Warnings))
@@ -848,7 +913,7 @@ func (ir *IdentifyOutcome) Export(g *GlobalContext) *keybase1.IdentifyOutcome {
 	return ret
 }
 
-//=============================================================================
+// =============================================================================
 
 func DisplayTrackArg(sessionID int, stmt string) *keybase1.DisplayTrackStatementArg {
 	return &keybase1.DisplayTrackStatementArg{
@@ -857,7 +922,7 @@ func DisplayTrackArg(sessionID int, stmt string) *keybase1.DisplayTrackStatement
 	}
 }
 
-//=============================================================================
+// =============================================================================
 
 func ImportWarnings(v []string) Warnings {
 	w := make([]Warning, len(v))
@@ -867,7 +932,7 @@ func ImportWarnings(v []string) Warnings {
 	return Warnings{w: w}
 }
 
-//=============================================================================
+// =============================================================================
 
 func (c CryptocurrencyChainLink) Export() (ret keybase1.Cryptocurrency) {
 	ret.Pkhash = c.pkhash
@@ -878,21 +943,7 @@ func (c CryptocurrencyChainLink) Export() (ret keybase1.Cryptocurrency) {
 	return ret
 }
 
-//=============================================================================
-
-func (c CurrentStatus) Export() (ret keybase1.GetCurrentStatusRes) {
-	ret.Configured = c.Configured
-	ret.Registered = c.Registered
-	ret.LoggedIn = c.LoggedIn
-	ret.SessionIsValid = c.SessionIsValid
-	if c.User != nil {
-		ret.User = c.User.Export()
-	}
-	// ret.ServerUri = G.Env.GetServerUri();
-	return
-}
-
-//=============================================================================
+// =============================================================================
 
 func (p PassphraseError) ToStatus() (s keybase1.Status) {
 	s.Code = SCBadLoginPassword
@@ -907,7 +958,7 @@ func (m Markup) Export() (ret keybase1.Text) {
 	return
 }
 
-//=============================================================================
+// =============================================================================
 
 func (e LoggedInError) ToStatus() (s keybase1.Status) {
 	s.Code = SCAlreadyLoggedIn
@@ -916,7 +967,7 @@ func (e LoggedInError) ToStatus() (s keybase1.Status) {
 	return
 }
 
-//=============================================================================
+// =============================================================================
 
 func (e LoggedInWrongUserError) ToStatus() (s keybase1.Status) {
 	s.Code = SCAlreadyLoggedIn
@@ -925,7 +976,7 @@ func (e LoggedInWrongUserError) ToStatus() (s keybase1.Status) {
 	return
 }
 
-//=============================================================================
+// =============================================================================
 
 func (e KeyGenError) ToStatus() (s keybase1.Status) {
 	s.Code = SCKeyBadGen
@@ -934,7 +985,7 @@ func (e KeyGenError) ToStatus() (s keybase1.Status) {
 	return
 }
 
-//=============================================================================
+// =============================================================================
 
 func (c CanceledError) ToStatus() (s keybase1.Status) {
 	s.Code = SCCanceled
@@ -943,7 +994,7 @@ func (c CanceledError) ToStatus() (s keybase1.Status) {
 	return
 }
 
-//=============================================================================
+// =============================================================================
 
 func (e BadSessionError) ToStatus() (s keybase1.Status) {
 	s.Code = SCBadSession
@@ -952,7 +1003,7 @@ func (e BadSessionError) ToStatus() (s keybase1.Status) {
 	return s
 }
 
-//=============================================================================
+// =============================================================================
 
 func (e InputCanceledError) ToStatus() (s keybase1.Status) {
 	s.Code = SCInputCanceled
@@ -961,7 +1012,7 @@ func (e InputCanceledError) ToStatus() (s keybase1.Status) {
 	return
 }
 
-//=============================================================================
+// =============================================================================
 
 func (e SkipSecretPromptError) ToStatus() (s keybase1.Status) {
 	s.Code = SCInputCanceled
@@ -970,7 +1021,7 @@ func (e SkipSecretPromptError) ToStatus() (s keybase1.Status) {
 	return
 }
 
-//=============================================================================
+// =============================================================================
 
 func (c KeyCorruptedError) ToStatus() (s keybase1.Status) {
 	s.Code = SCKeyCorrupted
@@ -981,7 +1032,15 @@ func (c KeyCorruptedError) ToStatus() (s keybase1.Status) {
 	return
 }
 
-//=============================================================================
+// =============================================================================
+
+func (e OfflineError) ToStatus() (s keybase1.Status) {
+	s.Code = SCOffline
+	s.Name = "OFFLINE"
+	return s
+}
+
+// =============================================================================
 
 func (c KeyExistsError) ToStatus() (s keybase1.Status) {
 	s.Code = SCKeyInUse
@@ -992,7 +1051,7 @@ func (c KeyExistsError) ToStatus() (s keybase1.Status) {
 	return
 }
 
-//=============================================================================
+// =============================================================================
 
 func (ids Identities) Export() (res []keybase1.PGPIdentity) {
 	var n int
@@ -1016,7 +1075,7 @@ func ImportPGPIdentities(ids []keybase1.PGPIdentity) (ret Identities) {
 	return
 }
 
-//=============================================================================
+// =============================================================================
 
 func (id Identity) Export() (ret keybase1.PGPIdentity) {
 	ret.Username = id.Username
@@ -1032,7 +1091,7 @@ func ImportPGPIdentity(arg keybase1.PGPIdentity) (ret Identity) {
 	return
 }
 
-//=============================================================================
+// =============================================================================
 
 // Interface for sorting a list of PublicKeys
 
@@ -1138,7 +1197,7 @@ func publicKeyV2BaseFromComputedKeyInfo(kid keybase1.KID, info ComputedKeyInfo) 
 			Time: keybase1.TimeFromSeconds(info.DelegatedAt.Unix),
 			PrevMerkleRootSigned: keybase1.MerkleRootV2{
 				HashMeta: info.DelegatedAtHashMeta,
-				Seqno:    keybase1.Seqno(info.DelegatedAt.Chain),
+				Seqno:    info.DelegatedAt.Chain,
 			},
 			FirstAppearedUnverified: info.FirstAppearedUnverified,
 		}
@@ -1153,7 +1212,7 @@ func publicKeyV2BaseFromComputedKeyInfo(kid keybase1.KID, info ComputedKeyInfo) 
 			Time: keybase1.TimeFromSeconds(info.RevokedAt.Unix),
 			PrevMerkleRootSigned: keybase1.MerkleRootV2{
 				HashMeta: info.RevokedAtHashMeta,
-				Seqno:    keybase1.Seqno(info.RevokedAt.Chain),
+				Seqno:    info.RevokedAt.Chain,
 			},
 			FirstAppearedUnverified: info.RevokeFirstAppearedUnverified,
 			SigningKID:              info.RevokedBy,
@@ -1446,10 +1505,11 @@ func (u *User) ExportToUPKV2AllIncarnations() (*keybase1.UserPlusKeysV2AllIncarn
 	// Then assemble the current version. This one gets a couple extra fields, Uvv and RemoteTracks.
 	current := u.GetComputedKeyInfos().exportUPKV2Incarnation(uid, name, u.GetCurrentEldestSeqno(), kf, status, nil)
 	current.RemoteTracks = make(map[keybase1.UID]keybase1.RemoteTrack)
-	if u.IDTable() != nil {
-		for _, track := range u.IDTable().GetTrackList() {
+	if tab := u.IDTable(); tab != nil {
+		for _, track := range tab.GetTrackList() {
 			current.RemoteTracks[track.whomUID] = track.Export()
 		}
+		current.Unstubbed = !tab.HasStubs()
 	}
 	if accountID := u.StellarAccountID(); accountID != nil {
 		tmp := accountID.String()
@@ -1505,116 +1565,117 @@ func (t TrackChainLink) Export() keybase1.RemoteTrack {
 	}
 }
 
-//=============================================================================
+// =============================================================================
 
 func (a PGPGenArg) ExportTo(ret *keybase1.PGPKeyGenArg) {
 	ret.PrimaryBits = a.PrimaryBits
 	ret.SubkeyBits = a.SubkeyBits
 	ret.CreateUids = keybase1.PGPCreateUids{Ids: a.Ids.Export()}
-	return
 }
 
-//=============================================================================
+// =============================================================================
 
 func ImportKeyGenArg(a keybase1.PGPKeyGenArg) (ret PGPGenArg) {
 	ret.PrimaryBits = a.PrimaryBits
 	ret.SubkeyBits = a.SubkeyBits
 	ret.Ids = ImportPGPIdentities(a.CreateUids.Ids)
-	return
+	return ret
 }
 
-//=============================================================================
+// =============================================================================
 
-func (t Tracker) Export() keybase1.Tracker { return keybase1.Tracker(t) }
-
-//=============================================================================
-
-func (e BadInvitationCodeError) ToStatus(s keybase1.Status) {
+func (e BadInvitationCodeError) ToStatus() (s keybase1.Status) {
 	s.Code = SCBadInvitationCode
 	s.Name = "BAD_INVITATION_CODE"
-	return
+	return s
 }
 
-//=============================================================================
+// =============================================================================
 
-func (e StreamExistsError) ToStatus(s keybase1.Status) {
+func (e StreamExistsError) ToStatus() (s keybase1.Status) {
 	s.Code = SCStreamExists
 	s.Name = "STREAM_EXISTS"
-	return
+	return s
 }
 
-func (e StreamNotFoundError) ToStatus(s keybase1.Status) {
+func (e StreamNotFoundError) ToStatus() (s keybase1.Status) {
 	s.Code = SCStreamNotFound
 	s.Name = "SC_STREAM_NOT_FOUND"
-	return
+	return s
 }
 
-func (e StreamWrongKindError) ToStatus(s keybase1.Status) {
+func (e StreamWrongKindError) ToStatus() (s keybase1.Status) {
 	s.Code = SCStreamWrongKind
 	s.Name = "STREAM_WRONG_KIND"
-	return
+	return s
 }
 
-//=============================================================================
+func (e UnknownStreamError) ToStatus() (s keybase1.Status) {
+	s.Code = SCStreamUnknown
+	s.Name = "STREAM_UNKNOWN"
+	return s
+}
+
+// =============================================================================
 
 func (u NoSecretKeyError) ToStatus() (s keybase1.Status) {
 	s.Code = SCKeyNoSecret
 	s.Name = "KEY_NO_SECRET"
-	return
+	return s
 }
 
-//=============================================================================
+// =============================================================================
 
 func (u LoginRequiredError) ToStatus() (s keybase1.Status) {
 	s.Code = SCLoginRequired
 	s.Name = "LOGIN_REQUIRED"
 	s.Desc = u.Context
-	return
+	return s
 }
 
-//=============================================================================
+// =============================================================================
 
 func (u NoSessionError) ToStatus() (s keybase1.Status) {
 	s.Code = SCNoSession
 	s.Name = "NO_SESSION"
-	return
+	return s
 }
 
-//=============================================================================
+// =============================================================================
 
 func (e APINetError) ToStatus() (s keybase1.Status) {
 	s.Code = SCAPINetworkError
 	s.Name = "API_NETWORK_ERROR"
 	s.Desc = e.Error()
-	return
+	return s
 }
 
 func (e ProofNotFoundForServiceError) ToStatus() (s keybase1.Status) {
 	s.Code = SCProofError
 	s.Name = "PROOF_ERROR"
 	s.Desc = e.Error()
-	return
+	return s
 }
 
 func (e ProofNotFoundForUsernameError) ToStatus() (s keybase1.Status) {
 	s.Code = SCProofError
 	s.Name = "PROOF_ERROR"
 	s.Desc = e.Error()
-	return
+	return s
 }
 
 func (e NoDecryptionKeyError) ToStatus() (s keybase1.Status) {
 	s.Code = SCDecryptionKeyNotFound
 	s.Name = "KEY_NOT_FOUND_DECRYPTION"
 	s.Desc = e.Msg
-	return
+	return s
 }
 
 func (e NoKeyError) ToStatus() (s keybase1.Status) {
 	s.Code = SCKeyNotFound
 	s.Name = "KEY_NOT_FOUND"
 	s.Desc = e.Msg
-	return
+	return s
 }
 
 func (e NoSyncedPGPKeyError) ToStatus() keybase1.Status {
@@ -1705,6 +1766,14 @@ func (e SibkeyAlreadyExistsError) ToStatus() keybase1.Status {
 	}
 }
 
+func (e ServiceDoesNotSupportNewProofsError) ToStatus() keybase1.Status {
+	return keybase1.Status{
+		Code: SCSigCreationDisallowed,
+		Name: "SC_SIG_CREATION_DISALLOWED",
+		Desc: e.Error(),
+	}
+}
+
 func (e UIDelegationUnavailableError) ToStatus() keybase1.Status {
 	return keybase1.Status{
 		Code: SCNoUIDelegation,
@@ -1753,7 +1822,7 @@ func (e IdentifiesFailedError) ToStatus() keybase1.Status {
 
 func (e IdentifySummaryError) ToStatus() keybase1.Status {
 	kvpairs := []keybase1.StringKVPair{
-		keybase1.StringKVPair{Key: "username", Value: e.username.String()},
+		{Key: "username", Value: e.username.String()},
 	}
 	for index, problem := range e.problems {
 		kvpairs = append(kvpairs, keybase1.StringKVPair{
@@ -1912,11 +1981,25 @@ func (e UserDeletedError) ToStatus() keybase1.Status {
 }
 
 func (e DecryptionError) ToStatus() keybase1.Status {
+	cause := e.Cause.Err.Error()
 	return keybase1.Status{
 		Code: SCDecryptionError,
 		Name: "SC_DECRYPTION_ERROR",
 		Fields: []keybase1.StringKVPair{
-			{Key: "Cause", Value: e.Cause.Error()},
+			{Key: "Cause", Value: cause}, // raw developer-friendly string
+			{Key: "Code", Value: strconv.Itoa(e.Cause.StatusCode)},
+		},
+	}
+}
+
+func (e VerificationError) ToStatus() keybase1.Status {
+	cause := e.Cause.Err.Error()
+	return keybase1.Status{
+		Code: SCSigCannotVerify,
+		Name: "SC_SIG_CANNOT_VERIFY",
+		Fields: []keybase1.StringKVPair{
+			{Key: "Cause", Value: cause}, // raw developer-friendly string
+			{Key: "Code", Value: strconv.Itoa(e.Cause.StatusCode)},
 		},
 	}
 }
@@ -1968,6 +2051,19 @@ func (e ChatStalePreviousStateError) ToStatus() keybase1.Status {
 		Code: SCChatStalePreviousState,
 		Name: "SC_CHAT_STALE_PREVIOUS_STATE",
 		Desc: e.Error(),
+	}
+}
+
+func (e ChatEphemeralRetentionPolicyViolatedError) ToStatus() keybase1.Status {
+	kv := keybase1.StringKVPair{
+		Key:   "MaxAge",
+		Value: e.MaxAge.ToDuration().String(),
+	}
+	return keybase1.Status{
+		Code:   SCChatEphemeralRetentionPolicyViolatedError,
+		Name:   "SC_CHAT_EPHEMERAL_RETENTION_POLICY_VIOLATED",
+		Desc:   e.Error(),
+		Fields: []keybase1.StringKVPair{kv},
 	}
 }
 
@@ -2043,7 +2139,7 @@ func (e ChatRateLimitError) ToStatus() keybase1.Status {
 	b, _ := json.Marshal(e.RateLimit)
 	kv := keybase1.StringKVPair{
 		Key:   "RateLimit",
-		Value: string(b[:]),
+		Value: string(b),
 	}
 	return keybase1.Status{
 		Code:   SCChatRateLimit,
@@ -2121,6 +2217,31 @@ func (e ChatClientError) ToStatus() keybase1.Status {
 		Code: SCChatClientError,
 		Name: "SC_CHAT_CLIENT_ERROR",
 		Desc: e.Msg,
+	}
+}
+
+func (e ChatUsersAlreadyInConversationError) ToStatus() keybase1.Status {
+	fields := []keybase1.StringKVPair{}
+	for _, uid := range e.Uids {
+		fields = append(fields, keybase1.StringKVPair{Key: "uid", Value: uid.String()})
+	}
+	return keybase1.Status{
+		Code:   SCChatUsersAlreadyInConversationError,
+		Name:   "SC_CHAT_USERS_ALREADY_IN_CONVERSATION_ERROR",
+		Fields: fields,
+	}
+}
+
+func (e ChatBadConversationError) ToStatus() keybase1.Status {
+	return keybase1.Status{
+		Code: SCChatBadConversationError,
+		Name: "SC_CHAT_BAD_CONVERSATION_ERROR",
+		Fields: []keybase1.StringKVPair{
+			{
+				Key:   "Msg",
+				Value: e.Msg,
+			},
+		},
 	}
 }
 
@@ -2206,11 +2327,19 @@ func (e RevokeCurrentDeviceError) ToStatus() keybase1.Status {
 }
 
 func (e RevokeLastDeviceError) ToStatus() keybase1.Status {
-	return keybase1.Status{
+	x := keybase1.Status{
 		Code: SCRevokeLastDevice,
 		Name: "SC_DEVICE_REVOKE_LAST",
 		Desc: e.Error(),
 	}
+
+	if e.NoPassphrase {
+		x.Fields = []keybase1.StringKVPair{
+			{Key: "NoPassphrase", Value: "true"},
+		}
+	}
+
+	return x
 }
 
 func (e RevokeLastDevicePGPError) ToStatus() keybase1.Status {
@@ -2342,17 +2471,60 @@ func (e MerkleClientError) ToStatus() (ret keybase1.Status) {
 	return ret
 }
 
-func (e TeamFTLOutdatedError) ToStatus() (ret keybase1.Status) {
-	ret.Code = SCTeamFTLOutdated
-	ret.Name = "TEAM_FTL_OUTDATED"
-	ret.Desc = e.msg
-	return ret
-}
-
 func (e FeatureFlagError) ToStatus() (ret keybase1.Status) {
 	ret.Code = SCFeatureFlag
 	ret.Name = "FEATURE_FLAG"
 	ret.Desc = e.msg
-	ret.Fields = []keybase1.StringKVPair{keybase1.StringKVPair{Key: "feature", Value: string(e.feature)}}
+	ret.Fields = []keybase1.StringKVPair{{Key: "feature", Value: string(e.feature)}}
 	return ret
+}
+
+func (e BadUsernameError) ToStatus() (ret keybase1.Status) {
+	ret.Code = SCBadUsername
+	ret.Name = "BAD_USERNAME"
+	ret.Desc = e.Error()
+	return ret
+}
+
+func (e NoPaperKeysError) ToStatus() (ret keybase1.Status) {
+	ret.Code = SCNoPaperKeys
+	ret.Name = "NO_PAPER_KEYS"
+	ret.Desc = e.Error()
+	return
+}
+
+func (e TeamContactSettingsBlockError) ToStatus() (ret keybase1.Status) {
+	ret.Code = SCTeamContactSettingsBlock
+	ret.Name = "TEAM_CONTACT_SETTINGS_BLOCK"
+	ret.Desc = e.Error()
+	ret.Fields = []keybase1.StringKVPair{
+		{Key: "uids", Value: parseUIDsToString(e.blockedUIDs)},
+		{Key: "usernames", Value: parseUsernamesToString(e.blockedUsernames)},
+	}
+	return
+}
+
+func parseUIDsToString(input []keybase1.UID) string {
+	uids := make([]string, len(input))
+	for i, uid := range input {
+		uids[i] = uid.String()
+	}
+	return strings.Join(uids, ",")
+}
+
+func parseUsernamesToString(input []NormalizedUsername) string {
+	usernames := make([]string, len(input))
+	for i, username := range input {
+		usernames[i] = username.String()
+	}
+	return strings.Join(usernames, ",")
+}
+
+func (e AssertionParseError) ToStatus() (ret keybase1.Status) {
+	ret.Code = SCAssertionParseError
+	ret.Name = "ASSERTION_PARSE_ERROR"
+	ret.Desc = e.Error()
+	ret.Fields = append(ret.Fields, keybase1.StringKVPair{Key: "err", Value: e.err})
+	ret.Fields = append(ret.Fields, keybase1.StringKVPair{Key: "reason", Value: fmt.Sprintf("%d", e.reason)})
+	return
 }

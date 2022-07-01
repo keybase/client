@@ -4,12 +4,16 @@
     {
       "path": "common.avdl",
       "type": "idl"
+    },
+    {
+      "path": "notify_ctl.avdl",
+      "type": "idl"
     }
   ],
   "types": [
     {
       "type": "record",
-      "name": "GetCurrentStatusRes",
+      "name": "CurrentStatus",
       "fields": [
         {
           "type": "boolean",
@@ -33,6 +37,10 @@
             "User"
           ],
           "name": "user"
+        },
+        {
+          "type": "string",
+          "name": "deviceName"
         }
       ]
     },
@@ -98,6 +106,24 @@
     },
     {
       "type": "record",
+      "name": "ClientStatus",
+      "fields": [
+        {
+          "type": "ClientDetails",
+          "name": "details"
+        },
+        {
+          "type": "int",
+          "name": "connectionID"
+        },
+        {
+          "type": "NotificationChannels",
+          "name": "notificationChannels"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "PlatformInfo",
       "fields": [
         {
@@ -129,6 +155,24 @@
         {
           "type": "string",
           "name": "desc"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "DirSizeInfo",
+      "fields": [
+        {
+          "type": "int",
+          "name": "numFiles"
+        },
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": "string",
+          "name": "humanSize"
         }
       ]
     },
@@ -215,7 +259,14 @@
         {
           "type": {
             "type": "array",
-            "items": "ClientDetails"
+            "items": "ConfiguredAccount"
+          },
+          "name": "configuredAccounts"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "ClientStatus"
           },
           "name": "Clients",
           "lint": "ignore"
@@ -234,8 +285,232 @@
         {
           "type": "DeviceID",
           "name": "defaultDeviceID"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "localDbStats"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "localChatDbStats"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "localBlockCacheDbStats"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "localSyncCacheDbStats"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "DirSizeInfo"
+          },
+          "name": "cacheDirSizeInfo"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "int"
+          },
+          "name": "uiRouterMapping"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "KbClientStatus",
+      "fields": [
+        {
+          "type": "string",
+          "name": "version"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "KbServiceStatus",
+      "fields": [
+        {
+          "type": "string",
+          "name": "version"
+        },
+        {
+          "type": "boolean",
+          "name": "running"
+        },
+        {
+          "type": "string",
+          "name": "pid"
+        },
+        {
+          "type": "string",
+          "name": "log"
+        },
+        {
+          "type": "string",
+          "name": "ekLog"
+        },
+        {
+          "type": "string",
+          "name": "perfLog"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "KBFSStatus",
+      "fields": [
+        {
+          "type": "string",
+          "name": "version"
+        },
+        {
+          "type": "string",
+          "name": "installedVersion"
+        },
+        {
+          "type": "boolean",
+          "name": "running"
+        },
+        {
+          "type": "string",
+          "name": "pid"
+        },
+        {
+          "type": "string",
+          "name": "log"
+        },
+        {
+          "type": "string",
+          "name": "perfLog"
+        },
+        {
+          "type": "string",
+          "name": "mount"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "DesktopStatus",
+      "fields": [
+        {
+          "type": "string",
+          "name": "version"
+        },
+        {
+          "type": "boolean",
+          "name": "running"
+        },
+        {
+          "type": "string",
+          "name": "log"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UpdaterStatus",
+      "fields": [
+        {
+          "type": "string",
+          "name": "log"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "StartStatus",
+      "fields": [
+        {
+          "type": "string",
+          "name": "log"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "GitStatus",
+      "fields": [
+        {
+          "type": "string",
+          "name": "log"
+        },
+        {
+          "type": "string",
+          "name": "perfLog"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "FullStatus",
+      "fields": [
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": "string",
+          "name": "configPath"
+        },
+        {
+          "type": "CurrentStatus",
+          "name": "curStatus"
+        },
+        {
+          "type": "ExtendedStatus",
+          "name": "extStatus"
+        },
+        {
+          "type": "KbClientStatus",
+          "name": "client"
+        },
+        {
+          "type": "KbServiceStatus",
+          "name": "service"
+        },
+        {
+          "type": "KBFSStatus",
+          "name": "kbfs"
+        },
+        {
+          "type": "DesktopStatus",
+          "name": "desktop"
+        },
+        {
+          "type": "UpdaterStatus",
+          "name": "updater"
+        },
+        {
+          "type": "StartStatus",
+          "name": "start"
+        },
+        {
+          "type": "GitStatus",
+          "name": "git"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "LogSendID",
+      "fields": [],
+      "typedef": "string"
     },
     {
       "type": "record",
@@ -356,6 +631,13 @@
         {
           "type": [
             null,
+            "double"
+          ],
+          "name": "f"
+        },
+        {
+          "type": [
+            null,
             "string"
           ],
           "name": "s"
@@ -392,6 +674,29 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "UpdateInfoStatus",
+      "symbols": [
+        "UP_TO_DATE_0",
+        "NEED_UPDATE_1",
+        "CRITICALLY_OUT_OF_DATE_2"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UpdateInfo",
+      "fields": [
+        {
+          "type": "UpdateInfoStatus",
+          "name": "status"
+        },
+        {
+          "type": "string",
+          "name": "message"
+        }
+      ]
+    },
+    {
       "type": "record",
       "name": "BootstrapStatus",
       "fields": [
@@ -420,18 +725,96 @@
           "name": "deviceName"
         },
         {
-          "type": {
-            "type": "array",
-            "items": "string"
-          },
-          "name": "following"
+          "type": "FullName",
+          "name": "fullname"
         },
         {
-          "type": {
-            "type": "array",
-            "items": "string"
+          "type": "UserReacjis",
+          "name": "userReacjis"
+        },
+        {
+          "type": [
+            null,
+            "HttpSrvInfo"
+          ],
+          "name": "httpSrvInfo"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "UpdateInfoStatus2",
+      "symbols": [
+        "OK_0",
+        "SUGGESTED_1",
+        "CRITICAL_2"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UpdateDetails",
+      "fields": [
+        {
+          "type": "string",
+          "name": "message"
+        }
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "UpdateInfo2",
+      "switch": {
+        "type": "UpdateInfoStatus2",
+        "name": "status"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "OK",
+            "def": false
           },
-          "name": "followers"
+          "body": null
+        },
+        {
+          "label": {
+            "name": "SUGGESTED",
+            "def": false
+          },
+          "body": "UpdateDetails"
+        },
+        {
+          "label": {
+            "name": "CRITICAL",
+            "def": false
+          },
+          "body": "UpdateDetails"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "ProxyType",
+      "symbols": [
+        "No_Proxy_0",
+        "HTTP_Connect_1",
+        "Socks_2"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ProxyData",
+      "fields": [
+        {
+          "type": "string",
+          "name": "addressWithPort"
+        },
+        {
+          "type": "ProxyType",
+          "name": "proxyType"
+        },
+        {
+          "type": "boolean",
+          "name": "certPinning"
         }
       ]
     }
@@ -444,16 +827,90 @@
           "type": "int"
         }
       ],
-      "response": "GetCurrentStatusRes"
+      "response": "CurrentStatus"
     },
-    "getExtendedStatus": {
+    "getClientStatus": {
       "request": [
         {
           "name": "sessionID",
           "type": "int"
         }
       ],
-      "response": "ExtendedStatus"
+      "response": {
+        "type": "array",
+        "items": "ClientStatus"
+      }
+    },
+    "getFullStatus": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": [
+        null,
+        "FullStatus"
+      ]
+    },
+    "isServiceRunning": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": "boolean"
+    },
+    "isKBFSRunning": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": "boolean"
+    },
+    "getNetworkStats": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "networkSrc",
+          "type": "NetworkSource"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "InstrumentationStat"
+      }
+    },
+    "logSend": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "statusJSON",
+          "type": "string"
+        },
+        {
+          "name": "feedback",
+          "type": "string"
+        },
+        {
+          "name": "sendLogs",
+          "type": "boolean"
+        },
+        {
+          "name": "sendMaxBytes",
+          "type": "boolean"
+        }
+      ],
+      "response": "LogSendID"
     },
     "getAllProvisionedUsernames": {
       "request": [
@@ -548,10 +1005,49 @@
       ],
       "response": "ConfigValue"
     },
+    "guiSetValue": {
+      "request": [
+        {
+          "name": "path",
+          "type": "string"
+        },
+        {
+          "name": "value",
+          "type": "ConfigValue"
+        }
+      ],
+      "response": null
+    },
+    "guiClearValue": {
+      "request": [
+        {
+          "name": "path",
+          "type": "string"
+        }
+      ],
+      "response": null
+    },
+    "guiGetValue": {
+      "request": [
+        {
+          "name": "path",
+          "type": "string"
+        }
+      ],
+      "response": "ConfigValue"
+    },
     "checkAPIServerOutOfDateWarning": {
       "request": [],
       "response": "OutOfDateInfo",
       "doc": "Check whether the API server has told us we're out of date."
+    },
+    "getUpdateInfo": {
+      "request": [],
+      "response": "UpdateInfo"
+    },
+    "startUpdateIfNeeded": {
+      "request": [],
+      "response": null
     },
     "waitForClient": {
       "request": [
@@ -576,6 +1072,15 @@
       ],
       "response": "BootstrapStatus"
     },
+    "requestFollowingAndUnverifiedFollowers": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": null
+    },
     "getRememberPassphrase": {
       "request": [
         {
@@ -594,6 +1099,65 @@
         {
           "name": "remember",
           "type": "boolean"
+        }
+      ],
+      "response": null
+    },
+    "getUpdateInfo2": {
+      "request": [
+        {
+          "name": "platform",
+          "type": [
+            null,
+            "string"
+          ]
+        },
+        {
+          "name": "version",
+          "type": [
+            null,
+            "string"
+          ]
+        }
+      ],
+      "response": "UpdateInfo2",
+      "doc": "getUpdateInfo2 is to drive the redbar on mobile and desktop apps. The redbar tells you if\n   you are critically out of date."
+    },
+    "setProxyData": {
+      "request": [
+        {
+          "name": "proxyData",
+          "type": "ProxyData"
+        }
+      ],
+      "response": null
+    },
+    "getProxyData": {
+      "request": [],
+      "response": "ProxyData"
+    },
+    "toggleRuntimeStats": {
+      "request": [],
+      "response": null
+    },
+    "appendGUILogs": {
+      "request": [
+        {
+          "name": "content",
+          "type": "string"
+        }
+      ],
+      "response": null
+    },
+    "generateWebAuthToken": {
+      "request": [],
+      "response": "string"
+    },
+    "updateLastLoggedInAndServerConfig": {
+      "request": [
+        {
+          "name": "serverConfigPath",
+          "type": "string"
         }
       ],
       "response": null

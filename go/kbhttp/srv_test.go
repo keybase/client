@@ -30,8 +30,9 @@ func TestSrv(t *testing.T) {
 		out, err := ioutil.ReadAll(resp.Body)
 		require.NoError(t, err)
 		require.Equal(t, "success", string(out))
-		srv.Stop()
+		<-srv.Stop()
 	}
-	test(NewRandomPortListenerSource())
+	test(NewAutoPortListenerSource())
 	test(NewPortRangeListenerSource(7000, 8000))
+	test(NewRandomPortRangeListenerSource(7000, 8000))
 }

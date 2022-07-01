@@ -7,11 +7,13 @@ import (
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/net/context"
 )
 
 type CmdLogout struct {
 	libkb.Contextified
+	Force bool
 }
 
 func NewCmdLogoutRunner(g *libkb.GlobalContext) *CmdLogout {
@@ -23,7 +25,8 @@ func (v *CmdLogout) Run() error {
 	if err != nil {
 		return err
 	}
-	return cli.Logout(context.TODO(), 0)
+	ctx := context.TODO()
+	return cli.Logout(ctx, keybase1.LogoutArg{Force: v.Force})
 }
 
 func NewCmdLogout(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -32,6 +35,12 @@ func NewCmdLogout(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comman
 		Usage: "Logout and remove session information",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(NewCmdLogoutRunner(g), "logout", c)
+		},
+		Flags: []cli.Flag{
+			cli.BoolFlag{
+				Name:  "f, force",
+				Usage: "If there are any reasons not to logout right now, ignore them (potentially dangerous)",
+			},
 		},
 	}
 }
@@ -43,4 +52,7 @@ func (v *CmdLogout) GetUsage() libkb.Usage {
 	}
 }
 
-func (v *CmdLogout) ParseArgv(*cli.Context) error { return nil }
+func (v *CmdLogout) ParseArgv(ctx *cli.Context) error {
+	v.Force = ctx.Bool("force")
+	return nil
+}

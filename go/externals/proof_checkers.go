@@ -7,15 +7,15 @@ import libkb "github.com/keybase/client/go/libkb"
 
 func getStaticProofServices() []libkb.ServiceType {
 	services := []libkb.ServiceType{
-		DNSServiceType{},
-		FacebookServiceType{},
-		GithubServiceType{},
-		HackerNewsServiceType{},
-		RedditServiceType{},
-		TwitterServiceType{},
-		WebServiceType{},
-		WebServiceType{scheme: "http"},
-		WebServiceType{scheme: "https"},
+		&DNSServiceType{},
+		&FacebookServiceType{},
+		&GithubServiceType{},
+		&HackerNewsServiceType{},
+		&RedditServiceType{},
+		&TwitterServiceType{},
+		&WebServiceType{},
+		&WebServiceType{scheme: "http"},
+		&WebServiceType{scheme: "https"},
 	}
 	return append(services, getBuildSpecificStaticProofServices()...)
 }

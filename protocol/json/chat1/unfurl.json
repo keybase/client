@@ -1,0 +1,562 @@
+{
+  "protocol": "unfurl",
+  "imports": [
+    {
+      "path": "common.avdl",
+      "type": "idl"
+    },
+    {
+      "path": "../gregor1",
+      "type": "idl",
+      "import_as": "gregor1"
+    }
+  ],
+  "types": [
+    {
+      "type": "enum",
+      "name": "UnfurlType",
+      "symbols": [
+        "GENERIC_0",
+        "YOUTUBE_1",
+        "GIPHY_2",
+        "MAPS_3"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UnfurlVideo",
+      "fields": [
+        {
+          "type": "string",
+          "name": "url"
+        },
+        {
+          "type": "string",
+          "name": "mimeType"
+        },
+        {
+          "type": "int",
+          "name": "height"
+        },
+        {
+          "type": "int",
+          "name": "width"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UnfurlGenericRaw",
+      "fields": [
+        {
+          "type": "string",
+          "name": "title"
+        },
+        {
+          "type": "string",
+          "name": "url"
+        },
+        {
+          "type": "string",
+          "name": "siteName"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "faviconUrl"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "imageUrl"
+        },
+        {
+          "type": [
+            null,
+            "UnfurlVideo"
+          ],
+          "name": "video"
+        },
+        {
+          "type": [
+            null,
+            "int"
+          ],
+          "name": "publishTime"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "description"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UnfurlYoutubeRaw",
+      "fields": []
+    },
+    {
+      "type": "record",
+      "name": "UnfurlGiphyRaw",
+      "fields": [
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "imageUrl"
+        },
+        {
+          "type": [
+            null,
+            "UnfurlVideo"
+          ],
+          "name": "video"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "faviconUrl"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UnfurlMapsRaw",
+      "fields": [
+        {
+          "type": "string",
+          "name": "title"
+        },
+        {
+          "type": "string",
+          "name": "url"
+        },
+        {
+          "type": "string",
+          "name": "siteName"
+        },
+        {
+          "type": "string",
+          "name": "imageUrl"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "historyImageUrl"
+        },
+        {
+          "type": "string",
+          "name": "description"
+        },
+        {
+          "type": "Coordinate",
+          "name": "coord"
+        },
+        {
+          "type": "gregor1.Time",
+          "name": "time"
+        },
+        {
+          "type": [
+            null,
+            "gregor1.Time"
+          ],
+          "name": "liveLocationEndTime"
+        },
+        {
+          "type": "boolean",
+          "name": "liveLocationDone"
+        }
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "UnfurlRaw",
+      "switch": {
+        "type": "UnfurlType",
+        "name": "unfurlType"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "GENERIC",
+            "def": false
+          },
+          "body": "UnfurlGenericRaw"
+        },
+        {
+          "label": {
+            "name": "YOUTUBE",
+            "def": false
+          },
+          "body": "UnfurlYoutubeRaw"
+        },
+        {
+          "label": {
+            "name": "GIPHY",
+            "def": false
+          },
+          "body": "UnfurlGiphyRaw"
+        },
+        {
+          "label": {
+            "name": "MAPS",
+            "def": false
+          },
+          "body": "UnfurlMapsRaw"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UnfurlGenericMapInfo",
+      "fields": [
+        {
+          "type": "Coordinate",
+          "name": "coord"
+        },
+        {
+          "type": "gregor1.Time",
+          "name": "time"
+        },
+        {
+          "type": [
+            null,
+            "gregor1.Time"
+          ],
+          "name": "liveLocationEndTime"
+        },
+        {
+          "type": "boolean",
+          "name": "isLiveLocationDone"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UnfurlGeneric",
+      "fields": [
+        {
+          "type": "string",
+          "name": "title"
+        },
+        {
+          "type": "string",
+          "name": "url"
+        },
+        {
+          "type": "string",
+          "name": "siteName"
+        },
+        {
+          "type": [
+            null,
+            "Asset"
+          ],
+          "name": "favicon"
+        },
+        {
+          "type": [
+            null,
+            "Asset"
+          ],
+          "name": "image"
+        },
+        {
+          "type": [
+            null,
+            "int"
+          ],
+          "name": "publishTime"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "description"
+        },
+        {
+          "type": [
+            null,
+            "UnfurlGenericMapInfo"
+          ],
+          "name": "mapInfo"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UnfurlYoutube",
+      "fields": []
+    },
+    {
+      "type": "record",
+      "name": "UnfurlGiphy",
+      "fields": [
+        {
+          "type": [
+            null,
+            "Asset"
+          ],
+          "name": "favicon"
+        },
+        {
+          "type": [
+            null,
+            "Asset"
+          ],
+          "name": "image"
+        },
+        {
+          "type": [
+            null,
+            "Asset"
+          ],
+          "name": "video"
+        }
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "Unfurl",
+      "switch": {
+        "type": "UnfurlType",
+        "name": "unfurlType"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "GENERIC",
+            "def": false
+          },
+          "body": "UnfurlGeneric"
+        },
+        {
+          "label": {
+            "name": "YOUTUBE",
+            "def": false
+          },
+          "body": "UnfurlYoutube"
+        },
+        {
+          "label": {
+            "name": "GIPHY",
+            "def": false
+          },
+          "body": "UnfurlGiphy"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UnfurlResult",
+      "fields": [
+        {
+          "type": "Unfurl",
+          "name": "unfurl"
+        },
+        {
+          "type": "string",
+          "name": "url"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UnfurlImageDisplay",
+      "fields": [
+        {
+          "type": "string",
+          "name": "url"
+        },
+        {
+          "type": "int",
+          "name": "height"
+        },
+        {
+          "type": "int",
+          "name": "width"
+        },
+        {
+          "type": "boolean",
+          "name": "isVideo"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UnfurlGenericDisplay",
+      "fields": [
+        {
+          "type": "string",
+          "name": "title"
+        },
+        {
+          "type": "string",
+          "name": "url"
+        },
+        {
+          "type": "string",
+          "name": "siteName"
+        },
+        {
+          "type": [
+            null,
+            "UnfurlImageDisplay"
+          ],
+          "name": "favicon"
+        },
+        {
+          "type": [
+            null,
+            "UnfurlImageDisplay"
+          ],
+          "name": "media"
+        },
+        {
+          "type": [
+            null,
+            "int"
+          ],
+          "name": "publishTime"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "description"
+        },
+        {
+          "type": [
+            null,
+            "UnfurlGenericMapInfo"
+          ],
+          "name": "mapInfo"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UnfurlYoutubeDisplay",
+      "fields": []
+    },
+    {
+      "type": "record",
+      "name": "UnfurlGiphyDisplay",
+      "fields": [
+        {
+          "type": [
+            null,
+            "UnfurlImageDisplay"
+          ],
+          "name": "favicon"
+        },
+        {
+          "type": [
+            null,
+            "UnfurlImageDisplay"
+          ],
+          "name": "image"
+        },
+        {
+          "type": [
+            null,
+            "UnfurlImageDisplay"
+          ],
+          "name": "video"
+        }
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "UnfurlDisplay",
+      "switch": {
+        "type": "UnfurlType",
+        "name": "unfurlType"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "GENERIC",
+            "def": false
+          },
+          "body": "UnfurlGenericDisplay"
+        },
+        {
+          "label": {
+            "name": "YOUTUBE",
+            "def": false
+          },
+          "body": "UnfurlYoutubeDisplay"
+        },
+        {
+          "label": {
+            "name": "GIPHY",
+            "def": false
+          },
+          "body": "UnfurlGiphyDisplay"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "UnfurlMode",
+      "symbols": [
+        "ALWAYS_0",
+        "NEVER_1",
+        "WHITELISTED_2"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UnfurlSettings",
+      "fields": [
+        {
+          "type": "UnfurlMode",
+          "name": "mode"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "boolean",
+            "keys": "string"
+          },
+          "name": "whitelist"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UnfurlSettingsDisplay",
+      "fields": [
+        {
+          "type": "UnfurlMode",
+          "name": "mode"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "whitelist"
+        }
+      ]
+    }
+  ],
+  "messages": {},
+  "namespace": "chat.1"
+}

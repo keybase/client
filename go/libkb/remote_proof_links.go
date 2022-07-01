@@ -43,25 +43,17 @@ func (r *RemoteProofLinks) Insert(link RemoteProofChainLink, err ProofError) {
 // ForService returns all the active proof links for a service.
 func (r *RemoteProofLinks) ForService(st ServiceType) []RemoteProofChainLink {
 	var links []RemoteProofChainLink
-	for _, k := range st.AllStringKeys() {
-		for _, l := range r.links[k] {
-			if l.link.IsRevoked() {
-				continue
-			}
-			links = append(links, l.link)
+	for _, linkWithState := range r.links[st.Key()] {
+		if linkWithState.link.LastWriterWins() {
+			// Clear the array if it's a last-writer wins service.
+			// (like many social networks)
+			links = nil
 		}
-	}
-
-	// Chop the array off if it's a last-writer wins service
-	// (like many social networks).
-	for i := len(links) - 1; i >= 0; i-- {
-		if links[i].LastWriterWins() {
-			links = links[i:]
-			break
+		if linkWithState.link.IsRevoked() {
+			continue
 		}
-
+		links = append(links, linkWithState.link)
 	}
-
 	return links
 }
 
@@ -93,7 +85,7 @@ func (r *RemoteProofLinks) TrackingStatement() *jsonw.Wrapper {
 
 	res := jsonw.NewArray(len(proofs))
 	for i, proof := range proofs {
-		res.SetIndex(i, proof)
+		_ = res.SetIndex(i, proof)
 	}
 	return res
 }
@@ -189,3 +181,13 @@ func (p ProofLinkWithState) ToKeyValuePair() (string, string) {
 }
 
 func (p ProofLinkWithState) GetProofType() keybase1.ProofType { return p.link.GetProofType() }
+
+func (r *RemoteProofLinks) toServiceSummary() (ret UserServiceSummary) {
+	ret = make(UserServiceSummary, len(r.links))
+	activeProofs := r.Active()
+	for _, proof := range activeProofs {
+		key, val := proof.ToKeyValuePair()
+		ret[key] = val
+	}
+	return ret
+}

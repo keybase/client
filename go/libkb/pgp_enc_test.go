@@ -159,7 +159,10 @@ func TestPGPEncryptLong(t *testing.T) {
 
 	msg := make([]byte, 1024*1024)
 
-	rand.Read(msg)
+	_, err = rand.Read(msg)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	tc.G.Log.Info("msg size: %d", len(msg))
 

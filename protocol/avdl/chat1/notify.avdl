@@ -2,7 +2,7 @@
 
 protocol NotifyChat {
 
-  import idl "github.com/keybase/client/go/protocol/keybase1" as keybase1;
+  import idl "../keybase1" as keybase1;
 
   enum ChatActivitySource {
     LOCAL_0,
@@ -21,11 +21,13 @@ protocol NotifyChat {
     TEAMTYPE_8,
     EXPUNGE_9,
     EPHEMERAL_PURGE_10,
-    REACTION_UPDATE_11
+    REACTION_UPDATE_11,
+    MESSAGES_UPDATED_12
   }
 
   record IncomingMessage {
     UIMessage message;
+    union { null, UIMessage } modifiedMessage;
     ConversationID convID;
     boolean displayDesktopNotification;
     string desktopNotificationSnippet;
@@ -58,6 +60,7 @@ protocol NotifyChat {
   record FailedMessageInfo {
     array<OutboxRecord> outboxRecords;
     boolean isEphemeralPurge;
+    union { null, InboxUIItem } conv;
   }
 
   record MemberInfo {
@@ -79,23 +82,27 @@ protocol NotifyChat {
   record ExpungeInfo {
     ConversationID convID;
     Expunge expunge;
-    union { null, InboxUIItem } conv;
   }
 
   record EphemeralPurgeNotifInfo {
     ConversationID convID;
     array<UIMessage> msgs;
-    union { null, InboxUIItem } conv;
   }
 
   record ReactionUpdate {
-    ReactionMap reactions;
+    UIReactionMap reactions;
     MessageID targetMsgID;
   }
 
   record ReactionUpdateNotif {
     ConversationID convID;
+    keybase1.UserReacjis userReacjis;
     array<ReactionUpdate> reactionUpdates;
+  }
+
+  record MessagesUpdated {
+    ConversationID convID;
+    array<UIMessage> updates;
   }
 
   variant ChatActivity switch (ChatActivityType activityType) {
@@ -110,14 +117,13 @@ protocol NotifyChat {
     case EXPUNGE: ExpungeInfo;
     case EPHEMERAL_PURGE: EphemeralPurgeNotifInfo;
     case REACTION_UPDATE: ReactionUpdateNotif;
+    case MESSAGES_UPDATED: MessagesUpdated;
   }
 
   record TyperInfo {
     keybase1.UID uid;
     string username;
     keybase1.DeviceID deviceID;
-    string deviceName;
-    string deviceType;
   }
 
   record ConvTypingUpdate {
@@ -135,8 +141,14 @@ protocol NotifyChat {
     StaleUpdateType updateType;
   }
 
+  record ChatSyncIncrementalConv {
+    UnverifiedInboxUIItem conv;
+    boolean shouldUnbox;
+  }
+
   record ChatSyncIncrementalInfo {
-    array<UnverifiedInboxUIItem> items;
+    array<ChatSyncIncrementalConv> items;
+    array<string> removals; // Removed ConvIDs
   }
 
   variant ChatSyncResult switch (SyncInboxResType syncType) {
@@ -224,9 +236,33 @@ protocol NotifyChat {
 
   @notify("")
   @lint("ignore")
+  void ChatAttachmentDownloadProgress(keybase1.UID uid, ConversationID convID, MessageID msgID, long bytesComplete, long bytesTotal);
+
+  @notify("")
+  @lint("ignore")
+  void ChatAttachmentDownloadComplete(keybase1.UID uid, ConversationID convID, MessageID msgID);
+
+  @notify("")
+  @lint("ignore")
   void ChatPaymentInfo(keybase1.UID uid, ConversationID convID, MessageID msgID, UIPaymentInfo info);
 
   @notify("")
   @lint("ignore")
   void ChatRequestInfo(keybase1.UID uid, ConversationID convID, MessageID msgID, UIRequestInfo info);
+
+  @notify("")
+  @lint("ignore")
+  void ChatPromptUnfurl(keybase1.UID uid, ConversationID convID, MessageID msgID, string domain);
+
+  @notify("")
+  @lint("ignore")
+  void ChatConvUpdate(keybase1.UID uid, ConversationID convID, union { null, InboxUIItem } conv);
+
+  @notify("")
+  @lint("ignore")
+  void ChatWelcomeMessageLoaded(keybase1.TeamID teamID, WelcomeMessageDisplay message);
+
+  @notify("")
+  @lint("ignore")
+  void ChatParticipantsInfo(map<ConvIDStr, array<UIParticipant>> participants);
 }

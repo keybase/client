@@ -29,6 +29,7 @@ func newCmdChatRenameChannel(cl *libcmdline.CommandLine, g *libkb.GlobalContext)
 		ArgumentHelp: "<team name> <old channel name> <new channel name>",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(NewCmdChatRenameChannelRunner(g), "rename-channel", c)
+			cl.SetLogForward(libcmdline.LogForwardNone)
 		},
 		Flags: mustGetChatFlags("topic-type"),
 	}

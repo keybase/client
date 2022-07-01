@@ -10,7 +10,7 @@ type TestGenericKey struct {
 	GenericKey
 }
 
-func (k *TestGenericKey) SignToString(msg []byte) (sig string, id keybase1.SigID, err error) {
+func (k *TestGenericKey) SignToString(msg []byte) (sig string, id keybase1.SigIDBase, err error) {
 	sig = "TestSignature"
 	return
 }

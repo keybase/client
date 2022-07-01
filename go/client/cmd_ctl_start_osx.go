@@ -1,12 +1,14 @@
 // Copyright 2015 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
 
+//go:build darwin
 // +build darwin
 
 package client
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/install"
@@ -47,6 +49,25 @@ func newCmdCtlStart(g *libkb.GlobalContext) *cmdCtlStart {
 	return &cmdCtlStart{
 		Contextified: libkb.NewContextified(g),
 	}
+}
+
+// ctlParseArgv returns map with include/exclude components
+func ctlParseArgv(ctx *cli.Context) map[string]bool {
+	components := defaultCtlComponents(true)
+	if ctx.String("exclude") != "" {
+		excluded := strings.Split(ctx.String("exclude"), ",")
+		for _, exclude := range excluded {
+			components[exclude] = false
+		}
+	}
+	if ctx.String("include") != "" {
+		included := strings.Split(ctx.String("include"), ",")
+		components = defaultCtlComponents(false)
+		for _, include := range included {
+			components[include] = true
+		}
+	}
+	return components
 }
 
 func (s *cmdCtlStart) ParseArgv(ctx *cli.Context) error {

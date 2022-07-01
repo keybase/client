@@ -1,0 +1,281 @@
+{
+  "protocol": "kvstore",
+  "imports": [
+    {
+      "path": "common.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [
+    {
+      "type": "record",
+      "name": "KVGetResult",
+      "fields": [
+        {
+          "type": "string",
+          "name": "teamName"
+        },
+        {
+          "type": "string",
+          "name": "namespace"
+        },
+        {
+          "type": "string",
+          "name": "entryKey"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "entryValue",
+          "nullSerializable": true
+        },
+        {
+          "type": "int",
+          "name": "revision"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "KVPutResult",
+      "fields": [
+        {
+          "type": "string",
+          "name": "teamName"
+        },
+        {
+          "type": "string",
+          "name": "namespace"
+        },
+        {
+          "type": "string",
+          "name": "entryKey"
+        },
+        {
+          "type": "int",
+          "name": "revision"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "KVEntryID",
+      "fields": [
+        {
+          "type": "TeamID",
+          "name": "teamID"
+        },
+        {
+          "type": "string",
+          "name": "namespace"
+        },
+        {
+          "type": "string",
+          "name": "entryKey"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "EncryptedKVEntry",
+      "fields": [
+        {
+          "type": "int",
+          "name": "v"
+        },
+        {
+          "type": "bytes",
+          "name": "e"
+        },
+        {
+          "type": "bytes",
+          "name": "n"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "KVListNamespaceResult",
+      "fields": [
+        {
+          "type": "string",
+          "name": "teamName"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "namespaces"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "KVListEntryKey",
+      "fields": [
+        {
+          "type": "string",
+          "name": "entryKey"
+        },
+        {
+          "type": "int",
+          "name": "revision"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "KVListEntryResult",
+      "fields": [
+        {
+          "type": "string",
+          "name": "teamName"
+        },
+        {
+          "type": "string",
+          "name": "namespace"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "KVListEntryKey"
+          },
+          "name": "entryKeys"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "KVDeleteEntryResult",
+      "fields": [
+        {
+          "type": "string",
+          "name": "teamName"
+        },
+        {
+          "type": "string",
+          "name": "namespace"
+        },
+        {
+          "type": "string",
+          "name": "entryKey"
+        },
+        {
+          "type": "int",
+          "name": "revision"
+        }
+      ]
+    }
+  ],
+  "messages": {
+    "getKVEntry": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "teamName",
+          "type": "string"
+        },
+        {
+          "name": "namespace",
+          "type": "string"
+        },
+        {
+          "name": "entryKey",
+          "type": "string"
+        }
+      ],
+      "response": "KVGetResult"
+    },
+    "putKVEntry": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "teamName",
+          "type": "string"
+        },
+        {
+          "name": "namespace",
+          "type": "string"
+        },
+        {
+          "name": "entryKey",
+          "type": "string"
+        },
+        {
+          "name": "revision",
+          "type": "int"
+        },
+        {
+          "name": "entryValue",
+          "type": "string"
+        }
+      ],
+      "response": "KVPutResult"
+    },
+    "listKVNamespaces": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "teamName",
+          "type": "string"
+        }
+      ],
+      "response": "KVListNamespaceResult"
+    },
+    "listKVEntries": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "teamName",
+          "type": "string"
+        },
+        {
+          "name": "namespace",
+          "type": "string"
+        }
+      ],
+      "response": "KVListEntryResult"
+    },
+    "delKVEntry": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "teamName",
+          "type": "string"
+        },
+        {
+          "name": "namespace",
+          "type": "string"
+        },
+        {
+          "name": "entryKey",
+          "type": "string"
+        },
+        {
+          "name": "revision",
+          "type": "int"
+        }
+      ],
+      "response": "KVDeleteEntryResult"
+    }
+  },
+  "namespace": "keybase.1"
+}

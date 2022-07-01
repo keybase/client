@@ -8,6 +8,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"runtime"
 	"runtime/pprof"
 	"runtime/trace"
 	"time"
@@ -145,6 +146,16 @@ func (cpuProfiler) Stop() {
 func (c *PprofHandler) ProcessorProfile(_ context.Context, arg keybase1.ProcessorProfileArg) (err error) {
 	logui := c.getLogUI(arg.SessionID)
 	return doTimedProfile(logui, c.G().Log, cpuProfiler{}, arg.ProfileFile, arg.ProfileDurationSeconds)
+}
+
+func (c *PprofHandler) HeapProfile(ctx context.Context, arg keybase1.HeapProfileArg) (err error) {
+	runtime.GC()
+	f, err := os.Create(arg.ProfileFile)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	return pprof.WriteHeapProfile(f)
 }
 
 func (c *PprofHandler) logDir(logDirForMobile string) string {

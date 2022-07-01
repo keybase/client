@@ -73,7 +73,7 @@ func (t *Table) breakOnLineBreaks() error {
 					notEmpty = true
 					for iItem := range content.Items {
 						// we are replacing line breaks with spaces for MultiCell for now
-						content.Items[iItem] = strings.Replace(content.Items[iItem], "\n", " ", -1)
+						content.Items[iItem] = strings.ReplaceAll(content.Items[iItem], "\n", " ")
 					}
 					newRow = append(newRow, Cell{
 						Alignment: row[iCell].Alignment,
@@ -121,6 +121,9 @@ func (t Table) renderFirstPass(cellSep string, maxWidth int, constraints []Colum
 		if c <= 0 {
 			numOfNoConstraints++
 		}
+	}
+	if numOfNoConstraints == 0 {
+		numOfNoConstraints = 1
 	}
 
 	// first pass; determine smallest width for each column under constraints

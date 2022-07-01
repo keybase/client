@@ -55,7 +55,8 @@ func (c *cmdWalletSetCurrency) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
-func (c *cmdWalletSetCurrency) Run() error {
+func (c *cmdWalletSetCurrency) Run() (err error) {
+	defer transformStellarCLIError(&err)
 	cli, err := GetWalletClient(c.G())
 	if err != nil {
 		return err

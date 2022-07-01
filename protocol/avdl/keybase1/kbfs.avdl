@@ -49,6 +49,30 @@ protocol kbfs {
   @lint("ignore")
   void FSSyncEvent(FSPathSyncStatus event);
 
+  /**
+    FSOverallSyncEvent is called by KBFS when the overall sync status
+    changes.
+        */
+  @lint("ignore")
+  void FSOverallSyncEvent(FolderSyncStatus status);
+
+  /**
+    FSOnlineStatusChangedEvent is called by KBFS when the online status changes.
+        */
+  @lint("ignore")
+  void FSOnlineStatusChangedEvent(boolean online);
+
+  /**
+    FSFavoritesChangedEvent is called by KBFS when the favorites list changes.
+        */
+  @lint("ignore")
+  void FSFavoritesChangedEvent();
+
+  @lint("ignore")
+  void FSSubscriptionNotifyPathEvent(string clientID, array<string> subscriptionIDs, string path, array<PathSubscriptionTopic> topics);
+
+  @lint("ignore")
+  void FSSubscriptionNotifyEvent(string clientID, array<string> subscriptionIDs, SubscriptionTopic topic);
 
   /**
     createTLF is called by KBFS to associate the tlfID with the given teamID,
@@ -63,11 +87,21 @@ protocol kbfs {
   /**
     getKBFSTeamSettings gets the settings written for the team in the team's sigchain.
   */
-  KBFSTeamSettings getKBFSTeamSettings(TeamID teamID);
+  KBFSTeamSettings getKBFSTeamSettings(TeamID teamID, OfflineAvailability oa);
 
   /**
     upgradeTLF upgrades a TLF to use implicit team keys
   */
   void upgradeTLF(string tlfName, boolean public);
+
+  /**
+    Encrypt cached favorites to store on disk.
+  */
+  bytes encryptFavorites(bytes dataToEncrypt);
+
+  /**
+    Decrypt cached favorites stored on disk.
+  */
+  bytes decryptFavorites(bytes dataToEncrypt);
 
 }

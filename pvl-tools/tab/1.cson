@@ -45,80 +45,72 @@ services:
       , error: ["BAD_API_URL", "Bad hint from server; URL should start with 'https://m.facebook.com/%{username_service}/posts/', got '%{hint_url}'"] } },
 
     # Check that the claimed username matches the url.
-    # Checking for the correct username is essential here. We rely on this
-    # check to prove that the user in question actually wrote the post. (Note
-    # that the m-site does *not* enforce this part of the URL. Only the
-    # desktop site does.)
+    # BUT this check is not sufficient: The mobile site does not care what username is passed to it.
+    # It will return posts made by a user different from that in the url.
     { assert_compare: {
       , cmp: "stripdots-then-cicmp"
       , a: "username_from_url"
       , b: "username_service"
       , error: ["BAD_API_URL", "Bad hint from server; username in URL should match '%{username_service}', received '%{username_from_url}'"] } },
 
-    # Create the desktop url using the validated username and (not validated) post id.
+    # Create the mobile url using the validated username and (not validated) post id.
     { fill: {
-      , with: "https://www.facebook.com/%{username_from_url}/posts/%{post_id}"
+      , with: "https://m.facebook.com/%{username_from_url}/posts/%{post_id}"
       , into: "our_url" } },
     { fetch: {
       , kind: "html"
       , from: "our_url" } },
 
-    # Get the contents of the first (only) comment inside the first <code>
-    # block. Believe it or not, this comment contains the post markup below.
     { selector_css: {
-      , selectors: ["code", 0, {contents: true}, 0]
-      , into: "first_code_comment"
-      , data: true
-      , error: ["FAILED_PARSE", "Could not find proof markup comment in Facebook's response"] } },
-
-    # Facebook escapes "--" as "-\-\" and "\" as "\\" when inserting text into
-    # comments. Unescape these.
-    { replace_all: {
-      , old: "-\\-\\"
-      , new: "--"
-      , from: "first_code_comment"
-      , into: "fcc2" } },
-    { replace_all: {
-      , old: "\\\\"
-      , new: "\\"
-      , from: "fcc2"
-      , into: "fcc3" } },
-
-    # Load the de-escaped comment as html
-    { parse_html: {
-      , from: "fcc3"
-      , error: ["FAILED_PARSE", "Failed to parse proof markup comment in Facebook post: %{fcc3}"] } },
-
-    # This query operates on the newly extractaparsed comment, not the original page load
-    # This is the selector for the post attachment links, which contains the
-    # proof text. It's the second <a> tag inside the div that's the immediate
-    # *sibling* of the 'userContet' div. That <a> tags contains the proof text.
-    { selector_css: {
-      , selectors: ["div.userContent+div a", 1]
-      , into: "link_text"
-      , error: ["FAILED_PARSE", "Could not find link text in Facebook's response"] } },
+      , selectors: ["#m_story_permalink_view", 0, "h3", 1]
+      , into: "post_text"
+      , error: ["FAILED_PARSE", "Could not find post text in Facebook's response"] } },
     { whitespace_normalize: {
-      , from: "link_text"
-      , into: "link_text_nw" } },
+      , from: "post_text"
+      , into: "post_text_nw" } },
 
-    # Check the link text for username and sig
+    # Check the post text for username and sig
     { regex_capture: {
       , pattern: "^Verifying myself: I am (\\S+) on Keybase.io. (\\S+)$"
-      , from: "link_text_nw"
-      , into: ["username_from_link", "sig_from_link"]
+      , from: "post_text_nw"
+      , into: ["username_from_post", "sig_from_post"]
       , error: ["TEXT_NOT_FOUND", "Could not find Verifying myself: I am %{username_keybase} on Keybase.io. (%{sig_id_medium})"] } },
-    # Check username in link text
+    # Check username in post text
     { assert_compare: {
       , cmp: "cicmp"
-      , a: "username_from_link"
+      , a: "username_from_post"
       , b: "username_keybase"
-      , error: ["BAD_USERNAME", "Wrong keybase username in post '%{username_from_link}' should be '%{username_keybase}'"] } },
-    # Check the sig id in the link text
+      , error: ["BAD_USERNAME", "Wrong keybase username in post '%{username_from_post}' should be '%{username_keybase}'"] } },
+    # Check the sig id in the post text
     { assert_compare: {
       , cmp: "exact"
       , a: "sig_id_medium"
-      , b: "sig_from_link"
-      , error: ["BAD_SIGNATURE", "Could not find sig; '%{sig_from_link}' != '%{sig_id_medium}'"] } },
+      , b: "sig_from_post"
+      , error: ["BAD_SIGNATURE", "Could not find sig; '%{sig_from_post}' != '%{sig_id_medium}'"] } },
+
+
+    # Check the username in the href of the "Join" button under "Foo Barzum is on Facebook. To connect with Foo, join Facebook today."
+    # Checking for the correct username is essential here. We rely on this
+    # check to prove that the user in question actually wrote the post. (Note
+    # that the m-site does *not* enforce this part of the URL. Only the
+    # desktop site does.)
+    { selector_css: {
+      , selectors: ["#mobile_login_bar", 0, "a", 0]
+      , attr: "href"
+      , into: "join_href"
+      , error: ["CONTENT_FAILURE", "Could not find 'Join' link"] } },
+    # The href once looked like this for the facebook username "mike.maxim":
+    # /r.php?next=https%3A%2F%2Fm.facebook.com%2Fmike.maxim%2Fposts%2F10154017925505382&cid=104&rs=10&rid=654595381
+    { regex_capture: {
+      , pattern: "^/r\\.php\\?next=https.*facebook.com%2F([^/]*)%2Fposts.*$"
+      , from: "join_href"
+      , into: ["username_from_join_href"]
+      , error: ["FAILED_PARSE", "Could not interpret 'Join' link"] } },
+    { assert_compare: {
+      , cmp: "stripdots-then-cicmp"
+      , a: "username_from_join_href"
+      , b: "username_service"
+      , error: ["CONTENT_FAILURE", "Bad hint from server; username in URL should match '%{username_service}', received '%{username_from_url}'"] } },
   ]]
   github: [[
     # validate url and extract username
@@ -282,61 +274,61 @@ services:
       , from: "post" } },
   ]]
   twitter: [[
-    # Twitter verification is a HTML fetch and two checks.
-    # One that the correct user posted the tweet according to data-screen-name.
+    # Twitter verification is a json fetch and two checks.
+    # One that the correct user posted the tweet according to author_url.
     # And another that the proof hash is in the tweet text.
 
     # validate url and extract username
     { regex_capture: {
-      , pattern: "^https://twitter\\.com/([^/]+)/(.*)$"
+      , pattern: "^https://twitter\\.com/([^/]+)/status/(\\d+)(.*)$"
       , from: "hint_url"
-      , into: ["username_from_url", "remainder"]
+      , into: ["username_from_url", "tweet_id", "remainder"]
       , error: ["BAD_API_URL", "Bad hint from server; URL should start with 'https://twitter.com/%{username_service}/'"] } },
     { assert_compare: {
       , cmp: "cicmp"
       , a: "username_from_url"
       , b: "username_service"
       , error: ["BAD_API_URL", "Bad hint from server; URL should contain username matching %{username_service}; got %{username_from_url}"] } },
-    # Create the mobile site url
+    # Create the 'oembed' url to fetch from
     { fill: {
-      , with: "https://mobile.twitter.com/%{username_from_url}/%{remainder}"
+      , with: "https://api.twitter.com/1/statuses/oembed.json?id=%{tweet_id}"
       , into: "our_url" } },
     # url validation passed
     { fetch: {
       , from: "our_url"
-      , kind: "html" } },
+      , kind: "json" } },
 
     # Check the author.
-    { selector_css: {
-      , selectors: [".main-tweet-container .main-tweet", 0, ".user-info-username", 0 ]
-      , into: "tweet_poster_1" # has a @ and extra newlines
-      , error: ["FAILED_PARSE", "Couldn't find a div .user-info-username"] } },
-    { whitespace_normalize: {
-      , from: "tweet_poster_1"
-      , into: "tweet_poster_2" } },
-    # Strip the '@' off the username
+    # Use author_url. Don't use author_name because that is sometimes a full name like 'Max Krohn'
+    { selector_json: {
+      , selectors: ["author_url"]
+      , into: "author_url"
+      , error: ["CONTENT_MISSING", "Could not find 'author_url' in json"] } },
     { regex_capture: {
-      , pattern: "^@?(.*)$"
-      , from: "tweet_poster_2"
-      , into: ["tweet_poster_3"]
-      , error: ["FAILED_PARSE", "Could not process username '%{tweet_poster_2}'"] } },
+      , pattern: "^https://twitter\\.com/(.+)$"
+      , from: "author_url"
+      , into: ["author_username"]
+      , error: ["CONTENT_MISSING", "Could not capture username from author_url"] } },
     # Check the username in the tweet. Case insensitive.
     { assert_compare: {
       , cmp: "cicmp"
-      , a: "tweet_poster_3"
+      , a: "author_username"
       , b: "username_service"
-      , error: ["BAD_USERNAME", "Bad post authored: wanted '%{username_service}' but got '%{tweet_poster_2}'"] } },
+      , error: ["BAD_USERNAME", "Bad post authored: wanted '%{username_service}' but got '%{author_username}'"] } },
 
-    { selector_css: {
-      , selectors: [".main-tweet-container .main-tweet", 0, ".tweet-content .tweet-text", 0 ]
+    { selector_json: {
+      , selectors: ["html"]
       , into: "tweet_contents"
-      , error: ["CONTENT_MISSING", "Missing <div class='tweet-text'> container for tweet"] } },
+      , error: ["CONTENT_MISSING", "Missing 'tweet_html' in json"] } },
     { whitespace_normalize: {
       , from: "tweet_contents"
       , into: "tweet_contents_nw" } },
-    # Strip mentions off the front. Get username and sig.
+    # Get username and sig from tweet.
+    # We would like to assert that "keybase" or "keybase.io" appears in the contents, but cannot.
+    # Because for some tweets twitter returns t.co-ified links with no "keybase.io" label:
+    #   "Verifying myself: I am xinyuzhao on <a href=\"https://t.co/5kAXqNmZtI\">https://t.co/5kAXqNmZtI</a>. n2odH86L6_FXLRk4ed6_HvYkhR7BGH-qGBQ_ /"
     { regex_capture: {
-      , pattern: "^ *(?:@[a-zA-Z0-9_-]+\\s*)* *Verifying myself: I am ([A-Za-z0-9_]+) on (?:https?://)?Keybase\\.io[\\s\\p{Zs}]*\\. (\\S+) */.*$"
+      , pattern: "^.*Verifying myself: I am ([A-Za-z0-9_]+) on (?:(?:https?://)?Keybase\\.io|<a href=\"https://t\\.co/[A-Za-z0-9_-]+\">https://t\\.co/[A-Za-z0-9_-]+</a>)[\\s\\p{Zs}]*\\. (\\S+) */.*$"
       , from: "tweet_contents_nw"
       , into: ["username_from_tweet_contents", "sig_from_tweet_contents"]
       , error: ["DELETED", "Could not find 'Verifying myself: I am %{username_keybase} on Keybase.io. %{sig_id_short}'"] } },

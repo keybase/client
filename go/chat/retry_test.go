@@ -2,24 +2,33 @@ package chat
 
 import (
 	"fmt"
+	"sort"
 	"testing"
 	"time"
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
+	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 )
 
 type errorClient struct{}
 
-func (e errorClient) Call(ctx context.Context, method string, arg interface{}, res interface{}) error {
+func (e errorClient) Call(ctx context.Context, method string, arg interface{},
+	res interface{}, timeout time.Duration) error {
 	return fmt.Errorf("errorClient: Call %s", method)
 }
 
-func (e errorClient) Notify(ctx context.Context, method string, arg interface{}) error {
+func (e errorClient) CallCompressed(ctx context.Context, method string, arg interface{},
+	res interface{}, ctype rpc.CompressionType, timeout time.Duration) error {
+	return fmt.Errorf("errorClient: Call %s", method)
+}
+
+func (e errorClient) Notify(ctx context.Context, method string, arg interface{}, timeout time.Duration) error {
 	return fmt.Errorf("errorClient: Notify %s", method)
 }
 
@@ -38,27 +47,40 @@ func TestFetchRetry(t *testing.T) {
 
 	var convIDs []chat1.ConversationID
 	var convs []chat1.Conversation
-	convs = append(convs, newConv(ctx, t, tc, uid, ri, sender, u.Username+","+u1.Username))
-	convs = append(convs, newConv(ctx, t, tc, uid, ri, sender, u.Username+","+u2.Username))
-	convs = append(convs, newConv(ctx, t, tc, uid, ri, sender, u.Username+","+u2.Username+","+u1.Username))
+	_, conv := newConv(ctx, t, tc, uid, ri, sender, u.Username+","+u1.Username)
+	convs = append(convs, conv)
+	_, conv = newConv(ctx, t, tc, uid, ri, sender, u.Username+","+u2.Username)
+	convs = append(convs, conv)
+	_, conv = newConv(ctx, t, tc, uid, ri, sender, u.Username+","+u2.Username+","+u1.Username)
+	convs = append(convs, conv)
+	sort.Slice(convs, func(i, j int) bool {
+		return convs[i].GetConvID().Less(convs[j].GetConvID())
+	})
 	for _, conv := range convs {
 		convIDs = append(convIDs, conv.GetConvID())
 	}
 
 	// Nuke body cache
+	t.Logf("clearing: %s", convs[0].GetConvID())
 	require.NoError(t, store.ClearAll(context.TODO(), convs[0].GetConvID(), uid))
 
 	errorRI := func() chat1.RemoteInterface { return chat1.RemoteClient{Cli: errorClient{}} }
 	tc.ChatG.ConvSource.SetRemoteInterface(errorRI)
 
-	inbox, err := tc.ChatG.InboxSource.Read(ctx, uid, nil, true, &chat1.GetInboxLocalQuery{
-		ConvIDs: convIDs,
-	}, nil)
+	inbox, _, err := tc.ChatG.InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking,
+		types.InboxSourceDataSourceAll, nil,
+		&chat1.GetInboxLocalQuery{
+			ConvIDs: convIDs,
+		})
 	require.NoError(t, err)
-	require.NotNil(t, inbox.Convs[2].Error)
-	require.Nil(t, inbox.Convs[0].Error)
+	sort.Slice(inbox.Convs, func(i, j int) bool {
+		return inbox.Convs[i].GetConvID().Less(inbox.Convs[j].GetConvID())
+	})
+	require.NotNil(t, inbox.Convs[0].Error)
+	require.Nil(t, inbox.Convs[1].Error)
+	require.Nil(t, inbox.Convs[2].Error)
 	tc.ChatG.FetchRetrier.Failure(ctx, uid,
-		NewConversationRetry(tc.Context(), inbox.Convs[2].GetConvID(), nil, ThreadLoad))
+		NewConversationRetry(tc.Context(), inbox.Convs[0].GetConvID(), nil, ThreadLoad))
 
 	// Advance clock and check for errors on all conversations
 	t.Logf("advancing clock and checking for stale")
@@ -80,7 +102,7 @@ func TestFetchRetry(t *testing.T) {
 
 	t.Logf("trying to use Force")
 	tc.ChatG.FetchRetrier.Failure(ctx, uid,
-		NewConversationRetry(tc.Context(), inbox.Convs[2].GetConvID(), nil, ThreadLoad))
+		NewConversationRetry(tc.Context(), inbox.Convs[0].GetConvID(), nil, ThreadLoad))
 	tc.ChatG.FetchRetrier.Force(ctx)
 	select {
 	case cids := <-list.threadsStale:
@@ -94,7 +116,7 @@ func TestFetchRetry(t *testing.T) {
 	tc.Context().FetchRetrier.Failure(ctx, uid,
 		NewFullInboxRetry(tc.Context(), &chat1.GetInboxLocalQuery{
 			TopicType: &ttype,
-		}, &chat1.Pagination{Num: 10}))
+		}))
 	tc.Context().FetchRetrier.Force(ctx)
 	select {
 	case <-list.inboxStale:

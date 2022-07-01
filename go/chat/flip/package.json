@@ -1,0 +1,22 @@
+{
+  "name": "go-flip",
+  "version": "1.0.0",
+  "description": "Code in Go for MPC of a coin flip",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/keybase/go-flip.git"
+  },
+  "author": "Keybase, Inc.",
+  "license": "BSD-3-Clause",
+  "bugs": {
+    "url": "https://github.com/keybase/go-flip/issues"
+  },
+  "homepage": "https://github.com/keybase/go-flip#readme",
+  "dependencies": {
+    "avdl-compiler": "^1.3.29"
+  }
+}

@@ -8,6 +8,7 @@ import (
 	"fmt"
 
 	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
 type PaperProvisionEngine struct {
@@ -51,10 +52,13 @@ func (e *PaperProvisionEngine) RequiredUIs() []libkb.UIKind {
 }
 
 func (e *PaperProvisionEngine) Run(m libkb.MetaContext) (err error) {
-	defer m.CTrace("PaperProvisionEngine#Run", func() error { return err })()
+	defer m.Trace("PaperProvisionEngine#Run", &err)()
 
-	// clear out any existing session:
-	e.G().Logout()
+	// clear out any existing session
+	err = m.LogoutKeepSecrets()
+	if err != nil {
+		m.Debug("error on logout: %+v", err)
+	}
 
 	m = m.WithNewProvisionalLoginContext()
 
@@ -120,7 +124,7 @@ func (e *PaperProvisionEngine) Run(m libkb.MetaContext) (err error) {
 		return err
 	}
 
-	e.sendNotification()
+	e.sendNotification(m)
 	return nil
 
 }
@@ -137,7 +141,9 @@ func (e *PaperProvisionEngine) paper(m libkb.MetaContext, keys *libkb.DeviceWith
 	// a cached copy around for DeviceKeyGen, which requires it to be in memory.
 	// It also will establish a NIST so that API calls can proceed on behalf of the user.
 	m = m.WithProvisioningKeyActiveDevice(keys, uv)
-	m.LoginContext().SetUsernameUserVersion(nn, uv)
+	if err := m.LoginContext().SetUsernameUserVersion(nn, uv); err != nil {
+		return err
+	}
 
 	// need lksec to store device keys locally
 	if err := e.fetchLKS(m, keys.EncryptionKey()); err != nil {
@@ -155,8 +161,8 @@ func (e *PaperProvisionEngine) paper(m libkb.MetaContext, keys *libkb.DeviceWith
 	return nil
 }
 
-func (e *PaperProvisionEngine) sendNotification() {
-	e.G().NotifyRouter.HandleLogin(string(e.G().Env.GetUsername()))
+func (e *PaperProvisionEngine) sendNotification(m libkb.MetaContext) {
+	e.G().NotifyRouter.HandleLogin(m.Ctx(), string(e.G().Env.GetUsername()))
 }
 
 func (e *PaperProvisionEngine) SubConsumers() []libkb.UIConsumer {
@@ -206,7 +212,7 @@ func (e *PaperProvisionEngine) makeDeviceWrapArgs(m libkb.MetaContext) (*DeviceW
 	return &DeviceWrapArgs{
 		Me:             e.User,
 		DeviceName:     e.DeviceName,
-		DeviceType:     "desktop",
+		DeviceType:     keybase1.DeviceTypeV2_DESKTOP,
 		Lks:            e.lks,
 		PerUserKeyring: e.perUserKeyring,
 	}, nil

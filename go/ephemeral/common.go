@@ -8,38 +8,6 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-type EKType string
-
-const (
-	DeviceEKStr EKType = "deviceEK"
-	UserEKStr   EKType = "userEK"
-	TeamEKStr   EKType = "teamEK"
-)
-
-type EphemeralKeyError struct {
-	Msg string
-}
-
-func newEKUnboxErr(boxType EKType, boxGeneration keybase1.EkGeneration, missingType EKType, missingGeneration keybase1.EkGeneration) EphemeralKeyError {
-	msg := fmt.Sprintf("Error unboxing %s@generation:%v missing %s@generation:%v", boxType, boxGeneration, missingType, missingGeneration)
-	return newEphemeralKeyError(msg)
-}
-
-func newEKMissingBoxErr(boxType EKType, boxGeneration keybase1.EkGeneration) EphemeralKeyError {
-	msg := fmt.Sprintf("Missing box for %s@generation:%v", boxType, boxGeneration)
-	return newEphemeralKeyError(msg)
-}
-
-func newEphemeralKeyError(msg string) EphemeralKeyError {
-	return EphemeralKeyError{
-		Msg: msg,
-	}
-}
-
-func (e EphemeralKeyError) Error() string {
-	return e.Msg
-}
-
 func ctimeIsStale(ctime time.Time, currentMerkleRoot libkb.MerkleRoot) bool {
 	return keybase1.TimeFromSeconds(currentMerkleRoot.Ctime()).Time().Sub(ctime) >= libkb.MaxEphemeralKeyStaleness
 }

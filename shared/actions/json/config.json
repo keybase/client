@@ -1,14 +1,13 @@
 {
   "prelude": [
-    "import * as Types from '../constants/types/config'",
-    "import * as Tabs from '../constants/tabs'",
-    "import * as ChatTypes from '../constants/types/chat2'",
-    "import {RPCError} from '../util/errors'"
+    "import type * as Types from '../constants/types/config'",
+    "import type * as Tabs from '../constants/tabs'",
+    "import type * as ChatTypes from '../constants/types/chat2'",
+    "import type * as FsTypes from '../constants/types/fs'",
+    "import type HiddenString from '../util/hidden-string'",
+    "import type {RPCError} from '../util/errors'"
   ],
   "actions": {
-    "setupEngineListeners": {
-      "_description": "when sagas should start creating their incoming handlers / onConnect handlers"
-    },
     "startHandshake": {
       "_description": "internal to config. should start the handshake process"
     },
@@ -18,89 +17,182 @@
     "daemonHandshake": {
       "_description": "starting the connect process. Things that need to happen before we see the app should call daemonHandshakeWait",
       "firstTimeConnecting": "boolean",
-      "version": "number",
+      "version": "number"
     },
     "daemonHandshakeWait": {
       "_description": "subsystems that need to do things during boot need to call this to register that we should wait.",
       "name": "string",
       "version": "number",
       "increment": "boolean",
-      "failedReason?": "?string",
-      "failedFatal?": "true",
+      "failedReason?": "string",
+      "failedFatal?": "true"
     },
     "daemonHandshakeDone": {
       "_description": "ready to show the app"
     },
+    "filePickerError": {
+      "_description": "Sent whenever the mobile file picker encounters an error.",
+      "error": "Error"
+    },
     "logout": {
       "_description": "someone wants to log out"
     },
+    "logoutAndTryToLogInAs": {
+      "_description": [
+        "Log out the current user, keeping secrets stored.",
+        "Then prefill the username for provisioned another user to log in."
+      ],
+      "username": "string"
+    },
     "logoutHandshake": {
       "_description": "starting the logout process. Things that need to happen before we see the app should call logoutHandshakeWait",
-      "version": "number",
+      "version": "number"
     },
     "logoutHandshakeWait": {
       "_description": "subsystems that need to do things during logout need to call this to register that we should wait.",
       "name": "string",
       "version": "number",
-      "increment": "boolean",
+      "increment": "boolean"
     },
     "installerRan": {
       "_description": "desktop only: the installer ran and we can start up"
     },
-    "dumpLogs": { "reason": ["'quitting through menu'"] },
+    "dumpLogs": {"reason": ["'quitting through menu'"]},
     "openAppSettings": {
       "_description": "mobile only: open the settings page"
     },
-    "changedFocus": { "appFocused": "boolean" },
-    "changedActive": { "userActive": "boolean" },
-    "link": { "link": "string" },
-    "mobileAppState": { "nextAppState": ["'active'", "'background'", "'inactive'"] },
+    "changedFocus": {"appFocused": "boolean"},
+    "changedActive": {"userActive": "boolean"},
+    "mobileAppState": {"nextAppState": ["'active'", "'background'", "'inactive'"]},
     "showMain": {},
-    "loadAvatars": { "usernames": "Array<string>" },
-    "loadedAvatars": { "avatars": "I.Map<string, I.Map<number, string>>" },
-    "loadTeamAvatars": { "teamnames": "Array<string>" },
     "bootstrapStatusLoaded": {
       "deviceID": "string",
       "deviceName": "string",
-      "followers": "Array<string>",
-      "following": "Array<string>",
+      "fullname": "string",
       "loggedIn": "boolean",
       "registered": "boolean",
       "uid": "string",
-      "username": "string"
-    },
-    "daemonError": { "daemonError": "?Error" },
-    "setAccounts": {
-      "defaultUsername": "string",
-      "usernames": "Array<string>"
-    },
-    "globalError": { "globalError": "null | Error | RPCError" },
-    "updateFollowing": {
       "username": "string",
-      "isTracking": "boolean"
+      "userReacjis": "RPCTypes.UserReacjis"
     },
-    "pushLoaded": { "pushLoaded": "boolean" },
+    "followerInfoUpdated": {
+      "uid": "string",
+      "followers": "Array<string>",
+      "followees": "Array<string>"
+    },
+    "daemonError": {"daemonError?": "Error"},
+    "setAccounts": {"configuredAccounts": "Array<RPCTypes.ConfiguredAccount>"},
+    "setDefaultUsername": {"username": "string"},
+    "globalError": {"globalError?": "Error | RPCError"},
+    "pushLoaded": {"pushLoaded": "boolean"},
     "setStartupDetails": {
       "startupWasFromPush": "boolean",
-      "startupConversation": "?ChatTypes.ConversationIDKey",
+      "startupConversation?": "ChatTypes.ConversationIDKey",
       "startupLink": "string",
-      "startupTab": "?Tabs.Tab",
+      "startupTab?": "Tabs.Tab",
       "startupFollowUser": "string",
+      "startupSharePath?": "FsTypes.LocalPath",
+      "startupShareText?": "string",
+      "startupPushPayload?": "string"
     },
-    "setOpenAtLogin": {
-      "open": "boolean",
-      "writeFile": "boolean"
+    "setStartupFile": {
+      "_description": "Stores the startup file path when launching Keybase from a cold start beofre log in",
+      "startupFile": "HiddenString"
     },
-    "setNotifySound": {
-      "sound": "boolean",
-      "writeFile": "boolean"
-    },
-    "debugDump": { "items": "Array<string>" },
-    "setDeletedSelf": { "deletedUsername": "string" },
+    "setOpenAtLogin": {"openAtLogin": "boolean"},
+    "setNotifySound": {"notifySound": "boolean"},
+    "setDeletedSelf": {"deletedUsername": "string"},
+    "persistRoute": {"path?": "Array<any>"},
+    "setNavigator": {"navigator": "any"},
     "loggedOut": {},
-    "loggedIn": { "causedByStartup": "boolean" },
-    "updateMenubarWindowID": { "id": "number" },
+    "loggedIn": {
+      "_description": [
+        "Used internally to know we were logged in.",
+        "If you want to react to being logged in likely you want bootstrapStatusLoaded"
+      ],
+      "causedBySignup": "boolean",
+      "causedByStartup": "boolean"
+    },
+    "setUserSwitching": {
+      "userSwitching": "boolean"
+    },
+    "updateMenubarWindowID": {"id": "number"},
     "copyToClipboard": {"text": "string"},
-    "_avatarQueue": {},
+    "checkForUpdate": {},
+    "updateInfo": {"isOutOfDate": "boolean", "critical": "boolean", "message?": "string"},
+    "updateNow": {},
+    "openAppStore": {
+      "_description": "Open a link to the app store"
+    },
+    "updateCriticalCheckStatus": {
+      "_description": "Save critical check status",
+      "status": "'critical' | 'suggested' | 'ok'",
+      "message": "string"
+    },
+    "osNetworkStatusChanged": {
+      "online": "boolean",
+      "type": "Types.ConnectionType",
+      "isInit?": "boolean"
+    },
+    "setDarkModePreference": {
+      "preference": ["'system'", "'alwaysDark'", "'alwaysLight'"]
+    },
+    "setSystemDarkMode": {"dark": "boolean"},
+    "updateHTTPSrvInfo": {
+      "address": "string",
+      "token": "string"
+    },
+    "remoteWindowWantsProps": {
+      "_description": "remote electron window wants props sent",
+      "component": "string",
+      "param": "string"
+    },
+    "updateWindowShown": {
+      "_description": "a window was shown",
+      "component": "string"
+    },
+    "updateWindowMaxState": {
+      "_description": "main electron window changed max/min",
+      "max": "boolean"
+    },
+    "updateWindowState": {
+      "_description": "main electron window wants to store its state",
+      "windowState": "Types.WindowState"
+    },
+    "setUseNativeFrame": {
+      "useNativeFrame": "boolean"
+    },
+    "setWhatsNewLastSeenVersion": {
+      "_description": [
+        "Set the latest version number that a user has seen from Gregor.",
+        "This is used to set the badged state of the 'What's New' radio icon"
+      ],
+      "lastSeenVersion": "string"
+    },
+    "toggleRuntimeStats": {},
+    "loadOnLoginStartup": {},
+    "loadedOnLoginStartup": {
+      "status": "boolean | null"
+    },
+    "loadOnStart": {
+      "_description": [
+        "This action is dispatched multiple times with various flags.",
+        "If you want to do something as a result of startup or login listen to this."
+      ],
+      "phase": "'initialStartupAsEarlyAsPossible' | 'connectedToDaemonForFirstTime' | 'reloggedIn' | 'startupOrReloginButNotInARush'"
+    },
+    "showShareActionSheet": {
+      "filePath?": "string",
+      "message?": "string",
+      "mimeType": "string"
+    },
+    "androidShare": {
+      "_description": "Intent fired with a share url",
+      "url?": "string",
+      "text?": "string"
+    },
+    "setIncomingShareUseOriginal": {
+      "useOriginal": "boolean"
+    }
   }
 }

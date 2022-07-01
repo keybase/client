@@ -1,0 +1,106 @@
+{
+  "protocol": "commands",
+  "imports": [
+    {
+      "path": "common.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [
+    {
+      "type": "record",
+      "name": "ConversationCommand",
+      "fields": [
+        {
+          "type": "string",
+          "name": "description"
+        },
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": "string",
+          "name": "usage"
+        },
+        {
+          "type": "boolean",
+          "name": "hasHelpText"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "username"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "ConversationCommandGroupsTyp",
+      "symbols": [
+        "BUILTIN_0",
+        "CUSTOM_1",
+        "NONE_2"
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "ConversationBuiltinCommandTyp",
+      "symbols": [
+        "NONE_0",
+        "ADHOC_1",
+        "SMALLTEAM_2",
+        "BIGTEAM_3",
+        "BIGTEAMGENERAL_4"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ConversationCommandGroupsCustom",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "ConversationCommand"
+          },
+          "name": "commands"
+        }
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "ConversationCommandGroups",
+      "switch": {
+        "type": "ConversationCommandGroupsTyp",
+        "name": "typ"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "BUILTIN",
+            "def": false
+          },
+          "body": "ConversationBuiltinCommandTyp"
+        },
+        {
+          "label": {
+            "name": "CUSTOM",
+            "def": false
+          },
+          "body": "ConversationCommandGroupsCustom"
+        },
+        {
+          "label": {
+            "name": "NONE",
+            "def": false
+          },
+          "body": null
+        }
+      ]
+    }
+  ],
+  "messages": {},
+  "namespace": "chat.1"
+}

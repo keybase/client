@@ -5,6 +5,7 @@ package client
 
 import (
 	"errors"
+	"path/filepath"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
@@ -20,14 +21,13 @@ type cmdUploadAvatar struct {
 	SkipChatNotification bool
 }
 
-func newCmdUploadAvatar(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
+func newCmdUploadAvatar(cl *libcmdline.CommandLine, g *libkb.GlobalContext, hidden bool) cli.Command {
 	cmd := &cmdUploadAvatar{
 		Contextified: libkb.NewContextified(g),
 	}
-	return cli.Command{
+	clicmd := cli.Command{
 		Name:         "upload-avatar",
 		ArgumentHelp: "[--team <teamname>] <filename>",
-		Usage:        "Upload avatar for user or team",
 		Description:  "Upload avatar for user or team",
 		Flags: []cli.Flag{
 			cli.StringFlag{
@@ -43,6 +43,11 @@ func newCmdUploadAvatar(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 			cl.ChooseCommand(cmd, "upload-avatar", c)
 		},
 	}
+	if !hidden {
+		clicmd.Usage = "Upload avatar for user or team"
+	}
+
+	return clicmd
 }
 
 func (c *cmdUploadAvatar) ParseArgv(ctx *cli.Context) error {
@@ -60,6 +65,11 @@ func (c *cmdUploadAvatar) ParseArgv(ctx *cli.Context) error {
 }
 
 func (c *cmdUploadAvatar) Run() error {
+	path, err := filepath.Abs(c.Filename)
+	if err != nil {
+		return err
+	}
+
 	if c.Team != "" {
 		cli, err := GetTeamsClient(c.G())
 		if err != nil {
@@ -68,7 +78,7 @@ func (c *cmdUploadAvatar) Run() error {
 
 		arg := keybase1.UploadTeamAvatarArg{
 			Teamname:             c.Team,
-			Filename:             c.Filename,
+			Filename:             path,
 			SendChatNotification: !c.SkipChatNotification,
 		}
 		return cli.UploadTeamAvatar(context.Background(), arg)
@@ -79,7 +89,7 @@ func (c *cmdUploadAvatar) Run() error {
 		return err
 	}
 	arg := keybase1.UploadUserAvatarArg{
-		Filename: c.Filename,
+		Filename: path,
 	}
 	return cli.UploadUserAvatar(context.Background(), arg)
 }

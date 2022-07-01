@@ -46,7 +46,7 @@ func sendSimple(ctx context.Context, t *testing.T, tc *kbtest.ChatTestContext, p
 			Body: "hi",
 		}),
 	}
-	_, boxed, err := sender.Send(ctx, convID, pt, 0, nil)
+	_, boxed, err := sender.Send(ctx, convID, pt, 0, nil, nil, nil)
 	require.NoError(t, err)
 
 	ibox := storage.NewInbox(tc.Context())
@@ -86,7 +86,10 @@ func TestPushOrdering(t *testing.T) {
 	uid := u.User.GetUID().ToBytes()
 	tc := world.Tcs[u.Username]
 	handler := NewPushHandler(tc.Context())
+	handler.Start(context.TODO(), nil)
+	defer func() { <-handler.Stop(context.TODO()) }()
 	handler.SetClock(world.Fc)
+	timeout := 2 * time.Second
 
 	conv := newBlankConv(ctx, t, tc, uid, ri, sender, u.Username)
 	sendSimple(ctx, t, tc, handler, sender, conv, u,
@@ -94,7 +97,7 @@ func TestPushOrdering(t *testing.T) {
 
 	select {
 	case <-list.incomingRemote:
-	case <-time.After(20 * time.Second):
+	case <-time.After(timeout):
 		require.Fail(t, "no notification received")
 	}
 
@@ -110,12 +113,12 @@ func TestPushOrdering(t *testing.T) {
 		func(vers chat1.InboxVers) chat1.InboxVers { return vers + 1 })
 	select {
 	case <-list.incomingRemote:
-	case <-time.After(20 * time.Second):
+	case <-time.After(timeout):
 		require.Fail(t, "no notification received")
 	}
 	select {
 	case <-list.incomingRemote:
-	case <-time.After(20 * time.Second):
+	case <-time.After(timeout):
 		require.Fail(t, "no notification received")
 	}
 	handler.orderer.Lock()
@@ -131,10 +134,16 @@ func TestPushOrdering(t *testing.T) {
 	}
 
 	t.Logf("advancing clock")
-	world.Fc.Advance(time.Hour)
+	world.Fc.Advance(time.Second)
 	select {
 	case <-list.incomingRemote:
-	case <-time.After(20 * time.Second):
+		require.Fail(t, "not notification expected")
+	default:
+	}
+	world.Fc.Advance(time.Second)
+	select {
+	case <-list.incomingRemote:
+	case <-time.After(timeout):
 		require.Fail(t, "no notification received")
 	}
 	handler.orderer.Lock()
@@ -151,10 +160,12 @@ func TestPushAppState(t *testing.T) {
 	uid := u.User.GetUID().ToBytes()
 	tc := world.Tcs[u.Username]
 	handler := NewPushHandler(tc.Context())
+	handler.Start(context.TODO(), nil)
+	defer func() { <-handler.Stop(context.TODO()) }()
 	handler.SetClock(world.Fc)
 	conv := newBlankConv(ctx, t, tc, uid, ri, sender, u.Username)
 
-	tc.G.AppState.Update(keybase1.AppState_BACKGROUND)
+	tc.G.MobileAppState.Update(keybase1.MobileAppState_BACKGROUND)
 	sendSimple(ctx, t, tc, handler, sender, conv, u,
 		func(vers chat1.InboxVers) chat1.InboxVers { return vers + 1 })
 	select {
@@ -162,7 +173,7 @@ func TestPushAppState(t *testing.T) {
 	case <-time.After(20 * time.Second):
 		require.Fail(t, "no message received")
 	}
-	tc.G.AppState.Update(keybase1.AppState_FOREGROUND)
+	tc.G.MobileAppState.Update(keybase1.MobileAppState_FOREGROUND)
 	sendSimple(ctx, t, tc, handler, sender, conv, u,
 		func(vers chat1.InboxVers) chat1.InboxVers { return vers + 1 })
 	select {
@@ -199,6 +210,8 @@ func TestPushTyping(t *testing.T) {
 	uid := u.User.GetUID().ToBytes()
 	tc := world.Tcs[u.Username]
 	handler := NewPushHandler(tc.Context())
+	handler.Start(context.TODO(), nil)
+	defer func() { <-handler.Stop(context.TODO()) }()
 	handler.SetClock(world.Fc)
 	handler.typingMonitor.SetClock(world.Fc)
 	handler.typingMonitor.SetTimeout(time.Minute)
@@ -229,13 +242,16 @@ func TestPushTyping(t *testing.T) {
 	}
 
 	t.Logf("test basic")
-	handler.Typing(context.TODO(), makeTypingNotification(t, uid, conv.GetConvID(), true))
+	err := handler.Typing(context.TODO(), makeTypingNotification(t, uid, conv.GetConvID(), true))
+	require.NoError(t, err)
 	confirmTyping(list)
-	handler.Typing(context.TODO(), makeTypingNotification(t, uid, conv.GetConvID(), false))
+	err = handler.Typing(context.TODO(), makeTypingNotification(t, uid, conv.GetConvID(), false))
+	require.NoError(t, err)
 	confirmNotTyping(list)
 
 	t.Logf("test expiration")
-	handler.Typing(context.TODO(), makeTypingNotification(t, uid, conv.GetConvID(), true))
+	err = handler.Typing(context.TODO(), makeTypingNotification(t, uid, conv.GetConvID(), true))
+	require.NoError(t, err)
 	confirmTyping(list)
 	world.Fc.Advance(time.Hour)
 	confirmNotTyping(list)
@@ -243,10 +259,12 @@ func TestPushTyping(t *testing.T) {
 	t.Logf("test extend")
 	extendCh := make(chan struct{})
 	handler.typingMonitor.extendCh = &extendCh
-	handler.Typing(context.TODO(), makeTypingNotification(t, uid, conv.GetConvID(), true))
+	err = handler.Typing(context.TODO(), makeTypingNotification(t, uid, conv.GetConvID(), true))
+	require.NoError(t, err)
 	confirmTyping(list)
 	world.Fc.Advance(30 * time.Second)
-	handler.Typing(context.TODO(), makeTypingNotification(t, uid, conv.GetConvID(), true))
+	err = handler.Typing(context.TODO(), makeTypingNotification(t, uid, conv.GetConvID(), true))
+	require.NoError(t, err)
 	select {
 	case <-list.typingUpdate:
 		require.Fail(t, "should have extended")

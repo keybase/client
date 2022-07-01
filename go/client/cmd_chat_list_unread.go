@@ -27,6 +27,7 @@ func newCmdChatListUnread(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cl
 		ArgumentHelp: "",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&cmdChatListUnread{Contextified: libkb.NewContextified(g)}, "list-unread", c)
+			cl.SetLogForward(libcmdline.LogForwardNone)
 		},
 		Flags: getInboxFetcherUnreadFirstFlags(),
 	}
@@ -40,12 +41,10 @@ func (c *cmdChatListUnread) Run() error {
 		return err
 	}
 
-	if len(conversations) == 0 {
-		ui.Printf("no conversations\n")
-		return nil
+	err = conversationListView(conversations).show(c.G(), string(c.G().Env.GetUsername()), c.showDeviceName)
+	if err != nil {
+		return err
 	}
-
-	conversationListView(conversations).show(c.G(), string(c.G().Env.GetUsername()), c.showDeviceName)
 	// TODO: print summary of inbox. e.g.
 	//		+44 older chats (--time=7d to see 25 more)
 

@@ -1,153 +1,187 @@
 // Copyright 2015 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
 
-// A module for syncing trackers from the server
 package libkb
 
 import (
+	"fmt"
 	"sync"
+	"time"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
+type FollowDirection int
+
 const (
-	TrackStatusNone     = 0
-	TrackStatusTracking = 1
+	FollowDirectionFollowing FollowDirection = 0
+	FollowDirectionFollowers FollowDirection = 1
 )
 
-type Tracker keybase1.Tracker
-
-func (t Tracker) GetUID() keybase1.UID { return keybase1.UID(t.Tracker) }
-
-func (t Tracker) Eq(t2 Tracker) bool {
-	return t.GetUID().Equal(t2.GetUID()) && t.Status == t2.Status && t.MTime == t2.MTime
+func directionToReverse(direction FollowDirection) (reverse bool) {
+	return direction == FollowDirectionFollowing
 }
 
-type Trackers struct {
-	Version  int       `json:"version"`
-	Trackers []Tracker `json:"trackers"`
-}
-
-type TrackerSyncer struct {
-	// Locks the whole object
-	sync.RWMutex
+type ServertrustTrackerSyncer struct {
+	sync.Mutex
 	Contextified
-
-	dirty bool
-
-	trackers *Trackers
+	res       *keybase1.UserSummarySet
+	direction FollowDirection
+	dirty     bool
+	callerUID keybase1.UID
 }
 
-// Remove duplicates and "untrack" statements in the list
-func (t Trackers) compact() (ret Trackers) {
-	index := make(map[keybase1.UID]int)
+const cacheTimeout = 10 * time.Minute
 
-	ret.Version = t.Version
-
-	for _, el := range t.Trackers {
-		if _, found := index[el.GetUID()]; !found {
-			index[el.GetUID()] = el.Status
-			if el.Status == TrackStatusTracking {
-				ret.Trackers = append(ret.Trackers, el)
-			}
-		}
+func (t *ServertrustTrackerSyncer) dbKey(u keybase1.UID) DbKey {
+	if t.direction == FollowDirectionFollowing {
+		return DbKeyUID(DBUnverifiedTrackersFollowing, u)
 	}
-	return ret
+	return DbKeyUID(DBUnverifiedTrackersFollowers, u)
 }
 
-func NewTrackerSyncer(uid keybase1.UID, g *GlobalContext) *TrackerSyncer {
-	return &TrackerSyncer{
-		Contextified: Contextified{g},
-		dirty:        false,
-	}
-}
-
-func (t *TrackerSyncer) Trackers() *Trackers {
-	return t.trackers
-}
-
-func (t *TrackerSyncer) dbKey(uid keybase1.UID) DbKey {
-	return DbKeyUID(DBTrackers, uid)
-}
-
-func (t *TrackerSyncer) loadFromStorage(m MetaContext, uid keybase1.UID) (err error) {
+func (t *ServertrustTrackerSyncer) loadFromStorage(m MetaContext, uid keybase1.UID, useExpiration bool) error {
+	var err error
 	var found bool
-	var tmp Trackers
+	var tmp keybase1.UserSummarySet
+	defer m.Trace(fmt.Sprintf("loadFromStorage(%s)", uid), &err)()
 	found, err = t.G().LocalDb.GetInto(&tmp, t.dbKey(uid))
-
-	m.CDebugf("| loadFromStorage -> found=%v, err=%s", found, ErrToOk(err))
-	if found {
-		m.CDebugf("| Loaded version %d", tmp.Version)
-		t.trackers = &tmp
-	} else if err == nil {
-		m.CDebugf("| Loaded empty record set")
+	if err != nil {
+		return err
 	}
-
-	return err
+	if !found {
+		m.Debug("| no cached copy found")
+		return nil
+	}
+	cachedAt := keybase1.FromTime(tmp.Time)
+	if useExpiration && time.Since(cachedAt) > cacheTimeout {
+		m.Debug("| expired; cached at %s", cachedAt)
+		return nil
+	}
+	m.Debug("| found a record, cached %s", cachedAt)
+	t.res = &tmp
+	return nil
 }
 
-func (t *TrackerSyncer) store(m MetaContext, uid keybase1.UID) (err error) {
-	if !t.dirty {
-		return
-	}
-
-	if err = t.G().LocalDb.PutObj(t.dbKey(uid), nil, t.trackers); err != nil {
-		return
-	}
-
-	t.dirty = false
-	return
-}
-
-func (t *TrackerSyncer) getLoadedVersion() int {
+func (t *ServertrustTrackerSyncer) getLoadedVersion() int {
 	ret := -1
-	if t.trackers != nil {
-		ret = t.trackers.Version
+	if t.res != nil {
+		ret = t.res.Version
 	}
 	return ret
 }
 
-func (t *TrackerSyncer) needsLogin(m MetaContext) bool { return false }
+func (t *ServertrustTrackerSyncer) syncFromServer(m MetaContext, uid keybase1.UID, forceReload bool) (err error) {
 
-func (t *TrackerSyncer) syncFromServer(m MetaContext, uid keybase1.UID, forceReload bool) (err error) {
-
-	lv := t.getLoadedVersion()
+	defer m.Trace(fmt.Sprintf("syncFromServer(%s)", uid), &err)()
 
 	hargs := HTTPArgs{
-		"uid":   UIDArg(uid),
-		"limit": I{5000},
+		"uid":        UIDArg(uid),
+		"reverse":    B{directionToReverse(t.direction)},
+		"autoCamel":  B{true},
+		"caller_uid": UIDArg(t.callerUID),
 	}
-
+	lv := t.getLoadedVersion()
 	if lv >= 0 && !forceReload {
 		hargs.Add("version", I{lv})
 	}
-
 	var res *APIRes
-	res, err = t.G().API.Get(APIArg{
-		Endpoint:    "user/trackers",
-		Args:        hargs,
-		SessionType: APISessionTypeNONE,
-		MetaContext: m,
+	res, err = m.G().API.Get(m, APIArg{
+		Endpoint: "user/list_followers_for_display",
+		Args:     hargs,
 	})
-	m.CDebugf("| syncFromServer() -> %s", ErrToOk(err))
+	m.Debug("| syncFromServer() -> %s", ErrToOk(err))
 	if err != nil {
-		return
+		return err
 	}
-	var tmp Trackers
+	var tmp keybase1.UserSummarySet
 	if err = res.Body.UnmarshalAgain(&tmp); err != nil {
 		return
 	}
+	tmp.Time = keybase1.ToTime(time.Now())
 	if lv < 0 || tmp.Version > lv || forceReload {
-		m.CDebugf("| syncFromServer(): got update %d > %d (%d records)", tmp.Version, lv,
-			len(tmp.Trackers))
-		tmp = tmp.compact()
-		m.CDebugf("| syncFromServer(): got update %d > %d (%d records)", tmp.Version, lv,
-			len(tmp.Trackers))
-		t.trackers = &tmp
+		m.Debug("| syncFromServer(): got update %d > %d (%d records)", tmp.Version, lv,
+			len(tmp.Users))
+		t.res = &tmp
 		t.dirty = true
 	} else {
-		m.CDebugf("| syncFromServer(): no change needed @ %d", lv)
+		m.Debug("| syncFromServer(): no change needed @ %d", lv)
+	}
+	return nil
+}
+
+func (t *ServertrustTrackerSyncer) store(m MetaContext, uid keybase1.UID) error {
+	var err error
+	if !t.dirty {
+		return err
 	}
 
-	return
+	if err = t.G().LocalDb.PutObj(t.dbKey(uid), nil, t.res); err != nil {
+		return err
+	}
+
+	t.dirty = false
+	return nil
+}
+
+func (t *ServertrustTrackerSyncer) needsLogin(m MetaContext) bool {
+	return false
+}
+
+func (t *ServertrustTrackerSyncer) Block(m MetaContext, badUIDs map[keybase1.UID]bool) (err error) {
+	defer m.Trace(fmt.Sprintf("ServertrustTrackerSyncer#Block(%+v)", badUIDs), &err)()
+	t.Lock()
+	defer t.Unlock()
+
+	if t.direction != FollowDirectionFollowers {
+		return fmt.Errorf("can only delete users out of followers cache")
+	}
+
+	if t.res == nil {
+		m.Debug("No followers loaded, so nothing to do")
+		return nil
+	}
+
+	err = t.loadFromStorage(m, t.callerUID, true)
+	if err != nil {
+		return err
+	}
+
+	var newUsers []keybase1.UserSummary
+	for _, userSummary := range t.res.Users {
+		if badUIDs[userSummary.Uid] {
+			m.Debug("Filtering bad user out of state: %s", userSummary.Uid)
+			t.dirty = true
+		} else {
+			newUsers = append(newUsers, userSummary)
+		}
+	}
+	t.res.Users = newUsers
+	err = t.store(m, t.callerUID)
+	return err
+}
+
+func (t *ServertrustTrackerSyncer) Result() keybase1.UserSummarySet {
+	if t.res == nil {
+		return keybase1.UserSummarySet{}
+	}
+
+	// Normalize usernames
+	var normalizedUsers []keybase1.UserSummary
+	for _, u := range t.res.Users {
+		normalizedUser := u
+		normalizedUser.Username = NewNormalizedUsername(u.Username).String()
+		normalizedUsers = append(normalizedUsers, normalizedUser)
+	}
+	t.res.Users = normalizedUsers
+
+	return *t.res
+}
+
+func NewServertrustTrackerSyncer(g *GlobalContext, callerUID keybase1.UID, direction FollowDirection) *ServertrustTrackerSyncer {
+	return &ServertrustTrackerSyncer{
+		Contextified: NewContextified(g),
+		direction:    direction,
+		callerUID:    callerUID,
+	}
 }

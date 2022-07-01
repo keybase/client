@@ -14,6 +14,7 @@ import (
 	"net"
 
 	"github.com/PuerkitoBio/goquery"
+	"github.com/keybase/client/go/jsonhelpers"
 	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
@@ -119,6 +120,10 @@ func CheckProof(m libkb.MetaContext, pvlS string, service keybase1.ProofType, in
 func checkProofInner(m metaContext, pvlS string, service keybase1.ProofType, info ProofInfo) libkb.ProofError {
 	pvl, err := parse(pvlS)
 	if err != nil {
+		if strings.Contains(err.Error(), "cannot unmarshal string into Go struct") && strings.Contains(pvlS, "from iced tests") {
+			return libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
+				"Corrupted pvl in merkle tree from iced tests. To fix see test/merkle_pvl.iced. : %v", err)
+		}
 		return libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
 			"Could not parse pvl: %v", err)
 	}
@@ -127,7 +132,7 @@ func checkProofInner(m metaContext, pvlS string, service keybase1.ProofType, inf
 		return perr
 	}
 
-	sigBody, sigID, err := libkb.OpenSig(info.ArmoredSig)
+	sigBody, sigIDBase, err := libkb.OpenSig(info.ArmoredSig)
 	if err != nil {
 		return libkb.NewProofError(keybase1.ProofStatus_BAD_SIGNATURE,
 			"Bad signature: %v", err)
@@ -156,6 +161,8 @@ func checkProofInner(m metaContext, pvlS string, service keybase1.ProofType, inf
 		}
 	}
 
+	sigID := sigIDBase.ToSigIDLegacy()
+
 	mknewstate := func(i int) (scriptState, libkb.ProofError) {
 		state := scriptState{
 			WhichScript: i,
@@ -173,8 +180,7 @@ func checkProofInner(m metaContext, pvlS string, service keybase1.ProofType, inf
 
 	var errs []libkb.ProofError
 	if service == keybase1.ProofType_DNS {
-		perr = runDNS(m, info.Hostname, scripts, mknewstate, sigID.ToMediumID())
-		if perr != nil {
+		if perr = runDNS(m, info.Hostname, scripts, mknewstate, sigID.ToMediumID()); perr != nil {
 			errs = append(errs, perr)
 		}
 	} else {
@@ -195,11 +201,12 @@ func checkProofInner(m metaContext, pvlS string, service keybase1.ProofType, inf
 		}
 	}
 
-	if len(errs) == 0 {
+	switch len(errs) {
+	case 0:
 		return nil
-	} else if len(errs) == 1 {
+	case 1:
 		return errs[0]
-	} else {
+	default:
 		for _, err := range errs {
 			debug(m, "multiple failures include: %v", err)
 		}
@@ -212,58 +219,49 @@ func setupRegs(m metaContext, regs *namedRegsStore, info ProofInfo, sigBody []by
 	webish := (service == keybase1.ProofType_DNS || service == keybase1.ProofType_GENERIC_WEB_SITE)
 
 	// hint_url
-	err := regs.Set("hint_url", info.APIURL)
-	if err != nil {
+	if err := regs.Set("hint_url", info.APIURL); err != nil {
 		return err
 	}
 
 	// username_service
 	if webish {
-		err = regs.Ban("username_service")
-		if err != nil {
+		if err := regs.Ban("username_service"); err != nil {
 			return err
 		}
 	} else {
-		err = regs.Set("username_service", info.RemoteUsername)
-		if err != nil {
+		if err := regs.Set("username_service", info.RemoteUsername); err != nil {
 			return err
 		}
 	}
 
 	// username_keybase
-	err = regs.Set("username_keybase", info.Username)
-	if err != nil {
+	if err := regs.Set("username_keybase", info.Username); err != nil {
 		return err
 	}
 
 	// sig
 	// Store it b64 encoded. This is rarely used, assert_find_base64 is better.
-	err = regs.Set("sig", b64.StdEncoding.EncodeToString(sigBody))
-	if err != nil {
+	if err := regs.Set("sig", b64.StdEncoding.EncodeToString(sigBody)); err != nil {
 		return err
 	}
 
 	// sig_id_medium
-	err = regs.Set("sig_id_medium", sigID.ToMediumID())
-	if err != nil {
+	if err := regs.Set("sig_id_medium", sigID.ToMediumID()); err != nil {
 		return err
 	}
 
 	// sig_id_short
-	err = regs.Set("sig_id_short", sigID.ToShortID())
-	if err != nil {
+	if err := regs.Set("sig_id_short", sigID.ToShortID()); err != nil {
 		return err
 	}
 
 	// hostname
 	if webish {
-		err = regs.Set("hostname", info.Hostname)
-		if err != nil {
+		if err := regs.Set("hostname", info.Hostname); err != nil {
 			return err
 		}
 	} else {
-		err = regs.Ban("hostname")
-		if err != nil {
+		if err := regs.Ban("hostname"); err != nil {
 			return err
 		}
 	}
@@ -275,15 +273,11 @@ func setupRegs(m metaContext, regs *namedRegsStore, info ProofInfo, sigBody []by
 			return libkb.NewProofError(keybase1.ProofStatus_BAD_SIGNATURE,
 				"Bad protocol in sig: %s", info.Protocol)
 		}
-		err = regs.Set("protocol", canonicalProtocol)
-		if err != nil {
+		if err := regs.Set("protocol", canonicalProtocol); err != nil {
 			return err
 		}
-	} else {
-		err = regs.Ban("protocol")
-		if err != nil {
-			return err
-		}
+	} else if err := regs.Ban("protocol"); err != nil {
+		return err
 	}
 
 	return nil
@@ -481,7 +475,8 @@ func runDNSTXTQuery(m metaContext, domain string) (res []string, err error) {
 			fetchedSrvs[i] = formatDNSServer(fetchedSrvs[i])
 		}
 	}
-	servers := append(fetchedSrvs, publicServers...)
+	servers := fetchedSrvs
+	servers = append(servers, publicServers...)
 
 	var r *dns.Msg
 	c := dns.Client{}
@@ -538,13 +533,11 @@ func runDNSOne(m metaContext, domain string, scripts []scriptT, mknewstate state
 				return err
 			}
 
-			err = state.Regs.Set("txt", record)
-			if err != nil {
+			if err = state.Regs.Set("txt", record); err != nil {
 				return err
 			}
 
-			err = runScript(m, &script, state)
-			if err == nil {
+			if err = runScript(m, &script, state); err == nil {
 				return nil
 			}
 
@@ -706,7 +699,7 @@ func stepAssertCompare(m metaContext, ins assertCompareT, state scriptState) (sc
 		same = libkb.Cicmp(a, b)
 	case "stripdots-then-cicmp":
 		norm := func(s string) string {
-			return strings.ToLower(strings.Replace(s, ".", "", -1))
+			return strings.ToLower(strings.ReplaceAll(s, ".", ""))
 		}
 		same = libkb.Cicmp(norm(a), norm(b))
 	default:
@@ -781,9 +774,8 @@ func stepReplaceAll(m metaContext, ins replaceAllT, state scriptState) (scriptSt
 		return state, err
 	}
 
-	replaced := strings.Replace(from, ins.Old, ins.New, -1)
-	err = state.Regs.Set(ins.Into, replaced)
-	if err != nil {
+	replaced := strings.ReplaceAll(from, ins.Old, ins.New)
+	if err = state.Regs.Set(ins.Into, replaced); err != nil {
 		return state, err
 	}
 
@@ -852,7 +844,7 @@ func stepFetch(m metaContext, ins fetchT, state scriptState) (scriptState, libkb
 	switch fetchMode(ins.Kind) {
 	case fetchModeString:
 		debugWithState(m, state, "fetchurl: %v", from)
-		res, err1 := m.G().GetExternalAPI().GetText(libkb.APIArg{Endpoint: from, MetaContext: m.MetaContext})
+		res, err1 := m.G().GetExternalAPI().GetText(m.MetaContext, libkb.APIArg{Endpoint: from})
 		if err1 != nil {
 			return state, libkb.XapiError(err1, from)
 		}
@@ -870,7 +862,7 @@ func stepFetch(m metaContext, ins fetchT, state scriptState) (scriptState, libkb
 			return state, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
 				"JSON fetch must not specify 'into' register")
 		}
-		res, err1 := m.G().GetExternalAPI().Get(libkb.APIArg{Endpoint: from, MetaContext: m.MetaContext})
+		res, err1 := m.G().GetExternalAPI().Get(m.MetaContext, libkb.APIArg{Endpoint: from})
 		if err1 != nil {
 			return state, libkb.XapiError(err1, from)
 		}
@@ -884,7 +876,7 @@ func stepFetch(m metaContext, ins fetchT, state scriptState) (scriptState, libkb
 			return state, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
 				"HTML fetch must not specify 'into' register")
 		}
-		res, err1 := m.G().GetExternalAPI().GetHTML(libkb.APIArg{Endpoint: from, MetaContext: m.MetaContext})
+		res, err1 := m.G().GetExternalAPI().GetHTML(m.MetaContext, libkb.APIArg{Endpoint: from})
 		if err1 != nil {
 			return state, libkb.XapiError(err1, from)
 		}
@@ -965,11 +957,12 @@ func stepSelectorCSS(m metaContext, ins selectorCSST, state scriptState) (script
 
 	// Get the text, attribute, or data.
 	var res string
-	if ins.Attr != "" {
+	switch {
+	case ins.Attr != "":
 		res = selectionAttr(selection, ins.Attr)
-	} else if ins.Data {
+	case ins.Data:
 		res = selectionData(selection)
-	} else {
+	default:
 		res = selectionText(selection)
 	}
 
@@ -993,15 +986,14 @@ func stepFill(m metaContext, ins fillT, state scriptState) (scriptState, libkb.P
 // Run a PVL CSS selector.
 // selectors is a list like [ "div .foo", 0, ".bar"] ].
 // Each string runs a selector, each integer runs a Eq.
-func runCSSSelectorInner(m metaContext, html *goquery.Selection, selectors []selectorEntryT) (*goquery.Selection, libkb.ProofError) {
+func runCSSSelectorInner(m metaContext, html *goquery.Selection,
+	selectors []keybase1.SelectorEntry) (*goquery.Selection, libkb.ProofError) {
 	if len(selectors) < 1 {
 		return nil, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
 			"CSS selectors array must not be empty")
 	}
 
-	var selection *goquery.Selection
-	selection = html
-
+	selection := html
 	for _, selector := range selectors {
 		switch {
 		case selector.IsIndex:
@@ -1019,68 +1011,28 @@ func runCSSSelectorInner(m metaContext, html *goquery.Selection, selectors []sel
 	return selection, nil
 }
 
-// Most failures here log instead of returning an error. If an error occurs, ([], nil) will be returned.
-// This is because a selector may descend into many subtrees and fail in all but one.
-func runSelectorJSONInner(m metaContext, state scriptState, selectedObject *jsonw.Wrapper, selectors []selectorEntryT) ([]string, libkb.ProofError) {
-	// The terminating condition is when we've consumed all the selectors.
-	if len(selectors) == 0 {
-		s, err := jsonStringSimple(selectedObject)
-		if err != nil {
-			debugWithState(m, state, "JSON could not read object: %v (%v)", err, selectedObject)
-			return []string{}, nil
-		}
-		return []string{s}, nil
+func runSelectorJSONInner(m metaContext, state scriptState, selectedObject *jsonw.Wrapper,
+	selectors []keybase1.SelectorEntry) ([]string, libkb.ProofError) {
+	logger := func(format string, args ...interface{}) {
+		debugWithState(m, state, format, args)
 	}
-
-	selector := selectors[0]
-	nextselectors := selectors[1:]
-
-	switch {
-	case selector.IsIndex:
-		object, err := selectedObject.ToArray()
-		if err != nil {
-			debugWithState(m, state, "JSON select by index from non-array: %v (%v) (%v)", err, selector.Index, object)
-			return []string{}, nil
-		}
-		length, err := object.Len()
-		if err != nil {
-			return []string{}, nil
-		}
-
-		index, ok := pyindex(selector.Index, length)
-		if !ok || index < 0 {
-			return []string{}, nil
-		}
-		nextobject := object.AtIndex(index)
-		return runSelectorJSONInner(m, state, nextobject, nextselectors)
-	case selector.IsKey:
-		object, err := selectedObject.ToDictionary()
-		if err != nil {
-			debugWithState(m, state, "JSON select by key from non-map: %v (%v) (%v)", err, selector.Key, object)
-			return []string{}, nil
-		}
-
-		nextobject := object.AtKey(selector.Key)
-		return runSelectorJSONInner(m, state, nextobject, nextselectors)
-	case selector.IsAll:
-		children, err := jsonGetChildren(selectedObject)
-		if err != nil {
-			debugWithState(m, state, "JSON select could not get children: %v (%v)", err, selectedObject)
-			return []string{}, nil
-		}
-		var results []string
-		for _, child := range children {
-			innerresults, perr := runSelectorJSONInner(m, state, child, nextselectors)
-			if perr != nil {
-				return nil, perr
-			}
-			results = append(results, innerresults...)
-		}
-		return results, nil
-	default:
-		return nil, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
-			"JSON selector entry must be a string, int, or 'all' %v", selector)
+	jsonResults, perr := jsonhelpers.AtSelectorPath(selectedObject, selectors, logger, libkb.NewInvalidPVLSelectorError)
+	if perrInner, _ := perr.(libkb.ProofError); perrInner != nil {
+		return nil, perrInner
 	}
+	if perr != nil {
+		return nil, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL, "json select error in pvl interp")
+	}
+	results := []string{}
+	for _, object := range jsonResults {
+		s, err := jsonhelpers.JSONStringSimple(object)
+		if err != nil {
+			logger("JSON could not read object: %v (%v)", err, object)
+			continue
+		}
+		results = append(results, s)
+	}
+	return results, nil
 }
 
 // Take a regex descriptor, do variable substitution, and build a regex.

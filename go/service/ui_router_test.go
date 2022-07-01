@@ -1,6 +1,8 @@
 package service
 
 import (
+	"time"
+
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/libkb"
@@ -44,6 +46,30 @@ func (f fakeUIRouter) GetGregorUI() (keybase1.GregorUIInterface, error) {
 
 func (f fakeUIRouter) GetHomeUI() (keybase1.HomeUIInterface, error) {
 	return nil, nil
+}
+
+func (f fakeUIRouter) GetIdentify3UIAdapter(_ libkb.MetaContext) (libkb.IdentifyUI, error) {
+	return nil, nil
+}
+
+func (f fakeUIRouter) GetIdentify3UI(libkb.MetaContext) (keybase1.Identify3UiInterface, error) {
+	return nil, nil
+}
+
+func (f fakeUIRouter) GetChatUI() (libkb.ChatUI, error) {
+	return nil, nil
+}
+
+func (f fakeUIRouter) GetLogUI() (libkb.LogUI, error) {
+	return nil, nil
+}
+
+func (f fakeUIRouter) DumpUIs() map[libkb.UIKind]libkb.ConnectionID {
+	return nil
+}
+
+func (f fakeUIRouter) WaitForUIType(uiKind libkb.UIKind, timeout time.Duration) bool {
+	return false
 }
 
 func (f fakeUIRouter) Shutdown() {}

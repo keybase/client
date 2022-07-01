@@ -21,7 +21,11 @@
       "name": "DbType",
       "symbols": [
         "MAIN_0",
-        "CHAT_1"
+        "CHAT_1",
+        "FS_BLOCK_CACHE_2",
+        "FS_BLOCK_CACHE_META_3",
+        "FS_SYNC_BLOCK_CACHE_4",
+        "FS_SYNC_BLOCK_CACHE_META_5"
       ]
     },
     {
@@ -47,10 +51,32 @@
       "name": "DbValue",
       "fields": [],
       "typedef": "bytes"
+    },
+    {
+      "type": "enum",
+      "name": "OnLoginStartupStatus",
+      "symbols": [
+        "UNKNOWN_0",
+        "DISABLED_1",
+        "ENABLED_2"
+      ]
     }
   ],
   "messages": {
     "stop": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "exitCode",
+          "type": "ExitCode"
+        }
+      ],
+      "response": null
+    },
+    "stopService": {
       "request": [
         {
           "name": "sessionID",
@@ -86,6 +112,23 @@
         {
           "name": "sessionID",
           "type": "int"
+        }
+      ],
+      "response": null
+    },
+    "dbClean": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "force",
+          "type": "boolean"
+        },
+        {
+          "name": "dbType",
+          "type": "DbType"
         }
       ],
       "response": null
@@ -144,6 +187,35 @@
         null,
         "DbValue"
       ]
+    },
+    "dbKeysWithPrefixes": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "prefix",
+          "type": "DbKey"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "DbKey"
+      }
+    },
+    "setOnLoginStartup": {
+      "request": [
+        {
+          "name": "enabled",
+          "type": "boolean"
+        }
+      ],
+      "response": null
+    },
+    "getOnLoginStartup": {
+      "request": [],
+      "response": "OnLoginStartupStatus"
     }
   },
   "namespace": "keybase.1"

@@ -26,9 +26,8 @@ func TestSettings(t *testing.T) {
 	repoName := "repoName"
 	repoID := "abc123"
 	doPut(t, tc.G, teamName, repoID, repoName)
-	folder := keybase1.Folder{
+	folder := keybase1.FolderHandle{
 		Name:       teamName,
-		Private:    true,
 		FolderType: keybase1.FolderType_TEAM,
 	}
 

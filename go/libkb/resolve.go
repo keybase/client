@@ -5,6 +5,7 @@ package libkb
 
 import (
 	"fmt"
+	"sync"
 	"time"
 
 	"runtime/debug"
@@ -28,6 +29,7 @@ type ResolveResult struct {
 	mutable            bool
 	deleted            bool
 	isCompound         bool
+	isServerTrust      bool
 }
 
 func (res ResolveResult) HasPrimaryKey() bool {
@@ -118,6 +120,10 @@ func (res ResolveResult) FailOnDeleted() ResolveResult {
 	return res
 }
 
+func (res ResolveResult) IsServerTrust() bool {
+	return res.isServerTrust
+}
+
 func (r *ResolverImpl) ResolveWithBody(m MetaContext, input string) ResolveResult {
 	return r.resolve(m, input, true)
 }
@@ -127,10 +133,10 @@ func (r *ResolverImpl) Resolve(m MetaContext, input string) ResolveResult {
 }
 
 func (r *ResolverImpl) resolve(m MetaContext, input string, withBody bool) (res ResolveResult) {
-	defer m.CTraceTimed(fmt.Sprintf("Resolving username %q", input), func() error { return res.err })()
+	defer m.Trace(fmt.Sprintf("Resolving username %q", input), &res.err)()
 
 	var au AssertionURL
-	if au, res.err = ParseAssertionURL(m.G().MakeAssertionContext(), input, false); res.err != nil {
+	if au, res.err = ParseAssertionURL(m.G().MakeAssertionContext(m), input, false); res.err != nil {
 		return res
 	}
 	res = r.resolveURL(m, au, input, withBody, false)
@@ -163,10 +169,10 @@ func (r *ResolverImpl) ResolveUser(m MetaContext, assertion string) (u keybase1.
 }
 
 func (r *ResolverImpl) resolveFullExpression(m MetaContext, input string, withBody bool, needUsername bool) (res ResolveResult) {
-	defer m.CVTrace(VLog1, fmt.Sprintf("Resolver#resolveFullExpression(%q)", input), func() error { return res.err })()
+	defer m.VTrace(VLog1, fmt.Sprintf("Resolver#resolveFullExpression(%q)", input), &res.err)()
 
 	var expr AssertionExpression
-	expr, res.err = AssertionParseAndOnly(m.G().MakeAssertionContext(), input)
+	expr, res.err = AssertionParseAndOnly(m.G().MakeAssertionContext(m), input)
 	if res.err != nil {
 		return res
 	}
@@ -187,28 +193,32 @@ func (res *ResolveResult) addKeybaseNameIfKnown(au AssertionURL) {
 }
 
 func (r *ResolverImpl) getFromDiskCache(m MetaContext, key string, au AssertionURL) (ret *ResolveResult) {
-	defer m.CVTraceOK(VLog1, fmt.Sprintf("Resolver#getFromDiskCache(%q)", key), func() bool { return ret != nil })()
+	defer m.VTrace(VLog1, fmt.Sprintf("Resolver#getFromDiskCache(%q)", key), nil)()
 	var uid keybase1.UID
 	found, err := m.G().LocalDb.GetInto(&uid, resolveDbKey(key))
-	r.Stats.diskGets++
+	r.Stats.IncDiskGets()
 	if err != nil {
-		m.CWarningf("Problem fetching resolve result from local DB: %s", err)
+		m.Warning("Problem fetching resolve result from local DB: %s", err)
 		return nil
 	}
 	if !found {
-		r.Stats.diskGetMisses++
+		r.Stats.IncDiskGetMisses()
 		return nil
 	}
 	if uid.IsNil() {
-		m.CWarningf("nil UID found in disk cache")
+		m.Warning("nil UID found in disk cache")
 		return nil
 	}
-	r.Stats.diskGetHits++
+	r.Stats.IncDiskGetHits()
 	return &ResolveResult{uid: uid}
 }
 
 func isMutable(au AssertionURL) bool {
-	return !(au.IsUID() || au.IsKeybase())
+	isStatic := au.IsUID() ||
+		au.IsKeybase() ||
+		(au.IsTeamID() && !au.ToTeamID().IsSubTeam()) ||
+		(au.IsTeamName() && au.ToTeamName().IsRootTeam())
+	return !isStatic
 }
 
 func (r *ResolverImpl) getFromUPAKLoader(m MetaContext, uid keybase1.UID) (ret *ResolveResult) {
@@ -228,7 +238,7 @@ func (r *ResolverImpl) resolveURL(m MetaContext, au AssertionURL, input string, 
 	// Debug succinctly what happened in the resolution
 	var trace string
 	defer func() {
-		m.CDebugf("| Resolver#resolveURL(%s) -> %s [trace:%s]", ck, res, trace)
+		m.Debug("| Resolver#resolveURL(%s) -> %s [trace:%s]", ck, res, trace)
 	}()
 
 	// A standard keybase UID, so it's already resolved... unless we explicitly
@@ -240,16 +250,20 @@ func (r *ResolverImpl) resolveURL(m MetaContext, au AssertionURL, input string, 
 		}
 	}
 
-	if p := r.getFromMemCache(m, ck, au); p != nil && (!needUsername || len(p.resolvedKbUsername) > 0) {
+	if p := r.getFromMemCache(m, ck, au); p != nil && (!needUsername || len(p.resolvedKbUsername) > 0 || !p.resolvedTeamName.IsNil()) {
 		trace += "m"
-		return *p
+		ret := *p
+		ret.decorate(au)
+		return ret
 	}
 
-	if p := r.getFromDiskCache(m, ck, au); p != nil && (!needUsername || len(p.resolvedKbUsername) > 0) {
+	if p := r.getFromDiskCache(m, ck, au); p != nil && (!needUsername || len(p.resolvedKbUsername) > 0 || !p.resolvedTeamName.IsNil()) {
 		p.mutable = isMutable(au)
 		r.putToMemCache(m, ck, *p)
 		trace += "d"
-		return *p
+		ret := *p
+		ret.decorate(au)
+		return ret
 	}
 
 	// We can check the UPAK loader for the username if we're just mapping a UID to a username.
@@ -278,22 +292,30 @@ func (r *ResolverImpl) resolveURL(m MetaContext, au AssertionURL, input string, 
 	return res
 }
 
+func (res *ResolveResult) decorate(au AssertionURL) {
+	if au.IsKeybase() {
+		res.queriedKbUsername = au.GetValue()
+	} else if au.IsUID() {
+		res.queriedByUID = true
+	}
+}
+
 func (r *ResolverImpl) resolveURLViaServerLookup(m MetaContext, au AssertionURL, input string, withBody bool) (res ResolveResult) {
-	defer m.CVTrace(VLog1, fmt.Sprintf("Resolver#resolveURLViaServerLookup(input = %q)", input), func() error { return res.err })()
+	defer m.VTrace(VLog1, fmt.Sprintf("Resolver#resolveURLViaServerLookup(input = %q)", input), &res.err)()
 
 	if au.IsTeamID() || au.IsTeamName() {
 		return r.resolveTeamViaServerLookup(m, au)
+	}
+
+	if au.IsServerTrust() {
+		return r.resolveServerTrustAssertion(m, au, input)
 	}
 
 	var key, val string
 	var ares *APIRes
 	var l int
 
-	if au.IsKeybase() {
-		res.queriedKbUsername = au.GetValue()
-	} else if au.IsUID() {
-		res.queriedByUID = true
-	}
+	res.decorate(au)
 
 	if key, val, res.err = au.ToLookup(); res.err != nil {
 		return
@@ -307,26 +329,27 @@ func (r *ResolverImpl) resolveURLViaServerLookup(m MetaContext, au AssertionURL,
 		fields += ",public_keys,pictures"
 	}
 	ha.Add("fields", S{fields})
-	ares, res.err = m.G().API.Get(APIArg{
+	ares, res.err = m.G().API.Get(m, APIArg{
 		Endpoint:        "user/lookup",
 		SessionType:     APISessionTypeNONE,
 		Args:            ha,
 		AppStatusCodes:  []int{SCOk, SCNotFound, SCDeleted},
-		MetaContext:     m,
 		RetryCount:      3,
 		InitialTimeout:  4 * time.Second,
 		RetryMultiplier: 1.5,
 	})
 
 	if res.err != nil {
-		m.CDebugf("API user/lookup %q error: %s", input, res.err)
+		m.Debug("API user/lookup %q error: %s", input, res.err)
 		return
 	}
 	switch ares.AppStatus.Code {
 	case SCNotFound:
-		m.CDebugf("API user/lookup %q not found", input)
+		m.Debug("API user/lookup %q not found", input)
 		res.err = NotFoundError{}
 		return
+	default:
+		// Nothing to do for other codes.
 	}
 
 	var them *jsonw.Wrapper
@@ -378,7 +401,7 @@ func (t *teamLookup) GetAppStatus() *AppStatus {
 }
 
 func (r *ResolverImpl) resolveTeamViaServerLookup(m MetaContext, au AssertionURL) (res ResolveResult) {
-	m.CDebugf("resolveTeamViaServerLookup")
+	m.Debug("resolveTeamViaServerLookup")
 
 	res.queriedByTeamID = au.IsTeamID()
 	key, val, err := au.ToLookup()
@@ -387,7 +410,7 @@ func (r *ResolverImpl) resolveTeamViaServerLookup(m MetaContext, au AssertionURL
 		return res
 	}
 
-	arg := NewAPIArgWithMetaContext(m, "team/get")
+	arg := NewAPIArg("team/get")
 	arg.SessionType = APISessionTypeREQUIRED
 	arg.Args = make(HTTPArgs)
 	arg.Args[key] = S{Val: val}
@@ -397,7 +420,7 @@ func (r *ResolverImpl) resolveTeamViaServerLookup(m MetaContext, au AssertionURL
 	}
 
 	var lookup teamLookup
-	if err := m.G().API.GetDecode(arg, &lookup); err != nil {
+	if err := m.G().API.GetDecode(m, arg, &lookup); err != nil {
 		res.err = err
 		return res
 	}
@@ -408,7 +431,76 @@ func (r *ResolverImpl) resolveTeamViaServerLookup(m MetaContext, au AssertionURL
 	return res
 }
 
+type serverTrustUserLookup struct {
+	AppStatusEmbed
+	User *keybase1.PhoneLookupResult `json:"user"`
+}
+
+func (r *ResolverImpl) resolveServerTrustAssertion(m MetaContext, au AssertionURL, input string) (res ResolveResult) {
+	defer m.Trace(fmt.Sprintf("Resolver#resolveServerTrustAssertion(%q, %q)", au.String(), input), &res.err)()
+
+	key, val, err := au.ToLookup()
+	if err != nil {
+		res.err = err
+		return res
+	}
+
+	var arg APIArg
+	switch key {
+	case "phone":
+		arg = NewAPIArg("user/phone_numbers_search")
+		arg.Args = map[string]HTTPValue{"phone_number": S{Val: val}}
+	case "email":
+		arg = NewAPIArg("email/search")
+		arg.Args = map[string]HTTPValue{"email": S{Val: val}}
+	default:
+		res.err = ResolutionError{Input: input, Msg: fmt.Sprintf("Unexpected assertion: %q for server trust lookup", key), Kind: ResolutionErrorInvalidInput}
+		return res
+	}
+
+	arg.SessionType = APISessionTypeREQUIRED
+	arg.AppStatusCodes = []int{SCOk}
+
+	var lookup serverTrustUserLookup
+	if err := m.G().API.GetDecode(m, arg, &lookup); err != nil {
+		if appErr, ok := err.(AppStatusError); ok {
+			switch appErr.Code {
+			case SCInputError:
+				res.err = ResolutionError{Input: input, Msg: err.Error(), Kind: ResolutionErrorInvalidInput}
+				return res
+			case SCRateLimit:
+				res.err = ResolutionError{Input: input, Msg: err.Error(), Kind: ResolutionErrorRateLimited}
+				return res
+			}
+		}
+		// When the call fails because of timeout or other reason, stop
+		// the process as well. Same reason as other errors - we don't
+		// want to create dead SBS team when there was a resolvable user
+		// but we weren't able to resolve.
+		res.err = ResolutionError{Input: input, Msg: err.Error(), Kind: ResolutionErrorRequestFailed}
+		return res
+	}
+
+	if lookup.User == nil {
+		res.err = ResolutionError{Input: input, Msg: "No resolution found", Kind: ResolutionErrorNotFound}
+		return res
+	}
+
+	user := *lookup.User
+	res.resolvedKbUsername = user.Username
+	res.uid = user.Uid
+	res.isServerTrust = true
+	// Mutable resolutions are not cached to disk. We can't be aggressive when
+	// caching server-trust resolutions, because when client pulls out one from
+	// cache, they have no way to verify it's still valid. From the server-side
+	// we have no way to invalidate that cache.
+	res.mutable = true
+
+	return res
+}
+
 type ResolveCacheStats struct {
+	sync.Mutex
 	misses          int
 	timeouts        int
 	mutableTimeouts int
@@ -422,21 +514,81 @@ type ResolveCacheStats struct {
 
 type ResolverImpl struct {
 	cache   *ramcache.Ramcache
-	Stats   ResolveCacheStats
-	locktab LockTable
+	Stats   *ResolveCacheStats
+	locktab *LockTable
 }
 
-func (s ResolveCacheStats) Eq(m, t, mt, et, h int) bool {
+func (s *ResolveCacheStats) Eq(m, t, mt, et, h int) bool {
+	s.Lock()
+	defer s.Unlock()
 	return (s.misses == m) && (s.timeouts == t) && (s.mutableTimeouts == mt) && (s.errorTimeouts == et) && (s.hits == h)
 }
 
-func (s ResolveCacheStats) EqWithDiskHits(m, t, mt, et, h, dh int) bool {
+func (s *ResolveCacheStats) EqWithDiskHits(m, t, mt, et, h, dh int) bool {
+	s.Lock()
+	defer s.Unlock()
 	return (s.misses == m) && (s.timeouts == t) && (s.mutableTimeouts == mt) && (s.errorTimeouts == et) && (s.hits == h) && (s.diskGetHits == dh)
+}
+
+func (s *ResolveCacheStats) IncMisses() {
+	s.Lock()
+	s.misses++
+	s.Unlock()
+}
+
+func (s *ResolveCacheStats) IncTimeouts() {
+	s.Lock()
+	s.timeouts++
+	s.Unlock()
+}
+
+func (s *ResolveCacheStats) IncMutableTimeouts() {
+	s.Lock()
+	s.mutableTimeouts++
+	s.Unlock()
+}
+
+func (s *ResolveCacheStats) IncErrorTimeouts() {
+	s.Lock()
+	s.errorTimeouts++
+	s.Unlock()
+}
+
+func (s *ResolveCacheStats) IncHits() {
+	s.Lock()
+	s.hits++
+	s.Unlock()
+}
+
+func (s *ResolveCacheStats) IncDiskGets() {
+	s.Lock()
+	s.diskGets++
+	s.Unlock()
+}
+
+func (s *ResolveCacheStats) IncDiskGetHits() {
+	s.Lock()
+	s.diskGetHits++
+	s.Unlock()
+}
+
+func (s *ResolveCacheStats) IncDiskGetMisses() {
+	s.Lock()
+	s.diskGetMisses++
+	s.Unlock()
+}
+
+func (s *ResolveCacheStats) IncDiskPuts() {
+	s.Lock()
+	s.diskPuts++
+	s.Unlock()
 }
 
 func NewResolverImpl() *ResolverImpl {
 	return &ResolverImpl{
-		cache: nil,
+		cache:   nil,
+		locktab: NewLockTable(),
+		Stats:   &ResolveCacheStats{},
 	}
 }
 
@@ -455,39 +607,39 @@ func (r *ResolverImpl) Shutdown(m MetaContext) {
 }
 
 func (r *ResolverImpl) getFromMemCache(m MetaContext, key string, au AssertionURL) (ret *ResolveResult) {
-	defer m.CVTraceOK(VLog1, fmt.Sprintf("Resolver#getFromMemCache(%q)", key), func() bool { return ret != nil })()
+	defer m.VTrace(VLog1, fmt.Sprintf("Resolver#getFromMemCache(%q)", key), nil)()
 	if r.cache == nil {
 		return nil
 	}
 	res, _ := r.cache.Get(key)
 	if res == nil {
-		r.Stats.misses++
+		r.Stats.IncMisses()
 		return nil
 	}
 	rres, ok := res.(*ResolveResult)
 	if !ok {
-		r.Stats.misses++
+		r.Stats.IncMisses()
 		return nil
 	}
 	// Should never happen, but don't corrupt application state if it does
 	if !rres.HasPrimaryKey() {
-		m.CInfof("Resolver#getFromMemCache: nil UID/teamID in cache")
+		m.Info("Resolver#getFromMemCache: nil UID/teamID in cache")
 		return nil
 	}
 	now := m.G().Clock().Now()
 	if now.Sub(rres.cachedAt) > ResolveCacheMaxAge {
-		r.Stats.timeouts++
+		r.Stats.IncTimeouts()
 		return nil
 	}
 	if rres.mutable && now.Sub(rres.cachedAt) > ResolveCacheMaxAgeMutable {
-		r.Stats.mutableTimeouts++
+		r.Stats.IncMutableTimeouts()
 		return nil
 	}
 	if rres.err != nil && now.Sub(rres.cachedAt) > resolveCacheMaxAgeErrored {
-		r.Stats.errorTimeouts++
+		r.Stats.IncErrorTimeouts()
 		return nil
 	}
-	r.Stats.hits++
+	r.Stats.IncHits()
 	rres.addKeybaseNameIfKnown(au)
 	return rres
 }
@@ -510,18 +662,18 @@ func (r *ResolverImpl) putToDiskCache(m MetaContext, key string, res ResolveResu
 		return
 	}
 	if res.uid.IsNil() {
-		m.CWarningf("Mistaken UID put to disk cache")
+		m.Warning("Mistaken UID put to disk cache")
 		if m.G().Env.GetDebug() {
 			debug.PrintStack()
 		}
 		return
 	}
-	r.Stats.diskPuts++
+	r.Stats.IncDiskPuts()
 	if err := m.G().LocalDb.PutObj(resolveDbKey(key), nil, res.uid); err != nil {
-		m.CWarningf("Cannot put resolve result to disk: %s", err)
+		m.Warning("Cannot put resolve result to disk: %s", err)
 		return
 	}
-	m.CDebugf("| Resolver#putToDiskCache(%s) -> %v", key, res)
+	m.Debug("| Resolver#putToDiskCache(%s) -> %v", key, res)
 }
 
 // Put receives a copy of a ResolveResult, clears out the body
@@ -535,7 +687,7 @@ func (r *ResolverImpl) putToMemCache(m MetaContext, key string, res ResolveResul
 		return
 	}
 	if !res.HasPrimaryKey() {
-		m.CWarningf("Mistaken UID put to mem cache")
+		m.Warning("Mistaken UID put to mem cache")
 		if m.G().Env.GetDebug() {
 			debug.PrintStack()
 		}
@@ -543,12 +695,25 @@ func (r *ResolverImpl) putToMemCache(m MetaContext, key string, res ResolveResul
 	}
 	res.cachedAt = m.G().Clock().Now()
 	res.body = nil // Don't cache body
-	r.cache.Set(key, &res)
+	_ = r.cache.Set(key, &res)
+}
+
+func (r *ResolverImpl) CacheTeamResolution(m MetaContext, id keybase1.TeamID, name keybase1.TeamName) {
+	m.VLogf(VLog0, "ResolverImpl#CacheTeamResolution: %s <-> %s", id, name)
+	res := ResolveResult{
+		teamID:           id,
+		queriedByTeamID:  true,
+		resolvedTeamName: name,
+		mutable:          id.IsSubTeam(),
+	}
+	r.putToMemCache(m, fmt.Sprintf("tid:%s", id), res)
+	res.queriedByTeamID = false
+	r.putToMemCache(m, fmt.Sprintf("team:%s", name.String()), res)
 }
 
 func (r *ResolverImpl) PurgeResolveCache(m MetaContext, input string) (err error) {
-	defer m.CTrace(fmt.Sprintf("Resolver#PurgeResolveCache(input = %q)", input), func() error { return err })()
-	expr, err := AssertionParseAndOnly(m.G().MakeAssertionContext(), input)
+	defer m.Trace(fmt.Sprintf("Resolver#PurgeResolveCache(input = %q)", input), &err)()
+	expr, err := AssertionParseAndOnly(m.G().MakeAssertionContext(m), input)
 	if err != nil {
 		return err
 	}
@@ -558,12 +723,15 @@ func (r *ResolverImpl) PurgeResolveCache(m MetaContext, input string) (err error
 	}
 
 	key := u.CacheKey()
-	r.cache.Delete(key)
+	err = r.cache.Delete(key)
+	if err != nil {
+		return err
+	}
 	// Since we only put to disk cache if it's a Keybase-type assertion, we
 	// only remove it in this case as well.
 	if u.IsKeybase() {
 		if err := m.G().LocalDb.Delete(resolveDbKey(key)); err != nil {
-			m.CWarningf("Cannot remove resolve result from disk: %s", err)
+			m.Warning("Cannot remove resolve result from disk: %s", err)
 			return err
 		}
 	}

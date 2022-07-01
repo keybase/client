@@ -8,6 +8,7 @@ var mimeTypes = map[string]string{
 	".3gp":     "video/3gpp",
 	".3gpp":    "video/3gpp",
 	".7z":      "application/x-7z-compressed",
+	".aac":     "audio/aac",
 	".ai":      "application/postscript",
 	".asf":     "video/x-ms-asf",
 	".asx":     "video/x-ms-asf",

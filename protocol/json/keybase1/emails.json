@@ -1,0 +1,172 @@
+{
+  "protocol": "emails",
+  "imports": [
+    {
+      "path": "common.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [
+    {
+      "type": "record",
+      "name": "EmailLookupResult",
+      "fields": [
+        {
+          "type": "EmailAddress",
+          "name": "email"
+        },
+        {
+          "type": [
+            null,
+            "UID"
+          ],
+          "name": "uid"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "EmailAddressVerifiedMsg",
+      "fields": [
+        {
+          "type": "EmailAddress",
+          "name": "email",
+          "jsonkey": "email"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "EmailAddressChangedMsg",
+      "fields": [
+        {
+          "type": "EmailAddress",
+          "name": "email",
+          "jsonkey": "email"
+        }
+      ]
+    }
+  ],
+  "messages": {
+    "addEmail": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "email",
+          "type": "EmailAddress"
+        },
+        {
+          "name": "visibility",
+          "type": "IdentityVisibility"
+        }
+      ],
+      "response": null
+    },
+    "deleteEmail": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "email",
+          "type": "EmailAddress"
+        }
+      ],
+      "response": null
+    },
+    "editEmail": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "oldEmail",
+          "type": "EmailAddress"
+        },
+        {
+          "name": "email",
+          "type": "EmailAddress"
+        },
+        {
+          "name": "visibility",
+          "type": "IdentityVisibility"
+        }
+      ],
+      "response": null
+    },
+    "setPrimaryEmail": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "email",
+          "type": "EmailAddress"
+        }
+      ],
+      "response": null
+    },
+    "sendVerificationEmail": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "email",
+          "type": "EmailAddress"
+        }
+      ],
+      "response": null
+    },
+    "setVisibilityEmail": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "email",
+          "type": "EmailAddress"
+        },
+        {
+          "name": "visibility",
+          "type": "IdentityVisibility"
+        }
+      ],
+      "response": null
+    },
+    "setVisibilityAllEmail": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "visibility",
+          "type": "IdentityVisibility"
+        }
+      ],
+      "response": null
+    },
+    "getEmails": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "Email"
+      }
+    }
+  },
+  "namespace": "keybase.1"
+}

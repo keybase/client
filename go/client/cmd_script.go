@@ -19,11 +19,12 @@ type CmdScript struct {
 	Args   []string
 }
 
-func newCmdScript(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
+func newCmdScript(cl *libcmdline.CommandLine, g *libkb.GlobalContext, listed bool) cli.Command {
 	return cli.Command{
 		Name:         "script",
+		Unlisted:     !listed,
 		ArgumentHelp: "<script> [<args>]",
-		Usage:        "Run a dev debug script",
+		Usage:        "Run a dev debug script. See debugging_devel.go",
 		Action: func(c *cli.Context) {
 			cmd := NewCmdScriptRunner(g)
 			cl.ChooseCommand(cmd, "script", c)

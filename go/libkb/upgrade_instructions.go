@@ -5,23 +5,25 @@ package libkb
 
 import (
 	"fmt"
-	"os/exec"
 	"runtime"
+
+	"os/exec"
 )
 
 func PlatformSpecificUpgradeInstructionsString() (string, error) {
 	switch runtime.GOOS {
 	case "linux":
 		return linuxUpgradeInstructionsString()
+	default:
+		return "", nil
 	}
-	return "", nil
 }
 
 func PlatformSpecificUpgradeInstructions(g *GlobalContext, upgradeURI string) {
 	switch runtime.GOOS {
 	case "linux":
 		linuxUpgradeInstructions(g)
-	case "darwin":
+	case "darwin", "ios":
 		darwinUpgradeInstructions(g, upgradeURI)
 	case "windows":
 		windowsUpgradeInstructions(g, upgradeURI)
@@ -55,7 +57,7 @@ func linuxUpgradeInstructionsString() (string, error) {
 		start = "sudo yum upgrade " + packageName
 	} else if hasPackageManager("pacman") {
 		if len(PrereleaseBuild) > 0 {
-			start = "yaourt -S keybase-git"
+			start = "pacaur -S keybase-bin"
 		} else {
 			start = "sudo pacman -Syu"
 		}

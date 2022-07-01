@@ -1,0 +1,87 @@
+{
+  "protocol": "inviteFriends",
+  "imports": [
+    {
+      "path": "common.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [
+    {
+      "type": "record",
+      "name": "InviteCounts",
+      "fields": [
+        {
+          "type": "int",
+          "name": "inviteCount"
+        },
+        {
+          "type": "double",
+          "name": "percentageChange"
+        },
+        {
+          "type": "boolean",
+          "name": "showNumInvites"
+        },
+        {
+          "type": "boolean",
+          "name": "showFire"
+        },
+        {
+          "type": "string",
+          "name": "tooltipMarkdown"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "EmailInvites",
+      "fields": [
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "commaSeparatedEmailsFromUser"
+        },
+        {
+          "type": [
+            null,
+            {
+              "type": "array",
+              "items": "EmailAddress"
+            }
+          ],
+          "name": "emailsFromContacts"
+        }
+      ]
+    }
+  ],
+  "messages": {
+    "invitePeople": {
+      "request": [
+        {
+          "name": "emails",
+          "type": "EmailInvites"
+        },
+        {
+          "name": "phones",
+          "type": {
+            "type": "array",
+            "items": "PhoneNumber"
+          }
+        }
+      ],
+      "response": "int"
+    },
+    "getInviteCounts": {
+      "request": [],
+      "response": "InviteCounts"
+    },
+    "requestInviteCounts": {
+      "request": [],
+      "response": null
+    }
+  },
+  "namespace": "keybase.1"
+}

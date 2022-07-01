@@ -1,6 +1,7 @@
 // Copyright 2018 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
 //
+//go:build production
 // +build production
 
 package service
@@ -12,7 +13,6 @@ import (
 	"golang.org/x/net/context"
 )
 
-func (t *DebuggingHandler) Script(ctx context.Context, arg keybase1.ScriptArg) (_ string, err error) {
-	defer t.G().CTraceTimed(ctx, "Script", func() error { return err })()
-	return "", fmt.Errorf("debugging script not supported in production builds")
+func (t *DebuggingHandler) scriptExtras(ctx context.Context, arg keybase1.ScriptArg) (_ string, err error) {
+	return "", fmt.Errorf("unknown script in production mode: %v", arg.Script)
 }

@@ -1,0 +1,21 @@
+{
+  "protocol": "identify3Common",
+  "imports": [],
+  "types": [
+    {
+      "type": "record",
+      "name": "Identify3Assertion",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
+      "name": "Identify3GUIID",
+      "fields": [],
+      "typedef": "string",
+      "lint": "ignore"
+    }
+  ],
+  "messages": {},
+  "namespace": "keybase.1"
+}

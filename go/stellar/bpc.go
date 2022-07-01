@@ -3,6 +3,7 @@ package stellar
 import (
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/stellar1"
@@ -14,24 +15,17 @@ import (
 // Methods should err on the side of performance rather at the cost of serialization.
 // CORE-8119: But they don't yet.
 type BuildPaymentCache interface {
-	OwnsAccount(libkb.MetaContext, stellar1.AccountID) (bool, error)
 	PrimaryAccount(libkb.MetaContext) (stellar1.AccountID, error)
 	// AccountSeqno should be cached _but_ it should also be busted asap.
 	// Because it is used to prevent users from sending payments twice in a row.
 	AccountSeqno(libkb.MetaContext, stellar1.AccountID) (string, error)
-	IsAccountFunded(libkb.MetaContext, stellar1.AccountID) (bool, error)
+	IsAccountFunded(libkb.MetaContext, stellar1.AccountID, stellar1.BuildPaymentID) (bool, error)
 	LookupRecipient(libkb.MetaContext, stellarcommon.RecipientInput) (stellarcommon.Recipient, error)
 	GetOutsideExchangeRate(libkb.MetaContext, stellar1.OutsideCurrencyCode) (stellar1.OutsideExchangeRate, error)
 	AvailableXLMToSend(libkb.MetaContext, stellar1.AccountID) (string, error)
-	GetOutsideCurrencyPreference(libkb.MetaContext, stellar1.AccountID) (stellar1.OutsideCurrencyCode, error)
-}
-
-func GetBuildPaymentCache(mctx libkb.MetaContext, remoter remote.Remoter) BuildPaymentCache {
-	// CORE-8119: attach an instance to G and use that.
-	// CORE-8119: delete it when a logout occurs.
-	return &buildPaymentCache{
-		remoter: remoter,
-	}
+	GetOutsideCurrencyPreference(libkb.MetaContext, stellar1.AccountID, stellar1.BuildPaymentID) (stellar1.OutsideCurrencyCode, error)
+	ShouldOfferAdvancedSend(mctx libkb.MetaContext, from, to stellar1.AccountID) (stellar1.AdvancedBanner, error)
+	InformDefaultCurrencyChange(mctx libkb.MetaContext)
 }
 
 // Each instance is tied to a UV login. Must be discarded when switching users.
@@ -40,15 +34,27 @@ func GetBuildPaymentCache(mctx libkb.MetaContext, remoter remote.Remoter) BuildP
 type buildPaymentCache struct {
 	sync.Mutex
 	remoter remote.Remoter
+
+	accountFundedCache             *TimeCache
+	lookupRecipientCache           *TimeCache
+	shouldOfferAdvancedSendCache   *TimeCache
+	currencyPreferenceCache        *TimeCache
+	currencyPreferenceForeverCache *TimeCache
 }
 
-func (c *buildPaymentCache) OwnsAccount(mctx libkb.MetaContext,
-	accountID stellar1.AccountID) (bool, error) {
-	return OwnAccount(mctx.Ctx(), mctx.G(), accountID)
+func newBuildPaymentCache(remoter remote.Remoter) *buildPaymentCache {
+	return &buildPaymentCache{
+		remoter:                        remoter,
+		accountFundedCache:             NewTimeCache("accountFundedCache", 20, 0 /*forever*/),
+		lookupRecipientCache:           NewTimeCache("lookupRecipient", 20, time.Minute),
+		shouldOfferAdvancedSendCache:   NewTimeCache("shouldOfferAdvancedSend", 20, time.Minute),
+		currencyPreferenceCache:        NewTimeCache("currencyPreference", 20, 5*time.Minute),
+		currencyPreferenceForeverCache: NewTimeCache("currencyPreferenceForever", 20, 0 /*forever*/),
+	}
 }
 
 func (c *buildPaymentCache) PrimaryAccount(mctx libkb.MetaContext) (stellar1.AccountID, error) {
-	return GetOwnPrimaryAccountID(mctx.Ctx(), mctx.G())
+	return GetOwnPrimaryAccountID(mctx)
 }
 
 func (c *buildPaymentCache) AccountSeqno(mctx libkb.MetaContext,
@@ -58,15 +64,37 @@ func (c *buildPaymentCache) AccountSeqno(mctx libkb.MetaContext,
 }
 
 func (c *buildPaymentCache) IsAccountFunded(mctx libkb.MetaContext,
-	accountID stellar1.AccountID) (bool, error) {
-	return isAccountFunded(mctx.Ctx(), c.remoter, accountID)
+	accountID stellar1.AccountID, bid stellar1.BuildPaymentID) (res bool, err error) {
+	fill := func() (interface{}, error) {
+		funded, err := isAccountFunded(mctx.Ctx(), c.remoter, accountID)
+		res = funded
+		return funded, err
+	}
+	if !bid.IsNil() {
+		key := fmt.Sprintf("%v:%v", accountID, bid)
+		err = c.accountFundedCache.GetWithFill(mctx, key, &res, fill)
+		return res, err
+	}
+	_, err = fill()
+	return res, err
 }
 
 func (c *buildPaymentCache) LookupRecipient(mctx libkb.MetaContext,
 	to stellarcommon.RecipientInput) (res stellarcommon.Recipient, err error) {
-	// CORE-8119: Will delegating to stellar.LookupRecipient be too slow?
-	// CORE-8119: Will it do identifies?
-	return LookupRecipient(mctx, to, false /* isCLI */)
+	fill := func() (interface{}, error) {
+		return LookupRecipient(mctx, to, false /* isCLI */)
+	}
+	err = c.lookupRecipientCache.GetWithFill(mctx, string(to), &res, fill)
+	return res, err
+}
+
+func (c *buildPaymentCache) ShouldOfferAdvancedSend(mctx libkb.MetaContext, from, to stellar1.AccountID) (res stellar1.AdvancedBanner, err error) {
+	key := from.String() + ":" + to.String()
+	fill := func() (interface{}, error) {
+		return ShouldOfferAdvancedSend(mctx, c.remoter, from, to)
+	}
+	err = c.shouldOfferAdvancedSendCache.GetWithFill(mctx, key, &res, fill)
+	return res, err
 }
 
 func (c *buildPaymentCache) GetOutsideExchangeRate(mctx libkb.MetaContext,
@@ -81,14 +109,31 @@ func (c *buildPaymentCache) AvailableXLMToSend(mctx libkb.MetaContext,
 		return "", err
 	}
 	if details.Available == "" {
-		// This is what stellard does if the account is not funded.
 		return "0", nil
 	}
 	return details.Available, nil
 }
 
 func (c *buildPaymentCache) GetOutsideCurrencyPreference(mctx libkb.MetaContext,
-	accountID stellar1.AccountID) (stellar1.OutsideCurrencyCode, error) {
-	cr, err := GetCurrencySetting(mctx, c.remoter, accountID)
-	return cr.Code, err
+	accountID stellar1.AccountID, bid stellar1.BuildPaymentID) (res stellar1.OutsideCurrencyCode, err error) {
+	fillInner := func() (interface{}, error) {
+		cr, err := GetCurrencySetting(mctx, accountID)
+		return cr.Code, err
+	}
+	fillOuter := func() (interface{}, error) {
+		err := c.currencyPreferenceCache.GetWithFill(mctx, accountID.String(), &res, fillInner)
+		return res, err
+	}
+	if !bid.IsNil() {
+		foreverKey := fmt.Sprintf("%v:%v", accountID, bid)
+		err = c.currencyPreferenceForeverCache.GetWithFill(mctx, foreverKey, &res, fillOuter)
+		return res, err
+	}
+	_, err = fillOuter()
+	return res, err
+}
+
+func (c *buildPaymentCache) InformDefaultCurrencyChange(mctx libkb.MetaContext) {
+	c.currencyPreferenceCache.Clear()
+	c.currencyPreferenceForeverCache.Clear()
 }

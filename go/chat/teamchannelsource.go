@@ -5,225 +5,356 @@ import (
 	"fmt"
 	"sort"
 	"sync"
+	"time"
 
-	"github.com/hashicorp/golang-lru"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
+	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-type teamChannelCacheItem struct {
-	dat []chat1.ChannelNameMention
+type recentJoinsCacheItem struct {
+	numJoins int
+	mtime    gregor1.Time
 }
 
-type CachingTeamChannelSource struct {
+type recentJoinsMemCache struct {
+	sync.RWMutex
+	cache map[chat1.ConvIDStr]recentJoinsCacheItem
+}
+
+func newRecentJoinsMemCache() *recentJoinsMemCache {
+	return &recentJoinsMemCache{
+		cache: make(map[chat1.ConvIDStr]recentJoinsCacheItem),
+	}
+}
+
+func (i *recentJoinsMemCache) Get(convID chat1.ConversationID) int {
+	i.RLock()
+	defer i.RUnlock()
+	if item, ok := i.cache[convID.ConvIDStr()]; ok {
+		if time.Since(item.mtime.Time()) > time.Hour {
+			delete(i.cache, convID.ConvIDStr())
+			return -1
+		}
+		return item.numJoins
+	}
+	return -1
+}
+
+func (i *recentJoinsMemCache) Put(convID chat1.ConversationID, numJoins int) {
+	i.Lock()
+	defer i.Unlock()
+	i.cache[convID.ConvIDStr()] = recentJoinsCacheItem{
+		numJoins: numJoins,
+		mtime:    gregor1.ToTime(time.Now()),
+	}
+}
+
+func (i *recentJoinsMemCache) clearCache() {
+	i.Lock()
+	defer i.Unlock()
+	i.cache = make(map[chat1.ConvIDStr]recentJoinsCacheItem)
+}
+
+func (i *recentJoinsMemCache) OnLogout(mctx libkb.MetaContext) error {
+	i.clearCache()
+	return nil
+}
+
+func (i *recentJoinsMemCache) OnDbNuke(mctx libkb.MetaContext) error {
+	i.clearCache()
+	return nil
+}
+
+type lastActiveAtCacheItem struct {
+	lastActiveAt gregor1.Time
+	mtime        gregor1.Time
+}
+
+type lastActiveAtMemCache struct {
+	sync.RWMutex
+	// key: teamID||uid
+	cache map[string]lastActiveAtCacheItem
+}
+
+func newLastActiveAtMemCache() *lastActiveAtMemCache {
+	return &lastActiveAtMemCache{
+		cache: make(map[string]lastActiveAtCacheItem),
+	}
+}
+
+func (i *lastActiveAtMemCache) key(teamID keybase1.TeamID, uid gregor1.UID) string {
+	return fmt.Sprintf("%s:%s", teamID, uid)
+}
+
+func (i *lastActiveAtMemCache) Get(teamID keybase1.TeamID, uid gregor1.UID) (gregor1.Time, bool) {
+	i.RLock()
+	defer i.RUnlock()
+	if item, ok := i.cache[i.key(teamID, uid)]; ok {
+		if time.Since(item.mtime.Time()) > time.Hour {
+			delete(i.cache, i.key(teamID, uid))
+			return 0, false
+		}
+		return item.lastActiveAt, true
+	}
+	return 0, false
+}
+
+func (i *lastActiveAtMemCache) Put(teamID keybase1.TeamID, uid gregor1.UID, lastActiveAt gregor1.Time) {
+	i.Lock()
+	defer i.Unlock()
+	i.cache[i.key(teamID, uid)] = lastActiveAtCacheItem{
+		lastActiveAt: lastActiveAt,
+		mtime:        gregor1.ToTime(time.Now()),
+	}
+}
+
+func (i *lastActiveAtMemCache) clearCache() {
+	i.Lock()
+	defer i.Unlock()
+	i.cache = make(map[string]lastActiveAtCacheItem)
+}
+
+func (i *lastActiveAtMemCache) OnLogout(mctx libkb.MetaContext) error {
+	i.clearCache()
+	return nil
+}
+
+func (i *lastActiveAtMemCache) OnDbNuke(mctx libkb.MetaContext) error {
+	i.clearCache()
+	return nil
+}
+
+type TeamChannelSource struct {
+	sync.Mutex
 	globals.Contextified
 	utils.DebugLabeler
-	sync.Mutex
-
-	offline bool
-	cache   *lru.Cache
-	ri      func() chat1.RemoteInterface
+	recentJoinsCache  *recentJoinsMemCache
+	lastActiveAtCache *lastActiveAtMemCache
 }
 
-var _ types.TeamChannelSource = (*CachingTeamChannelSource)(nil)
+var _ types.TeamChannelSource = (*TeamChannelSource)(nil)
 
-func NewCachingTeamChannelSource(g *globals.Context, ri func() chat1.RemoteInterface) *CachingTeamChannelSource {
-	c, err := lru.New(100)
+func NewTeamChannelSource(g *globals.Context) *TeamChannelSource {
+	return &TeamChannelSource{
+		Contextified:      globals.NewContextified(g),
+		DebugLabeler:      utils.NewDebugLabeler(g.ExternalG(), "TeamChannelSource", false),
+		recentJoinsCache:  newRecentJoinsMemCache(),
+		lastActiveAtCache: newLastActiveAtMemCache(),
+	}
+}
+
+func (c *TeamChannelSource) OnLogout(mctx libkb.MetaContext) error {
+	epick := libkb.FirstErrorPicker{}
+	epick.Push(c.recentJoinsCache.OnLogout(mctx))
+	epick.Push(c.lastActiveAtCache.OnLogout(mctx))
+	return epick.Error()
+}
+
+func (c *TeamChannelSource) OnDbNuke(mctx libkb.MetaContext) error {
+	epick := libkb.FirstErrorPicker{}
+	epick.Push(c.recentJoinsCache.OnDbNuke(mctx))
+	epick.Push(c.lastActiveAtCache.OnDbNuke(mctx))
+	return epick.Error()
+}
+
+func (c *TeamChannelSource) getTLFConversations(ctx context.Context, uid gregor1.UID,
+	tlfID chat1.TLFID, topicType chat1.TopicType) ([]types.RemoteConversation, error) {
+	inbox, err := c.G().InboxSource.ReadUnverified(ctx, uid, types.InboxSourceDataSourceAll,
+		&chat1.GetInboxQuery{
+			TlfID:            &tlfID,
+			TopicType:        &topicType,
+			SummarizeMaxMsgs: false,
+			MemberStatus:     chat1.AllConversationMemberStatuses(),
+			Existences:       []chat1.ConversationExistence{chat1.ConversationExistence_ACTIVE},
+			SkipBgLoads:      true,
+		})
+	return inbox.ConvsUnverified, err
+}
+
+func (c *TeamChannelSource) GetLastActiveForTLF(ctx context.Context, uid gregor1.UID,
+	tlfID chat1.TLFID, topicType chat1.TopicType) (res gregor1.Time, err error) {
+	defer c.Trace(ctx, &err,
+		fmt.Sprintf("GetLastActiveForTLF: tlfID: %v, topicType: %v", tlfID, topicType))()
+
+	rcs, err := c.getTLFConversations(ctx, uid, tlfID, topicType)
 	if err != nil {
-		panic(err)
+		return 0, err
 	}
-	return &CachingTeamChannelSource{
-		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "CachingTeamChannelSource", false),
-		ri:           ri,
-		cache:        c,
+	sort.Sort(utils.RemoteConvByMtime(rcs))
+	if len(rcs) > 0 {
+		return utils.GetConvMtime(rcs[0]), nil
 	}
+	return 0, nil
 }
 
-func (c *CachingTeamChannelSource) key(teamID chat1.TLFID, topicType chat1.TopicType) string {
-	return fmt.Sprintf("tid:%v,tt:%v", teamID.String(), int(topicType))
-}
+func (c *TeamChannelSource) GetLastActiveForTeams(ctx context.Context, uid gregor1.UID, topicType chat1.TopicType) (
+	res chat1.LastActiveTimeAll, err error) {
+	ctx = globals.CtxModifyUnboxMode(ctx, types.UnboxModeQuick)
+	defer c.Trace(ctx, &err,
+		fmt.Sprintf("GetLastActiveForTeams: topicType: %v", topicType))()
 
-func (c *CachingTeamChannelSource) fetchFromCache(ctx context.Context,
-	teamID chat1.TLFID, topicType chat1.TopicType) (res []chat1.ChannelNameMention, ok bool) {
-	val, ok := c.cache.Get(c.key(teamID, topicType))
-	if !ok {
-		return res, false
+	inbox, err := c.G().InboxSource.ReadUnverified(ctx, uid, types.InboxSourceDataSourceAll,
+		&chat1.GetInboxQuery{
+			TopicType:        &topicType,
+			SummarizeMaxMsgs: false,
+			MemberStatus:     chat1.AllConversationMemberStatuses(),
+			Existences:       []chat1.ConversationExistence{chat1.ConversationExistence_ACTIVE},
+			MembersTypes:     []chat1.ConversationMembersType{chat1.ConversationMembersType_TEAM},
+			SkipBgLoads:      true,
+		})
+	byTLFID := make(map[chat1.TLFIDStr][]types.RemoteConversation)
+	channels := make(map[chat1.ConvIDStr]gregor1.Time, len(inbox.ConvsUnverified))
+	for _, conv := range inbox.ConvsUnverified {
+		rc := conv
+		tlfID := rc.Conv.Metadata.IdTriple.Tlfid.TLFIDStr()
+		byTLFID[tlfID] = append(byTLFID[tlfID], rc)
+		channels[rc.ConvIDStr] = utils.GetConvMtime(rc)
 	}
-	var item teamChannelCacheItem
-	if item, ok = val.(teamChannelCacheItem); !ok {
-		return nil, false
+	teams := make(map[chat1.TLFIDStr]gregor1.Time, len(byTLFID))
+	for tlfID, rcs := range byTLFID {
+		sort.Sort(utils.RemoteConvByMtime(rcs))
+		teams[tlfID] = channels[rcs[0].ConvIDStr]
 	}
-	// c.ChannelsChanged handles cache invalidation on updates.
-	return item.dat, true
+	res.Teams = teams
+	res.Channels = channels
+	return res, nil
 }
 
-func (c *CachingTeamChannelSource) writeToCache(ctx context.Context,
-	teamID chat1.TLFID, topicType chat1.TopicType, names []chat1.ChannelNameMention) {
-	c.cache.Add(c.key(teamID, topicType), teamChannelCacheItem{
-		dat: names,
-	})
-}
+func (c *TeamChannelSource) GetChannelsFull(ctx context.Context, uid gregor1.UID,
+	tlfID chat1.TLFID, topicType chat1.TopicType) (res []chat1.ConversationLocal, err error) {
+	ctx = globals.CtxModifyUnboxMode(ctx, types.UnboxModeQuick)
+	defer c.Trace(ctx, &err,
+		fmt.Sprintf("GetChannelsFull: tlfID: %v, topicType: %v", tlfID, topicType))()
 
-func (c *CachingTeamChannelSource) invalidate(ctx context.Context, teamID chat1.TLFID) {
-	for _, topicType := range chat1.TopicTypeMap {
-		c.cache.Remove(c.key(teamID, topicType))
-	}
-}
-
-func (c *CachingTeamChannelSource) GetChannelsFull(ctx context.Context, uid gregor1.UID, teamID chat1.TLFID,
-	topicType chat1.TopicType) (res []chat1.ConversationLocal, err error) {
-	var convs []chat1.Conversation
-	tlfRes, err := c.ri().GetTLFConversations(ctx, chat1.GetTLFConversationsArg{
-		TlfID:            teamID,
-		TopicType:        topicType,
-		SummarizeMaxMsgs: false,
-	})
+	rcs, err := c.getTLFConversations(ctx, uid, tlfID, topicType)
 	if err != nil {
-		return res, err
+		return nil, err
 	}
-	convs = tlfRes.Conversations
-
-	// Localize the conversations
-	res, err = NewBlockingLocalizer(c.G()).Localize(ctx, uid, types.Inbox{
-		ConvsUnverified: utils.RemoteConvs(convs),
-	})
+	for _, rc := range rcs {
+		c.G().ParticipantsSource.GetWithNotifyNonblock(ctx, uid, rc.GetConvID(),
+			types.InboxSourceDataSourceAll)
+	}
+	convs, _, err := c.G().InboxSource.Localize(ctx, uid, rcs, types.ConversationLocalizerBlocking)
 	if err != nil {
 		c.Debug(ctx, "GetChannelsFull: failed to localize conversations: %s", err.Error())
-		return res, err
+		return nil, err
 	}
-	sort.Sort(utils.ConvLocalByTopicName(res))
-	return res, nil
+	sort.Sort(utils.ConvLocalByTopicName(convs))
+	c.Debug(ctx, "GetChannelsFull: found %d convs", len(convs))
+	return convs, nil
 }
 
-func (c *CachingTeamChannelSource) GetChannelsTopicName(ctx context.Context, uid gregor1.UID,
-	teamID chat1.TLFID, topicType chat1.TopicType) (res []chat1.ChannelNameMention, err error) {
+func (c *TeamChannelSource) GetChannelsTopicName(ctx context.Context, uid gregor1.UID,
+	tlfID chat1.TLFID, topicType chat1.TopicType) (res []chat1.ChannelNameMention, err error) {
+	ctx = globals.CtxModifyUnboxMode(ctx, types.UnboxModeQuick)
+	defer c.Trace(ctx, &err,
+		fmt.Sprintf("GetChannelsTopicName: tlfID: %v, topicType: %v", tlfID, topicType))()
 
-	var ok bool
-	if res, ok = c.fetchFromCache(ctx, teamID, topicType); ok {
-		c.Debug(ctx, "GetChannelsTopicName: cache hit")
-		return res, nil
+	addValidMetadataMsg := func(convID chat1.ConversationID, msg chat1.MessageUnboxed) {
+		if !msg.IsValid() {
+			c.Debug(ctx, "GetChannelsTopicName: metadata message invalid: convID, %s", convID)
+			return
+		}
+		body := msg.Valid().MessageBody
+		typ, err := body.MessageType()
+		if err != nil {
+			c.Debug(ctx, "GetChannelsTopicName: error getting message type: convID, %s",
+				convID, err)
+			return
+		}
+		if typ != chat1.MessageType_METADATA {
+			c.Debug(ctx, "GetChannelsTopicName: message not a real metadata message: convID, %s msgID: %d",
+				convID, msg.GetMessageID())
+			return
+		}
+		res = append(res, chat1.ChannelNameMention{
+			ConvID:    convID,
+			TopicName: body.Metadata().ConversationTitle,
+		})
 	}
 
-	var convs []chat1.Conversation
-	tlfRes, err := c.ri().GetTLFConversations(ctx, chat1.GetTLFConversationsArg{
-		TlfID:            teamID,
-		TopicType:        topicType,
-		SummarizeMaxMsgs: false,
-		// The cached data is valid at the tlfID level, since we don't need
-		// anything user specific, this is ok to pass in. If that assumption
-		// changes we should reevaluate.
-		UseCache: true,
-	})
+	convs, err := c.getTLFConversations(ctx, uid, tlfID, topicType)
 	if err != nil {
-		c.Debug(ctx, "GetChannelsTopicName: failed to get TLF convos: %s", err)
-		return res, err
+		return nil, err
 	}
-	convs = tlfRes.Conversations
-
-	getMetadataMsg := func(conv chat1.Conversation) (chat1.MessageBoxed, bool) {
-		for _, msg := range conv.MaxMsgs {
-			if msg.GetMessageType() == chat1.MessageType_METADATA {
-				return msg, true
-			}
+	for _, rc := range convs {
+		conv := rc.Conv
+		msg, err := conv.GetMaxMessage(chat1.MessageType_METADATA)
+		if err != nil {
+			continue
 		}
-		return chat1.MessageBoxed{}, false
-	}
-
-	// Find metadata messages in this result and unbox them
-	for _, conv := range convs {
-		msg, ok := getMetadataMsg(conv)
-		if ok {
-			unboxeds, err := c.G().ConvSource.GetMessagesWithRemotes(ctx, conv, uid, []chat1.MessageBoxed{msg})
-			if err != nil {
-				c.Debug(ctx, "GetChannelsTopicName: failed to unbox metadata message for: convID: %s err: %s",
-					conv.GetConvID(), err)
-				continue
-			}
-			if len(unboxeds) != 1 {
-				c.Debug(ctx, "GetChannelsTopicName: empty result: convID: %s", conv.GetConvID())
-				continue
-			}
-			unboxed := unboxeds[0]
-			if !unboxed.IsValid() {
-				c.Debug(ctx, "GetChannelsTopicName: metadata message invalid: convID, %s",
-					conv.GetConvID())
-				continue
-			}
-			body := unboxed.Valid().MessageBody
-			typ, err := body.MessageType()
-			if err != nil {
-				c.Debug(ctx, "GetChannelsTopicName: error getting message type: convID, %s",
-					conv.GetConvID(), err)
-				continue
-			}
-			if typ != chat1.MessageType_METADATA {
-				c.Debug(ctx, "GetChannelsTopicName: message not a real metadata message: convID, %s msgID: %d",
-					conv.GetConvID(), unboxed.GetMessageID())
-				continue
-			}
-
-			res = append(res, chat1.ChannelNameMention{
-				ConvID:    conv.GetConvID(),
-				TopicName: body.Metadata().ConversationTitle,
-			})
+		unboxeds, err := c.G().ConvSource.GetMessages(ctx, conv.GetConvID(), uid,
+			[]chat1.MessageID{msg.GetMessageID()}, nil, nil, false)
+		if err != nil {
+			c.Debug(ctx, "GetChannelsTopicName: failed to unbox metadata message for: convID: %s err: %s",
+				conv.GetConvID(), err)
+			continue
 		}
+		if len(unboxeds) != 1 {
+			c.Debug(ctx, "GetChannelsTopicName: empty result: convID: %s", conv.GetConvID())
+			continue
+		}
+		addValidMetadataMsg(conv.GetConvID(), unboxeds[0])
 	}
-
-	c.writeToCache(ctx, teamID, topicType, res)
 	return res, nil
 }
 
-func (c *CachingTeamChannelSource) GetChannelTopicName(ctx context.Context, uid gregor1.UID, tlfID chat1.TLFID,
-	topicType chat1.TopicType, convID chat1.ConversationID) (topicName string, err error) {
+func (c *TeamChannelSource) GetChannelTopicName(ctx context.Context, uid gregor1.UID,
+	tlfID chat1.TLFID, topicType chat1.TopicType, convID chat1.ConversationID) (res string, err error) {
+	ctx = globals.CtxModifyUnboxMode(ctx, types.UnboxModeQuick)
+	defer c.Trace(ctx, &err,
+		fmt.Sprintf("GetChannelTopicName: tlfID: %v, topicType: %v, convID: %v", tlfID, topicType, convID))()
+
 	convs, err := c.GetChannelsTopicName(ctx, uid, tlfID, topicType)
 	if err != nil {
-		return topicName, err
+		return "", err
 	}
 	if len(convs) == 0 {
-		return topicName, fmt.Errorf("no convs found")
+		return "", fmt.Errorf("no convs found")
 	}
 	for _, conv := range convs {
 		if conv.ConvID.Eq(convID) {
 			return conv.TopicName, nil
 		}
 	}
-	return topicName, fmt.Errorf("no convs found with conv ID")
+	return "", fmt.Errorf("no convs found with convID")
 }
 
-func (c *CachingTeamChannelSource) ChannelsChanged(ctx context.Context, teamID chat1.TLFID) {
-	if len(teamID) == 0 {
-		// Clear everything with blank TLF ID
-		c.Debug(ctx, "ChannelsChanged: blank TLFID, dropping entire cache")
-		c.cache.Purge()
-	} else {
-		c.invalidate(ctx, teamID)
-		// Let's prefill the cache here so we can quickly figure out channel
-		// name mentions.
-		uid := gregor1.UID(c.G().Env.GetUID().ToBytes())
-		c.GetChannelsTopicName(ctx, uid, teamID, chat1.TopicType_CHAT)
+func (c *TeamChannelSource) GetRecentJoins(ctx context.Context, convID chat1.ConversationID, remoteClient chat1.RemoteInterface) (res int, err error) {
+	defer c.Trace(ctx, &err, "GetRecentJoins")()
+
+	numJoins := c.recentJoinsCache.Get(convID)
+	if numJoins < 0 {
+		res, err := remoteClient.GetRecentJoins(ctx, convID)
+		if err != nil {
+			return 0, err
+		}
+		numJoins = res.NumJoins
+		c.recentJoinsCache.Put(convID, numJoins)
 	}
+	return numJoins, nil
 }
 
-func (c *CachingTeamChannelSource) IsOffline(ctx context.Context) bool {
-	c.Lock()
-	defer c.Unlock()
-	return c.offline
-}
+func (c *TeamChannelSource) GetLastActiveAt(ctx context.Context, teamID keybase1.TeamID, uid gregor1.UID,
+	remoteClient chat1.RemoteInterface) (res gregor1.Time, err error) {
+	defer c.Trace(ctx, &err, "GetLastActiveAt")()
 
-func (c *CachingTeamChannelSource) Connected(ctx context.Context) {
-	c.Lock()
-	defer c.Unlock()
-	c.Debug(ctx, "Connected: dropping cache")
-	c.cache.Purge()
-	c.offline = false
-}
-
-func (c *CachingTeamChannelSource) Disconnected(ctx context.Context) {
-	c.Lock()
-	defer c.Unlock()
-	c.offline = true
+	lastActiveAt, found := c.lastActiveAtCache.Get(teamID, uid)
+	if !found {
+		res, err := remoteClient.GetLastActiveAt(ctx, chat1.GetLastActiveAtArg{
+			TeamID: teamID,
+			Uid:    uid,
+		})
+		if err != nil {
+			return 0, err
+		}
+		lastActiveAt = res.LastActiveAt
+		c.lastActiveAtCache.Put(teamID, uid, lastActiveAt)
+	}
+	return lastActiveAt, nil
 }

@@ -1,23 +1,14 @@
 {
-  "prelude": [
-    "import * as RPCTypesGregor from '../constants/types/rpc-gregor-gen'",
-    "import * as Types from '../constants/types/git'"
-  ],
+  "prelude": ["import type * as Types from '../constants/types/git'"],
   "actions": {
     "loadGit": {},
-    "loaded": {
-      "repos": "{\"[key: string]\": Types.GitInfo}",
-      "errors": "Array<Error>"
-    },
-    "navToGit": {"switchTab": "boolean", "routeState": "?{\"expandedSet\": I.Set<string>}"},
+    "loaded": {"repos": "Map<string, Types.GitInfo>"},
     "createTeamRepo": {
       "name": "string",
       "teamname": "string",
       "notifyTeam": "boolean"
     },
-    "createPersonalRepo": {
-      "name": "string"
-    },
+    "createPersonalRepo": {"name": "string"},
     "repoDeleted": {},
     "repoCreated": {},
     "deleteTeamRepo": {
@@ -25,28 +16,19 @@
       "teamname": "string",
       "notifyTeam": "boolean"
     },
-    "deletePersonalRepo": {
-      "name": "string"
-    },
-    "setError": {
-      "error": "?Error"
-    },
-    "badgeAppForGit": {
-      "ids": "Array<string>"
-    },
+    "deletePersonalRepo": {"name": "string"},
+    "setError": {"error?": "Error"},
+    "badgeAppForGit": {"ids": "Set<string>"},
     "setTeamRepoSettings": {
       "chatDisabled": "boolean",
-      "channelName": "?string",
+      "channelName?": "string",
       "teamname": "string",
       "repoID": "string"
-    },
-    "loadGitRepo": {
-      "username": "?string",
-      "teamname": "?string"
     },
     "navigateToTeamRepo": {
       "repoID": "string",
       "teamname": "string"
-    }
+    },
+    "clearBadges": {"_description": "clears badges in the rows"}
   }
 }

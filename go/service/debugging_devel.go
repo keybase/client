@@ -1,26 +1,37 @@
 // Copyright 2018 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
 //
+//go:build !production
 // +build !production
 
 package service
 
 import (
+	"encoding/json"
 	"fmt"
 	"sort"
+	"strings"
+	"sync"
 	"time"
 
 	"github.com/davecgh/go-spew/spew"
+	chatwallet "github.com/keybase/client/go/chat/wallet"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/protocol/stellar1"
+	"github.com/keybase/client/go/teams"
+	"github.com/keybase/stellarnet"
+	"github.com/stellar/go/build"
+
+	// nolint
+	"github.com/stellar/go/clients/horizon"
 	"golang.org/x/net/context"
 )
 
-func (t *DebuggingHandler) Script(ctx context.Context, arg keybase1.ScriptArg) (res string, err error) {
+func (t *DebuggingHandler) scriptExtras(ctx context.Context, arg keybase1.ScriptArg) (res string, err error) {
 	ctx = libkb.WithLogTag(ctx, "DG")
 	m := libkb.NewMetaContext(ctx, t.G())
-	defer m.CTraceTimed(fmt.Sprintf("Script(%s)", arg.Script), func() error { return err })()
 	args := arg.Args
 	log := func(format string, args ...interface{}) {
 		t.G().Log.CInfof(ctx, format, args...)
@@ -52,7 +63,7 @@ func (t *DebuggingHandler) Script(ctx context.Context, arg keybase1.ScriptArg) (
 		err := engine.RunEngine2(m, eng)
 		log("GetProofSet: %v", spew.Sdump(eng.GetProofSet()))
 		log("ConfirmResult: %v", spew.Sdump(eng.ConfirmResult()))
-		eres, eerr := eng.Result()
+		eres, eerr := eng.Result(m)
 		if eres != nil {
 			log("Result.Upk.Username: %v", spew.Sdump(eres.Upk.GetName()))
 			log("Result.IdentifiedAt: %v", spew.Sdump(eres.IdentifiedAt))
@@ -79,19 +90,209 @@ func (t *DebuggingHandler) Script(ctx context.Context, arg keybase1.ScriptArg) (
 		if len(args) != 1 {
 			return "", fmt.Errorf("require 1 arg: username")
 		}
+
+		// UPAK
 		upak, _, err := t.G().GetUPAKLoader().LoadV2(libkb.NewLoadUserArgWithMetaContext(m).WithName(args[0]).WithPublicKeyOptional())
 		if err != nil {
 			return "", err
 		}
-		var eldestSeqnos []keybase1.Seqno
+		var upakEldestSeqnos []keybase1.Seqno
 		for _, upak := range upak.AllIncarnations() {
-			eldestSeqnos = append(eldestSeqnos, upak.EldestSeqno)
+			upakEldestSeqnos = append(upakEldestSeqnos, upak.EldestSeqno)
 		}
-		sort.Slice(eldestSeqnos, func(i, j int) bool {
-			return eldestSeqnos[i] < eldestSeqnos[j]
+		sort.Slice(upakEldestSeqnos, func(i, j int) bool {
+			return upakEldestSeqnos[i] < upakEldestSeqnos[j]
 		})
-		log("%v", eldestSeqnos)
+
+		// Full user
+		them, err := libkb.LoadUser(libkb.NewLoadUserArgWithMetaContext(m).WithName(args[0]).WithPublicKeyOptional())
+		if err != nil {
+			return "", err
+		}
+
+		obj := struct {
+			UPAKEldestSeqno     keybase1.Seqno   `json:"upak_current_eldest"`
+			UPAKEldestSeqnos    []keybase1.Seqno `json:"upak_eldest_seqnos"`
+			FullUserEldestSeqno keybase1.Seqno   `json:"fu_eldest_seqno"`
+		}{upak.ToUserVersion().EldestSeqno, upakEldestSeqnos, them.GetCurrentEldestSeqno()}
+		bs, err := json.Marshal(obj)
+		if err != nil {
+			return "", err
+		}
+		return fmt.Sprintf("%v\n", string(bs)), nil
+	case "userhigh":
+		// List user high links
+		if len(args) != 1 {
+			return "", fmt.Errorf("require 1 arg: username")
+		}
+		user, err := libkb.LoadUser(libkb.NewLoadUserArgWithMetaContext(m).WithName(args[0]).WithPublicKeyOptional())
+		if err != nil {
+			return "", err
+		}
+		hls, err := user.GetHighLinkSeqnos(m)
+		if err != nil {
+			return "", err
+		}
+		obj := struct {
+			Seqnos []keybase1.Seqno `json:"seqnos"`
+		}{hls}
+		bs, err := json.Marshal(obj)
+		if err != nil {
+			return "", err
+		}
+		return fmt.Sprintf("%v\n", string(bs)), nil
+	case "buildpayment":
+		// Run build a bunch of times with a tight spread.
+		if len(args) != 1 {
+			return "", fmt.Errorf("require 1 args: <recipient>")
+		}
+		recipient := args[0]
+		count := 30
+		var wg sync.WaitGroup
+		for i := 0; i < count; i++ {
+			i := i
+			wg.Add(1)
+			if i%5 == 0 {
+				time.Sleep(100 * time.Millisecond)
+			}
+			if i == 10 {
+				time.Sleep(2 * time.Second)
+			}
+			start := time.Now()
+			log("build[%v] starting", i)
+			go func() {
+				defer wg.Done()
+				ctx := libkb.WithLogTagWithValue(ctx, "DGI", fmt.Sprintf("%vx", i))
+				res, err := t.walletHandler.BuildPaymentLocal(ctx, stellar1.BuildPaymentLocalArg{
+					SessionID:          500 + i,
+					FromPrimaryAccount: true,
+					To:                 recipient,
+					Amount:             "0.01",
+					SecretNote:         "xx",
+					PublicMemo:         "yy",
+				})
+				took := time.Since(start)
+				if err != nil {
+					log("build[%v] [%v] error: %v", i, took, err)
+					return
+				}
+				log("build[%v] [%v] ok", i, took)
+				log("build[%v] res: %v", i, spew.Sdump(res))
+			}()
+		}
+		wg.Wait()
 		return "", nil
+	case "reviewpayment":
+		// Send a payment including the review stage.
+		if len(args) != 1 {
+			return "", fmt.Errorf("require 1 args: <recipient>")
+		}
+		recipient := args[0]
+		sessionIDNext := 500
+		sessionID := func() int {
+			sessionIDNext++
+			return sessionIDNext - 1
+		}
+		bid, err := t.walletHandler.StartBuildPaymentLocal(ctx, sessionID())
+		if err != nil {
+			return "", err
+		}
+		log("%v", bid)
+
+		buildRes, err := t.walletHandler.BuildPaymentLocal(ctx, stellar1.BuildPaymentLocalArg{
+			SessionID:          sessionID(),
+			Bid:                bid,
+			FromPrimaryAccount: true,
+			To:                 recipient,
+			Amount:             "3.004",
+			SecretNote:         "xx",
+			PublicMemo:         "yy",
+		})
+		if err != nil {
+			return "", err
+		}
+		log("%v", spew.Sdump(buildRes))
+
+		err = t.walletHandler.ReviewPaymentLocal(ctx, stellar1.ReviewPaymentLocalArg{
+			SessionID: sessionID(),
+			Bid:       bid,
+		})
+		if err != nil {
+			return "", err
+		}
+		// Assume that the review closed because it succeeded.
+		// This is not necessarily true. Better would be to use stellar UI.
+		// Grep for "sending UIPaymentReview".
+
+		sendRes, err := t.walletHandler.SendPaymentLocal(ctx, stellar1.SendPaymentLocalArg{
+			SessionID:  sessionID(),
+			Bid:        bid,
+			From:       buildRes.From,
+			To:         recipient,
+			Amount:     "3.004",
+			Asset:      stellar1.AssetNative(),
+			SecretNote: "xx",
+			PublicMemo: "yy",
+		})
+		if err != nil {
+			return "", err
+		}
+		log("%v", spew.Sdump(sendRes))
+		return "done\n", nil
+	case "minichatpayment":
+		parsed := chatwallet.FindChatTxCandidates(strings.Join(args, " "))
+		minis := make([]libkb.MiniChatPayment, len(parsed))
+		for i, p := range parsed {
+			if p.Username == nil {
+				return "", fmt.Errorf("missing username")
+			}
+			mini := libkb.MiniChatPayment{
+				Username: libkb.NewNormalizedUsername(*p.Username),
+				Amount:   p.Amount,
+				Currency: p.CurrencyCode,
+			}
+			minis[i] = mini
+		}
+		stellarnet.SetClientAndNetwork(horizon.DefaultTestNetClient, build.TestNetwork)
+
+		results, err := t.G().GetStellar().SendMiniChatPayments(m, nil, minis)
+		if err != nil {
+			return "", err
+		}
+		log("send mini results: %+v", results)
+		return "success", nil
+	case "proof-suggestions":
+		if len(args) > 0 {
+			return "", fmt.Errorf("require 0 args")
+		}
+		ret, err := t.userHandler.ProofSuggestions(ctx, 0)
+		if err != nil {
+			return "", err
+		}
+		log("%v", spew.Sdump(ret))
+		return "", nil
+	case "execute-invite":
+		teamID, err := keybase1.TeamIDFromString("978d0d88131e85123a142f87e8769d24")
+		if err != nil {
+			return "", err
+		}
+		err = teams.HandleSBSRequest(ctx, m.G(), keybase1.TeamSBSMsg{
+			TeamID: teamID,
+			Invitees: []keybase1.TeamInvitee{{
+				InviteID:    "828cb94d4c2b07b694ce578b2944ae27",
+				Uid:         "7080d7d007b46805c33e66b267e1e819",
+				EldestSeqno: 30,
+				Role:        keybase1.TeamRole_OWNER,
+			}},
+		})
+		return "", err
+	case "re-add":
+		teamID, err := keybase1.TeamIDFromString("fa6da9bceb6df00c5c6afd724a889d24")
+		if err != nil {
+			return "", err
+		}
+		err = teams.ReAddMemberAfterReset(ctx, m.G(), teamID, "ireset1")
+		return "", err
 	case "":
 		return "", fmt.Errorf("empty script name")
 	default:

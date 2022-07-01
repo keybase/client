@@ -10,12 +10,12 @@ nobuild=${NOBUILD:-} # Don't build go binaries
 istest=${TEST:-} # If set to true, only build (for testing)
 nopull=${NOPULL:-} # Don't git pull
 client_commit=${CLIENT_COMMIT:-} # Commit on client to build from
-kbfs_commit=${KBFS_COMMIT:-} # Commit on kbfs to build from
 bucket_name=${BUCKET_NAME:-"prerelease.keybase.io"}
 platform=${PLATFORM:-} # darwin,linux,windows (Only darwin is supported in this script)
 nos3=${NOS3:-} # Don't sync to S3
 nowait=${NOWAIT:-} # Don't wait for CI
 smoke_test=${SMOKE_TEST:-} # If set to 1, enable smoke testing
+skip_notarize=${NONOTARIZE:-} # Skip notarize
 
 if [ "$gopath" = "" ]; then
   echo "No GOPATH"
@@ -36,35 +36,27 @@ if [ ! "$bucket_name" = "" ]; then
   echo "Bucket name: $bucket_name"
 fi
 
-if [ "$bucket_name" = "prerelease.keybase.io" ]; then
-  # We have a CNAME for the prerelease bucket
-  s3host="https://prerelease.keybase.io"
-else
-  s3host="https://s3.amazonaws.com/$bucket_name/"
-fi
+s3host="https://s3.amazonaws.com/$bucket_name"
 
 build_dir_keybase="/tmp/build_keybase"
 build_dir_kbfs="/tmp/build_kbfs"
 build_dir_kbnm="/tmp/build_kbnm"
 build_dir_updater="/tmp/build_updater"
 client_dir="$gopath/src/github.com/keybase/client"
-kbfs_dir="$gopath/src/github.com/keybase/kbfs"
+kbfs_dir="$gopath/src/github.com/keybase/client/go/kbfs"
 updater_dir="$gopath/src/github.com/keybase/go-updater"
 
 if [ ! "$nopull" = "1" ]; then
-  "$client_dir/packaging/check_status_and_pull.sh" "$kbfs_dir"
   "$client_dir/packaging/check_status_and_pull.sh" "$updater_dir"
 fi
 
 echo "Loading release tool"
-"$client_dir/packaging/goinstall.sh" "github.com/keybase/release"
+(cd "$client_dir/go/buildtools"; go install "github.com/keybase/release")
 release_bin="$GOPATH/bin/release"
 
 client_branch=`cd "$client_dir" && git rev-parse --abbrev-ref HEAD`
-kbfs_branch=`cd "$kbfs_dir" && git rev-parse --abbrev-ref HEAD`
 function reset {
   (cd "$client_dir" && git checkout $client_branch)
-  (cd "$kbfs_dir" && git checkout $kbfs_branch)
 }
 trap reset EXIT
 
@@ -77,21 +69,10 @@ if [ -n "$client_commit" ]; then
   git pull || true
 fi
 
-if [ -n "$kbfs_commit" ]; then
-  cd "$kbfs_dir"
-  echo "Checking out $kbfs_commit on kbfs (will reset to $kbfs_branch)"
-  git checkout "$kbfs_commit"
-  # If commit is hash, this fails and is unnecessary, if branch it's needed to
-  # update if it has changed.
-  git pull || true
-fi
-
 # NB: This is duplicated in packaging/linux/build_and_push_packages.sh.
 if [ ! "$nowait" = "1" ]; then
   echo "Checking client CI"
   "$release_bin" wait-ci --repo="client" --commit=`git -C $client_dir log -1 --pretty=format:%h` --context="continuous-integration/jenkins/branch" --context="ci/circleci"
-  echo "Checking kbfs CI"
-  "$release_bin" wait-ci --repo="kbfs" --commit=`git -C $kbfs_dir log -1 --pretty=format:%h` --context="continuous-integration/jenkins/branch"
   echo "Checking updater CI"
   "$release_bin" wait-ci --repo="go-updater" --commit=`git -C $updater_dir log -1 --pretty=format:%h` --context="continuous-integration/travis-ci/push"
 
@@ -125,7 +106,7 @@ for ((i=1; i<=$number_of_builds; i++)); do
 
   if [ "$platform" = "darwin" ]; then
     SAVE_DIR="$save_dir" KEYBASE_BINPATH="$build_dir_keybase/keybase" KBFS_BINPATH="$build_dir_kbfs/kbfs" GIT_REMOTE_KEYBASE_BINPATH="$build_dir_kbfs/git-remote-keybase" REDIRECTOR_BINPATH="$build_dir_kbfs/keybase-redirector" KBNM_BINPATH="$build_dir_kbnm/kbnm" \
-      UPDATER_BINPATH="$build_dir_updater/updater" BUCKET_NAME="$bucket_name" S3HOST="$s3host" "$dir/../desktop/package_darwin.sh"
+      UPDATER_BINPATH="$build_dir_updater/updater" BUCKET_NAME="$bucket_name" S3HOST="$s3host" SKIP_NOTARIZE="$skip_notarize" "$dir/../desktop/package_darwin.sh"
   else
     # TODO: Support Linux build here?
     echo "Unknown platform: $platform"

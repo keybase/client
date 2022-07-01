@@ -19,7 +19,7 @@ import (
 type modeFNMR int
 
 const (
-	modeFNMRNone   modeFNMR = 0
+	_              modeFNMR = 0
 	modeFNMRRevoke modeFNMR = 1
 	modeFNMRReset  modeFNMR = 2
 )
@@ -88,7 +88,7 @@ func (c *cmdFNMR) runRevoke(ctx context.Context, cli keybase1.UserClient) error 
 	if err != nil {
 		return err
 	}
-	c.G().UI.GetTerminalUI().Output(string(jsonOut) + "\n")
+	_ = c.G().UI.GetTerminalUI().Output(string(jsonOut) + "\n")
 	return nil
 }
 
@@ -123,7 +123,7 @@ func (c *cmdFNMR) runReset(ctx context.Context, cli keybase1.UserClient) error {
 	if err != nil {
 		return err
 	}
-	c.G().UI.GetTerminalUI().Output(string(jsonOut) + "\n")
+	_ = c.G().UI.GetTerminalUI().Output(string(jsonOut) + "\n")
 	return nil
 }
 
@@ -134,7 +134,7 @@ func (c *cmdFNMR) Run() error {
 	}
 	ctx := context.Background()
 
-	c.upak, err = userClient.GetUPAK(ctx, c.uid)
+	c.upak, err = userClient.GetUPAK(ctx, keybase1.GetUPAKArg{Uid: c.uid})
 	if err != nil {
 		return err
 	}

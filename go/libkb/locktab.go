@@ -5,6 +5,7 @@ package libkb
 
 import (
 	"sync"
+	"time"
 
 	"golang.org/x/net/context"
 )
@@ -43,12 +44,18 @@ type LockTable struct {
 	locks map[string]*NamedLock
 }
 
+func NewLockTable() *LockTable {
+	return &LockTable{}
+}
+
 func (t *LockTable) init() {
 	if t.locks == nil {
 		t.locks = make(map[string]*NamedLock)
 	}
 }
 
+// AcquireOnName acquires s's lock.
+// Never gives up.
 func (t *LockTable) AcquireOnName(ctx context.Context, g VLogContext, s string) (ret *NamedLock) {
 	g.GetVDebugLog().CLogf(ctx, VLog1, "+ LockTable.Lock(%s)", s)
 	t.Lock()
@@ -62,4 +69,39 @@ func (t *LockTable) AcquireOnName(ctx context.Context, g VLogContext, s string) 
 	ret.Lock()
 	g.GetVDebugLog().CLogf(ctx, VLog1, "- LockTable.Lock(%s)", s)
 	return ret
+}
+
+// AcquireOnNameWithContext acquires s's lock.
+// Returns (ret, nil) if the lock was acquired.
+// Returns (nil, err) if it was not. The error is from ctx.Err().
+func (t *LockTable) AcquireOnNameWithContext(ctx context.Context, g VLogContext, s string) (ret *NamedLock, err error) {
+	g.GetVDebugLog().CLogf(ctx, VLog1, "+ LockTable.Lock(%s)", s)
+	err = AcquireWithContext(ctx, t)
+	if err != nil {
+		g.GetVDebugLog().CLogf(ctx, VLog1, "- LockTable.Lock(%s) outer canceled: %v", s, err)
+		return nil, err
+	}
+	t.init()
+	if ret = t.locks[s]; ret == nil {
+		ret = &NamedLock{lctx: g, refs: 0, name: s, parent: t}
+		t.locks[s] = ret
+	}
+	ret.incref()
+	t.Unlock()
+	err = AcquireWithContext(ctx, ret)
+	if err != nil {
+		g.GetVDebugLog().CLogf(ctx, VLog1, "- LockTable.Lock(%s) inner canceled: %v", s, err)
+		return nil, err
+	}
+	g.GetVDebugLog().CLogf(ctx, VLog1, "- LockTable.Lock(%s)", s)
+	return ret, nil
+}
+
+// AcquireOnNameWithContextAndTimeout acquires s's lock.
+// Returns (ret, nil) if the lock was acquired.
+// Returns (nil, err) if it was not. The error is from ctx.Err() or context.DeadlineExceeded.
+func (t *LockTable) AcquireOnNameWithContextAndTimeout(ctx context.Context, g VLogContext, s string, timeout time.Duration) (ret *NamedLock, err error) {
+	ctx2, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
+	return t.AcquireOnNameWithContext(ctx2, g, s)
 }

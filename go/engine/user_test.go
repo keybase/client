@@ -4,6 +4,7 @@
 package engine
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -22,7 +23,7 @@ func TestLoadUserPlusKeysHasKeys(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	up, err := libkb.LoadUserPlusKeys(nil, tc.G, me.GetUID(), "")
+	up, err := libkb.LoadUserPlusKeys(context.TODO(), tc.G, me.GetUID(), "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -34,15 +35,15 @@ func TestLoadUserPlusKeysHasKeys(t *testing.T) {
 func TestLoadUserPlusKeysRevoked(t *testing.T) {
 	fakeClock := clockwork.NewFakeClockAt(time.Now())
 	tc := SetupEngineTest(t, "login")
-	tc.G.SetClock(fakeClock)
 	defer tc.Cleanup()
+	tc.G.SetClock(fakeClock)
 
 	fu := CreateAndSignupFakeUserPaper(tc, "login")
 	me, err := libkb.LoadMe(libkb.NewLoadUserArg(tc.G))
 	if err != nil {
 		t.Fatal(err)
 	}
-	up, err := libkb.LoadUserPlusKeys(nil, tc.G, me.GetUID(), "")
+	up, err := libkb.LoadUserPlusKeys(context.TODO(), tc.G, me.GetUID(), "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -57,8 +58,8 @@ func TestLoadUserPlusKeysRevoked(t *testing.T) {
 	devices, _ := getActiveDevicesAndKeys(tc, fu)
 	var paper *libkb.Device
 	for _, device := range devices {
-		if device.Type == libkb.DeviceTypePaper {
-			paper = device
+		if device.Type == keybase1.DeviceTypeV2_PAPER {
+			paper = device.Device
 			break
 		}
 	}
@@ -68,7 +69,7 @@ func TestLoadUserPlusKeysRevoked(t *testing.T) {
 	}
 	fakeClock.Advance(libkb.CachedUserTimeout + 2*time.Second)
 
-	up2, err := libkb.LoadUserPlusKeys(nil, tc.G, me.GetUID(), "")
+	up2, err := libkb.LoadUserPlusKeys(context.TODO(), tc.G, me.GetUID(), "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -114,4 +115,47 @@ func TestMerkleHashMetaAndFirstAppearedInKeyFamily(t *testing.T) {
 	for _, subkey := range ckf.GetAllActiveSubkeys() {
 		checkSubkey(subkey.GetKID())
 	}
+}
+
+func assertPostedHighSkipSeqno(t *testing.T, tc libkb.TestContext, name string, seqno int) {
+	u, err := libkb.LoadUser(libkb.NewLoadUserByNameArg(tc.G, name))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	highSkip := u.GetLastLink().GetHighSkip()
+	require.Equal(t, highSkip.Seqno, keybase1.Seqno(seqno))
+}
+
+func TestBlankUserHighSkip(t *testing.T) {
+	tc := SetupEngineTest(t, "user")
+	defer tc.Cleanup()
+
+	i := CreateAndSignupFakeUser(tc, "login")
+
+	assertPostedHighSkipSeqno(t, tc, i.Username, 1)
+}
+
+func TestPaperUserHighSkip(t *testing.T) {
+	tc := SetupEngineTest(t, "user")
+	defer tc.Cleanup()
+	them, _ := createFakeUserWithNoKeys(tc)
+
+	i := CreateAndSignupFakeUserPaper(tc, "login")
+	assertPostedHighSkipSeqno(t, tc, i.Username, 4)
+
+	trackUser(tc, i, libkb.NewNormalizedUsername(them), libkb.GetDefaultSigVersion(tc.G))
+	assertPostedHighSkipSeqno(t, tc, i.Username, 4)
+
+	eng := NewPaperKey(tc.G)
+	uis := libkb.UIs{
+		LogUI:    tc.G.UI.GetLogUI(),
+		LoginUI:  &libkb.TestLoginUI{},
+		SecretUI: &libkb.TestSecretUI{},
+	}
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	if err := RunEngine2(m, eng); err != nil {
+		t.Fatal(err)
+	}
+	assertPostedHighSkipSeqno(t, tc, i.Username, 7)
 }

@@ -1,6 +1,7 @@
 // Copyright 2015 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
 
+//go:build windows
 // +build windows
 
 // Windows 10 has a new terminal that can do ANSI codes by itself, so all this
@@ -73,7 +74,6 @@ const (
 	fgYellow    WORD = 0x0006
 	fgWhite     WORD = 0x0007
 	fgIntensity WORD = 0x0008
-	fgMask      WORD = 0x000F
 
 	bgBlack     WORD = 0x0000
 	bgBlue      WORD = 0x0010
@@ -84,7 +84,6 @@ const (
 	bgYellow    WORD = 0x0060
 	bgWhite     WORD = 0x0070
 	bgIntensity WORD = 0x0080
-	bgMask      WORD = 0x00F0
 )
 
 var codesWin = map[byte]WORD{

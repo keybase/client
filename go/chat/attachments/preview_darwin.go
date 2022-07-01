@@ -1,3 +1,4 @@
+//go:build darwin
 // +build darwin
 
 package attachments
@@ -69,14 +70,14 @@ import (
 	"io"
 	"unsafe"
 
-	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"golang.org/x/net/context"
 )
 
-func previewVideo(ctx context.Context, g *globals.Context, log utils.DebugLabeler, src io.Reader,
-	basename string) (res *PreviewRes, err error) {
-	defer log.Trace(ctx, func() error { return err }, "previewVideo")()
+func previewVideo(ctx context.Context, log utils.DebugLabeler, src io.Reader,
+	basename string, nvh types.NativeVideoHelper) (res *PreviewRes, err error) {
+	defer log.Trace(ctx, &err, "previewVideo")()
 	C.MakeVideoThumbnail(C.CString(basename))
 	duration := int(C.VideoDuration())
 	if duration < 1 {
@@ -105,3 +106,5 @@ func previewVideo(ctx context.Context, g *globals.Context, log utils.DebugLabele
 		PreviewWidth:   imagePreview.PreviewWidth,
 	}, nil
 }
+
+func LinkNoop() {}

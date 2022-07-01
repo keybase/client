@@ -1,0 +1,139 @@
+/* Used by box on desktop to speed up perf */
+.box2_vertical {
+  align-items: stretch;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+.box2_verticalReverse {
+  align-items: stretch;
+  display: flex;
+  flex-direction: column-reverse;
+  justify-content: flex-start;
+}
+.box2_horizontal {
+  align-items: stretch;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+}
+.box2_horizontalReverse {
+  align-items: stretch;
+  display: flex;
+  flex-direction: row-reverse;
+  justify-content: flex-start;
+}
+.box2_centered {
+  align-self: center;
+}
+.box2_centeredChildren {
+  align-items: center;
+  justify-content: center;
+}
+.box2_fullHeight {
+  height: 100%;
+  max-height: 100%;
+}
+.box2_fullWidth {
+  width: 100%;
+  max-width: 100%;
+}
+.box2_gap_vertical_xxtiny {
+  flex-shrink: 0;
+  height: 2px;
+}
+.box2_gap_vertical_xtiny {
+  flex-shrink: 0;
+  height: 4px;
+}
+.box2_gap_vertical_tiny {
+  flex-shrink: 0;
+  height: 8px;
+}
+.box2_gap_vertical_xsmall {
+  flex-shrink: 0;
+  height: 12px;
+}
+.box2_gap_vertical_small {
+  flex-shrink: 0;
+  height: 16px;
+}
+.box2_gap_vertical_medium {
+  flex-shrink: 0;
+  height: 24px;
+}
+.box2_gap_vertical_mediumLarge {
+  flex-shrink: 0;
+  height: 32px;
+}
+.box2_gap_vertical_large {
+  flex-shrink: 0;
+  height: 40px;
+}
+.box2_gap_vertical_xlarge {
+  flex-shrink: 0;
+  height: 64px;
+}
+.box2_gap_horizontal_xxtiny {
+  flex-shrink: 0;
+  width: 2px;
+}
+.box2_gap_horizontal_xtiny {
+  flex-shrink: 0;
+  width: 4px;
+}
+.box2_gap_horizontal_tiny {
+  flex-shrink: 0;
+  width: 8px;
+}
+.box2_gap_horizontal_xsmall {
+  flex-shrink: 0;
+  width: 12px;
+}
+.box2_gap_horizontal_small {
+  flex-shrink: 0;
+  width: 16px;
+}
+.box2_gap_horizontal_medium {
+  flex-shrink: 0;
+  width: 24px;
+}
+.box2_gap_horizontal_mediumLarge {
+  flex-shrink: 0;
+  width: 32px;
+}
+.box2_gap_horizontal_large {
+  flex-shrink: 0;
+  width: 40px;
+}
+.box2_gap_horizontal_xlarge {
+  flex-shrink: 0;
+  width: 64px;
+}
+.box2_alignSelf_center {
+  align-self: center;
+}
+.box2_alignSelf_flex-start {
+  align-self: flex-start;
+}
+.box2_alignSelf_flex-end {
+  align-self: flex-end;
+}
+.box2_alignSelf_stretch {
+  align-self: stretch;
+}
+.box2_no_shrink {
+  flex-shrink: 0;
+}
+.box2_alignItems_center {
+  align-items: center;
+}
+.box2_alignItems_flex-start {
+  align-items: flex-start;
+}
+.box2_alignItems_flex-end {
+  align-items: flex-end;
+}
+.box2_pointerEvents_none {
+  pointer-events: none;
+}

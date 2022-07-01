@@ -52,6 +52,37 @@ func (u *LoginUI) DisplayPrimaryPaperKey(ctx context.Context, arg keybase1.Displ
 	return u.cli.DisplayPrimaryPaperKey(ctx, arg)
 }
 
+func (u *LoginUI) PromptResetAccount(ctx context.Context,
+	arg keybase1.PromptResetAccountArg) (keybase1.ResetPromptResponse, error) {
+	arg.SessionID = u.sessionID
+	return u.cli.PromptResetAccount(ctx, arg)
+}
+
+func (u *LoginUI) DisplayResetProgress(ctx context.Context, arg keybase1.DisplayResetProgressArg) error {
+	arg.SessionID = u.sessionID
+	return u.cli.DisplayResetProgress(ctx, arg)
+}
+
+func (u *LoginUI) ExplainDeviceRecovery(ctx context.Context, arg keybase1.ExplainDeviceRecoveryArg) error {
+	arg.SessionID = u.sessionID
+	return u.cli.ExplainDeviceRecovery(ctx, arg)
+}
+
+func (u *LoginUI) PromptPassphraseRecovery(ctx context.Context, arg keybase1.PromptPassphraseRecoveryArg) (bool, error) {
+	arg.SessionID = u.sessionID
+	return u.cli.PromptPassphraseRecovery(ctx, arg)
+}
+
+func (u *LoginUI) ChooseDeviceToRecoverWith(ctx context.Context, arg keybase1.ChooseDeviceToRecoverWithArg) (keybase1.DeviceID, error) {
+	arg.SessionID = u.sessionID
+	return u.cli.ChooseDeviceToRecoverWith(ctx, arg)
+}
+
+func (u *LoginUI) DisplayResetMessage(ctx context.Context, arg keybase1.DisplayResetMessageArg) error {
+	arg.SessionID = u.sessionID
+	return u.cli.DisplayResetMessage(ctx, arg)
+}
+
 type SecretUI struct {
 	sessionID int
 	cli       *keybase1.SecretUiClient
@@ -138,23 +169,6 @@ func (h *BaseHandler) NewRemoteSkipPromptIdentifyUI(sessionID int, g *libkb.Glob
 	c := h.NewRemoteIdentifyUI(sessionID, g)
 	c.skipPrompt = true
 	return c
-}
-
-type UpdateUI struct {
-	sessionID int
-	cli       *keybase1.UpdateUiClient
-}
-
-func (u *UpdateUI) UpdatePrompt(ctx context.Context, arg keybase1.UpdatePromptArg) (keybase1.UpdatePromptRes, error) {
-	return u.cli.UpdatePrompt(ctx, arg)
-}
-
-func (u *UpdateUI) UpdateAppInUse(ctx context.Context, arg keybase1.UpdateAppInUseArg) (keybase1.UpdateAppInUseRes, error) {
-	return u.cli.UpdateAppInUse(ctx, arg)
-}
-
-func (u *UpdateUI) UpdateQuit(ctx context.Context, arg keybase1.UpdateQuitArg) (res keybase1.UpdateQuitRes, err error) {
-	return u.cli.UpdateQuit(ctx, arg)
 }
 
 type RekeyUI struct {

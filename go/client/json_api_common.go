@@ -80,6 +80,11 @@ type Reply struct {
 	Result  interface{} `json:"result,omitempty"`
 }
 
+// Checker implementations can check their options for errors.
+type Checker interface {
+	Check() error
+}
+
 // cmdAPI contains common functionality for json api commands
 type cmdAPI struct {
 	indent     bool
@@ -153,9 +158,23 @@ type handler interface {
 	handle(ctx context.Context, c Call, w io.Writer) error
 }
 
-func (c *cmdAPI) runHandler(h handler) error {
-	var r io.Reader
-	r = os.Stdin
+func (c *cmdAPI) runHandler(h handler) (err error) {
+	w := os.Stdout
+	defer func() {
+		if err != nil {
+			err = encodeErr(Call{}, err, w, false)
+		}
+	}()
+	if len(c.outputFile) > 0 {
+		f, err := os.Create(c.outputFile)
+		if err != nil {
+			return err
+		}
+		defer f.Close()
+		w = f
+	}
+
+	r := io.Reader(os.Stdin)
 	if len(c.message) > 0 {
 		r = strings.NewReader(c.message)
 	} else if len(c.inputFile) > 0 {
@@ -167,25 +186,19 @@ func (c *cmdAPI) runHandler(h handler) error {
 		r = f
 	}
 
-	var w io.Writer
-	w = os.Stdout
-	if len(c.outputFile) > 0 {
-		f, err := os.Create(c.outputFile)
-		if err != nil {
-			return err
-		}
-		defer f.Close()
-		w = f
-	}
-
 	return c.decode(context.Background(), r, w, h)
 }
 
-func (c *cmdAPI) decode(ctx context.Context, r io.Reader, w io.Writer, h handler) error {
+func (c *cmdAPI) decode(ctx context.Context, r io.Reader, w io.Writer, h handler) (err error) {
 	dec := json.NewDecoder(r)
+	var call Call
+	defer func() {
+		if err != nil {
+			err = encodeErr(call, err, w, false)
+		}
+	}()
 	for {
-		var c Call
-		if err := dec.Decode(&c); err == io.EOF {
+		if err := dec.Decode(&call); err == io.EOF {
 			break
 		} else if err != nil {
 			if err == io.ErrUnexpectedEOF {
@@ -194,11 +207,53 @@ func (c *cmdAPI) decode(ctx context.Context, r io.Reader, w io.Writer, h handler
 			return err
 		}
 
-		if err := h.handle(ctx, c, w); err != nil {
-			return err
+		if err := h.handle(ctx, call, w); err != nil {
+			if err = encodeErr(call, err, w, false); err != nil {
+				return err
+			}
 		}
 	}
 
 	return nil
 
+}
+
+// encodeResult JSON encodes a successful result to the wr writer.
+func encodeResult(call Call, result interface{}, wr io.Writer, indent bool) error {
+	reply := Reply{
+		Result: result,
+	}
+	return encodeReply(call, reply, wr, indent)
+}
+
+// encodeErr JSON encodes an error.
+func encodeErr(call Call, err error, wr io.Writer, indent bool) error {
+	reply := Reply{Error: &CallError{Message: err.Error()}}
+	return encodeReply(call, reply, wr, indent)
+}
+
+// encodeReply JSON encodes all replies.
+func encodeReply(call Call, reply Reply, wr io.Writer, indent bool) error {
+	// copy jsonrpc fields from call to reply
+	reply.Jsonrpc = call.Jsonrpc
+	reply.ID = call.ID
+
+	enc := json.NewEncoder(wr)
+	if indent {
+		enc.SetIndent("", "    ")
+	}
+	return enc.Encode(reply)
+}
+
+// unmarshalOptions unmarshals any options in Call into opts,
+// and verify they pass the Checker checks.
+func unmarshalOptions(c Call, opts Checker) error {
+	if len(c.Params.Options) == 0 {
+		// still check the options in case any fields are required.
+		return opts.Check()
+	}
+	if err := json.Unmarshal(c.Params.Options, opts); err != nil {
+		return err
+	}
+	return opts.Check()
 }

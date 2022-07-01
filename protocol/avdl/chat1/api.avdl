@@ -1,0 +1,404 @@
+@namespace("chat.1")
+
+protocol api {
+  import idl "../gregor1" as gregor1;
+  import idl "../keybase1" as keybase1;
+  import idl "common.avdl";
+  import idl "chat_ui.avdl";
+  import idl "unfurl.avdl";
+  import idl "commands.avdl";
+
+  @typedef("string") record ConvIDStr {}
+  @typedef("string") record TLFIDStr {}
+  @typedef("string") record FlipGameIDStr {}
+
+  record RateLimitRes {
+    string tank;
+    int capacity;
+    int reset;
+    int gas;
+  }
+
+  /**
+   A Keybase chat channel. This can be a channel in a team, or just an informal channel between two users.
+   name: the name of the team or comma-separated list of participants
+   */
+  record ChatChannel {
+    @jsonkey("name")
+    string name;
+    @jsonkey("public")
+    @optional(true)
+    boolean public;
+    @jsonkey("members_type")
+    @optional(true)
+    string membersType;
+    @jsonkey("topic_type")
+    @optional(true)
+    string topicType;
+    @jsonkey("topic_name")
+    @optional(true)
+    string topicName;
+  }
+
+
+  /**
+   A chat message. The content goes in the `body` property!
+   */
+  record ChatMessage {
+    @jsonkey("body")
+    string body;
+  }
+
+
+  // MsgSender is used for JSON output of the sender of a message.
+  record MsgSender {
+    @jsonkey("uid")
+    keybase1.UID uid;
+    @jsonkey("username")
+    @optional(true)
+    string username;
+    @jsonkey("device_id")
+    keybase1.DeviceID deviceID;
+    @jsonkey("device_name")
+    @optional(true)
+    string deviceName;
+  }
+
+  record MsgBotInfo {
+    @jsonkey("bot_uid")
+    keybase1.UID botUID;
+    @jsonkey("bot_username")
+    @optional(true)
+    string botUsername;
+  }
+
+  record MsgFlipContent {
+    @jsonkey("text")
+    string text;
+    @jsonkey("game_id")
+    FlipGameIDStr gameID;
+    @jsonkey("flip_conv_id")
+    ConvIDStr flipConvID;
+    @jsonkey("user_mentions")
+    array<KnownUserMention> userMentions;
+    @jsonkey("team_mentions")
+    array<KnownTeamMention> teamMentions;
+  }
+
+  record EmojiContent {
+    string alias;
+    boolean isCrossTeam;
+    union { null, ConvIDStr } convID;
+    union { null, MessageID } messageID;
+  }
+
+  record MsgTextContent {
+    string body;
+    array<TextPayment> payments;
+    union { null, MessageID } replyTo;
+    union { null, string } replyToUID;
+    array<KnownUserMention> userMentions;
+    array<KnownTeamMention> teamMentions;
+    union { null, LiveLocation } liveLocation;
+    array<EmojiContent> emojis;
+  }
+
+  // MsgContent is used to retrieve the type name in addition to one of Text,
+  // Attachment, Edit, Reaction, Delete, Metadata depending on the type of
+  // message.
+  // It is included in MsgSummary.
+  record MsgContent {
+    @jsonkey("type")
+    string typeName;
+    @jsonkey("text")
+    union { null, MsgTextContent } text;
+    @jsonkey("attachment")
+    union { null, MessageAttachment } attachment;
+    @jsonkey("edit")
+    union { null, MessageEdit } edit;
+    @jsonkey("reaction")
+    union { null, MessageReaction } reaction;
+    @jsonkey("delete")
+    union { null, MessageDelete } delete;
+    @jsonkey("metadata")
+    union { null, MessageConversationMetadata } metadata;
+    @jsonkey("headline")
+    union { null, MessageHeadline } headline;
+    @jsonkey("attachment_uploaded")
+    union { null, MessageAttachmentUploaded } attachmentUploaded;
+    @jsonkey("system")
+    union { null, MessageSystem } system;
+    @jsonkey("send_payment")
+    union { null, MessageSendPayment } sendPayment;
+    @jsonkey("request_payment")
+    union { null, MessageRequestPayment } requestPayment;
+    @jsonkey("unfurl")
+    union { null, MessageUnfurl } unfurl;
+    @jsonkey("flip")
+    union { null, MsgFlipContent } flip;
+  }
+
+  // MsgSummary is used to display JSON details for a message.
+  record MsgSummary {
+    @jsonkey("id")
+    MessageID id;
+    @jsonkey("conversation_id")
+    ConvIDStr convID;
+    @jsonkey("channel")
+    ChatChannel channel;
+    @jsonkey("sender")
+    MsgSender sender;
+    @jsonkey("sent_at")
+    int64 sentAt;
+    @jsonkey("sent_at_ms")
+    int64 sentAtMs;
+    @jsonkey("content")
+    MsgContent content;
+    @jsonkey("prev")
+    array<MessagePreviousPointer> prev;
+    @jsonkey("unread")
+    boolean unread;
+    @jsonkey("revoked_device")
+    @optional(true)
+    boolean revokedDevice;
+    @jsonkey("offline")
+    @optional(true)
+    boolean offline;
+    @jsonkey("kbfs_encrypted")
+    @optional(true)
+    boolean kbfsEncrypted;
+    @jsonkey("is_ephemeral")
+    @optional(true)
+    boolean isEphemeral;
+    @optional(true)
+    @jsonkey("is_ephemeral_expired")
+    boolean isEphemeralExpired;
+    @jsonkey("e_time")
+    @optional(true)
+    gregor1.Time eTime;
+    @jsonkey("reactions")
+    union { null, UIReactionMap } reactions;
+    @jsonkey("has_pairwise_macs")
+    @optional(true)
+    boolean hasPairwiseMacs;
+    @jsonkey("at_mention_usernames")
+    @optional(true)
+    array<string> atMentionUsernames;
+    @jsonkey("channel_mention")
+    @optional(true)
+    string channelMention;
+    @jsonkey("channel_name_mentions")
+    @optional(true)
+    array<UIChannelNameMention> channelNameMentions;
+    @jsonkey("bot_info")
+    union { null, MsgBotInfo } botInfo;
+  }
+
+
+  // Message contains either a MsgSummary or an Error.  Used for JSON output.
+  record Message {
+    @jsonkey("msg")
+    union { null, MsgSummary } msg;
+    @jsonkey("error")
+    union { null, string } error;
+  }
+
+  // Thread is used for JSON output of a thread of messages.
+  record Thread {
+    @jsonkey("messages")
+    array<Message> messages;
+    @jsonkey("pagination")
+    union { null, Pagination } pagination;
+    @jsonkey("offline")
+    @optional(true)
+    boolean offline;
+    @jsonkey("identify_failures")
+    @optional(true)
+    array<keybase1.TLFIdentifyFailure> identifyFailures;
+    @jsonkey("ratelimits")
+    @optional(true)
+    array<RateLimitRes> rateLimits;
+  }
+
+  /**
+   A chat conversation. This is essentially a chat channel plus some additional metadata.
+   */
+  record ConvSummary {
+    @jsonkey("id")
+    ConvIDStr id;
+    @jsonkey("channel")
+    ChatChannel channel;
+    @jsonkey("is_default_conv")
+    boolean isDefaultConv;
+    @jsonkey("unread")
+    boolean unread;
+    @jsonkey("active_at")
+    int64 activeAt;
+    @jsonkey("active_at_ms")
+    int64 activeAtMs;
+    @jsonkey("member_status")
+    string memberStatus;
+    @jsonkey("reset_users")
+    @optional(true)
+    array<string> resetUsers;
+    @jsonkey("finalize_info")
+    union { null, ConversationFinalizeInfo } finalizeInfo;
+    @jsonkey("supersedes")
+    @optional(true)
+    array<string> supersedes;
+    @jsonkey("superseded_by")
+    @optional(true)
+    array<string> supersededBy;
+    @jsonkey("error")
+    @optional(true)
+    string error;
+    @jsonkey("creator_info")
+    @optional(true)
+    union { null, ConversationCreatorInfoLocal } creatorInfo;
+  }
+
+  // ChatList is a list of conversations in the inbox.
+  record ChatList {
+    @jsonkey("conversations")
+    array<ConvSummary> conversations;
+    @jsonkey("offline")
+    boolean offline;
+    @jsonkey("identify_failures")
+    @optional(true)
+    array<keybase1.TLFIdentifyFailure> identifyFailures;
+    @jsonkey("ratelimits")
+    @optional(true)
+    array<RateLimitRes> rateLimits;
+  }
+
+  // SendRes is the result of successfully sending a message.
+  record SendRes {
+    @jsonkey("message")
+    string message;
+    @jsonkey("id")
+    union { null, MessageID } messageID;
+    @jsonkey("outbox_id")
+    union { null, OutboxID } outboxID;
+    @jsonkey("identify_failures")
+    @optional(true)
+    array<keybase1.TLFIdentifyFailure> identifyFailures;
+    @jsonkey("ratelimits")
+    @optional(true)
+    array<RateLimitRes> rateLimits;
+  }
+
+  record SearchInboxResOutput {
+    @jsonkey("results")
+    union { null, ChatSearchInboxResults } results;
+    @jsonkey("identify_failures")
+    @optional(true)
+    array<keybase1.TLFIdentifyFailure> identifyFailures;
+    @jsonkey("ratelimits")
+    @optional(true)
+    array<RateLimitRes> rateLimits;
+  }
+
+  record RegexpRes {
+    @jsonkey("hits")
+    array<ChatSearchHit> hits;
+    @jsonkey("identify_failures")
+    @optional(true)
+    array<keybase1.TLFIdentifyFailure> identifyFailures;
+    @jsonkey("ratelimits")
+    @optional(true)
+    array<RateLimitRes> rateLimits;
+  }
+
+  record NewConvRes {
+    @jsonkey("id")
+    ConvIDStr id;
+    @jsonkey("identify_failures")
+    @optional(true)
+    array<keybase1.TLFIdentifyFailure> identifyFailures;
+    @jsonkey("ratelimits")
+    @optional(true)
+    array<RateLimitRes> rateLimits;
+  }
+
+  record ListCommandsRes {
+    @jsonkey("commands")
+    array<UserBotCommandOutput> commands;
+    @jsonkey("ratelimits")
+    @optional(true)
+    array<RateLimitRes> rateLimits;
+  }
+
+  // EmptyRes is used for JSON output of a boring command.
+  record EmptyRes {
+    @jsonkey("ratelimits")
+    @optional(true)
+    array<RateLimitRes> rateLimits;
+  }
+
+  record MsgNotification {
+    // should always be `chat`
+    string type;
+    // `local` or  `remote`
+    string source;
+    union { null, MsgSummary } msg;
+    union { null, string } error;
+    union { null, UIPagination } pagination;
+  }
+
+  record ConvNotification {
+    // should always be `chat_conv`
+    string type;
+    union { null, ConvSummary } conv;
+    union { null, string } error;
+  }
+
+  // Similar to AdvertiseCommandParam but intended for the json API
+  record AdvertiseCommandAPIParam {
+    @jsonkey("type")
+    string typ;
+    array<UserBotCommandInput> commands;
+    @optional(true)
+    @jsonkey("team_name")
+    string teamName;
+    @jsonkey("conv_id")
+    @optional(true)
+    ConvIDStr convID;
+  }
+
+  // Similar to AdvertiseCommandParam but intended for the json API
+  record ClearCommandAPIParam {
+    @jsonkey("type")
+    string typ;
+    @optional(true)
+    @jsonkey("team_name")
+    string teamName;
+    @jsonkey("conv_id")
+    @optional(true)
+    ConvIDStr convID;
+  }
+
+  record ResetConvMemberAPI {
+    ConvIDStr conversationID;
+    string username;
+  }
+
+  record GetResetConvMembersRes {
+    array<ResetConvMemberAPI> members;
+    array<RateLimitRes> rateLimits;
+  }
+
+  record DeviceInfo {
+    @jsonkey("id")
+    keybase1.DeviceID deviceID;
+    @jsonkey("description")
+    string deviceDescription;
+    @jsonkey("type")
+    keybase1.DeviceTypeV2 deviceType;
+    @jsonkey("ctime")
+    int64 deviceCtime;
+  }
+
+  record GetDeviceInfoRes {
+    array<DeviceInfo> devices;
+  }
+}

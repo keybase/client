@@ -4,6 +4,7 @@
 package client
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/keybase/cli"
@@ -42,8 +43,8 @@ func (c *CmdGitMdput) Run() error {
 	if err != nil {
 		return err
 	}
-
-	return cli.PutGitMetadata(c.G().GetNetContext(), keybase1.PutGitMetadataArg{
+	ctx := context.Background()
+	return cli.PutGitMetadata(ctx, keybase1.PutGitMetadataArg{
 		Folder: folder,
 		RepoID: keybase1.RepoID(c.repoID),
 		Metadata: keybase1.GitLocalMetadata{

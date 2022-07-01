@@ -1,0 +1,18 @@
+@namespace("stellar.1")
+protocol ui {
+  import idl "common.avdl";
+
+  // These notifications may be sent out of order, so only process one if
+  // 1. BuildPaymentID matches
+  // 2. reviewID is that of the latest call to reviewPaymentLocal (sessionID would work instead)
+  // 3. seqno is greatest seen so far for this [BuildPaymentID x sesionID]
+  record UIPaymentReviewed {
+    BuildPaymentID bid;
+    int reviewID;
+    int seqno;
+    array<SendBannerLocal> banners;
+    string nextButton; // one of ["enabled", "disabled", "spinning"]
+  }
+
+  void paymentReviewed(int sessionID, UIPaymentReviewed msg);
+}

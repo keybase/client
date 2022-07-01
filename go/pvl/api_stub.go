@@ -1,6 +1,7 @@
 // Copyright 2016 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
 
+//go:build !production
 // +build !production
 
 package pvl
@@ -34,7 +35,7 @@ func newStubAPIEngine() *stubAPIEngine {
 	}
 }
 
-func (e *stubAPIEngine) Get(arg libkb.APIArg) (*libkb.ExternalAPIRes, error) {
+func (e *stubAPIEngine) Get(m libkb.MetaContext, arg libkb.APIArg) (*libkb.ExternalAPIRes, error) {
 	res, _, _, err := e.getMock(arg, libkb.XAPIResJSON)
 	if err != nil {
 		return nil, err
@@ -43,7 +44,7 @@ func (e *stubAPIEngine) Get(arg libkb.APIArg) (*libkb.ExternalAPIRes, error) {
 
 }
 
-func (e *stubAPIEngine) GetHTML(arg libkb.APIArg) (*libkb.ExternalHTMLRes, error) {
+func (e *stubAPIEngine) GetHTML(m libkb.MetaContext, arg libkb.APIArg) (*libkb.ExternalHTMLRes, error) {
 	_, res, _, err := e.getMock(arg, libkb.XAPIResHTML)
 	if err != nil {
 		return nil, err
@@ -51,7 +52,7 @@ func (e *stubAPIEngine) GetHTML(arg libkb.APIArg) (*libkb.ExternalHTMLRes, error
 	return res, nil
 }
 
-func (e *stubAPIEngine) GetText(arg libkb.APIArg) (*libkb.ExternalTextRes, error) {
+func (e *stubAPIEngine) GetText(m libkb.MetaContext, arg libkb.APIArg) (*libkb.ExternalTextRes, error) {
 	_, _, res, err := e.getMock(arg, libkb.XAPIResText)
 	if err != nil {
 		return nil, err
@@ -59,11 +60,11 @@ func (e *stubAPIEngine) GetText(arg libkb.APIArg) (*libkb.ExternalTextRes, error
 	return res, nil
 }
 
-func (e *stubAPIEngine) Post(arg libkb.APIArg) (*libkb.ExternalAPIRes, error) {
+func (e *stubAPIEngine) Post(m libkb.MetaContext, arg libkb.APIArg) (*libkb.ExternalAPIRes, error) {
 	return nil, fmt.Errorf("unsupported operation Post for stub api")
 }
 
-func (e *stubAPIEngine) PostHTML(arg libkb.APIArg) (*libkb.ExternalHTMLRes, error) {
+func (e *stubAPIEngine) PostHTML(m libkb.MetaContext, arg libkb.APIArg) (*libkb.ExternalHTMLRes, error) {
 	return nil, fmt.Errorf("unsupported operation Post for stub api")
 }
 

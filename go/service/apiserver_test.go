@@ -28,9 +28,9 @@ func TestAPIServerGet(t *testing.T) {
 		Endpoint: "user/lookup",
 		Args:     harg,
 	}
-
+	mctx := libkb.NewMetaContextForTest(tc)
 	handler := NewAPIServerHandler(nil, tc.G)
-	res, err := handler.doGet(arg, false)
+	res, err := handler.doGet(mctx, arg, false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -72,7 +72,8 @@ func TestAPIServerPost(t *testing.T) {
 	}
 
 	handler := NewAPIServerHandler(nil, tc.G)
-	res, err := handler.doPost(arg)
+	mctx := libkb.NewMetaContextForTest(tc)
+	res, err := handler.doPost(mctx, arg)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -114,7 +115,7 @@ func TestAPIServerPostJSON(t *testing.T) {
 	}
 
 	handler := NewAPIServerHandler(nil, tc.G)
-	res, err := handler.doPostJSON(arg)
+	res, err := handler.doPostJSON(libkb.NewMetaContextForTest(tc), arg)
 	if err != nil {
 		t.Fatal(err)
 	}

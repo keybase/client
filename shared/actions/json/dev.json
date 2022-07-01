@@ -1,5 +1,5 @@
 {
-  "prelude": ["import * as Types from '../constants/types/dev'"],
+  "prelude": [],
   "actions": {
     "updateDebugConfig": {
       "dumbFilter": "string",

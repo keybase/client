@@ -32,7 +32,8 @@ func (k NaclSigningKeyPublic) GetBinaryKID() keybase1.BinaryKID {
 		byte(KIDNaclEddsa),
 	}
 	suffix := byte(IDSuffixKID)
-	out := append(prefix, k[:]...)
+	out := prefix
+	out = append(out, k[:]...)
 	out = append(out, suffix)
 	return keybase1.BinaryKID(out)
 }
@@ -75,7 +76,7 @@ func (k NaclSigningKeyPrivate) SignInfoV0(msg []byte, public NaclSigningKeyPubli
 	}
 }
 
-func (k NaclSigningKeyPrivate) SignToStringV0(msg []byte, public NaclSigningKeyPublic) (string, keybase1.SigID, error) {
+func (k NaclSigningKeyPrivate) SignToStringV0(msg []byte, public NaclSigningKeyPublic) (string, keybase1.SigIDBase, error) {
 	naclSig := k.SignInfoV0(msg, public)
 
 	body, err := EncodePacketToBytes(&naclSig)

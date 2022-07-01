@@ -6,13 +6,70 @@ package client
 import (
 	"encoding/base64"
 	"errors"
+	"fmt"
+	"strconv"
+
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/net/context"
-	"strconv"
 )
+
+type CmdDbClean struct {
+	libkb.Contextified
+	dbType keybase1.DbType
+	force  bool
+}
+
+func (c *CmdDbClean) ParseArgv(ctx *cli.Context) error {
+	c.dbType = keybase1.DbType_MAIN
+	if ctx.Bool("chat") {
+		c.dbType = keybase1.DbType_CHAT
+	}
+	c.force = ctx.Bool("force")
+	return nil
+}
+
+func (c *CmdDbClean) Run() error {
+	cli, err := GetCtlClient(c.G())
+	if err != nil {
+		return err
+	}
+	if err = RegisterProtocolsWithContext(nil, c.G()); err != nil {
+		return err
+	}
+	return cli.DbClean(context.TODO(), keybase1.DbCleanArg{
+		Force:  c.force,
+		DbType: c.dbType,
+	})
+}
+
+func NewCmdDbClean(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
+	return cli.Command{
+		Name:  "clean",
+		Usage: "Clean the local database of stale entries",
+		Action: func(c *cli.Context) {
+			cl.ChooseCommand(NewCmdDbCleanRunner(g), "clean", c)
+		},
+		Flags: []cli.Flag{
+			cli.BoolFlag{
+				Name:  "chat, c",
+				Usage: "Refer to the chat database.",
+			},
+			cli.BoolFlag{
+				Name:  "force, f",
+				Usage: "Force clean, skip over configuration checks for db size",
+			},
+		},
+	}
+}
+
+func NewCmdDbCleanRunner(g *libkb.GlobalContext) *CmdDbClean {
+	return &CmdDbClean{
+		Contextified: libkb.NewContextified(g),
+	}
+}
 
 type CmdDbNuke struct {
 	libkb.Contextified
@@ -24,8 +81,7 @@ func (c *CmdDbNuke) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
-func (c *CmdDbNuke) Run() error {
-	var err error
+func (c *CmdDbNuke) Run() (err error) {
 	if !c.force {
 		err = c.G().UI.GetTerminalUI().PromptForConfirmation("Really blast away your local database?")
 	}
@@ -70,8 +126,7 @@ type CmdDbDelete struct {
 	key keybase1.DbKey
 }
 
-func (c *CmdDbDelete) ParseArgv(ctx *cli.Context) error {
-	var err error
+func (c *CmdDbDelete) ParseArgv(ctx *cli.Context) (err error) {
 	c.key, err = parseDbKey(ctx, 2, "delete needs 2 args: an 'object type' byte and a string key")
 	return err
 }
@@ -88,7 +143,9 @@ func parseDbKey(ctx *cli.Context, nargs int, usage string) (key keybase1.DbKey, 
 	if err != nil {
 		return key, err
 	}
-	key.Key = ctx.Args()[1]
+	if nargs > 1 {
+		key.Key = ctx.Args()[1]
+	}
 	return key, nil
 }
 
@@ -139,8 +196,7 @@ type CmdDbGet struct {
 	base64 bool
 }
 
-func (c *CmdDbGet) ParseArgv(ctx *cli.Context) error {
-	var err error
+func (c *CmdDbGet) ParseArgv(ctx *cli.Context) (err error) {
 	c.base64 = ctx.Bool("base64")
 	c.key, err = parseDbKey(ctx, 2, "get needs 2 args: an 'object type' byte and a string key")
 	return err
@@ -202,8 +258,7 @@ type CmdDbPut struct {
 	val keybase1.DbValue
 }
 
-func (c *CmdDbPut) ParseArgv(ctx *cli.Context) error {
-	var err error
+func (c *CmdDbPut) ParseArgv(ctx *cli.Context) (err error) {
 	c.key, err = parseDbKey(ctx, 3, "put needs 3 args: an 'object type' byte, a string key, and value to put")
 	if err != nil {
 		return err
@@ -260,10 +315,68 @@ func NewCmdDb(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 		Name: "db",
 		Subcommands: []cli.Command{
 			NewCmdDbNuke(cl, g),
+			NewCmdDbClean(cl, g),
 			NewCmdDbDelete(cl, g),
 			NewCmdDbGet(cl, g),
 			NewCmdDbPut(cl, g),
+			NewCmdDbKeysWithPrefix(cl, g),
 		},
+	}
+}
+
+type CmdDbKeysWithPrefix struct {
+	libkb.Contextified
+	key keybase1.DbKey
+}
+
+func (c *CmdDbKeysWithPrefix) ParseArgv(ctx *cli.Context) (err error) {
+	c.key, err = parseDbKey(ctx, 1, "need 1 arg: an 'object type' byte")
+	return err
+}
+
+func (c *CmdDbKeysWithPrefix) Run() error {
+	cli, err := GetCtlClient(c.G())
+	if err != nil {
+		return err
+	}
+	res, err := cli.DbKeysWithPrefixes(context.TODO(), keybase1.DbKeysWithPrefixesArg{Prefix: c.key})
+	if err != nil {
+		return err
+	}
+	for _, x := range res {
+		_, err = c.G().UI.GetTerminalUI().OutputWriter().Write([]byte(fmt.Sprintf("%s\n", x.Key)))
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func NewCmdDbKeysWithPrefixRunner(g *libkb.GlobalContext) *CmdDbKeysWithPrefix {
+	return &CmdDbKeysWithPrefix{Contextified: libkb.NewContextified(g)}
+}
+
+func NewCmdDbKeysWithPrefix(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
+	return cli.Command{
+		Name:         "keys-with-prefix",
+		Usage:        "Get all keys starting with a prefix",
+		ArgumentHelp: "[obj-type]",
+		Action: func(c *cli.Context) {
+			cl.ChooseCommand(NewCmdDbKeysWithPrefixRunner(g), "keys-with-prefix", c)
+		},
+		Flags: []cli.Flag{
+			cli.BoolFlag{
+				Name:  "chat, c",
+				Usage: "Refer to the chat database.",
+			},
+		},
+	}
+}
+
+func (c *CmdDbClean) GetUsage() libkb.Usage {
+	return libkb.Usage{
+		Config: true,
+		API:    true,
 	}
 }
 
@@ -289,6 +402,13 @@ func (c *CmdDbGet) GetUsage() libkb.Usage {
 }
 
 func (c *CmdDbPut) GetUsage() libkb.Usage {
+	return libkb.Usage{
+		Config: true,
+		API:    true,
+	}
+}
+
+func (c *CmdDbKeysWithPrefix) GetUsage() libkb.Usage {
 	return libkb.Usage{
 		Config: true,
 		API:    true,

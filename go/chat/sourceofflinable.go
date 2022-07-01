@@ -35,7 +35,7 @@ func newSourceOfflinable(g *globals.Context, labeler utils.DebugLabeler) *source
 }
 
 func (s *sourceOfflinable) Connected(ctx context.Context) {
-	defer s.Trace(ctx, func() error { return nil }, "Connected")()
+	defer s.Trace(ctx, nil, "Connected")()
 	s.Lock()
 	defer s.Unlock()
 	s.Debug(ctx, "connected: offline to false")
@@ -44,7 +44,7 @@ func (s *sourceOfflinable) Connected(ctx context.Context) {
 }
 
 func (s *sourceOfflinable) Disconnected(ctx context.Context) {
-	defer s.Trace(ctx, func() error { return nil }, "Disconnected")()
+	defer s.Trace(ctx, nil, "Disconnected")()
 	s.Lock()
 	defer s.Unlock()
 	if s.offline {
@@ -70,22 +70,43 @@ func (s *sourceOfflinable) IsOffline(ctx context.Context) bool {
 			s.Debug(ctx, "IsOffline: offline, but skipping delay since we already did it")
 			return offline
 		}
-		if s.G().AppState.State() != keybase1.AppState_FOREGROUND {
+		if s.G().MobileAppState.State() != keybase1.MobileAppState_FOREGROUND {
 			s.Debug(ctx, "IsOffline: offline, but not waiting for anything since not in foreground")
 			return offline
 		}
-		select {
-		case <-connected:
-			s.Lock()
-			defer s.Unlock()
-			s.Debug(ctx, "IsOffline: waited and got %v", s.offline)
-			return s.offline
-		case <-time.After(4 * time.Second):
-			s.Lock()
-			defer s.Unlock()
-			s.delayed = true
-			s.Debug(ctx, "IsOffline: timed out")
-			return s.offline
+		timeoutCh := time.After(5 * time.Second)
+		for {
+			select {
+			case <-connected:
+				s.Debug(ctx, "IsOffline: waited and got %v", s.offline)
+				s.Lock()
+				if s.offline {
+					connected = s.connected
+					s.Unlock()
+					s.Debug(ctx, "IsOffline: since we got word of being offline, we will keep waiting")
+					continue
+				}
+				defer s.Unlock()
+				return s.offline
+			case <-ctx.Done():
+				s.Lock()
+				defer s.Unlock()
+				s.Debug(ctx, "IsOffline: aborted: %s state: %v", ctx.Err(), s.offline)
+				return s.offline
+			case <-timeoutCh:
+				s.Lock()
+				defer s.Unlock()
+				select {
+				case <-ctx.Done():
+					s.Debug(ctx, "IsOffline: timed out, but context canceled so not setting delayed: state: %v",
+						s.offline)
+					return s.offline
+				default:
+				}
+				s.delayed = true
+				s.Debug(ctx, "IsOffline: timed out, setting delay wait: state: %v", s.offline)
+				return s.offline
+			}
 		}
 	}
 	return offline

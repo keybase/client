@@ -1,5 +1,5 @@
 @namespace("gregor.1")
-
+@compression_type("gzip")
 protocol outgoing {
   void broadcastMessage(Message m);
 }

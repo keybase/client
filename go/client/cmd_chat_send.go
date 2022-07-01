@@ -19,6 +19,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	isatty "github.com/mattn/go-isatty"
 )
 
@@ -67,16 +68,35 @@ func newCmdChatSend(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(NewCmdChatSendRunner(g), "send", c)
 			cl.SetNoStandalone()
+			cl.SetLogForward(libcmdline.LogForwardNone)
 		},
 		Flags: flags,
 	}
 }
 
 func (c *CmdChatSend) Run() (err error) {
-	if c.resolvingRequest.TlfName != "" {
-		if err = annotateResolvingRequest(c.G(), &c.resolvingRequest); err != nil {
+	ui := NewChatCLIUI(c.G())
+	protocols := []rpc.Protocol{
+		chat1.ChatUiProtocol(ui),
+	}
+	if err := RegisterProtocolsWithContext(protocols, c.G()); err != nil {
+		return err
+	}
+
+	// if no tlfname specified, request one
+	if c.resolvingRequest.TlfName == "" {
+		c.resolvingRequest.TlfName, err = c.G().UI.GetTerminalUI().Prompt(PromptDescriptorEnterChatTLFName,
+			"Specify a team name, a single receiving user, or a comma-separated list of users (e.g. alice,bob,charlie) to continue: ")
+		if err != nil {
 			return err
 		}
+		if c.resolvingRequest.TlfName == "" {
+			return fmt.Errorf("no user or team name specified")
+		}
+	}
+
+	if err = annotateResolvingRequest(c.G(), &c.resolvingRequest); err != nil {
+		return err
 	}
 	// TLFVisibility_ANY doesn't make any sense for send, so switch that to PRIVATE:
 	if c.resolvingRequest.Visibility == keybase1.TLFVisibility_ANY {
@@ -94,18 +114,8 @@ func (c *CmdChatSend) Run() (err error) {
 			return fmt.Errorf("Cannot send ephemeral messages to a KBFS type chat.")
 		}
 	}
-
-	// TODO: Right now this command cannot be run in standalone at
-	// all, even though team chats should work, but there is a bug
-	// in finding existing conversations.
-	if c.G().Standalone {
-		switch c.resolvingRequest.MembersType {
-		case chat1.ConversationMembersType_TEAM, chat1.ConversationMembersType_IMPTEAMNATIVE,
-			chat1.ConversationMembersType_IMPTEAMUPGRADE:
-			c.G().StartStandaloneChat()
-		default:
-			return CantRunInStandaloneError{}
-		}
+	if err := CheckAndStartStandaloneChat(c.G(), c.resolvingRequest.MembersType); err != nil {
+		return err
 	}
 
 	return chatSend(context.TODO(), c.G(), ChatSendArg{
@@ -190,17 +200,14 @@ func (c *CmdChatSend) ParseArgv(ctx *cli.Context) (err error) {
 			}
 			c.message = "" // get message through prompt later
 		default:
-			cli.ShowCommandHelp(ctx, "send")
 			return fmt.Errorf("chat send takes 0, 1 or 2 args")
 		}
 	}
 
 	if nActions < 1 {
-		cli.ShowCommandHelp(ctx, "send")
 		return fmt.Errorf("incorrect usage")
 	}
 	if nActions > 1 {
-		cli.ShowCommandHelp(ctx, "send")
 		return fmt.Errorf("only one of message, --set-headline, --clear-headline allowed")
 	}
 

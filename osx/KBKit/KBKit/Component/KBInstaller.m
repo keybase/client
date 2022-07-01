@@ -99,6 +99,9 @@
     DDLogError(@"No app bundle found (for login item check)");
     return;
   }
+
+  // Note that these two checks can be fooled by paths with '..' in them, but that doesn't
+  // seem problematic since the installer is run by an unprivileged user.
   if (loginItemEnabled && ![config isInApplications:appBundle.bundlePath] && ![config isInUserApplications:appBundle.bundlePath]) {
     DDLogError(@"Bundle path is invalid for adding login item: %@", appBundle.bundlePath);
     return;

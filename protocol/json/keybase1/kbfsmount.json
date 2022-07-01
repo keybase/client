@@ -8,6 +8,19 @@
       "response": "string",
       "lint": "ignore"
     },
+    "WaitForMounts": {
+      "request": [],
+      "response": "boolean",
+      "lint": "ignore"
+    },
+    "GetPreferredMountDirs": {
+      "request": [],
+      "response": {
+        "type": "array",
+        "items": "string"
+      },
+      "lint": "ignore"
+    },
     "GetAllAvailableMountDirs": {
       "request": [],
       "response": {
@@ -24,6 +37,16 @@
         }
       ],
       "response": null,
+      "lint": "ignore"
+    },
+    "GetKBFSPathInfo": {
+      "request": [
+        {
+          "name": "standardPath",
+          "type": "string"
+        }
+      ],
+      "response": "KBFSPathInfo",
       "lint": "ignore"
     }
   },

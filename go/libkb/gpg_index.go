@@ -16,7 +16,7 @@ import (
 	"github.com/keybase/go-crypto/openpgp/packet"
 )
 
-//=============================================================================
+// =============================================================================
 
 type BucketDict struct {
 	d map[string][]*GpgPrimaryKey
@@ -52,7 +52,7 @@ func (bd BucketDict) Get0Or1(k string) (ret *GpgPrimaryKey, err error) {
 	return
 }
 
-//=============================================================================
+// =============================================================================
 
 func Uniquify(inp []string) []string {
 	m := make(map[string]bool)
@@ -66,7 +66,7 @@ func Uniquify(inp []string) []string {
 	return ret
 }
 
-//=============================================================================
+// =============================================================================
 
 type GpgBaseKey struct {
 	Type        string
@@ -97,12 +97,12 @@ func (k GpgBaseKey) ExpirationString() string {
 		return "never"
 	}
 	layout := "2006-01-02"
-	return time.Unix(int64(k.Expires), 0).Format(layout)
+	return time.Unix(k.Expires, 0).Format(layout)
 }
 
 func (k GpgBaseKey) CreatedString() string {
 	layout := "2006-01-02"
-	return time.Unix(int64(k.Created), 0).Format(layout)
+	return time.Unix(k.Created, 0).Format(layout)
 }
 
 func (k *GpgBaseKey) ParseBase(line *GpgIndexLine) (err error) {
@@ -148,7 +148,7 @@ func (k *GpgBaseKey) ParseBase(line *GpgIndexLine) (err error) {
 	return
 }
 
-//=============================================================================
+// =============================================================================
 
 type GpgFingerprinter interface {
 	SetFingerprint(pgp *PGPFingerprint)
@@ -162,7 +162,7 @@ type GpgPrimaryKey struct {
 	top        GpgFingerprinter
 }
 
-func (k *GpgPrimaryKey) IsValid() bool {
+func (k *GpgPrimaryKey) IsValid(mctx MetaContext) bool {
 	if k == nil {
 		return false
 	}
@@ -171,13 +171,13 @@ func (k *GpgPrimaryKey) IsValid() bool {
 	} else if k.Expires == 0 {
 		return true
 	} else {
-		expired := time.Now().After(time.Unix(int64(k.Expires), 0))
+		expired := time.Now().After(time.Unix(k.Expires, 0))
 		if expired {
 			var fp string
 			if k.fingerprint != nil {
 				fp = " (" + k.fingerprint.ToQuads() + ")"
 			}
-			k.G().Log.Warning("Skipping expired primary key%s", fp)
+			mctx.Warning("Skipping expired primary key%s", fp)
 		}
 		return !expired
 	}
@@ -312,7 +312,7 @@ func (k *GpgPrimaryKey) AddLine(l *GpgIndexLine) (err error) {
 	return err
 }
 
-//=============================================================================
+// =============================================================================
 
 type GpgSubKey struct {
 	GpgBaseKey
@@ -324,7 +324,7 @@ func ParseGpgSubKey(l *GpgIndexLine) (sk *GpgSubKey, err error) {
 	return
 }
 
-//=============================================================================
+// =============================================================================
 
 type GpgIndexElement interface {
 	ToKey() *GpgPrimaryKey
@@ -398,8 +398,8 @@ func (ki *GpgKeyIndex) IndexKey(k *GpgPrimaryKey) {
 	}
 }
 
-func (ki *GpgKeyIndex) PushElement(e GpgIndexElement) {
-	if key := e.ToKey(); key.IsValid() {
+func (ki *GpgKeyIndex) PushElement(mctx MetaContext, e GpgIndexElement) {
+	if key := e.ToKey(); key.IsValid(mctx) {
 		ki.IndexKey(key)
 	}
 }
@@ -414,7 +414,7 @@ func (ki *GpgKeyIndex) AllFingerprints() []PGPFingerprint {
 	return ret
 }
 
-//=============================================================================
+// =============================================================================
 
 type GpgIndexLine struct {
 	v      []string
@@ -439,7 +439,7 @@ func (g GpgIndexLine) IsNewKey() bool {
 	return len(g.v) > 0 && (g.v[0] == "sec" || g.v[0] == "pub")
 }
 
-//=============================================================================
+// =============================================================================
 
 type GpgIndexParser struct {
 	Contextified
@@ -520,31 +520,31 @@ func (p *GpgIndexParser) PutbackLine(line *GpgIndexLine) {
 
 func (p GpgIndexParser) isEOF() bool { return p.eof }
 
-func (p *GpgIndexParser) Parse(stream io.Reader) (ki *GpgKeyIndex, err error) {
+func (p *GpgIndexParser) Parse(mctx MetaContext, stream io.Reader) (ki *GpgKeyIndex, err error) {
 	p.src = bufio.NewReader(stream)
 	ki = NewGpgKeyIndex()
 	for err == nil && !p.isEOF() {
 		var el GpgIndexElement
 		if el, err = p.ParseElement(); err == nil && el != nil {
-			ki.PushElement(el)
+			ki.PushElement(mctx, el)
 		}
 	}
 	ki.Sort()
 	return
 }
 
-//=============================================================================
+// =============================================================================
 
-func ParseGpgIndexStream(g *GlobalContext, stream io.Reader) (ki *GpgKeyIndex, w Warnings, err error) {
-	eng := NewGpgIndexParser(g)
-	ki, err = eng.Parse(stream)
+func ParseGpgIndexStream(mctx MetaContext, stream io.Reader) (ki *GpgKeyIndex, w Warnings, err error) {
+	eng := NewGpgIndexParser(mctx.G())
+	ki, err = eng.Parse(mctx, stream)
 	w = eng.warnings
 	return
 }
 
-//=============================================================================
+// =============================================================================
 
-func (g *GpgCLI) Index(secret bool, query string) (ki *GpgKeyIndex, w Warnings, err error) {
+func (g *GpgCLI) Index(mctx MetaContext, secret bool, query string) (ki *GpgKeyIndex, w Warnings, err error) {
 	var k string
 	if secret {
 		k = "-K"
@@ -559,16 +559,16 @@ func (g *GpgCLI) Index(secret bool, query string) (ki *GpgKeyIndex, w Warnings, 
 		Arguments: args,
 		Stdout:    true,
 	}
-	res := g.Run2(garg)
+	res := g.Run2(mctx, garg)
 	if res.Err != nil {
 		err = res.Err
 		return
 	}
-	if ki, w, err = ParseGpgIndexStream(g.G(), res.Stdout); err != nil {
+	if ki, w, err = ParseGpgIndexStream(mctx, res.Stdout); err != nil {
 		return
 	}
 	err = res.Wait()
 	return
 }
 
-//=============================================================================
+// =============================================================================

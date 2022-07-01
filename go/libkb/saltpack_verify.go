@@ -5,7 +5,6 @@ package libkb
 
 import (
 	"bytes"
-	"crypto/hmac"
 	"io"
 
 	"github.com/keybase/client/go/kbcrypto"
@@ -18,7 +17,28 @@ type SaltpackVerifyContext interface {
 	GetLog() logger.Logger
 }
 
-func SaltpackVerify(g SaltpackVerifyContext, source io.Reader, sink io.WriteCloser, checkSender func(saltpack.SigningPublicKey) error) error {
+// Wraps kbcrypto.Verification error with libkb.VerificationError. You should
+// expect a libkb.VerificationError if exposing the error to the GUI.
+func getVerificationErrorWithStatusCode(kberr *kbcrypto.VerificationError) (err VerificationError) {
+	err.Cause.Err = kberr.Cause
+	switch err.Cause.Err.(type) {
+	case APINetError:
+		err.Cause.StatusCode = SCAPINetworkError
+	case saltpack.ErrNoSenderKey:
+		err.Cause.StatusCode = SCDecryptionKeyNotFound
+	case saltpack.ErrWrongMessageType:
+		err.Cause.StatusCode = SCWrongCryptoMsgType
+	}
+	return err
+}
+
+func SaltpackVerify(g SaltpackVerifyContext, source io.Reader, sink io.WriteCloser, checkSender func(saltpack.SigningPublicKey) error) (err error) {
+	defer func() {
+		if kbErr, ok := err.(kbcrypto.VerificationError); ok {
+			err = getVerificationErrorWithStatusCode(&kbErr)
+		}
+	}()
+
 	sc, newSource, err := ClassifyStream(source)
 	if err != nil {
 		return err
@@ -30,8 +50,16 @@ func SaltpackVerify(g SaltpackVerifyContext, source io.Reader, sink io.WriteClos
 			Operation: "verify",
 		}
 	}
-	source = newSource
 
+	if sc.Type != CryptoMessageTypeAttachedSignature {
+		return kbcrypto.NewVerificationError(
+			saltpack.ErrWrongMessageType{
+				Wanted:   saltpack.MessageType(CryptoMessageTypeAttachedSignature),
+				Received: saltpack.MessageType(sc.Type),
+			})
+	}
+
+	source = newSource
 	kr := echoKeyring{}
 
 	var skey saltpack.SigningPublicKey
@@ -44,35 +72,41 @@ func SaltpackVerify(g SaltpackVerifyContext, source io.Reader, sink io.WriteClos
 	}
 	if err != nil {
 		g.GetLog().Debug("saltpack.NewDearmor62VerifyStream error: %s", err)
-		return kbcrypto.VerificationError{Cause: err}
+		return kbcrypto.NewVerificationError(err)
 	}
 
 	if checkSender != nil {
 		if err = checkSender(skey); err != nil {
-			return kbcrypto.VerificationError{Cause: err}
+			return kbcrypto.NewVerificationError(err)
 		}
 	}
 
 	n, err := io.Copy(sink, vs)
 	if err != nil {
-		return kbcrypto.VerificationError{Cause: err}
+		return kbcrypto.NewVerificationError(err)
 	}
 
 	if sc.Armored {
 		if err = checkSaltpackBrand(brand); err != nil {
-			return kbcrypto.VerificationError{Cause: err}
+			return kbcrypto.NewVerificationError(err)
 		}
 	}
 
 	g.GetLog().Debug("Verify: read %d bytes", n)
 
 	if err := sink.Close(); err != nil {
-		return kbcrypto.VerificationError{Cause: err}
+		return kbcrypto.NewVerificationError(err)
 	}
 	return nil
 }
 
-func SaltpackVerifyDetached(g SaltpackVerifyContext, message io.Reader, signature []byte, checkSender func(saltpack.SigningPublicKey) error) error {
+func SaltpackVerifyDetached(g SaltpackVerifyContext, message io.Reader, signature []byte, checkSender func(saltpack.SigningPublicKey) error) (err error) {
+	defer func() {
+		if kbErr, ok := err.(kbcrypto.VerificationError); ok {
+			err = getVerificationErrorWithStatusCode(&kbErr)
+		}
+	}()
+
 	sc, _, err := ClassifyStream(bytes.NewReader(signature))
 	if err != nil {
 		return err
@@ -93,22 +127,22 @@ func SaltpackVerifyDetached(g SaltpackVerifyContext, message io.Reader, signatur
 		skey, brand, err = saltpack.Dearmor62VerifyDetachedReader(saltpack.CheckKnownMajorVersion, message, string(signature), kr)
 		if err != nil {
 			g.GetLog().Debug("saltpack.Dearmor62VerifyDetachedReader error: %s", err)
-			return kbcrypto.VerificationError{Cause: err}
+			return kbcrypto.NewVerificationError(err)
 		}
 		if err = checkSaltpackBrand(brand); err != nil {
-			return kbcrypto.VerificationError{Cause: err}
+			return kbcrypto.NewVerificationError(err)
 		}
 	} else {
 		skey, err = saltpack.VerifyDetachedReader(saltpack.CheckKnownMajorVersion, message, signature, kr)
 		if err != nil {
 			g.GetLog().Debug("saltpack.VerifyDetachedReader error: %s", err)
-			return kbcrypto.VerificationError{Cause: err}
+			return kbcrypto.NewVerificationError(err)
 		}
 	}
 
 	if checkSender != nil {
 		if err = checkSender(skey); err != nil {
-			return kbcrypto.VerificationError{Cause: err}
+			return kbcrypto.NewVerificationError(err)
 		}
 	}
 
@@ -123,20 +157,4 @@ func (e echoKeyring) LookupSigningPublicKey(kid []byte) saltpack.SigningPublicKe
 	var k kbcrypto.NaclSigningKeyPublic
 	copy(k[:], kid)
 	return saltSignerPublic{key: k}
-}
-
-type sigKeyring struct {
-	saltSigner
-}
-
-func (s sigKeyring) LookupSigningPublicKey(kid []byte) saltpack.SigningPublicKey {
-	if s.GetPublicKey() == nil {
-		return nil
-	}
-
-	if hmac.Equal(s.GetPublicKey().ToKID(), kid) {
-		return s.GetPublicKey()
-	}
-
-	return nil
 }

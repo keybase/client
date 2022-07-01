@@ -1,4 +1,0 @@
-// @flow
-import {EmitterSubscription} from 'react-native'
-
-declare export var addSizeListener: (cb: Function) => EmitterSubscription

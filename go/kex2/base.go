@@ -18,11 +18,11 @@ type LogContext interface {
 }
 
 type baseDevice struct {
-	conn     net.Conn
-	xp       rpc.Transporter
-	deviceID DeviceID
+	conn     net.Conn        //nolint
+	xp       rpc.Transporter //nolint
+	deviceID DeviceID        //nolint
 	start    chan struct{}
-	canceled bool
+	canceled bool //nolint
 }
 
 // KexBaseArg are arguments common to both Provisioner and Provisionee

@@ -11,12 +11,11 @@ import (
 )
 
 type TrackEngineArg struct {
-	UserAssertion     string
-	Me                *libkb.User
-	Options           keybase1.TrackOptions
-	ForceRemoteCheck  bool
-	AllowSelfIdentify bool
-	SigVersion        libkb.SigVersion
+	UserAssertion    string
+	Me               *libkb.User
+	Options          keybase1.TrackOptions
+	ForceRemoteCheck bool
+	SigVersion       libkb.SigVersion
 }
 
 type TrackEngine struct {
@@ -80,11 +79,16 @@ func (e *TrackEngine) Run(m libkb.MetaContext) error {
 		return err
 	}
 
-	res, err := ieng.Result()
+	res, err := ieng.Result(m)
 	if err != nil {
 		return err
 	}
 	upk := res.Upk
+
+	if _, uid, _ := libkb.BootstrapActiveDeviceWithMetaContext(m); uid.Equal(upk.GetUID()) {
+		return errors.New("You can't follow yourself.")
+	}
+
 	loadarg := libkb.NewLoadUserArgWithMetaContext(m).WithUID(upk.GetUID()).WithPublicKeyOptional()
 	e.them, err = libkb.LoadUser(loadarg)
 	if err != nil {
@@ -93,7 +97,7 @@ func (e *TrackEngine) Run(m libkb.MetaContext) error {
 
 	e.confirmResult = ieng.ConfirmResult()
 	if !e.confirmResult.IdentityConfirmed {
-		m.CDebugf("confirmResult: %+v", e.confirmResult)
+		m.Debug("confirmResult: %+v", e.confirmResult)
 		return errors.New("Follow not confirmed")
 	}
 
@@ -104,7 +108,7 @@ func (e *TrackEngine) Run(m libkb.MetaContext) error {
 	}
 
 	if !e.arg.Options.ExpiringLocal && e.confirmResult.ExpiringLocal {
-		m.CDebugf("-ExpiringLocal-")
+		m.Debug("-ExpiringLocal-")
 		e.arg.Options.ExpiringLocal = true
 	}
 

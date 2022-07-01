@@ -2,13 +2,14 @@ package lru
 
 import (
 	json "encoding/json"
+	"reflect"
+	"sync"
+
 	lru "github.com/hashicorp/golang-lru"
 	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
 	context "golang.org/x/net/context"
-	"reflect"
-	"sync"
 )
 
 type Cache struct {
@@ -77,13 +78,11 @@ func (c *Cache) Get(ctx context.Context, lctx libkb.LRUContext, k libkb.LRUKeyer
 		tmp := reflect.New(c.typ)
 		ret = tmp.Interface()
 
-		err = jsonw.EnsureMaxDepthBytesDefault([]byte(w.Data))
-		if err != nil {
+		if err = jsonw.EnsureMaxDepthBytesDefault([]byte(w.Data)); err != nil {
 			return nil, err
 		}
 
-		err = json.Unmarshal([]byte(w.Data), ret)
-		if err != nil {
+		if err = json.Unmarshal([]byte(w.Data), ret); err != nil {
 			return nil, err
 		}
 	}
@@ -109,8 +108,21 @@ func (c *Cache) Put(ctx context.Context, lctx libkb.LRUContext, k libkb.LRUKeyer
 		Data:     data,
 		CachedAt: keybase1.ToTime(lctx.GetClock().Now()),
 	}
-	lctx.GetKVStore().PutObj(k.DbKey(), nil, w)
+	err := lctx.GetKVStore().PutObj(k.DbKey(), nil, w)
+	if err != nil {
+		return err
+	}
 	c.mem.Add(k.MemKey(), v)
+	return nil
+}
+
+func (c *Cache) OnLogout(mctx libkb.MetaContext) error {
+	c.ClearMemory()
+	return nil
+}
+
+func (c *Cache) OnDbNuke(mctx libkb.MetaContext) error {
+	c.ClearMemory()
 	return nil
 }
 

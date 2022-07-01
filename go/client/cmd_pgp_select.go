@@ -41,7 +41,7 @@ func (v *CmdPGPSelect) ParseArgv(ctx *cli.Context) (err error) {
 }
 
 const selectDisclaimer = `You are selecting a PGP key from your local GnuPG keychain, and
-will publish a statement signed with this key to make it part of 
+will publish a statement signed with this key to make it part of
 your Keybase.io identity.
 
 Note that GnuPG will prompt you to perform this signature.
@@ -102,7 +102,7 @@ func NewCmdPGPSelect(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Com
 	return cli.Command{
 		Name:         "select",
 		ArgumentHelp: "[key query]",
-		Usage:        "Select a key as your own and register the public half with the server",
+		Usage:        "Select a key from GnuPG as your own and register the public half with Keybase",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdPGPSelect{Contextified: libkb.NewContextified(g)}, "select", c)
 		},

@@ -28,11 +28,13 @@ func newConnTransport(g *libkb.GlobalContext, host string) *connTransport {
 
 func (t *connTransport) Dial(context.Context) (rpc.Transporter, error) {
 	var err error
-	t.conn, err = net.Dial("tcp", t.host)
+	t.conn, err = libkb.ProxyDial(t.G().Env, "tcp", t.host)
 	if err != nil {
 		return nil, err
 	}
-	t.stagedTransport = rpc.NewTransport(t.conn, libkb.NewRPCLogFactory(t.G()), libkb.MakeWrapError(t.G()), rpc.DefaultMaxFrameLength)
+	t.stagedTransport = rpc.NewTransport(t.conn, libkb.NewRPCLogFactory(t.G()),
+		t.G().RemoteNetworkInstrumenterStorage,
+		libkb.MakeWrapError(t.G()), rpc.DefaultMaxFrameLength)
 	return t.stagedTransport, nil
 }
 

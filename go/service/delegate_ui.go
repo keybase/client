@@ -28,15 +28,35 @@ func NewDelegateUICtlHandler(xp rpc.Transporter, id libkb.ConnectionID, g *libkb
 	}
 }
 
-func (d *DelegateUICtlHandler) RegisterIdentifyUI(_ context.Context) error {
+func (d *DelegateUICtlHandler) RegisterIdentifyUI(ctx context.Context) error {
 	d.G().UIRouter.SetUI(d.id, libkb.IdentifyUIKind)
+	d.pushGregorIdentifyUIHandler(ctx)
+	return nil
+}
+
+func (d *DelegateUICtlHandler) RegisterIdentify3UI(ctx context.Context) error {
+	d.G().UIRouter.SetUI(d.id, libkb.Identify3UIKind)
+	d.pushGregorIdentifyUIHandler(ctx)
+	return nil
+}
+
+func (d *DelegateUICtlHandler) pushGregorIdentifyUIHandler(_ context.Context) {
+	if d.G().GregorListener == nil {
+		return
+	}
 
 	// Let Gregor related code know that a IdentifyUI client
 	// (probably Electron) has connected, and to sync out state to it
-	if d.G().GregorListener != nil {
-		d.G().GregorListener.PushHandler(NewIdentifyUIHandler(d.G(), d.id))
-	}
+	d.G().GregorListener.PushHandler(NewIdentifyUIHandler(d.G(), d.id))
+}
 
+func (d *DelegateUICtlHandler) RegisterChatUI(_ context.Context) error {
+	d.G().UIRouter.SetUI(d.id, libkb.ChatUIKind)
+	return nil
+}
+
+func (d *DelegateUICtlHandler) RegisterLogUI(_ context.Context) error {
+	d.G().UIRouter.SetUI(d.id, libkb.LogUIKind)
 	return nil
 }
 

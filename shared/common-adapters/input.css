@@ -1,0 +1,12 @@
+.darkMode input,
+.darkMode textarea {
+  background-color: #191919;
+}
+
+input::-webkit-input-placeholder {
+  color: rgba(0, 0, 0, 0.4);
+}
+
+.darkMode input::-webkit-input-placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}

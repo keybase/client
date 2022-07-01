@@ -1,4 +1,5 @@
 @namespace("keybase.1")
+@compression_type("gzip")
 
 protocol metadata {
   import idl "backend_common.avdl";

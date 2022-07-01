@@ -8,6 +8,7 @@ protocol pprof {
   // capitalization rules.
 
   void processorProfile(int sessionID, string profileFile, DurationSec profileDurationSeconds);
+  void heapProfile(int sessionID, string profileFile);
 
   void logProcessorProfile(int sessionID, string logDirForMobile, DurationSec profileDurationSeconds);
 

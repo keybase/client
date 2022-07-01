@@ -11,6 +11,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams"
+	"github.com/keybase/client/go/teams/hidden"
 	"github.com/stretchr/testify/require"
 
 	insecureTriplesec "github.com/keybase/go-triplesec-insecure"
@@ -22,7 +23,7 @@ func InstallInsecureTriplesec(g *libkb.GlobalContext) {
 		isProduction := func() bool {
 			return g.Env.GetRunMode() == libkb.ProductionRunMode
 		}
-		return insecureTriplesec.NewCipher(passphrase, salt, warner, isProduction)
+		return insecureTriplesec.NewCipher(passphrase, salt, libkb.ClientTriplesecVersion, warner, isProduction)
 	}
 }
 
@@ -31,7 +32,9 @@ func setupTest(tb testing.TB, name string) libkb.TestContext {
 	tc.G.SetProofServices(externals.NewProofServices(tc.G))
 	InstallInsecureTriplesec(tc.G)
 	teams.NewTeamLoaderAndInstall(tc.G)
+	teams.NewFastTeamLoaderAndInstall(tc.G)
 	teams.NewAuditorAndInstall(tc.G)
+	hidden.NewChainManagerAndInstall(tc.G)
 	return tc
 }
 
@@ -47,6 +50,7 @@ func createRootTeam(tc libkb.TestContext) keybase1.TeamID {
 
 func createImplicitTeam(tc libkb.TestContext, public bool) keybase1.TeamID {
 	u, err := kbtest.CreateAndSignupFakeUser("c", tc.G)
+	require.NoError(tc.T, err)
 	team, _, _, err := teams.LookupOrCreateImplicitTeam(context.TODO(), tc.G, u.Username, public)
 	require.NoError(tc.T, err)
 	require.Equal(tc.T, public, team.ID.IsPublic())
@@ -142,7 +146,7 @@ func testCryptoUnbox(t *testing.T, implicit, public bool) {
 		require.NotNil(tc.T, unboxed)
 		require.Equal(tc.T, plaintext, unboxed)
 
-		canOpenWithPublicKey := false
+		var canOpenWithPublicKey bool
 		{
 			var encKey [libkb.NaclSecretBoxKeySize]byte = publicCryptKey.Key
 			var naclNonce [libkb.NaclDHNonceSize]byte = boxed.N
@@ -152,7 +156,7 @@ func testCryptoUnbox(t *testing.T, implicit, public bool) {
 		require.Equal(t, public, canOpenWithPublicKey, "should only be able to open with public key if public")
 
 		team := loadTeam()
-		err = team.Rotate(context.TODO())
+		err = team.Rotate(context.TODO(), keybase1.RotationType_VISIBLE)
 		require.NoError(t, err)
 		loadTeam() // load again to get the new key
 	}
@@ -205,7 +209,7 @@ func TestCryptoKeyGen(t *testing.T) {
 	boxed.Gen = 2
 	unboxed, err := c.Unbox(context.Background(), teamSpec, boxed)
 	require.Error(tc.T, err)
-	require.Equal(tc.T, "no team secret found at generation 2", err.Error())
+	require.Equal(tc.T, "FTL Missing seed at generation: 2", err.Error())
 	require.Nil(tc.T, unboxed)
 }
 

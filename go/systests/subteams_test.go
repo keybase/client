@@ -4,11 +4,12 @@ import (
 	"testing"
 
 	"fmt"
+
+	"github.com/keybase/client/go/teams"
+	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/client/go/teams"
-	"github.com/stretchr/testify/require"
 )
 
 func TestSubteamAdminships(t *testing.T) {
@@ -42,27 +43,38 @@ func TestSubteamAdminships(t *testing.T) {
 
 	subTeamName2, _ := subTeamName1.Append(subSubTeamBasename)
 
-	teams.RotateKey(context.TODO(), al.tc.G, *subteamID1)
-	teams.RotateKey(context.TODO(), al.tc.G, *subteamID1)
-	teams.RotateKey(context.TODO(), al.tc.G, *subteamID1)
+	err = teams.RotateKeyVisible(context.TODO(), al.tc.G, *subteamID1)
+	require.NoError(t, err)
+	err = teams.RotateKeyVisible(context.TODO(), al.tc.G, *subteamID1)
+	require.NoError(t, err)
+	err = teams.RotateKeyVisible(context.TODO(), al.tc.G, *subteamID1)
+	require.NoError(t, err)
 
 	t.Logf("Sub-Subteam created %s / %s", subteamID2.String(), subTeamName2.String())
 
-	teams.RotateKey(context.TODO(), al.tc.G, *subteamID1)
-	teams.RotateKey(context.TODO(), al.tc.G, *subteamID1)
-	teams.RotateKey(context.TODO(), al.tc.G, *subteamID1)
+	err = teams.RotateKeyVisible(context.TODO(), al.tc.G, *subteamID1)
+	require.NoError(t, err)
+	err = teams.RotateKeyVisible(context.TODO(), al.tc.G, *subteamID1)
+	require.NoError(t, err)
+	err = teams.RotateKeyVisible(context.TODO(), al.tc.G, *subteamID1)
+	require.NoError(t, err)
 
-	teams.RotateKey(context.TODO(), al.tc.G, *subteamID2)
-	teams.RotateKey(context.TODO(), al.tc.G, *subteamID2)
-	teams.RotateKey(context.TODO(), al.tc.G, *subteamID2)
+	err = teams.RotateKeyVisible(context.TODO(), al.tc.G, *subteamID2)
+	require.NoError(t, err)
+	err = teams.RotateKeyVisible(context.TODO(), al.tc.G, *subteamID2)
+	require.NoError(t, err)
+	err = teams.RotateKeyVisible(context.TODO(), al.tc.G, *subteamID2)
+	require.NoError(t, err)
 
 	al.addTeamMember(subTeamName2.String(), bob.username, keybase1.TeamRole_WRITER)
 	al.addTeamMember(subTeamName2.String(), eve.username, keybase1.TeamRole_READER)
 
 	bob.leave(subTeamName2.String())
 
-	teams.RotateKey(context.TODO(), al.tc.G, *subteamID2)
-	teams.RotateKey(context.TODO(), al.tc.G, *subteamID2)
+	err = teams.RotateKeyVisible(context.TODO(), al.tc.G, *subteamID2)
+	require.NoError(t, err)
+	err = teams.RotateKeyVisible(context.TODO(), al.tc.G, *subteamID2)
+	require.NoError(t, err)
 
 	t.Logf("Eve loads team ...")
 	fmt.Printf(":: Eve loads team %s ...\n", subteamID2.String())

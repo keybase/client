@@ -1,6 +1,0 @@
-// @flow
-import type {Props, Position} from './relative-popup-hoc.types'
-
-declare var RelativePopupHoc: Props<any>
-export default RelativePopupHoc
-export type {Position, Props}

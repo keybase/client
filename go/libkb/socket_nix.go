@@ -1,7 +1,9 @@
 // Copyright 2015 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
 
+//go:build !windows
 // +build !windows
+
 // socket_nix.go
 
 package libkb
@@ -33,7 +35,7 @@ func (s SocketInfo) BindToSocket() (ret net.Listener, err error) {
 
 	bindFile := s.bindFile
 	what := fmt.Sprintf("SocketInfo#BindToSocket(unix:%s)", bindFile)
-	defer Trace(s.log, what, func() error { return err })()
+	defer Trace(s.log, what, &err)()
 
 	if err := MakeParentDirs(s.log, bindFile); err != nil {
 		return nil, err
@@ -63,7 +65,10 @@ func (s SocketInfo) BindToSocket() (ret net.Listener, err error) {
 
 		defer func() {
 			s.log.Debug("| Chdir(%s)", prevWd)
-			os.Chdir(prevWd)
+			err := os.Chdir(prevWd)
+			if err != nil {
+				s.log.Debug("| Chdir(%s) err=%v", prevWd, err)
+			}
 		}()
 
 		bindFile = filepath.Base(bindFile)
@@ -97,7 +102,7 @@ func (s SocketInfo) dialSocket(dialFile string) (ret net.Conn, err error) {
 	defer bindLock.Unlock()
 
 	what := fmt.Sprintf("SocketInfo#dialSocket(unix:%s)", dialFile)
-	defer Trace(s.log, what, func() error { return err })()
+	defer Trace(s.log, what, &err)()
 
 	if dialFile == "" {
 		return nil, fmt.Errorf("Can't dial empty path")
@@ -111,13 +116,18 @@ func (s SocketInfo) dialSocket(dialFile string) (ret net.Conn, err error) {
 		if err != nil {
 			return nil, fmt.Errorf("Error getting working directory: %s", err)
 		}
-		s.log.Warning("| Changing current working directory because path for dialing is too long")
+		s.log.Debug("| Changing current working directory because path for dialing is too long")
 		dir := filepath.Dir(dialFile)
 		s.log.Debug("| os.Chdir(%s)", dir)
 		if err := os.Chdir(dir); err != nil {
 			return nil, fmt.Errorf("Path can't be longer than 108 characters (failed to chdir): %s", err)
 		}
-		defer os.Chdir(prevWd)
+		defer func() {
+			err := os.Chdir(prevWd)
+			if err != nil {
+				s.log.Debug("| Chdir(%s) err=%v", prevWd, err)
+			}
+		}()
 		dialFile = filepath.Base(dialFile)
 	}
 
@@ -136,6 +146,7 @@ func NewSocket(g *GlobalContext) (ret Socket, err error) {
 	if err != nil {
 		return
 	}
+	g.Log.Debug("Connecting to socket with dialFiles=%s, bindFiles=%s", dialFiles, bindFile)
 	log := g.Log
 	if log == nil {
 		log = logger.NewNull()

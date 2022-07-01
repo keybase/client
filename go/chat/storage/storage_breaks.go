@@ -19,7 +19,7 @@ type breakTracker struct {
 func newBreakTracker(g *globals.Context) *breakTracker {
 	return &breakTracker{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "BreakTracker", false),
+		DebugLabeler: utils.NewDebugLabeler(g.ExternalG(), "BreakTracker", false),
 	}
 }
 
@@ -32,7 +32,7 @@ func (b *breakTracker) makeDbKey(tlfID chat1.TLFID) libkb.DbKey {
 
 func (b *breakTracker) UpdateTLF(ctx context.Context, tlfID chat1.TLFID,
 	breaks []keybase1.TLFIdentifyFailure) (err error) {
-	defer b.Trace(ctx, func() error { return err }, "UpdateTLF(%s)", tlfID)()
+	defer b.Trace(ctx, &err, "UpdateTLF(%s)", tlfID)()
 	key := b.makeDbKey(tlfID)
 
 	dat, err := encode(breaks)
@@ -47,7 +47,7 @@ func (b *breakTracker) UpdateTLF(ctx context.Context, tlfID chat1.TLFID,
 }
 
 func (b *breakTracker) IsTLFBroken(ctx context.Context, tlfID chat1.TLFID) (res bool, err error) {
-	defer b.Trace(ctx, func() error { return err }, "IsTLFBroken(%s)", tlfID)()
+	defer b.Trace(ctx, &err, "IsTLFBroken(%s)", tlfID)()
 	key := b.makeDbKey(tlfID)
 	raw, found, err := b.G().LocalChatDb.GetRaw(key)
 	if err != nil {

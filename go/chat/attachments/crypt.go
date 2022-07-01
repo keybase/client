@@ -97,15 +97,15 @@ func (s *SignEncrypter) EncryptResume(r io.Reader, nonce signencrypt.Nonce, encK
 }
 
 func (s *SignEncrypter) EncryptKey() []byte {
-	return []byte((*s.encKey)[:])
+	return (*s.encKey)[:]
 }
 
 func (s *SignEncrypter) SignKey() []byte {
-	return []byte((*s.signKey)[:])
+	return (*s.signKey)[:]
 }
 
 func (s *SignEncrypter) VerifyKey() []byte {
-	return []byte((*s.verifyKey)[:])
+	return (*s.verifyKey)[:]
 }
 
 func (s *SignEncrypter) makeKeys() error {

@@ -55,6 +55,7 @@ func filterPubsubdItems(items []gregor1.ItemAndMetadata) (res []gregor1.ItemAndM
 		categoryStr := i.Category().String()
 		if !strings.HasPrefix(categoryStr, "user.") &&
 			!strings.HasPrefix(categoryStr, "stellar.") &&
+			!strings.HasPrefix(categoryStr, "device.") &&
 			!strings.HasPrefix(categoryStr, "home.") {
 			res = append(res, i)
 		}
@@ -66,6 +67,7 @@ func TestGregorForwardToElectron(t *testing.T) {
 	tc := setupTest(t, "gregor")
 	defer tc.Cleanup()
 	tc1 := cloneContext(tc)
+	defer tc1.Cleanup()
 
 	svc := service.NewService(tc.G, false)
 	startCh := svc.GetStartChannel()
@@ -85,6 +87,9 @@ func TestGregorForwardToElectron(t *testing.T) {
 	}
 	tc.G.SetUI(&sui)
 	signup := client.NewCmdSignupRunner(tc.G)
+	// Signup without e-mail address so we don't get a gregor badge
+	// ("unverified email") immediately after signing up.
+	signup.SetNoEmail()
 	signup.SetTest()
 
 	// Wait for the server to start up
@@ -92,6 +97,7 @@ func TestGregorForwardToElectron(t *testing.T) {
 	require.NoError(t, signup.Run())
 
 	cli, xp, err := client.GetRPCClientWithContext(tc1.G)
+	require.NoError(t, err)
 	srv := rpc.NewServer(xp, nil)
 	em := newElectronMock(tc.G)
 	err = srv.Register(keybase1.GregorUIProtocol(em))
@@ -177,7 +183,7 @@ func TestGregorForwardToElectron(t *testing.T) {
 	require.NoError(t, err)
 	checkState(state)
 
-	require.NoError(t, client.CtlServiceStop(tc.G))
+	require.NoError(t, CtlStop(tc.G))
 	// If the server failed, it's also an error
 	require.NoError(t, <-stopCh)
 }

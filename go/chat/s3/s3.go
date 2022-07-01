@@ -28,6 +28,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/keybase/client/go/libkb"
+
 	"golang.org/x/net/context"
 )
 
@@ -40,6 +42,7 @@ type Signer interface {
 // The S3 type encapsulates operations with an S3 region.
 type S3 struct {
 	Region
+	libkb.Contextified
 
 	// This is needed for payload construction.  It's
 	// ok for clients to know it.
@@ -78,9 +81,6 @@ type S3 struct {
 
 	// AttemptStrategy is the attempt strategy used for requests.
 	AttemptStrategy
-
-	// Reserve the right of using private data.
-	private byte
 
 	// client used for requests
 	client *http.Client
@@ -133,7 +133,7 @@ var DefaultAttemptStrategy = AttemptStrategy{
 }
 
 // New creates a new S3.  Optional client argument allows for custom http.clients to be used.
-func New(signer Signer, region Region, client ...*http.Client) *S3 {
+func New(g *libkb.GlobalContext, signer Signer, region Region, client ...*http.Client) *S3 {
 
 	var httpclient *http.Client
 
@@ -146,6 +146,7 @@ func New(signer Signer, region Region, client ...*http.Client) *S3 {
 		Region:          region,
 		AttemptStrategy: DefaultAttemptStrategy,
 		client:          httpclient,
+		Contextified:    libkb.NewContextified(g),
 	}
 }
 
@@ -829,7 +830,6 @@ type request struct {
 	method   string
 	bucket   string
 	path     string
-	signpath string
 	params   url.Values
 	headers  http.Header
 	baseurl  string
@@ -894,10 +894,10 @@ func (s3 *S3) prepare(req *request) error {
 				req.path = "/" + req.bucket + req.path
 			} else {
 				// Just in case, prevent injection.
-				if strings.IndexAny(req.bucket, "/:@") >= 0 {
+				if strings.ContainsAny(req.bucket, "/:@") {
 					return fmt.Errorf("bad S3 bucket: %q", req.bucket)
 				}
-				req.baseurl = strings.Replace(req.baseurl, "${bucket}", req.bucket, -1)
+				req.baseurl = strings.ReplaceAll(req.baseurl, "${bucket}", req.bucket)
 			}
 			signpath = "/" + req.bucket + signpath
 		}
@@ -961,7 +961,10 @@ func (s3 *S3) run(ctx context.Context, req *request, resp interface{}) (*http.Re
 					var deadline time.Time
 					if s3.RequestTimeout > 0 {
 						deadline = time.Now().Add(s3.RequestTimeout)
-						c.SetDeadline(deadline)
+						err := c.SetDeadline(deadline)
+						if err != nil {
+							return nil, err
+						}
 					}
 
 					if s3.ReadTimeout > 0 || s3.WriteTimeout > 0 {
@@ -974,6 +977,7 @@ func (s3 *S3) run(ctx context.Context, req *request, resp interface{}) (*http.Re
 					}
 					return
 				},
+				Proxy: libkb.MakeProxy(s3.G().Env),
 			},
 		}
 	}
@@ -1027,8 +1031,12 @@ func buildError(r *http.Response) error {
 	}
 
 	err := Error{}
+
 	// TODO return error if Unmarshal fails?
-	xml.NewDecoder(r.Body).Decode(&err)
+	decodeErr := xml.NewDecoder(r.Body).Decode(&err)
+	if decodeErr != nil {
+		log.Printf("\tdecodeErr error: %v", decodeErr)
+	}
 	r.Body.Close()
 	err.StatusCode = r.StatusCode
 	if err.Message == "" {

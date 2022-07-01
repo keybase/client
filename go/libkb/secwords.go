@@ -52,15 +52,21 @@ func validPhrase(p string, entropies []int) error {
 		return fmt.Errorf("phrase had %d words, expected %v", len(words), entropies)
 	}
 	for _, w := range words {
-		if !validWord(w) {
+		if !ValidSecWord(w) {
 			return fmt.Errorf("word %q is not a valid word", w)
 		}
 	}
 	return nil
 }
 
-func validWord(w string) bool {
+func ValidSecWord(w string) bool {
 	return secwordSet[w]
+}
+
+// SecWord returns the n'th word from the BIP-0039 list, mod the size
+// of the list.
+func SecWord(n int) string {
+	return secwords[n%len(secwords)]
 }
 
 // Wordlist from BIP0039:

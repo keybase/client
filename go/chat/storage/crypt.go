@@ -1,8 +1,10 @@
 package storage
 
 import (
-	"github.com/keybase/client/go/engine"
+	"github.com/keybase/client/go/encrypteddb"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/gregor1"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/net/context"
 )
 
@@ -12,24 +14,14 @@ import (
 // ***
 const cryptoVersion = 1
 
-func GetSecretBoxKey(ctx context.Context, g *libkb.GlobalContext, getSecretUI func() libkb.SecretUI) (fkey [32]byte, err error) {
-	// Get secret device key
-	encKey, err := engine.GetMySecretKey(ctx, g, getSecretUI, libkb.DeviceEncryptionKeyType,
-		"encrypt chat message")
-	if err != nil {
-		return fkey, err
-	}
-	kp, ok := encKey.(libkb.NaclDHKeyPair)
-	if !ok || kp.Private == nil {
-		return fkey, libkb.KeyCannotDecryptError{}
-	}
+func GetSecretBoxKey(ctx context.Context, g *libkb.GlobalContext) (fkey [32]byte, err error) {
+	return encrypteddb.GetSecretBoxKey(ctx, g, libkb.EncryptionReasonChatLocalStorage, "encrypt chat message")
+}
 
-	// Derive symmetric key from device key
-	skey, err := encKey.SecretSymmetricKey(libkb.EncryptionReasonChatLocalStorage)
+func GetSecretBoxKeyWithUID(ctx context.Context, g *libkb.GlobalContext, uid gregor1.UID) (fkey [32]byte, err error) {
+	uid2, err := keybase1.UIDFromString(uid.String())
 	if err != nil {
-		return fkey, err
+		return [32]byte{}, err
 	}
-
-	copy(fkey[:], skey[:])
-	return fkey, nil
+	return encrypteddb.GetSecretBoxKeyWithUID(ctx, g, uid2, libkb.EncryptionReasonChatLocalStorage, "encrypt chat message")
 }

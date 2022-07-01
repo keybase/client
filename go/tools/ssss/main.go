@@ -4,11 +4,13 @@ import (
 	"bytes"
 	"encoding/hex"
 	"fmt"
+	"io"
+	"os"
+
+	"github.com/keybase/client/go/libkb"
 	triplesec "github.com/keybase/go-triplesec"
 	saltpack "github.com/keybase/saltpack"
 	basic "github.com/keybase/saltpack/basic"
-	"io"
-	"os"
 )
 
 // ssss = "simple standalone saltpack signer"
@@ -49,7 +51,7 @@ func unTriplesec(key []byte, ciphertext []byte) (ret []byte, err error) {
 
 	salt := ciphertext[8:24]
 
-	tsec, err := triplesec.NewCipher([]byte(key), []byte(salt))
+	tsec, err := triplesec.NewCipher(key, salt, libkb.ClientTriplesecVersion)
 	if err != nil {
 		return nil, fmt.Errorf("could not make a triplesec decoder: %s", err.Error())
 	}
@@ -88,7 +90,7 @@ func loadKey() (key saltpack.SigningSecretKey, err error) {
 	var pub [32]byte
 	copy(pub[:], publicKeyBytes)
 
-	secretKey, err := unTriplesec([]byte(pp), []byte(encryptedKey))
+	secretKey, err := unTriplesec([]byte(pp), encryptedKey)
 	if err != nil {
 		return nil, err
 	}

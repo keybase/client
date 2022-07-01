@@ -85,16 +85,18 @@ func (r *rekeyMaster) Create(ctx context.Context, cli gregor1.IncomingInterface,
 	case TLFRekeyGregorCategory:
 		r.G().Log.Debug("incoming gregor: %+v", ibm)
 		return true, r.handleGregorCreation()
+	default:
+		return true, nil
 	}
-	return true, nil
 }
 
 func (r *rekeyMaster) Dismiss(ctx context.Context, cli gregor1.IncomingInterface, category string, ibm gregor.Item) (bool, error) {
 	switch category {
 	case TLFRekeyGregorCategory:
 		return true, r.handleGregorDismissal()
+	default:
+		return true, nil
 	}
-	return true, nil
 }
 
 var _ libkb.GregorInBandMessageHandler = (*rekeyMaster)(nil)
@@ -158,7 +160,8 @@ func queryAPIServerForRekeyInfo(g *libkb.GlobalContext) (keybase1.ProblemSet, er
 	}
 
 	var tmp rekeyQueryResult
-	err := g.API.PostDecode(libkb.APIArg{
+	mctx := libkb.NewMetaContextBackground(g)
+	err := g.API.PostDecode(mctx, libkb.APIArg{
 		Endpoint:    "kbfs/problem_sets",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args:        args,
@@ -207,7 +210,7 @@ func (r *rekeyMaster) resumeSleep() time.Duration {
 }
 
 func (r *rekeyMaster) runOnce(ri RekeyInterrupt) (ret time.Duration, err error) {
-	defer r.G().Trace(fmt.Sprintf("rekeyMaster#runOnce(%d) [%p]", ri, r), func() error { return err })()
+	defer r.G().Trace(fmt.Sprintf("rekeyMaster#runOnce(%d) [%p]", ri, r), &err)()
 
 	var problemsAndDevices *keybase1.ProblemSetDevices
 	var event keybase1.RekeyEvent
@@ -240,7 +243,10 @@ func (r *rekeyMaster) runOnce(ri RekeyInterrupt) (ret time.Duration, err error) 
 
 	// sendRekeyEvent sends a debug message to the UI (useful only in testing)
 	event.InterruptType = int(ri)
-	r.sendRekeyEvent(event)
+	err = r.sendRekeyEvent(event)
+	if err != nil {
+		return ret, err
+	}
 
 	err = r.actOnProblems(problemsAndDevices, event)
 	return ret, err
@@ -253,7 +259,7 @@ func (r *rekeyMaster) getUI() (ret *RekeyUI, err error) {
 }
 
 func (r *rekeyMaster) clearUI() (err error) {
-	defer r.G().Trace("rekeyMaster#clearUI", func() error { return err })()
+	defer r.G().Trace("rekeyMaster#clearUI", &err)()
 
 	if !r.uiVisible {
 		r.G().Log.Debug("| no need to clear the UI; UI wasn't visible")
@@ -283,7 +289,7 @@ func (r *rekeyMaster) clearUI() (err error) {
 }
 
 func (r *rekeyMaster) spawnOrRefreshUI(problemSetDevices keybase1.ProblemSetDevices) (err error) {
-	defer r.G().Trace("rekeyMaster#spawnOrRefreshUI", func() error { return err })()
+	defer r.G().Trace("rekeyMaster#spawnOrRefreshUI", &err)()
 
 	var ui *RekeyUI
 	ui, err = r.getUI()
@@ -307,7 +313,7 @@ func (r *rekeyMaster) spawnOrRefreshUI(problemSetDevices keybase1.ProblemSetDevi
 // sendRekeyEvent sends notification of a rekey event to the UI. It's largely
 // used for testing.
 func (r *rekeyMaster) sendRekeyEvent(e keybase1.RekeyEvent) (err error) {
-	defer r.G().Trace(fmt.Sprintf("rekeyMaster#sendRekeyEvent(%v)", e), func() error { return err })()
+	defer r.G().Trace(fmt.Sprintf("rekeyMaster#sendRekeyEvent(%v)", e), &err)()
 
 	if e.InterruptType == int(RekeyInterruptSync) {
 		r.G().Log.Debug("| No need to send a rekey event on a Sync() RPC")
@@ -328,7 +334,7 @@ func (r *rekeyMaster) sendRekeyEvent(e keybase1.RekeyEvent) (err error) {
 }
 
 func (r *rekeyMaster) actOnProblems(problemsAndDevices *keybase1.ProblemSetDevices, event keybase1.RekeyEvent) (err error) {
-	defer r.G().Trace(fmt.Sprintf("rekeyMaster#actOnProblems(%v)", problemsAndDevices != nil), func() error { return err })()
+	defer r.G().Trace(fmt.Sprintf("rekeyMaster#actOnProblems(%v)", problemsAndDevices != nil), &err)()
 
 	if problemsAndDevices == nil {
 		err = r.clearUI()
@@ -340,7 +346,7 @@ func (r *rekeyMaster) actOnProblems(problemsAndDevices *keybase1.ProblemSetDevic
 }
 
 func (r *rekeyMaster) hasGregorTLFRekeyMessages() (ret bool, err error) {
-	defer r.G().Trace("hasGregorTLFRekeyMessages", func() error { return err })()
+	defer r.G().Trace("hasGregorTLFRekeyMessages", &err)()
 
 	var state gregor1.State
 	state, err = r.gregor.getState(context.Background())
@@ -357,7 +363,7 @@ func (r *rekeyMaster) hasGregorTLFRekeyMessages() (ret bool, err error) {
 }
 
 func (r *rekeyMaster) computeProblems() (nextWait time.Duration, problemsAndDevices *keybase1.ProblemSetDevices, event keybase1.RekeyEvent, err error) {
-	defer r.G().Trace("rekeyMaster#computeProblems", func() error { return err })()
+	defer r.G().Trace("rekeyMaster#computeProblems", &err)()
 
 	if !r.G().ActiveDevice.Valid() {
 		r.G().Log.Debug("| not logged in")
@@ -453,7 +459,7 @@ func (r *rekeyMaster) currentDeviceSolvesProblemSet(me *libkb.User, ps keybase1.
 
 	// We can continue though, so no need to error out
 	if paperKey == nil {
-		m.CDebugf("| No cached paper key")
+		m.Debug("| No cached paper key")
 	}
 	if deviceKey != nil {
 		r.G().Log.Debug("| currentDeviceSolvesProblemSet: checking device key: %s", deviceKey.GetKID())
@@ -557,7 +563,7 @@ func (r *RekeyHandler2) DebugShowRekeyStatus(ctx context.Context, sessionID int)
 					Username: me.GetName(),
 				},
 				Tlfs: []keybase1.ProblemTLF{
-					keybase1.ProblemTLF{
+					{
 						Tlf: keybase1.TLF{
 							// this is only for debugging
 							Name:      "/keybase/private/" + me.GetName(),
@@ -599,14 +605,15 @@ func (u *unkeyedTLFsQueryResult) GetAppStatus() *libkb.AppStatus {
 	return &u.Status
 }
 
-func (r *RekeyHandler2) GetRevokeWarning(_ context.Context, arg keybase1.GetRevokeWarningArg) (res keybase1.RevokeWarning, err error) {
+func (r *RekeyHandler2) GetRevokeWarning(ctx context.Context, arg keybase1.GetRevokeWarningArg) (res keybase1.RevokeWarning, err error) {
 	var u unkeyedTLFsQueryResult
 	actingDevice := arg.ActingDevice
 	if actingDevice.IsNil() {
 		actingDevice = r.G().Env.GetDeviceID()
 	}
+	mctx := libkb.NewMetaContext(ctx, r.G())
 
-	err = r.G().API.GetDecode(libkb.APIArg{
+	err = r.G().API.GetDecode(mctx, libkb.APIArg{
 		Endpoint:    "kbfs/unkeyed_tlfs_from_pair",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args: libkb.HTTPArgs{

@@ -18,7 +18,7 @@ type URLCachingSource struct {
 	staleFetchCh chan struct{}
 }
 
-var _ Source = (*URLCachingSource)(nil)
+var _ libkb.AvatarLoaderSource = (*URLCachingSource)(nil)
 
 func NewURLCachingSource(staleThreshold time.Duration, size int) *URLCachingSource {
 	return &URLCachingSource{
@@ -37,7 +37,7 @@ func (c *URLCachingSource) StopBackgroundTasks(m libkb.MetaContext) {
 }
 
 func (c *URLCachingSource) debug(m libkb.MetaContext, msg string, args ...interface{}) {
-	m.CDebugf("Avatars.URLCachingSource: %s", fmt.Sprintf(msg, args...))
+	m.Debug("Avatars.URLCachingSource: %s", fmt.Sprintf(msg, args...))
 }
 
 func (c *URLCachingSource) avatarKey(name string, format keybase1.AvatarFormat) string {
@@ -50,11 +50,10 @@ func (c *URLCachingSource) isStale(m libkb.MetaContext, item lru.DiskLRUEntry) b
 
 func (c *URLCachingSource) monitorAppState(m libkb.MetaContext) {
 	c.debug(m, "monitorAppState: starting up")
-	state := keybase1.AppState_FOREGROUND
+	state := keybase1.MobileAppState_FOREGROUND
 	for {
-		state = <-m.G().AppState.NextUpdate(&state)
-		switch state {
-		case keybase1.AppState_BACKGROUND:
+		state = <-m.G().MobileAppState.NextUpdate(&state)
+		if state == keybase1.MobileAppState_BACKGROUND {
 			c.debug(m, "monitorAppState: backgrounded")
 			c.diskLRU.Flush(m.Ctx(), m.G())
 		}
@@ -168,18 +167,18 @@ func (c *URLCachingSource) clearName(m libkb.MetaContext, name string, formats [
 }
 
 func (c *URLCachingSource) LoadUsers(m libkb.MetaContext, usernames []string, formats []keybase1.AvatarFormat) (res keybase1.LoadAvatarsRes, err error) {
-	defer m.CTrace("URLCachingSource.LoadUsers", func() error { return err })()
+	defer m.Trace("URLCachingSource.LoadUsers", &err)()
 	return c.loadNames(m, usernames, formats, c.simpleSource.LoadUsers)
 }
 
 func (c *URLCachingSource) LoadTeams(m libkb.MetaContext, teams []string, formats []keybase1.AvatarFormat) (res keybase1.LoadAvatarsRes, err error) {
-	defer m.CTrace("URLCachingSource.LoadTeams", func() error { return err })()
+	defer m.Trace("URLCachingSource.LoadTeams", &err)()
 	return c.loadNames(m, teams, formats, c.simpleSource.LoadTeams)
 }
 
 func (c *URLCachingSource) ClearCacheForName(m libkb.MetaContext, name string, formats []keybase1.AvatarFormat) (err error) {
-	defer m.CTrace(fmt.Sprintf("URLCachingSource.ClearCacheForUser(%s,%v)", name, formats), func() error { return err })()
+	defer m.Trace(fmt.Sprintf("URLCachingSource.ClearCacheForUser(%s,%v)", name, formats), &err)()
 	return c.clearName(m, name, formats)
 }
 
-func (c *URLCachingSource) OnCacheCleared(m libkb.MetaContext) {}
+func (c *URLCachingSource) OnDbNuke(m libkb.MetaContext) error { return nil }

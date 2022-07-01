@@ -4,7 +4,9 @@
 package service
 
 import (
+	"github.com/keybase/client/go/install"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"golang.org/x/net/context"
@@ -25,14 +27,24 @@ func NewCtlHandler(xp rpc.Transporter, v *Service, g *libkb.GlobalContext) *CtlH
 }
 
 // Stop is called on the rpc keybase.1.ctl.stop, which shuts down the service.
-func (c *CtlHandler) Stop(_ context.Context, args keybase1.StopArg) error {
-	c.G().Log.Debug("Received stop(%d) RPC; shutting down", args.ExitCode)
-	go c.service.Stop(args.ExitCode)
+func (c *CtlHandler) Stop(ctx context.Context, args keybase1.StopArg) error {
+	c.G().Log.Debug("Ctl: Stop: StopAllButService")
+	install.StopAllButService(libkb.NewMetaContext(ctx, c.G()), args.ExitCode)
+	c.G().Log.Debug("Ctl: Stop: Stopping service")
+	c.service.Stop(args.ExitCode)
+	return nil
+}
+
+func (c *CtlHandler) StopService(ctx context.Context, args keybase1.StopServiceArg) error {
+	c.G().Log.Debug("Ctl: StopService")
+	c.service.Stop(args.ExitCode)
 	return nil
 }
 
 func (c *CtlHandler) LogRotate(_ context.Context, sessionID int) error {
-	return c.G().Log.RotateLogFile()
+	logFile, _ := c.G().Env.GetEffectiveLogFile()
+	// Redirect to log file even if not explicitly desired during service call
+	return logger.SetLogFileConfig(c.G().Env.GetLogFileConfig(logFile), nil)
 }
 
 func (c *CtlHandler) Reload(_ context.Context, sessionID int) error {
@@ -40,7 +52,22 @@ func (c *CtlHandler) Reload(_ context.Context, sessionID int) error {
 	return c.G().ConfigReload()
 }
 
-func (c *CtlHandler) DbNuke(ctx context.Context, sessionID int) error {
+func (c *CtlHandler) DbClean(ctx context.Context, arg keybase1.DbCleanArg) (err error) {
+	mctx := libkb.NewMetaContext(ctx, c.G())
+	defer mctx.Trace("DbClean", &err)()
+	switch arg.DbType {
+	case keybase1.DbType_MAIN:
+		return c.G().LocalDb.Clean(arg.Force)
+	case keybase1.DbType_CHAT:
+		return c.G().LocalChatDb.Clean(arg.Force)
+	default:
+		return libkb.NewDBError("unsupported DB type")
+	}
+}
+
+func (c *CtlHandler) DbNuke(ctx context.Context, sessionID int) (err error) {
+	mctx := libkb.NewMetaContext(ctx, c.G())
+	defer mctx.Trace("DbNuke", &err)()
 	logui := c.getLogUI(sessionID)
 
 	fn, err := c.G().LocalDb.Nuke()
@@ -57,13 +84,9 @@ func (c *CtlHandler) DbNuke(ctx context.Context, sessionID int) error {
 	}
 	logui.Warning("Nuking chat database %s", fn)
 
-	teamLoader := c.G().GetTeamLoader()
-	if teamLoader != nil {
-		teamLoader.ClearMem()
-	}
 	// Now drop caches, since we had the DB's state in-memory too.
 	c.G().FlushCaches()
-	c.service.onDbNuke(ctx)
+	c.G().CallDbNukeHooks(mctx)
 	return nil
 }
 
@@ -73,7 +96,9 @@ func (c *CtlHandler) AppExit(_ context.Context, sessionID int) error {
 	return nil
 }
 
-func (c *CtlHandler) DbDelete(_ context.Context, arg keybase1.DbDeleteArg) (err error) {
+func (c *CtlHandler) DbDelete(ctx context.Context, arg keybase1.DbDeleteArg) (err error) {
+	mctx := libkb.NewMetaContext(ctx, c.G())
+	defer mctx.Trace("DbDelete", &err)()
 	key := libkb.ImportDbKey(arg.Key)
 
 	switch arg.Key.DbType {
@@ -95,11 +120,12 @@ func (c *CtlHandler) DbDelete(_ context.Context, arg keybase1.DbDeleteArg) (err 
 	return nil
 }
 
-func (c *CtlHandler) DbGet(_ context.Context, arg keybase1.DbGetArg) (*keybase1.DbValue, error) {
+func (c *CtlHandler) DbGet(ctx context.Context, arg keybase1.DbGetArg) (ret *keybase1.DbValue, err error) {
+	mctx := libkb.NewMetaContext(ctx, c.G())
+	defer mctx.Trace("DbGet", &err)()
 	key := libkb.ImportDbKey(arg.Key)
 	var res []byte
 	var found bool
-	var err error
 	switch arg.Key.DbType {
 	case keybase1.DbType_MAIN:
 		res, found, err = c.G().LocalDb.GetRaw(key)
@@ -118,7 +144,37 @@ func (c *CtlHandler) DbGet(_ context.Context, arg keybase1.DbGetArg) (*keybase1.
 	return &val, nil
 }
 
-func (c *CtlHandler) DbPut(_ context.Context, arg keybase1.DbPutArg) (err error) {
+func (c *CtlHandler) DbKeysWithPrefixes(ctx context.Context, arg keybase1.DbKeysWithPrefixesArg) (ret []keybase1.DbKey, err error) {
+	mctx := libkb.NewMetaContext(ctx, c.G())
+	defer mctx.Trace("DbKeysWithPrefixes", &err)()
+	var res libkb.DBKeySet
+	switch arg.Prefix.DbType {
+	case keybase1.DbType_MAIN:
+		res, err = c.G().LocalDb.KeysWithPrefixes([]byte(libkb.PrefixString(libkb.ObjType(arg.Prefix.ObjType))))
+	case keybase1.DbType_CHAT:
+		res, err = c.G().LocalChatDb.KeysWithPrefixes([]byte(libkb.PrefixString(libkb.ObjType(arg.Prefix.ObjType))))
+	default:
+		return nil, libkb.NewDBError("no such DB type")
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	ret = make([]keybase1.DbKey, 0, len(res))
+	for k := range res {
+		ret = append(ret, keybase1.DbKey{
+			DbType:  arg.Prefix.DbType,
+			ObjType: int(k.Typ),
+			Key:     k.Key,
+		})
+	}
+
+	return ret, nil
+}
+
+func (c *CtlHandler) DbPut(ctx context.Context, arg keybase1.DbPutArg) (err error) {
+	mctx := libkb.NewMetaContext(ctx, c.G())
+	defer mctx.Trace("DbPut", &err)()
 	key := libkb.ImportDbKey(arg.Key)
 
 	switch arg.Key.DbType {

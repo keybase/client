@@ -32,13 +32,18 @@ type DeviceStatus struct {
 }
 
 type Device struct {
-	ID          keybase1.DeviceID `json:"id"`
-	Kid         keybase1.KID      `json:"kid,omitempty"`
-	Description *string           `json:"name,omitempty"`
-	Status      *int              `json:"status,omitempty"`
-	Type        string            `json:"type"`
-	CTime       keybase1.Time     `json:"ctime"`
-	MTime       keybase1.Time     `json:"mtime"`
+	ID          keybase1.DeviceID     `json:"id"`
+	Kid         keybase1.KID          `json:"kid,omitempty"`
+	Description *string               `json:"name,omitempty"`
+	Status      *int                  `json:"status,omitempty"`
+	Type        keybase1.DeviceTypeV2 `json:"type"`
+	CTime       keybase1.Time         `json:"ctime"`
+	MTime       keybase1.Time         `json:"mtime"`
+}
+
+type DeviceWithDeviceNumber struct {
+	*Device
+	DeviceNumberOfType int
 }
 
 // NewPaperDevice creates a new paper backup key device
@@ -52,7 +57,7 @@ func NewPaperDevice(passphrasePrefix string) (*Device, error) {
 
 	d := &Device{
 		ID:          did,
-		Type:        DeviceTypePaper,
+		Type:        keybase1.DeviceTypeV2_PAPER,
 		Status:      &s,
 		Description: &desc,
 	}
@@ -105,8 +110,14 @@ func (d *Device) Export(lt LinkType) (*jsonw.Wrapper, error) {
 	}
 
 	// These were being set to 0, so don't include them
-	dw.DeleteKey("mtime")
-	dw.DeleteKey("ctime")
+	err = dw.DeleteKey("mtime")
+	if err != nil {
+		return nil, err
+	}
+	err = dw.DeleteKey("ctime")
+	if err != nil {
+		return nil, err
+	}
 
 	return dw, nil
 }
@@ -117,6 +128,26 @@ func (d *Device) ProtExport() *keybase1.Device {
 		DeviceID: d.ID,
 		CTime:    d.CTime,
 		MTime:    d.MTime,
+	}
+	if d.Description != nil {
+		ex.Name = *d.Description
+	}
+	if d.Status != nil {
+		ex.Status = *d.Status
+	}
+	if d.Kid.Exists() {
+		ex.VerifyKey = d.Kid
+	}
+	return ex
+}
+
+func (d DeviceWithDeviceNumber) ProtExportWithDeviceNum() *keybase1.Device {
+	ex := &keybase1.Device{
+		Type:               d.Type,
+		DeviceID:           d.ID,
+		CTime:              d.CTime,
+		MTime:              d.MTime,
+		DeviceNumberOfType: d.DeviceNumberOfType,
 	}
 	if d.Description != nil {
 		ex.Name = *d.Description

@@ -34,20 +34,22 @@ const (
 )
 
 type CommandLine struct {
-	app                *cli.App
-	ctx                *cli.Context
-	cmd                Command
-	name               string     // the name of the chosen command
-	service            bool       // The server is a special command
-	fork               ForkCmd    // If the command is to stop (then don't start the server)
-	noStandalone       bool       // On if this command can't run in standalone mode
-	logForward         LogForward // What do to about log forwarding
-	skipOutOfDateCheck bool       // don't try to check for service being out of date
-	defaultCmd         string
+	app                   *cli.App
+	ctx                   *cli.Context
+	cmd                   Command
+	name                  string     // the name of the chosen command
+	service               bool       // The server is a special command
+	fork                  ForkCmd    // If the command is to stop (then don't start the server)
+	noStandalone          bool       // On if this command can't run in standalone mode
+	logForward            LogForward // What do to about log forwarding
+	skipOutOfDateCheck    bool       // don't try to check for service being out of date
+	skipAccountResetCheck bool       // don't check if our account is scheduled for rest
+	defaultCmd            string
 }
 
 func (p CommandLine) IsService() bool             { return p.service }
 func (p CommandLine) SkipOutOfDateCheck() bool    { return p.skipOutOfDateCheck }
+func (p CommandLine) SkipAccountResetCheck() bool { return p.skipAccountResetCheck }
 func (p *CommandLine) SetService()                { p.service = true }
 func (p CommandLine) GetForkCmd() ForkCmd         { return p.fork }
 func (p *CommandLine) SetForkCmd(v ForkCmd)       { p.fork = v }
@@ -56,6 +58,7 @@ func (p CommandLine) IsNoStandalone() bool        { return p.noStandalone }
 func (p *CommandLine) SetLogForward(f LogForward) { p.logForward = f }
 func (p *CommandLine) GetLogForward() LogForward  { return p.logForward }
 func (p *CommandLine) SetSkipOutOfDateCheck()     { p.skipOutOfDateCheck = true }
+func (p *CommandLine) SetSkipAccountResetCheck()  { p.skipAccountResetCheck = true }
 
 func (p CommandLine) GetNoAutoFork() (bool, bool) {
 	return p.GetBool("no-auto-fork", true)
@@ -69,11 +72,14 @@ func (p CommandLine) GetHome() string {
 func (p CommandLine) GetMobileSharedHome() string {
 	return p.GetGString("mobile-shared-home")
 }
-func (p CommandLine) GetServerURI() string {
-	return p.GetGString("server")
+func (p CommandLine) GetServerURI() (string, error) {
+	return p.GetGString("server"), nil
 }
 func (p CommandLine) GetConfigFilename() string {
 	return p.GetGString("config-file")
+}
+func (p CommandLine) GetGUIConfigFilename() string {
+	return p.GetGString("gui-config-file")
 }
 func (p CommandLine) GetUpdaterConfigFilename() string {
 	return p.GetGString("updater-config-file")
@@ -96,6 +102,12 @@ func (p CommandLine) GetPvlKitFilename() string {
 func (p CommandLine) GetParamProofKitFilename() string {
 	return p.GetGString("paramproof-kit")
 }
+func (p CommandLine) GetExternalURLKitFilename() string {
+	return p.GetGString("externalurl-kit")
+}
+func (p CommandLine) GetProveBypass() (bool, bool) {
+	return p.GetBool("prove-bypass", true)
+}
 func (p CommandLine) GetDebug() (bool, bool) {
 	// --no-debug suppresses --debug. Note that although we don't define a
 	// separate GetNoDebug() accessor, fork_server.go still looks for
@@ -105,17 +117,14 @@ func (p CommandLine) GetDebug() (bool, bool) {
 	}
 	return p.GetBool("debug", true)
 }
+func (p CommandLine) GetDebugJourneycard() (bool, bool) {
+	return p.GetBool("debug-journeycard", true)
+}
 func (p CommandLine) GetDisplayRawUntrustedOutput() (bool, bool) {
 	return p.GetBool("display-raw-untrusted-output", true)
 }
 func (p CommandLine) GetVDebugSetting() string {
 	return p.GetGString("vdebug")
-}
-func (p CommandLine) GetUpgradePerUserKey() (bool, bool) {
-	return p.GetBool("upgrade-per-user-key", true)
-}
-func (p CommandLine) GetAutoWallet() (bool, bool) {
-	return p.GetBool("auto-wallet", true)
 }
 func (p CommandLine) GetPGPFingerprint() *libkb.PGPFingerprint {
 	return libkb.PGPFingerprintFromHexNoError(p.GetGString("fingerprint"))
@@ -126,7 +135,21 @@ func (p CommandLine) GetProxy() string {
 func (p CommandLine) GetLogFile() string {
 	return p.GetGString("log-file")
 }
-
+func (p CommandLine) GetEKLogFile() string {
+	return p.GetGString("ek-log-file")
+}
+func (p CommandLine) GetPerfLogFile() string {
+	return p.GetGString("perf-log-file")
+}
+func (p CommandLine) GetGUILogFile() string {
+	return p.GetGString("gui-log-file")
+}
+func (p CommandLine) GetUseDefaultLogFile() (bool, bool) {
+	return p.GetBool("use-default-log-file", true)
+}
+func (p CommandLine) GetUseRootConfigFile() (bool, bool) {
+	return p.GetBool("use-root-config-file", true)
+}
 func (p CommandLine) GetLogPrefix() string {
 	return p.GetGString("log-prefix")
 }
@@ -149,6 +172,10 @@ func (p CommandLine) GetGregorSaveInterval() (time.Duration, bool) {
 }
 func (p CommandLine) GetGregorDisabled() (bool, bool) {
 	return p.GetBool("push-disabled", true)
+}
+func (p CommandLine) GetSecretStorePrimingDisabled() (bool, bool) {
+	// SecretStorePrimingDisabled is only for tests
+	return false, false
 }
 func (p CommandLine) GetBGIdentifierDisabled() (bool, bool) {
 	return p.GetBool("bg-identifier-disabled", true)
@@ -197,6 +224,9 @@ func (p CommandLine) IsMobileExtension() (bool, bool) {
 }
 func (p CommandLine) GetSlowGregorConn() (bool, bool) {
 	return p.GetBool("slow-gregor-conn", true)
+}
+func (p CommandLine) GetReadDeletedSigChain() (bool, bool) {
+	return p.GetBool("read-deleted-sigchain", true)
 }
 func (p CommandLine) GetGString(s string) string {
 	return p.ctx.GlobalString(s)
@@ -285,6 +315,14 @@ func (p CommandLine) GetLevelDBNumFiles() (int, bool) {
 	return 0, false
 }
 
+func (p CommandLine) GetLevelDBWriteBufferMB() (int, bool) {
+	ret := p.GetGInt("leveldb-write-buffer-mb")
+	if ret != 0 {
+		return ret, true
+	}
+	return 0, false
+}
+
 func (p CommandLine) GetChatInboxSourceLocalizeThreads() (int, bool) {
 	ret := p.GetGInt("chat-inboxsource-localizethreads")
 	if ret != 0 {
@@ -359,16 +397,74 @@ func (p CommandLine) GetTorProxy() string {
 	return p.GetGString("tor-proxy")
 }
 
+func (p CommandLine) GetProxyType() string {
+	return p.GetGString("proxy-type")
+}
+
+func (p CommandLine) IsCertPinningEnabled() bool {
+	r1, _ := p.GetBool("disable-cert-pinning", true)
+	// Defaults to false since it is a boolean flag, so just invert it
+	return !r1
+}
+
 func (p CommandLine) GetMountDir() string {
 	return p.GetGString("mountdir")
 }
 
-func (p CommandLine) GetRememberPassphrase() (bool, bool) {
+func (p CommandLine) GetMountDirDefault() string {
+	return p.GetGString("mountdirdefault")
+}
+
+func (p CommandLine) GetRememberPassphrase(libkb.NormalizedUsername) (bool, bool) {
 	return p.GetBool("remember-passphrase", true)
 }
 
 func (p CommandLine) GetAttachmentDisableMulti() (bool, bool) {
 	return p.GetBool("attachment-disable-multi", true)
+}
+
+func (p CommandLine) GetDisableTeamAuditor() (bool, bool) {
+	return p.GetBool("disable-team-auditor", true)
+}
+
+func (p CommandLine) GetDisableTeamBoxAuditor() (bool, bool) {
+	return p.GetBool("disable-team-box-auditor", true)
+}
+
+func (p CommandLine) GetDisableEKBackgroundKeygen() (bool, bool) {
+	return p.GetBool("disable-ek-backgorund-keygen", true)
+}
+
+func (p CommandLine) GetDisableMerkleAuditor() (bool, bool) {
+	return p.GetBool("disable-merkle-auditor", true)
+}
+
+func (p CommandLine) GetDisableSearchIndexer() (bool, bool) {
+	return p.GetBool("disable-search-indexer", true)
+}
+
+func (p CommandLine) GetDisableBgConvLoader() (bool, bool) {
+	return p.GetBool("disable-bg-conv-loader", true)
+}
+
+func (p CommandLine) GetEnableBotLiteMode() (bool, bool) {
+	return p.GetBool("enable-bot-lite-mode", true)
+}
+
+func (p CommandLine) GetExtraNetLogging() (bool, bool) {
+	return p.GetBool("extra-net-logging", true)
+}
+
+func (p CommandLine) GetForceLinuxKeyring() (bool, bool) {
+	return p.GetBool("force-linux-keyring", true)
+}
+
+func (p CommandLine) GetForceSecretStoreFile() (bool, bool) {
+	return false, false // not configurable via command line flags
+}
+
+func (p CommandLine) GetRuntimeStatsEnabled() (bool, bool) {
+	return false, false
 }
 
 func (p CommandLine) GetAttachmentHTTPStartPort() (int, bool) {
@@ -466,6 +562,10 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 			Name:  "config-file, c",
 			Usage: "Specify an (alternate) master config file.",
 		},
+		cli.BoolFlag{
+			Name:  "use-root-config-file",
+			Usage: "Use the default root config on Linux only.",
+		},
 		cli.StringFlag{
 			Name:  "db",
 			Usage: "Specify an alternate local DB location.",
@@ -473,6 +573,11 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 		cli.BoolFlag{
 			Name:  "debug, d",
 			Usage: "Enable debugging mode.",
+		},
+		cli.BoolFlag{
+			Name: "disable-cert-pinning",
+			Usage: "Disable certificate pinning within the app. WARNING: This reduces the security of the app. Do not use " +
+				"unless necessary! This should only be used if you are running keybase behind a proxy that does TLS interception.",
 		},
 		cli.BoolFlag{
 			Name:  "display-raw-untrusted-output",
@@ -505,6 +610,10 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 		cli.StringFlag{
 			Name:  "log-file",
 			Usage: "Specify a log file for the keybase service.",
+		},
+		cli.StringFlag{
+			Name:  "ek-log-file",
+			Usage: "Specify a log file for the keybase ephemeral key log.",
 		},
 		cli.StringFlag{
 			Name:  "log-format",
@@ -540,7 +649,11 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 		},
 		cli.StringFlag{
 			Name:  "proxy",
-			Usage: "Specify an HTTP(s) proxy to ship all Web requests over.",
+			Usage: "Specify a proxy to ship all Web requests over; Must be used with --proxy-type; Example: localhost:8080",
+		},
+		cli.StringFlag{
+			Name:  "proxy-type",
+			Usage: fmt.Sprintf("set the proxy type; One of: %s", libkb.GetCommaSeparatedListOfProxyTypes()),
 		},
 		cli.BoolFlag{
 			Name:  "push-disabled",
@@ -561,6 +674,10 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 		cli.StringFlag{
 			Name:  "paramproof-kit",
 			Usage: "Specify an alternate local parameterized proof kit file location.",
+		},
+		cli.BoolFlag{
+			Name:  "prove-bypass",
+			Usage: "Prove even disabled proof services",
 		},
 		cli.BoolFlag{
 			Name:  "remember-passphrase",
@@ -590,6 +707,10 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 			Name:  "slow-gregor-conn",
 			Usage: "Slow responses from gregor for testing",
 		},
+		cli.BoolFlag{
+			Name:  "read-deleted-sigchain",
+			Usage: "Allow admins to read deleted sigchains for debugging.",
+		},
 		cli.StringFlag{
 			Name:  "socket-file",
 			Usage: "Location of the keybased socket-file.",
@@ -618,9 +739,13 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 			Name:  "updater-config-file",
 			Usage: "Specify a path to the updater config file",
 		},
+		cli.StringFlag{
+			Name:  "gui-config-file",
+			Usage: "Specify a path to the GUI config file",
+		},
 		cli.BoolFlag{
-			Name:  "upgrade-per-user-key",
-			Usage: "Create new per-user-keys. Experimental, will break sigchain!",
+			Name:  "use-default-log-file",
+			Usage: "Log to the default log file in $XDG_CACHE_HOME, or ~/.cache if unset.",
 		},
 		cli.IntFlag{
 			Name:  "user-cache-size",
@@ -629,6 +754,42 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 		cli.StringFlag{
 			Name:  "vdebug",
 			Usage: "Verbose debugging; takes a comma-joined list of levels and tags",
+		},
+		cli.BoolFlag{
+			Name:  "debug-journeycard",
+			Usage: "Enable experimental journey cards",
+		},
+		cli.BoolFlag{
+			Name:  "disable-team-auditor",
+			Usage: "Disable auditing of teams",
+		},
+		cli.BoolFlag{
+			Name:  "disable-team-box-auditor",
+			Usage: "Disable box auditing of teams",
+		},
+		cli.BoolFlag{
+			Name:  "disable-merkle-auditor",
+			Usage: "Disable background probabilistic merkle audit",
+		},
+		cli.BoolFlag{
+			Name:  "disable-search-indexer",
+			Usage: "Disable chat search background indexer",
+		},
+		cli.BoolFlag{
+			Name:  "disable-bg-conv-loader",
+			Usage: "Disable background conversation loading",
+		},
+		cli.BoolFlag{
+			Name:  "enable-bot-lite-mode",
+			Usage: "Enable bot lite mode. Disables non-critical background services for bot performance.",
+		},
+		cli.BoolFlag{
+			Name:  "force-linux-keyring",
+			Usage: "Require the use of the OS keyring (Gnome Keyring or KWallet) and fail if not available rather than falling back to file-based secret store.",
+		},
+		cli.BoolFlag{
+			Name:  "extra-net-logging",
+			Usage: "Do additional debug logging during network requests.",
 		},
 	}
 	if extraFlags != nil {

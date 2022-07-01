@@ -13,8 +13,11 @@ import (
 
 	"golang.org/x/net/context"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/sig3"
+	"github.com/keybase/client/go/teams/hidden"
 	jsonw "github.com/keybase/go-jsonw"
 )
 
@@ -25,7 +28,7 @@ func metaContext(g *libkb.GlobalContext) libkb.MetaContext {
 	return libkb.NewMetaContextTODO(g)
 }
 
-func TeamRootSig(g *libkb.GlobalContext, me libkb.UserForSignatures, key libkb.GenericKey, teamSection SCTeamSection) (*jsonw.Wrapper, error) {
+func TeamRootSig(g *libkb.GlobalContext, me libkb.UserForSignatures, key libkb.GenericKey, teamSection SCTeamSection, merkleRoot libkb.MerkleRoot) (*jsonw.Wrapper, error) {
 	ret, err := libkb.ProofMetadata{
 		SigningUser: me,
 		Eldest:      me.GetEldestKID(),
@@ -34,6 +37,7 @@ func TeamRootSig(g *libkb.GlobalContext, me libkb.UserForSignatures, key libkb.G
 		Seqno:       1,
 		SigVersion:  libkb.KeybaseSignatureV2,
 		SeqType:     seqTypeForTeamPublicness(teamSection.Public),
+		MerkleRoot:  &merkleRoot,
 	}.ToJSON(metaContext(g))
 	if err != nil {
 		return nil, err
@@ -43,10 +47,16 @@ func TeamRootSig(g *libkb.GlobalContext, me libkb.UserForSignatures, key libkb.G
 	if err != nil {
 		return nil, err
 	}
-	teamSectionJSON.SetValueAtPath("per_team_key.reverse_sig", jsonw.NewNil())
+	err = teamSectionJSON.SetValueAtPath("per_team_key.reverse_sig", jsonw.NewNil())
+	if err != nil {
+		return nil, err
+	}
 
 	body := ret.AtKey("body")
-	body.SetKey("team", teamSectionJSON)
+	err = body.SetKey("team", teamSectionJSON)
+	if err != nil {
+		return nil, err
+	}
 
 	return ret, nil
 }
@@ -60,10 +70,11 @@ func NewImplicitTeamName() (res keybase1.TeamName, err error) {
 	return res, err
 }
 
-func NewSubteamSig(g *libkb.GlobalContext, me libkb.UserForSignatures, key libkb.GenericKey, parentTeam *TeamSigChainState, subteamName keybase1.TeamName, subteamID keybase1.TeamID, admin *SCTeamAdmin) (*jsonw.Wrapper, error) {
+func NewSubteamSig(mctx libkb.MetaContext, me libkb.UserForSignatures, key libkb.GenericKey, parentTeam *TeamSigChainState, subteamName keybase1.TeamName, subteamID keybase1.TeamID, admin *SCTeamAdmin) (*jsonw.Wrapper, *hidden.Ratchet, error) {
+	g := mctx.G()
 	prevLinkID, err := libkb.ImportLinkID(parentTeam.GetLatestLinkID())
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	ret, err := libkb.ProofMetadata{
 		SigningUser: me,
@@ -76,12 +87,17 @@ func NewSubteamSig(g *libkb.GlobalContext, me libkb.UserForSignatures, key libkb
 		PrevLinkID:  prevLinkID,
 	}.ToJSON(metaContext(g))
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	entropy, err := makeSCTeamEntropy()
 	if err != nil {
-		return nil, err
+		return nil, nil, err
+	}
+
+	ratchet, err := parentTeam.makeHiddenRatchet(mctx)
+	if err != nil {
+		return nil, nil, err
 	}
 
 	teamSection := SCTeamSection{
@@ -90,19 +106,23 @@ func NewSubteamSig(g *libkb.GlobalContext, me libkb.UserForSignatures, key libkb
 			ID:   (SCTeamID)(subteamID),
 			Name: (SCTeamName)(subteamName.String()),
 		},
-		Admin:   admin,
-		Entropy: entropy,
+		Admin:    admin,
+		Entropy:  entropy,
+		Ratchets: ratchet.ToTeamSection(),
 	}
 	teamSectionJSON, err := jsonw.WrapperFromObject(teamSection)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	ret.SetValueAtPath("body.team", teamSectionJSON)
+	err = ret.SetValueAtPath("body.team", teamSectionJSON)
+	if err != nil {
+		return nil, nil, err
+	}
 
-	return ret, nil
+	return ret, ratchet, nil
 }
 
-func SubteamHeadSig(g *libkb.GlobalContext, me libkb.UserForSignatures, key libkb.GenericKey, subteamTeamSection SCTeamSection) (*jsonw.Wrapper, error) {
+func SubteamHeadSig(g *libkb.GlobalContext, me libkb.UserForSignatures, key libkb.GenericKey, subteamTeamSection SCTeamSection, merkleRoot libkb.MerkleRoot) (*jsonw.Wrapper, error) {
 	ret, err := libkb.ProofMetadata{
 		SigningUser: me,
 		Eldest:      me.GetEldestKID(),
@@ -111,6 +131,7 @@ func SubteamHeadSig(g *libkb.GlobalContext, me libkb.UserForSignatures, key libk
 		Seqno:       1,
 		SigVersion:  libkb.KeybaseSignatureV2,
 		SeqType:     seqTypeForTeamPublicness(subteamTeamSection.Public),
+		MerkleRoot:  &merkleRoot,
 	}.ToJSON(metaContext(g))
 	if err != nil {
 		return nil, err
@@ -122,10 +143,16 @@ func SubteamHeadSig(g *libkb.GlobalContext, me libkb.UserForSignatures, key libk
 	if err != nil {
 		return nil, err
 	}
-	teamSectionJSON.SetValueAtPath("per_team_key.reverse_sig", jsonw.NewNil())
+	err = teamSectionJSON.SetValueAtPath("per_team_key.reverse_sig", jsonw.NewNil())
+	if err != nil {
+		return nil, err
+	}
 
 	body := ret.AtKey("body")
-	body.SetKey("team", teamSectionJSON)
+	err = body.SetKey("team", teamSectionJSON)
+	if err != nil {
+		return nil, err
+	}
 
 	return ret, nil
 }
@@ -155,7 +182,10 @@ func RenameSubteamSig(g *libkb.GlobalContext, me libkb.UserForSignatures, key li
 	}
 
 	body := ret.AtKey("body")
-	body.SetKey("team", teamSectionJSON)
+	err = body.SetKey("team", teamSectionJSON)
+	if err != nil {
+		return nil, err
+	}
 
 	return ret, nil
 }
@@ -185,7 +215,10 @@ func RenameUpPointerSig(g *libkb.GlobalContext, me libkb.UserForSignatures, key 
 	}
 
 	body := ret.AtKey("body")
-	body.SetKey("team", teamSectionJSON)
+	err = body.SetKey("team", teamSectionJSON)
+	if err != nil {
+		return nil, err
+	}
 
 	return ret, nil
 }
@@ -240,7 +273,10 @@ func ChangeSig(g *libkb.GlobalContext, me libkb.UserForSignatures, prev libkb.Li
 	}
 
 	body := ret.AtKey("body")
-	body.SetKey("team", teamSectionJSON)
+	err = body.SetKey("team", teamSectionJSON)
+	if err != nil {
+		return nil, err
+	}
 
 	return ret, nil
 }
@@ -261,14 +297,47 @@ func seqTypeForTeamPublicness(public bool) keybase1.SeqType {
 }
 
 func precheckLinkToPost(ctx context.Context, g *libkb.GlobalContext,
-	sigMultiItem libkb.SigMultiItem, state *TeamSigChainState, me keybase1.UserVersion) (err error) {
+	sigMultiItem libkb.SigMultiItem, state *TeamSigChainState,
+	me keybase1.UserVersion) (err error) {
 	return precheckLinksToPost(ctx, g, []libkb.SigMultiItem{sigMultiItem}, state, me)
 }
 
-func precheckLinksToPost(ctx context.Context, g *libkb.GlobalContext,
-	sigMultiItems []libkb.SigMultiItem, state *TeamSigChainState, me keybase1.UserVersion) (err error) {
+func appendChainLinkSig3(ctx context.Context, g *libkb.GlobalContext,
+	sig libkb.Sig3, state *TeamSigChainState,
+	me keybase1.UserVersion) (err error) {
 
-	defer g.CTraceTimed(ctx, "precheckLinksToPost", func() error { return err })()
+	mctx := libkb.NewMetaContext(ctx, g)
+
+	if len(sig.Outer) == 0 || len(sig.Sig) == 0 {
+		return NewPrecheckStructuralError("got a stubbed v3 link on post, which isn't allowed", nil)
+	}
+
+	hp := hidden.NewLoaderPackageForPrecheck(mctx, state.GetID(), state.hidden)
+	ex := sig3.ExportJSON{
+		Inner: sig.Inner,
+		Outer: sig.Outer,
+		Sig:   sig.Sig,
+	}
+	err = hp.Update(mctx, []sig3.ExportJSON{ex}, keybase1.Seqno(0))
+	if err != nil {
+		return err
+	}
+	mctx.Debug("appendChainLinkSig3 success for %s", sig.Outer)
+	return nil
+}
+
+func precheckLinksToPost(ctx context.Context, g *libkb.GlobalContext,
+	sigMultiItems []libkb.SigMultiItem, state *TeamSigChainState,
+	me keybase1.UserVersion) (err error) {
+	_, err = precheckLinksToState(ctx, g, sigMultiItems, state, me)
+	return err
+}
+
+func precheckLinksToState(ctx context.Context, g *libkb.GlobalContext,
+	sigMultiItems []libkb.SigMultiItem, state *TeamSigChainState,
+	me keybase1.UserVersion) (newState *TeamSigChainState, err error) {
+
+	defer g.CTrace(ctx, "precheckLinksToState", &err)()
 
 	isAdmin := true
 	if state != nil {
@@ -289,10 +358,20 @@ func precheckLinksToPost(ctx context.Context, g *libkb.GlobalContext,
 		implicitAdmin: !isAdmin,
 	}
 
-	for _, sigItem := range sigMultiItems {
+	for i, sigItem := range sigMultiItems {
+
+		if sigItem.Sig3 != nil {
+			err = appendChainLinkSig3(ctx, g, *sigItem.Sig3, state, me)
+			if err != nil {
+				g.Log.CDebugf(ctx, "precheckLinksToState: link (sig3) %v/%v rejected: %v", i+1, len(sigMultiItems), err)
+				return nil, NewPrecheckAppendError(err)
+			}
+			continue
+		}
+
 		outerLink, err := libkb.DecodeOuterLinkV2(sigItem.Sig)
 		if err != nil {
-			return NewPrecheckStructuralError("unpack outer", err)
+			return nil, NewPrecheckStructuralError("unpack outer", err)
 		}
 
 		link1 := SCChainLink{
@@ -304,19 +383,24 @@ func precheckLinksToPost(ctx context.Context, g *libkb.GlobalContext,
 		}
 		link2, err := unpackChainLink(&link1)
 		if err != nil {
-			return NewPrecheckStructuralError("unpack link", err)
+			return nil, NewPrecheckStructuralError("unpack link", err)
 		}
 
 		if link2.isStubbed() {
-			return NewPrecheckStructuralError("link missing inner", nil)
+			return nil, NewPrecheckStructuralError("link missing inner", nil)
 		}
 
 		newState, err := AppendChainLink(ctx, g, me, state, link2, &signer)
 		if err != nil {
-			return NewPrecheckAppendError(err)
+			if link2.inner != nil && link2.inner.Body.Team != nil && link2.inner.Body.Team.Members != nil {
+				g.Log.CDebugf(ctx, "precheckLinksToState: link %v/%v rejected: %v", i+1, len(sigMultiItems), spew.Sprintf("%v", *link2.inner.Body.Team.Members))
+			} else {
+				g.Log.CDebugf(ctx, "precheckLinksToState: link %v/%v rejected", i+1, len(sigMultiItems))
+			}
+			return nil, NewPrecheckAppendError(err)
 		}
 		state = &newState
 	}
 
-	return nil
+	return state, nil
 }

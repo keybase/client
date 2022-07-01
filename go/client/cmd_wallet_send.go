@@ -11,7 +11,6 @@ import (
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"github.com/keybase/stellarnet"
-	stellaramount "github.com/stellar/go/amount"
 	"golang.org/x/net/context"
 )
 
@@ -23,17 +22,27 @@ type CmdWalletSend struct {
 	LocalCurrency string
 	ForceRelay    bool
 	FromAccountID stellar1.AccountID
+	Memo          string
+	MemoType      stellar1.PublicNoteType
 }
 
 func newCmdWalletSend(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	flags := []cli.Flag{
 		cli.StringFlag{
 			Name:  "m, message",
-			Usage: "Include a message with the payment.",
+			Usage: "Include an encrypted message with the payment.",
 		},
 		cli.StringFlag{
 			Name:  "from",
 			Usage: "Specify the source account for the payment.",
+		},
+		cli.StringFlag{
+			Name:  "memo",
+			Usage: "Include a public memo in the stellar transaction.",
+		},
+		cli.StringFlag{
+			Name:  "memo_type",
+			Usage: "Specify the type of memo (text, id, hash, return). hash and return should be hex-encoded.",
 		},
 	}
 	if develUsage {
@@ -73,12 +82,29 @@ func (c *CmdWalletSend) ParseArgv(ctx *cli.Context) error {
 		}
 	}
 	c.Note = ctx.String("message")
+
+	c.Memo = ctx.String("memo")
+	memoType := ctx.String("memo_type")
+	if memoType == "" {
+		if c.Memo != "" {
+			memoType = "text"
+		} else {
+			memoType = "none"
+		}
+	}
+	var ok bool
+	c.MemoType, ok = stellar1.PublicNoteTypeMap[strings.ToUpper(memoType)]
+	if !ok {
+		return errors.New("invalid memo type")
+	}
+
 	c.ForceRelay = ctx.Bool("relay")
 	c.FromAccountID = stellar1.AccountID(ctx.String("from"))
 	return nil
 }
 
-func (c *CmdWalletSend) Run() error {
+func (c *CmdWalletSend) Run() (err error) {
+	defer transformStellarCLIError(&err)
 	cli, err := GetWalletClient(c.G())
 	if err != nil {
 		return err
@@ -115,7 +141,7 @@ func (c *CmdWalletSend) Run() error {
 		displayCurrency = c.LocalCurrency
 	}
 
-	_, err = stellaramount.ParseInt64(amount)
+	_, err = stellarnet.ParseStellarAmount(amount)
 	if err != nil {
 		return fmt.Errorf("invalid amount of XLM: %q", amount)
 	}
@@ -133,6 +159,8 @@ func (c *CmdWalletSend) Run() error {
 		DisplayCurrency: displayCurrency,
 		ForceRelay:      c.ForceRelay,
 		FromAccountID:   c.FromAccountID,
+		PublicNote:      c.Memo,
+		PublicNoteType:  c.MemoType,
 	}
 	res, err := cli.SendCLILocal(context.Background(), arg)
 	if err != nil {

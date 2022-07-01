@@ -13,7 +13,7 @@ func parse(t *testing.T, kr string) *GpgKeyIndex {
 	tc := SetupTest(t, "parse", 2)
 	defer tc.Cleanup()
 	buf := bytes.NewBufferString(kr)
-	i, w, e := ParseGpgIndexStream(tc.G, buf)
+	i, w, e := ParseGpgIndexStream(tc.MetaContext(), buf)
 	if e != nil {
 		t.Fatalf("failure in parse: %s", e)
 	}
@@ -37,12 +37,11 @@ func TestFindMax(t *testing.T) {
 	keylist := index.Emails.Get("themax@gmail.com")
 	if keylist == nil {
 		t.Errorf("nil keylist was not expected")
-	} else if len(keylist) != 2 {
-		t.Errorf("expected two keys for max")
+	} else if len(keylist) != 1 {
+		t.Errorf("expected one key for max, found %d", len(keylist))
 	} else {
 		expected := map[string]bool{
 			"8EFBE2E4DD56B35273634E8F6052B2AD31A6631C": true,
-			"4475293306243408FA5958DC63847B4B83930F0C": true,
 		}
 		for _, k := range keylist {
 			if fp := k.GetFingerprint(); fp == nil {

@@ -1,5 +1,5 @@
-
 @namespace("keybase.1")
+
 protocol saltpackUi {
   import idl "common.avdl";
 
@@ -17,12 +17,16 @@ protocol saltpackUi {
   record SaltpackSender {
     UID uid;
     string username;
+    string fullname;
     SaltpackSenderType senderType;
   }
 
   // Users might want to prevent a decryption on the basis of who sent the message,
   // and if something fishy might have happened.
-  void saltpackPromptForDecrypt(int sessionID, KID signingKID, SaltpackSender sender, boolean usedDelegateUI);
+  //
+  // PC: note that signingKID is not necessarily a signing key.  The decrypt code
+  // puts the public decryption key here too if the message is unsigned.
+  void saltpackPromptForDecrypt(int sessionID, KID signingKID, SaltpackSender sender, boolean usedDelegateUI, boolean signed);
 
   void saltpackVerifySuccess(int sessionID, KID signingKID, SaltpackSender sender);
   void saltpackVerifyBadSender(int sessionID, KID signingKID, SaltpackSender sender);

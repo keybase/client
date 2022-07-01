@@ -6,129 +6,165 @@ package client
 import (
 	"fmt"
 	"os"
-	"syscall"
+	"path/filepath"
+	"runtime"
+	"sort"
+	"time"
 
 	"github.com/keybase/cli"
+	"github.com/keybase/client/go/install"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/go-updater/watchdog"
 )
 
-const numRestartsDefault = 10
-
+// CmdWatchdog defines watchdog command
 type CmdWatchdog struct {
 	libkb.Contextified
-	restarts int
 }
 
+// ParseArgv is args for the watchdog command
 func (c *CmdWatchdog) ParseArgv(ctx *cli.Context) error {
-	c.restarts = ctx.Int("num-restarts")
-	if c.restarts == 0 {
-		c.restarts = numRestartsDefault
-	}
-
 	return nil
 }
 
-func (c *CmdWatchdog) checkAlreadyRunning() bool {
-	s, err := libkb.NewSocket(c.G())
+// Run watchdog
+func (c *CmdWatchdog) Run() error {
+	env, log := c.G().Env, c.G().Log
+	log.Info("Starting watchdog")
+	runMode := env.GetRunMode()
+	if runMode != libkb.ProductionRunMode {
+		return fmt.Errorf("Watchdog is only supported in production")
+	}
+	if runtime.GOOS != "windows" {
+		return fmt.Errorf("Watchdog is only supported in windows")
+	}
+
+	programs := []watchdog.Program{}
+
+	// Service
+	keybasePath, err := install.BinPath()
 	if err != nil {
-		return false
+		return err
 	}
-	conn, err := s.DialSocket()
+	serviceLogPath := filepath.Join(env.GetLogDir(), libkb.ServiceLogFileName)
+	serviceProgram := watchdog.Program{
+		Path: keybasePath,
+		Args: []string{
+			"-d",
+			"--log-file=" + serviceLogPath,
+			"service",
+			"--watchdog-forked",
+		},
+		// when the service exits gracefully, also exit the watchdog and any other programs it is currently watching
+		ExitOn: watchdog.ExitAllOnSuccess,
+		Name:   "KeybaseService",
+	}
+	programs = append(programs, serviceProgram)
+
+	// KBFS
+	kbfsPath, err := install.KBFSBinPath(runMode, "")
 	if err != nil {
-		c.G().Log.Debug("checkAlreadyRunning DialSocket error: %s", err)
-		return false
+		return err
 	}
-	if conn != nil {
-		conn.Close()
-		return true
+
+	mountDirArg := "-mount-from-service"
+	kbfsProgram := watchdog.Program{
+		Path: kbfsPath,
+		Args: []string{
+			"-debug",
+			"-log-to-file",
+			mountDirArg,
+		},
+		ExitOn: watchdog.ExitOnSuccess,
+		Name:   "KBFS",
 	}
-	return false
+	programs = append(programs, kbfsProgram)
+
+	// Updater
+	updaterPath, err := install.UpdaterBinPath()
+	if err != nil {
+		return err
+	}
+	updaterProgram := watchdog.Program{
+		Path: updaterPath,
+		Args: []string{
+			"-log-to-file",
+			"-path-to-keybase=" + keybasePath,
+		},
+		Name: "KeybaseUpdater",
+	}
+	programs = append(programs, updaterProgram)
+
+	go c.pruneWatchdogLogs()
+
+	// Start and monitor all the programs
+	if err := watchdog.Watch(programs, 10*time.Second, c.G().GetLogf()); err != nil {
+		return err
+	}
+
+	// Wait forever (watchdog watches programs in separate goroutines)
+	select {}
 }
 
-func (c *CmdWatchdog) Run() (err error) {
-	// Start + watch over the running service
-	// until it goes away, which will mean one of:
-	// - crash
-	// - system shutdown
-	// - uninstall
-	// - legitimate stoppage (ctl stop)
-	// - legitimate stoppage (ctl restart)
-
-	// Testing loop:
-	// - start service, noting pid
-	// - Do a wait operation on the process
-	// - On return, check exit code of process
-	//    - No error: legitimate shutdown, we exit.
-	//    - Failure exit code: restart service
-	//    - Special restart command exit code: restart without counting
-	//
-	// Note that we give up after c.restarts consecutive crashes.
-	// Loop one extra time for initial spawn.
-	for restartcount := 0; restartcount <= c.restarts; restartcount++ {
-		// Blocking wait on service. First, there has to be a pid
-		// file, because this is a forking command.
-
-		var pid int
-		// restart server case
-		if pid, err = spawnServer(c.G(), c.G().Env.GetCommandLine(), keybase1.ForkType_WATCHDOG); err != nil {
-			return err
-		}
-
-		p, err := os.FindProcess(pid)
-		if err != nil {
-			c.G().Log.Warning("Watchdog can't find %d, exiting", pid)
-			return err
-		}
-
-		pstate, err := p.Wait()
-
-		if err != nil || pstate.Exited() == false {
-			c.G().Log.Warning("Watchdog ends service wait with no error or exit")
-			return err
-		}
-
-		if pstate.Success() {
-			// apparently legitimate shutdown
-			return nil
-		}
-
-		if c.checkAlreadyRunning() {
-			return fmt.Errorf("Watchdog Service already running before watchdog - quitting.")
-		}
-
-		status := pstate.Sys().(syscall.WaitStatus)
-		c.G().Log.Warning("watched service crash with status %v, count %d", status, restartcount)
-		if status.ExitStatus() == int(keybase1.ExitCode_RESTART) {
-			// Some third process issued a restart command.
-			// This doesn't count against our limit
-			restartcount--
-		}
-	}
-
-	return fmt.Errorf("Watchdog observed %d crashes in a row. NOT reforking.", c.restarts)
-}
-
+// NewCmdWatchdog constructs watchdog command
 func NewCmdWatchdog(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
-		Name:  "watchdog",
-		Usage: "Start, watch and prop up the background service",
+		Name: "watchdog",
+		// watchdog2 was renamed to watchdog, so this line is for backwards compatibility. We can eventually remove it.
+		Aliases: []string{"watchdog2"},
+		Usage:   "Start and monitor background services",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdWatchdog{Contextified: libkb.NewContextified(g)}, "watchdog", c)
 			cl.SetForkCmd(libcmdline.NoFork)
 			cl.SetLogForward(libcmdline.LogForwardNone)
 		},
-		Flags: []cli.Flag{
-			cli.IntFlag{
-				Name:  "n, num-restarts",
-				Value: numRestartsDefault,
-				Usage: "specify the number of retries before giving up",
-			},
-		},
 	}
 }
 
+// GetUsage returns library usage for this command
 func (c *CmdWatchdog) GetUsage() libkb.Usage {
 	return libkb.Usage{}
+}
+
+// Debugf (for watchdog.Log interface)
+func (c *CmdWatchdog) Debugf(s string, args ...interface{}) {
+	c.G().Log.Debug(s, args...)
+}
+
+// Infof (for watchdog.Log interface)
+func (c *CmdWatchdog) Infof(s string, args ...interface{}) {
+	c.G().Log.Info(s, args...)
+}
+
+// Warningf (for watchdog Log interface)
+func (c *CmdWatchdog) Warningf(s string, args ...interface{}) {
+	c.G().Log.Warning(s, args...)
+}
+
+// Errorf (for watchdog Log interface)
+func (c *CmdWatchdog) Errorf(s string, args ...interface{}) {
+	c.G().Log.Errorf(s, args...)
+}
+
+func (c *CmdWatchdog) pruneWatchdogLogs() {
+	logPrefix := c.G().Env.GetLogPrefix()
+	if logPrefix == "" {
+		return
+	}
+
+	// Remove all but the 5 newest watchdog logs - sorting by name works because timestamp
+	watchdogLogFiles, err := filepath.Glob(logPrefix + "*.log")
+	if err != nil {
+		return
+	}
+	sort.Sort(sort.Reverse(sort.StringSlice(watchdogLogFiles)))
+	if len(watchdogLogFiles) <= 5 {
+		return
+	}
+	watchdogLogFiles = watchdogLogFiles[5:]
+
+	for _, path := range watchdogLogFiles {
+		os.Remove(path)
+	}
 }

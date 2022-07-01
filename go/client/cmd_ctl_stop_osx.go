@@ -1,6 +1,7 @@
 // Copyright 2015 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
 
+//go:build darwin
 // +build darwin
 
 package client
@@ -13,13 +14,15 @@ import (
 	"github.com/keybase/client/go/launchd"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/keybase1"
+	"golang.org/x/net/context"
 )
 
 // NewCmdCtlStop constructs ctl start command
 func NewCmdCtlStop(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:  "stop",
-		Usage: "Stop the app and services",
+		Usage: "Stop Keybase",
 		Flags: []cli.Flag{
 			cli.StringFlag{
 				Name:  "include",
@@ -29,10 +32,9 @@ func NewCmdCtlStop(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 				Name:  "exclude",
 				Usage: fmt.Sprintf("Stop all except excluded components, comma separated. Specify %v.", availableCtlComponents),
 			},
-			// TODO(gabriel): Remove this un-used option
 			cli.BoolFlag{
-				Name:  "no-wait",
-				Usage: "Deprecated",
+				Name:  "shutdown",
+				Usage: "Only shutdown the service",
 			},
 		},
 		Action: func(c *cli.Context) {
@@ -47,6 +49,7 @@ func NewCmdCtlStop(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 type CmdCtlStop struct {
 	libkb.Contextified
 	components map[string]bool
+	shutdown   bool
 }
 
 func newCmdCtlStop(g *libkb.GlobalContext) *CmdCtlStop {
@@ -56,6 +59,7 @@ func newCmdCtlStop(g *libkb.GlobalContext) *CmdCtlStop {
 }
 
 func (s *CmdCtlStop) ParseArgv(ctx *cli.Context) error {
+	s.shutdown = ctx.Bool("shutdown")
 	s.components = ctlParseArgv(ctx)
 	return nil
 }
@@ -69,7 +73,7 @@ func ctlStop(g *libkb.GlobalContext, components map[string]bool) error {
 	if libkb.IsBrewBuild {
 		return ctlBrewStop(g)
 	}
-	g.Log.Debug("Components: %v", components)
+	g.Log.Debug("ctlStop: Components: %v", components)
 	errs := []error{}
 	if ok := components[install.ComponentNameApp.String()]; ok {
 		if err := install.TerminateApp(g, g.Log); err != nil {
@@ -91,10 +95,26 @@ func ctlStop(g *libkb.GlobalContext, components map[string]bool) error {
 			errs = append(errs, err)
 		}
 	}
+	if err := rpcStop(g); err != nil {
+		g.Log.Info("ctlStop: expected error when trying to shutdown service post-uninstall: %s", err)
+	} else {
+		g.Log.Info("ctlStop: no error when shutting down service post-uninstall")
+	}
 	return libkb.CombineErrors(errs...)
 }
 
+func rpcStop(g *libkb.GlobalContext) error {
+	cli, err := GetCtlClient(g)
+	if err != nil {
+		return err
+	}
+	return cli.StopService(context.TODO(), keybase1.StopServiceArg{ExitCode: keybase1.ExitCode_OK})
+}
+
 func (s *CmdCtlStop) Run() error {
+	if s.shutdown {
+		return rpcStop(s.G())
+	}
 	return ctlStop(s.G(), s.components)
 }
 

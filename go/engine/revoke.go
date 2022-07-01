@@ -118,9 +118,12 @@ func (e *RevokeEngine) explicitOrImplicitDeviceID(me *libkb.User) keybase1.Devic
 	return ""
 }
 
-func (e *RevokeEngine) Run(m libkb.MetaContext) error {
-	m.CDebugf("RevokeEngine#Run (mode:%v)", e.mode)
+func (e *RevokeEngine) Run(mctx libkb.MetaContext) (err error) {
+	defer mctx.Trace(fmt.Sprintf("RevokeEngine (mode:%v)", e.mode), &err)()
+	return retryOnEphemeralRace(mctx, e.run)
+}
 
+func (e *RevokeEngine) run(m libkb.MetaContext) error {
 	e.G().LocalSigchainGuard().Set(m.Ctx(), "RevokeEngine")
 	defer e.G().LocalSigchainGuard().Clear(m.Ctx(), "RevokeEngine")
 
@@ -136,6 +139,14 @@ func (e *RevokeEngine) Run(m libkb.MetaContext) error {
 		hasPGP := len(me.GetComputedKeyFamily().GetActivePGPKeys(false)) > 0
 
 		if len(me.GetComputedKeyFamily().GetAllActiveDevices()) == 1 {
+			passphraseState, err := libkb.LoadPassphraseState(m)
+			if err != nil {
+				return fmt.Errorf("could not load passphrase state: %s", err)
+			}
+			if passphraseState == keybase1.PassphraseState_RANDOM {
+				return libkb.RevokeLastDeviceError{NoPassphrase: true}
+			}
+
 			if hasPGP {
 				// even w/ forceLast, you cannot revoke your last device
 				// if you have a pgp key
@@ -187,7 +198,7 @@ func (e *RevokeEngine) Run(m libkb.MetaContext) error {
 	var newPukGeneration keybase1.PerUserKeyGeneration
 	var newPukSeed *libkb.PerUserKeySeed
 
-	pukring, err := e.G().GetPerUserKeyring()
+	pukring, err := e.G().GetPerUserKeyring(m.Ctx())
 	if err != nil {
 		return err
 	}
@@ -240,11 +251,11 @@ func (e *RevokeEngine) Run(m libkb.MetaContext) error {
 			return err
 		}
 		newPukSeqno = me.GetSigChainLastKnownSeqno()
-		sigsList = append(sigsList, sig1)
+		sigsList = append(sigsList, sig1.Payload)
 	}
 
 	// Push the revoke sig
-	sig2, err := e.makeRevokeSig(m, me, sigKey, kidsToRevoke, deviceID, merkleRoot)
+	sig2, lastSeqno, lastLinkID, err := e.makeRevokeSig(m, me, sigKey, kidsToRevoke, deviceID, merkleRoot)
 	if err != nil {
 		return err
 	}
@@ -262,7 +273,7 @@ func (e *RevokeEngine) Run(m libkb.MetaContext) error {
 	var newUserEKMetadata *keybase1.UserEkMetadata
 	ekLib := e.G().GetEKLib()
 	if !e.skipUserEKForTesting && addingNewPUK && ekLib != nil {
-		sig, boxes, newMetadata, myBox, err := ekLib.PrepareNewUserEK(m.Ctx(), *merkleRoot, *newPukSeed)
+		sig, boxes, newMetadata, myBox, err := ekLib.PrepareNewUserEK(m, *merkleRoot, *newPukSeed)
 		if err != nil {
 			return err
 		}
@@ -285,19 +296,28 @@ func (e *RevokeEngine) Run(m libkb.MetaContext) error {
 			userEKSection["boxes"] = filteredBoxes
 			payload["user_ek"] = userEKSection
 		} else {
-			m.CDebugf("skipping userEK publishing, there are no valid deviceEKs")
+			m.Debug("skipping userEK publishing, there are no valid deviceEKs")
 		}
 	}
-	m.CDebugf("RevokeEngine#Run pukBoxes:%v pukPrev:%v for generation %v, userEKBox: %v",
+	m.Debug("RevokeEngine#Run pukBoxes:%v pukPrev:%v for generation %v, userEKBox: %v",
 		len(pukBoxes), pukPrev != nil, newPukGeneration, myUserEKBox != nil)
 
-	_, err = m.G().API.PostJSON(libkb.APIArg{
+	_, err = m.G().API.PostJSON(m, libkb.APIArg{
 		Endpoint:    "key/multi",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		JSONPayload: payload,
-		NetContext:  m.Ctx(),
 	})
 	if err != nil {
+		// Revoke failed, let's clear downgrade lease so it will not prevent us
+		// from trying again for given kids.
+		err2 := libkb.CancelDowngradeLease(m.Ctx(), m.G(), lease.LeaseID)
+		if err2 != nil {
+			m.Warning("Failed to cancel downgrade leases after a failed revoke: %s", err2)
+			return libkb.CombineErrors(err, err2)
+		}
+		return err
+	}
+	if err = libkb.MerkleCheckPostedUserSig(m, me.GetUID(), lastSeqno, lastLinkID); err != nil {
 		return err
 	}
 
@@ -310,13 +330,13 @@ func (e *RevokeEngine) Run(m libkb.MetaContext) error {
 
 	// Add the new userEK box to local storage, if it was created above.
 	if myUserEKBox != nil {
-		err = e.G().GetUserEKBoxStorage().Put(m.Ctx(), newUserEKMetadata.Generation, *myUserEKBox)
+		err = e.G().GetUserEKBoxStorage().Put(m, newUserEKMetadata.Generation, *myUserEKBox)
 		if err != nil {
-			m.CWarningf("error while saving userEK box: %s", err)
+			m.Warning("error while saving userEK box: %s", err)
 		}
 	}
 
-	e.G().UserChanged(me.GetUID())
+	e.G().UserChanged(m.Ctx(), me.GetUID())
 
 	return nil
 }
@@ -352,22 +372,22 @@ func (e *RevokeEngine) getDeviceSecretKeys(m libkb.MetaContext, me *libkb.User) 
 }
 
 func (e *RevokeEngine) makeRevokeSig(m libkb.MetaContext, me *libkb.User, sigKey libkb.GenericKey,
-	kidsToRevoke []keybase1.KID, deviceID keybase1.DeviceID, merkleRoot *libkb.MerkleRoot) (libkb.JSONPayload, error) {
-
+	kidsToRevoke []keybase1.KID, deviceID keybase1.DeviceID,
+	merkleRoot *libkb.MerkleRoot) (libkb.JSONPayload, keybase1.Seqno, libkb.LinkID, error) {
 	proof, err := me.RevokeKeysProof(m, sigKey, kidsToRevoke, deviceID, merkleRoot)
 	if err != nil {
-		return nil, err
+		return nil, 0, nil, err
 	}
-	sig, _, _, err := libkb.SignJSON(proof, sigKey)
+	sig, _, linkID, err := libkb.SignJSON(proof.J, sigKey)
 	if err != nil {
-		return nil, err
+		return nil, 0, nil, err
 	}
 
 	sig1 := make(libkb.JSONPayload)
 	sig1["sig"] = sig
 	sig1["signing_kid"] = sigKey.GetKID().String()
 	sig1["type"] = libkb.LinkTypeRevoke
-	return sig1, nil
+	return sig1, proof.Seqno, linkID, nil
 }
 
 // Get the receivers of the new per-user-key boxes.

@@ -62,7 +62,7 @@ type tlfPseudonymReq struct {
 
 // tlfPseudonymContents is the data packed inside the HMAC
 type tlfPseudonymContents struct {
-	_struct bool `codec:",toarray"`
+	_struct bool `codec:",toarray"` //nolint
 	Version int
 	Name    string
 	ID      tlfID
@@ -111,7 +111,10 @@ func MakePseudonym(info TlfPseudonymInfo) (TlfPseudonym, error) {
 		return [32]byte{}, err
 	}
 	mac := hmac.New(sha256.New, info.HmacKey[:])
-	mac.Write(buf)
+	_, err = mac.Write(buf)
+	if err != nil {
+		return [32]byte{}, err
+	}
 	hmac := MakeByte32(mac.Sum(nil))
 	return hmac, nil
 }
@@ -137,8 +140,9 @@ func PostTlfPseudonyms(ctx context.Context, g *GlobalContext, pnymInfos []TlfPse
 
 	payload := make(JSONPayload)
 	payload["tlf_pseudonyms"] = pnymReqs
+	mctx := NewMetaContext(ctx, g)
 
-	_, err := g.API.PostJSON(APIArg{
+	_, err := g.API.PostJSON(mctx, APIArg{
 		Endpoint:    "kbfs/pseudonym/put",
 		JSONPayload: payload,
 		SessionType: APISessionTypeREQUIRED,
@@ -163,12 +167,12 @@ func GetTlfPseudonyms(ctx context.Context, g *GlobalContext, pnyms []TlfPseudony
 	payload["tlf_pseudonyms"] = pnymStrings
 
 	var res getTlfPseudonymsRes
-	err := g.API.PostDecode(
+	mctx := NewMetaContext(ctx, g)
+	err := g.API.PostDecode(mctx,
 		APIArg{
 			Endpoint:    "kbfs/pseudonym/get",
 			SessionType: APISessionTypeREQUIRED,
 			JSONPayload: payload,
-			NetContext:  ctx,
 		},
 		&res)
 	if err != nil {

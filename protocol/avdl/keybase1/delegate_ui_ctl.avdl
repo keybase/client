@@ -8,7 +8,9 @@ protocol delegateUiCtl {
   void registerUpdateUI();
   void registerRekeyUI();
   void registerHomeUI();
-
+  void registerIdentify3UI();
+  void registerChatUI();
+  void registerLogUI();
   void registerGregorFirehose();
 
   /**

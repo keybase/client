@@ -28,19 +28,19 @@ func newReachabilityHandler(xp rpc.Transporter, g *libkb.GlobalContext, reachabi
 }
 
 func (h *reachabilityHandler) ReachabilityChanged(_ context.Context, _ keybase1.Reachability) (err error) {
-	h.G().Trace("ReachabilityChanged", func() error { return err })()
+	h.G().Trace("ReachabilityChanged", &err)()
 	return nil
 }
 
 func (h *reachabilityHandler) StartReachability(_ context.Context) (res keybase1.Reachability, err error) {
-	h.G().Trace("StartReachability", func() error { return err })()
+	h.G().Trace("StartReachability", &err)()
 	return keybase1.Reachability{
 		Reachable: keybase1.Reachable_UNKNOWN,
 	}, nil
 }
 
 func (h *reachabilityHandler) CheckReachability(_ context.Context) (res keybase1.Reachability, err error) {
-	h.G().Trace("CheckReachability", func() error { return err })()
+	h.G().Trace("CheckReachability", &err)()
 	return h.reachability.check(), nil
 }
 
@@ -61,13 +61,14 @@ func newReachability(g *libkb.GlobalContext, gh *gregorHandler) *reachability {
 
 func (h *reachability) setReachability(r keybase1.Reachability) {
 	h.setMutex.Lock()
-	defer h.setMutex.Unlock()
+	changed := h.lastReachability.Reachable != r.Reachable
+	h.lastReachability = r
+	h.setMutex.Unlock()
 
-	if h.lastReachability.Reachable != r.Reachable {
+	if changed {
 		h.G().Log.Debug("Reachability changed: %#v", r)
 		h.G().NotifyRouter.HandleReachability(r)
 	}
-	h.lastReachability = r
 }
 
 func (h *reachability) check() (k keybase1.Reachability) {

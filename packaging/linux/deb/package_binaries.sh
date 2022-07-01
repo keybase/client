@@ -10,7 +10,7 @@
 
 set -e -u -o pipefail
 
-here="$(dirname "$BASH_SOURCE")"
+here="$(dirname "${BASH_SOURCE[0]}")"
 
 build_root="${1:-}"
 if [ -z "$build_root" ] ; then
@@ -30,9 +30,13 @@ if [ "$mode" = "production" ] ; then
   repo_url="http://dist.keybase.io/linux/deb/repo"
 elif [ "$mode" = "prerelease" ] ; then
   repo_url="http://prerelease.keybase.io/deb"
+  # debian bullseye removed libappindicator1 in favor of libayatana-appindicator1, so allow both.
   # "psmisc" provides "killall", which is used in run_keybase and
   # post_install.sh.
-  dependencies="Depends: libappindicator1, fuse, libgconf-2-4, psmisc"
+  # lsof used in post_install.sh
+  # systemd-container provides machinectl, which is used in post_install.sh
+  # 'libasound2, libnss3, libxss1, libxtst6' is required by the GUI (issue #9872 and #17365)
+  dependencies="Depends: libappindicator1 | libayatana-appindicator1, fuse, libgconf-2-4, psmisc, lsof, procps, libasound2, libnss3, libxss1, libxtst6, libgtk-3-0"
 elif [ "$mode" = "staging" ] ; then
   # Note: This doesn't exist yet. But we need to be distinct from the
   # production URL, because we're moving to a model where we build a clean repo
@@ -51,7 +55,13 @@ build_one_architecture() {
 
   # Copy the entire filesystem layout, binaries and all, into the debian build
   # folder. TODO: Something less wasteful of disk space?
-  cp -r "$build_root"/binaries/"$debian_arch"/* "$dest/build"
+  # Preserve permissions of the chrome-sandbox setuid
+  cp -rp "$build_root"/binaries/"$debian_arch"/* "$dest/build"
+
+  # Copy changelog directly in, since this is a binary package.
+  doc_dir="$dest/build/usr/share/doc/keybase"
+  mkdir -p "$doc_dir"
+  gzip -cn "$here/changelog" > "$doc_dir/changelog.Debian.gz"
 
   # Installed-Size is a required field in the control file. Without it Ubuntu
   # users will see warnings.

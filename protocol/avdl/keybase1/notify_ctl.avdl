@@ -8,6 +8,9 @@ protocol notifyCtl {
     boolean session;
     boolean users;
     boolean kbfs;
+    boolean kbfsdesktop;
+    boolean kbfslegacy;
+    boolean kbfssubscription;
     boolean tracking;
     boolean favorites;
     boolean paperkeys;
@@ -16,16 +19,27 @@ protocol notifyCtl {
     boolean app;
     boolean chat;
     boolean pgp;
-    boolean kbfsrequest;
+    boolean kbfsrequest; // deprecated
     boolean badges;
     boolean reachability;
     boolean team;
     boolean ephemeral;
+    boolean teambot;
     boolean chatkbfsedits;
     boolean chatdev;
+    boolean chatemoji;
+    boolean chatemojicross;
     boolean deviceclone;
     boolean chatattachments;
     boolean wallet;
+    boolean audit;
+    boolean runtimestats;
+    boolean featuredBots;
+    boolean saltpack;
+    // Let the service determine if certain notifications can be skipped. Most
+    // useful for the GUI since the service knows what conversation is selected
+    // and can skip updates for things not currently on the screen.
+    boolean allowChatNotifySkips;
   }
 
   void setNotifications(NotificationChannels channels);

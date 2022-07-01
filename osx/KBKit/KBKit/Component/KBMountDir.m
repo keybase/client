@@ -62,13 +62,56 @@
   completion(nil);
 }
 
+-(BOOL)_isStandardKeybaseMountPath:(NSString*)path{
+  NSString *p = path.stringByStandardizingPath;
+  if (!p.absolutePath) {
+    return NO;
+  }
+  NSArray *a = [p componentsSeparatedByString:@"/"];
+  if (a.count != 3) {
+    return NO;
+  }
+  if (![a[0] isEqualToString:@""] || ![a[1] isEqualToString:@"Volumes"]) {
+    return NO;
+  }
+  return YES;
+}
+
+- (void)_selfCreateDirectory:(NSString *)directory uid:(uid_t)uid gid:(gid_t)gid permissions:(NSNumber *)permissions completion:(KBCompletion)completion {
+  NSError *err = nil;
+  NSMutableDictionary *attributes = [NSMutableDictionary dictionary];
+  attributes[NSFilePosixPermissions] = permissions;
+  attributes[NSFileOwnerAccountID] = [NSNumber numberWithInt:uid];
+  attributes[NSFileGroupOwnerAccountID] = [NSNumber numberWithInt:gid];
+
+  if (![NSFileManager.defaultManager createDirectoryAtPath:directory withIntermediateDirectories:YES attributes:attributes error:&err]) {
+    completion(err);
+    return;
+  }
+  NSURL *directoryURL = [NSURL fileURLWithPath:directory];
+  OSStatus status = CSBackupSetItemExcluded((__bridge CFURLRef)directoryURL, YES, YES);
+  if (status != noErr) {
+    completion(KBMakeError(status, @"Error trying to exclude from backup"));
+    return;
+  }
+  completion(nil);
+}
+
 - (void)createMountDir:(KBCompletion)completion {
   uid_t uid = getuid();
   gid_t gid = getgid();
   NSNumber *permissions = [NSNumber numberWithShort:0600];
+  NSString *path = self.config.mountDir;
+
+  if (![self _isStandardKeybaseMountPath:path]) {
+    DDLogDebug(@"Since mount directory %@ isn't standard, creating it without helper", path);
+    [self _selfCreateDirectory:path uid:uid gid:gid permissions:permissions completion:completion];
+    return;
+  }
+
   NSDictionary *params = @{@"directory": self.config.mountDir, @"uid": @(uid), @"gid": @(gid), @"permissions": permissions, @"excludeFromBackup": @(YES)};
   DDLogDebug(@"Creating mount directory: %@", params);
-  [self.helperTool.helper sendRequest:@"createDirectory" params:@[params] completion:^(NSError *err, id value) {
+  [self.helperTool.helper sendRequest:@"createMountDirectory" params:@[params] completion:^(NSError *err, id value) {
     completion(err);
   }];
 }

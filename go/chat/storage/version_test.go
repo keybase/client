@@ -4,20 +4,13 @@ import (
 	"context"
 	"testing"
 
-	"github.com/keybase/client/go/chat/globals"
-	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/stretchr/testify/require"
 )
 
 func TestServerVersionSync(t *testing.T) {
-	ltc := setupCommonTest(t, "version")
-	tc := kbtest.ChatTestContext{
-		TestContext: ltc,
-		ChatG:       &globals.ChatContext{},
-	}
+	tc := setupCommonTest(t, "version")
 	defer tc.Cleanup()
-	tc.Context().ServerCacheVersions = NewServerVersions(tc.Context())
 
 	err := tc.Context().ServerCacheVersions.Set(context.TODO(), chat1.ServerCacheVers{
 		InboxVers:  10,

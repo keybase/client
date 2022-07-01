@@ -1,0 +1,56 @@
+{
+  "protocol": "ui",
+  "imports": [
+    {
+      "path": "common.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [
+    {
+      "type": "record",
+      "name": "UIPaymentReviewed",
+      "fields": [
+        {
+          "type": "BuildPaymentID",
+          "name": "bid"
+        },
+        {
+          "type": "int",
+          "name": "reviewID"
+        },
+        {
+          "type": "int",
+          "name": "seqno"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "SendBannerLocal"
+          },
+          "name": "banners"
+        },
+        {
+          "type": "string",
+          "name": "nextButton"
+        }
+      ]
+    }
+  ],
+  "messages": {
+    "paymentReviewed": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "msg",
+          "type": "UIPaymentReviewed"
+        }
+      ],
+      "response": null
+    }
+  },
+  "namespace": "stellar.1"
+}

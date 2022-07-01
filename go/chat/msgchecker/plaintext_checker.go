@@ -21,9 +21,9 @@ const (
 func (r validateTopicNameRes) String() string {
 	switch r {
 	case validateTopicNameResInvalidChar:
-		return "invalid characters in channel name, please use alphanumeric plus _ and -"
+		return "invalid characters in channel name, please use alphanumeric, underscores, or dashes"
 	case validateTopicNameResInvalidLength:
-		return "invalid channel name length. Must be greater than 0 and <= 20"
+		return "invalid channel name length. Must be greater than 0 and less than or equal to 20"
 	case validateTopicNameResOK:
 		return "OK"
 	}
@@ -79,13 +79,17 @@ func checkMessagePlaintextLength(msg chat1.MessagePlaintext) error {
 		chat1.MessageType_TLFNAME,
 		chat1.MessageType_ATTACHMENTUPLOADED,
 		chat1.MessageType_JOIN,
+		chat1.MessageType_PIN,
 		chat1.MessageType_LEAVE,
 		chat1.MessageType_SYSTEM,
 		chat1.MessageType_DELETEHISTORY,
-		chat1.MessageType_SENDPAYMENT:
+		chat1.MessageType_SENDPAYMENT,
+		chat1.MessageType_UNFURL:
 		return nil
 	case chat1.MessageType_TEXT:
 		return plaintextFieldLengthChecker("message", len(msg.MessageBody.Text().Body), textMsgLength)
+	case chat1.MessageType_FLIP:
+		return plaintextFieldLengthChecker("flip", len(msg.MessageBody.Flip().Text), textMsgLength)
 	case chat1.MessageType_EDIT:
 		return plaintextFieldLengthChecker("message edit", len(msg.MessageBody.Edit().Body),
 			textMsgLength)
@@ -96,14 +100,16 @@ func checkMessagePlaintextLength(msg chat1.MessagePlaintext) error {
 		return plaintextFieldLengthChecker("headline", len(msg.MessageBody.Headline().Headline),
 			HeadlineMaxLength)
 	case chat1.MessageType_METADATA:
-		topicNameRes := validateTopicName(msg.MessageBody.Metadata().ConversationTitle)
-		if validateTopicNameResOK != topicNameRes {
-			return errors.New(topicNameRes.String())
+		if msg.ClientHeader.Conv.TopicType == chat1.TopicType_CHAT {
+			topicNameRes := validateTopicName(msg.MessageBody.Metadata().ConversationTitle)
+			if validateTopicNameResOK != topicNameRes {
+				return errors.New(topicNameRes.String())
+			}
 		}
 		return nil
 	case chat1.MessageType_REQUESTPAYMENT:
 		return plaintextFieldLengthChecker("request payment note",
-			len(msg.MessageBody.Requestpayment().Note), PaymentTextMaxLength)
+			len(msg.MessageBody.Requestpayment().Note), RequestPaymentTextMaxLength)
 	default:
 		typ, err := msg.MessageBody.MessageType()
 		if err != nil {

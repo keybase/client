@@ -3,6 +3,8 @@ package encrypteddb
 import (
 	"fmt"
 
+	"github.com/go-errors/errors"
+
 	"github.com/keybase/client/go/libkb"
 	"golang.org/x/crypto/nacl/secretbox"
 	"golang.org/x/net/context"
@@ -16,6 +18,9 @@ type boxedData struct {
 	N [24]byte
 	E []byte
 }
+
+// ErrDecryptionFailed is returned when an encrypteddb box fails to decrypt
+var ErrDecryptionFailed = errors.New("failed to decrypt item")
 
 // ***
 // If we change this, make sure to update the key derivation reason for all callers of EncryptedDB!
@@ -40,7 +45,8 @@ func New(g *libkb.GlobalContext, getDB DbFn, getSecretBoxKey KeyFn) *EncryptedDB
 	}
 }
 
-func decodeBox(ctx context.Context, b []byte, getSecretBoxKey KeyFn, res interface{}) error {
+func DecodeBox(ctx context.Context, b []byte, getSecretBoxKey KeyFn,
+	res interface{}) error {
 	// Decode encrypted box
 	var boxed boxedData
 	if err := libkb.MPackDecode(b, &boxed); err != nil {
@@ -56,7 +62,7 @@ func decodeBox(ctx context.Context, b []byte, getSecretBoxKey KeyFn, res interfa
 	}
 	pt, ok := secretbox.Open(nil, boxed.E, &boxed.N, &enckey)
 	if !ok {
-		return fmt.Errorf("failed to decrypt item")
+		return ErrDecryptionFailed
 	}
 
 	if err = libkb.MPackDecode(pt, res); err != nil {
@@ -78,13 +84,13 @@ func (i *EncryptedDB) Get(ctx context.Context, key libkb.DbKey, res interface{})
 	if !found {
 		return false, nil
 	}
-	if err = decodeBox(ctx, b, i.getSecretBoxKey, res); err != nil {
+	if err = DecodeBox(ctx, b, i.getSecretBoxKey, res); err != nil {
 		return false, err
 	}
 	return true, nil
 }
 
-func encodeBox(ctx context.Context, data interface{}, getSecretBoxKey KeyFn) ([]byte, error) {
+func EncodeBox(ctx context.Context, data interface{}, getSecretBoxKey KeyFn) ([]byte, error) {
 	dat, err := libkb.MPackEncode(data)
 	if err != nil {
 		return nil, err
@@ -117,7 +123,7 @@ func encodeBox(ctx context.Context, data interface{}, getSecretBoxKey KeyFn) ([]
 
 func (i *EncryptedDB) Put(ctx context.Context, key libkb.DbKey, data interface{}) error {
 	db := i.getDB(i.G())
-	dat, err := encodeBox(ctx, data, i.getSecretBoxKey)
+	dat, err := EncodeBox(ctx, data, i.getSecretBoxKey)
 	if err != nil {
 		return err
 	}

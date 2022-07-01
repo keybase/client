@@ -1,6 +1,7 @@
 // Copyright 2015 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
 
+//go:build !production
 // +build !production
 
 // this is the list of commands for the devel version of the
@@ -26,11 +27,12 @@ func getBuildSpecificCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext
 		NewCmdTestFSNotify(cl, g),
 		newCmdTlf(cl, g),
 		NewCmdScanProofs(cl, g),
-		newCmdTeamGenerateSeitan(cl, g),
 		newCmdTeamRotateKey(cl, g),
 		newCmdTeamDebug(cl, g),
-		newCmdScript(cl, g),
-		newCmdUploadAvatar(cl, g),
+		NewCmdContacts(cl, g),
+		NewCmdPeopleSearch(cl, g),
+		newCmdTestAirdropReg(cl, g),
+		newCmdTestCrypto(cl, g),
 	}
 }
 
@@ -39,32 +41,38 @@ func getBuildSpecificChatCommands(cl *libcmdline.CommandLine, g *libkb.GlobalCon
 		newCmdChatDeleteHistoryDev(cl, g),
 		newCmdChatSetRetentionDev(cl, g),
 		newCmdChatKBFSUpgrade(cl, g),
+		newCmdChatProfileSearchDev(cl, g),
 	}
+}
+
+func getBuildSpecificTeamCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext) []cli.Command {
+	return nil
 }
 
 func getBuildSpecificAccountCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext) []cli.Command {
 	return []cli.Command{
 		NewCmdAccountReset(cl, g),
+		NewCmdAccountResetStart(cl, g),
+		NewCmdAccountResetTimeTravel(cl, g),
 	}
 }
 
 func getBuildSpecificWalletCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext) []cli.Command {
 	return []cli.Command{
 		newCmdWalletDump(cl, g),
+		newCmdWalletHandleURI(cl, g),
 		newCmdWalletInit(cl, g),
-		newCmdWalletSetMobileOnly(cl, g),
 	}
 }
 
 func getBuildSpecificLogCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext) []cli.Command {
-	return []cli.Command{
-		NewCmdLogProfile(cl, g),
-	}
+	return []cli.Command{}
 }
 
 func getBuildSpecificFSCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext) []cli.Command {
 	return []cli.Command{
 		NewCmdSimpleFSUpgrade(cl, g),
+		NewCmdSimpleFSForceConflict(cl, g),
 	}
 }
 
@@ -84,6 +92,14 @@ var restrictedSignupFlags = []cli.Flag{
 	cli.BoolFlag{
 		Name:  "pgp",
 		Usage: "Add a server-synced pgp key",
+	},
+	cli.BoolFlag{
+		Name:  "no-passphrase",
+		Usage: "Sign up without passphrase.",
+	},
+	cli.BoolFlag{
+		Name:  "skip-paperkey",
+		Usage: "Sign up without creating a paperkey",
 	},
 }
 

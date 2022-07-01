@@ -16,6 +16,8 @@ import (
 type IdentifyOutcome struct {
 	Contextified
 	Username              NormalizedUsername
+	UID                   keybase1.UID
+	EldestSeqno           keybase1.Seqno
 	Error                 error
 	KeyDiffs              []TrackDiff
 	Revoked               []TrackDiff
@@ -29,8 +31,13 @@ type IdentifyOutcome struct {
 	ResponsibleGregorItem gregor.Item
 }
 
-func NewIdentifyOutcomeWithUsername(g *GlobalContext, u NormalizedUsername) *IdentifyOutcome {
-	return &IdentifyOutcome{Contextified: NewContextified(g), Username: u}
+func NewIdentifyOutcome(g *GlobalContext, username NormalizedUsername, uid keybase1.UID, eldestSeqno keybase1.Seqno) *IdentifyOutcome {
+	return &IdentifyOutcome{
+		Contextified: NewContextified(g),
+		Username:     username,
+		UID:          uid,
+		EldestSeqno:  eldestSeqno,
+	}
 }
 
 func (i *IdentifyOutcome) remoteProofLinks() *RemoteProofLinks {
@@ -42,7 +49,7 @@ func (i *IdentifyOutcome) remoteProofLinks() *RemoteProofLinks {
 }
 
 func (i *IdentifyOutcome) GetRemoteCheckResultFor(service string, username string) ProofError {
-	cieq := func(a, b string) bool { return strings.ToLower(a) == strings.ToLower(b) }
+	cieq := strings.EqualFold
 	for _, pc := range i.ProofChecks {
 		k, v := pc.GetLink().ToKeyValuePair()
 		if cieq(k, service) && cieq(v, username) {
@@ -64,33 +71,29 @@ func (i *IdentifyOutcome) TrackSet() *TrackSet {
 	return i.remoteProofLinks().TrackSet()
 }
 
-func (i *IdentifyOutcome) ProofChecksSorted() []*LinkCheckResult {
-
-	// Treat DNS and Web as the same type, and sort them together
-	// in the same bucket.
-	dnsToWeb := func(t keybase1.ProofType) keybase1.ProofType {
-		if t == keybase1.ProofType_DNS {
-			return keybase1.ProofType_GENERIC_WEB_SITE
+func (i *IdentifyOutcome) ProofChecksSorted(mctx MetaContext) []*LinkCheckResult {
+	// Sort by display priority
+	pc := make([]*LinkCheckResult, len(i.ProofChecks))
+	copy(pc, i.ProofChecks)
+	proofServices := i.G().GetProofServices()
+	serviceTypes := map[string]int{}
+	for _, lcr := range pc {
+		key := lcr.link.DisplayPriorityKey()
+		if _, ok := serviceTypes[key]; !ok {
+			st := proofServices.GetServiceType(mctx.Ctx(), key)
+			displayPriority := 0
+			if st != nil {
+				displayPriority = st.DisplayPriority()
+			}
+			serviceTypes[key] = displayPriority
 		}
-		return t
 	}
-
-	m := make(map[keybase1.ProofType][]*LinkCheckResult)
-	for _, p := range i.ProofChecks {
-		pt := dnsToWeb(p.link.GetProofType())
-		m[pt] = append(m[pt], p)
-	}
-
-	var res []*LinkCheckResult
-	for _, pt := range RemoteServiceOrder {
-		pc, ok := m[pt]
-		if !ok {
-			continue
-		}
-		sort.Sort(byDisplayString(pc))
-		res = append(res, pc...)
-	}
-	return res
+	sort.Slice(pc, func(a, b int) bool {
+		keyA := pc[a].link.DisplayPriorityKey()
+		keyB := pc[b].link.DisplayPriorityKey()
+		return serviceTypes[keyA] > serviceTypes[keyB]
+	})
+	return pc
 }
 
 // Revoked proofs are those we used to look for but are gone!
@@ -223,8 +226,20 @@ func (i IdentifyOutcome) GetErrorAndWarnings(strict bool) (warnings Warnings, er
 		}
 	}
 
+	// For revoked proofs, we almost always want to return an error. The one exception
+	// is a snoozed tracker proof in non-strict mode.
 	for _, revoked := range i.Revoked {
-		softErr(revoked.ToDisplayString())
+		errString := revoked.ToDisplayString()
+		isSnoozed := false
+		if _, ok := revoked.(TrackDiffSnoozedRevoked); ok {
+			isSnoozed = true
+		}
+
+		if !strict && isSnoozed {
+			warnings.Push(StringWarning(errString))
+		} else {
+			probs = append(probs, errString)
+		}
 	}
 
 	if nfails := i.NumProofFailures(); nfails > 0 {
@@ -246,18 +261,10 @@ func (i IdentifyOutcome) GetErrorAndWarnings(strict bool) (warnings Warnings, er
 }
 
 func (i IdentifyOutcome) GetError() error {
-	_, e := i.GetErrorAndWarnings(true)
+	_, e := i.GetErrorAndWarnings(true /*strict */)
 	return e
 }
 
 func (i IdentifyOutcome) GetErrorLax() (Warnings, error) {
-	return i.GetErrorAndWarnings(false)
-}
-
-type byDisplayString []*LinkCheckResult
-
-func (a byDisplayString) Len() int      { return len(a) }
-func (a byDisplayString) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
-func (a byDisplayString) Less(i, j int) bool {
-	return a[i].link.ToDisplayString() < a[j].link.ToDisplayString()
+	return i.GetErrorAndWarnings(false /*strict */)
 }

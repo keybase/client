@@ -1,0 +1,11 @@
+--- a/AudioRecorderManager.m
++++ b/AudioRecorderManager.m
+@@ -69,7 +69,7 @@ - (void)stopProgressTimer {
+ }
+
+ - (void)startProgressTimer {
+-  _progressUpdateInterval = 250;
++  _progressUpdateInterval = 100;
+   //_prevProgressUpdateTime = nil;
+
+   [self stopProgressTimer];

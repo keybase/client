@@ -30,3 +30,8 @@ func (r *RemoteTeamsUI) ConfirmSubteamDelete(ctx context.Context, arg keybase1.C
 	arg.SessionID = r.sessionID
 	return r.cli.ConfirmSubteamDelete(ctx, arg)
 }
+
+func (r *RemoteTeamsUI) ConfirmInviteLinkAccept(ctx context.Context, arg keybase1.ConfirmInviteLinkAcceptArg) (bool, error) {
+	arg.SessionID = r.sessionID
+	return r.cli.ConfirmInviteLinkAccept(ctx, arg)
+}
