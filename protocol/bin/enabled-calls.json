@@ -78,7 +78,7 @@
   "chat.1.local.resolveMaybeMention": {"promise": true},
   "chat.1.local.resolveUnfurlPrompt": {"promise": true},
   "chat.1.local.saveUnfurlSettings": {"promise": true},
-  "chat.1.local.searchInbox": {"engineSaga": true},
+  "chat.1.local.searchInbox": {"engineListener": true},
   "chat.1.local.searchRegexp": {"engineSaga": true},
   "chat.1.local.setAppNotificationSettingsLocal": {"promise": true},
   "chat.1.local.setBotMemberSettings": {"promise": true},

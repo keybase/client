@@ -1504,9 +1504,12 @@ const onToggleThreadSearch = (state: Container.TypedState, action: Chat2Gen.Togg
   return visible ? false : RPCChatTypes.localCancelActiveSearchRpcPromise()
 }
 
-function* threadSearch(state: Container.TypedState, action: Chat2Gen.ThreadSearchPayload) {
+const threadSearch = async (
+  state: Container.TypedState,
+  action: Chat2Gen.ThreadSearchPayload,
+  listenerApi: Container.ListenerApi
+) => {
   const {conversationIDKey, query} = action.payload
-
   const {username, getLastOrdinal, devicename} = Constants.getMessageStateExtras(state, conversationIDKey)
   const onHit = (hit: RPCChatTypes.MessageTypes['chat.1.chatUi.chatSearchHit']['inParam']) => {
     const message = Constants.uiMessageToMessage(
@@ -1517,7 +1520,7 @@ function* threadSearch(state: Container.TypedState, action: Chat2Gen.ThreadSearc
       devicename
     )
     return message
-      ? Saga.put(Chat2Gen.createThreadSearchResults({clear: false, conversationIDKey, messages: [message]}))
+      ? Chat2Gen.createThreadSearchResults({clear: false, conversationIDKey, messages: [message]})
       : false
   }
   const onInboxHit = (resp: RPCChatTypes.MessageTypes['chat.1.chatUi.chatSearchInboxHit']['inParam']) => {
@@ -1535,52 +1538,54 @@ function* threadSearch(state: Container.TypedState, action: Chat2Gen.ThreadSearc
       return l
     }, [])
     return messages.length > 0
-      ? Saga.put(Chat2Gen.createThreadSearchResults({clear: true, conversationIDKey, messages}))
-      : []
+      ? Chat2Gen.createThreadSearchResults({clear: true, conversationIDKey, messages})
+      : false
   }
-  const onDone = () => Saga.put(Chat2Gen.createSetThreadSearchStatus({conversationIDKey, status: 'done'}))
-  const onStart = () =>
-    Saga.put(Chat2Gen.createSetThreadSearchStatus({conversationIDKey, status: 'inprogress'}))
+  const onDone = () => Chat2Gen.createSetThreadSearchStatus({conversationIDKey, status: 'done'})
+  const onStart = () => Chat2Gen.createSetThreadSearchStatus({conversationIDKey, status: 'inprogress'})
 
   try {
-    yield RPCChatTypes.localSearchInboxRpcSaga({
-      incomingCallMap: {
-        'chat.1.chatUi.chatSearchDone': onDone,
-        'chat.1.chatUi.chatSearchHit': onHit,
-        'chat.1.chatUi.chatSearchInboxDone': onDone,
-        'chat.1.chatUi.chatSearchInboxHit': onInboxHit,
-        'chat.1.chatUi.chatSearchInboxStart': onStart,
-      },
-      params: {
-        identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-        namesOnly: false,
-        opts: {
-          afterContext: 0,
-          beforeContext: 0,
-          convID: Types.keyToConversationID(conversationIDKey),
-          isRegex: false,
-          matchMentions: false,
-          maxBots: 0,
-          maxConvsHit: 0,
-          maxConvsSearched: 0,
-          maxHits: 1000,
-          maxMessages: -1,
-          maxNameConvs: 0,
-          maxTeams: 0,
-          reindexMode: RPCChatTypes.ReIndexingMode.postsearchSync,
-          sentAfter: 0,
-          sentBefore: 0,
-          sentBy: '',
-          sentTo: '',
-          skipBotCache: false,
+    await RPCChatTypes.localSearchInboxRpcListener(
+      {
+        incomingCallMap: {
+          'chat.1.chatUi.chatSearchDone': onDone,
+          'chat.1.chatUi.chatSearchHit': onHit,
+          'chat.1.chatUi.chatSearchInboxDone': onDone,
+          'chat.1.chatUi.chatSearchInboxHit': onInboxHit,
+          'chat.1.chatUi.chatSearchInboxStart': onStart,
         },
-        query: query.stringValue(),
+        params: {
+          identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+          namesOnly: false,
+          opts: {
+            afterContext: 0,
+            beforeContext: 0,
+            convID: Types.keyToConversationID(conversationIDKey),
+            isRegex: false,
+            matchMentions: false,
+            maxBots: 0,
+            maxConvsHit: 0,
+            maxConvsSearched: 0,
+            maxHits: 1000,
+            maxMessages: -1,
+            maxNameConvs: 0,
+            maxTeams: 0,
+            reindexMode: RPCChatTypes.ReIndexingMode.postsearchSync,
+            sentAfter: 0,
+            sentBefore: 0,
+            sentBy: '',
+            sentTo: '',
+            skipBotCache: false,
+          },
+          query: query.stringValue(),
+        },
       },
-    })
+      listenerApi
+    )
   } catch (error) {
     if (error instanceof RPCError) {
       logger.error('search failed: ' + error.message)
-      yield Saga.put(Chat2Gen.createSetThreadSearchStatus({conversationIDKey, status: 'done'}))
+      listenerApi.dispatch(Chat2Gen.createSetThreadSearchStatus({conversationIDKey, status: 'done'}))
     }
   }
 }
@@ -1668,116 +1673,115 @@ const maybeCancelInboxSearchOnFocusChanged = (
   return false
 }
 
-function* inboxSearch(_: Container.TypedState, action: Chat2Gen.InboxSearchPayload) {
+const inboxSearch = async (
+  _: Container.TypedState,
+  action: Chat2Gen.InboxSearchPayload,
+  listenerApi: Container.ListenerApi
+) => {
   const {query} = action.payload
   const teamType = (t: RPCChatTypes.TeamType) => (t === RPCChatTypes.TeamType.complex ? 'big' : 'small')
 
   const onConvHits = (resp: RPCChatTypes.MessageTypes['chat.1.chatUi.chatSearchConvHits']['inParam']) =>
-    Saga.put(
-      Chat2Gen.createInboxSearchNameResults({
-        results: (resp.hits.hits || []).reduce<Array<Types.InboxSearchConvHit>>((arr, h) => {
-          arr.push({
-            conversationIDKey: Types.stringToConversationIDKey(h.convID),
-            name: h.name,
-            teamType: teamType(h.teamType),
-          })
-          return arr
-        }, []),
-        unread: resp.hits.unreadMatches,
-      })
-    )
+    Chat2Gen.createInboxSearchNameResults({
+      results: (resp.hits.hits || []).reduce<Array<Types.InboxSearchConvHit>>((arr, h) => {
+        arr.push({
+          conversationIDKey: Types.stringToConversationIDKey(h.convID),
+          name: h.name,
+          teamType: teamType(h.teamType),
+        })
+        return arr
+      }, []),
+      unread: resp.hits.unreadMatches,
+    })
 
   const onOpenTeamHits = (resp: RPCChatTypes.MessageTypes['chat.1.chatUi.chatSearchTeamHits']['inParam']) =>
-    Saga.put(
-      Chat2Gen.createInboxSearchOpenTeamsResults({
-        results: (resp.hits.hits || []).reduce<Array<Types.InboxSearchOpenTeamHit>>((arr, h) => {
-          const {description, name, memberCount, inTeam} = h
-          arr.push({
-            description: description ?? '',
-            inTeam,
-            memberCount,
-            name,
-            publicAdmins: [],
-          })
-          return arr
-        }, []),
-        suggested: resp.hits.suggestedMatches,
-      })
-    )
+    Chat2Gen.createInboxSearchOpenTeamsResults({
+      results: (resp.hits.hits || []).reduce<Array<Types.InboxSearchOpenTeamHit>>((arr, h) => {
+        const {description, name, memberCount, inTeam} = h
+        arr.push({
+          description: description ?? '',
+          inTeam,
+          memberCount,
+          name,
+          publicAdmins: [],
+        })
+        return arr
+      }, []),
+      suggested: resp.hits.suggestedMatches,
+    })
 
   const onBotsHits = (resp: RPCChatTypes.MessageTypes['chat.1.chatUi.chatSearchBotHits']['inParam']) =>
-    Saga.put(
-      Chat2Gen.createInboxSearchBotsResults({
-        results: resp.hits.hits || [],
-        suggested: resp.hits.suggestedMatches,
-      })
-    )
+    Chat2Gen.createInboxSearchBotsResults({
+      results: resp.hits.hits || [],
+      suggested: resp.hits.suggestedMatches,
+    })
 
   const onTextHit = (resp: RPCChatTypes.MessageTypes['chat.1.chatUi.chatSearchInboxHit']['inParam']) => {
     const {convID, convName, hits, query, teamType: tt, time} = resp.searchHit
-    return Saga.put(
-      Chat2Gen.createInboxSearchTextResult({
-        result: {
-          conversationIDKey: Types.conversationIDToKey(convID),
-          name: convName,
-          numHits: hits?.length ?? 0,
-          query,
-          teamType: teamType(tt),
-          time,
-        },
-      })
-    )
-  }
-  const onStart = () => Saga.put(Chat2Gen.createInboxSearchStarted())
-  const onDone = () => Saga.put(Chat2Gen.createInboxSearchSetTextStatus({status: 'success'}))
-
-  const onIndexStatus = (resp: RPCChatTypes.MessageTypes['chat.1.chatUi.chatSearchIndexStatus']['inParam']) =>
-    Saga.put(Chat2Gen.createInboxSearchSetIndexPercent({percent: resp.status.percentIndexed}))
-
-  try {
-    yield RPCChatTypes.localSearchInboxRpcSaga({
-      incomingCallMap: {
-        'chat.1.chatUi.chatSearchBotHits': onBotsHits,
-        'chat.1.chatUi.chatSearchConvHits': onConvHits,
-        'chat.1.chatUi.chatSearchInboxDone': onDone,
-        'chat.1.chatUi.chatSearchInboxHit': onTextHit,
-        'chat.1.chatUi.chatSearchInboxStart': onStart,
-        'chat.1.chatUi.chatSearchIndexStatus': onIndexStatus,
-        'chat.1.chatUi.chatSearchTeamHits': onOpenTeamHits,
-      },
-      params: {
-        identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-        namesOnly: false,
-        opts: {
-          afterContext: 0,
-          beforeContext: 0,
-          isRegex: false,
-          matchMentions: false,
-          maxBots: 10,
-          maxConvsHit: Constants.inboxSearchMaxTextResults,
-          maxConvsSearched: 0,
-          maxHits: Constants.inboxSearchMaxTextMessages,
-          maxMessages: -1,
-          maxNameConvs:
-            query.stringValue().length > 0
-              ? Constants.inboxSearchMaxNameResults
-              : Constants.inboxSearchMaxUnreadNameResults,
-          maxTeams: 10,
-          reindexMode: RPCChatTypes.ReIndexingMode.postsearchSync,
-          sentAfter: 0,
-          sentBefore: 0,
-          sentBy: '',
-          sentTo: '',
-          skipBotCache: false,
-        },
-        query: query.stringValue(),
+    return Chat2Gen.createInboxSearchTextResult({
+      result: {
+        conversationIDKey: Types.conversationIDToKey(convID),
+        name: convName,
+        numHits: hits?.length ?? 0,
+        query,
+        teamType: teamType(tt),
+        time,
       },
     })
+  }
+  const onStart = () => Chat2Gen.createInboxSearchStarted()
+  const onDone = () => Chat2Gen.createInboxSearchSetTextStatus({status: 'success'})
+
+  const onIndexStatus = (resp: RPCChatTypes.MessageTypes['chat.1.chatUi.chatSearchIndexStatus']['inParam']) =>
+    Chat2Gen.createInboxSearchSetIndexPercent({percent: resp.status.percentIndexed})
+
+  try {
+    await RPCChatTypes.localSearchInboxRpcListener(
+      {
+        incomingCallMap: {
+          'chat.1.chatUi.chatSearchBotHits': onBotsHits,
+          'chat.1.chatUi.chatSearchConvHits': onConvHits,
+          'chat.1.chatUi.chatSearchInboxDone': onDone,
+          'chat.1.chatUi.chatSearchInboxHit': onTextHit,
+          'chat.1.chatUi.chatSearchInboxStart': onStart,
+          'chat.1.chatUi.chatSearchIndexStatus': onIndexStatus,
+          'chat.1.chatUi.chatSearchTeamHits': onOpenTeamHits,
+        },
+        params: {
+          identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+          namesOnly: false,
+          opts: {
+            afterContext: 0,
+            beforeContext: 0,
+            isRegex: false,
+            matchMentions: false,
+            maxBots: 10,
+            maxConvsHit: Constants.inboxSearchMaxTextResults,
+            maxConvsSearched: 0,
+            maxHits: Constants.inboxSearchMaxTextMessages,
+            maxMessages: -1,
+            maxNameConvs:
+              query.stringValue().length > 0
+                ? Constants.inboxSearchMaxNameResults
+                : Constants.inboxSearchMaxUnreadNameResults,
+            maxTeams: 10,
+            reindexMode: RPCChatTypes.ReIndexingMode.postsearchSync,
+            sentAfter: 0,
+            sentBefore: 0,
+            sentBy: '',
+            sentTo: '',
+            skipBotCache: false,
+          },
+          query: query.stringValue(),
+        },
+      },
+      listenerApi
+    )
   } catch (error) {
     if (error instanceof RPCError) {
       if (!(error.code === RPCTypes.StatusCode.sccanceled)) {
         logger.error('search failed: ' + error.message)
-        yield Saga.put(Chat2Gen.createInboxSearchSetTextStatus({status: 'error'}))
+        listenerApi.dispatch(Chat2Gen.createInboxSearchSetTextStatus({status: 'error'}))
       }
     }
   }
@@ -2468,16 +2472,15 @@ const dismissJourneycard = (_: unknown, action: Chat2Gen.DismissJourneycardPaylo
 }
 
 // Get the list of mutual teams if we need to.
-function* loadSuggestionData(
+const loadSuggestionData = (
   state: Container.TypedState,
   action: Chat2Gen.ChannelSuggestionsTriggeredPayload
-) {
+) => {
   const {conversationIDKey} = action.payload
   const meta = Constants.getMeta(state, conversationIDKey)
   // If this is an impteam, try to refresh mutual team info
   if (!meta.teamname) {
-    yield Saga.put(Chat2Gen.createRefreshMutualTeamsInConv({conversationIDKey}))
-    return
+    return Chat2Gen.createRefreshMutualTeamsInConv({conversationIDKey})
   }
 }
 
@@ -3040,14 +3043,19 @@ function* setConvExplodingMode(state: Container.TypedState, action: Chat2Gen.Set
   }
 }
 
-function* loadStaticConfig(state: Container.TypedState, action: ConfigGen.DaemonHandshakePayload) {
+const loadStaticConfig = async (
+  state: Container.TypedState,
+  action: ConfigGen.DaemonHandshakePayload,
+  listenerApi: Container.ListenerApi
+) => {
   if (state.chat2.staticConfig) {
     return
   }
   const {version} = action.payload
-  yield Saga.put(ConfigGen.createDaemonHandshakeWait({increment: true, name: 'chat.loadStatic', version}))
-  const res: Saga.RPCPromiseType<typeof RPCChatTypes.localGetStaticConfigRpcPromise> =
-    yield RPCChatTypes.localGetStaticConfigRpcPromise()
+  listenerApi.dispatch(
+    ConfigGen.createDaemonHandshakeWait({increment: true, name: 'chat.loadStatic', version})
+  )
+  const res = await RPCChatTypes.localGetStaticConfigRpcPromise()
   if (!res.deletableByDeleteHistory) {
     logger.error('chat.loadStaticConfig: got no deletableByDeleteHistory in static config')
     return
@@ -3062,7 +3070,7 @@ function* loadStaticConfig(state: Container.TypedState, action: ConfigGen.Daemon
     },
     []
   )
-  yield Saga.put(
+  listenerApi.dispatch(
     Chat2Gen.createStaticConfigLoaded({
       staticConfig: {
         builtinCommands: (res.builtinCommands || []).reduce<Types.StaticConfig['builtinCommands']>(
@@ -3083,7 +3091,9 @@ function* loadStaticConfig(state: Container.TypedState, action: ConfigGen.Daemon
     })
   )
 
-  yield Saga.put(ConfigGen.createDaemonHandshakeWait({increment: false, name: 'chat.loadStatic', version}))
+  listenerApi.dispatch(
+    ConfigGen.createDaemonHandshakeWait({increment: false, name: 'chat.loadStatic', version})
+  )
 }
 
 const toggleMessageReaction = async (
@@ -3905,16 +3915,13 @@ function* chat2Saga() {
     setConvExplodingMode
   )
   Container.listenAction(Chat2Gen.toggleMessageReaction, toggleMessageReaction)
-  yield* Saga.chainGenerator<ConfigGen.DaemonHandshakePayload>(ConfigGen.daemonHandshake, loadStaticConfig)
+  Container.listenAction(ConfigGen.daemonHandshake, loadStaticConfig)
   Container.listenAction(NotificationsGen.receivedBadgeState, receivedBadgeState)
   Container.listenAction(Chat2Gen.setMinWriterRole, setMinWriterRole)
   Container.listenAction(GregorGen.pushState, gregorPushState)
   Container.listenAction(Chat2Gen.prepareFulfillRequestForm, prepareFulfillRequestForm)
 
-  yield* Saga.chainGenerator<Chat2Gen.ChannelSuggestionsTriggeredPayload>(
-    Chat2Gen.channelSuggestionsTriggered,
-    loadSuggestionData
-  )
+  Container.listenAction(Chat2Gen.channelSuggestionsTriggered, loadSuggestionData)
 
   Container.listenAction(Chat2Gen.refreshMutualTeamsInConv, refreshMutualTeamsInConv)
 
@@ -3951,14 +3958,14 @@ function* chat2Saga() {
 
   Container.listenAction(Chat2Gen.replyJump, onReplyJump)
 
-  yield* Saga.chainGenerator<Chat2Gen.InboxSearchPayload>(Chat2Gen.inboxSearch, inboxSearch)
+  Container.listenAction(Chat2Gen.inboxSearch, inboxSearch)
   Container.listenAction(Chat2Gen.toggleInboxSearch, onToggleInboxSearch)
   Container.listenAction(Chat2Gen.inboxSearchSelect, onInboxSearchSelect)
   Container.listenAction(Chat2Gen.inboxSearchNameResults, onInboxSearchNameResults)
   Container.listenAction(Chat2Gen.inboxSearchTextResult, onInboxSearchTextResult)
   Container.listenAction(ConfigGen.mobileAppState, maybeCancelInboxSearchOnFocusChanged)
 
-  yield* Saga.chainGenerator<Chat2Gen.ThreadSearchPayload>(Chat2Gen.threadSearch, threadSearch)
+  Container.listenAction(Chat2Gen.threadSearch, threadSearch)
   Container.listenAction(Chat2Gen.toggleThreadSearch, onToggleThreadSearch)
 
   Container.listenAction(Chat2Gen.resolveMaybeMention, resolveMaybeMention)
