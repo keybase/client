@@ -10,8 +10,7 @@ import * as RouteTreeGen from '../route-tree-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as SettingsConstants from '../../constants/settings'
 import * as LoginConstants from '../../constants/login'
-import * as Saga from '../../util/saga'
-import * as PlatformSpecific from '../platform-specific'
+import {initPlatformListener} from '../platform-specific'
 import * as Tabs from '../../constants/tabs'
 import * as Router2 from '../../constants/router2'
 import * as Platform from '../../constants/platform'
@@ -662,7 +661,7 @@ function* configSaga() {
   Container.listenAction(ConfigGen.androidShare, onAndroidShare)
 
   // Kick off platform specific stuff
-  yield Saga.spawn(PlatformSpecific.platformConfigSaga)
+  initPlatformListener()
 
   Container.spawn(criticalOutOfDateCheck, 'criticalOutOfDateCheck')
   Container.listenAction(ConfigGen.loadOnLoginStartup, loadOnLoginStartup)

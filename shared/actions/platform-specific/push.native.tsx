@@ -7,7 +7,6 @@ import * as PushGen from '../push-gen'
 import PushNotificationIOS from '@react-native-community/push-notification-ios'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
-import * as Saga from '../../util/saga'
 import * as WaitingGen from '../waiting-gen'
 import * as RouteTreeGen from '../route-tree-gen'
 import * as Tabs from '../../constants/tabs'
@@ -109,7 +108,10 @@ const setupPushEventLoop = async (_s: unknown, _a: unknown, listenerApi: Contain
   }
 }
 
-function* handleLoudMessage(notification: Types.PushNotification) {
+const handleLoudMessage = async (
+  notification: Types.PushNotification,
+  listenerApi: Container.ListenerApi
+) => {
   if (notification.type !== 'chat.newmessage') {
     return
   }
@@ -122,11 +124,13 @@ function* handleLoudMessage(notification: Types.PushNotification) {
   const {conversationIDKey, unboxPayload, membersType} = notification
 
   logger.warn('push selecting ', conversationIDKey)
-  yield Saga.put(Chat2Gen.createNavigateToThread({conversationIDKey, pushBody: unboxPayload, reason: 'push'}))
+  listenerApi.dispatch(
+    Chat2Gen.createNavigateToThread({conversationIDKey, pushBody: unboxPayload, reason: 'push'})
+  )
   if (unboxPayload && membersType && !isIOS) {
     logger.info('[Push] unboxing message')
     try {
-      yield RPCChatTypes.localUnboxMobilePushNotificationRpcPromise({
+      await RPCChatTypes.localUnboxMobilePushNotificationRpcPromise({
         convID: conversationIDKey,
         membersType,
         payload: unboxPayload,
@@ -139,7 +143,11 @@ function* handleLoudMessage(notification: Types.PushNotification) {
 }
 
 // on iOS the go side handles a lot of push details
-function* handlePush(state: Container.TypedState, action: PushGen.NotificationPayload) {
+const handlePush = async (
+  state: Container.TypedState,
+  action: PushGen.NotificationPayload,
+  listenerApi: Container.ListenerApi
+) => {
   try {
     const notification = action.payload.notification
     logger.info('[Push]: ' + notification.type || 'unknown')
@@ -155,26 +163,26 @@ function* handlePush(state: Container.TypedState, action: PushGen.NotificationPa
         // entirely handled by go on ios and in onNotification on Android
         break
       case 'chat.newmessage':
-        yield* handleLoudMessage(notification)
+        await handleLoudMessage(notification, listenerApi)
         break
       case 'follow':
         // We only care if the user clicked while in session
         if (notification.userInteraction) {
           const {username} = notification
           logger.info('[Push] follower: ', username)
-          yield Saga.put(ProfileGen.createShowUserProfile({username}))
+          listenerApi.dispatch(ProfileGen.createShowUserProfile({username}))
         }
         break
       case 'chat.extension':
         {
           const {conversationIDKey} = notification
-          yield Saga.put(Chat2Gen.createNavigateToThread({conversationIDKey, reason: 'extension'}))
+          listenerApi.dispatch(Chat2Gen.createNavigateToThread({conversationIDKey, reason: 'extension'}))
         }
         break
       case 'settings.contacts':
         if (state.config.loggedIn) {
-          yield Saga.put(RouteTreeGen.createSwitchTab({tab: Tabs.peopleTab}))
-          yield Saga.put(RouteTreeGen.createNavUpToScreen({name: 'peopleRoot'}))
+          listenerApi.dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.peopleTab}))
+          listenerApi.dispatch(RouteTreeGen.createNavUpToScreen({name: 'peopleRoot'}))
         }
         break
     }
@@ -436,7 +444,7 @@ const getInitialPushiOS = async () =>
       })
   })
 
-function* pushSaga() {
+export const initPushListener = () => {
   // Permissions
   Container.listenAction(PushGen.requestPermissions, requestPermissions)
   Container.listenAction([PushGen.showPermissionsPrompt, PushGen.rejectPermissions], neverShowMonsterAgain)
@@ -447,10 +455,9 @@ function* pushSaga() {
   Container.listenAction(ConfigGen.logoutHandshake, deletePushToken)
 
   Container.listenAction(NotificationsGen.receivedBadgeState, updateAppBadge)
-  yield* Saga.chainGenerator<PushGen.NotificationPayload>(PushGen.notification, handlePush)
+  Container.listenAction(PushGen.notification, handlePush)
   Container.listenAction(ConfigGen.daemonHandshake, setupPushEventLoop)
   Container.spawn(initialPermissionsCheck, 'initialPermissionsCheck')
 }
 
-export default pushSaga
 export {getStartupDetailsFromInitialPush, getStartupDetailsFromInitialShare}

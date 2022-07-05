@@ -14,7 +14,6 @@ import * as EngineGen from '../engine-gen-gen'
 import * as Tabs from '../../constants/tabs'
 import * as RouteTreeGen from '../route-tree-gen'
 import * as LoginGen from '../login-gen'
-import * as Saga from '../../util/saga'
 import * as Types from '../../constants/types/chat2'
 import * as MediaLibrary from 'expo-media-library'
 import type * as FsTypes from '../../constants/types/fs'
@@ -26,7 +25,11 @@ import Clipboard from '@react-native-clipboard/clipboard'
 import NetInfo from '@react-native-community/netinfo'
 import PushNotificationIOS from '@react-native-community/push-notification-ios'
 import {isIOS, isAndroid} from '../../constants/platform'
-import pushSaga, {getStartupDetailsFromInitialPush, getStartupDetailsFromInitialShare} from './push.native'
+import {
+  initPushListener,
+  getStartupDetailsFromInitialPush,
+  getStartupDetailsFromInitialShare,
+} from './push.native'
 import * as Container from '../../util/container'
 import * as Contacts from 'expo-contacts'
 import {launchImageLibraryAsync} from '../../util/expo-image-picker'
@@ -860,7 +863,7 @@ const notifyNativeOfDarkModeChange = (state: Container.TypedState) => {
   }
 }
 
-export function* platformConfigSaga() {
+export const initPlatformListener = () => {
   Container.listenAction(ConfigGen.persistRoute, persistRoute)
   Container.listenAction(ConfigGen.mobileAppState, updateChangedFocus)
   Container.listenAction(ConfigGen.openAppSettings, openAppSettings)
@@ -910,7 +913,6 @@ export function* platformConfigSaga() {
 
   // Start this immediately instead of waiting so we can do more things in parallel
   Container.spawn(loadStartupDetails, 'loadStartupDetails')
-  // TODO not saga
-  yield Saga.spawn(pushSaga)
+  initPushListener()
   Container.spawn(setupNetInfoWatcher, 'setupNetInfoWatcher')
 }

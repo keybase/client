@@ -27,4 +27,4 @@ export declare function displayNewMessageNotification(
 
 export declare function clearAllNotifications(): void
 
-export declare function platformConfigSaga(): void
+export declare function initPlatformListener(): void

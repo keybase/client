@@ -350,7 +350,7 @@ const checkNav = async (
   }
 }
 
-export function* platformConfigSaga() {
+export const initPlatformListener = () => {
   Container.listenAction(ConfigGen.setOpenAtLogin, onSetOpenAtLogin)
   Container.listenAction(ConfigGen.setNotifySound, setNotifySound)
   Container.listenAction(ConfigGen.showMain, () => showMainWindow?.())
