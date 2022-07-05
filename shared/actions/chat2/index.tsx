@@ -1378,7 +1378,11 @@ const clearMessageSetEditing = (_: unknown, action: Chat2Gen.MessageEditPayload)
     ordinal: null,
   })
 
-function* messageEdit(state: Container.TypedState, action: Chat2Gen.MessageEditPayload) {
+const messageEdit = async (
+  state: Container.TypedState,
+  action: Chat2Gen.MessageEditPayload,
+  listenerApi: Container.ListenerApi
+) => {
   const {conversationIDKey, text, ordinal} = action.payload
   const message = Constants.getMessage(state, conversationIDKey, ordinal)
   if (!message) {
@@ -1389,10 +1393,10 @@ function* messageEdit(state: Container.TypedState, action: Chat2Gen.MessageEditP
   if (message.type === 'text' || message.type === 'attachment') {
     // Skip if the content is the same
     if (message.type === 'text' && message.text.stringValue() === text.stringValue()) {
-      yield Saga.put(Chat2Gen.createMessageSetEditing({conversationIDKey, ordinal: null}))
+      listenerApi.dispatch(Chat2Gen.createMessageSetEditing({conversationIDKey, ordinal: null}))
       return
     } else if (message.type === 'attachment' && message.title === text.stringValue()) {
-      yield Saga.put(Chat2Gen.createMessageSetEditing({conversationIDKey, ordinal: null}))
+      listenerApi.dispatch(Chat2Gen.createMessageSetEditing({conversationIDKey, ordinal: null}))
       return
     }
     const meta = Constants.getMeta(state, conversationIDKey)
@@ -1403,30 +1407,25 @@ function* messageEdit(state: Container.TypedState, action: Chat2Gen.MessageEditP
       messageID: message.id,
       outboxID: message.outboxID ? Types.outboxIDToRpcOutboxID(message.outboxID) : null,
     }
-    let actions: Array<Saga.Effect<any>> = [
-      Saga.callUntyped(
-        RPCChatTypes.localPostEditNonblockRpcPromise,
-        {
-          body: text.stringValue(),
-          clientPrev,
-          conversationID: Types.keyToConversationID(conversationIDKey),
-          identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-          outboxID,
-          target,
-          tlfName,
-          tlfPublic: false,
-        },
-        Constants.waitingKeyEditPost
-      ),
-    ]
+    await RPCChatTypes.localPostEditNonblockRpcPromise(
+      {
+        body: text.stringValue(),
+        clientPrev,
+        conversationID: Types.keyToConversationID(conversationIDKey),
+        identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+        outboxID,
+        target,
+        tlfName,
+        tlfPublic: false,
+      },
+      Constants.waitingKeyEditPost
+    )
+
     if (!message.id) {
-      actions = actions.concat(
-        Saga.put(Chat2Gen.createPendingMessageWasEdited({conversationIDKey, ordinal, text}))
-      )
+      listenerApi.dispatch(Chat2Gen.createPendingMessageWasEdited({conversationIDKey, ordinal, text}))
+    } else {
+      logger.warn('Editing non-text message')
     }
-    yield Saga.sequentially(actions)
-  } else {
-    logger.warn('Editing non-text message')
   }
 }
 
@@ -3817,7 +3816,7 @@ function* chat2Saga() {
   Container.listenAction(Chat2Gen.messageRetry, messageRetry)
   yield* Saga.chainGenerator<Chat2Gen.MessageSendPayload>(Chat2Gen.messageSend, messageSend)
   Container.listenAction(Chat2Gen.messageSendByUsernames, messageSendByUsernames)
-  yield* Saga.chainGenerator<Chat2Gen.MessageEditPayload>(Chat2Gen.messageEdit, messageEdit)
+  Container.listenAction(Chat2Gen.messageEdit, messageEdit)
   Container.listenAction(Chat2Gen.messageEdit, clearMessageSetEditing)
   Container.listenAction(Chat2Gen.messageDelete, messageDelete)
   Container.listenAction(Chat2Gen.messageDeleteHistory, deleteMessageHistory)
