@@ -1,7 +1,7 @@
 {
   "chat.1.local.CancelPost": {"promise": true},
   "chat.1.local.ConfigureFileAttachmentDownloadLocal": {"promise": true},
-  "chat.1.local.DownloadFileAttachmentLocal": {"engineSaga": true},
+  "chat.1.local.DownloadFileAttachmentLocal": {"promise": true},
   "chat.1.local.RetryPost": {"promise": true},
   "chat.1.local.SetConversationStatusLocal": {"promise": true},
   "chat.1.local.addBotConvSearch": {"promise": true},

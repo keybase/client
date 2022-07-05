@@ -1289,7 +1289,7 @@ const getUnreadline = async (
 }
 
 // Show a desktop notification
-function* desktopNotify(state: Container.TypedState, action: Chat2Gen.DesktopNotificationPayload) {
+const desktopNotify = async (state: Container.TypedState, action: Chat2Gen.DesktopNotificationPayload) => {
   const {conversationIDKey, author, body} = action.payload
   const meta = Constants.getMeta(state, conversationIDKey)
 
@@ -1307,28 +1307,22 @@ function* desktopNotify(state: Container.TypedState, action: Chat2Gen.DesktopNot
     title += `#${meta.channelname}`
   }
 
-  const actions: Array<unknown> = yield Saga.callUntyped(
-    () =>
-      new Promise(resolve => {
-        const onClick = () => {
-          resolve(
-            Saga.sequentially([
-              Saga.put(Chat2Gen.createNavigateToInbox()),
-              Saga.put(Chat2Gen.createNavigateToThread({conversationIDKey, reason: 'desktopNotification'})),
-              Saga.put(ConfigGen.createShowMain()),
-            ])
-          )
-        }
-        const onClose = () => {
-          resolve(undefined)
-        }
-        logger.info('invoking NotifyPopup for chat notification')
-        NotifyPopup(title, {body, sound: state.config.notifySound}, -1, author, onClick, onClose)
-      })
-  )
-  if (actions) {
-    yield actions
-  }
+  const actions = await new Promise<Array<Container.TypedActions>>(resolve => {
+    const onClick = () => {
+      resolve([
+        Chat2Gen.createNavigateToInbox(),
+        Chat2Gen.createNavigateToThread({conversationIDKey, reason: 'desktopNotification'}),
+        ConfigGen.createShowMain(),
+      ])
+    }
+    const onClose = () => {
+      resolve([])
+    }
+    logger.info('invoking NotifyPopup for chat notification')
+    NotifyPopup(title, {body, sound: state.config.notifySound}, -1, author, onClick, onClose)
+  })
+
+  return actions
 }
 
 // Delete a message. We cancel pending messages
@@ -2112,37 +2106,43 @@ const openFolder = (state: Container.TypedState, action: Chat2Gen.OpenFolderPayl
   return FsConstants.makeActionForOpenPathInFilesTab(path)
 }
 
-function* downloadAttachment(downloadToCache: boolean, message: Types.Message) {
+const downloadAttachment = async (
+  downloadToCache: boolean,
+  message: Types.Message,
+  listenerApi: Container.ListenerApi
+) => {
   try {
     const {conversationIDKey} = message
-    const rpcRes: RPCChatTypes.DownloadFileAttachmentLocalRes =
-      yield RPCChatTypes.localDownloadFileAttachmentLocalRpcSaga({
-        incomingCallMap: {},
-        params: {
-          conversationID: Types.keyToConversationID(conversationIDKey),
-          downloadToCache,
-          identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-          messageID: message.id,
-          preview: false,
-        },
-      })
-    yield Saga.put(Chat2Gen.createAttachmentDownloaded({message, path: rpcRes.filePath}))
+    const rpcRes = await RPCChatTypes.localDownloadFileAttachmentLocalRpcPromise({
+      conversationID: Types.keyToConversationID(conversationIDKey),
+      downloadToCache,
+      identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+      messageID: message.id,
+      preview: false,
+    })
+    listenerApi.dispatch(Chat2Gen.createAttachmentDownloaded({message, path: rpcRes.filePath}))
     return rpcRes.filePath
   } catch (error) {
     if (error instanceof RPCError) {
       logger.info(`downloadAttachment error: ${error.message}`)
-      yield Saga.put(
+      listenerApi.dispatch(
         Chat2Gen.createAttachmentDownloaded({error: error.message || 'Error downloading attachment', message})
       )
     } else {
-      yield Saga.put(Chat2Gen.createAttachmentDownloaded({error: 'Error downloading attachment', message}))
+      listenerApi.dispatch(
+        Chat2Gen.createAttachmentDownloaded({error: 'Error downloading attachment', message})
+      )
     }
     return false
   }
 }
 
 // Download an attachment to your device
-function* attachmentDownload(_: Container.TypedState, action: Chat2Gen.AttachmentDownloadPayload) {
+const attachmentDownload = async (
+  _: Container.TypedState,
+  action: Chat2Gen.AttachmentDownloadPayload,
+  listenerApi: Container.ListenerApi
+) => {
   const {message} = action.payload
 
   if (message.type !== 'attachment') {
@@ -2155,7 +2155,7 @@ function* attachmentDownload(_: Container.TypedState, action: Chat2Gen.Attachmen
     return
   }
 
-  yield Saga.callUntyped(downloadAttachment, false, message)
+  await downloadAttachment(false, message, listenerApi)
 }
 
 const attachmentPreviewSelect = (_: unknown, action: Chat2Gen.AttachmentPreviewSelectPayload) => [
@@ -2246,7 +2246,7 @@ const sendAudioRecording = async (
 }
 
 // Upload an attachment
-function* attachmentsUpload(state: Container.TypedState, action: Chat2Gen.AttachmentsUploadPayload) {
+const attachmentsUpload = async (state: Container.TypedState, action: Chat2Gen.AttachmentsUploadPayload) => {
   const {conversationIDKey, paths, titles} = action.payload
   let tlfName = action.payload.tlfName
   const meta = state.chat2.metaMap.get(conversationIDKey)
@@ -2266,8 +2266,8 @@ function* attachmentsUpload(state: Container.TypedState, action: Chat2Gen.Attach
     obids.push(p.outboxID ? p.outboxID : Constants.generateOutboxID())
     return obids
   }, [])
-  yield Saga.sequentially(
-    paths.map((p, i) =>
+  await Promise.all(
+    paths.map(async (p, i) =>
       RPCChatTypes.localPostFileAttachmentLocalNonblockRpcPromise({
         arg: {
           ...ephemeralData,
@@ -2482,6 +2482,7 @@ const loadSuggestionData = (
   if (!meta.teamname) {
     return Chat2Gen.createRefreshMutualTeamsInConv({conversationIDKey})
   }
+  return false
 }
 
 const refreshMutualTeamsInConv = async (
@@ -2641,22 +2642,23 @@ const ensureWidgetMetas = (state: Container.TypedState) => {
 }
 
 // Native share sheet for attachments
-function* mobileMessageAttachmentShare(
+const mobileMessageAttachmentShare = async (
   _: Container.TypedState,
-  action: Chat2Gen.MessageAttachmentNativeSharePayload
-) {
+  action: Chat2Gen.MessageAttachmentNativeSharePayload,
+  listenerApi: Container.ListenerApi
+) => {
   const {message} = action.payload
   if (!message || message.type !== 'attachment') {
     throw new Error('Invalid share message')
   }
-  const filePath = yield* downloadAttachment(true, message)
+  const filePath = await downloadAttachment(true, message, listenerApi)
   if (!filePath) {
     logger.info('Downloading attachment failed')
     return
   }
 
   if (isIOS && message.fileName.endsWith('.pdf')) {
-    yield Saga.put(
+    listenerApi.dispatch(
       RouteTreeGen.createNavigateAppend({
         path: [
           {
@@ -2676,37 +2678,38 @@ function* mobileMessageAttachmentShare(
   }
 
   try {
-    yield showShareActionSheet({filePath, mimeType: message.fileType})
+    await showShareActionSheet({filePath, mimeType: message.fileType})
   } catch (e) {
     logger.error('Failed to share attachment: ' + JSON.stringify(e))
   }
 }
 
 // Native save to camera roll
-function* mobileMessageAttachmentSave(
+const mobileMessageAttachmentSave = async (
   _: Container.TypedState,
-  action: Chat2Gen.MessageAttachmentNativeSavePayload
-) {
+  action: Chat2Gen.MessageAttachmentNativeSavePayload,
+  listenerApi: Container.ListenerApi
+) => {
   const {message} = action.payload
   if (!message || message.type !== 'attachment') {
     throw new Error('Invalid share message')
   }
   const {conversationIDKey, ordinal, fileType} = message
-  const fileName = yield* downloadAttachment(true, message)
+  const fileName = await downloadAttachment(true, message, listenerApi)
   if (!fileName) {
     // failed to download
     logger.info('Downloading attachment failed')
     return
   }
-  yield Saga.put(Chat2Gen.createAttachmentMobileSave({conversationIDKey, ordinal}))
+  listenerApi.dispatch(Chat2Gen.createAttachmentMobileSave({conversationIDKey, ordinal}))
   try {
     logger.info('Trying to save chat attachment to camera roll')
-    yield saveAttachmentToCameraRoll(fileName, fileType)
+    await saveAttachmentToCameraRoll(fileName, fileType)
   } catch (err) {
     logger.error('Failed to save attachment: ' + err)
     throw new Error('Failed to save attachment: ' + err)
   }
-  yield Saga.put(Chat2Gen.createAttachmentMobileSaved({conversationIDKey, ordinal}))
+  listenerApi.dispatch(Chat2Gen.createAttachmentMobileSaved({conversationIDKey, ordinal}))
 }
 
 const joinConversation = async (_: unknown, action: Chat2Gen.JoinConversationPayload) => {
@@ -3762,19 +3765,10 @@ const updateDraftState = (_: unknown, action: Chat2Gen.DeselectedConversationPay
 function* chat2Saga() {
   // Platform specific actions
   if (Container.isMobile) {
-    yield* Saga.chainGenerator<Chat2Gen.MessageAttachmentNativeSharePayload>(
-      Chat2Gen.messageAttachmentNativeShare,
-      mobileMessageAttachmentShare
-    )
-    yield* Saga.chainGenerator<Chat2Gen.MessageAttachmentNativeSavePayload>(
-      Chat2Gen.messageAttachmentNativeSave,
-      mobileMessageAttachmentSave
-    )
+    Container.listenAction(Chat2Gen.messageAttachmentNativeShare, mobileMessageAttachmentShare)
+    Container.listenAction(Chat2Gen.messageAttachmentNativeSave, mobileMessageAttachmentSave)
   } else {
-    yield* Saga.chainGenerator<Chat2Gen.DesktopNotificationPayload>(
-      Chat2Gen.desktopNotification,
-      desktopNotify
-    )
+    Container.listenAction(Chat2Gen.desktopNotification, desktopNotify)
   }
 
   // Refresh the inbox
@@ -3861,11 +3855,8 @@ function* chat2Saga() {
 
   // Search handling
   Container.listenAction(Chat2Gen.attachmentPreviewSelect, attachmentPreviewSelect)
-  yield* Saga.chainGenerator<Chat2Gen.AttachmentDownloadPayload>(
-    Chat2Gen.attachmentDownload,
-    attachmentDownload
-  )
-  yield* Saga.chainGenerator<Chat2Gen.AttachmentsUploadPayload>(Chat2Gen.attachmentsUpload, attachmentsUpload)
+  Container.listenAction(Chat2Gen.attachmentDownload, attachmentDownload)
+  Container.listenAction(Chat2Gen.attachmentsUpload, attachmentsUpload)
   Container.listenAction(Chat2Gen.attachFromDragAndDrop, attachFromDragAndDrop)
   Container.listenAction(Chat2Gen.attachmentPasted, attachmentPasted)
   Container.listenAction(Chat2Gen.attachmentUploadCanceled, attachmentUploadCanceled)

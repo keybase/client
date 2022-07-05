@@ -18,7 +18,7 @@ export type Uint64 = number
 type WaitingKey = string | Array<string>
 type SimpleError = {code?: number; desc?: string}
 export type IncomingErrorCallback = (err?: SimpleError | null) => void
-type IncomingReturn = Effect | null | void | false | Array<Effect | null | void | false>
+type IncomingReturn = any /*TODO*/
 
 export type MessageTypes = {
   'stellar.1.local.acceptDisclaimerLocal': {

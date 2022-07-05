@@ -146,6 +146,7 @@ async function listener(
           resolve(params)
         }
       },
+      // @ts-ignore TODO
       incomingCallMap: callMap,
       method,
       params,

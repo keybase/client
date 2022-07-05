@@ -503,10 +503,7 @@ export type Uint64 = number
 ${project.hasEngineSaga || project.hasEngine ? 'type WaitingKey = string | Array<string>' : ''}
 type SimpleError = {code?: number, desc?: string}
 export type IncomingErrorCallback = (err?: SimpleError | null) => void
-${project.hasEngineSaga || project.hasEngine
-            ? 'type IncomingReturn = Effect | null | void | false | Array<Effect | null | void | false>'
-            : ''
-        }
+${project.hasEngineSaga || project.hasEngine ? 'type IncomingReturn = any /*TODO*/' : ''}
 
 `
     const consts = Object.keys(typeDefs.consts).map(k => typeDefs.consts[k])
