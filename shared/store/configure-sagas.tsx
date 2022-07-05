@@ -1,4 +1,4 @@
-import autoresetSaga from '../actions/autoreset'
+import initAutoReset from '../actions/autoreset'
 import botsSaga from '../actions/bots'
 import initChat from '../actions/chat2'
 import cryptoSaga from '../actions/crypto'
@@ -26,7 +26,7 @@ import walletsSaga from '../actions/wallets'
 import * as Saga from '../util/saga'
 
 function* mainSaga() {
-  yield Saga.spawn(autoresetSaga)
+  initAutoReset()
   yield Saga.spawn(botsSaga)
   initChat()
   yield Saga.spawn(cryptoSaga)
