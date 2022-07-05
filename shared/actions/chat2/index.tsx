@@ -1005,7 +1005,7 @@ const scrollDirectionToPagination = (sd: ScrollDirection, numberOfMessagesToLoad
 // Load new messages on a thread. We call this when you select a conversation,
 // we get a thread-is-stale notification, or when you scroll up and want more
 // messages
-function* loadMoreMessages(
+const loadMoreMessages = async (
   state: Container.TypedState,
   action:
     | Chat2Gen.NavigateToThreadPayload
@@ -1015,8 +1015,9 @@ function* loadMoreMessages(
     | Chat2Gen.LoadMessagesCenteredPayload
     | Chat2Gen.MarkConversationsStalePayload
     | ConfigGen.ChangedFocusPayload
-    | Chat2Gen.TabSelectedPayload
-) {
+    | Chat2Gen.TabSelectedPayload,
+  listenerApi: Container.ListenerApi
+) => {
   // Get the conversationIDKey
   let key: Types.ConversationIDKey | null = null
   let reason: string = ''
@@ -1138,81 +1139,83 @@ function* loadMoreMessages(
 
   const loadingKey = Constants.waitingKeyThreadLoad(conversationIDKey)
   let calledClear = false
-  const onGotThread = (thread: string) =>
-    Saga.callUntyped(function* () {
-      if (!thread) {
-        return
+  const onGotThread = async (thread: string) => {
+    if (!thread) {
+      return
+    }
+
+    const state = listenerApi.getState()
+    const {username, getLastOrdinal, devicename} = Constants.getMessageStateExtras(state, conversationIDKey)
+    const uiMessages: RPCChatTypes.UIMessages = JSON.parse(thread)
+    let shouldClearOthers = false
+    if ((forceClear || sd === 'none') && !calledClear) {
+      shouldClearOthers = true
+      calledClear = true
+    }
+    const messages = (uiMessages.messages ?? []).reduce<Array<Types.Message>>((arr, m) => {
+      const message = conversationIDKey
+        ? Constants.uiMessageToMessage(conversationIDKey, m, username, getLastOrdinal, devicename)
+        : null
+      if (message) {
+        arr.push(message)
       }
+      return arr
+    }, [])
 
-      const state = yield* Saga.selectState()
-      const {username, getLastOrdinal, devicename} = Constants.getMessageStateExtras(state, conversationIDKey)
-      const uiMessages: RPCChatTypes.UIMessages = JSON.parse(thread)
-      let shouldClearOthers = false
-      if ((forceClear || sd === 'none') && !calledClear) {
-        shouldClearOthers = true
-        calledClear = true
-      }
-      const messages = (uiMessages.messages ?? []).reduce<Array<Types.Message>>((arr, m) => {
-        const message = conversationIDKey
-          ? Constants.uiMessageToMessage(conversationIDKey, m, username, getLastOrdinal, devicename)
-          : null
-        if (message) {
-          arr.push(message)
-        }
-        return arr
-      }, [])
+    logger.info(`thread load ordinals ${messages.map(m => m.ordinal)}`)
 
-      logger.info(`thread load ordinals ${messages.map(m => m.ordinal)}`)
+    const moreToLoad = uiMessages.pagination ? !uiMessages.pagination.last : true
+    listenerApi.dispatch(Chat2Gen.createUpdateMoreToLoad({conversationIDKey, moreToLoad}))
 
-      const moreToLoad = uiMessages.pagination ? !uiMessages.pagination.last : true
-      yield Saga.put(Chat2Gen.createUpdateMoreToLoad({conversationIDKey, moreToLoad}))
-
-      if (messages.length) {
-        yield Saga.put(
-          Chat2Gen.createMessagesAdd({
-            centeredMessageIDs,
-            context: {conversationIDKey, type: 'threadLoad'},
-            conversationIDKey,
-            forceContainsLatestCalc,
-            messages,
-            shouldClearOthers,
-          })
-        )
-      }
-    })
+    if (messages.length) {
+      listenerApi.dispatch(
+        Chat2Gen.createMessagesAdd({
+          centeredMessageIDs,
+          context: {conversationIDKey, type: 'threadLoad'},
+          conversationIDKey,
+          forceContainsLatestCalc,
+          messages,
+          shouldClearOthers,
+        })
+      )
+    }
+  }
 
   const onGotThreadLoadStatus = (status: RPCChatTypes.UIChatThreadStatus) => [
-    Saga.put(Chat2Gen.createSetThreadLoadStatus({conversationIDKey, status})),
+    Chat2Gen.createSetThreadLoadStatus({conversationIDKey, status}),
   ]
 
   const pagination = messageIDControl ? null : scrollDirectionToPagination(sd, numberOfMessagesToLoad)
   try {
-    const results: RPCChatTypes.NonblockFetchRes = yield RPCChatTypes.localGetThreadNonblockRpcSaga({
-      incomingCallMap: {
-        'chat.1.chatUi.chatThreadCached': p => p && onGotThread(p.thread || ''),
-        'chat.1.chatUi.chatThreadFull': p => p && onGotThread(p.thread || ''),
-        'chat.1.chatUi.chatThreadStatus': s => onGotThreadLoadStatus(s.status),
-      },
-      params: {
-        cbMode: RPCChatTypes.GetThreadNonblockCbMode.incremental,
-        conversationID,
-        identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-        knownRemotes,
-        pagination,
-        pgmode: RPCChatTypes.GetThreadNonblockPgMode.server,
-        query: {
-          disablePostProcessThread: false,
-          disableResolveSupersedes: false,
-          enableDeletePlaceholders: true,
-          markAsRead: false,
-          messageIDControl,
-          messageTypes: loadThreadMessageTypes,
+    const results = await RPCChatTypes.localGetThreadNonblockRpcListener(
+      {
+        incomingCallMap: {
+          'chat.1.chatUi.chatThreadCached': p => p && onGotThread(p.thread || ''),
+          'chat.1.chatUi.chatThreadFull': p => p && onGotThread(p.thread || ''),
+          'chat.1.chatUi.chatThreadStatus': s => onGotThreadLoadStatus(s.status),
         },
-        reason: reasonToRPCReason(reason),
+        params: {
+          cbMode: RPCChatTypes.GetThreadNonblockCbMode.incremental,
+          conversationID,
+          identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+          knownRemotes,
+          pagination,
+          pgmode: RPCChatTypes.GetThreadNonblockPgMode.server,
+          query: {
+            disablePostProcessThread: false,
+            disableResolveSupersedes: false,
+            enableDeletePlaceholders: true,
+            markAsRead: false,
+            messageIDControl,
+            messageTypes: loadThreadMessageTypes,
+          },
+          reason: reasonToRPCReason(reason),
+        },
+        waitingKey: loadingKey,
       },
-      waitingKey: loadingKey,
-    })
-    yield Saga.put(
+      listenerApi
+    )
+    listenerApi.dispatch(
       Chat2Gen.createSetConversationOffline({conversationIDKey, offline: results && results.offline})
     )
   } catch (error) {
@@ -1220,8 +1223,10 @@ function* loadMoreMessages(
       logger.warn(error.desc)
       // no longer in team
       if (error.code === RPCTypes.StatusCode.scchatnotinteam) {
-        yield* maybeKickedFromTeam()
-        return
+        return [
+          Chat2Gen.createInboxRefresh({reason: 'maybeKickedFromTeam'}),
+          Chat2Gen.createNavigateToInbox(),
+        ]
       }
       if (error.code !== RPCTypes.StatusCode.scteamreaderror) {
         // scteamreaderror = user is not in team. they'll see the rekey screen so don't throw for that
@@ -1229,11 +1234,7 @@ function* loadMoreMessages(
       }
     }
   }
-}
-
-function* maybeKickedFromTeam() {
-  yield Saga.put(Chat2Gen.createInboxRefresh({reason: 'maybeKickedFromTeam'}))
-  yield Saga.put(Chat2Gen.createNavigateToInbox())
+  return
 }
 
 const getUnreadline = async (
@@ -3794,16 +3795,7 @@ function* chat2Saga() {
   Container.listenAction(EngineGen.chat1ChatUiChatInboxLayout, ensureWidgetMetas)
 
   // Load the selected thread
-  yield* Saga.chainGenerator<
-    | Chat2Gen.NavigateToThreadPayload
-    | Chat2Gen.JumpToRecentPayload
-    | Chat2Gen.LoadOlderMessagesDueToScrollPayload
-    | Chat2Gen.LoadNewerMessagesDueToScrollPayload
-    | Chat2Gen.LoadMessagesCenteredPayload
-    | Chat2Gen.MarkConversationsStalePayload
-    | ConfigGen.ChangedFocusPayload
-    | Chat2Gen.TabSelectedPayload
-  >(
+  Container.listenAction(
     [
       Chat2Gen.navigateToThread,
       Chat2Gen.jumpToRecent,

@@ -36,7 +36,7 @@
   "chat.1.local.getTeamRetentionLocal": {"promise": true},
   "chat.1.local.getTeamRoleInConversation": {"promise": true},
   "chat.1.local.getThreadLocal": {"promise": true},
-  "chat.1.local.getThreadNonblock": {"engineSaga": true},
+  "chat.1.local.getThreadNonblock": {"engineListener": true},
   "chat.1.local.getUnfurlSettings": {"promise": true},
   "chat.1.local.getUnreadline": {"promise": true},
   "chat.1.local.getUploadTempFile": {"promise": true},
