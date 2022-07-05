@@ -2,7 +2,7 @@
 
 protocol NotifyChat {
 
-  import idl "github.com/keybase/client/go/protocol/keybase1" as keybase1;
+  import idl "../keybase1" as keybase1;
 
   enum ChatActivitySource {
     LOCAL_0,
@@ -60,6 +60,7 @@ protocol NotifyChat {
   record FailedMessageInfo {
     array<OutboxRecord> outboxRecords;
     boolean isEphemeralPurge;
+    union { null, InboxUIItem } conv;
   }
 
   record MemberInfo {
@@ -81,7 +82,6 @@ protocol NotifyChat {
   record ExpungeInfo {
     ConversationID convID;
     Expunge expunge;
-    union { null, InboxUIItem } conv;
   }
 
   record EphemeralPurgeNotifInfo {
@@ -90,12 +90,13 @@ protocol NotifyChat {
   }
 
   record ReactionUpdate {
-    ReactionMap reactions;
+    UIReactionMap reactions;
     MessageID targetMsgID;
   }
 
   record ReactionUpdateNotif {
     ConversationID convID;
+    keybase1.UserReacjis userReacjis;
     array<ReactionUpdate> reactionUpdates;
   }
 
@@ -123,8 +124,6 @@ protocol NotifyChat {
     keybase1.UID uid;
     string username;
     keybase1.DeviceID deviceID;
-    string deviceName;
-    string deviceType;
   }
 
   record ConvTypingUpdate {
@@ -134,8 +133,7 @@ protocol NotifyChat {
 
   enum StaleUpdateType {
     CLEAR_0,
-    NEWACTIVITY_1,
-    CONVUPDATE_2
+    NEWACTIVITY_1
   }
 
   record ConversationStaleUpdate {
@@ -150,6 +148,7 @@ protocol NotifyChat {
 
   record ChatSyncIncrementalInfo {
     array<ChatSyncIncrementalConv> items;
+    array<string> removals; // Removed ConvIDs
   }
 
   variant ChatSyncResult switch (SyncInboxResType syncType) {
@@ -246,4 +245,16 @@ protocol NotifyChat {
   @notify("")
   @lint("ignore")
   void ChatPromptUnfurl(keybase1.UID uid, ConversationID convID, MessageID msgID, string domain);
+
+  @notify("")
+  @lint("ignore")
+  void ChatConvUpdate(keybase1.UID uid, ConversationID convID, union { null, InboxUIItem } conv);
+
+  @notify("")
+  @lint("ignore")
+  void ChatWelcomeMessageLoaded(keybase1.TeamID teamID, WelcomeMessageDisplay message);
+
+  @notify("")
+  @lint("ignore")
+  void ChatParticipantsInfo(map<ConvIDStr, array<UIParticipant>> participants);
 }

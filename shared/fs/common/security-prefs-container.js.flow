@@ -1,4 +1,0 @@
-// @flow
-import {compose} from '../../util/container'
-
-export default compose()(() => null)

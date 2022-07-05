@@ -39,7 +39,7 @@
       "request": [
         {
           "name": "folder",
-          "type": "Folder"
+          "type": "FolderHandle"
         },
         {
           "name": "name",
@@ -53,7 +53,7 @@
       "request": [
         {
           "name": "folder",
-          "type": "Folder"
+          "type": "FolderHandle"
         },
         {
           "name": "name",
@@ -67,7 +67,7 @@
       "request": [
         {
           "name": "folder",
-          "type": "Folder"
+          "type": "FolderHandle"
         },
         {
           "name": "name",

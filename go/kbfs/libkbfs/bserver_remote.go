@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/keybase/backoff"
+	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/tlf"
@@ -16,6 +17,7 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 )
 
@@ -31,10 +33,11 @@ const (
 // blockServerRemoteAuthTokenRefresher is a helper struct for
 // refreshing auth tokens and managing connections.
 type blockServerRemoteClientHandler struct {
+	kbCtx         Context
 	name          string
 	log           logger.Logger
 	deferLog      logger.Logger
-	csg           CurrentSessionGetter
+	csg           idutil.CurrentSessionGetter
 	authToken     *kbfscrypto.AuthToken
 	srvRemote     rpc.Remote
 	connOpts      rpc.ConnectionOpts
@@ -46,8 +49,10 @@ type blockServerRemoteClientHandler struct {
 	client keybase1.BlockInterface
 }
 
-func newBlockServerRemoteClientHandler(name string, log logger.Logger,
-	signer kbfscrypto.Signer, csg CurrentSessionGetter, srvRemote rpc.Remote,
+func newBlockServerRemoteClientHandler(
+	kbCtx Context, initMode InitMode, name string, log logger.Logger,
+	signer kbfscrypto.Signer, csg idutil.CurrentSessionGetter,
+	srvRemote rpc.Remote,
 	rpcLogFactory rpc.LogFactory) *blockServerRemoteClientHandler {
 	deferLog := log.CloneWithAddedDepth(1)
 	b := &blockServerRemoteClientHandler{
@@ -57,6 +62,7 @@ func newBlockServerRemoteClientHandler(name string, log logger.Logger,
 		csg:           csg,
 		srvRemote:     srvRemote,
 		rpcLogFactory: rpcLogFactory,
+		kbCtx:         kbCtx,
 	}
 
 	b.pinger = pinger{
@@ -71,12 +77,17 @@ func newBlockServerRemoteClientHandler(name string, log logger.Logger,
 		"libkbfs_bserver_remote", VersionString(), b)
 
 	constBackoff := backoff.NewConstantBackOff(RPCReconnectInterval)
+	firstConnectDelay := time.Duration(0)
+	if initMode.DelayInitialConnect() {
+		firstConnectDelay = libkb.RandomJitter(bserverFirstConnectDelay)
+	}
 	b.connOpts = rpc.ConnectionOpts{
 		DontConnectNow:                true, // connect only on-demand
 		WrapErrorFunc:                 libkb.WrapError,
 		TagsFunc:                      libkb.LogTagsFromContext,
 		ReconnectBackoff:              func() backoff.BackOff { return constBackoff },
 		DialerTimeout:                 dialerTimeout,
+		FirstConnectDelayDuration:     firstConnectDelay,
 		InitialReconnectBackoffWindow: func() time.Duration { return bserverReconnectBackoffWindow },
 	}
 	b.initNewConnection()
@@ -91,12 +102,14 @@ func (b *blockServerRemoteClientHandler) initNewConnection() {
 		b.conn.Shutdown()
 	}
 
-	b.conn = rpc.NewTLSConnection(
+	b.conn = rpc.NewTLSConnectionWithDialable(
 		b.srvRemote, kbfscrypto.GetRootCerts(
 			b.srvRemote.Peek(), libkb.GetBundledCAsFromHost),
 		kbfsblock.ServerErrorUnwrapper{}, b, b.rpcLogFactory,
+		b.kbCtx.NewNetworkInstrumenter(keybase1.NetworkSource_REMOTE),
 		logger.LogOutputWithDepthAdder{Logger: b.log},
-		rpc.DefaultMaxFrameLength, b.connOpts)
+		rpc.DefaultMaxFrameLength, b.connOpts,
+		libkb.NewProxyDialable(b.kbCtx.GetEnv()))
 	b.client = keybase1.BlockClient{Cli: b.conn.GetClient()}
 }
 
@@ -132,12 +145,6 @@ func (b *blockServerRemoteClientHandler) shutdown() {
 	b.pinger.cancelTicker()
 }
 
-func (b *blockServerRemoteClientHandler) getConn() *rpc.Connection {
-	b.connMu.RLock()
-	defer b.connMu.RUnlock()
-	return b.conn
-}
-
 func (b *blockServerRemoteClientHandler) getClient() keybase1.BlockInterface {
 	b.connMu.RLock()
 	defer b.connMu.RUnlock()
@@ -168,6 +175,13 @@ func (b *blockServerRemoteClientHandler) resetAuth(
 		b.log.CDebugf(
 			ctx, "%s: User logged out, skipping resetAuth", b.name)
 		return nil
+	}
+
+	_, hasDeadline := ctx.Deadline()
+	if !hasDeadline {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, reconnectTimeout)
+		defer cancel()
 	}
 
 	// request a challenge
@@ -283,12 +297,19 @@ func (b *blockServerRemoteClientHandler) pingOnce(ctx context.Context) {
 	}
 }
 
+func (b *blockServerRemoteClientHandler) fastForwardBackoff() {
+	b.connMu.RLock()
+	defer b.connMu.RUnlock()
+	b.conn.FastForwardConnectDelayTimer()
+}
+
 type blockServerRemoteConfig interface {
 	diskBlockCacheGetter
 	codecGetter
 	signerGetter
 	currentSessionGetterGetter
 	logMaker
+	initModeGetter
 }
 
 // BlockServerRemote implements the BlockServer interface and
@@ -309,7 +330,7 @@ var _ BlockServer = (*BlockServerRemote)(nil)
 
 // NewBlockServerRemote constructs a new BlockServerRemote for the
 // given address.
-func NewBlockServerRemote(config blockServerRemoteConfig,
+func NewBlockServerRemote(kbCtx Context, config blockServerRemoteConfig,
 	blkSrvRemote rpc.Remote, rpcLogFactory rpc.LogFactory) *BlockServerRemote {
 	log := config.MakeLogger("BSR")
 	deferLog := log.CloneWithAddedDepth(1)
@@ -323,10 +344,10 @@ func NewBlockServerRemote(config blockServerRemoteConfig,
 	// reads.  This allows small reads to avoid getting trapped behind
 	// large asynchronous writes.  TODO: use some real network QoS to
 	// achieve better prioritization within the actual network.
-	bs.putConn = newBlockServerRemoteClientHandler(
+	bs.putConn = newBlockServerRemoteClientHandler(kbCtx, config.Mode(),
 		"BlockServerRemotePut", log, config.Signer(),
 		config.CurrentSessionGetter(), blkSrvRemote, rpcLogFactory)
-	bs.getConn = newBlockServerRemoteClientHandler(
+	bs.getConn = newBlockServerRemoteClientHandler(kbCtx, config.Mode(),
 		"BlockServerRemoteGet", log, config.Signer(),
 		config.CurrentSessionGetter(), blkSrvRemote, rpcLogFactory)
 
@@ -338,7 +359,7 @@ func NewBlockServerRemote(config blockServerRemoteConfig,
 }
 
 // For testing.
-func newBlockServerRemoteWithClient(config blockServerRemoteConfig,
+func newBlockServerRemoteWithClient(kbCtx Context, config blockServerRemoteConfig,
 	client keybase1.BlockInterface) *BlockServerRemote {
 	log := config.MakeLogger("BSR")
 	deferLog := log.CloneWithAddedDepth(1)
@@ -350,14 +371,23 @@ func newBlockServerRemoteWithClient(config blockServerRemoteConfig,
 			log:      log,
 			deferLog: deferLog,
 			client:   client,
+			kbCtx:    kbCtx,
 		},
 		getConn: &blockServerRemoteClientHandler{
 			log:      log,
 			deferLog: deferLog,
 			client:   client,
+			kbCtx:    kbCtx,
 		},
 	}
 	return bs
+}
+
+// FastForwardBackoff implements the BlockServerinterface for
+// BlockServerRemote.
+func (b *BlockServerRemote) FastForwardBackoff() {
+	b.getConn.fastForwardBackoff()
+	b.putConn.fastForwardBackoff()
 }
 
 // RemoteAddress returns the remote bserver this client is talking to
@@ -388,8 +418,12 @@ func (b *BlockServerRemote) Get(
 				ctx, "Get id=%s tlf=%s context=%s sz=%d err=%v",
 				id, tlfID, context, len(buf), err)
 		} else {
-			// But don't cache it if it's archived data.
-			if res.Status == keybase1.BlockStatus_ARCHIVED {
+			// But don't cache it if it's archived data, except if
+			// it's going to the sync cache.  Blocks marked for the
+			// sync cache must be cached, otherwise prefetching will
+			// never complete.
+			if res.Status == keybase1.BlockStatus_ARCHIVED &&
+				cacheType != DiskBlockSyncCache {
 				return
 			}
 
@@ -398,10 +432,12 @@ func (b *BlockServerRemote) Get(
 				id, tlfID, context, len(buf))
 			dbc := b.config.DiskBlockCache()
 			if dbc != nil {
-				// This used to be called in a goroutine to prevent blocking
-				// the `Get`. But we need this cached synchronously so prefetch
-				// operations can work correctly.
-				dbc.Put(ctx, tlfID, id, buf, serverHalf, cacheType)
+				// This used to be called in a goroutine to prevent
+				// blocking the `Get`. But we need this cached
+				// synchronously so prefetch operations can work
+				// correctly.  No need to log an error since `dbc`
+				// will already log it.
+				_ = dbc.Put(ctx, tlfID, id, buf, serverHalf, cacheType)
 			}
 		}
 	}()
@@ -411,34 +447,47 @@ func (b *BlockServerRemote) Get(
 	return kbfsblock.ParseGetBlockRes(res, err)
 }
 
-// GetEncodedSize implements the BlockServer interface for BlockServerRemote.
-func (b *BlockServerRemote) GetEncodedSize(
-	ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
-	context kbfsblock.Context) (
-	size uint32, status keybase1.BlockStatus, err error) {
+// GetEncodedSizes implements the BlockServer interface for BlockServerRemote.
+func (b *BlockServerRemote) GetEncodedSizes(
+	ctx context.Context, tlfID tlf.ID, ids []kbfsblock.ID,
+	contexts []kbfsblock.Context) (
+	sizes []uint32, statuses []keybase1.BlockStatus, err error) {
 	ctx = rpc.WithFireNow(ctx)
-	b.log.LazyTrace(ctx, "BServer: GetEncodedSize %s", id)
+	b.log.LazyTrace(ctx, "BServer: GetEncodedSizes %s", ids)
 	defer func() {
 		b.log.LazyTrace(
-			ctx, "BServer: GetEncodedSize %s done (err=%v)", id, err)
+			ctx, "BServer: GetEncodedSizes %s done (err=%v)", ids, err)
 		if err != nil {
 			b.deferLog.CWarningf(
-				ctx, "GetEncodedSize id=%s tlf=%s context=%s err=%v",
-				id, tlfID, context, err)
+				ctx, "GetEncodedSizes ids=%s tlf=%s contexts=%s err=%v",
+				ids, tlfID, contexts, err)
 		} else {
 			b.deferLog.CDebugf(
-				ctx, "GetEncodedSize id=%s tlf=%s context=%s sz=%d status=%s",
-				id, tlfID, context, size, status)
+				ctx, "GetEncodedSizes ids=%s tlf=%s contexts=%s "+
+					"szs=%d statuses=%s",
+				ids, tlfID, contexts, sizes, statuses)
 		}
 	}()
 
-	arg := kbfsblock.MakeGetBlockArg(tlfID, id, context)
-	arg.SizeOnly = true
-	res, err := b.getConn.getClient().GetBlock(ctx, arg)
+	arg, err := kbfsblock.MakeGetBlockSizesArg(tlfID, ids, contexts)
 	if err != nil {
-		return 0, 0, nil
+		return nil, nil, err
 	}
-	return uint32(res.Size), res.Status, nil
+	res, err := b.getConn.getClient().GetBlockSizes(ctx, arg)
+	if err != nil {
+		return nil, nil, err
+	}
+	if len(res.Sizes) != len(res.Statuses) {
+		return nil, nil, errors.Errorf(
+			"Unexpected return param slice size difference: "+
+				"len(sizes)=%d != len(statuses)=%d",
+			len(res.Sizes), len(res.Statuses))
+	}
+	sizes = make([]uint32, len(res.Sizes))
+	for i, size := range res.Sizes {
+		sizes[i] = uint32(size)
+	}
+	return sizes, res.Statuses, nil
 }
 
 // Put implements the BlockServer interface for BlockServerRemote.
@@ -450,7 +499,10 @@ func (b *BlockServerRemote) Put(
 	ctx = rpc.WithFireNow(ctx)
 	dbc := b.config.DiskBlockCache()
 	if dbc != nil {
-		dbc.Put(ctx, tlfID, id, buf, serverHalf, cacheType)
+		err := dbc.Put(ctx, tlfID, id, buf, serverHalf, cacheType)
+		if err != nil {
+			return err
+		}
 	}
 	size := len(buf)
 	b.log.LazyTrace(ctx, "BServer: Put %s", id)
@@ -481,7 +533,10 @@ func (b *BlockServerRemote) PutAgain(
 	ctx = rpc.WithFireNow(ctx)
 	dbc := b.config.DiskBlockCache()
 	if dbc != nil {
-		dbc.Put(ctx, tlfID, id, buf, serverHalf, cacheType)
+		err := dbc.Put(ctx, tlfID, id, buf, serverHalf, cacheType)
+		if err != nil {
+			return err
+		}
 	}
 	size := len(buf)
 	b.log.LazyTrace(ctx, "BServer: Put %s", id)
@@ -581,13 +636,23 @@ func (b *BlockServerRemote) IsUnflushed(
 
 // GetUserQuotaInfo implements the BlockServer interface for BlockServerRemote
 func (b *BlockServerRemote) GetUserQuotaInfo(ctx context.Context) (info *kbfsblock.QuotaInfo, err error) {
-	ctx = rpc.WithFireNow(ctx)
+	// This method called when kbfs process starts up. So if
+	// DelayInitialConnect() is set for the mode (usually means we're on
+	// mobile), don't set "fire now" in context, to avoid unintionally fast
+	// forwarding the delay timer for connecting to bserver.
+	if !b.config.Mode().DelayInitialConnect() {
+		ctx = rpc.WithFireNow(ctx)
+	}
 	b.log.LazyTrace(ctx, "BServer: GetUserQuotaInfo")
 	defer func() {
 		b.log.LazyTrace(ctx, "BServer: GetUserQuotaInfo done (err=%v)", err)
 	}()
-	res, err := b.getConn.getClient().GetUserQuotaInfo(ctx)
-	return kbfsblock.ParseGetQuotaInfoRes(b.config.Codec(), res, err)
+	res, err := b.getConn.getClient().GetUserQuotaInfo2(
+		ctx, false /* no TLFs */)
+	if err != nil {
+		return nil, err
+	}
+	return kbfsblock.QuotaInfoFromProtocol(res), nil
 }
 
 // GetTeamQuotaInfo implements the BlockServer interface for BlockServerRemote
@@ -599,8 +664,15 @@ func (b *BlockServerRemote) GetTeamQuotaInfo(
 	defer func() {
 		b.log.LazyTrace(ctx, "BServer: GetTeamQuotaInfo done (err=%v)", err)
 	}()
-	res, err := b.getConn.getClient().GetTeamQuotaInfo(ctx, tid)
-	return kbfsblock.ParseGetQuotaInfoRes(b.config.Codec(), res, err)
+	arg := keybase1.GetTeamQuotaInfo2Arg{
+		Tid:            tid,
+		IncludeFolders: false,
+	}
+	res, err := b.getConn.getClient().GetTeamQuotaInfo2(ctx, arg)
+	if err != nil {
+		return nil, err
+	}
+	return kbfsblock.QuotaInfoFromProtocol(res), nil
 }
 
 // Shutdown implements the BlockServer interface for BlockServerRemote.

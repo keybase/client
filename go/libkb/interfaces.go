@@ -15,7 +15,6 @@ package libkb
 import (
 	"io"
 	"net/http"
-	"sync"
 	"time"
 
 	"golang.org/x/net/context"
@@ -41,17 +40,19 @@ type configGetter interface {
 	GetChatDbFilename() string
 	GetPvlKitFilename() string
 	GetParamProofKitFilename() string
+	GetExternalURLKitFilename() string
 	GetProveBypass() (bool, bool)
 	GetCodeSigningKIDs() []string
 	GetConfigFilename() string
 	GetDbFilename() string
 	GetDebug() (bool, bool)
+	GetDebugJourneycard() (bool, bool)
 	GetDisplayRawUntrustedOutput() (bool, bool)
-	GetUpgradePerUserKey() (bool, bool)
 	GetGpg() string
 	GetGpgHome() string
 	GetGpgOptions() []string
 	GetGregorDisabled() (bool, bool)
+	GetSecretStorePrimingDisabled() (bool, bool)
 	GetBGIdentifierDisabled() (bool, bool)
 	GetGregorPingInterval() (time.Duration, bool)
 	GetGregorPingTimeout() (time.Duration, bool)
@@ -64,6 +65,8 @@ type configGetter interface {
 	GetLocalTrackMaxAge() (time.Duration, bool)
 	GetLogFile() string
 	GetEKLogFile() string
+	GetPerfLogFile() string
+	GetGUILogFile() string
 	GetUseDefaultLogFile() (bool, bool)
 	GetUseRootConfigFile() (bool, bool)
 	GetLogPrefix() string
@@ -75,10 +78,12 @@ type configGetter interface {
 	GetPinentry() string
 	GetProofCacheSize() (int, bool)
 	GetProxy() string
+	GetProxyType() string
+	IsCertPinningEnabled() bool
 	GetRunMode() (RunMode, error)
 	GetScraperTimeout() (time.Duration, bool)
 	GetSecretKeyringTemplate() string
-	GetServerURI() string
+	GetServerURI() (string, error)
 	GetSessionFilename() string
 	GetSocketFile() string
 	GetStandalone() (bool, bool)
@@ -89,23 +94,30 @@ type configGetter interface {
 	GetUPAKCacheSize() (int, bool)
 	GetUIDMapFullNameCacheSize() (int, bool)
 	GetUpdaterConfigFilename() string
+	GetGUIConfigFilename() string
 	GetDeviceCloneStateFilename() string
 	GetUserCacheMaxAge() (time.Duration, bool)
 	GetVDebugSetting() string
 	GetChatDelivererInterval() (time.Duration, bool)
 	GetFeatureFlags() (FeatureFlags, error)
 	GetLevelDBNumFiles() (int, bool)
+	GetLevelDBWriteBufferMB() (int, bool)
 	GetChatInboxSourceLocalizeThreads() (int, bool)
 	GetPayloadCacheSize() (int, bool)
-	GetRememberPassphrase() (bool, bool)
+	GetRememberPassphrase(NormalizedUsername) (bool, bool)
 	GetAttachmentHTTPStartPort() (int, bool)
 	GetAttachmentDisableMulti() (bool, bool)
-	GetChatOutboxStorageEngine() string
 	GetDisableTeamAuditor() (bool, bool)
+	GetDisableTeamBoxAuditor() (bool, bool)
+	GetDisableEKBackgroundKeygen() (bool, bool)
 	GetDisableMerkleAuditor() (bool, bool)
 	GetDisableSearchIndexer() (bool, bool)
 	GetDisableBgConvLoader() (bool, bool)
 	GetEnableBotLiteMode() (bool, bool)
+	GetExtraNetLogging() (bool, bool)
+	GetForceLinuxKeyring() (bool, bool)
+	GetForceSecretStoreFile() (bool, bool)
+	GetRuntimeStatsEnabled() (bool, bool)
 }
 
 type CommandLine interface {
@@ -124,12 +136,7 @@ type CommandLine interface {
 type Server interface {
 }
 
-type ObjType byte
-
-type DbKey struct {
-	Typ ObjType
-	Key string
-}
+type DBKeySet map[DbKey]struct{}
 
 type LocalDbOps interface {
 	Put(id DbKey, aliases []DbKey, value []byte) error
@@ -148,16 +155,20 @@ type LocalDb interface {
 	LocalDbOps
 	Open() error
 	Stats() string
+	CompactionStats() (bool, bool, error)
 	ForceOpen() error
 	Close() error
 	Nuke() (string, error)
+	Clean(force bool) error
 	OpenTransaction() (LocalDbTransaction, error)
+	KeysWithPrefixes(prefixes ...[]byte) (DBKeySet, error)
 }
 
 type KVStorer interface {
 	GetInto(obj interface{}, id DbKey) (found bool, err error)
 	PutObj(id DbKey, aliases []DbKey, obj interface{}) (err error)
 	Delete(id DbKey) error
+	KeysWithPrefixes(prefixes ...[]byte) (DBKeySet, error)
 }
 
 type JSONReader interface {
@@ -165,6 +176,7 @@ type JSONReader interface {
 	GetInterfaceAtPath(string) (interface{}, error)
 	GetBoolAtPath(string) (bool, bool)
 	GetIntAtPath(string) (int, bool)
+	GetFloatAtPath(string) (float64, bool)
 	GetNullAtPath(string) bool
 }
 
@@ -182,16 +194,19 @@ type ConfigReader interface {
 	GetNoPinentry() (bool, bool)
 	GetDeviceID() keybase1.DeviceID
 	GetDeviceIDForUsername(nu NormalizedUsername) keybase1.DeviceID
+	GetPassphraseState() *keybase1.PassphraseState
+	GetPassphraseStateForUsername(nu NormalizedUsername) *keybase1.PassphraseState
 	GetDeviceIDForUID(u keybase1.UID) keybase1.DeviceID
 	GetUsernameForUID(u keybase1.UID) NormalizedUsername
 	GetUIDForUsername(n NormalizedUsername) keybase1.UID
 	GetUsername() NormalizedUsername
 	GetAllUsernames() (current NormalizedUsername, others []NormalizedUsername, err error)
-	GetAllUserConfigs() (*UserConfig, []UserConfig, error)
+	GetAllUserConfigs() (current *UserConfig, others []UserConfig, err error)
 	GetUID() keybase1.UID
 	GetProxyCACerts() ([]string, error)
 	GetSecurityAccessGroupOverride() (bool, bool)
 	GetBug3964RepairTime(NormalizedUsername) (time.Time, error)
+	GetStayLoggedOut() (bool, bool)
 
 	GetUpdatePreferenceAuto() (bool, bool)
 	GetUpdatePreferenceSkip() string
@@ -199,6 +214,8 @@ type ConfigReader interface {
 	GetUpdateLastChecked() keybase1.Time
 	GetUpdateURL() string
 	GetUpdateDisabled() (bool, bool)
+
+	GetAndroidInstallReferrerChecked() bool
 }
 
 type UpdaterConfigReader interface {
@@ -215,7 +232,10 @@ type JSONWriter interface {
 	SetStringAtPath(string, string) error
 	SetBoolAtPath(string, bool) error
 	SetIntAtPath(string, int) error
+	SetFloatAtPath(string, float64) error
 	SetNullAtPath(string) error
+	SetWrapperAtPath(string, *jsonw.Wrapper) error
+	DeleteAtPath(string)
 }
 
 type ConfigWriter interface {
@@ -224,16 +244,18 @@ type ConfigWriter interface {
 	SwitchUser(un NormalizedUsername) error
 	NukeUser(un NormalizedUsername) error
 	SetDeviceID(keybase1.DeviceID) error
-	SetWrapperAtPath(string, *jsonw.Wrapper) error
-	DeleteAtPath(string)
 	SetUpdatePreferenceAuto(bool) error
 	SetUpdatePreferenceSkip(string) error
 	SetUpdatePreferenceSnoozeUntil(keybase1.Time) error
 	SetUpdateLastChecked(keybase1.Time) error
 	SetBug3964RepairTime(NormalizedUsername, time.Time) error
-	SetRememberPassphrase(bool) error
+	SetRememberPassphrase(NormalizedUsername, bool) error
+	SetPassphraseState(keybase1.PassphraseState) error
+	SetStayLoggedOut(bool) error
 	Reset()
 	BeginTransaction() (ConfigWriterTransacter, error)
+
+	SetAndroidInstallReferrerChecked(b bool) error
 }
 
 type HTTPRequest interface {
@@ -289,45 +311,49 @@ type ExternalAPIRes struct {
 }
 
 type API interface {
-	Get(APIArg) (*APIRes, error)
-	GetDecode(APIArg, APIResponseWrapper) error
-	GetResp(APIArg) (*http.Response, func(), error)
-	Post(APIArg) (*APIRes, error)
-	PostJSON(APIArg) (*APIRes, error)
-	PostDecode(APIArg, APIResponseWrapper) error
-	PostRaw(APIArg, string, io.Reader) (*APIRes, error)
-	Delete(APIArg) (*APIRes, error)
+	Get(MetaContext, APIArg) (*APIRes, error)
+	GetDecode(MetaContext, APIArg, APIResponseWrapper) error
+	GetDecodeCtx(context.Context, APIArg, APIResponseWrapper) error
+	GetResp(MetaContext, APIArg) (*http.Response, func(), error)
+	Post(MetaContext, APIArg) (*APIRes, error)
+	PostJSON(MetaContext, APIArg) (*APIRes, error)
+	PostDecode(MetaContext, APIArg, APIResponseWrapper) error
+	PostDecodeCtx(context.Context, APIArg, APIResponseWrapper) error
+	PostRaw(MetaContext, APIArg, string, io.Reader) (*APIRes, error)
+	Delete(MetaContext, APIArg) (*APIRes, error)
 }
 
 type ExternalAPI interface {
-	Get(APIArg) (*ExternalAPIRes, error)
-	Post(APIArg) (*ExternalAPIRes, error)
-	GetHTML(APIArg) (*ExternalHTMLRes, error)
-	GetText(APIArg) (*ExternalTextRes, error)
-	PostHTML(APIArg) (*ExternalHTMLRes, error)
+	Get(MetaContext, APIArg) (*ExternalAPIRes, error)
+	Post(MetaContext, APIArg) (*ExternalAPIRes, error)
+	GetHTML(MetaContext, APIArg) (*ExternalHTMLRes, error)
+	GetText(MetaContext, APIArg) (*ExternalTextRes, error)
+	PostHTML(MetaContext, APIArg) (*ExternalHTMLRes, error)
 }
 
 type IdentifyUI interface {
-	Start(string, keybase1.IdentifyReason, bool) error
-	FinishWebProofCheck(keybase1.RemoteProof, keybase1.LinkCheckResult) error
-	FinishSocialProofCheck(keybase1.RemoteProof, keybase1.LinkCheckResult) error
-	Confirm(*keybase1.IdentifyOutcome) (keybase1.ConfirmResult, error)
-	DisplayCryptocurrency(keybase1.Cryptocurrency) error
-	DisplayStellarAccount(keybase1.StellarAccount) error
-	DisplayKey(keybase1.IdentifyKey) error
-	ReportLastTrack(*keybase1.TrackSummary) error
-	LaunchNetworkChecks(*keybase1.Identity, *keybase1.User) error
-	DisplayTrackStatement(string) error
-	DisplayUserCard(keybase1.UserCard) error
-	ReportTrackToken(keybase1.TrackToken) error
-	Cancel() error
-	Finish() error
-	DisplayTLFCreateWithInvite(keybase1.DisplayTLFCreateWithInviteArg) error
-	Dismiss(string, keybase1.DismissReason) error
+	Start(MetaContext, string, keybase1.IdentifyReason, bool) error
+	FinishWebProofCheck(MetaContext, keybase1.RemoteProof, keybase1.LinkCheckResult) error
+	FinishSocialProofCheck(MetaContext, keybase1.RemoteProof, keybase1.LinkCheckResult) error
+	Confirm(MetaContext, *keybase1.IdentifyOutcome) (keybase1.ConfirmResult, error)
+	DisplayCryptocurrency(MetaContext, keybase1.Cryptocurrency) error
+	DisplayStellarAccount(MetaContext, keybase1.StellarAccount) error
+	DisplayKey(MetaContext, keybase1.IdentifyKey) error
+	ReportLastTrack(MetaContext, *keybase1.TrackSummary) error
+	LaunchNetworkChecks(MetaContext, *keybase1.Identity, *keybase1.User) error
+	DisplayTrackStatement(MetaContext, string) error
+	DisplayUserCard(MetaContext, keybase1.UserCard) error
+	ReportTrackToken(MetaContext, keybase1.TrackToken) error
+	Cancel(MetaContext) error
+	Finish(MetaContext) error
+	DisplayTLFCreateWithInvite(MetaContext, keybase1.DisplayTLFCreateWithInviteArg) error
+	Dismiss(MetaContext, string, keybase1.DismissReason) error
 }
 
 type Checker struct {
 	F             func(string) bool
+	Transform     func(string) string
+	Normalize     func(string) string
 	Hint          string
 	PreserveSpace bool
 }
@@ -353,6 +379,8 @@ type ProveUI interface {
 	PreProofWarning(context.Context, keybase1.PreProofWarningArg) (bool, error)
 	OutputInstructions(context.Context, keybase1.OutputInstructionsArg) error
 	OkToCheck(context.Context, keybase1.OkToCheckArg) (bool, error)
+	Checking(context.Context, keybase1.CheckingArg) error
+	ContinueChecking(context.Context, int) (bool, error)
 	DisplayRecheckWarning(context.Context, keybase1.DisplayRecheckWarningArg) error
 }
 
@@ -396,19 +424,38 @@ type ChatUI interface {
 	ChatInboxUnverified(context.Context, chat1.ChatInboxUnverifiedArg) error
 	ChatInboxConversation(context.Context, chat1.ChatInboxConversationArg) error
 	ChatInboxFailed(context.Context, chat1.ChatInboxFailedArg) error
-	ChatThreadCached(context.Context, chat1.ChatThreadCachedArg) error
-	ChatThreadFull(context.Context, chat1.ChatThreadFullArg) error
+	ChatInboxLayout(context.Context, string) error
+	ChatThreadCached(context.Context, *string) error
+	ChatThreadFull(context.Context, string) error
+	ChatThreadStatus(context.Context, chat1.UIChatThreadStatus) error
 	ChatConfirmChannelDelete(context.Context, chat1.ChatConfirmChannelDeleteArg) (bool, error)
 	ChatSearchHit(context.Context, chat1.ChatSearchHitArg) error
 	ChatSearchDone(context.Context, chat1.ChatSearchDoneArg) error
 	ChatSearchInboxHit(context.Context, chat1.ChatSearchInboxHitArg) error
+	ChatSearchInboxStart(context.Context) error
 	ChatSearchInboxDone(context.Context, chat1.ChatSearchInboxDoneArg) error
 	ChatSearchIndexStatus(context.Context, chat1.ChatSearchIndexStatusArg) error
+	ChatSearchConvHits(context.Context, chat1.UIChatSearchConvHits) error
+	ChatSearchTeamHits(context.Context, chat1.UIChatSearchTeamHits) error
+	ChatSearchBotHits(context.Context, chat1.UIChatSearchBotHits) error
 	ChatStellarShowConfirm(context.Context) error
 	ChatStellarDataConfirm(context.Context, chat1.UIChatPaymentSummary) (bool, error)
-	ChatStellarDataError(context.Context, string) (bool, error)
+	ChatStellarDataError(context.Context, keybase1.Status) (bool, error)
 	ChatStellarDone(context.Context, bool) error
+	ChatGiphySearchResults(ctx context.Context, convID chat1.ConversationID,
+		results chat1.GiphySearchResults) error
+	ChatGiphyToggleResultWindow(ctx context.Context, convID chat1.ConversationID, show, clearInput bool) error
 	ChatShowManageChannels(context.Context, string) error
+	ChatCoinFlipStatus(context.Context, []chat1.UICoinFlipStatus) error
+	ChatCommandMarkdown(context.Context, chat1.ConversationID, *chat1.UICommandMarkdown) error
+	ChatMaybeMentionUpdate(context.Context, string, string, chat1.UIMaybeMentionInfo) error
+	ChatLoadGalleryHit(context.Context, chat1.UIMessage) error
+	ChatWatchPosition(context.Context, chat1.ConversationID, chat1.UIWatchPositionPerm) (chat1.LocationWatchID, error)
+	ChatClearWatch(context.Context, chat1.LocationWatchID) error
+	ChatCommandStatus(context.Context, chat1.ConversationID, string, chat1.UICommandStatusDisplayTyp,
+		[]chat1.UICommandStatusActionTyp) error
+	ChatBotCommandsUpdateStatus(context.Context, chat1.ConversationID, chat1.UIBotCommandsUpdateStatus) error
+	TriggerContactSync(context.Context) error
 }
 
 type PromptDefault int
@@ -476,7 +523,14 @@ type UIRouter interface {
 	GetIdentify3UIAdapter(MetaContext) (IdentifyUI, error)
 	GetIdentify3UI(MetaContext) (keybase1.Identify3UiInterface, error)
 	GetChatUI() (ChatUI, error)
+	GetLogUI() (LogUI, error)
 
+	// WaitForUIType returns true if a UI of the specified type is registered,
+	// or waits until timeout for such UI to register and returns false if this
+	// does not happen.
+	WaitForUIType(uiKind UIKind, timeout time.Duration) bool
+
+	DumpUIs() map[UIKind]ConnectionID
 	Shutdown()
 }
 
@@ -499,8 +553,11 @@ type Clock interface {
 
 type GregorState interface {
 	State(ctx context.Context) (gregor.State, error)
+	UpdateCategory(ctx context.Context, cat string, body []byte,
+		dtime gregor1.TimeOrOffset) (res gregor1.MsgID, err error)
 	InjectItem(ctx context.Context, cat string, body []byte, dtime gregor1.TimeOrOffset) (gregor1.MsgID, error)
 	DismissItem(ctx context.Context, cli gregor1.IncomingInterface, id gregor.MsgID) error
+	DismissCategory(ctx context.Context, cat gregor1.Category) error
 	LocalDismissItem(ctx context.Context, id gregor.MsgID) error
 }
 
@@ -535,7 +592,7 @@ type VLogContext interface {
 type APIContext interface {
 	GetAPI() API
 	GetExternalAPI() ExternalAPI
-	GetServerURI() string
+	GetServerURI() (string, error)
 }
 
 type NetContext interface {
@@ -551,6 +608,7 @@ type DNSContext interface {
 }
 
 type AssertionContext interface {
+	Ctx() context.Context
 	NormalizeSocialName(service string, username string) (string, error)
 }
 
@@ -603,29 +661,34 @@ type ServiceType interface {
 	PickerSubtext() string
 	CheckProofText(text string, id keybase1.SigID, sig string) error
 	FormatProofText(mctx MetaContext, ppr *PostProofRes,
-		kbUsername string, sigID keybase1.SigID) (string, error)
+		kbUsername, remoteUsername string, sigID keybase1.SigID) (string, error)
 	GetAPIArgKey() string
 	IsDevelOnly() bool
+	GetLogoKey() string
 
 	MakeProofChecker(l RemoteProofChainLink) ProofChecker
 	SetDisplayConfig(*keybase1.ServiceDisplayConfig)
 	CanMakeNewProofs(mctx MetaContext) bool
+	CanMakeNewProofsSkipFeatureFlag(mctx MetaContext) bool
 	DisplayPriority() int
 	DisplayGroup() string
+	IsNew(MetaContext) bool
 }
 
 type ExternalServicesCollector interface {
-	GetServiceType(n string) ServiceType
-	ListProofCheckers() []string
+	GetServiceType(context.Context, string) ServiceType
+	ListProofCheckers(MetaContext) []string
 	ListServicesThatAcceptNewProofs(MetaContext) []string
-	ListDisplayConfigs() (res []keybase1.ServiceDisplayConfig)
-	SuggestionFoldPriority() int
+	ListDisplayConfigs(MetaContext) (res []keybase1.ServiceDisplayConfig)
+	SuggestionFoldPriority(MetaContext) int
+	Shutdown()
 }
 
 // Generic store for data that is hashed into the merkle root. Used by pvl and
 // parameterized proofs.
 type MerkleStore interface {
 	GetLatestEntry(m MetaContext) (keybase1.MerkleStoreEntry, error)
+	GetLatestEntryWithKnown(MetaContext, *keybase1.MerkleStoreKitHash) (*keybase1.MerkleStoreEntry, error)
 }
 
 // UserChangedHandler is a generic interface for handling user changed events.
@@ -653,15 +716,32 @@ type ConnectivityMonitor interface {
 type TeamLoader interface {
 	VerifyTeamName(ctx context.Context, id keybase1.TeamID, name keybase1.TeamName) error
 	ImplicitAdmins(ctx context.Context, teamID keybase1.TeamID) (impAdmins []keybase1.UserVersion, err error)
+	// MapTeamAncestors runs `f` for each of a team's ancestors, excluding the team itself.
+	// `f` is an arbitrary function. if it returns an error, the load halts.
+	// `teamID` is the team whose ancestors we are mapping over.
+	// `reason` is a context string used for logging.
+	// `forceFullReloadOnceToAssert` is a predicate that will cause a force full reload if it is
+	//		false. It can be used when a new field is added to keybase1.SigChainState that requires
+	//		a full reload to obtain.
+	MapTeamAncestors(ctx context.Context, f func(t keybase1.TeamSigChainState, n keybase1.TeamName) error, teamID keybase1.TeamID, reason string, forceFullReloadOnceToAssert func(t keybase1.TeamSigChainState) bool) error
 	NotifyTeamRename(ctx context.Context, id keybase1.TeamID, newName string) error
-	Load(context.Context, keybase1.LoadTeamArg) (*keybase1.TeamData, error)
-	// Delete the cache entry. Does not error if there is no cache entry.
-	Delete(ctx context.Context, teamID keybase1.TeamID) error
+	Load(context.Context, keybase1.LoadTeamArg) (*keybase1.TeamData, *keybase1.HiddenTeamChain, error)
+	// Freezing a team clears most data and forces a full reload when the team
+	// is loaded again. The team loader checks that the previous tail is
+	// contained within the new chain post-freeze. In particular, since we load
+	// a team before deleting it in response to the server-driven delete gregor
+	// notifications, the server can't roll-back to a state where the team is
+	// undeleted, so we don't have to special-case team deletion.
+	Freeze(ctx context.Context, teamID keybase1.TeamID) error
+	// Tombstoning a team prevents it from being loaded ever again, as long as
+	// that cache entry exists. Used to prevent server from "undeleting" a
+	// team. While a team is tombstoned, most data is cleared.
+	Tombstone(ctx context.Context, teamID keybase1.TeamID) error
 	// Untrusted hint of what a team's latest seqno is
 	HintLatestSeqno(ctx context.Context, id keybase1.TeamID, seqno keybase1.Seqno) error
 	ResolveNameToIDUntrusted(ctx context.Context, teamName keybase1.TeamName, public bool, allowCache bool) (id keybase1.TeamID, err error)
 	ForceRepollUntil(ctx context.Context, t gregor.TimeOrOffset) error
-	OnLogout()
+	IsOpenCached(ctx context.Context, teamID keybase1.TeamID) (bool, error)
 	// Clear the in-memory cache. Does not affect the disk cache.
 	ClearMem()
 }
@@ -672,12 +752,55 @@ type FastTeamLoader interface {
 	HintLatestSeqno(m MetaContext, id keybase1.TeamID, seqno keybase1.Seqno) error
 	VerifyTeamName(m MetaContext, id keybase1.TeamID, name keybase1.TeamName, forceRefresh bool) error
 	ForceRepollUntil(m MetaContext, t gregor.TimeOrOffset) error
-	OnLogout()
+	// See comment in TeamLoader#Freeze.
+	Freeze(MetaContext, keybase1.TeamID) error
+	// See comment in TeamLoader#Tombstone.
+	Tombstone(MetaContext, keybase1.TeamID) error
+}
+
+type HiddenTeamChainManager interface {
+	// We got gossip about what the latest chain-tail should be, so ratchet the
+	// chain forward; the next call to Advance() has to match.
+	Ratchet(MetaContext, keybase1.TeamID, keybase1.HiddenTeamChainRatchetSet) error
+	// We got a bunch of new links downloaded via slow or fast loader, so add them
+	// onto the HiddenTeamChain state. Ensure that the updated state is at least up to the
+	// given ratchet value.
+	Advance(mctx MetaContext, update keybase1.HiddenTeamChain, expectedPrev *keybase1.LinkTriple) error
+	// Access the tail of the HiddenTeamChain, for embedding into gossip vectors.
+	Tail(MetaContext, keybase1.TeamID) (*keybase1.LinkTriple, error)
+	// Load the latest data for the given team ID, and just return it wholesale.
+	Load(MetaContext, keybase1.TeamID) (dat *keybase1.HiddenTeamChain, err error)
+	// See comment in TeamLoader#Freeze.
+	Freeze(MetaContext, keybase1.TeamID) error
+	// See comment in TeamLoader#Tombstone.
+	Tombstone(MetaContext, keybase1.TeamID) error
+	// Untrusted hint of what a team's latest seqno is
+	HintLatestSeqno(m MetaContext, id keybase1.TeamID, seqno keybase1.Seqno) error
+	Shutdown(m MetaContext)
+	TeamSupportsHiddenChain(m MetaContext, id keybase1.TeamID) (state bool, err error)
+	ClearSupportFlagIfFalse(m MetaContext, id keybase1.TeamID)
+}
+
+type TeamRoleMapManager interface {
+	Get(m MetaContext, retryOnFail bool) (res keybase1.TeamRoleMapAndVersion, err error)
+	Update(m MetaContext, version keybase1.UserTeamVersion) (err error)
+	FlushCache()
 }
 
 type TeamAuditor interface {
-	AuditTeam(m MetaContext, id keybase1.TeamID, isPublic bool, headMerkleSeqno keybase1.Seqno, chain map[keybase1.Seqno]keybase1.LinkID, maxSeqno keybase1.Seqno) (err error)
-	OnLogout(m MetaContext)
+	AuditTeam(m MetaContext, id keybase1.TeamID, isPublic bool, headMerkleSeqno keybase1.Seqno,
+		chain map[keybase1.Seqno]keybase1.LinkID, hiddenChain map[keybase1.Seqno]keybase1.LinkID,
+		maxSeqno keybase1.Seqno, maxHiddenSeqno keybase1.Seqno, lastMerkleRoot *MerkleRoot, auditMode keybase1.AuditMode) (err error)
+}
+
+type TeamBoxAuditor interface {
+	AssertUnjailedOrReaudit(m MetaContext, id keybase1.TeamID) (didReaudit bool, err error)
+	IsInJail(m MetaContext, id keybase1.TeamID) (bool, error)
+	RetryNextBoxAudit(m MetaContext) (attempt *keybase1.BoxAuditAttempt, err error)
+	BoxAuditRandomTeam(m MetaContext) (attempt *keybase1.BoxAuditAttempt, err error)
+	BoxAuditTeam(m MetaContext, id keybase1.TeamID) (attempt *keybase1.BoxAuditAttempt, err error)
+	MaybeScheduleDelayedBoxAuditTeam(m MetaContext, id keybase1.TeamID)
+	Attempt(m MetaContext, id keybase1.TeamID, rotateBeforeAudit bool) keybase1.BoxAuditAttempt
 }
 
 // MiniChatPayment is the argument for sending an in-chat payment.
@@ -712,68 +835,100 @@ type MiniChatPaymentSummary struct {
 }
 
 type Stellar interface {
-	OnLogout()
 	CreateWalletSoft(context.Context)
 	Upkeep(context.Context) error
 	GetServerDefinitions(context.Context) (stellar1.StellarServerDefinitions, error)
 	KickAutoClaimRunner(MetaContext, gregor.MsgID)
 	UpdateUnreadCount(ctx context.Context, accountID stellar1.AccountID, unread int) error
-	GetMigrationLock() *sync.Mutex
 	SpecMiniChatPayments(mctx MetaContext, payments []MiniChatPayment) (*MiniChatPaymentSummary, error)
 	SendMiniChatPayments(mctx MetaContext, convID chat1.ConversationID, payments []MiniChatPayment) ([]MiniChatPaymentResult, error)
 	HandleOobm(context.Context, gregor.OutOfBandMessage) (bool, error)
 	RemovePendingTx(mctx MetaContext, accountID stellar1.AccountID, txID stellar1.TransactionID) error
+	KnownCurrencyCodeInstant(ctx context.Context, code string) (known, ok bool)
+	InformBundle(MetaContext, stellar1.BundleRevision, []stellar1.BundleEntry)
+	InformDefaultCurrencyChange(MetaContext)
+	Refresh(mctx MetaContext, reason string)
 }
 
 type DeviceEKStorage interface {
-	Put(ctx context.Context, generation keybase1.EkGeneration, deviceEK keybase1.DeviceEk) error
-	Get(ctx context.Context, generation keybase1.EkGeneration) (keybase1.DeviceEk, error)
-	GetAllActive(ctx context.Context, merkleRoot MerkleRoot) ([]keybase1.DeviceEkMetadata, error)
-	MaxGeneration(ctx context.Context) (keybase1.EkGeneration, error)
-	DeleteExpired(ctx context.Context, merkleRoot MerkleRoot) ([]keybase1.EkGeneration, error)
+	Put(mctx MetaContext, generation keybase1.EkGeneration, deviceEK keybase1.DeviceEk) error
+	Get(mctx MetaContext, generation keybase1.EkGeneration) (keybase1.DeviceEk, error)
+	GetAllActive(mctx MetaContext, merkleRoot MerkleRoot) ([]keybase1.DeviceEkMetadata, error)
+	MaxGeneration(mctx MetaContext, includeErrs bool) (keybase1.EkGeneration, error)
+	DeleteExpired(mctx MetaContext, merkleRoot MerkleRoot) ([]keybase1.EkGeneration, error)
 	ClearCache()
-	// Dangerous! Only for deprovisioning.
-	ForceDeleteAll(ctx context.Context, username NormalizedUsername) error
+	// Dangerous! Only for deprovisioning or shutdown/logout when in oneshot mode.
+	ForceDeleteAll(mctx MetaContext, username NormalizedUsername) error
 	// For keybase log send
-	ListAllForUser(ctx context.Context) ([]string, error)
+	ListAllForUser(mctx MetaContext) ([]string, error)
 	// Called on login/logout hooks to set the logged in username in the EK log
-	SetLogPrefix()
+	SetLogPrefix(mctx MetaContext)
 }
 
 type UserEKBoxStorage interface {
-	Put(ctx context.Context, generation keybase1.EkGeneration, userEKBoxed keybase1.UserEkBoxed) error
-	Get(ctx context.Context, generation keybase1.EkGeneration, contentCtime *gregor1.Time) (keybase1.UserEk, error)
-	MaxGeneration(ctx context.Context) (keybase1.EkGeneration, error)
-	DeleteExpired(ctx context.Context, merkleRoot MerkleRoot) ([]keybase1.EkGeneration, error)
+	Put(mctx MetaContext, generation keybase1.EkGeneration, userEKBoxed keybase1.UserEkBoxed) error
+	Get(mctx MetaContext, generation keybase1.EkGeneration, contentCtime *gregor1.Time) (keybase1.UserEk, error)
+	MaxGeneration(mctx MetaContext, includeErrs bool) (keybase1.EkGeneration, error)
+	DeleteExpired(mctx MetaContext, merkleRoot MerkleRoot) ([]keybase1.EkGeneration, error)
 	ClearCache()
 }
 
 type TeamEKBoxStorage interface {
-	Put(ctx context.Context, teamID keybase1.TeamID, generation keybase1.EkGeneration, teamEKBoxed keybase1.TeamEkBoxed) error
-	Get(ctx context.Context, teamID keybase1.TeamID, generation keybase1.EkGeneration, contentCtime *gregor1.Time) (keybase1.TeamEk, error)
-	MaxGeneration(ctx context.Context, teamID keybase1.TeamID) (keybase1.EkGeneration, error)
-	DeleteExpired(ctx context.Context, teamID keybase1.TeamID, merkleRoot MerkleRoot) ([]keybase1.EkGeneration, error)
-	PurgeCacheForTeamID(ctx context.Context, teamID keybase1.TeamID) error
-	Delete(ctx context.Context, teamID keybase1.TeamID, generation keybase1.EkGeneration) error
+	Put(mctx MetaContext, teamID keybase1.TeamID, generation keybase1.EkGeneration, teamEKBoxed keybase1.TeamEphemeralKeyBoxed) error
+	Get(mctx MetaContext, teamID keybase1.TeamID, generation keybase1.EkGeneration, contentCtime *gregor1.Time) (keybase1.TeamEphemeralKey, error)
+	MaxGeneration(mctx MetaContext, teamID keybase1.TeamID, includeErrs bool) (keybase1.EkGeneration, error)
+	DeleteExpired(mctx MetaContext, teamID keybase1.TeamID, merkleRoot MerkleRoot) ([]keybase1.EkGeneration, error)
+	PurgeCacheForTeamID(mctx MetaContext, teamID keybase1.TeamID) error
+	Delete(mctx MetaContext, teamID keybase1.TeamID, generation keybase1.EkGeneration) error
 	ClearCache()
 }
 
 type EKLib interface {
-	KeygenIfNeeded(ctx context.Context) error
-	GetOrCreateLatestTeamEK(ctx context.Context, teamID keybase1.TeamID) (keybase1.TeamEk, error)
-	GetTeamEK(ctx context.Context, teamID keybase1.TeamID, generation keybase1.EkGeneration, contentCtime *gregor1.Time) (keybase1.TeamEk, error)
-	PurgeCachesForTeamIDAndGeneration(ctx context.Context, teamID keybase1.TeamID, generation keybase1.EkGeneration)
-	PurgeCachesForTeamID(ctx context.Context, teamID keybase1.TeamID)
+	KeygenIfNeeded(mctx MetaContext) error
+	// Team ephemeral keys
+	GetOrCreateLatestTeamEK(mctx MetaContext, teamID keybase1.TeamID) (keybase1.TeamEphemeralKey, bool, error)
+	GetTeamEK(mctx MetaContext, teamID keybase1.TeamID, generation keybase1.EkGeneration, contentCtime *gregor1.Time) (keybase1.TeamEphemeralKey, error)
+	PurgeTeamEKCachesForTeamIDAndGeneration(mctx MetaContext, teamID keybase1.TeamID, generation keybase1.EkGeneration)
+	PurgeTeamEKCachesForTeamID(mctx MetaContext, teamID keybase1.TeamID)
+
+	// Teambot ephemeral keys
+	GetOrCreateLatestTeambotEK(mctx MetaContext, teamID keybase1.TeamID, botUID gregor1.UID) (keybase1.TeamEphemeralKey, bool, error)
+	GetTeambotEK(mctx MetaContext, teamID keybase1.TeamID, botUID gregor1.UID, generation keybase1.EkGeneration,
+		contentCtime *gregor1.Time) (keybase1.TeamEphemeralKey, error)
+	ForceCreateTeambotEK(mctx MetaContext, teamID keybase1.TeamID, botUID gregor1.UID,
+		generation keybase1.EkGeneration) (keybase1.TeamEphemeralKey, bool, error)
+	PurgeTeambotEKCachesForTeamIDAndGeneration(mctx MetaContext, teamID keybase1.TeamID, generation keybase1.EkGeneration)
+	PurgeTeambotEKCachesForTeamID(mctx MetaContext, teamID keybase1.TeamID)
+	PurgeAllTeambotMetadataCaches(mctx MetaContext)
+	PurgeTeambotMetadataCache(mctx MetaContext, teamID keybase1.TeamID, botUID keybase1.UID, generation keybase1.EkGeneration)
+
 	NewEphemeralSeed() (keybase1.Bytes32, error)
 	DeriveDeviceDHKey(seed keybase1.Bytes32) *NaclDHKeyPair
-	SignedDeviceEKStatementFromSeed(ctx context.Context, generation keybase1.EkGeneration, seed keybase1.Bytes32, signingKey GenericKey) (keybase1.DeviceEkStatement, string, error)
-	BoxLatestUserEK(ctx context.Context, receiverKey NaclDHKeyPair, deviceEKGeneration keybase1.EkGeneration) (*keybase1.UserEkBoxed, error)
-	PrepareNewUserEK(ctx context.Context, merkleRoot MerkleRoot, pukSeed PerUserKeySeed) (string, []keybase1.UserEkBoxMetadata, keybase1.UserEkMetadata, *keybase1.UserEkBoxed, error)
-	BoxLatestTeamEK(ctx context.Context, teamID keybase1.TeamID, uids []keybase1.UID) (*[]keybase1.TeamEkBoxMetadata, error)
-	PrepareNewTeamEK(ctx context.Context, teamID keybase1.TeamID, signingKey NaclSigningKeyPair, uids []keybase1.UID) (string, *[]keybase1.TeamEkBoxMetadata, keybase1.TeamEkMetadata, *keybase1.TeamEkBoxed, error)
-	ClearCaches()
+	SignedDeviceEKStatementFromSeed(mctx MetaContext, generation keybase1.EkGeneration, seed keybase1.Bytes32, signingKey GenericKey) (keybase1.DeviceEkStatement, string, error)
+	BoxLatestUserEK(mctx MetaContext, receiverKey NaclDHKeyPair, deviceEKGeneration keybase1.EkGeneration) (*keybase1.UserEkBoxed, error)
+	PrepareNewUserEK(mctx MetaContext, merkleRoot MerkleRoot, pukSeed PerUserKeySeed) (string, []keybase1.UserEkBoxMetadata, keybase1.UserEkMetadata, *keybase1.UserEkBoxed, error)
+	BoxLatestTeamEK(mctx MetaContext, teamID keybase1.TeamID, uids []keybase1.UID) (*[]keybase1.TeamEkBoxMetadata, error)
+	PrepareNewTeamEK(mctx MetaContext, teamID keybase1.TeamID, signingKey NaclSigningKeyPair, uids []keybase1.UID) (string, *[]keybase1.TeamEkBoxMetadata, keybase1.TeamEkMetadata, *keybase1.TeamEkBoxed, error)
+	ClearCaches(mctx MetaContext)
 	// For testing
-	NewTeamEKNeeded(ctx context.Context, teamID keybase1.TeamID) (bool, error)
+	NewTeamEKNeeded(mctx MetaContext, teamID keybase1.TeamID) (bool, error)
+}
+
+type TeambotBotKeyer interface {
+	GetLatestTeambotKey(mctx MetaContext, teamID keybase1.TeamID, app keybase1.TeamApplication) (keybase1.TeambotKey, error)
+	GetTeambotKeyAtGeneration(mctx MetaContext, teamID keybase1.TeamID, app keybase1.TeamApplication,
+		generation keybase1.TeambotKeyGeneration) (keybase1.TeambotKey, error)
+
+	DeleteTeambotKeyForTest(mctx MetaContext, teamID keybase1.TeamID, app keybase1.TeamApplication,
+		generation keybase1.TeambotKeyGeneration) error
+}
+
+type TeambotMemberKeyer interface {
+	GetOrCreateTeambotKey(mctx MetaContext, teamID keybase1.TeamID, botUID gregor1.UID,
+		appKey keybase1.TeamApplicationKey) (keybase1.TeambotKey, bool, error)
+	PurgeCache(mctx MetaContext)
+	PurgeCacheAtGeneration(mctx MetaContext, teamID keybase1.TeamID, botUID keybase1.UID,
+		app keybase1.TeamApplication, generation keybase1.TeambotKeyGeneration)
 }
 
 type ImplicitTeamConflictInfoCacher interface {
@@ -799,11 +954,15 @@ type LRUKeyer interface {
 type LRUer interface {
 	Get(context.Context, LRUContext, LRUKeyer) (interface{}, error)
 	Put(context.Context, LRUContext, LRUKeyer, interface{}) error
+	OnLogout(mctx MetaContext) error
+	OnDbNuke(mctx MetaContext) error
 }
 
 type MemLRUer interface {
 	Get(key interface{}) (interface{}, bool)
 	Put(key, value interface{}) bool
+	OnLogout(mctx MetaContext) error
+	OnDbNuke(mctx MetaContext) error
 }
 
 type ClockContext interface {
@@ -835,6 +994,10 @@ type UIDMapper interface {
 	// hardcoded map.
 	CheckUIDAgainstUsername(uid keybase1.UID, un NormalizedUsername) bool
 
+	// MapHardcodedUsernameToUID will map the given legacy username to a UID if it exists
+	// in the hardcoded map. If not, it will return the nil UID.
+	MapHardcodedUsernameToUID(un NormalizedUsername) keybase1.UID
+
 	// MapUIDToUsernamePackages maps the given set of UIDs to the username
 	// packages, which include a username and a fullname, and when the mapping
 	// was loaded from the server. It blocks on the network until all usernames
@@ -859,6 +1022,8 @@ type UIDMapper interface {
 	// for use in tests*
 	SetTestingNoCachingMode(enabled bool)
 
+	ClearUIDFullName(context.Context, UIDMapperContext, keybase1.UID) error
+
 	// ClearUID is called to clear the given UID out of the cache, if the given eldest
 	// seqno doesn't match what's currently cached.
 	ClearUIDAtEldestSeqno(context.Context, UIDMapperContext, keybase1.UID, keybase1.Seqno) error
@@ -869,27 +1034,61 @@ type UIDMapper interface {
 	// of busting. Will return true if the cached value was up-to-date, and false
 	// otherwise.
 	InformOfEldestSeqno(context.Context, UIDMapperContext, keybase1.UserVersion) (bool, error)
+
+	// MapUIDsToUsernamePackagesOffline maps given set of UIDs to username packages
+	// from the cache only. No network calls will be made. Results might contains
+	// unresolved usernames (caller should check with `IsNil()`).
+	MapUIDsToUsernamePackagesOffline(ctx context.Context, g UIDMapperContext,
+		uids []keybase1.UID, fullNameFreshness time.Duration) ([]UsernamePackage, error)
+}
+
+type UserServiceSummary map[string]string // service -> username
+type UserServiceSummaryPackage struct {
+	CachedAt   keybase1.Time
+	ServiceMap UserServiceSummary
+}
+
+type ServiceSummaryMapper interface {
+	MapUIDsToServiceSummaries(ctx context.Context, g UIDMapperContext, uids []keybase1.UID, freshness time.Duration,
+		networkTimeBudget time.Duration) map[keybase1.UID]UserServiceSummaryPackage
+	InformOfServiceSummary(ctx context.Context, g UIDMapperContext, uid keybase1.UID, summary UserServiceSummary) error
 }
 
 type ChatHelper interface {
+	NewConversation(ctx context.Context, uid gregor1.UID, tlfName string,
+		topicName *string, topicType chat1.TopicType, membersType chat1.ConversationMembersType,
+		vis keybase1.TLFVisibility) (chat1.ConversationLocal, bool, error)
+	NewConversationSkipFindExisting(ctx context.Context, uid gregor1.UID, tlfName string,
+		topicName *string, topicType chat1.TopicType, membersType chat1.ConversationMembersType,
+		vis keybase1.TLFVisibility) (chat1.ConversationLocal, bool, error)
+	NewConversationWithMemberSourceConv(ctx context.Context, uid gregor1.UID, tlfName string,
+		topicName *string, topicType chat1.TopicType, membersType chat1.ConversationMembersType,
+		vis keybase1.TLFVisibility, retentionPolicy *chat1.RetentionPolicy,
+		memberSourceConv *chat1.ConversationID) (chat1.ConversationLocal, bool, error)
 	SendTextByID(ctx context.Context, convID chat1.ConversationID,
-		tlfName string, text string) error
+		tlfName string, text string, vis keybase1.TLFVisibility) error
 	SendMsgByID(ctx context.Context, convID chat1.ConversationID,
-		tlfName string, body chat1.MessageBody, msgType chat1.MessageType) error
+		tlfName string, body chat1.MessageBody, msgType chat1.MessageType, vis keybase1.TLFVisibility) error
 	SendTextByIDNonblock(ctx context.Context, convID chat1.ConversationID,
-		tlfName string, text string) error
+		tlfName string, text string, outboxID *chat1.OutboxID, replyTo *chat1.MessageID) (chat1.OutboxID, error)
 	SendMsgByIDNonblock(ctx context.Context, convID chat1.ConversationID,
-		tlfName string, body chat1.MessageBody, msgType chat1.MessageType) error
+		tlfName string, body chat1.MessageBody, msgType chat1.MessageType, outboxID *chat1.OutboxID,
+		replyTo *chat1.MessageID) (chat1.OutboxID, error)
 	SendTextByName(ctx context.Context, name string, topicName *string,
 		membersType chat1.ConversationMembersType, ident keybase1.TLFIdentifyBehavior, text string) error
 	SendMsgByName(ctx context.Context, name string, topicName *string,
 		membersType chat1.ConversationMembersType, ident keybase1.TLFIdentifyBehavior, body chat1.MessageBody,
 		msgType chat1.MessageType) error
 	SendTextByNameNonblock(ctx context.Context, name string, topicName *string,
-		membersType chat1.ConversationMembersType, ident keybase1.TLFIdentifyBehavior, text string) error
+		membersType chat1.ConversationMembersType, ident keybase1.TLFIdentifyBehavior, text string,
+		outboxID *chat1.OutboxID) (chat1.OutboxID, error)
 	SendMsgByNameNonblock(ctx context.Context, name string, topicName *string,
 		membersType chat1.ConversationMembersType, ident keybase1.TLFIdentifyBehavior, body chat1.MessageBody,
-		msgType chat1.MessageType) error
+		msgType chat1.MessageType, outboxID *chat1.OutboxID) (chat1.OutboxID, error)
+	DeleteMsg(ctx context.Context, convID chat1.ConversationID, tlfName string,
+		msgID chat1.MessageID) error
+	DeleteMsgNonblock(ctx context.Context, convID chat1.ConversationID, tlfName string,
+		msgID chat1.MessageID) error
 	FindConversations(ctx context.Context, name string,
 		topicName *string, topicType chat1.TopicType, membersType chat1.ConversationMembersType,
 		vis keybase1.TLFVisibility) ([]chat1.ConversationLocal, error)
@@ -901,7 +1100,16 @@ type ChatHelper interface {
 	GetChannelTopicName(context.Context, keybase1.TeamID, chat1.TopicType, chat1.ConversationID) (string, error)
 	GetMessages(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 		msgIDs []chat1.MessageID, resolveSupersedes bool, reason *chat1.GetThreadReason) ([]chat1.MessageUnboxed, error)
+	GetMessage(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+		msgID chat1.MessageID, resolveSupersedes bool, reason *chat1.GetThreadReason) (chat1.MessageUnboxed, error)
 	UpgradeKBFSToImpteam(ctx context.Context, tlfName string, tlfID chat1.TLFID, public bool) error
+	UserReacjis(ctx context.Context, uid gregor1.UID) keybase1.UserReacjis
+	JourneycardTimeTravel(context.Context, gregor1.UID, time.Duration) (int, int, error)
+	JourneycardResetAllConvs(context.Context, gregor1.UID) error
+	JourneycardDebugState(context.Context, gregor1.UID, keybase1.TeamID) (string, error)
+	// InTeam gives a best effort to answer team membership based on the current state of the inbox cache
+	InTeam(context.Context, gregor1.UID, keybase1.TeamID) (bool, error)
+	BulkAddToConv(context.Context, gregor1.UID, chat1.ConversationID, []string) error
 }
 
 // Resolver resolves human-readable usernames (joe) and user asssertions (joe+joe@github)
@@ -935,6 +1143,7 @@ type SaltpackRecipientKeyfinderEngineInterface interface {
 	Engine2
 	GetPublicKIDs() []keybase1.KID
 	GetSymmetricKeys() []SaltpackReceiverSymmetricKey
+	UsedUnresolvedSBSAssertion() (bool, string)
 }
 
 type SaltpackRecipientKeyfinderArg struct {
@@ -945,9 +1154,45 @@ type SaltpackRecipientKeyfinderArg struct {
 	UsePaperKeys      bool
 	UseDeviceKeys     bool // Does not include Paper Keys
 	UseRepudiableAuth bool // This is needed as team keys (implicit or not) are not compatible with repudiable authentication, so we can error out.
+	NoForcePoll       bool // if we want to stop forcepolling, which is on by default, but should be off for GUI
 }
 
 type SaltpackReceiverSymmetricKey struct {
 	Key        [32]byte
 	Identifier []byte
+}
+
+type StandaloneChatConnector interface {
+	StartStandaloneChat(g *GlobalContext) error
+}
+
+type SyncedContactListProvider interface {
+	SaveProcessedContacts(MetaContext, []keybase1.ProcessedContact) error
+	RetrieveContacts(MetaContext) ([]keybase1.ProcessedContact, error)
+	RetrieveAssertionToName(MetaContext) (map[string]string, error)
+	UnresolveContactsWithComponent(MetaContext, *keybase1.PhoneNumber, *keybase1.EmailAddress)
+}
+
+type KVRevisionCacher interface {
+	Check(mctx MetaContext, entryID keybase1.KVEntryID, ciphertext *string, teamKeyGen keybase1.PerTeamKeyGeneration, revision int) (err error)
+	Put(mctx MetaContext, entryID keybase1.KVEntryID, ciphertext *string, teamKeyGen keybase1.PerTeamKeyGeneration, revision int) (err error)
+	CheckForUpdate(mctx MetaContext, entryID keybase1.KVEntryID, revision int) (err error)
+	MarkDeleted(mctx MetaContext, entryID keybase1.KVEntryID, revision int) (err error)
+}
+
+type AvatarLoaderSource interface {
+	LoadUsers(MetaContext, []string, []keybase1.AvatarFormat) (keybase1.LoadAvatarsRes, error)
+	LoadTeams(MetaContext, []string, []keybase1.AvatarFormat) (keybase1.LoadAvatarsRes, error)
+
+	ClearCacheForName(MetaContext, string, []keybase1.AvatarFormat) error
+	OnDbNuke(MetaContext) error // Called after leveldb data goes away after db nuke
+
+	StartBackgroundTasks(MetaContext)
+	StopBackgroundTasks(MetaContext)
+}
+
+type RuntimeStats interface {
+	Start(context.Context)
+	Stop(context.Context) chan struct{}
+	PushPerfEvent(keybase1.PerfEvent)
 }

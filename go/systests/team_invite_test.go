@@ -1,15 +1,19 @@
 package systests
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 	"time"
 
 	"golang.org/x/net/context"
 
+	"github.com/keybase/client/go/engine"
+	"github.com/keybase/client/go/jsonhelpers"
 	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -23,7 +27,7 @@ func TestTeamInviteRooter(t *testing.T) {
 	// user 0 creates a team
 	teamID, teamName := tt.users[0].createTeam2()
 
-	// user 0 adds a rooter user before the rooter user has proved their
+	// user 0 adds a rooter assertion before the rooter user has proved their
 	// keybase account
 	rooterUser := tt.users[1].username + "@rooter"
 	tt.users[0].addTeamMember(teamName.String(), rooterUser, keybase1.TeamRole_WRITER)
@@ -56,7 +60,56 @@ func TestTeamInviteRooter(t *testing.T) {
 	}
 
 	// the invite should not be in the active invite map
-	exists, err := t0.HasActiveInvite(keybase1.TeamInviteName(tt.users[1].username), "rooter")
+	exists, err := t0.HasActiveInvite(tt.users[0].tc.MetaContext(), keybase1.TeamInviteName(tt.users[1].username), "rooter")
+	require.NoError(t, err)
+	require.False(t, exists)
+	require.Equal(t, 0, t0.NumActiveInvites())
+	require.Equal(t, 0, len(t0.GetActiveAndObsoleteInvites()))
+}
+
+func TestTeamInviteGenericSocial(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	tt.addUser("own")
+	tt.addUser("roo")
+
+	// user 0 creates a team
+	teamID, teamName := tt.users[0].createTeam2()
+
+	// user 0 adds an unresolved assertion to the team
+	assertion := tt.users[1].username + "@gubble.social"
+	tt.users[0].addTeamMember(teamName.String(), assertion, keybase1.TeamRole_WRITER)
+
+	// user 1 proves the assertion, kicking rekeyd so it notices the proof
+	// beforehand so user 0 can notice proof faster.
+	tt.users[1].kickTeamRekeyd()
+	tt.users[1].proveGubbleSocial()
+
+	// user 0 should get gregor notification that the team changed
+	tt.users[0].waitForTeamChangedGregor(teamID, keybase1.Seqno(3))
+
+	// user 1 should also get gregor notification that the team changed
+	tt.users[1].waitForTeamChangedGregor(teamID, keybase1.Seqno(3))
+
+	// the team should have user 1 in it now as a writer
+	t0, err := teams.GetTeamByNameForTest(context.TODO(), tt.users[0].tc.G, teamName.String(), false, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	writers, err := t0.UsersWithRole(keybase1.TeamRole_WRITER)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(writers) != 1 {
+		t.Fatalf("num writers: %d, expected 1", len(writers))
+	}
+	if !writers[0].Uid.Equal(tt.users[1].uid) {
+		t.Errorf("writer uid: %s, expected %s", writers[0].Uid, tt.users[1].uid)
+	}
+
+	// the invite should not be in the active invite map
+	exists, err := t0.HasActiveInvite(tt.users[0].tc.MetaContext(), keybase1.TeamInviteName(tt.users[1].username), "gubble.social")
 	require.NoError(t, err)
 	require.False(t, exists)
 	require.Equal(t, 0, t0.NumActiveInvites())
@@ -109,7 +162,7 @@ func TestTeamInviteEmail(t *testing.T) {
 	}
 
 	// the invite should not be in the active invite map
-	exists, err := t0.HasActiveInvite(keybase1.TeamInviteName(email), "email")
+	exists, err := t0.HasActiveInvite(tt.users[0].tc.MetaContext(), keybase1.TeamInviteName(email), "email")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -226,6 +279,19 @@ func TestTeamReInviteAfterReset(t *testing.T) {
 	// invitation should automatically cancel first invitation.
 	ann.addTeamMember(teamName.String(), bob.username, keybase1.TeamRole_ADMIN) // Invitation 2
 
+	// Load team, see if we really have just one invite.
+	teamObj := ann.loadTeamByID(teamID, true /* admin */)
+	invites := teamObj.GetActiveAndObsoleteInvites()
+	require.Len(t, invites, 1)
+	for _, invite := range invites {
+		require.Equal(t, keybase1.TeamRole_ADMIN, invite.Role)
+		require.EqualValues(t, bob.userVersion().PercentForm(), invite.Name)
+		typ, err := invite.Type.C()
+		require.NoError(t, err)
+		require.Equal(t, keybase1.TeamInviteCategory_KEYBASE, typ)
+		break // check the first (and only) invite
+	}
+
 	t.Logf("Trying to get a PUK")
 
 	bob.primaryDevice().tctx.Tp.DisableUpgradePerUserKey = false
@@ -247,8 +313,8 @@ func TestTeamReInviteAfterReset(t *testing.T) {
 	require.Equal(t, details.Members.Admins[0].Username, bob.username)
 }
 
-func testImpTeamWithRooterParametrized(t *testing.T, public bool) {
-	t.Logf("testImpTeamWithRooterParametrized(public=%t)", public)
+func testImpTeamWithRooterParameterized(t *testing.T, public bool) {
+	t.Logf("testImpTeamWithRooterParameterized(public=%t)", public)
 
 	tt := newTeamTester(t)
 	defer tt.cleanup()
@@ -302,8 +368,8 @@ func testImpTeamWithRooterParametrized(t *testing.T, public bool) {
 }
 
 func TestImpTeamWithRooter(t *testing.T) {
-	testImpTeamWithRooterParametrized(t, false /* public */)
-	testImpTeamWithRooterParametrized(t, true /* public */)
+	testImpTeamWithRooterParameterized(t, false /* public */)
+	testImpTeamWithRooterParameterized(t, true /* public */)
 }
 
 func TestImpTeamWithRooterConflict(t *testing.T) {
@@ -410,11 +476,10 @@ func TestClearSocialInvitesOnAdd(t *testing.T) {
 
 	// Disable gregor in this test so Ann does not immediately add Bob
 	// through SBS handler when bob proves Rooter.
-	ann := makeUserStandalone(t, "ann", standaloneUserArgs{
+	ann := makeUserStandalone(t, tt, "ann", standaloneUserArgs{
 		disableGregor:            true,
 		suppressTeamChatAnnounce: true,
 	})
-	tt.users = append(tt.users, ann)
 
 	tracer := ann.tc.G.CTimeTracer(context.Background(), "test-tracer", true)
 	defer tracer.Finish()
@@ -452,11 +517,11 @@ func TestClearSocialInvitesOnAdd(t *testing.T) {
 	require.Equal(t, len(writers), 1)
 	require.True(t, writers[0].Uid.Equal(bob.uid))
 
-	hasInv, err := t0.HasActiveInvite(keybase1.TeamInviteName(bob.username), "rooter")
+	hasInv, err := t0.HasActiveInvite(ann.tc.MetaContext(), keybase1.TeamInviteName(bob.username), "rooter")
 	require.NoError(t, err)
 	require.False(t, hasInv, "Adding should have cleared bob...@rooter")
 
-	hasInv, err = t0.HasActiveInvite(keybase1.TeamInviteName(bobBadRooter), "rooter")
+	hasInv, err = t0.HasActiveInvite(ann.tc.MetaContext(), keybase1.TeamInviteName(bobBadRooter), "rooter")
 	require.NoError(t, err)
 	require.True(t, hasInv, "But should not have cleared otherbob...@rooter")
 }
@@ -467,11 +532,10 @@ func TestSweepObsoleteKeybaseInvites(t *testing.T) {
 
 	// Disable gregor in this test so Ann does not immediately add Bob
 	// through SBS handler when bob gets PUK.
-	ann := makeUserStandalone(t, "ann", standaloneUserArgs{
+	ann := makeUserStandalone(t, tt, "ann", standaloneUserArgs{
 		disableGregor:            true,
 		suppressTeamChatAnnounce: true,
 	})
-	tt.users = append(tt.users, ann)
 
 	// Get UIDMapper caching out of the equation - assume in real
 	// life, tested actions are spread out in time and caching is not
@@ -530,7 +594,7 @@ func TestSweepObsoleteKeybaseInvites(t *testing.T) {
 		TeamID: teamObj.ID,
 		Score:  0,
 		Invitees: []keybase1.TeamInvitee{
-			keybase1.TeamInvitee{
+			{
 				InviteID:    invite.Id,
 				Uid:         bob.uid,
 				EldestSeqno: 1,
@@ -570,11 +634,9 @@ func teamInviteRemoveIfHigherRole(t *testing.T, waitForRekeyd bool) {
 	if waitForRekeyd {
 		own = tt.addUser("own")
 	} else {
-		own = makeUserStandalone(t, "own", userParams)
-		tt.users = append(tt.users, own)
+		own = makeUserStandalone(t, tt, "own", userParams)
 	}
-	roo := makeUserStandalone(t, "roo", userParams)
-	tt.users = append(tt.users, roo)
+	roo := makeUserStandalone(t, tt, "roo", userParams)
 	tt.logUserNames()
 
 	teamID, teamName := own.createTeam2()
@@ -608,7 +670,7 @@ func teamInviteRemoveIfHigherRole(t *testing.T, waitForRekeyd bool) {
 			TeamID: teamID,
 			Score:  0,
 			Invitees: []keybase1.TeamInvitee{
-				keybase1.TeamInvitee{
+				{
 					InviteID:    invite.Id,
 					Uid:         rooUv.Uid,
 					EldestSeqno: rooUv.EldestSeqno,
@@ -628,7 +690,7 @@ func teamInviteRemoveIfHigherRole(t *testing.T, waitForRekeyd bool) {
 }
 
 func TestTeamInviteRemoveIfHigherRole(t *testing.T) {
-	// This test is parametrized. waitForRekeyd=true will wait for
+	// This test is parameterized. waitForRekeyd=true will wait for
 	// real rekeyd notification, waitForRekeyd=false will call SBS
 	// handler manually.
 	teamInviteRemoveIfHigherRole(t, true /* waitForRekeyd */)
@@ -663,9 +725,13 @@ func testTeamInviteSweepOldMembers(t *testing.T, startPUKless bool) {
 	roo.proveRooter()
 
 	// 3 links to created team, add roo, and add roo@rooter.
-	// + 2 links (rotate, change_membership) to add roo in startPUKless=false case;
+	// + 1 links (rotate, change_membership) to add roo in startPUKless=false case;
 	// or +2 links (change_membersip, cancel invite) to add roo in startPUKless=true case.
-	own.pollForTeamSeqnoLink(teamName.String(), keybase1.Seqno(5))
+	n := keybase1.Seqno(4)
+	if startPUKless {
+		n = keybase1.Seqno(5)
+	}
+	own.pollForTeamSeqnoLink(teamName.String(), n)
 
 	teamObj := own.loadTeamByID(teamID, true /* admin */)
 	// 0 total invites: rooter invite was completed, and keybase invite was sweeped
@@ -681,6 +747,228 @@ func testTeamInviteSweepOldMembers(t *testing.T, startPUKless bool) {
 }
 
 func TestTeamInviteSweepOldMembers(t *testing.T) {
-	testTeamInviteSweepOldMembers(t, false)
-	testTeamInviteSweepOldMembers(t, true)
+	testTeamInviteSweepOldMembers(t, false /* startPUKless */)
+	testTeamInviteSweepOldMembers(t, true /* startPUKless */)
+}
+
+func TestSBSInviteReuse(t *testing.T) {
+	// Test if server can reuse TOFU invites.
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	makeUser := func(name string) *userPlusDevice {
+		user := makeUserStandalone(t, tt, name, standaloneUserArgs{
+			disableGregor:            true,
+			suppressTeamChatAnnounce: true,
+		})
+		return user
+	}
+
+	ann := makeUser("ann")
+	bob := makeUser("bob")
+	joe := makeUser("joe")
+
+	teamID, teamName := ann.createTeam2()
+	t.Logf("Team created (%s)", teamID)
+
+	// Use sbs_test.go code to verify email.
+	sbsEmail := &userSBSEmail{}
+	sbsEmail.SetUser(bob)
+
+	email := bob.userInfo.email
+	ann.addTeamMemberEmail(teamName.String(), email, keybase1.TeamRole_WRITER)
+
+	sbsEmail.Verify()
+
+	// Get first invite ID, will be the one we've just added.
+	teamObj := ann.loadTeamByID(teamID, true /* admin */)
+	allInvites := teamObj.GetActiveAndObsoleteInvites()
+	require.Len(t, allInvites, 1)
+	var inviteID keybase1.TeamInviteID
+	for _, invite := range allInvites {
+		inviteID = invite.Id
+		require.True(t, invite.Type.Eq(keybase1.NewTeamInviteTypeDefault(keybase1.TeamInviteCategory_EMAIL)))
+	}
+
+	// Create a SBS message payload that we will be using to give directly to
+	// the SBS handler function for given user. So it will appear as if it
+	// comes from gregor.
+	sbsMsg := keybase1.TeamSBSMsg{
+		TeamID: teamID,
+		Invitees: []keybase1.TeamInvitee{
+			{
+				InviteID:    inviteID,
+				Uid:         bob.uid,
+				EldestSeqno: 1,
+				// Role can be whatever - client should not trust it.
+				Role: keybase1.TeamRole_ADMIN,
+			},
+		},
+	}
+
+	err := teams.HandleSBSRequest(context.Background(), ann.tc.G, sbsMsg)
+	require.NoError(t, err)
+
+	// Invite should have been completed.
+	teamObj = ann.loadTeamByID(teamID, true /* admin */)
+	require.Len(t, teamObj.GetActiveAndObsoleteInvites(), 0)
+
+	// Try to send the same message but with different UID.
+	sbsMsg.Invitees[0].Uid = joe.uid
+	err = teams.HandleSBSRequest(context.Background(), ann.tc.G, sbsMsg)
+	require.Error(t, err)
+	require.IsType(t, libkb.NotFoundError{}, err)
+	require.Contains(t, err.Error(), "Invite not found")
+}
+
+func proveGubbleUniverse(tc *libkb.TestContext, serviceName, endpoint string, username string, secretUI libkb.SecretUI) keybase1.SigID {
+	tc.T.Logf("proof for %s", serviceName)
+	g := tc.G
+	proofService := g.GetProofServices().GetServiceType(context.Background(), serviceName)
+	require.NotNil(tc.T, proofService)
+
+	// Post a proof to the testing generic social service
+	arg := keybase1.StartProofArg{
+		Service:      proofService.GetTypeName(),
+		Username:     username,
+		Force:        false,
+		PromptPosted: true,
+	}
+	eng := engine.NewProve(g, &arg)
+
+	// Post the proof to the gubble network and verify the sig hash
+	outputInstructionsHook := func(ctx context.Context, _ keybase1.OutputInstructionsArg) error {
+		sigID := eng.SigID()
+		require.False(tc.T, sigID.IsNil())
+		mctx := libkb.NewMetaContext(ctx, g)
+
+		apiArg := libkb.APIArg{
+			Endpoint:    fmt.Sprintf("gubble_universe/%s", endpoint),
+			SessionType: libkb.APISessionTypeREQUIRED,
+			Args: libkb.HTTPArgs{
+				"sig_hash":      libkb.S{Val: sigID.String()},
+				"username":      libkb.S{Val: username},
+				"kb_username":   libkb.S{Val: username},
+				"kb_ua":         libkb.S{Val: libkb.UserAgent},
+				"json_redirect": libkb.B{Val: true},
+			},
+		}
+		_, err := g.API.Post(libkb.NewMetaContext(ctx, g), apiArg)
+		require.NoError(tc.T, err)
+
+		apiArg = libkb.APIArg{
+			Endpoint:    fmt.Sprintf("gubble_universe/%s/%s/proofs", endpoint, username),
+			SessionType: libkb.APISessionTypeNONE,
+		}
+		res, err := g.GetAPI().Get(mctx, apiArg)
+		require.NoError(tc.T, err)
+		objects, err := jsonhelpers.AtSelectorPath(res.Body, []keybase1.SelectorEntry{
+			{
+				IsKey: true,
+				Key:   "res",
+			},
+			{
+				IsKey: true,
+				Key:   "keybase_proofs",
+			},
+		}, tc.T.Logf, libkb.NewInvalidPVLSelectorError)
+		require.NoError(tc.T, err)
+		require.Len(tc.T, objects, 1)
+
+		var proofs []keybase1.ParamProofJSON
+		err = objects[0].UnmarshalAgain(&proofs)
+		require.NoError(tc.T, err)
+		require.True(tc.T, len(proofs) >= 1)
+		for _, proof := range proofs {
+			if proof.KbUsername == username && sigID.Eq(proof.SigHash) {
+				return nil
+			}
+		}
+		assert.Fail(tc.T, "proof not found")
+		return nil
+	}
+
+	proveUI := &ProveUIMock{outputInstructionsHook: outputInstructionsHook}
+	uis := libkb.UIs{
+		LogUI:    g.Log,
+		SecretUI: secretUI,
+		ProveUI:  proveUI,
+	}
+	m := libkb.NewMetaContextTODO(g).WithUIs(uis)
+	err := engine.RunEngine2(m, eng)
+	checkFailed(tc.T.(testing.TB))
+	require.NoError(tc.T, err)
+	require.False(tc.T, proveUI.overwrite)
+	require.False(tc.T, proveUI.warning)
+	require.False(tc.T, proveUI.recheck)
+	require.True(tc.T, proveUI.checked)
+	return eng.SigID()
+}
+
+type ProveUIMock struct {
+	username, recheck, overwrite, warning, checked bool
+	postID                                         string
+	outputInstructionsHook                         func(context.Context, keybase1.OutputInstructionsArg) error
+	okToCheckHook                                  func(context.Context, keybase1.OkToCheckArg) (bool, string, error)
+	checkingHook                                   func(context.Context, keybase1.CheckingArg) error
+}
+
+func (p *ProveUIMock) PromptOverwrite(_ context.Context, arg keybase1.PromptOverwriteArg) (bool, error) {
+	p.overwrite = true
+	return true, nil
+}
+
+func (p *ProveUIMock) PromptUsername(_ context.Context, arg keybase1.PromptUsernameArg) (string, error) {
+	p.username = true
+	return "", nil
+}
+
+func (p *ProveUIMock) OutputPrechecks(_ context.Context, arg keybase1.OutputPrechecksArg) error {
+	return nil
+}
+
+func (p *ProveUIMock) PreProofWarning(_ context.Context, arg keybase1.PreProofWarningArg) (bool, error) {
+	p.warning = true
+	return true, nil
+}
+
+func (p *ProveUIMock) OutputInstructions(ctx context.Context, arg keybase1.OutputInstructionsArg) error {
+	if p.outputInstructionsHook != nil {
+		return p.outputInstructionsHook(ctx, arg)
+	}
+	return nil
+}
+
+func (p *ProveUIMock) OkToCheck(ctx context.Context, arg keybase1.OkToCheckArg) (bool, error) {
+	if !p.checked {
+		p.checked = true
+		ok, postID, err := p.okToCheckHook(ctx, arg)
+		p.postID = postID
+		return ok, err
+	}
+	return false, fmt.Errorf("Check should have worked the first time!")
+}
+
+func (p *ProveUIMock) Checking(ctx context.Context, arg keybase1.CheckingArg) (err error) {
+	if p.checkingHook != nil {
+		err = p.checkingHook(ctx, arg)
+	}
+	p.checked = true
+	return err
+}
+
+func (p *ProveUIMock) ContinueChecking(ctx context.Context, _ int) (bool, error) {
+	return true, nil
+}
+
+func (p *ProveUIMock) DisplayRecheckWarning(_ context.Context, arg keybase1.DisplayRecheckWarningArg) error {
+	p.recheck = true
+	return nil
+}
+
+func checkFailed(t testing.TB) {
+	if t.Failed() {
+		// The test failed. Possibly in anothe goroutine. Look earlier in the logs for the real failure.
+		require.FailNow(t, "test already failed")
+	}
 }

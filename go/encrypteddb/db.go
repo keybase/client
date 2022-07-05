@@ -3,6 +3,8 @@ package encrypteddb
 import (
 	"fmt"
 
+	"github.com/go-errors/errors"
+
 	"github.com/keybase/client/go/libkb"
 	"golang.org/x/crypto/nacl/secretbox"
 	"golang.org/x/net/context"
@@ -16,6 +18,9 @@ type boxedData struct {
 	N [24]byte
 	E []byte
 }
+
+// ErrDecryptionFailed is returned when an encrypteddb box fails to decrypt
+var ErrDecryptionFailed = errors.New("failed to decrypt item")
 
 // ***
 // If we change this, make sure to update the key derivation reason for all callers of EncryptedDB!
@@ -57,7 +62,7 @@ func DecodeBox(ctx context.Context, b []byte, getSecretBoxKey KeyFn,
 	}
 	pt, ok := secretbox.Open(nil, boxed.E, &boxed.N, &enckey)
 	if !ok {
-		return fmt.Errorf("failed to decrypt item")
+		return ErrDecryptionFailed
 	}
 
 	if err = libkb.MPackDecode(pt, res); err != nil {

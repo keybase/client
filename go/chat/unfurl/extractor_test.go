@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/keybase/client/go/logger"
+	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/externalstest"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/stretchr/testify/require"
@@ -14,11 +15,14 @@ import (
 const codeBlock = "```"
 
 func TestExtractor(t *testing.T) {
+	tc := externalstest.SetupTest(t, "chat_extractor", 1)
+	defer tc.Cleanup()
+	g := globals.NewContext(tc.G, &globals.ChatContext{})
+
 	uid := gregor1.UID([]byte{0, 1})
 	convID := chat1.ConversationID([]byte{0, 1})
-	log := logger.NewTestLogger(t)
-	settingsMod := NewSettings(log, newMemConversationBackedStorage())
-	extractor := NewExtractor(log)
+	settingsMod := NewSettings(g, newMemConversationBackedStorage())
+	extractor := NewExtractor(g)
 	type testCase struct {
 		message   string
 		mode      chat1.UnfurlMode
@@ -37,35 +41,35 @@ func TestExtractor(t *testing.T) {
 		})
 	}
 	cases := []testCase{
-		testCase{
+		{
 			message: "check out this lame post: http://www.twitter.com/mike/383878473873",
 			mode:    chat1.UnfurlMode_NEVER,
 		},
-		testCase{
+		{
 			message: "check out this lame site: www.google.com",
 			mode:    chat1.UnfurlMode_ALWAYS,
 		},
-		testCase{
+		{
 			message: maxCase,
 			mode:    chat1.UnfurlMode_ALWAYS,
 			result:  maxRes,
 		},
-		testCase{
+		{
 			message: "check out this lame post: http://www.twitter.com/mike/383878473873",
 			mode:    chat1.UnfurlMode_ALWAYS,
 			result: []ExtractorHit{
-				ExtractorHit{
+				{
 					URL: "http://www.twitter.com/mike/383878473873",
 					Typ: ExtractorHitUnfurl,
 				},
 			},
 		},
-		testCase{
+		{
 			message: "check out this lame post: `http://www.twitter.com/mike/383878473873`",
 			mode:    chat1.UnfurlMode_ALWAYS,
 			result:  nil,
 		},
-		testCase{
+		{
 			message: fmt.Sprintf(`%s
 			[mike@lisa-keybase]-[~/go/src/github.com/keybase/client/go] (mike/markdown)$ scraper https://www.wsj.com/articles/a-silicon-valley-tech-leader-walks-a-high-wire-between-the-u-s-and-china-1542650707?mod=hp_lead_pos4
 			2018/11/19 16:33:52 ++Chat: + Scraper: Scrape
@@ -83,52 +87,52 @@ func TestExtractor(t *testing.T) {
 			mode:   chat1.UnfurlMode_ALWAYS,
 			result: nil,
 		},
-		testCase{
+		{
 			message: "check out this lame post: `http://www.twitter.com/mike/383878473873` http://www.twitter.com/mike/MIKE",
 			mode:    chat1.UnfurlMode_ALWAYS,
 			result: []ExtractorHit{
-				ExtractorHit{
+				{
 					URL: "http://www.twitter.com/mike/MIKE",
 					Typ: ExtractorHitUnfurl,
 				},
 			},
 		},
-		testCase{
+		{
 			message: "check out this lame post: ```http://www.twitter.com/mike/383878473873````",
 			mode:    chat1.UnfurlMode_ALWAYS,
 			result:  nil,
 		},
-		testCase{
+		{
 			message: "check out this lame post: http://www.twitter.com/mike/383878473873",
 			mode:    chat1.UnfurlMode_WHITELISTED,
 			result: []ExtractorHit{
-				ExtractorHit{
+				{
 					URL: "http://www.twitter.com/mike/383878473873",
 					Typ: ExtractorHitPrompt,
 				},
 			},
 		},
-		testCase{
+		{
 			message:   "check out this lame post: http://www.twitter.com/mike/383878473873",
 			mode:      chat1.UnfurlMode_WHITELISTED,
 			whitelist: []string{"twitter.com"},
 			result: []ExtractorHit{
-				ExtractorHit{
+				{
 					URL: "http://www.twitter.com/mike/383878473873",
 					Typ: ExtractorHitUnfurl,
 				},
 			},
 		},
-		testCase{
+		{
 			message:   "http://www.github.com/keybase/client check out this lame post: http://www.twitter.com/mike/383878473873",
 			mode:      chat1.UnfurlMode_WHITELISTED,
 			whitelist: []string{"twitter.com", "github.com"},
 			result: []ExtractorHit{
-				ExtractorHit{
+				{
 					URL: "http://www.github.com/keybase/client",
 					Typ: ExtractorHitUnfurl,
 				},
-				ExtractorHit{
+				{
 					URL: "http://www.twitter.com/mike/383878473873",
 					Typ: ExtractorHitUnfurl,
 				},
@@ -149,15 +153,18 @@ func TestExtractor(t *testing.T) {
 }
 
 func TestExtractorExemptions(t *testing.T) {
+	tc := externalstest.SetupTest(t, "chat_extractor", 1)
+	defer tc.Cleanup()
+	g := globals.NewContext(tc.G, &globals.ChatContext{})
+
 	uid := gregor1.UID([]byte{0, 1})
 	convID := chat1.ConversationID([]byte{0, 1})
 	msgID := chat1.MessageID(1)
-	log := logger.NewTestLogger(t)
-	extractor := NewExtractor(log)
+	extractor := NewExtractor(g)
 	settings := chat1.NewUnfurlSettings()
 	settings.Mode = chat1.UnfurlMode_WHITELISTED
 	settings.Whitelist["amazon.com"] = true
-	settingsMod := NewSettings(log, newMemConversationBackedStorage())
+	settingsMod := NewSettings(g, newMemConversationBackedStorage())
 
 	extractor.AddWhitelistExemption(context.TODO(), uid,
 		NewOneTimeWhitelistExemption(convID, msgID, "amazon.com"))

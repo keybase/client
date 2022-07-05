@@ -56,3 +56,17 @@ func FormMessageForDismissItem(ctx context.Context, uid gregor1.UID, id gregor.M
 	}
 	return dismissal, nil
 }
+
+func FormMessageForDismissCategory(ctx context.Context, uid gregor1.UID, cat gregor1.Category) (gregor.Message, error) {
+	dismissal, err := TemplateMessage(uid)
+	if err != nil {
+		return nil, err
+	}
+	dismissal.Ibm_.StateUpdate_.Dismissal_ = &gregor1.Dismissal{
+		Ranges_: []gregor1.MsgRange{
+			{
+				Category_: cat,
+			}},
+	}
+	return dismissal, nil
+}

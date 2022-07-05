@@ -21,9 +21,9 @@ const (
 func (r validateTopicNameRes) String() string {
 	switch r {
 	case validateTopicNameResInvalidChar:
-		return "invalid characters in channel name, please use alphanumeric plus _ and -"
+		return "invalid characters in channel name, please use alphanumeric, underscores, or dashes"
 	case validateTopicNameResInvalidLength:
-		return "invalid channel name length. Must be greater than 0 and <= 20"
+		return "invalid channel name length. Must be greater than 0 and less than or equal to 20"
 	case validateTopicNameResOK:
 		return "OK"
 	}
@@ -79,6 +79,7 @@ func checkMessagePlaintextLength(msg chat1.MessagePlaintext) error {
 		chat1.MessageType_TLFNAME,
 		chat1.MessageType_ATTACHMENTUPLOADED,
 		chat1.MessageType_JOIN,
+		chat1.MessageType_PIN,
 		chat1.MessageType_LEAVE,
 		chat1.MessageType_SYSTEM,
 		chat1.MessageType_DELETEHISTORY,
@@ -87,6 +88,8 @@ func checkMessagePlaintextLength(msg chat1.MessagePlaintext) error {
 		return nil
 	case chat1.MessageType_TEXT:
 		return plaintextFieldLengthChecker("message", len(msg.MessageBody.Text().Body), textMsgLength)
+	case chat1.MessageType_FLIP:
+		return plaintextFieldLengthChecker("flip", len(msg.MessageBody.Flip().Text), textMsgLength)
 	case chat1.MessageType_EDIT:
 		return plaintextFieldLengthChecker("message edit", len(msg.MessageBody.Edit().Body),
 			textMsgLength)

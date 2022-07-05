@@ -40,6 +40,7 @@ protocol identifyUi {
     string accountID;
     string federationAddress;
     SigID sigID;
+    boolean hidden; // for your own account
   }
 
   record RevokedProof {
@@ -110,18 +111,20 @@ protocol identifyUi {
   }
 
   record UserCard {
-    int following;
-    int followers;
+    int unverifiedNumFollowing;
+    int unverifiedNumFollowers;
     UID uid;
     string fullName;
     string location;
     string bio;
+    string bioDecorated;
     string website;
     string twitter;
-    boolean youFollowThem;
-    boolean theyFollowYou;
     array<UserTeamShowcase> teamShowcase;
     boolean registeredForAirdrop;
+    boolean stellarHidden;
+    boolean blocked;
+    boolean hidFromFollowers;
   }
 
   record ConfirmResult {

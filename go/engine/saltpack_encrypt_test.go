@@ -15,6 +15,7 @@ import (
 	"github.com/keybase/client/go/saltpackkeystest"
 	"github.com/keybase/go-codec/codec"
 	"github.com/keybase/saltpack"
+	"github.com/stretchr/testify/require"
 )
 
 type fakeSaltpackUI2 struct {
@@ -388,12 +389,13 @@ func TestSaltpackEncryptNoSelf(t *testing.T) {
 	if !ok {
 		t.Fatalf("Expected err type %T, but got %T", libkb.DecryptionError{}, err)
 	}
-	if _, ok = decErr.Cause.(libkb.NoDecryptionKeyError); !ok {
-		t.Fatalf("Expected err Cause of type %T, but got %T", libkb.NoDecryptionKeyError{}, decErr.Cause)
+	if _, ok = decErr.Cause.Err.(libkb.NoDecryptionKeyError); !ok {
+		t.Fatalf("Expected err Cause of type %T, but got %T", libkb.NoDecryptionKeyError{}, decErr.Cause.Err)
 	}
 
 	Logout(tc)
-	u1.Login(tc.G)
+	err = u1.Login(tc.G)
+	require.NoError(t, err)
 
 	m = m.WithSecretUI(u1.NewSecretUI())
 	decarg.Source = strings.NewReader(string(out))

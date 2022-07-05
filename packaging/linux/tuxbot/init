@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+systemctl --user daemon-reload
+
+for varname in SECRETS_TEAM SECRETS_REPO CHAT_TEAM CHAT_CHANNEL GNUPGHOME; do
+    if [ -z "${!varname}" ]; then
+        echo "No $varname found, check environment settings...aborting."
+        exit 1
+    fi
+done
+
+echo Enter tuxbot paperkey next
+keybase oneshot -u tuxbot
+
+if [ "${KEYBASE_TEST_CODE_SIGNING_KEY:-}" = "1" ]; then
+    echo Enter test code signing key triplesec password next
+    opts="-b "
+    fn=test_code_signing_key.gpg.3sv4
+else
+    echo Enter code signing key triplesec password next
+    opts="-b --compatibility"
+    fn=code_signing_key.gpg.3s
+fi
+echo "(wait until you see 'Key (will not be printed):', may take a bit)"
+# shellcheck disable=SC2086
+triplesec dec $opts < "/keybase/team/$SECRETS_TEAM/.kbfs_autogit/$SECRETS_REPO/$fn" | gpg --import
+
+echo Starting chatbot...
+systemctl --user start tuxbot
+
+echo "Done. Try !help in @$CHAT_TEAM#$CHAT_CHANNEL to ensure chatbot is up."

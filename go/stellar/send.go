@@ -8,6 +8,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/stellar/stellarcommon"
+	"github.com/keybase/stellarnet"
 )
 
 func SendPaymentLocal(mctx libkb.MetaContext, arg stellar1.SendPaymentLocalArg) (res stellar1.SendPaymentResLocal, err error) {
@@ -26,7 +27,7 @@ func SendPaymentLocal(mctx libkb.MetaContext, arg stellar1.SendPaymentLocalArg) 
 			// Not expected.
 			return res, fmt.Errorf("the payment to send was not found")
 		}
-		mctx.CDebugf("got state readyToReview:%v readyToSend:%v set:%v",
+		mctx.Debug("got state readyToReview:%v readyToSend:%v set:%v",
 			data.ReadyToReview, data.ReadyToSend, data.Frozen != nil)
 		if arg.BypassReview {
 			// Pretend that a review occurred and succeeded.
@@ -49,7 +50,7 @@ func SendPaymentLocal(mctx libkb.MetaContext, arg stellar1.SendPaymentLocalArg) 
 		toAccountID, err := libkb.ParseStellarAccountID(arg.To)
 		if err != nil {
 			if verr, ok := err.(libkb.VerboseError); ok {
-				mctx.CDebugf(verr.Verbose())
+				mctx.Debug(verr.Verbose())
 			}
 			return res, fmt.Errorf("recipient: %v", err)
 		}
@@ -75,13 +76,18 @@ func SendPaymentLocal(mctx libkb.MetaContext, arg stellar1.SendPaymentLocalArg) 
 	mctx, cancel = mctx.WithTimeout(30 * time.Second)
 	defer cancel()
 
+	var pubMemo *stellarnet.Memo
+	if arg.PublicMemo != "" {
+		pubMemo = stellarnet.NewMemoText(arg.PublicMemo)
+	}
+
 	sendRes, err := SendPaymentGUI(mctx, getGlobal(mctx.G()).walletState, SendPaymentArg{
 		From:           arg.From,
 		To:             stellarcommon.RecipientInput(to),
 		Amount:         arg.Amount,
 		DisplayBalance: displayBalance,
 		SecretNote:     arg.SecretNote,
-		PublicMemo:     arg.PublicMemo,
+		PublicMemo:     pubMemo,
 		ForceRelay:     false,
 		QuickReturn:    arg.QuickReturn,
 	})
@@ -92,8 +98,9 @@ func SendPaymentLocal(mctx libkb.MetaContext, arg stellar1.SendPaymentLocalArg) 
 		return res, err
 	}
 	return stellar1.SendPaymentResLocal{
-		KbTxID:  sendRes.KbTxID,
-		Pending: sendRes.Pending,
+		KbTxID:     sendRes.KbTxID,
+		Pending:    sendRes.Pending,
+		JumpToChat: sendRes.JumpToChat,
 	}, nil
 }
 

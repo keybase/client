@@ -4,6 +4,9 @@
 package client
 
 import (
+	"errors"
+	"fmt"
+
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
@@ -19,8 +22,9 @@ const (
 )
 
 type CmdVersion struct {
-	mode mode
-	svc  bool
+	mode           mode
+	svc            bool
+	assertMatching bool
 	libkb.Contextified
 }
 
@@ -45,6 +49,10 @@ func NewCmdVersion(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 				Name:  "S, no-service",
 				Usage: "Don't report on the service's build information",
 			},
+			cli.BoolFlag{
+				Name:  "assert-matching",
+				Usage: "Return with a successful exit code iff the client binary, the service, KBFS, and the GUI (if they are running) all have matching versions.",
+			},
 		},
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(NewCmdVersionRunner(g), "version", c)
@@ -63,16 +71,56 @@ func (v *CmdVersion) ParseArgv(c *cli.Context) error {
 		v.mode = modeVerbose
 	}
 	v.svc = !c.Bool("S")
+	v.assertMatching = c.Bool("assert-matching")
+	if v.assertMatching && (v.mode != modeNormal || !v.svc) {
+		return errors.New("cannot use --assert-matching with other options")
+	}
 	return nil
 }
 
 func (v *CmdVersion) Run() error {
 	var err error
+	if v.assertMatching {
+		return v.runAssertMatching()
+	}
 	v.runLocal()
 	if v.svc {
 		err = v.runService()
 	}
 	return err
+}
+
+func (v *CmdVersion) runAssertMatching() error {
+	cli, err := GetConfigClient(v.G())
+	if err != nil {
+		v.G().Log.Debug("no service running: %v", err)
+		return nil
+	}
+	conf, err := cli.GetConfig(context.TODO(), 0)
+	if err != nil {
+		return err
+	}
+	clients, err := cli.GetClientStatus(context.TODO(), 0)
+	if err != nil {
+		return err
+	}
+
+	dui := v.G().UI.GetDumbOutputUI()
+
+	m := make(map[string]struct{})
+	m[conf.Version] = struct{}{}
+	dui.Printf("service: %s\n", conf.Version)
+	for _, client := range clients {
+		version := client.Details.Version
+		dui.Printf("%v: %s\n", client.Details.ClientType, version)
+		m[version] = struct{}{}
+	}
+
+	if len(m) > 1 {
+		return fmt.Errorf("failed to assert matching versions; got %d different versions: %v", len(m), m)
+	}
+
+	return nil
 }
 
 func (v *CmdVersion) runService() error {

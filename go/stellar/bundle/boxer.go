@@ -8,6 +8,7 @@ import (
 	"fmt"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/msgpack"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"golang.org/x/crypto/nacl/secretbox"
@@ -90,7 +91,7 @@ func BoxAndEncode(a *stellar1.Bundle, pukGen keybase1.PerUserKeyGeneration, puk 
 	}
 
 	// have to do this after to get hashes of encrypted account bundles
-	visiblePack, err := libkb.MsgpackEncode(visibleV2)
+	visiblePack, err := msgpack.Encode(visibleV2)
 	if err != nil {
 		return nil, err
 	}
@@ -131,7 +132,7 @@ func visibilitySplit(a *stellar1.Bundle) ([]stellar1.BundleVisibleEntryV2, []ste
 
 func parentBoxAndEncode(bundle stellar1.BundleSecretVersioned, pukGen keybase1.PerUserKeyGeneration, puk libkb.PerUserKeySeed) (stellar1.EncryptedBundle, string, error) {
 	// Msgpack (inner)
-	clearpack, err := libkb.MsgpackEncode(bundle)
+	clearpack, err := msgpack.Encode(bundle)
 	if err != nil {
 		return stellar1.EncryptedBundle{}, "", err
 	}
@@ -148,7 +149,7 @@ func parentBoxAndEncode(bundle stellar1.BundleSecretVersioned, pukGen keybase1.P
 	if err != nil {
 		return stellar1.EncryptedBundle{}, "", err
 	}
-	secbox := secretbox.Seal(nil, clearpack[:], &nonce, (*[libkb.NaclSecretBoxKeySize]byte)(&symmetricKey))
+	secbox := secretbox.Seal(nil, clearpack, &nonce, (*[libkb.NaclSecretBoxKeySize]byte)(&symmetricKey))
 
 	// Annotate
 	res := stellar1.EncryptedBundle{
@@ -159,7 +160,7 @@ func parentBoxAndEncode(bundle stellar1.BundleSecretVersioned, pukGen keybase1.P
 	}
 
 	// Msgpack (outer) + b64
-	cipherpack, err := libkb.MsgpackEncode(res)
+	cipherpack, err := msgpack.Encode(res)
 	if err != nil {
 		return stellar1.EncryptedBundle{}, "", err
 	}
@@ -186,7 +187,7 @@ func accountBoxAndEncode(accountID stellar1.AccountID, accountBundle stellar1.Ac
 		return nil, err
 	}
 
-	encPack, err := libkb.MsgpackEncode(encBundle)
+	encPack, err := msgpack.Encode(encBundle)
 	if err != nil {
 		return nil, err
 	}
@@ -275,7 +276,7 @@ func decodeAndUnboxAcctBundle(m libkb.MetaContext, finder PukFinder, encB64 stri
 // Does not check invariants.
 func accountEncrypt(bundle stellar1.AccountBundleSecretVersioned, pukGen keybase1.PerUserKeyGeneration, puk libkb.PerUserKeySeed) (res stellar1.EncryptedAccountBundle, resB64 string, err error) {
 	// Msgpack (inner)
-	clearpack, err := libkb.MsgpackEncode(bundle)
+	clearpack, err := msgpack.Encode(bundle)
 	if err != nil {
 		return res, resB64, err
 	}
@@ -292,7 +293,7 @@ func accountEncrypt(bundle stellar1.AccountBundleSecretVersioned, pukGen keybase
 	if err != nil {
 		return res, resB64, err
 	}
-	secbox := secretbox.Seal(nil, clearpack[:], &nonce, (*[libkb.NaclSecretBoxKeySize]byte)(&symmetricKey))
+	secbox := secretbox.Seal(nil, clearpack, &nonce, (*[libkb.NaclSecretBoxKeySize]byte)(&symmetricKey))
 
 	// Annotate
 	res = stellar1.EncryptedAccountBundle{
@@ -303,7 +304,7 @@ func accountEncrypt(bundle stellar1.AccountBundleSecretVersioned, pukGen keybase
 	}
 
 	// Msgpack (outer) + b64
-	cipherpack, err := libkb.MsgpackEncode(res)
+	cipherpack, err := msgpack.Encode(res)
 	if err != nil {
 		return res, resB64, err
 	}
@@ -319,7 +320,7 @@ func decodeParent(encryptedB64 string) (stellar1.EncryptedBundle, stellar1.Hash,
 	}
 	encHash := sha256.Sum256(cipherpack)
 	var enc stellar1.EncryptedBundle
-	if err = libkb.MsgpackDecode(&enc, cipherpack); err != nil {
+	if err = msgpack.Decode(&enc, cipherpack); err != nil {
 		return stellar1.EncryptedBundle{}, stellar1.Hash{}, err
 	}
 	return enc, encHash[:], nil
@@ -368,7 +369,7 @@ func unboxParentV2(versioned stellar1.BundleSecretVersioned, visB64 string) (ste
 		return empty, errors.New("corrupted bundle: visible hash mismatch")
 	}
 	var visibleV2 stellar1.BundleVisibleV2
-	err = libkb.MsgpackDecode(&visibleV2, visiblePack)
+	err = msgpack.Decode(&visibleV2, visiblePack)
 	if err != nil {
 		return empty, err
 	}
@@ -402,7 +403,7 @@ func decryptParent(encBundle stellar1.EncryptedBundle, puk libkb.PerUserKeySeed)
 	}
 
 	// Msgpack (inner)
-	err = libkb.MsgpackDecode(&res, clearpack)
+	err = msgpack.Decode(&res, clearpack)
 	return res, err
 }
 
@@ -414,7 +415,7 @@ func decode(encryptedB64 string) (stellar1.EncryptedAccountBundle, stellar1.Hash
 	}
 	encHash := sha256.Sum256(cipherpack)
 	var enc stellar1.EncryptedAccountBundle
-	if err = libkb.MsgpackDecode(&enc, cipherpack); err != nil {
+	if err = msgpack.Decode(&enc, cipherpack); err != nil {
 		return stellar1.EncryptedAccountBundle{}, stellar1.Hash{}, err
 	}
 	return enc, encHash[:], nil
@@ -486,7 +487,7 @@ func decrypt(encBundle stellar1.EncryptedAccountBundle, puk libkb.PerUserKeySeed
 
 	// Msgpack (inner)
 	var bver stellar1.AccountBundleSecretVersioned
-	err = libkb.MsgpackDecode(&bver, clearpack)
+	err = msgpack.Decode(&bver, clearpack)
 	if err != nil {
 		return empty, err
 	}

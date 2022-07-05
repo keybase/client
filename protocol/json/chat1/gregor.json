@@ -2,12 +2,12 @@
   "protocol": "gregor",
   "imports": [
     {
-      "path": "github.com/keybase/client/go/protocol/gregor1",
+      "path": "../gregor1",
       "type": "idl",
       "import_as": "gregor1"
     },
     {
-      "path": "github.com/keybase/client/go/protocol/keybase1",
+      "path": "../keybase1",
       "type": "idl",
       "import_as": "keybase1"
     }
@@ -104,6 +104,10 @@
             "UnreadUpdate"
           ],
           "name": "unreadUpdate"
+        },
+        {
+          "type": "keybase1.TeamRole",
+          "name": "untrustedTeamRole"
         },
         {
           "type": {
@@ -377,6 +381,25 @@
         {
           "type": "boolean",
           "name": "typing"
+        },
+        {
+          "type": "TeamType",
+          "name": "teamType",
+          "mpackkey": "t"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamMemberRoleUpdate",
+      "fields": [
+        {
+          "type": "TLFID",
+          "name": "tlfID"
+        },
+        {
+          "type": "keybase1.TeamRole",
+          "name": "role"
         }
       ]
     },
@@ -387,6 +410,13 @@
         {
           "type": "InboxVers",
           "name": "inboxVers"
+        },
+        {
+          "type": [
+            null,
+            "TeamMemberRoleUpdate"
+          ],
+          "name": "teamMemberRoleUpdate"
         },
         {
           "type": {
@@ -460,16 +490,6 @@
             "items": "ConversationUpdate"
           },
           "name": "convUpdates"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "TeamChannelUpdate",
-      "fields": [
-        {
-          "type": "TLFID",
-          "name": "teamID"
         }
       ]
     },

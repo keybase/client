@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/stellarnet"
 	"github.com/stretchr/testify/require"
 )
 
@@ -69,17 +70,19 @@ var fmtTests = []fmtTest{
 
 func TestFormatAmount(t *testing.T) {
 	tc := libkb.SetupTest(t, "fmt", 1)
+	defer tc.Cleanup()
+
 	for i, test := range fmtTests {
 		switch test.rounding {
 		case "", "round", "truncate":
 		default:
 			t.Fatalf("%v: invalid rounding '%v'", i, test.rounding)
 		}
-		for _, rounding := range []FmtRounding{FmtRound, FmtTruncate} {
-			if test.rounding == "round" && rounding == FmtTruncate {
+		for _, rounding := range []stellarnet.FmtRoundingBehavior{stellarnet.Round, stellarnet.Truncate} {
+			if test.rounding == "round" && rounding == stellarnet.Truncate {
 				continue
 			}
-			if test.rounding == "truncate" && rounding == FmtRound {
+			if test.rounding == "truncate" && rounding == stellarnet.Round {
 				continue
 			}
 			desc := fmt.Sprintf("amount: %v (2pt prec %v) (rounding %v)", test.amount, test.precTwo, rounding)

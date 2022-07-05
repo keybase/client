@@ -39,6 +39,26 @@
       ]
     },
     {
+      "type": "record",
+      "name": "GetBlockSizesRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "int"
+          },
+          "name": "sizes"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "BlockStatus"
+          },
+          "name": "statuses"
+        }
+      ]
+    },
+    {
       "type": "fixed",
       "name": "BlockRefNonce",
       "size": "8"
@@ -124,6 +144,93 @@
       "type": "record",
       "name": "BlockPingResponse",
       "fields": []
+    },
+    {
+      "type": "record",
+      "name": "UsageStatRecord",
+      "fields": [
+        {
+          "type": "int64",
+          "name": "write"
+        },
+        {
+          "type": "int64",
+          "name": "archive"
+        },
+        {
+          "type": "int64",
+          "name": "read"
+        },
+        {
+          "type": "int64",
+          "name": "mdWrite"
+        },
+        {
+          "type": "int64",
+          "name": "gitWrite"
+        },
+        {
+          "type": "int64",
+          "name": "gitArchive"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UsageStat",
+      "fields": [
+        {
+          "type": "UsageStatRecord",
+          "name": "bytes"
+        },
+        {
+          "type": "UsageStatRecord",
+          "name": "blocks"
+        },
+        {
+          "type": "Time",
+          "name": "mtime"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "FolderUsageStat",
+      "fields": [
+        {
+          "type": "string",
+          "name": "folderID"
+        },
+        {
+          "type": "UsageStat",
+          "name": "stats"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "BlockQuotaInfo",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "FolderUsageStat"
+          },
+          "name": "folders"
+        },
+        {
+          "type": "UsageStat",
+          "name": "total"
+        },
+        {
+          "type": "int64",
+          "name": "limit"
+        },
+        {
+          "type": "int64",
+          "name": "gitLimit"
+        }
+      ]
     }
   ],
   "messages": {
@@ -159,7 +266,8 @@
           "type": "bytes"
         }
       ],
-      "response": null
+      "response": null,
+      "compression_type": "none"
     },
     "putBlockAgain": {
       "request": [
@@ -180,7 +288,8 @@
           "type": "bytes"
         }
       ],
-      "response": null
+      "response": null,
+      "compression_type": "none"
     },
     "getBlock": {
       "request": [
@@ -197,7 +306,24 @@
           "type": "boolean"
         }
       ],
-      "response": "GetBlockRes"
+      "response": "GetBlockRes",
+      "compression_type": "none"
+    },
+    "getBlockSizes": {
+      "request": [
+        {
+          "name": "bids",
+          "type": {
+            "type": "array",
+            "items": "BlockIdCombo"
+          }
+        },
+        {
+          "name": "folder",
+          "type": "string"
+        }
+      ],
+      "response": "GetBlockSizesRes"
     },
     "addReference": {
       "request": [
@@ -309,10 +435,33 @@
       ],
       "response": "bytes"
     },
+    "getUserQuotaInfo2": {
+      "request": [
+        {
+          "name": "includeFolders",
+          "type": "boolean"
+        }
+      ],
+      "response": "BlockQuotaInfo"
+    },
+    "getTeamQuotaInfo2": {
+      "request": [
+        {
+          "name": "tid",
+          "type": "TeamID"
+        },
+        {
+          "name": "includeFolders",
+          "type": "boolean"
+        }
+      ],
+      "response": "BlockQuotaInfo"
+    },
     "blockPing": {
       "request": [],
       "response": "BlockPingResponse"
     }
   },
-  "namespace": "keybase.1"
+  "namespace": "keybase.1",
+  "compression_type": "gzip"
 }

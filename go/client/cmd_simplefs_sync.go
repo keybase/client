@@ -16,10 +16,10 @@ func NewCmdSimpleFSSync(
 	return cli.Command{
 		Name:  "sync",
 		Usage: "Manages the per-folder syncing state",
-		Subcommands: append([]cli.Command{
+		Subcommands: []cli.Command{
 			NewCmdSimpleFSSyncEnable(cl, g),
 			NewCmdSimpleFSSyncDisable(cl, g),
 			NewCmdSimpleFSSyncShow(cl, g),
-		}),
+		},
 	}
 }

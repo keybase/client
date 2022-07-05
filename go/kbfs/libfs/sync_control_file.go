@@ -7,7 +7,9 @@ package libfs
 import (
 	"fmt"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/libkbfs"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/net/context"
 )
@@ -36,14 +38,14 @@ func (a SyncAction) String() string {
 // Execute performs the action on the given JournalManager for the
 // given TLF.
 func (a SyncAction) Execute(
-	ctx context.Context, c libkbfs.Config, fb libkbfs.FolderBranch,
-	h *libkbfs.TlfHandle) (err error) {
-	if fb == (libkbfs.FolderBranch{}) {
+	ctx context.Context, c libkbfs.Config, fb data.FolderBranch,
+	h *tlfhandle.Handle) (err error) {
+	if fb == (data.FolderBranch{}) {
 		panic("zero fb in SyncAction.Execute")
 	}
 
 	// Ensure the TLF is initialized by getting the root node first.
-	_, _, err = c.KBFSOps().GetRootNode(ctx, h, libkbfs.MasterBranch)
+	_, _, err = c.KBFSOps().GetRootNode(ctx, h, data.MasterBranch)
 	if err != nil {
 		return err
 	}

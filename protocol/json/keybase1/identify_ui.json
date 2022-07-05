@@ -127,6 +127,10 @@
         {
           "type": "SigID",
           "name": "sigID"
+        },
+        {
+          "type": "boolean",
+          "name": "hidden"
         }
       ]
     },
@@ -356,11 +360,11 @@
       "fields": [
         {
           "type": "int",
-          "name": "following"
+          "name": "unverifiedNumFollowing"
         },
         {
           "type": "int",
-          "name": "followers"
+          "name": "unverifiedNumFollowers"
         },
         {
           "type": "UID",
@@ -380,19 +384,15 @@
         },
         {
           "type": "string",
+          "name": "bioDecorated"
+        },
+        {
+          "type": "string",
           "name": "website"
         },
         {
           "type": "string",
           "name": "twitter"
-        },
-        {
-          "type": "boolean",
-          "name": "youFollowThem"
-        },
-        {
-          "type": "boolean",
-          "name": "theyFollowYou"
         },
         {
           "type": {
@@ -404,6 +404,18 @@
         {
           "type": "boolean",
           "name": "registeredForAirdrop"
+        },
+        {
+          "type": "boolean",
+          "name": "stellarHidden"
+        },
+        {
+          "type": "boolean",
+          "name": "blocked"
+        },
+        {
+          "type": "boolean",
+          "name": "hidFromFollowers"
         }
       ]
     },

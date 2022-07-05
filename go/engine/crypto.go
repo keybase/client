@@ -24,7 +24,7 @@ var getKeyMu sync.Mutex
 // have your device keys cached, or you aren't.
 //
 // If the key isn't found in the ActiveDevice cache, this will return LoginRequiredError.
-func GetMySecretKey(ctx context.Context, g *libkb.GlobalContext, getSecretUI func() libkb.SecretUI, secretKeyType libkb.SecretKeyType, reason string) (libkb.GenericKey, error) {
+func GetMySecretKey(ctx context.Context, g *libkb.GlobalContext, secretKeyType libkb.SecretKeyType, reason string) (libkb.GenericKey, error) {
 	key, err := g.ActiveDevice.KeyByType(secretKeyType)
 	if err != nil {
 		if _, ok := err.(libkb.NotFoundError); ok {
@@ -37,10 +37,24 @@ func GetMySecretKey(ctx context.Context, g *libkb.GlobalContext, getSecretUI fun
 	return key, nil
 }
 
+// GetMySecretKeyWithUID is like GetMySecretKey but returns an error if uid is not active.
+func GetMySecretKeyWithUID(ctx context.Context, g *libkb.GlobalContext, uid keybase1.UID, secretKeyType libkb.SecretKeyType, reason string) (libkb.GenericKey, error) {
+	key, err := g.ActiveDevice.KeyByTypeWithUID(uid, secretKeyType)
+	if err != nil {
+		if _, ok := err.(libkb.NotFoundError); ok {
+			g.Log.CDebugf(ctx, "GetMySecretKeyWithUID: no device key of type %s in ActiveDevice, returning LoginRequiredError", secretKeyType)
+			return nil, libkb.LoginRequiredError{Context: "GetMySecretKey"}
+		}
+		g.Log.CDebugf(ctx, "GetMySecretKeyWithUID(%s), unexpected error: %s", secretKeyType, err)
+		return nil, err
+	}
+	return key, nil
+}
+
 // SignED25519 signs the given message with the current user's private
 // signing key.
-func SignED25519(ctx context.Context, g *libkb.GlobalContext, getSecretUI func() libkb.SecretUI, arg keybase1.SignED25519Arg) (ret keybase1.ED25519SignatureInfo, err error) {
-	signingKey, err := GetMySecretKey(ctx, g, getSecretUI, libkb.DeviceSigningKeyType, arg.Reason)
+func SignED25519(ctx context.Context, g *libkb.GlobalContext, arg keybase1.SignED25519Arg) (ret keybase1.ED25519SignatureInfo, err error) {
+	signingKey, err := GetMySecretKey(ctx, g, libkb.DeviceSigningKeyType, arg.Reason)
 	if err != nil {
 		return
 	}
@@ -62,9 +76,9 @@ func SignED25519(ctx context.Context, g *libkb.GlobalContext, getSecretUI func()
 
 // SignED25519ForKBFS signs the given message with the current user's private
 // signing key on behalf of KBFS.
-func SignED25519ForKBFS(ctx context.Context, g *libkb.GlobalContext, getSecretUI func() libkb.SecretUI, arg keybase1.SignED25519ForKBFSArg) (
+func SignED25519ForKBFS(ctx context.Context, g *libkb.GlobalContext, arg keybase1.SignED25519ForKBFSArg) (
 	ret keybase1.ED25519SignatureInfo, err error) {
-	signingKey, err := GetMySecretKey(ctx, g, getSecretUI, libkb.DeviceSigningKeyType, arg.Reason)
+	signingKey, err := GetMySecretKey(ctx, g, libkb.DeviceSigningKeyType, arg.Reason)
 	if err != nil {
 		return
 	}
@@ -90,8 +104,8 @@ func SignED25519ForKBFS(ctx context.Context, g *libkb.GlobalContext, getSecretUI
 
 // SignToString signs the given message with the current user's private
 // signing key and outputs the serialized NaclSigInfo string.
-func SignToString(ctx context.Context, g *libkb.GlobalContext, getSecretUI func() libkb.SecretUI, arg keybase1.SignToStringArg) (sig string, err error) {
-	signingKey, err := GetMySecretKey(ctx, g, getSecretUI, libkb.DeviceSigningKeyType, arg.Reason)
+func SignToString(ctx context.Context, g *libkb.GlobalContext, arg keybase1.SignToStringArg) (sig string, err error) {
+	signingKey, err := GetMySecretKey(ctx, g, libkb.DeviceSigningKeyType, arg.Reason)
 	if err != nil {
 		return
 	}
@@ -108,8 +122,8 @@ func SignToString(ctx context.Context, g *libkb.GlobalContext, getSecretUI func(
 
 // UnboxBytes32 decrypts the given message with the current user's
 // private encryption key and the given nonce and peer public key.
-func UnboxBytes32(ctx context.Context, g *libkb.GlobalContext, getSecretUI func() libkb.SecretUI, arg keybase1.UnboxBytes32Arg) (bytes32 keybase1.Bytes32, err error) {
-	encryptionKey, err := GetMySecretKey(ctx, g, getSecretUI, libkb.DeviceEncryptionKeyType, arg.Reason)
+func UnboxBytes32(ctx context.Context, g *libkb.GlobalContext, arg keybase1.UnboxBytes32Arg) (bytes32 keybase1.Bytes32, err error) {
+	encryptionKey, err := GetMySecretKey(ctx, g, libkb.DeviceEncryptionKeyType, arg.Reason)
 	if err != nil {
 		return
 	}
@@ -122,7 +136,7 @@ func UnboxBytes32(ctx context.Context, g *libkb.GlobalContext, getSecretUI func(
 // cached paper keys, local device key, user-entered paper key.
 // It returns the KID and bundle index along with the plaintext.
 func UnboxBytes32Any(m libkb.MetaContext, getSecretUI func() libkb.SecretUI, arg keybase1.UnboxBytes32AnyArg) (res keybase1.UnboxAnyRes, err error) {
-	defer m.CTrace("UnboxBytes32Any", func() error { return err })()
+	defer m.Trace("UnboxBytes32Any", &err)()
 
 	// find a matching secret key for a bundle in arg.Bundles
 	key, index, err := getMatchingSecretKey(m, getSecretUI, arg)
@@ -181,13 +195,13 @@ func getMatchingSecretKey(m libkb.MetaContext, getSecretUI func() libkb.SecretUI
 		return key, index, nil
 	}
 
-	m.CDebugf("getMatchingSecretKey: acquiring lock")
+	m.Debug("getMatchingSecretKey: acquiring lock")
 	getKeyMu.Lock()
 	defer func() {
 		getKeyMu.Unlock()
-		m.CDebugf("getMatchingSecretKey: lock released")
+		m.Debug("getMatchingSecretKey: lock released")
 	}()
-	m.CDebugf("getMatchingSecretKey: lock acquired")
+	m.Debug("getMatchingSecretKey: lock acquired")
 
 	// check cache after acquiring lock
 	key, index, err = matchingCachedKey(m, arg)
@@ -197,7 +211,7 @@ func getMatchingSecretKey(m libkb.MetaContext, getSecretUI func() libkb.SecretUI
 	if key != nil {
 		return key, index, nil
 	}
-	m.CDebugf("getMatchingSecretKey: no matching cached device key found")
+	m.Debug("getMatchingSecretKey: no matching cached device key found")
 
 	// load the user
 	me, err := libkb.LoadMe(libkb.NewLoadUserArgWithMetaContext(m))
@@ -216,10 +230,10 @@ func getMatchingSecretKey(m libkb.MetaContext, getSecretUI func() libkb.SecretUI
 	if key != nil {
 		return key, index, nil
 	}
-	m.CDebugf("getMatchingSecretKey: no matching device key found")
+	m.Debug("getMatchingSecretKey: no matching device key found")
 
 	if !arg.PromptPaper {
-		m.CDebugf("UnboxBytes32Any/getMatchingSecretKey: not checking paper keys (promptPaper == false)")
+		m.Debug("UnboxBytes32Any/getMatchingSecretKey: not checking paper keys (promptPaper == false)")
 		return nil, 0, libkb.NoSecretKeyError{}
 	}
 
@@ -277,10 +291,10 @@ func matchingDeviceKey(m libkb.MetaContext, secretUI libkb.SecretUI, arg keybase
 			return key, n, nil
 		}
 
-		m.CDebugf("matchingDeviceKey: no match found for ekey in arg.Bundles")
+		m.Debug("matchingDeviceKey: no match found for ekey in arg.Bundles")
 		logNoMatch(m, ekey, arg.Bundles)
 	} else {
-		m.CDebugf("matchingDeviceKey: ignoring error getting device subkey: %s", err)
+		m.Debug("matchingDeviceKey: ignoring error getting device subkey: %s", err)
 	}
 
 	return nil, 0, nil
@@ -299,12 +313,12 @@ func matchingPaperKey(m libkb.MetaContext, secretUI libkb.SecretUI, arg keybase1
 			return nil, 0, err
 		}
 		if _, ok := kidMatch(enckey, arg.Bundles); ok {
-			m.CDebugf("matching paper key: %s", *pdev.Description)
+			m.Debug("matching paper key: %s", *pdev.Description)
 			matchingPaper = append(matchingPaper, pdev)
 		}
 	}
 	if len(matchingPaper) == 0 {
-		m.CDebugf("no matching paper keys found")
+		m.Debug("no matching paper keys found")
 		return nil, 0, nil
 	}
 
@@ -350,12 +364,12 @@ func kidMatch(key libkb.GenericKey, bundles []keybase1.CiphertextBundle) (int, b
 
 func logNoMatch(m libkb.MetaContext, key libkb.GenericKey, bundles []keybase1.CiphertextBundle) {
 	if key == nil {
-		m.CDebugf("logNoMatch: key is nil")
+		m.Debug("logNoMatch: key is nil")
 		return
 	}
 	kid := key.GetKID()
-	m.CDebugf("logNoMatch: desired kid: %s", kid)
+	m.Debug("logNoMatch: desired kid: %s", kid)
 	for i, bundle := range bundles {
-		m.CDebugf("logNoMatch: kid %d: %s (%v)", i, bundle.Kid, kid.Equal(bundle.Kid))
+		m.Debug("logNoMatch: kid %d: %s (%v)", i, bundle.Kid, kid.Equal(bundle.Kid))
 	}
 }

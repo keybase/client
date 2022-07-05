@@ -9,10 +9,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "appdmg": "0.5.2",
-    "nan": "2.12.1"
-  },
-  "resolutions": {
-    "**/nan": "2.12.1"
+    "appdmg": "0.6.0"
   }
 }

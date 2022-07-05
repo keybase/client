@@ -11,8 +11,12 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/data"
+	"github.com/keybase/client/go/kbfs/libcontext"
 	"github.com/keybase/client/go/kbfs/libkbfs"
+	"github.com/keybase/client/go/kbfs/test/clocktest"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
@@ -22,7 +26,7 @@ import (
 func initConfig(t *testing.T) (
 	ctx context.Context, cancel context.CancelFunc,
 	config *libkbfs.ConfigLocal, tempdir string) {
-	ctx = libkbfs.BackgroundContextWithCancellationDelayer()
+	ctx = libcontext.BackgroundContextWithCancellationDelayer()
 	config = libkbfs.MakeTestConfigOrBustLoggedInWithMode(
 		t, 0, libkbfs.InitSingleOp, "user1", "user2")
 	success := false
@@ -41,7 +45,7 @@ func initConfig(t *testing.T) (
 	err = config.EnableDiskLimiter(tempdir)
 	require.NoError(t, err)
 	err = config.EnableJournaling(
-		ctx, tempdir, libkbfs.TLFJournalBackgroundWorkEnabled)
+		ctx, tempdir, libkbfs.TLFJournalSingleOpBackgroundWorkEnabled)
 	require.NoError(t, err)
 
 	return ctx, cancel, config, tempdir
@@ -53,8 +57,8 @@ func TestGetOrCreateRepoAndID(t *testing.T) {
 	defer os.RemoveAll(tempdir)
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 
-	h, err := libkbfs.ParseTlfHandle(
-		ctx, config.KBPKI(), config.MDOps(), "user1", tlf.Private)
+	h, err := tlfhandle.ParseHandle(
+		ctx, config.KBPKI(), config.MDOps(), nil, "user1", tlf.Private)
 	require.NoError(t, err)
 
 	fs, id1, err := GetOrCreateRepoAndID(ctx, config, h, "Repo1", "")
@@ -90,10 +94,11 @@ func TestGetOrCreateRepoAndID(t *testing.T) {
 	_, _, err = GetOrCreateRepoAndID(ctx, config, h, "repo(4)", "")
 	require.IsType(t, libkb.InvalidRepoNameError{}, errors.Cause(err))
 
-	fs.SyncAll()
+	err = fs.SyncAll()
+	require.NoError(t, err)
 
 	rootNode, _, err := config.KBFSOps().GetOrCreateRootNode(
-		ctx, h, libkbfs.MasterBranch)
+		ctx, h, data.MasterBranch)
 	require.NoError(t, err)
 	jManager, err := libkbfs.GetJournalManager(config)
 	require.NoError(t, err)
@@ -108,8 +113,8 @@ func TestCreateRepoAndID(t *testing.T) {
 	defer os.RemoveAll(tempdir)
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 
-	h, err := libkbfs.ParseTlfHandle(
-		ctx, config.KBPKI(), config.MDOps(), "user1", tlf.Private)
+	h, err := tlfhandle.ParseHandle(
+		ctx, config.KBPKI(), config.MDOps(), nil, "user1", tlf.Private)
 	require.NoError(t, err)
 
 	id1, err := CreateRepoAndID(ctx, config, h, "Repo1")
@@ -129,7 +134,7 @@ func TestCreateRepoAndID(t *testing.T) {
 	require.IsType(t, libkb.RepoAlreadyExistsError{}, err)
 
 	rootNode, _, err := config.KBFSOps().GetOrCreateRootNode(
-		ctx, h, libkbfs.MasterBranch)
+		ctx, h, data.MasterBranch)
 	require.NoError(t, err)
 	jManager, err := libkbfs.GetJournalManager(config)
 	require.NoError(t, err)
@@ -157,12 +162,12 @@ func TestCreateDuplicateRepo(t *testing.T) {
 	require.NoError(t, err)
 	defer libkbfs.CheckConfigAndShutdown(ctx2, t, config2)
 
-	h, err := libkbfs.ParseTlfHandle(
-		ctx, config.KBPKI(), config.MDOps(), "user1,user2", tlf.Private)
+	h, err := tlfhandle.ParseHandle(
+		ctx, config.KBPKI(), config.MDOps(), nil, "user1,user2", tlf.Private)
 	require.NoError(t, err)
 
 	rootNode, _, err := config.KBFSOps().GetOrCreateRootNode(
-		ctx, h, libkbfs.MasterBranch)
+		ctx, h, data.MasterBranch)
 	require.NoError(t, err)
 
 	t.Log("Start one create and wait for it to get the lock")
@@ -182,7 +187,7 @@ func TestCreateDuplicateRepo(t *testing.T) {
 
 	t.Log("Start 2nd create and wait for it to try to get the lock")
 	_, _, err = config2.KBFSOps().GetOrCreateRootNode(
-		ctx2, h, libkbfs.MasterBranch)
+		ctx2, h, data.MasterBranch)
 	require.NoError(t, err)
 	onStalled2, unstall2, getCtx2 := libkbfs.StallMDOp(
 		ctx2, config2, libkbfs.StallableMDGetRange, 1)
@@ -227,8 +232,8 @@ func TestGetRepoAndID(t *testing.T) {
 	defer os.RemoveAll(tempdir)
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 
-	h, err := libkbfs.ParseTlfHandle(
-		ctx, config.KBPKI(), config.MDOps(), "user1", tlf.Private)
+	h, err := tlfhandle.ParseHandle(
+		ctx, config.KBPKI(), config.MDOps(), nil, "user1", tlf.Private)
 	require.NoError(t, err)
 
 	_, _, err = GetRepoAndID(ctx, config, h, "Repo1", "")
@@ -246,7 +251,7 @@ func TestGetRepoAndID(t *testing.T) {
 	require.Equal(t, id1, id3)
 
 	rootNode, _, err := config.KBFSOps().GetOrCreateRootNode(
-		ctx, h, libkbfs.MasterBranch)
+		ctx, h, data.MasterBranch)
 	require.NoError(t, err)
 	jManager, err := libkbfs.GetJournalManager(config)
 	require.NoError(t, err)
@@ -260,18 +265,18 @@ func TestDeleteRepo(t *testing.T) {
 	defer cancel()
 	defer os.RemoveAll(tempdir)
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
-	clock := &libkbfs.TestClock{}
+	clock := &clocktest.TestClock{}
 	clock.Set(time.Now())
 	config.SetClock(clock)
 
-	h, err := libkbfs.ParseTlfHandle(
-		ctx, config.KBPKI(), config.MDOps(), "user1", tlf.Private)
+	h, err := tlfhandle.ParseHandle(
+		ctx, config.KBPKI(), config.MDOps(), nil, "user1", tlf.Private)
 	require.NoError(t, err)
 
 	_, err = CreateRepoAndID(ctx, config, h, "Repo1")
 	require.NoError(t, err)
 	rootNode, _, err := config.KBFSOps().GetOrCreateRootNode(
-		ctx, h, libkbfs.MasterBranch)
+		ctx, h, data.MasterBranch)
 	require.NoError(t, err)
 	jManager, err := libkbfs.GetJournalManager(config)
 	require.NoError(t, err)
@@ -282,14 +287,15 @@ func TestDeleteRepo(t *testing.T) {
 	err = DeleteRepo(ctx, config, h, "Repo1")
 	require.NoError(t, err)
 
-	gitNode, _, err := config.KBFSOps().Lookup(ctx, rootNode, kbfsRepoDir)
+	gitNode, _, err := config.KBFSOps().Lookup(
+		ctx, rootNode, rootNode.ChildName(kbfsRepoDir))
 	require.NoError(t, err)
 	children, err := config.KBFSOps().GetDirChildren(ctx, gitNode)
 	require.NoError(t, err)
 	require.Len(t, children, 0) // .kbfs_deleted_repos is hidden
 
 	deletedReposNode, _, err := config.KBFSOps().Lookup(
-		ctx, gitNode, kbfsDeletedReposDir)
+		ctx, gitNode, gitNode.ChildName(kbfsDeletedReposDir))
 	require.NoError(t, err)
 	children, err = config.KBFSOps().GetDirChildren(ctx, deletedReposNode)
 	require.NoError(t, err)
@@ -321,8 +327,8 @@ func TestRepoRename(t *testing.T) {
 	defer os.RemoveAll(tempdir)
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 
-	h, err := libkbfs.ParseTlfHandle(
-		ctx, config.KBPKI(), config.MDOps(), "user1", tlf.Private)
+	h, err := tlfhandle.ParseHandle(
+		ctx, config.KBPKI(), config.MDOps(), nil, "user1", tlf.Private)
 	require.NoError(t, err)
 
 	id1, err := CreateRepoAndID(ctx, config, h, "Repo1")

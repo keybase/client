@@ -1,4 +1,0 @@
-// @flow
-import * as React from 'react'
-import type {Props} from './nav.types'
-export default class Nav extends React.Component<Props> {}

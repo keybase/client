@@ -55,6 +55,11 @@ func NewBlockServerMeasured(delegate BlockServer, r metrics.Registry) BlockServe
 	}
 }
 
+// FastForwardBackoff implements the BlockServer interface.
+func (b BlockServerMeasured) FastForwardBackoff() {
+	b.delegate.FastForwardBackoff()
+}
+
 // Get implements the BlockServer interface for BlockServerMeasured.
 func (b BlockServerMeasured) Get(
 	ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
@@ -67,15 +72,16 @@ func (b BlockServerMeasured) Get(
 	return buf, serverHalf, err
 }
 
-// GetEncodedSize implements the BlockServer interface for BlockServerMeasured.
-func (b BlockServerMeasured) GetEncodedSize(
-	ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
-	context kbfsblock.Context) (
-	size uint32, status keybase1.BlockStatus, err error) {
+// GetEncodedSizes implements the BlockServer interface for BlockServerMeasured.
+func (b BlockServerMeasured) GetEncodedSizes(
+	ctx context.Context, tlfID tlf.ID, ids []kbfsblock.ID,
+	contexts []kbfsblock.Context) (
+	sizes []uint32, statuses []keybase1.BlockStatus, err error) {
 	b.getEncodedSizeTimer.Time(func() {
-		size, status, err = b.delegate.GetEncodedSize(ctx, tlfID, id, context)
+		sizes, statuses, err = b.delegate.GetEncodedSizes(
+			ctx, tlfID, ids, contexts)
 	})
-	return size, status, err
+	return sizes, statuses, err
 }
 
 // Put implements the BlockServer interface for BlockServerMeasured.

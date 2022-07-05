@@ -5,10 +5,12 @@ import (
 	"strings"
 
 	"github.com/davecgh/go-spew/spew"
+	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfscodec"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/libkbfs"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/net/context"
 )
 
@@ -19,7 +21,7 @@ import (
 // service.
 type replacementMap map[string]string
 
-func mdDumpGetDeviceStringForCryptPublicKey(k kbfscrypto.CryptPublicKey, ui libkbfs.UserInfo) (
+func mdDumpGetDeviceStringForCryptPublicKey(k kbfscrypto.CryptPublicKey, ui idutil.UserInfo) (
 	string, bool) {
 	deviceName, ok := ui.KIDNames[k.KID()]
 	if !ok {
@@ -34,7 +36,7 @@ func mdDumpGetDeviceStringForCryptPublicKey(k kbfscrypto.CryptPublicKey, ui libk
 	return fmt.Sprintf("%s (kid:%s)", deviceName, k), true
 }
 
-func mdDumpGetDeviceStringForVerifyingKey(k kbfscrypto.VerifyingKey, ui libkbfs.UserInfo) (
+func mdDumpGetDeviceStringForVerifyingKey(k kbfscrypto.VerifyingKey, ui idutil.UserInfo) (
 	string, bool) {
 	deviceName, ok := ui.KIDNames[k.KID()]
 	if !ok {
@@ -50,13 +52,15 @@ func mdDumpGetDeviceStringForVerifyingKey(k kbfscrypto.VerifyingKey, ui libkbfs.
 }
 
 func mdDumpFillReplacements(ctx context.Context, codec kbfscodec.Codec,
-	service libkbfs.KeybaseService, prefix string,
-	rmd kbfsmd.RootMetadata, extra kbfsmd.ExtraMetadata,
+	service libkbfs.KeybaseService, osg idutil.OfflineStatusGetter,
+	prefix string, rmd kbfsmd.RootMetadata, extra kbfsmd.ExtraMetadata,
 	replacements replacementMap) error {
 	writers, readers, err := rmd.GetUserDevicePublicKeys(extra)
 	if err != nil {
 		return err
 	}
+
+	offline := osg.OfflineAvailabilityForID(rmd.TlfID())
 
 	for _, userKeys := range []kbfsmd.UserDevicePublicKeys{writers, readers} {
 		for u := range userKeys {
@@ -68,7 +72,8 @@ func mdDumpFillReplacements(ctx context.Context, codec kbfscodec.Codec,
 			}
 
 			username, _, err := service.Resolve(
-				ctx, fmt.Sprintf("uid:%s", u))
+				ctx, fmt.Sprintf("uid:%s", u),
+				keybase1.OfflineAvailability_NONE)
 			if err == nil {
 				replacements[u.String()] = fmt.Sprintf(
 					"%s (uid:%s)", username, u)
@@ -78,7 +83,7 @@ func mdDumpFillReplacements(ctx context.Context, codec kbfscodec.Codec,
 				printError(prefix, err)
 			}
 
-			ui, err := service.LoadUserPlusKeys(ctx, u, "")
+			ui, err := service.LoadUserPlusKeys(ctx, u, "", offline)
 			if err != nil {
 				printError(prefix, err)
 				continue
@@ -180,7 +185,7 @@ func mdDumpReadOnlyRMD(ctx context.Context, config libkbfs.Config,
 	prefix string, replacements replacementMap,
 	rmd libkbfs.ReadOnlyRootMetadata) error {
 	err := mdDumpFillReplacements(
-		ctx, config.Codec(), config.KeybaseService(),
+		ctx, config.Codec(), config.KeybaseService(), config,
 		prefix, rmd.GetBareRootMetadata(), rmd.Extra(), replacements)
 	if err != nil {
 		printError(prefix, err)

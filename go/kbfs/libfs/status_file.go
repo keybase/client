@@ -7,6 +7,7 @@ package libfs
 import (
 	"time"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"golang.org/x/net/context"
@@ -15,7 +16,7 @@ import (
 // GetEncodedFolderStatus returns serialized JSON containing status information
 // for a folder
 func GetEncodedFolderStatus(ctx context.Context, config libkbfs.Config,
-	folderBranch libkbfs.FolderBranch) (
+	folderBranch data.FolderBranch) (
 	data []byte, t time.Time, err error) {
 	var status libkbfs.FolderBranchStatus
 	status, _, err = config.KBFSOps().FolderStatus(ctx, folderBranch)
@@ -34,6 +35,7 @@ func GetEncodedStatus(ctx context.Context, config libkbfs.Config) (
 	status, _, err := config.KBFSOps().Status(ctx)
 	if err != nil {
 		config.Reporter().ReportErr(ctx, "", tlf.Private, libkbfs.ReadMode, err)
+		return nil, t, err
 	}
 	data, err = PrettyJSON(status)
 	return

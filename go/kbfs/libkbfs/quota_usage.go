@@ -5,10 +5,12 @@
 package libkbfs
 
 import (
+	"fmt"
 	"sync"
 	"time"
 
 	"github.com/keybase/client/go/kbfs/kbfsblock"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
@@ -55,16 +57,22 @@ type EventuallyConsistentQuotaUsage struct {
 	bgFetch bool
 }
 
+// QuotaUsageLogModule makes a log module for a quota usage log.
+func QuotaUsageLogModule(suffix string) string {
+	return fmt.Sprintf("%s - %s", ECQUID, suffix)
+}
+
 // NewEventuallyConsistentQuotaUsage creates a new
 // EventuallyConsistentQuotaUsage object.
 func NewEventuallyConsistentQuotaUsage(
-	config Config, loggerSuffix string) *EventuallyConsistentQuotaUsage {
+	config Config, log logger.Logger,
+	vlog *libkb.VDebugLog) *EventuallyConsistentQuotaUsage {
 	q := &EventuallyConsistentQuotaUsage{
 		config: config,
-		log:    config.MakeLogger(ECQUID + "-" + loggerSuffix),
+		log:    log,
 	}
 	q.fetcher = newFetchDecider(
-		q.log, q.getAndCache, ECQUCtxTagKey{}, ECQUID, q.config)
+		q.log, vlog, q.getAndCache, ECQUCtxTagKey{}, ECQUID, q.config)
 	return q
 }
 
@@ -72,8 +80,8 @@ func NewEventuallyConsistentQuotaUsage(
 // EventuallyConsistentQuotaUsage object.
 func NewEventuallyConsistentTeamQuotaUsage(
 	config Config, tid keybase1.TeamID,
-	loggerSuffix string) *EventuallyConsistentQuotaUsage {
-	q := NewEventuallyConsistentQuotaUsage(config, loggerSuffix)
+	log logger.Logger, vlog *libkb.VDebugLog) *EventuallyConsistentQuotaUsage {
+	q := NewEventuallyConsistentQuotaUsage(config, log, vlog)
 	q.tid = tid
 	return q
 }
@@ -98,6 +106,12 @@ func (q *EventuallyConsistentQuotaUsage) getID(
 
 func (q *EventuallyConsistentQuotaUsage) cache(
 	ctx context.Context, quotaInfo *kbfsblock.QuotaInfo, doCacheToDisk bool) {
+	id, err := q.getID(ctx)
+	if err != nil {
+		q.log.CDebugf(ctx, "Can't get ID: %+v", err)
+		return
+	}
+
 	q.mu.Lock()
 	defer q.mu.Unlock()
 	q.cached.limitBytes = quotaInfo.Limit
@@ -118,11 +132,6 @@ func (q *EventuallyConsistentQuotaUsage) cache(
 		return
 	}
 
-	id, err := q.getID(ctx)
-	if err != nil {
-		q.log.CDebugf(ctx, "Can't get ID: %+v", err)
-		return
-	}
 	err = dqc.Put(ctx, id, *quotaInfo)
 	if err != nil {
 		q.log.CDebugf(ctx, "Can't cache quota for %s: %+v", id, err)
@@ -131,10 +140,20 @@ func (q *EventuallyConsistentQuotaUsage) cache(
 
 func (q *EventuallyConsistentQuotaUsage) fetch(ctx context.Context) (
 	quotaInfo *kbfsblock.QuotaInfo, err error) {
-	if q.tid.IsNil() {
-		return q.config.BlockServer().GetUserQuotaInfo(ctx)
+	bserver := q.config.BlockServer()
+	for i := 0; bserver == nil; i++ {
+		// This is possible if a login event comes in during
+		// initialization.
+		if i == 0 {
+			q.log.CDebugf(ctx, "Waiting for bserver")
+		}
+		time.Sleep(100 * time.Millisecond)
+		bserver = q.config.BlockServer()
 	}
-	return q.config.BlockServer().GetTeamQuotaInfo(ctx, q.tid)
+	if q.tid.IsNil() {
+		return bserver.GetUserQuotaInfo(ctx)
+	}
+	return bserver.GetTeamQuotaInfo(ctx, q.tid)
 }
 
 func (q *EventuallyConsistentQuotaUsage) doBackgroundFetch() {

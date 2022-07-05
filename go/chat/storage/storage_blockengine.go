@@ -2,7 +2,6 @@ package storage
 
 import (
 	"fmt"
-	"sync"
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/utils"
@@ -16,23 +15,15 @@ import (
 const blockIndexVersion = 8
 const blockSize = 100
 
-var addBlockHookOnce sync.Once
-
 type blockEngine struct {
 	globals.Contextified
 	utils.DebugLabeler
 }
 
 func newBlockEngine(g *globals.Context) *blockEngine {
-
-	// add a logout hook to clear the in-memory block cache, but only add it once:
-	addBlockHookOnce.Do(func() {
-		g.ExternalG().AddLogoutHook(blockEngineMemCache)
-	})
-
 	return &blockEngine{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "BlockEngine", true),
+		DebugLabeler: utils.NewDebugLabeler(g.ExternalG(), "BlockEngine", true),
 	}
 }
 
@@ -432,7 +423,9 @@ func (be *blockEngine) ReadMessages(ctx context.Context, res ResultCollector,
 		}
 
 		msg := b.Msgs[index]
-		if msg.GetMessageID() == 0 {
+		// If we have a versioning error but our client now understands the new
+		// version, don't return the error message
+		if msg.GetMessageID() == 0 || (msg.IsError() && msg.Error().ParseableVersion()) {
 			if res.PushPlaceholder(be.getMsgID(b.BlockID, index)) {
 				// If the result collector is happy to receive this blank entry, then don't complain
 				// and proceed as if this was a hit

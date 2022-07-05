@@ -8,18 +8,21 @@ import (
 	"io"
 
 	"github.com/eapache/channels"
+	"github.com/keybase/client/go/kbfs/data"
 )
 
 // blockRetrievalWorker processes blockRetrievalQueue requests
 type blockRetrievalWorker struct {
 	blockGetter
 	stopCh chan struct{}
+	doneCh chan struct{}
 	queue  *blockRetrievalQueue
 	workCh channels.Channel
 }
 
 // run runs the worker loop until Shutdown is called
 func (brw *blockRetrievalWorker) run() {
+	defer close(brw.doneCh)
 	for {
 		err := brw.HandleRequest()
 		// Only io.EOF is relevant to the loop; other errors are handled in
@@ -38,6 +41,7 @@ func newBlockRetrievalWorker(bg blockGetter, q *blockRetrievalQueue,
 	brw := &blockRetrievalWorker{
 		blockGetter: bg,
 		stopCh:      make(chan struct{}),
+		doneCh:      make(chan struct{}),
 		queue:       q,
 		workCh:      workCh,
 	}
@@ -61,7 +65,7 @@ func (brw *blockRetrievalWorker) HandleRequest() (err error) {
 		return io.EOF
 	}
 
-	var block Block
+	var block data.Block
 	var cacheType DiskBlockCacheType
 	defer func() {
 		brw.queue.FinalizeRequest(retrieval, block, cacheType, err)
@@ -87,7 +91,7 @@ func (brw *blockRetrievalWorker) HandleRequest() (err error) {
 	if action.StopIfFull() {
 		dbc := brw.queue.config.DiskBlockCache()
 		if dbc != nil {
-			hasRoom, err := dbc.DoesCacheHaveSpace(
+			hasRoom, _, err := dbc.DoesCacheHaveSpace(
 				retrieval.ctx, action.CacheType())
 			if err != nil {
 				return err
@@ -99,15 +103,25 @@ func (brw *blockRetrievalWorker) HandleRequest() (err error) {
 	}
 
 	cacheType = action.CacheType()
+	if action.DelayCacheCheck() {
+		_, err := brw.queue.checkCaches(
+			retrieval.ctx, retrieval.kmd, retrieval.blockPtr, block,
+			action.WithoutDelayedCacheCheckAction())
+		if err == nil {
+			return nil
+		}
+	}
+
 	return brw.getBlock(
 		retrieval.ctx, retrieval.kmd, retrieval.blockPtr, block, cacheType)
 }
 
 // Shutdown shuts down the blockRetrievalWorker once its current work is done.
-func (brw *blockRetrievalWorker) Shutdown() {
+func (brw *blockRetrievalWorker) Shutdown() <-chan struct{} {
 	select {
 	case <-brw.stopCh:
 	default:
 		close(brw.stopCh)
 	}
+	return brw.doneCh
 }

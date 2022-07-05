@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"os"
 
+	"github.com/keybase/client/go/kbfs/libcontext"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -37,9 +38,7 @@ const (
 func Params(kbCtx libkbfs.Context,
 	storageRoot string, paramsBase *libkbfs.InitParams) (
 	params libkbfs.InitParams, tempDir string, err error) {
-	// TODO(KBFS-2443): Also remove all kbfsgit directories older than
-	// an hour.
-	tempDir, err = ioutil.TempDir(storageRoot, "kbfsgit")
+	tempDir, err = ioutil.TempDir(storageRoot, libkbfs.GitStorageRootPrefix)
 	if err != nil {
 		return libkbfs.InitParams{}, "", err
 	}
@@ -79,7 +78,8 @@ func Params(kbCtx libkbfs.Context,
 // The config should be shutdown when it is done being used.
 func Init(ctx context.Context, gitKBFSParams libkbfs.InitParams,
 	kbCtx libkbfs.Context, keybaseServiceCn libkbfs.KeybaseServiceCn,
-	defaultLogPath string) (context.Context, libkbfs.Config, error) {
+	defaultLogPath string, vlogLevel string) (
+	context.Context, libkbfs.Config, error) {
 	log, err := libkbfs.InitLogWithPrefix(
 		gitKBFSParams, kbCtx, "git", defaultLogPath)
 	if err != nil {
@@ -88,7 +88,7 @@ func Init(ctx context.Context, gitKBFSParams libkbfs.InitParams,
 
 	// Assign a unique ID to each remote-helper instance, since
 	// they'll all share the same log.
-	ctx, err = libkbfs.NewContextWithCancellationDelayer(
+	ctx, err = libcontext.NewContextWithCancellationDelayer(
 		libkbfs.CtxWithRandomIDReplayable(
 			ctx, ctxGitIDKey, ctxGitOpID, log))
 	if err != nil {
@@ -101,41 +101,19 @@ func Init(ctx context.Context, gitKBFSParams libkbfs.InitParams,
 	if err != nil {
 		return ctx, nil, err
 	}
+	config.SetVLogLevel(vlogLevel)
 
 	// Make any blocks written by via this config charged to the git
 	// quota.
 	config.SetDefaultBlockType(keybase1.BlockType_GIT)
 
-	config.MakeDiskBlockCacheIfNotExists()
+	err = config.MakeDiskBlockCacheIfNotExists()
+	if err != nil {
+		log.CDebugf(ctx, "Couldn't initialize disk cache: %+v", err)
+	}
 
 	return ctx, config, nil
 }
-
-// KeybaseServiceCn defines methods needed to construct KeybaseService
-// and Crypto implementations.
-type keybaseServicePassthrough struct {
-	config libkbfs.Config
-}
-
-func (ksp keybaseServicePassthrough) NewKeybaseService(
-	_ libkbfs.Config, _ libkbfs.InitParams, _ libkbfs.Context,
-	_ logger.Logger) (libkbfs.KeybaseService, error) {
-	return ksp.config.KeybaseService(), nil
-}
-
-func (ksp keybaseServicePassthrough) NewCrypto(
-	_ libkbfs.Config, _ libkbfs.InitParams, _ libkbfs.Context,
-	_ logger.Logger) (libkbfs.Crypto, error) {
-	return ksp.config.Crypto(), nil
-}
-
-func (ksp keybaseServicePassthrough) NewChat(
-	_ libkbfs.Config, _ libkbfs.InitParams, _ libkbfs.Context,
-	_ logger.Logger) (libkbfs.Chat, error) {
-	return ksp.config.Chat(), nil
-}
-
-var _ libkbfs.KeybaseServiceCn = keybaseServicePassthrough{}
 
 func getNewConfig(
 	ctx context.Context, config libkbfs.Config, kbCtx libkbfs.Context,
@@ -163,7 +141,8 @@ func getNewConfig(
 	params.LogFileConfig.Path = ""
 
 	newCtx, gitConfig, err = Init(
-		ctx, params, kbCtx, keybaseServicePassthrough{config}, "")
+		ctx, params, kbCtx, libkbfs.NewKeybaseServicePassthrough(config), "",
+		config.VLogLevel())
 	if err != nil {
 		return nil, nil, "", err
 	}

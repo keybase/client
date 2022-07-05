@@ -13,9 +13,12 @@ import (
 
 	"bazil.org/fuse"
 	"bazil.org/fuse/fs"
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/libfs"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"golang.org/x/net/context"
 )
@@ -35,7 +38,7 @@ type TLF struct {
 	NoXattrHandler
 }
 
-func newTLF(ctx context.Context, fl *FolderList, h *libkbfs.TlfHandle,
+func newTLF(ctx context.Context, fl *FolderList, h *tlfhandle.Handle,
 	name tlf.PreferredName) *TLF {
 	folder := newFolder(ctx, fl, h, name)
 	tlf := &TLF{
@@ -63,8 +66,12 @@ func (tlf *TLF) log() logger.Logger {
 	return tlf.folder.fs.log
 }
 
+func (tlf *TLF) vlog() *libkb.VDebugLog {
+	return tlf.folder.fs.vlog
+}
+
 func (tlf *TLF) loadDirHelper(
-	ctx context.Context, mode libkbfs.ErrorModeType, branch libkbfs.BranchName,
+	ctx context.Context, mode libkbfs.ErrorModeType, branch data.BranchName,
 	filterErr bool) (dir *Dir, exitEarly bool, err error) {
 	dir = tlf.getStoredDir()
 	if dir != nil {
@@ -92,6 +99,14 @@ func (tlf *TLF) loadDirHelper(
 	handle, err := tlf.folder.resolve(ctx)
 	if err != nil {
 		return nil, false, err
+	}
+
+	if branch == data.MasterBranch {
+		conflictBranch, isLocalConflictBranch :=
+			data.MakeConflictBranchName(handle)
+		if isLocalConflictBranch {
+			branch = conflictBranch
+		}
 	}
 
 	var rootNode libkbfs.Node
@@ -126,7 +141,7 @@ func (tlf *TLF) loadDirHelper(
 
 func (tlf *TLF) loadDir(ctx context.Context) (*Dir, error) {
 	dir, _, err := tlf.loadDirHelper(
-		ctx, libkbfs.WriteMode, libkbfs.MasterBranch, false)
+		ctx, libkbfs.WriteMode, data.MasterBranch, false)
 	return dir, err
 }
 
@@ -136,11 +151,11 @@ func (tlf *TLF) loadDir(ctx context.Context) (*Dir, error) {
 // folder.
 func (tlf *TLF) loadDirAllowNonexistent(ctx context.Context) (
 	*Dir, bool, error) {
-	return tlf.loadDirHelper(ctx, libkbfs.ReadMode, libkbfs.MasterBranch, true)
+	return tlf.loadDirHelper(ctx, libkbfs.ReadMode, data.MasterBranch, true)
 }
 
 func (tlf *TLF) loadArchivedDir(
-	ctx context.Context, branch libkbfs.BranchName) (*Dir, bool, error) {
+	ctx context.Context, branch data.BranchName) (*Dir, bool, error) {
 	// Always filter errors for archive TLF directories, so that we
 	// don't try to initialize them.
 	return tlf.loadDirHelper(ctx, libkbfs.ReadMode, branch, true)
@@ -156,8 +171,8 @@ func (tlf *TLF) Attr(ctx context.Context, a *fuse.Attr) error {
 	dir := tlf.getStoredDir()
 	a.Inode = tlf.inode
 	if dir == nil {
-		tlf.log().CDebugf(
-			ctx, "Faking Attr for TLF %s", tlf.folder.name())
+		tlf.vlog().CLogf(
+			ctx, libkb.VLog1, "Faking Attr for TLF %s", tlf.folder.name())
 		// Have a low non-zero value for Valid to avoid being
 		// swamped with requests, while still not showing
 		// stale data for too long if we end up loading the
@@ -182,6 +197,7 @@ func (tlf *TLF) Attr(ctx context.Context, a *fuse.Attr) error {
 // not, which can cause a tracker popup storm (see KBFS-2649).
 var tlfLoadAvoidingLookupNames = map[string]bool{
 	".localized": true,
+	"Contents":   true,
 }
 
 // Lookup implements the fs.NodeRequestLookuper interface for TLF.
@@ -189,8 +205,8 @@ func (tlf *TLF) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.
 	if tlfLoadAvoidingLookupNames[req.Name] {
 		dir := tlf.getStoredDir()
 		if dir == nil {
-			tlf.log().CDebugf(
-				ctx, "Avoiding TLF loading for name %s", req.Name)
+			tlf.vlog().CLogf(
+				ctx, libkb.VLog1, "Avoiding TLF loading for name %s", req.Name)
 			return nil, fuse.ENOENT
 		}
 		return dir.Lookup(ctx, req, resp)
@@ -272,6 +288,14 @@ func (tlf *TLF) Symlink(ctx context.Context, req *fuse.SymlinkRequest) (
 	return dir.Symlink(ctx, req)
 }
 
+var _ fs.NodeLinker = (*TLF)(nil)
+
+// Link implements the fs.NodeLinker interface for TLF.
+func (tlf *TLF) Link(
+	_ context.Context, _ *fuse.LinkRequest, _ fs.Node) (fs.Node, error) {
+	return nil, fuse.ENOTSUP
+}
+
 // Rename implements the fs.NodeRenamer interface for TLF.
 func (tlf *TLF) Rename(ctx context.Context, req *fuse.RenameRequest,
 	newDir fs.Node) error {
@@ -305,6 +329,8 @@ func (tlf *TLF) Forget() {
 	dir := tlf.getStoredDir()
 	if dir != nil {
 		dir.Forget()
+	} else {
+		tlf.folder.list.forgetFolder(string(tlf.folder.name()))
 	}
 }
 
@@ -343,4 +369,8 @@ func (tlf *TLF) Open(ctx context.Context, req *fuse.OpenRequest,
 		return nil, err
 	}
 	return tlf, nil
+}
+
+func (tlf *TLF) openFileCount() int64 {
+	return tlf.folder.openFileCount()
 }

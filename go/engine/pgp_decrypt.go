@@ -60,20 +60,20 @@ func (e *PGPDecrypt) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (e *PGPDecrypt) Run(m libkb.MetaContext) (err error) {
-	defer m.CTrace("PGPDecrypt#Run", func() error { return err })()
+	defer m.Trace("PGPDecrypt#Run", &err)()
 
-	m.CDebugf("| ScanKeys")
+	m.Debug("| ScanKeys")
 	sk, err := NewScanKeys(m)
 	if err != nil {
 		return err
 	}
-	m.CDebugf("| PGPDecrypt")
+	m.Debug("| PGPDecrypt")
 	e.signStatus, err = libkb.PGPDecrypt(m.G(), e.arg.Source, e.arg.Sink, sk)
 	if err != nil {
 		return err
 	}
 
-	m.CDebugf("| Sink Close")
+	m.Debug("| Sink Close")
 	if err = e.arg.Sink.Close(); err != nil {
 		return err
 	}
@@ -96,6 +96,15 @@ func (e *PGPDecrypt) Run(m libkb.MetaContext) (err error) {
 	}
 
 	// message is signed and verified
+
+	// generate sha1 warnings for the key bundles
+	if e.signStatus.Entity != nil {
+		if warnings := libkb.NewPGPKeyBundle(e.signStatus.Entity).SecurityWarnings(
+			libkb.HashSecurityWarningSignersIdentityHash,
+		); warnings != nil {
+			e.signStatus.Warnings = append(e.signStatus.Warnings, warnings...)
+		}
+	}
 
 	if len(e.arg.SignedBy) > 0 {
 		if e.signer == nil {
@@ -130,8 +139,13 @@ func (e *PGPDecrypt) Run(m libkb.MetaContext) (err error) {
 	} else {
 		if e.signer == nil {
 			// signer isn't a keybase user
-			m.CDebugf("message signed by key unknown to keybase: %X", e.signStatus.KeyID)
-			return OutputSignatureSuccessNonKeybase(m, e.signStatus.KeyID, e.signStatus.SignatureTime)
+			m.Debug("message signed by key unknown to keybase: %X", e.signStatus.KeyID)
+			if err := OutputSignatureNonKeybase(m, e.signStatus.KeyID, e.signStatus.SignatureTime, e.signStatus.Warnings); err != nil {
+				return err
+			}
+			return libkb.BadSigError{
+				E: fmt.Sprintf("Message signed by an unknown key: %X", e.signStatus.KeyID),
+			}
 		}
 
 		// identify the signer
@@ -159,7 +173,7 @@ func (e *PGPDecrypt) Run(m libkb.MetaContext) (err error) {
 	}
 
 	bundle := libkb.NewPGPKeyBundle(e.signStatus.Entity)
-	return OutputSignatureSuccess(m, bundle.GetFingerprint(), e.signer, e.signStatus.SignatureTime)
+	return OutputSignatureSuccess(m, bundle.GetFingerprint(), e.signer, e.signStatus.SignatureTime, e.signStatus.Warnings)
 }
 
 func (e *PGPDecrypt) SignatureStatus() *libkb.SignatureStatus {

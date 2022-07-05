@@ -45,8 +45,9 @@ const (
 // Unfortunately, the Name() in FileInfo is only the basename, so the associated
 // path must be manually recorded as well.
 type FileInfoPath struct {
-	path string
-	info os.FileInfo
+	path          string
+	info          os.FileInfo
+	symlinkTarget string
 }
 
 // DirentFileInfo implements os.FileInfo for a Dirent
@@ -86,10 +87,7 @@ func (d DirentFileInfo) ModTime() time.Time {
 
 // IsDir is an abbreviation for Mode().IsDir()
 func (d DirentFileInfo) IsDir() bool {
-	if d.Entry.DirentType == keybase1.DirentType_DIR {
-		return true
-	}
-	return false
+	return d.Entry.DirentType == keybase1.DirentType_DIR
 }
 
 // Sys - underlying data source (can return nil)
@@ -110,7 +108,7 @@ type Listing struct {
 	day          string
 	time         string
 	name         string
-	linkName     string
+	linkTarget   string
 	linkOrphan   bool
 	isSocket     bool
 	isPipe       bool
@@ -342,10 +340,10 @@ func (c *CmdSimpleFSList) writeListingName(outputBuffer *bytes.Buffer, l Listing
 		if l.linkOrphan {
 			outputBuffer.WriteString(fmt.Sprintf(" -> %s%s%s",
 				colorMap["linkOrphan_target"],
-				l.linkName,
+				l.linkTarget,
 				colorMap["end"]))
 		} else {
-			outputBuffer.WriteString(fmt.Sprintf(" -> %s", l.linkName))
+			outputBuffer.WriteString(fmt.Sprintf(" -> %s", l.linkTarget))
 		}
 	}
 }
@@ -361,6 +359,7 @@ func (c *CmdSimpleFSList) createListing(dirname string, fip FileInfoPath) (Listi
 		currentListing.permissions = strings.Replace(
 			currentListing.permissions, "L", "l", 1)
 		// Note: don't follow KBFS symlinks for now
+		currentListing.linkTarget = fip.symlinkTarget
 	} else if currentListing.permissions[0] == 'D' {
 		currentListing.permissions = currentListing.permissions[1:]
 	} else if currentListing.permissions[0:2] == "ug" {
@@ -827,12 +826,17 @@ func (c *CmdSimpleFSList) ls(outputBuffer *bytes.Buffer, listResult keybase1.Sim
 		var err error
 		if !c.G().Env.GetDisplayRawUntrustedOutput() && isatty.IsTerminal(os.Stdout.Fd()) {
 			fListing, err = c.createListing("",
-				FileInfoPath{path: terminalescaper.Clean(e.Name),
-					info: DirentFileInfo{e}})
+				FileInfoPath{
+					path:          terminalescaper.Clean(e.Name),
+					info:          DirentFileInfo{e},
+					symlinkTarget: e.SymlinkTarget,
+				})
 		} else {
-			fListing, err = c.createListing("",
-				FileInfoPath{path: e.Name,
-					info: DirentFileInfo{e}})
+			fListing, err = c.createListing("", FileInfoPath{
+				path:          e.Name,
+				info:          DirentFileInfo{e},
+				symlinkTarget: e.SymlinkTarget,
+			})
 		}
 		if err != nil {
 			return err

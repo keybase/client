@@ -33,7 +33,7 @@ type Collapses struct {
 func NewCollapses(g *globals.Context) *Collapses {
 	return &Collapses{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: NewDebugLabeler(g.GetLog(), "Utils.Collapses", false),
+		DebugLabeler: NewDebugLabeler(g.ExternalG(), "Utils.Collapses", false),
 		clock:        clockwork.NewRealClock(),
 	}
 }

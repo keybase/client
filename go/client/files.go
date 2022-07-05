@@ -333,9 +333,11 @@ func initSink(g *libkb.GlobalContext, fn string) Sink {
 	return NewFileSink(g, fn)
 }
 
+var ErrDuplicateSource = errors.New("Can't handle both a passed message and an infile")
+
 func initSource(msg, infile string) (Source, error) {
 	if len(msg) > 0 && len(infile) > 0 {
-		return nil, fmt.Errorf("Can't handle both a passed message and an infile")
+		return nil, ErrDuplicateSource
 	}
 	if len(msg) > 0 {
 		return NewBufferSource(msg), nil
@@ -347,10 +349,13 @@ func initSource(msg, infile string) (Source, error) {
 }
 
 func (u *UnixFilter) FilterInit(g *libkb.GlobalContext, msg, infile, outfile string) (err error) {
+	if len(msg) > 0 && len(infile) > 0 {
+		return ErrDuplicateSource
+	}
 	u.msg = msg
 	u.infile = infile
 	u.outfile = outfile
-	return nil // Any errors will be raised when the filter is opened.
+	return nil
 }
 
 func (u *UnixFilter) FilterOpen(g *libkb.GlobalContext) (err error) {
@@ -365,14 +370,18 @@ func (u *UnixFilter) FilterOpen(g *libkb.GlobalContext) (err error) {
 	if err = u.source.Open(); err != nil {
 		return err
 	}
-
 	return nil
 }
 
 func (u *UnixFilter) Close(inerr error) error {
-	e1 := u.source.CloseWithError(inerr)
-	e2 := u.sink.Close()
-	e3 := u.sink.HitError(inerr)
+	var e1, e2, e3 error
+	if u.source != nil {
+		e1 = u.source.CloseWithError(inerr)
+	}
+	if u.sink != nil {
+		e2 = u.sink.Close()
+		e3 = u.sink.HitError(inerr)
+	}
 	return libkb.PickFirstError(e1, e2, e3)
 }
 

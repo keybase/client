@@ -62,10 +62,9 @@ func UpdateDeviceCloneState(m MetaContext) (before, after int, err error) {
 			"prior":     S{Val: prior},
 			"stage":     S{Val: stage},
 		},
-		MetaContext: m,
 	}
 	var res cloneDetectionResponse
-	if err = m.G().API.PostDecode(arg, &res); err != nil {
+	if err = m.G().API.PostDecode(m, arg, &res); err != nil {
 		return 0, 0, err
 	}
 
@@ -95,12 +94,12 @@ func GetDeviceCloneState(m MetaContext) (state DeviceCloneState, err error) {
 		c = 1
 	}
 	state = DeviceCloneState{Prior: p, Stage: s, Clones: c}
-	m.CDebugf("GetDeviceCloneState: %+v", state)
+	m.Debug("GetDeviceCloneState: %+v", state)
 	return state, nil
 }
 
 func SetDeviceCloneState(m MetaContext, d DeviceCloneState) error {
-	m.CDebugf("SetDeviceCloneState: %+v", d)
+	m.Debug("SetDeviceCloneState: %+v", d)
 	writer, err := newDeviceCloneStateWriter(m)
 	if err != nil {
 		return err
@@ -113,8 +112,14 @@ func SetDeviceCloneState(m MetaContext, d DeviceCloneState) error {
 	// transaction.
 	defer func() {
 		if tx != nil {
-			tx.Rollback()
-			tx.Abort()
+			err := tx.Rollback()
+			if err != nil {
+				m.Debug("SetDeviceCloneState: rollback error: %+v", err)
+			}
+			err = tx.Abort()
+			if err != nil {
+				m.Debug("SetDeviceCloneState: abort error: %+v", err)
+			}
 		}
 	}()
 

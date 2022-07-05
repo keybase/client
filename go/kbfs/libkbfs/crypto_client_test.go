@@ -7,6 +7,7 @@ package libkbfs
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/keybase/client/go/kbcrypto"
 	"github.com/keybase/client/go/kbfs/kbfscodec"
@@ -56,11 +57,13 @@ func (fc FakeCryptoClient) maybeWaitOnChannel(ctx context.Context) error {
 	}
 }
 
-func (fc FakeCryptoClient) Call(ctx context.Context, s string, args interface{}, res interface{}) error {
+func (fc FakeCryptoClient) Call(ctx context.Context, s string, args interface{},
+	res interface{}, _ time.Duration) error {
 	return fc.call(ctx, s, args, res)
 }
 
-func (fc FakeCryptoClient) CallCompressed(ctx context.Context, s string, args interface{}, res interface{}, _ rpc.CompressionType) error {
+func (fc FakeCryptoClient) CallCompressed(ctx context.Context, s string, args interface{},
+	res interface{}, _ rpc.CompressionType, _ time.Duration) error {
 	return fc.call(ctx, s, args, res)
 }
 
@@ -143,7 +146,7 @@ func (fc FakeCryptoClient) call(ctx context.Context, s string, args interface{},
 	}
 }
 
-func (fc FakeCryptoClient) Notify(_ context.Context, s string, args interface{}) error {
+func (fc FakeCryptoClient) Notify(_ context.Context, s string, args interface{}, _ time.Duration) error {
 	return errors.Errorf("Unknown notify: %s %v", s, args)
 }
 
@@ -264,7 +267,7 @@ func TestCryptoClientDecryptEmptyEncryptedTLFCryptKeyClientHalfAny(t *testing.T)
 	fc := NewFakeCryptoClient(codec, signingKey, cryptPrivateKey, nil, nil)
 	c := newCryptoClientWithClient(codec, log, fc)
 
-	keys := make([]EncryptedTLFCryptKeyClientAndEphemeral, 0, 0)
+	keys := make([]EncryptedTLFCryptKeyClientAndEphemeral, 0)
 
 	_, _, err := c.DecryptTLFCryptKeyClientHalfAny(
 		context.Background(), keys, false)

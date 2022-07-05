@@ -45,6 +45,7 @@ type CmdAPICall struct {
 	JSONPayload  []keybase1.StringKVPair
 
 	parsedHost string
+	text       bool
 
 	libkb.Contextified
 }
@@ -88,13 +89,22 @@ func NewCmdAPICall(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 				Name:  "url",
 				Usage: "Pass full keybase.io URL with query parameters instead of an endpoint.",
 			},
+			cli.BoolFlag{
+				Name:  "text",
+				Usage: "endpoint is text instead of json.",
+			},
 		},
 	}
 }
 
 func (c *CmdAPICall) Run() error {
 	if c.parsedHost != "" {
-		if !strings.EqualFold(c.parsedHost, c.G().Env.GetServerURI()) {
+		serverURI, err := c.G().Env.GetServerURI()
+		if err != nil {
+			return err
+		}
+
+		if !strings.EqualFold(c.parsedHost, serverURI) {
 			return fmt.Errorf("Unexpected host in URL mode: %s. This only works for Keybase API.", c.parsedHost)
 		}
 		c.G().Log.Info("Parsed URL as endpoint: %q, args: %+v", c.endpoint, c.args)
@@ -143,6 +153,7 @@ func (c *CmdAPICall) formGetArg() (res keybase1.GetWithSessionArg) {
 	res.Args = c.args
 	res.HttpStatus = c.httpStatuses
 	res.AppStatusCode = c.appStatuses
+	res.UseText = &c.text
 	return
 }
 
@@ -219,6 +230,8 @@ func (c *CmdAPICall) ParseArgv(ctx *cli.Context) error {
 	nargs := len(ctx.Args())
 	if nargs == 0 {
 		return fmt.Errorf("endpoint is required")
+	} else if nargs != 1 {
+		return fmt.Errorf("expected 1 argument (endpoint), got %d: %v", nargs, ctx.Args())
 	}
 
 	c.endpoint = ctx.Args()[0]
@@ -237,14 +250,10 @@ func (c *CmdAPICall) ParseArgv(ctx *cli.Context) error {
 	}
 
 	httpStatuses := ctx.IntSlice("status")
-	for _, h := range httpStatuses {
-		c.httpStatuses = append(c.httpStatuses, h)
-	}
+	c.httpStatuses = append(c.httpStatuses, httpStatuses...)
 
 	appStatuses := ctx.IntSlice("appstatus")
-	for _, a := range appStatuses {
-		c.appStatuses = append(c.appStatuses, a)
-	}
+	c.appStatuses = append(c.appStatuses, appStatuses...)
 
 	payload := ctx.String("json-payload")
 	if payload != "" {
@@ -252,6 +261,8 @@ func (c *CmdAPICall) ParseArgv(ctx *cli.Context) error {
 			return err
 		}
 	}
+
+	c.text = ctx.Bool("text")
 
 	if ctx.Bool("url") {
 		if len(args) != 0 {

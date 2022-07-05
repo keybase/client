@@ -4,6 +4,11 @@
     {
       "path": "common.avdl",
       "type": "idl"
+    },
+    {
+      "path": "../gregor1",
+      "type": "idl",
+      "import_as": "gregor1"
     }
   ],
   "types": [
@@ -13,7 +18,8 @@
       "symbols": [
         "GENERIC_0",
         "YOUTUBE_1",
-        "GIPHY_2"
+        "GIPHY_2",
+        "MAPS_3"
       ]
     },
     {
@@ -101,7 +107,10 @@
       "name": "UnfurlGiphyRaw",
       "fields": [
         {
-          "type": "string",
+          "type": [
+            null,
+            "string"
+          ],
           "name": "imageUrl"
         },
         {
@@ -117,6 +126,58 @@
             "string"
           ],
           "name": "faviconUrl"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UnfurlMapsRaw",
+      "fields": [
+        {
+          "type": "string",
+          "name": "title"
+        },
+        {
+          "type": "string",
+          "name": "url"
+        },
+        {
+          "type": "string",
+          "name": "siteName"
+        },
+        {
+          "type": "string",
+          "name": "imageUrl"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "historyImageUrl"
+        },
+        {
+          "type": "string",
+          "name": "description"
+        },
+        {
+          "type": "Coordinate",
+          "name": "coord"
+        },
+        {
+          "type": "gregor1.Time",
+          "name": "time"
+        },
+        {
+          "type": [
+            null,
+            "gregor1.Time"
+          ],
+          "name": "liveLocationEndTime"
+        },
+        {
+          "type": "boolean",
+          "name": "liveLocationDone"
         }
       ]
     },
@@ -148,6 +209,38 @@
             "def": false
           },
           "body": "UnfurlGiphyRaw"
+        },
+        {
+          "label": {
+            "name": "MAPS",
+            "def": false
+          },
+          "body": "UnfurlMapsRaw"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UnfurlGenericMapInfo",
+      "fields": [
+        {
+          "type": "Coordinate",
+          "name": "coord"
+        },
+        {
+          "type": "gregor1.Time",
+          "name": "time"
+        },
+        {
+          "type": [
+            null,
+            "gregor1.Time"
+          ],
+          "name": "liveLocationEndTime"
+        },
+        {
+          "type": "boolean",
+          "name": "isLiveLocationDone"
         }
       ]
     },
@@ -194,6 +287,13 @@
             "string"
           ],
           "name": "description"
+        },
+        {
+          "type": [
+            null,
+            "UnfurlGenericMapInfo"
+          ],
+          "name": "mapInfo"
         }
       ]
     },
@@ -339,6 +439,13 @@
             "string"
           ],
           "name": "description"
+        },
+        {
+          "type": [
+            null,
+            "UnfurlGenericMapInfo"
+          ],
+          "name": "mapInfo"
         }
       ]
     },

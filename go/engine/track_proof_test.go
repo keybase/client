@@ -162,7 +162,8 @@ func TestTrackProofServiceBlocks(t *testing.T) {
 	for _, test := range sbtests {
 		err := checkTrack(tc, fu, test.name, test.blocks, &test.outcome, sigVersion)
 		require.NoError(t, err)
-		runUntrack(tc, fu, test.name, sigVersion)
+		err = runUntrack(tc, fu, test.name, sigVersion)
+		require.NoError(t, err)
 	}
 }
 
@@ -245,12 +246,12 @@ func TestTrackProofGubble(t *testing.T) {
 	trackUser := CreateAndSignupFakeUser(tc, "track")
 
 	rbl := []sb{
-		sb{
+		{
 			social:     true,
 			id:         proofUser.Username + "@gubble.cloud",
 			proofState: keybase1.ProofState_OK,
 		},
-		sb{
+		{
 			social:     true,
 			id:         proofUser.Username + "@gubble.social",
 			proofState: keybase1.ProofState_OK,
@@ -407,14 +408,13 @@ func TestTrackProofGubbleFail(t *testing.T) {
 
 	// create a user with a rooter proof
 	proofUser := CreateAndSignupFakeUser(tc, "proof")
-	_, err := proveGubbleSocialFail(tc.G, proofUser, sigVersion)
-	require.Error(t, err)
+	proveGubbleSocialFail(tc, proofUser, sigVersion)
 	Logout(tc)
 
 	// create a user to track the proofUser
 	trackUser := CreateAndSignupFakeUser(tc, "track")
 
-	// proveRooterFail posts a bad sig id, so it won't be found.
+	// proveGubbleSocialFail posts a bad sig id, so it won't be found.
 	// thus the state is ProofState_SIG_HINT_MISSING
 	rbl := sb{
 		social:     true,
@@ -426,7 +426,7 @@ func TestTrackProofGubbleFail(t *testing.T) {
 		TrackStatus:      keybase1.TrackStatus_NEW_ZERO_PROOFS,
 	}
 	// and they have no proofs
-	err = checkTrack(tc, trackUser, proofUser.Username, []sb{rbl}, &outcome, sigVersion)
+	err := checkTrack(tc, trackUser, proofUser.Username, []sb{rbl}, &outcome, sigVersion)
 	require.NoError(t, err)
 }
 
@@ -534,7 +534,7 @@ func _testTrackProofRooterRevoke(t *testing.T, sigVersion libkb.SigVersion) {
 	// revoke the rooter proof
 	Logout(tc)
 	proofUser.LoginOrBust(tc)
-	revEng := NewRevokeSigsEngine(tc.G, []string{sigID.ToString(true)})
+	revEng := NewRevokeSigsEngine(tc.G, []string{sigID.String()})
 	uis := libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
 		SecretUI: proofUser.NewSecretUI(),

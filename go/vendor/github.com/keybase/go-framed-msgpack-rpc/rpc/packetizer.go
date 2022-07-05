@@ -23,25 +23,28 @@ func (r *lastErrReader) Read(buf []byte) (int, error) {
 }
 
 type packetizer struct {
-	maxFrameLength   int32
-	lengthDecoder    *codec.Decoder
-	reader           *lastErrReader
-	protocols        *protocolHandler
-	calls            *callContainer
-	compressorCacher *compressorCacher
-	log              LogInterface
+	maxFrameLength      int32
+	lengthDecoder       *codec.Decoder
+	reader              *lastErrReader
+	protocols           *protocolHandler
+	calls               *callContainer
+	compressorCacher    *compressorCacher
+	instrumenterStorage NetworkInstrumenterStorage
+	log                 LogInterface
 }
 
-func newPacketizer(maxFrameLength int32, reader io.Reader, protocols *protocolHandler, calls *callContainer, log LogInterface) *packetizer {
+func newPacketizer(maxFrameLength int32, reader io.Reader, protocols *protocolHandler, calls *callContainer,
+	log LogInterface, instrumenterStorage NetworkInstrumenterStorage) *packetizer {
 	wrappedReader := &lastErrReader{bufio.NewReader(reader), nil}
 	return &packetizer{
-		maxFrameLength:   maxFrameLength,
-		lengthDecoder:    codec.NewDecoder(wrappedReader, newCodecMsgpackHandle()),
-		reader:           wrappedReader,
-		protocols:        protocols,
-		calls:            calls,
-		compressorCacher: newCompressorCacher(),
-		log:              log,
+		maxFrameLength:      maxFrameLength,
+		lengthDecoder:       codec.NewDecoder(wrappedReader, newCodecMsgpackHandle()),
+		reader:              wrappedReader,
+		protocols:           protocols,
+		calls:               calls,
+		compressorCacher:    newCompressorCacher(),
+		log:                 log,
+		instrumenterStorage: instrumenterStorage,
 	}
 }
 
@@ -50,7 +53,17 @@ func newPacketizer(maxFrameLength int32, reader io.Reader, protocols *protocolHa
 type frameReader struct {
 	r         *bufio.Reader
 	remaining int32
+	totalSize int32
 	log       LogInterface
+}
+
+func newFrameReader(reader *bufio.Reader, totalSize int32, log LogInterface) *frameReader {
+	return &frameReader{
+		r:         reader,
+		totalSize: totalSize,
+		remaining: totalSize,
+		log:       log,
+	}
 }
 
 func (l *frameReader) ReadByte() (byte, error) {
@@ -146,7 +159,7 @@ func (p *packetizer) NextFrame() (msg rpcMessage, err error) {
 		return nil, NewPacketizerError("frame length too big: %d > %d", l, p.maxFrameLength)
 	}
 
-	r := frameReader{p.reader.reader, l, p.log}
+	r := newFrameReader(p.reader.reader, l, p.log)
 	defer func() {
 		drainErr := r.drain()
 		if drainErr != nil && err == nil {
@@ -169,5 +182,5 @@ func (p *packetizer) NextFrame() (msg rpcMessage, err error) {
 		return nil, NewPacketizerError("wrong message structure prefix (0x%x)", nb)
 	}
 
-	return decodeRPC(int(nb-0x90), &r, p.protocols, p.calls, p.compressorCacher)
+	return decodeRPC(int(nb-0x90), r, p.protocols, p.calls, p.compressorCacher, p.instrumenterStorage)
 }

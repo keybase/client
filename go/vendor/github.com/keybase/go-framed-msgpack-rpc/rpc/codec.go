@@ -8,11 +8,6 @@ import (
 	"golang.org/x/net/context"
 )
 
-type encoder interface {
-	EncodeAndWrite(context.Context, interface{}, func()) <-chan error
-	EncodeAndWriteAsync(interface{}) <-chan error
-}
-
 func newCodecMsgpackHandle() codec.Handle {
 	return &codec.MsgpackHandle{
 		WriteExt:    true,
@@ -92,12 +87,12 @@ func (e *framedMsgpackEncoder) encodeFrame(i interface{}) ([]byte, error) {
 
 // encodeAndWriteInternal is called directly by tests that need to
 // write invalid frames.
-func (e *framedMsgpackEncoder) encodeAndWriteInternal(ctx context.Context, frame interface{}, sendNotifier func()) <-chan error {
+func (e *framedMsgpackEncoder) encodeAndWriteInternal(ctx context.Context, frame interface{}, sendNotifier func()) (int64, <-chan error) {
 	bytes, err := e.encodeFrame(frame)
 	ch := make(chan error, 1)
 	if err != nil {
 		ch <- err
-		return ch
+		return 0, ch
 	}
 	select {
 	case <-e.doneCh:
@@ -106,19 +101,19 @@ func (e *framedMsgpackEncoder) encodeAndWriteInternal(ctx context.Context, frame
 		ch <- ctx.Err()
 	case e.writeCh <- writeBundle{bytes, ch, sendNotifier}:
 	}
-	return ch
+	return int64(len(bytes)), ch
 }
 
-func (e *framedMsgpackEncoder) EncodeAndWrite(ctx context.Context, frame []interface{}, sendNotifier func()) <-chan error {
+func (e *framedMsgpackEncoder) EncodeAndWrite(ctx context.Context, frame []interface{}, sendNotifier func()) (int64, <-chan error) {
 	return e.encodeAndWriteInternal(ctx, frame, sendNotifier)
 }
 
-func (e *framedMsgpackEncoder) EncodeAndWriteAsync(frame []interface{}) <-chan error {
+func (e *framedMsgpackEncoder) EncodeAndWriteAsync(frame []interface{}) (int64, <-chan error) {
 	bytes, err := e.encodeFrame(frame)
 	ch := make(chan error, 1)
 	if err != nil {
 		ch <- err
-		return ch
+		return 0, ch
 	}
 	select {
 	case <-e.doneCh:
@@ -133,7 +128,7 @@ func (e *framedMsgpackEncoder) EncodeAndWriteAsync(frame []interface{}) <-chan e
 			}
 		}()
 	}
-	return ch
+	return int64(len(bytes)), ch
 }
 
 func (e *framedMsgpackEncoder) writerLoop() {

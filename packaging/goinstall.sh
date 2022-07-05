@@ -3,7 +3,7 @@
 set -e -u -o pipefail # Fail on error
 
 dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
-cd $dir
+cd "$dir"
 
 package="$1"
 nopull=${NOPULL:-}
@@ -11,7 +11,7 @@ src_dir="$GOPATH/src/$package"
 
 if [ ! -d "$GOPATH/src/$package" ]; then
   git clone "https://$package" "$src_dir"
-elif [ ! -n "$nopull" ]; then
+elif [ -z "$nopull" ]; then
   "$dir/check_status_and_pull.sh" "$src_dir"
 fi
 

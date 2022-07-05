@@ -7,6 +7,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/net/context"
@@ -26,9 +27,10 @@ func mdResetOne(
 	if checkValid {
 		rootPtr := irmd.Data().Dir.BlockPointer
 		if rootPtr.Ref().IsValid() {
-			var dirBlock libkbfs.DirBlock
+			var dirBlock data.DirBlock
 			err = config.BlockOps().Get(
-				ctx, irmd, rootPtr, &dirBlock, libkbfs.NoCacheEntry)
+				ctx, irmd, rootPtr, &dirBlock, data.NoCacheEntry,
+				data.MasterBranch)
 			if err == nil {
 				fmt.Printf("Got no error when getting root block %s; not doing anything\n", rootPtr)
 				return nil
@@ -45,7 +47,7 @@ func mdResetOne(
 
 	rmdNext, err := irmd.MakeSuccessor(ctx, config.MetadataVersion(),
 		config.Codec(), config.KeyManager(),
-		config.KBPKI(), config.KBPKI(), irmd.MdID(), true)
+		config.KBPKI(), config.KBPKI(), config, irmd.MdID(), true)
 	if err != nil {
 		return err
 	}
@@ -104,8 +106,8 @@ func mdResetOne(
 		return err
 	}
 
-	newIrmd, err := config.MDOps().Put(ctx, rmdNext, session.VerifyingKey,
-		nil, keybase1.MDPriorityNormal)
+	newIrmd, err := config.MDOps().Put(
+		ctx, rmdNext, session.VerifyingKey, nil, keybase1.MDPriorityNormal, nil)
 	if err != nil {
 		return err
 	}

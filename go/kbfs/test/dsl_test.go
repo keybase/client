@@ -16,9 +16,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/libfs"
 	"github.com/keybase/client/go/kbfs/libkbfs"
+	"github.com/keybase/client/go/kbfs/test/clocktest"
 	"github.com/keybase/client/go/kbfs/tlf"
 	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -54,7 +56,7 @@ type opt struct {
 	batchSize                int
 	bwKBps                   int
 	timeout                  time.Duration
-	clock                    *libkbfs.TestClock
+	clock                    *clocktest.TestClock
 	isParallel               bool
 	journal                  bool
 }
@@ -114,10 +116,10 @@ func test(t *testing.T, actions ...optionOp) {
 	})
 }
 
-func benchmark(b *testing.B, tb testing.TB, actions ...optionOp) {
+func benchmark(b *testing.B, actions ...optionOp) {
 	runBenchmarkOverMetadataVers(
 		b, func(b *testing.B, ver kbfsmd.MetadataVer) {
-			runOneTestOrBenchmark(tb, ver, actions...)
+			runOneTestOrBenchmark(silentBenchmark{b}, ver, actions...)
 		})
 }
 
@@ -173,7 +175,7 @@ func (o *opt) close() {
 
 func (o *opt) runInitOnce() {
 	o.initOnce.Do(func() {
-		o.clock = &libkbfs.TestClock{}
+		o.clock = &clocktest.TestClock{}
 		o.clock.Set(time.Unix(1, 0))
 		o.users = o.engine.InitTest(o.ver, o.blockSize,
 			o.blockChangeSize, o.batchSize, o.bwKBps, o.timeout, o.usernames,
@@ -396,6 +398,10 @@ func addNewAssertion(oldAssertion, newAssertion string) optionOp {
 		for _, u := range o.users {
 			err := o.engine.AddNewAssertion(u, oldAssertion, newAssertion)
 			o.expectSuccess("addNewAssertion", err)
+			// Sync the TLF to wait for the TLF handle change
+			// notifications to be processed. Ignore the error since
+			// the user might not even have access to that TLF.
+			_ = o.engine.SyncFromServer(u, o.tlfName, o.tlfType)
 		}
 	}
 }
@@ -481,6 +487,54 @@ func noSync() fileOp {
 	}, IsInit, "noSync()"}
 }
 
+func resetTimer() fileOp {
+	return fileOp{func(c *ctx) error {
+		switch b := c.tb.(type) {
+		case *testing.B:
+			b.ResetTimer()
+		case silentBenchmark:
+			b.ResetTimer()
+		}
+		return nil
+	}, Defaults, "resetTimer()"}
+}
+
+func startTimer() fileOp {
+	return fileOp{func(c *ctx) error {
+		switch b := c.tb.(type) {
+		case *testing.B:
+			b.StartTimer()
+		case silentBenchmark:
+			b.StartTimer()
+		}
+		return nil
+	}, Defaults, "startTimer()"}
+}
+
+func stopTimer() fileOp {
+	return fileOp{func(c *ctx) error {
+		switch b := c.tb.(type) {
+		case *testing.B:
+			b.StopTimer()
+		case silentBenchmark:
+			b.StopTimer()
+		}
+		return nil
+	}, Defaults, "stopTimer()"}
+}
+
+func getBenchN(n *int) fileOp {
+	return fileOp{func(c *ctx) error {
+		switch b := c.tb.(type) {
+		case *testing.B:
+			*n = b.N
+		case silentBenchmark:
+			*n = b.N
+		}
+		return nil
+	}, Defaults, "getBenchN()"}
+}
+
 // noSyncEnd turns off the SyncFromServer call at the end of each `as`
 // block.  It's also turned off by a `disableUpdates()` call or a
 // `noSync()` call.
@@ -555,19 +609,20 @@ func initRoot() fileOp {
 		}
 		var root Node
 		var err error
-		if c.tlfRevision != kbfsmd.RevisionUninitialized {
+		switch {
+		case c.tlfRevision != kbfsmd.RevisionUninitialized:
 			root, err = c.engine.GetRootDirAtRevision(
 				c.user, c.tlfName, c.tlfType, c.tlfRevision,
 				c.expectedCanonicalTlfName)
-		} else if c.tlfTime != "" {
+		case c.tlfTime != "":
 			root, err = c.engine.GetRootDirAtTimeString(
 				c.user, c.tlfName, c.tlfType, c.tlfTime,
 				c.expectedCanonicalTlfName)
-		} else if c.tlfRelTime != "" {
+		case c.tlfRelTime != "":
 			root, err = c.engine.GetRootDirAtRelTimeString(
 				c.user, c.tlfName, c.tlfType, c.tlfRelTime,
 				c.expectedCanonicalTlfName)
-		} else {
+		default:
 			root, err = c.engine.GetRootDir(
 				c.user, c.tlfName, c.tlfType, c.expectedCanonicalTlfName)
 		}
@@ -792,14 +847,6 @@ func disableUpdates() fileOp {
 	}, IsInit, "disableUpdates()"}
 }
 
-func stallDelegateOnMDPut() fileOp {
-	return fileOp{func(c *ctx) error {
-		// TODO: Allow test to pass in a more precise maxStalls limit.
-		c.staller.StallMDOp(libkbfs.StallableMDPut, 100, true)
-		return nil
-	}, Defaults, "stallDelegateOnMDPut()"}
-}
-
 func stallOnMDPut() fileOp {
 	return fileOp{func(c *ctx) error {
 		// TODO: Allow test to pass in a more precise maxStalls limit.
@@ -815,26 +862,11 @@ func waitForStalledMDPut() fileOp {
 	}, IsInit, "waitForStalledMDPut()"}
 }
 
-func unstallOneMDPut() fileOp {
-	return fileOp{func(c *ctx) error {
-		c.staller.UnstallOneMDOp(libkbfs.StallableMDPut)
-		return nil
-	}, IsInit, "unstallOneMDPut()"}
-}
-
 func undoStallOnMDPut() fileOp {
 	return fileOp{func(c *ctx) error {
 		c.staller.UndoStallMDOp(libkbfs.StallableMDPut)
 		return nil
 	}, IsInit, "undoStallOnMDPut()"}
-}
-
-func stallDelegateOnMDGetForTLF() fileOp {
-	return fileOp{func(c *ctx) error {
-		// TODO: Allow test to pass in a more precise maxStalls limit.
-		c.staller.StallMDOp(libkbfs.StallableMDGetForTLF, 100, true)
-		return nil
-	}, Defaults, "stallDelegateOnMDGetForTLF()"}
 }
 
 func stallOnMDGetForTLF() fileOp {
@@ -866,14 +898,6 @@ func undoStallOnMDGetForTLF() fileOp {
 	}, IsInit, "undoStallOnMDGetForTLF()"}
 }
 
-func stallDelegateOnMDGetRange() fileOp {
-	return fileOp{func(c *ctx) error {
-		// TODO: Allow test to pass in a more precise maxStalls limit.
-		c.staller.StallMDOp(libkbfs.StallableMDGetRange, 100, true)
-		return nil
-	}, Defaults, "stallDelegateOnMDGetRange()"}
-}
-
 func stallOnMDGetRange() fileOp {
 	return fileOp{func(c *ctx) error {
 		// TODO: Allow test to pass in a more precise maxStalls limit.
@@ -901,14 +925,6 @@ func undoStallOnMDGetRange() fileOp {
 		c.staller.UndoStallMDOp(libkbfs.StallableMDGetRange)
 		return nil
 	}, IsInit, "undoStallOnMDGetRange()"}
-}
-
-func stallDelegateOnMDResolveBranch() fileOp {
-	return fileOp{func(c *ctx) error {
-		// TODO: Allow test to pass in a more precise maxStalls limit.
-		c.staller.StallMDOp(libkbfs.StallableMDResolveBranch, 100, true)
-		return nil
-	}, Defaults, "stallDelegateOnMDResolveBranch()"}
 }
 
 func stallOnMDResolveBranch() fileOp {
@@ -1038,13 +1054,15 @@ func checkPrevRevisions(filepath string, counts []uint8) fileOp {
 }
 
 type expectedEdit struct {
-	tlfName string
-	tlfType keybase1.FolderType
-	writer  string
-	files   []string
+	tlfName      string
+	tlfType      keybase1.FolderType
+	writer       string
+	files        []string
+	deletedFiles []string
 }
 
-func checkUserEditHistory(expectedEdits []expectedEdit) fileOp {
+func checkUserEditHistoryWithSort(
+	expectedEdits []expectedEdit, doSort bool) fileOp {
 	return fileOp{func(c *ctx) error {
 		history, err := c.engine.UserEditHistory(c.user)
 		if err != nil {
@@ -1064,6 +1082,18 @@ func checkUserEditHistory(expectedEdits []expectedEdit) fileOp {
 			for _, we := range h.History[0].Edits {
 				hEdits[i].files = append(hEdits[i].files, we.Filename)
 			}
+			if doSort {
+				sort.Strings(hEdits[i].files)
+				sort.Strings(expectedEdits[i].files)
+			}
+			for _, we := range h.History[0].Deletes {
+				hEdits[i].deletedFiles = append(
+					hEdits[i].deletedFiles, we.Filename)
+			}
+			if doSort {
+				sort.Strings(hEdits[i].deletedFiles)
+				sort.Strings(expectedEdits[i].deletedFiles)
+			}
 		}
 
 		if !reflect.DeepEqual(expectedEdits, hEdits) {
@@ -1072,6 +1102,10 @@ func checkUserEditHistory(expectedEdits []expectedEdit) fileOp {
 		}
 		return nil
 	}, Defaults, "checkUserEditHistory()"}
+}
+
+func checkUserEditHistory(expectedEdits []expectedEdit) fileOp {
+	return checkUserEditHistoryWithSort(expectedEdits, false)
 }
 
 func checkDirtyPaths(expectedPaths []string) fileOp {
@@ -1091,10 +1125,16 @@ func checkDirtyPaths(expectedPaths []string) fileOp {
 	}, IsInit, fmt.Sprintf("checkDirtyPaths(%s)", expectedPaths)}
 }
 
-func disablePrefetch() fileOp {
+func forceConflict() fileOp {
 	return fileOp{func(c *ctx) error {
-		return c.engine.TogglePrefetch(c.user, false)
-	}, IsInit, "disablePrefetch()"}
+		return c.engine.ForceConflict(c.user, c.tlfName, c.tlfType)
+	}, IsInit, "forceConflict()"}
+}
+
+func clearConflicts() fileOp {
+	return fileOp{func(c *ctx) error {
+		return c.engine.ClearConflicts(c.user, c.tlfName, c.tlfType)
+	}, IsInit, "clearConflicts()"}
 }
 
 func lsfavoritesOp(c *ctx, expected []string, t tlf.Type) error {
@@ -1103,18 +1143,25 @@ func lsfavoritesOp(c *ctx, expected []string, t tlf.Type) error {
 		return err
 	}
 	c.tb.Log("lsfavorites", t, "=>", favorites)
-	expectedMap := make(map[string]bool)
 	for _, f := range expected {
-		if !favorites[f] {
+		if favorites[f] {
+			delete(favorites, f)
+			continue
+		}
+
+		p, err := tlf.CanonicalToPreferredName(c.username, tlf.CanonicalName(f))
+		if err != nil {
+			return err
+		}
+		if favorites[string(p)] {
+			delete(favorites, string(p))
+		} else {
 			return fmt.Errorf("Missing favorite %s", f)
 		}
-		expectedMap[f] = true
 	}
 
 	for f := range favorites {
-		if !expectedMap[f] {
-			return fmt.Errorf("Unexpected favorite %s", f)
-		}
+		return fmt.Errorf("Unexpected favorite %s", f)
 	}
 	return nil
 }
@@ -1129,6 +1176,12 @@ func lsprivatefavorites(contents []string) fileOp {
 	return fileOp{func(c *ctx) error {
 		return lsfavoritesOp(c, contents, tlf.Private)
 	}, Defaults, fmt.Sprintf("lsprivatefavorites(%s)", contents)}
+}
+
+func lsteamfavorites(contents []string) fileOp {
+	return fileOp{func(c *ctx) error {
+		return lsfavoritesOp(c, contents, tlf.SingleTeam)
+	}, Defaults, fmt.Sprintf("lsteamfavorites(%s)", contents)}
 }
 
 func lsdir(name string, contents m) fileOp {
@@ -1220,7 +1273,7 @@ func (c *ctx) getNode(filepath string, create createType, sym symBehavior) (
 			switch {
 			case err == nil:
 				if create == createFileExcl {
-					return nil, false, libkbfs.NameExistsError{}
+					return nil, false, data.NameExistsError{}
 				}
 			case create == createFileExcl:
 				c.tb.Log("getNode: CreateFileExcl")
@@ -1239,13 +1292,12 @@ func (c *ctx) getNode(filepath string, create createType, sym symBehavior) (
 			default:
 				panic("unreachable")
 			}
-		} else { // intermediate element in path
-			if err != nil && create != noCreate {
-				c.tb.Log("getNode: CreateDir")
-				node, err = c.engine.CreateDir(c.user, parent, name)
-				wasCreated = true
-			} // otherwise let it error!
-		}
+		} else if err != nil && create != noCreate {
+			// intermediate element in path
+			c.tb.Log("getNode: CreateDir")
+			node, err = c.engine.CreateDir(c.user, parent, name)
+			wasCreated = true
+		} // otherwise let it error!
 
 		if err != nil {
 			return nil, false, err
@@ -1297,7 +1349,7 @@ func crnameEsc(path string, user username) string {
 	return crnameAtTimeEsc(path, user, 0)
 }
 
-type silentBenchmark struct{ testing.TB }
+type silentBenchmark struct{ *testing.B }
 
 func (silentBenchmark) Log(args ...interface{})                 {}
 func (silentBenchmark) Logf(format string, args ...interface{}) {}

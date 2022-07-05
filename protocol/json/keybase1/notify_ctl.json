@@ -33,6 +33,10 @@
         },
         {
           "type": "boolean",
+          "name": "kbfssubscription"
+        },
+        {
+          "type": "boolean",
           "name": "tracking"
         },
         {
@@ -85,11 +89,23 @@
         },
         {
           "type": "boolean",
+          "name": "teambot"
+        },
+        {
+          "type": "boolean",
           "name": "chatkbfsedits"
         },
         {
           "type": "boolean",
           "name": "chatdev"
+        },
+        {
+          "type": "boolean",
+          "name": "chatemoji"
+        },
+        {
+          "type": "boolean",
+          "name": "chatemojicross"
         },
         {
           "type": "boolean",
@@ -102,6 +118,26 @@
         {
           "type": "boolean",
           "name": "wallet"
+        },
+        {
+          "type": "boolean",
+          "name": "audit"
+        },
+        {
+          "type": "boolean",
+          "name": "runtimestats"
+        },
+        {
+          "type": "boolean",
+          "name": "featuredBots"
+        },
+        {
+          "type": "boolean",
+          "name": "saltpack"
+        },
+        {
+          "type": "boolean",
+          "name": "allowChatNotifySkips"
         }
       ]
     }

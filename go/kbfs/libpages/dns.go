@@ -7,23 +7,74 @@ package libpages
 import (
 	"net"
 	"strings"
+	"sync"
+	"time"
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
 
-// RootLoader is the interface for loading a site root. This interface exists
-// for instrumenting tests. In real instances, only the DNSRootLoader should be
-// used.
+// RootLoader is the interface for loading a site root.
 type RootLoader interface {
 	LoadRoot(domain string) (root Root, err error)
 }
 
-// DNSRootLoader is an implementation of RootLoader loads a root from DNS. This
-// is the RootLoader that should be used in all non-test scenarios. See doc for
-// LoadRoot for more.
-type DNSRootLoader struct {
+// cachedRootValidDuration specifies the duration that a Root can be cached
+// for.  Ideally we'd cache it properly according to the TTL we get from the
+// DNS. But unfortunately Go doesn't expose that through the `net` package. So
+// just cache for a fixed duration of 10 seconds for now.
+const cachedRootValidDuration = 10 * time.Second
+
+type cachedRoot struct {
+	root   *Root
+	expire time.Time
+}
+
+type dnsRootLoader struct {
 	log *zap.Logger
+
+	lock      sync.RWMutex
+	rootCache map[string]cachedRoot
+}
+
+// NewDNSRootLoader makes a new RootLoader backed by DNS TXT record. It caches
+// the root for a short period time. This is the RootLoader that should be
+// used in all non-test scenarios.
+//
+// When loading from DNS, it does so with following steps:
+//   1. Construct a domain name by prefixing the `domain` parameter with
+//      "_keybase_pages." or "_keybasepages". So for example,
+//      "static.keybase.io" turns into "_keybase_pages.static.keybase.io" or
+//      "_keybasepages.static.keybase.io".
+//   2. Load TXT record(s) from the domain constructed in step 1, and look for
+//      one starting with "kbp=". If exactly one exists, parse it into a `Root`
+//      and return it.
+//
+// There must be exactly one "kbp=" TXT record configured for domain. If more
+// than one exists, an ErrKeybasePagesRecordTooMany{} is returned. If none is
+// found, an ErrKeybasePagesRecordNotFound{} is returned. In case the user has
+// some configuration that requires other records that we can't foresee for
+// now, other records (TXT or not) can co-exist with the "kbp=" record (as long
+// as no CNAME record exists on the "_keybase_pages." or "_keybasepages."
+// prefixed domain of course).
+//
+// If the given domain is invalid, the domain name constructed in this step
+// will be invalid too, which causes Go's DNS resolver to return a net.DNSError
+// typed "no such host" error.
+//
+// Examples for "static.keybase.io", "meatball.gao.io", "song.gao.io",
+// "blah.strib.io", and "kbp.jzila.com" respectively:
+//
+//   _keybase_pages.static.keybase.io TXT "kbp=/keybase/team/keybase.bots/static.keybase.io"
+//   _keybase_pages.meatball.gao.io   TXT "kbp=/keybase/public/songgao/meatball/"
+//   _keybase_pages.song.gao.io       TXT "kbp=/keybase/private/songgao,kb_bot/blah"
+//   _keybase_pages.blah.strib.io     TXT "kbp=/keybase/private/strib#kb_bot/blahblahb" "lah/blah/"
+//   _keybase_pages.kbp.jzila.com     TXT "kbp=git@keybase:private/jzila,kb_bot/kbp.git"
+func NewDNSRootLoader(log *zap.Logger) RootLoader {
+	return &dnsRootLoader{
+		log:       log,
+		rootCache: make(map[string]cachedRoot),
+	}
 }
 
 const (
@@ -54,37 +105,7 @@ func (ErrKeybasePagesRecordTooMany) Error() string {
 // must remain fixed since it reflects the order the strings are evaluated in.
 var kbpRecordPrefixes = []string{"_keybase_pages.", "_keybasepages."}
 
-// LoadRoot loads the root path configured for domain from DNS, with following
-// steps:
-//   1. Construct a domain name by prefixing the `domain` parameter with
-//      "_keybase_pages." or "_keybasepages". So for example,
-//      "static.keybase.io" turns into "_keybase_pages.static.keybase.io" or
-//      "_keybasepages.static.keybase.io".
-//   2. Load TXT record(s) from the domain constructed in step 1, and look for
-//      one starting with "kbp=". If exactly one exists, parse it into a `Root`
-//      and return it.
-//
-// There must be exactly one "kbp=" TXT record configured for domain. If more
-// than one exists, an ErrKeybasePagesRecordTooMany{} is returned. If none is
-// found, an ErrKeybasePagesRecordNotFound{} is returned. In case user has some
-// configuration that requires other records that we can't foresee for now,
-// other records (TXT or not) can co-exist with the "kbp=" record (as long as
-// no CNAME record exists on the "_keybase_pages." or "_keybasepages." prefixed
-// domain of course).
-//
-// If the given domain is invalid, it would cause the domain name constructed
-// in step will be invalid too, which causes Go's DNS resolver to return a
-// net.DNSError typed "no such host" error.
-//
-// Examples for "static.keybase.io", "meatball.gao.io", "song.gao.io",
-// "blah.strib.io", and "kbp.jzila.com" respectively:
-//
-// _keybase_pages.static.keybase.io TXT "kbp=/keybase/team/keybase.bots/static.keybase.io"
-// _keybase_pages.meatball.gao.io   TXT "kbp=/keybase/public/songgao/meatball/"
-// _keybase_pages.song.gao.io       TXT "kbp=/keybase/private/songgao,kb_bot/blah"
-// _keybase_pages.blah.strib.io     TXT "kbp=/keybase/private/strib#kb_bot/blahblahb" "lah/blah/"
-// _keybase_pages.kbp.jzila.com     TXT "kbp=git@keybase:private/jzila,kb_bot/kbp.git"
-func (l DNSRootLoader) LoadRoot(domain string) (root Root, err error) {
+func (l *dnsRootLoader) loadRoot(domain string) (root *Root, err error) {
 	var rootPath string
 
 	defer func() {
@@ -108,7 +129,7 @@ func (l DNSRootLoader) LoadRoot(domain string) (root Root, err error) {
 		}
 	}
 	if err != nil {
-		return Root{}, err
+		return nil, err
 	}
 
 	for _, r := range txtRecords {
@@ -116,15 +137,40 @@ func (l DNSRootLoader) LoadRoot(domain string) (root Root, err error) {
 
 		if strings.HasPrefix(r, keybasePagesPrefix) {
 			if len(rootPath) != 0 {
-				return Root{}, ErrKeybasePagesRecordTooMany{}
+				return nil, ErrKeybasePagesRecordTooMany{}
 			}
 			rootPath = r[len(keybasePagesPrefix):]
 		}
 	}
 
 	if len(rootPath) == 0 {
-		return Root{}, ErrKeybasePagesRecordNotFound{}
+		return nil, ErrKeybasePagesRecordNotFound{}
 	}
 
 	return ParseRoot(rootPath)
+}
+
+// LoadRoot implements the RootLoader interface.
+func (l *dnsRootLoader) LoadRoot(domain string) (Root, error) {
+	l.lock.RLock()
+	cached, ok := l.rootCache[domain]
+	l.lock.RUnlock()
+
+	if ok && time.Now().Before(cached.expire) {
+		return *cached.root, nil
+	}
+
+	root, err := l.loadRoot(domain)
+	if err != nil {
+		return Root{}, err
+	}
+
+	l.lock.Lock()
+	defer l.lock.Unlock()
+	l.rootCache[domain] = cachedRoot{
+		root:   root,
+		expire: time.Now().Add(cachedRootValidDuration),
+	}
+
+	return *root, nil
 }

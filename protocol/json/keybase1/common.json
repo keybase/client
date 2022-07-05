@@ -22,6 +22,12 @@
     },
     {
       "type": "record",
+      "name": "DurationMsec",
+      "fields": [],
+      "typedef": "double"
+    },
+    {
+      "type": "record",
       "name": "StringKVPair",
       "fields": [
         {
@@ -67,6 +73,13 @@
     },
     {
       "type": "record",
+      "name": "VID",
+      "fields": [],
+      "typedef": "string",
+      "lint": "ignore"
+    },
+    {
+      "type": "record",
       "name": "DeviceID",
       "fields": [],
       "typedef": "string"
@@ -97,7 +110,7 @@
     },
     {
       "type": "record",
-      "name": "RegionCode",
+      "name": "RawPhoneNumber",
       "fields": [],
       "typedef": "string"
     },
@@ -106,6 +119,12 @@
       "name": "LinkID",
       "fields": [],
       "typedef": "string"
+    },
+    {
+      "type": "record",
+      "name": "BinaryLinkID",
+      "fields": [],
+      "typedef": "bytes"
     },
     {
       "type": "record",
@@ -241,7 +260,9 @@
         "NONE_0",
         "PUBLIC_1",
         "PRIVATE_2",
-        "SEMIPRIVATE_3"
+        "SEMIPRIVATE_3",
+        "USER_PRIVATE_HIDDEN_16",
+        "TEAM_PRIVATE_HIDDEN_17"
       ]
     },
     {
@@ -324,7 +345,7 @@
           "name": "deviceDescription"
         },
         {
-          "type": "string",
+          "type": "DeviceTypeV2",
           "name": "deviceType"
         },
         {
@@ -392,7 +413,7 @@
       "name": "Device",
       "fields": [
         {
-          "type": "string",
+          "type": "DeviceTypeV2",
           "name": "type"
         },
         {
@@ -402,6 +423,10 @@
         {
           "type": "DeviceID",
           "name": "deviceID"
+        },
+        {
+          "type": "int",
+          "name": "deviceNumberOfType"
         },
         {
           "type": "Time",
@@ -439,6 +464,12 @@
     },
     {
       "type": "record",
+      "name": "DeviceTypeV2",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
       "name": "Stream",
       "fields": [
         {
@@ -472,6 +503,24 @@
         "GUI_HELPER_4"
       ],
       "go": "nostring"
+    },
+    {
+      "type": "record",
+      "name": "KBFSPathInfo",
+      "fields": [
+        {
+          "type": "string",
+          "name": "standardPath"
+        },
+        {
+          "type": "string",
+          "name": "deeplinkPath"
+        },
+        {
+          "type": "string",
+          "name": "platformAfterMountPath"
+        }
+      ]
     },
     {
       "type": "record",
@@ -793,6 +842,78 @@
           "type": "int",
           "name": "width"
         }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "OfflineAvailability",
+      "symbols": [
+        "NONE_0",
+        "BEST_EFFORT_1"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UserReacji",
+      "fields": [
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "customAddr"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "customAddrNoAnim"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "ReacjiSkinTone",
+      "symbols": [
+        "NONE_0",
+        "SKINTONE1_1",
+        "SKINTONE2_2",
+        "SKINTONE3_3",
+        "SKINTONE4_4",
+        "SKINTONE5_5"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UserReacjis",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "UserReacji"
+          },
+          "name": "topReacjis"
+        },
+        {
+          "type": "ReacjiSkinTone",
+          "name": "skinTone"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "WotStatusType",
+      "symbols": [
+        "NONE_0",
+        "PROPOSED_1",
+        "ACCEPTED_2",
+        "REJECTED_3",
+        "REVOKED_4"
       ]
     }
   ],

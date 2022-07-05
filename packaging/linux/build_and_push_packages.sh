@@ -7,33 +7,31 @@
 #   4) Push all of this to S3.
 #   5) Push new version metadata to our Arch Linux AUR package.
 
-set -e -u -o pipefail
+set -euox pipefail
 
 mode="$1"
 build_dir="$2"
 
-here="$(dirname "$BASH_SOURCE")"
+here="$(dirname "${BASH_SOURCE[0]}")"
 client_dir="$(git -C "$here" rev-parse --show-toplevel)"
-kbfs_dir="$client_dir/../kbfs"
 
-if [ "${KEYBASE_DRY_RUN:-}" = 1 ] || [ "${KEYBASE_NIGHTLY:-}" = 1 ] ; then
-  default_bucket_name="jack-testing.keybase.io"
-  echo
-  echo
-  echo "================================="
-  echo "================================="
-  if [ "${KEYBASE_DRY_RUN:-}" = 1 ] ; then
-      echo "= This build+push is a DRY RUN. ="
-  else
-      echo "= This build+push is a NIGHTLY. ="
-  fi
-  echo "================================="
-  echo "================================="
-  echo
-  echo
+echo "================================="
+echo "================================="
+if [ -n "$KEYBASE_TEST" ]; then
+    default_bucket_name="tests.keybase.io"
+    echo "= This build+push is a TEST. ="
+elif [ -n "$KEYBASE_NIGHTLY" ]; then
+    default_bucket_name="tests.keybase.io"
+    echo "= This build+push is a NIGHTLY. ="
+elif [ -n "$KEYBASE_RELEASE" ]; then
+    default_bucket_name="prerelease.keybase.io"
+    echo "= This build+push is a RELEASE. ="
 else
-  default_bucket_name="prerelease.keybase.io"
+    echo "Neither KEYBASE_TEST, KEYBASE_NIGHTLY, nor KEYBASE_RELEASE were specified. Aborting."
+    exit 1
 fi
+echo "================================="
+echo "================================="
 
 export BUCKET_NAME="${BUCKET_NAME:-$default_bucket_name}"
 echo "=============================="
@@ -53,21 +51,6 @@ echo "Loading release tool"
 release_gopath="$HOME/release_gopath"
 GOPATH="$release_gopath" "$client_dir/packaging/goinstall.sh" "github.com/keybase/release"
 release_bin="$release_gopath/bin/release"
-
-# The release tool wants GITHUB_TOKEN in the environment. Load it in. The
-# test_all_credentials.sh script checks that this file exists.
-token="$(cat ~/.github_token)"
-export GITHUB_TOKEN="$token"
-
-# NB: This is duplicated in packaging/prerelease/build_app.sh.
-if [ ! "${NOWAIT:-}" = "1" ]; then
-  echo "Checking client CI"
-  "$release_bin" wait-ci --repo="client" --commit="$(git -C "$client_dir" rev-parse HEAD)" --context="continuous-integration/jenkins/branch" --context="ci/circleci"
-  if [ "$mode" != "production" ] ; then
-    echo "Checking kbfs CI"
-    "$release_bin" wait-ci --repo="kbfs" --commit="$(git -C "$kbfs_dir" rev-parse HEAD)" --context="continuous-integration/jenkins/branch"
-  fi
-fi
 
 # Build all the packages!
 "$here/build_binaries.sh" "$mode" "$build_dir"
@@ -90,8 +73,12 @@ echo Doing a prerelease push to S3...
 # (Our s3cmd commands would be happy to read that file directly if we put it
 # in /root, but the s3_index.sh script ends up running Go code that depends
 # on the variables.)
-export AWS_ACCESS_KEY="$(grep access_key ~/.s3cfg | awk '{print $3}')"
-export AWS_SECRET_KEY="$(grep secret_key ~/.s3cfg | awk '{print $3}')"
+set +x
+AWS_ACCESS_KEY="$(grep access_key ~/.s3cfg | awk '{print $3}')"
+export AWS_ACCESS_KEY
+AWS_SECRET_KEY="$(grep secret_key ~/.s3cfg | awk '{print $3}')"
+export AWS_SECRET_KEY
+set -x
 
 # Upload both repos to S3.
 echo Syncing the deb repo...
@@ -132,7 +119,9 @@ copy_bins() {
     another_copy "$build_dir/rpm_repo/keybase-latest-x86_64.rpm" "s3://$1/keybase_amd64.rpm"
     another_copy "$build_dir/rpm_repo/keybase-latest-i386.rpm" "s3://$1/keybase_i386.rpm"
 }
-copy_bins "$BUCKET_NAME"
+if [ -n "$KEYBASE_RELEASE" ]; then
+    copy_bins "$BUCKET_NAME"
+fi
 
 json_tmp=$(mktemp)
 echo "Writing version into JSON to $json_tmp"
@@ -151,19 +140,13 @@ copy_metadata "$BUCKET_NAME"
 GOPATH="$release_gopath" PLATFORM="linux" "$here/../prerelease/s3_index.sh" || \
   echo "ERROR in s3_index.sh. Internal pages might not be updated. Build continuing..."
 
-# ---------- Dry run quits here ----------
-# Things below this line don't use S3 buckets, and so we can't dry run them
-# against a test bucket.
-if [ "${KEYBASE_DRY_RUN:-}" = 1 ] ; then
-    echo "Ending dry run."
-    exit 0
-fi
 NIGHTLY_DIR="prerelease.keybase.io/nightly" # No trailing slash! AWS doesn't respect POSIX standards w.r.t double slashes
-if [ "${KEYBASE_NIGHTLY:-}" = 1 ] ; then
+if [ -n "$KEYBASE_NIGHTLY" ] ; then
     copy_bins "$NIGHTLY_DIR"
     copy_metadata "$NIGHTLY_DIR"
-    echo "Ending nightly."
-    exit 0
 fi
 
-"$here/arch/update_aur_packages.sh" "$build_dir"
+if [ -n "$KEYBASE_RELEASE" ] ; then
+    echo "Updating AUR packages"
+    "$here/arch/update_aur_packages.sh" "$build_dir"
+fi

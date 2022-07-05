@@ -6,10 +6,12 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/teams/hidden"
 )
 
 func RenameSubteam(ctx context.Context, g *libkb.GlobalContext, prevName keybase1.TeamName, newName keybase1.TeamName) error {
-	g.Log.CDebugf(ctx, "RenameSubteam %v -> %v", prevName, newName)
+	mctx := libkb.NewMetaContext(ctx, g)
+	mctx.Debug("RenameSubteam %v -> %v", prevName, newName)
 
 	if prevName.IsRootTeam() {
 		return fmt.Errorf("cannot rename root team: %s", prevName.String())
@@ -37,8 +39,9 @@ func RenameSubteam(ctx context.Context, g *libkb.GlobalContext, prevName keybase
 		return fmt.Errorf("cannot rename team without changing name")
 	}
 
-	return RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, _ int) error {
-		g.Log.CDebugf(ctx, "RenameSubteam load teams: parent:'%v' subteam:'%v'",
+	return RetryIfPossible(ctx, g, func(ctx context.Context, _ int) error {
+		mctx := libkb.NewMetaContext(ctx, g)
+		mctx.Debug("RenameSubteam load teams: parent:'%v' subteam:'%v'",
 			parentName.String(), prevName.String())
 		parent, err := GetForTeamManagementByStringName(ctx, g, parentName.String(), true)
 		if err != nil {
@@ -49,7 +52,7 @@ func RenameSubteam(ctx context.Context, g *libkb.GlobalContext, prevName keybase
 			return err
 		}
 
-		g.Log.CDebugf(ctx, "RenameSubteam load me")
+		mctx.Debug("RenameSubteam load me")
 		me, err := loadMeForSignatures(ctx, g)
 		if err != nil {
 			return err
@@ -70,19 +73,21 @@ func RenameSubteam(ctx context.Context, g *libkb.GlobalContext, prevName keybase
 			return err
 		}
 
+		var ratchetBlindingKeys hidden.RatchetBlindingKeySet
+
 		// Subteam renaming involves two links, one `rename_subteam` in the parent
 		// team's chain, and one `rename_up_pointer` in the subteam's chain.
 
-		g.Log.CDebugf(ctx, "RenameSubteam make sigs")
+		mctx.Debug("RenameSubteam make sigs")
 		renameSubteamSig, err := generateRenameSubteamSigForParentChain(
-			libkb.NewMetaContext(ctx, g), me, deviceSigningKey, parent.chain(), subteam.ID, newName, admin)
+			mctx, me, deviceSigningKey, parent.chain(), subteam.ID, newName, admin, &ratchetBlindingKeys)
 		if err != nil {
 			return err
 		}
 
 		renameUpPointerSig, err := generateRenameUpPointerSigForSubteamChain(
-			libkb.NewMetaContext(ctx, g),
-			me, deviceSigningKey, chainPair{parent: parent.chain(), subteam: subteam.chain()}, newName, admin)
+			mctx,
+			me, deviceSigningKey, chainPair{parent: parent.chain(), subteam: subteam.chain()}, newName, admin, &ratchetBlindingKeys)
 		if err != nil {
 			return err
 		}
@@ -99,9 +104,13 @@ func RenameSubteam(ctx context.Context, g *libkb.GlobalContext, prevName keybase
 
 		payload := make(libkb.JSONPayload)
 		payload["sigs"] = []interface{}{renameSubteamSig, renameUpPointerSig}
+		err = ratchetBlindingKeys.AddToJSONPayload(payload)
+		if err != nil {
+			return err
+		}
 
-		g.Log.CDebugf(ctx, "RenameSubteam post")
-		_, err = g.API.PostJSON(libkb.APIArg{
+		mctx.Debug("RenameSubteam post")
+		_, err = mctx.G().API.PostJSON(mctx, libkb.APIArg{
 			Endpoint:    "sig/multi",
 			SessionType: libkb.APISessionTypeREQUIRED,
 			JSONPayload: payload,
@@ -110,19 +119,18 @@ func RenameSubteam(ctx context.Context, g *libkb.GlobalContext, prevName keybase
 			return err
 		}
 
-		go g.GetTeamLoader().NotifyTeamRename(ctx, subteam.ID, newName.String())
+		go func() { _ = mctx.G().GetTeamLoader().NotifyTeamRename(ctx, subteam.ID, newName.String()) }()
 
 		return nil
 	})
 }
 
-func generateRenameSubteamSigForParentChain(m libkb.MetaContext, me libkb.UserForSignatures, signingKey libkb.GenericKey, parentTeam *TeamSigChainState, subteamID keybase1.TeamID, newSubteamName keybase1.TeamName, admin *SCTeamAdmin) (item *libkb.SigMultiItem, err error) {
+func generateRenameSubteamSigForParentChain(m libkb.MetaContext, me libkb.UserForSignatures, signingKey libkb.GenericKey, parentTeam *TeamSigChainState, subteamID keybase1.TeamID, newSubteamName keybase1.TeamName, admin *SCTeamAdmin, rbk *hidden.RatchetBlindingKeySet) (item *libkb.SigMultiItem, err error) {
 
 	entropy, err := makeSCTeamEntropy()
 	if err != nil {
 		return nil, err
 	}
-
 	teamSection := SCTeamSection{
 		Admin: admin,
 		ID:    (SCTeamID)(parentTeam.GetID()),
@@ -131,6 +139,15 @@ func generateRenameSubteamSigForParentChain(m libkb.MetaContext, me libkb.UserFo
 			Name: (SCTeamName)(newSubteamName.String()),
 		},
 		Entropy: entropy,
+	}
+
+	ratchet, err := parentTeam.makeHiddenRatchet(m)
+	if err != nil {
+		return nil, err
+	}
+	if ratchet != nil {
+		teamSection.Ratchets = ratchet.ToTeamSection()
+		rbk.Add(*ratchet)
 	}
 
 	sigBody, err := RenameSubteamSig(m.G(), me, signingKey, parentTeam, teamSection)
@@ -179,7 +196,7 @@ type chainPair struct {
 	subteam *TeamSigChainState
 }
 
-func generateRenameUpPointerSigForSubteamChain(m libkb.MetaContext, me libkb.UserForSignatures, signingKey libkb.GenericKey, teams chainPair, newSubteamName keybase1.TeamName, admin *SCTeamAdmin) (item *libkb.SigMultiItem, err error) {
+func generateRenameUpPointerSigForSubteamChain(m libkb.MetaContext, me libkb.UserForSignatures, signingKey libkb.GenericKey, teams chainPair, newSubteamName keybase1.TeamName, admin *SCTeamAdmin, rbk *hidden.RatchetBlindingKeySet) (item *libkb.SigMultiItem, err error) {
 	newSubteamNameStr := newSubteamName.String()
 	teamSection := SCTeamSection{
 		Admin: admin,
@@ -190,6 +207,14 @@ func generateRenameUpPointerSigForSubteamChain(m libkb.MetaContext, me libkb.Use
 			Seqno:   teams.parent.GetLatestSeqno() + 1, // the seqno of the *new* parent link
 			SeqType: seqTypeForTeamPublicness(teams.parent.IsPublic()),
 		},
+	}
+	ratchet, err := teams.subteam.makeHiddenRatchet(m)
+	if err != nil {
+		return nil, err
+	}
+	if ratchet != nil {
+		teamSection.Ratchets = ratchet.ToTeamSection()
+		rbk.Add(*ratchet)
 	}
 
 	sigBody, err := RenameUpPointerSig(m.G(), me, signingKey, teams.subteam, teamSection)

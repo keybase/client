@@ -1,9 +1,0 @@
-// @flow
-import type {Tab} from '../../constants/tabs'
-export type Props = {
-  badgeNumbers: {[key: string]: number},
-  isNew: {[key: string]: boolean},
-  onTabClick: (tab: Tab) => void,
-  selectedTab: Tab,
-  username: string,
-}

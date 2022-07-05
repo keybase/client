@@ -12,7 +12,6 @@ import (
 	"golang.org/x/net/context"
 )
 
-func (t *DebuggingHandler) Script(ctx context.Context, arg keybase1.ScriptArg) (_ string, err error) {
-	defer t.G().CTraceTimed(ctx, "Script", func() error { return err })()
-	return "", fmt.Errorf("debugging script not supported in production builds")
+func (t *DebuggingHandler) scriptExtras(ctx context.Context, arg keybase1.ScriptArg) (_ string, err error) {
+	return "", fmt.Errorf("unknown script in production mode: %v", arg.Script)
 }

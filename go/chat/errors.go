@@ -4,11 +4,13 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"time"
 
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/ephemeral"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
@@ -27,7 +29,7 @@ type PermanentUnboxingError struct{ inner error }
 
 func (e PermanentUnboxingError) Error() string {
 	switch err := e.inner.(type) {
-	case EphemeralUnboxingError:
+	case EphemeralUnboxingError, NotAuthenticatedForThisDeviceError:
 		return err.Error()
 	default:
 		return fmt.Sprintf("Unable to decrypt chat message: %s", err.Error())
@@ -158,7 +160,7 @@ func (e TransientUnboxingError) ToStatus() (status keybase1.Status) {
 
 //=============================================================================
 
-type EphemeralAlreadyExpiredError struct{ inner error }
+type EphemeralAlreadyExpiredError struct{}
 
 func NewEphemeralAlreadyExpiredError() EphemeralAlreadyExpiredError {
 	return EphemeralAlreadyExpiredError{}
@@ -174,7 +176,9 @@ func (e EphemeralAlreadyExpiredError) InternalError() string {
 
 //=============================================================================
 
-type EphemeralUnboxingError struct{ inner ephemeral.EphemeralKeyError }
+type EphemeralUnboxingError struct {
+	inner ephemeral.EphemeralKeyError
+}
 
 func NewEphemeralUnboxingError(inner ephemeral.EphemeralKeyError) EphemeralUnboxingError {
 	return EphemeralUnboxingError{inner}
@@ -202,14 +206,20 @@ func (e PublicTeamEphemeralKeyError) Error() string {
 
 //=============================================================================
 
-type NotAuthenticatedForThisDeviceError struct{}
+type NotAuthenticatedForThisDeviceError struct{ inner ephemeral.EphemeralKeyError }
 
-func NewNotAuthenticatedForThisDeviceError() NotAuthenticatedForThisDeviceError {
-	return NotAuthenticatedForThisDeviceError{}
+func NewNotAuthenticatedForThisDeviceError(mctx libkb.MetaContext, memberCtime *keybase1.Time,
+	contentCtime gregor1.Time) NotAuthenticatedForThisDeviceError {
+	inner := ephemeral.NewNotAuthenticatedForThisDeviceError(mctx, memberCtime, contentCtime)
+	return NotAuthenticatedForThisDeviceError{inner: inner}
 }
 
 func (e NotAuthenticatedForThisDeviceError) Error() string {
-	return "Message is not authenticated for this device"
+	return e.inner.HumanError()
+}
+
+func (e NotAuthenticatedForThisDeviceError) InternalError() string {
+	return e.inner.Error()
 }
 
 //=============================================================================
@@ -287,8 +297,31 @@ func (e BoxingError) IsImmediateFail() (chat1.OutboxErrorType, bool) {
 
 //=============================================================================
 
+type RestrictedBotChannelError struct{}
+
+func NewRestrictedBotChannelError() RestrictedBotChannelError {
+	return RestrictedBotChannelError{}
+}
+
+func (e RestrictedBotChannelError) Error() string {
+	return "bot restricted from sending to this channel"
+}
+
+func (e RestrictedBotChannelError) IsImmediateFail() (chat1.OutboxErrorType, bool) {
+	return chat1.OutboxErrorType_RESTRICTEDBOT, true
+}
+
+//=============================================================================
+
 type BoxingCryptKeysError struct {
 	Err error
+}
+
+// Cause implements the pkg/errors Cause() method, also cloned in libkb via HumanError,
+// so that we know which error to show to the human being using keybase (rather than
+// for our own internal uses).
+func (e BoxingCryptKeysError) Cause() error {
+	return e.Err
 }
 
 func NewBoxingCryptKeysError(err error) BoxingCryptKeysError {
@@ -402,26 +435,29 @@ func (e OfflineError) Error() string {
 type OfflineClient struct {
 }
 
-func (e OfflineClient) Call(ctx context.Context, method string, arg interface{}, res interface{}) error {
+func (e OfflineClient) Call(ctx context.Context, method string, arg interface{},
+	res interface{}, timeout time.Duration) error {
 	return OfflineError{}
 }
 
-func (e OfflineClient) CallCompressed(ctx context.Context, method string, arg interface{}, res interface{}, ctype rpc.CompressionType) error {
+func (e OfflineClient) CallCompressed(ctx context.Context, method string, arg interface{},
+	res interface{}, ctype rpc.CompressionType, timeout time.Duration) error {
 	return OfflineError{}
 }
 
-func (e OfflineClient) Notify(ctx context.Context, method string, arg interface{}) error {
+func (e OfflineClient) Notify(ctx context.Context, method string, arg interface{}, timeout time.Duration) error {
 	return OfflineError{}
 }
 
 //=============================================================================
 
 type DuplicateTopicNameError struct {
-	TopicName string
+	Conv chat1.ConversationLocal
 }
 
 func (e DuplicateTopicNameError) Error() string {
-	return fmt.Sprintf("channel name %s is already in use", e.TopicName)
+	return fmt.Sprintf("channel name %s is already in use in %v",
+		e.Conv.GetTopicName(), e.Conv.Info.TlfName)
 }
 
 //=============================================================================
@@ -536,6 +572,15 @@ func IsOfflineError(err error) OfflineErrorKind {
 	case ErrDuplicateConnection:
 		return OfflineErrorKindOfflineBasic
 	}
+
+	// Unfortunately, Go throws these without a type and they can occasionally
+	// propagate up. The strings were copied from
+	// https://golang.org/src/crypto/tls/conn.go
+	switch err.Error() {
+	case "tls: use of closed connection",
+		"tls: protocol is shutdown":
+		return OfflineErrorKindOfflineReconnect
+	}
 	return OfflineErrorKindOnline
 }
 
@@ -567,4 +612,32 @@ func NewFTLError(s string) error {
 
 func (f FTLError) Error() string {
 	return fmt.Sprintf("FTL Error: %s", f.msg)
+}
+
+//=============================================================================
+
+type DevStoragePermissionDeniedError struct {
+	role keybase1.TeamRole
+}
+
+func NewDevStoragePermissionDeniedError(role keybase1.TeamRole) error {
+	return &DevStoragePermissionDeniedError{role: role}
+}
+
+func (e *DevStoragePermissionDeniedError) Error() string {
+	return fmt.Sprintf("role %q is not high enough", e.role)
+}
+
+//=============================================================================
+
+type DevStorageAdminOnlyError struct {
+	msg string
+}
+
+func NewDevStorageAdminOnlyError(msg string) error {
+	return &DevStorageAdminOnlyError{msg: msg}
+}
+
+func (e *DevStorageAdminOnlyError) Error() string {
+	return fmt.Sprintf("found a conversation and a message, but role checking failed: %s", e.msg)
 }

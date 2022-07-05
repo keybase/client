@@ -1,0 +1,16 @@
+@namespace("keybase.1")
+
+protocol NotifySaltpack {
+
+  enum SaltpackOperationType {
+    ENCRYPT_0,
+    DECRYPT_1,
+    SIGN_2,
+    VERIFY_3
+  }
+
+  void saltpackOperationStart(SaltpackOperationType opType, string filename) oneway;
+  void saltpackOperationProgress(SaltpackOperationType opType, string filename, long bytesComplete, long bytesTotal) oneway;
+  void saltpackOperationDone(SaltpackOperationType opType, string filename) oneway;
+
+}

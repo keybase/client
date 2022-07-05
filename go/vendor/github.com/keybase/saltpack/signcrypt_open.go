@@ -112,6 +112,10 @@ func (sos *signcryptOpenStream) trySharedSymmetricKeys(hdr *SigncryptionHeader, 
 		identifiers = append(identifiers, receiver.ReceiverKID)
 	}
 
+	if sos.resolver == nil {
+		return nil, nil
+	}
+
 	resolvedKeys, err := sos.resolver.ResolveKeys(identifiers)
 	if err != nil {
 		return nil, err
@@ -128,8 +132,14 @@ func (sos *signcryptOpenStream) trySharedSymmetricKeys(hdr *SigncryptionHeader, 
 
 		// We got a key. It should decrypt the corresponding receiver secretbox.
 		derivedKeyDigest := hmac.New(sha512.New, []byte(signcryptionSymmetricKeyContext))
-		derivedKeyDigest.Write(ephemeralPub.ToKID())
-		derivedKeyDigest.Write(resolved[:])
+		_, err = derivedKeyDigest.Write(ephemeralPub.ToKID())
+		if err != nil {
+			return nil, err
+		}
+		_, err = derivedKeyDigest.Write(resolved[:])
+		if err != nil {
+			return nil, err
+		}
 		derivedKey, err := rawBoxKeyFromSlice(derivedKeyDigest.Sum(nil)[0:32])
 		if err != nil {
 			panic(err) // should be statically impossible, if the slice above is the right length
@@ -185,7 +195,11 @@ func (sos *signcryptOpenStream) processHeader(hdr *SigncryptionHeader) error {
 		sos.senderAnonymous = true
 	} else {
 		// regular mode, with a real signing public key
-		sos.signingPublicKey = sos.keyring.LookupSigningPublicKey(senderKeySlice)
+		spk := sos.keyring.LookupSigningPublicKey(senderKeySlice)
+		if spk == nil {
+			return ErrNoSenderKey{Sender: senderKeySlice}
+		}
+		sos.signingPublicKey = spk
 	}
 
 	return nil

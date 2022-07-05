@@ -16,7 +16,7 @@ type FullSelfer interface {
 	HandleUserChanged(u keybase1.UID) error
 	Update(ctx context.Context, u *User) error
 	New() FullSelfer
-	OnLogin() error
+	OnLogin(mctx MetaContext) error
 }
 
 type UncachedFullSelf struct {
@@ -44,7 +44,7 @@ func (n *UncachedFullSelf) WithUser(arg LoadUserArg, f func(u *User) error) erro
 }
 
 func (n *UncachedFullSelf) HandleUserChanged(u keybase1.UID) error    { return nil }
-func (n *UncachedFullSelf) OnLogin() error                            { return nil }
+func (n *UncachedFullSelf) OnLogin(mctx MetaContext) error            { return nil }
 func (n *UncachedFullSelf) Update(ctx context.Context, u *User) error { return nil }
 
 func (n *UncachedFullSelf) New() FullSelfer { return NewUncachedFullSelf(n.G()) }
@@ -105,24 +105,26 @@ func (m *CachedFullSelf) WithSelfForcePoll(ctx context.Context, f func(u *User) 
 	return m.WithUser(arg, f)
 }
 
-func (m *CachedFullSelf) maybeClearCache(ctx context.Context, arg *LoadUserArg) (err error) {
-	defer m.G().CTrace(ctx, "CachedFullSelf#maybeClearCache", func() error { return err })()
+func (m *CachedFullSelf) maybeClearCache(ctx context.Context, arg *LoadUserArg) {
+	var err error
+	m.G().Log.CDebugf(ctx, "CachedFullSelf#maybeClearCache(%+v)", arg)
 
 	now := m.G().Clock().Now()
 	diff := now.Sub(m.cachedAt)
 
 	if diff < CachedUserTimeout && !arg.forcePoll {
 		m.G().Log.CDebugf(ctx, "| was fresh, last loaded %s ago", diff)
-		return nil
+		return
 	}
 
 	var sigHints *SigHints
 	var leaf *MerkleUserLeaf
 
-	sigHints, leaf, err = lookupSigHintsAndMerkleLeaf(NewMetaContext(ctx, m.G()), arg.uid, true)
+	sigHints, leaf, err = lookupSigHintsAndMerkleLeaf(NewMetaContext(ctx, m.G()), arg.uid, true, MerkleOpts{})
 	if err != nil {
 		m.me = nil
-		return err
+		m.G().Log.CDebugf(ctx, "| CachedFullSelf error querying merkle tree, will nil-out cache: %s", err)
+		return
 	}
 
 	arg.sigHints = sigHints
@@ -132,18 +134,17 @@ func (m *CachedFullSelf) maybeClearCache(ctx context.Context, arg *LoadUserArg) 
 
 	if idVersion, err = m.me.GetIDVersion(); err != nil {
 		m.me = nil
-		return err
+		m.G().Log.CDebugf(ctx, "| CachedFullSelf: error get id version, will nil-out cache: %s", err)
+		return
 	}
 
 	if leaf.public != nil && leaf.public.Seqno == m.me.GetSigChainLastKnownSeqno() && leaf.idVersion == idVersion {
 		m.G().Log.CDebugf(ctx, "| CachedFullSelf still fresh at seqno=%d, idVersion=%d", leaf.public.Seqno, leaf.idVersion)
-		return nil
+		return
 	}
 
 	m.G().Log.CDebugf(ctx, "| CachedFullSelf was out of date")
 	m.me = nil
-
-	return nil
 }
 
 // WithUser loads any old user. If it happens to be the self user, then it behaves
@@ -166,6 +167,9 @@ func (m *CachedFullSelf) WithUser(arg LoadUserArg, f func(u *User) error) (err e
 	var u *User
 
 	if m.me != nil && m.isSelfLoad(arg) {
+		// This UID might be nil. Or it could be wrong, so just overwrite it with the current
+		// self that we have loaded into the full self cacher.
+		arg.uid = m.me.GetUID()
 		m.maybeClearCache(ctx, &arg)
 	}
 
@@ -224,7 +228,7 @@ func (m *CachedFullSelf) Update(ctx context.Context, u *User) (err error) {
 	// we're being called from a LoginState context, so we get a circular locking situation.
 	// So the onus is on the caller to check that we're actually loading self.
 
-	defer m.G().CTrace(ctx, fmt.Sprintf("CachedFullSelf#Update(%s)", u.GetUID()), func() error { return err })()
+	defer m.G().CTrace(ctx, fmt.Sprintf("CachedFullSelf#Update(%s)", u.GetUID()), &err)()
 	m.Lock()
 	defer m.Unlock()
 
@@ -261,7 +265,7 @@ func (m *CachedFullSelf) HandleUserChanged(u keybase1.UID) error {
 }
 
 // OnLogin clears the cached self user if it differs from what's already cached.
-func (m *CachedFullSelf) OnLogin() error {
+func (m *CachedFullSelf) OnLogin(mctx MetaContext) error {
 	m.Lock()
 	defer m.Unlock()
 	if m.me != nil && !m.me.GetUID().Equal(m.G().GetMyUID()) {
@@ -271,12 +275,12 @@ func (m *CachedFullSelf) OnLogin() error {
 }
 
 func LoadSelfForTeamSignatures(ctx context.Context, g *GlobalContext) (ret UserForSignatures, err error) {
-	err = g.GetFullSelfer().WithSelf(ctx, func(u *User) error {
+	err = g.GetFullSelfer().WithSelf(ctx, func(u *User) (err error) {
 		if u == nil {
 			return LoginRequiredError{"no self in FullSelfCacher"}
 		}
-		ret = u.ToUserForSignatures()
-		return nil
+		ret, err = u.ToUserForSignatures()
+		return err
 	})
 	return ret, err
 }

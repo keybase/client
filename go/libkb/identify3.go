@@ -6,6 +6,7 @@ import (
 	"time"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"golang.org/x/sync/errgroup"
 )
 
 // Identify3Session corresponds to a single screen showing a user profile.
@@ -19,6 +20,7 @@ type Identify3Session struct {
 	outcome     *IdentifyOutcome
 	trackBroken bool
 	needUpgrade bool
+	didExpire   bool // true if we ran an expire on this session (so we don't repeat)
 }
 
 func NewIdentify3GUIID() (keybase1.Identify3GUIID, error) {
@@ -48,7 +50,7 @@ func NewIdentify3Session(mctx MetaContext) (*Identify3Session, error) {
 		created: mctx.G().GetClock().Now(),
 		id:      id,
 	}
-	mctx.CDebugf("generated new identify3 session: %s", id)
+	mctx.Debug("generated new identify3 session: %s", id)
 	return ret, nil
 }
 
@@ -71,7 +73,13 @@ func (s *Identify3Session) ResultType() keybase1.Identify3ResultType {
 	}
 }
 
-func (s *Identify3Session) OutcomeUnlocked() *IdentifyOutcome {
+func (s *Identify3Session) Outcome() *IdentifyOutcome {
+	s.Lock()
+	defer s.Unlock()
+	return s.outcome
+}
+
+func (s *Identify3Session) OutcomeLocked() *IdentifyOutcome {
 	return s.outcome
 }
 
@@ -98,7 +106,9 @@ func (s *Identify3Session) SetOutcome(o *IdentifyOutcome) {
 type Identify3State struct {
 	sync.Mutex
 
-	expireCh chan<- struct{}
+	expireCh   chan<- struct{}
+	shutdownCh chan struct{}
+	eg         errgroup.Group
 
 	// Table of keybase1.Identify3GUIID -> *identify3Session's
 	cache           map[keybase1.Identify3GUIID](*Identify3Session)
@@ -125,24 +135,34 @@ func NewIdentify3StateForTest(g *GlobalContext) (*Identify3State, <-chan time.Ti
 }
 
 func newIdentify3State(g *GlobalContext, testCompletionCh chan<- time.Time) *Identify3State {
-	ch := make(chan struct{})
+	expireCh := make(chan struct{})
+	shutdownCh := make(chan struct{})
 	ret := &Identify3State{
-		expireCh:         ch,
+		expireCh:         expireCh,
+		shutdownCh:       shutdownCh,
 		cache:            make(map[keybase1.Identify3GUIID](*Identify3Session)),
 		defaultWaitTime:  time.Hour,
 		expireTime:       24 * time.Hour,
 		testCompletionCh: testCompletionCh,
 	}
 	ret.makeNewCache()
-	go ret.runExpireThread(g, ch)
+	ret.eg.Go(func() error { return ret.runExpireThread(g, expireCh, shutdownCh) })
 	ret.pokeExpireThread()
 	return ret
 }
 
-func (s *Identify3State) Shutdown() {
+func (s *Identify3State) Shutdown() chan struct{} {
+	ch := make(chan struct{})
 	if s.markShutdown() {
-		close(s.expireCh)
+		go func() {
+			_ = s.eg.Wait()
+			s.shutdownCh = nil
+			close(ch)
+		}()
+	} else {
+		close(ch)
 	}
+	return ch
 }
 
 func (s *Identify3State) isShutdown() bool {
@@ -159,6 +179,7 @@ func (s *Identify3State) markShutdown() bool {
 	if s.shutdown {
 		return false
 	}
+	close(s.shutdownCh)
 	s.shutdown = true
 	return true
 }
@@ -175,7 +196,8 @@ func (s *Identify3State) OnLogout() {
 	s.pokeExpireThread()
 }
 
-func (s *Identify3State) runExpireThread(g *GlobalContext, ch <-chan struct{}) {
+func (s *Identify3State) runExpireThread(g *GlobalContext, expireCh <-chan struct{},
+	shutdownCh chan struct{}) error {
 
 	mctx := NewMetaContextBackground(g)
 	wait := s.defaultWaitTime
@@ -185,16 +207,13 @@ func (s *Identify3State) runExpireThread(g *GlobalContext, ch <-chan struct{}) {
 	wakeupTime := now.Add(wait)
 
 	for {
-
 		select {
-		case _, ok := <-ch:
-			if !ok {
-				mctx.CDebugf("identify3State#runExpireThread: exiting on shutdown")
-				return
-			}
+		case <-shutdownCh:
+			mctx.Debug("identify3State#runExpireThread: exiting on shutdown")
+			return nil
+		case <-expireCh:
 		case <-mctx.G().Clock().AfterTime(wakeupTime):
-			mctx.CDebugf("identify3State#runExpireThread: wakeup after %v timeout (at %v)", wait, wakeupTime)
-
+			mctx.Debug("identify3State#runExpireThread: wakeup after %v timeout (at %v)", wait, wakeupTime)
 		}
 
 		// Guard all time manipulation in a lock for the purposes of testing.
@@ -213,54 +232,92 @@ func (s *Identify3State) runExpireThread(g *GlobalContext, ch <-chan struct{}) {
 	}
 }
 
-func (s *Identify3Session) expire(mctx MetaContext) {
+func (s *Identify3Session) doExpireSession(mctx MetaContext) {
+	defer mctx.Trace("Identify3Session#doExpireSession", nil)()
+	s.Lock()
+	defer s.Unlock()
+	mctx.Debug("Identify3Session#doExpireSession(%s)", s.id)
+
+	if s.didExpire {
+		mctx.Warning("not repeating session expire for %s", s.id)
+		return
+	}
+	s.didExpire = true
+
 	cli, err := mctx.G().UIRouter.GetIdentify3UI(mctx)
 	if err != nil {
-		mctx.CWarningf("failed to get an electron UI to expire %s: %s", s.id, err)
+		mctx.Warning("failed to get an electron UI to expire %s: %s", s.id, err)
 		return
 	}
 	if cli == nil {
-		mctx.CWarningf("failed to get an electron UI to expire %s: got nil", s.id)
+		mctx.Warning("failed to get an electron UI to expire %s: got nil", s.id)
 		return
 	}
 	err = cli.Identify3TrackerTimedOut(mctx.Ctx(), s.id)
 	if err != nil {
-		mctx.CWarningf("error timing ID3 session %s: %s", s.id, err)
+		mctx.Warning("error timing ID3 session %s: %s", s.id, err)
 	}
 }
 
 func (s *Identify3State) expireSessions(mctx MetaContext, now time.Time) time.Duration {
+	defer mctx.Trace("Identify3State#expireSessions", nil)()
+
+	// getSesionsToExpire holds the Identify3State Mutex.
+	toExpire, diff := s.getSessionsToExpire(mctx, now)
+
+	// doExpireSessions does not hold the Identify3State Mutex, because it
+	// calls out to the front end via Identify3TrackedTimedOut.
+	s.doExpireSessions(mctx, toExpire)
+
+	return diff
+}
+
+func (s *Identify3State) doExpireSessions(mctx MetaContext, toExpire []*Identify3Session) {
+	for _, sess := range toExpire {
+		sess.doExpireSession(mctx)
+	}
+}
+
+func (s *Identify3State) getSessionsToExpire(mctx MetaContext, now time.Time) (ret []*Identify3Session, diff time.Duration) {
 	s.Lock()
 	defer s.Unlock()
 
 	for {
 		if len(s.expirationQueue) == 0 {
-			return s.defaultWaitTime
+			return ret, s.defaultWaitTime
 		}
-		diff := s.expireSession(mctx, s.expirationQueue[0], now)
+		var sess *Identify3Session
+		sess, diff = s.getSessionToExpire(mctx, now)
 		if diff > 0 {
-			return diff
+			return ret, diff
+		}
+		if sess != nil {
+			ret = append(ret, sess)
 		}
 	}
 }
 
-func (s *Identify3State) expireSession(mctx MetaContext, sess *Identify3Session, now time.Time) time.Duration {
+// getSessionToExpire should be called when holding the Identify3State Mutex. It looks in the
+// expiration queue and pops off those sessions that are ready to be marked expired.
+func (s *Identify3State) getSessionToExpire(mctx MetaContext, now time.Time) (*Identify3Session, time.Duration) {
+	sess := s.expirationQueue[0]
 	sess.Lock()
 	defer sess.Unlock()
 	expireAt := sess.created.Add(s.expireTime)
 	diff := expireAt.Sub(now)
 	if diff > 0 {
-		return diff
+		return nil, diff
 	}
 	s.expirationQueue = s.expirationQueue[1:]
 
 	// Only send the expiration if the session is still in the cache table.
 	// If not, that means it was already acted upon
-	if _, found := s.cache[sess.id]; found {
-		sess.expire(mctx)
-		s.removeFromTableLocked(sess.id)
+	if _, found := s.cache[sess.id]; !found {
+		return nil, diff
 	}
-	return diff
+	mctx.Debug("Identify3State#getSessionToExpire: removing %s", sess.id)
+	s.removeFromTableLocked(sess.id)
+	return sess, diff
 }
 
 // get an identify3Session out of the cache, as keyed by a Identify3GUIID. Return

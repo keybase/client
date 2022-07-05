@@ -1,0 +1,1 @@
+../../../../../node_modules/expo-barcode-scanner/ios/EXBarCodeScanner/EXBarCodeScannerProvider.h

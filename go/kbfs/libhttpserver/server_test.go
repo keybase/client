@@ -10,16 +10,19 @@ import (
 	"os"
 	"testing"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/env"
 	"github.com/keybase/client/go/kbfs/ioutil"
+	"github.com/keybase/client/go/kbfs/libcontext"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
 	"github.com/stretchr/testify/require"
 )
 
 func makeTestKBFSConfig(t *testing.T) (
 	kbfsConfig libkbfs.Config, shutdown func()) {
-	ctx := libkbfs.BackgroundContextWithCancellationDelayer()
+	ctx := libcontext.BackgroundContextWithCancellationDelayer()
 	cfg := libkbfs.MakeTestConfigOrBustLoggedInWithMode(
 		t, 0, libkbfs.InitSingleOp, "alice", "bob")
 
@@ -27,7 +30,7 @@ func makeTestKBFSConfig(t *testing.T) (
 	require.NoError(t, err)
 	defer func() {
 		if err != nil {
-			ioutil.RemoveAll(tempdir)
+			_ = ioutil.RemoveAll(tempdir)
 		}
 	}()
 	err = cfg.EnableDiskLimiter(tempdir)
@@ -41,13 +44,14 @@ func makeTestKBFSConfig(t *testing.T) (
 		require.NoError(t, err)
 	}
 
-	h, err := libkbfs.ParseTlfHandle(
-		ctx, cfg.KBPKI(), cfg.MDOps(), "alice,bob", tlf.Private)
+	h, err := tlfhandle.ParseHandle(
+		ctx, cfg.KBPKI(), cfg.MDOps(), cfg, "alice,bob", tlf.Private)
 	require.NoError(t, err)
 
-	root, _, err := cfg.KBFSOps().GetOrCreateRootNode(ctx, h, libkbfs.MasterBranch)
+	root, _, err := cfg.KBFSOps().GetOrCreateRootNode(ctx, h, data.MasterBranch)
 	require.NoError(t, err)
-	_, _, err = cfg.KBFSOps().CreateFile(ctx, root, "test.txt", false, false)
+	_, _, err = cfg.KBFSOps().CreateFile(
+		ctx, root, root.ChildName("test.txt"), false, false)
 	require.NoError(t, err)
 
 	return cfg, shutdown
@@ -63,7 +67,7 @@ func TestServerDefault(t *testing.T) {
 	addr, err := s.Address()
 	require.NoError(t, err)
 
-	token, err := s.NewToken()
+	token, err := s.CurrentToken()
 	require.NoError(t, err)
 
 	resp, err := http.Get(fmt.Sprintf(
@@ -79,15 +83,26 @@ func TestServerDefault(t *testing.T) {
 	resp, err = http.Get(fmt.Sprintf(
 		"http://%s/files/private/alice,bob/non-existent?token=%s", addr, token))
 	require.NoError(t, err)
+	require.Equal(t, http.StatusBadRequest, resp.StatusCode)
+
+	resp, err = http.Get(fmt.Sprintf(
+		"http://%s/files/private/alice,bob/non-existent?token=%s&viewTypeInvariance=0", addr, token))
+	require.NoError(t, err)
 	require.Equal(t, http.StatusNotFound, resp.StatusCode)
 
 	resp, err = http.Get(fmt.Sprintf(
-		"http://%s/files/private/alice,bob/test.txt?token=%s", addr, token))
+		"http://%s/files/private/alice,bob/test.txt?token=%s&viewTypeInvariance=0", addr, token))
 	require.NoError(t, err)
-	require.Equal(t, http.StatusOK, resp.StatusCode)
+	require.Equal(t, http.StatusPreconditionFailed, resp.StatusCode)
 
 	resp, err = http.Get(fmt.Sprintf(
-		"http://%s/files/blah/alice,bob/non-existent?token=%s", addr, token))
+		"http://%s/files/private/alice,bob/test.txt?token=%s&viewTypeInvariance=1", addr, token))
+	require.NoError(t, err)
+	require.Equal(t, http.StatusOK, resp.StatusCode)
+	require.Contains(t, resp.Header.Get("Content-Type"), "charset=")
+
+	resp, err = http.Get(fmt.Sprintf(
+		"http://%s/files/blah/alice,bob/non-existent?token=%s&viewTypeInvariance=1", addr, token))
 	require.NoError(t, err)
 	require.Equal(t, http.StatusBadRequest, resp.StatusCode)
 }

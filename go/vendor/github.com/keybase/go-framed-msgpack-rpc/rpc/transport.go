@@ -64,10 +64,10 @@ type transport struct {
 // the maxFrameLength parameter in NewTransporter.
 const DefaultMaxFrameLength = 100 * 1024 * 1024
 
-// NewTransporter creates a new Transporter from the given connection
+// NewTransport creates a new Transporter from the given connection
 // and parameters. Both sides of a connection should use the same
 // number for maxFrameLength.
-func NewTransport(c net.Conn, l LogFactory, wef WrapErrorFunc, maxFrameLength int32) Transporter {
+func NewTransport(c net.Conn, l LogFactory, instrumenterStorage NetworkInstrumenterStorage, wef WrapErrorFunc, maxFrameLength int32) Transporter {
 	if maxFrameLength <= 0 {
 		panic(fmt.Sprintf("maxFrameLength must be positive: got %d", maxFrameLength))
 	}
@@ -76,6 +76,9 @@ func NewTransport(c net.Conn, l LogFactory, wef WrapErrorFunc, maxFrameLength in
 		l = NewSimpleLogFactory(nil, nil)
 	}
 	log := l.NewLog(c.RemoteAddr())
+	if instrumenterStorage == nil {
+		instrumenterStorage = NewDummyInstrumentationStorage()
+	}
 
 	ret := &transport{
 		c:         c,
@@ -86,9 +89,9 @@ func NewTransport(c net.Conn, l LogFactory, wef WrapErrorFunc, maxFrameLength in
 	}
 	enc := newFramedMsgpackEncoder(maxFrameLength, c)
 	ret.enc = enc
-	ret.dispatcher = newDispatch(enc, ret.calls, log)
+	ret.dispatcher = newDispatch(enc, ret.calls, log, instrumenterStorage)
 	ret.receiver = newReceiveHandler(enc, ret.protocols, log)
-	ret.packetizer = newPacketizer(maxFrameLength, c, ret.protocols, ret.calls, log)
+	ret.packetizer = newPacketizer(maxFrameLength, c, ret.protocols, ret.calls, log, instrumenterStorage)
 	return ret
 }
 
@@ -144,7 +147,9 @@ func (t *transport) receiveFramesLoop() {
 	for shouldContinue(err) {
 		var rpc rpcMessage
 		if rpc, err = t.packetizer.NextFrame(); shouldReceive(rpc) {
-			t.receiver.Receive(rpc)
+			if rerr := t.receiver.Receive(rpc); rerr != nil {
+				t.log.Info("error on Receive: %v", rerr)
+			}
 		}
 	}
 

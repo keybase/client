@@ -34,9 +34,10 @@ func IsUserSystemdRunning() bool {
 	}
 	outputStr := strings.TrimSpace(string(output))
 
-	if outputStr == "running" {
+	switch outputStr {
+	case "running":
 		return true
-	} else if outputStr == "degraded" {
+	case "degraded":
 		// "degraded" just means that some service has failed to start. That
 		// could be a totally unrelated application on the user's machine, so
 		// we treat it the same as "running". Other methods of detecting this
@@ -44,10 +45,10 @@ func IsUserSystemdRunning() bool {
 		// the status of dbus or init.scope, or even `systemd-run --user true`.
 		// If this is a false positive, user should specify KEYBASE_SYSTEMD=0.
 		return true
-	} else if outputStr == "" {
+	case "":
 		os.Stderr.WriteString(fmt.Sprintf("Failed to reach user-level systemd daemon.\n"))
 		return false
-	} else {
+	default:
 		os.Stderr.WriteString(fmt.Sprintf("Systemd reported an unexpected status: %s\n", outputStr))
 		return false
 	}
@@ -91,5 +92,5 @@ func GetListenerFromEnvironment() (net.Listener, error) {
 }
 
 func NotifyStartupFinished() {
-	sdDaemon.SdNotify(false /* unsetEnv */, "READY=1")
+	_, _ = sdDaemon.SdNotify(false /* unsetEnv */, "READY=1")
 }

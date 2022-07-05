@@ -36,7 +36,7 @@ func (p KeyPseudonym) String() string {
 }
 
 func (p *KeyPseudonym) MarshalJSON() ([]byte, error) {
-	return keybase1.Quote((*p).String()), nil
+	return keybase1.Quote(p.String()), nil
 }
 
 func (p *KeyPseudonym) UnmarshalJSON(b []byte) error {
@@ -61,7 +61,7 @@ func (p KeyPseudonymNonce) String() string {
 }
 
 func (p *KeyPseudonymNonce) MarshalJSON() ([]byte, error) {
-	return keybase1.Quote((*p).String()), nil
+	return keybase1.Quote(p.String()), nil
 }
 
 func (p *KeyPseudonymNonce) UnmarshalJSON(b []byte) error {
@@ -97,7 +97,7 @@ type keyPseudonymReq struct {
 
 // keyPseudonymContents is the data packed inside the HMAC
 type keyPseudonymContents struct {
-	_struct     bool `codec:",toarray"`
+	_struct     bool `codec:",toarray"` //nolint
 	Version     int
 	ID          [16]byte                 // keybase1.UserOrTeamId as a byte array
 	Application keybase1.TeamApplication // int
@@ -150,7 +150,10 @@ func MakeKeyPseudonym(info KeyPseudonymInfo) (KeyPseudonym, error) {
 	}
 
 	mac := hmac.New(sha256.New, info.Nonce[:])
-	mac.Write(buf)
+	_, err := mac.Write(buf)
+	if err != nil {
+		return [32]byte{}, err
+	}
 	hmac := MakeByte32(mac.Sum(nil))
 	return hmac, nil
 }
@@ -183,8 +186,7 @@ func MakeAndPostKeyPseudonyms(m MetaContext, pnymInfos *[]KeyPseudonymInfo) (err
 	payload := make(JSONPayload)
 	payload["key_pseudonyms"] = pnymReqs
 
-	_, err = m.G().API.PostJSON(APIArg{
-		MetaContext: m,
+	_, err = m.G().API.PostJSON(m, APIArg{
 		Endpoint:    "team/key_pseudonym",
 		JSONPayload: payload,
 		SessionType: APISessionTypeREQUIRED,
@@ -206,9 +208,8 @@ func GetKeyPseudonyms(m MetaContext, pnyms []KeyPseudonym) ([]KeyPseudonymOrErro
 	}
 
 	var res getKeyPseudonymsRes
-	err := m.G().API.GetDecode(
+	err := m.G().API.GetDecode(m,
 		APIArg{
-			MetaContext: m,
 			Endpoint:    "team/key_pseudonym",
 			SessionType: APISessionTypeREQUIRED,
 			Args: HTTPArgs{

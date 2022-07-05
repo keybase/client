@@ -158,7 +158,7 @@
           "name": "deviceDescription"
         },
         {
-          "type": "string",
+          "type": "DeviceTypeV2",
           "name": "deviceType"
         }
       ]
@@ -283,6 +283,10 @@
             "ResetSummary"
           ],
           "name": "reset"
+        },
+        {
+          "type": "boolean",
+          "name": "unstubbed"
         }
       ]
     },
@@ -316,6 +320,10 @@
         {
           "type": "UPK2MinorVersion",
           "name": "minorVersion"
+        },
+        {
+          "type": "boolean",
+          "name": "stale"
         }
       ]
     },

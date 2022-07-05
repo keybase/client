@@ -25,7 +25,10 @@ const (
 	PublicUIDName = "_public"
 )
 
-func SplitAndNormalizeTLFName(g *libkb.GlobalContext, name string, public bool) (
+// SplitAndNormalizeTLFName returns separate lists of normalized
+// writer and reader names, as well as the extension suffix, of the
+// given `name`.
+func SplitAndNormalizeTLFName(mctx libkb.MetaContext, name string, public bool) (
 	writerNames, readerNames []string,
 	extensionSuffix string, err error) {
 
@@ -53,27 +56,27 @@ func SplitAndNormalizeTLFName(g *libkb.GlobalContext, name string, public bool) 
 		return nil, nil, "", NoSuchNameError{Name: name}
 	}
 
-	normalizedName, err := NormalizeNamesInTLF(g,
+	normalizedName, err := NormalizeNamesInTLF(mctx,
 		writerNames, readerNames, extensionSuffix)
 	if err != nil {
 		return nil, nil, "", err
 	}
 	if normalizedName != name {
-		return nil, nil, "", TlfNameNotCanonical{name, normalizedName}
+		return nil, nil, "", NameNotCanonical{name, normalizedName}
 	}
 
 	return writerNames, readerNames, strings.ToLower(extensionSuffix), nil
 }
 
-// normalizeNamesInTLF takes a split TLF name and, without doing any
+// NormalizeNamesInTLF takes a split TLF name and, without doing any
 // resolutions or identify calls, normalizes all elements of the
 // name. It then returns the normalized name.
-func NormalizeNamesInTLF(g *libkb.GlobalContext, writerNames, readerNames []string,
+func NormalizeNamesInTLF(mctx libkb.MetaContext, writerNames, readerNames []string,
 	extensionSuffix string) (string, error) {
 	sortedWriterNames := make([]string, len(writerNames))
 	var err error
 	for i, w := range writerNames {
-		sortedWriterNames[i], err = NormalizeAssertionOrName(g, w)
+		sortedWriterNames[i], err = NormalizeAssertionOrName(mctx, w)
 		if err != nil {
 			return "", err
 		}
@@ -83,7 +86,7 @@ func NormalizeNamesInTLF(g *libkb.GlobalContext, writerNames, readerNames []stri
 	if len(readerNames) > 0 {
 		sortedReaderNames := make([]string, len(readerNames))
 		for i, r := range readerNames {
-			sortedReaderNames[i], err = NormalizeAssertionOrName(g, r)
+			sortedReaderNames[i], err = NormalizeAssertionOrName(mctx, r)
 			if err != nil {
 				return "", err
 			}
@@ -100,20 +103,22 @@ func NormalizeNamesInTLF(g *libkb.GlobalContext, writerNames, readerNames []stri
 	return normalizedName, nil
 }
 
+// NormalizeAssertionOrName normalizes the given assertion or name `s`.
+//
 // TODO: this function can likely be replaced with a call to
 // AssertionParseAndOnly when CORE-2967 and CORE-2968 are fixed.
-func NormalizeAssertionOrName(g *libkb.GlobalContext, s string) (string, error) {
+func NormalizeAssertionOrName(mctx libkb.MetaContext, s string) (string, error) {
 	if libkb.CheckUsername.F(s) {
 		return libkb.NewNormalizedUsername(s).String(), nil
 	}
 
 	// TODO: this fails for http and https right now (see CORE-2968).
-	socialAssertion, isSocialAssertion := externals.NormalizeSocialAssertion(g, s)
+	socialAssertion, isSocialAssertion := externals.NormalizeSocialAssertion(mctx, s)
 	if isSocialAssertion {
 		return socialAssertion.String(), nil
 	}
 
-	if expr, err := externals.AssertionParseAndOnly(g, s); err == nil {
+	if expr, err := externals.AssertionParseAndOnly(mctx, s); err == nil {
 		// If the expression only contains a single url, make sure
 		// it's not a just considered a single keybase username.  If
 		// it is, then some non-username slipped into the default
@@ -156,13 +161,13 @@ func (e BadTLFNameError) Error() string {
 	return fmt.Sprintf("TLF name %s is in an incorrect format", e.Name)
 }
 
-// TlfNameNotCanonical indicates that a name isn't a canonical, and
-// that another (not necessarily canonical) name should be tried.
-type TlfNameNotCanonical struct {
+// NameNotCanonical indicates that a name isn't a canonical, and that
+// another (not necessarily canonical) name should be tried.
+type NameNotCanonical struct {
 	Name, NameToTry string
 }
 
-func (e TlfNameNotCanonical) Error() string {
+func (e NameNotCanonical) Error() string {
 	return fmt.Sprintf("TLF name %s isn't canonical: try %s instead",
 		e.Name, e.NameToTry)
 }

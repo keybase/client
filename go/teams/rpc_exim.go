@@ -39,23 +39,25 @@ func (t *Team) ExportToTeamPlusApplicationKeys(ctx context.Context, idTime keyba
 		return ret, err
 	}
 
-	var writers []keybase1.UserVersion
-	var onlyReaders []keybase1.UserVersion
+	var writers, onlyReaders, onlyRestrictedBots []keybase1.UserVersion
 
 	writers = append(writers, members.Writers...)
 	writers = append(writers, members.Admins...)
 	writers = append(writers, members.Owners...)
 	onlyReaders = append(onlyReaders, members.Readers...)
+	onlyReaders = append(onlyReaders, members.Bots...)
+	onlyRestrictedBots = append(onlyRestrictedBots, members.RestrictedBots...)
 
 	ret = keybase1.TeamPlusApplicationKeys{
-		Id:              t.chain().GetID(),
-		Name:            t.Name().String(),
-		Implicit:        t.IsImplicit(),
-		Public:          t.IsPublic(),
-		Application:     application,
-		Writers:         writers,
-		OnlyReaders:     onlyReaders,
-		ApplicationKeys: applicationKeys,
+		Id:                 t.chain().GetID(),
+		Name:               t.Name().String(),
+		Implicit:           t.IsImplicit(),
+		Public:             t.IsPublic(),
+		Application:        application,
+		Writers:            writers,
+		OnlyReaders:        onlyReaders,
+		OnlyRestrictedBots: onlyRestrictedBots,
+		ApplicationKeys:    applicationKeys,
 	}
 
 	return ret, nil

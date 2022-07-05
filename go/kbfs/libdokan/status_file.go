@@ -21,15 +21,3 @@ func NewNonTLFStatusFile(fs *FS) *SpecialReadFile {
 		fs: fs,
 	}
 }
-
-// NewTLFStatusFile returns a special read file that contains a text
-// representation of the status of the current TLF.
-func NewTLFStatusFile(folder *Folder) *SpecialReadFile {
-	return &SpecialReadFile{
-		read: func(ctx context.Context) ([]byte, time.Time, error) {
-			return libfs.GetEncodedFolderStatus(
-				ctx, folder.fs.config, folder.getFolderBranch())
-		},
-		fs: folder.fs,
-	}
-}

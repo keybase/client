@@ -52,6 +52,10 @@ const (
 
 	// See osx/Installer/Installer.m : KBExitAuthCanceledError
 	installHelperExitCodeAuthCanceled int = 6
+	// See osx/Installer/Installer.m : KBExitFuseCriticalUpdate
+	installHelperExitCodeFuseCriticalUpdate int = 8
+	// our own exit code
+	exitCodeFuseCriticalUpdateFailed int = 300
 )
 
 // KeybaseServiceStatus returns service status for Keybase service
@@ -523,9 +527,20 @@ func Install(context Context, binPath string, sourcePath string, components []st
 		if err != nil {
 			log.Errorf("Error installing Helper: %v", err)
 		}
-		if cr.ExitCode == installHelperExitCodeAuthCanceled {
+		shouldUninstallKBFS := false
+		shouldUninstallHelper := false
+		switch cr.ExitCode {
+		case installHelperExitCodeAuthCanceled:
 			log.Debug("Auth canceled; uninstalling mountdir and fuse")
 			helperCanceled = true
+			shouldUninstallKBFS = true
+		case installHelperExitCodeFuseCriticalUpdate:
+			log.Debug("FUSE critical update; uninstalling mountdir and fuse")
+			shouldUninstallKBFS = true
+			helperCanceled = true
+			shouldUninstallHelper = true
+		}
+		if shouldUninstallKBFS {
 			// Unmount the user's KBFS directory.
 			mountDir, err := context.GetMountDir()
 			if err == nil {
@@ -566,6 +581,21 @@ func Install(context Context, binPath string, sourcePath string, components []st
 			err = libnativeinstaller.UninstallFuse(context.GetRunMode(), log)
 			if err != nil {
 				log.Errorf("Error uninstalling FUSE: %s", err)
+				if shouldUninstallKBFS {
+					log.Errorf("Returning critical update failure result since FUSE uninstall failed")
+					return newInstallResult([]keybase1.ComponentResult{{
+						Name: "helper",
+						Status: keybase1.StatusFromCode(keybase1.StatusCode_SCGeneric,
+							"FUSE uninstall failed"),
+						ExitCode: exitCodeFuseCriticalUpdateFailed,
+					}})
+				}
+			}
+		}
+		if shouldUninstallHelper {
+			err = libnativeinstaller.UninstallHelper(context.GetRunMode(), log)
+			if err != nil {
+				log.Errorf("Error uninstalling helper: %s", err)
 			}
 		}
 	}
@@ -654,6 +684,18 @@ func installCommandLine(context Context, binPath string, force bool, log Log) er
 	}
 
 	return nil
+}
+
+func createCommandLine(binPath string, linkPath string, log Log) error {
+	if _, err := os.Lstat(linkPath); err == nil {
+		err := os.Remove(linkPath)
+		if err != nil {
+			return err
+		}
+	}
+
+	log.Info("Linking %s to %s", linkPath, binPath)
+	return os.Symlink(binPath, linkPath)
 }
 
 func installCommandLineForBinPath(binPath string, linkPath string, force bool, log Log) error {
@@ -760,6 +802,23 @@ func InstallKBFS(context Context, binPath string, force bool, skipMountIfNotAvai
 
 	log.Debug("KBFS installed via launchd successfully")
 	return nil
+}
+
+func uninstallCommandLine(log Log) error {
+	linkPath, err := defaultLinkPath()
+	if err != nil {
+		return nil
+	}
+
+	err = uninstallLink(linkPath, log)
+	if err != nil {
+		return err
+	}
+
+	// Now the git binary.
+	gitBinFilename := "git-remote-keybase"
+	gitLinkPath := filepath.Join(filepath.Dir(linkPath), gitBinFilename)
+	return uninstallLink(gitLinkPath, log)
 }
 
 // InstallKBNM installs the Keybase NativeMessaging whitelist
@@ -891,12 +950,13 @@ func UninstallKBFSOnStop(context Context, log Log) error {
 	if err != nil {
 		return err
 	}
+	log.Info("UninstallKBFSOnStop: uninstalling from mountdir: %s", mountDir)
 
 	if err := UninstallKBFS(context, mountDir, false, log); err != nil {
 		return err
 	}
 
-	log.Info("Uninstall mount: %s", mountDir)
+	log.Info("Uninstalled mount: %s", mountDir)
 	if err := libnativeinstaller.UninstallMountDir(runMode, log); err != nil {
 		return fmt.Errorf("Error uninstalling mount: %s", err)
 	}
@@ -1398,6 +1458,9 @@ func StartUpdateIfNeeded(ctx context.Context, log logger.Logger) error {
 		return err
 	}
 	cmd := exec.Command(updaterPath, "check")
+	// Run it in a new process group so when we are killed eventually by the
+	// updater, we don't bring down the updater too.
+	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
 	if err = cmd.Start(); err != nil {
 		return err
 	}

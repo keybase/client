@@ -62,7 +62,7 @@ func TestPGPPurgeRemove(t *testing.T) {
 	}
 
 	kr := libkb.NewSKBKeyringFile(tc.G, libkb.NewNormalizedUsername(u.Username))
-	if err := kr.LoadAndIndex(); err != nil {
+	if err := kr.LoadAndIndex(m.Ctx()); err != nil {
 		t.Fatal(err)
 	}
 	if kr.HasPGPKeys() {
@@ -99,7 +99,7 @@ func TestPGPPurgeSync(t *testing.T) {
 		SecretUI:    u1.NewSecretUI(),
 		GPGUI:       &gpgtestui{},
 	}
-	leng := NewLogin(tc.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
+	leng := NewLogin(tc.G, keybase1.DeviceTypeV2_DESKTOP, "", keybase1.ClientType_CLI)
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	if err := RunEngine2(m, leng); err != nil {
 		t.Fatal(err)

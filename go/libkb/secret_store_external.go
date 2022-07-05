@@ -10,6 +10,7 @@ import (
 	"sync"
 
 	"github.com/keybase/client/go/kbcrypto"
+	"github.com/keybase/client/go/msgpack"
 )
 
 // UnsafeExternalKeyStore is a simple interface that external clients can implement.
@@ -84,25 +85,25 @@ func getGlobalExternalKeyStore(m MetaContext) (ExternalKeyStore, error) {
 
 	if externalKeyStore == nil {
 		// perhaps SetGlobalExternalKeyStore has not been called by Android internals yet:
-		m.CDebugf("secret_store_external:getGlobalExternalKeyStore called, but externalKeyStore is nil")
+		m.Debug("secret_store_external:getGlobalExternalKeyStore called, but externalKeyStore is nil")
 		return nil, errNoExternalKeyStore
 	}
 
 	// always check this since perhaps SetGlobalExternalKeyStore called more than once
 	if !externalKeyStoreInitialized {
-		m.CDebugf("+ secret_store_external:setup (in getGlobalExternalKeyStore)")
-		defer m.CDebugf("- secret_store_external:setup (in getGlobalExternalKeyStore)")
+		m.Debug("+ secret_store_external:setup (in getGlobalExternalKeyStore)")
+		defer m.Debug("- secret_store_external:setup (in getGlobalExternalKeyStore)")
 
 		serviceName := m.G().GetStoredSecretServiceName()
 
 		// username not required
 		err := externalKeyStore.SetupKeyStore(serviceName, "")
 		if err != nil {
-			m.CDebugf("externalKeyStore.SetupKeyStore(%s) error: %s (%T)", serviceName, err, err)
+			m.Debug("externalKeyStore.SetupKeyStore(%s) error: %s (%T)", serviceName, err, err)
 			return nil, err
 		}
 
-		m.CDebugf("externalKeyStore.SetupKeyStore(%s) success", serviceName)
+		m.Debug("externalKeyStore.SetupKeyStore(%s) success", serviceName)
 		externalKeyStoreInitialized = true
 	}
 
@@ -113,16 +114,12 @@ type secretStoreAndroid struct{}
 
 var _ SecretStoreAll = &secretStoreAndroid{}
 
-func NewSecretStoreAll(m MetaContext) SecretStoreAll {
-	return &secretStoreAndroid{}
-}
-
 func (s *secretStoreAndroid) serviceName(m MetaContext) string {
 	return m.G().GetStoredSecretServiceName()
 }
 
 func (s *secretStoreAndroid) StoreSecret(m MetaContext, username NormalizedUsername, secret LKSecFullSecret) (err error) {
-	defer m.CTraceTimed("secret_store_external StoreSecret", func() error { return err })()
+	defer m.Trace("secret_store_external StoreSecret", &err)()
 	ks, err := getGlobalExternalKeyStore(m)
 	if err != nil {
 		return err
@@ -132,7 +129,7 @@ func (s *secretStoreAndroid) StoreSecret(m MetaContext, username NormalizedUsern
 }
 
 func (s *secretStoreAndroid) RetrieveSecret(m MetaContext, username NormalizedUsername) (sec LKSecFullSecret, err error) {
-	defer m.CTraceTimed("secret_store_external RetrieveSecret", func() error { return err })()
+	defer m.Trace("secret_store_external RetrieveSecret", &err)()
 
 	ks, err := getGlobalExternalKeyStore(m)
 	if err != nil {
@@ -143,9 +140,9 @@ func (s *secretStoreAndroid) RetrieveSecret(m MetaContext, username NormalizedUs
 }
 
 func (s *secretStoreAndroid) ClearSecret(m MetaContext, username NormalizedUsername) (err error) {
-	defer m.CTraceTimed("secret_store_external ClearSecret", func() error { return err })()
+	defer m.Trace("secret_store_external ClearSecret", &err)()
 	if username.IsNil() {
-		m.CDebugf("NOOPing secretStoreAndroid#ClearSecret for empty username")
+		m.Debug("NOOPing secretStoreAndroid#ClearSecret for empty username")
 		return nil
 	}
 	ks, err := getGlobalExternalKeyStore(m)
@@ -157,7 +154,7 @@ func (s *secretStoreAndroid) ClearSecret(m MetaContext, username NormalizedUsern
 }
 
 func (s *secretStoreAndroid) GetUsersWithStoredSecrets(m MetaContext) (users []string, err error) {
-	defer m.CTraceTimed("secret_store_external GetUsersWithStoredSecrets", func() error { return err })()
+	defer m.Trace("secret_store_external GetUsersWithStoredSecrets", &err)()
 
 	ks, err := getGlobalExternalKeyStore(m)
 	if err != nil {
@@ -173,6 +170,15 @@ func (s *secretStoreAndroid) GetUsersWithStoredSecrets(m MetaContext) (users []s
 		return nil, err
 	}
 	ch := kbcrypto.CodecHandle()
-	err = MsgpackDecodeAll(usersMsgPack, ch, &users)
+	var usersUnpacked []string
+	err = msgpack.DecodeAll(usersMsgPack, ch, &usersUnpacked)
+	for _, v := range usersUnpacked {
+		if !isPPSSecretStore(v) {
+			users = append(users, v)
+		}
+	}
 	return users, err
 }
+
+func (s *secretStoreAndroid) GetOptions(MetaContext) *SecretStoreOptions  { return nil }
+func (s *secretStoreAndroid) SetOptions(MetaContext, *SecretStoreOptions) {}

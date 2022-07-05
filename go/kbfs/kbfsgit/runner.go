@@ -7,6 +7,7 @@ package kbfsgit
 import (
 	"bufio"
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"os"
@@ -18,11 +19,14 @@ import (
 	"sync"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/data"
+	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/libfs"
 	"github.com/keybase/client/go/kbfs/libgit"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -50,6 +54,13 @@ const (
 	gitOptionCloning   = "cloning"
 	gitOptionPushcert  = "pushcert"
 	gitOptionIfAsked   = "if-asked"
+
+	gitLFSInitEvent      = "init"
+	gitLFSUploadEvent    = "upload"
+	gitLFSDownloadEvent  = "download"
+	gitLFSCompleteEvent  = "complete"
+	gitLFSTerminateEvent = "terminate"
+	gitLFSProgressEvent  = "progress"
 
 	// Debug tag ID for an individual git command passed to the process.
 	ctxCommandOpID = "GITCMDID"
@@ -102,18 +113,27 @@ const (
 	ctxCommandIDKey ctxCommandTagKey = iota
 )
 
+type runnerProcessType int
+
+const (
+	processGit runnerProcessType = iota
+	processLFS
+	processLFSNoProgress
+)
+
 type runner struct {
-	config libkbfs.Config
-	log    logger.Logger
-	h      *libkbfs.TlfHandle
-	remote string
-	repo   string
-	gitDir string
-	uniqID string
-	input  io.Reader
-	output io.Writer
-	errput io.Writer
-	gcDone bool
+	config      libkbfs.Config
+	log         logger.Logger
+	h           *tlfhandle.Handle
+	remote      string
+	repo        string
+	gitDir      string
+	uniqID      string
+	input       io.Reader
+	output      io.Writer
+	errput      io.Writer
+	gcDone      bool
+	processType runnerProcessType
 
 	verbosity int64
 	progress  bool
@@ -129,13 +149,9 @@ type runner struct {
 	stageCPUProfPath string
 }
 
-// newRunner creates a new runner for git commands.  It expects `repo`
-// to be in the form "keybase://private/user/reponame".  `remote`
-// is the local name assigned to that URL, while `gitDir` is the
-// filepath leading to the .git directory of the caller's local
-// on-disk repo
-func newRunner(ctx context.Context, config libkbfs.Config,
-	remote, repo, gitDir string, input io.Reader, output io.Writer, errput io.Writer) (
+func newRunnerWithType(ctx context.Context, config libkbfs.Config,
+	remote, repo, gitDir string, input io.Reader, output, errput io.Writer,
+	processType runnerProcessType) (
 	*runner, error) {
 	tlfAndRepo := strings.TrimPrefix(repo, kbfsgitPrefix)
 	parts := strings.Split(tlfAndRepo, repoSplitter)
@@ -158,14 +174,14 @@ func newRunner(ctx context.Context, config libkbfs.Config,
 	}
 
 	h, err := libkbfs.GetHandleFromFolderNameAndType(
-		ctx, config.KBPKI(), config.MDOps(), parts[1], t)
+		ctx, config.KBPKI(), config.MDOps(), config, parts[1], t)
 	if err != nil {
 		return nil, err
 	}
 
 	// Use the device ID and PID to make a unique ID (for generating
 	// temp files in KBFS).
-	session, err := libkbfs.GetCurrentSessionIfPossible(
+	session, err := idutil.GetCurrentSessionIfPossible(
 		ctx, config.KBPKI(), h.Type() == tlf.Public)
 	if err != nil {
 		return nil, err
@@ -173,19 +189,32 @@ func newRunner(ctx context.Context, config libkbfs.Config,
 	uniqID := fmt.Sprintf("%s-%d", session.VerifyingKey.String(), os.Getpid())
 
 	return &runner{
-		config:    config,
-		log:       config.MakeLogger(""),
-		h:         h,
-		remote:    remote,
-		repo:      parts[2],
-		gitDir:    gitDir,
-		uniqID:    uniqID,
-		input:     input,
-		output:    output,
-		errput:    errput,
-		verbosity: 1,
-		progress:  true,
+		config:      config,
+		log:         config.MakeLogger(""),
+		h:           h,
+		remote:      remote,
+		repo:        parts[2],
+		gitDir:      gitDir,
+		uniqID:      uniqID,
+		input:       input,
+		output:      output,
+		errput:      errput,
+		processType: processType,
+		verbosity:   1,
+		progress:    true,
 	}, nil
+}
+
+// newRunner creates a new runner for git commands.  It expects `repo`
+// to be in the form "keybase://private/user/reponame".  `remote`
+// is the local name assigned to that URL, while `gitDir` is the
+// filepath leading to the .git directory of the caller's local
+// on-disk repo.
+func newRunner(ctx context.Context, config libkbfs.Config,
+	remote, repo, gitDir string, input io.Reader, output, errput io.Writer) (
+	*runner, error) {
+	return newRunnerWithType(
+		ctx, config, remote, repo, gitDir, input, output, errput, processGit)
 }
 
 // handleCapabilities: from https://git-scm.com/docs/git-remote-helpers
@@ -230,7 +259,10 @@ func (r *runner) getElapsedStr(
 			r.log.CDebugf(ctx, err.Error())
 		} else {
 			runtime.GC()
-			pprof.WriteHeapProfile(f)
+			err := pprof.WriteHeapProfile(f)
+			if err != nil {
+				r.log.CDebugf(ctx, "Couldn't write heap profile: %+v", err)
+			}
 			f.Close()
 		}
 		elapsedStr += " [memprof " + profName + "]"
@@ -251,10 +283,14 @@ func (r *runner) printDoneOrErr(
 	}
 	profName := "mem.init.prof"
 	elapsedStr := r.getElapsedStr(ctx, startTime, profName, "")
+	var writeErr error
 	if err != nil {
-		r.errput.Write([]byte(err.Error() + elapsedStr + "\n"))
+		_, writeErr = r.errput.Write([]byte(err.Error() + elapsedStr + "\n"))
 	} else {
-		r.errput.Write([]byte("done." + elapsedStr + "\n"))
+		_, writeErr = r.errput.Write([]byte("done." + elapsedStr + "\n"))
+	}
+	if writeErr != nil {
+		r.log.CDebugf(ctx, "Couldn't write error: %+v", err)
 	}
 }
 
@@ -277,22 +313,7 @@ func (r *runner) isManagedByApp() bool {
 	}
 }
 
-func (r *runner) initRepoIfNeeded(ctx context.Context, forCmd string) (
-	repo *gogit.Repository, fs *libfs.FS, err error) {
-	// This function might be called multiple times per function, but
-	// the subsequent calls will use the local cache.  So only print
-	// these messages once.
-	if r.verbosity >= 1 {
-		var startTime time.Time
-		r.logSync.Do(func() {
-			startTime = r.config.Clock().Now()
-			r.errput.Write([]byte("Syncing with Keybase... "))
-		})
-		defer func() {
-			r.logSyncDone.Do(func() { r.printDoneOrErr(ctx, err, startTime) })
-		}()
-	}
-
+func (r *runner) makeFS(ctx context.Context) (fs *libfs.FS, err error) {
 	// Only allow lazy creates for TLFs that aren't managed by the
 	// Keybase app.
 	if r.isManagedByApp() {
@@ -302,6 +323,32 @@ func (r *runner) initRepoIfNeeded(ctx context.Context, forCmd string) (
 		fs, _, err = libgit.GetOrCreateRepoAndID(
 			ctx, r.config, r.h, r.repo, r.uniqID)
 	}
+	if err != nil {
+		return nil, err
+	}
+	return fs, nil
+}
+
+func (r *runner) initRepoIfNeeded(ctx context.Context, forCmd string) (
+	repo *gogit.Repository, fs *libfs.FS, err error) {
+	// This function might be called multiple times per function, but
+	// the subsequent calls will use the local cache.  So only print
+	// these messages once.
+	if r.verbosity >= 1 {
+		var startTime time.Time
+		r.logSync.Do(func() {
+			startTime = r.config.Clock().Now()
+			_, err := r.errput.Write([]byte("Syncing with Keybase... "))
+			if err != nil {
+				r.log.CDebugf(ctx, "Couldn't write: %+v", err)
+			}
+		})
+		defer func() {
+			r.logSyncDone.Do(func() { r.printDoneOrErr(ctx, err, startTime) })
+		}()
+	}
+
+	fs, err = r.makeFS(ctx)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -377,21 +424,23 @@ func humanizeBytes(n int64, d int64) string {
 	const gbf = float64(gb)
 	// Special case the counting of bytes, when there's no denominator.
 	if d == 1 {
-		if n < kb {
+		switch {
+		case n < kb:
 			return fmt.Sprintf("%d bytes", n)
-		} else if n < mb {
+		case n < mb:
 			return fmt.Sprintf("%.2f KB", float64(n)/kbf)
-		} else if n < gb {
+		case n < gb:
 			return fmt.Sprintf("%.2f MB", float64(n)/mbf)
 		}
 		return fmt.Sprintf("%.2f GB", float64(n)/gbf)
 	}
 
-	if d < kb {
+	switch {
+	case d < kb:
 		return fmt.Sprintf("%d/%d bytes", n, d)
-	} else if d < mb {
+	case d < mb:
 		return fmt.Sprintf("%.2f/%.2f KB", float64(n)/kbf, float64(d)/kbf)
-	} else if d < gb {
+	case d < gb:
 		return fmt.Sprintf("%.2f/%.2f MB", float64(n)/mbf, float64(d)/mbf)
 	}
 	return fmt.Sprintf("%.2f/%.2f GB", float64(n)/gbf, float64(d)/gbf)
@@ -409,7 +458,10 @@ func (r *runner) printStageEndIfNeeded(ctx context.Context) {
 	if r.needPrintDone {
 		elapsedStr := r.getElapsedStr(ctx,
 			r.stageStartTime, r.stageMemProfName, r.stageCPUProfPath)
-		r.errput.Write([]byte("done." + elapsedStr + "\n"))
+		_, err := r.errput.Write([]byte("done." + elapsedStr + "\n"))
+		if err != nil {
+			r.log.CDebugf(ctx, "Couldn't write: %+v", err)
+		}
 		r.needPrintDone = false
 	}
 }
@@ -436,20 +488,60 @@ func (r *runner) printStageStart(ctx context.Context,
 				ctx, "Couldn't create CPU profile: %s", cpuProfName)
 			cpuProfPath = ""
 		} else {
-			pprof.StartCPUProfile(f)
+			err := pprof.StartCPUProfile(f)
+			if err != nil {
+				r.log.CDebugf(ctx, "Couldn't start CPU profile: %+v", err)
+			}
 		}
 		r.stageCPUProfPath = cpuProfPath
 	}
 
-	r.errput.Write(toPrint)
+	_, err := r.errput.Write(toPrint)
+	if err != nil {
+		r.log.CDebugf(ctx, "Couldn't write: %+v", err)
+	}
 	r.needPrintDone = true
+}
+
+func (r *runner) printGitJournalStart(ctx context.Context) {
+	adj := "encrypted"
+	if r.h.Type() == tlf.Public {
+		adj = "signed"
+	}
+	if r.verbosity >= 1 {
+		r.printStageStart(ctx,
+			[]byte(fmt.Sprintf("Syncing %s data to Keybase: ", adj)),
+			"mem.flush.prof", "")
+	}
+}
+
+func (r *runner) printGitJournalMessage(
+	ctx context.Context, lastByteCount int, totalSize, sizeLeft int64) int {
+	const bytesFmt string = "(%.2f%%) %s... "
+	eraseStr := strings.Repeat("\b", lastByteCount)
+	flushed := totalSize - sizeLeft
+	if flushed < 0 {
+		flushed = 0
+	}
+	str := fmt.Sprintf(
+		bytesFmt, percent(flushed, totalSize),
+		humanizeBytes(flushed, totalSize))
+	if r.verbosity >= 1 && r.progress {
+		_, err := r.errput.Write([]byte(eraseStr + str))
+		if err != nil {
+			r.log.CDebugf(ctx, "Couldn't write: %+v", err)
+		}
+	}
+	return len(str)
 }
 
 // caller should make sure doneCh is closed when journal is all flushed.
 func (r *runner) printJournalStatus(
 	ctx context.Context, jManager *libkbfs.JournalManager, tlfID tlf.ID,
-	doneCh <-chan struct{}) {
-	r.printStageEndIfNeeded(ctx)
+	doneCh <-chan struct{}, printStart func(context.Context),
+	printProgress func(context.Context, int, int64, int64) int,
+	printEnd func(context.Context)) {
+	printEnd(ctx)
 	// Note: the "first" status here gets us the number of unflushed
 	// bytes left at the time we started printing.  However, we don't
 	// have the total number of bytes being flushed to the server
@@ -464,25 +556,12 @@ func (r *runner) printJournalStatus(
 	if firstStatus.UnflushedBytes == 0 {
 		return
 	}
-	adj := "encrypted"
-	if r.h.Type() == tlf.Public {
-		adj = "signed"
-	}
-	if r.verbosity >= 1 {
-		r.printStageStart(ctx,
-			[]byte(fmt.Sprintf("Syncing %s data to Keybase: ", adj)),
-			"mem.flush.prof", "")
-	}
+	printStart(ctx)
+	lastByteCount := printProgress(
+		ctx, 0, firstStatus.UnflushedBytes, firstStatus.UnflushedBytes)
+
 	r.log.CDebugf(ctx, "Waiting for %d journal bytes to flush",
 		firstStatus.UnflushedBytes)
-
-	bytesFmt := "(%.2f%%) %s... "
-	str := fmt.Sprintf(
-		bytesFmt, float64(0), humanizeBytes(0, firstStatus.UnflushedBytes))
-	lastByteCount := len(str)
-	if r.progress {
-		r.errput.Write([]byte(str))
-	}
 
 	ticker := time.NewTicker(1 * time.Second)
 	defer ticker.Stop()
@@ -495,37 +574,25 @@ func (r *runner) printJournalStatus(
 				return
 			}
 
-			if r.verbosity >= 1 && r.progress {
-				eraseStr := strings.Repeat("\b", lastByteCount)
-				flushed := firstStatus.UnflushedBytes - status.UnflushedBytes
-				str := fmt.Sprintf(
-					bytesFmt, percent(flushed, firstStatus.UnflushedBytes),
-					humanizeBytes(flushed, firstStatus.UnflushedBytes))
-				lastByteCount = len(str)
-				r.errput.Write([]byte(eraseStr + str))
-			}
+			lastByteCount = printProgress(
+				ctx, lastByteCount, firstStatus.UnflushedBytes,
+				status.UnflushedBytes)
 		case <-doneCh:
-			if r.verbosity >= 1 && r.progress {
-				eraseStr := strings.Repeat("\b", lastByteCount)
-				// doneCh is closed. So assume journal flushing is done and
-				// take the shortcut.
-				flushed := firstStatus.UnflushedBytes
-				str := fmt.Sprintf(
-					bytesFmt, percent(flushed, firstStatus.UnflushedBytes),
-					humanizeBytes(flushed, firstStatus.UnflushedBytes))
-				lastByteCount = len(str)
-				r.errput.Write([]byte(eraseStr + str))
-			}
+			// doneCh is closed. So assume journal flushing is done and
+			// take the shortcut.
+			_ = printProgress(
+				ctx, lastByteCount, firstStatus.UnflushedBytes, 0)
 
-			if r.verbosity >= 1 {
-				r.printStageEndIfNeeded(ctx)
-			}
+			printEnd(ctx)
 			return
 		}
 	}
 }
 
-func (r *runner) waitForJournal(ctx context.Context) error {
+func (r *runner) waitForJournalWithPrinters(
+	ctx context.Context, printStart func(context.Context),
+	printProgress func(context.Context, int, int64, int64) int,
+	printEnd func(context.Context)) error {
 	// See if there are any deleted repos to clean up before we flush
 	// the journal.
 	err := libgit.CleanOldDeletedReposTimeLimited(ctx, r.config, r.h)
@@ -534,7 +601,7 @@ func (r *runner) waitForJournal(ctx context.Context) error {
 	}
 
 	rootNode, _, err := r.config.KBFSOps().GetOrCreateRootNode(
-		ctx, r.h, libkbfs.MasterBranch)
+		ctx, r.h, data.MasterBranch)
 	if err != nil {
 		return err
 	}
@@ -560,7 +627,8 @@ func (r *runner) waitForJournal(ctx context.Context) error {
 	waitDoneCh := make(chan struct{})
 	go func() {
 		r.printJournalStatus(
-			ctx, jManager, rootNode.GetFolderBranch().Tlf, waitDoneCh)
+			ctx, jManager, rootNode.GetFolderBranch().Tlf, waitDoneCh,
+			printStart, printProgress, printEnd)
 		close(printDoneCh)
 	}()
 
@@ -589,6 +657,12 @@ func (r *runner) waitForJournal(ctx context.Context) error {
 	return nil
 }
 
+func (r *runner) waitForJournal(ctx context.Context) error {
+	return r.waitForJournalWithPrinters(
+		ctx, r.printGitJournalStart, r.printGitJournalMessage,
+		r.printStageEndIfNeeded)
+}
+
 // handleList: From https://git-scm.com/docs/git-remote-helpers
 //
 // Lists the refs, one per line, in the format "<value> <name> [<attr>
@@ -598,8 +672,10 @@ func (r *runner) waitForJournal(ctx context.Context) error {
 // unrecognized attributes are ignored. The list ends with a blank
 // line.
 func (r *runner) handleList(ctx context.Context, args []string) (err error) {
+	forPush := false
 	if len(args) == 1 && args[0] == "for-push" {
-		r.log.CDebugf(ctx, "Treating for-push the same as a regular list")
+		r.log.CDebugf(ctx, "Excluding symbolic refs during a for-push list")
+		forPush = true
 	} else if len(args) > 0 {
 		return errors.Errorf("Bad list request: %v", args)
 	}
@@ -652,7 +728,7 @@ func (r *runner) handleList(ctx context.Context, args []string) (err error) {
 		}
 	}
 
-	if hashesSeen {
+	if hashesSeen && !forPush {
 		for _, refStr := range symRefs {
 			r.log.CDebugf(ctx, "Listing symbolic ref %s", refStr)
 			_, err = r.output.Write([]byte(refStr))
@@ -712,7 +788,7 @@ func humanizeObjects(n int, d int) string {
 func (r *runner) printJournalStatusUntilFlushed(
 	ctx context.Context, doneCh <-chan struct{}) {
 	rootNode, _, err := r.config.KBFSOps().GetOrCreateRootNode(
-		ctx, r.h, libkbfs.MasterBranch)
+		ctx, r.h, data.MasterBranch)
 	if err != nil {
 		r.log.CDebugf(ctx, "GetOrCreateRootNode error: %+v", err)
 		return
@@ -730,7 +806,9 @@ func (r *runner) printJournalStatusUntilFlushed(
 	}
 
 	r.printJournalStatus(
-		ctx, jManager, rootNode.GetFolderBranch().Tlf, doneCh)
+		ctx, jManager, rootNode.GetFolderBranch().Tlf, doneCh,
+		r.printGitJournalStart, r.printGitJournalMessage,
+		r.printStageEndIfNeeded)
 }
 
 func (r *runner) processGogitStatus(ctx context.Context,
@@ -765,7 +843,6 @@ func (r *runner) processGogitStatus(ctx context.Context,
 					fmt.Sprintf("cpu.%d.prof", update.Stage),
 				)
 				lastByteCount = 0
-				currStage = update.Stage
 				if stage, ok := gogitStagesToStatus[update.Stage]; ok {
 					r.log.CDebugf(ctx, "Entering stage: %s - %d total objects",
 						stage, update.ObjectsTotal)
@@ -791,7 +868,10 @@ func (r *runner) processGogitStatus(ctx context.Context,
 
 			lastByteCount = len(newStr)
 			if r.progress {
-				r.errput.Write([]byte(eraseStr + newStr))
+				_, err := r.errput.Write([]byte(eraseStr + newStr))
+				if err != nil {
+					r.log.CDebugf(ctx, "Couldn't write: %+v", err)
+				}
 			}
 
 			currStage = update.Stage
@@ -860,7 +940,10 @@ func (r *runner) recursiveByteCount(
 				newStr := fmt.Sprintf(
 					"%s... ", humanizeBytes(totalSoFar+bytes, 1))
 				toErase = len(newStr)
-				r.errput.Write([]byte(eraseStr + newStr))
+				_, err := r.errput.Write([]byte(eraseStr + newStr))
+				if err != nil {
+					return 0, 0, err
+				}
 			}
 		}
 	}
@@ -890,7 +973,10 @@ func (sw *statusWriter) Write(p []byte) (n int, err error) {
 	newStr := fmt.Sprintf("(%.2f%%) %s... ",
 		percent(sw.soFar, sw.totalBytes),
 		humanizeBytes(sw.soFar, sw.totalBytes))
-	sw.r.errput.Write([]byte(eraseStr + newStr))
+	_, err = sw.r.errput.Write([]byte(eraseStr + newStr))
+	if err != nil {
+		return n, err
+	}
 	sw.nextToErase = len(newStr)
 	return n, nil
 }
@@ -929,21 +1015,34 @@ func (r *runner) copyFileWithCount(
 		// progress report.
 		startTime := r.config.Clock().Now()
 		zeroStr := fmt.Sprintf("%s... ", humanizeBytes(0, 1))
-		r.errput.Write([]byte(fmt.Sprintf("%s: %s", countingText, zeroStr)))
+		_, err := r.errput.Write(
+			[]byte(fmt.Sprintf("%s: %s", countingText, zeroStr)))
+		if err != nil {
+			return err
+		}
 		fi, err := from.Stat(name)
 		if err != nil {
 			return err
 		}
 		eraseStr := strings.Repeat("\b", len(zeroStr))
 		newStr := fmt.Sprintf("%s... ", humanizeBytes(fi.Size(), 1))
-		r.errput.Write([]byte(eraseStr + newStr))
+		_, err = r.errput.Write([]byte(eraseStr + newStr))
+		if err != nil {
+			return err
+		}
 
 		elapsedStr := r.getElapsedStr(
 			ctx, startTime, fmt.Sprintf("mem.%s.prof", countingProf), "")
-		r.errput.Write([]byte("done." + elapsedStr + "\n"))
+		_, err = r.errput.Write([]byte("done." + elapsedStr + "\n"))
+		if err != nil {
+			return err
+		}
 
 		sw = &statusWriter{r, nil, 0, fi.Size(), 0}
-		r.errput.Write([]byte(fmt.Sprintf("%s: ", copyingText)))
+		_, err = r.errput.Write([]byte(fmt.Sprintf("%s: ", copyingText)))
+		if err != nil {
+			return err
+		}
 	}
 
 	// Copy the file directly into the other file system.
@@ -956,7 +1055,10 @@ func (r *runner) copyFileWithCount(
 	if r.verbosity >= 1 {
 		elapsedStr := r.getElapsedStr(
 			ctx, startTime, fmt.Sprintf("mem.%s.prof", copyingProf), "")
-		r.errput.Write([]byte("done." + elapsedStr + "\n"))
+		_, err = r.errput.Write([]byte("done." + elapsedStr + "\n"))
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -1010,17 +1112,26 @@ func (r *runner) recursiveCopyWithCounts(
 		// Get the total number of bytes we expect to fetch, for the
 		// progress report.
 		startTime := r.config.Clock().Now()
-		r.errput.Write([]byte(fmt.Sprintf("%s: ", countingText)))
+		_, err := r.errput.Write([]byte(fmt.Sprintf("%s: ", countingText)))
+		if err != nil {
+			return err
+		}
 		b, _, err := r.recursiveByteCount(ctx, from, 0, 0)
 		if err != nil {
 			return err
 		}
 		elapsedStr := r.getElapsedStr(
 			ctx, startTime, fmt.Sprintf("mem.%s.prof", countingProf), "")
-		r.errput.Write([]byte("done." + elapsedStr + "\n"))
+		_, err = r.errput.Write([]byte("done." + elapsedStr + "\n"))
+		if err != nil {
+			return err
+		}
 
 		sw = &statusWriter{r, nil, 0, b, 0}
-		r.errput.Write([]byte(fmt.Sprintf("%s: ", copyingText)))
+		_, err = r.errput.Write([]byte(fmt.Sprintf("%s: ", copyingText)))
+		if err != nil {
+			return err
+		}
 	}
 
 	// Copy the entire subdirectory straight into the other file
@@ -1035,7 +1146,10 @@ func (r *runner) recursiveCopyWithCounts(
 	if r.verbosity >= 1 {
 		elapsedStr := r.getElapsedStr(
 			ctx, startTime, fmt.Sprintf("mem.%s.prof", copyingProf), "")
-		r.errput.Write([]byte("done." + elapsedStr + "\n"))
+		_, err := r.errput.Write([]byte("done." + elapsedStr + "\n"))
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -1123,16 +1237,21 @@ func (r *runner) checkGC(ctx context.Context) (err error) {
 	command := fmt.Sprintf("keybase git gc %s", r.repo)
 	if r.h.Type() == tlf.SingleTeam {
 		tid := r.h.FirstResolvedWriter()
-		teamName, err := r.config.KBPKI().GetNormalizedUsername(ctx, tid)
+		teamName, err := r.config.KBPKI().GetNormalizedUsername(
+			ctx, tid, r.config.OfflineAvailabilityForID(r.h.TlfID()))
 		if err != nil {
 			return err
 		}
 		command += fmt.Sprintf(" --team %s", teamName)
 	}
-	r.errput.Write([]byte("Tip: this repo could be sped up with some " +
-		"garbage collection. Run this command:\n"))
-	r.errput.Write([]byte("\t" + command + "\n"))
-	return nil
+	_, err = r.errput.Write([]byte(
+		"Tip: this repo could be sped up with some " +
+			"garbage collection. Run this command:\n"))
+	if err != nil {
+		return err
+	}
+	_, err = r.errput.Write([]byte("\t" + command + "\n"))
+	return err
 }
 
 // handleClone copies all the object files of a KBFS repo directly
@@ -1753,7 +1872,8 @@ func (r *runner) handlePushBatch(ctx context.Context, args [][]string) (
 func (r *runner) handleOption(ctx context.Context, args []string) (err error) {
 	defer func() {
 		if err != nil {
-			r.output.Write([]byte(fmt.Sprintf("error %s\n", err.Error())))
+			_, _ = r.output.Write(
+				[]byte(fmt.Sprintf("error %s\n", err.Error())))
 		}
 	}()
 
@@ -1815,6 +1935,191 @@ func (r *runner) handleOption(ctx context.Context, args []string) (err error) {
 	return err
 }
 
+type lfsProgress struct {
+	Event          string `json:"event"`
+	Oid            string `json:"oid"`
+	BytesSoFar     int    `json:"bytesSoFar"`
+	BytesSinceLast int    `json:"bytesSinceLast"`
+}
+
+// lfsProgressWriter is a simple io.Writer shim that writes progress
+// messages to `r.output` for LFS.  Its `printOne` function can also
+// be passed to `runner.waitForJournalWithPrinters` in order to print
+// periodic progress messages.
+type lfsProgressWriter struct {
+	r                     *runner
+	output                io.Writer
+	oid                   string
+	start                 int
+	soFar                 int     // how much in absolute bytes has been copied
+	totalForCopy          int     // how much in absolue bytes will be copied
+	plaintextSize         int     // how much LFS expects to be copied
+	factorOfPlaintextSize float64 // what frac of the above size is this copy?
+}
+
+var _ io.Writer = (*lfsProgressWriter)(nil)
+
+func (lpw *lfsProgressWriter) getProgress(newSoFar int) lfsProgress {
+	last := lpw.soFar
+	lpw.soFar = newSoFar
+
+	f := 1.0
+	if lpw.plaintextSize > 0 {
+		f = lpw.factorOfPlaintextSize *
+			(float64(lpw.plaintextSize) / float64(lpw.totalForCopy))
+	}
+
+	return lfsProgress{
+		Event:          gitLFSProgressEvent,
+		Oid:            lpw.oid,
+		BytesSoFar:     lpw.start + int(float64(lpw.soFar)*f),
+		BytesSinceLast: int(float64(lpw.soFar-last) * f),
+	}
+}
+
+func (lpw *lfsProgressWriter) Write(p []byte) (n int, err error) {
+	n, err = lpw.output.Write(p)
+	if err != nil {
+		return n, err
+	}
+
+	if lpw.r.processType == processLFSNoProgress {
+		return n, nil
+	}
+
+	prog := lpw.getProgress(lpw.soFar + n)
+
+	progBytes, err := json.Marshal(prog)
+	if err != nil {
+		return n, err
+	}
+	_, err = lpw.r.output.Write(append(progBytes, []byte("\n")...))
+	if err != nil {
+		return n, err
+	}
+	return n, nil
+}
+
+func (lpw *lfsProgressWriter) printOne(
+	ctx context.Context, _ int, totalSize, sizeLeft int64) int {
+	if lpw.r.processType == processLFSNoProgress {
+		return 0
+	}
+
+	if lpw.totalForCopy == 0 {
+		lpw.totalForCopy = int(totalSize)
+	}
+
+	prog := lpw.getProgress(int(totalSize - sizeLeft))
+
+	progBytes, err := json.Marshal(prog)
+	if err != nil {
+		lpw.r.log.CDebugf(ctx, "Error while json marshaling: %+v", err)
+		return 0
+	}
+	_, err = lpw.r.output.Write(append(progBytes, []byte("\n")...))
+	if err != nil {
+		lpw.r.log.CDebugf(ctx, "Error while writing: %+v", err)
+	}
+	return 0
+}
+
+func (r *runner) copyFileLFS(
+	ctx context.Context, from billy.Filesystem, to billy.Filesystem,
+	fromName, toName, oid string, totalSize int,
+	progressScale float64) (err error) {
+	f, err := from.Open(fromName)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	toF, err := to.Create(toName)
+	if err != nil {
+		return err
+	}
+	defer toF.Close()
+
+	// Scale the progress by the given factor.
+	w := &lfsProgressWriter{
+		r:                     r,
+		oid:                   oid,
+		output:                toF,
+		totalForCopy:          totalSize,
+		plaintextSize:         totalSize,
+		factorOfPlaintextSize: progressScale,
+	}
+	_, err = io.Copy(w, f)
+	return err
+}
+
+func (r *runner) handleLFSUpload(
+	ctx context.Context, oid string, localPath string, size int) (err error) {
+	fs, err := r.makeFS(ctx)
+	if err != nil {
+		return err
+	}
+	err = fs.MkdirAll(libgit.LFSSubdir, 0600)
+	if err != nil {
+		return err
+	}
+	fs, err = fs.ChrootAsLibFS(libgit.LFSSubdir)
+	if err != nil {
+		return err
+	}
+
+	// Get an FS for the local directory.
+	dir, file := filepath.Split(localPath)
+	if dir == "" || file == "" {
+		return errors.Errorf("Invalid local path %s", localPath)
+	}
+
+	localFS := osfs.New(dir)
+	// Have the copy count for 40% of the overall upload (arbitrary).
+	err = r.copyFileLFS(ctx, localFS, fs, file, oid, oid, size, 0.4)
+	if err != nil {
+		return err
+	}
+	printNothing := func(_ context.Context) {}
+	// Have the flush count for 60% of the overall upload (arbitrary).
+	w := &lfsProgressWriter{
+		r:                     r,
+		oid:                   oid,
+		start:                 int(float64(size) * 0.4),
+		plaintextSize:         size,
+		factorOfPlaintextSize: 0.60,
+	}
+	return r.waitForJournalWithPrinters(
+		ctx, printNothing, w.printOne, printNothing)
+}
+
+func (r *runner) handleLFSDownload(
+	ctx context.Context, oid string, size int) (localPath string, err error) {
+	fs, err := r.makeFS(ctx)
+	if err != nil {
+		return "", err
+	}
+	err = fs.MkdirAll(libgit.LFSSubdir, 0600)
+	if err != nil {
+		return "", err
+	}
+	fs, err = fs.ChrootAsLibFS(libgit.LFSSubdir)
+	if err != nil {
+		return "", err
+	}
+
+	// Put the file in a temporary location; lfs will move it to the
+	// right location.
+	dir := "."
+	localFS := osfs.New(dir)
+	localFileName := ".kbfs_lfs_" + oid
+
+	err = r.copyFileLFS(ctx, fs, localFS, oid, localFileName, oid, size, 1.0)
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(dir, localFileName), nil
+}
+
 func (r *runner) processCommand(
 	ctx context.Context, commandChan <-chan string) (err error) {
 	var fetchBatch, pushBatch [][]string
@@ -1826,7 +2131,8 @@ func (r *runner) processCommand(
 
 			cmdParts := strings.Fields(cmd)
 			if len(cmdParts) == 0 {
-				if len(fetchBatch) > 0 {
+				switch {
+				case len(fetchBatch) > 0:
 					if r.cloning {
 						r.log.CDebugf(ctx, "Processing clone")
 						err = r.handleClone(ctx)
@@ -1842,7 +2148,7 @@ func (r *runner) processCommand(
 					}
 					fetchBatch = nil
 					continue
-				} else if len(pushBatch) > 0 {
+				case len(pushBatch) > 0:
 					r.log.CDebugf(ctx, "Processing push batch")
 					_, err = r.handlePushBatch(ctx, pushBatch)
 					if err != nil {
@@ -1850,7 +2156,7 @@ func (r *runner) processCommand(
 					}
 					pushBatch = nil
 					continue
-				} else {
+				default:
 					r.log.CDebugf(ctx, "Done processing commands")
 					return nil
 				}
@@ -1887,9 +2193,93 @@ func (r *runner) processCommand(
 	}
 }
 
+type lfsError struct {
+	Code    int    `json:"code"`
+	Message string `json:"message"`
+}
+
+type lfsRequest struct {
+	Event     string `json:"event"`
+	Oid       string `json:"oid"`
+	Size      int    `json:"size,omitempty"`
+	Path      string `json:"path,omitempty"`
+	Operation string `json:"operation,omitempty"`
+	Remote    string `json:"remote,omitempty"`
+}
+
+type lfsResponse struct {
+	Event string    `json:"event"`
+	Oid   string    `json:"oid"`
+	Path  string    `json:"path,omitempty"`
+	Error *lfsError `json:"error,omitempty"`
+}
+
+func (r *runner) processCommandLFS(
+	ctx context.Context, commandChan <-chan string) (err error) {
+lfsLoop:
+	for {
+		select {
+		case cmd := <-commandChan:
+			ctx := libkbfs.CtxWithRandomIDReplayable(
+				ctx, ctxCommandIDKey, ctxCommandOpID, r.log)
+
+			var req lfsRequest
+			err := json.Unmarshal([]byte(cmd), &req)
+			if err != nil {
+				return err
+			}
+
+			resp := lfsResponse{
+				Event: gitLFSCompleteEvent,
+				Oid:   req.Oid,
+			}
+			switch req.Event {
+			case gitLFSInitEvent:
+				r.log.CDebugf(
+					ctx, "Initialize message, operation=%s, remote=%s",
+					req.Operation, req.Remote)
+				_, err := r.output.Write([]byte("{}\n"))
+				if err != nil {
+					return err
+				}
+				continue lfsLoop
+			case gitLFSUploadEvent:
+				r.log.CDebugf(ctx, "Handling upload, oid=%s", req.Oid)
+				err := r.handleLFSUpload(ctx, req.Oid, req.Path, req.Size)
+				if err != nil {
+					resp.Error = &lfsError{Code: 1, Message: err.Error()}
+				}
+			case gitLFSDownloadEvent:
+				r.log.CDebugf(ctx, "Handling download, oid=%s", req.Oid)
+				p, err := r.handleLFSDownload(ctx, req.Oid, req.Size)
+				if err != nil {
+					resp.Error = &lfsError{Code: 1, Message: err.Error()}
+				} else {
+					resp.Path = filepath.ToSlash(p)
+				}
+			case gitLFSTerminateEvent:
+				return nil
+			}
+
+			respBytes, err := json.Marshal(resp)
+			if err != nil {
+				return err
+			}
+			_, err = r.output.Write(append(respBytes, []byte("\n")...))
+			if err != nil {
+				return err
+			}
+		case <-ctx.Done():
+			return ctx.Err()
+		}
+	}
+}
+
 func (r *runner) processCommands(ctx context.Context) (err error) {
 	r.log.CDebugf(ctx, "Ready to process")
 	reader := bufio.NewReader(r.input)
+	var wg sync.WaitGroup
+	defer wg.Wait()
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 	// Allow the creation of .kbfs_git within KBFS.
@@ -1901,8 +2291,17 @@ func (r *runner) processCommands(ctx context.Context) (err error) {
 	// interrupted).
 	commandChan := make(chan string, 100)
 	processorErrChan := make(chan error, 1)
+	wg.Add(1)
 	go func() {
-		processorErrChan <- r.processCommand(ctx, commandChan)
+		defer wg.Done()
+		switch r.processType {
+		case processGit:
+			processorErrChan <- r.processCommand(ctx, commandChan)
+		case processLFS, processLFSNoProgress:
+			processorErrChan <- r.processCommandLFS(ctx, commandChan)
+		default:
+			panic(fmt.Sprintf("Unknown process type: %v", r.processType))
+		}
 	}()
 
 	for {

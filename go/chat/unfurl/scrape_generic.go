@@ -2,16 +2,15 @@ package unfurl
 
 import (
 	"context"
-	"errors"
 	"io"
-	"net/http"
 	"strings"
 	"time"
 
-	"github.com/keybase/client/go/chat/attachments"
+	"github.com/keybase/client/go/libkb"
 
-	"github.com/gocolly/colly"
+	"github.com/keybase/client/go/chat/attachments"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/colly"
 )
 
 func fullURL(hostname, path string) string {
@@ -99,7 +98,7 @@ func (s *Scraper) tryAppleTouchIcon(ctx context.Context, generic *scoredGenericR
 		s.Debug(ctx, "tryAppleTouchIcon: failed to get Apple touch URL: %s", err)
 		return
 	}
-	resp, err := http.Get(path)
+	resp, err := libkb.ProxyHTTPGet(s.G().ExternalG(), s.G().Env, path, "UnfurlScraper")
 	if err != nil {
 		s.Debug(ctx, "tryAppleTouchIcon: failed to read Apple touch icon: %s", err)
 		return
@@ -176,7 +175,7 @@ func (s *Scraper) isValidGenericScrape(generic chat1.UnfurlGenericRaw) bool {
 func (s *Scraper) exportGenericResult(generic *scoredGenericRaw) (res chat1.UnfurlRaw, err error) {
 	// Check to make sure we have a legit unfurl that is useful
 	if !s.isValidGenericScrape(generic.UnfurlGenericRaw) {
-		return res, errors.New("not enough information to display")
+		return res, newUnfurlPermanentError("not enough information to display")
 	}
 	return chat1.NewUnfurlRawWithGeneric(generic.UnfurlGenericRaw), nil
 }

@@ -11,9 +11,11 @@ import (
 	"sync"
 
 	"github.com/keybase/client/go/kbfs/kbfsblock"
+	"github.com/keybase/client/go/kbfs/ldbutils"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
+	"github.com/syndtr/goleveldb/leveldb/filter"
 	"github.com/syndtr/goleveldb/leveldb/opt"
 	"github.com/syndtr/goleveldb/leveldb/storage"
 )
@@ -40,13 +42,13 @@ type DiskQuotaCacheLocal struct {
 	log    logger.Logger
 
 	// Track the cache hit rate and eviction rate
-	hitMeter  *CountMeter
-	missMeter *CountMeter
-	putMeter  *CountMeter
+	hitMeter  *ldbutils.CountMeter
+	missMeter *ldbutils.CountMeter
+	putMeter  *ldbutils.CountMeter
 	// Protect the disk caches from being shutdown while they're being
 	// accessed, and mutable data.
 	lock         sync.RWMutex
-	db           *LevelDb // id -> quota info
+	db           *ldbutils.LevelDb // id -> quota info
 	quotasCached map[keybase1.UserOrTeamID]bool
 
 	startedCh  chan struct{}
@@ -90,16 +92,17 @@ const (
 type DiskQuotaCacheStatus struct {
 	StartState DiskQuotaCacheStartState
 	NumQuotas  uint64
-	Hits       MeterStatus
-	Misses     MeterStatus
-	Puts       MeterStatus
+	Hits       ldbutils.MeterStatus
+	Misses     ldbutils.MeterStatus
+	Puts       ldbutils.MeterStatus
+	DBStats    []string `json:",omitempty"`
 }
 
 // newDiskQuotaCacheLocalFromStorage creates a new *DiskQuotaCacheLocal
 // with the passed-in storage.Storage interfaces as storage layers for each
 // cache.
 func newDiskQuotaCacheLocalFromStorage(
-	config diskQuotaCacheConfig, quotaStorage storage.Storage) (
+	config diskQuotaCacheConfig, quotaStorage storage.Storage, mode InitMode) (
 	cache *DiskQuotaCacheLocal, err error) {
 	log := config.MakeLogger("DQC")
 	closers := make([]io.Closer, 0, 1)
@@ -117,9 +120,10 @@ func newDiskQuotaCacheLocalFromStorage(
 			closer()
 		}
 	}()
-	quotaDbOptions := *leveldbOptions
+	quotaDbOptions := ldbutils.LeveldbOptions(mode)
 	quotaDbOptions.CompactionTableSize = defaultQuotaCacheTableSize
-	db, err := openLevelDBWithOptions(quotaStorage, &quotaDbOptions)
+	quotaDbOptions.Filter = filter.NewBloomFilter(16)
+	db, err := ldbutils.OpenLevelDbWithOptions(quotaStorage, quotaDbOptions)
 	if err != nil {
 		return nil, err
 	}
@@ -129,9 +133,9 @@ func newDiskQuotaCacheLocalFromStorage(
 	startErrCh := make(chan struct{})
 	cache = &DiskQuotaCacheLocal{
 		config:       config,
-		hitMeter:     NewCountMeter(),
-		missMeter:    NewCountMeter(),
-		putMeter:     NewCountMeter(),
+		hitMeter:     ldbutils.NewCountMeter(),
+		missMeter:    ldbutils.NewCountMeter(),
+		putMeter:     ldbutils.NewCountMeter(),
 		log:          log,
 		db:           db,
 		quotasCached: make(map[keybase1.UserOrTeamID]bool),
@@ -161,7 +165,7 @@ func newDiskQuotaCacheLocalFromStorage(
 // newDiskQuotaCacheLocal creates a new *DiskQuotaCacheLocal with a
 // specified directory on the filesystem as storage.
 func newDiskQuotaCacheLocal(
-	config diskBlockCacheConfig, dirPath string) (
+	config diskBlockCacheConfig, dirPath string, mode InitMode) (
 	cache *DiskQuotaCacheLocal, err error) {
 	log := config.MakeLogger("DQC")
 	defer func() {
@@ -170,8 +174,8 @@ func newDiskQuotaCacheLocal(
 		}
 	}()
 	cachePath := filepath.Join(dirPath, quotaCacheFolderName)
-	versionPath, err := getVersionedPathForDiskCache(
-		log, cachePath, "quota", currentDiskQuotaCacheVersion)
+	versionPath, err := ldbutils.GetVersionedPathForDb(
+		log, cachePath, "disk quota cache", currentDiskQuotaCacheVersion)
 	if err != nil {
 		return nil, err
 	}
@@ -185,7 +189,7 @@ func newDiskQuotaCacheLocal(
 			quotaStorage.Close()
 		}
 	}()
-	return newDiskQuotaCacheLocalFromStorage(config, quotaStorage)
+	return newDiskQuotaCacheLocalFromStorage(config, quotaStorage, mode)
 }
 
 // WaitUntilStarted waits until this cache has started.
@@ -228,8 +232,8 @@ func (cache *DiskQuotaCacheLocal) syncQuotaCountsFromDb() error {
 func (cache *DiskQuotaCacheLocal) getQuotaLocked(
 	id keybase1.UserOrTeamID, metered bool) (
 	info kbfsblock.QuotaInfo, err error) {
-	var hitMeter, missMeter *CountMeter
-	if metered {
+	var hitMeter, missMeter *ldbutils.CountMeter
+	if ldbutils.Metered {
 		hitMeter = cache.hitMeter
 		missMeter = cache.missMeter
 	}
@@ -290,7 +294,7 @@ func (cache *DiskQuotaCacheLocal) Get(
 		return kbfsblock.QuotaInfo{}, err
 	}
 
-	return cache.getQuotaLocked(id, metered)
+	return cache.getQuotaLocked(id, ldbutils.Metered)
 }
 
 // Put implements the DiskQuotaCache interface for DiskQuotaCacheLocal.
@@ -320,7 +324,8 @@ func (cache *DiskQuotaCacheLocal) Put(
 }
 
 // Status implements the DiskQuotaCache interface for DiskQuotaCacheLocal.
-func (cache *DiskQuotaCacheLocal) Status(_ context.Context) DiskQuotaCacheStatus {
+func (cache *DiskQuotaCacheLocal) Status(
+	ctx context.Context) DiskQuotaCacheStatus {
 	select {
 	case <-cache.startedCh:
 	case <-cache.startErrCh:
@@ -332,12 +337,21 @@ func (cache *DiskQuotaCacheLocal) Status(_ context.Context) DiskQuotaCacheStatus
 	cache.lock.RLock()
 	defer cache.lock.RUnlock()
 
+	var dbStats []string
+	if err := cache.checkCacheLocked(ctx, "Quota(Status)"); err == nil {
+		dbStats, err = cache.db.StatStrings()
+		if err != nil {
+			cache.log.CDebugf(ctx, "Couldn't get db stats: %+v", err)
+		}
+	}
+
 	return DiskQuotaCacheStatus{
 		StartState: DiskQuotaCacheStartStateStarted,
 		NumQuotas:  uint64(len(cache.quotasCached)),
-		Hits:       rateMeterToStatus(cache.hitMeter),
-		Misses:     rateMeterToStatus(cache.missMeter),
-		Puts:       rateMeterToStatus(cache.putMeter),
+		Hits:       ldbutils.RateMeterToStatus(cache.hitMeter),
+		Misses:     ldbutils.RateMeterToStatus(cache.missMeter),
+		Puts:       ldbutils.RateMeterToStatus(cache.putMeter),
+		DBStats:    dbStats,
 	}
 }
 

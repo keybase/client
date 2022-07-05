@@ -10,6 +10,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
@@ -23,7 +24,7 @@ var ErrUnknownPrefetchStatus = errors.New(
 // os.FileInfo interface.
 type FileInfo struct {
 	fs   *FS
-	ei   libkbfs.EntryInfo
+	ei   data.EntryInfo
 	node libkbfs.Node
 	name string
 }
@@ -44,7 +45,8 @@ func (fi *FileInfo) Size() int64 {
 // Mode implements the os.FileInfo interface for FileInfo.
 func (fi *FileInfo) Mode() os.FileMode {
 	mode, err := WritePermMode(
-		fi.fs.ctx, fi.node, os.FileMode(0), fi.fs.config.KBPKI(), fi.fs.h)
+		fi.fs.ctx, fi.node, os.FileMode(0), fi.fs.config.KBPKI(),
+		fi.fs.config, fi.fs.h)
 	if err != nil {
 		fi.fs.log.CWarningf(
 			fi.fs.ctx, "Couldn't get mode for file %s: %+v", fi.Name(), err)
@@ -53,11 +55,11 @@ func (fi *FileInfo) Mode() os.FileMode {
 
 	mode |= 0400
 	switch fi.ei.Type {
-	case libkbfs.Dir:
+	case data.Dir:
 		mode |= os.ModeDir | 0100
-	case libkbfs.Sym:
+	case data.Sym:
 		mode |= os.ModeSymlink
-	case libkbfs.Exec:
+	case data.Exec:
 		mode |= 0100
 	}
 	return mode
@@ -70,7 +72,7 @@ func (fi *FileInfo) ModTime() time.Time {
 
 // IsDir implements the os.FileInfo interface for FileInfo.
 func (fi *FileInfo) IsDir() bool {
-	return fi.ei.Type == libkbfs.Dir
+	return fi.ei.Type == data.Dir
 }
 
 // KBFSMetadataForSimpleFS contains the KBFS metadata needed to answer a
@@ -90,7 +92,7 @@ type KBFSMetadataForSimpleFSGetter interface {
 // PrevRevisionsGetter is an interface for something that can return
 // the previous revisions of an entry.
 type PrevRevisionsGetter interface {
-	PrevRevisions() libkbfs.PrevRevisions
+	PrevRevisions() data.PrevRevisions
 }
 
 type fileInfoSys struct {
@@ -112,18 +114,8 @@ func (fis fileInfoSys) KBFSMetadataForSimpleFS() (
 	if err != nil {
 		return KBFSMetadataForSimpleFS{}, err
 	}
-	var prefetchStatus keybase1.PrefetchStatus
-	switch md.PrefetchStatus {
-	case libkbfs.NoPrefetch:
-		prefetchStatus = keybase1.PrefetchStatus_NOT_STARTED
-	case libkbfs.TriggeredPrefetch:
-		prefetchStatus = keybase1.PrefetchStatus_IN_PROGRESS
-	case libkbfs.FinishedPrefetch:
-		prefetchStatus = keybase1.PrefetchStatus_COMPLETE
-	default:
-		return KBFSMetadataForSimpleFS{}, ErrUnknownPrefetchStatus
-	}
 
+	prefetchStatus := md.PrefetchStatus.ToProtocolStatus()
 	status := KBFSMetadataForSimpleFS{PrefetchStatus: prefetchStatus}
 	if md.PrefetchProgress != nil {
 		status.PrefetchProgress = *md.PrefetchProgress
@@ -137,7 +129,9 @@ func (fis fileInfoSys) KBFSMetadataForSimpleFS() (
 	}
 
 	_, id, err := fis.fi.fs.config.KBPKI().Resolve(
-		fis.fi.fs.ctx, lastWriterName.String())
+		fis.fi.fs.ctx, lastWriterName.String(),
+		fis.fi.fs.config.OfflineAvailabilityForID(
+			fis.fi.fs.root.GetFolderBranch().Tlf))
 	if err != nil {
 		return KBFSMetadataForSimpleFS{}, err
 	}
@@ -155,11 +149,11 @@ func (fis fileInfoSys) KBFSMetadataForSimpleFS() (
 
 var _ PrevRevisionsGetter = fileInfoSys{}
 
-func (fis fileInfoSys) PrevRevisions() (revs libkbfs.PrevRevisions) {
+func (fis fileInfoSys) PrevRevisions() (revs data.PrevRevisions) {
 	return fis.fi.ei.PrevRevisions
 }
 
-func (fis fileInfoSys) EntryInfo() libkbfs.EntryInfo {
+func (fis fileInfoSys) EntryInfo() data.EntryInfo {
 	return fis.fi.ei
 }
 
@@ -172,7 +166,7 @@ func (fi *FileInfo) Sys() interface{} {
 // LastWriterUnverified. This allows us to avoid doing a Lookup on the entry,
 // which makes a big difference in ReadDir.
 type FileInfoFast struct {
-	ei   libkbfs.EntryInfo
+	ei   data.EntryInfo
 	name string
 }
 
@@ -191,11 +185,11 @@ func (fif *FileInfoFast) Size() int64 {
 func (fif *FileInfoFast) Mode() os.FileMode {
 	mode := os.FileMode(0400)
 	switch fif.ei.Type {
-	case libkbfs.Dir:
+	case data.Dir:
 		mode |= os.ModeDir | 0100
-	case libkbfs.Sym:
+	case data.Sym:
 		mode |= os.ModeSymlink
-	case libkbfs.Exec:
+	case data.Exec:
 		mode |= 0100
 	}
 	return mode
@@ -208,7 +202,7 @@ func (fif *FileInfoFast) ModTime() time.Time {
 
 // IsDir implements the os.FileInfo interface.
 func (fif *FileInfoFast) IsDir() bool {
-	return fif.ei.Type == libkbfs.Dir
+	return fif.ei.Type == data.Dir
 }
 
 // Sys implements the os.FileInfo interface.
@@ -229,5 +223,5 @@ func EnableFastMode(ctx context.Context) context.Context {
 // info. All *FS created under this ctx will also be in fast mode.
 func IsFastModeEnabled(ctx context.Context) bool {
 	v, ok := ctx.Value(ctxFastModeKey{}).(bool)
-	return ok && v == true
+	return ok && v
 }

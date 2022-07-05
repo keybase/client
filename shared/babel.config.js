@@ -1,18 +1,29 @@
-// @flow
-/*:: type Api = {
-  cache: boolean => void,
-  env: () => string,
-}
-*/
-
 // Cache in the module. This can get called from multiple places and env vars can get lost
-let isElectron = process.env.BABEL_PLATFORM === 'Electron'
-let isReactNative = process.env.BABEL_PLATFORM === 'ReactNative'
+let isElectron = null
+let isReactNative = null
+let isTest = null
 
-module.exports = function(api /*: Api */) {
-  if (api.env() !== 'test') {
-    api.cache(true)
+module.exports = function(api /*: any */) {
+  const apiEnv = api.env()
+
+  if (apiEnv === 'test') {
+    isTest = true
+    isElectron = true
+  } else if (apiEnv === 'test-rn') {
+    isTest = true
+    isReactNative = true
+  } else {
+    api.caller(c => {
+      console.error('KB: Babel config detected caller: ', c, c && c.name, api.env())
+      if (!c || c.name === 'metro') {
+        isReactNative = true
+      } else {
+        isElectron = true
+      }
+    })
   }
+
+  api.cache(true)
 
   if (!isElectron && !isReactNative) {
     throw new Error('MUST have env var BABEL_PLATFORM to all babel')
@@ -32,7 +43,11 @@ module.exports = function(api /*: Api */) {
         '@babel/transform-flow-strip-types',
         '@babel/plugin-proposal-class-properties',
       ],
-      presets: ['@babel/preset-env', '@babel/preset-react'],
+      presets: [
+        isTest ? ['@babel/preset-env', {targets: {node: 'current'}}] : '@babel/preset-env',
+        '@babel/preset-react',
+        '@babel/preset-typescript',
+      ],
     }
   } else if (isReactNative) {
     console.error('KB babel.config.js for ReactNative')

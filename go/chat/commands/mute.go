@@ -16,13 +16,13 @@ type Mute struct {
 
 func NewMute(g *globals.Context) *Mute {
 	return &Mute{
-		baseCommand: newBaseCommand(g, "mute", "", "Mute the current conversation", "shh"),
+		baseCommand: newBaseCommand(g, "mute", "", "Mute the current conversation", false, "shh"),
 	}
 }
 
 func (h *Mute) Execute(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	tlfName, text string) (err error) {
-	defer h.Trace(ctx, func() error { return err }, "Mute")()
+	tlfName, text string, replyTo *chat1.MessageID) (err error) {
+	defer h.Trace(ctx, &err, "Mute")()
 	if !h.Match(ctx, text) {
 		return ErrInvalidCommand
 	}
@@ -30,7 +30,7 @@ func (h *Mute) Execute(ctx context.Context, uid gregor1.UID, convID chat1.Conver
 		types.InboxSourceDataSourceAll, nil,
 		&chat1.GetInboxLocalQuery{
 			ConvIDs: []chat1.ConversationID{convID},
-		}, nil)
+		})
 	if err != nil {
 		return err
 	}

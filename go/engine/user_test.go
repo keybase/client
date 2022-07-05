@@ -4,6 +4,7 @@
 package engine
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -22,7 +23,7 @@ func TestLoadUserPlusKeysHasKeys(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	up, err := libkb.LoadUserPlusKeys(nil, tc.G, me.GetUID(), "")
+	up, err := libkb.LoadUserPlusKeys(context.TODO(), tc.G, me.GetUID(), "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -34,15 +35,15 @@ func TestLoadUserPlusKeysHasKeys(t *testing.T) {
 func TestLoadUserPlusKeysRevoked(t *testing.T) {
 	fakeClock := clockwork.NewFakeClockAt(time.Now())
 	tc := SetupEngineTest(t, "login")
-	tc.G.SetClock(fakeClock)
 	defer tc.Cleanup()
+	tc.G.SetClock(fakeClock)
 
 	fu := CreateAndSignupFakeUserPaper(tc, "login")
 	me, err := libkb.LoadMe(libkb.NewLoadUserArg(tc.G))
 	if err != nil {
 		t.Fatal(err)
 	}
-	up, err := libkb.LoadUserPlusKeys(nil, tc.G, me.GetUID(), "")
+	up, err := libkb.LoadUserPlusKeys(context.TODO(), tc.G, me.GetUID(), "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -57,8 +58,8 @@ func TestLoadUserPlusKeysRevoked(t *testing.T) {
 	devices, _ := getActiveDevicesAndKeys(tc, fu)
 	var paper *libkb.Device
 	for _, device := range devices {
-		if device.Type == libkb.DeviceTypePaper {
-			paper = device
+		if device.Type == keybase1.DeviceTypeV2_PAPER {
+			paper = device.Device
 			break
 		}
 	}
@@ -68,7 +69,7 @@ func TestLoadUserPlusKeysRevoked(t *testing.T) {
 	}
 	fakeClock.Advance(libkb.CachedUserTimeout + 2*time.Second)
 
-	up2, err := libkb.LoadUserPlusKeys(nil, tc.G, me.GetUID(), "")
+	up2, err := libkb.LoadUserPlusKeys(context.TODO(), tc.G, me.GetUID(), "")
 	if err != nil {
 		t.Fatal(err)
 	}

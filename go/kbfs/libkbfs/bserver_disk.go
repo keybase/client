@@ -121,6 +121,9 @@ func (b *BlockServerDisk) getStorage(tlfID tlf.ID) (
 	return storage, nil
 }
 
+// FastForwardBackoff implements the BlockServer interface.
+func (b *BlockServerDisk) FastForwardBackoff() {}
+
 // Get implements the BlockServer interface for BlockServerDisk.
 func (b *BlockServerDisk) Get(
 	ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
@@ -148,53 +151,63 @@ func (b *BlockServerDisk) Get(
 	}
 
 	data, keyServerHalf, err := tlfStorage.store.getDataWithContext(
-		id, context)
+		ctx, id, context)
 	if err != nil {
 		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, err
 	}
 	return data, keyServerHalf, nil
 }
 
-// GetEncodedSize implements the BlockServer interface for
+// GetEncodedSizes implements the BlockServer interface for
 // BlockServerDisk.
-func (b *BlockServerDisk) GetEncodedSize(
-	ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
-	context kbfsblock.Context) (
-	size uint32, status keybase1.BlockStatus, err error) {
+func (b *BlockServerDisk) GetEncodedSizes(
+	ctx context.Context, tlfID tlf.ID, ids []kbfsblock.ID,
+	contexts []kbfsblock.Context) (
+	sizes []uint32, statuses []keybase1.BlockStatus, err error) {
 	if err := checkContext(ctx); err != nil {
-		return 0, 0, err
+		return nil, nil, err
 	}
 
 	defer func() {
 		err = translateToBlockServerError(err)
 	}()
 	b.log.CDebugf(ctx,
-		"BlockServerDisk.GetEncodedSize id=%s tlfID=%s context=%s",
-		id, tlfID, context)
+		"BlockServerDisk.GetEncodedSizes id=%s tlfID=%s context=%s",
+		ids, tlfID, contexts)
 	tlfStorage, err := b.getStorage(tlfID)
 	if err != nil {
-		return 0, 0, err
+		return nil, nil, err
 	}
 
 	tlfStorage.lock.RLock()
 	defer tlfStorage.lock.RUnlock()
 	if tlfStorage.store == nil {
-		return 0, 0, errBlockServerDiskShutdown
+		return nil, nil, errBlockServerDiskShutdown
 	}
 
-	hasContext, refStatus, err := tlfStorage.store.hasContext(id, context)
-	if err != nil {
-		return 0, 0, err
-	}
-	if !hasContext {
-		return 0, 0, blockNonExistentError{id}
-	}
+	sizes = make([]uint32, len(ids))
+	statuses = make([]keybase1.BlockStatus, len(ids))
+	for i, id := range ids {
+		context := contexts[i]
+		hasContext, refStatus, err := tlfStorage.store.hasContext(
+			ctx, id, context)
+		if err != nil {
+			return nil, nil, err
+		}
+		if !hasContext {
+			sizes[i] = 0
+			statuses[i] = keybase1.BlockStatus_UNKNOWN
+			continue
+		}
 
-	size64, err := tlfStorage.store.getDataSize(id)
-	if err != nil {
-		return 0, 0, err
+		size64, err := tlfStorage.store.getDataSize(ctx, id)
+		if err != nil {
+			return nil, nil, err
+		}
+		sizes[i] = uint32(size64)
+		statuses[i] = refStatus.toBlockStatus()
 	}
-	return uint32(size64), refStatus.toBlockStatus(), nil
+	return sizes, statuses, nil
 }
 
 // Put implements the BlockServer interface for BlockServerDisk.
@@ -228,11 +241,14 @@ func (b *BlockServerDisk) Put(
 		return errBlockServerDiskShutdown
 	}
 
-	_, err = tlfStorage.store.put(true, id, context, buf, serverHalf, "")
+	_, err = tlfStorage.store.put(ctx, true, id, context, buf, serverHalf)
 	if err != nil {
 		return err
 	}
-
+	err = tlfStorage.store.addReference(ctx, id, context, "tag")
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -262,7 +278,11 @@ func (b *BlockServerDisk) PutAgain(
 		return errBlockServerDiskShutdown
 	}
 
-	_, err = tlfStorage.store.put(false, id, context, buf, serverHalf, "")
+	_, err = tlfStorage.store.put(ctx, false, id, context, buf, serverHalf)
+	if err != nil {
+		return err
+	}
+	err = tlfStorage.store.addReference(ctx, id, context, "tag")
 	if err != nil {
 		return err
 	}
@@ -289,7 +309,7 @@ func (b *BlockServerDisk) AddBlockReference(ctx context.Context, tlfID tlf.ID,
 		return errBlockServerDiskShutdown
 	}
 
-	hasRef, err := tlfStorage.store.hasAnyRef(id)
+	hasRef, err := tlfStorage.store.hasAnyRef(ctx, id)
 	if err != nil {
 		return err
 	}
@@ -298,7 +318,7 @@ func (b *BlockServerDisk) AddBlockReference(ctx context.Context, tlfID tlf.ID,
 			"doesn't exist and cannot be referenced.", id)}
 	}
 
-	hasNonArchivedRef, err := tlfStorage.store.hasNonArchivedRef(id)
+	hasNonArchivedRef, err := tlfStorage.store.hasNonArchivedRef(ctx, id)
 	if err != nil {
 		return err
 	}
@@ -307,7 +327,7 @@ func (b *BlockServerDisk) AddBlockReference(ctx context.Context, tlfID tlf.ID,
 			"been archived and cannot be referenced.", id)}
 	}
 
-	return tlfStorage.store.addReference(id, context, "")
+	return tlfStorage.store.addReference(ctx, id, context, "")
 }
 
 // RemoveBlockReferences implements the BlockServer interface for
@@ -338,14 +358,14 @@ func (b *BlockServerDisk) RemoveBlockReferences(ctx context.Context,
 	liveCounts = make(map[kbfsblock.ID]int)
 	for id, idContexts := range contexts {
 		liveCount, err := tlfStorage.store.removeReferences(
-			id, idContexts, "")
+			ctx, id, idContexts, "")
 		if err != nil {
 			return nil, err
 		}
 		liveCounts[id] = liveCount
 
 		if liveCount == 0 {
-			err := tlfStorage.store.remove(id)
+			err := tlfStorage.store.remove(ctx, id)
 			if err != nil {
 				return nil, err
 			}
@@ -381,7 +401,7 @@ func (b *BlockServerDisk) ArchiveBlockReferences(ctx context.Context,
 
 	for id, idContexts := range contexts {
 		for _, context := range idContexts {
-			hasContext, _, err := tlfStorage.store.hasContext(id, context)
+			hasContext, _, err := tlfStorage.store.hasContext(ctx, id, context)
 			if err != nil {
 				return err
 			}
@@ -396,7 +416,7 @@ func (b *BlockServerDisk) ArchiveBlockReferences(ctx context.Context,
 		}
 	}
 
-	return tlfStorage.store.archiveReferences(contexts, "")
+	return tlfStorage.store.archiveReferences(ctx, contexts, "")
 }
 
 // GetLiveBlockReferences implements the BlockServer interface for
@@ -426,7 +446,7 @@ func (b *BlockServerDisk) GetLiveBlockReferences(
 
 	liveCounts = make(map[kbfsblock.ID]int)
 	for id := range contexts {
-		liveCount, err := tlfStorage.store.getLiveCount(id)
+		liveCount, err := tlfStorage.store.getLiveCount(ctx, id)
 		if err != nil {
 			return nil, err
 		}

@@ -9,10 +9,15 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/dokan"
+	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/libfs"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
+	"github.com/keybase/client/go/libkb"
+	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 )
 
@@ -25,11 +30,11 @@ type Folder struct {
 	list *FolderList
 
 	handleMu       sync.RWMutex
-	h              *libkbfs.TlfHandle
+	h              *tlfhandle.Handle
 	hPreferredName tlf.PreferredName
 
 	folderBranchMu sync.Mutex
-	folderBranch   libkbfs.FolderBranch
+	folderBranch   data.FolderBranch
 
 	// Protects the nodes map.
 	mu sync.Mutex
@@ -55,7 +60,7 @@ type Folder struct {
 	noForget bool
 }
 
-func newFolder(fl *FolderList, h *libkbfs.TlfHandle,
+func newFolder(fl *FolderList, h *tlfhandle.Handle,
 	hPreferredName tlf.PreferredName) *Folder {
 	f := &Folder{
 		fs:             fl.fs,
@@ -73,13 +78,13 @@ func (f *Folder) name() tlf.CanonicalName {
 	return tlf.CanonicalName(f.hPreferredName)
 }
 
-func (f *Folder) setFolderBranch(folderBranch libkbfs.FolderBranch) error {
+func (f *Folder) setFolderBranch(folderBranch data.FolderBranch) error {
 	f.folderBranchMu.Lock()
 	defer f.folderBranchMu.Unlock()
 
 	// TODO unregister all at unmount
 	err := f.list.fs.config.Notifier().RegisterForChanges(
-		[]libkbfs.FolderBranch{folderBranch}, f)
+		[]data.FolderBranch{folderBranch}, f)
 	if err != nil {
 		return err
 	}
@@ -90,20 +95,20 @@ func (f *Folder) setFolderBranch(folderBranch libkbfs.FolderBranch) error {
 func (f *Folder) unsetFolderBranch(ctx context.Context) {
 	f.folderBranchMu.Lock()
 	defer f.folderBranchMu.Unlock()
-	if f.folderBranch == (libkbfs.FolderBranch{}) {
+	if f.folderBranch == (data.FolderBranch{}) {
 		// Wasn't set.
 		return
 	}
 
-	err := f.list.fs.config.Notifier().UnregisterFromChanges([]libkbfs.FolderBranch{f.folderBranch}, f)
+	err := f.list.fs.config.Notifier().UnregisterFromChanges([]data.FolderBranch{f.folderBranch}, f)
 	if err != nil {
 		f.fs.log.Info("cannot unregister change notifier for folder %q: %v",
 			f.name(), err)
 	}
-	f.folderBranch = libkbfs.FolderBranch{}
+	f.folderBranch = data.FolderBranch{}
 }
 
-func (f *Folder) getFolderBranch() libkbfs.FolderBranch {
+func (f *Folder) getFolderBranch() data.FolderBranch {
 	f.folderBranchMu.Lock()
 	defer f.folderBranchMu.Unlock()
 	return f.folderBranch
@@ -124,7 +129,7 @@ func (f *Folder) forgetNode(ctx context.Context, node libkbfs.Node) {
 func (f *Folder) reportErr(ctx context.Context,
 	mode libkbfs.ErrorModeType, err error) {
 	if err == nil {
-		f.fs.log.CDebugf(ctx, "Request complete")
+		f.fs.vlog.CLogf(ctx, libkb.VLog1, "Request complete")
 		return
 	}
 
@@ -159,7 +164,7 @@ func (f *Folder) BatchChanges(
 // Note that newHandle may be nil. Then the handle in the folder is used.
 // This is used on e.g. logout/login.
 func (f *Folder) TlfHandleChange(ctx context.Context,
-	newHandle *libkbfs.TlfHandle) {
+	newHandle *tlfhandle.Handle) {
 	f.fs.log.CDebugf(ctx, "TlfHandleChange called on %q",
 		canonicalNameIfNotNil(newHandle))
 
@@ -167,7 +172,7 @@ func (f *Folder) TlfHandleChange(ctx context.Context,
 	// the notification
 	f.fs.queueNotification(func() {
 		ctx := context.Background()
-		session, err := libkbfs.GetCurrentSessionIfPossible(ctx, f.fs.config.KBPKI(), f.list.tlfType == tlf.Public)
+		session, err := idutil.GetCurrentSessionIfPossible(ctx, f.fs.config.KBPKI(), f.list.tlfType == tlf.Public)
 		// Here we get an error, but there is little that can be done.
 		// session will be empty in the error case in which case we will default to the
 		// canonical format.
@@ -192,25 +197,29 @@ func (f *Folder) TlfHandleChange(ctx context.Context,
 	})
 }
 
-func canonicalNameIfNotNil(h *libkbfs.TlfHandle) string {
+func canonicalNameIfNotNil(h *tlfhandle.Handle) string {
 	if h == nil {
 		return "(nil)"
 	}
 	return string(h.GetCanonicalName())
 }
 
-func (f *Folder) resolve(ctx context.Context) (*libkbfs.TlfHandle, error) {
+func (f *Folder) resolve(ctx context.Context) (*tlfhandle.Handle, error) {
 	if f.h.TlfID() == tlf.NullID {
 		// If the handle doesn't have a TLF ID yet, fetch it now.
-		handle, err := libkbfs.ParseTlfHandlePreferred(
-			ctx, f.fs.config.KBPKI(), f.fs.config.MDOps(),
+		handle, err := tlfhandle.ParseHandlePreferred(
+			ctx, f.fs.config.KBPKI(), f.fs.config.MDOps(), f.fs.config,
 			string(f.hPreferredName), f.h.Type())
-		if err != nil {
+		switch errors.Cause(err).(type) {
+		case nil:
+			f.TlfHandleChange(ctx, handle)
+			return handle, nil
+		case idutil.NoSuchNameError, idutil.BadTLFNameError,
+			tlf.NoSuchUserError, idutil.NoSuchUserError:
+			return nil, dokan.ErrObjectNameNotFound
+		default:
 			return nil, err
 		}
-		// Update the handle.
-		f.TlfHandleChange(ctx, handle)
-		return handle, nil
 	}
 
 	// In case there were any unresolved assertions, try them again on
@@ -218,7 +227,7 @@ func (f *Folder) resolve(ctx context.Context) (*libkbfs.TlfHandle, error) {
 	// updates yet for this folder, we might have missed a name
 	// change.
 	handle, err := f.h.ResolveAgain(
-		ctx, f.fs.config.KBPKI(), f.fs.config.MDOps())
+		ctx, f.fs.config.KBPKI(), f.fs.config.MDOps(), f.fs.config)
 	if err != nil {
 		return nil, err
 	}
@@ -266,7 +275,7 @@ func (d *Dir) SetFileAttributes(ctx context.Context, fi *dokan.FileInfo, fileAtt
 
 // isNoSuchNameError checks for libkbfs.NoSuchNameError.
 func isNoSuchNameError(err error) bool {
-	_, ok := err.(libkbfs.NoSuchNameError)
+	_, ok := err.(idutil.NoSuchNameError)
 	return ok
 }
 
@@ -285,7 +294,7 @@ func isSafeFolder(ctx context.Context, f *Folder) bool {
 
 // open tries to open a file.
 func (d *Dir) open(ctx context.Context, oc *openContext, path []string) (dokan.File, dokan.CreateStatus, error) {
-	d.folder.fs.log.CDebugf(ctx, "Dir openDir %v", path)
+	d.folder.fs.vlog.CLogf(ctx, libkb.VLog1, "Dir openDir %s", path)
 
 	specialNode := handleTLFSpecialFile(lastStr(path), d.folder)
 	if specialNode != nil {
@@ -299,13 +308,16 @@ func (d *Dir) open(ctx context.Context, oc *openContext, path []string) (dokan.F
 		if c := lowerTranslateCandidate(oc, path[0]); c != "" {
 			var hit string
 			var nhits int
-			d.FindFiles(ctx, nil, c, func(ns *dokan.NamedStat) error {
+			err := d.FindFiles(ctx, nil, c, func(ns *dokan.NamedStat) error {
 				if strings.ToLower(ns.Name) == c {
 					hit = ns.Name
 					nhits++
 				}
 				return nil
 			})
+			if err != nil {
+				return nil, 0, dokan.ErrObjectNameNotFound
+			}
 			if nhits != 1 {
 				return nil, 0, dokan.ErrObjectNameNotFound
 			}
@@ -324,7 +336,8 @@ func (d *Dir) open(ctx context.Context, oc *openContext, path []string) (dokan.F
 			return NewFileInfoFile(d.folder.fs, d.node, name), 0, nil
 		}
 
-		newNode, de, err := d.folder.fs.config.KBFSOps().Lookup(ctx, d.node, path[0])
+		newNode, de, err := d.folder.fs.config.KBFSOps().Lookup(
+			ctx, d.node, d.node.ChildName(path[0]))
 
 		// If we are in the final component, check if it is a creation.
 		if leaf {
@@ -354,7 +367,7 @@ func (d *Dir) open(ctx context.Context, oc *openContext, path []string) (dokan.F
 
 		if newNode != nil {
 			d.folder.mu.Lock()
-			f, _ := d.folder.nodes[newNode.GetID()]
+			f := d.folder.nodes[newNode.GetID()]
 			d.folder.mu.Unlock()
 			// Symlinks don't have stored nodes, so they are impossible here.
 			switch x := f.(type) {
@@ -376,7 +389,7 @@ func (d *Dir) open(ctx context.Context, oc *openContext, path []string) (dokan.F
 		switch de.Type {
 		default:
 			return nil, 0, fmt.Errorf("unhandled entry type: %v", de.Type)
-		case libkbfs.File, libkbfs.Exec:
+		case data.File, data.Exec:
 			if err := oc.ReturningFileAllowed(); err != nil {
 				return nil, 0, err
 			}
@@ -386,12 +399,12 @@ func (d *Dir) open(ctx context.Context, oc *openContext, path []string) (dokan.F
 				d.folder.lockedAddNode(newNode, child)
 			}
 			return f, dokan.ExistingFile, err
-		case libkbfs.Dir:
+		case data.Dir:
 			child := newDir(d.folder, newNode, path[0], d.node)
 			d.folder.lockedAddNode(newNode, child)
 			d = child
 			path = path[1:]
-		case libkbfs.Sym:
+		case data.Sym:
 			return openSymlink(ctx, oc, d, rootDir, origPath, path, de.SymPath)
 		}
 	}
@@ -430,7 +443,9 @@ func openSymlink(ctx context.Context, oc *openContext, parent *Dir, rootDir *Dir
 		// Here we may get an error if the symlink destination does not exist.
 		// which is fine, treat such non-existing targets as symlinks to a file.
 		cst, err := resolveSymlinkIsDir(ctx, oc, rootDir, origPath, target)
-		parent.folder.fs.log.CDebugf(ctx, "openSymlink leaf returned %v,%v => %v,%v", origPath, target, cst, err)
+		parent.folder.fs.vlog.CLogf(
+			ctx, libkb.VLog1, "openSymlink leaf returned %v,%v => %v,%v",
+			origPath, target, cst, err)
 		return &Symlink{parent: parent, name: path[0], isTargetADirectory: cst.IsDir()}, cst, nil
 	}
 	// reference symlink, symbolic links always use '/' instead of '\'.
@@ -439,7 +454,9 @@ func openSymlink(ctx context.Context, oc *openContext, parent *Dir, rootDir *Dir
 	}
 
 	dst, err := resolveSymlinkPath(ctx, origPath, target)
-	parent.folder.fs.log.CDebugf(ctx, "openSymlink resolve returned %v,%v => %v,%v", origPath, target, dst, err)
+	parent.folder.fs.vlog.CLogf(
+		ctx, libkb.VLog1, "openSymlink resolve returned %v,%v => %v,%v",
+		origPath, target, dst, err)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -452,13 +469,14 @@ func getExclFromOpenContext(oc *openContext) libkbfs.Excl {
 }
 
 func (d *Dir) create(ctx context.Context, oc *openContext, name string) (f dokan.File, cst dokan.CreateStatus, err error) {
-	d.folder.fs.log.CDebugf(ctx, "Dir Create %s", name)
+	namePPS := d.node.ChildName(name)
+	d.folder.fs.vlog.CLogf(ctx, libkb.VLog1, "Dir Create %s", namePPS)
 	defer func() { d.folder.reportErr(ctx, libkbfs.WriteMode, err) }()
 
 	isExec := false // Windows lacks executable modes.
 	excl := getExclFromOpenContext(oc)
 	newNode, _, err := d.folder.fs.config.KBFSOps().CreateFile(
-		ctx, d.node, name, isExec, excl)
+		ctx, d.node, namePPS, isExec, excl)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -470,11 +488,12 @@ func (d *Dir) create(ctx context.Context, oc *openContext, name string) (f dokan
 
 func (d *Dir) mkdir(ctx context.Context, oc *openContext, name string) (
 	f *Dir, cst dokan.CreateStatus, err error) {
-	d.folder.fs.log.CDebugf(ctx, "Dir Mkdir %s", name)
+	namePPS := d.node.ChildName(name)
+	d.folder.fs.vlog.CLogf(ctx, libkb.VLog1, "Dir Mkdir %s", namePPS)
 	defer func() { d.folder.reportErr(ctx, libkbfs.WriteMode, err) }()
 
 	newNode, _, err := d.folder.fs.config.KBFSOps().CreateDir(
-		ctx, d.node, name)
+		ctx, d.node, namePPS)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -498,10 +517,10 @@ func (d *Dir) FindFiles(ctx context.Context, fi *dokan.FileInfo, ignored string,
 	var ns dokan.NamedStat
 	for name, de := range children {
 		empty = false
-		ns.Name = name
+		ns.Name = name.Plaintext()
 		// TODO perhaps resolve symlinks here?
 		fillStat(&ns.Stat, &de)
-		if strings.HasPrefix(name, HiddenFilePrefix) {
+		if strings.HasPrefix(name.Plaintext(), HiddenFilePrefix) {
 			addFileAttribute(&ns.Stat, dokan.FileAttributeHidden)
 		}
 		err = callback(&ns)
@@ -536,12 +555,13 @@ func (d *Dir) CanDeleteDirectory(ctx context.Context, fi *dokan.FileInfo) (err e
 // If Cleanup is called with non-nil FileInfo that has IsDeleteOnClose()
 // no libdokan locks should be held prior to the call.
 func (d *Dir) Cleanup(ctx context.Context, fi *dokan.FileInfo) {
+	namePPS := d.node.ChildName(d.name)
 	var err error
 	if fi != nil {
-		d.folder.fs.logEnterf(ctx, "Dir Cleanup %q delete=%v", d.name,
+		d.folder.fs.logEnterf(ctx, "Dir Cleanup %s delete=%v", namePPS,
 			fi.IsDeleteOnClose())
 	} else {
-		d.folder.fs.logEnterf(ctx, "Dir Cleanup %q", d.name)
+		d.folder.fs.logEnterf(ctx, "Dir Cleanup %s", namePPS)
 	}
 	defer func() { d.folder.reportErr(ctx, libkbfs.WriteMode, err) }()
 
@@ -549,9 +569,10 @@ func (d *Dir) Cleanup(ctx context.Context, fi *dokan.FileInfo) {
 		// renameAndDeletionLock should be the first lock to be grabbed in libdokan.
 		d.folder.fs.renameAndDeletionLock.Lock()
 		defer d.folder.fs.renameAndDeletionLock.Unlock()
-		d.folder.fs.log.CDebugf(ctx, "Removing (Delete) dir in cleanup %s", d.name)
+		d.folder.fs.vlog.CLogf(
+			ctx, libkb.VLog1, "Removing (Delete) dir in cleanup %s", namePPS)
 
-		err = d.folder.fs.config.KBFSOps().RemoveDir(ctx, d.parent, d.name)
+		err = d.folder.fs.config.KBFSOps().RemoveDir(ctx, d.parent, namePPS)
 	}
 
 	if d.refcount.Decrease() {
@@ -600,7 +621,7 @@ func asDir(ctx context.Context, f dokan.File) *Dir {
 	case *TLF:
 		branch := x.folder.getFolderBranch().Branch
 		filterErr := false
-		if branch != libkbfs.MasterBranch {
+		if branch != data.MasterBranch {
 			filterErr = true
 		}
 		d, _, _ := x.loadDirHelper(

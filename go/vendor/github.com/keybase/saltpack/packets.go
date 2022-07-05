@@ -10,14 +10,14 @@ import (
 )
 
 type receiverKeys struct {
-	_struct       bool   `codec:",toarray"`
+	_struct       bool   `codec:",toarray"` //nolint
 	ReceiverKID   []byte `codec:"receiver_key_id"`
 	PayloadKeyBox []byte `codec:"payloadkey"`
 }
 
 // Version is a major.minor pair that shows the version of the whole file
 type Version struct {
-	_struct bool `codec:",toarray"`
+	_struct bool `codec:",toarray"` //nolint
 	Major   int  `codec:"major"`
 	Minor   int  `codec:"minor"`
 }
@@ -35,7 +35,7 @@ func (v Version) String() string {
 // signcryption mode, the sender secretbox contains a *signing* key instead of
 // an encryption key, and the receiver identifier takes a different form.)
 type EncryptionHeader struct {
-	_struct         bool           `codec:",toarray"`
+	_struct         bool           `codec:",toarray"` //nolint
 	FormatName      string         `codec:"format_name"`
 	Version         Version        `codec:"vers"`
 	Type            MessageType    `codec:"type"`
@@ -47,7 +47,7 @@ type EncryptionHeader struct {
 // encryptionBlockV1 contains a block of encrypted data. It contains
 // the ciphertext, and any necessary authentication Tags.
 type encryptionBlockV1 struct {
-	_struct            bool                   `codec:",toarray"`
+	_struct            bool                   `codec:",toarray"` //nolint
 	HashAuthenticators []payloadAuthenticator `codec:"authenticators"`
 	PayloadCiphertext  []byte                 `codec:"ctext"`
 }
@@ -94,7 +94,7 @@ type SigncryptionHeader EncryptionHeader
 
 // signcryptionBlock contains a block of signed and encrypted data.
 type signcryptionBlock struct {
-	_struct           bool   `codec:",toarray"`
+	_struct           bool   `codec:",toarray"` //nolint
 	PayloadCiphertext []byte `codec:"ctext"`
 	IsFinal           bool   `codec:"final"`
 }
@@ -111,7 +111,7 @@ func (h *SigncryptionHeader) validate() error {
 
 // SignatureHeader is the first packet in a signed message.
 type SignatureHeader struct {
-	_struct      bool        `codec:",toarray"`
+	_struct      bool        `codec:",toarray"` //nolint
 	FormatName   string      `codec:"format_name"`
 	Version      Version     `codec:"vers"`
 	Type         MessageType `codec:"type"`
@@ -146,8 +146,8 @@ func (h *SignatureHeader) validate(versionValidator VersionValidator, msgType Me
 
 	if h.Type != msgType {
 		return ErrWrongMessageType{
-			wanted:   msgType,
-			received: h.Type,
+			Wanted:   msgType,
+			Received: h.Type,
 		}
 	}
 
@@ -160,7 +160,7 @@ func (h *SignatureHeader) validate(versionValidator VersionValidator, msgType Me
 
 // signatureBlockV1 contains a block of signed data.
 type signatureBlockV1 struct {
-	_struct      bool   `codec:",toarray"`
+	_struct      bool   `codec:",toarray"` //nolint
 	Signature    []byte `codec:"signature"`
 	PayloadChunk []byte `codec:"payload_chunk"`
 }

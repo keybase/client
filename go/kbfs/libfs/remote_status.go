@@ -77,7 +77,7 @@ func (r *RemoteStatus) update(ctx context.Context, st libkbfs.KBFSStatus) {
 	defer r.Unlock()
 
 	if newUser := kbname.NormalizedUsername(st.CurrentUser); r.currentUser != newUser {
-		oldUser := kbname.NormalizedUsername(r.currentUser)
+		oldUser := r.currentUser
 		r.currentUser = newUser
 		if r.callbacks != nil {
 			go r.callbacks.UserChanged(ctx, oldUser, newUser)

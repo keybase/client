@@ -7,10 +7,15 @@ package libkbfs
 import (
 	"fmt"
 	"strconv"
+	"sync"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/data"
+	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
@@ -21,14 +26,12 @@ const (
 	// error param keys
 	errorParamTlf                 = "tlf"
 	errorParamMode                = "mode"
-	errorParamFeature             = "feature"
 	errorParamUsername            = "username"
 	errorParamRekeySelf           = "rekeyself"
 	errorParamUsageBytes          = "usageBytes"
 	errorParamLimitBytes          = "limitBytes"
 	errorParamUsageFiles          = "usageFiles"
 	errorParamLimitFiles          = "limitFiles"
-	errorParamRenameOldFilename   = "oldFilename"
 	errorParamFoldersCreated      = "foldersCreated"
 	errorParamFolderLimit         = "folderLimit"
 	errorParamApplicationExecPath = "applicationExecPath"
@@ -36,62 +39,50 @@ const (
 	// error operation modes
 	errorModeRead  = "read"
 	errorModeWrite = "write"
-
-	// features that aren't ready yet
-	errorFeatureFileLimit = "2gbFileLimit"
-	errorFeatureDirLimit  = "512kbDirLimit"
 )
 
 const connectionStatusConnected keybase1.FSStatusCode = keybase1.FSStatusCode_START
 const connectionStatusDisconnected keybase1.FSStatusCode = keybase1.FSStatusCode_ERROR
-
-// noErrorNames are lookup names that should not result in an error
-// notification.  These should all be reserved or illegal Keybase
-// usernames that will never be associated with a real account.
-var noErrorNames = map[string]bool{
-	"objects":        true, // git shells
-	"gemfile":        true, // rvm
-	"Gemfile":        true, // rvm
-	"devfs":          true, // lsof?  KBFS-823
-	"_mtn":           true, // emacs on Linux
-	"_MTN":           true, // emacs on Linux
-	"docker-machine": true, // docker shell stuff
-	"HEAD":           true, // git shell
-	"Keybase.app":    true, // some OSX mount thing
-	"DCIM":           true, // looking for digital pic folder
-	"Thumbs.db":      true, // Windows mounts
-	"config":         true, // Windows, possibly 7-Zip?
-	"m4root":         true, // OS X, iMovie?
-	"BDMV":           true, // OS X, iMovie?
-	"node_modules":   true, // Some npm shell configuration
-	"folder":         true, // Dolphin?  keybase/client#7304
-	"avchd":          true, // Sony PlayMemories Home, keybase/client#6801
-	"avchd_bk":       true, // Sony PlayMemories Home, keybase/client#6801
-	"sony":           true, // Sony PlayMemories Home, keybase/client#6801
-}
 
 // ReporterKBPKI implements the Notify function of the Reporter
 // interface in addition to embedding ReporterSimple for error
 // tracking.  Notify will make RPCs to the keybase daemon.
 type ReporterKBPKI struct {
 	*ReporterSimple
-	config           Config
-	log              logger.Logger
-	notifyBuffer     chan *keybase1.FSNotification
-	notifyPathBuffer chan string
-	notifySyncBuffer chan *keybase1.FSPathSyncStatus
-	canceler         func()
+	config                  Config
+	log                     logger.Logger
+	vlog                    *libkb.VDebugLog
+	notifyBuffer            chan *keybase1.FSNotification
+	onlineStatusBuffer      chan bool
+	notifyPathBuffer        chan string
+	notifySyncBuffer        chan *keybase1.FSPathSyncStatus
+	notifyOverallSyncBuffer chan keybase1.FolderSyncStatus
+	notifyFavsBuffer        chan struct{}
+	shutdownCh              chan struct{}
+	canceler                func()
+
+	lastNotifyPathLock sync.Mutex
+	lastNotifyPath     string
+
+	shutdownLock sync.RWMutex
+	isShutdown   bool
 }
 
 // NewReporterKBPKI creates a new ReporterKBPKI.
 func NewReporterKBPKI(config Config, maxErrors, bufSize int) *ReporterKBPKI {
+	log := config.MakeLogger("")
 	r := &ReporterKBPKI{
-		ReporterSimple:   NewReporterSimple(config.Clock(), maxErrors),
-		config:           config,
-		log:              config.MakeLogger(""),
-		notifyBuffer:     make(chan *keybase1.FSNotification, bufSize),
-		notifyPathBuffer: make(chan string, 1),
-		notifySyncBuffer: make(chan *keybase1.FSPathSyncStatus, 1),
+		ReporterSimple:          NewReporterSimple(config.Clock(), maxErrors),
+		config:                  config,
+		log:                     log,
+		vlog:                    config.MakeVLogger(log),
+		notifyBuffer:            make(chan *keybase1.FSNotification, bufSize),
+		onlineStatusBuffer:      make(chan bool, bufSize),
+		notifyPathBuffer:        make(chan string, 1),
+		notifySyncBuffer:        make(chan *keybase1.FSPathSyncStatus, 1),
+		notifyOverallSyncBuffer: make(chan keybase1.FolderSyncStatus, 1),
+		notifyFavsBuffer:        make(chan struct{}, 1),
+		shutdownCh:              make(chan struct{}),
 	}
 	var ctx context.Context
 	ctx, r.canceler = context.WithCancel(context.Background())
@@ -109,11 +100,11 @@ func (r *ReporterKBPKI) ReportErr(ctx context.Context,
 	filename := ""
 	var code keybase1.FSErrorType = -1
 	switch e := errors.Cause(err).(type) {
-	case ReadAccessError:
+	case tlfhandle.ReadAccessError:
 		code = keybase1.FSErrorType_ACCESS_DENIED
 		params[errorParamMode] = errorModeRead
 		filename = e.Filename
-	case WriteAccessError:
+	case tlfhandle.WriteAccessError:
 		code = keybase1.FSErrorType_ACCESS_DENIED
 		params[errorParamUsername] = e.User.String()
 		params[errorParamMode] = errorModeWrite
@@ -124,7 +115,7 @@ func (r *ReporterKBPKI) ReportErr(ctx context.Context,
 		filename = e.Filename
 	case UnverifiableTlfUpdateError:
 		code = keybase1.FSErrorType_REVOKED_DATA_DETECTED
-	case NoCurrentSessionError:
+	case idutil.NoCurrentSessionError:
 		code = keybase1.FSErrorType_NOT_LOGGED_IN
 	case NeedSelfRekeyError:
 		code = keybase1.FSErrorType_REKEY_NEEDED
@@ -132,9 +123,6 @@ func (r *ReporterKBPKI) ReportErr(ctx context.Context,
 	case NeedOtherRekeyError:
 		code = keybase1.FSErrorType_REKEY_NEEDED
 		params[errorParamRekeySelf] = "false"
-	case FileTooBigForCRError:
-		code = keybase1.FSErrorType_NOT_IMPLEMENTED
-		params[errorParamFeature] = errorFeatureFileLimit
 	case kbfsmd.NewMetadataVersionError:
 		code = keybase1.FSErrorType_OLD_VERSION
 		err = OutdatedVersionError{}
@@ -159,7 +147,7 @@ func (r *ReporterKBPKI) ReportErr(ctx context.Context,
 		params[errorParamUsageFiles] = strconv.FormatInt(e.usageFiles, 10)
 		params[errorParamLimitFiles] =
 			strconv.FormatFloat(e.limitFiles, 'f', 0, 64)
-	case NoSigChainError:
+	case idutil.NoSigChainError:
 		code = keybase1.FSErrorType_NO_SIG_CHAIN
 		params[errorParamUsername] = e.User.String()
 	case kbfsmd.ServerErrorTooManyFoldersCreated:
@@ -186,6 +174,7 @@ func (r *ReporterKBPKI) ReportErr(ctx context.Context,
 	if code >= 0 {
 		n := errorNotification(err, code, tlfName, t, mode, filename, params)
 		r.Notify(ctx, n)
+		r.config.GetPerfLog().CDebugf(ctx, "KBFS error: %v", err)
 	}
 }
 
@@ -195,12 +184,39 @@ func (r *ReporterKBPKI) ReportErr(ctx context.Context,
 //       them in the notifyBuffer as well so that send() can put
 //       them back in its context.
 func (r *ReporterKBPKI) Notify(ctx context.Context, notification *keybase1.FSNotification) {
+	r.shutdownLock.RLock()
+	defer r.shutdownLock.RUnlock()
+	if r.isShutdown {
+		return
+	}
+
 	select {
 	case r.notifyBuffer <- notification:
 	default:
-		r.log.CDebugf(ctx, "ReporterKBPKI: notify buffer full, dropping %+v",
+		r.vlog.CLogf(
+			ctx, libkb.VLog1, "ReporterKBPKI: notify buffer full, dropping %+v",
 			notification)
 	}
+}
+
+// OnlineStatusChanged notifies the service (and eventually GUI) when we
+// detected we are connected to or disconnected from mdserver.
+func (r *ReporterKBPKI) OnlineStatusChanged(ctx context.Context, online bool) {
+	r.shutdownLock.RLock()
+	defer r.shutdownLock.RUnlock()
+	if r.isShutdown {
+		return
+	}
+
+	r.onlineStatusBuffer <- online
+}
+
+func (r *ReporterKBPKI) setLastNotifyPath(p string) (same bool) {
+	r.lastNotifyPathLock.Lock()
+	defer r.lastNotifyPathLock.Unlock()
+	same = p == r.lastNotifyPath
+	r.lastNotifyPath = p
+	return same
 }
 
 // NotifyPathUpdated implements the Reporter interface for ReporterKBPKI.
@@ -209,11 +225,41 @@ func (r *ReporterKBPKI) Notify(ctx context.Context, notification *keybase1.FSNot
 //       them in the notifyPathBuffer as well so that send() can put
 //       them back in its context.
 func (r *ReporterKBPKI) NotifyPathUpdated(ctx context.Context, path string) {
+	r.shutdownLock.RLock()
+	defer r.shutdownLock.RUnlock()
+	if r.isShutdown {
+		return
+	}
+
+	sameAsLast := r.setLastNotifyPath(path)
 	select {
 	case r.notifyPathBuffer <- path:
 	default:
-		r.log.CDebugf(ctx,
-			"ReporterKBPKI: notify path buffer full, dropping %s", path)
+		if sameAsLast {
+			r.vlog.CLogf(
+				ctx, libkb.VLog1,
+				"ReporterKBPKI: notify path buffer full, dropping %s", path)
+		} else {
+			// This should be rare; it only happens when user switches from one
+			// TLF to another, and we happen to have an update from the old TLF
+			// in the buffer before switching subscribed TLF.
+			r.vlog.CLogf(
+				ctx, libkb.VLog1,
+				"ReporterKBPKI: notify path buffer full, but path is "+
+					"different from last one, so send in a goroutine %s", path)
+			go func() {
+				r.shutdownLock.RLock()
+				defer r.shutdownLock.RUnlock()
+				if r.isShutdown {
+					return
+				}
+
+				select {
+				case r.notifyPathBuffer <- path:
+				case <-r.shutdownCh:
+				}
+			}()
+		}
 	}
 }
 
@@ -224,28 +270,106 @@ func (r *ReporterKBPKI) NotifyPathUpdated(ctx context.Context, path string) {
 //       them back in its context.
 func (r *ReporterKBPKI) NotifySyncStatus(ctx context.Context,
 	status *keybase1.FSPathSyncStatus) {
+	r.shutdownLock.RLock()
+	defer r.shutdownLock.RUnlock()
+	if r.isShutdown {
+		return
+	}
+
 	select {
 	case r.notifySyncBuffer <- status:
 	default:
-		r.log.CDebugf(ctx, "ReporterKBPKI: notify sync buffer full, "+
-			"dropping %+v", status)
+		r.vlog.CLogf(
+			ctx, libkb.VLog1, "ReporterKBPKI: notify sync buffer full, "+
+				"dropping %+v", status)
+	}
+}
+
+// NotifyFavoritesChanged implements the Reporter interface for
+// ReporterSimple.
+func (r *ReporterKBPKI) NotifyFavoritesChanged(ctx context.Context) {
+	r.shutdownLock.RLock()
+	defer r.shutdownLock.RUnlock()
+	if r.isShutdown {
+		return
+	}
+
+	select {
+	case r.notifyFavsBuffer <- struct{}{}:
+	default:
+		r.vlog.CLogf(
+			ctx, libkb.VLog1, "ReporterKBPKI: notify favs buffer full, "+
+				"dropping")
+	}
+}
+
+// NotifyOverallSyncStatus implements the Reporter interface for ReporterKBPKI.
+func (r *ReporterKBPKI) NotifyOverallSyncStatus(
+	ctx context.Context, status keybase1.FolderSyncStatus) {
+	r.shutdownLock.RLock()
+	defer r.shutdownLock.RUnlock()
+	if r.isShutdown {
+		return
+	}
+
+	select {
+	case r.notifyOverallSyncBuffer <- status:
+	default:
+		// If this represents a "complete" status, we can't drop it.
+		// Instead launch a goroutine to make sure it gets sent
+		// eventually.
+		if status.PrefetchStatus == keybase1.PrefetchStatus_COMPLETE {
+			go func() {
+				r.shutdownLock.RLock()
+				defer r.shutdownLock.RUnlock()
+				if r.isShutdown {
+					return
+				}
+
+				select {
+				case r.notifyOverallSyncBuffer <- status:
+				case <-r.shutdownCh:
+				}
+			}()
+		} else {
+			r.vlog.CLogf(
+				ctx, libkb.VLog1,
+				"ReporterKBPKI: notify overall sync buffer dropping %+v",
+				status)
+		}
 	}
 }
 
 // Shutdown implements the Reporter interface for ReporterKBPKI.
 func (r *ReporterKBPKI) Shutdown() {
+	r.shutdownLock.Lock()
+	defer r.shutdownLock.Unlock()
+	if r.isShutdown {
+		return
+	}
+	r.isShutdown = true
+
 	r.canceler()
+	close(r.shutdownCh)
 	close(r.notifyBuffer)
+	close(r.onlineStatusBuffer)
 	close(r.notifySyncBuffer)
+	close(r.notifyOverallSyncBuffer)
+	close(r.notifyFavsBuffer)
 }
 
-const reporterSendInterval = time.Second
+const (
+	reporterSendInterval    = time.Second
+	reporterFavSendInterval = 5 * time.Second
+)
 
 // send takes notifications out of notifyBuffer, notifyPathBuffer, and
 // notifySyncBuffer and sends them to the keybase daemon.
 func (r *ReporterKBPKI) send(ctx context.Context) {
 	sendTicker := time.NewTicker(reporterSendInterval)
 	defer sendTicker.Stop()
+	favSendTicker := time.NewTicker(reporterFavSendInterval)
+	defer favSendTicker.Stop()
 
 	for {
 		select {
@@ -260,6 +384,7 @@ func (r *ReporterKBPKI) send(ctx context.Context) {
 			if nt != keybase1.FSNotificationType_REKEYING &&
 				nt != keybase1.FSNotificationType_INITIALIZED &&
 				nt != keybase1.FSNotificationType_CONNECTION &&
+				nt != keybase1.FSNotificationType_SYNC_CONFIG_CHANGED &&
 				st != keybase1.FSStatusCode_ERROR {
 				continue
 			}
@@ -269,6 +394,14 @@ func (r *ReporterKBPKI) send(ctx context.Context) {
 				notification); err != nil {
 				r.log.CDebugf(ctx, "ReporterDaemon: error sending "+
 					"notification: %s", err)
+			}
+		case online, ok := <-r.onlineStatusBuffer:
+			if !ok {
+				return
+			}
+			if err := r.config.KeybaseService().NotifyOnlineStatusChanged(ctx, online); err != nil {
+				r.log.CDebugf(ctx, "ReporterDaemon: error sending "+
+					"NotifyOnlineStatusChanged: %s", err)
 			}
 		case <-sendTicker.C:
 			select {
@@ -296,6 +429,32 @@ func (r *ReporterKBPKI) send(ctx context.Context) {
 				}
 			default:
 			}
+
+			select {
+			case status, ok := <-r.notifyOverallSyncBuffer:
+				if !ok {
+					return
+				}
+				if err := r.config.KeybaseService().NotifyOverallSyncStatus(
+					ctx, status); err != nil {
+					r.log.CDebugf(ctx, "ReporterDaemon: error sending "+
+						"overall sync status: %s", err)
+				}
+			default:
+			}
+		case <-favSendTicker.C:
+			select {
+			case _, ok := <-r.notifyFavsBuffer:
+				if !ok {
+					return
+				}
+				if err := r.config.KeybaseService().NotifyFavoritesChanged(
+					ctx); err != nil {
+					r.log.CDebugf(ctx, "ReporterDaemon: error sending "+
+						"favorites changed notification: %s", err)
+				}
+			default:
+			}
 		case <-ctx.Done():
 			return
 		}
@@ -304,7 +463,7 @@ func (r *ReporterKBPKI) send(ctx context.Context) {
 
 // writeNotification creates FSNotifications from paths for file
 // write events.
-func writeNotification(file path, finish bool) *keybase1.FSNotification {
+func writeNotification(file data.Path, finish bool) *keybase1.FSNotification {
 	n := baseNotification(file, finish)
 	if file.Tlf.Type() == tlf.Public {
 		n.NotificationType = keybase1.FSNotificationType_SIGNING
@@ -316,7 +475,7 @@ func writeNotification(file path, finish bool) *keybase1.FSNotification {
 
 // readNotification creates FSNotifications from paths for file
 // read events.
-func readNotification(file path, finish bool) *keybase1.FSNotification {
+func readNotification(file data.Path, finish bool) *keybase1.FSNotification {
 	n := baseNotification(file, finish)
 	if file.Tlf.Type() == tlf.Public {
 		n.NotificationType = keybase1.FSNotificationType_VERIFYING
@@ -328,7 +487,7 @@ func readNotification(file path, finish bool) *keybase1.FSNotification {
 
 // rekeyNotification creates FSNotifications from TlfHandles for rekey
 // events.
-func rekeyNotification(ctx context.Context, config Config, handle *TlfHandle, finish bool) *keybase1.FSNotification {
+func rekeyNotification(ctx context.Context, config Config, handle *tlfhandle.Handle, finish bool) *keybase1.FSNotification {
 	code := keybase1.FSStatusCode_START
 	if finish {
 		code = keybase1.FSStatusCode_FINISH
@@ -336,55 +495,10 @@ func rekeyNotification(ctx context.Context, config Config, handle *TlfHandle, fi
 
 	return &keybase1.FSNotification{
 		FolderType:       handle.Type().FolderType(),
-		Filename:         string(handle.GetCanonicalPath()),
+		Filename:         handle.GetCanonicalPath(),
 		StatusCode:       code,
 		NotificationType: keybase1.FSNotificationType_REKEYING,
 	}
-}
-
-func baseFileEditNotification(file path, writer keybase1.UID,
-	localTime time.Time) *keybase1.FSNotification {
-	n := baseNotification(file, true)
-	n.WriterUid = writer
-	n.LocalTime = keybase1.ToTime(localTime)
-	return n
-}
-
-// fileCreateNotification creates FSNotifications from paths for file
-// create events.
-func fileCreateNotification(file path, writer keybase1.UID,
-	localTime time.Time) *keybase1.FSNotification {
-	n := baseFileEditNotification(file, writer, localTime)
-	n.NotificationType = keybase1.FSNotificationType_FILE_CREATED
-	return n
-}
-
-// fileModifyNotification creates FSNotifications from paths for file
-// modification events.
-func fileModifyNotification(file path, writer keybase1.UID,
-	localTime time.Time) *keybase1.FSNotification {
-	n := baseFileEditNotification(file, writer, localTime)
-	n.NotificationType = keybase1.FSNotificationType_FILE_MODIFIED
-	return n
-}
-
-// fileDeleteNotification creates FSNotifications from paths for file
-// delete events.
-func fileDeleteNotification(file path, writer keybase1.UID,
-	localTime time.Time) *keybase1.FSNotification {
-	n := baseFileEditNotification(file, writer, localTime)
-	n.NotificationType = keybase1.FSNotificationType_FILE_DELETED
-	return n
-}
-
-// fileRenameNotification creates FSNotifications from paths for file
-// rename events.
-func fileRenameNotification(oldFile path, newFile path, writer keybase1.UID,
-	localTime time.Time) *keybase1.FSNotification {
-	n := baseFileEditNotification(newFile, writer, localTime)
-	n.NotificationType = keybase1.FSNotificationType_FILE_RENAMED
-	n.Params = map[string]string{errorParamRenameOldFilename: oldFile.CanonicalPathString()}
-	return n
 }
 
 // connectionNotification creates FSNotifications based on whether
@@ -399,14 +513,14 @@ func connectionNotification(status keybase1.FSStatusCode) *keybase1.FSNotificati
 
 // baseNotification creates a basic FSNotification without a
 // NotificationType from a path.
-func baseNotification(file path, finish bool) *keybase1.FSNotification {
+func baseNotification(file data.Path, finish bool) *keybase1.FSNotification {
 	code := keybase1.FSStatusCode_START
 	if finish {
 		code = keybase1.FSStatusCode_FINISH
 	}
 
 	return &keybase1.FSNotification{
-		Filename:   file.CanonicalPathString(),
+		Filename:   file.CanonicalPathPlaintext(),
 		StatusCode: code,
 	}
 }
@@ -448,7 +562,7 @@ func errorNotification(err error, errType keybase1.FSErrorType,
 	}
 }
 
-func mdReadSuccessNotification(handle *TlfHandle,
+func mdReadSuccessNotification(handle *tlfhandle.Handle,
 	public bool) *keybase1.FSNotification {
 	params := make(map[string]string)
 	if handle != nil {
@@ -456,9 +570,23 @@ func mdReadSuccessNotification(handle *TlfHandle,
 	}
 	return &keybase1.FSNotification{
 		FolderType:       handle.Type().FolderType(),
-		Filename:         string(handle.GetCanonicalPath()),
+		Filename:         handle.GetCanonicalPath(),
 		StatusCode:       keybase1.FSStatusCode_START,
 		NotificationType: keybase1.FSNotificationType_MD_READ_SUCCESS,
+		Params:           params,
+	}
+}
+
+func syncConfigChangeNotification(handle *tlfhandle.Handle,
+	fsc keybase1.FolderSyncConfig) *keybase1.FSNotification {
+	params := map[string]string{
+		"syncMode": fsc.Mode.String(),
+	}
+	return &keybase1.FSNotification{
+		FolderType:       handle.Type().FolderType(),
+		Filename:         handle.GetCanonicalPath(),
+		StatusCode:       keybase1.FSStatusCode_START,
+		NotificationType: keybase1.FSNotificationType_SYNC_CONFIG_CHANGED,
 		Params:           params,
 	}
 }

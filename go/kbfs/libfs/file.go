@@ -88,8 +88,13 @@ func (f *File) ReadAt(p []byte, off int64) (n int, err error) {
 		return 0, err
 	}
 	if int(readBytes) < len(p) {
-		// ReadAt is more strict than Read.
-		return 0, errors.Errorf("Could only read %d bytes", readBytes)
+		// ReadAt is more strict than Read; it requires a real error
+		// if someone tries to read such that it won't fill the
+		// buffer.  But just wrap an io.EOF in the error so that
+		// folderBranchOps can figure it out, when calling from a
+		// `Read()` implementation.
+		return 0, errors.Wrapf(
+			io.EOF, "Could only read %d (not %d) bytes", readBytes, len(p))
 	}
 
 	return int(readBytes), nil
@@ -164,12 +169,11 @@ func (f *File) Lock() (err error) {
 		return err
 	}
 	jManager, err := libkbfs.GetJournalManager(f.fs.config)
-	if err != nil {
-		return err
-	}
-	if err = jManager.FinishSingleOp(f.fs.ctx,
-		f.fs.root.GetFolderBranch().Tlf, nil, f.fs.priority); err != nil {
-		return err
+	if err == nil {
+		if err = jManager.FinishSingleOp(f.fs.ctx,
+			f.fs.root.GetFolderBranch().Tlf, nil, f.fs.priority); err != nil {
+			return err
+		}
 	}
 
 	// Now, sync up with the server, while making sure a lock is held by us. If
@@ -207,32 +211,38 @@ func (f *File) Unlock() (err error) {
 		return err
 	}
 	jManager, err := libkbfs.GetJournalManager(f.fs.config)
-	if err != nil {
-		return err
-	}
-	jStatus, _ := jManager.JournalStatus(f.fs.root.GetFolderBranch().Tlf)
-	if jStatus.RevisionStart == kbfsmd.RevisionUninitialized {
-		// Journal MDs are all flushed and we haven't made any more writes.
-		// Calling FinishSingleOp won't make it to the server, so we make a
-		// naked request to server just to release the lock.
-		return f.fs.config.MDServer().ReleaseLock(f.fs.ctx,
-			f.fs.root.GetFolderBranch().Tlf, f.getLockID())
-	}
-
-	if f.fs.config.Mode().Type() == libkbfs.InitSingleOp {
-		err = jManager.FinishSingleOp(f.fs.ctx,
-			f.fs.root.GetFolderBranch().Tlf, &keybase1.LockContext{
-				RequireLockID:       f.getLockID(),
-				ReleaseAfterSuccess: true,
-			}, f.fs.priority)
-		if err != nil {
-			return err
+	if err == nil {
+		jStatus, _ := jManager.JournalStatus(f.fs.root.GetFolderBranch().Tlf)
+		if jStatus.RevisionStart == kbfsmd.RevisionUninitialized {
+			// Journal MDs are all flushed and we haven't made any
+			// more writes.  Calling FinishSingleOp won't make it to
+			// the server, so we make a naked request to server just
+			// to release the lock.
+			return f.fs.config.MDServer().ReleaseLock(f.fs.ctx,
+				f.fs.root.GetFolderBranch().Tlf, f.getLockID())
 		}
 	} else {
-		err = jManager.WaitForCompleteFlush(
-			f.fs.ctx, f.fs.root.GetFolderBranch().Tlf)
-		if err != nil {
-			return err
+		jManager = nil
+	}
+
+	if f.fs.config.Mode().IsSingleOp() {
+		if jManager != nil {
+			err = jManager.FinishSingleOp(f.fs.ctx,
+				f.fs.root.GetFolderBranch().Tlf, &keybase1.LockContext{
+					RequireLockID:       f.getLockID(),
+					ReleaseAfterSuccess: true,
+				}, f.fs.priority)
+			if err != nil {
+				return err
+			}
+		}
+	} else {
+		if jManager != nil {
+			err = jManager.WaitForCompleteFlush(
+				f.fs.ctx, f.fs.root.GetFolderBranch().Tlf)
+			if err != nil {
+				return err
+			}
 		}
 
 		f.fs.log.CDebugf(f.fs.ctx, "Releasing the lock")

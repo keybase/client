@@ -15,8 +15,6 @@ import (
 	"syscall"
 	"time"
 
-	"golang.org/x/net/context"
-
 	"github.com/keybase/client/go/client"
 	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/install"
@@ -27,6 +25,7 @@ import (
 	"github.com/keybase/client/go/service"
 	"github.com/keybase/client/go/uidmap"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"golang.org/x/net/context"
 )
 
 var cmd libcmdline.Command
@@ -42,6 +41,7 @@ func handleQuickVersion() bool {
 }
 
 func keybaseExit(exitCode int) {
+	logger.Shutdown()
 	logger.RestoreConsoleMode()
 	os.Exit(exitCode)
 }
@@ -76,7 +76,8 @@ func main() {
 		time.Sleep(100 * time.Millisecond)
 	}
 
-	e2 := g.Shutdown()
+	mctx := libkb.NewMetaContextTODO(g)
+	e2 := g.Shutdown(mctx)
 	if err == nil {
 		err = e2
 	}
@@ -99,7 +100,7 @@ func tryToDisableProcessTracing(log logger.Logger, e *libkb.Env) {
 		return
 	}
 
-	if !e.GetFeatureFlags().Admin() {
+	if !e.GetFeatureFlags().Admin(e.GetUID()) {
 		// Admin only for now
 		return
 	}
@@ -176,10 +177,10 @@ func osPreconfigure(g *libkb.GlobalContext) {
 
 			// Set the user's mountdirdefault to the current one if it's
 			// currently empty.
-			configWriter.SetStringAtPath("mountdirdefault", mountdirDefault)
+			_ = configWriter.SetStringAtPath("mountdirdefault", mountdirDefault)
 
 			if shouldResetMountdir {
-				configWriter.SetStringAtPath("mountdir", mountdirDefault)
+				_ = configWriter.SetStringAtPath("mountdir", mountdirDefault)
 			}
 		}
 	default:
@@ -198,7 +199,7 @@ func mainInner(g *libkb.GlobalContext, startupErrors []error) error {
 		g.Log.Errorf("Error parsing command line arguments: %s\n\n", err)
 		if _, isHelp := cmd.(*libcmdline.CmdSpecificHelp); isHelp {
 			// Parse returned the help command for this command, so run it:
-			cmd.Run()
+			_ = cmd.Run()
 		}
 		return errParseArgs
 	}
@@ -249,12 +250,19 @@ func mainInner(g *libkb.GlobalContext, startupErrors []error) error {
 		// Errors that come up in printing this warning are logged but ignored.
 		client.PrintOutOfDateWarnings(g)
 	}
+
+	// Warn the user if there is an account reset in progress
+	if !cl.IsService() && !cl.SkipAccountResetCheck() {
+		// Errors that come up in printing this warning are logged but ignored.
+		client.PrintAccountResetWarning(g)
+	}
 	return err
 }
 
 func configOtherLibraries(g *libkb.GlobalContext) error {
 	// Set our UID -> Username mapping service
 	g.SetUIDMapper(uidmap.NewUIDMap(g.Env.GetUIDMapFullNameCacheSize()))
+	g.SetServiceSummaryMapper(uidmap.NewServiceSummaryMap(1000))
 	return nil
 }
 
@@ -295,7 +303,7 @@ func configureProcesses(g *libkb.GlobalContext, cl *libcmdline.CommandLine, cmd 
 		if err != nil {
 			return err
 		}
-		err = svc.StartLoopbackServer()
+		err = svc.StartLoopbackServer(libkb.LoginAttemptOffline)
 		if err != nil {
 			return err
 		}
@@ -332,13 +340,11 @@ func configureProcesses(g *libkb.GlobalContext, cl *libcmdline.CommandLine, cmd 
 		if err != nil {
 			return err
 		}
-	} else {
+	} else if fc == libcmdline.ForceFork || g.Env.GetAutoFork() {
 		// If this command warrants an autofork, do it now.
-		if fc == libcmdline.ForceFork || g.Env.GetAutoFork() {
-			newProc, err = client.AutoForkServer(g, cl)
-			if err != nil {
-				return err
-			}
+		newProc, err = client.AutoForkServer(g, cl)
+		if err != nil {
+			return err
 		}
 	}
 
@@ -353,8 +359,7 @@ func configureProcesses(g *libkb.GlobalContext, cl *libcmdline.CommandLine, cmd 
 	}
 
 	// Ignore error
-	err = client.WarnOutdatedKBFS(g, cl)
-	if err != nil {
+	if err = client.WarnOutdatedKBFS(g, cl); err != nil {
 		g.Log.Debug("| Could not do kbfs versioncheck: %s", err)
 	}
 
@@ -427,32 +432,35 @@ func configurePath(g *libkb.GlobalContext, cl *libcmdline.CommandLine) error {
 
 func HandleSignals(g *libkb.GlobalContext) {
 	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt, syscall.SIGTERM, os.Kill)
+	// Note: os.Kill can't be trapped.
+	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+
+	mctx := libkb.NewMetaContextTODO(g)
 	for {
 		s := <-c
 		if s != nil {
-			g.Log.Debug("trapped signal %v", s)
+			mctx.Debug("trapped signal %v", s)
 
 			// if the current command has a Stop function, then call it.
 			// It will do its own stopping of the process and calling
 			// shutdown
 			if stop, ok := cmd.(client.Stopper); ok {
-				g.Log.Debug("Stopping command cleanly via stopper")
+				mctx.Debug("Stopping command cleanly via stopper")
 				stop.Stop(keybase1.ExitCode_OK)
 				return
 			}
 
 			// if the current command has a Cancel function, then call it:
 			if canc, ok := cmd.(client.Canceler); ok {
-				g.Log.Debug("canceling running command")
+				mctx.Debug("canceling running command")
 				if err := canc.Cancel(); err != nil {
-					g.Log.Warning("error canceling command: %s", err)
+					mctx.Warning("error canceling command: %s", err)
 				}
 			}
 
-			g.Log.Debug("calling shutdown")
-			g.Shutdown()
-			g.Log.Error("interrupted")
+			mctx.Debug("calling shutdown")
+			_ = g.Shutdown(mctx)
+			mctx.Error("interrupted")
 			keybaseExit(3)
 		}
 	}

@@ -120,6 +120,10 @@ func CheckProof(m libkb.MetaContext, pvlS string, service keybase1.ProofType, in
 func checkProofInner(m metaContext, pvlS string, service keybase1.ProofType, info ProofInfo) libkb.ProofError {
 	pvl, err := parse(pvlS)
 	if err != nil {
+		if strings.Contains(err.Error(), "cannot unmarshal string into Go struct") && strings.Contains(pvlS, "from iced tests") {
+			return libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
+				"Corrupted pvl in merkle tree from iced tests. To fix see test/merkle_pvl.iced. : %v", err)
+		}
 		return libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
 			"Could not parse pvl: %v", err)
 	}
@@ -128,7 +132,7 @@ func checkProofInner(m metaContext, pvlS string, service keybase1.ProofType, inf
 		return perr
 	}
 
-	sigBody, sigID, err := libkb.OpenSig(info.ArmoredSig)
+	sigBody, sigIDBase, err := libkb.OpenSig(info.ArmoredSig)
 	if err != nil {
 		return libkb.NewProofError(keybase1.ProofStatus_BAD_SIGNATURE,
 			"Bad signature: %v", err)
@@ -156,6 +160,8 @@ func checkProofInner(m metaContext, pvlS string, service keybase1.ProofType, inf
 				"Bad protocol in sig: %s", info.Protocol)
 		}
 	}
+
+	sigID := sigIDBase.ToSigIDLegacy()
 
 	mknewstate := func(i int) (scriptState, libkb.ProofError) {
 		state := scriptState{
@@ -195,11 +201,12 @@ func checkProofInner(m metaContext, pvlS string, service keybase1.ProofType, inf
 		}
 	}
 
-	if len(errs) == 0 {
+	switch len(errs) {
+	case 0:
 		return nil
-	} else if len(errs) == 1 {
+	case 1:
 		return errs[0]
-	} else {
+	default:
 		for _, err := range errs {
 			debug(m, "multiple failures include: %v", err)
 		}
@@ -269,10 +276,8 @@ func setupRegs(m metaContext, regs *namedRegsStore, info ProofInfo, sigBody []by
 		if err := regs.Set("protocol", canonicalProtocol); err != nil {
 			return err
 		}
-	} else {
-		if err := regs.Ban("protocol"); err != nil {
-			return err
-		}
+	} else if err := regs.Ban("protocol"); err != nil {
+		return err
 	}
 
 	return nil
@@ -838,7 +843,7 @@ func stepFetch(m metaContext, ins fetchT, state scriptState) (scriptState, libkb
 	switch fetchMode(ins.Kind) {
 	case fetchModeString:
 		debugWithState(m, state, "fetchurl: %v", from)
-		res, err1 := m.G().GetExternalAPI().GetText(libkb.APIArg{Endpoint: from, MetaContext: m.MetaContext})
+		res, err1 := m.G().GetExternalAPI().GetText(m.MetaContext, libkb.APIArg{Endpoint: from})
 		if err1 != nil {
 			return state, libkb.XapiError(err1, from)
 		}
@@ -856,7 +861,7 @@ func stepFetch(m metaContext, ins fetchT, state scriptState) (scriptState, libkb
 			return state, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
 				"JSON fetch must not specify 'into' register")
 		}
-		res, err1 := m.G().GetExternalAPI().Get(libkb.APIArg{Endpoint: from, MetaContext: m.MetaContext})
+		res, err1 := m.G().GetExternalAPI().Get(m.MetaContext, libkb.APIArg{Endpoint: from})
 		if err1 != nil {
 			return state, libkb.XapiError(err1, from)
 		}
@@ -870,7 +875,7 @@ func stepFetch(m metaContext, ins fetchT, state scriptState) (scriptState, libkb
 			return state, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
 				"HTML fetch must not specify 'into' register")
 		}
-		res, err1 := m.G().GetExternalAPI().GetHTML(libkb.APIArg{Endpoint: from, MetaContext: m.MetaContext})
+		res, err1 := m.G().GetExternalAPI().GetHTML(m.MetaContext, libkb.APIArg{Endpoint: from})
 		if err1 != nil {
 			return state, libkb.XapiError(err1, from)
 		}
@@ -951,11 +956,12 @@ func stepSelectorCSS(m metaContext, ins selectorCSST, state scriptState) (script
 
 	// Get the text, attribute, or data.
 	var res string
-	if ins.Attr != "" {
+	switch {
+	case ins.Attr != "":
 		res = selectionAttr(selection, ins.Attr)
-	} else if ins.Data {
+	case ins.Data:
 		res = selectionData(selection)
-	} else {
+	default:
 		res = selectionText(selection)
 	}
 
@@ -986,9 +992,7 @@ func runCSSSelectorInner(m metaContext, html *goquery.Selection,
 			"CSS selectors array must not be empty")
 	}
 
-	var selection *goquery.Selection
-	selection = html
-
+	selection := html
 	for _, selector := range selectors {
 		switch {
 		case selector.IsIndex:

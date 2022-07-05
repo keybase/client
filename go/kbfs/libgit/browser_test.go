@@ -11,9 +11,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/libfs"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
 	gogit "gopkg.in/src-d/go-git.v4"
@@ -26,16 +28,24 @@ func testBrowser(t *testing.T, sharedCache sharedInBrowserCache) {
 	defer os.RemoveAll(tempdir)
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 
-	h, err := libkbfs.ParseTlfHandle(
-		ctx, config.KBPKI(), config.MDOps(), "user1", tlf.Private)
+	h, err := tlfhandle.ParseHandle(
+		ctx, config.KBPKI(), config.MDOps(), nil, "user1", tlf.Private)
 	require.NoError(t, err)
 	rootFS, err := libfs.NewFS(
-		ctx, config, h, libkbfs.MasterBranch, "", "", keybase1.MDPriorityNormal)
+		ctx, config, h, data.MasterBranch, "", "", keybase1.MDPriorityNormal)
 	require.NoError(t, err)
 
 	t.Log("Init a new repo directly into KBFS.")
 	dotgitFS, _, err := GetOrCreateRepoAndID(ctx, config, h, "test", "")
 	require.NoError(t, err)
+
+	t.Log("Check that the browser for an uninitialized repo works.")
+	b, err := NewBrowser(dotgitFS, config.Clock(), "", sharedCache)
+	require.NoError(t, err)
+	fis, err := b.ReadDir("")
+	require.NoError(t, err)
+	require.Len(t, fis, 0)
+
 	err = rootFS.MkdirAll("worktree", 0600)
 	require.NoError(t, err)
 	worktreeFS, err := rootFS.Chroot("worktree")
@@ -46,16 +56,16 @@ func testBrowser(t *testing.T, sharedCache sharedInBrowserCache) {
 	require.NoError(t, err)
 
 	t.Log("Check that the browser for an empty master branch works.")
-	b, err := NewBrowser(dotgitFS, config.Clock(), "", sharedCache)
+	b, err = NewBrowser(dotgitFS, config.Clock(), "", sharedCache)
 	require.NoError(t, err)
-	fis, err := b.ReadDir("")
+	fis, err = b.ReadDir("")
 	require.NoError(t, err)
 	require.Len(t, fis, 0)
 
 	addFileToWorktreeAndCommit(
-		t, ctx, config, h, repo, worktreeFS, "foo", "hello")
+		ctx, t, config, h, repo, worktreeFS, "foo", "hello")
 	addFileToWorktreeAndCommit(
-		t, ctx, config, h, repo, worktreeFS, "dir/foo", "olleh")
+		ctx, t, config, h, repo, worktreeFS, "dir/foo", "olleh")
 
 	t.Log("Browse the repo and verify the data.")
 	b, err = NewBrowser(dotgitFS, config.Clock(), "", sharedCache)

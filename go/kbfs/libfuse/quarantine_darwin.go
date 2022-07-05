@@ -12,6 +12,8 @@ import (
 	"time"
 
 	"bazil.org/fuse"
+	"github.com/keybase/client/go/kbfs/idutil"
+	"github.com/keybase/client/go/kbfs/libcontext"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/pkg/errors"
 	ldberrors "github.com/syndtr/goleveldb/leveldb/errors"
@@ -91,13 +93,13 @@ func (h *QuarantineXattrHandler) Getxattr(ctx context.Context,
 
 		// This fits in situation 1 as described in
 		// libkbfs/delayed_cancellation.go
-		if err = libkbfs.EnableDelayedCancellationWithGracePeriod(ctx,
+		if err = libcontext.EnableDelayedCancellationWithGracePeriod(ctx,
 			h.folder.fs.config.DelayedCancellationGracePeriod()); err != nil {
 			return err
 		}
 		de, err := h.folder.fs.config.KBFSOps().Stat(ctx, h.node)
 		if err != nil {
-			if _, ok := err.(libkbfs.NoSuchNameError); ok {
+			if _, ok := err.(idutil.NoSuchNameError); ok {
 				// The node is not found, so just return ENOTSUP
 				return fuse.ENOTSUP
 			}

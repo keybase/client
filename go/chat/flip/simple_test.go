@@ -32,5 +32,5 @@ func TestFlip(t *testing.T) {
 	}
 	i, err := FlipInt(cp, players, int64(10033))
 	require.NoError(t, err)
-	require.Equal(t, i, int64(1922))
+	require.Equal(t, i, int64(6265))
 }

@@ -21,7 +21,7 @@ func generateBcryptPasswordHashForTestOrBust(t *testing.T, password string) stri
 func generateSHA256PasswordHashForTestOrBust(t *testing.T, password string) string {
 	passwordHash, err := GenerateSHA256PasswordHash(password)
 	require.NoError(t, err)
-	return string(passwordHash)
+	return passwordHash
 }
 
 func stringPtr(str string) *string {

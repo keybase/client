@@ -19,10 +19,12 @@ import (
 type ChatCLINotifications struct {
 	libkb.Contextified
 	chat1.NotifyChatInterface
-	noOutput            bool
-	terminal            libkb.TerminalUI
-	lastPercentReported int
+	noOutput              bool
+	terminal              libkb.TerminalUI
+	lastAttachmentPercent int
 }
+
+var _ chat1.NotifyChatInterface = (*ChatCLINotifications)(nil)
 
 func NewChatCLINotifications(g *libkb.GlobalContext) *ChatCLINotifications {
 	return &ChatCLINotifications{
@@ -47,25 +49,32 @@ func (n *ChatCLINotifications) ChatAttachmentUploadProgress(ctx context.Context,
 		return nil
 	}
 	percent := int((100 * arg.BytesComplete) / arg.BytesTotal)
-	if n.lastPercentReported == 0 || percent == 100 || percent-n.lastPercentReported >= 10 {
+	if n.lastAttachmentPercent == 0 || percent == 100 || percent-n.lastAttachmentPercent >= 10 {
 		w := n.terminal.ErrorWriter()
 		fmt.Fprintf(w, "Attachment upload progress %d%% (%d of %d bytes uploaded)\n", percent, arg.BytesComplete, arg.BytesTotal)
-		n.lastPercentReported = percent
+		n.lastAttachmentPercent = percent
 	}
 	return nil
 }
 
 type ChatCLIUI struct {
 	libkb.Contextified
-	terminal            libkb.TerminalUI
-	noOutput            bool
-	lastPercentReported int
+	terminal libkb.TerminalUI
+	noOutput bool
+	// if we delegate the inbox search to the thread searcher, we don't want to
+	// duplicate output.
+	noThreadSearch                          bool
+	lastAttachmentPercent, lastIndexPercent int
+	sessionID                               int
 }
+
+var _ chat1.ChatUiInterface = (*ChatCLIUI)(nil)
 
 func NewChatCLIUI(g *libkb.GlobalContext) *ChatCLIUI {
 	return &ChatCLIUI{
 		Contextified: libkb.NewContextified(g),
 		terminal:     g.UI.GetTerminalUI(),
+		sessionID:    randSessionID(),
 	}
 }
 
@@ -83,10 +92,10 @@ func (c *ChatCLIUI) ChatAttachmentDownloadProgress(ctx context.Context, arg chat
 		return nil
 	}
 	percent := int((100 * arg.BytesComplete) / arg.BytesTotal)
-	if c.lastPercentReported == 0 || percent == 100 || percent-c.lastPercentReported >= 10 {
+	if c.lastAttachmentPercent == 0 || percent == 100 || percent-c.lastAttachmentPercent >= 10 {
 		w := c.terminal.ErrorWriter()
 		fmt.Fprintf(w, "Attachment download progress %d%% (%d of %d bytes downloaded)\n", percent, arg.BytesComplete, arg.BytesTotal)
-		c.lastPercentReported = percent
+		c.lastAttachmentPercent = percent
 	}
 	return nil
 }
@@ -104,6 +113,10 @@ func (c *ChatCLIUI) ChatInboxConversation(ctx context.Context, arg chat1.ChatInb
 	return nil
 }
 
+func (c *ChatCLIUI) ChatInboxLayout(ctx context.Context, arg chat1.ChatInboxLayoutArg) error {
+	return nil
+}
+
 func (c *ChatCLIUI) ChatInboxFailed(ctx context.Context, arg chat1.ChatInboxFailedArg) error {
 	return nil
 }
@@ -117,6 +130,10 @@ func (c *ChatCLIUI) ChatThreadCached(ctx context.Context, arg chat1.ChatThreadCa
 }
 
 func (c *ChatCLIUI) ChatThreadFull(ctx context.Context, arg chat1.ChatThreadFullArg) error {
+	return nil
+}
+
+func (c *ChatCLIUI) ChatThreadStatus(ctx context.Context, arg chat1.ChatThreadStatusArg) error {
 	return nil
 }
 
@@ -179,16 +196,16 @@ func (c *ChatCLIUI) renderSearchHit(ctx context.Context, searchHit chat1.ChatSea
 	// to refactor for UIMessage
 	hitTextColoredEscaped := highlightEscapeHits(searchHit.HitMessage, searchHit.Matches)
 	if hitTextColoredEscaped != "" {
-		c.terminal.Output(getContext(searchHit.BeforeMessages))
+		_ = c.terminal.Output(getContext(searchHit.BeforeMessages))
 		fmt.Fprintln(c.terminal.UnescapedOutputWriter(), hitTextColoredEscaped)
-		c.terminal.Output(getContext(searchHit.AfterMessages))
-		c.terminal.Output("\n")
+		_ = c.terminal.Output(getContext(searchHit.AfterMessages))
+		_ = c.terminal.Output("\n")
 	}
 	return nil
 }
 
 func (c *ChatCLIUI) ChatSearchHit(ctx context.Context, arg chat1.ChatSearchHitArg) error {
-	if c.noOutput {
+	if c.noOutput || c.noThreadSearch {
 		return nil
 	}
 	return c.renderSearchHit(ctx, arg.SearchHit)
@@ -202,7 +219,7 @@ func (c *ChatCLIUI) simplePlural(count int, prefix string) string {
 }
 
 func (c *ChatCLIUI) ChatSearchDone(ctx context.Context, arg chat1.ChatSearchDoneArg) error {
-	if c.noOutput {
+	if c.noOutput || c.noThreadSearch {
 		return nil
 	}
 	w := c.terminal.ErrorWriter()
@@ -236,7 +253,7 @@ func (c *ChatCLIUI) ChatSearchInboxHit(ctx context.Context, arg chat1.ChatSearch
 	if width > 80 {
 		width = 80
 	}
-	fmt.Fprintf(w, fmt.Sprintf("%s\n", strings.Repeat("-", width)))
+	fmt.Fprintf(w, "%s\n", strings.Repeat("-", width))
 	return nil
 }
 
@@ -251,15 +268,20 @@ func (c *ChatCLIUI) ChatSearchInboxDone(ctx context.Context, arg chat1.ChatSearc
 	} else {
 		searchText := fmt.Sprintf("Search complete. Found %d %s", numHits, c.simplePlural(numHits, "result"))
 		numConvs := arg.Res.NumConvs
-		searchText = fmt.Sprintf("%s in %d %s.\n", searchText, numConvs, c.simplePlural(numConvs, "conversation"))
-		fmt.Fprintf(w, searchText)
+		fmt.Fprintf(w, "%s in %d %s.\n", searchText, numConvs, c.simplePlural(numConvs, "conversation"))
 	}
-	percentIndexed := arg.Res.PercentIndexed
-	helpText := ""
-	if percentIndexed < 70 {
-		helpText = "Rerun with --force-reindex for more complete results."
+	if !arg.Res.Delegated {
+		percentIndexed := arg.Res.PercentIndexed
+		helpText := ""
+		if percentIndexed < 70 {
+			helpText = "Rerun with --force-reindex for more complete results."
+		}
+		fmt.Fprintf(w, "Indexing was %d%% complete. %s\n", percentIndexed, helpText)
 	}
-	fmt.Fprintf(w, "Indexing was %d%% complete. %s\n", percentIndexed, helpText)
+	return nil
+}
+
+func (c *ChatCLIUI) ChatSearchInboxStart(ctx context.Context, sessionID int) error {
 	return nil
 }
 
@@ -267,7 +289,47 @@ func (c *ChatCLIUI) ChatSearchIndexStatus(ctx context.Context, arg chat1.ChatSea
 	if c.noOutput {
 		return nil
 	}
-	c.terminal.Output(fmt.Sprintf("Indexing: %d%%.\n", arg.Status.PercentIndexed))
+	if percentIndexed := arg.Status.PercentIndexed; percentIndexed > c.lastIndexPercent {
+		_ = c.terminal.Output(fmt.Sprintf("Indexing: %d%%.\n", percentIndexed))
+		c.lastIndexPercent = percentIndexed
+	}
+	return nil
+}
+
+func (c *ChatCLIUI) ChatSearchConvHits(ctx context.Context, arg chat1.ChatSearchConvHitsArg) error {
+	if c.noOutput {
+		return nil
+	}
+	for _, hit := range arg.Hits.Hits {
+		_ = c.terminal.Output(fmt.Sprintf("Conversation: %s found with matching name\n", hit.Name))
+	}
+	return nil
+}
+
+func (c *ChatCLIUI) ChatSearchTeamHits(ctx context.Context, arg chat1.ChatSearchTeamHitsArg) error {
+	if c.noOutput || len(arg.Hits.Hits) == 0 {
+		return nil
+	}
+	_ = c.terminal.Output("\n")
+	for _, hit := range arg.Hits.Hits {
+		_ = c.terminal.Output(fmt.Sprintf("Team: %s found with matching name\n", hit.Name))
+		if !hit.InTeam {
+			_ = c.terminal.Output(fmt.Sprintf("\tYou can join this open team with `keybase team request-access %s`\n", hit.Name))
+		}
+	}
+	_ = c.terminal.Output("\n")
+	return nil
+}
+
+func (c *ChatCLIUI) ChatSearchBotHits(ctx context.Context, arg chat1.ChatSearchBotHitsArg) error {
+	if c.noOutput || len(arg.Hits.Hits) == 0 {
+		return nil
+	}
+	_ = c.terminal.Output("\nTo add a bot see `keybase chat add-bot-member --help`\n")
+	for _, hit := range arg.Hits.Hits {
+		_ = c.terminal.Output(fmt.Sprintf("\tBot: %s found with matching name\n", hit.DisplayName()))
+	}
+	_ = c.terminal.Output("\n")
 	return nil
 }
 
@@ -310,6 +372,50 @@ func (c *ChatCLIUI) ChatStellarDone(ctx context.Context, arg chat1.ChatStellarDo
 	return nil
 }
 
+func (c *ChatCLIUI) ChatGiphySearchResults(ctx context.Context, arg chat1.ChatGiphySearchResultsArg) error {
+	return nil
+}
+
+func (c *ChatCLIUI) ChatGiphyToggleResultWindow(ctx context.Context, arg chat1.ChatGiphyToggleResultWindowArg) error {
+	return nil
+}
+
 func (c *ChatCLIUI) ChatShowManageChannels(ctx context.Context, arg chat1.ChatShowManageChannelsArg) error {
+	return nil
+}
+
+func (c *ChatCLIUI) ChatCoinFlipStatus(ctx context.Context, arg chat1.ChatCoinFlipStatusArg) error {
+	return nil
+}
+
+func (c *ChatCLIUI) ChatCommandMarkdown(ctx context.Context, arg chat1.ChatCommandMarkdownArg) error {
+	return nil
+}
+
+func (c *ChatCLIUI) ChatMaybeMentionUpdate(ctx context.Context, arg chat1.ChatMaybeMentionUpdateArg) error {
+	return nil
+}
+
+func (c *ChatCLIUI) ChatLoadGalleryHit(ctx context.Context, arg chat1.ChatLoadGalleryHitArg) error {
+	return nil
+}
+
+func (c *ChatCLIUI) ChatWatchPosition(context.Context, chat1.ChatWatchPositionArg) (chat1.LocationWatchID, error) {
+	return chat1.LocationWatchID(0), nil
+}
+
+func (c *ChatCLIUI) ChatClearWatch(context.Context, chat1.ChatClearWatchArg) error {
+	return nil
+}
+
+func (c *ChatCLIUI) ChatCommandStatus(context.Context, chat1.ChatCommandStatusArg) error {
+	return nil
+}
+
+func (c *ChatCLIUI) ChatBotCommandsUpdateStatus(context.Context, chat1.ChatBotCommandsUpdateStatusArg) error {
+	return nil
+}
+
+func (c *ChatCLIUI) TriggerContactSync(context.Context, int) error {
 	return nil
 }

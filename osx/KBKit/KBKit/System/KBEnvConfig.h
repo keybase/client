@@ -73,6 +73,7 @@ typedef NS_OPTIONS (NSUInteger, KBInstallOptions) {
 - (NSString *)gitRemoteHelperName;
 - (NSString *)redirectorBinName;
 - (NSString *)redirectorMount;
+- (NSString *)volumesRedirectorMount;
 - (BOOL)redirectorDisabled;
 
 - (BOOL)validate:(NSError **)error;

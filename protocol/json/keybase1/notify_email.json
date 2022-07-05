@@ -1,0 +1,44 @@
+{
+  "protocol": "NotifyEmailAddress",
+  "imports": [
+    {
+      "path": "common.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [],
+  "messages": {
+    "emailAddressVerified": {
+      "request": [
+        {
+          "name": "emailAddress",
+          "type": "EmailAddress"
+        }
+      ],
+      "response": null,
+      "oneway": true
+    },
+    "emailsChanged": {
+      "request": [
+        {
+          "name": "list",
+          "type": {
+            "type": "array",
+            "items": "Email"
+          }
+        },
+        {
+          "name": "category",
+          "type": "string"
+        },
+        {
+          "name": "email",
+          "type": "EmailAddress"
+        }
+      ],
+      "response": null,
+      "oneway": true
+    }
+  },
+  "namespace": "keybase.1"
+}

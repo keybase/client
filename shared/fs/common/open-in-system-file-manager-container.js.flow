@@ -1,9 +1,0 @@
-// @flow
-import * as React from 'react'
-import * as Types from '../../constants/types/fs'
-
-export type OpenInSystemFileManagerProps = {
-  path: Types.Path,
-}
-
-declare export default React.ComponentType<OpenInSystemFileManagerProps>

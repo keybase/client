@@ -15,13 +15,13 @@ type Me struct {
 
 func NewMe(g *globals.Context) *Me {
 	return &Me{
-		baseCommand: newBaseCommand(g, "me", "<message>", "Displays action text"),
+		baseCommand: newBaseCommand(g, "me", "<message>", "Displays action text", false),
 	}
 }
 
 func (s *Me) Execute(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	tlfName, text string) (err error) {
-	defer s.Trace(ctx, func() error { return err }, "Execute")()
+	tlfName, text string, replyTo *chat1.MessageID) (err error) {
+	defer s.Trace(ctx, &err, "Execute")()
 	if !s.Match(ctx, text) {
 		return ErrInvalidCommand
 	}
@@ -32,5 +32,7 @@ func (s *Me) Execute(ctx context.Context, uid gregor1.UID, convID chat1.Conversa
 	if len(msg) == 0 {
 		return nil
 	}
-	return s.G().ChatHelper.SendTextByIDNonblock(ctx, convID, tlfName, fmt.Sprintf("_%s_", msg))
+	_, err = s.G().ChatHelper.SendTextByIDNonblock(ctx, convID, tlfName, fmt.Sprintf("_%s_", msg), nil,
+		replyTo)
+	return err
 }

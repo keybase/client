@@ -18,7 +18,7 @@ for /f %%i in ('winresource.exe -cv') do set KEYBASE_VERSION=%%i
 echo KEYBASE_VERSION %KEYBASE_VERSION%
 for /f %%i in ('winresource.exe -cb') do set KEYBASE_BUILD=%%i
 echo KEYBASE_BUILD %KEYBASE_BUILD%
-go build -a -tags "prerelease production" -ldflags="-X github.com/keybase/client/go/libkb.PrereleaseBuild=%KEYBASE_BUILD%"
+go build -a -tags "prerelease production" -ldflags="-X github.com/keybase/client/go/libkb.PrereleaseBuild=%KEYBASE_BUILD% -s -w"
 popd
 
 :: Then build kbfsdokan.
@@ -27,7 +27,7 @@ pushd %GOPATH%\src\github.com\keybase\client\go\kbfs\kbfsdokan
 del kbfsdokan.exe
 
 set CGO_ENABLED=1
-go build -a -tags "prerelease production" -ldflags="-X github.com/keybase/client/go/kbfs/libkbfs.PrereleaseBuild=%KEYBASE_BUILD%"
+go build -a -tags "prerelease production" -ldflags="-X github.com/keybase/client/go/kbfs/libkbfs.PrereleaseBuild=%KEYBASE_BUILD% -s -w"
 IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
@@ -63,3 +63,9 @@ IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
 popd
+
+:: keybaserq
+pushd %GOPATH%\src\github.com\keybase\client\go\tools\runquiet
+del keybaserq.exe
+..\..\keybase\winresource.exe  -d "Keybase quiet start utility" -n "keybaserq.exe" -i ../../../media/icons/Keybase.ico
+go build -ldflags "-H windowsgui" -o keybaserq.exe

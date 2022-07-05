@@ -17,6 +17,11 @@ func (n nullGregorState) State(ctx context.Context) (gregor.State, error) {
 	return gregor1.State{}, nil
 }
 
+func (n nullGregorState) UpdateCategory(ctx context.Context, cat string, body []byte,
+	dtime gregor1.TimeOrOffset) (gregor1.MsgID, error) {
+	return gregor1.MsgID{}, nil
+}
+
 func (n nullGregorState) InjectItem(ctx context.Context, cat string, body []byte, dtime gregor1.TimeOrOffset) (gregor1.MsgID, error) {
 	return gregor1.MsgID{}, nil
 }
@@ -27,5 +32,9 @@ func (n nullGregorState) DismissItem(ctx context.Context, cli gregor1.IncomingIn
 }
 
 func (n nullGregorState) LocalDismissItem(ctx context.Context, id gregor.MsgID) error {
+	return nil
+}
+
+func (n nullGregorState) DismissCategory(ctx context.Context, cat gregor1.Category) error {
 	return nil
 }

@@ -12,10 +12,12 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/kbfs/kbfsmd"
+	"github.com/keybase/client/go/kbfs/ldbutils"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/logger"
 	"github.com/pkg/errors"
 	ldberrors "github.com/syndtr/goleveldb/leveldb/errors"
+	"github.com/syndtr/goleveldb/leveldb/filter"
 	"github.com/syndtr/goleveldb/leveldb/opt"
 	"github.com/syndtr/goleveldb/leveldb/storage"
 )
@@ -50,13 +52,13 @@ type DiskMDCacheLocal struct {
 	log    logger.Logger
 
 	// Track the cache hit rate and eviction rate
-	hitMeter  *CountMeter
-	missMeter *CountMeter
-	putMeter  *CountMeter
+	hitMeter  *ldbutils.CountMeter
+	missMeter *ldbutils.CountMeter
+	putMeter  *ldbutils.CountMeter
 	// Protect the disk caches from being shutdown while they're being
 	// accessed, and mutable data.
 	lock       sync.RWMutex
-	headsDb    *LevelDb // tlfID -> metadata block
+	headsDb    *ldbutils.LevelDb // tlfID -> metadata block
 	tlfsCached map[tlf.ID]kbfsmd.Revision
 	tlfsStaged map[tlf.ID][]diskMDBlock
 
@@ -102,16 +104,17 @@ type DiskMDCacheStatus struct {
 	StartState DiskMDCacheStartState
 	NumMDs     uint64
 	NumStaged  uint64
-	Hits       MeterStatus
-	Misses     MeterStatus
-	Puts       MeterStatus
+	Hits       ldbutils.MeterStatus
+	Misses     ldbutils.MeterStatus
+	Puts       ldbutils.MeterStatus
+	DBStats    []string `json:",omitempty"`
 }
 
 // newDiskMDCacheLocalFromStorage creates a new *DiskMDCacheLocal
 // with the passed-in storage.Storage interfaces as storage layers for each
 // cache.
 func newDiskMDCacheLocalFromStorage(
-	config diskMDCacheConfig, headsStorage storage.Storage) (
+	config diskMDCacheConfig, headsStorage storage.Storage, mode InitMode) (
 	cache *DiskMDCacheLocal, err error) {
 	log := config.MakeLogger("DMC")
 	closers := make([]io.Closer, 0, 1)
@@ -129,9 +132,10 @@ func newDiskMDCacheLocalFromStorage(
 			closer()
 		}
 	}()
-	mdDbOptions := *leveldbOptions
+	mdDbOptions := ldbutils.LeveldbOptions(mode)
 	mdDbOptions.CompactionTableSize = defaultMDCacheTableSize
-	headsDb, err := openLevelDBWithOptions(headsStorage, &mdDbOptions)
+	mdDbOptions.Filter = filter.NewBloomFilter(16)
+	headsDb, err := ldbutils.OpenLevelDbWithOptions(headsStorage, mdDbOptions)
 	if err != nil {
 		return nil, err
 	}
@@ -141,9 +145,9 @@ func newDiskMDCacheLocalFromStorage(
 	startErrCh := make(chan struct{})
 	cache = &DiskMDCacheLocal{
 		config:     config,
-		hitMeter:   NewCountMeter(),
-		missMeter:  NewCountMeter(),
-		putMeter:   NewCountMeter(),
+		hitMeter:   ldbutils.NewCountMeter(),
+		missMeter:  ldbutils.NewCountMeter(),
+		putMeter:   ldbutils.NewCountMeter(),
 		log:        log,
 		headsDb:    headsDb,
 		tlfsStaged: make(map[tlf.ID][]diskMDBlock),
@@ -173,7 +177,7 @@ func newDiskMDCacheLocalFromStorage(
 // newDiskMDCacheLocal creates a new *DiskMDCacheLocal with a
 // specified directory on the filesystem as storage.
 func newDiskMDCacheLocal(
-	config diskBlockCacheConfig, dirPath string) (
+	config diskBlockCacheConfig, dirPath string, mode InitMode) (
 	cache *DiskMDCacheLocal, err error) {
 	log := config.MakeLogger("DMC")
 	defer func() {
@@ -182,8 +186,8 @@ func newDiskMDCacheLocal(
 		}
 	}()
 	cachePath := filepath.Join(dirPath, mdCacheFolderName)
-	versionPath, err := getVersionedPathForDiskCache(
-		log, cachePath, "md", currentDiskMDCacheVersion)
+	versionPath, err := ldbutils.GetVersionedPathForDb(
+		log, cachePath, "disk md cache", currentDiskMDCacheVersion)
 	if err != nil {
 		return nil, err
 	}
@@ -197,7 +201,7 @@ func newDiskMDCacheLocal(
 			headsStorage.Close()
 		}
 	}()
-	return newDiskMDCacheLocalFromStorage(config, headsStorage)
+	return newDiskMDCacheLocalFromStorage(config, headsStorage, mode)
 }
 
 // WaitUntilStarted waits until this cache has started.
@@ -244,8 +248,8 @@ func (cache *DiskMDCacheLocal) syncMDCountsFromDb() error {
 // returns leveldb.ErrNotFound and a zero-valued metadata otherwise.
 func (cache *DiskMDCacheLocal) getMetadataLocked(
 	tlfID tlf.ID, metered bool) (metadata diskMDBlock, err error) {
-	var hitMeter, missMeter *CountMeter
-	if metered {
+	var hitMeter, missMeter *ldbutils.CountMeter
+	if ldbutils.Metered {
 		hitMeter = cache.hitMeter
 		missMeter = cache.missMeter
 	}
@@ -311,7 +315,7 @@ func (cache *DiskMDCacheLocal) Get(
 		return nil, -1, time.Time{}, errors.WithStack(ldberrors.ErrNotFound)
 	}
 
-	md, err := cache.getMetadataLocked(tlfID, metered)
+	md, err := cache.getMetadataLocked(tlfID, ldbutils.Metered)
 	if err != nil {
 		return nil, -1, time.Time{}, err
 	}
@@ -365,12 +369,13 @@ func (cache *DiskMDCacheLocal) Commit(
 	// The staged MDs list is unordered, so iterate through the whole
 	// thing to find what should remain after commiting `rev`.
 	for _, md := range stagedMDs {
-		if md.Revision > rev {
+		switch {
+		case md.Revision > rev:
 			newStagedMDs = append(newStagedMDs, md)
 			continue
-		} else if md.Revision < rev {
+		case md.Revision < rev:
 			continue
-		} else if foundMD {
+		case foundMD:
 			// Duplicate.
 			continue
 		}
@@ -430,7 +435,7 @@ func (cache *DiskMDCacheLocal) Unstage(
 }
 
 // Status implements the DiskMDCache interface for DiskMDCacheLocal.
-func (cache *DiskMDCacheLocal) Status(_ context.Context) DiskMDCacheStatus {
+func (cache *DiskMDCacheLocal) Status(ctx context.Context) DiskMDCacheStatus {
 	select {
 	case <-cache.startedCh:
 	case <-cache.startErrCh:
@@ -446,13 +451,22 @@ func (cache *DiskMDCacheLocal) Status(_ context.Context) DiskMDCacheStatus {
 		numStaged += uint64(len(mds))
 	}
 
+	var dbStats []string
+	if err := cache.checkCacheLocked(ctx, "MD(Status)"); err == nil {
+		dbStats, err = cache.headsDb.StatStrings()
+		if err != nil {
+			cache.log.CDebugf(ctx, "Couldn't get db stats: %+v", err)
+		}
+	}
+
 	return DiskMDCacheStatus{
 		StartState: DiskMDCacheStartStateStarted,
 		NumMDs:     uint64(len(cache.tlfsCached)),
 		NumStaged:  numStaged,
-		Hits:       rateMeterToStatus(cache.hitMeter),
-		Misses:     rateMeterToStatus(cache.missMeter),
-		Puts:       rateMeterToStatus(cache.putMeter),
+		Hits:       ldbutils.RateMeterToStatus(cache.hitMeter),
+		Misses:     ldbutils.RateMeterToStatus(cache.missMeter),
+		Puts:       ldbutils.RateMeterToStatus(cache.putMeter),
+		DBStats:    dbStats,
 	}
 }
 

@@ -13,9 +13,9 @@ func GetPredefinedInflationDestinations(mctx libkb.MetaContext) (ret []stellar1.
 }
 
 func SetInflationDestinationLocal(mctx libkb.MetaContext, arg stellar1.SetInflationDestinationLocalArg) (err error) {
-	defer mctx.CTraceTimed(
+	defer mctx.Trace(
 		fmt.Sprintf("Stellar.SetInflationDestinationLocal(on=%s,to=%s)", arg.AccountID, arg.Destination),
-		func() error { return err })()
+		&err)()
 
 	walletState := getGlobal(mctx.G()).walletState
 
@@ -35,14 +35,17 @@ func SetInflationDestinationLocal(mctx libkb.MetaContext, arg stellar1.SetInflat
 		return fmt.Errorf("Malformed destination account ID: %s", err)
 	}
 
-	sp := NewSeqnoProvider(mctx, walletState)
+	sp, unlock := NewSeqnoProvider(mctx, walletState)
+	defer unlock()
 
 	tb, err := getTimeboundsForSending(mctx, walletState)
 	if err != nil {
 		return err
 	}
 
-	sig, err := stellarnet.SetInflationDestinationTransaction(senderSeed2, destinationAddrStr, sp, tb)
+	baseFee := walletState.BaseFee(mctx)
+
+	sig, err := stellarnet.SetInflationDestinationTransaction(senderSeed2, destinationAddrStr, sp, tb, baseFee)
 	if err != nil {
 		return err
 	}
@@ -50,12 +53,21 @@ func SetInflationDestinationLocal(mctx libkb.MetaContext, arg stellar1.SetInflat
 	if err != nil {
 		return err
 	}
-	walletState.Refresh(mctx, senderEntry.AccountID, "set inflation destination")
+
+	// force load this transaction before refreshing the wallet state
+	loader := DefaultLoader(mctx.G())
+	loader.LoadPaymentSync(mctx.Ctx(), stellar1.PaymentID(sig.TxHash))
+
+	err = walletState.Refresh(mctx, senderEntry.AccountID, "set inflation destination")
+	if err != nil {
+		mctx.Debug("SetInflationDestinationLocal ws.Refresh error: %s", err)
+	}
+
 	return nil
 }
 
 func GetInflationDestination(mctx libkb.MetaContext, accountID stellar1.AccountID) (res stellar1.InflationDestinationResultLocal, err error) {
-	defer mctx.CTraceTimed("Stellar.GetInflationDestination", func() error { return err })()
+	defer mctx.Trace("Stellar.GetInflationDestination", &err)()
 
 	walletState := getGlobal(mctx.G()).walletState
 	details, err := walletState.Details(mctx.Ctx(), accountID)

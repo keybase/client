@@ -23,7 +23,6 @@ type Encoding struct {
 	logOfBase       float64
 	baseBig         *big.Int
 	skipBytes       string
-	scratchInt      *big.Int
 }
 
 // NewEncoding returns a new Encoding defined by the given alphabet,
@@ -54,7 +53,6 @@ func NewEncoding(encoder string, base256BlockLen int, skipBytes string) *Encodin
 		logOfBase:       logOfBase,
 		baseBig:         big.NewInt(int64(base)),
 		skipBytes:       skipBytes,
-		scratchInt:      new(big.Int),
 	}
 	copy(e.encode[:], encoder)
 
@@ -186,7 +184,7 @@ var ErrInvalidEncodingLength = errors.New("invalid encoding length; either trunc
 func (enc *Encoding) decodeBlock(dst []byte, src []byte, baseOffset int) (int, int, error) {
 	si := 0 // source index
 	numGoodChars := 0
-	res := enc.scratchInt
+	res := new(big.Int)
 	res.SetUint64(0)
 
 	for i, b := range src {
@@ -272,8 +270,5 @@ func (enc *Encoding) IsValidEncodingLength(n int) bool {
 	f := func(n int) int {
 		return int(math.Floor(float64(n) * enc.logOfBase / float64(8)))
 	}
-	if f(n) == f(n-1) {
-		return false
-	}
-	return true
+	return f(n) != f(n-1)
 }

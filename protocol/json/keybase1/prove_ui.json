@@ -14,6 +14,49 @@
         "SOCIAL_0",
         "SITE_1"
       ]
+    },
+    {
+      "type": "record",
+      "name": "ProveParameters",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "SizedImage"
+          },
+          "name": "logoFull"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "SizedImage"
+          },
+          "name": "logoBlack"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "SizedImage"
+          },
+          "name": "logoWhite"
+        },
+        {
+          "type": "string",
+          "name": "title"
+        },
+        {
+          "type": "string",
+          "name": "subtext"
+        },
+        {
+          "type": "string",
+          "name": "suffix"
+        },
+        {
+          "type": "string",
+          "name": "buttonLabel"
+        }
+      ]
     }
   ],
   "messages": {
@@ -49,6 +92,13 @@
           "type": [
             null,
             "Status"
+          ]
+        },
+        {
+          "name": "parameters",
+          "type": [
+            null,
+            "ProveParameters"
           ]
         }
       ],
@@ -93,6 +143,13 @@
         {
           "name": "proof",
           "type": "string"
+        },
+        {
+          "name": "parameters",
+          "type": [
+            null,
+            "ProveParameters"
+          ]
         }
       ],
       "response": null
@@ -109,6 +166,28 @@
         },
         {
           "name": "attempt",
+          "type": "int"
+        }
+      ],
+      "response": "boolean"
+    },
+    "checking": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        }
+      ],
+      "response": null
+    },
+    "continueChecking": {
+      "request": [
+        {
+          "name": "sessionID",
           "type": "int"
         }
       ],

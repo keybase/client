@@ -58,6 +58,7 @@ func TestLookupRecipientFederation(t *testing.T) {
 	fAccounts := tcs[0].Backend.ImportAccountsForUser(tcs[0])
 
 	randomPub, _ := randomStellarKeypair()
+	randomPubMemo, _ := randomStellarKeypair()
 
 	testClient := &FederationTestClient{
 		validServers:  make(map[string]bool),
@@ -67,6 +68,15 @@ func TestLookupRecipientFederation(t *testing.T) {
 	testClient.validServers["stellar.org"] = true
 	testClient.testResponses["j*stellar.org"] = &proto.NameResponse{
 		AccountID: randomPub.String(),
+	}
+	testClient.testResponses["memo*stellar.org"] = &proto.NameResponse{
+		AccountID: randomPubMemo.String(),
+		MemoType:  "hash",
+		Memo:      proto.Memo{Value: "ABCDEFGHIJK"},
+	}
+	testClient.testResponses["memonotype*stellar.org"] = &proto.NameResponse{
+		AccountID: randomPubMemo.String(),
+		Memo:      proto.Memo{Value: "123456"},
 	}
 	tcsAtStellar := fmt.Sprintf("%s*stellar.org", tcs[0].Fu.Username)
 	testClient.testResponses[tcsAtStellar] = &proto.NameResponse{
@@ -94,7 +104,27 @@ func TestLookupRecipientFederation(t *testing.T) {
 	require.Nil(t, res.User)
 	require.Nil(t, res.Assertion)
 	require.NotNil(t, res.AccountID)
+	require.Nil(t, res.PublicMemo)
+	require.Nil(t, res.PublicMemoType)
 	require.EqualValues(t, randomPub, *res.AccountID)
+
+	res, err = stellar.LookupRecipient(mctx, stellarcommon.RecipientInput("memo*stellar.org"), false)
+	require.NoError(t, err)
+	require.Nil(t, res.User)
+	require.Nil(t, res.Assertion)
+	require.NotNil(t, res.AccountID)
+	require.EqualValues(t, randomPubMemo, *res.AccountID)
+	require.NotNil(t, res.PublicMemo)
+	require.NotNil(t, res.PublicMemoType)
+	require.Equal(t, "ABCDEFGHIJK", *res.PublicMemo)
+	require.Equal(t, "hash", *res.PublicMemoType)
+
+	// if they don't return a memo_type, it's an error
+	res, err = stellar.LookupRecipient(mctx, stellarcommon.RecipientInput("memonotype*stellar.org"), false)
+	require.Error(t, err)
+	require.Nil(t, res.User)
+	require.Nil(t, res.Assertion)
+	require.Nil(t, res.AccountID)
 
 	// We ask external server about federation address, we get account id back
 	// That account ID is the primary of a keybase user.

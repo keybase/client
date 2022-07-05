@@ -102,7 +102,9 @@ func (c *CmdSimpleFSSyncEnable) Run() error {
 		}
 
 		arg.Config.Mode = keybase1.FolderSyncMode_PARTIAL
-		arg.Config.Paths = append(res.Config.Paths, subpath)
+		arg.Config.Paths = make([]string, len(res.Config.Paths)+1)
+		copy(arg.Config.Paths, res.Config.Paths)
+		arg.Config.Paths[len(arg.Config.Paths)-1] = subpath
 	}
 
 	return cli.SimpleFSSetFolderSyncConfig(ctx, arg)

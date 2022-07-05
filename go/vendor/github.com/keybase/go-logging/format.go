@@ -274,9 +274,9 @@ func (f *stringFormatter) add(verb fmtVerb, layout string) {
 func (f *stringFormatter) Format(calldepth int, r *Record, output io.Writer) error {
 	for _, part := range f.parts {
 		if part.verb == fmtVerbStatic {
-			output.Write([]byte(part.layout))
+			_, _ = output.Write([]byte(part.layout))
 		} else if part.verb == fmtVerbTime {
-			output.Write([]byte(r.Time.Format(part.layout)))
+			_, _ = output.Write([]byte(r.Time.Format(part.layout)))
 		} else if part.verb == fmtVerbLevelColor {
 			doFmtVerbLevelColor(part.layout, r.Level, output)
 		} else if part.verb == fmtVerbCallpath {
@@ -284,28 +284,22 @@ func (f *stringFormatter) Format(calldepth int, r *Record, output io.Writer) err
 			if err != nil {
 				depth = 0
 			}
-			output.Write([]byte(formatCallpath(calldepth+1, depth)))
+			_, _ = output.Write([]byte(formatCallpath(calldepth+1, depth)))
 		} else {
 			var v interface{}
 			switch part.verb {
 			case fmtVerbLevel:
 				v = r.Level
-				break
 			case fmtVerbID:
 				v = r.ID
-				break
 			case fmtVerbPid:
 				v = pid
-				break
 			case fmtVerbProgram:
 				v = program
-				break
 			case fmtVerbModule:
 				v = r.Module
-				break
 			case fmtVerbMessage:
 				v = r.Message()
-				break
 			case fmtVerbLongfile, fmtVerbShortfile:
 				_, file, line, ok := runtime.Caller(calldepth + 1)
 				if !ok {

@@ -18,10 +18,10 @@ import (
 // V1 defines a V1 config. Public fields are accessible by `json`
 // encoders and decoder.
 //
-// On first call to GetPermission* methods, it initializes an internal ACL
-// checker. If the object is constructed from ParseConfig, its internal ACL
-// checker is initialized automatically. Any changes to the ACL fields
-// afterwards have no effect.
+// On first call to GetPermission* methods, it initializes an internal per-path
+// config reader. If the object is constructed from ParseConfig, its internal
+// per-path config reader is initialized automatically. Any changes to the
+// PerPathConfigs fields afterwards have no effect.
 type V1 struct {
 	Common
 
@@ -33,13 +33,18 @@ type V1 struct {
 
 	bcryptLimiter *rate.Limiter
 
-	// ACLs is a path -> AccessControlV1 map that defines ACLs for different
-	// paths.
-	ACLs map[string]AccessControlV1 `json:"acls"`
+	// ACLs is deprecated, and kept around for back-compability. Now it serves
+	// as an alias to PerPathConfigs. If both ACLs and PerPathConfigs are
+	// present, it's a parsing error.
+	ACLs map[string]PerPathConfigV1 `json:"acls,omitempty"`
 
-	initOnce          sync.Once
-	aclChecker        *aclCheckerV1
-	aclCheckerInitErr error
+	// PerPathConfigs is a path -> PerPathConfig map to configure parameters
+	// for individual paths. Configured paths apply to their sub paths too.
+	PerPathConfigs map[string]PerPathConfigV1 `json:"per_path_configs"`
+
+	initOnce                    sync.Once
+	perPathConfigsReader        *perPathConfigsReaderV1
+	perPathConfigsReaderInitErr error
 }
 
 var _ Config = (*V1)(nil)
@@ -51,39 +56,60 @@ func DefaultV1() *V1 {
 		Common: Common{
 			Version: Version1Str,
 		},
-		ACLs: map[string]AccessControlV1{
-			"/": AccessControlV1{
-				AnonymousPermissions: "read,list",
+		PerPathConfigs: map[string]PerPathConfigV1{
+			"/": {
+				AnonymousPermissions: "read",
 			},
 		},
 	}
-	v1.EnsureInit()
+	_ = v1.EnsureInit() // TODO: check error?
 	return v1
 }
 
 const bcryptRateLimitInterval = time.Second / 2
 
+func (c *V1) checkAndRenameACLsIfNeeded() error {
+	if c.PerPathConfigs != nil && c.ACLs != nil {
+		return ErrACLsPerPathConfigsBothPresent{}
+	}
+	if c.ACLs != nil {
+		c.PerPathConfigs = c.ACLs
+		c.ACLs = nil
+	}
+	return nil
+}
+
 func (c *V1) init() {
 	c.bcryptLimiter = rate.NewLimiter(rate.Every(bcryptRateLimitInterval), 1)
-	c.aclChecker, c.aclCheckerInitErr = makeACLCheckerV1(c.ACLs, c.Users)
-	if c.aclCheckerInitErr != nil {
+
+	c.perPathConfigsReaderInitErr = c.checkAndRenameACLsIfNeeded()
+	if c.perPathConfigsReaderInitErr != nil {
 		return
 	}
+	c.perPathConfigsReader, c.perPathConfigsReaderInitErr =
+		makePerPathConfigsReaderV1(c.PerPathConfigs, c.Users)
+	if c.perPathConfigsReaderInitErr != nil {
+		return
+	}
+
 	c.users = make(map[string]password)
 	for username, passwordHash := range c.Users {
-		c.users[username], c.aclCheckerInitErr = newPassword(passwordHash)
-		if c.aclCheckerInitErr != nil {
+		c.users[username], c.perPathConfigsReaderInitErr = newPassword(passwordHash)
+		if c.perPathConfigsReaderInitErr != nil {
 			return
 		}
 	}
 }
 
 // EnsureInit initializes c, and returns any error encountered during the
-// initialization. It is not necessary to call EnsureInit. Methods that need it
-// does it automatically.
+// initialization. Additionally, it also moves ACLs into PerPathConfigs if
+// needed.
+//
+// It is not necessary to call EnsureInit. Methods that need it do it
+// automatically.
 func (c *V1) EnsureInit() error {
 	c.initOnce.Do(c.init)
-	return c.aclCheckerInitErr
+	return c.perPathConfigsReaderInitErr
 }
 
 // Version implements the Config interface.
@@ -114,8 +140,16 @@ func (c *V1) GetPermissions(path string, username *string) (
 		return false, false, false, false, "", err
 	}
 
-	perms, maxPerms, realm := c.aclChecker.getPermissions(path, username)
+	perms, maxPerms, realm := c.perPathConfigsReader.getPermissions(path, username)
 	return perms.read, perms.list, maxPerms.read, maxPerms.list, realm, nil
+}
+
+// GetAccessControlAllowOrigin implements the Config interface.
+func (c *V1) GetAccessControlAllowOrigin(path string) (setting string, err error) {
+	if err = c.EnsureInit(); err != nil {
+		return "", err
+	}
+	return c.perPathConfigsReader.getSetAccessControlAllowOrigin(path), nil
 }
 
 // Encode implements the Config interface.
@@ -130,15 +164,19 @@ func (c *V1) Encode(w io.Writer, prettify bool) error {
 // Validate checks all public fields of c, and returns an error if any of them
 // is invalid, or a nil-error if they are all valid.
 //
-// Although changes to ACL fields have no effect to ACL checkings once the
-// internal ACL checker is intialized (see comment on V1), this method still
-// checks the updated ACL feilds. So it's OK to use Validate directly on a
-// *V1 that has been modified since it was initialized.
+// Although changes to per-path config fields have no effect on per-path config
+// checkings once the internal per-path config reader is intialized (see
+// comment on V1), this method still checks the updated per-path config fields.
+// So it's OK to use Validate directly on a *V1 that has been modified since it
+// was initialized.
 //
 // As a result, unlike other methods on the type, this method is not goroutine
 // safe against changes to the public fields.
-func (c *V1) Validate() error {
-	_, err := makeACLCheckerV1(c.ACLs, c.Users)
+func (c *V1) Validate() (err error) {
+	if err := c.checkAndRenameACLsIfNeeded(); err != nil {
+		return err
+	}
+	_, err = makePerPathConfigsReaderV1(c.PerPathConfigs, c.Users)
 	return err
 }
 

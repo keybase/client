@@ -16,7 +16,7 @@ import (
 	"golang.org/x/net/context"
 )
 
-func newExternalFile(path string) (*SpecialReadFile, error) {
+func newExternalFile(path string) (*SpecialReadFile, error) { // nolint
 	if path == "" {
 		return nil, fmt.Errorf("No path for external file")
 	}

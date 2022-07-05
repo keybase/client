@@ -6,10 +6,14 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"flag"
+	"fmt"
 	"os"
 	"strings"
 	"time"
+
+	_ "github.com/go-sql-driver/mysql"
 
 	"github.com/keybase/client/go/kbfs/env"
 	"github.com/keybase/client/go/kbfs/libgit"
@@ -30,6 +34,7 @@ var (
 	fStathatEZKey  string
 	fStathatPrefix string
 	fBlacklist     string
+	fMySQLDSN      string
 )
 
 func init() {
@@ -46,6 +51,8 @@ func init() {
 	// whitelist should be dynamically configurable.
 	flag.StringVar(&fBlacklist, "blacklist", "",
 		"a comma-separated list of domains to block")
+	flag.StringVar(&fMySQLDSN, "mysql-dsn", "",
+		"enable MySQL based storage and use this as the DSN")
 }
 
 func newLogger(isCLI bool) (*zap.Logger, error) {
@@ -97,6 +104,28 @@ func removeEmpty(strs []string) (ret []string) {
 	return ret
 }
 
+func getStatsActivityStorerOrBust(
+	logger *zap.Logger) libpages.ActivityStatsStorer {
+	if len(fMySQLDSN) == 0 {
+		fileBasedStorer, err := libpages.NewFileBasedActivityStatsStorer(
+			activityStatsPath, logger)
+		if err != nil {
+			logger.Panic(
+				"libpages.NewFileBasedActivityStatsStorer", zap.Error(err))
+			return nil
+		}
+		return fileBasedStorer
+	}
+
+	db, err := sql.Open("mysql", fMySQLDSN)
+	if err != nil {
+		logger.Panic("open mysql", zap.Error(err))
+		return nil
+	}
+	mysqlStorer := libpages.NewMySQLActivityStatsStorer(db, logger)
+	return mysqlStorer
+}
+
 const activityStatsReportInterval = 5 * time.Minute
 const activityStatsPath = "./kbp-stats"
 
@@ -123,6 +152,7 @@ func main() {
 	params.LogFileConfig.MaxKeepFiles = 32
 	// Enable simpleFS in case we need to debug.
 	shutdownGit := func() {}
+	shutdownSimpleFS := func(_ context.Context) error { return nil }
 	createSimpleFS := func(
 		libkbfsCtx libkbfs.Context, config libkbfs.Config) (
 		rpc.Protocol, error) {
@@ -131,10 +161,16 @@ func main() {
 		// need memory for other stuff.
 		shutdownGit = libgit.StartAutogit(config, 1000)
 
-		return keybase1.SimpleFSProtocol(
-			simplefs.NewSimpleFS(libkbfsCtx, config)), nil
+		var simplefsIface keybase1.SimpleFSInterface
+		simplefsIface, shutdownSimpleFS = simplefs.NewSimpleFS(
+			libkbfsCtx, config)
+		return keybase1.SimpleFSProtocol(simplefsIface), nil
 	}
 	defer func() {
+		err := shutdownSimpleFS(context.Background())
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Couldn't shut down SimpleFS: %+v\n", err)
+		}
 		shutdownGit()
 	}()
 
@@ -158,19 +194,14 @@ func main() {
 
 	var statsReporter libpages.StatsReporter
 	if len(fStathatEZKey) != 0 {
-		activityStorer, err := libpages.NewFileBasedActivityStatsStorer(
-			activityStatsPath, logger)
-		if err != nil {
-			logger.Panic(
-				"libpages.NewFileBasedActivityStatsStorer", zap.Error(err))
-		}
+		activityStorer := getStatsActivityStorerOrBust(logger)
 		enabler := &libpages.ActivityStatsEnabler{
 			Durations: []libpages.NameableDuration{
-				libpages.NameableDuration{
+				{
 					Duration: time.Hour, Name: "hourly"},
-				libpages.NameableDuration{
+				{
 					Duration: time.Hour * 24, Name: "daily"},
-				libpages.NameableDuration{
+				{
 					Duration: time.Hour * 24 * 7, Name: "weekly"},
 			},
 			Interval: activityStatsReportInterval,
@@ -188,5 +219,5 @@ func main() {
 		StatsReporter:    statsReporter,
 	}
 
-	libpages.ListenAndServe(ctx, serverConfig, kbConfig)
+	_ = libpages.ListenAndServe(ctx, serverConfig, kbConfig)
 }

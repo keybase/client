@@ -7,6 +7,9 @@ package libkbfs
 import (
 	"testing"
 
+	"github.com/keybase/client/go/kbfs/env"
+
+	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/tlf"
@@ -69,7 +72,7 @@ type testBlockServerRemoteConfig struct {
 	codecGetter
 	logMaker
 	signer         kbfscrypto.Signer
-	sessionGetter  CurrentSessionGetter
+	sessionGetter  idutil.CurrentSessionGetter
 	diskBlockCache DiskBlockCache
 }
 
@@ -79,12 +82,20 @@ func (c testBlockServerRemoteConfig) Signer() kbfscrypto.Signer {
 	return c.signer
 }
 
-func (c testBlockServerRemoteConfig) CurrentSessionGetter() CurrentSessionGetter {
+func (c testBlockServerRemoteConfig) CurrentSessionGetter() idutil.CurrentSessionGetter {
 	return c.sessionGetter
 }
 
 func (c testBlockServerRemoteConfig) DiskBlockCache() DiskBlockCache {
 	return c.diskBlockCache
+}
+
+func (c testBlockServerRemoteConfig) Mode() InitMode {
+	return modeTest{}
+}
+
+func (c testBlockServerRemoteConfig) IsTestMode() bool {
+	return true
 }
 
 // Test that putting a block, and getting it back, works
@@ -95,13 +106,14 @@ func TestBServerRemotePutAndGet(t *testing.T) {
 	}
 	config := testBlockServerRemoteConfig{newTestCodecGetter(),
 		newTestLogMaker(t), nil, nil, nil}
-	b := newBlockServerRemoteWithClient(config, &fc)
+	b := newBlockServerRemoteWithClient(&env.KBFSContext{}, config, &fc)
 
 	tlfID := tlf.FakeID(2, tlf.Private)
 	bCtx := kbfsblock.MakeFirstContext(
 		currentUID.AsUserOrTeam(), keybase1.BlockType_DATA)
 	data := []byte{1, 2, 3, 4}
-	bID, err := kbfsblock.MakePermanentID(data, kbfscrypto.EncryptionSecretbox)
+	bID, err := kbfsblock.MakePermanentID(
+		data, kbfscrypto.EncryptionSecretboxWithKeyNonce)
 	require.NoError(t, err)
 
 	serverHalf, err := kbfscrypto.MakeRandomBlockCryptKeyServerHalf()
@@ -138,7 +150,7 @@ func TestBServerRemotePutCanceled(t *testing.T) {
 	serverConn, conn := rpc.MakeConnectionForTest(t)
 	config := testBlockServerRemoteConfig{newTestCodecGetter(),
 		newTestLogMaker(t), nil, nil, nil}
-	b := newBlockServerRemoteWithClient(config,
+	b := newBlockServerRemoteWithClient(&env.KBFSContext{}, config,
 		keybase1.BlockClient{Cli: conn.GetClient()})
 
 	f := func(ctx context.Context) error {

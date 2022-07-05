@@ -25,7 +25,7 @@ func newCmdTeamGenerateSeitan(cl *libcmdline.CommandLine, g *libkb.GlobalContext
 	return cli.Command{
 		Name:         "generate-invite-token",
 		ArgumentHelp: "<team name>",
-		Usage:        "Generate an invite token that you can send via SMS, iMessage, or similar.",
+		Usage:        "Generate an invite token that you can send via iMessage, or similar.",
 		Action: func(c *cli.Context) {
 			cmd := NewCmdTeamGenerateSeitanRunner(g)
 			cl.ChooseCommand(cmd, "generate-invite-token", c)
@@ -84,9 +84,9 @@ func (c *CmdTeamGenerateSeitan) Run() error {
 	labelSms.N = c.Number
 
 	arg := keybase1.TeamCreateSeitanTokenV2Arg{
-		Name:  c.Team,
-		Role:  c.Role,
-		Label: keybase1.NewSeitanKeyLabelWithSms(labelSms),
+		Teamname: c.Team,
+		Role:     c.Role,
+		Label:    keybase1.NewSeitanKeyLabelWithSms(labelSms),
 	}
 
 	res, err := cli.TeamCreateSeitanTokenV2(context.Background(), arg)
@@ -109,8 +109,7 @@ func (c *CmdTeamGenerateSeitan) GetUsage() libkb.Usage {
 }
 
 const teamGenerateSeitanDoc = `"keybase generate-invite-token" allows you to create a one-time use,
-expiring, cryptographically secure token that someone can use to join
-a team.
+cryptographically secure token that someone can use to join a team.
 
 Optionally, full name and phone number can be provided (using
 --fullname and --number flags) to label created token to make them

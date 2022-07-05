@@ -12,14 +12,16 @@ import (
 	"strings"
 	"sync"
 	"syscall"
-	"time"
 
 	"bazil.org/fuse"
 	"bazil.org/fuse/fs"
-	"github.com/keybase/client/go/kbfs/libfs"
+	"github.com/keybase/client/go/kbfs/favorites"
+	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
 	kbname "github.com/keybase/client/go/kbun"
+	"github.com/keybase/client/go/libkb"
 	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 )
@@ -34,9 +36,6 @@ type FolderList struct {
 
 	mu      sync.Mutex
 	folders map[string]*TLF
-
-	muRecentlyRemoved sync.RWMutex
-	recentlyRemoved   map[tlf.CanonicalName]bool
 }
 
 var _ fs.NodeAccesser = (*FolderList)(nil)
@@ -89,54 +88,15 @@ func (fl *FolderList) processError(ctx context.Context,
 	return filterError(err)
 }
 
-func (fl *FolderList) addToRecentlyRemoved(name tlf.CanonicalName) {
-	func() {
-		fl.muRecentlyRemoved.Lock()
-		defer fl.muRecentlyRemoved.Unlock()
-		if fl.recentlyRemoved == nil {
-			fl.recentlyRemoved = make(map[tlf.CanonicalName]bool)
-		}
-		fl.recentlyRemoved[name] = true
-	}()
-	fl.fs.execAfterDelay(time.Second, func() {
-		fl.muRecentlyRemoved.Lock()
-		defer fl.muRecentlyRemoved.Unlock()
-		delete(fl.recentlyRemoved, name)
-	})
-}
-
-func (fl *FolderList) isRecentlyRemoved(name tlf.CanonicalName) bool {
-	fl.muRecentlyRemoved.RLock()
-	defer fl.muRecentlyRemoved.RUnlock()
-	return fl.recentlyRemoved != nil && fl.recentlyRemoved[name]
-}
-
-func (fl *FolderList) addToFavorite(ctx context.Context, h *libkbfs.TlfHandle) (err error) {
-	cName := h.GetCanonicalName()
-
-	// `rmdir` command on macOS does a lookup after removing the dir. if the
-	// TLF is recently removed, it's likely that this lookup is issued by the
-	// `rmdir` command, and the lookup should not result in adding the dir to
-	// favorites.
-	if !fl.isRecentlyRemoved(cName) {
-		fl.fs.log.CDebugf(ctx, "adding %s to favorites", cName)
-		fl.fs.config.KBFSOps().AddFavorite(ctx, h.ToFavorite())
-	} else {
-		fl.fs.log.CDebugf(ctx, "recently removed; will skip adding %s to favorites and return ENOENT", cName)
-		return fuse.ENOENT
-	}
-	return nil
-}
-
 // PathType returns PathType for this folder
-func (fl *FolderList) PathType() libkbfs.PathType {
+func (fl *FolderList) PathType() tlfhandle.PathType {
 	switch fl.tlfType {
 	case tlf.Private:
-		return libkbfs.PrivatePathType
+		return tlfhandle.PrivatePathType
 	case tlf.Public:
-		return libkbfs.PublicPathType
+		return tlfhandle.PublicPathType
 	case tlf.SingleTeam:
-		return libkbfs.SingleTeamPathType
+		return tlfhandle.SingleTeamPathType
 	default:
 		panic(fmt.Sprintf("Unsupported tlf type: %s", fl.tlfType))
 	}
@@ -144,7 +104,7 @@ func (fl *FolderList) PathType() libkbfs.PathType {
 
 // Create implements the fs.NodeCreater interface for FolderList.
 func (fl *FolderList) Create(ctx context.Context, req *fuse.CreateRequest, resp *fuse.CreateResponse) (_ fs.Node, _ fs.Handle, err error) {
-	fl.fs.log.CDebugf(ctx, "FL Create")
+	fl.fs.vlog.CLogf(ctx, libkb.VLog1, "FL Create")
 	tlfName := tlf.CanonicalName(req.Name)
 	defer func() { err = fl.processError(ctx, libkbfs.WriteMode, tlfName, err) }()
 	if strings.HasPrefix(req.Name, "._") {
@@ -152,20 +112,20 @@ func (fl *FolderList) Create(ctx context.Context, req *fuse.CreateRequest, resp 
 		// triggering a notification.
 		return nil, nil, syscall.ENOENT
 	}
-	return nil, nil, libkbfs.NewWriteUnsupportedError(libkbfs.BuildCanonicalPath(fl.PathType(), string(tlfName)))
+	return nil, nil, libkbfs.NewWriteUnsupportedError(tlfhandle.BuildCanonicalPath(fl.PathType(), string(tlfName)))
 }
 
 // Mkdir implements the fs.NodeMkdirer interface for FolderList.
 func (fl *FolderList) Mkdir(ctx context.Context, req *fuse.MkdirRequest) (_ fs.Node, err error) {
-	fl.fs.log.CDebugf(ctx, "FL Mkdir")
+	fl.fs.vlog.CLogf(ctx, libkb.VLog1, "FL Mkdir")
 	tlfName := tlf.CanonicalName(req.Name)
 	defer func() { err = fl.processError(ctx, libkbfs.WriteMode, tlfName, err) }()
-	return nil, libkbfs.NewWriteUnsupportedError(libkbfs.BuildCanonicalPath(fl.PathType(), string(tlfName)))
+	return nil, libkbfs.NewWriteUnsupportedError(tlfhandle.BuildCanonicalPath(fl.PathType(), string(tlfName)))
 }
 
 // Lookup implements the fs.NodeRequestLookuper interface.
 func (fl *FolderList) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.LookupResponse) (node fs.Node, err error) {
-	fl.fs.log.CDebugf(ctx, "FL Lookup %s", req.Name)
+	fl.fs.vlog.CLogf(ctx, libkb.VLog1, "FL Lookup %s", req.Name)
 	defer func() {
 		err = fl.processError(ctx, libkbfs.ReadMode,
 			tlf.CanonicalName(req.Name), err)
@@ -188,13 +148,13 @@ func (fl *FolderList) Lookup(ctx context.Context, req *fuse.LookupRequest, resp 
 		return nil, fuse.ENOENT
 	}
 
-	h, err := libfs.ParseTlfHandlePreferredQuick(
-		ctx, fl.fs.config.KBPKI(), req.Name, fl.tlfType)
+	h, err := tlfhandle.ParseHandlePreferredQuick(
+		ctx, fl.fs.config.KBPKI(), fl.fs.config, req.Name, fl.tlfType)
 	switch e := errors.Cause(err).(type) {
 	case nil:
 		// no error
 
-	case libkbfs.TlfNameNotCanonical:
+	case idutil.TlfNameNotCanonical:
 		// Only permit Aliases to targets that contain no errors.
 		if !fl.isValidAliasTarget(ctx, e.NameToTry) {
 			fl.fs.log.CDebugf(ctx, "FL Refusing alias to non-valid target %q", e.NameToTry)
@@ -207,8 +167,9 @@ func (fl *FolderList) Lookup(ctx context.Context, req *fuse.LookupRequest, resp 
 		}
 		return n, nil
 
-	case libkbfs.NoSuchNameError, libkbfs.BadTLFNameError:
-		// Invalid public TLF.
+	case idutil.NoSuchNameError, idutil.BadTLFNameError,
+		tlf.NoSuchUserError, idutil.NoSuchUserError:
+		// Invalid TLF.
 		return nil, fuse.ENOENT
 
 	default:
@@ -216,7 +177,7 @@ func (fl *FolderList) Lookup(ctx context.Context, req *fuse.LookupRequest, resp 
 		return nil, err
 	}
 
-	session, err := libkbfs.GetCurrentSessionIfPossible(
+	session, err := idutil.GetCurrentSessionIfPossible(
 		ctx, fl.fs.config.KBPKI(), h.Type() == tlf.Public)
 	if err != nil {
 		return nil, err
@@ -227,7 +188,7 @@ func (fl *FolderList) Lookup(ctx context.Context, req *fuse.LookupRequest, resp 
 }
 
 func (fl *FolderList) isValidAliasTarget(ctx context.Context, nameToTry string) bool {
-	return libkbfs.CheckTlfHandleOffline(ctx, nameToTry, fl.tlfType) == nil
+	return tlfhandle.CheckHandleOffline(ctx, nameToTry, fl.tlfType) == nil
 }
 
 func (fl *FolderList) forgetFolder(folderName string) {
@@ -242,14 +203,14 @@ var _ fs.HandleReadDirAller = (*FolderList)(nil)
 
 // ReadDirAll implements the ReadDirAll interface.
 func (fl *FolderList) ReadDirAll(ctx context.Context) (res []fuse.Dirent, err error) {
-	fl.fs.log.CDebugf(ctx, "FL ReadDirAll")
+	fl.fs.vlog.CLogf(ctx, libkb.VLog1, "FL ReadDirAll")
 	defer func() {
 		err = fl.fs.processError(ctx, libkbfs.ReadMode, err)
 	}()
 	session, err := fl.fs.config.KBPKI().GetCurrentSession(ctx)
 	isLoggedIn := err == nil
 
-	var favs []libkbfs.Favorite
+	var favs []favorites.Folder
 	if isLoggedIn {
 		favs, err = fl.fs.config.KBFSOps().GetFavorites(ctx)
 		if err != nil {
@@ -280,11 +241,11 @@ var _ fs.NodeRemover = (*FolderList)(nil)
 
 // Remove implements the fs.NodeRemover interface for FolderList.
 func (fl *FolderList) Remove(ctx context.Context, req *fuse.RemoveRequest) (err error) {
-	fl.fs.log.CDebugf(ctx, "FolderList Remove %s", req.Name)
+	fl.fs.vlog.CLogf(ctx, libkb.VLog1, "FolderList Remove %s", req.Name)
 	defer func() { err = fl.fs.processError(ctx, libkbfs.WriteMode, err) }()
 
-	h, err := libfs.ParseTlfHandlePreferredQuick(
-		ctx, fl.fs.config.KBPKI(), req.Name, fl.tlfType)
+	h, err := tlfhandle.ParseHandlePreferredQuick(
+		ctx, fl.fs.config.KBPKI(), fl.fs.config, req.Name, fl.tlfType)
 
 	switch err := errors.Cause(err).(type) {
 	case nil:
@@ -306,17 +267,33 @@ func (fl *FolderList) Remove(ctx context.Context, req *fuse.RemoveRequest) (err 
 		// the favorite.
 		return fl.fs.config.KBFSOps().DeleteFavorite(ctx, h.ToFavorite())
 
-	case libkbfs.TlfNameNotCanonical:
+	case idutil.TlfNameNotCanonical:
 		return nil
+
+	case idutil.NoSuchNameError, idutil.BadTLFNameError,
+		tlf.NoSuchUserError, idutil.NoSuchUserError:
+		// Invalid TLF.
+		return fuse.ENOENT
 
 	default:
 		return err
 	}
 }
 
-func isTlfNameNotCanonical(err error) bool {
-	_, ok := errors.Cause(err).(libkbfs.TlfNameNotCanonical)
-	return ok
+var _ fs.NodeSymlinker = (*FolderList)(nil)
+
+// Symlink implements the fs.NodeSymlinker interface for FolderList.
+func (fl *FolderList) Symlink(
+	_ context.Context, _ *fuse.SymlinkRequest) (fs.Node, error) {
+	return nil, fuse.ENOTSUP
+}
+
+var _ fs.NodeLinker = (*FolderList)(nil)
+
+// Link implements the fs.NodeLinker interface for FolderList.
+func (fl *FolderList) Link(
+	_ context.Context, _ *fuse.LinkRequest, _ fs.Node) (fs.Node, error) {
+	return nil, fuse.ENOTSUP
 }
 
 func (fl *FolderList) updateTlfName(ctx context.Context, oldName string,
@@ -329,7 +306,8 @@ func (fl *FolderList) updateTlfName(ctx context.Context, oldName string,
 			return false
 		}
 
-		fl.fs.log.CDebugf(ctx, "Folder name updated: %s -> %s", oldName, newName)
+		fl.fs.vlog.CLogf(
+			ctx, libkb.VLog1, "Folder name updated: %s -> %s", oldName, newName)
 		delete(fl.folders, oldName)
 		fl.folders[newName] = tlf
 		return true
@@ -366,4 +344,18 @@ func (fl *FolderList) userChanged(ctx context.Context, _, newUser kbname.Normali
 	if newUser != kbname.NormalizedUsername("") {
 		fl.fs.config.KBFSOps().ForceFastForward(ctx)
 	}
+}
+
+func (fl *FolderList) openFileCount() (ret int64) {
+	fl.mu.Lock()
+	defer fl.mu.Unlock()
+	for _, tlf := range fl.folders {
+		ret += tlf.openFileCount()
+	}
+	return ret + int64(len(fl.folders))
+}
+
+// Forget kernel reference to this node.
+func (fl *FolderList) Forget() {
+	fl.fs.root.forgetFolderList(fl.tlfType)
 }

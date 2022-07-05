@@ -9,7 +9,6 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/keybase/cli"
-	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -69,9 +68,7 @@ func NewCmdPGPSign(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 type CmdPGPSign struct {
 	libkb.Contextified
 	UnixFilter
-	msg  string
 	opts keybase1.PGPSignOptions
-	arg  engine.PGPSignArg
 }
 
 func (s *CmdPGPSign) ParseArgv(ctx *cli.Context) error {
@@ -109,6 +106,7 @@ func (s *CmdPGPSign) ParseArgv(ctx *cli.Context) error {
 
 func (s *CmdPGPSign) Run() (err error) {
 	protocols := []rpc.Protocol{
+		NewPgpUIProtocol(s.G()),
 		NewStreamUIProtocol(s.G()),
 		NewSecretUIProtocol(s.G()),
 	}

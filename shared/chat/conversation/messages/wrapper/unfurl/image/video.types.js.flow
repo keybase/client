@@ -1,8 +1,0 @@
-// @flow
-export type Props = {
-  url: string,
-  height: number,
-  width: number,
-  style: Object,
-  autoPlay: boolean,
-}

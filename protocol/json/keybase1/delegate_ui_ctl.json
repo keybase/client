@@ -36,6 +36,10 @@
       "request": [],
       "response": null
     },
+    "registerLogUI": {
+      "request": [],
+      "response": null
+    },
     "registerGregorFirehose": {
       "request": [],
       "response": null

@@ -3,11 +3,12 @@ package s3
 import (
 	"io"
 
+	"github.com/keybase/client/go/libkb"
 	"golang.org/x/net/context"
 )
 
 type Root interface {
-	New(signer Signer, region Region) Connection
+	New(g *libkb.GlobalContext, signer Signer, region Region) Connection
 }
 
 type Connection interface {

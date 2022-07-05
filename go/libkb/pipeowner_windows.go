@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	modkernel32        = windows.NewLazyDLL("kernel32.dll")
+	modkernel32        = windows.NewLazySystemDLL("kernel32.dll")
 	procWaitNamedPipeW = modkernel32.NewProc("WaitNamedPipeW")
 )
 

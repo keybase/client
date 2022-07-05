@@ -6,13 +6,14 @@ package libkbfs
 
 import (
 	"fmt"
-	"net"
 	"sync"
 	"time"
 
 	"github.com/keybase/backoff"
+	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
+	"github.com/keybase/client/go/kbfs/libkey"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
@@ -46,6 +47,7 @@ const (
 
 // MDServerRemote is an implementation of the MDServer interface.
 type MDServerRemote struct {
+	kbCtx         Context
 	config        Config
 	log           traceLogger
 	deferLog      traceLogger
@@ -68,9 +70,6 @@ type MDServerRemote struct {
 	// the server.
 	observers map[tlf.ID]chan<- error
 
-	tickerCancel context.CancelFunc
-	tickerMu     sync.Mutex // protects the ticker cancel function
-
 	rekeyCancel context.CancelFunc
 	rekeyTimer  *time.Timer
 
@@ -83,7 +82,7 @@ type MDServerRemote struct {
 var _ MDServer = (*MDServerRemote)(nil)
 
 // Test that MDServerRemote fully implements the KeyServer interface.
-var _ KeyServer = (*MDServerRemote)(nil)
+var _ libkey.KeyServer = (*MDServerRemote)(nil)
 
 // Test that MDServerRemote fully implements the AuthTokenRefreshHandler interface.
 var _ kbfscrypto.AuthTokenRefreshHandler = (*MDServerRemote)(nil)
@@ -92,11 +91,12 @@ var _ kbfscrypto.AuthTokenRefreshHandler = (*MDServerRemote)(nil)
 var _ rpc.ConnectionHandler = (*MDServerRemote)(nil)
 
 // NewMDServerRemote returns a new instance of MDServerRemote.
-func NewMDServerRemote(config Config, srvRemote rpc.Remote,
+func NewMDServerRemote(kbCtx Context, config Config, srvRemote rpc.Remote,
 	rpcLogFactory rpc.LogFactory) *MDServerRemote {
 	log := config.MakeLogger("")
 	deferLog := log.CloneWithAddedDepth(1)
 	mdServer := &MDServerRemote{
+		kbCtx:         kbCtx,
 		config:        config,
 		observers:     make(map[tlf.ID]chan<- error),
 		log:           traceLogger{log},
@@ -117,11 +117,16 @@ func NewMDServerRemote(config Config, srvRemote rpc.Remote,
 		kbfsmd.ServerTokenServer, kbfsmd.ServerTokenExpireIn,
 		"libkbfs_mdserver_remote", VersionString(), mdServer)
 	constBackoff := backoff.NewConstantBackOff(RPCReconnectInterval)
+	firstConnectDelay := time.Duration(0)
+	if config.Mode().DelayInitialConnect() {
+		firstConnectDelay = libkb.RandomJitter(mdserverFirstConnectDelay)
+	}
 	mdServer.connOpts = rpc.ConnectionOpts{
 		WrapErrorFunc:                 libkb.WrapError,
 		TagsFunc:                      libkb.LogTagsFromContext,
 		ReconnectBackoff:              func() backoff.BackOff { return constBackoff },
 		DialerTimeout:                 dialerTimeout,
+		FirstConnectDelayDuration:     firstConnectDelay,
 		InitialReconnectBackoffWindow: func() time.Duration { return mdserverReconnectBackoffWindow },
 	}
 	mdServer.initNewConnection()
@@ -156,30 +161,39 @@ func (md *MDServerRemote) initNewConnection() {
 		md.conn.Shutdown()
 	}
 
-	md.conn = rpc.NewTLSConnection(md.mdSrvRemote, kbfscrypto.GetRootCerts(
+	md.conn = rpc.NewTLSConnectionWithDialable(md.mdSrvRemote, kbfscrypto.GetRootCerts(
 		md.mdSrvRemote.Peek(), libkb.GetBundledCAsFromHost),
 		kbfsmd.ServerErrorUnwrapper{}, md, md.rpcLogFactory,
+		md.kbCtx.NewNetworkInstrumenter(keybase1.NetworkSource_REMOTE),
 		logger.LogOutputWithDepthAdder{Logger: md.config.MakeLogger("")},
-		rpc.DefaultMaxFrameLength, md.connOpts)
+		rpc.DefaultMaxFrameLength, md.connOpts,
+		libkb.NewProxyDialable(md.kbCtx.GetEnv()))
 	md.client = keybase1.MetadataClient{Cli: md.conn.GetClient()}
 }
 
-const reconnectTimeout = 30 * time.Second
+const reconnectTimeout = 10 * time.Second
 
-func (md *MDServerRemote) reconnect() error {
+func (md *MDServerRemote) reconnectContext(ctx context.Context) error {
 	md.connMu.Lock()
 	defer md.connMu.Unlock()
 
 	if md.conn != nil {
-		ctx, cancel := context.WithTimeout(
-			context.Background(), reconnectTimeout)
-		defer cancel()
+		_, hasDeadline := ctx.Deadline()
+		if !hasDeadline {
+			var cancel context.CancelFunc
+			ctx, cancel = context.WithTimeout(ctx, reconnectTimeout)
+			defer cancel()
+		}
+
 		return md.conn.ForceReconnect(ctx)
 	}
 
 	md.initNewConnection()
 	return nil
+}
 
+func (md *MDServerRemote) reconnect() error {
+	return md.reconnectContext(context.Background())
 }
 
 // RemoteAddress returns the remote mdserver this client is talking to
@@ -198,6 +212,7 @@ func (md *MDServerRemote) OnConnect(ctx context.Context,
 	server *rpc.Server) (err error) {
 
 	defer func() {
+		md.config.Reporter().OnlineStatusChanged(ctx, err == nil)
 		if err == nil {
 			md.config.Reporter().Notify(ctx,
 				connectionNotification(connectionStatusConnected))
@@ -220,7 +235,7 @@ func (md *MDServerRemote) OnConnect(ctx context.Context,
 	pingIntervalSeconds, err := md.resetAuth(ctx, c)
 	switch err.(type) {
 	case nil:
-	case NoCurrentSessionError:
+	case idutil.NoCurrentSessionError:
 		md.log.CInfof(ctx, "Logged-out user")
 	default:
 		return err
@@ -242,8 +257,9 @@ const (
 )
 
 // resetAuth is called to reset the authorization on an MDServer
-// connection.  If this function returns NoCurrentSessionError, the
-// caller should treat this as a logged-out user.
+// connection.  If this function returns
+// idutil.NoCurrentSessionError, the caller should treat this as a
+// logged-out user.
 func (md *MDServerRemote) resetAuth(
 	ctx context.Context, c keybase1.MetadataClient) (int, error) {
 	ctx = context.WithValue(ctx, ctxMDServerResetKey, "1")
@@ -324,7 +340,7 @@ func (md *MDServerRemote) RefreshAuthToken(ctx context.Context) {
 	switch err.(type) {
 	case nil:
 		md.log.CInfof(ctx, "MDServerRemote: auth token refreshed")
-	case NoCurrentSessionError:
+	case idutil.NoCurrentSessionError:
 		md.log.CInfof(ctx,
 			"MDServerRemote: no session available, connection remains anonymous")
 	default:
@@ -392,6 +408,7 @@ func (md *MDServerRemote) OnConnectError(err error, wait time.Duration) {
 	}
 
 	md.config.KBFSOps().PushConnectionStatusChange(MDServiceName, err)
+	md.config.Reporter().OnlineStatusChanged(context.Background(), false)
 }
 
 // OnDoCommandError implements the ConnectionHandler interface.
@@ -401,6 +418,7 @@ func (md *MDServerRemote) OnDoCommandError(err error, wait time.Duration) {
 	// Only push errors that should not be retried as connection status changes.
 	if !md.ShouldRetry("", err) {
 		md.config.KBFSOps().PushConnectionStatusChange(MDServiceName, err)
+		md.config.Reporter().OnlineStatusChanged(context.Background(), false)
 	}
 }
 
@@ -411,6 +429,7 @@ func (md *MDServerRemote) OnDisconnected(ctx context.Context,
 		md.log.CWarningf(ctx, "MDServerRemote is disconnected")
 		md.config.Reporter().Notify(ctx,
 			connectionNotification(connectionStatusDisconnected))
+		md.config.Reporter().OnlineStatusChanged(ctx, false)
 	}
 
 	func() {
@@ -435,6 +454,7 @@ func (md *MDServerRemote) OnDisconnected(ctx context.Context,
 
 	if status == rpc.StartingNonFirstConnection {
 		md.config.KBFSOps().PushConnectionStatusChange(MDServiceName, errDisconnected{})
+		md.config.Reporter().OnlineStatusChanged(ctx, false)
 	}
 }
 
@@ -452,14 +472,14 @@ func (md *MDServerRemote) ShouldRetryOnConnect(err error) bool {
 
 // CheckReachability implements the MDServer interface.
 func (md *MDServerRemote) CheckReachability(ctx context.Context) {
-	conn, err := net.DialTimeout("tcp",
+	conn, err := libkb.ProxyDialTimeout(md.kbCtx.GetEnv(), "tcp",
 		// The peeked address is the top choice in most cases.
 		md.mdSrvRemote.Peek(), MdServerPingTimeout)
 	if err != nil {
 		if md.getIsAuthenticated() {
 			md.log.CInfof(ctx, "MDServerRemote: CheckReachability(): "+
 				"failed to connect, reconnecting: %s", err.Error())
-			if err = md.reconnect(); err != nil {
+			if err = md.reconnectContext(ctx); err != nil {
 				md.log.CInfof(ctx, "reconnect error: %v", err)
 			}
 		} else {
@@ -693,8 +713,9 @@ func (md *MDServerRemote) GetForTLFByTime(
 
 // GetRange implements the MDServer interface for MDServerRemote.
 func (md *MDServerRemote) GetRange(ctx context.Context, id tlf.ID,
-	bid kbfsmd.BranchID, mStatus kbfsmd.MergeStatus, start, stop kbfsmd.Revision,
-	lockBeforeGet *keybase1.LockID) (rmdses []*RootMetadataSigned, err error) {
+	bid kbfsmd.BranchID, mStatus kbfsmd.MergeStatus,
+	start, stop kbfsmd.Revision, lockBeforeGet *keybase1.LockID) (
+	rmdses []*RootMetadataSigned, err error) {
 	ctx = rpc.WithFireNow(ctx)
 	md.log.LazyTrace(ctx, "MDServer: GetRange %s %s %s %d-%d", id, bid, mStatus, start, stop)
 	defer func() {
@@ -944,7 +965,7 @@ func (md *MDServerRemote) RegisterForUpdate(ctx context.Context, id tlf.ID,
 	// register
 	var c chan error
 	conn := md.getConn()
-	err := conn.DoCommand(ctx, "register", func(rawClient rpc.GenericClient) error {
+	err := conn.DoCommand(ctx, "register", 0, func(rawClient rpc.GenericClient) error {
 		// set up the server to receive updates, since we may
 		// get disconnected between retries.
 		server := conn.GetServer()
@@ -1395,7 +1416,7 @@ func (md *MDServerRemote) GetKeyBundles(ctx context.Context,
 func (md *MDServerRemote) FastForwardBackoff() {
 	md.connMu.RLock()
 	defer md.connMu.RUnlock()
-	md.conn.FastForwardInitialBackoffTimer()
+	md.conn.FastForwardConnectDelayTimer()
 }
 
 // FindNextMD implements the MDServer interface for MDServerRemote.

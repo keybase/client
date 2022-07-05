@@ -31,7 +31,8 @@ func isReader(ctx context.Context, teamMemChecker kbfsmd.TeamMembershipChecker,
 
 	if h.Type() == tlf.SingleTeam {
 		isReader, err := teamMemChecker.IsTeamReader(
-			ctx, h.Writers[0].AsTeamOrBust(), currentUID)
+			ctx, h.Writers[0].AsTeamOrBust(), currentUID,
+			keybase1.OfflineAvailability_NONE)
 		if err != nil {
 			return false, kbfsmd.ServerError{Err: err}
 		}
@@ -56,7 +57,8 @@ func isWriterOrValidRekey(ctx context.Context,
 
 	if h.Type() == tlf.SingleTeam {
 		isWriter, err := teamMemChecker.IsTeamWriter(
-			ctx, h.Writers[0].AsTeamOrBust(), currentUID, verifyingKey)
+			ctx, h.Writers[0].AsTeamOrBust(), currentUID, verifyingKey,
+			keybase1.OfflineAvailability_NONE)
 		if err != nil {
 			return false, kbfsmd.ServerError{Err: err}
 		}

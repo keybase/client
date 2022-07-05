@@ -26,7 +26,8 @@
         "FILE_MODIFIED_8",
         "FILE_DELETED_9",
         "FILE_RENAMED_10",
-        "INITIALIZED_11"
+        "INITIALIZED_11",
+        "SYNC_CONFIG_CHANGED_12"
       ]
     },
     {
@@ -144,6 +145,13 @@
             "items": "FSFolderWriterEdit"
           },
           "name": "edits"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "FSFolderWriterEdit"
+          },
+          "name": "deletes"
         }
       ]
     },
@@ -225,6 +233,36 @@
             "Time"
           ],
           "name": "endEstimate"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "FolderSyncStatus",
+      "fields": [
+        {
+          "type": "int64",
+          "name": "localDiskBytesAvailable"
+        },
+        {
+          "type": "int64",
+          "name": "localDiskBytesTotal"
+        },
+        {
+          "type": "PrefetchStatus",
+          "name": "prefetchStatus"
+        },
+        {
+          "type": "PrefetchProgress",
+          "name": "prefetchProgress"
+        },
+        {
+          "type": "int64",
+          "name": "storedBytesTotal"
+        },
+        {
+          "type": "boolean",
+          "name": "outOfSyncSpace"
         }
       ]
     }

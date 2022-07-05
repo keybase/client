@@ -97,10 +97,17 @@ func upgradeToSHA256WithPrompter(kbpConfigDir string, prompter prompter) (err er
 	newConfig := config.DefaultV1()
 	for p, acl := range oldConfig.ACLs {
 		if newConfig.ACLs == nil {
-			newConfig.ACLs = make(map[string]config.AccessControlV1)
+			newConfig.ACLs = make(map[string]config.PerPathConfigV1)
 		}
 		// shadow copy since oldConfig is one-time use anyway
 		newConfig.ACLs[p] = acl
+	}
+	for p, perPathConfig := range oldConfig.PerPathConfigs {
+		if newConfig.PerPathConfigs == nil {
+			newConfig.PerPathConfigs = make(map[string]config.PerPathConfigV1)
+		}
+		// shadow copy since oldConfig is one-time use anyway
+		newConfig.PerPathConfigs[p] = perPathConfig
 	}
 	for user := range oldConfig.Users {
 		if newConfig.Users == nil {

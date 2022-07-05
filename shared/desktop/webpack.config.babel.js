@@ -1,4 +1,3 @@
-/* eslint-disable flowtype/require-valid-file-annotation */
 /* Our bundler for the desktop app.
  * We build:
  * Electron main thread / render threads for the main window and remote windows (menubar, trackers, etc)
@@ -13,9 +12,8 @@ import HtmlWebpackPlugin from 'html-webpack-plugin'
 const config = (_, {mode}) => {
   const isDev = mode !== 'production'
   const isHot = isDev && !!process.env['HOT']
-  const isStats = !!process.env['STATS']
 
-  !isStats && console.error('Flags: ', {isDev, isHot})
+  console.error('Flags: ', {isDev, isHot})
 
   const makeRules = nodeThread => {
     const fileLoaderRule = {
@@ -27,9 +25,12 @@ const config = (_, {mode}) => {
       loader: 'babel-loader',
       options: {
         cacheDirectory: true,
-        ignore: [/\.(native|ios|android)\.js$/],
+        ignore: [/\.(native|ios|android)\.(ts|js)x?$/],
         plugins: [...(isHot && !nodeThread ? ['react-hot-loader/babel'] : [])],
-        presets: [['@babel/preset-env', {debug: false, modules: false, targets: {electron: '4.0.1'}}]],
+        presets: [
+          ['@babel/preset-env', {debug: false, modules: false, targets: {electron: '8.0.2'}}],
+          '@babel/preset-typescript',
+        ],
       },
     }
 
@@ -42,16 +43,16 @@ const config = (_, {mode}) => {
       },
       {
         include: path.resolve(__dirname, '../images/icons'),
-        test: /\.(flow|native\.js|gif|png|jpg)$/,
+        test: /\.(native\.js|gif|png|jpg)$/,
         use: ['null-loader'],
       },
       {
-        exclude: /((node_modules\/(?!universalify|fs-extra|react-redux))|\/dist\/)/,
-        test: /\.jsx?$/,
+        exclude: /((node_modules\/(?!universalify|react-redux|redux-saga|react-gateway))|\/dist\/)/,
+        test: /\.(ts|js)x?$/,
         use: [babelRule],
       },
       {
-        test: [/emoji-datasource.*\.(gif|png)$/, /\.ttf$/, /\.otf$/],
+        test: [/emoji-datasource.*\.(gif|png)$/, /\.ttf$/],
         use: [fileLoaderRule],
       },
       {
@@ -62,6 +63,11 @@ const config = (_, {mode}) => {
       {
         include: path.resolve(__dirname, '../images/install'),
         test: [/.*\.(gif|png)$/],
+        use: [fileLoaderRule],
+      },
+      {
+        include: path.resolve(__dirname, '../images/releases'),
+        test: [/.*\.(png)$/],
         use: [fileLoaderRule],
       },
       {
@@ -96,6 +102,16 @@ const config = (_, {mode}) => {
     }
     console.warn('Injecting defines: ', defines)
 
+    const alias = {}
+    if (isHot) {
+      // hot loader
+      alias['react-dom'] = '@hot-loader/react-dom'
+    }
+    if (isDev) {
+      // enable why did you render
+      alias['react-redux'] = 'react-redux/dist/react-redux.js'
+    }
+
     return {
       bail: true,
       context: path.resolve(__dirname, '..'),
@@ -112,9 +128,11 @@ const config = (_, {mode}) => {
       plugins: [
         new webpack.DefinePlugin(defines), // Inject some defines
         new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/), // Skip a bunch of crap moment pulls in
+        new webpack.IgnorePlugin(/^lodash$/), // Disallow entire lodash
       ],
       resolve: {
-        extensions: ['.desktop.js', '.js', '.jsx', '.json', '.flow'],
+        alias,
+        extensions: ['.desktop.js', '.desktop.tsx', '.js', '.jsx', '.tsx', '.ts', '.json'],
       },
       stats: {
         ...(isDev
@@ -143,9 +161,10 @@ const config = (_, {mode}) => {
                       inline: 2,
                       warnings: false,
                     },
-                    output: {
-                      comments: false,
-                    },
+                    keep_fnames: true,
+                    keep_classnames: true,
+                    mangle: false,
+                    output: {comments: false},
                     // warnings: 'verbose', // uncomment to see more of what uglify is doing
                   },
                 }),
@@ -157,7 +176,7 @@ const config = (_, {mode}) => {
 
   const commonConfig = makeCommonConfig()
   const nodeConfig = merge(commonConfig, {
-    entry: {node: './desktop/app/node.desktop.js'},
+    entry: {node: './desktop/app/node.desktop.tsx'},
     module: {rules: makeRules(true)},
     name: 'node',
     plugins: [
@@ -191,26 +210,42 @@ const config = (_, {mode}) => {
     ].filter(Boolean)
 
   // just keeping main in its old place
-  const entryOverride = {
-    main: 'desktop/renderer',
-  }
+  const entryOverride = {main: 'desktop/renderer'}
 
   // multiple entries so we can chunk shared parts
-  // TODO remove tracker when entirely released
-  const entries = ['main', 'tracker', 'menubar', 'pinentry', 'unlock-folders', 'tracker2']
+  const entries = ['main', 'menubar', 'pinentry', 'unlock-folders', 'tracker2']
   const viewConfig = merge(commonConfig, {
     entry: entries.reduce((map, name) => {
-      map[name] = `./${entryOverride[name] || name}/main.desktop.js`
+      map[name] = `./${entryOverride[name] || name}/main.desktop.tsx`
       return map
     }, {}),
+    externals: {
+      ...(isDev
+        ? {
+            // needed by webpack dev server, fulfilled by preload
+            events: 'KB.DEV.events',
+            // punycode: 'KB.punycode',
+            url: 'KB.DEV.url',
+          }
+        : {
+            // punycode: 'KB.punycode',
+          }),
+    },
     module: {rules: makeRules(false)},
     name: 'Keybase',
     optimization: {splitChunks: {chunks: 'all'}},
     plugins: makeViewPlugins(entries),
     target: 'electron-renderer',
   })
+  const preloadConfig = merge(commonConfig, {
+    entry: {'preload-main': `./desktop/renderer/preload-main.${isDev ? 'dev' : 'prod'}.desktop.tsx`},
+    module: {rules: makeRules(true)},
+    name: 'Keybase',
+    plugins: [],
+    target: 'electron-main',
+  })
 
-  return [nodeConfig, viewConfig]
+  return [nodeConfig, viewConfig, preloadConfig]
 }
 
 export default config

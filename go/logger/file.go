@@ -33,7 +33,7 @@ type LogFileConfig struct {
 }
 
 // SetLogFileConfig sets the log file config to be used globally.
-func SetLogFileConfig(lfc *LogFileConfig) error {
+func SetLogFileConfig(lfc *LogFileConfig, blc *BufferedLoggerConfig) error {
 	globalLock.Lock()
 	defer globalLock.Unlock()
 
@@ -47,6 +47,12 @@ func SetLogFileConfig(lfc *LogFileConfig) error {
 		w.config = *lfc
 	} else {
 		w = NewLogFileWriter(*lfc)
+
+		// Clean up the default logger, if it is in use
+		select {
+		case stdErrLoggingShutdown <- struct{}{}:
+		default:
+		}
 	}
 
 	if err := w.Open(time.Now()); err != nil {
@@ -54,7 +60,9 @@ func SetLogFileConfig(lfc *LogFileConfig) error {
 	}
 
 	if first {
-		fileBackend := logging.NewLogBackend(w, "", 0)
+		buf, shutdown, _ := NewAutoFlushingBufferedWriter(w, blc)
+		w.stopFlushing = shutdown
+		fileBackend := logging.NewLogBackend(buf, "", 0)
 		logging.SetBackend(fileBackend)
 
 		stderrIsTerminal = false
@@ -69,6 +77,7 @@ type LogFileWriter struct {
 	file         *os.File
 	currentSize  int64
 	currentStart time.Time
+	stopFlushing chan<- struct{}
 }
 
 func NewLogFileWriter(config LogFileConfig) *LogFileWriter {
@@ -91,7 +100,7 @@ func (lfw *LogFileWriter) Open(at time.Time) error {
 	}
 	lfw.currentSize = fi.Size()
 	if !lfw.config.SkipRedirectStdErr {
-		tryRedirectStderrTo(lfw.file)
+		_ = tryRedirectStderrTo(lfw.file)
 	}
 	return nil
 }
@@ -105,6 +114,10 @@ func (lfw *LogFileWriter) Close() error {
 	if lfw.file == nil {
 		return nil
 	}
+	if lfw.stopFlushing != nil {
+		lfw.stopFlushing <- struct{}{}
+	}
+
 	return lfw.file.Close()
 }
 

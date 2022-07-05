@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/keybase/client/go/kbconst"
 	"github.com/keybase/client/go/kbfs/env"
@@ -54,7 +55,7 @@ func getLocalGitDir() (gitDir string) {
 }
 
 func start() (startErr *libfs.Error) {
-	kbCtx := env.NewContext()
+	kbCtx := env.NewContextWithPerfLog(libkb.GitPerfLogFileName)
 
 	switch kbCtx.GetRunMode() {
 	case kbconst.ProductionRunMode:
@@ -123,13 +124,36 @@ func start() (startErr *libfs.Error) {
 
 	remote := flag.Arg(0)
 	var repo string
-	if len(flag.Args()) > 1 {
+	lfs := false
+	if len(flag.Args()) > 1 && remote != "lfs" {
 		repo = flag.Arg(1)
+	} else if remote == "lfs" && len(flag.Args()) == 3 {
+		lfs = true
+		remote = flag.Arg(1)
+		repo = flag.Arg(2)
+	} else {
+		// For LFS invocation, on some systems/shells the arguments
+		// actually come together in a single quoted argument for some
+		// reason.
+		s := strings.Fields(remote)
+		if len(s) > 2 {
+			lfs = s[0] == "lfs"
+			remote = s[1]
+			repo = s[2]
+		}
 	}
 
-	if len(flag.Args()) > 2 {
+	if !lfs && len(flag.Args()) > 2 {
 		fmt.Print(getUsageString(kbCtx))
 		return libfs.InitError("extra arguments specified (flags go before the first argument)")
+	}
+
+	if lfs {
+		// For LFS uploads we should be flushing the journal
+		// constantly, so we don't build up a huge batch of data that
+		// conflict resolution can't handle.  (See HOTPOT-1554.)
+		kbfsParams.TLFJournalBackgroundWorkStatus =
+			libkbfs.TLFJournalBackgroundWorkEnabled
 	}
 
 	options := kbfsgit.StartOptions{
@@ -137,11 +161,13 @@ func start() (startErr *libfs.Error) {
 		Remote:     remote,
 		Repo:       repo,
 		GitDir:     getLocalGitDir(),
+		LFS:        lfs,
 	}
 
 	ctx := context.Background()
 	return kbfsgit.Start(
-		ctx, options, kbCtx, defaultLogPath, os.Stdin, os.Stdout, stderrFile)
+		ctx, options, kbCtx, defaultLogPath, os.Stdin, os.Stdout,
+		stderrFile)
 }
 
 func main() {

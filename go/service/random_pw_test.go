@@ -13,14 +13,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func sessCheck(t *testing.T, g *libkb.GlobalContext) (err error) {
-	arg := libkb.NewRetryAPIArg("sesscheck")
-	arg.SessionType = libkb.APISessionTypeREQUIRED
-	_, err = g.API.Get(arg)
-	t.Logf("sesscheck returned: %q", err)
-	return err
-}
-
 func setPassphraseInTest(tc libkb.TestContext) error {
 	newPassphrase := "okokokok"
 	arg := &keybase1.PassphraseChangeArg{
@@ -42,20 +34,20 @@ func TestSignupRandomPWUser(t *testing.T) {
 	_, err := kbtest.CreateAndSignupFakeUserRandomPW("rpw", tc.G)
 	require.NoError(t, err)
 
-	userHandler := NewUserHandler(nil, tc.G, nil)
-	ret, err := userHandler.LoadHasRandomPw(context.Background(), keybase1.LoadHasRandomPwArg{})
+	userHandler := NewUserHandler(nil, tc.G, nil, nil)
+	ret, err := userHandler.LoadPassphraseState(context.Background(), 0)
 	require.NoError(t, err)
-	require.True(t, ret)
+	require.Equal(t, ret, keybase1.PassphraseState_RANDOM)
 
 	// Another call to test the caching
-	ret, err = userHandler.LoadHasRandomPw(context.Background(), keybase1.LoadHasRandomPwArg{})
+	ret, err = userHandler.LoadPassphraseState(context.Background(), 0)
 	require.NoError(t, err)
-	require.True(t, ret)
+	require.Equal(t, ret, keybase1.PassphraseState_RANDOM)
 
 	// Another one with ForceRepoll
-	ret, err = userHandler.LoadHasRandomPw(context.Background(), keybase1.LoadHasRandomPwArg{ForceRepoll: true})
+	ret, err = userHandler.LoadPassphraseState(context.Background(), 0)
 	require.NoError(t, err)
-	require.True(t, ret)
+	require.Equal(t, ret, keybase1.PassphraseState_RANDOM)
 
 	ret2, err := userHandler.CanLogout(context.Background(), 0)
 	require.NoError(t, err)
@@ -79,14 +71,24 @@ type errorAPIMock struct {
 	shouldTimeout bool
 }
 
-func (r *errorAPIMock) GetDecode(arg libkb.APIArg, w libkb.APIResponseWrapper) error {
+func (r *errorAPIMock) GetDecode(mctx libkb.MetaContext, arg libkb.APIArg, w libkb.APIResponseWrapper) error {
 	if arg.Endpoint == "user/has_random_pw" {
 		r.callCount++
 		if r.shouldTimeout {
 			return errors.New("timeout or something")
 		}
 	}
-	return r.realAPI.GetDecode(arg, w)
+	return r.realAPI.GetDecode(mctx, arg, w)
+}
+
+func (r errorAPIMock) Get(mctx libkb.MetaContext, arg libkb.APIArg) (*libkb.APIRes, error) {
+	if arg.Endpoint == "user/has_random_pw" {
+		r.callCount++
+		if r.shouldTimeout {
+			return nil, errors.New("timeout or something")
+		}
+	}
+	return r.realAPI.Get(mctx, arg)
 }
 
 func TestCanLogoutTimeout(t *testing.T) {
@@ -103,14 +105,14 @@ func TestCanLogoutTimeout(t *testing.T) {
 	}
 	tc.G.API = fakeAPI
 
-	userHandler := NewUserHandler(nil, tc.G, nil)
+	userHandler := NewUserHandler(nil, tc.G, nil, nil)
 
 	// It will fail with an error and Frontend would still send user
 	// to passphrase screen.
 	ret2, err := userHandler.CanLogout(context.Background(), 0)
 	require.NoError(t, err)
 	require.False(t, ret2.CanLogout)
-	require.Contains(t, ret2.Reason, "Cannot check user state")
+	require.Contains(t, ret2.Reason, "We couldn't ensure that your account has a passphrase")
 	require.Equal(t, 1, fakeAPI.callCount)
 
 	// Switch off the timeouting for one call
@@ -131,7 +133,9 @@ func TestCanLogoutTimeout(t *testing.T) {
 	ret2, err = userHandler.CanLogout(context.Background(), 0)
 	require.NoError(t, err)
 	require.False(t, ret2.CanLogout)
-	require.Contains(t, ret2.Reason, "set a password first")
+	// Since we weren't able to do an API call and prefetch didn't work, we
+	// aren't sure about the state of the passphrase.
+	require.Contains(t, ret2.Reason, "couldn't ensure")
 	require.Equal(t, 3, fakeAPI.callCount)
 
 	// Back to real API because we are going to change passphrase.
@@ -165,11 +169,56 @@ func TestCanLogoutTimeout(t *testing.T) {
 	require.True(t, ret2.CanLogout)
 	require.Equal(t, 0, fakeAPI.callCount) // still 0 calls.
 
-	// Until we try to force repoll
-	_, err = userHandler.LoadHasRandomPw(context.Background(), keybase1.LoadHasRandomPwArg{
-		ForceRepoll: true,
+	// Since it's now KNOWN, ForceRepoll has no effect.
+	_, err = userHandler.LoadPassphraseState(context.Background(), 0)
+	require.NoError(t, err)
+	require.Equal(t, 0, fakeAPI.callCount)
+}
+
+func TestCanLogoutWhenRevoked(t *testing.T) {
+	tc := libkb.SetupTest(t, "randompw", 3)
+	defer tc.Cleanup()
+
+	user, err := kbtest.CreateAndSignupFakeUserRandomPW("rpw", tc.G)
+	require.NoError(t, err)
+
+	userHandler := NewUserHandler(nil, tc.G, nil, nil)
+	ret, err := userHandler.CanLogout(context.Background(), 0)
+	require.NoError(t, err)
+	require.False(t, ret.CanLogout)
+
+	// Provision second device
+	tc2 := libkb.SetupTest(t, "randompw2", 3)
+	defer tc2.Cleanup()
+	kbtest.ProvisionNewDeviceKex(&tc, &tc2, user, keybase1.DeviceTypeV2_DESKTOP)
+
+	// Should still see "can't logout" on second device (also populate
+	// HasRandomPW cache).
+	userHandler2 := NewUserHandler(nil, tc2.G, nil, nil)
+	ret, err = userHandler2.CanLogout(context.Background(), 0)
+	require.NoError(t, err)
+	require.False(t, ret.CanLogout)
+
+	// Revoke device 2
+	revokeEng := engine.NewRevokeDeviceEngine(tc.G, engine.RevokeDeviceEngineArgs{
+		ID: tc2.G.ActiveDevice.DeviceID(),
 	})
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "timeout or something")
-	require.Equal(t, 1, fakeAPI.callCount)
+	uis := libkb.UIs{
+		SecretUI: &libkb.TestSecretUI{},
+		LogUI:    tc.G.UI.GetLogUI(),
+	}
+	m := libkb.NewMetaContextForTest(tc).WithUIs(uis)
+	err = engine.RunEngine2(m, revokeEng)
+	require.NoError(t, err)
+
+	// Try CanLogout from device 2. Should detect that we are revoked and let
+	// us log out.
+	ret, err = userHandler2.CanLogout(context.Background(), 0)
+	require.NoError(t, err)
+	require.True(t, ret.CanLogout)
+
+	// Device 1 still can't logout.
+	ret, err = userHandler.CanLogout(context.Background(), 0)
+	require.NoError(t, err)
+	require.False(t, ret.CanLogout)
 }

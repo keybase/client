@@ -50,6 +50,12 @@ protocol SimpleFS {
   record KBFSArchivedPath {
     string path;
     KBFSArchivedParam archivedParam;
+    union{ null, TLFIdentifyBehavior } identifyBehavior;
+  }
+
+  record KBFSPath {
+    string path;
+    union{ null, TLFIdentifyBehavior } identifyBehavior;
   }
 
   enum PathType {
@@ -60,7 +66,7 @@ protocol SimpleFS {
 
   variant Path switch (PathType PathType) {
     case LOCAL: string;
-    case KBFS: string;
+    case KBFS: KBFSPath;
     case KBFS_ARCHIVED: KBFSArchivedPath;
   }
 
@@ -96,6 +102,7 @@ protocol SimpleFS {
     boolean writable;
     PrefetchStatus prefetchStatus;
     PrefetchProgress prefetchProgress;
+    string symlinkTarget;
   }
 
   record DirentWithRevision {
@@ -187,12 +194,14 @@ protocol SimpleFS {
     OpID opID;
     Path src;
     Path dest;
+    boolean overwriteExistingFiles;
   }
 
   record MoveArgs {
     OpID opID;
     Path src;
     Path dest;
+    boolean overwriteExistingFiles;
   }
 
   record GetRevisionsArgs {
@@ -262,9 +271,9 @@ protocol SimpleFS {
   SimpleFSListResult simpleFSReadList(OpID opID);
 
   /**
-   Begin copy of file or directory 
+   Begin copy of file or directory.
    */
-  void simpleFSCopy(OpID opID, Path src, Path dest);
+  void simpleFSCopy(OpID opID, Path src, Path dest, boolean overwriteExistingFiles);
 
 
   /**
@@ -274,13 +283,18 @@ protocol SimpleFS {
 
   /**
    Begin recursive copy of directory 
+
+   overwriteExistingFiles controls whether an existing file from `src` will
+   overwrite a file with the same name in `dest`; if `false`, an error will be
+   returned in that case.  For directories that share a name, the copy will
+   continue recursively into the directory without causing an error.
    */
-  void simpleFSCopyRecursive(OpID opID, Path src, Path dest);
+  void simpleFSCopyRecursive(OpID opID, Path src, Path dest, boolean overwriteExistingFiles);
 
   /**
    Begin move of file or directory, from/to KBFS only
    */
-  void simpleFSMove(OpID opID, Path src, Path dest);
+  void simpleFSMove(OpID opID, Path src, Path dest, boolean overwriteExistingFiles);
 
   /**
    Rename file or directory, KBFS side only
@@ -321,7 +335,7 @@ protocol SimpleFS {
   /**
    Get info about file
    */
-  Dirent simpleFSStat(Path path, union{ null, TLFIdentifyBehavior } identifyBehavior);
+  Dirent simpleFSStat(Path path, boolean refreshSubscription);
 
   /**
    Get revision info for a directory entry
@@ -370,32 +384,32 @@ protocol SimpleFS {
    */
   void simpleFSDumpDebuggingInfo();
 
+  // Clear the conflict state of a TLF. This turns a locally "branched" TLF
+  // into:
+  //   1) a TLF that's as seen on all other devices, i.e. the server view,
+  //      under the normal TLF path;
+  //   2) a TLF that's locally branched, under a path with a TLF suffix.
+  //
+  // After this, user is expected to make changes in 1), usually by coping
+  // needed data from 2) into 1).
+  //
+  // Note that it's possible to have multiple 2) for the same 1).
+  void simpleFSClearConflictState(Path path);
+
+  // Mark the finish of resolving conflict. This deletes the locally branched
+  // version of the TLF. Path must be a local view TLF path with conflict
+  // suffix.
+  void simpleFSFinishResolvingConflict(Path path);
+
+  /**
+   Force a TLF into a stuck conflict state (for testing).
+   */
+  void simpleFSForceStuckConflict(Path path);
+
   /**
    Get sync status.
    */
   FSSyncStatus simpleFSSyncStatus(ListFilter filter);
-
-  @lint("ignore")
-  record SimpleFSGetHTTPAddressAndTokenResponse {
-    string address;
-    string token;
-  }
-
-  /**
-   This RPC generates a random token to be used by a client that needs to
-   access KBFS content through HTTP. It's fine to call this RPC more than once,
-   but it's probably best to call this once and keep using it. Clients should
-   be using HTTP GET methods, with requests in the form of:
-
-     http://<address>/<kbfs_path>?token=<token>
-
-   If the provided token is invalid, 403 Forbidden is returned, with a HTML
-   document that has title of "KBFS HTTP Token Invalid". When receiving such
-   response, client should call this RPC (again) to get a new token.
-
-   */
-  @lint("ignore")
-  SimpleFSGetHTTPAddressAndTokenResponse SimpleFSGetHTTPAddressAndToken();
 
   /**
    simpleFSUserEditHistory returns edit histories of TLFs that the logged-in
@@ -413,6 +427,12 @@ protocol SimpleFS {
    */
   FSFolderEditHistory simpleFSFolderEditHistory(Path path);
 
+  /**
+   simpleFSListFavorites gets the current favorites, ignored folders, and new
+   folders from the KBFS cache.
+   */
+  FavoritesResult simpleFSListFavorites();
+
   record SimpleFSQuotaUsage {
     int64 usageBytes;
     int64 archiveBytes;
@@ -424,16 +444,22 @@ protocol SimpleFS {
 
   /**
    simpleFSGetUserQuotaUsage returns the quota usage for the logged-in
-   user.  It results in an RPC to the server, and any usage includes
-   local journal usage as well.
+   user.  Any usage includes local journal usage as well.
    */
   SimpleFSQuotaUsage simpleFSGetUserQuotaUsage();
+
+  /**
+   simpleFSGetTeamQuotaUsage returns the quota usage for the given team, if
+   the logged-in user has access to that team.  Any usage includes
+   local journal usage as well.
+   */
+  SimpleFSQuotaUsage simpleFSGetTeamQuotaUsage(TeamName teamName);
 
   /**
    simpleFSReset completely resets the KBFS folder referenced in `path`.
    It should only be called after explicit user confirmation.
    */
-  void simpleFSReset(Path path);
+  void simpleFSReset(Path path, string tlfID);
 
   enum FolderSyncMode {
     DISABLED_0,
@@ -447,17 +473,20 @@ protocol SimpleFS {
     array<string> paths;
   }
 
-  record FolderSyncStatus {
-    // Bytes available and total on the partition hosting the sync cache.
-    int64 localDiskBytesAvailable;
-    int64 localDiskBytesTotal;
-    PrefetchStatus prefetchStatus;
-    PrefetchProgress prefetchProgress;
-  }
-
   record FolderSyncConfigAndStatus {
     FolderSyncConfig config;
     FolderSyncStatus status;
+  }
+
+  record FolderSyncConfigAndStatusWithFolder {
+    Folder folder;
+    FolderSyncConfig config;
+    FolderSyncStatus status;
+  }
+
+  record SyncConfigAndStatusRes {
+    array<FolderSyncConfigAndStatusWithFolder> folders;
+    FolderSyncStatus overallStatus;
   }
 
   // simpleFSFolderSyncConfigAndStatus returns the current sync config for the
@@ -468,4 +497,253 @@ protocol SimpleFS {
   // simpleFSSetFolderSyncConfig sets the sync config for the folder
   // specified in `path`.
   void simpleFSSetFolderSyncConfig(Path path, FolderSyncConfig config);
+
+  // simpleFSSyncConfigAndStatus returns the sync config and status
+  // for all syncing folders, as well as an overall status for the whole
+  // device.
+  SyncConfigAndStatusRes simpleFSSyncConfigAndStatus(union{ null, TLFIdentifyBehavior } identifyBehavior);
+
+  // simpleFSGetFolder is used get TLF metadata for a specific path. It's more
+  // expensive than getting favorites,but works with both any tlf path -- it
+  // doesn't have to be canonical. This allows GUI to query on any TLF path
+  // without having to worrying about canonicalization, or whether a TLF is
+  // already in the favorites or not.
+  record FolderWithFavFlags {
+    Folder folder;
+    boolean isFavorite;
+    boolean isIgnored;
+    boolean isNew;
+  }
+  FolderWithFavFlags simpleFSGetFolder(KBFSPath path);
+
+  enum KbfsOnlineStatus {
+    OFFLINE_0,
+    TRYING_1,
+    ONLINE_2
+  }
+  KbfsOnlineStatus simpleFSGetOnlineStatus(string clientID);
+
+  // This is called when GUI learns about a OS level network status change, and
+  // causes mdserver_remote to check reachability with a Dial. Then it either
+  // forces a reconnect, or fast forwards any pending reconnect, depending on
+  // if the Dial succeeds.
+  void simpleFSCheckReachability();
+
+  // simpleFSSetDebugLevel sets the vdebug log level.  Useful level strings
+  // are defined in libkb/vdebug.go.  Any unknown strings will have no effect
+  // on the level (but won't cause an error).
+  void simpleFSSetDebugLevel(string level);
+
+  record FSSettings {
+    int64 spaceAvailableNotificationThreshold;
+    @lint("ignore")
+    boolean sfmiBannerDismissed;
+    boolean syncOnCellular;
+}
+
+  // simpleFSSettings retrieves the settings for this client.
+  FSSettings simpleFSSettings();
+
+  void simpleFSSetNotificationThreshold(int64 threshold);
+  @lint("ignore")
+  void simpleFSSetSfmiBannerDismissed(boolean dismissed);
+  void simpleFSSetSyncOnCellular(boolean syncOnCellular);
+
+  // simpleFSObfuscatePath returns an obfuscated path for the given KBFS path.
+  string simpleFSObfuscatePath(Path path);
+
+  // simpleFSDeobfuscatePath returns a set of plaintext paths for the given
+  // obfuscated KBFS path.
+  array<string> simpleFSDeobfuscatePath(Path path);
+
+  record SimpleFSStats {
+    ProcessRuntimeStats processStats;
+    array<string> blockCacheDbStats;
+    array<string> syncCacheDbStats;
+    array<DbStats> runtimeDbStats;
+  }
+
+  SimpleFSStats simpleFSGetStats();
+
+  enum SubscriptionTopic {
+    FAVORITES_0,
+    JOURNAL_STATUS_1,
+    ONLINE_STATUS_2,
+    DOWNLOAD_STATUS_3,
+    FILES_TAB_BADGE_4,
+    OVERALL_SYNC_STATUS_5,
+    SETTINGS_6,
+    UPLOAD_STATUS_7
+  }
+  enum PathSubscriptionTopic {
+    CHILDREN_0,
+    STAT_1
+  }
+
+  // Caller needs to make sure subscriptionID is unique.
+  //
+  // Notifications are delivered through notify_fs. It's OK to subscribe on the
+  // same thing multiple times as long as subscriptionIDs are unique.
+  //
+  // Caller should pass in a clientID that's consistent within a single run.
+  // For example, all GUI calls should use the same clientID that can be
+  // randomly generated when the app starts.
+  //
+  // ClientIDs are included in the notification so caller can verify if
+  // the notification is for them or not.
+  //
+  // We only keep subscriptions for up to 3 clientIDs, to avoid sending
+  // unnecessary notifications for dead clients.
+  void simpleFSSubscribePath(union{ null, TLFIdentifyBehavior }
+  identifyBehavior, string clientID, string subscriptionID, string kbfsPath,
+  PathSubscriptionTopic topic, int deduplicateIntervalSecond);
+  void simpleFSSubscribeNonPath(union{ null, TLFIdentifyBehavior } identifyBehavior, string clientID, string subscriptionID, SubscriptionTopic topic, int deduplicateIntervalSecond);
+
+  void simpleFSUnsubscribe(union{ null, TLFIdentifyBehavior } identifyBehavior, string clientID, string subscriptionID);
+
+  record DownloadInfo {
+    string downloadID;
+    KBFSPath path;
+    string filename;
+    Time startTime;
+    boolean isRegularDownload;
+  }
+  record DownloadState {
+    string downloadID;
+    double progress;
+    Time endEstimate;
+    // localPath is the path to the downloaded file when the download manager
+    // is done with it. This would be a path inside the cache dir for
+    // non-regular downloads, and a path in the Downloads folder if it's a
+    // regular download.
+    string localPath;
+    string error;
+    boolean done;
+    boolean canceled;
+  }
+  record DownloadStatus {
+    array<string> regularDownloadIDs; // the ones showing up in the GUI footer
+    array<DownloadState> states; // all downloads including non-regular ones
+  }
+  // returns download ID. isRegularDownload causes moving to the Downloads
+  // folder. This is used by GUI for normal downloads where download entries
+  // appear in the footer. Save on mobile and share to other apps use
+  // isRegularDownload=false, and the download manager doesn't do anything
+  // special after they're done. GUI handles calling the right APIs to save or
+  // share the file.
+  string simpleFSStartDownload(KBFSPath path, boolean isRegularDownload);
+  DownloadInfo simpleFSGetDownloadInfo(string downloadID);
+  DownloadStatus simpleFSGetDownloadStatus();
+  // Canceling a download multiple times is fine, but canceling a dismissed
+  // download will error.
+  void simpleFSCancelDownload(string downloadID);
+  // Remove a download from the download manager. If the download is still
+  // running, this cancels it as well. Caller should make sure of calling this
+  // when it doesn't care about a download anymore. This includes both regular
+  // and non-regular downloads.
+  void simpleFSDismissDownload(string downloadID);
+  void simpleFSConfigureDownload(string cacheDirOverride, string downloadDirOverride);
+
+  record UploadState {
+    string uploadID;
+    KBFSPath targetPath;
+    union{null, string} error;
+    boolean canceled;
+  }
+
+  // Returns a local path to an empty directory that caller can use to stage
+  // data for upload. Useful for uploading protected stuff on macOS such as
+  // drag/drop from Mail.app or screenshots, where only the target app's
+  // process can read the data. Note that the temp dir created here is only
+  // good for a single upload. See comment in simpleFSStartUpload.
+  string simpleFSMakeTempDirForUpload();
+
+  // Returns an upload ID that can be used in the other upload RPCs.
+  //
+  // sourceLocalPath can be either a file or a directory.
+  //
+  // If sourceLocalPath is inside a temporary dir created using
+  // simpleFSMakeTempDirForUpload, this associates the upload with that
+  // temporary dir, and when the upload is done the temporary directory will be
+  // deleted. If the upload errors or is canceled, the temporary directory
+  // is also deleted.
+  //
+  // If a file exists in targetParentPath under the same basename as
+  // sourceLocalPath, a suffix is automatically added to avoid accidental
+  // overwriting. For directories there's no guarantee, and it's possible under
+  // a race condition this can end up merging new and old directories.
+  string simpleFSStartUpload(string sourceLocalPath, KBFSPath targetParentPath);
+
+  array<UploadState> simpleFSGetUploadStatus();
+
+  void simpleFSCancelUpload(string uploadID);
+
+  // Remove errored or canceled uploads. Successful uploads are automatically
+  // dismissed when they are done.
+  void simpleFSDismissUpload(string uploadID);
+
+  // FilesTabBadge is the badge we show on the Files tab, to indicate
+  // attention-seeking status across entire KBFS.
+  enum FilesTabBadge {
+    NONE_0, // No badge.
+    // We are stuck in conflict resolution in a TLF. This causes GUI to show a
+    // red upload icon on the Files tab. NOTE that this should have higher
+    // priority than other upload status.
+    UPLOADING_STUCK_1,
+    // We have stuff in the journal for a TLF, but we are currently offline.
+    // This causes GUI to show a gray uplaod icon on the Files tab.
+    AWAITING_UPLOAD_2,
+    // We have stuff in the journal for a TLF, and we're uploading. This causes
+    // GUI to show a blue upload icon on the Files tab.
+    UPLOADING_3
+  }
+  FilesTabBadge simpleFSGetFilesTabBadge();
+
+  enum GUIViewType {
+    DEFAULT_0,
+    TEXT_1,
+    IMAGE_2,
+    AUDIO_3,
+    VIDEO_4,
+    PDF_5
+  }
+  record GUIFileContext {
+    GUIViewType viewType;
+    string contentType;
+    string url;
+  }
+  GUIFileContext simpleFSGetGUIFileContext(KBFSPath path);
+
+  void simpleFSUserIn(string clientID);
+  void simpleFSUserOut(string clientID);
+
+  record SimpleFSSearchHit {
+     string path;
+  }
+
+  record SimpleFSSearchResults {
+     array<SimpleFSSearchHit> hits;
+     int nextResult; // -1 if no more results
+  }
+
+  SimpleFSSearchResults simpleFSSearch(string query, int numResults, int startingFrom);
+
+  void simpleFSResetIndex();
+
+  record IndexProgressRecord {
+    Time endEstimate;
+    int64 bytesTotal;
+    int64 bytesSoFar;
+}
+
+  record SimpleFSIndexProgress {
+    IndexProgressRecord overallProgress;
+
+    Folder currFolder;
+    IndexProgressRecord currProgress;
+
+    array<Folder> foldersLeft;
+  }
+
+  SimpleFSIndexProgress simpleFSGetIndexProgress();
 }

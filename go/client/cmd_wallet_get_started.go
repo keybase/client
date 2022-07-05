@@ -60,7 +60,7 @@ func (c *cmdWalletGetStarted) Run() (err error) {
 
 func (c *cmdWalletGetStarted) show() (err error) {
 	ui := c.G().UI.GetTerminalUI()
-	ui.PrintfUnescaped(disclaimerText)
+	_, _ = ui.PrintfUnescaped(disclaimerText)
 	c.accepted, err = c.G().UI.GetTerminalUI().PromptYesNo(PromptDescriptorStellarDisclaimer, ColorString(c.G(), "yellow", "Ok, I agree"), libkb.PromptDefaultYes)
 	return err
 }
@@ -76,8 +76,8 @@ func (c *cmdWalletGetStarted) accept() error {
 		return err
 	}
 	ui := c.G().UI.GetTerminalUI()
-	ui.PrintfUnescaped("\nYou now have a Stellar wallet!\n")
-	ui.PrintfUnescaped("Try it out in the app or:\n$ keybase wallet list\n")
+	_, _ = ui.PrintfUnescaped("\nYou now have a Stellar wallet!\n")
+	_, _ = ui.PrintfUnescaped("Try it out in the app or:\n$ keybase wallet list\n")
 
 	return nil
 }

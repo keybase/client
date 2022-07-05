@@ -48,7 +48,7 @@ func TestKeyCacheBasic(t *testing.T) {
 	}
 	for i := 0; i < 11; i++ {
 		id = tlf.FakeID(byte(i), tlf.Public)
-		key, err = cache.GetTLFCryptKey(id, keyGen)
+		_, err = cache.GetTLFCryptKey(id, keyGen)
 		if i > 0 && err != nil {
 			t.Fatal(err)
 		}

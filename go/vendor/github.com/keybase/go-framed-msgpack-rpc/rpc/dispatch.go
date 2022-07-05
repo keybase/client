@@ -22,17 +22,20 @@ type dispatch struct {
 	// Closed once all loops are finished
 	closedCh chan struct{}
 
-	log LogInterface
+	instrumenterStorage NetworkInstrumenterStorage
+	log                 LogInterface
 }
 
-func newDispatch(enc *framedMsgpackEncoder, calls *callContainer, l LogInterface) *dispatch {
+func newDispatch(enc *framedMsgpackEncoder, calls *callContainer,
+	l LogInterface, instrumenterStorage NetworkInstrumenterStorage) *dispatch {
 	d := &dispatch{
 		writer:   enc,
 		calls:    calls,
 		stopCh:   make(chan struct{}),
 		closedCh: make(chan struct{}),
 
-		log: l,
+		log:                 l,
+		instrumenterStorage: instrumenterStorage,
 	}
 	return d
 }
@@ -51,7 +54,16 @@ func (d *dispatch) Call(ctx context.Context, name string, arg interface{}, res i
 	profiler := d.log.StartProfiler("call %s", name)
 	defer profiler.Stop()
 
-	c := d.calls.NewCall(ctx, name, arg, res, ctype, u)
+	var method MethodType
+	switch ctype {
+	case CompressionNone:
+		method = MethodCall
+	default:
+		method = MethodCallCompressed
+	}
+
+	record := NewNetworkInstrumenter(d.instrumenterStorage, RPCInstrumentTag(method, name))
+	c := d.calls.NewCall(ctx, name, arg, res, ctype, u, record)
 
 	// Have to add call before encoding otherwise we'll race the response
 	d.calls.AddCall(c)
@@ -61,14 +73,14 @@ func (d *dispatch) Call(ctx context.Context, name string, arg interface{}, res i
 	var logCall func()
 	switch ctype {
 	case CompressionNone:
-		v = []interface{}{MethodCall, c.seqid, c.method, c.arg}
+		v = []interface{}{method, c.seqid, c.method, c.arg}
 		logCall = func() { d.log.ClientCall(c.seqid, c.method, c.arg) }
 	default:
 		arg, err := d.writer.compressData(c.ctype, c.arg)
 		if err != nil {
 			return err
 		}
-		v = []interface{}{MethodCallCompressed, c.seqid, c.ctype, c.method, arg}
+		v = []interface{}{method, c.seqid, c.ctype, c.method, arg}
 		logCall = func() { d.log.ClientCallCompressed(c.seqid, c.method, c.arg, c.ctype) }
 	}
 
@@ -76,7 +88,8 @@ func (d *dispatch) Call(ctx context.Context, name string, arg interface{}, res i
 	if len(rpcTags) > 0 {
 		v = append(v, rpcTags)
 	}
-	errCh := d.writer.EncodeAndWrite(ctx, v, currySendNotifier(sendNotifier, c.seqid))
+	size, errCh := d.writer.EncodeAndWrite(ctx, v, currySendNotifier(sendNotifier, c.seqid))
+	defer func() { _ = record.RecordAndFinish(ctx, size) }()
 
 	// Wait for result from encode
 	select {
@@ -85,7 +98,7 @@ func (d *dispatch) Call(ctx context.Context, name string, arg interface{}, res i
 			return err
 		}
 	case <-c.ctx.Done():
-		return d.handleCancel(c)
+		return d.handleCancel(ctx, c)
 	case <-d.stopCh:
 		return io.EOF
 	}
@@ -98,7 +111,7 @@ func (d *dispatch) Call(ctx context.Context, name string, arg interface{}, res i
 		d.log.ClientReply(c.seqid, c.method, res.ResponseErr(), res.Res())
 		return res.ResponseErr()
 	case <-c.ctx.Done():
-		return d.handleCancel(c)
+		return d.handleCancel(ctx, c)
 	case <-d.stopCh:
 		return io.EOF
 	}
@@ -110,7 +123,11 @@ func (d *dispatch) Notify(ctx context.Context, name string, arg interface{}, sen
 	if len(rpcTags) > 0 {
 		v = append(v, rpcTags)
 	}
-	errCh := d.writer.EncodeAndWrite(ctx, v, currySendNotifier(sendNotifier, SeqNumber(-1)))
+
+	size, errCh := d.writer.EncodeAndWrite(ctx, v, currySendNotifier(sendNotifier, SeqNumber(-1)))
+	record := NewNetworkInstrumenter(d.instrumenterStorage, RPCInstrumentTag(MethodNotify, name))
+	defer func() { _ = record.RecordAndFinish(ctx, size) }()
+
 	select {
 	case err := <-errCh:
 		if err == nil {
@@ -129,9 +146,11 @@ func (d *dispatch) Close() {
 	close(d.stopCh)
 }
 
-func (d *dispatch) handleCancel(c *call) error {
+func (d *dispatch) handleCancel(ctx context.Context, c *call) error {
 	d.log.ClientCancel(c.seqid, c.method, nil)
-	errCh := d.writer.EncodeAndWriteAsync([]interface{}{MethodCancel, c.seqid, c.method})
+	size, errCh := d.writer.EncodeAndWriteAsync([]interface{}{MethodCancel, c.seqid, c.method})
+	record := NewNetworkInstrumenter(d.instrumenterStorage, RPCInstrumentTag(MethodCancel, c.method))
+	defer func() { _ = record.RecordAndFinish(ctx, size) }()
 	select {
 	case err := <-errCh:
 		if err != nil {

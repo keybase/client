@@ -120,13 +120,13 @@ func TestTLFPinLoop(t *testing.T) {
 
 	pinner := &backgroundTLFPinner{
 		timer:          timer,
-		getUnpinnedTLF: func(m libkb.MetaContext) (*unpinnedTLF, error) { return faker.getUnpinnedTLF(m) },
+		getUnpinnedTLF: faker.getUnpinnedTLF,
 		exitCh:         exitCh,
 	}
 
 	m := libkb.NewMetaContextForTest(*tcs[0])
 
-	go pinner.run(m)
+	go func() { _ = pinner.run(m) }()
 	err := <-exitCh
 	require.NoError(t, err)
 	require.Equal(t, timer.waits, 1)
@@ -142,8 +142,7 @@ func TestTLFPinLoop(t *testing.T) {
 type logoutTimer struct{}
 
 func (t *logoutTimer) StartupWait(m libkb.MetaContext) (err error) {
-	m.G().Logout(context.TODO())
-	return nil
+	return m.LogoutKillSecrets()
 }
 
 func (t *logoutTimer) LoopWait(m libkb.MetaContext, _ error) (err error) {
@@ -161,13 +160,13 @@ func TestTLFPinLoopLogout(t *testing.T) {
 
 	pinner := &backgroundTLFPinner{
 		timer:          timer,
-		getUnpinnedTLF: func(m libkb.MetaContext) (*unpinnedTLF, error) { return faker.getUnpinnedTLF(m) },
+		getUnpinnedTLF: faker.getUnpinnedTLF,
 		exitCh:         exitCh,
 	}
 
 	m := libkb.NewMetaContextForTest(*tcs[0])
 
-	go pinner.run(m)
+	go func() { _ = pinner.run(m) }()
 	err := <-exitCh
 	require.Error(t, err)
 	require.IsType(t, libkb.LoginRequiredError{}, err)

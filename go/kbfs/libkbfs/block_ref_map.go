@@ -110,14 +110,6 @@ func (refs blockRefMap) checkExists(context kbfsblock.Context) (
 	return true, refEntry.Status, nil
 }
 
-func (refs blockRefMap) getStatuses() map[kbfsblock.RefNonce]blockRefStatus {
-	statuses := make(map[kbfsblock.RefNonce]blockRefStatus)
-	for ref, refEntry := range refs {
-		statuses[ref] = refEntry.Status
-	}
-	return statuses
-}
-
 func (refs blockRefMap) put(context kbfsblock.Context, status blockRefStatus,
 	tag string) error {
 	refNonce := context.GetRefNonce()

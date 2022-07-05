@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+
+	chat1 "github.com/keybase/client/go/protocol/chat1"
 )
 
 type Error struct {
@@ -75,6 +77,12 @@ type TimeoutError struct {
 	Stage Stage
 }
 
+type GameAbortedError struct{}
+
+func (g GameAbortedError) Error() string {
+	return "game was aborted before it yielded a result or any reveals"
+}
+
 func (t TimeoutError) Error() string {
 	return fmt.Sprintf("Game %s timed out in stage: %d", t.G, t.Stage)
 }
@@ -110,16 +118,16 @@ type DuplicateRegistrationError struct {
 }
 
 func (d DuplicateRegistrationError) Error() string {
-	return fmt.Sprintf("User %s registered more than once in game %s", d.G, d.U.ToKey())
+	return fmt.Sprintf("User %s registered more than once in game %s", d.U.ToKey(), d.G)
 }
 
-type UnregisteredUserError struct {
+type DuplicateCommitmentCompleteError struct {
 	G GameMetadata
 	U UserDevice
 }
 
-func (u UnregisteredUserError) Error() string {
-	return fmt.Sprintf("Initiator announced an unexpected user %s in game %s", u.G, u.U.ToKey())
+func (d DuplicateCommitmentCompleteError) Error() string {
+	return fmt.Sprintf("Initiator announced a duplicate commitment user %s in game %s", d.U.ToKey(), d.G)
 }
 
 type WrongSenderError struct {
@@ -177,7 +185,7 @@ func (b BadLeaderClockError) Error() string {
 }
 
 type GameReplayError struct {
-	G GameID
+	G chat1.FlipGameID
 }
 
 func (g GameReplayError) Error() string {
@@ -202,7 +210,7 @@ func (g GameShutdownError) Error() string {
 
 type BadChannelError struct {
 	G GameMetadata
-	C ConversationID
+	C chat1.ConversationID
 }
 
 func (b BadChannelError) Error() string {
@@ -214,7 +222,7 @@ type UnforwardableMessageError struct {
 }
 
 func (u UnforwardableMessageError) Error() string {
-	return fmt.Sprintf("Refusing to forwarda mesasge that isn't forwardable (%s)", u.G)
+	return fmt.Sprintf("Refusing to forward a mesasge that isn't forwardable (%s)", u.G)
 }
 
 type BadMessageError struct {
@@ -236,3 +244,65 @@ func (b BadFlipTypeError) Error() string {
 }
 
 var ErrBadData = errors.New("rejecting bad data, likely due to a nil field")
+
+type BadGameIDError struct {
+	G GameMetadata
+	I chat1.FlipGameID
+}
+
+func (b BadGameIDError) Error() string {
+	return fmt.Sprintf("Bad game ID (%s) on incoming message for %s", b.I, b.G)
+}
+
+type CommitmentMismatchError struct {
+	G GameMetadata
+	U UserDevice
+}
+
+func (c CommitmentMismatchError) Error() string {
+	return fmt.Sprintf("Commitment wasn't correct for user %s in game %s", c.U, c.G)
+}
+
+type CommitmentCompleteSortError struct {
+	G GameMetadata
+}
+
+func (c CommitmentCompleteSortError) Error() string {
+	return fmt.Sprintf("Commitment list wasn't sorted properly; the leader is cheating!")
+}
+
+type BadCommitmentCompleteHashError struct {
+	G GameMetadata
+	U UserDevice
+}
+
+func (b BadCommitmentCompleteHashError) Error() string {
+	return fmt.Sprintf("Commitment complete hash error for game %s by user %s", b.G, b.U)
+}
+
+type RevealTooLateError struct {
+	G GameMetadata
+	U UserDevice
+}
+
+func (b RevealTooLateError) Error() string {
+	return fmt.Sprintf("Reveal from %s for get %s arrived too late", b.G, b.U)
+}
+
+type ReplayError struct {
+	s string
+}
+
+func NewReplayError(s string) ReplayError {
+	return ReplayError{s: s}
+}
+
+func (r ReplayError) Error() string {
+	return fmt.Sprintf("")
+}
+
+type DuplicateCommitmentError struct{}
+
+func (d DuplicateCommitmentError) Error() string {
+	return "Duplicated commitment, something is fishy"
+}

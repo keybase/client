@@ -47,6 +47,9 @@ func NewBlockServerMemory(log logger.Logger) *BlockServerMemory {
 
 var errBlockServerMemoryShutdown = errors.New("BlockServerMemory is shutdown")
 
+// FastForwardBackoff implements the BlockServer interface.
+func (b *BlockServerMemory) FastForwardBackoff() {}
+
 // Get implements the BlockServer interface for BlockServerMemory.
 func (b *BlockServerMemory) Get(
 	ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
@@ -94,49 +97,60 @@ func (b *BlockServerMemory) Get(
 	return entry.blockData, entry.keyServerHalf, nil
 }
 
-// GetEncodedSize implements the BlockServer interface for
-// BlockServerDisk.
-func (b *BlockServerMemory) GetEncodedSize(
-	ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
-	context kbfsblock.Context) (
-	size uint32, status keybase1.BlockStatus, err error) {
+// GetEncodedSizes implements the BlockServer interface for
+// BlockServerMemory.
+func (b *BlockServerMemory) GetEncodedSizes(
+	ctx context.Context, tlfID tlf.ID, ids []kbfsblock.ID,
+	contexts []kbfsblock.Context) (
+	sizes []uint32, statuses []keybase1.BlockStatus, err error) {
 	if err := checkContext(ctx); err != nil {
-		return 0, 0, err
+		return nil, nil, err
 	}
 
 	defer func() {
 		err = translateToBlockServerError(err)
 	}()
 	b.log.CDebugf(ctx,
-		"BlockServerMemory.GetEncodedSize id=%s tlfID=%s context=%s",
-		id, tlfID, context)
+		"BlockServerMemory.GetEncodedSizes ids=%s tlfID=%s contexts=%s",
+		ids, tlfID, contexts)
 	b.lock.RLock()
 	defer b.lock.RUnlock()
 
 	if b.m == nil {
-		return 0, 0, errBlockServerMemoryShutdown
+		return nil, nil, errBlockServerMemoryShutdown
 	}
 
-	entry, ok := b.m[id]
-	if !ok {
-		return 0, 0, kbfsblock.ServerErrorBlockNonExistent{
-			Msg: fmt.Sprintf("Block ID %s does not exist.", id)}
+	sizes = make([]uint32, len(ids))
+	statuses = make([]keybase1.BlockStatus, len(ids))
+	for i, id := range ids {
+		entry, ok := b.m[id]
+		if !ok {
+			sizes[i] = 0
+			statuses[i] = keybase1.BlockStatus_UNKNOWN
+			continue
+		}
+
+		if entry.tlfID != tlfID {
+			return nil, nil, fmt.Errorf("TLF ID mismatch: expected %s, got %s",
+				entry.tlfID, tlfID)
+		}
+
+		context := contexts[i]
+		exists, refStatus, err := entry.refs.checkExists(context)
+		if err != nil {
+			return nil, nil, err
+		}
+		if !exists {
+			sizes[i] = 0
+			statuses[i] = keybase1.BlockStatus_UNKNOWN
+			continue
+		}
+
+		sizes[i] = uint32(len(entry.blockData))
+		statuses[i] = refStatus.toBlockStatus()
 	}
 
-	if entry.tlfID != tlfID {
-		return 0, 0, fmt.Errorf("TLF ID mismatch: expected %s, got %s",
-			entry.tlfID, tlfID)
-	}
-
-	exists, refStatus, err := entry.refs.checkExists(context)
-	if err != nil {
-		return 0, 0, err
-	}
-	if !exists {
-		return 0, 0, blockNonExistentError{id}
-	}
-
-	return uint32(len(entry.blockData)), refStatus.toBlockStatus(), nil
+	return sizes, statuses, nil
 }
 
 func validateBlockPut(checkNonzeroRef bool, id kbfsblock.ID, context kbfsblock.Context,
@@ -146,7 +160,7 @@ func validateBlockPut(checkNonzeroRef bool, id kbfsblock.ID, context kbfsblock.C
 		return fmt.Errorf("Can't Put() a block %v with an empty UID", id)
 	}
 
-	if context.GetCreator() != keybase1.UserOrTeamID(context.GetWriter()) {
+	if context.GetCreator() != context.GetWriter() {
 		return fmt.Errorf("Can't Put() a block with creator=%s != writer=%s",
 			context.GetCreator(), context.GetWriter())
 	}
@@ -155,7 +169,7 @@ func validateBlockPut(checkNonzeroRef bool, id kbfsblock.ID, context kbfsblock.C
 		return errors.New("can't Put() a block with a non-zero refnonce")
 	}
 
-	return kbfsblock.VerifyID(buf, id)
+	return verifyLocalBlockIDMaybe(buf, id)
 }
 
 // doPut consolidates the put logic for implementing both the Put and PutAgain interface.

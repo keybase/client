@@ -170,7 +170,13 @@ func rooterRewriteURL(m metaContext, s string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	u2, err := url.Parse(m.G().GetServerURI())
+
+	serverURI, err := m.G().GetServerURI()
+	if err != nil {
+		return "", nil
+	}
+
+	u2, err := url.Parse(serverURI)
 	if err != nil {
 		return "", err
 	}

@@ -28,7 +28,7 @@ func doGitRename(ctx context.Context,
 	if len(p.TLFComponents) > 0 {
 		return fmt.Errorf("%q is not the root path of a TLF", tlfStr)
 	}
-	folder := keybase1.Folder{
+	folder := keybase1.FolderHandle{
 		Name:       p.TLFName,
 		FolderType: p.TLFType.FolderType(),
 	}

@@ -1,46 +1,45 @@
 {
   "prelude": [
-    "import * as Types from '../constants/types/route-tree'",
-    "import * as Constants from '../constants/route-tree'",
-    "import * as RCConstants from '../route-tree'"
+      "import * as Tabs from '../constants/tabs'", 
+      "import * as Types from '../constants/types/route-tree'", 
   ],
   "actions": {
-    "setInitialRouteDef": {
-      "_description": "Set the tree of route definitions. Dispatched at initialization time.",
-      "routeDef": "RCConstants.RouteDefParams"
-    },
-    "refreshRouteDef": {
-      "loginRouteTree": "RCConstants.RouteDefParams",
-      "appRouteTree": "RCConstants.RouteDefParams"
-    },
-    "switchRouteDef": {
-      "routeDef": "RCConstants.RouteDefParams",
-      "path?": "?RCConstants.Path"
-    },
-    "switchTo": {
-      "path": "RCConstants.Path",
-      "parentPath?": "?RCConstants.Path"
-    },
-    "navigateTo": {
-      "path": "RCConstants.PropsPath<any>",
-      "parentPath?": "?RCConstants.Path"
-    },
     "navigateAppend": {
-      "path": "RCConstants.PropsPath<any>",
-      "parentPath?": "?RCConstants.Path"
+      "fromKey?": "string",
+      "path": "any",
+      "replace?": "boolean"
     },
-    "navigateUp": {},
-    "putActionIfOnPath": {
-      "expectedPath": "RCConstants.Path",
-      "otherAction": "any",
-      "parentPath?": "?RCConstants.Path"
+    "navigateUp": {"fromKey?": "string"},
+    "clearModals": {
+      "_description": "ONLY used by the new nav. use this to clear any modal routes"
     },
-    "setRouteState": {
-      "path": "RCConstants.Path",
-      "partialState": "{} | ((oldState: I.Map<string, any>) => I.Map<string, any>)"
+    "navUpToScreen": {
+      "_description": "ONLY used by the new nav. Navigates up to this route if it already exists, noops otherwise.",
+      "routeName": "string"
     },
-    "resetRoute": {
-      "path": "RCConstants.Path"
+    "switchLoggedIn": {
+      "_description": "ONLY used by the new nav. Switch login stacks",
+      "loggedIn": "boolean"
+    },
+    "switchTab": {
+      "_description": "ONLY used by the new nav. Switch to a different tab.",
+      "tab": "Tabs.AppTab"
+    },
+    "resetStack": {
+      "_description": "Reset a specific stack. actions is route tree actions TODO better typing",
+      "tab": ["Tabs.AppTab", "'loggedOut'"],
+      "actions": "Array<any>",
+      "index": "number"
+    },
+    "onNavChanged": {
+        "prev": "Array<Types.NavState>",
+        "next": "Array<Types.NavState>",
+        "navAction": "any"
+    },
+    "setParams": {
+        "_description": "deprecated soon",
+        "params": "Object",
+        "key": "string"
     }
   }
 }

@@ -23,13 +23,27 @@ func NewPgpUIProtocol(g *libkb.GlobalContext) rpc.Protocol {
 	return keybase1.PGPUiProtocol(g.UI.GetPgpUI())
 }
 
-func (p PgpUI) OutputSignatureSuccess(_ context.Context, arg keybase1.OutputSignatureSuccessArg) error {
+func (p PgpUI) OutputPGPWarning(_ context.Context, arg keybase1.OutputPGPWarningArg) error {
+	_, _ = p.w.Write([]byte(ColorString(p.G(), "red", fmt.Sprintf("WARNING: %s\n", arg.Warning))))
+	return nil
+}
+
+func (p PgpUI) OutputSignatureSuccess(ctx context.Context, arg keybase1.OutputSignatureSuccessArg) error {
 	signedAt := keybase1.FromTime(arg.SignedAt)
 	un := ColorString(p.G(), "bold", arg.Username)
 	output := func(fmtString string, args ...interface{}) {
 		s := fmt.Sprintf(fmtString, args...)
 		s = ColorString(p.G(), "green", s)
-		p.w.Write([]byte(s))
+		_, _ = p.w.Write([]byte(s))
+	}
+
+	for _, warning := range arg.Warnings {
+		if err := p.OutputPGPWarning(ctx, keybase1.OutputPGPWarningArg{
+			SessionID: arg.SessionID,
+			Warning:   warning,
+		}); err != nil {
+			return err
+		}
 	}
 
 	if signedAt.IsZero() {
@@ -41,26 +55,36 @@ func (p PgpUI) OutputSignatureSuccess(_ context.Context, arg keybase1.OutputSign
 	return nil
 }
 
-func (p PgpUI) OutputSignatureSuccessNonKeybase(ctx context.Context, arg keybase1.OutputSignatureSuccessNonKeybaseArg) error {
+func (p PgpUI) OutputSignatureNonKeybase(ctx context.Context, arg keybase1.OutputSignatureNonKeybaseArg) error {
 	signedAt := keybase1.FromTime(arg.SignedAt)
 	output := func(fmtString string, args ...interface{}) {
 		s := fmt.Sprintf(fmtString, args...)
-		s = ColorString(p.G(), "green", s)
-		p.w.Write([]byte(s))
+		s = ColorString(p.G(), "red", s)
+		_, _ = p.w.Write([]byte(s))
+	}
+
+	for _, warning := range arg.Warnings {
+		if err := p.OutputPGPWarning(ctx, keybase1.OutputPGPWarningArg{
+			SessionID: arg.SessionID,
+			Warning:   warning,
+		}); err != nil {
+			return err
+		}
 	}
 
 	if signedAt.IsZero() {
-		output("Signature verified. Signed by key %s (unknown to keybase).\n", arg.KeyID)
+		output("Message signed by key %s (unknown to Keybase).\n", arg.KeyID)
 	} else {
-		output("Signature verified. Signed by key %s (unknown to keybase) %s (%s).\n", arg.KeyID, humanize.Time(signedAt), signedAt)
+		output("Message signed by key %s (unknown to Keybase) %s (%s).\n", arg.KeyID, humanize.Time(signedAt), signedAt)
 	}
+
 	return nil
 }
 func (p PgpUI) KeyGenerated(ctx context.Context, arg keybase1.KeyGeneratedArg) error {
 	return nil
 }
 
-func (p PgpUI) ShouldPushPrivate(ctx context.Context, sessionID int) (bool, error) {
+func (p PgpUI) ShouldPushPrivate(ctx context.Context, arg keybase1.ShouldPushPrivateArg) (bool, error) {
 	return false, nil
 }
 

@@ -4,9 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
+	"time"
 
 	"github.com/keybase/client/go/chat/globals"
-	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
@@ -23,62 +24,71 @@ type Sender struct {
 func NewSender(g *globals.Context) *Sender {
 	return &Sender{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "Wallet.Sender", false),
+		DebugLabeler: utils.NewDebugLabeler(g.ExternalG(), "Wallet.Sender", false),
 	}
-}
-
-func (s *Sender) getConv(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (res chat1.ConversationLocal, err error) {
-	// slow path just in case (still should be fast)
-	inbox, _, err := s.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking,
-		types.InboxSourceDataSourceAll, nil,
-		&chat1.GetInboxLocalQuery{
-			ConvIDs: []chat1.ConversationID{convID},
-		}, nil)
-	if err != nil {
-		return res, err
-	}
-	if len(inbox.Convs) != 1 {
-		return res, errors.New("too many/little convs")
-	}
-	return inbox.Convs[0], nil
 }
 
 func (s *Sender) getConvParseInfo(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (parts []string, membersType chat1.ConversationMembersType, err error) {
-	localConv, err := storage.NewInbox(s.G()).GetConversation(ctx, uid, convID)
-	if err == nil && localConv.LocalMetadata != nil && len(localConv.LocalMetadata.WriterNames) > 0 {
-		// fast path (should always get hit)
-		membersType = localConv.Conv.GetMembersType()
-		parts = localConv.LocalMetadata.WriterNames
-	} else {
-		conv, err := s.getConv(ctx, uid, convID)
-		if err != nil {
-			return parts, membersType, err
+	conv, err := utils.GetUnverifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
+	if err != nil {
+		return parts, membersType, err
+	}
+	allParts, err := utils.GetConvParticipantUsernames(ctx, s.G(), uid, convID)
+	if err != nil {
+		return parts, membersType, err
+	}
+	switch conv.GetMembersType() {
+	case chat1.ConversationMembersType_TEAM:
+		return allParts, conv.GetMembersType(), nil
+	default:
+		nameParts := strings.Split(utils.GetRemoteConvTLFName(conv), ",")
+		nameMap := make(map[string]bool, len(nameParts))
+		for _, namePart := range nameParts {
+			nameMap[namePart] = true
 		}
-		membersType = conv.GetMembersType()
-		parts = make([]string, len(conv.Info.Participants))
-		for index, p := range conv.Info.Participants {
-			parts[index] = p.Username
+		for _, part := range allParts {
+			if nameMap[part] {
+				parts = append(parts, part)
+			}
 		}
 	}
-	return parts, membersType, nil
+	return parts, conv.GetMembersType(), nil
 }
 
 func (s *Sender) getConvFullnames(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (res map[string]string, err error) {
-	res = make(map[string]string)
-	conv, err := s.getConv(ctx, uid, convID)
+	uids, err := s.G().ParticipantsSource.Get(ctx, uid, convID, types.InboxSourceDataSourceAll)
 	if err != nil {
 		return res, err
 	}
-	for _, p := range conv.Info.Participants {
-		if p.Fullname != nil {
-			res[p.Username] = *p.Fullname
+	kuids := make([]keybase1.UID, 0, len(uids))
+	for _, uid := range uids {
+		kuids = append(kuids, keybase1.UID(uid.String()))
+	}
+	rows, err := s.G().UIDMapper.MapUIDsToUsernamePackages(ctx, s.G(), kuids, time.Hour*24,
+		time.Minute, true)
+	if err != nil {
+		return res, err
+	}
+	res = make(map[string]string)
+	for _, row := range rows {
+		if row.FullName != nil {
+			res[row.NormalizedUsername.String()] = row.FullName.FullName.String()
 		}
 	}
 	return res, nil
 }
 
-func (s *Sender) getUsername(ctx context.Context, uid gregor1.UID, parts []string,
-	membersType chat1.ConversationMembersType) (res string, err error) {
+func (s *Sender) getRecipientUsername(ctx context.Context, uid gregor1.UID, parts []string,
+	membersType chat1.ConversationMembersType, replyToUID gregor1.UID) (res string, err error) {
+	// If this message is a reply, infer the recipient as the original sender
+	if !(replyToUID.IsNil() || uid.Eq(replyToUID)) {
+		username, err := s.G().GetUPAKLoader().LookupUsername(ctx, keybase1.UID(replyToUID.String()))
+		if err != nil {
+			return res, err
+		}
+		return username.String(), nil
+	}
+
 	switch membersType {
 	case chat1.ConversationMembersType_TEAM:
 		return res, errors.New("must specify username in team chat")
@@ -99,7 +109,6 @@ func (s *Sender) getUsername(ctx context.Context, uid gregor1.UID, parts []strin
 
 func (s *Sender) validConvUsername(ctx context.Context, username string, parts []string) bool {
 	for _, p := range parts {
-		s.Debug(ctx, "part: %s", p)
 		if username == p {
 			return true
 		}
@@ -108,18 +117,33 @@ func (s *Sender) validConvUsername(ctx context.Context, username string, parts [
 }
 
 func (s *Sender) ParsePayments(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	body string) (res []types.ParsedStellarPayment) {
-	defer s.Trace(ctx, func() error { return nil }, "ParsePayments")()
+	body string, replyTo *chat1.MessageID) (res []types.ParsedStellarPayment) {
+	defer s.Trace(ctx, nil, "ParsePayments")()
 	parsed := FindChatTxCandidates(body)
 	if len(parsed) == 0 {
 		return nil
 	}
-	// FIXME error is ignored.
+
 	parts, membersType, err := s.getConvParseInfo(ctx, uid, convID)
+	if err != nil {
+		s.Debug(ctx, "ParsePayments: failed to getConvParseInfo %v", err)
+		return nil
+	}
+	replyToUID, err := s.handleReplyTo(ctx, uid, convID, replyTo)
+	if err != nil {
+		s.Debug(ctx, "ParsePayments: failed to handleReplyTo: %v", err)
+		return nil
+	}
+	seen := make(map[string]struct{})
 	for _, p := range parsed {
 		var username string
+		// The currency might be legit but `KnownCurrencyCodeInstant` may not have data yet.
+		// In that case (false, false) comes back and the entry is _not_ skipped.
+		if known, ok := s.G().GetStellar().KnownCurrencyCodeInstant(ctx, p.CurrencyCode); ok && !known {
+			continue
+		}
 		if p.Username == nil {
-			if username, err = s.getUsername(ctx, uid, parts, membersType); err != nil {
+			if username, err = s.getRecipientUsername(ctx, uid, parts, membersType, replyToUID); err != nil {
 				s.Debug(ctx, "ParsePayments: failed to get username, skipping: %s", err)
 				continue
 			}
@@ -129,14 +153,39 @@ func (s *Sender) ParsePayments(ctx context.Context, uid gregor1.UID, convID chat
 			s.Debug(ctx, "ParsePayments: skipping mention for not being in conv")
 			continue
 		}
+		if _, ok := seen[p.Full]; ok {
+			continue
+		}
+		seen[p.Full] = struct{}{}
+		normalizedUn := libkb.NewNormalizedUsername(username)
+		if _, ok := seen[normalizedUn.String()]; ok {
+			continue
+		}
+		seen[normalizedUn.String()] = struct{}{}
 		res = append(res, types.ParsedStellarPayment{
-			Username: libkb.NewNormalizedUsername(username),
+			Username: normalizedUn,
 			Amount:   p.Amount,
 			Currency: p.CurrencyCode,
 			Full:     p.Full,
 		})
 	}
 	return res
+}
+
+func (s *Sender) handleReplyTo(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, replyTo *chat1.MessageID) (gregor1.UID, error) {
+	if replyTo == nil {
+		return nil, nil
+	}
+	reply, err := s.G().ChatHelper.GetMessage(ctx, uid, convID, *replyTo, false, nil)
+	if err != nil {
+		s.Debug(ctx, "handleReplyTo: failed to get reply message: %s", err)
+		return nil, err
+	}
+	if !reply.IsValid() {
+		s.Debug(ctx, "handleReplyTo: reply message invalid: %v %v", replyTo, err)
+		return nil, nil
+	}
+	return reply.Valid().ClientHeader.Sender, nil
 }
 
 func (s *Sender) paymentsToMinis(payments []types.ParsedStellarPayment) (minis []libkb.MiniChatPayment) {
@@ -148,7 +197,7 @@ func (s *Sender) paymentsToMinis(payments []types.ParsedStellarPayment) (minis [
 
 func (s *Sender) DescribePayments(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	payments []types.ParsedStellarPayment) (res chat1.UIChatPaymentSummary, toSend []types.ParsedStellarPayment, err error) {
-	defer s.Trace(ctx, func() error { return err }, "DescribePayments")()
+	defer s.Trace(ctx, &err, "DescribePayments")()
 	specs, err := s.G().GetStellar().SpecMiniChatPayments(s.G().MetaContext(ctx), s.paymentsToMinis(payments))
 	if err != nil {
 		return res, toSend, err
@@ -184,7 +233,7 @@ func (s *Sender) DescribePayments(ctx context.Context, uid gregor1.UID, convID c
 }
 
 func (s *Sender) SendPayments(ctx context.Context, convID chat1.ConversationID, payments []types.ParsedStellarPayment) (res []chat1.TextPayment, err error) {
-	defer s.Trace(ctx, func() error { return err }, "SendPayments")()
+	defer s.Trace(ctx, &err, "SendPayments")()
 	usernameToFull := make(map[string]string)
 	var minis []libkb.MiniChatPayment
 	for _, p := range payments {

@@ -5,17 +5,15 @@
 package libkbfs
 
 import (
-	"bytes"
 	"fmt"
 	"testing"
-	"testing/quick"
 
-	"golang.org/x/crypto/nacl/secretbox"
-
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/kbfscodec"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/crypto/nacl/secretbox"
 )
 
 type simpleBlockCryptVersioner struct {
@@ -79,8 +77,8 @@ type TestBlock struct {
 	A int
 }
 
-func (TestBlock) DataVersion() DataVer {
-	return FirstValidDataVer
+func (TestBlock) DataVersion() data.Ver {
+	return data.FirstValidVer
 }
 
 func (tb TestBlock) GetEncodedSize() uint32 {
@@ -90,20 +88,20 @@ func (tb TestBlock) GetEncodedSize() uint32 {
 func (tb TestBlock) SetEncodedSize(size uint32) {
 }
 
-func (tb TestBlock) NewEmpty() Block {
+func (tb TestBlock) NewEmpty() data.Block {
 	return &TestBlock{}
 }
 
-func (tb TestBlock) NewEmptier() func() Block {
+func (tb TestBlock) NewEmptier() func() data.Block {
 	return tb.NewEmpty
 }
 
-func (tb *TestBlock) Set(other Block) {
+func (tb *TestBlock) Set(other data.Block) {
 	otherTb := other.(*TestBlock)
 	tb.A = otherTb.A
 }
 
-func (tb *TestBlock) ToCommonBlock() *CommonBlock {
+func (tb *TestBlock) ToCommonBlock() *data.CommonBlock {
 	return nil
 }
 
@@ -115,7 +113,7 @@ func (tb *TestBlock) IsTail() bool {
 	return true
 }
 
-func (tb TestBlock) OffsetExceedsData(_, _ Offset) bool {
+func (tb TestBlock) OffsetExceedsData(_, _ data.Offset) bool {
 	return false
 }
 
@@ -142,7 +140,8 @@ func TestCryptoCommonEncryptDecryptBlock(t *testing.T) {
 }
 
 func checkSecretboxOpenPrivateMetadata(t *testing.T, encryptedPrivateMetadata kbfscrypto.EncryptedPrivateMetadata, key kbfscrypto.TLFCryptKey) (encodedData []byte) {
-	require.Equal(t, kbfscrypto.EncryptionSecretbox, encryptedPrivateMetadata.Version)
+	require.Equal(
+		t, kbfscrypto.EncryptionSecretbox, encryptedPrivateMetadata.Version)
 	require.Equal(t, 24, len(encryptedPrivateMetadata.Nonce))
 
 	var nonce [24]byte
@@ -216,7 +215,8 @@ func makeFakeBlockCryptKey(t *testing.T) (
 }
 
 func checkSecretboxOpenBlock(t *testing.T, encryptedBlock kbfscrypto.EncryptedBlock, key kbfscrypto.BlockCryptKey) (encodedData []byte) {
-	require.Equal(t, kbfscrypto.EncryptionSecretbox, encryptedBlock.Version)
+	require.Equal(
+		t, kbfscrypto.EncryptionSecretbox, encryptedBlock.Version)
 	require.Equal(t, 24, len(encryptedBlock.Nonce))
 
 	var nonce [24]byte
@@ -247,7 +247,7 @@ func TestEncryptBlock(t *testing.T) {
 	require.Equal(t, len(expectedEncodedBlock), plainSize)
 
 	paddedBlock := checkSecretboxOpenBlock(t, encryptedBlock, cryptKey)
-	encodedBlock, err := c.depadBlock(paddedBlock)
+	encodedBlock, err := kbfscrypto.DepadBlock(paddedBlock)
 	require.NoError(t, err)
 	require.Equal(t, expectedEncodedBlock, encodedBlock)
 }
@@ -283,71 +283,6 @@ func TestDecryptV2EncryptedBlock(t *testing.T) {
 	testDecryptEncryptedBlock(t, c)
 }
 
-// Test padding of blocks results in a larger block, with length
-// equal to power of 2 + 4.
-func TestBlockPadding(t *testing.T) {
-	var c CryptoCommon
-	f := func(b []byte) bool {
-		padded, err := c.padBlock(b)
-		if err != nil {
-			t.Logf("padBlock err: %s", err)
-			return false
-		}
-		n := len(padded)
-		if n <= len(b) {
-			t.Logf("padBlock padded block len %d <= input block len %d", n, len(b))
-			return false
-		}
-		// len of slice without uint32 prefix:
-		h := n - 4
-		if h&(h-1) != 0 {
-			t.Logf("padBlock padded block len %d not a power of 2", h)
-			return false
-		}
-		return true
-	}
-
-	err := quick.Check(f, nil)
-	require.NoError(t, err)
-}
-
-// Tests padding -> depadding results in same block data.
-func TestBlockDepadding(t *testing.T) {
-	var c CryptoCommon
-	f := func(b []byte) bool {
-		padded, err := c.padBlock(b)
-		if err != nil {
-			t.Logf("padBlock err: %s", err)
-			return false
-		}
-		depadded, err := c.depadBlock(padded)
-		if err != nil {
-			t.Logf("depadBlock err: %s", err)
-			return false
-		}
-		if !bytes.Equal(b, depadded) {
-			return false
-		}
-		return true
-	}
-
-	err := quick.Check(f, nil)
-	require.NoError(t, err)
-}
-
-// Test padding of blocks results in blocks at least 2^8.
-func TestBlockPadMinimum(t *testing.T) {
-	var c CryptoCommon
-	for i := 0; i < 256; i++ {
-		b := make([]byte, i)
-		err := kbfscrypto.RandRead(b)
-		require.NoError(t, err)
-		padded, err := c.padBlock(b)
-		require.NoError(t, err)
-		require.Equal(t, 260, len(padded))
-	}
-}
-
 // Test that secretbox encrypted data length is a deterministic
 // function of the input data length.
 func TestSecretboxEncryptedLen(t *testing.T) {
@@ -374,7 +309,7 @@ func TestSecretboxEncryptedLen(t *testing.T) {
 			data := randomData[j : j+i]
 			enc, err := kbfscrypto.EncryptPaddedEncodedBlock(
 				data, cryptKeys[j], serverHalfs[j],
-				kbfscrypto.EncryptionSecretbox)
+				kbfscrypto.EncryptionSecretboxWithKeyNonce)
 			require.NoError(t, err)
 			if j == 0 {
 				enclen = len(enc.EncryptedData)
@@ -394,21 +329,23 @@ func (tba testBlockArray) GetEncodedSize() uint32 {
 func (tba testBlockArray) SetEncodedSize(size uint32) {
 }
 
-func (testBlockArray) DataVersion() DataVer { return FirstValidDataVer }
+func (testBlockArray) DataVersion() data.Ver {
+	return data.FirstValidVer
+}
 
-func (tba testBlockArray) NewEmpty() Block {
+func (tba testBlockArray) NewEmpty() data.Block {
 	return &testBlockArray{}
 }
 
-func (tba testBlockArray) NewEmptier() func() Block {
+func (tba testBlockArray) NewEmptier() func() data.Block {
 	return tba.NewEmpty
 }
 
-func (tba testBlockArray) ToCommonBlock() *CommonBlock {
+func (tba testBlockArray) ToCommonBlock() *data.CommonBlock {
 	return nil
 }
 
-func (tba *testBlockArray) Set(other Block) {
+func (tba *testBlockArray) Set(other data.Block) {
 	otherTba := other.(*testBlockArray)
 	*tba = *otherTba
 }
@@ -421,7 +358,7 @@ func (tba *testBlockArray) IsTail() bool {
 	return true
 }
 
-func (tba testBlockArray) OffsetExceedsData(_, _ Offset) bool {
+func (tba testBlockArray) OffsetExceedsData(_, _ data.Offset) bool {
 	return false
 }
 
@@ -446,7 +383,7 @@ func TestBlockEncryptedLen(t *testing.T) {
 	require.NoError(t, err)
 
 	var expectedLen int
-	for i := 1025; i < 2000; i++ {
+	for i := startSize; i < endSize; i++ {
 		data := randomData[:i]
 		_, encBlock, err := c.EncryptBlock(&data, tlfCryptKey, blockServerHalf)
 		require.NoError(t, err)
@@ -464,19 +401,20 @@ func benchmarkEncryptBlock(b *testing.B, blockSize int) {
 
 	// Fill in the block with varying data to make sure not to
 	// trigger any encoding optimizations.
-	data := make([]byte, 512<<10)
-	for i := 0; i < len(data); i++ {
-		data[i] = byte(i)
+	buf := make([]byte, 512<<10)
+	for i := 0; i < len(buf); i++ {
+		buf[i] = byte(i)
 	}
-	block := FileBlock{
-		Contents: data,
+	block := data.FileBlock{
+		Contents: buf,
 	}
 	tlfCryptKey := kbfscrypto.TLFCryptKey{}
 	blockServerHalf := kbfscrypto.BlockCryptKeyServerHalf{}
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		c.EncryptBlock(&block, tlfCryptKey, blockServerHalf)
+		_, _, err := c.EncryptBlock(&block, tlfCryptKey, blockServerHalf)
+		require.NoError(b, err)
 	}
 }
 

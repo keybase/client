@@ -119,6 +119,13 @@
             "type": "array",
             "items": "int"
           }
+        },
+        {
+          "name": "useText",
+          "type": [
+            null,
+            "boolean"
+          ]
         }
       ],
       "response": "APIRes",

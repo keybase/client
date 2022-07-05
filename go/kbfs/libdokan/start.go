@@ -5,6 +5,7 @@
 package libdokan
 
 import (
+	"fmt"
 	"os"
 	"path"
 	"strings"
@@ -34,6 +35,7 @@ type StartOptions struct {
 
 func startMounting(options StartOptions,
 	log logger.Logger, mi *libfs.MountInterrupter) error {
+	log.Info("Starting mount with options: %#v", options)
 	var mounter = &mounter{options: options, log: log}
 	err := mi.MountAndSetUnmount(mounter)
 	if err != nil {
@@ -46,10 +48,13 @@ func startMounting(options StartOptions,
 // Start the filesystem
 func Start(options StartOptions, kbCtx libkbfs.Context) *libfs.Error {
 	// Hook simplefs implementation in.
+	shutdownSimpleFS := func(_ context.Context) error { return nil }
 	createSimpleFS := func(
 		libkbfsCtx libkbfs.Context, config libkbfs.Config) (rpc.Protocol, error) {
-		return keybase1.SimpleFSProtocol(
-			simplefs.NewSimpleFS(libkbfsCtx, config)), nil
+		var simplefsIface keybase1.SimpleFSInterface
+		simplefsIface, shutdownSimpleFS = simplefs.NewSimpleFS(
+			libkbfsCtx, config)
+		return keybase1.SimpleFSProtocol(simplefsIface), nil
 	}
 	// Hook git implementation in.
 	shutdownGit := func() {}
@@ -61,6 +66,10 @@ func Start(options StartOptions, kbCtx libkbfs.Context) *libfs.Error {
 		return keybase1.KBFSGitProtocol(handler), nil
 	}
 	defer func() {
+		err := shutdownSimpleFS(context.Background())
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Couldn't shut down SimpleFS: %+v\n", err)
+		}
 		shutdownGit()
 	}()
 
@@ -84,12 +93,14 @@ func Start(options StartOptions, kbCtx libkbfs.Context) *libfs.Error {
 
 	defer libkbfs.Shutdown()
 
+	libfs.AddRootWrapper(config)
+
 	if options.RuntimeDir != "" {
 		err := os.MkdirAll(options.RuntimeDir, libkb.PermDir)
 		if err != nil {
 			return libfs.InitError(err.Error())
 		}
-		info := libkb.NewServiceInfo(libkbfs.Version, libkbfs.PrereleaseBuild, options.Label, os.Getpid())
+		info := libkb.NewServiceInfo(libkb.Version, libkbfs.PrereleaseBuild, options.Label, os.Getpid())
 		err = info.WriteFile(path.Join(options.RuntimeDir, "kbfs.info"), log)
 		if err != nil {
 			return libfs.InitError(err.Error())
@@ -137,13 +148,18 @@ func Start(options StartOptions, kbCtx libkbfs.Context) *libfs.Error {
 			// Abort on error if we were force mounting, otherwise continue.
 			if options.ForceMount {
 				// Cleanup when exiting in case the mount got dirty.
-				mi.Done()
+				err = mi.Done()
+				if err != nil {
+					log.CErrorf(ctx, "Couldn't mount: %v", err)
+				}
 				return libfs.MountError(err.Error())
 			}
 			log.CErrorf(ctx, "Running KBFS without a filesystem mount due to: %v", err)
 		}
 	}
 
+	log.CDebugf(ctx, "Entering mount wait")
 	mi.Wait()
+	log.CDebugf(ctx, "Filesystem unmounted - mount wait returned - exiting")
 	return nil
 }

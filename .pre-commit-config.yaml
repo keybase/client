@@ -3,30 +3,25 @@ repos:
     hooks:
     -   id: rn-story-mode
         name: rn-story-mode
-        entry: shared/react-native/ios/Keybase/git-hook
+        entry: shared/ios/Keybase/git-hook
         language: script
-        files: shared/react-native/ios/Keybase/Storybook.m
+        files: shared/ios/Keybase/Storybook.m
     -   id: eslint
         name: eslint
         entry: shared/node_modules/.bin/eslint
         language: node
-        files: \.js$
+        files: \.(js|ts|tsx)$
         args: [
-            '--quiet'
+            '--quiet',
+            '--resolve-plugins-relative-to shared'
         ]
-    -   id: flow
-        name: flow
-        entry: sh
-        language: system
-        files: \.(js|flow)$
-        args: [-c, cd shared && node_modules/.bin/flow]
     -   id: prettier
         name: prettier
         entry: shared/node_modules/.bin/prettier --write
         language: node
-        files: \.js$
+        files: \.(js|ts|tsx)$
 -   repo: https://github.com/keybase/pre-commit-golang.git
-    sha: b3408a42cc77ece991924d5f477ee3ae94371f9a
+    rev: 314766a2c26b7f32641addbdb0e7e451320ff1f0
     hooks:
     -   id: go-fmt
     -   id: go-vet

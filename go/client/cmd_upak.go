@@ -18,9 +18,9 @@ import (
 
 type cmdUPAK struct {
 	libkb.Contextified
-	uid  keybase1.UID
-	kid  keybase1.KID
-	lite bool
+	uid       keybase1.UID
+	kid       keybase1.KID
+	unstubbed bool
 }
 
 func NewCmdUPAK(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -34,8 +34,8 @@ func NewCmdUPAK(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command 
 				Usage: "KID to query",
 			},
 			cli.BoolFlag{
-				Name:  "l, lite",
-				Usage: "Get a trimmed down UPAK",
+				Name:  "unstubbed",
+				Usage: "Get unstubbed version",
 			},
 		},
 		Action: func(c *cli.Context) {
@@ -53,20 +53,7 @@ func (c *cmdUPAK) Run() error {
 		return err
 	}
 
-	if c.lite {
-		upakLite, err := userClient.GetUPAKLite(context.Background(), c.uid)
-		if err != nil {
-			return err
-		}
-		jsonOut, err := json.MarshalIndent(upakLite, "", "  ")
-		if err != nil {
-			return err
-		}
-		c.G().UI.GetTerminalUI().Output(string(jsonOut) + "\n")
-		return nil
-	}
-
-	res, err := userClient.GetUPAK(context.Background(), c.uid)
+	res, err := userClient.GetUPAK(context.Background(), keybase1.GetUPAKArg{Uid: c.uid, Unstubbed: c.unstubbed})
 	if err != nil {
 		return err
 	}
@@ -88,7 +75,7 @@ func (c *cmdUPAK) Run() error {
 		}
 	}
 
-	c.G().UI.GetTerminalUI().Output(string(jsonOut) + "\n")
+	_ = c.G().UI.GetTerminalUI().Output(string(jsonOut) + "\n")
 	return nil
 }
 
@@ -102,7 +89,7 @@ func (c *cmdUPAK) ParseArgv(ctx *cli.Context) error {
 		return err
 	}
 	kid := ctx.String("kid")
-	c.lite = ctx.Bool("lite")
+	c.unstubbed = ctx.Bool("unstubbed")
 	if len(kid) > 0 {
 		c.kid, err = keybase1.KIDFromStringChecked(kid)
 		if err != nil {

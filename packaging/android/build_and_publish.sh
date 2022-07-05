@@ -2,15 +2,12 @@
 
 set -eE -u -o pipefail # Fail on error, call ERR trap
 
-export BABEL_PLATFORM=ReactNative
-
 automated_build=${AUTOMATED_BUILD:-}
 gopath=${GOPATH:-}
 kbfs_dir="$gopath/src/github.com/keybase/client/go/kbfs"
 client_dir="$gopath/src/github.com/keybase/client"
 shared_dir="$gopath/src/github.com/keybase/client/shared"
-rn_dir="$gopath/src/github.com/keybase/client/shared/react-native"
-android_dir="$gopath/src/github.com/keybase/client/shared/react-native/android"
+android_dir="$gopath/src/github.com/keybase/client/shared/android"
 cache_npm=${CACHE_NPM:-}
 cache_go_lib=${CACHE_GO_LIB:-}
 client_commit=${CLIENT_COMMIT:-}
@@ -54,10 +51,7 @@ cd "$shared_dir"
 
 if [ ! "$cache_npm" = "1" ]; then
   echo "Cleaning up main node_modules from previous runs"
-  rm -rf "$shared_dir/node_modules"
-
-  yarn install --pure-lockfile
-  yarn global add react-native-cli
+  yarn install --pure-lockfile --ignore-optional --prefer-offline --check-files
 fi
 
 
@@ -76,7 +70,8 @@ echo "Packager running with PID $rn_packager_pid"
 # Build and publish the apk
 cd "$android_dir"
 ./gradlew clean
-./gradlew publishApkRelease
+yarn jetify
+./gradlew publishReleaseBundle
 
 "$client_dir/packaging/slack/send.sh" "Finished releasing android"
 

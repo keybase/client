@@ -15,6 +15,7 @@ import (
 
 	"github.com/buger/jsonparser"
 	"github.com/keybase/client/go/jsonparserw"
+	"github.com/keybase/client/go/msgpack"
 	pkgerrors "github.com/pkg/errors"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -152,15 +153,15 @@ var badChainLinks = map[keybase1.LinkID]SpecialChainLink{
 	// Link 98 of ajar's sigchain is a PGP update with a broken PGP key,
 	// that doesn't have a valid cross-sig on a signing key. It was a server
 	// bug to allow it be uploaded.
-	"694ed7166cee72449964e97bcd4be58243877718425c4dc655d2d80832bd5cdf": SpecialChainLink{UID: akalin, Seqno: keybase1.Seqno(22), Reason: fmt.Sprintf(badAkalin, 22)},
-	"27bc88059a768a82b1a21dcc1c46f7fc61c2d2b80c445eb2d18fed3a5bb42e49": SpecialChainLink{UID: akalin, Seqno: keybase1.Seqno(23), Reason: fmt.Sprintf(badAkalin, 23)},
-	"12b594e44d9289349283f8b14a6f83ad144a17a3025a758e17d4eca70fbdc923": SpecialChainLink{UID: akalin, Seqno: keybase1.Seqno(24), Reason: fmt.Sprintf(badAkalin, 24)},
-	"ce162011e380c954de15f30db28f8b7b358866d2721143d9d0d4424166ce5ed8": SpecialChainLink{UID: akalin, Seqno: keybase1.Seqno(25), Reason: fmt.Sprintf(badAkalin, 25)},
-	"bf914e6d4cf9b4eb7c88c2a8a6f5650e969ade9a97cf1605c1eb8cae97d5d278": SpecialChainLink{UID: jamGregory, Seqno: keybase1.Seqno(17), Reason: fmt.Sprintf(badJamGregory, 17)},
-	"e56f492c1b519905d04ce51368e87794963906dd6dacb63fbeab7ad23596af29": SpecialChainLink{UID: jamGregory, Seqno: keybase1.Seqno(18), Reason: fmt.Sprintf(badJamGregory, 18)},
-	"51e46dad8b71a1a7204368f9cb4931257a32eed92cf3b97a08190c12912739dd": SpecialChainLink{UID: jamGregory, Seqno: keybase1.Seqno(19), Reason: fmt.Sprintf(badJamGregory, 19)},
-	"6d527d776cb28ea980c6e0474286fe745377e116fd5d07b44928d165ae4b7c97": SpecialChainLink{UID: dens, Seqno: keybase1.Seqno(8), Reason: badDens},
-	"9b3b3a3d973449ca3238bf59b7407186dc80242b917c158cba5e374595257dd0": SpecialChainLink{UID: ajar, Seqno: keybase1.Seqno(98), Reason: badAjar},
+	"694ed7166cee72449964e97bcd4be58243877718425c4dc655d2d80832bd5cdf": {UID: akalin, Seqno: keybase1.Seqno(22), Reason: fmt.Sprintf(badAkalin, 22)},
+	"27bc88059a768a82b1a21dcc1c46f7fc61c2d2b80c445eb2d18fed3a5bb42e49": {UID: akalin, Seqno: keybase1.Seqno(23), Reason: fmt.Sprintf(badAkalin, 23)},
+	"12b594e44d9289349283f8b14a6f83ad144a17a3025a758e17d4eca70fbdc923": {UID: akalin, Seqno: keybase1.Seqno(24), Reason: fmt.Sprintf(badAkalin, 24)},
+	"ce162011e380c954de15f30db28f8b7b358866d2721143d9d0d4424166ce5ed8": {UID: akalin, Seqno: keybase1.Seqno(25), Reason: fmt.Sprintf(badAkalin, 25)},
+	"bf914e6d4cf9b4eb7c88c2a8a6f5650e969ade9a97cf1605c1eb8cae97d5d278": {UID: jamGregory, Seqno: keybase1.Seqno(17), Reason: fmt.Sprintf(badJamGregory, 17)},
+	"e56f492c1b519905d04ce51368e87794963906dd6dacb63fbeab7ad23596af29": {UID: jamGregory, Seqno: keybase1.Seqno(18), Reason: fmt.Sprintf(badJamGregory, 18)},
+	"51e46dad8b71a1a7204368f9cb4931257a32eed92cf3b97a08190c12912739dd": {UID: jamGregory, Seqno: keybase1.Seqno(19), Reason: fmt.Sprintf(badJamGregory, 19)},
+	"6d527d776cb28ea980c6e0474286fe745377e116fd5d07b44928d165ae4b7c97": {UID: dens, Seqno: keybase1.Seqno(8), Reason: badDens},
+	"9b3b3a3d973449ca3238bf59b7407186dc80242b917c158cba5e374595257dd0": {UID: ajar, Seqno: keybase1.Seqno(98), Reason: badAjar},
 }
 
 // Some chainlinks are broken and need a small whitespace addition to match their payload
@@ -229,7 +230,6 @@ type ChainLink struct {
 	highChainVerified bool
 	storedLocally     bool
 	revoked           bool
-	unsigned          bool
 	dirty             bool
 	revocationsCache  *[]keybase1.SigID
 	computedHighSkip  *HighSkip
@@ -245,7 +245,7 @@ type ChainLink struct {
 func (c ChainLink) checkSpecialLinksTable(tab map[keybase1.LinkID]SpecialChainLink, uid keybase1.UID, why string) (found bool, reason string, err error) {
 	var scl SpecialChainLink
 
-	// The combination of hashVerified and chainVerified should ensure that this link
+	// The truthiness of hashVerified should ensure that this link
 	// is only considered here after all prevs have been successfully checked.
 	if !c.canTrustID() {
 		return false, "", ChainLinkError{fmt.Sprintf("cannot check if a link is %q without a verified link ID (linkID=%s, uid=%s, hash=%v, chain=%v, diskVersion=%d)", why, c.id, uid, c.hashVerified, c.chainVerified, c.diskVersion)}
@@ -325,7 +325,7 @@ func (c *ChainLink) GetCTime() time.Time {
 		return time.Time{}
 	}
 
-	return time.Unix(int64(c.unpacked.ctime), 0)
+	return time.Unix(c.unpacked.ctime, 0)
 }
 
 func (c *ChainLink) GetETime() time.Time {
@@ -374,33 +374,85 @@ func (c *ChainLink) Pack() (*jsonw.Wrapper, error) {
 	p := jsonw.NewDictionary()
 
 	if c.IsStubbed() {
-		p.SetKey("s2", jsonw.NewString(c.unpacked.outerLinkV2.EncodeStubbed()))
+		err := p.SetKey("s2", jsonw.NewString(c.unpacked.outerLinkV2.EncodeStubbed()))
+		if err != nil {
+			return nil, err
+		}
 	} else {
 		// store the payload for v2 links and local tracks
 		if c.unpacked.sigVersion == KeybaseSignatureV2 {
-			p.SetKey("payload_json", jsonw.NewString(string(c.unpacked.payloadV2)))
+			err := p.SetKey("payload_json", jsonw.NewString(string(c.unpacked.payloadV2)))
+			if err != nil {
+				return nil, err
+			}
 		} else if len(c.unpacked.payloadLocal) > 0 {
-			p.SetKey("payload_json", jsonw.NewString(string(c.unpacked.payloadLocal)))
+			err := p.SetKey("payload_json", jsonw.NewString(string(c.unpacked.payloadLocal)))
+			if err != nil {
+				return nil, err
+			}
 		}
 
-		p.SetKey("sig", jsonw.NewString(c.unpacked.sig))
-		p.SetKey("sig_id", jsonw.NewString(string(c.unpacked.sigID)))
-		p.SetKey("kid", c.unpacked.kid.ToJsonw())
-		p.SetKey("ctime", jsonw.NewInt64(c.unpacked.ctime))
-		if c.unpacked.pgpFingerprint != nil {
-			p.SetKey("fingerprint", jsonw.NewString(c.unpacked.pgpFingerprint.String()))
+		err := p.SetKey("sig", jsonw.NewString(c.unpacked.sig))
+		if err != nil {
+			return nil, err
 		}
-		p.SetKey("sig_verified", jsonw.NewBool(c.sigVerified))
-		p.SetKey("chain_verified", jsonw.NewBool(c.chainVerified))
-		p.SetKey("hash_verified", jsonw.NewBool(c.hashVerified))
-		p.SetKey("proof_text_full", jsonw.NewString(c.unpacked.proofText))
-		p.SetKey("sig_version", jsonw.NewInt(int(c.unpacked.sigVersion)))
-		p.SetKey("merkle_seqno", jsonw.NewInt64(int64(c.unpacked.firstAppearedMerkleSeqnoUnverified)))
-		p.SetKey("disk_version", jsonw.NewInt(chainLinkDiskVersion))
+		err = p.SetKey("sig_id", jsonw.NewString(string(c.unpacked.sigID)))
+		if err != nil {
+			return nil, err
+		}
+		err = p.SetKey("kid", c.unpacked.kid.ToJsonw())
+		if err != nil {
+			return nil, err
+		}
+		err = p.SetKey("ctime", jsonw.NewInt64(c.unpacked.ctime))
+		if err != nil {
+			return nil, err
+		}
+		if c.unpacked.pgpFingerprint != nil {
+			err := p.SetKey("fingerprint", jsonw.NewString(c.unpacked.pgpFingerprint.String()))
+			if err != nil {
+				return nil, err
+			}
+		}
+		err = p.SetKey("sig_verified", jsonw.NewBool(c.sigVerified))
+		if err != nil {
+			return nil, err
+		}
+		err = p.SetKey("chain_verified", jsonw.NewBool(c.chainVerified))
+		if err != nil {
+			return nil, err
+		}
+		err = p.SetKey("hash_verified", jsonw.NewBool(c.hashVerified))
+		if err != nil {
+			return nil, err
+		}
+		err = p.SetKey("payload_verified", jsonw.NewBool(c.payloadVerified))
+		if err != nil {
+			return nil, err
+		}
+		err = p.SetKey("proof_text_full", jsonw.NewString(c.unpacked.proofText))
+		if err != nil {
+			return nil, err
+		}
+		err = p.SetKey("sig_version", jsonw.NewInt(int(c.unpacked.sigVersion)))
+		if err != nil {
+			return nil, err
+		}
+		err = p.SetKey("merkle_seqno", jsonw.NewInt64(int64(c.unpacked.firstAppearedMerkleSeqnoUnverified)))
+		if err != nil {
+			return nil, err
+		}
+		err = p.SetKey("disk_version", jsonw.NewInt(chainLinkDiskVersion))
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if c.cki != nil {
-		p.SetKey("computed_key_infos", jsonw.NewWrapper(*c.cki))
+		err := p.SetKey("computed_key_infos", jsonw.NewWrapper(*c.cki))
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return p, nil
@@ -463,13 +515,13 @@ func (c *ChainLink) GetRevocations() []keybase1.SigID {
 		return nil
 	}
 	if s, err := jsonparserw.GetString(payload, "body", "revoke", "sig_id"); err == nil {
-		if sigID, err := keybase1.SigIDFromString(s, true); err == nil {
+		if sigID, err := keybase1.SigIDFromString(s); err == nil {
 			ret = append(ret, sigID)
 		}
 	}
 
-	jsonparserw.ArrayEach(payload, func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
-		if s, err := keybase1.SigIDFromString(string(value), true); err == nil {
+	_, _ = jsonparserw.ArrayEach(payload, func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
+		if s, err := keybase1.SigIDFromString(string(value)); err == nil {
 			ret = append(ret, s)
 		}
 	}, "body", "revoke", "sig_ids")
@@ -492,7 +544,7 @@ func (c *ChainLink) GetRevokeKids() []keybase1.KID {
 		ret = append(ret, keybase1.KIDFromString(s))
 	}
 
-	jsonparserw.ArrayEach(payload, func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
+	_, _ = jsonparserw.ArrayEach(payload, func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
 		ret = append(ret, keybase1.KIDFromString(string(value)))
 	}, "body", "revoke", "kids")
 
@@ -573,7 +625,7 @@ func (tmp *ChainLinkUnpacked) parseHighSkipFromPayload(payload []byte) (*HighSki
 
 func (tmp *ChainLinkUnpacked) unpackPayloadJSON(g *GlobalContext, payload []byte, linkID LinkID) error {
 
-	if !IsJSONObject(payload) {
+	if !isJSONObject(payload, linkID) {
 		return ChainLinkError{"chain link is not a valid JSON object as expected; found leading junk"}
 	}
 
@@ -741,7 +793,7 @@ func (c *ChainLink) unpackStubbed(raw string) error {
 	return nil
 }
 
-func (c *ChainLink) Unpack(m MetaContext, trusted bool, selfUID keybase1.UID, packed []byte) error {
+func (c *ChainLink) unpackFromLocalStorage(m MetaContext, selfUID keybase1.UID, packed []byte) error {
 	if s, err := jsonparserw.GetString(packed, "s2"); err == nil {
 		return c.unpackStubbed(s)
 	}
@@ -768,13 +820,16 @@ func (c *ChainLink) Unpack(m MetaContext, trusted bool, selfUID keybase1.UID, pa
 	}
 
 	var payload []byte
-	if trusted && tmp.sigVersion == KeybaseSignatureV1 {
-		// use payload from sig
+	switch tmp.sigVersion {
+	case KeybaseSignatureV1:
+		// Use the payload from the signature here, since we always get the full signature with
+		// the attached payload for V1 signatures. Note that we redundantly check that the payload
+		// matches the sig in verifyPayloadV1() on the way out of this Unpack function.
 		payload, err = tmp.Payload()
 		if err != nil {
 			return err
 		}
-	} else {
+	case KeybaseSignatureV2:
 		// use the payload in payload_json
 		data, _, _, err := jsonparserw.Get(packed, "payload_json")
 		if err != nil {
@@ -787,25 +842,14 @@ func (c *ChainLink) Unpack(m MetaContext, trusted bool, selfUID keybase1.UID, pa
 			return err
 		}
 		payload = []byte(sdata)
-
-		if tmp.sigVersion == KeybaseSignatureV1 {
-			// check that payload_json matches payload in sig
-			sigPayload, err := tmp.Payload()
-			if err != nil {
-				return err
-			}
-
-			payloadFixed := c.fixPayload(payload, c.id)
-
-			if !FastByteArrayEq(payloadFixed, sigPayload) {
-				return ChainLinkError{"sig payload does not match payload_json"}
-			}
-		}
+	default:
+		err = ChainLinkError{fmt.Sprintf("unhandled signature version %d", tmp.sigVersion)}
+		return err
 	}
 
 	// unpack the payload
 	if err := tmp.unpackPayloadJSON(c.G(), payload, c.id); err != nil {
-		m.CDebugf("unpack payload json err: %s", err)
+		m.Debug("unpack payload json err: %s", err)
 		return err
 	}
 
@@ -880,38 +924,39 @@ func (c *ChainLink) Unpack(m MetaContext, trusted bool, selfUID keybase1.UID, pa
 
 	// IF we're loaded from *trusted* storage, like our local
 	// DB, then we can skip verification later
-	if trusted {
-		if b, err := jsonparserw.GetBoolean(packed, "sig_verified"); err == nil && b {
-			c.sigVerified = true
-			m.VLogf(VLog1, "| Link is marked as 'sig_verified'")
-			if ckidata, _, _, err := jsonparserw.Get(packed, "computed_key_infos"); err == nil {
-				if uerr := c.UnpackComputedKeyInfos(ckidata); uerr != nil {
-					m.CWarningf("Problem unpacking computed key infos: %s", uerr)
-				}
+	if b, err := jsonparserw.GetBoolean(packed, "sig_verified"); err == nil && b {
+		c.sigVerified = true
+		m.VLogf(VLog1, "| Link is marked as 'sig_verified'")
+		if ckidata, _, _, err := jsonparserw.Get(packed, "computed_key_infos"); err == nil {
+			if uerr := c.UnpackComputedKeyInfos(ckidata); uerr != nil {
+				m.Warning("Problem unpacking computed key infos: %s", uerr)
 			}
 		}
-		if b, err := jsonparserw.GetBoolean(packed, "hash_verified"); err == nil && b {
-			c.hashVerified = true
-		}
-		if b, err := jsonparserw.GetBoolean(packed, "chain_verified"); err == nil && b {
-			c.chainVerified = true
-		}
-		if i, err := jsonparserw.GetInt(packed, "disk_version"); err == nil {
-			c.diskVersion = int(i)
-		}
+	}
+	if b, err := jsonparserw.GetBoolean(packed, "hash_verified"); err == nil && b {
+		c.hashVerified = true
+	}
+	if b, err := jsonparserw.GetBoolean(packed, "chain_verified"); err == nil && b {
+		c.chainVerified = true
+	}
+	if b, err := jsonparserw.GetBoolean(packed, "payload_verified"); err == nil && b {
+		c.payloadVerified = true
+	}
+	if i, err := jsonparserw.GetInt(packed, "disk_version"); err == nil {
+		c.diskVersion = int(i)
+	}
 
-		// It is not acceptable to digest sig_id from the server, but we do derive it
-		// as we unpack the server reply (see VerifyLink), and it is acceptable to
-		// read it out of a locally-stored chainlink. Note this field is required,
-		// and if we don't have it, there has been a major problem.
-		s, err := jsonparserw.GetString(packed, "sig_id")
-		if err != nil {
-			return err
-		}
-		c.unpacked.sigID, err = keybase1.SigIDFromString(s, true)
-		if err != nil {
-			return err
-		}
+	// It is not acceptable to digest sig_id from the server, but we do derive it
+	// as we unpack the server reply (see VerifyLink), and it is acceptable to
+	// read it out of a locally-stored chainlink. Note this field is required,
+	// and if we don't have it, there has been a major problem.
+	s, err := jsonparserw.GetString(packed, "sig_id")
+	if err != nil {
+		return err
+	}
+	c.unpacked.sigID, err = keybase1.SigIDFromString(s)
+	if err != nil {
+		return err
 	}
 
 	// sigID is set as a side effect of verifying the link. Make sure we do that
@@ -1069,18 +1114,47 @@ func fixAndHashPayload(g *GlobalContext, payload []byte, linkID LinkID) []byte {
 	return ret[:]
 }
 
-func inferSigVersion(payload []byte) SigVersion {
+// two chainlinks in the database have leading padding via space characters
+// or newline characters. In these two cases, we strip off leading space
+// before checking if they are JSON objects. In all other cases, the first
+// character must be '{'
+var paddedChainLinks = map[keybase1.LinkID]bool{
+	"ebcf3fab043970beee1198f16098f411331b7dbaa865a285908d82fc58df1577": true,
+	"c094f59c77da5e7d4023025744f8c533a098b2136f2113dc02b0745568c2faa3": true,
+}
+
+func stripPadding(in []byte) []byte {
+	for i, b := range in {
+		if b != ' ' && b != '\n' {
+			return in[i:]
+		}
+	}
+	return []byte{}
+}
+
+func isPadded(in []byte) bool {
+	return len(in) > 0 && (in[0] == ' ' || in[0] == '\n')
+}
+
+func isJSONObject(payload []byte, linkID LinkID) bool {
+	if isPadded(payload) && paddedChainLinks[linkID.Export()] {
+		payload = stripPadding(payload)
+	}
+	return msgpack.IsJSONObject(payload)
+}
+
+func inferSigVersion(payload []byte, linkID LinkID) SigVersion {
 
 	// Version 1 payloads are JSON and must start with an opening '{'
-	if IsJSONObject(payload) {
+	if isJSONObject(payload, linkID) {
 		return KeybaseSignatureV1
 	}
 
-	// Version 2 payloads are Msgpack and must arrays, so they must
+	// Version 2 payloads are Msgpack and must be arrays, so they must
 	// fit the following requirements. The case where b == 0xdc or
 	// b = 0xdd are far-fetched, since that would mean a large or very
 	// large packing. But still, allow any valid array up front.
-	if IsEncodedMsgpackArray(payload) {
+	if msgpack.IsEncodedMsgpackArray(payload) {
 		return KeybaseSignatureV2
 	}
 
@@ -1088,8 +1162,8 @@ func inferSigVersion(payload []byte) SigVersion {
 	return KeybaseNullSigVersion
 }
 
-func assertCorrectSigVersion(expected SigVersion, payload []byte) error {
-	vInferred := inferSigVersion(payload)
+func assertCorrectSigVersion(expected SigVersion, payload []byte, linkID LinkID) error {
+	vInferred := inferSigVersion(payload, linkID)
 	if vInferred != expected {
 		return ChainLinkError{msg: fmt.Sprintf("chainlink in wrong format; expected version=%d but payload was %d", expected, vInferred)}
 	}
@@ -1111,7 +1185,7 @@ func (c *ChainLink) getSigPayload() ([]byte, error) {
 		return nil, ChainLinkError{msg: fmt.Sprintf("unexpected signature version: %d", c.unpacked.sigVersion)}
 	}
 
-	err := assertCorrectSigVersion(v, ret)
+	err := assertCorrectSigVersion(v, ret, c.id)
 	if err != nil {
 		return nil, err
 	}
@@ -1139,7 +1213,7 @@ func (c *ChainLink) verifyPayloadV2() error {
 		return ChainLinkError{fmt.Sprintf("In chainlink v2, expected inner link to match; got %d", innerVersion)}
 	}
 	ignoreIfUnsupported := c.getIgnoreIfUnsupportedFromPayload()
-	linkType, err := c.GetSigchainV2TypeFromInner(SigIgnoreIfUnsupported(ignoreIfUnsupported))
+	linkType, err := c.GetSigchainV2TypeFromInner(ignoreIfUnsupported)
 	if err != nil {
 		return err
 	}
@@ -1170,7 +1244,8 @@ func (c *ChainLink) verifyPayloadV1() error {
 	if err != nil {
 		return err
 	}
-	c.markPayloadVerified(sigid)
+	params := keybase1.SigIDSuffixParametersFromTypeAndVersion(c.unpacked.typ, keybase1.SigVersion(1))
+	c.markPayloadVerified(sigid.ToSigID(params))
 	return nil
 }
 
@@ -1206,14 +1281,13 @@ func (c *ChainLink) PutSigCheckCache(cki *ComputedKeyInfos) {
 	c.dirty = true
 	c.cki = cki
 	c.G().LinkCache().Mutate(c.id, func(c *ChainLink) { c.cki = cki })
-	return
 }
 
 func (c *ChainLink) VerifySigWithKeyFamily(ckf ComputedKeyFamily) (err error) {
-
 	var key GenericKey
 	var verifyKID keybase1.KID
-	var sigID keybase1.SigID
+	var sigIDBase keybase1.SigIDBase
+	var params keybase1.SigIDSuffixParameters
 
 	if c.IsStubbed() {
 		return ChainLinkError{"cannot verify signature -- none available; is this a stubbed out link?"}
@@ -1242,30 +1316,13 @@ func (c *ChainLink) VerifySigWithKeyFamily(ckf ComputedKeyFamily) (err error) {
 		return err
 	}
 
-	if sigID, err = key.VerifyString(c.G().Log, c.unpacked.sig, sigPayload); err != nil {
+	if sigIDBase, err = key.VerifyString(c.G().Log, c.unpacked.sig, sigPayload); err != nil {
 		return BadSigError{err.Error()}
 	}
-	c.unpacked.sigID = sigID
+	params = keybase1.SigIDSuffixParametersFromTypeAndVersion(c.unpacked.typ, keybase1.SigVersion(c.unpacked.sigVersion))
+	c.unpacked.sigID = sigIDBase.ToSigID(params)
 
 	return nil
-}
-
-func ImportLinkFromServer(m MetaContext, parent *SigChain, data []byte, selfUID keybase1.UID) (ret *ChainLink, err error) {
-	var id LinkID
-
-	if ph, err := jsonparserw.GetString(data, "payload_hash"); err == nil {
-		id, err = LinkIDFromHex(ph)
-		if err != nil {
-			return nil, err
-		}
-	}
-	ret = NewChainLink(m.G(), parent, id)
-	if err = ret.Unpack(m, false, selfUID, data); err != nil {
-		m.CDebugf("Unpack error: %s", err)
-		return nil, err
-	}
-
-	return ret, nil
 }
 
 func putLinkToCache(m MetaContext, link *ChainLink) {
@@ -1292,7 +1349,7 @@ func ImportLinkFromStorage(m MetaContext, id LinkID, selfUID keybase1.UID) (*Cha
 	if err == nil && data != nil {
 		// May as well recheck onload (maybe revisit this)
 		ret = NewChainLink(m.G(), nil, id)
-		if err = ret.Unpack(m, true, selfUID, data); err != nil {
+		if err = ret.unpackFromLocalStorage(m, selfUID, data); err != nil {
 			return nil, err
 		}
 		ret.storedLocally = true
@@ -1486,7 +1543,7 @@ func (c ChainLink) ToMerkleTriple() *MerkleTriple {
 	return &MerkleTriple{
 		Seqno:  c.GetSeqno(),
 		LinkID: c.id,
-		SigID:  c.GetSigID(),
+		SigID:  c.GetSigID().StripSuffix(),
 	}
 }
 
@@ -1566,6 +1623,7 @@ func (c ChainLink) IsHighUserLink(mctx MetaContext, uid keybase1.UID) (bool, err
 		v2Type == SigchainV2TypeWebServiceBindingWithRevoke ||
 		v2Type == SigchainV2TypeCryptocurrencyWithRevoke ||
 		v2Type == SigchainV2TypeSibkey ||
+		v2Type == SigchainV2TypeWotVouchWithRevoke ||
 		v2Type == SigchainV2TypePGPUpdate
 	return isNewHighLink, nil
 }

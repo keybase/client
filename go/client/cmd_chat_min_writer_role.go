@@ -4,6 +4,7 @@
 package client
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/keybase/cli"
@@ -81,6 +82,10 @@ func (c *CmdChatSetConvMinWriterRole) Run() (err error) {
 		return err
 	}
 
+	if conv.Info.MembersType != chat1.ConversationMembersType_TEAM {
+		return errors.New("can only set minimum role to post in team conversations")
+	}
+
 	if c.role != nil {
 		if err = c.postMinWriterRole(context.TODO(), conv, *c.role); err != nil {
 			return err
@@ -112,6 +117,9 @@ func (c *CmdChatSetConvMinWriterRole) ParseArgv(ctx *cli.Context) (err error) {
 		role, err := ParseRole(ctx)
 		if err != nil {
 			return err
+		}
+		if role.IsBotLike() {
+			return fmt.Errorf("Bot roles cannot be used for min writer role setting")
 		}
 		c.role = &role
 	}

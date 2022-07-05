@@ -21,7 +21,7 @@ at any one time.
 
 At this point, I usually Google for it, and come up with [this blog post](https://blog.golang.org/pipelines), and I become slightly sad, because that is a lot of code to digest and
 understand to do something that should be rather simple. It's not really the fault
-of the languge, but more so the library. Here is a library that makes it a lot
+of the language, but more so the library. Here is a library that makes it a lot
 easier:
 
 ## Example

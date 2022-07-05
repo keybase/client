@@ -16,6 +16,8 @@ import (
 type IdentifyOutcome struct {
 	Contextified
 	Username              NormalizedUsername
+	UID                   keybase1.UID
+	EldestSeqno           keybase1.Seqno
 	Error                 error
 	KeyDiffs              []TrackDiff
 	Revoked               []TrackDiff
@@ -29,8 +31,13 @@ type IdentifyOutcome struct {
 	ResponsibleGregorItem gregor.Item
 }
 
-func NewIdentifyOutcomeWithUsername(g *GlobalContext, u NormalizedUsername) *IdentifyOutcome {
-	return &IdentifyOutcome{Contextified: NewContextified(g), Username: u}
+func NewIdentifyOutcome(g *GlobalContext, username NormalizedUsername, uid keybase1.UID, eldestSeqno keybase1.Seqno) *IdentifyOutcome {
+	return &IdentifyOutcome{
+		Contextified: NewContextified(g),
+		Username:     username,
+		UID:          uid,
+		EldestSeqno:  eldestSeqno,
+	}
 }
 
 func (i *IdentifyOutcome) remoteProofLinks() *RemoteProofLinks {
@@ -42,7 +49,7 @@ func (i *IdentifyOutcome) remoteProofLinks() *RemoteProofLinks {
 }
 
 func (i *IdentifyOutcome) GetRemoteCheckResultFor(service string, username string) ProofError {
-	cieq := func(a, b string) bool { return strings.ToLower(a) == strings.ToLower(b) }
+	cieq := strings.EqualFold
 	for _, pc := range i.ProofChecks {
 		k, v := pc.GetLink().ToKeyValuePair()
 		if cieq(k, service) && cieq(v, username) {
@@ -64,45 +71,8 @@ func (i *IdentifyOutcome) TrackSet() *TrackSet {
 	return i.remoteProofLinks().TrackSet()
 }
 
-func (i *IdentifyOutcome) ProofChecksSorted() []*LinkCheckResult {
-	useDisplayPriority := i.G().ShouldUseParameterizedProofs()
-	if useDisplayPriority {
-		return i.proofChecksSortedByDisplayPriority()
-	}
-	return i.proofChecksSortedByProofType()
-
-}
-
-// TODO Remove with CORE-9923
-func (i *IdentifyOutcome) proofChecksSortedByProofType() []*LinkCheckResult {
-	// Treat DNS and Web as the same type, and sort them together
-	// in the same bucket.
-	dnsToWeb := func(t keybase1.ProofType) keybase1.ProofType {
-		if t == keybase1.ProofType_DNS {
-			return keybase1.ProofType_GENERIC_WEB_SITE
-		}
-		return t
-	}
-
-	m := make(map[keybase1.ProofType][]*LinkCheckResult)
-	for _, p := range i.ProofChecks {
-		pt := dnsToWeb(p.link.GetProofType())
-		m[pt] = append(m[pt], p)
-	}
-
-	var res []*LinkCheckResult
-	for _, pt := range RemoteServiceOrder {
-		pc, ok := m[pt]
-		if !ok {
-			continue
-		}
-		sort.Sort(byDisplayString(pc))
-		res = append(res, pc...)
-	}
-	return res
-}
-
-func (i *IdentifyOutcome) proofChecksSortedByDisplayPriority() []*LinkCheckResult {
+func (i *IdentifyOutcome) ProofChecksSorted(mctx MetaContext) []*LinkCheckResult {
+	// Sort by display priority
 	pc := make([]*LinkCheckResult, len(i.ProofChecks))
 	copy(pc, i.ProofChecks)
 	proofServices := i.G().GetProofServices()
@@ -110,7 +80,7 @@ func (i *IdentifyOutcome) proofChecksSortedByDisplayPriority() []*LinkCheckResul
 	for _, lcr := range pc {
 		key := lcr.link.DisplayPriorityKey()
 		if _, ok := serviceTypes[key]; !ok {
-			st := proofServices.GetServiceType(key)
+			st := proofServices.GetServiceType(mctx.Ctx(), key)
 			displayPriority := 0
 			if st != nil {
 				displayPriority = st.DisplayPriority()
@@ -291,18 +261,10 @@ func (i IdentifyOutcome) GetErrorAndWarnings(strict bool) (warnings Warnings, er
 }
 
 func (i IdentifyOutcome) GetError() error {
-	_, e := i.GetErrorAndWarnings(true)
+	_, e := i.GetErrorAndWarnings(true /*strict */)
 	return e
 }
 
 func (i IdentifyOutcome) GetErrorLax() (Warnings, error) {
-	return i.GetErrorAndWarnings(false)
-}
-
-type byDisplayString []*LinkCheckResult
-
-func (a byDisplayString) Len() int      { return len(a) }
-func (a byDisplayString) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
-func (a byDisplayString) Less(i, j int) bool {
-	return a[i].link.ToDisplayString() < a[j].link.ToDisplayString()
+	return i.GetErrorAndWarnings(false /*strict */)
 }

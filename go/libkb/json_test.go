@@ -30,7 +30,7 @@ func TestJsonTransaction(t *testing.T) {
 		go func() {
 			tx, err := tc.G.Env.GetConfigWriter().BeginTransaction()
 			if err == nil {
-				tx.Abort()
+				_ = tx.Abort()
 			}
 			wg.Done()
 		}()
@@ -40,7 +40,7 @@ func TestJsonTransaction(t *testing.T) {
 		go func() {
 			tx, err := tc.G.Env.GetConfigWriter().BeginTransaction()
 			if err == nil {
-				tx.Commit()
+				_ = tx.Commit()
 			}
 			wg.Done()
 		}()
@@ -51,7 +51,7 @@ func TestJsonTransaction(t *testing.T) {
 func buildNewJSONFile(m MetaContext) (JSONTestReader, JSONTestWriter, *JSONTestFile) {
 	path := filepath.Join(m.G().Env.GetConfigDir(), "test-json-file")
 	jsonFile := JSONTestFile{NewJSONFile(m.G(), path, "test file from buildNewJSONFile")}
-	jsonFile.Load(false)
+	_ = jsonFile.Load(false)
 	return &jsonFile, &jsonFile, &jsonFile
 }
 
@@ -60,7 +60,7 @@ func TestJsonSetAndGetString(t *testing.T) {
 	defer tc.Cleanup()
 	m := NewMetaContextForTest(tc)
 	reader, writer, rawFile := buildNewJSONFile(m)
-	defer rawFile.Nuke()
+	defer func() { _ = rawFile.Nuke() }()
 
 	//verify that the path is empty first
 	path := "america.montana.bozeman"
@@ -82,7 +82,7 @@ func TestJsonSetAndGetInt(t *testing.T) {
 	defer tc.Cleanup()
 	m := NewMetaContextForTest(tc)
 	reader, writer, rawFile := buildNewJSONFile(m)
-	defer rawFile.Nuke()
+	defer func() { _ = rawFile.Nuke() }()
 
 	//verify that the path is empty first
 	path := "candy.skittles.count"
@@ -104,7 +104,7 @@ func TestJsonSetAndGetBool(t *testing.T) {
 	defer tc.Cleanup()
 	m := NewMetaContextForTest(tc)
 	reader, writer, rawFile := buildNewJSONFile(m)
-	defer rawFile.Nuke()
+	defer func() { _ = rawFile.Nuke() }()
 
 	//verify that the path is empty first
 	path := "colors.orange.appetizing"
@@ -126,7 +126,7 @@ func TestJsonSetAndGetNull(t *testing.T) {
 	defer tc.Cleanup()
 	m := NewMetaContextForTest(tc)
 	reader, writer, rawFile := buildNewJSONFile(m)
-	defer rawFile.Nuke()
+	defer func() { _ = rawFile.Nuke() }()
 
 	//verify that the path is empty first
 	//and that GetNull knows the path wasn't set
@@ -190,7 +190,7 @@ func TestJsonNonExistingFileRollback(t *testing.T) {
 	defer tc.Cleanup()
 	m := NewMetaContextForTest(tc)
 	reader, writer, rawFile := buildNewJSONFile(m)
-	defer rawFile.Nuke()
+	defer func() { _ = rawFile.Nuke() }()
 
 	tx, err := rawFile.BeginTransaction()
 	require.NoError(t, err)

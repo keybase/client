@@ -18,8 +18,43 @@
       "response": null,
       "notify": ""
     },
+    "webOfTrustChanged": {
+      "request": [
+        {
+          "name": "username",
+          "type": "string"
+        }
+      ],
+      "response": null,
+      "notify": ""
+    },
     "passwordChanged": {
-      "request": [],
+      "request": [
+        {
+          "name": "state",
+          "type": "PassphraseState"
+        }
+      ],
+      "response": null,
+      "oneway": true
+    },
+    "identifyUpdate": {
+      "request": [
+        {
+          "name": "okUsernames",
+          "type": {
+            "type": "array",
+            "items": "string"
+          }
+        },
+        {
+          "name": "brokenUsernames",
+          "type": {
+            "type": "array",
+            "items": "string"
+          }
+        }
+      ],
       "response": null,
       "oneway": true
     }

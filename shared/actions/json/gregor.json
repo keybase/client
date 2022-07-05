@@ -1,6 +1,5 @@
 {
   "prelude": [
-    "import * as Types from '../constants/types/gregor'",
     "import * as RPCTypesGregor from '../constants/types/rpc-gregor-gen'"
   ],
   "actions": {
@@ -8,10 +7,9 @@
       "state": "Array<{md: RPCTypesGregor.Metadata, item: RPCTypesGregor.Item}>",
       "reason": "RPCTypes.PushReason"
     },
-    "startReachability": {},
     "checkReachability": {},
-    "pushOOBM": { "messages": "Array<RPCTypesGregor.OutOfBandMessage>" },
-    "updateReachable": { "reachable": "RPCTypes.Reachable" },
+    "pushOOBM": {"messages": "Array<RPCTypesGregor.OutOfBandMessage>"},
+    "updateReachable": {"reachable": "RPCTypes.Reachable"},
     "updateCategory": {
       "category": "string",
       "body": "string",

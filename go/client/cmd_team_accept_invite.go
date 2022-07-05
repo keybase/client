@@ -9,12 +9,12 @@ import (
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
 type CmdTeamAcceptInvite struct {
 	libkb.Contextified
-	Token  string
-	Seitan bool
+	Token string
 }
 
 func newCmdTeamAcceptInvite(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -49,6 +49,12 @@ func (c *CmdTeamAcceptInvite) ParseArgv(ctx *cli.Context) error {
 }
 
 func (c *CmdTeamAcceptInvite) Run() error {
+	protocols := []rpc.Protocol{
+		NewTeamsUIProtocol(c.G()),
+	}
+	if err := RegisterProtocolsWithContext(protocols, c.G()); err != nil {
+		return err
+	}
 	cli, err := GetTeamsClient(c.G())
 	if err != nil {
 		return err

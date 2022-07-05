@@ -12,8 +12,9 @@ import (
 )
 
 type udStoredRes struct {
-	username               libkb.NormalizedUsername
-	deviceName, deviceType string
+	username   libkb.NormalizedUsername
+	deviceName string
+	deviceType keybase1.DeviceTypeV2
 }
 
 type checkKidStoredRes struct {
@@ -35,7 +36,7 @@ type CachingUPAKFinder struct {
 func NewCachingUPAKFinder(g *globals.Context) *CachingUPAKFinder {
 	return &CachingUPAKFinder{
 		Contextified:  globals.NewContextified(g),
-		DebugLabeler:  utils.NewDebugLabeler(g.GetLog(), "CachingUPAKFinder", false),
+		DebugLabeler:  utils.NewDebugLabeler(g.ExternalG(), "CachingUPAKFinder", false),
 		udCache:       make(map[string]udStoredRes),
 		checkKidCache: make(map[string]checkKidStoredRes),
 	}
@@ -56,7 +57,7 @@ func (u *CachingUPAKFinder) lookupUDKey(key string) (udStoredRes, bool) {
 	return existing, ok
 }
 
-func (u *CachingUPAKFinder) writeUDKey(key string, username libkb.NormalizedUsername, deviceName, deviceType string) {
+func (u *CachingUPAKFinder) writeUDKey(key string, username libkb.NormalizedUsername, deviceName string, deviceType keybase1.DeviceTypeV2) {
 	u.udLock.Lock()
 	defer u.udLock.Unlock()
 	u.udCache[key] = udStoredRes{
@@ -84,8 +85,7 @@ func (u *CachingUPAKFinder) writeCheckKidKey(key string, found bool, revokedAt *
 	}
 }
 
-func (u *CachingUPAKFinder) LookupUsernameAndDevice(ctx context.Context, uid keybase1.UID, deviceID keybase1.DeviceID) (username libkb.NormalizedUsername, deviceName string, deviceType string, err error) {
-	defer u.Trace(ctx, func() error { return err }, "LookupUsernameAndDevice(%s,%s)", uid, deviceID)()
+func (u *CachingUPAKFinder) LookupUsernameAndDevice(ctx context.Context, uid keybase1.UID, deviceID keybase1.DeviceID) (username libkb.NormalizedUsername, deviceName string, deviceType keybase1.DeviceTypeV2, err error) {
 	key := u.udKey(uid, deviceID)
 	existing, ok := u.lookupUDKey(key)
 	if ok {
@@ -100,7 +100,6 @@ func (u *CachingUPAKFinder) LookupUsernameAndDevice(ctx context.Context, uid key
 }
 
 func (u *CachingUPAKFinder) CheckKIDForUID(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (found bool, revokedAt *keybase1.KeybaseTime, deleted bool, err error) {
-	defer u.Trace(ctx, func() error { return err }, "CheckKIDForUID(%s,%s)", uid, kid)()
 	key := u.checkKidKey(uid, kid)
 	existing, ok := u.lookupCheckKidKey(key)
 	if ok {

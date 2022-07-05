@@ -14,7 +14,7 @@ protocol apiserver {
     @lint("ignore")
     APIRes Delete(string endpoint, array<StringKVPair> args, array<int> httpStatus, array<int> appStatusCode);
     @lint("ignore")
-    APIRes GetWithSession(string endpoint, array<StringKVPair> args, array<int> httpStatus, array<int> appStatusCode);
+    APIRes GetWithSession(string endpoint, array<StringKVPair> args, array<int> httpStatus, array<int> appStatusCode, union{null, boolean} useText);
     @lint("ignore")
     APIRes Post(string endpoint, array<StringKVPair> args, array<int> httpStatus, array<int> appStatusCode);
     @lint("ignore")

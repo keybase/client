@@ -20,6 +20,7 @@ type ChangeTrustMutator interface {
 }
 
 // ChangeTrustBuilder represents a transaction that is being built.
+// Deprecated use txnbuild.ChangeTrust instead
 type ChangeTrustBuilder struct {
 	O   xdr.Operation
 	CT  xdr.ChangeTrustOp
@@ -92,9 +93,7 @@ func RemoveTrust(code, issuer string, args ...interface{}) (result ChangeTrustBu
 		Limit("0"),
 	}
 
-	for _, mut := range args {
-		mutators = append(mutators, mut)
-	}
+	mutators = append(mutators, args...)
 
 	return ChangeTrust(mutators...)
 }

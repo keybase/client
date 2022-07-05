@@ -13,14 +13,14 @@ func (e ErrInvalidPermissions) Error() string {
 	return "invalid permission(s) " + e.permissions
 }
 
-// ErrDuplicateAccessControlPath is returned when multiple ACLs are defined for
-// the same path in config.
-type ErrDuplicateAccessControlPath struct {
+// ErrDuplicatePerPathConfigPath is returned when multiple per-user configs are
+// defined for the same path in config.
+type ErrDuplicatePerPathConfigPath struct {
 	cleanedPath string
 }
 
 // Error implements the error interface.
-func (e ErrDuplicateAccessControlPath) Error() string {
+func (e ErrDuplicatePerPathConfigPath) Error() string {
 	return "duplicate access control for " + e.cleanedPath
 }
 
@@ -34,8 +34,8 @@ func (e ErrInvalidVersion) Error() string {
 	return fmt.Sprintf("invalid version %s", e.versionStr)
 }
 
-// ErrUndefinedUsername is returned when a username appears in a ACL but it's
-// not defined in the config's Users section.
+// ErrUndefinedUsername is returned when a username appears in a per-path
+// config but it's not defined in the config's Users section.
 type ErrUndefinedUsername struct {
 	username string
 }
@@ -43,4 +43,24 @@ type ErrUndefinedUsername struct {
 // Error implements the error interface.
 func (e ErrUndefinedUsername) Error() string {
 	return fmt.Sprintf("undefined username %s", e.username)
+}
+
+// ErrACLsPerPathConfigsBothPresent is returned when we are parsing a ConfigV1
+// that has both ACLs and PerPathConfigs defined.
+type ErrACLsPerPathConfigsBothPresent struct{}
+
+// Error implements the error interface.
+func (ErrACLsPerPathConfigsBothPresent) Error() string {
+	return "We are deprecating `acls` and moving to `per_path_configs`. " +
+		"Please use `per_path_configs`."
+}
+
+// ErrInvalidConfig is returned when an invalid config is provided.
+type ErrInvalidConfig struct {
+	msg string
+}
+
+// Error implements the error interface.
+func (e ErrInvalidConfig) Error() string {
+	return fmt.Sprintf("invalid config: %s", e.msg)
 }

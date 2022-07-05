@@ -5,10 +5,11 @@
 package libkbfs
 
 import (
-	"github.com/keybase/client/go/kbfs/tlf"
 	"sync"
 
 	"github.com/keybase/client/go/kbconst"
+	"github.com/keybase/client/go/kbfs/idutil"
+	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/libkb"
 	"golang.org/x/net/context"
 )
@@ -28,42 +29,59 @@ func EnableAdminFeature(ctx context.Context, runMode kbconst.RunMode, config Con
 	return libkb.IsKeybaseAdmin(session.UID)
 }
 
-// setupDiskBlockCache sets the user's home TLFs on the disk block cache.
-func setupDiskBlockCache(ctx context.Context, config Config, username string) {
+// setHomeTlfIdsForDbcAndFavorites sets the user's home TLFs on the disk
+// block cache and the favorites cache.
+func setHomeTlfIdsForDbcAndFavorites(ctx context.Context, config Config, username string) {
 	if config.DiskBlockCache() == nil {
 		return
 	}
 
 	log := config.MakeLogger("")
 	publicHandle, err := getHandleFromFolderName(ctx,
-		config.KBPKI(), config.MDOps(), username, true)
+		config.KBPKI(), config.MDOps(), config, username, true)
 	if err != nil {
 		log.CWarningf(ctx, "serviceLoggedIn: Failed to fetch TLF ID for "+
 			"user's public TLF: %+v", err)
-	} else if publicHandle.tlfID != tlf.NullID {
-		err = config.DiskBlockCache().AddHomeTLF(ctx, publicHandle.tlfID)
+	} else if publicHandle.TlfID() != tlf.NullID {
+		err = config.DiskBlockCache().AddHomeTLF(ctx, publicHandle.TlfID())
 		if err != nil {
 			log.CWarningf(ctx, "serviceLoggedIn: Failed to set home TLF "+
 				"for disk block cache: %+v", err)
 		}
 	}
-	privateHandle, err := getHandleFromFolderName(ctx, config.KBPKI(),
-		config.MDOps(), username, false)
+	privateHandle, err := getHandleFromFolderName(
+		ctx, config.KBPKI(), config.MDOps(), config, username, false)
 	if err != nil {
 		log.CWarningf(ctx, "serviceLoggedIn: Failed to fetch TLF ID for "+
 			"user's private TLF: %+v", err)
-	} else if privateHandle.tlfID != tlf.NullID {
-		err = config.DiskBlockCache().AddHomeTLF(ctx, privateHandle.tlfID)
+	} else if privateHandle.TlfID() != tlf.NullID {
+		err = config.DiskBlockCache().AddHomeTLF(ctx, privateHandle.TlfID())
 		if err != nil {
 			log.CWarningf(ctx, "serviceLoggedIn: Failed to set home TLF "+
 				"for disk block cache: %+v", err)
 		}
 	}
+
+	// Send to Favorites cache
+	info := homeTLFInfo{}
+	if publicHandle != nil {
+		teamID := publicHandle.ToFavToAdd(false).Data.TeamID
+		if teamID != nil {
+			info.PublicTeamID = *teamID
+		}
+	}
+	if privateHandle != nil {
+		teamID := privateHandle.ToFavToAdd(false).Data.TeamID
+		if teamID != nil {
+			info.PrivateTeamID = *teamID
+		}
+	}
+	config.KBFSOps().SetFavoritesHomeTLFInfo(ctx, info)
 }
 
 // serviceLoggedIn should be called when a new user logs in. It
 // shouldn't be called again until after serviceLoggedOut is called.
-func serviceLoggedIn(ctx context.Context, config Config, session SessionInfo,
+func serviceLoggedIn(ctx context.Context, config Config, session idutil.SessionInfo,
 	bws TLFJournalBackgroundWorkStatus) (wg *sync.WaitGroup) {
 	wg = &sync.WaitGroup{} // To avoid returning a nil pointer.
 	log := config.MakeLogger("")
@@ -85,6 +103,7 @@ func serviceLoggedIn(ctx context.Context, config Config, session SessionInfo,
 			wg = jManager.MakeFBOsForExistingJournals(newCtx)
 		}
 	}
+
 	err := config.MakeDiskBlockCacheIfNotExists()
 	if err != nil {
 		log.CWarningf(ctx, "serviceLoggedIn: Failed to enable disk cache: "+
@@ -92,7 +111,7 @@ func serviceLoggedIn(ctx context.Context, config Config, session SessionInfo,
 	}
 	// Asynchronously set the TLF IDs for the home folders on the disk block
 	// cache.
-	go setupDiskBlockCache(context.Background(), config, session.Name.String())
+	go setHomeTlfIdsForDbcAndFavorites(context.Background(), config, session.Name.String())
 
 	// Launch auth refreshes in the background, in case we are
 	// currently disconnected from one of these servers.
@@ -105,7 +124,10 @@ func serviceLoggedIn(ctx context.Context, config Config, session SessionInfo,
 		go bServer.RefreshAuthToken(context.Background())
 	}
 
-	config.KBFSOps().RefreshCachedFavorites(ctx)
+	if config.Mode().DoRefreshFavoritesOnInit() {
+		config.KBFSOps().RefreshCachedFavorites(
+			ctx, FavoritesRefreshModeInMainFavoritesLoop)
+	}
 	config.KBFSOps().PushStatusChange()
 	return wg
 }

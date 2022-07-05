@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/kbfscodec"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsedits"
@@ -21,23 +22,27 @@ import (
 	"github.com/pkg/errors"
 )
 
-// op represents a single file-system remote-sync operation
+// op represents a single file-system remote-sync operation. Note that
+// ops store and marshal any filenames in plaintext fields, so the
+// accessed fields must be handled carefully.  `String()` prints
+// obfuscated filenames, however.
 type op interface {
-	AddRefBlock(ptr BlockPointer)
-	DelRefBlock(ptr BlockPointer)
-	AddUnrefBlock(ptr BlockPointer)
-	DelUnrefBlock(ptr BlockPointer)
-	AddUpdate(oldPtr BlockPointer, newPtr BlockPointer)
+	AddRefBlock(ptr data.BlockPointer)
+	DelRefBlock(ptr data.BlockPointer)
+	AddUnrefBlock(ptr data.BlockPointer)
+	DelUnrefBlock(ptr data.BlockPointer)
+	AddUpdate(oldPtr data.BlockPointer, newPtr data.BlockPointer)
 	SizeExceptUpdates() uint64
 	allUpdates() []blockUpdate
-	Refs() []BlockPointer
-	Unrefs() []BlockPointer
+	Refs() []data.BlockPointer
+	Unrefs() []data.BlockPointer
 	String() string
+	Plaintext() string
 	StringWithRefs(indent string) string
 	setWriterInfo(writerInfo)
 	getWriterInfo() writerInfo
-	setFinalPath(p path)
-	getFinalPath() path
+	setFinalPath(p data.Path)
+	getFinalPath() data.Path
 	setLocalTimestamp(t time.Time)
 	getLocalTimestamp() time.Time
 	checkValid() error
@@ -54,7 +59,7 @@ type op interface {
 	// all conflicts with the corresponding change have been checked,
 	// and it returns the action to take against the merged branch
 	// given that there are no conflicts.
-	getDefaultAction(mergedPath path) crAction
+	getDefaultAction(mergedPath data.Path) crAction
 
 	// AddSelfUpdate adds an update from the given pointer to itself.
 	// This should be used when the caller doesn't yet know what the
@@ -62,7 +67,7 @@ type op interface {
 	// signal to a future prepping process that the block needs to be
 	// processed/readied, at which point the real new pointer will be
 	// filled in.
-	AddSelfUpdate(ptr BlockPointer)
+	AddSelfUpdate(ptr data.BlockPointer)
 
 	// ToEditNotification returns an edit notification if this op
 	// needs one, otherwise it returns nil.
@@ -94,11 +99,11 @@ type blockUpdate struct {
 	// nothing that relies on either one of these fields to always
 	// be filled (e.g., see similar comments for the Info field on
 	// BlockChanges.)
-	Unref BlockPointer `codec:"u"`
-	Ref   BlockPointer `codec:"r"`
+	Unref data.BlockPointer `codec:"u"`
+	Ref   data.BlockPointer `codec:"r"`
 }
 
-func makeBlockUpdate(unref, ref BlockPointer) (blockUpdate, error) {
+func makeBlockUpdate(unref, ref data.BlockPointer) (blockUpdate, error) {
 	bu := blockUpdate{}
 	err := bu.setUnref(unref)
 	if err != nil {
@@ -112,25 +117,25 @@ func makeBlockUpdate(unref, ref BlockPointer) (blockUpdate, error) {
 }
 
 func (u blockUpdate) checkValid() error {
-	if u.Unref == (BlockPointer{}) {
+	if u.Unref == (data.BlockPointer{}) {
 		return errors.New("nil unref")
 	}
-	if u.Ref == (BlockPointer{}) {
+	if u.Ref == (data.BlockPointer{}) {
 		return errors.New("nil ref")
 	}
 	return nil
 }
 
-func (u *blockUpdate) setUnref(ptr BlockPointer) error {
-	if ptr == (BlockPointer{}) {
+func (u *blockUpdate) setUnref(ptr data.BlockPointer) error {
+	if ptr == (data.BlockPointer{}) {
 		return errors.Errorf("setUnref called with nil ptr")
 	}
 	u.Unref = ptr
 	return nil
 }
 
-func (u *blockUpdate) setRef(ptr BlockPointer) error {
-	if ptr == (BlockPointer{}) {
+func (u *blockUpdate) setRef(ptr data.BlockPointer) error {
+	if ptr == (data.BlockPointer{}) {
 		return errors.Errorf("setRef called with nil ptr")
 	}
 	u.Ref = ptr
@@ -147,9 +152,9 @@ type opsList []op
 // OpCommon are data structures needed by all ops.  It is only
 // exported for serialization purposes.
 type OpCommon struct {
-	RefBlocks   []BlockPointer `codec:"r,omitempty"`
-	UnrefBlocks []BlockPointer `codec:"u,omitempty"`
-	Updates     []blockUpdate  `codec:"o,omitempty"`
+	RefBlocks   []data.BlockPointer `codec:"r,omitempty"`
+	UnrefBlocks []data.BlockPointer `codec:"u,omitempty"`
+	Updates     []blockUpdate       `codec:"o,omitempty"`
 
 	codec.UnknownFieldSetHandler
 
@@ -160,7 +165,7 @@ type OpCommon struct {
 	// finalPath is the final resolved path to the node that this
 	// operation affects in a set of MD updates.  Not exported; only
 	// used locally.
-	finalPath path
+	finalPath data.Path
 	// localTimestamp should be set to the localTimestamp of the
 	// corresponding ImmutableRootMetadata when ops need individual
 	// timestamps.  Not exported; only used locally.
@@ -170,9 +175,9 @@ type OpCommon struct {
 func (oc OpCommon) deepCopy() OpCommon {
 	ocCopy := OpCommon{}
 
-	ocCopy.RefBlocks = make([]BlockPointer, len(oc.RefBlocks))
+	ocCopy.RefBlocks = make([]data.BlockPointer, len(oc.RefBlocks))
 	copy(ocCopy.RefBlocks, oc.RefBlocks)
-	ocCopy.UnrefBlocks = make([]BlockPointer, len(oc.UnrefBlocks))
+	ocCopy.UnrefBlocks = make([]data.BlockPointer, len(oc.UnrefBlocks))
 	copy(ocCopy.UnrefBlocks, oc.UnrefBlocks)
 	ocCopy.Updates = make([]blockUpdate, len(oc.Updates))
 	copy(ocCopy.Updates, oc.Updates)
@@ -183,21 +188,21 @@ func (oc OpCommon) deepCopy() OpCommon {
 
 	ocCopy.writerInfo = oc.writerInfo
 	ocCopy.finalPath = oc.finalPath
-	ocCopy.finalPath.path = make([]pathNode, len(oc.finalPath.path))
-	copy(ocCopy.finalPath.path, oc.finalPath.path)
+	ocCopy.finalPath.Path = make([]data.PathNode, len(oc.finalPath.Path))
+	copy(ocCopy.finalPath.Path, oc.finalPath.Path)
 	ocCopy.localTimestamp = oc.localTimestamp
 	return ocCopy
 }
 
 // AddRefBlock adds this block to the list of newly-referenced blocks
 // for this op.
-func (oc *OpCommon) AddRefBlock(ptr BlockPointer) {
+func (oc *OpCommon) AddRefBlock(ptr data.BlockPointer) {
 	oc.RefBlocks = append(oc.RefBlocks, ptr)
 }
 
 // DelRefBlock removes the first reference of the given block from the
 // list of newly-referenced blocks for this op.
-func (oc *OpCommon) DelRefBlock(ptr BlockPointer) {
+func (oc *OpCommon) DelRefBlock(ptr data.BlockPointer) {
 	for i, ref := range oc.RefBlocks {
 		if ptr == ref {
 			oc.RefBlocks = append(oc.RefBlocks[:i], oc.RefBlocks[i+1:]...)
@@ -208,13 +213,13 @@ func (oc *OpCommon) DelRefBlock(ptr BlockPointer) {
 
 // AddUnrefBlock adds this block to the list of newly-unreferenced blocks
 // for this op.
-func (oc *OpCommon) AddUnrefBlock(ptr BlockPointer) {
+func (oc *OpCommon) AddUnrefBlock(ptr data.BlockPointer) {
 	oc.UnrefBlocks = append(oc.UnrefBlocks, ptr)
 }
 
 // DelUnrefBlock removes the first unreference of the given block from
 // the list of unreferenced blocks for this op.
-func (oc *OpCommon) DelUnrefBlock(ptr BlockPointer) {
+func (oc *OpCommon) DelUnrefBlock(ptr data.BlockPointer) {
 	for i, unref := range oc.UnrefBlocks {
 		if ptr == unref {
 			oc.UnrefBlocks = append(oc.UnrefBlocks[:i], oc.UnrefBlocks[i+1:]...)
@@ -225,7 +230,7 @@ func (oc *OpCommon) DelUnrefBlock(ptr BlockPointer) {
 
 // AddUpdate adds a mapping from an old block to the new version of
 // that block, for this op.
-func (oc *OpCommon) AddUpdate(oldPtr BlockPointer, newPtr BlockPointer) {
+func (oc *OpCommon) AddUpdate(oldPtr data.BlockPointer, newPtr data.BlockPointer) {
 	// Either pointer may be zero, if we're building an op that
 	// will be fixed up later.
 	bu := blockUpdate{oldPtr, newPtr}
@@ -234,19 +239,19 @@ func (oc *OpCommon) AddUpdate(oldPtr BlockPointer, newPtr BlockPointer) {
 
 // AddSelfUpdate implements the op interface for OpCommon -- see the
 // comment in op.
-func (oc *OpCommon) AddSelfUpdate(ptr BlockPointer) {
+func (oc *OpCommon) AddSelfUpdate(ptr data.BlockPointer) {
 	oc.AddUpdate(ptr, ptr)
 }
 
 // Refs returns a slice containing all the blocks that were initially
 // referenced during this op.
-func (oc *OpCommon) Refs() []BlockPointer {
+func (oc *OpCommon) Refs() []data.BlockPointer {
 	return oc.RefBlocks
 }
 
 // Unrefs returns a slice containing all the blocks that were
 // unreferenced during this op.
-func (oc *OpCommon) Unrefs() []BlockPointer {
+func (oc *OpCommon) Unrefs() []data.BlockPointer {
 	return oc.UnrefBlocks
 }
 
@@ -258,12 +263,16 @@ func (oc *OpCommon) getWriterInfo() writerInfo {
 	return oc.writerInfo
 }
 
-func (oc *OpCommon) setFinalPath(p path) {
+func (oc *OpCommon) setFinalPath(p data.Path) {
 	oc.finalPath = p
 }
 
-func (oc *OpCommon) getFinalPath() path {
+func (oc *OpCommon) getFinalPath() data.Path {
 	return oc.finalPath
+}
+
+func (oc *OpCommon) obfuscatedName(name string) data.PathPartString {
+	return data.NewPathPartString(name, oc.finalPath.Obfuscator())
 }
 
 func (oc *OpCommon) setLocalTimestamp(t time.Time) {
@@ -311,9 +320,9 @@ func (oc *OpCommon) ToEditNotification(
 // createOp is an op representing a file or subdirectory creation
 type createOp struct {
 	OpCommon
-	NewName string      `codec:"n"`
-	Dir     blockUpdate `codec:"d"`
-	Type    EntryType   `codec:"t"`
+	NewName string         `codec:"n"`
+	Dir     blockUpdate    `codec:"d"`
+	Type    data.EntryType `codec:"t"`
 
 	// If true, this create op represents half of a rename operation.
 	// This op should never be persisted.
@@ -330,7 +339,7 @@ type createOp struct {
 	crSymPath string
 }
 
-func newCreateOp(name string, oldDir BlockPointer, t EntryType) (*createOp, error) {
+func newCreateOp(name string, oldDir data.BlockPointer, t data.EntryType) (*createOp, error) {
 	co := &createOp{
 		NewName: name,
 	}
@@ -350,11 +359,11 @@ func (co *createOp) deepCopy() op {
 
 func newCreateOpForRootDir() *createOp {
 	return &createOp{
-		Type: Dir,
+		Type: data.Dir,
 	}
 }
 
-func (co *createOp) AddUpdate(oldPtr BlockPointer, newPtr BlockPointer) {
+func (co *createOp) AddUpdate(oldPtr data.BlockPointer, newPtr data.BlockPointer) {
 	if co.Dir == (blockUpdate{}) {
 		panic("AddUpdate called on create op with empty Dir " +
 			"(probably create op for root dir)")
@@ -371,7 +380,7 @@ func (co *createOp) AddUpdate(oldPtr BlockPointer, newPtr BlockPointer) {
 
 // AddSelfUpdate implements the op interface for createOp -- see the
 // comment in op.
-func (co *createOp) AddSelfUpdate(ptr BlockPointer) {
+func (co *createOp) AddSelfUpdate(ptr data.BlockPointer) {
 	co.AddUpdate(ptr, ptr)
 }
 
@@ -398,7 +407,19 @@ func (co *createOp) checkValid() error {
 	return co.checkUpdatesValid()
 }
 
+func (co *createOp) obfuscatedNewName() data.PathPartString {
+	return co.obfuscatedName(co.NewName)
+}
+
 func (co *createOp) String() string {
+	res := fmt.Sprintf("create %s (%s)", co.obfuscatedNewName(), co.Type)
+	if co.renamed {
+		res += " (renamed)"
+	}
+	return res
+}
+
+func (co *createOp) Plaintext() string {
 	res := fmt.Sprintf("create %s (%s)", co.NewName, co.Type)
 	if co.renamed {
 		res += " (renamed)"
@@ -416,14 +437,13 @@ func (co *createOp) StringWithRefs(indent string) string {
 func (co *createOp) checkConflict(
 	ctx context.Context, renamer ConflictRenamer, mergedOp op,
 	isFile bool) (crAction, error) {
-	switch realMergedOp := mergedOp.(type) {
-	case *createOp:
+	if realMergedOp, ok := mergedOp.(*createOp); ok {
 		// Conflicts if this creates the same name and one of them
 		// isn't creating a directory.
 		sameName := (realMergedOp.NewName == co.NewName)
-		if sameName && (realMergedOp.Type != Dir || co.Type != Dir) {
-			if realMergedOp.Type != Dir &&
-				(co.Type == Dir || co.crSymPath != "") {
+		if sameName && (realMergedOp.Type != data.Dir || co.Type != data.Dir) {
+			if realMergedOp.Type != data.Dir &&
+				(co.Type == data.Dir || co.crSymPath != "") {
 				// Rename the merged entry only if the unmerged one is
 				// a directory (or to-be-sympath'd directory) and the
 				// merged one is not.
@@ -433,9 +453,9 @@ func (co *createOp) checkConflict(
 					return nil, err
 				}
 				return &renameMergedAction{
-					fromName: co.NewName,
-					toName:   toName,
-					symPath:  co.crSymPath,
+					fromName: co.obfuscatedNewName(),
+					toName:   co.obfuscatedName(toName),
+					symPath:  co.obfuscatedName(co.crSymPath),
 				}, nil
 			}
 			// Otherwise rename the unmerged entry (guaranteed to be a file).
@@ -445,9 +465,9 @@ func (co *createOp) checkConflict(
 				return nil, err
 			}
 			return &renameUnmergedAction{
-				fromName: co.NewName,
-				toName:   toName,
-				symPath:  co.crSymPath,
+				fromName: co.obfuscatedNewName(),
+				toName:   co.obfuscatedName(toName),
+				symPath:  co.obfuscatedName(co.crSymPath),
 			}, nil
 		}
 
@@ -457,7 +477,7 @@ func (co *createOp) checkConflict(
 		// TODO: Implement a better merging strategy for when an
 		// existing directory gets into a rename conflict with another
 		// existing or new directory.
-		if sameName && realMergedOp.Type == Dir && co.Type == Dir &&
+		if sameName && realMergedOp.Type == data.Dir && co.Type == data.Dir &&
 			(realMergedOp.renamed || co.renamed) {
 			// Always rename the unmerged one
 			toName, err := renamer.ConflictRename(
@@ -466,9 +486,9 @@ func (co *createOp) checkConflict(
 				return nil, err
 			}
 			return &copyUnmergedEntryAction{
-				fromName: co.NewName,
-				toName:   toName,
-				symPath:  co.crSymPath,
+				fromName: co.obfuscatedNewName(),
+				toName:   co.obfuscatedName(toName),
+				symPath:  co.obfuscatedName(co.crSymPath),
 				unique:   true,
 			}, nil
 		}
@@ -478,32 +498,33 @@ func (co *createOp) checkConflict(
 	return nil, nil
 }
 
-func (co *createOp) getDefaultAction(mergedPath path) crAction {
+func (co *createOp) getDefaultAction(mergedPath data.Path) crAction {
+	newName := co.obfuscatedNewName()
 	if co.forceCopy {
 		return &renameUnmergedAction{
-			fromName: co.NewName,
-			toName:   co.NewName,
-			symPath:  co.crSymPath,
+			fromName: newName,
+			toName:   newName,
+			symPath:  co.obfuscatedName(co.crSymPath),
 		}
 	}
 	return &copyUnmergedEntryAction{
-		fromName: co.NewName,
-		toName:   co.NewName,
-		symPath:  co.crSymPath,
+		fromName: newName,
+		toName:   newName,
+		symPath:  co.obfuscatedName(co.crSymPath),
 	}
 }
 
 func makeBaseEditNotification(
 	rev kbfsmd.Revision, revTime time.Time, device kbfscrypto.VerifyingKey,
 	uid keybase1.UID, tlfID tlf.ID,
-	et EntryType) kbfsedits.NotificationMessage {
+	et data.EntryType) kbfsedits.NotificationMessage {
 	var t kbfsedits.EntryType
 	switch et {
-	case File, Exec:
+	case data.File, data.Exec:
 		t = kbfsedits.EntryTypeFile
-	case Dir:
+	case data.Dir:
 		t = kbfsedits.EntryTypeDir
-	case Sym:
+	case data.Sym:
 		t = kbfsedits.EntryTypeSym
 	}
 	return kbfsedits.NotificationMessage{
@@ -521,8 +542,8 @@ func (co *createOp) ToEditNotification(
 	rev kbfsmd.Revision, revTime time.Time, device kbfscrypto.VerifyingKey,
 	uid keybase1.UID, tlfID tlf.ID) *kbfsedits.NotificationMessage {
 	n := makeBaseEditNotification(rev, revTime, device, uid, tlfID, co.Type)
-	n.Filename = co.getFinalPath().ChildPathNoPtr(co.NewName).
-		CanonicalPathString()
+	n.Filename = co.getFinalPath().ChildPathNoPtr(co.obfuscatedNewName(), nil).
+		CanonicalPathPlaintext()
 	n.Type = kbfsedits.NotificationCreate
 	return &n
 }
@@ -530,16 +551,16 @@ func (co *createOp) ToEditNotification(
 // rmOp is an op representing a file or subdirectory removal
 type rmOp struct {
 	OpCommon
-	OldName     string      `codec:"n"`
-	Dir         blockUpdate `codec:"d"`
-	RemovedType EntryType   `codec:"rt"`
+	OldName     string         `codec:"n"`
+	Dir         blockUpdate    `codec:"d"`
+	RemovedType data.EntryType `codec:"rt"`
 
 	// Indicates that the resolution process should skip this rm op.
 	// Likely indicates the rm half of a cycle-creating rename.
 	dropThis bool
 }
 
-func newRmOp(name string, oldDir BlockPointer, removedType EntryType) (
+func newRmOp(name string, oldDir data.BlockPointer, removedType data.EntryType) (
 	*rmOp, error) {
 	ro := &rmOp{
 		OldName:     name,
@@ -558,7 +579,7 @@ func (ro *rmOp) deepCopy() op {
 	return &roCopy
 }
 
-func (ro *rmOp) AddUpdate(oldPtr BlockPointer, newPtr BlockPointer) {
+func (ro *rmOp) AddUpdate(oldPtr data.BlockPointer, newPtr data.BlockPointer) {
 	if oldPtr == ro.Dir.Unref {
 		err := ro.Dir.setRef(newPtr)
 		if err != nil {
@@ -571,7 +592,7 @@ func (ro *rmOp) AddUpdate(oldPtr BlockPointer, newPtr BlockPointer) {
 
 // AddSelfUpdate implements the op interface for rmOp -- see the
 // comment in op.
-func (ro *rmOp) AddSelfUpdate(ptr BlockPointer) {
+func (ro *rmOp) AddSelfUpdate(ptr data.BlockPointer) {
 	ro.AddUpdate(ptr, ptr)
 }
 
@@ -593,7 +614,15 @@ func (ro *rmOp) checkValid() error {
 	return ro.checkUpdatesValid()
 }
 
+func (ro *rmOp) obfuscatedOldName() data.PathPartString {
+	return ro.obfuscatedName(ro.OldName)
+}
+
 func (ro *rmOp) String() string {
+	return fmt.Sprintf("rm %s", ro.obfuscatedOldName())
+}
+
+func (ro *rmOp) Plaintext() string {
 	return fmt.Sprintf("rm %s", ro.OldName)
 }
 
@@ -625,11 +654,11 @@ func (ro *rmOp) checkConflict(
 	return nil, nil
 }
 
-func (ro *rmOp) getDefaultAction(mergedPath path) crAction {
+func (ro *rmOp) getDefaultAction(mergedPath data.Path) crAction {
 	if ro.dropThis {
 		return &dropUnmergedAction{op: ro}
 	}
-	return &rmMergedEntryAction{name: ro.OldName}
+	return &rmMergedEntryAction{name: ro.obfuscatedOldName()}
 }
 
 func (ro *rmOp) ToEditNotification(
@@ -637,8 +666,8 @@ func (ro *rmOp) ToEditNotification(
 	uid keybase1.UID, tlfID tlf.ID) *kbfsedits.NotificationMessage {
 	n := makeBaseEditNotification(
 		rev, revTime, device, uid, tlfID, ro.RemovedType)
-	n.Filename = ro.getFinalPath().ChildPathNoPtr(ro.OldName).
-		CanonicalPathString()
+	n.Filename = ro.getFinalPath().ChildPathNoPtr(ro.obfuscatedOldName(), nil).
+		CanonicalPathPlaintext()
 	n.Type = kbfsedits.NotificationDelete
 	return &n
 }
@@ -651,21 +680,21 @@ func (ro *rmOp) ToEditNotification(
 // directories for the purposes of conflict resolution.
 type renameOp struct {
 	OpCommon
-	OldName     string       `codec:"on"`
-	OldDir      blockUpdate  `codec:"od"`
-	NewName     string       `codec:"nn"`
-	NewDir      blockUpdate  `codec:"nd"`
-	Renamed     BlockPointer `codec:"re"`
-	RenamedType EntryType    `codec:"rt"`
+	OldName     string            `codec:"on"`
+	OldDir      blockUpdate       `codec:"od"`
+	NewName     string            `codec:"nn"`
+	NewDir      blockUpdate       `codec:"nd"`
+	Renamed     data.BlockPointer `codec:"re"`
+	RenamedType data.EntryType    `codec:"rt"`
 
 	// oldFinalPath is the final resolved path to the old directory
 	// containing the renamed node.  Not exported; only used locally.
-	oldFinalPath path
+	oldFinalPath data.Path
 }
 
-func newRenameOp(oldName string, oldOldDir BlockPointer,
-	newName string, oldNewDir BlockPointer, renamed BlockPointer,
-	renamedType EntryType) (*renameOp, error) {
+func newRenameOp(oldName string, oldOldDir data.BlockPointer,
+	newName string, oldNewDir data.BlockPointer, renamed data.BlockPointer,
+	renamedType data.EntryType) (*renameOp, error) {
 	ro := &renameOp{
 		OldName:     oldName,
 		NewName:     newName,
@@ -692,7 +721,7 @@ func (ro *renameOp) deepCopy() op {
 	return &roCopy
 }
 
-func (ro *renameOp) AddUpdate(oldPtr BlockPointer, newPtr BlockPointer) {
+func (ro *renameOp) AddUpdate(oldPtr data.BlockPointer, newPtr data.BlockPointer) {
 	if oldPtr == ro.OldDir.Unref {
 		err := ro.OldDir.setRef(newPtr)
 		if err != nil {
@@ -712,7 +741,7 @@ func (ro *renameOp) AddUpdate(oldPtr BlockPointer, newPtr BlockPointer) {
 
 // AddSelfUpdate implements the op interface for renameOp -- see the
 // comment in op.
-func (ro *renameOp) AddSelfUpdate(ptr BlockPointer) {
+func (ro *renameOp) AddSelfUpdate(ptr data.BlockPointer) {
 	ro.AddUpdate(ptr, ptr)
 }
 
@@ -746,7 +775,20 @@ func (ro *renameOp) checkValid() error {
 	return ro.checkUpdatesValid()
 }
 
+func (ro *renameOp) obfuscatedOldName() data.PathPartString {
+	return ro.obfuscatedName(ro.OldName)
+}
+
+func (ro *renameOp) obfuscatedNewName() data.PathPartString {
+	return ro.obfuscatedName(ro.NewName)
+}
+
 func (ro *renameOp) String() string {
+	return fmt.Sprintf("rename %s -> %s (%s)",
+		ro.obfuscatedOldName(), ro.obfuscatedNewName(), ro.RenamedType)
+}
+
+func (ro *renameOp) Plaintext() string {
 	return fmt.Sprintf("rename %s -> %s (%s)",
 		ro.OldName, ro.NewName, ro.RenamedType)
 }
@@ -772,7 +814,7 @@ func (ro *renameOp) checkConflict(
 	return nil, errors.Errorf("Unexpected conflict check on a rename op: %s", ro)
 }
 
-func (ro *renameOp) getDefaultAction(mergedPath path) crAction {
+func (ro *renameOp) getDefaultAction(mergedPath data.Path) crAction {
 	return nil
 }
 
@@ -781,12 +823,12 @@ func (ro *renameOp) ToEditNotification(
 	uid keybase1.UID, tlfID tlf.ID) *kbfsedits.NotificationMessage {
 	n := makeBaseEditNotification(
 		rev, revTime, device, uid, tlfID, ro.RenamedType)
-	n.Filename = ro.getFinalPath().ChildPathNoPtr(ro.NewName).
-		CanonicalPathString()
+	n.Filename = ro.getFinalPath().ChildPathNoPtr(ro.obfuscatedNewName(), nil).
+		CanonicalPathPlaintext()
 	n.Type = kbfsedits.NotificationRename
 	n.Params = &kbfsedits.NotificationParams{
-		OldFilename: ro.oldFinalPath.ChildPathNoPtr(ro.OldName).
-			CanonicalPathString(),
+		OldFilename: ro.oldFinalPath.ChildPathNoPtr(
+			ro.obfuscatedOldName(), nil).CanonicalPathPlaintext(),
 	}
 	return &n
 }
@@ -850,7 +892,7 @@ type syncOp struct {
 	keepUnmergedTailName bool
 }
 
-func newSyncOp(oldFile BlockPointer) (*syncOp, error) {
+func newSyncOp(oldFile data.BlockPointer) (*syncOp, error) {
 	so := &syncOp{}
 	err := so.File.setUnref(oldFile)
 	if err != nil {
@@ -872,7 +914,7 @@ func (so *syncOp) resetUpdateState() {
 	so.Updates = nil
 }
 
-func (so *syncOp) AddUpdate(oldPtr BlockPointer, newPtr BlockPointer) {
+func (so *syncOp) AddUpdate(oldPtr data.BlockPointer, newPtr data.BlockPointer) {
 	if oldPtr == so.File.Unref {
 		err := so.File.setRef(newPtr)
 		if err != nil {
@@ -885,7 +927,7 @@ func (so *syncOp) AddUpdate(oldPtr BlockPointer, newPtr BlockPointer) {
 
 // AddSelfUpdate implements the op interface for syncOp -- see the
 // comment in op.
-func (so *syncOp) AddSelfUpdate(ptr BlockPointer) {
+func (so *syncOp) AddSelfUpdate(ptr data.BlockPointer) {
 	so.AddUpdate(ptr, ptr)
 }
 
@@ -927,6 +969,10 @@ func (so *syncOp) String() string {
 	return fmt.Sprintf("sync [%s]", strings.Join(writes, ", "))
 }
 
+func (so *syncOp) Plaintext() string {
+	return so.String()
+}
+
 func (so *syncOp) StringWithRefs(indent string) string {
 	res := so.String() + "\n"
 	res += indent + fmt.Sprintf("File: %v -> %v\n", so.File.Unref, so.File.Ref)
@@ -943,47 +989,47 @@ func (so *syncOp) checkConflict(
 		// type-specific intelligent conflict resolvers for file
 		// contents?)
 		toName, err := renamer.ConflictRename(
-			ctx, so, mergedOp.getFinalPath().tailName())
+			ctx, so, mergedOp.getFinalPath().TailName().Plaintext())
 		if err != nil {
 			return nil, err
 		}
 
 		if so.keepUnmergedTailName {
-			toName = so.getFinalPath().tailName()
+			toName = so.getFinalPath().TailName().Plaintext()
 		}
 
 		return &renameUnmergedAction{
-			fromName: so.getFinalPath().tailName(),
-			toName:   toName,
-			unmergedParentMostRecent: so.getFinalPath().parentPath().tailPointer(),
-			mergedParentMostRecent: mergedOp.getFinalPath().parentPath().
-				tailPointer(),
+			fromName:                 so.getFinalPath().TailName(),
+			toName:                   so.obfuscatedName(toName),
+			unmergedParentMostRecent: so.getFinalPath().ParentPath().TailPointer(),
+			mergedParentMostRecent: mergedOp.getFinalPath().ParentPath().
+				TailPointer(),
 		}, nil
 	case *setAttrOp:
 		// Someone on the merged path explicitly set an attribute, so
 		// just copy the size and blockpointer over.
 		return &copyUnmergedAttrAction{
-			fromName: so.getFinalPath().tailName(),
-			toName:   mergedOp.getFinalPath().tailName(),
+			fromName: so.getFinalPath().TailName(),
+			toName:   mergedOp.getFinalPath().TailName(),
 			attr:     []attrChange{sizeAttr},
 		}, nil
 	}
 	return nil, nil
 }
 
-func (so *syncOp) getDefaultAction(mergedPath path) crAction {
+func (so *syncOp) getDefaultAction(mergedPath data.Path) crAction {
 	return &copyUnmergedEntryAction{
-		fromName: so.getFinalPath().tailName(),
-		toName:   mergedPath.tailName(),
-		symPath:  "",
+		fromName: so.getFinalPath().TailName(),
+		toName:   mergedPath.TailName(),
+		symPath:  so.obfuscatedName(""),
 	}
 }
 
 func (so *syncOp) ToEditNotification(
 	rev kbfsmd.Revision, revTime time.Time, device kbfscrypto.VerifyingKey,
 	uid keybase1.UID, tlfID tlf.ID) *kbfsedits.NotificationMessage {
-	n := makeBaseEditNotification(rev, revTime, device, uid, tlfID, File)
-	n.Filename = so.getFinalPath().CanonicalPathString()
+	n := makeBaseEditNotification(rev, revTime, device, uid, tlfID, data.File)
+	n.Filename = so.getFinalPath().CanonicalPathPlaintext()
 	n.Type = kbfsedits.NotificationModify
 	var mods []kbfsedits.ModifyRange
 	for _, w := range so.Writes {
@@ -1054,10 +1100,11 @@ func addToCollapsedWriteRange(writes []WriteRange,
 		// end is empty, since a truncate affects a suffix of writes.
 		mid := writes[headEnd:]
 
-		if len(mid) == 0 {
+		switch {
+		case len(mid) == 0:
 			// Truncate past the last write.
 			return append(head, wNew)
-		} else if mid[0].isTruncate() {
+		case mid[0].isTruncate():
 			if mid[0].Off < wNew.Off {
 				// A larger new truncate causes zero-fill.
 				zeroLen := wNew.Off - mid[0].Off
@@ -1073,7 +1120,7 @@ func addToCollapsedWriteRange(writes []WriteRange,
 					WriteRange{Off: mid[0].Off, Len: zeroLen}, wNew)
 			}
 			return append(head, wNew)
-		} else if mid[0].Off < wNew.Off {
+		case mid[0].Off < wNew.Off:
 			return append(head, WriteRange{
 				Off: mid[0].Off,
 				Len: wNew.Off - mid[0].Off,
@@ -1143,10 +1190,10 @@ func (ac attrChange) String() string {
 // file/subdirectory with in a directory.
 type setAttrOp struct {
 	OpCommon
-	Name string       `codec:"n"`
-	Dir  blockUpdate  `codec:"d"`
-	Attr attrChange   `codec:"a"`
-	File BlockPointer `codec:"f"`
+	Name string            `codec:"n"`
+	Dir  blockUpdate       `codec:"d"`
+	Attr attrChange        `codec:"a"`
+	File data.BlockPointer `codec:"f"`
 
 	// If true, this says that if there is a conflict involving this
 	// op, we should keep the unmerged name rather than construct a
@@ -1155,8 +1202,8 @@ type setAttrOp struct {
 	keepUnmergedTailName bool
 }
 
-func newSetAttrOp(name string, oldDir BlockPointer,
-	attr attrChange, file BlockPointer) (*setAttrOp, error) {
+func newSetAttrOp(name string, oldDir data.BlockPointer,
+	attr attrChange, file data.BlockPointer) (*setAttrOp, error) {
 	sao := &setAttrOp{
 		Name: name,
 	}
@@ -1175,7 +1222,7 @@ func (sao *setAttrOp) deepCopy() op {
 	return &saoCopy
 }
 
-func (sao *setAttrOp) AddUpdate(oldPtr BlockPointer, newPtr BlockPointer) {
+func (sao *setAttrOp) AddUpdate(oldPtr data.BlockPointer, newPtr data.BlockPointer) {
 	if oldPtr == sao.Dir.Unref {
 		err := sao.Dir.setRef(newPtr)
 		if err != nil {
@@ -1188,7 +1235,7 @@ func (sao *setAttrOp) AddUpdate(oldPtr BlockPointer, newPtr BlockPointer) {
 
 // AddSelfUpdate implements the op interface for setAttrOp -- see the
 // comment in op.
-func (sao *setAttrOp) AddSelfUpdate(ptr BlockPointer) {
+func (sao *setAttrOp) AddSelfUpdate(ptr data.BlockPointer) {
 	sao.AddUpdate(ptr, ptr)
 }
 
@@ -1210,7 +1257,16 @@ func (sao *setAttrOp) checkValid() error {
 	return sao.checkUpdatesValid()
 }
 
+func (sao *setAttrOp) obfuscatedEntryName() data.PathPartString {
+	return data.NewPathPartString(
+		sao.Name, sao.finalPath.ParentPath().Obfuscator())
+}
+
 func (sao *setAttrOp) String() string {
+	return fmt.Sprintf("setAttr %s (%s)", sao.obfuscatedEntryName(), sao.Attr)
+}
+
+func (sao *setAttrOp) Plaintext() string {
 	return fmt.Sprintf("setAttr %s (%s)", sao.Name, sao.Attr)
 }
 
@@ -1225,49 +1281,50 @@ func (sao *setAttrOp) StringWithRefs(indent string) string {
 func (sao *setAttrOp) checkConflict(
 	ctx context.Context, renamer ConflictRenamer, mergedOp op,
 	isFile bool) (crAction, error) {
-	switch realMergedOp := mergedOp.(type) {
-	case *setAttrOp:
-		if realMergedOp.Attr == sao.Attr {
-			var symPath string
-			var causedByAttr attrChange
-			if !isFile {
-				// A directory has a conflict on an mtime attribute.
-				// Create a symlink entry with the unmerged mtime
-				// pointing to the merged entry.
-				symPath = mergedOp.getFinalPath().tailName()
-				causedByAttr = sao.Attr
-			}
-
-			// A set attr for the same attribute on the same file is a
-			// conflict.
-			fromName := sao.getFinalPath().tailName()
-			toName, err := renamer.ConflictRename(ctx, sao, fromName)
-			if err != nil {
-				return nil, err
-			}
-
-			if sao.keepUnmergedTailName {
-				toName = sao.getFinalPath().tailName()
-			}
-
-			return &renameUnmergedAction{
-				fromName:                 fromName,
-				toName:                   toName,
-				symPath:                  symPath,
-				causedByAttr:             causedByAttr,
-				unmergedParentMostRecent: sao.getFinalPath().parentPath().tailPointer(),
-				mergedParentMostRecent: mergedOp.getFinalPath().parentPath().
-					tailPointer(),
-			}, nil
+	if realMergedOp, ok := mergedOp.(*setAttrOp); ok &&
+		realMergedOp.Attr == sao.Attr {
+		var symPath string
+		var causedByAttr attrChange
+		if !isFile {
+			// A directory has a conflict on an mtime attribute.
+			// Create a symlink entry with the unmerged mtime
+			// pointing to the merged entry.
+			symPath = mergedOp.getFinalPath().TailName().Plaintext()
+			causedByAttr = sao.Attr
 		}
+
+		// A set attr for the same attribute on the same file is a
+		// conflict.
+		fromName := sao.getFinalPath().TailName()
+		toName, err := renamer.ConflictRename(
+			ctx, sao, fromName.Plaintext())
+		if err != nil {
+			return nil, err
+		}
+
+		if sao.keepUnmergedTailName {
+			toName = sao.getFinalPath().TailName().Plaintext()
+		}
+
+		toNamePPS := data.NewPathPartString(
+			toName, sao.finalPath.ParentPath().Obfuscator())
+		return &renameUnmergedAction{
+			fromName:                 fromName,
+			toName:                   toNamePPS,
+			symPath:                  sao.obfuscatedName(symPath),
+			causedByAttr:             causedByAttr,
+			unmergedParentMostRecent: sao.getFinalPath().ParentPath().TailPointer(),
+			mergedParentMostRecent: mergedOp.getFinalPath().ParentPath().
+				TailPointer(),
+		}, nil
 	}
 	return nil, nil
 }
 
-func (sao *setAttrOp) getDefaultAction(mergedPath path) crAction {
+func (sao *setAttrOp) getDefaultAction(mergedPath data.Path) crAction {
 	return &copyUnmergedAttrAction{
-		fromName: sao.getFinalPath().tailName(),
-		toName:   mergedPath.tailName(),
+		fromName: sao.getFinalPath().TailName(),
+		toName:   mergedPath.TailName(),
 		attr:     []attrChange{sao.Attr},
 	}
 }
@@ -1276,7 +1333,7 @@ func (sao *setAttrOp) getDefaultAction(mergedPath path) crAction {
 // place as part of a conflict resolution.
 type resolutionOp struct {
 	OpCommon
-	UncommittedUnrefs []BlockPointer `codec:"uu"`
+	UncommittedUnrefs []data.BlockPointer `codec:"uu"`
 }
 
 func newResolutionOp() *resolutionOp {
@@ -1287,16 +1344,16 @@ func newResolutionOp() *resolutionOp {
 func (ro *resolutionOp) deepCopy() op {
 	roCopy := *ro
 	roCopy.OpCommon = ro.OpCommon.deepCopy()
-	roCopy.UncommittedUnrefs = make([]BlockPointer, len(ro.UncommittedUnrefs))
+	roCopy.UncommittedUnrefs = make([]data.BlockPointer, len(ro.UncommittedUnrefs))
 	copy(roCopy.UncommittedUnrefs, ro.UncommittedUnrefs)
 	return &roCopy
 }
 
-func (ro *resolutionOp) Unrefs() []BlockPointer {
+func (ro *resolutionOp) Unrefs() []data.BlockPointer {
 	return append(ro.OpCommon.Unrefs(), ro.UncommittedUnrefs...)
 }
 
-func (ro *resolutionOp) DelUnrefBlock(ptr BlockPointer) {
+func (ro *resolutionOp) DelUnrefBlock(ptr data.BlockPointer) {
 	ro.OpCommon.DelUnrefBlock(ptr)
 	for i, unref := range ro.UncommittedUnrefs {
 		if ptr == unref {
@@ -1323,6 +1380,10 @@ func (ro *resolutionOp) String() string {
 	return "resolution"
 }
 
+func (ro *resolutionOp) Plaintext() string {
+	return ro.String()
+}
+
 func (ro *resolutionOp) StringWithRefs(indent string) string {
 	res := ro.String() + "\n"
 	res += ro.stringWithRefs(indent)
@@ -1333,11 +1394,11 @@ func (ro *resolutionOp) StringWithRefs(indent string) string {
 // archived/deleted from the server, but which were never actually
 // committed successfully in an MD.  Therefore, their sizes don't have
 // to be accounted for in any MD size accounting for the TLF.
-func (ro *resolutionOp) AddUncommittedUnrefBlock(ptr BlockPointer) {
+func (ro *resolutionOp) AddUncommittedUnrefBlock(ptr data.BlockPointer) {
 	ro.UncommittedUnrefs = append(ro.UncommittedUnrefs, ptr)
 }
 
-func (ro *resolutionOp) CommittedUnrefs() []BlockPointer {
+func (ro *resolutionOp) CommittedUnrefs() []data.BlockPointer {
 	return ro.OpCommon.Unrefs()
 }
 
@@ -1347,7 +1408,7 @@ func (ro *resolutionOp) checkConflict(
 	return nil, nil
 }
 
-func (ro *resolutionOp) getDefaultAction(mergedPath path) crAction {
+func (ro *resolutionOp) getDefaultAction(mergedPath data.Path) crAction {
 	return nil
 }
 
@@ -1383,6 +1444,10 @@ func (ro *rekeyOp) String() string {
 	return "rekey"
 }
 
+func (ro *rekeyOp) Plaintext() string {
+	return ro.String()
+}
+
 func (ro *rekeyOp) StringWithRefs(indent string) string {
 	res := ro.String() + "\n"
 	res += ro.stringWithRefs(indent)
@@ -1395,7 +1460,7 @@ func (ro *rekeyOp) checkConflict(
 	return nil, nil
 }
 
-func (ro *rekeyOp) getDefaultAction(mergedPath path) crAction {
+func (ro *rekeyOp) getDefaultAction(mergedPath data.Path) crAction {
 	return nil
 }
 
@@ -1429,7 +1494,7 @@ func (gco *GCOp) deepCopy() op {
 
 // SizeExceptUpdates implements op.
 func (gco *GCOp) SizeExceptUpdates() uint64 {
-	return bpSize * uint64(len(gco.UnrefBlocks))
+	return data.BPSize * uint64(len(gco.UnrefBlocks))
 }
 
 func (gco *GCOp) allUpdates() []blockUpdate {
@@ -1442,6 +1507,11 @@ func (gco *GCOp) checkValid() error {
 
 func (gco *GCOp) String() string {
 	return fmt.Sprintf("gc %d", gco.LatestRev)
+}
+
+// Plaintext implements op.
+func (gco *GCOp) Plaintext() string {
+	return gco.String()
 }
 
 // StringWithRefs implements the op interface for GCOp.
@@ -1459,7 +1529,7 @@ func (gco *GCOp) checkConflict(
 }
 
 // getDefaultAction implements op.
-func (gco *GCOp) getDefaultAction(mergedPath path) crAction {
+func (gco *GCOp) getDefaultAction(mergedPath data.Path) crAction {
 	return nil
 }
 
@@ -1480,7 +1550,7 @@ func invertOpForLocalNotifications(oldOp op) (newOp op, err error) {
 	case *rmOp:
 		// Guess at the type, shouldn't be used for local notification
 		// purposes.
-		newOp, err = newCreateOp(op.OldName, op.Dir.Ref, File)
+		newOp, err = newCreateOp(op.OldName, op.Dir.Ref, data.File)
 		if err != nil {
 			return nil, err
 		}
@@ -1517,7 +1587,7 @@ func invertOpForLocalNotifications(oldOp op) (newOp op, err error) {
 	case *rekeyOp:
 		newOp = newRekeyOp()
 	}
-
+	newOp.setFinalPath(oldOp.getFinalPath())
 	// Now reverse all the block updates.  Don't bother with bare Refs
 	// and Unrefs since they don't matter for local notification
 	// purposes.
@@ -1581,7 +1651,7 @@ func (pso pathSortedOps) Len() int {
 }
 
 func (pso pathSortedOps) Less(i, j int) bool {
-	return len(pso[i].getFinalPath().path) < len(pso[j].getFinalPath().path)
+	return len(pso[i].getFinalPath().Path) < len(pso[j].getFinalPath().Path)
 }
 
 func (pso pathSortedOps) Swap(i, j int) {

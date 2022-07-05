@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"sort"
 	"time"
 )
 
@@ -64,6 +65,39 @@ func (t TransactionID) String() string {
 
 func (t TransactionID) Eq(b TransactionID) bool {
 	return t == b
+}
+
+type byTxID []TransactionID
+
+func (s byTxID) Len() int {
+	return len(s)
+}
+func (s byTxID) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
+}
+func (s byTxID) Less(i, j int) bool {
+	return s[i] < s[j]
+}
+
+func TransactionIDsPtrEq(x, y *[]TransactionID) bool {
+	if x != nil && y != nil {
+		if len(*x) != len(*y) {
+			return false
+		}
+		xs := make([]TransactionID, len(*x))
+		ys := make([]TransactionID, len(*y))
+		copy(xs, *x)
+		copy(ys, *y)
+		sort.Sort(byTxID(xs))
+		sort.Sort(byTxID(ys))
+		for i, _ := range xs {
+			if xs[i] != ys[i] {
+				return false
+			}
+		}
+		return true
+	}
+	return x == nil && y == nil
 }
 
 func KeybaseRequestIDFromString(s string) (KeybaseRequestID, error) {
@@ -201,15 +235,25 @@ func (s Bundle) Lookup(acctID AccountID) (BundleEntry, error) {
 	return BundleEntry{}, errors.New("stellar account not found")
 }
 
-// Eq compares assets strictly.
-// Assets are not Eq if their type is different
-//   even if they have the same code and issuer.
-func (a Asset) Eq(b Asset) bool {
-	return a == b
+func (a Asset) SameAsset(b Asset) bool {
+	return a.Type == b.Type && a.Code == b.Code && a.Issuer == b.Issuer
 }
 
 func (a *Asset) IsNativeXLM() bool {
 	return a.Type == "native"
+}
+
+func (a *Asset) IsEmpty() bool {
+	return (a == nil) || (*a == Asset{})
+}
+
+// String returns a display friendly form of the asset, compatible with
+// xdr.Asset fomat: type/code/issuer or just "native" if asset is native XLM.
+func (a Asset) String() string {
+	if a.Type == "native" {
+		return a.Type
+	}
+	return fmt.Sprintf("%s/%s/%s", a.Type, a.Code, a.Issuer)
 }
 
 func AssetNative() Asset {
@@ -376,4 +420,39 @@ func (a *AccountDetails) SetDefaultDisplayCurrency() {
 	if a.DisplayCurrency == "" {
 		a.DisplayCurrency = "USD"
 	}
+}
+
+func (a AssetCode) String() string {
+	return string(a)
+}
+
+func (a AssetCode) Eq(other AssetCode) bool {
+	return a == other
+}
+
+func (a AssetCode) GetAssetType() string {
+	switch {
+	case len(a) >= 1 && len(a) <= 4:
+		return "credit_alphanum4"
+	case len(a) >= 5 && len(a) <= 12:
+		return "credit_alphanum12"
+	default:
+		// nil or invalid AssetCode.
+		return "asset_code_invalid"
+	}
+}
+
+// TypeString implements stellarnet.AssetBase.
+func (a Asset) TypeString() string {
+	return a.Type
+}
+
+// CodeString implements stellarnet.AssetBase.
+func (a Asset) CodeString() string {
+	return a.Code
+}
+
+// IssuerString implements stellarnet.AssetBase.
+func (a Asset) IssuerString() string {
+	return a.Issuer
 }

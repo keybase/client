@@ -30,60 +30,58 @@ type ShouldCreateResult struct {
 
 // ShouldCreate asks the server whether to create this user's initial wallet.
 func ShouldCreate(ctx context.Context, g *libkb.GlobalContext) (res ShouldCreateResult, err error) {
-	defer g.CTraceTimed(ctx, "Stellar.ShouldCreate", func() error { return err })()
+	mctx := libkb.NewMetaContext(ctx, g)
+	defer mctx.Trace("Stellar.ShouldCreate", &err)()
 	defer func() {
-		g.Log.CDebugf(ctx, "Stellar.ShouldCreate: (res:%+v, err:%v)", res, err != nil)
+		mctx.Debug("Stellar.ShouldCreate: (res:%+v, err:%v)", res, err != nil)
 	}()
-	arg := libkb.NewAPIArgWithNetContext(ctx, "stellar/shouldcreate")
+	arg := libkb.NewAPIArg("stellar/shouldcreate")
 	arg.RetryCount = 3
 	arg.SessionType = libkb.APISessionTypeREQUIRED
 	var apiRes shouldCreateRes
-	err = g.API.GetDecode(arg, &apiRes)
+	err = mctx.G().API.GetDecode(mctx, arg, &apiRes)
 	return apiRes.ShouldCreateResult, err
 }
 
-func buildChainLinkPayload(m libkb.MetaContext, b stellar1.Bundle, me *libkb.User, pukGen keybase1.PerUserKeyGeneration, pukSeed libkb.PerUserKeySeed, deviceSigKey libkb.GenericKey) (*libkb.JSONPayload, error) {
+func buildChainLinkPayload(m libkb.MetaContext, b stellar1.Bundle, me *libkb.User, pukGen keybase1.PerUserKeyGeneration, pukSeed libkb.PerUserKeySeed, deviceSigKey libkb.GenericKey) (*libkb.JSONPayload, keybase1.Seqno, libkb.LinkID, error) {
 	err := b.CheckInvariants()
 	if err != nil {
-		return nil, err
+		return nil, 0, nil, err
 	}
 	if len(b.Accounts) < 1 {
-		return nil, errors.New("stellar bundle has no accounts")
+		return nil, 0, nil, errors.New("stellar bundle has no accounts")
 	}
 	// Find the new primary account for the chain link.
 	stellarAccount, err := b.PrimaryAccount()
 	if err != nil {
-		return nil, err
+		return nil, 0, nil, err
 	}
 	stellarAccountBundle, ok := b.AccountBundles[stellarAccount.AccountID]
 	if !ok {
-		return nil, errors.New("stellar primary account has no account bundle")
+		return nil, 0, nil, errors.New("stellar primary account has no account bundle")
 	}
 	if len(stellarAccountBundle.Signers) < 1 {
-		return nil, errors.New("stellar bundle has no signers")
+		return nil, 0, nil, errors.New("stellar bundle has no signers")
 	}
 	if !stellarAccount.IsPrimary {
-		return nil, errors.New("initial stellar account is not primary")
+		return nil, 0, nil, errors.New("initial stellar account is not primary")
 	}
-	m.CDebugf("Stellar.PostWithChainLink: revision:%v accountID:%v pukGen:%v", b.Revision, stellarAccount.AccountID, pukGen)
+	m.Debug("Stellar.PostWithChainLink: revision:%v accountID:%v pukGen:%v", b.Revision, stellarAccount.AccountID, pukGen)
 
 	boxed, err := bundle.BoxAndEncode(&b, pukGen, pukSeed)
 	if err != nil {
-		return nil, err
+		return nil, 0, nil, err
 	}
 
-	m.CDebugf("Stellar.PostWithChainLink: make sigs")
+	m.Debug("Stellar.PostWithChainLink: make sigs")
 
 	sig, err := libkb.StellarProofReverseSigned(m, me, stellarAccount.AccountID, stellarAccountBundle.Signers[0], deviceSigKey)
 	if err != nil {
-		return nil, err
+		return nil, 0, nil, err
 	}
 
-	var sigsList []libkb.JSONPayload
-	sigsList = append(sigsList, sig)
-
 	payload := make(libkb.JSONPayload)
-	payload["sigs"] = sigsList
+	payload["sigs"] = []libkb.JSONPayload{sig.Payload}
 	section := make(libkb.JSONPayload)
 	section["encrypted_parent"] = boxed.EncParentB64
 	section["visible_parent"] = boxed.VisParentB64
@@ -91,18 +89,18 @@ func buildChainLinkPayload(m libkb.MetaContext, b stellar1.Bundle, me *libkb.Use
 	section["account_bundles"] = boxed.AcctBundles
 	payload["stellar"] = section
 
-	return &payload, nil
+	return &payload, sig.Seqno, sig.LinkID, nil
 }
 
 // Post a bundle to the server with a chainlink.
 func PostWithChainlink(mctx libkb.MetaContext, clearBundle stellar1.Bundle) (err error) {
-	defer mctx.CTraceTimed("Stellar.PostWithChainlink", func() error { return err })()
+	defer mctx.Trace("Stellar.PostWithChainlink", &err)()
 
 	uid := mctx.G().ActiveDevice.UID()
 	if uid.IsNil() {
 		return libkb.NoUIDError{}
 	}
-	mctx.CDebugf("Stellar.PostWithChainLink: load self")
+	mctx.Debug("Stellar.PostWithChainLink: load self")
 	loadMeArg := libkb.NewLoadUserArg(mctx.G()).
 		WithNetContext(mctx.Ctx()).
 		WithUID(uid).
@@ -122,30 +120,31 @@ func PostWithChainlink(mctx libkb.MetaContext, clearBundle stellar1.Bundle) (err
 		return err
 	}
 
-	var payload *libkb.JSONPayload
-	payload, err = buildChainLinkPayload(mctx, clearBundle, me, pukGen, pukSeed, deviceSigKey)
+	payload, seqno, linkID, err := buildChainLinkPayload(mctx, clearBundle, me, pukGen, pukSeed, deviceSigKey)
 	if err != nil {
 		return err
 	}
 
-	mctx.CDebugf("Stellar.PostWithChainLink: post")
-	_, err = mctx.G().API.PostJSON(libkb.APIArg{
+	mctx.Debug("Stellar.PostWithChainLink: post")
+	_, err = mctx.G().API.PostJSON(mctx, libkb.APIArg{
 		Endpoint:    "key/multi",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		JSONPayload: *payload,
-		MetaContext: mctx,
 	})
 	if err != nil {
 		return err
 	}
+	if err = libkb.MerkleCheckPostedUserSig(mctx, uid, seqno, linkID); err != nil {
+		return err
+	}
 
-	mctx.G().UserChanged(uid)
+	mctx.G().UserChanged(mctx.Ctx(), uid)
 	return nil
 }
 
 // Post a bundle to the server.
 func Post(mctx libkb.MetaContext, clearBundle stellar1.Bundle) (err error) {
-	defer mctx.CTraceTimed("Stellar.Post", func() error { return err })()
+	defer mctx.Trace("Stellar.Post", &err)()
 
 	err = clearBundle.CheckInvariants()
 	if err != nil {
@@ -167,7 +166,7 @@ func Post(mctx libkb.MetaContext, clearBundle stellar1.Bundle) (err error) {
 	section["version_parent"] = boxed.FormatVersionParent
 	section["account_bundles"] = boxed.AcctBundles
 	payload["stellar"] = section
-	_, err = mctx.G().API.PostJSON(libkb.APIArg{
+	_, err = mctx.G().API.PostJSON(mctx, libkb.APIArg{
 		Endpoint:    "stellar/acctbundle",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		JSONPayload: payload,
@@ -177,7 +176,7 @@ func Post(mctx libkb.MetaContext, clearBundle stellar1.Bundle) (err error) {
 
 func fetchBundleForAccount(mctx libkb.MetaContext, accountID *stellar1.AccountID) (
 	b *stellar1.Bundle, bv stellar1.BundleVersion, pukGen keybase1.PerUserKeyGeneration, accountGens bundle.AccountPukGens, err error) {
-	defer mctx.CTraceTimed("Stellar.fetchBundleForAccount", func() error { return err })()
+	defer mctx.Trace("Stellar.fetchBundleForAccount", &err)()
 
 	fetchArgs := libkb.HTTPArgs{}
 	if accountID != nil {
@@ -187,17 +186,21 @@ func fetchBundleForAccount(mctx libkb.MetaContext, accountID *stellar1.AccountID
 		Endpoint:       "stellar/acctbundle",
 		SessionType:    libkb.APISessionTypeREQUIRED,
 		Args:           fetchArgs,
-		NetContext:     mctx.Ctx(),
 		RetryCount:     3,
 		InitialTimeout: 10 * time.Second,
 	}
 	var apiRes fetchAcctRes
-	if err := mctx.G().API.GetDecode(apiArg, &apiRes); err != nil {
+	if err := mctx.G().API.GetDecode(mctx, apiArg, &apiRes); err != nil {
 		return nil, 0, 0, accountGens, err
 	}
 
 	finder := &pukFinder{}
-	return bundle.DecodeAndUnbox(mctx, finder, apiRes.BundleEncoded)
+	b, bv, pukGen, accountGens, err = bundle.DecodeAndUnbox(mctx, finder, apiRes.BundleEncoded)
+	if err != nil {
+		return b, bv, pukGen, accountGens, err
+	}
+	mctx.G().GetStellar().InformBundle(mctx, b.Revision, b.Accounts)
+	return b, bv, pukGen, accountGens, err
 }
 
 // FetchSecretlessBundle gets an account bundle from the server and decrypts it
@@ -205,7 +208,7 @@ func fetchBundleForAccount(mctx libkb.MetaContext, accountID *stellar1.AccountID
 // This method is safe to be called by any of a user's devices even if one or more of
 // the accounts is marked as mobile only.
 func FetchSecretlessBundle(mctx libkb.MetaContext) (bundle *stellar1.Bundle, err error) {
-	defer mctx.CTraceTimed("Stellar.FetchSecretlessBundle", func() error { return err })()
+	defer mctx.Trace("Stellar.FetchSecretlessBundle", &err)()
 
 	bundle, _, _, _, err = fetchBundleForAccount(mctx, nil)
 	return bundle, err
@@ -217,7 +220,7 @@ func FetchSecretlessBundle(mctx libkb.MetaContext) (bundle *stellar1.Bundle, err
 // an account that is mobile only. If you don't need the secrets, use
 // FetchSecretlessBundle instead.
 func FetchAccountBundle(mctx libkb.MetaContext, accountID stellar1.AccountID) (bundle *stellar1.Bundle, err error) {
-	defer mctx.CTraceTimed("Stellar.FetchAccountBundle", func() error { return err })()
+	defer mctx.Trace("Stellar.FetchAccountBundle", &err)()
 
 	bundle, _, _, _, err = fetchBundleForAccount(mctx, &accountID)
 	return bundle, err
@@ -231,7 +234,7 @@ func FetchAccountBundle(mctx libkb.MetaContext, accountID stellar1.AccountID) (b
 // AccountPukGens map. FetchBundleWithGens is only for very specific usecases.
 // FetchAccountBundle and FetchSecretlessBundle are the preferred ways to pull a bundle.
 func FetchBundleWithGens(mctx libkb.MetaContext) (b *stellar1.Bundle, pukGen keybase1.PerUserKeyGeneration, accountGens bundle.AccountPukGens, err error) {
-	defer mctx.CTraceTimed("Stellar.FetchBundleWithGens", func() error { return err })()
+	defer mctx.Trace("Stellar.FetchBundleWithGens", &err)()
 
 	b, _, pukGen, _, err = fetchBundleForAccount(mctx, nil) // this bundle no account secrets
 	if err != nil {
@@ -243,7 +246,7 @@ func FetchBundleWithGens(mctx libkb.MetaContext) (b *stellar1.Bundle, pukGen key
 		singleBundle, _, _, singleAccountGens, err := fetchBundleForAccount(mctx, &acct.AccountID)
 		if err != nil {
 			// expected errors include SCStellarDeviceNotMobile, SCStellarMobileOnlyPurgatory
-			mctx.CDebugf("unable to pull secrets for account %v which is not necessarily a problem %v", acct.AccountID, err)
+			mctx.Debug("unable to pull secrets for account %v which is not necessarily a problem %v", acct.AccountID, err)
 			continue
 		}
 		accBundle := singleBundle.AccountBundles[acct.AccountID]
@@ -285,18 +288,18 @@ type seqnoResult struct {
 }
 
 func AccountSeqno(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) (uint64, error) {
+	mctx := libkb.NewMetaContext(ctx, g)
 	apiArg := libkb.APIArg{
 		Endpoint:        "stellar/accountseqno",
 		SessionType:     libkb.APISessionTypeREQUIRED,
 		Args:            libkb.HTTPArgs{"account_id": libkb.S{Val: string(accountID)}},
-		NetContext:      ctx,
 		RetryCount:      3,
 		RetryMultiplier: 1.5,
 		InitialTimeout:  10 * time.Second,
 	}
 
 	var res seqnoResult
-	if err := g.API.GetDecode(apiArg, &res); err != nil {
+	if err := mctx.G().API.GetDecode(mctx, apiArg, &res); err != nil {
 		return 0, err
 	}
 
@@ -318,18 +321,18 @@ func (b *balancesResult) GetAppStatus() *libkb.AppStatus {
 }
 
 func Balances(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) ([]stellar1.Balance, error) {
+	mctx := libkb.NewMetaContext(ctx, g)
 	apiArg := libkb.APIArg{
 		Endpoint:        "stellar/balances",
 		SessionType:     libkb.APISessionTypeREQUIRED,
 		Args:            libkb.HTTPArgs{"account_id": libkb.S{Val: string(accountID)}},
-		NetContext:      ctx,
 		RetryCount:      3,
 		RetryMultiplier: 1.5,
 		InitialTimeout:  10 * time.Second,
 	}
 
 	var res balancesResult
-	if err := g.API.GetDecode(apiArg, &res); err != nil {
+	if err := mctx.G().API.GetDecode(mctx, apiArg, &res); err != nil {
 		return nil, err
 	}
 
@@ -350,19 +353,23 @@ func Details(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.Acc
 	if strings.TrimSpace(accountID.String()) == "" {
 		return stellar1.AccountDetails{}, ErrAccountIDMissing
 	}
+	mctx := libkb.NewMetaContext(ctx, g)
 
 	apiArg := libkb.APIArg{
-		Endpoint:        "stellar/details",
-		SessionType:     libkb.APISessionTypeREQUIRED,
-		Args:            libkb.HTTPArgs{"account_id": libkb.S{Val: string(accountID)}},
-		NetContext:      ctx,
+		Endpoint:    "stellar/details",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		Args: libkb.HTTPArgs{
+			"account_id":       libkb.S{Val: string(accountID)},
+			"include_multi":    libkb.B{Val: true},
+			"include_advanced": libkb.B{Val: true},
+		},
 		RetryCount:      3,
 		RetryMultiplier: 1.5,
 		InitialTimeout:  10 * time.Second,
 	}
 
 	var res detailsResult
-	if err := g.API.GetDecode(apiArg, &res); err != nil {
+	if err := mctx.G().API.GetDecode(mctx, apiArg, &res); err != nil {
 		return stellar1.AccountDetails{}, err
 	}
 	res.Details.SetDefaultDisplayCurrency()
@@ -382,10 +389,10 @@ func SubmitPayment(ctx context.Context, g *libkb.GlobalContext, post stellar1.Pa
 		Endpoint:    "stellar/submitpayment",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		JSONPayload: payload,
-		NetContext:  ctx,
 	}
 	var res submitResult
-	if err := g.API.PostDecode(apiArg, &res); err != nil {
+	mctx := libkb.NewMetaContext(ctx, g)
+	if err := g.API.PostDecode(mctx, apiArg, &res); err != nil {
 		return stellar1.PaymentResult{}, err
 	}
 	return res.PaymentResult, nil
@@ -398,13 +405,34 @@ func SubmitRelayPayment(ctx context.Context, g *libkb.GlobalContext, post stella
 		Endpoint:    "stellar/submitrelaypayment",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		JSONPayload: payload,
-		NetContext:  ctx,
 	}
 	var res submitResult
-	if err := g.API.PostDecode(apiArg, &res); err != nil {
+	mctx := libkb.NewMetaContext(ctx, g)
+	if err := g.API.PostDecode(mctx, apiArg, &res); err != nil {
 		return stellar1.PaymentResult{}, err
 	}
 	return res.PaymentResult, nil
+}
+
+type submitMultiResult struct {
+	libkb.AppStatusEmbed
+	SubmitMultiRes stellar1.SubmitMultiRes `json:"submit_multi_result"`
+}
+
+func SubmitMultiPayment(ctx context.Context, g *libkb.GlobalContext, post stellar1.PaymentMultiPost) (stellar1.SubmitMultiRes, error) {
+	payload := make(libkb.JSONPayload)
+	payload["payment"] = post
+	apiArg := libkb.APIArg{
+		Endpoint:    "stellar/submitmultipayment",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		JSONPayload: payload,
+	}
+	var res submitMultiResult
+	mctx := libkb.NewMetaContext(ctx, g)
+	if err := g.API.PostDecode(mctx, apiArg, &res); err != nil {
+		return stellar1.SubmitMultiRes{}, err
+	}
+	return res.SubmitMultiRes, nil
 }
 
 type submitClaimResult struct {
@@ -419,10 +447,10 @@ func SubmitRelayClaim(ctx context.Context, g *libkb.GlobalContext, post stellar1
 		Endpoint:    "stellar/submitrelayclaim",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		JSONPayload: payload,
-		NetContext:  ctx,
 	}
 	var res submitClaimResult
-	if err := g.API.PostDecode(apiArg, &res); err != nil {
+	mctx := libkb.NewMetaContext(ctx, g)
+	if err := g.API.PostDecode(mctx, apiArg, &res); err != nil {
 		return stellar1.RelayClaimResult{}, err
 	}
 	return res.RelayClaimResult, nil
@@ -437,10 +465,10 @@ func AcquireAutoClaimLock(ctx context.Context, g *libkb.GlobalContext) (string, 
 	apiArg := libkb.APIArg{
 		Endpoint:    "stellar/acquireautoclaimlock",
 		SessionType: libkb.APISessionTypeREQUIRED,
-		NetContext:  ctx,
 	}
 	var res acquireAutoClaimLockResult
-	if err := g.API.PostDecode(apiArg, &res); err != nil {
+	mctx := libkb.NewMetaContext(ctx, g)
+	if err := g.API.PostDecode(mctx, apiArg, &res); err != nil {
 		return "", err
 	}
 	return res.Result, nil
@@ -453,10 +481,10 @@ func ReleaseAutoClaimLock(ctx context.Context, g *libkb.GlobalContext, token str
 		Endpoint:    "stellar/releaseautoclaimlock",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		JSONPayload: payload,
-		NetContext:  ctx,
 	}
 	var res libkb.AppStatusEmbed
-	return g.API.PostDecode(apiArg, &res)
+	mctx := libkb.NewMetaContext(ctx, g)
+	return g.API.PostDecode(mctx, apiArg, &res)
 }
 
 type nextAutoClaimResult struct {
@@ -468,10 +496,10 @@ func NextAutoClaim(ctx context.Context, g *libkb.GlobalContext) (*stellar1.AutoC
 	apiArg := libkb.APIArg{
 		Endpoint:    "stellar/nextautoclaim",
 		SessionType: libkb.APISessionTypeREQUIRED,
-		NetContext:  ctx,
 	}
 	var res nextAutoClaimResult
-	if err := g.API.PostDecode(apiArg, &res); err != nil {
+	mctx := libkb.NewMetaContext(ctx, g)
+	if err := g.API.PostDecode(mctx, apiArg, &res); err != nil {
 		return nil, err
 	}
 	return res.Result, nil
@@ -482,30 +510,31 @@ type recentPaymentsResult struct {
 	Result stellar1.PaymentsPage `json:"res"`
 }
 
-func RecentPayments(ctx context.Context, g *libkb.GlobalContext,
-	accountID stellar1.AccountID, cursor *stellar1.PageCursor, limit int, skipPending bool) (stellar1.PaymentsPage, error) {
+func RecentPayments(ctx context.Context, g *libkb.GlobalContext, arg RecentPaymentsArg) (stellar1.PaymentsPage, error) {
+	mctx := libkb.NewMetaContext(ctx, g)
 	apiArg := libkb.APIArg{
 		Endpoint:    "stellar/recentpayments",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args: libkb.HTTPArgs{
-			"account_id":   libkb.S{Val: accountID.String()},
-			"limit":        libkb.I{Val: limit},
-			"skip_pending": libkb.B{Val: skipPending},
+			"account_id":       libkb.S{Val: arg.AccountID.String()},
+			"limit":            libkb.I{Val: arg.Limit},
+			"skip_pending":     libkb.B{Val: arg.SkipPending},
+			"include_multi":    libkb.B{Val: true},
+			"include_advanced": libkb.B{Val: arg.IncludeAdvanced},
 		},
-		NetContext:      ctx,
 		RetryCount:      3,
 		RetryMultiplier: 1.5,
 		InitialTimeout:  10 * time.Second,
 	}
 
-	if cursor != nil {
-		apiArg.Args["horizon_cursor"] = libkb.S{Val: cursor.HorizonCursor}
-		apiArg.Args["direct_cursor"] = libkb.S{Val: cursor.DirectCursor}
-		apiArg.Args["relay_cursor"] = libkb.S{Val: cursor.RelayCursor}
+	if arg.Cursor != nil {
+		apiArg.Args["horizon_cursor"] = libkb.S{Val: arg.Cursor.HorizonCursor}
+		apiArg.Args["direct_cursor"] = libkb.S{Val: arg.Cursor.DirectCursor}
+		apiArg.Args["relay_cursor"] = libkb.S{Val: arg.Cursor.RelayCursor}
 	}
 
 	var apiRes recentPaymentsResult
-	err := g.API.GetDecode(apiArg, &apiRes)
+	err := mctx.G().API.GetDecode(mctx, apiArg, &apiRes)
 	return apiRes.Result, err
 }
 
@@ -515,6 +544,7 @@ type pendingPaymentsResult struct {
 }
 
 func PendingPayments(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID, limit int) ([]stellar1.PaymentSummary, error) {
+	mctx := libkb.NewMetaContext(ctx, g)
 	apiArg := libkb.APIArg{
 		Endpoint:    "stellar/pendingpayments",
 		SessionType: libkb.APISessionTypeREQUIRED,
@@ -522,14 +552,13 @@ func PendingPayments(ctx context.Context, g *libkb.GlobalContext, accountID stel
 			"account_id": libkb.S{Val: accountID.String()},
 			"limit":      libkb.I{Val: limit},
 		},
-		NetContext:      ctx,
 		RetryCount:      3,
 		RetryMultiplier: 1.5,
 		InitialTimeout:  10 * time.Second,
 	}
 
 	var apiRes pendingPaymentsResult
-	err := g.API.GetDecode(apiArg, &apiRes)
+	err := mctx.G().API.GetDecode(mctx, apiArg, &apiRes)
 	return apiRes.Result, err
 }
 
@@ -538,20 +567,38 @@ type paymentDetailResult struct {
 	Result stellar1.PaymentDetails `json:"res"`
 }
 
-func PaymentDetails(ctx context.Context, g *libkb.GlobalContext, txID string) (res stellar1.PaymentDetails, err error) {
+func PaymentDetails(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID, txID string) (res stellar1.PaymentDetails, err error) {
+	mctx := libkb.NewMetaContext(ctx, g)
+	apiArg := libkb.APIArg{
+		Endpoint:    "stellar/paymentdetail",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		Args: libkb.HTTPArgs{
+			"account_id": libkb.S{Val: string(accountID)},
+			"txID":       libkb.S{Val: txID},
+		},
+		RetryCount:      3,
+		RetryMultiplier: 1.5,
+		InitialTimeout:  10 * time.Second,
+	}
+	var apiRes paymentDetailResult
+	err = mctx.G().API.GetDecode(mctx, apiArg, &apiRes)
+	return apiRes.Result, err
+}
+
+func PaymentDetailsGeneric(ctx context.Context, g *libkb.GlobalContext, txID string) (res stellar1.PaymentDetails, err error) {
+	mctx := libkb.NewMetaContext(ctx, g)
 	apiArg := libkb.APIArg{
 		Endpoint:    "stellar/paymentdetail",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args: libkb.HTTPArgs{
 			"txID": libkb.S{Val: txID},
 		},
-		NetContext:      ctx,
 		RetryCount:      3,
 		RetryMultiplier: 1.5,
 		InitialTimeout:  10 * time.Second,
 	}
 	var apiRes paymentDetailResult
-	err = g.API.GetDecode(apiArg, &apiRes)
+	err = mctx.G().API.GetDecode(mctx, apiArg, &apiRes)
 	return apiRes.Result, err
 }
 
@@ -565,19 +612,19 @@ type tickerResult struct {
 }
 
 func ExchangeRate(ctx context.Context, g *libkb.GlobalContext, currency string) (stellar1.OutsideExchangeRate, error) {
+	mctx := libkb.NewMetaContext(ctx, g)
 	apiArg := libkb.APIArg{
 		Endpoint:    "stellar/ticker",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args: libkb.HTTPArgs{
 			"currency": libkb.S{Val: currency},
 		},
-		NetContext:      ctx,
 		RetryCount:      3,
 		RetryMultiplier: 1.5,
 		InitialTimeout:  10 * time.Second,
 	}
 	var apiRes tickerResult
-	if err := g.API.GetDecode(apiArg, &apiRes); err != nil {
+	if err := mctx.G().API.GetDecode(mctx, apiArg, &apiRes); err != nil {
 		return stellar1.OutsideExchangeRate{}, err
 	}
 	return stellar1.OutsideExchangeRate{
@@ -592,6 +639,7 @@ type accountCurrencyResult struct {
 }
 
 func GetAccountDisplayCurrency(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) (string, error) {
+	mctx := libkb.NewMetaContext(ctx, g)
 	if strings.TrimSpace(accountID.String()) == "" {
 		return "", ErrAccountIDMissing
 	}
@@ -605,19 +653,19 @@ func GetAccountDisplayCurrency(ctx context.Context, g *libkb.GlobalContext, acco
 		Args: libkb.HTTPArgs{
 			"account_id": libkb.S{Val: string(accountID)},
 		},
-		NetContext:     ctx,
 		RetryCount:     3,
 		InitialTimeout: 10 * time.Second,
 	}
 	var apiRes accountCurrencyResult
-	err := g.API.GetDecode(apiArg, &apiRes)
+	err := mctx.G().API.GetDecode(mctx, apiArg, &apiRes)
 	return apiRes.CurrencyDisplayPreference, err
 }
 
 func SetAccountDefaultCurrency(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID,
 	currency string) error {
+	mctx := libkb.NewMetaContext(ctx, g)
 
-	conf, err := g.GetStellar().GetServerDefinitions(ctx)
+	conf, err := mctx.G().GetStellar().GetServerDefinitions(ctx)
 	if err != nil {
 		return err
 	}
@@ -631,9 +679,9 @@ func SetAccountDefaultCurrency(ctx context.Context, g *libkb.GlobalContext, acco
 			"account_id": libkb.S{Val: string(accountID)},
 			"currency":   libkb.S{Val: currency},
 		},
-		NetContext: ctx,
 	}
-	_, err = g.API.Post(apiArg)
+	_, err = mctx.G().API.Post(mctx, apiArg)
+	mctx.G().GetStellar().InformDefaultCurrencyChange(mctx)
 	return err
 }
 
@@ -643,15 +691,15 @@ type disclaimerResult struct {
 }
 
 func GetAcceptedDisclaimer(ctx context.Context, g *libkb.GlobalContext) (ret bool, err error) {
+	mctx := libkb.NewMetaContext(ctx, g)
 	apiArg := libkb.APIArg{
 		Endpoint:       "stellar/disclaimer",
 		SessionType:    libkb.APISessionTypeREQUIRED,
-		NetContext:     ctx,
 		RetryCount:     3,
 		InitialTimeout: 10 * time.Second,
 	}
 	var apiRes disclaimerResult
-	err = g.API.GetDecode(apiArg, &apiRes)
+	err = mctx.G().API.GetDecode(mctx, apiArg, &apiRes)
 	if err != nil {
 		return ret, err
 	}
@@ -659,12 +707,12 @@ func GetAcceptedDisclaimer(ctx context.Context, g *libkb.GlobalContext) (ret boo
 }
 
 func SetAcceptedDisclaimer(ctx context.Context, g *libkb.GlobalContext) error {
+	mctx := libkb.NewMetaContext(ctx, g)
 	apiArg := libkb.APIArg{
 		Endpoint:    "stellar/disclaimer",
 		SessionType: libkb.APISessionTypeREQUIRED,
-		NetContext:  ctx,
 	}
-	_, err := g.API.Post(apiArg)
+	_, err := mctx.G().API.Post(mctx, apiArg)
 	return err
 }
 
@@ -680,10 +728,10 @@ func SubmitRequest(ctx context.Context, g *libkb.GlobalContext, post stellar1.Re
 		Endpoint:    "stellar/submitrequest",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		JSONPayload: payload,
-		NetContext:  ctx,
 	}
 	var res submitRequestResult
-	if err := g.API.PostDecode(apiArg, &res); err != nil {
+	mctx := libkb.NewMetaContext(ctx, g)
+	if err := g.API.PostDecode(mctx, apiArg, &res); err != nil {
 		return ret, err
 	}
 	return res.RequestID, nil
@@ -695,19 +743,19 @@ type requestDetailsResult struct {
 }
 
 func RequestDetails(ctx context.Context, g *libkb.GlobalContext, requestID stellar1.KeybaseRequestID) (ret stellar1.RequestDetails, err error) {
+	mctx := libkb.NewMetaContext(ctx, g)
 	apiArg := libkb.APIArg{
 		Endpoint:    "stellar/requestdetails",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args: libkb.HTTPArgs{
 			"id": libkb.S{Val: requestID.String()},
 		},
-		NetContext:      ctx,
 		RetryCount:      3,
 		RetryMultiplier: 1.5,
 		InitialTimeout:  10 * time.Second,
 	}
 	var res requestDetailsResult
-	if err := g.API.GetDecode(apiArg, &res); err != nil {
+	if err := mctx.G().API.GetDecode(mctx, apiArg, &res); err != nil {
 		return ret, err
 	}
 	return res.Request, nil
@@ -720,10 +768,10 @@ func CancelRequest(ctx context.Context, g *libkb.GlobalContext, requestID stella
 		Endpoint:    "stellar/cancelrequest",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		JSONPayload: payload,
-		NetContext:  ctx,
 	}
 	var res libkb.AppStatusEmbed
-	return g.API.PostDecode(apiArg, &res)
+	mctx := libkb.NewMetaContext(ctx, g)
+	return g.API.PostDecode(mctx, apiArg, &res)
 }
 
 func MarkAsRead(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID, mostRecentID stellar1.TransactionID) error {
@@ -734,10 +782,10 @@ func MarkAsRead(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.
 		Endpoint:    "stellar/markasread",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		JSONPayload: payload,
-		NetContext:  ctx,
 	}
 	var res libkb.AppStatusEmbed
-	return g.API.PostDecode(apiArg, &res)
+	mctx := libkb.NewMetaContext(ctx, g)
+	return g.API.PostDecode(mctx, apiArg, &res)
 }
 
 func IsAccountMobileOnly(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) (bool, error) {
@@ -776,7 +824,7 @@ func SetAccountMobileOnly(ctx context.Context, g *libkb.GlobalContext, accountID
 	}
 	nextBundle := bundle.AdvanceAccounts(*b, []stellar1.AccountID{accountID})
 	if err := Post(mctx, nextBundle); err != nil {
-		mctx.CDebugf("SetAccountMobileOnly Post error: %s", err)
+		mctx.Debug("SetAccountMobileOnly Post error: %s", err)
 		return err
 	}
 
@@ -802,7 +850,7 @@ func MakeAccountAllDevices(ctx context.Context, g *libkb.GlobalContext, accountI
 	}
 	nextBundle := bundle.AdvanceAccounts(*b, []stellar1.AccountID{accountID})
 	if err := Post(mctx, nextBundle); err != nil {
-		mctx.CDebugf("MakeAccountAllDevices Post error: %s", err)
+		mctx.Debug("MakeAccountAllDevices Post error: %s", err)
 		return err
 	}
 
@@ -818,18 +866,18 @@ type lookupUnverifiedResult struct {
 }
 
 func LookupUnverified(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) (ret []keybase1.UserVersion, err error) {
+	mctx := libkb.NewMetaContext(ctx, g)
 	apiArg := libkb.APIArg{
 		Endpoint:    "stellar/lookup",
 		SessionType: libkb.APISessionTypeOPTIONAL,
 		Args: libkb.HTTPArgs{
 			"account_id": libkb.S{Val: accountID.String()},
 		},
-		MetaContext:    libkb.NewMetaContext(ctx, g),
 		RetryCount:     3,
 		InitialTimeout: 10 * time.Second,
 	}
 	var res lookupUnverifiedResult
-	if err := g.API.GetDecode(apiArg, &res); err != nil {
+	if err := mctx.G().API.GetDecode(mctx, apiArg, &res); err != nil {
 		return ret, err
 	}
 	for _, user := range res.Users {
@@ -856,30 +904,30 @@ type serverTimeboundsRes struct {
 }
 
 func ServerTimeboundsRecommendation(ctx context.Context, g *libkb.GlobalContext) (ret stellar1.TimeboundsRecommendation, err error) {
+	mctx := libkb.NewMetaContext(ctx, g)
 	apiArg := libkb.APIArg{
 		Endpoint:    "stellar/timebounds",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args:        libkb.HTTPArgs{},
-		MetaContext: libkb.NewMetaContext(ctx, g),
 		RetryCount:  3,
 	}
 	var res serverTimeboundsRes
-	if err := g.API.GetDecode(apiArg, &res); err != nil {
+	if err := mctx.G().API.GetDecode(mctx, apiArg, &res); err != nil {
 		return ret, err
 	}
 	return res.TimeboundsRecommendation, nil
 }
 
 func SetInflationDestination(ctx context.Context, g *libkb.GlobalContext, signedTx string) (err error) {
+	mctx := libkb.NewMetaContext(ctx, g)
 	apiArg := libkb.APIArg{
 		Endpoint:    "stellar/setinflation",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args: libkb.HTTPArgs{
 			"sig": libkb.S{Val: signedTx},
 		},
-		MetaContext: libkb.NewMetaContext(ctx, g),
 	}
-	_, err = g.API.Post(apiArg)
+	_, err = mctx.G().API.Post(mctx, apiArg)
 	return err
 }
 
@@ -889,49 +937,107 @@ type getInflationDestinationsRes struct {
 }
 
 func GetInflationDestinations(ctx context.Context, g *libkb.GlobalContext) (ret []stellar1.PredefinedInflationDestination, err error) {
+	mctx := libkb.NewMetaContext(ctx, g)
 	apiArg := libkb.APIArg{
 		Endpoint:    "stellar/inflation_destinations",
 		SessionType: libkb.APISessionTypeREQUIRED,
-		MetaContext: libkb.NewMetaContext(ctx, g),
 	}
 	var apiRes getInflationDestinationsRes
-	err = g.API.GetDecode(apiArg, &apiRes)
+	err = mctx.G().API.GetDecode(mctx, apiArg, &apiRes)
 	if err != nil {
 		return ret, err
 	}
 	return apiRes.Destinations, nil
 }
 
-type airdropDetails struct {
+type networkOptionsRes struct {
 	libkb.AppStatusEmbed
-	Details json.RawMessage `json:"details"`
+	Options stellar1.NetworkOptions
 }
 
-func AirdropDetails(mctx libkb.MetaContext) (string, error) {
+func NetworkOptions(ctx context.Context, g *libkb.GlobalContext) (stellar1.NetworkOptions, error) {
+	mctx := libkb.NewMetaContext(ctx, g)
 	apiArg := libkb.APIArg{
-		MetaContext: mctx,
+		Endpoint:    "stellar/network_options",
+		SessionType: libkb.APISessionTypeREQUIRED,
+	}
+	var apiRes networkOptionsRes
+	if err := mctx.G().API.GetDecode(mctx, apiArg, &apiRes); err != nil {
+		return stellar1.NetworkOptions{}, err
+	}
+	return apiRes.Options, nil
+}
+
+type detailsPlusPaymentsRes struct {
+	libkb.AppStatusEmbed
+	Result stellar1.DetailsPlusPayments `json:"res"`
+}
+
+func DetailsPlusPayments(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) (stellar1.DetailsPlusPayments, error) {
+	mctx := libkb.NewMetaContext(ctx, g)
+	apiArg := libkb.APIArg{
+		Endpoint:    "stellar/details_plus_payments",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		Args: libkb.HTTPArgs{
+			"account_id":       libkb.S{Val: accountID.String()},
+			"include_advanced": libkb.B{Val: true},
+		},
+	}
+	var apiRes detailsPlusPaymentsRes
+	if err := mctx.G().API.GetDecode(mctx, apiArg, &apiRes); err != nil {
+		return stellar1.DetailsPlusPayments{}, err
+	}
+	return apiRes.Result, nil
+}
+
+type allDetailsPlusPaymentsRes struct {
+	libkb.AppStatusEmbed
+	Result []stellar1.DetailsPlusPayments `json:"res"`
+}
+
+func AllDetailsPlusPayments(mctx libkb.MetaContext) ([]stellar1.DetailsPlusPayments, error) {
+	apiArg := libkb.APIArg{
+		Endpoint:    "stellar/all_details_plus_payments",
+		SessionType: libkb.APISessionTypeREQUIRED,
+	}
+	var apiRes allDetailsPlusPaymentsRes
+	if err := mctx.G().API.GetDecode(mctx, apiArg, &apiRes); err != nil {
+		return nil, err
+	}
+
+	return apiRes.Result, nil
+}
+
+type airdropDetails struct {
+	libkb.AppStatusEmbed
+	Details    json.RawMessage `json:"details"`
+	Disclaimer json.RawMessage `json:"disclaimer"`
+	IsPromoted bool            `json:"is_promoted"`
+}
+
+func AirdropDetails(mctx libkb.MetaContext) (bool, string, string, error) {
+	apiArg := libkb.APIArg{
 		Endpoint:    "stellar/airdrop/details",
 		SessionType: libkb.APISessionTypeREQUIRED,
 	}
 
 	var res airdropDetails
-	if err := mctx.G().API.GetDecode(apiArg, &res); err != nil {
-		return "", err
+	if err := mctx.G().API.GetDecode(mctx, apiArg, &res); err != nil {
+		return false, "", "", err
 	}
 
-	return string(res.Details), nil
+	return res.IsPromoted, string(res.Details), string(res.Disclaimer), nil
 }
 
 func AirdropRegister(mctx libkb.MetaContext, register bool) error {
 	apiArg := libkb.APIArg{
-		MetaContext: mctx,
 		Endpoint:    "stellar/airdrop/register",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args: libkb.HTTPArgs{
 			"remove": libkb.B{Val: !register},
 		},
 	}
-	_, err := mctx.G().API.Post(apiArg)
+	_, err := mctx.G().API.Post(mctx, apiArg)
 	return err
 }
 
@@ -965,13 +1071,115 @@ type AirdropStatusAPI struct {
 
 func AirdropStatus(mctx libkb.MetaContext) (AirdropStatusAPI, error) {
 	apiArg := libkb.APIArg{
-		MetaContext: mctx,
 		Endpoint:    "stellar/airdrop/status_check",
 		SessionType: libkb.APISessionTypeREQUIRED,
 	}
 	var status AirdropStatusAPI
-	if err := mctx.G().API.GetDecode(apiArg, &status); err != nil {
+	if err := mctx.G().API.GetDecode(mctx, apiArg, &status); err != nil {
 		return AirdropStatusAPI{}, err
 	}
 	return status, nil
+}
+
+func ChangeTrustline(ctx context.Context, g *libkb.GlobalContext, signedTx string) (err error) {
+	mctx := libkb.NewMetaContext(ctx, g)
+	apiArg := libkb.APIArg{
+		Endpoint:    "stellar/change_trustline",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		Args: libkb.HTTPArgs{
+			"sig": libkb.S{Val: signedTx},
+		},
+	}
+	_, err = mctx.G().API.Post(mctx, apiArg)
+	return err
+}
+
+type findPaymentPathResult struct {
+	libkb.AppStatusEmbed
+	Result stellar1.PaymentPath `json:"result"`
+}
+
+func FindPaymentPath(mctx libkb.MetaContext, query stellar1.PaymentPathQuery) (stellar1.PaymentPath, error) {
+	payload := make(libkb.JSONPayload)
+	payload["query"] = query
+	apiArg := libkb.APIArg{
+		Endpoint:    "stellar/findpaymentpath",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		JSONPayload: payload,
+	}
+
+	var res findPaymentPathResult
+	if err := mctx.G().API.PostDecode(mctx, apiArg, &res); err != nil {
+		return stellar1.PaymentPath{}, err
+	}
+	return res.Result, nil
+}
+
+func SubmitPathPayment(mctx libkb.MetaContext, post stellar1.PathPaymentPost) (stellar1.PaymentResult, error) {
+	payload := make(libkb.JSONPayload)
+	payload["payment"] = post
+	apiArg := libkb.APIArg{
+		Endpoint:    "stellar/submitpathpayment",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		JSONPayload: payload,
+	}
+	var res submitResult
+	if err := mctx.G().API.PostDecode(mctx, apiArg, &res); err != nil {
+		return stellar1.PaymentResult{}, err
+	}
+	return res.PaymentResult, nil
+}
+
+func PostAnyTransaction(mctx libkb.MetaContext, signedTx string) (err error) {
+	apiArg := libkb.APIArg{
+		Endpoint:    "stellar/postanytransaction",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		Args: libkb.HTTPArgs{
+			"sig": libkb.S{Val: signedTx},
+		},
+	}
+	_, err = mctx.G().API.Post(mctx, apiArg)
+	return err
+}
+
+type fuzzyAssetSearchResult struct {
+	libkb.AppStatusEmbed
+	Assets []stellar1.Asset `json:"matches"`
+}
+
+func FuzzyAssetSearch(mctx libkb.MetaContext, arg stellar1.FuzzyAssetSearchArg) ([]stellar1.Asset, error) {
+	apiArg := libkb.APIArg{
+		Endpoint:    "stellar/fuzzy_asset_search",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		Args: libkb.HTTPArgs{
+			"search_string": libkb.S{Val: arg.SearchString},
+		},
+	}
+	var apiRes fuzzyAssetSearchResult
+	if err := mctx.G().API.GetDecode(mctx, apiArg, &apiRes); err != nil {
+		return []stellar1.Asset{}, err
+	}
+	return apiRes.Assets, nil
+}
+
+type popularAssetsResult struct {
+	libkb.AppStatusEmbed
+	Assets     []stellar1.Asset `json:"assets"`
+	TotalCount int              `json:"totalCount"`
+}
+
+func ListPopularAssets(mctx libkb.MetaContext, arg stellar1.ListPopularAssetsArg) (stellar1.AssetListResult, error) {
+	apiArg := libkb.APIArg{
+		Endpoint:    "stellar/list_popular_assets",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		Args:        libkb.HTTPArgs{},
+	}
+	var apiRes popularAssetsResult
+	if err := mctx.G().API.GetDecode(mctx, apiArg, &apiRes); err != nil {
+		return stellar1.AssetListResult{}, err
+	}
+	return stellar1.AssetListResult{
+		Assets:     apiRes.Assets,
+		TotalCount: apiRes.TotalCount,
+	}, nil
 }

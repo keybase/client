@@ -99,7 +99,7 @@ func (pe *Pinentry) Get(arg keybase1.SecretEntryArg) (res *keybase1.SecretEntryR
 
 func (pi *pinentryInstance) Close() {
 	pi.stdin.Close()
-	pi.cmd.Wait()
+	_ = pi.cmd.Wait()
 }
 
 type pinentryInstance struct {
@@ -123,7 +123,6 @@ func (pi *pinentryInstance) Set(cmd, val string, errp *error) {
 	if string(line) != "OK" {
 		*errp = fmt.Errorf("Response to " + cmd + " was " + string(line))
 	}
-	return
 }
 
 func (pi *pinentryInstance) Init() (err error) {
@@ -212,7 +211,11 @@ func (pi *pinentryInstance) Run(arg keybase1.SecretEntryArg) (res *keybase1.Secr
 	case line == "OK":
 		res = &keybase1.SecretEntryRes{}
 	default:
-		return nil, fmt.Errorf("GETPIN response didn't start with D; got %q", line)
+		return nil, fmt.Errorf(
+			"failed to run pinentry: GETPIN response didn't start with D; got %q (see %s for troubleshooting help)",
+			line,
+			"https://github.com/keybase/client/blob/master/go/doc/troubleshooting.md#pinentry-doesnt-work",
+		)
 	}
 
 	return

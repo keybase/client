@@ -7,8 +7,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"sort"
-	"strings"
 
 	"golang.org/x/net/context"
 
@@ -22,9 +20,10 @@ import (
 // CmdProve is the wrapper structure for the `keybase prove` operation.
 type CmdProve struct {
 	libkb.Contextified
-	arg          keybase1.StartProofArg
-	output       string
-	listServices bool
+	arg             keybase1.StartProofArg
+	output          string
+	listServices    bool
+	listAllServices bool
 }
 
 // ParseArgv parses arguments for the prove command.
@@ -32,9 +31,10 @@ func (p *CmdProve) ParseArgv(ctx *cli.Context) error {
 	nargs := len(ctx.Args())
 	p.arg.Force = ctx.Bool("force")
 	p.listServices = ctx.Bool("list-services")
+	p.listAllServices = ctx.Bool("all")
 	p.output = ctx.String("output")
 
-	if p.listServices {
+	if p.listServices || p.listAllServices {
 		return nil
 	}
 
@@ -62,15 +62,26 @@ func (p *CmdProve) fileOutputHook(txt string) (err error) {
 	return
 }
 
+var proofServiceRewrite = map[string]string{
+	"twitter.com":          "twitter",
+	"github.com":           "github",
+	"reddit.com":           "reddit",
+	"news.ycombinator.com": "hackernews",
+	"facebook.com":         "facebook",
+}
+
 // RunClient runs the `keybase prove` subcommand in client/server mode.
 func (p *CmdProve) Run() error {
-
 	cli, err := GetProveClient(p.G())
 	if err != nil {
 		return err
 	}
 
 	var proveUIProtocol rpc.Protocol
+
+	if to, found := proofServiceRewrite[p.arg.Service]; found {
+		p.arg.Service = to
+	}
 
 	if p.arg.Auto {
 		ui := &ProveRooterUI{
@@ -93,14 +104,32 @@ func (p *CmdProve) Run() error {
 		return err
 	}
 
-	if p.listServices {
+	if p.listAllServices {
 		services, err := cli.ListProofServices(context.TODO())
 		if err != nil {
 			return err
 		}
-		sort.Strings(services)
 		ui := p.G().UI.GetTerminalUI()
-		ui.Printf("Supported services are: %s.\n", strings.Join(services, ", "))
+		ui.Printf("All supported services:\n")
+		for _, service := range services {
+			ui.Printf("  %s\n", service)
+		}
+		if len(services) > 50 {
+			ui.Printf("the end\n")
+		}
+		return nil
+	}
+	if p.listServices {
+		services, err := cli.ListSomeProofServices(context.TODO())
+		if err != nil {
+			return err
+		}
+		ui := p.G().UI.GetTerminalUI()
+		ui.Printf("Some supported services:\n")
+		for _, service := range services {
+			ui.Printf("  %s\n", service)
+		}
+		ui.Printf("\nFor a full list of services run: keybase prove --list-services --all\n")
 		return nil
 	}
 
@@ -113,9 +142,7 @@ func (p *CmdProve) Run() error {
 
 func (p *CmdProve) installOutputHook(ui *ProveUI) {
 	if len(p.output) > 0 {
-		ui.outputHook = func(s string) error {
-			return p.fileOutputHook(s)
-		}
+		ui.outputHook = p.fileOutputHook
 	}
 }
 
@@ -137,7 +164,11 @@ func NewCmdProve(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command
 			},
 			cli.BoolFlag{
 				Name:  "list-services, l",
-				Usage: "List all available services",
+				Usage: "List some available services",
+			},
+			cli.BoolFlag{
+				Name:  "all, a",
+				Usage: "List the full gamut of available services",
 			},
 		},
 		Action: func(c *cli.Context) {

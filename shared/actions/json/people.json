@@ -6,18 +6,28 @@
       "numFollowSuggestionsWanted": "number"
     },
     "peopleDataProcessed": {
-      "oldItems": "I.List<Types.PeopleScreenItem>",
-      "newItems": "I.List<Types.PeopleScreenItem>",
-      "followSuggestions": "I.List<Types.FollowSuggestion>",
+      "oldItems": "Array<Types.PeopleScreenItem>",
+      "newItems": "Array<Types.PeopleScreenItem>",
+      "followSuggestions": "Array<Types.FollowSuggestion>",
       "lastViewed": "Date",
       "version": "number"
     },
     "dismissAnnouncement": {
-      id: "RPCTypes.HomeScreenAnnouncementID",
+      "id": "RPCTypes.HomeScreenAnnouncementID"
+    },
+    "dismissWotNotifications":{
+      "voucher": "string",
+      "vouchee": "string"
+    },
+    "badgeAppForWotNotifications": {
+      "updates": "Map<string, Types.WotUpdate>"
     },
     "markViewed": {},
     "skipTodo": {
       "type": "Types.TodoType"
     },
+    "setResentEmail": {
+      "email": "string"
+    }
   }
 }

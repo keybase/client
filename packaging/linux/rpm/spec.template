@@ -1,13 +1,13 @@
 Name: @@NAME@@
 Version: @@VERSION@@
 Release: 1
-Summary: Keybase command line client
+Summary: The Keybase Go client, filesystem, and GUI
 License: BSD
 AutoReqProv: no
 @@DEPENDENCIES@@
 
 %description
-Keybase command line client
+The Keybase Go client, filesystem, and GUI
 
 %install
 mkdir -p "$RPM_BUILD_ROOT"

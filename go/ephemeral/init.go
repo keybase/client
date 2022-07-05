@@ -5,21 +5,19 @@ import (
 )
 
 // Creates a ephemeral key storage and installs it into G.
-func NewEphemeralStorageAndInstall(g *libkb.GlobalContext) {
-	g.SetDeviceEKStorage(NewDeviceEKStorage(g))
-	g.SetUserEKBoxStorage(NewUserEKBoxStorage(g))
-	g.SetTeamEKBoxStorage(NewTeamEKBoxStorage(g))
-	ekLib := NewEKLib(g)
-	g.SetEKLib(ekLib)
-	g.AddLoginHook(ekLib)
-	g.AddLogoutHook(ekLib)
-	g.PushShutdownHook(func() error {
-		g.Log.Debug("stopping background eklib loop")
-		ekLib.Shutdown()
-		return nil
-	})
+func NewEphemeralStorageAndInstall(mctx libkb.MetaContext) {
+	mctx.G().SetDeviceEKStorage(NewDeviceEKStorage(mctx))
+	mctx.G().SetUserEKBoxStorage(NewUserEKBoxStorage())
+	mctx.G().SetTeamEKBoxStorage(NewTeamEKBoxStorage(NewTeamEphemeralKeyer()))
+	mctx.G().SetTeambotEKBoxStorage(NewTeamEKBoxStorage(NewTeambotEphemeralKeyer()))
+	ekLib := NewEKLib(mctx)
+	mctx.G().SetEKLib(ekLib)
+	mctx.G().AddLoginHook(ekLib)
+	mctx.G().AddLogoutHook(ekLib, "ekLib")
+	mctx.G().AddDbNukeHook(ekLib, "ekLib")
+	mctx.G().PushShutdownHook(ekLib.Shutdown)
 }
 
-func ServiceInit(g *libkb.GlobalContext) {
-	NewEphemeralStorageAndInstall(g)
+func ServiceInit(mctx libkb.MetaContext) {
+	NewEphemeralStorageAndInstall(mctx)
 }

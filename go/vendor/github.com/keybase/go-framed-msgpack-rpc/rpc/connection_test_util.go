@@ -66,7 +66,6 @@ func (st singleTransport) Close() {}
 type testStatus struct {
 	Code int
 }
-type testUnwrapper struct{}
 
 func testWrapError(err error) interface{} {
 	return &testStatus{}
@@ -93,6 +92,10 @@ type testErrorUnwrapper struct{}
 
 var _ ErrorUnwrapper = testErrorUnwrapper{}
 
+func (eu testErrorUnwrapper) Timeout() time.Duration {
+	return 0
+}
+
 func (eu testErrorUnwrapper) MakeArg() interface{} {
 	return &testStatus{}
 }
@@ -109,7 +112,6 @@ func (eu testErrorUnwrapper) UnwrapError(arg interface{}) (appError error, dispa
 	switch s.Code {
 	case 15:
 		appError = throttleError{errors.New("throttle")}
-		break
 	default:
 		panic("Unknown testing error")
 	}
@@ -131,7 +133,9 @@ func MakeConnectionForTest(t TestLogger) (net.Conn, *Connection) {
 	clientConn, serverConn := net.Pipe()
 	logOutput := testLogOutput{t}
 	logFactory := NewSimpleLogFactory(logOutput, nil)
-	transporter := NewTransport(clientConn, logFactory, testWrapError, testMaxFrameLength)
+	instrumenterStorage := NewMemoryInstrumentationStorage()
+	transporter := NewTransport(clientConn, logFactory,
+		instrumenterStorage, testWrapError, testMaxFrameLength)
 	st := singleTransport{transporter}
 	opts := ConnectionOpts{
 		WrapErrorFunc: testWrapError,

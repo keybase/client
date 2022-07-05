@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"golang.org/x/net/context"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/logger"
@@ -96,19 +97,39 @@ type TestContext struct {
 	PrevGlobal *GlobalContext
 	Tp         *TestParameters
 	// TODO: Rename this to TB.
-	T TestingTB
+	T         TestingTB
+	eg        *errgroup.Group
+	cleanupCh chan struct{}
+	origLog   logger.Logger
 }
 
 func (tc *TestContext) Cleanup() {
+	// stop the background logger
+	close(tc.cleanupCh)
+	err := tc.eg.Wait()
+	require.NoError(tc.T, err)
+
 	tc.G.Log.Debug("global context shutdown:")
-	tc.G.Shutdown()
+	mctx := NewMetaContextForTest(*tc)
+	err = tc.G.Shutdown(mctx) // could error due to missing pid file
+	if err != nil {
+		tc.G.Log.Warning("tc.G.Shutdown failed: %s", err)
+	}
 	if len(tc.Tp.Home) > 0 {
+		tc.G.Log.Debug("clearing stored secrets:")
+		err := tc.ClearAllStoredSecrets()
 		tc.G.Log.Debug("cleaning up %s", tc.Tp.Home)
 		os.RemoveAll(tc.Tp.Home)
-		tc.G.Log.Debug("clearing stored secrets:")
-		tc.ClearAllStoredSecrets()
+		require.NoError(tc.T, err)
 	}
 	tc.G.Log.Debug("cleanup complete")
+
+	// Don't use the test logger anymore, since it's now out of scope
+	tc.G.Log = tc.origLog
+}
+
+func (tc *TestContext) Logout() error {
+	return NewMetaContextForTest(*tc).LogoutKillSecrets()
 }
 
 func (tc TestContext) MoveGpgKeyringTo(dst TestContext) error {
@@ -162,8 +183,14 @@ func (tc *TestContext) MakePGPKey(id string) (*PGPKeyBundle, error) {
 		SubkeyBits:  1024,
 		PGPUids:     []string{id},
 	}
-	arg.Init()
-	arg.CreatePGPIDs()
+	err := arg.Init()
+	if err != nil {
+		return nil, err
+	}
+	err = arg.CreatePGPIDs()
+	if err != nil {
+		return nil, err
+	}
 	return GeneratePGPKeyBundle(tc.G, arg, tc.G.UI.GetLogUI())
 }
 
@@ -190,17 +217,22 @@ func (tc TestContext) ClearAllStoredSecrets() error {
 	return nil
 }
 
+func (tc TestContext) MetaContext() MetaContext { return NewMetaContextForTest(tc) }
+
 var setupTestMu sync.Mutex
 
 func setupTestContext(tb TestingTB, name string, tcPrev *TestContext) (tc TestContext, err error) {
 	setupTestMu.Lock()
 	defer setupTestMu.Unlock()
-	tc.Tp = &TestParameters{}
+	tc.Tp = &TestParameters{
+		SecretStorePrimingDisabled: true,
+	}
 
 	g := NewGlobalContext()
 
 	// In debugging mode, dump all log, don't use the test logger.
 	// We only use the environment variable to discover debug mode
+	tc.origLog = g.Log
 	if val, _ := getEnvBool("KEYBASE_DEBUG"); !val {
 		g.Log = logger.NewTestLogger(tb)
 	}
@@ -240,7 +272,10 @@ func setupTestContext(tb TestingTB, name string, tcPrev *TestContext) (tc TestCo
 	g.secretStore = NewSecretStoreLocked(m)
 	g.secretStoreMu.Unlock()
 
-	g.ConfigureLogging()
+	err = g.ConfigureLogging(nil)
+	if err != nil {
+		return TestContext{}, err
+	}
 
 	if err = g.ConfigureAPI(); err != nil {
 		return
@@ -273,6 +308,26 @@ func setupTestContext(tb TestingTB, name string, tcPrev *TestContext) (tc TestCo
 	g.SetUIDMapper(NewTestUIDMapper(g.GetUPAKLoader()))
 	tc.G = g
 	tc.T = tb
+
+	// Periodically log in the background until `Cleanup` is called. Tests that
+	// forget to call this will panic because of logging after the test
+	// completes.
+	cleanupCh := make(chan struct{})
+	tc.cleanupCh = cleanupCh
+	tc.eg = &errgroup.Group{}
+	tc.eg.Go(func() error {
+		log := g.Log.CloneWithAddedDepth(1)
+		log.Debug("TestContext bg loop starting up")
+		for {
+			select {
+			case <-cleanupCh:
+				log.Debug("TestContext bg loop shutting down")
+				return nil
+			case <-time.After(time.Second):
+				log.Debug("TestContext bg loop not cleaned up yet")
+			}
+		}
+	})
 
 	return
 }
@@ -308,6 +363,9 @@ func SetupTest(tb TestingTB, name string, depth int) (tc TestContext) {
 	}
 
 	AddEnvironmentFeatureForTest(tc, EnvironmentFeatureAllowHighSkips)
+	// If journeycards are disabled, this may be helpful to get tests to pass:
+	// AddEnvironmentFeatureForTest(tc, FeatureJourneycard)
+	// AddEnvironmentFeatureForTest(tc, FeatureJourneycard)
 
 	return tc
 }
@@ -430,7 +488,11 @@ type TestLoginUI struct {
 	Username                 string
 	RevokeBackup             bool
 	CalledGetEmailOrUsername int
+	ResetAccount             keybase1.ResetPromptResponse
+	PassphraseRecovery       bool
 }
+
+var _ LoginUI = (*TestLoginUI)(nil)
 
 func (t *TestLoginUI) GetEmailOrUsername(_ context.Context, _ int) (string, error) {
 	t.CalledGetEmailOrUsername++
@@ -446,6 +508,30 @@ func (t *TestLoginUI) DisplayPaperKeyPhrase(_ context.Context, arg keybase1.Disp
 }
 
 func (t *TestLoginUI) DisplayPrimaryPaperKey(_ context.Context, arg keybase1.DisplayPrimaryPaperKeyArg) error {
+	return nil
+}
+
+func (t *TestLoginUI) PromptResetAccount(_ context.Context, arg keybase1.PromptResetAccountArg) (keybase1.ResetPromptResponse, error) {
+	return t.ResetAccount, nil
+}
+
+func (t *TestLoginUI) DisplayResetProgress(_ context.Context, arg keybase1.DisplayResetProgressArg) error {
+	return nil
+}
+
+func (t *TestLoginUI) ExplainDeviceRecovery(_ context.Context, arg keybase1.ExplainDeviceRecoveryArg) error {
+	return nil
+}
+
+func (t *TestLoginUI) PromptPassphraseRecovery(_ context.Context, arg keybase1.PromptPassphraseRecoveryArg) (bool, error) {
+	return t.PassphraseRecovery, nil
+}
+
+func (t *TestLoginUI) ChooseDeviceToRecoverWith(_ context.Context, arg keybase1.ChooseDeviceToRecoverWithArg) (keybase1.DeviceID, error) {
+	return "", nil
+}
+
+func (t *TestLoginUI) DisplayResetMessage(_ context.Context, arg keybase1.DisplayResetMessageArg) error {
 	return nil
 }
 
@@ -467,6 +553,11 @@ func (f *FakeGregorState) State(_ context.Context) (gregor.State, error) {
 	return gregor1.State{}, nil
 }
 
+func (f *FakeGregorState) UpdateCategory(ctx context.Context, cat string, body []byte,
+	dtime gregor1.TimeOrOffset) (gregor1.MsgID, error) {
+	return gregor1.MsgID{}, nil
+}
+
 func (f *FakeGregorState) InjectItem(ctx context.Context, cat string, body []byte, dtime gregor1.TimeOrOffset) (gregor1.MsgID, error) {
 	return gregor1.MsgID{}, nil
 }
@@ -484,6 +575,10 @@ func (f *FakeGregorState) PeekDismissedIDs() []gregor.MsgID {
 	return f.dismissedIDs
 }
 
+func (f *FakeGregorState) DismissCategory(ctx context.Context, cat gregor1.Category) error {
+	return nil
+}
+
 type TestUIDMapper struct {
 	ul UPAKLoader
 }
@@ -494,12 +589,23 @@ func NewTestUIDMapper(ul UPAKLoader) TestUIDMapper {
 	}
 }
 
+func (t TestUIDMapper) ClearUIDFullName(_ context.Context, _ UIDMapperContext, _ keybase1.UID) error {
+	return nil
+}
+
 func (t TestUIDMapper) ClearUIDAtEldestSeqno(_ context.Context, _ UIDMapperContext, _ keybase1.UID, _ keybase1.Seqno) error {
 	return nil
 }
 
 func (t TestUIDMapper) CheckUIDAgainstUsername(uid keybase1.UID, un NormalizedUsername) bool {
 	return true
+}
+
+func (t TestUIDMapper) MapHardcodedUsernameToUID(un NormalizedUsername) keybase1.UID {
+	if un.String() == "max" {
+		return keybase1.UID("dbb165b7879fe7b1174df73bed0b9500")
+	}
+	return keybase1.UID("")
 }
 
 func (t TestUIDMapper) InformOfEldestSeqno(ctx context.Context, g UIDMapperContext, uv keybase1.UserVersion) (bool, error) {
@@ -520,6 +626,12 @@ func (t TestUIDMapper) MapUIDsToUsernamePackages(ctx context.Context, g UIDMappe
 
 func (t TestUIDMapper) SetTestingNoCachingMode(enabled bool) {
 
+}
+
+func (t TestUIDMapper) MapUIDsToUsernamePackagesOffline(ctx context.Context, g UIDMapperContext, uids []keybase1.UID, fullNameFreshness time.Duration) ([]UsernamePackage, error) {
+	// Just call MapUIDsToUsernamePackages. TestUIDMapper does not respect
+	// freshness, network budget, nor forceNetwork arguments.
+	return t.MapUIDsToUsernamePackages(ctx, g, uids, fullNameFreshness, 0, true)
 }
 
 func NewMetaContextForTest(tc TestContext) MetaContext {
@@ -551,12 +663,63 @@ func CreateClonedDevice(tc TestContext, m MetaContext) {
 	require.True(tc.T, d.IsClone())
 }
 
-func ModifyFeatureForTest(m MetaContext, feature Feature, on bool, cacheSec int) {
-	slot := m.G().FeatureFlags.getOrMakeSlot(feature)
-	rawFeature := rawFeatureSlot{on, cacheSec}
-	slot.readFrom(m, rawFeature)
-}
-
 func AddEnvironmentFeatureForTest(tc TestContext, feature Feature) {
 	tc.Tp.EnvironmentFeatureFlags = append(tc.Tp.EnvironmentFeatureFlags, feature)
+}
+
+func RemoveEnvironmentFeatureForTest(tp *TestParameters, feature Feature) {
+	var flags FeatureFlags
+	for _, flag := range tp.EnvironmentFeatureFlags {
+		if flag != feature {
+			flags = append(flags, flag)
+		}
+	}
+	tp.EnvironmentFeatureFlags = flags
+}
+
+// newSecretStoreLockedForTests is a simple function to create
+// SecretStoreLocked for the purposes of unit tests outside of libkb package
+// which need finer control over how secret store is configured.
+//
+// Omitting dataDir argument will create memory-only secret store, similar to
+// how disabling "remember passphrase" would work.
+func newSecretStoreLockedForTests(m MetaContext, dataDir string) *SecretStoreLocked {
+	var disk SecretStoreAll
+	mem := NewSecretStoreMem()
+	if dataDir != "" {
+		disk = NewSecretStoreFile(dataDir)
+	}
+
+	return &SecretStoreLocked{
+		mem:  mem,
+		disk: disk,
+	}
+}
+
+func ReplaceSecretStoreForTests(tc TestContext, dataDir string) {
+	g := tc.G
+	g.secretStoreMu.Lock()
+	g.secretStore = newSecretStoreLockedForTests(NewMetaContextForTest(tc), dataDir)
+	g.secretStoreMu.Unlock()
+}
+
+func CreateReadOnlySecretStoreDir(tc TestContext) (string, func()) {
+	td, err := ioutil.TempDir("", "ss")
+	require.NoError(tc.T, err)
+
+	// Change mode of test dir to read-only so secret store on this dir can
+	// fail.
+	fi, err := os.Stat(td)
+	require.NoError(tc.T, err)
+	oldMode := fi.Mode()
+	_ = os.Chmod(td, 0400)
+
+	cleanup := func() {
+		_ = os.Chmod(td, oldMode)
+		if err := os.RemoveAll(td); err != nil {
+			tc.T.Log(err)
+		}
+	}
+
+	return td, cleanup
 }

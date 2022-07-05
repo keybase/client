@@ -1,7 +1,4 @@
 @import '~emoji-mart/css/emoji-mart.css';
-@import '../../common-adapters/avatar.css';
-@import '../../common-adapters/box.css';
-@import '../../common-adapters/icon.css';
 @import '../../common-adapters/text.css';
 
 /* Reset */
@@ -113,7 +110,6 @@ section {
   display: block;
 }
 body {
-  background-color: white;
   line-height: 1;
 }
 ol,
@@ -146,6 +142,14 @@ table {
   font-style: normal;
 }
 
+/* Nyctographic font */
+@font-face {
+  font-family: 'Nyctographic';
+  src: url('../../fonts/Nyctographic.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
 /* Source Code Pro */
 @font-face {
   font-family: 'Source Code Pro';
@@ -164,39 +168,46 @@ table {
 @font-face {
   font-family: 'Keybase';
   font-weight: 500;
-  src: url('../../fonts/keybase-medium.otf') format('opentype');
+  src: url('../../fonts/keybase-medium.ttf') format('truetype');
 }
 
 @font-face {
   font-family: 'Keybase';
   font-weight: 500;
   font-style: italic;
-  src: url('../../fonts/keybase-medium-italic.otf') format('opentype');
+  src: url('../../fonts/keybase-medium-italic.ttf') format('truetype');
 }
 
 @font-face {
   font-family: 'Keybase';
   font-weight: 600;
-  src: url('../../fonts/keybase-semibold.otf') format('opentype');
+  src: url('../../fonts/keybase-semibold.ttf') format('truetype');
 }
 
 @font-face {
   font-family: 'Keybase';
   font-weight: 600;
   font-style: italic;
-  src: url('../../fonts/keybase-semibold-italic.otf') format('opentype');
+  src: url('../../fonts/keybase-semibold-italic.ttf') format('truetype');
 }
 
 @font-face {
   font-family: 'Keybase';
   font-weight: 700;
-  src: url('../../fonts/keybase-bold.otf') format('opentype');
+  src: url('../../fonts/keybase-bold.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Keybase';
+  font-weight: 700;
+  font-style: italic;
+  src: url('../../fonts/keybase-bold-italic.ttf') format('truetype');
 }
 
 @font-face {
   font-family: 'Keybase';
   font-weight: 800;
-  src: url('../../fonts/keybase-extrabold.otf') format('opentype');
+  src: url('../../fonts/keybase-extrabold.ttf') format('truetype');
 }
 /* End Keybase */
 
@@ -212,8 +223,78 @@ html {
   box-sizing: inherit;
 }
 
+html {
+  height: 100%;
+  width: 100%;
+}
+
 body {
+  height: 100%;
+  width: 100%;
   overflow: hidden;
+}
+
+:root {
+  --scrollbar-size: 0.375rem;
+  --scrollbar-minlength: 0.5rem;
+  --scrollbar-ff-width: thin;
+  --scrollbar-track-color: transparent;
+  --scrollbar-color: rgba(0, 0, 0, 0.2);
+  --scrollbar-color-dark: rgba(255, 255, 255, 0.2);
+  --scrollbar-color-hover: rgba(0, 0, 0, 0.3);
+  --scrollbar-color-hover-dark: rgba(255, 255, 255, 0.3);
+  --scrollbar-color-active: rgb(0, 0, 0);
+  --scrollbar-color-active-dark: rgb(255, 255, 255, 0.5);
+}
+
+/* Used to customize scrollbars and enable testing the auto hide behavior on os x */
+body {
+  scrollbar-color: var(--scrollbar-color) var(--scrollbar-track-color);
+}
+.layout-scrollbar-obtrusive ::-webkit-scrollbar {
+  height: var(--scrollbar-size);
+  width: var(--scrollbar-size);
+}
+.scrollbar-test {
+  overscroll-behavior: contain;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  -ms-overflow-style: -ms-autohiding-scrollbar;
+  scrollbar-width: var(--scrollbar-ff-width);
+}
+
+::-webkit-scrollbar-track {
+  background-color: var(--scrollbar-track-color);
+}
+::-webkit-scrollbar-thumb {
+  background-color: var(--scrollbar-color);
+  border-radius: 3px;
+}
+.darkMode ::-webkit-scrollbar-thumb {
+  background-color: var(--scrollbar-color-dark);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--scrollbar-color-hover);
+}
+.darkMode ::-webkit-scrollbar-thumb:hover {
+  background-color: var(--scrollbar-color-hover-dark);
+}
+::-webkit-scrollbar-thumb:active {
+  background-color: var(--scrollbar-color-active);
+}
+.darkMode ::-webkit-scrollbar-thumb:active {
+  background-color: var(--scrollbar-color-active-dark);
+}
+::-webkit-scrollbar-thumb:vertical {
+  min-height: var(--scrollbar-minlength);
+}
+::-webkit-scrollbar-thumb:horizontal {
+  min-width: var(--scrollbar-minlength);
+}
+
+.darkMode input {
+  background-color: #191919;
 }
 
 #root {
@@ -229,6 +310,26 @@ body {
   display: inline-block;
 }
 
+.underline-hover-no-underline {
+  text-decoration: underline;
+}
+
+.underline-hover-no-underline:hover {
+  text-decoration: none;
+}
+
+.emoji-picker-emoji-box {
+  border-radius: 2px;
+}
+
+.emoji-picker-emoji-box:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.darkMode .emoji-picker-emoji-box:hover {
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
 .hover-underline {
   text-decoration: none;
 }
@@ -239,6 +340,13 @@ body {
 
 .hover-underline-container:hover .underline {
   text-decoration: underline;
+}
+
+.hover-underline-container:hover .hover-underline-child {
+  text-decoration: underline;
+}
+.underline-never {
+  text-decoration: none !important;
 }
 
 .hover-opacity {
@@ -262,27 +370,116 @@ body {
 
 .hide-scrollbar::-webkit-scrollbar {
   display: none;
+  height: 0;
   width: 0;
 }
 
 .fade-anim-enter {
   opacity: 0;
+  pointer-events: none;
 }
 
 .fade-anim-enter.fade-anim-enter-active {
   opacity: 1;
+  pointer-events: auto;
   transition: opacity 250ms ease-in-out;
 }
 
 .fade-anim-exit {
   opacity: 1;
+  pointer-events: auto;
 }
 
 .fade-anim-exit.fade-anim-exit-active {
   opacity: 0;
+  pointer-events: none;
   transition: opacity 250ms ease-in-out;
+}
+
+/* These overrides are so the 'invisible' native emoji (so we can copy and paste) doesn't affect the sizing */
+.emoji-mart-emoji .emoji-mart-emoji-native {
+  line-height: 0;
+  width: 0;
+  height: 0;
+  display: inline-block;
 }
 
 .emoji-mart-emoji {
   vertical-align: middle;
+  display: inline;
+}
+
+.growFadeInSmall {
+  max-height: 0px;
+  opacity: 0;
+  overflow: hidden;
+  transition: max-height 1250ms ease-in-out;
+  transition: opacity 250ms ease-in-out;
+}
+.growFadeInBig {
+  max-height: 999px;
+  opacity: 1;
+}
+
+.lightMode {
+  background-color: #ffffff;
+}
+.darkMode {
+  background-color: #191919;
+}
+
+.emoji-mart,
+.emoji-mart-search input {
+  border-radius: 4px;
+}
+.darkMode .emoji-mart {
+  color: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(0, 0, 0, 0.85);
+  background: #191919;
+}
+.darkMode .emoji-mart-search input {
+  background-color: #000;
+  border: 1px solid #000;
+  color: rgba(255, 255, 255, 0.85);
+}
+.darkMode .emoji-mart-category-label span {
+  background: #191919;
+}
+.darkMode .emoji-mart-category .emoji-mart-emoji:hover:before {
+  background-color: rgba(255, 255, 255, 0.15);
+}
+.darkMode .emoji-mart-bar {
+  border-color: rgba(0, 0, 0, 0.85);
+}
+
+.addInviteAndLinkBox {
+  transition: box-shadow 0.35s;
+}
+.headerTitle:hover .addInviteAndLinkBox {
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+.darkMode .headerTitle:hover .addInviteAndLinkBox {
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.8);
+}
+
+.selectionPopup {
+  transition: bottom 0.5s;
+}
+
+.hideableDropdown {
+  transition: height 0.2s;
+  height: 32px;
+  overflow: hidden;
+}
+.hideableDropdown.hidden {
+  height: 0;
+}
+
+.selectable {
+  cursor: text;
+  user-select: text;
+}
+
+.clickable {
+  cursor: pointer;
 }

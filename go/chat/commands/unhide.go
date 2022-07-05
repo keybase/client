@@ -14,13 +14,13 @@ type Unhide struct {
 
 func NewUnhide(g *globals.Context) *Unhide {
 	return &Unhide{
-		baseCommand: newBaseCommand(g, "unhide", "<conversation>", "Unhide <conversation>"),
+		baseCommand: newBaseCommand(g, "unhide", "<conversation>", "Unhide <conversation>", false),
 	}
 }
 
 func (h *Unhide) Execute(ctx context.Context, uid gregor1.UID, _ chat1.ConversationID,
-	tlfName, text string) (err error) {
-	defer h.Trace(ctx, func() error { return err }, "Execute")()
+	tlfName, text string, replyTo *chat1.MessageID) (err error) {
+	defer h.Trace(ctx, &err, "Execute")()
 	if !h.Match(ctx, text) {
 		return ErrInvalidCommand
 	}
@@ -28,7 +28,7 @@ func (h *Unhide) Execute(ctx context.Context, uid gregor1.UID, _ chat1.Conversat
 	if err != nil {
 		return err
 	}
-	conv, err := h.getConvByName(ctx, uid, toks[1])
+	conv, err := getConvByName(ctx, h.G(), uid, toks[1])
 	if err != nil {
 		return err
 	}

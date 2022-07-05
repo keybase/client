@@ -9,6 +9,9 @@ import (
 	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/sig3"
+	"github.com/keybase/client/go/teams/hidden"
+	storage "github.com/keybase/client/go/teams/storage"
 )
 
 //
@@ -30,15 +33,11 @@ type FastTeamChainLoader struct {
 	world LoaderContext
 
 	// single-flight lock on TeamID
-	locktab libkb.LockTable
+	locktab *libkb.LockTable
 
 	// Hold onto FastTeamLoad by-products as long as we have room, and store
 	// them persistently to disk.
-	storage *FTLStorage
-
-	// Feature-flagging is powered by the server. If we get feature flagged off, we
-	// won't retry for another hour.
-	featureFlagGate *libkb.FeatureFlagGate
+	storage *storage.FTLStorage
 
 	// We can get pushed by the server into "force repoll" mode, in which we're
 	// not getting cache invalidations. An example: when Coyne or Nojima revokes
@@ -53,10 +52,10 @@ const FTLVersion = 1
 // NewFastLoader makes a new fast loader and initializes it.
 func NewFastTeamLoader(g *libkb.GlobalContext) *FastTeamChainLoader {
 	ret := &FastTeamChainLoader{
-		world:           NewLoaderContextFromG(g),
-		featureFlagGate: libkb.NewFeatureFlagGate(libkb.FeatureFTL, 2*time.Minute),
-		storage:         NewFTLStorage(g),
+		world:   NewLoaderContextFromG(g),
+		locktab: libkb.NewLockTable(),
 	}
+	ret.storage = storage.NewFTLStorage(g, ret.upgradeStoredState)
 	return ret
 }
 
@@ -64,6 +63,8 @@ func NewFastTeamLoader(g *libkb.GlobalContext) *FastTeamChainLoader {
 func NewFastTeamLoaderAndInstall(g *libkb.GlobalContext) *FastTeamChainLoader {
 	l := NewFastTeamLoader(g)
 	g.SetFastTeamLoader(l)
+	g.AddLogoutHook(l, "fastTeamLoader")
+	g.AddDbNukeHook(l, "fastTeamLoader")
 	return l
 }
 
@@ -77,32 +78,70 @@ func FTL(m libkb.MetaContext, arg keybase1.FastTeamLoadArg) (res keybase1.FastTe
 	return m.G().GetFastTeamLoader().Load(m, arg)
 }
 
+type ftlCombinedData struct {
+	visible *keybase1.FastTeamData
+	hidden  *keybase1.HiddenTeamChain
+}
+
+func newFTLCombinedData(v *keybase1.FastTeamData, h *keybase1.HiddenTeamChain) ftlCombinedData {
+	return ftlCombinedData{visible: v, hidden: h}
+}
+
+func (f ftlCombinedData) latestKeyGeneration() keybase1.PerTeamKeyGeneration {
+	ret := f.visible.LatestKeyGeneration
+	g := f.hidden.MaxReaderPerTeamKeyGeneration()
+	if ret < g {
+		ret = g
+	}
+	return ret
+}
+
+func (f ftlCombinedData) perTeamKey(g keybase1.PerTeamKeyGeneration) *keybase1.PerTeamKey {
+	ret, ok := f.visible.Chain.PerTeamKeys[g]
+	if ok {
+		return &ret
+	}
+	ret, ok = f.hidden.GetReaderPerTeamKeyAtGeneration(g)
+	if ok {
+		return &ret
+	}
+	return nil
+}
+
 // Load fast-loads the given team. Provide some hints as to how to load it. You can specify an application
 // and key generations needed, if you are entering chat. Those links will be returned unstubbed
 // from the server, and then the keys can be output in the result.
 func (f *FastTeamChainLoader) Load(m libkb.MetaContext, arg keybase1.FastTeamLoadArg) (res keybase1.FastTeamLoadRes, err error) {
 	m = ftlLogTag(m)
-	defer m.CTraceTimed(fmt.Sprintf("FastTeamChainLoader#Load(%+v)", arg), func() error { return err })()
+	defer m.Trace(fmt.Sprintf("FastTeamChainLoader#Load(%+v)", arg), &err)()
+	originalArg := arg.DeepCopy()
 
-	err = f.featureFlagGate.ErrorIfFlagged(m)
+	res, err = f.loadOneAttempt(m, arg)
 	if err != nil {
 		return res, err
 	}
 
-	res, err = f.loadOneAttempt(m, arg)
-	if err != nil || arg.AssertTeamName == nil || arg.AssertTeamName.Eq(res.Name) {
-		return res, err
+	if arg.AssertTeamName != nil && !arg.AssertTeamName.Eq(res.Name) {
+		m.Debug("Did not get expected subteam name; will reattempt with forceRefresh (%s != %s)", arg.AssertTeamName.String(), res.Name.String())
+		arg.ForceRefresh = true
+		res, err = f.loadOneAttempt(m, arg)
+		if err != nil {
+			return res, err
+		}
+		if !arg.AssertTeamName.Eq(res.Name) {
+			return res, NewBadNameError(fmt.Sprintf("After force-refresh, still bad team name: wanted %s, but got %s", arg.AssertTeamName.String(), res.Name.String()))
+		}
 	}
 
-	m.CDebugf("Did not get expected subteam name; will reattempt with forceRefresh (%s != %s)", arg.AssertTeamName.String(), res.Name.String())
-	arg.ForceRefresh = true
-	res, err = f.loadOneAttempt(m, arg)
-	if err != nil {
-		return res, err
+	if ShouldRunBoxAudit(m) {
+		newM, shouldReload := VerifyBoxAudit(m, res.Name.ToTeamID(arg.Public))
+		if shouldReload {
+			return f.Load(newM, originalArg)
+		}
+	} else {
+		m.Debug("Box auditor feature flagged off; not checking jail during ftl team load...")
 	}
-	if !arg.AssertTeamName.Eq(res.Name) {
-		return res, NewBadNameError(fmt.Sprintf("After force-refresh, still bad team name: wanted %s, but got %s", arg.AssertTeamName.String(), res.Name.String()))
-	}
+
 	return res, nil
 }
 
@@ -110,12 +149,13 @@ func (f *FastTeamChainLoader) Load(m libkb.MetaContext, arg keybase1.FastTeamLoa
 // (and not verifying sigs along the way).
 func (f *FastTeamChainLoader) VerifyTeamName(m libkb.MetaContext, id keybase1.TeamID, name keybase1.TeamName, forceRefresh bool) (err error) {
 	m = m.WithLogTag("FTL")
-	defer m.CTrace(fmt.Sprintf("FastTeamChainLoader#VerifyTeamName(%v,%s)", id, name.String()), func() error { return err })()
+	defer m.Trace(fmt.Sprintf("FastTeamChainLoader#VerifyTeamName(%v,%s)", id, name.String()), &err)()
 	_, err = f.Load(m, keybase1.FastTeamLoadArg{
-		ID:             id,
-		Public:         id.IsPublic(),
-		AssertTeamName: &name,
-		ForceRefresh:   forceRefresh,
+		ID:                    id,
+		Public:                id.IsPublic(),
+		AssertTeamName:        &name,
+		ForceRefresh:          forceRefresh,
+		HiddenChainIsOptional: true,
 	})
 	return err
 }
@@ -145,8 +185,6 @@ func (f *FastTeamChainLoader) loadOneAttempt(m libkb.MetaContext, arg keybase1.F
 // verification via hash-comparison.
 func (f *FastTeamChainLoader) verifyTeamNameViaParentLoad(m libkb.MetaContext, id keybase1.TeamID, isPublic bool, unverifiedName keybase1.TeamName, parent *keybase1.UpPointer, bottomSubteam keybase1.TeamID, forceRefresh bool) (res keybase1.TeamName, err error) {
 
-	defer m.CTrace(fmt.Sprintf("FastTeamChainLoader#verifyTeamNameViaParentLoad(%s,%s)", id, unverifiedName), func() error { return err })()
-
 	if parent == nil {
 		if !unverifiedName.IsRootTeam() {
 			return res, NewBadNameError("expected a root team")
@@ -163,9 +201,10 @@ func (f *FastTeamChainLoader) verifyTeamNameViaParentLoad(m libkb.MetaContext, i
 
 	parentRes, err := f.load(m, fastLoadArg{
 		FastTeamLoadArg: keybase1.FastTeamLoadArg{
-			ID:           parent.ParentID,
-			Public:       isPublic,
-			ForceRefresh: forceRefresh,
+			ID:                    parent.ParentID,
+			Public:                isPublic,
+			ForceRefresh:          forceRefresh,
+			HiddenChainIsOptional: true, // we do not need to see the hidden chain for the parent
 		},
 		downPointersNeeded: []keybase1.Seqno{parent.ParentSeqno},
 		needLatestName:     true,
@@ -196,7 +235,7 @@ type fastLoadRes struct {
 	upPointer       *keybase1.UpPointer
 }
 
-// fastLoadRes is used internally to pass arguments to the #load() call. It is a small wrapper
+// fastLoadArg is used internally to pass arguments to the #load() call. It is a small wrapper
 // around the keybase1.FastTeamLoadArg that's passed through to the public #Load() call.
 type fastLoadArg struct {
 	keybase1.FastTeamLoadArg
@@ -215,14 +254,18 @@ func (a fastLoadArg) needChainTail() bool {
 
 // load acquires a lock by team ID, and the runs loadLockedWithRetries.
 func (f *FastTeamChainLoader) load(m libkb.MetaContext, arg fastLoadArg) (res *fastLoadRes, err error) {
-
-	defer m.CTrace(fmt.Sprintf("FastTeamChainLoader#load(%+v)", arg), func() error { return err })()
+	defer m.Trace(fmt.Sprintf("FastTeamChainLoader#load(%+v)", arg), &err)()
 
 	// Single-flight lock by team ID.
 	lock := f.locktab.AcquireOnName(m.Ctx(), m.G(), arg.ID.String())
 	defer lock.Release(m.Ctx())
 
-	return f.loadLockedWithRetries(m, arg)
+	res, err = f.loadLockedWithRetries(m, arg)
+	if hidden.ShouldClearSupportFlagOnError(err) {
+		m.Debug("Clearing support hidden chain flag for team %s because of error %v in FTL", arg.ID, err)
+		m.G().GetHiddenTeamChainManager().ClearSupportFlagIfFalse(m, arg.ID)
+	}
+	return res, err
 }
 
 // loadLockedWithRetries attempts two loads of the team. If the first iteration returns an FTLMissingSeedError,
@@ -237,7 +280,7 @@ func (f *FastTeamChainLoader) loadLockedWithRetries(m libkb.MetaContext, arg fas
 		if _, ok := err.(FTLMissingSeedError); !ok {
 			return nil, err
 		}
-		m.CDebugf("Got retriable error %s; will force reset", err)
+		m.Debug("Got retriable error %s; will force reset", err)
 		arg.forceReset = true
 	}
 	return res, err
@@ -245,12 +288,15 @@ func (f *FastTeamChainLoader) loadLockedWithRetries(m libkb.MetaContext, arg fas
 
 // dervieSeedAtGeneration either goes to cache or rederives the PTK private seed
 // for the given generation gen.
-func (f *FastTeamChainLoader) deriveSeedAtGeneration(m libkb.MetaContext, gen keybase1.PerTeamKeyGeneration, state *keybase1.FastTeamData) (seed keybase1.PerTeamKeySeed, err error) {
+func (f *FastTeamChainLoader) deriveSeedAtGeneration(m libkb.MetaContext, gen keybase1.PerTeamKeyGeneration, dat ftlCombinedData) (seed keybase1.PerTeamKeySeed, err error) {
+
+	state := dat.visible
 
 	seed, ok := state.Chain.PerTeamKeySeedsVerified[gen]
 	if ok {
 		return seed, nil
 	}
+
 	var tmp keybase1.PerTeamKeySeed
 	tmp, ok = state.PerTeamKeySeedsUnverified[gen]
 	if !ok {
@@ -261,12 +307,17 @@ func (f *FastTeamChainLoader) deriveSeedAtGeneration(m libkb.MetaContext, gen ke
 		return seed, NewFTLMissingSeedError(gen)
 	}
 
-	ptkChain, ok := state.Chain.PerTeamKeys[gen]
-	if !ok {
+	ptkChain := dat.perTeamKey(gen)
+	if ptkChain == nil {
 		return seed, NewFastLoadError(fmt.Sprintf("no per team key public halves at generation %d", gen))
 	}
 
-	km, err := NewTeamKeyManagerWithSecret(tmp, gen)
+	check, ok := state.SeedChecks[gen]
+	if !ok {
+		return seed, NewFastLoadError(fmt.Sprintf("no per team key seed check at %d", gen))
+	}
+
+	km, err := NewTeamKeyManagerWithSecret(state.ID(), tmp, gen, &check)
 	if err != nil {
 		return seed, err
 	}
@@ -277,7 +328,7 @@ func (f *FastTeamChainLoader) deriveSeedAtGeneration(m libkb.MetaContext, gen ke
 	}
 
 	if !ptkChain.SigKID.SecureEqual(sigKey.GetKID()) {
-		m.CDebugf("sig KID gen:%v (local) %v != %v (chain)", gen, sigKey.GetKID(), ptkChain.SigKID)
+		m.Debug("sig KID gen:%v (local) %v != %v (chain)", gen, sigKey.GetKID(), ptkChain.SigKID)
 		return seed, NewFastLoadError(fmt.Sprintf("wrong team key (sig) found at generation %v", gen))
 	}
 
@@ -287,7 +338,7 @@ func (f *FastTeamChainLoader) deriveSeedAtGeneration(m libkb.MetaContext, gen ke
 	}
 
 	if !ptkChain.EncKID.SecureEqual(encKey.GetKID()) {
-		m.CDebugf("enc KID gen:%v (local) %v != %v (chain)", gen, encKey.GetKID(), ptkChain.EncKID)
+		m.Debug("enc KID gen:%v (local) %v != %v (chain)", gen, encKey.GetKID(), ptkChain.EncKID)
 		return seed, NewFastLoadError(fmt.Sprintf("wrong team key (enc) found at generation %v", gen))
 	}
 
@@ -299,22 +350,27 @@ func (f *FastTeamChainLoader) deriveSeedAtGeneration(m libkb.MetaContext, gen ke
 
 // deriveKeyForApplicationAtGeneration pulls from cache or generates the PTK for the
 // given application at the given generation.
-func (f *FastTeamChainLoader) deriveKeyForApplicationAtGeneration(m libkb.MetaContext, app keybase1.TeamApplication, gen keybase1.PerTeamKeyGeneration, state *keybase1.FastTeamData) (key keybase1.TeamApplicationKey, err error) {
+func (f *FastTeamChainLoader) deriveKeyForApplicationAtGeneration(m libkb.MetaContext, app keybase1.TeamApplication, gen keybase1.PerTeamKeyGeneration, dat ftlCombinedData) (key keybase1.TeamApplicationKey, err error) {
 
-	seed, err := f.deriveSeedAtGeneration(m, gen, state)
+	seed, err := f.deriveSeedAtGeneration(m, gen, dat)
 	if err != nil {
 		return key, err
 	}
 
 	var mask *keybase1.MaskB64
-	if m := state.ReaderKeyMasks[app]; m != nil {
+	if m := dat.visible.ReaderKeyMasks[app]; m != nil {
 		tmp, ok := m[gen]
 		if ok {
 			mask = &tmp
 		}
 	}
 	if mask == nil {
-		return key, NewFastLoadError(fmt.Sprintf("Could not get reader key mask for <%d,%d>", app, gen))
+		m.Debug("Could not get reader key mask for <%s,%d>", app, gen)
+		if dat.visible.ID().IsSubTeam() {
+			m.Debug("guessing lack of RKM is due to not being an explicit member of the subteam")
+			return key, NewNotExplicitMemberOfSubteamError()
+		}
+		return key, NewFastLoadError("Could not load application keys")
 	}
 
 	rkm := keybase1.ReaderKeyMask{
@@ -327,17 +383,19 @@ func (f *FastTeamChainLoader) deriveKeyForApplicationAtGeneration(m libkb.MetaCo
 
 // deriveKeysForApplication pulls from cache or generates several geneartions of PTKs
 // for the given application.
-func (f *FastTeamChainLoader) deriveKeysForApplication(m libkb.MetaContext, app keybase1.TeamApplication, arg fastLoadArg, state *keybase1.FastTeamData) (keys []keybase1.TeamApplicationKey, err error) {
+func (f *FastTeamChainLoader) deriveKeysForApplication(m libkb.MetaContext, app keybase1.TeamApplication, arg fastLoadArg, dat ftlCombinedData) (keys []keybase1.TeamApplicationKey, err error) {
+
+	latestGen := dat.latestKeyGeneration()
 
 	var didLatest bool
 	doKey := func(gen keybase1.PerTeamKeyGeneration) error {
 		var key keybase1.TeamApplicationKey
-		key, err = f.deriveKeyForApplicationAtGeneration(m, app, gen, state)
+		key, err = f.deriveKeyForApplicationAtGeneration(m, app, gen, dat)
 		if err != nil {
 			return err
 		}
 		keys = append(keys, key)
-		if gen == state.LatestKeyGeneration {
+		if gen == latestGen {
 			didLatest = true
 		}
 		return nil
@@ -346,7 +404,7 @@ func (f *FastTeamChainLoader) deriveKeysForApplication(m libkb.MetaContext, app 
 	if arg.NeedLatestKey {
 		// This debug is useful to have since it will spell out which version is the latest in the log
 		// if the caller asked for latest.
-		m.CDebugf("FastTeamChainLoader#deriveKeysForApplication: sending back latest at key generation %d", state.LatestKeyGeneration)
+		m.Debug("FastTeamChainLoader#deriveKeysForApplication: sending back latest at key generation %d", latestGen)
 	}
 
 	for _, gen := range arg.KeyGenerationsNeeded {
@@ -355,7 +413,7 @@ func (f *FastTeamChainLoader) deriveKeysForApplication(m libkb.MetaContext, app 
 		}
 	}
 	if !didLatest && arg.NeedLatestKey {
-		if err = doKey(state.LatestKeyGeneration); err != nil {
+		if err = doKey(latestGen); err != nil {
 			return nil, err
 		}
 	}
@@ -364,10 +422,10 @@ func (f *FastTeamChainLoader) deriveKeysForApplication(m libkb.MetaContext, app 
 
 // deriveKeys pulls from cache or generates PTKs for an set of (application X generations)
 // pairs, for all in the cartesian product.
-func (f *FastTeamChainLoader) deriveKeys(m libkb.MetaContext, arg fastLoadArg, state *keybase1.FastTeamData) (keys []keybase1.TeamApplicationKey, err error) {
+func (f *FastTeamChainLoader) deriveKeys(m libkb.MetaContext, arg fastLoadArg, dat ftlCombinedData) (keys []keybase1.TeamApplicationKey, err error) {
 	for _, app := range arg.Applications {
 		var tmp []keybase1.TeamApplicationKey
-		tmp, err = f.deriveKeysForApplication(m, app, arg, state)
+		tmp, err = f.deriveKeysForApplication(m, app, arg, dat)
 		if err != nil {
 			return nil, err
 		}
@@ -377,13 +435,13 @@ func (f *FastTeamChainLoader) deriveKeys(m libkb.MetaContext, arg fastLoadArg, s
 }
 
 // toResult turns the current fast state into a fastLoadRes.
-func (f *FastTeamChainLoader) toResult(m libkb.MetaContext, arg fastLoadArg, state *keybase1.FastTeamData) (res *fastLoadRes, err error) {
+func (f *FastTeamChainLoader) toResult(m libkb.MetaContext, arg fastLoadArg, dat ftlCombinedData) (res *fastLoadRes, err error) {
 	res = &fastLoadRes{
-		unverifiedName: state.Name,
-		downPointers:   state.Chain.DownPointers,
-		upPointer:      state.Chain.LastUpPointer,
+		unverifiedName: dat.visible.Name,
+		downPointers:   dat.visible.Chain.DownPointers,
+		upPointer:      dat.visible.Chain.LastUpPointer,
 	}
-	res.applicationKeys, err = f.deriveKeys(m, arg, state)
+	res.applicationKeys, err = f.deriveKeys(m, arg, dat)
 	if err != nil {
 		return nil, err
 	}
@@ -391,12 +449,8 @@ func (f *FastTeamChainLoader) toResult(m libkb.MetaContext, arg fastLoadArg, sta
 }
 
 // findState in cache finds the team ID's state in an in-memory cache.
-func (f *FastTeamChainLoader) findStateInCache(m libkb.MetaContext, id keybase1.TeamID) *keybase1.FastTeamData {
-	tmp := f.storage.Get(m, id, id.IsPublic())
-	if tmp == nil {
-		return nil
-	}
-	return tmp
+func (f *FastTeamChainLoader) findStateInCache(m libkb.MetaContext, id keybase1.TeamID) (data *keybase1.FastTeamData, frozen bool, tombstoned bool) {
+	return f.storage.Get(m, id, id.IsPublic())
 }
 
 // stateHasKeySeed returns true/false if the state has the seed material for the given
@@ -412,22 +466,20 @@ func stateHasKeySeed(m libkb.MetaContext, gen keybase1.PerTeamKeyGeneration, sta
 		return false
 	}
 	_, foundPerTeamKey := state.Chain.PerTeamKeys[gen]
-	if !foundPerTeamKey {
-		return false
-	}
-	return true
+	return foundPerTeamKey
 }
 
 // stateHasKeys checks to see if the given state has the keys specified in the shopping list. If not, it will
 // modify the shopping list and return false. If yes, it will leave the shopping list unchanged and return
 // true.
-func stateHasKeys(m libkb.MetaContext, shoppingList *shoppingList, arg fastLoadArg, state *keybase1.FastTeamData) (fresh bool) {
+func stateHasKeys(m libkb.MetaContext, shoppingList *shoppingList, arg fastLoadArg, data ftlCombinedData) (fresh bool) {
 	gens := make(map[keybase1.PerTeamKeyGeneration]struct{})
+	state := data.visible
 
 	fresh = true
 
 	if arg.NeedLatestKey && !state.LoadedLatest {
-		m.CDebugf("latest was never loaded, we need to load it")
+		m.Debug("latest was never loaded, we need to load it")
 		shoppingList.needMerkleRefresh = true
 		shoppingList.needLatestKey = true
 		fresh = false
@@ -439,19 +491,20 @@ func stateHasKeys(m libkb.MetaContext, shoppingList *shoppingList, arg fastLoadA
 	// pull down the mask, since it's a bug to not have it if it turns out the server refresh
 	// didn't budge the latest key generation.
 	kgn := append([]keybase1.PerTeamKeyGeneration{}, arg.KeyGenerationsNeeded...)
-	if arg.NeedLatestKey && state.LoadedLatest && state.LatestKeyGeneration > 0 {
-		kgn = append(kgn, state.LatestKeyGeneration)
+	latestKeyGeneration := data.latestKeyGeneration()
+	if arg.NeedLatestKey && state.LoadedLatest && latestKeyGeneration > 0 {
+		kgn = append(kgn, latestKeyGeneration)
 	}
 
 	for _, app := range arg.Applications {
 		for _, gen := range kgn {
 			add := false
 			if state.ReaderKeyMasks[app] == nil || state.ReaderKeyMasks[app][gen] == nil {
-				m.CDebugf("state doesn't have mask for <%d,%d>", app, gen)
+				m.Debug("state doesn't have mask for <%d,%d>", app, gen)
 				add = true
 			}
 			if !stateHasKeySeed(m, gen, state) {
-				m.CDebugf("state doesn't have key seed for gen=%d", gen)
+				m.Debug("state doesn't have key seed for gen=%d", gen)
 				add = true
 			}
 			if add {
@@ -468,6 +521,10 @@ func stateHasKeys(m libkb.MetaContext, shoppingList *shoppingList, arg fastLoadA
 			shoppingList.generations = append(shoppingList.generations, gen)
 		}
 	}
+
+	// Let's just get all keys from the past, so figure out the minimal seed value that we have.
+	shoppingList.seedLow = computeSeedLow(state)
+
 	return fresh
 }
 
@@ -479,11 +536,28 @@ func stateHasDownPointers(m libkb.MetaContext, shoppingList *shoppingList, arg f
 
 	for _, seqno := range arg.downPointersNeeded {
 		if _, ok := state.Chain.DownPointers[seqno]; !ok {
-			m.CDebugf("Down pointer at seqno=%d wasn't found", seqno)
+			m.Debug("Down pointer at seqno=%d wasn't found", seqno)
 			shoppingList.addDownPointer(seqno)
 			ret = false
 		}
 	}
+	return ret
+}
+
+// computeSeedLow computes the value for ftl_seed_low that we're going to send up to the server for fetches.
+func computeSeedLow(state *keybase1.FastTeamData) keybase1.PerTeamKeyGeneration {
+	if state.MaxContinuousPTKGeneration > 0 {
+		return state.MaxContinuousPTKGeneration
+	}
+	var ret keybase1.PerTeamKeyGeneration
+	for i := keybase1.PerTeamKeyGeneration(1); i <= state.LatestKeyGeneration; i++ {
+		_, found := state.PerTeamKeySeedsUnverified[i]
+		if !found {
+			break
+		}
+		ret = i
+	}
+	state.MaxContinuousPTKGeneration = ret
 	return ret
 }
 
@@ -502,15 +576,22 @@ type shoppingList struct {
 
 	// The generations we care about. We'll always get back the most recent RKMs
 	// if we send a needMerkleRefresh.
+	seedLow     keybase1.PerTeamKeyGeneration
 	generations []keybase1.PerTeamKeyGeneration
+
+	// the last hidden link we got, in case we need to download more
+	hiddenLinksSince keybase1.Seqno
 }
 
 // groceries are what we get back from the server.
 type groceries struct {
-	newLinks     []*ChainLinkUnpacked
-	rkms         []keybase1.ReaderKeyMask
-	latestKeyGen keybase1.PerTeamKeyGeneration
-	seeds        []keybase1.PerTeamKeySeed
+	newLinks          []*ChainLinkUnpacked
+	rkms              []keybase1.ReaderKeyMask
+	latestKeyGen      keybase1.PerTeamKeyGeneration
+	seeds             []keybase1.PerTeamKeySeed
+	newHiddenLinks    []sig3.ExportJSON
+	expMaxHiddenSeqno keybase1.Seqno
+	lastMerkleRoot    *libkb.MerkleRoot
 }
 
 // isEmpty returns true if our shopping list is empty. In this case, we have no need to go to the
@@ -537,36 +618,41 @@ func (s *shoppingList) addDownPointer(seqno keybase1.Seqno) {
 // computeWithPreviousState looks into the given load arg, and also our current cached state, to figure
 // what to get from the server. The results are compiled into a "shopping list" that we'll later
 // use when we concoct our server request.
-func (f *FastTeamChainLoader) computeWithPreviousState(m libkb.MetaContext, s *shoppingList, arg fastLoadArg, state *keybase1.FastTeamData) {
+func (f *FastTeamChainLoader) computeWithPreviousState(m libkb.MetaContext, s *shoppingList, arg fastLoadArg, data ftlCombinedData) {
+	state := data.visible
 	cachedAt := state.CachedAt.Time()
 	s.linksSince = state.Chain.Last.Seqno
 
 	if arg.forceReset {
 		s.linksSince = keybase1.Seqno(0)
-		m.CDebugf("forceReset specified, so reloading from low=0")
+		m.Debug("forceReset specified, so reloading from low=0")
 	}
 
 	if arg.needChainTail() && m.G().Clock().Now().Sub(cachedAt) > time.Hour {
-		m.CDebugf("cached value is more than an hour old (cached at %s)", cachedAt)
+		m.Debug("cached value is more than an hour old (cached at %s)", cachedAt)
 		s.needMerkleRefresh = true
 	}
 	if arg.needChainTail() && state.LatestSeqnoHint > state.Chain.Last.Seqno {
-		m.CDebugf("cached value is stale: seqno %d > %d", state.LatestSeqnoHint, state.Chain.Last.Seqno)
+		m.Debug("cached value is stale: seqno %d > %d", state.LatestSeqnoHint, state.Chain.Last.Seqno)
+		s.needMerkleRefresh = true
+	}
+	if arg.needChainTail() && data.hidden.IsStale() {
+		m.Debug("HiddenTeamChain was stale, forcing refresh")
 		s.needMerkleRefresh = true
 	}
 	if arg.ForceRefresh {
-		m.CDebugf("refresh forced via flag")
+		m.Debug("refresh forced via flag")
 		s.needMerkleRefresh = true
 	}
 	if !s.needMerkleRefresh && f.InForceRepollMode(m) {
-		m.CDebugf("must repoll since in force mode")
+		m.Debug("must repoll since in force mode")
 		s.needMerkleRefresh = true
 	}
-	if !stateHasKeys(m, s, arg, state) {
-		m.CDebugf("state was missing needed encryption keys, or we need the freshest")
+	if !stateHasKeys(m, s, arg, data) {
+		m.Debug("state was missing needed encryption keys, or we need the freshest")
 	}
 	if !stateHasDownPointers(m, s, arg, state) {
-		m.CDebugf("state was missing unstubbed links")
+		m.Debug("state was missing unstubbed links")
 	}
 }
 
@@ -576,6 +662,10 @@ func (s *shoppingList) computeFreshLoad(m libkb.MetaContext, arg fastLoadArg) {
 	s.applications = append([]keybase1.TeamApplication{}, arg.Applications...)
 	s.downPointers = append([]keybase1.Seqno{}, arg.downPointersNeeded...)
 	s.generations = append([]keybase1.PerTeamKeyGeneration{}, arg.KeyGenerationsNeeded...)
+}
+
+func (s *shoppingList) addHiddenLow(hp *hidden.LoaderPackage) {
+	s.hiddenLinksSince = hp.LastSeqno()
 }
 
 // applicationsToString converts the list of applications to a comma-separated string.
@@ -602,7 +692,7 @@ func generationsToString(generations []keybase1.PerTeamKeyGeneration) string {
 // must be returned unstubbed, and might be in the sequence *before* `low`. We specify
 // key generations and applications, and need reader key masks for all applications
 // in the (apps X gens) cartesian product.
-func (a fastLoadArg) toHTTPArgs(s shoppingList) libkb.HTTPArgs {
+func (a fastLoadArg) toHTTPArgs(m libkb.MetaContext, s shoppingList, hp *hidden.LoaderPackage) libkb.HTTPArgs {
 	ret := libkb.HTTPArgs{
 		"id":                  libkb.S{Val: a.ID.String()},
 		"public":              libkb.B{Val: a.Public},
@@ -611,6 +701,7 @@ func (a fastLoadArg) toHTTPArgs(s shoppingList) libkb.HTTPArgs {
 		"ftl_seqnos":          libkb.S{Val: seqnosToString(s.downPointers)},
 		"ftl_key_generations": libkb.S{Val: generationsToString(s.generations)},
 		"ftl_version":         libkb.I{Val: FTLVersion},
+		"ftl_seed_low":        libkb.I{Val: int(s.seedLow)},
 	}
 	if len(s.applications) > 0 {
 		ret["ftl_include_applications"] = libkb.S{Val: applicationsToString(s.applications)}
@@ -621,6 +712,10 @@ func (a fastLoadArg) toHTTPArgs(s shoppingList) libkb.HTTPArgs {
 	if !a.readSubteamID.IsNil() {
 		ret["read_subteam_id"] = libkb.S{Val: a.readSubteamID.String()}
 	}
+
+	if hp.HiddenChainDataEnabled() {
+		ret["ftl_hidden_low"] = libkb.I{Val: int(s.hiddenLinksSince)}
+	}
 	return ret
 }
 
@@ -628,18 +723,18 @@ func (a fastLoadArg) toHTTPArgs(s shoppingList) libkb.HTTPArgs {
 // needed for the team chain. There is a race possible, when a link is added between the two. In that
 // case, refetch in a loop until we match up. It will retry in the case of GreenLinkErrors. If
 // the given state was fresh already, then we'll return a nil groceries.
-func (f *FastTeamChainLoader) loadFromServerWithRetries(m libkb.MetaContext, arg fastLoadArg, state *keybase1.FastTeamData, shoppingList shoppingList) (groceries *groceries, err error) {
+func (f *FastTeamChainLoader) loadFromServerWithRetries(m libkb.MetaContext, arg fastLoadArg, state *keybase1.FastTeamData, shoppingList shoppingList, hp *hidden.LoaderPackage) (groceries *groceries, err error) {
 
-	defer m.CTrace(fmt.Sprintf("FastTeamChainLoader#loadFromServerWithRetries(%s,%v)", arg.ID, arg.Public), func() error { return err })()
+	defer m.Trace(fmt.Sprintf("FastTeamChainLoader#loadFromServerWithRetries(%s,%v)", arg.ID, arg.Public), &err)()
 
 	const nRetries = 3
 	for i := 0; i < nRetries; i++ {
-		groceries, err = f.loadFromServerOnce(m, arg, state, shoppingList)
+		groceries, err = f.loadFromServerOnce(m, arg, state, shoppingList, hp)
 		switch err.(type) {
 		case nil:
 			return groceries, nil
 		case GreenLinkError:
-			m.CDebugf("FastTeamChainLoader retrying after green link")
+			m.Debug("FastTeamChainLoader retrying after green link")
 			continue
 		default:
 			return nil, err
@@ -650,18 +745,35 @@ func (f *FastTeamChainLoader) loadFromServerWithRetries(m libkb.MetaContext, arg
 
 // makeHTTPRequest hits the HTTP GET endpoint for the team data.
 func (f *FastTeamChainLoader) makeHTTPRequest(m libkb.MetaContext, args libkb.HTTPArgs, isPublic bool) (t rawTeam, err error) {
-	apiArg := libkb.NewAPIArgWithMetaContext(m, "team/get")
+	apiArg := libkb.NewAPIArg("team/get")
 	apiArg.Args = args
 	if isPublic {
 		apiArg.SessionType = libkb.APISessionTypeOPTIONAL
 	} else {
 		apiArg.SessionType = libkb.APISessionTypeREQUIRED
 	}
-	err = m.G().API.GetDecode(apiArg, &t)
+	err = m.G().API.GetDecode(m, apiArg, &t)
 	if err != nil {
 		return t, err
 	}
 	return t, nil
+}
+
+func (f *FastTeamChainLoader) checkHiddenResp(m libkb.MetaContext, arg fastLoadArg, hiddenResp *libkb.MerkleHiddenResponse, hp *hidden.LoaderPackage) (hiddenIsFresh bool, err error) {
+	if !arg.HiddenChainIsOptional && hiddenResp.RespType == libkb.MerkleHiddenResponseTypeNONE {
+		return hiddenIsFresh, libkb.NewHiddenChainDataMissingError("the server did not return the necessary hidden chain data")
+	}
+
+	if hiddenResp.RespType != libkb.MerkleHiddenResponseTypeFLAGOFF && hiddenResp.RespType != libkb.MerkleHiddenResponseTypeNONE {
+		hiddenIsFresh, err = hp.CheckHiddenMerklePathResponseAndAddRatchets(m, hiddenResp)
+		if err != nil {
+			return hiddenIsFresh, err
+		}
+	} else {
+		hiddenIsFresh = true
+	}
+
+	return hiddenIsFresh, nil
 }
 
 // loadFromServerOnce turns the giving "shoppingList" into requests for the server, and then makes
@@ -670,42 +782,43 @@ func (f *FastTeamChainLoader) makeHTTPRequest(m libkb.MetaContext, args libkb.HT
 // we previously read. If we find a green link, we retry in our caller. Otherwise, we also do the
 // key decryption here, decrypting the most recent generation, and all prevs we haven't previously
 // decrypted.
-func (f *FastTeamChainLoader) loadFromServerOnce(m libkb.MetaContext, arg fastLoadArg, state *keybase1.FastTeamData, shoppingList shoppingList) (ret *groceries, err error) {
+func (f *FastTeamChainLoader) loadFromServerOnce(m libkb.MetaContext, arg fastLoadArg, state *keybase1.FastTeamData, shoppingList shoppingList, hp *hidden.LoaderPackage) (ret *groceries, err error) {
 
-	defer m.CTrace("FastTeamChainLoader#loadFromServerOnce", func() error { return err })()
+	defer m.Trace("FastTeamChainLoader#loadFromServerOnce", &err)()
 
-	var lastSeqno keybase1.Seqno
-	var lastLinkID keybase1.LinkID
 	var teamUpdate rawTeam
 	var links []*ChainLinkUnpacked
 	var lastSecretGen keybase1.PerTeamKeyGeneration
 	var seeds []keybase1.PerTeamKeySeed
 
-	lastSeqno, lastLinkID, err = f.world.merkleLookup(m.Ctx(), arg.ID, arg.Public)
-
+	lastSeqno, lastLinkID, hiddenResp, lastMerkleRoot, err := f.world.merkleLookupWithHidden(m.Ctx(), arg.ID, arg.Public)
 	if err != nil {
 		return nil, err
 	}
 
-	if shoppingList.onlyNeedsRefresh() && state != nil && state.Chain.Last != nil && state.Chain.Last.Seqno == lastSeqno {
+	hiddenIsFresh, err := f.checkHiddenResp(m, arg, hiddenResp, hp)
+	if err != nil {
+		return nil, err
+	}
+
+	if shoppingList.onlyNeedsRefresh() && state != nil && state.Chain.Last != nil && state.Chain.Last.Seqno == lastSeqno && hiddenIsFresh {
 		if !lastLinkID.Eq(state.Chain.Last.LinkID) {
-			m.CDebugf("link ID mismatch at tail seqno %d: wanted %s but got %s", state.Chain.Last.LinkID, lastLinkID)
+			m.Debug("link ID mismatch at tail seqno %d: wanted %s but got %s", state.Chain.Last.LinkID, lastLinkID)
 			return nil, NewFastLoadError("cached last link at seqno=%d did not match current merke tree", lastSeqno)
 		}
-		m.CDebugf("according to merkle tree, previously loaded chain at %d is current, and shopping list was empty", lastSeqno)
+		m.Debug("according to merkle tree, previously loaded chain at %d is current, and shopping list was empty", lastSeqno)
 		return nil, nil
 	}
 
-	teamUpdate, err = f.makeHTTPRequest(m, arg.toHTTPArgs(shoppingList), arg.Public)
+	teamUpdate, err = f.makeHTTPRequest(m, arg.toHTTPArgs(m, shoppingList, hp), arg.Public)
 	if err != nil {
-		f.featureFlagGate.DigestError(m, err)
 		return nil, err
 	}
 
 	if !teamUpdate.ID.Eq(arg.ID) {
 		return nil, NewFastLoadError("server returned wrong id: %v != %v", teamUpdate.ID, arg.ID)
 	}
-	links, err = teamUpdate.unpackLinks(m.Ctx())
+	links, err = teamUpdate.unpackLinks(m)
 	if err != nil {
 		return nil, err
 	}
@@ -714,11 +827,11 @@ func (f *FastTeamChainLoader) loadFromServerOnce(m libkb.MetaContext, arg fastLo
 
 	for _, link := range links {
 		if link.Seqno() > lastSeqno {
-			m.CDebugf("TeamLoader found green link seqno:%v", link.Seqno())
+			m.Debug("TeamLoader found green link seqno:%v", link.Seqno())
 			return nil, NewGreenLinkError(link.Seqno())
 		}
 		if link.Seqno() == lastSeqno && !lastLinkID.Eq(link.LinkID().Export()) {
-			m.CDebugf("Merkle tail mismatch at link %d: %v != %v", lastSeqno, lastLinkID, link.LinkID().Export())
+			m.Debug("Merkle tail mismatch at link %d: %v != %v", lastSeqno, lastLinkID, link.LinkID().Export())
 			return nil, NewInvalidLink(link, "last link did not match merkle tree")
 		}
 		if link.isStubbed() {
@@ -733,13 +846,18 @@ func (f *FastTeamChainLoader) loadFromServerOnce(m libkb.MetaContext, arg fastLo
 		}
 	}
 
-	m.CDebugf("loadFromServerOnce: got back %d new links; %d stubbed; %d RKMs; %d prevs; box=%v; lastSecretGen=%d", len(links), numStubbed, len(teamUpdate.ReaderKeyMasks), len(teamUpdate.Prevs), teamUpdate.Box != nil, lastSecretGen)
+	hp.SetRatchetBlindingKeySet(teamUpdate.RatchetBlindingKeySet)
+
+	m.Debug("loadFromServerOnce: got back %d new links; %d stubbed; %d RKMs; %d prevs; box=%v; lastSecretGen=%d; %d hidden chainlinks", len(links), numStubbed, len(teamUpdate.ReaderKeyMasks), len(teamUpdate.Prevs), teamUpdate.Box != nil, lastSecretGen, len(teamUpdate.HiddenChain))
 
 	return &groceries{
-		newLinks:     links,
-		latestKeyGen: lastSecretGen,
-		rkms:         teamUpdate.ReaderKeyMasks,
-		seeds:        seeds,
+		newLinks:          links,
+		latestKeyGen:      lastSecretGen,
+		rkms:              teamUpdate.ReaderKeyMasks,
+		seeds:             seeds,
+		newHiddenLinks:    teamUpdate.HiddenChain,
+		expMaxHiddenSeqno: hiddenResp.UncommittedSeqno,
+		lastMerkleRoot:    lastMerkleRoot,
 	}, nil
 }
 
@@ -803,7 +921,7 @@ func (f *FastTeamChainLoader) checkStubs(m libkb.MetaContext, shoppingList shopp
 
 func checkSeqType(m libkb.MetaContext, arg fastLoadArg, link *ChainLinkUnpacked) error {
 	if link.SeqType() != keybase1.SeqType_NONE && ((arg.Public && link.SeqType() != keybase1.SeqType_PUBLIC) || (!arg.Public && link.SeqType() != keybase1.SeqType_SEMIPRIVATE)) {
-		m.CDebugf("Bad seqtype at %v/%d: %d", arg.ID, link.Seqno(), link.SeqType())
+		m.Debug("Bad seqtype at %v/%d: %d", arg.ID, link.Seqno(), link.SeqType())
 		return NewInvalidLink(link, "bad seqtype")
 	}
 	return nil
@@ -831,11 +949,11 @@ func (f *FastTeamChainLoader) checkPrevs(m libkb.MetaContext, arg fastLoadArg, l
 			return nil
 		}
 		if prev.LinkID.IsNil() || prevex.IsNil() {
-			m.CDebugf("Bad prev nil/non-nil pointer check at seqno %d: (prev=%v vs curr=%v)", link.Seqno(), prev.LinkID.IsNil(), prevex.IsNil())
+			m.Debug("Bad prev nil/non-nil pointer check at seqno %d: (prev=%v vs curr=%v)", link.Seqno(), prev.LinkID.IsNil(), prevex.IsNil())
 			return NewInvalidLink(link, "bad nil/non-nil prev pointer comparison")
 		}
 		if !prev.LinkID.Eq(prevex) {
-			m.CDebugf("Bad prev comparison at seqno %d: %s != %s", prev.LinkID, prevex)
+			m.Debug("Bad prev comparison at seqno %d: %s != %s", prev.LinkID, prevex)
 			return NewInvalidLink(link, "bad prev pointer")
 		}
 		return nil
@@ -843,7 +961,7 @@ func (f *FastTeamChainLoader) checkPrevs(m libkb.MetaContext, arg fastLoadArg, l
 
 	cmpSeqnos := func(prev keybase1.LinkTriple, link *ChainLinkUnpacked) (err error) {
 		if prev.Seqno+1 != link.Seqno() {
-			m.CDebugf("Bad sequence violation: %d+1 != %d", prev.Seqno, link.Seqno())
+			m.Debug("Bad sequence violation: %d+1 != %d", prev.Seqno, link.Seqno())
 			return NewInvalidLink(link, "seqno violation")
 		}
 		return checkSeqType(m, arg, link)
@@ -875,7 +993,7 @@ func (f *FastTeamChainLoader) checkPrevs(m libkb.MetaContext, arg fastLoadArg, l
 
 // audit runs probabilistic merkle tree audit on the new links, to make sure that the server isn't
 // running odd-even-style attacks against members in a group.
-func (f *FastTeamChainLoader) audit(m libkb.MetaContext, arg fastLoadArg, state *keybase1.FastTeamData) (err error) {
+func (f *FastTeamChainLoader) audit(m libkb.MetaContext, arg fastLoadArg, state *keybase1.FastTeamData, hiddenChain *keybase1.HiddenTeamChain, lastMerkleRoot *libkb.MerkleRoot) (err error) {
 	head, ok := state.Chain.MerkleInfo[1]
 	if !ok {
 		return NewAuditError("cannot run audit without merkle info for head")
@@ -884,7 +1002,11 @@ func (f *FastTeamChainLoader) audit(m libkb.MetaContext, arg fastLoadArg, state 
 	if last == nil {
 		return NewAuditError("cannot run audit, no last chain data")
 	}
-	return m.G().GetTeamAuditor().AuditTeam(m, arg.ID, arg.Public, head.Seqno, state.Chain.LinkIDs, last.Seqno)
+	auditMode := keybase1.AuditMode_STANDARD
+	if arg.HiddenChainIsOptional {
+		auditMode = keybase1.AuditMode_STANDARD_NO_HIDDEN
+	}
+	return m.G().GetTeamAuditor().AuditTeam(m, arg.ID, arg.Public, head.Seqno, state.Chain.LinkIDs, hiddenChain.GetOuter(), last.Seqno, hiddenChain.GetLastCommittedSeqno(), lastMerkleRoot, auditMode)
 }
 
 // readDownPointer reads a down pointer out of a given link, if it's unstubbed. Down pointers
@@ -1084,6 +1206,32 @@ func (f *FastTeamChainLoader) putSeeds(m libkb.MetaContext, arg fastLoadArg, sta
 	return nil
 }
 
+func (f *FastTeamChainLoader) putSeedChecks(m libkb.MetaContext, state *keybase1.FastTeamData) (err error) {
+	latestChainGen := keybase1.PerTeamKeyGeneration(len(state.PerTeamKeySeedsUnverified))
+	if state.SeedChecks == nil {
+		state.SeedChecks = make(map[keybase1.PerTeamKeyGeneration]keybase1.PerTeamSeedCheck)
+	}
+	return computeSeedChecks(
+		m.Ctx(),
+		state.ID(),
+		latestChainGen,
+		func(g keybase1.PerTeamKeyGeneration) (check *keybase1.PerTeamSeedCheck, seed keybase1.PerTeamKeySeed, err error) {
+			seed, ok := state.PerTeamKeySeedsUnverified[g]
+			if !ok {
+				return nil, keybase1.PerTeamKeySeed{}, fmt.Errorf("unexpected nil PerTeamKeySeedsUnverified at %d", g)
+			}
+			tmp, ok := state.SeedChecks[g]
+			if ok {
+				check = &tmp
+			}
+			return check, seed, nil
+		},
+		func(g keybase1.PerTeamKeyGeneration, check keybase1.PerTeamSeedCheck) {
+			state.SeedChecks[g] = check
+		},
+	)
+}
+
 func setCachedAtToNow(m libkb.MetaContext, state *keybase1.FastTeamData) {
 	state.CachedAt = keybase1.ToTime(m.G().Clock().Now())
 }
@@ -1115,6 +1263,10 @@ func (f *FastTeamChainLoader) mutateState(m libkb.MetaContext, arg fastLoadArg, 
 	if err != nil {
 		return err
 	}
+	err = f.putSeedChecks(m, state)
+	if err != nil {
+		return err
+	}
 	err = f.putMetadata(m, arg, state)
 	if err != nil {
 		return err
@@ -1129,7 +1281,9 @@ func makeState(arg fastLoadArg, s *keybase1.FastTeamData) *keybase1.FastTeamData
 		return &tmp
 	}
 	return &keybase1.FastTeamData{
+		Subversion:                1,
 		PerTeamKeySeedsUnverified: make(map[keybase1.PerTeamKeyGeneration]keybase1.PerTeamKeySeed),
+		SeedChecks:                make(map[keybase1.PerTeamKeyGeneration]keybase1.PerTeamSeedCheck),
 		ReaderKeyMasks:            make(map[keybase1.TeamApplication](map[keybase1.PerTeamKeyGeneration]keybase1.MaskB64)),
 		Chain: keybase1.FastTeamSigChainState{
 			ID:                      arg.ID,
@@ -1143,21 +1297,107 @@ func makeState(arg fastLoadArg, s *keybase1.FastTeamData) *keybase1.FastTeamData
 	}
 }
 
+func (f *FastTeamChainLoader) hiddenPackage(m libkb.MetaContext, arg fastLoadArg, state *keybase1.FastTeamData) (hp *hidden.LoaderPackage, err error) {
+	hp, err = hidden.NewLoaderPackage(m, arg.ID,
+		func() (encKID keybase1.KID, gen keybase1.PerTeamKeyGeneration, role keybase1.TeamRole, err error) {
+			// Always return TeamRole_NONE since ftl does not have access to
+			// member roles. The hidden chain uses the role to skip checks bot
+			// members are not able to perform. Bot members should never FTL,
+			// however since they don't have key access.
+			if state == nil || len(state.Chain.PerTeamKeys) == 0 {
+				return encKID, gen, keybase1.TeamRole_NONE, nil
+			}
+			var ptk keybase1.PerTeamKey
+			for _, tmp := range state.Chain.PerTeamKeys {
+				ptk = tmp
+				break
+			}
+			return ptk.EncKID, ptk.Gen, keybase1.TeamRole_NONE, nil
+		})
+	if err != nil {
+		return nil, err
+	}
+	if !arg.readSubteamID.IsNil() {
+		m.Debug("hiddenPackage: disabling checks since we a subteam reader looking for parent chain")
+		hp.DisableHiddenChainData()
+	}
+	if tmp := hidden.CheckFeatureGateForSupport(m, arg.ID); tmp != nil {
+		m.Debug("hiddenPackage: disabling checks since we are feature-flagged off")
+		hp.DisableHiddenChainData()
+	}
+	return hp, nil
+}
+
+func (f *FastTeamChainLoader) consumeRatchets(m libkb.MetaContext, newLinks []*ChainLinkUnpacked, hp *hidden.LoaderPackage) (err error) {
+	for _, link := range newLinks {
+		if err := consumeRatchets(m, hp, link); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (f *FastTeamChainLoader) processHidden(m libkb.MetaContext, arg fastLoadArg, state *keybase1.FastTeamData, groceries *groceries, hp *hidden.LoaderPackage) (err error) {
+
+	err = f.consumeRatchets(m, groceries.newLinks, hp)
+	if err != nil {
+		return err
+	}
+
+	err = hp.Update(m, groceries.newHiddenLinks, groceries.expMaxHiddenSeqno)
+	if err != nil {
+		return err
+	}
+	err = hp.CheckUpdatesAgainstSeeds(m, func(g keybase1.PerTeamKeyGeneration) *keybase1.PerTeamSeedCheck {
+		chk, ok := state.SeedChecks[g]
+		if !ok {
+			return nil
+		}
+		return &chk
+	})
+	if err != nil {
+		return err
+	}
+	err = hp.CheckParentPointersOnFastLoad(m, state)
+	if err != nil {
+		return err
+	}
+
+	err = hp.Commit(m)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // refresh the team's state, but loading with the server. It will download new stubbed chainlinks,
 // fill in unstubbed chainlinks, make sure that prev pointers match, make sure that the merkle
 // tree agrees with the chain tail, and then run the audit mechanism. If the state is already
 // fresh, we will return (nil, nil) and short-circuit.
-func (f *FastTeamChainLoader) refresh(m libkb.MetaContext, arg fastLoadArg, state *keybase1.FastTeamData, shoppingList shoppingList) (res *keybase1.FastTeamData, err error) {
+func (f *FastTeamChainLoader) refresh(m libkb.MetaContext, arg fastLoadArg, state *keybase1.FastTeamData, shoppingList shoppingList, hp *hidden.LoaderPackage) (res *keybase1.FastTeamData, err error) {
 
-	defer m.CTrace(fmt.Sprintf("FastTeamChainLoader#refresh(%+v)", arg), func() error { return err })()
+	defer m.Trace(fmt.Sprintf("FastTeamChainLoader#refresh(%+v)", arg), &err)()
 
-	groceries, err := f.loadFromServerWithRetries(m, arg, state, shoppingList)
+	groceries, err := f.loadFromServerWithRetries(m, arg, state, shoppingList, hp)
 	if err != nil {
 		return nil, err
 	}
 
 	if groceries == nil {
-		m.CDebugf("FastTeamChainLoader#refresh: our state was fresh according to the Merkle tree")
+		m.Debug("FastTeamChainLoader#refresh: our state was fresh according to the Merkle tree")
+
+		// Even if the state is fresh (no new chain links are necessary), we
+		// might still have learned about old hidden links being committed to
+		// the blind tree. This information needs to be persisted.
+		err = hp.Update(m, []sig3.ExportJSON{}, 0)
+		if err != nil {
+			return nil, err
+		}
+		err = hp.Commit(m)
+		if err != nil {
+			return nil, err
+		}
+
 		return nil, nil
 	}
 
@@ -1184,8 +1424,13 @@ func (f *FastTeamChainLoader) refresh(m libkb.MetaContext, arg fastLoadArg, stat
 		return nil, err
 	}
 
+	err = f.processHidden(m, arg, state, groceries, hp)
+	if err != nil {
+		return nil, err
+	}
+
 	// peform a probabilistic audit on the new links
-	err = f.audit(m, arg, state)
+	err = f.audit(m, arg, state, hp.ChainData(), groceries.lastMerkleRoot)
 	if err != nil {
 		return nil, err
 	}
@@ -1198,26 +1443,61 @@ func (f *FastTeamChainLoader) updateCache(m libkb.MetaContext, state *keybase1.F
 	f.storage.Put(m, state)
 }
 
+func (f *FastTeamChainLoader) upgradeStoredState(mctx libkb.MetaContext, state *keybase1.FastTeamData) (changed bool, err error) {
+	if state == nil {
+		return false, nil
+	}
+
+	changed = false
+	if state.Subversion == 0 {
+		err = f.putSeedChecks(mctx, state)
+		if err != nil {
+			mctx.Debug("failed in upgrade of subversion 0->1: %s", err)
+			return false, err
+		}
+		mctx.Debug("Upgrade to subversion 1")
+		state.Subversion = 1
+		changed = true
+	}
+
+	return changed, nil
+}
+
 // loadLocked is the inner loop for loading team. Should be called when holding the lock
 // this teamID.
 func (f *FastTeamChainLoader) loadLocked(m libkb.MetaContext, arg fastLoadArg) (res *fastLoadRes, err error) {
 
-	state := f.findStateInCache(m, arg.ID)
+	frozenState, frozen, tombstoned := f.findStateInCache(m, arg.ID)
+	var state *keybase1.FastTeamData
+	var hp *hidden.LoaderPackage
+	if tombstoned {
+		return nil, NewTeamTombstonedError()
+	}
+	if !frozen {
+		state = frozenState
+	}
+
+	hp, err = f.hiddenPackage(m, arg, state)
+	if err != nil {
+		return nil, err
+	}
 
 	var shoppingList shoppingList
 	if state != nil {
-		f.computeWithPreviousState(m, &shoppingList, arg, state)
+		combinedData := newFTLCombinedData(state, hp.ChainData())
+		f.computeWithPreviousState(m, &shoppingList, arg, combinedData)
 		if shoppingList.isEmpty() {
-			return f.toResult(m, arg, state)
+			return f.toResult(m, arg, combinedData)
 		}
 	} else {
 		shoppingList.computeFreshLoad(m, arg)
 	}
+	shoppingList.addHiddenLow(hp)
 
-	m.CDebugf("FastTeamChainLoader#loadLocked: computed shopping list: %+v", shoppingList)
+	m.Debug("FastTeamChainLoader#loadLocked: computed shopping list: %+v", shoppingList)
 
 	var newState *keybase1.FastTeamData
-	newState, err = f.refresh(m, arg, state, shoppingList)
+	newState, err = f.refresh(m, arg, state, shoppingList, hp)
 	if err != nil {
 		return nil, err
 	}
@@ -1233,26 +1513,40 @@ func (f *FastTeamChainLoader) loadLocked(m libkb.MetaContext, arg fastLoadArg) (
 	// Always update the cache, even if we're just bumping the cachedAt time.
 	f.updateCache(m, state)
 
-	return f.toResult(m, arg, state)
+	if frozen && frozenState != nil {
+		frozenLast := frozenState.Chain.Last
+		linkID := state.Chain.LinkIDs[frozenLast.Seqno]
+		if !linkID.Eq(frozenLast.LinkID) {
+			return nil, fmt.Errorf("FastTeamChainLoader#loadLocked: got wrong sigchain link ID for seqno %d: expected %v from previous cache entry (frozen=%t); got %v in new chain", frozenLast.Seqno, frozenLast.LinkID, frozen, linkID)
+		}
+	}
+
+	return f.toResult(m, arg, newFTLCombinedData(state, hp.ChainData()))
 }
 
-// OnLogout is called when the user logs out, which pruges the LRU.
-func (f *FastTeamChainLoader) OnLogout() {
-	f.storage.clearMem()
-	f.featureFlagGate.Clear()
+// OnLogout is called when the user logs out, which purges the LRU.
+func (f *FastTeamChainLoader) OnLogout(mctx libkb.MetaContext) error {
+	f.storage.ClearMem()
+	return nil
+}
+
+// OnDbNuke is called when the disk cache is cleared, which purges the LRU.
+func (f *FastTeamChainLoader) OnDbNuke(mctx libkb.MetaContext) error {
+	f.storage.ClearMem()
+	return nil
 }
 
 func (f *FastTeamChainLoader) HintLatestSeqno(m libkb.MetaContext, id keybase1.TeamID, seqno keybase1.Seqno) (err error) {
 	m = ftlLogTag(m)
 
-	defer m.CTrace(fmt.Sprintf("FastTeamChainLoader#HintLatestSeqno(%v->%d)", id, seqno), func() error { return err })()
+	defer m.Trace(fmt.Sprintf("FastTeamChainLoader#HintLatestSeqno(%v->%d)", id, seqno), &err)()
 
 	// Single-flight lock by team ID.
 	lock := f.locktab.AcquireOnName(m.Ctx(), m.G(), id.String())
 	defer lock.Release(m.Ctx())
 
-	if state := f.findStateInCache(m, id); state != nil {
-		m.CDebugf("Found state in cache; updating")
+	if state, frozen, tombstoned := f.findStateInCache(m, id); state != nil && !frozen && !tombstoned {
+		m.Debug("Found state in cache; updating")
 		state.LatestSeqnoHint = seqno
 		f.updateCache(m, state)
 	}
@@ -1261,7 +1555,7 @@ func (f *FastTeamChainLoader) HintLatestSeqno(m libkb.MetaContext, id keybase1.T
 }
 
 func (f *FastTeamChainLoader) ForceRepollUntil(m libkb.MetaContext, dtime gregor.TimeOrOffset) error {
-	m.CDebugf("FastTeamChainLoader#ForceRepollUntil(%+v)", dtime)
+	m.Debug("FastTeamChainLoader#ForceRepollUntil(%+v)", dtime)
 	f.forceRepollMutex.Lock()
 	defer f.forceRepollMutex.Unlock()
 	f.forceRepollUntil = dtime
@@ -1275,9 +1569,57 @@ func (f *FastTeamChainLoader) InForceRepollMode(m libkb.MetaContext) bool {
 		return false
 	}
 	if !f.forceRepollUntil.Before(m.G().Clock().Now()) {
-		m.CDebugf("FastTeamChainLoader#InForceRepollMode: returning true")
+		m.Debug("FastTeamChainLoader#InForceRepollMode: returning true")
 		return true
 	}
 	f.forceRepollUntil = nil
 	return false
+}
+
+func newFrozenFastChain(chain *keybase1.FastTeamSigChainState) keybase1.FastTeamSigChainState {
+	return keybase1.FastTeamSigChainState{
+		ID:     chain.ID,
+		Public: chain.Public,
+		Last:   chain.Last,
+	}
+}
+
+func (f *FastTeamChainLoader) Freeze(mctx libkb.MetaContext, teamID keybase1.TeamID) (err error) {
+	defer mctx.Trace(fmt.Sprintf("FastTeamChainLoader#Freeze(%s)", teamID), &err)()
+
+	// Single-flight lock by team ID.
+	lock := f.locktab.AcquireOnName(mctx.Ctx(), mctx.G(), teamID.String())
+	defer lock.Release(mctx.Ctx())
+
+	td, frozen, tombstoned := f.storage.Get(mctx, teamID, teamID.IsPublic())
+	if frozen || td == nil {
+		return nil
+	}
+	newTD := &keybase1.FastTeamData{
+		Frozen:     true,
+		Tombstoned: tombstoned,
+		Chain:      newFrozenFastChain(&td.Chain),
+	}
+	f.storage.Put(mctx, newTD)
+	return nil
+}
+
+func (f *FastTeamChainLoader) Tombstone(mctx libkb.MetaContext, teamID keybase1.TeamID) (err error) {
+	defer mctx.Trace(fmt.Sprintf("FastTeamChainLoader#Tombstone(%s)", teamID), &err)()
+
+	// Single-flight lock by team ID.
+	lock := f.locktab.AcquireOnName(mctx.Ctx(), mctx.G(), teamID.String())
+	defer lock.Release(mctx.Ctx())
+
+	td, frozen, tombstoned := f.storage.Get(mctx, teamID, teamID.IsPublic())
+	if tombstoned || td == nil {
+		return nil
+	}
+	newTD := &keybase1.FastTeamData{
+		Frozen:     frozen,
+		Tombstoned: true,
+		Chain:      newFrozenFastChain(&td.Chain),
+	}
+	f.storage.Put(mctx, newTD)
+	return nil
 }

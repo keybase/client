@@ -1,0 +1,25 @@
+{
+  "name": "RNAudio",
+  "version": "4.3.0",
+  "license": "MIT",
+  "summary": "Audio recorder library for React Native",
+  "authors": {
+    "Joshua Sierles": "joshua@diluvia.net"
+  },
+  "homepage": "https://github.com/jsierles/react-native-audio",
+  "source": {
+    "git": "https://github.com/jsierles/react-native-audio.git",
+    "tag": "v4.3.0"
+  },
+  "platforms": {
+    "ios": "8.0"
+  },
+  "preserve_paths": "*.js",
+  "frameworks": "AVFoundation",
+  "dependencies": {
+    "React": [
+
+    ]
+  },
+  "source_files": "ios/AudioRecorderManager.{h,m}"
+}

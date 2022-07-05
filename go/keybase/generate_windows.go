@@ -3,7 +3,3 @@
 package main
 
 //go:generate go build ../tools/winresource
-
-func noOp() {
-
-}

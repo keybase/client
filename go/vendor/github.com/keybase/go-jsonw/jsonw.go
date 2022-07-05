@@ -35,6 +35,11 @@ func (w *Wrapper) Marshal() ([]byte, error) {
 	return json.Marshal(w.dat)
 }
 
+// MarshalJSON makes Wrapper satisfy the encoding/json.Marshaler interface.
+func (w *Wrapper) MarshalJSON() ([]byte, error) {
+	return w.Marshal()
+}
+
 func (w *Wrapper) MarshalPretty() string {
 	encoded, err := json.MarshalIndent(w.dat, "", "    ")
 	if err != nil {

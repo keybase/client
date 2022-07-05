@@ -45,8 +45,6 @@ func checkPlayer(err *Error, cp CommitmentPayload, player PlayerState) {
 		err.addBadCommitment(player.Player)
 		return
 	}
-
-	return
 }
 
 func checkPlayers(cp CommitmentPayload, player []PlayerState) error {

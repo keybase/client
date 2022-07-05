@@ -4,11 +4,10 @@
 package client
 
 import (
-	"fmt"
-
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/net/context"
 )
 
@@ -27,21 +26,7 @@ func (v *CmdLogout) Run() error {
 		return err
 	}
 	ctx := context.TODO()
-	if !v.Force {
-		userCli, err := GetUserClient(v.G())
-		if err != nil {
-			return err
-		}
-		ret, err := userCli.CanLogout(ctx, 0)
-		if err != nil {
-			return err
-		}
-		v.G().Log.CDebugf(ctx, "CanLogout call returned: %+v", ret)
-		if !ret.CanLogout {
-			return fmt.Errorf("Cannot logout: %s", ret.Reason)
-		}
-	}
-	return cli.Logout(ctx, 0)
+	return cli.Logout(ctx, keybase1.LogoutArg{Force: v.Force})
 }
 
 func NewCmdLogout(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -54,7 +39,7 @@ func NewCmdLogout(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comman
 		Flags: []cli.Flag{
 			cli.BoolFlag{
 				Name:  "f, force",
-				Usage: "If there are any reasons not to logout right now, ignore them",
+				Usage: "If there are any reasons not to logout right now, ignore them (potentially dangerous)",
 			},
 		},
 	}

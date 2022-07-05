@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"strings"
@@ -16,6 +17,8 @@ type Command struct {
 	Aliases []string
 	// A short description of the usage of this command
 	Usage string
+	// Boolean to hide from command and subcommand lists.
+	Unlisted bool
 	// A longer explanation of how the command works
 	Description string
 	// Example usage
@@ -54,6 +57,34 @@ func (c Command) FullName() string {
 	return strings.Join(c.commandNamePath, " ")
 }
 
+// Mirrors https://golang.org/src/flag/flag.go?s=24803:24876#L133
+type boolFlag interface {
+	flag.Value
+	IsBoolFlag() bool
+}
+
+// We need to figure out whether the next arg is an argument to the flag
+// rather than a regular argument. Our heuristic is
+// 1) If the arg has an =, assume the value is passed in this arg
+// 2) If it is *not* a bool var, assume the next arg is a flag argument
+// 3) Else, assume it's a regular argument.
+func nextArgWillBeFlagValueHeuristic(arg string, set *flag.FlagSet) bool {
+	if set == nil {
+		return false
+	}
+	if strings.Contains(arg, "=") {
+		return false
+	}
+	trimmedName := strings.TrimPrefix(strings.TrimPrefix(arg, "-"), "-")
+	gotFlag := set.Lookup(trimmedName)
+	if gotFlag == nil {
+		// Unrecognized flag
+		return false
+	}
+	_, isBoolFlag := gotFlag.Value.(boolFlag)
+	return !isBoolFlag
+}
+
 // Invokes the command given the context, parses ctx.Args() to generate command-specific flags
 func (c Command) Run(ctx *Context) error {
 	if len(c.Subcommands) > 0 || c.Before != nil || c.After != nil {
@@ -75,34 +106,34 @@ func (c Command) Run(ctx *Context) error {
 	set := flagSet(c.Name, c.Flags)
 	set.SetOutput(ioutil.Discard)
 
-	firstFlagIndex := -1
-	terminatorIndex := -1
-	for index, arg := range ctx.Args() {
-		if arg == "--" {
-			terminatorIndex = index
-			break
-		} else if strings.HasPrefix(arg, "-") && firstFlagIndex == -1 {
-			firstFlagIndex = index
-		}
-	}
-
+	// Go's `flag` package wants the flag arguments before regular arguments,
+	// so we need to move the flag arguments.
 	var err error
-	if firstFlagIndex > -1 && !c.SkipFlagParsing {
-		args := ctx.Args()
-		regularArgs := make([]string, len(args[1:firstFlagIndex]))
-		copy(regularArgs, args[1:firstFlagIndex])
-
-		var flagArgs []string
-		if terminatorIndex > -1 {
-			flagArgs = args[firstFlagIndex:terminatorIndex]
-			regularArgs = append(regularArgs, args[terminatorIndex:]...)
-		} else {
-			flagArgs = args[firstFlagIndex:]
-		}
-
-		err = set.Parse(append(flagArgs, regularArgs...))
-	} else {
+	if c.SkipFlagParsing {
 		err = set.Parse(ctx.Args().Tail())
+	} else {
+		restArgs := ctx.Args()[1:]
+		var regularArgs []string
+		var flagArgs []string
+		willBeFlagValue := false
+		for index, arg := range restArgs {
+			if arg == "--" {
+				regularArgs = append(regularArgs, restArgs[index:]...)
+				break
+			}
+			if willBeFlagValue {
+				flagArgs = append(flagArgs, arg)
+				willBeFlagValue = false
+				continue
+			}
+			if strings.HasPrefix(arg, "-") {
+				flagArgs = append(flagArgs, arg)
+				willBeFlagValue = nextArgWillBeFlagValueHeuristic(arg, set)
+			} else {
+				regularArgs = append(regularArgs, arg)
+			}
+		}
+		err = set.Parse(append(flagArgs, regularArgs...))
 	}
 
 	if err != nil {

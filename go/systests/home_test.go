@@ -87,18 +87,25 @@ func findFollowerInHome(t *testing.T, home keybase1.HomeScreen, f string) (prese
 		if err != nil {
 			t.Fatal(err)
 		}
-		if typ == keybase1.HomeScreenItemType_PEOPLE {
-			people := item.Data.People()
-			typ, err := people.T()
-			if err != nil {
-				t.Fatal(err)
+		if typ != keybase1.HomeScreenItemType_PEOPLE {
+			continue
+		}
+		people := item.Data.People()
+		ptyp, err := people.T()
+		if err != nil {
+			t.Fatal(err)
+		}
+		switch ptyp {
+		case keybase1.HomeScreenPeopleNotificationType_FOLLOWED:
+			follow := people.Followed()
+			if follow.User.Username == f {
+				return true, item.Badged
 			}
-			if typ == keybase1.HomeScreenPeopleNotificationType_FOLLOWED {
-				follow := people.Followed()
+		case keybase1.HomeScreenPeopleNotificationType_FOLLOWED_MULTI:
+			for _, follow := range people.FollowedMulti().Followers {
 				if follow.User.Username == f {
 					return true, item.Badged
 				}
-				return false, false
 			}
 		}
 	}
@@ -140,7 +147,7 @@ func pollForTrue(t *testing.T, g *libkb.GlobalContext, poller func(i int) bool) 
 		}
 		g.Log.Debug("Didn't get an update; waiting %s more", wait)
 		time.Sleep(wait)
-		wait = wait * 2
+		wait *= 2
 	}
 	require.True(t, found, "whether condition was satisfied after polling ended")
 }
@@ -161,7 +168,10 @@ func TestHome(t *testing.T) {
 	initialVersion := home.Version
 
 	require.True(t, (initialVersion > 0), "initial version should be > 0")
-	assertTodoPresent(t, home, keybase1.HomeScreenTodoType_BIO, true)
+	// Our first todo is VERIFY_ALL_EMAIL, that's badged
+	assertTodoPresent(t, home, keybase1.HomeScreenTodoType_VERIFY_ALL_EMAIL, true /* isBadged */)
+	// followed by BIO todo
+	assertTodoPresent(t, home, keybase1.HomeScreenTodoType_BIO, false /* isBadged */)
 
 	var countPre int
 	pollForTrue(t, g, func(i int) bool {
@@ -226,4 +236,47 @@ func attachHomeUI(t *testing.T, g *libkb.GlobalContext, hui keybase1.HomeUIInter
 	ncli := keybase1.DelegateUiCtlClient{Cli: cli}
 	err = ncli.RegisterHomeUI(context.TODO())
 	require.NoError(t, err)
+}
+
+func TestHomeBlockSpammer(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	tt.addUserWithPaper("alice")
+	alice := tt.users[0]
+
+	tt.addUser("bob")
+	bob := tt.users[1]
+	tt.addUser("chaz")
+	charlie := tt.users[2]
+
+	trackAlice := func(u *userPlusDevice) {
+		iui := newSimpleIdentifyUI()
+		attachIdentifyUI(t, u.tc.G, iui)
+		iui.confirmRes = keybase1.ConfirmResult{IdentityConfirmed: true, RemoteConfirmed: true, AutoConfirmed: true}
+		u.track(alice.username)
+	}
+
+	trackAlice(bob)
+	trackAlice(charlie)
+
+	probeUserInAliceHome := func(u *userPlusDevice, shouldBePresent bool) {
+		pollForTrue(t, alice.tc.G, func(i int) bool {
+			home := getHome(t, alice, false)
+			var present bool
+			present, _ = findFollowerInHome(t, home, u.username)
+			return (present == shouldBePresent)
+		})
+	}
+
+	probeUserInAliceHome(bob, true)
+	probeUserInAliceHome(charlie, true)
+
+	alice.block(bob.username, true /*chat*/, false /*follow*/)
+	probeUserInAliceHome(charlie, true)
+	probeUserInAliceHome(bob, false)
+
+	alice.block(charlie.username, false /*chat*/, true /*follow*/)
+	probeUserInAliceHome(charlie, false)
+	probeUserInAliceHome(bob, false)
 }

@@ -12,7 +12,7 @@
 
 set -e -u -o pipefail
 
-here="$(dirname "$BASH_SOURCE")"
+here="$(dirname "${BASH_SOURCE[0]}")"
 
 build_root="${1:-}"
 if [ -z "$build_root" ] ; then
@@ -32,7 +32,7 @@ repo_root="$build_root/deb_repo"
 # Write out the reprepro config. We could just check this in, but writing it
 # here means that we're free to nuke the entire prod/linux dir (generally just
 # to test this build), and it also means we can share the PGP fingerprint.
-code_signing_fingerprint="$(cat "$here/../code_signing_fingerprint")"
+code_signing_fingerprint="$("$here/../fingerprint.sh")"
 mkdir -p "$repo_root/repo/conf"
 cat > "$repo_root/repo/conf/distributions" << END
 Codename: stable
@@ -56,9 +56,6 @@ for debian_arch in amd64 i386 ; do
   # handling of + chars, and we don't want to duplicate it here.
   package_path="$(cd "$repo_root" && ls "repo/pool/main/k/$name/${name}_"*"_${debian_arch}.deb")"
 
-  # Add a standalone signature file, for user convenience. Other packaging
-  # steps will pick this up and copy it around.
-  code_signing_fingerprint="$(cat "$here/../code_signing_fingerprint")"
   gpg --detach-sign --armor --use-agent --local-user "$code_signing_fingerprint" \
       -o "$repo_root/$package_path.sig" "$repo_root/$package_path"
 

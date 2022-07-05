@@ -81,7 +81,7 @@ func TestLoadLiteBasicUser(t *testing.T) {
 
 	// add a new high link (a new PGP key) and test
 	uis := libkb.UIs{LogUI: tc.G.UI.GetLogUI(), SecretUI: fu.NewSecretUI()}
-	_, _, key := armorKey(t, tc, fu.Email)
+	_, _, key := genPGPKeyAndArmor(t, tc, fu.Email)
 	eng, err := NewPGPKeyImportEngineFromBytes(tc.G, []byte(key), true)
 	require.NoError(t, err)
 	m := NewMetaContextForTest(tc).WithUIs(uis)

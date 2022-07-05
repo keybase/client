@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+set -euox pipefail
+
+export DEBIAN_FRONTEND=noninteractive
+
+apt-get update
+apt-get install -yq git curl vim python3-pip jq
+
+GOLANG_VERSION=1.13.7
+GOLANG_DOWNLOAD_URL=https://dl.google.com/go/go$GOLANG_VERSION.linux-amd64.tar.gz
+GOLANG_DOWNLOAD_SHA256=b3dd4bd781a0271b33168e627f7f43886b4c5d1c794a4015abf34e99c6526ca3
+wget "$GOLANG_DOWNLOAD_URL" -O /root/go.tar.gz
+echo "$GOLANG_DOWNLOAD_SHA256 /root/go.tar.gz" | sha256sum --check --status --strict -
+tar -C /usr/local -xzf /root/go.tar.gz
+ln -sf /usr/local/go/bin/go /usr/bin/go
+rm /root/go.tar.gz
+
+curl --remote-name https://prerelease.keybase.io/keybase_amd64.deb
+apt install -yq ./keybase_amd64.deb
+rm ./keybase_amd64.deb
+
+pip3 install s3cmd
+apt-get -yq install libssl-dev libffi-dev
+pip3 install triplesec
+
+# source: https://docs.docker.com/install/linux/docker-ce/debian/
+curl -fsSL -o /root/containerd.deb https://download.docker.com/linux/debian/dists/buster/pool/stable/amd64/containerd.io_1.2.6-3_amd64.deb
+curl -fsSL -o /root/dockercli.deb https://download.docker.com/linux/debian/dists/buster/pool/stable/amd64/docker-ce-cli_19.03.8~3-0~debian-buster_amd64.deb
+curl -fsSL -o /root/docker.deb https://download.docker.com/linux/debian/dists/buster/pool/stable/amd64/docker-ce_19.03.8~3-0~debian-buster_amd64.deb
+sha256sum --check --status --strict << EOF
+7191efbaf8f915b0a5ac8100b2f1911ab5a2b9d50019a58c8d3e182cb3295fcb /root/containerd.deb
+a7db5f85a743c6c13f7dcab2e46dd943ecc929f04a46dd6bfd0280ca2052b0b6 /root/dockercli.deb
+aab5e08d0086ae6d0824e4286f2de160472c4206425105a68eb1bfdfc1f11ef3 /root/docker.deb
+EOF
+dpkg -i /root/containerd.deb
+dpkg -i /root/dockercli.deb
+dpkg -i /root/docker.deb
+usermod -aG docker vagrant
+usermod -aG systemd-journal vagrant
+rm /root/*.deb

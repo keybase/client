@@ -17,7 +17,7 @@ type IdentifyState struct {
 }
 
 func NewIdentifyStateWithGregorItem(g *GlobalContext, item gregor.Item, u *User) IdentifyState {
-	res := NewIdentifyOutcomeWithUsername(g, u.GetNormalizedName())
+	res := NewIdentifyOutcome(g, u.GetNormalizedName(), u.GetUID(), u.GetCurrentEldestSeqno())
 	res.ResponsibleGregorItem = item
 	return IdentifyState{Contextified: NewContextified(g), res: res, u: u}
 }
@@ -60,7 +60,7 @@ func (s *IdentifyState) computeRevokedProofs(rhook func(TrackIDComponent, TrackD
 
 	// These are the proofs that user previously tracked that
 	// are not in the current profile:
-	diff := (*tracked).Subtract(*found)
+	diff := tracked.Subtract(*found)
 
 	for _, e := range diff {
 		if e.GetProofState() != keybase1.ProofState_OK {
@@ -174,14 +174,18 @@ func (s *IdentifyState) computeKeyDiffs(dhook func(keybase1.IdentifyKey) error) 
 		if diff != nil {
 			k.BreaksTracking = diff.BreaksTracking()
 		}
-		dhook(k)
+		err := dhook(k)
+		if err != nil {
+			s.G().Log.Debug("computeKeyDiffs: dhook error: %+v", err)
+		}
 	}
 
 	// first check the eldest key
 	observedEldest := s.u.GetEldestKID()
 	if s.track != nil {
 		trackedEldest := s.track.GetEldestKID()
-		if observedEldest.NotEqual(trackedEldest) {
+		if observedEldest.NotEqual(trackedEldest) ||
+			s.u.GetCurrentEldestSeqno() > s.track.GetTrackedLinkSeqno() {
 			diff := TrackDiffNewEldest{tracked: trackedEldest, observed: observedEldest}
 			s.res.KeyDiffs = append(s.res.KeyDiffs, diff)
 			display(observedEldest, diff)

@@ -72,16 +72,8 @@ func isBase64KeybaseV0Sig(s string) bool {
 	}
 	var mh codec.MsgpackHandle
 	var encoded []byte
-	codec.NewEncoderBytes(&encoded, &mh).Encode(firstKey)
+	_ = codec.NewEncoderBytes(&encoded, &mh).Encode(firstKey)
 	return bytes.HasPrefix(buf[1:], encoded)
-}
-
-// Just the fields of the salt pack header that we care about
-type saltpackHeaderPrefix struct {
-	_struct    bool                 `codec:",toarray"`
-	FormatName string               `codec:"format_name"`
-	Version    saltpack.Version     `codec:"vers"`
-	Type       saltpack.MessageType `codec:"type"`
 }
 
 func isSaltpackMessage(stream *bufio.Reader, sc *StreamClassification) bool {

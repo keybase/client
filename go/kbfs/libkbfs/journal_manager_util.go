@@ -8,6 +8,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/logger"
 	"golang.org/x/net/context"
@@ -16,8 +17,8 @@ import (
 
 // GetJournalManager returns the JournalManager tied to a particular
 // config.
-func GetJournalManager(config Config) (*JournalManager, error) {
-	bserver := config.BlockServer()
+func GetJournalManager(getter blockServerGetter) (*JournalManager, error) {
+	bserver := getter.BlockServer()
 	jbserver, ok := bserver.(journalBlockServer)
 	if !ok {
 		return nil, errors.New("Write journal not enabled")
@@ -27,10 +28,9 @@ func GetJournalManager(config Config) (*JournalManager, error) {
 
 // TLFJournalEnabled returns true if journaling is enabled for the
 // given TLF.
-func TLFJournalEnabled(config Config, tlfID tlf.ID) bool {
-	if jManager, err := GetJournalManager(config); err == nil {
-		_, err := jManager.JournalStatus(tlfID)
-		return err == nil
+func TLFJournalEnabled(getter blockServerGetter, tlfID tlf.ID) bool {
+	if jManager, err := GetJournalManager(getter); err == nil {
+		return jManager.JournalEnabled(tlfID)
 	}
 	return false
 }
@@ -74,7 +74,7 @@ func FillInJournalStatusUnflushedPaths(ctx context.Context, config Config,
 			}
 
 			status, _, err := config.KBFSOps().FolderStatus(
-				groupCtx, FolderBranch{Tlf: tlfID, Branch: MasterBranch})
+				groupCtx, data.FolderBranch{Tlf: tlfID, Branch: data.MasterBranch})
 			if err != nil {
 				return err
 			}

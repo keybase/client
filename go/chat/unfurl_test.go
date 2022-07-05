@@ -12,8 +12,12 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"sync"
 	"testing"
 	"time"
+
+	"github.com/keybase/client/go/externalstest"
+	"github.com/keybase/client/go/kbhttp/manager"
 
 	"github.com/keybase/client/go/chat/attachments"
 	"github.com/keybase/client/go/libkb"
@@ -27,6 +31,7 @@ import (
 )
 
 type dummyHTTPSrv struct {
+	sync.Mutex
 	t       *testing.T
 	srv     *http.Server
 	succeed bool
@@ -51,7 +56,7 @@ func (d *dummyHTTPSrv) Start() string {
 		Addr:    fmt.Sprintf("%s:%d", localhost, port),
 		Handler: mux,
 	}
-	go d.srv.Serve(listener)
+	go func() { _ = d.srv.Serve(listener) }()
 	return d.srv.Addr
 }
 
@@ -60,10 +65,14 @@ func (d *dummyHTTPSrv) Stop() {
 }
 
 func (d *dummyHTTPSrv) handleApple(w http.ResponseWriter, r *http.Request) {
+	d.Lock()
+	defer d.Unlock()
 	w.WriteHeader(404)
 }
 
 func (d *dummyHTTPSrv) handleFavicon(w http.ResponseWriter, r *http.Request) {
+	d.Lock()
+	defer d.Unlock()
 	w.WriteHeader(200)
 	f, err := os.Open(filepath.Join("unfurl", "testcases", "nytimes.ico"))
 	require.NoError(d.t, err)
@@ -72,6 +81,8 @@ func (d *dummyHTTPSrv) handleFavicon(w http.ResponseWriter, r *http.Request) {
 }
 
 func (d *dummyHTTPSrv) handle(w http.ResponseWriter, r *http.Request) {
+	d.Lock()
+	defer d.Unlock()
 	if d.succeed {
 		html := "<html><head><title>MIKE</title></head></html>"
 		w.WriteHeader(200)
@@ -80,6 +91,12 @@ func (d *dummyHTTPSrv) handle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.WriteHeader(500)
+}
+
+func (d *dummyHTTPSrv) setSucceed(succeed bool) {
+	d.Lock()
+	defer d.Unlock()
+	d.succeed = succeed
 }
 
 type ptsigner struct{}
@@ -94,7 +111,12 @@ func TestChatSrvUnfurl(t *testing.T) {
 		switch mt {
 		case chat1.ConversationMembersType_KBFS:
 			return
+		default:
+			// Fall through for other member types.
 		}
+
+		etc := externalstest.SetupTest(t, "unfurl", 1)
+		defer etc.Cleanup()
 
 		ctc := makeChatTestContext(t, "TestChatSrvUnfurl", 1)
 		defer ctc.cleanup()
@@ -105,7 +127,7 @@ func TestChatSrvUnfurl(t *testing.T) {
 		tc := ctc.world.Tcs[users[0].Username]
 		ri := ctc.as(t, users[0]).ri
 		listener0 := newServerChatListener()
-		ctc.as(t, users[0]).h.G().NotifyRouter.SetListener(listener0)
+		ctc.as(t, users[0]).h.G().NotifyRouter.AddListener(listener0)
 		httpSrv := newDummyHTTPSrv(t)
 		httpAddr := httpSrv.Start()
 		defer httpSrv.Stop()
@@ -113,7 +135,7 @@ func TestChatSrvUnfurl(t *testing.T) {
 		sender := NewNonblockingSender(tc.Context(),
 			NewBlockingSender(tc.Context(), NewBoxer(tc.Context()),
 				func() chat1.RemoteInterface { return ri }))
-		store := attachments.NewStoreTesting(tc.Context().GetLog(), nil)
+		store := attachments.NewStoreTesting(tc.Context(), nil)
 		s3signer := &ptsigner{}
 		unfurler := unfurl.NewUnfurler(tc.Context(), store, s3signer, storage, sender,
 			func() chat1.RemoteInterface { return ri })
@@ -125,8 +147,9 @@ func TestChatSrvUnfurl(t *testing.T) {
 		unfurler.SetClock(clock)
 		tc.ChatG.Unfurler = unfurler
 		fetcher := NewRemoteAttachmentFetcher(tc.Context(), store)
-		tc.ChatG.AttachmentURLSrv = NewAttachmentHTTPSrv(tc.Context(), fetcher,
-			func() chat1.RemoteInterface { return mockSigningRemote{} })
+		tc.ChatG.AttachmentURLSrv = NewAttachmentHTTPSrv(tc.Context(),
+			manager.NewSrv(tc.Context().ExternalG()),
+			fetcher, func() chat1.RemoteInterface { return mockSigningRemote{} })
 
 		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt)
 		recvSingleRetry := func() {
@@ -151,40 +174,6 @@ func TestChatSrvUnfurl(t *testing.T) {
 			return nil
 		}
 
-		t.Logf("send for prompt")
-		msg := chat1.NewMessageBodyWithText(chat1.MessageText{Body: fmt.Sprintf("http://%s", httpAddr)})
-		origID := mustPostLocalForTest(t, ctc, users[0], conv, msg)
-		t.Logf("origid: %v", origID)
-		consumeNewMsgRemote(t, listener0, chat1.MessageType_TEXT)
-		select {
-		case notificationID := <-listener0.unfurlPrompt:
-			require.Equal(t, origID, notificationID)
-		case <-time.After(timeout):
-			require.Fail(t, "no prompt")
-		}
-		t.Logf("whitelist and resolve")
-		require.NoError(t, ctc.as(t, users[0]).chatLocalHandler().ResolveUnfurlPrompt(ctx,
-			chat1.ResolveUnfurlPromptArg{
-				ConvID:           conv.Id,
-				MsgID:            origID,
-				Result:           chat1.NewUnfurlPromptResultWithAccept("0.1"),
-				IdentifyBehavior: keybase1.TLFIdentifyBehavior_GUI,
-			}))
-		consumeNewMsgRemote(t, listener0, chat1.MessageType_TEXT) // from whitelist add
-		select {
-		case <-listener0.newMessageRemote:
-			require.Fail(t, "no unfurl yet")
-		default:
-		}
-		recvSingleRetry()
-		require.Nil(t, recvUnfurl())
-
-		t.Logf("try it again and fail")
-		tc.Context().MessageDeliverer.ForceDeliverLoop(context.TODO())
-		recvSingleRetry()
-		require.Nil(t, recvUnfurl())
-
-		t.Logf("now work")
 		recvAndCheckUnfurlMsg := func(msgID chat1.MessageID) {
 			var outboxID chat1.OutboxID
 			select {
@@ -244,14 +233,54 @@ func TestChatSrvUnfurl(t *testing.T) {
 			default:
 			}
 		}
-		// now that we we can succeed, clear our cached value so we don't serve
-		// back the cached error
-		httpSrv.succeed = true
-		clock.Advance(2 * 10 * time.Minute) // unfurl.DefaultCacheTime
 
+		t.Logf("send for prompt")
+		msg := chat1.NewMessageBodyWithText(chat1.MessageText{Body: fmt.Sprintf("http://%s", httpAddr)})
+		origID := mustPostLocalForTest(t, ctc, users[0], conv, msg)
+		t.Logf("origid: %v", origID)
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_TEXT)
+		select {
+		case notificationID := <-listener0.unfurlPrompt:
+			require.Equal(t, origID, notificationID)
+		case <-time.After(timeout):
+			require.Fail(t, "no prompt")
+		}
+		t.Logf("whitelist and resolve")
+		require.NoError(t, ctc.as(t, users[0]).chatLocalHandler().ResolveUnfurlPrompt(ctx,
+			chat1.ResolveUnfurlPromptArg{
+				ConvID:           conv.Id,
+				MsgID:            origID,
+				Result:           chat1.NewUnfurlPromptResultWithAccept("0.1"),
+				IdentifyBehavior: keybase1.TLFIdentifyBehavior_GUI,
+			}))
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_TEXT) // from whitelist add
+		select {
+		case <-listener0.newMessageRemote:
+			require.Fail(t, "no unfurl yet")
+		default:
+		}
+		recvSingleRetry()
+		require.Nil(t, recvUnfurl())
+
+		t.Logf("try it again and fail")
 		tc.Context().MessageDeliverer.ForceDeliverLoop(context.TODO())
 		recvSingleRetry()
-		u := recvUnfurl()
+		require.Nil(t, recvUnfurl())
+
+		t.Logf("now work")
+		// now that we we can succeed
+		httpSrv.setSucceed(true)
+
+		var u *chat1.Unfurl
+		for i := 0; i < 10; i++ {
+			tc.Context().MessageDeliverer.ForceDeliverLoop(context.TODO())
+			recvSingleRetry()
+			u = recvUnfurl()
+			if u != nil {
+				break
+			}
+			t.Logf("retrying success unfurl, attempt: %d", i)
+		}
 		require.NotNil(t, u)
 		typ, err := u.UnfurlType()
 		require.NoError(t, err)
@@ -333,7 +362,9 @@ func TestChatSrvUnfurl(t *testing.T) {
 
 		t.Logf("exploding unfurl: %v", ctc.world.Fc.Now())
 		dur := gregor1.ToDurationSec(120 * time.Minute)
-		ctc.as(t, users[0]).h.G().GetEKLib().KeygenIfNeeded(context.Background())
+		g := ctc.as(t, users[0]).h.G()
+		err = g.GetEKLib().KeygenIfNeeded(g.MetaContext(context.Background()))
+		require.NoError(t, err)
 		origExplodeID := mustPostLocalEphemeralForTest(t, ctc, users[0], conv, msg, &dur)
 		consumeNewMsgRemote(t, listener0, chat1.MessageType_TEXT)
 		recvAndCheckUnfurlMsg(origExplodeID)

@@ -19,7 +19,7 @@ type uploadAvatarMockAPI struct {
 	Func func(map[string]string) error
 }
 
-func (a *uploadAvatarMockAPI) PostRaw(arg libkb.APIArg, contentType string, r io.Reader) (*libkb.APIRes, error) {
+func (a *uploadAvatarMockAPI) PostRaw(mctx libkb.MetaContext, arg libkb.APIArg, contentType string, r io.Reader) (*libkb.APIRes, error) {
 	_, params, err := mime.ParseMediaType(contentType)
 	if err != nil {
 		return nil, err
@@ -81,5 +81,6 @@ func TestUploadAvatar(t *testing.T) {
 	}
 
 	mctx := libkb.NewMetaContextBackground(tc.G)
-	UploadImage(mctx, tmpfile.Name(), nil, &crop)
+	err = UploadImage(mctx, tmpfile.Name(), nil, &crop)
+	require.NoError(t, err)
 }

@@ -1471,3 +1471,33 @@ func TestCrBothTruncateFileUnmergedWrite(t *testing.T) {
 		),
 	)
 }
+
+// bob creates a dir, creates a file in dir, setattrs the file,
+// removes the file, and removes the dir, all while unmerged.
+// Regression test for KBFS-4114.
+func TestCrSetattrRemovedFileInRemovedDir(t *testing.T) {
+	targetMtime1 := time.Now().Add(1 * time.Minute)
+	test(t,
+		users("alice", "bob"),
+		as(alice,
+			mkdir("a"),
+		),
+		as(bob,
+			disableUpdates(),
+		),
+		as(alice,
+			mkdir("a/b"),
+		),
+		as(bob, noSync(),
+			mkdir("a/c/d"),
+			setmtime("a/c/d", targetMtime1),
+			rm("a/c/d"),
+			rmdir("a/c"),
+			reenableUpdates(),
+			lsdir("a/", m{"b$": "DIR"}),
+		),
+		as(alice,
+			lsdir("a/", m{"b$": "DIR"}),
+		),
+	)
+}

@@ -20,7 +20,6 @@ import (
 type CmdChatSetRetention struct {
 	libkb.Contextified
 	resolvingRequest chatConversationResolvingRequest
-	policy           *chat1.RetentionPolicy
 
 	setPolicy  *chat1.RetentionPolicy
 	setChannel bool // whether to set team-wide or just channel

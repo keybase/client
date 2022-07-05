@@ -5,6 +5,10 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"fmt"
+	"sort"
+
+	chat1 "github.com/keybase/client/go/protocol/chat1"
+	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 )
 
 func (s *Secret) XOR(t Secret) *Secret {
@@ -19,7 +23,7 @@ func (s Secret) IsNil() bool {
 }
 
 func bytesAreNil(v []byte) bool {
-	for _, b := range v[:] {
+	for _, b := range v {
 		if b != byte(0) {
 			return false
 		}
@@ -29,10 +33,13 @@ func bytesAreNil(v []byte) bool {
 
 func (s Secret) Hash() Secret {
 	h := sha256.New()
-	h.Write(s[:])
+	_, err := h.Write(s[:])
+	if err != nil {
+		panic(err)
+	}
 	tmp := h.Sum(nil)
 	var ret Secret
-	copy(ret[:], tmp[:])
+	copy(ret[:], tmp)
 	return ret
 }
 
@@ -41,13 +48,13 @@ func (s Secret) Eq(t Secret) bool {
 }
 
 type CommitmentPayload struct {
-	_struct bool           `codec:",toarray"`
-	V       Version        `codec:"v" json:"v"`
-	U       UID            `codec:"u" json:"u"`
-	D       DeviceID       `codec:"d" json:"d"`
-	C       ConversationID `codec:"c" json:"c"`
-	G       GameID         `codec:"i" json:"i"`
-	S       Time           `codec:"s" json:"s"`
+	_struct bool                 `codec:",toarray"` //nolint
+	V       Version              `codec:"v" json:"v"`
+	U       gregor1.UID          `codec:"u" json:"u"`
+	D       gregor1.DeviceID     `codec:"d" json:"d"`
+	C       chat1.ConversationID `codec:"c" json:"c"`
+	G       chat1.FlipGameID     `codec:"i" json:"i"`
+	S       Time                 `codec:"s" json:"s"`
 }
 
 func (s Secret) computeCommitment(cp CommitmentPayload) (Commitment, error) {
@@ -57,7 +64,10 @@ func (s Secret) computeCommitment(cp CommitmentPayload) (Commitment, error) {
 	if err != nil {
 		return ret, err
 	}
-	hm.Write(raw)
+	_, err = hm.Write(raw)
+	if err != nil {
+		panic(err)
+	}
 	tmp := hm.Sum(nil)
 	copy(ret[:], tmp)
 	return ret, nil
@@ -77,4 +87,36 @@ func GenerateSecret() Secret {
 		panic(fmt.Sprintf("failed to generated secret: %s", err.Error()))
 	}
 	return ret
+}
+
+func checkUserDeviceCommitments(v []UserDeviceCommitment) bool {
+	for i := 1; i < len(v); i++ {
+		if !v[i-1].Ud.LessThan(v[i].Ud) {
+			return false
+		}
+	}
+	return true
+}
+
+func sortUserDeviceCommitments(v []UserDeviceCommitment) {
+	if !checkUserDeviceCommitments(v) {
+		sort.Slice(v, func(i, j int) bool { return v[i].Ud.LessThan(v[j].Ud) })
+	}
+}
+
+func hashUserDeviceCommitments(v []UserDeviceCommitment) (Hash, error) {
+	var ret Hash
+	sortUserDeviceCommitments(v)
+	raw, err := msgpackEncode(v)
+	if err != nil {
+		return ret, err
+	}
+	h := sha256.New()
+	_, err = h.Write(raw)
+	if err != nil {
+		panic(err)
+	}
+	tmp := h.Sum(nil)
+	copy(ret[:], tmp)
+	return ret, nil
 }

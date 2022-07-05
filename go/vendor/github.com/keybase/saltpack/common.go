@@ -53,8 +53,8 @@ type headerHash [sha512.Size]byte
 
 func attachedSignatureInput(version Version, headerHash headerHash, payloadChunk []byte, seqno packetSeqno, isFinal bool) []byte {
 	hasher := sha512.New()
-	hasher.Write(headerHash[:])
-	binary.Write(hasher, binary.BigEndian, seqno)
+	_, _ = hasher.Write(headerHash[:])
+	_ = binary.Write(hasher, binary.BigEndian, seqno)
 	switch version.Major {
 	case 1:
 	// Nothing to do.
@@ -63,31 +63,31 @@ func attachedSignatureInput(version Version, headerHash headerHash, payloadChunk
 		if isFinal {
 			isFinalByte = 1
 		}
-		hasher.Write([]byte{isFinalByte})
+		_, _ = hasher.Write([]byte{isFinalByte})
 	default:
 		panic(ErrBadVersion{version})
 	}
-	hasher.Write(payloadChunk)
+	_, _ = hasher.Write(payloadChunk)
 
 	var buf bytes.Buffer
-	buf.Write([]byte(signatureAttachedString))
-	buf.Write(hasher.Sum(nil))
+	_, _ = buf.Write([]byte(signatureAttachedString))
+	_, _ = buf.Write(hasher.Sum(nil))
 
 	return buf.Bytes()
 }
 
 func detachedSignatureInput(headerHash headerHash, plaintext []byte) []byte {
 	hasher := sha512.New()
-	hasher.Write(headerHash[:])
-	hasher.Write(plaintext)
+	_, _ = hasher.Write(headerHash[:])
+	_, _ = hasher.Write(plaintext)
 
 	return detachedSignatureInputFromHash(hasher.Sum(nil))
 }
 
 func detachedSignatureInputFromHash(plaintextAndHeaderHash []byte) []byte {
 	var buf bytes.Buffer
-	buf.Write([]byte(signatureDetachedString))
-	buf.Write(plaintextAndHeaderHash)
+	_, _ = buf.Write([]byte(signatureDetachedString))
+	_, _ = buf.Write(plaintextAndHeaderHash)
 
 	return buf.Bytes()
 }
@@ -144,7 +144,7 @@ func computePayloadAuthenticator(macKey macKey, payloadHash payloadHash) payload
 	// Equivalent to crypto_auth, but using Go's builtin HMAC. Truncates
 	// SHA512, instead of calling SHA512/256, which has different IVs.
 	authenticatorDigest := hmac.New(sha512.New, macKey[:])
-	authenticatorDigest.Write(payloadHash[:])
+	_, _ = authenticatorDigest.Write(payloadHash[:])
 	fullMAC := authenticatorDigest.Sum(nil)
 	return sliceToByte32(fullMAC[:cryptoAuthBytes])
 }
@@ -164,8 +164,8 @@ func sum512Truncate256(in []byte) [32]byte {
 
 func computePayloadHash(version Version, headerHash headerHash, nonce Nonce, ciphertext []byte, isFinal bool) payloadHash {
 	payloadDigest := sha512.New()
-	payloadDigest.Write(headerHash[:])
-	payloadDigest.Write(nonce[:])
+	_, _ = payloadDigest.Write(headerHash[:])
+	_, _ = payloadDigest.Write(nonce[:])
 	switch version.Major {
 	case 1:
 	// Nothing to do.
@@ -174,11 +174,11 @@ func computePayloadHash(version Version, headerHash headerHash, nonce Nonce, cip
 		if isFinal {
 			isFinalByte = 1
 		}
-		payloadDigest.Write([]byte{isFinalByte})
+		_, _ = payloadDigest.Write([]byte{isFinalByte})
 	default:
 		panic(ErrBadVersion{version})
 	}
-	payloadDigest.Write(ciphertext)
+	_, _ = payloadDigest.Write(ciphertext)
 	h := payloadDigest.Sum(nil)
 	return sliceToByte64(h)
 }

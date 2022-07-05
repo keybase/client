@@ -117,3 +117,26 @@ const ArchivedTimeLinkPrefix = ".kbfs_archived_time="
 // a TLF that contains the directory name of an archived revision
 // described by the given relative time.
 const ArchivedRelTimeFilePrefix = ".kbfs_archived_reltime="
+
+// OpenFileCountFileName is the name of the file that contains the
+// number of KBFS files and directories currently being held open by
+// the operating system.
+const OpenFileCountFileName = ".kbfs_open_file_count"
+
+// DirBlockPrefix is the prefix to a directory within a TLF, that will
+// direct KBFS to open that specific block as that directory.  Useful
+// for recovering data of a subdirectory when the all the root blocks
+// are missing or corrupt for some reason.  The format for what comes
+// after the prefix is: id.keyGen.dataVer.creatorUID.directType
+//
+// Note that if this is used for a directory that is already live in
+// the current TLF, it will make that existing directory read-only.
+const DirBlockPrefix = ".kbfs_dirblock_"
+
+// ProfileListDirName is the name of the KBFS profile directory -- it
+// can be reached from any KBFS directory.
+const ProfileListDirName = ".kbfs_profiles"
+
+// ErrorFileName is the name of the virtual file in KBFS that should
+// contain the last reported error(s).
+var ErrorFileName = ".kbfs_error"

@@ -10,14 +10,14 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-type apiHandlerFn func(libkb.APIArg, libkb.APIResponseWrapper) error
+type apiHandlerFn func(libkb.MetaContext, libkb.APIArg, libkb.APIResponseWrapper) error
 type avatarMockAPI struct {
 	libkb.API
 	handler apiHandlerFn
 }
 
-func (a *avatarMockAPI) GetDecode(arg libkb.APIArg, res libkb.APIResponseWrapper) error {
-	return a.handler(arg, res)
+func (a *avatarMockAPI) GetDecode(mctx libkb.MetaContext, arg libkb.APIArg, res libkb.APIResponseWrapper) error {
+	return a.handler(mctx, arg, res)
 }
 
 func newAvatarMockAPI(f apiHandlerFn) *avatarMockAPI {
@@ -25,7 +25,7 @@ func newAvatarMockAPI(f apiHandlerFn) *avatarMockAPI {
 }
 
 func makeHandler(url string, cb chan struct{}) apiHandlerFn {
-	return func(arg libkb.APIArg, res libkb.APIResponseWrapper) error {
+	return func(mctx libkb.MetaContext, arg libkb.APIArg, res libkb.APIResponseWrapper) error {
 		m := make(map[keybase1.AvatarFormat]keybase1.AvatarUrl)
 		m["square"] = keybase1.MakeAvatarURL(url)
 		res.(*apiAvatarRes).Pictures = []map[keybase1.AvatarFormat]keybase1.AvatarUrl{m}

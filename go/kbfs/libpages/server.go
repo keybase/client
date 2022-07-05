@@ -165,7 +165,7 @@ func (s *Server) handleError(w http.ResponseWriter, err error) {
 	case ErrKeybasePagesRecordTooMany, ErrInvalidKeybasePagesRecord:
 		http.Error(w, err.Error(), http.StatusPreconditionFailed)
 		return
-	case config.ErrDuplicateAccessControlPath, config.ErrInvalidPermissions,
+	case config.ErrDuplicatePerPathConfigPath, config.ErrInvalidPermissions,
 		config.ErrInvalidVersion, config.ErrUndefinedUsername:
 		http.Error(w, "invalid .kbp_config", http.StatusPreconditionFailed)
 		return
@@ -326,6 +326,10 @@ func (s *Server) setCommonResponseHeaders(w http.ResponseWriter) {
 	// TODO: allow user to opt-in some directives of Content-Security-Policy?
 }
 
+func (s *Server) setAccessControlAllowOriginHeader(w http.ResponseWriter, accessControlAllowOrigin string) {
+	w.Header().Set("Access-Control-Allow-Origin", accessControlAllowOrigin)
+}
+
 // ServeHTTP implements the http.Handler interface.
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	startTime := time.Now()
@@ -427,6 +431,15 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	accessControlAllowOrigin, err := cfg.GetAccessControlAllowOrigin(r.URL.Path)
+	if err != nil {
+		s.handleError(w, err)
+		return
+	}
+	if len(accessControlAllowOrigin) > 0 {
+		s.setAccessControlAllowOriginHeader(w, accessControlAllowOrigin)
+	}
+
 	http.FileServer(realFS.ToHTTPFileSystem(ctx)).ServeHTTP(w, r)
 }
 
@@ -507,7 +520,7 @@ func ListenAndServe(ctx context.Context,
 	server := &Server{
 		config:     config,
 		kbfsConfig: kbfsConfig,
-		rootLoader: DNSRootLoader{log: config.Logger},
+		rootLoader: NewDNSRootLoader(config.Logger),
 	}
 	server.siteCache, err = lru.NewWithEvict(fsCacheSize, server.siteCacheEvict)
 	if err != nil {
@@ -545,8 +558,8 @@ func ListenAndServe(ctx context.Context,
 		shutdownCtx, cancel := context.WithTimeout(
 			context.Background(), gracefulShutdownTimeout)
 		defer cancel()
-		httpsServer.Shutdown(shutdownCtx)
-		httpServer.Shutdown(shutdownCtx)
+		_ = httpsServer.Shutdown(shutdownCtx)
+		_ = httpServer.Shutdown(shutdownCtx)
 	}()
 
 	go func() {

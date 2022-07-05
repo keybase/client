@@ -7,6 +7,7 @@ import (
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/chat1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/net/context"
 )
@@ -14,10 +15,13 @@ import (
 type CmdTeamSettings struct {
 	libkb.Contextified
 
-	Team keybase1.TeamName
+	Team   keybase1.TeamName
+	teamID keybase1.TeamID
 
 	// These fields are non-zero valued when their action is requested
 	Description           *string
+	WelcomeMessage        *string
+	ResetWelcomeMessage   *bool
 	JoinAsRole            *keybase1.TeamRole
 	ProfilePromote        *bool
 	AllowProfilePromote   *bool
@@ -80,6 +84,14 @@ Clear the team description:
 				Name:  "disable-access-requests",
 				Usage: "[yes|no] Set whether it should be possible to access request to this team",
 			},
+			// cli.StringFlag{
+			// 	Name:  "welcome-message",
+			// 	Usage: "Set a welcome message for new team members. Empty string for no welcome message.",
+			// },
+			// cli.BoolFlag{
+			// 	Name:  "reset-welcome-message",
+			// 	Usage: "Reset the welcome message to the default.",
+			// },
 		},
 	}
 }
@@ -157,6 +169,21 @@ func (c *CmdTeamSettings) ParseArgv(ctx *cli.Context) (err error) {
 		c.DisableAccessRequests = &val
 	}
 
+	if ctx.IsSet("welcome-message") {
+		exclusiveActions = append(exclusiveActions, "welcome-message")
+		welcomeMessage := ctx.String("welcome-message")
+		c.WelcomeMessage = &welcomeMessage
+	}
+
+	if ctx.IsSet("reset-welcome-message") {
+		exclusiveActions = append(exclusiveActions, "reset-welcome-message")
+		resetWelcomeMessage := ctx.Bool("reset-welcome-message")
+		if !resetWelcomeMessage {
+			return fmt.Errorf("cannot pass a false value to --reset-welcome-message")
+		}
+		c.ResetWelcomeMessage = &resetWelcomeMessage
+	}
+
 	if len(exclusiveActions) > 1 {
 		return fmt.Errorf("only one of these actions a time: %v", strings.Join(exclusiveActions, ", "))
 	}
@@ -173,6 +200,12 @@ func (c *CmdTeamSettings) Run() error {
 	if err != nil {
 		return err
 	}
+
+	teamID, err := cli.GetTeamID(context.Background(), c.Team.String())
+	if err != nil {
+		return err
+	}
+	c.teamID = teamID
 
 	if c.Description != nil {
 		err = c.setDescription(ctx, cli, *c.Description)
@@ -216,6 +249,20 @@ func (c *CmdTeamSettings) Run() error {
 		}
 	}
 
+	if c.WelcomeMessage != nil {
+		err = c.setWelcomeMessage(ctx, *c.WelcomeMessage)
+		if err != nil {
+			return err
+		}
+	}
+
+	if c.ResetWelcomeMessage != nil {
+		err = c.resetWelcomeMessage(ctx)
+		if err != nil {
+			return err
+		}
+	}
+
 	err = c.printCurrentSettings(ctx, cli)
 	if err != nil {
 		return err
@@ -226,7 +273,7 @@ func (c *CmdTeamSettings) Run() error {
 
 func (c *CmdTeamSettings) setDescription(ctx context.Context, cli keybase1.TeamsClient, desc string) error {
 	return cli.SetTeamShowcase(ctx, keybase1.SetTeamShowcaseArg{
-		Name:              c.Team.String(),
+		TeamID:            c.teamID,
 		IsShowcased:       nil,
 		Description:       &desc,
 		AnyMemberShowcase: nil,
@@ -239,7 +286,7 @@ func (c *CmdTeamSettings) setOpenness(ctx context.Context, cli keybase1.TeamsCli
 	open := joinAsRole != keybase1.TeamRole_NONE
 
 	arg := keybase1.TeamSetSettingsArg{
-		Name: c.Team.String(),
+		TeamID: c.teamID,
 		Settings: keybase1.TeamSettings{
 			Open:   open,
 			JoinAs: joinAsRole,
@@ -266,7 +313,7 @@ func (c *CmdTeamSettings) setOpenness(ctx context.Context, cli keybase1.TeamsCli
 
 func (c *CmdTeamSettings) setProfilePromote(ctx context.Context, cli keybase1.TeamsClient, promote bool) error {
 	err := cli.SetTeamMemberShowcase(ctx, keybase1.SetTeamMemberShowcaseArg{
-		Name:        c.Team.String(),
+		TeamID:      c.teamID,
 		IsShowcased: promote,
 	})
 	if err != nil {
@@ -286,7 +333,7 @@ func (c *CmdTeamSettings) setProfilePromote(ctx context.Context, cli keybase1.Te
 
 func (c *CmdTeamSettings) setAllowProfilePromote(ctx context.Context, cli keybase1.TeamsClient, allow bool) error {
 	return cli.SetTeamShowcase(ctx, keybase1.SetTeamShowcaseArg{
-		Name:              c.Team.String(),
+		TeamID:            c.teamID,
 		IsShowcased:       nil,
 		Description:       nil,
 		AnyMemberShowcase: &allow,
@@ -295,7 +342,7 @@ func (c *CmdTeamSettings) setAllowProfilePromote(ctx context.Context, cli keybas
 
 func (c *CmdTeamSettings) setShowcase(ctx context.Context, cli keybase1.TeamsClient, showcase bool) error {
 	return cli.SetTeamShowcase(ctx, keybase1.SetTeamShowcaseArg{
-		Name:              c.Team.String(),
+		TeamID:            c.teamID,
 		IsShowcased:       &showcase,
 		Description:       nil,
 		AnyMemberShowcase: nil,
@@ -304,19 +351,48 @@ func (c *CmdTeamSettings) setShowcase(ctx context.Context, cli keybase1.TeamsCli
 
 func (c *CmdTeamSettings) setDisableAccessRequests(ctx context.Context, cli keybase1.TeamsClient, disabled bool) error {
 	return cli.SetTarsDisabled(ctx, keybase1.SetTarsDisabledArg{
-		Name:     c.Team.String(),
+		TeamID:   c.teamID,
 		Disabled: disabled,
 	})
 }
 
+func (c *CmdTeamSettings) setWelcomeMessage(ctx context.Context, welcomeMessage string) error {
+	if err := CheckAndStartStandaloneChat(c.G(), chat1.ConversationMembersType_TEAM); err != nil {
+		return err
+	}
+	msg := chat1.WelcomeMessage{Set: true, Raw: welcomeMessage}
+	cli, err := GetChatLocalClient(c.G())
+	if err != nil {
+		return err
+	}
+	return cli.SetWelcomeMessage(ctx, chat1.SetWelcomeMessageArg{
+		TeamID:  c.teamID,
+		Message: msg,
+	})
+}
+
+func (c *CmdTeamSettings) resetWelcomeMessage(ctx context.Context) error {
+	if err := CheckAndStartStandaloneChat(c.G(), chat1.ConversationMembersType_TEAM); err != nil {
+		return err
+	}
+	cli, err := GetChatLocalClient(c.G())
+	if err != nil {
+		return err
+	}
+	return cli.SetWelcomeMessage(ctx, chat1.SetWelcomeMessageArg{
+		TeamID:  c.teamID,
+		Message: chat1.WelcomeMessage{Set: false},
+	})
+}
+
 func (c *CmdTeamSettings) printCurrentSettings(ctx context.Context, cli keybase1.TeamsClient) error {
-	details, err := cli.TeamGet(ctx, keybase1.TeamGetArg{Name: c.Team.String()})
+	res, err := cli.GetAnnotatedTeamByName(ctx, c.Team.String())
 	if err != nil {
 		return err
 	}
 
 	var showcaseInfo *keybase1.TeamAndMemberShowcase
-	tmp, err := cli.GetTeamAndMemberShowcase(ctx, c.Team.String())
+	tmp, err := cli.GetTeamAndMemberShowcase(ctx, c.teamID)
 	if err != nil {
 		c.G().Log.CDebugf(ctx, "failed to get team showcase info: %v", err)
 	} else {
@@ -328,8 +404,8 @@ func (c *CmdTeamSettings) printCurrentSettings(ctx context.Context, cli keybase1
 	if showcaseInfo != nil && showcaseInfo.TeamShowcase.Description != nil {
 		dui.Printf("  Description:             %v\n", *showcaseInfo.TeamShowcase.Description)
 	}
-	dui.Printf("  Open:                     %v\n", c.tfToYn(details.Settings.Open,
-		fmt.Sprintf("default membership = %v", strings.ToLower(details.Settings.JoinAs.String()))))
+	dui.Printf("  Open:                     %v\n", c.tfToYn(res.Settings.Open,
+		fmt.Sprintf("default membership = %v", strings.ToLower(res.Settings.JoinAs.String()))))
 	if showcaseInfo != nil {
 		dui.Printf("  Showcased:                %v\n", c.tfToYn(showcaseInfo.TeamShowcase.IsShowcased, "on keybase.io/popular-teams"))
 		dui.Printf("  Promoted:                 %v\n", c.tfToYn(showcaseInfo.IsMemberShowcased, "on your profile"))
@@ -344,11 +420,36 @@ func (c *CmdTeamSettings) printCurrentSettings(ctx context.Context, cli keybase1
 		c.G().Log.CDebugf(ctx, "failed to get CanUserPerform info: %v", err)
 	} else {
 		if ret.ChangeTarsDisabled {
-			ok, err := cli.GetTarsDisabled(ctx, c.Team.String())
+			ok, err := cli.GetTarsDisabled(ctx, c.teamID)
 			if err != nil {
 				c.G().Log.CDebugf(ctx, "failed to call GetTarsEnabled: %v", err)
 			} else {
 				dui.Printf("  Access requests disabled: %v\n", c.tfToYn(ok, ""))
+			}
+		}
+	}
+
+	err = CheckAndStartStandaloneChat(c.G(), chat1.ConversationMembersType_TEAM)
+	if err != nil {
+		dui.Printf("  Welcome message: [failed to start chat system, not available in standalone mode]\n")
+	} else {
+		chatCli, err := GetChatLocalClient(c.G())
+		if err != nil {
+			return err
+		}
+		msg, err := chatCli.GetWelcomeMessage(ctx, c.teamID)
+		if err != nil {
+			c.G().Log.CWarningf(ctx, "failed to call get welcome message: %v", err)
+		} else {
+			if msg.Set {
+				if len(msg.Raw) > 0 {
+					dui.Printf("  Welcome message:          %q\n", msg.Raw)
+				} else {
+					dui.Printf("  Welcome message:          none\n")
+				}
+			} else {
+				dui.Printf("  Welcome message:          unset (default)\n")
+
 			}
 		}
 	}

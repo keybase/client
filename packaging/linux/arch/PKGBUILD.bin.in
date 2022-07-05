@@ -1,4 +1,4 @@
-# Maintainer: Jack O'Connor <oconnor663@gmail.com>
+# Maintainer: Keybase <linux-packages@keyba.se>
 
 # NOTE: This PKGBUILD is generated and pushed by Keybase's release automation.
 # Any changes made in aur.archlinux.org git repos will get overwritten. See
@@ -14,10 +14,11 @@ deb_pkgver="${pkgver/_/-}"
 deb_pkgver="${deb_pkgver/+/.}"
 pkgrel=1
 arch=('i686' 'x86_64')
-depends=(fuse gconf libxss gtk2 lsof) # don't change this without changing the SRCINFO template too
-                                      # also make sure to change the keybase-git PKGBUILD
+depends=(fuse libxss gtk2 lsof) # don't change this without changing the SRCINFO template too
+                                # also make sure to change the keybase-git PKGBUILD
+provides=(keybase keybase-gui kbfs)
 # keybase-release is a deprecated AUR package
-conflicts=(keybase keybase-release keybase-git)
+conflicts=(keybase keybase-release keybase-git keybase-gui kbfs)
 source_i686=(
   "${src_prefix}/keybase_${deb_pkgver}_i386.deb"
 )

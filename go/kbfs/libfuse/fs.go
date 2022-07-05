@@ -20,10 +20,14 @@ import (
 
 	"bazil.org/fuse"
 	"bazil.org/fuse/fs"
+	"github.com/keybase/client/go/kbfs/idutil"
+	"github.com/keybase/client/go/kbfs/libcontext"
 	"github.com/keybase/client/go/kbfs/libfs"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
 	kbname "github.com/keybase/client/go/kbun"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/pkg/errors"
 	"golang.org/x/net/context"
@@ -32,11 +36,13 @@ import (
 
 // FS implements the newfuse FS interface for KBFS.
 type FS struct {
-	config libkbfs.Config
-	fuse   *fs.Server
-	conn   *fuse.Conn
-	log    logger.Logger
-	errLog logger.Logger
+	config  libkbfs.Config
+	fuse    *fs.Server
+	conn    *fuse.Conn
+	log     logger.Logger
+	errLog  logger.Logger
+	vlog    *libkb.VDebugLog
+	errVlog *libkb.VDebugLog
 
 	// Protects debugServerListener and debugServer.addr.
 	debugServerLock     sync.Mutex
@@ -54,11 +60,9 @@ type FS struct {
 	// overridden to execute f without any delay.
 	execAfterDelay func(d time.Duration, f func())
 
-	root Root
+	root *Root
 
 	platformParams PlatformParams
-
-	quotaUsage *libkbfs.EventuallyConsistentQuotaUsage
 
 	inodeLock sync.Mutex
 	nextInode uint64
@@ -119,10 +123,12 @@ func NewFS(config libkbfs.Config, conn *fuse.Conn, debug bool,
 		conn:           conn,
 		log:            log,
 		errLog:         errLog,
+		vlog:           config.MakeVLogger(log),
+		errVlog:        config.MakeVLogger(errLog),
 		debugServer:    debugServer,
 		notifications:  libfs.NewFSNotifications(log),
+		root:           NewRoot(),
 		platformParams: platformParams,
-		quotaUsage:     libkbfs.NewEventuallyConsistentQuotaUsage(config, "FS"),
 		nextInode:      2, // root is 1
 	}
 	fs.root.private = &FolderList{
@@ -167,10 +173,16 @@ type tcpKeepAliveListener struct {
 func (tkal tcpKeepAliveListener) Accept() (c net.Conn, err error) {
 	tc, err := tkal.AcceptTCP()
 	if err != nil {
-		return
+		return nil, err
 	}
-	tc.SetKeepAlive(true)
-	tc.SetKeepAlivePeriod(3 * time.Minute)
+	err = tc.SetKeepAlive(true)
+	if err != nil {
+		return nil, err
+	}
+	err = tc.SetKeepAlivePeriod(3 * time.Minute)
+	if err != nil {
+		return nil, err
+	}
 	return tc, nil
 }
 
@@ -282,8 +294,8 @@ func (f *FS) WithContext(ctx context.Context) context.Context {
 	// context.WithDeadline uses clock from `time` package, so we are not using
 	// f.config.Clock() here
 	start := time.Now()
-	ctx, err := libkbfs.NewContextWithCancellationDelayer(
-		libkbfs.NewContextReplayable(ctx, func(ctx context.Context) context.Context {
+	ctx, err := libcontext.NewContextWithCancellationDelayer(
+		libcontext.NewContextReplayable(ctx, func(ctx context.Context) context.Context {
 			ctx = context.WithValue(ctx, libfs.CtxAppIDKey, f)
 			logTags := make(logger.CtxLogTags)
 			logTags[CtxIDKey] = CtxOpID
@@ -350,7 +362,7 @@ var _ fs.FSStatfser = (*FS)(nil)
 func (f *FS) processError(ctx context.Context,
 	mode libkbfs.ErrorModeType, err error) error {
 	if err == nil {
-		f.errLog.CDebugf(ctx, "Request complete")
+		f.errVlog.CLogf(ctx, libkb.VLog1, "Request complete")
 		return nil
 	}
 
@@ -366,7 +378,7 @@ func (f *FS) processError(ctx context.Context,
 
 // Root implements the fs.FS interface for FS.
 func (f *FS) Root() (fs.Node, error) {
-	return &f.root, nil
+	return f.root, nil
 }
 
 // quotaUsageStaleTolerance is the lifespan of stale usage data that libfuse
@@ -383,23 +395,26 @@ func (f *FS) Statfs(ctx context.Context, req *fuse.StatfsRequest, resp *fuse.Sta
 	}
 
 	if f.remoteStatus.ExtraFileName() != "" {
-		f.log.CDebugf(
-			ctx, "Skipping quota usage check while errors are present")
+		f.vlog.CLogf(
+			ctx, libkb.VLog1,
+			"Skipping quota usage check while errors are present")
 		return nil
 	}
 
-	if session, err := libkbfs.GetCurrentSessionIfPossible(
-		ctx, f.config.KBPKI(), true); err != nil {
+	session, err := idutil.GetCurrentSessionIfPossible(
+		ctx, f.config.KBPKI(), true)
+	if err != nil {
 		return err
-	} else if session == (libkbfs.SessionInfo{}) {
+	} else if session == (idutil.SessionInfo{}) {
 		// If user is not logged in, don't bother getting quota info. Otherwise
 		// reading a public TLF while logged out can fail on macOS.
 		return nil
 	}
-	_, usageBytes, _, limitBytes, err := f.quotaUsage.Get(
+	_, usageBytes, _, limitBytes, err := f.config.GetQuotaUsage(
+		session.UID.AsUserOrTeam()).Get(
 		ctx, quotaUsageStaleTolerance/2, quotaUsageStaleTolerance)
 	if err != nil {
-		f.log.CDebugf(ctx, "Getting quota usage error: %v", err)
+		f.vlog.CLogf(ctx, libkb.VLog1, "Getting quota usage error: %v", err)
 		return err
 	}
 
@@ -417,6 +432,16 @@ type Root struct {
 	private *FolderList
 	public  *FolderList
 	team    *FolderList
+
+	lookupLock sync.RWMutex
+	lookupMap  map[tlf.Type]bool
+}
+
+// NewRoot creates a new root structure for KBFS FUSE mounts.
+func NewRoot() *Root {
+	return &Root{
+		lookupMap: make(map[tlf.Type]bool),
+	}
 }
 
 var _ fs.NodeAccesser = (*FolderList)(nil)
@@ -453,7 +478,7 @@ var _ fs.NodeRequestLookuper = (*Root)(nil)
 
 // Lookup implements the fs.NodeRequestLookuper interface for Root.
 func (r *Root) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.LookupResponse) (_ fs.Node, err error) {
-	r.log().CDebugf(ctx, "FS Lookup %s", req.Name)
+	r.private.fs.vlog.CLogf(ctx, libkb.VLog1, "FS Lookup %s", req.Name)
 	defer func() { err = r.private.fs.processError(ctx, libkbfs.ReadMode, err) }()
 
 	specialNode := handleNonTLFSpecialFile(
@@ -467,14 +492,17 @@ func (r *Root) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.L
 		return platformNode, err
 	}
 
+	r.lookupLock.Lock()
+	defer r.lookupLock.Unlock()
 	switch req.Name {
 	case PrivateName:
+		r.lookupMap[tlf.Private] = true
 		return r.private, nil
 	case PublicName:
+		r.lookupMap[tlf.Public] = true
 		return r.public, nil
-	}
-
-	if req.Name == TeamName {
+	case TeamName:
+		r.lookupMap[tlf.SingleTeam] = true
 		return r.team, nil
 	}
 
@@ -483,16 +511,25 @@ func (r *Root) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.L
 		return nil, fuse.ENOENT
 	}
 
+	nameToLog := req.Name
+	// This error is logged, but we don't have a handy obfuscator
+	// here, so just log a special string to avoid exposing the user's
+	// typos or misdirected lookups.
+	if r.private.fs.config.Mode().DoLogObfuscation() {
+		nameToLog = "<obfuscated>"
+	}
+
 	return nil, libkbfs.NoSuchFolderListError{
-		Name:     req.Name,
-		PrivName: PrivateName,
-		PubName:  PublicName,
+		Name:      req.Name,
+		NameToLog: nameToLog,
+		PrivName:  PrivateName,
+		PubName:   PublicName,
 	}
 }
 
 // PathType returns PathType for this folder
-func (r *Root) PathType() libkbfs.PathType {
-	return libkbfs.KeybasePathType
+func (r *Root) PathType() tlfhandle.PathType {
+	return tlfhandle.KeybasePathType
 }
 
 var _ fs.NodeCreater = (*Root)(nil)
@@ -506,14 +543,14 @@ func (r *Root) Create(ctx context.Context, req *fuse.CreateRequest, resp *fuse.C
 		// triggering a notification.
 		return nil, nil, syscall.ENOENT
 	}
-	return nil, nil, libkbfs.NewWriteUnsupportedError(libkbfs.BuildCanonicalPath(r.PathType(), req.Name))
+	return nil, nil, libkbfs.NewWriteUnsupportedError(tlfhandle.BuildCanonicalPath(r.PathType(), req.Name))
 }
 
 // Mkdir implements the fs.NodeMkdirer interface for Root.
 func (r *Root) Mkdir(ctx context.Context, req *fuse.MkdirRequest) (_ fs.Node, err error) {
 	r.log().CDebugf(ctx, "FS Mkdir")
 	defer func() { err = r.private.fs.processError(ctx, libkbfs.WriteMode, err) }()
-	return nil, libkbfs.NewWriteUnsupportedError(libkbfs.BuildCanonicalPath(r.PathType(), req.Name))
+	return nil, libkbfs.NewWriteUnsupportedError(tlfhandle.BuildCanonicalPath(r.PathType(), req.Name))
 }
 
 var _ fs.Handle = (*Root)(nil)
@@ -533,7 +570,7 @@ func (r *Root) ReadDirAll(ctx context.Context) (res []fuse.Dirent, err error) {
 			Type: fuse.DT_Dir,
 			Name: PublicName,
 		},
-		fuse.Dirent{
+		{
 			Type: fuse.DT_Dir,
 			Name: TeamName,
 		},
@@ -548,6 +585,39 @@ func (r *Root) ReadDirAll(ctx context.Context) (res []fuse.Dirent, err error) {
 	return res, nil
 }
 
+var _ fs.NodeSymlinker = (*Root)(nil)
+
+// Symlink implements the fs.NodeSymlinker interface for Root.
+func (r *Root) Symlink(
+	_ context.Context, _ *fuse.SymlinkRequest) (fs.Node, error) {
+	return nil, fuse.ENOTSUP
+}
+
+var _ fs.NodeLinker = (*Root)(nil)
+
+// Link implements the fs.NodeLinker interface for Root.
+func (r *Root) Link(
+	_ context.Context, _ *fuse.LinkRequest, _ fs.Node) (fs.Node, error) {
+	return nil, fuse.ENOTSUP
+}
+
 func (r *Root) log() logger.Logger {
 	return r.private.fs.log
+}
+func (r *Root) openFileCount() (ret int64) {
+	ret += r.private.openFileCount()
+	ret += r.public.openFileCount()
+	ret += r.team.openFileCount()
+
+	r.lookupLock.RLock()
+	defer r.lookupLock.RUnlock()
+	return ret + int64(len(r.lookupMap))
+}
+
+func (r *Root) forgetFolderList(t tlf.Type) {
+	// If the kernel ever forgets a folder list, reset the lookup
+	// function for that type and decrement the lookup counter.
+	r.lookupLock.Lock()
+	defer r.lookupLock.Unlock()
+	delete(r.lookupMap, t)
 }

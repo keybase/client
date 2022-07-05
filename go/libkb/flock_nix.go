@@ -35,7 +35,12 @@ func (f *LockPIDFile) Lock() (err error) {
 
 	pid := os.Getpid()
 	fmt.Fprintf(f.file, "%d", pid)
-	f.file.Sync()
+	err = f.file.Sync()
+	if err != nil {
+		f.file.Close()
+		f.file = nil
+		return PIDFileLockError{f.name}
+	}
 
 	f.G().Log.Debug("Locked pidfile %s for pid=%d", f.name, pid)
 

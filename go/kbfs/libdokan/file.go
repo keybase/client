@@ -5,8 +5,10 @@
 package libdokan
 
 import (
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/dokan"
 	"github.com/keybase/client/go/kbfs/libkbfs"
+	"github.com/keybase/client/go/libkb"
 	"golang.org/x/net/context"
 )
 
@@ -33,17 +35,21 @@ func (f *File) GetFileInformation(ctx context.Context, fi *dokan.FileInfo) (a *d
 
 	a, err = eiToStat(f.folder.fs.config.KBFSOps().Stat(ctx, f.node))
 	if a != nil {
-		f.folder.fs.log.CDebugf(ctx, "File GetFileInformation node=%v => %v", f.node, *a)
+		f.folder.fs.vlog.CLogf(ctx, libkb.VLog1, "File GetFileInformation node=%v => %v", f.node, *a)
 	} else {
 		f.folder.fs.log.CDebugf(ctx, "File GetFileInformation node=%v => Error %T %v", f.node, err, err)
 	}
 	return a, err
 }
 
+func (f *File) namePPS() data.PathPartString {
+	return f.parent.ChildName(f.name)
+}
+
 // CanDeleteFile - return just nil
 // TODO check for permissions here.
 func (f *File) CanDeleteFile(ctx context.Context, fi *dokan.FileInfo) error {
-	f.folder.fs.logEnterf(ctx, "File CanDeleteFile for %q", f.name)
+	f.folder.fs.logEnterf(ctx, "File CanDeleteFile for %s", f.namePPS())
 	return nil
 }
 
@@ -55,18 +61,21 @@ func (f *File) Cleanup(ctx context.Context, fi *dokan.FileInfo) {
 	f.folder.fs.logEnter(ctx, "File Cleanup")
 	defer func() { f.folder.reportErr(ctx, libkbfs.WriteMode, err) }()
 
-	f.folder.fs.log.CDebugf(ctx, "Cleanup %v", *f)
+	f.folder.fs.vlog.CLogf(ctx, libkb.VLog1, "Cleanup %v", *f)
 	if fi != nil && fi.IsDeleteOnClose() {
 		// renameAndDeletionLock should be the first lock to be grabbed in libdokan.
 		f.folder.fs.renameAndDeletionLock.Lock()
 		defer f.folder.fs.renameAndDeletionLock.Unlock()
-		f.folder.fs.log.CDebugf(ctx, "Removing (Delete) file in cleanup %s", f.name)
+		namePPS := f.namePPS()
+		f.folder.fs.vlog.CLogf(
+			ctx, libkb.VLog1, "Removing (Delete) file in cleanup %s", namePPS)
 
-		err = f.folder.fs.config.KBFSOps().RemoveEntry(ctx, f.parent, f.name)
+		err = f.folder.fs.config.KBFSOps().RemoveEntry(
+			ctx, f.parent, namePPS)
 	}
 
 	if f.refcount.Decrease() {
-		f.folder.fs.log.CDebugf(ctx, "Forgetting file node")
+		f.folder.fs.vlog.CLogf(ctx, libkb.VLog1, "Forgetting file node")
 		f.folder.forgetNode(ctx, f.node)
 	}
 }

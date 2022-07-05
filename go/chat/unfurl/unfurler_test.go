@@ -12,7 +12,6 @@ import (
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/externalstest"
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/stretchr/testify/require"
@@ -69,11 +68,12 @@ type dummyDeliverer struct {
 func (d dummyDeliverer) ForceDeliverLoop(ctx context.Context) {}
 
 func TestUnfurler(t *testing.T) {
-	log := logger.NewTestLogger(t)
-	store := attachments.NewStoreTesting(log, nil)
-	s3signer := &ptsigner{}
 	tc := externalstest.SetupTest(t, "unfurler", 0)
+	defer tc.Cleanup()
 	g := globals.NewContext(tc.G, &globals.ChatContext{})
+
+	store := attachments.NewStoreTesting(g, nil)
+	s3signer := &ptsigner{}
 	notifier := makeDummyActivityNotifier()
 	g.ChatContext.ActivityNotifier = notifier
 	g.ChatContext.MessageDeliverer = dummyDeliverer{}
@@ -81,7 +81,7 @@ func TestUnfurler(t *testing.T) {
 	ri := func() chat1.RemoteInterface { return paramsRemote{} }
 	storage := newMemConversationBackedStorage()
 	unfurler := NewUnfurler(g, store, s3signer, storage, sender, ri)
-	settings := NewSettings(log, storage)
+	settings := NewSettings(g, storage)
 	srv := createTestCaseHTTPSrv(t)
 	addr := srv.Start()
 	defer srv.Stop()
@@ -172,4 +172,5 @@ func TestUnfurler(t *testing.T) {
 	status, _, err = unfurler.Status(context.TODO(), outboxID)
 	require.Error(t, err)
 	require.IsType(t, libkb.NotFoundError{}, err)
+	require.Equal(t, types.UnfurlerTaskStatusFailed, status)
 }

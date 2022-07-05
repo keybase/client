@@ -2,14 +2,19 @@
   "protocol": "common",
   "imports": [
     {
-      "path": "github.com/keybase/client/go/protocol/gregor1",
+      "path": "../gregor1",
       "type": "idl",
       "import_as": "gregor1"
     },
     {
-      "path": "github.com/keybase/client/go/protocol/keybase1",
+      "path": "../keybase1",
       "type": "idl",
       "import_as": "keybase1"
+    },
+    {
+      "path": "../stellar1",
+      "type": "idl",
+      "import_as": "stellar1"
     }
   ],
   "types": [
@@ -66,6 +71,13 @@
     },
     {
       "type": "record",
+      "name": "LocalConversationVers",
+      "fields": [],
+      "typedef": "uint64",
+      "lint": "ignore"
+    },
+    {
+      "type": "record",
       "name": "ConversationVers",
       "fields": [],
       "typedef": "uint64",
@@ -80,6 +92,12 @@
     {
       "type": "record",
       "name": "TopicNameState",
+      "fields": [],
+      "typedef": "bytes"
+    },
+    {
+      "type": "record",
+      "name": "FlipGameID",
       "fields": [],
       "typedef": "bytes"
     },
@@ -146,7 +164,9 @@
         "REACTION_13",
         "SENDPAYMENT_14",
         "REQUESTPAYMENT_15",
-        "UNFURL_16"
+        "UNFURL_16",
+        "FLIP_17",
+        "PIN_18"
       ],
       "go": "nostring"
     },
@@ -157,7 +177,9 @@
         "NONE_0",
         "CHAT_1",
         "DEV_2",
-        "KBFSFILEEDIT_3"
+        "KBFSFILEEDIT_3",
+        "EMOJI_4",
+        "EMOJICROSS_5"
       ],
       "go": "nostring"
     },
@@ -276,6 +298,29 @@
       ]
     },
     {
+      "type": "record",
+      "name": "KBFSPath",
+      "fields": [
+        {
+          "type": "int",
+          "name": "startIndex"
+        },
+        {
+          "type": "string",
+          "name": "rawPath"
+        },
+        {
+          "type": "string",
+          "name": "standardPath"
+        },
+        {
+          "type": "keybase1.KBFSPathInfo",
+          "name": "pathInfo"
+        }
+      ],
+      "lint": "ignore"
+    },
+    {
       "type": "enum",
       "name": "ConversationMemberStatus",
       "symbols": [
@@ -293,11 +338,13 @@
       "fields": [
         {
           "type": "bytes",
-          "name": "next"
+          "name": "next",
+          "optional": true
         },
         {
           "type": "bytes",
-          "name": "previous"
+          "name": "previous",
+          "optional": true
         },
         {
           "type": "int",
@@ -305,7 +352,13 @@
         },
         {
           "type": "boolean",
-          "name": "last"
+          "name": "last",
+          "optional": true
+        },
+        {
+          "type": "boolean",
+          "name": "forceFirstPage",
+          "optional": true
         }
       ]
     },
@@ -329,6 +382,14 @@
           "type": "int",
           "name": "maxCalls"
         }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "InboxParticipantsMode",
+      "symbols": [
+        "ALL_0",
+        "SKIP_TEAMS_1"
       ]
     },
     {
@@ -385,6 +446,13 @@
           "name": "oneChatTypePerTLF"
         },
         {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "topicName"
+        },
+        {
           "type": {
             "type": "array",
             "items": "ConversationStatus"
@@ -436,8 +504,16 @@
           "name": "summarizeMaxMsgs"
         },
         {
+          "type": "InboxParticipantsMode",
+          "name": "participantsMode"
+        },
+        {
           "type": "boolean",
           "name": "skipBgLoads"
+        },
+        {
+          "type": "boolean",
+          "name": "allowUnseenQuery"
         }
       ]
     },
@@ -543,6 +619,10 @@
           "name": "version"
         },
         {
+          "type": "LocalConversationVers",
+          "name": "localVersion"
+        },
+        {
           "type": [
             null,
             "ConversationFinalizeInfo"
@@ -583,10 +663,13 @@
             "items": "gregor1.UID"
           },
           "name": "resetList"
+        },
+        {
+          "type": "boolean",
+          "name": "isDefaultConv",
+          "mpackkey": "d"
         }
-      ],
-      "mpackkey": "em",
-      "jsonkey": "em"
+      ]
     },
     {
       "type": "record",
@@ -629,6 +712,37 @@
         {
           "type": "ConversationMemberStatus",
           "name": "status"
+        },
+        {
+          "type": "keybase1.TeamRole",
+          "name": "untrustedTeamRole"
+        },
+        {
+          "type": "gregor1.Time",
+          "name": "lastSendTime",
+          "mpackkey": "l",
+          "jsonkey": "l"
+        },
+        {
+          "type": [
+            null,
+            "ConversationJourneycardInfo"
+          ],
+          "name": "journeycard",
+          "mpackkey": "jc",
+          "jsonkey": "jc"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ConversationJourneycardInfo",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "welcomeEligible",
+          "mpackkey": "w",
+          "jsonkey": "w"
         }
       ]
     },
@@ -731,6 +845,13 @@
             "ConversationCreatorInfo"
           ],
           "name": "creatorInfo"
+        },
+        {
+          "type": [
+            null,
+            "MessageID"
+          ],
+          "name": "pinnedMsg"
         },
         {
           "type": "Expunge",
@@ -850,6 +971,13 @@
           "jsonkey": "u"
         },
         {
+          "type": {
+            "type": "array",
+            "items": "MessageID"
+          },
+          "name": "replies"
+        },
+        {
           "type": "gregor1.Time",
           "name": "ctime"
         },
@@ -923,9 +1051,7 @@
           "mpackkey": "u",
           "jsonkey": "u"
         }
-      ],
-      "mpackkey": "em",
-      "jsonkey": "em"
+      ]
     },
     {
       "type": "record",
@@ -955,9 +1081,7 @@
           "mpackkey": "e",
           "jsonkey": "e"
         }
-      ],
-      "mpackkey": "pi",
-      "jsonkey": "pi"
+      ]
     },
     {
       "type": "record",
@@ -1058,6 +1182,27 @@
           "name": "pairwiseMacs",
           "mpackkey": "pm",
           "jsonkey": "pm"
+        },
+        {
+          "type": [
+            null,
+            "gregor1.UID"
+          ],
+          "name": "botUID",
+          "mpackkey": "b",
+          "jsonkey": "b"
+        },
+        {
+          "type": [
+            null,
+            {
+              "type": "array",
+              "items": "stellar1.TransactionID"
+            }
+          ],
+          "name": "txIDs",
+          "mpackkey": "t",
+          "jsonkey": "t"
         }
       ]
     },
@@ -1144,6 +1289,27 @@
           "name": "hasPairwiseMacs",
           "mpackkey": "pm",
           "jsonkey": "pm"
+        },
+        {
+          "type": [
+            null,
+            "gregor1.UID"
+          ],
+          "name": "botUID",
+          "mpackkey": "b",
+          "jsonkey": "b"
+        },
+        {
+          "type": [
+            null,
+            {
+              "type": "array",
+              "items": "stellar1.TransactionID"
+            }
+          ],
+          "name": "txIDs",
+          "mpackkey": "t",
+          "jsonkey": "t"
         }
       ]
     },
@@ -1380,7 +1546,19 @@
         "PREPARE_5",
         "SEARCHER_6",
         "INDEXED_SEARCH_7",
-        "KBFSFILEACTIVITY_8"
+        "KBFSFILEACTIVITY_8",
+        "COINFLIP_9",
+        "BOTCOMMANDS_10",
+        "EMOJISOURCE_11"
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "ReIndexingMode",
+      "symbols": [
+        "NONE_0",
+        "PRESEARCH_SYNC_1",
+        "POSTSEARCH_SYNC_2"
       ]
     },
     {
@@ -1388,8 +1566,20 @@
       "name": "SearchOpts",
       "fields": [
         {
+          "type": "boolean",
+          "name": "isRegex"
+        },
+        {
           "type": "string",
           "name": "sentBy"
+        },
+        {
+          "type": "string",
+          "name": "sentTo"
+        },
+        {
+          "type": "boolean",
+          "name": "matchMentions"
         },
         {
           "type": "gregor1.Time",
@@ -1416,62 +1606,53 @@
           "name": "afterContext"
         },
         {
+          "type": [
+            null,
+            "Pagination"
+          ],
+          "name": "initialPagination"
+        },
+        {
+          "type": "ReIndexingMode",
+          "name": "reindexMode"
+        },
+        {
+          "type": "int",
+          "name": "maxConvsSearched"
+        },
+        {
+          "type": "int",
+          "name": "maxConvsHit"
+        },
+        {
+          "type": [
+            null,
+            "ConversationID"
+          ],
+          "name": "convID"
+        },
+        {
+          "type": "int",
+          "name": "maxNameConvs"
+        },
+        {
+          "type": "int",
+          "name": "maxTeams"
+        },
+        {
+          "type": "int",
+          "name": "maxBots"
+        },
+        {
           "type": "boolean",
-          "name": "forceReindex"
-        },
-        {
-          "type": "int",
-          "name": "maxConvs"
+          "name": "skipBotCache"
         }
       ]
     },
     {
       "type": "record",
-      "name": "ConversationIndexMetadata",
-      "fields": [
-        {
-          "type": {
-            "type": "map",
-            "values": "boolean",
-            "keys": "MessageID"
-          },
-          "name": "seenIDs",
-          "mpackkey": "s",
-          "jsonkey": "s"
-        },
-        {
-          "type": "int",
-          "name": "version",
-          "mpackkey": "v",
-          "jsonkey": "v"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "ConversationIndex",
-      "fields": [
-        {
-          "type": {
-            "type": "map",
-            "values": {
-              "type": "map",
-              "values": "boolean",
-              "keys": "MessageID"
-            },
-            "keys": "string"
-          },
-          "name": "index",
-          "mpackkey": "i",
-          "jsonkey": "i"
-        },
-        {
-          "type": "ConversationIndexMetadata",
-          "name": "metadata",
-          "mpackkey": "m",
-          "jsonkey": "m"
-        }
-      ]
+      "name": "EmptyStruct",
+      "fields": []
     },
     {
       "type": "record",
@@ -1531,8 +1712,20 @@
           "name": "convID"
         },
         {
+          "type": "TeamType",
+          "name": "teamType"
+        },
+        {
           "type": "string",
           "name": "convName"
+        },
+        {
+          "type": "string",
+          "name": "query"
+        },
+        {
+          "type": "gregor1.Time",
+          "name": "time"
         },
         {
           "type": {
@@ -1575,6 +1768,10 @@
         {
           "type": "int",
           "name": "percentIndexed"
+        },
+        {
+          "type": "boolean",
+          "name": "delegated"
         }
       ]
     },
@@ -1599,6 +1796,13 @@
         {
           "type": "int",
           "name": "height"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "double"
+          },
+          "name": "audioAmps"
         }
       ]
     },
@@ -1617,16 +1821,10 @@
         {
           "type": "int",
           "name": "durationMs"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "AssetMetadataAudio",
-      "fields": [
+        },
         {
-          "type": "int",
-          "name": "durationMs"
+          "type": "boolean",
+          "name": "isAudio"
         }
       ]
     },
@@ -1636,8 +1834,7 @@
       "symbols": [
         "NONE_0",
         "IMAGE_1",
-        "VIDEO_2",
-        "AUDIO_3"
+        "VIDEO_2"
       ],
       "go": "nostring"
     },
@@ -1662,13 +1859,6 @@
             "def": false
           },
           "body": "AssetMetadataVideo"
-        },
-        {
-          "label": {
-            "name": "AUDIO",
-            "def": false
-          },
-          "body": "AssetMetadataAudio"
         }
       ]
     },
@@ -1717,6 +1907,10 @@
           "name": "encHash"
         },
         {
+          "type": "Hash",
+          "name": "ptHash"
+        },
+        {
           "type": "bytes",
           "name": "key"
         },
@@ -1739,6 +1933,109 @@
         {
           "type": "AssetTag",
           "name": "tag"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "BotCommandsAdvertisementTyp",
+      "symbols": [
+        "PUBLIC_0",
+        "TLFID_MEMBERS_1",
+        "TLFID_CONVS_2",
+        "CONV_3"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamMember",
+      "fields": [
+        {
+          "type": "gregor1.UID",
+          "name": "uid"
+        },
+        {
+          "type": "keybase1.TeamRole",
+          "name": "role"
+        },
+        {
+          "type": "keybase1.TeamMemberStatus",
+          "name": "status"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "LastActiveStatus",
+      "symbols": [
+        "NONE_0",
+        "ACTIVE_1",
+        "RECENTLY_ACTIVE_2"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ChatMemberDetails",
+      "fields": [
+        {
+          "type": "keybase1.UID",
+          "name": "uid"
+        },
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": "keybase1.FullName",
+          "name": "fullName"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ChatMembersDetails",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "ChatMemberDetails"
+          },
+          "name": "owners"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "ChatMemberDetails"
+          },
+          "name": "admins"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "ChatMemberDetails"
+          },
+          "name": "writers"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "ChatMemberDetails"
+          },
+          "name": "readers"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "ChatMemberDetails"
+          },
+          "name": "bots"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "ChatMemberDetails"
+          },
+          "name": "restrictedBots"
         }
       ]
     }

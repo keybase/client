@@ -132,7 +132,7 @@ func (p *PGPFingerprint) Match(q string, exact bool) bool {
 		return false
 	}
 	if exact {
-		return strings.ToLower(p.String()) == strings.ToLower(q)
+		return strings.EqualFold(p.String(), q)
 	}
 	return strings.HasSuffix(strings.ToLower(p.String()), strings.ToLower(q))
 }
@@ -230,7 +230,7 @@ func (p *PGPFingerprint) MarshalJSON() ([]byte, error) {
 }
 
 func (k PGPKeyBundle) toList() openpgp.EntityList {
-	list := make(openpgp.EntityList, 1, 1)
+	list := make(openpgp.EntityList, 1)
 	list[0] = k.Entity
 	return list
 }
@@ -281,7 +281,7 @@ func (k *PGPKeyBundle) Encode() (ret string, err error) {
 	buf := bytes.Buffer{}
 	err = k.EncodeToStream(NopWriteCloser{&buf}, false)
 	if err == nil {
-		ret = string(buf.Bytes())
+		ret = buf.String()
 		k.ArmoredPublicKey = ret
 	}
 	return
@@ -618,7 +618,7 @@ func (k *PGPKeyBundle) GetBinaryKID() keybase1.BinaryKID {
 	// have 9 bytes of header material, to encode a 2-byte frame, rather than
 	// a 1-byte frame.
 	buf := bytes.Buffer{}
-	k.PrimaryKey.Serialize(&buf)
+	_ = k.PrimaryKey.Serialize(&buf)
 	byts := buf.Bytes()
 	hdrBytes := 8
 	if len(byts) >= 193 {
@@ -674,6 +674,28 @@ func (k PGPKeyBundle) KeyInfo() (algorithm, kid, creation string) {
 	return
 }
 
+// Generates hash security warnings given a CKF
+func (k PGPKeyBundle) SecurityWarnings(kind HashSecurityWarningType) (warnings HashSecurityWarnings) {
+	fingerprint := k.GetFingerprint()
+	for _, identity := range k.Entity.Identities {
+		if identity.SelfSignature == nil ||
+			IsHashSecure(identity.SelfSignature.Hash) {
+			continue
+		}
+
+		warnings = append(
+			warnings,
+			NewHashSecurityWarning(
+				kind,
+				identity.SelfSignature.Hash,
+				&fingerprint,
+			),
+		)
+		return
+	}
+	return
+}
+
 func unlockPrivateKey(k *packet.PrivateKey, pw string) error {
 	if !k.Encrypted {
 		return nil
@@ -715,7 +737,7 @@ func (k *PGPKeyBundle) unlockAllPrivateKeys(pw string) error {
 
 func (k *PGPKeyBundle) Unlock(m MetaContext, reason string, secretUI SecretUI) error {
 	if !k.isAnyKeyEncrypted() {
-		m.CDebugf("Key is not encrypted, skipping Unlock.")
+		m.Debug("Key is not encrypted, skipping Unlock.")
 		return nil
 	}
 
@@ -744,14 +766,14 @@ func (k *PGPKeyBundle) CheckFingerprint(fp *PGPFingerprint) error {
 	return nil
 }
 
-func (k *PGPKeyBundle) SignToString(msg []byte) (sig string, id keybase1.SigID, err error) {
+func (k *PGPKeyBundle) SignToString(msg []byte) (sig string, id keybase1.SigIDBase, err error) {
 	if sig, id, err = SimpleSign(msg, *k); err != nil && k.GPGFallbackKey != nil {
 		return k.GPGFallbackKey.SignToString(msg)
 	}
 	return
 }
 
-func (k PGPKeyBundle) VerifyStringAndExtract(ctx VerifyContext, sig string) (msg []byte, id keybase1.SigID, err error) {
+func (k PGPKeyBundle) VerifyStringAndExtract(ctx VerifyContext, sig string) (msg []byte, id keybase1.SigIDBase, err error) {
 	var ps *ParsedSig
 	if ps, err = PGPOpenSig(sig); err != nil {
 		return
@@ -765,7 +787,7 @@ func (k PGPKeyBundle) VerifyStringAndExtract(ctx VerifyContext, sig string) (msg
 	return
 }
 
-func (k PGPKeyBundle) VerifyString(ctx VerifyContext, sig string, msg []byte) (id keybase1.SigID, err error) {
+func (k PGPKeyBundle) VerifyString(ctx VerifyContext, sig string, msg []byte) (id keybase1.SigIDBase, err error) {
 	extractedMsg, resID, err := k.VerifyStringAndExtract(ctx, sig)
 	if err != nil {
 		return
@@ -923,12 +945,16 @@ func (p PGPFingerprint) GetProofType() keybase1.ProofType {
 func EncryptPGPKey(bundle *openpgp.Entity, passphrase string) error {
 	passBytes := []byte(passphrase)
 
-	if err := bundle.PrivateKey.Encrypt(passBytes, nil); err != nil {
-		return err
+	if bundle.PrivateKey != nil && bundle.PrivateKey.PrivateKey != nil {
+		// Primary private key exists and is not stubbed.
+		if err := bundle.PrivateKey.Encrypt(passBytes, nil); err != nil {
+			return err
+		}
 	}
 
 	for _, subkey := range bundle.Subkeys {
-		if subkey.PrivateKey == nil {
+		if subkey.PrivateKey == nil || subkey.PrivateKey.PrivateKey == nil {
+			// There has to be a private key and not stubbed.
 			continue
 		}
 

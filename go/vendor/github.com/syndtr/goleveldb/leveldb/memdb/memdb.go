@@ -329,7 +329,7 @@ func (p *DB) Delete(key []byte) error {
 
 	h := p.nodeData[node+nHeight]
 	for i, n := range p.prevNode[:h] {
-		m := n + 4 + i
+		m := n + nNext + i
 		p.nodeData[m] = p.nodeData[p.nodeData[m]+nNext+i]
 	}
 
@@ -396,6 +396,10 @@ func (p *DB) Find(key []byte) (rkey, value []byte, err error) {
 // range. A nil Range.Start is treated as a key before all keys in the
 // DB. And a nil Range.Limit is treated as a key after all keys in
 // the DB.
+//
+// WARNING: Any slice returned by interator (e.g. slice returned by calling
+// Iterator.Key() or Iterator.Key() methods), its content should not be modified
+// unless noted otherwise.
 //
 // The iterator must be released after use, by calling Release method.
 //

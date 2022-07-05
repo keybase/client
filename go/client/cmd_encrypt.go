@@ -5,6 +5,7 @@ package client
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 
 	"golang.org/x/net/context"
@@ -52,18 +53,37 @@ func NewCmdEncrypt(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 		cli.BoolFlag{
 			Name: "no-device-keys",
 			Usage: `Do not use the device keys of all the user recipients
-	(and members of recipient teams) for encryption.
-	This does not affect paper keys.`,
+	for encryption. This does not affect paper keys.  This flag is ignored if
+	encrypting for teams, where we don't encrypt for device keys by
+	default.`,
 		},
 		cli.BoolFlag{
 			Name: "no-paper-keys",
-			Usage: `Do not use the paper keys of all the user recipients
-	(and members of recipient teams) for encryption.`,
+			Usage: `Do not use the paper keys of all the user recipients for
+	encryption. This flag is ignored if encrypting for teams, where
+	we don't encrypt for paper keys by default.`,
 		},
 		cli.BoolFlag{
-			Name:  "no-self-encrypt",
-			Usage: "Don't encrypt for yourself.",
+			Name: "no-self-encrypt",
+			Usage: `Don't encrypt for yourself. This flag is ignored if encrypting
+	for teams, where we don't encrypt for self by default.`},
+		cli.BoolFlag{
+			Name: "include-device-keys",
+			Usage: `Use the device keys of all the user recipients and members of
+	recipient teams for encryption.  This does not affect paper keys. This
+	flag is accepted if encrypting for teams, where we encrypt for
+	device keys by default.`,
 		},
+		cli.BoolFlag{
+			Name: "include-paper-keys",
+			Usage: `Use the paper keys of all the user recipients and members of
+	recipient teams for encryption. This flag is accepted if encrypting
+	for teams, where we encrypt for paper keys by default.`,
+		},
+		cli.BoolFlag{
+			Name: "include-self-encrypt",
+			Usage: `Do encrypt for yourself. This flag is accepted if encrypting for
+	teams, where we don't encrypt for self by default.`},
 		cli.StringFlag{
 			Name:  "auth-type",
 			Value: "signed",
@@ -104,9 +124,8 @@ cannot be altered in any way.
   recipients current or future devices through their keybase per-user-key.
 
   - Team encryption, available through the "--team" flag, encrypts the message
-  for all devices of the current team members as well as devices of people who
-  later join the team through a shared team key. Members will be able to
-  decrypt the message *even after they leave the team*.
+  for the team key. Future team members can decrypt the message, and members
+  who leave the team will be unable to decrypt the message.
 
   - You can also encrypt for users who have not yet joined keybase, but are on
   a social network such as foo@twitter: the message will be encrypted with a
@@ -130,7 +149,6 @@ anonymous modes in such cases.
 			cl.ChooseCommand(&CmdEncrypt{
 				Contextified: libkb.NewContextified(g),
 			}, "encrypt", c)
-			cl.SetNoStandalone() // CORE-8423 for now we need KBFS.
 		},
 		Flags: flags,
 	}
@@ -157,9 +175,27 @@ func (c *CmdEncrypt) Run() error {
 	}
 
 	arg := keybase1.SaltpackEncryptArg{Source: src, Sink: snk, Opts: c.opts}
-	err = cli.SaltpackEncrypt(context.TODO(), arg)
-	cerr := c.filter.Close(err)
-	return libkb.PickFirstError(err, cerr)
+	res, err := cli.SaltpackEncrypt(context.TODO(), arg)
+	switch {
+	case err == nil:
+	case libkb.IsAssertionParseErrorWithReason(err, libkb.AssertionParseErrorReasonUnexpectedOR):
+		return fmt.Errorf("Unexpected OR in assertion (hint: to encrypt to multiple users, try `keybase encrypt alice bob carol -m ...`)")
+	default:
+		return err
+	}
+	err = c.filter.Close(err)
+	if err != nil {
+		return err
+	}
+
+	if res.UsedUnresolvedSBS {
+		dui := c.G().UI.GetDumbOutputUI()
+		_, _ = dui.PrintfStderr("\nNote: Encrypted for %q who is not yet a keybase user.\n\n", res.UnresolvedSBSAssertion)
+		_, _ = dui.PrintfStderr("One of your devices will need to be online after they join keybase\n")
+		_, _ = dui.PrintfStderr("in order for them to decrypt the message.\n\n")
+	}
+
+	return nil
 }
 
 func (c *CmdEncrypt) GetUsage() libkb.Usage {
@@ -173,32 +209,61 @@ func (c *CmdEncrypt) GetUsage() libkb.Usage {
 func (c *CmdEncrypt) ParseArgv(ctx *cli.Context) error {
 	c.opts.TeamRecipients = ctx.StringSlice("team")
 	c.opts.Recipients = ctx.Args()
-	if len(c.opts.Recipients) == 0 && len(c.opts.TeamRecipients) == 0 {
-		return errors.New("Encrypt needs at least one recipient")
+	forRecipients := len(c.opts.Recipients) > 0
+	forTeamRecipients := len(c.opts.TeamRecipients) > 0
+	if !forRecipients && !forTeamRecipients {
+		return errors.New("need at least one recipient")
+	}
+	if forRecipients && forTeamRecipients {
+		return errors.New("can only encrypt for either only individuals or only teams")
 	}
 
-	c.opts.UseEntityKeys = !ctx.Bool("no-entity-keys")
-	c.opts.UseDeviceKeys = !ctx.Bool("no-device-keys")
-	c.opts.UsePaperKeys = !ctx.Bool("no-paper-keys")
+	c.opts.UseEntityKeys = !ctx.Bool("no-entity-keys") // by default, use entity keys
+	if forRecipients {
+		// if not encrypting for a team, use all keys unless "no-" flags passed
+		if ctx.Bool("include-device-keys") || ctx.Bool("include-paper-keys") || ctx.Bool("include-self-encrypt") {
+			return errors.New("can only use these flags if encrypting for teams: --include-device-keys, --include-paper-keys, --include-self-encrypt; please remove")
+		}
+		c.opts.UseDeviceKeys = !ctx.Bool("no-device-keys")
+		c.opts.UsePaperKeys = !ctx.Bool("no-paper-keys")
+		c.opts.NoSelfEncrypt = ctx.Bool("no-self-encrypt")
+	} else {
+		// if encrypting for teams, only use team entity keys unless "include-" flags passed
+		if ctx.Bool("no-device-keys") || ctx.Bool("no-paper-keys") || ctx.Bool("no-self-encrypt") {
+			return errors.New("cannot use these flags if encrypting for teams: --no-device-keys, --no-paper-keys, --no-self-encrypt; please remove")
+		}
+		c.opts.UseDeviceKeys = ctx.Bool("include-device-keys")
+		c.opts.UsePaperKeys = ctx.Bool("include-paper-keys")
+		c.opts.NoSelfEncrypt = !ctx.Bool("include-self-encrypt")
+	}
 	c.opts.UseKBFSKeysOnlyForTesting = ctx.Bool("use-kbfs-keys-only")
+
+	if !(c.opts.UseEntityKeys || c.opts.UseDeviceKeys || c.opts.UsePaperKeys) {
+		if forRecipients {
+			// legal arg combos if not encrypting for team: any subset (including empty set) of at most 2 of (--no-device-keys, --no-paper-keys or --no-entity-keys)
+			return errors.New("please remove at least one of --no-device-keys, --no-paper-keys or --no-entity-keys")
+		}
+		// legal arg combos if encrypting for team:
+		//		if --no-entity-keys=true, then any subset of at least 1 of  (--include-device-keys, --include-paper-keys).
+		//		else if not, any subset (including empty set) of (--include-device-keys,	--include-paperkeys).
+		return errors.New("please remove --no-entity-keys, or add at least one of --include-device-keys or --include-paper-keys")
+	}
 
 	var ok bool
 	if c.opts.AuthenticityType, ok = keybase1.AuthenticityTypeMap[strings.ToUpper(ctx.String("auth-type"))]; !ok {
 		return errors.New("invalid auth-type option provided")
 	}
 
-	// Repudiable authenticity corresponds to the saltpack encryption format (which uses pairwise MACs instead of signatures). Because of the spec
-	// and the interface exposed by saltpack v2, we cannot use the pseudonym mechanism with the encryption format. As such, we cannot encrypt for teams
-	// (and implicit teams): we can error here for teams, and later if resolving any user would lead to the creation of an implicit team.
-	if c.opts.UseEntityKeys && len(c.opts.TeamRecipients) > 0 && c.opts.AuthenticityType == keybase1.AuthenticityType_REPUDIABLE {
+	// Repudiable authenticity corresponds to the saltpack encryption format
+	// (which uses pairwise MACs instead of signatures). Because of the spec and
+	// the interface exposed by saltpack v2, we cannot use the pseudonym
+	// mechanism with the encryption format. As such, we cannot encrypt for teams
+	// (and implicit teams): we can error here for teams, and later if resolving
+	// any user would lead to the creation of an implicit team.
+	if forTeamRecipients && c.opts.UseEntityKeys && c.opts.AuthenticityType == keybase1.AuthenticityType_REPUDIABLE {
 		return errors.New("--auth-type=repudiable requires --no-entity-keys when encrypting for a team")
 	}
 
-	if !(c.opts.UseEntityKeys || c.opts.UseDeviceKeys || c.opts.UsePaperKeys) {
-		return errors.New("please remove at least one of --no-device-keys, --no-paper-keys or --no-entity-keys")
-	}
-
-	c.opts.NoSelfEncrypt = ctx.Bool("no-self-encrypt")
 	c.opts.Binary = ctx.Bool("binary")
 	c.opts.SaltpackVersion = ctx.Int("saltpack-version")
 

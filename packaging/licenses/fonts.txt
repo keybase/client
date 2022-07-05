@@ -1,0 +1,8 @@
+The Keybase font files, named Keybase-<weight>.otf (hereinafter 'Keybase Font
+Files'), that are included in this project are a licensed, copyrighted,
+commercial font, with all rights reserved.  The Keybase Font Files may not be
+downloaded, copied, published, embedded, redistributed, sold and/or used in any
+way outside of a release of the Keybase app, without the express written
+permission of the copyright holder of the Keybase Font Files. If you are
+building a project based on Keybase's source code, you must use a font other
+than the Keybase Font Files.

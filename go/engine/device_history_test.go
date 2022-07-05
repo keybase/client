@@ -31,9 +31,9 @@ func TestDeviceHistoryBasic(t *testing.T) {
 
 	for _, d := range devs {
 		switch d.Device.Type {
-		case libkb.DeviceTypePaper:
+		case keybase1.DeviceTypeV2_PAPER:
 			paper = d
-		case libkb.DeviceTypeDesktop:
+		case keybase1.DeviceTypeV2_DESKTOP:
 			desktop = d
 		default:
 			t.Fatalf("unexpected device type %s", d.Device.Type)
@@ -75,9 +75,9 @@ func TestDeviceHistoryRevoked(t *testing.T) {
 
 	for _, d := range eng.Devices() {
 		switch d.Device.Type {
-		case libkb.DeviceTypePaper:
+		case keybase1.DeviceTypeV2_PAPER:
 			paper = d
-		case libkb.DeviceTypeDesktop:
+		case keybase1.DeviceTypeV2_DESKTOP:
 			desktop = d
 		default:
 			t.Fatalf("unexpected device type %s", d.Device.Type)
@@ -116,9 +116,9 @@ func TestDeviceHistoryRevoked(t *testing.T) {
 
 	for _, d := range eng.Devices() {
 		switch d.Device.Type {
-		case libkb.DeviceTypePaper:
+		case keybase1.DeviceTypeV2_PAPER:
 			paper2 = d
-		case libkb.DeviceTypeDesktop:
+		case keybase1.DeviceTypeV2_DESKTOP:
 			desktop2 = d
 		default:
 			t.Fatalf("unexpected device type %s", d.Device.Type)
@@ -172,7 +172,7 @@ func TestDeviceHistoryPGP(t *testing.T) {
 		SecretUI:    u1.NewSecretUI(),
 		GPGUI:       &gpgtestui{},
 	}
-	eng := NewLogin(tc.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
+	eng := NewLogin(tc.G, keybase1.DeviceTypeV2_DESKTOP, "", keybase1.ClientType_CLI)
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	if err := RunEngine2(m, eng); err != nil {
 		t.Fatal(err)

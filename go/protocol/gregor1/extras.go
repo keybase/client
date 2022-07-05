@@ -14,10 +14,16 @@ import (
 	"github.com/keybase/go-codec/codec"
 )
 
-func (u UID) Bytes() []byte  { return []byte(u) }
-func (u UID) String() string { return hex.EncodeToString(u) }
-func (u UID) Eq(other UID) bool {
-	return bytes.Equal(u.Bytes(), other.Bytes())
+func (u UID) Bytes() []byte     { return []byte(u) }
+func (u UID) String() string    { return hex.EncodeToString(u) }
+func (u UID) Eq(other UID) bool { return bytes.Equal(u.Bytes(), other.Bytes()) }
+func (u UID) IsNil() bool       { return len(u) == 0 }
+
+func UIDPtrEq(x, y *UID) bool {
+	if x != nil && y != nil {
+		return (*x).Eq(*y)
+	}
+	return (x == nil) && (y == nil)
 }
 
 func (d DeviceID) Bytes() []byte  { return []byte(d) }
@@ -309,8 +315,12 @@ func (r ReminderID) UID() gregor.UID     { return r.Uid_ }
 func (r ReminderID) MsgID() gregor.MsgID { return r.MsgID_ }
 func (r ReminderID) Seqno() int          { return r.Seqno_ }
 
+func (s State) Size() int {
+	return len(s.Items_)
+}
+
 func (s State) Items() ([]gregor.Item, error) {
-	var ret []gregor.Item
+	ret := make([]gregor.Item, 0, len(s.Items_))
 	for _, i := range s.Items_ {
 		ret = append(ret, i)
 	}

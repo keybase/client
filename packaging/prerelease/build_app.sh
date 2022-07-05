@@ -15,6 +15,7 @@ platform=${PLATFORM:-} # darwin,linux,windows (Only darwin is supported in this 
 nos3=${NOS3:-} # Don't sync to S3
 nowait=${NOWAIT:-} # Don't wait for CI
 smoke_test=${SMOKE_TEST:-} # If set to 1, enable smoke testing
+skip_notarize=${NONOTARIZE:-} # Skip notarize
 
 if [ "$gopath" = "" ]; then
   echo "No GOPATH"
@@ -35,12 +36,7 @@ if [ ! "$bucket_name" = "" ]; then
   echo "Bucket name: $bucket_name"
 fi
 
-if [ "$bucket_name" = "prerelease.keybase.io" ]; then
-  # We have a CNAME for the prerelease bucket
-  s3host="https://prerelease.keybase.io"
-else
-  s3host="https://s3.amazonaws.com/$bucket_name/"
-fi
+s3host="https://s3.amazonaws.com/$bucket_name"
 
 build_dir_keybase="/tmp/build_keybase"
 build_dir_kbfs="/tmp/build_kbfs"
@@ -77,8 +73,6 @@ fi
 if [ ! "$nowait" = "1" ]; then
   echo "Checking client CI"
   "$release_bin" wait-ci --repo="client" --commit=`git -C $client_dir log -1 --pretty=format:%h` --context="continuous-integration/jenkins/branch" --context="ci/circleci"
-  echo "Checking kbfs CI"
-  "$release_bin" wait-ci --repo="kbfs" --commit=`git -C $kbfs_dir log -1 --pretty=format:%h` --context="continuous-integration/jenkins/branch"
   echo "Checking updater CI"
   "$release_bin" wait-ci --repo="go-updater" --commit=`git -C $updater_dir log -1 --pretty=format:%h` --context="continuous-integration/travis-ci/push"
 
@@ -112,7 +106,7 @@ for ((i=1; i<=$number_of_builds; i++)); do
 
   if [ "$platform" = "darwin" ]; then
     SAVE_DIR="$save_dir" KEYBASE_BINPATH="$build_dir_keybase/keybase" KBFS_BINPATH="$build_dir_kbfs/kbfs" GIT_REMOTE_KEYBASE_BINPATH="$build_dir_kbfs/git-remote-keybase" REDIRECTOR_BINPATH="$build_dir_kbfs/keybase-redirector" KBNM_BINPATH="$build_dir_kbnm/kbnm" \
-      UPDATER_BINPATH="$build_dir_updater/updater" BUCKET_NAME="$bucket_name" S3HOST="$s3host" "$dir/../desktop/package_darwin.sh"
+      UPDATER_BINPATH="$build_dir_updater/updater" BUCKET_NAME="$bucket_name" S3HOST="$s3host" SKIP_NOTARIZE="$skip_notarize" "$dir/../desktop/package_darwin.sh"
   else
     # TODO: Support Linux build here?
     echo "Unknown platform: $platform"

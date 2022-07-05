@@ -52,7 +52,11 @@ func (c *GenericSocialProofConfig) parseAndValidate(g *libkb.GlobalContext) (err
 	// In devel, we need to update the config url with the IP for the CI
 	// container.
 	if g.Env.GetRunMode() == libkb.DevelRunMode {
-		serverURI := g.Env.GetServerURI()
+		serverURI, err := g.Env.GetServerURI()
+		if err != nil {
+			return err
+		}
+
 		c.ProfileUrl = strings.Replace(c.ProfileUrl, libkb.DevelServerURI, serverURI, 1)
 		c.PrefillUrl = strings.Replace(c.PrefillUrl, libkb.DevelServerURI, serverURI, 1)
 		c.CheckUrl = strings.Replace(c.CheckUrl, libkb.DevelServerURI, serverURI, 1)
@@ -71,6 +75,9 @@ func (c *GenericSocialProofConfig) validateProfileURL() error {
 func (c *GenericSocialProofConfig) validatePrefillURL() error {
 	if !strings.Contains(c.PrefillUrl, kbUsernameKey) {
 		return fmt.Errorf("invalid PrefillUrl: %s, missing: %s", c.PrefillUrl, kbUsernameKey)
+	}
+	if !strings.Contains(c.PrefillUrl, remoteUsernameKey) {
+		return fmt.Errorf("invalid PrefillUrl: %s, missing: %s", c.PrefillUrl, remoteUsernameKey)
 	}
 	if !strings.Contains(c.PrefillUrl, sigHashKey) {
 		return fmt.Errorf("invalid PrefillUrl: %s, missing: %s", c.PrefillUrl, sigHashKey)
@@ -96,25 +103,30 @@ func (c *GenericSocialProofConfig) profileURLWithValues(remoteUsername string) (
 	return url, nil
 }
 
-func (c *GenericSocialProofConfig) prefillURLWithValues(kbUsername string, sigID keybase1.SigID) (string, error) {
+func (c *GenericSocialProofConfig) prefillURLWithValues(kbUsername, remoteUsername string, sigID keybase1.SigID) (string, error) {
+	remoteUsername = strings.ToLower(remoteUsername)
 	url := strings.Replace(c.PrefillUrl, kbUsernameKey, kbUsername, 1)
 	if !strings.Contains(url, kbUsername) {
 		return "", fmt.Errorf("Invalid PrefillUrl: %s, missing kbUsername: %s", url, kbUsername)
+	}
+	url = strings.Replace(url, remoteUsernameKey, remoteUsername, 1)
+	if !strings.Contains(url, remoteUsername) {
+		return "", fmt.Errorf("Invalid PrefillUrl: %s, missing remoteUsername: %s", url, remoteUsername)
 	}
 	url = strings.Replace(url, sigHashKey, sigID.String(), 1)
 	if !strings.Contains(url, sigID.String()) {
 		return "", fmt.Errorf("Invalid PrefillUrl: %s, missing sigHash: %s", url, sigID)
 	}
-	url = strings.Replace(url, kbUaKey, libkb.UserAgent, 1)
-	if !strings.Contains(url, libkb.UserAgent) {
-		return "", fmt.Errorf("Invalid PrefillUrl: %s, missing kbUa: %s", url, libkb.UserAgent)
+	url = strings.Replace(url, kbUaKey, libkb.ProofUserAgent(), 1)
+	if !strings.Contains(url, libkb.ProofUserAgent()) {
+		return "", fmt.Errorf("Invalid PrefillUrl: %s, missing kbUa: %s", url, libkb.ProofUserAgent())
 	}
 	return url, nil
 }
 
 func (c *GenericSocialProofConfig) checkURLWithValues(remoteUsername string) (string, error) {
 	url := strings.Replace(c.CheckUrl, remoteUsernameKey, remoteUsername, 1)
-	if !strings.Contains(url, remoteUsername) {
+	if !strings.Contains(strings.ToLower(url), strings.ToLower(remoteUsername)) {
 		return "", fmt.Errorf("Invalid CheckUrl: %s, missing remoteUsername: %s", url, remoteUsername)
 	}
 	return url, nil
@@ -122,12 +134,13 @@ func (c *GenericSocialProofConfig) checkURLWithValues(remoteUsername string) (st
 
 func (c *GenericSocialProofConfig) validateRemoteUsername(remoteUsername string) error {
 	uc := c.UsernameConfig
-	if len(remoteUsername) < uc.Min {
+	switch {
+	case len(remoteUsername) < uc.Min:
 		return fmt.Errorf("username must be at least %d characters, was %d", c.UsernameConfig.Min, len(remoteUsername))
-	} else if len(remoteUsername) > uc.Max {
+	case len(remoteUsername) > uc.Max:
 		return fmt.Errorf("username can be at most %d characters, was %d", c.UsernameConfig.Max, len(remoteUsername))
-	} else if !c.usernameRe.MatchString(remoteUsername) {
-		return fmt.Errorf("username did not match expected format: %s", c.UsernameConfig.Re)
+	case !c.usernameRe.MatchString(strings.ToLower(remoteUsername)):
+		return libkb.NewBadUsernameError(remoteUsername)
 	}
 	return nil
 }
@@ -152,14 +165,27 @@ func NewGenericSocialProofChecker(proof libkb.RemoteProofChainLink, config *Gene
 
 func (rc *GenericSocialProofChecker) GetTorError() libkb.ProofError { return nil }
 
-func (rc *GenericSocialProofChecker) CheckStatus(mctx libkb.MetaContext, _ libkb.SigHint, _ libkb.ProofCheckerMode,
-	pvlU keybase1.MerkleStoreEntry) (*libkb.SigHint, libkb.ProofError) {
+func (rc *GenericSocialProofChecker) castInternalError(ierr libkb.ProofError) error {
+	err, ok := ierr.(error)
+	if ok {
+		return err
+	}
+	return nil
+}
 
-	_, sigID, err := libkb.OpenSig(rc.proof.GetArmoredSig())
+func (rc *GenericSocialProofChecker) CheckStatus(mctx libkb.MetaContext, _ libkb.SigHint, _ libkb.ProofCheckerMode,
+	pvlU keybase1.MerkleStoreEntry) (_ *libkb.SigHint, retErr libkb.ProofError) {
+	mctx = mctx.WithLogTag("PCS")
+	var err error
+	defer mctx.Trace("GenericSocialProofChecker.CheckStatus", &err)()
+	defer func() { err = rc.castInternalError(retErr) }()
+
+	_, sigIDBase, err := libkb.OpenSig(rc.proof.GetArmoredSig())
 	if err != nil {
 		return nil, libkb.NewProofError(keybase1.ProofStatus_BAD_SIGNATURE,
 			"Bad signature: %v", err)
 	}
+	sigID := sigIDBase.ToSigIDLegacy()
 
 	remoteUsername := rc.proof.GetRemoteUsername()
 	if err := rc.config.validateRemoteUsername(remoteUsername); err != nil {
@@ -178,16 +204,15 @@ func (rc *GenericSocialProofChecker) CheckStatus(mctx libkb.MetaContext, _ libkb
 			"Could not parse url: '%v'", apiURL)
 	}
 
-	res, err := mctx.G().GetExternalAPI().Get(libkb.APIArg{
-		Endpoint:    apiURL,
-		MetaContext: mctx,
+	res, err := mctx.G().GetExternalAPI().Get(mctx, libkb.APIArg{
+		Endpoint: apiURL,
 	})
 	if err != nil {
 		return nil, libkb.XapiError(err, apiURL)
 	}
 
 	// We expect a single result to match which contains an array of proofs.
-	results, perr := jsonhelpers.AtSelectorPath(res.Body, rc.config.CheckPath, mctx.CDebugf, libkb.NewInvalidPVLSelectorError)
+	results, perr := jsonhelpers.AtSelectorPath(res.Body, rc.config.CheckPath, mctx.Debug, libkb.NewInvalidPVLSelectorError)
 	if perrInner, _ := perr.(libkb.ProofError); perrInner != nil {
 		return nil, perrInner
 	}
@@ -204,7 +229,7 @@ func (rc *GenericSocialProofChecker) CheckStatus(mctx libkb.MetaContext, _ libkb
 
 	var foundProof, foundUsername bool
 	for _, proof := range proofs {
-		if proof.KbUsername == rc.proof.GetUsername() && sigID.Equal(proof.SigHash) {
+		if proof.KbUsername == rc.proof.GetUsername() && sigID.Eq(proof.SigHash) {
 			foundProof = true
 			break
 		}
@@ -222,7 +247,7 @@ func (rc *GenericSocialProofChecker) CheckStatus(mctx libkb.MetaContext, _ libkb
 
 	humanURL, err := rc.config.profileURLWithValues(remoteUsername)
 	if err != nil {
-		mctx.CDebugf("Unable to generate humanURL for verifiedSigHint: %v", err)
+		mctx.Debug("Unable to generate humanURL for verifiedSigHint: %v", err)
 		humanURL = ""
 	}
 	verifiedSigHint := libkb.NewVerifiedSigHint(sigID, "" /* remoteID */, apiURL, humanURL, "" /* checkText */)
@@ -260,7 +285,11 @@ func (t *GenericSocialProofServiceType) GetPrompt() string {
 }
 
 func (t *GenericSocialProofServiceType) ToServiceJSON(username string) *jsonw.Wrapper {
-	return t.BaseToServiceJSON(t, username)
+	ret := t.BaseToServiceJSON(t, username)
+	if strings.HasPrefix(strings.ToLower(t.DisplayGroup()), "mastodon") {
+		_ = ret.SetKey("form", jsonw.NewString("mastodon"))
+	}
+	return ret
 }
 
 func (t *GenericSocialProofServiceType) PostInstructions(username string) *libkb.Markup {
@@ -291,8 +320,8 @@ func (t *GenericSocialProofServiceType) CheckProofText(text string, id keybase1.
 }
 
 func (t *GenericSocialProofServiceType) FormatProofText(m libkb.MetaContext, ppr *libkb.PostProofRes,
-	kbUsername string, sigID keybase1.SigID) (string, error) {
-	return t.config.prefillURLWithValues(kbUsername, sigID)
+	kbUsername, remoteUsername string, sigID keybase1.SigID) (string, error) {
+	return t.config.prefillURLWithValues(kbUsername, remoteUsername, sigID)
 }
 
 func (t *GenericSocialProofServiceType) MakeProofChecker(l libkb.RemoteProofChainLink) libkb.ProofChecker {
@@ -303,3 +332,19 @@ func (t *GenericSocialProofServiceType) MakeProofChecker(l libkb.RemoteProofChai
 }
 
 func (t *GenericSocialProofServiceType) IsDevelOnly() bool { return false }
+
+func (t *GenericSocialProofServiceType) ProveParameters(mctx libkb.MetaContext) keybase1.ProveParameters {
+	subtext := t.config.Description
+	if len(subtext) == 0 {
+		subtext = t.DisplayName()
+	}
+	return keybase1.ProveParameters{
+		LogoFull:    libkb.MakeProofIcons(mctx, t.GetLogoKey(), "logo_full", 64),
+		LogoBlack:   libkb.MakeProofIcons(mctx, t.GetLogoKey(), "logo_black", 16),
+		LogoWhite:   libkb.MakeProofIcons(mctx, t.GetLogoKey(), "logo_white", 16),
+		Title:       t.config.Domain,
+		Subtext:     subtext,
+		Suffix:      fmt.Sprintf("@%v", t.config.Domain),
+		ButtonLabel: fmt.Sprintf("Authorize on %v", t.config.Domain),
+	}
+}

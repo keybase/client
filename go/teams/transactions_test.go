@@ -24,19 +24,23 @@ func TestTransactions1(t *testing.T) {
 	require.NoError(t, err)
 
 	tx := CreateAddMemberTx(team)
-	tx.AddMemberByUsername(context.Background(), "t_alice", keybase1.TeamRole_WRITER)
+	tx.AllowPUKless = true
+	err = tx.AddMemberByUsername(context.Background(), "t_alice", keybase1.TeamRole_WRITER, nil)
+	require.NoError(t, err)
 	require.Equal(t, 1, len(tx.payloads))
 	require.Equal(t, txPayloadTagInviteKeybase, tx.payloads[0].Tag)
 	require.IsType(t, &SCTeamInvites{}, tx.payloads[0].Val)
 
-	tx.AddMemberByUsername(context.Background(), other.Username, keybase1.TeamRole_WRITER)
+	err = tx.AddMemberByUsername(context.Background(), other.Username, keybase1.TeamRole_WRITER, nil)
+	require.NoError(t, err)
 	require.Equal(t, 2, len(tx.payloads))
 	require.Equal(t, txPayloadTagInviteKeybase, tx.payloads[0].Tag)
 	require.IsType(t, &SCTeamInvites{}, tx.payloads[0].Val)
 	require.Equal(t, txPayloadTagCryptomembers, tx.payloads[1].Tag)
 	require.IsType(t, &keybase1.TeamChangeReq{}, tx.payloads[1].Val)
 
-	tx.AddMemberByUsername(context.Background(), "t_tracy", keybase1.TeamRole_ADMIN)
+	err = tx.AddMemberByUsername(context.Background(), "t_tracy", keybase1.TeamRole_ADMIN, nil)
+	require.NoError(t, err)
 
 	// 3rd add (pukless member) should re-use first signature instead
 	// of creating new one.
@@ -64,6 +68,8 @@ func TestTransactions1(t *testing.T) {
 	require.Equal(t, 1, len(members.Writers))
 	require.Equal(t, other.GetUserVersion(), members.Writers[0])
 	require.Equal(t, 0, len(members.Readers))
+	require.Equal(t, 0, len(members.Bots))
+	require.Equal(t, 0, len(members.RestrictedBots))
 
 	invites := team.GetActiveAndObsoleteInvites()
 	require.Equal(t, 2, len(invites))
@@ -96,13 +102,13 @@ func TestTransactionRotateKey(t *testing.T) {
 	// Create payloads manually so user add and user del happen in
 	// separate links.
 	tx.payloads = []txPayload{
-		txPayload{
+		{
 			Tag: txPayloadTagCryptomembers,
 			Val: &keybase1.TeamChangeReq{
 				Writers: []keybase1.UserVersion{otherB.GetUserVersion()},
 			},
 		},
-		txPayload{
+		{
 			Tag: txPayloadTagCryptomembers,
 			Val: &keybase1.TeamChangeReq{
 				None: []keybase1.UserVersion{otherA.GetUserVersion()},
@@ -127,20 +133,101 @@ func TestPreprocessAssertions(t *testing.T) {
 	defer tc.Cleanup()
 
 	tests := []struct {
-		s         string
-		isEmail   bool
-		hasSingle bool
-		isError   bool
+		s             string
+		isServerTrust bool
+		hasSingle     bool
+		isError       bool
 	}{
 		{"bob", false, true, false},
 		{"bob+bob@twitter", false, false, false},
 		{"[bob@gmail.com]@email", true, true, false},
 		{"[bob@gmail.com]@email+bob", false, false, true},
+		{"18005558638@phone", true, true, false},
+		{"18005558638@phone+alice", false, false, true},
+		{"18005558638@phone+[bob@gmail.com]@email", false, false, true},
 	}
 	for _, test := range tests {
-		isEmail, single, err := preprocessAssertion(libkb.NewMetaContextForTest(tc), test.s)
-		require.Equal(t, isEmail, test.isEmail)
+		t.Logf("Testing: %s", test.s)
+		isServerTrust, single, full, err := preprocessAssertion(libkb.NewMetaContextForTest(tc), test.s)
+		require.Equal(t, isServerTrust, test.isServerTrust)
 		require.Equal(t, (single != nil), test.hasSingle)
-		require.Equal(t, (err != nil), test.isError)
+		if test.isError {
+			require.Error(t, err)
+			require.Nil(t, full)
+		} else {
+			require.NoError(t, err)
+			require.NotNil(t, full)
+		}
 	}
+}
+
+func TestAllowPukless(t *testing.T) {
+	tc, _, other, teamname := setupPuklessInviteTest(t)
+	defer tc.Cleanup()
+
+	team, err := Load(context.Background(), tc.G, keybase1.LoadTeamArg{
+		Name:      teamname,
+		NeedAdmin: true,
+	})
+	require.NoError(t, err)
+
+	assertError := func(err error) {
+		require.Error(t, err)
+		require.IsType(t, err, UserPUKlessError{})
+		require.Contains(t, err.Error(), other.Username)
+		require.Contains(t, err.Error(), other.GetUserVersion().String())
+	}
+
+	tx := CreateAddMemberTx(team)
+	tx.AllowPUKless = false // explicitly disallow, but it's also the default.
+	err = tx.AddMemberByUsername(context.Background(), other.Username, keybase1.TeamRole_WRITER, nil /* botSettings */)
+	assertError(err)
+
+	err = tx.AddMemberByUV(context.Background(), other.GetUserVersion(), keybase1.TeamRole_WRITER, nil /* botSettings */)
+	assertError(err)
+
+	{
+		username, uv, invite, err := tx.AddOrInviteMemberByAssertion(context.Background(), other.Username, keybase1.TeamRole_WRITER, nil /* botSettings */)
+		assertError(err)
+		// All this stuff is still returned despite an error
+		require.Equal(t, other.NormalizedUsername(), username)
+		require.Equal(t, other.GetUserVersion(), uv)
+		// But we aren't actually "inviting" them because of transaction setting.
+		require.False(t, invite)
+	}
+
+	{
+		candidate, err := tx.ResolveUPKV2FromAssertion(tc.MetaContext(), other.Username)
+		require.NoError(t, err)
+		username, uv, invite, err := tx.AddOrInviteMemberCandidate(context.Background(), candidate, keybase1.TeamRole_WRITER, nil /* botSettings */)
+		assertError(err)
+		// All this stuff is still returned despite an error
+		require.Equal(t, other.NormalizedUsername(), username)
+		require.Equal(t, other.GetUserVersion(), uv)
+		// But we aren't actually "inviting" them because of transaction setting.
+		require.False(t, invite)
+	}
+}
+
+func TestPostAllowPUKless(t *testing.T) {
+	tc, _, other, teamname := setupPuklessInviteTest(t)
+	defer tc.Cleanup()
+
+	team, err := Load(context.Background(), tc.G, keybase1.LoadTeamArg{
+		Name:      teamname,
+		NeedAdmin: true,
+	})
+	require.NoError(t, err)
+
+	tx := CreateAddMemberTx(team)
+	tx.AllowPUKless = true
+	err = tx.AddMemberByUsername(context.Background(), other.Username, keybase1.TeamRole_WRITER, nil /* botSettings */)
+	require.NoError(t, err)
+
+	// Disallow PUKless after we have already added a PUKless user.
+	tx.AllowPUKless = false
+	err = tx.Post(tc.MetaContext())
+	require.Error(t, err)
+	// Make sure it's the error about AllowPUKless.
+	require.Contains(t, err.Error(), "AllowPUKless")
 }

@@ -6,7 +6,9 @@ protocol login {
 
   record ConfiguredAccount {
     string username;
+    FullName fullname;
     boolean hasStoredSecret;
+    boolean isCurrent;
   }
 
   /**
@@ -17,19 +19,22 @@ protocol login {
   array<ConfiguredAccount> getConfiguredAccounts(int sessionID);
 
   /**
-    Performs login.  deviceType should be libkb.DeviceTypeDesktop
-    or libkb.DeviceTypeMobile.  usernameOrEmail is optional.
-    If the current device isn't provisioned, this function will
-    provision it.
-
-    Note that if usernameOrEmail is an email address, only provisioning
-    will be attempted.  If the device is already provisioned, login
-    via email address does not work.
+    Performs login.  deviceType should be keybase1.DeviceTypeV2_DESKTOP
+    or keybase1.DeviceTypeV2_MOBILE. username is optional. If the current
+    device isn't provisioned, this function will provision it.
     */
-  void login(int sessionID, string deviceType, string usernameOrEmail, ClientType clientType);
+  void login(
+    int sessionID,
+    DeviceTypeV2 deviceType,
+    string username,
+    ClientType clientType,
+    boolean doUserSwitch=false,
+    string paperKey,
+    string deviceName
+  );
 
   /**
-    Login a user only if the user is on a provisioned device.  Username is optional.
+    Login a user only if the user is on a provisioned device. Username is optional.
     If noPassphrasePrompt is set, then only a stored secret will be used to unlock
     the device keys.
     */
@@ -40,18 +45,18 @@ protocol login {
   - trying unlocked device keys if available
   - prompting for a paper key and using that
     */
-  void loginWithPaperKey(int sessionID);
+  void loginWithPaperKey(int sessionID, string username);
 
-  /**
-    Removes any existing stored secret for the given username.
-    loginWithStoredSecret(_, username) will fail after this is called.
-    */
-  void clearStoredSecret(int sessionID, string username);
-
-  void logout(int sessionID);
+  void logout(int sessionID, boolean force, boolean keepSecrets);
   void deprovision(int sessionID, string username, boolean doRevoke);
 
   void recoverAccountFromEmailAddress(string email);
+
+  /**
+    Guide the user through possibilities of changing their passphrase.
+    Lets them change their passphrase using a paper key or enter the reset pipeline.
+    */
+  void recoverPassphrase(int sessionID, string username);
 
   /**
     PaperKey generates paper backup keys for restoring an account.
@@ -72,9 +77,9 @@ protocol login {
   void unlockWithPassphrase(int sessionID, string passphrase);
 
   /**
-    accountDelete is for devel/testing to delete the current user's account.
+    accountDelete deletes the current user's account.
     */
-  void accountDelete(int sessionID);
+  void accountDelete(int sessionID, union { null, string } passphrase);
 
   /**
    loginOneshot allows a service to have a "onetime login", without
@@ -82,4 +87,10 @@ protocol login {
    paperkey
    */
   void loginOneshot(int sessionID, string username, string paperKey);
+
+  /**
+   isOnline returns whether the device is able to open a connection to keybase.io.
+   Used for determining whether to offer proxy settings on the login screen.
+   */
+  bool isOnline();
 }

@@ -5,8 +5,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/gocolly/colly"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/colly"
 )
 
 // Contents are scored based on source. Higher scores win but falsey values
@@ -32,24 +32,18 @@ const (
 )
 
 func getOpenGraphScore(domain string, e *colly.HTMLElement) int {
-	switch domain {
-	default:
-		return defaultOpenGraphScore
-	}
+	// TODO: change score based on domain?
+	return defaultOpenGraphScore
 }
 
 func getTwitterScore(domain string, e *colly.HTMLElement) int {
-	switch domain {
-	default:
-		return defaultTwitterScore
-	}
+	// TODO: change score based on domain?
+	return defaultTwitterScore
 }
 
 func getArticleScore(domain string, e *colly.HTMLElement) int {
-	switch domain {
-	default:
-		return defaultArticleScore
-	}
+	// TODO: change score based on domain?
+	return defaultArticleScore
 }
 
 func getDefaultScore(domain string, e *colly.HTMLElement) int {
@@ -129,126 +123,119 @@ func getOpenGraphVideo(e *colly.HTMLElement) []string {
 // Map of supported attributes/tags
 var attrRankMap = map[string]attrRanker{
 	// title
-	"title": attrRanker{
+	"title": {
 		content: func(e *colly.HTMLElement) []string { return []string{e.Text} },
 		score:   getDefaultScore,
 		setter:  setTitle,
 	},
-	"twitter:title": attrRanker{
+	"twitter:title": {
 		content: getContentAttr,
 		score:   getTwitterScore,
 		setter:  setTitle,
 	},
-	"og:title": attrRanker{
+	"og:title": {
 		content: getContentAttr,
 		score:   getOpenGraphScore,
 		setter:  setTitle,
 	},
 
-	// url
-	"og:url": attrRanker{
-		content: getContentAttr,
-		score:   getOpenGraphScore,
-		setter:  setURL,
-	},
-
 	// siteName
-	"application-name": attrRanker{
+	"application-name": {
 		content: getContentAttr,
 		score:   getDefaultScore,
 		setter:  setSiteName,
 	},
-	"og:site_name": attrRanker{
+	"og:site_name": {
 		content: getContentAttr,
 		score:   getOpenGraphScore,
 		setter:  setSiteName,
 	},
 
 	// favicon
-	"shortcut icon": attrRanker{
+	"shortcut icon": {
 		content: getHrefAttr,
 		score:   getDefaultScore,
 		setter:  setFaviconURL,
 	},
-	"icon": attrRanker{
+	"icon": {
 		content: getHrefAttr,
 		score:   getDefaultScore,
 		setter:  setFaviconURL,
 	},
-	"apple-touch-icon": attrRanker{
+	"apple-touch-icon": {
 		content: getHrefAttr,
 		score:   getAppleTouchFaviconScore,
 		setter:  setFaviconURL,
 	},
 
 	// imageUrl
-	"twitter:image": attrRanker{
+	"twitter:image": {
 		content: getHrefAndContentAttr,
 		score:   getTwitterScore,
 		setter:  setImageURL,
 	},
-	"og:image": attrRanker{
+	"og:image": {
 		content: getHrefAndContentAttr,
 		score:   getOpenGraphScore,
 		setter:  setImageURL,
 	},
 
 	// video
-	"og:video": attrRanker{
+	"og:video": {
 		content: getOpenGraphVideo,
 		score:   getOpenGraphScore,
 		setter:  setVideo,
 	},
 
 	// publishTime
-	"lastmod": attrRanker{
+	"lastmod": {
 		content: getContentAttr,
 		score:   getDefaultScore,
 		setter:  setPublishTime,
 	},
-	"pubdate": attrRanker{
+	"pubdate": {
 		content: getContentAttr,
 		score:   getArticleScore,
 		setter:  setPublishTime,
 	},
-	"og:pubdate": attrRanker{
+	"og:pubdate": {
 		content: getContentAttr,
 		score:   getOpenGraphScore,
 		setter:  setPublishTime,
 	},
-	"pdate": attrRanker{
+	"pdate": {
 		content: getContentAttr,
 		score:   getDefaultScore,
 		setter:  setPublishTime,
 	},
-	"article.published": attrRanker{
+	"article.published": {
 		content: getContentAttr,
 		score:   getArticleScore,
 		setter:  setPublishTime,
 	},
-	"article:published": attrRanker{
+	"article:published": {
 		content: getContentAttr,
 		score:   getArticleScore,
 		setter:  setPublishTime,
 	},
-	"datePublished": attrRanker{
+	"datePublished": {
 		content: getContentAttr,
 		score:   getArticleScore,
 		setter:  setPublishTime,
 	},
 
 	// description
-	"description": attrRanker{
+	"description": {
 		content: getContentAttr,
 		score:   getDefaultScore,
 		setter:  setDescription,
 	},
-	"twitter:description": attrRanker{
+	"twitter:description": {
 		content: getContentAttr,
 		score:   getTwitterScore,
 		setter:  setDescription,
 	},
-	"og:description": attrRanker{
+	"og:description": {
 		content: getContentAttr,
 		score:   getOpenGraphScore,
 		setter:  setDescription,

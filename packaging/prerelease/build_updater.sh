@@ -20,8 +20,8 @@ go build -a -o "$dest" "$package"
 
 if [ "$PLATFORM" = "darwin" ]; then
   echo "Signing binary..."
-  code_sign_identity="98767D13871765E702355A74358822D31C0EF51A" # "Developer ID Application: Keybase, Inc. (99229SGT5K)"
-  codesign --verbose --force --deep --sign "$code_sign_identity" "$dest"
+  code_sign_identity="9FC3A5BC09FA2EE307C04060C918486411869B65" # "Developer ID Application: Keybase, Inc. (99229SGT5K)"
+  codesign --verbose --force --deep --timestamp --options runtime --sign "$code_sign_identity" "$dest"
 elif [ "$PLATFORM" = "linux" ]; then
   echo "No codesigning for Linux"
 elif [ "$PLATFORM" = "windows" ]; then

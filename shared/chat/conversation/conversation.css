@@ -8,33 +8,36 @@
   position: relative;
   width: 100%;
 }
+.WrapperMessage-systemMessage {
+  padding-left: 0;
+}
 .WrapperMessage-noOverflow {
   overflow: hidden;
 }
 .WrapperMessage-hoverBox .WrapperMessage-buttons {
   display: none;
   flex-direction: row;
-  max-width: 100%;
-  width: 100%;
-  margin-left: 8px;
+  justify-content: flex-end;
+  margin-left: 0;
 }
 .WrapperMessage-hoverBox:hover .WrapperMessage-buttons,
 .WrapperMessage-decorated.active .WrapperMessage-buttons {
   display: flex;
   flex-direction: row;
-  max-width: 100%;
-  width: 100%;
-  margin-left: 8px;
+  justify-content: flex-end;
+  margin-left: 0;
 }
 .WrapperMessage-hoverColor:hover {
-  background-color: #f7f9fc;
-  /* Using a second box shadow instead of a border to prevent changing the height of the box. */
-  box-shadow: 0 1px 1px 0 rgba(0, 0, 0, 0.08), 0 1px 0 rgba(0, 0, 0, 0.04);
-}
-.WrapperMessage-decorated {
+  background-color: #ebf2fc;
 }
 .WrapperMessage-decorated.active {
-  background-color: #f7f9fc;
+  background-color: #ebf2fc;
+}
+.darkMode .WrapperMessage-hoverColor:hover {
+  background-color: #101010;
+}
+.darkMode .WrapperMessage-decorated.active {
+  background-color: #101010;
 }
 .WrapperMessage-author {
   padding-left: 0;
@@ -45,6 +48,9 @@
 }
 .WrapperMessage-hoverBox:hover .WrapperMessage-emojiButton {
   box-shadow: 0 1px 1px 0 rgba(0, 0, 0, 0.1);
+}
+.darkMode .WrapperMessage-hoverBox:hover .WrapperMessage-emojiButton {
+  box-shadow: none;
 }
 .WrapperMessage-hoverBox:hover .WrapperMessage-emojiButton.noShadow,
 .WrapperMessage-hoverBox:hover .WrapperMessage-emojiButton:active {
@@ -58,4 +64,51 @@
 }
 .WrapperMessage-hoverBox:hover .WrapperMessage-emojiRow {
   box-shadow: 0 1px 1px 0 rgba(0, 0, 0, 0.08);
+}
+.WrapperMessage-centered {
+  background-color: #fff75a;
+}
+.ReplyBox:hover {
+  background-color: white;
+}
+.darkMode .ReplyBox:hover {
+  background-color: rgba(24, 45, 110, 0.5);
+}
+.WrapperMessage-hoverBox:hover .sendingStatus {
+  visibility: hidden;
+}
+.darkMode .WrapperMessage-centered {
+  background-color: #e0d733;
+}
+.darkMode .WrapperMessage-centered .text_Body {
+  color: #101010;
+}
+.darkMode .WrapperMessage-centered:hover .text_BodySmallBold {
+  /* author username */
+  color: rgba(255, 255, 255, 0.85) !important;
+}
+.darkMode .WrapperMessage-centered:hover .text_Body {
+  /* message text */
+  color: rgba(255, 255, 255, 0.85) !important;
+}
+.darkMode .WrapperMessage-centered:hover .text_BodyTiny {
+  /* timestamp */
+  color: rgba(255, 255, 255, 0.4) !important;
+}
+.darkMode .WrapperMessage-centered:hover .ReplyBox .text_BodySemibold {
+  /* reply author username */
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+.darkMode .WrapperMessage-centered:hover .ReplyBox .text_BodySmall {
+  /* reply message text */
+  color: rgba(255, 255, 255, 0.4) !important;
+}
+.darkMode .WrapperMessage-centered:hover .explodingTimeContainer {
+  background-color: rgba(255, 255, 255, 0.85) !important;
+}
+.darkMode .WrapperMessage-centered:hover .explodingTimeText {
+  color: rgba(0, 0, 0, 0.85) !important;
+}
+.darkMode .WrapperMessage-centered:hover .explodingTimeIcon {
+  color: rgba(255, 255, 255, 0.85) !important;
 }

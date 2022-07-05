@@ -51,7 +51,7 @@ func (s *CmdCtlRestart) Run() error {
 		return err
 	}
 	if err = cli.Stop(context.TODO(), keybase1.StopArg{ExitCode: keybase1.ExitCode_RESTART}); err != nil {
-		s.G().Log.Warning("Stop failed: %s", err)
+		s.G().Log.Warning("Stop in Restart failed: %s", err)
 		return err
 	}
 

@@ -1,52 +1,6 @@
-## Building Keybase Icon Font
-
-### Dependencies
-
-[webfont-generator](https://github.com/sunflowerdeath/webfonts-generator)
-
-[fontforge](https://fontforge.github.io/en-US/downloadsj)
-- Mac: `brew install fontforge`
-- Window: Install the GUI application and the executable should be available via
-  the command line.
-
-### Other Documentation
-
-[Sketch Best Practices for SVG Export](./SKETCH.md)
-
-[Using Font Forge to Inspect Icon Font Output](./FONTFORGE.md)
-
-
-### Instructions
-
-**Building Iconfont From Zeplin**
-
-1. Delete all icons from this folder
-2. Download iconfont svgs from this [zeplin sheet](https://zpl.io/29y4w5w)
-3. Optionally if there are PNG assets to update, download from this [zeplin sheet](https://zpl.io/VQoMDq4)
-    - Note: **Make sure you scroll all the way to the bottom of the asset panel on the right of the Zeplin sheets before exporting the assets, otherwise they might not load.**
-4. Move assets to the appropriate directory
-    - svg iconfonts: `client/shared/images/iconfont`
-    - png assets: `client/shared/images/icons`
-5. Generate the iconfont and update constants on both apps
-    - `yarn update-icon-font` Will generate a font file and update the constants
-      - font: `client/shared/fonts/kb.ttf`
-      - constants: `client/shared/common-adapters/icon.constants`
-    - `yarn update-icon-constants` will only update the constants
-
-**Testing A Single SVG**
-
-If you're modifying a single Sketch asset and want to see how the iconfont looks without uploading and redownloading from Zeplin, do the following:
-
-1. In Sketch, right-click on the top folder for the icon and `Copy SVG Code`
-2. Paste the SVG code into the matching svg file located in `client/shared/images/iconfont/{counter}-kb-iconfont-{name}-{size}.svg`
-3. Install `svgo` to manually optimize the SVG output from Sketch. This is exactly what Zeplin does before exporting assets as SVG
-4. Rewrite the SVG file `svgo -i {counter}-kb-iconfont-{name}-{size}.svg -o {counter}-kb-iconfont-{name}-{size}.svg`
-5. Update the iconfont `kb.ttf` with `yarn update-icon-font`
-6. The iconfont should now reflect the single SVG change. **Do not let the Sketch file(s) and the committed SVG assets get out of sync when testing a single SVG**
-
-
-
-### How SVGs Are Generated
+* [Building Icon Font](#building-icon-font)
+* [Dependencies](#dependencies)
+* [Troubleshooting](#troubleshooting)
 
 The complete SVG pipeline is as follows
 
@@ -62,41 +16,45 @@ The naming convention of the SVG files is very important.
 `{counter}-kb-inconfont-{name-with-dashes}-{size}.svg`
 
 The counter is used to generate the unicode values for the characters in the
-iconfont. It is okay to have gaps in the counters.
+iconfont. It is okay to have gaps in the counters. It is NOT ok to have
+multiple icons with the same counter.
 
-For instructions on adding/modifying icons look at the instructions in this
-[zeplin sheet](https://zpl.io/29y4w5w).
+### Building Icon Font
 
-### Common Errors
+1. Open the [Iconfont](https://zpl.io/29y4w5w) Zeplin sheet
+2. Select the icons to add/replace. Then download as SVG
+3. Ensure the SVG name is `{counter}-kb-iconfont-{name}-{size}.svg` and there are no collisions in the counters
+4. Move SVG to `keybase/client/shared/images/iconfont`
+5. Ensure that the icon font dependencies are insatlled wtih `yarn --check-files`
+6. Run `yarn update-icon-font`
+    * If new icons were added then `shared/common-adapters/icon.constants-gen.tsx` and `shared/fonts/kb.ttf` should be modified
+    * If existing icons were modified/replaced then only `shared/fonts/kb.ttf` should be modified
+7. Inspect modified `kb.ttf` for SVG artifacts or entirely black boxes for icons
+    * Launch `FontForge.app`
+    * `File` > `Open` (`cmd` + `O`)
+    * Select `$GOPATH/src/github.com/keybase/client/shared/fonts/kb.ttf`
+    * Then search for the added/modified icons
+    * `View` > `Go To` (`cmd` + `shift` + `>`)
+    * Search using `{counter}-kb-iconfont-{name}-{size}.svg` (E.g. `172-kb-iconfont....`)
+8. Ensure that no icon in the iconfont is an entirely black box (this occurs if the "icon area" layer is still 100% opaque. It should be transparent even if it has no fill)
+9. Ensure that no icon in the iconfont is invereted (icon path & white space are invereted/switch). If this ocurred, then the SVG in Sketch was layerd/grouped/highlihgted incorrectly. Post in #design.
 
-1. Flow: `Cannot create Kb.Icon element because property 'iconfont-{name}' is missing in object [1] in property 'type'`
-    - This happens when an icon name reference via the `type` prop on a `Kb.Icon` component, but Flow cannot find the matching `type` in `icon.constants.js`
-    - Check the naming of the correct file in `images/iconfont/*.svg`
-    - Also ensure that the key in the object was not deleted on accident.
+### Dependencies
 
-2. Fontforge not being installed or unavailable via `PATH` in the shell.
+[fontforge](https://fontforge.github.io/en-US/downloads)
 
-```bash
-/bin/sh: fontforge: command not found
-{ Error: Command failed: fontforge -lang ff -c " Open('$GOPATH/client/shared/fonts/kb.ttf'); SetOS2Value('WinAscent', 962); SetOS2Value('WinDescent', 148); SetOS2Value('TypoAscent', 960); SetOS2Value('TypoLineGap', 0); SetOS2Value('TypoDescent', -64); SetOS2Value('HHeadAscent', 962); SetOS2Value('HHeadDescent', -148); SetGasp(65535, 15); SelectAll(); Move(0, -64); SelectNone(); Select('61-kb-iconfont-nav-chat-24', '70-kb-iconfont-nav-wallets-24'); Move(0, -22); ScaleToEm(960, 64); Generate('$GOPATH/client/shared/fonts/kb.ttf'); "
-/bin/sh: fontforge: command not found
+[webfonts-generator](https://github.com/sunflowerdeath/webfonts-generator)
 
-    at checkExecSyncError (child_process.js:602:13)
-    at execSync (child_process.js:642:13)
-    at setFontMetrics ($GOPATH/client/shared/desktop/yarn-helper/font.js:264:5)
-    at setFontMetrics ($GOPATH/client/shared/desktop/yarn-helper/font.js:106:3)
-    at fontsGeneratedSuccess ($GOPATH/client/shared/desktop/yarn-helper/font.js:95:52)
-    at $GOPATH/client/shared/node_modules/webfonts-generator/src/index.js:105:4
-    at _fulfilled ($GOPATH/client/shared/node_modules/q/q.js:854:54)
-    at self.promiseDispatch.done ($GOPATH/client/shared/node_modules/q/q.js:883:30)
-    at Promise.promise.promiseDispatch ($GOPATH/client/shared/node_modules/q/q.js:816:13)
-    at $GOPATH/client/shared/node_modules/q/q.js:624:44
-  error: null,
-  cmd: 'fontforge -lang ff -c " Open(\'$GOPATH/client/shared/fonts/kb.ttf\'); SetOS2Value(\'WinAscent\', 962); SetOS2Value(\'WinDescent\', 148); SetOS2Value(\'TypoAscent\', 960); SetOS2Value(\'TypoLineGap\', 0); SetOS2Value(\'TypoDescent\', -64); SetOS2Value(\'HHeadAscent\', 962); SetOS2Value(\'HHeadDescent\', -148); SetGasp(65535, 15); SelectAll(); Move(0, -64); SelectNone(); Select(\'61-kb-iconfont-nav-chat-24\', \'70-kb-iconfont-nav-wallets-24\'); Move(0, -22); ScaleToEm(960, 64); Generate(\'$GOPATH/client/shared/fonts/kb.ttf\'); "',
-  file: '/bin/sh',
+Unfortunately this library is now archived / deprecated. Internally it uses the following packages, which can be used to replace the library if needed.
 
-# ...
-# etc
-# ...
+- **svg** - [svgicons2svgfont](https://github.com/nfroidure/svgicons2svgfont)
+- **ttf** - [svg2ttf](https://github.com/fontello/svg2ttf)
+- **woff2** - [ttf2woff2](https://github.com/nfroidure/ttf2woff2)
+- **woff** - [ttf2woff](https://github.com/fontello/ttf2woff)
+- **eot** - [ttf2eot](https://github.com/fontello/ttf2eot)
 
-```
+### Troubleshooting / Other Documentation
+
+[Sketch Best Practices for SVG Export](./SKETCH.md)
+
+[Using Font Forge to Inspect Icon Font Output](./FONTFORGE.md)

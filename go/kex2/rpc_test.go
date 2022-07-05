@@ -82,6 +82,10 @@ func (mp *mockProvisioner) GetLogFactory() rpc.LogFactory {
 	return makeLogFactory()
 }
 
+func (mp *mockProvisioner) GetNetworkInstrumenter() rpc.NetworkInstrumenterStorage {
+	return &rpc.DummyInstrumentationStorage{}
+}
+
 func (mp *mockProvisioner) CounterSign(input keybase1.HelloRes) (output []byte, err error) {
 	output = []byte(string(input))
 	return
@@ -103,6 +107,10 @@ func (mp *mockProvisioner) GetHello2Arg() (res keybase1.Hello2Arg, err error) {
 
 func (mp *mockProvisionee) GetLogFactory() rpc.LogFactory {
 	return makeLogFactory()
+}
+
+func (mp *mockProvisionee) GetNetworkInstrumenter() rpc.NetworkInstrumenterStorage {
+	return &rpc.DummyInstrumentationStorage{}
 }
 
 var ErrHandleHello = errors.New("handle hello failure")
@@ -157,12 +165,15 @@ func testProtocolXWithBehavior(t *testing.T, provisioneeBehavior int) (results [
 
 	ctx, cancelFn := context.WithCancel(context.Background())
 
+	testLogCtx, cleanup := newTestLogCtx(t)
+	defer cleanup()
+
 	// Run the provisioner
 	go func() {
 		err := RunProvisioner(ProvisionerArg{
 			KexBaseArg: KexBaseArg{
 				Ctx:           ctx,
-				LogCtx:        testLogCtx{t},
+				LogCtx:        testLogCtx,
 				Mr:            router,
 				Secret:        genSecret(t),
 				DeviceID:      genKeybase1DeviceID(t),
@@ -179,7 +190,7 @@ func testProtocolXWithBehavior(t *testing.T, provisioneeBehavior int) (results [
 		err := RunProvisionee(ProvisioneeArg{
 			KexBaseArg: KexBaseArg{
 				Ctx:           context.Background(),
-				LogCtx:        testLogCtx{t},
+				LogCtx:        testLogCtx,
 				Mr:            router,
 				Secret:        s2,
 				DeviceID:      genKeybase1DeviceID(t),
@@ -281,13 +292,15 @@ func TestFullProtocolY(t *testing.T) {
 	ch := make(chan error, 3)
 
 	secretCh := make(chan Secret)
+	testLogCtx, cleanup := newTestLogCtx(t)
+	defer cleanup()
 
 	// Run the provisioner
 	go func() {
 		err := RunProvisioner(ProvisionerArg{
 			KexBaseArg: KexBaseArg{
 				Ctx:           context.TODO(),
-				LogCtx:        testLogCtx{t},
+				LogCtx:        testLogCtx,
 				Mr:            router,
 				Secret:        s1,
 				DeviceID:      genKeybase1DeviceID(t),
@@ -304,7 +317,7 @@ func TestFullProtocolY(t *testing.T) {
 		err := RunProvisionee(ProvisioneeArg{
 			KexBaseArg: KexBaseArg{
 				Ctx:           context.TODO(),
-				LogCtx:        testLogCtx{t},
+				LogCtx:        testLogCtx,
 				Mr:            router,
 				Secret:        genSecret(t),
 				DeviceID:      genKeybase1DeviceID(t),

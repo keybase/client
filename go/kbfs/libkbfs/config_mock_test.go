@@ -6,9 +6,12 @@ package libkbfs
 
 import (
 	"github.com/golang/mock/gomock"
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/kbfscodec"
 	"github.com/keybase/client/go/kbfs/kbfsedits"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
 	"github.com/keybase/client/go/logger"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/net/context"
 )
 
@@ -31,38 +34,38 @@ func (fn *FakeObserver) BatchChanges(
 }
 
 func (fn *FakeObserver) TlfHandleChange(ctx context.Context,
-	newHandle *TlfHandle) {
-	return
+	newHandle *tlfhandle.Handle) {
 }
 
 type ConfigMock struct {
 	ConfigLocal
 
 	// local references to the proper mock type
-	mockKbfs        *MockKBFSOps
-	mockKbpki       *MockKBPKI
-	mockKbs         *MockKeybaseService
-	mockKeyman      *MockKeyManager
-	mockRep         *MockReporter
-	mockMdcache     *MockMDCache
-	mockKcache      *MockKeyCache
-	mockBcache      *MockBlockCache
-	mockDirtyBcache *MockDirtyBlockCache
-	mockCrypto      *MockCrypto
-	mockChat        *MockChat
-	mockCodec       *kbfscodec.MockCodec
-	mockMdops       *MockMDOps
-	mockKops        *MockKeyOps
-	mockBops        *MockBlockOps
-	mockMdserv      *MockMDServer
-	mockKserv       *MockKeyServer
-	mockBserv       *MockBlockServer
-	mockBsplit      *MockBlockSplitter
-	mockNotifier    *MockNotifier
-	mockClock       *MockClock
-	mockRekeyQueue  *MockRekeyQueue
-	observer        *FakeObserver
-	ctr             *SafeTestReporter
+	mockKbfs                         *MockKBFSOps
+	mockKbpki                        *MockKBPKI
+	mockKbs                          *MockKeybaseService
+	mockKeyman                       *MockKeyManager
+	mockRep                          *MockReporter
+	mockMdcache                      *MockMDCache
+	mockKcache                       *MockKeyCache
+	mockBcache                       *MockBlockCache
+	mockDirtyBcache                  *MockDirtyBlockCache
+	mockCrypto                       *MockCrypto
+	mockChat                         *MockChat
+	mockCodec                        *kbfscodec.MockCodec
+	mockMdops                        *MockMDOps
+	mockKops                         *MockKeyOps
+	mockBops                         *MockBlockOps
+	mockMdserv                       *MockMDServer
+	mockKserv                        *MockKeyServer
+	mockBserv                        *MockBlockServer
+	mockBsplit                       *MockBlockSplitter
+	mockNotifier                     *MockNotifier
+	mockClock                        *MockClock
+	mockRekeyQueue                   *MockRekeyQueue
+	mockSubscriptionManagerPublisher *MockSubscriptionManagerPublisher
+	observer                         *FakeObserver
+	ctr                              *SafeTestReporter
 }
 
 func NewConfigMock(c *gomock.Controller, ctr *SafeTestReporter) *ConfigMock {
@@ -71,6 +74,8 @@ func NewConfigMock(c *gomock.Controller, ctr *SafeTestReporter) *ConfigMock {
 			loggerFn: func(m string) logger.Logger {
 				return logger.NewTestLogger(ctr.t)
 			},
+			quotaUsage: make(
+				map[keybase1.UserOrTeamID]*EventuallyConsistentQuotaUsage),
 		},
 	}
 	config.mockKbfs = NewMockKBFSOps(c)
@@ -123,18 +128,29 @@ func NewConfigMock(c *gomock.Controller, ctr *SafeTestReporter) *ConfigMock {
 	config.SetClock(config.mockClock)
 	config.mockRekeyQueue = NewMockRekeyQueue(c)
 	config.SetRekeyQueue(config.mockRekeyQueue)
-	config.SetUserHistory(kbfsedits.NewUserHistory(config.MakeLogger("HIS")))
+	uhLog := config.MakeLogger("HIS")
+	config.SetUserHistory(kbfsedits.NewUserHistory(
+		uhLog, config.MakeVLogger(uhLog)))
 	config.observer = &FakeObserver{}
 	config.ctr = ctr
 	// turn off background flushing by default during tests
 	config.noBGFlush = true
 
-	config.maxNameBytes = maxNameBytesDefault
+	config.maxNameBytes = data.MaxNameBytesDefault
 	config.rwpWaitTime = rekeyWithPromptWaitTimeDefault
 
 	config.SetMetadataVersion(defaultClientMetadataVer)
 	config.mode = modeTest{NewInitModeFromType(InitDefault)}
 	config.conflictResolutionDB = openCRDB(config)
+
+	config.subscriptionManagerManager = newSubscriptionManagerManager(config)
+	config.mockSubscriptionManagerPublisher = NewMockSubscriptionManagerPublisher(gomock.NewController(ctr.t))
+	config.mockSubscriptionManagerPublisher.EXPECT().PublishChange(
+		keybase1.SubscriptionTopic_FAVORITES).AnyTimes()
+	config.mockSubscriptionManagerPublisher.EXPECT().PublishChange(
+		keybase1.SubscriptionTopic_JOURNAL_STATUS).AnyTimes()
+	config.mockSubscriptionManagerPublisher.EXPECT().PublishChange(
+		keybase1.SubscriptionTopic_FILES_TAB_BADGE).AnyTimes()
 
 	return config
 }

@@ -5,8 +5,12 @@ package keybase1
 
 import (
 	"errors"
+	"fmt"
+	"strings"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestTime(t *testing.T) {
@@ -26,6 +30,72 @@ func TestTime(t *testing.T) {
 
 	if rev.Unix() != now.Unix() {
 		t.Errorf("keybase time messed up: now = %s, rev = %s", now, rev)
+	}
+}
+
+func Test0TimeConversion(t *testing.T) {
+	require.Equal(t, UnixTime(0), ToUnixTime(time.Time{}))
+	require.Equal(t, Time(0), ToTime(time.Time{}))
+	require.Equal(t, time.Time{}, FromUnixTime(UnixTime(0)))
+	require.Equal(t, time.Time{}, FromTime(Time(0)))
+}
+
+func TestTimeConversions(t *testing.T) {
+	const longForm = "Jan 2, 2006 at 3:04pm (MST)"
+	constTime, err := time.Parse(longForm, "Feb 3, 2013 at 7:54pm (PST)")
+	require.NoError(t, err)
+
+	// add an offset to test precision below a second
+	constTimeWithOffset := constTime.Add(5 * time.Nanosecond)
+
+	times := []time.Time{
+		time.Time{},
+		time.Now(),
+		time.Now().AddDate(1000, 0, 0),  // in a thousand years
+		time.Now().AddDate(10000, 0, 0), // in 10 thousand years
+		time.Now().AddDate(-3000, 0, 0), // 3 thousand years ago
+		constTime,
+		constTime.AddDate(1000, 0, 0),
+		constTime.AddDate(10000, 0, 0),
+		constTime.AddDate(-3000, 0, 0),
+		constTime.Add(12345678 * time.Second),
+		constTime.Add(3 * time.Millisecond),
+		constTime.Add(3 * time.Nanosecond),
+		constTimeWithOffset,
+		constTimeWithOffset.AddDate(1000, 0, 0),
+		constTimeWithOffset.AddDate(10000, 0, 0),
+		constTimeWithOffset.AddDate(-3000, 0, 0),
+		constTimeWithOffset.Add(12345678 * time.Second),
+	}
+
+	assertTimesEqualSec := func(t1, t2 time.Time) {
+		require.Equal(t, t1.Unix(), t2.Unix(), "expected %v and %v to be equal (with up to a second precision)", t1, t2)
+	}
+	assertTimesEqualMSec := func(t1, t2 time.Time) {
+		assertTimesEqualSec(t1, t2)
+		require.True(t, (t1.Nanosecond()-t2.Nanosecond()) < 1e6, "expected %v and %v to be equal (with up to a millisecond precision)", t1, t2)
+		require.True(t, (t2.Nanosecond()-t1.Nanosecond()) < 1e6, "expected %v and %v to be equal (with up to a millisecond precision)", t1, t2)
+	}
+	assertTimesEqualStrict := func(t1, t2 time.Time) {
+		require.True(t, t1.Equal(t2), "expected %v and %v to be equal", t1, t2)
+	}
+
+	for _, tm := range times {
+		kbTime := ToTime(tm)
+		tRev := FromTime(kbTime)
+		// conversion to Time are only precise up to a millisecond
+		assertTimesEqualMSec(tm, tRev)
+		if tm.Nanosecond() == 0 {
+			assertTimesEqualStrict(tm, tRev)
+		}
+
+		kbUnixTime := ToUnixTime(tm)
+		tUnixRev := FromUnixTime(kbUnixTime)
+		// conversion to UnixTime are only precise up to a second
+		assertTimesEqualSec(tm, tUnixRev)
+		if tm.Nanosecond() == 0 {
+			assertTimesEqualStrict(tm, tUnixRev)
+		}
 	}
 }
 
@@ -132,4 +202,19 @@ func TestTeamNameFromString(t *testing.T) {
 			}
 		}
 	}
+}
+
+func TestRedact(t *testing.T) {
+	cmd1 := "keybase fs ls anything really here"
+	rcmd1 := fmt.Sprintf("keybase fs %s", redactedReplacer)
+	arg := ClientDetails{
+		Argv: strings.Split(cmd1, " ")}
+	arg.Redact()
+	require.Equal(t, strings.Split(rcmd1, " "), arg.Argv)
+
+	cmd2 := "keybase whatever command paperkey --another-flag"
+	arg = ClientDetails{
+		Argv: strings.Split(cmd2, " ")}
+	arg.Redact()
+	require.Equal(t, strings.Split(cmd2, " "), arg.Argv)
 }

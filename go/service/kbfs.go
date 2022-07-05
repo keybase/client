@@ -4,15 +4,17 @@
 package service
 
 import (
-	"github.com/keybase/client/go/encrypteddb"
 	"path/filepath"
 	"strings"
+
+	"github.com/keybase/client/go/encrypteddb"
 
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/chat"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/offline"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams"
@@ -20,24 +22,28 @@ import (
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
-const favoritesEncryptionReason = "kbfs.favorites"
-
 type KBFSHandler struct {
 	*BaseHandler
 	libkb.Contextified
 	globals.ChatContextified
+	service *Service
 }
 
-func NewKBFSHandler(xp rpc.Transporter, g *libkb.GlobalContext, cg *globals.ChatContext) *KBFSHandler {
+func NewKBFSHandler(xp rpc.Transporter, g *libkb.GlobalContext, cg *globals.ChatContext, service *Service) *KBFSHandler {
 	return &KBFSHandler{
 		BaseHandler:      NewBaseHandler(g, xp),
 		Contextified:     libkb.NewContextified(g),
 		ChatContextified: globals.NewChatContextified(cg),
+		service:          service,
 	}
 }
 
-func (h *KBFSHandler) FSEvent(_ context.Context, arg keybase1.FSNotification) error {
+func (h *KBFSHandler) FSOnlineStatusChangedEvent(_ context.Context, online bool) error {
+	h.G().NotifyRouter.HandleFSOnlineStatusChanged(online)
+	return nil
+}
 
+func (h *KBFSHandler) FSEvent(_ context.Context, arg keybase1.FSNotification) error {
 	h.G().NotifyRouter.HandleFSActivity(arg)
 
 	h.checkConversationRekey(arg)
@@ -67,6 +73,27 @@ func (h *KBFSHandler) FSSyncStatus(ctx context.Context, arg keybase1.FSSyncStatu
 
 func (h *KBFSHandler) FSSyncEvent(ctx context.Context, arg keybase1.FSPathSyncStatus) (err error) {
 	h.G().NotifyRouter.HandleFSSyncEvent(ctx, arg)
+	return nil
+}
+
+func (h *KBFSHandler) FSOverallSyncEvent(
+	_ context.Context, arg keybase1.FolderSyncStatus) (err error) {
+	h.G().NotifyRouter.HandleFSOverallSyncStatusChanged(arg)
+	return nil
+}
+
+func (h *KBFSHandler) FSFavoritesChangedEvent(_ context.Context) (err error) {
+	h.G().NotifyRouter.HandleFSFavoritesChanged()
+	return nil
+}
+
+func (h *KBFSHandler) FSSubscriptionNotifyEvent(_ context.Context, arg keybase1.FSSubscriptionNotifyEventArg) error {
+	h.G().NotifyRouter.HandleFSSubscriptionNotify(keybase1.FSSubscriptionNotifyArg(arg))
+	return nil
+}
+
+func (h *KBFSHandler) FSSubscriptionNotifyPathEvent(_ context.Context, arg keybase1.FSSubscriptionNotifyPathEventArg) error {
+	h.G().NotifyRouter.HandleFSSubscriptionNotifyPath(keybase1.FSSubscriptionNotifyPathArg(arg))
 	return nil
 }
 
@@ -111,7 +138,7 @@ func (h *KBFSHandler) notifyConversation(uid keybase1.UID, filename string) {
 	public := findFolderList(filename) == "public"
 
 	g := globals.NewContext(h.G(), h.ChatG())
-	ctx := chat.Context(context.Background(), g, keybase1.TLFIdentifyBehavior_CHAT_SKIP,
+	ctx := globals.ChatCtx(context.Background(), g, keybase1.TLFIdentifyBehavior_CHAT_SKIP,
 		nil, chat.NewCachingIdentifyNotifier(g))
 	h.ChatG().FetchRetrier.Rekey(ctx, tlf, chat1.ConversationMembersType_KBFS, public)
 }
@@ -120,8 +147,19 @@ func (h *KBFSHandler) CreateTLF(ctx context.Context, arg keybase1.CreateTLFArg) 
 	return teams.CreateTLF(ctx, h.G(), arg)
 }
 
-func (h *KBFSHandler) GetKBFSTeamSettings(ctx context.Context, teamID keybase1.TeamID) (keybase1.KBFSTeamSettings, error) {
-	return teams.GetKBFSTeamSettings(ctx, h.G(), teamID.IsPublic(), teamID)
+func (h *KBFSHandler) GetKBFSTeamSettings(ctx context.Context, arg keybase1.GetKBFSTeamSettingsArg) (ret keybase1.KBFSTeamSettings, err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("SETTINGS")
+	loader := func(mctx libkb.MetaContext) (interface{}, error) {
+		return teams.GetKBFSTeamSettings(mctx.Ctx(), mctx.G(), arg.TeamID.IsPublic(), arg.TeamID)
+	}
+	servedRet, err := h.service.offlineRPCCache.Serve(mctx, arg.Oa, offline.Version(1), "kbfs.getKBFSTeamSettings", false, arg, &ret, loader)
+	if err != nil {
+		return keybase1.KBFSTeamSettings{}, err
+	}
+	if s, ok := servedRet.(keybase1.KBFSTeamSettings); ok {
+		ret = s
+	}
+	return ret, nil
 }
 
 func (h *KBFSHandler) UpgradeTLF(ctx context.Context, arg keybase1.UpgradeTLFArg) error {
@@ -132,7 +170,8 @@ func (h *KBFSHandler) UpgradeTLF(ctx context.Context, arg keybase1.UpgradeTLFArg
 // favorites.
 func (h *KBFSHandler) getKeyFn() func(context.Context) ([32]byte, error) {
 	keyFn := func(ctx context.Context) ([32]byte, error) {
-		return teams.GetLocalStorageSecretBoxKeyGeneric(ctx, h.G(), favoritesEncryptionReason)
+		return encrypteddb.GetSecretBoxKey(ctx, h.G(),
+			libkb.EncryptionReasonKBFSFavorites, "encrypting kbfs favorites")
 	}
 	return keyFn
 }
@@ -146,6 +185,6 @@ func (h *KBFSHandler) EncryptFavorites(ctx context.Context,
 // DecryptFavorites decrypts cached favorites stored on disk.
 func (h *KBFSHandler) DecryptFavorites(ctx context.Context,
 	dataToEncrypt []byte) (res []byte, err error) {
-	err = encrypteddb.DecodeBox(ctx, dataToEncrypt, h.getKeyFn(), res)
+	err = encrypteddb.DecodeBox(ctx, dataToEncrypt, h.getKeyFn(), &res)
 	return res, err
 }

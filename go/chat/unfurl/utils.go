@@ -5,6 +5,7 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/protocol/chat1"
 	"golang.org/x/net/publicsuffix"
 )
@@ -45,6 +46,9 @@ func GetDomain(uri string) (res string, err error) {
 	if len(hostname) == 0 {
 		return res, errors.New("no hostname")
 	}
+	if hostname == types.MapsDomain {
+		return hostname, nil
+	}
 	return publicsuffix.EffectiveTLDPlusOne(hostname)
 }
 
@@ -53,10 +57,16 @@ func IsDomain(domain, target string) bool {
 }
 
 func ClassifyDomain(domain string) chat1.UnfurlType {
-	if IsDomain(domain, "giphy") || domain == "gph.is" {
+	switch {
+	case domain == "gph.is":
+		fallthrough
+	case IsDomain(domain, "giphy"):
 		return chat1.UnfurlType_GIPHY
+	case domain == types.MapsDomain:
+		return chat1.UnfurlType_MAPS
+	default:
+		return chat1.UnfurlType_GENERIC
 	}
-	return chat1.UnfurlType_GENERIC
 }
 
 func ClassifyDomainFromURI(uri string) (typ chat1.UnfurlType, domain string, err error) {

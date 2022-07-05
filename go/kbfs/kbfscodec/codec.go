@@ -96,11 +96,12 @@ func SerializeToFile(c Codec, obj interface{}, path string) error {
 // if the file already exists.
 func SerializeToFileIfNotExist(c Codec, obj interface{}, path string) error {
 	_, err := ioutil.Stat(path)
-	if ioutil.IsExist(err) {
+	switch {
+	case ioutil.IsExist(err):
 		return nil
-	} else if ioutil.IsNotExist(err) {
+	case ioutil.IsNotExist(err):
 		// Continue.
-	} else if err != nil {
+	case err != nil:
 		return err
 	}
 

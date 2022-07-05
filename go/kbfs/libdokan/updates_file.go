@@ -8,6 +8,7 @@ import (
 	"errors"
 
 	"github.com/keybase/client/go/kbfs/dokan"
+	"github.com/keybase/client/go/kbfs/libcontext"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"golang.org/x/net/context"
 )
@@ -38,7 +39,7 @@ func (f *UpdatesFile) WriteFile(ctx context.Context, fi *dokan.FileInfo, bs []by
 			return 0, errors.New("Updates are already enabled")
 		}
 		err = libkbfs.RestartCRForTesting(
-			libkbfs.BackgroundContextWithCancellationDelayer(),
+			libcontext.BackgroundContextWithCancellationDelayer(),
 			f.folder.fs.config, f.folder.getFolderBranch())
 		if err != nil {
 			return 0, err

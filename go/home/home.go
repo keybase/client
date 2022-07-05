@@ -1,3 +1,6 @@
+// Copyright 2019 Keybase, Inc. All rights reserved. Use of
+// this source code is governed by the included BSD license.
+
 package home
 
 import (
@@ -7,6 +10,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/keybase/client/go/contacts"
 
 	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/libkb"
@@ -35,17 +40,14 @@ type Home struct {
 }
 
 type rawGetHome struct {
-	Status libkb.AppStatus     `json:"status"`
-	Home   keybase1.HomeScreen `json:"home"`
-}
-
-func (r *rawGetHome) GetAppStatus() *libkb.AppStatus {
-	return &r.Status
+	libkb.AppStatusEmbed
+	Home keybase1.HomeScreen `json:"home"`
 }
 
 func NewHome(g *libkb.GlobalContext) *Home {
 	home := &Home{Contextified: libkb.NewContextified(g)}
-	g.AddLogoutHook(home)
+	g.AddLogoutHook(home, "home")
+	g.AddDbNukeHook(home, "home")
 	return home
 }
 
@@ -56,8 +58,68 @@ func homeRetry(a libkb.APIArg) libkb.APIArg {
 	return a
 }
 
+func decodeContactNotifications(mctx libkb.MetaContext, home keybase1.
+	HomeScreen) (decoded keybase1.HomeScreen, err error) {
+	items := home.Items
+	for i, item := range items {
+		t, err := item.Data.T()
+		if err != nil {
+			mctx.Warning("Could not determine home screen item type %v: %v",
+				item, err)
+			continue
+		}
+		if t == keybase1.HomeScreenItemType_PEOPLE {
+			peopleItem := item.Data.People()
+			innerT, err := peopleItem.T()
+			if err != nil {
+				mctx.Warning(
+					"Could not determine home screen inner item type %v: %v",
+					item, err)
+				continue
+			}
+			if innerT == keybase1.HomeScreenPeopleNotificationType_CONTACT {
+				contact := peopleItem.Contact()
+				decryptedContact,
+					err := contacts.DecryptContactBlob(mctx,
+					contact.ResolvedContactBlob)
+				if err != nil {
+					return home, err
+				}
+
+				contact.Username = decryptedContact.ResolvedUser.Username
+				contact.Description = decryptedContact.Description
+				item.Data = keybase1.NewHomeScreenItemDataWithPeople(
+					keybase1.NewHomeScreenPeopleNotificationWithContact(contact))
+				items[i] = item
+			} else if innerT == keybase1.HomeScreenPeopleNotificationType_CONTACT_MULTI {
+				contactMulti := peopleItem.ContactMulti()
+				contactList := contactMulti.Contacts
+				for i, contact := range contactList {
+					decryptedContact,
+						err := contacts.DecryptContactBlob(mctx,
+						contact.ResolvedContactBlob)
+					if err != nil {
+						return home, err
+					}
+
+					contactList[i].Username = decryptedContact.ResolvedUser.Username
+					contactList[i].Description = decryptedContact.Description
+				}
+				item.Data = keybase1.NewHomeScreenItemDataWithPeople(
+					keybase1.NewHomeScreenPeopleNotificationWithContactMulti(
+						contactMulti))
+				items[i] = item
+			}
+		}
+	}
+
+	home.Items = items
+	return home, nil
+}
+
 func (h *Home) getToCache(ctx context.Context, markedViewed bool, numPeopleWanted int, skipPeople bool) (err error) {
-	defer h.G().CTraceTimed(ctx, "Home#getToCache", func() error { return err })()
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.Trace("Home#getToCache", &err)()
 
 	numPeopleToRequest := 100
 	if numPeopleWanted > numPeopleToRequest {
@@ -66,17 +128,20 @@ func (h *Home) getToCache(ctx context.Context, markedViewed bool, numPeopleWante
 	if skipPeople {
 		numPeopleToRequest = 0
 	}
-	arg := libkb.NewAPIArgWithNetContext(ctx, "home")
+	arg := libkb.NewAPIArg("home")
 	arg.SessionType = libkb.APISessionTypeREQUIRED
 	arg.Args = libkb.HTTPArgs{
 		"record_visit": libkb.B{Val: markedViewed},
 		"num_people":   libkb.I{Val: numPeopleToRequest},
 	}
 	var raw rawGetHome
-	if err = h.G().API.GetDecode(homeRetry(arg), &raw); err != nil {
+	if err = mctx.G().API.GetDecode(mctx, homeRetry(arg), &raw); err != nil {
 		return err
 	}
-	home := raw.Home
+	home, err := decodeContactNotifications(mctx, raw.Home)
+	if err != nil {
+		return err
+	}
 
 	newPeopleCache := &peopleCache{
 		all: home.FollowSuggestions,
@@ -88,7 +153,7 @@ func (h *Home) getToCache(ctx context.Context, markedViewed bool, numPeopleWante
 	}
 	h.peopleCache = newPeopleCache
 
-	h.G().Log.CDebugf(ctx, "| %d follow suggestions returned", len(home.FollowSuggestions))
+	mctx.Debug("| %d follow suggestions returned", len(home.FollowSuggestions))
 	home.FollowSuggestions = nil
 
 	h.homeCache = &homeCache{
@@ -100,7 +165,8 @@ func (h *Home) getToCache(ctx context.Context, markedViewed bool, numPeopleWante
 }
 
 func (h *Home) Get(ctx context.Context, markViewed bool, numPeopleWanted int) (ret keybase1.HomeScreen, err error) {
-	defer h.G().CTraceTimed(ctx, "Home#Get", func() error { return err })()
+	ctx = libkb.WithLogTag(ctx, "HOME")
+	defer h.G().CTrace(ctx, "Home#Get", &err)()
 
 	// 10 people by default
 	if numPeopleWanted < 0 {
@@ -116,7 +182,10 @@ func (h *Home) Get(ctx context.Context, markViewed bool, numPeopleWanted int) (r
 	}
 
 	if useCache && markViewed {
-		h.bustHomeCacheIfBadgedFollowers(ctx)
+		err := h.bustHomeCacheIfBadgedFollowers(ctx)
+		if err != nil {
+			return ret, err
+		}
 		useCache = h.homeCache != nil
 		// If we blew up our cache, get out of here and refetch, proceed with
 		// marking the view.
@@ -144,7 +213,10 @@ func (h *Home) Get(ctx context.Context, markViewed bool, numPeopleWanted int) (r
 	if people != nil {
 		tmp.FollowSuggestions = people
 	} else {
-		h.peopleCache.loadInto(ctx, h.G(), &tmp, numPeopleWanted)
+		err := h.peopleCache.loadInto(ctx, h.G(), &tmp, numPeopleWanted)
+		if err != nil {
+			return ret, err
+		}
 	}
 
 	// Return a deep copy of the tmp object, so that the caller can't
@@ -198,30 +270,30 @@ func (p *peopleCache) isValid(ctx context.Context, g *libkb.GlobalContext, numPe
 }
 
 func (h *Home) skipTodoType(ctx context.Context, typ keybase1.HomeScreenTodoType) (err error) {
-	defer h.G().CTraceTimed(ctx, "Home#skipTodoType", func() error { return err })()
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.Trace("Home#skipTodoType", &err)()
 
-	_, err = h.G().API.Post(homeRetry(libkb.APIArg{
+	_, err = mctx.G().API.Post(mctx, homeRetry(libkb.APIArg{
 		Endpoint:    "home/todo/skip",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args: libkb.HTTPArgs{
 			"type": libkb.I{Val: int(typ)},
 		},
-		NetContext: ctx,
 	}))
 
 	return err
 }
 
 func (h *Home) DismissAnnouncement(ctx context.Context, id keybase1.HomeScreenAnnouncementID) (err error) {
-	defer h.G().CTraceTimed(ctx, "Home#DismissAnnouncement", func() error { return err })()
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.Trace("Home#DismissAnnouncement", &err)()
 
-	_, err = h.G().API.Post(homeRetry(libkb.APIArg{
+	_, err = mctx.G().API.Post(mctx, homeRetry(libkb.APIArg{
 		Endpoint:    "home/todo/skip",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args: libkb.HTTPArgs{
 			"announcement": libkb.I{Val: int(id)},
 		},
-		NetContext: ctx,
 	}))
 
 	return err
@@ -238,7 +310,7 @@ func (h *Home) bustCache(ctx context.Context, bustPeople bool) {
 }
 
 func (h *Home) bustHomeCacheIfBadgedFollowers(ctx context.Context) (err error) {
-	defer h.G().CTraceTimed(ctx, "+ Home#bustHomeCacheIfBadgedFollowers", func() error { return err })()
+	defer h.G().CTrace(ctx, "+ Home#bustHomeCacheIfBadgedFollowers", &err)()
 
 	if h.homeCache == nil {
 		h.G().Log.CDebugf(ctx, "| nil home cache, nothing to bust")
@@ -277,45 +349,53 @@ func (h *Home) SkipTodoType(ctx context.Context, typ keybase1.HomeScreenTodoType
 	if which, ok = keybase1.HomeScreenTodoTypeRevMap[typ]; !ok {
 		which = fmt.Sprintf("unknown=%d", int(typ))
 	}
-	defer h.G().CTraceTimed(ctx, fmt.Sprintf("home#SkipTodoType(%s)", which), func() error { return err })()
+	defer h.G().CTrace(ctx, fmt.Sprintf("home#SkipTodoType(%s)", which), &err)()
 	h.bustCache(ctx, false)
 	return h.skipTodoType(ctx, typ)
 }
 
 func (h *Home) MarkViewed(ctx context.Context) (err error) {
-	defer h.G().CTraceTimed(ctx, "Home#MarkViewed", func() error { return err })()
+	defer h.G().CTrace(ctx, "Home#MarkViewed", &err)()
 	h.Lock()
 	defer h.Unlock()
 	return h.markViewedWithLock(ctx)
 }
 
 func (h *Home) markViewedWithLock(ctx context.Context) (err error) {
-	defer h.G().CTraceTimed(ctx, "Home#markViewedWithLock", func() error { return err })()
-	h.bustHomeCacheIfBadgedFollowers(ctx)
+	defer h.G().CTrace(ctx, "Home#markViewedWithLock", &err)()
+	err = h.bustHomeCacheIfBadgedFollowers(ctx)
+	if err != nil {
+		return err
+	}
 	return h.markViewedAPICall(ctx)
 }
 
 func (h *Home) markViewedAPICall(ctx context.Context) (err error) {
-	defer h.G().CTraceTimed(ctx, "Home#markViewedAPICall", func() error { return err })()
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.Trace("Home#markViewedAPICall", &err)()
 
-	if _, err = h.G().API.Post(homeRetry(libkb.APIArg{
+	if _, err = mctx.G().API.Post(mctx, homeRetry(libkb.APIArg{
 		Endpoint:    "home/visit",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args:        libkb.HTTPArgs{},
-		NetContext:  ctx,
 	})); err != nil {
-		h.G().Log.CWarningf(ctx, "Unable to home#markViewedAPICall: %v", err)
+		mctx.Warning("Unable to home#markViewedAPICall: %v", err)
 	}
 	return nil
 }
 
 func (h *Home) ActionTaken(ctx context.Context) (err error) {
-	defer h.G().CTraceTimed(ctx, "Home#ActionTaken", func() error { return err })()
+	defer h.G().CTrace(ctx, "Home#ActionTaken", &err)()
 	h.bustCache(ctx, false)
 	return err
 }
 
 func (h *Home) OnLogout(m libkb.MetaContext) error {
+	h.bustCache(m.Ctx(), true)
+	return nil
+}
+
+func (h *Home) OnDbNuke(m libkb.MetaContext) error {
 	h.bustCache(m.Ctx(), true)
 	return nil
 }
@@ -326,7 +406,7 @@ type updateGregorMessage struct {
 }
 
 func (h *Home) updateUI(ctx context.Context) (err error) {
-	defer h.G().CTraceTimed(ctx, "Home#updateUI", func() error { return err })()
+	defer h.G().CTrace(ctx, "Home#updateUI", &err)()
 	var ui keybase1.HomeUIInterface
 	if h.G().UIRouter == nil {
 		h.G().Log.CDebugf(ctx, "no UI router, swallowing update")
@@ -345,7 +425,7 @@ func (h *Home) updateUI(ctx context.Context) (err error) {
 }
 
 func (h *Home) handleUpdate(ctx context.Context, item gregor.Item) (err error) {
-	defer h.G().CTraceTimed(ctx, "Home#handleUpdate", func() error { return err })()
+	defer h.G().CTrace(ctx, "Home#handleUpdate", &err)()
 	var msg updateGregorMessage
 	if err = json.Unmarshal(item.Body().Bytes(), &msg); err != nil {
 		h.G().Log.Debug("error unmarshaling home.update item: %s", err.Error())
@@ -354,20 +434,29 @@ func (h *Home) handleUpdate(ctx context.Context, item gregor.Item) (err error) {
 
 	h.G().Log.CDebugf(ctx, "home.update unmarshaled: %+v", msg)
 
-	h.Lock()
-	defer h.Unlock()
-
-	if h.homeCache != nil {
-		h.G().Log.CDebugf(ctx, "home.update state: (version=%d,announcementsVersion=%d)", h.homeCache.obj.Version, h.homeCache.obj.AnnouncementsVersion)
-		if msg.Version > h.homeCache.obj.Version || msg.AnnouncementsVersion > h.homeCache.obj.AnnouncementsVersion {
-			h.G().Log.CDebugf(ctx, "home.update: clearing cache")
-			h.homeCache = nil
-		}
-	}
-
-	// Ignore the error code...
-	h.updateUI(ctx)
+	h.handleUpdateWithVersions(ctx, msg.Version, msg.AnnouncementsVersion, true /* send up update UI */)
 	return nil
+}
+
+func (h *Home) handleUpdateWithVersions(ctx context.Context, homeVersion int, announcementsVersion int, refreshHome bool) {
+
+	h.Lock()
+	defer func() {
+		if refreshHome {
+			_ = h.updateUI(ctx)
+		}
+		h.Unlock()
+	}()
+
+	if h.homeCache == nil {
+		return
+	}
+	h.G().Log.CDebugf(ctx, "home gregor msg state: (version=%d,announcementsVersion=%d)", h.homeCache.obj.Version, h.homeCache.obj.AnnouncementsVersion)
+	if homeVersion > h.homeCache.obj.Version || announcementsVersion > h.homeCache.obj.AnnouncementsVersion {
+		h.G().Log.CDebugf(ctx, "home gregor msg: clearing cache (new version is <%d,%d>)", homeVersion, announcementsVersion)
+		h.homeCache = nil
+		refreshHome = true
+	}
 }
 
 func (h *Home) IsAlive() bool {
@@ -378,10 +467,35 @@ func (h *Home) Name() string {
 	return "Home"
 }
 
+func (h *Home) handleUpdateState(ctx context.Context, item gregor.Item) (err error) {
+	defer h.G().CTrace(ctx, "Home#handleUpdateState", &err)()
+	var msg libkb.HomeStateBody
+	if err = json.Unmarshal(item.Body().Bytes(), &msg); err != nil {
+		h.G().Log.Debug("error unmarshaling home.update item: %s", err.Error())
+		return err
+	}
+
+	h.G().Log.CDebugf(ctx, "home.state unmarshaled: %+v", msg)
+	h.handleUpdateWithVersions(ctx, msg.Version, msg.AnnouncementsVersion, false /* send up update UI */)
+	return nil
+}
+
 func (h *Home) Create(ctx context.Context, cli gregor1.IncomingInterface, category string, ibm gregor.Item) (bool, error) {
 	switch category {
 	case "home.update":
 		return true, h.handleUpdate(ctx, ibm)
+	case "home.state":
+		// MK 2020.03.17: This case fixes a race that we observed in the wild, with **announcements**.
+		// The issue is that if you view the home page via home/get and then an announcement is inserted
+		// at roughly the same time. The home/get can then trigger a gregor since the announcement version
+		// bumped. That'll bump the badge state and show a 1 on the home tab. But then when you visit it,
+		// home/get will not be repolled, since there is a fresh home state that just got loaded. You'll have
+		// to wait for 1 hour in which you have a phantom badge. To break this race, we'll clear out the
+		// home state if home.state says the state has moved forward (though we mainly intend that message
+		// to drive badging).
+		// Note that we return false since we still want this message to be handled by other parts
+		// of the system (like the badger).
+		return false, h.handleUpdateState(ctx, ibm)
 	default:
 		if strings.HasPrefix(category, "home.") {
 			return false, fmt.Errorf("unknown home handler category: %q", category)
@@ -409,40 +523,89 @@ func (h *Home) RunUpdateLoop(m libkb.MetaContext) {
 
 func (h *Home) updateLoopThread(m libkb.MetaContext) {
 	m = m.WithLogTag("HULT")
-	m.CDebugf("Starting Home#updateLoopThread")
+	m.Debug("Starting Home#updateLoopThread")
 	slp := time.Minute * (time.Duration(5) + time.Duration((rand.Int() % 10)))
 	var err error
 	for {
-		m.CDebugf("Sleeping %v until next poll", slp)
+		m.Debug("Sleeping %v until next poll", slp)
 		m.G().Clock().Sleep(slp)
 		slp, err = h.pollOnce(m)
 		if _, ok := err.(libkb.DeviceRequiredError); ok {
 			slp = time.Duration(1) * time.Minute
 		} else if err != nil {
 			slp = time.Duration(15) * time.Minute
-			m.CDebugf("Hit an error in home update loop: %v", err)
+			m.Debug("Hit an error in home update loop: %v", err)
 		}
 	}
 }
 
 func (h *Home) pollOnce(m libkb.MetaContext) (d time.Duration, err error) {
-	defer m.CTraceTimed("Home#pollOnce", func() error { return err })()
+	defer m.Trace("Home#pollOnce", &err)()
 
 	if !m.HasAnySession() {
-		m.CDebugf("No-op, since don't have keys (and/or am not logged in)")
+		m.Debug("No-op, since don't have keys (and/or am not logged in)")
 		return time.Duration(0), libkb.DeviceRequiredError{}
 	}
 
 	var raw rawPollHome
-	err = m.G().API.GetDecode(libkb.APIArg{
+	err = m.G().API.GetDecode(m, libkb.APIArg{
 		Endpoint:    "home/poll",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args:        libkb.HTTPArgs{},
-		MetaContext: m,
 	}, &raw)
 	if err != nil {
-		m.CWarningf("Unable to Home#pollOnce: %v", err)
+		m.Warning("Unable to Home#pollOnce: %v", err)
 		return time.Duration(0), err
 	}
 	return time.Duration(raw.NextPollSecs) * time.Second, nil
+}
+
+func findBadUserInUsers(m libkb.MetaContext, l []keybase1.HomeUserSummary, badUIDs map[keybase1.UID]bool) bool {
+	for _, s := range l {
+		if badUIDs[s.Uid] {
+			m.Debug("found blocked uid=%s", s.Uid)
+			return true
+		}
+	}
+	return false
+}
+
+func (h *Home) UserBlocked(m libkb.MetaContext, badUIDs map[keybase1.UID]bool) (err error) {
+	h.Lock()
+	defer h.Unlock()
+
+	if !h.peopleCache.hasBadUser(m, badUIDs) {
+		m.Debug("UserBlocked didn't result in any home user suggestions getting blocked, so no-op")
+		return nil
+	}
+
+	h.peopleCache = nil
+	m.Debug("UserBlocked forced home change, updating UI")
+	tmp := h.updateUI(m.Ctx())
+	if tmp != nil {
+		m.Debug("error updating home UI, but ignoring: %s", tmp)
+	}
+	return nil
+}
+
+func (p *peopleCache) hasBadUser(m libkb.MetaContext, badUIDs map[keybase1.UID]bool) bool {
+	if p == nil {
+		m.Debug("nothing to do, people cache is empty")
+		return false
+	}
+
+	if findBadUserInUsers(m, p.all, badUIDs) {
+		m.Debug("Found blocked user in people cache (all)")
+		return true
+	}
+
+	// @maxtaco 2019.11.25: As @jzila points out, there isn't a way for the blocked user to be
+	// in this list, but not the all list above. But let's play it safe and check anyways,
+	// to err on the side of forcing a refresh.
+	if findBadUserInUsers(m, p.lastShown, badUIDs) {
+		m.Debug("Found blocked user in people cache (lastShown)")
+		return true
+	}
+
+	return false
 }

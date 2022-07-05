@@ -6,21 +6,27 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"net/http"
 	"strings"
 
+	"github.com/keybase/client/go/avatars"
+	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/libkb"
+
+	"github.com/keybase/client/go/chat/maps"
+
 	"github.com/keybase/client/go/chat/attachments"
+	"github.com/keybase/client/go/chat/giphy"
 	"github.com/keybase/client/go/chat/s3"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
 
 	"github.com/keybase/client/go/chat/utils"
-	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 )
 
 type Packager struct {
+	globals.Contextified
 	utils.DebugLabeler
 
 	cache        *unfurlCache
@@ -30,10 +36,11 @@ type Packager struct {
 	maxAssetSize int64
 }
 
-func NewPackager(l logger.Logger, store attachments.Store, s3signer s3.Signer,
+func NewPackager(g *globals.Context, store attachments.Store, s3signer s3.Signer,
 	ri func() chat1.RemoteInterface) *Packager {
 	return &Packager{
-		DebugLabeler: utils.NewDebugLabeler(l, "Packager", false),
+		Contextified: globals.NewContextified(g),
+		DebugLabeler: utils.NewDebugLabeler(g.ExternalG(), "Packager", false),
 		cache:        newUnfurlCache(),
 		store:        store,
 		ri:           ri,
@@ -51,7 +58,7 @@ func (p *Packager) assetFilename(url string) string {
 }
 
 func (p *Packager) assetBodyAndLength(ctx context.Context, url string) (body io.ReadCloser, size int64, err error) {
-	resp, err := http.Get(url)
+	resp, err := libkb.ProxyHTTPGet(p.G().ExternalG(), p.G().Env, url, "UnfurlPackager")
 	if err != nil {
 		return body, size, err
 	}
@@ -64,7 +71,6 @@ func (p *Packager) assetFromURL(ctx context.Context, url string, uid gregor1.UID
 	if err != nil {
 		return res, err
 	}
-	defer body.Close()
 	return p.assetFromURLWithBody(ctx, body, contentLength, url, uid, convID, usePreview)
 }
 
@@ -120,7 +126,7 @@ func (p *Packager) assetFromURLWithBody(ctx context.Context, body io.ReadCloser,
 
 	filename := p.assetFilename(url)
 	src := attachments.NewBufReadResetter(dat)
-	pre, err := attachments.PreprocessAsset(ctx, p.DebugLabeler, src, filename,
+	pre, err := attachments.PreprocessAsset(ctx, p.G(), p.DebugLabeler, src, filename,
 		types.DummyNativeVideoHelper{}, nil)
 	if err != nil {
 		return res, err
@@ -205,19 +211,26 @@ func (p *Packager) packageGeneric(ctx context.Context, uid gregor1.UID, convID c
 func (p *Packager) packageGiphy(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	raw chat1.UnfurlRaw) (res chat1.Unfurl, err error) {
 	var g chat1.UnfurlGiphy
-	imgBody, imgLength, err := p.assetBodyAndLength(ctx, raw.Giphy().ImageUrl)
-	defer imgBody.Close()
-	if err != nil {
-		p.Debug(ctx, "Package: failed to get body specs for giphy image: %s", err)
-		return res, err
+	var imgBody io.ReadCloser
+	var imgLength int64
+	if raw.Giphy().ImageUrl != nil {
+		imgBody, imgLength, err = giphy.Asset(libkb.NewMetaContext(ctx, p.G().ExternalG()),
+			*raw.Giphy().ImageUrl)
+		if err != nil {
+			p.Debug(ctx, "Package: failed to get body specs for giphy image: %s", err)
+			return res, err
+		}
+		defer imgBody.Close()
 	}
 	if raw.Giphy().Video != nil {
 		// If we found a video, then let's see if it is smaller than the image, if so we will
 		// set it (which means it will get used by the frontend)
-		vidBody, vidLength, err := p.assetBodyAndLength(ctx, raw.Giphy().Video.Url)
-		defer vidBody.Close()
-		if err == nil && vidLength < imgLength && vidLength < p.maxAssetSize {
-			asset, err := p.uploadVideoWithBody(ctx, uid, convID, vidBody, int64(vidLength),
+		vidBody, vidLength, err := giphy.Asset(libkb.NewMetaContext(ctx, p.G().ExternalG()),
+			raw.Giphy().Video.Url)
+		if err == nil && (imgLength == 0 || vidLength < imgLength) && vidLength < p.maxAssetSize {
+			p.Debug(ctx, "Package: found video: len: %d", vidLength)
+			defer vidBody.Close()
+			asset, err := p.uploadVideoWithBody(ctx, uid, convID, vidBody, vidLength,
 				*raw.Giphy().Video)
 			if err != nil {
 				p.Debug(ctx, "Package: failed to get video asset URL: %s", err)
@@ -227,12 +240,13 @@ func (p *Packager) packageGiphy(ctx context.Context, uid gregor1.UID, convID cha
 		} else if err != nil {
 			p.Debug(ctx, "Package: failed to get video specs: %s", err)
 		} else {
+			defer vidBody.Close()
 			p.Debug(ctx, "Package: not selecting video: %d(video) > %d(image)", vidLength, imgLength)
 		}
 	}
-	if g.Video == nil {
+	if g.Video == nil && raw.Giphy().ImageUrl != nil {
 		// Only grab the image if we didn't get a video
-		asset, err := p.assetFromURLWithBody(ctx, imgBody, imgLength, raw.Giphy().ImageUrl, uid,
+		asset, err := p.assetFromURLWithBody(ctx, imgBody, imgLength, *raw.Giphy().ImageUrl, uid,
 			convID, true)
 		if err != nil {
 			// if we don't get the image, then just bail out of here
@@ -251,6 +265,65 @@ func (p *Packager) packageGiphy(ctx context.Context, uid gregor1.UID, convID cha
 	return chat1.NewUnfurlWithGiphy(g), nil
 }
 
+func (p *Packager) packageMaps(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+	raw chat1.UnfurlRaw) (res chat1.Unfurl, err error) {
+	mapsRaw := raw.Maps()
+	g := chat1.UnfurlGeneric{
+		Title:       mapsRaw.Title,
+		Url:         mapsRaw.Url,
+		SiteName:    mapsRaw.SiteName,
+		Description: &mapsRaw.Description,
+	}
+
+	// load user avatar for fancy maps
+	username := p.G().ExternalG().GetEnv().GetUsername().String()
+	avatarReader, _, err := avatars.GetBorderedCircleAvatar(ctx, p.G(), username, 48, 8, 8)
+	if err != nil {
+		return res, err
+	}
+	defer avatarReader.Close()
+
+	// load map
+	var reader io.ReadCloser
+	var length int64
+	var isDone bool
+	mapsURL := mapsRaw.ImageUrl
+	locReader, _, err := maps.MapReaderFromURL(ctx, p.G(), mapsURL)
+	if err != nil {
+		return res, err
+	}
+	defer locReader.Close()
+	if mapsRaw.HistoryImageUrl != nil {
+		liveReader, _, err := maps.MapReaderFromURL(ctx, p.G(), *mapsRaw.HistoryImageUrl)
+		if err != nil {
+			return res, err
+		}
+		defer liveReader.Close()
+		if reader, length, err = maps.DecorateMap(ctx, avatarReader, liveReader); err != nil {
+			return res, err
+		}
+		isDone = mapsRaw.LiveLocationDone
+	} else {
+		if reader, length, err = maps.DecorateMap(ctx, avatarReader, locReader); err != nil {
+			return res, err
+		}
+		isDone = false
+	}
+	asset, err := p.assetFromURLWithBody(ctx, reader, length, mapsURL, uid, convID, true)
+	if err != nil {
+		p.Debug(ctx, "Package: failed to get maps asset URL: %s", err)
+		return res, errors.New("image not available for maps unfurl")
+	}
+	g.Image = &asset
+	g.MapInfo = &chat1.UnfurlGenericMapInfo{
+		Coord:               mapsRaw.Coord,
+		LiveLocationEndTime: mapsRaw.LiveLocationEndTime,
+		IsLiveLocationDone:  isDone,
+		Time:                mapsRaw.Time,
+	}
+	return chat1.NewUnfurlWithGeneric(g), nil
+}
+
 func (p *Packager) cacheKey(uid gregor1.UID, convID chat1.ConversationID, raw chat1.UnfurlRaw) string {
 	url := raw.GetUrl()
 	if url == "" {
@@ -265,7 +338,7 @@ func (p *Packager) cacheKey(uid gregor1.UID, convID chat1.ConversationID, raw ch
 
 func (p *Packager) Package(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	raw chat1.UnfurlRaw) (res chat1.Unfurl, err error) {
-	defer p.Trace(ctx, func() error { return err }, "Package")()
+	defer p.Trace(ctx, &err, "Package")()
 
 	cacheKey := p.cacheKey(uid, convID, raw)
 	if item, valid := p.cache.get(cacheKey); cacheKey != "" && valid {
@@ -287,6 +360,8 @@ func (p *Packager) Package(ctx context.Context, uid gregor1.UID, convID chat1.Co
 		return p.packageGeneric(ctx, uid, convID, raw)
 	case chat1.UnfurlType_GIPHY:
 		return p.packageGiphy(ctx, uid, convID, raw)
+	case chat1.UnfurlType_MAPS:
+		return p.packageMaps(ctx, uid, convID, raw)
 	default:
 		return res, errors.New("not implemented")
 	}

@@ -1,0 +1,9 @@
+@keyframes slideUp {
+  from { background-position-y: 0; }
+  to {background-position-y: 200%; }
+}
+.upload-animation-loop {
+  animation: slideUp 2s linear infinite normal;
+  background-repeat: repeat;
+  transition: all .3s cubic-bezier(.13,.72,.31,.95);
+}

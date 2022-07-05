@@ -17,8 +17,6 @@ type CmdListTrackers struct {
 	libkb.Contextified
 	assertion string
 	verbose   bool
-	json      bool
-	headers   bool
 }
 
 // NewCmdListTrackers creates a new cli.Command.
@@ -49,18 +47,15 @@ func (c *CmdListTrackers) Run() error {
 		return err
 	}
 
-	arg := keybase1.ListTrackers2Arg{
-		Assertion: c.assertion,
-		Reverse:   false,
-	}
-	uss, err := cli.ListTrackers2(context.TODO(), arg)
+	arg := keybase1.ListTrackersUnverifiedArg{Assertion: c.assertion}
+	uss, err := cli.ListTrackersUnverified(context.TODO(), arg)
 	if err != nil {
 		return err
 	}
 	return c.output(uss)
 }
 
-func (c *CmdListTrackers) output(uss keybase1.UserSummary2Set) (err error) {
+func (c *CmdListTrackers) output(uss keybase1.UserSummarySet) (err error) {
 	dui := c.G().UI.GetDumbOutputUI()
 	if len(uss.Users) == 0 {
 		dui.Printf("no followers\n")
@@ -69,9 +64,6 @@ func (c *CmdListTrackers) output(uss keybase1.UserSummary2Set) (err error) {
 
 	for _, user := range uss.Users {
 		dui.Printf("%s", user.Username)
-		if c.verbose {
-			dui.Printf("\t%s", user.FullName)
-		}
 		dui.Printf("\n")
 	}
 	return nil

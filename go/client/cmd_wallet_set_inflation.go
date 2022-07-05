@@ -110,7 +110,7 @@ func (c *cmdWalletSetInflation) Run() (err error) {
 	if err != nil {
 		return err
 	}
-	c.G().UI.GetDumbOutputUI().PrintfStderr("Inflation destination address changed.\n")
+	_, _ = c.G().UI.GetDumbOutputUI().PrintfStderr("Inflation destination address changed.\n")
 	return nil
 }
 

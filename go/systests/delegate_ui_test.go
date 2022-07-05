@@ -6,6 +6,7 @@ package systests
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/keybase/client/go/client"
 	"github.com/keybase/client/go/service"
@@ -165,10 +166,12 @@ func newDelegateUI(t *testing.T) *delegateUI {
 
 func TestDelegateUI(t *testing.T) {
 	tc := setupTest(t, "delegate_ui")
-	tc1 := cloneContext(tc)
-	tc2 := cloneContext(tc)
-
 	defer tc.Cleanup()
+
+	tc1 := cloneContext(tc)
+	defer tc1.Cleanup()
+	tc2 := cloneContext(tc)
+	defer tc2.Cleanup()
 
 	stopCh := make(chan error)
 	svc := service.NewService(tc.G, false)
@@ -211,16 +214,20 @@ func TestDelegateUI(t *testing.T) {
 	}
 
 	// We should get either a 'done' or an 'error' from the delegateUI.
-	err, ok := <-dui.ch
-	if err != nil {
-		t.Errorf("Error with delegate UI: %v", err)
-	} else if ok {
-		t.Errorf("Delegate UI didn't close the channel properly")
-	} else if err = dui.checkSuccess(); err != nil {
-		t.Error(err)
+	select {
+	case err, ok := <-dui.ch:
+		if err != nil {
+			t.Errorf("Error with delegate UI: %v", err)
+		} else if ok {
+			t.Errorf("Delegate UI didn't close the channel properly")
+		} else if err = dui.checkSuccess(); err != nil {
+			t.Error(err)
+		}
+	case <-time.After(20 * time.Second):
+		t.Fatal("no callback from delegate UI")
 	}
 
-	if err := client.CtlServiceStop(tc1.G); err != nil {
+	if err := CtlStop(tc1.G); err != nil {
 		t.Errorf("Error in stopping service: %v", err)
 	}
 

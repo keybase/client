@@ -5,11 +5,11 @@
 package tlf
 
 import (
-	"errors"
 	"reflect"
 	"sort"
 
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/pkg/errors"
 )
 
 // Handle uniquely identified top-level folders by readers and writers.
@@ -95,6 +95,13 @@ func MakeHandle(
 	unresolvedWriters, unresolvedReaders []keybase1.SocialAssertion,
 	extensions []HandleExtension) (Handle, error) {
 	if len(writers) == 0 {
+		if len(unresolvedWriters) == 1 {
+			return Handle{}, errors.Errorf(
+				"No resolution found for %s", unresolvedWriters[0])
+		} else if len(unresolvedWriters) > 1 {
+			return Handle{}, errors.Errorf(
+				"No resolutions found for %v", unresolvedWriters)
+		}
 		return Handle{}, errNoWriters
 	}
 

@@ -42,7 +42,7 @@ func (k kidContainer) MarshalBinary() (data []byte, err error) {
 	// TODO: Use the more stringent checks from
 	// KIDFromStringChecked instead.
 	if !k.kid.IsValid() {
-		return nil, errors.WithStack(InvalidKIDError{k.kid})
+		return nil, errors.WithStack(InvalidKIDError(k))
 	}
 
 	return k.kid.ToBytes(), nil
@@ -522,15 +522,15 @@ func DecryptTLFCryptKeyClientHalf(
 		&nonce, &publicKeyData, &privateKeyData)
 	if !ok {
 		return TLFCryptKeyClientHalf{},
-			errors.WithStack(libkb.DecryptionError{Cause: errors.New(
-				"Can't unbox TLF crypt key client half")})
+			errors.WithStack(libkb.DecryptionError{Cause: libkb.ErrorCause{Err: errors.New(
+				"Can't unbox TLF crypt key client half")}})
 	}
 
 	var clientHalfData [32]byte
 	if len(decryptedData) != len(clientHalfData) {
 		return TLFCryptKeyClientHalf{},
-			errors.WithStack(libkb.DecryptionError{Cause: errors.New(
-				"TLF crypt key client half has wrong data length")})
+			errors.WithStack(libkb.DecryptionError{Cause: libkb.ErrorCause{Err: errors.New(
+				"TLF crypt key client half has wrong data length")}})
 	}
 
 	copy(clientHalfData[:], decryptedData)
@@ -566,6 +566,19 @@ func MakeRandomTLFCryptKey() (TLFCryptKey, error) {
 		return TLFCryptKey{}, err
 	}
 	return MakeTLFCryptKey(data), nil
+}
+
+// DeriveSecret derives symmetric key data from this key, given a `reason`.
+func (tck TLFCryptKey) DeriveSecret(
+	reason libkb.EncryptionReason) ([]byte, error) {
+	// Use libkb's secret derivation to make a key from this key and a
+	// given reason.
+	asNacl := libkb.NaclSecretBoxKey(tck.Data())
+	secret, err := libkb.DeriveSymmetricKey(asNacl, reason)
+	if err != nil {
+		return nil, err
+	}
+	return secret[:], nil
 }
 
 // PublicTLFCryptKey is the TLFCryptKey used for all public TLFs. That
@@ -687,7 +700,7 @@ type BlockHashKey struct {
 func MakeBlockHashKey(
 	serverHalf BlockCryptKeyServerHalf, key TLFCryptKey) BlockHashKey {
 	mac := hmac.New(sha512.New, key.Bytes())
-	mac.Write(serverHalf.Bytes())
+	_, _ = mac.Write(serverHalf.Bytes())
 	hash := mac.Sum(nil)
 	var hash64 [64]byte
 	copy(hash64[:], hash)

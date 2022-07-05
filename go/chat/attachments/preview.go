@@ -3,6 +3,7 @@ package attachments
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"image"
 	"image/color"
 	"image/color/palette"
@@ -19,7 +20,9 @@ import (
 
 	_ "github.com/keybase/golang-ico" // for image decoding
 	"github.com/nfnt/resize"
+	"golang.org/x/image/bmp"
 	_ "golang.org/x/image/bmp" // for image decoding
+	"golang.org/x/image/tiff"
 	"golang.org/x/net/context"
 
 	"camlistore.org/pkg/images"
@@ -41,10 +44,35 @@ type PreviewRes struct {
 	PreviewDurationMs int
 }
 
+func IsFatalImageErr(err error) bool {
+	switch err {
+	case image.ErrFormat,
+		bmp.ErrUnsupported:
+		return true
+	}
+	switch err.(type) {
+	case png.FormatError,
+		png.UnsupportedError,
+		tiff.FormatError,
+		tiff.UnsupportedError,
+		jpeg.FormatError,
+		jpeg.UnsupportedError:
+		return true
+	}
+	return false
+}
+
 // Preview creates preview assets from src.  It returns an in-memory BufferSource
 // and the content type of the preview asset.
 func Preview(ctx context.Context, log utils.DebugLabeler, src ReadResetter, contentType,
-	basename string, nvh types.NativeVideoHelper) (*PreviewRes, error) {
+	basename string, nvh types.NativeVideoHelper) (res *PreviewRes, err error) {
+	defer func() {
+		if IsFatalImageErr(err) {
+			log.Debug(ctx, "squashing %v", err)
+			err = nil
+			res = nil
+		}
+	}()
 	switch contentType {
 	case "image/jpeg", "image/png", "image/vnd.microsoft.icon", "image/x-icon":
 		return previewImage(ctx, log, src, basename, contentType)
@@ -101,7 +129,16 @@ func previewVideoBlank(ctx context.Context, log utils.DebugLabeler, src io.Reade
 
 // previewImage will resize a single-frame image.
 func previewImage(ctx context.Context, log utils.DebugLabeler, src io.Reader, basename, contentType string) (res *PreviewRes, err error) {
-	defer log.Trace(ctx, func() error { return err }, "previewImage")()
+	defer func() {
+		// decoding ico images can cause a panic, let's catch anything here.
+		// https://github.com/biessek/golang-ico/issues/4
+		if r := recover(); r != nil {
+			log.Debug(ctx, "Recovered %v", r)
+			res = nil
+			err = fmt.Errorf("unable to preview image: %v", r)
+		}
+	}()
+	defer log.Trace(ctx, &err, "previewImage")()
 	// images.Decode in camlistore correctly handles exif orientation information.
 	log.Debug(ctx, "previewImage: decoding image")
 	img, _, err := images.Decode(src, nil)
@@ -239,7 +276,7 @@ func previewDimensions(origBounds image.Rectangle) (uint, uint) {
 	newWidth, newHeight := origWidth, origHeight
 	// Preserve aspect ratio
 	if origWidth > previewImageWidth {
-		newHeight = uint(origHeight * previewImageWidth / origWidth)
+		newHeight = origHeight * previewImageWidth / origWidth
 		if newHeight < 1 {
 			newHeight = 1
 		}
@@ -247,7 +284,7 @@ func previewDimensions(origBounds image.Rectangle) (uint, uint) {
 	}
 
 	if newHeight > previewImageHeight {
-		newWidth = uint(newWidth * previewImageHeight / newHeight)
+		newWidth = newWidth * previewImageHeight / newHeight
 		if newWidth < 1 {
 			newWidth = 1
 		}
@@ -262,7 +299,7 @@ func previewDimensions(origBounds image.Rectangle) (uint, uint) {
 func imageToPaletted(img image.Image) *image.Paletted {
 	b := img.Bounds()
 	pm := image.NewPaletted(b, palette.Plan9)
-	draw.FloydSteinberg.Draw(pm, b, img, image.ZP)
+	draw.FloydSteinberg.Draw(pm, b, img, image.Point{})
 	return pm
 }
 

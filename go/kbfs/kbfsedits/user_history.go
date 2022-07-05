@@ -5,12 +5,14 @@
 package kbfsedits
 
 import (
+	"context"
 	"fmt"
 	"sort"
 	"strings"
 	"sync"
 
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
@@ -38,13 +40,15 @@ type UserHistory struct {
 	lock      sync.RWMutex
 	histories map[tlfKey]writersByRevision
 	log       logger.Logger
+	vlog      *libkb.VDebugLog
 }
 
 // NewUserHistory constructs a UserHistory instance.
-func NewUserHistory(log logger.Logger) *UserHistory {
+func NewUserHistory(log logger.Logger, vlog *libkb.VDebugLog) *UserHistory {
 	return &UserHistory{
 		histories: make(map[tlfKey]writersByRevision),
 		log:       log,
+		vlog:      vlog,
 	}
 }
 
@@ -53,8 +57,9 @@ func NewUserHistory(log logger.Logger) *UserHistory {
 func (uh *UserHistory) UpdateHistory(
 	tlfName tlf.CanonicalName, tlfType tlf.Type, tlfHistory *TlfHistory,
 	loggedInUser string) {
-	uh.log.CDebugf(nil, "Updating user history for TLF %s, "+
-		"user %s", tlfName, loggedInUser)
+	uh.vlog.CLogf(
+		context.TODO(), libkb.VLog1, "Updating user history for TLF %s, "+
+			"user %s", tlfName, loggedInUser)
 	history := tlfHistory.getHistory(loggedInUser)
 	key := tlfKey{tlfName, tlfType}
 
@@ -84,6 +89,8 @@ func (uh *UserHistory) getTlfHistoryLocked(
 	if len(tlfHistory[0].notifications) > 0 {
 		history.ServerTime = keybase1.ToTime(
 			tlfHistory[0].notifications[0].Time)
+		// If there are no notifications (only deletes), leave
+		// `ServerTime` unset.
 	}
 	history.History = make(
 		[]keybase1.FSFolderWriterEditHistory, len(tlfHistory))
@@ -104,6 +111,15 @@ func (uh *UserHistory) getTlfHistoryLocked(
 			default:
 				panic(fmt.Sprintf("Unknown notification type %s", n.Type))
 			}
+		}
+
+		history.History[i].Deletes = make(
+			[]keybase1.FSFolderWriterEdit, len(wn.deletes))
+		for j, n := range wn.deletes {
+			history.History[i].Deletes[j].Filename = n.Filename
+			history.History[i].Deletes[j].ServerTime = keybase1.ToTime(n.Time)
+			history.History[i].Deletes[j].NotificationType =
+				keybase1.FSNotificationType_FILE_DELETED
 		}
 	}
 	return history
@@ -126,7 +142,20 @@ func (hc historyClusters) Len() int {
 }
 
 func (hc historyClusters) Less(i, j int) bool {
-	return hc[i].ServerTime > hc[j].ServerTime
+	iTime := hc[i].ServerTime
+	jTime := hc[j].ServerTime
+
+	if iTime == 0 && jTime == 0 {
+		// If both are zero, use the times of the first delete instead.
+		if len(hc[i].History[0].Deletes) > 0 {
+			iTime = hc[i].History[0].Deletes[0].ServerTime
+		}
+		if len(hc[j].History[0].Deletes) > 0 {
+			jTime = hc[j].History[0].Deletes[0].ServerTime
+		}
+	}
+
+	return iTime > jTime
 }
 
 func (hc historyClusters) Swap(i, j int) {
@@ -139,7 +168,8 @@ func (uh *UserHistory) Get(loggedInUser string) (
 	history []keybase1.FSFolderEditHistory) {
 	uh.lock.RLock()
 	defer uh.lock.RUnlock()
-	uh.log.CDebugf(nil, "User history requested: %s", loggedInUser)
+	uh.vlog.CLogf(
+		context.TODO(), libkb.VLog1, "User history requested: %s", loggedInUser)
 	var clusters historyClusters
 	for key := range uh.histories {
 		history := uh.getTlfHistoryLocked(key.tlfName, key.tlfType)
@@ -161,10 +191,14 @@ func (uh *UserHistory) Get(loggedInUser string) (
 
 		// Break it up into individual clusters
 		for _, wh := range history.History {
-			if len(wh.Edits) > 0 {
+			if len(wh.Edits) > 0 || len(wh.Deletes) > 0 {
+				var serverTime keybase1.Time
+				if len(wh.Edits) > 0 {
+					serverTime = wh.Edits[0].ServerTime
+				}
 				clusters = append(clusters, keybase1.FSFolderEditHistory{
 					Folder:     history.Folder,
-					ServerTime: wh.Edits[0].ServerTime,
+					ServerTime: serverTime,
 					History:    []keybase1.FSFolderWriterEditHistory{wh},
 				})
 			}

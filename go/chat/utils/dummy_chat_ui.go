@@ -9,6 +9,8 @@ import (
 
 type DummyChatUI struct{}
 
+var _ chat1.ChatUiInterface = (*DummyChatUI)(nil)
+
 func (r DummyChatUI) ChatAttachmentDownloadStart(ctx context.Context, sessionID int) error {
 	return nil
 }
@@ -34,11 +36,19 @@ func (r DummyChatUI) ChatInboxUnverified(ctx context.Context, arg chat1.ChatInbo
 	return nil
 }
 
+func (r DummyChatUI) ChatInboxLayout(ctx context.Context, arg chat1.ChatInboxLayoutArg) error {
+	return nil
+}
+
 func (r DummyChatUI) ChatThreadCached(ctx context.Context, arg chat1.ChatThreadCachedArg) error {
 	return nil
 }
 
 func (r DummyChatUI) ChatThreadFull(ctx context.Context, arg chat1.ChatThreadFullArg) error {
+	return nil
+}
+
+func (r DummyChatUI) ChatThreadStatus(ctx context.Context, arg chat1.ChatThreadStatusArg) error {
 	return nil
 }
 
@@ -54,6 +64,10 @@ func (r DummyChatUI) ChatSearchDone(ctx context.Context, arg chat1.ChatSearchDon
 	return nil
 }
 
+func (r DummyChatUI) ChatSearchInboxStart(ctx context.Context, sessionID int) error {
+	return nil
+}
+
 func (r DummyChatUI) ChatSearchInboxHit(ctx context.Context, arg chat1.ChatSearchInboxHitArg) error {
 	return nil
 }
@@ -63,6 +77,18 @@ func (r DummyChatUI) ChatSearchInboxDone(ctx context.Context, arg chat1.ChatSear
 }
 
 func (r DummyChatUI) ChatSearchIndexStatus(ctx context.Context, arg chat1.ChatSearchIndexStatusArg) error {
+	return nil
+}
+
+func (r DummyChatUI) ChatSearchConvHits(ctx context.Context, arg chat1.ChatSearchConvHitsArg) error {
+	return nil
+}
+
+func (r DummyChatUI) ChatSearchTeamHits(ctx context.Context, arg chat1.ChatSearchTeamHitsArg) error {
+	return nil
+}
+
+func (r DummyChatUI) ChatSearchBotHits(ctx context.Context, arg chat1.ChatSearchBotHitsArg) error {
 	return nil
 }
 
@@ -82,11 +108,58 @@ func (r DummyChatUI) ChatStellarDone(ctx context.Context, arg chat1.ChatStellarD
 	return nil
 }
 
+func (r DummyChatUI) ChatGiphySearchResults(ctx context.Context, arg chat1.ChatGiphySearchResultsArg) error {
+	return nil
+}
+
+func (r DummyChatUI) ChatGiphyToggleResultWindow(ctx context.Context,
+	arg chat1.ChatGiphyToggleResultWindowArg) error {
+	return nil
+}
+
 func (r DummyChatUI) ChatShowManageChannels(ctx context.Context, arg chat1.ChatShowManageChannelsArg) error {
 	return nil
 }
 
+func (r DummyChatUI) ChatCoinFlipStatus(ctx context.Context, arg chat1.ChatCoinFlipStatusArg) error {
+	return nil
+}
+
+func (r DummyChatUI) ChatCommandMarkdown(ctx context.Context, arg chat1.ChatCommandMarkdownArg) error {
+	return nil
+}
+
+func (r DummyChatUI) ChatMaybeMentionUpdate(ctx context.Context, arg chat1.ChatMaybeMentionUpdateArg) error {
+	return nil
+}
+
+func (r DummyChatUI) ChatLoadGalleryHit(ctx context.Context, arg chat1.ChatLoadGalleryHitArg) error {
+	return nil
+}
+
+func (r DummyChatUI) ChatWatchPosition(context.Context, chat1.ChatWatchPositionArg) (chat1.LocationWatchID, error) {
+	return chat1.LocationWatchID(0), nil
+}
+
+func (r DummyChatUI) ChatClearWatch(context.Context, chat1.ChatClearWatchArg) error {
+	return nil
+}
+
+func (r DummyChatUI) ChatCommandStatus(context.Context, chat1.ChatCommandStatusArg) error {
+	return nil
+}
+
+func (r DummyChatUI) ChatBotCommandsUpdateStatus(context.Context, chat1.ChatBotCommandsUpdateStatusArg) error {
+	return nil
+}
+
+func (r DummyChatUI) TriggerContactSync(context.Context, int) error {
+	return nil
+}
+
 type DummyChatNotifications struct{}
+
+var _ chat1.NotifyChatInterface = (*DummyChatNotifications)(nil)
 
 func (d DummyChatNotifications) NewChatActivity(ctx context.Context, arg chat1.NewChatActivityArg) error {
 	return nil
@@ -151,5 +224,15 @@ func (d DummyChatNotifications) ChatRequestInfo(context.Context, chat1.ChatReque
 	return nil
 }
 func (d DummyChatNotifications) ChatPromptUnfurl(context.Context, chat1.ChatPromptUnfurlArg) error {
+	return nil
+}
+func (d DummyChatNotifications) ChatConvUpdate(context.Context, chat1.ChatConvUpdateArg) error {
+	return nil
+}
+func (d DummyChatNotifications) ChatWelcomeMessageLoaded(context.Context, chat1.ChatWelcomeMessageLoadedArg) error {
+	return nil
+}
+func (d DummyChatNotifications) ChatParticipantsInfo(context.Context,
+	map[chat1.ConvIDStr][]chat1.UIParticipant) error {
 	return nil
 }

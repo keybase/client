@@ -66,7 +66,7 @@ func TestTeamList(t *testing.T) {
 
 	rootername := randomUser("arbitrary").username
 	_, err := teamCli.TeamAddMember(context.TODO(), keybase1.TeamAddMemberArg{
-		Name:     team.name,
+		TeamID:   team.ID,
 		Username: rootername + "@rooter",
 		Role:     keybase1.TeamRole_WRITER,
 	})
@@ -85,6 +85,8 @@ func TestTeamList(t *testing.T) {
 	require.Equal(t, 0, len(details.Members.Admins))
 	require.Equal(t, 4, len(details.Members.Writers))
 	require.Equal(t, 0, len(details.Members.Readers))
+	require.Equal(t, 0, len(details.Members.Bots))
+	require.Equal(t, 0, len(details.Members.RestrictedBots))
 
 	annMember := findMember(ann, details.Members.Owners)
 	require.NotNil(t, annMember)
@@ -114,14 +116,13 @@ func TestTeamList(t *testing.T) {
 	require.Equal(t, 1, len(details.AnnotatedActiveInvites))
 	for _, invite := range details.AnnotatedActiveInvites {
 		// There should be only one invite
-		require.EqualValues(t, rootername, invite.Name)
+		require.EqualValues(t, rootername, invite.InviteMetadata.Invite.Name)
 	}
 
 	// Examine results from TeamList (mostly MemberCount)
 
 	check := func(list *keybase1.AnnotatedTeamList) {
 		require.Equal(t, 1, len(list.Teams))
-		require.Equal(t, 0, len(list.AnnotatedActiveInvites))
 
 		teamInfo := list.Teams[0]
 		require.Equal(t, team.name, teamInfo.FqName)
@@ -149,26 +150,26 @@ func TestTeamListOpenTeamFilter(t *testing.T) {
 		suppressTeamChatAnnounce: true,
 	}
 
-	ann := makeUserStandalone(t, "ann", standaloneArgs)
-	bob := makeUserStandalone(t, "bob", standaloneArgs)
-	tom := makeUserStandalone(t, "tom", standaloneArgs)
+	ann := makeUserStandalone(t, tt, "ann", standaloneArgs)
+	bob := makeUserStandalone(t, tt, "bob", standaloneArgs)
+	tom := makeUserStandalone(t, tt, "tom", standaloneArgs)
 
-	team := ann.createTeam()
-	t.Logf("Team created %q", team)
-	ann.teamSetSettings(team, keybase1.TeamSettings{
+	id, teamName := ann.createTeam2()
+	t.Logf("Team created %q", teamName)
+	ann.teamSetSettings(id, keybase1.TeamSettings{
 		Open:   true,
 		JoinAs: keybase1.TeamRole_WRITER,
 	})
 
-	ann.addTeamMember(team, bob.username, keybase1.TeamRole_ADMIN)
-	ann.addTeamMember(team, tom.username, keybase1.TeamRole_WRITER)
+	ann.addTeamMember(teamName.String(), bob.username, keybase1.TeamRole_ADMIN)
+	ann.addTeamMember(teamName.String(), tom.username, keybase1.TeamRole_WRITER)
 	ann.tc.G.UIDMapper.SetTestingNoCachingMode(true)
 
 	bob.reset()
 	tom.reset()
 
-	details, err := ann.teamsClient.TeamGet(context.Background(), keybase1.TeamGetArg{
-		Name: team,
+	details, err := ann.teamsClient.TeamGetByID(context.Background(), keybase1.TeamGetByIDArg{
+		Id: id,
 	})
 	require.NoError(t, err)
 
@@ -185,24 +186,23 @@ func TestTeamListOpenTeams(t *testing.T) {
 	ann := tt.addUser("ann")
 	t.Logf("Signed up ann (%s)", ann.username)
 
-	team1 := ann.createTeam()
+	id1, team1 := ann.createTeam2()
 	t.Logf("Team 1 created (%s)", team1)
 
-	team2 := ann.createTeam()
+	id2, team2 := ann.createTeam2()
 	t.Logf("Team 2 created (%s)", team2)
 
-	ann.teamSetSettings(team2, keybase1.TeamSettings{
+	ann.teamSetSettings(id2, keybase1.TeamSettings{
 		Open:   true,
 		JoinAs: keybase1.TeamRole_WRITER,
 	})
 
 	check := func(list *keybase1.AnnotatedTeamList) {
 		require.Equal(t, 2, len(list.Teams))
-		require.Equal(t, 0, len(list.AnnotatedActiveInvites))
 		for _, teamInfo := range list.Teams {
-			if teamInfo.FqName == team1 {
+			if teamInfo.TeamID == id1 {
 				require.False(t, teamInfo.IsOpenTeam)
-			} else if teamInfo.FqName == team2 {
+			} else if teamInfo.TeamID == id2 {
 				require.True(t, teamInfo.IsOpenTeam)
 			} else {
 				t.Fatalf("Unexpected team name %v", teamInfo)
@@ -272,7 +272,6 @@ func TestTeamDuplicateUIDList(t *testing.T) {
 
 	check := func(list *keybase1.AnnotatedTeamList) {
 		require.Equal(t, 1, len(list.Teams))
-		require.Equal(t, 0, len(list.AnnotatedActiveInvites))
 
 		teamInfo := list.Teams[0]
 		require.Equal(t, team, teamInfo.FqName)
@@ -335,7 +334,7 @@ func TestTeamTree(t *testing.T) {
 			set[v.String()] = false
 		}
 
-		tree, err := teams.TeamTree(context.Background(), ann.tc.G, keybase1.TeamTreeArg{Name: teamName})
+		tree, err := teams.TeamTreeUnverified(context.Background(), ann.tc.G, keybase1.TeamTreeUnverifiedArg{Name: teamName})
 		require.NoError(t, err)
 		require.Equal(t, len(expectedTree), len(tree.Entries))
 
@@ -394,13 +393,14 @@ func TestTeamProfileAddList(t *testing.T) {
 	ann := tt.addUser("ann")
 	t.Logf("Signed up ann (%s)", ann.username)
 
-	_, teamName := ann.createTeam2()
+	teamID, teamName := ann.createTeam2()
 	t.Logf("Team created (%s)", teamName)
 
 	res, err := ann.teamsClient.TeamProfileAddList(context.TODO(), keybase1.TeamProfileAddListArg{Username: "t_alice"})
 	require.NoError(t, err)
 	require.Len(t, res, 1)
 	require.Equal(t, keybase1.TeamProfileAddEntry{
+		TeamID:         teamID,
 		TeamName:       teamName,
 		Open:           false,
 		DisabledReason: "",

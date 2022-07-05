@@ -58,7 +58,7 @@ func _testTrackTokenIdentify2(t *testing.T, sigVersion libkb.SigVersion) {
 		tc.T.Fatal(err)
 	}
 
-	defer runUntrack(tc, fu, username, sigVersion)
+	defer func() { _ = runUntrack(tc, fu, username, sigVersion) }()
 	assertTracking(tc, username)
 }
 
@@ -106,7 +106,7 @@ func TestTrackLocalThenLocalTemp(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	defer runUntrack(tc, fu, username, sigVersion)
+	defer func() { _ = runUntrack(tc, fu, username, sigVersion) }()
 
 	// Now make her Rooter proof fail with a 429
 	flakeyAPI.flakeOut = true
@@ -240,7 +240,7 @@ func _testTrackRemoteThenLocalTemp(t *testing.T, sigVersion libkb.SigVersion) {
 		t.Fatal(err)
 	}
 
-	defer runUntrack(tc, fu, username, sigVersion)
+	defer func() { _ = runUntrack(tc, fu, username, sigVersion) }()
 
 	// Now make her Rooter proof fail with a 429
 	flakeyAPI.flakeOut = true
@@ -362,7 +362,7 @@ func TestTrackFailTempRecover(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	defer runUntrack(tc, fu, username, sigVersion)
+	defer func() { _ = runUntrack(tc, fu, username, sigVersion) }()
 
 	// Now make her Rooter proof fail with a 429
 	flakeyAPI.flakeOut = true
@@ -449,12 +449,21 @@ func (d *FakeGregorState) State(ctx context.Context) (gregor.State, error) {
 	return nil, nil
 }
 
+func (d *FakeGregorState) UpdateCategory(ctx context.Context, cat string, body []byte,
+	dtime gregor1.TimeOrOffset) (res gregor1.MsgID, err error) {
+	return gregor1.MsgID{}, nil
+}
+
 func (d *FakeGregorState) InjectItem(ctx context.Context, cat string, body []byte, dtime gregor1.TimeOrOffset) (gregor1.MsgID, error) {
 	return nil, nil
 }
 
 func (d *FakeGregorState) DismissItem(ctx context.Context, cli gregor1.IncomingInterface, id gregor.MsgID) error {
 	d.dismissedMsgID = id
+	return nil
+}
+
+func (d *FakeGregorState) DismissCategory(ct context.Context, cat gregor1.Category) error {
 	return nil
 }
 

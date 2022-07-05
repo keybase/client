@@ -16,7 +16,8 @@ import (
 // CmdSimpleFSReset is the 'fs reset' command.
 type CmdSimpleFSReset struct {
 	libkb.Contextified
-	path keybase1.Path
+	path  keybase1.Path
+	tlfID string
 }
 
 // NewCmdSimpleFSReset creates a new cli.Command.
@@ -30,6 +31,12 @@ func NewCmdSimpleFSReset(
 			cl.ChooseCommand(&CmdSimpleFSReset{
 				Contextified: libkb.NewContextified(g)}, "reset", c)
 			cl.SetNoStandalone()
+		},
+		Flags: []cli.Flag{
+			cli.StringFlag{
+				Name:  "id",
+				Usage: "the ID to which to reset the folder (experts only!)",
+			},
 		},
 	}
 }
@@ -57,7 +64,11 @@ func (c *CmdSimpleFSReset) Run() error {
 		return err
 	}
 
-	err = cli.SimpleFSReset(context.TODO(), c.path)
+	arg := keybase1.SimpleFSResetArg{
+		Path:  c.path,
+		TlfID: c.tlfID,
+	}
+	err = cli.SimpleFSReset(context.TODO(), arg)
 	if err != nil {
 		return err
 	}
@@ -76,6 +87,7 @@ func (c *CmdSimpleFSReset) ParseArgv(ctx *cli.Context) error {
 		return err
 	}
 	c.path = p
+	c.tlfID = ctx.String("id")
 	return nil
 }
 

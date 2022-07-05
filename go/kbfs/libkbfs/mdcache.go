@@ -10,6 +10,7 @@ import (
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
 )
@@ -132,7 +133,7 @@ func (md *MDCacheStandard) MarkPutToServer(
 
 // GetIDForHandle implements the MDCache interface for
 // MDCacheStandard.
-func (md *MDCacheStandard) GetIDForHandle(handle *TlfHandle) (tlf.ID, error) {
+func (md *MDCacheStandard) GetIDForHandle(handle *tlfhandle.Handle) (tlf.ID, error) {
 	md.lock.RLock()
 	defer md.lock.RUnlock()
 	key := handle.GetCanonicalPath()
@@ -149,7 +150,7 @@ func (md *MDCacheStandard) GetIDForHandle(handle *TlfHandle) (tlf.ID, error) {
 
 // PutIDForHandle implements the MDCache interface for
 // MDCacheStandard.
-func (md *MDCacheStandard) PutIDForHandle(handle *TlfHandle, id tlf.ID) error {
+func (md *MDCacheStandard) PutIDForHandle(handle *tlfhandle.Handle, id tlf.ID) error {
 	md.lock.RLock()
 	defer md.lock.RUnlock()
 	key := handle.GetCanonicalPath()
@@ -160,7 +161,7 @@ func (md *MDCacheStandard) PutIDForHandle(handle *TlfHandle, id tlf.ID) error {
 // ChangeHandleForID implements the MDCache interface for
 // MDCacheStandard.
 func (md *MDCacheStandard) ChangeHandleForID(
-	oldHandle *TlfHandle, newHandle *TlfHandle) {
+	oldHandle *tlfhandle.Handle, newHandle *tlfhandle.Handle) {
 	md.lock.RLock()
 	defer md.lock.RUnlock()
 	oldKey := oldHandle.GetCanonicalPath()
@@ -171,7 +172,6 @@ func (md *MDCacheStandard) ChangeHandleForID(
 	md.idLRU.Remove(oldKey)
 	newKey := newHandle.GetCanonicalPath()
 	md.idLRU.Add(newKey, tmp)
-	return
 }
 
 type mdcacheNextMDKey struct {

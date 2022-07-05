@@ -61,12 +61,12 @@ func TestTeamOpenSettings(t *testing.T) {
 
 	own := tt.addUser("own")
 
-	teamName := own.createTeam()
+	id, teamName := own.createTeam2()
 	t.Logf("Open team name is %q", teamName)
 
 	loadTeam := func() *teams.Team {
 		ret, err := teams.Load(context.TODO(), own.tc.G, keybase1.LoadTeamArg{
-			Name:        teamName,
+			Name:        teamName.String(),
 			ForceRepoll: true,
 		})
 		require.NoError(t, err)
@@ -76,13 +76,13 @@ func TestTeamOpenSettings(t *testing.T) {
 	teamObj := loadTeam()
 	require.Equal(t, teamObj.IsOpen(), false)
 
-	err := teams.ChangeTeamSettings(context.TODO(), own.tc.G, teamName, keybase1.TeamSettings{Open: true, JoinAs: keybase1.TeamRole_READER})
+	err := teams.ChangeTeamSettingsByID(context.TODO(), own.tc.G, id, keybase1.TeamSettings{Open: true, JoinAs: keybase1.TeamRole_READER})
 	require.NoError(t, err)
 
 	teamObj = loadTeam()
 	require.Equal(t, teamObj.IsOpen(), true)
 
-	err = teams.ChangeTeamSettings(context.TODO(), own.tc.G, teamName, keybase1.TeamSettings{Open: false})
+	err = teams.ChangeTeamSettingsByID(context.TODO(), own.tc.G, id, keybase1.TeamSettings{Open: false})
 	require.NoError(t, err)
 
 	teamObj = loadTeam()
@@ -114,7 +114,7 @@ func TestOpenSubteamAdd(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	err = teams.ChangeTeamSettings(context.TODO(), own.tc.G, subteamObj.Name().String(), keybase1.TeamSettings{Open: true, JoinAs: keybase1.TeamRole_READER})
+	err = teams.ChangeTeamSettingsByID(context.TODO(), own.tc.G, subteamObj.ID, keybase1.TeamSettings{Open: true, JoinAs: keybase1.TeamRole_READER})
 	require.NoError(t, err)
 
 	subteamObj, err = teams.Load(context.TODO(), own.tc.G, keybase1.LoadTeamArg{
@@ -129,7 +129,8 @@ func TestOpenSubteamAdd(t *testing.T) {
 
 	// User requesting access
 	subteamNameStr := subteamObj.Name().String()
-	roo.teamsClient.TeamRequestAccess(context.TODO(), keybase1.TeamRequestAccessArg{Name: subteamNameStr})
+	_, err = roo.teamsClient.TeamRequestAccess(context.TODO(), keybase1.TeamRequestAccessArg{Name: subteamNameStr})
+	require.NoError(t, err)
 
 	own.waitForTeamChangedGregor(*subteam, keybase1.Seqno(3))
 
@@ -158,13 +159,16 @@ func TestTeamOpenMultipleTars(t *testing.T) {
 	t.Logf("Open team name is %q", teamName.String())
 
 	// Everyone requests access before team is open.
-	tar1.teamsClient.TeamRequestAccess(context.Background(), keybase1.TeamRequestAccessArg{Name: teamName.String()})
-	tar2.teamsClient.TeamRequestAccess(context.Background(), keybase1.TeamRequestAccessArg{Name: teamName.String()})
-	tar3.teamsClient.TeamRequestAccess(context.Background(), keybase1.TeamRequestAccessArg{Name: teamName.String()})
+	_, err := tar1.teamsClient.TeamRequestAccess(context.Background(), keybase1.TeamRequestAccessArg{Name: teamName.String()})
+	require.NoError(t, err)
+	_, err = tar2.teamsClient.TeamRequestAccess(context.Background(), keybase1.TeamRequestAccessArg{Name: teamName.String()})
+	require.NoError(t, err)
+	_, err = tar3.teamsClient.TeamRequestAccess(context.Background(), keybase1.TeamRequestAccessArg{Name: teamName.String()})
+	require.NoError(t, err)
 
 	// Change settings to open.
 	tar3.kickTeamRekeyd()
-	err := teams.ChangeTeamSettings(context.Background(), own.tc.G, teamName.String(), keybase1.TeamSettings{Open: true, JoinAs: keybase1.TeamRole_READER})
+	err = teams.ChangeTeamSettingsByID(context.Background(), own.tc.G, teamID, keybase1.TeamSettings{Open: true, JoinAs: keybase1.TeamRole_READER})
 	require.NoError(t, err)
 
 	own.waitForTeamChangedGregor(teamID, keybase1.Seqno(3))
@@ -207,7 +211,7 @@ func TestTeamOpenBans(t *testing.T) {
 
 	removeRunner := client.NewCmdTeamRemoveMemberRunner(own.tc.G)
 	removeRunner.Team = team
-	removeRunner.Username = bob.username
+	removeRunner.Assertion = bob.username
 	removeRunner.Force = true
 	err = removeRunner.Run()
 	require.NoError(t, err)
@@ -226,10 +230,11 @@ func TestTeamOpenPuklessRequest(t *testing.T) {
 	own := tt.addUser("own")
 	bob := tt.addPuklessUser("bob")
 
-	team := own.createTeam()
+	teamID, teamName := own.createTeam2()
+	team := teamName.String()
 	t.Logf("Open team name is %q", team)
 
-	err := teams.ChangeTeamSettings(context.Background(), own.tc.G, team, keybase1.TeamSettings{Open: true, JoinAs: keybase1.TeamRole_WRITER})
+	err := teams.ChangeTeamSettingsByID(context.Background(), own.tc.G, teamID, keybase1.TeamSettings{Open: true, JoinAs: keybase1.TeamRole_WRITER})
 	require.NoError(t, err)
 
 	// Bob is PUKless but he can still request access. But he will
@@ -269,7 +274,7 @@ func TestTeamOpenResetAndRejoin(t *testing.T) {
 	teamID, teamName := ann.createTeam2()
 	team := teamName.String()
 	ann.addTeamMember(team, bob.username, keybase1.TeamRole_WRITER)
-	err := teams.ChangeTeamSettings(context.Background(), ann.tc.G, team, keybase1.TeamSettings{Open: true, JoinAs: keybase1.TeamRole_READER})
+	err := teams.ChangeTeamSettingsByID(context.Background(), ann.tc.G, teamID, keybase1.TeamSettings{Open: true, JoinAs: keybase1.TeamRole_READER})
 	require.NoError(t, err)
 
 	t.Logf("Open team name is %q", team)
@@ -278,7 +283,7 @@ func TestTeamOpenResetAndRejoin(t *testing.T) {
 	bob.reset()
 
 	// Wait for change membership link after bob resets
-	ann.waitForRotateByID(teamID, keybase1.Seqno(4))
+	ann.pollForTeamSeqnoLink(team, keybase1.Seqno(4))
 
 	bob.loginAfterResetPukless()
 	_, err = bob.teamsClient.TeamRequestAccess(context.Background(), keybase1.TeamRequestAccessArg{Name: team})

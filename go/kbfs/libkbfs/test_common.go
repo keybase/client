@@ -8,15 +8,19 @@ import (
 	"fmt"
 	"net"
 	"os"
-	"sync"
 	"time"
 
 	"github.com/keybase/client/go/externals"
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/env"
+	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
+	"github.com/keybase/client/go/kbfs/libkey"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
 	kbname "github.com/keybase/client/go/kbun"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
@@ -45,20 +49,26 @@ const (
 // TODO: Move more common code here.
 func newConfigForTest(modeType InitModeType, loggerFn func(module string) logger.Logger) *ConfigLocal {
 	mode := modeTest{NewInitModeFromType(modeType)}
-	config := NewConfigLocal(mode, loggerFn, "", DiskCacheModeOff, &env.KBFSContext{})
+	g := &libkb.GlobalContext{
+		// Env is needed by simplefs.
+		Env: libkb.NewEnv(nil, nil, func() logger.Logger {
+			return loggerFn("G")
+		}),
+	}
+	g.MobileAppState = libkb.NewMobileAppState(g)
+	config := NewConfigLocal(mode, loggerFn, "", DiskCacheModeOff, env.NewContextFromGlobalContext(g))
+	config.SetVLogLevel(libkb.VLog1String)
 
 	bops := NewBlockOpsStandard(
 		config, testBlockRetrievalWorkerQueueSize, testPrefetchWorkerQueueSize,
-		0)
+		0, env.EmptyAppStateUpdater{})
 	config.SetBlockOps(bops)
 
-	maxDirEntriesPerBlock, err := getMaxDirEntriesPerBlock()
+	bsplit, err := data.NewBlockSplitterSimpleExact(
+		64*1024, 64*1024/int(data.BPSize), 8*1024)
 	if err != nil {
 		panic(err)
 	}
-
-	bsplit := &BlockSplitterSimple{
-		64 * 1024, 64 * 1024 / int(bpSize), 8 * 1024, maxDirEntriesPerBlock}
 	err = bsplit.SetMaxDirEntriesByBlockSize(config.Codec())
 	if err != nil {
 		panic(err)
@@ -70,7 +80,7 @@ func newConfigForTest(modeType InitModeType, loggerFn func(module string) logger
 
 // MakeTestBlockServerOrBust makes a block server from the given
 // arguments and environment variables.
-func MakeTestBlockServerOrBust(t logger.TestLogBackend,
+func MakeTestBlockServerOrBust(t logger.TestLogBackend, c *ConfigLocal,
 	config blockServerRemoteConfig,
 	rpcLogFactory rpc.LogFactory) BlockServer {
 	// see if a local remote server is specified
@@ -89,7 +99,7 @@ func MakeTestBlockServerOrBust(t logger.TestLogBackend,
 		if err != nil {
 			t.Fatal(err)
 		}
-		return NewBlockServerRemote(config, remote, rpcLogFactory)
+		return NewBlockServerRemote(c.kbCtx, config, remote, rpcLogFactory)
 
 	default:
 		return NewBlockServerMemory(config.MakeLogger(""))
@@ -134,14 +144,17 @@ func MakeTestConfigOrBustLoggedInWithMode(
 		return log
 	})
 
-	kbfsOps := NewKBFSOpsStandard(env.EmptyAppStateUpdater{}, config)
+	initDoneCh := make(chan struct{})
+	kbfsOps := NewKBFSOpsStandard(
+		env.EmptyAppStateUpdater{}, config, initDoneCh)
+	defer close(initDoneCh)
 	config.SetKBFSOps(kbfsOps)
 	config.SetNotifier(kbfsOps)
 
 	config.SetKeyManager(NewKeyManagerStandard(config))
 	config.SetMDOps(NewMDOpsStandard(config))
 
-	localUsers := MakeLocalUsers(users)
+	localUsers := idutil.MakeLocalUsers(users)
 	loggedInUser := localUsers[loggedInIndex]
 
 	daemon := NewKeybaseDaemonMemory(loggedInUser.UID, localUsers, nil,
@@ -154,20 +167,21 @@ func MakeTestConfigOrBustLoggedInWithMode(
 
 	kbfsOps.favs.Initialize(context.TODO())
 
-	signingKey := MakeLocalUserSigningKeyOrBust(loggedInUser.Name)
-	cryptPrivateKey := MakeLocalUserCryptPrivateKeyOrBust(loggedInUser.Name)
+	signingKey := idutil.MakeLocalUserSigningKeyOrBust(loggedInUser.Name)
+	cryptPrivateKey := idutil.MakeLocalUserCryptPrivateKeyOrBust(
+		loggedInUser.Name)
 	crypto := NewCryptoLocal(
 		config.Codec(), signingKey, cryptPrivateKey, config)
 	config.SetCrypto(crypto)
 
 	blockServer := MakeTestBlockServerOrBust(
-		t, config, newTestRPCLogFactory(t))
+		t, config, config, newTestRPCLogFactory(t))
 	config.SetBlockServer(blockServer)
 
 	// see if a local remote server is specified
 	mdServerAddr := os.Getenv(EnvTestMDServerAddr)
 	var mdServer MDServer
-	var keyServer KeyServer
+	var keyServer libkey.KeyServer
 	switch {
 	case mdServerAddr == TempdirServerAddr:
 		var err error
@@ -176,8 +190,8 @@ func MakeTestConfigOrBustLoggedInWithMode(
 		if err != nil {
 			t.Fatal(err)
 		}
-		keyServer, err = NewKeyServerTempDir(
-			mdServerLocalConfigAdapter{config})
+		keyServer, err = libkey.NewKeyServerTempDir(
+			keyOpsConfigWrapper{config}, log)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -188,7 +202,7 @@ func MakeTestConfigOrBustLoggedInWithMode(
 			t.Fatal(err)
 		}
 		// connect to server
-		mdServer = NewMDServerRemote(config, remote, newTestRPCLogFactory(t))
+		mdServer = NewMDServerRemote(config.kbCtx, config, remote, newTestRPCLogFactory(t))
 		// for now the MD server acts as the key server in production
 		keyServer = mdServer.(*MDServerRemote)
 
@@ -201,8 +215,8 @@ func MakeTestConfigOrBustLoggedInWithMode(
 			t.Fatal(err)
 		}
 		// shim for the key server too
-		keyServer, err = NewKeyServerMemory(
-			mdServerLocalConfigAdapter{config})
+		keyServer, err = libkey.NewKeyServerMemory(
+			keyOpsConfigWrapper{config}, log)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -245,7 +259,9 @@ func ConfigAsUserWithMode(config *ConfigLocal,
 	c.SetMetadataVersion(config.MetadataVersion())
 	c.SetRekeyWithPromptWaitTime(config.RekeyWithPromptWaitTime())
 
-	kbfsOps := NewKBFSOpsStandard(env.EmptyAppStateUpdater{}, c)
+	initDoneCh := make(chan struct{})
+	kbfsOps := NewKBFSOpsStandard(env.EmptyAppStateUpdater{}, c, initDoneCh)
+	defer close(initDoneCh)
 	c.SetKBFSOps(kbfsOps)
 	c.SetNotifier(kbfsOps)
 
@@ -260,23 +276,20 @@ func ConfigAsUserWithMode(config *ConfigLocal,
 	}
 
 	daemon := config.KeybaseService().(*KeybaseDaemonLocal)
-	loggedInUID, ok := daemon.asserts[string(loggedInUser)]
+	loggedInUID, ok := daemon.GetIDForAssertion(string(loggedInUser))
 	if !ok {
 		panic("bad test: unknown user: " + loggedInUser)
 	}
 
-	var localUsers []LocalUser
-	for _, u := range daemon.localUsers {
-		localUsers = append(localUsers, u)
-	}
+	localUsers := daemon.GetLocalUsers()
 	newDaemon := NewKeybaseDaemonMemory(
 		loggedInUID.AsUserOrBust(), localUsers, nil, c.Codec())
 	c.SetKeybaseService(newDaemon)
 	c.SetKBPKI(NewKBPKIClient(c, c.MakeLogger("")))
 	kbfsOps.favs.InitForTest()
 
-	signingKey := MakeLocalUserSigningKeyOrBust(loggedInUser)
-	cryptPrivateKey := MakeLocalUserCryptPrivateKeyOrBust(loggedInUser)
+	signingKey := idutil.MakeLocalUserSigningKeyOrBust(loggedInUser)
+	cryptPrivateKey := idutil.MakeLocalUserCryptPrivateKeyOrBust(loggedInUser)
 	crypto := NewCryptoLocal(
 		config.Codec(), signingKey, cryptPrivateKey, config)
 	c.SetCrypto(crypto)
@@ -287,7 +300,7 @@ func ConfigAsUserWithMode(config *ConfigLocal,
 		if err != nil {
 			panic(err)
 		}
-		blockServer := NewBlockServerRemote(c, remote, s.putConn.rpcLogFactory)
+		blockServer := NewBlockServerRemote(c.kbCtx, c, remote, s.putConn.rpcLogFactory)
 		c.SetBlockServer(blockServer)
 	} else {
 		c.SetBlockServer(config.BlockServer())
@@ -300,14 +313,14 @@ func ConfigAsUserWithMode(config *ConfigLocal,
 	}
 
 	var mdServer MDServer
-	var keyServer KeyServer
+	var keyServer libkey.KeyServer
 	if s, ok := config.MDServer().(*MDServerRemote); ok {
 		remote, err := rpc.ParsePrioritizedRoundRobinRemote(s.RemoteAddress())
 		if err != nil {
 			panic(err)
 		}
 		// connect to server
-		mdServer = NewMDServerRemote(c, remote, s.rpcLogFactory)
+		mdServer = NewMDServerRemote(c.kbCtx, c, remote, s.rpcLogFactory)
 		// for now the MD server also acts as the key server.
 		keyServer = mdServer.(*MDServerRemote)
 	} else {
@@ -318,8 +331,9 @@ func ConfigAsUserWithMode(config *ConfigLocal,
 		mdServer = mdServerToCopy.copy(mdServerLocalConfigAdapter{c})
 
 		// use the same db but swap configs
-		keyServerToCopy := config.KeyServer().(*KeyServerLocal)
-		keyServer = keyServerToCopy.copy(mdServerLocalConfigAdapter{c})
+		keyServerToCopy := config.KeyServer().(*libkey.KeyServerLocal)
+		keyServer = keyServerToCopy.CopyWithConfigAndLogger(
+			keyOpsConfigWrapper{c}, c.MakeLogger(""))
 	}
 	c.SetMDServer(mdServer)
 	c.SetKeyServer(keyServer)
@@ -338,21 +352,21 @@ func ConfigAsUserWithMode(config *ConfigLocal,
 func ConfigAsUser(config *ConfigLocal,
 	loggedInUser kbname.NormalizedUsername) *ConfigLocal {
 	c := ConfigAsUserWithMode(config, loggedInUser, config.Mode().Type())
-	c.mode = config.mode // preserve any unusual test mode wrappers
+	c.SetMode(config.mode) // preserve any unusual test mode wrappers
 	return c
 }
 
 // NewEmptyTLFWriterKeyBundle creates a new empty kbfsmd.TLFWriterKeyBundleV2
 func NewEmptyTLFWriterKeyBundle() kbfsmd.TLFWriterKeyBundleV2 {
 	return kbfsmd.TLFWriterKeyBundleV2{
-		WKeys: make(kbfsmd.UserDeviceKeyInfoMapV2, 0),
+		WKeys: make(kbfsmd.UserDeviceKeyInfoMapV2),
 	}
 }
 
 // NewEmptyTLFReaderKeyBundle creates a new empty kbfsmd.TLFReaderKeyBundleV2
 func NewEmptyTLFReaderKeyBundle() kbfsmd.TLFReaderKeyBundleV2 {
 	return kbfsmd.TLFReaderKeyBundleV2{
-		RKeys: make(kbfsmd.UserDeviceKeyInfoMapV2, 0),
+		RKeys: make(kbfsmd.UserDeviceKeyInfoMapV2),
 	}
 }
 
@@ -369,8 +383,8 @@ func keySaltForUserDevice(name kbname.NormalizedUsername,
 func makeFakeKeys(name kbname.NormalizedUsername, index int) (
 	kbfscrypto.CryptPublicKey, kbfscrypto.VerifyingKey) {
 	keySalt := keySaltForUserDevice(name, index)
-	newCryptPublicKey := MakeLocalUserCryptPublicKeyOrBust(keySalt)
-	newVerifyingKey := MakeLocalUserVerifyingKeyOrBust(keySalt)
+	newCryptPublicKey := idutil.MakeLocalUserCryptPublicKeyOrBust(keySalt)
+	newVerifyingKey := idutil.MakeLocalUserVerifyingKeyOrBust(keySalt)
 	return newCryptPublicKey, newVerifyingKey
 }
 
@@ -426,8 +440,8 @@ func SwitchDeviceForLocalUserOrBust(t logger.TestLogBackend, config Config, inde
 	}
 
 	keySalt := keySaltForUserDevice(session.Name, index)
-	signingKey := MakeLocalUserSigningKeyOrBust(keySalt)
-	cryptPrivateKey := MakeLocalUserCryptPrivateKeyOrBust(keySalt)
+	signingKey := idutil.MakeLocalUserSigningKeyOrBust(keySalt)
+	cryptPrivateKey := idutil.MakeLocalUserCryptPrivateKeyOrBust(keySalt)
 	config.SetCrypto(
 		NewCryptoLocal(config.Codec(), signingKey, cryptPrivateKey, config))
 }
@@ -444,7 +458,7 @@ func AddNewAssertionForTest(
 		return errors.New("Bad keybase daemon")
 	}
 
-	uid, err := kbd.addNewAssertionForTest(oldAssertion, newAssertion)
+	uid, err := kbd.AddNewAssertionForTest(oldAssertion, newAssertion)
 	if err != nil {
 		return err
 	}
@@ -458,7 +472,7 @@ func AddNewAssertionForTest(
 	// configs, it may end up invoking the following call more than
 	// once on the shared md databases.  That's ok though, it's an
 	// idempotent call.
-	newSocialAssertion, ok := externals.NormalizeSocialAssertionStatic(newAssertion)
+	newSocialAssertion, ok := externals.NormalizeSocialAssertionStatic(context.Background(), newAssertion)
 	if !ok {
 		return errors.Errorf("%s couldn't be parsed as a social assertion", newAssertion)
 	}
@@ -551,15 +565,15 @@ func AddTeamKeyForTest(config Config, tid keybase1.TeamID) error {
 	ti, err := kbd.LoadTeamPlusKeys(
 		context.Background(), tid, tlf.Unknown, kbfsmd.UnspecifiedKeyGen,
 		keybase1.UserVersion{}, kbfscrypto.VerifyingKey{},
-		keybase1.TeamRole_NONE)
+		keybase1.TeamRole_NONE, keybase1.OfflineAvailability_NONE)
 	if err != nil {
 		return err
 	}
 	newKeyGen := ti.LatestKeyGen + 1
-	newKey := MakeLocalTLFCryptKeyOrBust(
-		buildCanonicalPathForTlfType(tlf.SingleTeam, string(ti.Name)),
+	newKey := idutil.MakeLocalTLFCryptKeyOrBust(
+		tlf.SingleTeam.String()+"/"+string(ti.Name),
 		newKeyGen)
-	return kbd.addTeamKeyForTest(tid, newKeyGen, newKey)
+	return kbd.AddTeamKeyForTest(tid, newKeyGen, newKey)
 }
 
 // AddTeamKeyForTestOrBust is like AddTeamKeyForTest, but
@@ -575,8 +589,8 @@ func AddTeamKeyForTestOrBust(t logger.TestLogBackend, config Config,
 // AddEmptyTeamsForTest creates teams for the given names with empty
 // membership lists.
 func AddEmptyTeamsForTest(
-	config Config, teams ...kbname.NormalizedUsername) ([]TeamInfo, error) {
-	teamInfos := MakeLocalTeams(teams)
+	config Config, teams ...kbname.NormalizedUsername) ([]idutil.TeamInfo, error) {
+	teamInfos := idutil.MakeLocalTeams(teams)
 
 	kbd, ok := config.KeybaseService().(*KeybaseDaemonLocal)
 	if !ok {
@@ -590,7 +604,7 @@ func AddEmptyTeamsForTest(
 // AddEmptyTeamsForTestOrBust is like AddEmptyTeamsForTest, but dies
 // if there's an error.
 func AddEmptyTeamsForTestOrBust(t logger.TestLogBackend,
-	config Config, teams ...kbname.NormalizedUsername) []TeamInfo {
+	config Config, teams ...kbname.NormalizedUsername) []idutil.TeamInfo {
 	teamInfos, err := AddEmptyTeamsForTest(config, teams...)
 	if err != nil {
 		t.Fatal(err)
@@ -603,7 +617,8 @@ func AddImplicitTeamForTest(
 	config Config, name, suffix string, teamNumber byte, ty tlf.Type) (
 	keybase1.TeamID, error) {
 	iteamInfo, err := config.KeybaseService().ResolveIdentifyImplicitTeam(
-		context.Background(), name, suffix, ty, true, "")
+		context.Background(), name, suffix, ty, true, "",
+		keybase1.OfflineAvailability_NONE)
 	if err != nil {
 		return "", err
 	}
@@ -630,7 +645,7 @@ func ChangeTeamNameForTest(
 		return errors.New("Bad keybase daemon")
 	}
 
-	tid, err := kbd.changeTeamNameForTest(oldName, newName)
+	tid, err := kbd.ChangeTeamNameForTest(oldName, newName)
 	if err != nil {
 		return err
 	}
@@ -657,7 +672,7 @@ func SetGlobalMerkleRootForTest(
 		return errors.New("Bad keybase daemon")
 	}
 
-	kbd.setCurrentMerkleRoot(root, rootTime)
+	kbd.SetCurrentMerkleRoot(root, rootTime)
 	return nil
 }
 
@@ -726,7 +741,7 @@ func testRPCWithCanceledContext(t logger.TestLogBackend,
 // DisableUpdatesForTesting stops the given folder from acting on new
 // updates.  Send a struct{}{} down the returned channel to restart
 // notifications
-func DisableUpdatesForTesting(config Config, folderBranch FolderBranch) (
+func DisableUpdatesForTesting(config Config, folderBranch data.FolderBranch) (
 	chan<- struct{}, error) {
 	kbfsOps, ok := config.KBFSOps().(*KBFSOpsStandard)
 	if !ok {
@@ -741,7 +756,7 @@ func DisableUpdatesForTesting(config Config, folderBranch FolderBranch) (
 
 // DisableCRForTesting stops conflict resolution for the given folder.
 // RestartCRForTesting should be called to restart it.
-func DisableCRForTesting(config Config, folderBranch FolderBranch) error {
+func DisableCRForTesting(config Config, folderBranch data.FolderBranch) error {
 	kbfsOps, ok := config.KBFSOps().(*KBFSOpsStandard)
 	if !ok {
 		return errors.New("Unexpected KBFSOps type")
@@ -755,7 +770,7 @@ func DisableCRForTesting(config Config, folderBranch FolderBranch) error {
 // RestartCRForTesting re-enables conflict resolution for the given
 // folder.  baseCtx must have a cancellation delayer.
 func RestartCRForTesting(baseCtx context.Context, config Config,
-	folderBranch FolderBranch) error {
+	folderBranch data.FolderBranch) error {
 	kbfsOps, ok := config.KBFSOps().(*KBFSOpsStandard)
 	if !ok {
 		return errors.New("Unexpected KBFSOps type")
@@ -773,10 +788,24 @@ func RestartCRForTesting(baseCtx context.Context, config Config,
 	return nil
 }
 
+// SetCRFailureForTesting sets whether CR should always fail on the folder
+// branch.
+func SetCRFailureForTesting(ctx context.Context, config Config,
+	folderBranch data.FolderBranch, fail failModeForTesting) error {
+	kbfsOps, ok := config.KBFSOps().(*KBFSOpsStandard)
+	if !ok {
+		return errors.New("Unexpected KBFSOps type")
+	}
+
+	ops := kbfsOps.getOpsNoAdd(ctx, folderBranch)
+	ops.cr.setFailModeForTesting(fail)
+	return nil
+}
+
 // ForceQuotaReclamationForTesting kicks off quota reclamation under
 // the given config, for the given folder-branch.
 func ForceQuotaReclamationForTesting(config Config,
-	folderBranch FolderBranch) error {
+	folderBranch data.FolderBranch) error {
 	kbfsOps, ok := config.KBFSOps().(*KBFSOpsStandard)
 	if !ok {
 		return errors.New("Unexpected KBFSOps type")
@@ -787,47 +816,15 @@ func ForceQuotaReclamationForTesting(config Config,
 	return nil
 }
 
-// TestClock returns a set time as the current time.
-type TestClock struct {
-	l sync.Mutex
-	t time.Time
-}
-
-func newTestClockNow() *TestClock {
-	return &TestClock{t: time.Now()}
-}
-
-func newTestClockAndTimeNow() (*TestClock, time.Time) {
-	t0 := time.Now()
-	return &TestClock{t: t0}, t0
-}
-
-// Now implements the Clock interface for TestClock.
-func (tc *TestClock) Now() time.Time {
-	tc.l.Lock()
-	defer tc.l.Unlock()
-	return tc.t
-}
-
-// Set sets the test clock time.
-func (tc *TestClock) Set(t time.Time) {
-	tc.l.Lock()
-	defer tc.l.Unlock()
-	tc.t = t
-}
-
-// Add adds to the test clock time.
-func (tc *TestClock) Add(d time.Duration) {
-	tc.l.Lock()
-	defer tc.l.Unlock()
-	tc.t = tc.t.Add(d)
-}
-
 // CheckConfigAndShutdown shuts down the given config, but fails the
 // test if there's an error.
 func CheckConfigAndShutdown(
 	ctx context.Context, t logger.TestLogBackend, config Config) {
-	if err := config.Shutdown(ctx); err != nil {
+	err := config.Shutdown(ctx)
+	switch errors.Cause(err).(type) {
+	case data.ShutdownHappenedError:
+	case nil:
+	default:
 		t.Errorf("err=%+v", err)
 	}
 }
@@ -837,12 +834,13 @@ func CheckConfigAndShutdown(
 func GetRootNodeForTest(
 	ctx context.Context, config Config, name string,
 	t tlf.Type) (Node, error) {
-	h, err := ParseTlfHandle(ctx, config.KBPKI(), config.MDOps(), name, t)
+	h, err := tlfhandle.ParseHandle(
+		ctx, config.KBPKI(), config.MDOps(), config, name, t)
 	if err != nil {
 		return nil, err
 	}
 
-	n, _, err := config.KBFSOps().GetOrCreateRootNode(ctx, h, MasterBranch)
+	n, _, err := config.KBFSOps().GetOrCreateRootNode(ctx, h, data.MasterBranch)
 	if err != nil {
 		return nil, err
 	}

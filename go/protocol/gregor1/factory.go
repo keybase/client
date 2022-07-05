@@ -19,17 +19,6 @@ func (o ObjFactory) MakeBody(b []byte) (gregor.Body, error)         { return Bod
 func (o ObjFactory) MakeSystem(s string) (gregor.System, error)     { return System(s), nil }
 func (o ObjFactory) MakeCategory(s string) (gregor.Category, error) { return Category(s), nil }
 
-func castMsgID(msgid gregor.MsgID) (ret MsgID, err error) {
-	if msgid == nil {
-		return ret, err
-	}
-	ret, ok := msgid.(MsgID)
-	if !ok {
-		err = errors.New("bad Msg ID; wrong type")
-	}
-	return ret, nil
-}
-
 func castUID(uid gregor.UID) (ret UID, err error) {
 	if uid == nil {
 		return
@@ -202,7 +191,7 @@ func (its itemSlice) Less(i, j int) bool {
 }
 
 func (o ObjFactory) MakeState(items []gregor.Item) (gregor.State, error) {
-	var ourItems itemSlice
+	ourItems := make(itemSlice, 0, len(items))
 	for _, item := range items {
 		ourItem, err := castItem(item)
 		if err != nil {

@@ -11,21 +11,13 @@ import (
 
 	"bazil.org/fuse/fs"
 	"github.com/keybase/client/go/kbfs/libfs"
-	"github.com/keybase/client/go/kbfs/libkbfs"
 )
 
 // handleCommonSpecialFile handles special files that are present both
 // within a TLF and outside a TLF.
 func handleCommonSpecialFile(
 	name string, fs *FS, entryValid *time.Duration) fs.Node {
-	switch name {
-	case libkbfs.ErrorFile:
-		return NewErrorFile(fs, entryValid)
-	case libfs.MetricsFileName:
-		return NewMetricsFile(fs, entryValid)
-	case libfs.ProfileListDirName:
-		return ProfileList{}
-	case libfs.ResetCachesFileName:
+	if name == libfs.ResetCachesFileName {
 		return &ResetCachesFile{fs}
 	}
 
@@ -44,6 +36,15 @@ func handleNonTLFSpecialFile(
 	switch name {
 	case libfs.StatusFileName:
 		return NewNonTLFStatusFile(fs, entryValid)
+	case libfs.ProfileListDirName:
+		// Need to handle profiles explicitly here since we aren't
+		// using a wrapped file system with nodes for the
+		// root/folderlist directories.
+		return ProfileList{fs.config}
+	case libfs.MetricsFileName:
+		return NewMetricsFile(fs, entryValid)
+	case libfs.ErrorFileName:
+		return NewErrorFile(fs, entryValid)
 	case libfs.HumanErrorFileName, libfs.HumanNoLoginFileName:
 		*entryValid = 0
 		return &SpecialReadFile{fs.remoteStatus.NewSpecialReadFunc}
@@ -69,6 +70,9 @@ func handleNonTLFSpecialFile(
 
 	case libfs.EditHistoryName:
 		return NewUserEditHistoryFile(&Folder{fs: fs}, entryValid)
+
+	case libfs.OpenFileCountFileName:
+		return NewOpenFileCountFile(&Folder{fs: fs}, entryValid)
 	}
 
 	return nil
@@ -83,15 +87,6 @@ func handleTLFSpecialFile(
 	}
 
 	switch name {
-	case libfs.StatusFileName:
-		return NewTLFStatusFile(folder, entryValid)
-
-	case libfs.UpdateHistoryFileName:
-		return NewUpdateHistoryFile(folder, entryValid)
-
-	case libfs.EditHistoryName:
-		return NewTlfEditHistoryFile(folder, entryValid)
-
 	case libfs.UnstageFileName:
 		return &UnstageFile{
 			folder: folder,

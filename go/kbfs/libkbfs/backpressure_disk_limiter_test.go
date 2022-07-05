@@ -433,6 +433,7 @@ func makeTestBackpressureDiskLimiterParams() backpressureDiskLimiterParams {
 		quotaMaxThreshold: 1.2,
 		journalFrac:       0.25,
 		diskCacheFrac:     0.1,
+		syncCacheFrac:     1.0,
 		byteLimit:         400,
 		fileLimit:         40,
 		maxDelay:          8 * time.Second,

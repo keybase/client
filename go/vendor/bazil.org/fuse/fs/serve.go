@@ -12,6 +12,7 @@ import (
 	"runtime"
 	"strings"
 	"sync"
+	"syscall"
 	"time"
 
 	"golang.org/x/net/context"
@@ -793,7 +794,7 @@ func (c *Server) serve(r fuse.Request) {
 	var snode *serveNode
 	c.meta.Lock()
 	hdr := r.Hdr()
-	if id := hdr.Node; id != 0 {
+	if id := hdr.Node; id != 0 && id != fuse.PollHackInode {
 		if id < fuse.NodeID(len(c.node)) {
 			snode = c.node[uint(id)]
 		}
@@ -911,6 +912,12 @@ func (c *Server) serve(r fuse.Request) {
 	responded = true
 }
 
+func fillInPollHackAttr(attr *fuse.Attr) {
+	attr.Inode = uint64(fuse.PollHackInode)
+	attr.Mode = syscall.S_IFREG | 0644
+	attr.Nlink = 1
+}
+
 // handleRequest will either a) call done(s) and r.Respond(s) OR b) return an error.
 func (c *Server) handleRequest(ctx context.Context, node Node, snode *serveNode, r fuse.Request, done func(resp interface{})) error {
 	ctx = context.WithValue(ctx, CtxHeaderUIDKey, r.Hdr().Uid)
@@ -936,6 +943,12 @@ func (c *Server) handleRequest(ctx context.Context, node Node, snode *serveNode,
 	// Node operations.
 	case *fuse.GetattrRequest:
 		s := &fuse.GetattrResponse{}
+		if r.Hdr().Node == fuse.PollHackInode {
+			fillInPollHackAttr(&s.Attr)
+			done(s)
+			r.Respond(s)
+			return nil
+		}
 		if n, ok := node.(NodeGetattrer); ok {
 			if err := n.Getattr(ctx, r, s); err != nil {
 				return err
@@ -1107,13 +1120,23 @@ func (c *Server) handleRequest(ctx context.Context, node Node, snode *serveNode,
 		return nil
 
 	case *fuse.CreateRequest:
+		s := &fuse.CreateResponse{OpenResponse: fuse.OpenResponse{}}
+		initLookupResponse(&s.LookupResponse)
+		if r.Header.Node == fuse.RootID && r.Name == fuse.PollHackName {
+			s.Node = fuse.PollHackInode
+			s.Generation = 1
+			fillInPollHackAttr(&s.Attr)
+			s.Handle = fuse.HandleID(s.Node)
+			done(s)
+			r.Respond(s)
+			return nil
+		}
+
 		n, ok := node.(NodeCreater)
 		if !ok {
 			// If we send back ENOSYS, FUSE will try mknod+open.
 			return fuse.EPERM
 		}
-		s := &fuse.CreateResponse{OpenResponse: fuse.OpenResponse{}}
-		initLookupResponse(&s.LookupResponse)
 		n2, h2, err := n.Create(ctx, r, s)
 		if err != nil {
 			return err
@@ -1187,6 +1210,11 @@ func (c *Server) handleRequest(ctx context.Context, node Node, snode *serveNode,
 		return nil
 
 	case *fuse.ForgetRequest:
+		if r.Hdr().Node == fuse.PollHackInode {
+			done(nil)
+			r.Respond()
+			return nil
+		}
 		forget := c.dropNode(r.Hdr().Node, r.N)
 		if forget {
 			n, ok := node.(NodeForgetter)

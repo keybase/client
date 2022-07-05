@@ -41,7 +41,25 @@ func (c *CmdAccountReset) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
+func (c *CmdAccountReset) checkRandomPW() error {
+	cli, err := GetUserClient(c.G())
+	if err != nil {
+		return err
+	}
+	passphraseState, err := cli.LoadPassphraseState(context.Background(), 0)
+	if err != nil {
+		return err
+	}
+	if passphraseState == keybase1.PassphraseState_RANDOM {
+		return errors.New("Can't reset without a password. Set a password first")
+	}
+	return nil
+}
+
 func (c *CmdAccountReset) Run() error {
+	if err := c.checkRandomPW(); err != nil {
+		return err
+	}
 	protocols := []rpc.Protocol{
 		NewSecretUIProtocol(c.G()),
 	}
@@ -52,7 +70,12 @@ func (c *CmdAccountReset) Run() error {
 	if err != nil {
 		return err
 	}
-	return cli.ResetAccount(context.Background(), keybase1.ResetAccountArg{})
+	err = cli.ResetAccount(context.Background(), keybase1.ResetAccountArg{})
+	if err != nil {
+		return err
+	}
+	_, _ = c.G().UI.GetDumbOutputUI().PrintfStderr("Account has been reset.\n")
+	return nil
 }
 
 func (c *CmdAccountReset) GetUsage() libkb.Usage {

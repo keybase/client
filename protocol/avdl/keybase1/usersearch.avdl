@@ -1,0 +1,98 @@
+@namespace("keybase.1")
+protocol userSearch {
+    import idl "common.avdl";
+    import idl "contacts.avdl";
+
+    @typedef("string")
+    record APIUserServiceID {}
+
+    record APIUserKeybaseResult {
+        string username;
+        UID uid;
+        @jsonkey("picture_url")
+        union { null, string } pictureUrl;
+        @jsonkey("full_name")
+        union { null, string } fullName;
+        @jsonkey("raw_score")
+        double rawScore;
+        union { null, string } stellar;
+        @jsonkey("is_followee")
+        boolean isFollowee;
+    }
+
+    record APIUserServiceResult {
+        @jsonkey("service_name")
+        APIUserServiceID serviceName;
+        string username;
+        @jsonkey("picture_url")
+        string pictureUrl;
+        string bio;
+        string location;
+        @jsonkey("full_name")
+        string fullName;
+        union { null, boolean } confirmed;
+    }
+
+    record APIUserServiceSummary {
+        @jsonkey("service_name")
+        APIUserServiceID serviceName;
+        string username;
+    }
+
+    record ImpTofuSearchResult {
+        string assertion;
+        string assertionValue; // name
+        string assertionKey; // service (phone/email)
+        string label;
+        string prettyName;
+        string keybaseUsername; // keybase username if assertion resolves, empty if not
+    }
+
+    record APIUserSearchResult {
+        double score;
+        union { null, APIUserKeybaseResult } keybase;
+        union { null, APIUserServiceResult } service;
+        union { null, ProcessedContact } contact;
+        union { null, ImpTofuSearchResult } imptofu;
+        @jsonkey("services_summary")
+        map<APIUserServiceID, APIUserServiceSummary> servicesSummary;
+        double rawScore;
+    }
+
+    record NonUserDetails {
+        boolean isNonUser;
+        string assertionValue; // name
+        string assertionKey; // service
+        string description; // "Twitter user", "Phone contact"
+        union { null, ProcessedContact } contact;
+        union { null, APIUserServiceResult } service;
+        array<SizedImage> siteIcon;
+        array<SizedImage> siteIconDarkmode;
+        array<SizedImage> siteIconFull;
+        array<SizedImage> siteIconFullDarkmode;
+    }
+    NonUserDetails getNonUserDetails(int sessionID, string assertion);
+
+    array<APIUserSearchResult> userSearch(string query, string service, int maxResults,
+        boolean includeServicesSummary, boolean includeContacts);
+
+    // -----------
+
+    record EmailOrPhoneNumberSearchResult {
+        string input;
+        string assertion; // entire assertion ("[foo@keyba.se]@email", "48784123123@phone")
+        string assertionValue; // name ("foo@keyba.se")
+        string assertionKey; // service ("phone"/"email)
+
+        boolean foundUser;
+        string username;
+        string fullName;
+    }
+
+    // Given a bulk list of emails (in misc. formatting as long as emails are
+    // split by comma or newline and individual e-mails are understood by net/mail
+    // go package), and a list of phone numbers, do a Keybase user search. As a
+    // side-effect, Keybase assertion will be returned for each valid email and
+    // phone number.
+    array<EmailOrPhoneNumberSearchResult> bulkEmailOrPhoneSearch(int sessionID, string emails, array<PhoneNumber> phoneNumbers);
+}

@@ -17,8 +17,6 @@ import (
 type TrackHandler struct {
 	*BaseHandler
 	libkb.Contextified
-
-	lastCheckTime time.Time
 }
 
 var _ keybase1.TrackInterface = (*TrackHandler)(nil)

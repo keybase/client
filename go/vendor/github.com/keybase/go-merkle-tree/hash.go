@@ -7,15 +7,12 @@ import (
 // Len returns the number of bytes in the hash, but after shifting off
 // leading 0s from the length size of the hash
 func (h Hash) Len() int {
-	ret := len(h)
-	for _, c := range h {
-		if c == 0 {
-			ret--
-		} else {
-			break
+	for idx, x := range h {
+		if x != 0 {
+			return len(h) - idx
 		}
 	}
-	return ret
+	return 0
 }
 
 func (h Hash) cmp(h2 Hash) int {

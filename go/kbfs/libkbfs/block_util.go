@@ -5,9 +5,11 @@
 package libkbfs
 
 import (
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/kbfscodec"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
+	"github.com/keybase/client/go/kbfs/libkey"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/pkg/errors"
 	"golang.org/x/net/context"
@@ -26,12 +28,12 @@ func isRecoverableBlockError(err error) bool {
 // just adds a reference, depending on the refnonce in blockPtr.
 func putBlockToServer(
 	ctx context.Context, bserv BlockServer, tlfID tlf.ID,
-	blockPtr BlockPointer, readyBlockData ReadyBlockData,
+	blockPtr data.BlockPointer, readyBlockData data.ReadyBlockData,
 	cacheType DiskBlockCacheType) error {
 	var err error
 	if blockPtr.RefNonce == kbfsblock.ZeroRefNonce {
 		err = bserv.Put(ctx, tlfID, blockPtr.ID, blockPtr.Context,
-			readyBlockData.buf, readyBlockData.serverHalf, cacheType)
+			readyBlockData.Buf, readyBlockData.ServerHalf, cacheType)
 	} else {
 		// non-zero block refnonce means this is a new reference to an
 		// existing block.
@@ -45,8 +47,8 @@ func putBlockToServer(
 // calls either bserver.Put or bserver.AddBlockReference) that reports
 // quota and disk limit errors.
 func PutBlockCheckLimitErrs(ctx context.Context, bserv BlockServer,
-	reporter Reporter, tlfID tlf.ID, blockPtr BlockPointer,
-	readyBlockData ReadyBlockData, tlfName tlf.CanonicalName,
+	reporter Reporter, tlfID tlf.ID, blockPtr data.BlockPointer,
+	readyBlockData data.ReadyBlockData, tlfName tlf.CanonicalName,
 	cacheType DiskBlockCacheType) error {
 	err := putBlockToServer(
 		ctx, bserv, tlfID, blockPtr, readyBlockData, cacheType)
@@ -74,8 +76,8 @@ func PutBlockCheckLimitErrs(ctx context.Context, bserv BlockServer,
 }
 
 func doOneBlockPut(ctx context.Context, bserv BlockServer, reporter Reporter,
-	tlfID tlf.ID, tlfName tlf.CanonicalName, ptr BlockPointer,
-	bps blockPutState, blocksToRemoveChan chan BlockPointer,
+	tlfID tlf.ID, tlfName tlf.CanonicalName, ptr data.BlockPointer,
+	bps blockPutState, blocksToRemoveChan chan data.BlockPointer,
 	cacheType DiskBlockCacheType) error {
 	readyBlockData, err := bps.getReadyBlockData(ctx, ptr)
 	if err != nil {
@@ -87,9 +89,9 @@ func doOneBlockPut(ctx context.Context, bserv BlockServer, reporter Reporter,
 		err = bps.synced(ptr)
 	}
 	if err != nil && isRecoverableBlockError(err) {
-		block, blockErr := bps.getBlock(ctx, ptr)
+		block, blockErr := bps.GetBlock(ctx, ptr)
 		if blockErr == nil {
-			fblock, ok := block.(*FileBlock)
+			fblock, ok := block.(*data.FileBlock)
 			if ok && !fblock.IsInd {
 				blocksToRemoveChan <- ptr
 			}
@@ -106,10 +108,10 @@ func doOneBlockPut(ctx context.Context, bserv BlockServer, reporter Reporter,
 //
 // Returns a slice of block pointers that resulted in recoverable
 // errors and should be removed by the caller from any saved state.
-func doBlockPuts(ctx context.Context, bserv BlockServer, bcache BlockCache,
+func doBlockPuts(ctx context.Context, bserv BlockServer, bcache data.BlockCache,
 	reporter Reporter, log, deferLog traceLogger, tlfID tlf.ID,
 	tlfName tlf.CanonicalName, bps blockPutState,
-	cacheType DiskBlockCacheType) (blocksToRemove []BlockPointer, err error) {
+	cacheType DiskBlockCacheType) (blocksToRemove []data.BlockPointer, err error) {
 	blockCount := bps.numBlocks()
 	log.LazyTrace(ctx, "doBlockPuts with %d blocks", blockCount)
 	defer func() {
@@ -118,7 +120,7 @@ func doBlockPuts(ctx context.Context, bserv BlockServer, bcache BlockCache,
 
 	eg, groupCtx := errgroup.WithContext(ctx)
 
-	blocks := make(chan BlockPointer, blockCount)
+	blocks := make(chan data.BlockPointer, blockCount)
 
 	numWorkers := blockCount
 	if numWorkers > maxParallelBlockPuts {
@@ -127,7 +129,7 @@ func doBlockPuts(ctx context.Context, bserv BlockServer, bcache BlockCache,
 	// A channel to list any blocks that have been archived or
 	// deleted.  Any of these will result in an error, so the maximum
 	// we'll get is the same as the number of workers.
-	blocksToRemoveChan := make(chan BlockPointer, numWorkers)
+	blocksToRemoveChan := make(chan data.BlockPointer, numWorkers)
 
 	worker := func() error {
 		for ptr := range blocks {
@@ -143,7 +145,7 @@ func doBlockPuts(ctx context.Context, bserv BlockServer, bcache BlockCache,
 		eg.Go(worker)
 	}
 
-	for _, ptr := range bps.ptrs() {
+	for _, ptr := range bps.Ptrs() {
 		blocks <- ptr
 	}
 	close(blocks)
@@ -157,8 +159,8 @@ func doBlockPuts(ctx context.Context, bserv BlockServer, bcache BlockCache,
 			// Let the caller know which blocks shouldn't be
 			// retried.
 			blocksToRemove = append(blocksToRemove, ptr)
-			if block, err := bps.getBlock(ctx, ptr); err == nil {
-				if fblock, ok := block.(*FileBlock); ok {
+			if block, err := bps.GetBlock(ctx, ptr); err == nil {
+				if fblock, ok := block.(*data.FileBlock); ok {
 					// Remove each problematic block from the cache so
 					// the redo can just make a new block instead.
 					if err := bcache.DeleteKnownPtr(tlfID, fblock); err != nil {
@@ -175,14 +177,11 @@ func doBlockPuts(ctx context.Context, bserv BlockServer, bcache BlockCache,
 	return blocksToRemove, err
 }
 
-func assembleBlock(ctx context.Context, keyGetter blockKeyGetter,
-	codec kbfscodec.Codec, cryptoPure cryptoPure, kmd KeyMetadata,
-	blockPtr BlockPointer, block Block, buf []byte,
+func doAssembleBlock(
+	ctx context.Context, keyGetter blockKeyGetter, codec kbfscodec.Codec,
+	cryptoPure cryptoPure, kmd libkey.KeyMetadata, blockPtr data.BlockPointer,
+	block data.Block, buf []byte,
 	blockServerHalf kbfscrypto.BlockCryptKeyServerHalf) error {
-	if err := kbfsblock.VerifyID(buf, blockPtr.ID); err != nil {
-		return err
-	}
-
 	tlfCryptKey, err := keyGetter.GetTLFCryptKeyForBlockDecryption(
 		ctx, kmd, blockPtr)
 	if err != nil {
@@ -213,4 +212,34 @@ func assembleBlock(ctx context.Context, keyGetter blockKeyGetter,
 
 	block.SetEncodedSize(uint32(len(buf)))
 	return nil
+}
+
+func assembleBlockLocal(
+	ctx context.Context, keyGetter blockKeyGetter, codec kbfscodec.Codec,
+	cryptoPure cryptoPure, kmd libkey.KeyMetadata, blockPtr data.BlockPointer,
+	block data.Block, buf []byte,
+	blockServerHalf kbfscrypto.BlockCryptKeyServerHalf) error {
+	// This call only verifies the block ID if we're not running
+	// production mode, for performance reasons.
+	if err := verifyLocalBlockIDMaybe(buf, blockPtr.ID); err != nil {
+		return err
+	}
+
+	return doAssembleBlock(
+		ctx, keyGetter, codec, cryptoPure, kmd, blockPtr, block, buf,
+		blockServerHalf)
+}
+
+func assembleBlock(
+	ctx context.Context, keyGetter blockKeyGetter, codec kbfscodec.Codec,
+	cryptoPure cryptoPure, kmd libkey.KeyMetadata, blockPtr data.BlockPointer,
+	block data.Block, buf []byte,
+	blockServerHalf kbfscrypto.BlockCryptKeyServerHalf) error {
+	if err := kbfsblock.VerifyID(buf, blockPtr.ID); err != nil {
+		return err
+	}
+
+	return doAssembleBlock(
+		ctx, keyGetter, codec, cryptoPure, kmd, blockPtr, block, buf,
+		blockServerHalf)
 }

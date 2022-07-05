@@ -108,7 +108,14 @@ func (s *CmdPGPExport) finish(res []keybase1.KeyInfo, inErr error) error {
 	if err := snk.Open(); err != nil {
 		return err
 	}
-	snk.Write([]byte(strings.TrimSpace(res[0].Key) + "\n"))
+	_, err := snk.Write([]byte(strings.TrimSpace(res[0].Key)))
+	if err != nil {
+		return err
+	}
+	_, err = snk.Write([]byte{'\n'})
+	if err != nil {
+		return err
+	}
 	return snk.Close()
 }
 

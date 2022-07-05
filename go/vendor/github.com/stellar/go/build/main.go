@@ -5,7 +5,8 @@
 // object (ex. PaymentBuilder, TransactionBuilder) contain an underlying xdr
 // struct that is being iteratively built by having zero or more Mutator structs
 // applied to it. See ExampleTransactionBuilder in main_test.go for an example.
-//
+// Deprecated: build package with all its exported methods and variables will no longer be
+// maintained. It will be removed in future versions of the SDK. Use txnbuild (https://godoc.org/github.com/stellar/go/txnbuild) instead.
 package build
 
 import (
@@ -67,6 +68,9 @@ type Authorize struct {
 type AutoSequence struct {
 	SequenceProvider
 }
+
+// BumpTo sets sequence number on BumpSequence operation
+type BumpTo int64
 
 // NativeAsset is a helper method to create native Asset object
 func NativeAsset() Asset {
@@ -218,8 +222,8 @@ type Thresholds struct {
 }
 
 type Timebounds struct {
-    MinTime uint64
-    MaxTime uint64
+	MinTime uint64
+	MaxTime uint64
 }
 
 // Trustor is a mutator capable of setting the trustor on

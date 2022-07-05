@@ -122,6 +122,9 @@ func (t Table) renderFirstPass(cellSep string, maxWidth int, constraints []Colum
 			numOfNoConstraints++
 		}
 	}
+	if numOfNoConstraints == 0 {
+		numOfNoConstraints = 1
+	}
 
 	// first pass; determine smallest width for each column under constraints
 	widths = make([]int, len(t.rows[0]))

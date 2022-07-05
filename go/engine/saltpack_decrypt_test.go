@@ -12,6 +12,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/saltpackkeystest"
+	"github.com/keybase/saltpack"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 )
@@ -286,7 +287,7 @@ func TestSaltpackDecryptBrokenTrack(t *testing.T) {
 		return errTrackingBroke
 	}
 	err = RunEngine2(m, dec)
-	if decErr, ok := err.(libkb.DecryptionError); ok && decErr.Cause != errTrackingBroke {
+	if decErr, ok := err.(libkb.DecryptionError); ok && decErr.Cause.Err != errTrackingBroke {
 		t.Fatalf("Expected an error %v; but got %v", errTrackingBroke, err)
 	}
 }
@@ -416,9 +417,9 @@ func TestSaltpackNoEncryptionForDevice(t *testing.T) {
 	desktops := 0
 	for _, d := range me.Devices {
 		switch d.Type {
-		case "backup":
+		case keybase1.DeviceTypeV2_PAPER:
 			backup++
-		case "desktop":
+		case keybase1.DeviceTypeV2_DESKTOP:
 			desktops++
 			if !userX.EncryptionKey.GetKID().Equal(d.EncryptKey) {
 				t.Fatal("got wrong encryption key for good possibilities")
@@ -489,5 +490,99 @@ func TestSaltpackDecryptWithPaperKey(t *testing.T) {
 	expected := "message for paper key"
 	if decmsg != expected {
 		t.Errorf("decoded: %s, expected: %s", decmsg, expected)
+	}
+}
+
+func TestSaltpackDecryptErrors(t *testing.T) {
+	tc := SetupEngineTest(t, "SaltpackDecrypt")
+	defer tc.Cleanup()
+	fu := CreateAndSignupFakeUser(tc, "naclp")
+
+	initPerUserKeyringInTestContext(t, tc)
+
+	// encrypt a message
+	msg := "10 days in Japan"
+	sink := libkb.NewBufferCloser()
+	uis := libkb.UIs{
+		IdentifyUI: &FakeIdentifyUI{},
+		SecretUI:   fu.NewSecretUI(),
+		LogUI:      tc.G.UI.GetLogUI(),
+		SaltpackUI: &fakeSaltpackUI{},
+	}
+	// Should encrypt for self, too.
+	arg := &SaltpackEncryptArg{
+		Opts: keybase1.SaltpackEncryptOptions{
+			UseEntityKeys: true,
+		},
+		Source: strings.NewReader(msg),
+		Sink:   sink,
+	}
+	enc := NewSaltpackEncrypt(arg, NewSaltpackUserKeyfinderAsInterface)
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	if err := RunEngine2(m, enc); err != nil {
+		t.Fatal(err)
+	}
+	out := sink.String()
+
+	t.Logf("encrypted data: %s", out)
+
+	// assert that decryption works
+	decoded := libkb.NewBufferCloser()
+	decarg := &SaltpackDecryptArg{
+		Source: strings.NewReader(out),
+		Sink:   decoded,
+	}
+	dec := NewSaltpackDecrypt(decarg, saltpackkeystest.NewMockPseudonymResolver(t))
+	if err := RunEngine2(m, dec); err != nil {
+		t.Fatal(err)
+	}
+	decmsg := decoded.String()
+	if decmsg != msg {
+		t.Errorf("decoded: %s, expected: %s", decmsg, msg)
+	}
+
+	// no suitable key
+
+	noKeyOut := `
+		BEGIN KEYBASE SALTPACK ENCRYPTED MESSAGE. keDIDMQWYvVR58B FTfTeDQNI4kF4aV
+		DVTLefltGS2t8xf vO9CL7B6UQvpJEM WofNn31JYOAziF6 5vLTstSAXwLrJQ0
+		K6KJtSb38V1EsJJ sJMdU57C9s3dYEy Fk9Rw1bK2dTnua5 b822rmZdhdw7VzS
+		RwR1shIDHPXgFGC 5HhonSburbeywdE lSriPuVhSAXX9yR kwgCa3jRY3y863C
+		pwxv8lB10IjmgSx Xb5D61t8WCZ86N0 pADtHnYeyXwezjW fSEE57xOLE8naAz
+		RJLPlTEhoqllLQh iK1yzp6bGeJyAlI ctWQKKORiIyIsNS 1oFT8dj7SUtWhxy
+		nAGjUIDfkIBzBB3 SbPgWxhBKnXbW0R LCMxKOGhgpolubZ sdlVLZmP0F. END KEYBASE
+		SALTPACK ENCRYPTED MESSAGE.
+	`
+
+	decoded = libkb.NewBufferCloser()
+	decarg = &SaltpackDecryptArg{
+		Source: strings.NewReader(noKeyOut),
+		Sink:   decoded,
+	}
+	dec = NewSaltpackDecrypt(decarg, saltpackkeystest.NewMockPseudonymResolver(t))
+	err := RunEngine2(m, dec)
+	require.Error(t, err)
+	require.IsType(t, libkb.DecryptionError{}, err)
+	if err, ok := err.(libkb.DecryptionError); ok {
+		require.IsType(t, libkb.NoDecryptionKeyError{}, err.Cause.Err)
+		require.Equal(t, libkb.SCDecryptionKeyNotFound, err.Cause.StatusCode)
+	}
+
+	// wrong type
+
+	wrongTypeOut := `BEGIN KEYBASE SALTPACK SIGNED MESSAGE. kXR7VktZdyH7rvq v5weRa0zkUpZbPl nShyKLCCGSyBcvL sg7Gi9ySjlkxHPS RUM4Vm3DUCrEkxO bkbzrs0zuASSJbt aRoYF7ojm5zUxFX QasNzKboA7khwAa qIlCC0iwTFB3NBq fmDjvyKYfyQACcV 4BG5Mij3RfCYqAw gLtvUzU0UmfhJoP JPbj2eztW. END KEYBASE SALTPACK SIGNED MESSAGE.`
+
+	decoded = libkb.NewBufferCloser()
+	decarg = &SaltpackDecryptArg{
+		Source: strings.NewReader(wrongTypeOut),
+		Sink:   decoded,
+	}
+	dec = NewSaltpackDecrypt(decarg, saltpackkeystest.NewMockPseudonymResolver(t))
+	err = RunEngine2(m, dec)
+	require.Error(t, err)
+	require.IsType(t, libkb.DecryptionError{}, err)
+	if err, ok := err.(libkb.DecryptionError); ok {
+		require.IsType(t, saltpack.ErrWrongMessageType{}, err.Cause.Err)
+		require.Equal(t, libkb.SCWrongCryptoMsgType, err.Cause.StatusCode)
 	}
 }

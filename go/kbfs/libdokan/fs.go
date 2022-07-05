@@ -14,11 +14,16 @@ import (
 
 	"github.com/keybase/client/go/kbfs/dokan"
 	"github.com/keybase/client/go/kbfs/dokan/winacl"
+	"github.com/keybase/client/go/kbfs/idutil"
+	"github.com/keybase/client/go/kbfs/libcontext"
 	"github.com/keybase/client/go/kbfs/libfs"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
 	kbname "github.com/keybase/client/go/kbun"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/net/context"
 )
 
@@ -26,6 +31,7 @@ import (
 type FS struct {
 	config libkbfs.Config
 	log    logger.Logger
+	vlog   *libkb.VDebugLog
 	// renameAndDeletionLock should be held when doing renames or deletions.
 	renameAndDeletionLock sync.Mutex
 
@@ -35,8 +41,6 @@ type FS struct {
 
 	// remoteStatus is the current status of remote connections.
 	remoteStatus libfs.RemoteStatus
-
-	quotaUsage *libkbfs.EventuallyConsistentQuotaUsage
 }
 
 // DefaultMountFlags are the default mount flags for libdokan.
@@ -55,8 +59,8 @@ func NewFS(ctx context.Context, config libkbfs.Config, log logger.Logger) (*FS, 
 	f := &FS{
 		config:        config,
 		log:           log,
+		vlog:          config.MakeVLogger(log),
 		notifications: libfs.NewFSNotifications(log),
-		quotaUsage:    libkbfs.NewEventuallyConsistentQuotaUsage(config, "FS"),
 	}
 
 	f.root = &Root{
@@ -110,8 +114,8 @@ func (f *FS) WithContext(ctx context.Context) (context.Context, context.CancelFu
 	// context.WithDeadline uses clock from `time` package, so we are not using
 	// f.config.Clock() here
 	start := time.Now()
-	ctx, err = libkbfs.NewContextWithCancellationDelayer(
-		libkbfs.NewContextReplayable(ctx, func(ctx context.Context) context.Context {
+	ctx, err = libcontext.NewContextWithCancellationDelayer(
+		libcontext.NewContextReplayable(ctx, func(ctx context.Context) context.Context {
 			ctx = wrapContext(context.WithValue(ctx, CtxIDKey, id), f)
 			ctx, _ = context.WithDeadline(ctx, start.Add(29*time.Second))
 			return ctx
@@ -161,7 +165,7 @@ func (f *FS) GetDiskFreeSpace(ctx context.Context) (freeSpace dokan.FreeSpace, e
 	}
 	defer func() {
 		if err == nil {
-			f.log.CDebugf(ctx, "Request complete")
+			f.vlog.CLogf(ctx, libkb.VLog1, "Request complete")
 		} else {
 			// Don't report the error (perhaps resulting in a user
 			// notification) since this method is mostly called by the
@@ -169,7 +173,22 @@ func (f *FS) GetDiskFreeSpace(ctx context.Context) (freeSpace dokan.FreeSpace, e
 			f.log.CDebugf(ctx, err.Error())
 		}
 	}()
-	_, usageBytes, _, limitBytes, err := f.quotaUsage.Get(
+
+	session, err := idutil.GetCurrentSessionIfPossible(
+		ctx, f.config.KBPKI(), true)
+	if err != nil {
+		return dokan.FreeSpace{}, err
+	} else if session == (idutil.SessionInfo{}) {
+		// If user is not logged in, don't bother getting quota info. Otherwise
+		// reading a public TLF while logged out can fail on macOS.
+		return dokan.FreeSpace{
+			TotalNumberOfBytes:     dummyFreeSpace,
+			TotalNumberOfFreeBytes: dummyFreeSpace,
+			FreeBytesAvailable:     dummyFreeSpace,
+		}, nil
+	}
+	_, usageBytes, _, limitBytes, err := f.config.GetQuotaUsage(
+		session.UID.AsUserOrTeam()).Get(
 		ctx, quotaUsageStaleTolerance/2, quotaUsageStaleTolerance)
 	if err != nil {
 		return dokan.FreeSpace{}, errToDokan(err)
@@ -216,11 +235,7 @@ func (oc *openContext) isCreation() bool {
 	return false
 }
 func (oc *openContext) isExistingError() bool {
-	switch oc.CreateDisposition {
-	case dokan.FileCreate:
-		return true
-	}
-	return false
+	return oc.CreateDisposition == dokan.FileCreate
 }
 
 // isTruncate checks the flags whether a file truncation is wanted.
@@ -255,10 +270,6 @@ func (oc *openContext) returnFileNoCleanup(f dokan.File) (
 		return nil, 0, err
 	}
 	return f, dokan.ExistingFile, nil
-}
-
-func (oc *openContext) mayNotBeDirectory() bool {
-	return oc.CreateOptions&dokan.FileNonDirectoryFile != 0
 }
 
 func newSyntheticOpenContext() *openContext {
@@ -297,7 +308,7 @@ func (f *FS) openRaw(ctx context.Context, fi *dokan.FileInfo, caf *dokan.CreateD
 
 // open tries to open a file deferring to more specific implementations.
 func (f *FS) open(ctx context.Context, oc *openContext, ps []string) (dokan.File, dokan.CreateStatus, error) {
-	f.log.CDebugf(ctx, "FS Open: %q", ps)
+	f.vlog.CLogf(ctx, libkb.VLog1, "FS Open: %q", ps)
 	psl := len(ps)
 	switch {
 	case psl < 1:
@@ -307,7 +318,7 @@ func (f *FS) open(ctx context.Context, oc *openContext, ps []string) (dokan.File
 
 		// This section is equivalent to
 		// handleCommonSpecialFile in libfuse.
-	case libkbfs.ErrorFile == ps[psl-1]:
+	case libfs.ErrorFileName == ps[psl-1]:
 		return oc.returnFileNoCleanup(NewErrorFile(f))
 	case libfs.MetricsFileName == ps[psl-1]:
 		return oc.returnFileNoCleanup(NewMetricsFile(f))
@@ -355,7 +366,13 @@ func (f *FS) open(ctx context.Context, oc *openContext, ps []string) (dokan.File
 		return oc.returnFileNoCleanup(NewUserEditHistoryFile(&Folder{fs: f}))
 
 	case ".kbfs_unmount" == ps[0]:
+		f.log.CInfof(ctx, "Exiting due to .kbfs_unmount")
+		logger.Shutdown()
 		os.Exit(0)
+	case ".kbfs_restart" == ps[0]:
+		f.log.CInfof(ctx, "Exiting due to .kbfs_restart, should get restarted by watchdog process")
+		logger.Shutdown()
+		os.Exit(int(keybase1.ExitCode_RESTART))
 	case ".kbfs_number_of_handles" == ps[0]:
 		x := stringReadFile(strconv.Itoa(int(oc.fi.NumberOfFileHandles())))
 		return oc.returnFileNoCleanup(x)
@@ -366,31 +383,16 @@ func (f *FS) open(ctx context.Context, oc *openContext, ps []string) (dokan.File
 		oc.isUppercasePath = true
 		fallthrough
 	case PublicName == ps[0]:
-		// Refuse private directories while we are in a a generic error state.
-		if f.remoteStatus.ExtraFileName() == libfs.HumanErrorFileName {
-			f.log.CWarningf(ctx, "Refusing access to public directory while errors are present!")
-			return nil, 0, dokan.ErrAccessDenied
-		}
 		return f.root.public.open(ctx, oc, ps[1:])
 	case strings.ToUpper(PrivateName) == ps[0]:
 		oc.isUppercasePath = true
 		fallthrough
 	case PrivateName == ps[0]:
-		// Refuse private directories while we are in a error state.
-		if f.remoteStatus.ExtraFileName() != "" {
-			f.log.CWarningf(ctx, "Refusing access to private directory while errors are present!")
-			return nil, 0, dokan.ErrAccessDenied
-		}
 		return f.root.private.open(ctx, oc, ps[1:])
 	case strings.ToUpper(TeamName) == ps[0]:
 		oc.isUppercasePath = true
 		fallthrough
 	case TeamName == ps[0]:
-		// Refuse team directories while we are in a error state.
-		if f.remoteStatus.ExtraFileName() != "" {
-			f.log.CWarningf(ctx, "Refusing access to team directory while errors are present!")
-			return nil, 0, dokan.ErrAccessDenied
-		}
 		return f.root.team.open(ctx, oc, ps[1:])
 	}
 	return nil, 0, dokan.ErrObjectNameNotFound
@@ -425,7 +427,9 @@ func (f *FS) MoveFile(ctx context.Context, src dokan.File, sourceFI *dokan.FileI
 	// However we only allow fake files with names that are not potential rename
 	// paths. Filter those out here.
 
-	f.log.CDebugf(ctx, "MoveFile %T %q -> %q", src, sourceFI.Path(), targetPath)
+	f.vlog.CLogf(
+		ctx, libkb.VLog1, "MoveFile %T %q -> %q", src,
+		sourceFI.Path(), targetPath)
 	// isPotentialRenamePath filters out some special paths
 	// for rename. Especially those provided by fakeroot.go.
 	if !isPotentialRenamePath(sourceFI.Path()) {
@@ -479,7 +483,9 @@ func (f *FS) MoveFile(ctx context.Context, src dokan.File, sourceFI *dokan.FileI
 	dstDirPath := dstPath[0 : len(dstPath)-1]
 
 	dstDir, dstCst, err := f.open(ctx, oc, dstDirPath)
-	f.log.CDebugf(ctx, "FS MoveFile dstDir open %v -> %v,%v,%v dstType %T", dstDirPath, dstDir, dstCst, err, dstDir)
+	f.vlog.CLogf(
+		ctx, libkb.VLog1, "FS MoveFile dstDir open %v -> %v,%v,%v dstType %T",
+		dstDirPath, dstDir, dstCst, err, dstDir)
 	if err != nil {
 		return err
 	}
@@ -521,7 +527,10 @@ func (f *FS) MoveFile(ctx context.Context, src dokan.File, sourceFI *dokan.FileI
 			defer x.Cleanup(ctx, nil)
 		}
 		if !isNoSuchNameError(err) {
-			f.log.CDebugf(ctx, "FS MoveFile required non-existent destination, got: %T %v", err, err)
+			f.vlog.CLogf(
+				ctx, libkb.VLog1,
+				"FS MoveFile required non-existent destination, got: %T %v",
+				err, err)
 			return dokan.ErrObjectNameCollision
 		}
 
@@ -535,9 +544,12 @@ func (f *FS) MoveFile(ctx context.Context, src dokan.File, sourceFI *dokan.FileI
 	// it is there in the first place, by its Forget
 
 	dstName := dstPath[len(dstPath)-1]
-	f.log.CDebugf(ctx, "FS MoveFile KBFSOps().Rename(ctx,%v,%v,%v,%v)", srcParent, srcName, ddst.node, dstName)
+	f.vlog.CLogf(
+		ctx, libkb.VLog1, "FS MoveFile KBFSOps().Rename(ctx,%v,%v,%v,%v)",
+		srcParent, srcName, ddst.node, dstName)
 	if err := srcFolder.fs.config.KBFSOps().Rename(
-		ctx, srcParent, srcName, ddst.node, dstName); err != nil {
+		ctx, srcParent, srcParent.ChildName(srcName), ddst.node,
+		ddst.node.ChildName(dstName)); err != nil {
 		f.log.CDebugf(ctx, "FS MoveFile KBFSOps().Rename FAILED %v", err)
 		return err
 	}
@@ -551,7 +563,7 @@ func (f *FS) MoveFile(ctx context.Context, src dokan.File, sourceFI *dokan.FileI
 		x.name = dstName
 	}
 
-	f.log.CDebugf(ctx, "FS MoveFile SUCCESS")
+	f.vlog.CLogf(ctx, libkb.VLog1, "FS MoveFile SUCCESS")
 	return nil
 }
 
@@ -567,14 +579,14 @@ func isPotentialRenamePath(s string) bool {
 
 func (f *FS) folderListRename(ctx context.Context, fl *FolderList, oc *openContext, src dokan.File, srcName string, dstPath []string, replaceExisting bool) error {
 	ef, ok := src.(*EmptyFolder)
-	f.log.CDebugf(ctx, "FS MoveFile folderlist %v", ef)
+	f.vlog.CLogf(ctx, libkb.VLog1, "FS MoveFile folderlist %v", ef)
 	if !ok || !isNewFolderName(srcName) {
 		return dokan.ErrAccessDenied
 	}
 	dstName := dstPath[len(dstPath)-1]
 	// Yes, this is slow, but that is ok here.
-	if _, err := libkbfs.ParseTlfHandlePreferred(
-		ctx, f.config.KBPKI(), f.config.MDOps(), dstName,
+	if _, err := tlfhandle.ParseHandlePreferred(
+		ctx, f.config.KBPKI(), f.config.MDOps(), f.config, dstName,
 		fl.tlfType); err != nil {
 		return dokan.ErrObjectNameNotFound
 	}
@@ -582,7 +594,9 @@ func (f *FS) folderListRename(ctx context.Context, fl *FolderList, oc *openConte
 	_, ok = fl.folders[dstName]
 	fl.mu.Unlock()
 	if !replaceExisting && ok {
-		f.log.CDebugf(ctx, "FS MoveFile folderlist refusing to replace target")
+		f.vlog.CLogf(
+			ctx, libkb.VLog1,
+			"FS MoveFile folderlist refusing to replace target")
 		return dokan.ErrAccessDenied
 	}
 	// Perhaps create destination by opening it.
@@ -595,10 +609,10 @@ func (f *FS) folderListRename(ctx context.Context, fl *FolderList, oc *openConte
 	_, ok = fl.folders[dstName]
 	delete(fl.folders, srcName)
 	if !ok {
-		f.log.CDebugf(ctx, "FS MoveFile folderlist adding target")
+		f.vlog.CLogf(ctx, libkb.VLog1, "FS MoveFile folderlist adding target")
 		fl.folders[dstName] = ef
 	}
-	f.log.CDebugf(ctx, "FS MoveFile folderlist success")
+	f.vlog.CLogf(ctx, libkb.VLog1, "FS MoveFile folderlist success")
 	return nil
 }
 
@@ -608,7 +622,7 @@ func (f *FS) queueNotification(fn func()) {
 
 func (f *FS) reportErr(ctx context.Context, mode libkbfs.ErrorModeType, err error) {
 	if err == nil {
-		f.log.CDebugf(ctx, "Request complete")
+		f.vlog.CLogf(ctx, libkb.VLog1, "Request complete")
 		return
 	}
 
@@ -627,11 +641,11 @@ func (f *FS) NotificationGroupWait() {
 }
 
 func (f *FS) logEnter(ctx context.Context, s string) {
-	f.log.CDebugf(ctx, "=> %s", s)
+	f.vlog.CLogf(ctx, libkb.VLog1, "=> %s", s)
 }
 
 func (f *FS) logEnterf(ctx context.Context, fmt string, args ...interface{}) {
-	f.log.CDebugf(ctx, "=> "+fmt, args...)
+	f.vlog.CLogf(ctx, libkb.VLog1, "=> "+fmt, args...)
 }
 
 // UserChanged is called from libfs.
@@ -661,28 +675,22 @@ func (r *Root) FindFiles(ctx context.Context, fi *dokan.FileInfo, ignored string
 	var ns dokan.NamedStat
 	var err error
 	ns.FileAttributes = dokan.FileAttributeDirectory
-	ename, esize := r.private.fs.remoteStatus.ExtraFileNameAndSize()
-	switch ename {
-	case "":
-		ns.Name = PrivateName
-		err = callback(&ns)
-		if err != nil {
-			return err
-		}
-		ns.Name = TeamName
-		err = callback(&ns)
-		if err != nil {
-			return err
-		}
-		fallthrough
-	case libfs.HumanNoLoginFileName:
-		ns.Name = PublicName
-		err = callback(&ns)
-		if err != nil {
-			return err
-		}
+	ns.Name = PrivateName
+	err = callback(&ns)
+	if err != nil {
+		return err
 	}
-	if ename != "" {
+	ns.Name = TeamName
+	err = callback(&ns)
+	if err != nil {
+		return err
+	}
+	ns.Name = PublicName
+	err = callback(&ns)
+	if err != nil {
+		return err
+	}
+	if ename, esize := r.private.fs.remoteStatus.ExtraFileNameAndSize(); ename != "" {
 		ns.Name = ename
 		ns.FileAttributes = dokan.FileAttributeNormal
 		ns.FileSize = esize

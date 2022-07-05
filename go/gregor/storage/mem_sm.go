@@ -127,12 +127,6 @@ func (u *user) addItem(now time.Time, i gregor.Item) *item {
 	return newItem
 }
 
-func (u *user) addItems(items []gregor.Item) {
-	for _, it := range items {
-		u.addItem(time.Now(), it)
-	}
-}
-
 // logMessage logs a message for this user and potentially associates an item
 func (u *user) logMessage(t time.Time, m gregor.InBandMessage, i *item) {
 	for _, l := range u.log {
@@ -226,7 +220,7 @@ func (t timeOrOffset) Before(t2 time.Time) bool {
 	return time.Time(t).Before(t2)
 }
 func (t timeOrOffset) IsZero() bool {
-	return t.IsZero()
+	return time.Time(t).IsZero()
 }
 
 var _ gregor.TimeOrOffset = timeOrOffset{}
@@ -236,8 +230,8 @@ func isBeforeOrSame(a, b time.Time) bool {
 }
 
 func (u *user) state(now time.Time, f gregor.ObjFactory, d gregor.DeviceID, t gregor.TimeOrOffset) (gregor.State, error) {
-	var items []gregor.Item
-	table := make(map[string]gregor.Item)
+	items := make([]gregor.Item, 0, len(u.items))
+	table := make(map[string]gregor.Item, len(u.items))
 	for _, i := range u.items {
 		md := i.item.Metadata()
 		did := md.DeviceID()
@@ -289,7 +283,8 @@ func (u *user) getInBandMessage(msgID gregor.MsgID) (gregor.InBandMessage, error
 }
 
 func (u *user) replayLog(now time.Time, d gregor.DeviceID, t time.Time) (msgs []gregor.InBandMessage, latestCTime *time.Time) {
-	allmsgs := make(map[string]gregor.InBandMessage)
+	msgs = make([]gregor.InBandMessage, 0, len(u.log))
+	allmsgs := make(map[string]gregor.InBandMessage, len(u.log))
 	for _, msg := range u.log {
 		if latestCTime == nil || msg.ctime.After(*latestCTime) {
 			latestCTime = &msg.ctime
@@ -472,6 +467,24 @@ func (m *MemEngine) Outbox(ctx context.Context, u gregor.UID) ([]gregor.Message,
 	m.Lock()
 	defer m.Unlock()
 	return m.getUser(u).outbox, nil
+}
+
+func (m *MemEngine) RemoveFromOutbox(ctx context.Context, u gregor.UID, id gregor.MsgID) error {
+	m.Lock()
+	defer m.Unlock()
+	var newOutbox []gregor.Message
+	idstr := id.String()
+	for _, msg := range m.getUser(u).outbox {
+		msgIbm := msg.ToInBandMessage()
+		if msgIbm == nil {
+			continue
+		}
+		if msgIbm.Metadata().MsgID().String() != idstr {
+			newOutbox = append(newOutbox, msg)
+		}
+	}
+	m.getUser(u).outbox = newOutbox
+	return nil
 }
 
 func (m *MemEngine) InitOutbox(ctx context.Context, u gregor.UID, msgs []gregor.Message) error {

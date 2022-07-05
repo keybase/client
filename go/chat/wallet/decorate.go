@@ -9,6 +9,7 @@ import (
 
 func DecorateWithPayments(ctx context.Context, body string, payments []chat1.TextPayment) string {
 	var added int
+	seen := make(map[string]struct{})
 	paymentMap := make(map[string]chat1.TextPayment)
 	for _, p := range payments {
 		paymentMap[p.PaymentText] = p
@@ -20,6 +21,10 @@ func DecorateWithPayments(ctx context.Context, body string, payments []chat1.Tex
 		if !ok {
 			continue
 		}
+		if _, ok := seen[p.Full]; ok {
+			continue
+		}
+		seen[p.Full] = struct{}{}
 		body, added = utils.DecorateBody(ctx, body, p.Position[0]+offset, p.Position[1]-p.Position[0],
 			chat1.NewUITextDecorationWithPayment(payment))
 		offset += added

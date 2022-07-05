@@ -17,7 +17,7 @@ import (
 
 // SimpleSign signs the given data stream, outputs an armored string which is
 // the attached signature of the input data
-func SimpleSign(payload []byte, key PGPKeyBundle) (out string, id keybase1.SigID, err error) {
+func SimpleSign(payload []byte, key PGPKeyBundle) (out string, id keybase1.SigIDBase, err error) {
 	var outb bytes.Buffer
 	var in io.WriteCloser
 	var h HashSummer
@@ -35,7 +35,7 @@ func SimpleSign(payload []byte, key PGPKeyBundle) (out string, id keybase1.SigID
 		return
 	}
 	out = outb.String()
-	if id, err = keybase1.SigIDFromSlice(h()); err != nil {
+	if id, err = keybase1.SigIDBaseFromSlice(h()); err != nil {
 		return
 	}
 	return
@@ -74,7 +74,7 @@ func ArmoredAttachedSign(out io.WriteCloser, signed openpgp.Entity, hints *openp
 	in, err = openpgp.AttachedSign(hwc, signed, hints, config)
 	h = func() []byte { return hwc.hasher.Sum(nil) }
 
-	return
+	return in, h, err
 }
 
 func AttachedSignWrapper(out io.WriteCloser, key PGPKeyBundle, armored bool) (

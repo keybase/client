@@ -37,7 +37,6 @@ func makeFrame(which headerOrFooterMarker, typ MessageType, brand string) string
 	words := []string{string(which)}
 	if len(brand) > 0 {
 		words = append(words, brand)
-		brand += " "
 	}
 	words = append(words, strings.ToUpper(FormatName))
 	words = append(words, sffx)

@@ -36,12 +36,6 @@ type KeybaseDaemonRPC struct {
 	// calls triggers a server.Register.
 	server *rpc.Server
 
-	// simplefs is the simplefs implementation used (if not nil)
-	simplefs keybase1.SimpleFSInterface
-
-	// gitHandler is the git implementation used (if not nil)
-	gitHandler keybase1.KBFSGitInterface
-
 	notifyService keybase1.NotifyServiceInterface
 }
 
@@ -303,7 +297,10 @@ func (k *KeybaseDaemonRPC) AddProtocols(protocols []rpc.Protocol) {
 	// If we are already connected, register these protocols.
 	if k.server != nil {
 		for _, p := range protocols {
-			k.registerProtocol(k.server, p)
+			err := k.registerProtocol(k.server, p)
+			if err != nil {
+				k.log.Debug("Couldn't register protocol: %+v", err)
+			}
 		}
 	}
 }
@@ -371,13 +368,13 @@ func (k *KeybaseDaemonRPC) OnDoCommandError(err error, wait time.Duration) {
 }
 
 // OnDisconnected implements the ConnectionHandler interface.
-func (k *KeybaseDaemonRPC) OnDisconnected(_ context.Context,
+func (k *KeybaseDaemonRPC) OnDisconnected(ctx context.Context,
 	status rpc.DisconnectStatus) {
 	if status == rpc.StartingNonFirstConnection {
 		k.log.Warning("KeybaseDaemonRPC is disconnected")
 	}
 
-	k.clearCaches()
+	k.ClearCaches(ctx)
 
 	k.lock.Lock()
 	defer k.lock.Unlock()
@@ -396,7 +393,6 @@ func (k *KeybaseDaemonRPC) ShouldRetryOnConnect(err error) bool {
 }
 
 func (k *KeybaseDaemonRPC) sendPing(ctx context.Context) {
-	const sessionID = 0
 	ctx, cancel := context.WithTimeout(ctx, 1*time.Second)
 	defer cancel()
 	err := k.sessionClient.SessionPing(ctx)
@@ -455,6 +451,14 @@ func (s *notifyServiceHandler) Shutdown(_ context.Context, code int) error {
 	return nil
 }
 
+func (s *notifyServiceHandler) HTTPSrvInfoUpdate(_ context.Context, info keybase1.HttpSrvInfo) error {
+	return nil
+}
+
+func (s *notifyServiceHandler) HandleKeybaseLink(_ context.Context, _ keybase1.HandleKeybaseLinkArg) error {
+	return nil
+}
+
 // newNotifyServiceHandler makes a new NotifyServiceHandler
 func newNotifyServiceHandler(config Config, log logger.Logger) keybase1.NotifyServiceInterface {
 	s := &notifyServiceHandler{config: config, log: log}
@@ -465,6 +469,7 @@ func newNotifyServiceHandler(config Config, log logger.Logger) keybase1.NotifySe
 func (k *KeybaseDaemonRPC) FavoritesChanged(ctx context.Context,
 	uid keybase1.UID) error {
 	k.log.Debug("Received FavoritesChanged RPC.")
-	k.config.KBFSOps().RefreshCachedFavorites(ctx)
+	k.config.KBFSOps().RefreshCachedFavorites(ctx,
+		FavoritesRefreshModeInMainFavoritesLoop)
 	return nil
 }

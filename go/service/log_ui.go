@@ -9,6 +9,7 @@ import (
 	"golang.org/x/net/context"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
 type LogUI struct {
@@ -16,11 +17,18 @@ type LogUI struct {
 	cli       *keybase1.LogUiClient
 }
 
+func NewLogUI(sessionID int, c *rpc.Client) *LogUI {
+	return &LogUI{
+		sessionID: sessionID,
+		cli:       &keybase1.LogUiClient{Cli: c},
+	}
+}
+
 func (l *LogUI) Log(level keybase1.LogLevel, format string, args []interface{}) {
 	msg := fmt.Sprintf(format, args...)
-	l.cli.Log(context.TODO(), keybase1.LogArg{
+	_ = l.cli.Log(context.TODO(), keybase1.LogArg{
 		SessionID: l.sessionID,
-		Level:     keybase1.LogLevel(level),
+		Level:     level,
 		Text: keybase1.Text{
 			Markup: false,
 			Data:   msg,

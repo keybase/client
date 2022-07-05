@@ -11,15 +11,6 @@ import (
 	"github.com/stellar/go/xdr"
 )
 
-func unpackTx(signedTx string) (unpackedTx xdr.TransactionEnvelope, txIDPrecalc string, err error) {
-	err = xdr.SafeUnmarshalBase64(signedTx, &unpackedTx)
-	if err != nil {
-		return unpackedTx, txIDPrecalc, fmt.Errorf("decoding tx: %v", err)
-	}
-	txIDPrecalc, err = stellarnet.HashTx(unpackedTx.Tx)
-	return unpackedTx, txIDPrecalc, err
-}
-
 type ExtractedPayment struct {
 	Tx         xdr.Transaction
 	OpType     xdr.OperationType

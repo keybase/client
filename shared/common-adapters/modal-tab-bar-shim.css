@@ -1,0 +1,10 @@
+.modal-tab-bar-shim {
+  width: 160px;
+  flex-shrink: 0;
+}
+
+@media all and (max-width: 800px) and (min-width: 0px) {
+  .modal-tab-bar-shim {
+    width: 80px;
+  }
+}

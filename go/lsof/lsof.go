@@ -132,7 +132,10 @@ func parseProcessLines(lines []string) (Process, error) {
 			}
 			break
 		} else {
-			p.fillField(line)
+			err := p.fillField(line)
+			if err != nil {
+				return p, err
+			}
 		}
 	}
 	return p, nil

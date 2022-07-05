@@ -173,11 +173,11 @@ func TestCreateImplicitTeam(t *testing.T) {
 
 	// Imp team with invites
 	impTeam.Writers.UnresolvedUsers = []keybase1.SocialAssertion{
-		keybase1.SocialAssertion{
+		{
 			User:    "mike",
 			Service: keybase1.SocialAssertionService("twitter"),
 		},
-		keybase1.SocialAssertion{
+		{
 			User:    "mike",
 			Service: keybase1.SocialAssertionService("github"),
 		},
@@ -192,6 +192,6 @@ func TestCreateImplicitTeam(t *testing.T) {
 	require.NoError(t, err)
 	sort.Sort(keybase1.ByUserVersionID(members.Owners))
 	require.Equal(t, members.Owners, uvs)
-	chainInvites := team.chain().inner.ActiveInvites
+	chainInvites := team.chain().ActiveInvites()
 	require.Equal(t, 2, len(chainInvites))
 }

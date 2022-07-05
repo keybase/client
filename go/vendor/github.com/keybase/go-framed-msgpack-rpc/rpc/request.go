@@ -55,7 +55,10 @@ func (r *callRequest) Reply(enc *framedMsgpackEncoder, res interface{}, errArg i
 		errArg,
 		res,
 	}
-	errCh := enc.EncodeAndWrite(r.ctx, v, nil)
+
+	size, errCh := enc.EncodeAndWrite(r.ctx, v, nil)
+	defer func() { _ = r.RecordAndFinish(r.ctx, size) }()
+
 	select {
 	case err := <-errCh:
 		if err != nil {
@@ -77,7 +80,9 @@ func (r *callRequest) Serve(transmitter *framedMsgpackEncoder, handler *ServeHan
 	prof.Stop()
 	r.LogCompletion(res, err)
 
-	r.Reply(transmitter, res, wrapError(wrapErrorFunc, err))
+	if err := r.Reply(transmitter, res, wrapError(wrapErrorFunc, err)); err != nil {
+		r.log.Info("Unable to reply: %v", err)
+	}
 }
 
 type callCompressedRequest struct {
@@ -116,7 +121,10 @@ func (r *callCompressedRequest) Reply(enc *framedMsgpackEncoder, res interface{}
 		errArg,
 		res,
 	}
-	errCh := enc.EncodeAndWrite(r.ctx, v, nil)
+
+	size, errCh := enc.EncodeAndWrite(r.ctx, v, nil)
+	defer func() { _ = r.RecordAndFinish(r.ctx, size) }()
+
 	select {
 	case err := <-errCh:
 		if err != nil {
@@ -138,7 +146,9 @@ func (r *callCompressedRequest) Serve(transmitter *framedMsgpackEncoder, handler
 	prof.Stop()
 	r.LogCompletion(res, err)
 
-	r.Reply(transmitter, res, wrapError(wrapErrorFunc, err))
+	if err := r.Reply(transmitter, res, wrapError(wrapErrorFunc, err)); err != nil {
+		r.log.Info("Unable to reply: %v", err)
+	}
 }
 
 type notifyRequest struct {

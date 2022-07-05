@@ -6,10 +6,14 @@ package libkb
 import (
 	"bytes"
 	"fmt"
+	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/keybase/clockwork"
 
 	"github.com/stretchr/testify/require"
 )
@@ -184,4 +188,140 @@ func TestDecodeHexFixed(t *testing.T) {
 			require.Equal(t, unit.dst, buf)
 		}
 	}
+}
+
+func TestDownloadGetFilenames(t *testing.T) {
+	var tests = map[string]string{
+		"abc.def":       "abc.def",
+		"文件.def":        "文件.def",
+		"abc.\u202edef": "abc.%E2%80%AEdef",
+		"abc.\u200fdef": "abc.%E2%80%8Fdef",
+	}
+	for original, expected := range tests {
+		safeFilename := GetSafeFilename(original)
+		require.Equal(t, expected, safeFilename)
+	}
+}
+
+func TestSecureRandomRndRange(t *testing.T) {
+	s := SecureRandom{}
+
+	var tests = []struct {
+		lo        int64
+		hi        int64
+		shouldErr bool
+	}{
+		{0, 0, false},
+		{1, 1, false},
+		{-1, -1, false},
+		{1, 0, true},
+		{-1, -2, true},
+		{2, 5, false},
+		{-1, 10, false},
+		{1, 50, false},
+		{-40, -1, false},
+	}
+
+	for _, test := range tests {
+		for i := 0; i < 10; i++ {
+			r, err := s.RndRange(test.lo, test.hi)
+			if test.shouldErr {
+				require.Error(t, err)
+				continue
+			}
+			require.True(t, r >= test.lo)
+			require.True(t, r <= test.hi)
+		}
+	}
+
+	// basic consistency check that sampled random numbers are different (the
+	// random function is not a constant). Duplicate outputs should happen very
+	// infrequently on a large range. In this case, the test will flake with
+	// probability exactly 1/10^12.
+	r1, err := s.RndRange(0, 1000000000000)
+	require.NoError(t, err)
+	r2, err := s.RndRange(0, 1000000000000)
+	require.NoError(t, err)
+	require.NotEqual(t, r1, r2)
+}
+
+func TestThrottleBatch(t *testing.T) {
+	clock := clockwork.NewFakeClock()
+	throttleBatchClock = clock
+	ch := make(chan int, 100)
+	handler := func(arg interface{}) {
+		v, ok := arg.(int)
+		require.True(t, ok)
+		ch <- v
+	}
+	getVal := func(expected int) {
+		select {
+		case v := <-ch:
+			require.Equal(t, expected, v)
+		case <-time.After(2 * time.Second):
+			require.Fail(t, "no value received")
+		}
+	}
+	noVal := func() {
+		time.Sleep(10 * time.Millisecond)
+		select {
+		case <-ch:
+			require.Fail(t, "no value should have been received")
+		default:
+		}
+	}
+	batcher := func(batchedInt interface{}, singleInt interface{}) interface{} {
+		batched, ok := batchedInt.(int)
+		require.True(t, ok)
+		single, ok := singleInt.(int)
+		require.True(t, ok)
+		return batched + single
+	}
+	reset := func() interface{} {
+		return 0
+	}
+
+	f, cancel := ThrottleBatch(handler, batcher, reset, 200, true)
+	f(2)
+	getVal(2)
+	f(3)
+	f(2)
+	noVal()
+	clock.Advance(300 * time.Millisecond)
+	getVal(5)
+
+	clock.Advance(time.Hour)
+	f(2)
+	getVal(2)
+
+	f(2)
+	noVal()
+	cancel()
+	time.Sleep(100 * time.Millisecond)
+	clock.Advance(300 * time.Millisecond)
+	noVal()
+}
+
+func TestFindFilePathWithNumberSuffix(t *testing.T) {
+	parentDir := os.TempDir()
+	path, err := FindFilePathWithNumberSuffix(parentDir, "", true)
+	require.NoError(t, err)
+	require.True(t, strings.HasPrefix(path, parentDir))
+
+	path, err = FindFilePathWithNumberSuffix(parentDir, "test.txt", true)
+	require.NoError(t, err)
+	require.True(t, strings.HasPrefix(path, parentDir))
+	require.True(t, strings.HasSuffix(path, ".txt"))
+
+	path, err = FindFilePathWithNumberSuffix(parentDir, "", false)
+	require.NoError(t, err)
+	require.Equal(t, filepath.Join(parentDir, " (1)"), path)
+
+	path, err = FindFilePathWithNumberSuffix(parentDir, "test.txt", false)
+	require.NoError(t, err)
+	require.Equal(t, filepath.Join(parentDir, "test.txt"), path)
+
+	path, err = FindFilePathWithNumberSuffix(parentDir, ".txt", false)
+	require.NoError(t, err)
+	require.Equal(t, filepath.Join(parentDir, ".txt"), path)
 }

@@ -13,11 +13,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/kbfscodec"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
 	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-codec/codec"
@@ -112,13 +114,12 @@ func runBenchmarkOverMetadataVers(
 
 type privateMetadataFuture struct {
 	PrivateMetadata
-	Dir dirEntryFuture
 	kbfscodec.Extra
 }
 
 func (pmf privateMetadataFuture) toCurrent() PrivateMetadata {
 	pm := pmf.PrivateMetadata
-	pm.Dir = DirEntry(pmf.Dir.toCurrent())
+	pm.Dir = pmf.Dir
 	pm.Changes.Ops = make(opsList, len(pmf.Changes.Ops))
 	for i, opFuture := range pmf.Changes.Ops {
 		currentOp := opFuture.(kbfscodec.FutureStruct).ToCurrentStruct()
@@ -146,7 +147,7 @@ func makeFakePrivateMetadataFuture(t *testing.T) privateMetadataFuture {
 
 	pmf := privateMetadataFuture{
 		PrivateMetadata{
-			DirEntry{},
+			data.DirEntry{},
 			kbfscrypto.MakeTLFPrivateKey([32]byte{0xb}),
 			BlockChanges{
 				makeFakeBlockInfo(t),
@@ -166,7 +167,6 @@ func makeFakePrivateMetadataFuture(t *testing.T) privateMetadataFuture {
 			codec.UnknownFieldSetHandler{},
 			BlockChanges{},
 		},
-		makeFakeDirEntryFuture(t),
 		kbfscodec.MakeExtraOrBust("PrivateMetadata", t),
 	}
 	return pmf
@@ -179,16 +179,12 @@ func TestPrivateMetadataUnknownFields(t *testing.T) {
 // makeFakeTlfHandle should only be used in this file.
 func makeFakeTlfHandle(
 	t *testing.T, x uint32, ty tlf.Type,
-	unresolvedWriters, unresolvedReaders []keybase1.SocialAssertion) *TlfHandle {
+	unresolvedWriters, unresolvedReaders []keybase1.SocialAssertion) *tlfhandle.Handle {
 	id := keybase1.MakeTestUID(x).AsUserOrTeam()
-	return &TlfHandle{
-		tlfType: ty,
-		resolvedWriters: map[keybase1.UserOrTeamID]kbname.NormalizedUsername{
+	return tlfhandle.NewHandle(
+		ty, map[keybase1.UserOrTeamID]kbname.NormalizedUsername{
 			id: "test_user",
-		},
-		unresolvedWriters: unresolvedWriters,
-		unresolvedReaders: unresolvedReaders,
-	}
+		}, unresolvedWriters, unresolvedReaders, "", tlf.NullID)
 }
 
 // Test that GetTlfHandle() and MakeBareTlfHandle() work properly for
@@ -289,7 +285,7 @@ func testMakeRekeyReadError(t *testing.T, ver kbfsmd.MetadataVer) {
 	ctx := context.Background()
 	config := MakeTestConfigOrBust(t, "alice", "bob")
 	config.SetMetadataVersion(ver)
-	defer config.Shutdown(ctx)
+	defer CheckConfigAndShutdown(ctx, t, config)
 
 	tlfID := tlf.FakeID(1, tlf.Private)
 	h := parseTlfHandleOrBust(t, config, "alice", tlf.Private, tlfID)
@@ -298,14 +294,16 @@ func testMakeRekeyReadError(t *testing.T, ver kbfsmd.MetadataVer) {
 
 	rmd.fakeInitialRekey()
 
-	u, id, err := config.KBPKI().Resolve(ctx, "bob")
+	u, id, err := config.KBPKI().Resolve(
+		ctx, "bob", keybase1.OfflineAvailability_NONE)
 	require.NoError(t, err)
 	uid, err := id.AsUser()
 	require.NoError(t, err)
 
 	dummyErr := errors.New("dummy")
 	err = makeRekeyReadErrorHelper(dummyErr, rmd.ReadOnly(), h, uid, u)
-	require.Equal(t, NewReadAccessError(h, u, "/keybase/private/alice"), err)
+	require.Equal(
+		t, tlfhandle.NewReadAccessError(h, u, "/keybase/private/alice"), err)
 
 	err = makeRekeyReadErrorHelper(dummyErr,
 		rmd.ReadOnly(), h, h.FirstResolvedWriter().AsUserOrBust(), "alice")
@@ -315,30 +313,33 @@ func testMakeRekeyReadError(t *testing.T, ver kbfsmd.MetadataVer) {
 func testMakeRekeyReadErrorResolvedHandle(t *testing.T, ver kbfsmd.MetadataVer) {
 	ctx := context.Background()
 	config := MakeTestConfigOrBust(t, "alice", "bob")
-	defer config.Shutdown(ctx)
+	defer CheckConfigAndShutdown(ctx, t, config)
 
 	tlfID := tlf.FakeID(1, tlf.Private)
-	h, err := ParseTlfHandle(
-		ctx, config.KBPKI(), config.MDOps(), "alice,bob@twitter", tlf.Private)
+	h, err := tlfhandle.ParseHandle(
+		ctx, config.KBPKI(), config.MDOps(), nil,
+		"alice,bob@twitter", tlf.Private)
 	require.NoError(t, err)
 	rmd, err := makeInitialRootMetadata(config.MetadataVersion(), tlfID, h)
 	require.NoError(t, err)
 
 	rmd.fakeInitialRekey()
 
-	u, id, err := config.KBPKI().Resolve(ctx, "bob")
+	u, id, err := config.KBPKI().Resolve(
+		ctx, "bob", keybase1.OfflineAvailability_NONE)
 	require.NoError(t, err)
 	uid, err := id.AsUser()
 	require.NoError(t, err)
 
 	err = makeRekeyReadErrorHelper(errors.New("dummy"),
 		rmd.ReadOnly(), h, uid, u)
-	require.Equal(t, NewReadAccessError(h, u, "/keybase/private/alice,bob@twitter"), err)
+	require.Equal(t, tlfhandle.NewReadAccessError(
+		h, u, "/keybase/private/alice,bob@twitter"), err)
 
-	config.KeybaseService().(*KeybaseDaemonLocal).addNewAssertionForTestOrBust(
+	config.KeybaseService().(*KeybaseDaemonLocal).AddNewAssertionForTestOrBust(
 		"bob", "bob@twitter")
 
-	resolvedHandle, err := h.ResolveAgain(ctx, config.KBPKI(), nil)
+	resolvedHandle, err := h.ResolveAgain(ctx, config.KBPKI(), nil, nil)
 	require.NoError(t, err)
 
 	dummyErr := errors.New("dummy")
@@ -357,7 +358,7 @@ func testRootMetadataFinalIsFinal(t *testing.T, ver kbfsmd.MetadataVer) {
 
 	rmd.SetFinalBit()
 	_, err = rmd.MakeSuccessor(context.Background(), -1, nil, nil, nil,
-		nil, kbfsmd.FakeID(1), true)
+		nil, nil, kbfsmd.FakeID(1), true)
 	_, isFinalError := err.(kbfsmd.MetadataIsFinalError)
 	require.Equal(t, isFinalError, true)
 }
@@ -391,7 +392,7 @@ func TestRootMetadataUpconversionPrivate(t *testing.T) {
 	config := MakeTestConfigOrBust(t, "alice", "bob", "charlie")
 	config.SetKeyCache(&dummyNoKeyCache{})
 	ctx := context.Background()
-	defer config.Shutdown(ctx)
+	defer CheckConfigAndShutdown(ctx, t, config)
 
 	tlfID := tlf.FakeID(1, tlf.Private)
 	h := parseTlfHandleOrBust(t, config, "alice,alice@twitter#bob,charlie@twitter,eve@reddit", tlf.Private, tlfID)
@@ -407,7 +408,7 @@ func TestRootMetadataUpconversionPrivate(t *testing.T) {
 	rmd.SetRefBytes(refBytes)
 	rmd.SetUnrefBytes(unrefBytes)
 	// Make sure the MD looks readable.
-	rmd.data.Dir.BlockPointer = BlockPointer{ID: kbfsblock.FakeID(1)}
+	rmd.data.Dir.BlockPointer = data.BlockPointer{ID: kbfsblock.FakeID(1)}
 
 	// key it once
 	done, _, err := config.KeyManager().Rekey(context.Background(), rmd, false)
@@ -420,7 +421,8 @@ func TestRootMetadataUpconversionPrivate(t *testing.T) {
 	require.Equal(t, 1, len(rmd.bareMd.(*kbfsmd.RootMetadataV2).WKeys[0].TLFEphemeralPublicKeys))
 
 	// revoke bob's device
-	_, bobID, err := config.KBPKI().Resolve(context.Background(), "bob")
+	_, bobID, err := config.KBPKI().Resolve(
+		context.Background(), "bob", keybase1.OfflineAvailability_NONE)
 	require.NoError(t, err)
 	bobUID, err := bobID.AsUser()
 	require.NoError(t, err)
@@ -438,7 +440,7 @@ func TestRootMetadataUpconversionPrivate(t *testing.T) {
 	require.Equal(t, 0, len(rmd.bareMd.(*kbfsmd.RootMetadataV2).RKeys[0].TLFReaderEphemeralPublicKeys))
 
 	// prove charlie
-	config.KeybaseService().(*KeybaseDaemonLocal).addNewAssertionForTestOrBust(
+	config.KeybaseService().(*KeybaseDaemonLocal).AddNewAssertionForTestOrBust(
 		"charlie", "charlie@twitter")
 
 	// rekey it
@@ -452,14 +454,15 @@ func TestRootMetadataUpconversionPrivate(t *testing.T) {
 	require.Equal(t, 0, len(rmd.bareMd.(*kbfsmd.RootMetadataV2).RKeys[0].TLFReaderEphemeralPublicKeys))
 
 	// add a device for charlie and rekey as charlie
-	_, charlieID, err := config.KBPKI().Resolve(context.Background(), "charlie")
+	_, charlieID, err := config.KBPKI().Resolve(
+		context.Background(), "charlie", keybase1.OfflineAvailability_NONE)
 	require.NoError(t, err)
 	charlieUID, err := charlieID.AsUser()
 	require.NoError(t, err)
 
 	config2 := ConfigAsUser(config, "charlie")
 	config2.SetKeyCache(&dummyNoKeyCache{})
-	defer config2.Shutdown(ctx)
+	defer CheckConfigAndShutdown(ctx, t, config2)
 	AddDeviceForLocalUserOrBust(t, config, charlieUID)
 	AddDeviceForLocalUserOrBust(t, config2, charlieUID)
 
@@ -479,8 +482,8 @@ func TestRootMetadataUpconversionPrivate(t *testing.T) {
 	// create an MDv3 successor
 	rmd2, err := rmd.MakeSuccessor(context.Background(),
 		config.MetadataVersion(), config.Codec(),
-		config.KeyManager(), config.KBPKI(), config.KBPKI(), kbfsmd.FakeID(1),
-		true)
+		config.KeyManager(), config.KBPKI(), config.KBPKI(), nil,
+		kbfsmd.FakeID(1), true)
 	require.NoError(t, err)
 	require.Equal(t, kbfsmd.KeyGen(2), rmd2.LatestKeyGeneration())
 	require.Equal(t, kbfsmd.Revision(2), rmd2.Revision())
@@ -548,7 +551,7 @@ func TestRootMetadataUpconversionPrivate(t *testing.T) {
 func TestRootMetadataUpconversionPublic(t *testing.T) {
 	ctx := context.Background()
 	config := MakeTestConfigOrBust(t, "alice", "bob")
-	defer config.Shutdown(ctx)
+	defer CheckConfigAndShutdown(ctx, t, config)
 
 	tlfID := tlf.FakeID(1, tlf.Public)
 	h := parseTlfHandleOrBust(
@@ -571,8 +574,8 @@ func TestRootMetadataUpconversionPublic(t *testing.T) {
 	// create an MDv3 successor
 	rmd2, err := rmd.MakeSuccessor(context.Background(),
 		config.MetadataVersion(), config.Codec(),
-		config.KeyManager(), config.KBPKI(), config.KBPKI(), kbfsmd.FakeID(1),
-		true)
+		config.KeyManager(), config.KBPKI(), config.KBPKI(), config,
+		kbfsmd.FakeID(1), true)
 	require.NoError(t, err)
 	require.Equal(t, kbfsmd.PublicKeyGen, rmd2.LatestKeyGeneration())
 	require.Equal(t, kbfsmd.Revision(2), rmd2.Revision())
@@ -603,7 +606,7 @@ func TestRootMetadataUpconversionPublic(t *testing.T) {
 func TestRootMetadataUpconversionPrivateConflict(t *testing.T) {
 	ctx := context.Background()
 	config := MakeTestConfigOrBust(t, "alice", "bob")
-	defer config.Shutdown(ctx)
+	defer CheckConfigAndShutdown(ctx, t, config)
 
 	tlfID := tlf.FakeID(1, tlf.Private)
 	h := parseTlfHandleOrBust(
@@ -622,7 +625,7 @@ func TestRootMetadataUpconversionPrivateConflict(t *testing.T) {
 	rmd.SetRefBytes(refBytes)
 	rmd.SetUnrefBytes(unrefBytes)
 	// Make sure the MD looks readable.
-	rmd.data.Dir.BlockPointer = BlockPointer{ID: kbfsblock.FakeID(1)}
+	rmd.data.Dir.BlockPointer = data.BlockPointer{ID: kbfsblock.FakeID(1)}
 
 	// key it once
 	done, _, err := config.KeyManager().Rekey(context.Background(), rmd, false)
@@ -641,8 +644,8 @@ func TestRootMetadataUpconversionPrivateConflict(t *testing.T) {
 	// create an MDv3 successor
 	rmd2, err := rmd.MakeSuccessor(context.Background(),
 		config.MetadataVersion(), config.Codec(),
-		config.KeyManager(), config.KBPKI(), config.KBPKI(), kbfsmd.FakeID(1),
-		true)
+		config.KeyManager(), config.KBPKI(), config.KBPKI(), config,
+		kbfsmd.FakeID(1), true)
 	require.NoError(t, err)
 	require.Equal(t, kbfsmd.KeyGen(1), rmd2.LatestKeyGeneration())
 	require.Equal(t, kbfsmd.Revision(2), rmd2.Revision())
@@ -664,9 +667,10 @@ func TestRootMetadataUpconversionPrivateConflict(t *testing.T) {
 func TestRootMetadataV3NoPanicOnWriterMismatch(t *testing.T) {
 	ctx := context.Background()
 	config := MakeTestConfigOrBust(t, "alice", "bob")
-	defer config.Shutdown(ctx)
+	defer CheckConfigAndShutdown(ctx, t, config)
 
-	_, id, err := config.KBPKI().Resolve(context.Background(), "alice")
+	_, id, err := config.KBPKI().Resolve(
+		context.Background(), "alice", keybase1.OfflineAvailability_NONE)
 	require.NoError(t, err)
 	uid, err := id.AsUser()
 	require.NoError(t, err)
@@ -681,7 +685,7 @@ func TestRootMetadataV3NoPanicOnWriterMismatch(t *testing.T) {
 
 	// sign with a mismatched writer
 	config2 := ConfigAsUser(config, "bob")
-	defer config2.Shutdown(ctx)
+	defer CheckConfigAndShutdown(ctx, t, config2)
 	rmds, err := SignBareRootMetadata(
 		context.Background(), config.Codec(), config.Crypto(), config2.Crypto(), rmd.bareMd, time.Now())
 	require.NoError(t, err)
@@ -701,7 +705,7 @@ func TestRootMetadataReaderUpconversionPrivate(t *testing.T) {
 	ctx := context.Background()
 	configWriter := MakeTestConfigOrBust(t, "alice", "bob")
 	configWriter.SetKeyCache(&dummyNoKeyCache{})
-	defer configWriter.Shutdown(ctx)
+	defer CheckConfigAndShutdown(ctx, t, configWriter)
 
 	tlfID := tlf.FakeID(1, tlf.Private)
 	h := parseTlfHandleOrBust(t, configWriter, "alice#bob", tlf.Private, tlfID)
@@ -731,7 +735,7 @@ func TestRootMetadataReaderUpconversionPrivate(t *testing.T) {
 	// Set the private MD, to make sure it gets copied properly during
 	// upconversion.
 	_, aliceID, err := configWriter.KBPKI().Resolve(
-		context.Background(), "alice")
+		context.Background(), "alice", keybase1.OfflineAvailability_NONE)
 	require.NoError(t, err)
 	aliceUID, err := aliceID.AsUser()
 	require.NoError(t, err)
@@ -742,14 +746,15 @@ func TestRootMetadataReaderUpconversionPrivate(t *testing.T) {
 	require.NoError(t, err)
 
 	// add a device for bob and rekey as bob
-	_, bobID, err := configWriter.KBPKI().Resolve(context.Background(), "bob")
+	_, bobID, err := configWriter.KBPKI().Resolve(
+		context.Background(), "bob", keybase1.OfflineAvailability_NONE)
 	require.NoError(t, err)
 	bobUID, err := bobID.AsUser()
 	require.NoError(t, err)
 
 	configReader := ConfigAsUser(configWriter, "bob")
 	configReader.SetKeyCache(&dummyNoKeyCache{})
-	defer configReader.Shutdown(ctx)
+	defer CheckConfigAndShutdown(ctx, t, configReader)
 	AddDeviceForLocalUserOrBust(t, configWriter, bobUID)
 	AddDeviceForLocalUserOrBust(t, configReader, bobUID)
 
@@ -760,7 +765,7 @@ func TestRootMetadataReaderUpconversionPrivate(t *testing.T) {
 	rmd2, err := rmd.MakeSuccessor(context.Background(),
 		configReader.MetadataVersion(), configReader.Codec(),
 		configReader.KeyManager(), configReader.KBPKI(),
-		configReader.KBPKI(), kbfsmd.FakeID(1), false)
+		configReader.KBPKI(), configReader, kbfsmd.FakeID(1), false)
 	require.NoError(t, err)
 	require.Equal(t, kbfsmd.KeyGen(1), rmd2.LatestKeyGeneration())
 	require.Equal(t, kbfsmd.Revision(2), rmd2.Revision())
@@ -784,7 +789,8 @@ func TestRootMetadataReaderUpconversionPrivate(t *testing.T) {
 		rmd2.bareMd, configReader.Clock().Now())
 	require.NoError(t, err)
 	err = rmds.IsValidAndSigned(
-		ctx, configReader.Codec(), nil, rmd2.extra)
+		ctx, configReader.Codec(), nil, rmd2.extra,
+		keybase1.OfflineAvailability_NONE)
 	require.NoError(t, err)
 }
 
@@ -792,30 +798,30 @@ func TestRootMetadataReaderUpconversionPrivate(t *testing.T) {
 func TestRootMetadataTeamMembership(t *testing.T) {
 	config := MakeTestConfigOrBust(t, "alice", "bob", "charlie")
 	ctx := context.Background()
-	defer config.Shutdown(ctx)
+	defer CheckConfigAndShutdown(ctx, t, config)
 
 	teamInfos := AddEmptyTeamsForTestOrBust(t, config, "t1")
 	tid := teamInfos[0].TID
 
 	tlfID := tlf.FakeID(1, tlf.SingleTeam)
-	h := &TlfHandle{
-		tlfType: tlf.SingleTeam,
-		resolvedWriters: map[keybase1.UserOrTeamID]kbname.NormalizedUsername{
+	h := tlfhandle.NewHandle(
+		tlf.SingleTeam,
+		map[keybase1.UserOrTeamID]kbname.NormalizedUsername{
 			tid.AsUserOrTeam(): "t1",
-		},
-		name: "t1",
-	}
+		}, nil, nil, "t1", tlf.NullID)
 	rmd, err := makeInitialRootMetadata(kbfsmd.InitialExtraMetadataVer, tlfID, h)
 	require.NoError(t, err)
 
 	getUser := func(name string) (keybase1.UID, kbfscrypto.VerifyingKey) {
-		_, id, err := config.KBPKI().Resolve(context.Background(), name)
+		_, id, err := config.KBPKI().Resolve(
+			context.Background(), name, keybase1.OfflineAvailability_NONE)
 		require.NoError(t, err)
 		uid, err := id.AsUser()
 		require.NoError(t, err)
 
 		userInfo, err := config.KeybaseService().LoadUserPlusKeys(
-			context.Background(), uid, keybase1.KID(""))
+			context.Background(), uid, keybase1.KID(""),
+			keybase1.OfflineAvailability_NONE)
 		require.NoError(t, err)
 
 		return uid, userInfo.VerifyingKeys[0]
@@ -827,12 +833,12 @@ func TestRootMetadataTeamMembership(t *testing.T) {
 	// No user should be able to read this yet.
 	checkWriter := func(uid keybase1.UID, key kbfscrypto.VerifyingKey,
 		expectedIsWriter bool) {
-		isWriter, err := rmd.IsWriter(ctx, config.KBPKI(), uid, key)
+		isWriter, err := rmd.IsWriter(ctx, config.KBPKI(), config, uid, key)
 		require.NoError(t, err)
 		require.Equal(t, expectedIsWriter, isWriter)
 	}
 	checkReader := func(uid keybase1.UID, expectedIsReader bool) {
-		isReader, err := rmd.IsReader(ctx, config.KBPKI(), uid)
+		isReader, err := rmd.IsReader(ctx, config.KBPKI(), config, uid)
 		require.NoError(t, err)
 		require.Equal(t, expectedIsReader, isReader)
 	}
@@ -876,32 +882,30 @@ func TestRootMetadataTeamMembership(t *testing.T) {
 func TestRootMetadataTeamMakeSuccessor(t *testing.T) {
 	config := MakeTestConfigOrBust(t, "alice")
 	ctx := context.Background()
-	defer config.Shutdown(ctx)
+	defer CheckConfigAndShutdown(ctx, t, config)
 
 	teamInfos := AddEmptyTeamsForTestOrBust(t, config, "t1")
 	tid := teamInfos[0].TID
 
 	tlfID := tlf.FakeID(1, tlf.SingleTeam)
-	h := &TlfHandle{
-		tlfType: tlf.SingleTeam,
-		resolvedWriters: map[keybase1.UserOrTeamID]kbname.NormalizedUsername{
+	h := tlfhandle.NewHandle(
+		tlf.SingleTeam,
+		map[keybase1.UserOrTeamID]kbname.NormalizedUsername{
 			tid.AsUserOrTeam(): "t1",
-		},
-		name: "t1",
-	}
+		}, nil, nil, "t1", tlf.NullID)
 	rmd, err := makeInitialRootMetadata(kbfsmd.SegregatedKeyBundlesVer, tlfID, h)
 	require.NoError(t, err)
 	rmd.bareMd.SetLatestKeyGenerationForTeamTLF(teamInfos[0].LatestKeyGen)
 	// Make sure the MD looks readable.
-	rmd.data.Dir.BlockPointer = BlockPointer{ID: kbfsblock.FakeID(1)}
+	rmd.data.Dir.BlockPointer = data.BlockPointer{ID: kbfsblock.FakeID(1)}
 
 	firstKeyGen := rmd.LatestKeyGeneration()
 	require.Equal(t, kbfsmd.FirstValidKeyGen, firstKeyGen)
 
 	rmd2, err := rmd.MakeSuccessor(context.Background(),
 		config.MetadataVersion(), config.Codec(),
-		config.KeyManager(), config.KBPKI(), config.KBPKI(), kbfsmd.FakeID(1),
-		true)
+		config.KeyManager(), config.KBPKI(), config.KBPKI(), config,
+		kbfsmd.FakeID(1), true)
 	require.NoError(t, err)
 
 	// No increase yet.
@@ -912,8 +916,8 @@ func TestRootMetadataTeamMakeSuccessor(t *testing.T) {
 
 	rmd3, err := rmd2.MakeSuccessor(context.Background(),
 		config.MetadataVersion(), config.Codec(),
-		config.KeyManager(), config.KBPKI(), config.KBPKI(), kbfsmd.FakeID(2),
-		true)
+		config.KeyManager(), config.KBPKI(), config.KBPKI(), config,
+		kbfsmd.FakeID(2), true)
 	require.NoError(t, err)
 
 	// Should have been bumped by one.

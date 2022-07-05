@@ -27,7 +27,6 @@ type CmdChatSearchRegexp struct {
 	resolvingRequest chatConversationResolvingRequest
 	query            string
 	opts             chat1.SearchOpts
-	isRegex          bool
 	hasTTY           bool
 }
 
@@ -75,18 +74,8 @@ func (c *CmdChatSearchRegexp) Run() (err error) {
 			return err
 		}
 	}
-	// TODO: Right now this command cannot be run in standalone at
-	// all, even though team chats should work, but there is a bug
-	// in finding existing conversations.
-	if c.G().Standalone {
-		switch c.resolvingRequest.MembersType {
-		case chat1.ConversationMembersType_TEAM, chat1.ConversationMembersType_IMPTEAMNATIVE,
-			chat1.ConversationMembersType_IMPTEAMUPGRADE:
-			c.G().StartStandaloneChat()
-		default:
-			err = CantRunInStandaloneError{}
-			return err
-		}
+	if err := CheckAndStartStandaloneChat(c.G(), c.resolvingRequest.MembersType); err != nil {
+		return err
 	}
 
 	resolver, err := newChatConversationResolver(c.G())
@@ -110,7 +99,6 @@ func (c *CmdChatSearchRegexp) Run() (err error) {
 		ConvID:           conversationInfo.Id,
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 		Query:            c.query,
-		IsRegex:          c.isRegex,
 		Opts:             c.opts,
 	}
 
@@ -129,6 +117,7 @@ func (c *CmdChatSearchRegexp) ParseArgv(ctx *cli.Context) (err error) {
 	}
 	c.query = ctx.Args().Get(1)
 	c.opts.SentBy = ctx.String("sent-by")
+	c.opts.SentTo = ctx.String("sent-to")
 	sentBeforeStr := ctx.String("sent-before")
 	sentAfterStr := ctx.String("sent-after")
 	if sentBeforeStr != "" && sentAfterStr != "" {
@@ -166,9 +155,9 @@ func (c *CmdChatSearchRegexp) ParseArgv(ctx *cli.Context) (err error) {
 		c.opts.AfterContext = context
 	}
 
-	c.isRegex = ctx.Bool("regex")
+	c.opts.IsRegex = ctx.Bool("regex")
 	query := c.query
-	if !c.isRegex {
+	if !c.opts.IsRegex {
 		query = regexp.QuoteMeta(c.query)
 	}
 	if _, err := regexp.Compile(query); err != nil {

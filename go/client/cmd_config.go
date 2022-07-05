@@ -103,6 +103,17 @@ func (v *CmdConfigSet) ParseArgv(ctx *cli.Context) error {
 		tmp := int(i)
 		v.Value.I = &tmp
 	}
+	if ctx.Bool("float") {
+		if len(args) <= 1 {
+			return fmt.Errorf("Missing float value argument")
+		}
+		flags++
+		f, err := strconv.ParseFloat(args[1], 64)
+		if err != nil {
+			return err
+		}
+		v.Value.F = &f
+	}
 	if ctx.Bool("bool") {
 		if len(args) <= 1 {
 			return fmt.Errorf("Missing bool value argument")
@@ -129,7 +140,7 @@ func (v *CmdConfigSet) ParseArgv(ctx *cli.Context) error {
 	}
 
 	if flags > 1 {
-		return fmt.Errorf("Can only specify one of -c, -n, -i, -b or -s")
+		return fmt.Errorf("Can only specify one of -c, -n, -i, -f, -b or -s")
 	}
 
 	if ctx.Bool("string") || flags == 0 {
@@ -341,6 +352,10 @@ func NewCmdConfigSet(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Com
 			cli.BoolFlag{
 				Name:  "int, i",
 				Usage: "Treat the passed argument as an integer",
+			},
+			cli.BoolFlag{
+				Name:  "float, f",
+				Usage: "Treat the passed argument as a float",
 			},
 			cli.BoolFlag{
 				Name:  "obj, o",

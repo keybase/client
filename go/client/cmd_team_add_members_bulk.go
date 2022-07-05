@@ -16,11 +16,12 @@ import (
 
 type CmdTeamAddMembersBulk struct {
 	libkb.Contextified
-	arg keybase1.TeamAddMembersMultiRoleArg
+	arg  keybase1.TeamAddMembersMultiRoleArg
+	Team string
 }
 
 func newCmdTeamAddMembersBulk(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
-	return cli.Command{
+	cmd := cli.Command{
 		Name:         "add-members-bulk",
 		ArgumentHelp: "<team name>",
 		Usage:        "Add users to a team in bulk.",
@@ -29,6 +30,10 @@ func newCmdTeamAddMembersBulk(cl *libcmdline.CommandLine, g *libkb.GlobalContext
 			cl.ChooseCommand(cmd, "add-members-bulk", c)
 		},
 		Flags: []cli.Flag{
+			cli.StringFlag{
+				Name:  "b, bots",
+				Usage: "specify bots to add",
+			},
 			cli.StringFlag{
 				Name:  "r, readers",
 				Usage: "specify readers to add",
@@ -43,15 +48,21 @@ func newCmdTeamAddMembersBulk(cl *libcmdline.CommandLine, g *libkb.GlobalContext
 			},
 			cli.StringFlag{
 				Name:  "o, owners",
-				Usage: "specify ownsers to add",
+				Usage: "specify owners to add",
 			},
 			cli.BoolFlag{
 				Name:  "s, skip-chat-message",
 				Usage: "skip chat welcome message",
 			},
+			cli.StringFlag{
+				Name:  "m, email-invite-message",
+				Usage: "send a welcome message along with your email invitation",
+			},
 		},
 		Description: teamAddMembersBulkDoc,
 	}
+
+	return cmd
 }
 
 func NewCmdTeamAddMembersBulkRunner(g *libkb.GlobalContext) *CmdTeamAddMembersBulk {
@@ -67,7 +78,7 @@ func (c *CmdTeamAddMembersBulk) parseBulkList(v string, role keybase1.TeamRole) 
 		if len(p) == 0 {
 			return 0, errors.New("cannot specify an empty user")
 		}
-		c.arg.Users = append(c.arg.Users, keybase1.UserRolePair{AssertionOrEmail: p, Role: role})
+		c.arg.Users = append(c.arg.Users, keybase1.UserRolePair{Assertion: p, Role: role})
 		n++
 	}
 	return n, nil
@@ -75,7 +86,7 @@ func (c *CmdTeamAddMembersBulk) parseBulkList(v string, role keybase1.TeamRole) 
 }
 
 func (c *CmdTeamAddMembersBulk) ParseArgv(ctx *cli.Context) (err error) {
-	c.arg.Name, err = ParseOneTeamName(ctx)
+	c.Team, err = ParseOneTeamName(ctx)
 	if err != nil {
 		return err
 	}
@@ -86,6 +97,7 @@ func (c *CmdTeamAddMembersBulk) ParseArgv(ctx *cli.Context) (err error) {
 		s string
 		t keybase1.TeamRole
 	}{
+		{"bots", keybase1.TeamRole_BOT},
 		{"readers", keybase1.TeamRole_READER},
 		{"writers", keybase1.TeamRole_WRITER},
 		{"admins", keybase1.TeamRole_ADMIN},
@@ -99,9 +111,15 @@ func (c *CmdTeamAddMembersBulk) ParseArgv(ctx *cli.Context) (err error) {
 		tot += n
 	}
 	if tot == 0 {
-		return errors.New("Need at least one of --readers, --writers, --admins or --owners")
+		return errors.New("Need at least one of --bots, --readers, --writers, --admins or --owners")
 	}
 	c.arg.SendChatNotification = !ctx.Bool("skip-chat-message")
+
+	emailInviteMsg := ctx.String("email-invite-message")
+	if len(emailInviteMsg) > 0 {
+		c.arg.EmailInviteMessage = &emailInviteMsg
+	}
+
 	return nil
 }
 
@@ -111,7 +129,14 @@ func (c *CmdTeamAddMembersBulk) Run() error {
 		return err
 	}
 
-	err = cli.TeamAddMembersMultiRole(context.Background(), c.arg)
+	teamID, err := cli.GetTeamID(context.Background(), c.Team)
+	if err != nil {
+		return err
+	}
+	c.arg.TeamID = teamID
+
+	// TODO: currently ignoring res; address in PICNIC-714
+	_, err = cli.TeamAddMembersMultiRole(context.Background(), c.arg)
 	if err != nil {
 		return err
 	}
@@ -130,20 +155,20 @@ const teamAddMembersBulkDoc = `"keybase team add-members-bulk" allows you to add
 
 EXAMPLES:
 
-Add existing keybase users as writiers:
+Add existing keybase users as writers:
 
     keybase team add-members-bulk acme --writers=alice,bob,charlie
 
 Add users via social assertions:
 
-    keybase team add-members-bulk acme --writers=alice+alice@github,bob@github,jerry@redder --readers=jon,bob32
+    keybase team add-members-bulk acme --writers=alice+alice@github,bob@github,jerry@redder --readers=jon,bob32 --bots=botua
 
 Add users via email:
 
     keybase team add-members-bulk acme --readers='[max43@gmail.com]@email,[bill32@yahoo.com]@email' --writers='[lucy32@poems.com]@email'
 
-You can specify one or more of --readers, --writers, --admins, --owners, to add multiple
-roles at one go. For each of those lists, you can mix and match Keybase users, social
-assertions, and email addresses. Email addresses cannot be combined with other assertions,
-however.
+You can specify one or more of --bots, --readers, --writers, --admins,
+--owners, to add multiple roles at one go. For each of those lists, you can mix
+and match Keybase users, social assertions, and email addresses. Email
+addresses cannot be combined with other assertions, however.
 `

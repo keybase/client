@@ -13,8 +13,6 @@ type Session struct {
 	Contextified
 	token    string
 	csrf     string
-	inFile   bool
-	loaded   bool
 	deviceID keybase1.DeviceID
 	valid    bool
 	uid      keybase1.UID
@@ -96,11 +94,6 @@ func (s *Session) SetDeviceProvisioned(devid keybase1.DeviceID) error {
 	return nil
 }
 
-func (s *Session) isConfigLoggedIn() bool {
-	reader := s.G().Env.GetConfig()
-	return reader.GetUsername() != "" && reader.GetDeviceID().Exists() && reader.GetUID().Exists()
-}
-
 func (s *Session) IsRecent() bool {
 	if s.mtime.IsZero() {
 		return false
@@ -125,4 +118,36 @@ func (s *Session) HasSessionToken() bool {
 
 func (s *Session) IsValid() bool {
 	return s.valid
+}
+
+type SessionTokener struct {
+	session, csrf string
+}
+
+func (s *SessionTokener) Tokens() (session, csrf string) {
+	return s.session, s.csrf
+}
+
+func NewSessionTokener(mctx MetaContext) (*SessionTokener, error) {
+	resp, err := mctx.G().API.Post(mctx, APIArg{
+		Endpoint:    "new_session",
+		SessionType: APISessionTypeREQUIRED,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	session, err := resp.Body.AtKey("session").GetString()
+	if err != nil {
+		return nil, err
+	}
+	csrf, err := resp.Body.AtKey("csrf_token").GetString()
+	if err != nil {
+		return nil, err
+	}
+
+	return &SessionTokener{
+		session: session,
+		csrf:    csrf,
+	}, nil
 }

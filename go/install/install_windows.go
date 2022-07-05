@@ -7,7 +7,6 @@ import (
 	"bufio"
 	"bytes"
 	"context"
-	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -32,13 +31,6 @@ import (
 // Install only handles the driver part on Windows
 func Install(context Context, binPath string, sourcePath string, components []string, force bool, timeout time.Duration, log Log) keybase1.InstallResult {
 	return keybase1.InstallResult{}
-}
-
-func componentResult(name string, err error) keybase1.ComponentResult {
-	if err != nil {
-		return keybase1.ComponentResult{Name: string(name), Status: keybase1.StatusFromCode(keybase1.StatusCode_SCInstallError, err.Error())}
-	}
-	return keybase1.ComponentResult{Name: string(name), Status: keybase1.StatusOK("")}
 }
 
 // AutoInstall is not supported on Windows
@@ -121,21 +113,21 @@ func newScannerUTF16or8(filename string) (utfScanner, error) {
 // and translate if necessary.
 func InstallLogPath() (string, error) {
 	// Get the 3 newest keybase logs - sorting by name works because timestamp
-	keybaseLogFiles, err := filepath.Glob(os.ExpandEnv(filepath.Join("${TEMP}", "Keybase*.log")))
+	keybaseLogFiles, keybaseFetchLogErr := filepath.Glob(os.ExpandEnv(filepath.Join("${TEMP}", "Keybase*.log")))
 	sort.Sort(sort.Reverse(sort.StringSlice(keybaseLogFiles)))
 	if len(keybaseLogFiles) > 6 {
 		keybaseLogFiles = keybaseLogFiles[:6]
 	}
 
-	// Get the latest msi log - this is the clean install .msi log
-	msiLogFiles, err := filepath.Glob(os.ExpandEnv(filepath.Join("${TEMP}", "MSI*.LOG")))
-	sort.Sort(sort.Reverse(sort.StringSlice(msiLogFiles)))
-	if len(msiLogFiles) >= 1 {
-		keybaseLogFiles = append(keybaseLogFiles, msiLogFiles[0])
+	// Get the latest msi log (in the app data temp dir) for a keybase install
+	msiLogPattern := os.ExpandEnv(filepath.Join("${TEMP}", "MSI*.LOG"))
+	msiLogFile, msiFetchLogErr := LastModifiedMatchingFile(msiLogPattern, "Keybase")
+	if msiLogFile != nil {
+		keybaseLogFiles = append(keybaseLogFiles, *msiLogFile)
 	}
 
 	// Get the 2 newest dokan logs - sorting by name works because timestamp
-	dokanLogFiles, err := filepath.Glob(os.ExpandEnv(filepath.Join("${TEMP}", "Dokan*.log")))
+	dokanLogFiles, dokanFetchLogErr := filepath.Glob(os.ExpandEnv(filepath.Join("${TEMP}", "Dokan*.log")))
 	sort.Sort(sort.Reverse(sort.StringSlice(dokanLogFiles)))
 	if len(dokanLogFiles) > 2 {
 		dokanLogFiles = dokanLogFiles[:2]
@@ -146,6 +138,16 @@ func InstallLogPath() (string, error) {
 	defer logFile.Close()
 	if err != nil {
 		return "", err
+	}
+
+	if msiFetchLogErr != nil {
+		fmt.Fprintf(logFile, "  --- error fetching msi log %v---\n", msiFetchLogErr)
+	}
+	if keybaseFetchLogErr != nil {
+		fmt.Fprintf(logFile, "  --- error fetching keybase install log %v---\n", keybaseFetchLogErr)
+	}
+	if dokanFetchLogErr != nil {
+		fmt.Fprintf(logFile, "  --- error fetching dokan log %v---\n", dokanFetchLogErr)
 	}
 
 	getVersionAndDrivers(logFile)
@@ -185,6 +187,8 @@ func WatchdogLogPath(logGlobPath string) (string, error) {
 	if len(watchdogLogFiles) > 5 {
 		watchdogLogFiles = watchdogLogFiles[:5]
 	}
+	// resort the files so the combined file will be chronological
+	sort.Sort((sort.StringSlice(watchdogLogFiles)))
 
 	logName, logFile, err := libkb.OpenTempFile("KeybaseWatchdogUpload", ".log", 0)
 	defer logFile.Close()
@@ -216,6 +220,75 @@ func WatchdogLogPath(logGlobPath string) (string, error) {
 	return logName, err
 }
 
+const autoRegPath = `Software\Microsoft\Windows\CurrentVersion\Run`
+const autoRegName = `Keybase.Keybase.GUI`
+
+// TODO Remove this in 2022.
+const autoRegDeprecatedName = `electron.app.keybase`
+
+func autostartStatus() (enabled bool, err error) {
+	k, err := registry.OpenKey(registry.CURRENT_USER, autoRegPath, registry.QUERY_VALUE|registry.READ)
+	if err != nil {
+		return false, fmt.Errorf("Error opening Run registry key: %v", err)
+	}
+	defer k.Close()
+
+	// Value not existing means that we are not starting up by default!
+	_, _, err = k.GetStringValue(autoRegName)
+	return err == nil, nil
+}
+
+func ToggleAutostart(context Context, on bool, forAutoinstallIgnored bool) error {
+	k, err := registry.OpenKey(registry.CURRENT_USER, autoRegPath, registry.QUERY_VALUE|registry.WRITE)
+	if err != nil {
+		return fmt.Errorf("Error opening StartupFolder registry key: %v", err)
+	}
+	defer k.Close()
+
+	// Delete old key if it exists.
+	// TODO Remove this in 2022.
+	k.DeleteValue(autoRegDeprecatedName)
+
+	if !on {
+		// it might not exists, don't propagate error.
+		k.DeleteValue(autoRegName)
+		return nil
+	}
+
+	appDataDir, err := libkb.LocalDataDir()
+	if err != nil {
+		return fmt.Errorf("Error getting AppDataDir: %v", err)
+	}
+
+	err = k.SetStringValue(autoRegName, appDataDir+`\Keybase\Gui\Keybase.exe`)
+	if err != nil {
+		return fmt.Errorf("Error setting registry Run value %v", err)
+	}
+	return nil
+}
+
+// This is the old startup info logging. Retain it for now, but it is soon useless.
+// TODO Remove in 2021.
+func deprecatedStartupInfo(logFile *os.File) {
+	if appDataDir, err := libkb.AppDataDir(); err != nil {
+		logFile.WriteString("Error getting AppDataDir\n")
+	} else {
+		if exists, err := libkb.FileExists(filepath.Join(appDataDir, "Microsoft\\Windows\\Start Menu\\Programs\\Startup\\KeybaseStartup.lnk")); err == nil && exists == false {
+			logFile.WriteString("  -- Service startup shortcut missing! --\n\n")
+		} else if err != nil {
+			k, err := registry.OpenKey(registry.CURRENT_USER, "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\StartupApproved\\StartupFolder", registry.QUERY_VALUE|registry.READ)
+			if err != nil {
+				logFile.WriteString("Error opening Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\StartupApproved\\StartupFolder\n")
+			} else {
+				val, _, err := k.GetBinaryValue("KeybaseStartup.lnk")
+				if err == nil && len(val) > 0 && val[0] != 2 {
+					logFile.WriteString("  -- Service startup shortcut disabled in registry! --\n\n")
+				}
+			}
+		}
+	}
+}
+
 func getVersionAndDrivers(logFile *os.File) {
 	// Capture Windows Version
 	cmd := exec.Command("cmd", "ver")
@@ -238,23 +311,9 @@ func getVersionAndDrivers(logFile *os.File) {
 	logFile.WriteString("\n")
 
 	// Check whether the service shortcut is still present and not disabled
-	if appDataDir, err := libkb.AppDataDir(); err != nil {
-		logFile.WriteString("Error getting AppDataDir\n")
-	} else {
-		if exists, err := libkb.FileExists(filepath.Join(appDataDir, "Microsoft\\Windows\\Start Menu\\Programs\\Startup\\KeybaseStartup.lnk")); err == nil && exists == false {
-			logFile.WriteString("  -- Service startup shortcut missing! --\n\n")
-		} else if err != nil {
-			k, err := registry.OpenKey(registry.CURRENT_USER, "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\StartupApproved\\StartupFolder", registry.QUERY_VALUE|registry.READ)
-			if err != nil {
-				logFile.WriteString("Error opening Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\StartupApproved\\StartupFolder\n")
-			} else {
-				val, _, err := k.GetBinaryValue("KeybaseStartup.lnk")
-				if err == nil && len(val) > 0 && val[0] != 2 {
-					logFile.WriteString("  -- Service startup shortcut disabled in registry! --\n\n")
-				}
-			}
-		}
-	}
+	deprecatedStartupInfo(logFile)
+	status, err := autostartStatus()
+	logFile.WriteString(fmt.Sprintf("AutoStart: %v, %v\n", status, err))
 
 	// List filesystem drivers
 	outputBytes, err := exec.Command("driverquery").Output()
@@ -304,41 +363,6 @@ func IsInUse(mountDir string, log Log) bool {
 	return false
 }
 
-func getCachedPackageModifyString(log Log) (string, error) {
-
-	k, err := registry.OpenKey(registry.CURRENT_USER, `SOFTWARE\Keybase\Keybase\`, registry.READ|registry.WOW64_64KEY)
-	defer k.Close()
-	if err != nil {
-		log.Debug("getCachedPackageModifyString: can't open SOFTWARE\\Keybase\\Keybase\\")
-		return "", err
-	}
-	bundleKey, _, err := k.GetStringValue("BUNDLEKEY")
-	if err != nil || bundleKey == "" {
-		log.Debug("getCachedPackageModifyString: can't read SOFTWARE\\Keybase\\Keybase\\BUNDLEKEY")
-		return "", err
-	}
-
-	k2, err := registry.OpenKey(registry.CURRENT_USER, `SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall`+bundleKey, registry.QUERY_VALUE|registry.WOW64_64KEY)
-	if err != nil {
-		log.Debug("getCachedPackageModifyString: can't read " + `SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall` + bundleKey)
-		return "", err
-	}
-	displayName, _, err := k2.GetStringValue("DisplayName")
-	if err != nil {
-		log.Debug("getCachedPackageModifyString: can't read DisplayName of " + `SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall` + bundleKey)
-	}
-	publisher, _, err := k2.GetStringValue("Publisher")
-	if err != nil {
-		log.Debug("getCachedPackageModifyString: can't read publisher of " + `SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall` + bundleKey)
-	}
-	if displayName == "Keybase" && publisher == "Keybase, Inc." {
-		modify, _, err := k2.GetStringValue("ModifyPath")
-		return modify, err
-	}
-	log.Debug("getCachedPackageModifyString: " + `SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall` + bundleKey + "displayName " + displayName + ", publisher " + publisher)
-	return "", errors.New("no cached package path found")
-}
-
 // StartUpdateIfNeeded starts to update the app if there's one available. It
 // calls `updater check` internally so it ignores the snooze.
 func StartUpdateIfNeeded(ctx context.Context, log logger.Logger) error {
@@ -360,4 +384,26 @@ func StartUpdateIfNeeded(ctx context.Context, log logger.Logger) error {
 func LsofMount(mountDir string, log Log) ([]CommonLsofResult, error) {
 	log.Warning("Cannot use lsof on Windows.")
 	return nil, fmt.Errorf("Cannot use lsof on Windows.")
+}
+
+// delete this function and calls to it if present after 2022
+func deleteDeprecatedFileIfPresent() {
+	// this file is no longer how we do things, and if it's present (which it shouldn't be) it could
+	// cause unexpected behavior
+	if appDataDir, err := libkb.AppDataDir(); err == nil {
+		autostartLinkPath := filepath.Join(appDataDir, "Microsoft\\Windows\\Start Menu\\Programs\\Startup\\KeybaseStartup.lnk")
+		_ = os.Remove(autostartLinkPath)
+	}
+}
+
+func GetAutostart(context Context) keybase1.OnLoginStartupStatus {
+	deleteDeprecatedFileIfPresent()
+	status, err := autostartStatus()
+	if err != nil {
+		return keybase1.OnLoginStartupStatus_UNKNOWN
+	}
+	if status {
+		return keybase1.OnLoginStartupStatus_ENABLED
+	}
+	return keybase1.OnLoginStartupStatus_DISABLED
 }

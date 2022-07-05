@@ -8,6 +8,7 @@ import (
 	"sort"
 	"testing"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/kbfs/tlf"
 	kbname "github.com/keybase/client/go/kbun"
@@ -25,7 +26,7 @@ func setBlockSizes(t testing.TB, config libkbfs.Config, blockSize, blockChangeSi
 		if blockChangeSize == 0 {
 			blockChangeSize = 8 * 1024
 		}
-		bsplit, err := libkbfs.NewBlockSplitterSimple(blockSize,
+		bsplit, err := data.NewBlockSplitterSimple(blockSize,
 			uint64(blockChangeSize), config.Codec())
 		if err != nil {
 			t.Fatalf("Couldn't make block splitter for block size %d,"+
@@ -41,8 +42,8 @@ func setBlockSizes(t testing.TB, config libkbfs.Config, blockSize, blockChangeSi
 
 func maybeSetBw(t testing.TB, config libkbfs.Config, bwKBps int) {
 	if bwKBps > 0 {
-		config.SetBlockOps(libkbfs.NewBlockOpsConstrained(
-			config.BlockOps(), bwKBps))
+		// TODO: reinstate constrained bandwidth tests.
+
 		// Looks like we're testing big transfers, so let's do
 		// background flushes.
 		config.SetDoBackgroundFlushes(true)

@@ -1,0 +1,109 @@
+{
+  "protocol": "teamSearch",
+  "imports": [
+    {
+      "path": "common.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [
+    {
+      "type": "record",
+      "name": "TeamSearchItem",
+      "fields": [
+        {
+          "type": "TeamID",
+          "name": "id"
+        },
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "description"
+        },
+        {
+          "type": "int",
+          "name": "memberCount"
+        },
+        {
+          "type": "Time",
+          "name": "lastActive"
+        },
+        {
+          "type": "boolean",
+          "name": "isDemoted"
+        },
+        {
+          "type": "boolean",
+          "name": "inTeam"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamSearchExport",
+      "fields": [
+        {
+          "type": {
+            "type": "map",
+            "values": "TeamSearchItem",
+            "keys": "TeamID"
+          },
+          "name": "items"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "TeamID"
+          },
+          "name": "suggested"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamSearchRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "TeamSearchItem"
+          },
+          "name": "results"
+        }
+      ]
+    }
+  ],
+  "messages": {
+    "teamSearch": {
+      "request": [
+        {
+          "name": "uid",
+          "type": [
+            null,
+            "UID"
+          ]
+        },
+        {
+          "name": "query",
+          "type": "string"
+        },
+        {
+          "name": "limit",
+          "type": "int"
+        },
+        {
+          "name": "useRemote",
+          "type": "boolean"
+        }
+      ],
+      "response": "TeamSearchRes"
+    }
+  },
+  "namespace": "keybase.1"
+}

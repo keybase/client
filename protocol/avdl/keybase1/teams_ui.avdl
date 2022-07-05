@@ -2,4 +2,5 @@
 protocol teamsUi {
   boolean confirmRootTeamDelete(int sessionID, string teamName);
   boolean confirmSubteamDelete(int sessionID, string teamName);
+  boolean confirmInviteLinkAccept(int sessionID, InviteLinkDetails details);
 }

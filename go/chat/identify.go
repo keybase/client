@@ -2,7 +2,6 @@ package chat
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"strings"
 	"sync"
@@ -14,8 +13,6 @@ import (
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/protocol/chat1"
-	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
@@ -35,7 +32,7 @@ type SimpleIdentifyNotifier struct {
 func NewSimpleIdentifyNotifier(g *globals.Context) *SimpleIdentifyNotifier {
 	return &SimpleIdentifyNotifier{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "SimpleIdentifyNotifier", false),
+		DebugLabeler: utils.NewDebugLabeler(g.ExternalG(), "SimpleIdentifyNotifier", false),
 		storage:      storage.New(g, g.ConvSource),
 	}
 }
@@ -63,7 +60,7 @@ type CachingIdentifyNotifier struct {
 func NewCachingIdentifyNotifier(g *globals.Context) *CachingIdentifyNotifier {
 	return &CachingIdentifyNotifier{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "CachingIdentifyNotifier", false),
+		DebugLabeler: utils.NewDebugLabeler(g.ExternalG(), "CachingIdentifyNotifier", false),
 		identCache:   make(map[string]keybase1.CanonicalTLFNameAndIDWithBreaks),
 		storage:      storage.New(g, g.ConvSource),
 	}
@@ -117,131 +114,38 @@ type IdentifyChangedHandler struct {
 func NewIdentifyChangedHandler(g *globals.Context) *IdentifyChangedHandler {
 	return &IdentifyChangedHandler{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "IdentifyChangedHandler", false),
+		DebugLabeler: utils.NewDebugLabeler(g.ExternalG(), "IdentifyChangedHandler", false),
 	}
 }
-
-var errNoConvForUser = errors.New("user not found in inbox")
 
 func (h *IdentifyChangedHandler) getUsername(ctx context.Context, uid keybase1.UID) (string, error) {
 	u, err := h.G().GetUPAKLoader().LookupUsername(ctx, uid)
 	return u.String(), err
 }
 
-func (h *IdentifyChangedHandler) getTLFtoCrypt(ctx context.Context, uid gregor1.UID) (string, chat1.TLFID, error) {
-
-	me := h.G().ActiveDevice.UID()
-	if me.IsNil() {
-		return "", nil, libkb.LoggedInError{}
-	}
-	inbox := storage.NewInbox(h.G())
-
-	_, allConvs, err := inbox.ReadAll(ctx, me.ToBytes(), true)
-	if err != nil {
-		return "", nil, err
-	}
-
-	for _, conv := range allConvs {
-		if conv.Conv.Includes(uid) {
-			maxText, err := conv.Conv.GetMaxMessage(chat1.MessageType_TEXT)
-			if err != nil {
-				h.Debug(ctx, "failed to get a max message from conv: uid: %s convID: %s err: %s",
-					uid, conv.GetConvID(), err.Error())
-				continue
-			}
-
-			return maxText.TLFNameExpanded(conv.Conv.Metadata.FinalizeInfo),
-				conv.Conv.Metadata.IdTriple.Tlfid, nil
-		}
-	}
-
-	h.Debug(ctx, "no conversation found for update for uid: %s", uid)
-	return "", nil, errNoConvForUser
-}
-
-func (h *IdentifyChangedHandler) BackgroundIdentifyChanged(ctx context.Context, job engine.IdentifyJob) {
-	notifier := NewCachingIdentifyNotifier(h.G())
-
-	// Get username
-	uid := job.UID()
-	username, err := h.getUsername(ctx, uid)
-	if err != nil {
-		h.Debug(ctx, "BackgroundIdentifyChanged: failed to load username: uid: %s err: %s", uid, err)
-		return
-	}
-
-	// Get TLF info out of inbox
-	tlfName, tlfID, err := h.getTLFtoCrypt(ctx, uid.ToBytes())
-	if err != nil {
-		if err != errNoConvForUser {
-			h.Debug(ctx, "BackgroundIdentifyChanged: error finding TLF name for update: err: %s",
-				err.Error())
-		}
-		return
-	}
-
-	// Form payload
-	h.Debug(ctx, "BackgroundIdentifyChanged: using TLF name: %s", tlfName)
-	notifyPayload := keybase1.CanonicalTLFNameAndIDWithBreaks{
-		TlfID:         keybase1.TLFID(tlfID.String()),
-		CanonicalName: keybase1.CanonicalTlfName(tlfName),
-	}
-	if job.ThisError() != nil {
-		// Handle error case by transmitting a break
-		idbreak := keybase1.TLFIdentifyFailure{
-			User: keybase1.User{
-				Uid:      uid,
-				Username: username,
-			},
-		}
-		notifyPayload.Breaks = keybase1.TLFBreak{
-			Breaks: []keybase1.TLFIdentifyFailure{idbreak},
-		}
-		h.Debug(ctx, "BackgroundIdentifyChanged: transmitting a break")
-	}
-
-	// Fire away!
-	notifier.Send(ctx, notifyPayload)
-}
-
 func (h *IdentifyChangedHandler) HandleUserChanged(uid keybase1.UID) (err error) {
-	defer h.Trace(context.Background(), func() error { return err },
+	defer h.Trace(context.Background(), &err,
 		fmt.Sprintf("HandleUserChanged(uid=%s)", uid))()
-
 	// If this is about us we don't care
 	me := h.G().Env.GetUID()
 	if me.Equal(uid) {
 		return nil
 	}
-
 	// Make a new chat context
 	var breaks []keybase1.TLFIdentifyFailure
 	ident := keybase1.TLFIdentifyBehavior_CHAT_GUI
 	notifier := NewCachingIdentifyNotifier(h.G())
-	ctx := Context(context.Background(), h.G(), ident, &breaks, notifier)
-
-	// Find a TLF name from the local inbox that includes the user sent to us
-	tlfName, _, err := h.getTLFtoCrypt(ctx, uid.ToBytes())
+	ctx := globals.ChatCtx(context.Background(), h.G(), ident, &breaks, notifier)
+	username, err := h.getUsername(ctx, uid)
 	if err != nil {
-		if err != errNoConvForUser {
-			h.Debug(ctx, "HandleUserChanged: error finding TLF name for update: err: %s", err.Error())
-			return err
-		}
-		return nil
+		return err
 	}
-	h.Debug(ctx, "HandleUserChanged: using TLF name: %s", tlfName)
-
-	// Take this guy out of the cache, we want this to run fresh
-	if err = h.G().Identify2Cache().Delete(uid); err != nil {
-		// Charge through this error, probably doesn't matter
-		h.Debug(ctx, "HandleUserChanged: unable to delete cache entry: uid: %s: err: %s", uid,
-			err.Error())
-	}
-
-	// Run against CryptKeys to generate notifications if necessary
-	if _, err = CreateNameInfoSource(ctx, h.G(), chat1.ConversationMembersType_IMPTEAMNATIVE).LookupID(ctx,
-		tlfName, false); err != nil {
-		h.Debug(ctx, "HandleUserChanged: failed to run CryptKeys: %s", err.Error())
+	if _, err := NewNameIdentifier(h.G()).Identify(ctx, []string{username}, true, func() keybase1.TLFID {
+		return ""
+	}, func() keybase1.CanonicalTlfName {
+		return keybase1.CanonicalTlfName(username)
+	}); err != nil {
+		h.Debug(ctx, "HandleUserChanged: failed to identify: %s", err)
 	}
 	return nil
 }
@@ -254,18 +158,18 @@ type NameIdentifier struct {
 func NewNameIdentifier(g *globals.Context) *NameIdentifier {
 	return &NameIdentifier{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "NameIdentifier", false),
+		DebugLabeler: utils.NewDebugLabeler(g.ExternalG(), "NameIdentifier", false),
 	}
 }
 
 func (t *NameIdentifier) Identify(ctx context.Context, names []string, private bool,
 	getTLFID func() keybase1.TLFID, getCanonicalName func() keybase1.CanonicalTlfName) (res []keybase1.TLFIdentifyFailure, err error) {
-	idNotifier := CtxIdentifyNotifier(ctx)
-	identBehavior, breaks, ok := IdentifyMode(ctx)
+	idNotifier := globals.CtxIdentifyNotifier(ctx)
+	identBehavior, breaks, ok := globals.CtxIdentifyMode(ctx)
 	if !ok {
 		return res, fmt.Errorf("invalid context with no chat metadata")
 	}
-	defer t.Trace(ctx, func() error { return err },
+	defer t.Trace(ctx, &err,
 		fmt.Sprintf("Identify(names=%s,mode=%v,uid=%s)", strings.Join(names, ","), identBehavior,
 			t.G().GetEnv().GetUsername()))()
 
@@ -275,7 +179,7 @@ func (t *NameIdentifier) Identify(ctx context.Context, names []string, private b
 	}
 
 	// need new context as errgroup will cancel it.
-	group, ectx := errgroup.WithContext(BackgroundContext(ctx, t.G()))
+	group, ectx := errgroup.WithContext(globals.BackgroundChatCtx(ctx, t.G()))
 	assertions := make(chan string)
 
 	group.Go(func() error {
@@ -313,7 +217,7 @@ func (t *NameIdentifier) Identify(ctx context.Context, names []string, private b
 	}
 
 	go func() {
-		group.Wait()
+		_ = group.Wait()
 		close(fails)
 	}()
 	for f := range fails {
@@ -361,12 +265,13 @@ func (t *NameIdentifier) identifyUser(ctx context.Context, assertion string, pri
 	if err := engine.RunEngine2(m, eng); err != nil {
 		switch err.(type) {
 		// Ignore these errors
-		// NOTE: Even though we ignore a `libkb.DeletedError` here, if we have
+		// NOTE: Even though we ignore a `libkb.UserDeletedError` here, if we have
 		// previously chatted with the user we will still validate the sigchain
 		// when identifying the user and then return this error.
-		case libkb.NotFoundError, libkb.ResolutionError, libkb.DeletedError:
+		case libkb.NotFoundError, libkb.ResolutionError, libkb.UserDeletedError:
 			return keybase1.TLFIdentifyFailure{}, nil
 		}
+		return keybase1.TLFIdentifyFailure{}, err
 	}
 	resp, err := eng.Result(m)
 	if err != nil {

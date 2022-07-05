@@ -32,15 +32,24 @@ var _ keybase1.PhoneNumbersInterface = (*PhoneNumbersHandler)(nil)
 
 func (h *PhoneNumbersHandler) AddPhoneNumber(ctx context.Context, arg keybase1.AddPhoneNumberArg) (err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
-	defer mctx.CTraceTimed("PhoneNumbersHandler#AddPhoneNumber", func() error { return err })()
+	defer mctx.Trace("PhoneNumbersHandler#AddPhoneNumber", &err)()
+	if err = libkb.IsPossiblePhoneNumber(arg.PhoneNumber); err != nil {
+		return err
+	}
 	return phonenumbers.AddPhoneNumber(mctx, arg.PhoneNumber, arg.Visibility)
 }
 
 func (h *PhoneNumbersHandler) EditPhoneNumber(ctx context.Context, arg keybase1.EditPhoneNumberArg) (err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
-	defer mctx.CTraceTimed("PhoneNumbersHandler#AddPhoneNumber", func() error { return err })()
-	err = phonenumbers.DeletePhoneNumber(mctx, arg.OldPhoneNumber)
-	if err != nil {
+	defer mctx.Trace("PhoneNumbersHandler#AddPhoneNumber", &err)()
+	if err = libkb.IsPossiblePhoneNumber(arg.OldPhoneNumber); err != nil {
+		return err
+	}
+	if err = libkb.IsPossiblePhoneNumber(arg.PhoneNumber); err != nil {
+		return err
+	}
+
+	if err = phonenumbers.DeletePhoneNumber(mctx, arg.OldPhoneNumber); err != nil {
 		return err
 	}
 	return phonenumbers.AddPhoneNumber(mctx, arg.PhoneNumber, arg.Visibility)
@@ -48,39 +57,82 @@ func (h *PhoneNumbersHandler) EditPhoneNumber(ctx context.Context, arg keybase1.
 
 func (h *PhoneNumbersHandler) VerifyPhoneNumber(ctx context.Context, arg keybase1.VerifyPhoneNumberArg) (err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
-	defer mctx.CTraceTimed("PhoneNumbersHandler#VerifyPhoneNumber", func() error { return err })()
+	defer mctx.Trace("PhoneNumbersHandler#VerifyPhoneNumber", &err)()
+	if err = libkb.IsPossiblePhoneNumber(arg.PhoneNumber); err != nil {
+		return err
+	}
+
 	return phonenumbers.VerifyPhoneNumber(mctx, arg.PhoneNumber, arg.Code)
+}
+
+func (h *PhoneNumbersHandler) ResendVerificationForPhoneNumber(ctx context.Context, arg keybase1.ResendVerificationForPhoneNumberArg) (err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.Trace("PhoneNumbersHandler#ResendVerificationForPhoneNumber", &err)()
+	if err = libkb.IsPossiblePhoneNumber(arg.PhoneNumber); err != nil {
+		return err
+	}
+
+	numbers, err := phonenumbers.GetPhoneNumbers(mctx)
+	if err != nil {
+		return err
+	}
+
+	// We are going to "re-add" phone number with the same visibility setting.
+	var readdVisibility keybase1.IdentityVisibility
+	var found bool
+	for _, v := range numbers {
+		if v.Superseded {
+			continue
+		}
+
+		if v.PhoneNumber == arg.PhoneNumber {
+			if v.Verified {
+				return fmt.Errorf("Number %s is already verified", v.PhoneNumber)
+			}
+			readdVisibility = v.Visibility
+			found = true
+			break
+		}
+	}
+
+	if !found {
+		return fmt.Errorf("Number %s was not found, it has to be added first before resending verification code",
+			arg.PhoneNumber)
+	}
+
+	return phonenumbers.AddPhoneNumber(mctx, arg.PhoneNumber, readdVisibility)
 }
 
 func (h *PhoneNumbersHandler) GetPhoneNumbers(ctx context.Context, sessionID int) (ret []keybase1.UserPhoneNumber, err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
-	defer mctx.CTraceTimed("PhoneNumbersHandler#GetPhoneNumbers", func() error { return err })()
+	defer mctx.Trace("PhoneNumbersHandler#GetPhoneNumbers", &err)()
 	return phonenumbers.GetPhoneNumbers(mctx)
 }
 
 func (h *PhoneNumbersHandler) DeletePhoneNumber(ctx context.Context, arg keybase1.DeletePhoneNumberArg) (err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
-	defer mctx.CTraceTimed("PhoneNumbersHandler#DeletePhoneNumber", func() error { return err })()
+	defer mctx.Trace("PhoneNumbersHandler#DeletePhoneNumber", &err)()
+	if err = libkb.IsPossiblePhoneNumber(arg.PhoneNumber); err != nil {
+		return err
+	}
+
 	return phonenumbers.DeletePhoneNumber(mctx, arg.PhoneNumber)
 }
 
 func (h *PhoneNumbersHandler) SetVisibilityPhoneNumber(ctx context.Context, arg keybase1.SetVisibilityPhoneNumberArg) (err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
-	defer mctx.CTraceTimed("PhoneNumbersHandler#SetVisibilityPhoneNumber", func() error { return err })()
+	defer mctx.Trace("PhoneNumbersHandler#SetVisibilityPhoneNumber", &err)()
+	if err = libkb.IsPossiblePhoneNumber(arg.PhoneNumber); err != nil {
+		return err
+	}
+
 	return phonenumbers.SetVisibilityPhoneNumber(mctx, arg.PhoneNumber, arg.Visibility)
 }
 
 func (h *PhoneNumbersHandler) SetVisibilityAllPhoneNumber(ctx context.Context, arg keybase1.SetVisibilityAllPhoneNumberArg) (err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
-	defer mctx.CTraceTimed("PhoneNumbersHandler#SetVisibilityAllPhoneNumber", func() error { return err })()
+	defer mctx.Trace("PhoneNumbersHandler#SetVisibilityAllPhoneNumber", &err)()
 	return phonenumbers.SetVisibilityAllPhoneNumber(mctx, arg.Visibility)
-}
-
-func (h *PhoneNumbersHandler) BulkLookupPhoneNumbers(ctx context.Context, arg keybase1.BulkLookupPhoneNumbersArg) ([]keybase1.PhoneNumberLookupResult, error) {
-	var err error
-	mctx := libkb.NewMetaContext(ctx, h.G())
-	defer mctx.CTraceTimed("PhoneNumbersHandler#BulkLookupPhoneNumbers", func() error { return err })()
-	return phonenumbers.BulkLookupPhoneNumbers(mctx, arg.PhoneNumberContacts, arg.RegionCodes, arg.UserRegionCode)
 }
 
 const phoneNumbersGregorHandlerName = "phoneHandler"
@@ -99,12 +151,12 @@ func newPhoneNumbersGregorHandler(g *libkb.GlobalContext) *phoneNumbersGregorHan
 
 func (r *phoneNumbersGregorHandler) Create(ctx context.Context, cli gregor1.IncomingInterface, category string, item gregor.Item) (bool, error) {
 	switch category {
-	case "phone.added":
-		return true, r.handleAddedMsg(ctx, cli, item)
-	case "phone.verified":
-		return true, r.handleVerifiedMsg(ctx, cli, item)
-	case "phone.superseded":
-		return true, r.handleSupersededMsg(ctx, cli, item)
+	case "phone.added", "phone.verified", "phone.superseded",
+		"phone.visibility_changed", "phone.deleted":
+		return true, r.handlePhoneMsg(ctx, cli, category, item)
+	case "phone.unverified_count":
+		// handled in badgestate
+		return true, nil
 	default:
 		if strings.HasPrefix(category, "phone.") {
 			return false, fmt.Errorf("unknown phoneNumbersGregorHandler category: %q", category)
@@ -125,47 +177,23 @@ func (r *phoneNumbersGregorHandler) Name() string {
 	return phoneNumbersGregorHandlerName
 }
 
-func (r *phoneNumbersGregorHandler) handleAddedMsg(ctx context.Context, cli gregor1.IncomingInterface, item gregor.Item) error {
-	m := libkb.NewMetaContext(ctx, r.G())
-	m.CDebugf("phoneNumbersGregorHandler: phone.added received")
-	var msg keybase1.PhoneNumberAddedMsg
+func (r *phoneNumbersGregorHandler) handlePhoneMsg(ctx context.Context, cli gregor1.IncomingInterface, category string, item gregor.Item) error {
+	mctx := libkb.NewMetaContext(ctx, r.G())
+	mctx.Debug("phoneNumbersGregorHandler: %s received", category)
+	var msg keybase1.PhoneNumberChangedMsg
 	if err := json.Unmarshal(item.Body().Bytes(), &msg); err != nil {
-		m.CDebugf("error unmarshaling phone.added item: %s", err)
+		mctx.Debug("error unmarshaling %s item: %s", category, err)
 		return err
 	}
-	m.CDebugf("phone.added unmarshaled: %+v", msg)
+	mctx.Debug("%s unmarshaled: %+v", category, msg)
 
-	r.G().NotifyRouter.HandlePhoneNumberAdded(ctx, msg.PhoneNumber)
-
-	return r.G().GregorState.DismissItem(ctx, cli, item.Metadata().MsgID())
-}
-
-func (r *phoneNumbersGregorHandler) handleVerifiedMsg(ctx context.Context, cli gregor1.IncomingInterface, item gregor.Item) error {
-	m := libkb.NewMetaContext(ctx, r.G())
-	m.CDebugf("phoneNumbersGregorHandler: phone.verified received")
-	var msg keybase1.PhoneNumberVerifiedMsg
-	if err := json.Unmarshal(item.Body().Bytes(), &msg); err != nil {
-		m.CDebugf("error unmarshaling phone.verified item: %s", err)
-		return err
+	phoneNumbers, err := phonenumbers.GetPhoneNumbers(mctx)
+	if err != nil {
+		mctx.Error("Could not get current phone number list during handlePhoneMsg: %s", err)
+	} else {
+		r.G().NotifyRouter.HandlePhoneNumbersChanged(ctx, phoneNumbers, category, msg.PhoneNumber)
 	}
-	m.CDebugf("phone.verified unmarshaled: %+v", msg)
-
-	r.G().NotifyRouter.HandlePhoneNumberVerified(ctx, msg.PhoneNumber)
-
-	return r.G().GregorState.DismissItem(ctx, cli, item.Metadata().MsgID())
-}
-
-func (r *phoneNumbersGregorHandler) handleSupersededMsg(ctx context.Context, cli gregor1.IncomingInterface, item gregor.Item) error {
-	m := libkb.NewMetaContext(ctx, r.G())
-	m.CDebugf("phoneNumbersGregorHandler: phone.superseded received")
-	var msg keybase1.PhoneNumberSupersededMsg
-	if err := json.Unmarshal(item.Body().Bytes(), &msg); err != nil {
-		m.CDebugf("error unmarshaling phone.superseded item: %s", err)
-		return err
-	}
-	m.CDebugf("phone.superseded unmarshaled: %+v", msg)
-
-	r.G().NotifyRouter.HandlePhoneNumberSuperseded(ctx, msg.PhoneNumber)
-
-	return r.G().GregorState.DismissItem(ctx, cli, item.Metadata().MsgID())
+	// Do not dismiss these notifications so other devices can see it and
+	// update their state as well.
+	return nil
 }

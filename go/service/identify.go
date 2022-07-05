@@ -13,6 +13,7 @@ import (
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/offline"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
@@ -27,22 +28,26 @@ type RemoteIdentifyUI struct {
 	skipPrompt bool
 }
 
+var _ libkb.IdentifyUI = (*RemoteIdentifyUI)(nil)
+
 type IdentifyHandler struct {
 	*BaseHandler
 	libkb.Contextified
+	service *Service
 }
 
-func NewIdentifyHandler(xp rpc.Transporter, g *libkb.GlobalContext) *IdentifyHandler {
+func NewIdentifyHandler(xp rpc.Transporter, g *libkb.GlobalContext, s *Service) *IdentifyHandler {
 	return &IdentifyHandler{
 		BaseHandler:  NewBaseHandler(g, xp),
 		Contextified: libkb.NewContextified(g),
+		service:      s,
 	}
 }
 
 func (h *IdentifyHandler) Identify2(netCtx context.Context, arg keybase1.Identify2Arg) (res keybase1.Identify2Res, err error) {
 	netCtx = libkb.WithLogTag(netCtx, "ID2")
 	m := libkb.NewMetaContext(netCtx, h.G())
-	defer h.G().CTrace(netCtx, "IdentifyHandler#Identify2", func() error { return err })()
+	defer h.G().CTrace(netCtx, "IdentifyHandler#Identify2", &err)()
 
 	iui := h.NewRemoteIdentifyUI(arg.SessionID, h.G())
 	logui := h.getLogUI(arg.SessionID)
@@ -67,16 +72,38 @@ func (h *IdentifyHandler) Identify2(netCtx context.Context, arg keybase1.Identif
 	return res, err
 }
 
-func (h *IdentifyHandler) IdentifyLite(netCtx context.Context, arg keybase1.IdentifyLiteArg) (res keybase1.IdentifyLiteRes, err error) {
-	netCtx = libkb.WithLogTag(netCtx, "IDL")
-	defer h.G().CTrace(netCtx, "IdentifyHandler#IdentifyLite", func() error { return err })()
+func (h *IdentifyHandler) IdentifyLite(netCtx context.Context, arg keybase1.IdentifyLiteArg) (ret keybase1.IdentifyLiteRes, err error) {
+	mctx := libkb.NewMetaContext(netCtx, h.G()).WithLogTag("IDL")
+	defer mctx.Trace("IdentifyHandler#IdentifyLite", &err)()
+	loader := func(mctx libkb.MetaContext) (interface{}, error) {
+		return h.identifyLite(mctx, arg)
+	}
+	cacheArg := keybase1.IdentifyLiteArg{
+		Id:               arg.Id,
+		Assertion:        arg.Assertion,
+		IdentifyBehavior: arg.IdentifyBehavior,
+	}
+	servedRet, err := h.service.offlineRPCCache.Serve(mctx, arg.Oa, offline.Version(1), "identify.identifyLite", false, cacheArg, &ret, loader)
+	if err != nil {
+		if s, ok := servedRet.(keybase1.IdentifyLiteRes); ok {
+			ret = s
+		}
+		return ret, err
+	}
+	if s, ok := servedRet.(keybase1.IdentifyLiteRes); ok {
+		ret = s
+	}
+	return ret, nil
+}
+
+func (h *IdentifyHandler) identifyLite(mctx libkb.MetaContext, arg keybase1.IdentifyLiteArg) (res keybase1.IdentifyLiteRes, err error) {
 
 	var au libkb.AssertionURL
 	var parseError error
 	if len(arg.Assertion) > 0 {
 		// It's OK to fail this assertion; it will be off in the case of regular lookups
 		// for users like `t_ellen` without a `type` specification
-		au, parseError = libkb.ParseAssertionURL(h.G().MakeAssertionContext(), arg.Assertion, true)
+		au, parseError = libkb.ParseAssertionURL(mctx.G().MakeAssertionContext(mctx), arg.Assertion, true)
 	} else {
 		// empty assertion url required for teams.IdentifyLite
 		au = libkb.AssertionKeybase{}
@@ -87,15 +114,15 @@ func (h *IdentifyHandler) IdentifyLite(netCtx context.Context, arg keybase1.Iden
 		if parseError != nil {
 			return res, parseError
 		}
-		return teams.IdentifyLite(netCtx, h.G(), arg, au)
+		return teams.IdentifyLite(mctx.Ctx(), mctx.G(), arg, au)
 	}
 
-	return h.identifyLiteUser(netCtx, arg)
+	return h.identifyLiteUser(mctx.Ctx(), arg)
 }
 
 func (h *IdentifyHandler) identifyLiteUser(netCtx context.Context, arg keybase1.IdentifyLiteArg) (res keybase1.IdentifyLiteRes, err error) {
 	m := libkb.NewMetaContext(netCtx, h.G())
-	m.CDebugf("IdentifyLite on user")
+	m.Debug("IdentifyLite on user")
 
 	var uid keybase1.UID
 	if arg.Id.Exists() {
@@ -145,10 +172,19 @@ func (h *IdentifyHandler) identifyLiteUser(netCtx context.Context, arg keybase1.
 	return res, err
 }
 
-func (h *IdentifyHandler) Resolve3(ctx context.Context, arg string) (u keybase1.UserOrTeamLite, err error) {
-	ctx = libkb.WithLogTag(ctx, "RSLV")
-	defer h.G().CTrace(ctx, fmt.Sprintf("IdentifyHandler#Resolve3(%s)", arg), func() error { return err })()
-	return h.resolveUserOrTeam(ctx, arg)
+func (h *IdentifyHandler) Resolve3(ctx context.Context, arg keybase1.Resolve3Arg) (ret keybase1.UserOrTeamLite, err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("RSLV")
+	defer mctx.Trace(fmt.Sprintf("IdentifyHandler#Resolve3(%+v)", arg), &err)()
+	servedRet, err := h.service.offlineRPCCache.Serve(mctx, arg.Oa, offline.Version(1), "identify.resolve3", false, arg, &ret, func(mctx libkb.MetaContext) (interface{}, error) {
+		return h.resolveUserOrTeam(mctx.Ctx(), arg.Assertion)
+	})
+	if err != nil {
+		return keybase1.UserOrTeamLite{}, err
+	}
+	if s, ok := servedRet.(keybase1.UserOrTeamLite); ok {
+		ret = s
+	}
+	return ret, nil
 }
 
 func (h *IdentifyHandler) resolveUserOrTeam(ctx context.Context, arg string) (u keybase1.UserOrTeamLite, err error) {
@@ -162,16 +198,33 @@ func (h *IdentifyHandler) resolveUserOrTeam(ctx context.Context, arg string) (u 
 }
 
 func (h *IdentifyHandler) ResolveIdentifyImplicitTeam(ctx context.Context, arg keybase1.ResolveIdentifyImplicitTeamArg) (res keybase1.ResolveIdentifyImplicitTeamRes, err error) {
-	ctx = libkb.WithLogTag(ctx, "RIIT")
-	defer h.G().CTrace(ctx, fmt.Sprintf("IdentifyHandler#ResolveIdentifyImplicitTeam(%+v)", arg), func() error { return err })()
+	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("RIIT")
+	defer mctx.Trace(fmt.Sprintf("IdentifyHandler#ResolveIdentifyImplicitTeam(%+v)", arg), &err)()
 
-	h.G().Log.CDebugf(ctx, "ResolveIdentifyImplicitTeam assertions:'%v'", arg.Assertions)
-
-	writerAssertions, readerAssertions, err := externals.ParseAssertionsWithReaders(h.G(), arg.Assertions)
+	writerAssertions, readerAssertions, err := externals.ParseAssertionsWithReaders(h.MetaContext(ctx), arg.Assertions)
 	if err != nil {
 		return res, err
 	}
-	return h.resolveIdentifyImplicitTeamHelper(ctx, arg, writerAssertions, readerAssertions)
+
+	cacheArg := keybase1.ResolveIdentifyImplicitTeamArg{
+		Assertions: arg.Assertions,
+		Suffix:     arg.Suffix,
+		IsPublic:   arg.IsPublic,
+	}
+
+	servedRes, err := h.service.offlineRPCCache.Serve(mctx, arg.Oa, offline.Version(1), "identify.resolveIdentifyImplicitTeam", false, cacheArg, &res, func(mctx libkb.MetaContext) (interface{}, error) {
+		return h.resolveIdentifyImplicitTeamHelper(mctx.Ctx(), arg, writerAssertions, readerAssertions)
+	})
+
+	if s, ok := servedRes.(keybase1.ResolveIdentifyImplicitTeamRes); ok {
+		// We explicitly want to return `servedRes` here, when err !=
+		// nil, as the caller might depend on it in certain cases.
+		res = s
+	} else if err != nil {
+		res = keybase1.ResolveIdentifyImplicitTeamRes{}
+	}
+	mctx.Debug("res: {displayName: %s, teamID: %s, folderID: %s}", res.DisplayName, res.TeamID, res.FolderID)
+	return res, err
 }
 
 func (h *IdentifyHandler) resolveIdentifyImplicitTeamHelper(ctx context.Context, arg keybase1.ResolveIdentifyImplicitTeamArg,
@@ -267,6 +320,8 @@ func (h *IdentifyHandler) resolveIdentifyImplicitTeamDoIdentifies(ctx context.Co
 	// lock guarding res.TrackBreaks
 	var trackBreaksLock sync.Mutex
 
+	var okUsernames, brokenUsernames []string
+
 	// Identify everyone who resolved in parallel, checking that they match their resolved UID and original assertions.
 	for _, resolvedAssertion := range resolvedAssertions {
 		resolvedAssertion := resolvedAssertion // https://golang.org/doc/faq#closures_and_goroutines
@@ -302,19 +357,24 @@ func (h *IdentifyHandler) resolveIdentifyImplicitTeamDoIdentifies(ctx context.Co
 			m := libkb.NewMetaContext(subctx, h.G()).WithUIs(uis)
 			err := engine.RunEngine2(m, eng)
 			idRes, idErr := eng.Result(m)
-			if err != nil {
-				h.G().Log.CDebugf(subctx, "identify failed (IDres %v, TrackBreaks %v): %v", idRes != nil, idRes != nil && idRes.TrackBreaks != nil, err)
-				if idRes != nil && idRes.TrackBreaks != nil && idErr == nil {
-					trackBreaksLock.Lock()
-					defer trackBreaksLock.Unlock()
+			if idErr != nil {
+				h.G().Log.CDebugf(subctx, "Failed to convert result from Identify2: %s", idErr)
+			}
+			if idRes != nil {
+				trackBreaksLock.Lock()
+				defer trackBreaksLock.Unlock()
+				if idRes.TrackBreaks != nil && idErr == nil {
 					if res.TrackBreaks == nil {
 						res.TrackBreaks = make(map[keybase1.UserVersion]keybase1.IdentifyTrackBreaks)
 					}
 					res.TrackBreaks[idRes.Upk.ToUserVersion()] = *idRes.TrackBreaks
+					brokenUsernames = append(brokenUsernames, idRes.Upk.GetName())
+				} else {
+					okUsernames = append(okUsernames, idRes.Upk.GetName())
 				}
-				if idErr != nil {
-					h.G().Log.CDebugf(subctx, "Failed to convert result from Identify2: %s", idErr)
-				}
+			}
+			if err != nil {
+				h.G().Log.CDebugf(subctx, "identify failed (IDres %v, TrackBreaks %v): %v", idRes != nil, idRes != nil && idRes.TrackBreaks != nil, err)
 				return err
 			}
 			return nil
@@ -326,134 +386,139 @@ func (h *IdentifyHandler) resolveIdentifyImplicitTeamDoIdentifies(ctx context.Co
 		// Return the masked error together with a populated response.
 		return res, libkb.NewIdentifiesFailedError()
 	}
+
+	if arg.IdentifyBehavior.NotifyGUIAboutBreaks() && len(res.TrackBreaks) > 0 {
+		h.G().NotifyRouter.HandleIdentifyUpdate(ctx, okUsernames, brokenUsernames)
+	}
+
 	return res, err
 }
 
 func (h *IdentifyHandler) ResolveImplicitTeam(ctx context.Context, arg keybase1.ResolveImplicitTeamArg) (res keybase1.Folder, err error) {
 	ctx = libkb.WithLogTag(ctx, "RIT")
-	defer h.G().CTraceTimed(ctx, fmt.Sprintf("ResolveImplicitTeam(%s)", arg.Id), func() error { return err })()
+	defer h.G().CTrace(ctx, fmt.Sprintf("ResolveImplicitTeam(%s)", arg.Id), &err)()
 	return teams.MapImplicitTeamIDToDisplayName(ctx, h.G(), arg.Id, arg.Id.IsPublic())
 }
 
 func (h *IdentifyHandler) NormalizeSocialAssertion(ctx context.Context, assertion string) (socialAssertion keybase1.SocialAssertion, err error) {
 	ctx = libkb.WithLogTag(ctx, "NSA")
-	defer h.G().CTrace(ctx, fmt.Sprintf("IdentifyHandler#NormalizeSocialAssertion(%s)", assertion), func() error { return err })()
-	socialAssertion, isSocialAssertion := libkb.NormalizeSocialAssertion(h.G().MakeAssertionContext(), assertion)
+	defer h.G().CTrace(ctx, fmt.Sprintf("IdentifyHandler#NormalizeSocialAssertion(%s)", assertion), &err)()
+	socialAssertion, isSocialAssertion := libkb.NormalizeSocialAssertion(h.G().MakeAssertionContext(h.MetaContext(ctx)), assertion)
 	if !isSocialAssertion {
 		return keybase1.SocialAssertion{}, fmt.Errorf("Invalid social assertion")
 	}
 	return socialAssertion, nil
 }
 
-func (u *RemoteIdentifyUI) newContext() (context.Context, func()) {
-	return context.WithTimeout(context.Background(), libkb.RemoteIdentifyUITimeout)
+func (u *RemoteIdentifyUI) newMetaContext(mctx libkb.MetaContext) (libkb.MetaContext, func()) {
+	return mctx.WithTimeout(libkb.RemoteIdentifyUITimeout)
 }
 
-func (u *RemoteIdentifyUI) FinishWebProofCheck(p keybase1.RemoteProof, lcr keybase1.LinkCheckResult) error {
-	ctx, cancel := u.newContext()
+func (u *RemoteIdentifyUI) FinishWebProofCheck(mctx libkb.MetaContext, p keybase1.RemoteProof, lcr keybase1.LinkCheckResult) error {
+	mctx, cancel := u.newMetaContext(mctx)
 	defer cancel()
-	return u.uicli.FinishWebProofCheck(ctx, keybase1.FinishWebProofCheckArg{
+	return u.uicli.FinishWebProofCheck(mctx.Ctx(), keybase1.FinishWebProofCheckArg{
 		SessionID: u.sessionID,
 		Rp:        p,
 		Lcr:       lcr,
 	})
 }
 
-func (u *RemoteIdentifyUI) FinishSocialProofCheck(p keybase1.RemoteProof, lcr keybase1.LinkCheckResult) error {
-	ctx, cancel := u.newContext()
+func (u *RemoteIdentifyUI) FinishSocialProofCheck(mctx libkb.MetaContext, p keybase1.RemoteProof, lcr keybase1.LinkCheckResult) error {
+	mctx, cancel := u.newMetaContext(mctx)
 	defer cancel()
-	return u.uicli.FinishSocialProofCheck(ctx, keybase1.FinishSocialProofCheckArg{
+	return u.uicli.FinishSocialProofCheck(mctx.Ctx(), keybase1.FinishSocialProofCheckArg{
 		SessionID: u.sessionID,
 		Rp:        p,
 		Lcr:       lcr,
 	})
 }
 
-func (u *RemoteIdentifyUI) Confirm(io *keybase1.IdentifyOutcome) (keybase1.ConfirmResult, error) {
+func (u *RemoteIdentifyUI) Confirm(mctx libkb.MetaContext, io *keybase1.IdentifyOutcome) (keybase1.ConfirmResult, error) {
 	if u.skipPrompt {
-		u.G().Log.Debug("skipping Confirm for %q", io.Username)
+		mctx.Debug("skipping Confirm for %q", io.Username)
 		return keybase1.ConfirmResult{IdentityConfirmed: true}, nil
 	}
-	return u.uicli.Confirm(context.TODO(), keybase1.ConfirmArg{SessionID: u.sessionID, Outcome: *io})
+	return u.uicli.Confirm(mctx.Ctx(), keybase1.ConfirmArg{SessionID: u.sessionID, Outcome: *io})
 }
 
-func (u *RemoteIdentifyUI) DisplayCryptocurrency(c keybase1.Cryptocurrency) error {
-	ctx, cancel := u.newContext()
+func (u *RemoteIdentifyUI) DisplayCryptocurrency(mctx libkb.MetaContext, c keybase1.Cryptocurrency) error {
+	mctx, cancel := u.newMetaContext(mctx)
 	defer cancel()
-	return u.uicli.DisplayCryptocurrency(ctx, keybase1.DisplayCryptocurrencyArg{SessionID: u.sessionID, C: c})
+	return u.uicli.DisplayCryptocurrency(mctx.Ctx(), keybase1.DisplayCryptocurrencyArg{SessionID: u.sessionID, C: c})
 }
 
-func (u *RemoteIdentifyUI) DisplayStellarAccount(a keybase1.StellarAccount) error {
-	ctx, cancel := u.newContext()
+func (u *RemoteIdentifyUI) DisplayStellarAccount(mctx libkb.MetaContext, a keybase1.StellarAccount) error {
+	mctx, cancel := u.newMetaContext(mctx)
 	defer cancel()
-	return u.uicli.DisplayStellarAccount(ctx, keybase1.DisplayStellarAccountArg{SessionID: u.sessionID, A: a})
+	return u.uicli.DisplayStellarAccount(mctx.Ctx(), keybase1.DisplayStellarAccountArg{SessionID: u.sessionID, A: a})
 }
 
-func (u *RemoteIdentifyUI) DisplayKey(key keybase1.IdentifyKey) error {
-	ctx, cancel := u.newContext()
+func (u *RemoteIdentifyUI) DisplayKey(mctx libkb.MetaContext, key keybase1.IdentifyKey) error {
+	mctx, cancel := u.newMetaContext(mctx)
 	defer cancel()
-	return u.uicli.DisplayKey(ctx, keybase1.DisplayKeyArg{SessionID: u.sessionID, Key: key})
+	return u.uicli.DisplayKey(mctx.Ctx(), keybase1.DisplayKeyArg{SessionID: u.sessionID, Key: key})
 }
 
-func (u *RemoteIdentifyUI) ReportLastTrack(t *keybase1.TrackSummary) error {
-	ctx, cancel := u.newContext()
+func (u *RemoteIdentifyUI) ReportLastTrack(mctx libkb.MetaContext, t *keybase1.TrackSummary) error {
+	mctx, cancel := u.newMetaContext(mctx)
 	defer cancel()
-	return u.uicli.ReportLastTrack(ctx, keybase1.ReportLastTrackArg{SessionID: u.sessionID, Track: t})
+	return u.uicli.ReportLastTrack(mctx.Ctx(), keybase1.ReportLastTrackArg{SessionID: u.sessionID, Track: t})
 }
 
-func (u *RemoteIdentifyUI) DisplayTrackStatement(s string) error {
-	ctx, cancel := u.newContext()
+func (u *RemoteIdentifyUI) DisplayTrackStatement(mctx libkb.MetaContext, s string) error {
+	mctx, cancel := u.newMetaContext(mctx)
 	defer cancel()
-	return u.uicli.DisplayTrackStatement(ctx, keybase1.DisplayTrackStatementArg{Stmt: s, SessionID: u.sessionID})
+	return u.uicli.DisplayTrackStatement(mctx.Ctx(), keybase1.DisplayTrackStatementArg{Stmt: s, SessionID: u.sessionID})
 }
 
-func (u *RemoteIdentifyUI) ReportTrackToken(token keybase1.TrackToken) error {
-	ctx, cancel := u.newContext()
+func (u *RemoteIdentifyUI) ReportTrackToken(mctx libkb.MetaContext, token keybase1.TrackToken) error {
+	mctx, cancel := u.newMetaContext(mctx)
 	defer cancel()
-	return u.uicli.ReportTrackToken(ctx, keybase1.ReportTrackTokenArg{TrackToken: token, SessionID: u.sessionID})
+	return u.uicli.ReportTrackToken(mctx.Ctx(), keybase1.ReportTrackTokenArg{TrackToken: token, SessionID: u.sessionID})
 }
 
-func (u *RemoteIdentifyUI) LaunchNetworkChecks(id *keybase1.Identity, user *keybase1.User) error {
-	ctx, cancel := u.newContext()
+func (u *RemoteIdentifyUI) LaunchNetworkChecks(mctx libkb.MetaContext, id *keybase1.Identity, user *keybase1.User) error {
+	mctx, cancel := u.newMetaContext(mctx)
 	defer cancel()
-	return u.uicli.LaunchNetworkChecks(ctx, keybase1.LaunchNetworkChecksArg{
+	return u.uicli.LaunchNetworkChecks(mctx.Ctx(), keybase1.LaunchNetworkChecksArg{
 		SessionID: u.sessionID,
 		Identity:  *id,
 		User:      *user,
 	})
 }
 
-func (u *RemoteIdentifyUI) DisplayUserCard(card keybase1.UserCard) error {
-	ctx, cancel := u.newContext()
+func (u *RemoteIdentifyUI) DisplayUserCard(mctx libkb.MetaContext, card keybase1.UserCard) error {
+	mctx, cancel := u.newMetaContext(mctx)
 	defer cancel()
-	return u.uicli.DisplayUserCard(ctx, keybase1.DisplayUserCardArg{SessionID: u.sessionID, Card: card})
+	return u.uicli.DisplayUserCard(mctx.Ctx(), keybase1.DisplayUserCardArg{SessionID: u.sessionID, Card: card})
 }
 
-func (u *RemoteIdentifyUI) Start(username string, reason keybase1.IdentifyReason, force bool) error {
-	ctx, cancel := u.newContext()
+func (u *RemoteIdentifyUI) Start(mctx libkb.MetaContext, username string, reason keybase1.IdentifyReason, force bool) error {
+	mctx, cancel := u.newMetaContext(mctx)
 	defer cancel()
-	return u.uicli.Start(ctx, keybase1.StartArg{SessionID: u.sessionID, Username: username, Reason: reason, ForceDisplay: force})
+	return u.uicli.Start(mctx.Ctx(), keybase1.StartArg{SessionID: u.sessionID, Username: username, Reason: reason, ForceDisplay: force})
 }
 
-func (u *RemoteIdentifyUI) Cancel() error {
+func (u *RemoteIdentifyUI) Cancel(mctx libkb.MetaContext) error {
 	if u.uicli.Cli == nil {
 		return nil
 	}
-	ctx, cancel := u.newContext()
+	mctx, cancel := u.newMetaContext(mctx)
 	defer cancel()
-	return u.uicli.Cancel(ctx, u.sessionID)
+	return u.uicli.Cancel(mctx.Ctx(), u.sessionID)
 }
 
-func (u *RemoteIdentifyUI) Finish() error {
-	ctx, cancel := u.newContext()
+func (u *RemoteIdentifyUI) Finish(mctx libkb.MetaContext) error {
+	mctx, cancel := u.newMetaContext(mctx)
 	defer cancel()
-	return u.uicli.Finish(ctx, u.sessionID)
+	return u.uicli.Finish(mctx.Ctx(), u.sessionID)
 }
 
-func (u *RemoteIdentifyUI) Dismiss(username string, reason keybase1.DismissReason) error {
-	ctx, cancel := u.newContext()
+func (u *RemoteIdentifyUI) Dismiss(mctx libkb.MetaContext, username string, reason keybase1.DismissReason) error {
+	mctx, cancel := u.newMetaContext(mctx)
 	defer cancel()
-	return u.uicli.Dismiss(ctx, keybase1.DismissArg{
+	return u.uicli.Dismiss(mctx.Ctx(), keybase1.DismissArg{
 		SessionID: u.sessionID,
 		Username:  username,
 		Reason:    reason,
@@ -464,9 +529,9 @@ func (u *RemoteIdentifyUI) SetStrict(b bool) {
 	u.strict = b
 }
 
-func (u *RemoteIdentifyUI) DisplayTLFCreateWithInvite(arg keybase1.DisplayTLFCreateWithInviteArg) error {
-	ctx, cancel := u.newContext()
+func (u *RemoteIdentifyUI) DisplayTLFCreateWithInvite(mctx libkb.MetaContext, arg keybase1.DisplayTLFCreateWithInviteArg) error {
+	mctx, cancel := u.newMetaContext(mctx)
 	defer cancel()
 	arg.SessionID = u.sessionID
-	return u.uicli.DisplayTLFCreateWithInvite(ctx, arg)
+	return u.uicli.DisplayTLFCreateWithInvite(mctx.Ctx(), arg)
 }

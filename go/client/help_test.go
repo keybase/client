@@ -13,7 +13,7 @@ import (
 )
 
 func helpLines(buf bytes.Buffer) []string {
-	lines := strings.Split(strings.TrimSpace(string(buf.Bytes())), "\n")
+	lines := strings.Split(strings.TrimSpace(buf.String()), "\n")
 	last := lines[len(lines)-1]
 	// this last help command line is problematic
 	if strings.HasPrefix(strings.TrimSpace(last), "help") {

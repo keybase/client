@@ -414,7 +414,7 @@ func (dkimf deviceKeyInfoMapV2Future) toCurrent() DeviceKeyInfoMapV2 {
 	dkim := make(DeviceKeyInfoMapV2, len(dkimf))
 	for k, kif := range dkimf {
 		ki := kif.toCurrent()
-		dkim[k] = TLFCryptKeyInfo(ki)
+		dkim[k] = ki
 	}
 	return dkim
 }

@@ -9,16 +9,6 @@ import (
 	"unsafe"
 )
 
-type aclHeader struct {
-	Revision, pad1    byte
-	Size, Count, pad2 uint16
-}
-
-type aceHeader struct {
-	Type, Flags byte
-	Size        uint16
-}
-
 // ACL is the type for access control lists.
 type ACL struct {
 	raw      []byte

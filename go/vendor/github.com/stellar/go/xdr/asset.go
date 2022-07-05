@@ -10,6 +10,28 @@ import (
 
 // This file contains helpers for working with xdr.Asset structs
 
+// MustNewNativeAsset returns a new native asset, panicking if it can't.
+func MustNewNativeAsset() Asset {
+	a := Asset{}
+	err := a.SetNative()
+	if err != nil {
+		panic(err)
+	}
+	return a
+}
+
+// MustNewCreditAsset returns a new general asset, panicking if it can't.
+func MustNewCreditAsset(code string, issuer string) Asset {
+	a := Asset{}
+	accountID := AccountId{}
+	accountID.SetAddress(issuer)
+	err := a.SetCredit(code, accountID)
+	if err != nil {
+		panic(err)
+	}
+	return a
+}
+
 // SetCredit overwrites `a` with a credit asset using `code` and `issuer`.  The
 // asset type (CreditAlphanum4 or CreditAlphanum12) is chosen automatically
 // based upon the length of `code`.
@@ -27,7 +49,7 @@ func (a *Asset) SetCredit(code string, issuer AccountId) error {
 	case length >= 5 && length <= 12:
 		newbody := AssetAlphaNum12{Issuer: issuer}
 		copy(newbody.AssetCode[:], []byte(code)[:length])
-		typ = AssetTypeAssetTypeCreditAlphanum4
+		typ = AssetTypeAssetTypeCreditAlphanum12
 		body = newbody
 	default:
 		return errors.New("Asset code length is invalid")
@@ -51,6 +73,27 @@ func (a *Asset) SetNative() error {
 	return nil
 }
 
+// ToAllowTrustOpAsset for Asset converts the Asset to a corresponding XDR
+// "allow trust" asset, used by the XDR allow trust operation.
+func (a *Asset) ToAllowTrustOpAsset(code string) (AllowTrustOpAsset, error) {
+	length := len(code)
+
+	switch {
+	case length >= 1 && length <= 4:
+		var bytecode AssetCode4
+		byteArray := []byte(code)
+		copy(bytecode[:], byteArray[0:length])
+		return NewAllowTrustOpAsset(AssetTypeAssetTypeCreditAlphanum4, bytecode)
+	case length >= 5 && length <= 12:
+		var bytecode AssetCode12
+		byteArray := []byte(code)
+		copy(bytecode[:], byteArray[0:length])
+		return NewAllowTrustOpAsset(AssetTypeAssetTypeCreditAlphanum12, bytecode)
+	default:
+		return AllowTrustOpAsset{}, errors.New("Asset code length is invalid")
+	}
+}
+
 // String returns a display friendly form of the asset
 func (a Asset) String() string {
 	var t, c, i string
@@ -62,6 +105,44 @@ func (a Asset) String() string {
 	}
 
 	return fmt.Sprintf("%s/%s/%s", t, c, i)
+}
+
+// MarshalBinaryCompress marshals Asset to []byte but unlike
+// MarshalBinary() it removes all unnecessary bytes, exploting the fact
+// that XDR is padding data to 4 bytes in union discriminants etc.
+// It's primary use is in ingest/io.StateReader that keep LedgerKeys in
+// memory so this function decrease memory requirements.
+//
+// Warning, do not use UnmarshalBinary() on data encoded using this method!
+func (a Asset) MarshalBinaryCompress() ([]byte, error) {
+	m := []byte{byte(a.Type)}
+
+	var err error
+	var code []byte
+	var issuer []byte
+
+	switch a.Type {
+	case AssetTypeAssetTypeNative:
+		return m, nil
+	case AssetTypeAssetTypeCreditAlphanum4:
+		code = []byte(strings.TrimRight(string(a.AlphaNum4.AssetCode[:]), "\x00"))
+		issuer, err = a.AlphaNum4.Issuer.MarshalBinary()
+		if err != nil {
+			return nil, err
+		}
+	case AssetTypeAssetTypeCreditAlphanum12:
+		code = []byte(strings.TrimRight(string(a.AlphaNum12.AssetCode[:]), "\x00"))
+		issuer, err = a.AlphaNum12.Issuer.MarshalBinary()
+		if err != nil {
+			panic(err)
+		}
+	default:
+		panic(fmt.Errorf("Unknown asset type: %v", a.Type))
+	}
+
+	m = append(m, code...)
+	m = append(m, issuer...)
+	return m, nil
 }
 
 // Equals returns true if `other` is equivalent to `a`

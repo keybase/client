@@ -1,4 +1,5 @@
-shared/common-adapters/icon.constants.js
+shared/common-adapters/markdown/emoji-gen.tsx
+shared/common-adapters/icon.constants.tsx
 shared/markdown/parser.js
 shared/desktop/build/
 shared/coverage/

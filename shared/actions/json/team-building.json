@@ -1,16 +1,52 @@
 {
   "prelude": [
     "import * as Types from '../constants/types/team-building'",
-    "import HiddenString from '../util/hidden-string'"
+    "import {TeamRoleType, TeamID} from '../constants/types/teams'"
   ],
   "actions": {
-    "fetchedUserRecs": {users: "Array<Types.User>"},
-    "fetchUserRecs": {},
-    "finishedTeamBuilding": {},
-    "cancelTeamBuilding": {},
-    "search": {"query": "string", "service": "Types.ServiceIdWithContact", "limit?": "number"},
-    "addUsersToTeamSoFar": {"users": "Array<Types.User>"},
-    "removeUsersFromTeamSoFar": {"users": "Array<Types.UserID>"},
-    "searchResultsLoaded": {"users": "Array<Types.User>", "query": "string", "service": "Types.ServiceIdWithContact"},
+    "fetchedUserRecs": {"namespace": "Types.AllowedNamespace", "users": "Array<Types.User>"},
+    "fetchUserRecs": {"includeContacts": "boolean", "namespace": "Types.AllowedNamespace"},
+    "finishTeamBuilding": {
+      "namespace": "Types.AllowedNamespace",
+      "_description": "If we want to keep the modal open until an RPC finishes, use this before dispatching finishedTeamBuilding.",
+      "teamID?": "TeamID"
+    },
+    "setError": {
+      "namespace": "Types.AllowedNamespace",
+      "error": "string"
+    },
+    "finishedTeamBuilding": {"namespace": "Types.AllowedNamespace"},
+    "cancelTeamBuilding": {"namespace": "Types.AllowedNamespace"},
+    "search": {
+      "includeContacts": "boolean",
+      "namespace": "Types.AllowedNamespace",
+      "query": "string",
+      "service": "Types.ServiceIdWithContact",
+      "limit?": "number"
+    },
+    "addUsersToTeamSoFar": {"namespace": "Types.AllowedNamespace", "users": "Array<Types.User>"},
+    "removeUsersFromTeamSoFar": {
+      "namespace": "Types.AllowedNamespace",
+      "users": "Array<Types.UserID>"
+    },
+    "searchResultsLoaded": {
+      "namespace": "Types.AllowedNamespace",
+      "users": "Array<Types.User>",
+      "query": "string",
+      "service": "Types.ServiceIdWithContact"
+    },
+    "selectRole": {
+      "namespace": "'teams'",
+      "role": "TeamRoleType"
+    },
+    "changeSendNotification": {
+      "namespace": "'teams'",
+      "sendNotification": "boolean"
+    },
+    "labelsSeen": {"namespace": "Types.AllowedNamespace"},
+    "tbResetStore": {
+      "namespace": "Types.AllowedNamespace",
+      "_description": "our own reset store so we don't have conflicts with parent reducers"
+    }
   }
 }

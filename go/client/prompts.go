@@ -69,6 +69,11 @@ const (
 	PromptDescriptorStellarDisclaimer
 	PromptDescriptorPaperKey
 	PromptDescriptorStellarConfirm
+	PromptDescriptorResetAccount
+	PromptDescriptorPassphraseRecovery
+	PromptDescriptorStellarURIAmount
+	PromptDescriptorAccountDeleteConfirmation
+	PromptDescriptorChatEmojiRemove
 )
 
 const (

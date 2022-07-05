@@ -9,12 +9,8 @@
       "on": "boolean",
       "count?": "number"
     },
-    "receivedBadgeState": {
-      "badgeState": "RPCTypes.BadgeState"
-    },
-    "setBadgeCounts": {
-      "counts": "I.Map<Tabs.Tab, number>"
-    },
+    "receivedBadgeState": { "badgeState": "RPCTypes.BadgeState" },
+    "setBadgeCounts": { "counts": "Map<Tabs.Tab, number>" },
     "listenForNotifications": {},
     "listenForKBFSNotifications": {}
   }

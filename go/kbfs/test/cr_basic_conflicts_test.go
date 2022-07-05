@@ -7,12 +7,15 @@
 package test
 
 import (
+	"os"
 	"testing"
 	"time"
+
+	"github.com/keybase/client/go/kbfs/libkbfs"
 )
 
 // bob and alice both write(to the same file),
-func TestCrConflictWriteFile(t *testing.T) {
+func testCrConflictWriteFile(t *testing.T) {
 	test(t,
 		users("alice", "bob"),
 		as(alice,
@@ -37,6 +40,19 @@ func TestCrConflictWriteFile(t *testing.T) {
 			read(crname("a/b", bob), "uh oh"),
 		),
 	)
+}
+
+func TestCrConflictWriteFile(t *testing.T) {
+	testCrConflictWriteFile(t)
+}
+
+func TestCrConflictWriteFileWithObfuscation(t *testing.T) {
+	oldEnv := os.Getenv(libkbfs.EnvKeybaseTestObfuscateLogsForTest)
+	os.Setenv(libkbfs.EnvKeybaseTestObfuscateLogsForTest, "1")
+	defer func() {
+		os.Setenv(libkbfs.EnvKeybaseTestObfuscateLogsForTest, oldEnv)
+	}()
+	testCrConflictWriteFile(t)
 }
 
 // bob and alice both create the same entry with different types

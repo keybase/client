@@ -1,0 +1,34 @@
+{
+  "prelude": ["import * as Types from '../constants/types/chat2'"],
+  "actions": {
+    "getFeaturedBots": {
+      "_description": "Gets featured bots",
+      "limit?": "number",
+      "page?": "number"
+    },
+    "searchFeaturedBots": {
+      "_description": "Gets featured bots by query",
+      "query": "string",
+      "limit?": "number",
+      "offset?": "number"
+    },
+    "updateFeaturedBots": {
+      "_description": "Updates featured bots in store",
+      "bots": "Array<RPCTypes.FeaturedBot>",
+      "page?": "number"
+    },
+    "setLoadedAllBots": {
+      "_description": "Sets a flag if all featured bots have been loaded",
+      "loaded": "boolean"
+    },
+    "searchFeaturedAndUsers": {
+      "_description": "Searches featured bots and users for add bot screen",
+      "query": "string"
+    },
+    "setSearchFeaturedAndUsersResults": {
+      "_description": "Set results of a search",
+      "query": "string",
+      "results?": "Types.BotSearchResults"
+    }
+  }
+}

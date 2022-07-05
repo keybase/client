@@ -119,6 +119,9 @@
 .box2_alignSelf_flex-end {
   align-self: flex-end;
 }
+.box2_alignSelf_stretch {
+  align-self: stretch;
+}
 .box2_no_shrink {
   flex-shrink: 0;
 }
@@ -130,4 +133,7 @@
 }
 .box2_alignItems_flex-end {
   align-items: flex-end;
+}
+.box2_pointerEvents_none {
+  pointer-events: none;
 }

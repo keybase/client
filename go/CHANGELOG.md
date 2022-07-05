@@ -1,3 +1,5 @@
+
+
 ## 1.0.19
 
 - Support for Curve25519 GPG keys (via vendored PR: keybase/go-crypto#38)

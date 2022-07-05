@@ -17,7 +17,10 @@ import (
 	"sync"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/data"
+	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/libkbfs"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
@@ -46,8 +49,8 @@ type FSEvent struct {
 type fsInner struct {
 	config   libkbfs.Config
 	root     libkbfs.Node
-	rootInfo libkbfs.EntryInfo
-	h        *libkbfs.TlfHandle
+	rootInfo data.EntryInfo
+	h        *tlfhandle.Handle
 	subdir   string
 	uniqID   string
 	log      logger.Logger
@@ -63,7 +66,7 @@ type fsInner struct {
 	// this is a naive append without and path clean.
 	lockNamespace []byte
 
-	eventsLock sync.RWMutex
+	eventsLock sync.RWMutex // nolint
 	events     map[chan<- FSEvent]bool
 }
 
@@ -99,6 +102,43 @@ func followSymlink(parentPath, link string) (newPath string, err error) {
 	return newPath, nil
 }
 
+func pathForLogging(
+	ctx context.Context, config libkbfs.Config, root libkbfs.Node,
+	filename string) string {
+	if root == nil || root.Obfuscator() == nil {
+		return filename
+	}
+
+	if filename == "." {
+		return ""
+	}
+
+	parts := strings.Split(filename, "/")
+	if len(parts) == 0 {
+		return ""
+	}
+	n := root
+	ret := ""
+	for i := 0; i < len(parts)-1; i++ {
+		p := parts[i]
+		childName := n.ChildName(p)
+		ret = path.Join(ret, childName.String())
+		nextNode, _, err := config.KBFSOps().Lookup(ctx, n, childName)
+		// If filename is a path that includes a symlink, we can get a nil node
+		// here. So just move on if nextNode == nil. In the very rare case of
+		// an entry that gets a duplicated obfuscated name within a directory,
+		// this could give the wrong answer. But it's not worth it at this time
+		// to follow the symlnk for logging.
+		if err != nil || nextNode == nil {
+			// Just keep using the parent node to obfuscate.
+			continue
+		}
+		n = nextNode
+	}
+	ret = path.Join(ret, n.ChildName(parts[len(parts)-1]).String())
+	return ret
+}
+
 // ErrNotADirectory is returned when a non-final path element exists but is not
 // a directory.
 type ErrNotADirectory struct {
@@ -121,11 +161,11 @@ const (
 )
 
 func newFS(ctx context.Context, config libkbfs.Config,
-	tlfHandle *libkbfs.TlfHandle, branch libkbfs.BranchName, subdir string,
+	tlfHandle *tlfhandle.Handle, branch data.BranchName, subdir string,
 	uniqID string, priority keybase1.MDPriority, unwrap bool,
 	atype accessType) (*FS, error) {
 	rootNodeGetter := config.KBFSOps().GetOrCreateRootNode
-	if branch != libkbfs.MasterBranch || atype != readwrite {
+	if branch != data.MasterBranch || atype != readwrite {
 		rootNodeGetter = config.KBFSOps().GetRootNode
 	}
 
@@ -136,14 +176,14 @@ func newFS(ctx context.Context, config libkbfs.Config,
 	log := config.MakeLogger("")
 	if rootNode == nil {
 		if len(subdir) > 0 {
-			return nil, errors.Errorf(
-				"Subdir %s doesn't exist in empty TLF", subdir)
+			return nil, errors.New("Subdir doesn't exist in empty TLF")
 		}
 		log.CDebugf(ctx,
 			"Returning empty FS for empty TLF=%s", tlfHandle.GetCanonicalName())
 		return &FS{
 			ctx: ctx,
 			fsInner: &fsInner{
+				config:   config,
 				empty:    true,
 				h:        tlfHandle,
 				uniqID:   uniqID,
@@ -174,14 +214,14 @@ func newFS(ctx context.Context, config libkbfs.Config,
 outer:
 	for {
 		for i, p := range parts {
-			n, ei, err = config.KBFSOps().Lookup(ctx, n, p)
+			n, ei, err = config.KBFSOps().Lookup(ctx, n, n.ChildName(p))
 			if err != nil {
 				return nil, err
 			}
 			switch ei.Type {
-			case libkbfs.Dir:
+			case data.Dir:
 				continue
-			case libkbfs.Sym:
+			case data.Sym:
 				parentParts := parts[:i]
 				newPath, err := followSymlink(
 					path.Join(parentParts...), ei.SymPath)
@@ -194,7 +234,8 @@ outer:
 				oldSubdir := subdir
 				subdir = path.Join(newParts...)
 				config.MakeLogger("").CDebugf(ctx, "Expanding symlink: %s->%s",
-					oldSubdir, subdir)
+					pathForLogging(ctx, config, rootNode, oldSubdir),
+					pathForLogging(ctx, config, rootNode, subdir))
 				parts = newParts
 				n = rootNode
 				continue outer
@@ -207,7 +248,8 @@ outer:
 	}
 
 	log.CDebugf(ctx, "Made new FS for TLF=%s, subdir=%s",
-		tlfHandle.GetCanonicalName(), subdir)
+		tlfHandle.GetCanonicalName(),
+		pathForLogging(ctx, config, rootNode, subdir))
 
 	// Use the canonical unix path for default locking namespace, as this needs
 	// to be the same across all platforms.
@@ -238,7 +280,7 @@ outer:
 // all users of this TLF globally; for example, a device ID combined
 // with a local tempfile name is recommended.
 func NewUnwrappedFS(ctx context.Context, config libkbfs.Config,
-	tlfHandle *libkbfs.TlfHandle, branch libkbfs.BranchName, subdir string,
+	tlfHandle *tlfhandle.Handle, branch data.BranchName, subdir string,
 	uniqID string, priority keybase1.MDPriority) (*FS, error) {
 	return newFS(
 		ctx, config, tlfHandle, branch, subdir, uniqID, priority, true,
@@ -257,7 +299,7 @@ func NewUnwrappedFS(ctx context.Context, config libkbfs.Config,
 // nodes created via this FS might stay read-only in the libkbfs
 // NodeCache for a while.
 func NewReadonlyFS(ctx context.Context, config libkbfs.Config,
-	tlfHandle *libkbfs.TlfHandle, branch libkbfs.BranchName, subdir string,
+	tlfHandle *tlfhandle.Handle, branch data.BranchName, subdir string,
 	uniqID string, priority keybase1.MDPriority) (*FS, error) {
 	return newFS(
 		ctx, config, tlfHandle, branch, subdir, uniqID, priority, false,
@@ -276,7 +318,7 @@ func NewReadonlyFS(ctx context.Context, config libkbfs.Config,
 // If there's a need to re-check the TLF, a new FS must be
 // constructed.
 func NewFSIfExists(ctx context.Context, config libkbfs.Config,
-	tlfHandle *libkbfs.TlfHandle, branch libkbfs.BranchName, subdir string,
+	tlfHandle *tlfhandle.Handle, branch data.BranchName, subdir string,
 	uniqID string, priority keybase1.MDPriority) (*FS, error) {
 	return newFS(
 		ctx, config, tlfHandle, branch, subdir, uniqID, priority, false,
@@ -290,11 +332,16 @@ func NewFSIfExists(ctx context.Context, config libkbfs.Config,
 // globally; for example, a device ID combined with a local tempfile
 // name is recommended.
 func NewFS(ctx context.Context, config libkbfs.Config,
-	tlfHandle *libkbfs.TlfHandle, branch libkbfs.BranchName, subdir string,
+	tlfHandle *tlfhandle.Handle, branch data.BranchName, subdir string,
 	uniqID string, priority keybase1.MDPriority) (*FS, error) {
 	return newFS(
 		ctx, config, tlfHandle, branch, subdir, uniqID, priority, false,
 		readwrite)
+}
+
+// PathForLogging returns the obfuscated path for the given filename.
+func (fs *FS) PathForLogging(filename string) string {
+	return pathForLogging(fs.ctx, fs.config, fs.root, filename)
 }
 
 // lookupOrCreateEntryNoFollow looks up the entry for a file in a
@@ -302,14 +349,14 @@ func NewFS(ctx context.Context, config libkbfs.Config,
 // Node and a nil error.  If the entry doesn't exist and O_CREATE is
 // set in `flag`, it will create the entry as a file.
 func (fs *FS) lookupOrCreateEntryNoFollow(
-	dir libkbfs.Node, filename string, flag int, perm os.FileMode) (
-	libkbfs.Node, libkbfs.EntryInfo, error) {
+	dir libkbfs.Node, filename data.PathPartString, flag int,
+	perm os.FileMode) (libkbfs.Node, data.EntryInfo, error) {
 	n, ei, err := fs.config.KBFSOps().Lookup(fs.ctx, dir, filename)
 	switch errors.Cause(err).(type) {
-	case libkbfs.NoSuchNameError:
+	case idutil.NoSuchNameError:
 		// The file doesn't exist yet; create if requested
 		if flag&os.O_CREATE == 0 {
-			return nil, libkbfs.EntryInfo{}, err
+			return nil, data.EntryInfo{}, err
 		}
 		fs.log.CDebugf(
 			fs.ctx, "Creating %s since it doesn't exist yet", filename)
@@ -321,7 +368,7 @@ func (fs *FS) lookupOrCreateEntryNoFollow(
 		n, ei, err = fs.config.KBFSOps().CreateFile(
 			fs.ctx, dir, filename, isExec, excl)
 		switch errors.Cause(err).(type) {
-		case libkbfs.NameExistsError:
+		case data.NameExistsError:
 			// Someone made it already; recurse to try the lookup again.
 			fs.log.CDebugf(
 				fs.ctx, "Attempting lookup again after failed create")
@@ -329,24 +376,24 @@ func (fs *FS) lookupOrCreateEntryNoFollow(
 		case nil:
 			return n, ei, nil
 		default:
-			return nil, libkbfs.EntryInfo{}, err
+			return nil, data.EntryInfo{}, err
 		}
 	case nil:
 		// If we were supposed to have exclusively-created this file,
 		// we must fail.
 		if flag&os.O_CREATE != 0 && flag&os.O_EXCL != 0 {
-			return nil, libkbfs.EntryInfo{},
-				errors.New("Exclusive create failed because the file exists")
+			return nil, data.EntryInfo{}, errors.Wrap(os.ErrExist,
+				"Exclusive create failed because the file exists")
 		}
 
-		if ei.Type == libkbfs.Sym {
+		if ei.Type == data.Sym {
 			// The caller must retry if desired.
 			return nil, ei, nil
 		}
 
 		return n, ei, nil
 	default:
-		return nil, libkbfs.EntryInfo{}, err
+		return nil, data.EntryInfo{}, err
 	}
 }
 
@@ -364,9 +411,10 @@ func (fs *FS) lookupParentWithDepth(
 	// not the file itself.
 	for i := 0; i < len(parts)-1; i++ {
 		p := parts[i]
-		nextNode, ei, err := fs.config.KBFSOps().Lookup(fs.ctx, n, p)
+		nextNode, ei, err := fs.config.KBFSOps().Lookup(
+			fs.ctx, n, n.ChildName(p))
 		switch errors.Cause(err).(type) {
-		case libkbfs.NoSuchNameError:
+		case idutil.NoSuchNameError:
 			if exitEarly {
 				parentDir = path.Join(parts[:i]...)
 				base = path.Join(parts[i:]...)
@@ -380,7 +428,7 @@ func (fs *FS) lookupParentWithDepth(
 		}
 
 		switch ei.Type {
-		case libkbfs.Sym:
+		case data.Sym:
 			if depth == maxSymlinkLevels {
 				return nil, "", "", errors.New("Too many levels of symlinks")
 			}
@@ -392,7 +440,7 @@ func (fs *FS) lookupParentWithDepth(
 			newPathPlusRemainder := append([]string{newPath}, parts[i+1:]...)
 			return fs.lookupParentWithDepth(
 				path.Join(newPathPlusRemainder...), exitEarly, depth+1)
-		case libkbfs.Dir:
+		case data.Dir:
 			continue
 		default:
 			return nil, "", "", ErrNotADirectory{Name: path.Join(parts[:i+1]...)}
@@ -415,7 +463,7 @@ func (fs *FS) lookupParent(filename string) (
 // create the entry as a file.
 func (fs *FS) lookupOrCreateEntry(
 	filename string, flag int, perm os.FileMode) (
-	n libkbfs.Node, ei libkbfs.EntryInfo, err error) {
+	n libkbfs.Node, ei data.EntryInfo, err error) {
 	// Shortcut the case where there's nothing to look up.
 	if filename == "" || filename == "/" || filename == "." {
 		return fs.root, fs.rootInfo, nil
@@ -426,36 +474,37 @@ func (fs *FS) lookupOrCreateEntry(
 		var parentDir, fName string
 		n, parentDir, fName, err = fs.lookupParent(filename)
 		if err != nil {
-			return nil, libkbfs.EntryInfo{}, err
+			return nil, data.EntryInfo{}, err
 		}
 
-		n, ei, err := fs.lookupOrCreateEntryNoFollow(n, fName, flag, perm)
+		n, ei, err := fs.lookupOrCreateEntryNoFollow(
+			n, n.ChildName(fName), flag, perm)
 		if err != nil {
-			return nil, libkbfs.EntryInfo{}, err
+			return nil, data.EntryInfo{}, err
 		}
 
-		if ei.Type != libkbfs.Sym {
+		if ei.Type != data.Sym {
 			return n, ei, nil
 		}
 		fs.log.CDebugf(fs.ctx, "Following symlink=%s from dir=%s",
-			ei.SymPath, parentDir)
+			fs.PathForLogging(ei.SymPath), fs.PathForLogging(parentDir))
 		filename, err = followSymlink(parentDir, ei.SymPath)
 		if err != nil {
-			return nil, libkbfs.EntryInfo{}, err
+			return nil, data.EntryInfo{}, err
 		}
 	}
-	return nil, libkbfs.EntryInfo{}, errors.New("Too many levels of symlinks")
+	return nil, data.EntryInfo{}, errors.New("Too many levels of symlinks")
 }
 
 func translateErr(err error) error {
 	switch errors.Cause(err).(type) {
-	case libkbfs.NoSuchNameError, ErrNotADirectory:
+	case idutil.NoSuchNameError, ErrNotADirectory:
 		return os.ErrNotExist
-	case libkbfs.TlfAccessError, libkbfs.ReadAccessError:
+	case libkbfs.TlfAccessError, tlfhandle.ReadAccessError:
 		return os.ErrPermission
 	case libkbfs.NotDirError, libkbfs.NotFileError:
 		return os.ErrInvalid
-	case libkbfs.NameExistsError:
+	case data.NameExistsError:
 		return os.ErrExist
 	default:
 		return err
@@ -479,14 +528,16 @@ func (fs *FS) mkdirAll(filename string, perm os.FileMode) (err error) {
 	parts := strings.Split(leftover, "/")
 	// Make all necessary dirs.
 	for _, p := range parts {
-		child, _, err := fs.config.KBFSOps().CreateDir(fs.ctx, n, p)
+		child, _, err := fs.config.KBFSOps().CreateDir(
+			fs.ctx, n, n.ChildName(p))
 		switch errors.Cause(err).(type) {
-		case libkbfs.NameExistsError:
+		case data.NameExistsError:
 			// The child directory already exists.
-		case libkbfs.WriteAccessError, libkbfs.WriteToReadonlyNodeError:
+		case tlfhandle.WriteAccessError, libkbfs.WriteToReadonlyNodeError:
 			// If the child already exists, this doesn't matter.
 			var lookupErr error
-			child, _, lookupErr = fs.config.KBFSOps().Lookup(fs.ctx, n, p)
+			child, _, lookupErr = fs.config.KBFSOps().Lookup(
+				fs.ctx, n, n.ChildName(p))
 			if lookupErr != nil {
 				return err
 			}
@@ -504,7 +555,7 @@ func (fs *FS) ensureParentDir(filename string) error {
 	err := fs.mkdirAll(path.Dir(filename), 0755)
 	if err != nil && !os.IsExist(err) {
 		switch errors.Cause(err).(type) {
-		case libkbfs.WriteAccessError, libkbfs.WriteToReadonlyNodeError:
+		case tlfhandle.WriteAccessError, libkbfs.WriteToReadonlyNodeError:
 			// We're not allowed to create any of the parent
 			// directories automatically, so give back a proper
 			// isNotExist error.
@@ -518,8 +569,21 @@ func (fs *FS) ensureParentDir(filename string) error {
 	return nil
 }
 
-func (fs *FS) requireNonEmpty() error {
-	if fs.empty {
+type onFsEmpty bool
+
+const (
+	onFsEmptyErrNotExist     onFsEmpty = true
+	onFsEmptyErrNotSupported onFsEmpty = false
+)
+
+// chooseErrorIfEmpty checks if fs is empty, and returns an error if it is.
+// Based on onFsEmpty, it returns either os.ErrNotExist or a custom error. This
+// is useful for operations like Stat and allows caller to treat lookups in an
+// empty FS as not exist, as they should.
+func (fs *FS) chooseErrorIfEmpty(onFsEmpty onFsEmpty) error {
+	if fs.empty && onFsEmpty == onFsEmptyErrNotExist {
+		return os.ErrNotExist
+	} else if fs.empty {
 		return errors.New("Not supported for an empty TLF")
 	}
 	return nil
@@ -529,13 +593,14 @@ func (fs *FS) requireNonEmpty() error {
 func (fs *FS) OpenFile(filename string, flag int, perm os.FileMode) (
 	f billy.File, err error) {
 	fs.log.CDebugf(
-		fs.ctx, "OpenFile %s, flag=%d, perm=%o", filename, flag, perm)
+		fs.ctx, "OpenFile %s, flag=%d, perm=%o",
+		fs.PathForLogging(filename), flag, perm)
 	defer func() {
 		fs.deferLog.CDebugf(fs.ctx, "OpenFile done: %+v", err)
 		err = translateErr(err)
 	}()
 
-	if err := fs.requireNonEmpty(); err != nil {
+	if err := fs.chooseErrorIfEmpty(flag&os.O_CREATE == 0); err != nil {
 		return nil, err
 	}
 
@@ -589,7 +654,7 @@ func (fs *FS) Open(filename string) (billy.File, error) {
 }
 
 func (fs *FS) makeFileInfo(
-	ei libkbfs.EntryInfo, node libkbfs.Node, name string) os.FileInfo {
+	ei data.EntryInfo, node libkbfs.Node, name string) os.FileInfo {
 	if IsFastModeEnabled(fs.ctx) {
 		return &FileInfoFast{
 			name: name,
@@ -606,22 +671,19 @@ func (fs *FS) makeFileInfo(
 
 // Stat implements the billy.Filesystem interface for FS.
 func (fs *FS) Stat(filename string) (fi os.FileInfo, err error) {
-	fs.log.CDebugf(fs.ctx, "Stat %s", filename)
+	fs.log.CDebugf(fs.ctx, "Stat %s", fs.PathForLogging(filename))
 	defer func() {
 		fs.deferLog.CDebugf(fs.ctx, "Stat done: %+v", err)
 		err = translateErr(err)
 	}()
 
 	if fs.empty && (filename == "" || filename == ".") {
-		// Always use FileInfoFast here for this whether fast mode is enabled
-		// or not.
-		return &FileInfoFast{
-			name: filename,
-			ei: libkbfs.EntryInfo{
-				Type: libkbfs.Dir,
-			},
-		}, nil
-	} else if err := fs.requireNonEmpty(); err != nil {
+		// We can't just uncondionally use FileInfoFast here as that'd result
+		// in WritePerm unset for non-existent TLFs.
+		return fs.makeFileInfo(data.EntryInfo{
+			Type: data.Dir,
+		}, nil, filename), nil
+	} else if err := fs.chooseErrorIfEmpty(onFsEmptyErrNotExist); err != nil {
 		return nil, err
 	}
 
@@ -630,18 +692,19 @@ func (fs *FS) Stat(filename string) (fi os.FileInfo, err error) {
 		return nil, err
 	}
 
-	return fs.makeFileInfo(ei, n, n.GetBasename()), nil
+	return fs.makeFileInfo(ei, n, n.GetBasename().Plaintext()), nil
 }
 
 // Rename implements the billy.Filesystem interface for FS.
 func (fs *FS) Rename(oldpath, newpath string) (err error) {
-	fs.log.CDebugf(fs.ctx, "Rename %s -> %s", oldpath, newpath)
+	fs.log.CDebugf(fs.ctx, "Rename %s -> %s",
+		fs.PathForLogging(oldpath), fs.PathForLogging(newpath))
 	defer func() {
 		fs.deferLog.CDebugf(fs.ctx, "Rename done: %+v", err)
 		err = translateErr(err)
 	}()
 
-	if err := fs.requireNonEmpty(); err != nil {
+	if err := fs.chooseErrorIfEmpty(onFsEmptyErrNotSupported); err != nil {
 		return err
 	}
 
@@ -661,18 +724,19 @@ func (fs *FS) Rename(oldpath, newpath string) (err error) {
 	}
 
 	return fs.config.KBFSOps().Rename(
-		fs.ctx, oldParent, oldBase, newParent, newBase)
+		fs.ctx, oldParent, oldParent.ChildName(oldBase), newParent,
+		newParent.ChildName(newBase))
 }
 
 // Remove implements the billy.Filesystem interface for FS.
 func (fs *FS) Remove(filename string) (err error) {
-	fs.log.CDebugf(fs.ctx, "Remove %s", filename)
+	fs.log.CDebugf(fs.ctx, "Remove %s", fs.PathForLogging(filename))
 	defer func() {
 		fs.deferLog.CDebugf(fs.ctx, "Remove done: %+v", err)
 		err = translateErr(err)
 	}()
 
-	if err := fs.requireNonEmpty(); err != nil {
+	if err := fs.chooseErrorIfEmpty(onFsEmptyErrNotSupported); err != nil {
 		return err
 	}
 
@@ -681,15 +745,16 @@ func (fs *FS) Remove(filename string) (err error) {
 		return err
 	}
 
-	_, ei, err := fs.config.KBFSOps().Lookup(fs.ctx, parent, base)
+	basePart := parent.ChildName(base)
+	_, ei, err := fs.config.KBFSOps().Lookup(fs.ctx, parent, basePart)
 	if err != nil {
 		return err
 	}
 
-	if ei.Type == libkbfs.Dir {
-		return fs.config.KBFSOps().RemoveDir(fs.ctx, parent, base)
+	if ei.Type == data.Dir {
+		return fs.config.KBFSOps().RemoveDir(fs.ctx, parent, basePart)
 	}
-	return fs.config.KBFSOps().RemoveEntry(fs.ctx, parent, base)
+	return fs.config.KBFSOps().RemoveEntry(fs.ctx, parent, basePart)
 }
 
 // Join implements the billy.Filesystem interface for FS.
@@ -699,7 +764,7 @@ func (fs *FS) Join(elem ...string) string {
 
 // TempFile implements the billy.Filesystem interface for FS.
 func (fs *FS) TempFile(dir, prefix string) (billy.File, error) {
-	if err := fs.requireNonEmpty(); err != nil {
+	if err := fs.chooseErrorIfEmpty(onFsEmptyErrNotSupported); err != nil {
 		return nil, err
 	}
 
@@ -733,14 +798,14 @@ func (fs *FS) readDir(n libkbfs.Node) (fis []os.FileInfo, err error) {
 			}
 		}
 
-		fis = append(fis, fs.makeFileInfo(ei, child, name))
+		fis = append(fis, fs.makeFileInfo(ei, child, name.Plaintext()))
 	}
 	return fis, nil
 }
 
 // ReadDir implements the billy.Filesystem interface for FS.
 func (fs *FS) ReadDir(p string) (fis []os.FileInfo, err error) {
-	fs.log.CDebugf(fs.ctx, "ReadDir %s", p)
+	fs.log.CDebugf(fs.ctx, "ReadDir %s", fs.PathForLogging(p))
 	defer func() {
 		fs.deferLog.CDebugf(fs.ctx, "ReadDir done: %+v", err)
 		err = translateErr(err)
@@ -748,7 +813,7 @@ func (fs *FS) ReadDir(p string) (fis []os.FileInfo, err error) {
 
 	if fs.empty && (p == "" || p == "." || p == "/") {
 		return nil, nil
-	} else if err := fs.requireNonEmpty(); err != nil {
+	} else if err := fs.chooseErrorIfEmpty(onFsEmptyErrNotExist); err != nil {
 		return nil, err
 	}
 
@@ -761,12 +826,12 @@ func (fs *FS) ReadDir(p string) (fis []os.FileInfo, err error) {
 
 // MkdirAll implements the billy.Filesystem interface for FS.
 func (fs *FS) MkdirAll(filename string, perm os.FileMode) (err error) {
-	fs.log.CDebugf(fs.ctx, "MkdirAll %s", filename)
+	fs.log.CDebugf(fs.ctx, "MkdirAll %s", fs.PathForLogging(filename))
 	defer func() {
 		fs.deferLog.CDebugf(fs.ctx, "MkdirAll done: %+v", err)
 	}()
 
-	if err := fs.requireNonEmpty(); err != nil {
+	if err := fs.chooseErrorIfEmpty(onFsEmptyErrNotSupported); err != nil {
 		return err
 	}
 
@@ -775,22 +840,19 @@ func (fs *FS) MkdirAll(filename string, perm os.FileMode) (err error) {
 
 // Lstat implements the billy.Filesystem interface for FS.
 func (fs *FS) Lstat(filename string) (fi os.FileInfo, err error) {
-	fs.log.CDebugf(fs.ctx, "Lstat %s", filename)
+	fs.log.CDebugf(fs.ctx, "Lstat %s", fs.PathForLogging(filename))
 	defer func() {
 		fs.deferLog.CDebugf(fs.ctx, "Lstat done: %+v", err)
 		err = translateErr(err)
 	}()
 
 	if fs.empty && (filename == "" || filename == ".") {
-		// Always use FileInfoFast here for this no matter fast mode is enabled
-		// or not.
-		return &FileInfoFast{
-			name: filename,
-			ei: libkbfs.EntryInfo{
-				Type: libkbfs.Dir,
-			},
-		}, nil
-	} else if err := fs.requireNonEmpty(); err != nil {
+		// We can't just uncondionally use FileInfoFast here as that'd result
+		// in WritePerm unset for non-existent TLFs.
+		return fs.makeFileInfo(data.EntryInfo{
+			Type: data.Dir,
+		}, nil, filename), nil
+	} else if err := fs.chooseErrorIfEmpty(onFsEmptyErrNotExist); err != nil {
 		return nil, err
 	}
 
@@ -807,7 +869,7 @@ func (fs *FS) Lstat(filename string) (fi os.FileInfo, err error) {
 		return fs.makeFileInfo(ei, n, ""), nil
 	}
 
-	n, ei, err := fs.config.KBFSOps().Lookup(fs.ctx, n, base)
+	n, ei, err := fs.config.KBFSOps().Lookup(fs.ctx, n, n.ChildName(base))
 	if err != nil {
 		return nil, err
 	}
@@ -817,13 +879,14 @@ func (fs *FS) Lstat(filename string) (fi os.FileInfo, err error) {
 
 // Symlink implements the billy.Filesystem interface for FS.
 func (fs *FS) Symlink(target, link string) (err error) {
-	fs.log.CDebugf(fs.ctx, "Symlink target=%s link=%s", target, link)
+	fs.log.CDebugf(fs.ctx, "Symlink target=%s link=%s",
+		fs.PathForLogging(target), fs.root.ChildName(link))
 	defer func() {
 		fs.deferLog.CDebugf(fs.ctx, "Symlink done: %+v", err)
 		err = translateErr(err)
 	}()
 
-	if err := fs.requireNonEmpty(); err != nil {
+	if err := fs.chooseErrorIfEmpty(onFsEmptyErrNotSupported); err != nil {
 		return err
 	}
 
@@ -837,19 +900,20 @@ func (fs *FS) Symlink(target, link string) (err error) {
 		return err
 	}
 
-	_, err = fs.config.KBFSOps().CreateLink(fs.ctx, n, base, target)
+	_, err = fs.config.KBFSOps().CreateLink(
+		fs.ctx, n, n.ChildName(base), n.ChildName(target))
 	return err
 }
 
 // Readlink implements the billy.Filesystem interface for FS.
 func (fs *FS) Readlink(link string) (target string, err error) {
-	fs.log.CDebugf(fs.ctx, "Readlink %s", link)
+	fs.log.CDebugf(fs.ctx, "Readlink %s", fs.PathForLogging(link))
 	defer func() {
 		fs.deferLog.CDebugf(fs.ctx, "Readlink done: %+v", err)
 		err = translateErr(err)
 	}()
 
-	if err := fs.requireNonEmpty(); err != nil {
+	if err := fs.chooseErrorIfEmpty(onFsEmptyErrNotExist); err != nil {
 		return "", err
 	}
 
@@ -858,12 +922,12 @@ func (fs *FS) Readlink(link string) (target string, err error) {
 		return "", err
 	}
 
-	_, ei, err := fs.config.KBFSOps().Lookup(fs.ctx, n, base)
+	_, ei, err := fs.config.KBFSOps().Lookup(fs.ctx, n, n.ChildName(base))
 	if err != nil {
 		return "", err
 	}
 
-	if ei.Type != libkbfs.Sym {
+	if ei.Type != data.Sym {
 		return "", errors.Errorf("%s is not a symlink", link)
 	}
 	return ei.SymPath, nil
@@ -871,13 +935,13 @@ func (fs *FS) Readlink(link string) (target string, err error) {
 
 // Chmod implements the billy.Filesystem interface for FS.
 func (fs *FS) Chmod(name string, mode os.FileMode) (err error) {
-	fs.log.CDebugf(fs.ctx, "Chmod %s %s", name, mode)
+	fs.log.CDebugf(fs.ctx, "Chmod %s %s", fs.PathForLogging(name), mode)
 	defer func() {
 		fs.deferLog.CDebugf(fs.ctx, "Chmod done: %+v", err)
 		err = translateErr(err)
 	}()
 
-	if err := fs.requireNonEmpty(); err != nil {
+	if err := fs.chooseErrorIfEmpty(onFsEmptyErrNotSupported); err != nil {
 		return err
 	}
 
@@ -893,14 +957,16 @@ func (fs *FS) Chmod(name string, mode os.FileMode) (err error) {
 // Lchown implements the billy.Filesystem interface for FS.
 func (fs *FS) Lchown(name string, uid, gid int) error {
 	// KBFS doesn't support ownership changes.
-	fs.log.CDebugf(fs.ctx, "Ignoring Lchown %s %d %d", name, uid, gid)
+	fs.log.CDebugf(fs.ctx, "Ignoring Lchown %s %d %d",
+		fs.PathForLogging(name), uid, gid)
 	return nil
 }
 
 // Chown implements the billy.Filesystem interface for FS.
 func (fs *FS) Chown(name string, uid, gid int) error {
 	// KBFS doesn't support ownership changes.
-	fs.log.CDebugf(fs.ctx, "Ignoring Chown %s %d %d", name, uid, gid)
+	fs.log.CDebugf(fs.ctx, "Ignoring Chown %s %d %d",
+		fs.PathForLogging(name), uid, gid)
 	return nil
 }
 
@@ -908,13 +974,13 @@ func (fs *FS) Chown(name string, uid, gid int) error {
 func (fs *FS) Chtimes(name string, atime time.Time, mtime time.Time) (
 	err error) {
 	fs.log.CDebugf(fs.ctx, "Chtimes %s mtime=%s; ignoring atime=%s",
-		name, mtime, atime)
+		fs.PathForLogging(name), mtime, atime)
 	defer func() {
 		fs.deferLog.CDebugf(fs.ctx, "Chtimes done: %+v", err)
 		err = translateErr(err)
 	}()
 
-	if err := fs.requireNonEmpty(); err != nil {
+	if err := fs.chooseErrorIfEmpty(onFsEmptyErrNotSupported); err != nil {
 		return err
 	}
 
@@ -928,7 +994,7 @@ func (fs *FS) Chtimes(name string, atime time.Time, mtime time.Time) (
 
 // ChrootAsLibFS returns a *FS whose root is p.
 func (fs *FS) ChrootAsLibFS(p string) (newFS *FS, err error) {
-	fs.log.CDebugf(fs.ctx, "Chroot %s", p)
+	fs.log.CDebugf(fs.ctx, "Chroot %s", fs.PathForLogging(p))
 	defer func() {
 		fs.deferLog.CDebugf(fs.ctx, "Chroot done: %+v", err)
 		err = translateErr(err)
@@ -938,7 +1004,7 @@ func (fs *FS) ChrootAsLibFS(p string) (newFS *FS, err error) {
 		return fs, nil
 	}
 
-	if err := fs.requireNonEmpty(); err != nil {
+	if err := fs.chooseErrorIfEmpty(onFsEmptyErrNotExist); err != nil {
 		return nil, err
 	}
 
@@ -983,7 +1049,7 @@ func (fs *FS) Root() string {
 
 // SyncAll syncs any outstanding buffered writes to the KBFS journal.
 func (fs *FS) SyncAll() error {
-	if err := fs.requireNonEmpty(); err != nil {
+	if err := fs.chooseErrorIfEmpty(onFsEmptyErrNotSupported); err != nil {
 		return err
 	}
 	return fs.config.KBFSOps().SyncAll(fs.ctx, fs.root.GetFolderBranch())
@@ -1052,6 +1118,11 @@ func (fs *FS) RootNode() libkbfs.Node {
 	return fs.root
 }
 
+// Handle returns the TLF handle corresponding to this FS.
+func (fs *FS) Handle() *tlfhandle.Handle {
+	return fs.h
+}
+
 type folderHandleChangeObserver func()
 
 func (folderHandleChangeObserver) LocalChange(
@@ -1061,7 +1132,7 @@ func (folderHandleChangeObserver) BatchChanges(
 	context.Context, []libkbfs.NodeChange, []libkbfs.NodeID) {
 }
 func (o folderHandleChangeObserver) TlfHandleChange(
-	context.Context, *libkbfs.TlfHandle) {
+	context.Context, *tlfhandle.Handle) {
 	o()
 }
 
@@ -1069,7 +1140,7 @@ func (o folderHandleChangeObserver) TlfHandleChange(
 // reaches obsolescence, meaning if user of this object caches it for long term
 // use, it should invalide this entry and create a new one using NewFS.
 func (fs *FS) SubscribeToObsolete() (<-chan struct{}, error) {
-	if err := fs.requireNonEmpty(); err != nil {
+	if err := fs.chooseErrorIfEmpty(onFsEmptyErrNotSupported); err != nil {
 		return nil, err
 	}
 
@@ -1078,7 +1149,7 @@ func (fs *FS) SubscribeToObsolete() (<-chan struct{}, error) {
 	onHandleChange := folderHandleChangeObserver(
 		func() { once.Do(func() { close(c) }) })
 	if err := fs.config.Notifier().RegisterForChanges(
-		[]libkbfs.FolderBranch{fs.root.GetFolderBranch()},
+		[]data.FolderBranch{fs.root.GetFolderBranch()},
 		onHandleChange); err != nil {
 		return nil, err
 	}

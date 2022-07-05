@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"sync"
 
 	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -20,8 +19,6 @@ var _ Stellar = (*nullStellar)(nil)
 func newNullStellar(g *GlobalContext) *nullStellar {
 	return &nullStellar{NewContextified(g)}
 }
-
-func (n *nullStellar) OnLogout() {}
 
 func (n *nullStellar) CreateWalletSoft(ctx context.Context) {
 	n.G().Log.CErrorf(ctx, "null stellar impl")
@@ -41,8 +38,6 @@ func (n *nullStellar) UpdateUnreadCount(context.Context, stellar1.AccountID, int
 	return errors.New("nullStellar UpdateUnreadCount")
 }
 
-func (n *nullStellar) GetMigrationLock() *sync.Mutex { return new(sync.Mutex) }
-
 func (n *nullStellar) SendMiniChatPayments(mctx MetaContext, convID chat1.ConversationID, payments []MiniChatPayment) ([]MiniChatPaymentResult, error) {
 	return nil, errors.New("nullStellar SendMiniChatPayments")
 }
@@ -58,3 +53,13 @@ func (n *nullStellar) HandleOobm(context.Context, gregor.OutOfBandMessage) (bool
 func (n *nullStellar) RemovePendingTx(MetaContext, stellar1.AccountID, stellar1.TransactionID) error {
 	return errors.New("nullStellar RemovePendingTx")
 }
+
+func (n *nullStellar) KnownCurrencyCodeInstant(context.Context, string) (bool, bool) {
+	return false, false
+}
+
+func (n *nullStellar) InformBundle(MetaContext, stellar1.BundleRevision, []stellar1.BundleEntry) {}
+
+func (n *nullStellar) InformDefaultCurrencyChange(MetaContext) {}
+
+func (n *nullStellar) Refresh(MetaContext, string) {}

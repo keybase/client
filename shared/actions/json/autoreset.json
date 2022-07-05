@@ -1,0 +1,48 @@
+{
+  "prelude": [
+    "import HiddenString from '../util/hidden-string'",
+    "import {RPCError} from '../util/errors'"
+  ],
+  "actions": {
+    "cancelReset": {
+      "_description": "Cancel an autoreset for the currently logged-in account. Don't use with a temporary (web) session"
+    },
+    "displayProgress": {
+      "endTime": "number",
+      "needVerify": "boolean"
+    },
+    "finishedReset": {},
+    "resetAccount": {
+      "_description": [
+        "Tell the server to put an account into the reset pipeline.",
+        "If no password is provided, the user will need to click a confirmation link in an email or text."
+      ],
+      "password?": "HiddenString"
+    },
+    "resetCancelled": {
+      "_description": "Cancelled an account reset."
+    },
+    "resetError": {
+      "error": "RPCError"
+    },
+    "setUsername": {
+      "username": "string"
+    },
+    "showFinalResetScreen": {
+      "_description": "Show the screen where the user chooses whether to actually reset their account or cancel out",
+      "hasWallet": "boolean"
+    },
+    "startAccountReset": {
+      "_description": "Start the account reset process in the GUI.",
+      "skipPassword": "boolean",
+      "username?": "string"
+    },
+    "submittedReset": {
+      "checkEmail": "boolean"
+    },
+    "updateAutoresetState": {
+      "active": "boolean",
+      "endTime": "number"
+    }
+  }
+}

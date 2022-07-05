@@ -153,7 +153,8 @@ func (rmds *RootMetadataSigned) MakeFinalCopy(
 // IsLastModifiedBy), or by checking with KBPKI.
 func (rmds *RootMetadataSigned) IsValidAndSigned(
 	ctx context.Context, codec kbfscodec.Codec,
-	teamMemChecker TeamMembershipChecker, extra ExtraMetadata) error {
+	teamMemChecker TeamMembershipChecker, extra ExtraMetadata,
+	offline keybase1.OfflineAvailability) error {
 	// Optimization -- if the RootMetadata signature is nil, it
 	// will fail verification.
 	if rmds.SigInfo.IsNil() {
@@ -166,8 +167,8 @@ func (rmds *RootMetadataSigned) IsValidAndSigned(
 	}
 
 	err := rmds.MD.IsValidAndSigned(
-		ctx, codec, teamMemChecker, extra,
-		rmds.WriterSigInfo.VerifyingKey)
+		ctx, codec, teamMemChecker, extra, rmds.WriterSigInfo.VerifyingKey,
+		offline)
 	if err != nil {
 		return err
 	}

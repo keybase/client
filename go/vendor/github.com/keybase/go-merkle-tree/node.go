@@ -2,7 +2,6 @@ package merkleTree
 
 import (
 	"encoding/hex"
-	"encoding/json"
 )
 
 func (n *Node) findChildByIndex(i ChildIndex) (Hash, error) {
@@ -21,11 +20,6 @@ func (n Node) export(h Hasher, prevRoot Hash, level Level) (hash Hash, node Node
 		hash = h.Hash(objExported)
 	}
 	return hash, n, objExported, err
-}
-
-func dump(i interface{}) string {
-	ret, _ := json.MarshalIndent(i, "", "   ")
-	return string(ret)
 }
 
 // MarshalJSON prints out a hash for debugging purposes. Not recommended for actual

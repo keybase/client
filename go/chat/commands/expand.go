@@ -15,17 +15,17 @@ type Expand struct {
 
 func NewExpand(g *globals.Context) *Expand {
 	return &Expand{
-		baseCommand: newBaseCommand(g, "expand", "", "Expand all inline previews"),
+		baseCommand: newBaseCommand(g, "expand", "", "Expand all inline previews", false),
 	}
 }
 
 func (h *Expand) Execute(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	tlfName, text string) (err error) {
-	defer h.Trace(ctx, func() error { return err }, "Expand")()
+	tlfName, text string, replyTo *chat1.MessageID) (err error) {
+	defer h.Trace(ctx, &err, "Expand")()
 	if !h.Match(ctx, text) {
 		return ErrInvalidCommand
 	}
-	conv, err := h.getRemoteConvByID(ctx, uid, convID)
+	conv, err := getConvByID(ctx, h.G(), uid, convID)
 	if err != nil {
 		return err
 	}
@@ -34,7 +34,7 @@ func (h *Expand) Execute(ctx context.Context, uid gregor1.UID, convID chat1.Conv
 		return err
 	}
 	h.G().ActivityNotifier.ThreadsStale(ctx, uid, []chat1.ConversationStaleUpdate{
-		chat1.ConversationStaleUpdate{
+		{
 			ConvID:     convID,
 			UpdateType: chat1.StaleUpdateType_NEWACTIVITY,
 		},

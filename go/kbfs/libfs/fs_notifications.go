@@ -43,7 +43,6 @@ func (f *FSNotifications) processNotifications(ctx context.Context) {
 		case <-ctx.Done():
 			f.notificationMutex.Lock()
 			c := f.notifications
-			f.log.CDebugf(ctx, "Nilling notifications channel")
 			f.notifications = nil
 			f.notificationMutex.Unlock()
 			c.Close()

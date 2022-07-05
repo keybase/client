@@ -131,7 +131,7 @@ func (g *ObjcWrapper) genCFuncBody(n *objc.Named, f *objc.Func, super bool) {
 	// ret = ((<return type> (*)(id, SEL, <argument_types>))objc_msgSendSuper)(<struct objc_super>, <arguments>)
 	if f.Ret != nil {
 		switch f.Ret.Kind {
-		case objc.String, objc.Bool, objc.Data, objc.Int, objc.Uint, objc.Short, objc.Ushort, objc.Char, objc.Float, objc.Double, objc.Class, objc.Protocol:
+		case objc.String, objc.Bool, objc.Data, objc.Int, objc.Uint, objc.Short, objc.Ushort, objc.Char, objc.Uchar, objc.Float, objc.Double, objc.Class, objc.Protocol:
 		default:
 			// If support for struct results is added, objc_msgSend_stret must be used
 			panic("unsupported type kind - use objc_msgSend_stret?")
@@ -440,7 +440,7 @@ func (g *ObjcWrapper) genCToObjC(name string, t *objc.Type, mode varMode) {
 		g.Printf("BOOL _%s = %s ? YES : NO;\n", name, name)
 	case objc.Data:
 		g.Printf("NSData *_%s = go_seq_to_objc_bytearray(%s, %d);\n", name, name, toCFlag(mode == modeRetained))
-	case objc.Int, objc.Uint, objc.Short, objc.Ushort, objc.Char, objc.Float, objc.Double:
+	case objc.Int, objc.Uint, objc.Short, objc.Ushort, objc.Char, objc.Uchar, objc.Float, objc.Double:
 		g.Printf("%s _%s = (%s)%s;\n", g.objcType(t), name, g.objcType(t), name)
 	case objc.Class, objc.Protocol:
 		g.Printf("GoSeqRef* %s_ref = go_seq_from_refnum(%s);\n", name, name)
@@ -459,7 +459,7 @@ func (g *ObjcWrapper) genObjCToC(name string, t *objc.Type, mode varMode) {
 		g.Printf("nstring _%s = go_seq_from_objc_string(%s);\n", name, name)
 	case objc.Data:
 		g.Printf("nbyteslice _%s = go_seq_from_objc_bytearray(%s, %d);\n", name, name, toCFlag(mode == modeRetained))
-	case objc.Bool, objc.Int, objc.Uint, objc.Short, objc.Ushort, objc.Char, objc.Float, objc.Double:
+	case objc.Bool, objc.Int, objc.Uint, objc.Short, objc.Ushort, objc.Char, objc.Uchar, objc.Float, objc.Double:
 		g.Printf("%s _%s = (%s)%s;\n", g.cType(t), name, g.cType(t), name)
 	case objc.Protocol, objc.Class:
 		g.Printf("int _%s = go_seq_to_refnum(%s);\n", name, name)
@@ -473,13 +473,13 @@ func (g *ObjcWrapper) genWrite(a *objc.Param) {
 	case objc.String:
 		g.Printf("_%s := encodeString(%s)\n", a.Name, a.Name)
 	case objc.Data:
-		g.Printf("_%s := fromSlice(%s, 0)\n", a.Name, a.Name)
+		g.Printf("_%s := fromSlice(%s, false)\n", a.Name, a.Name)
 	case objc.Bool:
 		g.Printf("_%s := %s(0)\n", a.Name, g.cgoType(a.Type))
 		g.Printf("if %s {\n", a.Name)
 		g.Printf("  _%s = %s(1)\n", a.Name, g.cgoType(a.Type))
 		g.Printf("}\n")
-	case objc.Int, objc.Uint, objc.Short, objc.Ushort, objc.Char, objc.Float, objc.Double:
+	case objc.Int, objc.Uint, objc.Short, objc.Ushort, objc.Char, objc.Uchar, objc.Float, objc.Double:
 		g.Printf("_%s := %s(%s)\n", a.Name, g.cgoType(a.Type), a.Name)
 	case objc.Protocol, objc.Class:
 		g.Printf("var _%s %s = _seq.NullRefNum\n", a.Name, g.cgoType(a.Type))
@@ -493,14 +493,14 @@ func (g *ObjcWrapper) genWrite(a *objc.Param) {
 
 func (g *ObjcWrapper) genRead(to, from string, t *objc.Type) {
 	switch t.Kind {
-	case objc.Int, objc.Uint, objc.Short, objc.Ushort, objc.Char, objc.Float, objc.Double:
+	case objc.Int, objc.Uint, objc.Uchar, objc.Short, objc.Ushort, objc.Char, objc.Float, objc.Double:
 		g.Printf("%s := %s(%s)\n", to, g.goType(t, false), from)
 	case objc.Bool:
 		g.Printf("%s := %s != 0\n", to, from)
 	case objc.String:
 		g.Printf("%s := decodeString(%s)\n", to, from)
 	case objc.Data:
-		g.Printf("%s := toSlice(%s, 1)\n", to, from)
+		g.Printf("%s := toSlice(%s, true)\n", to, from)
 	case objc.Protocol, objc.Class:
 		var proxyName string
 		if n := g.lookupImported(t); n != nil {
@@ -736,6 +736,8 @@ func (g *ObjcWrapper) goType(t *objc.Type, local bool) string {
 		return "bool"
 	case objc.Char:
 		return "byte"
+	case objc.Uchar:
+		return "uint8"
 	case objc.Float:
 		return "float32"
 	case objc.Double:

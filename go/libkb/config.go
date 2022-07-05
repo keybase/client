@@ -24,6 +24,8 @@ type JSONConfigFile struct {
 	userConfigWrapper *UserConfigWrapper
 }
 
+var _ (ConfigReader) = (*JSONConfigFile)(nil)
+
 func NewJSONConfigFile(g *GlobalContext, s string) *JSONConfigFile {
 	return &JSONConfigFile{NewJSONFile(g, s, "config"), &UserConfigWrapper{}}
 }
@@ -52,10 +54,6 @@ func (f *JSONConfigFile) GetDurationAtPath(p string) (time.Duration, bool) {
 	return d, true
 }
 
-func (f *JSONConfigFile) GetUpgradePerUserKey() (bool, bool) {
-	return false, false
-}
-
 func (f *JSONConfigFile) GetTopLevelString(s string) (ret string) {
 	var e error
 	f.jw.AtKey(s).GetStringVoid(&ret, &e)
@@ -70,14 +68,6 @@ func (f *JSONConfigFile) GetTopLevelBool(s string) (res, isSet bool) {
 		w.GetBoolVoid(&res, &e)
 	}
 	return
-}
-
-func (f *JSONConfigFile) SetWrapperAtPath(p string, w *jsonw.Wrapper) error {
-	err := f.jw.SetValueAtPath(p, w)
-	if err == nil {
-		err = f.Save()
-	}
-	return err
 }
 
 func (f *JSONConfigFile) GetUserConfig() (*UserConfig, error) {
@@ -117,6 +107,16 @@ func (f *JSONConfigFile) GetDeviceIDForUsername(nu NormalizedUsername) keybase1.
 		return empty
 	}
 	return ret.GetDeviceID()
+}
+
+func (f *JSONConfigFile) GetPassphraseStateForUsername(nu NormalizedUsername) (ret *keybase1.PassphraseState) {
+	f.userConfigWrapper.Lock()
+	defer f.userConfigWrapper.Unlock()
+	userConfig, err := f.GetUserConfigForUsername(nu)
+	if err != nil || userConfig == nil {
+		return nil
+	}
+	return userConfig.GetPassphraseState()
 }
 
 func (f *JSONConfigFile) GetDeviceIDForUID(u keybase1.UID) keybase1.DeviceID {
@@ -170,10 +170,13 @@ func (f *JSONConfigFile) SwitchUser(nu NormalizedUsername) error {
 		val = jsonw.NewString(nu.String())
 	}
 
-	f.jw.SetKey("current_user", val)
+	setKeyErr := f.jw.SetKey("current_user", val)
+	if err == nil {
+		err = setKeyErr
+	}
 	f.userConfigWrapper.userConfig = nil
 	saveErr := f.Save()
-	if err != nil {
+	if err == nil {
 		err = saveErr
 	}
 	return err
@@ -262,7 +265,7 @@ func (f *JSONConfigFile) GetUserConfigForUID(u keybase1.UID) (*UserConfig, error
 	return nil, nil
 }
 
-func (f *JSONConfigFile) GetAllUserConfigs() (current *UserConfig, all []UserConfig, err error) {
+func (f *JSONConfigFile) GetAllUserConfigs() (current *UserConfig, others []UserConfig, err error) {
 
 	currentUsername, allUsernames, err := f.GetAllUsernames()
 	if err != nil {
@@ -276,11 +279,11 @@ func (f *JSONConfigFile) GetAllUserConfigs() (current *UserConfig, all []UserCon
 	for _, u := range allUsernames {
 		tmp, err := f.GetUserConfigForUsername(u)
 		if err == nil && tmp != nil {
-			all = append(all, *tmp)
+			others = append(others, *tmp)
 		}
 	}
 
-	return current, all, nil
+	return current, others, nil
 }
 
 func (f *JSONConfigFile) GetAllUsernames() (current NormalizedUsername, others []NormalizedUsername, err error) {
@@ -349,7 +352,10 @@ func (f *JSONConfigFile) setUserConfigWithLock(u *UserConfig, overwrite bool) er
 
 	if u == nil {
 		f.G().Log.Debug("| SetUserConfig(nil)")
-		f.jw.DeleteKey("current_user")
+		err := f.jw.DeleteKey("current_user")
+		if err != nil {
+			return err
+		}
 		f.userConfigWrapper.userConfig = nil
 		return f.Save()
 	}
@@ -364,33 +370,37 @@ func (f *JSONConfigFile) setUserConfigWithLock(u *UserConfig, overwrite bool) er
 	f.G().Log.Debug("| SetUserConfig(%s)", un)
 	if parent.IsNil() {
 		parent = jsonw.NewDictionary()
-		f.jw.SetKey("users", parent)
+		err := f.jw.SetKey("users", parent)
+		if err != nil {
+			return err
+		}
 	}
 	if parent.AtKey(un.String()).IsNil() || overwrite {
 		uWrapper, err := jsonw.NewObjectWrapper(*u)
 		if err != nil {
 			return err
 		}
-		parent.SetKey(un.String(), uWrapper)
+		err = parent.SetKey(un.String(), uWrapper)
+		if err != nil {
+			return err
+		}
 		f.userConfigWrapper.userConfig = u
 	}
 
 	if !f.getCurrentUser().Eq(un) {
-		f.jw.SetKey("current_user", jsonw.NewString(un.String()))
+		err := f.jw.SetKey("current_user", jsonw.NewString(un.String()))
+		if err != nil {
+			return err
+		}
 		f.userConfigWrapper.userConfig = nil
 	}
 
 	return f.Save()
 }
 
-func (f *JSONConfigFile) DeleteAtPath(p string) {
-	f.jw.DeleteValueAtPath(p)
-	f.Save()
-}
-
 func (f *JSONConfigFile) Reset() {
 	f.jw = jsonw.NewDictionary()
-	f.Save()
+	_ = f.Save()
 }
 
 func (f *JSONConfigFile) GetHome() string {
@@ -399,14 +409,17 @@ func (f *JSONConfigFile) GetHome() string {
 func (f *JSONConfigFile) GetMobileSharedHome() string {
 	return f.GetTopLevelString("mobile_shared_home")
 }
-func (f *JSONConfigFile) GetServerURI() string {
-	return f.GetTopLevelString("server")
+func (f *JSONConfigFile) GetServerURI() (string, error) {
+	return f.GetTopLevelString("server"), nil
 }
 func (f *JSONConfigFile) GetConfigFilename() string {
 	return f.GetTopLevelString("config_file")
 }
 func (f *JSONConfigFile) GetUpdaterConfigFilename() string {
 	return f.GetTopLevelString("updater_config_file")
+}
+func (f *JSONConfigFile) GetGUIConfigFilename() string {
+	return f.GetTopLevelString("gui_config_file")
 }
 func (f *JSONConfigFile) GetDeviceCloneStateFilename() string {
 	return f.GetTopLevelString("device_clone_state_file")
@@ -428,6 +441,9 @@ func (f *JSONConfigFile) GetPvlKitFilename() string {
 }
 func (f *JSONConfigFile) GetParamProofKitFilename() string {
 	return f.GetTopLevelString("paramproof_kit")
+}
+func (f *JSONConfigFile) GetExternalURLKitFilename() string {
+	return f.GetTopLevelString("externalurl_kit")
 }
 func (f *JSONConfigFile) GetProveBypass() (bool, bool) {
 	return f.GetBoolAtPath("prove_bypass")
@@ -499,6 +515,29 @@ func (f *JSONConfigFile) GetDeviceID() (ret keybase1.DeviceID) {
 	return ret
 }
 
+func (f *JSONConfigFile) GetPassphraseState() (ret *keybase1.PassphraseState) {
+	if uc, _ := f.GetUserConfig(); uc != nil {
+		ret = uc.GetPassphraseState()
+	}
+	return ret
+}
+
+func (f *JSONConfigFile) SetPassphraseState(passphraseState keybase1.PassphraseState) (err error) {
+	f.userConfigWrapper.Lock()
+	defer f.userConfigWrapper.Unlock()
+
+	f.G().Log.Debug("| Setting PassphraseState to %v\n", passphraseState)
+	var u *UserConfig
+	if u, err = f.getUserConfigWithLock(); err != nil {
+	} else if u == nil {
+		err = NoUserConfigError{}
+	} else {
+		u.SetPassphraseState(passphraseState)
+		err = f.setUserConfigWithLock(u, true)
+	}
+	return
+}
+
 func (f *JSONConfigFile) GetTorMode() (ret TorMode, err error) {
 	if s, isSet := f.GetStringAtPath("tor.mode"); isSet {
 		ret, err = StringToTorMode(s)
@@ -518,8 +557,22 @@ func (f *JSONConfigFile) GetTorProxy() string {
 func (f *JSONConfigFile) GetProxy() string {
 	return f.GetTopLevelString("proxy")
 }
+func (f *JSONConfigFile) GetProxyType() string {
+	return f.GetTopLevelString("proxy-type")
+}
+func (f *JSONConfigFile) IsCertPinningEnabled() bool {
+	res, isSet := f.GetTopLevelBool("disable-cert-pinning")
+	if !isSet {
+		// Enable SSL pinning if the flag is not set
+		return true
+	}
+	return !res
+}
 func (f *JSONConfigFile) GetDebug() (bool, bool) {
 	return f.GetTopLevelBool("debug")
+}
+func (f *JSONConfigFile) GetDebugJourneycard() (bool, bool) {
+	return f.GetTopLevelBool("debug_journeycard")
 }
 func (f *JSONConfigFile) GetDisplayRawUntrustedOutput() (bool, bool) {
 	return f.GetTopLevelBool("display_raw_untrusted_output")
@@ -530,8 +583,27 @@ func (f *JSONConfigFile) GetVDebugSetting() string {
 func (f *JSONConfigFile) GetAutoFork() (bool, bool) {
 	return f.GetTopLevelBool("auto_fork")
 }
-func (f *JSONConfigFile) GetRememberPassphrase() (bool, bool) {
-	return f.GetTopLevelBool("remember_passphrase")
+
+func (f *JSONConfigFile) GetRememberPassphrase(username NormalizedUsername) (bool, bool) {
+	const legacyRememberPassphraseKey = "remember_passphrase"
+
+	if username.IsNil() {
+		return f.GetTopLevelBool(legacyRememberPassphraseKey)
+	}
+	if m, ok := f.jw.AtKey("remember_passphrase_map").GetDataOrNil().(map[string]interface{}); ok {
+		if ret, mOk := m[username.String()]; mOk {
+			if boolRet, boolOk := ret.(bool); boolOk {
+				return boolRet, true
+			}
+		}
+	}
+	return f.GetTopLevelBool(legacyRememberPassphraseKey)
+}
+func (f *JSONConfigFile) GetStayLoggedOut() (bool, bool) {
+	return f.GetBoolAtPath("stay_logged_out")
+}
+func (f *JSONConfigFile) SetStayLoggedOut(stayLoggedOut bool) error {
+	return f.SetBoolAtPath("stay_logged_out", stayLoggedOut)
 }
 func (f *JSONConfigFile) GetLogFormat() string {
 	return f.GetTopLevelString("log_format")
@@ -545,6 +617,10 @@ func (f *JSONConfigFile) GetGregorURI() string {
 }
 func (f *JSONConfigFile) GetGregorDisabled() (bool, bool) {
 	return f.GetBoolAtPath("push.disabled")
+}
+func (f *JSONConfigFile) GetSecretStorePrimingDisabled() (bool, bool) {
+	// SecretStorePrimingDisabled is only for tests
+	return false, false
 }
 func (f *JSONConfigFile) GetBGIdentifierDisabled() (bool, bool) {
 	return f.GetBoolAtPath("bg_identifier.disabled")
@@ -616,6 +692,10 @@ func (f *JSONConfigFile) GetPayloadCacheSize() (int, bool) {
 
 func (f *JSONConfigFile) GetLevelDBNumFiles() (int, bool) {
 	return f.GetIntAtPath("leveldb.num_files")
+}
+
+func (f *JSONConfigFile) GetLevelDBWriteBufferMB() (int, bool) {
+	return f.GetIntAtPath("leveldb.write_buffer_mb")
 }
 
 func (f *JSONConfigFile) GetChatInboxSourceLocalizeThreads() (int, bool) {
@@ -715,6 +795,12 @@ func (f *JSONConfigFile) GetLogFile() string {
 }
 func (f *JSONConfigFile) GetEKLogFile() string {
 	return f.GetTopLevelString("ek_log_file")
+}
+func (f *JSONConfigFile) GetPerfLogFile() string {
+	return f.GetTopLevelString("perf_log_file")
+}
+func (f *JSONConfigFile) GetGUILogFile() string {
+	return f.GetTopLevelString("gui_log_file")
 }
 
 func (f *JSONConfigFile) GetUseDefaultLogFile() (bool, bool) {
@@ -847,8 +933,11 @@ func (f *JSONConfigFile) GetReadDeletedSigChain() (bool, bool) {
 	return f.GetBoolAtPath("read_deleted_sigchain")
 }
 
-func (f *JSONConfigFile) SetRememberPassphrase(remember bool) error {
-	return f.SetBoolAtPath("remember_passphrase", remember)
+func (f *JSONConfigFile) SetRememberPassphrase(username NormalizedUsername, remember bool) error {
+	if username.IsNil() {
+		return f.SetBoolAtPath("remember_passphrase", remember)
+	}
+	return f.SetBoolAtPath(fmt.Sprintf("remember_passphrase_map.%s", username.String()), remember)
 }
 
 func (f *JSONConfigFile) GetAttachmentHTTPStartPort() (int, bool) {
@@ -861,6 +950,14 @@ func (f *JSONConfigFile) GetAttachmentDisableMulti() (bool, bool) {
 
 func (f *JSONConfigFile) GetDisableTeamAuditor() (bool, bool) {
 	return f.GetBoolAtPath("disable_team_auditor")
+}
+
+func (f *JSONConfigFile) GetDisableTeamBoxAuditor() (bool, bool) {
+	return f.GetBoolAtPath("disable_team_box_auditor")
+}
+
+func (f *JSONConfigFile) GetDisableEKBackgroundKeygen() (bool, bool) {
+	return f.GetBoolAtPath("disable_ek_background_keygen")
 }
 
 func (f *JSONConfigFile) GetDisableMerkleAuditor() (bool, bool) {
@@ -879,7 +976,28 @@ func (f *JSONConfigFile) GetEnableBotLiteMode() (bool, bool) {
 	return f.GetBoolAtPath("enable_bot_lite_mode")
 }
 
-func (f *JSONConfigFile) GetChatOutboxStorageEngine() string {
-	s, _ := f.GetStringAtPath("chat_outboxstorageengine")
-	return s
+func (f *JSONConfigFile) GetExtraNetLogging() (bool, bool) {
+	return f.GetBoolAtPath("extra_net_logging")
+}
+
+func (f *JSONConfigFile) GetForceLinuxKeyring() (bool, bool) {
+	return f.GetBoolAtPath("force_linux_keyring")
+}
+
+func (f *JSONConfigFile) GetForceSecretStoreFile() (bool, bool) {
+	return f.GetBoolAtPath("force_less_safe_secret_store_file")
+}
+
+func (f *JSONConfigFile) GetRuntimeStatsEnabled() (bool, bool) {
+	return f.GetBoolAtPath("runtime_stats_enabled")
+}
+
+func (f *JSONConfigFile) GetAndroidInstallReferrerChecked() bool {
+	val, isSet := f.GetBoolAtPath("android_install_referrer_checked")
+	// default to false when value is not set
+	return isSet && val
+}
+
+func (f *JSONConfigFile) SetAndroidInstallReferrerChecked(b bool) error {
+	return f.SetBoolAtPath("android_install_referrer_checked", b)
 }

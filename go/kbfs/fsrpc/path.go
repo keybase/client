@@ -9,8 +9,11 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/keybase/client/go/kbfs/data"
+	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
 	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 )
@@ -19,6 +22,7 @@ const (
 	topName     = "keybase"
 	publicName  = "public"
 	privateName = "private"
+	teamName    = "team"
 )
 
 // PathType describes the types for different paths
@@ -72,6 +76,8 @@ func listTypeToTLFType(c string) tlf.Type {
 		return tlf.Private
 	case publicName:
 		return tlf.Public
+	case teamName:
+		return tlf.SingleTeam
 	default:
 		// TODO: support team TLFs.
 		panic(fmt.Sprintf("Unknown folder list type: %s", c))
@@ -87,7 +93,8 @@ func NewPath(pathStr string) (Path, error) {
 	len := len(components)
 
 	if (len >= 1 && components[0] != topName) ||
-		(len >= 2 && components[1] != publicName && components[1] != privateName) {
+		(len >= 2 && components[1] != publicName &&
+			components[1] != privateName && components[1] != teamName) {
 		return Path{}, InvalidPathErr{pathStr}
 	}
 
@@ -248,18 +255,20 @@ func (p Path) Join(childName string) (childPath Path, err error) {
 // automatically resolves non-canonical names.
 func ParseTlfHandle(
 	ctx context.Context, kbpki libkbfs.KBPKI, mdOps libkbfs.MDOps,
-	name string, t tlf.Type) (*libkbfs.TlfHandle, error) {
-	var tlfHandle *libkbfs.TlfHandle
+	osg idutil.OfflineStatusGetter, name string, t tlf.Type) (
+	*tlfhandle.Handle, error) {
+	var tlfHandle *tlfhandle.Handle
 outer:
 	for {
 		var parseErr error
-		tlfHandle, parseErr = libkbfs.ParseTlfHandle(ctx, kbpki, mdOps, name, t)
+		tlfHandle, parseErr = tlfhandle.ParseHandle(
+			ctx, kbpki, mdOps, osg, name, t)
 		switch parseErr := errors.Cause(parseErr).(type) {
 		case nil:
 			// No error.
 			break outer
 
-		case libkbfs.TlfNameNotCanonical:
+		case idutil.TlfNameNotCanonical:
 			// Non-canonical name, so try again.
 			name = parseErr.NameToTry
 
@@ -273,29 +282,30 @@ outer:
 }
 
 // GetNode returns a node
-func (p Path) GetNode(ctx context.Context, config libkbfs.Config) (libkbfs.Node, libkbfs.EntryInfo, error) {
+func (p Path) GetNode(ctx context.Context, config libkbfs.Config) (libkbfs.Node, data.EntryInfo, error) {
 	if p.PathType != TLFPathType {
-		entryInfo := libkbfs.EntryInfo{
-			Type: libkbfs.Dir,
+		entryInfo := data.EntryInfo{
+			Type: data.Dir,
 		}
 		return nil, entryInfo, nil
 	}
 
 	tlfHandle, err := ParseTlfHandle(
-		ctx, config.KBPKI(), config.MDOps(), p.TLFName, p.TLFType)
+		ctx, config.KBPKI(), config.MDOps(), config, p.TLFName, p.TLFType)
 	if err != nil {
-		return nil, libkbfs.EntryInfo{}, err
+		return nil, data.EntryInfo{}, err
 	}
 
-	node, entryInfo, err := config.KBFSOps().GetOrCreateRootNode(ctx, tlfHandle, libkbfs.MasterBranch)
+	node, entryInfo, err := config.KBFSOps().GetOrCreateRootNode(ctx, tlfHandle, data.MasterBranch)
 	if err != nil {
-		return nil, libkbfs.EntryInfo{}, err
+		return nil, data.EntryInfo{}, err
 	}
 
 	for _, component := range p.TLFComponents {
-		lookupNode, lookupEntryInfo, lookupErr := config.KBFSOps().Lookup(ctx, node, component)
+		lookupNode, lookupEntryInfo, lookupErr := config.KBFSOps().Lookup(
+			ctx, node, node.ChildName(component))
 		if lookupErr != nil {
-			return nil, libkbfs.EntryInfo{}, lookupErr
+			return nil, data.EntryInfo{}, lookupErr
 		}
 		node = lookupNode
 		entryInfo = lookupEntryInfo
@@ -313,7 +323,7 @@ func (p Path) GetFileNode(ctx context.Context, config libkbfs.Config) (libkbfs.N
 
 	// TODO: What to do with symlinks?
 
-	if de.Type != libkbfs.File && de.Type != libkbfs.Exec {
+	if de.Type != data.File && de.Type != data.Exec {
 		return nil, fmt.Errorf("openFile: %s is not a file, but a %s", p, de.Type)
 	}
 
@@ -331,7 +341,7 @@ func (p Path) GetDirNode(ctx context.Context, config libkbfs.Config) (libkbfs.No
 
 	// TODO: What to do with symlinks?
 
-	if de.Type != libkbfs.Dir {
+	if de.Type != data.Dir {
 		return nil, fmt.Errorf("openDir: %s is not a dir, but a %s", p, de.Type)
 	}
 

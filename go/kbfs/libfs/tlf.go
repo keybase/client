@@ -10,6 +10,7 @@ import (
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
 	"github.com/keybase/client/go/logger"
 	"github.com/pkg/errors"
 	"golang.org/x/net/context"
@@ -38,7 +39,7 @@ func FilterTLFEarlyExitError(ctx context.Context, err error, log logger.Logger, 
 			name)
 		return true, nil
 
-	case libkbfs.WriteAccessError, kbfsmd.ServerErrorWriteAccess,
+	case tlfhandle.WriteAccessError, kbfsmd.ServerErrorWriteAccess,
 		libkbfs.NonExistentTeamForHandleError:
 		// No permission to create TLF, so pretend it's still
 		// empty.

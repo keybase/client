@@ -22,7 +22,7 @@ type outboxBaseboxStorage struct {
 func newOutboxBaseboxStorage(g *globals.Context, uid gregor1.UID) *outboxBaseboxStorage {
 	return &outboxBaseboxStorage{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "outboxBaseboxStorage", false),
+		DebugLabeler: utils.NewDebugLabeler(g.ExternalG(), "outboxBaseboxStorage", false),
 		baseBox:      newBaseBox(g),
 		uid:          uid,
 	}
@@ -45,12 +45,22 @@ func (s *outboxBaseboxStorage) clear(ctx context.Context) Error {
 
 func (s *outboxBaseboxStorage) readStorage(ctx context.Context) (res diskOutbox, err Error) {
 	defer func() { s.maybeNuke(err, s.dbKey()) }()
-	found, ierr := s.readDiskBox(ctx, s.dbKey(), &res)
-	if ierr != nil {
-		return res, NewInternalError(ctx, s.DebugLabeler, "failure to read chat outbox: %s", ierr)
-	}
-	if !found {
-		return res, MissError{}
+
+	if memobox := outboxMemCache.Get(s.uid); memobox != nil {
+		s.Debug(ctx, "hit in memory cache")
+		res = memobox.DeepCopy()
+	} else {
+		found, ierr := s.readDiskBox(ctx, s.dbKey(), &res)
+		if ierr != nil {
+			if _, ok := ierr.(libkb.LoginRequiredError); ok {
+				return res, MiscError{Msg: ierr.Error()}
+			}
+			return res, NewInternalError(ctx, s.DebugLabeler, "failure to read chat outbox: %s", ierr)
+		}
+		if !found {
+			return res, MissError{}
+		}
+		outboxMemCache.Put(s.uid, &res)
 	}
 	if res.Version != outboxVersion {
 		s.Debug(ctx, "on disk version not equal to program version, clearing: disk :%d program: %d",
@@ -64,11 +74,12 @@ func (s *outboxBaseboxStorage) readStorage(ctx context.Context) (res diskOutbox,
 	return res, nil
 }
 
-func (s *outboxBaseboxStorage) writeStorage(ctx context.Context, do diskOutbox) (err Error) {
+func (s *outboxBaseboxStorage) writeStorage(ctx context.Context, obox diskOutbox) (err Error) {
 	defer func() { s.maybeNuke(err, s.dbKey()) }()
-	if ierr := s.writeDiskBox(ctx, s.dbKey(), do); ierr != nil {
+	if ierr := s.writeDiskBox(ctx, s.dbKey(), obox); ierr != nil {
 		return NewInternalError(ctx, s.DebugLabeler, "error writing outbox: err: %s", ierr)
 	}
+	outboxMemCache.Put(s.uid, &obox)
 	return nil
 }
 

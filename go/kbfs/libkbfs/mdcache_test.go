@@ -10,32 +10,35 @@ import (
 	"testing"
 	"time"
 
+	idutiltest "github.com/keybase/client/go/kbfs/idutil/test"
 	"github.com/keybase/client/go/kbfs/kbfscodec"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
 	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
 )
 
-func testMdcacheMakeHandle(t *testing.T, n uint32) *TlfHandle {
+func testMdcacheMakeHandle(t *testing.T, n uint32) *tlfhandle.Handle {
 	id := keybase1.MakeTestUID(n).AsUserOrTeam()
 	bh, err := tlf.MakeHandle([]keybase1.UserOrTeamID{id}, nil, nil, nil, nil)
 	require.NoError(t, err)
 
-	nug := testNormalizedUsernameGetter{
+	nug := idutiltest.NormalizedUsernameGetter{
 		id: kbname.NormalizedUsername(fmt.Sprintf("fake_user_%d", n)),
 	}
 
 	ctx := context.Background()
-	h, err := MakeTlfHandle(ctx, bh, bh.Type(), nil, nug, nil)
+	h, err := tlfhandle.MakeHandle(
+		ctx, bh, bh.Type(), nil, nug, nil, keybase1.OfflineAvailability_NONE)
 	require.NoError(t, err)
 	return h
 }
 
 func testMdcachePut(t *testing.T, tlfID tlf.ID, rev kbfsmd.Revision,
-	bid kbfsmd.BranchID, h *TlfHandle, mdcache *MDCacheStandard) {
+	bid kbfsmd.BranchID, h *tlfhandle.Handle, mdcache *MDCacheStandard) {
 	rmd, err := makeInitialRootMetadata(defaultClientMetadataVer, tlfID, h)
 	require.NoError(t, err)
 	rmd.SetRevision(rev)

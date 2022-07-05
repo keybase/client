@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"sync"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
@@ -48,7 +49,7 @@ type diskBlockCacheWrapped struct {
 var _ DiskBlockCache = (*diskBlockCacheWrapped)(nil)
 
 func (cache *diskBlockCacheWrapped) enableCache(
-	typ diskLimitTrackerType, cacheFolder string) (err error) {
+	typ diskLimitTrackerType, cacheFolder string, mode InitMode) (err error) {
 	cache.mtx.Lock()
 	defer cache.mtx.Unlock()
 	var cachePtr **DiskBlockCacheLocal
@@ -65,30 +66,31 @@ func (cache *diskBlockCacheWrapped) enableCache(
 		// idempotent.
 		return nil
 	}
-	if cache.config.IsTestMode() {
+	if mode.IsTestMode() {
 		*cachePtr, err = newDiskBlockCacheLocalForTest(
 			cache.config, typ)
 	} else {
 		cacheStorageRoot := filepath.Join(cache.storageRoot, cacheFolder)
-		*cachePtr, err = newDiskBlockCacheLocal(cache.config, typ,
-			cacheStorageRoot)
+		*cachePtr, err = newDiskBlockCacheLocal(
+			cache.config, typ, cacheStorageRoot, mode)
 	}
 	return err
 }
 
-func newDiskBlockCacheWrapped(config diskBlockCacheConfig,
-	storageRoot string) (cache *diskBlockCacheWrapped, err error) {
+func newDiskBlockCacheWrapped(
+	config diskBlockCacheConfig, storageRoot string, mode InitMode) (
+	cache *diskBlockCacheWrapped, err error) {
 	cache = &diskBlockCacheWrapped{
 		config:      config,
 		storageRoot: storageRoot,
 	}
-	err = cache.enableCache(workingSetCacheLimitTrackerType,
-		workingSetCacheFolderName)
+	err = cache.enableCache(
+		workingSetCacheLimitTrackerType, workingSetCacheFolderName, mode)
 	if err != nil {
 		return nil, err
 	}
-	syncCacheErr := cache.enableCache(syncCacheLimitTrackerType,
-		syncCacheFolderName)
+	syncCacheErr := cache.enableCache(
+		syncCacheLimitTrackerType, syncCacheFolderName, mode)
 	if syncCacheErr != nil {
 		log := config.MakeLogger("DBC")
 		log.Warning("Could not initialize sync block cache.")
@@ -112,14 +114,14 @@ func (cache *diskBlockCacheWrapped) getCacheLocked(
 // DoesCacheHaveSpace implements the DiskBlockCache interface for
 // diskBlockCacheWrapped.
 func (cache *diskBlockCacheWrapped) DoesCacheHaveSpace(
-	ctx context.Context, cacheType DiskBlockCacheType) (bool, error) {
+	ctx context.Context, cacheType DiskBlockCacheType) (bool, int64, error) {
 	cache.mtx.RLock()
 	defer cache.mtx.RUnlock()
 	c, err := cache.getCacheLocked(cacheType)
 	if err != nil {
-		return false, err
+		return false, 0, err
 	}
-	return c.DoesCacheHaveSpace(ctx), nil
+	return c.DoesCacheHaveSpace(ctx)
 }
 
 // IsSyncCacheEnabled returns true if the sync cache is enabled.
@@ -171,7 +173,8 @@ func (cache *diskBlockCacheWrapped) moveBetweenCachesWithBlockLocked(
 	cache.deleteGroup.Add(1)
 	go func() {
 		defer cache.deleteGroup.Done()
-		secondaryCache.Delete(ctx, []kbfsblock.ID{blockID})
+		// Don't catch the errors -- this is just best effort.
+		_, _, _ = secondaryCache.Delete(ctx, []kbfsblock.ID{blockID})
 	}()
 }
 
@@ -186,7 +189,7 @@ func (cache *diskBlockCacheWrapped) Get(
 	primaryCache, secondaryCache := cache.rankCachesLocked(preferredCacheType)
 	// Check both caches if the primary cache doesn't have the block.
 	buf, serverHalf, prefetchStatus, err = primaryCache.Get(ctx, tlfID, blockID)
-	if _, isNoSuchBlockError := errors.Cause(err).(NoSuchBlockError); isNoSuchBlockError &&
+	if _, isNoSuchBlockError := errors.Cause(err).(data.NoSuchBlockError); isNoSuchBlockError &&
 		secondaryCache != nil {
 		buf, serverHalf, prefetchStatus, err = secondaryCache.Get(
 			ctx, tlfID, blockID)
@@ -246,6 +249,10 @@ func (cache *diskBlockCacheWrapped) GetPrefetchStatus(
 
 	// Try the sync cache first unless working set cache is required.
 	if cacheType != DiskBlockWorkingSetCache {
+		if cache.syncCache == nil {
+			return NoPrefetch, errors.New("Sync cache not enabled")
+		}
+
 		md, err := cache.syncCache.GetMetadata(ctx, blockID)
 		switch errors.Cause(err) {
 		case nil:
@@ -293,7 +300,8 @@ func (cache *diskBlockCacheWrapped) Put(ctx context.Context, tlfID tlf.ID,
 			cache.deleteGroup.Add(1)
 			go func() {
 				defer cache.deleteGroup.Done()
-				workingSetCache.Delete(ctx, []kbfsblock.ID{blockID})
+				// Don't catch the errors -- this is just best effort.
+				_, _, _ = workingSetCache.Delete(ctx, []kbfsblock.ID{blockID})
 			}()
 			return nil
 		}
@@ -318,7 +326,10 @@ func (cache *diskBlockCacheWrapped) Delete(ctx context.Context,
 	// caches. So we use a read lock.
 	cache.mtx.RLock()
 	defer cache.mtx.RUnlock()
-	if cacheType == DiskBlockAnyCache || cacheType == DiskBlockSyncCache {
+	if cache.syncCache == nil && cacheType == DiskBlockSyncCache {
+		return 0, 0, errors.New("Sync cache not enabled")
+	} else if cache.syncCache != nil &&
+		(cacheType == DiskBlockAnyCache || cacheType == DiskBlockSyncCache) {
 		numRemoved, sizeRemoved, err = cache.syncCache.Delete(ctx, blockIDs)
 		if err != nil {
 			return 0, 0, err
@@ -348,7 +359,7 @@ func (cache *diskBlockCacheWrapped) UpdateMetadata(
 	primaryCache, secondaryCache := cache.rankCachesLocked(cacheType)
 
 	err := primaryCache.UpdateMetadata(ctx, blockID, prefetchStatus)
-	_, isNoSuchBlockError := errors.Cause(err).(NoSuchBlockError)
+	_, isNoSuchBlockError := errors.Cause(err).(data.NoSuchBlockError)
 	if !isNoSuchBlockError {
 		return err
 	}
@@ -362,7 +373,7 @@ func (cache *diskBlockCacheWrapped) UpdateMetadata(
 		return err
 	}
 	err = secondaryCache.UpdateMetadata(ctx, blockID, prefetchStatus)
-	_, isNoSuchBlockError = errors.Cause(err).(NoSuchBlockError)
+	_, isNoSuchBlockError = errors.Cause(err).(data.NoSuchBlockError)
 	if !isNoSuchBlockError {
 		return err
 	}
@@ -490,6 +501,103 @@ func (cache *diskBlockCacheWrapped) ClearHomeTLFs(ctx context.Context) error {
 		return errors.New("Sync cache not enabled")
 	}
 	return cache.syncCache.ClearHomeTLFs(ctx)
+}
+
+// GetTlfSize implements the DiskBlockCache interface for
+// diskBlockCacheWrapped.
+func (cache *diskBlockCacheWrapped) GetTlfSize(
+	ctx context.Context, tlfID tlf.ID, cacheType DiskBlockCacheType) (
+	size uint64, err error) {
+	cache.mtx.RLock()
+	defer cache.mtx.RUnlock()
+
+	if cacheType != DiskBlockWorkingSetCache && cache.syncCache != nil {
+		// Either sync cache only, or both.
+		syncSize, err := cache.syncCache.GetTlfSize(ctx, tlfID)
+		if err != nil {
+			return 0, err
+		}
+		size += syncSize
+	}
+
+	if cacheType != DiskBlockSyncCache {
+		// Either working set cache only, or both.
+		workingSetSize, err := cache.workingSetCache.GetTlfSize(ctx, tlfID)
+		if err != nil {
+			return 0, err
+		}
+		size += workingSetSize
+	}
+
+	return size, nil
+}
+
+// GetTlfSize implements the DiskBlockCache interface for
+// diskBlockCacheWrapped.
+func (cache *diskBlockCacheWrapped) GetTlfIDs(
+	ctx context.Context, cacheType DiskBlockCacheType) (
+	tlfIDs []tlf.ID, err error) {
+	cache.mtx.RLock()
+	defer cache.mtx.RUnlock()
+
+	if cacheType != DiskBlockWorkingSetCache && cache.syncCache != nil {
+		// Either sync cache only, or both.
+		tlfIDs, err = cache.syncCache.GetTlfIDs(ctx)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if cacheType != DiskBlockSyncCache {
+		// Either working set cache only, or both.
+		wsTlfIDs, err := cache.workingSetCache.GetTlfIDs(ctx)
+		if err != nil {
+			return nil, err
+		}
+
+		// Uniquify them if needed.
+		if len(tlfIDs) == 0 {
+			tlfIDs = wsTlfIDs
+		} else {
+			s := make(map[tlf.ID]bool, len(tlfIDs)+len(wsTlfIDs))
+			for _, id := range tlfIDs {
+				s[id] = true
+			}
+			for _, id := range wsTlfIDs {
+				s[id] = true
+			}
+			tlfIDs = make([]tlf.ID, 0, len(s))
+			for id := range s {
+				tlfIDs = append(tlfIDs, id)
+			}
+		}
+	}
+
+	return tlfIDs, nil
+}
+
+// WaitUntilStarted implements the DiskBlockCache interface for
+// diskBlockCacheWrapped.
+func (cache *diskBlockCacheWrapped) WaitUntilStarted(
+	cacheType DiskBlockCacheType) (err error) {
+	cache.mtx.RLock()
+	defer cache.mtx.RUnlock()
+
+	if cacheType != DiskBlockWorkingSetCache && cache.syncCache != nil {
+		err = cache.syncCache.WaitUntilStarted()
+		if err != nil {
+			return err
+		}
+	}
+
+	if cacheType != DiskBlockSyncCache {
+		err = cache.workingSetCache.WaitUntilStarted()
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 // Shutdown implements the DiskBlockCache interface for diskBlockCacheWrapped.

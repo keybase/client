@@ -8,6 +8,7 @@ import (
 	"fmt"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/msgpack"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"golang.org/x/crypto/nacl/box"
@@ -147,7 +148,7 @@ func NoteEncryptB64(mctx libkb.MetaContext, note stellar1.NoteContents, other *k
 	if err != nil {
 		return "", err
 	}
-	pack, err := libkb.MsgpackEncode(obj)
+	pack, err := msgpack.Encode(obj)
 	if err != nil {
 		return "", err
 	}
@@ -181,7 +182,7 @@ func noteEncrypt(mctx libkb.MetaContext, note stellar1.NoteContents, other *keyb
 // noteEncryptHelper does the encryption part and returns a partially populated result.
 func noteEncryptHelper(ctx context.Context, note stellar1.NoteContents, symmetricKey libkb.NaclSecretBoxKey) (res stellar1.EncryptedNote, err error) {
 	// Msgpack
-	clearpack, err := libkb.MsgpackEncode(note)
+	clearpack, err := msgpack.Encode(note)
 	if err != nil {
 		return res, err
 	}
@@ -192,7 +193,7 @@ func noteEncryptHelper(ctx context.Context, note stellar1.NoteContents, symmetri
 	if err != nil {
 		return res, err
 	}
-	secbox := secretbox.Seal(nil, clearpack[:], &nonce, (*[libkb.NaclSecretBoxKeySize]byte)(&symmetricKey))
+	secbox := secretbox.Seal(nil, clearpack, &nonce, (*[libkb.NaclSecretBoxKeySize]byte)(&symmetricKey))
 
 	return stellar1.EncryptedNote{
 		V: 1,
@@ -207,7 +208,7 @@ func NoteDecryptB64(mctx libkb.MetaContext, noteB64 string) (res stellar1.NoteCo
 		return res, err
 	}
 	var obj stellar1.EncryptedNote
-	err = libkb.MsgpackDecode(&obj, pack)
+	err = msgpack.Decode(&obj, pack)
 	if err != nil {
 		return res, err
 	}
@@ -235,6 +236,6 @@ func noteDecryptHelper(ctx context.Context, encNote stellar1.EncryptedNote, symm
 	}
 
 	// Msgpack
-	err = libkb.MsgpackDecode(&res, clearpack)
+	err = msgpack.Decode(&res, clearpack)
 	return res, err
 }

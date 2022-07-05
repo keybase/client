@@ -1,0 +1,265 @@
+{
+  "protocol": "wot",
+  "imports": [
+    {
+      "path": "common.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [
+    {
+      "type": "record",
+      "name": "UsernameVerificationType",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
+      "name": "WotProof",
+      "fields": [
+        {
+          "type": "ProofType",
+          "name": "proofType",
+          "jsonkey": "proof_type"
+        },
+        {
+          "type": "string",
+          "name": "name",
+          "jsonkey": "name,omitempty"
+        },
+        {
+          "type": "string",
+          "name": "username",
+          "jsonkey": "username,omitempty"
+        },
+        {
+          "type": "string",
+          "name": "protocol",
+          "jsonkey": "protocol,omitempty"
+        },
+        {
+          "type": "string",
+          "name": "hostname",
+          "jsonkey": "hostname,omitempty"
+        },
+        {
+          "type": "string",
+          "name": "domain",
+          "jsonkey": "domain,omitempty"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "WotProofUI",
+      "fields": [
+        {
+          "type": "string",
+          "name": "type"
+        },
+        {
+          "type": "string",
+          "name": "value"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "SizedImage"
+          },
+          "name": "siteIcon"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "SizedImage"
+          },
+          "name": "siteIconDarkmode"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "Confidence",
+      "fields": [
+        {
+          "type": "UsernameVerificationType",
+          "name": "usernameVerifiedVia",
+          "jsonkey": "username_verified_via,omitempty"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "WotProof"
+          },
+          "name": "proofs",
+          "jsonkey": "proofs,omitempty"
+        },
+        {
+          "type": "string",
+          "name": "other",
+          "jsonkey": "other,omitempty"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "WotReactionType",
+      "symbols": [
+        "REJECT_0",
+        "ACCEPT_1"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "WotVouch",
+      "fields": [
+        {
+          "type": "WotStatusType",
+          "name": "status"
+        },
+        {
+          "type": "SigID",
+          "name": "vouchProof"
+        },
+        {
+          "type": "UserVersion",
+          "name": "vouchee"
+        },
+        {
+          "type": "string",
+          "name": "voucheeUsername"
+        },
+        {
+          "type": "UserVersion",
+          "name": "voucher"
+        },
+        {
+          "type": "string",
+          "name": "voucherUsername"
+        },
+        {
+          "type": "string",
+          "name": "vouchText"
+        },
+        {
+          "type": "Time",
+          "name": "vouchedAt"
+        },
+        {
+          "type": "Confidence",
+          "name": "confidence"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "WotProofUI"
+          },
+          "name": "proofs"
+        }
+      ]
+    }
+  ],
+  "messages": {
+    "wotVouch": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "username",
+          "type": "string"
+        },
+        {
+          "name": "guiID",
+          "type": "Identify3GUIID"
+        },
+        {
+          "name": "vouchText",
+          "type": "string"
+        },
+        {
+          "name": "confidence",
+          "type": "Confidence"
+        }
+      ],
+      "response": null
+    },
+    "wotVouchCLI": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "assertion",
+          "type": "string"
+        },
+        {
+          "name": "vouchText",
+          "type": "string"
+        },
+        {
+          "name": "confidence",
+          "type": "Confidence"
+        }
+      ],
+      "response": null
+    },
+    "wotReact": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "voucher",
+          "type": "string"
+        },
+        {
+          "name": "reaction",
+          "type": "WotReactionType"
+        }
+      ],
+      "response": null
+    },
+    "dismissWotNotifications": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "voucher",
+          "type": "string"
+        },
+        {
+          "name": "vouchee",
+          "type": "string"
+        }
+      ],
+      "response": null
+    },
+    "wotFetchVouches": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "vouchee",
+          "type": "string"
+        },
+        {
+          "name": "voucher",
+          "type": "string"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "WotVouch"
+      }
+    }
+  },
+  "namespace": "keybase.1"
+}

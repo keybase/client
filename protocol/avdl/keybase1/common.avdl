@@ -1,18 +1,31 @@
-
 @namespace("keybase.1")
 protocol Common {
 
-  // Time in milliseconds
+  // Time represents a time instant as the number of milliseconds elapsed since
+  // the Unix epoch (see UnixTime).
+  // Note: when converting to/from time.Time in go, the zero value of time.Time{}
+  // (January 1, year 1, 00:00:00 UTC) gets mapped to 0 (i.e. Jan 1 1970)
+  // Note 2: the conversion functions in go try to avoid but do not explicitly
+  // check for overflows during conversion.
   @typedef("long")
   record Time {}
 
-  // Time in seconds
+  // UnixTime represents a time instant as the number of seconds that have
+  // elapsed since the Unix epoch, that is 00:00:00 UTC on 1 January 1970.
+  // Note: when converting to/from time.Time, the zero value of time.Time{}
+  // (January 1, year 1, 00:00:00 UTC) gets mapped to 0 (i.e. Jan 1 1970)
+  // Note 2: the conversion functions in go try to avoid but do not explicitly
+  // check for overflows during conversion.
   @typedef("long")
   record UnixTime {}
 
   // Duration in seconds
   @typedef("double")
   record DurationSec {}
+
+  // Duration in milliseconds
+  @typedef("double")
+  record DurationMsec {}
 
   record StringKVPair {
     string key;
@@ -28,6 +41,9 @@ protocol Common {
 
   @typedef("string")
   record UID {}
+
+  @typedef("string") @lint("ignore")
+  record VID {}
 
   @typedef("string")
   record DeviceID {}
@@ -46,14 +62,18 @@ protocol Common {
   @typedef("string")
   record PhoneNumber {}
 
-  // 2-letter country region code
-  // Used for phone number and email assertions
+  // Phone number, coming from the user, in no particular format.
+  // Possibly invalid. Should be validated and converted to PhoneNumber
+  // for internal use.
   @typedef("string")
-  record RegionCode {}
+  record RawPhoneNumber {}
 
   // Chain link IDs
   @typedef("string")
   record LinkID {}
+
+  @typedef("bytes")
+  record BinaryLinkID {}
 
   // But sometimes we need binary kids...
   @typedef("bytes")
@@ -115,7 +135,9 @@ protocol Common {
     NONE_0,
     PUBLIC_1,
     PRIVATE_2,
-    SEMIPRIVATE_3
+    SEMIPRIVATE_3,
+    USER_PRIVATE_HIDDEN_16,
+    TEAM_PRIVATE_HIDDEN_17
   }
 
   fixed Bytes32(32);
@@ -143,7 +165,7 @@ protocol Common {
     string parentID;
     DeviceID deviceID;
     string deviceDescription;
-    string deviceType;
+    DeviceTypeV2 deviceType;
     Time cTime;
     Time eTime;
     boolean isRevoked;
@@ -166,9 +188,11 @@ protocol Common {
   }
 
   record Device {
-    string type;
+    DeviceTypeV2 type;
     string name;
     DeviceID deviceID;
+    // For the GUI to display the correct icon for the device
+    int deviceNumberOfType;
     Time cTime;
     Time mTime;
     Time lastUsedTime;
@@ -181,6 +205,10 @@ protocol Common {
     DESKTOP_0,
     MOBILE_1
   }
+
+  @typedef("string")
+  record DeviceTypeV2{}
+
 
   record Stream {
     int fd;
@@ -204,6 +232,12 @@ protocol Common {
     GUI_MAIN_2,
     KBFS_3,
     GUI_HELPER_4
+  }
+
+  record KBFSPathInfo {
+    string standardPath;
+    string deeplinkPath;
+    string platformAfterMountPath;
   }
 
   record UserVersionVector {
@@ -357,4 +391,39 @@ protocol Common {
     int width;
   }
 
+  enum OfflineAvailability {
+    NONE_0,
+    BEST_EFFORT_1
+  }
+
+  record UserReacji {
+    string name;
+    union { null, string } customAddr;
+    union { null, string } customAddrNoAnim;
+  }
+
+  // Primarily used in chat but defined here to avoid a circular import
+  enum ReacjiSkinTone {
+    NONE_0,
+    SKINTONE1_1,
+    SKINTONE2_2,
+    SKINTONE3_3,
+    SKINTONE4_4,
+    SKINTONE5_5
+  }
+
+  record UserReacjis {
+    // sorted array of frequently used reacjis
+    array<UserReacji> topReacjis;
+    // user preference for default reacji skin tone
+    ReacjiSkinTone skinTone;
+  }
+
+  enum WotStatusType {
+    NONE_0,
+    PROPOSED_1,
+    ACCEPTED_2,
+    REJECTED_3,
+    REVOKED_4
+  }
 }

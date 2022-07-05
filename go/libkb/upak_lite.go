@@ -17,7 +17,7 @@ func LoadUPAKLite(arg LoadUserArg) (ret *keybase1.UPKLiteV1AllIncarnations, err 
 	if err != nil {
 		return nil, err
 	}
-	leaf, err := lookupMerkleLeaf(m, uid, false, nil)
+	leaf, err := lookupMerkleLeaf(m, uid, false, nil, MerkleOpts{NoServerPolling: false})
 	if err != nil {
 		return nil, err
 	}
@@ -35,7 +35,6 @@ type HighSigChainLoader struct {
 	leaf      *MerkleUserLeaf
 	chain     *HighSigChain
 	chainType *ChainType
-	links     ChainLinks
 	ckf       ComputedKeyFamily
 	dirtyTail *MerkleTriple
 }
@@ -111,16 +110,16 @@ func (hsc *HighSigChain) LoadFromServer(m MetaContext, t *MerkleTriple, selfUID 
 	apiArg := APIArg{
 		Endpoint:    "sig/get_high",
 		SessionType: APISessionTypeOPTIONAL,
-		Args:        HTTPArgs{"uid": S{Val: hsc.uid.String()}},
-		MetaContext: m,
+		Args: HTTPArgs{
+			"uid": S{Val: hsc.uid.String()},
+			"c3":  I{Val: int(sigCompression3Unstubbed)},
+		},
 	}
-	resp, finisher, err := m.G().API.GetResp(apiArg)
+	resp, finisher, err := m.G().API.GetResp(m, apiArg)
 	if err != nil {
 		return nil, err
 	}
-	if finisher != nil {
-		defer finisher()
-	}
+	defer finisher()
 	recordFin := tbs.Record("HighSigChain.LoadFromServer.ReadAll")
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
@@ -139,14 +138,21 @@ func (hsc *HighSigChain) LoadFromServer(m MetaContext, t *MerkleTriple, selfUID 
 	var links ChainLinks
 	var lastLink *ChainLink
 
-	jsonparserw.ArrayEach(body, func(value []byte, dataType jsonparser.ValueType, offset int, inErr error) {
+	_, err = jsonparserw.ArrayEach(body, func(value []byte, dataType jsonparser.ValueType, offset int, inErr error) {
 		var link *ChainLink
 
 		parentSigChain := &SigChain{} // because we don't want the cache to use these
 		link, err = ImportLinkFromServer(m, parentSigChain, value, selfUID)
+		if err != nil {
+			m.Debug("Error importing link: %s", err.Error())
+		}
 		links = append(links, link)
 		lastLink = link
 	}, "sigs")
+	if err != nil {
+		return nil, err
+	}
+
 	foundTail, err := lastLink.checkAgainstMerkleTree(t)
 	if err != nil {
 		return nil, err
@@ -162,7 +168,7 @@ func (hsc *HighSigChain) LoadFromServer(m MetaContext, t *MerkleTriple, selfUID 
 }
 
 func (hsc *HighSigChain) VerifyChain(m MetaContext) (err error) {
-	defer m.CTrace("HighSigChain.VerifyChain", func() error { return err })()
+	defer m.Trace("HighSigChain.VerifyChain", &err)()
 
 	for i := len(hsc.chainLinks) - 1; i >= 0; i-- {
 		curr := hsc.chainLinks[i]

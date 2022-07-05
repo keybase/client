@@ -171,8 +171,8 @@ func TestWriterMetadataV2UnchangedEncoding(t *testing.T) {
 
 // Test that WriterMetadataV2 has only a fixed (frozen) set of fields.
 func TestWriterMetadataV2EncodedFields(t *testing.T) {
-	sa1, _ := externals.NormalizeSocialAssertionStatic("uid1@twitter")
-	sa2, _ := externals.NormalizeSocialAssertionStatic("uid2@twitter")
+	sa1, _ := externals.NormalizeSocialAssertionStatic(context.Background(), "uid1@twitter")
+	sa2, _ := externals.NormalizeSocialAssertionStatic(context.Background(), "uid2@twitter")
 	// Usually exactly one of Writers/WKeys is filled in, but we
 	// fill in both here for testing.
 	wm := WriterMetadataV2{
@@ -277,7 +277,7 @@ func makeFakeWriterMetadataV2Future(t *testing.T) writerMetadataV2Future {
 		WriterMetadataExtraV2{},
 	}
 	wkb := makeFakeTLFWriterKeyBundleV2Future(t)
-	sa, _ := externals.NormalizeSocialAssertionStatic("foo@twitter")
+	sa, _ := externals.NormalizeSocialAssertionStatic(context.Background(), "foo@twitter")
 	return writerMetadataV2Future{
 		wmd,
 		tlfWriterKeyGenerationsV2Future{&wkb},
@@ -331,7 +331,7 @@ type rootMetadataV2Future struct {
 
 func (brmf *rootMetadataV2Future) toCurrent() RootMetadata {
 	rm := brmf.rootMetadataWrapper.RootMetadataV2
-	rm.WriterMetadataV2 = WriterMetadataV2(brmf.writerMetadataV2Future.toCurrent())
+	rm.WriterMetadataV2 = brmf.writerMetadataV2Future.toCurrent()
 	rm.RKeys = brmf.RKeys.toCurrent()
 	return &rm
 }
@@ -343,7 +343,7 @@ func (brmf *rootMetadataV2Future) ToCurrentStruct() kbfscodec.CurrentStruct {
 func makeFakeRootMetadataV2Future(t *testing.T) *rootMetadataV2Future {
 	wmf := makeFakeWriterMetadataV2Future(t)
 	rkb := makeFakeTLFReaderKeyBundleV2Future(t)
-	sa, _ := externals.NormalizeSocialAssertionStatic("bar@github")
+	sa, _ := externals.NormalizeSocialAssertionStatic(context.Background(), "bar@github")
 	rmf := rootMetadataV2Future{
 		wmf,
 		rootMetadataWrapper{
@@ -702,35 +702,6 @@ func TestRevokeLastDeviceV2(t *testing.T) {
 		},
 	}
 	require.Equal(t, expectedRKeys, brmd.RKeys)
-}
-
-type userDeviceSet UserDevicePublicKeys
-
-// union returns the union of the user's keys in uds and other. For a
-// particular user, it's assumed that that user's keys in uds and
-// other are disjoint.
-func (uds userDeviceSet) union(other userDeviceSet) userDeviceSet {
-	u := make(userDeviceSet)
-	for uid, keys := range uds {
-		u[uid] = make(DevicePublicKeys)
-		for key := range keys {
-			u[uid][key] = true
-		}
-	}
-	for uid, keys := range other {
-		if u[uid] == nil {
-			u[uid] = make(DevicePublicKeys)
-		}
-		for key := range keys {
-			if u[uid][key] {
-				panic(fmt.Sprintf(
-					"uid=%s key=%s exists in both",
-					uid, key))
-			}
-			u[uid][key] = true
-		}
-	}
-	return u
 }
 
 // userDevicePrivateKeys is a map from users to that user's set of

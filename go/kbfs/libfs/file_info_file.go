@@ -7,13 +7,14 @@ package libfs
 import (
 	"time"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"golang.org/x/net/context"
 )
 
 type fileInfoFile struct {
 	libkbfs.NodeMetadata
-	libkbfs.PrevRevisions
+	data.PrevRevisions
 }
 
 // GetFileInfo returns serialized JSON containing status information
@@ -21,7 +22,7 @@ type fileInfoFile struct {
 func GetFileInfo(
 	ctx context.Context, config libkbfs.Config, dir libkbfs.Node, name string) (
 	data []byte, t time.Time, err error) {
-	node, ei, err := config.KBFSOps().Lookup(ctx, dir, name)
+	node, ei, err := config.KBFSOps().Lookup(ctx, dir, dir.ChildName(name))
 	if err != nil {
 		return nil, time.Time{}, err
 	}

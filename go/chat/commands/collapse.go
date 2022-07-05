@@ -15,17 +15,17 @@ type Collapse struct {
 
 func NewCollapse(g *globals.Context) *Collapse {
 	return &Collapse{
-		baseCommand: newBaseCommand(g, "collapse", "", "Collapse all inline previews"),
+		baseCommand: newBaseCommand(g, "collapse", "", "Collapse all inline previews", false),
 	}
 }
 
 func (h *Collapse) Execute(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	tlfName, text string) (err error) {
-	defer h.Trace(ctx, func() error { return err }, "Collapse")()
+	tlfName, text string, replyTo *chat1.MessageID) (err error) {
+	defer h.Trace(ctx, &err, "Collapse")()
 	if !h.Match(ctx, text) {
 		return ErrInvalidCommand
 	}
-	conv, err := h.getRemoteConvByID(ctx, uid, convID)
+	conv, err := getConvByID(ctx, h.G(), uid, convID)
 	if err != nil {
 		return err
 	}
@@ -34,7 +34,7 @@ func (h *Collapse) Execute(ctx context.Context, uid gregor1.UID, convID chat1.Co
 		return err
 	}
 	h.G().ActivityNotifier.ThreadsStale(ctx, uid, []chat1.ConversationStaleUpdate{
-		chat1.ConversationStaleUpdate{
+		{
 			ConvID:     convID,
 			UpdateType: chat1.StaleUpdateType_NEWACTIVITY,
 		},

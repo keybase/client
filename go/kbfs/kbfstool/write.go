@@ -11,6 +11,7 @@ import (
 	"os"
 
 	"github.com/keybase/client/go/kbfs/fsrpc"
+	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"golang.org/x/net/context"
 )
@@ -87,12 +88,13 @@ func writeHelper(ctx context.Context, config libkbfs.Config, args []string) (err
 
 	kbfsOps := config.KBFSOps()
 
-	noSuchFileErr := libkbfs.NoSuchNameError{Name: filename}
+	noSuchFileErr := idutil.NoSuchNameError{Name: filename}
 
 	// The operations below are racy, but that is inherent to a
 	// distributed FS.
 
-	fileNode, de, err := kbfsOps.Lookup(ctx, parentNode, filename)
+	filenamePPS := parentNode.ChildName(filename)
+	fileNode, de, err := kbfsOps.Lookup(ctx, parentNode, filenamePPS)
 	if err != nil && err != noSuchFileErr {
 		return err
 	}
@@ -104,7 +106,8 @@ func writeHelper(ctx context.Context, config libkbfs.Config, args []string) (err
 		if *verbose {
 			fmt.Fprintf(os.Stderr, "Creating %s\n", p)
 		}
-		fileNode, _, err = kbfsOps.CreateFile(ctx, parentNode, filename, false, libkbfs.NoExcl)
+		fileNode, _, err = kbfsOps.CreateFile(
+			ctx, parentNode, filenamePPS, false, libkbfs.NoExcl)
 		if err != nil {
 			return err
 		}

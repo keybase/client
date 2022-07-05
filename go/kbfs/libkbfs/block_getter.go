@@ -5,20 +5,23 @@
 package libkbfs
 
 import (
-	"fmt"
-
-	"github.com/keybase/client/go/kbfs/kbfsblock"
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
+	"github.com/keybase/client/go/kbfs/libkey"
 	"golang.org/x/net/context"
 )
 
 // blockGetter provides the API for the block retrieval worker to obtain blocks.
 type blockGetter interface {
 	getBlock(
-		context.Context, KeyMetadata, BlockPointer, Block,
+		context.Context, libkey.KeyMetadata, data.BlockPointer, data.Block,
 		DiskBlockCacheType) error
-	assembleBlock(context.Context, KeyMetadata, BlockPointer, Block, []byte,
-		kbfscrypto.BlockCryptKeyServerHalf) error
+	assembleBlock(
+		context.Context, libkey.KeyMetadata, data.BlockPointer, data.Block,
+		[]byte, kbfscrypto.BlockCryptKeyServerHalf) error
+	assembleBlockLocal(
+		context.Context, libkey.KeyMetadata, data.BlockPointer, data.Block,
+		[]byte, kbfscrypto.BlockCryptKeyServerHalf) error
 }
 
 // realBlockGetter obtains real blocks using the APIs available in Config.
@@ -28,30 +31,35 @@ type realBlockGetter struct {
 
 // getBlock implements the interface for realBlockGetter.
 func (bg *realBlockGetter) getBlock(
-	ctx context.Context, kmd KeyMetadata, blockPtr BlockPointer,
-	block Block, cacheType DiskBlockCacheType) error {
+	ctx context.Context, kmd libkey.KeyMetadata, blockPtr data.BlockPointer,
+	block data.Block, cacheType DiskBlockCacheType) error {
 	bserv := bg.config.BlockServer()
 	buf, blockServerHalf, err := bserv.Get(
 		ctx, kmd.TlfID(), blockPtr.ID, blockPtr.Context, cacheType)
 	if err != nil {
-		// Temporary code to track down bad block
-		// requests. Remove when not needed anymore.
-		if _, ok := err.(kbfsblock.ServerErrorBadRequest); ok {
-			panic(fmt.Sprintf("Bad BServer request detected: err=%s, blockPtr=%s",
-				err, blockPtr))
-		}
-
 		return err
 	}
 
+	if _, isLocal := bserv.(blockServerLocal); isLocal {
+		return assembleBlockLocal(
+			ctx, bg.config.keyGetter(), bg.config.Codec(),
+			bg.config.cryptoPure(), kmd, blockPtr, block, buf, blockServerHalf)
+	}
 	return assembleBlock(
 		ctx, bg.config.keyGetter(), bg.config.Codec(), bg.config.cryptoPure(),
 		kmd, blockPtr, block, buf, blockServerHalf)
 }
 
 func (bg *realBlockGetter) assembleBlock(ctx context.Context,
-	kmd KeyMetadata, ptr BlockPointer, block Block, buf []byte,
+	kmd libkey.KeyMetadata, ptr data.BlockPointer, block data.Block, buf []byte,
 	serverHalf kbfscrypto.BlockCryptKeyServerHalf) error {
 	return assembleBlock(ctx, bg.config.keyGetter(), bg.config.Codec(),
+		bg.config.cryptoPure(), kmd, ptr, block, buf, serverHalf)
+}
+
+func (bg *realBlockGetter) assembleBlockLocal(ctx context.Context,
+	kmd libkey.KeyMetadata, ptr data.BlockPointer, block data.Block, buf []byte,
+	serverHalf kbfscrypto.BlockCryptKeyServerHalf) error {
+	return assembleBlockLocal(ctx, bg.config.keyGetter(), bg.config.Codec(),
 		bg.config.cryptoPure(), kmd, ptr, block, buf, serverHalf)
 }

@@ -7,6 +7,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/keybase/client/go/stellar/remote"
+
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/libkb"
@@ -17,6 +19,104 @@ import (
 	"github.com/keybase/stellarnet"
 	stellarAddress "github.com/stellar/go/address"
 )
+
+func ShouldOfferAdvancedSend(mctx libkb.MetaContext, remoter remote.Remoter, from, to stellar1.AccountID) (shouldShow stellar1.AdvancedBanner, err error) {
+	theirBalances, err := remoter.Balances(mctx.Ctx(), to)
+	if err != nil {
+		return stellar1.AdvancedBanner_NO_BANNER, err
+	}
+	for _, bal := range theirBalances {
+		if !bal.Asset.IsNativeXLM() {
+			return stellar1.AdvancedBanner_RECEIVER_BANNER, nil
+		}
+	}
+
+	// Lookup our assets
+	ourBalances, err := remoter.Balances(mctx.Ctx(), from)
+	if err != nil {
+		return stellar1.AdvancedBanner_NO_BANNER, err
+	}
+	for _, bal := range ourBalances {
+		asset := bal.Asset
+		if !asset.IsNativeXLM() {
+			return stellar1.AdvancedBanner_SENDER_BANNER, nil
+		}
+	}
+
+	// Neither of us have non-native assets so return false
+	return stellar1.AdvancedBanner_NO_BANNER, nil
+}
+
+func GetSendAssetChoicesLocal(mctx libkb.MetaContext, remoter remote.Remoter, arg stellar1.GetSendAssetChoicesLocalArg) (res []stellar1.SendAssetChoiceLocal, err error) {
+	owns, _, err := OwnAccount(mctx, arg.From)
+	if err != nil {
+		return res, err
+	}
+	if !owns {
+		return res, fmt.Errorf("account %s is not owned by current user", arg.From)
+	}
+
+	ourBalances, err := remoter.Balances(mctx.Ctx(), arg.From)
+	if err != nil {
+		return res, err
+	}
+
+	res = []stellar1.SendAssetChoiceLocal{}
+	for _, bal := range ourBalances {
+		asset := bal.Asset
+		if asset.IsNativeXLM() {
+			// We are only doing non-native assets here.
+			continue
+		}
+		choice := stellar1.SendAssetChoiceLocal{
+			Asset:   asset,
+			Enabled: true,
+			Left:    bal.Asset.Code,
+			Right:   bal.Asset.Issuer,
+		}
+		res = append(res, choice)
+	}
+
+	if arg.To != "" {
+		recipient, err := LookupRecipient(mctx, stellarcommon.RecipientInput(arg.To), false)
+		if err != nil {
+			mctx.G().Log.CDebugf(mctx.Ctx(), "Skipping asset filtering: LookupRecipient for %q failed with: %s",
+				arg.To, err)
+			return res, nil
+		}
+
+		theirBalancesHash := make(map[string]bool)
+		assetHashCode := func(a stellar1.Asset) string {
+			return fmt.Sprintf("%s%s%s", a.Type, a.Code, a.Issuer)
+		}
+
+		if recipient.AccountID != nil {
+			theirBalances, err := remoter.Balances(mctx.Ctx(), stellar1.AccountID(recipient.AccountID.String()))
+			if err != nil {
+				mctx.G().Log.CDebugf(mctx.Ctx(), "Skipping asset filtering: remoter.Balances for %q failed with: %s",
+					recipient.AccountID, err)
+				return res, nil
+			}
+			for _, bal := range theirBalances {
+				theirBalancesHash[assetHashCode(bal.Asset)] = true
+			}
+		}
+
+		for i, choice := range res {
+			available := theirBalancesHash[assetHashCode(choice.Asset)]
+			if !available {
+				choice.Enabled = false
+				recipientStr := "Recipient"
+				if recipient.User != nil {
+					recipientStr = recipient.User.Username.String()
+				}
+				choice.Subtext = fmt.Sprintf("%s does not accept %s", recipientStr, choice.Asset.Code)
+				res[i] = choice
+			}
+		}
+	}
+	return res, nil
+}
 
 func StartBuildPaymentLocal(mctx libkb.MetaContext) (res stellar1.BuildPaymentID, err error) {
 	return getGlobal(mctx.G()).startBuildPayment(mctx)
@@ -57,7 +157,7 @@ func BuildPaymentLocal(mctx libkb.MetaContext, arg stellar1.BuildPaymentLocalArg
 		publicMemo bool
 	}{}
 	log := func(format string, args ...interface{}) {
-		mctx.CDebugf("bpl: "+format, args...)
+		mctx.Debug("bpl: "+format, args...)
 	}
 
 	bpc := getGlobal(mctx.G()).getBuildPaymentCache()
@@ -73,29 +173,29 @@ func BuildPaymentLocal(mctx libkb.MetaContext, arg stellar1.BuildPaymentLocalArg
 		from      stellar1.AccountID
 	}{}
 	if arg.FromPrimaryAccount != arg.From.IsNil() {
-		// Exactly one of `from` and `fromPrimaryAccount` must be set.
+		// Exactly one of `arg.From` and `arg.FromPrimaryAccount` must be set.
 		return res, fmt.Errorf("invalid build payment parameters")
 	}
 	fromPrimaryAccount := arg.FromPrimaryAccount
 	if arg.FromPrimaryAccount {
 		primaryAccountID, err := bpc.PrimaryAccount(mctx)
 		if err != nil {
-			log("PrimaryAccount -> err:%v", err)
+			log("PrimaryAccount -> err:[%T] %v", err, err)
 			res.Banners = append(res.Banners, stellar1.SendBannerLocal{
 				Level:   "error",
-				Message: "Could not find primary account.",
+				Message: fmt.Sprintf("Could not find primary account.%v", msgMore(err)),
 			})
 		} else {
 			fromInfo.from = primaryAccountID
 			fromInfo.available = true
 		}
 	} else {
-		owns, fromPrimary, err := bpc.OwnsAccount(mctx, arg.From)
+		owns, fromPrimary, err := getGlobal(mctx.G()).OwnAccountCached(mctx, arg.From)
 		if err != nil || !owns {
-			log("OwnsAccount (from) -> owns:%v err:%v", owns, err)
+			log("OwnsAccount (from) -> owns:%v err:[%T] %v", owns, err, err)
 			res.Banners = append(res.Banners, stellar1.SendBannerLocal{
 				Level:   "error",
-				Message: "Could not find source account.",
+				Message: fmt.Sprintf("Could not find source account.%v", msgMore(err)),
 			})
 		} else {
 			fromInfo.from = arg.From
@@ -128,7 +228,6 @@ func BuildPaymentLocal(mctx libkb.MetaContext, arg stellar1.BuildPaymentLocalArg
 		if err != nil {
 			log("error with recipient field %v: %v", arg.To, err)
 			res.ToErrMsg = "Recipient not found."
-			skipRecipient = true
 		} else {
 			bannerThey := "they"
 			bannerTheir := "their"
@@ -137,7 +236,7 @@ func BuildPaymentLocal(mctx libkb.MetaContext, arg stellar1.BuildPaymentLocalArg
 				bannerTheir = fmt.Sprintf("%s's", recipient.User.Username)
 				recipientUV = recipient.User.UV
 			}
-			if recipient.AccountID == nil && !fromPrimaryAccount {
+			if recipient.AccountID == nil && fromInfo.available && !fromPrimaryAccount {
 				// This would have been a relay from a non-primary account.
 				// We cannot allow that.
 				res.Banners = append(res.Banners, stellar1.SendBannerLocal{
@@ -159,8 +258,8 @@ func BuildPaymentLocal(mctx libkb.MetaContext, arg stellar1.BuildPaymentLocalArg
 					minAmountXLM = "2.01"
 					addMinBanner(bannerTheir, minAmountXLM)
 				} else {
-					sendingToSelf, _, selfSendErr = bpc.OwnsAccount(mctx, stellar1.AccountID(recipient.AccountID.String()))
-					isFunded, err := bpc.IsAccountFunded(mctx, stellar1.AccountID(recipient.AccountID.String()))
+					sendingToSelf, _, selfSendErr = getGlobal(mctx.G()).OwnAccountCached(mctx, stellar1.AccountID(recipient.AccountID.String()))
+					isFunded, err := bpc.IsAccountFunded(mctx, stellar1.AccountID(recipient.AccountID.String()), arg.Bid)
 					if err != nil {
 						log("error checking recipient funding status %v: %v", *recipient.AccountID, err)
 					} else if !isFunded {
@@ -179,11 +278,35 @@ func BuildPaymentLocal(mctx libkb.MetaContext, arg stellar1.BuildPaymentLocalArg
 						}
 					}
 				}
-				if !sendingToSelf && !fromPrimaryAccount {
+				if fromInfo.available && !sendingToSelf && !fromPrimaryAccount {
 					res.Banners = append(res.Banners, stellar1.SendBannerLocal{
 						Level:   "info",
 						Message: "Your Keybase username will not be linked to this transaction.",
 					})
+				}
+
+				if recipient.AccountID != nil {
+					tracer.Stage("offer advanced send")
+					if fromInfo.available {
+						offerAdvancedForm, err := bpc.ShouldOfferAdvancedSend(mctx, fromInfo.from, stellar1.AccountID(*recipient.AccountID))
+						if err == nil {
+							if offerAdvancedForm != stellar1.AdvancedBanner_NO_BANNER {
+								res.Banners = append(res.Banners, stellar1.SendBannerLocal{
+									Level:                 "info",
+									OfferAdvancedSendForm: offerAdvancedForm,
+								})
+							}
+						} else {
+							log("error determining whether to offer the advanced send page: %v", err)
+						}
+					} else {
+						log("failed to determine from address while determining whether to offer the advanced send page")
+					}
+				}
+
+				if recipient.HasMemo() {
+					res.PublicMemoOverride = *recipient.PublicMemo
+					log("recipient has federation public memo override: %q", res.PublicMemoOverride)
 				}
 			}
 		}
@@ -193,6 +316,7 @@ func BuildPaymentLocal(mctx libkb.MetaContext, arg stellar1.BuildPaymentLocalArg
 
 	tracer.Stage("amount + asset")
 	bpaArg := buildPaymentAmountArg{
+		Bid:      arg.Bid,
 		Amount:   arg.Amount,
 		Currency: arg.Currency,
 		Asset:    arg.Asset,
@@ -222,10 +346,11 @@ func BuildPaymentLocal(mctx libkb.MetaContext, arg stellar1.BuildPaymentLocalArg
 			if err != nil {
 				log("error getting available balance: %v", err)
 			} else {
-				availableToSendXLM = SubtractFeeSoft(mctx, availableToSendXLM)
+				baseFee := getGlobal(mctx.G()).BaseFee(mctx)
+				availableToSendXLM = SubtractFeeSoft(mctx, availableToSendXLM, baseFee)
 				availableToSendFormatted := availableToSendXLM + " XLM"
 				availableToSendXLMFmt, err := FormatAmount(mctx,
-					availableToSendXLM, false, FmtTruncate)
+					availableToSendXLM, false, stellarnet.Truncate)
 				if err == nil {
 					availableToSendFormatted = availableToSendXLMFmt + " XLM"
 				}
@@ -237,7 +362,7 @@ func BuildPaymentLocal(mctx libkb.MetaContext, arg stellar1.BuildPaymentLocalArg
 						log("error converting available-to-send", err)
 					} else {
 						formattedATS, err := FormatCurrencyWithCodeSuffix(mctx,
-							availableToSendOutside, amountX.rate.Currency, FmtTruncate)
+							availableToSendOutside, amountX.rate.Currency, stellarnet.Truncate)
 						if err != nil {
 							log("error formatting available-to-send", err)
 						} else {
@@ -252,8 +377,25 @@ func BuildPaymentLocal(mctx libkb.MetaContext, arg stellar1.BuildPaymentLocalArg
 				case cmp == -1:
 					log("Send amount is more than available to send %v > %v", amountX.amountOfAsset, availableToSendXLM)
 					readyChecklist.amount = false // block sending
-					res.AmountErrMsg = fmt.Sprintf("Your available to send is *%s*.", availableToSendFormatted)
+					available, err := stellarnet.ParseStellarAmount(availableToSendXLM)
+					if err != nil {
+						mctx.Debug("error parsing available balance: %v", err)
+						available = 0
+					}
 
+					if available <= 0 { // Don't show "You only have 0 worth of Lumens"
+						if arg.Currency != nil {
+							res.AmountErrMsg = fmt.Sprintf("You have *%s* worth of Lumens available to send.", availableToSendFormatted)
+						} else {
+							res.AmountErrMsg = fmt.Sprintf("You have *%s* available to send.", availableToSendFormatted)
+						}
+					} else {
+						if arg.Currency != nil {
+							res.AmountErrMsg = fmt.Sprintf("You only have *%s* worth of Lumens available to send.", availableToSendFormatted)
+						} else {
+							res.AmountErrMsg = fmt.Sprintf("You only have *%s* available to send.", availableToSendFormatted)
+						}
+					}
 				default:
 					// Welcome back. How was your stay at the error handling hotel?
 					res.AmountAvailable = availableToSendFormatted + " available"
@@ -284,13 +426,13 @@ func BuildPaymentLocal(mctx libkb.MetaContext, arg stellar1.BuildPaymentLocalArg
 	// -------------------- note + memo --------------------
 
 	tracer.Stage("note + memo")
-	if len(arg.SecretNote) <= 500 {
+	if len(arg.SecretNote) <= libkb.MaxStellarPaymentNoteLength {
 		readyChecklist.secretNote = true
 	} else {
 		res.SecretNoteErrMsg = "Note is too long."
 	}
 
-	if len(arg.PublicMemo) <= 28 {
+	if len(arg.PublicMemo) <= libkb.MaxStellarPaymentPublicNoteLength {
 		readyChecklist.publicMemo = true
 	} else {
 		res.PublicMemoErrMsg = "Memo is too long."
@@ -348,10 +490,10 @@ func ReviewPaymentLocal(mctx libkb.MetaContext, stellarUI stellar1.UiInterface, 
 		seqno++
 		seqno := seqno                    // Shadow seqno to freeze it for the goroutine below.
 		receivedCh := make(chan struct{}) // channel closed when the notification has been acked.
-		mctx.CDebugf("sending UIPaymentReview bid:%v sessionID:%v seqno:%v nextButton:%v banners:%v",
+		mctx.Debug("sending UIPaymentReview bid:%v sessionID:%v seqno:%v nextButton:%v banners:%v",
 			arg.Bid, arg.SessionID, seqno, nextButton, len(banners))
 		for _, banner := range banners {
-			mctx.CDebugf("banner: %+v", banner)
+			mctx.Debug("banner: %+v", banner)
 		}
 		go func() {
 			err := stellarUI.PaymentReviewed(mctx.Ctx(), stellar1.PaymentReviewedArg{
@@ -365,7 +507,7 @@ func ReviewPaymentLocal(mctx libkb.MetaContext, stellarUI stellar1.UiInterface, 
 				},
 			})
 			if err != nil {
-				mctx.CDebugf("error in response to UIPaymentReview: %v", err)
+				mctx.Debug("error in response to UIPaymentReview: %v", err)
 			}
 			close(receivedCh)
 		}()
@@ -390,7 +532,7 @@ func ReviewPaymentLocal(mctx libkb.MetaContext, stellarUI stellar1.UiInterface, 
 	wantFollowingCheck := true
 
 	if data.Frozen.ToIsAccountID {
-		mctx.CDebugf("skipping identify for account ID recipient: %v", data.Frozen.To)
+		mctx.Debug("skipping identify for account ID recipient: %v", data.Frozen.To)
 		data.ReadyToSend = true
 		wantFollowingCheck = false
 	}
@@ -406,11 +548,11 @@ func ReviewPaymentLocal(mctx libkb.MetaContext, stellarUI stellar1.UiInterface, 
 		// if there is an error, let this fall through and get identified
 		if err == nil {
 			if domain != "keybase.io" {
-				mctx.CDebugf("skipping identify for federation address recipient: %s", data.Frozen.To)
+				mctx.Debug("skipping identify for federation address recipient: %s", data.Frozen.To)
 				data.ReadyToSend = true
 				wantFollowingCheck = false
 			} else {
-				mctx.CDebugf("identifying keybase user %s in federation address recipient: %s", name, data.Frozen.To)
+				mctx.Debug("identifying keybase user %s in federation address recipient: %s", name, data.Frozen.To)
 				recipientAssertion = name
 			}
 		}
@@ -419,7 +561,7 @@ func ReviewPaymentLocal(mctx libkb.MetaContext, stellarUI stellar1.UiInterface, 
 		wantFollowingCheck = false
 	}
 
-	mctx.CDebugf("wantFollowingCheck: %v", wantFollowingCheck)
+	mctx.Debug("wantFollowingCheck: %v", wantFollowingCheck)
 	var stickyBanners []stellar1.SendBannerLocal
 	if wantFollowingCheck {
 		if isFollowing, err := isFollowingForReview(mctx, recipientAssertion); err == nil && !isFollowing {
@@ -432,7 +574,7 @@ func ReviewPaymentLocal(mctx libkb.MetaContext, stellarUI stellar1.UiInterface, 
 	}
 
 	if !data.ReadyToSend {
-		mctx.CDebugf("identifying recipient: %v", recipientAssertion)
+		mctx.Debug("identifying recipient: %v", recipientAssertion)
 
 		identifySuccessCh := make(chan struct{}, 1)
 		identifyTrackFailCh := make(chan struct{}, 1)
@@ -450,7 +592,7 @@ func ReviewPaymentLocal(mctx libkb.MetaContext, stellarUI stellar1.UiInterface, 
 					if recipientUV.IsNil() || !idRes.Target.Equal(recipientUV.Uid) {
 						continue
 					}
-					mctx.CDebugf("review forwarding identify success")
+					mctx.Debug("review forwarding identify success")
 					select {
 					case <-mctx.Ctx().Done():
 						return
@@ -512,28 +654,28 @@ func identifyForReview(mctx libkb.MetaContext, assertion string,
 	// Goroutines that are blocked on otherwise unreachable channels are not GC'd.
 	// So use ctx to clean up.
 	sendSuccess := func() {
-		mctx.CDebugf("identifyForReview(%v) -> success", assertion)
+		mctx.Debug("identifyForReview(%v) -> success", assertion)
 		select {
 		case successCh <- struct{}{}:
 		case <-mctx.Ctx().Done():
 		}
 	}
 	sendTrackFail := func() {
-		mctx.CDebugf("identifyForReview(%v) -> fail", assertion)
+		mctx.Debug("identifyForReview(%v) -> fail", assertion)
 		select {
 		case trackFailCh <- struct{}{}:
 		case <-mctx.Ctx().Done():
 		}
 	}
 	sendErr := func(err error) {
-		mctx.CDebugf("identifyForReview(%v) -> err %v", assertion, err)
+		mctx.Debug("identifyForReview(%v) -> err %v", assertion, err)
 		select {
 		case errCh <- err:
 		case <-mctx.Ctx().Done():
 		}
 	}
 
-	mctx.CDebugf("identifyForReview(%v)", assertion)
+	mctx.Debug("identifyForReview(%v)", assertion)
 	reason := fmt.Sprintf("Identify transaction recipient: %s", assertion)
 	eng := engine.NewResolveThenIdentify2(mctx.G(), &keybase1.Identify2Arg{
 		UserAssertion:         assertion,
@@ -556,7 +698,7 @@ func identifyForReview(mctx libkb.MetaContext, assertion string,
 		sendErr(fmt.Errorf("missing identify result"))
 		return
 	}
-	mctx.CDebugf("identifyForReview: uv: %v", idRes.Upk.Current.ToUserVersion())
+	mctx.Debug("identifyForReview: uv: %v", idRes.Upk.Current.ToUserVersion())
 	if idRes.TrackBreaks != nil {
 		sendTrackFail()
 		return
@@ -564,7 +706,7 @@ func identifyForReview(mctx libkb.MetaContext, assertion string,
 	sendSuccess()
 }
 
-// Whether the logged-in user following the recipient.
+// Whether the logged-in user following the recipient. If the recipient is the logged-in user, returns true.
 // Unresolved assertions will false negative.
 func isFollowingForReview(mctx libkb.MetaContext, assertion string) (isFollowing bool, err error) {
 	// The 'following' check blocks sending, and is not that important, so impose a timeout.
@@ -576,7 +718,14 @@ func isFollowingForReview(mctx libkb.MetaContext, assertion string) (isFollowing
 		if idTable == nil {
 			return nil
 		}
+
 		targetUsername := libkb.NewNormalizedUsername(assertion)
+		selfUsername := libkb.NewNormalizedUsername(u.GetName())
+		if targetUsername.Eq(selfUsername) {
+			isFollowing = true
+			return nil
+		}
+
 		for _, track := range idTable.GetTrackList() {
 			if trackedUsername, err := track.GetTrackedUsername(); err == nil {
 				if trackedUsername.Eq(targetUsername) {
@@ -591,9 +740,9 @@ func isFollowingForReview(mctx libkb.MetaContext, assertion string) (isFollowing
 }
 
 func isKeybaseAssertion(mctx libkb.MetaContext, assertion string) bool {
-	expr, err := externals.AssertionParse(mctx.G(), string(assertion))
+	expr, err := externals.AssertionParse(mctx, assertion)
 	if err != nil {
-		mctx.CDebugf("error parsing assertion: %s", err)
+		mctx.Debug("error parsing assertion: %s", err)
 		return false
 	}
 	switch expr.(type) {
@@ -623,7 +772,7 @@ func BuildRequestLocal(mctx libkb.MetaContext, arg stellar1.BuildRequestLocalArg
 		secretNote bool
 	}{}
 	log := func(format string, args ...interface{}) {
-		mctx.CDebugf("brl: "+format, args...)
+		mctx.Debug("brl: "+format, args...)
 	}
 
 	bpc := getGlobal(mctx.G()).getBuildPaymentCache()
@@ -640,7 +789,6 @@ func BuildRequestLocal(mctx libkb.MetaContext, arg stellar1.BuildRequestLocalArg
 		if err != nil {
 			log("error with recipient field %v: %v", arg.To, err)
 			res.ToErrMsg = "Recipient not found."
-			skipRecipient = true
 		} else {
 			readyChecklist.to = true
 		}
@@ -661,7 +809,7 @@ func BuildRequestLocal(mctx libkb.MetaContext, arg stellar1.BuildRequestLocalArg
 		log("PrimaryAccount -> err:%v", err)
 		res.Banners = append(res.Banners, stellar1.SendBannerLocal{
 			Level:   "error",
-			Message: "Could not find primary account.",
+			Message: fmt.Sprintf("Could not find primary account.%v", msgMore(err)),
 		})
 	} else {
 		bpaArg.From = &primaryAccountID
@@ -679,7 +827,7 @@ func BuildRequestLocal(mctx libkb.MetaContext, arg stellar1.BuildRequestLocalArg
 	// -------------------- note --------------------
 
 	tracer.Stage("note")
-	if len(arg.SecretNote) <= 500 {
+	if len(arg.SecretNote) <= libkb.MaxStellarPaymentNoteLength {
 		readyChecklist.secretNote = true
 	} else {
 		res.SecretNoteErrMsg = "Note is too long."
@@ -699,6 +847,7 @@ func BuildRequestLocal(mctx libkb.MetaContext, arg stellar1.BuildRequestLocalArg
 
 type buildPaymentAmountArg struct {
 	// See buildPaymentLocal in avdl from which these args are copied.
+	Bid      stellar1.BuildPaymentID
 	Amount   string
 	Currency *stellar1.OutsideCurrencyCode
 	Asset    *stellar1.Asset
@@ -724,7 +873,7 @@ var zeroOrNoAmountRE = regexp.MustCompile(`^0*\.?0*$`)
 
 func buildPaymentAmountHelper(mctx libkb.MetaContext, bpc BuildPaymentCache, arg buildPaymentAmountArg) (res buildPaymentAmountResult) {
 	log := func(format string, args ...interface{}) {
-		mctx.CDebugf("bpl: "+format, args...)
+		mctx.Debug("bpl: "+format, args...)
 	}
 	res.asset = stellar1.AssetNative()
 	switch {
@@ -783,7 +932,7 @@ func buildPaymentAmountHelper(mctx libkb.MetaContext, bpc BuildPaymentCache, arg
 		}
 
 		res.displayAmountXLM = xlmAmountFormatted
-		res.displayAmountFiat, err = FormatCurrencyWithCodeSuffix(mctx, convertAmountOutside, *arg.Currency, FmtRound)
+		res.displayAmountFiat, err = FormatCurrencyWithCodeSuffix(mctx, convertAmountOutside, *arg.Currency, stellarnet.Round)
 		if err != nil {
 			log("error converting for displayAmountFiat: %q / %q : %s", convertAmountOutside, arg.Currency, err)
 			res.displayAmountFiat = ""
@@ -820,7 +969,7 @@ func buildPaymentAmountHelper(mctx libkb.MetaContext, bpc BuildPaymentCache, arg
 			log("missing from address so can't convert XLM amount")
 			return res
 		}
-		currency, err := bpc.GetOutsideCurrencyPreference(mctx, *arg.From)
+		currency, err := bpc.GetOutsideCurrencyPreference(mctx, *arg.From, arg.Bid)
 		if err != nil {
 			log("error getting preferred currency for %v: %v", *arg.From, err)
 			return res
@@ -836,7 +985,7 @@ func buildPaymentAmountHelper(mctx libkb.MetaContext, bpc BuildPaymentCache, arg
 			log("error converting: %v", err)
 			return res
 		}
-		outsideAmountFormatted, err := FormatCurrencyWithCodeSuffix(mctx, outsideAmount, xrate.Currency, FmtRound)
+		outsideAmountFormatted, err := FormatCurrencyWithCodeSuffix(mctx, outsideAmount, xrate.Currency, stellarnet.Round)
 		if err != nil {
 			log("error formatting converted outside amount: %v", err)
 			return res
@@ -849,13 +998,13 @@ func buildPaymentAmountHelper(mctx libkb.MetaContext, bpc BuildPaymentCache, arg
 			res.worthInfo = ""
 		}
 
-		res.displayAmountXLM, err = FormatAmountDescriptionXLM(mctx, arg.Amount)
-		if err != nil {
-			log("error formatting xlm %q: %s", arg.Amount, err)
-			res.displayAmountXLM = ""
-		}
 		if arg.Amount != "" {
-			res.displayAmountFiat, err = FormatCurrencyWithCodeSuffix(mctx, outsideAmount, xrate.Currency, FmtRound)
+			res.displayAmountXLM, err = FormatAmountDescriptionXLM(mctx, arg.Amount)
+			if err != nil {
+				log("error formatting xlm %q: %s", arg.Amount, err)
+				res.displayAmountXLM = ""
+			}
+			res.displayAmountFiat, err = FormatCurrencyWithCodeSuffix(mctx, outsideAmount, xrate.Currency, stellarnet.Round)
 			if err != nil {
 				log("error formatting fiat %q / %v: %s", outsideAmount, xrate.Currency, err)
 				res.displayAmountFiat = ""
@@ -865,14 +1014,14 @@ func buildPaymentAmountHelper(mctx libkb.MetaContext, bpc BuildPaymentCache, arg
 		return res
 	default:
 		// This is an API contract problem.
-		mctx.CWarningf("Only one of Asset and Currency parameters should be filled")
+		mctx.Warning("Only one of Asset and Currency parameters should be filled")
 		res.amountErrMsg = "Error in communication"
 		return res
 	}
 }
 
 func buildPaymentWorthInfo(mctx libkb.MetaContext, rate stellar1.OutsideExchangeRate) (worthInfo string, err error) {
-	oneOutsideFormatted, err := FormatCurrency(mctx, "1", rate.Currency, FmtRound)
+	oneOutsideFormatted, err := FormatCurrency(mctx, "1", rate.Currency, stellarnet.Round)
 	if err != nil {
 		return "", err
 	}
@@ -888,16 +1037,16 @@ func buildPaymentWorthInfo(mctx libkb.MetaContext, rate stellar1.OutsideExchange
 	return worthInfo, nil
 }
 
-// Subtract a 100 stroop fee from the available balance.
+// Subtract baseFee from the available balance.
 // This shows the real available balance assuming an intent to send a 1 op tx.
 // Does not error out, just shows the inaccurate answer.
-func SubtractFeeSoft(mctx libkb.MetaContext, availableStr string) string {
+func SubtractFeeSoft(mctx libkb.MetaContext, availableStr string, baseFee uint64) string {
 	available, err := stellarnet.ParseStellarAmount(availableStr)
 	if err != nil {
-		mctx.CDebugf("error parsing available balance: %v", err)
+		mctx.Debug("error parsing available balance: %v", err)
 		return availableStr
 	}
-	available -= 100
+	available -= int64(baseFee)
 	if available < 0 {
 		available = 0
 	}
@@ -970,8 +1119,17 @@ func (b *buildPaymentData) CheckReadyToSend(arg stellar1.SendPaymentLocalArg) er
 	if arg.Amount != b.Frozen.Amount {
 		return fmt.Errorf("mismatched amount: %v != %v", arg.Amount, b.Frozen.Amount)
 	}
-	if !arg.Asset.Eq(b.Frozen.Asset) {
+	if !arg.Asset.SameAsset(b.Frozen.Asset) {
 		return fmt.Errorf("mismatched asset: %v != %v", arg.Asset, b.Frozen.Asset)
 	}
 	return nil
+}
+
+func msgMore(err error) string {
+	switch err.(type) {
+	case libkb.APINetError, *libkb.APINetError:
+		return " Please check your network and try again."
+	default:
+		return ""
+	}
 }

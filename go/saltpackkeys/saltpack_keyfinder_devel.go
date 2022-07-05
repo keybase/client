@@ -8,8 +8,5 @@ package saltpackkeys
 import "github.com/keybase/client/go/libkb"
 
 func NewRecipientKeyfinderEngineHook(getKBFSKeyfinderForTesting bool) func(arg libkb.SaltpackRecipientKeyfinderArg) libkb.SaltpackRecipientKeyfinderEngineInterface {
-	if getKBFSKeyfinderForTesting {
-		return NewSaltpackKBFSKeyfinderEngineForTesting
-	}
 	return NewSaltpackRecipientKeyfinderEngineAsInterface
 }

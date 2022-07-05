@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/kbtest"
@@ -25,9 +26,12 @@ func TestLocalizerPipeline(t *testing.T) {
 	<-tc.Context().ConvLoader.Stop(ctx)
 
 	var convs []chat1.Conversation
-	convs = append(convs, newConv(ctx, t, tc, uid, ri, sender, u.Username+","+u1.Username))
-	convs = append(convs, newConv(ctx, t, tc, uid, ri, sender, u.Username+","+u2.Username))
-	convs = append(convs, newConv(ctx, t, tc, uid, ri, sender, u.Username+","+u2.Username+","+u1.Username))
+	_, conv := newConv(ctx, t, tc, uid, ri, sender, u.Username+","+u1.Username)
+	convs = append(convs, conv)
+	_, conv = newConv(ctx, t, tc, uid, ri, sender, u.Username+","+u2.Username)
+	convs = append(convs, conv)
+	_, conv = newConv(ctx, t, tc, uid, ri, sender, u.Username+","+u2.Username+","+u1.Username)
+	convs = append(convs, conv)
 
 	delay := 2 * time.Second
 	pipeline := newLocalizerPipeline(tc.Context())
@@ -104,7 +108,7 @@ func TestLocalizerPipeline(t *testing.T) {
 	pipeline.resume(ctx)
 
 	t.Logf("suspend (cancelable)")
-	ctx = makeLocalizerCancelableContext(ctx)
+	ctx = globals.CtxAddLocalizerCancelable(ctx)
 	localizeCh = runLocalize()
 	job = getJob()
 	noRes(localizeCh)
@@ -117,7 +121,7 @@ func TestLocalizerPipeline(t *testing.T) {
 	resClosed(localizeCh)
 
 	t.Logf("suspend multiple")
-	ctx = makeLocalizerCancelableContext(ctx)
+	ctx = globals.CtxAddLocalizerCancelable(ctx)
 	localizeCh = runLocalize()
 	job = getJob()
 	noRes(localizeCh)

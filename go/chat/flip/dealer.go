@@ -3,22 +3,39 @@ package flip
 import (
 	"context"
 	"encoding/base64"
+	"encoding/hex"
+	"fmt"
 	"io"
+	"math"
 	"math/big"
 	"strings"
 	"time"
+
+	chat1 "github.com/keybase/client/go/protocol/chat1"
+	clockwork "github.com/keybase/clockwork"
 )
 
+// Excludes `Params` from being logged.
+func (s Start) String() string {
+	return fmt.Sprintf("{StartTime:%v CommitmentWindowMsec:%v RevealWindowMsec:%v SlackMsec:%v CommitmentCompleteWindowMsec:%v}",
+		s.StartTime, s.CommitmentWindowMsec, s.RevealWindowMsec, s.SlackMsec, s.CommitmentWindowMsec)
+}
+
 type GameMessageWrapped struct {
-	Sender  UserDevice
-	Msg     GameMessageV1
-	Me      *playerControl
-	Forward bool
+	Sender              UserDevice
+	Msg                 GameMessageV1
+	Me                  *playerControl
+	Forward             bool
+	FirstInConversation bool
 }
 
 func (m GameMessageWrapped) isForwardable() bool {
 	t, _ := m.Msg.Body.T()
 	return t != MessageType_END
+}
+
+func (m GameMessageWrapped) GameMetadata() GameMetadata {
+	return m.Msg.Md
 }
 
 func (g GameMetadata) ToKey() GameKey {
@@ -30,11 +47,7 @@ func (g GameMetadata) String() string {
 }
 
 func (g GameMetadata) check() bool {
-	return g.Initiator.check() && g.ConversationID.check() && g.GameID.check()
-}
-
-func (m GameMessageWrapped) GameMetadata() GameMetadata {
-	return m.Msg.Md
+	return g.Initiator.check() && !g.ConversationID.IsNil() && g.GameID.Check()
 }
 
 type GameKey string
@@ -46,10 +59,10 @@ func (u UserDevice) ToKey() UserDeviceKey {
 }
 
 func (u UserDevice) check() bool {
-	return u.U.check() && u.D.check()
+	return u.U.Bytes() != nil && u.D.Bytes() != nil
 }
 
-func (g GameID) ToKey() GameIDKey {
+func GameIDToKey(g chat1.FlipGameID) GameIDKey {
 	return GameIDKey(g.String())
 }
 
@@ -61,33 +74,53 @@ type Result struct {
 }
 
 type Game struct {
-	md              GameMetadata
-	clockSkew       time.Duration
-	start           time.Time
-	isLeader        bool
-	params          Start
-	key             GameKey
-	msgCh           <-chan *GameMessageWrapped
-	stage           Stage
-	stageForTimeout Stage
-	dh              DealersHelper
-	players         map[UserDeviceKey]*GamePlayerState
-	gameUpdateCh    chan GameStateUpdateMessage
-	nPlayers        int
-	dealer          *Dealer
-	me              *playerControl
+	md                     GameMetadata
+	msgID                  int
+	clockSkew              time.Duration
+	start                  time.Time
+	isLeader               bool
+	params                 Start
+	key                    GameKey
+	msgCh                  <-chan *GameMessageWrapped
+	stage                  Stage
+	stageForTimeout        Stage
+	players                map[UserDeviceKey]*GamePlayerState
+	commitments            map[string]bool
+	gameUpdateCh           chan GameStateUpdateMessage
+	nPlayers               int
+	dealer                 *Dealer
+	me                     *playerControl
+	commitmentCompleteHash Hash
+	clock                  func() clockwork.Clock
+	clogf                  func(ctx context.Context, fmt string, args ...interface{})
+
+	// To handle reorderings between CommitmentComplete and commitements,
+	// wee need some extra bookkeeping.
+	iWasIncluded          bool
+	iOptedOutOfCommit     bool
+	gotCommitmentComplete bool
+	latecomers            map[UserDeviceKey]bool
 }
 
 type GamePlayerState struct {
-	ud             UserDevice
-	commitment     Commitment
-	commitmentTime time.Time
-	included       bool
-	secret         *Secret
+	ud               UserDevice
+	commitment       *Commitment
+	commitmentTime   time.Time
+	leaderCommitment *Commitment
+	included         bool
+	secret           *Secret
 }
 
 func (g *Game) GameMetadata() GameMetadata {
 	return g.md
+}
+
+func MakeGameMessageEncoded(s string) GameMessageEncoded {
+	return GameMessageEncoded(s)
+}
+
+func (e GameMessageEncoded) String() string {
+	return string(e)
 }
 
 func (e GameMessageEncoded) Decode() (*GameMessageV1, error) {
@@ -119,7 +152,10 @@ func (e *GameMessageWrappedEncoded) Decode() (*GameMessageWrapped, error) {
 	if err != nil {
 		return nil, err
 	}
-	ret := GameMessageWrapped{Sender: e.Sender, Msg: *v1}
+	ret := GameMessageWrapped{Sender: e.Sender, Msg: *v1, FirstInConversation: e.FirstInConversation}
+	if !e.GameID.Eq(ret.Msg.Md.GameID) {
+		return nil, BadGameIDError{G: ret.Msg.Md, I: e.GameID}
+	}
 	return &ret, nil
 }
 
@@ -144,9 +180,7 @@ func (v GameMessageV1) Encode() (GameMessageEncoded, error) {
 func (d *Dealer) run(ctx context.Context, game *Game) {
 	doneCh := make(chan error)
 	key := game.key
-	go func() {
-		doneCh <- game.run(ctx)
-	}()
+	go game.run(ctx, doneCh)
 	err := <-doneCh
 
 	if err != nil {
@@ -167,22 +201,20 @@ func (d *Dealer) run(ctx context.Context, game *Game) {
 	if ch := d.games[key]; ch != nil {
 		close(ch)
 		delete(d.games, key)
+		delete(d.gameIDs, GameIDToKey(game.md.GameID))
 	}
 	d.Unlock()
 }
 
 func (g *Game) getNextTimer() <-chan time.Time {
-	return g.dh.Clock().AfterTime(g.nextDeadline())
+	dl := g.nextDeadline()
+	return g.clock().AfterTime(dl)
 }
 
 func (g *Game) CommitmentEndTime() time.Time {
 	// If we're the leader, then let's cut off when we say we're going to cut off
 	// If we're not, then let's give extra time (a multiple of 2) to the leader.
-	mul := time.Duration(1)
-	if !g.isLeader {
-		mul = time.Duration(2)
-	}
-	return g.start.Add(mul * g.params.CommitmentWindowWithSlack())
+	return g.start.Add(g.params.CommitmentWindowWithSlack(g.isLeader))
 }
 
 func (g *Game) RevealEndTime() time.Time {
@@ -195,8 +227,6 @@ func (g *Game) nextDeadline() time.Time {
 		return g.CommitmentEndTime()
 	case Stage_ROUND2:
 		return g.RevealEndTime()
-	case Stage_ROUND_CLEANUP:
-		return g.start.Add(time.Hour * time.Duration(1000))
 	default:
 		return time.Time{}
 	}
@@ -221,7 +251,7 @@ func (g *Game) setSecret(ctx context.Context, ps *GamePlayerState, secret Secret
 	if ps.secret != nil {
 		return DuplicateRevealError{G: g.md, U: ps.ud}
 	}
-	if !expected.Eq(ps.commitment) {
+	if !expected.Eq(*ps.commitment) {
 		return BadRevealError{G: g.md, U: ps.ud}
 	}
 	ps.secret = &secret
@@ -278,10 +308,157 @@ func (g *Game) doFlip(ctx context.Context, prng *PRNG) error {
 
 func (g *Game) playerCommitedInTime(ps *GamePlayerState, now time.Time) bool {
 	diff := ps.commitmentTime.Sub(g.start)
-	return diff < g.params.CommitmentWindowWithSlack()
+	return diff < g.params.CommitmentWindowWithSlack(true)
 }
 
-func (g *Game) handleMessage(ctx context.Context, msg *GameMessageWrapped) error {
+func (g *Game) getPlayerState(ud UserDevice) *GamePlayerState {
+	key := ud.ToKey()
+	ret := g.players[key]
+	if ret != nil {
+		return ret
+	}
+	ret = &GamePlayerState{ud: ud}
+	g.players[key] = ret
+	return ret
+}
+
+func (g *Game) handleCommitment(ctx context.Context, sender UserDevice, now time.Time, com Commitment) (err error) {
+	ps := g.getPlayerState(sender)
+	if ps.commitment != nil {
+		return DuplicateRegistrationError{g.md, sender}
+	}
+	if ps.leaderCommitment != nil && !ps.leaderCommitment.Eq(com) {
+		return CommitmentMismatchError{G: g.GameMetadata(), U: sender}
+	}
+	ps.commitment = &com
+	ps.commitmentTime = now
+
+	comHex := hex.EncodeToString(com[:])
+	if g.commitments[comHex] {
+		return DuplicateCommitmentError{}
+	}
+	g.commitments[comHex] = true
+
+	// If this user was a latecomer (we got the commitment after we got the CommitmentComplete),
+	// then we mark them as being accounted for.
+	delete(g.latecomers, sender.ToKey())
+
+	g.gameUpdateCh <- GameStateUpdateMessage{
+		Metadata: g.GameMetadata(),
+		Commitment: &CommitmentUpdate{
+			User:       sender,
+			Commitment: com,
+		},
+	}
+	return g.maybeReveal(ctx)
+}
+
+func (g *Game) maybeReveal(ctx context.Context) (err error) {
+
+	if !g.gotCommitmentComplete {
+		return nil
+	}
+	if len(g.latecomers) > 0 {
+		return nil
+	}
+
+	g.stage = Stage_ROUND2
+	g.stageForTimeout = Stage_ROUND2
+
+	if g.me == nil {
+		return nil
+	}
+
+	if !g.iWasIncluded && !g.iOptedOutOfCommit {
+		g.clogf(ctx, "The leader didn't include me (%s) so not sending a reveal (%s)", g.me.me, g.md)
+		return nil
+	}
+
+	reveal := Reveal{
+		Secret: g.me.secret,
+		Cch:    g.commitmentCompleteHash,
+	}
+	g.sendOutgoingChat(ctx, NewGameMessageBodyWithReveal(reveal))
+	return nil
+}
+
+func (g *Game) handleCommitmentCompletePlayer(ctx context.Context, u UserDeviceCommitment) (err error) {
+
+	ps := g.getPlayerState(u.Ud)
+	if ps.leaderCommitment != nil {
+		return DuplicateCommitmentCompleteError{G: g.md, U: u.Ud}
+	}
+	if ps.commitment != nil && !ps.commitment.Eq(u.C) {
+		return CommitmentMismatchError{G: g.md, U: u.Ud}
+	}
+	if ps.commitment == nil {
+		g.latecomers[u.Ud.ToKey()] = true
+	}
+	ps.leaderCommitment = &u.C
+	ps.included = true
+	g.nPlayers++
+
+	if g.me != nil && g.me.me.Eq(u.Ud) {
+		g.iWasIncluded = true
+	}
+	return nil
+}
+
+func (g *Game) handleCommitmentComplete(ctx context.Context, sender UserDevice, now time.Time, cc CommitmentComplete) (err error) {
+
+	if !sender.Eq(g.md.Initiator) {
+		return WrongSenderError{G: g.md, Expected: g.md.Initiator, Actual: sender}
+	}
+
+	if !checkUserDeviceCommitments(cc.Players) {
+		return CommitmentCompleteSortError{G: g.md}
+	}
+
+	for _, u := range cc.Players {
+		err = g.handleCommitmentCompletePlayer(ctx, u)
+		if err != nil {
+			return err
+		}
+	}
+
+	cch, err := hashUserDeviceCommitments(cc.Players)
+	if err != nil {
+		return err
+	}
+
+	g.commitmentCompleteHash = cch
+	g.gotCommitmentComplete = true
+
+	// for now, just warn if users who made it in on time weren't included.
+	for _, ps := range g.players {
+		if !ps.included && g.playerCommitedInTime(ps, now) && g.clogf != nil {
+			g.clogf(ctx, "User %s wasn't included, but they should have been", ps.ud)
+		}
+	}
+
+	g.gameUpdateCh <- GameStateUpdateMessage{
+		Metadata:           g.GameMetadata(),
+		CommitmentComplete: &cc,
+	}
+
+	return g.maybeReveal(ctx)
+}
+
+func errToOk(err error) string {
+	if err == nil {
+		return "ok"
+	}
+	return "ERROR: " + err.Error()
+}
+
+func (g *Game) handleMessage(ctx context.Context, msg *GameMessageWrapped, now time.Time) (err error) {
+
+	msgID := g.msgID
+	g.msgID++
+
+	g.clogf(ctx, "+ Game#handleMessage: %s@%d <- %+v", g.GameMetadata(), msgID, *msg)
+	defer func() { g.clogf(ctx, "- Game#handleMessage: %s@%d -> %s", g.GameMetadata(), msgID, errToOk(err)) }()
+
 	t, err := msg.Msg.Body.T()
 	if err != nil {
 		return err
@@ -299,78 +476,59 @@ func (g *Game) handleMessage(ctx context.Context, msg *GameMessageWrapped) error
 
 	case MessageType_COMMITMENT:
 		if g.stage != Stage_ROUND1 {
-			return badStage()
+			g.clogf(ctx, "User %s sent a commitment too late, not included in game %s", msg.Sender, g.md)
+			return nil
 		}
-		key := msg.Sender.ToKey()
-		if g.players[key] != nil {
-			return DuplicateRegistrationError{g.md, msg.Sender}
-		}
-		g.players[key] = &GamePlayerState{
-			ud:             msg.Sender,
-			commitment:     msg.Msg.Body.Commitment(),
-			commitmentTime: g.dh.Clock().Now(),
-		}
-		g.gameUpdateCh <- GameStateUpdateMessage{
-			Metadata:   g.GameMetadata(),
-			Commitment: &msg.Sender,
+
+		err = g.handleCommitment(ctx, msg.Sender, now, msg.Msg.Body.Commitment())
+		if err != nil {
+			return err
 		}
 
 	case MessageType_COMMITMENT_COMPLETE:
 		if g.stage != Stage_ROUND1 {
 			return badStage()
 		}
-		if !msg.Sender.Eq(g.md.Initiator) {
-			return WrongSenderError{G: g.md, Expected: g.md.Initiator, Actual: msg.Sender}
-		}
-		now := g.dh.Clock().Now()
-		cc := msg.Msg.Body.CommitmentComplete()
-		for _, u := range cc.Players {
-			key := u.ToKey()
-			ps := g.players[key]
-			if ps == nil {
-				return UnregisteredUserError{G: g.md, U: u}
-			}
-			ps.included = true
-			g.nPlayers++
-		}
 
-		// for now, just warn if users who made it in on time weren't included.
-		for _, ps := range g.players {
-			if !ps.included && g.playerCommitedInTime(ps, now) {
-				g.dh.CLogf(ctx, "User %s wasn't included, but they should have been", ps.ud)
-			}
-		}
-		g.stage = Stage_ROUND2
-		g.stageForTimeout = Stage_ROUND2
-		g.gameUpdateCh <- GameStateUpdateMessage{
-			Metadata:           g.GameMetadata(),
-			CommitmentComplete: &cc,
-		}
-
-		if g.me != nil {
-			g.sendOutgoingChat(ctx, NewGameMessageBodyWithReveal(g.me.secret))
+		err = g.handleCommitmentComplete(ctx, msg.Sender, now, msg.Msg.Body.CommitmentComplete())
+		if err != nil {
+			return err
 		}
 
 	case MessageType_REVEAL:
 		if g.stage != Stage_ROUND2 {
 			return badStage()
 		}
+
 		key := msg.Sender.ToKey()
 		ps := g.players[key]
+
 		if ps == nil {
-			return UnregisteredUserError{G: g.md, U: msg.Sender}
-		}
-		if !ps.included {
-			g.dh.CLogf(ctx, "Skipping unincluded sender: %s", key)
+			g.clogf(ctx, "Skipping unregistered revealer %s for game %s", msg.Sender, g.md)
 			return nil
 		}
-		err := g.setSecret(ctx, ps, msg.Msg.Body.Reveal())
+		if !ps.included {
+			g.clogf(ctx, "Skipping unincluded revealer %s for game %s", msg.Sender, g.md)
+			return nil
+		}
+		if now.After(g.RevealEndTime()) {
+			return RevealTooLateError{G: g.md, U: msg.Sender}
+		}
+
+		reveal := msg.Msg.Body.Reveal()
+		if !g.commitmentCompleteHash.Eq(reveal.Cch) {
+			return BadCommitmentCompleteHashError{G: g.GameMetadata(), U: msg.Sender}
+		}
+		err := g.setSecret(ctx, ps, reveal.Secret)
 		if err != nil {
 			return err
 		}
 		g.gameUpdateCh <- GameStateUpdateMessage{
 			Metadata: g.GameMetadata(),
-			Reveal:   &msg.Sender,
+			Reveal: &RevealUpdate{
+				User:   msg.Sender,
+				Reveal: reveal.Secret,
+			},
 		}
 
 		g.nPlayers--
@@ -385,10 +543,20 @@ func (g *Game) handleMessage(ctx context.Context, msg *GameMessageWrapped) error
 	return nil
 }
 
-func (g *Game) completeCommitments(ctx context.Context) error {
-	var cc CommitmentComplete
+func (g *Game) userDeviceCommitmentList() []UserDeviceCommitment {
+	var ret []UserDeviceCommitment
 	for _, p := range g.players {
-		cc.Players = append(cc.Players, p.ud)
+		if p.commitment != nil {
+			ret = append(ret, UserDeviceCommitment{Ud: p.ud, C: *p.commitment})
+		}
+	}
+	sortUserDeviceCommitments(ret)
+	return ret
+}
+
+func (g *Game) completeCommitments(ctx context.Context) error {
+	cc := CommitmentComplete{
+		Players: g.userDeviceCommitmentList(),
 	}
 	body := NewGameMessageBodyWithCommitmentComplete(cc)
 	g.stageForTimeout = Stage_ROUND2
@@ -410,8 +578,16 @@ func (g *Game) sendOutgoingChat(ctx context.Context, body GameMessageBody) {
 	// Call back into the dealer, to reroute a message back into our
 	// game, but do so in a Go routine so we don't deadlock. There could be
 	// 100 incoming messages in front of us, all coming off the chat channel,
-	// so we're ok to send when we can.
-	go g.dealer.sendOutgoingChat(ctx, g.GameMetadata(), nil, body)
+	// so we're ok to send when we can. If use the game in the context of
+	// replay, the dealer will be nil, so no need to send.
+	if g.dealer != nil {
+		go func() {
+			err := g.dealer.sendOutgoingChat(ctx, g.GameMetadata(), nil, body)
+			if err != nil {
+				g.clogf(ctx, "Error sending outgoing chat %+v", err)
+			}
+		}()
+	}
 }
 
 func (g *Game) handleTimerEvent(ctx context.Context) error {
@@ -419,14 +595,16 @@ func (g *Game) handleTimerEvent(ctx context.Context) error {
 		return g.completeCommitments(ctx)
 	}
 
-	if g.stageForTimeout == Stage_ROUND2 {
-		return AbsenteesError{Absentees: g.absentees()}
+	absentees := g.absentees()
+
+	if g.stageForTimeout == Stage_ROUND2 && len(absentees) > 0 {
+		return AbsenteesError{Absentees: absentees}
 	}
 
 	return TimeoutError{G: g.md, Stage: g.stageForTimeout}
 }
 
-func (g *Game) run(ctx context.Context) error {
+func (g *Game) runMain(ctx context.Context) error {
 	for {
 		timer := g.getNextTimer()
 		var err error
@@ -437,7 +615,7 @@ func (g *Game) run(ctx context.Context) error {
 			if !ok {
 				return GameShutdownError{G: g.GameMetadata()}
 			}
-			err = g.handleMessage(ctx, msg)
+			err = g.handleMessage(ctx, msg, g.clock().Now())
 		case <-ctx.Done():
 			return ctx.Err()
 		}
@@ -454,6 +632,21 @@ func (g *Game) run(ctx context.Context) error {
 	}
 }
 
+func (g *Game) runDrain(ctx context.Context) {
+	i := 0
+	for range g.msgCh {
+		i++
+	}
+	if i > 0 {
+		g.clogf(ctx, "drained %d messages on shutdown in game %s", i, g.md)
+	}
+}
+
+func (g *Game) run(ctx context.Context, doneCh chan error) {
+	doneCh <- g.runMain(ctx)
+	g.runDrain(ctx)
+}
+
 func absDuration(d time.Duration) time.Duration {
 	if d < time.Duration(0) {
 		return time.Duration(-1) * d
@@ -461,10 +654,16 @@ func absDuration(d time.Duration) time.Duration {
 	return d
 }
 
-func (d *Dealer) computeClockSkew(ctx context.Context, md GameMetadata, leaderTime time.Time) (skew time.Duration, err error) {
+func (d *Dealer) computeClockSkew(ctx context.Context, md GameMetadata, leaderTime time.Time, myNow time.Time) (skew time.Duration, err error) {
 	serverTime, err := d.dh.ServerTime(ctx)
-	localTime := d.dh.Clock().Now()
+	if err != nil {
+		return skew, err
+	}
+	return computeClockSkew(md, serverTime, leaderTime, myNow)
+}
 
+func computeClockSkew(md GameMetadata, serverTime time.Time, leaderTime time.Time, myNow time.Time) (skew time.Duration, err error) {
+	localTime := myNow
 	leaderSkew := leaderTime.Sub(serverTime)
 	localSkew := localTime.Sub(serverTime)
 
@@ -479,55 +678,33 @@ func (d *Dealer) computeClockSkew(ctx context.Context, md GameMetadata, leaderTi
 	return totalSkew, nil
 }
 
-func (d *Dealer) primeHistory(ctx context.Context) (err error) {
-	if d.previousGames != nil {
-		return nil
-	}
-
-	tmp := make(map[GameIDKey]bool)
-	prevs, err := d.dh.ReadHistory(ctx, d.dh.Clock().Now().Add(time.Duration(-2)*MaxClockSkew))
-	if err != nil {
-		return err
-	}
-	for _, m := range prevs {
-		gmw, err := m.Decode()
-		if err != nil {
-			return err
-		}
-		tmp[gmw.Msg.Md.GameID.ToKey()] = true
-	}
-	d.previousGames = tmp
-	return nil
-}
-
 func (d *Dealer) handleMessageStart(ctx context.Context, msg *GameMessageWrapped, start Start) error {
 	d.Lock()
 	defer d.Unlock()
 	md := msg.GameMetadata()
 	key := md.ToKey()
+	gameIDKey := GameIDToKey(md.GameID)
 	if d.games[key] != nil {
 		return GameAlreadyStartedError{G: md}
+	}
+	if _, found := d.gameIDs[gameIDKey]; found {
+		return GameReplayError{G: md.GameID}
 	}
 	if !msg.Sender.Eq(md.Initiator) {
 		return WrongSenderError{G: md, Expected: msg.Sender, Actual: md.Initiator}
 	}
-	cs, err := d.computeClockSkew(ctx, md, start.StartTime.Time())
+	cs, err := d.computeClockSkew(ctx, md, start.StartTime.Time(), d.dh.Clock().Now())
 	if err != nil {
 		return err
 	}
 
-	err = d.primeHistory(ctx)
-	if err != nil {
-		return err
-	}
-
-	if d.previousGames[md.GameID.ToKey()] {
+	if !msg.FirstInConversation {
 		return GameReplayError{md.GameID}
 	}
 
 	isLeader := true
 	me := msg.Me
-	// Make a new follower player controller if one didn't already exit (since we were
+	// Make a new follower player controller if one didn't already exist (since we were
 	// the Leader)
 	if me == nil {
 		me, err = d.newPlayerControl(d.dh.Me(), md, start)
@@ -537,33 +714,48 @@ func (d *Dealer) handleMessageStart(ctx context.Context, msg *GameMessageWrapped
 		isLeader = false
 	}
 
+	optedOutOfCommit := false
+	if !isLeader {
+		optedOutOfCommit = !d.dh.ShouldCommit(ctx)
+	}
+
 	msgCh := make(chan *GameMessageWrapped)
 	game := &Game{
-		md:              msg.GameMetadata(),
-		isLeader:        isLeader,
-		clockSkew:       cs,
-		start:           d.dh.Clock().Now(),
-		key:             key,
-		params:          start,
-		msgCh:           msgCh,
-		stage:           Stage_ROUND1,
-		stageForTimeout: Stage_ROUND1,
-		dh:              d.dh,
-		gameUpdateCh:    d.gameUpdateCh,
-		players:         make(map[UserDeviceKey]*GamePlayerState),
-		dealer:          d,
-		me:              me,
+		md:                msg.GameMetadata(),
+		isLeader:          isLeader,
+		clockSkew:         cs,
+		start:             d.dh.Clock().Now(),
+		key:               key,
+		params:            start,
+		msgCh:             msgCh,
+		stage:             Stage_ROUND1,
+		stageForTimeout:   Stage_ROUND1,
+		gameUpdateCh:      d.gameUpdateCh,
+		players:           make(map[UserDeviceKey]*GamePlayerState),
+		commitments:       make(map[string]bool),
+		dealer:            d,
+		me:                me,
+		clock:             d.dh.Clock,
+		clogf:             d.dh.CLogf,
+		latecomers:        make(map[UserDeviceKey]bool),
+		iOptedOutOfCommit: optedOutOfCommit,
 	}
 	d.games[key] = msgCh
-	d.previousGames[md.GameID.ToKey()] = true
+	d.gameIDs[gameIDKey] = md
+	d.previousGames[GameIDToKey(md.GameID)] = true
 
 	go d.run(ctx, game)
 
 	// Once the game has started, we are free to send a message into the channel
 	// with our commitment. We are now in the inner loop of the Dealer, so we
 	// have to do this send in a Go-routine, so as not to deadlock the Dealer.
-	if !isLeader {
-		go d.sendCommitment(ctx, md, me)
+	if !isLeader && !optedOutOfCommit {
+		go func() {
+			err := d.sendCommitment(ctx, md, me)
+			if err != nil {
+				game.clogf(ctx, "Error sending commitment: %+v", err)
+			}
+		}()
 	}
 	return nil
 }
@@ -582,6 +774,7 @@ func (d *Dealer) handleMessageOthers(c context.Context, msg *GameMessageWrapped)
 }
 
 func (d *Dealer) handleMessage(ctx context.Context, msg *GameMessageWrapped) error {
+	d.dh.CLogf(ctx, "flip.Dealer: Incoming: %+v", msg)
 
 	t, err := msg.Msg.Body.T()
 	if err != nil {
@@ -602,7 +795,7 @@ func (d *Dealer) handleMessage(ctx context.Context, msg *GameMessageWrapped) err
 	if err != nil {
 		return err
 	}
-	if !msg.Forward && msg.isForwardable() {
+	if !(msg.Forward && msg.isForwardable()) {
 		return nil
 	}
 	// Encode and send the message through the external server-routed chat channel
@@ -610,7 +803,7 @@ func (d *Dealer) handleMessage(ctx context.Context, msg *GameMessageWrapped) err
 	if err != nil {
 		return err
 	}
-	err = d.dh.SendChat(ctx, msg.Msg.Md.ConversationID, emsg)
+	err = d.dh.SendChat(ctx, msg.Msg.Md.Initiator.U, msg.Msg.Md.ConversationID, msg.Msg.Md.GameID, emsg)
 	if err != nil {
 		return err
 	}
@@ -663,11 +856,12 @@ func (p *playerControl) GameMetadata() GameMetadata {
 	return p.md
 }
 
-func (d *Dealer) startFlip(ctx context.Context, start Start, conversationID ConversationID) (pc *playerControl, err error) {
+func (d *Dealer) startFlip(ctx context.Context, start Start, conversationID chat1.ConversationID) (pc *playerControl, err error) {
 	return d.startFlipWithGameID(ctx, start, conversationID, GenerateGameID())
 }
 
-func (d *Dealer) startFlipWithGameID(ctx context.Context, start Start, conversationID ConversationID, gameID GameID) (pc *playerControl, err error) {
+func (d *Dealer) startFlipWithGameID(ctx context.Context, start Start, conversationID chat1.ConversationID,
+	gameID chat1.FlipGameID) (pc *playerControl, err error) {
 	md := GameMetadata{
 		Initiator:      d.dh.Me(),
 		ConversationID: conversationID,
@@ -677,7 +871,7 @@ func (d *Dealer) startFlipWithGameID(ctx context.Context, start Start, conversat
 	if err != nil {
 		return nil, err
 	}
-	err = d.sendOutgoingChat(ctx, md, pc, NewGameMessageBodyWithStart(start))
+	err = d.sendOutgoingChatWithFirst(ctx, md, pc, NewGameMessageBodyWithStart(start), true)
 	if err != nil {
 		return nil, err
 	}
@@ -693,16 +887,23 @@ func (d *Dealer) sendCommitment(ctx context.Context, md GameMetadata, pc *player
 }
 
 func (d *Dealer) sendOutgoingChat(ctx context.Context, md GameMetadata, me *playerControl, body GameMessageBody) error {
+	return d.sendOutgoingChatWithFirst(ctx, md, me, body, false)
+}
+
+func (d *Dealer) sendOutgoingChatWithFirst(ctx context.Context, md GameMetadata, me *playerControl, body GameMessageBody, firstInConversation bool) error {
 
 	gmw := GameMessageWrapped{
-		Sender:  d.dh.Me(),
-		Me:      me,
-		Forward: true,
+		Sender:              d.dh.Me(),
+		Me:                  me,
+		FirstInConversation: firstInConversation,
 		Msg: GameMessageV1{
 			Md:   md,
 			Body: body,
 		},
 	}
+
+	// Only mark the forward bit to be true on messages that we can forward.
+	gmw.Forward = gmw.isForwardable()
 
 	// Reinject the message into the state machine.
 	d.chatInputCh <- &gmw
@@ -710,11 +911,26 @@ func (d *Dealer) sendOutgoingChat(ctx context.Context, md GameMetadata, me *play
 	return nil
 }
 
-func newStart(now time.Time) Start {
+var DefaultCommitmentWindowMsec int64 = 3 * 1000
+var DefaultRevealWindowMsec int64 = 30 * 1000
+var DefaultCommitmentCompleteWindowMsec int64 = 15 * 1000
+var DefaultSlackMsec int64 = 1 * 1000
+
+// For bigger groups, everything is slower, like the time to digest all required messages. So we're
+// going to inflate our timeouts.
+func inflateTimeout(timeout int64, nPlayers int) int64 {
+	if nPlayers <= 5 {
+		return timeout
+	}
+	return int64(math.Ceil(math.Log(float64(nPlayers)) * float64(timeout) / math.Log(5.0)))
+}
+
+func newStart(now time.Time, nPlayers int) Start {
 	return Start{
-		StartTime:            ToTime(now),
-		CommitmentWindowMsec: 3 * 1000,
-		RevealWindowMsec:     30 * 1000,
-		SlackMsec:            1 * 1000,
+		StartTime:                    ToTime(now),
+		CommitmentWindowMsec:         inflateTimeout(DefaultCommitmentWindowMsec, nPlayers),
+		RevealWindowMsec:             inflateTimeout(DefaultRevealWindowMsec, nPlayers),
+		CommitmentCompleteWindowMsec: inflateTimeout(DefaultCommitmentCompleteWindowMsec, nPlayers),
+		SlackMsec:                    inflateTimeout(DefaultSlackMsec, nPlayers),
 	}
 }

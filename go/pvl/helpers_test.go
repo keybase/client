@@ -168,11 +168,12 @@ func TestSelectionContents(t *testing.T) {
 			sel = sel.Contents()
 		}
 		var out string
-		if test.attr != "" {
+		switch {
+		case test.attr != "":
 			out = selectionAttr(sel, test.attr)
-		} else if test.data {
+		case test.data:
 			out = selectionData(sel)
-		} else {
+		default:
 			out = selectionText(sel)
 		}
 		if out != test.out {

@@ -33,6 +33,8 @@ func termEq(a, b proofTerm) bool {
 
 func TestProofSetAdd(t *testing.T) {
 	tc := SetupTest(t, "ps", 1)
+	defer tc.Cleanup()
+
 	ps := newProofSet(tc.G)
 
 	a := createProofTerm(1, keybase1.Seqno(10))
@@ -88,6 +90,8 @@ func TestProofSetAdd(t *testing.T) {
 
 func TestProofSetImply(t *testing.T) {
 	tc := SetupTest(t, "ps", 1)
+	defer tc.Cleanup()
+
 	ps := newProofSet(tc.G)
 
 	a := createProofTerm(1, keybase1.Seqno(1)) // user provisions device
@@ -110,6 +114,8 @@ func TestProofSetImply(t *testing.T) {
 // proof orderings on the same chain should get dropped because they are self evident
 func TestProofSetSameChain(t *testing.T) {
 	tc := SetupTest(t, "ps", 1)
+	defer tc.Cleanup()
+
 	ps := newProofSet(tc.G)
 
 	a := createProofTerm(1, keybase1.Seqno(10))

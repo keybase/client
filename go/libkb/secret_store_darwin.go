@@ -7,137 +7,207 @@ package libkb
 
 import (
 	"encoding/base64"
+	"fmt"
 	"os"
+	"strings"
 
 	keychain "github.com/keybase/go-keychain"
 )
 
-type KeychainSecretStore struct {
+const slotSep = "/"
+
+type keychainSlottedAccount struct {
+	name NormalizedUsername
+	slot int
 }
+
+func newKeychainSlottedAccount(name NormalizedUsername, slot int) keychainSlottedAccount {
+	return keychainSlottedAccount{
+		name: name,
+		slot: slot,
+	}
+}
+
+// keychainSlottedAccount is used in case we can not longer delete/update an entry
+// due to keychain corruption. For backwards compatibility the initial slot
+// just returns the accountName field.
+func (a keychainSlottedAccount) String() string {
+	if a.slot == 0 {
+		return a.name.String()
+	}
+	return fmt.Sprintf("%s%s%d", a.name, slotSep, a.slot)
+}
+
+func parseSlottedAccount(account string) string {
+	parts := strings.Split(account, slotSep)
+	if len(parts) == 0 {
+		return account
+	}
+	return parts[0]
+}
+
+// NOTE There have been bug reports where we are unable to store a secret in
+// the keychain since there is an existing corrupted entry that cannot be
+// deleted (returns a keychain.ErrorItemNotFound) but can also not be written
+// (return keychain.ErrorDuplicateItem). As a workaround we add a slot number
+// to the accountName field to write the secret multiple times, using a new
+// slot if an old one is corrupted. When reading the store we return the last
+// secret we have written down.
+type KeychainSecretStore struct{}
 
 var _ SecretStoreAll = KeychainSecretStore{}
 
-func (k KeychainSecretStore) serviceName(m MetaContext) string {
-	return m.G().GetStoredSecretServiceName()
+func (k KeychainSecretStore) serviceName(mctx MetaContext) string {
+	return mctx.G().GetStoredSecretServiceName()
 }
 
-func (k KeychainSecretStore) StoreSecret(m MetaContext, accountName NormalizedUsername, secret LKSecFullSecret) (err error) {
-	// Base64 encode to make it easy to work with Keychain Access (since we are using a password item and secret is not utf-8)
+func (k KeychainSecretStore) StoreSecret(mctx MetaContext, accountName NormalizedUsername, secret LKSecFullSecret) (err error) {
+	defer mctx.Trace(fmt.Sprintf("KeychainSecretStore.StoreSecret(%s)", accountName), &err)()
+
+	// Base64 encode to make it easy to work with Keychain Access (since we are
+	// using a password item and secret is not utf-8)
 	encodedSecret := base64.StdEncoding.EncodeToString(secret.Bytes())
-	item := keychain.NewGenericPassword(k.serviceName(m), string(accountName), "", []byte(encodedSecret), k.accessGroup(m))
+
+	// Try until we successfully write the secret in the store and we are the
+	// last entry.
+	for i := 0; i < maxKeychainItemSlots; i++ {
+		account := newKeychainSlottedAccount(accountName, i)
+		if err = k.storeSecret(mctx, account, encodedSecret); err != nil {
+			mctx.Debug("KeychainSecretStore.StoreSecret(%s): unable to store secret %v, attempt %d, retrying", accountName, err, i)
+			continue
+		}
+
+		// look ahead, if we are the last entry in the keychain can break
+		// the loop, otherwise we should keep writing the down our secret
+		// since reads will only use the last entry.
+		if i < maxKeychainItemSlots-1 {
+			nextAccount := newKeychainSlottedAccount(accountName, i+1)
+			encodedSecret, err := keychain.GetGenericPassword(k.serviceName(mctx), nextAccount.String(), "", k.accessGroup(mctx))
+			if err == nil && encodedSecret == nil {
+				mctx.Debug("KeychainSecretStore.StoreSecret(%s): successfully stored secret on attempt %d", accountName, i)
+				break
+			}
+		}
+	}
+	return err
+}
+
+func (k KeychainSecretStore) GetOptions(MetaContext) *SecretStoreOptions  { return nil }
+func (k KeychainSecretStore) SetOptions(MetaContext, *SecretStoreOptions) {}
+
+func (k KeychainSecretStore) storeSecret(mctx MetaContext, account keychainSlottedAccount, encodedSecret string) (err error) {
+	// try to clear an old secret if present
+	if err = k.clearSecret(mctx, account); err != nil {
+		mctx.Debug("KeychainSecretStore.storeSecret(%s): unable to clearSecret error: %v", account, err)
+	}
+
+	item := keychain.NewGenericPassword(k.serviceName(mctx), account.String(),
+		"", []byte(encodedSecret), k.accessGroup(mctx))
 	item.SetSynchronizable(k.synchronizable())
 	item.SetAccessible(k.accessible())
-	m.CDebugf("KeychainSecretStore.StoreSecret(%s): deleting item before adding new one", accountName)
-	err = keychain.DeleteItem(item)
-	if err != nil {
-		// error probably ok here?
-		m.CDebugf("KeychainSecretStore.StoreSecret(%s): DeleteItem error: %s", accountName, err)
-	}
-	m.CDebugf("KeychainSecretStore.StoreSecret(%s): adding item", accountName)
-	err = keychain.AddItem(item)
-	if err != nil {
-		m.CWarningf("KeychainSecretStore.StoreSecret(%s): AddItem error: %s", accountName, err)
-		return err
-	}
-	m.CDebugf("KeychainSecretStore.StoreSecret(%s): AddItem success", accountName)
-
-	return nil
+	return keychain.AddItem(item)
 }
 
-func (k KeychainSecretStore) updateAccessibility(m MetaContext, accountName string) {
-	query := keychain.NewItem()
-	query.SetSecClass(keychain.SecClassGenericPassword)
-	query.SetService(k.serviceName(m))
-	query.SetAccount(accountName)
-	query.SetMatchLimit(keychain.MatchLimitOne)
-	updateItem := keychain.NewItem()
-	updateItem.SetAccessible(k.accessible())
-	if err := keychain.UpdateItem(query, updateItem); err != nil {
-		m.CDebugf("KeychainSecretStore.updateAccessibility: failed: %s", err)
-	}
-}
-
-func (k KeychainSecretStore) mobileKeychainPermissionDeniedCheck(m MetaContext, err error) {
-	m.G().Log.Debug("mobileKeychainPermissionDeniedCheck: checking for mobile permission denied")
-	if !isIOS || m.G().GetAppType() != MobileAppType {
-		m.G().Log.Debug("mobileKeychainPermissionDeniedCheck: not an iOS app")
+func (k KeychainSecretStore) mobileKeychainPermissionDeniedCheck(mctx MetaContext, err error) {
+	mctx.G().Log.Debug("mobileKeychainPermissionDeniedCheck: checking for mobile permission denied")
+	if !(isIOS && mctx.G().IsMobileAppType()) {
+		mctx.G().Log.Debug("mobileKeychainPermissionDeniedCheck: not an iOS app")
 		return
 	}
 	if err != keychain.ErrorInteractionNotAllowed {
-		m.G().Log.Debug("mobileKeychainPermissionDeniedCheck: wrong kind of error: %s", err)
+		mctx.G().Log.Debug("mobileKeychainPermissionDeniedCheck: wrong kind of error: %s", err)
 		return
 	}
-	m.G().Log.Warning("mobileKeychainPermissionDeniedCheck: keychain permission denied: %s", err)
+	mctx.G().Log.Warning("mobileKeychainPermissionDeniedCheck: keychain permission denied, aborting: %s", err)
 	os.Exit(4)
 }
 
-func (k KeychainSecretStore) RetrieveSecret(m MetaContext, accountName NormalizedUsername) (LKSecFullSecret, error) {
-	m.CDebugf("KeychainSecretStore.RetrieveSecret(%s)", accountName)
-	encodedSecret, err := keychain.GetGenericPassword(k.serviceName(m), string(accountName), "", "")
-	if err != nil {
-		m.CDebugf("KeychainSecretStore.RetrieveSecret(%s) error: %s", accountName, err)
-		k.mobileKeychainPermissionDeniedCheck(m, err)
-		return LKSecFullSecret{}, err
+func (k KeychainSecretStore) RetrieveSecret(mctx MetaContext, accountName NormalizedUsername) (secret LKSecFullSecret, err error) {
+	defer mctx.Trace(fmt.Sprintf("KeychainSecretStore.RetrieveSecret(%s)", accountName), &err)()
+
+	// find the last valid item we have stored in the keychain
+	var previousSecret LKSecFullSecret
+	for i := 0; i < maxKeychainItemSlots; i++ {
+		account := newKeychainSlottedAccount(accountName, i)
+		secret, err = k.retrieveSecret(mctx, account)
+		if err == nil {
+			previousSecret = secret
+			mctx.Debug("successfully retrieved secret on attempt: %d, checking if there is another filled slot", i)
+		} else if _, ok := err.(SecretStoreError); ok || err == keychain.ErrorItemNotFound {
+			// We've reached the end of the keychain entries so let's return
+			// the previous secret we found.
+			secret = previousSecret
+			err = nil
+			mctx.Debug("found last slot: %d, finished read", i)
+			break
+		} else {
+			mctx.Debug("unable to retrieve secret: %v, attempt: %d", err, i)
+		}
 	}
-	if encodedSecret == nil {
-		m.CDebugf("KeychainSecretStore.RetrieveSecret(%s) nil encodedSecret", accountName)
-		return LKSecFullSecret{}, SecretStoreError{Msg: "No secret for " + string(accountName)}
+	if err != nil {
+		return LKSecFullSecret{}, err
+	} else if secret.IsNil() {
+		return LKSecFullSecret{}, NewErrSecretForUserNotFound(accountName)
+	}
+	return secret, nil
+}
+
+func (k KeychainSecretStore) retrieveSecret(mctx MetaContext, account keychainSlottedAccount) (lk LKSecFullSecret, err error) {
+	encodedSecret, err := keychain.GetGenericPassword(k.serviceName(mctx), account.String(),
+		"", k.accessGroup(mctx))
+	if err != nil {
+		k.mobileKeychainPermissionDeniedCheck(mctx, err)
+		return LKSecFullSecret{}, err
+	} else if encodedSecret == nil {
+		return LKSecFullSecret{}, NewErrSecretForUserNotFound(account.name)
 	}
 
 	secret, err := base64.StdEncoding.DecodeString(string(encodedSecret))
 	if err != nil {
-		m.CDebugf("KeychainSecretStore.RetrieveSecret(%s) base64.Decode error: %s", accountName, err)
 		return LKSecFullSecret{}, err
 	}
 
-	m.CDebugf("KeychainSecretStore.RetrieveSecret(%s) got secret, creating lksec", accountName)
-
-	lk, err := newLKSecFullSecretFromBytes(secret)
-	if err != nil {
-		m.CDebugf("KeychainSecretStore.RetrieveSecret(%s) error creating lksec: %s", accountName, err)
-		return LKSecFullSecret{}, err
-	}
-
-	// Update accessibility
-	k.updateAccessibility(m, accountName.String())
-
-	m.CDebugf("KeychainSecretStore.RetrieveSecret(%s) success", accountName)
-
-	return lk, nil
+	return newLKSecFullSecretFromBytes(secret)
 }
 
-func (k KeychainSecretStore) ClearSecret(m MetaContext, accountName NormalizedUsername) error {
-	m.CDebugf("KeychainSecretStore#ClearSecret(%s)", accountName)
+func (k KeychainSecretStore) ClearSecret(mctx MetaContext, accountName NormalizedUsername) (err error) {
+	defer mctx.Trace(fmt.Sprintf("KeychainSecretStore#ClearSecret: accountName: %s", accountName),
+		&err)()
+
 	if accountName.IsNil() {
-		m.CDebugf("NOOPing KeychainSecretStore#ClearSecret for empty username")
+		mctx.Debug("NOOPing KeychainSecretStore#ClearSecret for empty username")
 		return nil
 	}
-	var query keychain.Item
-	if isIOS {
-		query = keychain.NewGenericPassword(k.serviceName(m), string(accountName), "", nil, k.accessGroup(m))
-	} else {
-		query = keychain.NewGenericPassword(k.serviceName(m), string(accountName), "", nil, "")
+
+	// Try all slots to fully clear any secrets for this user
+	epick := FirstErrorPicker{}
+	for i := 0; i < maxKeychainItemSlots; i++ {
+		account := newKeychainSlottedAccount(accountName, i)
+		err = k.clearSecret(mctx, account)
+		switch err {
+		case nil, keychain.ErrorItemNotFound:
+		default:
+			mctx.Debug("KeychainSecretStore#ClearSecret: accountName: %s, unable to clear secret: %v", accountName, err)
+			epick.Push(err)
+		}
+	}
+	return epick.Error()
+}
+
+func (k KeychainSecretStore) clearSecret(mctx MetaContext, account keychainSlottedAccount) (err error) {
+	query := keychain.NewGenericPassword(k.serviceName(mctx), account.String(),
+		"", nil, k.accessGroup(mctx))
+	// iOS keychain returns `keychain.ErrorParam` if this is set so we skip it.
+	if !isIOS {
 		query.SetMatchLimit(keychain.MatchLimitAll)
 	}
-	err := keychain.DeleteItem(query)
-	if err == keychain.ErrorItemNotFound {
-		m.CDebugf("KeychainSecretStore#ClearSecret(%s), item not found", accountName)
-		return nil
-	}
-	if err != nil {
-		m.CDebugf("KeychainSecretStore#ClearSecret(%s), DeleteItem error: %s", accountName, err)
-	}
-
-	m.CDebugf("KeychainSecretStore#ClearSecret(%s) success", accountName)
-
-	return err
+	return keychain.DeleteItem(query)
 }
 
-func NewSecretStoreAll(m MetaContext) SecretStoreAll {
-	if m.G().Env.DarwinForceSecretStoreFile() {
-		// Allow use of file secret store for development/testing
-		// on MacOS.
-		return NewSecretStoreFile(m.G().Env.GetDataDir())
+func NewSecretStoreAll(mctx MetaContext) SecretStoreAll {
+	if mctx.G().Env.ForceSecretStoreFile() {
+		// Allow use of file secret store for development/testing on MacOS.
+		return NewSecretStoreFile(mctx.G().Env.GetDataDir())
 	}
 	return KeychainSecretStore{}
 }
@@ -146,13 +216,26 @@ func HasSecretStore() bool {
 	return true
 }
 
-func (k KeychainSecretStore) GetUsersWithStoredSecrets(m MetaContext) ([]string, error) {
-	users, err := keychain.GetAccountsForService(k.serviceName(m))
+func (k KeychainSecretStore) GetUsersWithStoredSecrets(mctx MetaContext) ([]string, error) {
+	accounts, err := keychain.GetAccountsForService(k.serviceName(mctx))
 	if err != nil {
-		m.CDebugf("KeychainSecretStore.GetUsersWithStoredSecrets() error: %s", err)
+		mctx.Debug("KeychainSecretStore.GetUsersWithStoredSecrets() error: %s", err)
 		return nil, err
 	}
 
-	m.CDebugf("KeychainSecretStore.GetUsersWithStoredSecrets() -> %d users", len(users))
+	seen := map[string]bool{}
+	users := []string{}
+	for _, account := range accounts {
+		username := parseSlottedAccount(account)
+		if isPPSSecretStore(username) {
+			continue
+		}
+		if _, ok := seen[username]; !ok {
+			users = append(users, username)
+			seen[username] = true
+		}
+	}
+
+	mctx.Debug("KeychainSecretStore.GetUsersWithStoredSecrets() -> %d users, %d accounts", len(users), len(accounts))
 	return users, nil
 }

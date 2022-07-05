@@ -31,7 +31,8 @@ type receiveHandler struct {
 	log LogInterface
 }
 
-func newReceiveHandler(enc *framedMsgpackEncoder, protHandler *protocolHandler, l LogInterface) *receiveHandler {
+func newReceiveHandler(enc *framedMsgpackEncoder, protHandler *protocolHandler,
+	l LogInterface) *receiveHandler {
 	r := &receiveHandler{
 		writer:      enc,
 		protHandler: protHandler,

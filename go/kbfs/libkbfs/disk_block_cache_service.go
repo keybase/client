@@ -9,8 +9,8 @@ import (
 
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
-	kbgitkbfs "github.com/keybase/client/go/kbfs/protocol/kbgitkbfs1"
 	"github.com/keybase/client/go/kbfs/tlf"
+	kbgitkbfs "github.com/keybase/client/go/protocol/kbgitkbfs1"
 )
 
 type diskBlockCacheServiceConfig interface {

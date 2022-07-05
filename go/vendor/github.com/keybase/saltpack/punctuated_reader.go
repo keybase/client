@@ -104,7 +104,8 @@ func (p *punctuatedReader) ReadUntilPunctuation(lim int) (res []byte, err error)
 	for {
 		var n int
 		n, err = p.Read(p.buf[:])
-		if err == ErrPunctuated || err == nil {
+		switch err {
+		case nil, ErrPunctuated:
 			res = append(res, p.buf[0:n]...)
 			if err == ErrPunctuated {
 				err = nil
@@ -113,12 +114,14 @@ func (p *punctuatedReader) ReadUntilPunctuation(lim int) (res []byte, err error)
 			if len(res) >= lim {
 				return nil, ErrOverflow
 			}
-		} else if err != nil {
-			if err == io.EOF {
-				err = io.ErrUnexpectedEOF
-			}
+		case io.EOF:
+			err = io.ErrUnexpectedEOF
+			fallthrough
+		default:
 			return nil, err
-		} else if n == 0 {
+		}
+
+		if n == 0 {
 			return nil, io.ErrUnexpectedEOF
 		}
 	}

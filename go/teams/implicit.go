@@ -91,13 +91,14 @@ func loadImpteam(ctx context.Context, g *libkb.GlobalContext, displayName string
 }
 
 func loadImpteamFromServer(ctx context.Context, g *libkb.GlobalContext, displayName string, public bool) (imp implicitTeam, err error) {
-	arg := libkb.NewAPIArgWithNetContext(ctx, "team/implicit")
+	mctx := libkb.NewMetaContext(ctx, g)
+	arg := libkb.NewAPIArg("team/implicit")
 	arg.SessionType = libkb.APISessionTypeOPTIONAL
 	arg.Args = libkb.HTTPArgs{
 		"display_name": libkb.S{Val: displayName},
 		"public":       libkb.B{Val: public},
 	}
-	if err = g.API.GetDecode(arg, &imp); err != nil {
+	if err = mctx.G().API.GetDecode(mctx, arg, &imp); err != nil {
 		if aerr, ok := err.(libkb.AppStatusError); ok {
 			code := keybase1.StatusCode(aerr.Code)
 			switch code {
@@ -120,9 +121,9 @@ func loadImpteamFromServer(ctx context.Context, g *libkb.GlobalContext, displayN
 func attemptLoadImpteamAndConflict(ctx context.Context, g *libkb.GlobalContext, impTeamName keybase1.ImplicitTeamDisplayName,
 	nameWithoutConflict string, preResolveDisplayName string, skipCache bool) (conflicts []keybase1.ImplicitTeamConflictInfo, teamID keybase1.TeamID, hitCache bool, err error) {
 
-	defer g.CTraceTimed(ctx,
+	defer g.CTrace(ctx,
 		fmt.Sprintf("attemptLoadImpteamAndConflict(impName=%q,woConflict=%q,preResolve=%q,skipCache=%t)", impTeamName, nameWithoutConflict, preResolveDisplayName, skipCache),
-		func() error { return err })()
+		&err)()
 	imp, hitCache, err := loadImpteam(ctx, g, nameWithoutConflict, impTeamName.IsPublic, skipCache)
 	if err != nil {
 		return conflicts, teamID, hitCache, err
@@ -143,7 +144,6 @@ func attemptLoadImpteamAndConflict(ctx context.Context, g *libkb.GlobalContext, 
 		if err != nil {
 			// warn, don't fail
 			g.Log.CDebugf(ctx, "LookupImplicitTeam got conflict suffix: %v", err)
-			err = nil
 			continue
 		}
 		conflicts = append(conflicts, *conflictInfo)
@@ -181,13 +181,12 @@ func lookupImplicitTeamAndConflicts(ctx context.Context, g *libkb.GlobalContext,
 	preResolveDisplayName string, impTeamNameInput keybase1.ImplicitTeamDisplayName, opts ImplicitTeamOptions) (
 	team *Team, teamName keybase1.TeamName, impTeamName keybase1.ImplicitTeamDisplayName, conflicts []keybase1.ImplicitTeamConflictInfo, err error) {
 
-	defer g.CTraceTimed(ctx, fmt.Sprintf("lookupImplicitTeamAndConflicts(%v,opts=%+v)", preResolveDisplayName, opts), func() error { return err })()
+	defer g.CTrace(ctx, fmt.Sprintf("lookupImplicitTeamAndConflicts(%v,opts=%+v)", preResolveDisplayName, opts), &err)()
 
 	impTeamName = impTeamNameInput
 
 	// Use a copy without the conflict info to hit the api endpoint
-	var impTeamNameWithoutConflict keybase1.ImplicitTeamDisplayName
-	impTeamNameWithoutConflict = impTeamName
+	impTeamNameWithoutConflict := impTeamName
 	impTeamNameWithoutConflict.ConflictInfo = nil
 	lookupNameWithoutConflict, err := FormatImplicitTeamDisplayName(ctx, g, impTeamNameWithoutConflict)
 	if err != nil {
@@ -238,27 +237,54 @@ func lookupImplicitTeamAndConflicts(ctx context.Context, g *libkb.GlobalContext,
 	return team, team.Name(), impTeamName, conflicts, nil
 }
 
-func isDupImplicitTeamError(ctx context.Context, err error) bool {
+func isDupImplicitTeamError(err error) bool {
 	if err != nil {
 		if aerr, ok := err.(libkb.AppStatusError); ok {
 			code := keybase1.StatusCode(aerr.Code)
 			switch code {
 			case keybase1.StatusCode_SCTeamImplicitDuplicate:
 				return true
+			default:
+				// Nothing to do for other codes.
 			}
 		}
 	}
 	return false
 }
 
+func assertIsDisplayNameNormalized(displayName keybase1.ImplicitTeamDisplayName) error {
+	var errs []error
+	for _, userSet := range []keybase1.ImplicitTeamUserSet{displayName.Writers, displayName.Readers} {
+		for _, username := range userSet.KeybaseUsers {
+			if !libkb.IsLowercase(username) {
+				errs = append(errs, fmt.Errorf("Keybase username %q has mixed case", username))
+			}
+		}
+		for _, assertion := range userSet.UnresolvedUsers {
+			if !libkb.IsLowercase(assertion.User) {
+				errs = append(errs, fmt.Errorf("User %q in assertion %q has mixed case", assertion.User, assertion.String()))
+			}
+		}
+	}
+	return libkb.CombineErrors(errs...)
+}
+
 // LookupOrCreateImplicitTeam by name like "alice,bob+bob@twitter (conflicted copy 2017-03-04 #1)"
 // Resolves social assertions.
 func LookupOrCreateImplicitTeam(ctx context.Context, g *libkb.GlobalContext, displayName string, public bool) (res *Team, teamName keybase1.TeamName, impTeamName keybase1.ImplicitTeamDisplayName, err error) {
-	defer g.CTraceTimed(ctx, fmt.Sprintf("LookupOrCreateImplicitTeam(%v)", displayName),
-		func() error { return err })()
+	ctx = libkb.WithLogTag(ctx, "LOCIT")
+	defer g.CTrace(ctx, fmt.Sprintf("LookupOrCreateImplicitTeam(%v)", displayName),
+		&err)()
 	lookupName, err := ResolveImplicitTeamDisplayName(ctx, g, displayName, public)
 	if err != nil {
 		return res, teamName, impTeamName, err
+	}
+
+	if err := assertIsDisplayNameNormalized(lookupName); err != nil {
+		// Do not allow display names with mixed letter case - while it's legal
+		// to create them, it will not be possible to load them because API
+		// server always downcases during normalization.
+		return res, teamName, impTeamName, fmt.Errorf("Display name is not normalized: %s", err)
 	}
 
 	res, teamName, impTeamName, _, err = lookupImplicitTeamAndConflicts(ctx, g, displayName, lookupName, ImplicitTeamOptions{})
@@ -274,7 +300,7 @@ func LookupOrCreateImplicitTeam(ctx context.Context, g *libkb.GlobalContext, dis
 			var teamID keybase1.TeamID
 			teamID, teamName, err = CreateImplicitTeam(ctx, g, impTeamName)
 			if err != nil {
-				if isDupImplicitTeamError(ctx, err) {
+				if isDupImplicitTeamError(err) {
 					g.Log.CDebugf(ctx, "LookupOrCreateImplicitTeam: duplicate team, trying to lookup again: err: %s", err)
 					res, teamName, impTeamName, _, err = lookupImplicitTeamAndConflicts(ctx, g, displayName,
 						lookupName, ImplicitTeamOptions{})
@@ -285,6 +311,7 @@ func LookupOrCreateImplicitTeam(ctx context.Context, g *libkb.GlobalContext, dis
 				ID:          teamID,
 				Public:      impTeamName.IsPublic,
 				ForceRepoll: true,
+				AuditMode:   keybase1.AuditMode_JUST_CREATED,
 			})
 			return res, teamName, impTeamName, err
 		}
@@ -303,23 +330,20 @@ func FormatImplicitTeamDisplayNameWithUserFront(ctx context.Context, g *libkb.Gl
 }
 
 func formatImplicitTeamDisplayNameCommon(ctx context.Context, g *libkb.GlobalContext, impTeamName keybase1.ImplicitTeamDisplayName, optionalFrontName *libkb.NormalizedUsername) (string, error) {
-	var writerNames []string
-	for _, u := range impTeamName.Writers.KeybaseUsers {
-		writerNames = append(writerNames, u)
-	}
+	writerNames := make([]string, 0, len(impTeamName.Writers.KeybaseUsers)+len(impTeamName.Writers.UnresolvedUsers))
+	writerNames = append(writerNames, impTeamName.Writers.KeybaseUsers...)
 	for _, u := range impTeamName.Writers.UnresolvedUsers {
 		writerNames = append(writerNames, u.String())
 	}
+
 	if optionalFrontName == nil {
 		sort.Strings(writerNames)
 	} else {
 		sortStringsFront(writerNames, optionalFrontName.String())
 	}
 
-	var readerNames []string
-	for _, u := range impTeamName.Readers.KeybaseUsers {
-		readerNames = append(readerNames, u)
-	}
+	readerNames := make([]string, 0, len(impTeamName.Readers.KeybaseUsers)+len(impTeamName.Readers.UnresolvedUsers))
+	readerNames = append(readerNames, impTeamName.Readers.KeybaseUsers...)
 	for _, u := range impTeamName.Readers.UnresolvedUsers {
 		readerNames = append(readerNames, u.String())
 	}
@@ -338,7 +362,7 @@ func formatImplicitTeamDisplayNameCommon(ctx context.Context, g *libkb.GlobalCon
 		return "", fmt.Errorf("invalid implicit team name: no writers")
 	}
 
-	return tlf.NormalizeNamesInTLF(g, writerNames, readerNames, suffix)
+	return tlf.NormalizeNamesInTLF(libkb.NewMetaContext(ctx, g), writerNames, readerNames, suffix)
 }
 
 // Sort a list of strings but order `front` in front IF it appears.
@@ -387,10 +411,16 @@ func (i *implicitTeamCache) OnLogout(m libkb.MetaContext) error {
 	return nil
 }
 
+func (i *implicitTeamCache) OnDbNuke(m libkb.MetaContext) error {
+	i.cache.Purge()
+	return nil
+}
+
 var _ libkb.MemLRUer = &implicitTeamCache{}
 
 func NewImplicitTeamCacheAndInstall(g *libkb.GlobalContext) {
 	cache := newImplicitTeamCache(g)
 	g.SetImplicitTeamCacher(cache)
-	g.AddLogoutHook(cache)
+	g.AddLogoutHook(cache, "implicitTeamCache")
+	g.AddDbNukeHook(cache, "implicitTeamCache")
 }

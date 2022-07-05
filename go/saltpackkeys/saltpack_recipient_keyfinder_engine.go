@@ -24,8 +24,6 @@ type SaltpackRecipientKeyfinderEngine struct {
 	engine.SaltpackUserKeyfinder
 	SymmetricEntityKeyMap map[keybase1.TeamID](keybase1.TeamApplicationKey)
 	SaltpackSymmetricKeys []libkb.SaltpackReceiverSymmetricKey
-
-	SkipTlfKeysForTesting bool // CORE-8423 remove this after most clients update
 }
 
 var _ libkb.Engine2 = (*SaltpackRecipientKeyfinderEngine)(nil)
@@ -39,23 +37,13 @@ func NewSaltpackRecipientKeyfinderEngineAsInterface(arg libkb.SaltpackRecipientK
 	}
 }
 
-// SaltpackRecipientKeyfinderEngineForTesting creates a SaltpackRecipientKeyfinderEngine engine.
-// CORE-8423 remove this after most clients update
-func NewSaltpackRecipientKeyfinderEngineAsInterfaceForTesting(arg libkb.SaltpackRecipientKeyfinderArg) libkb.SaltpackRecipientKeyfinderEngineInterface {
-	return &SaltpackRecipientKeyfinderEngine{
-		SaltpackUserKeyfinder: *engine.NewSaltpackUserKeyfinder(arg),
-		SymmetricEntityKeyMap: make(map[keybase1.TeamID](keybase1.TeamApplicationKey)),
-		SkipTlfKeysForTesting: true,
-	}
-}
-
 // Name is the unique engine name.
 func (e *SaltpackRecipientKeyfinderEngine) Name() string {
 	return "SaltpackRecipientKeyfinder"
 }
 
 func (e *SaltpackRecipientKeyfinderEngine) Run(m libkb.MetaContext) (err error) {
-	defer m.CTrace("SaltpackRecipientKeyfinder#Run", func() error { return err })()
+	defer m.Trace("SaltpackRecipientKeyfinder#Run", &err)()
 
 	err = e.AddOwnKeysIfNeeded(m)
 	if err != nil {
@@ -68,16 +56,6 @@ func (e *SaltpackRecipientKeyfinderEngine) Run(m libkb.MetaContext) (err error) 
 	}
 
 	err = e.uploadKeyPseudonymsAndGenerateSymmetricKeys(m)
-
-	// CORE-8423 remove this after most clients update
-	// Note: we do not add tlf keys for users added as members of a recipient team.
-	if !e.SkipTlfKeysForTesting && !e.Arg.NoSelfEncrypt && len(e.Arg.Recipients) > 0 {
-		kf := NewSaltpackKBFSKeyfinderEngineForTesting(e.Arg)
-		if err := engine.RunEngine2(m, kf); err != nil {
-			return err
-		}
-		e.SaltpackSymmetricKeys = append(e.SaltpackSymmetricKeys, kf.GetSymmetricKeys()...)
-	}
 
 	return err
 }
@@ -139,11 +117,11 @@ func (e *SaltpackRecipientKeyfinderEngine) addPUKOrImplicitTeamKeys(m libkb.Meta
 		return nil
 	}
 	if m.ActiveDevice().Valid() {
-		m.CDebugf("user %v (%v) does not have a PUK, adding the implicit team key instead", upk.Username, upk.Uid)
+		m.Debug("user %v (%v) does not have a PUK, adding the implicit team key instead", upk.Username, upk.Uid)
 		err = e.lookupAndAddImplicitTeamKeys(m, upk.Username)
 		return err
 	}
-	m.CDebugf("user %v (%v) does not have a PUK, and there is no logged in user, so we cannot resort to implicit teams", upk.Username, upk.Uid)
+	m.Debug("user %v (%v) does not have a PUK, and there is no logged in user, so we cannot resort to implicit teams", upk.Username, upk.Uid)
 	return libkb.NewLoginRequiredError(fmt.Sprintf("Encrypting for %v requires logging in", upk.Username))
 }
 
@@ -158,13 +136,13 @@ func (e *SaltpackRecipientKeyfinderEngine) identifyAndAddUserRecipient(m libkb.M
 	case libkb.IsNotFoundError(err) || libkb.IsResolutionNotFoundError(err):
 		// recipient is not a keybase user
 
-		expr, err := externals.AssertionParse(m.G(), u)
+		expr, err := externals.AssertionParse(m, u)
 		if err != nil {
-			m.CDebugf("error parsing assertion: %s", err)
+			m.Debug("error parsing assertion: %s", err)
 			return libkb.NewRecipientNotFoundError(fmt.Sprintf("Cannot encrypt for %v: it is not a keybase user or social assertion (err = %v)", u, err))
 		}
 		if _, err := expr.ToSocialAssertion(); err != nil {
-			m.CDebugf("not a social assertion: %s (%s), err: %+v", u, expr, err)
+			m.Debug("not a social assertion: %s (%s), err: %+v", u, expr, err)
 			return libkb.NewRecipientNotFoundError(fmt.Sprintf("Cannot encrypt for %v: it is not a keybase user or social assertion (err = %v)", u, err))
 		}
 
@@ -178,12 +156,14 @@ func (e *SaltpackRecipientKeyfinderEngine) identifyAndAddUserRecipient(m libkb.M
 			return libkb.NewRecipientNotFoundError(fmt.Sprintf("Cannot encrypt for %v: it is not a registered user (you can remove `--no-self-encrypt` for users not yet on keybase)", u))
 		}
 
-		m.CDebugf("%q is not an existing user, trying to create an implicit team", u)
+		m.Debug("%q is not an existing user, trying to create an implicit team", u)
 		err = e.lookupAndAddImplicitTeamKeys(m, u)
 		return err
 	case libkb.IsNoKeyError(err):
 		// User exists but has no keys. Just try adding implicit team keys.
 		return e.lookupAndAddImplicitTeamKeys(m, u)
+	case libkb.IsAssertionParseErrorWithReason(err, libkb.AssertionParseErrorReasonUnexpectedOR):
+		return err
 	default:
 		return fmt.Errorf("Error while adding keys for %v: %v", u, err)
 	}
@@ -225,7 +205,7 @@ func (e *SaltpackRecipientKeyfinderEngine) lookupAndAddTeam(m libkb.MetaContext,
 		if err != nil {
 			return err
 		}
-		m.CDebugf("Adding team key for team %v", teamName)
+		m.Debug("Adding team key for team %v", teamName)
 		e.SymmetricEntityKeyMap[team.ID] = appKey
 	}
 
@@ -239,7 +219,7 @@ func (e *SaltpackRecipientKeyfinderEngine) lookupAndAddTeam(m libkb.MetaContext,
 		for _, userVersion := range members.AllUserVersions() {
 			uid := userVersion.Uid
 			if e.Arg.NoSelfEncrypt && m.CurrentUID() == uid {
-				m.CDebugf("skipping device and paper keys for %v as part of team %v because of NoSelfEncrypt", uid, teamName)
+				m.Debug("skipping device and paper keys for %v as part of team %v because of NoSelfEncrypt", uid, teamName)
 				continue
 			}
 			arg := libkb.NewLoadUserArgWithMetaContext(m).WithUID(uid).WithForcePoll(true).WithPublicKeyOptional()
@@ -249,17 +229,17 @@ func (e *SaltpackRecipientKeyfinderEngine) lookupAndAddTeam(m libkb.MetaContext,
 			}
 			// Skip deleted and reset users
 			if upak.Current.Status == keybase1.StatusCode_SCDeleted {
-				m.CDebugf("skipping device and paper keys for %v as part of team %v because it is deleted", uid, teamName)
+				m.Debug("skipping device and paper keys for %v as part of team %v because it is deleted", uid, teamName)
 				continue
 			}
 			if !userVersion.Eq(upak.Current.ToUserVersion()) {
-				m.CDebugf("skipping device and paper keys for %v as part of team %v because the user version doesn't match", uid, teamName)
+				m.Debug("skipping device and paper keys for %v as part of team %v because the user version doesn't match", uid, teamName)
 				continue
 			}
 
 			err = e.AddDeviceAndPaperKeys(m, &upak.Current)
 			if err != nil {
-				m.CDebugf("failed to add device and paper keys for %v as part of team %v, continuing...")
+				m.Debug("failed to add device and paper keys for %v as part of team %v, continuing...")
 			}
 		}
 	}
@@ -292,9 +272,10 @@ func (e *SaltpackRecipientKeyfinderEngine) lookupAndAddImplicitTeamKeys(m libkb.
 	if err != nil {
 		return err
 	}
-	m.CDebugf("adding team key for implicit team %v", impTeamName)
-	m.CWarningf("encrypting for %v who is not yet a keybase user (or does not have a provisioned device): one of your devices will need to be online after they join keybase (or provision a new device), or they won't be able to decrypt it.", validSocialAssertionOrExistingUser)
+	m.Debug("adding team key for implicit team %v", impTeamName)
+	e.UsingSBS = true
+	e.SBSAssertion = validSocialAssertionOrExistingUser
 	e.SymmetricEntityKeyMap[team.ID] = appKey
 
-	return err
+	return nil
 }

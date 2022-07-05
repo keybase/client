@@ -8,8 +8,11 @@ import (
 	"strings"
 )
 
-// Underscores allowed, just not first or doubled.
-var usernameRE = regexp.MustCompile(`^([a-zA-Z0-9]+_?)+$`)
+// UsernameRE is the regex for matching usernames. Underscores are allowed,
+// just not first or doubled.
+const UsernameRE = `(?:[a-zA-Z0-9]+_?)+`
+
+var usernameRE = regexp.MustCompile("^" + UsernameRE + "$")
 
 // CheckUsername returns true if the given string can be a Keybase
 // username.

@@ -58,6 +58,9 @@ func (s *stathatReporter) activityStatsReportLoop() {
 		}
 		for i, d := range durations {
 			tlfs, hosts, err := getter.GetActives(d.Duration)
+			if err != nil {
+				s.logger.Warn("GetActives", zap.Error(err))
+			}
 			if err = s.reporter.PostEZValue(statNamesTlfs[i], s.ezKey,
 				float64(tlfs)); err != nil {
 				s.logger.Warn("PostEZValue", zap.Error(err))

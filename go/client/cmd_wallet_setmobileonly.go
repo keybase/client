@@ -20,9 +20,9 @@ func newCmdWalletSetMobileOnly(cl *libcmdline.CommandLine, g *libkb.GlobalContex
 		Contextified: libkb.NewContextified(g),
 	}
 	return cli.Command{
-		Name: "set-mobile-only",
-		// Hide this command from `keybase wallet -h`, `keybase help wallet`:
-		// Usage: "Set an account to mobile-only mode",
+		Name:        "set-mobile-only",
+		Unlisted:    true, // Hide this command from `keybase wallet -h`, `keybase help wallet`
+		Usage:       "Set an account to mobile-only mode",
 		Description: "Set an account to mobile-only mode",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(cmd, "set-mobile-only", c)

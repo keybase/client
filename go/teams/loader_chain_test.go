@@ -14,6 +14,9 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/sig3"
+	"github.com/keybase/client/go/teams/hidden"
+	storage "github.com/keybase/client/go/teams/storage"
 
 	jsonw "github.com/keybase/go-jsonw"
 )
@@ -24,11 +27,14 @@ type TestCase struct {
 	Teams    map[string] /*team label*/ struct {
 		ID           keybase1.TeamID   `json:"id"`
 		Links        []json.RawMessage `json:"links"`
+		Hidden       []sig3.ExportJSON `json:"hidden"`
 		TeamKeyBoxes []struct {
-			Seqno   keybase1.Seqno        `json:"seqno"` // the team seqno at which the box was added
-			TeamBox TeamBox               `json:"box"`
-			Prev    *prevKeySealedEncoded `json:"prev"`
+			ChainType keybase1.SeqType      `json:"chain_type"`
+			Seqno     keybase1.Seqno        `json:"seqno"` // the team seqno at which the box was added
+			TeamBox   TeamBox               `json:"box"`
+			Prev      *prevKeySealedEncoded `json:"prev"`
 		} `json:"team_key_boxes"`
+		RatchetBlindingKeySet *hidden.RatchetBlindingKeySet `json:"ratchet_blinding_keys"`
 	} `json:"teams"`
 	Users map[string] /*user label*/ struct {
 		UID               keybase1.UID   `json:"uid"`
@@ -39,8 +45,9 @@ type TestCase struct {
 	KeyOwners        map[keybase1.KID] /*kid*/ string/*username*/ `json:"key_owners"`
 	KeyPubKeyV2NaCls map[keybase1.KID]json.RawMessage `json:"key_pubkeyv2nacls"`
 	TeamMerkle       map[string] /*TeamID AND TeamID-seqno:Seqno*/ struct {
-		Seqno  keybase1.Seqno  `json:"seqno"`
-		LinkID keybase1.LinkID `json:"link_id"`
+		Seqno      keybase1.Seqno             `json:"seqno"`
+		LinkID     keybase1.LinkID            `json:"link_id"`
+		HiddenResp libkb.MerkleHiddenResponse `json:"hidden_response"`
 	} `json:"team_merkle"`
 	MerkleTriples map[string] /*LeafID-HashMeta*/ libkb.MerkleTriple `json:"merkle_triples"`
 
@@ -49,6 +56,7 @@ type TestCase struct {
 		Loads []TestCaseLoad `json:"loads"`
 	} `json:"sessions"`
 
+	Skip bool `json:"skip"`
 	Todo bool `json:"todo"`
 }
 
@@ -65,11 +73,13 @@ type TestCaseLoad struct {
 	OmitPrevs     keybase1.PerTeamKeyGeneration `json:"omit_prevs"`     // Do not return prevs that contain the secret for <= this number
 	ForceLastBox  bool                          `json:"force_last_box"` // Send the last known box no matter what
 	OmitBox       bool                          `json:"omit_box"`       // Send no box
+	HiddenUpto    keybase1.Seqno                `json:"hidden_upto"`    // Load up to this seqno inclusive (for hidden chains)
 
 	// Expected result
 	Error            bool   `json:"error"`
 	ErrorSubstr      string `json:"error_substr"`
 	ErrorType        string `json:"error_type"`
+	ErrorTypeFull    string `json:"error_type_full"`
 	ErrorAfterGetKey bool   `json:"error_after_get_key"`
 	NStubbed         *int   `json:"n_stubbed"`
 	ThenGetKey       int    `json:"then_get_key"`
@@ -80,6 +90,7 @@ func getTeamchainJSONDir(t *testing.T) string {
 	require.NoError(t, err)
 	jsonDir := filepath.Join(cwd, "../vendor/github.com/keybase/keybase-test-vectors/teamchains")
 	if os.Getenv("KEYBASE_TEAM_TEST_NOVENDOR") == "1" {
+		t.Log("Ignoring vendored keybase-test-vectors/teamchains test cases due to env variable (using the local copy at ../../../keybase-test-vectors/teamchains instead)")
 		jsonDir = filepath.Join(cwd, "../../../keybase-test-vectors/teamchains")
 	}
 	return jsonDir
@@ -92,13 +103,18 @@ func TestUnits(t *testing.T) {
 	require.NoError(t, err)
 	selectUnit := os.Getenv("KEYBASE_TEAM_TEST_SELECT")
 	var runLog []string
+	var skipLog []string
 	for _, f := range files {
 		if !f.IsDir() && strings.HasSuffix(f.Name(), ".json") {
 			if len(selectUnit) > 0 && f.Name() != selectUnit && f.Name() != selectUnit+".json" {
 				continue
 			}
-			runUnitFile(t, filepath.Join(jsonDir, f.Name()))
-			runLog = append(runLog, f.Name())
+			_, didRun := runUnitFile(t, filepath.Join(jsonDir, f.Name()))
+			if didRun {
+				runLog = append(runLog, f.Name())
+			} else {
+				skipLog = append(skipLog, f.Name())
+			}
 		}
 	}
 	require.NotZero(t, runLog, "found no test units")
@@ -106,31 +122,66 @@ func TestUnits(t *testing.T) {
 	for _, name := range runLog {
 		t.Logf("  ✓ %v", name)
 	}
+	if len(skipLog) > 0 {
+		s := ""
+		if len(skipLog) != 1 {
+			s = "s"
+		}
+		t.Logf("skipped %d unit%s", len(skipLog), s)
+		for _, name := range skipLog {
+			t.Logf("  ⏭️ %s", name)
+		}
+	}
 	if len(selectUnit) > 0 {
 		t.Fatalf("test passed but only ran selected unit: %v", runLog)
 	}
 }
 
-func runUnitFile(t *testing.T, jsonPath string) *Team {
+func runUnitFile(t *testing.T, jsonPath string) (*Team, bool) {
 	fileName := filepath.Base(jsonPath)
 	t.Logf("reading test json file: %v", fileName)
 	data, err := ioutil.ReadFile(jsonPath)
 	require.NoError(t, err)
 	var unit TestCase
 	err = json.Unmarshal(data, &unit)
-	require.NoError(t, err, "reading unit file json")
+	if err != nil {
+		handleTestCaseLoadFailure(t, data, err)
+		return nil, true
+	}
 	unit.FileName = fileName
 	return runUnit(t, unit)
 }
 
-func runUnitFromFilename(t *testing.T, filename string) *Team {
+type loadFailure struct {
+	Failure struct {
+		Error         bool   `json:"error"`
+		ErrorTypeFull string `json:"error_type_full"`
+		ErrorSubstr   string `json:"error_substr"`
+	} `json:"load_failure"`
+}
+
+func handleTestCaseLoadFailure(t *testing.T, data []byte, loadErr error) {
+	var unit loadFailure
+	err := json.Unmarshal(data, &unit)
+	require.NoError(t, err, "reading unit file json (after failure)")
+	require.True(t, unit.Failure.Error, "unexpected failure in test load: %v", loadErr)
+	require.Equal(t, unit.Failure.ErrorTypeFull, reflect.TypeOf(loadErr).String())
+	require.Contains(t, loadErr.Error(), unit.Failure.ErrorSubstr)
+}
+
+func runUnitFromFilename(t *testing.T, filename string) (*Team, bool) {
 	jsonDir := getTeamchainJSONDir(t)
 	return runUnitFile(t, filepath.Join(jsonDir, filename))
 }
 
-func runUnit(t *testing.T, unit TestCase) (lastLoadRet *Team) {
+func runUnit(t *testing.T, unit TestCase) (lastLoadRet *Team, didRun bool) {
 	t.Logf("starting unit: %v", unit.FileName)
 	defer t.Logf("exit unit: %v", unit.FileName)
+
+	if unit.Skip {
+		t.Logf("Marked 'skip' so skipping")
+		return nil, false
+	}
 
 	// Print the link payloads
 	for teamLabel, team := range unit.Teams {
@@ -156,6 +207,9 @@ func runUnit(t *testing.T, unit TestCase) (lastLoadRet *Team) {
 				t.Logf("team link '%v' #'%v': %v", teamLabel, i+1, string(bs))
 			}
 		}
+		for i, bundle := range team.Hidden {
+			t.Logf("team hidden'%v' #'%v': %+v", teamLabel, i+1, bundle)
+		}
 	}
 
 	require.NotNil(t, unit.Sessions, "unit has no sessions")
@@ -173,8 +227,9 @@ func runUnit(t *testing.T, unit TestCase) (lastLoadRet *Team) {
 		// Install a loader with a mock interface to the outside world.
 		t.Logf("install mock loader")
 		mock := NewMockLoaderContext(t, tc.G, unit)
-		storage := NewStorage(tc.G)
-		loader := NewTeamLoader(tc.G, mock, storage)
+		merkleStorage := storage.NewMerkle()
+		storage := storage.NewStorage(tc.G)
+		loader := NewTeamLoader(tc.G, mock, storage, merkleStorage)
 		tc.G.SetTeamLoader(loader)
 
 		for iLoad, loadSpec := range session.Loads {
@@ -183,9 +238,10 @@ func runUnit(t *testing.T, unit TestCase) (lastLoadRet *Team) {
 				loadSpec: loadSpec,
 			}
 			loadArg := keybase1.LoadTeamArg{
-				NeedAdmin:   loadSpec.NeedAdmin,
-				ForceRepoll: iLoad > 0,
-				Name:        mock.defaultTeamName.String(),
+				NeedAdmin:                 loadSpec.NeedAdmin,
+				ForceRepoll:               iLoad > 0,
+				Name:                      mock.defaultTeamName.String(),
+				SkipNeedHiddenRotateCheck: true,
 			}
 			if loadSpec.NeedKeyGeneration > 0 {
 				loadArg.Refreshers = keybase1.TeamRefreshers{
@@ -219,6 +275,9 @@ func runUnit(t *testing.T, unit TestCase) (lastLoadRet *Team) {
 							if len(loadSpec.ErrorType) > 0 {
 								require.Equal(t, loadSpec.ErrorType, reflect.TypeOf(err).Name(), "unexpected error type [%T]", err)
 							}
+							if len(loadSpec.ErrorTypeFull) > 0 {
+								require.Equal(t, loadSpec.ErrorTypeFull, reflect.TypeOf(err).String(), "unexpected error type [%T]", err)
+							}
 						}
 					} else {
 						require.False(t, loadSpec.ErrorAfterGetKey, "test does not make sense: ErrorAfterGetKey but no ThenGetKey")
@@ -233,6 +292,9 @@ func runUnit(t *testing.T, unit TestCase) (lastLoadRet *Team) {
 				if len(loadSpec.ErrorType) > 0 {
 					require.Equal(t, loadSpec.ErrorType, reflect.TypeOf(err).Name(), "unexpected error type [%T]", err)
 				}
+				if len(loadSpec.ErrorTypeFull) > 0 {
+					require.Equal(t, loadSpec.ErrorTypeFull, reflect.TypeOf(err).String(), "unexpected error type [%T]", err)
+				}
 			}
 
 			lastLoadRet = team
@@ -240,5 +302,5 @@ func runUnit(t *testing.T, unit TestCase) (lastLoadRet *Team) {
 	}
 
 	require.False(t, unit.Todo, "test marked as TODO")
-	return lastLoadRet
+	return lastLoadRet, true
 }

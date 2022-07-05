@@ -15,6 +15,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/keybase/client/go/kbfs/libcontext"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/kbun"
 )
@@ -62,13 +63,13 @@ func unames(uns []string) []kbun.NormalizedUsername {
 }
 
 func testNoExec(t *testing.T, users []string) error {
-	ctx := libkbfs.BackgroundContextWithCancellationDelayer()
-	defer libkbfs.CleanupCancellationDelayer(ctx)
+	ctx := libcontext.BackgroundContextWithCancellationDelayer()
+	defer testCleanupDelayer(ctx, t)
 	config := libkbfs.MakeTestConfigOrBust(t, unames(users)...)
 	// Background flushed needed for large files.
 	config.SetDoBackgroundFlushes(true)
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
-	mnt, _, cancelFn := makeFS(t, ctx, config)
+	mnt, _, cancelFn := makeFS(ctx, t, config)
 	defer mnt.Close()
 	defer cancelFn()
 

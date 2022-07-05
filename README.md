@@ -12,13 +12,15 @@ But - some of the things in this repo are explorations, and the app you build
 from source just *might not do what it says it's doing*. So, if you just want
 to install Keybase on your computer, you should **[monitor our releases](https://keybase.io/download)** for macOS, Linux, or Windows.
 
+If you're interested in our Docker image releases, please check out **[the Docker README](packaging/linux/docker/README.md)**.
+
 ![Sharing](https://keybase.io/images/github/repo_share.png?)
 
 
 ### Code Layout
 
 * **go**: Core crypto libraries; the Keybase service; the command line client. [Learn More](go/README.md)
-* **shared/react-native**: Android and iOS apps developed with [React Native](https://facebook.github.io/react-native/).
+* **shared/{android,ios}**: Android and iOS apps developed with [React Native](https://facebook.github.io/react-native/).
 * **shared/desktop**: Desktop application for macOS, Linux, and Windows, made with the [Electron](https://github.com/atom/electron) framework, sharing React code with react-native.
 * **packaging**: Scripts for releasing packages across the various platforms.
 * **protocol**: Defines the protocol for communication for clients to the Keybase services. Uses [Avro](http://avro.apache.org/docs/1.7.7/). [Learn More](protocol/README.md)

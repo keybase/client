@@ -76,7 +76,7 @@ import (
 
 func previewVideo(ctx context.Context, log utils.DebugLabeler, src io.Reader,
 	basename string, nvh types.NativeVideoHelper) (res *PreviewRes, err error) {
-	defer log.Trace(ctx, func() error { return err }, "previewVideo")()
+	defer log.Trace(ctx, &err, "previewVideo")()
 	C.MakeVideoThumbnail(C.CString(basename))
 	duration := int(C.VideoDuration())
 	if duration < 1 {
@@ -105,3 +105,5 @@ func previewVideo(ctx context.Context, log utils.DebugLabeler, src io.Reader,
 		PreviewWidth:   imagePreview.PreviewWidth,
 	}, nil
 }
+
+func LinkNoop() {}

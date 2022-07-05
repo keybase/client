@@ -1,0 +1,29 @@
+@namespace("keybase.1")
+protocol audit {
+    import idl "common.avdl";
+    import idl "teams.avdl";
+
+    enum BoxAuditAttemptResult {
+        FAILURE_RETRYABLE_0,
+        FAILURE_MALICIOUS_SERVER_1,
+        OK_VERIFIED_2,
+        OK_NOT_ATTEMPTED_ROLE_3,
+        OK_NOT_ATTEMPTED_OPENTEAM_4,
+        OK_NOT_ATTEMPTED_SUBTEAM_5
+    }
+
+    record BoxAuditAttempt {
+        UnixTime ctime;
+        union { null, string } error;
+        BoxAuditAttemptResult result;
+        union { null, PerTeamKeyGeneration } generation;
+        boolean rotated;
+
+        // we do not include the expected or actual summaries
+    }
+
+    boolean isInJail(int sessionID, TeamID teamID);
+    union { null, BoxAuditAttempt } boxAuditTeam(int sessionID, TeamID teamID);
+    BoxAuditAttempt attemptBoxAudit(int sessionID, TeamID teamID, boolean rotateBeforeAudit);
+    array<TeamID> knownTeamIDs(int sessionID);
+}

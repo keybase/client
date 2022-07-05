@@ -32,7 +32,7 @@ func (t Token) getString() string {
 func (t Token) unexpectedError() error {
 	switch t.Typ {
 	case EOF:
-		return NewAssertionParseError("Unexpected EOF")
+		return NewAssertionParseError("Unexpected EOF parsing assertion")
 	case ERROR:
 		// Nothing was matched when arrived at t.value.
 		return NewAssertionParseError("Syntax error when parsing: %v", t.getString())
@@ -233,7 +233,10 @@ func (p *Parser) parseExpr(ctx AssertionContext) (ret AssertionExpression) {
 		ret = term
 		p.lexer.Putback()
 	} else if p.andOnly {
-		p.err = NewAssertionParseError("Unexpected 'OR' operator")
+		p.err = NewAssertionParseErrorWithReason(
+			AssertionParseErrorReasonUnexpectedOR,
+			"Unexpected 'OR' operator (no '||'s or ','s allowed in this context)",
+		)
 	} else {
 		ex := p.parseExpr(ctx)
 		ret = NewAssertionOr(term, ex, string(tok.value))
@@ -334,7 +337,8 @@ func checkAssertionListItem(expr AssertionExpression) error {
 	case AssertionOr:
 		// this should never happen
 		return fmt.Errorf("assertion parse fault: unexpected OR")
+	default:
+		// Anything else is allowed.
+		return nil
 	}
-	// Anything else is allowed.
-	return nil
 }

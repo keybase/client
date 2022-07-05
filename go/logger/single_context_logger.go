@@ -68,9 +68,6 @@ func (s *SingleContextLogger) Profile(fmts string, arg ...interface{}) {
 func (s *SingleContextLogger) Configure(style string, debug bool, filename string) {
 	s.logger.Configure(style, debug, filename)
 }
-func (s *SingleContextLogger) RotateLogFile() error {
-	return s.logger.RotateLogFile()
-}
 func (s *SingleContextLogger) CloneWithAddedDepth(depth int) Logger {
 	return &SingleContextLogger{
 		ctx:    s.ctx,

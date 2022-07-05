@@ -1,7 +1,7 @@
 // Copyright 2015 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
 
-// +build linux freebsd openbsd
+// +build linux freebsd netbsd openbsd
 
 package install
 
@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
 // Similar to the Brew install on OSX, the Unix install happens in two steps.
@@ -113,6 +114,17 @@ func ToggleAutostart(context Context, on bool, forAutoinstall bool) error {
 	}
 
 	return nil
+}
+
+func GetAutostart(context Context) keybase1.OnLoginStartupStatus {
+	bs, _ := ioutil.ReadFile(autostartFilePath(context))
+	switch string(bs) {
+	case autostartFileText:
+		return keybase1.OnLoginStartupStatus_ENABLED
+	case disabledAutostartFileText:
+		return keybase1.OnLoginStartupStatus_DISABLED
+	}
+	return keybase1.OnLoginStartupStatus_UNKNOWN
 }
 
 // AutoInstall installs auto start on unix

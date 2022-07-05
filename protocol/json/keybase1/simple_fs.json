@@ -82,6 +82,30 @@
         {
           "type": "KBFSArchivedParam",
           "name": "archivedParam"
+        },
+        {
+          "type": [
+            null,
+            "TLFIdentifyBehavior"
+          ],
+          "name": "identifyBehavior"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "KBFSPath",
+      "fields": [
+        {
+          "type": "string",
+          "name": "path"
+        },
+        {
+          "type": [
+            null,
+            "TLFIdentifyBehavior"
+          ],
+          "name": "identifyBehavior"
         }
       ]
     },
@@ -114,7 +138,7 @@
             "name": "KBFS",
             "def": false
           },
-          "body": "string"
+          "body": "KBFSPath"
         },
         {
           "label": {
@@ -201,6 +225,10 @@
         {
           "type": "PrefetchProgress",
           "name": "prefetchProgress"
+        },
+        {
+          "type": "string",
+          "name": "symlinkTarget"
         }
       ]
     },
@@ -418,6 +446,10 @@
         {
           "type": "Path",
           "name": "dest"
+        },
+        {
+          "type": "boolean",
+          "name": "overwriteExistingFiles"
         }
       ]
     },
@@ -436,6 +468,10 @@
         {
           "type": "Path",
           "name": "dest"
+        },
+        {
+          "type": "boolean",
+          "name": "overwriteExistingFiles"
         }
       ]
     },
@@ -591,21 +627,6 @@
     },
     {
       "type": "record",
-      "name": "SimpleFSGetHTTPAddressAndTokenResponse",
-      "fields": [
-        {
-          "type": "string",
-          "name": "address"
-        },
-        {
-          "type": "string",
-          "name": "token"
-        }
-      ],
-      "lint": "ignore"
-    },
-    {
-      "type": "record",
       "name": "SimpleFSQuotaUsage",
       "fields": [
         {
@@ -662,28 +683,6 @@
     },
     {
       "type": "record",
-      "name": "FolderSyncStatus",
-      "fields": [
-        {
-          "type": "int64",
-          "name": "localDiskBytesAvailable"
-        },
-        {
-          "type": "int64",
-          "name": "localDiskBytesTotal"
-        },
-        {
-          "type": "PrefetchStatus",
-          "name": "prefetchStatus"
-        },
-        {
-          "type": "PrefetchProgress",
-          "name": "prefetchProgress"
-        }
-      ]
-    },
-    {
-      "type": "record",
       "name": "FolderSyncConfigAndStatus",
       "fields": [
         {
@@ -693,6 +692,359 @@
         {
           "type": "FolderSyncStatus",
           "name": "status"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "FolderSyncConfigAndStatusWithFolder",
+      "fields": [
+        {
+          "type": "Folder",
+          "name": "folder"
+        },
+        {
+          "type": "FolderSyncConfig",
+          "name": "config"
+        },
+        {
+          "type": "FolderSyncStatus",
+          "name": "status"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SyncConfigAndStatusRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "FolderSyncConfigAndStatusWithFolder"
+          },
+          "name": "folders"
+        },
+        {
+          "type": "FolderSyncStatus",
+          "name": "overallStatus"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "FolderWithFavFlags",
+      "fields": [
+        {
+          "type": "Folder",
+          "name": "folder"
+        },
+        {
+          "type": "boolean",
+          "name": "isFavorite"
+        },
+        {
+          "type": "boolean",
+          "name": "isIgnored"
+        },
+        {
+          "type": "boolean",
+          "name": "isNew"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "KbfsOnlineStatus",
+      "symbols": [
+        "OFFLINE_0",
+        "TRYING_1",
+        "ONLINE_2"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "FSSettings",
+      "fields": [
+        {
+          "type": "int64",
+          "name": "spaceAvailableNotificationThreshold"
+        },
+        {
+          "type": "boolean",
+          "name": "sfmiBannerDismissed",
+          "lint": "ignore"
+        },
+        {
+          "type": "boolean",
+          "name": "syncOnCellular"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SimpleFSStats",
+      "fields": [
+        {
+          "type": "ProcessRuntimeStats",
+          "name": "processStats"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "blockCacheDbStats"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "syncCacheDbStats"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "DbStats"
+          },
+          "name": "runtimeDbStats"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "SubscriptionTopic",
+      "symbols": [
+        "FAVORITES_0",
+        "JOURNAL_STATUS_1",
+        "ONLINE_STATUS_2",
+        "DOWNLOAD_STATUS_3",
+        "FILES_TAB_BADGE_4",
+        "OVERALL_SYNC_STATUS_5",
+        "SETTINGS_6",
+        "UPLOAD_STATUS_7"
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "PathSubscriptionTopic",
+      "symbols": [
+        "CHILDREN_0",
+        "STAT_1"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "DownloadInfo",
+      "fields": [
+        {
+          "type": "string",
+          "name": "downloadID"
+        },
+        {
+          "type": "KBFSPath",
+          "name": "path"
+        },
+        {
+          "type": "string",
+          "name": "filename"
+        },
+        {
+          "type": "Time",
+          "name": "startTime"
+        },
+        {
+          "type": "boolean",
+          "name": "isRegularDownload"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "DownloadState",
+      "fields": [
+        {
+          "type": "string",
+          "name": "downloadID"
+        },
+        {
+          "type": "double",
+          "name": "progress"
+        },
+        {
+          "type": "Time",
+          "name": "endEstimate"
+        },
+        {
+          "type": "string",
+          "name": "localPath"
+        },
+        {
+          "type": "string",
+          "name": "error"
+        },
+        {
+          "type": "boolean",
+          "name": "done"
+        },
+        {
+          "type": "boolean",
+          "name": "canceled"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "DownloadStatus",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "regularDownloadIDs"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "DownloadState"
+          },
+          "name": "states"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UploadState",
+      "fields": [
+        {
+          "type": "string",
+          "name": "uploadID"
+        },
+        {
+          "type": "KBFSPath",
+          "name": "targetPath"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "error"
+        },
+        {
+          "type": "boolean",
+          "name": "canceled"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "FilesTabBadge",
+      "symbols": [
+        "NONE_0",
+        "UPLOADING_STUCK_1",
+        "AWAITING_UPLOAD_2",
+        "UPLOADING_3"
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "GUIViewType",
+      "symbols": [
+        "DEFAULT_0",
+        "TEXT_1",
+        "IMAGE_2",
+        "AUDIO_3",
+        "VIDEO_4",
+        "PDF_5"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "GUIFileContext",
+      "fields": [
+        {
+          "type": "GUIViewType",
+          "name": "viewType"
+        },
+        {
+          "type": "string",
+          "name": "contentType"
+        },
+        {
+          "type": "string",
+          "name": "url"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SimpleFSSearchHit",
+      "fields": [
+        {
+          "type": "string",
+          "name": "path"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SimpleFSSearchResults",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "SimpleFSSearchHit"
+          },
+          "name": "hits"
+        },
+        {
+          "type": "int",
+          "name": "nextResult"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "IndexProgressRecord",
+      "fields": [
+        {
+          "type": "Time",
+          "name": "endEstimate"
+        },
+        {
+          "type": "int64",
+          "name": "bytesTotal"
+        },
+        {
+          "type": "int64",
+          "name": "bytesSoFar"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SimpleFSIndexProgress",
+      "fields": [
+        {
+          "type": "IndexProgressRecord",
+          "name": "overallProgress"
+        },
+        {
+          "type": "Folder",
+          "name": "currFolder"
+        },
+        {
+          "type": "IndexProgressRecord",
+          "name": "currProgress"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "Folder"
+          },
+          "name": "foldersLeft"
         }
       ]
     }
@@ -791,10 +1143,14 @@
         {
           "name": "dest",
           "type": "Path"
+        },
+        {
+          "name": "overwriteExistingFiles",
+          "type": "boolean"
         }
       ],
       "response": null,
-      "doc": "Begin copy of file or directory"
+      "doc": "Begin copy of file or directory."
     },
     "simpleFSSymlink": {
       "request": [
@@ -823,10 +1179,14 @@
         {
           "name": "dest",
           "type": "Path"
+        },
+        {
+          "name": "overwriteExistingFiles",
+          "type": "boolean"
         }
       ],
       "response": null,
-      "doc": "Begin recursive copy of directory"
+      "doc": "Begin recursive copy of directory \n\n   overwriteExistingFiles controls whether an existing file from `src` will\n   overwrite a file with the same name in `dest`; if `false`, an error will be\n   returned in that case.  For directories that share a name, the copy will\n   continue recursively into the directory without causing an error."
     },
     "simpleFSMove": {
       "request": [
@@ -841,6 +1201,10 @@
         {
           "name": "dest",
           "type": "Path"
+        },
+        {
+          "name": "overwriteExistingFiles",
+          "type": "boolean"
         }
       ],
       "response": null,
@@ -953,11 +1317,8 @@
           "type": "Path"
         },
         {
-          "name": "identifyBehavior",
-          "type": [
-            null,
-            "TLFIdentifyBehavior"
-          ]
+          "name": "refreshSubscription",
+          "type": "boolean"
         }
       ],
       "response": "Dirent",
@@ -1049,6 +1410,34 @@
       "response": null,
       "doc": "Instructs KBFS to dump debugging info into its logs."
     },
+    "simpleFSClearConflictState": {
+      "request": [
+        {
+          "name": "path",
+          "type": "Path"
+        }
+      ],
+      "response": null
+    },
+    "simpleFSFinishResolvingConflict": {
+      "request": [
+        {
+          "name": "path",
+          "type": "Path"
+        }
+      ],
+      "response": null
+    },
+    "simpleFSForceStuckConflict": {
+      "request": [
+        {
+          "name": "path",
+          "type": "Path"
+        }
+      ],
+      "response": null,
+      "doc": "Force a TLF into a stuck conflict state (for testing)."
+    },
     "simpleFSSyncStatus": {
       "request": [
         {
@@ -1058,12 +1447,6 @@
       ],
       "response": "FSSyncStatus",
       "doc": "Get sync status."
-    },
-    "SimpleFSGetHTTPAddressAndToken": {
-      "request": [],
-      "response": "SimpleFSGetHTTPAddressAndTokenResponse",
-      "doc": "This RPC generates a random token to be used by a client that needs to\n   access KBFS content through HTTP. It's fine to call this RPC more than once,\n   but it's probably best to call this once and keep using it. Clients should\n   be using HTTP GET methods, with requests in the form of:\n\n     http://<address>/<kbfs_path>?token=<token>\n\n   If the provided token is invalid, 403 Forbidden is returned, with a HTML\n   document that has title of \"KBFS HTTP Token Invalid\". When receiving such\n   response, client should call this RPC (again) to get a new token.",
-      "lint": "ignore"
     },
     "simpleFSUserEditHistory": {
       "request": [],
@@ -1083,16 +1466,35 @@
       "response": "FSFolderEditHistory",
       "doc": "simpleFSFolderEditHistory returns the edit history for the TLF\n   described by `path`, for the most recent writers of that TLF.\n   The writers are in descending order by the modification time (as\n   recorded by the server) of their most recent edit."
     },
+    "simpleFSListFavorites": {
+      "request": [],
+      "response": "FavoritesResult",
+      "doc": "simpleFSListFavorites gets the current favorites, ignored folders, and new\n   folders from the KBFS cache."
+    },
     "simpleFSGetUserQuotaUsage": {
       "request": [],
       "response": "SimpleFSQuotaUsage",
-      "doc": "simpleFSGetUserQuotaUsage returns the quota usage for the logged-in\n   user.  It results in an RPC to the server, and any usage includes\n   local journal usage as well."
+      "doc": "simpleFSGetUserQuotaUsage returns the quota usage for the logged-in\n   user.  Any usage includes local journal usage as well."
+    },
+    "simpleFSGetTeamQuotaUsage": {
+      "request": [
+        {
+          "name": "teamName",
+          "type": "TeamName"
+        }
+      ],
+      "response": "SimpleFSQuotaUsage",
+      "doc": "simpleFSGetTeamQuotaUsage returns the quota usage for the given team, if\n   the logged-in user has access to that team.  Any usage includes\n   local journal usage as well."
     },
     "simpleFSReset": {
       "request": [
         {
           "name": "path",
           "type": "Path"
+        },
+        {
+          "name": "tlfID",
+          "type": "string"
         }
       ],
       "response": null,
@@ -1119,6 +1521,341 @@
         }
       ],
       "response": null
+    },
+    "simpleFSSyncConfigAndStatus": {
+      "request": [
+        {
+          "name": "identifyBehavior",
+          "type": [
+            null,
+            "TLFIdentifyBehavior"
+          ]
+        }
+      ],
+      "response": "SyncConfigAndStatusRes"
+    },
+    "simpleFSGetFolder": {
+      "request": [
+        {
+          "name": "path",
+          "type": "KBFSPath"
+        }
+      ],
+      "response": "FolderWithFavFlags"
+    },
+    "simpleFSGetOnlineStatus": {
+      "request": [
+        {
+          "name": "clientID",
+          "type": "string"
+        }
+      ],
+      "response": "KbfsOnlineStatus"
+    },
+    "simpleFSCheckReachability": {
+      "request": [],
+      "response": null
+    },
+    "simpleFSSetDebugLevel": {
+      "request": [
+        {
+          "name": "level",
+          "type": "string"
+        }
+      ],
+      "response": null
+    },
+    "simpleFSSettings": {
+      "request": [],
+      "response": "FSSettings"
+    },
+    "simpleFSSetNotificationThreshold": {
+      "request": [
+        {
+          "name": "threshold",
+          "type": "int64"
+        }
+      ],
+      "response": null
+    },
+    "simpleFSSetSfmiBannerDismissed": {
+      "request": [
+        {
+          "name": "dismissed",
+          "type": "boolean"
+        }
+      ],
+      "response": null,
+      "lint": "ignore"
+    },
+    "simpleFSSetSyncOnCellular": {
+      "request": [
+        {
+          "name": "syncOnCellular",
+          "type": "boolean"
+        }
+      ],
+      "response": null
+    },
+    "simpleFSObfuscatePath": {
+      "request": [
+        {
+          "name": "path",
+          "type": "Path"
+        }
+      ],
+      "response": "string"
+    },
+    "simpleFSDeobfuscatePath": {
+      "request": [
+        {
+          "name": "path",
+          "type": "Path"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "string"
+      }
+    },
+    "simpleFSGetStats": {
+      "request": [],
+      "response": "SimpleFSStats"
+    },
+    "simpleFSSubscribePath": {
+      "request": [
+        {
+          "name": "identifyBehavior",
+          "type": [
+            null,
+            "TLFIdentifyBehavior"
+          ]
+        },
+        {
+          "name": "clientID",
+          "type": "string"
+        },
+        {
+          "name": "subscriptionID",
+          "type": "string"
+        },
+        {
+          "name": "kbfsPath",
+          "type": "string"
+        },
+        {
+          "name": "topic",
+          "type": "PathSubscriptionTopic"
+        },
+        {
+          "name": "deduplicateIntervalSecond",
+          "type": "int"
+        }
+      ],
+      "response": null
+    },
+    "simpleFSSubscribeNonPath": {
+      "request": [
+        {
+          "name": "identifyBehavior",
+          "type": [
+            null,
+            "TLFIdentifyBehavior"
+          ]
+        },
+        {
+          "name": "clientID",
+          "type": "string"
+        },
+        {
+          "name": "subscriptionID",
+          "type": "string"
+        },
+        {
+          "name": "topic",
+          "type": "SubscriptionTopic"
+        },
+        {
+          "name": "deduplicateIntervalSecond",
+          "type": "int"
+        }
+      ],
+      "response": null
+    },
+    "simpleFSUnsubscribe": {
+      "request": [
+        {
+          "name": "identifyBehavior",
+          "type": [
+            null,
+            "TLFIdentifyBehavior"
+          ]
+        },
+        {
+          "name": "clientID",
+          "type": "string"
+        },
+        {
+          "name": "subscriptionID",
+          "type": "string"
+        }
+      ],
+      "response": null
+    },
+    "simpleFSStartDownload": {
+      "request": [
+        {
+          "name": "path",
+          "type": "KBFSPath"
+        },
+        {
+          "name": "isRegularDownload",
+          "type": "boolean"
+        }
+      ],
+      "response": "string"
+    },
+    "simpleFSGetDownloadInfo": {
+      "request": [
+        {
+          "name": "downloadID",
+          "type": "string"
+        }
+      ],
+      "response": "DownloadInfo"
+    },
+    "simpleFSGetDownloadStatus": {
+      "request": [],
+      "response": "DownloadStatus"
+    },
+    "simpleFSCancelDownload": {
+      "request": [
+        {
+          "name": "downloadID",
+          "type": "string"
+        }
+      ],
+      "response": null
+    },
+    "simpleFSDismissDownload": {
+      "request": [
+        {
+          "name": "downloadID",
+          "type": "string"
+        }
+      ],
+      "response": null
+    },
+    "simpleFSConfigureDownload": {
+      "request": [
+        {
+          "name": "cacheDirOverride",
+          "type": "string"
+        },
+        {
+          "name": "downloadDirOverride",
+          "type": "string"
+        }
+      ],
+      "response": null
+    },
+    "simpleFSMakeTempDirForUpload": {
+      "request": [],
+      "response": "string"
+    },
+    "simpleFSStartUpload": {
+      "request": [
+        {
+          "name": "sourceLocalPath",
+          "type": "string"
+        },
+        {
+          "name": "targetParentPath",
+          "type": "KBFSPath"
+        }
+      ],
+      "response": "string"
+    },
+    "simpleFSGetUploadStatus": {
+      "request": [],
+      "response": {
+        "type": "array",
+        "items": "UploadState"
+      }
+    },
+    "simpleFSCancelUpload": {
+      "request": [
+        {
+          "name": "uploadID",
+          "type": "string"
+        }
+      ],
+      "response": null
+    },
+    "simpleFSDismissUpload": {
+      "request": [
+        {
+          "name": "uploadID",
+          "type": "string"
+        }
+      ],
+      "response": null
+    },
+    "simpleFSGetFilesTabBadge": {
+      "request": [],
+      "response": "FilesTabBadge"
+    },
+    "simpleFSGetGUIFileContext": {
+      "request": [
+        {
+          "name": "path",
+          "type": "KBFSPath"
+        }
+      ],
+      "response": "GUIFileContext"
+    },
+    "simpleFSUserIn": {
+      "request": [
+        {
+          "name": "clientID",
+          "type": "string"
+        }
+      ],
+      "response": null
+    },
+    "simpleFSUserOut": {
+      "request": [
+        {
+          "name": "clientID",
+          "type": "string"
+        }
+      ],
+      "response": null
+    },
+    "simpleFSSearch": {
+      "request": [
+        {
+          "name": "query",
+          "type": "string"
+        },
+        {
+          "name": "numResults",
+          "type": "int"
+        },
+        {
+          "name": "startingFrom",
+          "type": "int"
+        }
+      ],
+      "response": "SimpleFSSearchResults"
+    },
+    "simpleFSResetIndex": {
+      "request": [],
+      "response": null
+    },
+    "simpleFSGetIndexProgress": {
+      "request": [],
+      "response": "SimpleFSIndexProgress"
     }
   },
   "namespace": "keybase.1"

@@ -52,15 +52,16 @@ func process(h *handler, in nativemessaging.JSONDecoder, out nativemessaging.JSO
 		resp.Result, err = h.Handle(&req)
 	}
 
-	if err == io.EOF {
-		// Closed
-		return err
-	} else if err != nil {
-		resp.Status = "error"
-		resp.Message = err.Error()
-	} else {
+	switch err {
+	case nil:
 		// Success
 		resp.Status = "ok"
+	case io.EOF:
+		// Closed
+		return err
+	default:
+		resp.Status = "error"
+		resp.Message = err.Error()
 	}
 	resp.Client = req.Client
 

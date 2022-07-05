@@ -83,6 +83,83 @@
       "doc": "FSSyncEvent is called by KBFS when the sync status of an individual path\n    changes.",
       "lint": "ignore"
     },
+    "FSOverallSyncEvent": {
+      "request": [
+        {
+          "name": "status",
+          "type": "FolderSyncStatus"
+        }
+      ],
+      "response": null,
+      "doc": "FSOverallSyncEvent is called by KBFS when the overall sync status\n    changes.",
+      "lint": "ignore"
+    },
+    "FSOnlineStatusChangedEvent": {
+      "request": [
+        {
+          "name": "online",
+          "type": "boolean"
+        }
+      ],
+      "response": null,
+      "doc": "FSOnlineStatusChangedEvent is called by KBFS when the online status changes.",
+      "lint": "ignore"
+    },
+    "FSFavoritesChangedEvent": {
+      "request": [],
+      "response": null,
+      "doc": "FSFavoritesChangedEvent is called by KBFS when the favorites list changes.",
+      "lint": "ignore"
+    },
+    "FSSubscriptionNotifyPathEvent": {
+      "request": [
+        {
+          "name": "clientID",
+          "type": "string"
+        },
+        {
+          "name": "subscriptionIDs",
+          "type": {
+            "type": "array",
+            "items": "string"
+          }
+        },
+        {
+          "name": "path",
+          "type": "string"
+        },
+        {
+          "name": "topics",
+          "type": {
+            "type": "array",
+            "items": "PathSubscriptionTopic"
+          }
+        }
+      ],
+      "response": null,
+      "lint": "ignore"
+    },
+    "FSSubscriptionNotifyEvent": {
+      "request": [
+        {
+          "name": "clientID",
+          "type": "string"
+        },
+        {
+          "name": "subscriptionIDs",
+          "type": {
+            "type": "array",
+            "items": "string"
+          }
+        },
+        {
+          "name": "topic",
+          "type": "SubscriptionTopic"
+        }
+      ],
+      "response": null,
+      "lint": "ignore"
+    },
     "createTLF": {
       "request": [
         {
@@ -102,6 +179,10 @@
         {
           "name": "teamID",
           "type": "TeamID"
+        },
+        {
+          "name": "oa",
+          "type": "OfflineAvailability"
         }
       ],
       "response": "KBFSTeamSettings",

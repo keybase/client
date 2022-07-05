@@ -4,103 +4,109 @@
 package engine
 
 import (
+	"errors"
+
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
-// TrackerList is an engine to get a list of user's trackers
-// (other users tracking this user).
-type ListTrackersEngine struct {
-	uid      keybase1.UID
-	username string
-	trackers *libkb.Trackers
+type ListTrackersUnverifiedEngine struct {
 	libkb.Contextified
+	arg ListTrackersUnverifiedEngineArg
+	res keybase1.UserSummarySet
 }
 
-// NewListTrackers creates a TrackerList engine for uid.
-func NewListTrackers(g *libkb.GlobalContext, uid keybase1.UID) *ListTrackersEngine {
-	return &ListTrackersEngine{
-		uid:          uid,
+// If a UID is given, the engine will list its trackers
+// If an Assertion is given, the engine will try to resolve it to a UID via
+// remote unless CachedOnly is true.
+// Otherwise, the logged-in uid is used.
+// If no user is logged in, NoUIDError is returned.
+type ListTrackersUnverifiedEngineArg struct {
+	UID        keybase1.UID
+	Assertion  string
+	CachedOnly bool
+}
+
+func NewListTrackersUnverifiedEngine(g *libkb.GlobalContext, arg ListTrackersUnverifiedEngineArg) *ListTrackersUnverifiedEngine {
+	return &ListTrackersUnverifiedEngine{
 		Contextified: libkb.NewContextified(g),
+		arg:          arg,
 	}
 }
 
-// NewListTrackersByName creates a TrackerList engine that will
-// do a lookup by username.
-func NewListTrackersByName(username string) *ListTrackersEngine {
-	return &ListTrackersEngine{username: username}
-}
-
-func NewListTrackersSelf() *ListTrackersEngine {
-	return &ListTrackersEngine{}
-}
-
 // Name is the unique engine name.
-func (e *ListTrackersEngine) Name() string {
-	return "ListTrackersEngine"
+func (e *ListTrackersUnverifiedEngine) Name() string {
+	return "ListTrackersUnverifiedEngine"
 }
 
-// GetPrereqs returns the engine prereqs (none).
-func (e *ListTrackersEngine) Prereqs() Prereqs {
+func (e *ListTrackersUnverifiedEngine) Prereqs() Prereqs {
 	session := false
-	if e.uid.IsNil() && len(e.username) == 0 {
+	if len(e.arg.Assertion) == 0 && e.arg.UID.IsNil() {
 		session = true
 	}
 	return Prereqs{Device: session}
 }
 
-// RequiredUIs returns the required UIs.
-func (e *ListTrackersEngine) RequiredUIs() []libkb.UIKind {
-	return []libkb.UIKind{libkb.LogUIKind}
-}
-
-// SubConsumers returns the other UI consumers for this engine.
-func (e *ListTrackersEngine) SubConsumers() []libkb.UIConsumer {
+func (e *ListTrackersUnverifiedEngine) RequiredUIs() []libkb.UIKind {
 	return nil
 }
 
-// Run starts the engine.
-func (e *ListTrackersEngine) Run(m libkb.MetaContext) error {
-	if err := e.ensureUID(m); err != nil {
-		return err
-	}
-	ts := libkb.NewTrackerSyncer(e.uid, m.G())
-	if err := libkb.RunSyncer(m, ts, e.uid, false /* loggedIn */, false /* forceReload */); err != nil {
-		return err
-	}
-	e.trackers = ts.Trackers()
+func (e *ListTrackersUnverifiedEngine) SubConsumers() []libkb.UIConsumer {
 	return nil
 }
 
-// List returns the array of trackers for this user.
-func (e *ListTrackersEngine) List() []libkb.Tracker {
-	if e.trackers == nil {
-		return []libkb.Tracker{}
+// lookupUID prefers 1) the given uid if provided 2) assertion if provided 3) logged in uid
+func lookupUID(m libkb.MetaContext, uid keybase1.UID, assertion string, cachedOnly bool) (ret keybase1.UID, err error) {
+	// If we're given the uid explicitly, use it.
+	if uid.Exists() {
+		return uid, nil
 	}
-	return e.trackers.Trackers
+	// Otherwise,
+	if len(assertion) != 0 {
+		if cachedOnly {
+			return ret, errors.New("cannot lookup assertion in CachedOnly mode")
+		}
+
+		larg := libkb.NewLoadUserArgWithMetaContext(m).WithPublicKeyOptional().WithName(assertion)
+		upk, _, err := m.G().GetUPAKLoader().LoadV2(larg)
+		if err != nil {
+			return ret, err
+		}
+		return upk.GetUID(), nil
+	}
+
+	uid = m.G().GetMyUID()
+	if uid.Exists() {
+		return uid, nil
+	}
+
+	return ret, libkb.NoUIDError{}
 }
 
-func (e *ListTrackersEngine) ExportedList() (ret []keybase1.Tracker) {
-	for _, el := range e.List() {
-		ret = append(ret, el.Export())
+func (e *ListTrackersUnverifiedEngine) Run(m libkb.MetaContext) error {
+	uid, err := lookupUID(m, e.arg.UID, e.arg.Assertion, e.arg.CachedOnly)
+	if err != nil {
+		return err
 	}
-	return
+
+	callerUID := m.G().Env.GetUID()
+	ts := libkb.NewServertrustTrackerSyncer(m.G(), callerUID, libkb.FollowDirectionFollowers)
+
+	if e.arg.CachedOnly {
+		if err := libkb.RunSyncerCached(m, ts, uid); err != nil {
+			return err
+		}
+		e.res = ts.Result()
+		return nil
+	}
+
+	if err := libkb.RunSyncer(m, ts, uid, false /* loggedIn */, false /* forceReload */); err != nil {
+		return err
+	}
+	e.res = ts.Result()
+	return nil
 }
 
-func (e *ListTrackersEngine) ensureUID(m libkb.MetaContext) error {
-	if e.uid.Exists() {
-		return nil
-	}
-	if len(e.username) == 0 {
-		e.uid = m.G().GetMyUID()
-		return nil
-	}
-
-	arg := libkb.NewLoadUserByNameArg(m.G(), e.username)
-	var err error
-	err = m.G().GetFullSelfer().WithUser(arg, func(user *libkb.User) error {
-		e.uid = user.GetUID()
-		return nil
-	})
-	return err
+func (e *ListTrackersUnverifiedEngine) GetResults() keybase1.UserSummarySet {
+	return e.res
 }

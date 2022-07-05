@@ -24,7 +24,8 @@ autorestart_enabled() {
 }
 
 make_mountpoint() {
-  if redirector_enabled ; then
+  local_is_redirector_enabled="$1"
+  if [ -n "$local_is_redirector_enabled" ]; then
     if ! mountpoint "$rootmount" &> /dev/null; then
       mkdir -p "$rootmount"
       chown root:root "$rootmount"
@@ -67,11 +68,15 @@ systemd_unit_active_for() {
     command -v systemctl &> /dev/null && systemd_exec_as "$user" "systemctl --user -q is-active $service"
 }
 
+SYSTEMD_RESTARTED_REDIRECTOR=
 systemd_restart_if_active() {
     user=$1
     service=$2
     if systemd_unit_active_for "$user" "$service"; then
         systemd_exec_as "$user" "systemctl --user restart $service"
+        if [ "$service" = "keybase-redirector.service" ]; then
+            SYSTEMD_RESTARTED_REDIRECTOR=1
+        fi
     fi
 }
 
@@ -90,6 +95,12 @@ safe_restart_systemd_services() {
         # and the mountdir is configured (so, it is not a fresh install).
         user="$(ps -o user= -p "$pid")"
 
+        # If the process terminated since the loop started somehow, skip
+        # restarting
+        if [ -z "$user" ]; then
+            continue
+        fi
+
         restart_instructions="Restart Keybase manually by running 'run_keybase' as $user."
         abort_instructions="Aborting Keybase autorestart for $user. $restart_instructions"
 
@@ -100,10 +111,7 @@ safe_restart_systemd_services() {
         fi
 
         if systemd_unit_active_for "$user" "kbfs.service"; then
-            # TODO: CORE-9789
-            # We don't pass --direct to keybase config get because it doesn't work on non-root users
-            # It should still work because the service should be running
-            if ! mount="$(systemd_exec_as "$user" "/usr/bin/keybase config get --bare mountdir")" || [ -z "$mount" ]; then
+            if ! mount="$(systemd_exec_as "$user" "/usr/bin/keybase config get --direct --bare mountdir")" || [ -z "$mount" ]; then
                 echo "Could not find mountdir for $user via systemd."
                 echo "$abort_instructions"
                 continue
@@ -131,13 +139,68 @@ safe_restart_systemd_services() {
     done <<< "$(pidof /usr/bin/keybase | tr ' ' '\n')"
 }
 
-if redirector_enabled ; then
+is_owned_by_root() {
+    owner_uid="$(stat --format=%u "$1" 2> /dev/null)" && [ "0" = "$owner_uid" ]
+}
+
+# In 4.3.0, 4.3.1, we had a bug where this post install script's usage of
+# Keybase commands would create .config/keybase/ with root permissions if it
+# didn't already exist.
+fix_bad_config_perms() {
+    if userhomes=$(find /home -maxdepth 1 -mindepth 1 -type d); then
+        while read -r userhome; do
+            user="$(basename "$userhome")"
+            # Don't attempt to fix for users with custom XDG_CONFIG_HOME,
+            # hopefully they will read release notes.
+            configdir="/home/$user/.config"
+            keybase_configdir="$configdir/keybase"
+            keybase_configfile="$configdir/keybase/gui_config.json"
+            if [ -e "$keybase_configdir" ]; then
+                if is_owned_by_root "$configdir"; then
+                    echo "Fixing bad permissions in $configdir; try 'run_keybase' after install."
+                    chown -R "$user:$user" "$configdir"
+                elif is_owned_by_root "$keybase_configdir"; then
+                    echo "Fixing bad permissions in $keybase_configdir; try 'run_keybase' after install."
+                    chown -R "$user:$user" "$keybase_configdir"
+                elif is_owned_by_root "$keybase_configfile"; then
+                    echo "Fixing bad permissions in $keybase_configfile; try 'run_keybase' after install."
+                    chown -R "$user:$user" "$keybase_configfile"
+                fi
+            fi
+        done <<< "$userhomes"
+    fi
+}
+
+fix_bad_config_perms
+
+# Associate Keybase with .saltpack files.
+if command -v update-mime-database &> /dev/null ; then
+  update-mime-database /usr/share/mime
+fi
+
+# Update the GTK icon cache, if possible.
+if command -v gtk-update-icon-cache &> /dev/null ; then
+  gtk-update-icon-cache -q -t -f /usr/share/icons/hicolor
+fi
+
+is_redirector_enabled=""
+if redirector_enabled; then
+    is_redirector_enabled="1"
+fi
+
+# Set suid on redirector before we restart it, in case package manager reverted
+# permissions.
+if [ -n "$is_redirector_enabled" ]; then
   chown root:root "$krbin"
   chmod 4755 "$krbin"
 else
   # Turn off suid if root has been turned off.
   chmod a-s "$krbin"
 fi
+
+# Restart services before restarting redirector manually
+# so we know if it was already restarted via systemd.
+safe_restart_systemd_services
 
 currlink="$(readlink "$rootmount")"
 if [ -n "$currlink" ] ; then
@@ -163,10 +226,12 @@ elif [ -d "$rootmount" ] ; then
         fi
         rmdir "$rootmount"
         echo You must run run_keybase to restore file system access.
-    elif ! redirector_enabled ; then
+    elif [ -z "$is_redirector_enabled" ]; then
         if killall "$(basename "$krbin")" &> /dev/null ; then
             echo "Stopping existing root redirector."
         fi
+    elif [ -n "$SYSTEMD_RESTARTED_REDIRECTOR" ]; then
+        echo "Restarted existing root redirector via systemd."
     elif killall -USR1 "$(basename "$krbin")" &> /dev/null ; then
         echo "Restarting existing root redirector."
         # If the redirector is still owned by root, that probably
@@ -212,11 +277,4 @@ elif [ -d "$rootmount" ] ; then
 fi
 
 # Make the mountpoint if it doesn't already exist by this point.
-make_mountpoint
-
-# Update the GTK icon cache, if possible.
-if command -v gtk-update-icon-cache &> /dev/null ; then
-  gtk-update-icon-cache -q -t -f /usr/share/icons/hicolor
-fi
-
-safe_restart_systemd_services
+make_mountpoint "$is_redirector_enabled"

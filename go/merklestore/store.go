@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/profiling"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
@@ -87,41 +88,64 @@ type merkleStoreKitT struct {
 	Tab map[int]json.RawMessage `json:"tab"`
 }
 
-// GetLatestEntry returns the latest (active) entry for the given MerkleStore
-func (s *MerkleStoreImpl) GetLatestEntry(m libkb.MetaContext) (ret keybase1.MerkleStoreEntry, err error) {
-	kitJSON, hash, err := s.getKitString(m)
+// GetLatestEntry returns the latest entry for the given MerkleStore.
+// Returns (nil, nil) if knownHash is the active entry.
+func (s *MerkleStoreImpl) GetLatestEntryWithKnown(m libkb.MetaContext, knownHash *keybase1.MerkleStoreKitHash) (ret *keybase1.MerkleStoreEntry, err error) {
+	tracer := m.G().CTimeTracer(m.Ctx(), "MerkleStore.GetLatestEntryWithKnown", false)
+	defer tracer.Finish()
+	kitJSON, hash, err := s.getKitString(m, knownHash, tracer)
 	if err != nil {
-		return ret, err
+		return nil, err
+	}
+	if kitJSON == "" {
+		if knownHash != nil && hash == *knownHash {
+			return nil, nil
+		}
+		return nil, NewMerkleStoreError("unexpected empty merkle store response")
 	}
 
+	tracer.Stage("unmarshal")
 	var kit merkleStoreKitT
 	if err = json.Unmarshal([]byte(kitJSON), &kit); err != nil {
-		return ret, NewMerkleStoreError("unmarshalling kit: %s", err)
+		return nil, NewMerkleStoreError("unmarshalling kit: %s", err)
 	}
 
 	sub, ok := kit.Tab[int(s.supportedVersion)]
 	if !ok {
-		return ret, NewMerkleStoreError("missing %s for version: %d", s.tag, s.supportedVersion)
+		return nil, NewMerkleStoreError("missing %s for version: %d", s.tag, s.supportedVersion)
 	}
 	if len(sub) == 0 {
-		return ret, NewMerkleStoreError("empty %s for version: %d", s.tag, s.supportedVersion)
+		return nil, NewMerkleStoreError("empty %s for version: %d", s.tag, s.supportedVersion)
 	}
 
-	return keybase1.MerkleStoreEntry{
+	return &keybase1.MerkleStoreEntry{
 		Hash:  hash,
 		Entry: keybase1.MerkleStoreEntryString(sub),
 	}, nil
 }
 
+// GetLatestEntry returns the latest entry for the given MerkleStore
+func (s *MerkleStoreImpl) GetLatestEntry(m libkb.MetaContext) (keybase1.MerkleStoreEntry, error) {
+	ret, err := s.GetLatestEntryWithKnown(m, nil)
+	if err != nil {
+		return keybase1.MerkleStoreEntry{}, err
+	}
+	if ret == nil {
+		return keybase1.MerkleStoreEntry{}, NewMerkleStoreError("unexpected empty merkle store response")
+	}
+	return *ret, nil
+}
+
 // Get stored kit as a string.  First it makes sure that the merkle root is
 // recent enough.  Using the hash from that, it fetches from in-memory falling
 // back to db falling back to server.
-func (s *MerkleStoreImpl) getKitString(m libkb.MetaContext) (
+// A special case: Returns ("", hash, nil) if hash == knownHash.
+func (s *MerkleStoreImpl) getKitString(m libkb.MetaContext, knownHash *keybase1.MerkleStoreKitHash, tracer profiling.TimeTracer) (
 	keybase1.MerkleStoreKit, keybase1.MerkleStoreKitHash, error) {
 
 	// Use a file instead if specified.
 	if len(s.kitFilename) > 0 {
-		m.CDebugf("MerkleStore: using kit file: %s", s.kitFilename)
+		m.Debug("MerkleStore: using kit file: %s", s.kitFilename)
 		return s.readFile(s.kitFilename)
 	}
 
@@ -133,20 +157,14 @@ func (s *MerkleStoreImpl) getKitString(m libkb.MetaContext) (
 	s.Lock()
 	defer s.Unlock()
 
-	root := mc.LastRoot()
-	// The time that the root was fetched is used rather than when the
-	// root was published so that we can continue to operate even if
-	// the root has not been published in a long time.
-	if (root == nil) || s.pastDue(m, root.Fetched(), libkb.MerkleStoreShouldRefresh) {
-		m.CDebugf("MerkleStore: merkle root should refresh")
+	tracer.Stage("LastRoot")
+	root := mc.LastRoot(m)
 
-		// Attempt a refresh if the root is old or nil.
-		err := s.refreshRoot(m)
-		if err != nil {
-			m.CDebugf("MerkleStore: could not refresh merkle root: %s", err)
-		} else {
-			root = mc.LastRoot()
-		}
+	// Try to refresh the root if it is too old, but keep going in case of error
+	if recentRoot, err := mc.FetchRootFromServer(m, libkb.MerkleStoreShouldRefresh); err == nil {
+		root = recentRoot
+	} else {
+		m.Debug("MerkleStore: could not refresh merkle root: %s", err)
 	}
 
 	if root == nil {
@@ -155,48 +173,57 @@ func (s *MerkleStoreImpl) getKitString(m libkb.MetaContext) (
 
 	if s.pastDue(m, root.Fetched(), libkb.MerkleStoreRequireRefresh) {
 		// The root is still too old, even after an attempted refresh.
-		m.CDebugf("MerkleStore: merkle root too old")
+		m.Debug("MerkleStore: merkle root too old")
 		return "", "", NewMerkleStoreError("merkle root too old: %v %s", seqnoWrap(root.Seqno()), root.Fetched())
 	}
 
 	// This is the hash we are being instructed to use.
+	tracer.Stage("hash")
 	hash := keybase1.MerkleStoreKitHash(s.getHash(*root))
 
 	if hash == "" {
 		return "", "", NewMerkleStoreError("merkle root has empty %s hash: %v", s.tag, seqnoWrap(root.Seqno()))
 	}
+	if knownHash != nil && hash == *knownHash {
+		return "", hash, nil
+	}
 
 	// Use in-memory cache if it matches
+	tracer.Stage("mem")
 	if fromMem := s.memGet(hash); fromMem != nil {
 		m.VLogf(libkb.VLog0, "MerkleStore: mem cache hit %s, using hash: %s", s.tag, hash)
 		return *fromMem, hash, nil
 	}
 
+	tracer.Stage("db")
 	// Use db cache if it matches
 	if fromDB := s.dbGet(m, hash); fromDB != nil {
-		m.CDebugf("MerkleStore: db cache hit")
+		m.Debug("MerkleStore: db cache hit")
 
 		// Store to memory
 		s.memSet(hash, *fromDB)
 
-		m.CDebugf("MerkleStore: using hash: %s", hash)
+		m.Debug("MerkleStore: using hash: %s", hash)
 		return *fromDB, hash, nil
 	}
 
 	// Fetch from the server
 	// This validates the hash
+	tracer.Stage("fetch")
 	kitJSON, err := s.fetch(m, hash)
 	if err != nil {
 		return "", "", err
 	}
 
 	// Store to memory
+	tracer.Stage("mem-set")
 	s.memSet(hash, kitJSON)
 
 	// db write
+	tracer.Stage("db-set")
 	s.dbSet(m.BackgroundWithLogTags(), hash, kitJSON)
 
-	m.CDebugf("MerkleStore: using hash: %s", hash)
+	m.Debug("MerkleStore: using hash: %s", hash)
 	return kitJSON, hash, nil
 }
 
@@ -211,12 +238,11 @@ func (r *merkleStoreServerRes) GetAppStatus() *libkb.AppStatus {
 
 // Fetch data and check the hash.
 func (s *MerkleStoreImpl) fetch(m libkb.MetaContext, hash keybase1.MerkleStoreKitHash) (keybase1.MerkleStoreKit, error) {
-	m.CDebugf("MerkleStore: fetching from server: %s", hash)
+	m.Debug("MerkleStore: fetching from server: %s", hash)
 	var res merkleStoreServerRes
-	err := m.G().API.GetDecode(libkb.APIArg{
+	err := m.G().API.GetDecode(m, libkb.APIArg{
 		Endpoint:    s.endpoint,
 		SessionType: libkb.APISessionTypeNONE,
-		MetaContext: m,
 		Args: libkb.HTTPArgs{
 			"hash": libkb.S{Val: string(hash)},
 		},
@@ -228,27 +254,10 @@ func (s *MerkleStoreImpl) fetch(m libkb.MetaContext, hash keybase1.MerkleStoreKi
 		return "", NewMerkleStoreError("server returned empty kit for %s", s.tag)
 	}
 	if s.hash(res.KitJSON) != hash {
-		m.CDebugf("%s hash mismatch: got:%s expected:%s", s.tag, s.hash(res.KitJSON), hash)
+		m.Debug("%s hash mismatch: got:%s expected:%s", s.tag, s.hash(res.KitJSON), hash)
 		return "", NewMerkleStoreError("server returned wrong kit for %s", s.tag)
 	}
 	return res.KitJSON, nil
-}
-
-// updateRoot kicks MerkleClient to update its merkle root
-// by doing a LookupUser on some arbitrary user.
-func (s *MerkleStoreImpl) refreshRoot(m libkb.MetaContext) error {
-	q := libkb.NewHTTPArgs()
-	// The user lookup here is unnecessary. It is done because that is what is
-	// easy with MerkleClient.  The user looked up is you if known, otherwise
-	// arbitrarily t_alice.  If t_alice is removed, this path will break.
-	uid := s.G().GetMyUID()
-	if len(uid) == 0 {
-		// Use t_alice's uid.
-		uid = libkb.TAliceUID
-	}
-	q.Add("uid", libkb.UIDArg(uid))
-	_, err := s.G().MerkleClient.LookupUser(m, q, nil)
-	return err
 }
 
 func (s *MerkleStoreImpl) memGet(hash keybase1.MerkleStoreKitHash) *keybase1.MerkleStoreKit {
@@ -277,7 +286,7 @@ func (s *MerkleStoreImpl) dbGet(m libkb.MetaContext, hash keybase1.MerkleStoreKi
 	}
 	var entry dbKit
 	if found, err := db.GetInto(&entry, s.dbKey()); err != nil {
-		m.CDebugf("MerkleStore: error reading from db: %s", err)
+		m.Debug("MerkleStore: error reading from db: %s", err)
 		return nil
 	} else if !found {
 		return nil
@@ -295,7 +304,7 @@ func (s *MerkleStoreImpl) dbGet(m libkb.MetaContext, hash keybase1.MerkleStoreKi
 func (s *MerkleStoreImpl) dbSet(m libkb.MetaContext, hash keybase1.MerkleStoreKitHash, kitJSON keybase1.MerkleStoreKit) {
 	db := m.G().LocalDb
 	if db == nil {
-		m.CDebugf("dbSet: no db")
+		m.Debug("dbSet: no db")
 		return
 	}
 	entry := dbKit{
@@ -304,7 +313,7 @@ func (s *MerkleStoreImpl) dbSet(m libkb.MetaContext, hash keybase1.MerkleStoreKi
 		Kit:       kitJSON,
 	}
 	if err := db.PutObj(s.dbKey(), nil, entry); err != nil {
-		m.CDebugf("dbSet: %s", err)
+		m.Debug("dbSet: %s", err)
 	}
 }
 
@@ -319,7 +328,7 @@ func (s *MerkleStoreImpl) pastDue(m libkb.MetaContext, event time.Time, limit ti
 	diff := m.G().Clock().Now().Sub(event)
 	isOverdue := diff > limit
 	if isOverdue {
-		m.CDebugf("MerkleStore: pastDue diff:(%s) t1:(%s) limit:(%s)", diff, event, limit)
+		m.Debug("MerkleStore: pastDue diff:(%s) t1:(%s) limit:(%s)", diff, event, limit)
 	}
 	return isOverdue
 }

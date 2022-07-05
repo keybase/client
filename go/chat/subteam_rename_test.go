@@ -28,8 +28,8 @@ func TestChatSubteamRename(t *testing.T) {
 
 		listener1 := newServerChatListener()
 		listener2 := newServerChatListener()
-		ctc.as(t, users[0]).h.G().NotifyRouter.SetListener(listener1)
-		ctc.as(t, users[1]).h.G().NotifyRouter.SetListener(listener2)
+		ctc.as(t, users[0]).h.G().NotifyRouter.AddListener(listener1)
+		ctc.as(t, users[1]).h.G().NotifyRouter.AddListener(listener2)
 		ctc.world.Tcs[users[0].Username].ChatG.Syncer.(*Syncer).isConnected = true
 		ctc.world.Tcs[users[1].Username].ChatG.Syncer.(*Syncer).isConnected = true
 
@@ -57,7 +57,7 @@ func TestChatSubteamRename(t *testing.T) {
 		require.NoError(t, err)
 		ctc.teamCache[subSubteamName.String()] = subSubteamName.String()
 
-		versMap := make(map[string]chat1.ConversationVers)
+		versMap := make(map[chat1.ConvIDStr]chat1.ConversationVers)
 		var convs []chat1.ConversationInfoLocal
 		for _, name := range []string{subteamName.String(), subSubteamName.String()} {
 			for i := 0; i < 2; i++ {
@@ -79,7 +79,7 @@ func TestChatSubteamRename(t *testing.T) {
 					})
 				require.NoError(t, err)
 				convs = append(convs, ncres.Conv.Info)
-				versMap[ncres.Conv.GetConvID().String()] = ncres.Conv.Info.Version
+				versMap[ncres.Conv.GetConvID().ConvIDStr()] = ncres.Conv.Info.Version
 
 				// Write a message so we have something that uses the old team name in the chat history.
 				_, err = ctc.as(t, users[0]).chatLocalHandler().PostLocal(context.TODO(), chat1.PostLocalArg{
@@ -144,57 +144,25 @@ func TestChatSubteamRename(t *testing.T) {
 			require.Fail(t, "unexpected update")
 		case <-time.After(2 * time.Second):
 		}
+		ib, _, err := tc.ChatG.InboxSource.Read(context.TODO(), users[0].User.GetUID().ToBytes(),
+			types.ConversationLocalizerBlocking, types.InboxSourceDataSourceAll, nil,
+			&chat1.GetInboxLocalQuery{
+				ConvIDs: u1ExpectedUpdates,
+			})
+		require.NoError(t, err)
+		require.True(t, len(ib.Convs) >= len(u1ExpectedUpdates))
 
-		pollIB := func() *types.Inbox {
-			ib, _, err := tc.ChatG.InboxSource.Read(context.TODO(), users[0].User.GetUID().ToBytes(),
-				types.ConversationLocalizerBlocking, types.InboxSourceDataSourceAll, nil,
-				&chat1.GetInboxLocalQuery{
-					ConvIDs: u1ExpectedUpdates,
-				}, nil)
-			require.NoError(t, err)
-			require.True(t, len(ib.Convs) >= len(u1ExpectedUpdates))
-			for _, conv := range ib.Convs {
-				convID := conv.GetConvID()
-				if convID.Eq(subConv1.Id) || convID.Eq(subConv2.Id) {
-					if newSubteamName.String() != conv.Info.TlfName {
-						return nil
-					}
-				}
-				if convID.Eq(subSubConv1.Id) || convID.Eq(subSubConv2.Id) {
-					if newSubSubteamName.String() != conv.Info.TlfName {
-						return nil
-					}
-				}
-			}
-			return &ib
-		}
-
-		// Poll a few times to Read the inbox. Once gregor notifications come in that the teams changed, we'll
-		// get the right answer for the subteam name checks in the poll functions.  But until that happens
-		// we can retry.
-		var ib *types.Inbox
-		wait := 10 * time.Millisecond
-		for i := 0; i < 10; i++ {
-			ib = pollIB()
-			if ib != nil {
-				break
-			}
-			t.Logf("Polled for conversation name upgrades, but they weren't here yet, will wait %v and retry", wait)
-			time.Sleep(wait)
-			wait *= 2
-		}
-
-		// If this happened, we failed our poll many times in a row!
-		require.NotNil(t, ib)
-
+		numFound := 0
 		for _, conv := range ib.Convs {
 			convID := conv.GetConvID()
 			if convID.Eq(subConv1.Id) || convID.Eq(subConv2.Id) {
 				require.Equal(t, newSubteamName.String(), conv.Info.TlfName)
+				numFound++
 			} else if convID.Eq(subSubConv1.Id) || convID.Eq(subSubConv2.Id) {
 				require.Equal(t, newSubSubteamName.String(), conv.Info.TlfName)
+				numFound++
 			}
-			require.NotEqual(t, versMap[conv.GetConvID().String()], conv.Info.Version)
+			require.NotEqual(t, versMap[conv.GetConvID().ConvIDStr()], conv.Info.Version)
 
 			// Make sure we can send to each conversation
 			_, err = ctc.as(t, users[0]).chatLocalHandler().PostLocal(context.TODO(), chat1.PostLocalArg{
@@ -213,12 +181,16 @@ func TestChatSubteamRename(t *testing.T) {
 			require.NoError(t, err)
 			// Make sure user1 (user0 did all the sends) can decrypt everything
 			// in conversation.
-			tv, err := tc.Context().ConvSource.Pull(context.TODO(), convID, users[1].GetUID().ToBytes(), chat1.GetThreadReason_GENERAL, nil,
-				nil)
+			tv, err := tc.Context().ConvSource.Pull(context.TODO(), convID, users[1].GetUID().ToBytes(),
+				chat1.GetThreadReason_GENERAL, nil, nil, nil)
 			require.NoError(t, err)
 			for _, msg := range tv.Messages {
+				if msg.IsJourneycard() {
+					continue
+				}
 				require.True(t, msg.IsValid())
 			}
 		}
+		require.Equal(t, len(u1ExpectedUpdates), numFound)
 	})
 }

@@ -6,22 +6,10 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/kbtest"
-	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
 )
-
-type fakeUIRouter struct {
-	libkb.UIRouter
-	ui libkb.ChatUI
-}
-
-func (f *fakeUIRouter) GetChatUI() (libkb.ChatUI, error) {
-	return f.ui, nil
-}
-
-func (f *fakeUIRouter) Shutdown() {}
 
 func TestChatCommands(t *testing.T) {
 	ctc := makeChatTestContext(t, "TestChatCommands", 2)
@@ -57,9 +45,9 @@ func TestChatCommands(t *testing.T) {
 	listener0 := newServerChatListener()
 	listener1 := newServerChatListener()
 	ctc.as(t, users[0]).h.mockChatUI = ui
-	ctc.as(t, users[0]).h.G().NotifyRouter.SetListener(listener0)
-	ctc.as(t, users[1]).h.G().NotifyRouter.SetListener(listener1)
-	ctc.world.Tcs[users[0].Username].G.UIRouter = &fakeUIRouter{ui: ui}
+	ctc.as(t, users[0]).h.G().NotifyRouter.AddListener(listener0)
+	ctc.as(t, users[1]).h.G().NotifyRouter.AddListener(listener1)
+	ctc.world.Tcs[users[0].Username].G.UIRouter = kbtest.NewMockUIRouter(ui)
 	ctc.world.Tcs[users[0].Username].ChatG.Syncer.(*Syncer).isConnected = true
 	ctc.world.Tcs[users[1].Username].ChatG.Syncer.(*Syncer).isConnected = true
 	impConv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
@@ -80,6 +68,8 @@ func TestChatCommands(t *testing.T) {
 	require.NoError(t, err)
 	consumeNewMsgRemote(t, listener0, chat1.MessageType_JOIN)
 	consumeNewMsgRemote(t, listener0, chat1.MessageType_SYSTEM)
+	consumeNewMsgRemote(t, listener0, chat1.MessageType_SYSTEM)
+	consumeNewMsgRemote(t, listener1, chat1.MessageType_SYSTEM)
 	consumeNewMsgRemote(t, listener1, chat1.MessageType_SYSTEM)
 	_, err = ctc.as(t, users[1]).chatLocalHandler().JoinConversationByIDLocal(ctx, ncres.Conv.GetConvID())
 	require.NoError(t, err)
@@ -123,7 +113,7 @@ func TestChatCommands(t *testing.T) {
 	mustPostLocalForTest(t, ctc, users[0], impConv, chat1.NewMessageBodyWithText(chat1.MessageText{
 		Body: "/topic chat about some pointless stuff",
 	}))
-	checkMsgText(listener0, "/topic chat about some pointless stuff")
+	checkHeadline(listener0, "/topic chat about some pointless stuff")
 	mustPostLocalForTest(t, ctc, users[0], teamConv, chat1.NewMessageBodyWithText(chat1.MessageText{
 		Body: "/topic chat about some pointless stuff",
 	}))

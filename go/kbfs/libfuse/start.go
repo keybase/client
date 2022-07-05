@@ -7,9 +7,11 @@
 package libfuse
 
 import (
+	"fmt"
 	"os"
 	"path"
 
+	"bazil.org/fuse"
 	"github.com/keybase/client/go/kbfs/libfs"
 	"github.com/keybase/client/go/kbfs/libgit"
 	"github.com/keybase/client/go/kbfs/libkbfs"
@@ -89,10 +91,13 @@ func startMounting(ctx context.Context,
 // Start the filesystem
 func Start(options StartOptions, kbCtx libkbfs.Context) *libfs.Error {
 	// Hook simplefs implementation in.
+	shutdownSimpleFS := func(_ context.Context) error { return nil }
 	createSimpleFS := func(
 		libkbfsCtx libkbfs.Context, config libkbfs.Config) (rpc.Protocol, error) {
-		return keybase1.SimpleFSProtocol(
-			simplefs.NewSimpleFS(libkbfsCtx, config)), nil
+		var simplefsIface keybase1.SimpleFSInterface
+		simplefsIface, shutdownSimpleFS = simplefs.NewSimpleFS(
+			libkbfsCtx, config)
+		return keybase1.SimpleFSProtocol(simplefsIface), nil
 	}
 	// Hook git implementation in.
 	shutdownGit := func() {}
@@ -104,6 +109,10 @@ func Start(options StartOptions, kbCtx libkbfs.Context) *libfs.Error {
 		return keybase1.KBFSGitProtocol(handler), nil
 	}
 	defer func() {
+		err := shutdownSimpleFS(context.Background())
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Couldn't shut down SimpleFS: %+v\n", err)
+		}
 		shutdownGit()
 	}()
 
@@ -122,7 +131,7 @@ func Start(options StartOptions, kbCtx libkbfs.Context) *libfs.Error {
 		if err != nil {
 			return libfs.InitError(err.Error())
 		}
-		info := libkb.NewServiceInfo(libkbfs.Version, libkbfs.PrereleaseBuild, options.Label, os.Getpid())
+		info := libkb.NewServiceInfo(libkb.Version, libkbfs.PrereleaseBuild, options.Label, os.Getpid())
 		err = info.WriteFile(path.Join(options.RuntimeDir, "kbfs.info"), log)
 		if err != nil {
 			return libfs.InitError(err.Error())
@@ -139,6 +148,14 @@ func Start(options StartOptions, kbCtx libkbfs.Context) *libfs.Error {
 	}
 	defer libkbfs.Shutdown()
 
+	libfs.AddRootWrapper(config)
+
+	if options.KbfsParams.Debug {
+		fuseLog := config.MakeLogger("FUSE").CloneWithAddedDepth(1)
+		fuse.Debug = MakeFuseVDebugFn(
+			config.MakeVLogger(fuseLog), false /* superVerbose */)
+	}
+
 	// Report "startup successful" to the supervisor (currently just systemd on
 	// Linux). This isn't necessary for correctness, but it allows commands
 	// like "systemctl start kbfs.service" to report startup errors to the
@@ -154,7 +171,7 @@ func Start(options StartOptions, kbCtx libkbfs.Context) *libfs.Error {
 			// Abort on error if we were force mounting, otherwise continue.
 			if options.MountErrorIsFatal {
 				// If we exit we might want to clean a mount behind us.
-				mi.Done()
+				_ = mi.Done()
 				return libfs.MountError(err.Error())
 			}
 		}

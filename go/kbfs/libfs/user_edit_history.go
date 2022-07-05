@@ -8,6 +8,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 )
 
@@ -15,7 +16,7 @@ import (
 // file edit history for the user.
 func GetEncodedUserEditHistory(ctx context.Context, config libkbfs.Config) (
 	data []byte, t time.Time, err error) {
-	session, err := libkbfs.GetCurrentSessionIfPossible(
+	session, err := idutil.GetCurrentSessionIfPossible(
 		ctx, config.KBPKI(), true)
 	if err != nil {
 		return nil, time.Time{}, err

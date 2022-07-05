@@ -37,7 +37,9 @@ func (c *cmdChatList) Run() error {
 	if err != nil {
 		return err
 	}
-	if err = conversationListView(conversations).show(c.G(), string(c.G().Env.GetUsername()), c.showDeviceName); err != nil {
+
+	if err = conversationListView(conversations).show(c.G(), c.G().Env.GetUsername().String(),
+		c.showDeviceName); err != nil {
 		return err
 	}
 

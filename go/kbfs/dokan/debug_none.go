@@ -6,7 +6,7 @@
 
 package dokan
 
-const isDebug = false
+const isDebug = false //nolint
 
-func debug(...interface{})          {}
-func debugf(string, ...interface{}) {}
+func debug(...interface{})          {} // nolint
+func debugf(string, ...interface{}) {} // nolint

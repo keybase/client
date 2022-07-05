@@ -1,11 +1,11 @@
 package engine
 
 import (
-	"context"
+	"testing"
+
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestMerkleClientHistorical(t *testing.T) {
@@ -17,10 +17,10 @@ func TestMerkleClientHistorical(t *testing.T) {
 	q := libkb.NewHTTPArgs()
 	q.Add("uid", libkb.UIDArg(fu.UID()))
 	mc := tc.G.MerkleClient
-	leaf, err := mc.LookupUser(m, q, nil)
-	root := mc.LastRoot()
+	leaf, err := mc.LookupUser(m, q, nil, libkb.MerkleOpts{})
 
 	require.NoError(t, err)
+	root := mc.LastRoot(m)
 	require.NotNil(t, leaf)
 	require.NotNil(t, root)
 
@@ -68,8 +68,8 @@ func TestFindNextMerkleRootAfterRevoke(t *testing.T) {
 	devices, _ := getActiveDevicesAndKeys(tc, fu)
 	var paperDevice *libkb.Device
 	for _, device := range devices {
-		if device.Type == libkb.DeviceTypePaper {
-			paperDevice = device
+		if device.Type == keybase1.DeviceTypeV2_PAPER {
+			paperDevice = device.Device
 		}
 	}
 
@@ -112,9 +112,9 @@ func TestFindNextMerkleRootAfterRevoke(t *testing.T) {
 	t.Logf("Found merkle root %d > %d", after, before)
 
 	// Make sure we can find this after fu is deleted
-	err = libkb.DeleteAccount(m, fu.NormalizedUsername(), fu.Passphrase)
+	err = libkb.DeleteAccount(m, fu.NormalizedUsername(), &fu.Passphrase)
 	require.NoError(t, err)
-	err = tc.G.Logout(context.TODO())
+	err = m.LogoutKillSecrets()
 	require.NoError(t, err)
 
 	arg = keybase1.FindNextMerkleRootAfterRevokeArg{

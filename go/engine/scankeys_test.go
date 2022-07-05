@@ -44,7 +44,7 @@ func TestScanKeysSync(t *testing.T) {
 
 	// Now provision a full device.
 	m := NewMetaContextForTest(tc).WithUIs(uis)
-	eng := NewLogin(tc.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
+	eng := NewLogin(tc.G, keybase1.DeviceTypeV2_DESKTOP, "", keybase1.ClientType_CLI)
 	err := RunEngine2(m, eng)
 	require.NoError(t, err, "provisioning worked")
 

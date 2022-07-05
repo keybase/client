@@ -1,0 +1,21 @@
+{
+  "name": "rn-fetch-blob",
+  "version": "0.11.1",
+  "summary": "A module provides upload, download, and files access API. Supports file stream read/write for process large files.",
+  "requires_arc": true,
+  "license": "MIT",
+  "homepage": "n/a",
+  "source": {
+    "git": "https://github.com/joltup/rn-fetch-blob"
+  },
+  "authors": "Joltup",
+  "source_files": "ios/**/*.{h,m}",
+  "platforms": {
+    "ios": "8.0"
+  },
+  "dependencies": {
+    "React-Core": [
+
+    ]
+  }
+}

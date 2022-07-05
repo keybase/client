@@ -11,6 +11,7 @@ import (
 	"github.com/keybase/client/go/kbfs/ioutil"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -72,7 +73,8 @@ func setupJournalMDOpsTest(t *testing.T) (
 	return tempdir, ctx, cancel, config, oldMDOps, jManager
 }
 
-func teardownJournalMDOpsTest(t *testing.T, tempdir string, ctx context.Context,
+func teardownJournalMDOpsTest(
+	ctx context.Context, t *testing.T, tempdir string,
 	cancel context.CancelFunc, config Config) {
 	CheckConfigAndShutdown(ctx, t, config)
 	cancel()
@@ -81,7 +83,7 @@ func teardownJournalMDOpsTest(t *testing.T, tempdir string, ctx context.Context,
 }
 
 func makeMDForJournalMDOpsTest(
-	t *testing.T, config Config, tlfID tlf.ID, h *TlfHandle,
+	t *testing.T, config Config, tlfID tlf.ID, h *tlfhandle.Handle,
 	revision kbfsmd.Revision) *RootMetadata {
 	rmd, err := makeInitialRootMetadata(config.MetadataVersion(), tlfID, h)
 	require.NoError(t, err)
@@ -97,7 +99,7 @@ func makeMDForJournalMDOpsTest(
 
 func TestJournalMDOpsBasics(t *testing.T) {
 	tempdir, ctx, cancel, config, oldMDOps, jManager := setupJournalMDOpsTest(t)
-	defer teardownJournalMDOpsTest(t, tempdir, ctx, cancel, config)
+	defer teardownJournalMDOpsTest(ctx, t, tempdir, cancel, config)
 
 	session, err := config.KBPKI().GetCurrentSession(ctx)
 	require.NoError(t, err)
@@ -107,8 +109,9 @@ func TestJournalMDOpsBasics(t *testing.T) {
 		[]keybase1.UserOrTeamID{session.UID.AsUserOrTeam()}, nil, nil, nil, nil)
 	require.NoError(t, err)
 
-	h, err := MakeTlfHandle(
-		ctx, bh, bh.Type(), config.KBPKI(), config.KBPKI(), nil)
+	h, err := tlfhandle.MakeHandle(
+		ctx, bh, bh.Type(), config.KBPKI(), config.KBPKI(), nil,
+		keybase1.OfflineAvailability_NONE)
 	require.NoError(t, err)
 
 	mdOps := jManager.mdOps()
@@ -119,24 +122,24 @@ func TestJournalMDOpsBasics(t *testing.T) {
 	irmd, err := mdOps.GetForTLF(ctx, id, nil)
 	require.NoError(t, err)
 	require.Equal(t, ImmutableRootMetadata{}, irmd)
-	h.tlfID = id
+	h.SetTlfID(id)
 
 	err = jManager.Enable(ctx, id, nil, TLFJournalBackgroundWorkPaused)
 	require.NoError(t, err)
 
 	rmd := makeMDForJournalMDOpsTest(t, config, id, h, kbfsmd.Revision(1))
 
-	irmd, err = mdOps.Put(ctx, rmd, session.VerifyingKey,
-		nil, keybase1.MDPriorityNormal)
+	irmd, err = mdOps.Put(
+		ctx, rmd, session.VerifyingKey, nil, keybase1.MDPriorityNormal, nil)
 	require.NoError(t, err)
 	prevRoot := irmd.mdID
 
 	// (2) push some new metadata blocks
 	for i := kbfsmd.Revision(2); i < 8; i++ {
-		rmd.SetRevision(kbfsmd.Revision(i))
+		rmd.SetRevision(i)
 		rmd.SetPrevRoot(prevRoot)
-		irmd, err := mdOps.Put(ctx, rmd, session.VerifyingKey,
-			nil, keybase1.MDPriorityNormal)
+		irmd, err := mdOps.Put(
+			ctx, rmd, session.VerifyingKey, nil, keybase1.MDPriorityNormal, nil)
 		require.NoError(t, err, "i=%d", i)
 		prevRoot = irmd.mdID
 	}
@@ -168,15 +171,15 @@ func TestJournalMDOpsBasics(t *testing.T) {
 	rmd.SetPrevRoot(prevRoot)
 	resolveMD, err := rmd.deepCopy(config.Codec())
 	require.NoError(t, err)
-	_, err = oldMDOps.Put(ctx, rmd, session.VerifyingKey,
-		nil, keybase1.MDPriorityNormal)
+	_, err = oldMDOps.Put(
+		ctx, rmd, session.VerifyingKey, nil, keybase1.MDPriorityNormal, nil)
 	require.NoError(t, err)
 
 	for i := kbfsmd.Revision(8); i <= 10; i++ {
-		rmd.SetRevision(kbfsmd.Revision(i))
+		rmd.SetRevision(i)
 		rmd.SetPrevRoot(prevRoot)
-		irmd, err := mdOps.Put(ctx, rmd, session.VerifyingKey,
-			nil, keybase1.MDPriorityNormal)
+		irmd, err := mdOps.Put(
+			ctx, rmd, session.VerifyingKey, nil, keybase1.MDPriorityNormal, nil)
 		require.NoError(t, err, "i=%d", i)
 		prevRoot = irmd.mdID
 	}
@@ -208,9 +211,9 @@ func TestJournalMDOpsBasics(t *testing.T) {
 	// (4) push some new unmerged metadata blocks linking to the
 	//     middle merged block.
 	for i := kbfsmd.Revision(11); i < 41; i++ {
-		rmd.SetRevision(kbfsmd.Revision(i))
+		rmd.SetRevision(i)
 		rmd.SetPrevRoot(prevRoot)
-		irmd, err := mdOps.PutUnmerged(ctx, rmd, session.VerifyingKey)
+		irmd, err := mdOps.PutUnmerged(ctx, rmd, session.VerifyingKey, nil)
 		require.NoError(t, err, "i=%d", i)
 		prevRoot = irmd.mdID
 		require.Equal(t, bid, rmd.BID())
@@ -242,7 +245,7 @@ func TestJournalMDOpsBasics(t *testing.T) {
 
 	// (7) resolve the branch
 	_, err = mdOps.ResolveBranch(
-		ctx, id, bid, nil, resolveMD, session.VerifyingKey)
+		ctx, id, bid, nil, resolveMD, session.VerifyingKey, nil)
 	require.NoError(t, err)
 
 	// (8) verify head is pruned
@@ -275,7 +278,7 @@ func TestJournalMDOpsBasics(t *testing.T) {
 
 func TestJournalMDOpsPutUnmerged(t *testing.T) {
 	tempdir, ctx, cancel, config, _, jManager := setupJournalMDOpsTest(t)
-	defer teardownJournalMDOpsTest(t, tempdir, ctx, cancel, config)
+	defer teardownJournalMDOpsTest(ctx, t, tempdir, cancel, config)
 
 	session, err := config.KBPKI().GetCurrentSession(ctx)
 	require.NoError(t, err)
@@ -284,8 +287,9 @@ func TestJournalMDOpsPutUnmerged(t *testing.T) {
 		[]keybase1.UserOrTeamID{session.UID.AsUserOrTeam()}, nil, nil, nil, nil)
 	require.NoError(t, err)
 
-	h, err := MakeTlfHandle(
-		ctx, bh, bh.Type(), config.KBPKI(), config.KBPKI(), nil)
+	h, err := tlfhandle.MakeHandle(
+		ctx, bh, bh.Type(), config.KBPKI(), config.KBPKI(), nil,
+		keybase1.OfflineAvailability_NONE)
 	require.NoError(t, err)
 
 	mdOps := jManager.mdOps()
@@ -304,13 +308,13 @@ func TestJournalMDOpsPutUnmerged(t *testing.T) {
 	rmd.SetPrevRoot(kbfsmd.FakeID(1))
 	rmd.SetBranchID(kbfsmd.FakeBranchID(1))
 
-	_, err = mdOps.PutUnmerged(ctx, rmd, session.VerifyingKey)
+	_, err = mdOps.PutUnmerged(ctx, rmd, session.VerifyingKey, nil)
 	require.NoError(t, err)
 }
 
 func TestJournalMDOpsPutUnmergedError(t *testing.T) {
 	tempdir, ctx, cancel, config, _, jManager := setupJournalMDOpsTest(t)
-	defer teardownJournalMDOpsTest(t, tempdir, ctx, cancel, config)
+	defer teardownJournalMDOpsTest(ctx, t, tempdir, cancel, config)
 
 	session, err := config.KBPKI().GetCurrentSession(ctx)
 	require.NoError(t, err)
@@ -319,8 +323,9 @@ func TestJournalMDOpsPutUnmergedError(t *testing.T) {
 		[]keybase1.UserOrTeamID{session.UID.AsUserOrTeam()}, nil, nil, nil, nil)
 	require.NoError(t, err)
 
-	h, err := MakeTlfHandle(
-		ctx, bh, bh.Type(), config.KBPKI(), config.KBPKI(), nil)
+	h, err := tlfhandle.MakeHandle(
+		ctx, bh, bh.Type(), config.KBPKI(), config.KBPKI(), nil,
+		keybase1.OfflineAvailability_NONE)
 	require.NoError(t, err)
 
 	mdOps := jManager.mdOps()
@@ -337,13 +342,13 @@ func TestJournalMDOpsPutUnmergedError(t *testing.T) {
 
 	rmd := makeMDForJournalMDOpsTest(t, config, id, h, kbfsmd.Revision(1))
 
-	_, err = mdOps.PutUnmerged(ctx, rmd, session.VerifyingKey)
+	_, err = mdOps.PutUnmerged(ctx, rmd, session.VerifyingKey, nil)
 	require.Error(t, err, "Unmerged put with rmd.BID() == j.branchID == kbfsmd.NullBranchID")
 }
 
 func TestJournalMDOpsLocalSquashBranch(t *testing.T) {
 	tempdir, ctx, cancel, config, _, jManager := setupJournalMDOpsTest(t)
-	defer teardownJournalMDOpsTest(t, tempdir, ctx, cancel, config)
+	defer teardownJournalMDOpsTest(ctx, t, tempdir, cancel, config)
 
 	session, err := config.KBPKI().GetCurrentSession(ctx)
 	require.NoError(t, err)
@@ -352,8 +357,9 @@ func TestJournalMDOpsLocalSquashBranch(t *testing.T) {
 		[]keybase1.UserOrTeamID{session.UID.AsUserOrTeam()}, nil, nil, nil, nil)
 	require.NoError(t, err)
 
-	h, err := MakeTlfHandle(
-		ctx, bh, bh.Type(), config.KBPKI(), config.KBPKI(), nil)
+	h, err := tlfhandle.MakeHandle(
+		ctx, bh, bh.Type(), config.KBPKI(), config.KBPKI(), nil,
+		keybase1.OfflineAvailability_NONE)
 	require.NoError(t, err)
 
 	mdOps := jManager.mdOps()
@@ -372,7 +378,7 @@ func TestJournalMDOpsLocalSquashBranch(t *testing.T) {
 	firstRevision := kbfsmd.Revision(1)
 	initialRmd := makeMDForJournalMDOpsTest(t, config, id, h, firstRevision)
 	j := tlfJournal.mdJournal
-	initialMdID, err := j.put(ctx, config.Crypto(), config.KeyManager(),
+	initialMdID, _, err := j.put(ctx, config.Crypto(), config.KeyManager(),
 		config.BlockSplitter(), initialRmd, true)
 	require.NoError(t, err)
 
@@ -383,9 +389,9 @@ func TestJournalMDOpsLocalSquashBranch(t *testing.T) {
 	for i := 0; i < mdCount; i++ {
 		rmd, err = rmd.MakeSuccessor(ctx, config.MetadataVersion(),
 			config.Codec(), config.KeyManager(),
-			config.KBPKI(), config.KBPKI(), mdID, true)
+			config.KBPKI(), config.KBPKI(), config, mdID, true)
 		require.NoError(t, err)
-		mdID, err = j.put(ctx, config.Crypto(), config.KeyManager(),
+		mdID, _, err = j.put(ctx, config.Crypto(), config.KeyManager(),
 			config.BlockSplitter(), rmd, false)
 		require.NoError(t, err)
 	}

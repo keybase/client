@@ -1,9 +1,0 @@
-// @flow
-import * as React from 'react'
-export type Props = {
-  waiting: boolean,
-  mountKey: string,
-  onSubmitTextCode: string => void,
-  onOpenSettings: () => void,
-}
-declare export default class QRScan extends React.Component<Props> {}

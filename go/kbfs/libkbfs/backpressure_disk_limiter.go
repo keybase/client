@@ -78,8 +78,8 @@ func newBackpressureTracker(minThreshold, maxThreshold, limitFrac float64,
 		return nil, errors.Errorf("1.0 < maxThreshold=%f",
 			maxThreshold)
 	}
-	if limitFrac < 0.01 {
-		return nil, errors.Errorf("limitFrac=%f < 0.01", limitFrac)
+	if limitFrac <= 0 {
+		return nil, errors.Errorf("limitFrac=%f <= 0", limitFrac)
 	}
 	if limitFrac > 1.0 {
 		return nil, errors.Errorf("limitFrac=%f > 1.0", limitFrac)
@@ -554,10 +554,6 @@ func (jt journalTracker) release(blockBytes, blockFiles int64) {
 	jt.file.release(blockFiles)
 }
 
-func (jt journalTracker) getUsedBytes() int64 {
-	return jt.byte.used
-}
-
 func (jt journalTracker) getStatusLine(chargedTo keybase1.UserOrTeamID) string {
 	quota := jt.getQuotaTracker(chargedTo)
 	return fmt.Sprintf("journalBytes=%d, freeBytes=%d, "+
@@ -757,8 +753,8 @@ func newBackpressureDiskLimiter(
 	// that the disk cache should consume. Add 0.5 for rounding.
 	diskCacheByteLimit := int64(
 		(float64(params.byteLimit) * params.diskCacheFrac) + 0.5)
-	syncCacheByteLimit := int64(
-		(float64(params.byteLimit) * params.syncCacheFrac) + 0.5)
+	// The byte limit doesn't apply to the sync cache.
+	syncCacheByteLimit := int64(math.MaxInt64)
 	overallByteTracker, err := newBackpressureTracker(
 		1.0, 1.0, 1.0, params.byteLimit, freeBytes)
 	if err != nil {
@@ -771,7 +767,7 @@ func newBackpressureDiskLimiter(
 		return nil, err
 	}
 	syncCacheByteTracker, err := newBackpressureTracker(
-		1.0, 1.0, params.diskCacheFrac, syncCacheByteLimit, freeBytes)
+		1.0, 1.0, params.syncCacheFrac, syncCacheByteLimit, freeBytes)
 	if err != nil {
 		return nil, err
 	}
@@ -984,7 +980,12 @@ func (bdl *backpressureDiskLimiter) reserveWithBackpressure(
 	bdl.lock.Lock()
 	defer bdl.lock.Unlock()
 
-	bdl.overallByteTracker.reserve(ctx, blockBytes)
+	_, err = bdl.overallByteTracker.reserve(ctx, blockBytes)
+	if err != nil {
+		// Just log this error -- let the journal tracker error stand
+		// as the real returned error.
+		bdl.log.CDebugf(ctx, "Error reserving overall tracker: %+v", err)
+	}
 	return bdl.journalTracker.reserve(ctx, blockBytes, blockFiles)
 }
 

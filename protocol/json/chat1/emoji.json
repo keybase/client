@@ -1,0 +1,250 @@
+{
+  "protocol": "emoji",
+  "imports": [
+    {
+      "path": "common.avdl",
+      "type": "idl"
+    },
+    {
+      "path": "../gregor1",
+      "type": "idl",
+      "import_as": "gregor1"
+    }
+  ],
+  "types": [
+    {
+      "type": "enum",
+      "name": "EmojiLoadSourceTyp",
+      "symbols": [
+        "HTTPSRV_0",
+        "STR_1"
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "EmojiLoadSource",
+      "switch": {
+        "type": "EmojiLoadSourceTyp",
+        "name": "typ"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "HTTPSRV",
+            "def": false
+          },
+          "body": "string"
+        },
+        {
+          "label": {
+            "name": "STR",
+            "def": false
+          },
+          "body": "string"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "EmojiRemoteSourceTyp",
+      "symbols": [
+        "MESSAGE_0",
+        "STOCKALIAS_1"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "EmojiMessage",
+      "fields": [
+        {
+          "type": "ConversationID",
+          "name": "convID"
+        },
+        {
+          "type": "MessageID",
+          "name": "msgID"
+        },
+        {
+          "type": "boolean",
+          "name": "isAlias"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "EmojiStockAlias",
+      "fields": [
+        {
+          "type": "string",
+          "name": "text"
+        },
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": "gregor1.Time",
+          "name": "time"
+        }
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "EmojiRemoteSource",
+      "switch": {
+        "type": "EmojiRemoteSourceTyp",
+        "name": "typ"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "MESSAGE",
+            "def": false
+          },
+          "body": "EmojiMessage"
+        },
+        {
+          "label": {
+            "name": "STOCKALIAS",
+            "def": false
+          },
+          "body": "EmojiStockAlias"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "HarvestedEmoji",
+      "fields": [
+        {
+          "type": "string",
+          "name": "alias"
+        },
+        {
+          "type": "boolean",
+          "name": "isBig"
+        },
+        {
+          "type": "boolean",
+          "name": "isCrossTeam"
+        },
+        {
+          "type": "EmojiRemoteSource",
+          "name": "source"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "EmojiCreationInfo",
+      "fields": [
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": "gregor1.Time",
+          "name": "time"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "Emoji",
+      "fields": [
+        {
+          "type": "string",
+          "name": "alias"
+        },
+        {
+          "type": "boolean",
+          "name": "isBig"
+        },
+        {
+          "type": "boolean",
+          "name": "isReacji"
+        },
+        {
+          "type": "boolean",
+          "name": "isCrossTeam"
+        },
+        {
+          "type": "boolean",
+          "name": "isAlias"
+        },
+        {
+          "type": "EmojiLoadSource",
+          "name": "source"
+        },
+        {
+          "type": "EmojiLoadSource",
+          "name": "noAnimSource"
+        },
+        {
+          "type": "EmojiRemoteSource",
+          "name": "remoteSource"
+        },
+        {
+          "type": [
+            null,
+            "EmojiCreationInfo"
+          ],
+          "name": "creationInfo"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "teamname"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "EmojiGroup",
+      "fields": [
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "Emoji"
+          },
+          "name": "emojis"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UserEmojis",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "EmojiGroup"
+          },
+          "name": "emojis"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "EmojiStorage",
+      "fields": [
+        {
+          "type": {
+            "type": "map",
+            "values": "EmojiRemoteSource",
+            "keys": "string"
+          },
+          "name": "mapping"
+        }
+      ]
+    }
+  ],
+  "messages": {},
+  "namespace": "chat.1"
+}

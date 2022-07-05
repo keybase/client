@@ -3,9 +3,10 @@
 package install
 
 import (
+	"time"
+
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/go-updater/process"
-	"time"
 )
 
 // TerminateApp will stop the Keybase (UI) app
@@ -16,6 +17,8 @@ func TerminateApp(context Context, log Log) error {
 	appPIDs := process.TerminateAll(process.NewMatcher(appExecName, process.ExecutableEqual, logf), 5*time.Second, logf)
 	if len(appPIDs) > 0 {
 		log.Info("Terminated %s %v", appExecName, appPIDs)
+	} else {
+		log.Debug("Did not terminate anything")
 	}
 	return nil
 }

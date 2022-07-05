@@ -13,34 +13,23 @@
     "updatedDetails": {
       "guiID": "string",
       "bio": "string",
-      "followThem": "boolean",
-      "followersCount": "number",
-      "followingCount": "number",
-      "followsYou": "boolean",
       "fullname": "string",
       "location": "string",
+      "unverifiedFollowersCount": "number",
+      "unverifiedFollowingCount": "number",
+      "stellarHidden": "boolean",
       "username": "string",
-      "teamShowcase": "Array<Types._TeamShowcase>"
+      "teamShowcase": "Array<Types.TeamShowcase>",
+      "blocked": "boolean",
+      "hidFromFollowers": "boolean"
     },
     "updateResult": {
       "guiID": "string",
       "result": "Types.DetailsState",
-      "reason": "?string"
+      "reason?": "string",
     },
     "closeTracker": {
       "guiID": "string"
-    },
-    "updateAssertion": {
-      "guiID": "string",
-      "type": "string",
-      "value": "string",
-      "sigID": "string",
-      "siteURL": "string",
-      "siteIcon": "string",
-      "proofURL": "string",
-      "state": "Types.AssertionState",
-      "metas": "Array<Types._AssertionMeta>",
-      "color": "Types.AssertionColor"
     },
     "changeFollow": {
       "guiID": "string",
@@ -49,12 +38,38 @@
     "ignore": {
       "guiID": "string"
     },
-    "updateFollowers": {
+    "updateFollows": {
       "username": "string",
-      "following": "Array<{following: boolean, followsYou: boolean, fullname: string, username: string}>",
-      "followers": "Array<{following: boolean, followsYou: boolean, fullname: string, username: string}>"
+      "following?": "Array<{fullname: string, username: string}>",
+      "followers?": "Array<{fullname: string, username: string}>"
+    },
+    "updateWotEntries": {
+      "voucheeUsername": "string",
+      "entries": "Array<Types.WebOfTrustEntry>"
     },
     "getProofSuggestions": {},
-    "proofSuggestionsUpdated": {"suggestions": "$ReadOnlyArray<Types.Assertion>"}
+    "proofSuggestionsUpdated": {"suggestions": "ReadonlyArray<Types.Assertion>"},
+    "showUser": {
+      "_description": "Short term until new nav, a convenience to show a card from inside the app",
+      "asTracker": "boolean",
+      "username": "string",
+      "skipNav?": "boolean"
+    },
+    "loadNonUserProfile": {"assertion": "string"},
+    "loadedNonUserProfile": {
+      "assertion": "string",
+      "assertionKey": "string",
+      "assertionValue": "string",
+      "formattedName?": "string",
+      "bio?": "string",
+      "description": "string",
+      "fullName?": "string",
+      "location?": "string",
+      "pictureUrl?": "string",
+      "siteIcon": "Array<Types.SiteIcon>",
+      "siteIconDarkmode": "Array<Types.SiteIcon>",
+      "siteIconFull": "Array<Types.SiteIcon>",
+      "siteIconFullDarkmode": "Array<Types.SiteIcon>"
+    }
   }
 }

@@ -66,14 +66,14 @@ func (s SignatureInfo) Equals(other SignatureInfo) bool {
 // DeepCopy makes a complete copy of this SignatureInfo.
 func (s SignatureInfo) DeepCopy() SignatureInfo {
 	signature := make([]byte, len(s.Signature))
-	copy(signature[:], s.Signature[:])
+	copy(signature, s.Signature)
 	return SignatureInfo{s.Version, signature, s.VerifyingKey}
 }
 
 // String implements the fmt.Stringer interface for SignatureInfo.
 func (s SignatureInfo) String() string {
 	return fmt.Sprintf("SignatureInfo{Version: %d, Signature: %s, "+
-		"VerifyingKey: %s}", s.Version, hex.EncodeToString(s.Signature[:]),
+		"VerifyingKey: %s}", s.Version, hex.EncodeToString(s.Signature),
 		&s.VerifyingKey)
 }
 

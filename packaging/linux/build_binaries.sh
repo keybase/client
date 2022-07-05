@@ -1,9 +1,10 @@
 #! /usr/bin/env bash
 
-set -e -u -o pipefail
+set -euox pipefail
 
-here="$(dirname "$BASH_SOURCE")"
-this_repo="$(git -C "$here" rev-parse --show-toplevel)"
+here="$(dirname "${BASH_SOURCE[0]}")"
+this_repo="$(git -C "$here" rev-parse --show-toplevel ||
+  echo -n "$GOPATH/src/github.com/keybase/client")"
 
 mode="$("$here/../build_mode.sh" "$@")"
 binary_name="$("$here/../binary_name.sh" "$@")"
@@ -55,11 +56,14 @@ echo "-ldflags_kbfs '$ldflags_kbfs'"
 echo "-ldflags_kbnm '$ldflags_kbnm'"
 
 should_build_kbfs() {
-  [ "$mode" != "production" ]
+  [ "$mode" != "production" ] && [[ ! -v KEYBASE_NO_KBFS ]]
+}
+should_build_electron() {
+  [ "$mode" != "production" ] && [[ ! -v KEYBASE_NO_GUI ]]
 }
 
 # Install the electron dependencies.
-if should_build_kbfs ; then
+if should_build_electron ; then
   echo "Installing Node modules for Electron"
   # Can't seem to get the right packages installed under NODE_ENV=production.
   export NODE_ENV=development
@@ -93,7 +97,6 @@ build_one_architecture() {
     return
   fi
 
-
   cp "$here/run_keybase" "$layout_dir/usr/bin/"
 
   # In include-KBFS mode, create the /opt/keybase dir, and include post_install.sh.
@@ -110,6 +113,12 @@ build_one_architecture() {
   echo "Building git-remote-keybase for $GOARCH..."
   go build -tags "$go_tags" -ldflags "$ldflags_kbfs" -buildmode="$buildmode" -o \
     "$layout_dir/usr/bin/git-remote-keybase" github.com/keybase/client/go/kbfs/kbfsgit/git-remote-keybase
+
+  # Short-circuit if we're doing a Docker multi-stage build
+  if ! should_build_electron ; then
+    echo "SKIPPING kbnm and electron."
+    return
+  fi
 
   # Build the root redirector binary.
   echo "Building keybase-redirector for $GOARCH..."
@@ -134,13 +143,17 @@ build_one_architecture() {
     yarn run package -- --platform linux --arch "$electron_arch" --appVersion "$version"
     rsync -a "desktop/release/linux-${electron_arch}/Keybase-linux-${electron_arch}/" \
       "$layout_dir/opt/keybase"
+    chmod 4755 "$layout_dir/opt/keybase/chrome-sandbox"
   )
 
-  # Copy in the icon images.
+  # Copy in the icon images and .saltpack file images.
   for size in 16 32 128 256 512 ; do
     icon_dest="$layout_dir/usr/share/icons/hicolor/${size}x${size}/apps"
+    saltpack_dest="$layout_dir/usr/share/icons/hicolor/${size}x${size}/mimetypes"
     mkdir -p "$icon_dest"
     cp "$this_repo/media/icons/Keybase.iconset/icon_${size}x${size}.png" "$icon_dest/keybase.png"
+    mkdir -p "$saltpack_dest"
+    cp "$this_repo/media/icons/Saltpack.iconset/icon_${size}x${size}.png" "$saltpack_dest/application-x-saltpack.png"
   done
 
   # Copy in the desktop entry. Note that this is different from the autostart
@@ -148,6 +161,11 @@ build_one_architecture() {
   apps_dir="$layout_dir/usr/share/applications"
   mkdir -p "$apps_dir"
   cp "$here/keybase.desktop" "$apps_dir"
+
+  # Copy in the Saltpack file extension MIME type association.
+  apps_dir="$layout_dir/usr/share/mime/packages"
+  mkdir -p "$apps_dir"
+  cp "$here/x-saltpack.xml" "$apps_dir"
 
   # Copy in the systemd unit files.
   units_dir="$layout_dir/usr/lib/systemd/user"

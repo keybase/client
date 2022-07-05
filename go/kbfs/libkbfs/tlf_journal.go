@@ -6,11 +6,16 @@ package libkbfs
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
+	"regexp"
+	"strings"
 	"sync"
 	"time"
 
 	"github.com/keybase/backoff"
+	"github.com/keybase/client/go/kbfs/data"
+	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/ioutil"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/kbfscodec"
@@ -18,7 +23,8 @@ import (
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/kbfssync"
 	"github.com/keybase/client/go/kbfs/tlf"
-	"github.com/keybase/client/go/logger"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
 	"github.com/vividcortex/ewma"
@@ -29,11 +35,11 @@ import (
 // tlfJournalConfig is the subset of the Config interface needed by
 // tlfJournal (for ease of testing).
 type tlfJournalConfig interface {
-	BlockSplitter() BlockSplitter
+	BlockSplitter() data.BlockSplitter
 	Clock() Clock
 	Codec() kbfscodec.Codec
 	Crypto() Crypto
-	BlockCache() BlockCache
+	BlockCache() data.BlockCache
 	BlockOps() BlockOps
 	MDCache() MDCache
 	MetadataVersion() kbfsmd.MetadataVer
@@ -41,13 +47,14 @@ type tlfJournalConfig interface {
 	encryptionKeyGetter() encryptionKeyGetter
 	mdDecryptionKeyGetter() mdDecryptionKeyGetter
 	MDServer() MDServer
-	usernameGetter() normalizedUsernameGetter
-	resolver() resolver
-	MakeLogger(module string) logger.Logger
+	usernameGetter() idutil.NormalizedUsernameGetter
+	resolver() idutil.Resolver
+	logMaker
 	diskLimitTimeout() time.Duration
 	teamMembershipChecker() kbfsmd.TeamMembershipChecker
 	BGFlushDirOpBatchSize() int
 	syncedTlfGetterSetter
+	SubscriptionManagerPublisher() SubscriptionManagerPublisher
 }
 
 // tlfJournalConfigWrapper is an adapter for Config objects to the
@@ -64,11 +71,11 @@ func (ca tlfJournalConfigAdapter) mdDecryptionKeyGetter() mdDecryptionKeyGetter 
 	return ca.Config.KeyManager()
 }
 
-func (ca tlfJournalConfigAdapter) usernameGetter() normalizedUsernameGetter {
+func (ca tlfJournalConfigAdapter) usernameGetter() idutil.NormalizedUsernameGetter {
 	return ca.Config.KBPKI()
 }
 
-func (ca tlfJournalConfigAdapter) resolver() resolver {
+func (ca tlfJournalConfigAdapter) resolver() idutil.Resolver {
 	return ca.Config.KBPKI()
 }
 
@@ -98,12 +105,14 @@ const (
 	// unsquashed MD bytes in the journal that will trigger an
 	// automatic branch conversion (and subsequent resolution).
 	ForcedBranchSquashBytesThresholdDefault = uint64(25 << 20) // 25 MB
-	// Maximum number of blocks to delete from the local saved block
-	// journal at a time while holding the lock.
-	maxSavedBlockRemovalsAtATime = uint64(500)
 	// How often to check the server for conflicts while flushing.
 	tlfJournalServerMDCheckInterval = 1 * time.Minute
+
+	tlfJournalBakFmt = "%s-%d.bak"
 )
+
+var tlfJournalBakRegexp = regexp.MustCompile(
+	`[/\\]([[:alnum:]]+)-([[:digit:]]+)\.bak$`)
 
 // TLFJournalStatus represents the status of a TLF's journal for
 // display in diagnostics. It is suitable for encoding directly as
@@ -239,10 +248,20 @@ type tlfJournal struct {
 	config              tlfJournalConfig
 	delegateBlockServer BlockServer
 	log                 traceLogger
+	vlog                *libkb.VDebugLog
 	deferLog            traceLogger
 	onBranchChange      branchChangeListener
 	onMDFlush           mdFlushListener
 	forcedSquashByBytes uint64
+
+	// overrideTlfID is used for journals that are accessed by the
+	// upper layers through a TLF ID that's not the same one present
+	// in the on-disk MDs.  MDs returned from this journal will have
+	// their TLF ID overridden by this ID.  An example is a local
+	// conflict branch that's been moved to a new storage directory,
+	// and is presented under a new fake TLF ID.  This should only be
+	// used for read-only journals; writes will fail.
+	overrideTlfID tlf.ID
 
 	// Invariant: this tlfJournal acquires exactly
 	// blockJournal.getStoredBytes() and
@@ -278,6 +297,13 @@ type tlfJournal struct {
 
 	// Tracks background work.
 	wg kbfssync.RepeatedWaitGroup
+
+	// Needs to be taken for reading when putting block data, and for
+	// writing when clearing block data, to ensure that we don't put a
+	// block (in parallel with other blocks), then clear out the whole
+	// block journal before appending the block's entry to the block
+	// journal.  Should be taken before `journalLock`.
+	blockPutFlushLock sync.RWMutex
 
 	// Protects all operations on blockJournal and mdJournal, and all
 	// the fields until the next blank line.
@@ -352,7 +378,7 @@ func makeTLFJournal(
 	config tlfJournalConfig, delegateBlockServer BlockServer,
 	bws TLFJournalBackgroundWorkStatus, bwDelegate tlfJournalBWDelegate,
 	onBranchChange branchChangeListener, onMDFlush mdFlushListener,
-	diskLimiter DiskLimiter) (*tlfJournal, error) {
+	diskLimiter DiskLimiter, overrideTlfID tlf.ID) (*tlfJournal, error) {
 	if uid == keybase1.UID("") {
 		return nil, errors.New("Empty user")
 	}
@@ -408,16 +434,17 @@ func makeTLFJournal(
 	}
 
 	log := config.MakeLogger("TLFJ")
+	vlog := config.MakeVLogger(log)
 
-	blockJournal, err := makeBlockJournal(ctx, config.Codec(), dir, log)
+	blockJournal, err := makeBlockJournal(ctx, config.Codec(), dir, log, vlog)
 	if err != nil {
 		return nil, err
 	}
 
 	mdJournal, err := makeMDJournal(
 		ctx, uid, key, config.Codec(), config.Crypto(), config.Clock(),
-		config.teamMembershipChecker(), tlfID, config.MetadataVersion(), dir,
-		log)
+		config.teamMembershipChecker(), config, tlfID, config.MetadataVersion(),
+		dir, log, overrideTlfID)
 	if err != nil {
 		return nil, err
 	}
@@ -436,9 +463,11 @@ func makeTLFJournal(
 		delegateBlockServer:  delegateBlockServer,
 		log:                  traceLogger{log},
 		deferLog:             traceLogger{log.CloneWithAddedDepth(1)},
+		vlog:                 vlog,
 		onBranchChange:       onBranchChange,
 		onMDFlush:            onMDFlush,
 		forcedSquashByBytes:  ForcedBranchSquashBytesThresholdDefault,
+		overrideTlfID:        overrideTlfID,
 		diskLimiter:          diskLimiter,
 		hasWorkCh:            make(chan struct{}, 1),
 		needPauseCh:          make(chan struct{}, 1),
@@ -587,12 +616,13 @@ func (j *tlfJournal) doBackgroundWorkLoop(
 			if j.bwDelegate != nil {
 				j.bwDelegate.OnNewState(ctx, bwIdle)
 			}
-			j.log.CDebugf(
-				ctx, "Waiting for the work signal for %s",
+			j.vlog.CLogf(
+				ctx, libkb.VLog1, "Waiting for the work signal for %s",
 				j.tlfID)
 			select {
 			case <-j.hasWorkCh:
-				j.log.CDebugf(ctx, "Got work signal for %s", j.tlfID)
+				j.vlog.CLogf(
+					ctx, libkb.VLog1, "Got work signal for %s", j.tlfID)
 				if retryTimer != nil {
 					retryTimer.Stop()
 					retryTimer = nil
@@ -617,9 +647,9 @@ func (j *tlfJournal) doBackgroundWorkLoop(
 			if j.bwDelegate != nil {
 				j.bwDelegate.OnNewState(ctx, bwBusy)
 			}
-			j.log.CDebugf(ctx,
-				"Waiting for background work to be done for %s",
-				j.tlfID)
+			j.vlog.CLogf(
+				ctx, libkb.VLog1,
+				"Waiting for background work to be done for %s", j.tlfID)
 			needShutdown := false
 			select {
 			case err := <-errCh:
@@ -780,24 +810,29 @@ func (j *tlfJournal) checkEnabledLocked() error {
 }
 
 func (j *tlfJournal) getJournalEnds(ctx context.Context) (
-	blockEnd journalOrdinal, mdEnd kbfsmd.Revision, err error) {
+	blockEnd journalOrdinal, mdEnd kbfsmd.Revision, mdJournalID kbfsmd.ID,
+	err error) {
 	j.journalLock.RLock()
 	defer j.journalLock.RUnlock()
 	if err := j.checkEnabledLocked(); err != nil {
-		return 0, kbfsmd.RevisionUninitialized, err
+		return 0, kbfsmd.RevisionUninitialized, kbfsmd.ID{}, err
 	}
 
 	blockEnd, err = j.blockJournal.end()
 	if err != nil {
-		return 0, 0, err
+		return 0, 0, kbfsmd.ID{}, err
 	}
 
 	mdEnd, err = j.mdJournal.end()
 	if err != nil {
-		return 0, 0, err
+		return 0, 0, kbfsmd.ID{}, err
+	}
+	mdJournalID, err = j.mdJournal.getOrCreateJournalID()
+	if err != nil {
+		return 0, 0, kbfsmd.ID{}, err
 	}
 
-	return blockEnd, mdEnd, nil
+	return blockEnd, mdEnd, mdJournalID, nil
 }
 
 func (j *tlfJournal) checkAndFinishSingleOpFlushLocked(
@@ -816,7 +851,20 @@ func (j *tlfJournal) checkAndFinishSingleOpFlushLocked(
 	return nil
 }
 
+var errReadOnlyJournal = errors.New("Can't modify a read-only journal")
+
+func (j *tlfJournal) checkWriteable() error {
+	if j.overrideTlfID != tlf.NullID {
+		return errors.WithStack(errReadOnlyJournal)
+	}
+	return nil
+}
+
 func (j *tlfJournal) flush(ctx context.Context) (err error) {
+	if err := j.checkWriteable(); err != nil {
+		return err
+	}
+
 	j.flushLock.Lock()
 	defer j.flushLock.Unlock()
 
@@ -848,7 +896,8 @@ func (j *tlfJournal) flush(ctx context.Context) (err error) {
 			return err
 		}
 		if isConflict {
-			j.log.CDebugf(ctx, "Ignoring flush while on conflict branch")
+			j.vlog.CLogf(
+				ctx, libkb.VLog1, "Ignoring flush while on conflict branch")
 			// It's safe to send a pause signal here, because even if
 			// CR has already resolved the conflict and send the
 			// resume signal, we know the background work loop is
@@ -875,7 +924,7 @@ func (j *tlfJournal) flush(ctx context.Context) (err error) {
 			return nil
 		}
 
-		blockEnd, mdEnd, err := j.getJournalEnds(ctx)
+		blockEnd, mdEnd, mdJournalID, err := j.getJournalEnds(ctx)
 		if err != nil {
 			return err
 		}
@@ -883,7 +932,7 @@ func (j *tlfJournal) flush(ctx context.Context) (err error) {
 		if blockEnd == 0 &&
 			(mdEnd == kbfsmd.RevisionUninitialized ||
 				j.singleOpMode == singleOpRunning) {
-			j.log.CDebugf(ctx, "Nothing else to flush")
+			j.vlog.CLogf(ctx, libkb.VLog1, "Nothing else to flush")
 			if j.singleOpMode == singleOpFinished {
 				j.log.CDebugf(ctx, "Resetting single op mode")
 				j.singleOpMode = singleOpRunning
@@ -897,7 +946,7 @@ func (j *tlfJournal) flush(ctx context.Context) (err error) {
 
 		// Flush the block journal ops in parallel.
 		numFlushed, maxMDRevToFlush, converted, err :=
-			j.flushBlockEntries(ctx, blockEnd)
+			j.flushBlockEntries(ctx, blockEnd, mdJournalID)
 		if err != nil {
 			return err
 		}
@@ -918,7 +967,8 @@ func (j *tlfJournal) flush(ctx context.Context) (err error) {
 		}
 
 		if j.singleOpMode == singleOpRunning {
-			j.log.CDebugf(ctx, "Skipping MD flushes in single-op mode")
+			j.vlog.CLogf(
+				ctx, libkb.VLog1, "Skipping MD flushes in single-op mode")
 			continue
 		}
 
@@ -997,8 +1047,9 @@ func (j *tlfJournal) checkServerForConflicts(ctx context.Context,
 		return nil
 	}
 
-	j.log.CDebugf(ctx, "Checking the MD server for the latest revision; "+
-		"next MD revision in the journal is %d", nextMDToFlush)
+	j.vlog.CLogf(
+		ctx, libkb.VLog1, "Checking the MD server for the latest revision; "+
+			"next MD revision in the journal is %d", nextMDToFlush)
 	// TODO(KBFS-2186): implement a lighterweight server RPC that just
 	// returns the latest revision number, so we don't have to fetch
 	// the entire MD?
@@ -1016,13 +1067,15 @@ func (j *tlfJournal) checkServerForConflicts(ctx context.Context,
 		return nil
 	}
 
-	j.log.CDebugf(ctx, "Server is ahead of local journal (rev=%d), "+
-		"indicating a conflict", currHead.MD.RevisionNumber())
+	j.log.CDebugf(
+		ctx, "Server is ahead of local journal (rev=%d, nextMD=%d), "+
+			"indicating a conflict",
+		currHead.MD.RevisionNumber(), nextMDToFlush)
 	return j.convertMDsToBranch(ctx)
 }
 
 func (j *tlfJournal) getNextBlockEntriesToFlush(
-	ctx context.Context, end journalOrdinal) (
+	ctx context.Context, end journalOrdinal, mdJournalID kbfsmd.ID) (
 	entries blockEntriesToFlush, bytesToFlush int64,
 	maxMDRevToFlush kbfsmd.Revision, err error) {
 	j.journalLock.RLock()
@@ -1032,7 +1085,7 @@ func (j *tlfJournal) getNextBlockEntriesToFlush(
 	}
 
 	return j.blockJournal.getNextEntriesToFlush(ctx, end,
-		maxJournalBlockFlushBatchSize)
+		maxJournalBlockFlushBatchSize, mdJournalID)
 }
 
 func (j *tlfJournal) removeFlushedBlockEntries(ctx context.Context,
@@ -1047,6 +1100,10 @@ func (j *tlfJournal) removeFlushedBlockEntries(ctx context.Context,
 
 	// TODO: Check storedFiles also.
 
+	j.config.SubscriptionManagerPublisher().PublishChange(
+		keybase1.SubscriptionTopic_JOURNAL_STATUS)
+	j.config.SubscriptionManagerPublisher().PublishChange(
+		keybase1.SubscriptionTopic_FILES_TAB_BADGE)
 	flushedBytes, err := j.blockJournal.removeFlushedEntries(
 		ctx, entries, j.tlfID, j.config.Reporter())
 	if err != nil {
@@ -1068,8 +1125,9 @@ func (j *tlfJournal) removeFlushedBlockEntries(ctx context.Context,
 		j.bytesPerSecEstimate.Add(float64(flushedBytes) / timeToFlush.Seconds())
 	}
 	j.diskLimiter.onBlocksFlush(ctx, flushedBytes, j.chargedTo)
-	j.log.CDebugf(ctx, "Flushed %d bytes in %s; new bandwidth estimate "+
-		"is %f bytes/sec", flushedBytes, timeToFlush,
+	j.vlog.CLogf(
+		ctx, libkb.VLog1, "Flushed %d bytes in %s; new bandwidth estimate "+
+			"is %f bytes/sec", flushedBytes, timeToFlush,
 		j.bytesPerSecEstimate.Value())
 
 	return nil
@@ -1083,11 +1141,11 @@ func (j *tlfJournal) startFlush(bytesToFlush int64) {
 }
 
 func (j *tlfJournal) flushBlockEntries(
-	ctx context.Context, end journalOrdinal) (
+	ctx context.Context, end journalOrdinal, mdJournalID kbfsmd.ID) (
 	numFlushed int, maxMDRevToFlush kbfsmd.Revision,
 	converted bool, err error) {
 	entries, bytesToFlush, maxMDRevToFlush, err := j.getNextBlockEntriesToFlush(
-		ctx, end)
+		ctx, end, mdJournalID)
 	if err != nil {
 		return 0, kbfsmd.RevisionUninitialized, false, err
 	}
@@ -1096,7 +1154,8 @@ func (j *tlfJournal) flushBlockEntries(
 		return 0, maxMDRevToFlush, false, nil
 	}
 
-	j.log.CDebugf(ctx, "Flushing %d blocks, up to rev %d",
+	j.vlog.CLogf(
+		ctx, libkb.VLog1, "Flushing %d blocks, up to rev %d",
 		entries.puts.numBlocks(), maxMDRevToFlush)
 
 	// Mark these blocks as flushing, and clear when done.
@@ -1192,7 +1251,7 @@ func (j *tlfJournal) flushBlockEntries(
 	// happened yet, in which case it's still ok to flush
 	// maxMDRevToFlush.
 	if converted && maxMDRevToFlush != kbfsmd.RevisionUninitialized &&
-		!entries.revIsLocalSquash(maxMDRevToFlush) {
+		!entries.revIsLocalSquash(maxMDRevToFlush, mdJournalID) {
 		maxMDRevToFlush = kbfsmd.RevisionUninitialized
 	}
 
@@ -1276,19 +1335,20 @@ func (j *tlfJournal) convertMDsToBranchIfOverThreshold(ctx context.Context,
 	}
 
 	squashByRev := false
-	if j.singleOpMode == singleOpFinished {
-		j.log.CDebugf(ctx, "Squashing due to single op completion")
+	switch {
+	case j.singleOpMode == singleOpFinished:
+		j.vlog.CLogf(ctx, libkb.VLog1, "Squashing due to single op completion")
 		// Always squash if we've finished the single op and have more
 		// than one revision pending.
 		squashByRev = true
 		j.unsquashedBytes = 0
-	} else if j.config.BGFlushDirOpBatchSize() == 1 {
+	case j.config.BGFlushDirOpBatchSize() == 1:
 		squashByRev, err =
 			j.mdJournal.atLeastNNonLocalSquashes(ForcedBranchSquashRevThreshold)
 		if err != nil {
 			return false, err
 		}
-	} else {
+	default:
 		// Squashing is already done in folderBranchOps, so just mark
 		// this revision as squashed, so simply turn it off here.
 		j.unsquashedBytes = 0
@@ -1305,8 +1365,14 @@ func (j *tlfJournal) convertMDsToBranchIfOverThreshold(ctx context.Context,
 		return false, nil
 	}
 
-	j.log.CDebugf(ctx, "Converting journal with %d unsquashed bytes "+
-		"to a branch", j.unsquashedBytes)
+	j.vlog.CLogf(
+		ctx, libkb.VLog1, "Converting journal with %d unsquashed bytes "+
+			"to a branch", j.unsquashedBytes)
+
+	mdJournalID, err := j.mdJournal.getOrCreateJournalID()
+	if err != nil {
+		return false, err
+	}
 
 	// If we're squashing by bytes, and there's exactly one
 	// non-local-squash revision, just directly mark it as squashed to
@@ -1318,14 +1384,15 @@ func (j *tlfJournal) convertMDsToBranchIfOverThreshold(ctx context.Context,
 		}
 
 		if !moreThanOneRev {
-			j.log.CDebugf(ctx, "Avoiding CR when there is only one "+
-				"revision that needs squashing; marking as local squash")
+			j.vlog.CLogf(
+				ctx, libkb.VLog1, "Avoiding CR when there is only one "+
+					"revision that needs squashing; marking as local squash")
 			err = j.mdJournal.markLatestAsLocalSquash(ctx)
 			if err != nil {
 				return false, err
 			}
 
-			err = j.blockJournal.markLatestRevMarkerAsLocalSquash()
+			err = j.blockJournal.markLatestRevMarkerAsLocalSquash(mdJournalID)
 			if err != nil {
 				return false, err
 			}
@@ -1388,6 +1455,9 @@ func (j *tlfJournal) doOnMDFlushAndRemoveFlushedMDEntry(ctx context.Context,
 		j.diskLimiter.release(ctx, journalLimitTrackerType, removedBytes,
 			removedFiles)
 	}
+
+	j.blockPutFlushLock.Lock()
+	defer j.blockPutFlushLock.Unlock()
 
 	j.journalLock.Lock()
 	defer j.journalLock.Unlock()
@@ -1476,7 +1546,7 @@ func (j *tlfJournal) flushOneMDOp(ctx context.Context,
 		return false, nil
 	}
 
-	j.log.CDebugf(ctx, "Flushing one MD to server")
+	j.vlog.CLogf(ctx, libkb.VLog1, "Flushing one MD to server")
 	defer func() {
 		if err != nil {
 			j.deferLog.CDebugf(ctx, "Flush failed with %v", err)
@@ -1514,12 +1584,14 @@ func (j *tlfJournal) flushOneMDOp(ctx context.Context,
 					"isn't the initial revision")
 			}
 
-			j.log.CDebugf(ctx, "Ignoring lock context for initial MD flush")
+			j.vlog.CLogf(
+				ctx, libkb.VLog1, "Ignoring lock context for initial MD flush")
 			flushCtx.lockContextForPut = nil
 		}
 	}
 
-	j.log.CDebugf(ctx, "Flushing MD for TLF=%s with id=%s, rev=%s, bid=%s",
+	j.vlog.CLogf(
+		ctx, libkb.VLog1, "Flushing MD for TLF=%s with id=%s, rev=%s, bid=%s",
 		rmds.MD.TlfID(), mdID, rmds.MD.RevisionNumber(), rmds.MD.BID())
 	pushErr := mdServer.Put(ctx, rmds, extra,
 		flushCtx.lockContextForPut, flushCtx.priorityForPut)
@@ -1527,17 +1599,18 @@ func (j *tlfJournal) flushOneMDOp(ctx context.Context,
 		headMdID, err := getMdID(ctx, mdServer, j.config.Codec(),
 			rmds.MD.TlfID(), rmds.MD.BID(), rmds.MD.MergedStatus(),
 			rmds.MD.RevisionNumber(), nil)
-		if err != nil {
+		switch {
+		case err != nil:
 			j.log.CWarningf(ctx,
 				"getMdID failed for TLF %s, BID %s, and revision %d: %v",
 				rmds.MD.TlfID(), rmds.MD.BID(), rmds.MD.RevisionNumber(), err)
-		} else if headMdID == mdID {
+		case headMdID == mdID:
 			if headMdID == (kbfsmd.ID{}) {
 				panic("nil earliestID and revision conflict error returned by pushEarliestToServer")
 			}
 			// We must have already flushed this MD, so continue.
 			pushErr = nil
-		} else if rmds.MD.MergedStatus() == kbfsmd.Merged {
+		case rmds.MD.MergedStatus() == kbfsmd.Merged:
 			j.log.CDebugf(ctx, "Conflict detected %v", pushErr)
 			// Convert MDs to a branch and return -- the journal
 			// pauses until the resolution is complete.
@@ -1727,9 +1800,10 @@ func (j *tlfJournal) getUnflushedPathMDInfos(ctx context.Context,
 		return nil, err
 	}
 
-	handle, err := MakeTlfHandle(
+	handle, err := tlfhandle.MakeHandleWithTlfID(
 		ctx, ibrmdBareHandle, j.tlfID.Type(), j.config.resolver(),
-		j.config.usernameGetter(), constIDGetter{j.tlfID})
+		j.config.usernameGetter(), j.tlfID,
+		j.config.OfflineAvailabilityForID(j.tlfID))
 	if err != nil {
 		return nil, err
 	}
@@ -1751,7 +1825,8 @@ func (j *tlfJournal) getUnflushedPathMDInfos(ctx context.Context,
 			ctx, j.config.Codec(), j.config.Crypto(),
 			j.config.BlockCache(), j.config.BlockOps(),
 			j.config.mdDecryptionKeyGetter(), j.config.teamMembershipChecker(),
-			mode, j.uid, rmd.GetSerializedPrivateMetadata(), rmd, rmd, j.log)
+			j.config, mode, j.uid, rmd.GetSerializedPrivateMetadata(), rmd,
+			rmd, j.log)
 		if err != nil {
 			return nil, err
 		}
@@ -1796,7 +1871,7 @@ func (j *tlfJournal) getJournalStatusWithPaths(ctx context.Context,
 				return TLFJournalStatus{}, err
 			}
 			err = addUnflushedPaths(ctx, j.uid, j.key,
-				j.config.Codec(), j.log, mdInfos, cpp,
+				j.config.Codec(), j.log, j.config, mdInfos, cpp,
 				unflushedPaths)
 			if err != nil {
 				return TLFJournalStatus{}, err
@@ -1825,7 +1900,8 @@ func (j *tlfJournal) getJournalStatusWithPaths(ctx context.Context,
 				return TLFJournalStatus{}, err
 			}
 			unflushedPaths, initSuccess, err = upCache.initialize(
-				ctx, j.uid, j.key, j.config.Codec(), j.log, cpp, mdInfos)
+				ctx, j.uid, j.key, j.config.Codec(), j.log, j.config, cpp,
+				mdInfos)
 			if err != nil {
 				return TLFJournalStatus{}, err
 			}
@@ -1957,7 +2033,7 @@ func (j *tlfJournal) enable() error {
 // successful MD flush).  This is safe because the journal doesn't
 // support removing references for anything other than a flush (see
 // the comment in tlfJournal.removeBlockReferences).
-func (j *tlfJournal) getBlockData(id kbfsblock.ID) (
+func (j *tlfJournal) getBlockData(ctx context.Context, id kbfsblock.ID) (
 	[]byte, kbfscrypto.BlockCryptKeyServerHalf, error) {
 	j.journalLock.RLock()
 	defer j.journalLock.RUnlock()
@@ -1965,17 +2041,18 @@ func (j *tlfJournal) getBlockData(id kbfsblock.ID) (
 		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, err
 	}
 
-	return j.blockJournal.getData(id)
+	return j.blockJournal.getData(ctx, id)
 }
 
-func (j *tlfJournal) getBlockSize(id kbfsblock.ID) (uint32, error) {
+func (j *tlfJournal) getBlockSize(
+	ctx context.Context, id kbfsblock.ID) (uint32, error) {
 	j.journalLock.RLock()
 	defer j.journalLock.RUnlock()
 	if err := j.checkEnabledLocked(); err != nil {
 		return 0, err
 	}
 
-	size, err := j.blockJournal.getDataSize(id)
+	size, err := j.blockJournal.getDataSize(ctx, id)
 	if err != nil {
 		return 0, err
 	}
@@ -2028,16 +2105,33 @@ func (j *tlfJournal) checkInfoFileLocked() error {
 func (j *tlfJournal) putBlockData(
 	ctx context.Context, id kbfsblock.ID, blockCtx kbfsblock.Context, buf []byte,
 	serverHalf kbfscrypto.BlockCryptKeyServerHalf) (err error) {
+	if err := j.checkWriteable(); err != nil {
+		return err
+	}
+
 	// Since beforeBlockPut can block, it should happen outside of
 	// the journal lock.
 
 	timeout := j.config.diskLimitTimeout()
+	// If there's a deadline set in the context, use 60% of that (if
+	// that ends up being longer than the default timeout).
+	// Otherwise, use the default disk limit timeout.
+	deadline, ok := ctx.Deadline()
+	if ok {
+		ctxScaledTimeout := time.Duration(.6 * float64(time.Until(deadline)))
+		if ctxScaledTimeout > timeout {
+			timeout = ctxScaledTimeout
+		}
+	}
+
 	acquireCtx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 
 	bufLen := int64(len(buf))
-	availableBytes, availableFiles, err := j.diskLimiter.reserveWithBackpressure(
-		acquireCtx, journalLimitTrackerType, bufLen, filesPerBlockMax, j.chargedTo)
+	availableBytes, availableFiles, err :=
+		j.diskLimiter.reserveWithBackpressure(
+			acquireCtx, journalLimitTrackerType, bufLen, filesPerBlockMax,
+			j.chargedTo)
 	switch errors.Cause(err) {
 	case nil:
 		// Continue.
@@ -2064,6 +2158,17 @@ func (j *tlfJournal) putBlockData(
 			filesPerBlockMax, putData, j.chargedTo)
 	}()
 
+	j.blockPutFlushLock.RLock()
+	defer j.blockPutFlushLock.RUnlock()
+
+	// Put the block data before taking the lock, so block puts can
+	// run in parallel.
+	putData, err = j.blockJournal.putBlockData(
+		ctx, id, blockCtx, buf, serverHalf)
+	if err != nil {
+		return err
+	}
+
 	j.journalLock.Lock()
 	defer j.journalLock.Unlock()
 	if err := j.checkEnabledLocked(); err != nil {
@@ -2076,8 +2181,12 @@ func (j *tlfJournal) putBlockData(
 
 	storedBytesBefore := j.blockJournal.getStoredBytes()
 
-	putData, err = j.blockJournal.putData(
-		ctx, id, blockCtx, buf, serverHalf)
+	bufLenToAdd := bufLen
+	if !putData {
+		bufLenToAdd = 0
+	}
+
+	err = j.blockJournal.appendBlock(ctx, id, blockCtx, bufLenToAdd)
 	if err != nil {
 		return err
 	}
@@ -2098,6 +2207,10 @@ func (j *tlfJournal) putBlockData(
 		j.unsquashedBytes += uint64(bufLen)
 	}
 
+	j.config.SubscriptionManagerPublisher().PublishChange(
+		keybase1.SubscriptionTopic_JOURNAL_STATUS)
+	j.config.SubscriptionManagerPublisher().PublishChange(
+		keybase1.SubscriptionTopic_FILES_TAB_BADGE)
 	j.config.Reporter().NotifySyncStatus(ctx, &keybase1.FSPathSyncStatus{
 		FolderType: j.tlfID.Type().FolderType(),
 		// Path: TODO,
@@ -2138,45 +2251,8 @@ func (j *tlfJournal) addBlockReference(
 	return nil
 }
 
-func (j *tlfJournal) removeBlockReferences(
-	ctx context.Context, contexts kbfsblock.ContextMap) (
-	liveCounts map[kbfsblock.ID]int, err error) {
-	// Currently the block journal will still serve block data even if
-	// all journal references to a block have been removed (i.e.,
-	// because they have all been flushed to the remote server).  If
-	// we ever need to support the `BlockServer.RemoveReferences` call
-	// in the journal, we might need to change the journal so that it
-	// marks blocks as flushed-but-still-readable, so that we can
-	// distinguish them from blocks that has had all its references
-	// removed and shouldn't be served anymore.  For now, just fail
-	// this call to make sure no uses of it creep in.
-	return nil, errors.Errorf(
-		"Removing block references is currently unsupported in the journal")
-}
-
-func (j *tlfJournal) archiveBlockReferences(
-	ctx context.Context, contexts kbfsblock.ContextMap) error {
-	j.journalLock.Lock()
-	defer j.journalLock.Unlock()
-	if err := j.checkEnabledLocked(); err != nil {
-		return err
-	}
-
-	if err := j.checkInfoFileLocked(); err != nil {
-		return err
-	}
-
-	err := j.blockJournal.archiveReferences(ctx, contexts)
-	if err != nil {
-		return err
-	}
-
-	j.signalWork()
-
-	return nil
-}
-
-func (j *tlfJournal) isBlockUnflushed(id kbfsblock.ID) (bool, error) {
+func (j *tlfJournal) isBlockUnflushed(
+	ctx context.Context, id kbfsblock.ID) (bool, error) {
 	j.journalLock.RLock()
 	defer j.journalLock.RUnlock()
 	if err := j.checkEnabledLocked(); err != nil {
@@ -2190,7 +2266,7 @@ func (j *tlfJournal) isBlockUnflushed(id kbfsblock.ID) (bool, error) {
 		return true, nil
 	}
 
-	return j.blockJournal.isUnflushed(id)
+	return j.blockJournal.isUnflushed(ctx, id)
 }
 
 func (j *tlfJournal) markFlushingBlockIDs(entries blockEntriesToFlush) error {
@@ -2248,9 +2324,10 @@ func (j *tlfJournal) getMDRange(
 	return j.mdJournal.getRange(ctx, bid, start, stop)
 }
 
-func (j *tlfJournal) doPutMD(ctx context.Context, rmd *RootMetadata,
+func (j *tlfJournal) doPutMD(
+	ctx context.Context, rmd *RootMetadata,
 	mdInfo unflushedPathMDInfo, perRevMap unflushedPathsPerRevMap,
-	verifyingKey kbfscrypto.VerifyingKey) (
+	verifyingKey kbfscrypto.VerifyingKey, bps data.BlockPutState) (
 	irmd ImmutableRootMetadata, retryPut bool, err error) {
 	// Now take the lock and put the MD, merging in the unflushed
 	// paths while under the lock.
@@ -2275,14 +2352,15 @@ func (j *tlfJournal) doPutMD(ctx context.Context, rmd *RootMetadata,
 	// TODO: remove the revision from the cache on any errors below?
 	// Tricky when the append is only queued.
 
-	mdID, err := j.mdJournal.put(ctx, j.config.Crypto(),
+	mdID, journalID, err := j.mdJournal.put(ctx, j.config.Crypto(),
 		j.config.encryptionKeyGetter(), j.config.BlockSplitter(),
 		rmd, isFirstRev)
 	if err != nil {
 		return ImmutableRootMetadata{}, false, err
 	}
 
-	err = j.blockJournal.markMDRevision(ctx, rmd.Revision(), isFirstRev)
+	err = j.blockJournal.markMDRevision(
+		ctx, rmd.Revision(), journalID, isFirstRev)
 	if err != nil {
 		return ImmutableRootMetadata{}, false, err
 	}
@@ -2291,8 +2369,14 @@ func (j *tlfJournal) doPutMD(ctx context.Context, rmd *RootMetadata,
 	// the journal, to guarantee it will be replaced if the journal is
 	// converted into a branch before any of the upper layer have a
 	// chance to cache it.
+	rmd, err = rmd.loadCachedBlockChanges(
+		ctx, bps, j.log, j.vlog, j.config.Codec())
+	if err != nil {
+		return ImmutableRootMetadata{}, false, err
+	}
 	irmd = MakeImmutableRootMetadata(
 		rmd, verifyingKey, mdID, j.config.Clock().Now(), false)
+
 	// Revisions created locally should always override anything else
 	// in the cache, so use `Replace` rather than `Put`.
 	err = j.config.MDCache().Replace(irmd, irmd.BID())
@@ -2328,7 +2412,7 @@ func (j *tlfJournal) prepAndAddRMDWithRetry(ctx context.Context,
 		localTimestamp: time.Now(),
 	}
 	perRevMap, err := j.unflushedPaths.prepUnflushedPaths(
-		ctx, j.uid, j.key, j.config.Codec(), j.log, mdInfo)
+		ctx, j.uid, j.key, j.config.Codec(), j.log, j.config, mdInfo)
 	if err != nil {
 		return err
 	}
@@ -2342,7 +2426,7 @@ func (j *tlfJournal) prepAndAddRMDWithRetry(ctx context.Context,
 		// The cache was initialized after the last time we tried to
 		// prepare the unflushed paths.
 		perRevMap, err = j.unflushedPaths.prepUnflushedPaths(
-			ctx, j.uid, j.key, j.config.Codec(), j.log, mdInfo)
+			ctx, j.uid, j.key, j.config.Codec(), j.log, j.config, mdInfo)
 		if err != nil {
 			return err
 		}
@@ -2360,13 +2444,19 @@ func (j *tlfJournal) prepAndAddRMDWithRetry(ctx context.Context,
 	return nil
 }
 
-func (j *tlfJournal) putMD(ctx context.Context, rmd *RootMetadata,
-	verifyingKey kbfscrypto.VerifyingKey) (irmd ImmutableRootMetadata, err error) {
+func (j *tlfJournal) putMD(
+	ctx context.Context, rmd *RootMetadata,
+	verifyingKey kbfscrypto.VerifyingKey, bps data.BlockPutState) (
+	irmd ImmutableRootMetadata, err error) {
+	if err := j.checkWriteable(); err != nil {
+		return ImmutableRootMetadata{}, err
+	}
+
 	err = j.prepAndAddRMDWithRetry(ctx, rmd,
 		func(mdInfo unflushedPathMDInfo, perRevMap unflushedPathsPerRevMap) (
 			retry bool, err error) {
 			irmd, retry, err = j.doPutMD(
-				ctx, rmd, mdInfo, perRevMap, verifyingKey)
+				ctx, rmd, mdInfo, perRevMap, verifyingKey, bps)
 			return retry, err
 		})
 	if err != nil {
@@ -2376,6 +2466,10 @@ func (j *tlfJournal) putMD(ctx context.Context, rmd *RootMetadata,
 }
 
 func (j *tlfJournal) clearMDs(ctx context.Context, bid kbfsmd.BranchID) error {
+	if err := j.checkWriteable(); err != nil {
+		return err
+	}
+
 	if j.onBranchChange != nil {
 		j.onBranchChange.onTLFBranchChange(j.tlfID, kbfsmd.NullBranchID)
 	}
@@ -2399,10 +2493,11 @@ func (j *tlfJournal) clearMDs(ctx context.Context, bid kbfsmd.BranchID) error {
 	return nil
 }
 
-func (j *tlfJournal) doResolveBranch(ctx context.Context,
-	bid kbfsmd.BranchID, blocksToDelete []kbfsblock.ID, rmd *RootMetadata,
-	mdInfo unflushedPathMDInfo, perRevMap unflushedPathsPerRevMap,
-	verifyingKey kbfscrypto.VerifyingKey) (
+func (j *tlfJournal) doResolveBranch(
+	ctx context.Context, bid kbfsmd.BranchID, blocksToDelete []kbfsblock.ID,
+	rmd *RootMetadata, mdInfo unflushedPathMDInfo,
+	perRevMap unflushedPathsPerRevMap, verifyingKey kbfscrypto.VerifyingKey,
+	bps data.BlockPutState) (
 	irmd ImmutableRootMetadata, retry bool, err error) {
 	j.journalLock.Lock()
 	defer j.journalLock.Unlock()
@@ -2424,7 +2519,7 @@ func (j *tlfJournal) doResolveBranch(ctx context.Context,
 
 	// First write the resolution to a new branch, and swap it with
 	// the existing branch, then clear the existing branch.
-	mdID, err := j.mdJournal.resolveAndClear(
+	mdID, journalID, err := j.mdJournal.resolveAndClear(
 		ctx, j.config.Crypto(), j.config.encryptionKeyGetter(),
 		j.config.BlockSplitter(), j.config.MDCache(), bid, rmd)
 	if err != nil {
@@ -2444,7 +2539,7 @@ func (j *tlfJournal) doResolveBranch(ctx context.Context,
 
 	// Finally, append a new, non-ignored md rev marker for the new revision.
 	err = j.blockJournal.markMDRevision(
-		ctx, rmd.Revision(), isPendingLocalSquash)
+		ctx, rmd.Revision(), journalID, isPendingLocalSquash)
 	if err != nil {
 		return ImmutableRootMetadata{}, false, err
 	}
@@ -2455,6 +2550,11 @@ func (j *tlfJournal) doResolveBranch(ctx context.Context,
 	// chance to cache it. Revisions created locally should always
 	// override anything else in the cache, so use `Replace` rather
 	// than `Put`.
+	rmd, err = rmd.loadCachedBlockChanges(
+		ctx, bps, j.log, j.vlog, j.config.Codec())
+	if err != nil {
+		return ImmutableRootMetadata{}, false, err
+	}
 	irmd = MakeImmutableRootMetadata(
 		rmd, verifyingKey, mdID, j.config.Clock().Now(), false)
 	err = j.config.MDCache().Replace(irmd, irmd.BID())
@@ -2472,15 +2572,78 @@ func (j *tlfJournal) doResolveBranch(ctx context.Context,
 	return irmd, false, nil
 }
 
+func (j *tlfJournal) moveAway(ctx context.Context) (string, error) {
+	if err := j.checkWriteable(); err != nil {
+		return "", err
+	}
+
+	j.journalLock.Lock()
+	defer j.journalLock.Unlock()
+	// j.dir is X/y-z. Current timestamp is T. Move directory X/y-z to X/z-T.bak
+	// and then rebuild it.
+	restDir, lastDir := filepath.Split(j.dir)
+	idParts := strings.Split(lastDir, "-")
+	newDirName := fmt.Sprintf(tlfJournalBakFmt, idParts[len(idParts)-1],
+		j.config.Clock().Now().UnixNano())
+	fullDirName := filepath.Join(restDir, newDirName)
+
+	err := os.Rename(j.dir, fullDirName)
+	if err != nil {
+		return "", err
+	}
+
+	err = os.MkdirAll(j.dir, 0700)
+	if err != nil {
+		return "", err
+	}
+
+	// Copy over the info.json file
+	infoData, err := ioutil.ReadFile(getTLFJournalInfoFilePath(fullDirName))
+	if err != nil {
+		return "", err
+	}
+	err = ioutil.WriteFile(getTLFJournalInfoFilePath(j.dir), infoData, 0600)
+	if err != nil {
+		return "", err
+	}
+
+	// Make new block and MD journals
+	blockJournal, err := makeBlockJournal(
+		ctx, j.config.Codec(), j.dir, j.log, j.vlog)
+	if err != nil {
+		return "", err
+	}
+
+	mdJournal, err := makeMDJournal(ctx, j.uid, j.key, j.config.Codec(),
+		j.config.Crypto(), j.config.Clock(), j.config.teamMembershipChecker(),
+		j.config, j.tlfID, j.config.MetadataVersion(), j.dir, j.log,
+		j.overrideTlfID)
+	if err != nil {
+		return "", err
+	}
+
+	j.blockJournal = blockJournal
+	j.mdJournal = mdJournal
+
+	j.resume(journalPauseConflict)
+	j.signalWork()
+	return fullDirName, nil
+}
+
 func (j *tlfJournal) resolveBranch(ctx context.Context,
 	bid kbfsmd.BranchID, blocksToDelete []kbfsblock.ID, rmd *RootMetadata,
-	verifyingKey kbfscrypto.VerifyingKey) (
+	verifyingKey kbfscrypto.VerifyingKey, bps data.BlockPutState) (
 	irmd ImmutableRootMetadata, err error) {
+	if err := j.checkWriteable(); err != nil {
+		return ImmutableRootMetadata{}, err
+	}
+
 	err = j.prepAndAddRMDWithRetry(ctx, rmd,
 		func(mdInfo unflushedPathMDInfo, perRevMap unflushedPathsPerRevMap) (
 			retry bool, err error) {
 			irmd, retry, err = j.doResolveBranch(
-				ctx, bid, blocksToDelete, rmd, mdInfo, perRevMap, verifyingKey)
+				ctx, bid, blocksToDelete, rmd, mdInfo, perRevMap, verifyingKey,
+				bps)
 			return retry, err
 		})
 	if err != nil {

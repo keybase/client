@@ -4,6 +4,8 @@
 package client
 
 import (
+	"sort"
+
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
@@ -11,8 +13,11 @@ import (
 
 func NewCmdChat(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	subcommands := []cli.Command{
+		newCmdChatAddToChannel(cl, g),
+		newCmdChatRemoveFromChannel(cl, g),
 		newCmdChatAPI(cl, g),
 		newCmdChatAPIListen(cl, g),
+		newCmdChatDefaultChannels(cl, g),
 		newCmdChatDeleteChannel(cl, g),
 		newCmdChatDeleteHistory(cl, g),
 		newCmdChatDownload(cl, g),
@@ -36,8 +41,21 @@ func NewCmdChat(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command 
 		newCmdChatSearchRegexp(cl, g),
 		newCmdChatSend(cl, g),
 		newCmdChatUpload(cl, g),
+		newCmdChatAddBotMember(cl, g),
+		newCmdChatRemoveBotMember(cl, g),
+		newCmdChatEditBotMember(cl, g),
+		newCmdChatBotMemberSettings(cl, g),
+		newCmdChatFeaturedBots(cl, g),
+		newCmdChatSearchBots(cl, g),
+		newCmdChatClearCommands(cl, g),
+		newCmdChatConvInfo(cl, g),
+		newCmdChatAddEmoji(cl, g),
+		newCmdChatAddEmojiAlias(cl, g),
+		newCmdChatListEmoji(cl, g),
+		newCmdChatRemoveEmoji(cl, g),
 	}
 	subcommands = append(subcommands, getBuildSpecificChatCommands(cl, g)...)
+	sort.Sort(cli.ByName(subcommands))
 	return cli.Command{
 		Name:         "chat",
 		Usage:        "Chat securely with keybase users",

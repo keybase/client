@@ -86,6 +86,9 @@ type Config interface {
 		read, list bool,
 		possibleRead, possibleList bool,
 		realm string, err error)
+	// GetAccessControlAllowOrigin returns a string that, if non-empty, should
+	// be set as Access-Control-Allow-Origin header.
+	GetAccessControlAllowOrigin(path string) (setting string, err error)
 
 	Encode(w io.Writer, prettify bool) error
 }

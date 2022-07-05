@@ -1,0 +1,70 @@
+@namespace("keybase.1")
+
+protocol wot {
+  import idl "common.avdl";
+
+  // How the voucher knows they have the right vouchee.
+  // See extras.go for values
+  @typedef("string")
+  record UsernameVerificationType {}
+
+  // One of the vouchee's proofs.
+  // Why not SigID? Because SigID doesn't uniquely identify old proofs.
+  record WotProof {
+    @jsonkey("proof_type")
+    ProofType proofType;
+
+    // For social proofs.
+    @jsonkey("name,omitempty") string name;
+    @jsonkey("username,omitempty") string username;
+
+    @jsonkey("protocol,omitempty") string protocol; // For https, http, and dns.
+    @jsonkey("hostname,omitempty") string hostname; // For https, http.
+    @jsonkey("domain,omitempty") string domain; // For dns.
+  }
+
+  // One of the vouchee's proofs.
+  // For displaying in the gui.
+  record WotProofUI {
+    string type;
+    string value;
+    array<SizedImage> siteIcon;
+    array<SizedImage> siteIconDarkmode;
+  }
+
+  record Confidence {
+    @jsonkey("username_verified_via,omitempty")
+    UsernameVerificationType usernameVerifiedVia;
+    @jsonkey("proofs,omitempty")
+    array<WotProof> proofs;
+    @jsonkey("other,omitempty")
+    string other;
+  }
+
+  void wotVouch(int sessionID, string username, Identify3GUIID guiID, string vouchText, Confidence confidence);
+  void wotVouchCLI(int sessionID, string assertion, string vouchText, Confidence confidence);
+
+  enum WotReactionType {
+    REJECT_0,
+    ACCEPT_1
+  }
+  void wotReact(int sessionID, string voucher, WotReactionType reaction);
+
+  record WotVouch {
+    WotStatusType status;
+    SigID vouchProof; // ID of the voucher's sigchain link where they did the vouching.
+    UserVersion vouchee;
+    string voucheeUsername;
+    UserVersion voucher;
+    string voucherUsername;
+    string vouchText;
+    Time vouchedAt;
+    Confidence confidence;
+    array<WotProofUI> proofs;
+  }
+
+  // dismiss notifications for a user vouch
+  void dismissWotNotifications(int sessionID, string voucher, string vouchee);
+
+  array<WotVouch> wotFetchVouches(int sessionID, string vouchee, string voucher);
+}

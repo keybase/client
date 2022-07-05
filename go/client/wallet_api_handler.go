@@ -39,6 +39,15 @@ var ErrMessageTooLong = errors.New("message is too long")
 // ErrInvalidAmount is for invalid payment amounts.
 var ErrInvalidAmount = errors.New("invalid amount")
 
+// ErrInvalidSourceMax is for invalid source asset maximum amounts
+var ErrInvalidSourceMax = errors.New("invalid source asset maximum amount")
+
+// ErrInvalidSourceMax is for when a payment path would exceed the source asset maximum
+var ErrPathMaxExceeded = errors.New("payment path could exceed source asset limit")
+
+// ErrMemoTextTooLong is for lengthy memos.
+var ErrMemoTextTooLong = errors.New("memo text is too long (max 28 characters)")
+
 // walletAPIHandler is a type that can handle all the json api
 // methods for the wallet API.
 type walletAPIHandler struct {
@@ -74,6 +83,8 @@ const (
 	lookupMethod       = "lookup"
 	sendMethod         = "send"
 	setInflationMethod = "set-inflation"
+	findPaymentPath    = "find-payment-path"
+	sendPathPayment    = "send-path-payment"
 )
 
 // validWalletMethodsV1 is a map of the valid V1 methods for quick lookup.
@@ -88,6 +99,8 @@ var validWalletMethodsV1 = map[string]bool{
 	lookupMethod:       true,
 	sendMethod:         true,
 	setInflationMethod: true,
+	findPaymentPath:    true,
+	sendPathPayment:    true,
 }
 
 // handleV1 processes Call for version 1 of the wallet JSON API.
@@ -123,6 +136,10 @@ func (w *walletAPIHandler) handleV1(ctx context.Context, c Call, wr io.Writer) e
 		return w.send(ctx, c, wr)
 	case setInflationMethod:
 		return w.setInflation(ctx, c, wr)
+	case findPaymentPath:
+		return w.findPaymentPath(ctx, c, wr)
+	case sendPathPayment:
+		return w.sendPathPayment(ctx, c, wr)
 	default:
 		return ErrInvalidMethod{name: c.Method, version: 1}
 	}
@@ -147,6 +164,7 @@ func (w *walletAPIHandler) batch(ctx context.Context, c Call, wr io.Writer) erro
 	arg := stellar1.BatchLocalArg{
 		BatchID:     opts.BatchID,
 		TimeoutSecs: opts.Timeout,
+		UseMulti:    false,
 	}
 	for _, p := range opts.Payments {
 		arg.Payments = append(arg.Payments, stellar1.BatchPaymentArg{Recipient: p.Recipient, Amount: p.Amount, Message: p.Message})
@@ -279,6 +297,8 @@ func (w *walletAPIHandler) send(ctx context.Context, c Call, wr io.Writer) error
 		DisplayAmount:   displayAmount,
 		DisplayCurrency: displayCurrency,
 		FromAccountID:   stellar1.AccountID(opts.FromAccountID),
+		PublicNote:      opts.MemoText,
+		PublicNoteType:  stellar1.PublicNoteType_TEXT,
 	}
 	result, err := w.cli.SendCLILocal(ctx, arg)
 	if err != nil {
@@ -319,6 +339,96 @@ func (w *walletAPIHandler) setInflation(ctx context.Context, c Call, wr io.Write
 	}
 
 	return w.encodeResult(c, inflation, wr)
+}
+
+func (w *walletAPIHandler) findPaymentPath(ctx context.Context, c Call, wr io.Writer) error {
+	var opts findPaymentPathOptions
+	if err := unmarshalOptions(c, &opts); err != nil {
+		return w.encodeErr(c, err, wr)
+	}
+
+	sourceAsset, err := parseAssetString(opts.SourceAsset)
+	if err != nil {
+		return w.encodeErr(c, err, wr)
+	}
+	destinationAsset, err := parseAssetString(opts.DestinationAsset)
+	if err != nil {
+		return w.encodeErr(c, err, wr)
+	}
+	from := stellar1.AccountID(opts.FromAccountID)
+
+	if err := w.registerIdentifyUI(); err != nil {
+		return w.encodeErr(c, err, wr)
+	}
+
+	findArg := stellar1.FindPaymentPathLocalArg{
+		From:             from,
+		To:               opts.Recipient,
+		SourceAsset:      sourceAsset,
+		DestinationAsset: destinationAsset,
+		Amount:           opts.Amount,
+	}
+	path, err := w.cli.FindPaymentPathLocal(ctx, findArg)
+	if err != nil {
+		return w.encodeErr(c, err, wr)
+	}
+	return w.encodeResult(c, path.FullPath, wr)
+}
+
+func (w *walletAPIHandler) sendPathPayment(ctx context.Context, c Call, wr io.Writer) error {
+	var opts sendPathPaymentOptions
+	if err := unmarshalOptions(c, &opts); err != nil {
+		return w.encodeErr(c, err, wr)
+	}
+
+	sourceAsset, err := parseAssetString(opts.SourceAsset)
+	if err != nil {
+		return w.encodeErr(c, err, wr)
+	}
+	destinationAsset, err := parseAssetString(opts.DestinationAsset)
+	if err != nil {
+		return w.encodeErr(c, err, wr)
+	}
+	from := stellar1.AccountID(opts.FromAccountID)
+
+	if err := w.registerIdentifyUI(); err != nil {
+		return w.encodeErr(c, err, wr)
+	}
+
+	findArg := stellar1.FindPaymentPathLocalArg{
+		From:             from,
+		To:               opts.Recipient,
+		SourceAsset:      sourceAsset,
+		DestinationAsset: destinationAsset,
+		Amount:           opts.Amount,
+	}
+	path, err := w.cli.FindPaymentPathLocal(ctx, findArg)
+	if err != nil {
+		return w.encodeErr(c, err, wr)
+	}
+
+	if path.FullPath.SourceAmountMax > opts.SourceMaxAmount {
+		return w.encodeErr(c, ErrPathMaxExceeded, wr)
+	}
+
+	sendArg := stellar1.SendPathCLILocalArg{
+		Source:         from,
+		Recipient:      opts.Recipient,
+		Path:           path.FullPath,
+		Note:           opts.Message,
+		PublicNote:     opts.MemoText,
+		PublicNoteType: stellar1.PublicNoteType_TEXT,
+	}
+	res, err := w.cli.SendPathCLILocal(ctx, sendArg)
+	if err != nil {
+		return w.encodeErr(c, err, wr)
+	}
+
+	detail, err := w.cli.PaymentDetailCLILocal(ctx, string(res.TxID))
+	if err != nil {
+		return w.encodeErr(c, err, wr)
+	}
+	return w.encodeResult(c, detail, wr)
 }
 
 // encodeResult JSON encodes a successful result to the wr writer.
@@ -432,6 +542,7 @@ type sendOptions struct {
 	Currency      string `json:"currency"`
 	Message       string `json:"message"`
 	FromAccountID string `json:"from-account-id"`
+	MemoText      string `json:"memo-text"`
 }
 
 // Check makes sure that the send options are valid.
@@ -459,6 +570,9 @@ func (c *sendOptions) Check() error {
 	if len(c.Message) > libkb.MaxStellarPaymentNoteLength {
 		return ErrMessageTooLong
 	}
+	if len(c.MemoText) > libkb.MaxStellarPaymentPublicNoteLength {
+		return ErrMemoTextTooLong
+	}
 
 	return nil
 }
@@ -471,7 +585,7 @@ type batchPayment struct {
 
 // batchOptions are the options for the batch payment method.
 type batchOptions struct {
-	BatchID  string         `json:"batchID"`
+	BatchID  string         `json:"batch-id"`
 	Timeout  int            `json:"timeout"`
 	Payments []batchPayment `json:"payments"`
 }
@@ -498,7 +612,96 @@ func (c *batchOptions) Check() error {
 	}
 
 	if c.Timeout <= 0 {
-		c.Timeout = 15 * len(c.Payments)
+		c.Timeout = 6 * len(c.Payments)
+	}
+
+	return nil
+}
+
+type findPaymentPathOptions struct {
+	Recipient        string `json:"recipient"`
+	Amount           string `json:"amount"`
+	SourceAsset      string `json:"source-asset"`
+	DestinationAsset string `json:"destination-asset"`
+	FromAccountID    string `json:"from-account-id"`
+}
+
+func (c *findPaymentPathOptions) Check() error {
+	// Note: we don't validate assets in here, since we need the parsed asset values in `sendPathPayment`
+
+	if strings.TrimSpace(c.Recipient) == "" {
+		return ErrRecipientMissing
+	}
+	if strings.TrimSpace(c.Amount) == "" {
+		return ErrAmountMissing
+	}
+
+	namt, err := stellarnet.ParseStellarAmount(c.Amount)
+	if err != nil {
+		return ErrInvalidAmount
+	}
+	if namt < 0 {
+		return ErrInvalidAmount
+	}
+
+	if c.FromAccountID != "" {
+		_, err := strkey.Decode(strkey.VersionByteAccountID, c.FromAccountID)
+		if err != nil {
+			return ErrInvalidAccountID
+		}
+	}
+
+	return nil
+}
+
+type sendPathPaymentOptions struct {
+	Recipient        string `json:"recipient"`
+	Amount           string `json:"amount"`
+	SourceAsset      string `json:"source-asset"`
+	SourceMaxAmount  string `json:"source-max-amount"`
+	DestinationAsset string `json:"destination-asset"`
+	FromAccountID    string `json:"from-account-id"`
+	Message          string `json:"message"`
+	MemoText         string `json:"memo-text"`
+}
+
+func (c *sendPathPaymentOptions) Check() error {
+	// Note: we don't validate assets in here, since we need the parsed asset values in `sendPathPayment`
+
+	if strings.TrimSpace(c.Recipient) == "" {
+		return ErrRecipientMissing
+	}
+	if strings.TrimSpace(c.Amount) == "" {
+		return ErrAmountMissing
+	}
+
+	amt, err := stellarnet.ParseStellarAmount(c.Amount)
+	if err != nil {
+		return ErrInvalidAmount
+	}
+	if amt < 0 {
+		return ErrInvalidAmount
+	}
+
+	sourceMax, err := stellarnet.ParseStellarAmount(c.SourceMaxAmount)
+	if err != nil {
+		return ErrInvalidSourceMax
+	}
+	if sourceMax < 0 {
+		return ErrInvalidSourceMax
+	}
+
+	if c.FromAccountID != "" {
+		_, err := strkey.Decode(strkey.VersionByteAccountID, c.FromAccountID)
+		if err != nil {
+			return ErrInvalidAccountID
+		}
+	}
+	if len(c.Message) > libkb.MaxStellarPaymentNoteLength {
+		return ErrMessageTooLong
+	}
+	if len(c.MemoText) > libkb.MaxStellarPaymentPublicNoteLength {
+		return ErrMemoTextTooLong
 	}
 
 	return nil

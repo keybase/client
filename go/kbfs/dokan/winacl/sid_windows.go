@@ -8,7 +8,7 @@ import (
 	"syscall"
 )
 
-// Type SID wraps syscall.SID.
+// SID wraps syscall.SID.
 type SID syscall.SID
 
 // currentProcessUserSid is a utility to get the

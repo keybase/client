@@ -14,13 +14,13 @@ type Shrug struct {
 
 func NewShrug(g *globals.Context) *Shrug {
 	return &Shrug{
-		baseCommand: newBaseCommand(g, "shrug", "", `Appends ¯\_(ツ)_/¯ to your message`),
+		baseCommand: newBaseCommand(g, "shrug", "", `Appends ¯\_(ツ)_/¯ to your message`, false),
 	}
 }
 
 func (s *Shrug) Execute(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	tlfName, text string) (err error) {
-	defer s.Trace(ctx, func() error { return err }, "Execute")()
+	tlfName, text string, replyTo *chat1.MessageID) (err error) {
+	defer s.Trace(ctx, &err, "Execute")()
 	if !s.Match(ctx, text) {
 		return ErrInvalidCommand
 	}
@@ -32,5 +32,6 @@ func (s *Shrug) Execute(ctx context.Context, uid gregor1.UID, convID chat1.Conve
 	if len(msg) > 0 {
 		res = msg + " " + res
 	}
-	return s.G().ChatHelper.SendTextByIDNonblock(ctx, convID, tlfName, res)
+	_, err = s.G().ChatHelper.SendTextByIDNonblock(ctx, convID, tlfName, res, nil, replyTo)
+	return err
 }

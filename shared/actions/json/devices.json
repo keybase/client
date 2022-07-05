@@ -1,18 +1,18 @@
 {
   "prelude": [
     "import * as Types from '../constants/types/devices'",
-    "import * as Constants from '../constants/devices'",
     "import HiddenString from '../util/hidden-string'"
   ],
   "actions": {
     "load": {},
-    "loaded": { "devices": "Array<Types.Device>" },
+    "clearBadges": {},
+    "loaded": {"devices": "Array<Types.Device>"},
     "endangeredTLFsLoaded": {
       "deviceID": "Types.DeviceID",
       "tlfs": "Array<string>"
     },
-    "paperKeyCreated": { "paperKey": "HiddenString" },
-    "revoke": { "deviceID": "Types.DeviceID" },
+    "paperKeyCreated": {"paperKey": "HiddenString"},
+    "revoke": {"deviceID": "Types.DeviceID"},
     "revoked": {
       "deviceID": "Types.DeviceID",
       "wasCurrentDevice": "boolean",
@@ -21,8 +21,8 @@
     "badgeAppForDevices": {
       "ids": "Array<string>"
     },
-    "showRevokePage": { "deviceID": "Types.DeviceID" },
-    "showDevicePage": { "deviceID": "Types.DeviceID" },
+    "showRevokePage": {"deviceID": "Types.DeviceID"},
+    "showDevicePage": {"deviceID": "Types.DeviceID"},
     "showPaperKeyPage": {}
   }
 }

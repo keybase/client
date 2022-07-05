@@ -9,4 +9,5 @@ package libkbfs
 
 import "syscall"
 
+// SIGPWR is the power failure signal on Linux.
 const SIGPWR = syscall.SIGPWR

@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+# builds
+sudo rm -r /var/tmp/keybase*
+
+# docker
+sudo docker system prune -af

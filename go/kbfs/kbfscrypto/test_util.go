@@ -15,7 +15,7 @@ import (
 func makeFakeRandomBytes(seed string, byteCount int) []byte {
 	paddingLen := byteCount - len(seed)
 	if paddingLen > 0 {
-		seed = seed + strings.Repeat("0", paddingLen)
+		seed += strings.Repeat("0", paddingLen)
 	}
 	return []byte(seed[:byteCount])
 }

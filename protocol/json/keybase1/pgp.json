@@ -90,6 +90,13 @@
         {
           "type": "PublicKey",
           "name": "signKey"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "warnings"
         }
       ],
       "doc": "PGPSigVerification is returned by pgpDecrypt and pgpVerify with information\n    about the signature verification. If isSigned is false, there was no\n    signature, and the rest of the fields should be ignored."

@@ -46,24 +46,34 @@ func requiresUI(c libkb.UIConsumer, kind libkb.UIKind) bool {
 // Under the hood, IsLoggedIn is going through the BootstrapActiveDevice
 // flow and therefore will try its best to unlocked locked keys if it can
 // without user interaction.
+//
+// If the user is intentionally not logged into any user,  don't try to
+// bootstrap from the secret store and just check if there is an active device.
 func isLoggedInWithUIDAndError(m libkb.MetaContext) (ret bool, uid keybase1.UID, err error) {
+	if m.G().Env.GetStayLoggedOut() {
+		return m.ActiveDevice().Valid(), m.G().Env.GetUID(), nil
+	}
 	ret, uid, err = libkb.BootstrapActiveDeviceWithMetaContext(m)
 	return ret, uid, err
 }
+
 func isLoggedIn(m libkb.MetaContext) (ret bool, uid keybase1.UID) {
+	if m.G().Env.GetStayLoggedOut() {
+		return m.ActiveDevice().Valid(), m.G().Env.GetUID()
+	}
 	ret, uid, _ = libkb.BootstrapActiveDeviceWithMetaContext(m)
 	return ret, uid
 }
 
-func assertLoggedIn(m libkb.MetaContext, which string) (err error) {
-	ret, err := isLoggedInWithError(m)
+func isLoggedInAs(m libkb.MetaContext, uid keybase1.UID) (ret bool) {
+	if m.G().Env.GetStayLoggedOut() {
+		return m.ActiveDevice().Valid() && uid == m.G().Env.GetUID()
+	}
+	ret, err := libkb.BootstrapActiveDeviceWithMetaContextAndAssertUID(m, uid)
 	if err != nil {
-		return err
+		m.Debug("isLoggedAs error: %s", err)
 	}
-	if !ret {
-		return libkb.NewLoginRequiredError(which)
-	}
-	return nil
+	return ret
 }
 
 func isLoggedInWithError(m libkb.MetaContext) (ret bool, err error) {
@@ -96,7 +106,7 @@ func runPrereqs(m libkb.MetaContext, e Engine2) error {
 
 func RunEngine2(m libkb.MetaContext, e Engine2) (err error) {
 	m = m.WithLogTag("ENG")
-	defer m.CTrace(fmt.Sprintf("RunEngine(%s)", e.Name()), func() error { return err })()
+	defer m.Trace(fmt.Sprintf("RunEngine(%s)", e.Name()), &err)()
 
 	if m, err = delegateUIs(m, e); err != nil {
 		return err
@@ -133,19 +143,19 @@ func delegateUIs(m libkb.MetaContext, e Engine2) (libkb.MetaContext, error) {
 		if ui, err := m.G().UIRouter.GetSecretUI(sessionID); err != nil {
 			return m, err
 		} else if ui != nil {
-			m.CDebugf("using delegated secret UI for engine %q (session id = %d)", e.Name(), sessionID)
+			m.Debug("using delegated secret UI for engine %q (session id = %d)", e.Name(), sessionID)
 			m = m.WithSecretUI(ui)
 		}
 	}
 
 	if wantsDelegateUI(e, libkb.IdentifyUIKind) {
-		m.CDebugf("IdentifyUI wanted for engine %q", e.Name())
+		m.Debug("IdentifyUI wanted for engine %q", e.Name())
 		ui, err := getIdentifyUI3or1(m)
 		if err != nil {
 			return m, err
 		}
 		if ui != nil {
-			m.CDebugf("using delegated identify UI for engine %q", e.Name())
+			m.Debug("using delegated identify UI for engine %q", e.Name())
 			m = m.WithDelegatedIdentifyUI(ui)
 		}
 	}

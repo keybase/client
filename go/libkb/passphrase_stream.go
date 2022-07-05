@@ -5,6 +5,7 @@ package libkb
 
 import (
 	"fmt"
+	"runtime/debug"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	triplesec "github.com/keybase/go-triplesec"
@@ -22,6 +23,11 @@ func StretchPassphrase(g *GlobalContext, passphrase string, salt []byte) (tsec T
 	var tmp []byte
 	var fn func(pw []byte, salt []byte) (Triplesec, error)
 
+	// free memory on mobile before we do this to reduce chance that we get killed because of the
+	// large scrypt allocation coming
+	if g != nil && g.IsMobileAppType() {
+		debug.FreeOSMemory()
+	}
 	if g == nil {
 		fn = NewSecureTriplesec
 	} else {
@@ -87,6 +93,20 @@ func (ps *PassphraseStream) SetGeneration(gen PassphraseGeneration) {
 	ps.gen = gen
 }
 
+type passphraseStreamPWHash [pwhLen]byte
+type passphraseSteramEdDSASeed [eddsaLen]byte
+
+func newPassphraseStreamFromPwhAndEddsa(pwhash passphraseStreamPWHash, eddsa passphraseSteramEdDSASeed) *PassphraseStream {
+	stream := make([]byte, extraLen)
+	copy(stream[pwhIndex:eddsaIndex], pwhash[:])
+	copy(stream[eddsaIndex:dhIndex], eddsa[:])
+	ps := &PassphraseStream{
+		stream: stream,
+		gen:    PassphraseGeneration(0),
+	}
+	return ps
+}
+
 func (ps PassphraseStream) PWHash() []byte {
 	return ps.stream[pwhIndex:eddsaIndex]
 }
@@ -122,7 +142,7 @@ func (ps PassphraseStream) PDPKA5KID() (keybase1.KID, error) {
 
 func (ps PassphraseStream) String() string {
 	return fmt.Sprintf("pwh:   %x\nEdDSA: %x\nDH:    %x\nlks:   %x",
-		ps.PWHash(), ps.EdDSASeed(), ps.DHSeed(), ps.LksClientHalf())
+		ps.PWHash(), ps.EdDSASeed(), ps.DHSeed(), ps.LksClientHalf().Bytes())
 }
 
 // Generation returns the generation of this passphrase stream.
@@ -150,4 +170,18 @@ func (ps PassphraseStream) Export() keybase1.PassphraseStream {
 		PassphraseStream: ps.stream,
 		Generation:       int(ps.gen),
 	}
+}
+
+func (ps PassphraseStream) SyncAndCheckIfOutdated(mctx MetaContext) (bool, error) {
+	ss, err := mctx.SyncSecrets()
+	if err != nil {
+		return false, err
+	}
+
+	key, err := ss.FindDevice(mctx.G().Env.GetDeviceID())
+	if err != nil {
+		return false, err
+	}
+
+	return key.PPGen > ps.Generation(), nil
 }

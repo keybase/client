@@ -5,7 +5,7 @@ Install xcode
 
 1. `yarn rn-gobuild-ios`  (build the go library)
 1. `yarn rn-start ios` (start the packager)
-1. `open react-native/ios/Keybase.xcworkspace` (Open workspace (not xcodeproj))
+1. `open ios/Keybase.xcworkspace` (Open workspace (not xcodeproj))
 1. In xcode, select the target `Keybase` and run.
 
 
@@ -29,7 +29,7 @@ Keybase team. Once you accept the invite, you should be able to
 connect your phone to your computer and get XCode to build onto it.
 
 However, you first have to edit
-`react-native/ios/Keybase/AppDelegate.m` to use the bundler running on
+`ios/Keybase/AppDelegate.m` to use the bundler running on
 your computer. Look for the comment "Uncomment for prod JS in dev
 mode" and follow the instructions there.
 

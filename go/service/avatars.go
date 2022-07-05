@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/keybase/client/go/avatars"
 	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/libkb"
 	gregor1 "github.com/keybase/client/go/protocol/gregor1"
@@ -18,10 +17,10 @@ import (
 type AvatarHandler struct {
 	libkb.Contextified
 	*BaseHandler
-	source avatars.Source
+	source libkb.AvatarLoaderSource
 }
 
-func NewAvatarHandler(xp rpc.Transporter, g *libkb.GlobalContext, source avatars.Source) *AvatarHandler {
+func NewAvatarHandler(xp rpc.Transporter, g *libkb.GlobalContext, source libkb.AvatarLoaderSource) *AvatarHandler {
 	handler := &AvatarHandler{
 		Contextified: libkb.NewContextified(g),
 		BaseHandler:  NewBaseHandler(g, xp),
@@ -33,25 +32,25 @@ func NewAvatarHandler(xp rpc.Transporter, g *libkb.GlobalContext, source avatars
 var _ keybase1.AvatarsInterface = (*AvatarHandler)(nil)
 
 func (h *AvatarHandler) LoadUserAvatars(ctx context.Context, arg keybase1.LoadUserAvatarsArg) (keybase1.LoadAvatarsRes, error) {
-	m := libkb.NewMetaContext(ctx, h.G())
-	return h.source.LoadUsers(m, arg.Names, arg.Formats)
+	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("UAVTR")
+	return h.source.LoadUsers(mctx, arg.Names, arg.Formats)
 }
 
 func (h *AvatarHandler) LoadTeamAvatars(ctx context.Context, arg keybase1.LoadTeamAvatarsArg) (keybase1.LoadAvatarsRes, error) {
-	m := libkb.NewMetaContext(ctx, h.G())
-	return h.source.LoadTeams(m, arg.Names, arg.Formats)
+	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("TAVTR")
+	return h.source.LoadTeams(mctx, arg.Names, arg.Formats)
 }
 
 const avatarGregorHandlerName = "avatarHandler"
 
 type avatarGregorHandler struct {
 	libkb.Contextified
-	source avatars.Source
+	source libkb.AvatarLoaderSource
 }
 
 var _ libkb.GregorInBandMessageHandler = (*avatarGregorHandler)(nil)
 
-func newAvatarGregorHandler(g *libkb.GlobalContext, source avatars.Source) *avatarGregorHandler {
+func newAvatarGregorHandler(g *libkb.GlobalContext, source libkb.AvatarLoaderSource) *avatarGregorHandler {
 	return &avatarGregorHandler{
 		Contextified: libkb.NewContextified(g),
 		source:       source,
@@ -84,14 +83,14 @@ func (r *avatarGregorHandler) Name() string {
 
 func (r *avatarGregorHandler) clearName(ctx context.Context, cli gregor1.IncomingInterface, item gregor.Item) error {
 	m := libkb.NewMetaContext(ctx, r.G())
-	m.CDebugf("avatarGregorHandler: avatar.clear_cache_for_name received")
+	m.Debug("avatarGregorHandler: avatar.clear_cache_for_name received")
 	var msgs []keybase1.AvatarClearCacheMsg
 	if err := json.Unmarshal(item.Body().Bytes(), &msgs); err != nil {
-		m.CDebugf("error unmarshaling avatar.clear_cache_for_name item: %s", err)
+		m.Debug("error unmarshaling avatar.clear_cache_for_name item: %s", err)
 		return err
 	}
 
-	m.CDebugf("avatar.clear_cache_for_name unmarshaled: %+v", msgs)
+	m.Debug("avatar.clear_cache_for_name unmarshaled: %+v", msgs)
 
 	for _, msg := range msgs {
 		if err := r.source.ClearCacheForName(m, msg.Name, msg.Formats); err != nil {

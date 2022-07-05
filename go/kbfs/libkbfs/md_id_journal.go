@@ -91,14 +91,6 @@ func (j mdIDJournal) readEarliestRevision() (kbfsmd.Revision, error) {
 	return ordinalToRevision(o)
 }
 
-func (j mdIDJournal) writeEarliestRevision(r kbfsmd.Revision) error {
-	o, err := revisionToOrdinal(r)
-	if err != nil {
-		return err
-	}
-	return j.j.writeEarliestOrdinal(o)
-}
-
 func (j mdIDJournal) readLatestRevision() (kbfsmd.Revision, error) {
 	o, err := j.j.readLatestOrdinal()
 	if ioutil.IsNotExist(err) {

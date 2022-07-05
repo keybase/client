@@ -13,11 +13,11 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
-type gpgtestui struct {
+type GPGTestUI struct {
 	index int
 }
 
-func (g *gpgtestui) SelectKeyAndPushOption(_ context.Context, arg keybase1.SelectKeyAndPushOptionArg) (keybase1.SelectKeyRes, error) {
+func (g *GPGTestUI) SelectKeyAndPushOption(_ context.Context, arg keybase1.SelectKeyAndPushOptionArg) (keybase1.SelectKeyRes, error) {
 	if len(arg.Keys) == 0 {
 		return keybase1.SelectKeyRes{}, fmt.Errorf("no keys in arg")
 	}
@@ -28,7 +28,7 @@ func (g *gpgtestui) SelectKeyAndPushOption(_ context.Context, arg keybase1.Selec
 	return keybase1.SelectKeyRes{KeyID: key.KeyID, DoSecretPush: true}, nil
 }
 
-func (g *gpgtestui) SelectKey(_ context.Context, arg keybase1.SelectKeyArg) (string, error) {
+func (g *GPGTestUI) SelectKey(_ context.Context, arg keybase1.SelectKeyArg) (string, error) {
 	if len(arg.Keys) == 0 {
 		return "", fmt.Errorf("no keys in arg")
 	}
@@ -39,23 +39,23 @@ func (g *gpgtestui) SelectKey(_ context.Context, arg keybase1.SelectKeyArg) (str
 	return key.KeyID, nil
 }
 
-func (g *gpgtestui) WantToAddGPGKey(_ context.Context, _ int) (bool, error) {
+func (g *GPGTestUI) WantToAddGPGKey(_ context.Context, _ int) (bool, error) {
 	return true, nil
 }
 
-func (g *gpgtestui) ConfirmDuplicateKeyChosen(_ context.Context, _ int) (bool, error) {
+func (g *GPGTestUI) ConfirmDuplicateKeyChosen(_ context.Context, _ int) (bool, error) {
 	return true, nil
 }
 
-func (g *gpgtestui) ConfirmImportSecretToExistingKey(_ context.Context, _ int) (bool, error) {
+func (g *GPGTestUI) ConfirmImportSecretToExistingKey(_ context.Context, _ int) (bool, error) {
 	return false, nil
 }
 
-func (g *gpgtestui) Sign(_ context.Context, _ keybase1.SignArg) (string, error) {
+func (g *GPGTestUI) Sign(_ context.Context, _ keybase1.SignArg) (string, error) {
 	return "", fmt.Errorf("not implemented")
 }
 
-func (g *gpgtestui) GetTTY(_ context.Context) (string, error) {
+func (g *GPGTestUI) GetTTY(_ context.Context) (string, error) {
 	return "", nil
 }
 
@@ -82,7 +82,7 @@ type FakeIdentifyUI struct {
 
 var _ libkb.IdentifyUI = (*FakeIdentifyUI)(nil)
 
-func (ui *FakeIdentifyUI) FinishWebProofCheck(proof keybase1.RemoteProof, result keybase1.LinkCheckResult) error {
+func (ui *FakeIdentifyUI) FinishWebProofCheck(_ libkb.MetaContext, proof keybase1.RemoteProof, result keybase1.LinkCheckResult) error {
 	ui.Lock()
 	defer ui.Unlock()
 	if ui.Proofs == nil {
@@ -100,7 +100,7 @@ func (ui *FakeIdentifyUI) FinishWebProofCheck(proof keybase1.RemoteProof, result
 	return nil
 }
 
-func (ui *FakeIdentifyUI) FinishSocialProofCheck(proof keybase1.RemoteProof, result keybase1.LinkCheckResult) error {
+func (ui *FakeIdentifyUI) FinishSocialProofCheck(_ libkb.MetaContext, proof keybase1.RemoteProof, result keybase1.LinkCheckResult) error {
 	ui.Lock()
 	defer ui.Unlock()
 	if ui.Proofs == nil {
@@ -117,7 +117,7 @@ func (ui *FakeIdentifyUI) FinishSocialProofCheck(proof keybase1.RemoteProof, res
 	return nil
 }
 
-func (ui *FakeIdentifyUI) Confirm(outcome *keybase1.IdentifyOutcome) (result keybase1.ConfirmResult, err error) {
+func (ui *FakeIdentifyUI) Confirm(_ libkb.MetaContext, outcome *keybase1.IdentifyOutcome) (result keybase1.ConfirmResult, err error) {
 	ui.Lock()
 	defer ui.Unlock()
 	ui.Outcome = outcome
@@ -126,18 +126,18 @@ func (ui *FakeIdentifyUI) Confirm(outcome *keybase1.IdentifyOutcome) (result key
 	return
 }
 
-func (ui *FakeIdentifyUI) DisplayCryptocurrency(keybase1.Cryptocurrency) error {
+func (ui *FakeIdentifyUI) DisplayCryptocurrency(libkb.MetaContext, keybase1.Cryptocurrency) error {
 	return nil
 }
 
-func (ui *FakeIdentifyUI) DisplayStellarAccount(acc keybase1.StellarAccount) error {
+func (ui *FakeIdentifyUI) DisplayStellarAccount(_ libkb.MetaContext, acc keybase1.StellarAccount) error {
 	ui.Lock()
 	defer ui.Unlock()
 	ui.StellarAccounts = append(ui.StellarAccounts, acc)
 	return nil
 }
 
-func (ui *FakeIdentifyUI) DisplayKey(ik keybase1.IdentifyKey) error {
+func (ui *FakeIdentifyUI) DisplayKey(_ libkb.MetaContext, ik keybase1.IdentifyKey) error {
 	ui.Lock()
 	defer ui.Unlock()
 	if ui.Keys == nil {
@@ -149,43 +149,43 @@ func (ui *FakeIdentifyUI) DisplayKey(ik keybase1.IdentifyKey) error {
 	ui.DisplayKeyCalls++
 	return nil
 }
-func (ui *FakeIdentifyUI) ReportLastTrack(*keybase1.TrackSummary) error {
+func (ui *FakeIdentifyUI) ReportLastTrack(libkb.MetaContext, *keybase1.TrackSummary) error {
 	return nil
 }
-func (ui *FakeIdentifyUI) Start(username string, _ keybase1.IdentifyReason, forceDisplay bool) error {
+func (ui *FakeIdentifyUI) Start(_ libkb.MetaContext, username string, _ keybase1.IdentifyReason, forceDisplay bool) error {
 	ui.Lock()
 	defer ui.Unlock()
 	ui.StartCount++
 	return nil
 }
-func (ui *FakeIdentifyUI) Cancel() error {
+func (ui *FakeIdentifyUI) Cancel(_ libkb.MetaContext) error {
 	return nil
 }
-func (ui *FakeIdentifyUI) Finish() error {
+func (ui *FakeIdentifyUI) Finish(_ libkb.MetaContext) error {
 	return nil
 }
-func (ui *FakeIdentifyUI) Dismiss(_ string, _ keybase1.DismissReason) error {
+func (ui *FakeIdentifyUI) Dismiss(_ libkb.MetaContext, _ string, _ keybase1.DismissReason) error {
 	return nil
 }
-func (ui *FakeIdentifyUI) LaunchNetworkChecks(id *keybase1.Identity, user *keybase1.User) error {
+func (ui *FakeIdentifyUI) LaunchNetworkChecks(_ libkb.MetaContext, id *keybase1.Identity, user *keybase1.User) error {
 	ui.Lock()
 	defer ui.Unlock()
 	ui.User = user
 	return nil
 }
-func (ui *FakeIdentifyUI) DisplayTrackStatement(string) error {
+func (ui *FakeIdentifyUI) DisplayTrackStatement(libkb.MetaContext, string) error {
 	return nil
 }
-func (ui *FakeIdentifyUI) DisplayUserCard(keybase1.UserCard) error {
+func (ui *FakeIdentifyUI) DisplayUserCard(libkb.MetaContext, keybase1.UserCard) error {
 	return nil
 }
-func (ui *FakeIdentifyUI) ReportTrackToken(tok keybase1.TrackToken) error {
+func (ui *FakeIdentifyUI) ReportTrackToken(_ libkb.MetaContext, tok keybase1.TrackToken) error {
 	ui.Token = tok
 	return nil
 }
 func (ui *FakeIdentifyUI) SetStrict(b bool) {
 }
-func (ui *FakeIdentifyUI) DisplayTLFCreateWithInvite(arg keybase1.DisplayTLFCreateWithInviteArg) error {
+func (ui *FakeIdentifyUI) DisplayTLFCreateWithInvite(_ libkb.MetaContext, arg keybase1.DisplayTLFCreateWithInviteArg) error {
 	ui.DisplayTLFCount++
 	ui.DisplayTLFArg = arg
 	return nil

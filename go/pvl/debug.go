@@ -25,24 +25,24 @@ func (m metaContext) getStubDNS() *stubDNSEngine {
 
 func debugWithState(m metaContext, state scriptState, format string, arg ...interface{}) {
 	s := fmt.Sprintf(format, arg...)
-	m.CDebugf("PVL @(service:%v script:%v pc:%v) %v",
+	m.Debug("PVL @(service:%v script:%v pc:%v) %v",
 		debugServiceToString(state.Service), state.WhichScript, state.PC, s)
 }
 
 func debugWithStateError(m metaContext, state scriptState, err libkb.ProofError) {
-	m.CDebugf("PVL @(service:%v script:%v pc:%v) Error code=%v: %v",
+	m.Debug("PVL @(service:%v script:%v pc:%v) Error code=%v: %v",
 		debugServiceToString(state.Service), state.WhichScript, state.PC, err.GetProofStatus(), err.GetDesc())
 }
 
 func debugWithPosition(m metaContext, service keybase1.ProofType, whichscript int, pc int, format string, arg ...interface{}) {
 	s := fmt.Sprintf(format, arg...)
-	m.CDebugf("PVL @(service:%v script:%v pc:%v) %v",
+	m.Debug("PVL @(service:%v script:%v pc:%v) %v",
 		debugServiceToString(service), whichscript, pc, s)
 }
 
 func debug(m metaContext, format string, arg ...interface{}) {
 	s := fmt.Sprintf(format, arg...)
-	m.CDebugf("PVL %v", s)
+	m.Debug("PVL %v", s)
 }
 
 // debugServiceToString returns the name of a service or number string if it is invalid.

@@ -14,6 +14,7 @@ kbpagesconfig/kbpagesconfig
 kbpagesconfig/kbpagesconfig.test
 libpages/config/config.test
 libpages/libpages.test
+libpages/tools/migrateActivityStatsStorerFromFileBasedToMySQL
 libmime/builder/node_modules
 *.test
 

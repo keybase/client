@@ -55,6 +55,29 @@
       ]
     },
     {
+      "type": "variant",
+      "name": "HomeScreenItemDataExt",
+      "switch": {
+        "type": "HomeScreenItemType",
+        "name": "t"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "TODO",
+            "def": false
+          },
+          "body": "HomeScreenTodoExt"
+        },
+        {
+          "label": {
+            "def": true
+          },
+          "body": null
+        }
+      ]
+    },
+    {
       "type": "enum",
       "name": "AppLinkType",
       "symbols": [
@@ -128,14 +151,19 @@
         "PROOF_2",
         "DEVICE_3",
         "FOLLOW_4",
-        "CHAT_5",
         "PAPERKEY_6",
         "TEAM_7",
         "FOLDER_8",
         "GIT_REPO_9",
         "TEAM_SHOWCASE_10",
-        "AVATAR_USER_11",
         "AVATAR_TEAM_12",
+        "ADD_PHONE_NUMBER_18",
+        "VERIFY_ALL_PHONE_NUMBER_19",
+        "VERIFY_ALL_EMAIL_20",
+        "LEGACY_EMAIL_VISIBILITY_21",
+        "ADD_EMAIL_22",
+        "AVATAR_USER_23",
+        "CHAT_24",
         "ANNONCEMENT_PLACEHOLDER_10000"
       ]
     },
@@ -149,9 +177,64 @@
       "cases": [
         {
           "label": {
+            "name": "VERIFY_ALL_PHONE_NUMBER",
+            "def": false
+          },
+          "body": "PhoneNumber"
+        },
+        {
+          "label": {
+            "name": "VERIFY_ALL_EMAIL",
+            "def": false
+          },
+          "body": "EmailAddress"
+        },
+        {
+          "label": {
+            "name": "LEGACY_EMAIL_VISIBILITY",
+            "def": false
+          },
+          "body": "EmailAddress"
+        },
+        {
+          "label": {
             "def": true
           },
           "body": null
+        }
+      ],
+      "doc": "Most of TODO items do not carry additional data, but some do. e.g. TODO\n    item to tell user to verify their email address will carry that email\n    address.\n\n    All new TODO data bundle types should be records rather than single fields\n    to support adding new data to existing TODOs. If a legacy TODO (such as\n    VERIFY_ALL_EMAIL) uses a single field, the \"TodoExt\" field should be used to\n    introduce more data to the payload."
+    },
+    {
+      "type": "variant",
+      "name": "HomeScreenTodoExt",
+      "switch": {
+        "type": "HomeScreenTodoType",
+        "name": "t"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "VERIFY_ALL_EMAIL",
+            "def": false
+          },
+          "body": "VerifyAllEmailTodoExt"
+        },
+        {
+          "label": {
+            "def": true
+          },
+          "body": null
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "VerifyAllEmailTodoExt",
+      "fields": [
+        {
+          "type": "UnixTime",
+          "name": "lastVerifyEmailDate"
         }
       ]
     },
@@ -160,7 +243,9 @@
       "name": "HomeScreenPeopleNotificationType",
       "symbols": [
         "FOLLOWED_1",
-        "FOLLOWED_MULTI_2"
+        "FOLLOWED_MULTI_2",
+        "CONTACT_3",
+        "CONTACT_MULTI_4"
       ]
     },
     {
@@ -199,6 +284,45 @@
       ]
     },
     {
+      "type": "record",
+      "name": "HomeScreenPeopleNotificationContact",
+      "fields": [
+        {
+          "type": "Time",
+          "name": "resolveTime"
+        },
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": "string",
+          "name": "description"
+        },
+        {
+          "type": "string",
+          "name": "resolvedContactBlob"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "HomeScreenPeopleNotificationContactMulti",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "HomeScreenPeopleNotificationContact"
+          },
+          "name": "contacts"
+        },
+        {
+          "type": "int",
+          "name": "numOthers"
+        }
+      ]
+    },
+    {
       "type": "variant",
       "name": "HomeScreenPeopleNotification",
       "switch": {
@@ -219,6 +343,20 @@
             "def": false
           },
           "body": "HomeScreenPeopleNotificationFollowedMulti"
+        },
+        {
+          "label": {
+            "name": "CONTACT",
+            "def": false
+          },
+          "body": "HomeScreenPeopleNotificationContact"
+        },
+        {
+          "label": {
+            "name": "CONTACT_MULTI",
+            "def": false
+          },
+          "body": "HomeScreenPeopleNotificationContactMulti"
         }
       ]
     },
@@ -233,6 +371,10 @@
         {
           "type": "HomeScreenItemData",
           "name": "data"
+        },
+        {
+          "type": "HomeScreenItemDataExt",
+          "name": "dataExt"
         }
       ]
     },

@@ -51,7 +51,6 @@ func (m Matcher) matchPathFn(pathFn func(path, str string) bool) MatchFn {
 		}
 		path, err := p.Path()
 		if err != nil {
-			//m.log.Warningf("Unable to get path for process %q: %s", p.Executable(), err)
 			return false
 		}
 		return pathFn(path, m.match)

@@ -6,8 +6,13 @@ package libpages
 
 import (
 	"context"
+	"fmt"
+	"os"
+	"path"
 	"strings"
 
+	"github.com/keybase/client/go/kbfs/data"
+	"github.com/keybase/client/go/kbfs/libcontext"
 	"github.com/keybase/client/go/kbfs/libfs"
 	"github.com/keybase/client/go/kbfs/libgit"
 	"github.com/keybase/client/go/kbfs/libkbfs"
@@ -73,7 +78,7 @@ type Root struct {
 // a libkbfs.Node that can be obsolete when it's renamed or removed.
 type CacheableFS struct {
 	obsoleteTrackingCh <-chan struct{}
-	fs                 *libfs.FS
+	tlfFS              *libfs.FS
 	subdir             string
 }
 
@@ -89,9 +94,41 @@ func (fs CacheableFS) IsObsolete() bool {
 	}
 }
 
+// EnsureNoSuchFileOutsideRoot walks from the sub dir that this FS is
+// configured to use back all the way to the TLF root, and try to find a file
+// named `name`. If the file is found, an error is returned.
+//
+// For example, if a subdir /dir1/dir2/dir3 is configured as root dir, calling
+// this function makes sure none of /a/b/{name}, /a/{name}, and /{name} exist.
+// Though /a/b/c/{name} can exist.
+func (fs CacheableFS) EnsureNoSuchFileOutsideRoot(name string) (err error) {
+	p := path.Clean(fs.subdir)
+	if !strings.HasPrefix(p, "/") {
+		p = "/" + p
+	}
+
+	for {
+		p, _ = path.Split(p)
+		if p == "/" {
+			return nil
+		}
+		if strings.HasSuffix(p, "/") {
+			p = p[:len(p)-1]
+		}
+		_, statErr := fs.tlfFS.Stat(path.Join(p, name))
+		switch statErr {
+		case os.ErrNotExist:
+		case nil:
+			return fmt.Errorf("%s exists in a parent dir", name)
+		default:
+			return statErr
+		}
+	}
+}
+
 // Use returns a *libfs.FS to use.
 func (fs CacheableFS) Use() (*libfs.FS, error) {
-	return fs.fs.ChrootAsLibFS(fs.subdir)
+	return fs.tlfFS.ChrootAsLibFS(fs.subdir)
 }
 
 // MakeFS makes a CacheableFS from *r, which can be adapted to a http.FileSystem
@@ -115,7 +152,7 @@ func (r *Root) MakeFS(
 			log.Warn("root.MakeFS", append(zapFields, zap.Error(err))...)
 		}
 	}()
-	fsCtx, err = libkbfs.NewContextWithCancellationDelayer(
+	fsCtx, err = libcontext.NewContextWithCancellationDelayer(
 		libkbfs.CtxWithRandomIDReplayable(
 			fsCtx, ctxIDKey, ctxOpID, nil))
 	if err != nil {
@@ -125,12 +162,13 @@ func (r *Root) MakeFS(
 	switch r.Type {
 	case KBFSRoot:
 		tlfHandle, err := libkbfs.GetHandleFromFolderNameAndType(
-			ctx, kbfsConfig.KBPKI(), kbfsConfig.MDOps(), r.TlfNameUnparsed, r.TlfType)
+			ctx, kbfsConfig.KBPKI(), kbfsConfig.MDOps(), kbfsConfig,
+			r.TlfNameUnparsed, r.TlfType)
 		if err != nil {
 			return CacheableFS{}, tlf.ID{}, nil, err
 		}
 		tlfFS, err := libfs.NewFS(
-			fsCtx, kbfsConfig, tlfHandle, libkbfs.MasterBranch, "", "",
+			fsCtx, kbfsConfig, tlfHandle, data.MasterBranch, "", "",
 			keybase1.MDPriorityNormal)
 		if err != nil {
 			return CacheableFS{}, tlf.ID{}, nil, err
@@ -141,7 +179,7 @@ func (r *Root) MakeFS(
 		}
 		cacheableFS := CacheableFS{
 			obsoleteTrackingCh: obsoleteCh,
-			fs:                 tlfFS,
+			tlfFS:              tlfFS,
 			subdir:             r.PathUnparsed,
 		}
 		if _, err = cacheableFS.Use(); err != nil {
@@ -150,19 +188,19 @@ func (r *Root) MakeFS(
 		return cacheableFS, tlfHandle.TlfID(), cancel, nil
 	case GitRoot:
 		tlfHandle, err := libkbfs.GetHandleFromFolderNameAndType(
-			ctx, kbfsConfig.KBPKI(), kbfsConfig.MDOps(),
+			ctx, kbfsConfig.KBPKI(), kbfsConfig.MDOps(), kbfsConfig,
 			r.TlfNameUnparsed, r.TlfType)
 		if err != nil {
 			return CacheableFS{}, tlf.ID{}, nil, err
 		}
 		autogitTLFFS, err := libfs.NewFS(
-			fsCtx, kbfsConfig, tlfHandle, libkbfs.MasterBranch,
+			fsCtx, kbfsConfig, tlfHandle, data.MasterBranch,
 			libgit.AutogitRoot, "", keybase1.MDPriorityNormal)
 		if err != nil {
 			return CacheableFS{}, tlf.ID{}, nil, err
 		}
 		cacheableFS := CacheableFS{
-			fs:     autogitTLFFS,
+			tlfFS:  autogitTLFFS,
 			subdir: r.PathUnparsed,
 		}
 		if _, err = cacheableFS.Use(); err != nil {
@@ -209,23 +247,23 @@ func setRoot(root *Root, str string) error {
 }
 
 // ParseRoot parses a kbp= TXT record from a domain into a Root object.
-func ParseRoot(str string) (Root, error) {
+func ParseRoot(str string) (*Root, error) {
 	str = strings.TrimSpace(str)
 	switch {
 	case strings.HasPrefix(str, gitPrefix):
-		root := Root{Type: GitRoot}
-		if err := setRoot(&root, str[len(gitPrefix):]); err != nil {
-			return Root{}, err
+		root := &Root{Type: GitRoot}
+		if err := setRoot(root, str[len(gitPrefix):]); err != nil {
+			return nil, err
 		}
 		return root, nil
 	case strings.HasPrefix(str, kbfsPrefix):
-		root := Root{Type: KBFSRoot}
-		if err := setRoot(&root, str[len(kbfsPrefix):]); err != nil {
-			return Root{}, err
+		root := &Root{Type: KBFSRoot}
+		if err := setRoot(root, str[len(kbfsPrefix):]); err != nil {
+			return nil, err
 		}
 		return root, nil
 
 	default:
-		return Root{}, ErrInvalidKeybasePagesRecord{}
+		return nil, ErrInvalidKeybasePagesRecord{}
 	}
 }

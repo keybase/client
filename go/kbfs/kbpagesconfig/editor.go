@@ -129,54 +129,83 @@ func (e *kbpConfigEditor) setUser(username string, isAdd bool) error {
 
 func (e *kbpConfigEditor) removeUser(username string) {
 	delete(e.kbpConfig.Users, username)
+
+}
+
+func (e *kbpConfigEditor) setFieldSimple(pathStr string, setter func(c *config.PerPathConfigV1)) error {
+	if e.kbpConfig.PerPathConfigs == nil {
+		e.kbpConfig.PerPathConfigs = make(map[string]config.PerPathConfigV1)
+	}
+	pathPerPathConfig := e.kbpConfig.PerPathConfigs[pathStr]
+	setter(&pathPerPathConfig)
+	e.kbpConfig.PerPathConfigs[pathStr] = pathPerPathConfig
+	return e.kbpConfig.Validate()
 }
 
 func (e *kbpConfigEditor) setAnonymousPermission(
 	permsStr string, pathStr string) error {
-	if e.kbpConfig.ACLs == nil {
-		e.kbpConfig.ACLs = make(map[string]config.AccessControlV1)
-	}
-	pathACL := e.kbpConfig.ACLs[pathStr]
-	pathACL.AnonymousPermissions = permsStr
-	e.kbpConfig.ACLs[pathStr] = pathACL
-	return e.kbpConfig.Validate()
+	return e.setFieldSimple(pathStr, func(c *config.PerPathConfigV1) {
+		c.AnonymousPermissions = permsStr
+	})
 }
 
-func (e *kbpConfigEditor) clearACL(pathStr string) {
-	delete(e.kbpConfig.ACLs, pathStr)
+func (e *kbpConfigEditor) clearPerPathConfig(pathStr string) {
+	delete(e.kbpConfig.PerPathConfigs, pathStr)
 }
 
 func (e *kbpConfigEditor) setAdditionalPermission(
 	username string, permsStr string, pathStr string) error {
-	if e.kbpConfig.ACLs == nil {
-		e.kbpConfig.ACLs = make(map[string]config.AccessControlV1)
+	if e.kbpConfig.PerPathConfigs == nil {
+		e.kbpConfig.PerPathConfigs = make(map[string]config.PerPathConfigV1)
 	}
-	pathACL := e.kbpConfig.ACLs[pathStr]
-	if pathACL.WhitelistAdditionalPermissions == nil {
+	pathPerPathConfig := e.kbpConfig.PerPathConfigs[pathStr]
+	if pathPerPathConfig.WhitelistAdditionalPermissions == nil {
 		// If permsStr is empty, we'd leave an empty permission entry behind.
 		// But that's OK since it doesn't change any behavior, i.e., no
 		// additional permission is granted for the user on the path. If user
 		// really wants the entry gone, they can use the "remove" command.
-		pathACL.WhitelistAdditionalPermissions = make(map[string]string)
+		pathPerPathConfig.WhitelistAdditionalPermissions = make(map[string]string)
 	}
-	pathACL.WhitelistAdditionalPermissions[username] = permsStr
-	e.kbpConfig.ACLs[pathStr] = pathACL
+	pathPerPathConfig.WhitelistAdditionalPermissions[username] = permsStr
+	e.kbpConfig.PerPathConfigs[pathStr] = pathPerPathConfig
 	return e.kbpConfig.Validate()
 }
 
-func (e *kbpConfigEditor) removeUserFromACL(username string, pathStr string) {
-	if e.kbpConfig.ACLs == nil {
+func (e *kbpConfigEditor) removeUserPermissionsFromPerPathConfig(
+	username string, pathStr string) {
+	if e.kbpConfig.PerPathConfigs == nil {
 		return
 	}
-	if e.kbpConfig.ACLs[pathStr].WhitelistAdditionalPermissions == nil {
+	if e.kbpConfig.PerPathConfigs[pathStr].WhitelistAdditionalPermissions == nil {
 		return
 	}
-	delete(e.kbpConfig.ACLs[pathStr].WhitelistAdditionalPermissions, username)
+	delete(e.kbpConfig.PerPathConfigs[pathStr].WhitelistAdditionalPermissions, username)
 }
 
-func (e *kbpConfigEditor) getUserOnPath(
+func (e *kbpConfigEditor) getUserPermissionsOnPath(
 	username string, pathStr string) (read, list bool, err error) {
 	read, list, _, _, _, err = e.kbpConfig.GetPermissions(
 		pathStr, &username)
 	return read, list, err
+}
+
+func (e *kbpConfigEditor) setAccessControlAllowOrigin(
+	pathStr string, acao string) error {
+	return e.setFieldSimple(pathStr, func(c *config.PerPathConfigV1) {
+		c.AccessControlAllowOrigin = acao
+	})
+}
+
+func (e *kbpConfigEditor) set403(
+	pathStr string, p string) error {
+	return e.setFieldSimple(pathStr, func(c *config.PerPathConfigV1) {
+		c.Custom403Forbidden = p
+	})
+}
+
+func (e *kbpConfigEditor) set404(
+	pathStr string, p string) error {
+	return e.setFieldSimple(pathStr, func(c *config.PerPathConfigV1) {
+		c.Custom404NotFound = p
+	})
 }

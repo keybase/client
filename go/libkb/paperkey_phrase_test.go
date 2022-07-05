@@ -60,7 +60,7 @@ func TestPaperKeyPhraseTypos(t *testing.T) {
 
 	// make a typo in one of the words
 	w := strings.Fields(p.String())
-	w[0] = w[0] + "qx"
+	w[0] += "qx"
 	x := strings.Join(w, " ")
 	q := NewPaperKeyPhrase(x)
 

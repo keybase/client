@@ -46,7 +46,7 @@ func KarmaURL(un string) string {
 
 func CheckKarma(mctx libkb.MetaContext, un string) (int, error) {
 	u := KarmaURL(un)
-	res, err := mctx.G().GetExternalAPI().Get(libkb.APIArg{Endpoint: u, MetaContext: mctx})
+	res, err := mctx.G().GetExternalAPI().Get(mctx, libkb.APIArg{Endpoint: u})
 	if err != nil {
 		return 0, libkb.XapiError(err, u)
 	}
@@ -114,9 +114,7 @@ func (t *HackerNewsServiceType) PreProofCheck(mctx libkb.MetaContext, un string)
 <p><strong>ATTENTION</strong>: HackerNews only publishes users to their API who
  have <strong>karma &gt; 1</strong>.</p>
 <p>Your account <strong>` + un + `</strong> doesn't qualify or doesn't exist.</p>`)
-		if e != nil {
-			mctx.CDebugf("Error from HN: %s", e)
-		}
+		mctx.Debug("Error from HN: %s", e)
 		err = libkb.NewInsufficientKarmaError(un)
 	}
 	return

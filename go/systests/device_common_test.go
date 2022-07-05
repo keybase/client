@@ -15,6 +15,7 @@ import (
 	"github.com/keybase/client/go/service"
 	"github.com/keybase/clockwork"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"github.com/stretchr/testify/require"
 	context "golang.org/x/net/context"
 )
 
@@ -27,11 +28,10 @@ import (
 type testUI struct {
 	libkb.Contextified
 	baseNullUI
-	sessionID          int
-	outputDescHook     func(libkb.OutputDescriptor, string) error
-	promptHook         func(libkb.PromptDescriptor, string) (string, error)
-	promptPasswordHook func(libkb.PromptDescriptor, string) (string, error)
-	promptYesNoHook    func(libkb.PromptDescriptor, string, libkb.PromptDefault) (bool, error)
+	sessionID       int
+	outputDescHook  func(libkb.OutputDescriptor, string) error
+	promptHook      func(libkb.PromptDescriptor, string) (string, error)
+	promptYesNoHook func(libkb.PromptDescriptor, string, libkb.PromptDefault) (bool, error)
 }
 
 var sessionCounter = 1
@@ -128,18 +128,18 @@ type backupKey struct {
 // testDevice wraps a mock "device", meaning an independent running service and
 // some connected clients. It's forked from deviceWrapper in rekey_test.
 type testDevice struct {
-	t          *testing.T
-	tctx       *libkb.TestContext
-	clones     []*libkb.TestContext
-	stopCh     chan error
-	service    *service.Service
-	testUI     *testUI
-	deviceID   keybase1.DeviceID
-	deviceName string
-	deviceKey  keybase1.PublicKey
-	cli        *rpc.Client
-	srv        *rpc.Server
-	userClient keybase1.UserClient
+	t                  *testing.T
+	tctx               *libkb.TestContext
+	clones, usedClones []*libkb.TestContext
+	stopCh             chan error
+	service            *service.Service
+	testUI             *testUI
+	deviceID           keybase1.DeviceID
+	deviceName         string
+	deviceKey          keybase1.PublicKey
+	cli                *rpc.Client
+	srv                *rpc.Server
+	userClient         keybase1.UserClient
 }
 
 type testDeviceSet struct {
@@ -205,6 +205,8 @@ func (d *testDevice) popClone() *libkb.TestContext {
 		panic("ran out of cloned environments")
 	}
 	ret := d.clones[0]
+	// Hold a reference to this clone for cleanup
+	d.usedClones = append(d.usedClones, ret)
 	d.clones = d.clones[1:]
 	return ret
 }
@@ -224,7 +226,14 @@ func (s *testDeviceSet) cleanup() {
 		od.tctx.Cleanup()
 		if od.service != nil {
 			od.service.Stop(0)
-			od.stop()
+			err := od.stop()
+			require.NoError(s.t, err)
+		}
+		for _, cl := range od.clones {
+			cl.Cleanup()
+		}
+		for _, cl := range od.usedClones {
+			cl.Cleanup()
 		}
 	}
 }
@@ -265,9 +274,9 @@ func (d *testDevice) loadEncryptionKIDs() (devices []keybase1.KID, backups []bac
 		}
 
 		switch parent.DeviceType {
-		case libkb.DeviceTypePaper:
+		case keybase1.DeviceTypeV2_PAPER:
 			backups = append(backups, backupKey{KID: key.KID, deviceID: parent.DeviceID})
-		case libkb.DeviceTypeDesktop:
+		case keybase1.DeviceTypeV2_DESKTOP:
 			devices = append(devices, key.KID)
 		default:
 		}
@@ -283,7 +292,7 @@ func (d *testDevice) loadDeviceList() []keybase1.Device {
 	}
 	var ret []keybase1.Device
 	for _, device := range devices {
-		if device.Type == "desktop" {
+		if device.Type == keybase1.DeviceTypeV2_DESKTOP {
 			ret = append(ret, device)
 		}
 
@@ -292,6 +301,10 @@ func (d *testDevice) loadDeviceList() []keybase1.Device {
 }
 
 func (s *testDeviceSet) signupUser(dev *testDevice) {
+	s.signupUserWithRandomPassphrase(dev, false)
+}
+
+func (s *testDeviceSet) signupUserWithRandomPassphrase(dev *testDevice, randomPassphrase bool) {
 	userInfo := randomUser("rekey")
 	tctx := dev.popClone()
 	g := tctx.G
@@ -302,6 +315,9 @@ func (s *testDeviceSet) signupUser(dev *testDevice) {
 	g.SetUI(&signupUI)
 	signup := client.NewCmdSignupRunner(g)
 	signup.SetTest()
+	if randomPassphrase {
+		signup.SetNoPassphrasePrompt()
+	}
 	if err := signup.Run(); err != nil {
 		s.t.Fatal(err)
 	}
@@ -334,6 +350,8 @@ type testProvisionUI struct {
 	deviceName string
 	backupKey  backupKey
 }
+
+var _ libkb.LoginUI = (*testProvisionUI)(nil)
 
 func (r *testProvisionUI) GetEmailOrUsername(context.Context, int) (string, error) {
 	return r.username, nil
@@ -380,6 +398,24 @@ func (r *testProvisionUI) ChooseDevice(context.Context, keybase1.ChooseDeviceArg
 func (r *testProvisionUI) GetPassphrase(context.Context, keybase1.GetPassphraseArg) (ret keybase1.GetPassphraseRes, err error) {
 	ret.Passphrase = r.backupKey.secret
 	return ret, nil
+}
+func (r *testProvisionUI) PromptResetAccount(_ context.Context, arg keybase1.PromptResetAccountArg) (keybase1.ResetPromptResponse, error) {
+	return keybase1.ResetPromptResponse_NOTHING, nil
+}
+func (r *testProvisionUI) DisplayResetProgress(_ context.Context, arg keybase1.DisplayResetProgressArg) error {
+	return nil
+}
+func (r *testProvisionUI) ExplainDeviceRecovery(_ context.Context, arg keybase1.ExplainDeviceRecoveryArg) error {
+	return nil
+}
+func (r *testProvisionUI) PromptPassphraseRecovery(_ context.Context, arg keybase1.PromptPassphraseRecoveryArg) (bool, error) {
+	return false, nil
+}
+func (r *testProvisionUI) ChooseDeviceToRecoverWith(_ context.Context, arg keybase1.ChooseDeviceToRecoverWithArg) (keybase1.DeviceID, error) {
+	return "", nil
+}
+func (r *testProvisionUI) DisplayResetMessage(_ context.Context, arg keybase1.DisplayResetMessageArg) error {
+	return nil
 }
 
 func (s *testDeviceSet) findNewKIDs(newList []keybase1.KID) []keybase1.KID {
@@ -467,6 +503,14 @@ func (s *testDeviceSet) provision(d *testDevice) {
 	d.deviceID = devices[0].DeviceID
 }
 
+func (s *testDeviceSet) provisionNewStandaloneDevice(name string, numClones int) *testDevice {
+	ret := s.newDevice(name)
+	_ = ret.tctx.G.Env.GetConfigWriter().SetBoolAtPath("push.disabled", true)
+	ret.start(numClones + 1)
+	s.provision(ret)
+	return ret
+}
+
 func (s *testDeviceSet) provisionNewDevice(name string, numClones int) *testDevice {
 	ret := s.newDevice(name)
 	ret.start(numClones + 1)
@@ -533,6 +577,7 @@ func (d *testDevice) keyTLF(tlf *fakeTLF, uid keybase1.UID, writers []tlfUser, r
 	if err != nil {
 		d.t.Fatalf("error marshalling: %s", err)
 	}
+	mctx := libkb.NewMetaContextTODO(g)
 	apiArg := libkb.APIArg{
 		Endpoint: "test/fake_generic_tlf",
 		Args: libkb.HTTPArgs{
@@ -540,7 +585,7 @@ func (d *testDevice) keyTLF(tlf *fakeTLF, uid keybase1.UID, writers []tlfUser, r
 		},
 		SessionType: libkb.APISessionTypeREQUIRED,
 	}
-	_, err = g.API.Post(apiArg)
+	_, err = g.API.Post(mctx, apiArg)
 	if err != nil {
 		d.t.Fatalf("post error: %s", err)
 	}

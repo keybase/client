@@ -4,6 +4,7 @@
 package engine
 
 import (
+	"context"
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
@@ -87,11 +88,11 @@ func trackAliceWithOptions(tc libkb.TestContext, fu *FakeUser, options keybase1.
 	require.NoError(tc.T, err)
 	checkAliceProofs(tc.T, idUI, &upk.Current)
 	assertTracking(tc, "t_alice")
-	return
 }
 
-func trackBob(tc libkb.TestContext, fu *FakeUser) {
-	trackBobWithOptions(tc, fu, keybase1.TrackOptions{BypassConfirm: true}, fu.NewSecretUI())
+func trackBob(tc libkb.TestContext, fu *FakeUser, sigVersion libkb.SigVersion) {
+	sv := keybase1.SigVersion(sigVersion)
+	trackBobWithOptions(tc, fu, keybase1.TrackOptions{BypassConfirm: true, SigVersion: &sv}, fu.NewSecretUI())
 }
 
 func trackBobWithOptions(tc libkb.TestContext, fu *FakeUser, options keybase1.TrackOptions, secretUI libkb.SecretUI) {
@@ -106,7 +107,6 @@ func trackBobWithOptions(tc libkb.TestContext, fu *FakeUser, options keybase1.Tr
 	require.NoError(tc.T, err)
 	checkBobProofs(tc.T, idUI, &upk.Current)
 	assertTracking(tc, "t_bob")
-	return
 }
 
 func TestTrack(t *testing.T) {
@@ -131,7 +131,7 @@ func _testTrack(t *testing.T, sigVersion libkb.SigVersion) {
 	require.True(t, ok)
 
 	fu.LoginOrBust(tc)
-	trackBob(tc, fu)
+	trackBob(tc, fu, sigVersion)
 	defer untrackBob(tc, fu, sigVersion)
 
 	// try tracking a user with no keys (which is now allowed)
@@ -173,10 +173,12 @@ func TestTrackNewUserWithPGP(t *testing.T) {
 
 	tracker := CreateAndSignupFakeUser(tc, "track")
 	t.Logf("first track:")
-	runTrack(tc, tracker, fu.Username, sigVersion)
+	_, _, err := runTrack(tc, tracker, fu.Username, sigVersion)
+	require.NoError(t, err)
 
 	t.Logf("second track:")
-	runTrack(tc, tracker, fu.Username, sigVersion)
+	_, _, err = runTrack(tc, tracker, fu.Username, sigVersion)
+	require.NoError(t, err)
 }
 
 // see issue #578
@@ -336,14 +338,15 @@ func _testIdentifyTrackRaceDetection(t *testing.T, sigVersion libkb.SigVersion) 
 			// We might have used the fact the userchanged notifications are bounced
 			// off of the server, but that might slow down this test, so do the
 			// simple and non-flakey thing.
-			dev2.G.GetUPAKLoader().Invalidate(nil, libkb.UsernameToUID(user.Username))
+			dev2.G.GetUPAKLoader().Invalidate(context.TODO(), libkb.UsernameToUID(user.Username))
 		}
 		doID(dev2, fui2)
 		trackSucceed(dev1, fui1)
 		trackFail(dev2, fui2, (i == 0))
 	}
 
-	runUntrack(dev1, user, trackee, sigVersion)
+	err := runUntrack(dev1, user, trackee, sigVersion)
+	require.NoError(t, err)
 }
 
 func TestTrackNoKeys(t *testing.T) {

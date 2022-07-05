@@ -24,7 +24,7 @@ func NewCmdSendVerificationEmail(cl *libcmdline.CommandLine, g *libkb.GlobalCont
 	}
 	return cli.Command{
 		Name:         "send-verification-email",
-		Usage:        "Send a verification email to an e-mail address.",
+		Usage:        "Send a verification email to an email address.",
 		ArgumentHelp: "<email>",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(cmd, "send-verification-email", c)

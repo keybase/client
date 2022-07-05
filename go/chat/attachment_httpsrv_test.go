@@ -12,10 +12,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/kbhttp/manager"
+
 	"github.com/keybase/client/go/chat/attachments"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/logger"
 
 	"github.com/keybase/client/go/chat/s3"
 	"github.com/keybase/client/go/chat/types"
@@ -41,8 +42,8 @@ func (m mockAttachmentRemoteStore) DecryptAsset(ctx context.Context, w io.Writer
 	if m.decryptCh != nil {
 		m.decryptCh <- struct{}{}
 	}
-	io.Copy(w, body)
-	return nil
+	_, err := io.Copy(w, body)
+	return err
 }
 
 func (m mockAttachmentRemoteStore) DeleteAssets(ctx context.Context, params chat1.S3Params, signer s3.Signer,
@@ -115,21 +116,24 @@ func TestChatSrvAttachmentHTTPSrv(t *testing.T) {
 	conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
 		chat1.ConversationMembersType_IMPTEAMNATIVE)
 	tc.ChatG.AttachmentURLSrv = NewAttachmentHTTPSrv(tc.Context(),
-		fetcher, func() chat1.RemoteInterface { return mockSigningRemote{} })
+		manager.NewSrv(tc.Context().ExternalG()), fetcher,
+		func() chat1.RemoteInterface { return mockSigningRemote{} })
 
-	postLocalForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithAttachment(chat1.MessageAttachment{
+	_, err = postLocalForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithAttachment(chat1.MessageAttachment{
 		Object: chat1.Asset{
 			Path: "m0",
 		},
 	}))
-	postLocalForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithAttachment(chat1.MessageAttachment{
+	require.NoError(t, err)
+	_, err = postLocalForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithAttachment(chat1.MessageAttachment{
 		Object: chat1.Asset{
 			Path: "m1",
 		},
 	}))
+	require.NoError(t, err)
 
 	tv, err := tc.Context().ConvSource.Pull(context.TODO(), conv.Id, uid,
-		chat1.GetThreadReason_GENERAL,
+		chat1.GetThreadReason_GENERAL, nil,
 		&chat1.GetThreadQuery{
 			MessageTypes: []chat1.MessageType{chat1.MessageType_ATTACHMENT},
 		}, nil)
@@ -206,7 +210,7 @@ func TestChatSrvAttachmentUploadPreviewCached(t *testing.T) {
 	}()
 	useRemoteMock = false
 	tc := ctc.world.Tcs[users[0].Username]
-	store := attachments.NewStoreTesting(logger.NewTestLogger(t), nil)
+	store := attachments.NewStoreTesting(tc.Context(), nil)
 	fetcher := NewCachingAttachmentFetcher(tc.Context(), store, 5)
 	ri := ctc.as(t, users[0]).ri
 	d, err := libkb.RandHexString("", 8)
@@ -216,9 +220,10 @@ func TestChatSrvAttachmentUploadPreviewCached(t *testing.T) {
 	conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
 		chat1.ConversationMembersType_IMPTEAMNATIVE)
 	tc.ChatG.AttachmentURLSrv = NewAttachmentHTTPSrv(tc.Context(),
+		manager.NewSrv(tc.Context().ExternalG()),
 		fetcher, func() chat1.RemoteInterface { return mockSigningRemote{} })
 	uploader := attachments.NewUploader(tc.Context(), store, mockSigningRemote{},
-		func() chat1.RemoteInterface { return ri })
+		func() chat1.RemoteInterface { return ri }, 1)
 	uploader.SetPreviewTempDir(fetcher.tempDir)
 	tc.ChatG.AttachmentUploader = uploader
 
@@ -250,11 +255,16 @@ func TestChatSrvAttachmentUploadPreviewCached(t *testing.T) {
 	found, path, err := fetcher.localAssetPath(context.TODO(), *body.Attachment().Preview)
 	require.NoError(t, err)
 	require.True(t, found)
+	_, err = os.Stat(path)
+	require.NoError(t, err)
+
 	t.Logf("found path: %s", path)
 
 	found, path, err = fetcher.localAssetPath(context.TODO(), body.Attachment().Object)
 	require.NoError(t, err)
 	require.True(t, found)
+	_, err = os.Stat(path)
+	require.NoError(t, err)
 	t.Logf("found path: %s", path)
 
 	// Try with an attachment with no preview
@@ -279,7 +289,10 @@ func TestChatSrvAttachmentUploadPreviewCached(t *testing.T) {
 	require.True(t, msgRes.Messages[0].IsValid())
 	body = msgRes.Messages[0].Valid().MessageBody
 	require.Nil(t, body.Attachment().Preview)
-	found, path, err = fetcher.localAssetPath(context.TODO(), body.Attachment().Object)
+	found, _, err = fetcher.localAssetPath(context.TODO(), body.Attachment().Object)
 	require.NoError(t, err)
 	require.False(t, found)
+	// No preview is available, but the file is still on disk.
+	_, err = os.Stat(path)
+	require.NoError(t, err)
 }

@@ -51,11 +51,6 @@ func TestProofSuggestions(t *testing.T) {
 			PickerText:    "Rooter",
 			PickerSubtext: "",
 		}, {
-			Key:           "mastodon.social",
-			ProfileText:   "Prove your Local Mastodon Social",
-			PickerText:    "Local Mastodon Social",
-			PickerSubtext: "mastodon.social",
-		}, {
 			Key:           "gubble.social",
 			ProfileText:   "Prove your Gubble.social",
 			PickerText:    "Gubble.social",
@@ -94,18 +89,13 @@ func TestProofSuggestions(t *testing.T) {
 			PickerSubtext: "theqrl.org",
 		}}}
 	require.Equal(t, expected.ShowMore, res.ShowMore)
-	require.Equal(t, len(expected.Suggestions), len(res.Suggestions))
-	for i, b := range res.Suggestions {
-		t.Logf("row %v %v", i, b.Key)
-		a := expected.Suggestions[i]
-		require.Equal(t, a.Key, b.Key)
-		require.Equal(t, a.BelowFold, b.BelowFold)
-		require.Equal(t, a.ProfileText, b.ProfileText)
-		require.Equal(t, a.PickerText, b.PickerText)
-		require.Equal(t, a.PickerSubtext, b.PickerSubtext)
-		require.Nil(t, b.Metas)
-
-		if b.Key == "theqrl.org" {
+	require.True(t, len(res.Suggestions) >= len(expected.Suggestions), "should be at least as many results as expected")
+	iconExempt := map[string]struct{}{
+		"gubble-with-dashes.dot": {},
+		"mastodon.local":         {},
+	}
+	for _, b := range res.Suggestions {
+		if _, exempt := iconExempt[b.Key]; exempt {
 			// Skip checking for logos for this one.
 			continue
 		}
@@ -113,10 +103,41 @@ func TestProofSuggestions(t *testing.T) {
 		for _, icon := range b.ProfileIcon {
 			checkIcon(t, icon)
 		}
+		require.Len(t, b.ProfileIconDarkmode, 2)
+		for _, icon := range b.ProfileIconDarkmode {
+			checkIcon(t, icon)
+		}
+		require.Len(t, b.ProfileIcon, 2)
 		for _, icon := range b.PickerIcon {
 			checkIcon(t, icon)
 		}
+		require.Len(t, b.PickerIconDarkmode, 2)
+		for _, icon := range b.PickerIconDarkmode {
+			checkIcon(t, icon)
+		}
+
 	}
+	var found int
+	for i, b := range res.Suggestions {
+		if found >= len(expected.Suggestions) {
+			t.Logf("done")
+			break
+		}
+		t.Logf("row %v %v", i, b.Key)
+		a := expected.Suggestions[found]
+		if a.Key != b.Key {
+			t.Logf("skipping %v (mismatch)", a.Key)
+			continue
+		}
+		found++
+		require.Equal(t, a.Key, b.Key)
+		require.Equal(t, a.BelowFold, b.BelowFold)
+		require.Equal(t, a.ProfileText, b.ProfileText)
+		require.Equal(t, a.PickerText, b.PickerText)
+		require.Equal(t, a.PickerSubtext, b.PickerSubtext)
+
+	}
+	require.Len(t, expected.Suggestions, found)
 }
 
 func checkIcon(t testing.TB, icon keybase1.SizedImage) {
@@ -128,7 +149,7 @@ func checkIcon(t testing.TB, icon keybase1.SizedImage) {
 		require.True(t, len(icon.Path) > 8)
 	} else {
 		resp, err := http.Get(icon.Path)
-		require.Equal(t, 200, resp.StatusCode, "icon file should be reachable")
+		require.Equal(t, 200, resp.StatusCode, "icon file should be reachable: %v", icon.Path)
 		require.NoError(t, err)
 		body, err := ioutil.ReadAll(resp.Body)
 		require.NoError(t, err)

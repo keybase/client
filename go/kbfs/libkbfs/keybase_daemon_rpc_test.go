@@ -11,7 +11,9 @@ import (
 	"time"
 
 	"github.com/golang/mock/gomock"
+	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
+	"github.com/keybase/client/go/kbfs/test/clocktest"
 	"github.com/keybase/client/go/kbfs/tlf"
 	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/logger"
@@ -31,7 +33,8 @@ func TestKeybaseDaemonRPCIdentifyCanceled(t *testing.T) {
 		logger.NewTestLogger(t))
 
 	f := func(ctx context.Context) error {
-		_, _, err := daemon.Identify(ctx, "", "")
+		_, _, err := daemon.Identify(
+			ctx, "", "", keybase1.OfflineAvailability_NONE)
 		return err
 	}
 	testRPCWithCanceledContext(t, serverConn, f)
@@ -55,8 +58,8 @@ func TestKeybaseDaemonRPCGetCurrentSessionCanceled(t *testing.T) {
 // TODO: Add tests for Favorite* methods, too.
 
 type fakeKeybaseClient struct {
-	session                     SessionInfo
-	users                       map[keybase1.UID]UserInfo
+	session                     idutil.SessionInfo
+	users                       map[keybase1.UID]idutil.UserInfo
 	currentSessionCalled        bool
 	identifyCalled              bool
 	loadUserPlusKeysCalled      bool
@@ -66,11 +69,13 @@ type fakeKeybaseClient struct {
 
 var _ rpc.GenericClient = (*fakeKeybaseClient)(nil)
 
-func (c *fakeKeybaseClient) Call(ctx context.Context, s string, args interface{}, res interface{}) error {
+func (c *fakeKeybaseClient) Call(ctx context.Context, s string, args interface{},
+	res interface{}, _ time.Duration) error {
 	return c.call(ctx, s, args, res)
 }
 
-func (c *fakeKeybaseClient) CallCompressed(ctx context.Context, s string, args interface{}, res interface{}, _ rpc.CompressionType) error {
+func (c *fakeKeybaseClient) CallCompressed(ctx context.Context, s string, args interface{},
+	res interface{}, _ rpc.CompressionType, _ time.Duration) error {
 	return c.call(ctx, s, args, res)
 }
 
@@ -147,7 +152,7 @@ func (c *fakeKeybaseClient) call(ctx context.Context, s string, args interface{}
 	}
 }
 
-func (c *fakeKeybaseClient) Notify(_ context.Context, s string, args interface{}) error {
+func (c *fakeKeybaseClient) Notify(_ context.Context, s string, args interface{}, timeout time.Duration) error {
 	return fmt.Errorf("Unknown notify: %s %v", s, args)
 }
 
@@ -156,7 +161,7 @@ const expectCached = false
 
 func testCurrentSession(
 	t *testing.T, client *fakeKeybaseClient, c *KeybaseDaemonRPC,
-	expectedSession SessionInfo, expectedCalled bool) {
+	expectedSession idutil.SessionInfo, expectedCalled bool) {
 	client.currentSessionCalled = false
 
 	ctx := context.Background()
@@ -171,9 +176,9 @@ func testCurrentSession(
 // Test that the session cache works and is invalidated as expected.
 func TestKeybaseDaemonSessionCache(t *testing.T) {
 	name := kbname.NormalizedUsername("fake username")
-	k := MakeLocalUserCryptPublicKeyOrBust(name)
-	v := MakeLocalUserVerifyingKeyOrBust(name)
-	session := SessionInfo{
+	k := idutil.MakeLocalUserCryptPublicKeyOrBust(name)
+	v := idutil.MakeLocalUserVerifyingKeyOrBust(name)
+	session := idutil.SessionInfo{
 		Name:           name,
 		UID:            keybase1.MakeTestUID(1),
 		CryptPublicKey: k,
@@ -214,7 +219,8 @@ func testLoadUserPlusKeys(
 	client.loadUserPlusKeysCalled = false
 
 	ctx := context.Background()
-	info, err := c.LoadUserPlusKeys(ctx, uid, "")
+	info, err := c.LoadUserPlusKeys(
+		ctx, uid, "", keybase1.OfflineAvailability_NONE)
 	require.NoError(t, err)
 
 	assert.Equal(t, expectedName, info.Name)
@@ -228,7 +234,8 @@ func testIdentify(
 	client.identifyCalled = false
 
 	ctx := context.Background()
-	name, _, err := c.Identify(ctx, "uid:"+string(uid), "")
+	name, _, err := c.Identify(
+		ctx, "uid:"+string(uid), "", keybase1.OfflineAvailability_NONE)
 	require.NoError(t, err)
 
 	assert.Equal(t, expectedName, name)
@@ -241,7 +248,7 @@ func TestKeybaseDaemonUserCache(t *testing.T) {
 	uid2 := keybase1.MakeTestUID(2)
 	name1 := kbname.NewNormalizedUsername("name1")
 	name2 := kbname.NewNormalizedUsername("name2")
-	users := map[keybase1.UID]UserInfo{
+	users := map[keybase1.UID]idutil.UserInfo{
 		uid1: {Name: name1},
 		uid2: {Name: name2},
 	}
@@ -296,7 +303,7 @@ func TestKeybaseDaemonUserCache(t *testing.T) {
 
 	// Test that CheckForRekey gets called only if the logged-in user
 	// changes.
-	session := SessionInfo{
+	session := idutil.SessionInfo{
 		UID: uid1,
 	}
 	c.setCachedCurrentSession(session)
@@ -322,30 +329,14 @@ func TestKeybaseDaemonUserCache(t *testing.T) {
 	require.NoError(t, err)
 }
 
-// truncateNotificationTimestamps is a helper function to truncate
-// timestamps to second resolution. This is needed because some
-// methods of storing timestamps (e.g., relying on the filesystem) are
-// lossy.
-func truncateNotificationTimestamps(
-	notifications []keybase1.FSNotification) []keybase1.FSNotification {
-	roundedNotifications := make(
-		[]keybase1.FSNotification, len(notifications))
-	for i, n := range notifications {
-		n.LocalTime = keybase1.ToTime(
-			n.LocalTime.Time().Truncate(time.Second))
-		roundedNotifications[i] = n
-	}
-	return roundedNotifications
-}
-
 func TestKeybaseDaemonRPCEditList(t *testing.T) {
 	var userName1, userName2 kbname.NormalizedUsername = "u1", "u2"
 	config1, _, ctx, cancel := kbfsOpsConcurInit(t, userName1, userName2)
-	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
+	defer kbfsConcurTestShutdown(ctx, t, config1, cancel)
 	// kbfsOpsConcurInit turns off notifications, so turn them back on.
-	config1.mode = modeTest{NewInitModeFromType(InitDefault)}
+	config1.SetMode(modeTest{NewInitModeFromType(InitDefault)})
 
-	clock, first := newTestClockAndTimeNow()
+	clock, first := clocktest.NewTestClockAndTimeNow()
 	config1.SetClock(clock)
 
 	config2 := ConfigAsUser(config1, userName2)
@@ -358,7 +349,8 @@ func TestKeybaseDaemonRPCEditList(t *testing.T) {
 
 	// user 1 creates a file
 	kbfsOps1 := config1.KBFSOps()
-	_, _, err := kbfsOps1.CreateFile(ctx, rootNode1, "a", false, NoExcl)
+	_, _, err := kbfsOps1.CreateFile(
+		ctx, rootNode1, testPPS("a"), false, NoExcl)
 	require.NoError(t, err)
 	err = kbfsOps1.SyncAll(ctx, rootNode1.GetFolderBranch())
 	require.NoError(t, err)
@@ -370,7 +362,7 @@ func TestKeybaseDaemonRPCEditList(t *testing.T) {
 	clock.Add(1 * time.Minute)
 	second := clock.Now()
 
-	_, _, err = kbfsOps2.CreateFile(ctx, rootNode2, "b", false, NoExcl)
+	_, _, err = kbfsOps2.CreateFile(ctx, rootNode2, testPPS("b"), false, NoExcl)
 	require.NoError(t, err)
 	err = kbfsOps2.SyncAll(ctx, rootNode2.GetFolderBranch())
 	require.NoError(t, err)
@@ -403,6 +395,7 @@ func TestKeybaseDaemonRPCEditList(t *testing.T) {
 					NotificationType: keybase1.FSNotificationType_FILE_MODIFIED,
 					ServerTime:       keybase1.ToTime(second),
 				}},
+				Deletes: []keybase1.FSFolderWriterEdit{},
 			},
 			{
 				WriterName: "u1",
@@ -411,11 +404,12 @@ func TestKeybaseDaemonRPCEditList(t *testing.T) {
 					NotificationType: keybase1.FSNotificationType_FILE_MODIFIED,
 					ServerTime:       keybase1.ToTime(first),
 				}},
+				Deletes: []keybase1.FSFolderWriterEdit{},
 			},
 		},
 	}
 
-	users := map[keybase1.UID]UserInfo{
+	users := map[keybase1.UID]idutil.UserInfo{
 		uid1: {Name: userName1},
 		uid2: {Name: userName2},
 	}

@@ -54,12 +54,12 @@ func ListTeamsUnverified(ctx context.Context, g *libkb.GlobalContext, arg keybas
 	switch err.(type) {
 	case nil:
 		if err = g.GetKVStore().PutObj(cacheKey, nil, teams); err != nil {
-			m.CDebugf("| ListTeamsUnverified unable to put cache item: %v", err)
+			m.Debug("| ListTeamsUnverified unable to put cache item: %v", err)
 		}
 	case libkb.APINetError:
 		if found, cerr := g.GetKVStore().GetInto(&teams, cacheKey); cerr != nil || !found {
 			// Nothing we can do here.
-			m.CDebugf("| ListTeamsUnverified unable to get cache item: %v, found: %v", cerr, found)
+			m.Debug("| ListTeamsUnverified unable to get cache item: %v, found: %v", cerr, found)
 			return nil, err
 		}
 	default:
@@ -68,7 +68,6 @@ func ListTeamsUnverified(ctx context.Context, g *libkb.GlobalContext, arg keybas
 
 	res := &keybase1.AnnotatedTeamList{
 		Teams: nil,
-		AnnotatedActiveInvites: make(map[keybase1.TeamInviteID]keybase1.AnnotatedTeamInvite),
 	}
 
 	if len(teams) == 0 {
@@ -87,7 +86,7 @@ func ListTeamsUnverified(ctx context.Context, g *libkb.GlobalContext, arg keybas
 
 	for _, memberInfo := range teams {
 		if memberInfo.IsImplicitTeam && !arg.IncludeImplicitTeams {
-			m.CDebugf("| ListTeamsUnverified skipping implicit team: server-team:%v server-uid:%v", memberInfo.TeamID, memberInfo.UserID)
+			m.Debug("| ListTeamsUnverified skipping implicit team: server-team:%v server-uid:%v", memberInfo.TeamID, memberInfo.UserID)
 			continue
 		}
 
@@ -101,7 +100,7 @@ func ListTeamsUnverified(ctx context.Context, g *libkb.GlobalContext, arg keybas
 			Implicit:            memberInfo.Implicit,
 			Username:            queryUsername.String(),
 			FullName:            queryFullName,
-			MemberCount:         memberInfo.MemberCount,
+			MemberCount:         g.TeamMemberCountCache.GetWithFallback(memberInfo.TeamID, memberInfo.MemberCount),
 			Status:              keybase1.TeamMemberStatus_ACTIVE,
 			AllowProfilePromote: memberInfo.AllowProfilePromote,
 			IsMemberShowcased:   memberInfo.IsMemberShowcased,
@@ -143,7 +142,7 @@ func ListSubteamsUnverified(mctx libkb.MetaContext, name keybase1.TeamName) (res
 			if err != nil {
 				return res, err
 			}
-			entries = append(entries, keybase1.SubteamListEntry{Name: subteamName, MemberCount: potentialSubteam.MemberCount})
+			entries = append(entries, keybase1.SubteamListEntry{Name: subteamName, MemberCount: potentialSubteam.MemberCount, TeamID: potentialSubteam.TeamID})
 		}
 	}
 

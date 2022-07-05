@@ -26,6 +26,7 @@ type provisionee struct {
 // management that a provisionee needs to do as part of the protocol.
 type Provisionee interface {
 	GetLogFactory() rpc.LogFactory
+	GetNetworkInstrumenter() rpc.NetworkInstrumenterStorage
 	HandleHello(ctx context.Context, a keybase1.HelloArg) (keybase1.HelloRes, error)
 	HandleHello2(ctx context.Context, a keybase1.Hello2Arg) (keybase1.Hello2Res, error)
 	HandleDidCounterSign(ctx context.Context, b []byte) error
@@ -155,7 +156,8 @@ func (p *provisionee) startServer(s Secret) (err error) {
 		keybase1.Kex2ProvisioneeProtocol(p),
 	}
 	prots = append(prots, keybase1.Kex2Provisionee2Protocol(p))
-	p.xp = rpc.NewTransport(p.conn, p.arg.Provisionee.GetLogFactory(), nil, rpc.DefaultMaxFrameLength)
+	p.xp = rpc.NewTransport(p.conn, p.arg.Provisionee.GetLogFactory(),
+		p.arg.Provisionee.GetNetworkInstrumenter(), nil, rpc.DefaultMaxFrameLength)
 	srv := rpc.NewServer(p.xp, nil)
 	for _, prot := range prots {
 		if err = srv.Register(prot); err != nil {

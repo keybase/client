@@ -13,7 +13,7 @@ import (
 
 // MerkleLeaf is the value of a Merkle leaf node.
 type MerkleLeaf struct {
-	_struct   bool `codec:",toarray"`
+	_struct   bool `codec:",toarray"` // nolint
 	Revision  Revision
 	Hash      MerkleHash // hash of the signed metadata object
 	Timestamp int64
@@ -29,7 +29,7 @@ func (l MerkleLeaf) Construct() interface{} {
 
 // EncryptedMerkleLeaf is an encrypted Merkle leaf.
 type EncryptedMerkleLeaf struct {
-	_struct       bool `codec:",toarray"`
+	_struct       bool `codec:",toarray"` // nolint
 	Version       kbfscrypto.EncryptionVer
 	EncryptedData []byte
 }
@@ -53,7 +53,7 @@ func (l MerkleLeaf) Encrypt(codec kbfscodec.Codec,
 	pubKeyData := pubKey.Data()
 	privKeyData := ePrivKey.Data()
 	encryptedData := box.Seal(
-		nil, leafBytes[:], nonce, &pubKeyData, &privKeyData)
+		nil, leafBytes, nonce, &pubKeyData, &privKeyData)
 	return EncryptedMerkleLeaf{
 		Version:       kbfscrypto.EncryptionSecretbox,
 		EncryptedData: encryptedData,

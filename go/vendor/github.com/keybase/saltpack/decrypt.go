@@ -227,7 +227,7 @@ func (ds *decryptStream) processHeader(hdr *EncryptionHeader) error {
 	if !hmac.Equal(hdr.Ephemeral, ds.senderKey[:]) {
 		longLivedSenderKey := ds.ring.LookupBoxPublicKey(ds.senderKey[:])
 		if longLivedSenderKey == nil {
-			return ErrNoSenderKey
+			return ErrNoSenderKey{Sender: ds.senderKey[:]}
 		}
 		ds.mki.SenderKey = longLivedSenderKey
 	} else {

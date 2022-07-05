@@ -4,11 +4,13 @@
 package install
 
 import (
+	"bufio"
 	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"sort"
 	"strings"
 
 	"github.com/blang/semver"
@@ -133,7 +135,8 @@ func ComponentNameFromString(s string) ComponentName {
 func ResolveInstallStatus(version string, bundleVersion string, lastExitStatus string, log Log) (installStatus keybase1.InstallStatus, installAction keybase1.InstallAction, status keybase1.Status) {
 	installStatus = keybase1.InstallStatus_UNKNOWN
 	installAction = keybase1.InstallAction_UNKNOWN
-	if version != "" && bundleVersion != "" {
+	switch {
+	case version != "" && bundleVersion != "":
 		sv, err := semver.Make(version)
 		if err != nil {
 			installStatus = keybase1.InstallStatus_ERROR
@@ -149,21 +152,22 @@ func ResolveInstallStatus(version string, bundleVersion string, lastExitStatus s
 			status = keybase1.StatusFromCode(keybase1.StatusCode_SCInvalidVersionError, err.Error())
 			return
 		}
-		if bsv.GT(sv) {
+		switch {
+		case bsv.GT(sv):
 			installStatus = keybase1.InstallStatus_INSTALLED
 			installAction = keybase1.InstallAction_UPGRADE
-		} else if bsv.EQ(sv) {
+		case bsv.EQ(sv):
 			installStatus = keybase1.InstallStatus_INSTALLED
 			installAction = keybase1.InstallAction_NONE
-		} else if bsv.LT(sv) {
+		case bsv.LT(sv):
 			// It's ok if we have a bundled version less than what was installed
 			log.Warning("Bundle version (%s) is less than installed version (%s)", bundleVersion, version)
 			installStatus = keybase1.InstallStatus_INSTALLED
 			installAction = keybase1.InstallAction_NONE
 		}
-	} else if version != "" && bundleVersion == "" {
+	case version != "" && bundleVersion == "":
 		installStatus = keybase1.InstallStatus_INSTALLED
-	} else if version == "" && bundleVersion != "" {
+	case version == "" && bundleVersion != "":
 		installStatus = keybase1.InstallStatus_NOT_INSTALLED
 		installAction = keybase1.InstallAction_INSTALL
 	}
@@ -194,19 +198,7 @@ func KBFSBundleVersion(context Context, binPath string) (string, error) {
 	return kbfsVersion, nil
 }
 
-func createCommandLine(binPath string, linkPath string, log Log) error {
-	if _, err := os.Lstat(linkPath); err == nil {
-		err := os.Remove(linkPath)
-		if err != nil {
-			return err
-		}
-	}
-
-	log.Info("Linking %s to %s", linkPath, binPath)
-	return os.Symlink(binPath, linkPath)
-}
-
-func defaultLinkPath() (string, error) {
+func defaultLinkPath() (string, error) { //nolint
 	if runtime.GOOS == "windows" {
 		return "", fmt.Errorf("Unsupported on Windows")
 	}
@@ -218,7 +210,7 @@ func defaultLinkPath() (string, error) {
 	return linkPath, nil
 }
 
-func uninstallLink(linkPath string, log Log) error {
+func uninstallLink(linkPath string, log Log) error { //nolint
 	log.Debug("Link path: %s", linkPath)
 	fi, err := os.Lstat(linkPath)
 	if os.IsNotExist(err) {
@@ -231,23 +223,6 @@ func uninstallLink(linkPath string, log Log) error {
 	}
 	log.Info("Removing %s", linkPath)
 	return os.Remove(linkPath)
-}
-
-func uninstallCommandLine(log Log) error {
-	linkPath, err := defaultLinkPath()
-	if err != nil {
-		return nil
-	}
-
-	err = uninstallLink(linkPath, log)
-	if err != nil {
-		return err
-	}
-
-	// Now the git binary.
-	gitBinFilename := "git-remote-keybase"
-	gitLinkPath := filepath.Join(filepath.Dir(linkPath), gitBinFilename)
-	return uninstallLink(gitLinkPath, log)
 }
 
 func chooseBinPath(bp string) (string, error) {
@@ -263,7 +238,7 @@ func BinPath() (string, error) {
 	return utils.BinPath()
 }
 
-func binName() (string, error) {
+func binName() (string, error) { //nolint
 	path, err := BinPath()
 	if err != nil {
 		return "", err
@@ -299,4 +274,66 @@ func kbfsBinPathDefault(runMode libkb.RunMode, binPath string) (string, error) {
 type CommonLsofResult struct {
 	PID     string
 	Command string
+}
+
+func fileContainsWord(filePath, searchWord string) bool {
+	file, err := os.Open(filePath)
+	if err != nil {
+		return false
+	}
+	defer file.Close()
+	scanner := bufio.NewScanner(file)
+	var lineCount int
+	for scanner.Scan() {
+		if strings.Contains(scanner.Text(), searchWord) {
+			return true
+		}
+		if lineCount >= 400 {
+			// if we haven't seen it yet, we won't
+			return false
+		}
+		lineCount++
+	}
+	return false
+}
+
+type fileWithPath struct {
+	os.FileInfo
+	Path string
+}
+
+func LastModifiedMatchingFile(filePattern string, fileContentMatch string) (filePath *string, err error) {
+	// find all paths that match the pattern
+	allFiles, err := filepath.Glob(filePattern)
+	if err != nil {
+		return nil, err
+	}
+	// loop through those file paths and get file info on each one
+	var fileObjects []fileWithPath
+	for _, path := range allFiles {
+		fileInfo, err := os.Stat(path)
+		if err != nil {
+			continue
+		}
+		fileObjects = append(fileObjects, fileWithPath{
+			FileInfo: fileInfo,
+			Path:     path,
+		})
+	}
+	// sort them by most recently modified
+	sort.Slice(fileObjects, func(i, j int) bool {
+		return fileObjects[i].ModTime().Unix() > fileObjects[j].ModTime().Unix()
+	})
+	// loop through and return the first one that matches for content
+	for idx, f := range fileObjects {
+		if idx >= 200 {
+			// we've looked at a lot of files and couldn't find one that's relevant, just bail.
+			return nil, nil
+		}
+		if fileContainsWord(f.Path, fileContentMatch) {
+			return &f.Path, nil
+		}
+	}
+	return nil, nil
+
 }

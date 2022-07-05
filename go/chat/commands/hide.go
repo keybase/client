@@ -15,13 +15,13 @@ type Hide struct {
 func NewHide(g *globals.Context) *Hide {
 	return &Hide{
 		baseCommand: newBaseCommand(g, "hide", "[conversation]",
-			"Hides [conversation] or the current one"),
+			"Hides [conversation] or the current one", false),
 	}
 }
 
 func (h *Hide) Execute(ctx context.Context, uid gregor1.UID, inConvID chat1.ConversationID,
-	tlfName, text string) (err error) {
-	defer h.Trace(ctx, func() error { return err }, "Execute")()
+	tlfName, text string, replyTo *chat1.MessageID) (err error) {
+	defer h.Trace(ctx, &err, "Execute")()
 	if !h.Match(ctx, text) {
 		return ErrInvalidCommand
 	}
@@ -33,7 +33,7 @@ func (h *Hide) Execute(ctx context.Context, uid gregor1.UID, inConvID chat1.Conv
 	if len(toks) == 1 {
 		convID = inConvID
 	} else if len(toks) == 2 {
-		conv, err := h.getConvByName(ctx, uid, toks[1])
+		conv, err := getConvByName(ctx, h.G(), uid, toks[1])
 		if err != nil {
 			return err
 		}

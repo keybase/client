@@ -97,7 +97,7 @@ func (e *PGPPurge) KeyFiles() []string {
 }
 
 func (e *PGPPurge) exportBlocks(m libkb.MetaContext, blocks []*libkb.SKB) error {
-	sstore := libkb.NewSecretStore(e.G(), e.me.GetNormalizedName())
+	sstore := libkb.NewSecretStore(m, e.me.GetNormalizedName())
 	promptArg := libkb.SecretKeyPromptArg{
 		SecretUI: m.UIs().SecretUI,
 		Reason:   "export private PGP key",
@@ -125,10 +125,6 @@ func (e *PGPPurge) exportBlocks(m libkb.MetaContext, blocks []*libkb.SKB) error 
 	}
 
 	return nil
-}
-
-func (e *PGPPurge) isPaperEncryptionKey(key *keybase1.PublicKeyV2NaCl, deviceKeys *(map[keybase1.KID]keybase1.PublicKeyV2NaCl)) bool {
-	return libkb.KIDIsDeviceEncrypt(key.Base.Kid) && key.Parent != nil && (*deviceKeys)[*key.Parent].DeviceType == libkb.DeviceTypePaper
 }
 
 func (e *PGPPurge) encryptToFile(m libkb.MetaContext, bundle *libkb.PGPKeyBundle, filename string) error {

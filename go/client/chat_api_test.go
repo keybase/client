@@ -5,34 +5,51 @@ package client
 
 import (
 	"bytes"
-	"encoding/json"
+	"fmt"
 	"io"
 	"reflect"
 	"strings"
 	"testing"
 
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"golang.org/x/net/context"
 )
 
 type handlerTracker struct {
-	listV1          int
-	readV1          int
-	getV1           int
-	sendV1          int
-	editV1          int
-	reactionV1      int
-	deleteV1        int
-	attachV1        int
-	downloadV1      int
-	setstatusV1     int
-	markV1          int
-	searchInboxV1   int
-	searchRegexpV1  int
-	newConvV1       int
-	listConvsOnName int
-	joinV1          int
-	leaveV1         int
+	listV1              int
+	readV1              int
+	getV1               int
+	sendV1              int
+	editV1              int
+	reactionV1          int
+	deleteV1            int
+	attachV1            int
+	downloadV1          int
+	setstatusV1         int
+	markV1              int
+	searchInboxV1       int
+	searchRegexpV1      int
+	newConvV1           int
+	listConvsOnNameV1   int
+	joinV1              int
+	leaveV1             int
+	addToChannelV1      int
+	removeFromChannelV1 int
+	loadFlipV1          int
+	getUnfurlSettingsV1 int
+	setUnfurlSettingsV1 int
+	advertiseCommandsV1 int
+	clearCommandsV1     int
+	listCommandsV1      int
+	pinV1               int
+	unpinV1             int
+	getDeviceInfoV1     int
+	listMembersV1       int
+	emojiAddV1          int
+	emojiAddAliasV1     int
+	emojiListV1         int
+	emojiRemoveV1       int
 }
 
 func (h *handlerTracker) ListV1(context.Context, Call, io.Writer) error {
@@ -106,7 +123,7 @@ func (h *handlerTracker) NewConvV1(context.Context, Call, io.Writer) error {
 }
 
 func (h *handlerTracker) ListConvsOnNameV1(context.Context, Call, io.Writer) error {
-	h.listConvsOnName++
+	h.listConvsOnNameV1++
 	return nil
 }
 
@@ -117,6 +134,94 @@ func (h *handlerTracker) JoinV1(context.Context, Call, io.Writer) error {
 
 func (h *handlerTracker) LeaveV1(context.Context, Call, io.Writer) error {
 	h.leaveV1++
+	return nil
+}
+
+func (h *handlerTracker) AddToChannelV1(context.Context, Call, io.Writer) error {
+	h.addToChannelV1++
+	return nil
+}
+
+func (h *handlerTracker) RemoveFromChannelV1(context.Context, Call, io.Writer) error {
+	h.removeFromChannelV1++
+	return nil
+}
+
+func (h *handlerTracker) LoadFlipV1(context.Context, Call, io.Writer) error {
+	h.loadFlipV1++
+	return nil
+}
+
+func (h *handlerTracker) GetUnfurlSettingsV1(context.Context, Call, io.Writer) error {
+	h.getUnfurlSettingsV1++
+	return nil
+}
+
+func (h *handlerTracker) SetUnfurlSettingsV1(context.Context, Call, io.Writer) error {
+	h.setUnfurlSettingsV1++
+	return nil
+}
+
+func (h *handlerTracker) AdvertiseCommandsV1(context.Context, Call, io.Writer) error {
+	h.advertiseCommandsV1++
+	return nil
+}
+
+func (h *handlerTracker) ClearCommandsV1(context.Context, Call, io.Writer) error {
+	h.clearCommandsV1++
+	return nil
+}
+
+func (h *handlerTracker) ListCommandsV1(context.Context, Call, io.Writer) error {
+	h.listCommandsV1++
+	return nil
+}
+
+func (h *handlerTracker) PinV1(context.Context, Call, io.Writer) error {
+	h.pinV1++
+	return nil
+}
+
+func (h *handlerTracker) UnpinV1(context.Context, Call, io.Writer) error {
+	h.unpinV1++
+	return nil
+}
+
+func (h *handlerTracker) GetResetConvMembersV1(context.Context, Call, io.Writer) error {
+	return nil
+}
+
+func (h *handlerTracker) AddResetConvMemberV1(context.Context, Call, io.Writer) error {
+	return nil
+}
+
+func (h *handlerTracker) GetDeviceInfoV1(context.Context, Call, io.Writer) error {
+	h.getDeviceInfoV1++
+	return nil
+}
+
+func (h *handlerTracker) ListMembersV1(context.Context, Call, io.Writer) error {
+	h.listMembersV1++
+	return nil
+}
+
+func (h *handlerTracker) EmojiAddV1(context.Context, Call, io.Writer) error {
+	h.emojiAddV1++
+	return nil
+}
+
+func (h *handlerTracker) EmojiAddAliasV1(context.Context, Call, io.Writer) error {
+	h.emojiAddAliasV1++
+	return nil
+}
+
+func (h *handlerTracker) EmojiListV1(context.Context, Call, io.Writer) error {
+	h.emojiListV1++
+	return nil
+}
+
+func (h *handlerTracker) EmojiRemoveV1(context.Context, Call, io.Writer) error {
+	h.emojiRemoveV1++
 	return nil
 }
 
@@ -197,27 +302,121 @@ func (c *chatEcho) LeaveV1(context.Context, leaveOptionsV1) Reply {
 	return Reply{Result: echoOK}
 }
 
+func (c *chatEcho) AddToChannelV1(context.Context, addToChannelOptionsV1) Reply {
+	return Reply{Result: echoOK}
+}
+
+func (c *chatEcho) RemoveFromChannelV1(context.Context, removeFromChannelOptionsV1) Reply {
+	return Reply{Result: echoOK}
+}
+
+func (c *chatEcho) LoadFlipV1(context.Context, loadFlipOptionsV1) Reply {
+	return Reply{Result: echoOK}
+}
+
+func (c *chatEcho) GetUnfurlSettingsV1(context.Context) Reply {
+	return Reply{Result: echoOK}
+}
+
+func (c *chatEcho) SetUnfurlSettingsV1(context.Context, setUnfurlSettingsOptionsV1) Reply {
+	return Reply{Result: echoOK}
+}
+
+func (c *chatEcho) AdvertiseCommandsV1(context.Context, advertiseCommandsOptionsV1) Reply {
+	return Reply{Result: echoOK}
+}
+
+func (c *chatEcho) ClearCommandsV1(context.Context, clearCommandsOptionsV1) Reply {
+	return Reply{Result: echoOK}
+}
+
+func (c *chatEcho) ListCommandsV1(context.Context, listCommandsOptionsV1) Reply {
+	return Reply{Result: echoOK}
+}
+
+func (c *chatEcho) PinV1(context.Context, pinOptionsV1) Reply {
+	return Reply{Result: echoOK}
+}
+
+func (c *chatEcho) UnpinV1(context.Context, unpinOptionsV1) Reply {
+	return Reply{Result: echoOK}
+}
+
+func (c *chatEcho) GetResetConvMembersV1(context.Context) Reply {
+	return Reply{Result: echoOK}
+}
+
+func (c *chatEcho) AddResetConvMemberV1(context.Context, addResetConvMemberOptionsV1) Reply {
+	return Reply{Result: echoOK}
+}
+
+func (c *chatEcho) GetDeviceInfoV1(context.Context, getDeviceInfoOptionsV1) Reply {
+	return Reply{Result: echoOK}
+}
+
+func (c *chatEcho) ListMembersV1(context.Context, listMembersOptionsV1) Reply {
+	return Reply{Result: echoOK}
+}
+
+func (c *chatEcho) EmojiAddV1(context.Context, emojiAddOptionsV1) Reply {
+	return Reply{Result: echoOK}
+}
+
+func (c *chatEcho) EmojiAddAliasV1(context.Context, emojiAddAliasOptionsV1) Reply {
+	return Reply{Result: echoOK}
+}
+
+func (c *chatEcho) EmojiListV1(context.Context) Reply {
+	return Reply{Result: echoOK}
+}
+
+func (c *chatEcho) EmojiRemoveV1(context.Context, emojiRemoveOptionsV1) Reply {
+	return Reply{Result: echoOK}
+}
+
 type topTest struct {
-	input          string
-	err            error
-	listV1         int
-	readV1         int
-	sendV1         int
-	editV1         int
-	reactionV1     int
-	deleteV1       int
-	attachV1       int
-	downloadV1     int
-	markV1         int
-	searchInboxV1  int
-	searchRegexpV1 int
+	input               string
+	output              string
+	err                 error
+	listV1              int
+	readV1              int
+	sendV1              int
+	editV1              int
+	reactionV1          int
+	deleteV1            int
+	attachV1            int
+	downloadV1          int
+	markV1              int
+	searchInboxV1       int
+	searchRegexpV1      int
+	joinV1              int
+	leaveV1             int
+	addToChannelV1      int
+	removeFromChannelV1 int
+	listConvsOnNameV1   int
+	pinV1               int
+	unpinV1             int
+	getDeviceInfoV1     int
+	listMembersV1       int
 }
 
 var topTests = []topTest{
-	{input: "{}", err: ErrInvalidMethod{}},
-	{input: `{"params":{"version": 2}}`, err: ErrInvalidVersion{}},
-	{input: `{"params":{"version": 1}}`, err: ErrInvalidMethod{}},
-	{input: `{"method": "xxx", "params":{"version": 1}}`, err: ErrInvalidMethod{}},
+	{
+		input:  `{}`,
+		output: `{"error":{"code":0,"message":"invalid v1 method \"\""}}`,
+	},
+	{
+		input:  `{"params":{"version": 2}}`,
+		output: `{"error":{"code":0,"message":"invalid version 2"}}`,
+	},
+	{
+		input:  `{"params":{"version": 1}}`,
+		output: `{"error":{"code":0,"message":"invalid v1 method \"\""}}`,
+	},
+	{
+		input:  `{"method": "xxx", "params":{"version": 1}}`,
+		output: `{"error":{"code":0,"message":"invalid v1 method \"xxx\""}}`,
+	},
 	{input: `{"method": "list", "params":{"version": 1}}`, listV1: 1},
 	{input: `{"method": "read", "params":{"version": 1}}`, readV1: 1},
 	{input: `{"method": "send", "params":{"version": 1}}`, sendV1: 1},
@@ -237,6 +436,13 @@ var topTests = []topTest{
 	{input: `{"id": 39, "method": "mark", "params":{"version": 1}}`, markV1: 1},
 	{input: `{"id": 39, "method": "searchinbox", "params":{"version": 1}}`, searchInboxV1: 1},
 	{input: `{"id": 39, "method": "searchregexp", "params":{"version": 1}}`, searchRegexpV1: 1},
+	{input: `{"id": 39, "method": "join", "params":{"version": 1}}`, joinV1: 1},
+	{input: `{"id": 39, "method": "leave", "params":{"version": 1}}`, leaveV1: 1},
+	{input: `{"id": 39, "method": "listconvsonname", "params":{"version": 1}}`, listConvsOnNameV1: 1},
+	{input: `{"id": 39, "method": "pin", "params":{"version": 1}}`, pinV1: 1},
+	{input: `{"id": 39, "method": "unpin", "params":{"version": 1}}`, unpinV1: 1},
+	{input: `{"id": 39, "method": "getdeviceinfo", "params":{"version": 1}}`, getDeviceInfoV1: 1},
+	{input: `{"id": 39, "method": "listmembers", "params":{"version": 1}}`, listMembersV1: 1},
 }
 
 // TestChatAPIVersionHandlerTop tests that the "top-level" of the chat json makes it to
@@ -290,195 +496,306 @@ func TestChatAPIVersionHandlerTop(t *testing.T) {
 		if h.searchRegexpV1 != test.searchRegexpV1 {
 			t.Errorf("test %d: input %s => searchRegexpV1 = %d, expected %d", i, test.input, h.searchRegexpV1, test.searchRegexpV1)
 		}
+		if h.joinV1 != test.joinV1 {
+			t.Errorf("test %d: input %s => joinV1 = %d, expected %d", i, test.input, h.joinV1, test.joinV1)
+		}
+		if h.leaveV1 != test.leaveV1 {
+			t.Errorf("test %d: input %s => leaveV1 = %d, expected %d", i, test.input, h.leaveV1, test.leaveV1)
+		}
+		if h.addToChannelV1 != test.addToChannelV1 {
+			t.Errorf("test %d: input %s => addToChannelV1 = %d, expected %d", i, test.input, h.addToChannelV1, test.addToChannelV1)
+		}
+		if h.removeFromChannelV1 != test.removeFromChannelV1 {
+			t.Errorf("test %d: input %s => removeFromChannelV1 = %d, expected %d", i, test.input, h.removeFromChannelV1, test.removeFromChannelV1)
+		}
+		if h.listConvsOnNameV1 != test.listConvsOnNameV1 {
+			t.Errorf("test %d: input %s => listConvsOnNameV1 = %d, expected %d",
+				i, test.input, h.listConvsOnNameV1, test.listConvsOnNameV1)
+		}
+		if h.pinV1 != test.pinV1 {
+			t.Errorf("test %d: input %s => pinV1 = %d, expected %d",
+				i, test.input, h.pinV1, test.pinV1)
+		}
+		if h.unpinV1 != test.unpinV1 {
+			t.Errorf("test %d: input %s => unpinV1 = %d, expected %d",
+				i, test.input, h.unpinV1, test.unpinV1)
+		}
+		if h.getDeviceInfoV1 != test.getDeviceInfoV1 {
+			t.Errorf("test %d: input %s => getDeviceInfoV1 = %d, expected %d",
+				i, test.input, h.getDeviceInfoV1, test.getDeviceInfoV1)
+		}
+		if h.listMembersV1 != test.listMembersV1 {
+			t.Errorf("test %d: input %s => listMembersV1 = %d, expected %d",
+				i, test.input, h.listMembersV1, test.listMembersV1)
+		}
+		if strings.TrimSpace(buf.String()) != strings.TrimSpace(test.output) {
+			t.Errorf("test %d: input %s => output %s, expected %s", i, test.input, strings.TrimSpace(buf.String()), strings.TrimSpace(test.output))
+		}
 	}
 }
 
 type optTest struct {
-	input string
-	err   error
+	input  string
+	output string
+	err    error
 }
 
 var optTests = []optTest{
 	{
-		input: `{"method": "list", "params":{"version": 1}}`,
+		input:  `{"method": "list", "params":{"version": 1}}`,
+		output: `{"result":{"status":"ok"}}`,
 	},
 	{
-		input: `{"method": "list", "params":{"version": 1, "options": {"topic_type": "boozle"}}}`,
-		err:   ErrInvalidOptions{},
+		input:  `{"method": "list", "params":{"version": 1, "options": {"topic_type": "boozle"}}}`,
+		output: `{"error":{"code":0,"message":"invalid list v1 options: invalid topic type: 'boozle'"}}`,
 	},
 	{
-		input: `{"method": "read", "params":{"version": 1}}`,
-		err:   ErrInvalidOptions{},
+		input:  `{"method": "read", "params":{"version": 1}}`,
+		output: `{"error":{"code":0,"message":"invalid read v1 options: empty options"}}`,
 	},
 	{
-		input: `{"method": "read", "params":{"version": 1, "options": {}}}`,
-		err:   ErrInvalidOptions{},
+		input:  `{"method": "read", "params":{"version": 1, "options": {}}}`,
+		output: `{"error":{"code":0,"message":"invalid read v1 options: need channel or conversation_id"}}`,
 	},
 	{
-		input: `{"method": "read", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}}}}`,
+		input:  `{"method": "read", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}, "conversation_id": "999111"}}}`,
+		output: `{"error":{"code":0,"message":"invalid read v1 options: include channel or conversation_id, not both"}}`,
 	},
 	{
-		input: `{"method": "send", "params":{"version": 1}}`,
-		err:   ErrInvalidOptions{},
+		input:  `{"method": "send", "params":{"version": 1}}`,
+		output: `{"error":{"code":0,"message":"invalid send v1 options: empty options"}}`,
 	},
 	{
-		input: `{"method": "send", "params":{"version": 1, "options": {} }}`,
-		err:   ErrInvalidOptions{},
+		input:  `{"method": "send", "params":{"version": 1, "options": {} }}`,
+		output: `{"error":{"code":0,"message":"invalid send v1 options: need channel or conversation_id"}}`,
 	},
 	{
-		input: `{"method": "send", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}}}}`,
-		err:   ErrInvalidOptions{},
+		input:  `{"method": "send", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}}}}`,
+		output: `{"error":{"code":0,"message":"invalid send v1 options: invalid message, body cannot be empty"}}`,
 	},
 	{
-		input: `{"method": "send", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}, "message": {"body": "hi"}}}}`,
+		input:  `{"method": "send", "params":{"version": 1, "options": {"conversation_id": "222", "channel": {"name": "alice,bob"}, "message": {"body": "hi"}}}}`,
+		output: `{"error":{"code":0,"message":"invalid send v1 options: include channel or conversation_id, not both"}}`,
 	},
 	{
-		input: `{"method": "list", "params":{"version": 1}}{"method": "list", "params":{"version": 1}}`,
+		input:  `{"method": "send", "params":{"version": 1, "options": {"conversation_id": "123", "message": {"body": "hi"}, "exploding_lifetime": "1s"}}}`,
+		output: fmt.Sprintf(`{"error":{"code":0,"message":"invalid send v1 options: invalid ephemeral lifetime: %v, must be between %v and %v"}}`, "1s", libkb.MaxEphemeralContentLifetime, libkb.MinEphemeralContentLifetime),
 	},
 	{
-		input: `{"method": "list", "params":{"version": 1, "options": {"topic_type": "dEv"}}}`,
+		input:  `{"method": "list", "params":{"version": 1}}{"method": "list", "params":{"version": 1}}`,
+		output: `{"result":{"status":"ok"}}` + "\n" + `{"result":{"status":"ok"}}`,
 	},
 	{
-		input: `{"method": "read", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}}}`, /* missing closing bracket at end */
-		err:   ErrInvalidJSON{},
+		input:  `{"method": "list", "params":{"version": 1, "options": {"topic_type": "dEv"}}}`,
+		output: `{"result":{"status":"ok"}}`,
 	},
 	{
-		input: `{"method": "read", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"`, /* missing closing brackets at end */
-		err:   ErrInvalidJSON{},
+		input:  `{"method": "list", "params":{"version": 1}}{"method": "read", "params":{"version": 1, "options": {"conversation_id": "7777"}}}`,
+		output: `{"result":{"status":"ok"}}` + "\n" + `{"result":{"status":"ok"}}`,
 	},
 	{
-		input: `{"method": "read", "params":{'version': 1, "options": {"channel": {"name": "alice,bob"}}}`,
-		err:   &json.SyntaxError{},
+		input:  `{"method": "read", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}}}`,
+		output: `{"error":{"code":0,"message":"invalid JSON: expected more JSON in input"}}`,
 	},
 	{
-		input: `{"method": "read", "params":{"version": 1, "options": "channel": {"name": "alice,bob"}}`,
-		err:   &json.SyntaxError{},
+		input:  `{"method": "read", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"`,
+		output: `{"error":{"code":0,"message":"invalid JSON: expected more JSON in input"}}`,
 	},
 	{
-		input: `{"method": "read", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}}}}`,
+		input:  `{"method": "read", "params":{'version': 1, "options": {"channel": {"name": "alice,bob"}}}`,
+		output: `{"error":{"code":0,"message":"invalid character '\\'' looking for beginning of object key string"}}`,
 	},
 	{
-		input: `{"id": 29, "method": "edit", "params":{"version": 1}}`,
-		err:   ErrInvalidOptions{},
+		input:  `{"method": "read", "params":{"version": 1, "options": "channel": {"name": "alice,bob"}}`,
+		output: `{"error":{"code":0,"message":"invalid character ':' after object key:value pair"}}`,
 	},
 	{
-		input: `{"id": 29, "method": "edit", "params":{"version": 1, "options": {}}}`,
-		err:   ErrInvalidOptions{},
+		input:  `{"id": 29, "method": "edit", "params":{"version": 1}}`,
+		output: `{"id":29,"error":{"code":0,"message":"invalid edit v1 options: empty options"}}`,
 	},
 	{
-		input: `{"id": 30, "method": "edit", "params":{"version": 1, "options": {"message_id": 0}}}`,
-		err:   ErrInvalidOptions{},
+		input:  `{"id": 29, "method": "edit", "params":{"version": 1, "options": {}}}`,
+		output: `{"id":29,"error":{"code":0,"message":"invalid edit v1 options: need channel or conversation_id"}}`,
 	},
 	{
-		input: `{"id": 30, "method": "edit", "params":{"version": 1, "options": {"message_id": 19}}}`,
-		err:   ErrInvalidOptions{},
+		input:  `{"id": 30, "method": "edit", "params":{"version": 1, "options": {"message_id": 0}}}`,
+		output: `{"id":30,"error":{"code":0,"message":"invalid edit v1 options: need channel or conversation_id"}}`,
 	},
 	{
-		input: `{"id": 30, "method": "edit", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}, "message_id": 123, "message": {"body": ""}}}}`,
-		err:   ErrInvalidOptions{},
+		input:  `{"id": 30, "method": "edit", "params":{"version": 1, "options": {"message_id": 19}}}`,
+		output: `{"id":30,"error":{"code":0,"message":"invalid edit v1 options: need channel or conversation_id"}}`,
 	},
 	{
-		input: `{"id": 30, "method": "edit", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}, "message": {"body": "edited"}}}}`,
-		err:   ErrInvalidOptions{},
+		input:  `{"id": 30, "method": "edit", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}, "message_id": 123, "message": {"body": ""}}}}`,
+		output: `{"id":30,"error":{"code":0,"message":"invalid edit v1 options: invalid message, body cannot be empty"}}`,
 	},
 	{
-		input: `{"id": 30, "method": "edit", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}, "message_id": 123, "message": {"body": "edited"}}}}`,
+		input:  `{"id": 30, "method": "edit", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}, "message": {"body": "edited"}}}}`,
+		output: `{"id":30,"error":{"code":0,"message":"invalid edit v1 options: invalid message id '0'"}}`,
 	},
 	{
-		input: `{"id": 29, "method": "reaction", "params":{"version": 1}}`,
-		err:   ErrInvalidOptions{},
+		input:  `{"id": 29, "method": "reaction", "params":{"version": 1}}`,
+		output: `{"id":29,"error":{"code":0,"message":"invalid reaction v1 options: empty options"}}`,
 	},
 	{
-		input: `{"id": 29, "method": "reaction", "params":{"version": 1, "options": {}}}`,
-		err:   ErrInvalidOptions{},
+		input:  `{"id": 29, "method": "reaction", "params":{"version": 1, "options": {}}}`,
+		output: `{"id":29,"error":{"code":0,"message":"invalid reaction v1 options: need channel or conversation_id"}}`,
 	},
 	{
-		input: `{"id": 30, "method": "reaction", "params":{"version": 1, "options": {"message_id": 0}}}`,
-		err:   ErrInvalidOptions{},
+		input:  `{"id": 30, "method": "reaction", "params":{"version": 1, "options": {"message_id": 0}}}`,
+		output: `{"id":30,"error":{"code":0,"message":"invalid reaction v1 options: need channel or conversation_id"}}`,
 	},
 	{
-		input: `{"id": 30, "method": "reaction", "params":{"version": 1, "options": {"message_id": 19}}}`,
-		err:   ErrInvalidOptions{},
+		input:  `{"id": 30, "method": "reaction", "params":{"version": 1, "options": {"message_id": 19}}}`,
+		output: `{"id":30,"error":{"code":0,"message":"invalid reaction v1 options: need channel or conversation_id"}}`,
 	},
 	{
-		input: `{"id": 30, "method": "reaction", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}, "message_id": 123, "message": {"body": ""}}}}`,
-		err:   ErrInvalidOptions{},
+		input:  `{"id": 30, "method": "reaction", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}, "message_id": 123, "message": {"body": ""}}}}`,
+		output: `{"id":30,"error":{"code":0,"message":"invalid reaction v1 options: invalid message, body cannot be empty"}}`,
 	},
 	{
-		input: `{"id": 30, "method": "reaction", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}, "message": {"body": ":+1:"}}}}`,
-		err:   ErrInvalidOptions{},
+		input:  `{"id": 30, "method": "reaction", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}, "message": {"body": ":+1:"}}}}`,
+		output: `{"id":30,"error":{"code":0,"message":"invalid reaction v1 options: invalid message id '0'"}}`,
 	},
 	{
-		input: `{"id": 30, "method": "reaction", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}, "message_id": 123, "message": {"body": ":+1:"}}}}`,
+		input:  `{"id": 30, "method": "reaction", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}, "message_id": 123, "message": {"body": ":+1:"}}}}`,
+		output: `{"id":30,"result":{"status":"ok"}}`,
 	},
 	{
-		input: `{"id": 30, "method": "delete", "params":{"version": 1}}`,
-		err:   ErrInvalidOptions{},
+		input:  `{"id": 30, "method": "reaction", "params":{"version": 1, "options": {"conversation_id": "333", "message_id": 123, "message": {"body": ":+1:"}}}}`,
+		output: `{"id":30,"result":{"status":"ok"}}`,
 	},
 	{
-		input: `{"id": 30, "method": "delete", "params":{"version": 1, "options": {}}}`,
-		err:   ErrInvalidOptions{},
+		input:  `{"id": 30, "method": "delete", "params":{"version": 1}}`,
+		output: `{"id":30,"error":{"code":0,"message":"invalid delete v1 options: empty options"}}`,
 	},
 	{
-		input: `{"id": 30, "method": "delete", "params":{"version": 1, "options": {"message_id": 0}}}`,
-		err:   ErrInvalidOptions{},
+		input:  `{"id": 30, "method": "delete", "params":{"version": 1, "options": {}}}`,
+		output: `{"id":30,"error":{"code":0,"message":"invalid delete v1 options: need channel or conversation_id"}}`,
 	},
 	{
-		input: `{"id": 30, "method": "delete", "params":{"version": 1, "options": {"message_id": 19}}}`,
-		err:   ErrInvalidOptions{},
+		input:  `{"id": 30, "method": "delete", "params":{"version": 1, "options": {"message_id": 0}}}`,
+		output: `{"id":30,"error":{"code":0,"message":"invalid delete v1 options: need channel or conversation_id"}}`,
 	},
 	{
-		input: `{"id": 30, "method": "delete", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}, "message_id": 123}}}`,
+		input:  `{"id": 30, "method": "delete", "params":{"version": 1, "options": {"message_id": 19}}}`,
+		output: `{"id":30,"error":{"code":0,"message":"invalid delete v1 options: need channel or conversation_id"}}`,
 	},
 	{
-		input: `{"method": "attach", "params":{"options": {"channel": {"name": "alice,bob"}, "filename": "photo.png"}}}`,
+		input:  `{"id": 30, "method": "delete", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}, "message_id": 123}}}`,
+		output: `{"id":30,"result":{"status":"ok"}}`,
 	},
 	{
-		input: `{"method": "attach", "params":{"options": {"channel": {"name": "alice,bob"}, "filename": "photo.png", "exploding_lifetime": "5m"}}}`,
+		input:  `{"method": "attach", "params":{"options": {"channel": {"name": "alice,bob"}, "filename": "photo.png"}}}`,
+		output: `{"result":{"status":"ok"}}`,
 	},
 	{
-		input: `{"method": "attach", "params":{"options": {"channel": {"name": "alice,bob"}, "filename": "photo.png", "exploding_lifetime": "1s"}}}`,
-		err:   ErrInvalidOptions{},
+		input:  `{"method": "attach", "params":{"options": {"channel": {"name": "alice,bob"}, "filename": "photo.png", "exploding_lifetime": "5m"}}}`,
+		output: `{"result":{"status":"ok"}}`,
 	},
 	{
-		input: `{"method": "attach", "params":{"options": {"filename": "photo.png"}}}`,
-		err:   ErrInvalidOptions{},
+		input:  `{"method": "attach", "params":{"options": {"channel": {"name": "alice,bob"}, "filename": "photo.png", "exploding_lifetime": "1s"}}}`,
+		output: fmt.Sprintf(`{"error":{"code":0,"message":"invalid attach v1 options: invalid ephemeral lifetime: %v, must be between %v and %v"}}`, "1s", libkb.MaxEphemeralContentLifetime, libkb.MinEphemeralContentLifetime),
 	},
 	{
-		input: `{"method": "attach", "params":{"options": {"channel": {"name": "alice,bob"}}}}`,
-		err:   ErrInvalidOptions{},
+		input:  `{"method": "attach", "params":{"options": {"filename": "photo.png"}}}`,
+		output: `{"error":{"code":0,"message":"invalid attach v1 options: need channel or conversation_id"}}`,
 	},
 	{
-		input: `{"method": "download", "params":{"version": 1, "options": {"message_id": 34, "channel": {"name": "a123,nfnf,t_bob"}, "output": "/tmp/file"}}}`,
+		input:  `{"method": "attach", "params":{"options": {"channel": {"name": "alice,bob"}}}}`,
+		output: `{"error":{"code":0,"message":"invalid attach v1 options: empty filename"}}`,
 	},
 	{
-		input: `{"method": "download", "params":{"version": 1, "options": {"message_id": 34, "channel": {"name": "a123,nfnf,t_bob"}, "preview": true, "output": "/tmp/file"}}}`,
+		input:  `{"method": "download", "params":{"version": 1, "options": {"message_id": 34, "channel": {"name": "a123,nfnf,t_bob"}, "output": "/tmp/file"}}}`,
+		output: `{"result":{"status":"ok"}}`,
 	},
 	{
-		input: `{"method": "setstatus", "params":{"version": 1, "options": {"channel": {"name": "a123,nfnf,t_bob"}}}}`,
-		err:   ErrInvalidOptions{},
+		input:  `{"method": "download", "params":{"version": 1, "options": {"message_id": 34, "channel": {"name": "a123,nfnf,t_bob"}, "preview": true, "output": "/tmp/file"}}}`,
+		output: `{"result":{"status":"ok"}}`,
 	},
 	{
-		input: `{"method": "setstatus", "params":{"version": 1, "options": {"status": "ONTARIO", "channel": {"name": "a123,nfnf,t_bob"}}}}`,
-		err:   ErrInvalidOptions{},
+		input:  `{"method": "setstatus", "params":{"version": 1, "options": {"channel": {"name": "a123,nfnf,t_bob"}}}}`,
+		output: `{"error":{"code":0,"message":"invalid setstatus v1 options: unsupported status: ''"}}`,
 	},
 	{
-		input: `{"method": "setstatus", "params":{"version": 1, "options": {"status": "ignored", "channel": {"name": "a123,nfnf,t_bob"}}}}`,
+		input:  `{"method": "setstatus", "params":{"version": 1, "options": {"status": "ONTARIO", "channel": {"name": "a123,nfnf,t_bob"}}}}`,
+		output: `{"error":{"code":0,"message":"invalid setstatus v1 options: unsupported status: 'ONTARIO'"}}`,
 	},
 	{
-		input: `{"id": 30, "method": "mark", "params":{"version": 1}}`,
-		err:   ErrInvalidOptions{},
+		input:  `{"method": "setstatus", "params":{"version": 1, "options": {"status": "ignored", "channel": {"name": "a123,nfnf,t_bob"}}}}`,
+		output: `{"result":{"status":"ok"}}`,
 	},
 	{
-		input: `{"id": 30, "method": "mark", "params":{"version": 1, "options": {"message_id": 0}}}`,
-		err:   ErrInvalidOptions{},
+		input:  `{"id": 30, "method": "mark", "params":{"version": 1}}`,
+		output: `{"id":30,"error":{"code":0,"message":"invalid mark v1 options: empty options"}}`,
 	},
 	{
-		input: `{"id": 30, "method": "mark", "params":{"version": 1, "options": {"message_id": 19}}}`,
-		err:   ErrInvalidOptions{},
+		input:  `{"id": 30, "method": "mark", "params":{"version": 1, "options": {"message_id": 0}}}`,
+		output: `{"id":30,"error":{"code":0,"message":"invalid mark v1 options: need channel or conversation_id"}}`,
 	},
 	{
-		input: `{"id": 30, "method": "mark", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}, "message_id": 123}}}`,
+		input:  `{"id": 30, "method": "mark", "params":{"version": 1, "options": {"message_id": 19}}}`,
+		output: `{"id":30,"error":{"code":0,"message":"invalid mark v1 options: need channel or conversation_id"}}`,
+	},
+	{
+		input:  `{"id": 30, "method": "mark", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}, "message_id": 123}}}`,
+		output: `{"id":30,"result":{"status":"ok"}}`,
+	},
+	{
+		input:  `{"method": "join", "params":{"version": 1, "options": {} }}`,
+		output: `{"error":{"code":0,"message":"invalid newconv v1 options: need channel or conversation_id"}}`,
+	},
+	{
+		input:  `{"method": "join", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}}}}`,
+		output: `{"result":{"status":"ok"}}`,
+	},
+	{
+		input:  `{"method": "join", "params":{"version": 1, "options": {"conversation_id": "123"}}}`,
+		output: `{"result":{"status":"ok"}}`,
+	},
+	{
+		input:  `{"method": "join", "params":{"version": 1, "options": {"conversation_id": "222", "channel": {"name": "alice,bob"}}}}`,
+		output: `{"error":{"code":0,"message":"invalid newconv v1 options: include channel or conversation_id, not both"}}`,
+	},
+	{
+		input:  `{"method": "leave", "params":{"version": 1, "options": {} }}`,
+		output: `{"error":{"code":0,"message":"invalid newconv v1 options: need channel or conversation_id"}}`,
+	},
+	{
+		input:  `{"method": "leave", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}}}}`,
+		output: `{"result":{"status":"ok"}}`,
+	},
+	{
+		input:  `{"method": "leave", "params":{"version": 1, "options": {"conversation_id": "123"}}}`,
+		output: `{"result":{"status":"ok"}}`,
+	},
+	{
+		input:  `{"method": "leave", "params":{"version": 1, "options": {"conversation_id": "222", "channel": {"name": "alice,bob"}}}}`,
+		output: `{"error":{"code":0,"message":"invalid newconv v1 options: include channel or conversation_id, not both"}}`,
+	},
+	{
+		input:  `{"method": "listconvsonname", "params":{"version": 1}}`,
+		output: `{"error":{"code":0,"message":"invalid listconvsonname v1 options: empty options"}}`,
+	},
+	{
+		input:  `{"method": "listconvsonname", "params":{"version": 1, "options": {"name": "alice,bob"}}}`,
+		output: `{"result":{"status":"ok"}}`,
+	},
+	{
+		input:  `{"method": "pin", "params":{"version": 1}}`,
+		output: `{"error":{"code":0,"message":"invalid pin v1 options: empty options"}}`,
+	},
+	{
+		input:  `{"method": "pin", "params":{"version": 1, "options": {"channel": {"name": "alice,bob", "message_id": 1}}}}`,
+		output: `{"result":{"status":"ok"}}`,
+	},
+	{
+		input:  `{"method": "unpin", "params":{"version": 1}}`,
+		output: `{"error":{"code":0,"message":"invalid unpin v1 options: empty options"}}`,
+	},
+	{
+		input:  `{"method": "unpin", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}}}}`,
+		output: `{"result":{"status":"ok"}}`,
 	},
 }
 
@@ -499,6 +816,10 @@ func TestChatAPIVersionHandlerOptions(t *testing.T) {
 		} else if err != nil {
 			t.Errorf("test %d: input %s => error %s", i, test.input, err)
 			continue
+		}
+		if strings.TrimSpace(buf.String()) != strings.TrimSpace(test.output) {
+			t.Errorf("test %d: input %s => output %s, expected %s", i, test.input, strings.TrimSpace(buf.String()), strings.TrimSpace(test.output))
+			// continue
 		}
 	}
 }
@@ -527,6 +848,10 @@ var echoTests = []echoTest{
 		output: `{"result":{"status":"ok"}}`,
 	},
 	{
+		input:  `{"method": "read", "params":{"version": 1, "options": {"conversation_id": "123"}}}`,
+		output: `{"result":{"status":"ok"}}`,
+	},
+	{
 		input:  `{"method": "send", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}, "message": {"body": "hi"}}}}`,
 		output: `{"result":{"status":"ok"}}`,
 	},
@@ -536,6 +861,10 @@ var echoTests = []echoTest{
 	},
 	{
 		input:  `{"method": "list", "params":{"version": 1}}{"method": "list", "params":{"version": 1}}`,
+		output: `{"result":{"status":"ok"}}` + "\n" + `{"result":{"status":"ok"}}`,
+	},
+	{
+		input:  `{"method": "list", "params":{"version": 1}}{"method": "read", "params":{"version": 1, "options": {"conversation_id": "123"}}}`,
 		output: `{"result":{"status":"ok"}}` + "\n" + `{"result":{"status":"ok"}}`,
 	},
 	{
@@ -576,6 +905,26 @@ var echoTests = []echoTest{
 	},
 	{
 		input:  `{"method": "searchregexp", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}, "query": "hi"}}}`,
+		output: `{"result":{"status":"ok"}}`,
+	},
+	{
+		input:  `{"method": "join", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}}}}`,
+		output: `{"result":{"status":"ok"}}`,
+	},
+	{
+		input:  `{"method": "leave", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}}}}`,
+		output: `{"result":{"status":"ok"}}`,
+	},
+	{
+		input:  `{"method": "listconvsonname", "params":{"version": 1, "options": {"name":"alice,bob"}}}`,
+		output: `{"result":{"status":"ok"}}`,
+	},
+	{
+		input:  `{"method": "pin", "params":{"version": 1, "options": {"channel": {"name":"alice,bob", "message_id": 1}}}}`,
+		output: `{"result":{"status":"ok"}}`,
+	},
+	{
+		input:  `{"method": "unpin", "params":{"version": 1, "options": {"channel": {"name":"alice,bob"}}}}`,
 		output: `{"result":{"status":"ok"}}`,
 	},
 }

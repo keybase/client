@@ -142,15 +142,6 @@ func loadPlist(plistPath string, log Log) ([]byte, error) {
 	return ioutil.ReadAll(plistFile)
 }
 
-func fuseBundleVersion(appPath string, log Log) (string, error) {
-	plistPath := filepath.Join(appPath, "Contents/Resources/KeybaseInstaller.app/Contents/Info.plist")
-	plistData, err := loadPlist(plistPath, log)
-	if err != nil {
-		return "", err
-	}
-	return findStringInPlist("KBFuseVersion", plistData, log), nil
-}
-
 func fuseInstallVersion(log Log) (string, error) {
 	plistPath := filepath.Join(installPath, "Contents/Info.plist")
 	plistData, err := loadPlist(plistPath, log)
