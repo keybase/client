@@ -1463,7 +1463,6 @@ const loadAttachmentView = async (
           'chat.1.chatUi.chatLoadGalleryHit': (
             hit: RPCChatTypes.MessageTypes['chat.1.chatUi.chatLoadGalleryHit']['inParam']
           ) => {
-            console.log('aaa got hit', hit)
             const state = listenerApi.getState()
             const {username, getLastOrdinal, devicename} = Constants.getMessageStateExtras(
               state,
@@ -1477,7 +1476,6 @@ const loadAttachmentView = async (
               devicename
             )
 
-            console.log('aaa got hit message', message?.ordinal)
             if (message) {
               // listenerApi.dispatch(
               return Chat2Gen.createAddAttachmentViewMessage({conversationIDKey, message, viewType})
@@ -1490,7 +1488,6 @@ const loadAttachmentView = async (
       listenerApi
     )
 
-    console.log('aaa got done')
     listenerApi.dispatch(
       Chat2Gen.createSetAttachmentViewStatus({conversationIDKey, last: res.last, status: 'success', viewType})
     )
