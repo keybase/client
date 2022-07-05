@@ -1477,9 +1477,7 @@ const loadAttachmentView = async (
             )
 
             if (message) {
-              // listenerApi.dispatch(
               return Chat2Gen.createAddAttachmentViewMessage({conversationIDKey, message, viewType})
-              // )
             }
             return false
           },

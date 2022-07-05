@@ -1,8 +1,5 @@
 // similar to the old engine saga helper but for the redux toolkit listener flows
-// import * as RS from 'redux-saga'
-// import * as RSE from 'redux-saga/effects'
 import {getEngine} from './require'
-// import {sequentially} from '../util/saga'
 import {RPCError} from '../util/errors'
 import {printOutstandingRPCs} from '../local-debug'
 import type {CommonResponseHandler} from './types'
@@ -10,18 +7,6 @@ import isArray from 'lodash/isArray'
 import type {ListenerApi} from '../util/redux-toolkit'
 
 type WaitingKey = string | Array<string>
-
-// type EmittedCall = {
-//   method: string
-//   params: any
-//   response: CommonResponseHandler | null
-// }
-
-// type EmittedFinished = {
-//   method: null
-//   params: any
-//   error: RPCError | null
-// }
 
 // Wraps a response to update the waiting state
 const makeWaitingResponse = (r: CommonResponseHandler, waitingKey?: WaitingKey) => {
