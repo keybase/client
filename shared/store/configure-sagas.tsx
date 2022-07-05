@@ -4,8 +4,8 @@ import initChat from '../actions/chat2'
 import initCrypto from '../actions/crypto'
 import initConfig from '../actions/config'
 import createSagaMiddleware from 'redux-saga'
-import deeplinksSaga from '../actions/deeplinks'
-import deviceSaga from '../actions/devices'
+import initDeeplinks from '../actions/deeplinks'
+import initDevice from '../actions/devices'
 import fsSaga from '../actions/fs'
 import gitSaga from '../actions/git'
 import gregorSaga from '../actions/gregor'
@@ -31,8 +31,8 @@ function* mainSaga() {
   initChat()
   initCrypto()
   initConfig()
-  yield Saga.spawn(deeplinksSaga)
-  yield Saga.spawn(deviceSaga)
+  initDeeplinks()
+  initDevice()
   yield Saga.spawn(fsSaga)
   yield Saga.spawn(gregorSaga)
   yield Saga.spawn(loginSaga)

@@ -236,11 +236,11 @@ const handleSaltpackOpenFile = (
   ]
 }
 
-function* deeplinksSaga() {
+const initDeeplinks = () => {
   Container.listenAction(DeeplinksGen.link, handleAppLink)
   Container.listenAction(EngineGen.keybase1NotifyServiceHandleKeybaseLink, handleServiceAppLink)
   Container.listenAction(DeeplinksGen.handleKeybaseLink, handleKeybaseLink)
   Container.listenAction(DeeplinksGen.saltpackFileOpen, handleSaltpackOpenFile)
 }
 
-export default deeplinksSaga
+export default initDeeplinks
