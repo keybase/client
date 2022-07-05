@@ -2797,15 +2797,19 @@ function* blockConversation(_: Container.TypedState, action: Chat2Gen.BlockConve
   })
 }
 
-function* hideConversation(_: Container.TypedState, action: Chat2Gen.HideConversationPayload) {
+const hideConversation = async (
+  _: Container.TypedState,
+  action: Chat2Gen.HideConversationPayload,
+  listenerApi: Container.ListenerApi
+) => {
   const {conversationIDKey} = action.payload
   // Nav to inbox but don't use findNewConversation since changeSelectedConversation
   // does that with better information. It knows the conversation is hidden even before
   // that state bounces back.
-  yield Saga.put(Chat2Gen.createNavigateToInbox())
-  yield Saga.put(Chat2Gen.createShowInfoPanel({show: false}))
+  listenerApi.dispatch(Chat2Gen.createNavigateToInbox())
+  listenerApi.dispatch(Chat2Gen.createShowInfoPanel({show: false}))
   try {
-    yield RPCChatTypes.localSetConversationStatusLocalRpcPromise(
+    await RPCChatTypes.localSetConversationStatusLocalRpcPromise(
       {
         conversationID: Types.keyToConversationID(conversationIDKey),
         identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
@@ -2818,10 +2822,10 @@ function* hideConversation(_: Container.TypedState, action: Chat2Gen.HideConvers
   }
 }
 
-function* unhideConversation(_: Container.TypedState, action: Chat2Gen.HideConversationPayload) {
+const unhideConversation = async (_: Container.TypedState, action: Chat2Gen.UnhideConversationPayload) => {
   const {conversationIDKey} = action.payload
   try {
-    yield RPCChatTypes.localSetConversationStatusLocalRpcPromise(
+    await RPCChatTypes.localSetConversationStatusLocalRpcPromise(
       {
         conversationID: Types.keyToConversationID(conversationIDKey),
         identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
@@ -2865,24 +2869,27 @@ const toggleMessageCollapse = (_: unknown, action: Chat2Gen.ToggleMessageCollaps
 // TODO This will break if you try to make 2 new conversations at the same time because there is
 // only one pending conversation state.
 // The fix involves being able to make multiple pending conversations
-function* createConversation(state: Container.TypedState, action: Chat2Gen.CreateConversationPayload) {
+const createConversation = async (
+  state: Container.TypedState,
+  action: Chat2Gen.CreateConversationPayload,
+  listenerApi: Container.ListenerApi
+) => {
   const {username} = state.config
   if (!username) {
     logger.error('Making a convo while logged out?')
     return
   }
   try {
-    const result: Saga.RPCPromiseType<typeof RPCChatTypes.localNewConversationLocalRpcPromise> =
-      yield RPCChatTypes.localNewConversationLocalRpcPromise(
-        {
-          identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-          membersType: RPCChatTypes.ConversationMembersType.impteamnative,
-          tlfName: [...new Set([username, ...action.payload.participants])].join(','),
-          tlfVisibility: RPCTypes.TLFVisibility.private,
-          topicType: RPCChatTypes.TopicType.chat,
-        },
-        Constants.waitingKeyCreating
-      )
+    const result = await RPCChatTypes.localNewConversationLocalRpcPromise(
+      {
+        identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+        membersType: RPCChatTypes.ConversationMembersType.impteamnative,
+        tlfName: [...new Set([username, ...action.payload.participants])].join(','),
+        tlfVisibility: RPCTypes.TLFVisibility.private,
+        topicType: RPCChatTypes.TopicType.chat,
+      },
+      Constants.waitingKeyCreating
+    )
     const {conv, uiConv} = result
     const conversationIDKey = Types.conversationIDToKey(conv.info.id)
     if (!conversationIDKey) {
@@ -2890,7 +2897,7 @@ function* createConversation(state: Container.TypedState, action: Chat2Gen.Creat
     } else {
       const meta = Constants.inboxUIItemToConversationMeta(state, uiConv)
       if (meta) {
-        yield Saga.put(Chat2Gen.createMetasReceived({metas: [meta]}))
+        listenerApi.dispatch(Chat2Gen.createMetasReceived({metas: [meta]}))
       }
 
       const participants: Array<{
@@ -2908,9 +2915,9 @@ function* createConversation(state: Container.TypedState, action: Chat2Gen.Creat
         })
       }
       if (participants.length > 0) {
-        yield Saga.put(Chat2Gen.createSetParticipants({participants}))
+        listenerApi.dispatch(Chat2Gen.createSetParticipants({participants}))
       }
-      yield Saga.put(
+      listenerApi.dispatch(
         Chat2Gen.createNavigateToThread({
           conversationIDKey,
           highlightMessageID: action.payload.highlightMessageID,
@@ -2926,7 +2933,7 @@ function* createConversation(state: Container.TypedState, action: Chat2Gen.Creat
         disallowedUsers = value.split(',')
       }
       const allowedUsers = action.payload.participants.filter(x => !disallowedUsers?.includes(x))
-      yield Saga.put(
+      listenerApi.dispatch(
         Chat2Gen.createConversationErrored({
           allowedUsers,
           code: error.code,
@@ -2934,7 +2941,7 @@ function* createConversation(state: Container.TypedState, action: Chat2Gen.Creat
           message: error.desc,
         })
       )
-      yield Saga.put(
+      listenerApi.dispatch(
         Chat2Gen.createNavigateToThread({
           conversationIDKey: Constants.pendingErrorConversationIDKey,
           highlightMessageID: action.payload.highlightMessageID,
@@ -3898,18 +3905,12 @@ function* chat2Saga() {
   Container.listenAction(Chat2Gen.muteConversation, muteConversation)
   Container.listenAction(Chat2Gen.updateNotificationSettings, updateNotificationSettings)
   yield* Saga.chainGenerator<Chat2Gen.BlockConversationPayload>(Chat2Gen.blockConversation, blockConversation)
-  yield* Saga.chainGenerator<Chat2Gen.HideConversationPayload>(Chat2Gen.hideConversation, hideConversation)
-  yield* Saga.chainGenerator<Chat2Gen.HideConversationPayload>(
-    Chat2Gen.unhideConversation,
-    unhideConversation
-  )
+  Container.listenAction(Chat2Gen.hideConversation, hideConversation)
+  Container.listenAction(Chat2Gen.unhideConversation, unhideConversation)
 
   Container.listenAction(Chat2Gen.setConvRetentionPolicy, setConvRetentionPolicy)
   Container.listenAction(Chat2Gen.toggleMessageCollapse, toggleMessageCollapse)
-  yield* Saga.chainGenerator<Chat2Gen.CreateConversationPayload>(
-    Chat2Gen.createConversation,
-    createConversation
-  )
+  Container.listenAction(Chat2Gen.createConversation, createConversation)
   Container.listenAction(Chat2Gen.messageReplyPrivately, messageReplyPrivately)
   Container.listenAction(Chat2Gen.openChatFromWidget, openChatFromWidget)
 
