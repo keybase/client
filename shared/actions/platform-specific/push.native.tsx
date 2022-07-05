@@ -214,9 +214,13 @@ const uploadPushToken = async (state: Container.TypedState) => {
   return false as const
 }
 
-function* deletePushToken(state: Container.TypedState, action: ConfigGen.LogoutHandshakePayload) {
+const deletePushToken = async (
+  state: Container.TypedState,
+  action: ConfigGen.LogoutHandshakePayload,
+  listenerApi: Container.ListenerApi
+) => {
   const waitKey = 'push:deleteToken'
-  yield Saga.put(
+  listenerApi.dispatch(
     ConfigGen.createLogoutHandshakeWait({increment: true, name: waitKey, version: action.payload.version})
   )
 
@@ -227,7 +231,7 @@ function* deletePushToken(state: Container.TypedState, action: ConfigGen.LogoutH
       return
     }
 
-    yield RPCTypes.apiserverDeleteRpcPromise({
+    await RPCTypes.apiserverDeleteRpcPromise({
       args: [
         {key: 'device_id', value: deviceID},
         {key: 'token_type', value: Constants.tokenType},
@@ -238,7 +242,7 @@ function* deletePushToken(state: Container.TypedState, action: ConfigGen.LogoutH
   } catch (e) {
     logger.error('[PushToken] delete failed', e)
   } finally {
-    yield Saga.put(
+    listenerApi.dispatch(
       ConfigGen.createLogoutHandshakeWait({
         increment: false,
         name: waitKey,
@@ -250,7 +254,7 @@ function* deletePushToken(state: Container.TypedState, action: ConfigGen.LogoutH
 
 const requestPermissionsFromNative = async () =>
   isIOS ? PushNotificationIOS.requestPermissions() : Promise.resolve()
-const askNativeIfSystemPushPromptHasBeenShown = () =>
+const askNativeIfSystemPushPromptHasBeenShown = async () =>
   isIOS
     ? NativeModules.IOSPushPrompt?.getHasShownPushPrompt() ?? Promise.resolve(false)
     : Promise.resolve(false)
@@ -282,31 +286,31 @@ const neverShowMonsterAgain = async (
   })
 }
 
-function* requestPermissions() {
+const requestPermissions = async (_s: unknown, _a: unknown, listenerApi: Container.ListenerApi) => {
   if (isIOS) {
-    const shownPushPrompt = yield askNativeIfSystemPushPromptHasBeenShown()
+    const shownPushPrompt = await askNativeIfSystemPushPromptHasBeenShown()
     if (shownPushPrompt) {
       // we've already shown the prompt, take them to settings
-      yield Saga.put(ConfigGen.createOpenAppSettings())
-      yield Saga.put(PushGen.createShowPermissionsPrompt({persistSkip: true, show: false}))
+      listenerApi.dispatch(ConfigGen.createOpenAppSettings())
+      listenerApi.dispatch(PushGen.createShowPermissionsPrompt({persistSkip: true, show: false}))
       return
     }
   }
   try {
-    yield Saga.put(WaitingGen.createIncrementWaiting({key: Constants.permissionsRequestingWaitingKey}))
+    listenerApi.dispatch(WaitingGen.createIncrementWaiting({key: Constants.permissionsRequestingWaitingKey}))
     logger.info('[PushRequesting] asking native')
-    const permissions = yield requestPermissionsFromNative()
+    const permissions = await requestPermissionsFromNative()
     logger.info('[PushRequesting] after prompt:', permissions)
     if (permissions && (permissions.alert || permissions.badge)) {
       logger.info('[PushRequesting] enabled')
-      yield Saga.put(PushGen.createUpdateHasPermissions({hasPermissions: true}))
+      listenerApi.dispatch(PushGen.createUpdateHasPermissions({hasPermissions: true}))
     } else {
       logger.info('[PushRequesting] disabled')
-      yield Saga.put(PushGen.createUpdateHasPermissions({hasPermissions: false}))
+      listenerApi.dispatch(PushGen.createUpdateHasPermissions({hasPermissions: false}))
     }
   } finally {
-    yield Saga.put(WaitingGen.createDecrementWaiting({key: Constants.permissionsRequestingWaitingKey}))
-    yield Saga.put(PushGen.createShowPermissionsPrompt({persistSkip: true, show: false}))
+    listenerApi.dispatch(WaitingGen.createDecrementWaiting({key: Constants.permissionsRequestingWaitingKey}))
+    listenerApi.dispatch(PushGen.createShowPermissionsPrompt({persistSkip: true, show: false}))
   }
 }
 
@@ -434,16 +438,13 @@ const getInitialPushiOS = async () =>
 
 function* pushSaga() {
   // Permissions
-  yield* Saga.chainGenerator<PushGen.RequestPermissionsPayload>(
-    PushGen.requestPermissions,
-    requestPermissions
-  )
+  Container.listenAction(PushGen.requestPermissions, requestPermissions)
   Container.listenAction([PushGen.showPermissionsPrompt, PushGen.rejectPermissions], neverShowMonsterAgain)
   Container.listenAction(ConfigGen.mobileAppState, checkPermissions)
 
   // Token handling
   Container.listenAction([PushGen.updatePushToken, ConfigGen.bootstrapStatusLoaded], uploadPushToken)
-  yield* Saga.chainGenerator<ConfigGen.LogoutHandshakePayload>(ConfigGen.logoutHandshake, deletePushToken)
+  Container.listenAction(ConfigGen.logoutHandshake, deletePushToken)
 
   Container.listenAction(NotificationsGen.receivedBadgeState, updateAppBadge)
   yield* Saga.chainGenerator<PushGen.NotificationPayload>(PushGen.notification, handlePush)
