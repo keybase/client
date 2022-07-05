@@ -2997,23 +2997,27 @@ const ignoreErrors = [
   RPCTypes.StatusCode.scapinetworkerror,
   RPCTypes.StatusCode.sctimeout,
 ]
-function* setConvExplodingMode(state: Container.TypedState, action: Chat2Gen.SetConvExplodingModePayload) {
+const setConvExplodingMode = async (
+  state: Container.TypedState,
+  action: Chat2Gen.SetConvExplodingModePayload,
+  listenerApi: Container.ListenerApi
+) => {
   const {conversationIDKey, seconds} = action.payload
   logger.info(`Setting exploding mode for conversation ${conversationIDKey} to ${seconds}`)
 
   // unset a conversation exploding lock for this convo so we accept the new one
-  yield Saga.put(Chat2Gen.createSetExplodingModeLock({conversationIDKey, unset: true}))
+  listenerApi.dispatch(Chat2Gen.createSetExplodingModeLock({conversationIDKey, unset: true}))
 
   const category = Constants.explodingModeGregorKey(conversationIDKey)
   const meta = Constants.getMeta(state, conversationIDKey)
   const convRetention = Constants.getEffectiveRetentionPolicy(meta)
   if (seconds === 0 || seconds === convRetention.seconds) {
     // dismiss the category so we don't leave cruft in the push state
-    yield Saga.callUntyped(RPCTypes.gregorDismissCategoryRpcPromise, {category})
+    await RPCTypes.gregorDismissCategoryRpcPromise({category})
   } else {
     // update the category with the exploding time
     try {
-      yield Saga.callUntyped(RPCTypes.gregorUpdateCategoryRpcPromise, {
+      await RPCTypes.gregorUpdateCategoryRpcPromise({
         body: seconds.toString(),
         category,
         dtime: {offset: 0, time: 0},
@@ -3910,10 +3914,7 @@ function* chat2Saga() {
   Container.listenAction(Chat2Gen.openChatFromWidget, openChatFromWidget)
 
   // Exploding things
-  yield* Saga.chainGenerator<Chat2Gen.SetConvExplodingModePayload>(
-    Chat2Gen.setConvExplodingMode,
-    setConvExplodingMode
-  )
+  Container.listenAction(Chat2Gen.setConvExplodingMode, setConvExplodingMode)
   Container.listenAction(Chat2Gen.toggleMessageReaction, toggleMessageReaction)
   Container.listenAction(ConfigGen.daemonHandshake, loadStaticConfig)
   Container.listenAction(NotificationsGen.receivedBadgeState, receivedBadgeState)
