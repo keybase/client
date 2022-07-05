@@ -482,30 +482,29 @@ const getWaitDuration = (endEstimate: number | null, lower: number, upper: numbe
 
 // TODO: move these logic into Go HOTPOT-533
 let polling = false
-function* pollJournalFlushStatusUntilDone() {
+const pollJournalFlushStatusUntilDone = async (
+  _s: unknown,
+  _a: unknown,
+  listenerApi: Container.ListenerApi
+) => {
   if (polling) {
     return
   }
   polling = true
   try {
+    // eslint-disable-next-line
     while (1) {
-      const {
-        syncingPaths,
-        totalSyncingBytes,
-        endEstimate,
-      }: Saga.RPCPromiseType<typeof RPCTypes.SimpleFSSimpleFSSyncStatusRpcPromise> =
-        yield RPCTypes.SimpleFSSimpleFSSyncStatusRpcPromise({
+      const {syncingPaths, totalSyncingBytes, endEstimate} =
+        await RPCTypes.SimpleFSSimpleFSSyncStatusRpcPromise({
           filter: RPCTypes.ListFilter.filterSystemHidden,
         })
-      yield Saga.sequentially([
-        Saga.put(
-          FsGen.createJournalUpdate({
-            endEstimate,
-            syncingPaths: (syncingPaths || []).map(Types.stringToPath),
-            totalSyncingBytes,
-          })
-        ),
-      ])
+      listenerApi.dispatch(
+        FsGen.createJournalUpdate({
+          endEstimate,
+          syncingPaths: (syncingPaths || []).map(Types.stringToPath),
+          totalSyncingBytes,
+        })
+      )
 
       // It's possible syncingPaths has not been emptied before
       // totalSyncingBytes becomes 0. So check both.
@@ -513,15 +512,13 @@ function* pollJournalFlushStatusUntilDone() {
         break
       }
 
-      yield Saga.sequentially([
-        Saga.put(NotificationsGen.createBadgeApp({key: 'kbfsUploading', on: true})),
-        Saga.delay(getWaitDuration(endEstimate || null, 100, 4000)), // 0.1s to 4s
-      ])
+      listenerApi.dispatch(NotificationsGen.createBadgeApp({key: 'kbfsUploading', on: true}))
+      await listenerApi.delay(getWaitDuration(endEstimate || null, 100, 4000)) // 0.1s to 4s
     }
   } finally {
     polling = false
-    yield Saga.put(NotificationsGen.createBadgeApp({key: 'kbfsUploading', on: false}))
-    yield Saga.put(FsGen.createCheckKbfsDaemonRpcStatus())
+    listenerApi.dispatch(NotificationsGen.createBadgeApp({key: 'kbfsUploading', on: false}))
+    listenerApi.dispatch(FsGen.createCheckKbfsDaemonRpcStatus())
   }
 }
 
@@ -1144,10 +1141,7 @@ function* fsSaga() {
   Container.listenAction(FsGen.commitEdit, commitEdit)
   Container.listenAction(FsGen.deleteFile, deleteFile)
   Container.listenAction(FsGen.loadPathMetadata, loadPathMetadata)
-  yield* Saga.chainGenerator<FsGen.PollJournalStatusPayload>(
-    FsGen.pollJournalStatus,
-    pollJournalFlushStatusUntilDone
-  )
+  Container.listenAction(FsGen.pollJournalStatus, pollJournalFlushStatusUntilDone)
   Container.listenAction([FsGen.move, FsGen.copy], moveOrCopy)
   Container.listenAction([FsGen.showMoveOrCopy, FsGen.showIncomingShare], showMoveOrCopy)
   Container.listenAction(

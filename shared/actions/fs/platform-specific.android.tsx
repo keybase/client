@@ -1,5 +1,4 @@
 import logger from '../../logger'
-import * as Saga from '../../util/saga'
 import * as FsGen from '../fs-gen'
 import * as Constants from '../../constants/fs'
 import * as RPCTypes from '../../constants/types/rpc-gen'
