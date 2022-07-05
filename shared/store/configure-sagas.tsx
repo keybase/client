@@ -1,8 +1,8 @@
 import autoresetSaga from '../actions/autoreset'
 import botsSaga from '../actions/bots'
-import chat2Saga from '../actions/chat2'
+import initChat from '../actions/chat2'
 import cryptoSaga from '../actions/crypto'
-import configSaga from '../actions/config'
+import initConfig from '../actions/config'
 import createSagaMiddleware from 'redux-saga'
 import deeplinksSaga from '../actions/deeplinks'
 import deviceSaga from '../actions/devices'
@@ -28,9 +28,9 @@ import * as Saga from '../util/saga'
 function* mainSaga() {
   yield Saga.spawn(autoresetSaga)
   yield Saga.spawn(botsSaga)
-  yield Saga.spawn(chat2Saga)
+  initChat()
   yield Saga.spawn(cryptoSaga)
-  yield Saga.spawn(configSaga)
+  initConfig()
   yield Saga.spawn(deeplinksSaga)
   yield Saga.spawn(deviceSaga)
   yield Saga.spawn(fsSaga)

@@ -585,7 +585,7 @@ const emitStartupOnLoadLoggedIn = (_: Container.TypedState, action: ConfigGen.Lo
   return !action.payload.causedByStartup ? ConfigGen.createLoadOnStart({phase: 'reloggedIn'}) : false
 }
 
-function* configSaga() {
+const initConfig = () => {
   // Start the handshake process. This means we tell all sagas we're handshaking with the daemon. If another
   // saga needs to do something before we leave the loading screen they should call daemonHandshakeWait
   Container.listenAction([ConfigGen.restartHandshake, ConfigGen.startHandshake], startHandshake)
@@ -667,4 +667,4 @@ function* configSaga() {
   Container.listenAction(ConfigGen.loadOnLoginStartup, loadOnLoginStartup)
 }
 
-export default configSaga
+export default initConfig

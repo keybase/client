@@ -15,7 +15,6 @@ import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as RouteTreeGen from '../route-tree-gen'
 import * as Router2Constants from '../../constants/router2'
-import * as Saga from '../../util/saga'
 import * as Tabs from '../../constants/tabs'
 import * as TeamBuildingGen from '../team-building-gen'
 import * as TeamsConstants from '../../constants/teams'
@@ -128,24 +127,21 @@ const queueMetaToRequest = (state: Container.TypedState, action: Chat2Gen.MetaNe
 }
 
 // Watch the meta queue and take up to 10 items. Choose the last items first since they're likely still visible
-function* requestMeta(state: Container.TypedState) {
+const requestMeta = async (state: Container.TypedState, _a: unknown, listenerApi: Container.ListenerApi) => {
   const maxToUnboxAtATime = 10
   const ar = [...metaQueue]
   const maybeUnbox = ar.slice(0, maxToUnboxAtATime)
   metaQueue = new Set(ar.slice(maxToUnboxAtATime))
 
   const conversationIDKeys = untrustedConversationIDKeys(state, maybeUnbox)
-  const toUnboxActions = conversationIDKeys.length
-    ? [Saga.put(Chat2Gen.createMetaRequestTrusted({conversationIDKeys, reason: 'scroll'}))]
-    : []
-  const unboxSomeMoreActions = metaQueue.size ? [Saga.put(Chat2Gen.createMetaHandleQueue())] : []
-  const delayBeforeUnboxingMoreActions =
-    toUnboxActions.length && unboxSomeMoreActions.length ? [Saga.delay(100)] : []
-
-  const nextActions = [...toUnboxActions, ...delayBeforeUnboxingMoreActions, ...unboxSomeMoreActions]
-
-  if (nextActions.length) {
-    yield Saga.sequentially(nextActions)
+  if (conversationIDKeys.length) {
+    listenerApi.dispatch(Chat2Gen.createMetaRequestTrusted({conversationIDKeys, reason: 'scroll'}))
+  }
+  if (metaQueue.size && conversationIDKeys.length) {
+    await Container.timeoutPromise(100)
+  }
+  if (metaQueue.size) {
+    listenerApi.dispatch(Chat2Gen.createMetaHandleQueue())
   }
 }
 
@@ -3769,7 +3765,7 @@ const updateDraftState = (_: unknown, action: Chat2Gen.DeselectedConversationPay
     reason: 'refreshPreviousSelected',
   })
 
-function* chat2Saga() {
+const initChat = () => {
   // Platform specific actions
   if (Container.isMobile) {
     Container.listenAction(Chat2Gen.messageAttachmentNativeShare, mobileMessageAttachmentShare)
@@ -3784,7 +3780,7 @@ function* chat2Saga() {
   // We've scrolled some new inbox rows into view, queue them up
   Container.listenAction(Chat2Gen.metaNeedsUpdating, queueMetaToRequest)
   // We have some items in the queue to process
-  yield* Saga.chainGenerator<Chat2Gen.MetaHandleQueuePayload>(Chat2Gen.metaHandleQueue, requestMeta)
+  Container.listenAction(Chat2Gen.metaHandleQueue, requestMeta)
 
   // Actually try and unbox conversations
   Container.listenAction([Chat2Gen.metaRequestTrusted, Chat2Gen.selectedConversation], unboxRows)
@@ -4000,4 +3996,4 @@ function* chat2Saga() {
   Container.listenAction(Chat2Gen.deselectedConversation, updateDraftState)
 }
 
-export default chat2Saga
+export default initChat
