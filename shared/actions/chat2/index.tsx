@@ -1787,7 +1787,11 @@ const onReplyJump = (_: unknown, action: Chat2Gen.ReplyJumpPayload) =>
     messageID: action.payload.messageID,
   })
 
-function* messageSend(state: Container.TypedState, action: Chat2Gen.MessageSendPayload) {
+const messageSend = async (
+  state: Container.TypedState,
+  action: Chat2Gen.MessageSendPayload,
+  listenerApi: Container.ListenerApi
+) => {
   const {conversationIDKey, text, replyTo} = action.payload
 
   const meta = Constants.getMeta(state, conversationIDKey)
@@ -1799,61 +1803,64 @@ function* messageSend(state: Container.TypedState, action: Chat2Gen.MessageSendP
   const ephemeralData = ephemeralLifetime !== 0 ? {ephemeralLifetime} : {}
   const confirmRouteName = 'chatPaymentsConfirm'
   const onShowConfirm = () => [
-    Saga.put(Chat2Gen.createClearPaymentConfirmInfo()),
-    Saga.put(
-      RouteTreeGen.createNavigateAppend({
-        path: [confirmRouteName],
-      })
-    ),
+    Chat2Gen.createClearPaymentConfirmInfo(),
+    RouteTreeGen.createNavigateAppend({
+      path: [confirmRouteName],
+    }),
   ]
-  const onHideConfirm = ({canceled}: RPCChatTypes.MessageTypes['chat.1.chatUi.chatStellarDone']['inParam']) =>
-    Saga.callUntyped(function* () {
-      const visibleScreen = Router2Constants.getVisibleScreen()
-      if (visibleScreen && visibleScreen.name === confirmRouteName) {
-        yield Saga.put(RouteTreeGen.createClearModals())
-      }
-      if (canceled) {
-        yield Saga.put(Chat2Gen.createSetUnsentText({conversationIDKey, text}))
-      }
-    })
+  const onHideConfirm = async ({
+    canceled,
+  }: RPCChatTypes.MessageTypes['chat.1.chatUi.chatStellarDone']['inParam']) => {
+    const visibleScreen = Router2Constants.getVisibleScreen()
+    if (visibleScreen && visibleScreen.name === confirmRouteName) {
+      return RouteTreeGen.createClearModals()
+    }
+    if (canceled) {
+      return Chat2Gen.createSetUnsentText({conversationIDKey, text})
+    }
+    return false
+  }
   const onDataConfirm = (
     {summary}: RPCChatTypes.MessageTypes['chat.1.chatUi.chatStellarDataConfirm']['inParam'],
     response: StellarConfirmWindowResponse
   ) => {
     storeStellarConfirmWindowResponse(false, response)
-    return Saga.put(Chat2Gen.createSetPaymentConfirmInfo({summary}))
+    return Chat2Gen.createSetPaymentConfirmInfo({summary})
   }
   const onDataError = (
     {error}: RPCChatTypes.MessageTypes['chat.1.chatUi.chatStellarDataError']['inParam'],
     response: StellarConfirmWindowResponse
   ) => {
     storeStellarConfirmWindowResponse(false, response)
-    return Saga.put(Chat2Gen.createSetPaymentConfirmInfo({error}))
+    return Chat2Gen.createSetPaymentConfirmInfo({error})
   }
 
   try {
-    yield RPCChatTypes.localPostTextNonblockRpcSaga({
-      customResponseIncomingCallMap: {
-        'chat.1.chatUi.chatStellarDataConfirm': onDataConfirm,
-        'chat.1.chatUi.chatStellarDataError': onDataError,
+    await RPCChatTypes.localPostTextNonblockRpcListener(
+      {
+        customResponseIncomingCallMap: {
+          'chat.1.chatUi.chatStellarDataConfirm': onDataConfirm,
+          'chat.1.chatUi.chatStellarDataError': onDataError,
+        },
+        incomingCallMap: {
+          'chat.1.chatUi.chatStellarDone': onHideConfirm,
+          'chat.1.chatUi.chatStellarShowConfirm': onShowConfirm,
+        },
+        params: {
+          ...ephemeralData,
+          body: text.stringValue(),
+          clientPrev,
+          conversationID: Types.keyToConversationID(conversationIDKey),
+          identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+          outboxID: null,
+          replyTo,
+          tlfName,
+          tlfPublic: false,
+        },
+        waitingKey: action.payload.waitingKey || Constants.waitingKeyPost,
       },
-      incomingCallMap: {
-        'chat.1.chatUi.chatStellarDone': onHideConfirm,
-        'chat.1.chatUi.chatStellarShowConfirm': onShowConfirm,
-      },
-      params: {
-        ...ephemeralData,
-        body: text.stringValue(),
-        clientPrev,
-        conversationID: Types.keyToConversationID(conversationIDKey),
-        identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-        outboxID: null,
-        replyTo,
-        tlfName,
-        tlfPublic: false,
-      },
-      waitingKey: action.payload.waitingKey || Constants.waitingKeyPost,
-    })
+      listenerApi
+    )
     logger.info('success')
   } catch (_) {
     logger.info('error')
@@ -1861,7 +1868,7 @@ function* messageSend(state: Container.TypedState, action: Chat2Gen.MessageSendP
 
   // If there are block buttons on this conversation, clear them.
   if (state.chat2.blockButtonsMap.has(meta.teamID)) {
-    yield Saga.put(Chat2Gen.createDismissBlockButtons({teamID: meta.teamID}))
+    listenerApi.dispatch(Chat2Gen.createDismissBlockButtons({teamID: meta.teamID}))
   }
 
   // Do some logging to track down the root cause of a bug causing
@@ -3814,7 +3821,7 @@ function* chat2Saga() {
   Container.listenAction(Chat2Gen.selectedConversation, getUnreadline)
 
   Container.listenAction(Chat2Gen.messageRetry, messageRetry)
-  yield* Saga.chainGenerator<Chat2Gen.MessageSendPayload>(Chat2Gen.messageSend, messageSend)
+  Container.listenAction(Chat2Gen.messageSend, messageSend)
   Container.listenAction(Chat2Gen.messageSendByUsernames, messageSendByUsernames)
   Container.listenAction(Chat2Gen.messageEdit, messageEdit)
   Container.listenAction(Chat2Gen.messageEdit, clearMessageSetEditing)
