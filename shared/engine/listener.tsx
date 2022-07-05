@@ -5,37 +5,37 @@ import {printOutstandingRPCs} from '../local-debug'
 import type {CommonResponseHandler} from './types'
 import isArray from 'lodash/isArray'
 import type {ListenerApi} from '../util/redux-toolkit'
+import type {TypedActions} from '../actions/typed-actions-gen'
 
 type WaitingKey = string | Array<string>
 
 // Wraps a response to update the waiting state
-const makeWaitingResponse = (r: CommonResponseHandler, waitingKey?: WaitingKey) => {
+const makeWaitingResponse = (_r?: Partial<CommonResponseHandler>, waitingKey?: WaitingKey) => {
+  const r = _r
   if (!r || !waitingKey) {
     return r
   }
 
-  const response: any = {}
+  const response: Partial<CommonResponseHandler> = {}
 
   if (r.error) {
-    // @ts-ignore codemode issue
-    response.error = (...args: Array<any>) => {
+    response.error = (...args: Array<unknown>) => {
       // Waiting on the server again
       if (waitingKey) {
         getEngine().dispatchWaitingAction(waitingKey, true, null)
       }
       // @ts-ignore
-      r.error(...args)
+      r.error?.(...args)
     }
   }
 
   if (r.result) {
-    // @ts-ignore codemode issue
-    response.result = (...args) => {
+    response.result = (...args: Array<unknown>) => {
       // Waiting on the server again
       if (waitingKey) {
         getEngine().dispatchWaitingAction(waitingKey, true, null)
       }
-      r.result(...args)
+      r.result?.(...args)
     }
   }
 
@@ -60,16 +60,8 @@ async function listener(
 
     // custom and normal incomingCallMaps
     const bothCallMaps = [
-      ...Object.keys(incomingCallMap).map(method => ({
-        custom: false,
-        handler: incomingCallMap[method],
-        method,
-      })),
-      ...Object.keys(customResponseIncomingCallMap).map(method => ({
-        custom: true,
-        handler: customResponseIncomingCallMap[method],
-        method,
-      })),
+      ...Object.keys(incomingCallMap).map(method => ({custom: false, method})),
+      ...Object.keys(customResponseIncomingCallMap).map(method => ({custom: true, method})),
     ]
 
     // Waiting on the server
@@ -94,15 +86,15 @@ async function listener(
 
         if (!custom) {
           if (response) {
-            response.result()
-            response = null
+            response.result?.()
+            response = undefined
           }
         }
 
         // defer to process network first
         setTimeout(() => {
           const invokeAndDispatch = async () => {
-            let actions: Array<any> = []
+            let actions: Array<TypedActions | false> = []
             if (response) {
               const cb = customResponseIncomingCallMap[method]
               if (cb) {
@@ -158,63 +150,6 @@ async function listener(
       method,
       params,
     })
-
-    // let finalParams: any
-    // let finalError: RPCError | null | Error = null
-    // try {
-    //   while (true) {
-    //     // Take things that we put into the eventChannel above
-    //     const r = yield RSE.take(eventChannel)
-
-    //     if (r.method) {
-    //       const res: EmittedCall = r as EmittedCall
-    //       let actions
-
-    //       if (res.response) {
-    //         const cb = customResponseIncomingCallMap[r.method]
-    //         if (cb) {
-    //           actions = yield RSE.call(cb, res.params, res.response)
-    //         }
-    //       } else {
-    //         const cb = incomingCallMap[r.method]
-    //         if (cb) {
-    //           actions = yield RSE.call(cb, res.params)
-    //         }
-    //       }
-
-    //       if (actions) {
-    //         if (isArray(actions)) {
-    //           yield sequentially(actions.filter(Boolean))
-    //         } else {
-    //           yield actions
-    //         }
-    //       }
-    //     } else {
-    //       const res: EmittedFinished = r as EmittedFinished
-    //       // finished
-    //       finalParams = res.params
-    //       finalError = res.error
-    //     }
-    //   }
-    // } catch (error_) {
-    //   const error = error_ as any
-    //   // capture errors when we handle the callbacks and treat the whole process as an error
-    //   finalError = error
-    // } finally {
-    //   // eventChannel will jump to finally when RS.END is emitted
-    //   if (waitingKey) {
-    //     // No longer waiting
-    //     getEngine().dispatchWaitingAction(waitingKey, false, finalError instanceof RPCError ? finalError : null)
-    //   }
-
-    //   if (finalError) {
-    //     // eslint-disable-next-line no-unsafe-finally
-    //     throw finalError
-    //   }
-
-    //   // eslint-disable-next-line no-unsafe-finally
-    //   return finalParams
-    // }
   })
 }
 
