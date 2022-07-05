@@ -116,11 +116,11 @@ const searchFeaturedAndUsers = async (_: unknown, action: BotsGen.SearchFeatured
   })
 }
 
-function* botsSaga() {
+const initBots = () => {
   Container.listenAction(BotsGen.getFeaturedBots, getFeaturedBots)
   Container.listenAction(BotsGen.searchFeaturedBots, searchFeaturedBots)
   Container.listenAction(BotsGen.searchFeaturedAndUsers, searchFeaturedAndUsers)
   Container.listenAction(EngineGen.keybase1NotifyFeaturedBotsFeaturedBotsUpdate, onFeaturedBotsUpdate)
 }
 
-export default botsSaga
+export default initBots

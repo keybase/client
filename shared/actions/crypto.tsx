@@ -656,7 +656,7 @@ const downloadSignedText = async (state: Container.TypedState) => {
   })
 }
 
-function* cryptoSaga() {
+const initCrypto = () => {
   Container.listenAction(CryptoGen.setInput, throttleSetInput)
   Container.listenAction(CryptoGen.downloadEncryptedText, downloadEncryptedText)
   Container.listenAction(CryptoGen.downloadSignedText, downloadSignedText)
@@ -688,4 +688,4 @@ function* cryptoSaga() {
   Container.listenAction(TeamBuildingGen.finishedTeamBuilding, filterForNs('crypto', onSetRecipients))
 }
 
-export default cryptoSaga
+export default initCrypto
