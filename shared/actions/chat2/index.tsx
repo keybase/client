@@ -2786,11 +2786,15 @@ const updateNotificationSettings = async (_: unknown, action: Chat2Gen.UpdateNot
   })
 }
 
-function* blockConversation(_: Container.TypedState, action: Chat2Gen.BlockConversationPayload) {
+const blockConversation = async (
+  _: Container.TypedState,
+  action: Chat2Gen.BlockConversationPayload,
+  listenerApi: Container.ListenerApi
+) => {
   const {conversationIDKey, reportUser} = action.payload
-  yield Saga.put(Chat2Gen.createNavigateToInbox())
-  yield Saga.put(ConfigGen.createPersistRoute({}))
-  yield Saga.callUntyped(RPCChatTypes.localSetConversationStatusLocalRpcPromise, {
+  listenerApi.dispatch(Chat2Gen.createNavigateToInbox())
+  listenerApi.dispatch(ConfigGen.createPersistRoute({}))
+  await RPCChatTypes.localSetConversationStatusLocalRpcPromise({
     conversationID: Types.keyToConversationID(conversationIDKey),
     identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
     status: reportUser ? RPCChatTypes.ConversationStatus.reported : RPCChatTypes.ConversationStatus.blocked,
@@ -3904,7 +3908,7 @@ function* chat2Saga() {
 
   Container.listenAction(Chat2Gen.muteConversation, muteConversation)
   Container.listenAction(Chat2Gen.updateNotificationSettings, updateNotificationSettings)
-  yield* Saga.chainGenerator<Chat2Gen.BlockConversationPayload>(Chat2Gen.blockConversation, blockConversation)
+  Container.listenAction(Chat2Gen.blockConversation, blockConversation)
   Container.listenAction(Chat2Gen.hideConversation, hideConversation)
   Container.listenAction(Chat2Gen.unhideConversation, unhideConversation)
 
