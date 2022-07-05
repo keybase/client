@@ -58,7 +58,7 @@ const finishedDownloadWithIntent = async (
   }
 }
 
-export default function* nativeSaga() {
+export default function initNative() {
   Container.listenAction(FsGen.pickAndUpload, pickAndUploadToPromise)
   Container.listenAction(FsGen.finishedDownloadWithIntent, finishedDownloadWithIntent)
 }

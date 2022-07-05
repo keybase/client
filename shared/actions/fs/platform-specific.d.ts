@@ -1,3 +1,3 @@
-declare function platformSpecificSaga(): void
+declare function initPlatformSpecific(): void
 export declare function ensureDownloadPermissionPromise(): Promise<void>
-export default platformSpecificSaga
+export default initPlatformSpecific

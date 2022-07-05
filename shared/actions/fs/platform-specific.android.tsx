@@ -73,8 +73,8 @@ const configureDownload = async () =>
     downloadDirOverride: NativeModules.KeybaseEngine.fsDownloadDir,
   })
 
-export default function* platformSpecificSaga() {
-  yield Saga.spawn(nativeSaga)
+export default function initPlatformSpecific() {
+  nativeSaga()
   Container.listenAction(FsGen.finishedRegularDownload, finishedRegularDownload)
   Container.listenAction(FsGen.kbfsDaemonRpcStatusChanged, configureDownload)
 }

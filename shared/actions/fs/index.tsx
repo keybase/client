@@ -10,7 +10,7 @@ import * as NotificationsGen from '../notifications-gen'
 import * as Types from '../../constants/types/fs'
 import * as Container from '../../util/container'
 import logger from '../../logger'
-import platformSpecificSaga, {ensureDownloadPermissionPromise} from './platform-specific'
+import initPlatformSpecific, {ensureDownloadPermissionPromise} from './platform-specific'
 import * as RouteTreeGen from '../route-tree-gen'
 import * as Platform from '../../constants/platform'
 import {tlfToPreferredOrder} from '../../util/kbfs'
@@ -1194,7 +1194,7 @@ function* fsSaga() {
   Container.listenAction(RouteTreeGen.onNavChanged, maybeClearCriticalUpdate)
   Container.listenAction(RouteTreeGen.onNavChanged, maybeOnFSTab)
 
-  yield Saga.spawn(platformSpecificSaga)
+  initPlatformSpecific()
 }
 
 export default fsSaga
