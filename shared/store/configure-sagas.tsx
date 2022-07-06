@@ -6,22 +6,22 @@ import initConfig from '../actions/config'
 import createSagaMiddleware from 'redux-saga'
 import initDeeplinks from '../actions/deeplinks'
 import initDevice from '../actions/devices'
-import fsSaga from '../actions/fs'
+import initFS from '../actions/fs'
 import gitSaga from '../actions/git'
-import gregorSaga from '../actions/gregor'
+import initGregor from '../actions/gregor'
 import loginSaga from '../actions/login'
 import provisionSaga from '../actions/provision'
-import notificationsSaga from '../actions/notifications'
-import peopleSaga from '../actions/people'
-import pinentrySaga from '../actions/pinentry'
+import initNotifications from '../actions/notifications'
+import initPeople from '../actions/people'
+import initPinentry from '../actions/pinentry'
 import profileSaga from '../actions/profile'
 import recoverPasswordSaga from '../actions/recover-password'
 import tracker2Saga from '../actions/tracker2'
 import settingsSaga from '../actions/settings'
 import signupSaga from '../actions/signup'
 import teamsSaga from '../actions/teams'
-import unlockFoldersSaga from '../actions/unlock-folders'
-import usersSaga from '../actions/users'
+import initUnlockFolders from '../actions/unlock-folders'
+import initUsers from '../actions/users'
 import walletsSaga from '../actions/wallets'
 import * as Saga from '../util/saga'
 
@@ -33,21 +33,21 @@ function* mainSaga() {
   initConfig()
   initDeeplinks()
   initDevice()
-  yield Saga.spawn(fsSaga)
-  yield Saga.spawn(gregorSaga)
+  initFS()
+  initGregor()
   yield Saga.spawn(loginSaga)
   yield Saga.spawn(provisionSaga)
-  yield Saga.spawn(notificationsSaga)
-  yield Saga.spawn(pinentrySaga)
+  initNotifications()
+  initPinentry()
   yield Saga.spawn(profileSaga)
   yield Saga.spawn(recoverPasswordSaga)
   yield Saga.spawn(tracker2Saga)
   yield Saga.spawn(settingsSaga)
   yield Saga.spawn(teamsSaga)
-  yield Saga.spawn(unlockFoldersSaga)
-  yield Saga.spawn(usersSaga)
+  initUnlockFolders()
+  initUsers()
   yield Saga.spawn(gitSaga)
-  yield Saga.spawn(peopleSaga)
+  initPeople()
   yield Saga.spawn(walletsSaga)
   yield Saga.spawn(signupSaga)
 }

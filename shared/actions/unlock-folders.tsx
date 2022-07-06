@@ -66,7 +66,7 @@ const delegateRekeyUI = (_: unknown, action: EngineGen.Keybase1RekeyUIDelegateRe
   response.result(session.id)
 }
 
-function* unlockFoldersSaga() {
+const initUnlockFolders = () => {
   Container.listenAction(UnlockFoldersGen.checkPaperKey, checkPaperKey)
   Container.listenAction(UnlockFoldersGen.closePopup, closePopup)
   Container.listenAction(UnlockFoldersGen.openPopup, openPopup)
@@ -76,4 +76,4 @@ function* unlockFoldersSaga() {
   Container.listenAction(EngineGen.connected, registerRekeyUI)
 }
 
-export default unlockFoldersSaga
+export default initUnlockFolders

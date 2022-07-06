@@ -225,7 +225,7 @@ const maybeMarkViewed = (_: unknown, action: RouteTreeGen.OnNavChangedPayload) =
   return false
 }
 
-const peopleSaga = function* () {
+const initPeople = () => {
   Container.listenAction(PeopleGen.getPeopleData, getPeopleData)
   Container.listenAction(PeopleGen.markViewed, markViewed)
   Container.listenAction(PeopleGen.skipTodo, skipTodo)
@@ -239,4 +239,4 @@ const peopleSaga = function* () {
   Container.listenAction(TeamBuildingGen.addUsersToTeamSoFar, filterForNs('people', onTeamBuildingAdded))
 }
 
-export default peopleSaga
+export default initPeople

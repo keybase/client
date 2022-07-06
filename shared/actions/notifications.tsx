@@ -79,7 +79,7 @@ const receivedBoxAuditError = (_: unknown, action: EngineGen.Keybase1NotifyAudit
     ),
   })
 
-function* notificationsSaga() {
+const initNotifications = () => {
   Container.listenAction(NotificationsGen.receivedBadgeState, receivedBadgeState)
   Container.listenAction(EngineGen.keybase1NotifyAuditRootAuditError, receivedRootAuditError)
   Container.listenAction(EngineGen.keybase1NotifyAuditBoxAuditError, receivedBoxAuditError)
@@ -87,4 +87,4 @@ function* notificationsSaga() {
   Container.listenAction(EngineGen.keybase1NotifyBadgesBadgeState, createBadgeState)
 }
 
-export default notificationsSaga
+export default initNotifications
