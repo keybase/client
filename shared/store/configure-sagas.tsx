@@ -17,7 +17,7 @@ import initPinentry from '../actions/pinentry'
 import initProfile from '../actions/profile'
 import initRecoverPassword from '../actions/recover-password'
 import tracker2Saga from '../actions/tracker2'
-import settingsSaga from '../actions/settings'
+import initSettings from '../actions/settings'
 import signupSaga from '../actions/signup'
 import teamsSaga from '../actions/teams'
 import initUnlockFolders from '../actions/unlock-folders'
@@ -42,7 +42,7 @@ function* mainSaga() {
   initProfile()
   initRecoverPassword()
   yield Saga.spawn(tracker2Saga)
-  yield Saga.spawn(settingsSaga)
+  initSettings()
   yield Saga.spawn(teamsSaga)
   initUnlockFolders()
   initUsers()

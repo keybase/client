@@ -5,7 +5,6 @@ import * as EngineGen from './engine-gen-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as RouteTreeGen from './route-tree-gen'
 import * as Router2Constants from '../constants/router2'
-import * as Saga from '../util/saga'
 import * as SettingsGen from './settings-gen'
 import * as Tabs from '../constants/tabs'
 import * as WaitingGen from './waiting-gen'
@@ -228,34 +227,28 @@ const sendInvite = async (_: unknown, action: SettingsGen.InvitesSendPayload) =>
   }
 }
 
-function* refreshNotifications() {
+const refreshNotifications = async (_s: unknown, _a: unknown, listenerApi: Container.ListenerApi) => {
   // If the rpc is fast don't clear it out first
-  const delayThenEmptyTask = yield Saga._fork(function* (): Iterable<any> {
-    yield Saga.delay(500)
-    yield Saga.put(SettingsGen.createNotificationsRefreshed({notifications: new Map()}))
+  const delayThenEmptyTask = listenerApi.fork(async () => {
+    await listenerApi.delay(500)
+    listenerApi.dispatch(SettingsGen.createNotificationsRefreshed({notifications: new Map()}))
   })
 
   let body = ''
   let chatGlobalSettings: ChatTypes.GlobalAppNotificationSettings
 
   try {
-    const [json, _chatGlobalSettings]: [{body: string} | null, ChatTypes.GlobalAppNotificationSettings] =
-      yield Saga.all([
-        Saga.callUntyped(
-          RPCTypes.apiserverGetWithSessionRpcPromise,
-          {args: [], endpoint: 'account/subscriptions'},
-          Constants.refreshNotificationsWaitingKey
-        ),
-        Saga.callUntyped(
-          ChatTypes.localGetGlobalAppNotificationSettingsLocalRpcPromise,
-          undefined,
-          Constants.refreshNotificationsWaitingKey
-        ),
-      ])
+    const json = await RPCTypes.apiserverGetWithSessionRpcPromise(
+      {args: [], endpoint: 'account/subscriptions'},
+      Constants.refreshNotificationsWaitingKey
+    )
+    chatGlobalSettings = await ChatTypes.localGetGlobalAppNotificationSettingsLocalRpcPromise(
+      undefined,
+      Constants.refreshNotificationsWaitingKey
+    )
     if (json) {
       body = json.body
     }
-    chatGlobalSettings = _chatGlobalSettings
   } catch (error_) {
     const error = error_ as RPCError
     // No need to throw black bars -- handled by Reloadable.
@@ -263,7 +256,7 @@ function* refreshNotifications() {
     return
   }
 
-  yield Saga.cancel(delayThenEmptyTask)
+  delayThenEmptyTask.cancel()
 
   const results: Types.NotificationsGroupStateFromServer = JSON.parse(body)
   // Add security group extra since it does not come from API endpoint
@@ -306,7 +299,7 @@ function* refreshNotifications() {
         ],
     unsub: false,
   }
-  yield Saga.put(
+  listenerApi.dispatch(
     SettingsGen.createNotificationsRefreshed({
       notifications: new Map(Object.entries(results.notifications)),
     })
@@ -434,26 +427,31 @@ const getRememberPassword = async () => {
   return SettingsGen.createLoadedRememberPassword({remember})
 }
 
-function* trace(_: Container.TypedState, action: SettingsGen.TracePayload) {
+const trace = async (
+  _: Container.TypedState,
+  action: SettingsGen.TracePayload,
+  listenerApi: Container.ListenerApi
+) => {
   const durationSeconds = action.payload.durationSeconds
-  yield Saga.callUntyped(RPCTypes.pprofLogTraceRpcPromise, {
-    logDirForMobile: pprofDir,
-    traceDurationSeconds: durationSeconds,
-  })
-  yield Saga.put(WaitingGen.createIncrementWaiting({key: Constants.traceInProgressKey}))
-  yield Saga.delay(durationSeconds * 1000)
-  yield Saga.put(WaitingGen.createDecrementWaiting({key: Constants.traceInProgressKey}))
+  await RPCTypes.pprofLogTraceRpcPromise({logDirForMobile: pprofDir, traceDurationSeconds: durationSeconds})
+  listenerApi.dispatch(WaitingGen.createIncrementWaiting({key: Constants.traceInProgressKey}))
+  await listenerApi.delay(durationSeconds * 1_000)
+  listenerApi.dispatch(WaitingGen.createDecrementWaiting({key: Constants.traceInProgressKey}))
 }
 
-function* processorProfile(_: Container.TypedState, action: SettingsGen.ProcessorProfilePayload) {
+const processorProfile = async (
+  _: Container.TypedState,
+  action: SettingsGen.ProcessorProfilePayload,
+  listenerApi: Container.ListenerApi
+) => {
   const durationSeconds = action.payload.durationSeconds
-  yield Saga.callUntyped(RPCTypes.pprofLogProcessorProfileRpcPromise, {
+  await RPCTypes.pprofLogProcessorProfileRpcPromise({
     logDirForMobile: pprofDir,
     profileDurationSeconds: durationSeconds,
   })
-  yield Saga.put(WaitingGen.createIncrementWaiting({key: Constants.processorProfileInProgressKey}))
-  yield Saga.delay(durationSeconds * 1000)
-  yield Saga.put(WaitingGen.createDecrementWaiting({key: Constants.processorProfileInProgressKey}))
+  listenerApi.dispatch(WaitingGen.createIncrementWaiting({key: Constants.processorProfileInProgressKey}))
+  await listenerApi.delay(durationSeconds * 1_000)
+  listenerApi.dispatch(WaitingGen.createDecrementWaiting({key: Constants.processorProfileInProgressKey}))
 }
 
 const rememberPassword = async (_: unknown, action: SettingsGen.OnChangeRememberPasswordPayload) => {
@@ -833,25 +831,19 @@ const maybeClearAddedEmail = (state: Container.TypedState, action: RouteTreeGen.
   return false
 }
 
-function* settingsSaga() {
+const initSettings = () => {
   Container.listenAction(SettingsGen.invitesReclaim, reclaimInvite)
   Container.listenAction(SettingsGen.invitesRefresh, refreshInvites)
   Container.listenAction(SettingsGen.invitesSend, sendInvite)
-  yield* Saga.chainGenerator<SettingsGen.NotificationsRefreshPayload>(
-    SettingsGen.notificationsRefresh,
-    refreshNotifications
-  )
+  Container.listenAction(SettingsGen.notificationsRefresh, refreshNotifications)
   Container.listenAction(SettingsGen.notificationsToggle, toggleNotifications)
   Container.listenAction(SettingsGen.dbNuke, dbNuke)
   Container.listenAction(SettingsGen.deleteAccountForever, deleteAccountForever)
   Container.listenAction(SettingsGen.loadSettings, loadSettings)
   Container.listenAction(SettingsGen.onSubmitNewPassword, onSubmitNewPassword)
   Container.listenAction(SettingsGen.onUpdatePGPSettings, onUpdatePGPSettings)
-  yield* Saga.chainGenerator<SettingsGen.TracePayload>(SettingsGen.trace, trace)
-  yield* Saga.chainGenerator<SettingsGen.ProcessorProfilePayload>(
-    SettingsGen.processorProfile,
-    processorProfile
-  )
+  Container.listenAction(SettingsGen.trace, trace)
+  Container.listenAction(SettingsGen.processorProfile, processorProfile)
   Container.listenAction(SettingsGen.loadRememberPassword, getRememberPassword)
   Container.listenAction(SettingsGen.onChangeRememberPassword, rememberPassword)
   Container.listenAction(SettingsGen.loadLockdownMode, loadLockdownMode)
@@ -895,4 +887,4 @@ function* settingsSaga() {
   Container.listenAction(SettingsGen.loginBrowserViaWebAuthToken, loginBrowserViaWebAuthToken)
 }
 
-export default settingsSaga
+export default initSettings
