@@ -15,7 +15,7 @@ import initNotifications from '../actions/notifications'
 import initPeople from '../actions/people'
 import initPinentry from '../actions/pinentry'
 import initProfile from '../actions/profile'
-import recoverPasswordSaga from '../actions/recover-password'
+import initRecoverPassword from '../actions/recover-password'
 import tracker2Saga from '../actions/tracker2'
 import settingsSaga from '../actions/settings'
 import signupSaga from '../actions/signup'
@@ -40,7 +40,7 @@ function* mainSaga() {
   initNotifications()
   initPinentry()
   initProfile()
-  yield Saga.spawn(recoverPasswordSaga)
+  initRecoverPassword()
   yield Saga.spawn(tracker2Saga)
   yield Saga.spawn(settingsSaga)
   yield Saga.spawn(teamsSaga)
