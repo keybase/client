@@ -9,8 +9,8 @@ import initDevice from '../actions/devices'
 import initFS from '../actions/fs'
 import gitSaga from '../actions/git'
 import initGregor from '../actions/gregor'
-import loginSaga from '../actions/login'
-import provisionSaga from '../actions/provision'
+import initLogin from '../actions/login'
+import initProvision from '../actions/provision'
 import initNotifications from '../actions/notifications'
 import initPeople from '../actions/people'
 import initPinentry from '../actions/pinentry'
@@ -35,8 +35,8 @@ function* mainSaga() {
   initDevice()
   initFS()
   initGregor()
-  yield Saga.spawn(loginSaga)
-  yield Saga.spawn(provisionSaga)
+  initLogin()
+  initProvision()
   initNotifications()
   initPinentry()
   yield Saga.spawn(profileSaga)

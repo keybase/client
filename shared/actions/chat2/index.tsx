@@ -1177,10 +1177,6 @@ const loadMoreMessages = async (
     }
   }
 
-  const onGotThreadLoadStatus = (status: RPCChatTypes.UIChatThreadStatus) => [
-    Chat2Gen.createSetThreadLoadStatus({conversationIDKey, status}),
-  ]
-
   const pagination = messageIDControl ? null : scrollDirectionToPagination(sd, numberOfMessagesToLoad)
   try {
     const results = await RPCChatTypes.localGetThreadNonblockRpcListener(
@@ -1188,7 +1184,8 @@ const loadMoreMessages = async (
         incomingCallMap: {
           'chat.1.chatUi.chatThreadCached': p => p && onGotThread(p.thread || ''),
           'chat.1.chatUi.chatThreadFull': p => p && onGotThread(p.thread || ''),
-          'chat.1.chatUi.chatThreadStatus': s => onGotThreadLoadStatus(s.status),
+          'chat.1.chatUi.chatThreadStatus': p =>
+            !!p && Chat2Gen.createSetThreadLoadStatus({conversationIDKey, status: p.status}),
         },
         params: {
           cbMode: RPCChatTypes.GetThreadNonblockCbMode.incremental,
@@ -1501,48 +1498,45 @@ const threadSearch = async (
 ) => {
   const {conversationIDKey, query} = action.payload
   const {username, getLastOrdinal, devicename} = Constants.getMessageStateExtras(state, conversationIDKey)
-  const onHit = (hit: RPCChatTypes.MessageTypes['chat.1.chatUi.chatSearchHit']['inParam']) => {
-    const message = Constants.uiMessageToMessage(
-      conversationIDKey,
-      hit.searchHit.hitMessage,
-      username,
-      getLastOrdinal,
-      devicename
-    )
-    return message
-      ? Chat2Gen.createThreadSearchResults({clear: false, conversationIDKey, messages: [message]})
-      : false
-  }
-  const onInboxHit = (resp: RPCChatTypes.MessageTypes['chat.1.chatUi.chatSearchInboxHit']['inParam']) => {
-    const messages = (resp.searchHit.hits || []).reduce<Array<Types.Message>>((l, h) => {
-      const uiMsg = Constants.uiMessageToMessage(
-        conversationIDKey,
-        h.hitMessage,
-        username,
-        getLastOrdinal,
-        devicename
-      )
-      if (uiMsg) {
-        l.push(uiMsg)
-      }
-      return l
-    }, [])
-    return messages.length > 0
-      ? Chat2Gen.createThreadSearchResults({clear: true, conversationIDKey, messages})
-      : false
-  }
   const onDone = () => Chat2Gen.createSetThreadSearchStatus({conversationIDKey, status: 'done'})
-  const onStart = () => Chat2Gen.createSetThreadSearchStatus({conversationIDKey, status: 'inprogress'})
-
   try {
     await RPCChatTypes.localSearchInboxRpcListener(
       {
         incomingCallMap: {
           'chat.1.chatUi.chatSearchDone': onDone,
-          'chat.1.chatUi.chatSearchHit': onHit,
+          'chat.1.chatUi.chatSearchHit': hit => {
+            const message = Constants.uiMessageToMessage(
+              conversationIDKey,
+              hit.searchHit.hitMessage,
+              username,
+              getLastOrdinal,
+              devicename
+            )
+            return message
+              ? Chat2Gen.createThreadSearchResults({clear: false, conversationIDKey, messages: [message]})
+              : false
+          },
           'chat.1.chatUi.chatSearchInboxDone': onDone,
-          'chat.1.chatUi.chatSearchInboxHit': onInboxHit,
-          'chat.1.chatUi.chatSearchInboxStart': onStart,
+          'chat.1.chatUi.chatSearchInboxHit': resp => {
+            const messages = (resp.searchHit.hits || []).reduce<Array<Types.Message>>((l, h) => {
+              const uiMsg = Constants.uiMessageToMessage(
+                conversationIDKey,
+                h.hitMessage,
+                username,
+                getLastOrdinal,
+                devicename
+              )
+              if (uiMsg) {
+                l.push(uiMsg)
+              }
+              return l
+            }, [])
+            return messages.length > 0
+              ? Chat2Gen.createThreadSearchResults({clear: true, conversationIDKey, messages})
+              : false
+          },
+          'chat.1.chatUi.chatSearchInboxStart': () =>
+            Chat2Gen.createSetThreadSearchStatus({conversationIDKey, status: 'inprogress'}),
         },
         params: {
           identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
@@ -1799,49 +1793,36 @@ const messageSend = async (
   const ephemeralLifetime = Constants.getConversationExplodingMode(state, conversationIDKey)
   const ephemeralData = ephemeralLifetime !== 0 ? {ephemeralLifetime} : {}
   const confirmRouteName = 'chatPaymentsConfirm'
-  const onShowConfirm = () => [
-    Chat2Gen.createClearPaymentConfirmInfo(),
-    RouteTreeGen.createNavigateAppend({
-      path: [confirmRouteName],
-    }),
-  ]
-  const onHideConfirm = async ({
-    canceled,
-  }: RPCChatTypes.MessageTypes['chat.1.chatUi.chatStellarDone']['inParam']) => {
-    const visibleScreen = Router2Constants.getVisibleScreen()
-    if (visibleScreen && visibleScreen.name === confirmRouteName) {
-      return RouteTreeGen.createClearModals()
-    }
-    if (canceled) {
-      return Chat2Gen.createSetUnsentText({conversationIDKey, text})
-    }
-    return false
-  }
-  const onDataConfirm = (
-    {summary}: RPCChatTypes.MessageTypes['chat.1.chatUi.chatStellarDataConfirm']['inParam'],
-    response: StellarConfirmWindowResponse
-  ) => {
-    storeStellarConfirmWindowResponse(false, response)
-    return Chat2Gen.createSetPaymentConfirmInfo({summary})
-  }
-  const onDataError = (
-    {error}: RPCChatTypes.MessageTypes['chat.1.chatUi.chatStellarDataError']['inParam'],
-    response: StellarConfirmWindowResponse
-  ) => {
-    storeStellarConfirmWindowResponse(false, response)
-    return Chat2Gen.createSetPaymentConfirmInfo({error})
-  }
-
   try {
     await RPCChatTypes.localPostTextNonblockRpcListener(
       {
         customResponseIncomingCallMap: {
-          'chat.1.chatUi.chatStellarDataConfirm': onDataConfirm,
-          'chat.1.chatUi.chatStellarDataError': onDataError,
+          'chat.1.chatUi.chatStellarDataConfirm': ({summary}, response) => {
+            storeStellarConfirmWindowResponse(false, response)
+            return Chat2Gen.createSetPaymentConfirmInfo({summary})
+          },
+          'chat.1.chatUi.chatStellarDataError': ({error}, response) => {
+            storeStellarConfirmWindowResponse(false, response)
+            return Chat2Gen.createSetPaymentConfirmInfo({error})
+          },
         },
         incomingCallMap: {
-          'chat.1.chatUi.chatStellarDone': onHideConfirm,
-          'chat.1.chatUi.chatStellarShowConfirm': onShowConfirm,
+          'chat.1.chatUi.chatStellarDone': async ({canceled}) => {
+            const visibleScreen = Router2Constants.getVisibleScreen()
+            if (visibleScreen && visibleScreen.name === confirmRouteName) {
+              return RouteTreeGen.createClearModals()
+            }
+            if (canceled) {
+              return Chat2Gen.createSetUnsentText({conversationIDKey, text})
+            }
+            return false
+          },
+          'chat.1.chatUi.chatStellarShowConfirm': () => [
+            Chat2Gen.createClearPaymentConfirmInfo(),
+            RouteTreeGen.createNavigateAppend({
+              path: [confirmRouteName],
+            }),
+          ],
         },
         params: {
           ...ephemeralData,

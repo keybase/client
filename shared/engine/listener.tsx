@@ -98,12 +98,12 @@ async function listener(
             if (response) {
               const cb = customResponseIncomingCallMap[method]
               if (cb) {
-                actions = await cb(params, response)
+                actions = await cb(params, response, listenerApi)
               }
             } else {
               const cb = incomingCallMap[method]
               if (cb) {
-                actions = await cb(params)
+                actions = await cb(params, listenerApi)
               }
             }
 
