@@ -22,8 +22,7 @@ import initSignup from '../actions/signup'
 import initTeams from '../actions/teams'
 import initUnlockFolders from '../actions/unlock-folders'
 import initUsers from '../actions/users'
-import walletsSaga from '../actions/wallets'
-import * as Saga from '../util/saga'
+import initWallets from '../actions/wallets'
 
 function* mainSaga() {
   initAutoReset()
@@ -48,7 +47,7 @@ function* mainSaga() {
   initUsers()
   initGit()
   initPeople()
-  yield Saga.spawn(walletsSaga)
+  initWallets()
   initSignup()
 }
 

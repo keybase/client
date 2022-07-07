@@ -8,7 +8,6 @@ import * as RPCStellarTypes from '../constants/types/rpc-stellar-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as RouteTreeGen from './route-tree-gen'
 import * as Router2Constants from '../constants/router2'
-import * as Saga from '../util/saga'
 import * as SettingsConstants from '../constants/settings'
 import * as Tabs from '../constants/tabs'
 import * as TeamBuildingGen from './team-building-gen'
@@ -209,10 +208,10 @@ const setLastSentXLM = (
     writeFile: true,
   })
 
-function* requestPayment(state: Container.TypedState, _: WalletsGen.RequestPaymentPayload) {
-  let buildRes: Saga.RPCPromiseType<typeof RPCStellarTypes.localBuildRequestLocalRpcPromise>
+const requestPayment = async (state: Container.TypedState) => {
+  let buildRes: Unpacked<ReturnType<typeof RPCStellarTypes.localBuildRequestLocalRpcPromise>>
   try {
-    buildRes = yield RPCStellarTypes.localBuildRequestLocalRpcPromise(
+    buildRes = await RPCStellarTypes.localBuildRequestLocalRpcPromise(
       stateToBuildRequestParams(state),
       Constants.requestPaymentWaitingKey
     )
@@ -224,56 +223,48 @@ function* requestPayment(state: Container.TypedState, _: WalletsGen.RequestPayme
     logger.warn(
       `invalid form submitted. amountErr: ${buildRes.amountErrMsg}; secretNoteErr: ${buildRes.secretNoteErrMsg}; toErrMsg: ${buildRes.toErrMsg}`
     )
-    yield Saga.put(
-      WalletsGen.createBuiltRequestReceived({
-        build: Constants.buildRequestResultToBuiltRequest(buildRes),
-        forBuildCounter: state.wallets.buildCounter,
-      })
-    )
-    return false
+    return WalletsGen.createBuiltRequestReceived({
+      build: Constants.buildRequestResultToBuiltRequest(buildRes),
+      forBuildCounter: state.wallets.buildCounter,
+    })
   }
 
   try {
-    const kbRqID: Saga.RPCPromiseType<typeof RPCStellarTypes.localMakeRequestLocalRpcPromise> =
-      yield RPCStellarTypes.localMakeRequestLocalRpcPromise(
-        {
-          amount: state.wallets.building.amount,
-          // FIXME -- support other assets.
-          asset: state.wallets.building.currency === 'XLM' ? emptyAsset : null,
-          currency:
-            state.wallets.building.currency && state.wallets.building.currency !== 'XLM'
-              ? state.wallets.building.currency
-              : null,
-          note: state.wallets.building.secretNote.stringValue(),
-          recipient: state.wallets.building.to,
-        },
-        Constants.requestPaymentWaitingKey
-      )
-    const navAction = maybeNavigateAwayFromSendForm()
-    yield Saga.sequentially([
-      ...(navAction ? navAction.map(n => Saga.put(n)) : []),
-      Saga.put(
-        WalletsGen.createRequestedPayment({
-          kbRqID: new HiddenString(kbRqID),
-          lastSentXLM: state.wallets.building.currency === 'XLM',
-          requestee: state.wallets.building.to,
-        })
-      ),
-    ])
+    const kbRqID = await RPCStellarTypes.localMakeRequestLocalRpcPromise(
+      {
+        amount: state.wallets.building.amount,
+        // FIXME -- support other assets.
+        asset: state.wallets.building.currency === 'XLM' ? emptyAsset : null,
+        currency:
+          state.wallets.building.currency && state.wallets.building.currency !== 'XLM'
+            ? state.wallets.building.currency
+            : null,
+        note: state.wallets.building.secretNote.stringValue(),
+        recipient: state.wallets.building.to,
+      },
+      Constants.requestPaymentWaitingKey
+    )
+    const acts = maybeNavigateAwayFromSendForm()
+    acts.push(
+      WalletsGen.createRequestedPayment({
+        kbRqID: new HiddenString(kbRqID),
+        lastSentXLM: state.wallets.building.currency === 'XLM',
+        requestee: state.wallets.building.to,
+      })
+    )
+    return acts
   } catch (error_) {
     const error = error_ as RPCError
     if (error instanceof RPCError && error.code === RPCTypes.StatusCode.scteamcontactsettingsblock) {
-      const navAction = maybeNavigateAwayFromSendForm()
       const users = error.fields?.filter((elem: any) => elem.key === 'usernames')
       const usernames = [users[0].value]
-      yield Saga.sequentially([
-        ...(navAction ? navAction.map(n => Saga.put(n)) : []),
-        Saga.put(
-          RouteTreeGen.createNavigateAppend({
-            path: [{props: {source: 'walletsRequest', usernames}, selected: 'contactRestricted'}],
-          })
-        ),
-      ])
+      const acts = maybeNavigateAwayFromSendForm()
+      acts.push(
+        RouteTreeGen.createNavigateAppend({
+          path: [{props: {source: 'walletsRequest', usernames}, selected: 'contactRestricted'}],
+        })
+      )
+      return acts
     } else {
       logger.error(`requestPayment error: ${error.message}`)
       throw error
@@ -1549,11 +1540,15 @@ const assetWithdraw = async (_: unknown, action: WalletsGen.AssetWithdrawPayload
   }
 }
 
-function* loadStaticConfig(state: Container.TypedState, action: ConfigGen.DaemonHandshakePayload) {
+const loadStaticConfig = async (
+  state: Container.TypedState,
+  action: ConfigGen.DaemonHandshakePayload,
+  listenerApi: Container.ListenerApi
+) => {
   if (state.wallets.staticConfig) {
     return false
   }
-  yield Saga.put(
+  listenerApi.dispatch(
     ConfigGen.createDaemonHandshakeWait({
       increment: true,
       name: 'wallets.loadStatic',
@@ -1562,11 +1557,10 @@ function* loadStaticConfig(state: Container.TypedState, action: ConfigGen.Daemon
   )
 
   try {
-    const res: Saga.RPCPromiseType<typeof RPCStellarTypes.localGetStaticConfigLocalRpcPromise> =
-      yield RPCStellarTypes.localGetStaticConfigLocalRpcPromise()
-    yield Saga.put(WalletsGen.createStaticConfigLoaded({staticConfig: res}))
+    const res = await RPCStellarTypes.localGetStaticConfigLocalRpcPromise()
+    listenerApi.dispatch(WalletsGen.createStaticConfigLoaded({staticConfig: res}))
   } finally {
-    yield Saga.put(
+    listenerApi.dispatch(
       ConfigGen.createDaemonHandshakeWait({
         increment: false,
         name: 'wallets.loadStatic',
@@ -1589,7 +1583,7 @@ const onTeamBuildingAdded = (_: Container.TypedState, action: TeamBuildingGen.Ad
   ]
 }
 
-function* walletsSaga() {
+const initWallets = () => {
   Container.listenAction(WalletsGen.createNewAccount, createNewAccount)
   Container.listenAction(
     [
@@ -1674,7 +1668,7 @@ function* walletsSaga() {
 
   Container.listenAction([WalletsGen.sentPayment], maybeNavigateToConversationFromPayment)
 
-  yield* Saga.chainGenerator<WalletsGen.RequestPaymentPayload>(WalletsGen.requestPayment, requestPayment)
+  Container.listenAction(WalletsGen.requestPayment, requestPayment)
   Container.listenAction([WalletsGen.requestedPayment, WalletsGen.abandonPayment], clearBuiltRequest)
   Container.listenAction(WalletsGen.requestedPayment, maybeNavigateToConversationFromRequest)
 
@@ -1725,11 +1719,11 @@ function* walletsSaga() {
   Container.listenAction(WalletsGen.setTrustlineSearchText, searchTrustlineAssets)
   Container.listenAction(WalletsGen.calculateBuildingAdvanced, calculateBuildingAdvanced)
   Container.listenAction(WalletsGen.sendPaymentAdvanced, sendPaymentAdvanced)
-  yield* Saga.chainGenerator<ConfigGen.DaemonHandshakePayload>(ConfigGen.daemonHandshake, loadStaticConfig)
+  Container.listenAction(ConfigGen.daemonHandshake, loadStaticConfig)
   Container.listenAction(WalletsGen.assetDeposit, assetDeposit)
   Container.listenAction(WalletsGen.assetWithdraw, assetWithdraw)
   commonListenActions('wallets')
   Container.listenAction(TeamBuildingGen.addUsersToTeamSoFar, filterForNs('wallets', onTeamBuildingAdded))
 }
 
-export default walletsSaga
+export default initWallets
