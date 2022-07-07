@@ -106,18 +106,22 @@ const clearNavBadges = async () => {
   }
 }
 
-function* navigateToTeamRepo(state: Container.TypedState, action: GitGen.NavigateToTeamRepoPayload) {
+const navigateToTeamRepo = async (
+  state: Container.TypedState,
+  action: GitGen.NavigateToTeamRepoPayload,
+  listenerApi: Container.ListenerApi
+) => {
   const {teamname, repoID} = action.payload
   let id = Constants.repoIDTeamnameToId(state, repoID, teamname)
   if (!id) {
-    yield Saga.put(GitGen.createLoadGit())
-    yield Saga.take(GitGen.loaded)
-    const nextState: Container.TypedState = yield* Saga.selectState()
+    listenerApi.dispatch(GitGen.createLoadGit())
+    await listenerApi.take(action => action.type === GitGen.loaded)
+    const nextState = listenerApi.getState()
     id = Constants.repoIDTeamnameToId(nextState, repoID, teamname)
   }
 
   if (id) {
-    yield Saga.put(
+    listenerApi.dispatch(
       RouteTreeGen.createNavigateAppend({
         path: [Tabs.gitTab, {props: {expandedSet: new Set([id])}, selected: 'gitRoot'}],
       })
@@ -128,7 +132,7 @@ function* navigateToTeamRepo(state: Container.TypedState, action: GitGen.Navigat
 const receivedBadgeState = (_: unknown, action: NotificationsGen.ReceivedBadgeStatePayload) =>
   GitGen.createBadgeAppForGit({ids: new Set(action.payload.badgeState.newGitRepoGlobalUniqueIDs)})
 
-function* gitSaga() {
+const initGit = () => {
   // Create / Delete
   Container.listenAction(GitGen.createPersonalRepo, createPersonalRepo)
   Container.listenAction(GitGen.createTeamRepo, createTeamRepo)
@@ -138,7 +142,7 @@ function* gitSaga() {
 
   // Team Repos
   Container.listenAction(GitGen.setTeamRepoSettings, setTeamRepoSettings)
-  yield* Saga.chainGenerator<GitGen.NavigateToTeamRepoPayload>(GitGen.navigateToTeamRepo, navigateToTeamRepo)
+  Container.listenAction(GitGen.navigateToTeamRepo, navigateToTeamRepo)
 
   // Badges
   Container.listenAction(NotificationsGen.receivedBadgeState, receivedBadgeState)
@@ -147,4 +151,4 @@ function* gitSaga() {
   Container.listenAction(GitGen.loadGit, clearNavBadges)
 }
 
-export default gitSaga
+export default initGit

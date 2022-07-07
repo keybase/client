@@ -7,7 +7,7 @@ import createSagaMiddleware from 'redux-saga'
 import initDeeplinks from '../actions/deeplinks'
 import initDevice from '../actions/devices'
 import initFS from '../actions/fs'
-import gitSaga from '../actions/git'
+import initGit from '../actions/git'
 import initGregor from '../actions/gregor'
 import initLogin from '../actions/login'
 import initProvision from '../actions/provision'
@@ -46,7 +46,7 @@ function* mainSaga() {
   initTeams()
   initUnlockFolders()
   initUsers()
-  yield Saga.spawn(gitSaga)
+  initGit()
   initPeople()
   yield Saga.spawn(walletsSaga)
   yield Saga.spawn(signupSaga)
