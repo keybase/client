@@ -10,7 +10,6 @@ import * as ChatConstants from '../constants/chat2'
 import * as ChatTypes from '../constants/types/chat2'
 import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
-import * as Saga from '../util/saga'
 import * as Tabs from '../constants/tabs'
 import * as RouteTreeGen from './route-tree-gen'
 import * as NotificationsGen from './notifications-gen'
@@ -71,60 +70,53 @@ const openInviteLink = () => {
     path: ['teamInviteLinkJoin'],
   })
 }
-const promptInviteLinkJoin =
-  (deeplink: boolean) =>
-  (
-    params: RPCTypes.MessageTypes['keybase.1.teamsUi.confirmInviteLinkAccept']['inParam'],
-    response: {result: (b: boolean) => void}
-  ) => {
-    return Saga.callUntyped(function* () {
-      yield Saga.put(TeamsGen.createUpdateInviteLinkDetails({details: params.details}))
-      if (!deeplink) {
-        yield Saga.put(
-          RouteTreeGen.createNavigateAppend({
-            path: ['teamInviteLinkJoin'],
-            replace: true,
-          })
-        )
-      }
-      const action: TeamsGen.RespondToInviteLinkPayload = yield Saga.take(TeamsGen.respondToInviteLink)
-      response.result(action.payload.accept)
-    })
-  }
-function* joinTeam(_: Container.TypedState, action: TeamsGen.JoinTeamPayload) {
-  const {teamname, deeplink} = action.payload
+const joinTeam = async (
+  _: Container.TypedState,
+  action: TeamsGen.JoinTeamPayload,
+  listenerApi: Container.ListenerApi
+) => {
+  const {teamname} = action.payload
 
   /*
-                                                  In the deeplink flow, a modal is displayed which runs `joinTeam` (or an
-                                                  alternative flow, but we're not concerned with that here). In that case,
-                                                  we can fully manage the UX from inside of this handler.
-                                              
-                                                  In the "Join team" flow, user pastes their link into the input box, which
-                                                  then calls `joinTeam` on its own. Since we need to switch to another modal,
-                                                  we simply plumb `deeplink` into the `promptInviteLinkJoin` handler and
-                                                  do the nav in the modal.
-                                                */
+                      In the deeplink flow, a modal is displayed which runs `joinTeam` (or an
+                      alternative flow, but we're not concerned with that here). In that case,
+                      we can fully manage the UX from inside of this handler.
+                    
+                      In the "Join team" flow, user pastes their link into the input box, which
+                      then calls `joinTeam` on its own. Since we need to switch to another modal,
+                      we simply plumb `deeplink` into the `promptInviteLinkJoin` handler and
+                      do the nav in the modal.
+                    */
 
-  yield Saga.all([
-    Saga.put(TeamsGen.createSetTeamJoinError({error: ''})),
-    Saga.put(TeamsGen.createSetTeamJoinSuccess({open: false, success: false, teamname: ''})),
-  ])
+  listenerApi.dispatch(TeamsGen.createSetTeamJoinError({error: ''}))
+  listenerApi.dispatch(TeamsGen.createSetTeamJoinSuccess({open: false, success: false, teamname: ''}))
   try {
-    const result:
-      | undefined
-      | RPCTypes.MessageTypes['keybase.1.teams.teamAcceptInviteOrRequestAccess']['outParam'] = yield RPCTypes.teamsTeamAcceptInviteOrRequestAccessRpcSaga(
+    const result = await RPCTypes.teamsTeamAcceptInviteOrRequestAccessRpcListener(
       {
         customResponseIncomingCallMap: {
-          'keybase.1.teamsUi.confirmInviteLinkAccept': promptInviteLinkJoin(deeplink || false),
+          'keybase.1.teamsUi.confirmInviteLinkAccept': async (params, response) => {
+            const deeplink = action.payload.deeplink || false
+            listenerApi.dispatch(TeamsGen.createUpdateInviteLinkDetails({details: params.details}))
+            if (!deeplink) {
+              listenerApi.dispatch(
+                RouteTreeGen.createNavigateAppend({path: ['teamInviteLinkJoin'], replace: true})
+              )
+            }
+            const [act] = await listenerApi.take<TeamsGen.RespondToInviteLinkPayload>(
+              action => action.type === TeamsGen.respondToInviteLink
+            )
+            response.result(act.payload.accept)
+          },
         },
         incomingCallMap: {},
         params: {tokenOrName: teamname},
         waitingKey: Constants.joinTeamWaitingKey,
-      }
+      },
+      listenerApi
     )
 
     // Success
-    yield Saga.put(
+    listenerApi.dispatch(
       TeamsGen.createSetTeamJoinSuccess({
         open: result?.wasOpenTeam ?? false,
         success: true,
@@ -139,7 +131,7 @@ function* joinTeam(_: Container.TypedState, action: TeamsGen.JoinTeamPayload) {
           : error.code === RPCTypes.StatusCode.scnotfound
           ? 'This invitation is no longer valid, or has expired.'
           : error.desc
-      yield Saga.put(TeamsGen.createSetTeamJoinError({error: desc}))
+      listenerApi.dispatch(TeamsGen.createSetTeamJoinError({error: desc}))
     }
   }
 }
@@ -185,19 +177,24 @@ const getTeamProfileAddList = async (_: unknown, action: TeamsGen.GetTeamProfile
   return TeamsGen.createSetTeamProfileAddList({teamlist})
 }
 
-function* deleteTeam(_: Container.TypedState, action: TeamsGen.DeleteTeamPayload) {
+const deleteTeam = async (
+  _: Container.TypedState,
+  action: TeamsGen.DeleteTeamPayload,
+  listenerApi: Container.ListenerApi
+) => {
   try {
-    yield RPCTypes.teamsTeamDeleteRpcSaga({
-      customResponseIncomingCallMap: {
-        'keybase.1.teamsUi.confirmRootTeamDelete': (_, response) => response.result(true),
-        'keybase.1.teamsUi.confirmSubteamDelete': (_, response) => response.result(true),
+    await RPCTypes.teamsTeamDeleteRpcListener(
+      {
+        customResponseIncomingCallMap: {
+          'keybase.1.teamsUi.confirmRootTeamDelete': (_, response) => response.result(true),
+          'keybase.1.teamsUi.confirmSubteamDelete': (_, response) => response.result(true),
+        },
+        incomingCallMap: {},
+        params: {teamID: action.payload.teamID},
+        waitingKey: Constants.deleteTeamWaitingKey(action.payload.teamID),
       },
-      incomingCallMap: {},
-      params: {
-        teamID: action.payload.teamID,
-      },
-      waitingKey: Constants.deleteTeamWaitingKey(action.payload.teamID),
-    })
+      listenerApi
+    )
   } catch (error) {
     if (error instanceof RPCError) {
       // handled through waiting store
@@ -717,10 +714,10 @@ const addUserToTeams = async (state: Container.TypedState, action: TeamsGen.AddU
   })
 }
 
-function* getTeams(
+const getTeams = async (
   state: Container.TypedState,
   action: ConfigGen.LoadOnStartPayload | TeamsGen.GetTeamsPayload | TeamsGen.LeftTeamPayload
-) {
+) => {
   if (action.type === ConfigGen.loadOnStart && action.payload.phase !== 'startupOrReloginButNotInARush') {
     return
   }
@@ -737,12 +734,10 @@ function* getTeams(
     }
   }
   try {
-    const results: Saga.RPCPromiseType<typeof RPCTypes.teamsTeamListUnverifiedRpcPromise> =
-      yield RPCTypes.teamsTeamListUnverifiedRpcPromise(
-        {includeImplicitTeams: false, userAssertion: username},
-        Constants.teamsLoadedWaitingKey
-      )
-
+    const results = await RPCTypes.teamsTeamListUnverifiedRpcPromise(
+      {includeImplicitTeams: false, userAssertion: username},
+      Constants.teamsLoadedWaitingKey
+    )
     const teams: Array<RPCTypes.AnnotatedMemberInfo> = results.teams || []
     const teamnames: Array<string> = []
     const teamNameToID = new Map<string, Types.TeamID>()
@@ -751,14 +746,11 @@ function* getTeams(
       teamNameToID.set(team.fqName, team.teamID)
     })
     const teamNameSet = new Set<string>(teamnames)
-
-    yield Saga.put(
-      TeamsGen.createSetTeamInfo({
-        teamMeta: Constants.teamListToMeta(teams),
-        teamNameToID,
-        teamnames: teamNameSet,
-      })
-    )
+    return TeamsGen.createSetTeamInfo({
+      teamMeta: Constants.teamListToMeta(teams),
+      teamNameToID,
+      teamnames: teamNameSet,
+    })
   } catch (error) {
     if (error instanceof RPCError) {
       if (error.code === RPCTypes.StatusCode.scapinetworkerror) {
@@ -768,6 +760,7 @@ function* getTeams(
       }
     }
   }
+  return
 }
 
 const getActivityForTeams = async () => {
@@ -808,62 +801,41 @@ const checkRequestedAccess = async () => {
   return TeamsGen.createSetTeamAccessRequestsPending({accessRequestsPending: new Set<Types.Teamname>(teams)})
 }
 
-const _joinConversation = function* (
-  teamID: Types.TeamID,
-  waitingKey: string,
-  conversationIDKey: ChatTypes.ConversationIDKey
-) {
-  try {
-    const convID = ChatTypes.keyToConversationID(conversationIDKey)
-    yield RPCChatTypes.localJoinConversationByIDLocalRpcPromise({convID}, waitingKey)
-    yield Saga.put(
-      TeamsGen.createAddParticipant({
-        conversationIDKey,
-        teamID,
-      })
-    )
-  } catch (error) {
-    if (error instanceof RPCError) {
-      yield Saga.put(ConfigGen.createGlobalError({globalError: convertToError(error)}))
-    }
-  }
-}
-
-const _leaveConversation = function* (
-  teamID: Types.TeamID,
-  waitingKey: string,
-  conversationIDKey: ChatTypes.ConversationIDKey
-) {
-  try {
-    const convID = ChatTypes.keyToConversationID(conversationIDKey)
-    yield RPCChatTypes.localLeaveConversationLocalRpcPromise({convID}, waitingKey)
-    yield Saga.put(TeamsGen.createRemoveParticipant({conversationIDKey, teamID}))
-  } catch (error) {
-    if (error instanceof RPCError) {
-      yield Saga.put(ConfigGen.createGlobalError({globalError: convertToError(error)}))
-    }
-  }
-}
-
-function* saveChannelMembership(_: Container.TypedState, action: TeamsGen.SaveChannelMembershipPayload) {
+const saveChannelMembership = async (
+  _s: unknown,
+  action: TeamsGen.SaveChannelMembershipPayload,
+  listenerApi: Container.ListenerApi
+) => {
   const {teamID, oldChannelState, newChannelState} = action.payload
   const waitingKey = Constants.teamWaitingKey(teamID)
 
-  const calls: Array<unknown> = []
   for (const convIDKeyStr in newChannelState) {
-    const convIDKey = ChatTypes.stringToConversationIDKey(convIDKeyStr)
-    if (oldChannelState[convIDKey] === newChannelState[convIDKey]) {
+    const conversationIDKey = ChatTypes.stringToConversationIDKey(convIDKeyStr)
+    if (oldChannelState[conversationIDKey] === newChannelState[conversationIDKey]) {
       continue
     }
-
-    if (newChannelState[convIDKey]) {
-      calls.push(Saga.callUntyped(_joinConversation, teamID, waitingKey, convIDKey))
+    if (newChannelState[conversationIDKey]) {
+      try {
+        const convID = ChatTypes.keyToConversationID(conversationIDKey)
+        await RPCChatTypes.localJoinConversationByIDLocalRpcPromise({convID}, waitingKey)
+        listenerApi.dispatch(TeamsGen.createAddParticipant({conversationIDKey, teamID}))
+      } catch (error) {
+        if (error instanceof RPCError) {
+          listenerApi.dispatch(ConfigGen.createGlobalError({globalError: convertToError(error)}))
+        }
+      }
     } else {
-      calls.push(Saga.callUntyped(_leaveConversation, teamID, waitingKey, convIDKey))
+      try {
+        const convID = ChatTypes.keyToConversationID(conversationIDKey)
+        await RPCChatTypes.localLeaveConversationLocalRpcPromise({convID}, waitingKey)
+        listenerApi.dispatch(TeamsGen.createRemoveParticipant({conversationIDKey, teamID}))
+      } catch (error) {
+        if (error instanceof RPCError) {
+          listenerApi.dispatch(ConfigGen.createGlobalError({globalError: convertToError(error)}))
+        }
+      }
     }
   }
-
-  yield Saga.all(calls)
 }
 
 const createChannel = async (
@@ -1159,7 +1131,7 @@ const addTeamWithChosenChannels = async (
     return
   }
   const logPrefix = `[addTeamWithChosenChannels]:${teamname}`
-  let pushState: Saga.RPCPromiseType<typeof RPCTypes.gregorGetStateRpcPromise>
+  let pushState: Unpacked<ReturnType<typeof RPCTypes.gregorGetStateRpcPromise>>
   try {
     pushState = await RPCTypes.gregorGetStateRpcPromise(undefined, Constants.teamWaitingKey(teamID))
   } catch (err) {
@@ -1685,30 +1657,22 @@ const loadTeamChannelList = async (
 
 const initTeams = () => {
   Container.listenAction(TeamsGen.leaveTeam, leaveTeam)
-  yield * Saga.chainGenerator<TeamsGen.DeleteTeamPayload>(TeamsGen.deleteTeam, deleteTeam)
+  Container.listenAction(TeamsGen.deleteTeam, deleteTeam)
   Container.listenAction(TeamsGen.getTeamProfileAddList, getTeamProfileAddList)
   Container.listenAction(TeamsGen.leftTeam, leftTeam)
   Container.listenAction(TeamsGen.createNewTeam, createNewTeam)
   Container.listenAction(TeamsGen.teamCreated, showTeamAfterCreation)
 
-  yield * Saga.chainGenerator<TeamsGen.JoinTeamPayload>(TeamsGen.joinTeam, joinTeam)
+  Container.listenAction(TeamsGen.joinTeam, joinTeam)
   Container.listenAction(TeamsGen.openInviteLink, openInviteLink)
   Container.listenAction(TeamsGen.requestInviteLinkDetails, requestInviteLinkDetails)
 
   Container.listenAction(TeamsGen.loadTeam, loadTeam)
   Container.listenAction(TeamsGen.getMembers, getMembers)
   Container.listenAction(TeamsGen.createNewTeamFromConversation, createNewTeamFromConversation)
-  yield *
-    Saga.chainGenerator<ConfigGen.LoadOnStartPayload | TeamsGen.GetTeamsPayload | TeamsGen.LeftTeamPayload>(
-      [ConfigGen.loadOnStart, TeamsGen.getTeams, TeamsGen.leftTeam],
-      getTeams
-    )
+  Container.listenAction([ConfigGen.loadOnStart, TeamsGen.getTeams, TeamsGen.leftTeam], getTeams)
   Container.listenAction(TeamsGen.getActivityForTeams, getActivityForTeams)
-  yield *
-    Saga.chainGenerator<TeamsGen.SaveChannelMembershipPayload>(
-      TeamsGen.saveChannelMembership,
-      saveChannelMembership
-    )
+  Container.listenAction(TeamsGen.saveChannelMembership, saveChannelMembership)
   Container.listenAction(
     [ConfigGen.bootstrapStatusLoaded, EngineGen.keybase1NotifyTeamTeamRoleMapChanged],
     refreshTeamRoleMap
