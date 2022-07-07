@@ -113,7 +113,7 @@ const wotReact = async (_: unknown, action: UsersGen.WotReactPayload) => {
   return [ProfileGen.createWotVouchSetError({error: ''}), RouteTreeGen.createClearModals()]
 }
 
-function* usersSaga() {
+const initUsers = () => {
   Container.listenAction(EngineGen.keybase1NotifyUsersIdentifyUpdate, onIdentifyUpdate)
   Container.listenAction(UsersGen.getBio, getBio)
   Container.listenAction(UsersGen.setUserBlocks, setUserBlocks)
@@ -124,4 +124,4 @@ function* usersSaga() {
   Container.listenAction(TeamBuildingGen.searchResultsLoaded, refreshBlockList)
 }
 
-export default usersSaga
+export default initUsers

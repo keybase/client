@@ -1,7 +1,6 @@
 import logger from '../logger'
 import * as UnlockFoldersGen from './unlock-folders-gen'
 import * as EngineGen from './engine-gen-gen'
-import * as Saga from '../util/saga'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Constants from '../constants/unlock-folders'
 import * as Container from '../util/container'
@@ -52,13 +51,11 @@ const delegateRekeyUI = (_: unknown, action: EngineGen.Keybase1RekeyUIDelegateRe
     dangling: true,
     incomingCallMap: {
       'keybase.1.rekeyUI.refresh': ({sessionID, problemSetDevices}) =>
-        Saga.put(
-          UnlockFoldersGen.createNewRekeyPopup({
-            devices: problemSetDevices.devices || [],
-            problemSet: problemSetDevices.problemSet,
-            sessionID,
-          })
-        ),
+        UnlockFoldersGen.createNewRekeyPopup({
+          devices: problemSetDevices.devices || [],
+          problemSet: problemSetDevices.problemSet,
+          sessionID,
+        }),
       'keybase.1.rekeyUI.rekeySendEvent': () => {}, // ignored debug call from daemon
     },
   })
@@ -66,7 +63,7 @@ const delegateRekeyUI = (_: unknown, action: EngineGen.Keybase1RekeyUIDelegateRe
   response.result(session.id)
 }
 
-function* unlockFoldersSaga() {
+const initUnlockFolders = () => {
   Container.listenAction(UnlockFoldersGen.checkPaperKey, checkPaperKey)
   Container.listenAction(UnlockFoldersGen.closePopup, closePopup)
   Container.listenAction(UnlockFoldersGen.openPopup, openPopup)
@@ -76,4 +73,4 @@ function* unlockFoldersSaga() {
   Container.listenAction(EngineGen.connected, registerRekeyUI)
 }
 
-export default unlockFoldersSaga
+export default initUnlockFolders

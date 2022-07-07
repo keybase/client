@@ -3,14 +3,13 @@ import * as Constants from '../../constants/profile'
 import * as ProfileGen from '../profile-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as RouteTreeGen from '../route-tree-gen'
-import * as Saga from '../../util/saga'
 import * as TrackerConstants from '../../constants/tracker2'
 import * as Tracker2Gen from '../tracker2-gen'
 import logger from '../../logger'
 import openURL from '../../util/open-url'
-import {RPCError} from '../../util/errors'
-import {pgpSaga} from './pgp'
-import {proofsSaga} from './proofs'
+import {type RPCError} from '../../util/errors'
+import {initPgp} from './pgp'
+import {initProofs} from './proofs'
 
 const editProfile = async (state: Container.TypedState, action: ProfileGen.EditProfilePayload) => {
   await RPCTypes.userProfileEditRpcPromise(
@@ -170,7 +169,7 @@ const editAvatar = () =>
     : RouteTreeGen.createNavigateAppend({path: [{props: {image: undefined}, selected: 'profileEditAvatar'}]})
 
 const backToProfile = (state: Container.TypedState) => [
-  RouteTreeGen.createNavigateUp(),
+  RouteTreeGen.createClearModals(),
   Tracker2Gen.createShowUser({asTracker: false, username: state.config.username}),
 ]
 
@@ -208,7 +207,7 @@ const wotVouch = async (state: Container.TypedState, action: ProfileGen.WotVouch
   return [ProfileGen.createWotVouchSetError({error: ''}), RouteTreeGen.createClearModals()]
 }
 
-function* _profileSaga() {
+const initProfile = () => {
   Container.listenAction(ProfileGen.submitRevokeProof, submitRevokeProof)
   Container.listenAction(ProfileGen.submitBlockUser, submitBlockUser)
   Container.listenAction(ProfileGen.submitUnblockUser, submitUnblockUser)
@@ -221,12 +220,8 @@ function* _profileSaga() {
   Container.listenAction(ProfileGen.editAvatar, editAvatar)
   Container.listenAction(ProfileGen.hideStellar, hideStellar)
   Container.listenAction(ProfileGen.wotVouch, wotVouch)
+  initPgp()
+  initProofs()
 }
 
-function* profileSaga() {
-  yield Saga.spawn(_profileSaga)
-  yield Saga.spawn(pgpSaga)
-  yield Saga.spawn(proofsSaga)
-}
-
-export default profileSaga
+export default initProfile

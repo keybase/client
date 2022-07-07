@@ -7,7 +7,10 @@ type ActionTypes = keyof TypedActionsMap
 
 type TypedDispatch = (action: TypedActions) => void
 export type ListenerApi = {
-  take: (matcher: (a: TypedActions) => boolean, timeoutms?: number) => unknown
+  take: <T = TypedActions>(
+    matcher: (a: TypedActions) => boolean,
+    timeoutms?: number
+  ) => Promise<[T, TypedState, TypedState]>
   dispatch: TypedDispatch
   delay: (ms: number) => Promise<void>
   getState: () => TypedState

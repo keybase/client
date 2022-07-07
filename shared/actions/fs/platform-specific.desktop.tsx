@@ -281,7 +281,7 @@ const setSfmiBannerDismissed = async (
   }
 }
 
-function* platformSpecificSaga() {
+const initPlatformSpecific = () => {
   Container.listenAction(FsGen.openLocalPathInSystemFileManager, openLocalPathInSystemFileManager)
   Container.listenAction(FsGen.openPathInSystemFileManager, openPathInSystemFileManager)
   if (!isLinux) {
@@ -311,4 +311,4 @@ function* platformSpecificSaga() {
   )
 }
 
-export default platformSpecificSaga
+export default initPlatformSpecific

@@ -4,7 +4,6 @@ import * as ProfileGen from './profile-gen'
 import * as UsersGen from './users-gen'
 import * as DeeplinksGen from './deeplinks-gen'
 import * as RouteTreeGen from './route-tree-gen'
-import * as Saga from '../util/saga'
 import * as Container from '../util/container'
 import type {RPCError} from '../util/errors'
 import * as Constants from '../constants/tracker2'
@@ -94,7 +93,11 @@ const ignore = async (_: unknown, action: Tracker2Gen.IgnorePayload) => {
     })
   }
 }
-function* load(state: Container.TypedState, action: Tracker2Gen.LoadPayload) {
+const load = async (
+  state: Container.TypedState,
+  action: Tracker2Gen.LoadPayload,
+  listenerApi: Container.ListenerApi
+) => {
   if (action.payload.fromDaemon) {
     return
   }
@@ -103,29 +106,34 @@ function* load(state: Container.TypedState, action: Tracker2Gen.LoadPayload) {
     throw new Error('No guid on profile 2 load? ' + action.payload.assertion || '')
   }
   try {
-    yield RPCTypes.identify3Identify3RpcSaga({
-      incomingCallMap: {},
-      params: {
-        assertion: action.payload.assertion,
-        guiID: action.payload.guiID,
-        ignoreCache: !!action.payload.ignoreCache,
+    await RPCTypes.identify3Identify3RpcListener(
+      {
+        incomingCallMap: {},
+        params: {
+          assertion: action.payload.assertion,
+          guiID: action.payload.guiID,
+          ignoreCache: !!action.payload.ignoreCache,
+        },
+        waitingKey: Constants.profileLoadWaitingKey,
       },
-      waitingKey: Constants.profileLoadWaitingKey,
-    })
+      listenerApi
+    )
   } catch (error_) {
     const error = error_ as RPCError
     if (error.code === RPCTypes.StatusCode.scresolutionfailed) {
-      yield Saga.put(Tracker2Gen.createUpdateResult({guiID: action.payload.guiID, result: 'notAUserYet'}))
+      listenerApi.dispatch(
+        Tracker2Gen.createUpdateResult({guiID: action.payload.guiID, result: 'notAUserYet'})
+      )
     } else if (error.code === RPCTypes.StatusCode.scnotfound) {
       // we're on the profile page for a user that does not exist. Currently the only way
       // to get here is with an invalid link or deeplink.
-      yield Saga.put(
+      listenerApi.dispatch(
         DeeplinksGen.createSetKeybaseLinkError({
           error: `You followed a profile link for a user (${action.payload.assertion}) that does not exist.`,
         })
       )
-      yield Saga.put(RouteTreeGen.createNavigateUp())
-      yield Saga.put(
+      listenerApi.dispatch(RouteTreeGen.createNavigateUp())
+      listenerApi.dispatch(
         RouteTreeGen.createNavigateAppend({
           path: [{props: {errorSource: 'app'}, selected: 'keybaseLinkError'}],
         })
@@ -175,22 +183,19 @@ const loadWebOfTrustEntries = async (
 
 const loadFollowers = async (_: unknown, action: Tracker2Gen.LoadPayload) => {
   const {assertion} = action.payload
-  const convertTrackers = (fs: Saga.RPCPromiseType<typeof RPCTypes.userListTrackersUnverifiedRpcPromise>) => {
-    return (fs.users || []).map(f => ({
-      fullname: f.fullName,
-      username: f.username,
-    }))
-  }
-
   if (action.payload.inTracker) {
     return false
   }
 
   try {
-    const followers = await RPCTypes.userListTrackersUnverifiedRpcPromise(
+    const fs = await RPCTypes.userListTrackersUnverifiedRpcPromise(
       {assertion},
       Constants.profileLoadWaitingKey
-    ).then(convertTrackers)
+    )
+    const followers = (fs.users || []).map(f => ({
+      fullname: f.fullName,
+      username: f.username,
+    }))
     return Tracker2Gen.createUpdateFollows({
       followers,
       following: undefined,
@@ -205,22 +210,21 @@ const loadFollowers = async (_: unknown, action: Tracker2Gen.LoadPayload) => {
 
 const loadFollowing = async (_: unknown, action: Tracker2Gen.LoadPayload) => {
   const {assertion} = action.payload
-  const convertTracking = (fs: Saga.RPCPromiseType<typeof RPCTypes.userListTrackingRpcPromise>) => {
-    return (fs.users || []).map(f => ({
-      fullname: f.fullName,
-      username: f.username,
-    }))
-  }
 
   if (action.payload.inTracker) {
     return false
   }
 
   try {
-    const following = await RPCTypes.userListTrackingRpcPromise(
+    const fs = await RPCTypes.userListTrackingRpcPromise(
       {assertion, filter: ''},
       Constants.profileLoadWaitingKey
-    ).then(convertTracking)
+    )
+    const following = (fs.users || []).map(f => ({
+      fullname: f.fullName,
+      username: f.username,
+    }))
+
     return Tracker2Gen.createUpdateFollows({
       followers: undefined,
       following,
@@ -332,10 +336,10 @@ const refreshTrackerBlock = (_: unknown, action: Tracker2Gen.UpdatedDetailsPaylo
     usernames: [action.payload.username],
   })
 
-function* tracker2Saga() {
+const initTracker = () => {
   Container.listenAction(Tracker2Gen.changeFollow, changeFollow)
   Container.listenAction(Tracker2Gen.ignore, ignore)
-  yield* Saga.chainGenerator<Tracker2Gen.LoadPayload>(Tracker2Gen.load, load)
+  Container.listenAction(Tracker2Gen.load, load)
   Container.listenAction(Tracker2Gen.load, loadFollowers)
   Container.listenAction(Tracker2Gen.load, loadFollowing)
   Container.listenAction(
@@ -353,4 +357,4 @@ function* tracker2Saga() {
   Container.listenAction(Tracker2Gen.updatedDetails, refreshTrackerBlock)
 }
 
-export default tracker2Saga
+export default initTracker

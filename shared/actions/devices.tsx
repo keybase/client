@@ -3,7 +3,6 @@ import * as DevicesGen from './devices-gen'
 import * as NotificationsGen from './notifications-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as RouteTreeGen from './route-tree-gen'
-import * as Saga from '../util/saga'
 import * as Tabs from '../constants/tabs'
 import * as Container from '../util/container'
 import HiddenString from '../util/hidden-string'
@@ -22,20 +21,23 @@ const load = async (state: Container.TypedState) => {
   }
 }
 
-function* requestPaperKey() {
-  yield RPCTypes.loginPaperKeyRpcSaga({
-    customResponseIncomingCallMap: {
-      'keybase.1.loginUi.promptRevokePaperKeys': (_, response) => {
-        response.result(false)
+const requestPaperKey = async (_s: unknown, _a: unknown, listenerApi: Container.ListenerApi) => {
+  await RPCTypes.loginPaperKeyRpcListener(
+    {
+      customResponseIncomingCallMap: {
+        'keybase.1.loginUi.promptRevokePaperKeys': (_, response) => {
+          response.result(false)
+        },
       },
+      incomingCallMap: {
+        'keybase.1.loginUi.displayPaperKeyPhrase': ({phrase}) =>
+          listenerApi.dispatch(DevicesGen.createPaperKeyCreated({paperKey: new HiddenString(phrase)})),
+      },
+      params: undefined,
+      waitingKey: Constants.waitingKey,
     },
-    incomingCallMap: {
-      'keybase.1.loginUi.displayPaperKeyPhrase': ({phrase}) =>
-        Saga.put(DevicesGen.createPaperKeyCreated({paperKey: new HiddenString(phrase)})),
-    },
-    params: undefined,
-    waitingKey: Constants.waitingKey,
-  })
+    listenerApi
+  )
 }
 
 const requestEndangeredTLFsLoad = async (
@@ -126,7 +128,7 @@ const receivedBadgeState = (_: unknown, action: NotificationsGen.ReceivedBadgeSt
     ],
   })
 
-function* deviceSaga() {
+const initDevice = () => {
   // Load devices
   Container.listenAction([DevicesGen.load, DevicesGen.revoked, DevicesGen.paperKeyCreated], load)
   // Revoke device
@@ -144,7 +146,7 @@ function* deviceSaga() {
 
   // Loading data
   Container.listenAction([DevicesGen.showRevokePage], requestEndangeredTLFsLoad)
-  yield* Saga.chainGenerator<DevicesGen.ShowPaperKeyPagePayload>(DevicesGen.showPaperKeyPage, requestPaperKey)
+  Container.listenAction(DevicesGen.showPaperKeyPage, requestPaperKey)
 }
 
-export default deviceSaga
+export default initDevice

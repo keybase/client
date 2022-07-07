@@ -96,7 +96,7 @@ const updateCategory = async (_: unknown, action: GregorGen.UpdateCategoryPayloa
   } catch (_) {}
 }
 
-function* gregorSaga() {
+const initGregor = () => {
   Container.listenAction(GregorGen.updateCategory, updateCategory)
   Container.listenAction([GregorGen.checkReachability, ConfigGen.osNetworkStatusChanged], checkReachability)
   Container.listenAction(EngineGen.connected, registerForGregorNotifications)
@@ -106,4 +106,4 @@ function* gregorSaga() {
   Container.listenAction(EngineGen.keybase1ReachabilityReachabilityChanged, reachabilityChanged)
 }
 
-export default gregorSaga
+export default initGregor

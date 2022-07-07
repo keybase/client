@@ -4,13 +4,12 @@ import * as EngineGen from '../engine-gen-gen'
 import * as FsGen from '../fs-gen'
 import * as ConfigGen from '../config-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
-import * as Saga from '../../util/saga'
 import * as Tabs from '../../constants/tabs'
 import * as NotificationsGen from '../notifications-gen'
 import * as Types from '../../constants/types/fs'
 import * as Container from '../../util/container'
 import logger from '../../logger'
-import platformSpecificSaga, {ensureDownloadPermissionPromise} from './platform-specific'
+import initPlatformSpecific, {ensureDownloadPermissionPromise} from './platform-specific'
 import * as RouteTreeGen from '../route-tree-gen'
 import * as Platform from '../../constants/platform'
 import {tlfToPreferredOrder} from '../../util/kbfs'
@@ -307,13 +306,17 @@ const makeEntry = (d: RPCTypes.Dirent, children?: Set<string>): Types.PathItem =
   }
 }
 
-function* folderList(_: Container.TypedState, action: FsGen.FolderListLoadPayload) {
+const folderList = async (
+  _: Container.TypedState,
+  action: FsGen.FolderListLoadPayload,
+  listenerApi: Container.ListenerApi
+) => {
   const rootPath = action.payload.path
   const isRecursive = action.type === FsGen.folderListLoad && action.payload.recursive
   try {
     const opID = Constants.makeUUID()
     if (isRecursive) {
-      yield RPCTypes.SimpleFSSimpleFSListRecursiveToDepthRpcPromise({
+      await RPCTypes.SimpleFSSimpleFSListRecursiveToDepthRpcPromise({
         depth: 1,
         filter: RPCTypes.ListFilter.filterSystemHidden,
         opID,
@@ -321,7 +324,7 @@ function* folderList(_: Container.TypedState, action: FsGen.FolderListLoadPayloa
         refreshSubscription: false,
       })
     } else {
-      yield RPCTypes.SimpleFSSimpleFSListRpcPromise({
+      await RPCTypes.SimpleFSSimpleFSListRpcPromise({
         filter: RPCTypes.ListFilter.filterSystemHidden,
         opID,
         path: Constants.pathToRPCPath(rootPath),
@@ -329,10 +332,9 @@ function* folderList(_: Container.TypedState, action: FsGen.FolderListLoadPayloa
       })
     }
 
-    yield RPCTypes.SimpleFSSimpleFSWaitRpcPromise({opID}, Constants.folderListWaitingKey)
+    await RPCTypes.SimpleFSSimpleFSWaitRpcPromise({opID}, Constants.folderListWaitingKey)
 
-    const result: Saga.RPCPromiseType<typeof RPCTypes.SimpleFSSimpleFSReadListRpcPromise> =
-      yield RPCTypes.SimpleFSSimpleFSReadListRpcPromise({opID})
+    const result = await RPCTypes.SimpleFSSimpleFSReadListRpcPromise({opID})
     const entries = result.entries || []
     const childMap = entries.reduce((m, d) => {
       const [parent, child] = d.name.split('/')
@@ -375,7 +377,7 @@ function* folderList(_: Container.TypedState, action: FsGen.FolderListLoadPayloa
 
     // Get metadata fields of the directory that we just loaded from state to
     // avoid overriding them.
-    const state: Container.TypedState = yield* Saga.selectState()
+    const state = listenerApi.getState()
     const rootPathItem = Constants.getPathItem(state.fs.pathItems, rootPath)
     const rootFolder: Types.FolderPathItem = {
       ...(rootPathItem.type === Types.PathType.Folder
@@ -390,11 +392,11 @@ function* folderList(_: Container.TypedState, action: FsGen.FolderListLoadPayloa
       ...(Types.getPathLevel(rootPath) > 2 ? [[rootPath, rootFolder]] : []),
       ...entries.map(direntToPathAndPathItem),
     ]
-    yield Saga.put(FsGen.createFolderListLoaded({path: rootPath, pathItems: new Map(pathItems)}))
+    listenerApi.dispatch(FsGen.createFolderListLoaded({path: rootPath, pathItems: new Map(pathItems)}))
   } catch (error) {
     const toPut = errorToActionOrThrow(error, rootPath)
     if (toPut) {
-      yield Saga.put(toPut)
+      listenerApi.dispatch(toPut)
     }
   }
 }
@@ -482,30 +484,29 @@ const getWaitDuration = (endEstimate: number | null, lower: number, upper: numbe
 
 // TODO: move these logic into Go HOTPOT-533
 let polling = false
-function* pollJournalFlushStatusUntilDone() {
+const pollJournalFlushStatusUntilDone = async (
+  _s: unknown,
+  _a: unknown,
+  listenerApi: Container.ListenerApi
+) => {
   if (polling) {
     return
   }
   polling = true
   try {
+    // eslint-disable-next-line
     while (1) {
-      const {
-        syncingPaths,
-        totalSyncingBytes,
-        endEstimate,
-      }: Saga.RPCPromiseType<typeof RPCTypes.SimpleFSSimpleFSSyncStatusRpcPromise> =
-        yield RPCTypes.SimpleFSSimpleFSSyncStatusRpcPromise({
+      const {syncingPaths, totalSyncingBytes, endEstimate} =
+        await RPCTypes.SimpleFSSimpleFSSyncStatusRpcPromise({
           filter: RPCTypes.ListFilter.filterSystemHidden,
         })
-      yield Saga.sequentially([
-        Saga.put(
-          FsGen.createJournalUpdate({
-            endEstimate,
-            syncingPaths: (syncingPaths || []).map(Types.stringToPath),
-            totalSyncingBytes,
-          })
-        ),
-      ])
+      listenerApi.dispatch(
+        FsGen.createJournalUpdate({
+          endEstimate,
+          syncingPaths: (syncingPaths || []).map(Types.stringToPath),
+          totalSyncingBytes,
+        })
+      )
 
       // It's possible syncingPaths has not been emptied before
       // totalSyncingBytes becomes 0. So check both.
@@ -513,15 +514,13 @@ function* pollJournalFlushStatusUntilDone() {
         break
       }
 
-      yield Saga.sequentially([
-        Saga.put(NotificationsGen.createBadgeApp({key: 'kbfsUploading', on: true})),
-        Saga.delay(getWaitDuration(endEstimate || null, 100, 4000)), // 0.1s to 4s
-      ])
+      listenerApi.dispatch(NotificationsGen.createBadgeApp({key: 'kbfsUploading', on: true}))
+      await listenerApi.delay(getWaitDuration(endEstimate || null, 100, 4000)) // 0.1s to 4s
     }
   } finally {
     polling = false
-    yield Saga.put(NotificationsGen.createBadgeApp({key: 'kbfsUploading', on: false}))
-    yield Saga.put(FsGen.createCheckKbfsDaemonRpcStatus())
+    listenerApi.dispatch(NotificationsGen.createBadgeApp({key: 'kbfsUploading', on: false}))
+    listenerApi.dispatch(FsGen.createCheckKbfsDaemonRpcStatus())
   }
 }
 
@@ -1129,12 +1128,12 @@ const maybeOnFSTab = (_: unknown, action: RouteTreeGen.OnNavChangedPayload) => {
   return wasScreen ? FsGen.createUserOut() : FsGen.createUserIn()
 }
 
-function* fsSaga() {
+const initFS = () => {
   Container.listenAction(FsGen.upload, upload)
   Container.listenAction(FsGen.uploadFromDragAndDrop, uploadFromDragAndDrop)
   Container.listenAction(FsGen.loadUploadStatus, loadUploadStatus)
   Container.listenAction(FsGen.dismissUpload, dismissUpload)
-  yield* Saga.chainGenerator<FsGen.FolderListLoadPayload>(FsGen.folderListLoad, folderList)
+  Container.listenAction(FsGen.folderListLoad, folderList)
   Container.listenAction(FsGen.favoritesLoad, loadFavorites)
   Container.listenAction(FsGen.kbfsDaemonRpcStatusChanged, setTlfsAsUnloadedWhenKbfsDaemonDisconnects)
   Container.listenAction(FsGen.favoriteIgnore, ignoreFavorite)
@@ -1144,10 +1143,7 @@ function* fsSaga() {
   Container.listenAction(FsGen.commitEdit, commitEdit)
   Container.listenAction(FsGen.deleteFile, deleteFile)
   Container.listenAction(FsGen.loadPathMetadata, loadPathMetadata)
-  yield* Saga.chainGenerator<FsGen.PollJournalStatusPayload>(
-    FsGen.pollJournalStatus,
-    pollJournalFlushStatusUntilDone
-  )
+  Container.listenAction(FsGen.pollJournalStatus, pollJournalFlushStatusUntilDone)
   Container.listenAction([FsGen.move, FsGen.copy], moveOrCopy)
   Container.listenAction([FsGen.showMoveOrCopy, FsGen.showIncomingShare], showMoveOrCopy)
   Container.listenAction(
@@ -1194,7 +1190,7 @@ function* fsSaga() {
   Container.listenAction(RouteTreeGen.onNavChanged, maybeClearCriticalUpdate)
   Container.listenAction(RouteTreeGen.onNavChanged, maybeOnFSTab)
 
-  yield Saga.spawn(platformSpecificSaga)
+  initPlatformSpecific()
 }
 
-export default fsSaga
+export default initFS

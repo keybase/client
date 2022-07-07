@@ -98,12 +98,12 @@ async function listener(
             if (response) {
               const cb = customResponseIncomingCallMap[method]
               if (cb) {
-                actions = await cb(params, response)
+                actions = await cb(params, response, listenerApi)
               }
             } else {
               const cb = incomingCallMap[method]
               if (cb) {
-                actions = await cb(params)
+                actions = await cb(params, listenerApi)
               }
             }
 
@@ -125,7 +125,7 @@ async function listener(
     let outstandingIntervalID
     if (printOutstandingRPCs) {
       outstandingIntervalID = setInterval(() => {
-        console.log('Engine/Saga with a still-alive eventChannel for method:', method)
+        console.log('Engine/Listener with a still-alive eventChannel for method:', method)
       }, 2000)
     }
 
@@ -146,6 +146,7 @@ async function listener(
           resolve(params)
         }
       },
+      // @ts-ignore TODO
       incomingCallMap: callMap,
       method,
       params,

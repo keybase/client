@@ -6,7 +6,6 @@ import * as ProvisionGen from './provision-gen'
 import * as RPCGen from '../constants/types/rpc-gen'
 import * as RecoverPasswordGen from './recover-password-gen'
 import * as RouteTreeGen from './route-tree-gen'
-import * as Saga from '../util/saga'
 import type {RPCError} from '../util/errors'
 import logger from '../logger'
 
@@ -55,81 +54,83 @@ const startAccountReset = (state: Container.TypedState, action: AutoresetGen.Sta
 const finishedReset = (state: Container.TypedState) =>
   ProvisionGen.createStartProvision({fromReset: true, initUsername: state.autoreset.username})
 
-function promptReset(
-  params: RPCGen.MessageTypes['keybase.1.loginUi.promptResetAccount']['inParam'],
-  response: {
-    result: (reset: RPCGen.MessageTypes['keybase.1.loginUi.promptResetAccount']['outParam']) => void
-  }
-) {
-  return Saga.callUntyped(function* () {
-    if (params.prompt.t === RPCGen.ResetPromptType.complete) {
-      logger.info('Showing final reset screen')
-      yield Saga.put(AutoresetGen.createShowFinalResetScreen({hasWallet: params.prompt.complete.hasWallet}))
-      const action: RecoverPasswordGen.SubmitResetPromptPayload = yield Saga.take(
-        RecoverPasswordGen.submitResetPrompt
-      )
-      response.result(action.payload.action)
-      if (action.payload.action === RPCGen.ResetPromptResponse.confirmReset) {
-        yield Saga.put(AutoresetGen.createFinishedReset())
-      } else {
-        yield Saga.put(RouteTreeGen.createNavUpToScreen({name: 'login'}))
-      }
-    } else {
-      logger.info('Starting account reset process')
-      yield Saga.put(AutoresetGen.createStartAccountReset({skipPassword: true}))
-    }
-  })
-}
-
-const displayProgressEngine = (
-  params: RPCGen.MessageTypes['keybase.1.loginUi.displayResetProgress']['inParam']
-) =>
-  Saga.put(
-    AutoresetGen.createDisplayProgress({
-      endTime: params.endTime * 1000,
-      needVerify: params.needVerify,
-    })
-  )
-
 const displayProgress = (_: unknown, action: AutoresetGen.DisplayProgressPayload) =>
   RouteTreeGen.createNavigateAppend({
     path: [{props: {pipelineStarted: !action.payload.needVerify}, selected: 'resetWaiting'}],
     replace: true,
   })
 
-function* resetAccount(state: Container.TypedState, action: AutoresetGen.ResetAccountPayload) {
+const resetAccount = async (
+  state: Container.TypedState,
+  action: AutoresetGen.ResetAccountPayload,
+  listenerApi: Container.ListenerApi
+) => {
+  const promptReset = async (
+    params: RPCGen.MessageTypes['keybase.1.loginUi.promptResetAccount']['inParam'],
+    response: {
+      result: (reset: RPCGen.MessageTypes['keybase.1.loginUi.promptResetAccount']['outParam']) => void
+    }
+  ) => {
+    if (params.prompt.t === RPCGen.ResetPromptType.complete) {
+      logger.info('Showing final reset screen')
+      listenerApi.dispatch(
+        AutoresetGen.createShowFinalResetScreen({hasWallet: params.prompt.complete.hasWallet})
+      )
+      const [action] = await listenerApi.take<RecoverPasswordGen.SubmitResetPromptPayload>(
+        action => action.type === RecoverPasswordGen.submitResetPrompt
+      )
+
+      response.result(action.payload.action)
+      if (action.payload.action === RPCGen.ResetPromptResponse.confirmReset) {
+        listenerApi.dispatch(AutoresetGen.createFinishedReset())
+      } else {
+        listenerApi.dispatch(RouteTreeGen.createNavUpToScreen({name: 'login'}))
+      }
+    } else {
+      logger.info('Starting account reset process')
+      listenerApi.dispatch(AutoresetGen.createStartAccountReset({skipPassword: true}))
+    }
+  }
+
   try {
-    yield RPCGen.accountEnterResetPipelineRpcSaga({
-      customResponseIncomingCallMap: {
-        'keybase.1.loginUi.promptResetAccount': promptReset,
+    await RPCGen.accountEnterResetPipelineRpcListener(
+      {
+        customResponseIncomingCallMap: {
+          'keybase.1.loginUi.promptResetAccount': promptReset,
+        },
+        incomingCallMap: {
+          'keybase.1.loginUi.displayResetProgress': params =>
+            AutoresetGen.createDisplayProgress({
+              endTime: params.endTime * 1000,
+              needVerify: params.needVerify,
+            }),
+        },
+        params: {
+          interactive: false,
+          passphrase: action.payload.password ? action.payload.password.stringValue() : '',
+          usernameOrEmail: state.autoreset.username,
+        },
+        waitingKey: Constants.enterPipelineWaitingKey,
       },
-      incomingCallMap: {
-        'keybase.1.loginUi.displayResetProgress': displayProgressEngine,
-      },
-      params: {
-        interactive: false,
-        passphrase: action.payload.password ? action.payload.password.stringValue() : '',
-        usernameOrEmail: state.autoreset.username,
-      },
-      waitingKey: Constants.enterPipelineWaitingKey,
-    })
-    yield Saga.put(AutoresetGen.createSubmittedReset({checkEmail: !action.payload.password}))
+      listenerApi
+    )
+    listenerApi.dispatch(AutoresetGen.createSubmittedReset({checkEmail: !action.payload.password}))
   } catch (error_) {
     const error = error_ as RPCError
     logger.warn('Error resetting account:', error)
-    yield Saga.put(AutoresetGen.createResetError({error}))
+    listenerApi.dispatch(AutoresetGen.createResetError({error}))
   }
 }
 const showFinalResetScreen = () => RouteTreeGen.createNavigateAppend({path: ['resetConfirm'], replace: true})
 
-function* autoresetSaga() {
+const initAutoReset = () => {
   Container.listenAction(AutoresetGen.cancelReset, cancelReset)
   Container.listenAction(AutoresetGen.displayProgress, displayProgress)
   Container.listenAction(AutoresetGen.finishedReset, finishedReset)
   Container.listenAction(AutoresetGen.showFinalResetScreen, showFinalResetScreen)
   Container.listenAction(AutoresetGen.startAccountReset, startAccountReset)
   Container.listenAction(NotificationsGen.receivedBadgeState, receivedBadgeState)
-  yield* Saga.chainGenerator(AutoresetGen.resetAccount, resetAccount)
+  Container.listenAction(AutoresetGen.resetAccount, resetAccount)
 }
 
-export default autoresetSaga
+export default initAutoReset

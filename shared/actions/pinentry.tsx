@@ -62,7 +62,7 @@ const onCancel = () => {
   return PinentryGen.createClose()
 }
 
-function* pinentrySaga() {
+const initPinentry = () => {
   Container.listenAction(PinentryGen.onSubmit, onSubmit)
   Container.listenAction(PinentryGen.onCancel, onCancel)
   getEngine().registerCustomResponse('keybase.1.secretUi.getPassphrase')
@@ -70,4 +70,4 @@ function* pinentrySaga() {
   Container.listenAction(EngineGen.connected, onConnect)
 }
 
-export default pinentrySaga
+export default initPinentry

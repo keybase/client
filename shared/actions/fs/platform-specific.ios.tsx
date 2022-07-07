@@ -1,5 +1,3 @@
-import nativeSaga from './common.native'
-
+import nativeInit from './common.native'
 export const ensureDownloadPermissionPromise = async () => Promise.resolve()
-
-export default nativeSaga
+export default nativeInit

@@ -212,6 +212,16 @@ const navUpHelper = (s: DeepWriteable<NavState>, name: string, params: any) => {
       return
     }
   }
+  // try the incoming s
+  if (s?.type === 'stack') {
+    const idx = s.routes.findIndex(r => r.name === name && isEqual(r.params, params))
+    // found
+    if (idx !== -1) {
+      s.index = idx
+      s.routes.length = idx + 1
+      return
+    }
+  }
 
   navUpHelper(route.state, name, params)
 }
