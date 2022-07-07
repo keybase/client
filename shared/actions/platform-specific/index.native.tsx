@@ -38,7 +38,7 @@ import Geolocation from '@react-native-community/geolocation'
 import {AudioRecorder} from 'react-native-audio'
 import * as Haptics from 'expo-haptics'
 import {_getNavigator} from '../../constants/router2'
-import type {RPCError} from '../../util/errors'
+import {RPCError} from '../../util/errors'
 import type PermissionsType from 'expo-permissions'
 
 const requestPermissionsToWrite = async () => {
@@ -415,9 +415,8 @@ const editAvatar = async () => {
       : RouteTreeGen.createNavigateAppend({
           path: [{props: {image: result}, selected: 'profileEditAvatar'}],
         })
-  } catch (error_) {
-    const error = error_ as any
-    return ConfigGen.createFilePickerError({error: new Error(error)})
+  } catch (error) {
+    return ConfigGen.createFilePickerError({error: new Error(error as any)})
   }
 }
 
@@ -537,8 +536,10 @@ const manageContactsCache = async (
     contacts = await Contacts.getContactsAsync({
       fields: [Contacts.Fields.Name, Contacts.Fields.PhoneNumbers, Contacts.Fields.Emails],
     })
-  } catch (error_) {
-    const error = error_ as RPCError
+  } catch (error) {
+    if (!(error instanceof RPCError)) {
+      return
+    }
     logger.error(`error loading contacts: ${error.message}`)
     return SettingsGen.createSetContactImportedCount({error: error.message})
   }
@@ -550,8 +551,10 @@ const manageContactsCache = async (
       // iOS sim + android emu don't supply country codes, so use this one.
       defaultCountryCode = 'us'
     }
-  } catch (error_) {
-    const error = error_ as RPCError
+  } catch (error) {
+    if (!(error instanceof RPCError)) {
+      return
+    }
     logger.warn(`Error loading default country code: ${error.message}`)
   }
 
@@ -575,8 +578,10 @@ const manageContactsCache = async (
     if (state.settings.contacts.waitingToShowJoinedModal && resolved) {
       actions.push(SettingsGen.createShowContactsJoinedModal({resolved}))
     }
-  } catch (error_) {
-    const error = error_ as RPCError
+  } catch (error) {
+    if (!(error instanceof RPCError)) {
+      return
+    }
     logger.error('Error saving contacts list: ', error.message)
     actions.push(SettingsGen.createSetContactImportedCount({error: error.message}))
   }
@@ -606,8 +611,10 @@ const onChatWatchPosition = async (
   const response = action.payload.response
   try {
     await requestLocationPermission(action.payload.params.perm)
-  } catch (error_) {
-    const error = error_ as Error
+  } catch (error) {
+    if (!(error instanceof RPCError)) {
+      return
+    }
     logger.info('failed to get location perms: ' + error.message)
     return setPermissionDeniedCommandStatus(
       Types.conversationIDToKey(action.payload.params.convID),
@@ -728,8 +735,10 @@ const onAttemptAudioRecording = async (_: unknown, action: Chat2Gen.AttemptAudio
   let chargeForward = true
   try {
     chargeForward = await requestAudioPermission()
-  } catch (error_) {
-    const error = error_ as RPCError
+  } catch (error) {
+    if (!(error instanceof RPCError)) {
+      return
+    }
     logger.info('failed to get audio perms: ' + error.message)
     return setPermissionDeniedCommandStatus(
       action.payload.conversationIDKey,

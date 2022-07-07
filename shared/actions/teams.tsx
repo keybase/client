@@ -37,10 +37,10 @@ async function createNewTeam(_: unknown, action: TeamsGen.CreateNewTeamPayload) 
     const addMembers = thenAddMembers ? [TeamsGen.createAddToTeam({...thenAddMembers, teamID})] : []
     return [TeamsGen.createTeamCreated({fromChat: !!fromChat, teamID, teamname}), ...addMembers]
   } catch (error) {
-    if (error instanceof RPCError) {
-      return TeamsGen.createSetTeamCreationError({error: error.desc})
+    if (!(error instanceof RPCError)) {
+      return
     }
-    return false
+    return TeamsGen.createSetTeamCreationError({error: error.desc})
   }
 }
 const showTeamAfterCreation = (_: unknown, action: TeamsGen.TeamCreatedPayload) => {
@@ -78,15 +78,15 @@ const joinTeam = async (
   const {teamname} = action.payload
 
   /*
-                      In the deeplink flow, a modal is displayed which runs `joinTeam` (or an
-                      alternative flow, but we're not concerned with that here). In that case,
-                      we can fully manage the UX from inside of this handler.
-                    
-                      In the "Join team" flow, user pastes their link into the input box, which
-                      then calls `joinTeam` on its own. Since we need to switch to another modal,
-                      we simply plumb `deeplink` into the `promptInviteLinkJoin` handler and
-                      do the nav in the modal.
-                    */
+                            In the deeplink flow, a modal is displayed which runs `joinTeam` (or an
+                            alternative flow, but we're not concerned with that here). In that case,
+                            we can fully manage the UX from inside of this handler.
+                          
+                            In the "Join team" flow, user pastes their link into the input box, which
+                            then calls `joinTeam` on its own. Since we need to switch to another modal,
+                            we simply plumb `deeplink` into the `promptInviteLinkJoin` handler and
+                            do the nav in the modal.
+                          */
 
   listenerApi.dispatch(TeamsGen.createSetTeamJoinError({error: ''}))
   listenerApi.dispatch(TeamsGen.createSetTeamJoinSuccess({open: false, success: false, teamname: ''}))
@@ -124,15 +124,16 @@ const joinTeam = async (
       })
     )
   } catch (error) {
-    if (error instanceof RPCError) {
-      const desc =
-        error.code === RPCTypes.StatusCode.scteaminvitebadtoken
-          ? 'Sorry, that team name or token is not valid.'
-          : error.code === RPCTypes.StatusCode.scnotfound
-          ? 'This invitation is no longer valid, or has expired.'
-          : error.desc
-      listenerApi.dispatch(TeamsGen.createSetTeamJoinError({error: desc}))
+    if (!(error instanceof RPCError)) {
+      return
     }
+    const desc =
+      error.code === RPCTypes.StatusCode.scteaminvitebadtoken
+        ? 'Sorry, that team name or token is not valid.'
+        : error.code === RPCTypes.StatusCode.scnotfound
+        ? 'This invitation is no longer valid, or has expired.'
+        : error.desc
+    listenerApi.dispatch(TeamsGen.createSetTeamJoinError({error: desc}))
   }
 }
 const requestInviteLinkDetails = async (state: Container.TypedState) => {
@@ -144,18 +145,18 @@ const requestInviteLinkDetails = async (state: Container.TypedState) => {
       details,
     })
   } catch (error) {
-    if (error instanceof RPCError) {
-      const desc =
-        error.code === RPCTypes.StatusCode.scteaminvitebadtoken
-          ? 'Sorry, that invite token is not valid.'
-          : error.code === RPCTypes.StatusCode.scnotfound
-          ? 'This invitation is no longer valid, or has expired.'
-          : error.desc
-      return TeamsGen.createSetTeamJoinError({
-        error: desc,
-      })
+    if (!(error instanceof RPCError)) {
+      return
     }
-    return false
+    const desc =
+      error.code === RPCTypes.StatusCode.scteaminvitebadtoken
+        ? 'Sorry, that invite token is not valid.'
+        : error.code === RPCTypes.StatusCode.scnotfound
+        ? 'This invitation is no longer valid, or has expired.'
+        : error.desc
+    return TeamsGen.createSetTeamJoinError({
+      error: desc,
+    })
   }
 }
 
@@ -196,10 +197,11 @@ const deleteTeam = async (
       listenerApi
     )
   } catch (error) {
-    if (error instanceof RPCError) {
-      // handled through waiting store
-      logger.warn('error:', error.message)
+    if (!(error instanceof RPCError)) {
+      return
     }
+    // handled through waiting store
+    logger.warn('error:', error.message)
   }
 }
 const leaveTeam = async (_: unknown, action: TeamsGen.LeaveTeamPayload) => {
@@ -213,12 +215,13 @@ const leaveTeam = async (_: unknown, action: TeamsGen.LeaveTeamPayload) => {
     logger.info(`leaveTeam: left ${teamname} successfully`)
     return TeamsGen.createLeftTeam({context, teamname})
   } catch (error) {
-    if (error instanceof RPCError) {
-      // handled through waiting store
-      logger.warn('error:', error.message)
+    if (!(error instanceof RPCError)) {
+      return
     }
-    return false
+    // handled through waiting store
+    logger.warn('error:', error.message)
   }
+  return
 }
 
 const leftTeam = () => RouteTreeGen.createNavUpToScreen({name: 'teamsRoot'})
@@ -232,11 +235,11 @@ const loadWelcomeMessage = async (_: unknown, action: TeamsGen.LoadWelcomeMessag
     )
     return TeamsGen.createLoadedWelcomeMessage({message, teamID})
   } catch (error) {
-    if (error instanceof RPCError) {
-      logger.error(error)
-      return TeamsGen.createSettingsError({error: error.desc})
+    if (!(error instanceof RPCError)) {
+      return
     }
-    return false
+    logger.error(error)
+    return TeamsGen.createSettingsError({error: error.desc})
   }
 }
 
@@ -249,11 +252,11 @@ const setWelcomeMessage = async (_: unknown, action: TeamsGen.SetWelcomeMessageP
     )
     return TeamsGen.createLoadWelcomeMessage({teamID})
   } catch (error) {
-    if (error instanceof RPCError) {
-      logger.error(error)
-      return TeamsGen.createSetWelcomeMessageError({error: error.desc})
+    if (!(error instanceof RPCError)) {
+      return
     }
-    return false
+    logger.error(error)
+    return TeamsGen.createSetWelcomeMessageError({error: error.desc})
   }
 }
 
@@ -271,10 +274,10 @@ const getTeamRetentionPolicy = async (_: unknown, action: TeamsGen.GetTeamRetent
         throw new Error(`RPC returned retention policy of type 'inherit' for team policy`)
       }
     } catch (error) {
-      if (error instanceof RPCError) {
-        logger.error(error.message)
+      if (!(error instanceof RPCError)) {
+        throw error
       }
-      throw error
+      logger.error(error.message)
     }
   } catch (_) {}
   return TeamsGen.createSetTeamRetentionPolicy({retentionPolicy, teamID})
@@ -287,11 +290,11 @@ const saveTeamRetentionPolicy = (_: unknown, action: TeamsGen.SaveTeamRetentionP
   try {
     servicePolicy = Constants.retentionPolicyToServiceRetentionPolicy(policy)
   } catch (error) {
-    if (error instanceof RPCError) {
-      logger.error(error.message)
-      return TeamsGen.createSettingsError({error: error.desc})
+    if (!(error instanceof RPCError)) {
+      return
     }
-    return false
+    logger.error(error.message)
+    return TeamsGen.createSettingsError({error: error.desc})
   }
   return RPCChatTypes.localSetTeamRetentionLocalRpcPromise({policy: servicePolicy, teamID}, [
     Constants.teamWaitingKey(teamID),
@@ -310,9 +313,10 @@ const updateTeamRetentionPolicy = (_: unknown, action: Chat2Gen.UpdateTeamRetent
   try {
     return TeamsGen.createSetTeamRetentionPolicy({retentionPolicy: teamRetentionPolicy, teamID})
   } catch (error) {
-    if (error instanceof RPCError) {
-      logger.error(error.message)
+    if (!(error instanceof RPCError)) {
+      return
     }
+    logger.error(error.message)
     throw error
   }
 }
@@ -361,10 +365,11 @@ const inviteByEmail = async (
       }
     }
   } catch (error) {
-    if (error instanceof RPCError) {
-      // other error. display messages and leave all emails in input box
-      listenerApi.dispatch(TeamsGen.createSetEmailInviteError({malformed: [], message: error.desc}))
+    if (!(error instanceof RPCError)) {
+      return
     }
+    // other error. display messages and leave all emails in input box
+    listenerApi.dispatch(TeamsGen.createSetEmailInviteError({malformed: [], message: error.desc}))
   } finally {
     if (loadingKey) {
       listenerApi.dispatch(TeamsGen.createSetTeamLoadingInvites({isLoading: false, loadingKey, teamname}))
@@ -409,24 +414,24 @@ const addToTeam = async (_: unknown, action: TeamsGen.AddToTeamPayload) => {
     }
     return TeamsGen.createAddedToTeam({fromTeamBuilder})
   } catch (error) {
-    if (error instanceof RPCError) {
-      // If all of the users couldn't be added due to contact settings, the RPC fails.
-      if (error.code === RPCTypes.StatusCode.scteamcontactsettingsblock) {
-        const users = (error.fields as Array<{key?: string; value?: string} | undefined> | undefined)
-          ?.filter(elem => elem?.key === 'usernames')
-          .map(elem => elem?.value)
-        const usernames = users?.[0]?.split(',')
-        return [
-          TeamBuildingGen.createFinishedTeamBuilding({namespace: 'teams'}),
-          RouteTreeGen.createNavigateAppend({
-            path: [{props: {source: 'teamAddAllFailed', usernames}, selected: 'contactRestricted'}],
-          }),
-        ]
-      }
-      // TODO this should not error on member already in team
-      return TeamsGen.createAddedToTeam({error: error.desc, fromTeamBuilder})
+    if (!(error instanceof RPCError)) {
+      return
     }
-    return false
+    // If all of the users couldn't be added due to contact settings, the RPC fails.
+    if (error.code === RPCTypes.StatusCode.scteamcontactsettingsblock) {
+      const users = (error.fields as Array<{key?: string; value?: string} | undefined> | undefined)
+        ?.filter(elem => elem?.key === 'usernames')
+        .map(elem => elem?.value)
+      const usernames = users?.[0]?.split(',')
+      return [
+        TeamBuildingGen.createFinishedTeamBuilding({namespace: 'teams'}),
+        RouteTreeGen.createNavigateAppend({
+          path: [{props: {source: 'teamAddAllFailed', usernames}, selected: 'contactRestricted'}],
+        }),
+      ]
+    }
+    // TODO this should not error on member already in team
+    return TeamsGen.createAddedToTeam({error: error.desc, fromTeamBuilder})
   }
 }
 
@@ -452,10 +457,10 @@ const reAddToTeam = async (_: unknown, action: TeamsGen.ReAddToTeamPayload) => {
     )
     return false
   } catch (error) {
-    if (error instanceof RPCError) {
-      return addReAddErrorHandler(username, error)
+    if (!(error instanceof RPCError)) {
+      return
     }
-    return false
+    return addReAddErrorHandler(username, error)
   }
 }
 
@@ -464,9 +469,10 @@ const editDescription = async (_: unknown, action: TeamsGen.EditTeamDescriptionP
   try {
     await RPCTypes.teamsSetTeamShowcaseRpcPromise({description, teamID}, Constants.teamWaitingKey(teamID))
   } catch (error) {
-    if (error instanceof RPCError) {
-      return TeamsGen.createSetEditDescriptionError({error: error.message})
+    if (!(error instanceof RPCError)) {
+      return
     }
+    return TeamsGen.createSetEditDescriptionError({error: error.message})
   }
   return []
 }
@@ -480,12 +486,13 @@ const uploadAvatar = async (_: unknown, action: TeamsGen.UploadTeamAvatarPayload
     )
     return RouteTreeGen.createNavigateUp()
   } catch (error) {
-    if (error instanceof RPCError) {
-      // error displayed in component
-      logger.warn(`Error uploading team avatar: ${error.message}`)
+    if (!(error instanceof RPCError)) {
+      return
     }
-    return false
+    // error displayed in component
+    logger.warn(`Error uploading team avatar: ${error.message}`)
   }
+  return
 }
 
 const editMembership = async (_: unknown, action: TeamsGen.EditMembershipPayload) => {
@@ -500,11 +507,12 @@ const editMembership = async (_: unknown, action: TeamsGen.EditMembershipPayload
       [Constants.teamWaitingKey(teamID), Constants.editMembershipWaitingKey(teamID, ...usernames)]
     )
   } catch (error) {
-    if (error instanceof RPCError) {
-      if (usernames.length === 1) {
-        // error is shown in the member page
-        return TeamsGen.createSetEditMemberError({error: error.message, teamID, username: usernames[0]})
-      }
+    if (!(error instanceof RPCError)) {
+      return
+    }
+    if (usernames.length === 1) {
+      // error is shown in the member page
+      return TeamsGen.createSetEditMemberError({error: error.message, teamID, username: usernames[0]})
     }
   }
   return false
@@ -646,11 +654,12 @@ const loadTeam = async (state: Container.TypedState, action: TeamsGen.LoadTeamPa
     const team = await RPCTypes.teamsGetAnnotatedTeamRpcPromise({teamID})
     return TeamsGen.createTeamLoaded({team, teamID})
   } catch (error) {
-    if (error instanceof RPCError) {
-      logger.error(error.message)
+    if (!(error instanceof RPCError)) {
+      return
     }
-    return false
+    logger.error(error.message)
   }
+  return
 }
 
 const addUserToTeams = async (state: Container.TypedState, action: TeamsGen.AddUserToTeamsPayload) => {
@@ -752,12 +761,13 @@ const getTeams = async (
       teamnames: teamNameSet,
     })
   } catch (error) {
-    if (error instanceof RPCError) {
-      if (error.code === RPCTypes.StatusCode.scapinetworkerror) {
-        // Ignore API errors due to offline
-      } else {
-        logger.error(error)
-      }
+    if (!(error instanceof RPCError)) {
+      return
+    }
+    if (error.code === RPCTypes.StatusCode.scapinetworkerror) {
+      // Ignore API errors due to offline
+    } else {
+      logger.error(error)
     }
   }
   return
@@ -820,9 +830,10 @@ const saveChannelMembership = async (
         await RPCChatTypes.localJoinConversationByIDLocalRpcPromise({convID}, waitingKey)
         listenerApi.dispatch(TeamsGen.createAddParticipant({conversationIDKey, teamID}))
       } catch (error) {
-        if (error instanceof RPCError) {
-          listenerApi.dispatch(ConfigGen.createGlobalError({globalError: convertToError(error)}))
+        if (!(error instanceof RPCError)) {
+          return
         }
+        listenerApi.dispatch(ConfigGen.createGlobalError({globalError: convertToError(error)}))
       }
     } else {
       try {
@@ -830,9 +841,10 @@ const saveChannelMembership = async (
         await RPCChatTypes.localLeaveConversationLocalRpcPromise({convID}, waitingKey)
         listenerApi.dispatch(TeamsGen.createRemoveParticipant({conversationIDKey, teamID}))
       } catch (error) {
-        if (error instanceof RPCError) {
-          listenerApi.dispatch(ConfigGen.createGlobalError({globalError: convertToError(error)}))
+        if (!(error instanceof RPCError)) {
+          return
         }
+        listenerApi.dispatch(ConfigGen.createGlobalError({globalError: convertToError(error)}))
       }
     }
   }
@@ -905,9 +917,10 @@ const createChannel = async (
       )
     }
   } catch (error) {
-    if (error instanceof RPCError) {
-      listenerApi.dispatch(TeamsGen.createSetChannelCreationError({error: error.desc}))
+    if (!(error instanceof RPCError)) {
+      return
     }
+    listenerApi.dispatch(TeamsGen.createSetChannelCreationError({error: error.desc}))
   }
 }
 
@@ -931,9 +944,10 @@ const createChannels = async (state: Container.TypedState, action: TeamsGen.Crea
       })
     }
   } catch (error) {
-    if (error instanceof RPCError) {
-      return TeamsGen.createSetChannelCreationError({error: error.desc})
+    if (!(error instanceof RPCError)) {
+      return
     }
+    return TeamsGen.createSetChannelCreationError({error: error.desc})
   }
   return [
     TeamsGen.createSetCreatingChannels({creatingChannels: false}),
@@ -953,10 +967,10 @@ const setMemberPublicity = async (_: unknown, action: TeamsGen.SetMemberPublicit
     )
     return
   } catch (error) {
-    if (error instanceof RPCError) {
-      return TeamsGen.createSettingsError({error: error.desc})
+    if (!(error instanceof RPCError)) {
+      return
     }
-    return false
+    return TeamsGen.createSettingsError({error: error.desc})
   }
 }
 
@@ -1199,10 +1213,10 @@ const updateChannelname = async (state: Container.TypedState, action: TeamsGen.U
     await RPCChatTypes.localPostMetadataRpcPromise(param, Constants.updateChannelNameWaitingKey(teamID))
     return false
   } catch (error) {
-    if (error instanceof RPCError) {
-      return TeamsGen.createSetChannelCreationError({error: error.desc})
+    if (!(error instanceof RPCError)) {
+      return
     }
-    return false
+    return TeamsGen.createSetChannelCreationError({error: error.desc})
   }
 }
 
@@ -1250,11 +1264,12 @@ const getMembers = async (_: unknown, action: TeamsGen.GetMembersPayload) => {
     const members = Constants.rpcDetailsToMemberInfos(res ?? [])
     return TeamsGen.createSetMembers({members, teamID})
   } catch (error) {
-    if (error instanceof RPCError) {
-      logger.error(`Error updating members for ${teamID}: ${error.desc}`)
+    if (!(error instanceof RPCError)) {
+      return
     }
-    return false
+    logger.error(`Error updating members for ${teamID}: ${error.desc}`)
   }
+  return
 }
 
 const badgeAppForTeams = (
@@ -1461,11 +1476,12 @@ const loadTeamTreeActivity = async (
       username,
     })
   } catch (error) {
-    if (error instanceof RPCError) {
-      logger.info(`loadTeamTreeActivity: unable to get activity for ${teamID}:${username}: ${error.message}`)
+    if (!(error instanceof RPCError)) {
+      return
     }
-    return null
+    logger.info(`loadTeamTreeActivity: unable to get activity for ${teamID}:${username}: ${error.message}`)
   }
+  return
 }
 
 const launchNewTeamWizardOrModal = (_: unknown, action: TeamsGen.LaunchNewTeamWizardOrModalPayload) => {
@@ -1534,10 +1550,10 @@ const finishNewTeamWizard = async (state: Container.TypedState) => {
     const teamID = await RPCTypes.teamsTeamCreateFancyRpcPromise({teamInfo}, Constants.teamCreationWaitingKey)
     return TeamsGen.createFinishedNewTeamWizard({teamID})
   } catch (error) {
-    if (error instanceof RPCError) {
-      return TeamsGen.createSetTeamWizardError({error: error.message})
+    if (!(error instanceof RPCError)) {
+      return
     }
-    return false
+    return TeamsGen.createSetTeamWizardError({error: error.message})
   }
 }
 
@@ -1591,9 +1607,10 @@ const teamSeen = async (_: unknown, action: TeamsGen.TeamSeenPayload) => {
   try {
     await RPCTypes.gregorDismissCategoryRpcPromise({category: Constants.newRequestsGregorKey(teamID)})
   } catch (error) {
-    if (error instanceof RPCError) {
-      logger.error(error.message)
+    if (!(error instanceof RPCError)) {
+      return
     }
+    logger.error(error.message)
   }
 }
 

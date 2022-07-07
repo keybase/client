@@ -4,7 +4,7 @@ import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Constants from '../constants/bots'
 import * as EngineGen from './engine-gen-gen'
 import logger from '../logger'
-import type {RPCError} from '../util/errors'
+import {RPCError} from '../util/errors'
 
 const pageSize = 100
 
@@ -36,8 +36,10 @@ const getFeaturedBots = async (_: Container.TypedState, action: BotsGen.GetFeatu
       BotsGen.createUpdateFeaturedBots({bots: bots ?? [], page}),
       BotsGen.createSetLoadedAllBots({loaded: loadedAllBots}),
     ]
-  } catch (error_) {
-    const error = error_ as RPCError
+  } catch (error) {
+    if (!(error instanceof RPCError)) {
+      return
+    }
     if (Container.isNetworkErr(error.code)) {
       logger.info('Network error getting featured bots')
     } else {
@@ -60,8 +62,10 @@ const searchFeaturedBots = async (_: Container.TypedState, action: BotsGen.Searc
       return
     }
     return BotsGen.createUpdateFeaturedBots({bots})
-  } catch (error_) {
-    const error = error_ as RPCError
+  } catch (error) {
+    if (!(error instanceof RPCError)) {
+      return
+    }
     if (Container.isNetworkErr(error.code)) {
       logger.info('Network error searching featured bots')
     } else {
@@ -96,8 +100,10 @@ const searchFeaturedAndUsers = async (_: unknown, action: BotsGen.SearchFeatured
         Constants.waitingKeyBotSearchUsers
       ),
     ])
-  } catch (error_) {
-    const error = error_ as RPCError
+  } catch (error) {
+    if (!(error instanceof RPCError)) {
+      return
+    }
     logger.info(`searchFeaturedAndUsers: failed to run search: ${error.message}`)
     return
   }

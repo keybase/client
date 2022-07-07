@@ -9,7 +9,7 @@ import * as Tracker2Constants from '../../constants/tracker2'
 import * as Tracker2Gen from '../tracker2-gen'
 import logger from '../../logger'
 import openURL from '../../util/open-url'
-import {type RPCError} from '../../util/errors'
+import {RPCError} from '../../util/errors'
 
 type ValidCallback =
   | 'keybase.1.proveUi.checking'
@@ -120,6 +120,7 @@ const addProof = async (
   })
 
   const checkProofTask = listenerApi.fork(async () => {
+    // eslint-disable-next-line
     while (true) {
       await listenerApi.take(action => action.type === ProfileGen.checkProof)
       if (_outputInstructionsResponse) {
@@ -131,6 +132,7 @@ const addProof = async (
 
   const submitUsernameTask = listenerApi.fork(async () => {
     // loop since if we get errors we can get these events multiple times
+    // eslint-disable-next-line
     while (true) {
       await listenerApi.take(action => action.type === ProfileGen.submitUsername)
       listenerApi.dispatch(ProfileGen.createCleanupUsername())
@@ -138,8 +140,6 @@ const addProof = async (
         listenerApi.dispatch(ProfileGen.createUpdateErrorText({errorText: ''}))
         const state = listenerApi.getState()
         _promptUsernameResponse.result(state.profile.username)
-        // eslint is confused i think
-        // eslint-disable-next-line require-atomic-updates
         _promptUsernameResponse = undefined
       }
     }
@@ -250,23 +250,24 @@ const addProof = async (
     if (genericService) {
       listenerApi.dispatch(ProfileGen.createUpdatePlatformGenericChecking({checking: false}))
     }
-  } catch (error_) {
-    const error = error_ as RPCError
-    logger.warn('Error making proof')
-    listenerApi.dispatch(loadAfter)
-    listenerApi.dispatch(ProfileGen.createUpdateErrorText({errorCode: error.code, errorText: error.desc}))
-    if (error.code === RPCTypes.StatusCode.scgeneric && action.payload.reason === 'appLink') {
-      listenerApi.dispatch(
-        DeeplinksGen.createSetKeybaseLinkError({
-          error:
-            "We couldn't find a valid service for proofs in this link. The link might be bad, or your Keybase app might be out of date and need to be updated.",
-        })
-      )
-      listenerApi.dispatch(
-        RouteTreeGen.createNavigateAppend({
-          path: [{props: {errorSource: 'app'}, selected: 'keybaseLinkError'}],
-        })
-      )
+  } catch (error) {
+    if (error instanceof RPCError) {
+      logger.warn('Error making proof')
+      listenerApi.dispatch(loadAfter)
+      listenerApi.dispatch(ProfileGen.createUpdateErrorText({errorCode: error.code, errorText: error.desc}))
+      if (error.code === RPCTypes.StatusCode.scgeneric && action.payload.reason === 'appLink') {
+        listenerApi.dispatch(
+          DeeplinksGen.createSetKeybaseLinkError({
+            error:
+              "We couldn't find a valid service for proofs in this link. The link might be bad, or your Keybase app might be out of date and need to be updated.",
+          })
+        )
+        listenerApi.dispatch(
+          RouteTreeGen.createNavigateAppend({
+            path: [{props: {errorSource: 'app'}, selected: 'keybaseLinkError'}],
+          })
+        )
+      }
     }
     if (genericService) {
       listenerApi.dispatch(ProfileGen.createUpdatePlatformGenericChecking({checking: false}))
@@ -310,10 +311,12 @@ const submitCryptoAddress = async (
       ProfileGen.createUpdateProofStatus({found: true, status: RPCTypes.ProofStatus.ok}),
       RouteTreeGen.createNavigateAppend({path: ['profileConfirmOrPending']}),
     ]
-  } catch (error_) {
-    const error = error_ as RPCError
-    logger.warn('Error making proof')
-    return ProfileGen.createUpdateErrorText({errorCode: error.code, errorText: error.desc})
+  } catch (error) {
+    if (error instanceof RPCError) {
+      logger.warn('Error making proof')
+      return ProfileGen.createUpdateErrorText({errorCode: error.code, errorText: error.desc})
+    }
+    return
   }
 }
 

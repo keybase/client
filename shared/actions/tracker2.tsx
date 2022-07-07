@@ -5,7 +5,7 @@ import * as UsersGen from './users-gen'
 import * as DeeplinksGen from './deeplinks-gen'
 import * as RouteTreeGen from './route-tree-gen'
 import * as Container from '../util/container'
-import type {RPCError} from '../util/errors'
+import {RPCError} from '../util/errors'
 import * as Constants from '../constants/tracker2'
 import * as ProfileConstants from '../constants/profile'
 import type {WebOfTrustVerificationType} from '../constants/types/more'
@@ -118,29 +118,30 @@ const load = async (
       },
       listenerApi
     )
-  } catch (error_) {
-    const error = error_ as RPCError
-    if (error.code === RPCTypes.StatusCode.scresolutionfailed) {
-      listenerApi.dispatch(
-        Tracker2Gen.createUpdateResult({guiID: action.payload.guiID, result: 'notAUserYet'})
-      )
-    } else if (error.code === RPCTypes.StatusCode.scnotfound) {
-      // we're on the profile page for a user that does not exist. Currently the only way
-      // to get here is with an invalid link or deeplink.
-      listenerApi.dispatch(
-        DeeplinksGen.createSetKeybaseLinkError({
-          error: `You followed a profile link for a user (${action.payload.assertion}) that does not exist.`,
-        })
-      )
-      listenerApi.dispatch(RouteTreeGen.createNavigateUp())
-      listenerApi.dispatch(
-        RouteTreeGen.createNavigateAppend({
-          path: [{props: {errorSource: 'app'}, selected: 'keybaseLinkError'}],
-        })
-      )
+  } catch (error) {
+    if (error instanceof RPCError) {
+      if (error.code === RPCTypes.StatusCode.scresolutionfailed) {
+        listenerApi.dispatch(
+          Tracker2Gen.createUpdateResult({guiID: action.payload.guiID, result: 'notAUserYet'})
+        )
+      } else if (error.code === RPCTypes.StatusCode.scnotfound) {
+        // we're on the profile page for a user that does not exist. Currently the only way
+        // to get here is with an invalid link or deeplink.
+        listenerApi.dispatch(
+          DeeplinksGen.createSetKeybaseLinkError({
+            error: `You followed a profile link for a user (${action.payload.assertion}) that does not exist.`,
+          })
+        )
+        listenerApi.dispatch(RouteTreeGen.createNavigateUp())
+        listenerApi.dispatch(
+          RouteTreeGen.createNavigateAppend({
+            path: [{props: {errorSource: 'app'}, selected: 'keybaseLinkError'}],
+          })
+        )
+      }
+      // hooked into reloadable
+      logger.error(`Error loading profile: ${error.message}`)
     }
-    // hooked into reloadable
-    logger.error(`Error loading profile: ${error.message}`)
   }
 }
 
@@ -174,9 +175,10 @@ const loadWebOfTrustEntries = async (
       entries: webOfTrustEntries,
       voucheeUsername: username,
     })
-  } catch (error_) {
-    const error = error_ as RPCError
-    logger.error(`Error loading web-of-trust info: ${error.message}`)
+  } catch (error) {
+    if (error instanceof RPCError) {
+      logger.error(`Error loading web-of-trust info: ${error.message}`)
+    }
     return false
   }
 }
@@ -201,9 +203,10 @@ const loadFollowers = async (_: unknown, action: Tracker2Gen.LoadPayload) => {
       following: undefined,
       username: action.payload.assertion,
     })
-  } catch (error_) {
-    const error = error_ as RPCError
-    logger.error(`Error loading follower info: ${error.message}`)
+  } catch (error) {
+    if (error instanceof RPCError) {
+      logger.error(`Error loading follower info: ${error.message}`)
+    }
     return false
   }
 }
@@ -230,9 +233,10 @@ const loadFollowing = async (_: unknown, action: Tracker2Gen.LoadPayload) => {
       following,
       username: action.payload.assertion,
     })
-  } catch (error_) {
-    const error = error_ as RPCError
-    logger.error(`Error loading following info: ${error.message}`)
+  } catch (error) {
+    if (error instanceof RPCError) {
+      logger.error(`Error loading following info: ${error.message}`)
+    }
     return false
   }
 }
@@ -246,9 +250,10 @@ const getProofSuggestions = async () => {
     return Tracker2Gen.createProofSuggestionsUpdated({
       suggestions: (suggestions || []).map(Constants.rpcSuggestionToAssertion),
     })
-  } catch (error_) {
-    const error = error_ as RPCError
-    logger.error(`Error loading proof suggestions: ${error.message}`)
+  } catch (error) {
+    if (error instanceof RPCError) {
+      logger.error(`Error loading proof suggestions: ${error.message}`)
+    }
     return false
   }
 }
@@ -324,9 +329,10 @@ const loadNonUserProfile = async (_: unknown, action: Tracker2Gen.LoadNonUserPro
       }
     }
     return false
-  } catch (error_) {
-    const error = error_ as RPCError
-    logger.warn(`Error loading non user profile: ${error.message}`)
+  } catch (error) {
+    if (error instanceof RPCError) {
+      logger.warn(`Error loading non user profile: ${error.message}`)
+    }
     return false
   }
 }

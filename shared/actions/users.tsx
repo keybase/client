@@ -10,7 +10,7 @@ import * as Tracker2Gen from './tracker2-gen'
 import * as ProfileGen from './profile-gen'
 import * as RouteTreeGen from './route-tree-gen'
 import logger from '../logger'
-import type {RPCError} from '../util/errors'
+import {RPCError} from '../util/errors'
 
 const onIdentifyUpdate = (_: unknown, action: EngineGen.Keybase1NotifyUsersIdentifyUpdatePayload) =>
   UsersGen.createUpdateBrokenState({
@@ -34,15 +34,17 @@ const getBio = async (state: Container.TypedState, action: UsersGen.GetBioPayloa
     }
 
     return UsersGen.createUpdateBio({userCard, username}) // set bio in user infomap
-  } catch (error_) {
-    const error = error_ as RPCError
+  } catch (error) {
+    if (!(error instanceof RPCError)) {
+      return
+    }
     if (Container.isNetworkErr(error.code)) {
       logger.info('Network error getting userCard')
     } else {
       logger.info(error.message)
     }
-    return
   }
+  return
 }
 
 const setUserBlocks = async (_: unknown, action: UsersGen.SetUserBlocksPayload) => {
@@ -103,8 +105,12 @@ const wotReact = async (_: unknown, action: UsersGen.WotReactPayload) => {
       {allowEmptySigID: false, reaction, sigID, voucher},
       Constants.wotReactWaitingKey
     )
-  } catch (error_) {
-    const error = error_ as RPCError
+  } catch (error) {
+    if (!(error instanceof RPCError)) {
+      return ProfileGen.createWotVouchSetError({
+        error: `There was an error reviewing the claim.`,
+      })
+    }
     logger.warn('Error from wotReact:', error)
     return ProfileGen.createWotVouchSetError({
       error: error.desc || `There was an error reviewing the claim.`,

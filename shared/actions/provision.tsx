@@ -9,7 +9,7 @@ import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Tabs from '../constants/tabs'
 import logger from '../logger'
 import HiddenString from '../util/hidden-string'
-import type {RPCError} from '../util/errors'
+import {RPCError} from '../util/errors'
 import * as Container from '../util/container'
 import {devicesTab as settingsDevicesTab} from '../constants/settings'
 
@@ -442,8 +442,10 @@ const startProvisioning = async (
       listenerApi
     )
     ProvisioningManager.getSingleton().setDone('provision call done w/ success')
-  } catch (finalError_) {
-    const finalError = finalError_ as RPCError
+  } catch (finalError) {
+    if (!(finalError instanceof RPCError)) {
+      return
+    }
     manager.setDone(
       'startProvisioning call done w/ error ' + (finalError ? finalError.message : ' unknown error')
     )
@@ -498,8 +500,10 @@ const addNewDevice = async (_s: unknown, _a: unknown, listenerApi: Container.Lis
     listenerApi.dispatch(DevicesGen.createLoad())
     listenerApi.dispatch(RouteTreeGen.createNavigateAppend({path: devicesRoot}))
     listenerApi.dispatch(RouteTreeGen.createClearModals())
-  } catch (finalError_) {
-    const finalError = finalError_ as RPCError
+  } catch (finalError) {
+    if (!(finalError instanceof RPCError)) {
+      return
+    }
     manager.setDone('addNewDevice call done w/ error ' + (finalError ? finalError.message : ' unknown error'))
 
     if (ProvisioningManager.getSingleton() !== manager) {
@@ -601,8 +605,10 @@ const forgotUsername = async (_: unknown, action: ProvisionGen.ForgotUsernamePay
         Constants.forgotUsernameWaitingKey
       )
       return ProvisionGen.createForgotUsernameResult({result: 'success'})
-    } catch (error_) {
-      const error = error_ as RPCError
+    } catch (error) {
+      if (!(error instanceof RPCError)) {
+        return
+      }
       return ProvisionGen.createForgotUsernameResult({
         result: Constants.decodeForgotUsernameError(error),
       })
@@ -615,8 +621,10 @@ const forgotUsername = async (_: unknown, action: ProvisionGen.ForgotUsernamePay
         Constants.forgotUsernameWaitingKey
       )
       return ProvisionGen.createForgotUsernameResult({result: 'success'})
-    } catch (error_) {
-      const error = error_ as RPCError
+    } catch (error) {
+      if (!(error instanceof RPCError)) {
+        return
+      }
       return ProvisionGen.createForgotUsernameResult({
         result: Constants.decodeForgotUsernameError(error),
       })

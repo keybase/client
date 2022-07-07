@@ -12,7 +12,7 @@ import InputMonitor from './input-monitor.desktop'
 import {skipAppFocusActions} from '../../local-debug.desktop'
 import * as Container from '../../util/container'
 import {_getNavigator} from '../../constants/router2'
-import type {RPCError} from 'util/errors'
+import type {RPCError} from '../../util/errors'
 import KB2 from '../../util/electron.desktop'
 
 const {showMainWindow, activeChanged, requestWindowsStartService, dumpNodeLogger} = KB2.functions

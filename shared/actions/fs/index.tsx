@@ -15,7 +15,7 @@ import * as Platform from '../../constants/platform'
 import {tlfToPreferredOrder} from '../../util/kbfs'
 import {errorToActionOrThrow} from './shared'
 import {NotifyPopup} from '../../native/notifications'
-import type {RPCError} from '../../util/errors'
+import {RPCError} from '../../util/errors'
 import KB2 from '../../util/electron'
 
 const {darwinCopyToKBFSTempUploadFile} = KB2.functions
@@ -94,8 +94,10 @@ const loadAdditionalTlf = async (state: Container.TypedState, action: FsGen.Load
         tlfPath: action.payload.tlfPath,
       })
     )
-  } catch (error_) {
-    const error = error_ as RPCError
+  } catch (error) {
+    if (!(error instanceof RPCError)) {
+      return
+    }
     if (error.code === RPCTypes.StatusCode.scteamcontactsettingsblock) {
       const users = error.fields?.filter((elem: any) => elem.key === 'usernames')
       const usernames = users?.map((elem: any) => elem.value)
@@ -572,8 +574,10 @@ const commitEdit = async (state: Container.TypedState, action: FsGen.CommitEditP
         })
         await RPCTypes.SimpleFSSimpleFSWaitRpcPromise({opID}, Constants.commitEditWaitingKey)
         return FsGen.createEditSuccess({editID})
-      } catch (error_) {
-        const error = error_ as RPCError
+      } catch (error) {
+        if (!(error instanceof RPCError)) {
+          return
+        }
         if (
           [RPCTypes.StatusCode.scsimplefsnameexists, RPCTypes.StatusCode.scsimplefsdirnotempty].includes(
             error.code
@@ -776,8 +780,10 @@ const checkKbfsServerReachabilityIfNeeded = async (
   if (!action.payload.isInit) {
     try {
       await RPCTypes.SimpleFSSimpleFSCheckReachabilityRpcPromise()
-    } catch (error_) {
-      const error = error_ as RPCError
+    } catch (error) {
+      if (!(error instanceof RPCError)) {
+        return
+      }
       logger.warn(`failed to check KBFS reachability: ${error.message}`)
     }
   }
@@ -860,8 +866,10 @@ const subscribePath = async (_: unknown, action: FsGen.SubscribePathPayload) => 
       topic: action.payload.topic,
     })
     return null
-  } catch (error_) {
-    const error = error_ as RPCError
+  } catch (error) {
+    if (!(error instanceof RPCError)) {
+      return
+    }
     if (error.code === RPCTypes.StatusCode.scteamcontactsettingsblock) {
       // We'll handle this error in loadAdditionalTLF instead.
       return

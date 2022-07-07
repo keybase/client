@@ -78,8 +78,10 @@ const login = async (
     )
     logger.info('login call succeeded')
     listenerApi.dispatch(ConfigGen.createLoggedIn({causedBySignup: false, causedByStartup: false}))
-  } catch (error_) {
-    const error = error_ as RPCError
+  } catch (error) {
+    if (!(error instanceof RPCError)) {
+      return
+    }
     if (error.code === RPCTypes.StatusCode.scalreadyloggedin) {
       listenerApi.dispatch(ConfigGen.createLoggedIn({causedBySignup: false, causedByStartup: false}))
     } else if (error.desc !== cancelDesc) {

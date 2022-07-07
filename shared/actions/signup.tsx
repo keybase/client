@@ -8,9 +8,8 @@ import * as RPCTypes from '../constants/types/rpc-gen'
 import * as RouteTreeGen from './route-tree-gen'
 import * as SettingsGen from './settings-gen'
 import * as PushGen from './push-gen'
-import {isMobile} from '../constants/platform'
-import type {RPCError} from '../util/errors'
 import * as Container from '../util/container'
+import {RPCError} from '../util/errors'
 
 // Helpers ///////////////////////////////////////////////////////////
 // returns true if there are no errors, we check all errors at every transition just to be extra careful
@@ -60,9 +59,11 @@ const checkInviteCode = async (state: Container.TypedState) => {
       Constants.waitingKey
     )
     return SignupGen.createCheckedInviteCode({inviteCode: state.signup.inviteCode})
-  } catch (error_) {
-    const error = error_ as RPCError
-    return SignupGen.createCheckedInviteCode({error: error.desc, inviteCode: state.signup.inviteCode})
+  } catch (error) {
+    if (error instanceof RPCError) {
+      return SignupGen.createCheckedInviteCode({error: error.desc, inviteCode: state.signup.inviteCode})
+    }
+    return
   }
 }
 
@@ -95,14 +96,16 @@ const requestInvite = async (state: Container.TypedState) => {
       email: state.signup.email,
       name: state.signup.name,
     })
-  } catch (error_) {
-    const error = error_ as RPCError
-    return SignupGen.createRequestedInvite({
-      email: state.signup.email,
-      emailError: `Sorry can't get an invite: ${error.desc}`,
-      name: state.signup.name,
-      nameError: '',
-    })
+  } catch (error) {
+    if (error instanceof RPCError) {
+      return SignupGen.createRequestedInvite({
+        email: state.signup.email,
+        emailError: `Sorry can't get an invite: ${error.desc}`,
+        name: state.signup.name,
+        nameError: '',
+      })
+    }
+    return
   }
 }
 
@@ -119,17 +122,19 @@ const checkUsername = async (state: Container.TypedState, _: SignupGen.CheckUser
     )
     logger.info(`${state.signup.username} success`)
     return SignupGen.createCheckedUsername({error: '', username: state.signup.username})
-  } catch (error_) {
-    const error = error_ as RPCError
-    logger.warn(`${state.signup.username} error: ${error.message}`)
-    const s = error.code === RPCTypes.StatusCode.scinputerror ? Constants.usernameHint : error.desc
-    return SignupGen.createCheckedUsername({
-      // Don't set error if it's 'username taken', we show a banner in that case
-      error: error.code === RPCTypes.StatusCode.scbadsignupusernametaken ? '' : s,
-      username: state.signup.username,
-      usernameTaken:
-        error.code === RPCTypes.StatusCode.scbadsignupusernametaken ? state.signup.username : undefined,
-    })
+  } catch (error) {
+    if (error instanceof RPCError) {
+      logger.warn(`${state.signup.username} error: ${error.message}`)
+      const s = error.code === RPCTypes.StatusCode.scinputerror ? Constants.usernameHint : error.desc
+      return SignupGen.createCheckedUsername({
+        // Don't set error if it's 'username taken', we show a banner in that case
+        error: error.code === RPCTypes.StatusCode.scbadsignupusernametaken ? '' : s,
+        username: state.signup.username,
+        usernameTaken:
+          error.code === RPCTypes.StatusCode.scbadsignupusernametaken ? state.signup.username : undefined,
+      })
+    }
+    return
   }
 }
 
@@ -143,12 +148,14 @@ const checkDevicename = async (state: Container.TypedState) => {
       Constants.waitingKey
     )
     return SignupGen.createCheckedDevicename({devicename: state.signup.devicename})
-  } catch (error_) {
-    const error = error_ as RPCError
-    return SignupGen.createCheckedDevicename({
-      devicename: state.signup.devicename,
-      error: `Device name is invalid: ${error.desc}.`,
-    })
+  } catch (error) {
+    if (error instanceof RPCError) {
+      return SignupGen.createCheckedDevicename({
+        devicename: state.signup.devicename,
+        error: `Device name is invalid: ${error.desc}.`,
+      })
+    }
+    return
   }
 }
 
@@ -188,7 +195,7 @@ const reallySignupOnNoErrors = async (
         params: {
           botToken: '',
           deviceName: devicename,
-          deviceType: isMobile ? RPCTypes.DeviceType.mobile : RPCTypes.DeviceType.desktop,
+          deviceType: Container.isMobile ? RPCTypes.DeviceType.mobile : RPCTypes.DeviceType.desktop,
           email: '',
           genPGPBatch: false,
           genPaper: false,
@@ -206,10 +213,11 @@ const reallySignupOnNoErrors = async (
       listenerApi
     )
     listenerApi.dispatch(SignupGen.createSignedup())
-  } catch (error_) {
-    const error = error_ as RPCError
-    listenerApi.dispatch(SignupGen.createSignedup({error}))
-    listenerApi.dispatch(PushGen.createShowPermissionsPrompt({justSignedUp: false}))
+  } catch (error) {
+    if (error instanceof RPCError) {
+      listenerApi.dispatch(SignupGen.createSignedup({error}))
+      listenerApi.dispatch(PushGen.createShowPermissionsPrompt({justSignedUp: false}))
+    }
   }
 }
 

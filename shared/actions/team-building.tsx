@@ -1,13 +1,13 @@
 import logger from '../logger'
 import * as Constants from '../constants/team-building'
 import * as RouterConstants from '../constants/router2'
-import * as TeamBuildingTypes from '../constants/types/team-building'
+import type * as TeamBuildingTypes from '../constants/types/team-building'
 import * as TeamBuildingGen from './team-building-gen'
 import * as RouteTreeGen from './route-tree-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Container from '../util/container'
 import {validateEmailAddress} from '../util/email-address'
-import type {RPCError} from 'util/errors'
+import {RPCError} from '../util/errors'
 
 const closeTeamBuilding = (_: Container.TypedState) => {
   const modals = RouterConstants.getModalStack()
@@ -43,8 +43,10 @@ const apiSearch = async (
       u && arr.push(u)
       return arr
     }, [])
-  } catch (error_) {
-    const error = error_ as RPCError
+  } catch (error) {
+    if (!(error instanceof RPCError)) {
+      return []
+    }
     logger.error(`Error in searching for ${query} on ${service}. ${error.message}`)
     return []
   }

@@ -132,8 +132,10 @@ const createNewAccount = async (_: unknown, action: WalletsGen.CreateNewAccountP
       setBuildingTo: action.payload.setBuildingTo,
       showOnCreation: action.payload.showOnCreation,
     })
-  } catch (error_) {
-    const error = error_ as RPCError
+  } catch (error) {
+    if (!(error instanceof RPCError)) {
+      return
+    }
     logger.warn(`Error: ${error.desc}`)
     return WalletsGen.createCreatedNewAccount({accountID: Types.noAccountID, error: error.desc, name})
   }
@@ -193,8 +195,10 @@ const sendPayment = async (state: Container.TypedState) => {
       kbTxID: new HiddenString(res.kbTxID),
       lastSentXLM: !notXLM,
     })
-  } catch (error_) {
-    const error = error_ as RPCError
+  } catch (error) {
+    if (!(error instanceof RPCError)) {
+      return
+    }
     return WalletsGen.createSentPaymentError({error: error.desc})
   }
 }
@@ -253,8 +257,7 @@ const requestPayment = async (state: Container.TypedState) => {
       })
     )
     return acts
-  } catch (error_) {
-    const error = error_ as RPCError
+  } catch (error) {
     if (error instanceof RPCError && error.code === RPCTypes.StatusCode.scteamcontactsettingsblock) {
       const users = error.fields?.filter((elem: any) => elem.key === 'usernames')
       const usernames = [users[0].value]
@@ -265,7 +268,7 @@ const requestPayment = async (state: Container.TypedState) => {
         })
       )
       return acts
-    } else {
+    } else if (error instanceof RPCError) {
       logger.error(`requestPayment error: ${error.message}`)
       throw error
     }
@@ -288,16 +291,16 @@ const reviewPayment = async (state: Container.TypedState) => {
       reviewID: state.wallets.reviewCounter,
     })
     return
-  } catch (error_) {
-    const error = error_ as RPCError
+  } catch (error) {
     if (error instanceof RPCError && error.code === RPCTypes.StatusCode.sccanceled) {
       // ignore cancellation, which is expected in the case where we have a
       // failing review and then we build or stop a payment
       return undefined
-    } else {
+    } else if (error instanceof RPCError) {
       return WalletsGen.createSentPaymentError({error: error.desc})
     }
   }
+  return
 }
 
 const stopPayment = async (state: Container.TypedState) =>
@@ -316,12 +319,12 @@ const validateSEP7Link = async (_: unknown, action: WalletsGen.ValidateSEP7LinkP
       RouteTreeGen.createClearModals(),
       RouteTreeGen.createNavigateAppend({path: ['sep7Confirm']}),
     ]
-  } catch (error_) {
-    const error = error_ as RPCError
+  } catch (error) {
+    if (!(error instanceof RPCError)) {
+      return
+    }
     return [
-      WalletsGen.createValidateSEP7LinkError({
-        error: error.desc,
-      }),
+      WalletsGen.createValidateSEP7LinkError({error: error.desc}),
       RouteTreeGen.createClearModals(),
       RouteTreeGen.createNavigateAppend({
         path: [{props: {errorSource: 'sep7'}, selected: 'keybaseLinkError'}],
@@ -336,8 +339,10 @@ const acceptSEP7Tx = async (_: unknown, action: WalletsGen.AcceptSEP7TxPayload) 
       {inputURI: action.payload.inputURI},
       Constants.sep7WaitingKey
     )
-  } catch (error_) {
-    const error = error_ as RPCError
+  } catch (error) {
+    if (!(error instanceof RPCError)) {
+      return
+    }
     return WalletsGen.createSetSEP7SendError({error: error.desc})
   }
 
@@ -354,8 +359,10 @@ const acceptSEP7Path = async (state: Container.TypedState, action: WalletsGen.Ac
       },
       Constants.sep7WaitingKey
     )
-  } catch (error_) {
-    const error = error_ as RPCError
+  } catch (error) {
+    if (!(error instanceof RPCError)) {
+      return
+    }
     return WalletsGen.createSetSEP7SendError({error: error.desc})
   }
 
@@ -372,8 +379,10 @@ const acceptSEP7Pay = async (_: unknown, action: WalletsGen.AcceptSEP7PayPayload
       },
       Constants.sep7WaitingKey
     )
-  } catch (error_) {
-    const error = error_ as RPCError
+  } catch (error) {
+    if (!(error instanceof RPCError)) {
+      return
+    }
     return WalletsGen.createSetSEP7SendError({error: error.desc})
   }
   return [RouteTreeGen.createClearModals(), RouteTreeGen.createSwitchTab({tab: Tabs.walletsTab})]
@@ -442,8 +451,10 @@ const loadAccounts = async (
         return Constants.accountResultToAccount(account)
       }),
     })
-  } catch (error_) {
-    const error = error_ as RPCError
+  } catch (error) {
+    if (!(error instanceof RPCError)) {
+      return
+    }
     const msg = `Error: ${error.desc}`
     if (action.type === WalletsGen.loadAccounts && action.payload.reason === 'initial-load') {
       // No need to throw black bars -- handled by Reloadable.
@@ -537,8 +548,10 @@ const loadAssets = async (state: Container.TypedState, action: LoadAssetsActions
       accountID,
       assets: (res || []).map(assets => Constants.assetsResultToAssets(assets)),
     })
-  } catch (error_) {
-    const error = error_ as RPCError
+  } catch (error) {
+    if (!(error instanceof RPCError)) {
+      return
+    }
     return handleSelectAccountError(action, 'selecting account', error)
   }
 }
@@ -589,8 +602,10 @@ const loadPayments = async (state: Container.TypedState, action: LoadPaymentsAct
         RPCStellarTypes.localGetPaymentsLocalRpcPromise({accountID}),
       ])
       return createPaymentsReceived(accountID, payments ?? undefined, pending ?? [], true, '')
-    } catch (error_) {
-      const error = error_ as RPCError
+    } catch (error) {
+      if (!(error instanceof RPCError)) {
+        return
+      }
       const s = `There was an error loading your payment history, please try again: ${error.desc}`
       return createPaymentsReceived(accountID, undefined, [], true, s)
     }
@@ -633,8 +648,10 @@ const loadSendAssetChoices = async (_: unknown, action: WalletsGen.LoadSendAsset
     })
     // The result is dropped here. See PICNIC-84 for fixing it.
     return res && WalletsGen.createSendAssetChoicesReceived({sendAssetChoices: res})
-  } catch (error_) {
-    const error = error_ as RPCError
+  } catch (error) {
+    if (!(error instanceof RPCError)) {
+      return
+    }
     logger.warn(`Error: ${error.desc}`)
     return false
   }
@@ -729,8 +746,10 @@ const loadPaymentDetail = async (_: unknown, action: WalletsGen.LoadPaymentDetai
       accountID: action.payload.accountID,
       payment: Constants.rpcPaymentDetailToPaymentDetail(res),
     })
-  } catch (error_) {
-    const error = error_ as RPCError
+  } catch (error) {
+    if (!(error instanceof RPCError)) {
+      return
+    }
     // No need to throw black bars -- handled by Reloadable.
     logger.warn(error.desc)
     return false
@@ -743,8 +762,10 @@ const markAsRead = async (_: unknown, action: WalletsGen.MarkAsReadPayload) => {
       accountID: action.payload.accountID,
       mostRecentID: Types.paymentIDToRPCPaymentID(action.payload.mostRecentID),
     })
-  } catch (error_) {
-    const error = error_ as RPCError
+  } catch (error) {
+    if (!(error instanceof RPCError)) {
+      return
+    }
     // No need to throw black bars.
     logger.warn(error.desc)
   }
@@ -766,8 +787,10 @@ const linkExistingAccount = async (_: unknown, action: WalletsGen.LinkExistingAc
       setBuildingTo: action.payload.setBuildingTo,
       showOnCreation: action.payload.showOnCreation,
     })
-  } catch (error_) {
-    const error = error_ as RPCError
+  } catch (error) {
+    if (!(error instanceof RPCError)) {
+      return
+    }
     logger.warn(`Error: ${error.desc}`)
     return WalletsGen.createLinkedExistingAccount({
       accountID: Types.noAccountID,
@@ -786,8 +809,10 @@ const validateAccountName = async (_: unknown, action: WalletsGen.ValidateAccoun
       Constants.validateAccountNameWaitingKey
     )
     return WalletsGen.createValidatedAccountName({name})
-  } catch (error_) {
-    const error = error_ as RPCError
+  } catch (error) {
+    if (!(error instanceof RPCError)) {
+      return
+    }
     logger.warn(`Error: ${error.desc}`)
     return WalletsGen.createValidatedAccountName({error: error.desc, name})
   }
@@ -801,8 +826,10 @@ const validateSecretKey = async (_: unknown, action: WalletsGen.ValidateSecretKe
       Constants.validateSecretKeyWaitingKey
     )
     return WalletsGen.createValidatedSecretKey({secretKey})
-  } catch (error_) {
-    const error = error_ as RPCError
+  } catch (error) {
+    if (!(error instanceof RPCError)) {
+      return
+    }
     logger.warn(`Error: ${error.desc}`)
     return WalletsGen.createValidatedSecretKey({error: error.desc, secretKey})
   }
@@ -925,8 +952,10 @@ const cancelPayment = async (state: Container.TypedState, action: WalletsGen.Can
       })
     }
     return false
-  } catch (error_) {
-    const error = error_ as RPCError
+  } catch (error) {
+    if (!(error instanceof RPCError)) {
+      return
+    }
     logger.error(`failed to cancel payment with ID ${pid}. Error: ${error.message}`)
     throw error
   }
@@ -935,8 +964,10 @@ const cancelPayment = async (state: Container.TypedState, action: WalletsGen.Can
 const cancelRequest = async (_: unknown, action: WalletsGen.CancelRequestPayload) => {
   try {
     return RPCStellarTypes.localCancelRequestLocalRpcPromise({reqID: action.payload.requestID})
-  } catch (error_) {
-    const error = error_ as RPCError
+  } catch (error) {
+    if (!(error instanceof RPCError)) {
+      return
+    }
     logger.error(`Error: ${error.message}`)
     return false
   }
@@ -1057,8 +1088,10 @@ const checkDisclaimer = async () => {
       actions.push(RouteTreeGen.createNavigateAppend({path: [SettingsConstants.walletsTab]}))
     }
     return actions
-  } catch (error_) {
-    const error = error_ as RPCError
+  } catch (error) {
+    if (!(error instanceof RPCError)) {
+      return
+    }
     logger.error(`Error checking wallet disclaimer: ${error.message}`)
     return false
   }
@@ -1091,8 +1124,10 @@ const loadMobileOnlyMode = async (
       accountID: accountID,
       enabled: isMobileOnly,
     })
-  } catch (error_) {
-    const error = error_ as RPCError
+  } catch (error) {
+    if (!(error instanceof RPCError)) {
+      return
+    }
     handleSelectAccountError(action, 'loading mobile only mode', error)
     return false
   }
@@ -1118,8 +1153,10 @@ const writeLastSentXLM = async (state: Container.TypedState, action: WalletsGen.
         path: 'stellar.lastSentXLM',
         value: {b: state.wallets.lastSentXLM, isNull: false},
       })
-    } catch (error_) {
-      const error = error_ as RPCError
+    } catch (error) {
+      if (!(error instanceof RPCError)) {
+        return
+      }
       logger.error(`Error: ${error.message}`)
       return false
     }
@@ -1133,8 +1170,10 @@ const readLastSentXLM = async () => {
     const value = !result.isNull && !!result.b
     logger.info(`Successfully read config: ${String(value)}`)
     return WalletsGen.createSetLastSentXLM({lastSentXLM: value, writeFile: false})
-  } catch (error_) {
-    const error = error_ as RPCError
+  } catch (error) {
+    if (!(error instanceof RPCError)) {
+      return
+    }
     if (!error.message.includes('no such key')) {
       logger.error(`Error reading config: ${error.message}`)
     }
@@ -1295,8 +1334,10 @@ const addTrustline = async (state: Container.TypedState, action: WalletsGen.AddT
       Constants.addTrustlineWaitingKey(accountID, assetID)
     )
     return [WalletsGen.createChangedTrustline(), refresh]
-  } catch (error_) {
-    const error = error_ as RPCError
+  } catch (error) {
+    if (!(error instanceof RPCError)) {
+      return
+    }
     logger.warn(`Error: ${error.desc}`)
     return [WalletsGen.createChangedTrustline({error: error.desc}), refresh]
   }
@@ -1318,8 +1359,10 @@ const deleteTrustline = async (state: Container.TypedState, action: WalletsGen.D
       Constants.deleteTrustlineWaitingKey(accountID, assetID)
     )
     return [WalletsGen.createChangedTrustline(), refresh]
-  } catch (error_) {
-    const error = error_ as RPCError
+  } catch (error) {
+    if (!(error instanceof RPCError)) {
+      return
+    }
     logger.warn(`Error: ${error.desc}`)
     return [WalletsGen.createChangedTrustline({error: error.desc}), refresh]
   }
@@ -1433,8 +1476,10 @@ const calculateBuildingAdvanced = async (
       }),
       forSEP7: action.payload.forSEP7,
     })
-  } catch (error_) {
-    const error = error_ as RPCError
+  } catch (error) {
+    if (!(error instanceof RPCError)) {
+      return
+    }
     let errorMessage = 'Error finding a path to convert these 2 assets.'
     if (error?.desc) {
       errorMessage = error.desc
@@ -1513,8 +1558,10 @@ const assetDeposit = async (_: unknown, action: WalletsGen.AssetDepositPayload) 
       Constants.assetDepositWaitingKey(action.payload.issuerAccountID, action.payload.code)
     )
     return handleSEP6Result(res)
-  } catch (error_) {
-    const error = error_ as RPCError
+  } catch (error) {
+    if (!(error instanceof RPCError)) {
+      return
+    }
     return handleSEP6Error(error)
   }
 }
@@ -1534,8 +1581,10 @@ const assetWithdraw = async (_: unknown, action: WalletsGen.AssetWithdrawPayload
       Constants.assetWithdrawWaitingKey(action.payload.issuerAccountID, action.payload.code)
     )
     return handleSEP6Result(res)
-  } catch (error_) {
-    const error = error_ as RPCError
+  } catch (error) {
+    if (!(error instanceof RPCError)) {
+      return
+    }
     return handleSEP6Error(error)
   }
 }

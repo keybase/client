@@ -118,8 +118,10 @@ const startRecoverPassword = async (
       },
       listenerApi
     )
-  } catch (error_) {
-    const error = error_ as RPCError
+  } catch (error) {
+    if (!(error instanceof RPCError)) {
+      return
+    }
     hadError = true
     logger.warn('RPC returned error: ' + error.message)
     if (

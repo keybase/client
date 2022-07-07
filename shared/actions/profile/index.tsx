@@ -7,7 +7,7 @@ import * as TrackerConstants from '../../constants/tracker2'
 import * as Tracker2Gen from '../tracker2-gen'
 import logger from '../../logger'
 import openURL from '../../util/open-url'
-import {type RPCError} from '../../util/errors'
+import {RPCError} from '../../util/errors'
 import {initPgp} from './pgp'
 import {initProofs} from './proofs'
 
@@ -33,8 +33,10 @@ const uploadAvatar = async (_: unknown, action: ProfileGen.UploadAvatarPayload) 
       Constants.uploadAvatarWaitingKey
     )
     return RouteTreeGen.createNavigateUp()
-  } catch (error_) {
-    const error = error_ as RPCError
+  } catch (error) {
+    if (!(error instanceof RPCError)) {
+      return
+    }
     // error displayed in component
     logger.warn(`Error uploading user avatar: ${error.message}`)
     return false
@@ -118,8 +120,10 @@ const submitBlockUser = async (_: unknown, action: ProfileGen.SubmitBlockUserPay
         reason: '',
       }),
     ]
-  } catch (error_) {
-    const error = error_ as RPCError
+  } catch (error) {
+    if (!(error instanceof RPCError)) {
+      return
+    }
     logger.warn(`Error blocking user ${action.payload.username}`, error)
     return ProfileGen.createFinishBlockUser({
       error: error.desc || `There was an error blocking ${action.payload.username}.`,
@@ -139,8 +143,10 @@ const submitUnblockUser = async (_: unknown, action: ProfileGen.SubmitUnblockUse
       inTracker: false,
       reason: '',
     })
-  } catch (error_) {
-    const error = error_ as RPCError
+  } catch (error) {
+    if (!(error instanceof RPCError)) {
+      return
+    }
     logger.warn(`Error unblocking user ${action.payload.username}`, error)
     return Tracker2Gen.createUpdateResult({
       guiID: action.payload.guiID,
@@ -197,8 +203,10 @@ const wotVouch = async (state: Container.TypedState, action: ProfileGen.WotVouch
       },
       Constants.wotAuthorWaitingKey
     )
-  } catch (error_) {
-    const error = error_ as RPCError
+  } catch (error) {
+    if (!(error instanceof RPCError)) {
+      return
+    }
     logger.warn('Error from wotVouch:', error)
     return ProfileGen.createWotVouchSetError({
       error: error.desc || `There was an error submitting the claim.`,

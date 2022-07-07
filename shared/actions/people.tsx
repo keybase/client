@@ -12,7 +12,7 @@ import * as TeamBuildingGen from './team-building-gen'
 import {commonListenActions, filterForNs} from './team-building'
 import logger from '../logger'
 import type * as Types from '../constants/types/people'
-import type {RPCError} from '../util/errors'
+import {RPCError} from '../util/errors'
 
 // set this to true to have all todo items + a contact joined notification show up all the time
 const debugTodo = false
@@ -162,8 +162,10 @@ const dismissAnnouncement = async (_: unknown, action: PeopleGen.DismissAnnounce
 const markViewed = async () => {
   try {
     await RPCTypes.homeHomeMarkViewedRpcPromise()
-  } catch (error_) {
-    const error = error_ as RPCError
+  } catch (error) {
+    if (!(error instanceof RPCError)) {
+      throw error
+    }
     if (Container.isNetworkErr(error.code)) {
       logger.warn('Network error calling homeMarkViewed')
     } else {

@@ -8,7 +8,7 @@ import * as CryptoGen from './crypto-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Platform from '../constants/platform'
 import HiddenString from '../util/hidden-string'
-import type {RPCError} from '../util/errors'
+import {RPCError} from '../util/errors'
 import {commonListenActions, filterForNs} from './team-building'
 import logger from '../logger'
 
@@ -329,8 +329,10 @@ const saltpackEncrypt = async (state: Container.TypedState, action: CryptoGen.Sa
           outputSigned: options.sign,
           outputType: type,
         })
-      } catch (error_) {
-        const error = error_ as RPCError
+      } catch (error) {
+        if (!(error instanceof RPCError)) {
+          return
+        }
         logger.error(error)
         const message = Constants.getStatusCodeMessage(error, Constants.Operations.Encrypt, type)
         return CryptoGen.createOnOperationError({
@@ -364,8 +366,10 @@ const saltpackEncrypt = async (state: Container.TypedState, action: CryptoGen.Sa
           warning: encryptRes.usedUnresolvedSBS,
           warningMessage: new HiddenString(warningMessage),
         })
-      } catch (error_) {
-        const error = error_ as RPCError
+      } catch (error) {
+        if (!(error instanceof RPCError)) {
+          return
+        }
         logger.error(error)
         const message = Constants.getStatusCodeMessage(error, Constants.Operations.Encrypt, type)
         return CryptoGen.createOnOperationError({
@@ -412,8 +416,10 @@ const saltpackDecrypt = async (_, action: CryptoGen.SaltpackDecryptPayload) => {
             outputType: type,
           }),
         ]
-      } catch (error_) {
-        const error = error_ as RPCError
+      } catch (error) {
+        if (!(error instanceof RPCError)) {
+          return
+        }
         logger.error(error)
         const message = Constants.getStatusCodeMessage(error, Constants.Operations.Decrypt, type)
         return CryptoGen.createOnOperationError({
@@ -444,8 +450,10 @@ const saltpackDecrypt = async (_, action: CryptoGen.SaltpackDecryptPayload) => {
             outputType: type,
           }),
         ]
-      } catch (error_) {
-        const error = error_ as RPCError
+      } catch (error) {
+        if (!(error instanceof RPCError)) {
+          return
+        }
         logger.error(error)
         const message = Constants.getStatusCodeMessage(error, Constants.Operations.Decrypt, type)
         return CryptoGen.createOnOperationError({
@@ -484,8 +492,10 @@ const saltpackSign = async (state: Container.TypedState, action: CryptoGen.Saltp
           outputSigned: true,
           outputType: type,
         })
-      } catch (error_) {
-        const error = error_ as RPCError
+      } catch (error) {
+        if (!(error instanceof RPCError)) {
+          return
+        }
         logger.error(error)
         const message = Constants.getStatusCodeMessage(error, Constants.Operations.Sign, type)
         return CryptoGen.createOnOperationError({
@@ -508,8 +518,10 @@ const saltpackSign = async (state: Container.TypedState, action: CryptoGen.Saltp
           outputSigned: true,
           outputType: type,
         })
-      } catch (error_) {
-        const error = error_ as RPCError
+      } catch (error) {
+        if (!(error instanceof RPCError)) {
+          return
+        }
         logger.error(error)
         const message = Constants.getStatusCodeMessage(error, Constants.Operations.Sign, type)
         return CryptoGen.createOnOperationError({
@@ -554,8 +566,10 @@ const saltpackVerify = async (_, action: CryptoGen.SaltpackVerifyPayload) => {
             outputType: type,
           }),
         ]
-      } catch (error_) {
-        const error = error_ as RPCError
+      } catch (error) {
+        if (!(error instanceof RPCError)) {
+          return
+        }
         logger.error(error)
         const message = Constants.getStatusCodeMessage(error, Constants.Operations.Verify, type)
         return CryptoGen.createOnOperationError({
@@ -585,8 +599,10 @@ const saltpackVerify = async (_, action: CryptoGen.SaltpackVerifyPayload) => {
             outputType: type,
           }),
         ]
-      } catch (error_) {
-        const error = error_ as RPCError
+      } catch (error) {
+        if (!(error instanceof RPCError)) {
+          return
+        }
         logger.error(error)
         const message = Constants.getStatusCodeMessage(error, Constants.Operations.Verify, type)
         return CryptoGen.createOnOperationError({

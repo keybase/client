@@ -1,8 +1,8 @@
 import * as Container from '../../util/container'
 import * as ProfileGen from '../profile-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
-import {type RPCError} from '../../util/errors'
 import * as RouteTreeGen from '../route-tree-gen'
+import {RPCError} from '../../util/errors'
 import {peopleTab} from '../../constants/tabs'
 
 const generatePgp = async (state: Container.TypedState, _a: unknown, listenerApi: Container.ListenerApi) => {
@@ -67,8 +67,10 @@ const generatePgp = async (state: Container.TypedState, _a: unknown, listenerApi
       },
       listenerApi
     )
-  } catch (error_) {
-    const error = error_ as RPCError
+  } catch (error) {
+    if (!(error instanceof RPCError)) {
+      return
+    }
     // did we cancel?
     if (error.code !== RPCTypes.StatusCode.scinputcanceled) {
       throw error

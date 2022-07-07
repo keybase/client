@@ -6,7 +6,7 @@ import * as ProvisionGen from './provision-gen'
 import * as RPCGen from '../constants/types/rpc-gen'
 import * as RecoverPasswordGen from './recover-password-gen'
 import * as RouteTreeGen from './route-tree-gen'
-import type {RPCError} from '../util/errors'
+import {RPCError} from '../util/errors'
 import logger from '../logger'
 
 const receivedBadgeState = (
@@ -26,8 +26,10 @@ const cancelReset = async () => {
   logger.info('Cancelled autoreset from logged-in user')
   try {
     await RPCGen.accountCancelResetRpcPromise(undefined, Constants.cancelResetWaitingKey)
-  } catch (error_) {
-    const error = error_ as RPCError
+  } catch (error) {
+    if (!(error instanceof RPCError)) {
+      return
+    }
     logger.error('Error in CancelAutoreset', error)
     switch (error.code ?? 0) {
       case RPCGen.StatusCode.scnosession:
@@ -115,8 +117,10 @@ const resetAccount = async (
       listenerApi
     )
     listenerApi.dispatch(AutoresetGen.createSubmittedReset({checkEmail: !action.payload.password}))
-  } catch (error_) {
-    const error = error_ as RPCError
+  } catch (error) {
+    if (!(error instanceof RPCError)) {
+      return
+    }
     logger.warn('Error resetting account:', error)
     listenerApi.dispatch(AutoresetGen.createResetError({error}))
   }

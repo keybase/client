@@ -6,7 +6,7 @@ import * as NotificationsGen from './notifications-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Tabs from '../constants/tabs'
 import * as Container from '../util/container'
-import {logError, type RPCError} from '../util/errors'
+import {logError, RPCError} from '../util/errors'
 
 const load = async (state: Container.TypedState) => {
   if (!state.config.loggedIn) {
@@ -30,8 +30,10 @@ const createPersonalRepo = async (_: unknown, action: GitGen.CreatePersonalRepoP
       Constants.loadingWaitingKey
     )
     return GitGen.createRepoCreated()
-  } catch (error_) {
-    const error = error_ as RPCError
+  } catch (error) {
+    if (!(error instanceof RPCError)) {
+      return
+    }
     return GitGen.createSetError({error})
   }
 }
@@ -47,8 +49,10 @@ const createTeamRepo = async (_: unknown, action: GitGen.CreateTeamRepoPayload) 
       Constants.loadingWaitingKey
     )
     return GitGen.createRepoCreated()
-  } catch (error_) {
-    const error = error_ as RPCError
+  } catch (error) {
+    if (!(error instanceof RPCError)) {
+      return
+    }
     return GitGen.createSetError({error})
   }
 }
@@ -60,8 +64,10 @@ const deletePersonalRepo = async (_: unknown, action: GitGen.DeletePersonalRepoP
       Constants.loadingWaitingKey
     )
     return GitGen.createRepoDeleted()
-  } catch (error_) {
-    const error = error_ as RPCError
+  } catch (error) {
+    if (!(error instanceof RPCError)) {
+      return
+    }
     return GitGen.createSetError({error})
   }
 }
@@ -77,8 +83,10 @@ const deleteTeamRepo = async (_: unknown, action: GitGen.DeleteTeamRepoPayload) 
       Constants.loadingWaitingKey
     )
     return GitGen.createRepoDeleted()
-  } catch (error_) {
-    const error = error_ as RPCError
+  } catch (error) {
+    if (!(error instanceof RPCError)) {
+      return
+    }
     return GitGen.createSetError({error})
   }
 }
