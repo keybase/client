@@ -18,7 +18,7 @@ import initProfile from '../actions/profile'
 import initRecoverPassword from '../actions/recover-password'
 import initTracker from '../actions/tracker2'
 import initSettings from '../actions/settings'
-import signupSaga from '../actions/signup'
+import initSignup from '../actions/signup'
 import initTeams from '../actions/teams'
 import initUnlockFolders from '../actions/unlock-folders'
 import initUsers from '../actions/users'
@@ -49,7 +49,7 @@ function* mainSaga() {
   initGit()
   initPeople()
   yield Saga.spawn(walletsSaga)
-  yield Saga.spawn(signupSaga)
+  initSignup()
 }
 
 let middleWare

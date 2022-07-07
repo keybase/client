@@ -4,7 +4,6 @@ import * as Tabs from '../constants/tabs'
 import * as Constants from '../constants/signup'
 import * as ConfigConstants from '../constants/config'
 import * as SignupGen from './signup-gen'
-import * as Saga from '../util/saga'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as RouteTreeGen from './route-tree-gen'
 import * as SettingsGen from './settings-gen'
@@ -154,7 +153,11 @@ const checkDevicename = async (state: Container.TypedState) => {
 }
 
 // Actually sign up ///////////////////////////////////////////////////////////
-function* reallySignupOnNoErrors(state: Container.TypedState) {
+const reallySignupOnNoErrors = async (
+  state: Container.TypedState,
+  _a: unknown,
+  listenerApi: Container.ListenerApi
+) => {
   if (!noErrors(state)) {
     logger.warn('Still has errors, bailing on really signing up')
     return
@@ -168,50 +171,45 @@ function* reallySignupOnNoErrors(state: Container.TypedState) {
   }
 
   try {
-    yield Saga.put(
-      PushGen.createShowPermissionsPrompt({
-        justSignedUp: true,
-      })
-    )
+    listenerApi.dispatch(PushGen.createShowPermissionsPrompt({justSignedUp: true}))
 
-    yield RPCTypes.signupSignupRpcSaga({
-      customResponseIncomingCallMap: {
-        // Do not add a gpg key for now
-        'keybase.1.gpgUi.wantToAddGPGKey': (_, response) => {
-          response.result(false)
+    await RPCTypes.signupSignupRpcListener(
+      {
+        customResponseIncomingCallMap: {
+          // Do not add a gpg key for now
+          'keybase.1.gpgUi.wantToAddGPGKey': (_, response) => {
+            response.result(false)
+          },
         },
+        incomingCallMap: {
+          // We dont show the paperkey anymore
+          'keybase.1.loginUi.displayPrimaryPaperKey': () => {},
+        },
+        params: {
+          botToken: '',
+          deviceName: devicename,
+          deviceType: isMobile ? RPCTypes.DeviceType.mobile : RPCTypes.DeviceType.desktop,
+          email: '',
+          genPGPBatch: false,
+          genPaper: false,
+          inviteCode,
+          passphrase: '',
+          randomPw: true,
+          skipGPG: true,
+          skipMail: true,
+          storeSecret: true,
+          username,
+          verifyEmail: true,
+        },
+        waitingKey: Constants.waitingKey,
       },
-      incomingCallMap: {
-        // We dont show the paperkey anymore
-        'keybase.1.loginUi.displayPrimaryPaperKey': () => {},
-      },
-      params: {
-        botToken: '',
-        deviceName: devicename,
-        deviceType: isMobile ? RPCTypes.DeviceType.mobile : RPCTypes.DeviceType.desktop,
-        email: '',
-        genPGPBatch: false,
-        genPaper: false,
-        inviteCode,
-        passphrase: '',
-        randomPw: true,
-        skipGPG: true,
-        skipMail: true,
-        storeSecret: true,
-        username,
-        verifyEmail: true,
-      },
-      waitingKey: Constants.waitingKey,
-    })
-    yield Saga.put(SignupGen.createSignedup())
+      listenerApi
+    )
+    listenerApi.dispatch(SignupGen.createSignedup())
   } catch (error_) {
     const error = error_ as RPCError
-    yield Saga.put(SignupGen.createSignedup({error}))
-    yield Saga.put(
-      PushGen.createShowPermissionsPrompt({
-        justSignedUp: false,
-      })
-    )
+    listenerApi.dispatch(SignupGen.createSignedup({error}))
+    listenerApi.dispatch(PushGen.createShowPermissionsPrompt({justSignedUp: false}))
   }
 }
 
@@ -231,7 +229,7 @@ const maybeClearJustSignedUpEmail = (
   return false
 }
 
-const signupSaga = function* () {
+const initSignup = () => {
   // validation actions
   Container.listenAction(SignupGen.requestInvite, requestInvite)
   Container.listenAction(SignupGen.checkUsername, checkUsername)
@@ -250,23 +248,8 @@ const signupSaga = function* () {
   Container.listenAction(RouteTreeGen.onNavChanged, maybeClearJustSignedUpEmail)
 
   // actually make the signup call
-  yield* Saga.chainGenerator(SignupGen.checkedDevicename, reallySignupOnNoErrors)
+  Container.listenAction(SignupGen.checkedDevicename, reallySignupOnNoErrors)
   Container.listenAction(SignupGen.goBackAndClearErrors, goBackAndClearErrors)
 }
 
-export default signupSaga
-
-export const _testing = {
-  checkDevicename,
-  checkInviteCode,
-  checkUsername,
-  goBackAndClearErrors,
-  reallySignupOnNoErrors,
-  requestAutoInvite,
-  requestInvite,
-  showDeviceScreenOnNoErrors,
-  showErrorOrCleanupAfterSignup,
-  showInviteScreen,
-  showInviteSuccessOnNoErrors,
-  showUserOnNoErrors,
-}
+export default initSignup
