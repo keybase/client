@@ -55,6 +55,7 @@ class ProvisioningManager {
   private addingANewDevice: boolean
   private done: boolean = false
   private canceled: boolean = false
+  listenerApi: Container.ListenerApi | undefined
 
   _testing = () => ({
     stashedResponse: this.stashedResponse,
@@ -114,16 +115,15 @@ class ProvisioningManager {
   }
 
   // Telling the daemon the other device type when adding a new device
-  chooseDeviceTypeHandler = (
-    _: unknown,
-    response: CustomResp<'keybase.1.provisionUi.chooseDeviceType'>,
-    listenerApi: Container.ListenerApi
-  ) => {
+  chooseDeviceTypeHandler = (_: unknown, response: CustomResp<'keybase.1.provisionUi.chooseDeviceType'>) => {
     if (this.done) {
       logger.info('ProvisioningManager done, yet chooseDeviceTypeHandler called')
       return
     }
-    const state = listenerApi.getState()
+    if (!this.listenerApi) {
+      throw new Error('No listener api should be impossible')
+    }
+    const state = this.listenerApi.getState()
     switch (state.provision.codePageOtherDevice.type) {
       case 'mobile':
         response.result(RPCTypes.DeviceType.mobile)
@@ -345,13 +345,13 @@ class ProvisioningManager {
     return WaitingGen.createBatchChangeWaiting({changes: [{increment: true, key: Constants.waitingKey}]})
   }
 
-  getCustomResponseIncomingCallMap = () =>
+  getCustomResponseIncomingCallMap = (): RPCTypes.CustomResponseIncomingCallMap =>
     this.addingANewDevice
-      ? {
+      ? ({
           'keybase.1.provisionUi.DisplayAndPromptSecret': this.displayAndPromptSecretHandler,
           'keybase.1.provisionUi.chooseDeviceType': this.chooseDeviceTypeHandler,
-        }
-      : {
+        } as const)
+      : ({
           'keybase.1.gpgUi.selectKey': Constants.cancelOnCallback,
           'keybase.1.loginUi.getEmailOrUsername': Constants.cancelOnCallback,
           'keybase.1.provisionUi.DisplayAndPromptSecret': this.displayAndPromptSecretHandler,
@@ -360,7 +360,7 @@ class ProvisioningManager {
           'keybase.1.provisionUi.chooseGPGMethod': this.chooseGPGMethodHandler,
           'keybase.1.provisionUi.switchToGPGSignOK': this.switchToGPGSignOKHandler,
           'keybase.1.secretUi.getPassphrase': this.getPasswordHandler,
-        }
+        } as const)
 
   getIncomingCallMap = () =>
     this.addingANewDevice
@@ -422,6 +422,8 @@ const startProvisioning = async (
     if (!username) {
       return
     }
+
+    ProvisioningManager.getSingleton().listenerApi = listenerApi
 
     await RPCTypes.loginLoginRpcListener(
       {

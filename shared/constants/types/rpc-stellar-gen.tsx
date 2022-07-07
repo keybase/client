@@ -17,7 +17,9 @@ export type Uint64 = number
 type WaitingKey = string | Array<string>
 type SimpleError = {code?: number; desc?: string}
 export type IncomingErrorCallback = (err?: SimpleError | null) => void
-type IncomingReturn = any /*TODO*/
+
+import type {TypedActions} from '../../actions/typed-actions-gen'
+type IncomingReturn = Promise<Array<TypedActions> | TypedActions | false | undefined | void> | Array<TypedActions> | TypedActions | false | undefined | void
 
 export type MessageTypes = {
   'stellar.1.local.acceptDisclaimerLocal': {
