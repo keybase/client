@@ -3,7 +3,6 @@ import initBots from '../actions/bots'
 import initChat from '../actions/chat2'
 import initCrypto from '../actions/crypto'
 import initConfig from '../actions/config'
-import createSagaMiddleware from 'redux-saga'
 import initDeeplinks from '../actions/deeplinks'
 import initDevice from '../actions/devices'
 import initFS from '../actions/fs'
@@ -24,7 +23,7 @@ import initUnlockFolders from '../actions/unlock-folders'
 import initUsers from '../actions/users'
 import initWallets from '../actions/wallets'
 
-function* mainSaga() {
+export const initListeners = () => {
   initAutoReset()
   initBots()
   initChat()
@@ -50,20 +49,3 @@ function* mainSaga() {
   initWallets()
   initSignup()
 }
-
-let middleWare
-function create(crashHandler: (err: any) => void) {
-  if (!__DEV__ && middleWare) {
-    throw new Error('Only create one saga middleware!')
-  }
-  middleWare = createSagaMiddleware({
-    onError: crashHandler,
-  })
-  return middleWare
-}
-
-function run() {
-  middleWare?.run(mainSaga)
-}
-
-export {create, run}

@@ -4,7 +4,7 @@ import * as Constants from '../../constants/fs'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Container from '../../util/container'
 import {PermissionsAndroid} from 'react-native'
-import nativeSaga from './common.native'
+import nativeInit from './common.native'
 import {NativeModules} from '../../util/native-modules.native'
 
 export const ensureDownloadPermissionPromise = async () => {
@@ -73,7 +73,7 @@ const configureDownload = async () =>
   })
 
 export default function initPlatformSpecific() {
-  nativeSaga()
+  nativeInit()
   Container.listenAction(FsGen.finishedRegularDownload, finishedRegularDownload)
   Container.listenAction(FsGen.kbfsDaemonRpcStatusChanged, configureDownload)
 }

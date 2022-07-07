@@ -4,7 +4,6 @@ import * as ProfileGen from './profile-gen'
 import * as UsersGen from './users-gen'
 import * as DeeplinksGen from './deeplinks-gen'
 import * as RouteTreeGen from './route-tree-gen'
-import * as Saga from '../util/saga'
 import * as Container from '../util/container'
 import type {RPCError} from '../util/errors'
 import * as Constants from '../constants/tracker2'
@@ -184,22 +183,19 @@ const loadWebOfTrustEntries = async (
 
 const loadFollowers = async (_: unknown, action: Tracker2Gen.LoadPayload) => {
   const {assertion} = action.payload
-  const convertTrackers = (fs: Saga.RPCPromiseType<typeof RPCTypes.userListTrackersUnverifiedRpcPromise>) => {
-    return (fs.users || []).map(f => ({
-      fullname: f.fullName,
-      username: f.username,
-    }))
-  }
-
   if (action.payload.inTracker) {
     return false
   }
 
   try {
-    const followers = await RPCTypes.userListTrackersUnverifiedRpcPromise(
+    const fs = await RPCTypes.userListTrackersUnverifiedRpcPromise(
       {assertion},
       Constants.profileLoadWaitingKey
-    ).then(convertTrackers)
+    )
+    const followers = (fs.users || []).map(f => ({
+      fullname: f.fullName,
+      username: f.username,
+    }))
     return Tracker2Gen.createUpdateFollows({
       followers,
       following: undefined,
@@ -214,22 +210,21 @@ const loadFollowers = async (_: unknown, action: Tracker2Gen.LoadPayload) => {
 
 const loadFollowing = async (_: unknown, action: Tracker2Gen.LoadPayload) => {
   const {assertion} = action.payload
-  const convertTracking = (fs: Saga.RPCPromiseType<typeof RPCTypes.userListTrackingRpcPromise>) => {
-    return (fs.users || []).map(f => ({
-      fullname: f.fullName,
-      username: f.username,
-    }))
-  }
 
   if (action.payload.inTracker) {
     return false
   }
 
   try {
-    const following = await RPCTypes.userListTrackingRpcPromise(
+    const fs = await RPCTypes.userListTrackingRpcPromise(
       {assertion, filter: ''},
       Constants.profileLoadWaitingKey
-    ).then(convertTracking)
+    )
+    const following = (fs.users || []).map(f => ({
+      fullname: f.fullName,
+      username: f.username,
+    }))
+
     return Tracker2Gen.createUpdateFollows({
       followers: undefined,
       following,

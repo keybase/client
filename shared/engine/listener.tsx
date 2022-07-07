@@ -125,7 +125,7 @@ async function listener(
     let outstandingIntervalID
     if (printOutstandingRPCs) {
       outstandingIntervalID = setInterval(() => {
-        console.log('Engine/Saga with a still-alive eventChannel for method:', method)
+        console.log('Engine/Listener with a still-alive eventChannel for method:', method)
       }, 2000)
     }
 

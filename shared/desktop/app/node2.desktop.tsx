@@ -714,7 +714,7 @@ const plumbEvents = () => {
       case 'appStartedUp':
         appStartedUp = true
         // tell mainwindow we're connected
-        nodeEngine.sagasAreReady()
+        nodeEngine.listenersAreReady()
 
         if (menubarWindowID) {
           mainWindowDispatch(ConfigGen.createUpdateMenubarWindowID({id: menubarWindowID}))

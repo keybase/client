@@ -12,7 +12,7 @@ import {type Store} from 'redux'
 import {enableStoreLogging, enableActionLogging} from '../local-debug'
 import {hookMiddleware} from './hook-middleware'
 import {isMobile} from '../constants/platform'
-import {run as _runSagas, create as createSagaMiddleware} from './configure-sagas'
+import {initListeners} from './configure-listeners'
 
 let theStore: Store<any, any>
 
@@ -115,18 +115,11 @@ const errorCatching = () => next => action => {
   }
 }
 
-export const sagaMiddleware = (__DEV__ && global.DEBUGSagaMiddleware) || createSagaMiddleware(crashHandler)
-// don't overwrite this on HMR
-if (__DEV__) {
-  global.DEBUGSagaMiddleware = sagaMiddleware
-}
-
 const freezeMiddleware = _store => next => action => next(Object.freeze(action))
 
 const middlewares = [
   listenerMiddleware.middleware,
   errorCatching,
-  sagaMiddleware,
   ...(__DEV__ ? [freezeMiddleware] : []),
   ...(enableStoreLogging && loggerMiddleware ? [loggerMiddleware] : []),
   ...(enableActionLogging ? [actionLogger] : []),
@@ -158,9 +151,9 @@ export default function makeStore() {
   }
 
   return {
-    runSagas: () => {
+    initListeners: () => {
       // register our listeners
-      _runSagas()
+      initListeners()
       // start our 'forks'
       store.dispatch(ConfigGen.createInitListenerLoops())
     },

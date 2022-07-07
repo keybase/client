@@ -7,7 +7,7 @@ export declare class Engine {
   dispatchWaitingAction: (key: WaitingKey, waiting: boolean, err: RPCError | null) => void
   reset(): void
   rpc(): void
-  sagasAreReady(): void
+  listenersAreReady(): void
   registerCustomResponse(s: string): void
   createSession(arg0: {
     incomingCallMap?: IncomingCallMapType
