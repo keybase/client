@@ -585,6 +585,13 @@ const emitStartupOnLoadLoggedIn = (_: Container.TypedState, action: ConfigGen.Lo
   return !action.payload.causedByStartup ? ConfigGen.createLoadOnStart({phase: 'reloggedIn'}) : false
 }
 
+const onPowerMonitorEvent = async (_s: unknown, action: ConfigGen.PowerMonitorEventPayload) => {
+  const {event} = action.payload
+  try {
+    await RPCTypes.appStatePowerMonitorEventRpcPromise({event})
+  } catch {}
+}
+
 const initConfig = () => {
   // Start the handshake process. This means we tell all sagas we're handshaking with the daemon. If another
   // saga needs to do something before we leave the loading screen they should call daemonHandshakeWait
@@ -665,6 +672,7 @@ const initConfig = () => {
 
   Container.spawn(criticalOutOfDateCheck, 'criticalOutOfDateCheck')
   Container.listenAction(ConfigGen.loadOnLoginStartup, loadOnLoginStartup)
+  Container.listenAction(ConfigGen.powerMonitorEvent, onPowerMonitorEvent)
 }
 
 export default initConfig

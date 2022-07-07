@@ -40,6 +40,7 @@ export const openAppSettings = 'config:openAppSettings'
 export const openAppStore = 'config:openAppStore'
 export const osNetworkStatusChanged = 'config:osNetworkStatusChanged'
 export const persistRoute = 'config:persistRoute'
+export const powerMonitorEvent = 'config:powerMonitorEvent'
 export const pushLoaded = 'config:pushLoaded'
 export const remoteWindowWantsProps = 'config:remoteWindowWantsProps'
 export const restartHandshake = 'config:restartHandshake'
@@ -99,6 +100,13 @@ export const createLogoutAndTryToLogInAs = (payload: {readonly username: string}
 export const createOpenAppStore = (payload?: undefined) => ({
   payload,
   type: openAppStore as typeof openAppStore,
+})
+/**
+ * Plumb power monitor events from node
+ */
+export const createPowerMonitorEvent = (payload: {readonly event: string}) => ({
+  payload,
+  type: powerMonitorEvent as typeof powerMonitorEvent,
 })
 /**
  * Save critical check status
@@ -423,6 +431,7 @@ export type OpenAppSettingsPayload = ReturnType<typeof createOpenAppSettings>
 export type OpenAppStorePayload = ReturnType<typeof createOpenAppStore>
 export type OsNetworkStatusChangedPayload = ReturnType<typeof createOsNetworkStatusChanged>
 export type PersistRoutePayload = ReturnType<typeof createPersistRoute>
+export type PowerMonitorEventPayload = ReturnType<typeof createPowerMonitorEvent>
 export type PushLoadedPayload = ReturnType<typeof createPushLoaded>
 export type RemoteWindowWantsPropsPayload = ReturnType<typeof createRemoteWindowWantsProps>
 export type RestartHandshakePayload = ReturnType<typeof createRestartHandshake>
@@ -486,6 +495,7 @@ export type Actions =
   | OpenAppStorePayload
   | OsNetworkStatusChangedPayload
   | PersistRoutePayload
+  | PowerMonitorEventPayload
   | PushLoadedPayload
   | RemoteWindowWantsPropsPayload
   | RestartHandshakePayload
