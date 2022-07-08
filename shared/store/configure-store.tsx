@@ -124,14 +124,6 @@ const middlewares = [
   ...(enableActionLogging ? [actionLogger] : []),
 ]
 
-if (__DEV__ && typeof window !== 'undefined') {
-  global.DEBUGActionLoop = () => {
-    setInterval(() => {
-      theStore.dispatch(DevGen.createDebugCount())
-    }, 1000)
-  }
-}
-
 export default function makeStore() {
   const store = ReduxToolKit.configureStore({
     devTools: false,
