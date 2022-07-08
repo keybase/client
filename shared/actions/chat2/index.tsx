@@ -48,7 +48,7 @@ const onConnect = async () => {
 
 const onGetInboxUnverifiedConvs = (_: unknown, action: EngineGen.Chat1ChatUiChatInboxUnverifiedPayload) => {
   const {inbox} = action.payload.params
-  const result: RPCChatTypes.UnverifiedInboxUIItems = JSON.parse(inbox)
+  const result = JSON.parse(inbox) as RPCChatTypes.UnverifiedInboxUIItems
   const items: Array<RPCChatTypes.UnverifiedInboxUIItem> = result.items ?? []
   // We get a subset of meta information from the cache even in the untrusted payload
   const metas = items.reduce<Array<Types.ConversationMeta>>((arr, item) => {
@@ -86,7 +86,7 @@ const inboxRefresh = (
     default:
   }
 
-  logger.info(`Inbox refresh due to ${reason ?? '???'}`)
+  logger.info(`Inbox refresh due to ${reason}`)
   if (clearExistingMetas) {
     actions.push(Chat2Gen.createClearMetas())
   }
@@ -429,6 +429,7 @@ const onIncomingMessage = (
           }
           break
         }
+        default:
       }
     }
     if (
@@ -735,7 +736,7 @@ const onChatSetConvRetention = (
   }
   const meta = Constants.inboxUIItemToConversationMeta(state, conv)
   if (!meta) {
-    logger.warn(`onChatSetConvRetention: no meta found for ${convID}`)
+    logger.warn(`onChatSetConvRetention: no meta found for ${convID.toString()}`)
     return false
   }
   if (conv) {
@@ -759,7 +760,7 @@ const onChatSetConvSettings = (_: unknown, action: EngineGen.Chat1NotifyChatChat
   const role = newRole && TeamsConstants.teamRoleByEnum[newRole]
   const cannotWrite = conv?.convSettings?.minWriterRoleInfo?.cannotWrite || false
   logger.info(
-    `got new minWriterRole ${role || ''} for convID ${conversationIDKey}, cannotWrite ${cannotWrite}`
+    `got new minWriterRole ${role || ''} for convID ${conversationIDKey}, cannotWrite ${cannotWrite ? 1 : 0}`
   )
   if (role && role !== 'none' && cannotWrite !== undefined) {
     return Chat2Gen.createSaveMinWriterRole({cannotWrite, conversationIDKey, role})
@@ -921,6 +922,7 @@ const onNewChatActivity = (
       actions = messagesUpdatedToActions(state, activity.messagesUpdated)
       break
     }
+    default:
   }
   return actions
 }
@@ -2923,9 +2925,12 @@ const createConversation = async (
     }
   } catch (error) {
     if (error instanceof RPCError) {
-      let disallowedUsers = error.fields?.filter((elem: any) => elem.key === 'usernames')
-      if (disallowedUsers?.length) {
-        const {value} = disallowedUsers[0]
+      const errUsernames = error.fields?.filter((elem: any) => elem.key === 'usernames') as
+        | undefined
+        | Array<{key: string; value: string}>
+      let disallowedUsers: Array<string> = []
+      if (errUsernames?.length) {
+        const {value} = errUsernames[0]
         disallowedUsers = value.split(',')
       }
       const allowedUsers = action.payload.participants.filter(x => !disallowedUsers?.includes(x))
@@ -3366,7 +3371,7 @@ const gregorPushState = (state: Container.TypedState, action: GregorGen.PushStat
       .filter(i => i.item.category.startsWith(Constants.blockButtonsGregorPrefix))
       .forEach(i => {
         try {
-          const teamID = i.item.category.substr(Constants.blockButtonsGregorPrefix.length)
+          const teamID = i.item.category.substring(Constants.blockButtonsGregorPrefix.length)
           if (!state.chat2.blockButtonsMap.get(teamID)) {
             const body = GregorConstants.bodyToJSON(i.item.body) as {adder: string}
             const adder = body.adder
