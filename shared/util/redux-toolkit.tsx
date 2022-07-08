@@ -1,6 +1,7 @@
 import {createListenerMiddleware, type ForkedTask} from '@reduxjs/toolkit'
 import * as ConfigGen from '../actions/config-gen'
 import type {TypedActions, TypedActionsMap} from '../actions/typed-actions-gen'
+import {convertToError} from '../util/errors'
 import type {TypedState} from '../constants/reducer'
 import isArray from 'lodash/isArray'
 type ActionTypes = keyof TypedActionsMap
@@ -54,10 +55,14 @@ const listenActionImpl = (
   const matcher: any = action => actions.includes(action.type)
   listenerMiddleware.startListening({
     effect: async (action, listenerApi) => {
-      const toPut = await effect(listenerApi.getState(), action, listenerApi)
-      const toPuts = isArray(toPut) ? toPut : [toPut]
-      for (const act of toPuts) {
-        act && listenerApi.dispatch(act)
+      try {
+        const toPut = await effect(listenerApi.getState(), action, listenerApi)
+        const toPuts = isArray(toPut) ? toPut : [toPut]
+        for (const act of toPuts) {
+          act && listenerApi.dispatch(act)
+        }
+      } catch (e) {
+        listenerApi.dispatch(ConfigGen.createGlobalError({globalError: convertToError(e as any)}))
       }
     },
     matcher,
@@ -70,7 +75,11 @@ export const spawn = (effect: (listenerApi: ListenerApi) => void | Promise<void>
   listenerMiddleware.startListening({
     effect: async (_action, listenerApi) => {
       const task = listenerApi.fork(async () => {
-        await effect(listenerApi as any)
+        try {
+          await effect(listenerApi as any)
+        } catch (e) {
+          listenerApi.dispatch(ConfigGen.createGlobalError({globalError: convertToError(e as any)}))
+        }
         return
       })
       await task.result

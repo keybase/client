@@ -10,7 +10,6 @@ import {actionLogger} from './action-logger'
 import {convertToError} from '../util/errors'
 import {type Store} from 'redux'
 import {enableStoreLogging, enableActionLogging} from '../local-debug'
-import {hookMiddleware} from './hook-middleware'
 import {isMobile} from '../constants/platform'
 import {initListeners} from './configure-listeners'
 
@@ -123,7 +122,6 @@ const middlewares = [
   ...(__DEV__ ? [freezeMiddleware] : []),
   ...(enableStoreLogging && loggerMiddleware ? [loggerMiddleware] : []),
   ...(enableActionLogging ? [actionLogger] : []),
-  hookMiddleware,
 ]
 
 if (__DEV__ && typeof window !== 'undefined') {

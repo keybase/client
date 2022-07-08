@@ -114,7 +114,6 @@ export {default as makeReducer} from './make-reducer'
 export type ActionHandler<S, A> = _ActionHandler<S, A>
 export {default as useRPC} from './use-rpc'
 export {default as useSafeCallback} from './use-safe-callback'
-export {default as useWatchActions} from './use-watch-actions'
 export type RootState = _TypedState
 export const useDispatch = () => RRuseDispatch<RRDispatch<_TypedActions>>()
 export const useSelector: TypedUseSelectorHook<RootState> = RRuseSelector
