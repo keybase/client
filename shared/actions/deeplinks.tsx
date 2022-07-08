@@ -6,7 +6,6 @@ import * as ConfigGen from './config-gen'
 import * as EngineGen from './engine-gen-gen'
 import * as ProfileGen from './profile-gen'
 import * as RouteTreeGen from './route-tree-gen'
-import * as Saga from '../util/saga'
 import * as Tabs from '../constants/tabs'
 import * as WalletsGen from './wallets-gen'
 import * as TeamsGen from './teams-gen'
@@ -36,7 +35,7 @@ const handleShowUserProfileLink = (username: string) => {
   return [RouteTreeGen.createSwitchTab({tab: Tabs.peopleTab}), ProfileGen.createShowUserProfile({username})]
 }
 
-const handleKeybaseLink = (action: DeeplinksGen.HandleKeybaseLinkPayload) => {
+const handleKeybaseLink = (_: unknown, action: DeeplinksGen.HandleKeybaseLinkPayload) => {
   const error =
     "We couldn't read this link. The link might be bad, or your Keybase app might be out of date and needs to be updated."
   const parts = action.payload.link.split('/')
@@ -153,7 +152,10 @@ const handleKeybaseLink = (action: DeeplinksGen.HandleKeybaseLinkPayload) => {
   ]
 }
 
-const handleServiceAppLink = (action: EngineGen.Keybase1NotifyServiceHandleKeybaseLinkPayload) => {
+const handleServiceAppLink = (
+  _: unknown,
+  action: EngineGen.Keybase1NotifyServiceHandleKeybaseLinkPayload
+) => {
   const link = action.payload.params.link
   if (action.payload.params.deferred && !link.startsWith('keybase://team-invite-link/')) {
     return
@@ -234,11 +236,11 @@ const handleSaltpackOpenFile = (
   ]
 }
 
-function* deeplinksSaga() {
-  yield* Saga.chainAction2(DeeplinksGen.link, handleAppLink)
-  yield* Saga.chainAction(EngineGen.keybase1NotifyServiceHandleKeybaseLink, handleServiceAppLink)
-  yield* Saga.chainAction(DeeplinksGen.handleKeybaseLink, handleKeybaseLink)
-  yield* Saga.chainAction2(DeeplinksGen.saltpackFileOpen, handleSaltpackOpenFile)
+const initDeeplinks = () => {
+  Container.listenAction(DeeplinksGen.link, handleAppLink)
+  Container.listenAction(EngineGen.keybase1NotifyServiceHandleKeybaseLink, handleServiceAppLink)
+  Container.listenAction(DeeplinksGen.handleKeybaseLink, handleKeybaseLink)
+  Container.listenAction(DeeplinksGen.saltpackFileOpen, handleSaltpackOpenFile)
 }
 
-export default deeplinksSaga
+export default initDeeplinks

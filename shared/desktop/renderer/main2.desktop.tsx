@@ -1,5 +1,4 @@
 // Entry point to the chrome part of the app
-import '../../util/user-timings'
 import Main from '../../app/main.desktop'
 // order of the above 2 must NOT change. needed for patching / hot loading to be correct
 import * as NotificationsGen from '../../actions/notifications-gen'
@@ -44,11 +43,11 @@ let _store: any
 
 const setupStore = () => {
   let store = _store
-  let runSagas: any
+  let initListeners: any
   if (!_store) {
     const configured = makeStore()
     store = configured.store
-    runSagas = configured.runSagas
+    initListeners = configured.initListeners
 
     _store = store
     if (__DEV__ && flags.admin) {
@@ -57,14 +56,14 @@ const setupStore = () => {
     }
   }
 
-  return {runSagas, store}
+  return {initListeners, store}
 }
 
-const setupApp = (store, runSagas) => {
+const setupApp = (store, initListeners) => {
   disableDragDrop()
   const eng = makeEngine(store.dispatch)
-  runSagas && runSagas()
-  eng.sagasAreReady()
+  initListeners()
+  eng.listenersAreReady()
 
   ipcRendererOn?.('KBdispatchAction', (_: any, action: TypedActions) => {
     // we MUST convert this else we'll run into issues with redux. See https://github.com/rackt/redux/issues/830
@@ -175,9 +174,9 @@ const load = () => {
   global.DEBUGLoaded = true
   initDesktopStyles()
   const temp = setupStore()
-  const {runSagas} = temp
+  const {initListeners} = temp
   store = temp.store
-  setupApp(store, runSagas)
+  setupApp(store, initListeners)
   setupHMR(store)
   render()
 }

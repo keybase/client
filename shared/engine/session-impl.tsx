@@ -6,7 +6,6 @@ import {
 import {rpcLog, type invokeType} from './index.platform'
 import {IncomingRequest, OutgoingRequest} from './request'
 import {RPCError} from '../util/errors'
-import {measureStart, measureStop} from '../util/user-timings'
 import {getEngine} from './require'
 import isArray from 'lodash/isArray'
 import type {SessionID, EndHandlerType, MethodKey} from './types'
@@ -124,9 +123,6 @@ class Session {
   }
 
   end() {
-    if (this._startMethod) {
-      measureStop(`engine:${this._startMethod}:${this.getId()}`)
-    }
     this._endHandler?.(this)
   }
 
@@ -163,13 +159,11 @@ class Session {
       this._invoke
     )
     this._outgoingRequests.push(outgoingRequest)
-    measureStart(`engine:${method}:${this.getId()}`)
     outgoingRequest.send()
   }
 
   // We have an incoming call tied to a sessionID, called only by engine
   incomingCall(method: MethodKey, param: Object, response: any): boolean {
-    measureStart(`engine:${method}:${this.getId()}`)
     rpcLog({
       extra: {
         id: this.getId(),

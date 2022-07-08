@@ -4,12 +4,11 @@ import * as RouteTreeGen from './route-tree-gen'
 import * as GitGen from './git-gen'
 import * as NotificationsGen from './notifications-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
-import * as Saga from '../util/saga'
 import * as Tabs from '../constants/tabs'
-import type {TypedState} from '../util/container'
-import {logError, type RPCError} from '../util/errors'
+import * as Container from '../util/container'
+import {logError, RPCError} from '../util/errors'
 
-const load = async (state: TypedState) => {
+const load = async (state: Container.TypedState) => {
   if (!state.config.loggedIn) {
     return false
   }
@@ -24,20 +23,22 @@ const load = async (state: TypedState) => {
   }
 }
 
-const createPersonalRepo = async (action: GitGen.CreatePersonalRepoPayload) => {
+const createPersonalRepo = async (_: unknown, action: GitGen.CreatePersonalRepoPayload) => {
   try {
     await RPCTypes.gitCreatePersonalRepoRpcPromise(
       {repoName: action.payload.name},
       Constants.loadingWaitingKey
     )
     return GitGen.createRepoCreated()
-  } catch (error_) {
-    const error = error_ as RPCError
+  } catch (error) {
+    if (!(error instanceof RPCError)) {
+      return
+    }
     return GitGen.createSetError({error})
   }
 }
 
-const createTeamRepo = async (action: GitGen.CreateTeamRepoPayload) => {
+const createTeamRepo = async (_: unknown, action: GitGen.CreateTeamRepoPayload) => {
   try {
     await RPCTypes.gitCreateTeamRepoRpcPromise(
       {
@@ -48,26 +49,30 @@ const createTeamRepo = async (action: GitGen.CreateTeamRepoPayload) => {
       Constants.loadingWaitingKey
     )
     return GitGen.createRepoCreated()
-  } catch (error_) {
-    const error = error_ as RPCError
+  } catch (error) {
+    if (!(error instanceof RPCError)) {
+      return
+    }
     return GitGen.createSetError({error})
   }
 }
 
-const deletePersonalRepo = async (action: GitGen.DeletePersonalRepoPayload) => {
+const deletePersonalRepo = async (_: unknown, action: GitGen.DeletePersonalRepoPayload) => {
   try {
     await RPCTypes.gitDeletePersonalRepoRpcPromise(
       {repoName: action.payload.name},
       Constants.loadingWaitingKey
     )
     return GitGen.createRepoDeleted()
-  } catch (error_) {
-    const error = error_ as RPCError
+  } catch (error) {
+    if (!(error instanceof RPCError)) {
+      return
+    }
     return GitGen.createSetError({error})
   }
 }
 
-const deleteTeamRepo = async (action: GitGen.DeleteTeamRepoPayload) => {
+const deleteTeamRepo = async (_: unknown, action: GitGen.DeleteTeamRepoPayload) => {
   try {
     await RPCTypes.gitDeleteTeamRepoRpcPromise(
       {
@@ -78,13 +83,15 @@ const deleteTeamRepo = async (action: GitGen.DeleteTeamRepoPayload) => {
       Constants.loadingWaitingKey
     )
     return GitGen.createRepoDeleted()
-  } catch (error_) {
-    const error = error_ as RPCError
+  } catch (error) {
+    if (!(error instanceof RPCError)) {
+      return
+    }
     return GitGen.createSetError({error})
   }
 }
 
-const setTeamRepoSettings = async (action: GitGen.SetTeamRepoSettingsPayload) => {
+const setTeamRepoSettings = async (_: unknown, action: GitGen.SetTeamRepoSettingsPayload) => {
   await RPCTypes.gitSetTeamRepoSettingsRpcPromise({
     channelName: action.payload.channelName,
     chatDisabled: action.payload.chatDisabled,
@@ -106,18 +113,22 @@ const clearNavBadges = async () => {
   }
 }
 
-function* navigateToTeamRepo(state: TypedState, action: GitGen.NavigateToTeamRepoPayload) {
+const navigateToTeamRepo = async (
+  state: Container.TypedState,
+  action: GitGen.NavigateToTeamRepoPayload,
+  listenerApi: Container.ListenerApi
+) => {
   const {teamname, repoID} = action.payload
   let id = Constants.repoIDTeamnameToId(state, repoID, teamname)
   if (!id) {
-    yield Saga.put(GitGen.createLoadGit())
-    yield Saga.take(GitGen.loaded)
-    const nextState: TypedState = yield* Saga.selectState()
+    listenerApi.dispatch(GitGen.createLoadGit())
+    await listenerApi.take(action => action.type === GitGen.loaded)
+    const nextState = listenerApi.getState()
     id = Constants.repoIDTeamnameToId(nextState, repoID, teamname)
   }
 
   if (id) {
-    yield Saga.put(
+    listenerApi.dispatch(
       RouteTreeGen.createNavigateAppend({
         path: [Tabs.gitTab, {props: {expandedSet: new Set([id])}, selected: 'gitRoot'}],
       })
@@ -125,26 +136,26 @@ function* navigateToTeamRepo(state: TypedState, action: GitGen.NavigateToTeamRep
   }
 }
 
-const receivedBadgeState = (action: NotificationsGen.ReceivedBadgeStatePayload) =>
+const receivedBadgeState = (_: unknown, action: NotificationsGen.ReceivedBadgeStatePayload) =>
   GitGen.createBadgeAppForGit({ids: new Set(action.payload.badgeState.newGitRepoGlobalUniqueIDs)})
 
-function* gitSaga() {
+const initGit = () => {
   // Create / Delete
-  yield* Saga.chainAction(GitGen.createPersonalRepo, createPersonalRepo)
-  yield* Saga.chainAction(GitGen.createTeamRepo, createTeamRepo)
-  yield* Saga.chainAction(GitGen.deletePersonalRepo, deletePersonalRepo)
-  yield* Saga.chainAction(GitGen.deleteTeamRepo, deleteTeamRepo)
-  yield* Saga.chainAction2([GitGen.repoCreated, GitGen.repoDeleted, GitGen.loadGit], load)
+  Container.listenAction(GitGen.createPersonalRepo, createPersonalRepo)
+  Container.listenAction(GitGen.createTeamRepo, createTeamRepo)
+  Container.listenAction(GitGen.deletePersonalRepo, deletePersonalRepo)
+  Container.listenAction(GitGen.deleteTeamRepo, deleteTeamRepo)
+  Container.listenAction([GitGen.repoCreated, GitGen.repoDeleted, GitGen.loadGit], load)
 
   // Team Repos
-  yield* Saga.chainAction(GitGen.setTeamRepoSettings, setTeamRepoSettings)
-  yield* Saga.chainGenerator<GitGen.NavigateToTeamRepoPayload>(GitGen.navigateToTeamRepo, navigateToTeamRepo)
+  Container.listenAction(GitGen.setTeamRepoSettings, setTeamRepoSettings)
+  Container.listenAction(GitGen.navigateToTeamRepo, navigateToTeamRepo)
 
   // Badges
-  yield* Saga.chainAction(NotificationsGen.receivedBadgeState, receivedBadgeState)
+  Container.listenAction(NotificationsGen.receivedBadgeState, receivedBadgeState)
 
   // clear on load
-  yield* Saga.chainAction2(GitGen.loadGit, clearNavBadges)
+  Container.listenAction(GitGen.loadGit, clearNavBadges)
 }
 
-export default gitSaga
+export default initGit

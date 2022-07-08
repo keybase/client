@@ -1,7 +1,6 @@
 import * as ReduxToolKit from '@reduxjs/toolkit'
 import {listenerMiddleware} from '../util/redux-toolkit'
 import * as ConfigGen from '../actions/config-gen'
-import * as DevGen from '../actions/dev-gen'
 import logger from '../logger'
 import {reducers} from '../reducers'
 import type {TypedState} from '../constants/reducer'
@@ -10,9 +9,8 @@ import {actionLogger} from './action-logger'
 import {convertToError} from '../util/errors'
 import {type Store} from 'redux'
 import {enableStoreLogging, enableActionLogging} from '../local-debug'
-import {hookMiddleware} from './hook-middleware'
 import {isMobile} from '../constants/platform'
-import {run as runSagas, create as createSagaMiddleware} from './configure-sagas'
+import {initListeners} from './configure-listeners'
 
 let theStore: Store<any, any>
 
@@ -115,38 +113,22 @@ const errorCatching = () => next => action => {
   }
 }
 
-export const sagaMiddleware = (__DEV__ && global.DEBUGSagaMiddleware) || createSagaMiddleware(crashHandler)
-// don't overwrite this on HMR
-if (__DEV__) {
-  global.DEBUGSagaMiddleware = sagaMiddleware
-}
-
 const freezeMiddleware = _store => next => action => next(Object.freeze(action))
 
 const middlewares = [
   listenerMiddleware.middleware,
   errorCatching,
-  sagaMiddleware,
   ...(__DEV__ ? [freezeMiddleware] : []),
   ...(enableStoreLogging && loggerMiddleware ? [loggerMiddleware] : []),
   ...(enableActionLogging ? [actionLogger] : []),
-  hookMiddleware,
 ]
-
-if (__DEV__ && typeof window !== 'undefined') {
-  global.DEBUGActionLoop = () => {
-    setInterval(() => {
-      theStore.dispatch(DevGen.createDebugCount())
-    }, 1000)
-  }
-}
 
 export default function makeStore() {
   const store = ReduxToolKit.configureStore({
     devTools: false,
+    middleware: () => middlewares,
     // @ts-ignore we prefer our typing to what the toolkit gives
     reducer: reducers,
-    middleware: () => middlewares,
   })
   // @ts-ignore
   theStore = store
@@ -157,5 +139,13 @@ export default function makeStore() {
     })
   }
 
-  return {runSagas, store}
+  return {
+    initListeners: () => {
+      // register our listeners
+      initListeners()
+      // start our 'forks'
+      store.dispatch(ConfigGen.createInitListenerLoops())
+    },
+    store,
+  }
 }

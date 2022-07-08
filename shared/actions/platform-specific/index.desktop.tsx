@@ -2,7 +2,6 @@ import * as ConfigConstants from '../../constants/config'
 import * as ConfigGen from '../config-gen'
 import * as EngineGen from '../engine-gen-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
-import * as Saga from '../../util/saga'
 import logger from '../../logger'
 import {NotifyPopup} from '../../native/notifications'
 import {getEngine} from '../../engine'
@@ -11,9 +10,9 @@ import {kbfsNotification} from '../../util/kbfs-notifications'
 import {writeLogLinesToFile} from '../../util/forward-logs'
 import InputMonitor from './input-monitor.desktop'
 import {skipAppFocusActions} from '../../local-debug.desktop'
-import type * as Container from '../../util/container'
+import * as Container from '../../util/container'
 import {_getNavigator} from '../../constants/router2'
-import type {RPCError} from 'util/errors'
+import type {RPCError} from '../../util/errors'
 import KB2 from '../../util/electron.desktop'
 
 const {showMainWindow, activeChanged, requestWindowsStartService, dumpNodeLogger} = KB2.functions
@@ -36,50 +35,32 @@ export function clearAllNotifications() {
   throw new Error('Clear all notifications not available on this platform')
 }
 
-function* handleWindowFocusEvents() {
-  const channel = Saga.eventChannel(emitter => {
-    window.addEventListener('focus', () => emitter('focus'))
-    window.addEventListener('blur', () => emitter('blur'))
-    return () => {}
-  }, Saga.buffers.expanding(1))
-  while (true) {
-    const type = yield Saga.take(channel)
+const handleWindowFocusEvents = (listenerApi: Container.ListenerApi) => {
+  const handle = (appFocused: boolean) => {
     if (skipAppFocusActions) {
       console.log('Skipping app focus actions!')
     } else {
-      switch (type) {
-        case 'focus':
-          yield Saga.put(ConfigGen.createChangedFocus({appFocused: true}))
-          break
-        case 'blur':
-          yield Saga.put(ConfigGen.createChangedFocus({appFocused: false}))
-          break
-      }
+      listenerApi.dispatch(ConfigGen.createChangedFocus({appFocused}))
     }
   }
+  window.addEventListener('focus', () => handle(true))
+  window.addEventListener('blur', () => handle(false))
 }
 
-function* initializeInputMonitor(): Iterable<any> {
+const initializeInputMonitor = (listenerApi: Container.ListenerApi) => {
   const inputMonitor = new InputMonitor()
-  const channel = Saga.eventChannel(emitter => {
-    inputMonitor.notifyActive = isActive => emitter(isActive ? 'active' : 'inactive')
-    return () => {}
-  }, Saga.buffers.expanding(1))
-
-  while (true) {
-    const type = yield Saga.take(channel)
+  inputMonitor.notifyActive = (userActive: boolean) => {
     if (skipAppFocusActions) {
       console.log('Skipping app focus actions!')
     } else {
-      const userActive = type === 'active'
-      yield Saga.put(ConfigGen.createChangedActive({userActive}))
+      listenerApi.dispatch(ConfigGen.createChangedActive({userActive}))
       // let node thread save file
       activeChanged?.(Date.now(), userActive)
     }
   }
 }
 
-export const dumpLogs = async (action?: ConfigGen.DumpLogsPayload) => {
+export const dumpLogs = async (_?: unknown, action?: ConfigGen.DumpLogsPayload) => {
   const fromRender = await logger.dump()
   const fromMain = await (dumpNodeLogger?.() ?? Promise.resolve([]))
   await writeLogLinesToFile([...fromRender, ...fromMain])
@@ -89,18 +70,22 @@ export const dumpLogs = async (action?: ConfigGen.DumpLogsPayload) => {
   }
 }
 
-function* checkRPCOwnership(_: Container.TypedState, action: ConfigGen.DaemonHandshakePayload) {
+const checkRPCOwnership = async (
+  _: Container.TypedState,
+  action: ConfigGen.DaemonHandshakePayload,
+  listenerApi: Container.ListenerApi
+) => {
   const waitKey = 'pipeCheckFail'
-  yield Saga.put(
+  listenerApi.dispatch(
     ConfigGen.createDaemonHandshakeWait({increment: true, name: waitKey, version: action.payload.version})
   )
   try {
     logger.info('Checking RPC ownership')
 
     if (KB2.functions.winCheckRPCOwnership) {
-      yield Saga.callUntyped(KB2.functions.winCheckRPCOwnership)
+      await KB2.functions.winCheckRPCOwnership()
     }
-    yield Saga.put(
+    listenerApi.dispatch(
       ConfigGen.createDaemonHandshakeWait({
         increment: false,
         name: waitKey,
@@ -111,7 +96,7 @@ function* checkRPCOwnership(_: Container.TypedState, action: ConfigGen.DaemonHan
     // error will be logged in bootstrap check
     getEngine().reset()
     const error = error_ as RPCError
-    yield Saga.put(
+    listenerApi.dispatch(
       ConfigGen.createDaemonHandshakeWait({
         failedFatal: true,
         failedReason: error.message || 'windows pipe owner fail',
@@ -126,19 +111,12 @@ function* checkRPCOwnership(_: Container.TypedState, action: ConfigGen.DaemonHan
 const initOsNetworkStatus = () =>
   ConfigGen.createOsNetworkStatusChanged({isInit: true, online: navigator.onLine, type: 'notavailable'})
 
-function* setupReachabilityWatcher() {
-  const channel = Saga.eventChannel(emitter => {
-    window.addEventListener('online', () => emitter('online'))
-    window.addEventListener('offline', () => emitter('offline'))
-    return () => {}
-  }, Saga.buffers.sliding(1))
-
-  while (true) {
-    const status = yield Saga.take(channel)
-    yield Saga.put(
-      ConfigGen.createOsNetworkStatusChanged({online: status === 'online', type: 'notavailable'})
-    )
+const setupReachabilityWatcher = (listenerApi: Container.ListenerApi) => {
+  const handler = (online: boolean) => {
+    listenerApi.dispatch(ConfigGen.createOsNetworkStatusChanged({online, type: 'notavailable'}))
   }
+  window.addEventListener('online', () => handler(true))
+  window.addEventListener('offline', () => handler(false))
 }
 
 const onExit = () => {
@@ -155,7 +133,7 @@ const onPgpgKeySecret = async () =>
     console.warn('Error in sending pgpPgpStorageDismissRpc:', err)
   })
 
-const onShutdown = (action: EngineGen.Keybase1NotifyServiceShutdownPayload) => {
+const onShutdown = (_: unknown, action: EngineGen.Keybase1NotifyServiceShutdownPayload) => {
   const {code} = action.payload.params
   if (isWindows && code !== RPCTypes.ExitCode.restart) {
     console.log('Quitting due to service shutdown with code: ', code)
@@ -169,7 +147,7 @@ const onConnected = () => {
   RPCTypes.configHelloIAmRpcPromise({details: KB2.constants.helloDetails}).catch(() => {})
 }
 
-const onOutOfDate = (action: EngineGen.Keybase1NotifySessionClientOutOfDatePayload) => {
+const onOutOfDate = (_: unknown, action: EngineGen.Keybase1NotifySessionClientOutOfDatePayload) => {
   const {upgradeTo, upgradeURI, upgradeMsg} = action.payload.params
   const body = upgradeMsg || `Please update to ${upgradeTo} by going to ${upgradeURI}`
   NotifyPopup('Client out of date!', {body}, 60 * 60)
@@ -178,7 +156,7 @@ const onOutOfDate = (action: EngineGen.Keybase1NotifySessionClientOutOfDatePaylo
   return ConfigGen.createUpdateInfo({critical: true, isOutOfDate: true, message: upgradeMsg})
 }
 
-const prepareLogSend = async (action: EngineGen.Keybase1LogsendPrepareLogsendPayload) => {
+const prepareLogSend = async (_: unknown, action: EngineGen.Keybase1LogsendPrepareLogsendPayload) => {
   const response = action.payload.response
   try {
     await dumpLogs()
@@ -187,7 +165,7 @@ const prepareLogSend = async (action: EngineGen.Keybase1LogsendPrepareLogsendPay
   }
 }
 
-const onCopyToClipboard = (action: ConfigGen.CopyToClipboardPayload) => {
+const onCopyToClipboard = (_: unknown, action: ConfigGen.CopyToClipboardPayload) => {
   copyToClipboard?.(action.payload.text)
 }
 
@@ -205,16 +183,16 @@ const sendWindowsKBServiceCheck = (
   }
 }
 
-function* startOutOfDateCheckLoop() {
-  while (1) {
+const startOutOfDateCheckLoop = async (listenerApi: Container.ListenerApi) => {
+  // eslint-disable-next-line
+  while (true) {
     try {
-      const toPut = yield checkForUpdate()
-      yield Saga.put(toPut)
-      yield Saga.delay(3600 * 1000) // 1 hr
+      const action = await checkForUpdate()
+      listenerApi.dispatch(action)
     } catch (err) {
       logger.warn('error getting update info: ', err)
-      yield Saga.delay(3600 * 1000) // 1 hr
     }
+    await listenerApi.delay(3_600_000) // 1 hr
   }
 }
 
@@ -255,14 +233,11 @@ const saveUseNativeFrame = async (state: Container.TypedState) => {
   })
 }
 
-function* initializeUseNativeFrame() {
+const initializeUseNativeFrame = async (listenerApi: Container.ListenerApi) => {
   try {
-    const val: Saga.RPCPromiseType<typeof RPCTypes.configGuiGetValueRpcPromise> =
-      yield RPCTypes.configGuiGetValueRpcPromise({
-        path: nativeFrameKey,
-      })
+    const val = await RPCTypes.configGuiGetValueRpcPromise({path: nativeFrameKey})
     const useNativeFrame = val.b === undefined || val.b === null ? defaultUseNativeFrame : val.b
-    yield Saga.put(ConfigGen.createSetUseNativeFrame({useNativeFrame}))
+    listenerApi.dispatch(ConfigGen.createSetUseNativeFrame({useNativeFrame}))
   } catch (_) {}
 }
 
@@ -279,16 +254,13 @@ const saveWindowState = async (state: Container.TypedState) => {
 }
 
 const notifySoundKey = 'notifySound'
-function* initializeNotifySound() {
+const initializeNotifySound = async (listenerApi: Container.ListenerApi) => {
   try {
-    const val: Saga.RPCPromiseType<typeof RPCTypes.configGuiGetValueRpcPromise> =
-      yield RPCTypes.configGuiGetValueRpcPromise({
-        path: notifySoundKey,
-      })
+    const val = await RPCTypes.configGuiGetValueRpcPromise({path: notifySoundKey})
     const notifySound: boolean | undefined = val.b || undefined
-    const state: Container.TypedState = yield Saga.selectState()
+    const state = listenerApi.getState()
     if (notifySound !== undefined && notifySound !== state.config.notifySound) {
-      yield Saga.put(ConfigGen.createSetNotifySound({notifySound}))
+      listenerApi.dispatch(ConfigGen.createSetNotifySound({notifySound}))
     }
   } catch (_) {}
 }
@@ -305,17 +277,13 @@ const setNotifySound = async (state: Container.TypedState) => {
 }
 
 const openAtLoginKey = 'openAtLogin'
-function* initializeOpenAtLogin() {
+const initializeOpenAtLogin = async (listenerApi: Container.ListenerApi) => {
   try {
-    const val: Saga.RPCPromiseType<typeof RPCTypes.configGuiGetValueRpcPromise> =
-      yield RPCTypes.configGuiGetValueRpcPromise({
-        path: openAtLoginKey,
-      })
-
+    const val = await RPCTypes.configGuiGetValueRpcPromise({path: openAtLoginKey})
     const openAtLogin: boolean | undefined = val.b || undefined
-    const state: Container.TypedState = yield Saga.selectState()
+    const state = listenerApi.getState()
     if (openAtLogin !== undefined && openAtLogin !== state.config.openAtLogin) {
-      yield Saga.put(ConfigGen.createSetOpenAtLogin({openAtLogin}))
+      listenerApi.dispatch(ConfigGen.createSetOpenAtLogin({openAtLogin}))
     }
   } catch (_) {}
 }
@@ -352,14 +320,13 @@ const onSetOpenAtLogin = async (state: Container.TypedState) => {
 
 export const requestLocationPermission = async () => Promise.resolve()
 export const requestAudioPermission = async () => Promise.resolve()
-export const clearWatchPosition = () => {}
-export const watchPositionForMap = async () => Promise.resolve(0)
+export const watchPositionForMap = async () => Promise.resolve(() => {})
 
-function* checkNav(
+const checkNav = async (
   _state: Container.TypedState,
   action: ConfigGen.DaemonHandshakePayload,
-  logger: Saga.SagaLogger
-) {
+  listenerApi: Container.ListenerApi
+) => {
   // have one
   if (_getNavigator()) {
     return
@@ -368,48 +335,52 @@ function* checkNav(
   const name = 'desktopNav'
   const {version} = action.payload
 
-  yield Saga.put(ConfigGen.createDaemonHandshakeWait({increment: true, name, version}))
-  while (true) {
-    logger.info('Waiting on nav')
-    yield Saga.take(ConfigGen.setNavigator)
-    if (_getNavigator()) {
-      break
+  listenerApi.dispatch(ConfigGen.createDaemonHandshakeWait({increment: true, name, version}))
+  try {
+    // eslint-disable-next-line
+    while (true) {
+      logger.info('Waiting on nav')
+      await listenerApi.take(a => a.type === ConfigGen.setNavigator)
+      if (_getNavigator()) {
+        break
+      }
     }
+  } finally {
+    listenerApi.dispatch(ConfigGen.createDaemonHandshakeWait({increment: false, name, version}))
   }
-  yield Saga.put(ConfigGen.createDaemonHandshakeWait({increment: false, name, version}))
 }
 
-export function* platformConfigSaga() {
-  yield* Saga.chainAction2(ConfigGen.setOpenAtLogin, onSetOpenAtLogin)
-  yield* Saga.chainAction2(ConfigGen.setNotifySound, setNotifySound)
-  yield* Saga.chainAction2(ConfigGen.showMain, () => showMainWindow?.())
-  yield* Saga.chainAction(ConfigGen.dumpLogs, dumpLogs)
+export const initPlatformListener = () => {
+  Container.listenAction(ConfigGen.setOpenAtLogin, onSetOpenAtLogin)
+  Container.listenAction(ConfigGen.setNotifySound, setNotifySound)
+  Container.listenAction(ConfigGen.showMain, () => showMainWindow?.())
+  Container.listenAction(ConfigGen.dumpLogs, dumpLogs)
   getEngine().registerCustomResponse('keybase.1.logsend.prepareLogsend')
-  yield* Saga.chainAction(EngineGen.keybase1LogsendPrepareLogsend, prepareLogSend)
-  yield* Saga.chainAction2(EngineGen.connected, onConnected)
-  yield* Saga.chainAction2(EngineGen.keybase1NotifyAppExit, onExit)
-  yield* Saga.chainAction2(EngineGen.keybase1NotifyFSFSActivity, onFSActivity)
-  yield* Saga.chainAction2(EngineGen.keybase1NotifyPGPPgpKeyInSecretStoreFile, onPgpgKeySecret)
-  yield* Saga.chainAction(EngineGen.keybase1NotifyServiceShutdown, onShutdown)
-  yield* Saga.chainAction(EngineGen.keybase1NotifySessionClientOutOfDate, onOutOfDate)
-  yield* Saga.chainAction(ConfigGen.copyToClipboard, onCopyToClipboard)
-  yield* Saga.chainAction2(ConfigGen.updateNow, updateNow)
-  yield* Saga.chainAction2(ConfigGen.checkForUpdate, checkForUpdate)
-  yield* Saga.chainAction2(ConfigGen.daemonHandshakeWait, sendWindowsKBServiceCheck)
-  yield* Saga.chainAction2(ConfigGen.setUseNativeFrame, saveUseNativeFrame)
-  yield* Saga.chainAction2(ConfigGen.loggedIn, initOsNetworkStatus)
-  yield* Saga.chainAction2(ConfigGen.updateWindowState, saveWindowState)
+  Container.listenAction(EngineGen.keybase1LogsendPrepareLogsend, prepareLogSend)
+  Container.listenAction(EngineGen.connected, onConnected)
+  Container.listenAction(EngineGen.keybase1NotifyAppExit, onExit)
+  Container.listenAction(EngineGen.keybase1NotifyFSFSActivity, onFSActivity)
+  Container.listenAction(EngineGen.keybase1NotifyPGPPgpKeyInSecretStoreFile, onPgpgKeySecret)
+  Container.listenAction(EngineGen.keybase1NotifyServiceShutdown, onShutdown)
+  Container.listenAction(EngineGen.keybase1NotifySessionClientOutOfDate, onOutOfDate)
+  Container.listenAction(ConfigGen.copyToClipboard, onCopyToClipboard)
+  Container.listenAction(ConfigGen.updateNow, updateNow)
+  Container.listenAction(ConfigGen.checkForUpdate, checkForUpdate)
+  Container.listenAction(ConfigGen.daemonHandshakeWait, sendWindowsKBServiceCheck)
+  Container.listenAction(ConfigGen.setUseNativeFrame, saveUseNativeFrame)
+  Container.listenAction(ConfigGen.loggedIn, initOsNetworkStatus)
+  Container.listenAction(ConfigGen.updateWindowState, saveWindowState)
 
   if (isWindows) {
-    yield* Saga.chainGenerator<ConfigGen.DaemonHandshakePayload>(ConfigGen.daemonHandshake, checkRPCOwnership)
+    Container.listenAction(ConfigGen.daemonHandshake, checkRPCOwnership)
   }
-  yield* Saga.chainGenerator<ConfigGen.DaemonHandshakePayload>(ConfigGen.daemonHandshake, checkNav)
+  Container.listenAction(ConfigGen.daemonHandshake, checkNav)
 
-  yield Saga.spawn(initializeUseNativeFrame)
-  yield Saga.spawn(initializeNotifySound)
-  yield Saga.spawn(initializeOpenAtLogin)
-  yield Saga.spawn(initializeInputMonitor)
-  yield Saga.spawn(handleWindowFocusEvents)
-  yield Saga.spawn(setupReachabilityWatcher)
-  yield Saga.spawn(startOutOfDateCheckLoop)
+  Container.spawn(initializeUseNativeFrame, 'initializeUseNativeFrame')
+  Container.spawn(initializeNotifySound, 'initializeNotifySound')
+  Container.spawn(initializeOpenAtLogin, 'initializeOpenAtLogin')
+  Container.spawn(initializeInputMonitor, 'initializeInputMonitor')
+  Container.spawn(handleWindowFocusEvents, 'handleWindowFocusEvents')
+  Container.spawn(setupReachabilityWatcher, 'setupReachabilityWatcher')
+  Container.spawn(startOutOfDateCheckLoop, 'startOutOfDateCheckLoop')
 }

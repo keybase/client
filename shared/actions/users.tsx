@@ -1,5 +1,4 @@
 // import * as UsersGen from './users-gen'
-import * as Saga from '../util/saga'
 import * as Container from '../util/container'
 import * as EngineGen from './engine-gen-gen'
 import * as UsersGen from './users-gen'
@@ -10,18 +9,17 @@ import * as TrackerConstants from '../constants/tracker2'
 import * as Tracker2Gen from './tracker2-gen'
 import * as ProfileGen from './profile-gen'
 import * as RouteTreeGen from './route-tree-gen'
-import type {TypedState} from '../util/container'
 import logger from '../logger'
-import type {RPCError} from '../util/errors'
+import {RPCError} from '../util/errors'
 
-const onIdentifyUpdate = (action: EngineGen.Keybase1NotifyUsersIdentifyUpdatePayload) =>
+const onIdentifyUpdate = (_: unknown, action: EngineGen.Keybase1NotifyUsersIdentifyUpdatePayload) =>
   UsersGen.createUpdateBrokenState({
     newlyBroken: action.payload.params.brokenUsernames || [],
     newlyFixed: action.payload.params.okUsernames || [],
   })
 
 // shouldn't know anything about chat stuff, only username => rpc call
-const getBio = async (state: TypedState, action: UsersGen.GetBioPayload) => {
+const getBio = async (state: Container.TypedState, action: UsersGen.GetBioPayload) => {
   const {username} = action.payload
 
   const info = state.users.infoMap.get(username)
@@ -36,25 +34,27 @@ const getBio = async (state: TypedState, action: UsersGen.GetBioPayload) => {
     }
 
     return UsersGen.createUpdateBio({userCard, username}) // set bio in user infomap
-  } catch (error_) {
-    const error = error_ as RPCError
+  } catch (error) {
+    if (!(error instanceof RPCError)) {
+      return
+    }
     if (Container.isNetworkErr(error.code)) {
       logger.info('Network error getting userCard')
     } else {
       logger.info(error.message)
     }
-    return
   }
+  return
 }
 
-const setUserBlocks = async (action: UsersGen.SetUserBlocksPayload) => {
+const setUserBlocks = async (_: unknown, action: UsersGen.SetUserBlocksPayload) => {
   const {blocks} = action.payload
   if (blocks.length) {
     await RPCTypes.userSetUserBlocksRpcPromise({blocks}, Constants.setUserBlocksWaitingKey)
   }
 }
 
-const getBlockState = async (action: UsersGen.GetBlockStatePayload) => {
+const getBlockState = async (_: unknown, action: UsersGen.GetBlockStatePayload) => {
   const {usernames} = action.payload
 
   const blocks = await RPCTypes.userGetUserBlocksRpcPromise({usernames}, Constants.getUserBlocksWaitingKey)
@@ -64,17 +64,17 @@ const getBlockState = async (action: UsersGen.GetBlockStatePayload) => {
   return
 }
 
-const reportUser = async (action: UsersGen.ReportUserPayload) => {
+const reportUser = async (_: unknown, action: UsersGen.ReportUserPayload) => {
   await RPCTypes.userReportUserRpcPromise(action.payload, Constants.reportUserWaitingKey)
 }
 
-const refreshBlockList = (action: TeamBuildingGen.SearchResultsLoadedPayload) =>
+const refreshBlockList = (_: unknown, action: TeamBuildingGen.SearchResultsLoadedPayload) =>
   action.payload.namespace === 'people' &&
   UsersGen.createGetBlockState({
     usernames: action.payload.users.map(u => u.serviceMap['keybase'] || '').filter(Boolean),
   })
 
-const submitRevokeVouch = async (_: TypedState, action: UsersGen.SubmitRevokeVouchPayload) => {
+const submitRevokeVouch = async (_: Container.TypedState, action: UsersGen.SubmitRevokeVouchPayload) => {
   await RPCTypes.revokeRevokeSigsRpcPromise(
     {sigIDQueries: [action.payload.proofID]},
     Constants.wotRevokeWaitingKey
@@ -90,7 +90,7 @@ const submitRevokeVouch = async (_: TypedState, action: UsersGen.SubmitRevokeVou
   })
 }
 
-const wotReact = async (action: UsersGen.WotReactPayload, logger: Saga.SagaLogger) => {
+const wotReact = async (_: unknown, action: UsersGen.WotReactPayload) => {
   const {fromModal, reaction, sigID, voucher} = action.payload
   if (!fromModal) {
     // This needs an error path. Happens when coming from a button directly on the profile screen.
@@ -105,8 +105,12 @@ const wotReact = async (action: UsersGen.WotReactPayload, logger: Saga.SagaLogge
       {allowEmptySigID: false, reaction, sigID, voucher},
       Constants.wotReactWaitingKey
     )
-  } catch (error_) {
-    const error = error_ as RPCError
+  } catch (error) {
+    if (!(error instanceof RPCError)) {
+      return ProfileGen.createWotVouchSetError({
+        error: `There was an error reviewing the claim.`,
+      })
+    }
     logger.warn('Error from wotReact:', error)
     return ProfileGen.createWotVouchSetError({
       error: error.desc || `There was an error reviewing the claim.`,
@@ -115,15 +119,15 @@ const wotReact = async (action: UsersGen.WotReactPayload, logger: Saga.SagaLogge
   return [ProfileGen.createWotVouchSetError({error: ''}), RouteTreeGen.createClearModals()]
 }
 
-function* usersSaga() {
-  yield* Saga.chainAction(EngineGen.keybase1NotifyUsersIdentifyUpdate, onIdentifyUpdate)
-  yield* Saga.chainAction2(UsersGen.getBio, getBio)
-  yield* Saga.chainAction(UsersGen.setUserBlocks, setUserBlocks)
-  yield* Saga.chainAction(UsersGen.getBlockState, getBlockState)
-  yield* Saga.chainAction(UsersGen.reportUser, reportUser)
-  yield* Saga.chainAction(UsersGen.wotReact, wotReact)
-  yield* Saga.chainAction2(UsersGen.submitRevokeVouch, submitRevokeVouch)
-  yield* Saga.chainAction(TeamBuildingGen.searchResultsLoaded, refreshBlockList)
+const initUsers = () => {
+  Container.listenAction(EngineGen.keybase1NotifyUsersIdentifyUpdate, onIdentifyUpdate)
+  Container.listenAction(UsersGen.getBio, getBio)
+  Container.listenAction(UsersGen.setUserBlocks, setUserBlocks)
+  Container.listenAction(UsersGen.getBlockState, getBlockState)
+  Container.listenAction(UsersGen.reportUser, reportUser)
+  Container.listenAction(UsersGen.wotReact, wotReact)
+  Container.listenAction(UsersGen.submitRevokeVouch, submitRevokeVouch)
+  Container.listenAction(TeamBuildingGen.searchResultsLoaded, refreshBlockList)
 }
 
-export default usersSaga
+export default initUsers

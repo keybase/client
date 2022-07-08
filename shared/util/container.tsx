@@ -18,7 +18,7 @@ import type {NavigationContainerRef} from '@react-navigation/core'
 import type {createListenerMiddleware} from '@reduxjs/toolkit'
 export type ListenerMiddleware = ReturnType<typeof createListenerMiddleware>
 export {type RouteProps, getRouteParams, getRouteParamsFromRoute} from '../router-v2/route-params'
-export {listenAction, type ListenerApi} from './redux-toolkit'
+export {listenAction, type ListenerApi, spawn} from './redux-toolkit'
 
 // don't pay for this in prod builds
 if (!__DEV__) {
@@ -82,6 +82,14 @@ export type RouteDef = {
 }
 export type RouteMap = {[K in string]: RouteDef}
 
+export async function neverThrowPromiseFunc<T>(f: () => Promise<T>) {
+  try {
+    return await f()
+  } catch {
+    return undefined
+  }
+}
+
 export const assertNever = (_: never) => undefined
 
 export const timeoutPromise = async (timeMs: number) =>
@@ -106,7 +114,6 @@ export {default as makeReducer} from './make-reducer'
 export type ActionHandler<S, A> = _ActionHandler<S, A>
 export {default as useRPC} from './use-rpc'
 export {default as useSafeCallback} from './use-safe-callback'
-export {default as useWatchActions} from './use-watch-actions'
 export type RootState = _TypedState
 export const useDispatch = () => RRuseDispatch<RRDispatch<_TypedActions>>()
 export const useSelector: TypedUseSelectorHook<RootState> = RRuseSelector

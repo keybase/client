@@ -1,16 +1,15 @@
-import logger from '../../logger'
 import * as Constants from '../../constants/profile'
-import {RPCError} from '../../util/errors'
+import * as Container from '../../util/container'
 import * as DeeplinksGen from '../deeplinks-gen'
-import * as ProfileGen from '../profile-gen'
-import * as Saga from '../../util/saga'
-import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as More from '../../constants/types/more'
+import * as ProfileGen from '../profile-gen'
+import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as RouteTreeGen from '../route-tree-gen'
-import * as Tracker2Gen from '../tracker2-gen'
 import * as Tracker2Constants from '../../constants/tracker2'
+import * as Tracker2Gen from '../tracker2-gen'
+import logger from '../../logger'
 import openURL from '../../util/open-url'
-import {TypedState} from '../../util/container'
+import {RPCError} from '../../util/errors'
 
 type ValidCallback =
   | 'keybase.1.proveUi.checking'
@@ -21,13 +20,12 @@ type ValidCallback =
   | 'keybase.1.proveUi.promptOverwrite'
   | 'keybase.1.proveUi.promptUsername'
 
-type CustomParam<T extends ValidCallback> = RPCTypes.MessageTypes[T]['inParam']
 type CustomResp<T extends ValidCallback> = {
   error: RPCTypes.IncomingErrorCallback
   result: (res: RPCTypes.MessageTypes[T]['outParam']) => void
 }
 
-const checkProof = async (state: TypedState) => {
+const checkProof = async (state: Container.TypedState) => {
   const sigID = state.profile.sigID
   const isGeneric = !!state.profile.platformGeneric
   if (!sigID) {
@@ -64,28 +62,29 @@ const checkProof = async (state: TypedState) => {
   }
 }
 
-const recheckProof = async (state: TypedState, action: ProfileGen.RecheckProofPayload) => {
+const recheckProof = async (state: Container.TypedState, action: ProfileGen.RecheckProofPayload) => {
   await RPCTypes.proveCheckProofRpcPromise({sigID: action.payload.sigID}, Constants.waitingKey)
   return Tracker2Gen.createShowUser({asTracker: false, username: state.config.username})
 }
 
 // only let one of these happen at a time
 let addProofInProgress = false
-function* addProof(state: TypedState, action: ProfileGen.AddProofPayload) {
+const addProof = async (
+  state: Container.TypedState,
+  action: ProfileGen.AddProofPayload,
+  listenerApi: Container.ListenerApi
+) => {
   const service = More.asPlatformsExpandedType(action.payload.platform)
   const genericService = service ? null : action.payload.platform
   // Special cases
   switch (service) {
     case 'dnsOrGenericWebSite':
-      yield Saga.put(RouteTreeGen.createNavigateAppend({path: ['profileProveWebsiteChoice']}))
-      return
+      return RouteTreeGen.createNavigateAppend({path: ['profileProveWebsiteChoice']})
     case 'zcash': //  fallthrough
     case 'btc':
-      yield Saga.put(RouteTreeGen.createNavigateAppend({path: ['profileProveEnterUsername']}))
-      return
+      return RouteTreeGen.createNavigateAppend({path: ['profileProveEnterUsername']})
     case 'pgp':
-      yield Saga.put(RouteTreeGen.createNavigateAppend({path: ['profilePgp']}))
-      return
+      return RouteTreeGen.createNavigateAppend({path: ['profilePgp']})
   }
 
   if (addProofInProgress) {
@@ -101,13 +100,13 @@ function* addProof(state: TypedState, action: ProfileGen.AddProofPayload) {
     desc: 'Cancel Add Proof',
   }
 
-  yield Saga.put(ProfileGen.createUpdateSigID({}))
+  listenerApi.dispatch(ProfileGen.createUpdateSigID({}))
 
   let canceled = false
 
   // We fork off some tasks for watch for events that come from the ui
-  const cancelTask = yield Saga._fork(function* () {
-    yield Saga.take(ProfileGen.cancelAddProof)
+  const cancelTask = listenerApi.fork(async () => {
+    await listenerApi.take(action => action.type === ProfileGen.cancelAddProof)
     canceled = true
     if (_promptUsernameResponse) {
       _promptUsernameResponse.error(inputCancelError)
@@ -120,9 +119,10 @@ function* addProof(state: TypedState, action: ProfileGen.AddProofPayload) {
     }
   })
 
-  const checkProofTask = yield Saga._fork(function* () {
+  const checkProofTask = listenerApi.fork(async () => {
+    // eslint-disable-next-line
     while (true) {
-      yield Saga.take(ProfileGen.checkProof)
+      await listenerApi.take(action => action.type === ProfileGen.checkProof)
       if (_outputInstructionsResponse) {
         _outputInstructionsResponse.result()
         _outputInstructionsResponse = undefined
@@ -130,107 +130,20 @@ function* addProof(state: TypedState, action: ProfileGen.AddProofPayload) {
     }
   })
 
-  const submitUsernameTask = yield Saga._fork(function* () {
+  const submitUsernameTask = listenerApi.fork(async () => {
     // loop since if we get errors we can get these events multiple times
+    // eslint-disable-next-line
     while (true) {
-      yield Saga.take(ProfileGen.submitUsername)
-      yield Saga.put(ProfileGen.createCleanupUsername())
+      await listenerApi.take(action => action.type === ProfileGen.submitUsername)
+      listenerApi.dispatch(ProfileGen.createCleanupUsername())
       if (_promptUsernameResponse) {
-        yield Saga.put(
-          ProfileGen.createUpdateErrorText({
-            errorText: '',
-          })
-        )
-        const state: TypedState = yield* Saga.selectState()
+        listenerApi.dispatch(ProfileGen.createUpdateErrorText({errorText: ''}))
+        const state = listenerApi.getState()
         _promptUsernameResponse.result(state.profile.username)
-        // eslint is confused i think
-        // eslint-disable-next-line require-atomic-updates
         _promptUsernameResponse = undefined
       }
     }
   })
-
-  const promptUsername = (
-    args: CustomParam<'keybase.1.proveUi.promptUsername'>,
-    response: CustomResp<'keybase.1.proveUi.promptUsername'>
-  ) => {
-    const {parameters, prevError} = args
-    if (canceled) {
-      response.error(inputCancelError)
-      return
-    }
-
-    _promptUsernameResponse = response
-    const actions: Array<Saga.PutEffect> = []
-    if (prevError) {
-      actions.push(
-        Saga.put(ProfileGen.createUpdateErrorText({errorCode: prevError.code, errorText: prevError.desc}))
-      )
-    }
-    if (service) {
-      actions.push(Saga.put(RouteTreeGen.createNavigateAppend({path: ['profileProveEnterUsername']})))
-    } else if (genericService && parameters) {
-      actions.push(
-        Saga.put(ProfileGen.createProofParamsReceived({params: Constants.toProveGenericParams(parameters)}))
-      )
-      actions.push(Saga.put(RouteTreeGen.createNavigateAppend({path: ['profileGenericEnterUsername']})))
-    }
-    return actions
-  }
-
-  const outputInstructions = (
-    {instructions, proof}: CustomParam<'keybase.1.proveUi.outputInstructions'>,
-    response: CustomResp<'keybase.1.proveUi.outputInstructions'>
-  ) => {
-    if (canceled) {
-      response.error(inputCancelError)
-      return
-    }
-
-    const actions: Array<Saga.PutEffect> = []
-    _outputInstructionsResponse = response
-    // @ts-ignore propbably a real thing
-    if (service === 'dnsOrGenericWebSite') {
-      // We don't get this directly (yet) so we parse this out
-      try {
-        const match = instructions.data.match(/<url>(http[s]+):\/\//)
-        const protocol = match?.[1]
-        actions.push(
-          Saga.put(ProfileGen.createUpdatePlatform({platform: protocol === 'https' ? 'https' : 'http'}))
-        )
-      } catch (_) {
-        actions.push(Saga.put(ProfileGen.createUpdatePlatform({platform: 'http'})))
-      }
-    }
-
-    if (service) {
-      actions.push(Saga.put(ProfileGen.createUpdateProofText({proof})))
-      actions.push(Saga.put(RouteTreeGen.createNavigateAppend({path: ['profilePostProof']})))
-    } else if (proof) {
-      actions.push(Saga.put(ProfileGen.createUpdatePlatformGenericURL({url: proof})))
-      openURL(proof)
-      actions.push(Saga.put(ProfileGen.createCheckProof()))
-    }
-    return actions
-  }
-
-  const checking = (
-    _: CustomParam<'keybase.1.proveUi.checking'>,
-    response: CustomResp<'keybase.1.proveUi.checking'>
-  ) => {
-    if (canceled) {
-      response.error(inputCancelError)
-      return
-    }
-    response.result()
-    return [Saga.put(ProfileGen.createUpdatePlatformGenericChecking({checking: true}))]
-  }
-
-  // service calls in when it polls to give us an opportunity to cancel
-  const continueChecking = (
-    _: CustomParam<'keybase.1.proveUi.continueChecking'>,
-    response: CustomResp<'keybase.1.proveUi.continueChecking'>
-  ) => (canceled ? response.result(false) : response.result(true))
 
   const loadAfter = Tracker2Gen.createLoad({
     assertion: state.config.username,
@@ -239,70 +152,136 @@ function* addProof(state: TypedState, action: ProfileGen.AddProofPayload) {
     reason: '',
   })
   try {
-    const {sigID} = yield RPCTypes.proveStartProofRpcSaga({
-      customResponseIncomingCallMap: {
-        'keybase.1.proveUi.checking': checking,
-        'keybase.1.proveUi.continueChecking': continueChecking,
-        'keybase.1.proveUi.okToCheck': (_, response) => response.result(true),
-        'keybase.1.proveUi.outputInstructions': outputInstructions,
-        'keybase.1.proveUi.preProofWarning': (_, response) => response.result(true),
-        'keybase.1.proveUi.promptOverwrite': (_, response) => response.result(true),
-        'keybase.1.proveUi.promptUsername': promptUsername,
+    const {sigID} = await RPCTypes.proveStartProofRpcListener(
+      {
+        customResponseIncomingCallMap: {
+          'keybase.1.proveUi.checking': (_, response) => {
+            if (canceled) {
+              response.error(inputCancelError)
+              return
+            }
+            response.result()
+            return ProfileGen.createUpdatePlatformGenericChecking({checking: true})
+          },
+          // service calls in when it polls to give us an opportunity to cancel
+          'keybase.1.proveUi.continueChecking': (_, response) =>
+            canceled ? response.result(false) : response.result(true),
+          'keybase.1.proveUi.okToCheck': (_, response) => response.result(true),
+          'keybase.1.proveUi.outputInstructions': ({instructions, proof}, response) => {
+            if (canceled) {
+              response.error(inputCancelError)
+              return
+            }
+
+            const actions: Array<Container.TypedActions> = []
+            _outputInstructionsResponse = response
+            // @ts-ignore propbably a real thing
+            if (service === 'dnsOrGenericWebSite') {
+              // We don't get this directly (yet) so we parse this out
+              try {
+                const match = instructions.data.match(/<url>(http[s]+):\/\//)
+                const protocol = match?.[1]
+                actions.push(
+                  ProfileGen.createUpdatePlatform({platform: protocol === 'https' ? 'https' : 'http'})
+                )
+              } catch (_) {
+                actions.push(ProfileGen.createUpdatePlatform({platform: 'http'}))
+              }
+            }
+
+            if (service) {
+              actions.push(ProfileGen.createUpdateProofText({proof}))
+              actions.push(RouteTreeGen.createNavigateAppend({path: ['profilePostProof']}))
+            } else if (proof) {
+              actions.push(ProfileGen.createUpdatePlatformGenericURL({url: proof}))
+              openURL(proof)
+              actions.push(ProfileGen.createCheckProof())
+            }
+            return actions
+          },
+          'keybase.1.proveUi.preProofWarning': (_, response) => response.result(true),
+          'keybase.1.proveUi.promptOverwrite': (_, response) => response.result(true),
+          'keybase.1.proveUi.promptUsername': (args, response) => {
+            const {parameters, prevError} = args
+            if (canceled) {
+              response.error(inputCancelError)
+              return
+            }
+
+            _promptUsernameResponse = response
+            const actions: Array<Container.TypedActions> = []
+            if (prevError) {
+              actions.push(
+                ProfileGen.createUpdateErrorText({errorCode: prevError.code, errorText: prevError.desc})
+              )
+            }
+            if (service) {
+              actions.push(RouteTreeGen.createNavigateAppend({path: ['profileProveEnterUsername']}))
+            } else if (genericService && parameters) {
+              actions.push(
+                ProfileGen.createProofParamsReceived({params: Constants.toProveGenericParams(parameters)})
+              )
+              actions.push(RouteTreeGen.createNavigateAppend({path: ['profileGenericEnterUsername']}))
+            }
+            return actions
+          },
+        },
+        incomingCallMap: {
+          'keybase.1.proveUi.displayRecheckWarning': () => {},
+          'keybase.1.proveUi.outputPrechecks': () => {},
+        },
+        params: {
+          auto: false,
+          force: true,
+          promptPosted: !!genericService, // proof protocol extended slightly for generic proofs
+          service: action.payload.platform,
+          username: '',
+        },
+        waitingKey: Constants.waitingKey,
       },
-      incomingCallMap: {
-        'keybase.1.proveUi.displayRecheckWarning': () => {},
-        'keybase.1.proveUi.outputPrechecks': () => {},
-      },
-      params: {
-        auto: false,
-        force: true,
-        promptPosted: !!genericService, // proof protocol extended slightly for generic proofs
-        service: action.payload.platform,
-        username: '',
-      },
-      waitingKey: Constants.waitingKey,
-    })
-    yield Saga.put(ProfileGen.createUpdateSigID({sigID}))
+      listenerApi
+    )
+    listenerApi.dispatch(ProfileGen.createUpdateSigID({sigID}))
     logger.info('Start Proof done: ', sigID)
     if (!genericService) {
-      yield Saga.put(ProfileGen.createCheckProof())
+      listenerApi.dispatch(ProfileGen.createCheckProof())
     }
-    yield Saga.put(loadAfter)
+    listenerApi.dispatch(loadAfter)
     if (genericService) {
-      yield Saga.put(ProfileGen.createUpdatePlatformGenericChecking({checking: false}))
+      listenerApi.dispatch(ProfileGen.createUpdatePlatformGenericChecking({checking: false}))
     }
-  } catch (error_) {
-    const error = error_ as RPCError
-    logger.warn('Error making proof')
-    yield Saga.put(loadAfter)
-    yield Saga.put(ProfileGen.createUpdateErrorText({errorCode: error.code, errorText: error.desc}))
-    if (error.code === RPCTypes.StatusCode.scgeneric && action.payload.reason === 'appLink') {
-      yield Saga.put(
-        DeeplinksGen.createSetKeybaseLinkError({
-          error:
-            "We couldn't find a valid service for proofs in this link. The link might be bad, or your Keybase app might be out of date and need to be updated.",
-        })
-      )
-      yield Saga.put(
-        RouteTreeGen.createNavigateAppend({
-          path: [{props: {errorSource: 'app'}, selected: 'keybaseLinkError'}],
-        })
-      )
+  } catch (error) {
+    if (error instanceof RPCError) {
+      logger.warn('Error making proof')
+      listenerApi.dispatch(loadAfter)
+      listenerApi.dispatch(ProfileGen.createUpdateErrorText({errorCode: error.code, errorText: error.desc}))
+      if (error.code === RPCTypes.StatusCode.scgeneric && action.payload.reason === 'appLink') {
+        listenerApi.dispatch(
+          DeeplinksGen.createSetKeybaseLinkError({
+            error:
+              "We couldn't find a valid service for proofs in this link. The link might be bad, or your Keybase app might be out of date and need to be updated.",
+          })
+        )
+        listenerApi.dispatch(
+          RouteTreeGen.createNavigateAppend({
+            path: [{props: {errorSource: 'app'}, selected: 'keybaseLinkError'}],
+          })
+        )
+      }
     }
     if (genericService) {
-      yield Saga.put(ProfileGen.createUpdatePlatformGenericChecking({checking: false}))
+      listenerApi.dispatch(ProfileGen.createUpdatePlatformGenericChecking({checking: false}))
     }
   }
   cancelTask.cancel()
   checkProofTask.cancel()
   submitUsernameTask.cancel()
-  // eslint is confused i think
-  // eslint-disable-next-line require-atomic-updates
   addProofInProgress = false
+  return
 }
 
 const submitCryptoAddress = async (
-  state: TypedState,
+  state: Container.TypedState,
   action: ProfileGen.SubmitBTCAddressPayload | ProfileGen.SubmitZcashAddressPayload
 ) => {
   if (!state.profile.usernameValid) {
@@ -332,18 +311,18 @@ const submitCryptoAddress = async (
       ProfileGen.createUpdateProofStatus({found: true, status: RPCTypes.ProofStatus.ok}),
       RouteTreeGen.createNavigateAppend({path: ['profileConfirmOrPending']}),
     ]
-  } catch (error_) {
-    const error = error_ as RPCError
-    logger.warn('Error making proof')
-    return ProfileGen.createUpdateErrorText({errorCode: error.code, errorText: error.desc})
+  } catch (error) {
+    if (error instanceof RPCError) {
+      logger.warn('Error making proof')
+      return ProfileGen.createUpdateErrorText({errorCode: error.code, errorText: error.desc})
+    }
+    return
   }
 }
 
-function* proofsSaga() {
-  yield* Saga.chainAction2([ProfileGen.submitBTCAddress, ProfileGen.submitZcashAddress], submitCryptoAddress)
-  yield* Saga.chainGenerator<ProfileGen.AddProofPayload>(ProfileGen.addProof, addProof)
-  yield* Saga.chainAction2(ProfileGen.checkProof, checkProof)
-  yield* Saga.chainAction2(ProfileGen.recheckProof, recheckProof)
+export const initProofs = () => {
+  Container.listenAction([ProfileGen.submitBTCAddress, ProfileGen.submitZcashAddress], submitCryptoAddress)
+  Container.listenAction(ProfileGen.addProof, addProof)
+  Container.listenAction(ProfileGen.checkProof, checkProof)
+  Container.listenAction(ProfileGen.recheckProof, recheckProof)
 }
-
-export {proofsSaga}

@@ -290,14 +290,14 @@ const EditRoleButton = ({members, teamID}: {teamID: Types.TeamID; members: strin
   const [showingPicker, setShowingPicker] = React.useState(false)
 
   const waiting = Container.useAnyWaiting(Constants.editMembershipWaitingKey(teamID, ...members))
+  const teamWaiting = Container.useAnyWaiting(Constants.teamWaitingKey(teamID))
 
-  // We wait for the teamLoaded action
-  const waitForTeamLoaded = React.useCallback((a: Container.TypedActions) => {
-    if (a.type === TeamsGen.teamLoaded) {
+  // We wait for the teamLoaded
+  React.useEffect(() => {
+    if (showingPicker && !teamWaiting) {
       setShowingPicker(false)
     }
-  }, [])
-  Container.useWatchActions(showingPicker ? waitForTeamLoaded : undefined)
+  }, [showingPicker, teamWaiting])
 
   const disabledReasons = Container.useSelector(state =>
     Constants.getDisabledReasonsForRolePicker(state, teamID, members)

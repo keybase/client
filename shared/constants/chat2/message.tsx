@@ -366,7 +366,7 @@ const makeMessageSystemAddedToTeam = (
   ...makeMessageCommonNoDeleteNoEdit,
   addee: '',
   adder: '',
-  bulkAdds: Array(),
+  bulkAdds: [],
   reactions: new Map(),
   role: 'none',
   team: '',
@@ -1272,8 +1272,8 @@ export const uiMessageToMessage = (
       return placeholderUIMessageToMessage(conversationIDKey, uiMessage.placeholder)
     case RPCChatTypes.MessageUnboxedState.journeycard:
       return journeycardUIMessageToMessage(conversationIDKey, uiMessage.journeycard)
-    default:
-      assertNever(uiMessage) // A type error here means there is an unhandled message state
+    default: // A type error here means there is an unhandled message state
+      assertNever(uiMessage)
       return null
   }
 }
