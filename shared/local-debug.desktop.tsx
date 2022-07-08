@@ -2,6 +2,8 @@ import noop from 'lodash/noop'
 import KB2 from './util/electron.desktop'
 
 let config = {
+  // Set this to true if you want to turn off most console logging so you can profile easier
+  PERF: false,
   allowMultipleInstances: false, // let more run
   enableActionLogging: true, // Log actions to the log
   enableStoreLogging: false, // Log full store changes
@@ -12,8 +14,6 @@ let config = {
   immediateStateLogging: false, // Don't wait for idle to log state
   isDevApplePushToken: false,
   isTesting: __STORYBOOK__, // Is running a unit test
-  // Set this to true if you want to turn off most console logging so you can profile easier
-  PERF: false,
   partyMode: false,
   printOutstandingRPCs: false, // Periodically print rpcs we're waiting for
   printOutstandingTimerListeners: false, // Periodically print listeners to the second clock
