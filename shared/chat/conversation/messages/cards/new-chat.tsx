@@ -35,45 +35,48 @@ const NewCard = (outerProps: Props) => {
         label: 'Read more',
         text: 'This conversation is end-to-end encrypted.',
       }
+
   return (
-    <Kb.Box2
-      direction="horizontal"
-      style={Styles.collapseStyles([styles.container, props.tall ? styles.containerTall : null])}
-      alignItems="flex-start"
-    >
-      <Kb.Box2 direction="vertical" gap="xtiny" fullHeight={true} style={styles.textContainer}>
-        <Kb.Text type="BodySmallSemibold" style={styles.header} negative={true}>
-          {props.text}
-        </Kb.Text>
-        <Kb.ClickableBox onClick={props.action}>
-          <Kb.Box2
-            direction="horizontal"
-            alignItems="center"
-            fullWidth={true}
-            className="hover_container"
-            gap="xtiny"
-          >
-            <Kb.Text
-              type="BodySmallSemiboldPrimaryLink"
-              style={styles.link}
-              className="color_blueLighterOrWhite hover_contained_color_white"
+    <Kb.Box2 direction="vertical" style={styles.container}>
+      <Kb.Box2
+        direction="horizontal"
+        style={Styles.collapseStyles([styles.blueContainer, props.tall ? styles.containerTall : null])}
+        alignItems="flex-start"
+      >
+        <Kb.Box2 direction="vertical" gap="xtiny" fullHeight={true} style={styles.textContainer}>
+          <Kb.Text type="BodySmallSemibold" style={styles.header} negative={true}>
+            {props.text}
+          </Kb.Text>
+          <Kb.ClickableBox onClick={props.action}>
+            <Kb.Box2
+              direction="horizontal"
+              alignItems="center"
+              fullWidth={true}
+              className="hover_container"
+              gap="xtiny"
             >
-              {props.label}
-            </Kb.Text>
-            <Kb.Icon
-              color={Styles.globalColors.blueLighter}
-              sizeType="Tiny"
-              type="iconfont-arrow-right"
-              className="hover_contained_color_white"
-              style={styles.icon}
-            />
-          </Kb.Box2>
-        </Kb.ClickableBox>
+              <Kb.Text
+                type="BodySmallSemiboldPrimaryLink"
+                style={styles.link}
+                className="color_blueLighterOrWhite hover_contained_color_white"
+              >
+                {props.label}
+              </Kb.Text>
+              <Kb.Icon
+                color={Styles.globalColors.blueLighter}
+                sizeType="Tiny"
+                type="iconfont-arrow-right"
+                className="hover_contained_color_white"
+                style={styles.icon}
+              />
+            </Kb.Box2>
+          </Kb.ClickableBox>
+        </Kb.Box2>
+        <Kb.Icon
+          type={props.icon}
+          style={Styles.collapseStyles([styles.image, props.imageLower ? styles.imageLower : null])}
+        />
       </Kb.Box2>
-      <Kb.Icon
-        type={props.icon}
-        style={Styles.collapseStyles([styles.image, props.imageLower ? styles.imageLower : null])}
-      />
     </Kb.Box2>
   )
 }
@@ -81,21 +84,25 @@ const NewCard = (outerProps: Props) => {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      container: Styles.platformStyles({
+      blueContainer: Styles.platformStyles({
         common: {
           backgroundColor: Styles.globalColors.blueDark,
           borderRadius: Styles.borderRadius,
         },
         isElectron: {
           height: 100,
-          marginTop: Styles.globalMargins.xsmall,
           maxWidth: 400,
         },
+        isMobile: {height: 128},
+      }),
+      container: Styles.platformStyles({
+        isElectron: {
+          paddingTop: Styles.globalMargins.xsmall,
+        },
         isMobile: {
-          marginLeft: Styles.globalMargins.small,
-          marginRight: Styles.globalMargins.small,
-          marginTop: Styles.globalMargins.small,
-          width: 288,
+          paddingLeft: Styles.globalMargins.small,
+          paddingRight: Styles.globalMargins.small,
+          paddingTop: Styles.globalMargins.small,
         },
       }),
       containerTall: Styles.platformStyles({

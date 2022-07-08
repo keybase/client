@@ -268,6 +268,7 @@ class ConversationList extends React.PureComponent<Props> {
 
   // not highly documented. keeps new content from shifting around the list if you're scrolled up
   private maintainVisibleContentPosition = {
+    autoscrollToTopThreshold: 1,
     minIndexForVisible: 0,
   }
 
