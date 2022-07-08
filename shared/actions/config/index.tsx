@@ -10,8 +10,7 @@ import * as RouteTreeGen from '../route-tree-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as SettingsConstants from '../../constants/settings'
 import * as LoginConstants from '../../constants/login'
-import * as Saga from '../../util/saga'
-import * as PlatformSpecific from '../platform-specific'
+import {initPlatformListener} from '../platform-specific'
 import * as Tabs from '../../constants/tabs'
 import * as Router2 from '../../constants/router2'
 import * as Platform from '../../constants/platform'
@@ -36,7 +35,7 @@ const onLoggedOut = (state: Container.TypedState) => {
   return undefined
 }
 
-const onLog = (action: EngineGen.Keybase1LogUiLogPayload) => {
+const onLog = (_: unknown, action: EngineGen.Keybase1LogUiLogPayload) => {
   log(action.payload.params)
 }
 
@@ -49,14 +48,14 @@ const onDisconnected = () => {
   return ConfigGen.createDaemonError({daemonError: new Error('Disconnected')})
 }
 
-const onTrackingInfo = (action: EngineGen.Keybase1NotifyTrackingTrackingInfoPayload) =>
+const onTrackingInfo = (_: unknown, action: EngineGen.Keybase1NotifyTrackingTrackingInfoPayload) =>
   ConfigGen.createFollowerInfoUpdated({
     followees: action.payload.params.followees || [],
     followers: action.payload.params.followers || [],
     uid: action.payload.params.uid,
   })
 
-const onHTTPSrvInfoUpdated = (action: EngineGen.Keybase1NotifyServiceHTTPSrvInfoUpdatePayload) =>
+const onHTTPSrvInfoUpdated = (_: unknown, action: EngineGen.Keybase1NotifyServiceHTTPSrvInfoUpdatePayload) =>
   ConfigGen.createUpdateHTTPSrvInfo({
     address: action.payload.params.info.address,
     token: action.payload.params.info.token,
@@ -81,14 +80,15 @@ const getFollowerInfo = (state: Container.TypedState, action: ConfigGen.LoadOnSt
 
 // set to true so we reget status when we're reachable again
 let wasUnreachable = false
-function* loadDaemonBootstrapStatus(
+const loadDaemonBootstrapStatus = async (
   _: Container.TypedState,
   action:
     | ConfigGen.LoggedInPayload
     | ConfigGen.DaemonHandshakePayload
     | GregorGen.UpdateReachablePayload
-    | ConfigGen.LoggedOutPayload
-) {
+    | ConfigGen.LoggedOutPayload,
+  listenerApi: Container.ListenerApi
+) => {
   // Ignore the 'fake' loggedIn cause we'll get the daemonHandshake and we don't want to do this twice
   if (action.type === ConfigGen.loggedIn && action.payload.causedByStartup) {
     return
@@ -98,9 +98,8 @@ function* loadDaemonBootstrapStatus(
     wasUnreachable = true
   }
 
-  function* makeCall() {
-    const s: Saga.RPCPromiseType<typeof RPCTypes.configGetBootstrapStatusRpcPromise> =
-      yield RPCTypes.configGetBootstrapStatusRpcPromise()
+  const makeCall = async () => {
+    const s = await RPCTypes.configGetBootstrapStatusRpcPromise()
     const loadedAction = ConfigGen.createBootstrapStatusLoaded({
       deviceID: s.deviceID,
       deviceName: s.deviceName,
@@ -112,11 +111,11 @@ function* loadDaemonBootstrapStatus(
       username: s.username,
     })
     logger.info(`[Bootstrap] loggedIn: ${loadedAction.payload.loggedIn ? 1 : 0}`)
-    yield Saga.put(loadedAction)
+    listenerApi.dispatch(loadedAction)
     // set HTTP srv info
     if (s.httpSrvInfo) {
       logger.info(`[Bootstrap] http server: addr: ${s.httpSrvInfo.address} token: ${s.httpSrvInfo.token}`)
-      yield Saga.put(
+      listenerApi.dispatch(
         ConfigGen.createUpdateHTTPSrvInfo({address: s.httpSrvInfo.address, token: s.httpSrvInfo.token})
       )
     } else {
@@ -125,9 +124,9 @@ function* loadDaemonBootstrapStatus(
 
     // if we're logged in act like getAccounts is done already
     if (action.type === ConfigGen.daemonHandshake && loadedAction.payload.loggedIn) {
-      const newState: Container.TypedState = yield* Saga.selectState()
+      const newState = listenerApi.getState()
       if (newState.config.daemonHandshakeWaiters.get(getAccountsWaitKey)) {
-        yield Saga.put(
+        listenerApi.dispatch(
           ConfigGen.createDaemonHandshakeWait({
             increment: false,
             name: getAccountsWaitKey,
@@ -140,15 +139,15 @@ function* loadDaemonBootstrapStatus(
 
   switch (action.type) {
     case ConfigGen.daemonHandshake:
-      yield Saga.put(
+      listenerApi.dispatch(
         ConfigGen.createDaemonHandshakeWait({
           increment: true,
           name: 'config.getBootstrapStatus',
           version: action.payload.version,
         })
       )
-      yield* makeCall()
-      yield Saga.put(
+      await makeCall()
+      listenerApi.dispatch(
         ConfigGen.createDaemonHandshakeWait({
           increment: false,
           name: 'config.getBootstrapStatus',
@@ -159,14 +158,14 @@ function* loadDaemonBootstrapStatus(
     case GregorGen.updateReachable:
       if (action.payload.reachable === RPCTypes.Reachable.yes && wasUnreachable) {
         wasUnreachable = false // reset it
-        yield* makeCall()
+        await makeCall()
       }
       break
     case ConfigGen.loggedIn:
-      yield* makeCall()
+      await makeCall()
       break
     case ConfigGen.loggedOut:
-      yield* makeCall()
+      await makeCall()
       break
   }
 }
@@ -215,14 +214,15 @@ const maybeDoneWithDaemonHandshake = (
 // normally this wouldn't be worth it but this is startup
 const getAccountsWaitKey = 'config.getAccounts'
 
-function* loadDaemonAccounts(
+const loadDaemonAccounts = async (
   state: Container.TypedState,
   action:
     | DevicesGen.RevokedPayload
     | ConfigGen.DaemonHandshakePayload
     | ConfigGen.LoggedOutPayload
-    | ConfigGen.LoggedInPayload
-) {
+    | ConfigGen.LoggedInPayload,
+  listenerApi: Container.ListenerApi
+) => {
   // ignore since we handle handshake
   if (action.type === ConfigGen.loggedIn && action.payload.causedByStartup) {
     return
@@ -241,7 +241,7 @@ function* loadDaemonAccounts(
 
   try {
     if (handshakeWait) {
-      yield Saga.put(
+      listenerApi.dispatch(
         ConfigGen.createDaemonHandshakeWait({
           increment: true,
           name: getAccountsWaitKey,
@@ -250,16 +250,14 @@ function* loadDaemonAccounts(
       )
     }
 
-    const configuredAccounts: Array<RPCTypes.ConfiguredAccount> =
-      yield RPCTypes.loginGetConfiguredAccountsRpcPromise()
-    const loadedAction = ConfigGen.createSetAccounts({configuredAccounts})
-    yield Saga.put(loadedAction)
+    const configuredAccounts = (await RPCTypes.loginGetConfiguredAccountsRpcPromise()) ?? []
+    listenerApi.dispatch(ConfigGen.createSetAccounts({configuredAccounts}))
 
     if (handshakeWait) {
       // someone dismissed this already?
-      const newState: Container.TypedState = yield* Saga.selectState()
+      const newState = listenerApi.getState()
       if (newState.config.daemonHandshakeWaiters.get(getAccountsWaitKey)) {
-        yield Saga.put(
+        listenerApi.dispatch(
           ConfigGen.createDaemonHandshakeWait({
             increment: false,
             name: getAccountsWaitKey,
@@ -271,9 +269,9 @@ function* loadDaemonAccounts(
   } catch (error) {
     if (handshakeWait) {
       // someone dismissed this already?
-      const newState: Container.TypedState = yield* Saga.selectState()
+      const newState = listenerApi.getState()
       if (newState.config.daemonHandshakeWaiters.get(getAccountsWaitKey)) {
-        yield Saga.put(
+        listenerApi.dispatch(
           ConfigGen.createDaemonHandshakeWait({
             failedReason: "Can't get accounts",
             increment: false,
@@ -284,7 +282,6 @@ function* loadDaemonAccounts(
       }
     }
   }
-  return
 }
 
 const showDeletedSelfRootPage = () => [
@@ -320,9 +317,9 @@ const startLogoutHandshake = (state: Container.TypedState) =>
 
 // This assumes there's at least a single waiter to trigger this, so if that ever changes you'll have to add
 // stuff to trigger this due to a timeout if there's no listeners or something
-function* maybeDoneWithLogoutHandshake(state: Container.TypedState) {
+const maybeDoneWithLogoutHandshake = async (state: Container.TypedState) => {
   if (state.config.logoutHandshakeWaiters.size <= 0) {
-    yield RPCTypes.loginLogoutRpcPromise({force: false, keepSecrets: false})
+    await RPCTypes.loginLogoutRpcPromise({force: false, keepSecrets: false})
   }
 }
 
@@ -391,16 +388,20 @@ const emitInitialLoggedIn = (state: Container.TypedState) => {
   return state.config.loggedIn && ConfigGen.createLoggedIn({causedBySignup: false, causedByStartup: true})
 }
 
-function* allowLogoutWaiters(_: Container.TypedState, action: ConfigGen.LogoutHandshakePayload) {
-  yield Saga.put(
+const allowLogoutWaiters = async (
+  _: Container.TypedState,
+  action: ConfigGen.LogoutHandshakePayload,
+  listenerApi: Container.ListenerApi
+) => {
+  listenerApi.dispatch(
     ConfigGen.createLogoutHandshakeWait({
       increment: true,
       name: 'nullhandshake',
       version: action.payload.version,
     })
   )
-  yield Saga.delay(10)
-  yield Saga.put(
+  await listenerApi.delay(10)
+  listenerApi.dispatch(
     ConfigGen.createLogoutHandshakeWait({
       increment: false,
       name: 'nullhandshake',
@@ -419,6 +420,7 @@ const updateServerConfig = async (state: Container.TypedState, action: ConfigGen
   })
 
 const newNavigation = (
+  _: unknown,
   action:
     | RouteTreeGen.SetParamsPayload
     | RouteTreeGen.NavigateAppendPayload
@@ -432,13 +434,13 @@ const newNavigation = (
   Router2.dispatchOldAction(action)
 }
 
-function* criticalOutOfDateCheck() {
-  yield Saga.delay(60 * 1000) // don't bother checking during startup
+const criticalOutOfDateCheck = async (listenerApi: Container.ListenerApi) => {
+  await listenerApi.delay(60_000) // don't bother checking during startup
   // check every hour
+  // eslint-disable-next-line
   while (true) {
     try {
-      const s: Saga.RPCPromiseType<typeof RPCTypes.configGetUpdateInfo2RpcPromise> =
-        yield RPCTypes.configGetUpdateInfo2RpcPromise({})
+      const s = await RPCTypes.configGetUpdateInfo2RpcPromise({})
       let status: ConfigGen.UpdateCriticalCheckStatusPayload['payload']['status'] = 'ok'
       let message: string | null = null
       switch (s.status) {
@@ -454,7 +456,7 @@ function* criticalOutOfDateCheck() {
           break
         default:
       }
-      yield Saga.put(ConfigGen.createUpdateCriticalCheckStatus({message: message || '', status}))
+      listenerApi.dispatch(ConfigGen.createUpdateCriticalCheckStatus({message: message || '', status}))
     } catch (e) {
       logger.warn("Can't call critical check", e)
     }
@@ -462,7 +464,7 @@ function* criticalOutOfDateCheck() {
     if (Platform.isMobile) {
       return
     }
-    yield Saga.delay(3600 * 1000) // 1 hr
+    await listenerApi.delay(3_600_000) // 1 hr
   }
 }
 
@@ -505,7 +507,7 @@ const logoutAndTryToLogInAs = async (
   return ConfigGen.createSetDefaultUsername({username: action.payload.username})
 }
 
-const gregorPushState = (action: GregorGen.PushStatePayload) => {
+const gregorPushState = (_: unknown, action: GregorGen.PushStatePayload) => {
   const actions: Array<Container.TypedActions> = []
   const items = action.payload.state
   const lastSeenItem = items.find(i => i.item && i.item.category === 'whatsNewLastSeenVersion')
@@ -583,37 +585,40 @@ const emitStartupOnLoadLoggedIn = (_: Container.TypedState, action: ConfigGen.Lo
   return !action.payload.causedByStartup ? ConfigGen.createLoadOnStart({phase: 'reloggedIn'}) : false
 }
 
-function* configSaga() {
+const onPowerMonitorEvent = async (_s: unknown, action: ConfigGen.PowerMonitorEventPayload) => {
+  const {event} = action.payload
+  try {
+    await RPCTypes.appStatePowerMonitorEventRpcPromise({event})
+  } catch {}
+}
+
+const initConfig = () => {
   // Start the handshake process. This means we tell all sagas we're handshaking with the daemon. If another
   // saga needs to do something before we leave the loading screen they should call daemonHandshakeWait
-  yield* Saga.chainAction2([ConfigGen.restartHandshake, ConfigGen.startHandshake], startHandshake)
+  Container.listenAction([ConfigGen.restartHandshake, ConfigGen.startHandshake], startHandshake)
   // When there are no more waiters, we can show the actual app
-  yield* Saga.chainAction2(ConfigGen.daemonHandshakeWait, maybeDoneWithDaemonHandshake)
+  Container.listenAction(ConfigGen.daemonHandshakeWait, maybeDoneWithDaemonHandshake)
   // darkmode
-  yield* Saga.chainAction2(ConfigGen.daemonHandshake, loadDarkPrefs)
+  Container.listenAction(ConfigGen.daemonHandshake, loadDarkPrefs)
   // Re-get info about our account if you log in/we're done handshaking/became reachable
-  yield* Saga.chainGenerator<
-    ConfigGen.LoggedInPayload | ConfigGen.DaemonHandshakePayload | GregorGen.UpdateReachablePayload
-  >([ConfigGen.loggedIn, ConfigGen.daemonHandshake, GregorGen.updateReachable], loadDaemonBootstrapStatus)
+  Container.listenAction(
+    [ConfigGen.loggedIn, ConfigGen.daemonHandshake, GregorGen.updateReachable],
+    loadDaemonBootstrapStatus
+  )
   // Load the known accounts if you revoke / handshake / logout
-  yield* Saga.chainGenerator<
-    | DevicesGen.RevokedPayload
-    | ConfigGen.DaemonHandshakePayload
-    | ConfigGen.LoggedOutPayload
-    | ConfigGen.LoggedInPayload
-  >(
+  Container.listenAction(
     [DevicesGen.revoked, ConfigGen.daemonHandshake, ConfigGen.loggedOut, ConfigGen.loggedIn],
     loadDaemonAccounts
   )
 
-  yield* Saga.chainAction2(ConfigGen.daemonHandshakeDone, emitStartupOnLoadNotInARush)
-  yield* Saga.chainAction2(ConfigGen.daemonHandshakeDone, emitStartupOnLoadDaemonConnectedOnce)
-  yield* Saga.chainAction2(ConfigGen.loggedIn, emitStartupOnLoadLoggedIn)
-  yield* Saga.chainAction2(ConfigGen.loggedIn, emitStartupOnLoadNotInARushLoggedIn)
+  Container.listenAction(ConfigGen.daemonHandshakeDone, emitStartupOnLoadNotInARush)
+  Container.listenAction(ConfigGen.daemonHandshakeDone, emitStartupOnLoadDaemonConnectedOnce)
+  Container.listenAction(ConfigGen.loggedIn, emitStartupOnLoadLoggedIn)
+  Container.listenAction(ConfigGen.loggedIn, emitStartupOnLoadNotInARushLoggedIn)
 
-  yield* Saga.chainAction2(ConfigGen.logoutAndTryToLogInAs, logoutAndTryToLogInAs)
+  Container.listenAction(ConfigGen.logoutAndTryToLogInAs, logoutAndTryToLogInAs)
 
-  yield* Saga.chainAction(
+  Container.listenAction(
     [
       RouteTreeGen.setParams,
       RouteTreeGen.navigateAppend,
@@ -627,49 +632,47 @@ function* configSaga() {
     newNavigation
   )
   // If you start logged in we don't get the incoming call from the daemon so we generate our own here
-  yield* Saga.chainAction2(ConfigGen.daemonHandshakeDone, emitInitialLoggedIn)
+  Container.listenAction(ConfigGen.daemonHandshakeDone, emitInitialLoggedIn)
 
   // Like handshake but in reverse, ask sagas to do stuff before we tell the server to log us out
-  yield* Saga.chainAction2(ConfigGen.logout, startLogoutHandshakeIfAllowed)
+  Container.listenAction(ConfigGen.logout, startLogoutHandshakeIfAllowed)
   // Give time for all waiters to register and allow the case where there are no waiters
-  yield* Saga.chainGenerator<ConfigGen.LogoutHandshakePayload>(ConfigGen.logoutHandshake, allowLogoutWaiters)
-  yield* Saga.chainGenerator<ConfigGen.LogoutHandshakeWaitPayload>(
-    ConfigGen.logoutHandshakeWait,
-    maybeDoneWithLogoutHandshake
-  )
+  Container.listenAction(ConfigGen.logoutHandshake, allowLogoutWaiters)
+  Container.listenAction(ConfigGen.logoutHandshakeWait, maybeDoneWithLogoutHandshake)
   // When we're all done lets clean up
-  yield* Saga.chainAction2(ConfigGen.loggedOut, resetGlobalStore)
+  Container.listenAction(ConfigGen.loggedOut, resetGlobalStore)
   // Store per user server config info
-  yield* Saga.chainAction2(ConfigGen.loadOnStart, updateServerConfig)
+  Container.listenAction(ConfigGen.loadOnStart, updateServerConfig)
 
-  yield* Saga.chainAction2(ConfigGen.setDeletedSelf, showDeletedSelfRootPage)
+  Container.listenAction(ConfigGen.setDeletedSelf, showDeletedSelfRootPage)
 
-  yield* Saga.chainAction2(EngineGen.keybase1NotifySessionLoggedIn, onLoggedIn)
-  yield* Saga.chainAction2(EngineGen.keybase1NotifySessionLoggedOut, onLoggedOut)
-  yield* Saga.chainAction(EngineGen.keybase1LogUiLog, onLog)
-  yield* Saga.chainAction2(EngineGen.connected, onConnected)
-  yield* Saga.chainAction2(EngineGen.disconnected, onDisconnected)
-  yield* Saga.chainAction(EngineGen.keybase1NotifyTrackingTrackingInfo, onTrackingInfo)
-  yield* Saga.chainAction(EngineGen.keybase1NotifyServiceHTTPSrvInfoUpdate, onHTTPSrvInfoUpdated)
+  Container.listenAction(EngineGen.keybase1NotifySessionLoggedIn, onLoggedIn)
+  Container.listenAction(EngineGen.keybase1NotifySessionLoggedOut, onLoggedOut)
+  Container.listenAction(EngineGen.keybase1LogUiLog, onLog)
+  Container.listenAction(EngineGen.connected, onConnected)
+  Container.listenAction(EngineGen.disconnected, onDisconnected)
+  Container.listenAction(EngineGen.keybase1NotifyTrackingTrackingInfo, onTrackingInfo)
+  Container.listenAction(EngineGen.keybase1NotifyServiceHTTPSrvInfoUpdate, onHTTPSrvInfoUpdated)
 
   // Listen for updates to `whatsNewLastSeenVersion`
-  yield* Saga.chainAction(GregorGen.pushState, gregorPushState)
+  Container.listenAction(GregorGen.pushState, gregorPushState)
 
-  yield* Saga.chainAction2(SettingsGen.loadedSettings, maybeLoadAppLink)
+  Container.listenAction(SettingsGen.loadedSettings, maybeLoadAppLink)
 
-  yield* Saga.chainAction2(ConfigGen.setDarkModePreference, saveDarkPrefs)
-  yield* Saga.chainAction2(ConfigGen.loadOnStart, getFollowerInfo)
+  Container.listenAction(ConfigGen.setDarkModePreference, saveDarkPrefs)
+  Container.listenAction(ConfigGen.loadOnStart, getFollowerInfo)
 
-  yield* Saga.chainAction2(ConfigGen.toggleRuntimeStats, toggleRuntimeStats)
+  Container.listenAction(ConfigGen.toggleRuntimeStats, toggleRuntimeStats)
 
-  yield* Saga.chainAction2(PushGen.showPermissionsPrompt, onShowPermissionsPrompt)
-  yield* Saga.chainAction2(ConfigGen.androidShare, onAndroidShare)
+  Container.listenAction(PushGen.showPermissionsPrompt, onShowPermissionsPrompt)
+  Container.listenAction(ConfigGen.androidShare, onAndroidShare)
 
   // Kick off platform specific stuff
-  yield Saga.spawn(PlatformSpecific.platformConfigSaga)
-  yield Saga.spawn(criticalOutOfDateCheck)
+  initPlatformListener()
 
-  yield* Saga.chainAction2(ConfigGen.loadOnLoginStartup, loadOnLoginStartup)
+  Container.spawn(criticalOutOfDateCheck, 'criticalOutOfDateCheck')
+  Container.listenAction(ConfigGen.loadOnLoginStartup, loadOnLoginStartup)
+  Container.listenAction(ConfigGen.powerMonitorEvent, onPowerMonitorEvent)
 }
 
-export default configSaga
+export default initConfig

@@ -1,14 +1,14 @@
 // Handles sending requests to the daemon
 import logger from '../logger'
 import Session, {type CancelHandlerType} from './session'
-import {initEngine, initEngineSaga} from './require'
+import {initEngine, initEngineListener} from './require'
 import {type RPCError, convertToError} from '../util/errors'
 import {isMobile} from '../constants/platform'
 import {localLog} from '../util/forward-logs'
 import {printOutstandingRPCs, isTesting} from '../local-debug'
 import {resetClient, createClient, rpcLog, type createClientType} from './index.platform'
 import {createBatchChangeWaiting} from '../actions/waiting-gen'
-import engineSaga from './saga'
+import engineListener from './listener'
 import throttle from 'lodash/throttle'
 import type {CustomResponseIncomingCallMapType, IncomingCallMapType} from '.'
 import type {SessionID, SessionIDKey, WaitingHandlerType, MethodKey} from './types'
@@ -34,14 +34,14 @@ class Engine {
   _sessionsMap: {[K in SessionIDKey]: Session} = {}
   // Helper we delegate actual calls to
   _rpcClient: createClientType
-  // Set which actions we don't auto respond with so sagas can themselves
+  // Set which actions we don't auto respond with so listeners can themselves
   _customResponseAction: {[K in MethodKey]: true} = {}
   // We generate sessionIDs monotonically
   _nextSessionID: number = 123
   // We call onDisconnect handlers only if we've actually disconnected (ie connected once)
   _hasConnected: boolean = isMobile // mobile is always connected
-  // App tells us when the sagas are done loading so we can start emitting events
-  _sagasAreReady: boolean = false
+  // App tells us when the listeners are done loading so we can start emitting events
+  _listenersAreReady: boolean = false
 
   _dispatch: TypedDispatch
 
@@ -102,9 +102,9 @@ class Engine {
     this._dispatch({payload: undefined, type: 'engine-gen:disconnected'})
   }
 
-  // We want to dispatch the connect action but only after sagas boot up
-  sagasAreReady = () => {
-    this._sagasAreReady = true
+  // We want to dispatch the connect action but only after listeners boot up
+  listenersAreReady = () => {
+    this._listenersAreReady = true
     if (this._hasConnected) {
       // dispatch the action version
       this._dispatch({payload: undefined, type: 'engine-gen:connected'})
@@ -116,8 +116,8 @@ class Engine {
   _onConnected() {
     this._hasConnected = true
 
-    // Sagas already booted so they can get this
-    if (this._sagasAreReady) {
+    // listeners already booted so they can get this
+    if (this._listenersAreReady) {
       // dispatch the action version
       this._dispatch({payload: undefined, type: 'engine-gen:connected'})
     }
@@ -347,7 +347,7 @@ const makeEngine = (dispatch: TypedDispatch) => {
       global.DEBUGEngine = engine
     }
     initEngine(engine as any)
-    initEngineSaga(engineSaga)
+    initEngineListener(engineListener)
   }
   return engine
 }

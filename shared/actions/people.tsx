@@ -7,13 +7,12 @@ import * as PeopleGen from './people-gen'
 import * as ProfileGen from './profile-gen'
 import * as RouteTreeGen from './route-tree-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
-import * as Saga from '../util/saga'
 import * as Tabs from '../constants/tabs'
 import * as TeamBuildingGen from './team-building-gen'
-import commonTeamBuildingSaga, {filterForNs} from './team-building'
+import {commonListenActions, filterForNs} from './team-building'
 import logger from '../logger'
 import type * as Types from '../constants/types/people'
-import type {RPCError} from '../util/errors'
+import {RPCError} from '../util/errors'
 
 // set this to true to have all todo items + a contact joined notification show up all the time
 const debugTodo = false
@@ -138,7 +137,7 @@ const getPeopleData = async (state: Container.TypedState, action: PeopleGen.GetP
   }
 }
 
-const dismissWotNotifications = async (action: PeopleGen.DismissWotNotificationsPayload) => {
+const dismissWotNotifications = async (_: unknown, action: PeopleGen.DismissWotNotificationsPayload) => {
   try {
     await RPCTypes.wotDismissWotNotificationsRpcPromise({
       vouchee: action.payload.vouchee,
@@ -149,12 +148,12 @@ const dismissWotNotifications = async (action: PeopleGen.DismissWotNotifications
   }
 }
 
-const receivedBadgeState = (action: NotificationsGen.ReceivedBadgeStatePayload) =>
+const receivedBadgeState = (_: unknown, action: NotificationsGen.ReceivedBadgeStatePayload) =>
   PeopleGen.createBadgeAppForWotNotifications({
     updates: new Map<string, Types.WotUpdate>(Object.entries(action.payload.badgeState.wotUpdates || {})),
   })
 
-const dismissAnnouncement = async (action: PeopleGen.DismissAnnouncementPayload) => {
+const dismissAnnouncement = async (_: unknown, action: PeopleGen.DismissAnnouncementPayload) => {
   await RPCTypes.homeHomeDismissAnnouncementRpcPromise({
     i: action.payload.id,
   })
@@ -163,8 +162,10 @@ const dismissAnnouncement = async (action: PeopleGen.DismissAnnouncementPayload)
 const markViewed = async () => {
   try {
     await RPCTypes.homeHomeMarkViewedRpcPromise()
-  } catch (error_) {
-    const error = error_ as RPCError
+  } catch (error) {
+    if (!(error instanceof RPCError)) {
+      throw error
+    }
     if (Container.isNetworkErr(error.code)) {
       logger.warn('Network error calling homeMarkViewed')
     } else {
@@ -173,7 +174,7 @@ const markViewed = async () => {
   }
 }
 
-const skipTodo = async (action: PeopleGen.SkipTodoPayload) => {
+const skipTodo = async (_: unknown, action: PeopleGen.SkipTodoPayload) => {
   try {
     await RPCTypes.homeHomeSkipTodoTypeRpcPromise({
       t: RPCTypes.HomeScreenTodoType[action.payload.type],
@@ -215,7 +216,7 @@ const onTeamBuildingAdded = (_: Container.TypedState, action: TeamBuildingGen.Ad
   ]
 }
 
-const maybeMarkViewed = (action: RouteTreeGen.OnNavChangedPayload) => {
+const maybeMarkViewed = (_: unknown, action: RouteTreeGen.OnNavChangedPayload) => {
   const {prev, next} = action.payload
   if (
     Router2Constants.getRouteTab(prev) === Tabs.peopleTab &&
@@ -226,22 +227,18 @@ const maybeMarkViewed = (action: RouteTreeGen.OnNavChangedPayload) => {
   return false
 }
 
-function* peopleTeamBuildingSaga() {
-  yield* commonTeamBuildingSaga('people')
-  yield* Saga.chainAction2(TeamBuildingGen.addUsersToTeamSoFar, filterForNs('people', onTeamBuildingAdded))
+const initPeople = () => {
+  Container.listenAction(PeopleGen.getPeopleData, getPeopleData)
+  Container.listenAction(PeopleGen.markViewed, markViewed)
+  Container.listenAction(PeopleGen.skipTodo, skipTodo)
+  Container.listenAction(PeopleGen.dismissAnnouncement, dismissAnnouncement)
+  Container.listenAction(NotificationsGen.receivedBadgeState, receivedBadgeState)
+  Container.listenAction(PeopleGen.dismissWotNotifications, dismissWotNotifications)
+  Container.listenAction(EngineGen.keybase1HomeUIHomeUIRefresh, homeUIRefresh)
+  Container.listenAction(EngineGen.connected, connected)
+  Container.listenAction(RouteTreeGen.onNavChanged, maybeMarkViewed)
+  commonListenActions('people')
+  Container.listenAction(TeamBuildingGen.addUsersToTeamSoFar, filterForNs('people', onTeamBuildingAdded))
 }
 
-const peopleSaga = function* () {
-  yield* Saga.chainAction2(PeopleGen.getPeopleData, getPeopleData)
-  yield* Saga.chainAction2(PeopleGen.markViewed, markViewed)
-  yield* Saga.chainAction(PeopleGen.skipTodo, skipTodo)
-  yield* Saga.chainAction(PeopleGen.dismissAnnouncement, dismissAnnouncement)
-  yield* Saga.chainAction(NotificationsGen.receivedBadgeState, receivedBadgeState)
-  yield* Saga.chainAction(PeopleGen.dismissWotNotifications, dismissWotNotifications)
-  yield* Saga.chainAction2(EngineGen.keybase1HomeUIHomeUIRefresh, homeUIRefresh)
-  yield* Saga.chainAction2(EngineGen.connected, connected)
-  yield* Saga.chainAction(RouteTreeGen.onNavChanged, maybeMarkViewed)
-  yield* peopleTeamBuildingSaga()
-}
-
-export default peopleSaga
+export default initPeople

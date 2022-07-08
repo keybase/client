@@ -1,15 +1,17 @@
 import * as BotsGen from './bots-gen'
-import * as Saga from '../util/saga'
 import * as Container from '../util/container'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Constants from '../constants/bots'
 import * as EngineGen from './engine-gen-gen'
 import logger from '../logger'
-import type {RPCError} from '../util/errors'
+import {RPCError} from '../util/errors'
 
 const pageSize = 100
 
-const onFeaturedBotsUpdate = (action: EngineGen.Keybase1NotifyFeaturedBotsFeaturedBotsUpdatePayload) => {
+const onFeaturedBotsUpdate = (
+  _: unknown,
+  action: EngineGen.Keybase1NotifyFeaturedBotsFeaturedBotsUpdatePayload
+) => {
   const {bots, limit, offset} = action.payload.params
   const loadedAllBots = !bots || bots.length < pageSize
   const page = offset / (limit ?? pageSize)
@@ -34,8 +36,10 @@ const getFeaturedBots = async (_: Container.TypedState, action: BotsGen.GetFeatu
       BotsGen.createUpdateFeaturedBots({bots: bots ?? [], page}),
       BotsGen.createSetLoadedAllBots({loaded: loadedAllBots}),
     ]
-  } catch (error_) {
-    const error = error_ as RPCError
+  } catch (error) {
+    if (!(error instanceof RPCError)) {
+      return
+    }
     if (Container.isNetworkErr(error.code)) {
       logger.info('Network error getting featured bots')
     } else {
@@ -58,8 +62,10 @@ const searchFeaturedBots = async (_: Container.TypedState, action: BotsGen.Searc
       return
     }
     return BotsGen.createUpdateFeaturedBots({bots})
-  } catch (error_) {
-    const error = error_ as RPCError
+  } catch (error) {
+    if (!(error instanceof RPCError)) {
+      return
+    }
     if (Container.isNetworkErr(error.code)) {
       logger.info('Network error searching featured bots')
     } else {
@@ -69,7 +75,7 @@ const searchFeaturedBots = async (_: Container.TypedState, action: BotsGen.Searc
   }
 }
 
-const searchFeaturedAndUsers = async (action: BotsGen.SearchFeaturedAndUsersPayload) => {
+const searchFeaturedAndUsers = async (_: unknown, action: BotsGen.SearchFeaturedAndUsersPayload) => {
   const {query} = action.payload
   let botRes: RPCTypes.SearchRes | null | undefined
   let userRes: Array<RPCTypes.APIUserSearchResult> | null | undefined
@@ -94,8 +100,10 @@ const searchFeaturedAndUsers = async (action: BotsGen.SearchFeaturedAndUsersPayl
         Constants.waitingKeyBotSearchUsers
       ),
     ])
-  } catch (error_) {
-    const error = error_ as RPCError
+  } catch (error) {
+    if (!(error instanceof RPCError)) {
+      return
+    }
     logger.info(`searchFeaturedAndUsers: failed to run search: ${error.message}`)
     return
   }
@@ -114,11 +122,11 @@ const searchFeaturedAndUsers = async (action: BotsGen.SearchFeaturedAndUsersPayl
   })
 }
 
-function* botsSaga() {
-  yield* Saga.chainAction2(BotsGen.getFeaturedBots, getFeaturedBots)
-  yield* Saga.chainAction2(BotsGen.searchFeaturedBots, searchFeaturedBots)
-  yield* Saga.chainAction(BotsGen.searchFeaturedAndUsers, searchFeaturedAndUsers)
-  yield* Saga.chainAction(EngineGen.keybase1NotifyFeaturedBotsFeaturedBotsUpdate, onFeaturedBotsUpdate)
+const initBots = () => {
+  Container.listenAction(BotsGen.getFeaturedBots, getFeaturedBots)
+  Container.listenAction(BotsGen.searchFeaturedBots, searchFeaturedBots)
+  Container.listenAction(BotsGen.searchFeaturedAndUsers, searchFeaturedAndUsers)
+  Container.listenAction(EngineGen.keybase1NotifyFeaturedBotsFeaturedBotsUpdate, onFeaturedBotsUpdate)
 }
 
-export default botsSaga
+export default initBots

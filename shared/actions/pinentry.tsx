@@ -2,7 +2,7 @@ import logger from '../logger'
 import * as EngineGen from './engine-gen-gen'
 import * as PinentryGen from './pinentry-gen'
 import * as Constants from '../constants/login'
-import * as Saga from '../util/saga'
+import * as Container from '../util/container'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import {getEngine} from '../engine/require'
 
@@ -20,7 +20,7 @@ const onConnect = async () => {
   }
 }
 
-const onGetPassword = (action: EngineGen.Keybase1SecretUiGetPassphrasePayload) => {
+const onGetPassword = (_: unknown, action: EngineGen.Keybase1SecretUiGetPassphrasePayload) => {
   logger.info('Asked for password')
   const {response, params} = action.payload
   const {pinentry} = params
@@ -44,7 +44,7 @@ const onGetPassword = (action: EngineGen.Keybase1SecretUiGetPassphrasePayload) =
   })
 }
 
-const onSubmit = (action: PinentryGen.OnSubmitPayload) => {
+const onSubmit = (_: unknown, action: PinentryGen.OnSubmitPayload) => {
   const {password} = action.payload
   if (_response) {
     _response.result({passphrase: password, storeSecret: false})
@@ -62,12 +62,12 @@ const onCancel = () => {
   return PinentryGen.createClose()
 }
 
-function* pinentrySaga() {
-  yield* Saga.chainAction(PinentryGen.onSubmit, onSubmit)
-  yield* Saga.chainAction2(PinentryGen.onCancel, onCancel)
+const initPinentry = () => {
+  Container.listenAction(PinentryGen.onSubmit, onSubmit)
+  Container.listenAction(PinentryGen.onCancel, onCancel)
   getEngine().registerCustomResponse('keybase.1.secretUi.getPassphrase')
-  yield* Saga.chainAction(EngineGen.keybase1SecretUiGetPassphrase, onGetPassword)
-  yield* Saga.chainAction2(EngineGen.connected, onConnect)
+  Container.listenAction(EngineGen.keybase1SecretUiGetPassphrase, onGetPassword)
+  Container.listenAction(EngineGen.connected, onConnect)
 }
 
-export default pinentrySaga
+export default initPinentry

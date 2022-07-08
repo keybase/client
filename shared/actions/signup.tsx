@@ -4,14 +4,12 @@ import * as Tabs from '../constants/tabs'
 import * as Constants from '../constants/signup'
 import * as ConfigConstants from '../constants/config'
 import * as SignupGen from './signup-gen'
-import * as Saga from '../util/saga'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as RouteTreeGen from './route-tree-gen'
 import * as SettingsGen from './settings-gen'
 import * as PushGen from './push-gen'
-import {isMobile} from '../constants/platform'
-import type {RPCError} from '../util/errors'
-import type * as Container from '../util/container'
+import * as Container from '../util/container'
+import {RPCError} from '../util/errors'
 
 // Helpers ///////////////////////////////////////////////////////////
 // returns true if there are no errors, we check all errors at every transition just to be extra careful
@@ -61,9 +59,11 @@ const checkInviteCode = async (state: Container.TypedState) => {
       Constants.waitingKey
     )
     return SignupGen.createCheckedInviteCode({inviteCode: state.signup.inviteCode})
-  } catch (error_) {
-    const error = error_ as RPCError
-    return SignupGen.createCheckedInviteCode({error: error.desc, inviteCode: state.signup.inviteCode})
+  } catch (error) {
+    if (error instanceof RPCError) {
+      return SignupGen.createCheckedInviteCode({error: error.desc, inviteCode: state.signup.inviteCode})
+    }
+    return
   }
 }
 
@@ -96,22 +96,20 @@ const requestInvite = async (state: Container.TypedState) => {
       email: state.signup.email,
       name: state.signup.name,
     })
-  } catch (error_) {
-    const error = error_ as RPCError
-    return SignupGen.createRequestedInvite({
-      email: state.signup.email,
-      emailError: `Sorry can't get an invite: ${error.desc}`,
-      name: state.signup.name,
-      nameError: '',
-    })
+  } catch (error) {
+    if (error instanceof RPCError) {
+      return SignupGen.createRequestedInvite({
+        email: state.signup.email,
+        emailError: `Sorry can't get an invite: ${error.desc}`,
+        name: state.signup.name,
+        nameError: '',
+      })
+    }
+    return
   }
 }
 
-const checkUsername = async (
-  state: Container.TypedState,
-  _: SignupGen.CheckUsernamePayload,
-  logger: Saga.SagaLogger
-) => {
+const checkUsername = async (state: Container.TypedState, _: SignupGen.CheckUsernamePayload) => {
   logger.info(`checking ${state.signup.username}`)
   if (!noErrors(state)) {
     return false
@@ -124,17 +122,19 @@ const checkUsername = async (
     )
     logger.info(`${state.signup.username} success`)
     return SignupGen.createCheckedUsername({error: '', username: state.signup.username})
-  } catch (error_) {
-    const error = error_ as RPCError
-    logger.warn(`${state.signup.username} error: ${error.message}`)
-    const s = error.code === RPCTypes.StatusCode.scinputerror ? Constants.usernameHint : error.desc
-    return SignupGen.createCheckedUsername({
-      // Don't set error if it's 'username taken', we show a banner in that case
-      error: error.code === RPCTypes.StatusCode.scbadsignupusernametaken ? '' : s,
-      username: state.signup.username,
-      usernameTaken:
-        error.code === RPCTypes.StatusCode.scbadsignupusernametaken ? state.signup.username : undefined,
-    })
+  } catch (error) {
+    if (error instanceof RPCError) {
+      logger.warn(`${state.signup.username} error: ${error.message}`)
+      const s = error.code === RPCTypes.StatusCode.scinputerror ? Constants.usernameHint : error.desc
+      return SignupGen.createCheckedUsername({
+        // Don't set error if it's 'username taken', we show a banner in that case
+        error: error.code === RPCTypes.StatusCode.scbadsignupusernametaken ? '' : s,
+        username: state.signup.username,
+        usernameTaken:
+          error.code === RPCTypes.StatusCode.scbadsignupusernametaken ? state.signup.username : undefined,
+      })
+    }
+    return
   }
 }
 
@@ -148,17 +148,23 @@ const checkDevicename = async (state: Container.TypedState) => {
       Constants.waitingKey
     )
     return SignupGen.createCheckedDevicename({devicename: state.signup.devicename})
-  } catch (error_) {
-    const error = error_ as RPCError
-    return SignupGen.createCheckedDevicename({
-      devicename: state.signup.devicename,
-      error: `Device name is invalid: ${error.desc}.`,
-    })
+  } catch (error) {
+    if (error instanceof RPCError) {
+      return SignupGen.createCheckedDevicename({
+        devicename: state.signup.devicename,
+        error: `Device name is invalid: ${error.desc}.`,
+      })
+    }
+    return
   }
 }
 
 // Actually sign up ///////////////////////////////////////////////////////////
-function* reallySignupOnNoErrors(state: Container.TypedState) {
+const reallySignupOnNoErrors = async (
+  state: Container.TypedState,
+  _a: unknown,
+  listenerApi: Container.ListenerApi
+) => {
   if (!noErrors(state)) {
     logger.warn('Still has errors, bailing on really signing up')
     return
@@ -172,50 +178,46 @@ function* reallySignupOnNoErrors(state: Container.TypedState) {
   }
 
   try {
-    yield Saga.put(
-      PushGen.createShowPermissionsPrompt({
-        justSignedUp: true,
-      })
-    )
+    listenerApi.dispatch(PushGen.createShowPermissionsPrompt({justSignedUp: true}))
 
-    yield RPCTypes.signupSignupRpcSaga({
-      customResponseIncomingCallMap: {
-        // Do not add a gpg key for now
-        'keybase.1.gpgUi.wantToAddGPGKey': (_, response) => {
-          response.result(false)
+    await RPCTypes.signupSignupRpcListener(
+      {
+        customResponseIncomingCallMap: {
+          // Do not add a gpg key for now
+          'keybase.1.gpgUi.wantToAddGPGKey': (_, response) => {
+            response.result(false)
+          },
         },
+        incomingCallMap: {
+          // We dont show the paperkey anymore
+          'keybase.1.loginUi.displayPrimaryPaperKey': () => {},
+        },
+        params: {
+          botToken: '',
+          deviceName: devicename,
+          deviceType: Container.isMobile ? RPCTypes.DeviceType.mobile : RPCTypes.DeviceType.desktop,
+          email: '',
+          genPGPBatch: false,
+          genPaper: false,
+          inviteCode,
+          passphrase: '',
+          randomPw: true,
+          skipGPG: true,
+          skipMail: true,
+          storeSecret: true,
+          username,
+          verifyEmail: true,
+        },
+        waitingKey: Constants.waitingKey,
       },
-      incomingCallMap: {
-        // We dont show the paperkey anymore
-        'keybase.1.loginUi.displayPrimaryPaperKey': () => {},
-      },
-      params: {
-        botToken: '',
-        deviceName: devicename,
-        deviceType: isMobile ? RPCTypes.DeviceType.mobile : RPCTypes.DeviceType.desktop,
-        email: '',
-        genPGPBatch: false,
-        genPaper: false,
-        inviteCode,
-        passphrase: '',
-        randomPw: true,
-        skipGPG: true,
-        skipMail: true,
-        storeSecret: true,
-        username,
-        verifyEmail: true,
-      },
-      waitingKey: Constants.waitingKey,
-    })
-    yield Saga.put(SignupGen.createSignedup())
-  } catch (error_) {
-    const error = error_ as RPCError
-    yield Saga.put(SignupGen.createSignedup({error}))
-    yield Saga.put(
-      PushGen.createShowPermissionsPrompt({
-        justSignedUp: false,
-      })
+      listenerApi
     )
+    listenerApi.dispatch(SignupGen.createSignedup())
+  } catch (error) {
+    if (error instanceof RPCError) {
+      listenerApi.dispatch(SignupGen.createSignedup({error}))
+      listenerApi.dispatch(PushGen.createShowPermissionsPrompt({justSignedUp: false}))
+    }
   }
 }
 
@@ -235,42 +237,27 @@ const maybeClearJustSignedUpEmail = (
   return false
 }
 
-const signupSaga = function* () {
+const initSignup = () => {
   // validation actions
-  yield* Saga.chainAction2(SignupGen.requestInvite, requestInvite)
-  yield* Saga.chainAction2(SignupGen.checkUsername, checkUsername)
-  yield* Saga.chainAction2(SignupGen.requestAutoInvite, requestAutoInvite)
-  yield* Saga.chainAction2([SignupGen.requestedAutoInvite, SignupGen.checkInviteCode], checkInviteCode)
-  yield* Saga.chainAction2(SignupGen.checkDevicename, checkDevicename)
+  Container.listenAction(SignupGen.requestInvite, requestInvite)
+  Container.listenAction(SignupGen.checkUsername, checkUsername)
+  Container.listenAction(SignupGen.requestAutoInvite, requestAutoInvite)
+  Container.listenAction([SignupGen.requestedAutoInvite, SignupGen.checkInviteCode], checkInviteCode)
+  Container.listenAction(SignupGen.checkDevicename, checkDevicename)
 
   // move to next screen actions
-  yield* Saga.chainAction2(SignupGen.requestedInvite, showInviteSuccessOnNoErrors)
-  yield* Saga.chainAction2(SignupGen.checkedUsername, showDeviceScreenOnNoErrors)
-  yield* Saga.chainAction2(SignupGen.requestedAutoInvite, showInviteScreen)
-  yield* Saga.chainAction2(SignupGen.checkedInviteCode, showUserOnNoErrors)
-  yield* Saga.chainAction2(SignupGen.signedup, showErrorOrCleanupAfterSignup)
-  yield* Saga.chainAction2(SignupGen.signedup, setEmailVisibilityAfterSignup)
+  Container.listenAction(SignupGen.requestedInvite, showInviteSuccessOnNoErrors)
+  Container.listenAction(SignupGen.checkedUsername, showDeviceScreenOnNoErrors)
+  Container.listenAction(SignupGen.requestedAutoInvite, showInviteScreen)
+  Container.listenAction(SignupGen.checkedInviteCode, showUserOnNoErrors)
+  Container.listenAction(SignupGen.signedup, showErrorOrCleanupAfterSignup)
+  Container.listenAction(SignupGen.signedup, setEmailVisibilityAfterSignup)
 
-  yield* Saga.chainAction2(RouteTreeGen.onNavChanged, maybeClearJustSignedUpEmail)
+  Container.listenAction(RouteTreeGen.onNavChanged, maybeClearJustSignedUpEmail)
 
   // actually make the signup call
-  yield* Saga.chainGenerator(SignupGen.checkedDevicename, reallySignupOnNoErrors)
-  yield* Saga.chainAction2(SignupGen.goBackAndClearErrors, goBackAndClearErrors)
+  Container.listenAction(SignupGen.checkedDevicename, reallySignupOnNoErrors)
+  Container.listenAction(SignupGen.goBackAndClearErrors, goBackAndClearErrors)
 }
 
-export default signupSaga
-
-export const _testing = {
-  checkDevicename,
-  checkInviteCode,
-  checkUsername,
-  goBackAndClearErrors,
-  reallySignupOnNoErrors,
-  requestAutoInvite,
-  requestInvite,
-  showDeviceScreenOnNoErrors,
-  showErrorOrCleanupAfterSignup,
-  showInviteScreen,
-  showInviteSuccessOnNoErrors,
-  showUserOnNoErrors,
-}
+export default initSignup

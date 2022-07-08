@@ -5,16 +5,15 @@ import * as EngineGen from './engine-gen-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as RouteTreeGen from './route-tree-gen'
 import * as Router2Constants from '../constants/router2'
-import * as Saga from '../util/saga'
 import * as SettingsGen from './settings-gen'
 import * as Tabs from '../constants/tabs'
 import * as WaitingGen from './waiting-gen'
 import logger from '../logger'
 import openURL from '../util/open-url'
 import trim from 'lodash/trim'
-import type * as Container from '../util/container'
+import * as Container from '../util/container'
 import type * as Types from '../constants/types/settings'
-import type {RPCError} from '../util/errors'
+import {RPCError} from '../util/errors'
 import {isAndroidNewerThanN, androidIsTestDevice, pprofDir, version} from '../constants/platform'
 import {writeLogLinesToFile} from '../util/forward-logs'
 
@@ -22,8 +21,10 @@ const onUpdatePGPSettings = async () => {
   try {
     const {hasServerKeys} = await RPCTypes.accountHasServerKeysRpcPromise()
     return SettingsGen.createOnUpdatedPGPSettings({hasKeys: hasServerKeys})
-  } catch (error_) {
-    const error = error_ as RPCError
+  } catch (error) {
+    if (!(error instanceof RPCError)) {
+      return
+    }
     return SettingsGen.createOnUpdatePasswordError({error})
   }
 }
@@ -33,8 +34,10 @@ const onSubmitNewEmail = async (state: Container.TypedState) => {
     const newEmail = state.settings.email.newEmail
     await RPCTypes.accountEmailChangeRpcPromise({newEmail}, Constants.settingsWaitingKey)
     return [SettingsGen.createLoadSettings(), RouteTreeGen.createNavigateUp()]
-  } catch (error_) {
-    const error = error_ as RPCError
+  } catch (error) {
+    if (!(error instanceof RPCError)) {
+      return
+    }
     return SettingsGen.createOnUpdateEmailError({error})
   }
 }
@@ -61,8 +64,10 @@ const onSubmitNewPassword = async (
       RouteTreeGen.createNavigateUp(),
       ...(action.payload.thenSignOut ? [ConfigGen.createLogout()] : []),
     ]
-  } catch (error_) {
-    const error = error_ as RPCError
+  } catch (error) {
+    if (!(error instanceof RPCError)) {
+      return
+    }
     return SettingsGen.createOnUpdatePasswordError({error})
   }
 }
@@ -121,7 +126,7 @@ const toggleNotifications = async (state: Container.TypedState) => {
   return SettingsGen.createNotificationsSaved()
 }
 
-const reclaimInvite = async (action: SettingsGen.InvitesReclaimPayload) => {
+const reclaimInvite = async (_: unknown, action: SettingsGen.InvitesReclaimPayload) => {
   try {
     await RPCTypes.apiserverPostRpcPromise(
       {
@@ -195,7 +200,7 @@ const refreshInvites = async () => {
   })
 }
 
-const sendInvite = async (action: SettingsGen.InvitesSendPayload) => {
+const sendInvite = async (_: unknown, action: SettingsGen.InvitesSendPayload) => {
   try {
     const {email, message} = action.payload
     const args = [{key: 'email', value: trim(email)}]
@@ -221,49 +226,47 @@ const sendInvite = async (action: SettingsGen.InvitesSendPayload) => {
     } else {
       return false
     }
-  } catch (error_) {
-    const error = error_ as RPCError
+  } catch (error) {
+    if (!(error instanceof RPCError)) {
+      return
+    }
     logger.warn('Error sending an invite:', error)
     return [SettingsGen.createInvitesSent({error: error}), SettingsGen.createInvitesRefresh()]
   }
 }
 
-function* refreshNotifications() {
+const refreshNotifications = async (_s: unknown, _a: unknown, listenerApi: Container.ListenerApi) => {
   // If the rpc is fast don't clear it out first
-  const delayThenEmptyTask = yield Saga._fork(function* (): Iterable<any> {
-    yield Saga.delay(500)
-    yield Saga.put(SettingsGen.createNotificationsRefreshed({notifications: new Map()}))
+  const delayThenEmptyTask = listenerApi.fork(async () => {
+    await listenerApi.delay(500)
+    listenerApi.dispatch(SettingsGen.createNotificationsRefreshed({notifications: new Map()}))
   })
 
   let body = ''
   let chatGlobalSettings: ChatTypes.GlobalAppNotificationSettings
 
   try {
-    const [json, _chatGlobalSettings]: [{body: string} | null, ChatTypes.GlobalAppNotificationSettings] =
-      yield Saga.all([
-        Saga.callUntyped(
-          RPCTypes.apiserverGetWithSessionRpcPromise,
-          {args: [], endpoint: 'account/subscriptions'},
-          Constants.refreshNotificationsWaitingKey
-        ),
-        Saga.callUntyped(
-          ChatTypes.localGetGlobalAppNotificationSettingsLocalRpcPromise,
-          undefined,
-          Constants.refreshNotificationsWaitingKey
-        ),
-      ])
+    const json = await RPCTypes.apiserverGetWithSessionRpcPromise(
+      {args: [], endpoint: 'account/subscriptions'},
+      Constants.refreshNotificationsWaitingKey
+    )
+    chatGlobalSettings = await ChatTypes.localGetGlobalAppNotificationSettingsLocalRpcPromise(
+      undefined,
+      Constants.refreshNotificationsWaitingKey
+    )
     if (json) {
       body = json.body
     }
-    chatGlobalSettings = _chatGlobalSettings
-  } catch (error_) {
-    const error = error_ as RPCError
+  } catch (error) {
+    if (!(error instanceof RPCError)) {
+      return
+    }
     // No need to throw black bars -- handled by Reloadable.
     logger.warn(`Error getting notification settings: ${error.desc}`)
     return
   }
 
-  yield Saga.cancel(delayThenEmptyTask)
+  delayThenEmptyTask.cancel()
 
   const results: Types.NotificationsGroupStateFromServer = JSON.parse(body)
   // Add security group extra since it does not come from API endpoint
@@ -306,7 +309,7 @@ function* refreshNotifications() {
         ],
     unsub: false,
   }
-  yield Saga.put(
+  listenerApi.dispatch(
     SettingsGen.createNotificationsRefreshed({
       notifications: new Map(Object.entries(results.notifications)),
     })
@@ -336,8 +339,7 @@ const deleteAccountForever = async (
 
 const loadSettings = async (
   state: Container.TypedState,
-  _: SettingsGen.LoadSettingsPayload | ConfigGen.BootstrapStatusLoadedPayload,
-  logger: Saga.SagaLogger
+  _: SettingsGen.LoadSettingsPayload | ConfigGen.BootstrapStatusLoadedPayload
 ) => {
   if (!state.config.loggedIn) {
     return false
@@ -358,8 +360,10 @@ const loadSettings = async (
       emails: emailMap,
       phones: phoneMap,
     })
-  } catch (error_) {
-    const error = error_ as RPCError
+  } catch (error) {
+    if (!(error instanceof RPCError)) {
+      return
+    }
     logger.warn(`Error loading settings: ${error.message}`)
     return false
   }
@@ -368,11 +372,7 @@ const loadSettings = async (
 const visFromBoolean = (searchable: boolean): ChatTypes.Keybase1.IdentityVisibility =>
   searchable ? ChatTypes.Keybase1.IdentityVisibility.public : ChatTypes.Keybase1.IdentityVisibility.private
 
-const editEmail = async (
-  state: Container.TypedState,
-  action: SettingsGen.EditEmailPayload,
-  logger: Saga.SagaLogger
-) => {
+const editEmail = async (state: Container.TypedState, action: SettingsGen.EditEmailPayload) => {
   // TODO: consider allowing more than one action here
   // TODO: handle errors
   if (action.payload.delete) {
@@ -402,7 +402,7 @@ const editEmail = async (
   logger.warn('Empty editEmail action')
   return false
 }
-const editPhone = async (action: SettingsGen.EditPhonePayload, logger: Saga.SagaLogger) => {
+const editPhone = async (_: unknown, action: SettingsGen.EditPhonePayload) => {
   // TODO: handle errors
   let acted = false
   if (action.payload.delete) {
@@ -439,33 +439,38 @@ const getRememberPassword = async () => {
   return SettingsGen.createLoadedRememberPassword({remember})
 }
 
-function* trace(_: Container.TypedState, action: SettingsGen.TracePayload) {
+const trace = async (
+  _: Container.TypedState,
+  action: SettingsGen.TracePayload,
+  listenerApi: Container.ListenerApi
+) => {
   const durationSeconds = action.payload.durationSeconds
-  yield Saga.callUntyped(RPCTypes.pprofLogTraceRpcPromise, {
-    logDirForMobile: pprofDir,
-    traceDurationSeconds: durationSeconds,
-  })
-  yield Saga.put(WaitingGen.createIncrementWaiting({key: Constants.traceInProgressKey}))
-  yield Saga.delay(durationSeconds * 1000)
-  yield Saga.put(WaitingGen.createDecrementWaiting({key: Constants.traceInProgressKey}))
+  await RPCTypes.pprofLogTraceRpcPromise({logDirForMobile: pprofDir, traceDurationSeconds: durationSeconds})
+  listenerApi.dispatch(WaitingGen.createIncrementWaiting({key: Constants.traceInProgressKey}))
+  await listenerApi.delay(durationSeconds * 1_000)
+  listenerApi.dispatch(WaitingGen.createDecrementWaiting({key: Constants.traceInProgressKey}))
 }
 
-function* processorProfile(_: Container.TypedState, action: SettingsGen.ProcessorProfilePayload) {
+const processorProfile = async (
+  _: Container.TypedState,
+  action: SettingsGen.ProcessorProfilePayload,
+  listenerApi: Container.ListenerApi
+) => {
   const durationSeconds = action.payload.durationSeconds
-  yield Saga.callUntyped(RPCTypes.pprofLogProcessorProfileRpcPromise, {
+  await RPCTypes.pprofLogProcessorProfileRpcPromise({
     logDirForMobile: pprofDir,
     profileDurationSeconds: durationSeconds,
   })
-  yield Saga.put(WaitingGen.createIncrementWaiting({key: Constants.processorProfileInProgressKey}))
-  yield Saga.delay(durationSeconds * 1000)
-  yield Saga.put(WaitingGen.createDecrementWaiting({key: Constants.processorProfileInProgressKey}))
+  listenerApi.dispatch(WaitingGen.createIncrementWaiting({key: Constants.processorProfileInProgressKey}))
+  await listenerApi.delay(durationSeconds * 1_000)
+  listenerApi.dispatch(WaitingGen.createDecrementWaiting({key: Constants.processorProfileInProgressKey}))
 }
 
-const rememberPassword = async (action: SettingsGen.OnChangeRememberPasswordPayload) => {
+const rememberPassword = async (_: unknown, action: SettingsGen.OnChangeRememberPasswordPayload) => {
   await RPCTypes.configSetRememberPassphraseRpcPromise({remember: action.payload.remember})
 }
 
-const checkPassword = async (action: SettingsGen.CheckPasswordPayload) => {
+const checkPassword = async (_: unknown, action: SettingsGen.CheckPasswordPayload) => {
   const res = await RPCTypes.accountPassphraseCheckRpcPromise(
     {passphrase: action.payload.password.stringValue()},
     Constants.checkPasswordWaitingKey
@@ -498,7 +503,7 @@ const loadProxyData = async () => {
   }
 }
 
-const saveProxyData = async (proxyDataPayload: SettingsGen.SaveProxyDataPayload) => {
+const saveProxyData = async (_: unknown, proxyDataPayload: SettingsGen.SaveProxyDataPayload) => {
   try {
     await RPCTypes.configSetProxyDataRpcPromise(proxyDataPayload.payload)
   } catch (err) {
@@ -550,8 +555,10 @@ const sendFeedback = async (state: Container.TypedState, action: SettingsGen.Sen
     )
     logger.info('logSendId is', logSendId)
     return false
-  } catch (error_) {
-    const error = error_ as RPCError
+  } catch (error) {
+    if (!(error instanceof RPCError)) {
+      return
+    }
     logger.warn('err in sending logs', error)
     return SettingsGen.createFeedbackSent({error: error as Error})
   }
@@ -666,25 +673,27 @@ const loadHasRandomPW = async (state: Container.TypedState) => {
     const passphraseState = await RPCTypes.userLoadPassphraseStateRpcPromise()
     const randomPW = passphraseState === RPCTypes.PassphraseState.random
     return SettingsGen.createLoadedHasRandomPw({randomPW})
-  } catch (error_) {
-    const error = error_ as RPCError
+  } catch (error) {
+    if (!(error instanceof RPCError)) {
+      return
+    }
     logger.warn('Error loading hasRandomPW:', error.message)
     return false
   }
 }
 
 // Mark that we are not randomPW anymore if we got a password change.
-const passwordChanged = (action: EngineGen.Keybase1NotifyUsersPasswordChangedPayload) => {
+const passwordChanged = (_: unknown, action: EngineGen.Keybase1NotifyUsersPasswordChangedPayload) => {
   const randomPW = action.payload.params.state === RPCTypes.PassphraseState.random
   return SettingsGen.createLoadedHasRandomPw({randomPW})
 }
 
-const stop = async (action: SettingsGen.StopPayload) => {
+const stop = async (_: unknown, action: SettingsGen.StopPayload) => {
   await RPCTypes.ctlStopRpcPromise({exitCode: action.payload.exitCode})
   return false as const
 }
 
-const addPhoneNumber = async (action: SettingsGen.AddPhoneNumberPayload, logger: Saga.SagaLogger) => {
+const addPhoneNumber = async (_: unknown, action: SettingsGen.AddPhoneNumberPayload) => {
   logger.info('adding phone number')
   const {phoneNumber, searchable} = action.payload
   const visibility = searchable ? RPCTypes.IdentityVisibility.public : RPCTypes.IdentityVisibility.private
@@ -695,8 +704,10 @@ const addPhoneNumber = async (action: SettingsGen.AddPhoneNumberPayload, logger:
     )
     logger.info('success')
     return SettingsGen.createAddedPhoneNumber({phoneNumber, searchable})
-  } catch (error_) {
-    const error = error_ as RPCError
+  } catch (error) {
+    if (!(error instanceof RPCError)) {
+      return
+    }
     logger.warn('error ', error.message)
     const message = Constants.makePhoneError(error)
     return SettingsGen.createAddedPhoneNumber({error: message, phoneNumber, searchable})
@@ -704,8 +715,8 @@ const addPhoneNumber = async (action: SettingsGen.AddPhoneNumberPayload, logger:
 }
 
 const resendVerificationForPhoneNumber = async (
-  action: SettingsGen.ResendVerificationForPhoneNumberPayload,
-  logger: Saga.SagaLogger
+  _: unknown,
+  action: SettingsGen.ResendVerificationForPhoneNumberPayload
 ) => {
   const {phoneNumber} = action.payload
   logger.info(`resending verification code for ${phoneNumber}`)
@@ -715,15 +726,17 @@ const resendVerificationForPhoneNumber = async (
       Constants.resendVerificationForPhoneWaitingKey
     )
     return false
-  } catch (error_) {
-    const error = error_ as RPCError
+  } catch (error) {
+    if (!(error instanceof RPCError)) {
+      return
+    }
     const message = Constants.makePhoneError(error)
     logger.warn('error ', message)
     return SettingsGen.createVerifiedPhoneNumber({error: message, phoneNumber})
   }
 }
 
-const verifyPhoneNumber = async (action: SettingsGen.VerifyPhoneNumberPayload, logger: Saga.SagaLogger) => {
+const verifyPhoneNumber = async (_: unknown, action: SettingsGen.VerifyPhoneNumberPayload) => {
   logger.info('verifying phone number')
   const {code, phoneNumber} = action.payload
   try {
@@ -733,8 +746,10 @@ const verifyPhoneNumber = async (action: SettingsGen.VerifyPhoneNumberPayload, l
     )
     logger.info('success')
     return SettingsGen.createVerifiedPhoneNumber({phoneNumber})
-  } catch (error_) {
-    const error = error_ as RPCError
+  } catch (error) {
+    if (!(error instanceof RPCError)) {
+      return
+    }
     const message = Constants.makePhoneError(error)
     logger.warn('error ', message)
     return SettingsGen.createVerifiedPhoneNumber({error: message, phoneNumber})
@@ -743,8 +758,7 @@ const verifyPhoneNumber = async (action: SettingsGen.VerifyPhoneNumberPayload, l
 
 const loadContactImportEnabled = async (
   state: Container.TypedState,
-  action: SettingsGen.LoadContactImportEnabledPayload | ConfigGen.LoadOnStartPayload,
-  logger: Saga.SagaLogger
+  action: SettingsGen.LoadContactImportEnabledPayload | ConfigGen.LoadOnStartPayload
 ) => {
   if (!state.config.loggedIn) {
     return
@@ -763,8 +777,10 @@ const loadContactImportEnabled = async (
       Constants.importContactsWaitingKey
     )
     enabled = !!value.b && !value.isNull
-  } catch (error_) {
-    const error = error_ as RPCError
+  } catch (error) {
+    if (!(error instanceof RPCError)) {
+      return
+    }
     if (!error.message.includes('no such key')) {
       logger.error(`Error reading config: ${error.message}`)
     }
@@ -774,8 +790,7 @@ const loadContactImportEnabled = async (
 
 const editContactImportEnabled = async (
   state: Container.TypedState,
-  action: SettingsGen.EditContactImportEnabledPayload,
-  logger: Saga.SagaLogger
+  action: SettingsGen.EditContactImportEnabledPayload
 ) => {
   if (!state.config.username) {
     logger.warn('no username')
@@ -791,11 +806,7 @@ const editContactImportEnabled = async (
   return SettingsGen.createLoadContactImportEnabled()
 }
 
-const addEmail = async (
-  state: Container.TypedState,
-  action: SettingsGen.AddEmailPayload,
-  logger: Saga.SagaLogger
-) => {
+const addEmail = async (state: Container.TypedState, action: SettingsGen.AddEmailPayload) => {
   if (state.settings.email.error) {
     logger.info('email error; bailing')
     return
@@ -811,16 +822,18 @@ const addEmail = async (
     )
     logger.info('success')
     return SettingsGen.createAddedEmail({email})
-  } catch (error_) {
-    const error = error_ as RPCError
+  } catch (error) {
+    if (!(error instanceof RPCError)) {
+      return
+    }
     logger.warn(`error: ${error.message}`)
     return SettingsGen.createAddedEmail({email, error: Constants.makeAddEmailError(error)})
   }
 }
 
 const emailAddressVerified = (
-  action: EngineGen.Keybase1NotifyEmailAddressEmailAddressVerifiedPayload,
-  logger: Saga.SagaLogger
+  _: unknown,
+  action: EngineGen.Keybase1NotifyEmailAddressEmailAddressVerifiedPayload
 ) => {
   logger.info('email verified')
   return SettingsGen.createEmailVerified({email: action.payload.params.emailAddress})
@@ -844,66 +857,60 @@ const maybeClearAddedEmail = (state: Container.TypedState, action: RouteTreeGen.
   return false
 }
 
-function* settingsSaga() {
-  yield* Saga.chainAction(SettingsGen.invitesReclaim, reclaimInvite)
-  yield* Saga.chainAction2(SettingsGen.invitesRefresh, refreshInvites)
-  yield* Saga.chainAction(SettingsGen.invitesSend, sendInvite)
-  yield* Saga.chainGenerator<SettingsGen.NotificationsRefreshPayload>(
-    SettingsGen.notificationsRefresh,
-    refreshNotifications
-  )
-  yield* Saga.chainAction2(SettingsGen.notificationsToggle, toggleNotifications)
-  yield* Saga.chainAction2(SettingsGen.dbNuke, dbNuke)
-  yield* Saga.chainAction2(SettingsGen.deleteAccountForever, deleteAccountForever)
-  yield* Saga.chainAction2(SettingsGen.loadSettings, loadSettings)
-  yield* Saga.chainAction2(SettingsGen.onSubmitNewPassword, onSubmitNewPassword)
-  yield* Saga.chainAction2(SettingsGen.onUpdatePGPSettings, onUpdatePGPSettings)
-  yield* Saga.chainGenerator<SettingsGen.TracePayload>(SettingsGen.trace, trace)
-  yield* Saga.chainGenerator<SettingsGen.ProcessorProfilePayload>(
-    SettingsGen.processorProfile,
-    processorProfile
-  )
-  yield* Saga.chainAction2(SettingsGen.loadRememberPassword, getRememberPassword)
-  yield* Saga.chainAction(SettingsGen.onChangeRememberPassword, rememberPassword)
-  yield* Saga.chainAction2(SettingsGen.loadLockdownMode, loadLockdownMode)
-  yield* Saga.chainAction2(SettingsGen.onChangeLockdownMode, setLockdownMode)
-  yield* Saga.chainAction2(SettingsGen.sendFeedback, sendFeedback)
-  yield* Saga.chainAction2(SettingsGen.contactSettingsRefresh, contactSettingsRefresh)
-  yield* Saga.chainAction2(SettingsGen.contactSettingsSaved, contactSettingsSaved)
-  yield* Saga.chainAction2(SettingsGen.unfurlSettingsRefresh, unfurlSettingsRefresh)
-  yield* Saga.chainAction2(SettingsGen.unfurlSettingsSaved, unfurlSettingsSaved)
-  yield* Saga.chainAction2(SettingsGen.loadHasRandomPw, loadHasRandomPW)
-  yield* Saga.chainAction(EngineGen.keybase1NotifyUsersPasswordChanged, passwordChanged)
+const initSettings = () => {
+  Container.listenAction(SettingsGen.invitesReclaim, reclaimInvite)
+  Container.listenAction(SettingsGen.invitesRefresh, refreshInvites)
+  Container.listenAction(SettingsGen.invitesSend, sendInvite)
+  Container.listenAction(SettingsGen.notificationsRefresh, refreshNotifications)
+  Container.listenAction(SettingsGen.notificationsToggle, toggleNotifications)
+  Container.listenAction(SettingsGen.dbNuke, dbNuke)
+  Container.listenAction(SettingsGen.deleteAccountForever, deleteAccountForever)
+  Container.listenAction(SettingsGen.loadSettings, loadSettings)
+  Container.listenAction(SettingsGen.onSubmitNewPassword, onSubmitNewPassword)
+  Container.listenAction(SettingsGen.onUpdatePGPSettings, onUpdatePGPSettings)
+  Container.listenAction(SettingsGen.trace, trace)
+  Container.listenAction(SettingsGen.processorProfile, processorProfile)
+  Container.listenAction(SettingsGen.loadRememberPassword, getRememberPassword)
+  Container.listenAction(SettingsGen.onChangeRememberPassword, rememberPassword)
+  Container.listenAction(SettingsGen.loadLockdownMode, loadLockdownMode)
+  Container.listenAction(SettingsGen.onChangeLockdownMode, setLockdownMode)
+  Container.listenAction(SettingsGen.sendFeedback, sendFeedback)
+  Container.listenAction(SettingsGen.contactSettingsRefresh, contactSettingsRefresh)
+  Container.listenAction(SettingsGen.contactSettingsSaved, contactSettingsSaved)
+  Container.listenAction(SettingsGen.unfurlSettingsRefresh, unfurlSettingsRefresh)
+  Container.listenAction(SettingsGen.unfurlSettingsSaved, unfurlSettingsSaved)
+  Container.listenAction(SettingsGen.loadHasRandomPw, loadHasRandomPW)
+  Container.listenAction(EngineGen.keybase1NotifyUsersPasswordChanged, passwordChanged)
 
-  yield* Saga.chainAction(SettingsGen.stop, stop)
+  Container.listenAction(SettingsGen.stop, stop)
 
-  yield* Saga.chainAction(SettingsGen.checkPassword, checkPassword)
+  Container.listenAction(SettingsGen.checkPassword, checkPassword)
 
-  yield* Saga.chainAction2(SettingsGen.loadProxyData, loadProxyData)
-  yield* Saga.chainAction(SettingsGen.saveProxyData, saveProxyData)
+  Container.listenAction(SettingsGen.loadProxyData, loadProxyData)
+  Container.listenAction(SettingsGen.saveProxyData, saveProxyData)
 
   // Phone numbers
-  yield* Saga.chainAction2(SettingsGen.loadDefaultPhoneNumberCountry, loadDefaultPhoneNumberCountry)
-  yield* Saga.chainAction(SettingsGen.editPhone, editPhone)
-  yield* Saga.chainAction(SettingsGen.addPhoneNumber, addPhoneNumber)
-  yield* Saga.chainAction(SettingsGen.verifyPhoneNumber, verifyPhoneNumber)
-  yield* Saga.chainAction(SettingsGen.resendVerificationForPhoneNumber, resendVerificationForPhoneNumber)
+  Container.listenAction(SettingsGen.loadDefaultPhoneNumberCountry, loadDefaultPhoneNumberCountry)
+  Container.listenAction(SettingsGen.editPhone, editPhone)
+  Container.listenAction(SettingsGen.addPhoneNumber, addPhoneNumber)
+  Container.listenAction(SettingsGen.verifyPhoneNumber, verifyPhoneNumber)
+  Container.listenAction(SettingsGen.resendVerificationForPhoneNumber, resendVerificationForPhoneNumber)
 
   // Contacts
-  yield* Saga.chainAction2(
+  Container.listenAction(
     [SettingsGen.loadContactImportEnabled, ConfigGen.loadOnStart],
     loadContactImportEnabled
   )
-  yield* Saga.chainAction2(SettingsGen.editContactImportEnabled, editContactImportEnabled)
+  Container.listenAction(SettingsGen.editContactImportEnabled, editContactImportEnabled)
 
   // Emails
-  yield* Saga.chainAction2(SettingsGen.editEmail, editEmail)
-  yield* Saga.chainAction2(SettingsGen.addEmail, addEmail)
-  yield* Saga.chainAction2(SettingsGen.onSubmitNewEmail, onSubmitNewEmail)
-  yield* Saga.chainAction(EngineGen.keybase1NotifyEmailAddressEmailAddressVerified, emailAddressVerified)
+  Container.listenAction(SettingsGen.editEmail, editEmail)
+  Container.listenAction(SettingsGen.addEmail, addEmail)
+  Container.listenAction(SettingsGen.onSubmitNewEmail, onSubmitNewEmail)
+  Container.listenAction(EngineGen.keybase1NotifyEmailAddressEmailAddressVerified, emailAddressVerified)
 
-  yield* Saga.chainAction2(RouteTreeGen.onNavChanged, maybeClearAddedEmail)
-  yield* Saga.chainAction2(SettingsGen.loginBrowserViaWebAuthToken, loginBrowserViaWebAuthToken)
+  Container.listenAction(RouteTreeGen.onNavChanged, maybeClearAddedEmail)
+  Container.listenAction(SettingsGen.loginBrowserViaWebAuthToken, loginBrowserViaWebAuthToken)
 }
 
-export default settingsSaga
+export default initSettings

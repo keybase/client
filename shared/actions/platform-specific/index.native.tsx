@@ -14,7 +14,6 @@ import * as EngineGen from '../engine-gen-gen'
 import * as Tabs from '../../constants/tabs'
 import * as RouteTreeGen from '../route-tree-gen'
 import * as LoginGen from '../login-gen'
-import * as Saga from '../../util/saga'
 import * as Types from '../../constants/types/chat2'
 import * as MediaLibrary from 'expo-media-library'
 import type * as FsTypes from '../../constants/types/fs'
@@ -23,10 +22,14 @@ import {getEngine} from '../../engine/require'
 import {Alert, Linking, ActionSheetIOS, PermissionsAndroid, Vibration} from 'react-native'
 import {NativeModules} from '../../util/native-modules.native'
 import Clipboard from '@react-native-clipboard/clipboard'
-import NetInfo, {type NetInfoStateType} from '@react-native-community/netinfo'
+import NetInfo from '@react-native-community/netinfo'
 import PushNotificationIOS from '@react-native-community/push-notification-ios'
 import {isIOS, isAndroid} from '../../constants/platform'
-import pushSaga, {getStartupDetailsFromInitialPush, getStartupDetailsFromInitialShare} from './push.native'
+import {
+  initPushListener,
+  getStartupDetailsFromInitialPush,
+  getStartupDetailsFromInitialShare,
+} from './push.native'
 import * as Container from '../../util/container'
 import * as Contacts from 'expo-contacts'
 import {launchImageLibraryAsync} from '../../util/expo-image-picker'
@@ -35,7 +38,7 @@ import Geolocation from '@react-native-community/geolocation'
 import {AudioRecorder} from 'react-native-audio'
 import * as Haptics from 'expo-haptics'
 import {_getNavigator} from '../../constants/router2'
-import type {RPCError} from '../../util/errors'
+import {RPCError} from '../../util/errors'
 import type PermissionsType from 'expo-permissions'
 
 const requestPermissionsToWrite = async () => {
@@ -147,7 +150,7 @@ export async function saveAttachmentToCameraRoll(filePath: string, mimeType: str
   }
 }
 
-const onShareAction = async (action: ConfigGen.ShowShareActionSheetPayload) => {
+const onShareAction = async (_: unknown, action: ConfigGen.ShowShareActionSheetPayload) => {
   const {filePath, message, mimeType} = action.payload
   await showShareActionSheet({filePath, message, mimeType})
 }
@@ -201,7 +204,7 @@ const openAppSettings = async () => {
   }
 }
 
-const updateChangedFocus = (action: ConfigGen.MobileAppStatePayload) => {
+const updateChangedFocus = (_: unknown, action: ConfigGen.MobileAppStatePayload) => {
   let appFocused: boolean
   let logState: RPCTypes.MobileAppState
   switch (action.payload.nextAppState) {
@@ -227,7 +230,7 @@ const updateChangedFocus = (action: ConfigGen.MobileAppStatePayload) => {
 }
 
 let _lastPersist = ''
-function* persistRoute(_state: Container.TypedState, action: ConfigGen.PersistRoutePayload) {
+const persistRoute = async (_state: Container.TypedState, action: ConfigGen.PersistRoutePayload) => {
   const path = action.payload.path
   let param = {}
   let routeName = Tabs.peopleTab
@@ -256,21 +259,16 @@ function* persistRoute(_state: Container.TypedState, action: ConfigGen.PersistRo
   if (_lastPersist === s) {
     return
   }
-  yield Saga.spawn(async () =>
-    RPCTypes.configGuiSetValueRpcPromise({
-      path: 'ui.routeState2',
-      value: {isNull: false, s},
-    })
-      .then(() => {
-        _lastPersist = s
-      })
-      .catch(() => {})
-  )
+  await RPCTypes.configGuiSetValueRpcPromise({
+    path: 'ui.routeState2',
+    value: {isNull: false, s},
+  })
+  _lastPersist = s
 }
 
 // only send when different, we get called a bunch where this doesn't actually change
 let _lastNetworkType: ConfigGen.OsNetworkStatusChangedPayload['payload']['type'] | undefined
-const updateMobileNetState = async (action: ConfigGen.OsNetworkStatusChangedPayload) => {
+const updateMobileNetState = async (_: unknown, action: ConfigGen.OsNetworkStatusChangedPayload) => {
   try {
     const {type} = action.payload
     if (type === _lastNetworkType) {
@@ -289,20 +287,14 @@ const initOsNetworkStatus = async () => {
   return ConfigGen.createOsNetworkStatusChanged({isInit: true, online: type !== 'none', type})
 }
 
-function* setupNetInfoWatcher() {
-  const channel = Saga.eventChannel(emitter => {
-    NetInfo.addEventListener(({type}) => emitter(type))
-    return () => {}
-  }, Saga.buffers.sliding(1))
-
-  while (true) {
-    const status: NetInfoStateType = yield Saga.take(channel)
-    yield Saga.put(ConfigGen.createOsNetworkStatusChanged({online: status !== 'none', type: status}))
-  }
+const setupNetInfoWatcher = (listenerApi: Container.ListenerApi) => {
+  NetInfo.addEventListener(({type}) => {
+    listenerApi.dispatch(ConfigGen.createOsNetworkStatusChanged({online: type !== 'none', type}))
+  })
 }
 
 // TODO rewrite this, v slow
-function* loadStartupDetails() {
+const loadStartupDetails = async (listenerApi: Container.ListenerApi) => {
   let startupWasFromPush = false
   let startupConversation: Types.ConversationIDKey | undefined = undefined
   let startupPushPayload: string | undefined = undefined
@@ -312,40 +304,30 @@ function* loadStartupDetails() {
   let startupSharePath: FsTypes.LocalPath | undefined = undefined
   let startupShareText: string | undefined = undefined
 
-  const routeStateTask = yield Saga._fork(async () => {
-    try {
-      const v = await RPCTypes.configGuiGetValueRpcPromise({path: 'ui.routeState2'})
-      return v.s || ''
-    } catch (_) {
-      return undefined
-    }
-  })
-  // eslint-disable-next-line
-  const linkTask = yield Saga._fork(Linking.getInitialURL)
-  // const linkTask: Promise<string | null> = yield Saga._fork(Linking.getInitialURL)
-  const initialPush = yield Saga._fork(getStartupDetailsFromInitialPush)
-  const initialShare = yield Saga._fork(getStartupDetailsFromInitialShare)
-  const joined = yield Saga.join([routeStateTask, linkTask, initialPush, initialShare])
-  const [routeState, link, push, share] = joined
-
+  const [routeState, link, push, share] = await Promise.all([
+    Container.neverThrowPromiseFunc(async () =>
+      RPCTypes.configGuiGetValueRpcPromise({path: 'ui.routeState2'}).then(v => v.s || '')
+    ),
+    Container.neverThrowPromiseFunc(Linking.getInitialURL),
+    Container.neverThrowPromiseFunc(getStartupDetailsFromInitialPush),
+    Container.neverThrowPromiseFunc(getStartupDetailsFromInitialShare),
+  ] as const)
   logger.info('routeState load', routeState)
 
   // Clear last value to be extra safe bad things don't hose us forever
-  yield Saga._fork(async () => {
-    try {
-      await RPCTypes.configGuiSetValueRpcPromise({
-        path: 'ui.routeState2',
-        value: {isNull: false, s: ''},
-      })
-    } catch (_) {}
-  })
+  try {
+    await RPCTypes.configGuiSetValueRpcPromise({
+      path: 'ui.routeState2',
+      value: {isNull: false, s: ''},
+    })
+  } catch (_) {}
 
   // Top priority, push
   if (push) {
     logger.info('initialState: push', push.startupConversation, push.startupFollowUser)
     startupWasFromPush = true
     startupConversation = push.startupConversation
-    startupFollowUser = push.startupFollowUser
+    startupFollowUser = push.startupFollowUser ?? ''
     startupPushPayload = push.startupPushPayload
   } else if (link) {
     logger.info('initialState: link', link)
@@ -376,7 +358,7 @@ function* loadStartupDetails() {
     startupTab = undefined
   }
 
-  yield Saga.put(
+  listenerApi.dispatch(
     ConfigGen.createSetStartupDetails({
       startupConversation,
       startupFollowUser,
@@ -390,21 +372,25 @@ function* loadStartupDetails() {
   )
 }
 
-function* waitForStartupDetails(state: Container.TypedState, action: ConfigGen.DaemonHandshakePayload) {
+const waitForStartupDetails = async (
+  state: Container.TypedState,
+  action: ConfigGen.DaemonHandshakePayload,
+  listenerApi: Container.ListenerApi
+) => {
   // loadStartupDetails finished already
   if (state.config.startupDetailsLoaded) {
     return
   }
   // Else we have to wait for the loadStartupDetails to finish
-  yield Saga.put(
+  listenerApi.dispatch(
     ConfigGen.createDaemonHandshakeWait({
       increment: true,
       name: 'platform.native-waitStartupDetails',
       version: action.payload.version,
     })
   )
-  yield Saga.take(ConfigGen.setStartupDetails)
-  yield Saga.put(
+  await listenerApi.take(action => action.type === ConfigGen.setStartupDetails)
+  listenerApi.dispatch(
     ConfigGen.createDaemonHandshakeWait({
       increment: false,
       name: 'platform.native-waitStartupDetails',
@@ -413,11 +399,11 @@ function* waitForStartupDetails(state: Container.TypedState, action: ConfigGen.D
   )
 }
 
-const copyToClipboard = (action: ConfigGen.CopyToClipboardPayload) => {
+const copyToClipboard = (_: unknown, action: ConfigGen.CopyToClipboardPayload) => {
   Clipboard.setString(action.payload.text)
 }
 
-const handleFilePickerError = (action: ConfigGen.FilePickerErrorPayload) => {
+const handleFilePickerError = (_: unknown, action: ConfigGen.FilePickerErrorPayload) => {
   Alert.alert('Error', action.payload.error.message)
 }
 
@@ -429,9 +415,8 @@ const editAvatar = async () => {
       : RouteTreeGen.createNavigateAppend({
           path: [{props: {image: result}, selected: 'profileEditAvatar'}],
         })
-  } catch (error_) {
-    const error = error_ as any
-    return ConfigGen.createFilePickerError({error: new Error(error)})
+  } catch (error) {
+    return ConfigGen.createFilePickerError({error: new Error(error as any)})
   }
 }
 
@@ -463,8 +448,7 @@ const loadContactPermissionFromNative = async () => {
 
 const loadContactPermissions = async (
   state: Container.TypedState,
-  action: SettingsGen.LoadedContactImportEnabledPayload | ConfigGen.MobileAppStatePayload,
-  logger: Saga.SagaLogger
+  action: SettingsGen.LoadedContactImportEnabledPayload | ConfigGen.MobileAppStatePayload
 ) => {
   if (action.type === ConfigGen.mobileAppState && action.payload.nextAppState !== 'active') {
     // only reload on foreground
@@ -502,28 +486,26 @@ const askForContactPermissions = async () => {
   return isAndroid ? askForContactPermissionsAndroid() : askForContactPermissionsIOS()
 }
 
-function* requestContactPermissions(
+const requestContactPermissions = async (
   _: Container.TypedState,
-  action: SettingsGen.RequestContactPermissionsPayload
-) {
+  action: SettingsGen.RequestContactPermissionsPayload,
+  listenerApi: Container.ListenerApi
+) => {
   const {thenToggleImportOn} = action.payload
-  yield Saga.put(WaitingGen.createIncrementWaiting({key: SettingsConstants.importContactsWaitingKey}))
-  const result: Saga.RPCPromiseType<typeof askForContactPermissions> = yield askForContactPermissions()
+  listenerApi.dispatch(WaitingGen.createIncrementWaiting({key: SettingsConstants.importContactsWaitingKey}))
+  const result = await askForContactPermissions()
   if (result === 'granted' && thenToggleImportOn) {
-    yield Saga.put(
+    listenerApi.dispatch(
       SettingsGen.createEditContactImportEnabled({enable: true, fromSettings: action.payload.fromSettings})
     )
   }
-  yield Saga.sequentially([
-    Saga.put(SettingsGen.createLoadedContactPermissions({status: result})),
-    Saga.put(WaitingGen.createDecrementWaiting({key: SettingsConstants.importContactsWaitingKey})),
-  ])
+  listenerApi.dispatch(SettingsGen.createLoadedContactPermissions({status: result}))
+  listenerApi.dispatch(WaitingGen.createDecrementWaiting({key: SettingsConstants.importContactsWaitingKey}))
 }
 
 const manageContactsCache = async (
   state: Container.TypedState,
-  _action: SettingsGen.LoadedContactImportEnabledPayload | EngineGen.Chat1ChatUiTriggerContactSyncPayload,
-  logger: Saga.SagaLogger
+  _action: SettingsGen.LoadedContactImportEnabledPayload | EngineGen.Chat1ChatUiTriggerContactSyncPayload
 ) => {
   if (state.settings.contacts.importEnabled === false) {
     await RPCTypes.contactsSaveContactListRpcPromise({contacts: []})
@@ -554,8 +536,10 @@ const manageContactsCache = async (
     contacts = await Contacts.getContactsAsync({
       fields: [Contacts.Fields.Name, Contacts.Fields.PhoneNumbers, Contacts.Fields.Emails],
     })
-  } catch (error_) {
-    const error = error_ as RPCError
+  } catch (error) {
+    if (!(error instanceof RPCError)) {
+      return
+    }
     logger.error(`error loading contacts: ${error.message}`)
     return SettingsGen.createSetContactImportedCount({error: error.message})
   }
@@ -567,8 +551,10 @@ const manageContactsCache = async (
       // iOS sim + android emu don't supply country codes, so use this one.
       defaultCountryCode = 'us'
     }
-  } catch (error_) {
-    const error = error_ as RPCError
+  } catch (error) {
+    if (!(error instanceof RPCError)) {
+      return
+    }
     logger.warn(`Error loading default country code: ${error.message}`)
   }
 
@@ -592,35 +578,20 @@ const manageContactsCache = async (
     if (state.settings.contacts.waitingToShowJoinedModal && resolved) {
       actions.push(SettingsGen.createShowContactsJoinedModal({resolved}))
     }
-  } catch (error_) {
-    const error = error_ as RPCError
+  } catch (error) {
+    if (!(error instanceof RPCError)) {
+      return
+    }
     logger.error('Error saving contacts list: ', error.message)
     actions.push(SettingsGen.createSetContactImportedCount({error: error.message}))
   }
   return actions
 }
 
-const showContactsJoinedModal = (action: SettingsGen.ShowContactsJoinedModalPayload) =>
+const showContactsJoinedModal = (_: unknown, action: SettingsGen.ShowContactsJoinedModalPayload) =>
   action.payload.resolved.length
     ? [RouteTreeGen.createNavigateAppend({path: ['settingsContactsJoined']})]
     : []
-
-let locationEmitter: ((input: unknown) => void) | null = null
-
-function* setupLocationUpdateLoop() {
-  if (locationEmitter) {
-    return
-  }
-  const locationChannel = yield Saga.eventChannel(emitter => {
-    locationEmitter = emitter
-    // we never unsubscribe
-    return () => {}
-  }, Saga.buffers.expanding(10))
-  while (true) {
-    const action = yield Saga.take(locationChannel)
-    yield Saga.put(action)
-  }
-}
 
 const setPermissionDeniedCommandStatus = (conversationIDKey: Types.ConversationIDKey, text: string) =>
   Chat2Gen.createSetCommandStatusInfo({
@@ -633,14 +604,17 @@ const setPermissionDeniedCommandStatus = (conversationIDKey: Types.ConversationI
   })
 
 const onChatWatchPosition = async (
+  _: unknown,
   action: EngineGen.Chat1ChatUiChatWatchPositionPayload,
-  logger: Saga.SagaLogger
+  listenerApi: Container.ListenerApi
 ) => {
   const response = action.payload.response
   try {
     await requestLocationPermission(action.payload.params.perm)
-  } catch (error_) {
-    const error = error_ as Error
+  } catch (error) {
+    if (!(error instanceof RPCError)) {
+      return
+    }
     logger.info('failed to get location perms: ' + error.message)
     return setPermissionDeniedCommandStatus(
       Types.conversationIDToKey(action.payload.params.convID),
@@ -649,18 +623,16 @@ const onChatWatchPosition = async (
   }
   const watchID = Geolocation.watchPosition(
     pos => {
-      if (locationEmitter) {
-        locationEmitter(
-          Chat2Gen.createUpdateLastCoord({
-            coord: {accuracy: pos.coords.accuracy, lat: pos.coords.latitude, lon: pos.coords.longitude},
-          })
-        )
-      }
+      listenerApi.dispatch(
+        Chat2Gen.createUpdateLastCoord({
+          coord: {accuracy: pos.coords.accuracy, lat: pos.coords.latitude, lon: pos.coords.longitude},
+        })
+      )
     },
     err => {
       logger.warn(err.message)
-      if (err.code && err.code === 1 && locationEmitter) {
-        locationEmitter(
+      if (err.code && err.code === 1) {
+        listenerApi.dispatch(
           setPermissionDeniedCommandStatus(
             Types.conversationIDToKey(action.payload.params.convID),
             `Failed to access location. ${err.message}`
@@ -674,43 +646,32 @@ const onChatWatchPosition = async (
   return []
 }
 
-export const clearWatchPosition = (watchID: number) => {
-  Geolocation.clearWatch(watchID)
+const onChatClearWatch = (_: unknown, action: EngineGen.Chat1ChatUiChatClearWatchPayload) => {
+  Geolocation.clearWatch(action.payload.params.id)
 }
 
-const onChatClearWatch = (action: EngineGen.Chat1ChatUiChatClearWatchPayload) => {
-  clearWatchPosition(action.payload.params.id)
-}
-
-export const watchPositionForMap = async (errFn: () => void): Promise<number> => {
-  try {
-    await requestLocationPermission(RPCChatTypes.UIWatchPositionPerm.base)
-  } catch (e) {
-    errFn()
-    return 0
-  }
+export const watchPositionForMap = async (dispatch: Container.TypedDispatch) => {
+  await requestLocationPermission(RPCChatTypes.UIWatchPositionPerm.base)
   const watchID = Geolocation.watchPosition(
     pos => {
-      if (locationEmitter) {
-        locationEmitter(
-          Chat2Gen.createUpdateLastCoord({
-            coord: {
-              accuracy: Math.floor(pos.coords.accuracy),
-              lat: pos.coords.latitude,
-              lon: pos.coords.longitude,
-            },
-          })
-        )
-      }
+      dispatch(
+        Chat2Gen.createUpdateLastCoord({
+          coord: {
+            accuracy: Math.floor(pos.coords.accuracy),
+            lat: pos.coords.latitude,
+            lon: pos.coords.longitude,
+          },
+        })
+      )
     },
     err => {
       if (err.code && err.code === 1) {
-        errFn()
+        throw new Error('watch failed')
       }
     },
     {distanceFilter: 10, enableHighAccuracy: isIOS, maximumAge: isIOS ? 0 : undefined}
   )
-  return watchID
+  return () => Geolocation.clearWatch(watchID)
 }
 
 const configureFileAttachmentDownloadForAndroid = async () =>
@@ -723,8 +684,7 @@ const configureFileAttachmentDownloadForAndroid = async () =>
 
 const stopAudioRecording = async (
   state: Container.TypedState,
-  action: Chat2Gen.StopAudioRecordingPayload,
-  logger: Saga.SagaLogger
+  action: Chat2Gen.StopAudioRecordingPayload
 ) => {
   const conversationIDKey = action.payload.conversationIDKey
   if (state.chat2.audioRecording) {
@@ -771,15 +731,14 @@ const stopAudioRecording = async (
   return Chat2Gen.createSendAudioRecording({conversationIDKey, fromStaged: false, info: audio})
 }
 
-const onAttemptAudioRecording = async (
-  action: Chat2Gen.AttemptAudioRecordingPayload,
-  logger: Saga.SagaLogger
-) => {
+const onAttemptAudioRecording = async (_: unknown, action: Chat2Gen.AttemptAudioRecordingPayload) => {
   let chargeForward = true
   try {
     chargeForward = await requestAudioPermission()
-  } catch (error_) {
-    const error = error_ as RPCError
+  } catch (error) {
+    if (!(error instanceof RPCError)) {
+      return
+    }
     logger.info('failed to get audio perms: ' + error.message)
     return setPermissionDeniedCommandStatus(
       action.payload.conversationIDKey,
@@ -797,8 +756,7 @@ const onAttemptAudioRecording = async (
 
 const onEnableAudioRecording = async (
   state: Container.TypedState,
-  action: Chat2Gen.EnableAudioRecordingPayload,
-  logger: Saga.SagaLogger
+  action: Chat2Gen.EnableAudioRecordingPayload
 ) => {
   const conversationIDKey = action.payload.conversationIDKey
   const audio = state.chat2.audioRecording.get(conversationIDKey)
@@ -835,7 +793,7 @@ const onEnableAudioRecording = async (
   return Chat2Gen.createSetAudioRecordingPostInfo({conversationIDKey, outboxID, path: audioPath})
 }
 
-const onSendAudioRecording = (action: Chat2Gen.SendAudioRecordingPayload) => {
+const onSendAudioRecording = (_: unknown, action: Chat2Gen.SendAudioRecordingPayload) => {
   if (!action.payload.fromStaged) {
     if (isIOS) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
@@ -863,8 +821,7 @@ const onTabLongPress = (state: Container.TypedState, action: RouteTreeGen.TabLon
 
 const onSetAudioRecordingPostInfo = async (
   state: Container.TypedState,
-  action: Chat2Gen.SetAudioRecordingPostInfoPayload,
-  logger: Saga.SagaLogger
+  action: Chat2Gen.SetAudioRecordingPostInfoPayload
 ) => {
   const audio = state.chat2.audioRecording.get(action.payload.conversationIDKey)
   if (!audio || audio.status !== Types.AudioRecordingStatus.RECORDING) {
@@ -880,11 +837,11 @@ const onPersistRoute = async () => {
   return ConfigGen.createPersistRoute({path})
 }
 
-function* checkNav(
+const checkNav = async (
   _state: Container.TypedState,
   action: ConfigGen.DaemonHandshakePayload,
-  logger: Saga.SagaLogger
-) {
+  listenerApi: Container.ListenerApi
+) => {
   // have one
   if (_getNavigator()) {
     return
@@ -893,16 +850,20 @@ function* checkNav(
   const name = 'mobileNav'
   const {version} = action.payload
 
-  yield Saga.put(ConfigGen.createDaemonHandshakeWait({increment: true, name, version}))
-  while (true) {
-    logger.info('Waiting on nav')
-    yield Saga.take(ConfigGen.setNavigator)
-    if (_getNavigator()) {
-      break
+  listenerApi.dispatch(ConfigGen.createDaemonHandshakeWait({increment: true, name, version}))
+  try {
+    // eslint-disable-next-line
+    while (true) {
+      logger.info('Waiting on nav')
+      await listenerApi.take(action => action.type === ConfigGen.setNavigator)
+      if (_getNavigator()) {
+        break
+      }
+      logger.info('Waiting on nav, got setNavigator but nothing in constants?')
     }
-    logger.info('Waiting on nav, got setNavigator but nothing in constants?')
+  } finally {
+    listenerApi.dispatch(ConfigGen.createDaemonHandshakeWait({increment: false, name, version}))
   }
-  yield Saga.put(ConfigGen.createDaemonHandshakeWait({increment: false, name, version}))
 }
 
 const notifyNativeOfDarkModeChange = (state: Container.TypedState) => {
@@ -911,65 +872,56 @@ const notifyNativeOfDarkModeChange = (state: Container.TypedState) => {
   }
 }
 
-export function* platformConfigSaga() {
-  yield* Saga.chainGenerator<ConfigGen.PersistRoutePayload>(ConfigGen.persistRoute, persistRoute)
-  yield* Saga.chainAction(ConfigGen.mobileAppState, updateChangedFocus)
-  yield* Saga.chainAction2(ConfigGen.openAppSettings, openAppSettings)
-  yield* Saga.chainAction(ConfigGen.copyToClipboard, copyToClipboard)
-  yield* Saga.chainGenerator<ConfigGen.DaemonHandshakePayload>(
-    ConfigGen.daemonHandshake,
-    waitForStartupDetails
-  )
-  yield* Saga.chainAction2(ConfigGen.openAppStore, openAppStore)
-  yield* Saga.chainAction(ConfigGen.filePickerError, handleFilePickerError)
-  yield* Saga.chainAction2(ProfileGen.editAvatar, editAvatar)
-  yield* Saga.chainAction2(ConfigGen.loggedIn, initOsNetworkStatus)
-  yield* Saga.chainAction(ConfigGen.osNetworkStatusChanged, updateMobileNetState)
+export const initPlatformListener = () => {
+  Container.listenAction(ConfigGen.persistRoute, persistRoute)
+  Container.listenAction(ConfigGen.mobileAppState, updateChangedFocus)
+  Container.listenAction(ConfigGen.openAppSettings, openAppSettings)
+  Container.listenAction(ConfigGen.copyToClipboard, copyToClipboard)
+  Container.listenAction(ConfigGen.daemonHandshake, waitForStartupDetails)
+  Container.listenAction(ConfigGen.openAppStore, openAppStore)
+  Container.listenAction(ConfigGen.filePickerError, handleFilePickerError)
+  Container.listenAction(ProfileGen.editAvatar, editAvatar)
+  Container.listenAction(ConfigGen.loggedIn, initOsNetworkStatus)
+  Container.listenAction(ConfigGen.osNetworkStatusChanged, updateMobileNetState)
 
-  yield* Saga.chainAction(ConfigGen.showShareActionSheet, onShareAction)
+  Container.listenAction(ConfigGen.showShareActionSheet, onShareAction)
 
-  yield* Saga.chainAction2(RouteTreeGen.tabLongPress, onTabLongPress)
+  Container.listenAction(RouteTreeGen.tabLongPress, onTabLongPress)
 
   // Contacts
-  yield* Saga.chainAction2(
+  Container.listenAction(
     [SettingsGen.loadedContactImportEnabled, ConfigGen.mobileAppState],
     loadContactPermissions
   )
-  yield* Saga.chainGenerator<SettingsGen.RequestContactPermissionsPayload>(
-    SettingsGen.requestContactPermissions,
-    requestContactPermissions
-  )
-  yield* Saga.chainAction2(
+
+  Container.listenAction(SettingsGen.requestContactPermissions, requestContactPermissions)
+  Container.listenAction(
     [SettingsGen.loadedContactImportEnabled, EngineGen.chat1ChatUiTriggerContactSync],
     manageContactsCache
   )
-  yield* Saga.chainAction(SettingsGen.showContactsJoinedModal, showContactsJoinedModal)
+  Container.listenAction(SettingsGen.showContactsJoinedModal, showContactsJoinedModal)
 
   // Location
   getEngine().registerCustomResponse('chat.1.chatUi.chatWatchPosition')
-  yield* Saga.chainAction(EngineGen.chat1ChatUiChatWatchPosition, onChatWatchPosition)
-  yield* Saga.chainAction(EngineGen.chat1ChatUiChatClearWatch, onChatClearWatch)
-  yield* Saga.chainGenerator<ConfigGen.DaemonHandshakePayload>(
-    ConfigGen.daemonHandshake,
-    setupLocationUpdateLoop
-  )
+  Container.listenAction(EngineGen.chat1ChatUiChatWatchPosition, onChatWatchPosition)
+  Container.listenAction(EngineGen.chat1ChatUiChatClearWatch, onChatClearWatch)
   if (isAndroid) {
-    yield* Saga.chainAction2(ConfigGen.daemonHandshake, configureFileAttachmentDownloadForAndroid)
+    Container.listenAction(ConfigGen.daemonHandshake, configureFileAttachmentDownloadForAndroid)
   }
 
-  yield* Saga.chainGenerator<ConfigGen.DaemonHandshakePayload>(ConfigGen.daemonHandshake, checkNav)
-  yield* Saga.chainAction2(ConfigGen.setDarkModePreference, notifyNativeOfDarkModeChange)
+  Container.listenAction(ConfigGen.daemonHandshake, checkNav)
+  Container.listenAction(ConfigGen.setDarkModePreference, notifyNativeOfDarkModeChange)
 
   // Audio
-  yield* Saga.chainAction2(Chat2Gen.stopAudioRecording, stopAudioRecording)
-  yield* Saga.chainAction(Chat2Gen.attemptAudioRecording, onAttemptAudioRecording)
-  yield* Saga.chainAction2(Chat2Gen.enableAudioRecording, onEnableAudioRecording)
-  yield* Saga.chainAction(Chat2Gen.sendAudioRecording, onSendAudioRecording)
-  yield* Saga.chainAction2(Chat2Gen.setAudioRecordingPostInfo, onSetAudioRecordingPostInfo)
-  yield* Saga.chainAction(RouteTreeGen.onNavChanged, onPersistRoute)
+  Container.listenAction(Chat2Gen.stopAudioRecording, stopAudioRecording)
+  Container.listenAction(Chat2Gen.attemptAudioRecording, onAttemptAudioRecording)
+  Container.listenAction(Chat2Gen.enableAudioRecording, onEnableAudioRecording)
+  Container.listenAction(Chat2Gen.sendAudioRecording, onSendAudioRecording)
+  Container.listenAction(Chat2Gen.setAudioRecordingPostInfo, onSetAudioRecordingPostInfo)
+  Container.listenAction(RouteTreeGen.onNavChanged, onPersistRoute)
 
   // Start this immediately instead of waiting so we can do more things in parallel
-  yield Saga.spawn(loadStartupDetails)
-  yield Saga.spawn(pushSaga)
-  yield Saga.spawn(setupNetInfoWatcher)
+  Container.spawn(loadStartupDetails, 'loadStartupDetails')
+  initPushListener()
+  Container.spawn(setupNetInfoWatcher, 'setupNetInfoWatcher')
 }

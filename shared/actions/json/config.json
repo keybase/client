@@ -193,6 +193,14 @@
     },
     "setIncomingShareUseOriginal": {
       "useOriginal": "boolean"
-    }
+    },
+    "initListenerLoops": {
+        "_description": "Internal action just to start saga-like spawn processes"
+    },
+    "powerMonitorEvent": {
+        "_description": "Plumb power monitor events from node",
+        "event": "string"
+    },
+
   }
 }

@@ -24,6 +24,7 @@ export const dumpLogs = 'config:dumpLogs'
 export const filePickerError = 'config:filePickerError'
 export const followerInfoUpdated = 'config:followerInfoUpdated'
 export const globalError = 'config:globalError'
+export const initListenerLoops = 'config:initListenerLoops'
 export const installerRan = 'config:installerRan'
 export const loadOnLoginStartup = 'config:loadOnLoginStartup'
 export const loadOnStart = 'config:loadOnStart'
@@ -39,6 +40,7 @@ export const openAppSettings = 'config:openAppSettings'
 export const openAppStore = 'config:openAppStore'
 export const osNetworkStatusChanged = 'config:osNetworkStatusChanged'
 export const persistRoute = 'config:persistRoute'
+export const powerMonitorEvent = 'config:powerMonitorEvent'
 export const pushLoaded = 'config:pushLoaded'
 export const remoteWindowWantsProps = 'config:remoteWindowWantsProps'
 export const restartHandshake = 'config:restartHandshake'
@@ -78,6 +80,13 @@ export const createAndroidShare = (payload: {readonly url?: string; readonly tex
   type: androidShare as typeof androidShare,
 })
 /**
+ * Internal action just to start saga-like spawn processes
+ */
+export const createInitListenerLoops = (payload?: undefined) => ({
+  payload,
+  type: initListenerLoops as typeof initListenerLoops,
+})
+/**
  * Log out the current user, keeping secrets stored.
  * Then prefill the username for provisioned another user to log in.
  */
@@ -91,6 +100,13 @@ export const createLogoutAndTryToLogInAs = (payload: {readonly username: string}
 export const createOpenAppStore = (payload?: undefined) => ({
   payload,
   type: openAppStore as typeof openAppStore,
+})
+/**
+ * Plumb power monitor events from node
+ */
+export const createPowerMonitorEvent = (payload: {readonly event: string}) => ({
+  payload,
+  type: powerMonitorEvent as typeof powerMonitorEvent,
 })
 /**
  * Save critical check status
@@ -399,6 +415,7 @@ export type DumpLogsPayload = ReturnType<typeof createDumpLogs>
 export type FilePickerErrorPayload = ReturnType<typeof createFilePickerError>
 export type FollowerInfoUpdatedPayload = ReturnType<typeof createFollowerInfoUpdated>
 export type GlobalErrorPayload = ReturnType<typeof createGlobalError>
+export type InitListenerLoopsPayload = ReturnType<typeof createInitListenerLoops>
 export type InstallerRanPayload = ReturnType<typeof createInstallerRan>
 export type LoadOnLoginStartupPayload = ReturnType<typeof createLoadOnLoginStartup>
 export type LoadOnStartPayload = ReturnType<typeof createLoadOnStart>
@@ -414,6 +431,7 @@ export type OpenAppSettingsPayload = ReturnType<typeof createOpenAppSettings>
 export type OpenAppStorePayload = ReturnType<typeof createOpenAppStore>
 export type OsNetworkStatusChangedPayload = ReturnType<typeof createOsNetworkStatusChanged>
 export type PersistRoutePayload = ReturnType<typeof createPersistRoute>
+export type PowerMonitorEventPayload = ReturnType<typeof createPowerMonitorEvent>
 export type PushLoadedPayload = ReturnType<typeof createPushLoaded>
 export type RemoteWindowWantsPropsPayload = ReturnType<typeof createRemoteWindowWantsProps>
 export type RestartHandshakePayload = ReturnType<typeof createRestartHandshake>
@@ -461,6 +479,7 @@ export type Actions =
   | FilePickerErrorPayload
   | FollowerInfoUpdatedPayload
   | GlobalErrorPayload
+  | InitListenerLoopsPayload
   | InstallerRanPayload
   | LoadOnLoginStartupPayload
   | LoadOnStartPayload
@@ -476,6 +495,7 @@ export type Actions =
   | OpenAppStorePayload
   | OsNetworkStatusChangedPayload
   | PersistRoutePayload
+  | PowerMonitorEventPayload
   | PushLoadedPayload
   | RemoteWindowWantsPropsPayload
   | RestartHandshakePayload

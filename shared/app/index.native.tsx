@@ -64,8 +64,8 @@ const ensureStore = () => {
   }
 
   const eng = makeEngine(_store.store.dispatch)
-  _store.runSagas()
-  eng.sagasAreReady()
+  _store.initListeners()
+  eng.listenersAreReady()
 
   // On mobile there is no installer
   _store.store.dispatch(ConfigGen.createInstallerRan())
