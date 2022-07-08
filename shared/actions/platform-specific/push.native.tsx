@@ -100,9 +100,9 @@ const listenForPushNotificationsFromJS = (listenerApi: Container.ListenerApi) =>
 
 const setupPushEventLoop = async (_s: unknown, _a: unknown, listenerApi: Container.ListenerApi) => {
   if (isAndroid) {
-    listenForNativeAndroidIntentNotifications(listenerApi)
-      .then(() => {})
-      .catch(() => {})
+    try {
+      await listenForNativeAndroidIntentNotifications(listenerApi)
+    } catch {}
   } else {
     listenForPushNotificationsFromJS(listenerApi)
   }

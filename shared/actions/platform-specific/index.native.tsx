@@ -305,7 +305,7 @@ const loadStartupDetails = async (listenerApi: Container.ListenerApi) => {
   let startupShareText: string | undefined = undefined
 
   const [routeState, link, push, share] = await Promise.all([
-    Container.neverThrowPromiseFunc(() =>
+    Container.neverThrowPromiseFunc(async () =>
       RPCTypes.configGuiGetValueRpcPromise({path: 'ui.routeState2'}).then(v => v.s || '')
     ),
     Container.neverThrowPromiseFunc(Linking.getInitialURL),

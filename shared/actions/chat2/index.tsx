@@ -1039,7 +1039,7 @@ const loadMoreMessages = async (
     case Chat2Gen.markConversationsStale:
       key = Constants.getSelectedConversation()
       // not mentioned?
-      if (action.payload.conversationIDKeys.indexOf(key) === -1) {
+      if (!action.payload.conversationIDKeys.includes(key)) {
         return
       }
       reason = 'got stale'
@@ -1135,7 +1135,7 @@ const loadMoreMessages = async (
 
   const loadingKey = Constants.waitingKeyThreadLoad(conversationIDKey)
   let calledClear = false
-  const onGotThread = async (thread: string) => {
+  const onGotThread = (thread: string) => {
     if (!thread) {
       return
     }
@@ -1423,9 +1423,9 @@ const messageEdit = async (
   }
 }
 
-const messageRetry = (_: unknown, action: Chat2Gen.MessageRetryPayload) => {
+const messageRetry = async (_: unknown, action: Chat2Gen.MessageRetryPayload) => {
   const {outboxID} = action.payload
-  return RPCChatTypes.localRetryPostRpcPromise(
+  await RPCChatTypes.localRetryPostRpcPromise(
     {outboxID: Types.outboxIDToRpcOutboxID(outboxID)},
     Constants.waitingKeyRetryPost
   )
@@ -1440,12 +1440,6 @@ const loadAttachmentView = async (
   try {
     const res = await RPCChatTypes.localLoadGalleryRpcListener(
       {
-        params: {
-          convID: Types.keyToConversationID(conversationIDKey),
-          fromMsgID,
-          num: 50,
-          typ: viewType,
-        },
         incomingCallMap: {
           'chat.1.chatUi.chatLoadGalleryHit': (
             hit: RPCChatTypes.MessageTypes['chat.1.chatUi.chatLoadGalleryHit']['inParam']
@@ -1469,6 +1463,12 @@ const loadAttachmentView = async (
             return false
           },
         },
+        params: {
+          convID: Types.keyToConversationID(conversationIDKey),
+          fromMsgID,
+          num: 50,
+          typ: viewType,
+        },
       },
       listenerApi
     )
@@ -1486,9 +1486,14 @@ const loadAttachmentView = async (
   }
 }
 
-const onToggleThreadSearch = (state: Container.TypedState, action: Chat2Gen.ToggleThreadSearchPayload) => {
+const onToggleThreadSearch = async (
+  state: Container.TypedState,
+  action: Chat2Gen.ToggleThreadSearchPayload
+) => {
   const visible = Constants.getThreadSearchInfo(state, action.payload.conversationIDKey).visible
-  return visible ? false : RPCChatTypes.localCancelActiveSearchRpcPromise()
+  if (!visible) {
+    await RPCChatTypes.localCancelActiveSearchRpcPromise()
+  }
 }
 
 const threadSearch = async (
@@ -1604,10 +1609,11 @@ const onInboxSearchSelect = (state: Container.TypedState, action: Chat2Gen.Inbox
   ]
 }
 
-const onToggleInboxSearch = (state: Container.TypedState) => {
+const onToggleInboxSearch = async (state: Container.TypedState) => {
   const {inboxSearch} = state.chat2
   if (!inboxSearch) {
-    return RPCChatTypes.localCancelActiveInboxSearchRpcPromise()
+    await RPCChatTypes.localCancelActiveInboxSearchRpcPromise()
+    return
   }
   return inboxSearch.nameStatus === 'initial'
     ? Chat2Gen.createInboxSearch({query: new Container.HiddenString('')})
@@ -1807,7 +1813,7 @@ const messageSend = async (
           },
         },
         incomingCallMap: {
-          'chat.1.chatUi.chatStellarDone': async ({canceled}) => {
+          'chat.1.chatUi.chatStellarDone': ({canceled}) => {
             const visibleScreen = Router2Constants.getVisibleScreen()
             if (visibleScreen && visibleScreen.name === confirmRouteName) {
               return RouteTreeGen.createClearModals()
@@ -2298,9 +2304,9 @@ const attachFromDragAndDrop = async (
 }
 
 // Tell service we're typing
-const sendTyping = (_: unknown, action: Chat2Gen.SendTypingPayload) => {
+const sendTyping = async (_: unknown, action: Chat2Gen.SendTypingPayload) => {
   const {conversationIDKey, typing} = action.payload
-  return RPCChatTypes.localUpdateTypingRpcPromise({
+  await RPCChatTypes.localUpdateTypingRpcPromise({
     conversationID: Types.keyToConversationID(conversationIDKey),
     typing,
   })
@@ -2321,11 +2327,12 @@ const resetChatWithoutThem = (state: Container.TypedState, action: Chat2Gen.Rese
 }
 
 // let them back in after they reset
-const resetLetThemIn = (_: unknown, action: Chat2Gen.ResetLetThemInPayload) =>
-  RPCChatTypes.localAddTeamMemberAfterResetRpcPromise({
+const resetLetThemIn = async (_: unknown, action: Chat2Gen.ResetLetThemInPayload) => {
+  await RPCChatTypes.localAddTeamMemberAfterResetRpcPromise({
     convID: Types.keyToConversationID(action.payload.conversationIDKey),
     username: action.payload.username,
   })
+}
 
 const markThreadAsRead = async (
   state: Container.TypedState,
@@ -2703,10 +2710,7 @@ const joinConversation = async (_: unknown, action: Chat2Gen.JoinConversationPay
   )
 }
 
-const fetchConversationBio = async (
-  state: Container.TypedState,
-  action: Chat2Gen.SelectedConversationPayload
-) => {
+const fetchConversationBio = (state: Container.TypedState, action: Chat2Gen.SelectedConversationPayload) => {
   const {conversationIDKey} = action.payload
   const participantInfo = Constants.getParticipantInfo(state, conversationIDKey)
   const otherParticipants = Constants.getRowParticipants(participantInfo, state.config.username || '')
@@ -2829,14 +2833,15 @@ const unhideConversation = async (_: Container.TypedState, action: Chat2Gen.Unhi
   }
 }
 
-const setConvRetentionPolicy = (_: unknown, action: Chat2Gen.SetConvRetentionPolicyPayload) => {
+const setConvRetentionPolicy = async (_: unknown, action: Chat2Gen.SetConvRetentionPolicyPayload) => {
   const {conversationIDKey} = action.payload
   const convID = Types.keyToConversationID(conversationIDKey)
   let policy: RPCChatTypes.RetentionPolicy | null
   try {
     policy = TeamsConstants.retentionPolicyToServiceRetentionPolicy(action.payload.policy)
     if (policy) {
-      return RPCChatTypes.localSetConvRetentionLocalRpcPromise({convID, policy})
+      await RPCChatTypes.localSetConvRetentionLocalRpcPromise({convID, policy})
+      return
     }
   } catch (error) {
     if (error instanceof RPCError) {
@@ -2848,9 +2853,9 @@ const setConvRetentionPolicy = (_: unknown, action: Chat2Gen.SetConvRetentionPol
   return false
 }
 
-const toggleMessageCollapse = (_: unknown, action: Chat2Gen.ToggleMessageCollapsePayload) => {
+const toggleMessageCollapse = async (_: unknown, action: Chat2Gen.ToggleMessageCollapsePayload) => {
   const {collapse, conversationIDKey, messageID} = action.payload
-  return RPCChatTypes.localToggleMessageCollapseRpcPromise({
+  await RPCChatTypes.localToggleMessageCollapseRpcPromise({
     collapse,
     convID: Types.keyToConversationID(conversationIDKey),
     msgID: messageID,
@@ -3148,10 +3153,10 @@ const receivedBadgeState = (_: unknown, action: NotificationsGen.ReceivedBadgeSt
     smallTeamBadgeCount: action.payload.badgeState.smallTeamBadgeCount,
   })
 
-const setMinWriterRole = (_: unknown, action: Chat2Gen.SetMinWriterRolePayload) => {
+const setMinWriterRole = async (_: unknown, action: Chat2Gen.SetMinWriterRolePayload) => {
   const {conversationIDKey, role} = action.payload
   logger.info(`Setting minWriterRole to ${role} for convID ${conversationIDKey}`)
-  return RPCChatTypes.localSetConvMinWriterRoleLocalRpcPromise({
+  await RPCChatTypes.localSetConvMinWriterRoleLocalRpcPromise({
     convID: Types.keyToConversationID(conversationIDKey),
     role: RPCTypes.TeamRole[role],
   })
@@ -3188,9 +3193,9 @@ const unfurlDismissPrompt = (_: unknown, action: Chat2Gen.UnfurlResolvePromptPay
   })
 }
 
-const unfurlResolvePrompt = (_: unknown, action: Chat2Gen.UnfurlResolvePromptPayload) => {
+const unfurlResolvePrompt = async (_: unknown, action: Chat2Gen.UnfurlResolvePromptPayload) => {
   const {conversationIDKey, messageID, result} = action.payload
-  return RPCChatTypes.localResolveUnfurlPromptRpcPromise({
+  await RPCChatTypes.localResolveUnfurlPromptRpcPromise({
     convID: Types.keyToConversationID(conversationIDKey),
     identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
     msgID: Types.messageIDToNumber(messageID),
@@ -3198,10 +3203,10 @@ const unfurlResolvePrompt = (_: unknown, action: Chat2Gen.UnfurlResolvePromptPay
   })
 }
 
-const unsentTextChanged = (state: Container.TypedState, action: Chat2Gen.UnsentTextChangedPayload) => {
+const unsentTextChanged = async (state: Container.TypedState, action: Chat2Gen.UnsentTextChangedPayload) => {
   const {conversationIDKey, text} = action.payload
   const meta = Constants.getMeta(state, conversationIDKey)
-  return RPCChatTypes.localUpdateUnsentTextRpcPromise({
+  await RPCChatTypes.localUpdateUnsentTextRpcPromise({
     conversationID: Types.keyToConversationID(conversationIDKey),
     text: text.stringValue(),
     tlfName: meta.tlfname,
@@ -3264,10 +3269,11 @@ const onChatMaybeMentionUpdate = (_: unknown, action: EngineGen.Chat1ChatUiChatM
   })
 }
 
-const resolveMaybeMention = (_: unknown, action: Chat2Gen.ResolveMaybeMentionPayload) =>
-  RPCChatTypes.localResolveMaybeMentionRpcPromise({
+const resolveMaybeMention = async (_: unknown, action: Chat2Gen.ResolveMaybeMentionPayload) => {
+  await RPCChatTypes.localResolveMaybeMentionRpcPromise({
     mention: {channel: action.payload.channel, name: action.payload.name},
   })
+}
 
 const pinMessage = async (_: unknown, action: Chat2Gen.PinMessagePayload) => {
   try {

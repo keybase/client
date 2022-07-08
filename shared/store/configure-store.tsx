@@ -1,7 +1,6 @@
 import * as ReduxToolKit from '@reduxjs/toolkit'
 import {listenerMiddleware} from '../util/redux-toolkit'
 import * as ConfigGen from '../actions/config-gen'
-import * as DevGen from '../actions/dev-gen'
 import logger from '../logger'
 import {reducers} from '../reducers'
 import type {TypedState} from '../constants/reducer'
@@ -127,9 +126,9 @@ const middlewares = [
 export default function makeStore() {
   const store = ReduxToolKit.configureStore({
     devTools: false,
+    middleware: () => middlewares,
     // @ts-ignore we prefer our typing to what the toolkit gives
     reducer: reducers,
-    middleware: () => middlewares,
   })
   // @ts-ignore
   theStore = store

@@ -78,15 +78,15 @@ const joinTeam = async (
   const {teamname} = action.payload
 
   /*
-                            In the deeplink flow, a modal is displayed which runs `joinTeam` (or an
-                            alternative flow, but we're not concerned with that here). In that case,
-                            we can fully manage the UX from inside of this handler.
-                          
-                            In the "Join team" flow, user pastes their link into the input box, which
-                            then calls `joinTeam` on its own. Since we need to switch to another modal,
-                            we simply plumb `deeplink` into the `promptInviteLinkJoin` handler and
-                            do the nav in the modal.
-                          */
+                                In the deeplink flow, a modal is displayed which runs `joinTeam` (or an
+                                alternative flow, but we're not concerned with that here). In that case,
+                                we can fully manage the UX from inside of this handler.
+                              
+                                In the "Join team" flow, user pastes their link into the input box, which
+                                then calls `joinTeam` on its own. Since we need to switch to another modal,
+                                we simply plumb `deeplink` into the `promptInviteLinkJoin` handler and
+                                do the nav in the modal.
+                              */
 
   listenerApi.dispatch(TeamsGen.createSetTeamJoinError({error: ''}))
   listenerApi.dispatch(TeamsGen.createSetTeamJoinSuccess({open: false, success: false, teamname: ''}))
@@ -283,7 +283,7 @@ const getTeamRetentionPolicy = async (_: unknown, action: TeamsGen.GetTeamRetent
   return TeamsGen.createSetTeamRetentionPolicy({retentionPolicy, teamID})
 }
 
-const saveTeamRetentionPolicy = (_: unknown, action: TeamsGen.SaveTeamRetentionPolicyPayload) => {
+const saveTeamRetentionPolicy = async (_: unknown, action: TeamsGen.SaveTeamRetentionPolicyPayload) => {
   const {teamID, policy} = action.payload
 
   let servicePolicy: RPCChatTypes.RetentionPolicy
@@ -296,10 +296,11 @@ const saveTeamRetentionPolicy = (_: unknown, action: TeamsGen.SaveTeamRetentionP
     logger.error(error.message)
     return TeamsGen.createSettingsError({error: error.desc})
   }
-  return RPCChatTypes.localSetTeamRetentionLocalRpcPromise({policy: servicePolicy, teamID}, [
+  await RPCChatTypes.localSetTeamRetentionLocalRpcPromise({policy: servicePolicy, teamID}, [
     Constants.teamWaitingKey(teamID),
     Constants.retentionWaitingKey(teamID),
   ])
+  return
 }
 
 const updateTeamRetentionPolicy = (_: unknown, action: Chat2Gen.UpdateTeamRetentionPolicyPayload) => {

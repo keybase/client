@@ -611,13 +611,14 @@ const loadPathMetadata = async (_: Container.TypedState, action: FsGen.LoadPathM
 
 const letResetUserBackIn = async (_: unknown, action: FsGen.LetResetUserBackInPayload) => {
   try {
-    return await RPCTypes.teamsTeamReAddMemberAfterResetRpcPromise({
+    await RPCTypes.teamsTeamReAddMemberAfterResetRpcPromise({
       id: action.payload.id,
       username: action.payload.username,
     })
   } catch (error) {
     return errorToActionOrThrow(error)
   }
+  return
 }
 
 const updateFsBadge = (state: Container.TypedState) => {
@@ -634,10 +635,11 @@ const deleteFile = async (_: unknown, action: FsGen.DeleteFilePayload) => {
       path: Constants.pathToRPCPath(action.payload.path),
       recursive: true,
     })
-    return RPCTypes.SimpleFSSimpleFSWaitRpcPromise({opID})
+    await RPCTypes.SimpleFSSimpleFSWaitRpcPromise({opID})
   } catch (e) {
     return errorToActionOrThrow(e, action.payload.path)
   }
+  return
 }
 
 const moveOrCopy = async (state: Container.TypedState, action: FsGen.MovePayload | FsGen.CopyPayload) => {

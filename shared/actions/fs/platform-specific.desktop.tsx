@@ -274,10 +274,12 @@ const setSfmiBannerDismissed = async (
 ) => {
   switch (action.type) {
     case FsGen.setSfmiBannerDismissed:
-      return RPCTypes.SimpleFSSimpleFSSetSfmiBannerDismissedRpcPromise({dismissed: action.payload.dismissed})
+      await RPCTypes.SimpleFSSimpleFSSetSfmiBannerDismissedRpcPromise({dismissed: action.payload.dismissed})
+      return
     case FsGen.driverEnable:
     case FsGen.driverDisable:
-      return RPCTypes.SimpleFSSimpleFSSetSfmiBannerDismissedRpcPromise({dismissed: false})
+      await RPCTypes.SimpleFSSimpleFSSetSfmiBannerDismissedRpcPromise({dismissed: false})
+      return
   }
 }
 

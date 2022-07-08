@@ -963,13 +963,13 @@ const cancelPayment = async (state: Container.TypedState, action: WalletsGen.Can
 
 const cancelRequest = async (_: unknown, action: WalletsGen.CancelRequestPayload) => {
   try {
-    return RPCStellarTypes.localCancelRequestLocalRpcPromise({reqID: action.payload.requestID})
+    await RPCStellarTypes.localCancelRequestLocalRpcPromise({reqID: action.payload.requestID})
   } catch (error) {
     if (!(error instanceof RPCError)) {
       return
     }
     logger.error(`Error: ${error.message}`)
-    return false
+    return
   }
 }
 
@@ -1149,10 +1149,11 @@ const writeLastSentXLM = async (state: Container.TypedState, action: WalletsGen.
   if (action.payload.writeFile) {
     logger.info(`Writing config stellar.lastSentXLM: ${String(state.wallets.lastSentXLM)}`)
     try {
-      return RPCTypes.configGuiSetValueRpcPromise({
+      await RPCTypes.configGuiSetValueRpcPromise({
         path: 'stellar.lastSentXLM',
         value: {b: state.wallets.lastSentXLM, isNull: false},
       })
+      return
     } catch (error) {
       if (!(error instanceof RPCError)) {
         return
@@ -1161,6 +1162,7 @@ const writeLastSentXLM = async (state: Container.TypedState, action: WalletsGen.
       return false
     }
   }
+  return
 }
 
 const readLastSentXLM = async () => {
