@@ -284,7 +284,7 @@ PODS:
     - React-Core
   - react-native-hw-keyboard-event (0.0.4):
     - React
-  - react-native-netinfo (8.1.0):
+  - react-native-netinfo (9.3.0):
     - React-Core
   - react-native-safe-area-context (4.3.1):
     - RCT-Folly
@@ -390,11 +390,11 @@ PODS:
     - ReactCommon/turbomodule/core (= 0.68.2)
   - RNAudio (4.3.0):
     - React
-  - RNCClipboard (1.9.0):
+  - RNCClipboard (1.10.0):
     - React-Core
   - RNCMaskedView (0.2.6):
     - React-Core
-  - RNCPicker (2.3.1):
+  - RNCPicker (2.4.2):
     - React-Core
   - RNCPushNotificationIOS (1.10.1):
     - React-Core
@@ -706,7 +706,7 @@ SPEC CHECKSUMS:
   React-logger: a0833912d93b36b791b7a521672d8ee89107aff1
   react-native-geolocation: 69f4fd37650b8e7fee91816d395e62dd16f5ab8d
   react-native-hw-keyboard-event: b517cefb8d5c659a38049c582de85ff43337dc53
-  react-native-netinfo: 379ba2af7d2abcec0c062267abe1c9a977c72bf9
+  react-native-netinfo: 129bd99f607a2dc5bb096168f3e5c150fd1f1c95
   react-native-safe-area-context: 6c12e3859b6f27b25de4fee8201cfb858432d8de
   react-native-webview: 28557a39f4c1f3f8faa69dae22858335ba63e7f9
   React-perflogger: a18b4f0bd933b8b24ecf9f3c54f9bf65180f3fe6
@@ -722,9 +722,9 @@ SPEC CHECKSUMS:
   React-runtimeexecutor: b960b687d2dfef0d3761fbb187e01812ebab8b23
   ReactCommon: 095366164a276d91ea704ce53cb03825c487a3f2
   RNAudio: cae2991f2dccb75163f260b60da8051717b959fa
-  RNCClipboard: 99fc8ad669a376b756fbc8098ae2fd05c0ed0668
+  RNCClipboard: f1736c75ab85b627a4d57587edb4b60999c4dd80
   RNCMaskedView: c298b644a10c0c142055b3ae24d83879ecb13ccd
-  RNCPicker: f6c760d4b314585ff35165d8640d7917ae30afb1
+  RNCPicker: 0250e95ad170569a96f5b0555cdd5e65b9084dca
   RNCPushNotificationIOS: 87b8d16d3ede4532745e05b03c42cff33a36cc45
   RNFastImage: ebb19e12093e819d982a41eda1527053624f4dd7
   RNGestureHandler: bad495418bcbd3ab47017a38d93d290ebd406f50
