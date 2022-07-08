@@ -37,7 +37,6 @@ import CoinFlip from '../coinflip/container'
 import TeamJourney from '../cards/team-journey/container'
 import {dismiss as dismissKeyboard} from '../../../../util/keyboard'
 import {formatTimeForChat} from '../../../../util/timestamp'
-import TEMP from '../cards/new-chat'
 
 /**
  * WrapperMessage adds the orange line, menu button, menu, reacji
