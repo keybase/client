@@ -10,7 +10,7 @@ gopath=${GOPATH:-}
 package="github.com/keybase/go-updater/service"
 dest="$build_dir/updater"
 
-src_dir="$gopath/src/$package"
+src_dir=${UPDATER_DIR:-"$gopath/src/$package"}
 cd "$src_dir"
 
 mkdir -p "$build_dir"
