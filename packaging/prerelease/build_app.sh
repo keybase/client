@@ -42,9 +42,9 @@ build_dir_keybase="/tmp/build_keybase"
 build_dir_kbfs="/tmp/build_kbfs"
 build_dir_kbnm="/tmp/build_kbnm"
 build_dir_updater="/tmp/build_updater"
-client_dir="$gopath/src/github.com/keybase/client"
-kbfs_dir="$gopath/src/github.com/keybase/client/go/kbfs"
-updater_dir="$gopath/src/github.com/keybase/go-updater"
+client_dir=${CLIENT_DIR:-"$gopath/src/github.com/keybase/client"}
+kbfs_dir="$client_dir/go/kbfs"
+updater_dir=${UPDATER_DIR:-"$gopath/src/github.com/keybase/go-updater"}
 
 if [ ! "$nopull" = "1" ]; then
   "$client_dir/packaging/check_status_and_pull.sh" "$updater_dir"
