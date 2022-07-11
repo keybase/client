@@ -126,7 +126,7 @@ def jscFlavor = 'org.webkit:android-jsc:+'
  */
 def enableHermes = project.ext.react.get("enableHermes", true)
 
-**
+/**
  * Architectures to build native code for.
  */
 def reactNativeArchitectures() {
@@ -337,7 +337,7 @@ dependencies {
     debugImplementation("com.facebook.flipper:flipper:${FLIPPER_VERSION}") {
         exclude group:'com.facebook.fbjni'
     }
-    debugImplementation 'com.facebook.soloader:soloader:0.10.1'
+    //debugImplementation 'com.facebook.soloader:soloader:0.10.1'
     debugImplementation("com.facebook.flipper:flipper-network-plugin:${FLIPPER_VERSION}") {
         exclude group:'com.facebook.flipper'
         // exclude group:'com.squareup.okhttp3', module:'okhttp'
