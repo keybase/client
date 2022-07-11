@@ -16,6 +16,7 @@ build="$current_date+$commit_short"
 keybase_build=${KEYBASE_BUILD:-$build}
 tags=${TAGS:-"prerelease production"}
 ldflags="-X github.com/keybase/client/go/libkb.PrereleaseBuild=$keybase_build -s -w"
+arch=${ARCH:-"amd64"}
 
 echo "Building $build_dir/keybase ($keybase_build) with $(go version) on arch: $arch"
 (cd "$client_dir" && GOARCH="$arch" go build -a -tags "$tags" -ldflags "$ldflags" -o "$build_dir/keybase" "github.com/keybase/client/go/keybase")

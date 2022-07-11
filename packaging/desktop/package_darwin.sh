@@ -92,7 +92,17 @@ if [ "$kbnm_version" = "" ]; then
   echo "KBNM_VERSION unspecified, defaulting to: $kbnm_version"
 fi
 
-out_dir="$build_dir/Keybase-darwin-x64"
+if [ "$arch" = "amd64" ]; then
+  out_dir="$build_dir/Keybase-darwin-x64"
+elif [ "$arch" = "arm64" ]; then
+  out_dir="$build_dir/Keybase-darwin-arm64"
+else
+  echo "unknown arch for packaging: $arch"
+  exit 1
+fi
+
+echo "packaging in out_dir: $out_dir"
+
 app_executable_path="$out_dir/Keybase.app/Contents/MacOS/Keybase"
 shared_support_dir="$out_dir/Keybase.app/Contents/SharedSupport"
 resources_dir="$out_dir/Keybase.app/Contents/Resources/"

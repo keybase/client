@@ -7,7 +7,7 @@ cd "$dir"
 
 build_dir=${BUILD_DIR:-/tmp/keybase}
 
-kbfs_dir="$gopath/src/github.com/keybase/client/go/kbfs"
+kbfs_dir="$CLIENT_DIR/go/kbfs"
 cd "$kbfs_dir"
 
 mkdir -p "$build_dir"
