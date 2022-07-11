@@ -16,6 +16,7 @@ nos3=${NOS3:-} # Don't sync to S3
 nowait=${NOWAIT:-} # Don't wait for CI
 smoke_test=${SMOKE_TEST:-} # If set to 1, enable smoke testing
 skip_notarize=${NONOTARIZE:-} # Skip notarize
+arch=${ARCH:-"amd64"} # architecture
 
 if [ "$gopath" = "" ]; then
   echo "No GOPATH"
@@ -91,9 +92,9 @@ fi
 for ((i=1; i<=$number_of_builds; i++)); do
   if [ ! "$nobuild" = "1" ]; then
     BUILD_DIR="$build_dir_keybase" "$dir/build_keybase.sh"
-    BUILD_DIR="$build_dir_kbfs" "$dir/build_kbfs.sh"
+    BUILD_DIR="$build_dir_kbfs" CLIENT_DIR="$client_dir" "$dir/build_kbfs.sh"
     BUILD_DIR="$build_dir_kbnm" "$dir/build_kbnm.sh"
-    BUILD_DIR="$build_dir_updater" "$dir/build_updater.sh"
+    BUILD_DIR="$build_dir_updater" UPDATER_DIR="$updater_dir" "$dir/build_updater.sh"
   fi
 
   version=`$build_dir_keybase/keybase version -S`
