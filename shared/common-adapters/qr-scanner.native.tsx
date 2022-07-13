@@ -2,8 +2,7 @@ import * as React from 'react'
 import * as Styles from '../styles'
 import Text from './text'
 import {Box2} from './box'
-import {BarCodeScanner} from 'expo-barcode-scanner'
-import * as Permissions from 'expo-permissions'
+import * as Scanner from 'expo-barcode-scanner'
 
 const Kb = {
   Box2,
@@ -22,8 +21,8 @@ const QRScanner = (p: Props): React.ReactElement | null => {
 
   React.useEffect(() => {
     const getPermissionsGranted = async () => {
-      const {status} = await Permissions.askAsync(Permissions.CAMERA)
-      setHasCameraPermission(status === 'granted')
+      const {status} = await Scanner.requestPermissionsAsync()
+      setHasCameraPermission(status === Scanner.PermissionStatus.GRANTED)
     }
     getPermissionsGranted()
       .then(() => {})
@@ -40,7 +39,7 @@ const QRScanner = (p: Props): React.ReactElement | null => {
   }
 
   return (
-    <BarCodeScanner
+    <Scanner.BarCodeScanner
       onBarCodeScanned={
         scanned
           ? () => {}
