@@ -255,7 +255,7 @@ export const ListBody = (
   const showLoading = !!searchString && !searchResults
 
   const showingContactsButton =
-    Container.isMobile && contactsPermissionStatus !== 'never_ask_again' && !contactsImported
+    Container.isMobile && contactsPermissionStatus !== 'denied' && !contactsImported
   const recommendations = showRecs
     ? sortAndSplitRecommendations(_recommendations, showingContactsButton)
     : null

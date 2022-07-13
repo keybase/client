@@ -32,7 +32,7 @@ const useContactsProps = () => {
   }, [dispatch])
 
   const onImportContacts =
-    contactsPermissionStatus === 'never_ask_again'
+    contactsPermissionStatus === 'denied'
       ? undefined
       : contactsPermissionStatus === 'granted'
       ? onImportContactsPermissionsGranted
@@ -95,7 +95,7 @@ export const ContactsBanner = (props: {
     selectedService !== 'keybase' ||
     contactsImported ||
     isImportPromptDismissed ||
-    contactsPermissionStatus === 'never_ask_again' ||
+    contactsPermissionStatus === 'denied' ||
     !onImportContacts
   )
     return null
@@ -137,7 +137,7 @@ export const ContactsImportButton = () => {
     contactsImported === undefined ||
     contactsImported ||
     !isImportPromptDismissed ||
-    contactsPermissionStatus === 'never_ask_again'
+    contactsPermissionStatus === 'denied'
   )
     return null
 

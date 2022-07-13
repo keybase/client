@@ -428,6 +428,7 @@ const requestContactPermissions = async (
   const {thenToggleImportOn} = action.payload
   listenerApi.dispatch(WaitingGen.createIncrementWaiting({key: SettingsConstants.importContactsWaitingKey}))
   const {status} = await Contacts.requestPermissionsAsync()
+
   if (status === Contacts.PermissionStatus.GRANTED && thenToggleImportOn) {
     listenerApi.dispatch(
       SettingsGen.createEditContactImportEnabled({enable: true, fromSettings: action.payload.fromSettings})
