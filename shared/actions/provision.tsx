@@ -61,8 +61,13 @@ class ProvisioningManager {
     stashedResponse: this.stashedResponse,
   })
 
-  constructor(addingANewDevice: boolean, _: 'ONLY_CALL_THIS_FROM_HELPER') {
+  constructor(
+    addingANewDevice: boolean,
+    listenerApi: Container.ListenerApi | undefined,
+    _: 'ONLY_CALL_THIS_FROM_HELPER'
+  ) {
     this.addingANewDevice = addingANewDevice
+    this.listenerApi = listenerApi
     ProvisioningManager.singleton = this
   }
 
@@ -348,33 +353,40 @@ class ProvisioningManager {
   getCustomResponseIncomingCallMap = (): RPCTypes.CustomResponseIncomingCallMap =>
     this.addingANewDevice
       ? ({
-          'keybase.1.provisionUi.DisplayAndPromptSecret': this.displayAndPromptSecretHandler,
-          'keybase.1.provisionUi.chooseDeviceType': this.chooseDeviceTypeHandler,
+          'keybase.1.provisionUi.DisplayAndPromptSecret': (params, response) =>
+            this.displayAndPromptSecretHandler(params, response),
+          'keybase.1.provisionUi.chooseDeviceType': (params, response) =>
+            this.chooseDeviceTypeHandler(params, response),
         } as const)
       : ({
           'keybase.1.gpgUi.selectKey': Constants.cancelOnCallback,
           'keybase.1.loginUi.getEmailOrUsername': Constants.cancelOnCallback,
-          'keybase.1.provisionUi.DisplayAndPromptSecret': this.displayAndPromptSecretHandler,
-          'keybase.1.provisionUi.PromptNewDeviceName': this.promptNewDeviceNameHandler,
-          'keybase.1.provisionUi.chooseDevice': this.chooseDeviceHandler,
-          'keybase.1.provisionUi.chooseGPGMethod': this.chooseGPGMethodHandler,
-          'keybase.1.provisionUi.switchToGPGSignOK': this.switchToGPGSignOKHandler,
-          'keybase.1.secretUi.getPassphrase': this.getPasswordHandler,
+          'keybase.1.provisionUi.DisplayAndPromptSecret': (params, response) =>
+            this.displayAndPromptSecretHandler(params, response),
+          'keybase.1.provisionUi.PromptNewDeviceName': (params, response) =>
+            this.promptNewDeviceNameHandler(params, response),
+          'keybase.1.provisionUi.chooseDevice': (params, response) =>
+            this.chooseDeviceHandler(params, response),
+          'keybase.1.provisionUi.chooseGPGMethod': (params, response) =>
+            this.chooseGPGMethodHandler(params, response),
+          'keybase.1.provisionUi.switchToGPGSignOK': (params, response) =>
+            this.switchToGPGSignOKHandler(params, response),
+          'keybase.1.secretUi.getPassphrase': (params, response) => this.getPasswordHandler(params, response),
         } as const)
 
-  getIncomingCallMap = () =>
+  getIncomingCallMap = (): RPCTypes.IncomingCallMapType =>
     this.addingANewDevice
-      ? {
-          'keybase.1.provisionUi.DisplaySecretExchanged': this.displaySecretExchanged,
+      ? ({
+          'keybase.1.provisionUi.DisplaySecretExchanged': () => this.displaySecretExchanged(),
           'keybase.1.provisionUi.ProvisioneeSuccess': ignoreCallback,
           'keybase.1.provisionUi.ProvisionerSuccess': ignoreCallback,
-        }
-      : {
+        } as const)
+      : ({
           'keybase.1.loginUi.displayPrimaryPaperKey': ignoreCallback,
-          'keybase.1.provisionUi.DisplaySecretExchanged': this.displaySecretExchanged,
+          'keybase.1.provisionUi.DisplaySecretExchanged': () => this.displaySecretExchanged(),
           'keybase.1.provisionUi.ProvisioneeSuccess': ignoreCallback,
           'keybase.1.provisionUi.ProvisionerSuccess': ignoreCallback,
-        }
+        } as const)
 
   showCodePage = () =>
     RouteTreeGen.createNavigateAppend({
@@ -403,8 +415,10 @@ class ProvisioningManager {
   }
 }
 
-const makeProvisioningManager = (addingANewDevice: boolean): ProvisioningManager =>
-  new ProvisioningManager(addingANewDevice, 'ONLY_CALL_THIS_FROM_HELPER')
+const makeProvisioningManager = (
+  addingANewDevice: boolean,
+  listenerApi: Container.ListenerApi | undefined
+): ProvisioningManager => new ProvisioningManager(addingANewDevice, listenerApi, 'ONLY_CALL_THIS_FROM_HELPER')
 
 /**
  * We are starting the provisioning process. This is largely controlled by the daemon. We get a callback to show various
@@ -416,14 +430,12 @@ const startProvisioning = async (
   listenerApi: Container.ListenerApi
 ) => {
   listenerApi.dispatch(WaitingGen.createClearWaiting({key: Constants.waitingKey}))
-  const manager = makeProvisioningManager(false)
+  const manager = makeProvisioningManager(false, listenerApi)
   try {
     const username = state.provision.username
     if (!username) {
       return
     }
-
-    ProvisioningManager.getSingleton().listenerApi = listenerApi
 
     await RPCTypes.loginLoginRpcListener(
       {
@@ -484,7 +496,7 @@ const startProvisioning = async (
 const addNewDevice = async (_s: unknown, _a: unknown, listenerApi: Container.ListenerApi) => {
   // Make a new handler each time.
   listenerApi.dispatch(WaitingGen.createClearWaiting({key: Constants.waitingKey}))
-  const manager = makeProvisioningManager(true)
+  const manager = makeProvisioningManager(true, listenerApi)
   try {
     await RPCTypes.deviceDeviceAddRpcListener(
       {
@@ -649,7 +661,7 @@ const backToDeviceList = async (
 
 const initProvision = () => {
   // Always ensure we have one live
-  makeProvisioningManager(false)
+  makeProvisioningManager(false, undefined)
 
   // Start provision
   Container.listenAction(ProvisionGen.submitUsername, startProvisioning)
@@ -676,11 +688,6 @@ const initProvision = () => {
 
   Container.listenAction(ProvisionGen.cancelProvision, maybeCancelProvision)
   Container.listenAction(ProvisionGen.backToDeviceList, backToDeviceList)
-}
-
-export const _testing: any = {
-  makeProvisioningManager,
-  maybeCancelProvision,
 }
 
 export default initProvision

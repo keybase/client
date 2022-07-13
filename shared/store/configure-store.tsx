@@ -123,6 +123,11 @@ const middlewares = [
   ...(enableActionLogging ? [actionLogger] : []),
 ]
 
+// don't setup listeners again
+if (__DEV__ && !globalThis.listenersInited) {
+  globalThis.listenersInited = false
+}
+
 export default function makeStore() {
   const store = ReduxToolKit.configureStore({
     devTools: false,
@@ -141,6 +146,14 @@ export default function makeStore() {
 
   return {
     initListeners: () => {
+      if (__DEV__) {
+        if (globalThis.listenersInited) {
+          console.log('Dev reloading not registering listeners again')
+          return
+        } else {
+          globalThis.listenersInited = true
+        }
+      }
       // register our listeners
       initListeners()
       // start our 'forks'
