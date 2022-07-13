@@ -36,7 +36,6 @@ import {launchImageLibraryAsync} from '../../util/expo-image-picker'
 import Geolocation from '@react-native-community/geolocation'
 import * as Haptics from 'expo-haptics'
 import {_getNavigator} from '../../constants/router2'
-import {RPCError} from '../../util/errors'
 import {Audio} from 'expo-av'
 import * as ExpoLocation from 'expo-location'
 import * as FileSystem from 'expo-file-system'
@@ -471,10 +470,8 @@ const manageContactsCache = async (
     contacts = await Contacts.getContactsAsync({
       fields: [Contacts.Fields.Name, Contacts.Fields.PhoneNumbers, Contacts.Fields.Emails],
     })
-  } catch (error) {
-    if (!(error instanceof RPCError)) {
-      return
-    }
+  } catch (_error) {
+    const error = _error as any
     logger.error(`error loading contacts: ${error.message}`)
     return SettingsGen.createSetContactImportedCount({error: error.message})
   }
@@ -486,10 +483,8 @@ const manageContactsCache = async (
       // iOS sim + android emu don't supply country codes, so use this one.
       defaultCountryCode = 'us'
     }
-  } catch (error) {
-    if (!(error instanceof RPCError)) {
-      return
-    }
+  } catch (_error) {
+    const error = _error as any
     logger.warn(`Error loading default country code: ${error.message}`)
   }
 
@@ -513,10 +508,8 @@ const manageContactsCache = async (
     if (state.settings.contacts.waitingToShowJoinedModal && resolved) {
       actions.push(SettingsGen.createShowContactsJoinedModal({resolved}))
     }
-  } catch (error) {
-    if (!(error instanceof RPCError)) {
-      return
-    }
+  } catch (_error) {
+    const error = _error as any
     logger.error('Error saving contacts list: ', error.message)
     actions.push(SettingsGen.createSetContactImportedCount({error: error.message}))
   }
@@ -546,10 +539,8 @@ const onChatWatchPosition = async (
   const response = action.payload.response
   try {
     await requestLocationPermission(action.payload.params.perm)
-  } catch (error) {
-    if (!(error instanceof RPCError)) {
-      return
-    }
+  } catch (_error) {
+    const error = _error as any
     logger.info('failed to get location perms: ' + error.message)
     return setPermissionDeniedCommandStatus(
       Types.conversationIDToKey(action.payload.params.convID),
@@ -585,7 +576,10 @@ const onChatClearWatch = (_: unknown, action: EngineGen.Chat1ChatUiChatClearWatc
   Geolocation.clearWatch(action.payload.params.id)
 }
 
-export const watchPositionForMap = async (dispatch: Container.TypedDispatch) => {
+export const watchPositionForMap = async (
+  dispatch: Container.TypedDispatch,
+  conversationIDKey: Types.ConversationIDKey
+) => {
   await requestLocationPermission(RPCChatTypes.UIWatchPositionPerm.base)
   const watchID = Geolocation.watchPosition(
     pos => {
@@ -601,7 +595,7 @@ export const watchPositionForMap = async (dispatch: Container.TypedDispatch) => 
     },
     err => {
       if (err.code && err.code === 1) {
-        throw new Error('watch failed')
+        dispatch(setPermissionDeniedCommandStatus(conversationIDKey, `Failed to access location.`))
       }
     },
     {distanceFilter: 10, enableHighAccuracy: isIOS, maximumAge: isIOS ? 0 : undefined}
@@ -681,10 +675,8 @@ const onAttemptAudioRecording = async (_: unknown, action: Chat2Gen.AttemptAudio
   let chargeForward = true
   try {
     chargeForward = await requestAudioPermission()
-  } catch (error) {
-    if (!(error instanceof RPCError)) {
-      return
-    }
+  } catch (_error) {
+    const error = _error as any
     logger.info('failed to get audio perms: ' + error.message)
     return setPermissionDeniedCommandStatus(
       action.payload.conversationIDKey,
@@ -731,11 +723,11 @@ const onEnableAudioRecording = async (
   }
   await Audio.setAudioModeAsync({
     allowsRecordingIOS: true,
-    interruptionModeAndroid: Audio.INTERRUPTION_MODE_ANDROID_DUCK_OTHERS,
-    interruptionModeIOS: Audio.INTERRUPTION_MODE_IOS_MIX_WITH_OTHERS,
+    interruptionModeAndroid: Audio.INTERRUPTION_MODE_ANDROID_DO_NOT_MIX,
+    interruptionModeIOS: Audio.INTERRUPTION_MODE_IOS_DO_NOT_MIX,
     playThroughEarpieceAndroid: false,
     playsInSilentModeIOS: true,
-    shouldDuckAndroid: true,
+    shouldDuckAndroid: false,
     staysActiveInBackground: false,
   })
   const r = new Audio.Recording()

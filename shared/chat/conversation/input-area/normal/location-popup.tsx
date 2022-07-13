@@ -6,6 +6,7 @@ import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as ConfigGen from '../../../../actions/config-gen'
 import * as Constants from '../../../../constants/chat2'
+import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import LocationMap from '../../../location-map'
 import HiddenString from '../../../../util/hidden-string'
 import {watchPositionForMap} from '../../../../actions/platform-specific'
@@ -17,9 +18,13 @@ const LocationPopup = (props: Props) => {
   const httpSrvAddress = Container.useSelector(state => state.config.httpSrvAddress)
   const httpSrvToken = Container.useSelector(state => state.config.httpSrvToken)
   const location = Container.useSelector(state => state.chat2.lastCoord)
+  const locationDenied = Container.useSelector(
+    state =>
+      state.chat2.commandStatusMap.get(conversationIDKey)?.displayType ===
+      RPCChatTypes.UICommandStatusDisplayTyp.error
+  )
   const username = Container.useSelector(state => state.config.username)
   const [mapLoaded, setMapLoaded] = React.useState(false)
-  const [locationDenied, setLocationDenied] = React.useState(false)
   const dispatch = Container.useDispatch()
   const onClose = () => {
     dispatch(RouteTreeGen.createClearModals())
@@ -38,17 +43,15 @@ const LocationPopup = (props: Props) => {
   }
   React.useEffect(() => {
     let unwatch: undefined | (() => void)
-    watchPositionForMap(dispatch)
+    watchPositionForMap(dispatch, conversationIDKey)
       .then(unsub => {
         unwatch = unsub
       })
-      .catch(() => {
-        setLocationDenied(true)
-      })
+      .catch(() => {})
     return () => {
       unwatch?.()
     }
-  }, [dispatch])
+  }, [dispatch, conversationIDKey])
 
   const width = Math.ceil(Styles.dimensionWidth)
   const height = Math.ceil(Styles.dimensionHeight - 320)

@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import {formatTimeForPopup, formatTimeForRevoked} from '../../../../util/timestamp'
-import {DeviceType} from '../../../../constants/types/devices'
+import type {DeviceType} from '../../../../constants/types/devices'
 
 const iconNameForDeviceType = Styles.isMobile
   ? (deviceType: string, isRevoked: boolean, isLocation: Boolean): Kb.IconType => {
