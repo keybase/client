@@ -247,7 +247,11 @@ func (u *Uploader) clearOldUploaderTempDirs(ctx context.Context, delay time.Dura
 		u.Debug(ctx, "clearOldUploaderTempDirs: cleaning: %s", dir)
 		os.RemoveAll(dir)
 	}
-	if !u.G().IsMobileAppType() {
+    if u.G().IsMobileAppType() {
+        dir := filepath.Join(u.G().GetCacheDir(), "../AV")
+		u.Debug(ctx, "clearOldAVTempDir: clearing current dir: %s", dir)
+		os.RemoveAll(dir)
+    } else {
 		dir := u.getUploadTempBaseDir(u.versionUploaderTemps)
 		u.Debug(ctx, "clearOldUploaderTempDirs: clearing current dir: %s", dir)
 		os.RemoveAll(dir)
