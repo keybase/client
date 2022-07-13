@@ -720,7 +720,6 @@ const onEnableAudioRecording = async (
     Vibration.vibrate(50)
   }
   const outboxID = ChatConstants.generateOutboxID()
-  // const audioPath = await RPCChatTypes.localGetUploadTempFileRpcPromise({filename: 'audio.m4a', outboxID})
   if (recording) {
     try {
       recording?.setOnRecordingStatusUpdate(null)
