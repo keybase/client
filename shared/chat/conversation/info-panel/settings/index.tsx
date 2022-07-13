@@ -50,7 +50,6 @@ const SettingsPanel = (props: SettingsPanelProps) => {
   )
 
   const onShowClearConversationDialog = () => {
-    dispatch(Chat2Gen.createNavigateToThread({conversationIDKey, reason: 'misc'}))
     dispatch(
       RouteTreeGen.createNavigateAppend({
         path: [{props: {conversationIDKey}, selected: 'chatDeleteHistoryWarning'}],
