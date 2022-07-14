@@ -36,8 +36,6 @@ PODS:
   - EXMediaLibrary (14.0.1):
     - ExpoModulesCore
     - React-Core
-  - EXPermissions (13.1.1):
-    - ExpoModulesCore
   - Expo (44.0.6):
     - ExpoModulesCore
   - ExpoHaptics (11.1.1):
@@ -347,8 +345,6 @@ PODS:
     - React-jsi (= 0.67.3)
     - React-logger (= 0.67.3)
     - React-perflogger (= 0.67.3)
-  - RNAudio (4.3.0):
-    - React
   - RNCClipboard (1.9.0):
     - React-Core
   - RNCMaskedView (0.2.6):
@@ -425,7 +421,6 @@ DEPENDENCIES:
   - EXLocation (from `../node_modules/expo-location/ios`)
   - EXMailComposer (from `../node_modules/expo-mail-composer/ios`)
   - EXMediaLibrary (from `../node_modules/expo-media-library/ios`)
-  - EXPermissions (from `../node_modules/expo-permissions/ios`)
   - Expo (from `../node_modules/expo/ios`)
   - ExpoHaptics (from `../node_modules/expo-haptics/ios`)
   - ExpoModulesCore (from `../node_modules/expo-modules-core/ios`)
@@ -466,7 +461,6 @@ DEPENDENCIES:
   - React-RCTVibration (from `../node_modules/react-native/Libraries/Vibration`)
   - React-runtimeexecutor (from `../node_modules/react-native/ReactCommon/runtimeexecutor`)
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
-  - RNAudio (from `../node_modules/react-native-audio`)
   - "RNCClipboard (from `../node_modules/@react-native-clipboard/clipboard`)"
   - "RNCMaskedView (from `../node_modules/@react-native-masked-view/masked-view`)"
   - "RNCPicker (from `../node_modules/@react-native-picker/picker`)"
@@ -519,8 +513,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-mail-composer/ios"
   EXMediaLibrary:
     :path: "../node_modules/expo-media-library/ios"
-  EXPermissions:
-    :path: "../node_modules/expo-permissions/ios"
   Expo:
     :path: "../node_modules/expo/ios"
   ExpoHaptics:
@@ -597,8 +589,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/runtimeexecutor"
   ReactCommon:
     :path: "../node_modules/react-native/ReactCommon"
-  RNAudio:
-    :path: "../node_modules/react-native-audio"
   RNCClipboard:
     :path: "../node_modules/@react-native-clipboard/clipboard"
   RNCMaskedView:
@@ -637,7 +627,6 @@ SPEC CHECKSUMS:
   EXLocation: 013b5d07cca26c2d15d998766322e70b7a228b57
   EXMailComposer: 290c110c14c1a022de752e85b8a9eea820a3ee5c
   EXMediaLibrary: 843669e1d9d38965057830138609ee99ef260cf1
-  EXPermissions: 2f8db9cfb1919d6c6776f462bb2c5a903e423b2a
   Expo: 534e51e607aba8229293297da5585f4b26f50fa1
   ExpoHaptics: 0d0b69b2414755a4057ffad0a10315902c0ea1b7
   ExpoModulesCore: 32c0ccb47f477d330ee93db72505380adf0de09a
@@ -678,7 +667,6 @@ SPEC CHECKSUMS:
   React-RCTVibration: d0361f15ea978958fab7ffb6960f475b5063d83f
   React-runtimeexecutor: af1946623656f9c5fd64ca6f36f3863516193446
   ReactCommon: 650e33cde4fb7d36781cd3143f5276da0abb2f96
-  RNAudio: cae2991f2dccb75163f260b60da8051717b959fa
   RNCClipboard: 99fc8ad669a376b756fbc8098ae2fd05c0ed0668
   RNCMaskedView: c298b644a10c0c142055b3ae24d83879ecb13ccd
   RNCPicker: f6c760d4b314585ff35165d8640d7917ae30afb1

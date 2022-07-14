@@ -34,12 +34,11 @@ import * as Container from '../../util/container'
 import * as Contacts from 'expo-contacts'
 import {launchImageLibraryAsync} from '../../util/expo-image-picker'
 import Geolocation from '@react-native-community/geolocation'
-// @ts-ignore strict
-import {AudioRecorder} from 'react-native-audio'
 import * as Haptics from 'expo-haptics'
 import {_getNavigator} from '../../constants/router2'
-import {RPCError} from '../../util/errors'
-import type PermissionsType from 'expo-permissions'
+import {Audio} from 'expo-av'
+import * as ExpoLocation from 'expo-location'
+import * as FileSystem from 'expo-file-system'
 
 const requestPermissionsToWrite = async () => {
   if (isAndroid) {
@@ -62,24 +61,13 @@ const requestPermissionsToWrite = async () => {
 
 export const requestAudioPermission = async () => {
   let chargeForward = true
-  // TODO use expo-av etc and unify around that
-  const Permissions = require('expo-permissions') as typeof PermissionsType
-  let {status} = await Permissions.getAsync(Permissions.AUDIO_RECORDING)
-  if (status === Permissions.PermissionStatus.UNDETERMINED) {
-    if (isIOS) {
-      const askRes = await Permissions.askAsync(Permissions.AUDIO_RECORDING)
-      status = askRes.status
-    } else {
-      const askRes = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.RECORD_AUDIO)
-      switch (askRes) {
-        case 'never_ask_again':
-        case 'denied':
-          status = Permissions.PermissionStatus.DENIED
-      }
-    }
+  let {status} = await Audio.getPermissionsAsync()
+  if (status === Audio.PermissionStatus.UNDETERMINED) {
+    const askRes = await Audio.requestPermissionsAsync()
+    status = askRes.status
     chargeForward = false
   }
-  if (status === Permissions.PermissionStatus.DENIED) {
+  if (status === Audio.PermissionStatus.DENIED) {
     throw new Error('Please allow Keybase to access the microphone in the phone settings.')
   }
   return chargeForward
@@ -87,17 +75,18 @@ export const requestAudioPermission = async () => {
 
 export const requestLocationPermission = async (mode: RPCChatTypes.UIWatchPositionPerm) => {
   if (isIOS) {
-    const Permissions = require('expo-permissions') as typeof PermissionsType
-    const {status, permissions} = await Permissions.getAsync(Permissions.LOCATION)
     switch (mode) {
       case RPCChatTypes.UIWatchPositionPerm.base:
-        if (status === Permissions.PermissionStatus.DENIED) {
-          throw new Error('Please allow Keybase to access your location in the phone settings.')
+        {
+          const iosFGPerms = await ExpoLocation.requestForegroundPermissionsAsync()
+          if (iosFGPerms.ios?.scope === 'none') {
+            throw new Error('Please allow Keybase to access your location in the phone settings.')
+          }
         }
         break
       case RPCChatTypes.UIWatchPositionPerm.always: {
-        const perms = permissions[Permissions.LOCATION]
-        if (perms?.scope !== 'always') {
+        const iosBGPerms = await ExpoLocation.requestBackgroundPermissionsAsync()
+        if (iosBGPerms.status !== ExpoLocation.PermissionStatus.GRANTED) {
           throw new Error(
             'Please allow Keybase to access your location even if the app is not running for live location.'
           )
@@ -105,18 +94,9 @@ export const requestLocationPermission = async (mode: RPCChatTypes.UIWatchPositi
         break
       }
     }
-  }
-  if (isAndroid) {
-    const permissionStatus = await PermissionsAndroid.request(
-      PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-      {
-        buttonNegative: 'Cancel',
-        buttonPositive: 'OK',
-        message: 'Keybase needs access to your location in order to post it.',
-        title: 'Keybase Location Permission',
-      }
-    )
-    if (permissionStatus !== 'granted') {
+  } else if (isAndroid) {
+    const androidBGPerms = await ExpoLocation.requestForegroundPermissionsAsync()
+    if (androidBGPerms.status !== ExpoLocation.PermissionStatus.GRANTED) {
       throw new Error('Unable to acquire location permissions')
     }
   }
@@ -427,63 +407,17 @@ const openAppStore = async () =>
       : 'https://itunes.apple.com/us/app/keybase-crypto-for-everyone/id1044461770?mt=8'
   ).catch(() => {})
 
-const expoPermissionStatusMap = () => {
-  const Permissions: typeof PermissionsType = require('expo-permissions')
-  return {
-    [Permissions.PermissionStatus.GRANTED]: 'granted' as const,
-    [Permissions.PermissionStatus.DENIED]: 'never_ask_again' as const,
-    [Permissions.PermissionStatus.UNDETERMINED]: 'undetermined' as const,
-  }
-}
-
-const loadContactPermissionFromNative = async () => {
-  if (isIOS) {
-    const Permissions: typeof PermissionsType = require('expo-permissions')
-    return expoPermissionStatusMap()[(await Permissions.getAsync(Permissions.CONTACTS)).status]
-  }
-  return (await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.READ_CONTACTS))
-    ? 'granted'
-    : 'undetermined'
-}
-
 const loadContactPermissions = async (
-  state: Container.TypedState,
+  _s: unknown,
   action: SettingsGen.LoadedContactImportEnabledPayload | ConfigGen.MobileAppStatePayload
 ) => {
   if (action.type === ConfigGen.mobileAppState && action.payload.nextAppState !== 'active') {
     // only reload on foreground
     return
   }
-  const status = await loadContactPermissionFromNative()
+  const {status} = await Contacts.getPermissionsAsync()
   logger.info(`OS status: ${status}`)
-  if (
-    isAndroid &&
-    status === 'undetermined' &&
-    ['never_ask_again', 'undetermined'].includes(state.settings.contacts.permissionStatus)
-  ) {
-    // Workaround PermissionsAndroid.check giving only a boolean. If
-    // `requestPermissions` previously told us never_ask_again that is still the
-    // status
-    return null
-  }
   return SettingsGen.createLoadedContactPermissions({status})
-}
-
-const askForContactPermissionsAndroid = async () => {
-  const status = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.READ_CONTACTS)
-  // status is 'granted' | 'denied' | 'never_ask_again'
-  // map 'denied' -> 'undetermined' since 'undetermined' means we can show the prompt again
-  return status === 'denied' ? 'undetermined' : status
-}
-
-const askForContactPermissionsIOS = async () => {
-  const Permissions: typeof PermissionsType = require('expo-permissions')
-  const {status} = await Permissions.askAsync(Permissions.CONTACTS)
-  return expoPermissionStatusMap()[status]
-}
-
-const askForContactPermissions = async () => {
-  return isAndroid ? askForContactPermissionsAndroid() : askForContactPermissionsIOS()
 }
 
 const requestContactPermissions = async (
@@ -493,13 +427,14 @@ const requestContactPermissions = async (
 ) => {
   const {thenToggleImportOn} = action.payload
   listenerApi.dispatch(WaitingGen.createIncrementWaiting({key: SettingsConstants.importContactsWaitingKey}))
-  const result = await askForContactPermissions()
-  if (result === 'granted' && thenToggleImportOn) {
+  const {status} = await Contacts.requestPermissionsAsync()
+
+  if (status === Contacts.PermissionStatus.GRANTED && thenToggleImportOn) {
     listenerApi.dispatch(
       SettingsGen.createEditContactImportEnabled({enable: true, fromSettings: action.payload.fromSettings})
     )
   }
-  listenerApi.dispatch(SettingsGen.createLoadedContactPermissions({status: result}))
+  listenerApi.dispatch(SettingsGen.createLoadedContactPermissions({status}))
   listenerApi.dispatch(WaitingGen.createDecrementWaiting({key: SettingsConstants.importContactsWaitingKey}))
 }
 
@@ -515,7 +450,7 @@ const manageContactsCache = async (
   // get permissions if we haven't loaded them for some reason
   let {permissionStatus} = state.settings.contacts
   if (permissionStatus === 'unknown') {
-    permissionStatus = await loadContactPermissionFromNative()
+    permissionStatus = (await Contacts.getPermissionsAsync()).status
   }
   const perm = permissionStatus === 'granted'
 
@@ -536,10 +471,8 @@ const manageContactsCache = async (
     contacts = await Contacts.getContactsAsync({
       fields: [Contacts.Fields.Name, Contacts.Fields.PhoneNumbers, Contacts.Fields.Emails],
     })
-  } catch (error) {
-    if (!(error instanceof RPCError)) {
-      return
-    }
+  } catch (_error) {
+    const error = _error as any
     logger.error(`error loading contacts: ${error.message}`)
     return SettingsGen.createSetContactImportedCount({error: error.message})
   }
@@ -551,10 +484,8 @@ const manageContactsCache = async (
       // iOS sim + android emu don't supply country codes, so use this one.
       defaultCountryCode = 'us'
     }
-  } catch (error) {
-    if (!(error instanceof RPCError)) {
-      return
-    }
+  } catch (_error) {
+    const error = _error as any
     logger.warn(`Error loading default country code: ${error.message}`)
   }
 
@@ -578,10 +509,8 @@ const manageContactsCache = async (
     if (state.settings.contacts.waitingToShowJoinedModal && resolved) {
       actions.push(SettingsGen.createShowContactsJoinedModal({resolved}))
     }
-  } catch (error) {
-    if (!(error instanceof RPCError)) {
-      return
-    }
+  } catch (_error) {
+    const error = _error as any
     logger.error('Error saving contacts list: ', error.message)
     actions.push(SettingsGen.createSetContactImportedCount({error: error.message}))
   }
@@ -611,10 +540,8 @@ const onChatWatchPosition = async (
   const response = action.payload.response
   try {
     await requestLocationPermission(action.payload.params.perm)
-  } catch (error) {
-    if (!(error instanceof RPCError)) {
-      return
-    }
+  } catch (_error) {
+    const error = _error as any
     logger.info('failed to get location perms: ' + error.message)
     return setPermissionDeniedCommandStatus(
       Types.conversationIDToKey(action.payload.params.convID),
@@ -650,8 +577,20 @@ const onChatClearWatch = (_: unknown, action: EngineGen.Chat1ChatUiChatClearWatc
   Geolocation.clearWatch(action.payload.params.id)
 }
 
-export const watchPositionForMap = async (dispatch: Container.TypedDispatch) => {
-  await requestLocationPermission(RPCChatTypes.UIWatchPositionPerm.base)
+export const watchPositionForMap = async (
+  dispatch: Container.TypedDispatch,
+  conversationIDKey: Types.ConversationIDKey
+) => {
+  try {
+    await requestLocationPermission(RPCChatTypes.UIWatchPositionPerm.base)
+  } catch (_error) {
+    const error = _error as any
+    logger.info('failed to get location perms: ' + error.message)
+    dispatch(
+      setPermissionDeniedCommandStatus(conversationIDKey, `Failed to access location. ${error.message}`)
+    )
+    return () => {}
+  }
   const watchID = Geolocation.watchPosition(
     pos => {
       dispatch(
@@ -666,7 +605,7 @@ export const watchPositionForMap = async (dispatch: Container.TypedDispatch) => 
     },
     err => {
       if (err.code && err.code === 1) {
-        throw new Error('watch failed')
+        dispatch(setPermissionDeniedCommandStatus(conversationIDKey, `Failed to access location.`))
       }
     },
     {distanceFilter: 10, enableHighAccuracy: isIOS, maximumAge: isIOS ? 0 : undefined}
@@ -695,10 +634,14 @@ const stopAudioRecording = async (
     }
   }
   logger.info('stopAudioRecording: stopping recording')
+  recording?.setOnRecordingStatusUpdate(null)
   try {
-    AudioRecorder.stopRecording().catch(() => {})
-  } catch (e) {}
-  AudioRecorder.onProgress = null
+    await recording?.stopAndUnloadAsync()
+  } catch (e) {
+    console.log('Recoding stopping fail', e)
+  } finally {
+    recording = undefined
+  }
 
   if (!state.chat2.audioRecording) {
     return false
@@ -713,7 +656,13 @@ const stopAudioRecording = async (
     action.payload.stopType === Types.AudioStopType.CANCEL
   ) {
     logger.info('stopAudioRecording: recording cancelled, bailing out')
-    await RPCChatTypes.localCancelUploadTempFileRpcPromise({outboxID: audio.outboxID})
+    try {
+      if (audio.path) {
+        await FileSystem.deleteAsync(audio.path, {idempotent: true})
+      }
+    } catch (e) {
+      console.log('Recording delete failed', e)
+    }
     return false
   }
   if (ChatConstants.audioRecordingDuration(audio) < 500 || audio.path.length === 0) {
@@ -728,6 +677,7 @@ const stopAudioRecording = async (
     logger.info('stopAudioRecording: in staged mode, not sending')
     return false
   }
+
   return Chat2Gen.createSendAudioRecording({conversationIDKey, fromStaged: false, info: audio})
 }
 
@@ -735,10 +685,8 @@ const onAttemptAudioRecording = async (_: unknown, action: Chat2Gen.AttemptAudio
   let chargeForward = true
   try {
     chargeForward = await requestAudioPermission()
-  } catch (error) {
-    if (!(error instanceof RPCError)) {
-      return
-    }
+  } catch (_error) {
+    const error = _error as any
     logger.info('failed to get audio perms: ' + error.message)
     return setPermissionDeniedCommandStatus(
       action.payload.conversationIDKey,
@@ -754,6 +702,7 @@ const onAttemptAudioRecording = async (_: unknown, action: Chat2Gen.AttemptAudio
   })
 }
 
+let recording: Audio.Recording | undefined
 const onEnableAudioRecording = async (
   state: Container.TypedState,
   action: Chat2Gen.EnableAudioRecordingPayload
@@ -773,32 +722,66 @@ const onEnableAudioRecording = async (
     Vibration.vibrate(50)
   }
   const outboxID = ChatConstants.generateOutboxID()
-  const audioPath = await RPCChatTypes.localGetUploadTempFileRpcPromise({filename: 'audio.m4a', outboxID})
-  AudioRecorder.prepareRecordingAtPath(audioPath, {
-    AudioEncoding: 'aac',
-    AudioEncodingBitRate: 32000,
-    AudioQuality: 'Low',
-    Channels: 1,
-    MeteringEnabled: true,
-    SampleRate: 22050,
+  if (recording) {
+    try {
+      recording?.setOnRecordingStatusUpdate(null)
+    } catch {}
+    try {
+      await recording?.stopAndUnloadAsync()
+    } catch {}
+    recording = undefined
+  }
+  await Audio.setAudioModeAsync({
+    allowsRecordingIOS: true,
+    interruptionModeAndroid: Audio.INTERRUPTION_MODE_ANDROID_DO_NOT_MIX,
+    interruptionModeIOS: Audio.INTERRUPTION_MODE_IOS_DO_NOT_MIX,
+    playThroughEarpieceAndroid: false,
+    playsInSilentModeIOS: true,
+    shouldDuckAndroid: false,
+    staysActiveInBackground: false,
   })
-  AudioRecorder.onProgress = null
-  AudioRecorder.onFinished = () => {
-    logger.info('onEnableAudioRecording: recording finished')
+  const r = new Audio.Recording()
+  await r.prepareToRecordAsync({
+    android: {
+      audioEncoder: Audio.RECORDING_OPTION_ANDROID_AUDIO_ENCODER_AAC,
+      bitRate: 32000,
+      extension: '.m4a',
+      numberOfChannels: 1,
+      outputFormat: Audio.RECORDING_OPTION_ANDROID_OUTPUT_FORMAT_AAC_ADTS,
+      sampleRate: 22050,
+    },
+    ios: {
+      audioQuality: Audio.RECORDING_OPTION_IOS_AUDIO_QUALITY_MIN,
+      bitRate: 32000,
+      extension: '.m4a',
+      linearPCMBitDepth: 16,
+      linearPCMIsBigEndian: false,
+      linearPCMIsFloat: false,
+      numberOfChannels: 1,
+      sampleRate: 22050,
+    },
+    isMeteringEnabled: true,
+    web: {},
+  })
+  const audioPath = r.getURI()?.substring('file://'.length)
+  if (!audioPath) {
+    throw new Error("Couldn't start audio recording")
   }
-  AudioRecorder.onProgress = (data: any) => {
-    action.payload.meteringCb(data.currentMetering)
-  }
+  recording = r
+  recording?.setProgressUpdateInterval(100)
+  recording?.setOnRecordingStatusUpdate((status: Audio.RecordingStatus) => {
+    status.metering !== undefined && action.payload.meteringCb(status.metering)
+  })
   logger.info('onEnableAudioRecording: setting recording info')
   return Chat2Gen.createSetAudioRecordingPostInfo({conversationIDKey, outboxID, path: audioPath})
 }
 
-const onSendAudioRecording = (_: unknown, action: Chat2Gen.SendAudioRecordingPayload) => {
+const onSendAudioRecording = async (_: unknown, action: Chat2Gen.SendAudioRecordingPayload) => {
   if (!action.payload.fromStaged) {
     if (isIOS) {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
-        .then(() => {})
-        .catch(() => {})
+      try {
+        await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+      } catch {}
     } else {
       Vibration.vibrate(50)
     }
@@ -828,7 +811,7 @@ const onSetAudioRecordingPostInfo = async (
     logger.info('onSetAudioRecordingPostInfo: not in recording mode anymore, bailing')
     return
   }
-  await AudioRecorder.startRecording()
+  await recording?.startAsync()
 }
 
 const onPersistRoute = async () => {

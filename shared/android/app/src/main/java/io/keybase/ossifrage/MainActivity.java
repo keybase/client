@@ -115,7 +115,6 @@ public class MainActivity extends ReactActivity {
     boolean isIOS = false;
     initOnce(context.getFilesDir().getPath(), "", context.getFileStreamPath("service.log").getAbsolutePath(), "prod", false,
       new DNSNSFetcher(), new VideoHelper(), mobileOsVersion, isIPad, new KBInstallReferrerListener(context), isIOS);
-
   }
 
   private String colorSchemeForCurrentConfiguration() {

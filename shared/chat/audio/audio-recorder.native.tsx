@@ -56,9 +56,6 @@ const useVisible = (reduxVisible: boolean, dragX: SVN, dragY: SVN) => {
 const useRecording = (conversationIDKey: Types.ConversationIDKey) => {
   const ampTracker = React.useRef(new AmpTracker()).current
   const ampScale = useSharedValue(0)
-  const unifyAmp = (amp: number) => {
-    return isIOS ? 10 ** (amp * 0.05) : Math.min(1.0, amp / 22000)
-  }
   const ampToScale = (amp: number) => {
     const maxScale = 8
     const minScale = 3
@@ -66,7 +63,7 @@ const useRecording = (conversationIDKey: Types.ConversationIDKey) => {
   }
   const meteringCb = React.useCallback(
     (inamp: number) => {
-      const amp = unifyAmp(inamp)
+      const amp = 10 ** (inamp * 0.05)
       ampTracker.addAmp(amp)
       ampScale.value = withTiming(ampToScale(amp), {duration: 100})
     },

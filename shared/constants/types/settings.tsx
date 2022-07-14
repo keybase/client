@@ -126,7 +126,7 @@ export type PhoneNumbersState = {
   verificationState?: 'success' | 'error'
 }
 
-export type PermissionStatus = 'granted' | 'never_ask_again' | 'undetermined' | 'unknown'
+export type PermissionStatus = 'granted' | 'denied' | 'undetermined' | 'unknown'
 export type ContactsState = {
   alreadyOnKeybase: Array<RPCTypes.ProcessedContact>
   importEnabled?: boolean
