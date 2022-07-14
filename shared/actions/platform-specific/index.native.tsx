@@ -95,7 +95,7 @@ export const requestLocationPermission = async (mode: RPCChatTypes.UIWatchPositi
       }
     }
   } else if (isAndroid) {
-    const androidBGPerms = await ExpoLocation.requestBackgroundPermissionsAsync()
+    const androidBGPerms = await ExpoLocation.requestForegroundPermissionsAsync()
     if (androidBGPerms.status !== ExpoLocation.PermissionStatus.GRANTED) {
       throw new Error('Unable to acquire location permissions')
     }
@@ -581,7 +581,16 @@ export const watchPositionForMap = async (
   dispatch: Container.TypedDispatch,
   conversationIDKey: Types.ConversationIDKey
 ) => {
-  await requestLocationPermission(RPCChatTypes.UIWatchPositionPerm.base)
+  try {
+    await requestLocationPermission(RPCChatTypes.UIWatchPositionPerm.base)
+  } catch (_error) {
+    const error = _error as any
+    logger.info('failed to get location perms: ' + error.message)
+    dispatch(
+      setPermissionDeniedCommandStatus(conversationIDKey, `Failed to access location. ${error.message}`)
+    )
+    return () => {}
+  }
   const watchID = Geolocation.watchPosition(
     pos => {
       dispatch(
