@@ -279,7 +279,13 @@ android {
 
     buildTypes {
         debug {
-            applicationIdSuffix ".debug"
+            // the tooling assume we don't change the suffix
+            // applicationIdSuffix ".debug"
+            if (nativeArchitectures) {
+                ndk {
+                    abiFilters nativeArchitectures.split(',')
+                }
+            }
         }
 
         storyBook.initWith(buildTypes.debug)

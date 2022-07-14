@@ -6,7 +6,7 @@ import HiddenString from '../../../util/hidden-string'
 import {appendNewChatBuilder} from '../../../actions/typed-routes'
 
 type OwnProps = {
-  context: 'chat-header' | 'inbox-header'
+  headerContext: 'chat-header' | 'inbox-header'
 }
 
 export default Container.connect(
@@ -41,8 +41,8 @@ export default Container.connect(
     onSelectDown: dispatchProps.onSelectDown,
     onSelectUp: dispatchProps.onSelectUp,
     showFilter: stateProps.showFilter,
-    showNewChat: ownProps.context == 'chat-header',
-    showSearch: ownProps.context == 'chat-header' ? !Container.isTablet : Container.isMobile,
+    showNewChat: ownProps.headerContext == 'chat-header',
+    showSearch: ownProps.headerContext == 'chat-header' ? !Container.isTablet : Container.isMobile,
     showStartNewChat: stateProps.showStartNewChat,
   })
 )(ChatInboxHeader)

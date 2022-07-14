@@ -232,6 +232,20 @@ func (u *Uploader) Complete(ctx context.Context, outboxID chat1.OutboxID) {
 	u.clearTempDirFromOutboxID(ctx, outboxID)
 }
 
+func (u *Uploader) clearExpoAudioPaths(ctx context.Context) {
+	if u.G().IsMobileAppType() {
+		var subDir string
+		if libkb.IsAndroid() {
+			subDir = "../../../cache/Audio"
+		} else {
+			subDir = "../AV"
+		}
+		dir := filepath.Join(u.G().GetCacheDir(), subDir)
+		u.Debug(ctx, "clearExpoAudioPaths: clearing current dir: %s", dir)
+		os.RemoveAll(dir)
+	}
+}
+
 func (u *Uploader) clearOldUploaderTempDirs(ctx context.Context, delay time.Duration) {
 	u.Debug(ctx, "clearOldUploaderTempDirs: cleaning in %v", delay)
 	select {
@@ -247,7 +261,9 @@ func (u *Uploader) clearOldUploaderTempDirs(ctx context.Context, delay time.Dura
 		u.Debug(ctx, "clearOldUploaderTempDirs: cleaning: %s", dir)
 		os.RemoveAll(dir)
 	}
-	if !u.G().IsMobileAppType() {
+	if u.G().IsMobileAppType() {
+		u.clearExpoAudioPaths(ctx)
+	} else {
 		dir := u.getUploadTempBaseDir(u.versionUploaderTemps)
 		u.Debug(ctx, "clearOldUploaderTempDirs: clearing current dir: %s", dir)
 		os.RemoveAll(dir)
@@ -258,6 +274,8 @@ func (u *Uploader) clearTempDirFromOutboxID(ctx context.Context, outboxID chat1.
 	dir := u.getUploadTempDir(u.versionUploaderTemps, outboxID)
 	u.Debug(ctx, "clearTempDirFromOutboxID: clearing: %s", dir)
 	os.RemoveAll(dir)
+
+	u.clearExpoAudioPaths(ctx)
 }
 
 func (u *Uploader) Retry(ctx context.Context, outboxID chat1.OutboxID) (res types.AttachmentUploaderResultCb, err error) {

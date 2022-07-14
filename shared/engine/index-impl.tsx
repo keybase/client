@@ -279,9 +279,10 @@ class Engine {
   }
 
   registerCustomResponse = (method: string) => {
-    if (this._customResponseAction[method]) {
-      throw new Error('Dupe custom response handler registered: ' + method)
-    }
+    // TODO change how this global thing works. not nice w/ hot reload
+    // if (this._customResponseAction[method]) {
+    //     throw new Error('Dupe custom response handler registered: ' + method)
+    // }
 
     this._customResponseAction[method] = true
   }

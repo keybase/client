@@ -102,7 +102,7 @@ const Header = (p: Props) => {
   return (
     <Kb.Box2 direction="horizontal" style={styles.container} fullWidth={true}>
       <Kb.Box2 direction="vertical" style={styles.left}>
-        <ChatInboxHeader context="chat-header" />
+        <ChatInboxHeader headerContext="chat-header" />
       </Kb.Box2>
       <Kb.Box2
         direction="horizontal"

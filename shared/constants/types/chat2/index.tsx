@@ -1,14 +1,14 @@
-import * as RPCChatTypes from '../rpc-chat-gen'
-import * as RPCTypes from '../rpc-gen'
 import * as Common from './common'
-import * as Meta from './meta'
+import * as RPCTypes from '../rpc-gen'
 import * as _Message from './message'
-import * as Wallet from '../wallets'
-import * as TeamBuildingTypes from '../team-building'
-import * as Team from '../teams'
-import HiddenString from '../../../util/hidden-string'
-import {AmpTracker} from '../../../chat/audio/amptracker'
-import * as ChatInboxRowTypes from './rowitem'
+import type * as ChatInboxRowTypes from './rowitem'
+import type * as Meta from './meta'
+import type * as RPCChatTypes from '../rpc-chat-gen'
+import type * as Team from '../teams'
+import type * as TeamBuildingTypes from '../team-building'
+import type * as Wallet from '../wallets'
+import type HiddenString from '../../../util/hidden-string'
+import type {AmpTracker} from '../../../chat/audio/amptracker'
 
 export type QuoteInfo = {
   // Always positive and monotonically increasing.

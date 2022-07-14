@@ -46,7 +46,7 @@ const ManageContacts = () => {
             </Kb.Text>
             <Kb.ButtonBar align="flex-start" style={styles.buttonBar}>
               <Kb.Button
-                disabled={status === 'never_ask_again'}
+                disabled={status === 'denied'}
                 mode="Secondary"
                 label={contactsImported && status === 'granted' ? 'Remove contacts' : 'Import phone contacts'}
                 type={contactsImported && status === 'granted' ? 'Danger' : 'Default'}
@@ -96,7 +96,7 @@ const ManageContactsBanner = () => {
           <Kb.BannerParagraph bannerColor="green" content={[{onClick: onStartChat, text: 'Start a chat'}]} />
         </Kb.Banner>
       )}
-      {(status === 'never_ask_again' || (Styles.isAndroid && status !== 'granted' && contactsImported)) && (
+      {(status === 'denied' || (Styles.isAndroid && status !== 'granted' && contactsImported)) && (
         <Kb.Banner color="red">
           <Kb.BannerParagraph
             bannerColor="red"

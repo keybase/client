@@ -337,7 +337,7 @@ export const createLoadedContactImportEnabled = (payload: {readonly enabled: boo
   type: loadedContactImportEnabled as typeof loadedContactImportEnabled,
 })
 export const createLoadedContactPermissions = (payload: {
-  readonly status: 'granted' | 'never_ask_again' | 'undetermined'
+  readonly status: 'granted' | 'denied' | 'undetermined'
 }) => ({payload, type: loadedContactPermissions as typeof loadedContactPermissions})
 export const createLoadedHasRandomPw = (payload: {readonly randomPW: boolean}) => ({
   payload,

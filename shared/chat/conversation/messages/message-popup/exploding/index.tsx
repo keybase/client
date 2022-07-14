@@ -2,9 +2,9 @@ import * as React from 'react'
 import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
 import {formatTimeForPopup, formatTimeForRevoked, msToDHMS} from '../../../../../util/timestamp'
-import {addTicker, removeTicker, TickerID} from '../../../../../util/second-timer'
-import {DeviceType} from '../../../../../constants/types/devices'
-import {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
+import {addTicker, removeTicker, type TickerID} from '../../../../../util/second-timer'
+import {type DeviceType} from '../../../../../constants/types/devices'
+import {type Position} from '../../../../../common-adapters/relative-popup-hoc.types'
 
 const headerIconType = Styles.isMobile ? 'icon-fancy-bomb-mobile-226-96' : 'icon-fancy-bomb-desktop-150-72'
 const headerIconHeight = Styles.isMobile ? 96 : 72

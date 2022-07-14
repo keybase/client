@@ -54,7 +54,19 @@ const NativeEventsToRedux = () => {
   return null
 }
 
+// dont' remake engine/store on reload
+if (__DEV__ && !globalThis.madeEngine) {
+  globalThis.madeEngine = false
+}
+
 const ensureStore = () => {
+  if (__DEV__) {
+    if (globalThis.madeEngine) {
+      _store = global.DEBUGStore
+      return
+    }
+    globalThis.madeEngine = true
+  }
   if (_store) {
     return
   }

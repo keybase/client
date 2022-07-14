@@ -109,7 +109,7 @@ const useContacts = () => {
           setLoading(false)
         }
       )
-    } else if (permStatus === 'never_ask_again') {
+    } else if (permStatus === 'denied') {
       setErrorMessage('Keybase does not have permission to access your contacts.')
       setNoAccessPermanent(true)
       setLoading(false)

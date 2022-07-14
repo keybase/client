@@ -156,7 +156,7 @@ static const DDLogLevel ddLogLevel = DDLogLevelDebug;
   [[UIApplication sharedApplication]
       setMinimumBackgroundFetchInterval:
           UIApplicationBackgroundFetchIntervalMinimum];
-
+  
   return YES;
 }
 
