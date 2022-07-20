@@ -1745,11 +1745,6 @@
     sudo-prompt "^9.0.0"
     wcwidth "^1.0.1"
 
-"@react-native-community/geolocation@2.1.0":
-  version "2.1.0"
-  resolved "https://registry.yarnpkg.com/@react-native-community/geolocation/-/geolocation-2.1.0.tgz#3ed15a4a357104a53c0bb824f47b59cb2a65b6ba"
-  integrity sha512-xDAl5S85cRVGeUxpjX/+5lyVFNHHArXN18NQnfzCLxxiVxtC2sKENuLE4J0kjAlD5lEp+IXVqfd3iGQfo99tkA==
-
 "@react-native-community/netinfo@8.1.0":
   version "8.1.0"
   resolved "https://registry.yarnpkg.com/@react-native-community/netinfo/-/netinfo-8.1.0.tgz#91ac77588363ded53c417ca67e989f2b56c63d57"
@@ -4762,6 +4757,15 @@ expo-sms@10.1.1:
   version "10.1.1"
   resolved "https://registry.yarnpkg.com/expo-sms/-/expo-sms-10.1.1.tgz#841797dc9ddb7da05dd38d6a09ece99d7409150d"
   integrity sha512-vGxqb6uD1zEd8YSTeL80IS8ghZvLp5tr1i+wAMPWesx+LnnbH/jkJAUIyg9otakOLFoC/DXqmLAke6OqDqSCcg==
+
+expo-task-manager@10.1.1:
+  version "10.1.1"
+  resolved "https://registry.yarnpkg.com/expo-task-manager/-/expo-task-manager-10.1.1.tgz#f8e8d395f412dd97c5eeb2e433f139e85de2e14d"
+  integrity sha512-qnI0TFOFjnc16NFlQ/sYMpkUAFt9U0ju76HJlrJbQw1j3wydkfG+WT/63tYnVxpCUwCx0nUdWRJZETVC18/fjQ==
+  dependencies:
+    "@expo/config-plugins" "^4.0.2"
+    unimodules-app-loader "~3.0.0"
+    unimodules-task-manager-interface "7.1.1"
 
 expo@44.0.6:
   version "44.0.6"
@@ -9908,7 +9912,12 @@ unicode-property-aliases-ecmascript@^2.0.0:
   resolved "https://registry.yarnpkg.com/unicode-property-aliases-ecmascript/-/unicode-property-aliases-ecmascript-2.0.0.tgz#0a36cb9a585c4f6abd51ad1deddb285c165297c8"
   integrity sha512-5Zfuy9q/DFr4tfO7ZPeVXb1aPoeQSdeFMLpYuFebehDAhbuevLs5yxSZmIFN1tP5F9Wl4IpJrYojg85/zgyZHQ==
 
-unimodules-task-manager-interface@~7.1.0:
+unimodules-app-loader@~3.0.0:
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/unimodules-app-loader/-/unimodules-app-loader-3.0.1.tgz#bed09a10c98c0f769002365a5d9de7da9b41f9d6"
+  integrity sha512-iyE7Nx6XNgDjJQ92S3GiZhUiWYO2BrF2ETQq9yhpJ9FkE7yxlenNx+HE21yrSzGEkW48hqHfG1+2kk3hnNa9aQ==
+
+unimodules-task-manager-interface@7.1.1, unimodules-task-manager-interface@~7.1.0:
   version "7.1.1"
   resolved "https://registry.yarnpkg.com/unimodules-task-manager-interface/-/unimodules-task-manager-interface-7.1.1.tgz#1d48585012018971a0f0b62bc5ac53508a7addb4"
   integrity sha512-vvtxJO3O6fJXvSc9qvgB2FS9xJk2nWG4NOvwCMmTmfblmvzGPFcTheOKzV7Z1dvjlqTZZ+TDqd5XOGa+0+NXVA==
