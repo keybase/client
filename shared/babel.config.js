@@ -55,7 +55,10 @@ module.exports = function (api /*: any */) {
   } else if (isReactNative) {
     // console.error('KB babel.config.js for ReactNative')
     return {
-      plugins: [...(skipAnimation ? [] : ['react-native-reanimated/plugin'])],
+      plugins: [
+        ...(skipAnimation ? [] : ['react-native-reanimated/plugin']),
+        '@babel/plugin-proposal-numeric-separator',
+      ],
       presets: ['module:metro-react-native-babel-preset'],
     }
   }
