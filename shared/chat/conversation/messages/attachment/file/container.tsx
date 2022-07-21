@@ -1,6 +1,6 @@
-import * as Types from '../../../../../constants/types/chat2'
+import type * as Types from '../../../../../constants/types/chat2'
 import * as Constants from '../../../../../constants/chat2'
-import * as CryptoTypes from '../../../../../constants/types/crypto'
+import type * as CryptoTypes from '../../../../../constants/types/crypto'
 import * as Tabs from '../../../../../constants/tabs'
 import * as FsGen from '../../../../../actions/fs-gen'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
@@ -52,6 +52,18 @@ export default Container.connect(
       message.downloadPath &&
         dispatch(FsGen.createOpenLocalPathInSystemFileManager({localPath: message.downloadPath}))
     },
+    _onShowPDF: (message: Types.MessageAttachment) => {
+      dispatch(
+        RouteTreeGen.createNavigateAppend({
+          path: [
+            {
+              props: {message},
+              selected: 'chatPDF',
+            },
+          ],
+        })
+      )
+    },
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => {
     const message = ownProps.message
@@ -79,7 +91,11 @@ export default Container.connect(
           dispatchProps._onShare(message)
         } else {
           if (!message.downloadPath) {
-            dispatchProps._onDownload(message)
+            if (message.fileType === 'application/pdf') {
+              dispatchProps._onShowPDF(message)
+            } else {
+              dispatchProps._onDownload(message)
+            }
           }
         }
       },
@@ -87,6 +103,10 @@ export default Container.connect(
       onShowInFinder:
         !Container.isMobile && message.downloadPath
           ? () => dispatchProps._onShowInFinder(message)
+          : undefined,
+      onShowPDF:
+        !Container.isMobile && message.downloadPath && message.fileType === 'application/pdf'
+          ? () => dispatchProps._onShowPDF(message)
           : undefined,
       progress: message.transferProgress,
       title: message.decoratedText?.stringValue() || message.title || message.fileName,

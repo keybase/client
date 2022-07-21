@@ -143,8 +143,8 @@ export type RootParamListChat = {
   chatDeleteHistoryWarning: {conversationIDKey: Types.ConversationIDKey}
   chatShowNewTeamDialog: {conversationIDKey: Types.ConversationIDKey}
   chatPDF: {
-    title: string
-    url: string
+    message: Types.MessageAttachment
+    url?: string
   }
   chatConfirmNavigateExternal: {
     display: string
