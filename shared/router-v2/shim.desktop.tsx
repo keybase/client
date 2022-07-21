@@ -49,7 +49,7 @@ const useMouseClick = (navigation, noClose) => {
 
   return [backgroundRef, onMouseUp, onMouseDown] as const
 }
-type ModalType = 'Default' | 'DefaultFullHeight' | 'DefaultFullWidth' | 'Wide'
+type ModalType = 'Default' | 'DefaultFullHeight' | 'DefaultFullWidth' | 'Wide' | 'SuperWide'
 const ModalWrapper = ({navigationOptions, navigation, children}) => {
   const {modal2Style, modal2AvoidTabs, modal2, modal2ClearCover, modal2NoClose, modal2Type} =
     navigationOptions ?? {}
@@ -61,6 +61,7 @@ const ModalWrapper = ({navigationOptions, navigation, children}) => {
     ['DefaultFullHeight', styles.modalModeDefaultFullHeight],
     ['DefaultFullWidth', styles.modalModeDefaultFullWidth],
     ['Wide', styles.modalModeWide],
+    ['SuperWide', styles.modalModeSuperWide],
   ] as const)
 
   const [topMostModal, setTopMostModal] = React.useState(true)
@@ -196,6 +197,13 @@ const styles = Styles.styleSheetCreate(() => {
       isElectron: {
         height: 560,
         width: '100%',
+      },
+    }),
+    modalModeSuperWide: Styles.platformStyles({
+      common: {...modalModeCommon},
+      isElectron: {
+        height: Math.floor(document.body.scrollHeight * 0.8), // super hacky, want to minimally change how this thing works
+        width: '80%',
       },
     }),
     modalModeWide: Styles.platformStyles({
