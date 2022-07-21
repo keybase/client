@@ -30,11 +30,7 @@ export default Container.connect(
         case 'mobileSaving':
           return
       }
-      dispatch(
-        Chat2Gen.createAttachmentDownload({
-          message,
-        })
-      )
+      dispatch(Chat2Gen.createAttachmentDownload({message}))
     },
     _onSaltpackFileOpen: (path: string, operation: CryptoTypes.Operations) => {
       dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.cryptoTab}))
@@ -55,12 +51,7 @@ export default Container.connect(
     _onShowPDF: (message: Types.MessageAttachment) => {
       dispatch(
         RouteTreeGen.createNavigateAppend({
-          path: [
-            {
-              props: {message},
-              selected: 'chatPDF',
-            },
-          ],
+          path: [{props: {message}, selected: 'chatPDF'}],
         })
       )
     },
@@ -103,10 +94,6 @@ export default Container.connect(
       onShowInFinder:
         !Container.isMobile && message.downloadPath
           ? () => dispatchProps._onShowInFinder(message)
-          : undefined,
-      onShowPDF:
-        !Container.isMobile && message.downloadPath && message.fileType === 'application/pdf'
-          ? () => dispatchProps._onShowPDF(message)
           : undefined,
       progress: message.transferProgress,
       title: message.decoratedText?.stringValue() || message.title || message.fileName,

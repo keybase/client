@@ -119,16 +119,9 @@ const FileAttachment = React.memo((props: Props) => {
           </Kb.Box>
         )}
         {props.onShowInFinder && (
-          <Kb.Box2 direction="horizontal">
-            <Kb.Text type="BodySmallPrimaryLink" onClick={props.onShowInFinder} style={styles.linkStyle}>
-              Show in {Styles.fileUIName}
-            </Kb.Text>
-            {props.onShowPDF && (
-              <Kb.Text type="BodySmallPrimaryLink" onClick={props.onShowPDF} style={styles.linkStyle}>
-                Preview PDF
-              </Kb.Text>
-            )}
-          </Kb.Box2>
+          <Kb.Text type="BodySmallPrimaryLink" onClick={props.onShowInFinder} style={styles.linkStyle}>
+            Show in {Styles.fileUIName}
+          </Kb.Text>
         )}
       </Kb.Box>
     </>
