@@ -617,6 +617,30 @@ const plumbEvents = () => {
           return false
         }
       }
+      case 'showContextMenu': {
+        const {url} = action.payload
+        const win = Electron.BrowserWindow.fromWebContents(event.sender)
+        if (!win) return
+        const menu = Electron.Menu.buildFromTemplate([
+          {
+            label: 'Copy URL',
+            click: () => {
+              Electron.clipboard.writeText(url)
+            },
+          },
+          {
+            label: 'Open in browser',
+            click: () => {
+              Electron.shell
+                .openExternal(url)
+                .then(() => {})
+                .catch(() => {})
+            },
+          },
+        ])
+        menu.popup({window: win})
+        return
+      }
       case 'showInactive': {
         Electron.BrowserWindow.fromWebContents(event.sender)?.showInactive()
         return

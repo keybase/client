@@ -5,6 +5,8 @@ import openURL from '../util/open-url'
 import {fontSizeToSizeStyle, lineClamp, metaData} from './text.meta.desktop'
 import shallowEqual from 'shallowequal'
 import type {Props, TextType, _StylesTextCrossPlatform} from './text'
+import KB2 from '../util/electron.desktop'
+const {showContextMenu} = KB2.functions
 
 class Text extends React.Component<Props> {
   _spanRef = React.createRef<HTMLSpanElement>()
@@ -64,6 +66,15 @@ class Text extends React.Component<Props> {
     openURL(this.props.onClickURL)
   }
 
+  private onContextMenu = event => {
+    const url = this.props.onClickURL
+    if (!url) {
+      return
+    }
+    event.stopPropagation()
+    showContextMenu?.(url)
+  }
+
   render() {
     if (!this.props.type) {
       throw new Error('Missing type on Text')
@@ -75,6 +86,7 @@ class Text extends React.Component<Props> {
         ref={this.props.allowHighlightText ? this._spanRef : null}
         className={this._className(this.props)}
         onClick={this.props.onClick || (this.props.onClickURL && this._urlClick) || undefined}
+        onContextMenuCapture={this.props.onClickURL ? this.onContextMenu : undefined}
         style={Styles.collapseStyles([this.props.style])}
         data-virtual-text={this.props.virtualText ? this.props.children : undefined}
       >
