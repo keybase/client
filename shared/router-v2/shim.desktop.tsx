@@ -202,7 +202,7 @@ const styles = Styles.styleSheetCreate(() => {
     modalModeSuperWide: Styles.platformStyles({
       common: {...modalModeCommon},
       isElectron: {
-        height: '80%',
+        height: Math.floor(document.body.scrollHeight * 0.8), // super hacky, want to minimally change how this thing works
         width: '80%',
       },
     }),
