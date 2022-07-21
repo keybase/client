@@ -205,6 +205,11 @@ if (isRenderer) {
         setOpenAtLogin: async (enabled: boolean) => {
           return invoke({payload: {enabled}, type: 'setOpenAtLogin'})
         },
+        showContextMenu: (url: string) => {
+          invoke({payload: {url}, type: 'showContextMenu'})
+            .then(() => {})
+            .catch(() => {})
+        },
         showInactive: () => {
           invoke({type: 'showInactive'})
             .then(() => {})
