@@ -538,6 +538,7 @@ const onChatWatchPosition = async (
   // listenerApi: Container.ListenerApi
 ) => {
   const response = action.payload.response
+  response.result(0)
   try {
     await requestLocationPermission(action.payload.params.perm)
   } catch (_error) {
@@ -554,7 +555,10 @@ const onChatWatchPosition = async (
   if (locationRefs === 1) {
     try {
       console.log('aaa starting location')
-      await ExpoLocation.startLocationUpdatesAsync(locationTaskName, {})
+      await ExpoLocation.startLocationUpdatesAsync(locationTaskName, {
+        deferredUpdatesDistance: 65,
+        pausesUpdatesAutomatically: true,
+      })
       console.log('aaa starting location success')
     } catch {
       console.log('aaa starting location failed')
@@ -581,7 +585,6 @@ const onChatWatchPosition = async (
   //   },
   //   {distanceFilter: 65, enableHighAccuracy: isIOS, maximumAge: isIOS ? 0 : undefined}
   // )
-  response.result(0)
   return []
 }
 
