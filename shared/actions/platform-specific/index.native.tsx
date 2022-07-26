@@ -532,11 +532,7 @@ const setPermissionDeniedCommandStatus = (conversationIDKey: Types.ConversationI
     },
   })
 
-const onChatWatchPosition = async (
-  _: unknown,
-  action: EngineGen.Chat1ChatUiChatWatchPositionPayload
-  // listenerApi: Container.ListenerApi
-) => {
+const onChatWatchPosition = async (_: unknown, action: EngineGen.Chat1ChatUiChatWatchPositionPayload) => {
   const response = action.payload.response
   response.result(0)
   try {
@@ -554,37 +550,17 @@ const onChatWatchPosition = async (
 
   if (locationRefs === 1) {
     try {
-      console.log('aaa starting location')
+      logger.info('location start')
       await ExpoLocation.startLocationUpdatesAsync(locationTaskName, {
         deferredUpdatesDistance: 65,
         pausesUpdatesAutomatically: true,
       })
-      console.log('aaa starting location success')
+      logger.info('location start success')
     } catch {
-      console.log('aaa starting location failed')
+      logger.info('location start failed')
       locationRefs--
     }
   }
-  //   pos => {
-  //     listenerApi.dispatch(
-  //       Chat2Gen.createUpdateLastCoord({
-  //         coord: {accuracy: pos.coords.accuracy, lat: pos.coords.latitude, lon: pos.coords.longitude},
-  //       })
-  //     )
-  //   },
-  //   err => {
-  //     logger.warn(err.message)
-  //     if (err.code && err.code === 1) {
-  //       listenerApi.dispatch(
-  //         setPermissionDeniedCommandStatus(
-  //           Types.conversationIDToKey(action.payload.params.convID),
-  //           `Failed to access location. ${err.message}`
-  //         )
-  //       )
-  //     }
-  //   },
-  //   {distanceFilter: 65, enableHighAccuracy: isIOS, maximumAge: isIOS ? 0 : undefined}
-  // )
   return []
 }
 
@@ -592,17 +568,18 @@ const onChatClearWatch = async () => {
   locationRefs--
   if (locationRefs <= 0) {
     try {
-      console.log('aaa stopping location')
+      logger.info('location end start')
       await ExpoLocation.stopLocationUpdatesAsync(locationTaskName)
-    } catch {}
+      logger.info('location end success')
+    } catch {
+      logger.info('location end failed')
+    }
   }
-  // Geolocation.clearWatch(action.payload.params.id)
 }
 
 const locationTaskName = 'background-location-task'
 let locationRefs = 0
 ExpoTaskManager.defineTask(locationTaskName, ({data, error}) => {
-  console.log('aaa ExpoTaskManager.defineTask', data, error)
   if (error) {
     // check `error.message` for more details.
     return
@@ -634,13 +611,10 @@ export const watchPositionForMap = async (
   dispatch: Container.TypedDispatch,
   conversationIDKey: Types.ConversationIDKey
 ) => {
-  console.log('aaa watchPositionForMap')
   try {
-    console.log('aaa watchPositionForMap 1')
+    logger.info('location perms check')
     await requestLocationPermission(RPCChatTypes.UIWatchPositionPerm.base)
-    console.log('aaa watchPositionForMap 2')
   } catch (_error) {
-    console.log('aaa watchPositionForMap 3')
     const error = _error as any
     logger.info('failed to get location perms: ' + error.message)
     dispatch(
@@ -650,23 +624,17 @@ export const watchPositionForMap = async (
   }
 
   try {
-    console.log('aaa watchPositionForMap 4')
     const sub = await ExpoLocation.watchPositionAsync(
-      {
-        accuracy: ExpoLocation.LocationAccuracy.Highest,
-      },
+      {accuracy: ExpoLocation.LocationAccuracy.Highest},
       location => {
-        console.log('aaa watchPositionForMap 6')
         const coord = {
           accuracy: Math.floor(location.coords.accuracy ?? 0),
           lat: location.coords.latitude,
           lon: location.coords.longitude,
         }
-        console.log('aaa watchPositionForMap 7')
         dispatch(Chat2Gen.createUpdateLastCoord({coord}))
       }
     )
-    console.log('aaa watchPositionForMap 5')
     return () => sub.remove()
   } catch (_error) {
     const error = _error as any
