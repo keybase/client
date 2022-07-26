@@ -17,7 +17,7 @@ import com.facebook.react.bridge.NativeModule;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.config.ReactFeatureFlags;
 import com.facebook.soloader.SoLoader;
-import com.rndiffapp.newarchitecture.MainApplicationReactNativeHost;
+import io.keybase.ossifrage.newarchitecture.MainApplicationReactNativeHost;
 import com.facebook.react.bridge.JSIModulePackage;
 import com.swmansion.reanimated.ReanimatedJSIModulePackage;
 

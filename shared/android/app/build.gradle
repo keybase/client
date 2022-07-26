@@ -232,8 +232,8 @@ android {
 
         multiDexEnabled true
         configurations.all {
-            // force flipper dep to be compat w/ android 30
-            resolutionStrategy { force 'androidx.sqlite:sqlite-framework:2.1.0' }
+        //     // force flipper dep to be compat w/ android 30
+        //     resolutionStrategy { force 'androidx.sqlite:sqlite-framework:2.1.0' }
             exclude module: 'fbjni-java-only'
 
         }
@@ -336,15 +336,17 @@ dependencies {
     implementation 'com.facebook.fbjni:fbjni:0.2.2'
     implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.0.0"
     debugImplementation("com.facebook.flipper:flipper:${FLIPPER_VERSION}") {
-        exclude group:'com.facebook.fbjni'
+        exclude group:'com.facebook.fbjni', module: 'fbjni-java-only'
     }
     //debugImplementation 'com.facebook.soloader:soloader:0.10.1'
     debugImplementation("com.facebook.flipper:flipper-network-plugin:${FLIPPER_VERSION}") {
         exclude group:'com.facebook.flipper'
-        // exclude group:'com.squareup.okhttp3', module:'okhttp'
+        exclude group:'com.squareup.okhttp3', module:'okhttp'
+        exclude group:'com.facebook.fbjni', module: 'fbjni-java-only'
     }
     debugImplementation("com.facebook.flipper:flipper-fresco-plugin:${FLIPPER_VERSION}") {
         exclude group:'com.facebook.flipper'
+        exclude group:'com.facebook.fbjni', module: 'fbjni-java-only'
     }
 
     if (enableHermes) {
