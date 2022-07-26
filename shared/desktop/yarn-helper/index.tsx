@@ -125,7 +125,14 @@ const getMsgPack = () => {
       exec(`curl -L -o ${dlpath}/${file} ${url}`)
     }
     if (!fs.existsSync(path.resolve(prefix, file))) {
-      exec(`cd node_modules ; tar -xf .cache/${file}`)
+      try {
+        exec(`cd node_modules ; tar -xf .cache/${file}`)
+      } catch {
+        console.log('untar failed, deleting, try building again. trying one more time')
+        exec(`cd node_modules ; rm .cache/${file}`)
+        exec(`curl -L -o ${dlpath}/${file} ${url}`)
+        exec(`cd node_modules ; tar -xf .cache/${file}`)
+      }
     }
   }
 }
