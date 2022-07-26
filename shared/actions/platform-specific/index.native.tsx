@@ -33,12 +33,12 @@ import {
 import * as Container from '../../util/container'
 import * as Contacts from 'expo-contacts'
 import {launchImageLibraryAsync} from '../../util/expo-image-picker'
-import Geolocation from '@react-native-community/geolocation'
 import * as Haptics from 'expo-haptics'
 import {_getNavigator} from '../../constants/router2'
 import {Audio} from 'expo-av'
 import * as ExpoLocation from 'expo-location'
 import * as FileSystem from 'expo-file-system'
+import * as ExpoTaskManager from 'expo-task-manager'
 
 const requestPermissionsToWrite = async () => {
   if (isAndroid) {
@@ -532,12 +532,9 @@ const setPermissionDeniedCommandStatus = (conversationIDKey: Types.ConversationI
     },
   })
 
-const onChatWatchPosition = async (
-  _: unknown,
-  action: EngineGen.Chat1ChatUiChatWatchPositionPayload,
-  listenerApi: Container.ListenerApi
-) => {
+const onChatWatchPosition = async (_: unknown, action: EngineGen.Chat1ChatUiChatWatchPositionPayload) => {
   const response = action.payload.response
+  response.result(0)
   try {
     await requestLocationPermission(action.payload.params.perm)
   } catch (_error) {
@@ -548,40 +545,74 @@ const onChatWatchPosition = async (
       `Failed to access location. ${error.message}`
     )
   }
-  const watchID = Geolocation.watchPosition(
-    pos => {
-      listenerApi.dispatch(
-        Chat2Gen.createUpdateLastCoord({
-          coord: {accuracy: pos.coords.accuracy, lat: pos.coords.latitude, lon: pos.coords.longitude},
-        })
-      )
-    },
-    err => {
-      logger.warn(err.message)
-      if (err.code && err.code === 1) {
-        listenerApi.dispatch(
-          setPermissionDeniedCommandStatus(
-            Types.conversationIDToKey(action.payload.params.convID),
-            `Failed to access location. ${err.message}`
-          )
-        )
-      }
-    },
-    {distanceFilter: 65, enableHighAccuracy: isIOS, maximumAge: isIOS ? 0 : undefined}
-  )
-  response.result(watchID)
+
+  locationRefs++
+
+  if (locationRefs === 1) {
+    try {
+      logger.info('location start')
+      await ExpoLocation.startLocationUpdatesAsync(locationTaskName, {
+        deferredUpdatesDistance: 65,
+        pausesUpdatesAutomatically: true,
+      })
+      logger.info('location start success')
+    } catch {
+      logger.info('location start failed')
+      locationRefs--
+    }
+  }
   return []
 }
 
-const onChatClearWatch = (_: unknown, action: EngineGen.Chat1ChatUiChatClearWatchPayload) => {
-  Geolocation.clearWatch(action.payload.params.id)
+const onChatClearWatch = async () => {
+  locationRefs--
+  if (locationRefs <= 0) {
+    try {
+      logger.info('location end start')
+      await ExpoLocation.stopLocationUpdatesAsync(locationTaskName)
+      logger.info('location end success')
+    } catch {
+      logger.info('location end failed')
+    }
+  }
 }
+
+const locationTaskName = 'background-location-task'
+let locationRefs = 0
+ExpoTaskManager.defineTask(locationTaskName, ({data, error}) => {
+  if (error) {
+    // check `error.message` for more details.
+    return
+  }
+
+  if (!data) {
+    return
+  }
+  const locations = (data as any).locations as Array<ExpoLocation.LocationObject>
+  if (!locations.length) {
+    return
+  }
+  const pos = locations[locations.length - 1]
+
+  // a hack to get a naked dispatch instead of storing it multiple times, just reach in here
+  // @ts-ignore
+  getEngine()._dispatch(
+    Chat2Gen.createUpdateLastCoord({
+      coord: {
+        accuracy: Math.floor(pos.coords.accuracy ?? 0),
+        lat: pos.coords.latitude,
+        lon: pos.coords.longitude,
+      },
+    })
+  )
+})
 
 export const watchPositionForMap = async (
   dispatch: Container.TypedDispatch,
   conversationIDKey: Types.ConversationIDKey
 ) => {
   try {
+    logger.info('location perms check')
     await requestLocationPermission(RPCChatTypes.UIWatchPositionPerm.base)
   } catch (_error) {
     const error = _error as any
@@ -591,26 +622,28 @@ export const watchPositionForMap = async (
     )
     return () => {}
   }
-  const watchID = Geolocation.watchPosition(
-    pos => {
-      dispatch(
-        Chat2Gen.createUpdateLastCoord({
-          coord: {
-            accuracy: Math.floor(pos.coords.accuracy),
-            lat: pos.coords.latitude,
-            lon: pos.coords.longitude,
-          },
-        })
-      )
-    },
-    err => {
-      if (err.code && err.code === 1) {
-        dispatch(setPermissionDeniedCommandStatus(conversationIDKey, `Failed to access location.`))
+
+  try {
+    const sub = await ExpoLocation.watchPositionAsync(
+      {accuracy: ExpoLocation.LocationAccuracy.Highest},
+      location => {
+        const coord = {
+          accuracy: Math.floor(location.coords.accuracy ?? 0),
+          lat: location.coords.latitude,
+          lon: location.coords.longitude,
+        }
+        dispatch(Chat2Gen.createUpdateLastCoord({coord}))
       }
-    },
-    {distanceFilter: 10, enableHighAccuracy: isIOS, maximumAge: isIOS ? 0 : undefined}
-  )
-  return () => Geolocation.clearWatch(watchID)
+    )
+    return () => sub.remove()
+  } catch (_error) {
+    const error = _error as any
+    logger.info('failed to get location: ' + error.message)
+    dispatch(
+      setPermissionDeniedCommandStatus(conversationIDKey, `Failed to access location. ${error.message}`)
+    )
+    return () => {}
+  }
 }
 
 const configureFileAttachmentDownloadForAndroid = async () =>
