@@ -8,8 +8,8 @@ import type {Props} from '.'
 import useFixStatusbar from '../../common-adapters/use-fix-statusbar.native'
 
 const ChatPDF = (props: Props) => {
-  const url = props.route.params?.url ?? ''
-  const title = props.route.params?.title ?? 'PDF'
+  const {message, url} = props.route.params ?? {}
+  const title = message?.title || message?.fileName || 'PDF'
   const [error, setError] = React.useState('')
 
   useFixStatusbar()

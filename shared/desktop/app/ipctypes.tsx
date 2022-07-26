@@ -40,6 +40,7 @@ export type Action =
       }
     }
   | {type: 'showMainWindow'}
+  | {type: 'showContextMenu'; payload: {url: string}}
   | {type: 'setupPreloadKB2'}
   | {type: 'winCheckRPCOwnership'}
   | {type: 'showOpenDialog'; payload: {options: OpenDialogOptions}}

@@ -1,6 +1,6 @@
-import * as Types from '../../../../../constants/types/chat2'
+import type * as Types from '../../../../../constants/types/chat2'
 import * as Constants from '../../../../../constants/chat2'
-import * as CryptoTypes from '../../../../../constants/types/crypto'
+import type * as CryptoTypes from '../../../../../constants/types/crypto'
 import * as Tabs from '../../../../../constants/tabs'
 import * as FsGen from '../../../../../actions/fs-gen'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
@@ -30,11 +30,7 @@ export default Container.connect(
         case 'mobileSaving':
           return
       }
-      dispatch(
-        Chat2Gen.createAttachmentDownload({
-          message,
-        })
-      )
+      dispatch(Chat2Gen.createAttachmentDownload({message}))
     },
     _onSaltpackFileOpen: (path: string, operation: CryptoTypes.Operations) => {
       dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.cryptoTab}))
@@ -51,6 +47,13 @@ export default Container.connect(
     _onShowInFinder: (message: Types.MessageAttachment) => {
       message.downloadPath &&
         dispatch(FsGen.createOpenLocalPathInSystemFileManager({localPath: message.downloadPath}))
+    },
+    _onShowPDF: (message: Types.MessageAttachment) => {
+      dispatch(
+        RouteTreeGen.createNavigateAppend({
+          path: [{props: {message}, selected: 'chatPDF'}],
+        })
+      )
     },
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => {
@@ -79,7 +82,11 @@ export default Container.connect(
           dispatchProps._onShare(message)
         } else {
           if (!message.downloadPath) {
-            dispatchProps._onDownload(message)
+            if (message.fileType === 'application/pdf') {
+              dispatchProps._onShowPDF(message)
+            } else {
+              dispatchProps._onDownload(message)
+            }
           }
         }
       },

@@ -13,6 +13,7 @@ type Props = {
   arrowColor: string
   onDownload?: () => void
   onShowInFinder?: () => void
+  onShowPDF?: () => void
   title: string
   fileName: string
   message: Types.MessageAttachment

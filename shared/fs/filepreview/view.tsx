@@ -93,7 +93,7 @@ const FilePreviewView = ({path, onUrlError}: Props) => {
         </>
       )
     case RPCTypes.GUIViewType.pdf:
-      return Platform.isIOS ? (
+      return !Platform.isAndroid ? (
         <>
           {reloadBanner}
           <PdfView url={url} onUrlError={onUrlError} />

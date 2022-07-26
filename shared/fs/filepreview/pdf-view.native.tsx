@@ -2,11 +2,7 @@ import * as React from 'react'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import * as Platform from '../../constants/platform'
-
-type Props = {
-  url: string
-  onUrlError?: (err: string) => void
-}
+import type {Props} from './pdf-view'
 
 const PdfView = (props: Props) => (
   <Kb.Box2 fullHeight={true} fullWidth={true} direction="vertical">
