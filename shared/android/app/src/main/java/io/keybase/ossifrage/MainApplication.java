@@ -6,6 +6,8 @@ import android.app.Application;
 import android.content.Context;
 
 import androidx.multidex.MultiDex;
+import androidx.work.PeriodicWorkRequest;
+import androidx.work.WorkRequest;
 
 import com.evernote.android.job.JobManager;
 import com.facebook.react.PackageList;
@@ -16,15 +18,13 @@ import com.facebook.react.ReactPackage;
 import com.facebook.react.bridge.NativeModule;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.soloader.SoLoader;
-import com.facebook.react.bridge.JSIModulePackage;
-import com.swmansion.reanimated.ReanimatedJSIModulePackage;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
-import io.keybase.ossifrage.modules.BackgroundJobCreator;
-import io.keybase.ossifrage.modules.BackgroundSyncJob;
+import io.keybase.ossifrage.modules.BackgroundSyncWorker;
 import io.keybase.ossifrage.modules.NativeLogger;
 import io.keybase.ossifrage.modules.StorybookConstants;
 
@@ -44,17 +44,16 @@ public class MainApplication extends Application implements ReactApplication {
         SoLoader.init(this, /* native exopackage */ false);
         initializeFlipper(this, getReactNativeHost().getReactInstanceManager());
         ApplicationLifecycleDispatcher.onApplicationCreate(this);
-        JobManager manager = JobManager.create(this);
-        manager.addJobCreator(new BackgroundJobCreator());
 
-        // Make sure exactly one background job is scheduled.
-        int numBackgroundJobs = manager.getAllJobRequestsForTag(BackgroundSyncJob.TAG).size();
-        if (numBackgroundJobs == 0) {
-            BackgroundSyncJob.scheduleJob();
-        } else if (numBackgroundJobs > 1) {
-            manager.cancelAllForTag(BackgroundSyncJob.TAG);
-            BackgroundSyncJob.scheduleJob();
-        }
+        NativeLogger.info("bbb MainApplication before");
+
+        WorkRequest saveRequest =
+                new PeriodicWorkRequest.Builder(BackgroundSyncWorker.class,
+                       15, TimeUnit.MINUTES, // TODO remove
+                        1, TimeUnit.MINUTES) // TODO remove
+                       // 1, TimeUnit.HOURS,
+                        //15, TimeUnit.MINUTES)
+                        .build();
     }
 
     @Override
@@ -131,11 +130,6 @@ public class MainApplication extends Application implements ReactApplication {
                 @Override
                 protected String getJSMainModuleName() {
                     return "index";
-                }
-
-                @Override
-                protected JSIModulePackage getJSIModulePackage() {
-                    return new ReanimatedJSIModulePackage();
                 }
     });
     @Override

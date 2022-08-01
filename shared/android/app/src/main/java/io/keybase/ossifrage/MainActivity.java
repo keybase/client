@@ -1,5 +1,5 @@
 package io.keybase.ossifrage;
-import expo.modules.ReactActivityDelegateWrapper;
+
 import android.annotation.TargetApi;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -20,7 +20,6 @@ import android.view.KeyEvent;
 import android.view.Window;
 import android.webkit.MimeTypeMap;
 
-import com.facebook.react.ReactActivityDelegate;
 import com.facebook.react.ReactApplication;
 import com.facebook.react.ReactInstanceManager;
 import com.facebook.react.bridge.Arguments;
@@ -30,7 +29,6 @@ import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 import com.facebook.react.modules.core.PermissionListener;
 
-import com.facebook.react.ReactRootView;
 
 import com.github.emilioicai.hwkeyboardevent.HWKeyboardEventModule;
 
