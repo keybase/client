@@ -10,7 +10,6 @@ import androidx.work.PeriodicWorkRequest;
 import androidx.work.WorkManager;
 import androidx.work.WorkRequest;
 
-import com.evernote.android.job.JobManager;
 import com.facebook.react.PackageList;
 import com.facebook.react.ReactApplication;
 import com.facebook.react.ReactInstanceManager;
@@ -46,14 +45,10 @@ public class MainApplication extends Application implements ReactApplication {
         initializeFlipper(this, getReactNativeHost().getReactInstanceManager());
         ApplicationLifecycleDispatcher.onApplicationCreate(this);
 
-        NativeLogger.info("bbb MainApplication before");
-
         WorkRequest backgroundSyncRequest =
                 new PeriodicWorkRequest.Builder(BackgroundSyncWorker.class,
-                       15, TimeUnit.MINUTES, // TODO remove
-                        1, TimeUnit.MINUTES) // TODO remove
-                       // 1, TimeUnit.HOURS,
-                        //15, TimeUnit.MINUTES)
+                        1, TimeUnit.HOURS,
+                        15, TimeUnit.MINUTES)
                         .build();
         WorkManager
                 .getInstance(this)

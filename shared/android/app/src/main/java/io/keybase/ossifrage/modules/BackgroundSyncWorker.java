@@ -20,9 +20,9 @@ public class BackgroundSyncWorker extends Worker {
 
     @Override
     public Result doWork() {
-        Log.d(TAG, "bbb Background sync start.");
+        Log.d(TAG, "Background sync start.");
         Keybase.backgroundSync();
-        Log.d(TAG, "bbb Background sync complete.");
+        Log.d(TAG, "Background sync complete.");
         return Result.success();
     }
 }
