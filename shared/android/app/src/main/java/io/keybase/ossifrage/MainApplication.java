@@ -7,6 +7,7 @@ import android.content.Context;
 
 import androidx.multidex.MultiDex;
 import androidx.work.PeriodicWorkRequest;
+import androidx.work.WorkManager;
 import androidx.work.WorkRequest;
 
 import com.evernote.android.job.JobManager;
@@ -47,13 +48,16 @@ public class MainApplication extends Application implements ReactApplication {
 
         NativeLogger.info("bbb MainApplication before");
 
-        WorkRequest saveRequest =
+        WorkRequest backgroundSyncRequest =
                 new PeriodicWorkRequest.Builder(BackgroundSyncWorker.class,
                        15, TimeUnit.MINUTES, // TODO remove
                         1, TimeUnit.MINUTES) // TODO remove
                        // 1, TimeUnit.HOURS,
                         //15, TimeUnit.MINUTES)
                         .build();
+        WorkManager
+                .getInstance(this)
+                .enqueue(backgroundSyncRequest);
     }
 
     @Override
