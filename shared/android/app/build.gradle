@@ -335,6 +335,7 @@ dependencies {
     implementation "com.facebook.react:react-native:+"  // From node_modules
     implementation 'com.facebook.fbjni:fbjni:0.2.2'
     implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.0.0"
+    implementation 'androidx.work:work-runtime:2.5.0'
     debugImplementation("com.facebook.flipper:flipper:${FLIPPER_VERSION}") {
         exclude group:'com.facebook.fbjni', module: 'fbjni-java-only'
     }
@@ -364,11 +365,9 @@ dependencies {
     implementation "com.google.firebase:firebase-messaging:17.3.0"
     implementation "com.facebook.fresco:animated-gif:2.6.0"
     implementation "com.facebook.fresco:fresco:2.6.0"
-    implementation "com.evernote:android-job:1.4.2"
     implementation 'org.msgpack:msgpack-core:0.9.0'
     implementation project(':keybaselib')
     implementation 'com.android.installreferrer:installreferrer:2.2'
-    implementation "androidx.appcompat:appcompat:1.0.0"
     implementation "me.leolin:ShortcutBadger:1.1.22@aar"
     def rnAAR = fileTree(defaultDir).matching({ it.include "**/**/*.aar" }).singleFile
     extractJNI(files(rnAAR))

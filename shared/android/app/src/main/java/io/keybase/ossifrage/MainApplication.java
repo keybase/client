@@ -6,8 +6,10 @@ import android.app.Application;
 import android.content.Context;
 
 import androidx.multidex.MultiDex;
+import androidx.work.PeriodicWorkRequest;
+import androidx.work.WorkManager;
+import androidx.work.WorkRequest;
 
-import com.evernote.android.job.JobManager;
 import com.facebook.react.PackageList;
 import com.facebook.react.ReactApplication;
 import com.facebook.react.ReactInstanceManager;
@@ -19,14 +21,13 @@ import com.facebook.react.config.ReactFeatureFlags;
 import com.facebook.soloader.SoLoader;
 import io.keybase.ossifrage.newarchitecture.MainApplicationReactNativeHost;
 import com.facebook.react.bridge.JSIModulePackage;
-import com.swmansion.reanimated.ReanimatedJSIModulePackage;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
-import io.keybase.ossifrage.modules.BackgroundJobCreator;
-import io.keybase.ossifrage.modules.BackgroundSyncJob;
+import io.keybase.ossifrage.modules.BackgroundSyncWorker;
 import io.keybase.ossifrage.modules.NativeLogger;
 import io.keybase.ossifrage.modules.StorybookConstants;
 
@@ -48,17 +49,15 @@ public class MainApplication extends Application implements ReactApplication {
         SoLoader.init(this, /* native exopackage */ false);
         initializeFlipper(this, getReactNativeHost().getReactInstanceManager());
         ApplicationLifecycleDispatcher.onApplicationCreate(this);
-        JobManager manager = JobManager.create(this);
-        manager.addJobCreator(new BackgroundJobCreator());
 
-        // Make sure exactly one background job is scheduled.
-        int numBackgroundJobs = manager.getAllJobRequestsForTag(BackgroundSyncJob.TAG).size();
-        if (numBackgroundJobs == 0) {
-            BackgroundSyncJob.scheduleJob();
-        } else if (numBackgroundJobs > 1) {
-            manager.cancelAllForTag(BackgroundSyncJob.TAG);
-            BackgroundSyncJob.scheduleJob();
-        }
+        WorkRequest backgroundSyncRequest =
+                new PeriodicWorkRequest.Builder(BackgroundSyncWorker.class,
+                        1, TimeUnit.HOURS,
+                        15, TimeUnit.MINUTES)
+                        .build();
+        WorkManager
+                .getInstance(this)
+                .enqueue(backgroundSyncRequest);
     }
 
     @Override
@@ -135,11 +134,6 @@ public class MainApplication extends Application implements ReactApplication {
                 @Override
                 protected String getJSMainModuleName() {
                     return "index";
-                }
-
-                @Override
-                protected JSIModulePackage getJSIModulePackage() {
-                    return new ReanimatedJSIModulePackage();
                 }
     });
 
