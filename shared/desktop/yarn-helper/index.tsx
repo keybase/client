@@ -7,7 +7,6 @@ import {execSync} from 'child_process'
 import path from 'path'
 import fs from 'fs'
 import rimraf from 'rimraf'
-import patcher from './patcher'
 
 const [, , command, ...rest] = process.argv
 
@@ -32,7 +31,7 @@ const commands = {
       checkFSEvents()
       clearTSCache()
       getMsgPack()
-      patcher()
+      patch()
     },
     help: '',
   },
@@ -49,6 +48,10 @@ const commands = {
     },
     help: 'Run various tests. pass -u to update storyshots',
   },
+}
+
+const patch = () => {
+  exec('patch-package')
 }
 
 const checkFSEvents = () => {

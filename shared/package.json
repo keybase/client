@@ -202,6 +202,7 @@
         "msgpack": "keybase/nullModule",
         "net": "keybase/nullModule",
         "null-loader": "4.0.1",
+        "patch-package": "6.4.7",
         "prettier": "2.6.2",
         "purepack": "keybase/nullModule",
         "react-refresh": "0.14.0",
