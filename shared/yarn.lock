@@ -9225,7 +9225,7 @@ react-native-gradle-plugin@^0.0.6:
   resolved "https://registry.yarnpkg.com/react-native-gradle-plugin/-/react-native-gradle-plugin-0.0.6.tgz#b61a9234ad2f61430937911003cddd7e15c72b45"
   integrity sha512-eIlgtsmDp1jLC24dRn43hB3kEcZVqx6DUQbR0N1ABXGnMEafm9I3V3dUUeD1vh+Dy5WqijSoEwLNUPLgu5zDMg==
 
-react-native-hw-keyboard-event@^0.0.4:
+react-native-hw-keyboard-event@0.0.4:
   version "0.0.4"
   resolved "https://registry.yarnpkg.com/react-native-hw-keyboard-event/-/react-native-hw-keyboard-event-0.0.4.tgz#e8e7d3be78cf61bac0144066f734cdd48df88d2f"
   integrity sha512-G8qp0nm17PHigLb/axgdF9xg51BKCG2p1AGeq//J/luLp5zNczIcQJh+nm02R1MeEUE3e53wqO4LMe0MV3raZg==

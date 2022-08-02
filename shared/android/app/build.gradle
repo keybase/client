@@ -155,6 +155,11 @@ android {
     ndkVersion rootProject.ext.ndkVersion
     compileSdkVersion rootProject.ext.compileSdkVersion
 
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+
     defaultConfig {
         applicationId "io.keybase.ossifrage"
         minSdkVersion rootProject.ext.minSdkVersion
@@ -234,8 +239,8 @@ android {
         configurations.all {
         //     // force flipper dep to be compat w/ android 30
         //     resolutionStrategy { force 'androidx.sqlite:sqlite-framework:2.1.0' }
-            exclude module: 'fbjni-java-only'
-
+            // exclude module: 'fbjni-java-only'
+            exclude group: 'com.facebook.fbjni', module: 'fbjni-java-only'
         }
         externalNativeBuild {
             cmake {
@@ -307,11 +312,8 @@ android {
         }
     }
 
-    buildFeatures {
-        prefab true
-    }
-
-    // packagingOptions {
+    // buildFeatures {
+    //     prefab true
     // }
 
     configurations {
@@ -332,7 +334,9 @@ android {
 
 dependencies {
     implementation fileTree(dir: "libs", include: ["*.jar"])
-    implementation "com.facebook.react:react-native:+"  // From node_modules
+    implementation("com.facebook.react:react-native:+") { // From node_modules
+        exclude group: 'com.facebook.fbjni', module: 'fbjni-java-only'
+    } 
     implementation 'com.facebook.fbjni:fbjni:0.2.2'
     implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.0.0"
     implementation 'androidx.work:work-runtime:2.5.0'
@@ -361,6 +365,7 @@ dependencies {
         implementation jscFlavor
     }
 
+// TODO likely delete
     implementation 'androidx.multidex:multidex:2.0.1'
     implementation "com.google.firebase:firebase-messaging:17.3.0"
     implementation "com.facebook.fresco:animated-gif:2.6.0"
