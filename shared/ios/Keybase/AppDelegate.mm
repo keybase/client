@@ -15,13 +15,13 @@
 #import <RNCPushNotificationIOS.h>
 #import <RNHWKeyboardEvent.h>
 
-#import <UserNotifications/UserNotifications.h>
-#import <keybase/keybase.h>
-#import <React/RCTLinkingManager.h>
 #import <React/RCTAppSetupUtils.h>
 #import <React/RCTBridge.h>
 #import <React/RCTBundleURLProvider.h>
+#import <React/RCTLinkingManager.h>
 #import <React/RCTRootView.h>
+#import <UserNotifications/UserNotifications.h>
+#import <keybase/keybase.h>
 #if RCT_NEW_ARCH_ENABLED
 #import <React/CoreModulesPlugins.h>
 #import <React/RCTCxxBridgeDelegate.h>
@@ -30,6 +30,8 @@
 #import <React/RCTSurfacePresenterBridgeAdapter.h>
 #import <ReactCommon/RCTTurboModuleManager.h>
 #import <react/config/ReactNativeConfig.h>
+
+static NSString *const kRNConcurrentRoot = @"concurrentRoot";
 
 @interface AppDelegate () <RCTCxxBridgeDelegate,
                            RCTTurboModuleManagerDelegate> {
@@ -116,7 +118,8 @@ static const DDLogLevel ddLogLevel = DDLogLevelDebug;
       [UNUserNotificationCenter currentNotificationCenter];
   center.delegate = self;
 
-  UIView *rootView = RCTAppSetupDefaultRootView(bridge, @"Keybase", nil);
+  NSDictionary *initProps = [self prepareInitialProps];
+  UIView *rootView = RCTAppSetupDefaultRootView(bridge, @"Keybase", initProps);
   if (@available(iOS 13.0, *)) {
     rootView.backgroundColor = [UIColor systemBackgroundColor];
   } else {
@@ -156,8 +159,28 @@ static const DDLogLevel ddLogLevel = DDLogLevelDebug;
   [[UIApplication sharedApplication]
       setMinimumBackgroundFetchInterval:
           UIApplicationBackgroundFetchIntervalMinimum];
-  
+
   return YES;
+}
+
+/// This method controls whether the `concurrentRoot`feature of React18 is
+/// turned on or off.
+///
+/// @see: https://reactjs.org/blog/2022/03/29/react-v18.html
+/// @note: This requires to be rendering on Fabric (i.e. on the New
+/// Architecture).
+/// @return: `true` if the `concurrentRoot` feture is enabled. Otherwise, it
+/// returns `false`.
+- (BOOL)concurrentRootEnabled {
+  // Switch this bool to turn on and off the concurrent root
+  return true;
+}
+- (NSDictionary *)prepareInitialProps {
+  NSMutableDictionary *initProps = [NSMutableDictionary new];
+#ifdef RCT_NEW_ARCH_ENABLED
+  initProps[kRNConcurrentRoot] = @([self concurrentRootEnabled]);
+#endif
+  return initProps;
 }
 
 - (NSURL *)sourceURLForBridge:(RCTBridge *)bridge {
