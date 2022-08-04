@@ -93,6 +93,7 @@ static const DDLogLevel ddLogLevel = DDLogLevelDebug;
 - (BOOL)application:(UIApplication *)application
     didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
   RCTAppSetupPrepareApp(application);
+  RCTEnableTurboModule(YES);
   RCTBridge *bridge = [[RCTBridge alloc] initWithDelegate:self
                                             launchOptions:launchOptions];
 #if RCT_NEW_ARCH_ENABLED

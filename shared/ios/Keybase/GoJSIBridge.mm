@@ -7,6 +7,7 @@
 #import <cstring>
 #import <jsi/jsi.h>
 #import <sys/utsname.h>
+#import <GoJSI/GoJSIBridge.h>
 
 using namespace facebook::jsi;
 using namespace facebook;
@@ -16,15 +17,26 @@ static Engine *_engine = nil;
 static const DDLogLevel ddLogLevel = DDLogLevelDebug;
 static const NSString *tagName = @"NativeLogger";
 
+
+@interface GoJSIBridge() <NativeGoJSIBridgeSpec>
+@end
+
 @implementation GoJSIBridge
 
 @synthesize bridge = _bridge;
 @synthesize methodQueue = _methodQueue;
 
-RCT_EXPORT_MODULE()
+- (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:(const facebook::react::ObjCTurboModule::InitParams &)params
+{
+    return std::make_shared<facebook::react::NativeGoJSIBridgeSpec>(params);
+}
 
-+ (BOOL)requiresMainQueueSetup {
-  return YES;
++ (NSString *)moduleName {
+    return @"GoJSIBridge";
+}
+
+- (NSString *)getGreeting:(NSString *)name {
+    return [NSString stringWithFormat: @"Hello, %@!", name];
 }
 
 + (void)setEngine:(Engine *)engine {

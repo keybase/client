@@ -86,7 +86,7 @@
         "emoji-datasource-apple": "5.0.1",
         "emoji-mart": "3.0.1",
         "expo": "46.0.2",
-        "expo-av": "12.0.2",
+        "expo-av": "12.0.3",
         "expo-barcode-scanner": "11.4.0",
         "expo-contacts": "10.3.0",
         "expo-haptics": "11.3.0",
@@ -119,7 +119,7 @@
         "react-native-gesture-handler": "2.5.0",
         "react-native-hw-keyboard-event": "0.0.4",
         "react-native-iphone-x-helper": "1.3.1",
-        "react-native-safe-area-context": "4.3.1",
+        "react-native-safe-area-context": "4.2.5",
         "react-native-reanimated": "2.9.1",
         "react-native-screens": "3.15.0",
         "react-native-web": "0.18.7",
@@ -226,5 +226,14 @@
         "autolinking": {
             "exclude": []
         }
+    },
+    "codegenConfig": {
+        "libraries": [
+          {
+            "name": "GoJSIBridge",
+            "type": "modules",
+            "jsSrcsDir": "."
+          }
+        ]
     }
 }
