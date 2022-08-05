@@ -5,7 +5,6 @@ require_relative '../node_modules/@react-native-community/cli-platform-ios/nativ
 platform :ios, '12.4'
 install! 'cocoapods', :deterministic_uuids => false
 
-ENV['RCT_NEW_ARCH_ENABLED'] = "1"
 production = ENV["PRODUCTION"] == "1"
 
 # require 'json'
@@ -27,7 +26,7 @@ target 'Keybase' do
     :path => config[:reactNativePath],
     # to enable hermes on iOS, change `false` to `true` and then install pods
     :production => production,
-    :hermes_enabled => flags[:hermes_enabled],
+    :hermes_enabled => false, # flags[:hermes_enabled],
     :fabric_enabled => flags[:fabric_enabled],
     :flipper_configuration => FlipperConfiguration.enabled,
     # An absolute path to your application root.
