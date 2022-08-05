@@ -201,6 +201,7 @@
         "net": "keybase/nullModule",
         "null-loader": "4.0.1",
         "prettier": "2.7.1",
+        "patch-package": "6.4.7",
         "purepack": "keybase/nullModule",
         "react-refresh": "0.14.0",
         "@pmmmwh/react-refresh-webpack-plugin": "0.5.7",

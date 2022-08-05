@@ -1,12 +1,13 @@
-diff --git a/index.d.ts b/index.d.ts
-index 407a4bb..ccd97a8 100755
---- a/index.d.ts
-+++ b/index.d.ts
-@@ -55,7 +55,6 @@
+diff --git a/node_modules/@types/react-native/index.d.ts b/node_modules/@types/react-native/index.d.ts
+index 407a4bb..c57340c 100755
+--- a/node_modules/@types/react-native/index.d.ts
++++ b/node_modules/@types/react-native/index.d.ts
+@@ -55,7 +55,7 @@
  //
  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
  
 -/// <reference path="globals.d.ts" />
++
  /// <reference path="legacy-properties.d.ts" />
  /// <reference path="BatchedBridge.d.ts" />
  /// <reference path="Devtools.d.ts" />
