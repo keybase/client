@@ -22,9 +22,9 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath("com.android.tools.build:gradle:7.0.4")
+        classpath("com.android.tools.build:gradle:7.1.1")
         classpath("com.facebook.react:react-native-gradle-plugin")
-        classpath("de.undercouch:gradle-download-task:4.1.2")
+        classpath("de.undercouch:gradle-download-task:5.0.1")
         classpath("com.github.triplet.gradle:play-publisher:3.7.0") // To publish from gradle
         // classpath("com.github.triplet.gradle:play-publisher:3.7.0-agp4.2") // To publish from gradle
         // NOTE: Do not place your application dependencies here; they belong
