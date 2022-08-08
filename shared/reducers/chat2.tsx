@@ -698,11 +698,12 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
   },
   [Chat2Gen.messageSetEditing]: (draftState, action) => {
     const {conversationIDKey, editLastUser, ordinal} = action.payload
-    const {editingMap, messageOrdinals} = draftState
+    const {editingMap, messageOrdinals, unsentTextMap} = draftState
 
     // clearing
     if (!editLastUser && !ordinal) {
       editingMap.delete(conversationIDKey)
+      unsentTextMap.delete(conversationIDKey)
       return
     }
 
@@ -713,6 +714,9 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       const message = messageMap?.get(ordinal)
       if (message?.type === 'text' || message?.type === 'attachment') {
         editingMap.set(conversationIDKey, ordinal)
+        if (message.type === 'text') {
+          unsentTextMap.set(conversationIDKey, message.text)
+        }
       }
       return
     }
@@ -730,6 +734,10 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     })
     if (found) {
       editingMap.set(conversationIDKey, found)
+      const message = messageMap?.get(found)
+      if (message?.type === 'text') {
+        unsentTextMap.set(conversationIDKey, message.text)
+      }
     }
   },
   [Chat2Gen.addToMessageMap]: (draftState, action) => {

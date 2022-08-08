@@ -9,8 +9,6 @@ import CommandStatus from '../../command-status/container'
 import Giphy from '../../giphy/container'
 import PlatformInput from './platform-input'
 import ReplyPreview from '../../reply-preview'
-// import debounce from 'lodash/debounce'
-// import throttle from 'lodash/throttle'
 import type * as Types from '../../../../constants/types/chat2'
 import type {InputProps} from './types'
 import {indefiniteArticle} from '../../../../util/string'
@@ -19,29 +17,7 @@ import {isLargeScreen} from '../../../../constants/platform'
 
 const unsentTextMap = new Map<Types.ConversationIDKey, string>()
 
-// Standalone throttled function to ensure we never accidentally recreate it and break the throttling
-// const throttled = throttle((f, param) => f(param), 2000)
-// const debounced = debounce((f, param) => f(param), 500)
-
 const Input = (props: InputProps) => {
-  // _lastQuote: number
-  // _input: Kb.PlainInput | null = null
-  // _lastText?: string
-  // _maxCmdLength = 0
-
-  // constructor(props: InputProps) {
-  //   super(props)
-  //   this._lastQuote = 0
-
-  //   if (this.props.suggestCommands) {
-  //     // + 1 for '/'
-  //     this._maxCmdLength =
-  //       this.props.suggestCommands
-  //         .concat(this.props.suggestBotCommands || [])
-  //         .reduce((max, cmd) => (cmd.name.length > max ? cmd.name.length : max), 0) + 1
-  //   }
-  // }
-
   const {
     suggestTeams,
     suggestUsers,
@@ -53,7 +29,7 @@ const Input = (props: InputProps) => {
     infoPanelShowing,
     ...platformInputProps
   } = props
-  const {onSubmit, sendTyping, conversationIDKey, focusInputCounter} = props
+  const {onSubmit, sendTyping, conversationIDKey, focusInputCounter, isEditing, isEditExploded} = props
 
   const inputRef = React.useRef<Kb.PlainInput | null>(null)
 
@@ -184,55 +160,15 @@ const Input = (props: InputProps) => {
     inputRef.current?.focus()
   }, [focusInputCounter, isActiveForFocus, unsentText])
 
-  // componentDidUpdate(prevProps: InputProps) {
-  //   if (this.props.isEditing && this.props.isEditExploded) {
-  //     this.props.onCancelEditing()
-  //   }
+  const onCancelEditing = React.useCallback(() => {
+    dispatch(Chat2Gen.createMessageSetEditing({conversationIDKey, ordinal: null}))
+  }, [dispatch, conversationIDKey])
 
-  //   // Inject the appropriate text when entering or existing edit
-  //   // mode, but only when on the same conversation; otherwise we'd
-  //   // incorrectly inject when switching to/from a conversation with
-  //   // an unsent edit.
-  //   if (prevProps.conversationIDKey === this.props.conversationIDKey) {
-  //     if (!prevProps.isEditing && this.props.isEditing) {
-  //       this._setText(this.props.editText)
-  //       this._inputFocus()
-  //       return
-  //     }
-
-  //     if (prevProps.isEditing && !this.props.isEditing) {
-  //       this._setText('')
-  //       return
-  //     }
-
-  //   if (
-  //     prevProps.suggestBotCommands != this.props.suggestBotCommands ||
-  //     prevProps.suggestCommands != this.props.suggestCommands
-  //   ) {
-  //     if (this.props.suggestCommands) {
-  //       // different commands so we need to recalculate max command length
-  //       // + 1 for '/'
-  //       this._maxCmdLength =
-  //         this.props.suggestCommands
-  //           .concat(this.props.suggestBotCommands || [])
-  //           .reduce((max, cmd) => (cmd.name.length > max ? cmd.name.length : max), 0) + 1
-  //     }
-  //   }
-
-  // Otherwise, inject unsent text. This must come after quote
-  //   // handling, so as to handle the 'Reply Privately' case.
-  //   if (prevProps.conversationIDKey !== this.props.conversationIDKey) {
-  //     const text = this.props.getUnsentText()
-  //     this._setText(text, true)
-  //     // TODO: Ideally, we'd also stash and restore the selection.
-  //     // Bring up the keyboard as a result of switching convo, but only on phone, not tablet.
-  //     if (!this.props.isSearching && !Constants.isSplit) {
-  //       this._inputFocus()
-  //     }
-  //   }
-  // }
-
-  // render()
+  React.useEffect(() => {
+    if (isEditing && isEditExploded) {
+      onCancelEditing()
+    }
+  }, [isEditing, isEditExploded])
 
   let hintText = ''
   if (Styles.isMobile && props.isExploding) {
