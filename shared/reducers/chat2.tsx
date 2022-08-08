@@ -732,16 +732,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       editingMap.set(conversationIDKey, found)
     }
   },
-  [Chat2Gen.messageSetQuoting]: (draftState, action) => {
-    const {ordinal, sourceConversationIDKey, targetConversationIDKey} = action.payload
-    const counter = (draftState.quote ? draftState.quote.counter : 0) + 1
-    draftState.quote = {
-      counter,
-      ordinal,
-      sourceConversationIDKey,
-      targetConversationIDKey,
-    }
-  },
   [Chat2Gen.addToMessageMap]: (draftState, action) => {
     const {message} = action.payload
     const convMap =
@@ -1227,18 +1217,11 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     const {unsentTextMap} = draftState
     unsentTextMap.set(conversationIDKey, text)
   },
-  [Chat2Gen.setPrependText]: (draftState, action) => {
-    const {conversationIDKey, text} = action.payload
-    const {prependTextMap} = draftState
-    prependTextMap.set(conversationIDKey, text)
-  },
   [Chat2Gen.toggleReplyToMessage]: (draftState, action) => {
     const {conversationIDKey, ordinal} = action.payload
-    const {replyToMap, prependTextMap} = draftState
+    const {replyToMap} = draftState
     if (ordinal) {
       replyToMap.set(conversationIDKey, ordinal)
-      // we always put something in prepend to trigger the focus regain on the input bar
-      prependTextMap.set(conversationIDKey, new HiddenString(''))
     } else {
       replyToMap.delete(conversationIDKey)
     }

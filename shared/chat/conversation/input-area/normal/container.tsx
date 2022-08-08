@@ -62,7 +62,6 @@ export default Container.connect(
     const explodingModeSeconds = Constants.getConversationExplodingMode(state, conversationIDKey)
     const isExploding = explodingModeSeconds !== 0
     const unsentText = state.chat2.unsentTextMap.get(conversationIDKey)
-    const prependText = state.chat2.prependTextMap.get(conversationIDKey)
     const showCommandMarkdown = (state.chat2.commandMarkdownMap.get(conversationIDKey) || '') !== ''
     const showCommandStatus = !!state.chat2.commandStatusMap.get(conversationIDKey)
     const showGiphySearch = state.chat2.giphyWindowMap.get(conversationIDKey) || false
@@ -89,7 +88,6 @@ export default Container.connect(
       isExploding,
       isSearching,
       minWriterRole: meta.minWriterRole,
-      prependText,
       showCommandMarkdown,
       showCommandStatus,
       showGiphySearch,
@@ -164,12 +162,9 @@ export default Container.connect(
           ownProps.jumpToRecent()
         }
       },
-      prependText: stateProps.prependText ? stateProps.prependText.stringValue() : null,
-
       sendTyping: (typing: boolean) => {
         dispatchProps._sendTyping(stateProps.conversationIDKey, typing)
       },
-
       showCommandMarkdown: stateProps.showCommandMarkdown,
       showCommandStatus: stateProps.showCommandStatus,
       showGiphySearch: stateProps.showGiphySearch,

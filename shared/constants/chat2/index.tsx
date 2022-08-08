@@ -96,8 +96,6 @@ export const makeState = (): Types.State => ({
   paymentConfirmInfo: undefined,
   paymentStatusMap: new Map(),
   pendingOutboxToOrdinal: new Map(), // messages waiting to be sent,
-  prependTextMap: new Map(),
-  quote: undefined,
   replyToMap: new Map(),
   shouldDeleteZzzJourneycard: new Map(),
   smallTeamBadgeCount: 0,
@@ -286,21 +284,6 @@ export const getEditInfo = (state: TypedState, id: Types.ConversationIDKey) => {
     default:
       return null
   }
-}
-
-export const getQuoteInfo = (state: TypedState, id: Types.ConversationIDKey) => {
-  const quote = state.chat2.quote
-  // Return null if we're not on the target conversation.
-  if (!quote || quote.targetConversationIDKey !== id) {
-    return null
-  }
-
-  const message = getMessage(state, quote.sourceConversationIDKey, quote.ordinal)
-  if (!message || message.type !== 'text') {
-    return null
-  }
-
-  return {counter: quote.counter, text: formatTextForQuoting(message.text.stringValue())}
 }
 
 export const getTyping = (state: TypedState, id: Types.ConversationIDKey) =>

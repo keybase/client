@@ -74,10 +74,6 @@ const Input = (props: InputProps) => {
     dispatch(Chat2Gen.createSetUnsentText({conversationIDKey}))
   }, [conversationIDKey, dispatch])
 
-  const clearPrependText = React.useCallback(() => {
-    dispatch(Chat2Gen.createSetPrependText({conversationIDKey, text: null}))
-  }, [dispatch, conversationIDKey])
-
   const onSetExplodingModeLock = React.useCallback(
     (conversationIDKey: Types.ConversationIDKey, unset: boolean) => {
       dispatch(Chat2Gen.createSetExplodingModeLock({conversationIDKey, unset}))
@@ -95,7 +91,6 @@ const Input = (props: InputProps) => {
     // The store text only lasts until we change it, so blow it away now
     if (unsentText) {
       clearUnsentText()
-      clearPrependText()
     }
     unsentTextMap.set(conversationIDKey, text)
   }, [])
@@ -173,18 +168,11 @@ const Input = (props: InputProps) => {
     const text =
       state.chat2.unsentTextMap.get(conversationIDKey)?.stringValue() ?? unsentTextMap.get(conversationIDKey)
 
-    console.log(
-      'aaa unsettext changed',
-      text,
-      state.chat2.unsentTextMap.get(conversationIDKey)?.stringValue(),
-      unsentTextMap.get(conversationIDKey)
-    )
     if (text !== undefined) {
-      const prependText = state.chat2.prependTextMap.get(conversationIDKey)?.stringValue() ?? ''
-      return prependText + text
+      return text
     }
 
-    // fallback on meta
+    // fallback on meta draft
     return Constants.getDraft(state, conversationIDKey) ?? ''
   })
 
@@ -194,7 +182,7 @@ const Input = (props: InputProps) => {
 
   React.useEffect(() => {
     inputRef.current?.focus()
-  }, [focusInputCounter, isActiveForFocus])
+  }, [focusInputCounter, isActiveForFocus, unsentText])
 
   // componentDidUpdate(prevProps: InputProps) {
   //   if (this.props.isEditing && this.props.isEditExploded) {
@@ -216,25 +204,6 @@ const Input = (props: InputProps) => {
   //       this._setText('')
   //       return
   //     }
-
-  //     if (
-  //       this.props.unsentText !== prevProps.unsentText ||
-  //       this.props.prependText !== prevProps.prependText
-  //     ) {
-  //       this._setText(this.props.getUnsentText(), true)
-  //       this._inputFocus()
-  //       return
-  //     }
-  //   }
-
-  //   // Inject the appropriate text when quoting. Keep track of the
-  //   // last quote we did so as to inject exactly once.
-  //   if (this.props.quoteCounter > this._lastQuote) {
-  //     this._lastQuote = this.props.quoteCounter
-  //     this._setText(this.props.quoteText)
-  //     this._inputFocus()
-  //     return
-  //   }
 
   //   if (
   //     prevProps.suggestBotCommands != this.props.suggestBotCommands ||
