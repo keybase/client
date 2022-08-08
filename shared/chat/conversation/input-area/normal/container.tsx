@@ -20,17 +20,6 @@ type OwnProps = {
   onRequestScrollUp: () => void
 }
 
-// We used to store this in the route state but that's so complicated. We just want a map of id => text if we haven't sent
-const unsentText: {[K in Types.ConversationIDKey]: string} = {}
-
-const getUnsentText = (conversationIDKey: Types.ConversationIDKey): string => {
-  return unsentText[conversationIDKey] || ''
-}
-
-const setUnsentText = (conversationIDKey: Types.ConversationIDKey, text: string) => {
-  unsentText[conversationIDKey] = text
-}
-
 const getInputHintText = (
   state: Container.TypedState,
   conversationIDKey: Types.ConversationIDKey
@@ -66,7 +55,6 @@ const getInputHintText = (
 export default Container.connect(
   (state, {conversationIDKey}: OwnProps) => {
     const editInfo = Constants.getEditInfo(state, conversationIDKey)
-    const quoteInfo = Constants.getQuoteInfo(state, conversationIDKey)
     const meta = Constants.getMeta(state, conversationIDKey)
     const isSearching = Constants.getThreadSearchInfo(state, conversationIDKey).visible
     const inputHintText = getInputHintText(state, conversationIDKey)
@@ -88,7 +76,6 @@ export default Container.connect(
       _containsLatestMessage,
       _draft: Constants.getDraft(state, conversationIDKey),
       _editOrdinal: editInfo ? editInfo.ordinal : null,
-      _isExplodingModeLocked: Constants.isExplodingModeLocked(state, conversationIDKey),
       _replyTo,
       _you,
       cannotWrite: meta.cannotWrite,
@@ -103,8 +90,6 @@ export default Container.connect(
       isSearching,
       minWriterRole: meta.minWriterRole,
       prependText,
-      quoteCounter: quoteInfo ? quoteInfo.counter : 0,
-      quoteText: quoteInfo ? quoteInfo.text : '',
       showCommandMarkdown,
       showCommandStatus,
       showGiphySearch,
@@ -124,12 +109,6 @@ export default Container.connect(
     }
   },
   dispatch => ({
-    _clearPrependText: (conversationIDKey: Types.ConversationIDKey) => {
-      dispatch(Chat2Gen.createSetPrependText({conversationIDKey, text: null}))
-    },
-    _clearUnsentText: (conversationIDKey: Types.ConversationIDKey) => {
-      dispatch(Chat2Gen.createSetUnsentText({conversationIDKey}))
-    },
     _onEditMessage: (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ordinal, body: string) =>
       dispatch(
         Chat2Gen.createMessageEdit({
@@ -152,12 +131,7 @@ export default Container.connect(
       ),
     _sendTyping: (conversationIDKey: Types.ConversationIDKey, typing: boolean) =>
       conversationIDKey && dispatch(Chat2Gen.createSendTyping({conversationIDKey, typing})),
-    _unsentTextChanged: (conversationIDKey: Types.ConversationIDKey, text: string) =>
-      conversationIDKey &&
-      dispatch(Chat2Gen.createUnsentTextChanged({conversationIDKey, text: new HiddenString(text)})),
     clearInboxFilter: () => dispatch(Chat2Gen.createToggleInboxSearch({enabled: false})),
-    onSetExplodingModeLock: (conversationIDKey: Types.ConversationIDKey, unset: boolean) =>
-      dispatch(Chat2Gen.createSetExplodingModeLock({conversationIDKey, unset})),
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => {
     return {
@@ -167,22 +141,6 @@ export default Container.connect(
       editText: stateProps.editText,
       explodingModeSeconds: stateProps.explodingModeSeconds,
       focusInputCounter: ownProps.focusInputCounter,
-      getUnsentText: () => {
-        // if we have unsent text in the store, that wins, otherwise take what we have stored locally
-        const unsentText = stateProps.unsentText
-          ? stateProps.unsentText.stringValue()
-          : getUnsentText(stateProps.conversationIDKey)
-        // The store can also have text to prepend, so do that here
-        const ret = stateProps.prependText ? stateProps.prependText.stringValue() + unsentText : unsentText
-        // If we have nothing still, check to see if the service told us about a draft and fill that in
-        if (!ret) {
-          const draft = stateProps._draft
-          if (draft) {
-            return draft
-          }
-        }
-        return ret
-      },
       infoPanelShowing: stateProps.infoPanelShowing,
       inputHintText: stateProps.inputHintText,
       isActiveForFocus: stateProps.isActiveForFocus,
@@ -208,35 +166,10 @@ export default Container.connect(
       },
       prependText: stateProps.prependText ? stateProps.prependText.stringValue() : null,
 
-      quoteCounter: stateProps.quoteCounter,
-      quoteText: stateProps.quoteText,
-
       sendTyping: (typing: boolean) => {
         dispatchProps._sendTyping(stateProps.conversationIDKey, typing)
       },
 
-      setUnsentText: (text: string) => {
-        const set = text.length > 0
-        if (stateProps._isExplodingModeLocked !== set) {
-          // if it's locked and we want to unset, unset it
-          // alternatively, if it's not locked and we want to set it, set it
-          dispatchProps.onSetExplodingModeLock(stateProps.conversationIDKey, !set)
-        }
-        // The store text only lasts until we change it, so blow it away now
-        if (stateProps.unsentText) {
-          dispatchProps._clearUnsentText(stateProps.conversationIDKey)
-        }
-        if (stateProps.prependText) {
-          if (text !== stateProps.prependText.stringValue()) {
-            dispatchProps._clearPrependText(stateProps.conversationIDKey)
-          } else {
-            // don't set the uncontrolled text tracker to the prepend text by itself, since we want to be
-            // able to remove it if the person doesn't change it at all.
-            return
-          }
-        }
-        setUnsentText(stateProps.conversationIDKey, text)
-      },
       showCommandMarkdown: stateProps.showCommandMarkdown,
       showCommandStatus: stateProps.showCommandStatus,
       showGiphySearch: stateProps.showGiphySearch,
@@ -247,10 +180,6 @@ export default Container.connect(
       suggestBotCommandsUpdateStatus: stateProps.suggestBotCommandsUpdateStatus,
       suggestChannelsLoading: stateProps.suggestChannelsLoading,
       suggestCommands: stateProps.suggestCommands,
-      unsentText: stateProps.unsentText ? stateProps.unsentText.stringValue() : null,
-      unsentTextChanged: (text: string) => {
-        dispatchProps._unsentTextChanged(stateProps.conversationIDKey, text)
-      },
     }
   }
-)(Input) as any
+)(Input)

@@ -257,7 +257,7 @@ const PlatformInput = (p: Props) => {
     onBlur: p.onBlur,
     onChangeText: p.onChangeText,
     onFocus: p.onFocus,
-    onKeyDown: p.onKeyDown,
+    onKeyDown: () => {},
     onSelectionChange: p.onSelectionChange,
     suggestBotCommandsUpdateStatus: p.suggestBotCommandsUpdateStatus,
     suggestionListStyle: Styles.collapseStyles([styles.suggestionList, !!height && {marginBottom: height}]),

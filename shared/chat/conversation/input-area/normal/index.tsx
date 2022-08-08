@@ -1,23 +1,27 @@
-import * as React from 'react'
-import * as Kb from '../../../../common-adapters'
-import * as Styles from '../../../../styles'
 import * as Constants from '../../../../constants/chat2'
-import {isLargeScreen} from '../../../../constants/platform'
-import PlatformInput from './platform-input'
-import {indefiniteArticle} from '../../../../util/string'
+import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as Container from '../../../../util/container'
-import type {InputProps} from './types'
-import debounce from 'lodash/debounce'
-import throttle from 'lodash/throttle'
+import * as Kb from '../../../../common-adapters'
+import * as React from 'react'
+import * as Styles from '../../../../styles'
 import CommandMarkdown from '../../command-markdown/container'
 import CommandStatus from '../../command-status/container'
 import Giphy from '../../giphy/container'
+import PlatformInput from './platform-input'
 import ReplyPreview from '../../reply-preview'
+// import debounce from 'lodash/debounce'
+// import throttle from 'lodash/throttle'
+import type * as Types from '../../../../constants/types/chat2'
+import type {InputProps} from './types'
+import {indefiniteArticle} from '../../../../util/string'
 import {infoPanelWidthTablet} from '../../info-panel/common'
+import {isLargeScreen} from '../../../../constants/platform'
+
+const unsentTextMap = new Map<Types.ConversationIDKey, string>()
 
 // Standalone throttled function to ensure we never accidentally recreate it and break the throttling
-const throttled = throttle((f, param) => f(param), 2000)
-const debounced = debounce((f, param) => f(param), 500)
+// const throttled = throttle((f, param) => f(param), 2000)
+// const debounced = debounce((f, param) => f(param), 500)
 
 const Input = (props: InputProps) => {
   // _lastQuote: number
@@ -49,17 +53,54 @@ const Input = (props: InputProps) => {
     infoPanelShowing,
     ...platformInputProps
   } = props
-  const {onSubmit, setUnsentText, sendTyping, unsentTextChanged, conversationIDKey} = props
+  const {onSubmit, sendTyping, conversationIDKey, focusInputCounter} = props
 
   const inputRef = React.useRef<Kb.PlainInput | null>(null)
-  // _inputSetRef = (input: null | Kb.PlainInput) => {
-  //   this._input = input
-  // }
 
-  // const inputFocus = () => React.useCallback(() => {
-  // TODO needed?
-  // isActiveForFocus && inputRef.current?.focus()
-  // }
+  const isExplodingModeLocked = Container.useSelector(state =>
+    Constants.isExplodingModeLocked(state, conversationIDKey)
+  )
+
+  const dispatch = Container.useDispatch()
+
+  const unsentTextChanged = React.useCallback(
+    (text: string) => {
+      dispatch(Chat2Gen.createUnsentTextChanged({conversationIDKey, text: new Container.HiddenString(text)}))
+    },
+    [dispatch, conversationIDKey]
+  )
+
+  const clearUnsentText = React.useCallback(() => {
+    dispatch(Chat2Gen.createSetUnsentText({conversationIDKey}))
+  }, [conversationIDKey, dispatch])
+
+  const clearPrependText = React.useCallback(() => {
+    dispatch(Chat2Gen.createSetPrependText({conversationIDKey, text: null}))
+  }, [dispatch, conversationIDKey])
+
+  const onSetExplodingModeLock = React.useCallback(
+    (conversationIDKey: Types.ConversationIDKey, unset: boolean) => {
+      dispatch(Chat2Gen.createSetExplodingModeLock({conversationIDKey, unset}))
+    },
+    [conversationIDKey]
+  )
+
+  const setUnsentText = React.useCallback((text: string) => {
+    const set = text.length > 0
+    if (isExplodingModeLocked !== set) {
+      // if it's locked and we want to unset, unset it
+      // alternatively, if it's not locked and we want to set it, set it
+      onSetExplodingModeLock(conversationIDKey, !set)
+    }
+    // The store text only lasts until we change it, so blow it away now
+    if (unsentText) {
+      clearUnsentText()
+      clearPrependText()
+    }
+    unsentTextMap.set(conversationIDKey, text)
+  }, [])
+
+  const sendTypingThrottled = Container.useThrottledCallback(sendTyping, 2000)
 
   const setText = React.useCallback(
     (text: string, skipUnsentSaving?: boolean) => {
@@ -74,7 +115,7 @@ const Input = (props: InputProps) => {
       if (!skipUnsentSaving) {
         setUnsentText(text)
       }
-      throttled(sendTyping, !!text)
+      sendTypingThrottled(!!text)
     },
     [sendTyping, inputRef]
   )
@@ -90,6 +131,8 @@ const Input = (props: InputProps) => {
   const lastTextRef = React.useRef('')
   const maxCmdLengthRef = React.useRef(0)
 
+  const unsentTextChangedDebounced = Container.useDebouncedCallback(unsentTextChanged, 500)
+
   const onChangeText = React.useCallback(
     (text: string) => {
       const skipThrottle = lastTextRef.current.length > 0 && text.length === 0
@@ -98,10 +141,10 @@ const Input = (props: InputProps) => {
 
       // If the input bar has been cleared, send typing notification right away
       if (skipThrottle) {
-        throttled.cancel()
+        sendTypingThrottled.cancel()
         sendTyping(false)
       } else {
-        throttled(sendTyping, !!text)
+        sendTypingThrottled(!!text)
       }
 
       // check if input matches a command with help text,
@@ -116,38 +159,44 @@ const Input = (props: InputProps) => {
       }
 
       if (skipDebounce) {
-        debounced.cancel()
+        unsentTextChangedDebounced.cancel()
         unsentTextChanged(text)
       } else {
-        debounced(unsentTextChanged, text)
+        unsentTextChangedDebounced(text)
       }
     },
     [setUnsentText, suggestCommands, suggestBotCommands, unsentTextChanged]
   )
 
-  const unsentText = Container.useSelector(state => state.chat2.unsentTextMap.get(conversationIDKey))
+  const unsentText = Container.useSelector(state => {
+    // try the store first
+    const text =
+      state.chat2.unsentTextMap.get(conversationIDKey)?.stringValue() ?? unsentTextMap.get(conversationIDKey)
+
+    console.log(
+      'aaa unsettext changed',
+      text,
+      state.chat2.unsentTextMap.get(conversationIDKey)?.stringValue(),
+      unsentTextMap.get(conversationIDKey)
+    )
+    if (text !== undefined) {
+      const prependText = state.chat2.prependTextMap.get(conversationIDKey)?.stringValue() ?? ''
+      return prependText + text
+    }
+
+    // fallback on meta
+    return Constants.getDraft(state, conversationIDKey) ?? ''
+  })
 
   React.useEffect(() => {
-    unsentText && setText(unsentText.stringValue())
+    setText(unsentText)
   }, [unsentText])
 
-  // componentDidMount() {
-  //   // Set lastQuote so we only inject quoted text after we mount.
-  //   this._lastQuote = this.props.quoteCounter
-
-  //   const text = this.props.getUnsentText()
-  //   this._setText(text, true)
-  // }
+  React.useEffect(() => {
+    inputRef.current?.focus()
+  }, [focusInputCounter, isActiveForFocus])
 
   // componentDidUpdate(prevProps: InputProps) {
-  //   if (this.props.focusInputCounter !== prevProps.focusInputCounter) {
-  //     this._inputFocus()
-  //   }
-
-  //   if (this.props.isActiveForFocus !== prevProps.isActiveForFocus) {
-  //     this._inputFocus()
-  //   }
-
   //   if (this.props.isEditing && this.props.isEditExploded) {
   //     this.props.onCancelEditing()
   //   }
