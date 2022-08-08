@@ -18,7 +18,7 @@ import {infoPanelWidthTablet} from '../../info-panel/common'
 const throttled = throttle((f, param) => f(param), 2000)
 const debounced = debounce((f, param) => f(param), 500)
 
-class Input extends React.Component<InputProps, InputState> {
+class Input extends React.Component<InputProps> {
   _lastQuote: number
   _input: Kb.PlainInput | null = null
   _lastText?: string
