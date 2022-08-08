@@ -11,7 +11,7 @@ import throttle from 'lodash/throttle'
 import CommandMarkdown from '../../command-markdown/container'
 import CommandStatus from '../../command-status/container'
 import Giphy from '../../giphy/container'
-import ReplyPreview from '../../reply-preview/container'
+import ReplyPreview from '../../reply-preview'
 import {infoPanelWidthTablet} from '../../info-panel/common'
 
 // Standalone throttled function to ensure we never accidentally recreate it and break the throttling
