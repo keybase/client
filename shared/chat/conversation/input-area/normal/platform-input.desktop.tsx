@@ -333,10 +333,20 @@ const SideButtons = (p: SideButtonsProps) => {
 
 const PlatformInput = (p: Props) => {
   const {cannotWrite, conversationIDKey, explodingModeSeconds} = p
-  const {showWalletsIcon, hintText, inputSetRef, isEditing} = p
+  const {showWalletsIcon, hintText, inputSetRef, isEditing, onSubmit} = p
   const {onRequestScrollDown, onRequestScrollUp, showReplyPreview} = p
   const htmlInputRef = React.useRef<HTMLInputElement>(null)
   const inputRef = React.useRef<Kb.PlainInput | null>(null)
+
+  const checkEnterOnKeyDown = React.useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === 'Enter' && !(e.altKey || e.shiftKey || e.metaKey)) {
+        e.preventDefault()
+        inputRef.current && onSubmit(inputRef.current.value)
+      }
+    },
+    [onSubmit]
+  )
 
   const {
     popup,
@@ -349,7 +359,7 @@ const PlatformInput = (p: Props) => {
     onBlur: p.onBlur,
     onChangeText: p.onChangeText,
     onFocus: p.onFocus,
-    onKeyDown: p.onKeyDown,
+    onKeyDown: checkEnterOnKeyDown,
     onSelectionChange: p.onSelectionChange,
     suggestBotCommandsUpdateStatus: p.suggestBotCommandsUpdateStatus,
     suggestionListStyle: undefined,
@@ -425,7 +435,7 @@ const PlatformInput = (p: Props) => {
                 autoFocus={false}
                 ref={(ref: null | Kb.PlainInput) => {
                   // from normal/index
-                  inputSetRef(ref)
+                  inputSetRef.current = ref
                   // from suggestors/index
                   inputRef.current = ref
                 }}

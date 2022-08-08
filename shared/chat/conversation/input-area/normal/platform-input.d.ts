@@ -10,10 +10,9 @@ type Props = {
   onFocus?: () => void
   onSelectionChange?: (p: {start: number | null; end: number | null}) => void
   suggestionOverlayStyle: unknown
-  onKeyDown: (evt: React.KeyboardEvent) => void
   cannotWrite: boolean
   showWalletsIcon: boolean
-  inputSetRef: (r: PlainInput | null) => void
+  inputSetRef: React.MutableRefObject<PlainInput | null>
   conversationIDKey: Types.ConversationIDKey
   explodingModeSeconds: number
   onChangeText: (newText: string) => void

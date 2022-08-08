@@ -2988,14 +2988,21 @@ const messageReplyPrivately = async (
     logger.warn('messageReplyPrivately: unable to make meta')
     return
   }
+
+  if (message.type !== 'text') {
+    return
+  }
+  const text = new Container.HiddenString(Constants.formatTextForQuoting(message.text.stringValue()))
+
   return [
     Chat2Gen.createMetasReceived({metas: [meta]}),
     Chat2Gen.createNavigateToThread({conversationIDKey, reason: 'createdMessagePrivately'}),
-    Chat2Gen.createMessageSetQuoting({
-      ordinal: action.payload.ordinal,
-      sourceConversationIDKey: action.payload.sourceConversationIDKey,
-      targetConversationIDKey: conversationIDKey,
-    }),
+    Chat2Gen.createSetUnsentText({conversationIDKey, text}),
+    // Chat2Gen.createMessageSetQuoting({
+    //   ordinal: action.payload.ordinal,
+    //   sourceConversationIDKey: action.payload.sourceConversationIDKey,
+    //   targetConversationIDKey: conversationIDKey,
+    // }),
   ]
 }
 

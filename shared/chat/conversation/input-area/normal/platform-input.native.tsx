@@ -412,7 +412,7 @@ const PlatformInput = (p: Props) => {
             }}
             onSelectionChange={onSelectionChange}
             ref={(ref: null | Kb.PlainInput) => {
-              inputSetRef(ref)
+              inputSetRef.current = ref
               inputRef.current = ref
             }}
             style={styles.input}

@@ -20,6 +20,10 @@ class PlainInput extends React.PureComponent<InternalProps> {
     textType: 'Body',
   }
 
+  get value() {
+    return this._input?.value ?? ''
+  }
+
   _setInputRef = (ref: HTMLTextAreaElement | HTMLInputElement | null) => {
     this._input = ref
   }

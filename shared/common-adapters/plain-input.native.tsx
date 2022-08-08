@@ -37,6 +37,10 @@ class PlainInput extends Component<InternalProps> {
     this._timeoutIDs.push(setTimeout(fn, timeoutMS))
   }
 
+  get value() {
+    return this._lastNativeText ?? ''
+  }
+
   // This is controlled if a value prop is passed
   _controlled = () => typeof this.props.value === 'string'
 

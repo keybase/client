@@ -152,6 +152,7 @@ declare class PlainInput extends React.Component<Props> {
   focus: () => void
   isFocused: () => boolean
   getSelection: () => Selection | null
+  get value(): string
 
   /**
    *  This can only be used when the input is controlled. Use `transformText` if

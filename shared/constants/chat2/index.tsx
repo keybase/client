@@ -14,12 +14,17 @@ import {
   isValidConversationIDKey,
 } from '../types/chat2/common'
 import HiddenString from '../../util/hidden-string'
-import {formatTextForQuoting} from '../../util/chat'
 import {getEffectiveRetentionPolicy, getMeta} from './meta'
 import {memoize} from '../../util/memoize'
 import type * as TeamTypes from '../types/teams'
 import type * as UserTypes from '../types/users'
 import type {TypedState} from '../reducer'
+
+export const formatTextForQuoting = (text: string) =>
+  text
+    .split('\n')
+    .map(line => `> ${line}\n`)
+    .join('')
 
 export const defaultTopReacjis = [
   {name: ':+1:'},
