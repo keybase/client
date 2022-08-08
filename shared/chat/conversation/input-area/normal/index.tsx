@@ -18,10 +18,6 @@ import {infoPanelWidthTablet} from '../../info-panel/common'
 const throttled = throttle((f, param) => f(param), 2000)
 const debounced = debounce((f, param) => f(param), 500)
 
-type InputState = {
-  showBotCommandUpdateStatus: boolean
-}
-
 class Input extends React.Component<InputProps, InputState> {
   _lastQuote: number
   _input: Kb.PlainInput | null = null
@@ -30,7 +26,6 @@ class Input extends React.Component<InputProps, InputState> {
 
   constructor(props: InputProps) {
     super(props)
-    this.state = {showBotCommandUpdateStatus: false}
     this._lastQuote = 0
 
     if (this.props.suggestCommands) {
@@ -77,13 +72,6 @@ class Input extends React.Component<InputProps, InputState> {
         !!this.props.suggestCommands.find(sc => sc.hasHelpText && `/${sc.name}` === trimmedText) ||
         !!this.props.suggestBotCommands.find(sc => sc.hasHelpText && `!${sc.name}` === trimmedText) ||
         trimmedText === '!'
-    }
-
-    // Handle the command status bar
-    if (text.startsWith('!') && !this.state.showBotCommandUpdateStatus) {
-      this.setState({showBotCommandUpdateStatus: true})
-    } else if (!text.startsWith('!') && this.state.showBotCommandUpdateStatus) {
-      this.setState({showBotCommandUpdateStatus: false})
     }
 
     if (skipDebounce) {
