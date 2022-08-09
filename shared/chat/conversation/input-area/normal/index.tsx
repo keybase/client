@@ -19,8 +19,6 @@ import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import * as Platform from '../../../../constants/platform'
 import {assertionToDisplay} from '../../../../common-adapters/usernames'
 
-const unsentTextMap = new Map<Types.ConversationIDKey, string>()
-
 type Props = {
   conversationIDKey: Types.ConversationIDKey
   focusInputCounter: number
@@ -32,13 +30,16 @@ type Props = {
 }
 
 const useHintText = (p: {
+  conversationIDKey: Types.ConversationIDKey
   isExploding: boolean
   isEditing: boolean
   meta: Types.ConversationMeta
-  participantInfo: Types.ParticipantInfo
-  username: string
 }) => {
-  const {isExploding, isEditing, username, meta, participantInfo} = p
+  const {conversationIDKey, isExploding, isEditing, meta} = p
+  const username = Container.useSelector(state => state.config.username)
+  const participantInfo = Container.useSelector(
+    state => state.chat2.participantMap.get(conversationIDKey) || Constants.noParticipantInfo
+  )
   if (Styles.isMobile && isExploding) {
     return isLargeScreen ? `Write an exploding message` : 'Exploding message'
   } else if (meta.cannotWrite) {
@@ -80,12 +81,9 @@ const useHintText = (p: {
 const Input = (p: Props) => {
   const {conversationIDKey, maxInputArea, jumpToRecent, focusInputCounter} = p
   const {onRequestScrollDown, onRequestScrollUp, onRequestScrollToBottom} = p
-
   const replyTo = Container.useSelector(
     state => Constants.getReplyToMessageID(state, conversationIDKey) ?? undefined
   )
-  const showReplyPreview = !!replyTo
-
   const showCommandMarkdown = Container.useSelector(
     state => (state.chat2.commandMarkdownMap.get(conversationIDKey) || '') !== ''
   )
@@ -97,7 +95,7 @@ const Input = (p: Props) => {
   )
   return (
     <Kb.Box2 style={styles.container} direction="vertical" fullWidth={true}>
-      {showReplyPreview && <ReplyPreview conversationIDKey={conversationIDKey} />}
+      {!!replyTo && <ReplyPreview conversationIDKey={conversationIDKey} />}
       {
         /*TODO move this into suggestors*/ showCommandMarkdown && (
           <CommandMarkdown conversationIDKey={conversationIDKey} />
@@ -121,6 +119,152 @@ const Input = (p: Props) => {
   )
 }
 
+const unsentTextMap = new Map<Types.ConversationIDKey, string>()
+const useUnsentText = (conversationIDKey: Types.ConversationIDKey) => {
+  const unsentText = Container.useSelector(state => {
+    // try the store first
+    const text =
+      state.chat2.unsentTextMap.get(conversationIDKey)?.stringValue() ?? unsentTextMap.get(conversationIDKey)
+
+    if (text !== undefined) {
+      return text
+    }
+
+    // fallback on meta draft
+    return Constants.getDraft(state, conversationIDKey)
+  })
+  const dispatch = Container.useDispatch()
+  const isExplodingModeLocked = Container.useSelector(state =>
+    Constants.isExplodingModeLocked(state, conversationIDKey)
+  )
+  const onSetExplodingModeLock = React.useCallback(
+    (locked: boolean) => {
+      dispatch(Chat2Gen.createSetExplodingModeLock({conversationIDKey, unset: !locked}))
+    },
+    [dispatch, conversationIDKey]
+  )
+  const clearUnsentText = React.useCallback(() => {
+    dispatch(Chat2Gen.createSetUnsentText({conversationIDKey}))
+  }, [conversationIDKey, dispatch])
+
+  const setUnsentText = React.useCallback(
+    (text: string) => {
+      const shouldLock = text.length > 0
+      if (isExplodingModeLocked !== shouldLock) {
+        // if it's locked and we want to unset, unset it
+        // alternatively, if it's not locked and we want to set it, set it
+        onSetExplodingModeLock(shouldLock)
+      }
+      // The store text only lasts until we change it, so blow it away now
+      if (unsentText) {
+        clearUnsentText()
+      }
+      unsentTextMap.set(conversationIDKey, text)
+    },
+    [isExplodingModeLocked, unsentText, clearUnsentText, conversationIDKey, onSetExplodingModeLock]
+  )
+  const unsentTextChanged = React.useCallback(
+    (text: string) => {
+      dispatch(Chat2Gen.createUnsentTextChanged({conversationIDKey, text: new Container.HiddenString(text)}))
+    },
+    [dispatch, conversationIDKey]
+  )
+
+  const unsentTextChangedThrottled = Container.useThrottledCallback(unsentTextChanged, 500)
+
+  return {setUnsentText, unsentText, unsentTextChanged, unsentTextChangedThrottled}
+}
+
+const useInput = () => {
+  const inputRef = React.useRef<Kb.PlainInput | null>(null)
+  const setTextInput = React.useCallback(
+    (text: string) => {
+      inputRef.current?.transformText(
+        () => ({
+          selection: {end: text.length, start: text.length},
+          text,
+        }),
+        true
+      )
+    },
+    [inputRef]
+  )
+
+  return {inputRef, setTextInput}
+}
+
+const useSubmit = (
+  p: Pick<Props, 'conversationIDKey' | 'jumpToRecent' | 'onRequestScrollToBottom'> & {
+    editOrdinal: Types.Ordinal | undefined
+    replyTo: Types.Ordinal | undefined
+  }
+) => {
+  const {conversationIDKey, onRequestScrollToBottom, jumpToRecent, editOrdinal, replyTo} = p
+  const dispatch = Container.useDispatch()
+  const containsLatestMessage = Container.useSelector(
+    state => state.chat2.containsLatestMessageMap.get(conversationIDKey) || false
+  )
+  const onPostMessage = React.useCallback(
+    (text: string) => {
+      dispatch(
+        Chat2Gen.createMessageSend({
+          conversationIDKey,
+          replyTo: replyTo || undefined,
+          text: new Container.HiddenString(text),
+        })
+      )
+    },
+    [dispatch, conversationIDKey, replyTo]
+  )
+  const onEditMessage = React.useCallback(
+    (body: string) => {
+      if (editOrdinal !== undefined) {
+        dispatch(
+          Chat2Gen.createMessageEdit({
+            conversationIDKey,
+            ordinal: editOrdinal,
+            text: new Container.HiddenString(body),
+          })
+        )
+      }
+    },
+    [dispatch, conversationIDKey, editOrdinal]
+  )
+  const onSubmit = React.useCallback(
+    (text: string) => {
+      // don't submit empty
+      if (!text) {
+        return
+      }
+      if (editOrdinal) {
+        onEditMessage(text)
+      } else {
+        onPostMessage(text)
+      }
+      if (containsLatestMessage) {
+        onRequestScrollToBottom()
+      } else {
+        jumpToRecent()
+      }
+    },
+    [editOrdinal, onEditMessage, onPostMessage, containsLatestMessage, onRequestScrollToBottom, jumpToRecent]
+  )
+
+  return {onSubmit}
+}
+
+const useTyping = (conversationIDKey: Types.ConversationIDKey) => {
+  const dispatch = Container.useDispatch()
+  const sendTyping = React.useCallback(
+    (typing: boolean) => {
+      dispatch(Chat2Gen.createSendTyping({conversationIDKey, typing}))
+    },
+    [dispatch, conversationIDKey]
+  )
+  const sendTypingThrottled = Container.useThrottledCallback(sendTyping, 2000)
+  return {sendTyping, sendTypingThrottled}
+}
+
 const ConnectedPlatformInput = React.memo(
   (
     p: Pick<
@@ -132,170 +276,27 @@ const ConnectedPlatformInput = React.memo(
       | 'onRequestScrollDown'
       | 'onRequestScrollUp'
       | 'onRequestScrollToBottom'
-    > & {showGiphySearch: boolean; showCommandMarkdown: boolean; replyTo?: Types.Ordinal}
+    > & {showGiphySearch: boolean; showCommandMarkdown: boolean; replyTo: Types.Ordinal | undefined}
   ) => {
-    const {conversationIDKey, maxInputArea, jumpToRecent, focusInputCounter, showCommandMarkdown} = p
-    const {onRequestScrollDown, onRequestScrollUp, onRequestScrollToBottom, showGiphySearch, replyTo} = p
-
+    const {conversationIDKey, focusInputCounter, showCommandMarkdown, onRequestScrollToBottom} = p
+    const {onRequestScrollDown, onRequestScrollUp, showGiphySearch, replyTo, jumpToRecent, maxInputArea} = p
     const dispatch = Container.useDispatch()
-
-    const editInfo = Container.useSelector(state => Constants.getEditInfo(state, conversationIDKey))
-    const meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
-    const explodingModeSeconds = Container.useSelector(state =>
-      Constants.getConversationExplodingMode(state, conversationIDKey)
-    )
-    const isExploding = explodingModeSeconds !== 0
-    const containsLatestMessage = Container.useSelector(
-      state => state.chat2.containsLatestMessageMap.get(conversationIDKey) || false
-    )
-    const suggestBotCommandsUpdateStatus = Container.useSelector(
-      state =>
-        state.chat2.botCommandsUpdateStatusMap.get(conversationIDKey) ||
-        RPCChatTypes.UIBotCommandsUpdateStatusTyp.blank
-    )
-
-    const unsentText = Container.useSelector(state => {
-      // try the store first
-      const text =
-        state.chat2.unsentTextMap.get(conversationIDKey)?.stringValue() ??
-        unsentTextMap.get(conversationIDKey)
-
-      if (text !== undefined) {
-        return text
-      }
-
-      // fallback on meta draft
-      return Constants.getDraft(state, conversationIDKey)
-    })
-    const editOrdinal = editInfo?.ordinal
-    const infoPanelShowing = Container.useSelector(state => state.chat2.infoPanelShowing)
-    const isActiveForFocus = Container.useSelector(state => state.chat2.focus === null)
-    const isEditExploded = editInfo?.exploded ?? false
-    const showTypingStatus = Container.useSelector(
-      state =>
-        Constants.getTyping(state, conversationIDKey).size !== 0 && !showGiphySearch && !showCommandMarkdown
-    )
-    const showWalletsIcon = Container.useSelector(state =>
-      Constants.shouldShowWalletsIcon(state, conversationIDKey)
-    )
-    const onEditMessage = React.useCallback(
-      (body: string) => {
-        if (editOrdinal !== undefined) {
-          dispatch(
-            Chat2Gen.createMessageEdit({
-              conversationIDKey,
-              ordinal: editOrdinal,
-              text: new Container.HiddenString(body),
-            })
-          )
-        }
-      },
-      [dispatch, conversationIDKey, editOrdinal]
-    )
-    const onPostMessage = React.useCallback(
-      (text: string) => {
-        dispatch(
-          Chat2Gen.createMessageSend({
-            conversationIDKey,
-            replyTo: replyTo || undefined,
-            text: new Container.HiddenString(text),
-          })
-        )
-      },
-      [dispatch, conversationIDKey, replyTo]
-    )
+    const editOrdinal = Container.useSelector(state => state.chat2.editingMap.get(conversationIDKey))
     const isEditing = !!editOrdinal
-    const onSubmit = React.useCallback(
-      (text: string) => {
-        // don't submit empty
-        if (!text) {
-          return
-        }
-        if (editOrdinal) {
-          onEditMessage(text)
-        } else {
-          onPostMessage(text)
-        }
-        if (containsLatestMessage) {
-          onRequestScrollToBottom()
-        } else {
-          jumpToRecent()
-        }
-      },
-      [
-        editOrdinal,
-        onEditMessage,
-        onPostMessage,
-        containsLatestMessage,
-        onRequestScrollToBottom,
-        jumpToRecent,
-      ]
+    const isEditExploded = Container.useSelector(state =>
+      editOrdinal ? Constants.getMessage(state, conversationIDKey, editOrdinal)?.exploded ?? false : false
     )
-    const sendTyping = React.useCallback(
-      (typing: boolean) => {
-        dispatch(Chat2Gen.createSendTyping({conversationIDKey, typing}))
-      },
-      [dispatch, conversationIDKey]
-    )
-    const showReplyPreview = !!replyTo
-
-    const inputRef = React.useRef<Kb.PlainInput | null>(null)
-
-    const isExplodingModeLocked = Container.useSelector(state =>
-      Constants.isExplodingModeLocked(state, conversationIDKey)
-    )
-
-    const unsentTextChanged = React.useCallback(
-      (text: string) => {
-        dispatch(
-          Chat2Gen.createUnsentTextChanged({conversationIDKey, text: new Container.HiddenString(text)})
-        )
-      },
-      [dispatch, conversationIDKey]
-    )
-
-    const clearUnsentText = React.useCallback(() => {
-      dispatch(Chat2Gen.createSetUnsentText({conversationIDKey}))
-    }, [conversationIDKey, dispatch])
-
-    const onSetExplodingModeLock = React.useCallback(
-      (locked: boolean) => {
-        dispatch(Chat2Gen.createSetExplodingModeLock({conversationIDKey, unset: !locked}))
-      },
-      [dispatch, conversationIDKey]
-    )
-
-    const setUnsentText = React.useCallback(
-      (text: string) => {
-        const shouldLock = text.length > 0
-        if (isExplodingModeLocked !== shouldLock) {
-          // if it's locked and we want to unset, unset it
-          // alternatively, if it's not locked and we want to set it, set it
-          onSetExplodingModeLock(shouldLock)
-        }
-        // The store text only lasts until we change it, so blow it away now
-        if (unsentText) {
-          clearUnsentText()
-        }
-        unsentTextMap.set(conversationIDKey, text)
-      },
-      [isExplodingModeLocked, unsentText, clearUnsentText, conversationIDKey, onSetExplodingModeLock]
-    )
-
-    const sendTypingThrottled = Container.useThrottledCallback(sendTyping, 2000)
-
-    const setTextInput = React.useCallback(
-      (text: string) => {
-        inputRef.current?.transformText(
-          () => ({
-            selection: {end: text.length, start: text.length},
-            text,
-          }),
-          true
-        )
-      },
-      [inputRef]
-    )
+    const {onSubmit} = useSubmit({
+      conversationIDKey,
+      jumpToRecent,
+      onRequestScrollToBottom,
+      replyTo,
+      editOrdinal,
+    })
+    const {sendTyping, sendTypingThrottled} = useTyping(conversationIDKey)
+    const {inputRef, setTextInput} = useInput()
+    const {unsentText, unsentTextChanged, unsentTextChangedThrottled, setUnsentText} =
+      useUnsentText(conversationIDKey)
 
     const setText = React.useCallback(
       (text: string) => {
@@ -315,8 +316,6 @@ const ConnectedPlatformInput = React.memo(
     )
 
     const lastTextRef = React.useRef('')
-    const unsentTextChangedThrottled = Container.useThrottledCallback(unsentTextChanged, 500)
-
     const onChangeText = React.useCallback(
       (text: string) => {
         const skipThrottle = lastTextRef.current.length > 0 && text.length === 0
@@ -347,9 +346,10 @@ const ConnectedPlatformInput = React.memo(
       setTextInput(unsentText)
     }, [setTextInput, unsentText])
 
+    const isActiveForFocus = Container.useSelector(state => state.chat2.focus === null)
     React.useEffect(() => {
       inputRef.current?.focus()
-    }, [focusInputCounter, isActiveForFocus, unsentText])
+    }, [inputRef, focusInputCounter, isActiveForFocus, unsentText])
 
     const onCancelEditing = React.useCallback(() => {
       dispatch(Chat2Gen.createMessageSetEditing({conversationIDKey, ordinal: null}))
@@ -361,17 +361,26 @@ const ConnectedPlatformInput = React.memo(
       }
     }, [isEditing, isEditExploded, onCancelEditing])
 
-    const participantInfo = Container.useSelector(
-      state => state.chat2.participantMap.get(conversationIDKey) || Constants.noParticipantInfo
+    const showTypingStatus = Container.useSelector(
+      state =>
+        Constants.getTyping(state, conversationIDKey).size !== 0 && !showGiphySearch && !showCommandMarkdown
     )
-    const username = Container.useSelector(state => state.config.username)
-    const hintText = useHintText({
-      isEditing,
-      isExploding,
-      meta,
-      participantInfo,
-      username,
-    })
+    const showWalletsIcon = Container.useSelector(state =>
+      Constants.shouldShowWalletsIcon(state, conversationIDKey)
+    )
+    const explodingModeSeconds = Container.useSelector(state =>
+      Constants.getConversationExplodingMode(state, conversationIDKey)
+    )
+    const isExploding = explodingModeSeconds !== 0
+    const meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
+    const hintText = useHintText({conversationIDKey, isEditing, isExploding, meta})
+    const infoPanelShowing = Container.useSelector(state => state.chat2.infoPanelShowing)
+    const suggestBotCommandsUpdateStatus = Container.useSelector(
+      state =>
+        state.chat2.botCommandsUpdateStatusMap.get(conversationIDKey) ||
+        RPCChatTypes.UIBotCommandsUpdateStatusTyp.blank
+    )
+
     return (
       <PlatformInput
         hintText={hintText}
@@ -391,7 +400,7 @@ const ConnectedPlatformInput = React.memo(
         minWriterRole={meta.minWriterRole}
         onRequestScrollDown={onRequestScrollDown}
         onRequestScrollUp={onRequestScrollUp}
-        showReplyPreview={showReplyPreview}
+        showReplyPreview={!!replyTo}
         showTypingStatus={showTypingStatus}
         showWalletsIcon={showWalletsIcon}
       />

@@ -228,10 +228,8 @@ export const getMessage = (
   state: TypedState,
   id: Types.ConversationIDKey,
   ordinal: Types.Ordinal
-): Types.Message | null => {
-  const map = state.chat2.messageMap.get(id)
-  return (map && map.get(ordinal)) || null
-}
+): Types.Message | null => state.chat2.messageMap.get(id)?.get(ordinal) ?? null
+
 export const isMessageWithReactions = (message: Types.Message): message is Types.MessagesWithReactions => {
   return !(
     message.type === 'placeholder' ||
