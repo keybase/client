@@ -255,19 +255,19 @@ const ConnectedPlatformInput = React.memo(
     }, [conversationIDKey, dispatch])
 
     const onSetExplodingModeLock = React.useCallback(
-      (unset: boolean) => {
-        dispatch(Chat2Gen.createSetExplodingModeLock({conversationIDKey, unset}))
+      (locked: boolean) => {
+        dispatch(Chat2Gen.createSetExplodingModeLock({conversationIDKey, unset: !locked}))
       },
       [dispatch, conversationIDKey]
     )
 
     const setUnsentText = React.useCallback(
       (text: string) => {
-        const set = text.length > 0
-        if (isExplodingModeLocked !== set) {
+        const shouldLock = text.length > 0
+        if (isExplodingModeLocked !== shouldLock) {
           // if it's locked and we want to unset, unset it
           // alternatively, if it's not locked and we want to set it, set it
-          onSetExplodingModeLock(!set)
+          onSetExplodingModeLock(shouldLock)
         }
         // The store text only lasts until we change it, so blow it away now
         if (unsentText) {
