@@ -207,6 +207,10 @@ const ConnectedPlatformInput = React.memo(
     const isEditing = !!editOrdinal
     const onSubmit = React.useCallback(
       (text: string) => {
+        // don't submit empty
+        if (!text) {
+          return
+        }
         if (editOrdinal) {
           onEditMessage(text)
         } else {
@@ -280,8 +284,8 @@ const ConnectedPlatformInput = React.memo(
 
     const sendTypingThrottled = Container.useThrottledCallback(sendTyping, 2000)
 
-    const setText = React.useCallback(
-      (text: string, skipUnsentSaving?: boolean) => {
+    const setTextInput = React.useCallback(
+      (text: string) => {
         inputRef.current?.transformText(
           () => ({
             selection: {end: text.length, start: text.length},
@@ -289,13 +293,17 @@ const ConnectedPlatformInput = React.memo(
           }),
           true
         )
+      },
+      [inputRef]
+    )
 
-        if (!skipUnsentSaving) {
-          setUnsentText(text)
-        }
+    const setText = React.useCallback(
+      (text: string) => {
+        setTextInput(text)
+        setUnsentText(text)
         sendTypingThrottled(!!text)
       },
-      [inputRef, sendTypingThrottled, setUnsentText]
+      [sendTypingThrottled, setUnsentText, setTextInput]
     )
 
     const onSubmitAndClear = React.useCallback(
@@ -336,8 +344,8 @@ const ConnectedPlatformInput = React.memo(
     )
 
     React.useEffect(() => {
-      setText(unsentText)
-    }, [setText, unsentText])
+      setTextInput(unsentText)
+    }, [setTextInput, unsentText])
 
     React.useEffect(() => {
       inputRef.current?.focus()
