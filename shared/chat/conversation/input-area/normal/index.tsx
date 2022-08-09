@@ -10,35 +10,166 @@ import Giphy from '../../giphy/container'
 import PlatformInput from './platform-input'
 import ReplyPreview from '../../reply-preview'
 import type * as Types from '../../../../constants/types/chat2'
-import type {InputProps} from './types'
 import {indefiniteArticle} from '../../../../util/string'
 import {infoPanelWidthTablet} from '../../info-panel/common'
 import {isLargeScreen} from '../../../../constants/platform'
+import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
+// import * as TeamsConstants from '../../../../constants/teams'
+// import * as Waiting from '../../../../constants/waiting'
+import * as Platform from '../../../../constants/platform'
+import {assertionToDisplay} from '../../../../common-adapters/usernames'
 
 const unsentTextMap = new Map<Types.ConversationIDKey, string>()
 
-const Input = (props: InputProps) => {
+type Props = {
+  conversationIDKey: Types.ConversationIDKey
+  focusInputCounter: number
+  jumpToRecent: () => void
+  maxInputArea?: number
+  onRequestScrollDown: () => void
+  onRequestScrollToBottom: () => void
+  onRequestScrollUp: () => void
+}
+
+const getInputHintText = (
+  state: Container.TypedState,
+  conversationIDKey: Types.ConversationIDKey
+): string | undefined => {
+  const meta = Constants.getMeta(state, conversationIDKey)
+  if (meta.teamType === 'big') {
+    return meta.channelname
+      ? `Write in ${Platform.isMobile ? '' : `@${meta.teamname}`}#${meta.channelname}`
+      : undefined
+  }
+  if (meta.teamType === 'small') {
+    return meta.teamname ? `Write in @${meta.teamname}` : undefined
+  }
+  if (meta.teamType === 'adhoc') {
+    const participantInfo = state.chat2.participantMap.get(conversationIDKey) || Constants.noParticipantInfo
+    if (participantInfo.name.length > 2) {
+      return 'Message group'
+    } else if (participantInfo.name.length === 2) {
+      const other = participantInfo.name.find(n => n !== state.config.username)
+      if (!other) {
+        return undefined
+      }
+      const otherText = other.includes('@') ? assertionToDisplay(other) : `@${other}`
+      return otherText.length < 20 ? `Message ${otherText}` : undefined
+    } else if (participantInfo.name.length === 1) {
+      return 'Message yourself'
+    }
+    return undefined
+  }
+  return undefined
+}
+
+const Input = (p: Props) => {
   const {
-    cannotWrite,
     conversationIDKey,
-    explodingModeSeconds,
-    focusInputCounter,
-    infoPanelShowing,
-    isActiveForFocus,
-    isEditExploded,
-    isEditing,
-    isExploding,
     maxInputArea,
-    minWriterRole,
     onRequestScrollDown,
     onRequestScrollUp,
-    onSubmit,
-    sendTyping,
-    showReplyPreview,
-    showTypingStatus,
-    showWalletsIcon,
-    suggestBotCommandsUpdateStatus,
-  } = props
+    onRequestScrollToBottom,
+    jumpToRecent,
+    focusInputCounter,
+  } = p
+
+  const editInfo = Container.useSelector(state => Constants.getEditInfo(state, conversationIDKey))
+  const meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
+  // const isSearching = Container.useSelector(
+  //   state => Constants.getThreadSearchInfo(state, conversationIDKey).visible
+  // )
+  const inputHintText = Container.useSelector(state => getInputHintText(state, conversationIDKey))
+  // const _you = Container.useSelector(state => state.config.username)
+  const explodingModeSeconds = Container.useSelector(state =>
+    Constants.getConversationExplodingMode(state, conversationIDKey)
+  )
+  const isExploding = explodingModeSeconds !== 0
+  // const unsentText = Container.useSelector(state => state.chat2.unsentTextMap.get(conversationIDKey))
+  const showCommandMarkdown = Container.useSelector(
+    state => (state.chat2.commandMarkdownMap.get(conversationIDKey) || '') !== ''
+  )
+  const showCommandStatus = Container.useSelector(
+    state => !!state.chat2.commandStatusMap.get(conversationIDKey)
+  )
+  const showGiphySearch = Container.useSelector(
+    state => state.chat2.giphyWindowMap.get(conversationIDKey) || false
+  )
+  const _replyTo = Container.useSelector(state => Constants.getReplyToMessageID(state, conversationIDKey))
+  const _containsLatestMessage = Container.useSelector(
+    state => state.chat2.containsLatestMessageMap.get(conversationIDKey) || false
+  )
+  const suggestBotCommandsUpdateStatus = Container.useSelector(
+    state =>
+      state.chat2.botCommandsUpdateStatusMap.get(conversationIDKey) ||
+      RPCChatTypes.UIBotCommandsUpdateStatusTyp.blank
+  )
+
+  // const _draft = Container.useSelector(state => Constants.getDraft(state, conversationIDKey))
+  const _editOrdinal = editInfo ? editInfo.ordinal : null
+  const cannotWrite = meta.cannotWrite
+  const infoPanelShowing = Container.useSelector(state => state.chat2.infoPanelShowing)
+  const isActiveForFocus = Container.useSelector(state => state.chat2.focus === null)
+  const isEditExploded = editInfo ? editInfo.exploded : false
+  const minWriterRole = meta.minWriterRole
+  const showTypingStatus = Container.useSelector(
+    state =>
+      Constants.getTyping(state, conversationIDKey).size !== 0 && !showGiphySearch && !showCommandMarkdown
+  )
+  const showWalletsIcon = Container.useSelector(state =>
+    Constants.shouldShowWalletsIcon(state, conversationIDKey)
+  )
+  // const suggestChannelsLoading = Container.useSelector(state =>
+  //   Waiting.anyWaiting(
+  //     state,
+  //     TeamsConstants.getChannelsWaitingKey(meta.teamID),
+  //     Constants.waitingKeyMutualTeams(conversationIDKey)
+  //   )
+  // )
+  // const suggestCommands = Container.useSelector(state => Constants.getCommands(state, conversationIDKey))
+  // const typing = Container.useSelector(state => Constants.getTyping(state, conversationIDKey))
+
+  const _onEditMessage = (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ordinal, body: string) =>
+    dispatch(
+      Chat2Gen.createMessageEdit({
+        conversationIDKey,
+        ordinal,
+        text: new Container.HiddenString(body),
+      })
+    )
+  const _onPostMessage = (
+    conversationIDKey: Types.ConversationIDKey,
+    text: string,
+    replyTo: Types.MessageID | null
+  ) =>
+    dispatch(
+      Chat2Gen.createMessageSend({
+        conversationIDKey,
+        replyTo: replyTo || undefined,
+        text: new Container.HiddenString(text),
+      })
+    )
+  const _sendTyping = (conversationIDKey: Types.ConversationIDKey, typing: boolean) =>
+    conversationIDKey && dispatch(Chat2Gen.createSendTyping({conversationIDKey, typing}))
+  // const clearInboxFilter = () => dispatch(Chat2Gen.createToggleInboxSearch({enabled: false}))
+
+  const isEditing = !!_editOrdinal
+  const onSubmit = (text: string) => {
+    if (_editOrdinal) {
+      _onEditMessage(conversationIDKey, _editOrdinal, text)
+    } else {
+      _onPostMessage(conversationIDKey, text, _replyTo || null)
+    }
+    if (_containsLatestMessage) {
+      onRequestScrollToBottom()
+    } else {
+      jumpToRecent()
+    }
+  }
+  const sendTyping = (typing: boolean) => {
+    _sendTyping(conversationIDKey, typing)
+  }
+  const showReplyPreview = !!_replyTo
 
   const inputRef = React.useRef<Kb.PlainInput | null>(null)
 
@@ -169,30 +300,28 @@ const Input = (props: InputProps) => {
   }, [isEditing, isEditExploded])
 
   let hintText = ''
-  if (Styles.isMobile && props.isExploding) {
+  if (Styles.isMobile && isExploding) {
     hintText = isLargeScreen ? `Write an exploding message` : 'Exploding message'
-  } else if (props.cannotWrite) {
-    hintText = `You must be at least ${indefiniteArticle(props.minWriterRole)} ${
-      props.minWriterRole
-    } to post.`
-  } else if (props.isEditing) {
+  } else if (cannotWrite) {
+    hintText = `You must be at least ${indefiniteArticle(minWriterRole)} ${minWriterRole} to post.`
+  } else if (isEditing) {
     hintText = 'Edit your message'
-  } else if (props.isExploding) {
+  } else if (isExploding) {
     hintText = 'Write an exploding message'
   } else {
-    hintText = props.inputHintText || 'Write a message'
+    hintText = inputHintText || 'Write a message'
   }
 
   return (
     <Kb.Box2 style={styles.container} direction="vertical" fullWidth={true}>
-      {props.showReplyPreview && <ReplyPreview conversationIDKey={props.conversationIDKey} />}
+      {showReplyPreview && <ReplyPreview conversationIDKey={conversationIDKey} />}
       {
-        /*TODO move this into suggestors*/ props.showCommandMarkdown && (
-          <CommandMarkdown conversationIDKey={props.conversationIDKey} />
+        /*TODO move this into suggestors*/ showCommandMarkdown && (
+          <CommandMarkdown conversationIDKey={conversationIDKey} />
         )
       }
-      {props.showCommandStatus && <CommandStatus conversationIDKey={props.conversationIDKey} />}
-      {props.showGiphySearch && <Giphy conversationIDKey={props.conversationIDKey} />}
+      {showCommandStatus && <CommandStatus conversationIDKey={conversationIDKey} />}
+      {showGiphySearch && <Giphy conversationIDKey={conversationIDKey} />}
       <PlatformInput
         hintText={hintText}
         maxInputArea={maxInputArea}
@@ -236,5 +365,4 @@ const styles = Styles.styleSheetCreate(
     } as const)
 )
 
-export type Props = InputProps
 export default Input
