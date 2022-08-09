@@ -40,19 +40,13 @@ const suggestorToMarker = {
 
 type UseSuggestorsProps = Pick<
   Props,
-  | 'onBlur'
-  | 'onChangeText'
-  | 'onFocus'
-  | 'onKeyDown'
-  | 'onSelectionChange'
-  | 'suggestBotCommandsUpdateStatus'
-  | 'suggestionOverlayStyle'
-  | 'conversationIDKey'
+  'onChangeText' | 'suggestBotCommandsUpdateStatus' | 'suggestionOverlayStyle' | 'conversationIDKey'
 > & {
   suggestionListStyle: any
   suggestionSpinnerStyle: any
   expanded: boolean
   inputRef: React.MutableRefObject<Kb.PlainInput | null>
+  onKeyDown?: (evt: React.KeyboardEvent) => void
 }
 
 type ActiveType = '' | 'channels' | 'commands' | 'emoji' | 'users'
@@ -182,7 +176,7 @@ export const useSyncInput = (p: UseSyncInputProps) => {
 }
 
 type UseHandleKeyEventsProps = {
-  onKeyDownProps: (evt: React.KeyboardEvent) => void
+  onKeyDownProps?: (evt: React.KeyboardEvent) => void
   active: string
   checkTrigger: () => void
   filter: string
@@ -205,7 +199,6 @@ const useHandleKeyEvents = (p: UseHandleKeyEventsProps) => {
       }
 
       let shouldCallParentCallback = true
-
       // check trigger keys (up, down, enter, tab)
       if (evt.key === 'ArrowDown') {
         evt.preventDefault()
@@ -245,7 +238,7 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
   const [active, setActive] = React.useState<ActiveType>('')
   const [filter, setFilter] = React.useState('')
   const {inputRef, suggestionListStyle, suggestionOverlayStyle, expanded} = p
-  const {onFocus: onFocusProps, onBlur: onBlurProps, onSelectionChange, onChangeText: onChangeTextProps} = p
+  const {onChangeText: onChangeTextProps} = p
   const {suggestBotCommandsUpdateStatus, suggestionSpinnerStyle, conversationIDKey} = p
   const {triggerTransform, checkTrigger, setInactive} = useSyncInput({
     active,
@@ -272,9 +265,8 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
   })
 
   const onBlur = React.useCallback(() => {
-    onBlurProps?.()
     setInactive()
-  }, [onBlurProps, setInactive])
+  }, [setInactive])
 
   const onChangeText = React.useCallback(
     (text: string) => {
@@ -286,16 +278,14 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
   )
 
   const onFocus = React.useCallback(() => {
-    onFocusProps?.()
     checkTrigger()
-  }, [onFocusProps, checkTrigger])
+  }, [checkTrigger])
 
   const onSelectionChange2 = React.useCallback(
-    (selection: Common.TransformerData['position']) => {
-      onSelectionChange?.(selection)
+    (_selection: Common.TransformerData['position']) => {
       checkTrigger()
     },
-    [onSelectionChange, checkTrigger]
+    [checkTrigger]
   )
 
   const onSelected = React.useCallback(

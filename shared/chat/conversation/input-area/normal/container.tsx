@@ -79,7 +79,6 @@ export default Container.connect(
       _you,
       cannotWrite: meta.cannotWrite,
       conversationIDKey,
-      editText: editInfo ? editInfo.text : '',
       explodingModeSeconds,
       infoPanelShowing: state.chat2.infoPanelShowing,
       inputHintText,
@@ -94,7 +93,6 @@ export default Container.connect(
       showTypingStatus:
         Constants.getTyping(state, conversationIDKey).size !== 0 && !showGiphySearch && !showCommandMarkdown,
       showWalletsIcon: Constants.shouldShowWalletsIcon(state, conversationIDKey),
-      suggestBotCommands: Constants.getBotCommands(state, conversationIDKey),
       suggestBotCommandsUpdateStatus,
       suggestChannelsLoading: Waiting.anyWaiting(
         state,
@@ -136,7 +134,6 @@ export default Container.connect(
       cannotWrite: stateProps.cannotWrite,
       clearInboxFilter: dispatchProps.clearInboxFilter,
       conversationIDKey: stateProps.conversationIDKey,
-      editText: stateProps.editText,
       explodingModeSeconds: stateProps.explodingModeSeconds,
       focusInputCounter: ownProps.focusInputCounter,
       infoPanelShowing: stateProps.infoPanelShowing,
@@ -171,7 +168,6 @@ export default Container.connect(
       showReplyPreview: !!stateProps._replyTo,
       showTypingStatus: stateProps.showTypingStatus,
       showWalletsIcon: stateProps.showWalletsIcon,
-      suggestBotCommands: stateProps.suggestBotCommands,
       suggestBotCommandsUpdateStatus: stateProps.suggestBotCommandsUpdateStatus,
       suggestChannelsLoading: stateProps.suggestChannelsLoading,
       suggestCommands: stateProps.suggestCommands,

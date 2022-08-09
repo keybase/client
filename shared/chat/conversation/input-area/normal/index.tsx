@@ -19,17 +19,26 @@ const unsentTextMap = new Map<Types.ConversationIDKey, string>()
 
 const Input = (props: InputProps) => {
   const {
-    suggestTeams,
-    suggestUsers,
-    suggestChannels,
-    suggestAllChannels,
-    suggestCommands,
-    suggestBotCommands,
-    isActiveForFocus,
+    cannotWrite,
+    conversationIDKey,
+    explodingModeSeconds,
+    focusInputCounter,
     infoPanelShowing,
-    ...platformInputProps
+    isActiveForFocus,
+    isEditExploded,
+    isEditing,
+    isExploding,
+    maxInputArea,
+    minWriterRole,
+    onRequestScrollDown,
+    onRequestScrollUp,
+    onSubmit,
+    sendTyping,
+    showReplyPreview,
+    showTypingStatus,
+    showWalletsIcon,
+    suggestBotCommandsUpdateStatus,
   } = props
-  const {onSubmit, sendTyping, conversationIDKey, focusInputCounter, isEditing, isEditExploded} = props
 
   const inputRef = React.useRef<Kb.PlainInput | null>(null)
 
@@ -100,8 +109,6 @@ const Input = (props: InputProps) => {
   )
 
   const lastTextRef = React.useRef('')
-  const maxCmdLengthRef = React.useRef(0)
-
   const unsentTextChangedDebounced = Container.useDebouncedCallback(unsentTextChanged, 500)
 
   const onChangeText = React.useCallback(
@@ -118,16 +125,7 @@ const Input = (props: InputProps) => {
         sendTypingThrottled(!!text)
       }
 
-      // check if input matches a command with help text,
-      // skip debouncing unsentText if so
-      const trimmedText = text.trim()
-      let skipDebounce = false
-      if (text.length <= maxCmdLengthRef.current) {
-        skipDebounce =
-          !!suggestCommands.find(sc => sc.hasHelpText && `/${sc.name}` === trimmedText) ||
-          !!suggestBotCommands.find(sc => sc.hasHelpText && `!${sc.name}` === trimmedText) ||
-          trimmedText === '!'
-      }
+      let skipDebounce = text.startsWith('/')
 
       if (skipDebounce) {
         unsentTextChangedDebounced.cancel()
@@ -136,7 +134,7 @@ const Input = (props: InputProps) => {
         unsentTextChangedDebounced(text)
       }
     },
-    [setUnsentText, suggestCommands, suggestBotCommands, unsentTextChanged]
+    [setUnsentText, unsentTextChanged]
   )
 
   const unsentText = Container.useSelector(state => {
@@ -196,16 +194,26 @@ const Input = (props: InputProps) => {
       {props.showCommandStatus && <CommandStatus conversationIDKey={props.conversationIDKey} />}
       {props.showGiphySearch && <Giphy conversationIDKey={props.conversationIDKey} />}
       <PlatformInput
-        {...platformInputProps}
         hintText={hintText}
-        maxInputArea={props.maxInputArea}
+        maxInputArea={maxInputArea}
         suggestionOverlayStyle={
           infoPanelShowing ? styles.suggestionOverlayInfoShowing : styles.suggestionOverlay
         }
-        suggestBotCommandsUpdateStatus={props.suggestBotCommandsUpdateStatus}
+        suggestBotCommandsUpdateStatus={suggestBotCommandsUpdateStatus}
         onSubmit={onSubmitAndClear}
         inputSetRef={inputRef}
         onChangeText={onChangeText}
+        cannotWrite={cannotWrite}
+        conversationIDKey={conversationIDKey}
+        explodingModeSeconds={explodingModeSeconds}
+        isEditing={isEditing}
+        isExploding={isExploding}
+        minWriterRole={minWriterRole}
+        onRequestScrollDown={onRequestScrollDown}
+        onRequestScrollUp={onRequestScrollUp}
+        showReplyPreview={showReplyPreview}
+        showTypingStatus={showTypingStatus}
+        showWalletsIcon={showWalletsIcon}
       />
     </Kb.Box2>
   )

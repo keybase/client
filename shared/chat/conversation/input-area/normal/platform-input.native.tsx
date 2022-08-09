@@ -37,7 +37,7 @@ type MenuType = 'exploding' | 'filepickerpopup' | 'moremenu'
 
 type ButtonsProps = Pick<
   Props,
-  'conversationIDKey' | 'onSelectionChange' | 'explodingModeSeconds' | 'isExploding' | 'cannotWrite'
+  'conversationIDKey' | 'explodingModeSeconds' | 'isExploding' | 'cannotWrite'
 > & {
   hasText: boolean
   isEditing: boolean
@@ -45,6 +45,7 @@ type ButtonsProps = Pick<
   insertText: (s: string) => void
   onSubmit: () => void
   ourShowMenu: (m: MenuType) => void
+  onSelectionChange?: (p: {start: number | null; end: number | null}) => void
 }
 
 const Buttons = (p: ButtonsProps) => {
@@ -254,11 +255,7 @@ const PlatformInput = (p: Props) => {
     conversationIDKey: p.conversationIDKey,
     expanded,
     inputRef,
-    onBlur: p.onBlur,
     onChangeText: p.onChangeText,
-    onFocus: p.onFocus,
-    onKeyDown: () => {},
-    onSelectionChange: p.onSelectionChange,
     suggestBotCommandsUpdateStatus: p.suggestBotCommandsUpdateStatus,
     suggestionListStyle: Styles.collapseStyles([styles.suggestionList, !!height && {marginBottom: height}]),
     suggestionOverlayStyle: p.suggestionOverlayStyle,
