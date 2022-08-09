@@ -48,24 +48,30 @@ const useHintText = (p: {
   } else if (isExploding) {
     return 'Write an exploding message'
   } else {
-    if (meta.teamType === 'big') {
-      if (meta.channelname) {
-        return `Write in ${Platform.isMobile ? '' : `@${meta.teamname}`}#${meta.channelname}`
-      }
-    } else if (meta.teamType === 'small') {
-      if (meta.teamname) return `Write in @${meta.teamname}`
-    } else if (meta.teamType === 'adhoc') {
-      if (participantInfo.name.length > 2) {
-        return 'Message group'
-      } else if (participantInfo.name.length === 2) {
-        const other = participantInfo.name.find(n => n !== username)
-        if (other) {
-          const otherText = other.includes('@') ? assertionToDisplay(other) : `@${other}`
-          if (otherText.length < 20) return `Message ${otherText}`
+    switch (meta.teamType) {
+      case 'big':
+        if (meta.channelname) {
+          return `Write in ${Platform.isMobile ? '' : `@${meta.teamname}`}#${meta.channelname}`
         }
-      } else if (participantInfo.name.length === 1) {
-        return 'Message yourself'
-      }
+        break
+      case 'small':
+        if (meta.teamname) {
+          return `Write in @${meta.teamname}`
+        }
+        break
+      case 'adhoc':
+        if (participantInfo.name.length > 2) {
+          return 'Message group'
+        } else if (participantInfo.name.length === 2) {
+          const other = participantInfo.name.find(n => n !== username)
+          if (other) {
+            const otherText = other.includes('@') ? assertionToDisplay(other) : `@${other}`
+            if (otherText.length < 20) return `Message ${otherText}`
+          }
+        } else if (participantInfo.name.length === 1) {
+          return 'Message yourself'
+        }
+        break
     }
   }
   return 'Write a message'
@@ -131,6 +137,8 @@ const ConnectedPlatformInput = React.memo(
     const {conversationIDKey, maxInputArea, jumpToRecent, focusInputCounter, showCommandMarkdown} = p
     const {onRequestScrollDown, onRequestScrollUp, onRequestScrollToBottom, showGiphySearch, replyTo} = p
 
+    const dispatch = Container.useDispatch()
+
     const editInfo = Container.useSelector(state => Constants.getEditInfo(state, conversationIDKey))
     const meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
     const explodingModeSeconds = Container.useSelector(state =>
@@ -146,6 +154,19 @@ const ConnectedPlatformInput = React.memo(
         RPCChatTypes.UIBotCommandsUpdateStatusTyp.blank
     )
 
+    const unsentText = Container.useSelector(state => {
+      // try the store first
+      const text =
+        state.chat2.unsentTextMap.get(conversationIDKey)?.stringValue() ??
+        unsentTextMap.get(conversationIDKey)
+
+      if (text !== undefined) {
+        return text
+      }
+
+      // fallback on meta draft
+      return Constants.getDraft(state, conversationIDKey)
+    })
     const editOrdinal = editInfo?.ordinal
     const infoPanelShowing = Container.useSelector(state => state.chat2.infoPanelShowing)
     const isActiveForFocus = Container.useSelector(state => state.chat2.focus === null)
@@ -169,7 +190,7 @@ const ConnectedPlatformInput = React.memo(
           )
         }
       },
-      [conversationIDKey, editOrdinal]
+      [dispatch, conversationIDKey, editOrdinal]
     )
     const onPostMessage = React.useCallback(
       (text: string) => {
@@ -181,7 +202,7 @@ const ConnectedPlatformInput = React.memo(
           })
         )
       },
-      [conversationIDKey, replyTo]
+      [dispatch, conversationIDKey, replyTo]
     )
     const isEditing = !!editOrdinal
     const onSubmit = React.useCallback(
@@ -210,7 +231,7 @@ const ConnectedPlatformInput = React.memo(
       (typing: boolean) => {
         dispatch(Chat2Gen.createSendTyping({conversationIDKey, typing}))
       },
-      [conversationIDKey]
+      [dispatch, conversationIDKey]
     )
     const showReplyPreview = !!replyTo
 
@@ -219,8 +240,6 @@ const ConnectedPlatformInput = React.memo(
     const isExplodingModeLocked = Container.useSelector(state =>
       Constants.isExplodingModeLocked(state, conversationIDKey)
     )
-
-    const dispatch = Container.useDispatch()
 
     const unsentTextChanged = React.useCallback(
       (text: string) => {
@@ -236,25 +255,28 @@ const ConnectedPlatformInput = React.memo(
     }, [conversationIDKey, dispatch])
 
     const onSetExplodingModeLock = React.useCallback(
-      (conversationIDKey: Types.ConversationIDKey, unset: boolean) => {
+      (unset: boolean) => {
         dispatch(Chat2Gen.createSetExplodingModeLock({conversationIDKey, unset}))
       },
-      [conversationIDKey]
+      [dispatch, conversationIDKey]
     )
 
-    const setUnsentText = React.useCallback((text: string) => {
-      const set = text.length > 0
-      if (isExplodingModeLocked !== set) {
-        // if it's locked and we want to unset, unset it
-        // alternatively, if it's not locked and we want to set it, set it
-        onSetExplodingModeLock(conversationIDKey, !set)
-      }
-      // The store text only lasts until we change it, so blow it away now
-      if (unsentText) {
-        clearUnsentText()
-      }
-      unsentTextMap.set(conversationIDKey, text)
-    }, [])
+    const setUnsentText = React.useCallback(
+      (text: string) => {
+        const set = text.length > 0
+        if (isExplodingModeLocked !== set) {
+          // if it's locked and we want to unset, unset it
+          // alternatively, if it's not locked and we want to set it, set it
+          onSetExplodingModeLock(!set)
+        }
+        // The store text only lasts until we change it, so blow it away now
+        if (unsentText) {
+          clearUnsentText()
+        }
+        unsentTextMap.set(conversationIDKey, text)
+      },
+      [isExplodingModeLocked, unsentText, clearUnsentText, conversationIDKey, onSetExplodingModeLock]
+    )
 
     const sendTypingThrottled = Container.useThrottledCallback(sendTyping, 2000)
 
@@ -273,7 +295,7 @@ const ConnectedPlatformInput = React.memo(
         }
         sendTypingThrottled(!!text)
       },
-      [sendTyping, inputRef]
+      [inputRef, sendTypingThrottled, setUnsentText]
     )
 
     const onSubmitAndClear = React.useCallback(
@@ -301,7 +323,7 @@ const ConnectedPlatformInput = React.memo(
           sendTypingThrottled(!!text)
         }
 
-        let skipDebounce = text.startsWith('/')
+        const skipDebounce = text.startsWith('/')
 
         if (skipDebounce) {
           unsentTextChangedThrottled.cancel()
@@ -310,26 +332,12 @@ const ConnectedPlatformInput = React.memo(
           unsentTextChangedThrottled(text)
         }
       },
-      [setUnsentText, unsentTextChanged]
+      [sendTyping, sendTypingThrottled, setUnsentText, unsentTextChanged, unsentTextChangedThrottled]
     )
-
-    const unsentText = Container.useSelector(state => {
-      // try the store first
-      const text =
-        state.chat2.unsentTextMap.get(conversationIDKey)?.stringValue() ??
-        unsentTextMap.get(conversationIDKey)
-
-      if (text !== undefined) {
-        return text
-      }
-
-      // fallback on meta draft
-      return Constants.getDraft(state, conversationIDKey) ?? ''
-    })
 
     React.useEffect(() => {
       setText(unsentText)
-    }, [unsentText])
+    }, [setText, unsentText])
 
     React.useEffect(() => {
       inputRef.current?.focus()
@@ -343,7 +351,7 @@ const ConnectedPlatformInput = React.memo(
       if (isEditing && isEditExploded) {
         onCancelEditing()
       }
-    }, [isEditing, isEditExploded])
+    }, [isEditing, isEditExploded, onCancelEditing])
 
     const participantInfo = Container.useSelector(
       state => state.chat2.participantMap.get(conversationIDKey) || Constants.noParticipantInfo

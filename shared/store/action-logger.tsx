@@ -2,7 +2,7 @@ import transformActionForLog from '../logger/action-transformer'
 import logger from '../logger'
 import type {TypedDispatch, TypedActions} from 'util/container'
 
-const TEMP_FULL_ACTION_OUTPUT = __DEV__ && true
+const TEMP_FULL_ACTION_OUTPUT = __DEV__ && false
 if (TEMP_FULL_ACTION_OUTPUT) {
   for (let i = 0; i < 10; ++i) {
     console.error('TEMP_FULL_ACTION_OUTPUT enabled in action logger!')

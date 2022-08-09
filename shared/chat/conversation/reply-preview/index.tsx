@@ -1,10 +1,10 @@
 import * as React from 'react'
-import * as Types from '../../../constants/types/chat2'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Constants from '../../../constants/chat2'
 import * as Container from '../../../util/container'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
+import type * as Types from '../../../constants/types/chat2'
 
 type Props = {conversationIDKey: Types.ConversationIDKey}
 
@@ -23,6 +23,7 @@ const ReplyPreview = (props: Props) => {
       case 'attachment':
         text = message.title || (message.attachmentType === 'image' ? '' : message.fileName)
         break
+      default:
     }
   }
   let attachment: Types.MessageAttachment | undefined
@@ -41,7 +42,7 @@ const ReplyPreview = (props: Props) => {
   const dispatch = Container.useDispatch()
   const onCancel = React.useCallback(() => {
     dispatch(Chat2Gen.createToggleReplyToMessage({conversationIDKey}))
-  }, [dispatch])
+  }, [conversationIDKey, dispatch])
 
   return (
     <Kb.Box style={styles.outerContainer}>
