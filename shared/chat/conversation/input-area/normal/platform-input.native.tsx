@@ -277,7 +277,7 @@ const PlatformInput = (p: Props) => {
     setExpanded(nextState)
   }, [expanded, setExpanded])
 
-  const onSubmit2 = React.useCallback(() => {
+  const onSubmitAndCollapse = React.useCallback(() => {
     const text = lastText.current
     if (text) {
       onSubmit(text)
@@ -312,7 +312,7 @@ const PlatformInput = (p: Props) => {
     HWKeyboardEvent.onHWKeyPressed((hwKeyEvent: any) => {
       switch (hwKeyEvent.pressedKey) {
         case 'enter':
-          Styles.isIOS || !isOpen() ? onSubmit2() : insertText('\n')
+          Styles.isIOS || !isOpen() ? onSubmitAndCollapse() : insertText('\n')
           break
         case 'shift-enter':
           insertText('\n')
@@ -321,7 +321,7 @@ const PlatformInput = (p: Props) => {
     return () => {
       HWKeyboardEvent.removeOnHWKeyPressed()
     }
-  }, [onSubmit2, insertText])
+  }, [onSubmitAndCollapse, insertText])
 
   const {
     popup: menu,
@@ -400,8 +400,6 @@ const PlatformInput = (p: Props) => {
             multiline={true}
             onBlur={onBlur}
             onFocus={onFocus}
-            // TODO: Call onCancelQuoting on text change or selection
-            // change to match desktop.
             onChangeText={(text: string) => {
               setHasText(!!text)
               lastText.current = text
@@ -424,7 +422,7 @@ const PlatformInput = (p: Props) => {
           insertText={insertText}
           ourShowMenu={ourShowMenu}
           onSelectionChange={onSelectionChange}
-          onSubmit={onSubmit2}
+          onSubmit={onSubmitAndCollapse}
           hasText={hasText}
           isEditing={isEditing}
           isExploding={isExploding}
