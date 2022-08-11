@@ -251,6 +251,7 @@ const PlatformInput = (p: Props) => {
   const [height, setHeight] = React.useState(0)
   const [expanded, setExpanded] = React.useState(false) // updates immediately, used for the icon etc
   const inputRef = React.useRef<Kb.PlainInput | null>(null)
+  const silentInput = React.useRef<Kb.PlainInput | null>(null)
   const {popup, onChangeText, onBlur, onSelectionChange, onFocus} = useSuggestors({
     conversationIDKey: p.conversationIDKey,
     expanded,
@@ -277,15 +278,30 @@ const PlatformInput = (p: Props) => {
     setExpanded(nextState)
   }, [expanded, setExpanded])
 
-  const onSubmitAndCollapse = React.useCallback(() => {
+  const submitQueued = React.useRef(false)
+  const onQueueSubmit = React.useCallback(() => {
     const text = lastText.current
     if (text) {
-      onSubmit(text)
-      if (expanded) {
-        toggleExpandInput()
+      submitQueued.current = true
+      silentInput.current?.focus()
+      inputRef.current?.focus()
+    }
+  }, [])
+
+  const onFocusAndMaybeSubmit = React.useCallback(() => {
+    // need to submit
+    if (submitQueued.current) {
+      submitQueued.current = false
+      const text = inputRef.current?.value
+      if (text) {
+        onSubmit(text)
+        if (expanded) {
+          toggleExpandInput()
+        }
       }
     }
-  }, [lastText, onSubmit, expanded, toggleExpandInput])
+    onFocus()
+  }, [onFocus, expanded, onSubmit, toggleExpandInput])
 
   const insertText = React.useCallback(
     (toInsert: string) => {
@@ -296,10 +312,6 @@ const PlatformInput = (p: Props) => {
           standardTransformer(toInsert, {position: {end, start}, text}, true),
         true
       )
-      // TODO likely don't need this with nav 6
-      setTimeout(() => {
-        i?.focus()
-      }, 200)
     },
     [inputRef]
   )
@@ -312,7 +324,7 @@ const PlatformInput = (p: Props) => {
     HWKeyboardEvent.onHWKeyPressed((hwKeyEvent: any) => {
       switch (hwKeyEvent.pressedKey) {
         case 'enter':
-          Styles.isIOS || !isOpen() ? onSubmitAndCollapse() : insertText('\n')
+          Styles.isIOS || !isOpen() ? onQueueSubmit() : insertText('\n')
           break
         case 'shift-enter':
           insertText('\n')
@@ -321,7 +333,7 @@ const PlatformInput = (p: Props) => {
     return () => {
       HWKeyboardEvent.removeOnHWKeyPressed()
     }
-  }, [onSubmitAndCollapse, insertText])
+  }, [onQueueSubmit, insertText])
 
   const {
     popup: menu,
@@ -391,6 +403,8 @@ const PlatformInput = (p: Props) => {
         fullWidth={true}
       >
         <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.inputContainer}>
+          {/* in order to get auto correct submit working we move focus to this and then back so we can 'blur' without losing keyboard */}
+          <Kb.PlainInput key="silent" ref={silentInput} style={styles.hidden} />
           <AnimatedInput
             autoCorrect={true}
             autoCapitalize="sentences"
@@ -399,7 +413,7 @@ const PlatformInput = (p: Props) => {
             maxInputArea={maxInputArea}
             multiline={true}
             onBlur={onBlur}
-            onFocus={onFocus}
+            onFocus={onFocusAndMaybeSubmit}
             onChangeText={(text: string) => {
               setHasText(!!text)
               lastText.current = text
@@ -422,7 +436,7 @@ const PlatformInput = (p: Props) => {
           insertText={insertText}
           ourShowMenu={ourShowMenu}
           onSelectionChange={onSelectionChange}
-          onSubmit={onSubmitAndCollapse}
+          onSubmit={onQueueSubmit}
           hasText={hasText}
           isEditing={isEditing}
           isExploding={isExploding}
@@ -513,6 +527,7 @@ const styles = Styles.styleSheetCreate(
         justifyContent: 'center',
         width: 36,
       },
+      hidden: {display: 'none'},
       iconBottom: {
         bottom: 0,
         left: 1,

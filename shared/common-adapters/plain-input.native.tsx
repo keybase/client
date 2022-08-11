@@ -50,13 +50,7 @@ class PlainInput extends React.Component<InternalProps> {
     const newTextInfo = fn(currentTextInfo)
     const newCheckedSelection = this._sanityCheckSelection(newTextInfo.selection, newTextInfo.text)
     checkTextInfo(newTextInfo)
-    if (isIOS) {
-      this.setNativeProps({text: newTextInfo.text})
-      this.setNativeProps({selection: newCheckedSelection})
-    } else {
-      this.setNativeProps({text: newTextInfo.text})
-      this.setNativeProps({selection: newCheckedSelection})
-    }
+    this.setNativeProps({selection: newCheckedSelection, text: newTextInfo.text})
     this._lastNativeText = newTextInfo.text
     this._lastNativeSelection = newCheckedSelection
     if (reflectChange) {

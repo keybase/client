@@ -327,7 +327,6 @@ const ConnectedPlatformInput = React.memo(
     const onSubmitAndClear = React.useCallback(
       (text: string) => {
         onSubmit(text)
-        inputRef.current?.clear()
         setText('')
       },
       [onSubmit, setText]
