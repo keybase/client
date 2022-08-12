@@ -9,8 +9,4 @@ export type Props = {
   style?: StylesCrossPlatform // mobile only
 }
 
-declare function backgroundImageFn(set: string, sheetSize: number): string
-
-export {backgroundImageFn}
-
 export default class Emoji extends React.Component<Props> {}
