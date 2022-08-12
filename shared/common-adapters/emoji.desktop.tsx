@@ -9,12 +9,25 @@ import emojiSet from 'emoji-datasource-apple/img/apple/sheets/64.png'
 const unifiedToNative = (unified: string) =>
   String.fromCodePoint(...unified.split('-').map(u => Number(`0x${u}`)))
 
+const nameReg = /^(?:\:([^\:]+)\:)(?:\:skin-tone-(\d)\:)?$/
+const skins = ['1F3FA', '1F3FB', '1F3FC', '1F3FD', '1F3FE', '1F3FF']
+
 const EmojiWrapper = (props: Props) => {
   const {emojiName, size} = props
 
-  const name = emojiName.substring(1, emojiName.length - 1)
+  const match = emojiName.match(nameReg)
+  if (!match) return null
+  const name = match[1]
+  const skin = match[2]
 
-  const emoji = emojiNameMap[name]
+  let emoji = emojiNameMap[name]
+  if (skin) {
+    const skinNum = parseInt(skin)
+    if (!isNaN(skinNum)) {
+      emoji = emoji?.skin_variations?.[skins[skinNum - 1] ?? '']
+    }
+  }
+
   if (!emoji) return null
 
   const {sheet_x, sheet_y} = emoji
