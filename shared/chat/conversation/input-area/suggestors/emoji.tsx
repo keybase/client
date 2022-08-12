@@ -8,7 +8,7 @@ import * as Styles from '../../../../styles'
 import * as Waiting from '../../../../constants/waiting'
 import type * as Types from '../../../../constants/types/chat2'
 import {emojiDataToRenderableEmoji, renderEmoji, type EmojiData, RPCToEmojiData} from '../../../../util/emoji'
-import {emojiIndex, emojiNameMap} from '../../messages/react-button/emoji-picker/data'
+import {emojiSearch} from '../../messages/react-button/emoji-picker/data'
 
 export const transformer = (
   emoji: EmojiData,
@@ -61,10 +61,7 @@ export const useDataSource = (conversationIDKey: Types.ConversationIDKey, filter
   }
 
   // prefill data with stock emoji
-  let emojiData: Array<EmojiData> = []
-  emojiIndex.search(filter)?.forEach((res: {id?: string}) => {
-    res.id && emojiData.push(emojiNameMap[res.id])
-  })
+  let emojiData: Array<EmojiData> = emojiSearch(filter, 50)
 
   if (userEmojis) {
     const userEmoji = userEmojis

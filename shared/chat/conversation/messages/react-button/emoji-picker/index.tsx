@@ -22,35 +22,10 @@ import type * as RPCChatGen from '../../../../../constants/types/rpc-chat-gen'
 // defer loading this until we need to, very expensive
 const _getData = () => {
   const categories: typeof Data.categories = require('./data').categories
-  const emojiIndex: typeof Data.emojiIndex = require('./data').emojiIndex
-  let emojiNameMap: typeof Data.emojiNameMap = require('./data').emojiNameMap
+  const emojiSearch: typeof Data.emojiSearch = require('./data').emojiSearch
+  const emojiNameMap: typeof Data.emojiNameMap = require('./data').emojiNameMap
   const emojiSkinTones: typeof Data.skinTones = require('./data').skinTones
-
-  // use way less emoji data on storyshots, really blows up the snapshots
-  if (__STORYSHOT__) {
-    categories.length = 1
-    categories[0].emojis.length = 1
-
-    const emojis = Object.keys(emojiIndex.emojis)
-    emojiIndex.emojis = {
-      [emojis[0]]: emojiIndex.emojis[emojis[0]],
-      [emojis[1]]: emojiIndex.emojis[emojis[1]],
-    }
-    const emoticons = Object.keys(emojiIndex.emoticons)
-    emojiIndex.emoticons = {
-      [emoticons[0]]: emojiIndex.emoticons[emoticons[0]],
-      [emoticons[1]]: emojiIndex.emoticons[emoticons[1]],
-    }
-
-    const smallMap = Object.keys(emojiNameMap)
-    smallMap.length = 2
-    emojiNameMap = {
-      [smallMap[0]]: emojiNameMap[smallMap[0]],
-      [smallMap[1]]: emojiNameMap[smallMap[1]],
-    } as typeof Data.emojiNameMap
-  }
-
-  return {categories, emojiIndex, emojiNameMap, emojiSkinTones}
+  return {categories, emojiSearch, emojiNameMap, emojiSkinTones}
 }
 
 const chunkEmojis = (emojis: Array<EmojiData>, emojisPerLine: number): Array<Row> =>
@@ -180,19 +155,10 @@ const getCustomEmojiIndex = memoize((emojiGroups: Array<RPCChatGen.EmojiGroup>) 
 const emptyCustomEmojiIndex = {filter: () => [], get: () => undefined}
 
 const getResultFilter = (emojiGroups?: Array<RPCChatGen.EmojiGroup>) => {
-  const {emojiIndex, emojiNameMap} = _getData()
+  const {emojiSearch} = _getData()
   const customEmojiIndex = emojiGroups ? getCustomEmojiIndex(emojiGroups) : emptyCustomEmojiIndex
   return (filter: string): Array<EmojiData> => {
-    return [
-      ...customEmojiIndex.filter(filter),
-      ...removeObsolete(
-        // @ts-ignore type wrong?
-        emojiIndex
-          // @ts-ignore type wrong?
-          .search(filter, {maxResults: maxEmojiSearchResults})
-          .map((res: {id: string}) => emojiNameMap[res.id])
-      ),
-    ]
+    return [...customEmojiIndex.filter(filter), ...removeObsolete(emojiSearch(filter, maxEmojiSearchResults))]
   }
 }
 
