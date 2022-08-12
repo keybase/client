@@ -14,8 +14,6 @@ import {indefiniteArticle} from '../../../../util/string'
 import {infoPanelWidthTablet} from '../../info-panel/common'
 import {isLargeScreen} from '../../../../constants/platform'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
-// import * as TeamsConstants from '../../../../constants/teams'
-// import * as Waiting from '../../../../constants/waiting'
 import * as Platform from '../../../../constants/platform'
 import {assertionToDisplay} from '../../../../common-adapters/usernames'
 
@@ -304,10 +302,10 @@ const ConnectedPlatformInput = React.memo(
     )
     const {onSubmit} = useSubmit({
       conversationIDKey,
+      editOrdinal,
       jumpToRecent,
       onRequestScrollToBottom,
       replyTo,
-      editOrdinal,
     })
     const {sendTyping, sendTypingThrottled} = useTyping(conversationIDKey)
     const {inputRef, setTextInput} = useInput()
@@ -366,11 +364,12 @@ const ConnectedPlatformInput = React.memo(
     const isActiveForFocus = Container.useSelector(state => state.chat2.focus === null)
     React.useEffect(() => {
       inputRef.current?.focus()
-    }, [inputRef, focusInputCounter, isActiveForFocus])
+    }, [inputRef, focusInputCounter, isActiveForFocus, isEditing])
 
     const onCancelEditing = React.useCallback(() => {
       dispatch(Chat2Gen.createMessageSetEditing({conversationIDKey, ordinal: null}))
-    }, [dispatch, conversationIDKey])
+      setText('')
+    }, [dispatch, conversationIDKey, setText])
 
     React.useEffect(() => {
       if (isEditing && isEditExploded) {
@@ -409,6 +408,7 @@ const ConnectedPlatformInput = React.memo(
         onSubmit={onSubmitAndClear}
         inputSetRef={inputRef}
         onChangeText={onChangeText}
+        onCancelEditing={onCancelEditing}
         cannotWrite={meta.cannotWrite}
         conversationIDKey={conversationIDKey}
         explodingModeSeconds={explodingModeSeconds}

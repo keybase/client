@@ -332,7 +332,7 @@ const SideButtons = (p: SideButtonsProps) => {
 }
 
 const PlatformInput = (p: Props) => {
-  const {cannotWrite, conversationIDKey, explodingModeSeconds} = p
+  const {cannotWrite, conversationIDKey, explodingModeSeconds, onCancelEditing} = p
   const {showWalletsIcon, hintText, inputSetRef, isEditing, onSubmit} = p
   const {onRequestScrollDown, onRequestScrollUp, showReplyPreview} = p
   const htmlInputRef = React.useRef<HTMLInputElement>(null)
@@ -378,10 +378,6 @@ const PlatformInput = (p: Props) => {
       })
     )
   }, [dispatch, conversationIDKey, you])
-
-  const onCancelEditing = React.useCallback(() => {
-    dispatch(Chat2Gen.createMessageSetEditing({conversationIDKey, ordinal: null}))
-  }, [dispatch, conversationIDKey])
 
   const {globalKeyDownPressHandler, inputKeyDown, onChangeText} = useKeyboard({
     conversationIDKey,

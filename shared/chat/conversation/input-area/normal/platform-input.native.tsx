@@ -1,5 +1,4 @@
 import * as ConfigGen from '../../../../actions/config-gen'
-import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as Container from '../../../../util/container'
 import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
@@ -37,7 +36,7 @@ type MenuType = 'exploding' | 'filepickerpopup' | 'moremenu'
 
 type ButtonsProps = Pick<
   Props,
-  'conversationIDKey' | 'explodingModeSeconds' | 'isExploding' | 'cannotWrite'
+  'conversationIDKey' | 'explodingModeSeconds' | 'isExploding' | 'cannotWrite' | 'onCancelEditing'
 > & {
   hasText: boolean
   isEditing: boolean
@@ -49,7 +48,7 @@ type ButtonsProps = Pick<
 }
 
 const Buttons = (p: ButtonsProps) => {
-  const {conversationIDKey, insertText, ourShowMenu, onSubmit} = p
+  const {conversationIDKey, insertText, ourShowMenu, onSubmit, onCancelEditing} = p
   const {hasText, isEditing, isExploding, explodingModeSeconds, cannotWrite, toggleShowingMenu} = p
 
   const openFilePicker = React.useCallback(() => {
@@ -64,10 +63,6 @@ const Buttons = (p: ButtonsProps) => {
   }, [insertText])
 
   const dispatch = Container.useDispatch()
-
-  const onCancelEditing = React.useCallback(() => {
-    dispatch(Chat2Gen.createMessageSetEditing({conversationIDKey, ordinal: null}))
-  }, [conversationIDKey, dispatch])
 
   const openEmojiPicker = React.useCallback(() => {
     dispatch(
@@ -266,7 +261,7 @@ const PlatformInput = (p: Props) => {
     ]),
   })
   const {cannotWrite, conversationIDKey, isEditing, isExploding} = p
-  const {onSubmit, explodingModeSeconds, hintText} = p
+  const {onSubmit, explodingModeSeconds, hintText, onCancelEditing} = p
   const {inputSetRef, showTypingStatus, maxInputArea} = p
 
   const lastText = React.useRef('')
@@ -435,6 +430,7 @@ const PlatformInput = (p: Props) => {
           conversationIDKey={conversationIDKey}
           insertText={insertText}
           ourShowMenu={ourShowMenu}
+          onCancelEditing={onCancelEditing}
           onSelectionChange={onSelectionChange}
           onSubmit={onQueueSubmit}
           hasText={hasText}

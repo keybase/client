@@ -14,6 +14,7 @@ type Props = {
   isExploding: boolean
   maxInputArea?: number
   minWriterRole: TeamTypes.TeamRoleType
+  onCancelEditing: () => void
   onChangeText: (newText: string) => void
   onRequestScrollDown: () => void
   onRequestScrollUp: () => void
