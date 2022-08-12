@@ -142,7 +142,6 @@ class PlainInput extends React.Component<InternalProps> {
   }
 
   _onBlur = () => {
-    console.log('aaa onblur called')
     this.props.onBlur?.()
   }
 

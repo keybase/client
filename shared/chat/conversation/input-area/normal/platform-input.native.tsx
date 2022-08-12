@@ -273,30 +273,40 @@ const PlatformInput = (p: Props) => {
     setExpanded(nextState)
   }, [expanded, setExpanded])
 
+  const reallySend = React.useCallback(() => {
+    const text = inputRef.current?.value
+    if (text) {
+      onSubmit(text)
+      if (expanded) {
+        toggleExpandInput()
+      }
+    }
+  }, [expanded, onSubmit, toggleExpandInput])
+
+  // on ios we want to have the autocorrect fill in (especially if its the last word) so we must lose focus
+  // in order to not have the keyboard flicker we move focus to a hidden input and back, then submit
   const submitQueued = React.useRef(false)
   const onQueueSubmit = React.useCallback(() => {
     const text = lastText.current
     if (text) {
       submitQueued.current = true
-      silentInput.current?.focus()
-      inputRef.current?.focus()
-    }
-  }, [])
-
-  const onFocusAndMaybeSubmit = React.useCallback(() => {
-    // need to submit
-    if (submitQueued.current) {
-      submitQueued.current = false
-      const text = inputRef.current?.value
-      if (text) {
-        onSubmit(text)
-        if (expanded) {
-          toggleExpandInput()
-        }
+      if (Container.isIOS) {
+        silentInput.current?.focus()
+        inputRef.current?.focus()
+      } else {
+        reallySend()
       }
     }
+  }, [reallySend])
+
+  const onFocusAndMaybeSubmit = React.useCallback(() => {
+    // need to submit?
+    if (Container.isIOS && submitQueued.current) {
+      submitQueued.current = false
+      reallySend()
+    }
     onFocus()
-  }, [onFocus, expanded, onSubmit, toggleExpandInput])
+  }, [onFocus, reallySend])
 
   const insertText = React.useCallback(
     (toInsert: string) => {
