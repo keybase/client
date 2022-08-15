@@ -41,17 +41,18 @@ export const emojiNameMap = Object.values(emojidata).reduce((res: {[K in string]
 
 export const emojiSearch = (filter: string, maxResults: number) => {
   const parts = filter.toLowerCase().split(/[\s|,|\-|_]+/)
-  const res = Object.values(emojidata as any).map((emoji: EmojiData) => {
+  const vals: Array<EmojiData> = Object.values(emojidata as any)
+  type ResType = Array<{emoji: EmojiData; score: number}>
+  const res = vals.reduce<ResType>((arr, emoji: EmojiData) => {
     let score = 0
 
     const looking = [...new Set([emoji.name, emoji.category, emoji.short_name, ...emoji.short_names])].map(
       l => (l ? l.toLowerCase() : '')
     )
 
-    // TODO flags coming in????
-
     looking.forEach(look => {
       parts.forEach(part => {
+        if (!look || !part) return
         const idx = look.indexOf(part)
         if (idx === -1) return
         if (idx === 0) {
@@ -62,8 +63,11 @@ export const emojiSearch = (filter: string, maxResults: number) => {
       })
     })
 
-    return {emoji, score}
-  })
+    if (score) {
+      arr.push({emoji, score})
+    }
+    return arr
+  }, [])
 
   res.sort((a, b) => b.score - a.score)
   res.length = Math.min(res.length, maxResults)

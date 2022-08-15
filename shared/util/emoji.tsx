@@ -17,6 +17,8 @@ export type EmojiData = {
   unified: string
   userEmojiRenderStock?: string
   userEmojiRenderUrl?: string
+  sheet_x: number
+  sheet_y: number
 }
 
 export const getEmojiStr = (emoji: EmojiData, skinToneModifier?: string) => {
