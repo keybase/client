@@ -19,6 +19,7 @@ class PlainInput extends React.Component<InternalProps> {
     textType: 'Body',
   }
 
+  _mounted = true
   _input = React.createRef<TextInput>()
   _lastNativeText: string | null = null
   _lastNativeSelection: Selection | null = null
@@ -36,6 +37,10 @@ class PlainInput extends React.Component<InternalProps> {
     this._input.current?.setNativeProps(nativeProps)
   }
 
+  componentWillUnmount() {
+    this._mounted = false
+  }
+
   transformText = (fn: (textInfo: TextInfo) => TextInfo, reflectChange: boolean) => {
     if (this._controlled()) {
       const errMsg =
@@ -50,7 +55,17 @@ class PlainInput extends React.Component<InternalProps> {
     const newTextInfo = fn(currentTextInfo)
     const newCheckedSelection = this._sanityCheckSelection(newTextInfo.selection, newTextInfo.text)
     checkTextInfo(newTextInfo)
-    this.setNativeProps({selection: newCheckedSelection, text: newTextInfo.text})
+    this.setNativeProps({text: newTextInfo.text})
+    // selection is pretty flakey on RN, skip if its at the end?
+    if (
+      newCheckedSelection.start === newCheckedSelection.end &&
+      newCheckedSelection.start === newTextInfo.text.length
+    ) {
+    } else {
+      setTimeout(() => {
+        this._mounted && this.setNativeProps({selection: newCheckedSelection})
+      }, 100)
+    }
     this._lastNativeText = newTextInfo.text
     this._lastNativeSelection = newCheckedSelection
     if (reflectChange) {
