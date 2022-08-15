@@ -77,8 +77,9 @@ const EmojiButton = (p: EmojiButtonProps) => {
   const insertEmoji = React.useCallback(
     (emojiColons: string) => {
       inputRef.current?.transformText(({text, selection}) => {
-        const newText = text.slice(0, selection.start || 0) + emojiColons + text.slice(selection.end || 0)
-        const pos = (selection.start || 0) + emojiColons.length
+        const newText =
+          text.slice(0, selection.start || 0) + emojiColons + text.slice(selection.end || 0) + ' '
+        const pos = (selection.start || 0) + emojiColons.length + 1
         return {
           selection: {end: pos, start: pos},
           text: newText,

@@ -69,7 +69,7 @@ const Buttons = (p: ButtonsProps) => {
       RouteTreeGen.createNavigateAppend({
         path: [
           {
-            props: {conversationIDKey, onPickAction: insertText},
+            props: {conversationIDKey, onPickAction: (emoji: string) => insertText(emoji + ' ')},
             selected: 'chatChooseEmoji',
           },
         ],
