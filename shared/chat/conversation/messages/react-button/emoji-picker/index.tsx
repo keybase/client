@@ -25,7 +25,7 @@ const _getData = () => {
   const emojiSearch: typeof Data.emojiSearch = require('./data').emojiSearch
   const emojiNameMap: typeof Data.emojiNameMap = require('./data').emojiNameMap
   const emojiSkinTones: typeof Data.skinTones = require('./data').skinTones
-  return {categories, emojiSearch, emojiNameMap, emojiSkinTones}
+  return {categories, emojiNameMap, emojiSearch, emojiSkinTones}
 }
 
 const chunkEmojis = (emojis: Array<EmojiData>, emojisPerLine: number): Array<Row> =>
@@ -397,10 +397,14 @@ class EmojiPicker extends React.PureComponent<Props, State> {
   }
 }
 
-export const getSkinToneModifierStrIfAvailable = (emoji: EmojiData, skinTone?: Types.EmojiSkinTone) =>
-  skinTone && emoji.skin_variations?.[skinTone]
-    ? `:${_getData().emojiSkinTones.get(skinTone)?.short_name}:`
-    : undefined
+export const getSkinToneModifierStrIfAvailable = (emoji: EmojiData, skinTone?: Types.EmojiSkinTone) => {
+  if (skinTone && emoji.skin_variations?.[skinTone]) {
+    const {emojiSkinTones} = _getData()
+    const idx = emojiSkinTones.indexOf(skinTone)
+    return `:skin-tone-${idx + 1}:`
+  }
+  return undefined
+}
 
 const makeEmojiPlaceholder = (index: number) => (
   <Kb.Box key={`ph-${index.toString()}`} style={styles.emojiPlaceholder} />

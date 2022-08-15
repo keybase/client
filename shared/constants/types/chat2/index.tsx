@@ -180,11 +180,12 @@ export type ParticipantInfo = {
 }
 
 // Corresponds to skinTones in emoji-datasource.
-export type EmojiSkinTone = '1F3FB' | '1F3FC' | '1F3FD' | '1F3FE' | '1F3FF'
+export type EmojiSkinTone = '1F3FA' | '1F3FB' | '1F3FC' | '1F3FD' | '1F3FE' | '1F3FF'
 
 export const EmojiSkinToneToRPC = (emojiSkinTone: undefined | EmojiSkinTone): RPCTypes.ReacjiSkinTone => {
   switch (emojiSkinTone) {
     case undefined:
+    case '1F3FA':
       return RPCTypes.ReacjiSkinTone.none
     case '1F3FB':
       return RPCTypes.ReacjiSkinTone.skintone1
@@ -219,6 +220,7 @@ export const EmojiSkinToneFromRPC = (reacjiSkinTone: RPCTypes.ReacjiSkinTone): u
 export const SkinToneToDotColor = (skinTone: undefined | EmojiSkinTone): string => {
   switch (skinTone) {
     case undefined:
+    case '1F3FA':
       return '#ffc93a'
     case '1F3FB':
       return '#fadcbc'

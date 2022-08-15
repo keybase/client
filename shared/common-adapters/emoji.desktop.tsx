@@ -1,6 +1,6 @@
 import * as React from 'react'
 import type {Props} from './emoji'
-import {emojiNameMap} from '../chat/conversation/messages/react-button/emoji-picker/data'
+import {emojiNameMap, skinTones} from '../chat/conversation/messages/react-button/emoji-picker/data'
 
 // Just the single set we use
 // @ts-ignore
@@ -10,7 +10,6 @@ const unifiedToNative = (unified: string) =>
   String.fromCodePoint(...unified.split('-').map(u => Number(`0x${u}`)))
 
 const nameReg = /^(?:\:([^\:]+)\:)(?:\:skin-tone-(\d)\:)?$/
-const skins = ['1F3FA', '1F3FB', '1F3FC', '1F3FD', '1F3FE', '1F3FF']
 
 const EmojiWrapper = (props: Props) => {
   const {emojiName, size} = props
@@ -24,15 +23,15 @@ const EmojiWrapper = (props: Props) => {
   if (skin) {
     const skinNum = parseInt(skin)
     if (!isNaN(skinNum)) {
-      emoji = emoji?.skin_variations?.[skins[skinNum - 1] ?? '']
+      emoji = emoji?.skin_variations?.[skinTones[skinNum - 1] ?? '']
     }
   }
 
   if (!emoji) return null
 
   const {sheet_x, sheet_y} = emoji
-  const sheetColumns = 57
-  const sheetRows = 57
+  const sheetColumns = 61
+  const sheetRows = 61
   const multiplyX = 100 / (sheetColumns - 1)
   const multiplyY = 100 / (sheetRows - 1)
   const backgroundPosition = `${multiplyX * sheet_x}% ${multiplyY * sheet_y}%`

@@ -1,4 +1,4 @@
-import emojidata from 'emoji-datasource'
+import emojidata from 'emoji-datasource-apple'
 import groupBy from 'lodash/groupBy'
 import type {EmojiData} from '../../../../../util/emoji'
 
@@ -74,8 +74,6 @@ export const emojiSearch = (filter: string, maxResults: number) => {
   return res.map(r => r.emoji)
 }
 
-export const skinTones = new Map(
-  categorized['Skin Tones'].map(skinTone => [skinTone.unified, skinTone]) ?? []
-)
+export const skinTones = ['1F3FA', '1F3FB', '1F3FC', '1F3FD', '1F3FE', '1F3FF'] as const
 
 export const defaultHoverEmoji = emojiNameMap.potato || emojidata[0]

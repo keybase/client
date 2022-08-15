@@ -4209,15 +4209,10 @@ electron@19.0.4:
     "@types/node" "^16.11.26"
     extract-zip "^1.0.3"
 
-emoji-datasource-apple@5.0.1:
-  version "5.0.1"
-  resolved "https://registry.yarnpkg.com/emoji-datasource-apple/-/emoji-datasource-apple-5.0.1.tgz#fd3a3fb9993f1c58a53b015e3a30fe640641044f"
-  integrity sha512-VmbD3iwv5FS2XUuxzmRpkicGNwXWrMe45f5ZL6YkcMznp0YtCsKO2bCxsSZ41XU1aWtwH5IZDqF12038TC01kw==
-
-emoji-datasource@5.0.1:
-  version "5.0.1"
-  resolved "https://registry.yarnpkg.com/emoji-datasource/-/emoji-datasource-5.0.1.tgz#31eaaff7caa6640929327b4f4ff66f2bf313df0a"
-  integrity sha512-RXokuCv4o8RFLiigN1skAdZwJuJWqtBvcK3GVKpvAL/7BeH95enmKsli7cG8YZ85RTjyEe3+GAdpJJOV43KLKQ==
+emoji-datasource-apple@14.0.0:
+  version "14.0.0"
+  resolved "https://registry.yarnpkg.com/emoji-datasource-apple/-/emoji-datasource-apple-14.0.0.tgz#ee040d210c07e038eb18f1c64a5a2f03ed977903"
+  integrity sha512-92Q53C44DzSqreHVlajEG24O5sFZjY1E9xRLWWyud7+/hW8S2vs4DiHuNuNZ0CLDCmZMQHc95okN9V8Mk6yBRw==
 
 emoji-regex@^8.0.0:
   version "8.0.0"
