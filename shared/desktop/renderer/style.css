@@ -395,7 +395,7 @@ body {
   transition: opacity 250ms ease-in-out;
 }
 
-.emoji-mart-emoji {
+.emoji {
   position: relative;
   display: inline-block;
   font-size: 0;
@@ -406,30 +406,24 @@ body {
   box-shadow: none;
 }
 
-.emoji-mart-emoji-native {
+.emoji-native {
   font-family: "Segoe UI Emoji", "Segoe UI Symbol", "Segoe UI", "Apple Color Emoji", "Twemoji Mozilla", "Noto Color Emoji", "Android Emoji";
 }
 
-.emoji-mart-emoji .emoji-mart-emoji-native {
+.emoji .emoji-native {
   line-height: 0;
   width: 0;
   height: 0;
   display: inline-block;
 }
 
-.emoji-mart-emoji {
+.emoji {
   vertical-align: middle;
   display: inline;
 }
 
-.center-emojis .emoji-mart-emoji > span {
+.center-emojis .emoji > span {
     vertical-align: middle;
-}
-
-.darkMode .emoji-mart {
-  color: rgba(255, 255, 255, 0.85);
-  border: 1px solid rgba(0, 0, 0, 0.85);
-  background: #191919;
 }
 
 .growFadeInSmall {

@@ -41,7 +41,7 @@ const EmojiWrapper = (props: Props) => {
 
   return (
     <span
-      className="emoji-mart-emoji"
+      className="emoji"
       title={name}
       style={{
         backgroundImage,
@@ -53,7 +53,7 @@ const EmojiWrapper = (props: Props) => {
       }}
     >
       {!props.disableSelecting && (
-        <span className="emoji-mart-emoji emoji-mart-emoji-native">{unifiedToNative(emoji.unified)}</span>
+        <span className="emoji emoji-native">{unifiedToNative(emoji.unified)}</span>
       )}
     </span>
   )
