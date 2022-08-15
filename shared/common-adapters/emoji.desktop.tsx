@@ -1,23 +1,61 @@
 import * as React from 'react'
-import {Emoji} from 'emoji-mart'
 import type {Props} from './emoji'
+import {type EmojiData, emojiNameMap, skinTones} from '../util/emoji'
 
 // Just the single set we use
 // @ts-ignore
 import emojiSet from 'emoji-datasource-apple/img/apple/sheets/64.png'
 
-const backgroundImageFn = (_: string, __: number) => emojiSet
+const unifiedToNative = (unified: string) =>
+  String.fromCodePoint(...unified.split('-').map(u => Number(`0x${u}`)))
 
-// Size 0 is cause we want the native emoji for copy/paste and not for rendering
+const nameReg = /^(?::([^:]+):)(?::skin-tone-(\d):)?$/
+
 const EmojiWrapper = (props: Props) => {
   const {emojiName, size} = props
+
+  const match = emojiName.match(nameReg)
+  if (!match) return null
+  const name = match[1]
+  const skin = match[2]
+
+  let emoji: EmojiData | undefined = emojiNameMap[name]
+  if (skin) {
+    const skinNum = parseInt(skin)
+    if (!isNaN(skinNum)) {
+      emoji = emoji?.skin_variations?.[skinTones[skinNum - 1] ?? ''] as typeof emoji
+    }
+  }
+
+  if (!emoji) return null
+
+  const {sheet_x, sheet_y} = emoji
+  const sheetColumns = 61
+  const sheetRows = 61
+  const multiplyX = 100 / (sheetColumns - 1)
+  const multiplyY = 100 / (sheetRows - 1)
+  const backgroundPosition = `${multiplyX * sheet_x}% ${multiplyY * sheet_y}%`
+  const backgroundSize = `${100 * sheetColumns}% ${100 * sheetRows}%`
+  const backgroundImage = `url("${emojiSet as string}")`
+
   return (
-    <Emoji emoji={emojiName} size={size} backgroundImageFn={backgroundImageFn} tooltip={true}>
-      {!props.disableSelecting && <Emoji emoji={emojiName} size={0} native={true} />}
-    </Emoji>
+    <span
+      className="emoji"
+      title={name}
+      style={{
+        backgroundImage,
+        backgroundPosition,
+        backgroundSize,
+        display: 'inline-block',
+        height: size,
+        width: size,
+      }}
+    >
+      {!props.disableSelecting && (
+        <span className="emoji emoji-native">{unifiedToNative(emoji.unified)}</span>
+      )}
+    </span>
   )
 }
-
-export {backgroundImageFn}
 
 export default EmojiWrapper

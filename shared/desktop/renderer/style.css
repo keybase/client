@@ -1,4 +1,3 @@
-@import '~emoji-mart/css/emoji-mart.css';
 @import '../../common-adapters/text.css';
 
 /* Reset */
@@ -396,17 +395,35 @@ body {
   transition: opacity 250ms ease-in-out;
 }
 
-/* These overrides are so the 'invisible' native emoji (so we can copy and paste) doesn't affect the sizing */
-.emoji-mart-emoji .emoji-mart-emoji-native {
+.emoji {
+  position: relative;
+  display: inline-block;
+  font-size: 0;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  box-shadow: none;
+}
+
+.emoji-native {
+  font-family: "Segoe UI Emoji", "Segoe UI Symbol", "Segoe UI", "Apple Color Emoji", "Twemoji Mozilla", "Noto Color Emoji", "Android Emoji";
+}
+
+.emoji .emoji-native {
   line-height: 0;
   width: 0;
   height: 0;
   display: inline-block;
 }
 
-.emoji-mart-emoji {
+.emoji {
   vertical-align: middle;
   display: inline;
+}
+
+.center-emojis .emoji > span {
+    vertical-align: middle;
 }
 
 .growFadeInSmall {
@@ -426,35 +443,6 @@ body {
 }
 .darkMode {
   background-color: #191919;
-}
-
-.emoji-mart,
-.emoji-mart-search input {
-  border-radius: 4px;
-}
-
-.center-emojis .emoji-mart-emoji > span {
-    vertical-align: middle;
-}
-
-.darkMode .emoji-mart {
-  color: rgba(255, 255, 255, 0.85);
-  border: 1px solid rgba(0, 0, 0, 0.85);
-  background: #191919;
-}
-.darkMode .emoji-mart-search input {
-  background-color: #000;
-  border: 1px solid #000;
-  color: rgba(255, 255, 255, 0.85);
-}
-.darkMode .emoji-mart-category-label span {
-  background: #191919;
-}
-.darkMode .emoji-mart-category .emoji-mart-emoji:hover:before {
-  background-color: rgba(255, 255, 255, 0.15);
-}
-.darkMode .emoji-mart-bar {
-  border-color: rgba(0, 0, 0, 0.85);
 }
 
 .addInviteAndLinkBox {

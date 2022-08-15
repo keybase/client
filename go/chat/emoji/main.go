@@ -134,7 +134,7 @@ func createCodeMapSource(pkgName string, emojiCodeMap map[string]string, emojiRe
 func main() {
 	flag.StringVar(&pkgName, "pkg", "storage", "output package")
 	flag.StringVar(&outName, "o", "../storage/emoji_codemap.go", "output file")
-	flag.StringVar(&inName, "i", "../../../shared/node_modules/emoji-datasource/emoji.json", "input file")
+	flag.StringVar(&inName, "i", "../../../shared/node_modules/emoji-datasource-apple/emoji.json", "input file")
 	flag.Parse()
 	codeMap, revCodeMap, err := createEmojiDataCodeMap(inName)
 	if err != nil {
