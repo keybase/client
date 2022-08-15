@@ -961,8 +961,13 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     }
     draftState.containsLatestMessageMap = containsLatestMessageMap
     // only if different
-    if (!shallowEqual([...draftState.messageOrdinals], [...messageOrdinals])) {
-      draftState.messageOrdinals = messageOrdinals
+    if (
+      !shallowEqual(
+        [...(draftState.messageOrdinals.get(conversationIDKey) ?? [])],
+        [...(messageOrdinals.get(conversationIDKey) ?? [])]
+      )
+    ) {
+      draftState.messageOrdinals.set(conversationIDKey, messageOrdinals.get(conversationIDKey) ?? new Set())
     }
     draftState.pendingOutboxToOrdinal = pendingOutboxToOrdinal
     draftState.messageMap = messageMap
