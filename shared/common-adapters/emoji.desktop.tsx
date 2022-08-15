@@ -9,7 +9,7 @@ import emojiSet from 'emoji-datasource-apple/img/apple/sheets/64.png'
 const unifiedToNative = (unified: string) =>
   String.fromCodePoint(...unified.split('-').map(u => Number(`0x${u}`)))
 
-const nameReg = /^(?:\:([^\:]+)\:)(?:\:skin-tone-(\d)\:)?$/
+const nameReg = /^(?::([^:]+):)(?::skin-tone-(\d):)?$/
 
 const EmojiWrapper = (props: Props) => {
   const {emojiName, size} = props

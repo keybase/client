@@ -155,10 +155,10 @@ export function RPCToEmojiData(emoji: RPCChatTypes.Emoji, noAnim: boolean, categ
   return {
     category: category ?? '',
     name: null,
-    short_name: emoji.alias,
-    short_names: [emoji.alias],
     sheet_x: -1,
     sheet_y: -1,
+    short_name: emoji.alias,
+    short_names: [emoji.alias],
     teamname: emoji.teamname ?? undefined,
     unified: '',
     userEmojiRenderStock:
