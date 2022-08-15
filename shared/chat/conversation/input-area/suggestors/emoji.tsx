@@ -7,8 +7,13 @@ import * as React from 'react'
 import * as Styles from '../../../../styles'
 import * as Waiting from '../../../../constants/waiting'
 import type * as Types from '../../../../constants/types/chat2'
-import {emojiDataToRenderableEmoji, renderEmoji, type EmojiData, RPCToEmojiData} from '../../../../util/emoji'
-import {emojiSearch} from '../../messages/react-button/emoji-picker/data'
+import {
+  emojiSearch,
+  emojiDataToRenderableEmoji,
+  renderEmoji,
+  type EmojiData,
+  RPCToEmojiData,
+} from '../../../../util/emoji'
 
 export const transformer = (
   emoji: EmojiData,

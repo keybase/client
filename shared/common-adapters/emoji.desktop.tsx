@@ -1,6 +1,6 @@
 import * as React from 'react'
 import type {Props} from './emoji'
-import {emojiNameMap, skinTones} from '../chat/conversation/messages/react-button/emoji-picker/data'
+import {type EmojiData, emojiNameMap, skinTones} from '../util/emoji'
 
 // Just the single set we use
 // @ts-ignore
@@ -19,11 +19,11 @@ const EmojiWrapper = (props: Props) => {
   const name = match[1]
   const skin = match[2]
 
-  let emoji = emojiNameMap[name]
+  let emoji: EmojiData | undefined = emojiNameMap[name]
   if (skin) {
     const skinNum = parseInt(skin)
     if (!isNaN(skinNum)) {
-      emoji = emoji?.skin_variations?.[skinTones[skinNum - 1] ?? '']
+      emoji = emoji?.skin_variations?.[skinTones[skinNum - 1] ?? ''] as typeof emoji
     }
   }
 
@@ -36,7 +36,7 @@ const EmojiWrapper = (props: Props) => {
   const multiplyY = 100 / (sheetRows - 1)
   const backgroundPosition = `${multiplyX * sheet_x}% ${multiplyY * sheet_y}%`
   const backgroundSize = `${100 * sheetColumns}% ${100 * sheetRows}%`
-  const backgroundImage = `url("${emojiSet}")`
+  const backgroundImage = `url("${emojiSet as string}")`
 
   return (
     <span
