@@ -5,6 +5,7 @@
 // We use react-measure to cache the heights
 import * as React from 'react'
 import * as Styles from '../../../styles'
+// import * as Container from '../../../util/container'
 import * as Types from '../../../constants/types/chat2'
 import JumpToRecent from './jump-to-recent'
 import Measure from 'react-measure'
@@ -40,7 +41,7 @@ const debug = __STORYBOOK__
 let markedInitiallyLoaded = false
 
 const ThreadWrapper = (p: Props) => {
-  const {containsLatestMessage} = p
+  const {containsLatestMessage, loadOlderMessages, loadNewerMessages, onJumpToRecent} = p
   const listProps = {...p}
   const listRef = React.useRef<HTMLDivElement | null>(null)
   const listContentsRef = React.useRef<HTMLDivElement | null>(null)
@@ -131,6 +132,60 @@ const ThreadWrapper = (p: Props) => {
     listContentsRef.current = listContents
   }, [])
 
+  const checkForLoadMoreThrottled = React.useCallback(
+    // TODO useThrottle Container.useTh(
+    () => {
+      // are we at the top?
+      const list = listRef.current
+      if (list) {
+        if (list.scrollTop < listEdgeSlop) {
+          loadOlderMessages()
+        } else if (
+          !containsLatestMessage &&
+          !isLockedToBottom() &&
+          list.scrollTop > list.scrollHeight - list.clientHeight - listEdgeSlop
+        ) {
+          loadNewerMessages()
+        }
+      }
+    },
+    [containsLatestMessage, loadNewerMessages, loadOlderMessages, isLockedToBottom]
+    //   100,
+    //   // trailing = true cause you can be on top but keep scrolling which can keep the throttle going and ultimately miss out
+    //   // on scrollTop being zero and not trying to load more
+    //   {leading: true, trailing: true}
+  )
+
+  const scrollToCentered = React.useCallback(() => {
+    // grab the waypoint we made for the centered ordinal and scroll to it
+    const scrollWaypoint = listRef.current?.querySelectorAll(`[data-key=${scrollOrdinalKey}]`)
+    scrollWaypoint?.[0].scrollIntoView({block: 'center', inline: 'nearest'})
+  }, [listRef])
+
+  const scrollDown = React.useCallback(() => {
+    const list = listRef.current
+    list &&
+      adjustScrollAndIgnoreOnScroll(() => {
+        list.scrollTop += list.clientHeight
+      })
+  }, [adjustScrollAndIgnoreOnScroll])
+
+  const scrollUp = React.useCallback(() => {
+    lockedToBottomRef.current = false
+    const list = listRef.current
+    list &&
+      adjustScrollAndIgnoreOnScroll(() => {
+        list.scrollTop -= list.clientHeight
+        checkForLoadMoreThrottled()
+      })
+  }, [adjustScrollAndIgnoreOnScroll, checkForLoadMoreThrottled])
+
+  const jumpToRecent = React.useCallback(() => {
+    lockedToBottomRef.current = true
+    scrollToBottom()
+    onJumpToRecent()
+  }, [lockedToBottomRef, scrollToBottom, onJumpToRecent])
+
   return (
     <Thread
       {...listProps}
@@ -145,6 +200,11 @@ const ThreadWrapper = (p: Props) => {
       ignoreOnScrollRef={ignoreOnScrollRef}
       scrollToBottom={scrollToBottom}
       setListContents={setListContents}
+      scrollToCentered={scrollToCentered}
+      scrollDown={scrollDown}
+      scrollUp={scrollUp}
+      checkForLoadMoreThrottled={checkForLoadMoreThrottled}
+      jumpToRecent={jumpToRecent}
     />
   )
 }
@@ -159,48 +219,16 @@ class Thread extends React.PureComponent<
     lockedToBottomRef: React.MutableRefObject<boolean>
     ignoreOnScrollRef: React.MutableRefObject<boolean>
     isLockedToBottom: () => boolean
+    checkForLoadMoreThrottled: () => void
     scrollToBottom: () => void
+    scrollToCentered: () => void
+    scrollUp: () => void
+    scrollDown: () => void
+    jumpToRecent: () => void
     adjustScrollAndIgnoreOnScroll: (fn: () => void) => void
     setListContents: (listContents: HTMLDivElement | null) => void
   }
 > {
-  private scrollToCentered = () => {
-    const list = this.props.listRef.current
-    if (list) {
-      // grab the waypoint we made for the centered ordinal and scroll to it
-      const scrollWaypoint = list.querySelectorAll(`[data-key=${scrollOrdinalKey}]`)
-      if (scrollWaypoint.length > 0) {
-        scrollWaypoint[0].scrollIntoView({block: 'center', inline: 'nearest'})
-      }
-    }
-  }
-
-  private scrollDown = () => {
-    const list = this.props.listRef.current
-    if (list) {
-      this.props.adjustScrollAndIgnoreOnScroll(() => {
-        list.scrollTop += list.clientHeight
-      })
-    }
-  }
-
-  private scrollUp = () => {
-    this.props.lockedToBottomRef.current = false
-    const list = this.props.listRef.current
-    if (list) {
-      this.props.adjustScrollAndIgnoreOnScroll(() => {
-        list.scrollTop -= list.clientHeight
-        this.checkForLoadMoreThrottled()
-      })
-    }
-  }
-
-  private jumpToRecent = () => {
-    this.props.lockedToBottomRef.current = true
-    this.props.scrollToBottom()
-    this.props.onJumpToRecent()
-  }
-
   componentDidMount() {
     if (!markedInitiallyLoaded) {
       markedInitiallyLoaded = true
@@ -208,7 +236,7 @@ class Thread extends React.PureComponent<
     }
     if (this.props.centeredOrdinal) {
       this.props.lockedToBottomRef.current = false
-      this.scrollToCentered()
+      this.props.scrollToCentered()
       return
     }
     if (this.props.isLockedToBottom()) {
@@ -248,13 +276,13 @@ class Thread extends React.PureComponent<
 
     // someone requested we scroll down
     if (this.props.scrollListDownCounter !== prevProps.scrollListDownCounter) {
-      this.scrollDown()
+      this.props.scrollDown()
       return
     }
 
     // someone requested we scroll up
     if (this.props.scrollListUpCounter !== prevProps.scrollListUpCounter) {
-      this.scrollUp()
+      this.props.scrollUp()
       return
     }
 
@@ -284,7 +312,7 @@ class Thread extends React.PureComponent<
     // Check to see if our centered ordinal has changed, and if so, scroll to it
     if (!!this.props.centeredOrdinal && this.props.centeredOrdinal !== prevProps.centeredOrdinal) {
       this.props.lockedToBottomRef.current = false
-      this.scrollToCentered()
+      this.props.scrollToCentered()
       return
     }
 
@@ -323,7 +351,8 @@ class Thread extends React.PureComponent<
   private cleanupDebounced = () => {
     this.onAfterScroll.cancel()
     this.onScrollThrottled.cancel()
-    this.checkForLoadMoreThrottled.cancel()
+    // TODO put back
+    // this.props.checkForLoadMoreThrottled.cancel()
   }
 
   private onScroll = () => {
@@ -333,7 +362,7 @@ class Thread extends React.PureComponent<
     }
     // quickly set to false to assume we're not locked. if we are the throttled one will set it to true
     this.props.lockedToBottomRef.current = false
-    this.checkForLoadMoreThrottled()
+    this.props.checkForLoadMoreThrottled()
     this.onScrollThrottled()
   }
 
@@ -354,28 +383,6 @@ class Thread extends React.PureComponent<
       this.onAfterScroll()
     },
     100,
-    {leading: true, trailing: true}
-  )
-
-  private checkForLoadMoreThrottled = throttle(
-    () => {
-      // are we at the top?
-      const list = this.props.listRef.current
-      if (list) {
-        if (list.scrollTop < listEdgeSlop) {
-          this.props.loadOlderMessages()
-        } else if (
-          !this.props.containsLatestMessage &&
-          !this.props.isLockedToBottom() &&
-          list.scrollTop > list.scrollHeight - list.clientHeight - listEdgeSlop
-        ) {
-          this.props.loadNewerMessages()
-        }
-      }
-    },
-    100,
-    // trailing = true cause you can be on top but keep scrolling which can keep the throttle going and ultimately miss out
-    // on scrollTop being zero and not trying to load more
     {leading: true, trailing: true}
   )
 
@@ -530,7 +537,7 @@ class Thread extends React.PureComponent<
             </div>
           </div>
           {!this.props.containsLatestMessage && this.props.messageOrdinals.length > 0 && (
-            <JumpToRecent onClick={this.jumpToRecent} style={styles.jumpToRecent} />
+            <JumpToRecent onClick={this.props.jumpToRecent} style={styles.jumpToRecent} />
           )}
         </div>
       </ErrorBoundary>
