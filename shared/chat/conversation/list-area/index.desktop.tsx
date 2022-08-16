@@ -37,13 +37,8 @@ const scrollOrdinalKey = 'scroll-ordinal-key'
 let markedInitiallyLoaded = false
 
 const ThreadWrapper = (p: Props) => {
-  const {
-    containsLatestMessage,
-    loadOlderMessages,
-    loadNewerMessages,
-    onJumpToRecent,
-    markInitiallyLoadedThreadAsRead,
-  } = p
+  const {containsLatestMessage, loadOlderMessages, loadNewerMessages, markInitiallyLoadedThreadAsRead} = p
+  const {scrollListDownCounter, scrollListUpCounter, onJumpToRecent} = p
   const {conversationIDKey, copyToClipboard, onFocusInput, messageOrdinals, centeredOrdinal} = p
   const listProps = {...p}
   const listRef = React.useRef<HTMLDivElement | null>(null)
@@ -409,6 +404,21 @@ const ThreadWrapper = (p: Props) => {
     }
   }, [messageOrdinals, isLockedToBottom])
 
+  // conversation changed
+  Container.useDepChangeEffect(() => {
+    cleanupDebounced()
+    lockedToBottomRef.current = true
+    scrollToBottom()
+  }, [conversationIDKey, cleanupDebounced, scrollToBottom])
+
+  // scroll requested
+  Container.useDepChangeEffect(() => {
+    scrollDown()
+  }, [scrollListDownCounter, scrollDown])
+  Container.useDepChangeEffect(() => {
+    scrollUp()
+  }, [scrollListUpCounter, scrollUp])
+
   return (
     <Thread
       {...listProps}
@@ -471,31 +481,6 @@ class Thread extends React.PureComponent<
   }
 > {
   componentDidUpdate(prevProps: Props) {
-    if (this.props === prevProps) {
-      // don't do any of the below if just state changes
-      return
-    }
-
-    // conversation changed
-    if (this.props.conversationIDKey !== prevProps.conversationIDKey) {
-      this.props.cleanupDebounced()
-      this.props.lockedToBottomRef.current = true
-      this.props.scrollToBottom()
-      return
-    }
-
-    // someone requested we scroll down
-    if (this.props.scrollListDownCounter !== prevProps.scrollListDownCounter) {
-      this.props.scrollDown()
-      return
-    }
-
-    // someone requested we scroll up
-    if (this.props.scrollListUpCounter !== prevProps.scrollListUpCounter) {
-      this.props.scrollUp()
-      return
-    }
-
     // someone requested we scroll to bottom and lock (ignore if we don't have latest)
     if (
       this.props.scrollListToBottomCounter !== prevProps.scrollListToBottomCounter &&
