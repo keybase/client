@@ -19,7 +19,7 @@ import type {createListenerMiddleware} from '@reduxjs/toolkit'
 export type ListenerMiddleware = ReturnType<typeof createListenerMiddleware>
 export {type RouteProps, getRouteParams, getRouteParamsFromRoute} from '../router-v2/route-params'
 export {listenAction, type ListenerApi, spawn} from './redux-toolkit'
-export {useDebounce, useDebouncedCallback, useThrottledCallback} from 'use-debounce'
+export {useDebounce, useDebouncedCallback, useThrottledCallback, type DebouncedState} from 'use-debounce'
 
 // don't pay for this in prod builds
 if (!__DEV__) {

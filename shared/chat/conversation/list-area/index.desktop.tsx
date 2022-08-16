@@ -5,7 +5,7 @@
 // We use react-measure to cache the heights
 import * as React from 'react'
 import * as Styles from '../../../styles'
-// import * as Container from '../../../util/container'
+import * as Container from '../../../util/container'
 import * as Types from '../../../constants/types/chat2'
 import JumpToRecent from './jump-to-recent'
 import Measure from 'react-measure'
@@ -132,9 +132,8 @@ const ThreadWrapper = (p: Props) => {
     listContentsRef.current = listContents
   }, [])
 
-  const checkForLoadMoreThrottled = React.useCallback(
-    // TODO useThrottle Container.useTh(
-    () => {
+  const checkForLoadMoreThrottled = Container.useThrottledCallback(
+    React.useCallback(() => {
       // are we at the top?
       const list = listRef.current
       if (list) {
@@ -148,12 +147,11 @@ const ThreadWrapper = (p: Props) => {
           loadNewerMessages()
         }
       }
-    },
-    [containsLatestMessage, loadNewerMessages, loadOlderMessages, isLockedToBottom]
-    //   100,
-    //   // trailing = true cause you can be on top but keep scrolling which can keep the throttle going and ultimately miss out
-    //   // on scrollTop being zero and not trying to load more
-    //   {leading: true, trailing: true}
+    }, [containsLatestMessage, loadNewerMessages, loadOlderMessages, isLockedToBottom]),
+    100,
+    // trailing = true cause you can be on top but keep scrolling which can keep the throttle going and ultimately miss out
+    // on scrollTop being zero and not trying to load more
+    {leading: true, trailing: true}
   )
 
   const scrollToCentered = React.useCallback(() => {
@@ -219,7 +217,7 @@ class Thread extends React.PureComponent<
     lockedToBottomRef: React.MutableRefObject<boolean>
     ignoreOnScrollRef: React.MutableRefObject<boolean>
     isLockedToBottom: () => boolean
-    checkForLoadMoreThrottled: () => void
+    checkForLoadMoreThrottled: Container.DebouncedState<() => void>
     scrollToBottom: () => void
     scrollToCentered: () => void
     scrollUp: () => void
@@ -351,8 +349,7 @@ class Thread extends React.PureComponent<
   private cleanupDebounced = () => {
     this.onAfterScroll.cancel()
     this.onScrollThrottled.cancel()
-    // TODO put back
-    // this.props.checkForLoadMoreThrottled.cancel()
+    this.props.checkForLoadMoreThrottled.cancel()
   }
 
   private onScroll = () => {
