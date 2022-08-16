@@ -28,8 +28,6 @@ const listEdgeSlop = 10
 
 const scrollOrdinalKey = 'scroll-ordinal-key'
 
-type State = {}
-
 type Snapshot = {
   scrollHeight: number
   scrollTop: number
@@ -41,16 +39,40 @@ const debug = __STORYBOOK__
 // we send an action on the first mount once
 let markedInitiallyLoaded = false
 
-class Thread extends React.PureComponent<Props, State> {
-  state = {}
-  private listRef = React.createRef<HTMLDivElement>()
-  private listContents = React.createRef<HTMLDivElement>()
+const ThreadWrapper = (p: Props) => {
+  const listProps = {...p}
+  const listRef = React.useRef<HTMLDivElement | null>(null)
+  const listContentsRef = React.useRef<HTMLDivElement | null>(null)
   // so we can turn pointer events on / off
-  private pointerWrapperRef = React.createRef<HTMLDivElement>()
-  // Not a state so we don't rerender, just mutate the dom
-  private isScrolling = false
+  const pointerWrapperRef = React.useRef<HTMLDivElement | null>(null)
 
-  private lastResizeHeight = 0
+  // Not a state so we don't rerender, just mutate the dom
+  const isScrollingRef = React.useRef(false)
+  const lastResizeHeightRef = React.useRef(0)
+  const lockedToBottomRef = React.useRef(true)
+  return (
+    <Thread
+      {...listProps}
+      listRef={listRef}
+      listContentsRef={listContentsRef}
+      pointerWrapperRef={pointerWrapperRef}
+      isScrollingRef={isScrollingRef}
+      lastResizeHeightRef={lastResizeHeightRef}
+      lockedToBottomRef={lockedToBottomRef}
+    />
+  )
+}
+
+class Thread extends React.PureComponent<
+  Props & {
+    listRef: React.MutableRefObject<HTMLDivElement | null>
+    listContentsRef: React.MutableRefObject<HTMLDivElement | null>
+    pointerWrapperRef: React.MutableRefObject<HTMLDivElement | null>
+    isScrollingRef: React.MutableRefObject<boolean>
+    lastResizeHeightRef: React.MutableRefObject<number>
+    lockedToBottomRef: React.MutableRefObject<boolean>
+  }
+> {
   private resizeObserver: any =
     // @ts-ignore doesn't know about ResizeObserver
     typeof ResizeObserver !== 'undefined' &&
@@ -59,74 +81,36 @@ class Thread extends React.PureComponent<Props, State> {
       const entry = entries[0]
       const {contentRect} = entry
       const {height} = contentRect
-      if (height !== this.lastResizeHeight) {
-        this.lastResizeHeight = height
+      if (height !== this.props.lastResizeHeightRef.current) {
+        this.props.lastResizeHeightRef.current = height
         if (this.isLockedToBottom()) {
-          this.scrollToBottom('resize observed')
+          this.scrollToBottom()
         }
       }
     })
 
-  private _lockedToBottom: boolean = true
-  get lockedToBottom() {
-    return this._lockedToBottom
-  }
-  set lockedToBottom(l: boolean) {
-    // accessor just to help debug
-    this._lockedToBottom = l
-  }
-
-  private logAll = debug
-    ? (list: HTMLDivElement, name: string, fn: any) => {
-        const oldScrollTop = list.scrollTop
-        const oldScrollHeight = list.scrollHeight
-        const oldClientHeight = list.clientHeight
-        fn()
-        logger.debug(
-          'SCROLL',
-          name,
-          'scrollTop',
-          oldScrollTop,
-          '->',
-          list.scrollTop,
-          'scrollHeight',
-          oldScrollHeight,
-          '->',
-          list.scrollHeight,
-          'clientHeight',
-          oldClientHeight,
-          '->',
-          list.clientHeight
-        )
-      }
-    : (_: HTMLDivElement, __: string, fn: any) => fn()
-
   private scrollToCentered = () => {
-    const list = this.listRef.current
+    const list = this.props.listRef.current
     if (list) {
-      this.logAll(list, `scrollToCentered()`, () => {
-        // grab the waypoint we made for the centered ordinal and scroll to it
-        const scrollWaypoint = list.querySelectorAll(`[data-key=${scrollOrdinalKey}]`)
-        if (scrollWaypoint.length > 0) {
-          scrollWaypoint[0].scrollIntoView({block: 'center', inline: 'nearest'})
-        }
-      })
+      // grab the waypoint we made for the centered ordinal and scroll to it
+      const scrollWaypoint = list.querySelectorAll(`[data-key=${scrollOrdinalKey}]`)
+      if (scrollWaypoint.length > 0) {
+        scrollWaypoint[0].scrollIntoView({block: 'center', inline: 'nearest'})
+      }
     }
   }
 
   private isLockedToBottom = () => {
     // if we don't have the latest message, we can't be locked to the bottom
-    return this.lockedToBottom && this.props.containsLatestMessage
+    return this.props.lockedToBottomRef.current && this.props.containsLatestMessage
   }
 
-  private scrollToBottom = (reason: string) => {
+  private scrollToBottom = () => {
     const actuallyScroll = () => {
-      const list = this.listRef.current
+      const list = this.props.listRef.current
       if (list) {
-        this.logAll(list, `scrollToBottom(${reason})`, () => {
-          this.adjustScrollAndIgnoreOnScroll(() => {
-            list.scrollTop = list.scrollHeight - list.clientHeight
-          })
+        this.adjustScrollAndIgnoreOnScroll(() => {
+          list.scrollTop = list.scrollHeight - list.clientHeight
         })
       }
     }
@@ -138,32 +122,28 @@ class Thread extends React.PureComponent<Props, State> {
   }
 
   private scrollDown = () => {
-    const list = this.listRef.current
+    const list = this.props.listRef.current
     if (list) {
-      this.logAll(list, 'scrollDown', () => {
-        this.adjustScrollAndIgnoreOnScroll(() => {
-          list.scrollTop += list.clientHeight
-        })
+      this.adjustScrollAndIgnoreOnScroll(() => {
+        list.scrollTop += list.clientHeight
       })
     }
   }
 
   private scrollUp = () => {
-    this._lockedToBottom = false
-    const list = this.listRef.current
+    this.props.lockedToBottomRef.current = false
+    const list = this.props.listRef.current
     if (list) {
-      this.logAll(list, 'scrollUp', () => {
-        this.adjustScrollAndIgnoreOnScroll(() => {
-          list.scrollTop -= list.clientHeight
-          this.checkForLoadMoreThrottled()
-        })
+      this.adjustScrollAndIgnoreOnScroll(() => {
+        list.scrollTop -= list.clientHeight
+        this.checkForLoadMoreThrottled()
       })
     }
   }
 
   private jumpToRecent = () => {
-    this.lockedToBottom = true
-    this.scrollToBottom('jump to recent')
+    this.props.lockedToBottomRef.current = true
+    this.scrollToBottom()
     this.props.onJumpToRecent()
   }
 
@@ -173,12 +153,12 @@ class Thread extends React.PureComponent<Props, State> {
       this.props.markInitiallyLoadedThreadAsRead()
     }
     if (this.props.centeredOrdinal) {
-      this.lockedToBottom = false
+      this.props.lockedToBottomRef.current = false
       this.scrollToCentered()
       return
     }
     if (this.isLockedToBottom()) {
-      this.scrollToBottom('componentDidMount')
+      this.scrollToBottom()
     }
   }
 
@@ -189,14 +169,14 @@ class Thread extends React.PureComponent<Props, State> {
       this.props.messageOrdinals[0] !== prevProps.messageOrdinals[0] &&
       prevProps.messageOrdinals[0]
     ) {
-      const {current} = this.listRef
+      const {current} = this.props.listRef
 
       return {scrollHeight: current ? current.scrollHeight : 0, scrollTop: current ? current.scrollTop : 0}
     }
     return null
   }
 
-  componentDidUpdate(prevProps: Props, _: State, snapshot: Snapshot) {
+  componentDidUpdate(prevProps: Props, _: unknown, snapshot: Snapshot) {
     if (this.props === prevProps) {
       // don't do any of the below if just state changes
       return
@@ -207,8 +187,8 @@ class Thread extends React.PureComponent<Props, State> {
     // conversation changed
     if (this.props.conversationIDKey !== prevProps.conversationIDKey) {
       this.cleanupDebounced()
-      this.lockedToBottom = true
-      this.scrollToBottom('componentDidUpdate-change-convo')
+      this.props.lockedToBottomRef.current = true
+      this.scrollToBottom()
       return
     }
 
@@ -229,13 +209,13 @@ class Thread extends React.PureComponent<Props, State> {
       this.props.scrollListToBottomCounter !== prevProps.scrollListToBottomCounter &&
       this.props.containsLatestMessage
     ) {
-      this.lockedToBottom = true
-      this.scrollToBottom('componentDidUpdate-requested')
+      this.props.lockedToBottomRef.current = true
+      this.scrollToBottom()
       return
     }
 
     // Adjust scrolling if locked to the bottom
-    const list = this.listRef.current
+    const list = this.props.listRef.current
 
     // Check if we just added new messages from the future. In this case, we don't want to adjust scroll
     // position at all, so just bail out if we detect this case.
@@ -249,7 +229,7 @@ class Thread extends React.PureComponent<Props, State> {
 
     // Check to see if our centered ordinal has changed, and if so, scroll to it
     if (!!this.props.centeredOrdinal && this.props.centeredOrdinal !== prevProps.centeredOrdinal) {
-      this.lockedToBottom = false
+      this.props.lockedToBottomRef.current = false
       this.scrollToCentered()
       return
     }
@@ -257,7 +237,7 @@ class Thread extends React.PureComponent<Props, State> {
     // Are we prepending older messages?
     if (snapshot?.scrollHeight && list && !this.isLockedToBottom()) {
       requestAnimationFrame(() => {
-        const {current} = this.listRef
+        const {current} = this.props.listRef
         if (current) {
           const fromBottom = snapshot.scrollHeight - snapshot.scrollTop
           current.scrollTop = current.scrollHeight - fromBottom
@@ -308,7 +288,7 @@ class Thread extends React.PureComponent<Props, State> {
       return
     }
     // quickly set to false to assume we're not locked. if we are the throttled one will set it to true
-    this.lockedToBottom = false
+    this.props.lockedToBottomRef.current = false
     this.checkForLoadMoreThrottled()
     this.onScrollThrottled()
   }
@@ -316,15 +296,15 @@ class Thread extends React.PureComponent<Props, State> {
   // While scrolling we disable mouse events to speed things up. We avoid state so we don't re-render while doing this
   private onScrollThrottled = throttle(
     () => {
-      const list = this.listRef.current
+      const list = this.props.listRef.current
       if (list && debug) {
         logger.debug('SCROLL', 'onScrollThrottled', 'scrollTop', list.scrollTop)
       }
 
-      if (!this.isScrolling) {
-        this.isScrolling = true
-        if (this.pointerWrapperRef.current) {
-          this.pointerWrapperRef.current.style.pointerEvents = 'none'
+      if (!this.props.isScrollingRef.current) {
+        this.props.isScrollingRef.current = true
+        if (this.props.pointerWrapperRef.current) {
+          this.props.pointerWrapperRef.current.style.pointerEvents = 'none'
         }
       }
       this.onAfterScroll()
@@ -336,7 +316,7 @@ class Thread extends React.PureComponent<Props, State> {
   private checkForLoadMoreThrottled = throttle(
     () => {
       // are we at the top?
-      const list = this.listRef.current
+      const list = this.props.listRef.current
       if (list) {
         if (list.scrollTop < listEdgeSlop) {
           this.props.loadOlderMessages()
@@ -357,20 +337,21 @@ class Thread extends React.PureComponent<Props, State> {
 
   // After lets turn them back on
   private onAfterScroll = debounce(() => {
-    if (this.isScrolling) {
-      this.isScrolling = false
-      if (this.pointerWrapperRef.current) {
-        this.pointerWrapperRef.current.style.pointerEvents = 'initial'
+    if (this.props.isScrollingRef.current) {
+      this.props.isScrollingRef.current = false
+      if (this.props.pointerWrapperRef.current) {
+        this.props.pointerWrapperRef.current.style.pointerEvents = 'initial'
       }
     }
 
-    const list = this.listRef.current
+    const list = this.props.listRef.current
     // are we locked on the bottom?
     if (list) {
       if (debug) {
         logger.debug('SCROLL', 'onAfterScroll', 'scrollTop', list.scrollTop)
       }
-      this.lockedToBottom = list.scrollHeight - list.clientHeight - list.scrollTop < listEdgeSlop
+      this.props.lockedToBottomRef.current =
+        list.scrollHeight - list.clientHeight - list.scrollTop < listEdgeSlop
     }
   }, 200)
 
@@ -481,27 +462,26 @@ class Thread extends React.PureComponent<Props, State> {
     if (!this.resizeObserver) {
       return
     }
-    if (this.listContents.current && this.listContents.current !== listContents) {
-      this.resizeObserver.unobserve(this.listContents.current)
+    if (this.props.listContentsRef.current && this.props.listContentsRef.current !== listContents) {
+      this.resizeObserver.unobserve(this.props.listContentsRef.current)
     }
     if (listContents) {
       this.resizeObserver.observe(listContents)
     }
 
     // @ts-ignore a violation
-    this.listContents.current = listContents
+    this.props.listContentsRef.current = listContents
   }
 
   private setListRef = (list: HTMLDivElement | null) => {
-    if (this.listRef.current && this.listRef.current !== list) {
-      this.listRef.current.removeEventListener('scroll', this.onScroll)
+    if (this.props.listRef.current && this.props.listRef.current !== list) {
+      this.props.listRef.current.removeEventListener('scroll', this.onScroll)
     }
     if (list) {
       list.addEventListener('scroll', this.onScroll, {passive: true})
     }
 
-    // @ts-ignore a violation
-    this.listRef.current = list
+    this.props.listRef.current = list
   }
 
   render() {
@@ -534,35 +514,13 @@ class Thread extends React.PureComponent<Props, State> {
   }
 }
 
-type TopBottomItemProps = {
-  conversationIDKey: Types.ConversationIDKey
-}
+const TopItem = (p: {conversationIDKey: Types.ConversationIDKey}) => (
+  <SpecialTopMessage conversationIDKey={p.conversationIDKey} />
+)
 
-type TopBottomItemState = {
-  keyCount: number
-}
-
-class TopItem extends React.PureComponent<TopBottomItemProps, TopBottomItemState> {
-  state = {keyCount: 0}
-  private measure = () => {
-    this.setState(p => ({keyCount: p.keyCount + 1}))
-  }
-
-  render() {
-    return <SpecialTopMessage conversationIDKey={this.props.conversationIDKey} measure={this.measure} />
-  }
-}
-
-class BottomItem extends React.PureComponent<TopBottomItemProps, TopBottomItemState> {
-  state = {keyCount: 0}
-  private measure = () => {
-    this.setState(p => ({keyCount: p.keyCount + 1}))
-  }
-
-  render() {
-    return <SpecialBottomMessage conversationIDKey={this.props.conversationIDKey} measure={this.measure} />
-  }
-}
+const BottomItem = (p: {conversationIDKey: Types.ConversationIDKey}) => (
+  <SpecialBottomMessage conversationIDKey={p.conversationIDKey} />
+)
 
 type OrdinalWaypointProps = {
   id: string
@@ -766,4 +724,4 @@ const styles = Styles.styleSheetCreate(
     } as const)
 )
 
-export default Thread
+export default ThreadWrapper

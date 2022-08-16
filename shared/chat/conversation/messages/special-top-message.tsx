@@ -16,7 +16,7 @@ import RetentionNotice from './retention-notice/container'
 
 type Props = {
   conversationIDKey: Types.ConversationIDKey
-  measure: (() => void) | null
+  measure?: () => void
 }
 
 const ErrorMessage = () => {
