@@ -12,13 +12,11 @@ import Measure from 'react-measure'
 import Message from '../messages'
 import SpecialBottomMessage from '../messages/special-bottom-message'
 import SpecialTopMessage from '../messages/special-top-message'
-import logger from '../../../logger'
 import shallowEqual from 'shallowequal'
 import {ErrorBoundary} from '../../../common-adapters'
 import type {Props} from '.'
 import {Waypoint} from 'react-waypoint'
 import debounce from 'lodash/debounce'
-import throttle from 'lodash/throttle'
 import chunk from 'lodash/chunk'
 import {globalMargins} from '../../../styles/shared'
 import {memoize} from '../../../util/memoize'
@@ -34,14 +32,13 @@ type Snapshot = {
   scrollTop: number
 }
 
-const debug = __STORYBOOK__
-
 // We load the first thread automatically so in order to mark it read
 // we send an action on the first mount once
 let markedInitiallyLoaded = false
 
 const ThreadWrapper = (p: Props) => {
   const {containsLatestMessage, loadOlderMessages, loadNewerMessages, onJumpToRecent} = p
+  const {conversationIDKey, copyToClipboard, onFocusInput} = p
   const listProps = {...p}
   const listRef = React.useRef<HTMLDivElement | null>(null)
   const listContentsRef = React.useRef<HTMLDivElement | null>(null)
@@ -184,6 +181,114 @@ const ThreadWrapper = (p: Props) => {
     onJumpToRecent()
   }, [lockedToBottomRef, scrollToBottom, onJumpToRecent])
 
+  // After lets turn them back on
+  const onAfterScroll = Container.useDebouncedCallback(
+    React.useCallback(() => {
+      if (isScrollingRef.current) {
+        isScrollingRef.current = false
+        if (pointerWrapperRef.current) {
+          pointerWrapperRef.current.style.pointerEvents = 'initial'
+        }
+      }
+
+      const list = listRef.current
+      // are we locked on the bottom?
+      if (list) {
+        lockedToBottomRef.current = list.scrollHeight - list.clientHeight - list.scrollTop < listEdgeSlop
+      }
+    }, []),
+    200
+  )
+
+  // While scrolling we disable mouse events to speed things up. We avoid state so we don't re-render while doing this
+  const onScrollThrottled = Container.useThrottledCallback(
+    React.useCallback(() => {
+      if (!isScrollingRef.current) {
+        isScrollingRef.current = true
+        if (pointerWrapperRef.current) {
+          pointerWrapperRef.current.style.pointerEvents = 'none'
+        }
+      }
+      onAfterScroll()
+    }, [onAfterScroll]),
+    100,
+    {leading: true, trailing: true}
+  )
+
+  const onScroll = React.useCallback(() => {
+    if (ignoreOnScrollRef.current) {
+      ignoreOnScrollRef.current = false
+      return
+    }
+    // quickly set to false to assume we're not locked. if we are the throttled one will set it to true
+    lockedToBottomRef.current = false
+    checkForLoadMoreThrottled()
+    onScrollThrottled()
+  }, [checkForLoadMoreThrottled, onScrollThrottled])
+
+  const cleanupDebounced = React.useCallback(() => {
+    onAfterScroll.cancel()
+    onScrollThrottled.cancel()
+    checkForLoadMoreThrottled.cancel()
+  }, [onAfterScroll, onScrollThrottled, checkForLoadMoreThrottled])
+
+  React.useEffect(() => {
+    return () => {
+      cleanupDebounced()
+    }
+  }, [cleanupDebounced])
+
+  const rowRenderer = React.useCallback(
+    (ordinal: Types.Ordinal, previous?: Types.Ordinal) => (
+      <Message
+        key={String(ordinal)}
+        ordinal={ordinal}
+        previous={previous}
+        conversationIDKey={conversationIDKey}
+      />
+    ),
+    [conversationIDKey]
+  )
+
+  const onCopyCapture = React.useCallback(
+    (e: React.BaseSyntheticEvent) => {
+      // Copy text only, not HTML/styling.
+      e.preventDefault()
+      const sel = window.getSelection()
+      sel && copyToClipboard(sel.toString())
+    },
+    [copyToClipboard]
+  )
+
+  const setListRef = React.useCallback(
+    (list: HTMLDivElement | null) => {
+      if (listRef.current && listRef.current !== list) {
+        listRef.current.removeEventListener('scroll', onScroll)
+      }
+      if (list) {
+        list.addEventListener('scroll', onScroll, {passive: true})
+      }
+      listRef.current = list
+    },
+    [onScroll]
+  )
+
+  const handleListClick = React.useCallback(
+    (ev: React.MouseEvent) => {
+      const target = ev.target
+      // allow focusing other inner inputs such as the reacji picker filter
+      if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) {
+        return
+      }
+
+      const sel = window.getSelection()
+      if (sel?.isCollapsed) {
+        onFocusInput()
+      }
+    },
+    [onFocusInput]
+  )
+
   return (
     <Thread
       {...listProps}
@@ -203,6 +308,14 @@ const ThreadWrapper = (p: Props) => {
       scrollUp={scrollUp}
       checkForLoadMoreThrottled={checkForLoadMoreThrottled}
       jumpToRecent={jumpToRecent}
+      onAfterScroll={onAfterScroll}
+      onScrollThrottled={onScrollThrottled}
+      onScroll={onScroll}
+      cleanupDebounced={cleanupDebounced}
+      rowRenderer={rowRenderer}
+      onCopyCapture={onCopyCapture}
+      setListRef={setListRef}
+      handleListClick={handleListClick}
     />
   )
 }
@@ -216,15 +329,23 @@ class Thread extends React.PureComponent<
     lastResizeHeightRef: React.MutableRefObject<number>
     lockedToBottomRef: React.MutableRefObject<boolean>
     ignoreOnScrollRef: React.MutableRefObject<boolean>
+    setListRef: (list: HTMLDivElement | null) => void
     isLockedToBottom: () => boolean
     checkForLoadMoreThrottled: Container.DebouncedState<() => void>
+    onAfterScroll: Container.DebouncedState<() => void>
+    onScrollThrottled: Container.DebouncedState<() => void>
     scrollToBottom: () => void
     scrollToCentered: () => void
     scrollUp: () => void
     scrollDown: () => void
     jumpToRecent: () => void
+    onScroll: () => void
+    cleanupDebounced: () => void
     adjustScrollAndIgnoreOnScroll: (fn: () => void) => void
     setListContents: (listContents: HTMLDivElement | null) => void
+    rowRenderer: (ordinal: Types.Ordinal, previous?: Types.Ordinal) => JSX.Element
+    onCopyCapture: (e: React.BaseSyntheticEvent) => void
+    handleListClick: (ev: React.MouseEvent) => void
   }
 > {
   componentDidMount() {
@@ -262,11 +383,9 @@ class Thread extends React.PureComponent<
       return
     }
 
-    // this.checkResized()
-
     // conversation changed
     if (this.props.conversationIDKey !== prevProps.conversationIDKey) {
-      this.cleanupDebounced()
+      this.props.cleanupDebounced()
       this.props.lockedToBottomRef.current = true
       this.props.scrollToBottom()
       return
@@ -342,96 +461,6 @@ class Thread extends React.PureComponent<
     }
   }
 
-  componentWillUnmount() {
-    this.cleanupDebounced()
-  }
-
-  private cleanupDebounced = () => {
-    this.onAfterScroll.cancel()
-    this.onScrollThrottled.cancel()
-    this.props.checkForLoadMoreThrottled.cancel()
-  }
-
-  private onScroll = () => {
-    if (this.props.ignoreOnScrollRef.current) {
-      this.props.ignoreOnScrollRef.current = false
-      return
-    }
-    // quickly set to false to assume we're not locked. if we are the throttled one will set it to true
-    this.props.lockedToBottomRef.current = false
-    this.props.checkForLoadMoreThrottled()
-    this.onScrollThrottled()
-  }
-
-  // While scrolling we disable mouse events to speed things up. We avoid state so we don't re-render while doing this
-  private onScrollThrottled = throttle(
-    () => {
-      const list = this.props.listRef.current
-      if (list && debug) {
-        logger.debug('SCROLL', 'onScrollThrottled', 'scrollTop', list.scrollTop)
-      }
-
-      if (!this.props.isScrollingRef.current) {
-        this.props.isScrollingRef.current = true
-        if (this.props.pointerWrapperRef.current) {
-          this.props.pointerWrapperRef.current.style.pointerEvents = 'none'
-        }
-      }
-      this.onAfterScroll()
-    },
-    100,
-    {leading: true, trailing: true}
-  )
-
-  // After lets turn them back on
-  private onAfterScroll = debounce(() => {
-    if (this.props.isScrollingRef.current) {
-      this.props.isScrollingRef.current = false
-      if (this.props.pointerWrapperRef.current) {
-        this.props.pointerWrapperRef.current.style.pointerEvents = 'initial'
-      }
-    }
-
-    const list = this.props.listRef.current
-    // are we locked on the bottom?
-    if (list) {
-      if (debug) {
-        logger.debug('SCROLL', 'onAfterScroll', 'scrollTop', list.scrollTop)
-      }
-      this.props.lockedToBottomRef.current =
-        list.scrollHeight - list.clientHeight - list.scrollTop < listEdgeSlop
-    }
-  }, 200)
-
-  private rowRenderer = (ordinal: Types.Ordinal, previous?: Types.Ordinal) => (
-    <Message
-      key={String(ordinal)}
-      ordinal={ordinal}
-      previous={previous}
-      conversationIDKey={this.props.conversationIDKey}
-    />
-  )
-
-  private onCopyCapture = (e: React.BaseSyntheticEvent) => {
-    // Copy text only, not HTML/styling.
-    e.preventDefault()
-    const sel = window.getSelection()
-    sel && this.props.copyToClipboard(sel.toString())
-  }
-
-  private handleListClick = (ev: React.MouseEvent) => {
-    const target = ev.target
-    // allow focusing other inner inputs such as the reacji picker filter
-    if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) {
-      return
-    }
-
-    const sel = window.getSelection()
-    if (sel?.isCollapsed) {
-      this.props.onFocusInput()
-    }
-  }
-
   private makeItems = () => this.makeItemsMemoized(this.props.conversationIDKey, this.props.messageOrdinals)
 
   private makeItemsMemoized = memoize(
@@ -469,7 +498,7 @@ class Thread extends React.PureComponent<
                 <OrdinalWaypoint
                   key={key}
                   id={key}
-                  rowRenderer={this.rowRenderer}
+                  rowRenderer={this.props.rowRenderer}
                   ordinals={toAdd}
                   previous={previous}
                 />
@@ -487,7 +516,7 @@ class Thread extends React.PureComponent<
             <OrdinalWaypoint
               key={scrollOrdinalKey}
               id={scrollOrdinalKey}
-              rowRenderer={this.rowRenderer}
+              rowRenderer={this.props.rowRenderer}
               ordinals={[ordinal]}
               previous={previous}
             />
@@ -506,17 +535,6 @@ class Thread extends React.PureComponent<
     }
   )
 
-  private setListRef = (list: HTMLDivElement | null) => {
-    if (this.props.listRef.current && this.props.listRef.current !== list) {
-      this.props.listRef.current.removeEventListener('scroll', this.onScroll)
-    }
-    if (list) {
-      list.addEventListener('scroll', this.onScroll, {passive: true})
-    }
-
-    this.props.listRef.current = list
-  }
-
   render() {
     const items = this.makeItems()
 
@@ -524,11 +542,11 @@ class Thread extends React.PureComponent<
       <ErrorBoundary>
         <div
           style={styles.container as any}
-          onClick={this.handleListClick}
-          onCopyCapture={this.onCopyCapture}
+          onClick={this.props.handleListClick}
+          onCopyCapture={this.props.onCopyCapture}
         >
           <style>{realCSS}</style>
-          <div key={this.props.conversationIDKey} style={styles.list as any} ref={this.setListRef}>
+          <div key={this.props.conversationIDKey} style={styles.list as any} ref={this.props.setListRef}>
             <div style={styles.listContents} ref={this.props.setListContents}>
               {items}
             </div>
