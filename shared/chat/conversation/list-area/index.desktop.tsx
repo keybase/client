@@ -24,73 +24,15 @@ import {useMemo} from '../../../util/memoize'
 const ordinalsInAWaypoint = 10
 // pixels away from top/bottom to load/be locked
 const listEdgeSlop = 10
-
 const scrollOrdinalKey = 'scroll-ordinal-key'
-
-// type Snapshot = {
-//   scrollHeight: number
-//   scrollTop: number
-// }
 
 // We load the first thread automatically so in order to mark it read
 // we send an action on the first mount once
 let markedInitiallyLoaded = false
 
-const ThreadWrapper = (p: Props) => {
-  const {containsLatestMessage, loadOlderMessages, loadNewerMessages, markInitiallyLoadedThreadAsRead} = p
-  const {scrollListDownCounter, scrollListUpCounter, onJumpToRecent, scrollListToBottomCounter} = p
-  const {conversationIDKey, copyToClipboard, onFocusInput, messageOrdinals, centeredOrdinal, editingOrdinal} =
-    p
-  const listProps = {...p}
-  const listRef = React.useRef<HTMLDivElement | null>(null)
+const useResizeObserver = (isLockedToBottom: () => boolean, scrollToBottom: () => void) => {
   const listContentsRef = React.useRef<HTMLDivElement | null>(null)
-  // so we can turn pointer events on / off
-  const pointerWrapperRef = React.useRef<HTMLDivElement | null>(null)
-
-  // Not a state so we don't rerender, just mutate the dom
-  const isScrollingRef = React.useRef(false)
   const lastResizeHeightRef = React.useRef(0)
-  const lockedToBottomRef = React.useRef(true)
-  const ignoreOnScrollRef = React.useRef(false)
-
-  const adjustScrollAndIgnoreOnScroll = React.useCallback(
-    (fn: () => void) => {
-      ignoreOnScrollRef.current = true
-      fn()
-    },
-    [ignoreOnScrollRef]
-  )
-
-  const isLockedToBottom = React.useCallback(
-    () =>
-      // if we don't have the latest message, we can't be locked to the bottom
-      lockedToBottomRef.current && containsLatestMessage,
-    [lockedToBottomRef, containsLatestMessage]
-  )
-
-  const isMountedRef = React.useRef(true)
-  React.useEffect(() => {
-    return () => {
-      isMountedRef.current = false
-    }
-  }, [])
-
-  const scrollToBottom = React.useCallback(() => {
-    const actuallyScroll = () => {
-      if (!isMountedRef.current) return
-      const list = listRef.current
-      if (list) {
-        adjustScrollAndIgnoreOnScroll(() => {
-          list.scrollTop = list.scrollHeight - list.clientHeight
-        })
-      }
-    }
-    actuallyScroll()
-    setTimeout(() => {
-      requestAnimationFrame(actuallyScroll)
-    }, 1)
-  }, [listRef, adjustScrollAndIgnoreOnScroll, isMountedRef])
-
   const onResizeObservedRef = React.useRef((_entries: Array<ResizeObserverEntry>) => {})
   React.useEffect(() => {
     onResizeObservedRef.current = (entries: Array<ResizeObserverEntry>) => {
@@ -122,7 +64,7 @@ const ThreadWrapper = (p: Props) => {
   }, [])
 
   const setListContents = React.useCallback((listContents: HTMLDivElement | null) => {
-    if (listContentsRef.current && listContentsRef.current !== listContents) {
+    if (listContentsRef.current && listContents !== listContentsRef.current) {
       resizeObserverRef.current?.unobserve(listContentsRef.current)
     }
     if (listContents) {
@@ -130,6 +72,45 @@ const ThreadWrapper = (p: Props) => {
     }
     listContentsRef.current = listContents
   }, [])
+
+  return setListContents
+}
+
+const useIsMounted = () => {
+  const isMountedRef = React.useRef(true)
+  React.useEffect(() => {
+    return () => {
+      isMountedRef.current = false
+    }
+  }, [])
+  return isMountedRef
+}
+
+const useScrolling = (p: Props, listRef: React.MutableRefObject<HTMLDivElement | null>) => {
+  const {containsLatestMessage, editingOrdinal, messageOrdinals, loadNewerMessages, loadOlderMessages} = p
+  const {scrollListUpCounter, scrollListDownCounter, markInitiallyLoadedThreadAsRead} = p
+  const {conversationIDKey, onJumpToRecent, centeredOrdinal, scrollListToBottomCounter} = p
+  const isMountedRef = useIsMounted()
+  const isScrollingRef = React.useRef(false)
+  const ignoreOnScrollRef = React.useRef(false)
+  const lockedToBottomRef = React.useRef(true)
+  // so we can turn pointer events on / off
+  const pointerWrapperRef = React.useRef<HTMLDivElement | null>(null)
+
+  const isLockedToBottom = React.useCallback(
+    () =>
+      // if we don't have the latest message, we can't be locked to the bottom
+      lockedToBottomRef.current && containsLatestMessage,
+    [lockedToBottomRef, containsLatestMessage]
+  )
+
+  const adjustScrollAndIgnoreOnScroll = React.useCallback(
+    (fn: () => void) => {
+      ignoreOnScrollRef.current = true
+      fn()
+    },
+    [ignoreOnScrollRef]
+  )
 
   const checkForLoadMoreThrottled = Container.useThrottledCallback(
     React.useCallback(() => {
@@ -146,12 +127,28 @@ const ThreadWrapper = (p: Props) => {
           loadNewerMessages()
         }
       }
-    }, [containsLatestMessage, loadNewerMessages, loadOlderMessages, isLockedToBottom]),
+    }, [listRef, containsLatestMessage, loadNewerMessages, loadOlderMessages, isLockedToBottom]),
     100,
     // trailing = true cause you can be on top but keep scrolling which can keep the throttle going and ultimately miss out
     // on scrollTop being zero and not trying to load more
     {leading: true, trailing: true}
   )
+
+  const scrollToBottom = React.useCallback(() => {
+    const actuallyScroll = () => {
+      if (!isMountedRef.current) return
+      const list = listRef.current
+      if (list) {
+        adjustScrollAndIgnoreOnScroll(() => {
+          list.scrollTop = list.scrollHeight - list.clientHeight
+        })
+      }
+    }
+    actuallyScroll()
+    setTimeout(() => {
+      requestAnimationFrame(actuallyScroll)
+    }, 1)
+  }, [listRef, adjustScrollAndIgnoreOnScroll, isMountedRef])
 
   const scrollToCentered = React.useCallback(() => {
     // grab the waypoint we made for the centered ordinal and scroll to it
@@ -165,7 +162,7 @@ const ThreadWrapper = (p: Props) => {
       adjustScrollAndIgnoreOnScroll(() => {
         list.scrollTop += list.clientHeight
       })
-  }, [adjustScrollAndIgnoreOnScroll])
+  }, [listRef, adjustScrollAndIgnoreOnScroll])
 
   const scrollUp = React.useCallback(() => {
     lockedToBottomRef.current = false
@@ -175,7 +172,7 @@ const ThreadWrapper = (p: Props) => {
         list.scrollTop -= list.clientHeight
         checkForLoadMoreThrottled()
       })
-  }, [adjustScrollAndIgnoreOnScroll, checkForLoadMoreThrottled])
+  }, [listRef, adjustScrollAndIgnoreOnScroll, checkForLoadMoreThrottled])
 
   const jumpToRecent = React.useCallback(() => {
     lockedToBottomRef.current = true
@@ -198,7 +195,7 @@ const ThreadWrapper = (p: Props) => {
       if (list) {
         lockedToBottomRef.current = list.scrollHeight - list.clientHeight - list.scrollTop < listEdgeSlop
       }
-    }, []),
+    }, [listRef]),
     200
   )
 
@@ -228,6 +225,19 @@ const ThreadWrapper = (p: Props) => {
     onScrollThrottled()
   }, [checkForLoadMoreThrottled, onScrollThrottled])
 
+  const setListRef = React.useCallback(
+    (list: HTMLDivElement | null) => {
+      if (listRef.current && listRef.current !== list) {
+        listRef.current.removeEventListener('scroll', onScroll)
+      }
+      if (list) {
+        list.addEventListener('scroll', onScroll, {passive: true})
+      }
+      listRef.current = list
+    },
+    [onScroll, listRef]
+  )
+
   const cleanupDebounced = React.useCallback(() => {
     onAfterScroll.cancel()
     onScrollThrottled.cancel()
@@ -240,6 +250,113 @@ const ThreadWrapper = (p: Props) => {
     }
   }, [cleanupDebounced])
 
+  React.useEffect(() => {
+    if (!markedInitiallyLoaded) {
+      markedInitiallyLoaded = true
+      markInitiallyLoadedThreadAsRead()
+    }
+    if (centeredOrdinal) {
+      lockedToBottomRef.current = false
+      scrollToCentered()
+      return
+    }
+    if (isLockedToBottom()) {
+      scrollToBottom()
+    }
+    // we only want this to happen once per mount
+    // eslint-disable-next-line
+  }, [])
+
+  // if we scroll up try and keep the position
+  const scrollOnPrependRef = React.useRef<{scrollHeight: number | undefined; scrollTop: number | undefined}>({
+    scrollHeight: undefined,
+    scrollTop: undefined,
+  })
+
+  const prevFirstOrdinal = Container.usePrevious(messageOrdinals[0])
+  const prevOrdinalLength = Container.usePrevious(messageOrdinals.length)
+
+  // called before render, to stash value. Subtle behavior of react's useMemo, don't use Container.useMemo
+  React.useMemo(() => {
+    // didn't scroll up
+    if (messageOrdinals.length === prevOrdinalLength || messageOrdinals[0] === prevFirstOrdinal) return
+    scrollOnPrependRef.current.scrollHeight = listRef.current?.scrollHeight
+    scrollOnPrependRef.current.scrollTop = listRef.current?.scrollTop
+    // we want this to fire when the ordinals change
+    // eslint-disable-next-line
+  }, [messageOrdinals])
+  // called after dom update, to apply value
+  React.useLayoutEffect(() => {
+    // didn't scroll up
+    if (messageOrdinals.length === prevOrdinalLength || messageOrdinals[0] === prevFirstOrdinal) return
+    if (scrollOnPrependRef.current.scrollHeight !== undefined && listRef.current && !isLockedToBottom()) {
+      requestAnimationFrame(() => {
+        const {current} = listRef
+        if (
+          current &&
+          isMountedRef.current &&
+          scrollOnPrependRef.current.scrollTop !== undefined &&
+          scrollOnPrependRef.current.scrollHeight !== undefined
+        ) {
+          const fromBottom = scrollOnPrependRef.current.scrollHeight - scrollOnPrependRef.current.scrollTop
+          current.scrollTop = current.scrollHeight - fromBottom
+        }
+      })
+    }
+    // we want this to fire when the ordinals change
+    // eslint-disable-next-line
+  }, [messageOrdinals])
+
+  // Check to see if our centered ordinal has changed, and if so, scroll to it
+  React.useEffect(() => {
+    if (centeredOrdinal) {
+      lockedToBottomRef.current = false
+      scrollToCentered()
+    }
+  }, [centeredOrdinal, scrollToCentered])
+
+  // scroll requested
+  Container.useDepChangeEffect(() => {
+    scrollDown()
+  }, [scrollListDownCounter, scrollDown])
+  Container.useDepChangeEffect(() => {
+    scrollUp()
+  }, [scrollListUpCounter, scrollUp])
+
+  // someone requested we scroll to bottom and lock (ignore if we don't have latest)
+  Container.useDepChangeEffect(() => {
+    lockedToBottomRef.current = true
+    scrollToBottom()
+  }, [scrollListToBottomCounter, scrollToBottom])
+
+  // go to editing message
+  Container.useDepChangeEffect(() => {
+    if (!editingOrdinal) return
+    const idx = messageOrdinals.indexOf(editingOrdinal)
+    if (idx === -1) return
+    const waypoints = listRef.current?.querySelectorAll('[data-key]')
+    if (!waypoints) return
+    // find an id that should be our parent
+    const toFind = Math.floor(Types.ordinalToNumber(editingOrdinal) / 10)
+    const found = (Array.from(waypoints) as Array<HTMLElement>).reverse().find(w => {
+      const key = w.dataset.key
+      return key !== undefined && parseInt(key, 10) === toFind
+    })
+    found?.scrollIntoView({block: 'center', inline: 'nearest'})
+  }, [editingOrdinal, messageOrdinals])
+
+  // conversation changed
+  Container.useDepChangeEffect(() => {
+    cleanupDebounced()
+    lockedToBottomRef.current = true
+    scrollToBottom()
+  }, [conversationIDKey, cleanupDebounced, scrollToBottom])
+
+  return {isLockedToBottom, jumpToRecent, lockedToBottomRef, scrollToBottom, setListRef}
+}
+
+const useItems = (p: Props) => {
+  const {conversationIDKey, messageOrdinals, centeredOrdinal} = p
   const rowRenderer = React.useCallback(
     (ordinal: Types.Ordinal, previous?: Types.Ordinal) => (
       <Message
@@ -250,45 +367,6 @@ const ThreadWrapper = (p: Props) => {
       />
     ),
     [conversationIDKey]
-  )
-
-  const onCopyCapture = React.useCallback(
-    (e: React.BaseSyntheticEvent) => {
-      // Copy text only, not HTML/styling.
-      e.preventDefault()
-      const sel = window.getSelection()
-      sel && copyToClipboard(sel.toString())
-    },
-    [copyToClipboard]
-  )
-
-  const setListRef = React.useCallback(
-    (list: HTMLDivElement | null) => {
-      if (listRef.current && listRef.current !== list) {
-        listRef.current.removeEventListener('scroll', onScroll)
-      }
-      if (list) {
-        list.addEventListener('scroll', onScroll, {passive: true})
-      }
-      listRef.current = list
-    },
-    [onScroll]
-  )
-
-  const handleListClick = React.useCallback(
-    (ev: React.MouseEvent) => {
-      const target = ev.target
-      // allow focusing other inner inputs such as the reacji picker filter
-      if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) {
-        return
-      }
-
-      const sel = window.getSelection()
-      if (sel?.isCollapsed) {
-        onFocusInput()
-      }
-    },
-    [onFocusInput]
   )
 
   const items = useMemo(() => {
@@ -359,194 +437,59 @@ const ThreadWrapper = (p: Props) => {
     return items
   }, [conversationIDKey, messageOrdinals, centeredOrdinal, rowRenderer])
 
-  React.useEffect(() => {
-    if (!markedInitiallyLoaded) {
-      markedInitiallyLoaded = true
-      markInitiallyLoadedThreadAsRead()
-    }
-    if (centeredOrdinal) {
-      lockedToBottomRef.current = false
-      scrollToCentered()
-      return
-    }
-    if (isLockedToBottom()) {
-      scrollToBottom()
-    }
-    // we only want this to happen once per mount
-    // eslint-disable-next-line
-  }, [])
-
-  // if we scroll up try and keep the position
-  const scrollOnPrependRef = React.useRef<{scrollHeight: number | undefined; scrollTop: number | undefined}>({
-    scrollHeight: undefined,
-    scrollTop: undefined,
-  })
-
-  const prevFirstOrdinal = Container.usePrevious(messageOrdinals[0])
-  const prevOrdinalLength = Container.usePrevious(messageOrdinals.length)
-
-  // called before render, to stash value. Subtle behavior of react's useMemo, don't use Container.useMemo
-  React.useMemo(() => {
-    // didn't scroll up
-    if (messageOrdinals.length === prevOrdinalLength || messageOrdinals[0] === prevFirstOrdinal) return
-    scrollOnPrependRef.current.scrollHeight = listRef.current?.scrollHeight
-    scrollOnPrependRef.current.scrollTop = listRef.current?.scrollTop
-    // we want this to fire when the ordinals change
-    // eslint-disable-next-line
-  }, [messageOrdinals])
-  // called after dom update, to apply value
-  React.useLayoutEffect(() => {
-    // didn't scroll up
-    if (messageOrdinals.length === prevOrdinalLength || messageOrdinals[0] === prevFirstOrdinal) return
-    if (scrollOnPrependRef.current.scrollHeight !== undefined && listRef.current && !isLockedToBottom()) {
-      requestAnimationFrame(() => {
-        const {current} = listRef
-        if (
-          current &&
-          isMountedRef.current &&
-          scrollOnPrependRef.current.scrollTop !== undefined &&
-          scrollOnPrependRef.current.scrollHeight !== undefined
-        ) {
-          const fromBottom = scrollOnPrependRef.current.scrollHeight - scrollOnPrependRef.current.scrollTop
-          current.scrollTop = current.scrollHeight - fromBottom
-        }
-      })
-    }
-    // we want this to fire when the ordinals change
-    // eslint-disable-next-line
-  }, [messageOrdinals])
-
-  // Check to see if our centered ordinal has changed, and if so, scroll to it
-  React.useEffect(() => {
-    if (centeredOrdinal) {
-      lockedToBottomRef.current = false
-      scrollToCentered()
-    }
-  }, [centeredOrdinal, scrollToCentered])
-
-  // conversation changed
-  Container.useDepChangeEffect(() => {
-    cleanupDebounced()
-    lockedToBottomRef.current = true
-    scrollToBottom()
-  }, [conversationIDKey, cleanupDebounced, scrollToBottom])
-
-  // scroll requested
-  Container.useDepChangeEffect(() => {
-    scrollDown()
-  }, [scrollListDownCounter, scrollDown])
-  Container.useDepChangeEffect(() => {
-    scrollUp()
-  }, [scrollListUpCounter, scrollUp])
-
-  // someone requested we scroll to bottom and lock (ignore if we don't have latest)
-  Container.useDepChangeEffect(() => {
-    lockedToBottomRef.current = true
-    scrollToBottom()
-  }, [scrollListToBottomCounter, scrollToBottom])
-
-  // go to editing message
-  Container.useDepChangeEffect(() => {
-    if (!editingOrdinal) return
-    const idx = messageOrdinals.indexOf(editingOrdinal)
-    if (idx === -1) return
-    const waypoints = listRef.current?.querySelectorAll('[data-key]')
-    if (!waypoints) return
-    // find an id that should be our parent
-    const toFind = Math.floor(Types.ordinalToNumber(editingOrdinal) / 10)
-    const found = (Array.from(waypoints) as Array<HTMLElement>).reverse().find(w => {
-      const key = w.dataset.key
-      const temp = key !== undefined && parseInt(key, 10) === toFind
-      if (temp) {
-        console.log('aaa found', key, toFind)
-      }
-      return temp
-    })
-    found?.scrollIntoView({block: 'center', inline: 'nearest'})
-  }, [editingOrdinal, messageOrdinals])
-
-  return (
-    <Thread
-      {...listProps}
-      listRef={listRef}
-      listContentsRef={listContentsRef}
-      pointerWrapperRef={pointerWrapperRef}
-      isScrollingRef={isScrollingRef}
-      lastResizeHeightRef={lastResizeHeightRef}
-      lockedToBottomRef={lockedToBottomRef}
-      isLockedToBottom={isLockedToBottom}
-      adjustScrollAndIgnoreOnScroll={adjustScrollAndIgnoreOnScroll}
-      ignoreOnScrollRef={ignoreOnScrollRef}
-      scrollToBottom={scrollToBottom}
-      setListContents={setListContents}
-      scrollToCentered={scrollToCentered}
-      scrollDown={scrollDown}
-      scrollUp={scrollUp}
-      checkForLoadMoreThrottled={checkForLoadMoreThrottled}
-      jumpToRecent={jumpToRecent}
-      onAfterScroll={onAfterScroll}
-      onScrollThrottled={onScrollThrottled}
-      onScroll={onScroll}
-      cleanupDebounced={cleanupDebounced}
-      rowRenderer={rowRenderer}
-      onCopyCapture={onCopyCapture}
-      setListRef={setListRef}
-      handleListClick={handleListClick}
-      items={items}
-    />
-  )
+  return items
 }
 
-class Thread extends React.PureComponent<
-  Props & {
-    listRef: React.MutableRefObject<HTMLDivElement | null>
-    listContentsRef: React.MutableRefObject<HTMLDivElement | null>
-    pointerWrapperRef: React.MutableRefObject<HTMLDivElement | null>
-    isScrollingRef: React.MutableRefObject<boolean>
-    lastResizeHeightRef: React.MutableRefObject<number>
-    lockedToBottomRef: React.MutableRefObject<boolean>
-    ignoreOnScrollRef: React.MutableRefObject<boolean>
-    setListRef: (list: HTMLDivElement | null) => void
-    isLockedToBottom: () => boolean
-    checkForLoadMoreThrottled: Container.DebouncedState<() => void>
-    onAfterScroll: Container.DebouncedState<() => void>
-    onScrollThrottled: Container.DebouncedState<() => void>
-    scrollToBottom: () => void
-    scrollToCentered: () => void
-    scrollUp: () => void
-    scrollDown: () => void
-    jumpToRecent: () => void
-    onScroll: () => void
-    cleanupDebounced: () => void
-    adjustScrollAndIgnoreOnScroll: (fn: () => void) => void
-    setListContents: (listContents: HTMLDivElement | null) => void
-    rowRenderer: (ordinal: Types.Ordinal, previous?: Types.Ordinal) => JSX.Element
-    onCopyCapture: (e: React.BaseSyntheticEvent) => void
-    handleListClick: (ev: React.MouseEvent) => void
-    items: React.ReactNode[]
-  }
-> {
-  render() {
-    return (
-      <ErrorBoundary>
-        <div
-          style={styles.container as any}
-          onClick={this.props.handleListClick}
-          onCopyCapture={this.props.onCopyCapture}
-        >
-          <style>{realCSS}</style>
-          <div key={this.props.conversationIDKey} style={styles.list as any} ref={this.props.setListRef}>
-            <div style={styles.listContents} ref={this.props.setListContents}>
-              {this.props.items}
-            </div>
+const ThreadWrapper = (p: Props) => {
+  const {messageOrdinals, containsLatestMessage} = p
+  const {conversationIDKey, copyToClipboard, onFocusInput} = p
+  const listRef = React.useRef<HTMLDivElement | null>(null)
+  const {isLockedToBottom, jumpToRecent, scrollToBottom, setListRef} = useScrolling(p, listRef)
+  const setListContents = useResizeObserver(isLockedToBottom, scrollToBottom)
+
+  const onCopyCapture = React.useCallback(
+    (e: React.BaseSyntheticEvent) => {
+      // Copy text only, not HTML/styling.
+      e.preventDefault()
+      const sel = window.getSelection()
+      sel && copyToClipboard(sel.toString())
+    },
+    [copyToClipboard]
+  )
+
+  const handleListClick = React.useCallback(
+    (ev: React.MouseEvent) => {
+      const target = ev.target
+      // allow focusing other inner inputs such as the reacji picker filter
+      if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) {
+        return
+      }
+
+      const sel = window.getSelection()
+      if (sel?.isCollapsed) {
+        onFocusInput()
+      }
+    },
+    [onFocusInput]
+  )
+
+  const items = useItems(p)
+
+  return (
+    <ErrorBoundary>
+      <div style={styles.container as any} onClick={handleListClick} onCopyCapture={onCopyCapture}>
+        <style>{realCSS}</style>
+        <div key={conversationIDKey} style={styles.list as any} ref={setListRef}>
+          <div style={styles.listContents} ref={setListContents}>
+            {items}
           </div>
-          {!this.props.containsLatestMessage && this.props.messageOrdinals.length > 0 && (
-            <JumpToRecent onClick={this.props.jumpToRecent} style={styles.jumpToRecent} />
-          )}
         </div>
-      </ErrorBoundary>
-    )
-  }
+        {!containsLatestMessage && messageOrdinals.length > 0 && (
+          <JumpToRecent onClick={jumpToRecent} style={styles.jumpToRecent} />
+        )}
+      </div>
+    </ErrorBoundary>
+  )
 }
 
 const TopItem = (p: {conversationIDKey: Types.ConversationIDKey}) => (
