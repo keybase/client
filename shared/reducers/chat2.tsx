@@ -698,11 +698,12 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
   },
   [Chat2Gen.messageSetEditing]: (draftState, action) => {
     const {conversationIDKey, editLastUser, ordinal} = action.payload
-    const {editingMap, messageOrdinals} = draftState
+    const {editingMap, messageOrdinals, unsentTextMap} = draftState
 
     // clearing
     if (!editLastUser && !ordinal) {
       editingMap.delete(conversationIDKey)
+      unsentTextMap.delete(conversationIDKey)
       return
     }
 
@@ -713,6 +714,9 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       const message = messageMap?.get(ordinal)
       if (message?.type === 'text' || message?.type === 'attachment') {
         editingMap.set(conversationIDKey, ordinal)
+        if (message.type === 'text') {
+          unsentTextMap.set(conversationIDKey, message.text)
+        }
       }
       return
     }
@@ -730,16 +734,10 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     })
     if (found) {
       editingMap.set(conversationIDKey, found)
-    }
-  },
-  [Chat2Gen.messageSetQuoting]: (draftState, action) => {
-    const {ordinal, sourceConversationIDKey, targetConversationIDKey} = action.payload
-    const counter = (draftState.quote ? draftState.quote.counter : 0) + 1
-    draftState.quote = {
-      counter,
-      ordinal,
-      sourceConversationIDKey,
-      targetConversationIDKey,
+      const message = messageMap?.get(found)
+      if (message?.type === 'text') {
+        unsentTextMap.set(conversationIDKey, message.text)
+      }
     }
   },
   [Chat2Gen.addToMessageMap]: (draftState, action) => {
@@ -963,8 +961,13 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     }
     draftState.containsLatestMessageMap = containsLatestMessageMap
     // only if different
-    if (!shallowEqual([...draftState.messageOrdinals], [...messageOrdinals])) {
-      draftState.messageOrdinals = messageOrdinals
+    if (
+      !shallowEqual(
+        [...(draftState.messageOrdinals.get(conversationIDKey) ?? [])],
+        [...(messageOrdinals.get(conversationIDKey) ?? [])]
+      )
+    ) {
+      draftState.messageOrdinals.set(conversationIDKey, messageOrdinals.get(conversationIDKey) ?? new Set())
     }
     draftState.pendingOutboxToOrdinal = pendingOutboxToOrdinal
     draftState.messageMap = messageMap
@@ -1227,18 +1230,11 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     const {unsentTextMap} = draftState
     unsentTextMap.set(conversationIDKey, text)
   },
-  [Chat2Gen.setPrependText]: (draftState, action) => {
-    const {conversationIDKey, text} = action.payload
-    const {prependTextMap} = draftState
-    prependTextMap.set(conversationIDKey, text)
-  },
   [Chat2Gen.toggleReplyToMessage]: (draftState, action) => {
     const {conversationIDKey, ordinal} = action.payload
-    const {replyToMap, prependTextMap} = draftState
+    const {replyToMap} = draftState
     if (ordinal) {
       replyToMap.set(conversationIDKey, ordinal)
-      // we always put something in prepend to trigger the focus regain on the input bar
-      prependTextMap.set(conversationIDKey, new HiddenString(''))
     } else {
       replyToMap.delete(conversationIDKey)
     }

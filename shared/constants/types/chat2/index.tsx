@@ -10,14 +10,6 @@ import type * as Wallet from '../wallets'
 import type HiddenString from '../../../util/hidden-string'
 import type {AmpTracker} from '../../../chat/audio/amptracker'
 
-export type QuoteInfo = {
-  // Always positive and monotonically increasing.
-  counter: number
-  ordinal: _Message.Ordinal
-  sourceConversationIDKey: Common.ConversationIDKey
-  targetConversationIDKey: Common.ConversationIDKey
-}
-
 export type PaymentConfirmInfo = {
   error?: RPCTypes.Status
   summary?: RPCChatTypes.UIChatPaymentSummary
@@ -295,8 +287,6 @@ export type State = {
   readonly paymentConfirmInfo?: PaymentConfirmInfo // chat payment confirm screen data,
   readonly paymentStatusMap: Map<Wallet.PaymentID, _Message.ChatPaymentInfo>
   readonly pendingOutboxToOrdinal: Map<Common.ConversationIDKey, Map<_Message.OutboxID, _Message.Ordinal>> // messages waiting to be sent,
-  readonly prependTextMap: Map<Common.ConversationIDKey, HiddenString | null>
-  readonly quote?: QuoteInfo // last quoted message,
   readonly replyToMap: Map<Common.ConversationIDKey, _Message.Ordinal>
   readonly smallTeamsExpanded: boolean // if we're showing all small teams,
   readonly staticConfig?: StaticConfig // static config stuff from the service. only needs to be loaded once. if null, it hasn't been loaded,
