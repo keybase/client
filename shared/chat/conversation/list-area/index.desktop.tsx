@@ -38,7 +38,7 @@ let markedInitiallyLoaded = false
 
 const ThreadWrapper = (p: Props) => {
   const {containsLatestMessage, loadOlderMessages, loadNewerMessages, markInitiallyLoadedThreadAsRead} = p
-  const {scrollListDownCounter, scrollListUpCounter, onJumpToRecent} = p
+  const {scrollListDownCounter, scrollListUpCounter, onJumpToRecent, scrollListToBottomCounter} = p
   const {conversationIDKey, copyToClipboard, onFocusInput, messageOrdinals, centeredOrdinal} = p
   const listProps = {...p}
   const listRef = React.useRef<HTMLDivElement | null>(null)
@@ -380,14 +380,22 @@ const ThreadWrapper = (p: Props) => {
     scrollHeight: undefined,
     scrollTop: undefined,
   })
+
+  const prevFirstOrdinal = Container.usePrevious(messageOrdinals[0])
+  const prevOrdinalLength = Container.usePrevious(messageOrdinals.length)
+
   // called before render, to stash value. Subtle behavior of react's useMemo, don't use Container.useMemo
   React.useMemo(() => {
+    // didn't scroll up
+    if (messageOrdinals.length === prevOrdinalLength || messageOrdinals[0] === prevFirstOrdinal) return
     scrollOnPrependRef.current.scrollHeight = listRef.current?.scrollHeight
     scrollOnPrependRef.current.scrollTop = listRef.current?.scrollTop
     // eslint-disable-next-line we want this to fire when the ordinals change
   }, [messageOrdinals])
   // called after dom update, to apply value
   React.useLayoutEffect(() => {
+    // didn't scroll up
+    if (messageOrdinals.length === prevOrdinalLength || messageOrdinals[0] === prevFirstOrdinal) return
     if (scrollOnPrependRef.current.scrollHeight !== undefined && listRef.current && !isLockedToBottom()) {
       requestAnimationFrame(() => {
         const {current} = listRef
@@ -418,6 +426,12 @@ const ThreadWrapper = (p: Props) => {
   Container.useDepChangeEffect(() => {
     scrollUp()
   }, [scrollListUpCounter, scrollUp])
+
+  // someone requested we scroll to bottom and lock (ignore if we don't have latest)
+  Container.useDepChangeEffect(() => {
+    lockedToBottomRef.current = true
+    scrollToBottom()
+  }, [scrollListToBottomCounter, scrollToBottom])
 
   return (
     <Thread
@@ -481,28 +495,8 @@ class Thread extends React.PureComponent<
   }
 > {
   componentDidUpdate(prevProps: Props) {
-    // someone requested we scroll to bottom and lock (ignore if we don't have latest)
-    if (
-      this.props.scrollListToBottomCounter !== prevProps.scrollListToBottomCounter &&
-      this.props.containsLatestMessage
-    ) {
-      this.props.lockedToBottomRef.current = true
-      this.props.scrollToBottom()
-      return
-    }
-
     // Adjust scrolling if locked to the bottom
     const list = this.props.listRef.current
-
-    // Check if we just added new messages from the future. In this case, we don't want to adjust scroll
-    // position at all, so just bail out if we detect this case.
-    if (
-      this.props.messageOrdinals.length !== prevProps.messageOrdinals.length &&
-      this.props.messageOrdinals[0] === prevProps.messageOrdinals[0]
-    ) {
-      // do nothing do scroll position if this is true
-      return
-    }
 
     // Check to see if our centered ordinal has changed, and if so, scroll to it
     if (!!this.props.centeredOrdinal && this.props.centeredOrdinal !== prevProps.centeredOrdinal) {
