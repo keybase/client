@@ -330,7 +330,7 @@ class User extends React.Component<Props, State> {
       onPress: () => void
       tintColor: string
     }) => (
-      <Styles.StyleContext.Provider value={{canFixOverdraw: false}}>
+      <Styles.StyleContext.Provider value={Styles.dontFixOverdraw}>
         <HeaderLeftArrow canGoBack={canGoBack} onPress={onPress} tintColor={tintColor} />
       </Styles.StyleContext.Provider>
     ),

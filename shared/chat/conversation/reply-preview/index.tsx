@@ -1,22 +1,49 @@
 import * as React from 'react'
-import * as Kb from '../../../common-adapters'
+import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Constants from '../../../constants/chat2'
+import * as Container from '../../../util/container'
+import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
+import type * as Types from '../../../constants/types/chat2'
 
-export type Props = {
-  imageHeight?: number
-  imageURL?: string
-  imageWidth?: number
-  onCancel: () => void
-  text: string
-  username: string
-}
+type Props = {conversationIDKey: Types.ConversationIDKey}
 
 const ReplyPreview = (props: Props) => {
-  const sizing =
-    props.imageWidth && props.imageHeight
-      ? Constants.zoomImage(props.imageWidth, props.imageHeight, 80)
-      : null
+  const {conversationIDKey} = props
+  const message = Container.useSelector(state => {
+    const ordinal = Constants.getReplyToOrdinal(state, conversationIDKey)
+    return ordinal ? Constants.getMessage(state, conversationIDKey, ordinal) : null
+  })
+  let text = ''
+  if (message) {
+    switch (message.type) {
+      case 'text':
+        text = message.text.stringValue()
+        break
+      case 'attachment':
+        text = message.title || (message.attachmentType === 'image' ? '' : message.fileName)
+        break
+      default:
+    }
+  }
+  let attachment: Types.MessageAttachment | undefined
+  if (message && message.type === 'attachment') {
+    if (message.attachmentType === 'image') {
+      attachment = message
+    }
+  }
+  const imageHeight = attachment?.previewHeight
+  const imageURL = attachment?.previewURL
+  const imageWidth = attachment?.previewWidth
+  const username = message?.author ?? ''
+
+  const sizing = imageWidth && imageHeight ? Constants.zoomImage(imageWidth, imageHeight, 80) : null
+
+  const dispatch = Container.useDispatch()
+  const onCancel = React.useCallback(() => {
+    dispatch(Chat2Gen.createToggleReplyToMessage({conversationIDKey}))
+  }, [conversationIDKey, dispatch])
+
   return (
     <Kb.Box style={styles.outerContainer}>
       <Kb.Box2 direction="vertical" style={styles.container} gap="xtiny" fullWidth={true}>
@@ -26,30 +53,25 @@ const ReplyPreview = (props: Props) => {
         <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.replyContainer}>
           <Kb.Box2 direction="vertical" fullWidth={true} style={styles.contentContainer} gap="tiny">
             <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true}>
-              <Kb.Avatar username={props.username} size={32} />
+              <Kb.Avatar username={username} size={32} />
               <Kb.Text type="BodyBold" style={styles.username}>
-                {props.username}
+                {username}
               </Kb.Text>
             </Kb.Box2>
             <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
-              {!!props.imageURL && (
+              {!!imageURL && (
                 <Kb.Box2 direction="vertical" style={styles.replyImageContainer}>
                   <Kb.Box style={{...(sizing ? sizing.margins : {})}}>
-                    <Kb.Image src={props.imageURL} style={{...(sizing ? sizing.dims : {})}} />
+                    <Kb.Image src={imageURL} style={{...(sizing ? sizing.dims : {})}} />
                   </Kb.Box>
                 </Kb.Box2>
               )}
               <Kb.Text type="BodySmall" style={styles.text} lineClamp={1}>
-                {props.text}
+                {text}
               </Kb.Text>
             </Kb.Box2>
           </Kb.Box2>
-          <Kb.Icon
-            onClick={props.onCancel}
-            type="iconfont-remove"
-            style={styles.close}
-            boxStyle={styles.close}
-          />
+          <Kb.Icon onClick={onCancel} type="iconfont-remove" style={styles.close} boxStyle={styles.close} />
         </Kb.Box2>
       </Kb.Box2>
     </Kb.Box>
@@ -59,9 +81,7 @@ const ReplyPreview = (props: Props) => {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      close: {
-        alignSelf: 'flex-start',
-      },
+      close: {alignSelf: 'flex-start'},
       container: Styles.platformStyles({
         isElectron: {
           ...Styles.desktopStyles.boxShadow,
@@ -69,9 +89,7 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       contentContainer: Styles.platformStyles({
-        isMobile: {
-          flex: 1,
-        },
+        isMobile: {flex: 1},
       }),
       outerContainer: Styles.platformStyles({
         isElectron: {
@@ -99,9 +117,7 @@ const styles = Styles.styleSheetCreate(
           textOverflow: 'ellipsis',
           whiteSpace: 'nowrap',
         },
-        isMobile: {
-          flex: 1,
-        },
+        isMobile: {flex: 1},
       }),
       title: {
         backgroundColor: Styles.globalColors.blueGrey,
@@ -110,9 +126,7 @@ const styles = Styles.styleSheetCreate(
         paddingRight: Styles.globalMargins.xsmall,
         paddingTop: Styles.globalMargins.tiny,
       },
-      username: {
-        alignSelf: 'center',
-      },
+      username: {alignSelf: 'center'},
     } as const)
 )
 

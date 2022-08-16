@@ -92,7 +92,7 @@ const Keybase = () => {
       <Provider store={_store.store}>
         <PortalProvider>
           <SafeAreaProvider>
-            <Styles.StyleContext.Provider value={{canFixOverdraw: true}}>
+            <Styles.StyleContext.Provider value={Styles.yesFixOverdraw}>
               <Main />
             </Styles.StyleContext.Provider>
           </SafeAreaProvider>
