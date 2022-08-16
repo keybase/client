@@ -68,6 +68,29 @@ const ThreadWrapper = (p: Props) => {
     [lockedToBottomRef, containsLatestMessage]
   )
 
+  const isMountedRef = React.useRef(true)
+  React.useEffect(() => {
+    return () => {
+      isMountedRef.current = false
+    }
+  }, [])
+
+  const scrollToBottom = React.useCallback(() => {
+    const actuallyScroll = () => {
+      if (!isMountedRef.current) return
+      const list = listRef.current
+      if (list) {
+        adjustScrollAndIgnoreOnScroll(() => {
+          list.scrollTop = list.scrollHeight - list.clientHeight
+        })
+      }
+    }
+    actuallyScroll()
+    setTimeout(() => {
+      requestAnimationFrame(actuallyScroll)
+    }, 1)
+  }, [listRef, adjustScrollAndIgnoreOnScroll, isMountedRef])
+
   return (
     <Thread
       {...listProps}
@@ -80,6 +103,7 @@ const ThreadWrapper = (p: Props) => {
       isLockedToBottom={isLockedToBottom}
       adjustScrollAndIgnoreOnScroll={adjustScrollAndIgnoreOnScroll}
       ignoreOnScrollRef={ignoreOnScrollRef}
+      scrollToBottom={scrollToBottom}
     />
   )
 }
@@ -94,6 +118,7 @@ class Thread extends React.PureComponent<
     lockedToBottomRef: React.MutableRefObject<boolean>
     ignoreOnScrollRef: React.MutableRefObject<boolean>
     isLockedToBottom: () => boolean
+    scrollToBottom: () => void
     adjustScrollAndIgnoreOnScroll: (fn: () => void) => void
   }
 > {
@@ -108,7 +133,7 @@ class Thread extends React.PureComponent<
       if (height !== this.props.lastResizeHeightRef.current) {
         this.props.lastResizeHeightRef.current = height
         if (this.props.isLockedToBottom()) {
-          this.scrollToBottom()
+          this.props.scrollToBottom()
         }
       }
     })
@@ -122,22 +147,6 @@ class Thread extends React.PureComponent<
         scrollWaypoint[0].scrollIntoView({block: 'center', inline: 'nearest'})
       }
     }
-  }
-
-  private scrollToBottom = () => {
-    const actuallyScroll = () => {
-      const list = this.props.listRef.current
-      if (list) {
-        this.props.adjustScrollAndIgnoreOnScroll(() => {
-          list.scrollTop = list.scrollHeight - list.clientHeight
-        })
-      }
-    }
-
-    actuallyScroll()
-    setTimeout(() => {
-      requestAnimationFrame(actuallyScroll)
-    }, 1)
   }
 
   private scrollDown = () => {
@@ -162,7 +171,7 @@ class Thread extends React.PureComponent<
 
   private jumpToRecent = () => {
     this.props.lockedToBottomRef.current = true
-    this.scrollToBottom()
+    this.props.scrollToBottom()
     this.props.onJumpToRecent()
   }
 
@@ -177,7 +186,7 @@ class Thread extends React.PureComponent<
       return
     }
     if (this.props.isLockedToBottom()) {
-      this.scrollToBottom()
+      this.props.scrollToBottom()
     }
   }
 
@@ -207,7 +216,7 @@ class Thread extends React.PureComponent<
     if (this.props.conversationIDKey !== prevProps.conversationIDKey) {
       this.cleanupDebounced()
       this.props.lockedToBottomRef.current = true
-      this.scrollToBottom()
+      this.props.scrollToBottom()
       return
     }
 
@@ -229,7 +238,7 @@ class Thread extends React.PureComponent<
       this.props.containsLatestMessage
     ) {
       this.props.lockedToBottomRef.current = true
-      this.scrollToBottom()
+      this.props.scrollToBottom()
       return
     }
 
