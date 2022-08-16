@@ -27,10 +27,10 @@ const listEdgeSlop = 10
 
 const scrollOrdinalKey = 'scroll-ordinal-key'
 
-type Snapshot = {
-  scrollHeight: number
-  scrollTop: number
-}
+// type Snapshot = {
+//   scrollHeight: number
+//   scrollTop: number
+// }
 
 // We load the first thread automatically so in order to mark it read
 // we send an action on the first mount once
@@ -380,6 +380,35 @@ const ThreadWrapper = (p: Props) => {
     // eslint-disable-next-line
   }, [])
 
+  // if we scroll up try and keep the position
+  const scrollOnPrependRef = React.useRef<{scrollHeight: number | undefined; scrollTop: number | undefined}>({
+    scrollHeight: undefined,
+    scrollTop: undefined,
+  })
+  // called before render, to stash value. Subtle behavior of react's useMemo, don't use Container.useMemo
+  React.useMemo(() => {
+    scrollOnPrependRef.current.scrollHeight = listRef.current?.scrollHeight
+    scrollOnPrependRef.current.scrollTop = listRef.current?.scrollTop
+    // eslint-disable-next-line we want this to fire when the ordinals change
+  }, [messageOrdinals])
+  // called after dom update, to apply value
+  React.useLayoutEffect(() => {
+    if (scrollOnPrependRef.current.scrollHeight !== undefined && listRef.current && !isLockedToBottom()) {
+      requestAnimationFrame(() => {
+        const {current} = listRef
+        if (
+          current &&
+          isMountedRef.current &&
+          scrollOnPrependRef.current.scrollTop !== undefined &&
+          scrollOnPrependRef.current.scrollHeight !== undefined
+        ) {
+          const fromBottom = scrollOnPrependRef.current.scrollHeight - scrollOnPrependRef.current.scrollTop
+          current.scrollTop = current.scrollHeight - fromBottom
+        }
+      })
+    }
+  }, [messageOrdinals, isLockedToBottom])
+
   return (
     <Thread
       {...listProps}
@@ -441,21 +470,7 @@ class Thread extends React.PureComponent<
     items: React.ReactNode[]
   }
 > {
-  getSnapshotBeforeUpdate(prevProps: Props) {
-    // prepending, lets keep track of the old scrollHeight
-    if (
-      this.props.conversationIDKey === prevProps.conversationIDKey &&
-      this.props.messageOrdinals[0] !== prevProps.messageOrdinals[0] &&
-      prevProps.messageOrdinals[0]
-    ) {
-      const {current} = this.props.listRef
-
-      return {scrollHeight: current ? current.scrollHeight : 0, scrollTop: current ? current.scrollTop : 0}
-    }
-    return null
-  }
-
-  componentDidUpdate(prevProps: Props, _: unknown, snapshot: Snapshot) {
+  componentDidUpdate(prevProps: Props) {
     if (this.props === prevProps) {
       // don't do any of the below if just state changes
       return
@@ -511,16 +526,6 @@ class Thread extends React.PureComponent<
       return
     }
 
-    // Are we prepending older messages?
-    if (snapshot?.scrollHeight && list && !this.props.isLockedToBottom()) {
-      requestAnimationFrame(() => {
-        const {current} = this.props.listRef
-        if (current) {
-          const fromBottom = snapshot.scrollHeight - snapshot.scrollTop
-          current.scrollTop = current.scrollHeight - fromBottom
-        }
-      })
-    }
     if (list && this.props.editingOrdinal && this.props.editingOrdinal !== prevProps.editingOrdinal) {
       const ordinal = this.props.editingOrdinal
       const idx = this.props.messageOrdinals.indexOf(ordinal)
