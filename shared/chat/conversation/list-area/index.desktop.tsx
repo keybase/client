@@ -370,8 +370,7 @@ const useItems = (p: Props) => {
   )
 
   const items = useMemo(() => {
-    const items: Array<React.ReactNode> = []
-    items.push(<TopItem key="topItem" conversationIDKey={conversationIDKey} />)
+    const items: Array<React.ReactNode> = [<SpecialTopMessage conversationIDKey={conversationIDKey} />]
 
     const numOrdinals = messageOrdinals.length
     let ordinals: Array<Types.Ordinal> = []
@@ -433,7 +432,7 @@ const useItems = (p: Props) => {
         ordinals.push(ordinal)
       }
     })
-    items.push(<BottomItem key="bottomItem" conversationIDKey={conversationIDKey} />)
+    items.push(<SpecialBottomMessage conversationIDKey={conversationIDKey} />)
     return items
   }, [conversationIDKey, messageOrdinals, centeredOrdinal, rowRenderer])
 
@@ -491,14 +490,6 @@ const ThreadWrapper = (p: Props) => {
     </ErrorBoundary>
   )
 }
-
-const TopItem = (p: {conversationIDKey: Types.ConversationIDKey}) => (
-  <SpecialTopMessage conversationIDKey={p.conversationIDKey} />
-)
-
-const BottomItem = (p: {conversationIDKey: Types.ConversationIDKey}) => (
-  <SpecialBottomMessage conversationIDKey={p.conversationIDKey} />
-)
 
 type OrdinalWaypointProps = {
   id: string
