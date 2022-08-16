@@ -91,6 +91,46 @@ const ThreadWrapper = (p: Props) => {
     }, 1)
   }, [listRef, adjustScrollAndIgnoreOnScroll, isMountedRef])
 
+  const onResizeObservedRef = React.useRef((_entries: Array<ResizeObserverEntry>) => {})
+  React.useEffect(() => {
+    onResizeObservedRef.current = (entries: Array<ResizeObserverEntry>) => {
+      const entry = entries[0]
+      const {contentRect} = entry
+      const {height} = contentRect
+      if (height !== lastResizeHeightRef.current) {
+        lastResizeHeightRef.current = height
+        if (isLockedToBottom()) {
+          scrollToBottom()
+        }
+      }
+    }
+  }, [onResizeObservedRef, lastResizeHeightRef, isLockedToBottom, scrollToBottom])
+
+  const resizeObserverRef = React.useRef(
+    typeof ResizeObserver !== 'undefined'
+      ? new ResizeObserver(entries => onResizeObservedRef.current(entries))
+      : undefined
+  )
+
+  React.useEffect(() => {
+    let ror = resizeObserverRef.current
+    return () => {
+      ror?.disconnect()
+      resizeObserverRef.current = undefined
+      ror = undefined
+    }
+  }, [])
+
+  const setListContents = React.useCallback((listContents: HTMLDivElement | null) => {
+    if (listContentsRef.current && listContentsRef.current !== listContents) {
+      resizeObserverRef.current?.unobserve(listContentsRef.current)
+    }
+    if (listContents) {
+      resizeObserverRef.current?.observe(listContents)
+    }
+    listContentsRef.current = listContents
+  }, [])
+
   return (
     <Thread
       {...listProps}
@@ -104,6 +144,7 @@ const ThreadWrapper = (p: Props) => {
       adjustScrollAndIgnoreOnScroll={adjustScrollAndIgnoreOnScroll}
       ignoreOnScrollRef={ignoreOnScrollRef}
       scrollToBottom={scrollToBottom}
+      setListContents={setListContents}
     />
   )
 }
@@ -120,24 +161,9 @@ class Thread extends React.PureComponent<
     isLockedToBottom: () => boolean
     scrollToBottom: () => void
     adjustScrollAndIgnoreOnScroll: (fn: () => void) => void
+    setListContents: (listContents: HTMLDivElement | null) => void
   }
 > {
-  private resizeObserver: any =
-    // @ts-ignore doesn't know about ResizeObserver
-    typeof ResizeObserver !== 'undefined' &&
-    // @ts-ignore doesn't know about ResizeObserver
-    new ResizeObserver((entries: Array<{contentRect: {height: number}}>) => {
-      const entry = entries[0]
-      const {contentRect} = entry
-      const {height} = contentRect
-      if (height !== this.props.lastResizeHeightRef.current) {
-        this.props.lastResizeHeightRef.current = height
-        if (this.props.isLockedToBottom()) {
-          this.props.scrollToBottom()
-        }
-      }
-    })
-
   private scrollToCentered = () => {
     const list = this.props.listRef.current
     if (list) {
@@ -292,10 +318,6 @@ class Thread extends React.PureComponent<
 
   componentWillUnmount() {
     this.cleanupDebounced()
-    if (this.resizeObserver) {
-      this.resizeObserver.disconnect()
-      this.resizeObserver = undefined
-    }
   }
 
   private cleanupDebounced = () => {
@@ -480,21 +502,6 @@ class Thread extends React.PureComponent<
     }
   )
 
-  private setListContents = (listContents: HTMLDivElement | null) => {
-    if (!this.resizeObserver) {
-      return
-    }
-    if (this.props.listContentsRef.current && this.props.listContentsRef.current !== listContents) {
-      this.resizeObserver.unobserve(this.props.listContentsRef.current)
-    }
-    if (listContents) {
-      this.resizeObserver.observe(listContents)
-    }
-
-    // @ts-ignore a violation
-    this.props.listContentsRef.current = listContents
-  }
-
   private setListRef = (list: HTMLDivElement | null) => {
     if (this.props.listRef.current && this.props.listRef.current !== list) {
       this.props.listRef.current.removeEventListener('scroll', this.onScroll)
@@ -518,7 +525,7 @@ class Thread extends React.PureComponent<
         >
           <style>{realCSS}</style>
           <div key={this.props.conversationIDKey} style={styles.list as any} ref={this.setListRef}>
-            <div style={styles.listContents} ref={this.setListContents}>
+            <div style={styles.listContents} ref={this.props.setListContents}>
               {items}
             </div>
           </div>
