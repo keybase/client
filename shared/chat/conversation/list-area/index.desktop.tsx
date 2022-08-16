@@ -21,9 +21,6 @@ import chunk from 'lodash/chunk'
 import {globalMargins} from '../../../styles/shared'
 import {useMemo} from '../../../util/memoize'
 
-const ordinalsInAWaypoint = 10
-// pixels away from top/bottom to load/be locked
-const listEdgeSlop = 10
 const scrollOrdinalKey = 'scroll-ordinal-key'
 
 // We load the first thread automatically so in order to mark it read
@@ -90,6 +87,8 @@ const useScrolling = (p: Props, listRef: React.MutableRefObject<HTMLDivElement |
   const {containsLatestMessage, editingOrdinal, messageOrdinals, loadNewerMessages, loadOlderMessages} = p
   const {scrollListUpCounter, scrollListDownCounter, markInitiallyLoadedThreadAsRead} = p
   const {conversationIDKey, onJumpToRecent, centeredOrdinal, scrollListToBottomCounter} = p
+  // pixels away from top/bottom to load/be locked
+  const listEdgeSlop = 10
   const isMountedRef = useIsMounted()
   const isScrollingRef = React.useRef(false)
   const ignoreOnScrollRef = React.useRef(false)
@@ -357,6 +356,7 @@ const useScrolling = (p: Props, listRef: React.MutableRefObject<HTMLDivElement |
 
 const useItems = (p: Props) => {
   const {conversationIDKey, messageOrdinals, centeredOrdinal} = p
+  const ordinalsInAWaypoint = 10
   const rowRenderer = React.useCallback(
     (ordinal: Types.Ordinal, previous?: Types.Ordinal) => (
       <Message
