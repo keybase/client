@@ -37,7 +37,13 @@ type Snapshot = {
 let markedInitiallyLoaded = false
 
 const ThreadWrapper = (p: Props) => {
-  const {containsLatestMessage, loadOlderMessages, loadNewerMessages, onJumpToRecent} = p
+  const {
+    containsLatestMessage,
+    loadOlderMessages,
+    loadNewerMessages,
+    onJumpToRecent,
+    markInitiallyLoadedThreadAsRead,
+  } = p
   const {conversationIDKey, copyToClipboard, onFocusInput, messageOrdinals, centeredOrdinal} = p
   const listProps = {...p}
   const listRef = React.useRef<HTMLDivElement | null>(null)
@@ -355,7 +361,24 @@ const ThreadWrapper = (p: Props) => {
     })
     items.push(<BottomItem key="bottomItem" conversationIDKey={conversationIDKey} />)
     return items
-  }, [conversationIDKey, messageOrdinals])
+  }, [conversationIDKey, messageOrdinals, centeredOrdinal, rowRenderer])
+
+  React.useEffect(() => {
+    if (!markedInitiallyLoaded) {
+      markedInitiallyLoaded = true
+      markInitiallyLoadedThreadAsRead()
+    }
+    if (centeredOrdinal) {
+      lockedToBottomRef.current = false
+      scrollToCentered()
+      return
+    }
+    if (isLockedToBottom()) {
+      scrollToBottom()
+    }
+    // we only want this to happen once per mount
+    // eslint-disable-next-line
+  }, [])
 
   return (
     <Thread
@@ -418,21 +441,6 @@ class Thread extends React.PureComponent<
     items: React.ReactNode[]
   }
 > {
-  componentDidMount() {
-    if (!markedInitiallyLoaded) {
-      markedInitiallyLoaded = true
-      this.props.markInitiallyLoadedThreadAsRead()
-    }
-    if (this.props.centeredOrdinal) {
-      this.props.lockedToBottomRef.current = false
-      this.props.scrollToCentered()
-      return
-    }
-    if (this.props.isLockedToBottom()) {
-      this.props.scrollToBottom()
-    }
-  }
-
   getSnapshotBeforeUpdate(prevProps: Props) {
     // prepending, lets keep track of the old scrollHeight
     if (
@@ -758,9 +766,7 @@ const styles = Styles.styleSheetCreate(
           willChange: 'transform',
         },
       }),
-      listContents: {
-        width: '100%',
-      },
+      listContents: {width: '100%'},
     } as const)
 )
 
