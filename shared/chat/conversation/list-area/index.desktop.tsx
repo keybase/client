@@ -19,7 +19,7 @@ import {Waypoint} from 'react-waypoint'
 import debounce from 'lodash/debounce'
 import chunk from 'lodash/chunk'
 import {globalMargins} from '../../../styles/shared'
-import {memoize} from '../../../util/memoize'
+import {useMemo} from '../../../util/memoize'
 
 const ordinalsInAWaypoint = 10
 // pixels away from top/bottom to load/be locked
@@ -38,7 +38,7 @@ let markedInitiallyLoaded = false
 
 const ThreadWrapper = (p: Props) => {
   const {containsLatestMessage, loadOlderMessages, loadNewerMessages, onJumpToRecent} = p
-  const {conversationIDKey, copyToClipboard, onFocusInput} = p
+  const {conversationIDKey, copyToClipboard, onFocusInput, messageOrdinals, centeredOrdinal} = p
   const listProps = {...p}
   const listRef = React.useRef<HTMLDivElement | null>(null)
   const listContentsRef = React.useRef<HTMLDivElement | null>(null)
@@ -289,6 +289,74 @@ const ThreadWrapper = (p: Props) => {
     [onFocusInput]
   )
 
+  const items = useMemo(() => {
+    const items: Array<React.ReactNode> = []
+    items.push(<TopItem key="topItem" conversationIDKey={conversationIDKey} />)
+
+    const numOrdinals = messageOrdinals.length
+    let ordinals: Array<Types.Ordinal> = []
+    let previous: undefined | Types.Ordinal
+    let lastBucket: number | undefined
+    let baseIndex = 0 // this is used to de-dupe the waypoint around the centered ordinal
+    messageOrdinals.forEach((ordinal, idx) => {
+      // Centered ordinal is where we want the view to be centered on when jumping around in the thread.
+      const isCenteredOrdinal = ordinal === centeredOrdinal
+
+      // We want to keep the mapping of ordinal to bucket fixed always
+      const bucket = Math.floor(Types.ordinalToNumber(ordinal) / ordinalsInAWaypoint)
+      if (lastBucket === undefined) {
+        lastBucket = bucket
+      }
+      const needNextWaypoint = bucket !== lastBucket
+      const isLastItem = idx === numOrdinals - 1
+      if (needNextWaypoint || isLastItem || isCenteredOrdinal) {
+        if (isLastItem && !isCenteredOrdinal) {
+          // we don't want to add the centered ordinal here, since it will go into its own waypoint
+          ordinals.push(ordinal)
+        }
+        if (ordinals.length) {
+          // don't allow buckets to be too big
+          const chunks = chunk(ordinals, 10)
+          chunks.forEach((toAdd, cidx) => {
+            const key = `${lastBucket || ''}:${cidx + baseIndex}`
+            items.push(
+              <OrdinalWaypoint
+                key={key}
+                id={key}
+                rowRenderer={rowRenderer}
+                ordinals={toAdd}
+                previous={previous}
+              />
+            )
+            previous = toAdd[toAdd.length - 1]
+          })
+          // we pass previous so the OrdinalWaypoint can render the top item correctly
+          ordinals = []
+          lastBucket = bucket
+        }
+      }
+      // If this is the centered ordinal, it goes into its own waypoint so we can easily scroll to it
+      if (isCenteredOrdinal) {
+        items.push(
+          <OrdinalWaypoint
+            key={scrollOrdinalKey}
+            id={scrollOrdinalKey}
+            rowRenderer={rowRenderer}
+            ordinals={[ordinal]}
+            previous={previous}
+          />
+        )
+        previous = ordinal
+        lastBucket = 0
+        baseIndex++ // push this up if we drop the centered ordinal waypoint
+      } else {
+        ordinals.push(ordinal)
+      }
+    })
+    items.push(<BottomItem key="bottomItem" conversationIDKey={conversationIDKey} />)
+    return items
+  }, [conversationIDKey, messageOrdinals])
+
   return (
     <Thread
       {...listProps}
@@ -316,6 +384,7 @@ const ThreadWrapper = (p: Props) => {
       onCopyCapture={onCopyCapture}
       setListRef={setListRef}
       handleListClick={handleListClick}
+      items={items}
     />
   )
 }
@@ -346,6 +415,7 @@ class Thread extends React.PureComponent<
     rowRenderer: (ordinal: Types.Ordinal, previous?: Types.Ordinal) => JSX.Element
     onCopyCapture: (e: React.BaseSyntheticEvent) => void
     handleListClick: (ev: React.MouseEvent) => void
+    items: React.ReactNode[]
   }
 > {
   componentDidMount() {
@@ -461,83 +531,7 @@ class Thread extends React.PureComponent<
     }
   }
 
-  private makeItems = () => this.makeItemsMemoized(this.props.conversationIDKey, this.props.messageOrdinals)
-
-  private makeItemsMemoized = memoize(
-    (conversationIDKey: Types.ConversationIDKey, messageOrdinals: Array<number>) => {
-      const items: Array<React.ReactNode> = []
-      items.push(<TopItem key="topItem" conversationIDKey={conversationIDKey} />)
-
-      const numOrdinals = messageOrdinals.length
-      let ordinals: Array<Types.Ordinal> = []
-      let previous: undefined | Types.Ordinal
-      let lastBucket: number | undefined
-      let baseIndex = 0 // this is used to de-dupe the waypoint around the centered ordinal
-      messageOrdinals.forEach((ordinal, idx) => {
-        // Centered ordinal is where we want the view to be centered on when jumping around in the thread.
-        const isCenteredOrdinal = ordinal === this.props.centeredOrdinal
-
-        // We want to keep the mapping of ordinal to bucket fixed always
-        const bucket = Math.floor(Types.ordinalToNumber(ordinal) / ordinalsInAWaypoint)
-        if (lastBucket === undefined) {
-          lastBucket = bucket
-        }
-        const needNextWaypoint = bucket !== lastBucket
-        const isLastItem = idx === numOrdinals - 1
-        if (needNextWaypoint || isLastItem || isCenteredOrdinal) {
-          if (isLastItem && !isCenteredOrdinal) {
-            // we don't want to add the centered ordinal here, since it will go into its own waypoint
-            ordinals.push(ordinal)
-          }
-          if (ordinals.length) {
-            // don't allow buckets to be too big
-            const chunks = chunk(ordinals, 10)
-            chunks.forEach((toAdd, cidx) => {
-              const key = `${lastBucket || ''}:${cidx + baseIndex}`
-              items.push(
-                <OrdinalWaypoint
-                  key={key}
-                  id={key}
-                  rowRenderer={this.props.rowRenderer}
-                  ordinals={toAdd}
-                  previous={previous}
-                />
-              )
-              previous = toAdd[toAdd.length - 1]
-            })
-            // we pass previous so the OrdinalWaypoint can render the top item correctly
-            ordinals = []
-            lastBucket = bucket
-          }
-        }
-        // If this is the centered ordinal, it goes into its own waypoint so we can easily scroll to it
-        if (isCenteredOrdinal) {
-          items.push(
-            <OrdinalWaypoint
-              key={scrollOrdinalKey}
-              id={scrollOrdinalKey}
-              rowRenderer={this.props.rowRenderer}
-              ordinals={[ordinal]}
-              previous={previous}
-            />
-          )
-          previous = ordinal
-          lastBucket = 0
-          baseIndex++ // push this up if we drop the centered ordinal waypoint
-        } else {
-          ordinals.push(ordinal)
-        }
-      })
-
-      items.push(<BottomItem key="bottomItem" conversationIDKey={conversationIDKey} />)
-
-      return items
-    }
-  )
-
   render() {
-    const items = this.makeItems()
-
     return (
       <ErrorBoundary>
         <div
@@ -548,7 +542,7 @@ class Thread extends React.PureComponent<
           <style>{realCSS}</style>
           <div key={this.props.conversationIDKey} style={styles.list as any} ref={this.props.setListRef}>
             <div style={styles.listContents} ref={this.props.setListContents}>
-              {items}
+              {this.props.items}
             </div>
           </div>
           {!this.props.containsLatestMessage && this.props.messageOrdinals.length > 0 && (
