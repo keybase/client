@@ -39,7 +39,8 @@ let markedInitiallyLoaded = false
 const ThreadWrapper = (p: Props) => {
   const {containsLatestMessage, loadOlderMessages, loadNewerMessages, markInitiallyLoadedThreadAsRead} = p
   const {scrollListDownCounter, scrollListUpCounter, onJumpToRecent, scrollListToBottomCounter} = p
-  const {conversationIDKey, copyToClipboard, onFocusInput, messageOrdinals, centeredOrdinal} = p
+  const {conversationIDKey, copyToClipboard, onFocusInput, messageOrdinals, centeredOrdinal, editingOrdinal} =
+    p
   const listProps = {...p}
   const listRef = React.useRef<HTMLDivElement | null>(null)
   const listContentsRef = React.useRef<HTMLDivElement | null>(null)
@@ -390,7 +391,8 @@ const ThreadWrapper = (p: Props) => {
     if (messageOrdinals.length === prevOrdinalLength || messageOrdinals[0] === prevFirstOrdinal) return
     scrollOnPrependRef.current.scrollHeight = listRef.current?.scrollHeight
     scrollOnPrependRef.current.scrollTop = listRef.current?.scrollTop
-    // eslint-disable-next-line we want this to fire when the ordinals change
+    // we want this to fire when the ordinals change
+    // eslint-disable-next-line
   }, [messageOrdinals])
   // called after dom update, to apply value
   React.useLayoutEffect(() => {
@@ -410,7 +412,17 @@ const ThreadWrapper = (p: Props) => {
         }
       })
     }
-  }, [messageOrdinals, isLockedToBottom])
+    // we want this to fire when the ordinals change
+    // eslint-disable-next-line
+  }, [messageOrdinals])
+
+  // Check to see if our centered ordinal has changed, and if so, scroll to it
+  React.useEffect(() => {
+    if (centeredOrdinal) {
+      lockedToBottomRef.current = false
+      scrollToCentered()
+    }
+  }, [centeredOrdinal, scrollToCentered])
 
   // conversation changed
   Container.useDepChangeEffect(() => {
@@ -432,6 +444,26 @@ const ThreadWrapper = (p: Props) => {
     lockedToBottomRef.current = true
     scrollToBottom()
   }, [scrollListToBottomCounter, scrollToBottom])
+
+  // go to editing message
+  Container.useDepChangeEffect(() => {
+    if (!editingOrdinal) return
+    const idx = messageOrdinals.indexOf(editingOrdinal)
+    if (idx === -1) return
+    const waypoints = listRef.current?.querySelectorAll('[data-key]')
+    if (!waypoints) return
+    // find an id that should be our parent
+    const toFind = Math.floor(Types.ordinalToNumber(editingOrdinal) / 10)
+    const found = (Array.from(waypoints) as Array<HTMLElement>).reverse().find(w => {
+      const key = w.dataset.key
+      const temp = key !== undefined && parseInt(key, 10) === toFind
+      if (temp) {
+        console.log('aaa found', key, toFind)
+      }
+      return temp
+    })
+    found?.scrollIntoView({block: 'center', inline: 'nearest'})
+  }, [editingOrdinal, messageOrdinals])
 
   return (
     <Thread
@@ -494,35 +526,6 @@ class Thread extends React.PureComponent<
     items: React.ReactNode[]
   }
 > {
-  componentDidUpdate(prevProps: Props) {
-    // Adjust scrolling if locked to the bottom
-    const list = this.props.listRef.current
-
-    // Check to see if our centered ordinal has changed, and if so, scroll to it
-    if (!!this.props.centeredOrdinal && this.props.centeredOrdinal !== prevProps.centeredOrdinal) {
-      this.props.lockedToBottomRef.current = false
-      this.props.scrollToCentered()
-      return
-    }
-
-    if (list && this.props.editingOrdinal && this.props.editingOrdinal !== prevProps.editingOrdinal) {
-      const ordinal = this.props.editingOrdinal
-      const idx = this.props.messageOrdinals.indexOf(ordinal)
-      if (idx !== -1) {
-        const waypoints = list.querySelectorAll('[data-key]')
-        // find an id that should be our parent
-        const toFind = Types.ordinalToNumber(ordinal)
-        const found = (Array.from(waypoints) as Array<HTMLElement>).reverse().find(w => {
-          const key = w.dataset.key
-          return key !== undefined && parseInt(key, 10) < toFind
-        })
-        if (found) {
-          found.scrollIntoView({behavior: 'smooth', block: 'center'})
-        }
-      }
-    }
-  }
-
   render() {
     return (
       <ErrorBoundary>
