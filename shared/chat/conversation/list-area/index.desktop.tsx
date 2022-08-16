@@ -40,6 +40,7 @@ const debug = __STORYBOOK__
 let markedInitiallyLoaded = false
 
 const ThreadWrapper = (p: Props) => {
+  const {containsLatestMessage} = p
   const listProps = {...p}
   const listRef = React.useRef<HTMLDivElement | null>(null)
   const listContentsRef = React.useRef<HTMLDivElement | null>(null)
@@ -50,6 +51,23 @@ const ThreadWrapper = (p: Props) => {
   const isScrollingRef = React.useRef(false)
   const lastResizeHeightRef = React.useRef(0)
   const lockedToBottomRef = React.useRef(true)
+  const ignoreOnScrollRef = React.useRef(false)
+
+  const adjustScrollAndIgnoreOnScroll = React.useCallback(
+    (fn: () => void) => {
+      ignoreOnScrollRef.current = true
+      fn()
+    },
+    [ignoreOnScrollRef]
+  )
+
+  const isLockedToBottom = React.useCallback(
+    () =>
+      // if we don't have the latest message, we can't be locked to the bottom
+      lockedToBottomRef.current && containsLatestMessage,
+    [lockedToBottomRef, containsLatestMessage]
+  )
+
   return (
     <Thread
       {...listProps}
@@ -59,6 +77,9 @@ const ThreadWrapper = (p: Props) => {
       isScrollingRef={isScrollingRef}
       lastResizeHeightRef={lastResizeHeightRef}
       lockedToBottomRef={lockedToBottomRef}
+      isLockedToBottom={isLockedToBottom}
+      adjustScrollAndIgnoreOnScroll={adjustScrollAndIgnoreOnScroll}
+      ignoreOnScrollRef={ignoreOnScrollRef}
     />
   )
 }
@@ -71,6 +92,9 @@ class Thread extends React.PureComponent<
     isScrollingRef: React.MutableRefObject<boolean>
     lastResizeHeightRef: React.MutableRefObject<number>
     lockedToBottomRef: React.MutableRefObject<boolean>
+    ignoreOnScrollRef: React.MutableRefObject<boolean>
+    isLockedToBottom: () => boolean
+    adjustScrollAndIgnoreOnScroll: (fn: () => void) => void
   }
 > {
   private resizeObserver: any =
@@ -83,7 +107,7 @@ class Thread extends React.PureComponent<
       const {height} = contentRect
       if (height !== this.props.lastResizeHeightRef.current) {
         this.props.lastResizeHeightRef.current = height
-        if (this.isLockedToBottom()) {
+        if (this.props.isLockedToBottom()) {
           this.scrollToBottom()
         }
       }
@@ -100,16 +124,11 @@ class Thread extends React.PureComponent<
     }
   }
 
-  private isLockedToBottom = () => {
-    // if we don't have the latest message, we can't be locked to the bottom
-    return this.props.lockedToBottomRef.current && this.props.containsLatestMessage
-  }
-
   private scrollToBottom = () => {
     const actuallyScroll = () => {
       const list = this.props.listRef.current
       if (list) {
-        this.adjustScrollAndIgnoreOnScroll(() => {
+        this.props.adjustScrollAndIgnoreOnScroll(() => {
           list.scrollTop = list.scrollHeight - list.clientHeight
         })
       }
@@ -124,7 +143,7 @@ class Thread extends React.PureComponent<
   private scrollDown = () => {
     const list = this.props.listRef.current
     if (list) {
-      this.adjustScrollAndIgnoreOnScroll(() => {
+      this.props.adjustScrollAndIgnoreOnScroll(() => {
         list.scrollTop += list.clientHeight
       })
     }
@@ -134,7 +153,7 @@ class Thread extends React.PureComponent<
     this.props.lockedToBottomRef.current = false
     const list = this.props.listRef.current
     if (list) {
-      this.adjustScrollAndIgnoreOnScroll(() => {
+      this.props.adjustScrollAndIgnoreOnScroll(() => {
         list.scrollTop -= list.clientHeight
         this.checkForLoadMoreThrottled()
       })
@@ -157,7 +176,7 @@ class Thread extends React.PureComponent<
       this.scrollToCentered()
       return
     }
-    if (this.isLockedToBottom()) {
+    if (this.props.isLockedToBottom()) {
       this.scrollToBottom()
     }
   }
@@ -235,7 +254,7 @@ class Thread extends React.PureComponent<
     }
 
     // Are we prepending older messages?
-    if (snapshot?.scrollHeight && list && !this.isLockedToBottom()) {
+    if (snapshot?.scrollHeight && list && !this.props.isLockedToBottom()) {
       requestAnimationFrame(() => {
         const {current} = this.props.listRef
         if (current) {
@@ -276,15 +295,9 @@ class Thread extends React.PureComponent<
     this.checkForLoadMoreThrottled.cancel()
   }
 
-  private ignoreOnScroll = false
-  private adjustScrollAndIgnoreOnScroll = (fn: () => void) => {
-    this.ignoreOnScroll = true
-    fn()
-  }
-
   private onScroll = () => {
-    if (this.ignoreOnScroll) {
-      this.ignoreOnScroll = false
+    if (this.props.ignoreOnScrollRef.current) {
+      this.props.ignoreOnScrollRef.current = false
       return
     }
     // quickly set to false to assume we're not locked. if we are the throttled one will set it to true
@@ -322,7 +335,7 @@ class Thread extends React.PureComponent<
           this.props.loadOlderMessages()
         } else if (
           !this.props.containsLatestMessage &&
-          !this.isLockedToBottom() &&
+          !this.props.isLockedToBottom() &&
           list.scrollTop > list.scrollHeight - list.clientHeight - listEdgeSlop
         ) {
           this.props.loadNewerMessages()
@@ -487,13 +500,8 @@ class Thread extends React.PureComponent<
   render() {
     const items = this.makeItems()
 
-    const debugInfo = debug ? (
-      <div>Debug info: {this.isLockedToBottom() ? 'Locked to bottom' : 'Not locked to bottom'}</div>
-    ) : null
-
     return (
       <ErrorBoundary>
-        {debugInfo}
         <div
           style={styles.container as any}
           onClick={this.handleListClick}
