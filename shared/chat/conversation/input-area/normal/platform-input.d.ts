@@ -5,29 +5,25 @@ import type * as TeamTypes from '../../../../constants/types/teams'
 import type {PlainInput} from '../../../../common-adapters'
 
 type Props = {
-  hintText: string
-  onBlur?: () => void
-  onFocus?: () => void
-  onSelectionChange?: (p: {start: number | null; end: number | null}) => void
-  suggestionOverlayStyle: unknown
-  onKeyDown: (evt: React.KeyboardEvent) => void
   cannotWrite: boolean
-  showWalletsIcon: boolean
-  inputSetRef: (r: PlainInput | null) => void
   conversationIDKey: Types.ConversationIDKey
   explodingModeSeconds: number
-  onChangeText: (newText: string) => void
+  hintText: string
+  inputSetRef: React.MutableRefObject<PlainInput | null>
   isEditing: boolean
   isExploding: boolean
   maxInputArea?: number
   minWriterRole: TeamTypes.TeamRoleType
+  onCancelEditing: () => void
+  onChangeText: (newText: string) => void
   onRequestScrollDown: () => void
   onRequestScrollUp: () => void
   onSubmit: (text: string) => void
   showReplyPreview: boolean
   showTypingStatus: boolean
+  showWalletsIcon: boolean
   suggestBotCommandsUpdateStatus: RPCChatTypes.UIBotCommandsUpdateStatusTyp
-  userEmojisLoading: boolean
+  suggestionOverlayStyle: unknown
 }
 
 export default class PlatformInput extends React.Component<Props> {}

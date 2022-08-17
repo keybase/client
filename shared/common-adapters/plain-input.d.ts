@@ -149,9 +149,11 @@ export type InternalProps = {} & DefaultProps & Props
 declare class PlainInput extends React.Component<Props> {
   static defaultProps: DefaultProps
   blur: () => void
+  clear: () => void
   focus: () => void
   isFocused: () => boolean
   getSelection: () => Selection | null
+  get value(): string
 
   /**
    *  This can only be used when the input is controlled. Use `transformText` if
