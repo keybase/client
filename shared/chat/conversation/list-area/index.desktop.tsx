@@ -1,9 +1,8 @@
 /* eslint-env browser */
-//
-// Infinite scrolling list.
-// We group messages into a series of Waypoints. When the wayoint exits the screen we replace it with a single div instead
-// We use react-measure to cache the heights
+import * as ConfigGen from '../../../actions/config-gen'
+import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as React from 'react'
+import * as Constants from '../../../constants/chat2'
 import * as Styles from '../../../styles'
 import * as Container from '../../../util/container'
 import * as Types from '../../../constants/types/chat2'
@@ -20,6 +19,10 @@ import debounce from 'lodash/debounce'
 import chunk from 'lodash/chunk'
 import {globalMargins} from '../../../styles/shared'
 import {useMemo} from '../../../util/memoize'
+
+// Infinite scrolling list.
+// We group messages into a series of Waypoints. When the wayoint exits the screen we replace it with a single div instead
+// We use react-measure to cache the heights
 
 const scrollOrdinalKey = 'scroll-ordinal-key'
 
@@ -83,10 +86,39 @@ const useIsMounted = () => {
   return isMountedRef
 }
 
-const useScrolling = (p: Props, listRef: React.MutableRefObject<HTMLDivElement | null>) => {
-  const {containsLatestMessage, editingOrdinal, messageOrdinals, loadNewerMessages, loadOlderMessages} = p
-  const {scrollListUpCounter, scrollListDownCounter, markInitiallyLoadedThreadAsRead} = p
-  const {conversationIDKey, onJumpToRecent, centeredOrdinal, scrollListToBottomCounter} = p
+const useScrolling = (
+  p: Pick<
+    Props,
+    'conversationIDKey' | 'scrollListDownCounter' | 'scrollListToBottomCounter' | 'scrollListUpCounter'
+  > & {
+    containsLatestMessage: boolean
+    messageOrdinals: Array<Types.Ordinal>
+    listRef: React.MutableRefObject<HTMLDivElement | null>
+    centeredOrdinal: Types.Ordinal | undefined
+  }
+) => {
+  const {conversationIDKey, scrollListDownCounter, scrollListToBottomCounter, scrollListUpCounter} = p
+  const {listRef, containsLatestMessage, messageOrdinals, centeredOrdinal} = p
+  const dispatch = Container.useDispatch()
+  const editingOrdinal = Container.useSelector(state => state.chat2.editingMap.get(conversationIDKey))
+  const loadNewerMessages = Container.useThrottledCallback(
+    React.useCallback(() => {
+      dispatch(Chat2Gen.createLoadNewerMessagesDueToScroll({conversationIDKey}))
+    }, [dispatch, conversationIDKey]),
+    200
+  )
+  const loadOlderMessages = Container.useThrottledCallback(
+    React.useCallback(() => {
+      dispatch(Chat2Gen.createLoadOlderMessagesDueToScroll({conversationIDKey}))
+    }, [dispatch, conversationIDKey]),
+    200
+  )
+  const markInitiallyLoadedThreadAsRead = React.useCallback(() => {
+    dispatch(Chat2Gen.createMarkInitiallyLoadedThreadAsRead({conversationIDKey}))
+  }, [dispatch, conversationIDKey])
+  const onJumpToRecent = React.useCallback(() => {
+    dispatch(Chat2Gen.createJumpToRecent({conversationIDKey}))
+  }, [dispatch, conversationIDKey])
   // pixels away from top/bottom to load/be locked
   const listEdgeSlop = 10
   const isMountedRef = useIsMounted()
@@ -354,7 +386,11 @@ const useScrolling = (p: Props, listRef: React.MutableRefObject<HTMLDivElement |
   return {isLockedToBottom, jumpToRecent, lockedToBottomRef, scrollToBottom, setListRef}
 }
 
-const useItems = (p: Props) => {
+const useItems = (p: {
+  conversationIDKey: Types.ConversationIDKey
+  messageOrdinals: Array<Types.Ordinal>
+  centeredOrdinal: Types.Ordinal | undefined
+}) => {
   const {conversationIDKey, messageOrdinals, centeredOrdinal} = p
   const ordinalsInAWaypoint = 10
   const rowRenderer = React.useCallback(
@@ -370,7 +406,9 @@ const useItems = (p: Props) => {
   )
 
   const items = useMemo(() => {
-    const items: Array<React.ReactNode> = [<SpecialTopMessage conversationIDKey={conversationIDKey} />]
+    const items: Array<React.ReactNode> = [
+      <SpecialTopMessage key="specialTop" conversationIDKey={conversationIDKey} />,
+    ]
 
     const numOrdinals = messageOrdinals.length
     let ordinals: Array<Types.Ordinal> = []
@@ -432,7 +470,7 @@ const useItems = (p: Props) => {
         ordinals.push(ordinal)
       }
     })
-    items.push(<SpecialBottomMessage conversationIDKey={conversationIDKey} />)
+    items.push(<SpecialBottomMessage key="specialBottom" conversationIDKey={conversationIDKey} />)
     return items
   }, [conversationIDKey, messageOrdinals, centeredOrdinal, rowRenderer])
 
@@ -440,10 +478,36 @@ const useItems = (p: Props) => {
 }
 
 const ThreadWrapper = (p: Props) => {
-  const {messageOrdinals, containsLatestMessage} = p
-  const {conversationIDKey, copyToClipboard, onFocusInput} = p
+  const {conversationIDKey, onFocusInput} = p
+  const {scrollListDownCounter, scrollListToBottomCounter, scrollListUpCounter} = p
+  const messageOrdinalsSet = Container.useSelector(state =>
+    Constants.getMessageOrdinals(state, conversationIDKey)
+  )
+  const messageOrdinals = useMemo(() => [...messageOrdinalsSet], [messageOrdinalsSet])
+  const centeredOrdinal = Container.useSelector(
+    state => Constants.getMessageCenterOrdinal(state, conversationIDKey)?.ordinal
+  )
+  const containsLatestMessage = Container.useSelector(
+    state => state.chat2.containsLatestMessageMap.get(conversationIDKey) || false
+  )
+  const dispatch = Container.useDispatch()
+  const copyToClipboard = React.useCallback(
+    (text: string) => {
+      dispatch(ConfigGen.createCopyToClipboard({text}))
+    },
+    [dispatch]
+  )
   const listRef = React.useRef<HTMLDivElement | null>(null)
-  const {isLockedToBottom, jumpToRecent, scrollToBottom, setListRef} = useScrolling(p, listRef)
+  const {isLockedToBottom, jumpToRecent, scrollToBottom, setListRef} = useScrolling({
+    centeredOrdinal,
+    containsLatestMessage,
+    conversationIDKey,
+    listRef,
+    messageOrdinals,
+    scrollListDownCounter,
+    scrollListToBottomCounter,
+    scrollListUpCounter,
+  })
   const setListContents = useResizeObserver(isLockedToBottom, scrollToBottom)
 
   const onCopyCapture = React.useCallback(
@@ -472,7 +536,11 @@ const ThreadWrapper = (p: Props) => {
     [onFocusInput]
   )
 
-  const items = useItems(p)
+  const items = useItems({
+    centeredOrdinal,
+    conversationIDKey,
+    messageOrdinals,
+  })
 
   return (
     <ErrorBoundary>

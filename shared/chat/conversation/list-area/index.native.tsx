@@ -9,9 +9,12 @@ import SpecialBottomMessage from '../messages/special-bottom-message'
 import SpecialTopMessage from '../messages/special-top-message'
 import logger from '../../../logger'
 import {Animated, type ListRenderItemInfo} from 'react-native'
-import type {Props, ItemType} from '.'
+import type {ItemType} from '.'
 import {mobileTypingContainerHeight} from '../input-area/normal/typing'
 import {DEBUG_CHAT_DUMP} from '../../../constants/chat2'
+
+// TODO fix when we port this
+type Props = any
 
 const debugEnabled = false
 
@@ -141,9 +144,9 @@ class ConversationList extends React.PureComponent<Props> {
   private renderItem = (i: ListRenderItemInfo<ItemType>) => {
     const {item} = i
     if (item === 'specialTop') {
-      return <SpecialTopMessage conversationIDKey={this.props.conversationIDKey} measure={null} />
+      return <SpecialTopMessage conversationIDKey={this.props.conversationIDKey} />
     } else if (item === 'specialBottom') {
-      return <SpecialBottomMessage conversationIDKey={this.props.conversationIDKey} measure={null} />
+      return <SpecialBottomMessage conversationIDKey={this.props.conversationIDKey} />
     } else {
       const ordinalIndex = item
       const ordinal = this.props.messageOrdinals[ordinalIndex]

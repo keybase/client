@@ -29,7 +29,8 @@ const throttledLoadOlder = throttle(
   1000
 )
 
-export default Container.connect(
+// TODO remove this when mobile ports over
+const MobileOnly = Container.connect(
   (state, {conversationIDKey}: OwnProps) => {
     const messageOrdinals = Constants.getMessageOrdinals(state, conversationIDKey)
     const lastOrdinal = [...messageOrdinals].pop()
@@ -77,5 +78,9 @@ export default Container.connect(
     scrollListUpCounter: ownProps.scrollListUpCounter,
   })
 )(ListComponent)
+
+// @ts-ignore
+const ListAreaContainer = Container.isMobile ? MobileOnly : ListComponent
+export default ListAreaContainer
 
 const setToArray = memoize(s => [...s])
