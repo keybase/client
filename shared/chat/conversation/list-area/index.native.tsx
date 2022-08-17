@@ -9,16 +9,9 @@ import SpecialBottomMessage from '../messages/special-bottom-message'
 import SpecialTopMessage from '../messages/special-top-message'
 import logger from '../../../logger'
 import {Animated, type ListRenderItemInfo} from 'react-native'
-import type {ItemType} from '.'
+import type {Props, ItemType} from '.'
 import {mobileTypingContainerHeight} from '../input-area/normal/typing'
-import {DEBUG_CHAT_DUMP} from '../../../constants/chat2'
-
-// TODO fix when we port this
-type Props = any
-
-const debugEnabled = false
-
-const debug = debugEnabled ? (s: string) => logger.debug('scroll: ' + s) : () => {}
+import * as Hooks from './hooks'
 
 const targetHitArea = 1
 
@@ -102,34 +95,71 @@ const Sent = React.memo(Sent_)
 // we send an action on the first mount once
 let markedInitiallyLoaded = false
 
-let lastProps: Props | undefined
+export const DEBUGDump = () => {}
 
-export const DEBUGDump = () => {
-  if (!DEBUG_CHAT_DUMP) {
-    return
-  }
-  if (!lastProps) {
-    return
-  }
-
-  const {messageOrdinals, editingOrdinal, centeredOrdinal, containsLatestMessage, conversationIDKey} =
-    lastProps
-  const output = {
-    centeredOrdinal,
-    containsLatestMessage,
-    conversationIDKey,
-    editingOrdinal,
-    messageOrdinals,
-  }
-  logger.error('chat debug dump: ', JSON.stringify(output))
-  return conversationIDKey
+// TODO del
+type OLDPROPS = {
+  centeredOrdinal?: Types.Ordinal
+  containsLatestMessage: boolean
+  conversationIDKey: Types.ConversationIDKey
+  copyToClipboard: (arg0: string) => void
+  editingOrdinal?: Types.Ordinal
+  lastMessageIsOurs: boolean
+  loadNewerMessages: (ordinal?: Types.Ordinal | null) => void
+  loadOlderMessages: (ordinal?: Types.Ordinal | null) => void
+  markInitiallyLoadedThreadAsRead: () => void
+  messageOrdinals: Array<Types.Ordinal>
+  onFocusInput: () => void
+  onJumpToRecent: () => void
+  scrollListDownCounter: number
+  scrollListToBottomCounter: number
+  scrollListUpCounter: number
+  listRef: React.MutableRefObject<Kb.NativeVirtualizedList<ItemType> | null>
 }
 
-class ConversationList extends React.PureComponent<Props> {
-  private mounted = true
-  componentWillUnmount() {
-    this.mounted = false
+const ConversationList = (p: OLDPROPS) => {
+  const {conversationIDKey, onFocusInput} = p
+  const {scrollListDownCounter, scrollListToBottomCounter, scrollListUpCounter} = p
+
+  const isMountedRef = Hooks.useIsMounted()
+
+  const listRef = React.useRef<Kb.NativeVirtualizedList<ItemType> | null>(null)
+
+  const {markInitiallyLoadedThreadAsRead} = Hooks.useActions({conversationIDKey})
+
+  const oldProps = {
+    ...p,
+    conversationIDKey,
+    isMountedRef,
+    listRef,
+    onFocusInput,
+    scrollListDownCounter,
+    scrollListToBottomCounter,
+    scrollListUpCounter,
   }
+
+  React.useEffect(() => {
+    if (!markedInitiallyLoaded) {
+      markedInitiallyLoaded = true
+      markInitiallyLoadedThreadAsRead()
+    }
+    // if (centeredOrdinal) {
+    //   lockedToBottomRef.current = false
+    //   scrollToCentered()
+    //   return
+    // }
+    // if (isLockedToBottom()) {
+    //   scrollToBottom()
+    // }
+    // we only want this to happen once per mount
+    // eslint-disable-next-line
+  }, [])
+
+  return <OldConversationList {...oldProps} />
+}
+
+// TODO del
+class OldConversationList extends React.PureComponent<OLDPROPS> {
   componentDidMount() {
     if (markedInitiallyLoaded) {
       return
@@ -138,7 +168,6 @@ class ConversationList extends React.PureComponent<Props> {
     this.props.markInitiallyLoadedThreadAsRead()
   }
 
-  private listRef = React.createRef<Kb.NativeVirtualizedList<ItemType>>()
   private scrollCenterTarget?: number
 
   private renderItem = (i: ListRenderItemInfo<ItemType>) => {
@@ -207,7 +236,7 @@ class ConversationList extends React.PureComponent<Props> {
 
   // the component can pass null here sometimes
   private getItemCount = (messageOrdinals: Array<Types.Ordinal> | null) => {
-    if (this.mounted) {
+    if (this.props.isMountedRef.current) {
       return (messageOrdinals?.length ?? 0) + 2
     } else {
       // needed else VirtualizedList will yellowbox
@@ -239,7 +268,6 @@ class ConversationList extends React.PureComponent<Props> {
       }
     }
     if (!topRecord || !bottomRecord) {
-      debug(`onViewableItemsChanged: bailing out because of no record`)
       return
     }
 
@@ -249,9 +277,7 @@ class ConversationList extends React.PureComponent<Props> {
         : this.props.messageOrdinals.length - 1
     const upperIndex = typeof topRecord.item === 'number' ? this.getIndexFromItem(topRecord.item) : 0
     const middleIndex = bottomIndex + Math.floor((upperIndex - bottomIndex) / 2)
-    debug(`onViewableItemsChanged: first: ${bottomIndex} last: ${upperIndex} middle: ${middleIndex}`)
     if (!this.scrollCenterTarget) {
-      debug(`onViewableItemsChanged: no center target`)
       return
     }
 
@@ -261,10 +287,8 @@ class ConversationList extends React.PureComponent<Props> {
         this.scrollCenterTarget >= middleIndex - targetHitArea
       )
     ) {
-      debug(`onViewableItemsChanged: scrolling to: ${this.scrollCenterTarget}`)
       this.scrollToCentered()
     } else {
-      debug(`onViewableItemsChanged: cleared`)
       this.scrollCenterTarget = undefined
     }
   }
@@ -275,7 +299,7 @@ class ConversationList extends React.PureComponent<Props> {
   }
 
   private jumpToRecent = () => {
-    const list = this.listRef.current
+    const list = this.props.listRef.current
     if (list) {
       const index = this.getOrdinalIndex(this.props.messageOrdinals[this.props.messageOrdinals.length - 1])
       if (index >= 0) {
@@ -286,7 +310,7 @@ class ConversationList extends React.PureComponent<Props> {
   }
 
   private scrollToCentered = () => {
-    const list = this.listRef.current
+    const list = this.props.listRef.current
     if (!list) {
       return
     }
@@ -294,9 +318,6 @@ class ConversationList extends React.PureComponent<Props> {
       this.props.centeredOrdinal === undefined ? -1 : this.getOrdinalIndex(this.props.centeredOrdinal)
     if (_index >= 0) {
       const index = _index + 1 // include the top item
-      debug(
-        `scrollToCentered: ordinal: ${this.props.centeredOrdinal} index: ${index} len: ${this.props.messageOrdinals.length}`
-      )
       this.scrollCenterTarget = index
       list.scrollToIndex({
         animated: false,
@@ -316,7 +337,7 @@ class ConversationList extends React.PureComponent<Props> {
         this.props.centeredOrdinal || Types.numberToOrdinal(0)
       )} arg: ${JSON.stringify(info)}`
     )
-    const list = this.listRef.current
+    const list = this.props.listRef.current
     if (list) {
       list.scrollToIndex({animated: false, index: info.highestMeasuredFrameIndex})
     }
@@ -324,25 +345,12 @@ class ConversationList extends React.PureComponent<Props> {
 
   componentDidUpdate(prevProps: Props) {
     // if the ordinals are the same but something changed, attempt to scroll to centered
-    debug(
-      `componentDidUpdate: center: ${this.props.centeredOrdinal} oldCenter: ${
-        prevProps.centeredOrdinal
-      } first: ${this.props.messageOrdinals[0]} last: ${
-        this.props.messageOrdinals[this.props.messageOrdinals.length - 1]
-      } oldFirst: ${prevProps.messageOrdinals[0]} oldLast: ${
-        prevProps.messageOrdinals[prevProps.messageOrdinals.length - 1]
-      }`
-    )
     if (!!this.props.centeredOrdinal && this.props.centeredOrdinal !== prevProps.centeredOrdinal) {
-      debug(`componentDidUpdate: attempting scroll`)
       this.scrollToCentered()
     }
   }
 
   render() {
-    if (DEBUG_CHAT_DUMP) {
-      lastProps = this.props // for debugging only
-    }
     return (
       <Kb.ErrorBoundary>
         <Kb.Box style={styles.container}>
@@ -361,7 +369,7 @@ class ConversationList extends React.PureComponent<Props> {
             keyExtractor={this.keyExtractor}
             // Limit the number of pages rendered ahead of time (which also limits attachment previews loaded)
             windowSize={5}
-            ref={this.listRef}
+            ref={this.props.listRef}
             onScrollToIndexFailed={this.onScrollToIndexFailed}
             removeClippedSubviews={Styles.isAndroid}
           />

@@ -19,6 +19,7 @@ import debounce from 'lodash/debounce'
 import chunk from 'lodash/chunk'
 import {globalMargins} from '../../../styles/shared'
 import {useMemo} from '../../../util/memoize'
+import * as Hooks from './hooks'
 
 // Infinite scrolling list.
 // We group messages into a series of Waypoints. When the wayoint exits the screen we replace it with a single div instead
@@ -76,16 +77,6 @@ const useResizeObserver = (isLockedToBottom: () => boolean, scrollToBottom: () =
   return setListContents
 }
 
-const useIsMounted = () => {
-  const isMountedRef = React.useRef(true)
-  React.useEffect(() => {
-    return () => {
-      isMountedRef.current = false
-    }
-  }, [])
-  return isMountedRef
-}
-
 const useScrolling = (
   p: Pick<
     Props,
@@ -113,15 +104,13 @@ const useScrolling = (
     }, [dispatch, conversationIDKey]),
     200
   )
-  const markInitiallyLoadedThreadAsRead = React.useCallback(() => {
-    dispatch(Chat2Gen.createMarkInitiallyLoadedThreadAsRead({conversationIDKey}))
-  }, [dispatch, conversationIDKey])
+  const {markInitiallyLoadedThreadAsRead} = Hooks.useActions({conversationIDKey})
   const onJumpToRecent = React.useCallback(() => {
     dispatch(Chat2Gen.createJumpToRecent({conversationIDKey}))
   }, [dispatch, conversationIDKey])
   // pixels away from top/bottom to load/be locked
   const listEdgeSlop = 10
-  const isMountedRef = useIsMounted()
+  const isMountedRef = Hooks.useIsMounted()
   const isScrollingRef = React.useRef(false)
   const ignoreOnScrollRef = React.useRef(false)
   const lockedToBottomRef = React.useRef(true)
