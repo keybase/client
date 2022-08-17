@@ -122,7 +122,15 @@ const useUnsentText = (
   conversationIDKey: Types.ConversationIDKey,
   lastTextRef: React.MutableRefObject<string>
 ) => {
-  const draft = Container.useSelector(state => Constants.getDraft(state, conversationIDKey))
+  // only look at the draft once per mount
+  const considerDraftRef = React.useRef(true)
+  // reset on convo change
+  React.useEffect(() => {
+    considerDraftRef.current = true
+  }, [conversationIDKey])
+  const draft = Container.useSelector(state =>
+    considerDraftRef.current ? Constants.getDraft(state, conversationIDKey) : undefined
+  )
   const prevDraft = Container.usePrevious(draft)
   const storeUnsentText = Container.useSelector(
     state =>
@@ -130,22 +138,21 @@ const useUnsentText = (
   )
   const prevStoreUnsentText = Container.usePrevious(storeUnsentText)
 
-  let unsentText = ''
+  let unsentText: string | undefined = undefined
   let updateInput = false
   // use draft if changed , or store if changed, or the module map
-  if (draft && draft !== prevDraft && draft !== lastTextRef.current) {
+  if (considerDraftRef.current && draft && draft !== prevDraft && draft !== lastTextRef.current) {
     unsentText = draft
-    updateInput = true
   } else if (
     storeUnsentText &&
     prevStoreUnsentText !== storeUnsentText &&
     storeUnsentText !== lastTextRef.current
   ) {
     unsentText = storeUnsentText
-    updateInput = true
-  } else {
-    unsentText = unsentTextMap.get(conversationIDKey) ?? ''
   }
+
+  //one chance to use the draft
+  considerDraftRef.current = false
 
   const dispatch = Container.useDispatch()
   const isExplodingModeLocked = Container.useSelector(state =>
@@ -310,8 +317,10 @@ const ConnectedPlatformInput = React.memo(
     const {sendTyping, sendTypingThrottled} = useTyping(conversationIDKey)
     const {inputRef, setTextInput} = useInput()
     const lastTextRef = React.useRef('')
-    const {updateInput, unsentText, unsentTextChanged, unsentTextChangedThrottled, setUnsentText} =
-      useUnsentText(conversationIDKey, lastTextRef)
+    const {unsentText, unsentTextChanged, unsentTextChangedThrottled, setUnsentText} = useUnsentText(
+      conversationIDKey,
+      lastTextRef
+    )
 
     const setText = React.useCallback(
       (text: string) => {
@@ -357,9 +366,11 @@ const ConnectedPlatformInput = React.memo(
     )
 
     React.useEffect(() => {
-      // only sync the input if the store/draft changed
-      updateInput && setTextInput(unsentText)
-    }, [setTextInput, unsentText, updateInput])
+      if (unsentText !== undefined) {
+        lastTextRef.current = unsentText
+        setTextInput(unsentText)
+      }
+    }, [unsentText, setTextInput])
 
     const isActiveForFocus = Container.useSelector(state => state.chat2.focus === null)
     React.useEffect(() => {
