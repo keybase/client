@@ -623,19 +623,19 @@ const plumbEvents = () => {
         if (!win) return
         const menu = Electron.Menu.buildFromTemplate([
           {
+            label: 'Copy URL',
             click: () => {
               Electron.clipboard.writeText(url)
             },
-            label: 'Copy URL',
           },
           {
+            label: 'Open in browser',
             click: () => {
               Electron.shell
                 .openExternal(url)
                 .then(() => {})
                 .catch(() => {})
             },
-            label: 'Open in browser',
           },
         ])
         menu.popup({window: win})

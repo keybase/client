@@ -90,6 +90,7 @@ export const messageRetry = 'chat2:messageRetry'
 export const messageSend = 'chat2:messageSend'
 export const messageSendByUsernames = 'chat2:messageSendByUsernames'
 export const messageSetEditing = 'chat2:messageSetEditing'
+export const messageSetQuoting = 'chat2:messageSetQuoting'
 export const messageWasEdited = 'chat2:messageWasEdited'
 export const messagesAdd = 'chat2:messagesAdd'
 export const messagesExploded = 'chat2:messagesExploded'
@@ -145,6 +146,7 @@ export const setMaybeMentionInfo = 'chat2:setMaybeMentionInfo'
 export const setMinWriterRole = 'chat2:setMinWriterRole'
 export const setParticipants = 'chat2:setParticipants'
 export const setPaymentConfirmInfo = 'chat2:setPaymentConfirmInfo'
+export const setPrependText = 'chat2:setPrependText'
 export const setThreadLoadStatus = 'chat2:setThreadLoadStatus'
 export const setThreadSearchQuery = 'chat2:setThreadSearchQuery'
 export const setThreadSearchStatus = 'chat2:setThreadSearchStatus'
@@ -859,6 +861,13 @@ export const createInboxSearchSetIndexPercent = (payload: {readonly percent: num
   type: inboxSearchSetIndexPercent as typeof inboxSearchSetIndexPercent,
 })
 /**
+ * Set prepend text for a conversation
+ */
+export const createSetPrependText = (payload: {
+  readonly conversationIDKey: Types.ConversationIDKey
+  readonly text: HiddenString | null
+}) => ({payload, type: setPrependText as typeof setPrependText})
+/**
  * Set team mention info
  */
 export const createSetMaybeMentionInfo = (payload: {
@@ -972,6 +981,14 @@ export const createMessageSetEditing = (payload: {
   readonly ordinal: Types.Ordinal | null
   readonly editLastUser?: string
 }) => ({payload, type: messageSetEditing as typeof messageSetEditing})
+/**
+ * Start quoting a message / or clear quoting
+ */
+export const createMessageSetQuoting = (payload: {
+  readonly sourceConversationIDKey: Types.ConversationIDKey
+  readonly targetConversationIDKey: Types.ConversationIDKey
+  readonly ordinal: Types.Ordinal
+}) => ({payload, type: messageSetQuoting as typeof messageSetQuoting})
 /**
  * Static configuration info was loaded from the service.
  */
@@ -1521,6 +1538,7 @@ export type MessageRetryPayload = ReturnType<typeof createMessageRetry>
 export type MessageSendByUsernamesPayload = ReturnType<typeof createMessageSendByUsernames>
 export type MessageSendPayload = ReturnType<typeof createMessageSend>
 export type MessageSetEditingPayload = ReturnType<typeof createMessageSetEditing>
+export type MessageSetQuotingPayload = ReturnType<typeof createMessageSetQuoting>
 export type MessageWasEditedPayload = ReturnType<typeof createMessageWasEdited>
 export type MessagesAddPayload = ReturnType<typeof createMessagesAdd>
 export type MessagesExplodedPayload = ReturnType<typeof createMessagesExploded>
@@ -1576,6 +1594,7 @@ export type SetMaybeMentionInfoPayload = ReturnType<typeof createSetMaybeMention
 export type SetMinWriterRolePayload = ReturnType<typeof createSetMinWriterRole>
 export type SetParticipantsPayload = ReturnType<typeof createSetParticipants>
 export type SetPaymentConfirmInfoPayload = ReturnType<typeof createSetPaymentConfirmInfo>
+export type SetPrependTextPayload = ReturnType<typeof createSetPrependText>
 export type SetThreadLoadStatusPayload = ReturnType<typeof createSetThreadLoadStatus>
 export type SetThreadSearchQueryPayload = ReturnType<typeof createSetThreadSearchQuery>
 export type SetThreadSearchStatusPayload = ReturnType<typeof createSetThreadSearchStatus>
@@ -1696,6 +1715,7 @@ export type Actions =
   | MessageSendByUsernamesPayload
   | MessageSendPayload
   | MessageSetEditingPayload
+  | MessageSetQuotingPayload
   | MessageWasEditedPayload
   | MessagesAddPayload
   | MessagesExplodedPayload
@@ -1751,6 +1771,7 @@ export type Actions =
   | SetMinWriterRolePayload
   | SetParticipantsPayload
   | SetPaymentConfirmInfoPayload
+  | SetPrependTextPayload
   | SetThreadLoadStatusPayload
   | SetThreadSearchQueryPayload
   | SetThreadSearchStatusPayload

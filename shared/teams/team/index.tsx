@@ -165,7 +165,7 @@ const Team = (props: Props) => {
   )
 
   return (
-    <Styles.StyleContext.Provider value={Styles.dontFixOverdraw}>
+    <Styles.StyleContext.Provider value={{canFixOverdraw: false}}>
       <Kb.Box style={styles.container}>
         <SectionList
           renderSectionHeader={renderSectionHeader}

@@ -3,15 +3,15 @@ import * as Styles from '../styles'
 import {getStyle as getTextStyle} from './text.desktop'
 import pick from 'lodash/pick'
 import logger from '../logger'
+import {InternalProps, TextInfo, Selection} from './plain-input'
 import {checkTextInfo} from './input.shared'
-import type {InternalProps, TextInfo, Selection} from './plain-input'
 
 const maybeParseInt = (input: string | number, radix: number): number =>
   typeof input === 'string' ? parseInt(input, radix) : input
 // A plain text input component. Handles callbacks, text styling, and auto resizing but
 // adds no styling.
 class PlainInput extends React.PureComponent<InternalProps> {
-  _input = React.createRef<HTMLTextAreaElement | HTMLInputElement | null>()
+  _input: HTMLTextAreaElement | HTMLInputElement | null = null
   _isComposingIME: boolean = false
   private mounted: boolean = true
 
@@ -20,8 +20,8 @@ class PlainInput extends React.PureComponent<InternalProps> {
     textType: 'Body',
   }
 
-  get value() {
-    return this._input.current?.value ?? ''
+  _setInputRef = (ref: HTMLTextAreaElement | HTMLInputElement | null) => {
+    this._input = ref
   }
 
   // This is controlled if a value prop is passed
@@ -35,7 +35,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
       }
     }
 
-    this.props.onChangeText?.(value)
+    this.props.onChangeText && this.props.onChangeText(value)
     this._autoResize()
   }
 
@@ -51,7 +51,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
       return
     }
 
-    const n = this._input.current
+    const n = this._input
     if (!n) {
       return
     }
@@ -67,20 +67,14 @@ class PlainInput extends React.PureComponent<InternalProps> {
   }
 
   focus = () => {
-    this._input.current?.focus()
-  }
-
-  clear = () => {
-    if (this._input.current) {
-      this._input.current.value = ''
-    }
+    this._input && this._input.focus()
   }
 
   blur = () => {
-    this._input.current?.blur()
+    this._input && this._input.blur()
   }
 
-  isFocused = () => !!this._input.current && document.activeElement === this._input.current
+  isFocused = () => !!this._input && document.activeElement === this._input
 
   transformText = (fn: (textInfo: TextInfo) => TextInfo, reflectChange?: boolean) => {
     if (this._controlled()) {
@@ -89,7 +83,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
       logger.error(errMsg)
       throw new Error(errMsg)
     }
-    const n = this._input.current
+    const n = this._input
     if (n) {
       const textInfo: TextInfo = {
         selection: {
@@ -104,8 +98,8 @@ class PlainInput extends React.PureComponent<InternalProps> {
       n.selectionStart = newTextInfo.selection.start
       n.selectionEnd = newTextInfo.selection.end
 
-      if (reflectChange && this._input.current) {
-        this._onChange({target: this._input.current})
+      if (reflectChange && this._input) {
+        this._onChange({target: this._input})
       }
 
       this._autoResize()
@@ -113,7 +107,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
   }
 
   getSelection = () => {
-    const n = this._input.current
+    const n = this._input
     if (n) {
       return {end: n.selectionEnd, start: n.selectionStart}
     }
@@ -127,7 +121,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
       logger.error(errMsg)
       throw new Error(errMsg)
     }
-    const n = this._input.current
+    const n = this._input
     if (n) {
       n.selectionStart = s.start
       n.selectionEnd = s.end
@@ -164,7 +158,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
   }
 
   _onFocus = () => {
-    this.props.onFocus?.()
+    this.props.onFocus && this.props.onFocus()
     this.props.selectTextOnFocus &&
       // doesn't work within the same tick
       setTimeout(
@@ -178,7 +172,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
   }
 
   _onBlur = () => {
-    this.props.onBlur?.()
+    this.props.onBlur && this.props.onBlur()
   }
 
   _getCommonProps = () => {
@@ -197,7 +191,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
       placeholder: this.props.placeholder,
       placeholderColor: this.props.placeholderColor,
       placeholderTextType: this.props.placeholderTextType,
-      ref: this._input,
+      ref: this._setInputRef,
     }
     if (this.props.disabled) {
       commonProps.readOnly = 'readonly'

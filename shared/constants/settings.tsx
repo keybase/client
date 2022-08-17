@@ -133,6 +133,7 @@ export const getExtraChatLogsForLogSend = (state: TypedState) => {
         wasFinalizedBy: metaMap.wasFinalizedBy,
       },
       pendingOutboxToOrdinal: chat.pendingOutboxToOrdinal.get(c),
+      quote: chat.quote,
       unreadMap: chat.unreadMap.get(c),
     }
   }
