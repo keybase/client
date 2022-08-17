@@ -40,13 +40,19 @@ const suggestorToMarker = {
 
 type UseSuggestorsProps = Pick<
   Props,
-  'onChangeText' | 'suggestBotCommandsUpdateStatus' | 'suggestionOverlayStyle' | 'conversationIDKey'
+  | 'onBlur'
+  | 'onChangeText'
+  | 'onFocus'
+  | 'onKeyDown'
+  | 'onSelectionChange'
+  | 'suggestBotCommandsUpdateStatus'
+  | 'suggestionOverlayStyle'
+  | 'conversationIDKey'
 > & {
   suggestionListStyle: any
   suggestionSpinnerStyle: any
   expanded: boolean
   inputRef: React.MutableRefObject<Kb.PlainInput | null>
-  onKeyDown?: (evt: React.KeyboardEvent) => void
 }
 
 type ActiveType = '' | 'channels' | 'commands' | 'emoji' | 'users'
@@ -176,7 +182,7 @@ export const useSyncInput = (p: UseSyncInputProps) => {
 }
 
 type UseHandleKeyEventsProps = {
-  onKeyDownProps?: (evt: React.KeyboardEvent) => void
+  onKeyDownProps: (evt: React.KeyboardEvent) => void
   active: string
   checkTrigger: () => void
   filter: string
@@ -199,6 +205,7 @@ const useHandleKeyEvents = (p: UseHandleKeyEventsProps) => {
       }
 
       let shouldCallParentCallback = true
+
       // check trigger keys (up, down, enter, tab)
       if (evt.key === 'ArrowDown') {
         evt.preventDefault()
@@ -238,7 +245,7 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
   const [active, setActive] = React.useState<ActiveType>('')
   const [filter, setFilter] = React.useState('')
   const {inputRef, suggestionListStyle, suggestionOverlayStyle, expanded} = p
-  const {onChangeText: onChangeTextProps} = p
+  const {onFocus: onFocusProps, onBlur: onBlurProps, onSelectionChange, onChangeText: onChangeTextProps} = p
   const {suggestBotCommandsUpdateStatus, suggestionSpinnerStyle, conversationIDKey} = p
   const {triggerTransform, checkTrigger, setInactive} = useSyncInput({
     active,
@@ -265,8 +272,9 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
   })
 
   const onBlur = React.useCallback(() => {
+    onBlurProps?.()
     setInactive()
-  }, [setInactive])
+  }, [onBlurProps, setInactive])
 
   const onChangeText = React.useCallback(
     (text: string) => {
@@ -278,14 +286,16 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
   )
 
   const onFocus = React.useCallback(() => {
+    onFocusProps?.()
     checkTrigger()
-  }, [checkTrigger])
+  }, [onFocusProps, checkTrigger])
 
   const onSelectionChange2 = React.useCallback(
-    (_selection: Common.TransformerData['position']) => {
+    (selection: Common.TransformerData['position']) => {
+      onSelectionChange?.(selection)
       checkTrigger()
     },
-    [checkTrigger]
+    [onSelectionChange, checkTrigger]
   )
 
   const onSelected = React.useCallback(
@@ -349,7 +359,7 @@ type PopupProps = {
 const Popup = (p: PopupProps) => {
   const {children, suggestionOverlayStyle, setInactive, inputRef} = p
   // @ts-ignore hacky but we want the actual input
-  const getAttachmentRef = React.useCallback(() => inputRef.current?._input.current, [inputRef])
+  const getAttachmentRef = React.useCallback(() => inputRef.current?._input, [inputRef])
 
   return Styles.isMobile ? (
     <Kb.FloatingBox

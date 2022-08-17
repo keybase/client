@@ -1,44 +1,53 @@
-import * as React from 'react'
-import * as Styles from '../styles'
-import ClickableBox from './clickable-box'
-import logger from '../logger'
-import pick from 'lodash/pick'
-import type {InternalProps, TextInfo, Selection} from './plain-input'
-import type {TextInput} from 'react-native'
-import {Box2} from './box'
-import {NativeTextInput} from './native-wrappers.native'
-import {checkTextInfo} from './input.shared'
+import React, {Component} from 'react'
+import {TextInput} from 'react-native'
 import {getStyle as getTextStyle} from './text'
+import {NativeTextInput} from './native-wrappers.native'
+import {
+  collapseStyles,
+  globalColors,
+  globalMargins,
+  padding,
+  platformStyles,
+  styleSheetCreate,
+  isDarkMode,
+} from '../styles'
 import {isIOS} from '../constants/platform'
+import {checkTextInfo} from './input.shared'
+import pick from 'lodash/pick'
+import logger from '../logger'
+import ClickableBox from './clickable-box'
+import {Box2} from './box'
+
+import {InternalProps, TextInfo, Selection} from './plain-input'
 
 // A plain text input component. Handles callbacks, text styling, and auto resizing but
 // adds no styling.
-class PlainInput extends React.Component<InternalProps> {
+class PlainInput extends Component<InternalProps> {
   static defaultProps = {
     keyboardType: 'default',
     textType: 'Body',
   }
 
-  _mounted = true
   _input = React.createRef<TextInput>()
   _lastNativeText: string | null = null
   _lastNativeSelection: Selection | null = null
+  _timeoutIDs: Array<ReturnType<typeof setInterval>> = []
 
-  get value() {
-    return this._lastNativeText ?? ''
+  _setTimeout = (fn: () => void, timeoutMS: number) => {
+    this._timeoutIDs.push(setTimeout(fn, timeoutMS))
   }
 
   // This is controlled if a value prop is passed
   _controlled = () => typeof this.props.value === 'string'
 
+  componentWillUnmount() {
+    this._timeoutIDs.forEach(clearTimeout)
+  }
+
   // Needed to support wrapping with e.g. a ClickableBox. See
   // https://facebook.github.io/react-native/docs/direct-manipulation.html .
   setNativeProps = (nativeProps: Object) => {
-    this._input.current?.setNativeProps(nativeProps)
-  }
-
-  componentWillUnmount() {
-    this._mounted = false
+    this._input.current && this._input.current.setNativeProps(nativeProps)
   }
 
   transformText = (fn: (textInfo: TextInfo) => TextInfo, reflectChange: boolean) => {
@@ -55,16 +64,15 @@ class PlainInput extends React.Component<InternalProps> {
     const newTextInfo = fn(currentTextInfo)
     const newCheckedSelection = this._sanityCheckSelection(newTextInfo.selection, newTextInfo.text)
     checkTextInfo(newTextInfo)
-    this.setNativeProps({text: newTextInfo.text})
-    // selection is pretty flakey on RN, skip if its at the end?
-    if (
-      newCheckedSelection.start === newCheckedSelection.end &&
-      newCheckedSelection.start === newTextInfo.text.length
-    ) {
-    } else {
+    if (isIOS) {
+      this.setNativeProps({text: newTextInfo.text})
+      // hacky workaround to RN input crappiness, otherwise leaves the selection randomly inside
       setTimeout(() => {
-        this._mounted && this.setNativeProps({selection: newCheckedSelection})
-      }, 100)
+        this.setNativeProps({selection: newCheckedSelection})
+      }, 1)
+    } else {
+      this.setNativeProps({text: newTextInfo.text})
+      this.setNativeProps({selection: newCheckedSelection})
     }
     this._lastNativeText = newTextInfo.text
     this._lastNativeSelection = newCheckedSelection
@@ -94,9 +102,11 @@ class PlainInput extends React.Component<InternalProps> {
   }
 
   _setSelection = (selection: Selection) => {
-    const newSelection = this._sanityCheckSelection(selection, this._lastNativeText || '')
-    this.setNativeProps({selection: newSelection})
-    this._lastNativeSelection = selection
+    this._setTimeout(() => {
+      const newSelection = this._sanityCheckSelection(selection, this._lastNativeText || '')
+      this.setNativeProps({selection: newSelection})
+      this._lastNativeSelection = selection
+    }, 0)
   }
 
   _onChangeText = (t: string) => {
@@ -107,7 +117,7 @@ class PlainInput extends React.Component<InternalProps> {
       }
     }
     this._lastNativeText = t
-    this.props.onChangeText?.(t)
+    this.props.onChangeText && this.props.onChangeText(t)
   }
 
   _onSelectionChange = (event: {
@@ -121,7 +131,7 @@ class PlainInput extends React.Component<InternalProps> {
     const start = Math.min(_start || 0, _end || 0)
     const end = Math.max(_start || 0, _end || 0)
     this._lastNativeSelection = {end, start}
-    this.props.onSelectionChange?.(this._lastNativeSelection)
+    this.props.onSelectionChange && this.props.onSelectionChange(this._lastNativeSelection)
   }
 
   _lineHeight = () => {
@@ -136,28 +146,24 @@ class PlainInput extends React.Component<InternalProps> {
 
   focus = () => {
     if (this.props.dummyInput) {
-      this.props.onFocus?.()
+      this.props.onFocus && this.props.onFocus()
     } else {
-      this._input.current?.focus()
+      this._input.current && this._input.current.focus()
     }
   }
 
-  clear = () => {
-    this._input.current?.clear()
-  }
-
   blur = () => {
-    this._input.current?.blur()
+    this._input.current && this._input.current.blur()
   }
 
-  isFocused = () => !!this._input.current?.isFocused()
+  isFocused = () => !!this._input.current && this._input.current.isFocused()
 
   _onFocus = () => {
-    this.props.onFocus?.()
+    this.props.onFocus && this.props.onFocus()
   }
 
   _onBlur = () => {
-    this.props.onBlur?.()
+    this.props.onBlur && this.props.onBlur()
   }
 
   _getCommonStyle = () => {
@@ -166,16 +172,14 @@ class PlainInput extends React.Component<InternalProps> {
     if (isIOS) {
       delete textStyle.lineHeight
     }
-    return Styles.collapseStyles([styles.common, textStyle] as any)
+    return collapseStyles([styles.common, textStyle] as any)
   }
 
   _getMultilineStyle = () => {
     const defaultRowsToShow = Math.min(2, this.props.rowsMax || 2)
     const lineHeight = this._lineHeight()
-    const paddingStyles: any = this.props.padding
-      ? Styles.padding(Styles.globalMargins[this.props.padding])
-      : {}
-    return Styles.collapseStyles([
+    const paddingStyles: any = this.props.padding ? padding(globalMargins[this.props.padding]) : {}
+    return collapseStyles([
       styles.multiline,
       {
         minHeight: (this.props.rowsMin || defaultRowsToShow) * lineHeight,
@@ -187,11 +191,11 @@ class PlainInput extends React.Component<InternalProps> {
 
   _getSinglelineStyle = () => {
     const lineHeight = this._lineHeight()
-    return Styles.collapseStyles([styles.singleline, {maxHeight: lineHeight, minHeight: lineHeight}])
+    return collapseStyles([styles.singleline, {maxHeight: lineHeight, minHeight: lineHeight}])
   }
 
   _getStyle = () => {
-    return Styles.collapseStyles([
+    return collapseStyles([
       this._getCommonStyle(),
       this.props.multiline ? this._getMultilineStyle() : this._getSinglelineStyle(),
       this.props.style,
@@ -207,7 +211,7 @@ class PlainInput extends React.Component<InternalProps> {
       autoFocus: this.props.autoFocus,
       children: this.props.children,
       editable: !this.props.disabled,
-      keyboardAppearance: isIOS ? (Styles.isDarkMode() ? 'dark' : 'light') : undefined,
+      keyboardAppearance: isIOS ? (isDarkMode() ? 'dark' : 'light') : undefined,
       keyboardType: this.props.keyboardType,
       multiline: false,
       onBlur: this._onBlur,
@@ -218,7 +222,7 @@ class PlainInput extends React.Component<InternalProps> {
       onSelectionChange: this._onSelectionChange,
       onSubmitEditing: this.props.onEnterKeyDown,
       placeholder: this.props.placeholder,
-      placeholderTextColor: this.props.placeholderColor || Styles.globalColors.black_35,
+      placeholderTextColor: this.props.placeholderColor || globalColors.black_35,
       ref: this._input,
       returnKeyType: this.props.returnKeyType,
       secureTextEntry: this.props.type === 'password' || this.props.secureTextEntry,
@@ -262,9 +266,9 @@ class PlainInput extends React.Component<InternalProps> {
   }
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  common: {backgroundColor: Styles.globalColors.fastBlank, borderWidth: 0, flexGrow: 1},
-  multiline: Styles.platformStyles({
+const styles = styleSheetCreate(() => ({
+  common: {backgroundColor: globalColors.fastBlank, borderWidth: 0, flexGrow: 1},
+  multiline: platformStyles({
     isMobile: {
       height: undefined,
       textAlignVertical: 'top', // android centers by default
