@@ -136,6 +136,7 @@ const useUnsentText = (
     considerDraftRef.current ? Constants.getDraft(state, conversationIDKey) : undefined
   )
   const prevDraft = Container.usePrevious(draft)
+  // we use the hiddenstring since external actions can try and affect the input state (especially clearing it) and that can fail if it doesn't change
   const storeUnsentText = Container.useSelector(state => state.chat2.unsentTextMap.get(conversationIDKey))
   const prevStoreUnsentText = Container.usePrevious(storeUnsentText)
 
