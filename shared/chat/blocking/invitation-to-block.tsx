@@ -12,7 +12,7 @@ const BlockButtons = (props: Props) => {
   const nav = Container.useSafeNavigation()
 
   const teamname = Container.useSelector(state => state.chat2.metaMap.get(props.conversationID)?.teamname)
-  const teamID = Container.useSelector(state => state.chat2.metaMap.get(props.conversationID)?.teamID)
+  const teamID = Container.useSelector(state => state.chat2.metaMap.get(props.conversationID)?.teamID ?? '')
   const blockButtonInfo = Container.useSelector(state => {
     const blockButtonsMap = state.chat2.blockButtonsMap
     return teamID ? blockButtonsMap.get(teamID) : undefined

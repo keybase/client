@@ -1,8 +1,8 @@
-import * as RPCTypes from './rpc-gen'
-import {ConversationIDKey} from './chat2'
-import {RetentionPolicy} from './retention-policy'
-import * as RPCChatTypes from './rpc-chat-gen'
-import {TeamBuildingSubState} from './team-building'
+import type * as RPCTypes from './rpc-gen'
+import type {ConversationIDKey} from './chat2'
+import type {RetentionPolicy} from './retention-policy'
+import type * as RPCChatTypes from './rpc-chat-gen'
+import type {TeamBuildingSubState} from './team-building'
 
 export type TeamID = string
 export const stringToTeamID = (s: string): TeamID => s

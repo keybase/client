@@ -5,7 +5,7 @@ import * as Constants from '../constants/tracker2'
 import * as Styles from '../styles'
 import useSerializeProps from '../desktop/remote/use-serialize-props.desktop'
 import useBrowserWindow from '../desktop/remote/use-browser-window.desktop'
-import {serialize, ProxyProps} from './remote-serializer.desktop'
+import {serialize, type ProxyProps} from './remote-serializer.desktop'
 import {intersect} from '../util/set'
 import {mapFilterByKey} from '../util/map'
 
@@ -48,7 +48,6 @@ const RemoteTracker = (props: {trackerUsername: string}) => {
     location,
     reason,
     resetBrokeTrack: false,
-    showTracker: true,
     state: details.state,
     teamShowcase,
     trackerUsername,
@@ -71,12 +70,12 @@ const RemoteTracker = (props: {trackerUsername: string}) => {
 }
 
 const RemoteTrackers = () => {
-  const usernameToDetails = Container.useSelector(s => s.tracker2.usernameToDetails)
+  const showTrackerSet = Container.useSelector(s => s.tracker2.showTrackerSet)
   return (
     <>
-      {[...usernameToDetails.values()].reduce<Array<React.ReactNode>>((arr, u) => {
-        if (arr.length < MAX_TRACKERS && u.showTracker) {
-          arr.push(<RemoteTracker key={u.username} trackerUsername={u.username} />)
+      {[...showTrackerSet].reduce<Array<React.ReactNode>>((arr, username) => {
+        if (arr.length < MAX_TRACKERS) {
+          arr.push(<RemoteTracker key={username} trackerUsername={username} />)
         }
         return arr
       }, [])}

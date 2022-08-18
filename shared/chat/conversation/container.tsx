@@ -11,8 +11,6 @@ import {useFocusEffect, useNavigation} from '@react-navigation/core'
 import {tabBarStyle} from '../../router-v2/common'
 import type {RouteProps} from '../../router-v2/route-params'
 
-type ConvoType = 'error' | 'noConvo' | 'rekey' | 'youAreReset' | 'normal' | 'rekey'
-
 type SwitchProps = RouteProps<'chatConversation'>
 const hideTabBarStyle = {display: 'none'}
 
