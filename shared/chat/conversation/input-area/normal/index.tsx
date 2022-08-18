@@ -31,31 +31,35 @@ const useHintText = (p: {
   conversationIDKey: Types.ConversationIDKey
   isExploding: boolean
   isEditing: boolean
-  meta: Types.ConversationMeta
+  cannotWrite: boolean
+  minWriterRole: Types.ConversationMeta['minWriterRole']
 }) => {
-  const {conversationIDKey, isExploding, isEditing, meta} = p
+  const {minWriterRole, conversationIDKey, isExploding, isEditing, cannotWrite} = p
+  const teamType = Container.useSelector(state => Constants.getMeta(state, conversationIDKey).teamType)
+  const teamname = Container.useSelector(state => Constants.getMeta(state, conversationIDKey).teamname)
+  const channelname = Container.useSelector(state => Constants.getMeta(state, conversationIDKey).channelname)
   const username = Container.useSelector(state => state.config.username)
   const participantInfo = Container.useSelector(
     state => state.chat2.participantMap.get(conversationIDKey) || Constants.noParticipantInfo
   )
   if (Styles.isMobile && isExploding) {
     return isLargeScreen ? `Write an exploding message` : 'Exploding message'
-  } else if (meta.cannotWrite) {
-    return `You must be at least ${indefiniteArticle(meta.minWriterRole)} ${meta.minWriterRole} to post.`
+  } else if (cannotWrite) {
+    return `You must be at least ${indefiniteArticle(minWriterRole)} ${minWriterRole} to post.`
   } else if (isEditing) {
     return 'Edit your message'
   } else if (isExploding) {
     return 'Write an exploding message'
   } else {
-    switch (meta.teamType) {
+    switch (teamType) {
       case 'big':
-        if (meta.channelname) {
-          return `Write in ${Platform.isMobile ? '' : `@${meta.teamname}`}#${meta.channelname}`
+        if (channelname) {
+          return `Write in ${Platform.isMobile ? '' : `@${teamname}`}#${channelname}`
         }
         break
       case 'small':
-        if (meta.teamname) {
-          return `Write in @${meta.teamname}`
+        if (teamname) {
+          return `Write in @${teamname}`
         }
         break
       case 'adhoc':
@@ -122,30 +126,34 @@ const useUnsentText = (
   conversationIDKey: Types.ConversationIDKey,
   lastTextRef: React.MutableRefObject<string>
 ) => {
-  const draft = Container.useSelector(state => Constants.getDraft(state, conversationIDKey))
-  const prevDraft = Container.usePrevious(draft)
-  const storeUnsentText = Container.useSelector(
-    state =>
-      state.chat2.unsentTextMap.get(conversationIDKey)?.stringValue() ?? unsentTextMap.get(conversationIDKey)
+  // only look at the draft once per mount
+  const considerDraftRef = React.useRef(true)
+  // reset on convo change
+  React.useEffect(() => {
+    considerDraftRef.current = true
+  }, [conversationIDKey])
+  const draft = Container.useSelector(state =>
+    considerDraftRef.current ? Constants.getDraft(state, conversationIDKey) : undefined
   )
+  const prevDraft = Container.usePrevious(draft)
+  // we use the hiddenstring since external actions can try and affect the input state (especially clearing it) and that can fail if it doesn't change
+  const storeUnsentText = Container.useSelector(state => state.chat2.unsentTextMap.get(conversationIDKey))
   const prevStoreUnsentText = Container.usePrevious(storeUnsentText)
 
-  let unsentText = ''
-  let updateInput = false
+  let unsentText: string | undefined = undefined
   // use draft if changed , or store if changed, or the module map
-  if (draft && draft !== prevDraft && draft !== lastTextRef.current) {
+  if (considerDraftRef.current && draft && draft !== prevDraft && draft !== lastTextRef.current) {
     unsentText = draft
-    updateInput = true
   } else if (
     storeUnsentText &&
     prevStoreUnsentText !== storeUnsentText &&
-    storeUnsentText !== lastTextRef.current
+    storeUnsentText.stringValue() !== lastTextRef.current
   ) {
-    unsentText = storeUnsentText
-    updateInput = true
-  } else {
-    unsentText = unsentTextMap.get(conversationIDKey) ?? ''
+    unsentText = storeUnsentText.stringValue()
   }
+
+  //one chance to use the draft
+  considerDraftRef.current = false
 
   const dispatch = Container.useDispatch()
   const isExplodingModeLocked = Container.useSelector(state =>
@@ -186,7 +194,7 @@ const useUnsentText = (
 
   const unsentTextChangedThrottled = Container.useThrottledCallback(unsentTextChanged, 500)
 
-  return {setUnsentText, updateInput, unsentText, unsentTextChanged, unsentTextChangedThrottled}
+  return {setUnsentText, unsentText, unsentTextChanged, unsentTextChangedThrottled}
 }
 
 const useInput = () => {
@@ -310,8 +318,10 @@ const ConnectedPlatformInput = React.memo(
     const {sendTyping, sendTypingThrottled} = useTyping(conversationIDKey)
     const {inputRef, setTextInput} = useInput()
     const lastTextRef = React.useRef('')
-    const {updateInput, unsentText, unsentTextChanged, unsentTextChangedThrottled, setUnsentText} =
-      useUnsentText(conversationIDKey, lastTextRef)
+    const {unsentText, unsentTextChanged, unsentTextChangedThrottled, setUnsentText} = useUnsentText(
+      conversationIDKey,
+      lastTextRef
+    )
 
     const setText = React.useCallback(
       (text: string) => {
@@ -357,9 +367,11 @@ const ConnectedPlatformInput = React.memo(
     )
 
     React.useEffect(() => {
-      // only sync the input if the store/draft changed
-      updateInput && setTextInput(unsentText)
-    }, [setTextInput, unsentText, updateInput])
+      if (unsentText !== undefined) {
+        lastTextRef.current = unsentText
+        setTextInput(unsentText)
+      }
+    }, [unsentText, setTextInput])
 
     const isActiveForFocus = Container.useSelector(state => state.chat2.focus === null)
     React.useEffect(() => {
@@ -388,8 +400,13 @@ const ConnectedPlatformInput = React.memo(
       Constants.getConversationExplodingMode(state, conversationIDKey)
     )
     const isExploding = explodingModeSeconds !== 0
-    const meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
-    const hintText = useHintText({conversationIDKey, isEditing, isExploding, meta})
+    const cannotWrite = Container.useSelector(
+      state => Constants.getMeta(state, conversationIDKey).cannotWrite
+    )
+    const minWriterRole = Container.useSelector(
+      state => Constants.getMeta(state, conversationIDKey).minWriterRole
+    )
+    const hintText = useHintText({cannotWrite, conversationIDKey, isEditing, isExploding, minWriterRole})
     const infoPanelShowing = Container.useSelector(state => state.chat2.infoPanelShowing)
     const suggestBotCommandsUpdateStatus = Container.useSelector(
       state =>
@@ -409,12 +426,12 @@ const ConnectedPlatformInput = React.memo(
         inputSetRef={inputRef}
         onChangeText={onChangeText}
         onCancelEditing={onCancelEditing}
-        cannotWrite={meta.cannotWrite}
+        cannotWrite={cannotWrite}
         conversationIDKey={conversationIDKey}
         explodingModeSeconds={explodingModeSeconds}
         isEditing={isEditing}
         isExploding={isExploding}
-        minWriterRole={meta.minWriterRole}
+        minWriterRole={minWriterRole}
         onRequestScrollDown={onRequestScrollDown}
         onRequestScrollUp={onRequestScrollUp}
         showReplyPreview={!!replyTo}
