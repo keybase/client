@@ -1,5 +1,4 @@
 import * as ConfigGen from '../../../../actions/config-gen'
-import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as Container from '../../../../util/container'
 import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
@@ -37,7 +36,7 @@ type MenuType = 'exploding' | 'filepickerpopup' | 'moremenu'
 
 type ButtonsProps = Pick<
   Props,
-  'conversationIDKey' | 'onSelectionChange' | 'explodingModeSeconds' | 'isExploding' | 'cannotWrite'
+  'conversationIDKey' | 'explodingModeSeconds' | 'isExploding' | 'cannotWrite' | 'onCancelEditing'
 > & {
   hasText: boolean
   isEditing: boolean
@@ -45,10 +44,11 @@ type ButtonsProps = Pick<
   insertText: (s: string) => void
   onSubmit: () => void
   ourShowMenu: (m: MenuType) => void
+  onSelectionChange?: (p: {start: number | null; end: number | null}) => void
 }
 
 const Buttons = (p: ButtonsProps) => {
-  const {conversationIDKey, insertText, ourShowMenu, onSubmit} = p
+  const {conversationIDKey, insertText, ourShowMenu, onSubmit, onCancelEditing} = p
   const {hasText, isEditing, isExploding, explodingModeSeconds, cannotWrite, toggleShowingMenu} = p
 
   const openFilePicker = React.useCallback(() => {
@@ -64,16 +64,12 @@ const Buttons = (p: ButtonsProps) => {
 
   const dispatch = Container.useDispatch()
 
-  const onCancelEditing = React.useCallback(() => {
-    dispatch(Chat2Gen.createMessageSetEditing({conversationIDKey, ordinal: null}))
-  }, [conversationIDKey, dispatch])
-
   const openEmojiPicker = React.useCallback(() => {
     dispatch(
       RouteTreeGen.createNavigateAppend({
         path: [
           {
-            props: {conversationIDKey, onPickAction: insertText},
+            props: {conversationIDKey, onPickAction: (emoji: string) => insertText(emoji + ' ')},
             selected: 'chatChooseEmoji',
           },
         ],
@@ -250,15 +246,12 @@ const PlatformInput = (p: Props) => {
   const [height, setHeight] = React.useState(0)
   const [expanded, setExpanded] = React.useState(false) // updates immediately, used for the icon etc
   const inputRef = React.useRef<Kb.PlainInput | null>(null)
+  const silentInput = React.useRef<Kb.PlainInput | null>(null)
   const {popup, onChangeText, onBlur, onSelectionChange, onFocus} = useSuggestors({
     conversationIDKey: p.conversationIDKey,
     expanded,
     inputRef,
-    onBlur: p.onBlur,
     onChangeText: p.onChangeText,
-    onFocus: p.onFocus,
-    onKeyDown: p.onKeyDown,
-    onSelectionChange: p.onSelectionChange,
     suggestBotCommandsUpdateStatus: p.suggestBotCommandsUpdateStatus,
     suggestionListStyle: Styles.collapseStyles([styles.suggestionList, !!height && {marginBottom: height}]),
     suggestionOverlayStyle: p.suggestionOverlayStyle,
@@ -268,7 +261,7 @@ const PlatformInput = (p: Props) => {
     ]),
   })
   const {cannotWrite, conversationIDKey, isEditing, isExploding} = p
-  const {onSubmit, explodingModeSeconds, hintText} = p
+  const {onSubmit, explodingModeSeconds, hintText, onCancelEditing} = p
   const {inputSetRef, showTypingStatus, maxInputArea} = p
 
   const lastText = React.useRef('')
@@ -280,15 +273,40 @@ const PlatformInput = (p: Props) => {
     setExpanded(nextState)
   }, [expanded, setExpanded])
 
-  const onSubmit2 = React.useCallback(() => {
-    const text = lastText.current
+  const reallySend = React.useCallback(() => {
+    const text = inputRef.current?.value
     if (text) {
       onSubmit(text)
       if (expanded) {
         toggleExpandInput()
       }
     }
-  }, [lastText, onSubmit, expanded, toggleExpandInput])
+  }, [expanded, onSubmit, toggleExpandInput])
+
+  // on ios we want to have the autocorrect fill in (especially if its the last word) so we must lose focus
+  // in order to not have the keyboard flicker we move focus to a hidden input and back, then submit
+  const submitQueued = React.useRef(false)
+  const onQueueSubmit = React.useCallback(() => {
+    const text = lastText.current
+    if (text) {
+      submitQueued.current = true
+      if (Container.isIOS) {
+        silentInput.current?.focus()
+        inputRef.current?.focus()
+      } else {
+        reallySend()
+      }
+    }
+  }, [reallySend])
+
+  const onFocusAndMaybeSubmit = React.useCallback(() => {
+    // need to submit?
+    if (Container.isIOS && submitQueued.current) {
+      submitQueued.current = false
+      reallySend()
+    }
+    onFocus()
+  }, [onFocus, reallySend])
 
   const insertText = React.useCallback(
     (toInsert: string) => {
@@ -299,10 +317,6 @@ const PlatformInput = (p: Props) => {
           standardTransformer(toInsert, {position: {end, start}, text}, true),
         true
       )
-      // TODO likely don't need this with nav 6
-      setTimeout(() => {
-        i?.focus()
-      }, 200)
     },
     [inputRef]
   )
@@ -315,7 +329,7 @@ const PlatformInput = (p: Props) => {
     HWKeyboardEvent.onHWKeyPressed((hwKeyEvent: any) => {
       switch (hwKeyEvent.pressedKey) {
         case 'enter':
-          Styles.isIOS || !isOpen() ? onSubmit2() : insertText('\n')
+          Styles.isIOS || !isOpen() ? onQueueSubmit() : insertText('\n')
           break
         case 'shift-enter':
           insertText('\n')
@@ -324,7 +338,7 @@ const PlatformInput = (p: Props) => {
     return () => {
       HWKeyboardEvent.removeOnHWKeyPressed()
     }
-  }, [onSubmit2, insertText])
+  }, [onQueueSubmit, insertText])
 
   const {
     popup: menu,
@@ -394,6 +408,8 @@ const PlatformInput = (p: Props) => {
         fullWidth={true}
       >
         <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.inputContainer}>
+          {/* in order to get auto correct submit working we move focus to this and then back so we can 'blur' without losing keyboard */}
+          <Kb.PlainInput key="silent" ref={silentInput} style={styles.hidden} />
           <AnimatedInput
             autoCorrect={true}
             autoCapitalize="sentences"
@@ -402,9 +418,7 @@ const PlatformInput = (p: Props) => {
             maxInputArea={maxInputArea}
             multiline={true}
             onBlur={onBlur}
-            onFocus={onFocus}
-            // TODO: Call onCancelQuoting on text change or selection
-            // change to match desktop.
+            onFocus={onFocusAndMaybeSubmit}
             onChangeText={(text: string) => {
               setHasText(!!text)
               lastText.current = text
@@ -412,7 +426,7 @@ const PlatformInput = (p: Props) => {
             }}
             onSelectionChange={onSelectionChange}
             ref={(ref: null | Kb.PlainInput) => {
-              inputSetRef(ref)
+              inputSetRef.current = ref
               inputRef.current = ref
             }}
             style={styles.input}
@@ -426,8 +440,9 @@ const PlatformInput = (p: Props) => {
           conversationIDKey={conversationIDKey}
           insertText={insertText}
           ourShowMenu={ourShowMenu}
+          onCancelEditing={onCancelEditing}
           onSelectionChange={onSelectionChange}
-          onSubmit={onSubmit2}
+          onSubmit={onQueueSubmit}
           hasText={hasText}
           isEditing={isEditing}
           isExploding={isExploding}
@@ -518,6 +533,7 @@ const styles = Styles.styleSheetCreate(
         justifyContent: 'center',
         width: 36,
       },
+      hidden: {display: 'none'},
       iconBottom: {
         bottom: 0,
         left: 1,

@@ -77,8 +77,9 @@ const EmojiButton = (p: EmojiButtonProps) => {
   const insertEmoji = React.useCallback(
     (emojiColons: string) => {
       inputRef.current?.transformText(({text, selection}) => {
-        const newText = text.slice(0, selection.start || 0) + emojiColons + text.slice(selection.end || 0)
-        const pos = (selection.start || 0) + emojiColons.length
+        const newText =
+          text.slice(0, selection.start || 0) + emojiColons + text.slice(selection.end || 0) + ' '
+        const pos = (selection.start || 0) + emojiColons.length + 1
         return {
           selection: {end: pos, start: pos},
           text: newText,
@@ -332,11 +333,21 @@ const SideButtons = (p: SideButtonsProps) => {
 }
 
 const PlatformInput = (p: Props) => {
-  const {cannotWrite, conversationIDKey, explodingModeSeconds} = p
-  const {showWalletsIcon, hintText, inputSetRef, isEditing} = p
+  const {cannotWrite, conversationIDKey, explodingModeSeconds, onCancelEditing} = p
+  const {showWalletsIcon, hintText, inputSetRef, isEditing, onSubmit} = p
   const {onRequestScrollDown, onRequestScrollUp, showReplyPreview} = p
   const htmlInputRef = React.useRef<HTMLInputElement>(null)
   const inputRef = React.useRef<Kb.PlainInput | null>(null)
+
+  const checkEnterOnKeyDown = React.useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === 'Enter' && !(e.altKey || e.shiftKey || e.metaKey)) {
+        e.preventDefault()
+        inputRef.current && onSubmit(inputRef.current.value)
+      }
+    },
+    [onSubmit]
+  )
 
   const {
     popup,
@@ -346,11 +357,8 @@ const PlatformInput = (p: Props) => {
     conversationIDKey,
     expanded: false,
     inputRef,
-    onBlur: p.onBlur,
     onChangeText: p.onChangeText,
-    onFocus: p.onFocus,
-    onKeyDown: p.onKeyDown,
-    onSelectionChange: p.onSelectionChange,
+    onKeyDown: checkEnterOnKeyDown,
     suggestBotCommandsUpdateStatus: p.suggestBotCommandsUpdateStatus,
     suggestionListStyle: undefined,
     suggestionOverlayStyle: p.suggestionOverlayStyle,
@@ -371,10 +379,6 @@ const PlatformInput = (p: Props) => {
       })
     )
   }, [dispatch, conversationIDKey, you])
-
-  const onCancelEditing = React.useCallback(() => {
-    dispatch(Chat2Gen.createMessageSetEditing({conversationIDKey, ordinal: null}))
-  }, [dispatch, conversationIDKey])
 
   const {globalKeyDownPressHandler, inputKeyDown, onChangeText} = useKeyboard({
     conversationIDKey,
@@ -425,7 +429,7 @@ const PlatformInput = (p: Props) => {
                 autoFocus={false}
                 ref={(ref: null | Kb.PlainInput) => {
                   // from normal/index
-                  inputSetRef(ref)
+                  inputSetRef.current = ref
                   // from suggestors/index
                   inputRef.current = ref
                 }}

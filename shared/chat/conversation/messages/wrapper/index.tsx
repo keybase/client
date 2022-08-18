@@ -36,6 +36,7 @@ import UnfurlPromptList from './unfurl/prompt-list/container'
 import CoinFlip from '../coinflip/container'
 import TeamJourney from '../cards/team-journey/container'
 import {dismiss as dismissKeyboard} from '../../../../util/keyboard'
+import {memoize} from '../../../../util/memoize'
 import {formatTimeForChat} from '../../../../util/timestamp'
 
 /**
@@ -150,6 +151,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
     this.props.message.exploding
 
   private canFixOverdraw = () => !this.props.isPendingPayment && !this.showCenteredHighlight()
+  private canFixOverdrawValue = memoize((canFixOverdraw: boolean) => ({canFixOverdraw}))
 
   private authorAndContent = (children: React.ReactNode) => {
     let result
@@ -682,7 +684,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
       return null
     }
     return (
-      <Styles.StyleContext.Provider value={{canFixOverdraw: this.canFixOverdraw()}}>
+      <Styles.StyleContext.Provider value={this.canFixOverdrawValue(this.canFixOverdraw())}>
         <LongPressable
           {...this.containerProps()}
           children={[
