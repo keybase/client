@@ -60,24 +60,23 @@ const Conversation = (p: SwitchProps) => {
   )
 
   const conversationIDKey = p.route.params?.conversationIDKey ?? Constants.noConversationIDKey
-  const meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
-
-  let type: ConvoType
-  switch (conversationIDKey) {
-    case Constants.noConversationIDKey:
-      type = 'noConvo'
-      break
-    default:
-      if (meta.membershipType === 'youAreReset') {
-        type = 'youAreReset'
-      } else if (meta.rekeyers.size > 0) {
-        type = 'rekey'
-      } else if (meta.trustedState === 'error') {
-        type = 'error'
-      } else {
-        type = 'normal'
-      }
-  }
+  const type = Container.useSelector(state => {
+    const meta = Constants.getMeta(state, conversationIDKey)
+    switch (conversationIDKey) {
+      case Constants.noConversationIDKey:
+        return 'noConvo'
+      default:
+        if (meta.membershipType === 'youAreReset') {
+          return 'youAreReset'
+        } else if (meta.rekeyers.size > 0) {
+          return 'rekey'
+        } else if (meta.trustedState === 'error') {
+          return 'error'
+        } else {
+          return 'normal'
+        }
+    }
+  })
 
   switch (type) {
     case 'error':

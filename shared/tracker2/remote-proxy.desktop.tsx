@@ -71,8 +71,7 @@ const RemoteTracker = (props: {trackerUsername: string}) => {
 }
 
 const RemoteTrackers = () => {
-  const state = Container.useSelector(s => s)
-  const {usernameToDetails} = state.tracker2
+  const usernameToDetails = Container.useSelector(s => s.tracker2.usernameToDetails)
   return (
     <>
       {[...usernameToDetails.values()].reduce<Array<React.ReactNode>>((arr, u) => {

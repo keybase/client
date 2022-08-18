@@ -11,23 +11,20 @@ const BlockButtons = (props: Props) => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
 
-  const conversationMeta = Container.useSelector(state => state.chat2.metaMap.get(props.conversationID))
+  const teamname = Container.useSelector(state => state.chat2.metaMap.get(props.conversationID)?.teamname)
+  const teamID = Container.useSelector(state => state.chat2.metaMap.get(props.conversationID)?.teamID)
+  const blockButtonInfo = Container.useSelector(state => {
+    const blockButtonsMap = state.chat2.blockButtonsMap
+    return teamID ? blockButtonsMap.get(teamID) : undefined
+  })
   const participantInfo = Container.useSelector(state =>
     Constants.getParticipantInfo(state, props.conversationID)
   )
-  const blockButtonsMap = Container.useSelector(state => state.chat2.blockButtonsMap)
   const currentUser = Container.useSelector(state => state.config.username)
-  if (!conversationMeta) {
-    return null
-  }
-
-  const teamID = conversationMeta.teamID
-  const blockButtonInfo = blockButtonsMap.get(teamID)
   if (!blockButtonInfo) {
     return null
   }
-
-  const team = conversationMeta.teamname || undefined
+  const team = teamname
   const adder = blockButtonInfo.adder
   const others = (team ? participantInfo.all : participantInfo.name).filter(
     person => person !== currentUser && person !== adder && !Constants.isAssertion(person)
