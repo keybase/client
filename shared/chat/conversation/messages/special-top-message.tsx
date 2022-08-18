@@ -141,7 +141,6 @@ const SpecialTopMessage = (props: Props) => {
   const retentionPolicy = Container.useSelector(
     state => Constants.getMeta(state, conversationIDKey).retentionPolicy
   )
-  console.log('bbb retention in special top', retentionPolicy)
   const teamRetentionPolicy = Container.useSelector(
     state => Constants.getMeta(state, conversationIDKey).teamRetentionPolicy
   )
