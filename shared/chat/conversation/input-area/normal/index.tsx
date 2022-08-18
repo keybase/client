@@ -156,9 +156,6 @@ const useUnsentText = (
   considerDraftRef.current = false
 
   const dispatch = Container.useDispatch()
-  const isExplodingModeLocked = Container.useSelector(state =>
-    Constants.isExplodingModeLocked(state, conversationIDKey)
-  )
   const onSetExplodingModeLock = React.useCallback(
     (locked: boolean) => {
       dispatch(Chat2Gen.createSetExplodingModeLock({conversationIDKey, unset: !locked}))
@@ -171,6 +168,8 @@ const useUnsentText = (
 
   const setUnsentText = React.useCallback(
     (text: string) => {
+      // this should be from the store but its entirely driven by this component only so we make an implicit assumption here so we avoid redux changes
+      const isExplodingModeLocked = (unsentTextMap.get(conversationIDKey)?.length ?? 0) > 0
       const shouldLock = text.length > 0
       if (isExplodingModeLocked !== shouldLock) {
         // if it's locked and we want to unset, unset it
@@ -183,7 +182,7 @@ const useUnsentText = (
       }
       unsentTextMap.set(conversationIDKey, text)
     },
-    [isExplodingModeLocked, unsentText, clearUnsentText, conversationIDKey, onSetExplodingModeLock]
+    [unsentText, clearUnsentText, conversationIDKey, onSetExplodingModeLock]
   )
   const unsentTextChanged = React.useCallback(
     (text: string) => {

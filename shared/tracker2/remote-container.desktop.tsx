@@ -18,7 +18,6 @@ const noDetails: Types.Details = {
   hidFromFollowers: false,
   reason: '',
   resetBrokeTrack: false,
-  showTracker: false,
   state: 'checking',
   username: '',
 }

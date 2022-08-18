@@ -27,16 +27,19 @@ const OpenInSystemFileManager = ({path}: Props) => {
   )
 }
 
-const shouldHideFileManagerIcon = (driverStatus: Types.DriverStatus, settings: Types.Settings) =>
-  driverStatus.type === Types.DriverStatusType.Disabled && settings.sfmiBannerDismissed
-
 const OpenInSFM = (props: Props) => {
-  const driverStatus = Container.useSelector(state => state.fs.sfmi.driverStatus)
-  const settings = Container.useSelector(state => state.fs.settings)
-  if (shouldHideFileManagerIcon(driverStatus, settings)) {
-    return null
-  }
-  return driverStatus.type === Types.DriverStatusType.Enabled ? (
+  const shouldHideFileManagerIcon = Container.useSelector(
+    state =>
+      state.fs.sfmi.driverStatus.type === Types.DriverStatusType.Disabled &&
+      state.fs.settings.sfmiBannerDismissed
+  )
+  const showOpenInSystemFileManager = Container.useSelector(
+    state => state.fs.sfmi.driverStatus.type === Types.DriverStatusType.Enabled
+  )
+
+  if (shouldHideFileManagerIcon) return null
+
+  return showOpenInSystemFileManager ? (
     <OpenInSystemFileManager {...props} />
   ) : (
     <SystemFileManagerIntegrationPopup mode="Icon" />
