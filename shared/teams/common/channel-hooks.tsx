@@ -79,6 +79,7 @@ export const useAllChannelMetas = (
     }
   }, [reloadChannels, dontCallRPC])
 
+  // TODO this will always thrash
   const conversationMetas = Container.useSelector(
     state =>
       inboxUIItems?.map(conv => ChatConstants.inboxUIItemToConversationMeta(state, conv)) ??

@@ -6,14 +6,14 @@ import * as Types from '../types/chat2'
 import * as TeamConstants from '../teams'
 import * as Message from './message'
 import {memoize} from '../../util/memoize'
-import {ConversationMeta, PinnedMessageInfo} from '../types/chat2/meta'
-import {TypedState} from '../reducer'
+import type {ConversationMeta, PinnedMessageInfo} from '../types/chat2/meta'
+import type {TypedState} from '../reducer'
 import {formatTimeForConversationList} from '../../util/timestamp'
 import {globalColors} from '../../styles'
 import {isMobile, isPhone} from '../platform'
 import {toByteArray} from 'base64-js'
 import {noConversationIDKey, isValidConversationIDKey} from '../types/chat2/common'
-import {AllowedColors} from '../../common-adapters/text'
+import type {AllowedColors} from '../../common-adapters/text'
 import shallowEqual from 'shallowequal'
 import {getParticipantInfo} from '.'
 
@@ -133,6 +133,23 @@ export const getEffectiveRetentionPolicy = (meta: Types.ConversationMeta) => {
   return meta.retentionPolicy.type === 'inherit' ? meta.teamRetentionPolicy : meta.retentionPolicy
 }
 
+const copyOverOldValuesIfEqual = (oldMeta: Types.ConversationMeta, newMeta: Types.ConversationMeta) => {
+  const merged = {...newMeta}
+  if (shallowEqual([...merged.rekeyers], [...oldMeta.rekeyers])) {
+    merged.rekeyers = oldMeta.rekeyers
+  }
+  if (shallowEqual([...merged.resetParticipants], [...oldMeta.resetParticipants])) {
+    merged.resetParticipants = oldMeta.resetParticipants
+  }
+  if (shallowEqual(merged.retentionPolicy, oldMeta.retentionPolicy)) {
+    merged.retentionPolicy = oldMeta.retentionPolicy
+  }
+  if (shallowEqual(merged.teamRetentionPolicy, oldMeta.teamRetentionPolicy)) {
+    merged.teamRetentionPolicy = oldMeta.teamRetentionPolicy
+  }
+  return merged
+}
+
 // Upgrade a meta, try and keep existing values if possible to reduce render thrashing in components
 // Enforce the verions only increase and we only go from untrusted to trusted, etc
 export const updateMeta = (
@@ -149,25 +166,12 @@ export const updateMeta = (
       (newMeta.trustedState === 'trusted' && oldMeta.trustedState !== 'trusted') ||
       newMeta.inboxLocalVersion > oldMeta.inboxLocalVersion
     ) {
-      const merged = {...newMeta}
-      if (shallowEqual([...merged.rekeyers], [...oldMeta.rekeyers])) {
-        merged.rekeyers = oldMeta.rekeyers
-      }
-      if (shallowEqual([...merged.resetParticipants], [...oldMeta.resetParticipants])) {
-        merged.resetParticipants = oldMeta.resetParticipants
-      }
-      if (shallowEqual(merged.retentionPolicy, oldMeta.retentionPolicy)) {
-        merged.retentionPolicy = oldMeta.retentionPolicy
-      }
-      if (shallowEqual(merged.teamRetentionPolicy, oldMeta.teamRetentionPolicy)) {
-        merged.teamRetentionPolicy = oldMeta.teamRetentionPolicy
-      }
-      return merged
+      return copyOverOldValuesIfEqual(oldMeta, newMeta)
     }
     return oldMeta
   }
   // higher inbox version, use new
-  return newMeta
+  return copyOverOldValuesIfEqual(oldMeta, newMeta)
 }
 
 type NotificationSettingsParsed = {

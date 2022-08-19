@@ -136,7 +136,15 @@ const SpecialTopMessage = (props: Props) => {
   const hasLoadedEver = Container.useSelector(
     state => state.chat2.messageOrdinals.get(conversationIDKey) !== undefined
   )
-  const meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
+  const teamType = Container.useSelector(state => Constants.getMeta(state, conversationIDKey).teamType)
+  const supersedes = Container.useSelector(state => Constants.getMeta(state, conversationIDKey).supersedes)
+  const retentionPolicy = Container.useSelector(
+    state => Constants.getMeta(state, conversationIDKey).retentionPolicy
+  )
+  const teamRetentionPolicy = Container.useSelector(
+    state => Constants.getMeta(state, conversationIDKey).teamRetentionPolicy
+  )
+
   const participantInfo = Container.useSelector(state =>
     Constants.getParticipantInfo(state, conversationIDKey)
   )
@@ -159,19 +167,16 @@ const SpecialTopMessage = (props: Props) => {
       : ('noMoreToLoad' as const)
   )
   const showTeamOffer =
-    hasLoadedEver &&
-    loadMoreType === 'noMoreToLoad' &&
-    meta.teamType === 'adhoc' &&
-    participantInfo.all.length > 2
-  const hasOlderResetConversation = meta.supersedes !== Constants.noConversationIDKey
+    hasLoadedEver && loadMoreType === 'noMoreToLoad' && teamType === 'adhoc' && participantInfo.all.length > 2
+  const hasOlderResetConversation = supersedes !== Constants.noConversationIDKey
   // don't show default header in the case of the retention notice being visible
   const showRetentionNotice =
-    meta.retentionPolicy.type !== 'retain' &&
-    !(meta.retentionPolicy.type === 'inherit' && meta.teamRetentionPolicy.type === 'retain')
+    retentionPolicy.type !== 'retain' &&
+    !(retentionPolicy.type === 'inherit' && teamRetentionPolicy.type === 'retain')
   const isHelloBotConversation =
-    meta.teamType === 'adhoc' && participantInfo.all.length === 2 && participantInfo.all.includes('hellobot')
+    teamType === 'adhoc' && participantInfo.all.length === 2 && participantInfo.all.includes('hellobot')
   const isSelfConversation =
-    meta.teamType === 'adhoc' && participantInfo.all.length === 1 && participantInfo.all.includes(username)
+    teamType === 'adhoc' && participantInfo.all.length === 1 && participantInfo.all.includes(username)
 
   const openPrivateFolder = React.useCallback(() => {
     dispatch(

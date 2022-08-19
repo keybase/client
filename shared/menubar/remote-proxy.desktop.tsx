@@ -67,23 +67,36 @@ const RemoteProxy = () => {
   const notifications = Container.useSelector(s => s.notifications)
   const {desktopAppBadgeCount, navBadges, widgetBadge} = notifications
 
-  const config = Container.useSelector(s => s.config)
-  const {daemonHandshakeState, loggedIn, outOfDate, username, windowShownCount} = config
-  const {httpSrvAddress, httpSrvToken} = config
-  const {avatarRefreshCounter: _arc, followers: _followers, following: _following} = config
+  const daemonHandshakeState = Container.useSelector(s => s.config.daemonHandshakeState)
+  const loggedIn = Container.useSelector(s => s.config.loggedIn)
+  const outOfDate = Container.useSelector(s => s.config.outOfDate)
+  const username = Container.useSelector(s => s.config.username)
+  const windowShownCount = Container.useSelector(s => s.config.windowShownCount)
+  const httpSrvAddress = Container.useSelector(s => s.config.httpSrvAddress)
+  const httpSrvToken = Container.useSelector(s => s.config.httpSrvToken)
 
-  const fs = Container.useSelector(s => s.fs)
-  const {pathItems, tlfUpdates, uploads, overallSyncStatus, kbfsDaemonStatus, sfmi} = fs
+  const _arc = Container.useSelector(s => s.config.avatarRefreshCounter)
+  const _followers = Container.useSelector(s => s.config.followers)
+  const _following = Container.useSelector(s => s.config.following)
 
-  const chat2 = Container.useSelector(s => s.chat2)
-  const {inboxLayout, metaMap, badgeMap, unreadMap, participantMap} = chat2
+  const pathItems = Container.useSelector(s => s.fs.pathItems)
+  const tlfUpdates = Container.useSelector(s => s.fs.tlfUpdates)
+  const uploads = Container.useSelector(s => s.fs.uploads)
+  const overallSyncStatus = Container.useSelector(s => s.fs.overallSyncStatus)
+  const kbfsDaemonStatus = Container.useSelector(s => s.fs.kbfsDaemonStatus)
+  const sfmi = Container.useSelector(s => s.fs.sfmi)
+
+  const widgetList = Container.useSelector(s => s.chat2.inboxLayout?.widgetList)
+  const metaMap = Container.useSelector(s => s.chat2.metaMap)
+  const badgeMap = Container.useSelector(s => s.chat2.badgeMap)
+  const unreadMap = Container.useSelector(s => s.chat2.unreadMap)
+  const participantMap = Container.useSelector(s => s.chat2.participantMap)
 
   const darkMode = Styles.isDarkMode()
   const {diskSpaceStatus, showingBanner} = overallSyncStatus
   const kbfsEnabled = sfmi.driverStatus.type === 'enabled'
 
-  const users = Container.useSelector(s => s.users)
-  const {infoMap: _infoMap} = users
+  const _infoMap = Container.useSelector(s => s.users.infoMap)
 
   const remoteTlfUpdates = React.useMemo(
     () => tlfUpdates.map(t => GetRowsFromTlfUpdate(t, uploads)),
@@ -92,7 +105,7 @@ const RemoteProxy = () => {
 
   const conversationsToSend = React.useMemo(
     () =>
-      inboxLayout?.widgetList?.map(v => ({
+      widgetList?.map(v => ({
         conversation: metaMap.get(v.convID) || {
           ...ChatConstants.makeConversationMeta(),
           conversationIDKey: v.convID,
@@ -101,7 +114,7 @@ const RemoteProxy = () => {
         hasUnread: !!unreadMap.get(v.convID),
         participantInfo: participantMap.get(v.convID) ?? ChatConstants.noParticipantInfo,
       })) ?? [],
-    [inboxLayout, metaMap, badgeMap, unreadMap, participantMap]
+    [widgetList, metaMap, badgeMap, unreadMap, participantMap]
   )
 
   // filter some data based on visible users
