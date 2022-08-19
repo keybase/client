@@ -68,8 +68,10 @@ type SentProps = {
 }
 const Sent_ = ({conversationIDKey, ordinal, prevOrdinal}: SentProps) => {
   const you = Container.useSelector(state => state.config.username)
-  const message = Container.useSelector(state => state.chat2.messageMap.get(conversationIDKey)?.get(ordinal))
-  const youSent = message && message.author === you && message.ordinal !== message.id
+  const youSent = Container.useSelector(state => {
+    const message = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
+    return message && message.author === you && message.ordinal !== message.id
+  })
   const key = `${conversationIDKey}:${ordinal}`
   const state = animatingMap.get(key)
 
@@ -226,7 +228,7 @@ const useScrolling = (p: {
   }
 }
 
-const ConversationList = (p: {conversationIDKey: Types.ConversationIDKey}) => {
+const ConversationList = React.memo((p: {conversationIDKey: Types.ConversationIDKey}) => {
   const {conversationIDKey} = p
   const centeredOrdinal = Container.useSelector(
     state => Constants.getMessageCenterOrdinal(state, conversationIDKey)?.ordinal
@@ -370,7 +372,7 @@ const ConversationList = (p: {conversationIDKey: Types.ConversationIDKey}) => {
       </Kb.Box>
     </Kb.ErrorBoundary>
   )
-}
+})
 
 const styles = Styles.styleSheetCreate(
   () =>
