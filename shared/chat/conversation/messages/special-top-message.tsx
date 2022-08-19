@@ -118,7 +118,7 @@ const ErrorMessage = () => {
   )
 }
 
-const SpecialTopMessage = (props: Props) => {
+const SpecialTopMessage = React.memo((props: Props) => {
   const {conversationIDKey, measure} = props
   const username = Container.useSelector(state => state.config.username)
   const dispatch = Container.useDispatch()
@@ -232,7 +232,7 @@ const SpecialTopMessage = (props: Props) => {
       )}
     </Kb.Box>
   )
-}
+})
 
 const styles = Styles.styleSheetCreate(
   () =>
