@@ -9,7 +9,7 @@ type Props = {
 
 const JumpToRecent = (props: Props) => {
   return (
-    <Kb.Box2 direction="vertical" style={Styles.collapseStyles([styles.outerContainer, props.style])}>
+    <Kb.Box2 direction="vertical" style={styles.outerContainer}>
       <Kb.Button label="Jump to recent messages" onClick={props.onClick} small={true}>
         <Kb.Icon
           color={Styles.globalColors.whiteOrWhite}
@@ -37,8 +37,10 @@ const styles = Styles.styleSheetCreate(
       outerContainer: Styles.platformStyles({
         common: {
           alignItems: 'center',
+          bottom: 0,
           paddingBottom: Styles.globalMargins.small,
           paddingTop: Styles.globalMargins.small,
+          position: 'absolute',
           width: '100%',
         },
         isElectron: {

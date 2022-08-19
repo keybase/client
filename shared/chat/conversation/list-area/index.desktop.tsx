@@ -6,7 +6,6 @@ import * as Constants from '../../../constants/chat2'
 import * as Styles from '../../../styles'
 import * as Container from '../../../util/container'
 import * as Types from '../../../constants/types/chat2'
-import JumpToRecent from './jump-to-recent'
 import Measure from 'react-measure'
 import Message from '../messages'
 import SpecialBottomMessage from '../messages/special-bottom-message'
@@ -105,9 +104,6 @@ const useScrolling = (
     200
   )
   const {markInitiallyLoadedThreadAsRead} = Hooks.useActions({conversationIDKey})
-  const onJumpToRecent = React.useCallback(() => {
-    dispatch(Chat2Gen.createJumpToRecent({conversationIDKey}))
-  }, [dispatch, conversationIDKey])
   // pixels away from top/bottom to load/be locked
   const listEdgeSlop = 10
   const isMountedRef = Hooks.useIsMounted()
@@ -155,6 +151,7 @@ const useScrolling = (
   )
 
   const scrollToBottom = React.useCallback(() => {
+    lockedToBottomRef.current = true
     const actuallyScroll = () => {
       if (!isMountedRef.current) return
       const list = listRef.current
@@ -193,12 +190,6 @@ const useScrolling = (
         checkForLoadMoreThrottled()
       })
   }, [listRef, adjustScrollAndIgnoreOnScroll, checkForLoadMoreThrottled])
-
-  const jumpToRecent = React.useCallback(() => {
-    lockedToBottomRef.current = true
-    scrollToBottom()
-    onJumpToRecent()
-  }, [lockedToBottomRef, scrollToBottom, onJumpToRecent])
 
   // After lets turn them back on
   const onAfterScroll = Container.useDebouncedCallback(
@@ -372,7 +363,7 @@ const useScrolling = (
     scrollToBottom()
   }, [conversationIDKey, cleanupDebounced, scrollToBottom])
 
-  return {isLockedToBottom, jumpToRecent, lockedToBottomRef, scrollToBottom, setListRef}
+  return {isLockedToBottom, scrollToBottom, setListRef}
 }
 
 const useItems = (p: {
@@ -487,7 +478,7 @@ const ThreadWrapper = (p: Props) => {
     [dispatch]
   )
   const listRef = React.useRef<HTMLDivElement | null>(null)
-  const {isLockedToBottom, jumpToRecent, scrollToBottom, setListRef} = useScrolling({
+  const {isLockedToBottom, scrollToBottom, setListRef} = useScrolling({
     centeredOrdinal,
     containsLatestMessage,
     conversationIDKey,
@@ -497,6 +488,8 @@ const ThreadWrapper = (p: Props) => {
     scrollListToBottomCounter,
     scrollListUpCounter,
   })
+
+  const jumpToRecent = Hooks.useJumpToRecent(conversationIDKey, scrollToBottom, messageOrdinals.length)
   const setListContents = useResizeObserver(isLockedToBottom, scrollToBottom)
 
   const onCopyCapture = React.useCallback(
@@ -540,9 +533,7 @@ const ThreadWrapper = (p: Props) => {
             {items}
           </div>
         </div>
-        {!containsLatestMessage && messageOrdinals.length > 0 && (
-          <JumpToRecent onClick={jumpToRecent} style={styles.jumpToRecent} />
-        )}
+        {jumpToRecent}
       </div>
     </ErrorBoundary>
   )
@@ -729,10 +720,6 @@ const styles = Styles.styleSheetCreate(
           position: 'relative',
         },
       }),
-      jumpToRecent: {
-        bottom: 0,
-        position: 'absolute',
-      },
       list: Styles.platformStyles({
         isElectron: {
           ...Styles.globalStyles.fillAbsolute,
