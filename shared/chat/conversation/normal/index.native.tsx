@@ -30,7 +30,7 @@ const Conversation = React.memo((props: Props) => {
         <PinnedMessage conversationIDKey={props.conversationIDKey} />
         <ListArea
           scrollListDownCounter={props.scrollListDownCounter}
-          scrollListToBottomCounter={props.scrollListToBottomCounter}
+          requestScrollToBottomRef={props.requestScrollToBottomRef}
           scrollListUpCounter={props.scrollListUpCounter}
           onFocusInput={props.onFocusInput}
           conversationIDKey={props.conversationIDKey}

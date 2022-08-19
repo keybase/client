@@ -7,7 +7,7 @@ export type Props = {
   conversationIDKey: Types.ConversationIDKey
   onFocusInput: () => void
   scrollListDownCounter: number
-  scrollListToBottomCounter: number
+  requestScrollToBottomRef: React.MutableRefObject<undefined | (() => void)>
   scrollListUpCounter: number
 }
 export default class ConversationList extends React.Component<Props> {}

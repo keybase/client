@@ -15,7 +15,6 @@ const NormalWrapper = React.memo((props: Props) => {
   const {conversationIDKey} = props
   const [focusInputCounter, setFocusInputCounter] = React.useState(0)
   const [scrollListDownCounter, setScrollListDownCounter] = React.useState(0)
-  const [scrollListToBottomCounter, setScrollListToBottomCounter] = React.useState(0)
   const [scrollListUpCounter, setScrollListUpCounter] = React.useState(0)
   const onFocusInput = React.useCallback(() => {
     setFocusInputCounter(focusInputCounter + 1)
@@ -23,12 +22,14 @@ const NormalWrapper = React.memo((props: Props) => {
   const onRequestScrollDown = React.useCallback(() => {
     setScrollListDownCounter(scrollListDownCounter + 1)
   }, [setScrollListDownCounter, scrollListDownCounter])
-  const onRequestScrollToBottom = React.useCallback(() => {
-    setScrollListToBottomCounter(scrollListToBottomCounter + 1)
-  }, [setScrollListToBottomCounter, scrollListToBottomCounter])
   const onRequestScrollUp = React.useCallback(() => {
     setScrollListUpCounter(scrollListUpCounter + 1)
   }, [setScrollListUpCounter, scrollListUpCounter])
+
+  const requestScrollToBottomRef = React.useRef<undefined | (() => void)>()
+  const onRequestScrollToBottom = React.useCallback(() => {
+    requestScrollToBottomRef.current?.()
+  }, [])
 
   const threadLoadedOffline = Container.useSelector(
     state => Constants.getMeta(state, conversationIDKey).offline
@@ -102,11 +103,11 @@ const NormalWrapper = React.memo((props: Props) => {
       showThreadSearch={showThreadSearch}
       onFocusInput={onFocusInput}
       onRequestScrollDown={onRequestScrollDown}
-      onRequestScrollToBottom={onRequestScrollToBottom}
       onRequestScrollUp={onRequestScrollUp}
+      onRequestScrollToBottom={onRequestScrollToBottom}
+      requestScrollToBottomRef={requestScrollToBottomRef}
       focusInputCounter={focusInputCounter}
       scrollListDownCounter={scrollListDownCounter}
-      scrollListToBottomCounter={scrollListToBottomCounter}
       scrollListUpCounter={scrollListUpCounter}
       jumpToRecent={jumpToRecent}
       onPaste={onPaste}

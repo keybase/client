@@ -79,7 +79,7 @@ const useResizeObserver = (isLockedToBottom: () => boolean, scrollToBottom: () =
 const useScrolling = (
   p: Pick<
     Props,
-    'conversationIDKey' | 'scrollListDownCounter' | 'scrollListToBottomCounter' | 'scrollListUpCounter'
+    'conversationIDKey' | 'scrollListDownCounter' | 'requestScrollToBottomRef' | 'scrollListUpCounter'
   > & {
     containsLatestMessage: boolean
     messageOrdinals: Array<Types.Ordinal>
@@ -87,7 +87,7 @@ const useScrolling = (
     centeredOrdinal: Types.Ordinal | undefined
   }
 ) => {
-  const {conversationIDKey, scrollListDownCounter, scrollListToBottomCounter, scrollListUpCounter} = p
+  const {conversationIDKey, scrollListDownCounter, requestScrollToBottomRef, scrollListUpCounter} = p
   const {listRef, containsLatestMessage, messageOrdinals, centeredOrdinal} = p
   const dispatch = Container.useDispatch()
   const editingOrdinal = Container.useSelector(state => state.chat2.editingMap.get(conversationIDKey))
@@ -334,11 +334,10 @@ const useScrolling = (
     scrollUp()
   }, [scrollListUpCounter, scrollUp])
 
-  // someone requested we scroll to bottom and lock (ignore if we don't have latest)
-  Container.useDepChangeEffect(() => {
+  requestScrollToBottomRef.current = () => {
     lockedToBottomRef.current = true
     scrollToBottom()
-  }, [scrollListToBottomCounter, scrollToBottom])
+  }
 
   // go to editing message
   Container.useDepChangeEffect(() => {
@@ -459,7 +458,7 @@ const useItems = (p: {
 
 const ThreadWrapper = (p: Props) => {
   const {conversationIDKey, onFocusInput} = p
-  const {scrollListDownCounter, scrollListToBottomCounter, scrollListUpCounter} = p
+  const {scrollListDownCounter, requestScrollToBottomRef, scrollListUpCounter} = p
   const messageOrdinalsSet = Container.useSelector(state =>
     Constants.getMessageOrdinals(state, conversationIDKey)
   )
@@ -484,8 +483,8 @@ const ThreadWrapper = (p: Props) => {
     conversationIDKey,
     listRef,
     messageOrdinals,
+    requestScrollToBottomRef,
     scrollListDownCounter,
-    scrollListToBottomCounter,
     scrollListUpCounter,
   })
 

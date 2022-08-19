@@ -49,7 +49,7 @@ class Conversation extends React.PureComponent<Props> {
             <ListArea
               onFocusInput={this.props.onFocusInput}
               scrollListDownCounter={this.props.scrollListDownCounter}
-              scrollListToBottomCounter={this.props.scrollListToBottomCounter}
+              requestScrollToBottomRef={this.props.requestScrollToBottomRef}
               scrollListUpCounter={this.props.scrollListUpCounter}
               conversationIDKey={this.props.conversationIDKey}
             />

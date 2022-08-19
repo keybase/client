@@ -6,8 +6,8 @@ export type Props = {
   focusInputCounter: number
   jumpToRecent: () => void
   scrollListDownCounter: number
-  scrollListToBottomCounter: number
   scrollListUpCounter: number
+  requestScrollToBottomRef: React.MutableRefObject<undefined | (() => void)>
   showLoader: boolean
   onPaste: (data: Buffer) => void
   onAttach: ((paths: Array<string>) => void) | null
