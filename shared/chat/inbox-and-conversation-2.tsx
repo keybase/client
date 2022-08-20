@@ -6,23 +6,19 @@ import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import * as React from 'react'
 import * as Common from '../router-v2/common'
-import type * as Types from '../constants/types/chat2'
 import Header from './header'
 import Conversation from './conversation/container'
 import Inbox from './inbox/container'
 import InboxSearch from './inbox-search/container'
 import InfoPanel from './conversation/info-panel/container'
 
-type Props = {
-  navigation?: any
-  route: any
-}
+type Props = Container.RouteProps<'chatRoot'>
 
 const InboxAndConversation = (props: Props) => {
   const dispatch = Container.useDispatch()
   const inboxSearch = Container.useSelector(state => state.chat2.inboxSearch)
   const infoPanelShowing = Container.useSelector(state => state.chat2.infoPanelShowing)
-  const conversationIDKey: Types.ConversationIDKey = props.route.params?.conversationIDKey
+  const conversationIDKey = props.route.params?.conversationIDKey ?? Constants.noConversationIDKey
   const validConvoID = conversationIDKey && conversationIDKey !== Constants.noConversationIDKey
   const needSelectConvoID = Container.useSelector(state => {
     if (validConvoID) {
@@ -57,7 +53,7 @@ const InboxAndConversation = (props: Props) => {
       ) : (
         <Inbox navKey={navKey} conversationIDKey={conversationIDKey} />
       )}
-      <Conversation navigation={props.navigation} route={props.route} />
+      <Conversation navigation={props.navigation} route={props.route as any} />
       {infoPanelShowing && <InfoPanel conversationIDKey={conversationIDKey} />}
     </Kb.Box2>
   )
