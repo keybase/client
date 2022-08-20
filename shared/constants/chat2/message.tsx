@@ -1396,40 +1396,43 @@ export const mergeMessage = (old: Types.Message | null, m: Types.Message): Types
 
   const toRet: any = {...m}
 
+  // if all props are the same then just use old
+  let allSame = true
   Object.keys(old).forEach(key => {
     switch (key) {
-      case 'mentionsAt':
-        if (
-          m.type === 'text' &&
-          old.type === 'text' &&
-          shallowEqual([...old.mentionsAt], [...m.mentionsAt])
-        ) {
-          toRet.mentionsAt = old.mentionsAt
-        }
-        break
       case 'mentionsChannelName':
-        if (
-          m.type === 'text' &&
-          old.type === 'text' &&
-          shallowEqual([...old.mentionsChannelName.entries()], [...m.mentionsChannelName].entries())
-        ) {
-          toRet.mentionsChannelName = old.mentionsChannelName
+      case 'reactions':
+      case 'unfurls':
+      case 'mentionsAt':
+        if (m.type === 'text' && old.type === 'text' && shallowEqual([...old[key]], [...m[key]])) {
+          toRet[key] = old[key]
+        } else {
+          allSame = false
         }
         break
+      case 'bodySummary':
+      case 'decoratedText':
       case 'text':
-        if (m.type === 'text' && old.type === 'text' && old.text.stringValue() === m.text.stringValue()) {
-          toRet.text = old.text
+        if (m.type === 'text' && old.type === 'text' && old[key]?.stringValue() === m[key]?.stringValue()) {
+          toRet[key] = old[key]
+        } else {
+          allSame = false
         }
+
         break
       default:
         // @ts-ignore strict: key is just a string here so TS doesn't like it
         if (old[key] === m[key]) {
           // @ts-ignore strict
           toRet[key] = old[key]
+        } else {
+          allSame = false
         }
     }
   })
-
+  if (allSame) {
+    toRet = old
+  }
   return toRet
 }
 

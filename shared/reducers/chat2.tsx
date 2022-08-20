@@ -954,7 +954,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
         }
       }
     }
-
     draftState.messageMap = messageMap
     if (centeredMessageIDs.length > 0) {
       draftState.messageCenterOrdinals = messageCenterOrdinals
