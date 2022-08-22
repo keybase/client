@@ -30,7 +30,11 @@ const scrollOrdinalKey = 'scroll-ordinal-key'
 // we send an action on the first mount once
 let markedInitiallyLoaded = false
 
-const useResizeObserver = (isLockedToBottom: () => boolean, scrollToBottom: () => void) => {
+const useResizeObserver = (
+  isLockedToBottom: () => boolean,
+  scrollToBottom: () => void,
+  pointerWrapperRef: React.MutableRefObject<HTMLDivElement | null>
+) => {
   const listContentsRef = React.useRef<HTMLDivElement | null>(null)
   const lastResizeHeightRef = React.useRef(0)
   const onResizeObservedRef = React.useRef((_entries: Array<ResizeObserverEntry>) => {})
@@ -63,15 +67,19 @@ const useResizeObserver = (isLockedToBottom: () => boolean, scrollToBottom: () =
     }
   }, [])
 
-  const setListContents = React.useCallback((listContents: HTMLDivElement | null) => {
-    if (listContentsRef.current && listContents !== listContentsRef.current) {
-      resizeObserverRef.current?.unobserve(listContentsRef.current)
-    }
-    if (listContents) {
-      resizeObserverRef.current?.observe(listContents)
-    }
-    listContentsRef.current = listContents
-  }, [])
+  const setListContents = React.useCallback(
+    (listContents: HTMLDivElement | null) => {
+      pointerWrapperRef.current = listContents
+      if (listContentsRef.current && listContents !== listContentsRef.current) {
+        resizeObserverRef.current?.unobserve(listContentsRef.current)
+      }
+      if (listContents) {
+        resizeObserverRef.current?.observe(listContents)
+      }
+      listContentsRef.current = listContents
+    },
+    [pointerWrapperRef]
+  )
 
   return setListContents
 }
@@ -372,7 +380,7 @@ const useScrolling = (
     scrollToBottom()
   }, [conversationIDKey, cleanupDebounced, scrollToBottom])
 
-  return {isLockedToBottom, scrollToBottom, setListRef}
+  return {isLockedToBottom, pointerWrapperRef, scrollToBottom, setListRef}
 }
 
 const useItems = (p: {
@@ -488,7 +496,7 @@ const ThreadWrapper = (p: Props) => {
     [dispatch]
   )
   const listRef = React.useRef<HTMLDivElement | null>(null)
-  const {isLockedToBottom, scrollToBottom, setListRef} = useScrolling({
+  const {isLockedToBottom, scrollToBottom, setListRef, pointerWrapperRef} = useScrolling({
     centeredOrdinal,
     containsLatestMessage,
     conversationIDKey,
@@ -500,7 +508,7 @@ const ThreadWrapper = (p: Props) => {
   })
 
   const jumpToRecent = Hooks.useJumpToRecent(conversationIDKey, scrollToBottom, messageOrdinals.length)
-  const setListContents = useResizeObserver(isLockedToBottom, scrollToBottom)
+  const setListContents = useResizeObserver(isLockedToBottom, scrollToBottom, pointerWrapperRef)
 
   const onCopyCapture = React.useCallback(
     (e: React.BaseSyntheticEvent) => {
