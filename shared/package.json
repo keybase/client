@@ -219,7 +219,7 @@
     },
     "resolutions": {
         "**/purepack": "keybase/nullModule",
-        "react-devtools-core": "4.21.0",
+        "react-devtools-core": "4.24.3",
         "**/@types/react-native": "0.66.16",
         "**/expo-file-system": "13.1.4",
         "**/@babel/code-frame": "7.16.7",
