@@ -12,7 +12,7 @@ const unifiedToNative = (unified: string) =>
 const nameReg = /^(?::([^:]+):)(?::skin-tone-(\d):)?$/
 
 const EmojiWrapper = (props: Props) => {
-  const {emojiName, size} = props
+  const {emojiName, size, style} = props
 
   const match = emojiName.match(nameReg)
   if (!match) return null
@@ -49,6 +49,7 @@ const EmojiWrapper = (props: Props) => {
         display: 'inline-block',
         height: size,
         width: size,
+        ...style,
       }}
     >
       {!props.disableSelecting && (
