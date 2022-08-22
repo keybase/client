@@ -6,7 +6,7 @@ export type Props = {
   emojiName: string
   disableSelecting?: boolean // desktop only - helps with chrome copy/paste bug workarounds
   allowFontScaling?: boolean
-  style?: StylesCrossPlatform // mobile only
+  style?: StylesCrossPlatform
 }
 
 export default class Emoji extends React.Component<Props> {}

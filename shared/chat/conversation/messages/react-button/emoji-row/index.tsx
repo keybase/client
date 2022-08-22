@@ -41,6 +41,7 @@ class HoverEmoji extends React.Component<
           emoji: RPCUserReacjiToRenderableEmoji(this.props.emoji, !this.state.hovering),
           showTooltip: false,
           size: this.state.hovering ? 22 : 18,
+          style: styles.hoverEmoji,
           virtualText: true,
         })}
       </Kb.ClickableBox>
@@ -139,6 +140,7 @@ const styles = Styles.styleSheetCreate(
         marginRight: Styles.globalMargins.xxtiny,
         width: Styles.globalMargins.small,
       },
+      hoverEmoji: {position: 'absolute'},
       icon: {
         position: 'relative',
         top: 1,
