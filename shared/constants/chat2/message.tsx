@@ -1394,7 +1394,7 @@ export const mergeMessage = (old: Types.Message | null, m: Types.Message): Types
     return m
   }
 
-  const toRet: any = {...m}
+  let toRet: any = {...m}
 
   // if all props are the same then just use old
   let allSame = true
