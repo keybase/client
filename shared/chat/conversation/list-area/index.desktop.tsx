@@ -113,7 +113,8 @@ const useScrolling = (
   )
   const {markInitiallyLoadedThreadAsRead} = Hooks.useActions({conversationIDKey})
   // pixels away from top/bottom to load/be locked
-  const listEdgeSlop = 10
+  const listEdgeSlopBottom = 10
+  const listEdgeSlopTop = 500
   const isMountedRef = Hooks.useIsMounted()
   const isScrollingRef = React.useRef(false)
   const ignoreOnScrollRef = React.useRef(false)
@@ -141,12 +142,12 @@ const useScrolling = (
       // are we at the top?
       const list = listRef.current
       if (list) {
-        if (list.scrollTop < listEdgeSlop) {
+        if (list.scrollTop < listEdgeSlopTop) {
           loadOlderMessages()
         } else if (
           !containsLatestMessage &&
           !isLockedToBottom() &&
-          list.scrollTop > list.scrollHeight - list.clientHeight - listEdgeSlop
+          list.scrollTop > list.scrollHeight - list.clientHeight - listEdgeSlopBottom
         ) {
           loadNewerMessages()
         }
@@ -212,7 +213,8 @@ const useScrolling = (
       const list = listRef.current
       // are we locked on the bottom?
       if (list) {
-        lockedToBottomRef.current = list.scrollHeight - list.clientHeight - list.scrollTop < listEdgeSlop
+        lockedToBottomRef.current =
+          list.scrollHeight - list.clientHeight - list.scrollTop < listEdgeSlopBottom
       }
     }, [listRef]),
     200
