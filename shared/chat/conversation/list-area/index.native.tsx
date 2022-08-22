@@ -306,6 +306,11 @@ const ConversationList = React.memo((p: {conversationIDKey: Types.ConversationID
   const renderItem = React.useCallback(
     (i: ListRenderItemInfo<ItemType>) => {
       const {item, index} = i
+      // return (
+      //   <Kb.Text type="Body" style={{minHeight: 20, height: 100}}>
+      //     {item}
+      //   </Kb.Text>
+      // )
       if (item === topOrdinal) {
         return <SpecialTopMessage conversationIDKey={conversationIDKey} />
       } else if (item === bottomOrdinal) {
@@ -370,7 +375,7 @@ const ConversationList = React.memo((p: {conversationIDKey: Types.ConversationID
       <Kb.Box style={styles.container}>
         <Kb.NativeFlatList
           overScrollMode="never"
-          contentContainerStyle={styles.contentContainer}
+          // contentContainerStyle={styles.contentContainer}
           data={messageOrdinalsPlus}
           inverted={true}
           // getItem={getItem}
@@ -382,7 +387,7 @@ const ConversationList = React.memo((p: {conversationIDKey: Types.ConversationID
           keyboardShouldPersistTaps="handled"
           keyExtractor={keyExtractor}
           // Limit the number of pages rendered ahead of time (which also limits attachment previews loaded)
-          windowSize={5}
+          // windowSize={5}
           ref={listRef}
           onScrollToIndexFailed={onScrollToIndexFailed}
           removeClippedSubviews={Styles.isAndroid}
@@ -401,6 +406,7 @@ const styles = Styles.styleSheetCreate(
         position: 'relative',
       },
       contentContainer: {
+        // flex: 1,
         /*bottom: -mobileTypingContainerHeight*/
       },
     } as const)
