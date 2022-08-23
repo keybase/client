@@ -219,7 +219,7 @@ export const getInboxSearchSelected = (inboxSearch: Types.InboxSearchInfo) => {
 export const getThreadSearchInfo = (state: TypedState, conversationIDKey: Types.ConversationIDKey) =>
   state.chat2.threadSearchInfoMap.get(conversationIDKey) || makeThreadSearchInfo()
 
-const emptyOrdinals = new Set<Types.Ordinal>()
+const emptyOrdinals = new Array<Types.Ordinal>()
 export const getMessageOrdinals = (state: TypedState, id: Types.ConversationIDKey) =>
   state.chat2.messageOrdinals.get(id) || emptyOrdinals
 export const getMessageCenterOrdinal = (state: TypedState, id: Types.ConversationIDKey) =>
