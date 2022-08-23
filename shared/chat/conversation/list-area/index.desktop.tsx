@@ -234,9 +234,11 @@ const useScrolling = (
   )
 
   const onScroll = React.useCallback(() => {
-    scrollOnPrependRef.current.scrollHeight = listRef.current?.scrollHeight
-    scrollOnPrependRef.current.scrollTop = listRef.current?.scrollTop
-
+    if (listRef.current) {
+      scrollBottomOffsetRef.current = listRef.current.scrollHeight - listRef.current.scrollTop
+    } else {
+      scrollBottomOffsetRef.current = undefined
+    }
     if (ignoreOnScrollRef.current) {
       ignoreOnScrollRef.current = false
       return
@@ -290,45 +292,24 @@ const useScrolling = (
   }, [])
 
   // if we scroll up try and keep the position
-  const scrollOnPrependRef = React.useRef<{scrollHeight: number | undefined; scrollTop: number | undefined}>({
-    scrollHeight: undefined,
-    scrollTop: undefined,
-  })
+  const scrollBottomOffsetRef = React.useRef<number | undefined>()
+
+  React.useEffect(() => {
+    scrollBottomOffsetRef.current = undefined
+  }, [conversationIDKey])
 
   const prevFirstOrdinal = Container.usePrevious(messageOrdinals[0])
   const prevOrdinalLength = Container.usePrevious(messageOrdinals.length)
 
-  // if (prevOrdinalLength !== messageOrdinals.length && messageOrdinals[0] !== prevFirstOrdinal) {
-  //   // console.log('aaa capturing scrolltop')
-  //   scrollOnPrependRef.current.scrollHeight = listRef.current?.scrollHeight
-  //   scrollOnPrependRef.current.scrollTop = listRef.current?.scrollTop
-  // }
-
-  // called before render, to stash value. Subtle behavior of react's useMemo, don't use Container.useMemo
-  // React.useMemo(() => {
-  //   // didn't scroll up
-  //   if (messageOrdinals.length === prevOrdinalLength || messageOrdinals[0] === prevFirstOrdinal) return
-  //     scrollOnPrependRef.current.scrollHeight = listRef.current?.scrollHeight
-  //     scrollOnPrependRef.current.scrollTop = listRef.current?.scrollTop
-  //   // we want this to fire when the ordinals change
-  //   // eslint-disable-next-line
-  // }, [messageOrdinals])
   // called after dom update, to apply value
   React.useLayoutEffect(() => {
     // didn't scroll up
     if (messageOrdinals.length === prevOrdinalLength || messageOrdinals[0] === prevFirstOrdinal) return
-    if (scrollOnPrependRef.current.scrollHeight !== undefined && listRef.current && !isLockedToBottom()) {
-      // console.log('aaa applying scrolltop')
+    if (listRef.current && !isLockedToBottom()) {
       requestAnimationFrame(() => {
         const {current} = listRef
-        if (
-          current &&
-          isMountedRef.current &&
-          scrollOnPrependRef.current.scrollTop !== undefined &&
-          scrollOnPrependRef.current.scrollHeight !== undefined
-        ) {
-          const fromBottom = scrollOnPrependRef.current.scrollHeight - scrollOnPrependRef.current.scrollTop
-          current.scrollTop = current.scrollHeight - fromBottom
+        if (current && isMountedRef.current && scrollBottomOffsetRef.current !== undefined) {
+          current.scrollTop = current.scrollHeight - scrollBottomOffsetRef.current
         }
       })
     }
