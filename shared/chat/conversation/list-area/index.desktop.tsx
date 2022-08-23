@@ -6,7 +6,6 @@ import * as Constants from '../../../constants/chat2'
 import * as Styles from '../../../styles'
 import * as Container from '../../../util/container'
 import * as Types from '../../../constants/types/chat2'
-import Measure, {type ContentRect} from 'react-measure'
 import Message from '../messages'
 import SpecialBottomMessage from '../messages/special-bottom-message'
 import SpecialTopMessage from '../messages/special-top-message'
@@ -20,7 +19,7 @@ import {useMemo} from '../../../util/memoize'
 import * as Hooks from './hooks'
 
 // Infinite scrolling list.
-// We group messages into a series of Waypoints. When the wayoint exits the screen we replace it with a single div instead
+// We group messages into a series of Waypoints. When the waypoint exits the screen we replace it with a single div instead
 // We use react-measure to cache the heights
 const scrollOrdinalKey = 'scroll-ordinal-key'
 
@@ -28,32 +27,47 @@ const scrollOrdinalKey = 'scroll-ordinal-key'
 // we send an action on the first mount once
 let markedInitiallyLoaded = false
 
-const useResizeObserver = (
-  isLockedToBottom: () => boolean,
-  scrollToBottom: () => void,
-  pointerWrapperRef: React.MutableRefObject<HTMLDivElement | null>
-) => {
-  const listContentsRef = React.useRef<HTMLDivElement | null>(null)
-  const lastResizeHeightRef = React.useRef(0)
+// we use resize observer to watch for size changes. we use one observer and attach nodes
+const useResizeObserver = () => {
+  const listenersRef = React.useRef(new Map<Element, (p: {height: number; width: number}) => void>())
   const onResizeObservedRef = React.useRef((_entries: Array<ResizeObserverEntry>) => {})
   React.useEffect(() => {
     onResizeObservedRef.current = (entries: Array<ResizeObserverEntry>) => {
-      const entry = entries[0]
-      const {contentRect} = entry
-      const {height} = contentRect
-      if (height !== lastResizeHeightRef.current) {
-        lastResizeHeightRef.current = height
-        if (isLockedToBottom()) {
-          scrollToBottom()
+      for (const entry of entries) {
+        const cb = listenersRef.current.get(entry.target)
+        if (cb) {
+          const rect = {
+            // ignore floating point issues
+            height: Math.floor(entry.contentRect.height),
+            width: Math.floor(entry.contentRect.width),
+          }
+          cb(rect)
         }
       }
     }
-  }, [onResizeObservedRef, lastResizeHeightRef, isLockedToBottom, scrollToBottom])
-
+  }, [onResizeObservedRef])
   const resizeObserverRef = React.useRef(
     typeof ResizeObserver !== 'undefined'
       ? new ResizeObserver(entries => onResizeObservedRef.current(entries))
       : undefined
+  )
+
+  // we want to observe a node
+  const observe = React.useCallback(
+    (e: HTMLDivElement, cb: (contentRect: {height: number; width: number}) => void) => {
+      const ro = resizeObserverRef.current
+      if (ro) {
+        listenersRef.current.set(e, cb)
+        ro.observe(e)
+        return () => {
+          listenersRef.current.delete(e)
+          ro.unobserve(e)
+        }
+      } else {
+        throw new Error('no ro?')
+      }
+    },
+    [resizeObserverRef]
   )
 
   React.useEffect(() => {
@@ -65,23 +79,10 @@ const useResizeObserver = (
     }
   }, [])
 
-  const setListContents = React.useCallback(
-    (listContents: HTMLDivElement | null) => {
-      pointerWrapperRef.current = listContents
-      if (listContentsRef.current && listContents !== listContentsRef.current) {
-        resizeObserverRef.current?.unobserve(listContentsRef.current)
-      }
-      if (listContents) {
-        resizeObserverRef.current?.observe(listContents)
-      }
-      listContentsRef.current = listContents
-    },
-    [pointerWrapperRef]
-  )
-
-  return setListContents
+  return observe
 }
 
+// scrolling related things
 const useScrolling = (
   p: Pick<
     Props,
@@ -368,8 +369,9 @@ const useItems = (p: {
   conversationIDKey: Types.ConversationIDKey
   messageOrdinals: Array<Types.Ordinal>
   centeredOrdinal: Types.Ordinal | undefined
+  resizeObserve: ReturnType<typeof useResizeObserver>
 }) => {
-  const {conversationIDKey, messageOrdinals, centeredOrdinal} = p
+  const {conversationIDKey, messageOrdinals, centeredOrdinal, resizeObserve} = p
   const ordinalsInAWaypoint = 10
   const rowRenderer = React.useCallback(
     (ordinal: Types.Ordinal, previous?: Types.Ordinal) => (
@@ -421,6 +423,7 @@ const useItems = (p: {
                 rowRenderer={rowRenderer}
                 ordinals={toAdd}
                 previous={previous}
+                resizeObserve={resizeObserve}
               />
             )
             previous = toAdd[toAdd.length - 1]
@@ -439,6 +442,7 @@ const useItems = (p: {
             rowRenderer={rowRenderer}
             ordinals={[ordinal]}
             previous={previous}
+            resizeObserve={resizeObserve}
           />
         )
         previous = ordinal
@@ -450,13 +454,12 @@ const useItems = (p: {
     })
     items.push(<SpecialBottomMessage key="specialBottom" conversationIDKey={conversationIDKey} />)
     return items
-  }, [conversationIDKey, messageOrdinals, centeredOrdinal, rowRenderer])
+  }, [conversationIDKey, messageOrdinals, centeredOrdinal, rowRenderer, resizeObserve])
 
   return items
 }
 
 const ThreadWrapperInner = (p: Props) => {
-  // console.log('aaa rendering')
   const {conversationIDKey, onFocusInput} = p
   const {scrollListDownCounter, requestScrollToBottomRef, scrollListUpCounter} = p
   const messageOrdinals = Container.useSelector(state =>
@@ -488,7 +491,37 @@ const ThreadWrapperInner = (p: Props) => {
   })
 
   const jumpToRecent = Hooks.useJumpToRecent(conversationIDKey, scrollToBottom, messageOrdinals.length)
-  const setListContents = useResizeObserver(isLockedToBottom, scrollToBottom, pointerWrapperRef)
+  const resizeObserve = useResizeObserver()
+  const unsubRef = React.useRef<(() => void) | undefined>()
+  React.useEffect(() => {
+    unsubRef.current?.()
+  }, [])
+
+  const lastResizeHeightRef = React.useRef(0)
+  const onListSizeChanged = React.useCallback(
+    (contentRect: {height: number}) => {
+      const {height} = contentRect
+      if (height !== lastResizeHeightRef.current) {
+        lastResizeHeightRef.current = height
+        if (isLockedToBottom()) {
+          scrollToBottom()
+        }
+      }
+    },
+    [isLockedToBottom, scrollToBottom]
+  )
+  const setListContents = React.useCallback(
+    (listContents: HTMLDivElement | null) => {
+      pointerWrapperRef.current = listContents
+      unsubRef.current?.()
+      if (listContents) {
+        unsubRef.current = resizeObserve(listContents, onListSizeChanged)
+      } else {
+        unsubRef.current = undefined
+      }
+    },
+    [pointerWrapperRef, resizeObserve, onListSizeChanged]
+  )
 
   const onCopyCapture = React.useCallback(
     (e: React.BaseSyntheticEvent) => {
@@ -520,6 +553,7 @@ const ThreadWrapperInner = (p: Props) => {
     centeredOrdinal,
     conversationIDKey,
     messageOrdinals,
+    resizeObserve,
   })
 
   return (
@@ -543,10 +577,11 @@ type OrdinalWaypointProps = {
   rowRenderer: (ordinal: Types.Ordinal, previous?: Types.Ordinal) => React.ReactNode
   ordinals: Array<Types.Ordinal>
   previous?: Types.Ordinal
+  resizeObserve: ReturnType<typeof useResizeObserver>
 }
 
 const OrdinalWaypointInner = (p: OrdinalWaypointProps) => {
-  const {ordinals, id, rowRenderer, previous} = p
+  const {ordinals, id, rowRenderer, previous, resizeObserve} = p
   const heightRef = React.useRef<number | undefined>()
   const widthRef = React.useRef<number | undefined>()
   const heightForOrdinalsRef = React.useRef<Array<Types.Ordinal> | undefined>()
@@ -555,39 +590,38 @@ const OrdinalWaypointInner = (p: OrdinalWaypointProps) => {
   const customForceUpdate = React.useCallback(() => {
     setForce(f => f + 1)
   }, [])
-  const onResize = Container.useDebouncedCallback((p: ContentRect) => {
-    const {bounds} = p
-    if (!bounds) return
-    const height = Math.ceil(bounds.height)
-    const width = Math.ceil(bounds.width)
-
-    if (height && width) {
-      let changed = false
-      // don't have a width at all or its unchanged
-      if (!widthRef.current || widthRef.current === width) {
-        if (heightRef.current !== height) {
-          heightForOrdinalsRef.current = ordinals
-          heightRef.current = height
-          // don't redraw in this case
-        }
-      } else {
-        // toss height if width changes
-        heightRef.current = undefined
-        changed = true
-      }
-
-      if (widthRef.current !== width) {
-        if (widthRef.current !== undefined) {
+  const onResize = React.useCallback(
+    (p: {width: number; height: number}) => {
+      const {width, height} = p
+      if (height && width) {
+        let changed = false
+        // don't have a width at all or its unchanged
+        if (!widthRef.current || widthRef.current === width) {
+          if (heightRef.current !== height) {
+            heightForOrdinalsRef.current = ordinals
+            heightRef.current = height
+            // don't redraw in this case
+          }
+        } else {
+          // toss height if width changes
+          heightRef.current = undefined
           changed = true
         }
-        widthRef.current = width
-      }
 
-      if (changed) {
-        customForceUpdate()
+        if (widthRef.current !== width) {
+          if (widthRef.current !== undefined) {
+            changed = true
+          }
+          widthRef.current = width
+        }
+
+        if (changed) {
+          customForceUpdate()
+        }
       }
-    }
-  }, 200)
+    },
+    [customForceUpdate, ordinals]
+  )
 
   // We ran into an issue where this was being called tremendously fast with inside/below. To stop that behavior
   // we defer settings things invisible for a little bit, which seems enough to fix it
@@ -625,14 +659,31 @@ const OrdinalWaypointInner = (p: OrdinalWaypointProps) => {
 
   React.useEffect(() => {
     return () => {
-      onResize.cancel()
+      // onResize.cancel()
       handlePositionChange.cancel()
     }
-  }, [handlePositionChange, onResize])
+  }, [handlePositionChange /*, onResize*/])
 
   if (ordinals !== heightForOrdinalsRef.current) {
     heightRef.current = undefined
   }
+
+  const unsubRef = React.useRef<(() => void) | undefined>()
+  React.useEffect(() => {
+    unsubRef.current?.()
+  }, [])
+
+  const waypointRef = React.useCallback(
+    (w: HTMLDivElement | null) => {
+      unsubRef.current?.()
+      if (w) {
+        unsubRef.current = resizeObserve(w, onResize)
+      } else {
+        unsubRef.current = undefined
+      }
+    },
+    [onResize, resizeObserve]
+  )
 
   // Apply data-key to the dom node so we can search for editing messages
   const renderMessages = !heightRef.current || isVisibleRef.current
@@ -647,13 +698,9 @@ const OrdinalWaypointInner = (p: OrdinalWaypointProps) => {
         return rowRenderer(o, p)
       })
       content = (
-        <Measure bounds={true} onResize={onResize}>
-          {({measureRef}) => (
-            <div data-key={id} ref={measureRef}>
-              {messages}
-            </div>
-          )}
-        </Measure>
+        <div data-key={id} ref={heightRef.current ? undefined : waypointRef}>
+          {messages}
+        </div>
       )
       lastVisibleChildrenOrdinalsRef.current = ordinals
       lastVisibleChildrenRef.current = content
