@@ -22,7 +22,6 @@ import * as Hooks from './hooks'
 // Infinite scrolling list.
 // We group messages into a series of Waypoints. When the wayoint exits the screen we replace it with a single div instead
 // We use react-measure to cache the heights
-
 const scrollOrdinalKey = 'scroll-ordinal-key'
 
 // We load the first thread automatically so in order to mark it read
@@ -545,7 +544,6 @@ const ThreadWrapperInner = (p: Props) => {
   return (
     <ErrorBoundary>
       <div style={styles.container as any} onClick={handleListClick} onCopyCapture={onCopyCapture}>
-        <style>{realCSS}</style>
         <div key={conversationIDKey} style={styles.list as any} ref={setListRef}>
           <div style={styles.listContents} ref={setListContents}>
             {items}
@@ -572,8 +570,6 @@ const OrdinalWaypointInner = (p: OrdinalWaypointProps) => {
   const widthRef = React.useRef<number | undefined>()
   const heightForOrdinalsRef = React.useRef<Array<Types.Ordinal> | undefined>()
   const isVisibleRef = React.useRef(true)
-  const animIDRef = React.useRef<number | undefined>()
-
   const [, setForce] = React.useState(0)
   const customForceUpdate = React.useCallback(() => {
     setForce(f => f + 1)
@@ -610,44 +606,36 @@ const OrdinalWaypointInner = (p: OrdinalWaypointProps) => {
         customForceUpdate()
       }
     }
-  }, 100)
-
-  const cancelAnim = React.useCallback(() => {
-    if (animIDRef.current) {
-      window.cancelAnimationFrame(animIDRef.current)
-      animIDRef.current = 0
-    }
-  }, [])
+  }, 200)
 
   // We ran into an issue where this was being called tremendously fast with inside/below. To stop that behavior
   // we defer settings things invisible for a little bit, which seems enough to fix it
-  const handlePositionChange = React.useCallback(
-    (p: Waypoint.CallbackArgs) => {
-      // lets ignore when this happens, this seems like a large source of jiggliness
-      if (isVisibleRef.current && !p.event) {
-        return
-      }
-      const {currentPosition} = p
-      if (currentPosition) {
-        const isInside = currentPosition === 'inside'
-        cancelAnim()
-        if (isInside) {
-          if (!isVisibleRef.current) {
-            isVisibleRef.current = true
-            customForceUpdate()
-          }
-        } else {
-          animIDRef.current = window.requestAnimationFrame(() => {
-            animIDRef.current = 0
+  const handlePositionChange = Container.useThrottledCallback(
+    React.useCallback(
+      (p: Waypoint.CallbackArgs) => {
+        // lets ignore when this happens, this seems like a large source of jiggliness
+        if (isVisibleRef.current && !p.event) {
+          return
+        }
+        const {currentPosition} = p
+        if (currentPosition) {
+          const isInside = currentPosition === 'inside'
+          if (isInside) {
+            if (!isVisibleRef.current) {
+              isVisibleRef.current = true
+              customForceUpdate()
+            }
+          } else {
             if (isVisibleRef.current) {
               isVisibleRef.current = false
               customForceUpdate()
             }
-          })
+          }
         }
-      }
-    },
-    [cancelAnim, animIDRef, customForceUpdate]
+      },
+      [customForceUpdate]
+    ),
+    200
   )
 
   // Cache rendered children if the ordinals are the same, else we'll thrash a lot as we scroll up and down
@@ -657,9 +645,9 @@ const OrdinalWaypointInner = (p: OrdinalWaypointProps) => {
   React.useEffect(() => {
     return () => {
       onResize.cancel()
-      cancelAnim()
+      handlePositionChange.cancel()
     }
-  }, [cancelAnim, onResize])
+  }, [handlePositionChange, onResize])
 
   if (ordinals !== heightForOrdinalsRef.current) {
     heightRef.current = undefined
@@ -703,19 +691,6 @@ const OrdinalWaypoint = React.memo<OrdinalWaypointProps>(
     prevProps.id === nextProps.id &&
     shallowEqual(prevProps.ordinals, nextProps.ordinals)
 )
-
-// We need to use both visibility and opacity css properties for the
-// action button hide/show on hover.
-// We use opacity because it shows/hides the button immediately on
-// hover, while visibility has slight lag.
-// We use visibility so that the action button content isn't copied
-// during copy/paste actions since user-select isn't working in
-// Chrome.
-const realCSS = `
-.message {
-  contain: content;
-}
-`
 
 const styles = Styles.styleSheetCreate(
   () =>
