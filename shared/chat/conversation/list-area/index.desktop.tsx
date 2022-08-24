@@ -580,6 +580,15 @@ type OrdinalWaypointProps = {
   resizeObserve: ReturnType<typeof useResizeObserver>
 }
 
+const colorWaypoints = __DEV__ && true
+let colors = new Array<string>()
+if (colorWaypoints) {
+  for (let i = 0; i < 10; ++i) {
+    console.log('COLOR WAYPOINTS ON!!!!!!!!!!!!!!!!')
+    colors.push(`rgb(${Math.random() * 255},${Math.random() * 255},${Math.random() * 255})`)
+  }
+}
+
 const OrdinalWaypointInner = (p: OrdinalWaypointProps) => {
   const {ordinals, id, rowRenderer, previous, resizeObserve} = p
   const heightRef = React.useRef<number | undefined>()
@@ -708,7 +717,19 @@ const OrdinalWaypointInner = (p: OrdinalWaypointProps) => {
   } else {
     content = <div data-key={id} style={{height: heightRef.current}} />
   }
-  return <Waypoint onPositionChange={handlePositionChange}>{content}</Waypoint>
+
+  if (colorWaypoints) {
+    let cidx = parseInt(id)
+    if (isNaN(cidx)) cidx = 0
+    cidx = cidx % colors.length
+    return (
+      <div style={{backgroundColor: colors[cidx]}}>
+        <Waypoint onPositionChange={handlePositionChange}>{content}</Waypoint>
+      </div>
+    )
+  } else {
+    return <Waypoint onPositionChange={handlePositionChange}>{content}</Waypoint>
+  }
 }
 
 const OrdinalWaypoint = React.memo<OrdinalWaypointProps>(
