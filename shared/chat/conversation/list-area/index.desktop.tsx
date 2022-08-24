@@ -113,7 +113,7 @@ const useScrolling = (
   const {markInitiallyLoadedThreadAsRead} = Hooks.useActions({conversationIDKey})
   // pixels away from top/bottom to load/be locked
   const listEdgeSlopBottom = 10
-  const listEdgeSlopTop = 500
+  const listEdgeSlopTop = 1000
   const isMountedRef = Hooks.useIsMounted()
   const isScrollingRef = React.useRef(false)
   const ignoreOnScrollRef = React.useRef(false)
@@ -306,11 +306,14 @@ const useScrolling = (
   React.useLayoutEffect(() => {
     // didn't scroll up
     if (messageOrdinals.length === prevOrdinalLength || messageOrdinals[0] === prevFirstOrdinal) return
-    if (listRef.current && !isLockedToBottom()) {
-      const {current} = listRef
-      if (current && isMountedRef.current && scrollBottomOffsetRef.current !== undefined) {
-        current.scrollTop = current.scrollHeight - scrollBottomOffsetRef.current
-      }
+    const {current} = listRef
+    if (
+      current &&
+      !isLockedToBottom() &&
+      isMountedRef.current &&
+      scrollBottomOffsetRef.current !== undefined
+    ) {
+      current.scrollTop = current.scrollHeight - scrollBottomOffsetRef.current
     }
     // we want this to fire when the ordinals change
     // eslint-disable-next-line
@@ -578,8 +581,8 @@ type OrdinalWaypointProps = {
   resizeObserve: ReturnType<typeof useResizeObserver>
 }
 
-const colorWaypoints = __DEV__ && true
-let colors = new Array<string>()
+const colorWaypoints = __DEV__ && false
+const colors = new Array<string>()
 if (colorWaypoints) {
   for (let i = 0; i < 10; ++i) {
     console.log('COLOR WAYPOINTS ON!!!!!!!!!!!!!!!!')
