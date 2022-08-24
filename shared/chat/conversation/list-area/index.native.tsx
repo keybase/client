@@ -171,7 +171,7 @@ const useScrolling = (p: {
     ({viewableItems}: {viewableItems: Array<ViewToken>}) => {
       const topRecord = viewableItems[viewableItems.length - 1]
       const bottomRecord = viewableItems[0]
-      if (typeof topRecord.index !== 'number' || typeof bottomRecord.index !== 'number') {
+      if (typeof topRecord?.index !== 'number' || typeof bottomRecord?.index !== 'number') {
         return
       }
       // load more before we get to the top
@@ -301,12 +301,21 @@ const ConversationList = React.memo((p: {conversationIDKey: Types.ConversationID
     }
   }, [markInitiallyLoadedThreadAsRead])
 
+  const listHeaderComponent = React.useMemo(
+    () => <SpecialBottomMessage conversationIDKey={conversationIDKey} />,
+    [conversationIDKey]
+  )
+  const listFooterComponent = React.useMemo(
+    () => <SpecialTopMessage conversationIDKey={conversationIDKey} />,
+    [conversationIDKey]
+  )
+
   return (
     <Kb.ErrorBoundary>
       <Kb.Box style={styles.container}>
         <Kb.NativeFlatList
-          ListHeaderComponent={<SpecialBottomMessage conversationIDKey={conversationIDKey} />}
-          ListFooterComponent={<SpecialTopMessage conversationIDKey={conversationIDKey} />}
+          ListHeaderComponent={listHeaderComponent}
+          ListFooterComponent={listFooterComponent}
           overScrollMode="never"
           contentContainerStyle={styles.contentContainer}
           data={messageOrdinals}
