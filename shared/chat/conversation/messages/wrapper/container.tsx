@@ -138,7 +138,7 @@ export default Container.connect(
     const authorIsAdmin = teamname ? TeamConstants.userIsRoleInTeam(state, teamID, author, 'admin') : false
     const authorIsBot = Constants.messageAuthorIsBot(state, meta, message, _participantInfo)
     const authorIsOwner = teamname ? TeamConstants.userIsRoleInTeam(state, teamID, author, 'owner') : false
-    const ordinals = [...Constants.getMessageOrdinals(state, conversationIDKey)]
+    const ordinals = Constants.getMessageOrdinals(state, conversationIDKey)
     const botAlias = botAliases[author] ?? ''
     return {
       _you: state.config.username,

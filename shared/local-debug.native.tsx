@@ -22,7 +22,7 @@ window.console._info = window.console.info
 // require('react-native/Libraries/Interaction/InteractionStallDebugger').install({thresholdMS: 100})
 
 // Set this to true if you want to turn off most console logging so you can profile easier
-const PERF = true // TEMP
+const PERF = false
 
 let config = {
   allowMultipleInstances: false,

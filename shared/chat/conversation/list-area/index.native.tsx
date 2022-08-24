@@ -9,10 +9,9 @@ import Message from '../messages'
 import SpecialBottomMessage from '../messages/special-bottom-message'
 import SpecialTopMessage from '../messages/special-top-message'
 import logger from '../../../logger'
-import {useMemo} from '../../../util/memoize'
-import {Animated, type ListRenderItemInfo} from 'react-native'
+import {Animated, type ListRenderItemInfo, type ViewToken} from 'react-native'
 import type {ItemType} from '.'
-// import {mobileTypingContainerHeight} from '../input-area/normal/typing'
+import {mobileTypingContainerHeight} from '../input-area/normal/typing'
 import * as Hooks from './hooks'
 
 const targetHitArea = 1
@@ -108,24 +107,21 @@ const maintainVisibleContentPosition = {
 
 const useScrolling = (p: {
   centeredOrdinal: Types.Ordinal | undefined
-  messageOrdinalsPlus: Array<Types.Ordinal>
+  messageOrdinals: Array<Types.Ordinal>
   conversationIDKey: Types.ConversationIDKey
   listRef: React.MutableRefObject<Kb.NativeVirtualizedList<ItemType> | null>
 }) => {
-  const {listRef, centeredOrdinal, messageOrdinalsPlus, conversationIDKey} = p
+  const {listRef, centeredOrdinal, messageOrdinals, conversationIDKey} = p
   const scrollCenterTargetRef = React.useRef<number | undefined>()
 
   const dispatch = Container.useDispatch()
   const lastLoadOrdinal = React.useRef<Types.Ordinal>(-1)
-  const oldestOrdinal = messageOrdinalsPlus[messageOrdinalsPlus.length - 2] ?? -1
+  const oldestOrdinal = messageOrdinals[0] ?? -1
   const loadOlderMessages = Container.useThrottledCallback(
     React.useCallback(() => {
       // already loaded and nothing has changed
       if (lastLoadOrdinal.current === oldestOrdinal) {
-        console.log('aaa bail on load older', lastLoadOrdinal.current)
         return
-      } else {
-        console.log('aaa actually load older', lastLoadOrdinal.current, oldestOrdinal)
       }
       lastLoadOrdinal.current = oldestOrdinal
       dispatch(Chat2Gen.createLoadOlderMessagesDueToScroll({conversationIDKey}))
@@ -133,35 +129,29 @@ const useScrolling = (p: {
     200
   )
 
-  // const getIndexFromItem = React.useCallback(
-  //   (item: number) => getItemCount(messageOrdinalsPlus) - item - 2,
-  //   [getItemCount, messageOrdinalsPlus]
-  // )
-
   const getOrdinalIndex = React.useCallback(
     (target: Types.Ordinal) => {
       // TODO binary
-      for (let item = 0; item < messageOrdinalsPlus.length; item++) {
-        const ordinal = messageOrdinalsPlus[item] || 0
+      for (let item = 0; item < messageOrdinals.length; item++) {
+        const ordinal = messageOrdinals[item] || 0
         if (ordinal === target) {
           return item
         }
       }
       return -1
     },
-    [messageOrdinalsPlus]
+    [messageOrdinals]
   )
 
   const scrollToBottom = React.useCallback(() => {
     const list = listRef.current
     if (list) {
-      const index = messageOrdinalsPlus.length - 1
-      // const index = getOrdinalIndex(messageOrdinalsPlus[messageOrdinalsPlus.length - 1])
+      const index = messageOrdinals.length - 1
       if (index >= 0) {
         list.scrollToIndex({index})
       }
     }
-  }, [listRef, /*getOrdinalIndex, */ messageOrdinalsPlus])
+  }, [listRef, messageOrdinals])
 
   const scrollToCentered = React.useCallback(() => {
     const list = listRef.current
@@ -178,35 +168,27 @@ const useScrolling = (p: {
 
   // Was using onEndReached but that was really flakey
   const _onViewableItemsChanged = React.useCallback(
-    ({viewableItems}: {viewableItems: Array<{item: ItemType}>}) => {
+    ({viewableItems}: {viewableItems: Array<ViewToken>}) => {
       const topRecord = viewableItems[viewableItems.length - 1]
       const bottomRecord = viewableItems[0]
-      // console.log('aaa _onViewableItemsChanged ', topRecord, bottomRecord)
-      // we scroll back in time if the specialTop item is the last viewable, *unless* we are currently
-      // attempting to scroll to a centered ordinal
-      if (!scrollCenterTargetRef.current && topRecord?.item === topOrdinal) {
-        const ordinalRecord = viewableItems[viewableItems.length - 2]
-        // ignore if we don't have real messages
-        if (ordinalRecord && ordinalRecord.item !== bottomOrdinal && ordinalRecord.item !== topOrdinal) {
-          // console.log('aaa load older ')
-          loadOlderMessages()
-        } else {
-          // console.log('aaa NOT load older ')
-        }
-      }
-      if (!topRecord || !bottomRecord) {
-        // console.log('aaa bail early 1')
+      if (typeof topRecord.index !== 'number' || typeof bottomRecord.index !== 'number') {
         return
       }
-
-      const bottomIndex = messageOrdinalsPlus.length - 1
-      const upperIndex = 0
-      const middleIndex = bottomIndex + Math.floor((upperIndex - bottomIndex) / 2)
+      // load more before we get to the top
+      const triggerIndex = messageOrdinals.length - 10
+      // we scroll back in time if the specialTop item is the last viewable, *unless* we are currently
+      // attempting to scroll to a centered ordinal
+      if (!scrollCenterTargetRef.current && topRecord.index > triggerIndex) {
+        loadOlderMessages()
+      }
 
       if (!scrollCenterTargetRef.current) {
         return
       }
 
+      const bottomIndex = messageOrdinals.length - 1
+      const upperIndex = 0
+      const middleIndex = bottomIndex + Math.floor((upperIndex - bottomIndex) / 2)
       if (
         !(
           scrollCenterTargetRef.current <= middleIndex + targetHitArea &&
@@ -218,7 +200,7 @@ const useScrolling = (p: {
         scrollCenterTargetRef.current = undefined
       }
     },
-    [scrollCenterTargetRef, loadOlderMessages, messageOrdinalsPlus, scrollToCentered]
+    [scrollCenterTargetRef, loadOlderMessages, messageOrdinals, scrollToCentered]
   )
   // FlatList doesn't let you change this on the fly for some reason, so stash _onViewableItemsChanged into a ref and call it
   const _onViewableItemsChangedRef = React.useRef<typeof _onViewableItemsChanged>(() => {})
@@ -254,97 +236,48 @@ const useScrolling = (p: {
   }
 }
 
-const topOrdinal = -1
-const bottomOrdinal = -2
-
 const ConversationList = React.memo((p: {conversationIDKey: Types.ConversationIDKey}) => {
   const {conversationIDKey} = p
   const centeredOrdinal = Container.useSelector(
     state => Constants.getMessageCenterOrdinal(state, conversationIDKey)?.ordinal
   )
-  const messageOrdinalsSet = Container.useSelector(state =>
+  const messageOrdinals = Container.useSelector(state =>
     Constants.getMessageOrdinals(state, conversationIDKey)
   )
-  const messageOrdinalsPlus = useMemo(() => [-1, ...messageOrdinalsSet, -2].reverse(), [messageOrdinalsSet])
-  // const isMountedRef = Hooks.useIsMounted()
   const listRef = React.useRef<Kb.NativeFlatList<ItemType> | null>(null)
   const {markInitiallyLoadedThreadAsRead} = Hooks.useActions({conversationIDKey})
-
-  // the component can pass null here sometimes
-  // const getItemCount = React.useCallback(
-  //   (messageOrdinalsPlus: Array<Types.Ordinal> | null) => {
-  //     if (isMountedRef.current) {
-  //       return (messageOrdinalsPlus?.length ?? 0) + 2
-  //     } else {
-  //       // needed else VirtualizedList will yellowbox
-  //       return 0
-  //     }
-  //   },
-  //   [isMountedRef]
-  // )
-
   const keyExtractor = React.useCallback((item: ItemType) => String(item), [])
-
-  // const getItem = React.useCallback(
-  //   (messageOrdinalsPlus: Array<Types.Ordinal>, index: number) => {
-  //     // Note we invert our list so we need to feed it things in the reverse order. We just invert the index
-  //     // vs reversing the items to speed things up
-  //     const itemCountIncludingSpecial = getItemCount(messageOrdinalsPlus)
-  //     if (index === itemCountIncludingSpecial - 1) {
-  //       return 'specialTop'
-  //     } else if (index === 0) {
-  //       return 'specialBottom'
-  //     }
-
-  //     // return ordinalIndex
-  //     const ordinalIndex = itemCountIncludingSpecial - index - 2
-  //     return ordinalIndex
-  //   },
-  //   [getItemCount]
-  // )
-
   const renderItem = React.useCallback(
-    (i: ListRenderItemInfo<ItemType>) => {
-      const {item, index} = i
-      // return (
-      //   <Kb.Text type="Body" style={{minHeight: 20, height: 100}}>
-      //     {item}
-      //   </Kb.Text>
-      // )
-      if (item === topOrdinal) {
-        return <SpecialTopMessage conversationIDKey={conversationIDKey} />
-      } else if (item === bottomOrdinal) {
-        return <SpecialBottomMessage conversationIDKey={conversationIDKey} />
-      } else {
-        const ordinal = item
-        const prevOrdinal = index > 0 ? messageOrdinalsPlus[index - 1] : undefined
-
-        if (!ordinal) {
-          return null
-        }
-
-        if (messageOrdinalsPlus.length - 2 === index) {
-          return (
-            <Sent
-              key={ordinal}
-              ordinal={ordinal}
-              prevOrdinal={prevOrdinal}
-              conversationIDKey={conversationIDKey}
-            />
-          )
-        }
-
+    (info: ListRenderItemInfo<ItemType>) => {
+      // since the list is inverted but the data is not we flip the index when rendering and ignore `item`
+      const index = messageOrdinals.length - info.index
+      const ordinal = messageOrdinals[index]
+      if (!ordinal) {
+        return null
+      }
+      const prevOrdinal = index > 0 ? messageOrdinals[index - 1] : undefined
+      if (messageOrdinals.length - 1 === index) {
         return (
-          <Message
+          <Sent
             key={ordinal}
             ordinal={ordinal}
-            previous={prevOrdinal}
+            prevOrdinal={prevOrdinal}
             conversationIDKey={conversationIDKey}
           />
         )
       }
+
+      return (
+        <Message
+          key={ordinal}
+          ordinal={ordinal}
+          previous={prevOrdinal}
+          conversationIDKey={conversationIDKey}
+        />
+      )
+      // }
     },
-    [messageOrdinalsPlus, conversationIDKey]
+    [messageOrdinals, conversationIDKey]
   )
 
   const {scrollToCentered, onScrollToIndexFailed, scrollToBottom, viewabilityConfigCallbackPairsRef} =
@@ -352,10 +285,10 @@ const ConversationList = React.memo((p: {conversationIDKey: Types.ConversationID
       centeredOrdinal,
       conversationIDKey,
       listRef,
-      messageOrdinalsPlus,
+      messageOrdinals,
     })
 
-  const jumpToRecent = Hooks.useJumpToRecent(conversationIDKey, scrollToBottom, messageOrdinalsPlus.length)
+  const jumpToRecent = Hooks.useJumpToRecent(conversationIDKey, scrollToBottom, messageOrdinals.length)
 
   Container.useDepChangeEffect(() => {
     centeredOrdinal && scrollToCentered()
@@ -368,18 +301,16 @@ const ConversationList = React.memo((p: {conversationIDKey: Types.ConversationID
     }
   }, [markInitiallyLoadedThreadAsRead])
 
-  // console.log('aaa ord num', messageOrdinalsPlus.length)
-
   return (
     <Kb.ErrorBoundary>
       <Kb.Box style={styles.container}>
         <Kb.NativeFlatList
+          ListHeaderComponent={<SpecialBottomMessage conversationIDKey={conversationIDKey} />}
+          ListFooterComponent={<SpecialTopMessage conversationIDKey={conversationIDKey} />}
           overScrollMode="never"
-          // contentContainerStyle={styles.contentContainer}
-          data={messageOrdinalsPlus}
+          contentContainerStyle={styles.contentContainer}
+          data={messageOrdinals}
           inverted={true}
-          // getItem={getItem}
-          // getItemCount={getItemCount}
           renderItem={renderItem}
           maintainVisibleContentPosition={maintainVisibleContentPosition}
           viewabilityConfigCallbackPairs={viewabilityConfigCallbackPairsRef.current}
@@ -406,8 +337,8 @@ const styles = Styles.styleSheetCreate(
         position: 'relative',
       },
       contentContainer: {
-        // flex: 1,
-        /*bottom: -mobileTypingContainerHeight*/
+        paddingBottom: 0,
+        paddingTop: mobileTypingContainerHeight,
       },
     } as const)
 )
