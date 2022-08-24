@@ -595,7 +595,7 @@ const OrdinalWaypointInner = (p: OrdinalWaypointProps) => {
   const heightRef = React.useRef<number | undefined>()
   const widthRef = React.useRef<number | undefined>()
   const heightForOrdinalsRef = React.useRef<Array<Types.Ordinal> | undefined>()
-  const isVisibleRef = React.useRef(true)
+  const [isVisible, setVisible] = React.useState(true)
   const [, setForce] = React.useState(0)
   const customForceUpdate = React.useCallback(() => {
     setForce(f => f + 1)
@@ -633,32 +633,25 @@ const OrdinalWaypointInner = (p: OrdinalWaypointProps) => {
     [customForceUpdate, ordinals]
   )
 
-  // We ran into an issue where this was being called tremendously fast with inside/below. To stop that behavior
-  // we defer settings things invisible for a little bit, which seems enough to fix it
+  // we want to go invisible if we're outside after we've been measured, aka don't scroll up and measure and hide yourself
+  // only hide after you've been scrolled past
   const handlePositionChange = Container.useThrottledCallback(
     React.useCallback(
       (p: Waypoint.CallbackArgs) => {
         // lets ignore when this happens, this seems like a large source of jiggliness
-        if (isVisibleRef.current && !p.event) {
+        if (isVisible && !p.event) {
           return
         }
         const {currentPosition} = p
-        if (currentPosition) {
-          const isInside = currentPosition === 'inside'
-          if (isInside) {
-            if (!isVisibleRef.current) {
-              isVisibleRef.current = true
-              customForceUpdate()
-            }
-          } else {
-            if (isVisibleRef.current) {
-              isVisibleRef.current = false
-              customForceUpdate()
-            }
-          }
+        if (!currentPosition) {
+          return
+        }
+        const isInside = currentPosition === 'inside'
+        if (isInside !== isVisible) {
+          setVisible(isInside)
         }
       },
-      [customForceUpdate]
+      [isVisible]
     ),
     200
   )
@@ -696,7 +689,7 @@ const OrdinalWaypointInner = (p: OrdinalWaypointProps) => {
   )
 
   // Apply data-key to the dom node so we can search for editing messages
-  const renderMessages = !heightRef.current || isVisibleRef.current
+  const renderMessages = !heightRef.current || isVisible
   let content: React.ReactNode
   if (renderMessages) {
     if (ordinals === lastVisibleChildrenOrdinalsRef.current && lastVisibleChildrenRef.current) {
