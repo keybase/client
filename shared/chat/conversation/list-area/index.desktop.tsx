@@ -236,7 +236,7 @@ const useScrolling = (
 
   const onScroll = React.useCallback(() => {
     if (listRef.current) {
-      scrollBottomOffsetRef.current = listRef.current.scrollHeight - listRef.current.scrollTop
+      scrollBottomOffsetRef.current = Math.max(0, listRef.current.scrollHeight - listRef.current.scrollTop)
     } else {
       scrollBottomOffsetRef.current = undefined
     }
@@ -307,12 +307,10 @@ const useScrolling = (
     // didn't scroll up
     if (messageOrdinals.length === prevOrdinalLength || messageOrdinals[0] === prevFirstOrdinal) return
     if (listRef.current && !isLockedToBottom()) {
-      requestAnimationFrame(() => {
-        const {current} = listRef
-        if (current && isMountedRef.current && scrollBottomOffsetRef.current !== undefined) {
-          current.scrollTop = current.scrollHeight - scrollBottomOffsetRef.current
-        }
-      })
+      const {current} = listRef
+      if (current && isMountedRef.current && scrollBottomOffsetRef.current !== undefined) {
+        current.scrollTop = current.scrollHeight - scrollBottomOffsetRef.current
+      }
     }
     // we want this to fire when the ordinals change
     // eslint-disable-next-line
