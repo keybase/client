@@ -10,15 +10,9 @@ const _renderRightActions = () => {
   )
 }
 
-// See './index.d.ts' for explanation
-const LongPressable = (props: {children: React.ElementType; onSwipeLeft?: () => void}) => {
-  const {children, ...rest} = props
-  const swipeable = React.useRef<Kb.Swipeable>(null)
-  const onRightOpen = () => {
-    props.onSwipeLeft && props.onSwipeLeft()
-    swipeable.current && swipeable.current.close()
-  }
-  const inner = (
+const Inner = React.memo((p: any) => {
+  const {children, ...rest} = p
+  return (
     <Kb.NativeTouchableHighlight
       key="longPressable"
       underlayColor={Styles.globalColors.transparent}
@@ -27,6 +21,18 @@ const LongPressable = (props: {children: React.ElementType; onSwipeLeft?: () => 
       <Kb.NativeView style={styles.view}>{children}</Kb.NativeView>
     </Kb.NativeTouchableHighlight>
   )
+})
+
+// See './index.d.ts' for explanation
+const LongPressable = (props: {children: React.ElementType; onSwipeLeft?: () => void}) => {
+  const {onSwipeLeft, ...rest} = props
+  const swipeable = React.useRef<Kb.Swipeable>(null)
+  const onRightOpen = React.useCallback(() => {
+    onSwipeLeft?.()
+    swipeable.current?.close()
+  }, [onSwipeLeft])
+
+  const inner = <Inner {...rest} />
   // Only swipeable if there is an onSwipeLeft handler.
   if (props.onSwipeLeft) {
     return (
