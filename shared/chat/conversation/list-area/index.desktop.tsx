@@ -86,7 +86,7 @@ const useResizeObserver = () => {
 const useScrolling = (
   p: Pick<
     Props,
-    'conversationIDKey' | 'scrollListDownCounter' | 'requestScrollToBottomRef' | 'scrollListUpCounter'
+    'conversationIDKey' | 'requestScrollUpRef' | 'requestScrollToBottomRef' | 'requestScrollDownRef'
   > & {
     containsLatestMessage: boolean
     messageOrdinals: Array<Types.Ordinal>
@@ -94,7 +94,7 @@ const useScrolling = (
     centeredOrdinal: Types.Ordinal | undefined
   }
 ) => {
-  const {conversationIDKey, scrollListDownCounter, requestScrollToBottomRef, scrollListUpCounter} = p
+  const {conversationIDKey, requestScrollUpRef, requestScrollToBottomRef, requestScrollDownRef} = p
   const {listRef, containsLatestMessage, messageOrdinals, centeredOrdinal} = p
   const dispatch = Container.useDispatch()
   const editingOrdinal = Container.useSelector(state => state.chat2.editingMap.get(conversationIDKey))
@@ -104,12 +104,20 @@ const useScrolling = (
     }, [dispatch, conversationIDKey]),
     200
   )
-  const loadOlderMessages = Container.useThrottledCallback(
+
+  const lastLoadOrdinal = React.useRef<Types.Ordinal>(-1)
+  const oldestOrdinal = messageOrdinals[0] ?? -1
+  const loadOlderMessages = //Container.useThrottledCallback(
     React.useCallback(() => {
+      // already loaded and nothing has changed
+      if (lastLoadOrdinal.current === oldestOrdinal) {
+        return
+      }
+      lastLoadOrdinal.current = oldestOrdinal
       dispatch(Chat2Gen.createLoadOlderMessagesDueToScroll({conversationIDKey}))
-    }, [dispatch, conversationIDKey]),
-    200
-  )
+    }, [dispatch, conversationIDKey, oldestOrdinal]) //,
+  //   200
+  // )
   const {markInitiallyLoadedThreadAsRead} = Hooks.useActions({conversationIDKey})
   // pixels away from top/bottom to load/be locked
   const listEdgeSlopBottom = 10
@@ -136,8 +144,9 @@ const useScrolling = (
     [ignoreOnScrollRef]
   )
 
-  const checkForLoadMoreThrottled = Container.useThrottledCallback(
+  const checkForLoadMoreThrottled = //Container.useThrottledCallback(
     React.useCallback(() => {
+      console.log('aaa checkForLoadMoreThrottled', Math.random())
       // are we at the top?
       const list = listRef.current
       if (list) {
@@ -151,12 +160,9 @@ const useScrolling = (
           loadNewerMessages()
         }
       }
-    }, [listRef, containsLatestMessage, loadNewerMessages, loadOlderMessages, isLockedToBottom]),
-    100,
-    // trailing = true cause you can be on top but keep scrolling which can keep the throttle going and ultimately miss out
-    // on scrollTop being zero and not trying to load more
-    {leading: true, trailing: true}
-  )
+    }, [listRef, containsLatestMessage, loadNewerMessages, loadOlderMessages, isLockedToBottom]) //,
+  //   1000
+  // )
 
   const scrollToBottom = React.useCallback(() => {
     lockedToBottomRef.current = true
@@ -266,8 +272,8 @@ const useScrolling = (
   const cleanupDebounced = React.useCallback(() => {
     onAfterScroll.cancel()
     onScrollThrottled.cancel()
-    checkForLoadMoreThrottled.cancel()
-  }, [onAfterScroll, onScrollThrottled, checkForLoadMoreThrottled])
+    // checkForLoadMoreThrottled.cancel()
+  }, [onAfterScroll, onScrollThrottled /*, checkForLoadMoreThrottled*/])
 
   React.useEffect(() => {
     return () => {
@@ -327,17 +333,15 @@ const useScrolling = (
     }
   }, [centeredOrdinal, scrollToCentered])
 
-  // scroll requested
-  Container.useDepChangeEffect(() => {
-    scrollDown()
-  }, [scrollListDownCounter, scrollDown])
-  Container.useDepChangeEffect(() => {
-    scrollUp()
-  }, [scrollListUpCounter, scrollUp])
-
   requestScrollToBottomRef.current = () => {
     lockedToBottomRef.current = true
     scrollToBottom()
+  }
+  requestScrollUpRef.current = () => {
+    scrollUp()
+  }
+  requestScrollDownRef.current = () => {
+    scrollDown()
   }
 
   // go to editing message
@@ -462,7 +466,7 @@ const useItems = (p: {
 
 const ThreadWrapperInner = (p: Props) => {
   const {conversationIDKey, onFocusInput} = p
-  const {scrollListDownCounter, requestScrollToBottomRef, scrollListUpCounter} = p
+  const {requestScrollDownRef, requestScrollToBottomRef, requestScrollUpRef} = p
   const messageOrdinals = Container.useSelector(state =>
     Constants.getMessageOrdinals(state, conversationIDKey)
   )
@@ -486,9 +490,9 @@ const ThreadWrapperInner = (p: Props) => {
     conversationIDKey,
     listRef,
     messageOrdinals,
+    requestScrollDownRef,
     requestScrollToBottomRef,
-    scrollListDownCounter,
-    scrollListUpCounter,
+    requestScrollUpRef,
   })
 
   const jumpToRecent = Hooks.useJumpToRecent(conversationIDKey, scrollToBottom, messageOrdinals.length)

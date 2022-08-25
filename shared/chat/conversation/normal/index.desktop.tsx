@@ -48,9 +48,9 @@ class Conversation extends React.PureComponent<Props> {
           <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.innerContainer}>
             <ListArea
               onFocusInput={this.props.onFocusInput}
-              scrollListDownCounter={this.props.scrollListDownCounter}
+              requestScrollUpRef={this.props.requestScrollUpRef}
               requestScrollToBottomRef={this.props.requestScrollToBottomRef}
-              scrollListUpCounter={this.props.scrollListUpCounter}
+              requestScrollDownRef={this.props.requestScrollDownRef}
               conversationIDKey={this.props.conversationIDKey}
             />
             <Kb.Box2 direction="vertical" fullWidth={true} style={{left: 0, position: 'absolute', top: 0}}>

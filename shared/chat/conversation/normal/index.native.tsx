@@ -29,9 +29,9 @@ const Conversation = React.memo((props: Props) => {
         <ThreadLoadStatus conversationIDKey={props.conversationIDKey} />
         <PinnedMessage conversationIDKey={props.conversationIDKey} />
         <ListArea
-          scrollListDownCounter={props.scrollListDownCounter}
           requestScrollToBottomRef={props.requestScrollToBottomRef}
-          scrollListUpCounter={props.scrollListUpCounter}
+          requestScrollDownRef={props.requestScrollDownRef}
+          requestScrollUpRef={props.requestScrollUpRef}
           onFocusInput={props.onFocusInput}
           conversationIDKey={props.conversationIDKey}
         />

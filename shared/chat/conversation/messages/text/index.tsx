@@ -119,6 +119,7 @@ export type Props = {
 }
 
 const MessageText = ({claim, isEditing, isHighlighted, message, reply, text, type}: Props) => {
+  return <Kb.Text type="Body">TEMP</Kb.Text>
   const wrappedMeta = useMemo(() => ({message}), [message])
   const styleOverride = useMemo(
     () => (Styles.isMobile ? {paragraph: getStyle(type, isEditing, isHighlighted)} : undefined),

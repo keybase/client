@@ -1,12 +1,12 @@
 import * as React from 'react'
-import * as Types from '../../../constants/types/chat2'
 import * as Constants from '../../../constants/chat2'
 import * as WaitingConstants from '../../../constants/waiting'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Tracker2Gen from '../../../actions/tracker2-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
-import Normal from '.'
 import * as Container from '../../../util/container'
+import Normal from '.'
+import type * as Types from '../../../constants/types/chat2'
 import {indefiniteArticle} from '../../../util/string'
 
 type Props = {conversationIDKey: Types.ConversationIDKey}
@@ -14,17 +14,19 @@ type Props = {conversationIDKey: Types.ConversationIDKey}
 const NormalWrapper = React.memo((props: Props) => {
   const {conversationIDKey} = props
   const [focusInputCounter, setFocusInputCounter] = React.useState(0)
-  const [scrollListDownCounter, setScrollListDownCounter] = React.useState(0)
-  const [scrollListUpCounter, setScrollListUpCounter] = React.useState(0)
   const onFocusInput = React.useCallback(() => {
     setFocusInputCounter(focusInputCounter + 1)
   }, [setFocusInputCounter, focusInputCounter])
+
+  const requestScrollDownRef = React.useRef<undefined | (() => void)>()
   const onRequestScrollDown = React.useCallback(() => {
-    setScrollListDownCounter(scrollListDownCounter + 1)
-  }, [setScrollListDownCounter, scrollListDownCounter])
+    requestScrollDownRef.current?.()
+  }, [])
+
+  const requestScrollUpRef = React.useRef<undefined | (() => void)>()
   const onRequestScrollUp = React.useCallback(() => {
-    setScrollListUpCounter(scrollListUpCounter + 1)
-  }, [setScrollListUpCounter, scrollListUpCounter])
+    requestScrollUpRef.current?.()
+  }, [])
 
   const requestScrollToBottomRef = React.useRef<undefined | (() => void)>()
   const onRequestScrollToBottom = React.useCallback(() => {
@@ -107,8 +109,8 @@ const NormalWrapper = React.memo((props: Props) => {
       onRequestScrollToBottom={onRequestScrollToBottom}
       requestScrollToBottomRef={requestScrollToBottomRef}
       focusInputCounter={focusInputCounter}
-      scrollListDownCounter={scrollListDownCounter}
-      scrollListUpCounter={scrollListUpCounter}
+      requestScrollDownRef={requestScrollDownRef}
+      requestScrollUpRef={requestScrollUpRef}
       jumpToRecent={jumpToRecent}
       onPaste={onPaste}
       onToggleThreadSearch={onToggleThreadSearch}
