@@ -106,18 +106,18 @@ const useScrolling = (
   )
 
   const lastLoadOrdinal = React.useRef<Types.Ordinal>(-1)
+  React.useEffect(() => {
+    lastLoadOrdinal.current = -1
+  }, [conversationIDKey])
   const oldestOrdinal = messageOrdinals[0] ?? -1
-  const loadOlderMessages = //Container.useThrottledCallback(
-    React.useCallback(() => {
-      // already loaded and nothing has changed
-      if (lastLoadOrdinal.current === oldestOrdinal) {
-        return
-      }
-      lastLoadOrdinal.current = oldestOrdinal
-      dispatch(Chat2Gen.createLoadOlderMessagesDueToScroll({conversationIDKey}))
-    }, [dispatch, conversationIDKey, oldestOrdinal]) //,
-  //   200
-  // )
+  const loadOlderMessages = React.useCallback(() => {
+    // already loaded and nothing has changed
+    if (lastLoadOrdinal.current === oldestOrdinal) {
+      return
+    }
+    lastLoadOrdinal.current = oldestOrdinal
+    dispatch(Chat2Gen.createLoadOlderMessagesDueToScroll({conversationIDKey}))
+  }, [dispatch, conversationIDKey, oldestOrdinal])
   const {markInitiallyLoadedThreadAsRead} = Hooks.useActions({conversationIDKey})
   // pixels away from top/bottom to load/be locked
   const listEdgeSlopBottom = 10
@@ -144,25 +144,21 @@ const useScrolling = (
     [ignoreOnScrollRef]
   )
 
-  const checkForLoadMoreThrottled = //Container.useThrottledCallback(
-    React.useCallback(() => {
-      console.log('aaa checkForLoadMoreThrottled', Math.random())
-      // are we at the top?
-      const list = listRef.current
-      if (list) {
-        if (list.scrollTop < listEdgeSlopTop) {
-          loadOlderMessages()
-        } else if (
-          !containsLatestMessage &&
-          !isLockedToBottom() &&
-          list.scrollTop > list.scrollHeight - list.clientHeight - listEdgeSlopBottom
-        ) {
-          loadNewerMessages()
-        }
+  const checkForLoadMoreThrottled = React.useCallback(() => {
+    // are we at the top?
+    const list = listRef.current
+    if (list) {
+      if (list.scrollTop < listEdgeSlopTop) {
+        loadOlderMessages()
+      } else if (
+        !containsLatestMessage &&
+        !isLockedToBottom() &&
+        list.scrollTop > list.scrollHeight - list.clientHeight - listEdgeSlopBottom
+      ) {
+        loadNewerMessages()
       }
-    }, [listRef, containsLatestMessage, loadNewerMessages, loadOlderMessages, isLockedToBottom]) //,
-  //   1000
-  // )
+    }
+  }, [listRef, containsLatestMessage, loadNewerMessages, loadOlderMessages, isLockedToBottom]) //,
 
   const scrollToBottom = React.useCallback(() => {
     lockedToBottomRef.current = true
@@ -272,8 +268,7 @@ const useScrolling = (
   const cleanupDebounced = React.useCallback(() => {
     onAfterScroll.cancel()
     onScrollThrottled.cancel()
-    // checkForLoadMoreThrottled.cancel()
-  }, [onAfterScroll, onScrollThrottled /*, checkForLoadMoreThrottled*/])
+  }, [onAfterScroll, onScrollThrottled])
 
   React.useEffect(() => {
     return () => {
@@ -300,7 +295,6 @@ const useScrolling = (
 
   // if we scroll up try and keep the position
   const scrollBottomOffsetRef = React.useRef<number | undefined>()
-
   React.useEffect(() => {
     scrollBottomOffsetRef.current = undefined
   }, [conversationIDKey])

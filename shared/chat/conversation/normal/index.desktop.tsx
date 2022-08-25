@@ -1,6 +1,9 @@
+import * as Constants from '../../../constants/chat2'
+import * as Container from '../../../util/container'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../../styles'
+import * as WaitingConstants from '../../../constants/waiting'
 import Banner from '../bottom-banner/container'
 import InputArea from '../input-area/container'
 import InvitationToBlock from '../../blocking/invitation-to-block'
@@ -8,6 +11,7 @@ import ListArea from '../list-area'
 import PinnedMessage from '../pinned-message/container'
 import ThreadLoadStatus from '../load-status/container'
 import ThreadSearch from '../search/container'
+import type * as Types from '../../../constants/types/chat2'
 import type {Props} from '.'
 import {readImageFromClipboard} from '../../../util/clipboard.desktop'
 import '../conversation.css'
@@ -17,6 +21,18 @@ const Offline = () => (
     Couldn't load all chat messages due to network connectivity. Retrying...
   </Kb.Banner>
 )
+
+const LoadingLine = (p: {conversationIDKey: Types.ConversationIDKey}) => {
+  const {conversationIDKey} = p
+  const showLoader = Container.useSelector(state =>
+    WaitingConstants.anyWaiting(
+      state,
+      Constants.waitingKeyThreadLoad(conversationIDKey),
+      Constants.waitingKeyInboxSyncStarted
+    )
+  )
+  return showLoader ? <Kb.LoadingLine /> : null
+}
 
 class Conversation extends React.PureComponent<Props> {
   private onPaste = (e: React.SyntheticEvent) => {
@@ -65,7 +81,7 @@ class Conversation extends React.PureComponent<Props> {
                 conversationIDKey={this.props.conversationIDKey}
               />
             )}
-            {this.props.showLoader && <Kb.LoadingLine />}
+            <LoadingLine conversationIDKey={this.props.conversationIDKey} />
           </Kb.Box2>
           <InvitationToBlock conversationID={this.props.conversationIDKey} />
           <Banner conversationIDKey={this.props.conversationIDKey} />

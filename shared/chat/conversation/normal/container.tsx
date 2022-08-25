@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Constants from '../../../constants/chat2'
-import * as WaitingConstants from '../../../constants/waiting'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Tracker2Gen from '../../../actions/tracker2-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
@@ -42,14 +41,6 @@ const NormalWrapper = React.memo((props: Props) => {
     return `You must be at least ${indefiniteArticle(minWriterRole)} ${minWriterRole} to post.`
   })
   const dragAndDropRejectReason = cannotWrite ? minWriterReason : undefined
-
-  const showLoader = Container.useSelector(state =>
-    WaitingConstants.anyWaiting(
-      state,
-      Constants.waitingKeyThreadLoad(conversationIDKey),
-      Constants.waitingKeyInboxSyncStarted
-    )
-  )
 
   const showThreadSearch = Container.useSelector(
     state => Constants.getThreadSearchInfo(state, conversationIDKey).visible
@@ -101,7 +92,6 @@ const NormalWrapper = React.memo((props: Props) => {
       conversationIDKey={conversationIDKey}
       dragAndDropRejectReason={dragAndDropRejectReason}
       threadLoadedOffline={threadLoadedOffline}
-      showLoader={showLoader}
       showThreadSearch={showThreadSearch}
       onFocusInput={onFocusInput}
       onRequestScrollDown={onRequestScrollDown}

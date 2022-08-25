@@ -1,21 +1,37 @@
+import * as Constants from '../../../constants/chat2'
+import * as WaitingConstants from '../../../constants/waiting'
+import * as Container from '../../../util/container'
+import * as Kb from '../../../common-adapters/mobile.native'
 import * as React from 'react'
+import * as Styles from '../../../styles'
 import Banner from '../bottom-banner/container'
 import InputArea from '../input-area/container'
-import ListArea from '../list-area'
-import * as Kb from '../../../common-adapters/mobile.native'
-import type {LayoutEvent} from '../../../common-adapters/box'
-import * as Styles from '../../../styles'
-import type {Props} from '.'
-import ThreadLoadStatus from '../load-status/container'
-import PinnedMessage from '../pinned-message/container'
-import {PortalHost} from '@gorhom/portal'
 import InvitationToBlock from '../../blocking/invitation-to-block'
+import ListArea from '../list-area'
+import PinnedMessage from '../pinned-message/container'
+import ThreadLoadStatus from '../load-status/container'
+import type * as Types from '../../../constants/types/chat2'
+import type {LayoutEvent} from '../../../common-adapters/box'
+import type {Props} from '.'
+import {PortalHost} from '@gorhom/portal'
 
 const Offline = () => (
   <Kb.Banner color="grey" small={true} style={styles.offline}>
     Couldn't load all chat messages due to network connectivity. Retrying...
   </Kb.Banner>
 )
+
+const LoadingLine = (p: {conversationIDKey: Types.ConversationIDKey}) => {
+  const {conversationIDKey} = p
+  const showLoader = Container.useSelector(state =>
+    WaitingConstants.anyWaiting(
+      state,
+      Constants.waitingKeyThreadLoad(conversationIDKey),
+      Constants.waitingKeyInboxSyncStarted
+    )
+  )
+  return showLoader ? <Kb.LoadingLine /> : null
+}
 
 const Conversation = React.memo((props: Props) => {
   const [maxInputArea, setMaxInputArea] = React.useState<number | undefined>(undefined)
@@ -35,7 +51,7 @@ const Conversation = React.memo((props: Props) => {
           onFocusInput={props.onFocusInput}
           conversationIDKey={props.conversationIDKey}
         />
-        {props.showLoader && <Kb.LoadingLine />}
+        <LoadingLine conversationIDKey={props.conversationIDKey} />
       </Kb.Box2>
       <InvitationToBlock conversationID={props.conversationIDKey} />
       <Banner conversationIDKey={props.conversationIDKey} />
