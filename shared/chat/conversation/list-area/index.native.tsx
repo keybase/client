@@ -117,17 +117,14 @@ const useScrolling = (p: {
   const dispatch = Container.useDispatch()
   const lastLoadOrdinal = React.useRef<Types.Ordinal>(-1)
   const oldestOrdinal = messageOrdinals[0] ?? -1
-  const loadOlderMessages = Container.useThrottledCallback(
-    React.useCallback(() => {
-      // already loaded and nothing has changed
-      if (lastLoadOrdinal.current === oldestOrdinal) {
-        return
-      }
-      lastLoadOrdinal.current = oldestOrdinal
-      dispatch(Chat2Gen.createLoadOlderMessagesDueToScroll({conversationIDKey}))
-    }, [dispatch, conversationIDKey, oldestOrdinal]),
-    200
-  )
+  const loadOlderMessages = React.useCallback(() => {
+    // already loaded and nothing has changed
+    if (lastLoadOrdinal.current === oldestOrdinal) {
+      return
+    }
+    lastLoadOrdinal.current = oldestOrdinal
+    dispatch(Chat2Gen.createLoadOlderMessagesDueToScroll({conversationIDKey}))
+  }, [dispatch, conversationIDKey, oldestOrdinal])
 
   const getOrdinalIndex = React.useCallback(
     (target: Types.Ordinal) => {
@@ -327,7 +324,7 @@ const ConversationList = React.memo((p: {conversationIDKey: Types.ConversationID
           keyboardShouldPersistTaps="handled"
           keyExtractor={keyExtractor}
           // Limit the number of pages rendered ahead of time (which also limits attachment previews loaded)
-          // windowSize={5}
+          windowSize={Styles.isAndroid ? 5 : undefined}
           ref={listRef}
           onScrollToIndexFailed={onScrollToIndexFailed}
           removeClippedSubviews={Styles.isAndroid}

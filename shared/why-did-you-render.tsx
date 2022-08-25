@@ -21,7 +21,7 @@
 //       // uncomment to watch everything, realllllly slows things down
 //       // /.*/,
 //     ],
-//     logOnDifferentValues: true,
+//     // logOnDifferentValues: true,
 //     trackAllPureComponents: true,
 //     trackExtraHooks: [[ReactRedux, 'useSelector']],
 //   })
