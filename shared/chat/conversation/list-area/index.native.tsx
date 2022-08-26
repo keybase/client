@@ -13,6 +13,7 @@ import {Animated, type ListRenderItemInfo, type ViewToken} from 'react-native'
 import type {ItemType} from '.'
 import {mobileTypingContainerHeight} from '../input-area/normal/typing'
 import * as Hooks from './hooks'
+import sortedIndexOf from 'lodash/sortedIndexOf'
 
 const targetHitArea = 1
 
@@ -128,27 +129,15 @@ const useScrolling = (p: {
 
   const getOrdinalIndex = React.useCallback(
     (target: Types.Ordinal) => {
-      // TODO binary
-      for (let item = 0; item < messageOrdinals.length; item++) {
-        const ordinal = messageOrdinals[item] || 0
-        if (ordinal === target) {
-          return item
-        }
-      }
-      return -1
+      const idx = sortedIndexOf(messageOrdinals, target)
+      return idx === -1 ? -1 : messageOrdinals.length - idx
     },
     [messageOrdinals]
   )
 
   const scrollToBottom = React.useCallback(() => {
-    const list = listRef.current
-    if (list) {
-      const index = messageOrdinals.length - 1
-      if (index >= 0) {
-        list.scrollToIndex({index})
-      }
-    }
-  }, [listRef, messageOrdinals])
+    listRef.current?.scrollToIndex({index: 0})
+  }, [listRef])
 
   const scrollToCentered = React.useCallback(() => {
     const list = listRef.current
