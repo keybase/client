@@ -324,7 +324,7 @@ const ConversationList = React.memo((p: {conversationIDKey: Types.ConversationID
           keyboardShouldPersistTaps="handled"
           keyExtractor={keyExtractor}
           // Limit the number of pages rendered ahead of time (which also limits attachment previews loaded)
-          windowSize={Styles.isAndroid ? 5 : undefined}
+          windowSize={5}
           ref={listRef}
           onScrollToIndexFailed={onScrollToIndexFailed}
           removeClippedSubviews={Styles.isAndroid}
