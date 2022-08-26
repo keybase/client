@@ -212,6 +212,20 @@ export default class Swipeable extends Component<SwipeableProps, SwipeableState>
       this.updateAnimatedEvent(props, state)
     }
 
+    // let shouldUpdate = Object.keys(this.props).some(p => this.props[p] !== props[p])
+    // if (!shouldUpdate) {
+    //   shouldUpdate = Object.keys(this.state).some(
+    //     p => this.state[p] !== state[p] && p !== 'rightOffset' && p !== 'rowWidth'
+    //   )
+    // }
+
+    // const diffkeys = []
+    // Object.keys(this.props).forEach(p => this.props[p] !== props[p] && diffkeys.push(p))
+    // Object.keys(this.state).forEach(p => this.state[p] !== state[p] && diffkeys.push(p))
+
+    // console.log('aaa', shouldUpdate, diffkeys, state.rightOffset, state.rowWidth)
+
+    // return shouldUpdate
     return true
   }
 
@@ -280,9 +294,22 @@ export default class Swipeable extends Component<SwipeableProps, SwipeableState>
     }
   }
 
+  // KB to avoid unnecessary rerender when first mounting, we stash the sizes until we actually get a pan
+  private pressed = false
+  private width = undefined
+  private offset = undefined
   private onHandlerStateChange = (ev: HandlerStateChangeEvent<PanGestureHandlerEventPayload>) => {
     if (ev.nativeEvent.oldState === State.ACTIVE) {
       this.handleRelease(ev)
+    }
+    // KB
+    if (ev.nativeEvent.numberOfPointers > 0 && !this.pressed) {
+      this.pressed = true
+      if (this.props.renderLeftActions) {
+        this.setState({leftWidth: this.offset, rowWidth: this.width})
+      } else if (this.props.renderRightActions) {
+        this.setState({rightOffset: this.offset, rowWidth: this.width})
+      }
     }
   }
 
@@ -368,7 +395,9 @@ export default class Swipeable extends Component<SwipeableProps, SwipeableState>
   }
 
   private onRowLayout = ({nativeEvent}: LayoutChangeEvent) => {
-    this.setState({rowWidth: nativeEvent.layout.width})
+    // KB just stash it
+    this.width = nativeEvent.layout.width
+    // this.setState({rowWidth: nativeEvent.layout.width})
   }
 
   private currentOffset = () => {
@@ -414,14 +443,26 @@ export default class Swipeable extends Component<SwipeableProps, SwipeableState>
         ]}
       >
         {renderLeftActions(this.showLeftAction!, this.transX!)}
-        <View onLayout={({nativeEvent}) => this.setState({leftWidth: nativeEvent.layout.x})} />
+        <View
+          onLayout={({nativeEvent}) => {
+            // KB just stash it
+            this.offset = nativeEvent.layout.x
+            // this.setState({leftWidth: nativeEvent.layout.x})
+          }}
+        />
       </Animated.View>
     )
 
     const right = renderRightActions && (
       <Animated.View style={[styles.rightActions, {transform: [{translateX: this.rightActionTranslate!}]}]}>
         {renderRightActions(this.showRightAction!, this.transX!)}
-        <View onLayout={({nativeEvent}) => this.setState({rightOffset: nativeEvent.layout.x})} />
+        <View
+          onLayout={({nativeEvent}) => {
+            // KB just stash it
+            this.offset = nativeEvent.layout.x
+            // this.setState({rightOffset: nativeEvent.layout.x})
+          }}
+        />
       </Animated.View>
     )
 
