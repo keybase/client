@@ -12,7 +12,6 @@ import SpecialTopMessage from '../messages/special-top-message'
 import shallowEqual from 'shallowequal'
 import {ErrorBoundary} from '../../../common-adapters'
 import type {Props} from '.'
-import {Waypoint} from 'react-waypoint'
 import chunk from 'lodash/chunk'
 import {globalMargins} from '../../../styles/shared'
 import {useMemo} from '../../../util/memoize'
@@ -26,6 +25,62 @@ const scrollOrdinalKey = 'scroll-ordinal-key'
 // We load the first thread automatically so in order to mark it read
 // we send an action on the first mount once
 let markedInitiallyLoaded = false
+
+// use intersection observer for waypoints
+const useIntersectionObserver = () => {
+  const listenersRef = React.useRef(new Map<Element, (isIntersecting: boolean) => void>())
+  const onIntersectionObservedRef = React.useRef((_entries: Array<IntersectionObserverEntry>) => {})
+  React.useEffect(() => {
+    onIntersectionObservedRef.current = (entries: Array<IntersectionObserverEntry>) => {
+      for (const entry of entries) {
+        const cb = listenersRef.current.get(entry.target)
+        if (cb) {
+          const {isIntersecting} = entry
+          cb(isIntersecting)
+        }
+      }
+    }
+  }, [onIntersectionObservedRef])
+
+  const intersectionObserverRef = React.useRef<IntersectionObserver | undefined>()
+
+  // we want to observe a node
+  const observe = React.useCallback(
+    (e: HTMLDivElement, cb: (isIntersecting: boolean) => void) => {
+      // set up for first time
+      if (!intersectionObserverRef.current) {
+        const root = e.closest('.chat-scroller')
+        intersectionObserverRef.current = new IntersectionObserver(
+          entries => onIntersectionObservedRef.current(entries),
+          {root}
+        )
+      }
+      const ro = intersectionObserverRef.current
+      if (ro) {
+        listenersRef.current.set(e, cb)
+        ro.observe(e)
+        return () => {
+          listenersRef.current.delete(e)
+          ro.unobserve(e)
+        }
+      } else {
+        throw new Error('no io?')
+      }
+    },
+    [intersectionObserverRef]
+  )
+
+  React.useEffect(() => {
+    let ior = intersectionObserverRef.current
+    return () => {
+      ior?.disconnect()
+      intersectionObserverRef.current = undefined
+      ior = undefined
+    }
+  }, [])
+
+  return observe
+}
 
 // we use resize observer to watch for size changes. we use one observer and attach nodes
 const useResizeObserver = () => {
@@ -46,10 +101,8 @@ const useResizeObserver = () => {
       }
     }
   }, [onResizeObservedRef])
-  const resizeObserverRef = React.useRef(
-    typeof ResizeObserver !== 'undefined'
-      ? new ResizeObserver(entries => onResizeObservedRef.current(entries))
-      : undefined
+  const resizeObserverRef = React.useRef<ResizeObserver | undefined>(
+    new ResizeObserver(entries => onResizeObservedRef.current(entries))
   )
 
   // we want to observe a node
@@ -369,8 +422,9 @@ const useItems = (p: {
   messageOrdinals: Array<Types.Ordinal>
   centeredOrdinal: Types.Ordinal | undefined
   resizeObserve: ReturnType<typeof useResizeObserver>
+  intersectionObserve: ReturnType<typeof useIntersectionObserver>
 }) => {
-  const {conversationIDKey, messageOrdinals, centeredOrdinal, resizeObserve} = p
+  const {conversationIDKey, messageOrdinals, centeredOrdinal, resizeObserve, intersectionObserve} = p
   const ordinalsInAWaypoint = 10
   const rowRenderer = React.useCallback(
     (ordinal: Types.Ordinal, previous?: Types.Ordinal) => (
@@ -423,6 +477,7 @@ const useItems = (p: {
                 ordinals={toAdd}
                 previous={previous}
                 resizeObserve={resizeObserve}
+                intersectionObserve={intersectionObserve}
               />
             )
             previous = toAdd[toAdd.length - 1]
@@ -442,6 +497,7 @@ const useItems = (p: {
             ordinals={[ordinal]}
             previous={previous}
             resizeObserve={resizeObserve}
+            intersectionObserve={intersectionObserve}
           />
         )
         previous = ordinal
@@ -453,7 +509,7 @@ const useItems = (p: {
     })
     items.push(<SpecialBottomMessage key="specialBottom" conversationIDKey={conversationIDKey} />)
     return items
-  }, [conversationIDKey, messageOrdinals, centeredOrdinal, rowRenderer, resizeObserve])
+  }, [conversationIDKey, messageOrdinals, centeredOrdinal, rowRenderer, resizeObserve, intersectionObserve])
 
   return items
 }
@@ -491,6 +547,7 @@ const ThreadWrapperInner = (p: Props) => {
 
   const jumpToRecent = Hooks.useJumpToRecent(conversationIDKey, scrollToBottom, messageOrdinals.length)
   const resizeObserve = useResizeObserver()
+  const intersectionObserve = useIntersectionObserver()
   const unsubRef = React.useRef<(() => void) | undefined>()
   React.useEffect(() => {
     unsubRef.current?.()
@@ -551,6 +608,7 @@ const ThreadWrapperInner = (p: Props) => {
   const items = useItems({
     centeredOrdinal,
     conversationIDKey,
+    intersectionObserve,
     messageOrdinals,
     resizeObserve,
   })
@@ -558,7 +616,7 @@ const ThreadWrapperInner = (p: Props) => {
   return (
     <ErrorBoundary>
       <div style={styles.container as any} onClick={handleListClick} onCopyCapture={onCopyCapture}>
-        <div key={conversationIDKey} style={styles.list as any} ref={setListRef}>
+        <div className="chat-scroller" key={conversationIDKey} style={styles.list as any} ref={setListRef}>
           <div style={styles.listContents} ref={setListContents}>
             {items}
           </div>
@@ -577,6 +635,7 @@ type OrdinalWaypointProps = {
   ordinals: Array<Types.Ordinal>
   previous?: Types.Ordinal
   resizeObserve: ReturnType<typeof useResizeObserver>
+  intersectionObserve: ReturnType<typeof useIntersectionObserver>
 }
 
 const colorWaypoints = __DEV__ && false
@@ -589,7 +648,7 @@ if (colorWaypoints) {
 }
 
 const OrdinalWaypointInner = (p: OrdinalWaypointProps) => {
-  const {ordinals, id, rowRenderer, previous, resizeObserve} = p
+  const {ordinals, id, rowRenderer, previous, resizeObserve, intersectionObserve} = p
   const heightRef = React.useRef<number | undefined>()
   const widthRef = React.useRef<number | undefined>()
   const heightForOrdinalsRef = React.useRef<Array<Types.Ordinal> | undefined>()
@@ -633,62 +692,55 @@ const OrdinalWaypointInner = (p: OrdinalWaypointProps) => {
 
   // we want to go invisible if we're outside after we've been measured, aka don't scroll up and measure and hide yourself
   // only hide after you've been scrolled past
-  const handlePositionChange = Container.useThrottledCallback(
-    React.useCallback(
-      (p: Waypoint.CallbackArgs) => {
-        // lets ignore when this happens, this seems like a large source of jiggliness
-        if (isVisible && !p.event) {
-          return
-        }
-        const {currentPosition} = p
-        if (!currentPosition) {
-          return
-        }
-        const isInside = currentPosition === 'inside'
-        if (isInside !== isVisible) {
-          setVisible(isInside)
-        }
-      },
-      [isVisible]
-    ),
-    200
+  const ignoreFirstIntersectionRef = React.useRef(true)
+  const onIntersection = React.useCallback(
+    (isIntersecting: boolean) => {
+      if (ignoreFirstIntersectionRef.current) {
+        ignoreFirstIntersectionRef.current = false
+        return
+      }
+      setVisible(isIntersecting)
+    },
+    [id]
   )
 
   // Cache rendered children if the ordinals are the same, else we'll thrash a lot as we scroll up and down
   const lastVisibleChildrenOrdinalsRef = React.useRef(new Array<Types.Ordinal>())
-  const lastVisibleChildrenRef = React.useRef<React.ReactNode>(null)
-
-  React.useEffect(() => {
-    return () => {
-      // onResize.cancel()
-      handlePositionChange.cancel()
-    }
-  }, [handlePositionChange /*, onResize*/])
+  const lastVisibleChildrenRef = React.useRef<React.ReactElement | null>(null)
 
   if (ordinals !== heightForOrdinalsRef.current) {
     heightRef.current = undefined
   }
 
-  const unsubRef = React.useRef<(() => void) | undefined>()
+  const rounsubRef = React.useRef<(() => void) | undefined>()
+  const iounsubRef = React.useRef<(() => void) | undefined>()
   React.useEffect(() => {
-    unsubRef.current?.()
+    return () => {
+      rounsubRef.current?.()
+      iounsubRef.current?.()
+      rounsubRef.current = undefined
+      iounsubRef.current = undefined
+    }
   }, [])
 
   const waypointRef = React.useCallback(
     (w: HTMLDivElement | null) => {
-      unsubRef.current?.()
+      rounsubRef.current?.()
+      iounsubRef.current?.()
       if (w) {
-        unsubRef.current = resizeObserve(w, onResize)
+        rounsubRef.current = resizeObserve(w, onResize)
+        iounsubRef.current = intersectionObserve(w, onIntersection)
       } else {
-        unsubRef.current = undefined
+        rounsubRef.current = undefined
+        iounsubRef.current = undefined
       }
     },
-    [onResize, resizeObserve]
+    [onResize, resizeObserve, onIntersection, intersectionObserve]
   )
 
   // Apply data-key to the dom node so we can search for editing messages
   const renderMessages = !heightRef.current || isVisible
-  let content: React.ReactNode
+  let content: React.ReactElement
   if (renderMessages) {
     if (ordinals === lastVisibleChildrenOrdinalsRef.current && lastVisibleChildrenRef.current) {
       // cache children to skip re-rendering
@@ -699,7 +751,7 @@ const OrdinalWaypointInner = (p: OrdinalWaypointProps) => {
         return rowRenderer(o, p)
       })
       content = (
-        <div data-key={id} ref={heightRef.current ? undefined : waypointRef}>
+        <div key={id} data-key={id} ref={waypointRef}>
           {messages}
         </div>
       )
@@ -707,20 +759,16 @@ const OrdinalWaypointInner = (p: OrdinalWaypointProps) => {
       lastVisibleChildrenRef.current = content
     }
   } else {
-    content = <div data-key={id} style={{height: heightRef.current}} />
+    content = <div key={id} data-key={id} style={{height: heightRef.current}} ref={waypointRef} />
   }
 
   if (colorWaypoints) {
     let cidx = parseInt(id)
     if (isNaN(cidx)) cidx = 0
     cidx = cidx % colors.length
-    return (
-      <div style={{backgroundColor: colors[cidx]}}>
-        <Waypoint onPositionChange={handlePositionChange}>{content}</Waypoint>
-      </div>
-    )
+    return <div style={{backgroundColor: colors[cidx]}}>{content}</div>
   } else {
-    return <Waypoint onPositionChange={handlePositionChange}>{content}</Waypoint>
+    return content
   }
 }
 
