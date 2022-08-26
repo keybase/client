@@ -139,8 +139,8 @@
         "util": "0.12.4"
     },
     "devDependencies": {
-        "@typescript-eslint/parser": "5.27.1",
-        "@typescript-eslint/eslint-plugin": "5.27.1",
+        "@typescript-eslint/parser": "5.35.1",
+        "@typescript-eslint/eslint-plugin": "5.35.1",
         "@babel/cli": "7.17.6",
         "@babel/core": "7.17.9",
         "@babel/generator": "7.17.9",
@@ -211,7 +211,7 @@
         "terser-webpack-plugin": "5.3.3",
         "tls": "keybase/nullModule",
         "ts-toolbelt": "9.6.0",
-        "typescript": "4.7.3",
+        "typescript": "4.8.2",
         "webpack": "5.73.0",
         "webpack-cli": "4.9.2",
         "webpack-dev-server": "4.9.2",
