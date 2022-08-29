@@ -212,20 +212,6 @@ export default class Swipeable extends Component<SwipeableProps, SwipeableState>
       this.updateAnimatedEvent(props, state)
     }
 
-    // let shouldUpdate = Object.keys(this.props).some(p => this.props[p] !== props[p])
-    // if (!shouldUpdate) {
-    //   shouldUpdate = Object.keys(this.state).some(
-    //     p => this.state[p] !== state[p] && p !== 'rightOffset' && p !== 'rowWidth'
-    //   )
-    // }
-
-    // const diffkeys = []
-    // Object.keys(this.props).forEach(p => this.props[p] !== props[p] && diffkeys.push(p))
-    // Object.keys(this.state).forEach(p => this.state[p] !== state[p] && diffkeys.push(p))
-
-    // console.log('aaa', shouldUpdate, diffkeys, state.rightOffset, state.rowWidth)
-
-    // return shouldUpdate
     return true
   }
 
