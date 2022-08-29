@@ -221,11 +221,18 @@ const ConversationList = React.memo((p: {conversationIDKey: Types.ConversationID
   )
   const listRef = React.useRef<Kb.NativeFlatList<ItemType> | null>(null)
   const {markInitiallyLoadedThreadAsRead} = Hooks.useActions({conversationIDKey})
-  const keyExtractor = React.useCallback((item: ItemType) => String(item), [])
+  const keyExtractor = React.useCallback(
+    (_item: ItemType, idx: number) => {
+      const index = messageOrdinals.length - 1 - idx
+      const ordinal = messageOrdinals[index]
+      return String(ordinal)
+    },
+    [messageOrdinals]
+  )
   const renderItem = React.useCallback(
     (info: ListRenderItemInfo<ItemType>) => {
       // since the list is inverted but the data is not we flip the index when rendering and ignore `item`
-      const index = messageOrdinals.length - info.index
+      const index = messageOrdinals.length - 1 - info.index
       const ordinal = messageOrdinals[index]
       if (!ordinal) {
         return null
