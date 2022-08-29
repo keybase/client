@@ -1161,7 +1161,7 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
   [Chat2Gen.messagesWereDeleted]: (draftState, action) => {
     const {deletableMessageTypes = Constants.allMessageTypes, messageIDs = [], ordinals = []} = action.payload
     const {conversationIDKey, upToMessageID = null} = action.payload
-    const {messageMap} = draftState
+    const {messageMap, messageOrdinals} = draftState
 
     const upToOrdinals: Array<Types.Ordinal> = []
     if (upToMessageID) {
@@ -1209,13 +1209,13 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       }
     })
 
-    // const os = messageOrdinals.get(conversationIDKey)?.reduce((arr, o) => {
-    //   if (allOrdinals.has(o)) {
-    //     return arr
-    //   }
-    //   arr.push(o)
-    //   return arr
-    // }, [])
+    const os = messageOrdinals.get(conversationIDKey)
+    if (os) {
+      allOrdinals.forEach(o => {
+        const idx = sortedIndexOf(os, o)
+        if (idx !== -1) os.splice(idx, 1)
+      })
+    }
     const maps = [draftState.hasZzzJourneycard, draftState.shouldDeleteZzzJourneycard]
     maps.forEach(m => {
       const el = m.get(conversationIDKey)
