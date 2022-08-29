@@ -15,8 +15,6 @@ import {mobileTypingContainerHeight} from '../input-area/normal/typing'
 import * as Hooks from './hooks'
 import sortedIndexOf from 'lodash/sortedIndexOf'
 
-const targetHitArea = 1
-
 // Bookkeep whats animating so it finishes and isn't replaced, if we've animated it we keep the key and use null
 const animatingMap = new Map<string, null | React.ReactElement>()
 
@@ -107,14 +105,12 @@ const maintainVisibleContentPosition = {
 }
 
 const useScrolling = (p: {
-  centeredOrdinal: Types.Ordinal | undefined
+  centeredOrdinal: Types.Ordinal
   messageOrdinals: Array<Types.Ordinal>
   conversationIDKey: Types.ConversationIDKey
   listRef: React.MutableRefObject<Kb.NativeVirtualizedList<ItemType> | null>
 }) => {
   const {listRef, centeredOrdinal, messageOrdinals, conversationIDKey} = p
-  const scrollCenterTargetRef = React.useRef<number | undefined>()
-
   const dispatch = Container.useDispatch()
   const lastLoadOrdinal = React.useRef<Types.Ordinal>(-1)
   const oldestOrdinal = messageOrdinals[0] ?? -1
@@ -139,18 +135,28 @@ const useScrolling = (p: {
     listRef.current?.scrollToIndex({index: 0})
   }, [listRef])
 
+  // only scroll to center once per
+  const lastScrollToCentered = React.useRef(-1)
+  React.useEffect(() => {
+    lastScrollToCentered.current = -1
+  }, [conversationIDKey])
+
   const scrollToCentered = React.useCallback(() => {
     const list = listRef.current
     if (!list) {
       return
     }
+    if (lastScrollToCentered.current === centeredOrdinal) {
+      return
+    }
+
+    lastScrollToCentered.current = centeredOrdinal
     const _index = centeredOrdinal === undefined ? -1 : getOrdinalIndex(centeredOrdinal)
     if (_index >= 0) {
       const index = _index + 1 // include the top item
-      scrollCenterTargetRef.current = index
       list.scrollToIndex({animated: false, index, viewPosition: 0.5})
     }
-  }, [listRef, scrollCenterTargetRef, centeredOrdinal, getOrdinalIndex])
+  }, [listRef, centeredOrdinal, getOrdinalIndex])
 
   // Was using onEndReached but that was really flakey
   const _onViewableItemsChanged = React.useCallback(
@@ -164,29 +170,11 @@ const useScrolling = (p: {
       const triggerIndex = messageOrdinals.length - 10
       // we scroll back in time if the specialTop item is the last viewable, *unless* we are currently
       // attempting to scroll to a centered ordinal
-      if (!scrollCenterTargetRef.current && topRecord.index > triggerIndex) {
+      if (topRecord.index > triggerIndex) {
         loadOlderMessages()
       }
-
-      if (!scrollCenterTargetRef.current) {
-        return
-      }
-
-      const bottomIndex = messageOrdinals.length - 1
-      const upperIndex = 0
-      const middleIndex = bottomIndex + Math.floor((upperIndex - bottomIndex) / 2)
-      if (
-        !(
-          scrollCenterTargetRef.current <= middleIndex + targetHitArea &&
-          scrollCenterTargetRef.current >= middleIndex - targetHitArea
-        )
-      ) {
-        scrollToCentered()
-      } else {
-        scrollCenterTargetRef.current = undefined
-      }
     },
-    [scrollCenterTargetRef, loadOlderMessages, messageOrdinals, scrollToCentered]
+    [loadOlderMessages, messageOrdinals]
   )
   // FlatList doesn't let you change this on the fly for some reason, so stash _onViewableItemsChanged into a ref and call it
   const _onViewableItemsChangedRef = React.useRef<typeof _onViewableItemsChanged>(() => {})
@@ -225,7 +213,7 @@ const useScrolling = (p: {
 const ConversationList = React.memo((p: {conversationIDKey: Types.ConversationIDKey}) => {
   const {conversationIDKey} = p
   const centeredOrdinal = Container.useSelector(
-    state => Constants.getMessageCenterOrdinal(state, conversationIDKey)?.ordinal
+    state => Constants.getMessageCenterOrdinal(state, conversationIDKey)?.ordinal ?? -1
   )
   const messageOrdinals = Container.useSelector(state =>
     Constants.getMessageOrdinals(state, conversationIDKey)
@@ -261,7 +249,6 @@ const ConversationList = React.memo((p: {conversationIDKey: Types.ConversationID
           conversationIDKey={conversationIDKey}
         />
       )
-      // }
     },
     [messageOrdinals, conversationIDKey]
   )
