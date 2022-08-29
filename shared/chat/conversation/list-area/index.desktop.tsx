@@ -550,7 +550,9 @@ const ThreadWrapperInner = (p: Props) => {
   const intersectionObserve = useIntersectionObserver()
   const unsubRef = React.useRef<(() => void) | undefined>()
   React.useEffect(() => {
-    unsubRef.current?.()
+    return () => {
+      unsubRef.current?.()
+    }
   }, [])
 
   const lastResizeHeightRef = React.useRef(0)
