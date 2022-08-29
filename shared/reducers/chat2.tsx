@@ -15,6 +15,7 @@ import HiddenString from '../util/hidden-string'
 import partition from 'lodash/partition'
 import shallowEqual from 'shallowequal'
 import {mapGetEnsureValue, mapEqual} from '../util/map'
+import sortedIndexOf from 'lodash/sortedIndexOf'
 
 type EngineActions =
   | EngineGen.Chat1NotifyChatChatTypingUpdatePayload
@@ -844,7 +845,10 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       } else {
         // Sendable so we might have an existing message
         const existing = findExistingSentOrPending(conversationIDKey, message)
-        if (!existing || !messageOrdinals.get(conversationIDKey)?.includes(existing.ordinal)) {
+        if (
+          !existing ||
+          sortedIndexOf(messageOrdinals.get(conversationIDKey) ?? [], existing.ordinal) === -1
+        ) {
           arr.push(message.ordinal)
         } else {
           logger.info(
@@ -872,17 +876,18 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
 
     // add new ones, remove deleted ones, sort. This pass is for when we remove placeholder messages
     // with their resolved ids
-    os =
-      messageOrdinals.get(conversationIDKey)?.reduce((arr, o) => {
+    // need to convert to a set and back due to needing to dedupe, could look into why this is necessary
+    const oss =
+      messageOrdinals.get(conversationIDKey)?.reduce((s, o) => {
         if (removedOrdinals.includes(o)) {
-          return arr
+          return s
         }
-        arr.push(o)
-        return arr
-      }, ordinals) ?? []
+        s.add(o)
+        return s
+      }, new Set(ordinals)) ?? new Set(ordinals)
     messageOrdinals.set(
       conversationIDKey,
-      os.sort((a, b) => a - b)
+      [...oss].sort((a, b) => a - b)
     )
 
     // clear out message map of deleted stuff
