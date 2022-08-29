@@ -695,16 +695,13 @@ const OrdinalWaypointInner = (p: OrdinalWaypointProps) => {
   // we want to go invisible if we're outside after we've been measured, aka don't scroll up and measure and hide yourself
   // only hide after you've been scrolled past
   const ignoreFirstIntersectionRef = React.useRef(true)
-  const onIntersection = React.useCallback(
-    (isIntersecting: boolean) => {
-      if (ignoreFirstIntersectionRef.current) {
-        ignoreFirstIntersectionRef.current = false
-        return
-      }
-      setVisible(isIntersecting)
-    },
-    [id]
-  )
+  const onIntersection = React.useCallback((isIntersecting: boolean) => {
+    if (ignoreFirstIntersectionRef.current) {
+      ignoreFirstIntersectionRef.current = false
+      return
+    }
+    setVisible(isIntersecting)
+  }, [])
 
   // Cache rendered children if the ordinals are the same, else we'll thrash a lot as we scroll up and down
   const lastVisibleChildrenOrdinalsRef = React.useRef(new Array<Types.Ordinal>())
