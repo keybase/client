@@ -44,6 +44,7 @@
     "./ios",
     "./android",
     "./desktop/dist",
-    "./desktop/build"
+    "./desktop/build",
+    "./common-adapters/swipeable.native.tsx"
   ]
 }

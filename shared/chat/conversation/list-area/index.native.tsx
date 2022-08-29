@@ -101,6 +101,7 @@ export const DEBUGDump = () => {}
 
 // not highly documented. keeps new content from shifting around the list if you're scrolled up
 const maintainVisibleContentPosition = {
+  autoscrollToTopThreshold: 1,
   minIndexForVisible: 0,
 }
 
@@ -132,7 +133,7 @@ const useScrolling = (p: {
   )
 
   const scrollToBottom = React.useCallback(() => {
-    listRef.current?.scrollToIndex({index: 0})
+    listRef.current?.scrollToOffset({animated: false, offset: 0})
   }, [listRef])
 
   // only scroll to center once per
@@ -151,7 +152,7 @@ const useScrolling = (p: {
     }
 
     lastScrollToCentered.current = centeredOrdinal
-    const _index = centeredOrdinal === undefined ? -1 : getOrdinalIndex(centeredOrdinal)
+    const _index = centeredOrdinal === -1 ? -1 : getOrdinalIndex(centeredOrdinal)
     if (_index >= 0) {
       const index = _index + 1 // include the top item
       list.scrollToIndex({animated: false, index, viewPosition: 0.5})
