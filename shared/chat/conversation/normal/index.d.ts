@@ -5,10 +5,9 @@ export type Props = {
   dragAndDropRejectReason?: string
   focusInputCounter: number
   jumpToRecent: () => void
-  scrollListDownCounter: number
-  scrollListToBottomCounter: number
-  scrollListUpCounter: number
-  showLoader: boolean
+  requestScrollToBottomRef: React.MutableRefObject<undefined | (() => void)>
+  requestScrollUpRef: React.MutableRefObject<undefined | (() => void)>
+  requestScrollDownRef: React.MutableRefObject<undefined | (() => void)>
   onPaste: (data: Buffer) => void
   onAttach: ((paths: Array<string>) => void) | null
   onFocusInput: () => void

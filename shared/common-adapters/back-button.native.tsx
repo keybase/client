@@ -6,7 +6,7 @@ import Box from './box'
 import Icon from './icon'
 import * as Container from '../util/container'
 import * as Styles from '../styles'
-import {Props} from './back-button'
+import type {Props} from './back-button'
 
 const Kb = {
   Badge,
@@ -15,7 +15,7 @@ const Kb = {
   NativeTouchableWithoutFeedback,
 }
 
-const BackButton = React.memo((props: Props) => {
+const BackButton = React.memo(function BackButton(props: Props) {
   const styleContext = React.useContext(Styles.StyleContext)
   const dispatch = Container.useDispatch()
   const onBack = props.disabled ? () => {} : props.onClick ?? (() => dispatch(createNavigateUp()))

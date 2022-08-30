@@ -5,7 +5,7 @@ import CommonResult, {ResultProps} from './common-result'
 import YouResult from './you-result'
 import HellobotResult from './hellobot-result'
 
-const UserResult = React.memo((props: ResultProps) => {
+const UserResult = React.memo(function UserResult(props: ResultProps) {
   if (props.isYou) {
     return <YouResult {...props} />
   }

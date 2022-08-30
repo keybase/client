@@ -73,7 +73,7 @@ const makeNavScreens = (rs, Screen, isModal) => {
   })
 }
 
-const TabBarIcon = React.memo((props: {isFocused: boolean; routeName: Tabs.Tab}) => {
+const TabBarIcon = React.memo(function TabBarIcon(props: {isFocused: boolean; routeName: Tabs.Tab}) {
   const {isFocused, routeName} = props
   const onSettings = routeName === Tabs.settingsTab
   const navBadges = Container.useSelector(state => state.notifications.navBadges)
@@ -167,7 +167,7 @@ const makeTabStack = (tab: string) => {
   }
 
   const Comp = React.memo(
-    () => {
+    function TabStack() {
       return (
         <S.Navigator
           initialRouteName={tabRoots[tab]}
@@ -254,16 +254,18 @@ const AppTabs = React.memo(
 
 const LoggedOutStack = createNoDupeStackNavigator()
 const LoggedOutScreens = makeNavScreens(Shim.shim(loggedOutRoutes, false, true), LoggedOutStack.Screen, false)
-const LoggedOut = React.memo(() => (
-  <LoggedOutStack.Navigator
-    initialRouteName="login"
-    screenOptions={{
-      headerShown: false,
-    }}
-  >
-    {LoggedOutScreens}
-  </LoggedOutStack.Navigator>
-))
+const LoggedOut = React.memo(function LoggedOut() {
+  return (
+    <LoggedOutStack.Navigator
+      initialRouteName="login"
+      screenOptions={{
+        headerShown: false,
+      }}
+    >
+      {LoggedOutScreens}
+    </LoggedOutStack.Navigator>
+  )
+})
 
 const useInitialStateChangeAfterLinking = (
   goodLinking: any,
@@ -325,7 +327,7 @@ const useBarStyle = () => {
   return isDarkMode ? 'light-content' : 'dark-content'
 }
 
-const RNApp = React.memo(() => {
+const RNApp = React.memo(function RNApp() {
   const {loggedInLoaded, loggedIn, appState, onStateChange, navKey, initialState} = Shared.useShared()
   const goodLinking: any = RouterLinking.useReduxToLinking(appState.current)
   // we only send certain params to the container depending on the state so we can remount w/ the right data

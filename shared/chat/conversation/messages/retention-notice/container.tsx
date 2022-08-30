@@ -8,7 +8,7 @@ import {makeRetentionNotice} from '../../../../util/teams'
 
 type OwnProps = {
   conversationIDKey: ChatTypes.ConversationIDKey
-  measure: (() => void) | null
+  measure?: () => void
 }
 
 export default Container.connect(

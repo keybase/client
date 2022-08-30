@@ -188,12 +188,6 @@
       "ordinal": "Types.Ordinal | null",
       "editLastUser?": "string"
     },
-    "messageSetQuoting": {
-      "_description": "Start quoting a message / or clear quoting",
-      "sourceConversationIDKey": "Types.ConversationIDKey",
-      "targetConversationIDKey": "Types.ConversationIDKey",
-      "ordinal": "Types.Ordinal"
-    },
     "messageReplyPrivately": {
       "_description": "Reply privately to a message with quoting",
       "sourceConversationIDKey": "Types.ConversationIDKey",
@@ -604,11 +598,6 @@
       "_description": "Set unsent text for a conversation",
       "conversationIDKey": "Types.ConversationIDKey",
       "text?": "HiddenString"
-    },
-    "setPrependText": {
-      "_description": "Set prepend text for a conversation",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "text": "HiddenString | null"
     },
     "updateUnreadline": {
       "_description": "Update the unreadline line position for a conversation",

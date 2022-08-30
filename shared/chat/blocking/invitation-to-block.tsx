@@ -11,27 +11,46 @@ const BlockButtons = (props: Props) => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
 
-  const conversationMeta = Container.useSelector(state => state.chat2.metaMap.get(props.conversationID))
+  const teamname = Container.useSelector(state => state.chat2.metaMap.get(props.conversationID)?.teamname)
+  const teamID = Container.useSelector(state => state.chat2.metaMap.get(props.conversationID)?.teamID ?? '')
+  const blockButtonInfo = Container.useSelector(state => {
+    const blockButtonsMap = state.chat2.blockButtonsMap
+    return teamID ? blockButtonsMap.get(teamID) : undefined
+  })
   const participantInfo = Container.useSelector(state =>
     Constants.getParticipantInfo(state, props.conversationID)
   )
-  const blockButtonsMap = Container.useSelector(state => state.chat2.blockButtonsMap)
   const currentUser = Container.useSelector(state => state.config.username)
-  if (!conversationMeta) {
-    return null
-  }
-
-  const teamID = conversationMeta.teamID
-  const blockButtonInfo = blockButtonsMap.get(teamID)
   if (!blockButtonInfo) {
     return null
   }
-
-  const team = conversationMeta.teamname || undefined
+  const team = teamname
   const adder = blockButtonInfo.adder
   const others = (team ? participantInfo.all : participantInfo.name).filter(
     person => person !== currentUser && person !== adder && !Constants.isAssertion(person)
   )
+
+  const onViewProfile = () => dispatch(ProfileGen.createShowUserProfile({username: adder}))
+  const onViewTeam = () =>
+    dispatch(nav.safeNavigateAppendPayload({path: [{props: {teamID}, selected: 'team'}]}))
+  const onBlock = () =>
+    dispatch(
+      nav.safeNavigateAppendPayload({
+        path: [
+          {
+            props: {
+              blockUserByDefault: true,
+              convID: props.conversationID,
+              others: others,
+              team: team,
+              username: adder,
+            },
+            selected: 'chatBlockingModal',
+          },
+        ],
+      })
+    )
+  const onDismiss = () => dispatch(Chat2Gen.createDismissBlockButtons({teamID}))
 
   const buttonRow = (
     <Kb.ButtonBar
@@ -45,50 +64,31 @@ const BlockButtons = (props: Props) => {
         toMany={others.length > 0 || !!team}
         style={styles.waveButton}
       />
-      {!team && others.length === 0 && (
+      {!team && others.length === 0 ? (
         <Kb.Button
           label="View profile"
           style={styles.button}
           small={true}
           mode="Secondary"
-          onClick={() => dispatch(ProfileGen.createShowUserProfile({username: adder}))}
+          onClick={onViewProfile}
         />
-      )}
-      {team && (
+      ) : null}
+      {team ? (
         <Kb.Button
           label="View team"
           style={styles.button}
           mode="Secondary"
           small={true}
-          onClick={() =>
-            dispatch(nav.safeNavigateAppendPayload({path: [{props: {teamID}, selected: 'team'}]}))
-          }
+          onClick={onViewTeam}
         />
-      )}
+      ) : null}
       <Kb.Button
         label="Block"
         type="Danger"
         mode="Secondary"
         style={styles.button}
         small={true}
-        onClick={() =>
-          dispatch(
-            nav.safeNavigateAppendPayload({
-              path: [
-                {
-                  props: {
-                    blockUserByDefault: true,
-                    convID: props.conversationID,
-                    others: others,
-                    team: team,
-                    username: adder,
-                  },
-                  selected: 'chatBlockingModal',
-                },
-              ],
-            })
-          )
-        }
+        onClick={onBlock}
       />
     </Kb.ButtonBar>
   )
@@ -104,11 +104,7 @@ const BlockButtons = (props: Props) => {
         <Kb.Text type="BodySmall">
           {team ? `${adder} added you to this team.` : `You don't follow ${adder}.`}
         </Kb.Text>
-        <Kb.Icon
-          style={styles.dismissIcon}
-          type="iconfont-close"
-          onClick={() => dispatch(Chat2Gen.createDismissBlockButtons({teamID}))}
-        />
+        <Kb.Icon style={styles.dismissIcon} type="iconfont-close" onClick={onDismiss} />
       </Kb.Box2>
       <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} style={styles.buttonContainer}>
         {buttonRow}
@@ -120,10 +116,7 @@ const BlockButtons = (props: Props) => {
         {team ? `${adder} added you to this team.` : `You don't follow ${adder}.`}
       </Kb.Text>
       {buttonRow}
-      <Kb.Icon
-        type="iconfont-remove"
-        onClick={() => dispatch(Chat2Gen.createDismissBlockButtons({teamID}))}
-      />
+      <Kb.Icon type="iconfont-remove" onClick={onDismiss} />
     </Kb.Box2>
   )
 }

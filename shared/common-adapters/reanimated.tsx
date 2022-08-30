@@ -20,12 +20,14 @@ let withTiming: typeof withTimingType
 let withDelay: typeof withDelayType
 let useAnimatedScrollHandler: typeof useAnimatedScrollHandlerType
 let createAnimatedComponent: typeof ReAnimatedType['createAnimatedComponent']
+let Animated: typeof ReAnimatedType
 let interpolate: typeof interpolateType
 let Extrapolation: typeof ExtrapolationType
 let withSpring: typeof withSpringType
 
 if (isMobile && !skipAnimations) {
   const rnr = require('react-native-reanimated')
+  Animated = rnr.default
   createAnimatedComponent = rnr.default.createAnimatedComponent
   useAnimatedStyle = rnr.useAnimatedStyle
   useSharedValue = rnr.useSharedValue
@@ -43,6 +45,7 @@ if (isMobile && !skipAnimations) {
   if (isMobile) {
     console.log('\n\n\nDEBUG: mock ReAnimated enabled')
   }
+  Animated = {View: ({children}) => children} as any
   createAnimatedComponent = (f: any) => f
   useSharedValue = (a: any) => ({value: a})
   withRepeat = (a: any) => a
@@ -78,4 +81,5 @@ export {
   withSpring,
   Extrapolation,
 }
+export default Animated
 export type {SharedValue} from 'react-native-reanimated'

@@ -33,12 +33,12 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     const username = assertion
     if (forceDisplay) {
       logger.info(`Showing tracker for assertion: ${assertion}`)
+      draftState.showTrackerSet.add(username)
     }
     const d = getDetails(draftState, username)
     d.assertions = new Map() // just remove for now, maybe keep them
     d.guiID = guiID
     d.reason = reason
-    d.showTracker = forceDisplay || d.showTracker // show it or keep the last state
     d.state = 'checking'
     d.username = username
   },
@@ -72,8 +72,7 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     }
 
     logger.info(`Closing tracker for assertion: ${username}`)
-    const d = getDetails(draftState, username)
-    d.showTracker = false
+    draftState.showTrackerSet.delete(username)
   },
   [Tracker2Gen.updateFollows]: (draftState, action) => {
     const {username, followers, following} = action.payload

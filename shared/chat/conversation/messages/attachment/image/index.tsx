@@ -77,11 +77,11 @@ class ImageAttachment extends React.PureComponent<Props, State> {
     return {message}
   })
 
-  private imageRenderStyle = memoize((loaded, height, width) =>
+  private imageRenderStyle = memoize((height, width) =>
     Styles.collapseStyles([
       styles.image,
       {
-        backgroundColor: loaded ? undefined : Styles.globalColors.fastBlank,
+        backgroundColor: undefined,
         height,
         width,
       },
@@ -164,11 +164,7 @@ class ImageAttachment extends React.PureComponent<Props, State> {
                           inlineVideoPlayable={this.props.inlineVideoPlayable}
                           height={this.props.height}
                           width={this.props.width}
-                          style={this.imageRenderStyle(
-                            this.state.loaded,
-                            this.props.height,
-                            this.props.width
-                          )}
+                          style={this.imageRenderStyle(this.props.height, this.props.width)}
                         />
                         {!this.state.playingVideo && (
                           <Kb.Box

@@ -5,26 +5,40 @@ import {uses24HourClock} from '../constants/platform'
 const hourMinuteString = uses24HourClock ? 'HH:mm' : 'h:mm a'
 const hourMinuteSecondString = uses24HourClock ? 'HH:mm:ss' : 'h:mm:ss a'
 
+// getting this time is very slow on android so we cache it, it never grows large
+const chatTimeCache = new Map<number, string>()
 export function formatTimeForChat(time: number): string | null {
+  let t = chatTimeCache.get(time)
+  if (t !== undefined) return t
   const m = new Date(time)
   const hma = dateFns.format(m, hourMinuteString)
   const now = new Date()
   const today = dateFns.startOfToday()
   if (dateFns.isSameDay(now, m)) {
-    return hma
+    t = hma
+    chatTimeCache.set(time, t)
+    return t
   }
   if (dateFns.isSameDay(dateFns.startOfYesterday(), m)) {
-    return `${hma} - Yesterday`
+    t = `${hma} - Yesterday`
+    chatTimeCache.set(time, t)
+    return t
   }
   const lastWeek = dateFns.sub(today, {days: 7})
   if (dateFns.isAfter(m, lastWeek)) {
-    return `${hma} - ${dateFns.format(m, 'EEE')}`
+    t = `${hma} - ${dateFns.format(m, 'EEE')}`
+    chatTimeCache.set(time, t)
+    return t
   }
   const lastMonth = dateFns.sub(today, {months: 1})
   if (dateFns.isAfter(m, lastMonth)) {
-    return `${hma} - ${dateFns.format(m, 'd MMM')}`
+    t = `${hma} - ${dateFns.format(m, 'd MMM')}`
+    chatTimeCache.set(time, t)
+    return t
   }
-  return `${hma} - ${dateFns.format(m, 'd MMM yy')}`
+  t = `${hma} - ${dateFns.format(m, 'd MMM yy')}`
+  chatTimeCache.set(time, t)
+  return t
 }
 
 export function formatTimeForConversationList(time: number, nowOverride?: number | null): string {

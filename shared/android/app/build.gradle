@@ -86,6 +86,7 @@ project.ext.react = [
     root: "../../",
     entryFile: "index.android.js",
     enableHermes: true, // clean and rebuild if changing
+    bundleInDebug: true
 ]
 
 

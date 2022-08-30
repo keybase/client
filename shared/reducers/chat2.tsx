@@ -15,6 +15,7 @@ import HiddenString from '../util/hidden-string'
 import partition from 'lodash/partition'
 import shallowEqual from 'shallowequal'
 import {mapGetEnsureValue, mapEqual} from '../util/map'
+import sortedIndexOf from 'lodash/sortedIndexOf'
 
 type EngineActions =
   | EngineGen.Chat1NotifyChatChatTypingUpdatePayload
@@ -574,7 +575,7 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
         // non-visible (edit, delete, reaction...) message so we scan the
         // ordinals for the appropriate value.
         const messageMap = draftState.messageMap.get(conversationIDKey)
-        const ordinals = [...(draftState.messageOrdinals.get(conversationIDKey) || [])]
+        const ordinals = draftState.messageOrdinals.get(conversationIDKey) ?? []
         const ord =
           messageMap &&
           ordinals.find(o => {
@@ -698,11 +699,12 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
   },
   [Chat2Gen.messageSetEditing]: (draftState, action) => {
     const {conversationIDKey, editLastUser, ordinal} = action.payload
-    const {editingMap, messageOrdinals} = draftState
+    const {editingMap, messageOrdinals, unsentTextMap} = draftState
 
     // clearing
     if (!editLastUser && !ordinal) {
       editingMap.delete(conversationIDKey)
+      unsentTextMap.delete(conversationIDKey)
       return
     }
 
@@ -713,12 +715,15 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       const message = messageMap?.get(ordinal)
       if (message?.type === 'text' || message?.type === 'attachment') {
         editingMap.set(conversationIDKey, ordinal)
+        if (message.type === 'text') {
+          unsentTextMap.set(conversationIDKey, message.text)
+        }
       }
       return
     }
 
     // Editing your last message
-    const ordinals = [...(messageOrdinals.get(conversationIDKey) || [])]
+    const ordinals = messageOrdinals.get(conversationIDKey) ?? []
     const found = ordinals.reverse().find(o => {
       const message = messageMap?.get(o)
       return !!(
@@ -730,16 +735,10 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     })
     if (found) {
       editingMap.set(conversationIDKey, found)
-    }
-  },
-  [Chat2Gen.messageSetQuoting]: (draftState, action) => {
-    const {ordinal, sourceConversationIDKey, targetConversationIDKey} = action.payload
-    const counter = (draftState.quote ? draftState.quote.counter : 0) + 1
-    draftState.quote = {
-      counter,
-      ordinal,
-      sourceConversationIDKey,
-      targetConversationIDKey,
+      const message = messageMap?.get(found)
+      if (message?.type === 'text') {
+        unsentTextMap.set(conversationIDKey, message.text)
+      }
     }
   },
   [Chat2Gen.addToMessageMap]: (draftState, action) => {
@@ -813,8 +812,15 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     }
 
     // remove all deleted messages from ordinals that we are passed as a parameter
-    let os = messageOrdinals.get(conversationIDKey) || new Set()
-    deletedMessages.forEach(m => os.delete(m.ordinal))
+    let os =
+      messageOrdinals.get(conversationIDKey)?.reduce((arr, o) => {
+        if (deletedMessages.find(m => m.ordinal === o)) {
+          return arr
+        }
+        arr.push(o)
+        return arr
+      }, new Array<Types.Ordinal>()) ?? []
+
     messageOrdinals.set(conversationIDKey, os)
 
     const removedOrdinals: Array<Types.Ordinal> = []
@@ -839,7 +845,10 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       } else {
         // Sendable so we might have an existing message
         const existing = findExistingSentOrPending(conversationIDKey, message)
-        if (!existing || !messageOrdinals.get(conversationIDKey)?.has(existing.ordinal)) {
+        if (
+          !existing ||
+          sortedIndexOf(messageOrdinals.get(conversationIDKey) ?? [], existing.ordinal) === -1
+        ) {
           arr.push(message.ordinal)
         } else {
           logger.info(
@@ -867,9 +876,19 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
 
     // add new ones, remove deleted ones, sort. This pass is for when we remove placeholder messages
     // with their resolved ids
-    os = new Set(messageOrdinals.get(conversationIDKey) || [])
-    removedOrdinals.forEach(o => os.delete(o))
-    messageOrdinals.set(conversationIDKey, new Set([...os, ...ordinals].sort((a, b) => a - b)))
+    // need to convert to a set and back due to needing to dedupe, could look into why this is necessary
+    const oss =
+      messageOrdinals.get(conversationIDKey)?.reduce((s, o) => {
+        if (removedOrdinals.includes(o)) {
+          return s
+        }
+        s.add(o)
+        return s
+      }, new Set(ordinals)) ?? new Set(ordinals)
+    messageOrdinals.set(
+      conversationIDKey,
+      [...oss].sort((a, b) => a - b)
+    )
 
     // clear out message map of deleted stuff
     const messageMap = new Map(oldMessageMap)
@@ -900,7 +919,7 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       // do nothing
     } else {
       const meta = draftState.metaMap.get(conversationIDKey)
-      const ordinals = [...(messageOrdinals.get(conversationIDKey) || [])]
+      const ordinals = messageOrdinals.get(conversationIDKey) ?? []
       let maxMsgID = 0
       const convMsgMap = messageMap.get(conversationIDKey) || new Map<Types.Ordinal, Types.Message>()
       messageMap.set(conversationIDKey, convMsgMap)
@@ -956,15 +975,16 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
         }
       }
     }
-
     draftState.messageMap = messageMap
     if (centeredMessageIDs.length > 0) {
       draftState.messageCenterOrdinals = messageCenterOrdinals
     }
     draftState.containsLatestMessageMap = containsLatestMessageMap
     // only if different
-    if (!shallowEqual([...draftState.messageOrdinals], [...messageOrdinals])) {
-      draftState.messageOrdinals = messageOrdinals
+    if (
+      !shallowEqual(draftState.messageOrdinals.get(conversationIDKey), messageOrdinals.get(conversationIDKey))
+    ) {
+      draftState.messageOrdinals.set(conversationIDKey, messageOrdinals.get(conversationIDKey) ?? [])
     }
     draftState.pendingOutboxToOrdinal = pendingOutboxToOrdinal
     draftState.messageMap = messageMap
@@ -1190,7 +1210,12 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     })
 
     const os = messageOrdinals.get(conversationIDKey)
-    os && allOrdinals.forEach(o => os.delete(o))
+    if (os) {
+      allOrdinals.forEach(o => {
+        const idx = sortedIndexOf(os, o)
+        if (idx !== -1) os.splice(idx, 1)
+      })
+    }
     const maps = [draftState.hasZzzJourneycard, draftState.shouldDeleteZzzJourneycard]
     maps.forEach(m => {
       const el = m.get(conversationIDKey)
@@ -1227,18 +1252,11 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     const {unsentTextMap} = draftState
     unsentTextMap.set(conversationIDKey, text)
   },
-  [Chat2Gen.setPrependText]: (draftState, action) => {
-    const {conversationIDKey, text} = action.payload
-    const {prependTextMap} = draftState
-    prependTextMap.set(conversationIDKey, text)
-  },
   [Chat2Gen.toggleReplyToMessage]: (draftState, action) => {
     const {conversationIDKey, ordinal} = action.payload
-    const {replyToMap, prependTextMap} = draftState
+    const {replyToMap} = draftState
     if (ordinal) {
       replyToMap.set(conversationIDKey, ordinal)
-      // we always put something in prepend to trigger the focus regain on the input bar
-      prependTextMap.set(conversationIDKey, new HiddenString(''))
     } else {
       replyToMap.delete(conversationIDKey)
     }

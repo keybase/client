@@ -13,14 +13,15 @@
 //       /^Group$/,
 //       /^View$/,
 //       /^AnimatedComponentWrapper$/,
-//       // /CardContainer/,
-//       // /StaticContainer/,
+//       /CardContainer/,
+//       /StaticContainer/,
 //     ],
 //     include: [
 //       /^ConnectFunction/,
 //       // uncomment to watch everything, realllllly slows things down
 //       // /.*/,
 //     ],
+//     // logOnDifferentValues: true,
 //     trackAllPureComponents: true,
 //     trackExtraHooks: [[ReactRedux, 'useSelector']],
 //   })

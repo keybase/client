@@ -194,26 +194,16 @@ const styles = Styles.styleSheetCreate(() => ({
   }),
 }))
 
-class TeamAvatar extends React.Component<{
-  teamname: string
-  isHovered: boolean
-  isMuted: boolean
-  isSelected: boolean
-  size?: AvatarSize
-}> {
-  render() {
+const TeamAvatar = React.memo(
+  (p: {teamname: string; isHovered: boolean; isMuted: boolean; isSelected: boolean; size?: AvatarSize}) => {
+    const {teamname, size, isSelected, isMuted, isHovered} = p
     return (
       <Kb.Box style={styles.avatarBox}>
-        <Kb.Avatar teamname={this.props.teamname} size={this.props.size || 48} />
-        <MutedIcon
-          isSelected={this.props.isSelected}
-          isMuted={this.props.isMuted}
-          isHovered={this.props.isHovered}
-          isLocked={false}
-        />
+        <Kb.Avatar teamname={teamname} size={size || 48} />
+        <MutedIcon isSelected={isSelected} isMuted={isMuted} isHovered={isHovered} isLocked={false} />
       </Kb.Box>
     )
   }
-}
+)
 
 export {Avatars, TeamAvatar}

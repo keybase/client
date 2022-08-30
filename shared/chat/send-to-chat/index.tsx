@@ -64,7 +64,7 @@ export const MobileSendToChat = (props: Props) => {
   const dispatch = Container.useDispatch()
 
   const onSelect = (conversationIDKey: ChatTypes.ConversationIDKey, tlfName: string) => {
-    text && dispatch(Chat2Gen.createSetPrependText({conversationIDKey, text: new HiddenString(text)}))
+    text && dispatch(Chat2Gen.createSetUnsentText({conversationIDKey, text: new HiddenString(text)}))
     if (sendPaths?.length) {
       dispatch(
         RouteTreeGen.createNavigateAppend({

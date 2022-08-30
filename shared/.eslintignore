@@ -17,3 +17,4 @@ rn-transformer.js
 storybook/index.native.js
 storybook/webpack.config.js
 test/setupTestFrameworkScriptFile.js
+common-adapters/swipeable.native.tsx

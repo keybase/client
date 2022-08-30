@@ -1,8 +1,8 @@
-import {Details, Assertion} from '../constants/types/tracker2'
-import {State as ConfigState} from '../constants/types/config'
-import {State as UsersState, UserInfo, BlockState} from '../constants/types/users'
-import {State as WaitingState} from '../constants/types/waiting'
-import {RPCError} from '../util/errors'
+import type {Details, Assertion} from '../constants/types/tracker2'
+import type {State as ConfigState} from '../constants/types/config'
+import type {State as UsersState, UserInfo, BlockState} from '../constants/types/users'
+import type {State as WaitingState} from '../constants/types/waiting'
+import type {RPCError} from '../util/errors'
 
 // for convenience we flatten the props we send over the wire
 type ConfigHoistedProps =
@@ -125,7 +125,6 @@ export const deserialize = (
     httpSrvToken,
     location,
     reason,
-    showTracker,
     state: trackerState,
     stellarHidden,
     teamShowcase,
@@ -152,7 +151,6 @@ export const deserialize = (
     location: location ?? oldDetails?.location,
     reason: reason ?? oldDetails?.reason,
     resetBrokeTrack: false,
-    showTracker: true,
     state: trackerState ?? oldDetails?.state,
     stellarHidden: stellarHidden ?? oldDetails?.stellarHidden,
     teamShowcase: teamShowcase ?? oldDetails?.teamShowcase,

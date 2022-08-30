@@ -10,7 +10,7 @@ export const shim = (routes: any, isModal: boolean, isLoggedOut: boolean) =>
 
 const shimNewRoute = (Original: any, isModal: boolean, isLoggedOut: boolean) => {
   // Wrap everything in a keyboard avoiding view (maybe this is opt in/out?)
-  const ShimmedNew = React.memo((props: any) => {
+  const ShimmedNew = React.memo(function ShimmedNew(props: any) {
     const navigationOptions =
       typeof Original.navigationOptions === 'function'
         ? Original.navigationOptions({navigation: props.navigation, route: props.route})

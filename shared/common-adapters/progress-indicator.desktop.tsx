@@ -7,17 +7,19 @@ const Kb = {
   Animation,
 }
 
-const ProgressIndicator = React.memo(({white, style, type}: Props) => (
-  <Kb.Animation
-    animationType={white ? 'spinnerWhite' : 'spinner'}
-    style={Styles.collapseStyles([
-      type === 'Small' && styles.small,
-      type === 'Large' && styles.large,
-      type === 'Huge' && styles.huge,
-      style,
-    ])}
-  />
-))
+const ProgressIndicator = React.memo(function ProgressIndicator({white, style, type}: Props) {
+  return (
+    <Kb.Animation
+      animationType={white ? 'spinnerWhite' : 'spinner'}
+      style={Styles.collapseStyles([
+        type === 'Small' && styles.small,
+        type === 'Large' && styles.large,
+        type === 'Huge' && styles.huge,
+        style,
+      ])}
+    />
+  )
+})
 
 const styles = Styles.styleSheetCreate(() => ({
   huge: {

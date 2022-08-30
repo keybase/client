@@ -11,7 +11,7 @@ const Kb = {
   Text,
 }
 
-const BackButton = React.memo((props: Props) => {
+const BackButton = React.memo(function BackButton(props: Props) {
   const dispatch = Container.useDispatch()
   const onBack = props.disabled ? () => {} : props.onClick ?? (() => dispatch(createNavigateUp()))
   const _onClick = (event: React.BaseSyntheticEvent) => {

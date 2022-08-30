@@ -219,7 +219,7 @@ const styles = Styles.styleSheetCreate(() => {
 })
 
 const shimNewRoute = (Original: any, isModal: boolean, _isLoggedOut: boolean) => {
-  const ShimmedNew = React.memo((props: any) => {
+  const ShimmedNew = React.memo(function ShimmedNew(props: any) {
     const navigationOptions =
       typeof Original.navigationOptions === 'function'
         ? Original.navigationOptions({navigation: props.navigation, route: props.route})

@@ -1160,7 +1160,7 @@ const loadMoreMessages = async (
       return arr
     }, [])
 
-    logger.info(`thread load ordinals ${messages.map(m => m.ordinal)}`)
+    // logger.info(`thread load ordinals ${messages.map(m => m.ordinal)}`)
 
     const moreToLoad = uiMessages.pagination ? !uiMessages.pagination.last : true
     listenerApi.dispatch(Chat2Gen.createUpdateMoreToLoad({conversationIDKey, moreToLoad}))
@@ -2055,39 +2055,6 @@ const startupInboxLoad = (state: Container.TypedState) =>
 
 const startupUserReacjisLoad = (_: unknown, action: ConfigGen.BootstrapStatusLoadedPayload) =>
   Chat2Gen.createUpdateUserReacjis({userReacjis: action.payload.userReacjis})
-
-// onUpdateUserReacjis hooks `userReacjis`, frequently used reactions
-// recorded by the service, into the emoji-mart library. Handler spec is
-// documented at
-// https://github.com/missive/emoji-mart/tree/7c2e2a840bdd48c3c9935dac4208115cbcf6006d#storage
-const onUpdateUserReacjis = (state: Container.TypedState) => {
-  if (Container.isMobile) {
-    return
-  }
-  const {userReacjis} = state.chat2
-  // emoji-mart expects a frequency map so we convert the sorted list from the
-  // service into a frequency map that will appease the lib.
-  let i = 0
-  const reacjis: {[key: string]: number} = {}
-  userReacjis.topReacjis.forEach(el => {
-    i++
-    reacjis[el.name] = userReacjis.topReacjis.length - i
-  })
-
-  const {store} = require('emoji-mart')
-  store.setHandlers({
-    getter: (key: 'frequently' | 'last' | 'skin') => {
-      switch (key) {
-        case 'frequently':
-          return reacjis
-        case 'last':
-          return reacjis[0]
-        case 'skin':
-          return userReacjis.skinTone
-      }
-    },
-  })
-}
 
 const openFolder = (state: Container.TypedState, action: Chat2Gen.OpenFolderPayload) => {
   const meta = Constants.getMeta(state, action.payload.conversationIDKey)
@@ -2988,14 +2955,16 @@ const messageReplyPrivately = async (
     logger.warn('messageReplyPrivately: unable to make meta')
     return
   }
+
+  if (message.type !== 'text') {
+    return
+  }
+  const text = new Container.HiddenString(Constants.formatTextForQuoting(message.text.stringValue()))
+
   return [
     Chat2Gen.createMetasReceived({metas: [meta]}),
     Chat2Gen.createNavigateToThread({conversationIDKey, reason: 'createdMessagePrivately'}),
-    Chat2Gen.createMessageSetQuoting({
-      ordinal: action.payload.ordinal,
-      sourceConversationIDKey: action.payload.sourceConversationIDKey,
-      targetConversationIDKey: conversationIDKey,
-    }),
+    Chat2Gen.createSetUnsentText({conversationIDKey, text}),
   ]
 }
 
@@ -3836,8 +3805,6 @@ const initChat = () => {
   Container.listenAction(ConfigGen.bootstrapStatusLoaded, startupInboxLoad)
 
   Container.listenAction(ConfigGen.bootstrapStatusLoaded, startupUserReacjisLoad)
-
-  Container.listenAction(Chat2Gen.updateUserReacjis, onUpdateUserReacjis)
 
   // Search handling
   Container.listenAction(Chat2Gen.attachmentPreviewSelect, attachmentPreviewSelect)

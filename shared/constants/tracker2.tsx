@@ -1,12 +1,13 @@
-import * as Types from './types/tracker2'
 import * as RPCTypes from './types/rpc-gen'
-import {TypedState} from './reducer'
+import type * as Types from './types/tracker2'
+import type {TypedState} from './reducer'
 
 const emptyArray: any = []
 const emptyMap: any = new Map()
 
 export const makeState = (): Types.State => ({
   proofSuggestions: emptyArray,
+  showTrackerSet: new Set(),
   usernameToDetails: new Map(),
   usernameToNonUserDetails: new Map(),
 })
@@ -18,7 +19,6 @@ export const noDetails = Object.freeze<Types.Details>({
   hidFromFollowers: false,
   reason: '',
   resetBrokeTrack: false,
-  showTracker: false,
   state: 'unknown',
   stellarHidden: false,
   teamShowcase: emptyArray,

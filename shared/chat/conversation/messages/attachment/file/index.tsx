@@ -27,7 +27,7 @@ type Props = {
   onSaltpackFileOpen: (path: string, operation: CryptoTypes.Operations) => void
 }
 
-const FileAttachment = React.memo((props: Props) => {
+const FileAttachment = React.memo(function FileAttachment(props: Props) {
   const progressLabel = Constants.messageAttachmentTransferStateToProgressLabel(props.transferState)
   const {message, isSaltpackFile, isEditing, isHighlighted} = props
   const iconType = isSaltpackFile ? 'icon-file-saltpack-32' : 'icon-file-32'

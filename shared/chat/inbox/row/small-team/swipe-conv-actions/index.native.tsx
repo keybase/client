@@ -59,8 +59,10 @@ const SwipeConvActions = (props: Props) => {
 
   const onWillOpen = React.useCallback(() => {
     // close others
-    openSwipeRef?.current?.close()
-    openSwipeRef = swipeRef
+    if (openSwipeRef !== swipeRef) {
+      openSwipeRef?.current?.close()
+      openSwipeRef = swipeRef
+    }
   }, [swipeRef])
 
   React.useEffect(() => {

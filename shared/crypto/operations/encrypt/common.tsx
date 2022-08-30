@@ -9,7 +9,7 @@ import {OutputInfoBanner} from '../../output'
 
 const operation = Constants.Operations.Encrypt
 
-export const EncryptOptions = React.memo(() => {
+export const EncryptOptions = React.memo(function EncryptOptions() {
   const dispatch = Container.useDispatch()
 
   const hideIncludeSelf = Container.useSelector(state => state.crypto.encrypt.meta.hideIncludeSelf)

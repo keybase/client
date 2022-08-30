@@ -14,12 +14,17 @@ import {
   isValidConversationIDKey,
 } from '../types/chat2/common'
 import HiddenString from '../../util/hidden-string'
-import {formatTextForQuoting} from '../../util/chat'
 import {getEffectiveRetentionPolicy, getMeta} from './meta'
 import {memoize} from '../../util/memoize'
 import type * as TeamTypes from '../types/teams'
 import type * as UserTypes from '../types/users'
 import type {TypedState} from '../reducer'
+
+export const formatTextForQuoting = (text: string) =>
+  text
+    .split('\n')
+    .map(line => `> ${line}\n`)
+    .join('')
 
 export const defaultTopReacjis = [
   {name: ':+1:'},
@@ -91,8 +96,6 @@ export const makeState = (): Types.State => ({
   paymentConfirmInfo: undefined,
   paymentStatusMap: new Map(),
   pendingOutboxToOrdinal: new Map(), // messages waiting to be sent,
-  prependTextMap: new Map(),
-  quote: undefined,
   replyToMap: new Map(),
   shouldDeleteZzzJourneycard: new Map(),
   smallTeamBadgeCount: 0,
@@ -216,7 +219,7 @@ export const getInboxSearchSelected = (inboxSearch: Types.InboxSearchInfo) => {
 export const getThreadSearchInfo = (state: TypedState, conversationIDKey: Types.ConversationIDKey) =>
   state.chat2.threadSearchInfoMap.get(conversationIDKey) || makeThreadSearchInfo()
 
-const emptyOrdinals = new Set<Types.Ordinal>()
+const emptyOrdinals = new Array<Types.Ordinal>()
 export const getMessageOrdinals = (state: TypedState, id: Types.ConversationIDKey) =>
   state.chat2.messageOrdinals.get(id) || emptyOrdinals
 export const getMessageCenterOrdinal = (state: TypedState, id: Types.ConversationIDKey) =>
@@ -225,10 +228,8 @@ export const getMessage = (
   state: TypedState,
   id: Types.ConversationIDKey,
   ordinal: Types.Ordinal
-): Types.Message | null => {
-  const map = state.chat2.messageMap.get(id)
-  return (map && map.get(ordinal)) || null
-}
+): Types.Message | null => state.chat2.messageMap.get(id)?.get(ordinal) ?? null
+
 export const isMessageWithReactions = (message: Types.Message): message is Types.MessagesWithReactions => {
   return !(
     message.type === 'placeholder' ||
@@ -281,21 +282,6 @@ export const getEditInfo = (state: TypedState, id: Types.ConversationIDKey) => {
     default:
       return null
   }
-}
-
-export const getQuoteInfo = (state: TypedState, id: Types.ConversationIDKey) => {
-  const quote = state.chat2.quote
-  // Return null if we're not on the target conversation.
-  if (!quote || quote.targetConversationIDKey !== id) {
-    return null
-  }
-
-  const message = getMessage(state, quote.sourceConversationIDKey, quote.ordinal)
-  if (!message || message.type !== 'text') {
-    return null
-  }
-
-  return {counter: quote.counter, text: formatTextForQuoting(message.text.stringValue())}
 }
 
 export const getTyping = (state: TypedState, id: Types.ConversationIDKey) =>

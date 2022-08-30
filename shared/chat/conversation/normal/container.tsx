@@ -1,34 +1,36 @@
 import * as React from 'react'
-import * as Types from '../../../constants/types/chat2'
 import * as Constants from '../../../constants/chat2'
-import * as WaitingConstants from '../../../constants/waiting'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Tracker2Gen from '../../../actions/tracker2-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
-import Normal from '.'
 import * as Container from '../../../util/container'
+import Normal from '.'
+import type * as Types from '../../../constants/types/chat2'
 import {indefiniteArticle} from '../../../util/string'
 
 type Props = {conversationIDKey: Types.ConversationIDKey}
 
-const NormalWrapper = React.memo((props: Props) => {
+const NormalWrapper = React.memo(function NormalWrapper(props: Props) {
   const {conversationIDKey} = props
   const [focusInputCounter, setFocusInputCounter] = React.useState(0)
-  const [scrollListDownCounter, setScrollListDownCounter] = React.useState(0)
-  const [scrollListToBottomCounter, setScrollListToBottomCounter] = React.useState(0)
-  const [scrollListUpCounter, setScrollListUpCounter] = React.useState(0)
   const onFocusInput = React.useCallback(() => {
     setFocusInputCounter(focusInputCounter + 1)
   }, [setFocusInputCounter, focusInputCounter])
+
+  const requestScrollDownRef = React.useRef<undefined | (() => void)>()
   const onRequestScrollDown = React.useCallback(() => {
-    setScrollListDownCounter(scrollListDownCounter + 1)
-  }, [setScrollListDownCounter, scrollListDownCounter])
-  const onRequestScrollToBottom = React.useCallback(() => {
-    setScrollListToBottomCounter(scrollListToBottomCounter + 1)
-  }, [setScrollListToBottomCounter, scrollListToBottomCounter])
+    requestScrollDownRef.current?.()
+  }, [])
+
+  const requestScrollUpRef = React.useRef<undefined | (() => void)>()
   const onRequestScrollUp = React.useCallback(() => {
-    setScrollListUpCounter(scrollListUpCounter + 1)
-  }, [setScrollListUpCounter, scrollListUpCounter])
+    requestScrollUpRef.current?.()
+  }, [])
+
+  const requestScrollToBottomRef = React.useRef<undefined | (() => void)>()
+  const onRequestScrollToBottom = React.useCallback(() => {
+    requestScrollToBottomRef.current?.()
+  }, [])
 
   const threadLoadedOffline = Container.useSelector(
     state => Constants.getMeta(state, conversationIDKey).offline
@@ -39,14 +41,6 @@ const NormalWrapper = React.memo((props: Props) => {
     return `You must be at least ${indefiniteArticle(minWriterRole)} ${minWriterRole} to post.`
   })
   const dragAndDropRejectReason = cannotWrite ? minWriterReason : undefined
-
-  const showLoader = Container.useSelector(state =>
-    WaitingConstants.anyWaiting(
-      state,
-      Constants.waitingKeyThreadLoad(conversationIDKey),
-      Constants.waitingKeyInboxSyncStarted
-    )
-  )
 
   const showThreadSearch = Container.useSelector(
     state => Constants.getThreadSearchInfo(state, conversationIDKey).visible
@@ -98,16 +92,15 @@ const NormalWrapper = React.memo((props: Props) => {
       conversationIDKey={conversationIDKey}
       dragAndDropRejectReason={dragAndDropRejectReason}
       threadLoadedOffline={threadLoadedOffline}
-      showLoader={showLoader}
       showThreadSearch={showThreadSearch}
       onFocusInput={onFocusInput}
       onRequestScrollDown={onRequestScrollDown}
-      onRequestScrollToBottom={onRequestScrollToBottom}
       onRequestScrollUp={onRequestScrollUp}
+      onRequestScrollToBottom={onRequestScrollToBottom}
+      requestScrollToBottomRef={requestScrollToBottomRef}
       focusInputCounter={focusInputCounter}
-      scrollListDownCounter={scrollListDownCounter}
-      scrollListToBottomCounter={scrollListToBottomCounter}
-      scrollListUpCounter={scrollListUpCounter}
+      requestScrollDownRef={requestScrollDownRef}
+      requestScrollUpRef={requestScrollUpRef}
       jumpToRecent={jumpToRecent}
       onPaste={onPaste}
       onToggleThreadSearch={onToggleThreadSearch}

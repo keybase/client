@@ -10,107 +10,92 @@ import {showShareActionSheet} from '../../../actions/platform-specific'
 
 const installMessage = `I sent you encrypted messages on Keybase. You can install it here: https://keybase.io/phone-app`
 
-type OwnProps = {
-  conversationIDKey: Types.ConversationIDKey
+const Invite = (p: {conversationIDKey: Types.ConversationIDKey}) => {
+  const {conversationIDKey} = p
+  const participantInfoAll = Container.useSelector(
+    state => Constants.getParticipantInfo(state, conversationIDKey).all
+  )
+  const users = participantInfoAll.filter(p => p.includes('@'))
+
+  const openShareSheet = () => {
+    showShareActionSheet({
+      message: installMessage,
+      mimeType: 'text/plain',
+    })
+      .then(() => {})
+      .catch(() => {})
+  }
+
+  const onOpenSMS = (phoneNumber: string) => {
+    openSMS(['+' + phoneNumber], installMessage)
+      .then(() => {})
+      .catch(() => {})
+  }
+
+  const usernameToContactName = Container.useSelector(
+    state => Constants.getParticipantInfo(state, conversationIDKey).contactName
+  )
+
+  const dispatch = Container.useDispatch()
+  const onDismiss = () => {
+    dispatch(Chat2Gen.createDismissBottomBanner({conversationIDKey}))
+  }
+
+  return (
+    <InviteBanner
+      openShareSheet={openShareSheet}
+      openSMS={onOpenSMS}
+      onDismiss={onDismiss}
+      users={users}
+      usernameToContactName={usernameToContactName}
+    />
+  )
 }
 
-type Props = {
-  type: 'invite' | 'none' | 'broken'
-  users: Array<string>
-  hasMessages: boolean
-  dismissed: boolean
-  openShareSheet: () => void
-  openSMS: (email: string) => void
-  onDismiss: () => void
-  usernameToContactName: Map<string, string>
+const Broken = (p: {conversationIDKey: Types.ConversationIDKey}) => {
+  const {conversationIDKey} = p
+  const users = Container.useSelector(state => {
+    const {following} = state.config
+    const {infoMap} = state.users
+    const participantInfoAll = Constants.getParticipantInfo(state, conversationIDKey).all
+    return participantInfoAll.filter(p => following.has(p) && infoMap.get(p)?.broken)
+  })
+  return <Kb.ProofBrokenBanner users={users} />
 }
 
-const BannerContainer = (props: Props) => {
-  switch (props.type) {
+const BannerContainer = React.memo(function BannerContainer(p: {conversationIDKey: Types.ConversationIDKey}) {
+  const {conversationIDKey} = p
+  const type = Container.useSelector(state => {
+    const teamType = Constants.getMeta(state, conversationIDKey).teamType
+    if (teamType !== 'adhoc') {
+      return 'none'
+    }
+    const {following} = state.config
+    const participantInfoAll = Constants.getParticipantInfo(state, conversationIDKey).all
+    const {infoMap} = state.users
+    const broken = participantInfoAll.some(p => following.has(p) && infoMap.get(p)?.broken)
+    if (broken) {
+      return 'broken'
+    } else {
+      const toInvite = participantInfoAll.some(p => p.includes('@'))
+      const dismissed = state.chat2.dismissedInviteBannersMap.get(conversationIDKey) || false
+      const hasMessages = !Constants.getMeta(state, conversationIDKey).isEmpty
+      if (toInvite && !dismissed && hasMessages) {
+        return 'invite'
+      } else {
+        return 'none'
+      }
+    }
+  })
+
+  switch (type) {
     case 'invite':
-      return !props.dismissed && props.hasMessages ? (
-        <InviteBanner
-          openShareSheet={props.openShareSheet}
-          openSMS={props.openSMS}
-          onDismiss={props.onDismiss}
-          users={props.users}
-          usernameToContactName={props.usernameToContactName}
-        />
-      ) : null
+      return <Invite conversationIDKey={conversationIDKey} />
     case 'broken':
-      return <Kb.ProofBrokenBanner users={props.users} />
+      return <Broken conversationIDKey={conversationIDKey} />
     case 'none':
       return null
   }
-}
-
-const mapStateToProps = (state: Container.TypedState, {conversationIDKey}: OwnProps) => {
-  const _following = state.config.following
-  const _participantInfo = Constants.getParticipantInfo(state, conversationIDKey)
-  const _users = state.users
-  const _dismissed = state.chat2.dismissedInviteBannersMap.get(conversationIDKey) || false
-  const meta = Constants.getMeta(state, conversationIDKey)
-  return {
-    _dismissed,
-    _following,
-    _participantInfo,
-    _teamType: meta.teamType,
-    _users,
-    hasMessages: !meta.isEmpty,
-  }
-}
-
-const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProps) => ({
-  onDismiss: () =>
-    dispatch(Chat2Gen.createDismissBottomBanner({conversationIDKey: ownProps.conversationIDKey})),
 })
 
-export default Container.connect(
-  mapStateToProps,
-  mapDispatchToProps,
-  (stateProps, dispatchProps, _: OwnProps) => {
-    let type: Props['type']
-    let users: Array<string> = []
-    if (stateProps._teamType !== 'adhoc') {
-      type = 'none'
-    } else {
-      const broken = stateProps._participantInfo.all.filter(
-        p => (stateProps._users.infoMap.get(p) || {broken: false}).broken && stateProps._following.has(p)
-      )
-      if (broken.length > 0) {
-        type = 'broken'
-        users = broken
-      } else {
-        const toInvite = stateProps._participantInfo.all.filter(p => p.includes('@'))
-        if (toInvite.length > 0) {
-          type = 'invite'
-          users = toInvite
-        } else {
-          type = 'none'
-        }
-      }
-    }
-
-    return {
-      dismissed: stateProps._dismissed,
-      hasMessages: stateProps.hasMessages,
-      onDismiss: dispatchProps.onDismiss,
-      openSMS: (phoneNumber: string) => {
-        openSMS(['+' + phoneNumber], installMessage)
-          .then(() => {})
-          .catch(() => {})
-      },
-      openShareSheet: () => {
-        showShareActionSheet({
-          message: installMessage,
-          mimeType: 'text/plain',
-        })
-          .then(() => {})
-          .catch(() => {})
-      },
-      type,
-      usernameToContactName: stateProps._participantInfo.contactName,
-      users,
-    }
-  }
-)(BannerContainer)
+export default BannerContainer
