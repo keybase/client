@@ -7,7 +7,12 @@ import {useNavigationBuilder, TabRouter, createNavigatorFactory} from '@react-na
 type BackBehavior = Parameters<typeof TabRouter>[0]['backBehavior']
 type Props = Parameters<typeof useNavigationBuilder>[1] & {backBehavior: BackBehavior}
 
-const LeftTabNavigator = React.memo(({backBehavior, initialRouteName, children, screenOptions}: Props) => {
+const LeftTabNavigator = React.memo(function LeftTabNavigator({
+  backBehavior,
+  initialRouteName,
+  children,
+  screenOptions,
+}: Props) {
   const {state, navigation, descriptors, NavigationContent} = useNavigationBuilder(TabRouter, {
     backBehavior,
     children,

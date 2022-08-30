@@ -18,6 +18,7 @@ import type {TypedState} from '../reducer'
 import {assertNever} from '../../util/container'
 import {isMobile} from '../platform'
 import {noConversationIDKey} from '../types/chat2/common'
+import isEqual from 'lodash/isEqual'
 
 export const getMessageStateExtras = (state: TypedState, conversationIDKey: Types.ConversationIDKey) => {
   const getLastOrdinal = () =>
@@ -1384,6 +1385,8 @@ export const isSpecialMention = (s: string) => ['here', 'channel', 'everyone'].i
 
 export const specialMentions = ['here', 'channel', 'everyone']
 
+// TODO maybe its better to avoid merging at all and just deal with it at the component level. we pay for merging
+// on non visible items so the cost might be higher
 export const mergeMessage = (old: Types.Message | null, m: Types.Message): Types.Message => {
   if (!old) {
     return m
@@ -1394,31 +1397,36 @@ export const mergeMessage = (old: Types.Message | null, m: Types.Message): Types
     return m
   }
 
-  const toRet: any = {...m}
+  let toRet: any = {...m}
 
+  // if all props are the same then just use old
+  let allSame = true
   Object.keys(old).forEach(key => {
     switch (key) {
-      case 'mentionsAt':
-        if (
-          m.type === 'text' &&
-          old.type === 'text' &&
-          shallowEqual([...old.mentionsAt], [...m.mentionsAt])
-        ) {
-          toRet.mentionsAt = old.mentionsAt
-        }
-        break
       case 'mentionsChannelName':
-        if (
-          m.type === 'text' &&
-          old.type === 'text' &&
-          shallowEqual([...old.mentionsChannelName.entries()], [...m.mentionsChannelName].entries())
-        ) {
-          toRet.mentionsChannelName = old.mentionsChannelName
+      case 'reactions':
+      case 'mentionsAt':
+      case 'audioAmps':
+        if (shallowEqual([...old[key]], [...m[key]])) {
+          toRet[key] = old[key]
+        } else {
+          allSame = false
         }
         break
+      case 'bodySummary':
+      case 'decoratedText':
       case 'text':
-        if (m.type === 'text' && old.type === 'text' && old.text.stringValue() === m.text.stringValue()) {
-          toRet.text = old.text
+        if (old[key]?.stringValue() === m[key]?.stringValue()) {
+          toRet[key] = old[key]
+        } else {
+          allSame = false
+        }
+        break
+      case 'unfurls':
+        if (isEqual(m[key], old[key])) {
+          toRet[key] = old[key]
+        } else {
+          allSame = false
         }
         break
       default:
@@ -1426,10 +1434,14 @@ export const mergeMessage = (old: Types.Message | null, m: Types.Message): Types
         if (old[key] === m[key]) {
           // @ts-ignore strict
           toRet[key] = old[key]
+        } else {
+          allSame = false
         }
     }
   })
-
+  if (allSame) {
+    toRet = old
+  }
   return toRet
 }
 

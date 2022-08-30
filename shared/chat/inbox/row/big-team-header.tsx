@@ -16,7 +16,7 @@ type Props = {
   teamID: TeamTypes.TeamID
 }
 
-const BigTeamHeader = React.memo((props: Props) => {
+const BigTeamHeader = React.memo(function BigTeamHeader(props: Props) {
   const {navKey, teamID, teamname} = props
   const dispatch = Container.useDispatch()
 

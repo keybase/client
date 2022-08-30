@@ -10,7 +10,7 @@ type Props = {
   toggle: () => void
 }
 
-const BigTeamsDivider = React.memo((props: Props) => {
+const BigTeamsDivider = React.memo(function BigTeamsDivider(props: Props) {
   const {toggle} = props
   const badgeCount = Container.useSelector(state => state.chat2.bigTeamBadgeCount)
   return (

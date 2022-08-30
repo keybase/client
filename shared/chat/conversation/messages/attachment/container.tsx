@@ -10,7 +10,7 @@ type Props = {
   isHighlighted?: boolean
 }
 
-const Attachment = React.memo((props: Props) => {
+const Attachment = React.memo(function Attachment(props: Props) {
   const {isHighlighted, message, toggleMessageMenu} = props
   switch (message.attachmentType) {
     case 'image':

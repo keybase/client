@@ -6,7 +6,7 @@ import * as Chat2Gen from '../../actions/chat2-gen'
 import * as TeamBuildingGen from '../../actions/team-building-gen'
 import CommonResult, {ResultProps} from './common-result'
 
-const YouResult = React.memo((props: ResultProps) => {
+const YouResult = React.memo(function YouResult(props: ResultProps) {
   const dispatch = Container.useDispatch()
   const onSelfChat = () => {
     dispatch(TeamBuildingGen.createCancelTeamBuilding({namespace: 'chat2'}))

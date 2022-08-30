@@ -18,7 +18,7 @@ import CommonResult, {ResultProps} from './common-result'
  * a bunch of React hooks to handle all the stateful logic needed to make the menu and chat button work.
  */
 
-const PeopleResult = React.memo((props: ResultProps) => {
+const PeopleResult = React.memo(function PeopleResult(props: ResultProps) {
   const keybaseUsername: string | null = props.services['keybase'] || null
   const serviceUsername = props.services[props.resultForService]
 

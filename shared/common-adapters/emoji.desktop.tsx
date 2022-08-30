@@ -49,7 +49,7 @@ const EmojiWrapper = (props: Props) => {
         display: 'inline-block',
         height: size,
         width: size,
-        ...style,
+        ...(style as any),
       }}
     >
       {!props.disableSelecting && (

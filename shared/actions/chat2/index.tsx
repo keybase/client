@@ -1160,7 +1160,7 @@ const loadMoreMessages = async (
       return arr
     }, [])
 
-    logger.info(`thread load ordinals ${messages.map(m => m.ordinal)}`)
+    // logger.info(`thread load ordinals ${messages.map(m => m.ordinal)}`)
 
     const moreToLoad = uiMessages.pagination ? !uiMessages.pagination.last : true
     listenerApi.dispatch(Chat2Gen.createUpdateMoreToLoad({conversationIDKey, moreToLoad}))

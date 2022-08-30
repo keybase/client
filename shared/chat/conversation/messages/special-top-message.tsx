@@ -16,7 +16,7 @@ import RetentionNotice from './retention-notice/container'
 
 type Props = {
   conversationIDKey: Types.ConversationIDKey
-  measure: (() => void) | null
+  measure?: () => void
 }
 
 const ErrorMessage = () => {
@@ -118,7 +118,7 @@ const ErrorMessage = () => {
   )
 }
 
-const SpecialTopMessage = (props: Props) => {
+const SpecialTopMessage = React.memo(function SpecialTopMessage(props: Props) {
   const {conversationIDKey, measure} = props
   const username = Container.useSelector(state => state.config.username)
   const dispatch = Container.useDispatch()
@@ -145,8 +145,8 @@ const SpecialTopMessage = (props: Props) => {
     state => Constants.getMeta(state, conversationIDKey).teamRetentionPolicy
   )
 
-  const participantInfo = Container.useSelector(state =>
-    Constants.getParticipantInfo(state, conversationIDKey)
+  const participantInfoAll = Container.useSelector(
+    state => Constants.getParticipantInfo(state, conversationIDKey).all
   )
 
   let pendingState: 'waiting' | 'error' | 'done'
@@ -167,16 +167,16 @@ const SpecialTopMessage = (props: Props) => {
       : ('noMoreToLoad' as const)
   )
   const showTeamOffer =
-    hasLoadedEver && loadMoreType === 'noMoreToLoad' && teamType === 'adhoc' && participantInfo.all.length > 2
+    hasLoadedEver && loadMoreType === 'noMoreToLoad' && teamType === 'adhoc' && participantInfoAll.length > 2
   const hasOlderResetConversation = supersedes !== Constants.noConversationIDKey
   // don't show default header in the case of the retention notice being visible
   const showRetentionNotice =
     retentionPolicy.type !== 'retain' &&
     !(retentionPolicy.type === 'inherit' && teamRetentionPolicy.type === 'retain')
   const isHelloBotConversation =
-    teamType === 'adhoc' && participantInfo.all.length === 2 && participantInfo.all.includes('hellobot')
+    teamType === 'adhoc' && participantInfoAll.length === 2 && participantInfoAll.includes('hellobot')
   const isSelfConversation =
-    teamType === 'adhoc' && participantInfo.all.length === 1 && participantInfo.all.includes(username)
+    teamType === 'adhoc' && participantInfoAll.length === 1 && participantInfoAll.includes(username)
 
   const openPrivateFolder = React.useCallback(() => {
     dispatch(
@@ -232,7 +232,7 @@ const SpecialTopMessage = (props: Props) => {
       )}
     </Kb.Box>
   )
-}
+})
 
 const styles = Styles.styleSheetCreate(
   () =>

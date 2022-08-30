@@ -4,7 +4,7 @@ module.hot &&
     console.log('accepted update in common-adapters/mobile.native')
   })
 
-const Index = require('.')
+const Index = require('./index.native')
 const NativeWrappers = require('./native-wrappers.native')
 
 module.exports = {
@@ -378,7 +378,8 @@ module.exports = {
     return Index.StandardScreen
   },
   get Swipeable() {
-    return require('react-native-gesture-handler/Swipeable').default
+    return require('./swipeable.native').default
+    // return require('react-native-gesture-handler/Swipeable').default
   },
   get Switch() {
     return Index.Switch

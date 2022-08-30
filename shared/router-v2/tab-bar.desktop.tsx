@@ -201,7 +201,7 @@ type TabProps = {
   badge?: number
 }
 
-const Tab = React.memo((props: TabProps) => {
+const Tab = React.memo(function Tab(props: TabProps) {
   const {tab, index, isSelected, onTabClick, badge} = props
   const {label} = Tabs.desktopTabMeta[tab]
 

@@ -49,7 +49,7 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
   [UsersGen.updateBrokenState]: (draftState, action) => {
     const {newlyBroken, newlyFixed} = action.payload
     const {infoMap} = draftState
-    newlyFixed.forEach(username => updateInfo(infoMap, username, {broken: false}))
+    newlyFixed.forEach(username => delete infoMap.get(username)?.broken)
     newlyBroken.forEach(username => updateInfo(infoMap, username, {broken: true}))
   },
   [UsersGen.updateBio]: (draftState, action) => {

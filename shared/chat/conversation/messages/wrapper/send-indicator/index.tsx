@@ -146,10 +146,7 @@ class SendIndicator extends React.Component<Props, State> {
         animationType={this.animationType()}
         className="sendingStatus"
         containerStyle={this.props.style}
-        style={Styles.collapseStyles([
-          styles.animation,
-          this.state.visible ? styles.visible : styles.invisible,
-        ])}
+        style={this.state.visible ? styles.animationVisible : styles.animationInvisible}
       />
     )
   }
@@ -158,17 +155,14 @@ class SendIndicator extends React.Component<Props, State> {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      animation: Styles.platformStyles({
-        common: {
-          height: 20,
-          width: 20,
-        },
-        isMobile: {
-          backgroundColor: Styles.globalColors.white,
-        },
+      animationInvisible: Styles.platformStyles({
+        common: {height: 20, opacity: 0, width: 20},
+        isMobile: {backgroundColor: Styles.globalColors.white},
       }),
-      invisible: {opacity: 0},
-      visible: {opacity: 1},
+      animationVisible: Styles.platformStyles({
+        common: {height: 20, opacity: 1, width: 20},
+        isMobile: {backgroundColor: Styles.globalColors.white},
+      }),
     } as const)
 )
 
