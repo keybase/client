@@ -18,6 +18,7 @@ import type {TypedState} from '../reducer'
 import {assertNever} from '../../util/container'
 import {isMobile} from '../platform'
 import {noConversationIDKey} from '../types/chat2/common'
+import isEqual from 'lodash/isEqual'
 
 export const getMessageStateExtras = (state: TypedState, conversationIDKey: Types.ConversationIDKey) => {
   const getLastOrdinal = () =>
@@ -1384,6 +1385,8 @@ export const isSpecialMention = (s: string) => ['here', 'channel', 'everyone'].i
 
 export const specialMentions = ['here', 'channel', 'everyone']
 
+// TODO maybe its better to avoid merging at all and just deal with it at the component level. we pay for merging
+// on non visible items so the cost might be higher
 export const mergeMessage = (old: Types.Message | null, m: Types.Message): Types.Message => {
   if (!old) {
     return m
@@ -1402,9 +1405,9 @@ export const mergeMessage = (old: Types.Message | null, m: Types.Message): Types
     switch (key) {
       case 'mentionsChannelName':
       case 'reactions':
-      case 'unfurls':
       case 'mentionsAt':
-        if (m.type === 'text' && old.type === 'text' && shallowEqual([...old[key]], [...m[key]])) {
+      case 'audioAmps':
+        if (shallowEqual([...old[key]], [...m[key]])) {
           toRet[key] = old[key]
         } else {
           allSame = false
@@ -1413,12 +1416,18 @@ export const mergeMessage = (old: Types.Message | null, m: Types.Message): Types
       case 'bodySummary':
       case 'decoratedText':
       case 'text':
-        if (m.type === 'text' && old.type === 'text' && old[key]?.stringValue() === m[key]?.stringValue()) {
+        if (old[key]?.stringValue() === m[key]?.stringValue()) {
           toRet[key] = old[key]
         } else {
           allSame = false
         }
-
+        break
+      case 'unfurls':
+        if (isEqual(m[key], old[key])) {
+          toRet[key] = old[key]
+        } else {
+          allSame = false
+        }
         break
       default:
         // @ts-ignore strict: key is just a string here so TS doesn't like it
