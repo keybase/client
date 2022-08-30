@@ -30,6 +30,28 @@ const BlockButtons = (props: Props) => {
     person => person !== currentUser && person !== adder && !Constants.isAssertion(person)
   )
 
+  const onViewProfile = () => dispatch(ProfileGen.createShowUserProfile({username: adder}))
+  const onViewTeam = () =>
+    dispatch(nav.safeNavigateAppendPayload({path: [{props: {teamID}, selected: 'team'}]}))
+  const onBlock = () =>
+    dispatch(
+      nav.safeNavigateAppendPayload({
+        path: [
+          {
+            props: {
+              blockUserByDefault: true,
+              convID: props.conversationID,
+              others: others,
+              team: team,
+              username: adder,
+            },
+            selected: 'chatBlockingModal',
+          },
+        ],
+      })
+    )
+  const onDismiss = () => dispatch(Chat2Gen.createDismissBlockButtons({teamID}))
+
   const buttonRow = (
     <Kb.ButtonBar
       fullWidth={Styles.isMobile}
@@ -42,50 +64,31 @@ const BlockButtons = (props: Props) => {
         toMany={others.length > 0 || !!team}
         style={styles.waveButton}
       />
-      {!team && others.length === 0 && (
+      {!team && others.length === 0 ? (
         <Kb.Button
           label="View profile"
           style={styles.button}
           small={true}
           mode="Secondary"
-          onClick={() => dispatch(ProfileGen.createShowUserProfile({username: adder}))}
+          onClick={onViewProfile}
         />
-      )}
-      {team && (
+      ) : null}
+      {team ? (
         <Kb.Button
           label="View team"
           style={styles.button}
           mode="Secondary"
           small={true}
-          onClick={() =>
-            dispatch(nav.safeNavigateAppendPayload({path: [{props: {teamID}, selected: 'team'}]}))
-          }
+          onClick={onViewTeam}
         />
-      )}
+      ) : null}
       <Kb.Button
         label="Block"
         type="Danger"
         mode="Secondary"
         style={styles.button}
         small={true}
-        onClick={() =>
-          dispatch(
-            nav.safeNavigateAppendPayload({
-              path: [
-                {
-                  props: {
-                    blockUserByDefault: true,
-                    convID: props.conversationID,
-                    others: others,
-                    team: team,
-                    username: adder,
-                  },
-                  selected: 'chatBlockingModal',
-                },
-              ],
-            })
-          )
-        }
+        onClick={onBlock}
       />
     </Kb.ButtonBar>
   )
@@ -101,11 +104,7 @@ const BlockButtons = (props: Props) => {
         <Kb.Text type="BodySmall">
           {team ? `${adder} added you to this team.` : `You don't follow ${adder}.`}
         </Kb.Text>
-        <Kb.Icon
-          style={styles.dismissIcon}
-          type="iconfont-close"
-          onClick={() => dispatch(Chat2Gen.createDismissBlockButtons({teamID}))}
-        />
+        <Kb.Icon style={styles.dismissIcon} type="iconfont-close" onClick={onDismiss} />
       </Kb.Box2>
       <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} style={styles.buttonContainer}>
         {buttonRow}
@@ -117,10 +116,7 @@ const BlockButtons = (props: Props) => {
         {team ? `${adder} added you to this team.` : `You don't follow ${adder}.`}
       </Kb.Text>
       {buttonRow}
-      <Kb.Icon
-        type="iconfont-remove"
-        onClick={() => dispatch(Chat2Gen.createDismissBlockButtons({teamID}))}
-      />
+      <Kb.Icon type="iconfont-remove" onClick={onDismiss} />
     </Kb.Box2>
   )
 }
