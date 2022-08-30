@@ -10,8 +10,12 @@ import {showShareActionSheet} from '../../../actions/platform-specific'
 
 const installMessage = `I sent you encrypted messages on Keybase. You can install it here: https://keybase.io/phone-app`
 
-const Invite = (p: {users: Array<string>; conversationIDKey: Types.ConversationIDKey}) => {
-  const {users, conversationIDKey} = p
+const Invite = (p: {conversationIDKey: Types.ConversationIDKey}) => {
+  const {conversationIDKey} = p
+  const participantInfoAll = Container.useSelector(
+    state => Constants.getParticipantInfo(state, conversationIDKey).all
+  )
+  const users = participantInfoAll.filter(p => p.includes('@'))
 
   const openShareSheet = () => {
     showShareActionSheet({
@@ -48,49 +52,47 @@ const Invite = (p: {users: Array<string>; conversationIDKey: Types.ConversationI
   )
 }
 
-const Broken = (p: {users: Array<string>}) => {
-  const {users} = p
+const Broken = (p: {conversationIDKey: Types.ConversationIDKey}) => {
+  const {conversationIDKey} = p
+  const users = Container.useSelector(state => {
+    const {following} = state.config
+    const {infoMap} = state.users
+    const participantInfoAll = Constants.getParticipantInfo(state, conversationIDKey).all
+    return participantInfoAll.filter(p => following.has(p) && infoMap.get(p)?.broken)
+  })
   return <Kb.ProofBrokenBanner users={users} />
 }
 
 const BannerContainer = React.memo(function BannerContainer(p: {conversationIDKey: Types.ConversationIDKey}) {
   const {conversationIDKey} = p
-  const following = Container.useSelector(state => state.config.following)
-  const participantInfoAll = Container.useSelector(
-    state => Constants.getParticipantInfo(state, conversationIDKey).all
-  )
-  const infoMap = Container.useSelector(state => state.users.infoMap)
-  const dismissed = Container.useSelector(
-    state => state.chat2.dismissedInviteBannersMap.get(conversationIDKey) || false
-  )
-  const hasMessages = Container.useSelector(state => !Constants.getMeta(state, conversationIDKey).isEmpty)
-  const teamType = Container.useSelector(state => Constants.getMeta(state, conversationIDKey).teamType)
-
-  let type: 'invite' | 'none' | 'broken'
-  let users: Array<string> = []
-  if (teamType !== 'adhoc') {
-    type = 'none'
-  } else {
-    const broken = participantInfoAll.filter(p => following.has(p) && infoMap.get(p)?.broken)
-    if (broken.length > 0) {
-      type = 'broken'
-      users = broken
+  const type = Container.useSelector(state => {
+    const teamType = Constants.getMeta(state, conversationIDKey).teamType
+    if (teamType !== 'adhoc') {
+      return 'none'
+    }
+    const {following} = state.config
+    const participantInfoAll = Constants.getParticipantInfo(state, conversationIDKey).all
+    const {infoMap} = state.users
+    const broken = participantInfoAll.some(p => following.has(p) && infoMap.get(p)?.broken)
+    if (broken) {
+      return 'broken'
     } else {
-      const toInvite = participantInfoAll.filter(p => p.includes('@'))
-      if (toInvite.length > 0) {
-        type = 'invite'
-        users = toInvite
+      const toInvite = participantInfoAll.some(p => p.includes('@'))
+      const dismissed = state.chat2.dismissedInviteBannersMap.get(conversationIDKey) || false
+      const hasMessages = !Constants.getMeta(state, conversationIDKey).isEmpty
+      if (toInvite && !dismissed && hasMessages) {
+        return 'invite'
       } else {
-        type = 'none'
+        return 'none'
       }
     }
-  }
+  })
 
   switch (type) {
     case 'invite':
-      return !dismissed && hasMessages ? <Invite users={users} conversationIDKey={conversationIDKey} /> : null
+      return <Invite conversationIDKey={conversationIDKey} />
     case 'broken':
-      return <Broken users={users} />
+      return <Broken conversationIDKey={conversationIDKey} />
     case 'none':
       return null
   }
