@@ -33,7 +33,7 @@ const LoadingLine = (p: {conversationIDKey: Types.ConversationIDKey}) => {
   return showLoader ? <Kb.LoadingLine /> : null
 }
 
-const Conversation = React.memo((props: Props) => {
+const Conversation = React.memo(function Conversation(props: Props) {
   const [maxInputArea, setMaxInputArea] = React.useState<number | undefined>(undefined)
   const onLayout = React.useCallback((e: LayoutEvent) => {
     setMaxInputArea(e.nativeEvent.layout.height)

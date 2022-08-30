@@ -39,8 +39,8 @@ const useHintText = (p: {
   const teamname = Container.useSelector(state => Constants.getMeta(state, conversationIDKey).teamname)
   const channelname = Container.useSelector(state => Constants.getMeta(state, conversationIDKey).channelname)
   const username = Container.useSelector(state => state.config.username)
-  const participantInfo = Container.useSelector(
-    state => state.chat2.participantMap.get(conversationIDKey) || Constants.noParticipantInfo
+  const participantInfoName = Container.useSelector(
+    state => state.chat2.participantMap.get(conversationIDKey)?.name || Constants.noParticipantInfo.name
   )
   if (Styles.isMobile && isExploding) {
     return isLargeScreen ? `Write an exploding message` : 'Exploding message'
@@ -63,15 +63,15 @@ const useHintText = (p: {
         }
         break
       case 'adhoc':
-        if (participantInfo.name.length > 2) {
+        if (participantInfoName.length > 2) {
           return 'Message group'
-        } else if (participantInfo.name.length === 2) {
-          const other = participantInfo.name.find(n => n !== username)
+        } else if (participantInfoName.length === 2) {
+          const other = participantInfoName.find(n => n !== username)
           if (other) {
             const otherText = other.includes('@') ? assertionToDisplay(other) : `@${other}`
             if (otherText.length < 20) return `Message ${otherText}`
           }
-        } else if (participantInfo.name.length === 1) {
+        } else if (participantInfoName.length === 1) {
           return 'Message yourself'
         }
         break
@@ -286,160 +286,156 @@ const useTyping = (conversationIDKey: Types.ConversationIDKey) => {
   return {sendTyping, sendTypingThrottled}
 }
 
-const ConnectedPlatformInput = React.memo(
-  (
-    p: Pick<
-      Props,
-      | 'conversationIDKey'
-      | 'maxInputArea'
-      | 'jumpToRecent'
-      | 'focusInputCounter'
-      | 'onRequestScrollDown'
-      | 'onRequestScrollUp'
-      | 'onRequestScrollToBottom'
-    > & {showGiphySearch: boolean; showCommandMarkdown: boolean; replyTo: Types.Ordinal | undefined}
-  ) => {
-    const {conversationIDKey, focusInputCounter, showCommandMarkdown, onRequestScrollToBottom} = p
-    const {onRequestScrollDown, onRequestScrollUp, showGiphySearch, replyTo, jumpToRecent, maxInputArea} = p
-    const dispatch = Container.useDispatch()
-    const editOrdinal = Container.useSelector(state => state.chat2.editingMap.get(conversationIDKey))
-    const isEditing = !!editOrdinal
-    const isEditExploded = Container.useSelector(state =>
-      editOrdinal ? Constants.getMessage(state, conversationIDKey, editOrdinal)?.exploded ?? false : false
-    )
-    const {onSubmit} = useSubmit({
-      conversationIDKey,
-      editOrdinal,
-      jumpToRecent,
-      onRequestScrollToBottom,
-      replyTo,
-    })
-    const {sendTyping, sendTypingThrottled} = useTyping(conversationIDKey)
-    const {inputRef, setTextInput} = useInput()
-    const lastTextRef = React.useRef('')
-    const {unsentText, unsentTextChanged, unsentTextChangedThrottled, setUnsentText} = useUnsentText(
-      conversationIDKey,
-      lastTextRef
-    )
+const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
+  p: Pick<
+    Props,
+    | 'conversationIDKey'
+    | 'maxInputArea'
+    | 'jumpToRecent'
+    | 'focusInputCounter'
+    | 'onRequestScrollDown'
+    | 'onRequestScrollUp'
+    | 'onRequestScrollToBottom'
+  > & {showGiphySearch: boolean; showCommandMarkdown: boolean; replyTo: Types.Ordinal | undefined}
+) {
+  const {conversationIDKey, focusInputCounter, showCommandMarkdown, onRequestScrollToBottom} = p
+  const {onRequestScrollDown, onRequestScrollUp, showGiphySearch, replyTo, jumpToRecent, maxInputArea} = p
+  const dispatch = Container.useDispatch()
+  const editOrdinal = Container.useSelector(state => state.chat2.editingMap.get(conversationIDKey))
+  const isEditing = !!editOrdinal
+  const isEditExploded = Container.useSelector(state =>
+    editOrdinal ? Constants.getMessage(state, conversationIDKey, editOrdinal)?.exploded ?? false : false
+  )
+  const {onSubmit} = useSubmit({
+    conversationIDKey,
+    editOrdinal,
+    jumpToRecent,
+    onRequestScrollToBottom,
+    replyTo,
+  })
+  const {sendTyping, sendTypingThrottled} = useTyping(conversationIDKey)
+  const {inputRef, setTextInput} = useInput()
+  const lastTextRef = React.useRef('')
+  const {unsentText, unsentTextChanged, unsentTextChangedThrottled, setUnsentText} = useUnsentText(
+    conversationIDKey,
+    lastTextRef
+  )
 
-    const setText = React.useCallback(
-      (text: string) => {
-        setTextInput(text)
-        setUnsentText(text)
-        sendTypingThrottled(!!text)
-      },
-      [sendTypingThrottled, setUnsentText, setTextInput]
-    )
+  const setText = React.useCallback(
+    (text: string) => {
+      setTextInput(text)
+      setUnsentText(text)
+      sendTypingThrottled(!!text)
+    },
+    [sendTypingThrottled, setUnsentText, setTextInput]
+  )
 
-    const onSubmitAndClear = React.useCallback(
-      (text: string) => {
-        onSubmit(text)
-        setText('')
-      },
-      [onSubmit, setText]
-    )
-
-    const onChangeText = React.useCallback(
-      (text: string) => {
-        lastTextRef.current = text
-        const skipThrottle = lastTextRef.current.length > 0 && text.length === 0
-        setUnsentText(text)
-
-        // If the input bar has been cleared, send typing notification right away
-        if (skipThrottle) {
-          sendTypingThrottled.cancel()
-          sendTyping(false)
-        } else {
-          sendTypingThrottled(!!text)
-        }
-
-        const skipDebounce = text.startsWith('/')
-
-        if (skipDebounce) {
-          unsentTextChangedThrottled.cancel()
-          unsentTextChanged(text)
-        } else {
-          unsentTextChangedThrottled(text)
-        }
-      },
-      [sendTyping, sendTypingThrottled, setUnsentText, unsentTextChanged, unsentTextChangedThrottled]
-    )
-
-    React.useEffect(() => {
-      if (unsentText !== undefined) {
-        lastTextRef.current = unsentText
-        setTextInput(unsentText)
-      }
-    }, [unsentText, setTextInput])
-
-    const isActiveForFocus = Container.useSelector(state => state.chat2.focus === null)
-    React.useEffect(() => {
-      inputRef.current?.focus()
-    }, [inputRef, focusInputCounter, isActiveForFocus, isEditing])
-
-    const onCancelEditing = React.useCallback(() => {
-      dispatch(Chat2Gen.createMessageSetEditing({conversationIDKey, ordinal: null}))
+  const onSubmitAndClear = React.useCallback(
+    (text: string) => {
+      onSubmit(text)
       setText('')
-    }, [dispatch, conversationIDKey, setText])
+    },
+    [onSubmit, setText]
+  )
 
-    React.useEffect(() => {
-      if (isEditing && isEditExploded) {
-        onCancelEditing()
+  const onChangeText = React.useCallback(
+    (text: string) => {
+      lastTextRef.current = text
+      const skipThrottle = lastTextRef.current.length > 0 && text.length === 0
+      setUnsentText(text)
+
+      // If the input bar has been cleared, send typing notification right away
+      if (skipThrottle) {
+        sendTypingThrottled.cancel()
+        sendTyping(false)
+      } else {
+        sendTypingThrottled(!!text)
       }
-    }, [isEditing, isEditExploded, onCancelEditing])
 
-    const showTypingStatus = Container.useSelector(
-      state =>
-        Constants.getTyping(state, conversationIDKey).size !== 0 && !showGiphySearch && !showCommandMarkdown
-    )
-    const showWalletsIcon = Container.useSelector(state =>
-      Constants.shouldShowWalletsIcon(state, conversationIDKey)
-    )
-    const explodingModeSeconds = Container.useSelector(state =>
-      Constants.getConversationExplodingMode(state, conversationIDKey)
-    )
-    const isExploding = explodingModeSeconds !== 0
-    const cannotWrite = Container.useSelector(
-      state => Constants.getMeta(state, conversationIDKey).cannotWrite
-    )
-    const minWriterRole = Container.useSelector(
-      state => Constants.getMeta(state, conversationIDKey).minWriterRole
-    )
-    const hintText = useHintText({cannotWrite, conversationIDKey, isEditing, isExploding, minWriterRole})
-    const infoPanelShowing = Container.useSelector(state => state.chat2.infoPanelShowing)
-    const suggestBotCommandsUpdateStatus = Container.useSelector(
-      state =>
-        state.chat2.botCommandsUpdateStatusMap.get(conversationIDKey) ||
-        RPCChatTypes.UIBotCommandsUpdateStatusTyp.blank
-    )
+      const skipDebounce = text.startsWith('/')
 
-    return (
-      <PlatformInput
-        hintText={hintText}
-        maxInputArea={maxInputArea}
-        suggestionOverlayStyle={
-          infoPanelShowing ? styles.suggestionOverlayInfoShowing : styles.suggestionOverlay
-        }
-        suggestBotCommandsUpdateStatus={suggestBotCommandsUpdateStatus}
-        onSubmit={onSubmitAndClear}
-        inputSetRef={inputRef}
-        onChangeText={onChangeText}
-        onCancelEditing={onCancelEditing}
-        cannotWrite={cannotWrite}
-        conversationIDKey={conversationIDKey}
-        explodingModeSeconds={explodingModeSeconds}
-        isEditing={isEditing}
-        isExploding={isExploding}
-        minWriterRole={minWriterRole}
-        onRequestScrollDown={onRequestScrollDown}
-        onRequestScrollUp={onRequestScrollUp}
-        showReplyPreview={!!replyTo}
-        showTypingStatus={showTypingStatus}
-        showWalletsIcon={showWalletsIcon}
-      />
-    )
-  }
-)
+      if (skipDebounce) {
+        unsentTextChangedThrottled.cancel()
+        unsentTextChanged(text)
+      } else {
+        unsentTextChangedThrottled(text)
+      }
+    },
+    [sendTyping, sendTypingThrottled, setUnsentText, unsentTextChanged, unsentTextChangedThrottled]
+  )
+
+  React.useEffect(() => {
+    if (unsentText !== undefined) {
+      lastTextRef.current = unsentText
+      setTextInput(unsentText)
+    }
+  }, [unsentText, setTextInput])
+
+  const isActiveForFocus = Container.useSelector(state => state.chat2.focus === null)
+  React.useEffect(() => {
+    inputRef.current?.focus()
+  }, [inputRef, focusInputCounter, isActiveForFocus, isEditing])
+
+  const onCancelEditing = React.useCallback(() => {
+    dispatch(Chat2Gen.createMessageSetEditing({conversationIDKey, ordinal: null}))
+    setText('')
+  }, [dispatch, conversationIDKey, setText])
+
+  React.useEffect(() => {
+    if (isEditing && isEditExploded) {
+      onCancelEditing()
+    }
+  }, [isEditing, isEditExploded, onCancelEditing])
+
+  const showTypingStatus = Container.useSelector(
+    state =>
+      Constants.getTyping(state, conversationIDKey).size !== 0 && !showGiphySearch && !showCommandMarkdown
+  )
+  const showWalletsIcon = Container.useSelector(state =>
+    Constants.shouldShowWalletsIcon(state, conversationIDKey)
+  )
+  const explodingModeSeconds = Container.useSelector(state =>
+    Constants.getConversationExplodingMode(state, conversationIDKey)
+  )
+  const isExploding = explodingModeSeconds !== 0
+  const cannotWrite = Container.useSelector(state => Constants.getMeta(state, conversationIDKey).cannotWrite)
+  const minWriterRole = Container.useSelector(
+    state => Constants.getMeta(state, conversationIDKey).minWriterRole
+  )
+  const hintText = useHintText({cannotWrite, conversationIDKey, isEditing, isExploding, minWriterRole})
+  const infoPanelShowing = Container.useSelector(state => state.chat2.infoPanelShowing)
+  const suggestBotCommandsUpdateStatus = Container.useSelector(
+    state =>
+      state.chat2.botCommandsUpdateStatusMap.get(conversationIDKey) ||
+      RPCChatTypes.UIBotCommandsUpdateStatusTyp.blank
+  )
+
+  return (
+    <PlatformInput
+      hintText={hintText}
+      maxInputArea={maxInputArea}
+      suggestionOverlayStyle={
+        infoPanelShowing ? styles.suggestionOverlayInfoShowing : styles.suggestionOverlay
+      }
+      suggestBotCommandsUpdateStatus={suggestBotCommandsUpdateStatus}
+      onSubmit={onSubmitAndClear}
+      inputSetRef={inputRef}
+      onChangeText={onChangeText}
+      onCancelEditing={onCancelEditing}
+      cannotWrite={cannotWrite}
+      conversationIDKey={conversationIDKey}
+      explodingModeSeconds={explodingModeSeconds}
+      isEditing={isEditing}
+      isExploding={isExploding}
+      minWriterRole={minWriterRole}
+      onRequestScrollDown={onRequestScrollDown}
+      onRequestScrollUp={onRequestScrollUp}
+      showReplyPreview={!!replyTo}
+      showTypingStatus={showTypingStatus}
+      showWalletsIcon={showWalletsIcon}
+    />
+  )
+})
 
 const styles = Styles.styleSheetCreate(
   () =>

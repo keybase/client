@@ -53,7 +53,7 @@ const Broken = (p: {users: Array<string>}) => {
   return <Kb.ProofBrokenBanner users={users} />
 }
 
-const BannerContainer = React.memo((p: {conversationIDKey: Types.ConversationIDKey}) => {
+const BannerContainer = React.memo(function BannerContainer(p: {conversationIDKey: Types.ConversationIDKey}) {
   const {conversationIDKey} = p
   const following = Container.useSelector(state => state.config.following)
   const participantInfoAll = Container.useSelector(

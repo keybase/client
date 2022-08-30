@@ -10,7 +10,7 @@ type Props = {
 const baseWidth = Styles.isMobile ? 100 : 150
 const mult = Styles.isMobile ? 5 : 10
 
-const MessagePlaceholder = React.memo((props: Props) => {
+const MessagePlaceholder = React.memo(function MessagePlaceholder(props: Props) {
   const o = Types.ordinalToNumber(props.ordinal)
   const code = o * 16807
   const width = baseWidth + (code % 20) * mult // pseudo randomize the length

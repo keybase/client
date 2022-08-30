@@ -113,18 +113,23 @@ const AppTabs = React.memo(
 
 const LoggedOutStack = createNoDupeStackNavigator()
 const LoggedOutScreens = makeNavScreens(Shim.shim(loggedOutRoutes, false, true), LoggedOutStack.Screen, false)
-const LoggedOut = React.memo(() => (
-  <LoggedOutStack.Navigator
-    initialRouteName="login"
-    screenOptions={{
-      header: ({navigation}) => (
-        <Header navigation={navigation} options={{headerBottomStyle: {height: 0}, headerHideBorder: true}} />
-      ),
-    }}
-  >
-    {LoggedOutScreens}
-  </LoggedOutStack.Navigator>
-))
+const LoggedOut = React.memo(function LoggedOut() {
+  return (
+    <LoggedOutStack.Navigator
+      initialRouteName="login"
+      screenOptions={{
+        header: ({navigation}) => (
+          <Header
+            navigation={navigation}
+            options={{headerBottomStyle: {height: 0}, headerHideBorder: true}}
+          />
+        ),
+      }}
+    >
+      {LoggedOutScreens}
+    </LoggedOutStack.Navigator>
+  )
+})
 
 const RootStack = createNoDupeStackNavigator()
 const ModalScreens = makeNavScreens(Shim.shim(modalRoutes, true, false), RootStack.Screen, true)

@@ -130,7 +130,7 @@ export const useSharedAfter = (appState: React.MutableRefObject<AppState>) => {
   }
 }
 
-export const SimpleLoading = React.memo(() => {
+export const SimpleLoading = React.memo(function SimpleLoading() {
   return (
     <Kb.Box2
       direction="vertical"

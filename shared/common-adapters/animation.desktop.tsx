@@ -18,7 +18,7 @@ const useAnimationData = (type: AnimationType) => {
   return options
 }
 
-const Animation = React.memo((props: Props) => {
+const Animation = React.memo(function Animation(props: Props) {
   const {style, width, height, animationType} = props
   const element = React.useRef<HTMLDivElement>(null)
   const lottieInstance = React.useRef<any>()

@@ -10,7 +10,7 @@ import {indefiniteArticle} from '../../../util/string'
 
 type Props = {conversationIDKey: Types.ConversationIDKey}
 
-const NormalWrapper = React.memo((props: Props) => {
+const NormalWrapper = React.memo(function NormalWrapper(props: Props) {
   const {conversationIDKey} = props
   const [focusInputCounter, setFocusInputCounter] = React.useState(0)
   const onFocusInput = React.useCallback(() => {

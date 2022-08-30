@@ -118,7 +118,7 @@ const ErrorMessage = () => {
   )
 }
 
-const SpecialTopMessage = React.memo((props: Props) => {
+const SpecialTopMessage = React.memo(function SpecialTopMessage(props: Props) {
   const {conversationIDKey, measure} = props
   const username = Container.useSelector(state => state.config.username)
   const dispatch = Container.useDispatch()

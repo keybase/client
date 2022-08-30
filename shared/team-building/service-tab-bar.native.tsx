@@ -72,7 +72,7 @@ const TabletBottomBorderExtension = React.memo(
   }
 )
 
-const ServiceIcon = React.memo((props: IconProps) => {
+const ServiceIcon = React.memo(function ServiceIcon(props: IconProps) {
   const {offset, isActive, service, label, onClick} = props
   const color = isActive ? serviceIdToAccentColor(service) : Styles.globalColors.black
 

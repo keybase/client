@@ -135,11 +135,11 @@ const Buttons = (p: ButtonsProps) => {
 const AnimatedIcon = createAnimatedComponent(Kb.Icon)
 const AnimatedExpand = (() => {
   if (skipAnimations) {
-    return React.memo(() => {
+    return React.memo(function AnimatedExpand() {
       return null
     })
   } else {
-    return React.memo((p: {expandInput: () => void; expanded: boolean}) => {
+    return React.memo(function AnimatedExpand(p: {expandInput: () => void; expanded: boolean}) {
       const {expandInput, expanded} = p
       const offset = useSharedValue(expanded ? 1 : 0)
       const topStyle: any = useAnimatedStyle(() => ({

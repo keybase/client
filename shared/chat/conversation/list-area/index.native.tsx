@@ -22,7 +22,7 @@ type AnimatedChildProps = {
   animatingKey: string
   children: React.ReactNode
 }
-const AnimatedChild = React.memo(({children, animatingKey}: AnimatedChildProps) => {
+const AnimatedChild = React.memo(function AnimatedChild({children, animatingKey}: AnimatedChildProps) {
   const translateY = new Animated.Value(999)
   const opacity = new Animated.Value(0)
   React.useEffect(() => {
@@ -211,7 +211,9 @@ const useScrolling = (p: {
   }
 }
 
-const ConversationList = React.memo((p: {conversationIDKey: Types.ConversationIDKey}) => {
+const ConversationList = React.memo(function ConversationList(p: {
+  conversationIDKey: Types.ConversationIDKey
+}) {
   const {conversationIDKey} = p
   const centeredOrdinal = Container.useSelector(
     state => Constants.getMessageCenterOrdinal(state, conversationIDKey)?.ordinal ?? -1
@@ -283,11 +285,15 @@ const ConversationList = React.memo((p: {conversationIDKey: Types.ConversationID
   }, [markInitiallyLoadedThreadAsRead])
 
   const listHeaderComponent = React.useMemo(
-    () => <SpecialBottomMessage conversationIDKey={conversationIDKey} />,
+    function ListHeaderComponent() {
+      return <SpecialBottomMessage conversationIDKey={conversationIDKey} />
+    },
     [conversationIDKey]
   )
   const listFooterComponent = React.useMemo(
-    () => <SpecialTopMessage conversationIDKey={conversationIDKey} />,
+    function ListFooterComponent() {
+      return <SpecialTopMessage conversationIDKey={conversationIDKey} />
+    },
     [conversationIDKey]
   )
 

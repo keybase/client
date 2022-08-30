@@ -17,7 +17,7 @@ type AnimationObject = {
 }
 type AOM = {[key: string]: AnimationObject}
 
-const Animation = React.memo((props: Props) => {
+const Animation = React.memo(function Animation(props: Props) {
   const {animationType} = props
   const dataRef = React.useRef<AOM>()
   if (!dataRef.current) {

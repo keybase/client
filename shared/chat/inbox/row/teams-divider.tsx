@@ -30,7 +30,7 @@ const getRowCounts = memoize((badges: Types.ConversationCountMap, rows: Array<Ty
   return {badgeCount, hiddenCount}
 })
 
-const TeamsDivider = React.memo((props: Props) => {
+const TeamsDivider = React.memo(function TeamsDivider(props: Props) {
   const {rows, showButton, style, hiddenCountDelta, toggle, smallTeamsExpanded} = props
   const badges = Container.useSelector(state => state.chat2.badgeMap)
   const smallTeamBadgeCount = Container.useSelector(state => state.chat2.smallTeamBadgeCount)

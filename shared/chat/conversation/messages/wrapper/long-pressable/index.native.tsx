@@ -10,7 +10,7 @@ const _renderRightActions = () => {
   )
 }
 
-const Inner = React.memo((p: any) => {
+const Inner = React.memo(function Inner(p: any) {
   const {children, ...rest} = p
   return (
     <Kb.NativeTouchableHighlight

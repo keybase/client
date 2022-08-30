@@ -72,7 +72,7 @@ type WrapperProps = Pick<
   'isSearching' | 'navKey' | 'neverLoaded' | 'rows' | 'smallTeamsExpanded' | 'unreadIndices' | 'unreadTotal'
 >
 
-const InboxWrapper = React.memo((props: WrapperProps) => {
+const InboxWrapper = React.memo(function InboxWrapper(props: WrapperProps) {
   const dispatch = Container.useDispatch()
   const inboxHasLoaded = Container.useSelector(state => state.chat2.inboxHasLoaded)
   const isFocused = useIsFocused()

@@ -14,6 +14,7 @@ import Text, {
 } from './text'
 import {backgroundModeIsNegative} from './text.shared'
 import shallowEqual from 'shallowequal'
+import isArray from 'lodash/isArray'
 
 export type User = {
   username: string
@@ -266,7 +267,14 @@ const _Usernames = (props: Props) => {
     </Text>
   )
 }
-const Usernames = React.memo(_Usernames)
+const Usernames = React.memo(_Usernames, (p, n) =>
+  shallowEqual(p, n, (v, o) => {
+    if (isArray(v) && isArray(o)) {
+      return shallowEqual(v, o)
+    }
+    return undefined
+  })
+)
 
 // 15550123456@phone => +1 (555) 012-3456
 // [test@example.com]@email => test@example.com
