@@ -1,5 +1,5 @@
-import {Component} from 'react'
-import * as Types from '../../constants/types/settings'
+import * as React from 'react'
+import type * as Types from '../../constants/types/settings'
 
 export type Props = {
   allowEdit: boolean
@@ -8,11 +8,10 @@ export type Props = {
   onClickYourAccount: () => void
   onToggle: (groupName: string, name: string) => void
   onToggleUnsubscribeAll: (group: string) => void
-  mobileHasPermissions: boolean
   waitingForResponse: boolean
   showEmailSection: boolean
   sound?: boolean
   onToggleSound?: (sound: boolean) => void
 }
 
-export default class Notifications extends Component<Props> {}
+export default class Notifications extends React.Component<Props> {}

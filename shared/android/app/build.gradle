@@ -84,8 +84,8 @@ project.ext.react = [
     // the root of your project, i.e. where "package.json" lives
     root: "../../",
     entryFile: "index.android.js",
-    enableHermes: true, // clean and rebuild if changing
-    bundleInDebug: true
+    enableHermes: true // clean and rebuild if changing
+    // bundleInDebug: true // if you want better sourcemaps in profiling, but slower builds
 ]
 
 
