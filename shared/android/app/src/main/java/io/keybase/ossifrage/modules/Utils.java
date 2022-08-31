@@ -9,6 +9,7 @@ import java.io.IOException;
 import android.net.Uri;
 
 import androidx.annotation.NonNull;
+import androidx.core.app.NotificationManagerCompat;
 
 import com.facebook.react.BuildConfig;
 import com.facebook.react.bridge.Promise;
@@ -34,7 +35,25 @@ public class Utils extends ReactContextBaseJavaModule {
     public String getName() { return NAME; }
 
     @ReactMethod
-    public void androidGetRegistrationToken(Promise promise) {
+    public void androidCheckPushPermissions(Promise promise) {
+        ReactApplicationContext reactContext = getReactApplicationContext();
+        NotificationManagerCompat managerCompat = NotificationManagerCompat.from(reactContext);
+        promise.resolve(managerCompat.areNotificationsEnabled());
+    }
+
+    @ReactMethod
+    public void androidRequestPushPermissions(Promise promise) {
+        this.ensureFirebase();
+        FirebaseInstanceId.getInstance().getInstanceId()
+                .addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<InstanceIdResult> task) {
+                        androidCheckPushPermissions(promise);
+                    }
+                });
+    }
+
+    private void ensureFirebase() {
         boolean firebaseInitialized = FirebaseApp.getApps(getReactApplicationContext()).size() == 1;
         if (!firebaseInitialized) {
             FirebaseApp.initializeApp(getReactApplicationContext(),
@@ -45,6 +64,11 @@ public class Utils extends ReactContextBaseJavaModule {
                             .build()
             );
         }
+    }
+
+    @ReactMethod
+    public void androidGetRegistrationToken(Promise promise) {
+        this.ensureFirebase();
         FirebaseInstanceId.getInstance().getInstanceId()
                 .addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
                     @Override
@@ -63,8 +87,6 @@ public class Utils extends ReactContextBaseJavaModule {
                     }
                 });
     }
-
-
 
     @ReactMethod
     public void getDefaultCountryCode(Promise promise) {

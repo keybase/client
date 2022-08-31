@@ -1,10 +1,11 @@
+import * as Container from '../../util/container'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import * as Types from '../../constants/types/settings'
-import {Props} from './index'
+import type * as Types from '../../constants/types/settings'
+import type {Props} from './index'
 
-export const Group = (props: {
+type GroupProps = {
   allowEdit: boolean
   groupName: string
   label?: string
@@ -14,7 +15,9 @@ export const Group = (props: {
   title?: string
   unsub?: string
   unsubscribedFromAll: boolean
-}) => (
+}
+
+export const Group = (props: GroupProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true}>
     {!!props.title && <Kb.Text type="Header">{props.title}</Kb.Text>}
     {!!props.label && (
@@ -81,8 +84,9 @@ const PhoneSection = (props: Props) => (
     unsubscribedFromAll={props.groups.get('app_push')!.unsub}
   />
 )
-const Notifications = (props: Props) =>
-  !props.groups || !props.groups.get('email')?.settings ? (
+const Notifications = (props: Props) => {
+  const mobileHasPermissions = Container.useSelector(state => state.push.hasPermissions)
+  return !props.groups || !props.groups.get('email')?.settings ? (
     <Kb.Box2 direction="vertical" style={styles.loading}>
       <Kb.ProgressIndicator type="Small" style={{width: Styles.globalMargins.medium}} />
     </Kb.Box2>
@@ -102,7 +106,7 @@ const Notifications = (props: Props) =>
           </Kb.Text>
         </Kb.Box2>
       )}
-      {(!Styles.isMobile || props.mobileHasPermissions) && !!props.groups.get('app_push')?.settings ? (
+      {(!Styles.isMobile || mobileHasPermissions) && !!props.groups.get('app_push')?.settings ? (
         <>
           <Kb.Divider style={styles.divider} />
           <PhoneSection {...props} />
@@ -110,8 +114,7 @@ const Notifications = (props: Props) =>
       ) : null}
     </Kb.Box>
   )
-
-export default Notifications
+}
 
 const styles = Styles.styleSheetCreate(
   () =>
@@ -130,3 +133,5 @@ const styles = Styles.styleSheetCreate(
       }),
     } as const)
 )
+
+export default Notifications

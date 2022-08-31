@@ -40,6 +40,9 @@ type NativeModulesType = {
     }) => Promise<void>
     // android only
     androidUnlink?: (path: string) => Promise<void>
+    // android only
+    androidCheckPushPermissions?: () => Promise<boolean>
+    androidRequestPushPermissions?: () => Promise<boolean>
   }
   LogSend: {
     logSend: (

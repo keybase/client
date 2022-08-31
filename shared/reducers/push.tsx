@@ -1,6 +1,6 @@
 import * as Container from '../util/container'
 import * as PushGen from '../actions/push-gen'
-import * as Types from '../constants/types/push'
+import type * as Types from '../constants/types/push'
 
 const initialState: Types.State = {
   hasPermissions: true,
