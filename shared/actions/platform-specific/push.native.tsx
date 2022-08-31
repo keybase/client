@@ -267,10 +267,10 @@ const requestPermissionsFromNative: () => Promise<{
 }> = async () =>
   isIOS
     ? (PushNotificationIOS.requestPermissions() as any)
-    : new Promise(resolve =>
+    : new Promise((resolve, reject) =>
         NativeModules.Utils.androidRequestPushPermissions?.()
           ?.then(on => resolve({alert: on, badge: on, sound: on}))
-          .catch(() => {})
+          .catch(() => reject())
       )
 
 const askNativeIfSystemPushPromptHasBeenShown = async () =>
