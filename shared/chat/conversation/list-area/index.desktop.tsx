@@ -522,7 +522,6 @@ const ThreadWrapperInner = (p: Props) => {
   const messageOrdinals = Container.useSelector(state =>
     Constants.getMessageOrdinals(state, conversationIDKey)
   )
-  console.log('aaa messor', messageOrdinals)
   const centeredOrdinal = Container.useSelector(
     state => Constants.getMessageCenterOrdinal(state, conversationIDKey)?.ordinal
   )
