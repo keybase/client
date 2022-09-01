@@ -16,6 +16,7 @@ import partition from 'lodash/partition'
 import shallowEqual from 'shallowequal'
 import {mapGetEnsureValue, mapEqual} from '../util/map'
 import sortedIndexOf from 'lodash/sortedIndexOf'
+import {findLast} from '../util/arrays'
 
 type EngineActions =
   | EngineGen.Chat1NotifyChatChatTypingUpdatePayload
@@ -724,7 +725,7 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
 
     // Editing your last message
     const ordinals = messageOrdinals.get(conversationIDKey) ?? []
-    const found = ordinals.reverse().find(o => {
+    const found = findLast(ordinals, o => {
       const message = messageMap?.get(o)
       return !!(
         (message?.type === 'text' || message?.type === 'attachment') &&

@@ -15,3 +15,13 @@ export function intersperseFn<A, B>(
   }
   return toReturn
 }
+
+export function findLast<T>(arr: Array<T>, cb: (t: T) => boolean): T | undefined {
+  const last = arr.length - 1
+  for (let i = last; i >= 0; --i) {
+    if (cb(arr[i])) {
+      return arr[i]
+    }
+  }
+  return undefined
+}
