@@ -1416,7 +1416,7 @@ export const mergeMessage = (old: Types.Message | null, m: Types.Message): Types
       case 'bodySummary':
       case 'decoratedText':
       case 'text':
-        if (old[key]?.stringValue() === m[key]?.stringValue()) {
+        if (old[key]?.stringValue?.() === m[key]?.stringValue?.()) {
           toRet[key] = old[key]
         } else {
           allSame = false
