@@ -16,6 +16,7 @@ import chunk from 'lodash/chunk'
 import {globalMargins} from '../../../styles/shared'
 import {useMemo} from '../../../util/memoize'
 import * as Hooks from './hooks'
+import {findLast} from '../../../util/arrays'
 
 // Infinite scrolling list.
 // We group messages into a series of Waypoints. When the waypoint exits the screen we replace it with a single div instead
@@ -400,7 +401,8 @@ const useScrolling = (
     if (!waypoints) return
     // find an id that should be our parent
     const toFind = Math.floor(Types.ordinalToNumber(editingOrdinal) / 10)
-    const found = (Array.from(waypoints) as Array<HTMLElement>).reverse().find(w => {
+    const allWaypoints = Array.from(waypoints) as Array<HTMLElement>
+    const found = findLast(allWaypoints, w => {
       const key = w.dataset.key
       return key !== undefined && parseInt(key, 10) === toFind
     })
