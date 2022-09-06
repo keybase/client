@@ -10,6 +10,7 @@ const YouResult = React.memo(function YouResult(props: ResultProps) {
   const dispatch = Container.useDispatch()
   const onSelfChat = () => {
     dispatch(TeamBuildingGen.createCancelTeamBuilding({namespace: 'chat2'}))
+    // wait till modal is gone else we can thrash
     setTimeout(() => {
       dispatch(Chat2Gen.createPreviewConversation({participants: [props.username], reason: 'search'}))
     }, 500)

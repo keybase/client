@@ -3449,6 +3449,7 @@ const createConversationFromTeamBuilder = async (
   state: Container.TypedState,
   {payload: {namespace}}: TeamBuildingGen.FinishedTeamBuildingPayload
 ) => {
+  // need to let the mdoal hide first else its thrashy
   await Container.timeoutPromise(500)
   return [
     Chat2Gen.createNavigateToThread({
