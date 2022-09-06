@@ -4,13 +4,15 @@ import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as Chat2Gen from '../../actions/chat2-gen'
 import * as TeamBuildingGen from '../../actions/team-building-gen'
-import CommonResult, {ResultProps} from './common-result'
+import CommonResult, {type ResultProps} from './common-result'
 
 const YouResult = React.memo(function YouResult(props: ResultProps) {
   const dispatch = Container.useDispatch()
   const onSelfChat = () => {
     dispatch(TeamBuildingGen.createCancelTeamBuilding({namespace: 'chat2'}))
-    dispatch(Chat2Gen.createPreviewConversation({participants: [props.username], reason: 'search'}))
+    setTimeout(() => {
+      dispatch(Chat2Gen.createPreviewConversation({participants: [props.username], reason: 'search'}))
+    }, 500)
   }
 
   let bottomRow: React.ReactNode = null

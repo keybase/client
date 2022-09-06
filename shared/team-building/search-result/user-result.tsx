@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import CommonResult, {ResultProps} from './common-result'
+import CommonResult, {type ResultProps} from './common-result'
 import YouResult from './you-result'
 import HellobotResult from './hellobot-result'
 

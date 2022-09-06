@@ -125,7 +125,7 @@ const TeamBuilding = () => {
         debouncedSearch(dispatch, namespace, query, service, namespace === 'chat2', limit)
       }
     },
-    [debouncedSearchKeybase, debouncedSearch, dispatch, namespace]
+    [dispatch, namespace]
   )
 
   const onFinishTeamBuilding = React.useCallback(() => {
@@ -177,7 +177,15 @@ const TeamBuilding = () => {
       setHighlightedIndex(-1)
       incFocusInputCounter()
     },
-    [dispatch, onChangeText, namespace, setHighlightedIndex, incFocusInputCounter]
+    [
+      dispatch,
+      onChangeText,
+      namespace,
+      setHighlightedIndex,
+      incFocusInputCounter,
+      userResults,
+      teamBuildingState,
+    ]
   )
 
   const onChangeService = React.useCallback(
@@ -188,7 +196,7 @@ const TeamBuilding = () => {
         search(searchString, service)
       }
     },
-    [search]
+    [search, incFocusInputCounter, setSelectedService, searchString]
   )
 
   const route = useRoute<RootRouteProps<'peopleTeamBuilder'>>()
