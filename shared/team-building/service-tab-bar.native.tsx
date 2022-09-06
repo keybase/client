@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as Kb from '../common-adapters/mobile.native'
 import * as Styles from '../styles'
 import {serviceIdToIconFont, serviceIdToAccentColor, serviceIdToLongLabel, serviceIdToBadge} from './shared'
+import type {ServiceIdWithContact} from '../constants/types/team-building'
 import {ScrollView} from 'react-native'
 import type {Props, IconProps} from './service-tab-bar'
 import {
@@ -157,7 +158,7 @@ export const ServiceTabBar = (props: Props) => {
   const {onChangeService, offset, services, selectedService} = props
   const bounceX = useSharedValue(40)
   const onClick = React.useCallback(
-    service => {
+    (service: ServiceIdWithContact) => {
       onChangeService(service)
     },
     [onChangeService]
