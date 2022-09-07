@@ -130,7 +130,7 @@ const WalletsRootNav = () => {
         />
       ) : (
         <RootStack.Screen
-          name="onboarding"
+          name="walletOnboarding"
           component={RoutedOnboarding}
           options={{header: () => null, headerTitle: ''}}
         />

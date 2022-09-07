@@ -15,9 +15,11 @@ window.console._error = window.console.error
 window.console._info = window.console.info
 
 // uncomment this to watch the RN bridge traffic: https://github.com/facebook/react-native/commit/77e48f17824870d30144a583be77ec5c9cf9f8c5
-// require('react-native/Libraries/BatchedBridge/MessageQueue').spy(msg =>
-//   console._log('queuespy: ', msg, JSON.stringify(msg).length)
-// )
+// require('react-native/Libraries/BatchedBridge/MessageQueue').spy(msg => {
+//   if (msg.module !== 'WebSocketModule') {
+//     console._log('queuespy: ', msg, JSON.stringify(msg).length)
+//   }
+// })
 // uncomment this to watch for event loop stalls: https://github.com/facebook/react-native/blob/0.59-stable/Libraries/Interaction/BridgeSpyStallHandler.js
 // require('react-native/Libraries/Interaction/InteractionStallDebugger').install({thresholdMS: 100})
 
@@ -51,7 +53,7 @@ let config = {
 
 // Developer settings
 if (__DEV__) {
-  config.enableActionLogging = false
+  config.enableActionLogging = true
   config.enableStoreLogging = false
   config.immediateStateLogging = false
   // Move this outside the if statement to get notifications working

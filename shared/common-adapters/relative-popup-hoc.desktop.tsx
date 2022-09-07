@@ -7,7 +7,7 @@ import without from 'lodash/without'
 import Box from './box'
 import ReactDOM from 'react-dom'
 import {EscapeHandler} from '../util/key-event-handler.desktop'
-import {Position} from './relative-popup-hoc.types'
+import type {Position} from './relative-popup-hoc.types'
 
 const Kb = {
   Box,
@@ -16,6 +16,7 @@ const Kb = {
 const getModalRoot = () => document.getElementById('modal-root')
 class Modal extends React.Component<{
   setNode: (node: HTMLElement) => void
+  children?: React.ReactNode
 }> {
   el: HTMLElement
   constructor(props) {

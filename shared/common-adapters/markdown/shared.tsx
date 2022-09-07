@@ -289,7 +289,7 @@ class SimpleMarkdownComponent extends PureComponent<MarkdownProps, {hasError: bo
     }
     const {allowFontScaling, styleOverride = {}, paragraphTextClassName} = this.props
     let parseTree: Array<SimpleMarkdown.SingleASTNode>
-    let output: SimpleMarkdown.Output<any>
+    let output: React.ReactNode
     try {
       parseTree = simpleMarkdownParser((this.props.children || '').trim() + '\n', {
         // This flag adds 2 new lines at the end of our input. One is necessary to parse the text as a paragraph, but the other isn't

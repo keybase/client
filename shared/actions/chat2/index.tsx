@@ -3445,18 +3445,22 @@ const dismissBlockButtons = async (_: unknown, action: Chat2Gen.DismissBlockButt
   }
 }
 
-const createConversationFromTeamBuilder = (
+const createConversationFromTeamBuilder = async (
   state: Container.TypedState,
   {payload: {namespace}}: TeamBuildingGen.FinishedTeamBuildingPayload
-) => [
-  Chat2Gen.createNavigateToThread({
-    conversationIDKey: Constants.pendingWaitingConversationIDKey,
-    reason: 'justCreated',
-  }),
-  Chat2Gen.createCreateConversation({
-    participants: [...state[namespace].teamBuilding.finishedTeam].map(u => u.id),
-  }),
-]
+) => {
+  // need to let the mdoal hide first else its thrashy
+  await Container.timeoutPromise(500)
+  return [
+    Chat2Gen.createNavigateToThread({
+      conversationIDKey: Constants.pendingWaitingConversationIDKey,
+      reason: 'justCreated',
+    }),
+    Chat2Gen.createCreateConversation({
+      participants: [...state[namespace].teamBuilding.finishedTeam].map(u => u.id),
+    }),
+  ]
+}
 
 const setInboxNumSmallRows = async (
   state: Container.TypedState,

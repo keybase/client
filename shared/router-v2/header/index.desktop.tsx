@@ -102,7 +102,7 @@ class DesktopHeader extends React.PureComponent<Props> {
       if (React.isValidElement(opt.headerTitle)) {
         title = opt.headerTitle
       } else if (ReactIs.isValidElementType(opt.headerTitle)) {
-        const CustomTitle = opt.headerTitle
+        const CustomTitle = opt.headerTitle as any
         title = <CustomTitle params={this.props.params}>{opt.title}</CustomTitle>
       }
     }

@@ -264,7 +264,7 @@ const requestPermissionsFromNative: () => Promise<{
   alert: boolean
   badge: boolean
   sound: boolean
-}> = async () =>
+}> = () =>
   isIOS
     ? (PushNotificationIOS.requestPermissions() as any)
     : new Promise((resolve, reject) =>

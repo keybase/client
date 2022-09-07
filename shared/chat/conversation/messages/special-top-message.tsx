@@ -13,6 +13,7 @@ import MakeTeamCard from './cards/make-team'
 import NewChatCard from './cards/new-chat'
 import ProfileResetNotice from './system-profile-reset-notice/container'
 import RetentionNotice from './retention-notice/container'
+import shallowEqual from 'shallowequal'
 
 type Props = {
   conversationIDKey: Types.ConversationIDKey
@@ -146,7 +147,8 @@ const SpecialTopMessage = React.memo(function SpecialTopMessage(props: Props) {
   )
 
   const participantInfoAll = Container.useSelector(
-    state => Constants.getParticipantInfo(state, conversationIDKey).all
+    state => Constants.getParticipantInfo(state, conversationIDKey).all,
+    (a, b) => shallowEqual(a, b)
   )
 
   let pendingState: 'waiting' | 'error' | 'done'

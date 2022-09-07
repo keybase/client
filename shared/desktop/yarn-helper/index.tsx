@@ -115,25 +115,30 @@ const warnFail = err => err && console.warn(`Error cleaning tscache ${err}, tsc 
 const getMsgPack = () => {
   if (process.platform === 'darwin') {
     const ver = '4.1.1'
+    const shasum = '3b64e37641520ea0c9d1f52f80de61ea1868b42c'
     const file = `msgpack-cxx-${ver}.tar.gz`
-    const url = `https://kbelectron.keybase.pub/misc/${file}`
+    const url = `https://github.com/msgpack/msgpack-c/releases/download/cpp-${ver}/${file}`
     const prefix = path.resolve(__dirname, '..', '..', 'node_modules')
     const dlpath = path.resolve(prefix, '.cache')
+    const shacheckcmd = `echo '${shasum} *.cache/${file}' | shasum -q -c`
+    const checkAndUntar = `cd node_modules ; ${shacheckcmd} && tar -xf .cache/${file}`
+    const downloadMP = `curl -L -o ${dlpath}/${file} ${url}`
+
     try {
       fs.mkdirSync(dlpath)
     } catch {}
     if (!fs.existsSync(path.resolve(dlpath, file))) {
       console.log('Missing msgpack-cpp, downloading')
-      exec(`curl -L -o ${dlpath}/${file} ${url}`)
+      exec(downloadMP)
     }
     if (!fs.existsSync(path.resolve(prefix, file))) {
       try {
-        exec(`cd node_modules ; tar -xf .cache/${file}`)
+        exec(checkAndUntar)
       } catch {
         console.log('untar failed, deleting, try building again. trying one more time')
         exec(`cd node_modules ; rm .cache/${file}`)
-        exec(`curl -L -o ${dlpath}/${file} ${url}`)
-        exec(`cd node_modules ; tar -xf .cache/${file}`)
+        exec(downloadMP)
+        exec(checkAndUntar)
       }
     }
   }

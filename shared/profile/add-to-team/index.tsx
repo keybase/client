@@ -17,7 +17,7 @@ type RowProps = {
 }
 
 type RolePickerProps = {
-  footerComponent: React.ElementType
+  footerComponent: React.ReactNode
   isRolePickerOpen: boolean
   onCancelRolePicker: () => void
   onConfirmRolePicker: (role: Types.TeamRoleType) => void

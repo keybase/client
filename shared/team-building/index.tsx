@@ -76,6 +76,7 @@ const debouncedSearchKeybase = makeDebouncedSearch(200) // 200 ms debounce on ke
 
 const TeamBuilding = () => {
   const {params} = useRoute<RootRouteProps<'peopleTeamBuilder'>>()
+  const dispatch = Container.useDispatch()
   const namespace = params?.namespace ?? 'chat2'
   const teamID = params?.teamID
   const filterServices = params?.filterServices
@@ -112,64 +113,91 @@ const TeamBuilding = () => {
   const error = teamBuildingState.error
   const teamSoFar = deriveTeamSoFar(teamBuildingState.teamSoFar)
 
-  const onClose = () => {
+  const onClose = React.useCallback(() => {
     dispatch(TeamBuildingGen.createCancelTeamBuilding({namespace}))
-  }
+  }, [dispatch, namespace])
 
-  const search = (query: string, service: TeamBuildingTypes.ServiceIdWithContact, limit?: number) => {
-    if (service === 'keybase') {
-      debouncedSearchKeybase(dispatch, namespace, query, service, namespace === 'chat2', limit)
-    } else {
-      debouncedSearch(dispatch, namespace, query, service, namespace === 'chat2', limit)
-    }
-  }
+  const search = React.useCallback(
+    (query: string, service: TeamBuildingTypes.ServiceIdWithContact, limit?: number) => {
+      if (service === 'keybase') {
+        debouncedSearchKeybase(dispatch, namespace, query, service, namespace === 'chat2', limit)
+      } else {
+        debouncedSearch(dispatch, namespace, query, service, namespace === 'chat2', limit)
+      }
+    },
+    [dispatch, namespace]
+  )
 
-  const onFinishTeamBuilding = () => {
+  const onFinishTeamBuilding = React.useCallback(() => {
     dispatch(
       namespace === 'teams'
         ? TeamBuildingGen.createFinishTeamBuilding({namespace, teamID})
         : TeamBuildingGen.createFinishedTeamBuilding({namespace})
     )
-  }
-  const onRemove = (userId: string) => {
-    dispatch(TeamBuildingGen.createRemoveUsersFromTeamSoFar({namespace, users: [userId]}))
-  }
+  }, [dispatch, namespace, teamID])
 
-  const onChangeText = (newText: string) => {
-    setSearchString(newText)
-    search(newText, selectedService)
-    setHighlightedIndex(0)
-  }
+  const onRemove = React.useCallback(
+    (userId: string) => {
+      dispatch(TeamBuildingGen.createRemoveUsersFromTeamSoFar({namespace, users: [userId]}))
+    },
+    [dispatch, namespace]
+  )
 
-  const onClear = () => onChangeText('')
-  const onSearchForMore = (len: number) => {
-    if (len >= 10) {
-      search(searchString, selectedService, len + 20)
-    }
-  }
-  const onAdd = (userId: string) => {
-    const user =
-      userResults?.filter(u => u.id === userId)?.[0] ??
-      teamBuildingState.userRecs?.filter(u => u.id === userId)?.[0]
+  const onChangeText = React.useCallback(
+    (newText: string) => {
+      setSearchString(newText)
+      search(newText, selectedService)
+      setHighlightedIndex(0)
+    },
+    [setSearchString, search, setHighlightedIndex, selectedService]
+  )
 
-    if (!user) {
-      logger.error(`Couldn't find Types.User to add for ${userId}`)
+  const onClear = React.useCallback(() => onChangeText(''), [onChangeText])
+  const onSearchForMore = React.useCallback(
+    (len: number) => {
+      if (len >= 10) {
+        search(searchString, selectedService, len + 20)
+      }
+    },
+    [search, selectedService, searchString]
+  )
+  const onAdd = React.useCallback(
+    (userId: string) => {
+      const user =
+        userResults?.filter(u => u.id === userId)?.[0] ??
+        teamBuildingState.userRecs?.filter(u => u.id === userId)?.[0]
+
+      if (!user) {
+        logger.error(`Couldn't find Types.User to add for ${userId}`)
+        onChangeText('')
+        return
+      }
       onChangeText('')
-      return
-    }
-    onChangeText('')
-    dispatch(TeamBuildingGen.createAddUsersToTeamSoFar({namespace, users: [user]}))
-    setHighlightedIndex(-1)
-    incFocusInputCounter()
-  }
+      dispatch(TeamBuildingGen.createAddUsersToTeamSoFar({namespace, users: [user]}))
+      setHighlightedIndex(-1)
+      incFocusInputCounter()
+    },
+    [
+      dispatch,
+      onChangeText,
+      namespace,
+      setHighlightedIndex,
+      incFocusInputCounter,
+      userResults,
+      teamBuildingState,
+    ]
+  )
 
-  const onChangeService = (service: TeamBuildingTypes.ServiceIdWithContact) => {
-    setSelectedService(service)
-    incFocusInputCounter()
-    if (!TeamBuildingTypes.isContactServiceId(service)) {
-      search(searchString, service)
-    }
-  }
+  const onChangeService = React.useCallback(
+    (service: TeamBuildingTypes.ServiceIdWithContact) => {
+      setSelectedService(service)
+      incFocusInputCounter()
+      if (!TeamBuildingTypes.isContactServiceId(service)) {
+        search(searchString, service)
+      }
+    },
+    [search, incFocusInputCounter, setSelectedService, searchString]
+  )
 
   const route = useRoute<RootRouteProps<'peopleTeamBuilder'>>()
   const title = Container.useSelector(state =>
@@ -179,7 +207,6 @@ const TeamBuilding = () => {
   const waitingForCreate = Container.useSelector(state =>
     WaitingConstants.anyWaiting(state, ChatConstants.waitingKeyCreating)
   )
-  const dispatch = Container.useDispatch()
 
   const fetchUserRecs = React.useCallback(() => {
     dispatch(TeamBuildingGen.createFetchUserRecs({includeContacts: namespace === 'chat2', namespace}))
@@ -187,11 +214,13 @@ const TeamBuilding = () => {
 
   const offset = useSharedValue(0)
 
+  const fetchedOnce = React.useRef(false)
   React.useEffect(() => {
-    fetchUserRecs()
-    // once
-    // eslint-disable-next-line
-  }, [])
+    if (!fetchedOnce.current) {
+      fetchedOnce.current = true
+      fetchUserRecs()
+    }
+  }, [fetchUserRecs, fetchedOnce])
 
   let content: React.ReactNode
   switch (selectedService) {
