@@ -780,7 +780,7 @@ const onEnableAudioRecording = async (
       bitRate: 32000,
       extension: '.m4a',
       numberOfChannels: 1,
-      outputFormat: Audio.RECORDING_OPTION_ANDROID_OUTPUT_FORMAT_AAC_ADTS,
+      outputFormat: Audio.RECORDING_OPTION_ANDROID_OUTPUT_FORMAT_MPEG_4,
       sampleRate: 22050,
     },
     ios: {
@@ -791,6 +791,7 @@ const onEnableAudioRecording = async (
       linearPCMIsBigEndian: false,
       linearPCMIsFloat: false,
       numberOfChannels: 1,
+      outputFormat: Audio.RECORDING_OPTION_IOS_OUTPUT_FORMAT_MPEG4AAC,
       sampleRate: 22050,
     },
     isMeteringEnabled: true,
