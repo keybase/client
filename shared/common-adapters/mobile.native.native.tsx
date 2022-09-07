@@ -128,9 +128,6 @@ module.exports = {
   get HeaderOrPopupWithHeader() {
     return Index.HeaderOrPopupWithHeader
   },
-  get HoverHoc() {
-    return Index.HoverHoc
-  },
   get Icon() {
     return Index.Icon
   },

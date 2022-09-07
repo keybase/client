@@ -129,9 +129,6 @@ module.exports = {
   get HotKey() {
     return require('./hot-key').HotKey
   },
-  get HoverHoc() {
-    return require('./hover-hoc').default
-  },
   get Icon() {
     return require('./icon').default
   },
