@@ -13,6 +13,7 @@ type Row = Types.Tab & {
 type Props = {
   onClick: (string) => void
   selected: string
+  children?: React.ReactNode
 }
 
 class SubNav extends React.PureComponent<Props> {

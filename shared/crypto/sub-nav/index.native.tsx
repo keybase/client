@@ -16,6 +16,7 @@ const SubNav = () => {
           title={t.title}
           illustration={t.illustration}
           description={t.description}
+          // @ts-ignore
           onClick={() => navigator.navigate(t.tab as any)}
         />
       ))}

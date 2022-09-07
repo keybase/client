@@ -302,6 +302,7 @@ const useInitialStateChangeAfterLinking = (
 
   React.useEffect(() => {
     if (loggedIn && !lastLoggedIn && lastLoggedInTab.current) {
+      // @ts-ignore
       Constants.navigationRef_.navigate(lastLoggedInTab.current as any)
     }
   }, [loggedIn, lastLoggedIn])

@@ -298,7 +298,7 @@ const LoadingLine = () => {
     </Kb.Box>
   ) : null
 }
-const HeadComponent = <ChatInboxHeader context="inbox-header" />
+const HeadComponent = <ChatInboxHeader headerContext="inbox-header" />
 
 const styles = Styles.styleSheetCreate(
   () =>
