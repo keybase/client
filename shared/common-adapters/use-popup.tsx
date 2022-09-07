@@ -9,7 +9,7 @@ export const usePopup = <T extends React.Component<any>>(
 ) => {
   const [showingPopup, setShowingPopup] = React.useState(false)
   const [popup, setPopup] = React.useState<React.ReactNode>(null)
-  const popupAnchor = React.useRef<T>(null)
+  const popupAnchor = React.useRef<T | null>(null)
   const prevExtraData = usePrevious(extraData)
   const dataChanged = prevExtraData ? extraData?.some((d, index) => d !== prevExtraData[index]) : false
 
