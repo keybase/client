@@ -1,13 +1,13 @@
 // Types related to a message
-import * as Common from './common'
-import * as RPCTypes from '../rpc-gen'
-import * as RPCChatTypes from '../rpc-chat-gen'
-import * as RPCStellarTypes from '../rpc-stellar-gen'
-import * as WalletTypes from '../wallets'
-import * as TeamTypes from '../teams'
-import HiddenString from '../../../util/hidden-string'
-import {DeviceType} from '../devices'
-import {ServiceIdWithContact} from '../team-building'
+import type * as Common from './common'
+import type * as RPCTypes from '../rpc-gen'
+import type * as RPCChatTypes from '../rpc-chat-gen'
+import type * as RPCStellarTypes from '../rpc-stellar-gen'
+import type * as WalletTypes from '../wallets'
+import type * as TeamTypes from '../teams'
+import type HiddenString from '../../../util/hidden-string'
+import type {DeviceType} from '../devices'
+import type {ServiceIdWithContact} from '../team-building'
 
 // The actual ID the server uses for operations (edit, delete etc)
 export type MessageID = number

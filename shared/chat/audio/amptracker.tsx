@@ -1,5 +1,6 @@
+import {maxAmpsLength} from '../../constants/chat2/message'
 const minBars = 20
-const maxBars = 60
+const maxBars = maxAmpsLength
 const snap0 = 1000 // anything under this seconds takes minBars
 const snap1 = 30000 // anything over this seconds takes maxBars
 
@@ -39,8 +40,12 @@ export class AmpTracker {
   }
 
   getBucketedAmps = (duration: number): Array<number> => {
+    // console.log('aaaa RAW amps', this.amps.length)
+    // console.log('aaaa RAW amps', this.amps)
+    // return this.amps
     const buckets = this.getBucketList()
     const maxBuckets = this.getNumBars(duration)
+    console.log('aaa maxbuckets', maxBuckets)
     const resInterval = duration / maxBuckets
     const scaledBuckets = buckets.rescaleToNewBucketList(resInterval)
     return scaledBuckets.buckets.reduce<Array<number>>((arr, b) => {
@@ -204,3 +209,33 @@ rescaled = bl.rescaleToNewBucketList(TARGET_BUCKET_DT)
 console.log("\n\nRESCALED IN //{Date.now() - startTime}ms:")
 rescaled.print()
 */
+
+const print = (arr: Array<number>) => {
+  for (const r of arr) {
+    let s = '.'
+    for (let i = 0; i < r; ++i) {
+      s += 'X'
+    }
+    console.log(s)
+  }
+}
+
+const dur = 1000
+const tracker = new AmpTracker()
+const raw = new Array<number>()
+for (let i = 0; i < 100; ++i) {
+  const section = Math.floor(i / 20)
+  raw.push(section % 2 ? 10 : 0)
+}
+console.log('aaaa +raw', raw.length)
+// print(raw)
+console.log('aaaa -raw')
+
+for (const r of raw) {
+  tracker.addAmp(r)
+}
+
+const after = tracker.getBucketedAmps(dur)
+console.log('aaaa +after', after.length)
+// print(after)
+console.log('aaaa -after')

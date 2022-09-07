@@ -8,6 +8,8 @@ import * as WaitingConstants from '../constants/waiting'
 import {createShowUserProfile} from '../actions/profile-gen'
 import People from '.'
 import ProfileSearch from '../profile/search/bar'
+// TEMP
+import '../chat/audio/amptracker'
 
 const HeaderAvatar = () => {
   const myUsername = Container.useSelector(state => state.config.username)

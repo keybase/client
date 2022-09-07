@@ -63,6 +63,7 @@ const useRecording = (conversationIDKey: Types.ConversationIDKey) => {
   const meteringCb = React.useCallback(
     (inamp: number) => {
       const amp = 10 ** (inamp * 0.05)
+      console.log('aaa AMP', amp)
       ampTracker.addAmp(amp)
       ampScale.value = withTiming(ampToScale(amp), {duration: 100})
     },

@@ -14,11 +14,12 @@ type VisProps = {
 
 const AudioVis = (props: VisProps) => {
   let maxHeight = 0
+  // console.log('aaa vis', props.amps)
   const content = props.amps.map((inamp, index) => {
     const amp = isNaN(inamp) || inamp < 0 ? 0 : inamp
     const prop = Math.min(1.0, Math.max(Math.sqrt(amp), 0.05))
     const height = Math.floor(prop * props.height)
-    if (height >= maxHeight) {
+    if (height > maxHeight) {
       maxHeight = height
     }
     return (
@@ -62,23 +63,15 @@ type Props = {
 }
 
 const AudioPlayer = (props: Props) => {
+  const {duration, big, maxWidth, url, visAmps} = props
   const seekRef = React.useRef<null | ((n: number) => void)>(null)
-  const [timeStart, setTimeStart] = React.useState(0)
-  const [timeLeft, setTimeLeft] = React.useState(props.duration)
-  const [timePaused, setTimePaused] = React.useState(0)
-  const [timePauseButton, setTimePauseButton] = React.useState(0)
+  const lastTimeRef = React.useRef(0)
+  const [timeLeft, setTimeLeft] = React.useState(duration)
   const [paused, setPaused] = React.useState(true)
   const onClick = () => {
     if (paused) {
-      if (timeStart === 0) {
-        setTimeStart(Date.now())
-      } else if (timePauseButton > 0) {
-        setTimePaused(timePaused + (Date.now() - timePauseButton))
-      }
       setPaused(false)
-      setTimePauseButton(0)
     } else {
-      setTimePauseButton(Date.now())
       setPaused(true)
     }
   }
@@ -86,49 +79,45 @@ const AudioPlayer = (props: Props) => {
     if (paused) {
       return
     }
-    const timer = setTimeout(() => {
-      const diff = Date.now() - timeStart - timePaused
-      const newTimeLeft = props.duration - diff
+    lastTimeRef.current = Date.now()
+    const interval = setInterval(() => {
+      const now = Date.now()
+      const diff = now - lastTimeRef.current
+      const newTimeLeft = Math.max(0, timeLeft - diff)
+      // console.log('aaa diff:', diff, ' left: ', timeLeft, 'newleft:', newTimeLeft, 'dur:', duration)
       if (newTimeLeft <= 0) {
-        setTimeLeft(props.duration)
+        setTimeLeft(duration)
         setPaused(true)
-        setTimeStart(0)
-        setTimePaused(0)
-        setTimePauseButton(0)
+        lastTimeRef.current = 0
         seekRef.current?.(0)
       } else {
         setTimeLeft(newTimeLeft)
       }
     }, 100)
     return () => {
-      clearTimeout(timer)
+      clearInterval(interval)
     }
-  }, [timeLeft, timeStart, timePaused, paused, props.duration])
+  }, [timeLeft, paused, duration])
 
-  const ampsRemain = Math.floor((1 - timeLeft / props.duration) * props.visAmps.length)
+  const ampsRemain = Math.floor((1 - timeLeft / duration) * visAmps.length)
   return (
     <Kb.Box2
       direction="horizontal"
-      style={Styles.collapseStyles([styles.container, {height: props.big ? 56 : 40}])}
+      style={Styles.collapseStyles([styles.container, {height: big ? 56 : 40}])}
       gap="tiny"
     >
-      <Kb.ClickableBox onClick={props.url ? onClick : undefined} style={{justifyContent: 'center'}}>
+      <Kb.ClickableBox onClick={url ? onClick : undefined} style={{justifyContent: 'center'}}>
         <Kb.Icon
           type={!paused ? 'iconfont-pause' : 'iconfont-play'}
           fontSize={32}
-          color={props.url ? Styles.globalColors.blue : Styles.globalColors.grey}
+          color={url ? Styles.globalColors.blue : Styles.globalColors.grey}
         />
       </Kb.ClickableBox>
       <Kb.Box2 direction="vertical" style={styles.visContainer} gap="xxtiny" fullHeight={true}>
-        <AudioVis
-          height={props.big ? 32 : 18}
-          amps={props.visAmps}
-          maxWidth={props.maxWidth}
-          ampsRemain={ampsRemain}
-        />
+        <AudioVis height={big ? 32 : 18} amps={visAmps} maxWidth={maxWidth} ampsRemain={ampsRemain} />
         <Kb.Text type="BodyTiny">{formatAudioRecordDuration(timeLeft)}</Kb.Text>
       </Kb.Box2>
-      {props.url.length > 0 && <AudioVideo seekRef={seekRef} url={props.url} paused={paused} />}
+      {url.length > 0 && <AudioVideo seekRef={seekRef} url={url} paused={paused} />}
     </Kb.Box2>
   )
 }

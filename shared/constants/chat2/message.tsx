@@ -811,6 +811,7 @@ const uiMessageToSystemMessage = (
 
 export const isVideoAttachment = (message: Types.MessageAttachment) => message.fileType.startsWith('video')
 
+export const maxAmpsLength = 60
 export const previewSpecs = (
   preview: RPCChatTypes.AssetMetadata | null,
   full: RPCChatTypes.AssetMetadata | null
@@ -840,6 +841,7 @@ export const previewSpecs = (
       }
     }
     res.audioAmps = preview.image.audioAmps || []
+    res.audioAmps.length = Math.min(res.audioAmps.length, maxAmpsLength)
   } else if (preview.assetType === RPCChatTypes.AssetMetadataType.video && preview.video) {
     res.height = preview.video.height
     res.width = preview.video.width
