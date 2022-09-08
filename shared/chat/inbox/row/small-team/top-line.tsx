@@ -1,11 +1,9 @@
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
-import shallowEqual from 'shallowequal'
 import TeamMenu from '../../../conversation/info-panel/menu/container'
 import type * as ChatTypes from '../../../../constants/types/chat2'
 import type {AllowedColors} from '../../../../common-adapters/text'
-import {memoize} from '../../../../util/memoize'
 
 type Props = {
   channelname?: string
@@ -24,123 +22,114 @@ type Props = {
   timestamp?: string
   usernameColor?: AllowedColors
   hasBadge: boolean
-} & Kb.OverlayParentProps
-
-class SimpleTopLineInner extends React.Component<Props> {
-  shouldComponentUpdate(nextProps: Props) {
-    return !shallowEqual(this.props, nextProps, (_, __, key) => {
-      if (key === 'participants') {
-        return shallowEqual(this.props.participants, nextProps.participants)
-      }
-
-      return undefined
-    })
-  }
-
-  private nameContainerStyle = memoize((showBold, usernameColor, backgroundColor) => {
-    return Styles.collapseStyles([
-      styles.name,
-      showBold && styles.bold,
-      {color: usernameColor},
-      Styles.isMobile && {backgroundColor},
-    ])
-  })
-
-  private teamContainerStyle = memoize((showBold, usernameColor) => {
-    return Styles.collapseStyles([styles.teamTextStyle, showBold && styles.bold, {color: usernameColor}])
-  })
-
-  private timestampStyle = memoize((showBold: boolean, subColor: undefined | boolean | string) => {
-    return Styles.collapseStyles([
-      showBold && styles.bold,
-      styles.timestamp,
-      subColor !== false && ({color: subColor} as any), //sketchy api...
-    ])
-  })
-
-  private onHidden = () => {
-    this.props.setShowingMenu(false)
-    this.props.onForceHideMenu()
-  }
-
-  render() {
-    return (
-      <Kb.Box style={styles.container}>
-        {this.props.showGear && (this.props.showingMenu || this.props.forceShowMenu) && (
-          <TeamMenu
-            visible={this.props.showingMenu || this.props.forceShowMenu}
-            attachTo={this.props.getAttachmentRef}
-            onHidden={this.onHidden}
-            hasHeader={true}
-            isSmallTeam={true}
-            conversationIDKey={this.props.conversationIDKey}
-          />
-        )}
-        <Kb.Box style={styles.insideContainer}>
-          <Kb.Box style={styles.nameContainer}>
-            {this.props.teamname && this.props.channelname ? (
-              <Kb.Box2 direction="horizontal" fullWidth={true}>
-                <Kb.Text
-                  type="BodySemibold"
-                  style={this.teamContainerStyle(this.props.showBold, this.props.usernameColor)}
-                >
-                  {this.props.teamname + '#' + this.props.channelname}
-                </Kb.Text>
-              </Kb.Box2>
-            ) : (
-              <Kb.ConnectedUsernames
-                backgroundMode={this.props.isSelected ? 'Terminal' : 'Normal'}
-                type={this.props.showBold ? 'BodyBold' : 'BodySemibold'}
-                inline={true}
-                withProfileCardPopup={false}
-                underline={false}
-                colorBroken={false}
-                colorFollowing={false}
-                colorYou={false}
-                commaColor={this.props.usernameColor}
-                containerStyle={this.nameContainerStyle(
-                  this.props.showBold,
-                  this.props.usernameColor,
-                  Styles.isMobile && this.props.backgroundColor
-                )}
-                usernames={this.props.participants}
-                title={
-                  typeof this.props.participants === 'string'
-                    ? this.props.participants
-                    : this.props.participants.join(', ')
-                }
-              />
-            )}
-          </Kb.Box>
-        </Kb.Box>
-        <Kb.Text
-          key="timestamp"
-          type="BodyTiny"
-          className={Styles.classNames({'conversation-timestamp': this.props.showGear})}
-          style={this.timestampStyle(
-            this.props.showBold,
-            (!this.props.hasBadge || this.props.isSelected) && this.props.subColor
-          )}
-        >
-          {this.props.timestamp}
-        </Kb.Text>
-        {this.props.showGear && !Styles.isMobile && (
-          <Kb.Icon
-            type="iconfont-gear"
-            className="conversation-gear"
-            onClick={this.props.toggleShowingMenu}
-            ref={this.props.setAttachmentRef}
-            color={this.props.subColor}
-            hoverColor={this.props.iconHoverColor}
-            style={styles.icon}
-          />
-        )}
-        {this.props.hasBadge ? <Kb.Box key="unreadDot" style={styles.unreadDotStyle} /> : null}
-      </Kb.Box>
-    )
-  }
 }
-const SimpleTopLine = Kb.OverlayParentHOC(SimpleTopLineInner)
+
+const SimpleTopLine = React.memo(function SimpleTopLine(props: Props) {
+  const {backgroundColor, channelname, teamname, conversationIDKey, forceShowMenu, iconHoverColor} = props
+  const {isSelected, onForceHideMenu, participants, showBold, showGear, subColor, timestamp} = props
+  const {usernameColor, hasBadge} = props
+
+  const {showingPopup, setShowingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
+    <TeamMenu
+      visible={showingPopup || forceShowMenu}
+      attachTo={attachTo}
+      onHidden={onHidden}
+      hasHeader={true}
+      isSmallTeam={true}
+      conversationIDKey={conversationIDKey}
+    />
+  ))
+
+  const onHidden = React.useCallback(() => {
+    setShowingPopup(false)
+    onForceHideMenu()
+  }, [setShowingPopup, onForceHideMenu])
+
+  const nameContainerStyle = React.useMemo(
+    () =>
+      Styles.collapseStyles([
+        styles.name,
+        showBold && styles.bold,
+        {color: usernameColor},
+        Styles.isMobile && {backgroundColor},
+      ]) as Styles.StylesCrossPlatform,
+    [showBold, usernameColor, backgroundColor]
+  )
+
+  const teamContainerStyle = React.useMemo(
+    () =>
+      Styles.collapseStyles([
+        styles.teamTextStyle,
+        showBold && styles.bold,
+        {color: usernameColor},
+      ]) as Styles.StylesCrossPlatform,
+    [showBold, usernameColor]
+  )
+
+  const tssubColor = (!hasBadge || isSelected) && subColor
+  const timestampStyle = React.useMemo(
+    () =>
+      Styles.collapseStyles([
+        showBold && styles.bold,
+        styles.timestamp,
+        tssubColor !== false && ({color: tssubColor} as any),
+      ]) as Styles.StylesCrossPlatform,
+    [showBold, tssubColor]
+  )
+
+  return (
+    <Kb.Box style={styles.container}>
+      {showGear && (showingPopup || forceShowMenu) && popup}
+      <Kb.Box style={styles.insideContainer}>
+        <Kb.Box style={styles.nameContainer}>
+          {teamname && channelname ? (
+            <Kb.Box2 direction="horizontal" fullWidth={true}>
+              <Kb.Text type="BodySemibold" style={teamContainerStyle}>
+                {teamname + '#' + channelname}
+              </Kb.Text>
+            </Kb.Box2>
+          ) : (
+            <Kb.ConnectedUsernames
+              backgroundMode={isSelected ? 'Terminal' : 'Normal'}
+              type={showBold ? 'BodyBold' : 'BodySemibold'}
+              inline={true}
+              withProfileCardPopup={false}
+              underline={false}
+              colorBroken={false}
+              colorFollowing={false}
+              colorYou={false}
+              commaColor={usernameColor}
+              containerStyle={nameContainerStyle}
+              usernames={participants}
+              title={typeof participants === 'string' ? participants : participants.join(', ')}
+            />
+          )}
+        </Kb.Box>
+      </Kb.Box>
+      <Kb.Text
+        key="timestamp"
+        type="BodyTiny"
+        className={Styles.classNames({'conversation-timestamp': showGear})}
+        style={timestampStyle}
+      >
+        {timestamp}
+      </Kb.Text>
+      {showGear && !Styles.isMobile && (
+        <Kb.Icon
+          type="iconfont-gear"
+          className="conversation-gear"
+          onClick={() => setShowingPopup(!showingPopup)}
+          // @ts-ignore icon typing is bad
+          ref={popupAnchor}
+          color={subColor}
+          hoverColor={iconHoverColor}
+          style={styles.icon}
+        />
+      )}
+      {hasBadge ? <Kb.Box key="unreadDot" style={styles.unreadDotStyle} /> : null}
+    </Kb.Box>
+  )
+})
 
 const styles = Styles.styleSheetCreate(
   () =>

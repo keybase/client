@@ -1,9 +1,6 @@
 import * as Container from '../../util/container'
-import * as ConfigGen from '../../actions/config-gen'
 import * as ProfileGen from '../../actions/profile-gen'
-import * as WalletsGen from '../../actions/wallets-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
-import * as WalletsType from '../../constants/types/wallets'
 import * as Constants from '../../constants/tracker2'
 import type * as Types from '../../constants/types/tracker2'
 import Assertion from '.'
@@ -88,7 +85,6 @@ export default Container.connect(
     }
   },
   dispatch => ({
-    _onCopyAddress: (text: string) => dispatch(ConfigGen.createCopyToClipboard({text})),
     _onCreateProof: (type: string) =>
       dispatch(ProfileGen.createAddProof({platform: type, reason: 'profile'})),
     _onHideStellar: (hidden: boolean) => dispatch(ProfileGen.createHideStellar({hidden})),
@@ -104,13 +100,6 @@ export default Container.connect(
           ],
         })
       ),
-
-    _onSendOrRequestLumens: (to: string, isRequest: boolean, recipientType: WalletsType.CounterpartyType) => {
-      dispatch(
-        WalletsGen.createOpenSendRequestForm({from: WalletsType.noAccountID, isRequest, recipientType, to})
-      )
-    },
-    _onWhatIsStellar: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['whatIsStellarModal']})),
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => {
     return {
@@ -119,7 +108,6 @@ export default Container.connect(
       isYours: stateProps.isYours,
       metas: stateProps._metas.map(({color, label}) => ({color, label})),
       notAUser: stateProps.notAUser,
-      onCopyAddress: () => dispatchProps._onCopyAddress(stateProps.value),
       onCreateProof: stateProps.notAUser
         ? undefined
         : ownProps.isSuggestion
@@ -127,8 +115,6 @@ export default Container.connect(
         : undefined,
       onHideStellar: (hidden: boolean) => dispatchProps._onHideStellar(hidden),
       onRecheck: () => dispatchProps._onRecheck(stateProps._sigID),
-      onRequestLumens: () =>
-        dispatchProps._onSendOrRequestLumens(stateProps.value.split('*')[0], true, 'keybaseUser'),
       onRevoke: () => {
         if (stateProps.siteIconFull)
           dispatchProps._onRevokeProof(
@@ -138,12 +124,9 @@ export default Container.connect(
             stateProps.siteIconFull
           )
       },
-      onSendLumens: () =>
-        dispatchProps._onSendOrRequestLumens(stateProps.value.split('*')[0], false, 'keybaseUser'),
       onShowProof:
         stateProps.notAUser || !stateProps.proofURL ? undefined : () => openUrl(stateProps.proofURL),
       onShowSite: stateProps.notAUser || !stateProps.siteURL ? undefined : () => openUrl(stateProps.siteURL),
-      onWhatIsStellar: () => dispatchProps._onWhatIsStellar(),
       proofURL: stateProps.proofURL,
       siteIcon: stateProps.siteIcon,
       siteIconDarkmode: stateProps.siteIconDarkmode,
