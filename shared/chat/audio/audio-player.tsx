@@ -89,7 +89,6 @@ const AudioPlayer = (props: Props) => {
       const now = Date.now()
       const diff = now - lastTimeRef.current
       const newTimeLeft = Math.max(0, timeLeft - diff)
-      // console.log('aaa diff:', diff, ' left: ', timeLeft, 'newleft:', newTimeLeft, 'dur:', duration)
       if (newTimeLeft <= 0) {
         setTimeLeft(duration)
         setPaused(true)

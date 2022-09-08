@@ -40,12 +40,8 @@ export class AmpTracker {
   }
 
   getBucketedAmps = (duration: number): Array<number> => {
-    // console.log('aaaa RAW amps', this.amps.length)
-    // console.log('aaaa RAW amps', this.amps)
-    // return this.amps
     const buckets = this.getBucketList()
     const maxBuckets = this.getNumBars(duration)
-    console.log('aaa maxbuckets', maxBuckets)
     const resInterval = duration / maxBuckets
     const scaledBuckets = buckets.rescaleToNewBucketList(resInterval)
     return scaledBuckets.buckets.reduce<Array<number>>((arr, b) => {
@@ -210,32 +206,32 @@ console.log("\n\nRESCALED IN //{Date.now() - startTime}ms:")
 rescaled.print()
 */
 
-const print = (arr: Array<number>) => {
-  for (const r of arr) {
-    let s = '.'
-    for (let i = 0; i < r; ++i) {
-      s += 'X'
-    }
-    console.log(s)
-  }
-}
+// const print = (arr: Array<number>) => {
+//   for (const r of arr) {
+//     let s = '.'
+//     for (let i = 0; i < r; ++i) {
+//       s += 'X'
+//     }
+//     console.log(s)
+//   }
+// }
 
-const dur = 1000
-const tracker = new AmpTracker()
-const raw = new Array<number>()
-for (let i = 0; i < 100; ++i) {
-  const section = Math.floor(i / 20)
-  raw.push(section % 2 ? 10 : 0)
-}
-console.log('aaaa +raw', raw.length)
+// const dur = 1000
+// const tracker = new AmpTracker()
+// const raw = new Array<number>()
+// for (let i = 0; i < 100; ++i) {
+//   const section = Math.floor(i / 20)
+//   raw.push(section % 2 ? 10 : 0)
+// }
+// console.log('tracker +raw', raw.length)
 // print(raw)
-console.log('aaaa -raw')
+// console.log('tracker -raw')
 
-for (const r of raw) {
-  tracker.addAmp(r)
-}
+// for (const r of raw) {
+//   tracker.addAmp(r)
+// }
 
-const after = tracker.getBucketedAmps(dur)
-console.log('aaaa +after', after.length)
+// const after = tracker.getBucketedAmps(dur)
+// console.log('tracker +after', after.length)
 // print(after)
-console.log('aaaa -after')
+// console.log('tracker -after')
