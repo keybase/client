@@ -54,7 +54,7 @@ export type ReviewProps = {
 export type Question2Props = {
   error?: string
   onBack: () => void
-  onSubmit: ({statement: string}) => void
+  onSubmit: (s: {statement: string}) => void
   voucheeUsername: string
   waiting?: boolean
 }
