@@ -131,61 +131,50 @@ const assertionColorToColor = (c: Types.AssertionColor) => {
   }
 }
 
-class _StellarValue extends React.PureComponent<
-  Props & Kb.OverlayParentProps,
-  {storedAttachmentRef: Kb.Box | null}
-> {
-  state = {storedAttachmentRef: null}
-  // only set this once ever
-  _storeAttachmentRef = storedAttachmentRef =>
-    !this.state.storedAttachmentRef && this.setState({storedAttachmentRef})
-  _getAttachmentRef = () => this.state.storedAttachmentRef
-  render() {
-    const menuItems = [
-      {newTag: true, onClick: this.props.onSendLumens, title: 'Send Lumens (XLM)'},
-      {newTag: true, onClick: this.props.onRequestLumens, title: 'Request Lumens (XLM)'},
-      {onClick: this.props.onCopyAddress, title: 'Copy address'},
-      'Divider' as const,
-      {onClick: this.props.onWhatIsStellar, title: 'What is Stellar?'},
-    ]
+const StellarValue = (p: Props) => {
+  const {onSendLumens, onRequestLumens, onWhatIsStellar, onCopyAddress, value, color} = p
 
-    return Styles.isMobile ? (
-      <Kb.Text
-        type="BodyPrimaryLink"
-        style={Styles.collapseStyles([styles.username, {color: assertionColorToTextColor(this.props.color)}])}
-      >
-        {this.props.value}
-      </Kb.Text>
-    ) : (
-      <Kb.Box ref={r => this._storeAttachmentRef(r)} style={styles.tooltip}>
-        <Kb.WithTooltip
-          tooltip={Styles.isMobile || this.props.showingMenu ? '' : 'Stellar Federation Address'}
+  const {showingPopup, setShowingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
+    <Kb.FloatingMenu
+      attachTo={attachTo}
+      closeOnSelect={true}
+      items={menuItems}
+      onHidden={() => setShowingPopup(false)}
+      visible={showingPopup}
+      position="bottom center"
+    />
+  ))
+
+  const menuItems = [
+    {newTag: true, onClick: onSendLumens, title: 'Send Lumens (XLM)'},
+    {newTag: true, onClick: onRequestLumens, title: 'Request Lumens (XLM)'},
+    {onClick: onCopyAddress, title: 'Copy address'},
+    'Divider' as const,
+    {onClick: onWhatIsStellar, title: 'What is Stellar?'},
+  ]
+
+  return Styles.isMobile ? (
+    <Kb.Text
+      type="BodyPrimaryLink"
+      style={Styles.collapseStyles([styles.username, {color: assertionColorToTextColor(color)}])}
+    >
+      {value}
+    </Kb.Text>
+  ) : (
+    <Kb.Box ref={popupAnchor} style={styles.tooltip}>
+      <Kb.WithTooltip tooltip={Styles.isMobile || showingPopup ? '' : 'Stellar Federation Address'}>
+        <Kb.Text
+          type="BodyPrimaryLink"
+          onClick={() => setShowingPopup(!showingPopup)}
+          style={Styles.collapseStyles([styles.username, {color: assertionColorToTextColor(color)}])}
         >
-          <Kb.Text
-            type="BodyPrimaryLink"
-            onClick={this.props.toggleShowingMenu}
-            style={Styles.collapseStyles([
-              styles.username,
-              {color: assertionColorToTextColor(this.props.color)},
-            ])}
-          >
-            {this.props.value}
-          </Kb.Text>
-        </Kb.WithTooltip>
-        <Kb.FloatingMenu
-          attachTo={this.state.storedAttachmentRef ? this._getAttachmentRef : undefined}
-          closeOnSelect={true}
-          containerStyle={undefined}
-          items={menuItems}
-          onHidden={this.props.toggleShowingMenu}
-          visible={this.props.showingMenu}
-          position="bottom center"
-        />
-      </Kb.Box>
-    )
-  }
+          {value}
+        </Kb.Text>
+      </Kb.WithTooltip>
+      {popup}
+    </Kb.Box>
+  )
 }
-const StellarValue = Kb.OverlayParentHOC(_StellarValue)
 
 const Value = (p: Props) => {
   let content: JSX.Element | null = null
