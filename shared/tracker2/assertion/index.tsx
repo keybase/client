@@ -1,7 +1,12 @@
 import * as React from 'react'
-import * as Types from '../../constants/types/tracker2'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
+import * as ConfigGen from '../../actions/config-gen'
+import * as Container from '../../util/container'
+import * as WalletsType from '../../constants/types/wallets'
+import * as WalletsGen from '../../actions/wallets-gen'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
+import type * as Types from '../../constants/types/tracker2'
 import {SiteIcon} from '../../profile/generic/shared'
 import {formatTimeForAssertionPopup} from '../../util/timestamp'
 
@@ -11,16 +16,12 @@ type Props = {
   isYours: boolean
   metas: ReadonlyArray<Types.AssertionMeta>
   notAUser: boolean
-  onCopyAddress: () => void
   onHideStellar: (hidden: boolean) => void
-  onRequestLumens: () => void
   onRecheck?: () => void
   onRevoke?: () => void
-  onSendLumens: () => void
   onShowProof?: () => void
   onShowSite?: () => void
   onCreateProof?: () => void
-  onWhatIsStellar: () => void
   proofURL: string
   siteIcon?: Types.SiteIconSet
   siteIconDarkmode?: Types.SiteIconSet
@@ -132,7 +133,38 @@ const assertionColorToColor = (c: Types.AssertionColor) => {
 }
 
 const StellarValue = (p: Props) => {
-  const {onSendLumens, onRequestLumens, onWhatIsStellar, onCopyAddress, value, color} = p
+  const {value, color} = p
+  const dispatch = Container.useDispatch()
+
+  const onCopyAddress = () => {
+    dispatch(ConfigGen.createCopyToClipboard({text: value}))
+  }
+
+  const onWhatIsStellar = () => {
+    dispatch(RouteTreeGen.createNavigateAppend({path: ['whatIsStellarModal']}))
+  }
+
+  const onRequestLumens = () => {
+    dispatch(
+      WalletsGen.createOpenSendRequestForm({
+        from: WalletsType.noAccountID,
+        isRequest: true,
+        recipientType: 'keybaseUser',
+        to: value.split('*')[0],
+      })
+    )
+  }
+
+  const onSendLumens = () => {
+    dispatch(
+      WalletsGen.createOpenSendRequestForm({
+        from: WalletsType.noAccountID,
+        isRequest: false,
+        recipientType: 'keybaseUser',
+        to: value.split('*')[0],
+      })
+    )
+  }
 
   const {showingPopup, setShowingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
     <Kb.FloatingMenu
@@ -145,7 +177,7 @@ const StellarValue = (p: Props) => {
     />
   ))
 
-  const menuItems = [
+  const menuItems: Kb.MenuItems = [
     {newTag: true, onClick: onSendLumens, title: 'Send Lumens (XLM)'},
     {newTag: true, onClick: onRequestLumens, title: 'Request Lumens (XLM)'},
     {onClick: onCopyAddress, title: 'Copy address'},
@@ -217,9 +249,7 @@ const Value = (p: Props) => {
 }
 
 const HoverOpacity = Styles.styled(Kb.Box)(() => ({
-  '&:hover': {
-    opacity: 1,
-  },
+  '&:hover': {opacity: 1},
   opacity: 0.5,
 }))
 
