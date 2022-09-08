@@ -120,7 +120,7 @@ const getMsgPack = () => {
     const url = `https://github.com/msgpack/msgpack-c/releases/download/cpp-${ver}/${file}`
     const prefix = path.resolve(__dirname, '..', '..', 'node_modules')
     const dlpath = path.resolve(prefix, '.cache')
-    const shacheckcmd = `echo '${shasum} *.cache/${file}' | shasum -q -c`
+    const shacheckcmd = `echo '${shasum} *.cache/${file}' | shasum -c`
     const checkAndUntar = `cd node_modules ; ${shacheckcmd} && tar -xf .cache/${file}`
     const downloadMP = `curl -L -o ${dlpath}/${file} ${url}`
 
