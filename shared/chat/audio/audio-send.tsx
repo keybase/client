@@ -12,11 +12,8 @@ type Props = {
 }
 
 const AudioSend = (props: Props) => {
-  // props
   const {conversationIDKey} = props
-  // state
   const audioRecording = Container.useSelector(state => state.chat2.audioRecording.get(conversationIDKey))
-  // dispatch
   const dispatch = Container.useDispatch()
   const onCancel = () => {
     dispatch(Chat2Gen.createStopAudioRecording({conversationIDKey, stopType: Types.AudioStopType.CANCEL}))

@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as Types from '../../../../constants/types/chat2'
+import type * as Types from '../../../../constants/types/chat2'
 import FileAttachment from './file/container'
 import ImageAttachment from './image/container'
 import AudioAttachment from './audio'

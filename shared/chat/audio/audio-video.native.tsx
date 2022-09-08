@@ -1,58 +1,91 @@
 import * as React from 'react'
 import * as Container from '../../util/container'
-import {Audio} from 'expo-av'
+import {Audio, type AVPlaybackStatus} from 'expo-av'
 import type {Props} from './audio-video'
 
 const AudioVideo = (props: Props) => {
-  const {url, seekRef, paused} = props
-  const soundRef = React.useRef<Audio.Sound | null>(null)
+  const {url, seekRef, paused, onPositionUpdated, onEnded} = props
+  const [sound, setSound] = React.useState<Audio.Sound | null>(null)
+
   React.useEffect(() => {
-    if (url) {
-      Audio.Sound.createAsync({uri: url})
-        .then(({sound}) => {
-          soundRef.current = sound
-        })
+    return () => {
+      sound
+        ?.unloadAsync()
+        .then(() => {})
         .catch(() => {})
     }
-  }, [soundRef, url])
+  }, [sound])
 
   const seek = React.useCallback(
     (seconds: number) => {
-      soundRef.current
+      sound
         ?.setPositionAsync(seconds * 1000)
         .then(() => {})
         .catch(() => {})
       if (paused) {
-        soundRef.current
+        sound
           ?.pauseAsync()
           .then(() => {})
           .catch(() => {})
       }
     },
-    [soundRef, paused]
+    [sound, paused]
   )
+
+  const onPlaybackStatusUpdate = React.useCallback(
+    (e: AVPlaybackStatus) => {
+      if (!e.isLoaded) return
+      if (e.isPlaying) {
+        const ct = e.positionMillis
+        const dur = e.durationMillis ?? 0
+        if (dur === 0) {
+          return
+        }
+        onPositionUpdated(ct / dur)
+      } else {
+        if (e.didJustFinish) {
+          onEnded()
+          sound
+            ?.setPositionAsync(0)
+            .then(() => {})
+            .catch(() => {})
+        }
+      }
+    },
+    [onPositionUpdated, onEnded, sound]
+  )
+
   React.useEffect(() => {
-    seekRef.current = seek
-  }, [seekRef, seek])
+    sound?.setOnPlaybackStatusUpdate(onPlaybackStatusUpdate)
+  }, [sound, onPlaybackStatusUpdate])
+
+  seekRef.current = seek
 
   const lastPaused = Container.usePrevious(paused)
   React.useEffect(() => {
-    if (!soundRef.current || paused === lastPaused) {
+    if (lastPaused === undefined || paused === lastPaused) {
       return
     }
+    const f = async () => {
+      let s = sound
+      if (!sound) {
+        const {sound: newSound} = await Audio.Sound.createAsync({uri: url})
+        s = newSound
+        setSound(newSound)
+        await newSound.setProgressUpdateIntervalAsync(100)
+      }
 
-    if (paused) {
-      soundRef.current
-        ?.pauseAsync()
-        .then(() => {})
-        .catch(() => {})
-    } else {
-      soundRef.current
-        ?.playAsync()
-        .then(() => {})
-        .catch(() => {})
+      if (paused) {
+        await s?.pauseAsync()
+      } else {
+        await s?.playAsync()
+      }
     }
-  }, [paused, lastPaused, soundRef])
+
+    f()
+      .then(() => {})
+      .catch(() => {})
+  }, [paused, lastPaused, sound, url])
 
   return null
 }

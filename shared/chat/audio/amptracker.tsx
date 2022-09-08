@@ -1,5 +1,6 @@
+import {maxAmpsLength} from '../../constants/chat2/message'
 const minBars = 20
-const maxBars = 60
+const maxBars = maxAmpsLength
 const snap0 = 1000 // anything under this seconds takes minBars
 const snap1 = 30000 // anything over this seconds takes maxBars
 
@@ -204,3 +205,33 @@ rescaled = bl.rescaleToNewBucketList(TARGET_BUCKET_DT)
 console.log("\n\nRESCALED IN //{Date.now() - startTime}ms:")
 rescaled.print()
 */
+
+// const print = (arr: Array<number>) => {
+//   for (const r of arr) {
+//     let s = '.'
+//     for (let i = 0; i < r; ++i) {
+//       s += 'X'
+//     }
+//     console.log(s)
+//   }
+// }
+
+// const dur = 1000
+// const tracker = new AmpTracker()
+// const raw = new Array<number>()
+// for (let i = 0; i < 100; ++i) {
+//   const section = Math.floor(i / 20)
+//   raw.push(section % 2 ? 10 : 0)
+// }
+// console.log('tracker +raw', raw.length)
+// print(raw)
+// console.log('tracker -raw')
+
+// for (const r of raw) {
+//   tracker.addAmp(r)
+// }
+
+// const after = tracker.getBucketedAmps(dur)
+// console.log('tracker +after', after.length)
+// print(after)
+// console.log('tracker -after')
