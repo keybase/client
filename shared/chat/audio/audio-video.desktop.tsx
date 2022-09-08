@@ -3,7 +3,7 @@ import * as Container from '../../util/container'
 import type {Props} from './audio-video'
 
 const AudioVideo = (props: Props) => {
-  const {url, seekRef, paused} = props
+  const {url, seekRef, paused, onPositionUpdated, onEnded} = props
   const vidRef = React.useRef<HTMLVideoElement | null>(null)
   const seek = React.useCallback(
     (seconds: number) => {
@@ -16,9 +16,23 @@ const AudioVideo = (props: Props) => {
     },
     [vidRef, paused]
   )
-  React.useEffect(() => {
-    seekRef.current = seek
-  }, [seekRef, seek])
+
+  seekRef.current = seek
+  const onTimeUpdate = React.useCallback(
+    (e: any) => {
+      const ct = e?.target?.currentTime ?? -1
+      let dur = e?.target?.duration ?? -1
+      if (dur === 0) {
+        return
+      }
+      onPositionUpdated(ct / dur)
+    },
+    [onPositionUpdated]
+  )
+
+  const onEndedRaw = React.useCallback(() => {
+    onEnded()
+  }, [onEnded])
 
   const lastPaused = Container.usePrevious(paused)
   React.useEffect(() => {
@@ -36,7 +50,15 @@ const AudioVideo = (props: Props) => {
     }
   }, [paused, lastPaused, vidRef])
 
-  return <video ref={vidRef} src={url} style={{height: 0, width: 0}} />
+  return (
+    <video
+      ref={vidRef}
+      src={url}
+      style={{height: 0, width: 0}}
+      onTimeUpdate={onTimeUpdate}
+      onEnded={onEndedRaw}
+    />
+  )
 }
 
 export default AudioVideo

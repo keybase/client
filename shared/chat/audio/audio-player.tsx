@@ -16,7 +16,7 @@ const AudioVis = (props: VisProps) => {
   const {amps, playedRatio, maxWidth} = props
   let threshold = Math.floor(amps.length * playedRatio)
   if (threshold > 0) {
-    threshold += 4 // metering actually lags so compensate while actually playing
+    threshold += 2 // metering actually lags so compensate while actually playing
   }
 
   let maxHeight = 0
@@ -70,8 +70,7 @@ type Props = {
 const AudioPlayer = (props: Props) => {
   const {duration, big, maxWidth, url, visAmps} = props
   const seekRef = React.useRef<null | ((n: number) => void)>(null)
-  const lastTimeRef = React.useRef(0)
-  const [timeLeft, setTimeLeft] = React.useState(duration)
+  const [playedRatio, setPlayedRatio] = React.useState(0)
   const [paused, setPaused] = React.useState(true)
   const onClick = () => {
     if (paused) {
@@ -80,30 +79,20 @@ const AudioPlayer = (props: Props) => {
       setPaused(true)
     }
   }
-  React.useEffect(() => {
-    if (paused) {
-      return
-    }
-    lastTimeRef.current = Date.now()
-    const interval = setInterval(() => {
-      const now = Date.now()
-      const diff = now - lastTimeRef.current
-      const newTimeLeft = Math.max(0, timeLeft - diff)
-      if (newTimeLeft <= 0) {
-        setTimeLeft(duration)
-        setPaused(true)
-        lastTimeRef.current = 0
-        seekRef.current?.(0)
-      } else {
-        setTimeLeft(newTimeLeft)
-      }
-    }, 100)
-    return () => {
-      clearInterval(interval)
-    }
-  }, [timeLeft, paused, duration])
 
-  const playedRatio = (duration - timeLeft) / duration
+  const onPositionUpdated = React.useCallback(
+    (ratio: number) => {
+      setPlayedRatio(ratio)
+    },
+    [setPlayedRatio]
+  )
+
+  const onEnded = React.useCallback(() => {
+    setPaused(true)
+    setPlayedRatio(0)
+  }, [setPaused, setPlayedRatio])
+
+  const timeLeft = duration - playedRatio * duration
   return (
     <Kb.Box2
       direction="horizontal"
@@ -121,7 +110,15 @@ const AudioPlayer = (props: Props) => {
         <AudioVis height={big ? 32 : 18} amps={visAmps} maxWidth={maxWidth} playedRatio={playedRatio} />
         <Kb.Text type="BodyTiny">{formatAudioRecordDuration(timeLeft)}</Kb.Text>
       </Kb.Box2>
-      {url.length > 0 && <AudioVideo seekRef={seekRef} url={url} paused={paused} />}
+      {url.length > 0 && (
+        <AudioVideo
+          seekRef={seekRef}
+          url={url}
+          paused={paused}
+          onPositionUpdated={onPositionUpdated}
+          onEnded={onEnded}
+        />
+      )}
     </Kb.Box2>
   )
 }
