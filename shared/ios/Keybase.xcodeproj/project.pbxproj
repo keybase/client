@@ -49,14 +49,6 @@
 		DBBCC6181D9C5C6A00312652 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = DBBCC6171D9C5C6A00312652 /* main.m */; };
 		DBCE36251B90F14800ECADDE /* Engine.m in Sources */ = {isa = PBXBuildFile; fileRef = DBCE36241B90F14800ECADDE /* Engine.m */; };
 		DBDCF30E1B8D03DD00BA95D8 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DBDCF3081B8D03DD00BA95D8 /* Images.xcassets */; };
-		DBEE30801FE8511F0020EBA5 /* DDTTYLogger.m in Sources */ = {isa = PBXBuildFile; fileRef = DBEE306C1FE8511F0020EBA5 /* DDTTYLogger.m */; };
-		DBEE30811FE8511F0020EBA5 /* DDOSLogger.m in Sources */ = {isa = PBXBuildFile; fileRef = DBEE306F1FE8511F0020EBA5 /* DDOSLogger.m */; };
-		DBEE30821FE8511F0020EBA5 /* DDASLLogger.m in Sources */ = {isa = PBXBuildFile; fileRef = DBEE30731FE8511F0020EBA5 /* DDASLLogger.m */; };
-		DBEE30831FE8511F0020EBA5 /* DDLog.m in Sources */ = {isa = PBXBuildFile; fileRef = DBEE30751FE8511F0020EBA5 /* DDLog.m */; };
-		DBEE30841FE8511F0020EBA5 /* DDAbstractDatabaseLogger.m in Sources */ = {isa = PBXBuildFile; fileRef = DBEE307B1FE8511F0020EBA5 /* DDAbstractDatabaseLogger.m */; };
-		DBEE30851FE8511F0020EBA5 /* LICENSE.txt in Resources */ = {isa = PBXBuildFile; fileRef = DBEE307C1FE8511F0020EBA5 /* LICENSE.txt */; };
-		DBEE30861FE8511F0020EBA5 /* DDFileLogger.m in Sources */ = {isa = PBXBuildFile; fileRef = DBEE307D1FE8511F0020EBA5 /* DDFileLogger.m */; };
-		DBEE30871FE8511F0020EBA5 /* DDASLLogCapture.m in Sources */ = {isa = PBXBuildFile; fileRef = DBEE307F1FE8511F0020EBA5 /* DDASLLogCapture.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -114,27 +106,18 @@
 		3791A87220C71DAA001C2E86 /* PushPrompt.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PushPrompt.h; sourceTree = "<group>"; };
 		3791A8A020C71DC0001C2E86 /* PushPrompt.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PushPrompt.m; sourceTree = "<group>"; };
 		3791A8A220C71FE6001C2E86 /* UserNotifications.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UserNotifications.framework; path = System/Library/Frameworks/UserNotifications.framework; sourceTree = SDKROOT; };
-		37E0D87E22A5C7FA008CA4ED /* keybase-semibold-italic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "keybase-semibold-italic.ttf"; path = "../fonts/keybase-semibold-italic.ttf"; sourceTree = "<group>"; };
-		37E0D87F22A5C7FA008CA4ED /* keybase-extrabold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "keybase-extrabold.ttf"; path = "../fonts/keybase-extrabold.ttf"; sourceTree = "<group>"; };
-		37E0D88022A5C7FA008CA4ED /* keybase-bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "keybase-bold.ttf"; path = "../fonts/keybase-bold.ttf"; sourceTree = "<group>"; };
-		37E0D88122A5C7FA008CA4ED /* keybase-medium-italic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "keybase-medium-italic.ttf"; path = "../fonts/keybase-medium-italic.ttf"; sourceTree = "<group>"; };
-		37E0D88222A5C7FA008CA4ED /* keybase-medium.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "keybase-medium.ttf"; path = "../fonts/keybase-medium.ttf"; sourceTree = "<group>"; };
-		37E0D88322A5C7FA008CA4ED /* keybase-semibold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "keybase-semibold.ttf"; path = "../fonts/keybase-semibold.ttf"; sourceTree = "<group>"; };
-		37E0D88422A5C7FA008CA4ED /* keybase-bold-italic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "keybase-bold-italic.ttf"; path = "../fonts/keybase-bold-italic.ttf"; sourceTree = "<group>"; };
-		37E0D88522A5C7FA008CA4ED /* SourceCodePro-Semibold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "SourceCodePro-Semibold.ttf"; path = "../fonts/SourceCodePro-Semibold.ttf"; sourceTree = "<group>"; };
-		37E0D88622A5C7FB008CA4ED /* kb.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = kb.ttf; path = ../fonts/kb.ttf; sourceTree = "<group>"; };
-		37E0D88722A5C7FB008CA4ED /* SourceCodePro-Medium.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "SourceCodePro-Medium.ttf"; path = "../fonts/SourceCodePro-Medium.ttf"; sourceTree = "<group>"; };
+		37E0D87E22A5C7FA008CA4ED /* keybase-semibold-italic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "keybase-semibold-italic.ttf"; sourceTree = "<group>"; };
+		37E0D87F22A5C7FA008CA4ED /* keybase-extrabold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "keybase-extrabold.ttf"; sourceTree = "<group>"; };
+		37E0D88022A5C7FA008CA4ED /* keybase-bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "keybase-bold.ttf"; sourceTree = "<group>"; };
+		37E0D88122A5C7FA008CA4ED /* keybase-medium-italic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "keybase-medium-italic.ttf"; sourceTree = "<group>"; };
+		37E0D88222A5C7FA008CA4ED /* keybase-medium.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "keybase-medium.ttf"; sourceTree = "<group>"; };
+		37E0D88322A5C7FA008CA4ED /* keybase-semibold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "keybase-semibold.ttf"; sourceTree = "<group>"; };
+		37E0D88422A5C7FA008CA4ED /* keybase-bold-italic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "keybase-bold-italic.ttf"; sourceTree = "<group>"; };
+		37E0D88522A5C7FA008CA4ED /* SourceCodePro-Semibold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SourceCodePro-Semibold.ttf"; sourceTree = "<group>"; };
+		37E0D88622A5C7FB008CA4ED /* kb.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = kb.ttf; sourceTree = "<group>"; };
+		37E0D88722A5C7FB008CA4ED /* SourceCodePro-Medium.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SourceCodePro-Medium.ttf"; sourceTree = "<group>"; };
 		37E0D89222A5C83B008CA4ED /* keybasemessage.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; name = keybasemessage.wav; path = ../sounds/keybasemessage.wav; sourceTree = "<group>"; };
 		60B93983273F902C00A226FF /* keybase.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; path = keybase.xcframework; sourceTree = "<group>"; };
-		661EA790223ADD1C00471C8C /* keybase-medium-italic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "keybase-medium-italic.ttf"; sourceTree = "<group>"; };
-		661EA791223ADD1C00471C8C /* keybase-medium.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "keybase-medium.ttf"; sourceTree = "<group>"; };
-		661EA792223ADD1C00471C8C /* keybase-semibold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "keybase-semibold.ttf"; sourceTree = "<group>"; };
-		661EA793223ADD1C00471C8C /* keybase-bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "keybase-bold.ttf"; sourceTree = "<group>"; };
-		661EA794223ADD1C00471C8C /* keybase-semibold-italic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "keybase-semibold-italic.ttf"; sourceTree = "<group>"; };
-		661EA795223ADD1D00471C8C /* keybase-extrabold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "keybase-extrabold.ttf"; sourceTree = "<group>"; };
-		661EA796223ADD1D00471C8C /* keybase-bold-italic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "keybase-bold-italic.ttf"; sourceTree = "<group>"; };
-		664073E9220A0B70009B2ED7 /* SourceCodePro-Semibold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SourceCodePro-Semibold.ttf"; sourceTree = "<group>"; };
-		664073EA220A0B70009B2ED7 /* SourceCodePro-Medium.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SourceCodePro-Medium.ttf"; sourceTree = "<group>"; };
 		698E0E782682CDB9F02EDD13 /* Pods-KeybaseShare.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-KeybaseShare.release.xcconfig"; path = "Pods/Target Support Files/Pods-KeybaseShare/Pods-KeybaseShare.release.xcconfig"; sourceTree = "<group>"; };
 		97CE18EF12A69D8F947E9CB1 /* libPods-Keybase For Tests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Keybase For Tests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		A90CD4A61FCE1D0A00F97901 /* NativeLogger.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NativeLogger.m; sourceTree = "<group>"; };
@@ -144,7 +127,6 @@
 		AC024A34A307F5688461FEB2 /* libPods-Keybase.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Keybase.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		AFDBCC82D860F984765A47D7 /* Pods-Keybase-KeybaseShare.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Keybase-KeybaseShare.release.xcconfig"; path = "Pods/Target Support Files/Pods-Keybase-KeybaseShare/Pods-Keybase-KeybaseShare.release.xcconfig"; sourceTree = "<group>"; };
 		BC9A5DEFC49AB353E670A84C /* Pods-Keybase For Tests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Keybase For Tests.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Keybase For Tests/Pods-Keybase For Tests.debug.xcconfig"; sourceTree = "<group>"; };
-		C3A47BFD1E8B148A00974A63 /* keybasemessage.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; name = keybasemessage.wav; path = ../../../sounds/keybasemessage.wav; sourceTree = "<group>"; };
 		C3FBA67CB37D117BE5224A75 /* Pods-Keybase.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Keybase.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Keybase/Pods-Keybase.debug.xcconfig"; sourceTree = "<group>"; };
 		C64043E42DC6AC6D37CACDD8 /* Pods-Keybase-KeybaseShare.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Keybase-KeybaseShare.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Keybase-KeybaseShare/Pods-Keybase-KeybaseShare.debug.xcconfig"; sourceTree = "<group>"; };
 		DB07050422E21B8B002F273D /* KeepThisFile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeepThisFile.swift; sourceTree = "<group>"; };
@@ -160,30 +142,9 @@
 		DBBCC6171D9C5C6A00312652 /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		DBCE36231B90F14800ECADDE /* Engine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Engine.h; sourceTree = "<group>"; };
 		DBCE36241B90F14800ECADDE /* Engine.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Engine.m; sourceTree = "<group>"; };
-		DBDC80031DE7CC8E005387B3 /* kb.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = kb.ttf; sourceTree = "<group>"; };
 		DBDCF3081B8D03DD00BA95D8 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
 		DBDCF3091B8D03DD00BA95D8 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		DBDCF3441B8D04FC00BA95D8 /* Keybase-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Keybase-Bridging-Header.h"; sourceTree = "<group>"; };
-		DBEE306C1FE8511F0020EBA5 /* DDTTYLogger.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DDTTYLogger.m; sourceTree = "<group>"; };
-		DBEE306D1FE8511F0020EBA5 /* DDLog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DDLog.h; sourceTree = "<group>"; };
-		DBEE306E1FE8511F0020EBA5 /* DDLegacyMacros.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DDLegacyMacros.h; sourceTree = "<group>"; };
-		DBEE306F1FE8511F0020EBA5 /* DDOSLogger.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DDOSLogger.m; sourceTree = "<group>"; };
-		DBEE30701FE8511F0020EBA5 /* DDAbstractDatabaseLogger.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DDAbstractDatabaseLogger.h; sourceTree = "<group>"; };
-		DBEE30711FE8511F0020EBA5 /* DDLogMacros.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DDLogMacros.h; sourceTree = "<group>"; };
-		DBEE30721FE8511F0020EBA5 /* DDASLLogCapture.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DDASLLogCapture.h; sourceTree = "<group>"; };
-		DBEE30731FE8511F0020EBA5 /* DDASLLogger.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DDASLLogger.m; sourceTree = "<group>"; };
-		DBEE30741FE8511F0020EBA5 /* DDFileLogger.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DDFileLogger.h; sourceTree = "<group>"; };
-		DBEE30751FE8511F0020EBA5 /* DDLog.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DDLog.m; sourceTree = "<group>"; };
-		DBEE30761FE8511F0020EBA5 /* CocoaLumberjack.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CocoaLumberjack.h; sourceTree = "<group>"; };
-		DBEE30771FE8511F0020EBA5 /* DDTTYLogger.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DDTTYLogger.h; sourceTree = "<group>"; };
-		DBEE30781FE8511F0020EBA5 /* DDAssertMacros.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DDAssertMacros.h; sourceTree = "<group>"; };
-		DBEE30791FE8511F0020EBA5 /* DDOSLogger.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DDOSLogger.h; sourceTree = "<group>"; };
-		DBEE307A1FE8511F0020EBA5 /* DDLog+LOGV.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "DDLog+LOGV.h"; sourceTree = "<group>"; };
-		DBEE307B1FE8511F0020EBA5 /* DDAbstractDatabaseLogger.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DDAbstractDatabaseLogger.m; sourceTree = "<group>"; };
-		DBEE307C1FE8511F0020EBA5 /* LICENSE.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = LICENSE.txt; sourceTree = "<group>"; };
-		DBEE307D1FE8511F0020EBA5 /* DDFileLogger.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DDFileLogger.m; sourceTree = "<group>"; };
-		DBEE307E1FE8511F0020EBA5 /* DDASLLogger.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DDASLLogger.h; sourceTree = "<group>"; };
-		DBEE307F1FE8511F0020EBA5 /* DDASLLogCapture.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DDASLLogCapture.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -281,7 +242,6 @@
 				37E0D88522A5C7FA008CA4ED /* SourceCodePro-Semibold.ttf */,
 				37E0D88322A5C7FA008CA4ED /* keybase-semibold.ttf */,
 				37E0D88722A5C7FB008CA4ED /* SourceCodePro-Medium.ttf */,
-				DBEE306B1FE8511F0020EBA5 /* CocoaLumberjack */,
 				DBDCF3031B8D03DD00BA95D8 /* Keybase */,
 				279FB59D2139AB6A005E4864 /* KeybaseShare */,
 				83CBBA001A601CBA00E9B192 /* Products */,
@@ -321,14 +281,6 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
-		C3A47BAA1E8B035500974A63 /* sounds */ = {
-			isa = PBXGroup;
-			children = (
-				C3A47BFD1E8B148A00974A63 /* keybasemessage.wav */,
-			);
-			name = sounds;
-			sourceTree = "<group>";
-		};
 		DB090F7F1F719A2F007E4E1B /* Recovered References */ = {
 			isa = PBXGroup;
 			children = (
@@ -336,32 +288,12 @@
 			name = "Recovered References";
 			sourceTree = "<group>";
 		};
-		DBDC80021DE7CC8E005387B3 /* fonts */ = {
-			isa = PBXGroup;
-			children = (
-				DBDC80031DE7CC8E005387B3 /* kb.ttf */,
-				661EA796223ADD1D00471C8C /* keybase-bold-italic.ttf */,
-				661EA793223ADD1C00471C8C /* keybase-bold.ttf */,
-				661EA795223ADD1D00471C8C /* keybase-extrabold.ttf */,
-				661EA790223ADD1C00471C8C /* keybase-medium-italic.ttf */,
-				661EA791223ADD1C00471C8C /* keybase-medium.ttf */,
-				661EA794223ADD1C00471C8C /* keybase-semibold-italic.ttf */,
-				661EA792223ADD1C00471C8C /* keybase-semibold.ttf */,
-				664073EA220A0B70009B2ED7 /* SourceCodePro-Medium.ttf */,
-				664073E9220A0B70009B2ED7 /* SourceCodePro-Semibold.ttf */,
-			);
-			name = fonts;
-			path = ../../../fonts;
-			sourceTree = "<group>";
-		};
 		DBDCF3031B8D03DD00BA95D8 /* Keybase */ = {
 			isa = PBXGroup;
 			children = (
-				C3A47BAA1E8B035500974A63 /* sounds */,
 				005BF9961BB9C6B000BD8953 /* Keybase.entitlements */,
 				DBBCC6111D9C4A8100312652 /* AppDelegate.h */,
 				DBBCC6121D9C4A8100312652 /* AppDelegate.m */,
-				DBDC80021DE7CC8E005387B3 /* fonts */,
 				DBDCF3081B8D03DD00BA95D8 /* Images.xcassets */,
 				DBDCF3091B8D03DD00BA95D8 /* Info.plist */,
 				DB07050422E21B8B002F273D /* KeepThisFile.swift */,
@@ -390,33 +322,6 @@
 				279FB69821402D82005E4864 /* Fs.h */,
 			);
 			path = Keybase;
-			sourceTree = "<group>";
-		};
-		DBEE306B1FE8511F0020EBA5 /* CocoaLumberjack */ = {
-			isa = PBXGroup;
-			children = (
-				DBEE306C1FE8511F0020EBA5 /* DDTTYLogger.m */,
-				DBEE306D1FE8511F0020EBA5 /* DDLog.h */,
-				DBEE306E1FE8511F0020EBA5 /* DDLegacyMacros.h */,
-				DBEE306F1FE8511F0020EBA5 /* DDOSLogger.m */,
-				DBEE30701FE8511F0020EBA5 /* DDAbstractDatabaseLogger.h */,
-				DBEE30711FE8511F0020EBA5 /* DDLogMacros.h */,
-				DBEE30721FE8511F0020EBA5 /* DDASLLogCapture.h */,
-				DBEE30731FE8511F0020EBA5 /* DDASLLogger.m */,
-				DBEE30741FE8511F0020EBA5 /* DDFileLogger.h */,
-				DBEE30751FE8511F0020EBA5 /* DDLog.m */,
-				DBEE30761FE8511F0020EBA5 /* CocoaLumberjack.h */,
-				DBEE30771FE8511F0020EBA5 /* DDTTYLogger.h */,
-				DBEE30781FE8511F0020EBA5 /* DDAssertMacros.h */,
-				DBEE30791FE8511F0020EBA5 /* DDOSLogger.h */,
-				DBEE307A1FE8511F0020EBA5 /* DDLog+LOGV.h */,
-				DBEE307B1FE8511F0020EBA5 /* DDAbstractDatabaseLogger.m */,
-				DBEE307C1FE8511F0020EBA5 /* LICENSE.txt */,
-				DBEE307D1FE8511F0020EBA5 /* DDFileLogger.m */,
-				DBEE307E1FE8511F0020EBA5 /* DDASLLogger.h */,
-				DBEE307F1FE8511F0020EBA5 /* DDASLLogCapture.m */,
-			);
-			path = CocoaLumberjack;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -555,7 +460,6 @@
 				37E0D88F22A5C7FB008CA4ED /* SourceCodePro-Semibold.ttf in Resources */,
 				37E0D89022A5C7FB008CA4ED /* kb.ttf in Resources */,
 				37E0D89122A5C7FB008CA4ED /* SourceCodePro-Medium.ttf in Resources */,
-				DBEE30851FE8511F0020EBA5 /* LICENSE.txt in Resources */,
 				0044E59D1BCD7CEA008EF7EE /* LaunchScreen.storyboard in Resources */,
 				DBDCF30E1B8D03DD00BA95D8 /* Images.xcassets in Resources */,
 			);
@@ -672,17 +576,10 @@
 				3791A8A120C71DC0001C2E86 /* PushPrompt.m in Sources */,
 				DB27DE571D747A6C003DE8BC /* Utils.m in Sources */,
 				DB07050522E21B8B002F273D /* KeepThisFile.swift in Sources */,
-				DBEE30861FE8511F0020EBA5 /* DDFileLogger.m in Sources */,
-				DBEE30871FE8511F0020EBA5 /* DDASLLogCapture.m in Sources */,
-				DBEE30801FE8511F0020EBA5 /* DDTTYLogger.m in Sources */,
-				DBEE30841FE8511F0020EBA5 /* DDAbstractDatabaseLogger.m in Sources */,
 				279FB66921402D68005E4864 /* Fs.m in Sources */,
 				A969A40A1CF65C9C00F273F2 /* LogSend.m in Sources */,
 				DBBCC6181D9C5C6A00312652 /* main.m in Sources */,
-				DBEE30821FE8511F0020EBA5 /* DDASLLogger.m in Sources */,
-				DBEE30831FE8511F0020EBA5 /* DDLog.m in Sources */,
 				DB3B470D27EB8BCB0002139E /* rpc.cpp in Sources */,
-				DBEE30811FE8511F0020EBA5 /* DDOSLogger.m in Sources */,
 				27EE26A820A140EF00F92CD1 /* Pusher.m in Sources */,
 				DB779E0627D2B96600CDB0F7 /* GoJSIBridge.mm in Sources */,
 				A90CD4A81FCE1D0B00F97901 /* NativeLogger.m in Sources */,

@@ -18,6 +18,7 @@ target 'Keybase' do
     # to enable hermes on iOS, change `false` to `true` and then install pods
     :hermes_enabled => false
   )
+  pod 'CocoaLumberjack'
 
  post_install do |installer|
     react_native_post_install(installer)
