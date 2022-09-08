@@ -33,10 +33,6 @@ const DeleteChannel = (props: Props) => {
     routePropChannel ? [routePropChannel] : storeSelectedChannels ? [...storeSelectedChannels] : []
   )
 
-  if (channelIDs === []) {
-    throw new Error('conversationIDKeys unexpectedly empty')
-  }
-
   const {channelMetas} = useAllChannelMetas(teamID)
   let channelnames: string[] = []
 
