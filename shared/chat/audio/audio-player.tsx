@@ -7,15 +7,20 @@ import {isMobile} from '../../constants/platform'
 
 type VisProps = {
   amps: Array<number>
-  ampsRemain: number
+  playedRatio: number
   height: number
   maxWidth?: number
 }
 
 const AudioVis = (props: VisProps) => {
+  const {amps, playedRatio, maxWidth} = props
+  let threshold = Math.floor(amps.length * playedRatio)
+  if (threshold > 0) {
+    threshold += 4 // metering actually lags so compensate while actually playing
+  }
+
   let maxHeight = 0
-  // console.log('aaa vis', props.amps)
-  const content = props.amps.map((inamp, index) => {
+  const content = amps.map((inamp, index) => {
     const amp = isNaN(inamp) || inamp < 0 ? 0 : inamp
     const prop = Math.min(1.0, Math.max(Math.sqrt(amp), 0.05))
     const height = Math.floor(prop * props.height)
@@ -28,7 +33,7 @@ const AudioVis = (props: VisProps) => {
         direction="vertical"
         key={index}
         style={{
-          backgroundColor: index < props.ampsRemain ? Styles.globalColors.blue : Styles.globalColors.black,
+          backgroundColor: index < threshold ? Styles.globalColors.blue : Styles.globalColors.black,
           height,
           marginRight: isMobile ? 4 * Styles.hairlineWidth : 2,
           width: isMobile ? 3 * Styles.hairlineWidth : 1,
@@ -39,7 +44,7 @@ const AudioVis = (props: VisProps) => {
   return Styles.isMobile ? (
     <Kb.ScrollView
       horizontal={true}
-      style={{height: maxHeight, maxWidth: props.maxWidth}}
+      style={{height: maxHeight, maxWidth: maxWidth}}
       showsHorizontalScrollIndicator={false}
     >
       {content}
@@ -47,7 +52,7 @@ const AudioVis = (props: VisProps) => {
   ) : (
     <Kb.Box2
       direction="horizontal"
-      style={{height: maxHeight, marginTop: Styles.globalMargins.xtiny, maxWidth: props.maxWidth}}
+      style={{height: maxHeight, marginTop: Styles.globalMargins.xtiny, maxWidth: maxWidth}}
     >
       {content}
     </Kb.Box2>
@@ -99,7 +104,7 @@ const AudioPlayer = (props: Props) => {
     }
   }, [timeLeft, paused, duration])
 
-  const ampsRemain = Math.floor((1 - timeLeft / duration) * visAmps.length)
+  const playedRatio = (duration - timeLeft) / duration
   return (
     <Kb.Box2
       direction="horizontal"
@@ -114,7 +119,7 @@ const AudioPlayer = (props: Props) => {
         />
       </Kb.ClickableBox>
       <Kb.Box2 direction="vertical" style={styles.visContainer} gap="xxtiny" fullHeight={true}>
-        <AudioVis height={big ? 32 : 18} amps={visAmps} maxWidth={maxWidth} ampsRemain={ampsRemain} />
+        <AudioVis height={big ? 32 : 18} amps={visAmps} maxWidth={maxWidth} playedRatio={playedRatio} />
         <Kb.Text type="BodyTiny">{formatAudioRecordDuration(timeLeft)}</Kb.Text>
       </Kb.Box2>
       {url.length > 0 && <AudioVideo seekRef={seekRef} url={url} paused={paused} />}
