@@ -37,66 +37,94 @@ const badge = (backgroundColor: string, menuItem: boolean = false) => (
   />
 )
 
-const _EmailPhoneRow = (props: Kb.PropsWithOverlay<Props>) => {
+const EmailPhoneRow = (props: Props) => {
+  const {
+    address,
+    onDelete,
+    onMakePrimary,
+    onToggleSearchable,
+    onVerify,
+    primary,
+    searchable,
+    superseded,
+    type,
+    verified,
+    lastVerifyEmailDate,
+    moreThanOneEmail,
+  } = props
+
+  const {showingPopup, setShowingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
+    <Kb.FloatingMenu
+      attachTo={attachTo}
+      closeText="Cancel"
+      visible={showingPopup}
+      position="bottom right"
+      header={Styles.isMobile ? header : undefined}
+      onHidden={() => setShowingPopup(false)}
+      items={menuItems}
+      closeOnSelect={true}
+    />
+  ))
+
   // Short circuit superseded phone numbers - they get their own banner instead
-  if (props.superseded) {
+  if (superseded) {
     return null
   }
 
   // less than 30 minutes ago
   const hasRecentVerifyEmail =
-    props.lastVerifyEmailDate && new Date().getTime() / 1000 - props.lastVerifyEmailDate < 30 * 60
+    lastVerifyEmailDate && new Date().getTime() / 1000 - lastVerifyEmailDate < 30 * 60
 
   let subtitle = ''
 
-  if (isMobile && hasRecentVerifyEmail && !props.verified) {
+  if (isMobile && hasRecentVerifyEmail && !verified) {
     subtitle = 'Check your inbox'
   } else {
-    if (hasRecentVerifyEmail && !props.verified) {
+    if (hasRecentVerifyEmail && !verified) {
       subtitle = addSpacer(subtitle, 'Check your inbox')
     }
-    if (props.type === 'email' && props.primary) {
+    if (type === 'email' && primary) {
       subtitle = addSpacer(subtitle, 'Primary')
     }
-    if (!props.searchable) {
+    if (!searchable) {
       subtitle = addSpacer(subtitle, 'Not searchable')
     }
   }
 
   const menuItems: Kb.MenuItems = []
-  if (!props.verified) {
+  if (!verified) {
     menuItems.push({
-      decoration: props.verified ? undefined : badge(Styles.globalColors.orange, true),
+      decoration: verified ? undefined : badge(Styles.globalColors.orange, true),
       icon: 'iconfont-lock',
-      onClick: props.onVerify,
+      onClick: onVerify,
       title: 'Verify',
     })
   }
-  if (props.type === 'email' && !props.primary) {
+  if (type === 'email' && !primary) {
     menuItems.push({
       icon: 'iconfont-star',
-      onClick: props.onMakePrimary,
+      onClick: onMakePrimary,
       subTitle: 'Use this email for important notifications.',
       title: 'Make primary',
     })
   }
-  if (props.verified) {
-    const copyType = props.type === 'email' ? 'email' : 'number'
+  if (verified) {
+    const copyType = type === 'email' ? 'email' : 'number'
     menuItems.push({
-      decoration: props.searchable ? undefined : badge(Styles.globalColors.blue, true),
-      icon: props.searchable ? 'iconfont-hide' : 'iconfont-unhide',
-      onClick: props.onToggleSearchable,
-      subTitle: props.searchable
+      decoration: searchable ? undefined : badge(Styles.globalColors.blue, true),
+      icon: searchable ? 'iconfont-hide' : 'iconfont-unhide',
+      onClick: onToggleSearchable,
+      subTitle: searchable
         ? `Don't let friends find you by this ${copyType}.`
         : `${Styles.isMobile ? '' : '(Recommended) '}Let friends find you by this ${copyType}.`,
-      title: props.searchable ? 'Make unsearchable' : 'Make searchable',
+      title: searchable ? 'Make unsearchable' : 'Make searchable',
     })
   }
 
   if (menuItems.length > 0) {
     menuItems.push('Divider')
   }
-  const isUndeletableEmail = props.type === 'email' && props.moreThanOneEmail && props.primary
+  const isUndeletableEmail = type === 'email' && moreThanOneEmail && primary
   const deleteItem: Kb.MenuItem = isUndeletableEmail
     ? {
         disabled: true,
@@ -106,20 +134,20 @@ const _EmailPhoneRow = (props: Kb.PropsWithOverlay<Props>) => {
           'You need to delete your other emails, or make another one primary, before you can delete this email.',
         title: 'Delete',
       }
-    : {danger: true, icon: 'iconfont-trash', onClick: props.onDelete, title: 'Delete'}
+    : {danger: true, icon: 'iconfont-trash', onClick: onDelete, title: 'Delete'}
   menuItems.push(deleteItem)
 
   let gearIconBadge: React.ReactNode | null = null
-  if (!props.verified) {
+  if (!verified) {
     gearIconBadge = badge(Styles.globalColors.orange)
-  } else if (!props.searchable) {
+  } else if (!searchable) {
     gearIconBadge = badge(Styles.globalColors.blue)
   }
 
   const header = (
     <Kb.Box2 direction="vertical" centerChildren={true} style={styles.menuHeader}>
-      <Kb.Text type="BodySmallSemibold">{props.address}</Kb.Text>
-      {props.primary && <Kb.Text type="BodySmall">Primary</Kb.Text>}
+      <Kb.Text type="BodySmallSemibold">{address}</Kb.Text>
+      {primary && <Kb.Text type="BodySmall">Primary</Kb.Text>}
     </Kb.Box2>
   )
 
@@ -127,11 +155,11 @@ const _EmailPhoneRow = (props: Kb.PropsWithOverlay<Props>) => {
     <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} style={styles.container}>
       <Kb.Box2 alignItems="flex-start" direction="vertical" style={{...Styles.globalStyles.flexOne}}>
         <Kb.Text type="BodySemibold" selectable={true} lineClamp={1}>
-          {props.address}
+          {address}
         </Kb.Text>
-        {(!!subtitle || !props.verified) && (
+        {(!!subtitle || !verified) && (
           <Kb.Box2 direction="horizontal" alignItems="flex-start" gap="xtiny" fullWidth={true}>
-            {!props.verified && <Kb.Meta backgroundColor={Styles.globalColors.red} title="UNVERIFIED" />}
+            {!verified && <Kb.Meta backgroundColor={Styles.globalColors.red} title="UNVERIFIED" />}
             {!!subtitle && <Kb.Text type="BodySmall">{subtitle}</Kb.Text>}
           </Kb.Box2>
         )}
@@ -140,34 +168,19 @@ const _EmailPhoneRow = (props: Kb.PropsWithOverlay<Props>) => {
         <>
           <Kb.ClickableBox
             className="hover_container"
-            onClick={props.toggleShowingMenu}
+            onClick={() => setShowingPopup(!showingPopup)}
+            ref={popupAnchor}
             style={styles.gearIconContainer}
           >
-            <Kb.Icon
-              className="hover_contained_color_black"
-              type="iconfont-gear"
-              ref={props.setAttachmentRef}
-              style={styles.gearIcon}
-            />
+            <Kb.Icon className="hover_contained_color_black" type="iconfont-gear" style={styles.gearIcon} />
             {gearIconBadge}
           </Kb.ClickableBox>
-          <Kb.FloatingMenu
-            attachTo={props.getAttachmentRef}
-            closeText="Cancel"
-            containerStyle={styles.menuNoGrow}
-            visible={props.showingMenu}
-            position="bottom right"
-            header={Styles.isMobile ? header : undefined}
-            items={menuItems}
-            closeOnSelect={true}
-            onHidden={props.toggleShowingMenu}
-          />
+          {popup}
         </>
       )}
     </Kb.Box2>
   )
 }
-const EmailPhoneRow = Kb.OverlayParentHOC(_EmailPhoneRow)
 
 const styles = Styles.styleSheetCreate(
   () =>
@@ -199,7 +212,6 @@ const styles = Styles.styleSheetCreate(
       menuHeader: {
         height: 64,
       },
-      menuNoGrow: Styles.platformStyles({isElectron: {width: 220}}),
     } as const)
 )
 
