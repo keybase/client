@@ -4,11 +4,6 @@ import MessagePopup from '../messages/message-popup'
 import * as Styles from '../../../styles'
 import type {Props} from '.'
 
-type State = {
-  loaded: string
-  isZoomed: boolean
-}
-
 type ArrowProps = {
   left: boolean
   onClick: () => void
@@ -35,155 +30,177 @@ const Arrow = (props: ArrowProps) => {
   )
 }
 
-class _Fullscreen extends React.Component<Props & Kb.OverlayParentProps, State> {
-  state = {isZoomed: false, loaded: ''}
+const _Fullscreen = (p: Props & Kb.OverlayParentProps) => {
+  const {path, title, message, progress, progressLabel} = p
+  const {onNextAttachment, onPreviousAttachment, onClose, onDownloadAttachment, onShowInFinder, isVideo} = p
+  const {setAttachmentRef, toggleShowingMenu, showingMenu, getAttachmentRef} = p
+  const [isZoomed, setIsZoomed] = React.useState(false)
 
-  private vidRef: {current: HTMLVideoElement | null} = React.createRef()
-  private mounted = false
-  private setLoaded = (path: string) => this.setState({loaded: path})
-  private isLoaded = () => this.props.path.length > 0 && this.props.path === this.state.loaded
-  private hotKeys = ['left', 'right']
-  private onHotKey = (cmd: string) => {
-    cmd === 'left' && this.props.onPreviousAttachment()
-    cmd === 'right' && this.props.onNextAttachment()
-  }
-  private isDownloadError = () => !!this.props.message.transferErrMsg
-
-  componentDidMount() {
-    this.mounted = true
-    if (this.vidRef.current && this.props.autoPlay) {
-      this.vidRef.current
-        .play()
-        .then(() => {})
-        .catch(() => {})
+  const isMountedRef = React.useRef(true)
+  React.useEffect(() => {
+    return () => {
+      isMountedRef.current = false
     }
-  }
+  }, [])
 
-  componentWillUnmount() {
-    this.mounted = false
+  const vidRef = React.useRef(null)
+  const hotKeys = ['left', 'right']
+  const onHotKey = (cmd: string) => {
+    cmd === 'left' && onPreviousAttachment()
+    cmd === 'right' && onNextAttachment()
   }
+  const isDownloadError = !!message.transferErrMsg
 
-  render() {
-    return (
-      <Kb.PopupDialog onClose={this.props.onClose} fill={true}>
-        <Kb.Box style={styles.container}>
-          <Kb.HotKey hotKeys={this.hotKeys} onHotKey={this.onHotKey} />
-          <Kb.Box style={styles.headerFooter}>
-            <Kb.Markdown
-              lineClamp={2}
-              style={Styles.globalStyles.flexOne}
-              meta={{message: this.props.message}}
-            >
-              {this.props.title}
-            </Kb.Markdown>
-            <Kb.Icon
-              ref={this.props.setAttachmentRef}
-              type="iconfont-ellipsis"
-              style={Styles.platformStyles({
-                common: {marginLeft: Styles.globalMargins.tiny},
-                isElectron: {cursor: 'pointer'},
-              })}
-              color={Styles.globalColors.black_50}
-              onClick={this.props.toggleShowingMenu}
-            />
-            <MessagePopup
-              attachTo={this.props.getAttachmentRef}
-              message={this.props.message}
-              onHidden={this.props.toggleShowingMenu}
-              position="bottom left"
-              visible={this.props.showingMenu}
-            />
-          </Kb.Box>
-          {this.props.path && (
-            <Kb.BoxGrow>
-              <Kb.Box
-                style={Styles.collapseStyles([
-                  this.state.isZoomed ? styles.contentsZoom : styles.contentsFit,
-                  this.isLoaded() ? null : styles.contentsHidden,
-                ])}
-                key={this.props.path}
-              >
-                {!this.state.isZoomed ? (
-                  <Arrow left={true} onClick={this.props.onPreviousAttachment} />
-                ) : undefined}
-                <Kb.Box
-                  style={Styles.globalStyles.flexGrow}
-                  onClick={() => {
-                    if (!this.props.isVideo) {
-                      this.setState(p => ({isZoomed: !p.isZoomed}))
-                    }
-                  }}
-                  key={this.props.path}
-                >
-                  {!this.props.isVideo ? (
-                    <Kb.Image
-                      src={this.props.path}
-                      style={
-                        this.state.isZoomed
-                          ? (styles.imageZoom as Styles.StylesCrossPlatform)
-                          : (styles.imageFit as Styles.StylesCrossPlatform)
-                      }
-                      onLoad={() => {
-                        if (this.mounted) {
-                          this.setLoaded(this.props.path)
-                        }
-                      }}
-                    />
-                  ) : (
-                    <video
-                      style={styles.videoFit as any}
-                      onLoadedMetadata={() => this.setLoaded(this.props.path)}
-                      controlsList="nodownload nofullscreen noremoteplayback"
-                      controls={true}
-                      ref={this.vidRef}
-                    >
-                      <source src={this.props.path} />
-                      <style>{showPlayButton}</style>
-                    </video>
-                  )}
-                </Kb.Box>
-                {!this.state.isZoomed && <Arrow left={false} onClick={this.props.onNextAttachment} />}
-              </Kb.Box>
-            </Kb.BoxGrow>
-          )}
-          {!this.isLoaded() && (
-            <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true} centerChildren={true}>
-              <Kb.ProgressIndicator type="Huge" style={{margin: 'auto'}} />
-            </Kb.Box2>
-          )}
-          <Kb.Box style={styles.headerFooter}>
-            {!!this.props.progressLabel && (
-              <Kb.Text
-                type="BodySmall"
-                style={{color: Styles.globalColors.black_50, marginRight: Styles.globalMargins.tiny}}
-              >
-                {this.props.progressLabel}
-              </Kb.Text>
-            )}
-            {!!this.props.progressLabel && <Kb.ProgressBar ratio={this.props.progress} />}
-            {!this.props.progressLabel && this.props.onDownloadAttachment && !this.isDownloadError() && (
-              <Kb.Text type="BodySmall" style={styles.link} onClick={this.props.onDownloadAttachment}>
-                Download
-              </Kb.Text>
-            )}
-            {!this.props.progressLabel && this.props.onDownloadAttachment && this.isDownloadError() && (
-              <Kb.Text type="BodySmall" style={styles.error} onClick={this.props.onDownloadAttachment}>
-                Failed to download.{' '}
-                <Kb.Text type="BodySmall" style={styles.retry} onClick={this.props.onDownloadAttachment}>
-                  Retry
-                </Kb.Text>
-              </Kb.Text>
-            )}
-            {this.props.onShowInFinder && (
-              <Kb.Text type="BodySmall" style={styles.link} onClick={this.props.onShowInFinder}>
-                Show in {Styles.fileUIName}
-              </Kb.Text>
-            )}
-          </Kb.Box>
+  const [imgSize, setImgSize] = React.useState({height: 0, width: 0})
+
+  React.useEffect(() => {
+    const img = new Image()
+    img.src = path
+    img.onload = () => {
+      isMountedRef.current && setImgSize({height: img.naturalHeight, width: img.naturalWidth})
+    }
+  }, [path])
+
+  const onImageMouseLeave = React.useCallback(() => {
+    const target = document.getElementById('imgAttach')
+    if (!target) return
+    target.style.backgroundPosition = 'center'
+    target.style.backgroundSize = 'contain'
+  }, [])
+
+  React.useEffect(() => {
+    !isZoomed && onImageMouseLeave()
+  }, [onImageMouseLeave, isZoomed])
+
+  const onImageMouseMove = React.useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      const img = document.getElementById('imgAttach')
+      if (!img) return
+      const rat = 2
+      const w = imgSize.width * rat
+      const h = imgSize.height * rat
+      const ratio = (rat * h) / w
+      const rect = e.currentTarget.getBoundingClientRect()
+      const xPos = e.clientX - rect.left
+      const yPos = e.clientY - rect.top
+      const xPercent = xPos / ((rect.width * ratio) / 100) + '%'
+      const yPercent = yPos / ((rect.height * ratio) / 100) + '%'
+      img.style.backgroundPosition = xPercent + ' ' + yPercent
+      img.style.backgroundSize = w + 'px'
+    },
+    [imgSize]
+  )
+
+  return (
+    <Kb.PopupDialog onClose={onClose} fill={true}>
+      <Kb.Box style={styles.container}>
+        <Kb.HotKey hotKeys={hotKeys} onHotKey={onHotKey} />
+        <Kb.Box style={styles.headerFooter}>
+          <Kb.Markdown lineClamp={2} style={Styles.globalStyles.flexOne} meta={{message: message}}>
+            {title}
+          </Kb.Markdown>
+          <Kb.Icon
+            ref={setAttachmentRef}
+            type="iconfont-ellipsis"
+            style={Styles.platformStyles({
+              common: {marginLeft: Styles.globalMargins.tiny},
+              isElectron: {cursor: 'pointer'},
+            })}
+            color={Styles.globalColors.black_50}
+            onClick={toggleShowingMenu}
+          />
+          <MessagePopup
+            attachTo={getAttachmentRef}
+            message={message}
+            onHidden={toggleShowingMenu}
+            position="bottom left"
+            visible={showingMenu}
+          />
         </Kb.Box>
-      </Kb.PopupDialog>
-    )
-  }
+        {path && (
+          <Kb.BoxGrow>
+            <Kb.ClickableBox
+              style={styles.contentsFit}
+              key={path}
+              onClick={() => {
+                if (!isVideo) {
+                  setIsZoomed(z => !z)
+                }
+              }}
+            >
+              {!isZoomed ? <Arrow left={true} onClick={onPreviousAttachment} /> : undefined}
+              <Kb.Box2
+                direction="vertical"
+                fullWidth={true}
+                fullHeight={true}
+                style={Styles.globalStyles.flexGrow}
+                key={path}
+              >
+                {isVideo ? (
+                  <video
+                    style={styles.videoFit as any}
+                    controlsList="nodownload nofullscreen noremoteplayback"
+                    controls={true}
+                    ref={vidRef}
+                  >
+                    <source src={path} />
+                    <style>{showPlayButton}</style>
+                  </video>
+                ) : (
+                  <div
+                    style={{
+                      height: '100%',
+                      width: '100%',
+                    }}
+                    onMouseMove={isZoomed ? onImageMouseMove : undefined}
+                    onMouseLeave={onImageMouseLeave}
+                  >
+                    <div
+                      id="imgAttach"
+                      style={Styles.collapseStyles([
+                        isZoomed ? styles.imgZoomed : styles.imgOrig,
+                        {backgroundImage: `url(${path})`} as any,
+                      ])}
+                    />
+                  </div>
+                )}
+              </Kb.Box2>
+              {!isZoomed && <Arrow left={false} onClick={onNextAttachment} />}
+            </Kb.ClickableBox>
+          </Kb.BoxGrow>
+        )}
+        <Kb.Box style={styles.headerFooter}>
+          {!!progressLabel && (
+            <Kb.Text
+              type="BodySmall"
+              style={{color: Styles.globalColors.black_50, marginRight: Styles.globalMargins.tiny}}
+            >
+              {progressLabel}
+            </Kb.Text>
+          )}
+          {!!progressLabel && <Kb.ProgressBar ratio={progress} />}
+          {!progressLabel && onDownloadAttachment && !isDownloadError && (
+            <Kb.Text type="BodySmall" style={styles.link} onClick={onDownloadAttachment}>
+              Download
+            </Kb.Text>
+          )}
+          {!progressLabel && onDownloadAttachment && isDownloadError && (
+            <Kb.Text type="BodySmall" style={styles.error} onClick={onDownloadAttachment}>
+              Failed to download.{' '}
+              <Kb.Text type="BodySmall" style={styles.retry} onClick={onDownloadAttachment}>
+                Retry
+              </Kb.Text>
+            </Kb.Text>
+          )}
+          {onShowInFinder && (
+            <Kb.Text type="BodySmall" style={styles.link} onClick={onShowInFinder}>
+              Show in {Styles.fileUIName}
+            </Kb.Text>
+          )}
+        </Kb.Box>
+      </Kb.Box>
+    </Kb.PopupDialog>
+  )
 }
 
 const Fullscreen = Kb.OverlayParentHOC(_Fullscreen)
@@ -212,19 +229,13 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       container: {...Styles.globalStyles.flexBoxColumn, height: '100%', width: '100%'},
-      contentsFit: {...Styles.globalStyles.flexBoxRow, flex: 1, height: '100%', width: '100%'},
-      contentsHidden: {display: 'none'},
-      contentsZoom: Styles.platformStyles({
-        isElectron: {
-          display: 'block',
-          height: '100%',
-          overflow: 'auto',
-          width: '100%',
-        },
-      }),
-      error: {
-        color: Styles.globalColors.redDark,
+      contentsFit: {
+        ...Styles.globalStyles.flexBoxRow,
+        flex: 1,
+        height: '100%',
+        width: '100%',
       },
+      error: {color: Styles.globalColors.redDark},
       headerFooter: {
         ...Styles.globalStyles.flexBoxRow,
         alignItems: 'center',
@@ -233,23 +244,22 @@ const styles = Styles.styleSheetCreate(
         paddingRight: Styles.globalMargins.tiny,
         width: '100%',
       },
-      imageFit: Styles.platformStyles({
-        isElectron: {
-          cursor: 'zoom-in',
-          display: 'block',
-          height: '100%',
-          objectFit: 'scale-down',
-          width: '100%',
-        },
-      }),
-      imageZoom: Styles.platformStyles({
-        isElectron: {
-          cursor: 'zoom-out',
-          display: 'block',
-          height: '100%',
-          width: '100%',
-        },
-      }),
+
+      imgZoomed: {
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        backgroundSize: 'contain',
+        height: '100%',
+        width: '100%',
+      },
+      imgOrig: {
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        backgroundSize: 'contain',
+        height: '100%',
+        width: '100%',
+      },
+
       link: Styles.platformStyles({isElectron: {color: Styles.globalColors.black_50, cursor: 'pointer'}}),
       retry: {
         color: Styles.globalColors.redDark,
