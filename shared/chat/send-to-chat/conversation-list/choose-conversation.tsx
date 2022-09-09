@@ -1,24 +1,30 @@
 import * as React from 'react'
-import * as Types from '../../../constants/types/chat2'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
+import type * as Types from '../../../constants/types/chat2'
 import ConversationList from './conversation-list'
 
 type Props = {
   convName: string
   dropdownButtonStyle?: Styles.StylesCrossPlatform
   onSelect: (conversationIDKey: Types.ConversationIDKey, convName: string) => void
-} & Kb.OverlayParentProps
+}
 
 const ChooseConversation = (props: Props) => {
-  const [expanded, setExpanded] = React.useState(false)
-  const toggleOpen = () => {
-    setExpanded(!expanded)
-  }
-  const onDone = () => {
-    setExpanded(false)
-  }
   const text = !props.convName.length ? 'Choose a conversation' : props.convName
+
+  const {toggleShowingPopup, showingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
+    <Kb.Overlay
+      attachTo={attachTo}
+      onHidden={toggleShowingPopup}
+      position="center center"
+      style={styles.overlay}
+      visible={showingPopup}
+    >
+      <ConversationList onSelect={props.onSelect} onDone={toggleShowingPopup} />
+    </Kb.Overlay>
+  ))
+
   return (
     <>
       <Kb.DropdownButton
@@ -27,24 +33,16 @@ const ChooseConversation = (props: Props) => {
             {text}
           </Kb.Text>
         }
-        setAttachmentRef={props.setAttachmentRef}
-        toggleOpen={toggleOpen}
+        setAttachmentRef={popupAnchor as any}
+        toggleOpen={toggleShowingPopup}
         style={Styles.collapseStyles([styles.dropdownButton, props.dropdownButtonStyle])}
       />
-      <Kb.Overlay
-        attachTo={props.getAttachmentRef}
-        onHidden={toggleOpen}
-        position="center center"
-        style={styles.overlay}
-        visible={expanded}
-      >
-        <ConversationList onSelect={props.onSelect} onDone={onDone} />
-      </Kb.Overlay>
+      {popup}
     </>
   )
 }
 
-export default Kb.OverlayParentHOC(ChooseConversation)
+export default ChooseConversation
 
 const styles = Styles.styleSheetCreate(
   () =>

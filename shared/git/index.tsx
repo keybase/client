@@ -40,12 +40,12 @@ const Git = (props: Props) => {
     {icon: 'iconfont-people', onClick: onNewTeamRepo, title: 'New team repository'} as const,
   ]
 
-  const {showingPopup, setShowingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
+  const {toggleShowingPopup, showingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
     <Kb.FloatingMenu
       attachTo={attachTo}
       closeOnSelect={true}
       items={menuItems}
-      onHidden={() => setShowingPopup(false)}
+      onHidden={toggleShowingPopup}
       visible={showingPopup}
       position="bottom center"
     />
@@ -55,11 +55,7 @@ const Git = (props: Props) => {
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
       {!!error && <Kb.Banner color="red">{error.message}</Kb.Banner>}
       {Styles.isMobile && (
-        <Kb.ClickableBox
-          ref={popupAnchor}
-          style={styles.header}
-          onClick={() => setShowingPopup(!showingPopup)}
-        >
+        <Kb.ClickableBox ref={popupAnchor} style={styles.header} onClick={toggleShowingPopup}>
           <Kb.Icon
             type="iconfont-new"
             style={{marginRight: Styles.globalMargins.tiny}}

@@ -53,14 +53,14 @@ const EmailPhoneRow = (props: Props) => {
     moreThanOneEmail,
   } = props
 
-  const {showingPopup, setShowingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
+  const {showingPopup, toggleShowingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
     <Kb.FloatingMenu
       attachTo={attachTo}
       closeText="Cancel"
       visible={showingPopup}
       position="bottom right"
       header={Styles.isMobile ? header : undefined}
-      onHidden={() => setShowingPopup(false)}
+      onHidden={toggleShowingPopup}
       items={menuItems}
       closeOnSelect={true}
     />
@@ -168,7 +168,7 @@ const EmailPhoneRow = (props: Props) => {
         <>
           <Kb.ClickableBox
             className="hover_container"
-            onClick={() => setShowingPopup(!showingPopup)}
+            onClick={toggleShowingPopup}
             ref={popupAnchor}
             style={styles.gearIconContainer}
           >

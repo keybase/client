@@ -23,7 +23,7 @@ export const InfoIcon = (props: InfoIconProps) => {
     )
   }
 
-  const {showingPopup, setShowingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
+  const {showingPopup, toggleShowingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
     <Kb.FloatingMenu
       items={[
         {onClick: onFeedback, title: 'Send feedback'},
@@ -31,7 +31,7 @@ export const InfoIcon = (props: InfoIconProps) => {
       ]}
       attachTo={attachTo}
       visible={showingPopup}
-      onHidden={() => setShowingPopup(false)}
+      onHidden={toggleShowingPopup}
       closeOnSelect={true}
     />
   ))
@@ -40,7 +40,7 @@ export const InfoIcon = (props: InfoIconProps) => {
     <>
       <Kb.Icon
         type="iconfont-question-mark"
-        onClick={props.invisible ? undefined : () => setShowingPopup(!showingPopup)}
+        onClick={props.invisible ? undefined : toggleShowingPopup}
         ref={popupAnchor as any}
         style={Styles.collapseStyles([
           Styles.desktopStyles.windowDraggingClickable,

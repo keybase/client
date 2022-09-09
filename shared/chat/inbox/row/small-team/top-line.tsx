@@ -29,7 +29,7 @@ const SimpleTopLine = React.memo(function SimpleTopLine(props: Props) {
   const {isSelected, onForceHideMenu, participants, showBold, showGear, subColor, timestamp} = props
   const {usernameColor, hasBadge} = props
 
-  const {showingPopup, setShowingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
+  const {showingPopup, toggleShowingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
     <TeamMenu
       visible={showingPopup || forceShowMenu}
       attachTo={attachTo}
@@ -41,9 +41,9 @@ const SimpleTopLine = React.memo(function SimpleTopLine(props: Props) {
   ))
 
   const onHidden = React.useCallback(() => {
-    setShowingPopup(false)
+    toggleShowingPopup()
     onForceHideMenu()
-  }, [setShowingPopup, onForceHideMenu])
+  }, [toggleShowingPopup, onForceHideMenu])
 
   const nameContainerStyle = React.useMemo(
     () =>
@@ -118,7 +118,7 @@ const SimpleTopLine = React.memo(function SimpleTopLine(props: Props) {
         <Kb.Icon
           type="iconfont-gear"
           className="conversation-gear"
-          onClick={() => setShowingPopup(!showingPopup)}
+          onClick={toggleShowingPopup}
           // @ts-ignore icon typing is bad
           ref={popupAnchor}
           color={subColor}

@@ -19,12 +19,12 @@ const useAutocompleter = <T extends React.Component<any>, U>(
   let itemsFiltered = filter ? items.filter(item => item.label.toLowerCase().includes(filterLCase)) : items
   itemsFiltered = itemsFiltered.slice(0, 5)
 
-  const {popup, popupAnchor, setShowingPopup, showingPopup} = Kb.usePopup<T>(
+  const {popup, popupAnchor, toggleShowingPopup, showingPopup, setShowingPopup} = Kb.usePopup<T>(
     getAttachmentRef => (
       <Kb.Overlay
         attachTo={getAttachmentRef}
         visible={showingPopup}
-        onHidden={() => setShowingPopup(false)}
+        onHidden={toggleShowingPopup}
         matchDimension={true}
         position="top center"
         positionFallbacks={['bottom center']}
@@ -82,7 +82,7 @@ const useAutocompleter = <T extends React.Component<any>, U>(
     [selected, setSelected, numItems, onSelect, selectedItem]
   )
 
-  return {onKeyDown, popup, popupAnchor, setShowingPopup}
+  return {onKeyDown, popup, popupAnchor, setShowingPopup, toggleShowingPopup}
 }
 
 const styles = Styles.styleSheetCreate(() => ({

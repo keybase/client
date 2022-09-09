@@ -2,9 +2,9 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Constants from '../../constants/teams'
-import * as Types from '../../constants/types/teams'
 import * as Container from '../../util/container'
 import * as Chat2Gen from '../../actions/chat2-gen'
+import type * as Types from '../../constants/types/teams'
 import TeamMenu from '../team/menu-container'
 import {pluralize} from '../../util/string'
 import {Activity} from '../common'
@@ -31,11 +31,11 @@ const TeamRow = (props: Props) => {
   const onChat = () =>
     dispatch(Chat2Gen.createPreviewConversation({reason: 'teamRow', teamname: teamMeta.teamname}))
 
-  const {popup, popupAnchor, setShowingPopup, showingPopup} = Kb.usePopup(getAttachmentRef => (
+  const {popup, popupAnchor, toggleShowingPopup, showingPopup} = Kb.usePopup(getAttachmentRef => (
     <TeamMenu
       teamID={teamID}
       attachTo={getAttachmentRef}
-      onHidden={() => setShowingPopup(false)}
+      onHidden={toggleShowingPopup}
       visible={showingPopup}
     />
   ))
@@ -140,7 +140,7 @@ const TeamRow = (props: Props) => {
             )}
             <Kb.Button
               type="Dim"
-              onClick={() => setShowingPopup(true)}
+              onClick={toggleShowingPopup}
               mode="Secondary"
               small={true}
               icon="iconfont-ellipsis"

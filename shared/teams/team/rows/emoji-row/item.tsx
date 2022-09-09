@@ -58,13 +58,13 @@ const ItemRow = ({conversationIDKey, emoji, firstItem, reloadEmojis, teamID}: Ow
         )
       }
     : undefined
-  const {showingPopup, setShowingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
+  const {showingPopup, toggleShowingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
     <EmojiMenu
       attachTo={attachTo}
       visible={showingPopup}
       onAddAlias={doAddAlias}
       onRemove={doRemove}
-      onHidden={() => setShowingPopup(false)}
+      onHidden={toggleShowingPopup}
       isAlias={emoji.isAlias}
     />
   ))
@@ -112,7 +112,7 @@ const ItemRow = ({conversationIDKey, emoji, firstItem, reloadEmojis, teamID}: Ow
                 icon="iconfont-ellipsis"
                 mode="Secondary"
                 type="Dim"
-                onClick={() => setShowingPopup(!showingPopup)}
+                onClick={toggleShowingPopup}
                 ref={popupAnchor}
                 small={true}
               />

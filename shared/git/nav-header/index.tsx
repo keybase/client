@@ -39,12 +39,12 @@ export const HeaderRightActions = () => {
     dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {isTeam: true}, selected: 'gitNewRepo'}]}))
   }
 
-  const {showingPopup, setShowingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
+  const {toggleShowingPopup, showingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
     <Kb.FloatingMenu
       attachTo={attachTo}
       closeOnSelect={true}
       visible={showingPopup}
-      onHidden={() => setShowingPopup(false)}
+      onHidden={toggleShowingPopup}
       position="bottom center"
       positionFallbacks={[]}
       items={[
@@ -57,7 +57,7 @@ export const HeaderRightActions = () => {
     <>
       <Kb.Button
         label="New repository"
-        onClick={() => setShowingPopup(!showingPopup)}
+        onClick={toggleShowingPopup}
         small={true}
         ref={popupAnchor}
         style={styles.newRepoButton}

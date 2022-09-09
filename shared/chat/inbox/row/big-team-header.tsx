@@ -32,11 +32,11 @@ const BigTeamHeader = React.memo(function BigTeamHeader(props: Props) {
       })
     )
 
-  const {showingPopup, setShowingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
+  const {showingPopup, toggleShowingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
     <TeamMenu
       attachTo={attachTo}
       visible={showingPopup}
-      onHidden={() => setShowingPopup(false)}
+      onHidden={toggleShowingPopup}
       conversationIDKey={Constants.noConversationIDKey}
       teamID={teamID}
       hasHeader={true}
@@ -63,7 +63,7 @@ const BigTeamHeader = React.memo(function BigTeamHeader(props: Props) {
       </Kb.BoxGrow>
       <Kb.ClickableBox
         className="hover_container"
-        onClick={() => setShowingPopup(!showingPopup)}
+        onClick={toggleShowingPopup}
         ref={popupAnchor}
         style={styles.showMenu}
       >
