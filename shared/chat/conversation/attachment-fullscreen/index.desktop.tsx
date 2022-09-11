@@ -64,31 +64,84 @@ const _Fullscreen = (p: Props & Kb.OverlayParentProps) => {
   const onImageMouseLeave = React.useCallback(() => {
     const target = document.getElementById('imgAttach')
     if (!target) return
-    target.style.backgroundPosition = 'center'
-    target.style.backgroundSize = 'contain'
+    target.style.transform = ''
   }, [])
+
+  const initialZoomRatio = 1.2
+  const [zoomRatio, setZoomRatio] = React.useState(initialZoomRatio)
 
   React.useEffect(() => {
     !isZoomed && onImageMouseLeave()
   }, [onImageMouseLeave, isZoomed])
 
+  const onImageWheel = React.useCallback(e => {
+    setZoomRatio(z => {
+      const diff = e.deltaY > 0 ? 0.07 : -0.07
+      const next = Math.max(0.1, Math.min(z + diff, 20))
+      return next
+    })
+  }, [])
+
+  const lastEvent = React.useRef<React.MouseEvent<HTMLDivElement> | undefined>()
+
+  const adjustImageStyle = React.useCallback(() => {
+    const e = lastEvent.current
+    const parent = document.getElementById('scrollAttach')
+    const img = document.getElementById('imgAttach')
+    if (!e || !parent || !img) {
+      return
+    }
+    if (!isZoomed) {
+      img.style.transform = ''
+      return
+    }
+
+    const rect = parent.getBoundingClientRect()
+    // position in parent
+    const x = Math.max(0, e.clientX - rect.left)
+    const y = Math.max(0, e.clientY - rect.top)
+    // ratio in parent
+    const xr = x / rect.width
+    const yr = y / rect.height
+    // image size
+    const iw = imgSize.width
+    const ih = imgSize.height
+
+    // offset to center ourselves in parent after scaling
+    const centerX = rect.width / 2 - (iw * zoomRatio) / 2
+    const centerY = rect.height / 2 - (ih * zoomRatio) / 2
+
+    // moving the mouse should translate you to the edges of the image
+    const mouseX = centerX + (1 - xr) * 2 * -centerX
+    const mouseY = centerY + (1 - yr) * 2 * -centerY
+
+    const temp = [
+      // move to middle
+      `translate(${-0.5 * iw}px, ${-0.5 * ih}px)`,
+      // scale up
+      `scale(${zoomRatio})`,
+      // move to top left
+      `translate(${0.5 * iw * zoomRatio}px, ${0.5 * ih * zoomRatio}px)`,
+      // center in parent. you go half the parent rect (img top in center, then go back so your center is center)
+      `translate(${centerX}px, ${centerY}px)`,
+      // move based on mouse
+      `translate(${mouseX}px, ${mouseY}px)`,
+    ]
+      .reverse() // applied right to left
+      .join(' ')
+    img.style.transform = temp
+  }, [zoomRatio, imgSize, isZoomed])
+
+  React.useEffect(() => {
+    adjustImageStyle()
+  }, [adjustImageStyle, zoomRatio, isZoomed])
+
   const onImageMouseMove = React.useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
-      const img = document.getElementById('imgAttach')
-      if (!img) return
-      const rat = 2
-      const w = imgSize.width * rat
-      const h = imgSize.height * rat
-      const ratio = (rat * h) / w
-      const rect = e.currentTarget.getBoundingClientRect()
-      const xPos = e.clientX - rect.left
-      const yPos = e.clientY - rect.top
-      const xPercent = xPos / ((rect.width * ratio) / 100) + '%'
-      const yPercent = yPos / ((rect.height * ratio) / 100) + '%'
-      img.style.backgroundPosition = xPercent + ' ' + yPercent
-      img.style.backgroundSize = w + 'px'
+      lastEvent.current = e
+      adjustImageStyle()
     },
-    [imgSize]
+    [adjustImageStyle]
   )
 
   return (
@@ -125,6 +178,7 @@ const _Fullscreen = (p: Props & Kb.OverlayParentProps) => {
               onClick={() => {
                 if (!isVideo) {
                   setIsZoomed(z => !z)
+                  setZoomRatio(initialZoomRatio)
                 }
               }}
             >
@@ -148,19 +202,16 @@ const _Fullscreen = (p: Props & Kb.OverlayParentProps) => {
                   </video>
                 ) : (
                   <div
-                    style={{
-                      height: '100%',
-                      width: '100%',
-                    }}
-                    onMouseMove={isZoomed ? onImageMouseMove : undefined}
-                    onMouseLeave={onImageMouseLeave}
+                    id="scrollAttach"
+                    style={isZoomed ? styles.scrollAttachZoomed : styles.scrollAttachOrig}
+                    onMouseMove={onImageMouseMove}
+                    onMouseLeave={isZoomed ? onImageMouseLeave : undefined}
+                    onWheel={isZoomed ? onImageWheel : undefined}
                   >
-                    <div
+                    <img
                       id="imgAttach"
-                      style={Styles.collapseStyles([
-                        isZoomed ? styles.imgZoomed : styles.imgOrig,
-                        {backgroundImage: `url(${path})`} as any,
-                      ])}
+                      src={path}
+                      style={isZoomed ? styles.imgZoomed : (styles.imgOrig as any)}
                     />
                   </div>
                 )}
@@ -244,26 +295,40 @@ const styles = Styles.styleSheetCreate(
         paddingRight: Styles.globalMargins.tiny,
         width: '100%',
       },
-
-      imgZoomed: {
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
-        backgroundSize: 'contain',
-        height: '100%',
-        width: '100%',
-      },
-      imgOrig: {
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
-        backgroundSize: 'contain',
-        height: '100%',
-        width: '100%',
-      },
-
+      imgOrig: Styles.platformStyles({
+        isElectron: {
+          display: 'flex',
+          margin: 'auto',
+          maxHeight: '100%',
+          maxWidth: '100%',
+          transform: '',
+        },
+      }),
+      imgZoomed: Styles.platformStyles({
+        isElectron: {
+          position: 'absolute',
+          transformOrigin: 'top left',
+        },
+      }),
       link: Styles.platformStyles({isElectron: {color: Styles.globalColors.black_50, cursor: 'pointer'}}),
       retry: {
         color: Styles.globalColors.redDark,
         textDecorationLine: 'underline',
+      },
+      scrollAttachOrig: {
+        alignItems: 'center',
+        display: 'flex',
+        height: '100%',
+        justifyContent: 'center',
+        overflow: 'hidden',
+        position: 'relative',
+        width: '100%',
+      },
+      scrollAttachZoomed: {
+        height: '100%',
+        overflow: 'hidden',
+        position: 'relative',
+        width: '100%',
       },
       videoFit: Styles.platformStyles({
         isElectron: {
