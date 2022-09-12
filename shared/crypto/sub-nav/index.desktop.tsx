@@ -31,7 +31,7 @@ function LeftTabNavigator({initialRouteName, children, screenOptions, backBehavi
   })
 
   const selectedTab = state.routes[state.index]?.name ?? ''
-  const onSelectTab = Common.useSubnavTabAction(navigation, state)
+  const onSelectTab = Common.useSubnavTabAction(navigation as any, state)
 
   return (
     <NavigationContent>
