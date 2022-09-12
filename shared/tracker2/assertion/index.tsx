@@ -166,12 +166,12 @@ const StellarValue = (p: Props) => {
     )
   }
 
-  const {showingPopup, setShowingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
+  const {toggleShowingPopup, showingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
     <Kb.FloatingMenu
       attachTo={attachTo}
       closeOnSelect={true}
       items={menuItems}
-      onHidden={() => setShowingPopup(false)}
+      onHidden={toggleShowingPopup}
       visible={showingPopup}
       position="bottom center"
     />
@@ -197,7 +197,7 @@ const StellarValue = (p: Props) => {
       <Kb.WithTooltip tooltip={Styles.isMobile || showingPopup ? '' : 'Stellar Federation Address'}>
         <Kb.Text
           type="BodyPrimaryLink"
-          onClick={() => setShowingPopup(!showingPopup)}
+          onClick={toggleShowingPopup}
           style={Styles.collapseStyles([styles.username, {color: assertionColorToTextColor(color)}])}
         >
           {value}

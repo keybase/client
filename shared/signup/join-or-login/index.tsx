@@ -13,7 +13,7 @@ type Props = {
 const JoinOrLogin = (props: Props) => (
   <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} alignItems="center">
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.header}>
-      <InfoIcon onDocumentation={props.onDocumentation} onFeedback={props.onFeedback} />
+      <InfoIcon />
     </Kb.Box2>
     <Kb.Box2 centerChildren={true} direction="vertical" gap="small" style={styles.body} fullWidth={true}>
       <Kb.Icon type="icon-keybase-logo-64" />
@@ -40,16 +40,10 @@ const JoinOrLogin = (props: Props) => (
 )
 
 const styles = Styles.styleSheetCreate(() => ({
-  body: {
-    flex: 1,
-  },
+  body: {flex: 1},
   button: Styles.platformStyles({
-    isElectron: {
-      width: 368,
-    },
-    isMobile: {
-      width: '100%',
-    },
+    isElectron: {width: 368},
+    isMobile: {width: '100%'},
   }),
   buttonBar: Styles.platformStyles({
     isElectron: {
@@ -60,20 +54,14 @@ const styles = Styles.styleSheetCreate(() => ({
     },
   }),
   header: Styles.platformStyles({
-    common: {
-      justifyContent: 'flex-end',
-    },
-    isElectron: {
-      padding: Styles.globalMargins.small,
-    },
+    common: {justifyContent: 'flex-end'},
+    isElectron: {padding: Styles.globalMargins.small},
     isMobile: {
       paddingRight: Styles.globalMargins.small,
       paddingTop: 10,
     },
   }),
-  text: {
-    color: Styles.globalColors.orange,
-  },
+  text: {color: Styles.globalColors.orange},
 }))
 
 export default JoinOrLogin

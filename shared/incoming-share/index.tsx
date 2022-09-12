@@ -64,11 +64,11 @@ export const OriginalOrCompressedButton = ({incomingShareItems}: IncomingSharePr
   }
 
   const useOriginalValue = Container.useSelector(state => state.config.incomingShareUseOriginal)
-  const {popup, showingPopup, setShowingPopup} = Kb.usePopup(() => (
+  const {popup, showingPopup, toggleShowingPopup} = Kb.usePopup(() => (
     <Kb.FloatingMenu
       closeOnSelect={true}
       visible={showingPopup}
-      onHidden={() => setShowingPopup(false)}
+      onHidden={toggleShowingPopup}
       items={[
         {
           icon: useOriginalValue ? 'iconfont-check' : undefined,
@@ -94,7 +94,7 @@ export const OriginalOrCompressedButton = ({incomingShareItems}: IncomingSharePr
 
   return (
     <>
-      <Kb.Icon type="iconfont-gear" padding="tiny" onClick={() => setShowingPopup(true)} />
+      <Kb.Icon type="iconfont-gear" padding="tiny" onClick={toggleShowingPopup} />
       {showingPopup && popup}
     </>
   )

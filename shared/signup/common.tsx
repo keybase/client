@@ -2,66 +2,56 @@ import * as React from 'react'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as RouteTreeGen from '../actions/route-tree-gen'
-import {Props as ButtonProps} from '../common-adapters/button'
+import {type Props as ButtonProps} from '../common-adapters/button'
 import openURL from '../util/open-url'
 import * as Styles from '../styles'
 
 type InfoIconProps = {
   invisible?: boolean
-  onDocumentation: () => void
-  onFeedback: () => void
   style?: Styles.StylesCrossPlatform
 }
 
-type InfoIconOwnProps = {
-  invisible?: boolean
-  onDocumentation?: () => void
-  onFeedback?: () => void
-}
+export const InfoIcon = (props: InfoIconProps) => {
+  const loggedIn = Container.useSelector(state => state.config.loggedIn)
+  const dispatch = Container.useDispatch()
+  const onDocumentation = () => openURL('https://book.keybase.io/docs')
+  const onFeedback = () => {
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [loggedIn ? 'signupSendFeedbackLoggedIn' : 'signupSendFeedbackLoggedOut'],
+      })
+    )
+  }
 
-const _InfoIcon = (props: Kb.PropsWithOverlay<InfoIconProps>) => (
-  <>
-    <Kb.Icon
-      type="iconfont-question-mark"
-      onClick={props.invisible ? undefined : props.toggleShowingMenu}
-      ref={props.setAttachmentRef}
-      style={Styles.collapseStyles([
-        Styles.desktopStyles.windowDraggingClickable,
-        props.invisible && styles.opacityNone,
-        props.style,
-      ] as any)}
-    />
+  const {showingPopup, toggleShowingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
     <Kb.FloatingMenu
       items={[
-        {onClick: () => props.onFeedback(), title: 'Send feedback'},
-        {onClick: props.onDocumentation, title: 'Documentation'},
+        {onClick: onFeedback, title: 'Send feedback'},
+        {onClick: onDocumentation, title: 'Documentation'},
       ]}
-      attachTo={props.getAttachmentRef}
-      visible={props.showingMenu}
-      onHidden={props.toggleShowingMenu}
+      attachTo={attachTo}
+      visible={showingPopup}
+      onHidden={toggleShowingPopup}
       closeOnSelect={true}
     />
-  </>
-)
+  ))
 
-export const InfoIcon = Container.connect(
-  state => ({_loggedIn: state.config.loggedIn}),
-  dispatch => ({
-    _onFeedback: (loggedIn: boolean) => {
-      dispatch(
-        RouteTreeGen.createNavigateAppend({
-          path: [loggedIn ? 'signupSendFeedbackLoggedIn' : 'signupSendFeedbackLoggedOut'],
-        })
-      )
-    },
-    onDocumentation: () => openURL('https://book.keybase.io/docs'),
-  }),
-  (s, d, o: InfoIconOwnProps) => ({
-    ...o,
-    onDocumentation: d.onDocumentation,
-    onFeedback: () => d._onFeedback(s._loggedIn),
-  })
-)(Kb.OverlayParentHOC(_InfoIcon))
+  return (
+    <>
+      <Kb.Icon
+        type="iconfont-question-mark"
+        onClick={props.invisible ? undefined : toggleShowingPopup}
+        ref={popupAnchor as any}
+        style={Styles.collapseStyles([
+          Styles.desktopStyles.windowDraggingClickable,
+          props.invisible && styles.opacityNone,
+          props.style,
+        ] as any)}
+      />
+      {popup}
+    </>
+  )
+}
 
 type HeaderProps = {
   onBack?: (() => void) | null

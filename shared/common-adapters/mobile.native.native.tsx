@@ -429,6 +429,9 @@ module.exports = {
   get useMounted() {
     return Index.useMounted
   },
+  get usePopup() {
+    return Index.usePopup
+  },
   get useSafeAreaInsets() {
     return Index.useSafeAreaInsets
   },

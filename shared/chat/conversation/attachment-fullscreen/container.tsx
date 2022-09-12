@@ -89,8 +89,12 @@ const Connected = (props: OwnProps) => {
       onDownloadAttachment={
         message.downloadPath ? undefined : () => dispatch(Chat2Gen.createAttachmentDownload({message}))
       }
-      onNextAttachment={() => onSwitchAttachment(false)}
-      onPreviousAttachment={() => onSwitchAttachment(true)}
+      onNextAttachment={() => {
+        onSwitchAttachment(false)
+      }}
+      onPreviousAttachment={() => {
+        onSwitchAttachment(true)
+      }}
       onShowInFinder={
         downloadPath
           ? () => dispatch(FsGen.createOpenLocalPathInSystemFileManager({localPath: downloadPath}))

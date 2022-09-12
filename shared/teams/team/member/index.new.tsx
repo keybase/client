@@ -727,11 +727,11 @@ const BlockDropdown = (props: {username: string}) => {
         path: [{props: {username: props.username}, selected: 'chatBlockingModal'}],
       })
     )
-  const {popup, popupAnchor, showingPopup, setShowingPopup} = Kb.usePopup(getAttachmentRef => (
+  const {popup, popupAnchor, showingPopup, toggleShowingPopup} = Kb.usePopup(getAttachmentRef => (
     <Kb.FloatingMenu
       attachTo={getAttachmentRef}
       visible={showingPopup}
-      onHidden={() => setShowingPopup(false)}
+      onHidden={toggleShowingPopup}
       closeOnSelect={true}
       items={[{danger: true, icon: 'iconfont-remove', onClick: onBlock, title: 'Block'}]}
     />
@@ -741,7 +741,7 @@ const BlockDropdown = (props: {username: string}) => {
       <Kb.Button
         small={true}
         icon="iconfont-ellipsis"
-        onClick={() => setShowingPopup(true)}
+        onClick={toggleShowingPopup}
         mode="Secondary"
         ref={popupAnchor}
       />

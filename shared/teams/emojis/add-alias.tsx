@@ -153,12 +153,12 @@ const ChooseEmoji = Styles.isMobile
       return <Kb.Button mode="Secondary" label="Choose emoji" onClick={openEmojiPicker} />
     }
   : (props: ChooseEmojiProps) => {
-      const {popup, popupAnchor, setShowingPopup} = Kb.usePopup(attachTo => (
+      const {popup, popupAnchor, toggleShowingPopup} = Kb.usePopup(attachTo => (
         <Kb.FloatingBox
           attachTo={attachTo}
           containerStyle={{paddingTop: Styles.globalMargins.tiny}}
           position="bottom left"
-          onHidden={() => setShowingPopup(false)}
+          onHidden={toggleShowingPopup}
           propagateOutsideClicks={false}
         >
           <EmojiPickerDesktop
@@ -166,19 +166,14 @@ const ChooseEmoji = Styles.isMobile
             hideFrequentEmoji={true}
             small={true}
             onPickAction={props.onChoose}
-            onDidPick={() => setShowingPopup(false)}
+            onDidPick={toggleShowingPopup}
             onlyTeamCustomEmoji={true}
           />
         </Kb.FloatingBox>
       ))
       return (
         <>
-          <Kb.Button
-            mode="Secondary"
-            label="Choose emoji"
-            ref={popupAnchor}
-            onClick={() => setShowingPopup(true)}
-          />
+          <Kb.Button mode="Secondary" label="Choose emoji" ref={popupAnchor} onClick={toggleShowingPopup} />
           {popup}
         </>
       )

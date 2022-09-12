@@ -390,26 +390,28 @@ const OpenTeamRow = (p: OpenTeamProps) => {
   const {name, description, memberCount, publicAdmins, inTeam, isSelected} = p
   const dispatch = Container.useDispatch()
   const showingDueToSelect = React.useRef(false)
-  const {showingPopup, setShowingPopup, popup, popupAnchor} = Kb.usePopup<Kb.Box2>(attachTo => (
-    <TeamInfo
-      attachTo={attachTo}
-      description={description ?? ''}
-      inTeam={inTeam}
-      isOpen={true}
-      name={name}
-      membersCount={memberCount}
-      position="right center"
-      onChat={undefined}
-      onHidden={() => setShowingPopup(false)}
-      onJoinTeam={() => dispatch(TeamsGen.createJoinTeam({teamname: name}))}
-      onViewTeam={() => {
-        dispatch(RouteTreeGen.createClearModals())
-        dispatch(TeamsGen.createShowTeamByName({teamname: name}))
-      }}
-      publicAdmins={publicAdmins ?? []}
-      visible={showingPopup}
-    />
-  ))
+  const {showingPopup, setShowingPopup, popup, popupAnchor, toggleShowingPopup} = Kb.usePopup<Kb.Box2>(
+    attachTo => (
+      <TeamInfo
+        attachTo={attachTo}
+        description={description ?? ''}
+        inTeam={inTeam}
+        isOpen={true}
+        name={name}
+        membersCount={memberCount}
+        position="right center"
+        onChat={undefined}
+        onHidden={toggleShowingPopup}
+        onJoinTeam={() => dispatch(TeamsGen.createJoinTeam({teamname: name}))}
+        onViewTeam={() => {
+          dispatch(RouteTreeGen.createClearModals())
+          dispatch(TeamsGen.createShowTeamByName({teamname: name}))
+        }}
+        publicAdmins={publicAdmins ?? []}
+        visible={showingPopup}
+      />
+    )
+  )
 
   React.useEffect(() => {
     if (!showingPopup && isSelected && !showingDueToSelect.current) {
@@ -422,7 +424,7 @@ const OpenTeamRow = (p: OpenTeamProps) => {
   }, [showingDueToSelect, setShowingPopup, showingPopup, isSelected])
 
   return (
-    <Kb.ClickableBox onClick={() => setShowingPopup(!showingPopup)} style={{width: '100%'}}>
+    <Kb.ClickableBox onClick={toggleShowingPopup} style={{width: '100%'}}>
       <Kb.Box2
         direction="horizontal"
         fullWidth={true}
