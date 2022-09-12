@@ -6,18 +6,10 @@
 //  Copyright © 2016 Keybase. All rights reserved.
 //
 #import "AppDelegate.h"
-#import "Engine.h"
-#import "Fs.h"
-#import "LogSend.h"
-#import "Pusher.h"
-#import <AVFoundation/AVFoundation.h>
-#import <RNCPushNotificationIOS.h>
+
+#import <React/RCTBridge.h>
 #import <React/RCTBundleURLProvider.h>
-#import <React/RCTConvert.h>
-#import <React/RCTLinkingManager.h>
 #import <React/RCTRootView.h>
-#import <UserNotifications/UserNotifications.h>
-#import <keybase/keybase.h>
 
 #ifdef FB_SONARKIT_ENABLED
 #import <FlipperKit/FlipperClient.h>
@@ -42,6 +34,15 @@ static void InitializeFlipper(UIApplication *application) {
 }
 #endif
 
+#import <React/RCTLinkingManager.h>
+#import "Engine.h"
+#import "Fs.h"
+#import "LogSend.h"
+#import "Pusher.h"
+#import <AVFoundation/AVFoundation.h>
+#import <RNCPushNotificationIOS.h>
+#import <UserNotifications/UserNotifications.h>
+#import <keybase/keybase.h>
 #import <RNHWKeyboardEvent.h>
 
 static const DDLogLevel ddLogLevel = DDLogLevelDebug;
@@ -52,6 +53,89 @@ static const DDLogLevel ddLogLevel = DDLogLevelDebug;
 @end
 
 @implementation AppDelegate
+
+- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
+{
+#ifdef FB_SONARKIT_ENABLED
+  InitializeFlipper(application);
+#endif
+
+  [self didLaunchSetupBefore: application];
+  
+  RCTBridge *bridge = [[RCTBridge alloc] initWithDelegate:self launchOptions:launchOptions];
+  RCTRootView *rootView = [[RCTRootView alloc] initWithBridge:bridge
+                                                   moduleName:@"Keybase"
+                                            initialProperties:nil];
+  
+  if (@available(iOS 13.0, *)) {
+    rootView.backgroundColor = [UIColor systemBackgroundColor];
+  } else {
+    rootView.backgroundColor = [UIColor whiteColor];
+  }
+
+  self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
+  UIViewController *rootViewController = [UIViewController new];
+  rootViewController.view = rootView;
+  self.window.rootViewController = rootViewController;
+  [self.window makeKeyAndVisible];
+
+  [self didLaunchSetupAfter:rootView];
+  
+  return YES;
+}
+
+- (NSURL *)sourceURLForBridge:(RCTBridge *)bridge {
+#if DEBUG
+  // uncomment to get a prod bundle. If you set this it remembers so set it back
+  // and re-run to reset it!
+  // [[RCTBundleURLProvider sharedSettings] setEnableDev: false];
+  return
+      [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@"index" fallbackResource:nil];
+#else
+  return [[NSBundle mainBundle] URLForResource:@"main" withExtension:@"jsbundle"];
+#endif
+}
+
+- (void) didLaunchSetupBefore: (UIApplication *)application {
+  // allow audio to be mixed
+  [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryAmbient
+                                         error:nil];
+  [self setupLogger];
+  [self setupGo];
+  [self notifyAppState:application];
+
+  UNUserNotificationCenter *center =
+      [UNUserNotificationCenter currentNotificationCenter];
+  center.delegate = self;
+}
+
+- (void) didLaunchSetupAfter: (RCTRootView *)rootView {
+  // To simplify the cover animation raciness
+  // With iPads, we had a bug with this resignImageView where if
+  // you backgrounded the app in portrait and then rotated to
+  // landscape while the app was in the background, the resignImageView
+  // in the snapshot would not be covering the entire app and would
+  // display content in the app.  The following code makes the
+  // image view a square in the largest dimensipn of the device so
+  // that when the iPad OS makes the snapshots the image view is
+  // covering in both orientations.
+  CGRect screenRect = [UIScreen mainScreen].bounds;
+  CGFloat dim = screenRect.size.width;
+  if (screenRect.size.height > dim) {
+    dim = screenRect.size.height;
+  }
+  CGRect square;
+  square = CGRectMake(screenRect.origin.x, screenRect.origin.y, dim, dim);
+  self.resignImageView = [[UIImageView alloc] initWithFrame:square];
+
+  self.resignImageView.contentMode = UIViewContentModeCenter;
+  self.resignImageView.alpha = 0;
+  self.resignImageView.backgroundColor = rootView.backgroundColor;
+  [self.resignImageView setImage:[UIImage imageNamed:@"LaunchImage"]];
+  [self.window addSubview:self.resignImageView];
+
+  [[UIApplication sharedApplication] setMinimumBackgroundFetchInterval: UIApplicationBackgroundFetchIntervalMinimum];
+}
 
 - (void)setupGo {
 #if TARGET_OS_SIMULATOR
@@ -89,91 +173,6 @@ static const DDLogLevel ddLogLevel = DDLogLevelDebug;
       [NSString
           stringWithFormat:@"%f", [[NSDate date] timeIntervalSince1970] * 1000],
       @"logger setup success");
-}
-
-- (BOOL)application:(UIApplication *)application
-    didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
-#ifdef FB_SONARKIT_ENABLED
-  InitializeFlipper(application);
-#endif
-
-  // allow audio to be mixed
-  [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryAmbient
-                                         error:nil];
-  [self setupLogger];
-  [self setupGo];
-  [self notifyAppState:application];
-
-  UNUserNotificationCenter *center =
-      [UNUserNotificationCenter currentNotificationCenter];
-  center.delegate = self;
-
-  RCTBridge *bridge = [[RCTBridge alloc] initWithDelegate:self
-                                            launchOptions:launchOptions];
-  RCTRootView *rootView = [[RCTRootView alloc] initWithBridge:bridge
-                                                   moduleName:@"Keybase"
-                                            initialProperties:nil];
-  if (@available(iOS 13.0, *)) {
-    rootView.backgroundColor = [UIColor systemBackgroundColor];
-  } else {
-    rootView.backgroundColor = [UIColor whiteColor];
-  }
-
-  self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
-  UIViewController *rootViewController = [UIViewController new];
-  rootViewController.view = rootView;
-  self.window.rootViewController = rootViewController;
-  [self.window makeKeyAndVisible];
-
-  // To simplify the cover animation raciness
-
-  // With iPads, we had a bug with this resignImageView where if
-  // you backgrounded the app in portrait and then rotated to
-  // landscape while the app was in the background, the resignImageView
-  // in the snapshot would not be covering the entire app and would
-  // display content in the app.  The following code makes the
-  // image view a square in the largest dimensipn of the device so
-  // that when the iPad OS makes the snapshots the image view is
-  // covering in both orientations.
-  CGRect screenRect = [UIScreen mainScreen].bounds;
-  CGFloat dim = screenRect.size.width;
-  if (screenRect.size.height > dim) {
-    dim = screenRect.size.height;
-  }
-  CGRect square;
-  square = CGRectMake(screenRect.origin.x, screenRect.origin.y, dim, dim);
-  self.resignImageView = [[UIImageView alloc] initWithFrame:square];
-
-  self.resignImageView.contentMode = UIViewContentModeCenter;
-  self.resignImageView.alpha = 0;
-  self.resignImageView.backgroundColor = rootView.backgroundColor;
-  [self.resignImageView setImage:[UIImage imageNamed:@"LaunchImage"]];
-  [self.window addSubview:self.resignImageView];
-
-  [[UIApplication sharedApplication]
-      setMinimumBackgroundFetchInterval:
-          UIApplicationBackgroundFetchIntervalMinimum];
-  
-  return YES;
-}
-
-- (NSURL *)sourceURLForBridge:(RCTBridge *)bridge {
-#if DEBUG
-  // uncomment to get a prod bundle. If you set this it remembers so set it back
-  // and re-run to reset it!
-  // [[RCTBundleURLProvider sharedSettings] setEnableDev: false];
-
-  // This is a mildly hacky solution to mock out some code when we're in
-  // storybook mode. The code that handles this is in `shared/metro.config.js`.
-  // NSString *bundlerURL = IS_STORYBOOK ? @"storybook-index" : @"normal-index";
-  NSString *bundlerURL = @"index";
-  return
-      [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:bundlerURL
-                                                     fallbackResource:nil];
-#else
-  return [[NSBundle mainBundle] URLForResource:@"main"
-                                 withExtension:@"jsbundle"];
-#endif
 }
 
 - (void)application:(UIApplication *)application
