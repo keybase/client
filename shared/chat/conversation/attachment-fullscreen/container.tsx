@@ -89,12 +89,10 @@ const Connected = (props: OwnProps) => {
       onDownloadAttachment={
         message.downloadPath ? undefined : () => dispatch(Chat2Gen.createAttachmentDownload({message}))
       }
-      onNextAttachment={e => {
-        e?.stopPropagation()
+      onNextAttachment={() => {
         onSwitchAttachment(false)
       }}
-      onPreviousAttachment={e => {
-        e?.stopPropagation()
+      onPreviousAttachment={() => {
         onSwitchAttachment(true)
       }}
       onShowInFinder={

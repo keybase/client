@@ -9,24 +9,23 @@ type ArrowProps = {
   onClick: () => void
 }
 
-const HoverBox = Styles.styled(Kb.Box)(() => ({
-  ':hover': {
-    backgroundColor: Styles.globalColors.black,
-  },
-  backgroundColor: Styles.globalColors.black_50,
-  transition: 'background-color 0.35s ease-in-out',
-}))
-
 const Arrow = (props: ArrowProps) => {
   const {left, onClick} = props
   return (
-    <HoverBox className="hover_background_color_black" onClick={onClick} style={styles.circle}>
+    <Kb.Box
+      className="hover_background_color_black background_color_black_50 fade-background-color"
+      onClick={(e: React.MouseEvent) => {
+        e.stopPropagation()
+        onClick()
+      }}
+      style={styles.circle}
+    >
       <Kb.Icon
         type={left ? 'iconfont-arrow-left' : 'iconfont-arrow-right'}
         color={Styles.globalColors.white}
         style={Styles.collapseStyles([styles.arrow, left && styles.arrowLeft, !left && styles.arrowRight])}
       />
-    </HoverBox>
+    </Kb.Box>
   )
 }
 
@@ -317,6 +316,7 @@ const styles = Styles.styleSheetCreate(
       },
       scrollAttachOrig: {
         alignItems: 'center',
+        cursor: 'zoom-in',
         display: 'flex',
         height: '100%',
         justifyContent: 'center',
@@ -325,6 +325,7 @@ const styles = Styles.styleSheetCreate(
         width: '100%',
       },
       scrollAttachZoomed: {
+        cursor: 'zoom-out',
         height: '100%',
         overflow: 'hidden',
         position: 'relative',

@@ -395,6 +395,10 @@ body {
   transition: opacity 250ms ease-in-out;
 }
 
+.fade-background-color {
+   transition: background-color 0.2s ease-in-out;
+}
+
 .emoji {
   position: relative;
   display: inline-block;
