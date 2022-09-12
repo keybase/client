@@ -73,6 +73,21 @@ const _Fullscreen = (p: Props & Kb.OverlayParentProps) => {
     !isZoomed && onImageMouseLeave()
   }, [onImageMouseLeave, isZoomed])
 
+  const toastAnchorRef = React.useRef(null)
+  const [showToast, setShowToast] = React.useState(false)
+  React.useEffect(() => {
+    if (isZoomed) {
+      setShowToast(true)
+      const id = setTimeout(() => {
+        setShowToast(false)
+      }, 3000)
+      return () => {
+        setShowToast(false)
+        clearTimeout(id)
+      }
+    } else return undefined
+  }, [isZoomed])
+
   const onImageWheel = React.useCallback(e => {
     setZoomRatio(z => {
       const diff = e.deltaY > 0 ? 0.07 : -0.07
@@ -202,7 +217,8 @@ const _Fullscreen = (p: Props & Kb.OverlayParentProps) => {
                 ) : (
                   <div
                     id="scrollAttach"
-                    style={isZoomed ? styles.scrollAttachZoomed : styles.scrollAttachOrig}
+                    ref={toastAnchorRef}
+                    style={isZoomed ? styles.scrollAttachZoomed : (styles.scrollAttachOrig as any)}
                     onMouseMove={onImageMouseMove}
                     onMouseLeave={isZoomed ? onImageMouseLeave : undefined}
                     onWheel={isZoomed ? onImageWheel : undefined}
@@ -212,6 +228,11 @@ const _Fullscreen = (p: Props & Kb.OverlayParentProps) => {
                       src={path}
                       style={isZoomed ? styles.imgZoomed : (styles.imgOrig as any)}
                     />
+                    <Kb.Toast visible={showToast} attachTo={() => toastAnchorRef.current}>
+                      <Kb.Text type="Body" negative={true}>
+                        Scroll to zoom. Move to pan
+                      </Kb.Text>
+                    </Kb.Toast>
                   </div>
                 )}
               </Kb.Box2>
@@ -314,23 +335,27 @@ const styles = Styles.styleSheetCreate(
         color: Styles.globalColors.redDark,
         textDecorationLine: 'underline',
       },
-      scrollAttachOrig: {
-        alignItems: 'center',
-        cursor: 'zoom-in',
-        display: 'flex',
-        height: '100%',
-        justifyContent: 'center',
-        overflow: 'hidden',
-        position: 'relative',
-        width: '100%',
-      },
-      scrollAttachZoomed: {
-        cursor: 'zoom-out',
-        height: '100%',
-        overflow: 'hidden',
-        position: 'relative',
-        width: '100%',
-      },
+      scrollAttachOrig: Styles.platformStyles({
+        isElectron: {
+          alignItems: 'center',
+          cursor: 'zoom-in',
+          display: 'flex',
+          height: '100%',
+          justifyContent: 'center',
+          overflow: 'hidden',
+          position: 'relative',
+          width: '100%',
+        },
+      }),
+      scrollAttachZoomed: Styles.platformStyles({
+        isElectron: {
+          cursor: 'zoom-out',
+          height: '100%',
+          overflow: 'hidden',
+          position: 'relative',
+          width: '100%',
+        },
+      }),
       videoFit: Styles.platformStyles({
         isElectron: {
           cursor: 'normal',
