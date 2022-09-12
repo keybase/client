@@ -181,7 +181,7 @@ public class KeybasePushNotificationListenerService extends FirebaseMessagingSer
                               seenChatNotifications.add(n.convID + n.messageId);
                           }
                       } catch (Exception ex) {
-                        NativeLogger.error("Go Couldn't handle background notification: " + ex.getMessage());
+                        NativeLogger.error("Go Couldn't handle background notification2: " + ex.getMessage());
                       }
                     };
                     withBackgroundActive.whileActive(getApplicationContext());

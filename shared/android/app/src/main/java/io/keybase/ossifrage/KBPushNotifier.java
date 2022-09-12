@@ -86,7 +86,7 @@ public class KBPushNotifier implements PushNotifier {
     open_activity_intent.putExtra("notification", bundle);
 
     PendingIntent pending_intent = PendingIntent.getActivity(this.context, 0, open_activity_intent,
-      PendingIntent.FLAG_IMMUTABLE);
+      PendingIntent.FLAG_MUTABLE);
 
     return pending_intent;
   }
@@ -130,7 +130,7 @@ public class KBPushNotifier implements PushNotifier {
         PendingIntent.getBroadcast(context,
                 convData.convID.hashCode(),
                 intent,
-                PendingIntent.FLAG_IMMUTABLE);
+                PendingIntent.FLAG_MUTABLE);
 
     NotificationCompat.Action action =
       new NotificationCompat.Action.Builder(R.drawable.ic_notif, "Reply", replyPendingIntent)
