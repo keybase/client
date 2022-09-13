@@ -191,32 +191,60 @@ static const DDLogLevel ddLogLevel = DDLogLevelDebug;
   NSURL * url = [NSURL URLWithString:@"keybase://incoming-share"];
   [self application:[UIApplication sharedApplication] openURL:url options:@{}];
 }
-- (void)dropInteraction:(UIDropInteraction *)interaction performDrop:(id<UIDropSession>)session {
-    [session loadObjectsOfClass:[UIImage self] completion:^(NSArray *images) {
-      NSMutableArray * manifest = [NSMutableArray new];
-      for (UIImage * img in images) {
-        NSString *filename = [NSString stringWithFormat:@"%@.%@", [[NSProcessInfo processInfo] globallyUniqueString], @"jpg"];
-        NSURL* incomingShareFolderURL = [self getIncomingShareFolder];
-        [[NSFileManager defaultManager] createDirectoryAtURL:incomingShareFolderURL withIntermediateDirectories:YES attributes:nil error:nil];
-        NSString * path =  [[incomingShareFolderURL path] stringByAppendingPathComponent: filename];
-        printf("aaa path %s\n", [path UTF8String]);
-        [UIImageJPEGRepresentation(img, 1)  writeToFile:path atomically:YES];
-        [manifest addObject: @{
-          @"type": @"image",
-          @"originalPath":path,
-          @"scaledPath":path,
-          @"thumbnailPath":path,
-        }];
-      }
+- (void) doneLoadingDrop: (NSMutableArray*)manifest {
+  --loadingCount;
+  
+  if (loadingCount > 0) {
+    return;
+  }
+  if (!manifest.count) {
+    return;
+  }
       
-      NSURL* fileURL = [self getManifestFileURL];
-      printf("manifest url %s\n",[[fileURL absoluteString] UTF8String]);
-      NSOutputStream * output = [NSOutputStream outputStreamWithURL:fileURL append:false];
-      [output open];
-      NSError * error;
-      [NSJSONSerialization writeJSONObject:manifest toStream:output options:0 error:&error];
-      [self openIncomingShare];
-    }];
+    NSURL* fileURL = [self getManifestFileURL];
+    printf("manifest url %s\n",[[fileURL absoluteString] UTF8String]);
+    NSOutputStream * output = [NSOutputStream outputStreamWithURL:fileURL append:false];
+    [output open];
+    NSError * error;
+    [NSJSONSerialization writeJSONObject:manifest toStream:output options:0 error:&error];
+    [self openIncomingShare];
+}
+// could share some code w/ ShareViewController later
+int loadingCount = 0;
+- (void)dropInteraction:(UIDropInteraction *)interaction performDrop:(id<UIDropSession>)session {
+  NSMutableArray * manifest = [NSMutableArray new];
+  for (UIDragItem * dragItem in session.items) {
+    NSItemProvider * provider = dragItem.itemProvider;
+    if ([provider canLoadObjectOfClass:[UIImage self]]) {
+      ++loadingCount;
+      [provider loadObjectOfClass:[UIImage self] completionHandler:^(__kindof id<NSItemProviderReading>  _Nullable object, NSError * _Nullable error) {
+        if (error || ![object isKindOfClass:[UIImage class]]) {
+          __weak typeof(self) weakSelf = self;
+          dispatch_async(dispatch_get_main_queue(), ^{
+            [weakSelf doneLoadingDrop: manifest];
+          });
+          return;
+        }
+          UIImage * img = object;
+          NSString *filename = [NSString stringWithFormat:@"%@.%@", [[NSProcessInfo processInfo] globallyUniqueString], @"jpg"];
+          NSURL* incomingShareFolderURL = [self getIncomingShareFolder];
+          [[NSFileManager defaultManager] createDirectoryAtURL:incomingShareFolderURL withIntermediateDirectories:YES attributes:nil error:nil];
+          NSString * path =  [[incomingShareFolderURL path] stringByAppendingPathComponent: filename];
+          printf("aaa path %s\n", [path UTF8String]);
+          [UIImageJPEGRepresentation(img, 1)  writeToFile:path atomically:YES];
+          [manifest addObject: @{
+            @"type": @"image",
+            @"originalPath":path,
+            @"scaledPath":path,
+            @"thumbnailPath":path,
+          }];
+          __weak typeof(self) weakSelf = self;
+          dispatch_async(dispatch_get_main_queue(), ^{
+            [weakSelf doneLoadingDrop: manifest];
+          });
+      }];
+    } 
+  }
 }
 
 - (void)setupGo {
