@@ -103,7 +103,7 @@ static const DDLogLevel ddLogLevel = DDLogLevelDebug;
   [self setupLogger];
   [self setupGo];
   [self notifyAppState:application];
-
+  
   UNUserNotificationCenter *center =
       [UNUserNotificationCenter currentNotificationCenter];
   center.delegate = self;

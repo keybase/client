@@ -10,6 +10,7 @@ import {NativeTextInput} from './native-wrappers.native'
 import {checkTextInfo} from './input.shared'
 import {getStyle as getTextStyle} from './text'
 import {isIOS} from '../constants/platform'
+import PasteInput from '@mattermost/react-native-paste-input'
 
 // A plain text input component. Handles callbacks, text styling, and auto resizing but
 // adds no styling.
@@ -215,6 +216,7 @@ class PlainInput extends React.Component<InternalProps> {
       onEndEditing: this.props.onEndEditing,
       onFocus: this._onFocus,
       onKeyPress: this.props.onKeyPress,
+      onPaste: this.props.onPasteImage,
       onSelectionChange: this._onSelectionChange,
       onSubmitEditing: this.props.onEnterKeyDown,
       placeholder: this.props.placeholder,
@@ -240,6 +242,8 @@ class PlainInput extends React.Component<InternalProps> {
 
   render() {
     const props = this._getProps()
+    const Clazz: typeof NativeTextInput = this.props.allowImagePaste ? (PasteInput as any) : NativeTextInput
+
     if (props.value) {
       this._lastNativeText = props.value
     }
@@ -253,12 +257,12 @@ class PlainInput extends React.Component<InternalProps> {
       return (
         <ClickableBox style={{flexGrow: 1}} onClick={props.onFocus}>
           <Box2 direction="horizontal" pointerEvents="none">
-            <NativeTextInput {...props} editable={false} />
+            <Clazz {...props} editable={false} />
           </Box2>
         </ClickableBox>
       )
     }
-    return <NativeTextInput {...props} />
+    return <Clazz {...props} />
   }
 }
 

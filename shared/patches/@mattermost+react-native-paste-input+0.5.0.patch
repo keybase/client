@@ -1,0 +1,16 @@
+diff --git a/node_modules/@mattermost/react-native-paste-input/ios/UIPasteboard+GetImageInfo.m b/node_modules/@mattermost/react-native-paste-input/ios/UIPasteboard+GetImageInfo.m
+index df52bb7..a4424b8 100644
+--- a/node_modules/@mattermost/react-native-paste-input/ios/UIPasteboard+GetImageInfo.m
++++ b/node_modules/@mattermost/react-native-paste-input/ios/UIPasteboard+GetImageInfo.m
+@@ -54,7 +54,10 @@
+         }
+         
+         NSString *tempFilename = [NSString stringWithFormat:@"%@.%@", [[NSProcessInfo processInfo] globallyUniqueString], extension];
+-        NSURL *tempFileURL = [NSURL fileURLWithPath:[NSTemporaryDirectory() stringByAppendingPathComponent:tempFilename]];
++        NSString * kbroot = [NSHomeDirectory() stringByAppendingString:@"/Library/Caches/AV"];
++        NSError * error = nil;
++        [[NSFileManager defaultManager] createDirectoryAtPath:kbroot withIntermediateDirectories:YES attributes:nil error:&error];
++        NSURL *tempFileURL = [NSURL fileURLWithPath:[kbroot stringByAppendingPathComponent:tempFilename]];
+         BOOL success = [fileData writeToURL:tempFileURL atomically:YES];
+         if (success) {
+           added = YES;

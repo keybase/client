@@ -277,6 +277,9 @@ PODS:
     - React
   - react-native-netinfo (9.3.0):
     - React-Core
+  - react-native-paste-input (0.5.0):
+    - React-Core
+    - Swime (= 3.0.6)
   - react-native-safe-area-context (4.3.3):
     - RCT-Folly
     - RCTRequired
@@ -400,6 +403,7 @@ PODS:
   - SDWebImageWebPCoder (0.8.5):
     - libwebp (~> 1.0)
     - SDWebImage/Core (~> 5.10)
+  - Swime (3.0.6)
   - UMAppLoader (3.0.1)
   - UMTaskManagerInterface (7.1.1):
     - ExpoModulesCore
@@ -454,6 +458,7 @@ DEPENDENCIES:
   - React-logger (from `../node_modules/react-native/ReactCommon/logger`)
   - react-native-hw-keyboard-event (from `../node_modules/react-native-hw-keyboard-event`)
   - "react-native-netinfo (from `../node_modules/@react-native-community/netinfo`)"
+  - "react-native-paste-input (from `../node_modules/@mattermost/react-native-paste-input`)"
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
   - react-native-webview (from `../node_modules/react-native-webview`)
   - React-perflogger (from `../node_modules/react-native/ReactCommon/reactperflogger`)
@@ -487,6 +492,7 @@ SPEC REPOS:
     - libwebp
     - SDWebImage
     - SDWebImageWebPCoder
+    - Swime
     - ZXingObjC
 
 EXTERNAL SOURCES:
@@ -570,6 +576,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-hw-keyboard-event"
   react-native-netinfo:
     :path: "../node_modules/@react-native-community/netinfo"
+  react-native-paste-input:
+    :path: "../node_modules/@mattermost/react-native-paste-input"
   react-native-safe-area-context:
     :path: "../node_modules/react-native-safe-area-context"
   react-native-webview:
@@ -665,6 +673,7 @@ SPEC CHECKSUMS:
   React-logger: 1e10789cb84f99288479ba5f20822ce43ced6ffe
   react-native-hw-keyboard-event: b517cefb8d5c659a38049c582de85ff43337dc53
   react-native-netinfo: 129bd99f607a2dc5bb096168f3e5c150fd1f1c95
+  react-native-paste-input: 3037f113267c367e863790bcfd57cdb3ace3cad6
   react-native-safe-area-context: b456e1c40ec86f5593d58b275bd0e9603169daca
   react-native-webview: d33e2db8925d090871ffeb232dfa50cb3a727581
   React-perflogger: 93d3f142d6d9a46e635f09ba0518027215a41098
@@ -689,11 +698,12 @@ SPEC CHECKSUMS:
   RNScreens: 0df01424e9e0ed7827200d6ed1087ddd06c493f9
   SDWebImage: a47aea9e3d8816015db4e523daff50cfd294499d
   SDWebImageWebPCoder: 908b83b6adda48effe7667cd2b7f78c897e5111d
+  Swime: d7b2c277503b6cea317774aedc2dce05613f8b0b
   UMAppLoader: 2ee9f1278d315672f4854c6a2310aa9988f61f72
   UMTaskManagerInterface: 3184c93ecc290bd422c6e344badc89b601e9c29b
   Yoga: 90dcd029e45d8a7c1ff059e8b3c6612ff409061a
   ZXingObjC: fdbb269f25dd2032da343e06f10224d62f537bdb
 
-PODFILE CHECKSUM: c741fa5d1f2d5933c5b3abe96699304fd693a02d
+PODFILE CHECKSUM: 10e5305767c71eb1180c627a4184905b4adda954
 
 COCOAPODS: 1.11.3
