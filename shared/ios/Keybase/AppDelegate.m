@@ -39,6 +39,7 @@ static void InitializeFlipper(UIApplication *application) {
 #import "Fs.h"
 #import "LogSend.h"
 #import "Pusher.h"
+#import "DropView.h"
 #import <AVFoundation/AVFoundation.h>
 #import <RNCPushNotificationIOS.h>
 #import <UserNotifications/UserNotifications.h>
@@ -75,7 +76,15 @@ static const DDLogLevel ddLogLevel = DDLogLevelDebug;
 
   self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
   UIViewController *rootViewController = [UIViewController new];
+//  DropView * dv = [[DropView alloc] initWithFrame:[UIScreen mainScreen].bounds];
+//  rootView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+//  [dv addSubview:rootView];
+//  rootViewController.view = dv;
   rootViewController.view = rootView;
+  UIDropInteraction *udi = [[UIDropInteraction alloc] initWithDelegate:self];
+  udi.allowsSimultaneousDropSessions = YES;
+  rootView.interactions = @[udi];
+  
   self.window.rootViewController = rootViewController;
   [self.window makeKeyAndVisible];
 
@@ -135,6 +144,47 @@ static const DDLogLevel ddLogLevel = DDLogLevelDebug;
   [self.window addSubview:self.resignImageView];
 
   [[UIApplication sharedApplication] setMinimumBackgroundFetchInterval: UIApplicationBackgroundFetchIntervalMinimum];
+}
+
+- (BOOL)dropInteraction:(UIDropInteraction *)interaction canHandleSession:(id<UIDropSession>)session
+{
+//  printf("aaa got drop canHandleSession");
+  return YES;
+}
+
+//- (void)dropInteraction:(UIDropInteraction *)interaction
+//        sessionDidEnter:(id<UIDropSession>)session
+//{
+//  printf("aaa got drop sessionDidEnter");
+//}
+
+- (UIDropProposal *)dropInteraction:(UIDropInteraction *)interaction
+                   sessionDidUpdate:(id<UIDropSession>)session{
+//  printf("aaa got drop sessionDidUpdate");
+  return [[UIDropProposal alloc] initWithDropOperation:UIDropOperationCopy];
+}
+
+//- (void)dropInteraction:(UIDropInteraction *)interaction
+//         sessionDidExit:(id<UIDropSession>)session
+//{
+//  printf("aaa got drop sessionDidExit");
+//}
+//
+//- (void)dropInteraction:(UIDropInteraction *)interaction
+//          sessionDidEnd:(id<UIDropSession>)session
+//{
+//  printf("aaa got drop sessionDidEnd");
+//}
+
+- (void)dropInteraction:(UIDropInteraction *)interaction performDrop:(id<UIDropSession>)session {
+    [session loadObjectsOfClass:[UIImage self] completion:^(NSArray *images) {
+        printf("Inside the statement.");
+//        UIImageView *imageView = [[UIImageView alloc]initWithFrame:CGRectMake(0, 30, self.view.frame.size.width, self.view.frame.size.height)];
+//        imageView.image = [images firstObject];
+      UIImage* img = [images firstObject];
+      printf("Image width: %d", img.size.width);
+    }];
+  printf("We are here");
 }
 
 - (void)setupGo {
