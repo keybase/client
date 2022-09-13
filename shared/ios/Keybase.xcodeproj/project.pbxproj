@@ -379,7 +379,6 @@
 				ORGANIZATIONNAME = Keybase;
 				TargetAttributes = {
 					13B07F861A680F5B00A75B9A = {
-						DevelopmentTeam = 99229SGT5K;
 						LastSwiftMigration = 800;
 						ProvisioningStyle = Automatic;
 						SystemCapabilities = {
@@ -405,7 +404,6 @@
 					};
 					279FB59B2139AB6A005E4864 = {
 						CreatedOnToolsVersion = 9.4.1;
-						DevelopmentTeam = 99229SGT5K;
 						ProvisioningStyle = Automatic;
 						SystemCapabilities = {
 							com.apple.ApplicationGroups.iOS = {
