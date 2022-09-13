@@ -193,25 +193,27 @@ static const DDLogLevel ddLogLevel = DDLogLevelDebug;
 }
 - (void)dropInteraction:(UIDropInteraction *)interaction performDrop:(id<UIDropSession>)session {
     [session loadObjectsOfClass:[UIImage self] completion:^(NSArray *images) {
-      UIImage* img = [images firstObject];
-      NSString *filename = [NSString stringWithFormat:@"%@.%@", [[NSProcessInfo processInfo] globallyUniqueString], @"jpg"];
-      NSURL* incomingShareFolderURL = [self getIncomingShareFolder];
-      [[NSFileManager defaultManager] createDirectoryAtURL:incomingShareFolderURL withIntermediateDirectories:YES attributes:nil error:nil];
-      NSString * path =  [[incomingShareFolderURL path] stringByAppendingPathComponent: filename];
-      printf("aaa path %s\n", [path UTF8String]);
-      [UIImageJPEGRepresentation(img, 1)  writeToFile:path atomically:YES];
+      NSMutableArray * manifest = [NSMutableArray new];
+      for (UIImage * img in images) {
+        NSString *filename = [NSString stringWithFormat:@"%@.%@", [[NSProcessInfo processInfo] globallyUniqueString], @"jpg"];
+        NSURL* incomingShareFolderURL = [self getIncomingShareFolder];
+        [[NSFileManager defaultManager] createDirectoryAtURL:incomingShareFolderURL withIntermediateDirectories:YES attributes:nil error:nil];
+        NSString * path =  [[incomingShareFolderURL path] stringByAppendingPathComponent: filename];
+        printf("aaa path %s\n", [path UTF8String]);
+        [UIImageJPEGRepresentation(img, 1)  writeToFile:path atomically:YES];
+        [manifest addObject: @{
+          @"type": @"image",
+          @"originalPath":path,
+          @"scaledPath":path,
+          @"thumbnailPath":path,
+        }];
+      }
+      
       NSURL* fileURL = [self getManifestFileURL];
       printf("manifest url %s\n",[[fileURL absoluteString] UTF8String]);
       NSOutputStream * output = [NSOutputStream outputStreamWithURL:fileURL append:false];
       [output open];
       NSError * error;
-      NSMutableArray * manifest = [NSMutableArray new];
-      [manifest addObject: @{
-        @"type": @"image",
-        @"originalPath":path,
-        @"scaledPath":path,
-        @"thumbnailPath":path,
-      }];
       [NSJSONSerialization writeJSONObject:manifest toStream:output options:0 error:&error];
       [self openIncomingShare];
     }];
