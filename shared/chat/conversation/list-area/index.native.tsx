@@ -1,5 +1,6 @@
 import * as Container from '../../../util/container'
 import * as Chat2Gen from '../../../actions/chat2-gen'
+import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as Constants from '../../../constants/chat2'
 import * as Kb from '../../../common-adapters/mobile.native'
 import * as React from 'react'
@@ -14,6 +15,7 @@ import type {ItemType} from '.'
 import {mobileTypingContainerHeight} from '../input-area/normal/typing'
 import * as Hooks from './hooks'
 import sortedIndexOf from 'lodash/sortedIndexOf'
+import DropView, {type DropItems} from '../../../common-adapters/drop-view.native'
 
 // Bookkeep whats animating so it finishes and isn't replaced, if we've animated it we keep the key and use null
 const animatingMap = new Map<string, null | React.ReactElement>()
@@ -297,30 +299,46 @@ const ConversationList = React.memo(function ConversationList(p: {
     [conversationIDKey]
   )
 
+  const dispatch = Container.useDispatch()
+  const onDropped = React.useCallback(
+    (items: DropItems) => {
+      console.log('aaa onDroopped', items)
+      const pathAndOutboxIDs = items.map(i => ({outboxID: null, path: i.originalPath}))
+      dispatch(
+        RouteTreeGen.createNavigateAppend({
+          path: [{props: {conversationIDKey, pathAndOutboxIDs}, selected: 'chatAttachmentGetTitles'}],
+        })
+      )
+    },
+    [dispatch, conversationIDKey]
+  )
+
   return (
     <Kb.ErrorBoundary>
-      <Kb.Box style={styles.container}>
-        <Kb.NativeFlatList
-          ListHeaderComponent={listHeaderComponent}
-          ListFooterComponent={listFooterComponent}
-          overScrollMode="never"
-          contentContainerStyle={styles.contentContainer}
-          data={messageOrdinals}
-          inverted={true}
-          renderItem={renderItem}
-          maintainVisibleContentPosition={maintainVisibleContentPosition}
-          viewabilityConfigCallbackPairs={viewabilityConfigCallbackPairsRef.current}
-          keyboardDismissMode="on-drag"
-          keyboardShouldPersistTaps="handled"
-          keyExtractor={keyExtractor}
-          // Limit the number of pages rendered ahead of time (which also limits attachment previews loaded)
-          windowSize={5}
-          ref={listRef}
-          onScrollToIndexFailed={onScrollToIndexFailed}
-          removeClippedSubviews={Styles.isAndroid}
-        />
-        {jumpToRecent}
-      </Kb.Box>
+      <DropView style={styles.drop} onDropped={onDropped}>
+        <Kb.Box style={styles.container}>
+          <Kb.NativeFlatList
+            ListHeaderComponent={listHeaderComponent}
+            ListFooterComponent={listFooterComponent}
+            overScrollMode="never"
+            contentContainerStyle={styles.contentContainer}
+            data={messageOrdinals}
+            inverted={true}
+            renderItem={renderItem}
+            maintainVisibleContentPosition={maintainVisibleContentPosition}
+            viewabilityConfigCallbackPairs={viewabilityConfigCallbackPairsRef.current}
+            keyboardDismissMode="on-drag"
+            keyboardShouldPersistTaps="handled"
+            keyExtractor={keyExtractor}
+            // Limit the number of pages rendered ahead of time (which also limits attachment previews loaded)
+            windowSize={5}
+            ref={listRef}
+            onScrollToIndexFailed={onScrollToIndexFailed}
+            removeClippedSubviews={Styles.isAndroid}
+          />
+          {jumpToRecent}
+        </Kb.Box>
+      </DropView>
     </Kb.ErrorBoundary>
   )
 })
@@ -328,14 +346,12 @@ const ConversationList = React.memo(function ConversationList(p: {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      container: {
-        flex: 1,
-        position: 'relative',
-      },
+      container: {flex: 1, position: 'relative'},
       contentContainer: {
         paddingBottom: 0,
         paddingTop: mobileTypingContainerHeight,
       },
+      drop: {flexGrow: 1},
     } as const)
 )
 

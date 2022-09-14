@@ -12,7 +12,6 @@
 #import <UIKit/UIKit.h>
 
 @interface ItemProviderHelper ()
-@property (nonatomic, strong) NSMutableArray * manifest;
 @property (nonatomic, strong) NSArray * items;
 @property (nonatomic, strong) NSURL * payloadFolderURL;
 @property (nonatomic, strong) NSString* attributedContentText;
@@ -126,7 +125,6 @@
 }
 
 - (void)completeItemAndAppendManifestAndLogErrorWithText:(NSString*)text error:(NSError*)error {
-  printf("aaa completeItemAndAppendManifestAndLogErrorWithText  %s\n",[ [error localizedDescription] UTF8String]);
   dispatch_async(dispatch_get_main_queue(), ^{
     [self.manifest addObject:@{
       @"error": [NSString stringWithFormat:@"%@: %@", text, error != nil ? error : @"<empty>"],
@@ -236,7 +234,7 @@ NSInteger TEXT_LENGTH_THRESHOLD = 512; // TODO make this match the actual limit 
     }
     [self handleText:text chatOnly:false loadError:error];
   };
-  
+    
   NSItemProviderCompletionHandler imageHandler = ^(UIImage* image, NSError* error) {
     if (error != nil) {
       [self completeItemAndAppendManifestAndLogErrorWithText:@"imageHandler: load error" error:error];
@@ -280,7 +278,6 @@ NSInteger TEXT_LENGTH_THRESHOLD = 512; // TODO make this match the actual limit 
     NSURL * filePayloadURL = [self getPayloadURLFromURL:url];
     [[NSFileManager defaultManager] copyItemAtURL:url toURL:filePayloadURL error:&error];
     if (error != nil) {
-      printf("aaa processItem:fileHandlerMedia  %s\n",[ [error localizedDescription] UTF8String]);
       [self completeItemAndAppendManifestAndLogErrorWithText:@"fileHandler: copy error" error:error];
       return;
     }
@@ -295,7 +292,12 @@ NSInteger TEXT_LENGTH_THRESHOLD = 512; // TODO make this match the actual limit 
   };
   
   if ([item hasItemConformingToTypeIdentifier:@"public.movie"]) {
-    [item loadItemForTypeIdentifier:@"public.movie" options:nil completionHandler:fileHandlerMedia];
+    if (self.isShare) {
+      [item loadItemForTypeIdentifier:@"public.movie" options:nil completionHandler:fileHandlerMedia];
+    } else {
+      // drag drop doesn't give us working urls
+      [item loadFileRepresentationForTypeIdentifier:@"public.movie" completionHandler:fileHandlerMedia];
+    }
   } else if ([item hasItemConformingToTypeIdentifier:@"public.image"]) {
     if (self.isShare) {
       // Use the fileHandler here, so if the image is from e.g. the Photos app,

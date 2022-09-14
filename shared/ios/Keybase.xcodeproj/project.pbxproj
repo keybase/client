@@ -48,6 +48,7 @@
 		DBB17C7628D11A41001F3E25 /* ItemProviderHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = DBB17C7528D11A41001F3E25 /* ItemProviderHelper.m */; };
 		DBB17C7728D11A41001F3E25 /* ItemProviderHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = DBB17C7528D11A41001F3E25 /* ItemProviderHelper.m */; };
 		DBB17C7828D12237001F3E25 /* MediaUtils.m in Sources */ = {isa = PBXBuildFile; fileRef = 07C3A80A23FF2F5F00A75BA0 /* MediaUtils.m */; };
+		DBB17C7B28D22C2D001F3E25 /* DropViewManager.m in Sources */ = {isa = PBXBuildFile; fileRef = DBB17C7A28D22C2D001F3E25 /* DropViewManager.m */; };
 		DBBCC6131D9C4A8100312652 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = DBBCC6121D9C4A8100312652 /* AppDelegate.m */; };
 		DBBCC6181D9C5C6A00312652 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = DBBCC6171D9C5C6A00312652 /* main.m */; };
 		DBCE36251B90F14800ECADDE /* Engine.m in Sources */ = {isa = PBXBuildFile; fileRef = DBCE36241B90F14800ECADDE /* Engine.m */; };
@@ -142,6 +143,8 @@
 		DB779E0527D2B96600CDB0F7 /* GoJSIBridge.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = GoJSIBridge.mm; sourceTree = "<group>"; };
 		DBB17C7428D11A41001F3E25 /* ItemProviderHelper.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ItemProviderHelper.h; sourceTree = "<group>"; };
 		DBB17C7528D11A41001F3E25 /* ItemProviderHelper.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ItemProviderHelper.m; sourceTree = "<group>"; };
+		DBB17C7928D22C2D001F3E25 /* DropViewManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DropViewManager.h; sourceTree = "<group>"; };
+		DBB17C7A28D22C2D001F3E25 /* DropViewManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DropViewManager.m; sourceTree = "<group>"; };
 		DBBCC6111D9C4A8100312652 /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		DBBCC6121D9C4A8100312652 /* AppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
 		DBBCC6171D9C5C6A00312652 /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
@@ -312,6 +315,8 @@
 				A969A4161CF65CB200F273F2 /* LogSend.h */,
 				DB779DFC27D2AD0B00CDB0F7 /* GoJSIBridge.h */,
 				DB779E0527D2B96600CDB0F7 /* GoJSIBridge.mm */,
+				DBB17C7928D22C2D001F3E25 /* DropViewManager.h */,
+				DBB17C7A28D22C2D001F3E25 /* DropViewManager.m */,
 				DB3B470C27EB8BCB0002139E /* rpc.cpp */,
 				A969A4091CF65C9C00F273F2 /* LogSend.m */,
 				375CA6901FFD418D00210B11 /* Storybook.h */,
@@ -585,6 +590,7 @@
 				DBB17C7628D11A41001F3E25 /* ItemProviderHelper.m in Sources */,
 				A969A40A1CF65C9C00F273F2 /* LogSend.m in Sources */,
 				DBBCC6181D9C5C6A00312652 /* main.m in Sources */,
+				DBB17C7B28D22C2D001F3E25 /* DropViewManager.m in Sources */,
 				DB3B470D27EB8BCB0002139E /* rpc.cpp in Sources */,
 				DBB17C7828D12237001F3E25 /* MediaUtils.m in Sources */,
 				27EE26A820A140EF00F92CD1 /* Pusher.m in Sources */,

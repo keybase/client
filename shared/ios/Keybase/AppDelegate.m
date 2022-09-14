@@ -77,10 +77,6 @@ static const DDLogLevel ddLogLevel = DDLogLevelDebug;
 
   self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
   UIViewController *rootViewController = [UIViewController new];
-//  DropView * dv = [[DropView alloc] initWithFrame:[UIScreen mainScreen].bounds];
-//  rootView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-//  [dv addSubview:rootView];
-//  rootViewController.view = dv;
   rootViewController.view = rootView;
   UIDropInteraction *udi = [[UIDropInteraction alloc] initWithDelegate:self];
   udi.allowsSimultaneousDropSessions = YES;
