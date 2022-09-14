@@ -230,6 +230,7 @@ NSInteger TEXT_LENGTH_THRESHOLD = 512; // TODO make this match the actual limit 
         return;
       }
       [self completeItemAndAppendManifestAndLogErrorWithText:@"textHandler: error and no public.data" error:nil];
+      return;
     }
     [self handleText:text chatOnly:false loadError:error];
   };
@@ -327,7 +328,6 @@ NSInteger TEXT_LENGTH_THRESHOLD = 512; // TODO make this match the actual limit 
       [item loadItemForTypeIdentifier:@"public.url" options:nil completionHandler:urlHandler];
     } else {
       [item loadObjectOfClass:[NSString class] completionHandler:textHandler];
-//      [item loadFileRepresentationForTypeIdentifier:@"public.url" completionHandler:textHandler];
     }
   } else {
     if (self.isShare) {
