@@ -302,7 +302,6 @@ const ConversationList = React.memo(function ConversationList(p: {
   const dispatch = Container.useDispatch()
   const onDropped = React.useCallback(
     (items: DropItems) => {
-      console.log('aaa ondropped', items)
       const {attach, texts} = items.reduce(
         (obj, i) => {
           const {texts, attach} = obj
