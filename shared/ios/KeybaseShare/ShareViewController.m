@@ -146,6 +146,7 @@ const BOOL isSimulator = NO;
 }
 
 - (void)viewDidLoad {
+  [super viewDidLoad];
   NSExtensionItem *input = self.extensionContext.inputItems.firstObject;
   self.iph = [[ItemProviderHelper alloc] initForShare: true withItems: [self getSendableAttachments] attrString: input.attributedContentText.string completionHandler:^{
     [self completeRequestAlreadyInMainThread];
