@@ -250,7 +250,7 @@ NSInteger TEXT_LENGTH_THRESHOLD = 512; // TODO make this match the actual limit 
                 alpha == kCGImageAlphaPremultipliedLast
                 );
     NSData * imageData = hasAlpha ? UIImagePNGRepresentation(image) : UIImageJPEGRepresentation(image, .85);
-    NSURL * originalFileURL = [self getPayloadURLFromExt:@"jpg"];
+    NSURL * originalFileURL = [self getPayloadURLFromExt: hasAlpha ? @"png" : @"jpg"];
     BOOL OK = [imageData writeToURL:originalFileURL atomically:true];
     if (!OK){
       [self completeItemAndAppendManifestAndLogErrorWithText:@"handleData: unable to write payload file" error:nil];
