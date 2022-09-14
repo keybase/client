@@ -62,11 +62,12 @@
     UIDragItem * i = obj;
     [items addObject:i.itemProvider];
   }];
+  __weak typeof(self) weakSelf = self;
   self.iph = [[ItemProviderHelper alloc] initForShare: false withItems:items attrString:@"" completionHandler:^{
-    self.onDropped(@{
-      @"manifest": self.iph.manifest
+    weakSelf.onDropped(@{
+      @"manifest": weakSelf.iph.manifest
     });
-    self.iph = nil;
+    weakSelf.iph = nil;
   }];
   [self.iph startProcessing];
 }
