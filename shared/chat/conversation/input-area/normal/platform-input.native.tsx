@@ -392,7 +392,6 @@ const PlatformInput = (p: Props) => {
   const dispatch = Container.useDispatch()
   const onPasteImage = React.useCallback(
     (error: string | null | undefined, files: Array<PastedFile>) => {
-      console.log('aaa on paste', files)
       if (error) return
       const pathAndOutboxIDs = files.map(f => ({outboxID: null, path: f.uri.substring('file://'.length)}))
       dispatch(

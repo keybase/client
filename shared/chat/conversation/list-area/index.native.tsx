@@ -302,7 +302,6 @@ const ConversationList = React.memo(function ConversationList(p: {
   const dispatch = Container.useDispatch()
   const onDropped = React.useCallback(
     (items: DropItems) => {
-      console.log('aaa onDroopped', items)
       const pathAndOutboxIDs = items.map(i => ({outboxID: null, path: i.originalPath}))
       dispatch(
         RouteTreeGen.createNavigateAppend({
