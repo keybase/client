@@ -77,3 +77,6 @@ go/.go_package_deps*
 
 # CI artifact
 go/keybase/keybase_production
+go/keybase_freebsd
+go/keybase_netbsd
+go/keybase_openbsd
