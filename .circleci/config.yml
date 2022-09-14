@@ -6,6 +6,7 @@ jobs:
 
     docker:
       - image: keybaseprivate/circleci-client:node16.16
+    resource_class: medium+
 
     steps:
       ##
