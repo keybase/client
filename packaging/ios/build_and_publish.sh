@@ -79,7 +79,7 @@ yarn --check-files
 
 echo "Cocoapods"
 cd ios
-pod install
+pod install --repo-update
 cd ..
 
 if [ ! "$cache_go_lib" = "1" ]; then
