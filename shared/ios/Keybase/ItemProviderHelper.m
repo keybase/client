@@ -24,9 +24,8 @@
 
 - (void) completeProcessingItemAlreadyInMainThread {
   if(--self.unprocessed > 0) { return; }
-  __weak typeof(self) weakSelf = self;
   dispatch_async(dispatch_get_main_queue(), ^{
-    [weakSelf writeManifest];
+    [self writeManifest];
     self.completionHandler();
   });
 }
@@ -189,7 +188,7 @@ NSInteger TEXT_LENGTH_THRESHOLD = 512; // TODO make this match the actual limit 
 - (void)processItem:(NSItemProvider*)item {
   
   NSItemProviderCompletionHandler urlHandler = ^(NSURL* url, NSError* error) {
-    if (self.attributedContentText != nil){
+    if (self.attributedContentText.length > 0){
       [self handleText: [NSString stringWithFormat:@"%@ %@", self.attributedContentText, url.absoluteString] chatOnly:true loadError:error];
     }else{
       [self handleText: url.absoluteString chatOnly:true loadError:error];
@@ -291,6 +290,8 @@ NSInteger TEXT_LENGTH_THRESHOLD = 512; // TODO make this match the actual limit 
     }
   };
   
+#pragma mark actually figuring out how to handle types
+  
   if ([item hasItemConformingToTypeIdentifier:@"public.movie"]) {
     if (self.isShare) {
       [item loadItemForTypeIdentifier:@"public.movie" options:nil completionHandler:fileHandlerMedia];
@@ -309,15 +310,32 @@ NSInteger TEXT_LENGTH_THRESHOLD = 512; // TODO make this match the actual limit 
       [item loadObjectOfClass:[UIImage class] completionHandler:imageHandler];
     }
   } else if ([item hasItemConformingToTypeIdentifier:@"public.file-url"]) {
-    // Although this will be covered in the catch-all below, do it before public.text and public.url so that we get the file instead of a web URL when user shares a downloaded file from safari.
-    [item loadItemForTypeIdentifier:@"public.file-url" options:nil completionHandler:fileHandlerSimple];
+    if (self.isShare) {
+      // Although this will be covered in the catch-all below, do it before public.text and public.url so that we get the file instead of a web URL when user shares a downloaded file from safari.
+      [item loadItemForTypeIdentifier:@"public.file-url" options:nil completionHandler:fileHandlerSimple];
+    } else {
+      [item loadFileRepresentationForTypeIdentifier:@"public.file-url" completionHandler:fileHandlerSimple];
+    }
   } else if ([item hasItemConformingToTypeIdentifier:@"public.text"]) {
-    [item loadItemForTypeIdentifier:@"public.text" options:nil completionHandler:textHandler];
+    if (self.isShare) {
+      [item loadItemForTypeIdentifier:@"public.text" options:nil completionHandler:textHandler];
+    } else {
+      [item loadFileRepresentationForTypeIdentifier:@"public.text" completionHandler:textHandler];
+      }
   } else if ([item hasItemConformingToTypeIdentifier:@"public.url"]) {
-    [item loadItemForTypeIdentifier:@"public.url" options:nil completionHandler:urlHandler];
+    if (self.isShare) {
+      [item loadItemForTypeIdentifier:@"public.url" options:nil completionHandler:urlHandler];
+    } else {
+      [item loadObjectOfClass:[NSString class] completionHandler:textHandler];
+//      [item loadFileRepresentationForTypeIdentifier:@"public.url" completionHandler:textHandler];
+    }
   } else {
-    // catch-all, including file-url or stuff like pdf from safari, or contact card.
-    [item loadItemForTypeIdentifier:@"public.item" options:nil completionHandler: fileHandlerSimple];
+    if (self.isShare) {
+      // catch-all, including file-url or stuff like pdf from safari, or contact card.
+      [item loadItemForTypeIdentifier:@"public.item" options:nil completionHandler: fileHandlerSimple];
+    } else {
+      [item loadFileRepresentationForTypeIdentifier:@"public.item" completionHandler:fileHandlerSimple];
+    }
   }
 }
 

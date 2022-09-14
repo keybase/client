@@ -3,7 +3,7 @@ import * as React from 'react'
 import type * as Styles from '../styles'
 const IMPL = requireNativeComponent('DropView')
 
-export type DropItems = Array<{originalPath: string}>
+export type DropItems = Array<{originalPath?: string; content?: string}>
 export type Props = {
   children?: React.ReactNode
   onDropped: (items: DropItems) => void
@@ -15,7 +15,7 @@ const DropViewWrapper = (p: Props) => {
     e => {
       const manifest = e.nativeEvent.manifest as DropItems
       const cleanedUp = manifest.reduce((arr, item) => {
-        if (item?.originalPath) {
+        if (item.originalPath || item.content) {
           arr.push(item)
         }
         return arr

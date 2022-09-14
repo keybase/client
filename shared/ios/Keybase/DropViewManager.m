@@ -57,18 +57,16 @@
 }
 
 - (void)dropInteraction:(UIDropInteraction *)interaction performDrop:(id<UIDropSession>)session {
-  __weak typeof(self) weakSelf = self;
   NSMutableArray * items = [NSMutableArray arrayWithCapacity:session.items.count];
   [session.items enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
     UIDragItem * i = obj;
     [items addObject:i.itemProvider];
   }];
   self.iph = [[ItemProviderHelper alloc] initForShare: false withItems:items attrString:@"" completionHandler:^{
-    printf("aaa done in drop view\n");
-    weakSelf.onDropped(@{
-      @"manifest": weakSelf.iph.manifest
+    self.onDropped(@{
+      @"manifest": self.iph.manifest
     });
-    weakSelf.iph = nil;
+    self.iph = nil;
   }];
   [self.iph startProcessing];
 }

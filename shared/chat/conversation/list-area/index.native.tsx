@@ -302,12 +302,38 @@ const ConversationList = React.memo(function ConversationList(p: {
   const dispatch = Container.useDispatch()
   const onDropped = React.useCallback(
     (items: DropItems) => {
-      const pathAndOutboxIDs = items.map(i => ({outboxID: null, path: i.originalPath}))
-      dispatch(
-        RouteTreeGen.createNavigateAppend({
-          path: [{props: {conversationIDKey, pathAndOutboxIDs}, selected: 'chatAttachmentGetTitles'}],
-        })
+      console.log('aaa ondropped', items)
+      const {attach, texts} = items.reduce(
+        (obj, i) => {
+          const {texts, attach} = obj
+          if (i.content) {
+            texts.push(i.content)
+          } else if (i.originalPath) {
+            attach.push({outboxID: null, path: i.originalPath})
+          }
+          return obj
+        },
+        {attach: new Array<{outboxID: null; path: string}>(), texts: new Array<string>()}
       )
+
+      if (texts.length) {
+        dispatch(
+          Chat2Gen.createSetUnsentText({
+            conversationIDKey,
+            text: new Container.HiddenString(texts.join('\r')),
+          })
+        )
+      }
+
+      if (attach.length) {
+        dispatch(
+          RouteTreeGen.createNavigateAppend({
+            path: [
+              {props: {conversationIDKey, pathAndOutboxIDs: attach}, selected: 'chatAttachmentGetTitles'},
+            ],
+          })
+        )
+      }
     },
     [dispatch, conversationIDKey]
   )
