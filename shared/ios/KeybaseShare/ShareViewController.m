@@ -56,7 +56,6 @@ const BOOL isSimulator = NO;
 // - If we still don't have anything, select only the first item and hope for the best.
 - (NSArray*)getSendableAttachments {
   NSExtensionItem *input = self.extensionContext.inputItems.firstObject;
-//  self.attributedContentText = input.attributedContentText.string;
   NSArray* attachments = [input attachments];
   NSMutableArray* res = [NSMutableArray array];
   NSItemProvider* item = [self firstSatisfiesTypeIdentifierCond:attachments cond:^(NSItemProvider* a) {
