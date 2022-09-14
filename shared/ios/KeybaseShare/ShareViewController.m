@@ -19,12 +19,8 @@ const BOOL isSimulator = NO;
 
 
 @interface ShareViewController ()
-@property ItemProviderHelper * iph;
-@property NSMutableArray * manifest;
-@property NSURL * payloadFolderURL;
+@property (nonatomic, strong) ItemProviderHelper * iph;
 @property UIAlertController* alert;
-@property NSString* attributedContentText;
-@property NSUInteger unprocessed;
 @end
 
 @implementation ShareViewController
@@ -60,7 +56,7 @@ const BOOL isSimulator = NO;
 // - If we still don't have anything, select only the first item and hope for the best.
 - (NSArray*)getSendableAttachments {
   NSExtensionItem *input = self.extensionContext.inputItems.firstObject;
-  self.attributedContentText = input.attributedContentText.string;
+//  self.attributedContentText = input.attributedContentText.string;
   NSArray* attachments = [input attachments];
   NSMutableArray* res = [NSMutableArray array];
   NSItemProvider* item = [self firstSatisfiesTypeIdentifierCond:attachments cond:^(NSItemProvider* a) {
@@ -151,7 +147,8 @@ const BOOL isSimulator = NO;
 }
 
 - (void)viewDidLoad {
-  self.iph = [[ItemProviderHelper alloc] initWithItems: [self getSendableAttachments] completionHandler:^{
+  NSExtensionItem *input = self.extensionContext.inputItems.firstObject;
+  self.iph = [[ItemProviderHelper alloc] initForShare: true withItems: [self getSendableAttachments] attrString: input.attributedContentText.string completionHandler:^{
     [self completeRequestAlreadyInMainThread];
   }];
   [self showProgressView];

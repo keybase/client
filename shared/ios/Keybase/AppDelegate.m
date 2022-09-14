@@ -44,12 +44,14 @@ static void InitializeFlipper(UIApplication *application) {
 #import <UserNotifications/UserNotifications.h>
 #import <keybase/keybase.h>
 #import <RNHWKeyboardEvent.h>
+#import "ItemProviderHelper.h"
 
 static const DDLogLevel ddLogLevel = DDLogLevelDebug;
 
 @interface AppDelegate ()
 @property UIBackgroundTaskIdentifier backgroundTask;
 @property UIBackgroundTaskIdentifier shutdownTask;
+@property (nonatomic, strong) ItemProviderHelper * iph;
 @end
 
 @implementation AppDelegate
@@ -147,104 +149,27 @@ static const DDLogLevel ddLogLevel = DDLogLevelDebug;
 
 - (BOOL)dropInteraction:(UIDropInteraction *)interaction canHandleSession:(id<UIDropSession>)session
 {
-//  printf("aaa got drop canHandleSession");
   return YES;
 }
 
-//- (void)dropInteraction:(UIDropInteraction *)interaction
-//        sessionDidEnter:(id<UIDropSession>)session
-//{
-//  printf("aaa got drop sessionDidEnter");
-//}
-
 - (UIDropProposal *)dropInteraction:(UIDropInteraction *)interaction
                    sessionDidUpdate:(id<UIDropSession>)session{
-//  printf("aaa got drop sessionDidUpdate");
   return [[UIDropProposal alloc] initWithDropOperation:UIDropOperationCopy];
 }
 
-//- (void)dropInteraction:(UIDropInteraction *)interaction
-//         sessionDidExit:(id<UIDropSession>)session
-//{
-//  printf("aaa got drop sessionDidExit");
-//}
-//
-//- (void)dropInteraction:(UIDropInteraction *)interaction
-//          sessionDidEnd:(id<UIDropSession>)session
-//{
-//  printf("aaa got drop sessionDidEnd");
-//}
-
-- (NSURL *)getIncomingShareFolder {
-  NSURL* containerURL = [[NSFileManager defaultManager] containerURLForSecurityApplicationGroupIdentifier: @"group.keybase"];
-  // Use the cache URL so if we fail to clean up payloads they can be deleted by the OS.
-  NSURL* cacheURL = [[containerURL URLByAppendingPathComponent:@"Library" isDirectory:true] URLByAppendingPathComponent:@"Caches" isDirectory:true];
-  NSURL* incomingShareFolderURL = [cacheURL URLByAppendingPathComponent:@"incoming-shares" isDirectory:true];
-  return incomingShareFolderURL;
-}
-- (NSURL*)getManifestFileURL {
-  NSURL* incomingShareFolderURL = [self getIncomingShareFolder];
-  [[NSFileManager defaultManager] createDirectoryAtURL:incomingShareFolderURL withIntermediateDirectories:YES attributes:nil error:nil];
-  return [incomingShareFolderURL URLByAppendingPathComponent:@"manifest.json"];
-}
-- (void) openIncomingShare {
-  NSURL * url = [NSURL URLWithString:@"keybase://incoming-share"];
-  [self application:[UIApplication sharedApplication] openURL:url options:@{}];
-}
-- (void) doneLoadingDrop: (NSMutableArray*)manifest {
-  --loadingCount;
-  
-  if (loadingCount > 0) {
-    return;
-  }
-  if (!manifest.count) {
-    return;
-  }
-      
-    NSURL* fileURL = [self getManifestFileURL];
-    printf("manifest url %s\n",[[fileURL absoluteString] UTF8String]);
-    NSOutputStream * output = [NSOutputStream outputStreamWithURL:fileURL append:false];
-    [output open];
-    NSError * error;
-    [NSJSONSerialization writeJSONObject:manifest toStream:output options:0 error:&error];
-    [self openIncomingShare];
-}
-// could share some code w/ ShareViewController later
-int loadingCount = 0;
 - (void)dropInteraction:(UIDropInteraction *)interaction performDrop:(id<UIDropSession>)session {
-  NSMutableArray * manifest = [NSMutableArray new];
-  for (UIDragItem * dragItem in session.items) {
-    NSItemProvider * provider = dragItem.itemProvider;
-    if ([provider canLoadObjectOfClass:[UIImage self]]) {
-      ++loadingCount;
-      [provider loadObjectOfClass:[UIImage self] completionHandler:^(__kindof id<NSItemProviderReading>  _Nullable object, NSError * _Nullable error) {
-        if (error || ![object isKindOfClass:[UIImage class]]) {
-          __weak typeof(self) weakSelf = self;
-          dispatch_async(dispatch_get_main_queue(), ^{
-            [weakSelf doneLoadingDrop: manifest];
-          });
-          return;
-        }
-          UIImage * img = object;
-          NSString *filename = [NSString stringWithFormat:@"%@.%@", [[NSProcessInfo processInfo] globallyUniqueString], @"jpg"];
-          NSURL* incomingShareFolderURL = [self getIncomingShareFolder];
-          [[NSFileManager defaultManager] createDirectoryAtURL:incomingShareFolderURL withIntermediateDirectories:YES attributes:nil error:nil];
-          NSString * path =  [[incomingShareFolderURL path] stringByAppendingPathComponent: filename];
-          printf("aaa path %s\n", [path UTF8String]);
-          [UIImageJPEGRepresentation(img, 1)  writeToFile:path atomically:YES];
-          [manifest addObject: @{
-            @"type": @"image",
-            @"originalPath":path,
-            @"scaledPath":path,
-            @"thumbnailPath":path,
-          }];
-          __weak typeof(self) weakSelf = self;
-          dispatch_async(dispatch_get_main_queue(), ^{
-            [weakSelf doneLoadingDrop: manifest];
-          });
-      }];
-    } 
-  }
+  __weak typeof(self) weakSelf = self;
+  NSMutableArray * items = [NSMutableArray arrayWithCapacity:session.items.count];
+  [session.items enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+    UIDragItem * i = obj;
+    [items addObject:i.itemProvider];
+  }];
+  self.iph = [[ItemProviderHelper alloc] initForShare: false withItems:items attrString:@"" completionHandler:^{
+    NSURL * url = [NSURL URLWithString:@"keybase://incoming-share"];
+    [weakSelf application:[UIApplication sharedApplication] openURL:url options:@{}];
+    weakSelf.iph = nil;
+  }];
+  [self.iph startProcessing];
 }
 
 - (void)setupGo {

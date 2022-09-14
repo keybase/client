@@ -17,6 +17,7 @@
 @property (nonatomic, strong) NSURL * payloadFolderURL;
 @property (nonatomic, strong) NSString* attributedContentText;
 @property NSUInteger unprocessed;
+@property BOOL isShare;
 @property (nonatomic, copy) void (^completionHandler)(void);
 @end
 
@@ -47,9 +48,11 @@
   return payloadFolderURL;
 }
 
--(id) initWithItems: (NSArray*) items completionHandler:(nonnull void (^)(void))handler {
+-(id) initForShare: (BOOL) isShare withItems: (NSArray*) items attrString: (NSString *) ats completionHandler:(nonnull void (^)(void))handler {
   if (self = [super init]) {
+    self.isShare = isShare;
     self.items = items;
+    self.attributedContentText = ats;
     self.unprocessed = items.count;
     self.completionHandler = handler;
     self.manifest = [[NSMutableArray alloc] init];
@@ -123,6 +126,7 @@
 }
 
 - (void)completeItemAndAppendManifestAndLogErrorWithText:(NSString*)text error:(NSError*)error {
+  printf("aaa completeItemAndAppendManifestAndLogErrorWithText  %s\n",[ [error localizedDescription] UTF8String]);
   dispatch_async(dispatch_get_main_queue(), ^{
     [self.manifest addObject:@{
       @"error": [NSString stringWithFormat:@"%@: %@", text, error != nil ? error : @"<empty>"],
@@ -238,7 +242,14 @@ NSInteger TEXT_LENGTH_THRESHOLD = 512; // TODO make this match the actual limit 
       [self completeItemAndAppendManifestAndLogErrorWithText:@"imageHandler: load error" error:error];
       return;
     }
-    NSData * imageData = UIImageJPEGRepresentation(image, .85);
+    CGImageAlphaInfo alpha = CGImageGetAlphaInfo(image.CGImage);
+    BOOL hasAlpha = (
+                alpha == kCGImageAlphaFirst ||
+                alpha == kCGImageAlphaLast ||
+                alpha == kCGImageAlphaPremultipliedFirst ||
+                alpha == kCGImageAlphaPremultipliedLast
+                );
+    NSData * imageData = hasAlpha ? UIImagePNGRepresentation(image) : UIImageJPEGRepresentation(image, .85);
     NSURL * originalFileURL = [self getPayloadURLFromExt:@"jpg"];
     BOOL OK = [imageData writeToURL:originalFileURL atomically:true];
     if (!OK){
@@ -269,6 +280,7 @@ NSInteger TEXT_LENGTH_THRESHOLD = 512; // TODO make this match the actual limit 
     NSURL * filePayloadURL = [self getPayloadURLFromURL:url];
     [[NSFileManager defaultManager] copyItemAtURL:url toURL:filePayloadURL error:&error];
     if (error != nil) {
+      printf("aaa processItem:fileHandlerMedia  %s\n",[ [error localizedDescription] UTF8String]);
       [self completeItemAndAppendManifestAndLogErrorWithText:@"fileHandler: copy error" error:error];
       return;
     }
@@ -285,10 +297,15 @@ NSInteger TEXT_LENGTH_THRESHOLD = 512; // TODO make this match the actual limit 
   if ([item hasItemConformingToTypeIdentifier:@"public.movie"]) {
     [item loadItemForTypeIdentifier:@"public.movie" options:nil completionHandler:fileHandlerMedia];
   } else if ([item hasItemConformingToTypeIdentifier:@"public.image"]) {
-    // Use the fileHandler here, so if the image is from e.g. the Photos app,
-    // we'd go with the copy routine instead of having to encode an NSImage.
-    // This is important for staying under the mem limit.
-    [item loadItemForTypeIdentifier:@"public.image" options:nil completionHandler:fileHandlerMedia];
+    if (self.isShare) {
+      // Use the fileHandler here, so if the image is from e.g. the Photos app,
+      // we'd go with the copy routine instead of having to encode an NSImage.
+      // This is important for staying under the mem limit.
+      [item loadItemForTypeIdentifier:@"public.image" options:nil completionHandler:fileHandlerMedia];
+    } else {
+      // drag drop doesn't give us working urls
+      [item loadObjectOfClass:[UIImage class] completionHandler:imageHandler];
+    }
   } else if ([item hasItemConformingToTypeIdentifier:@"public.file-url"]) {
     // Although this will be covered in the catch-all below, do it before public.text and public.url so that we get the file instead of a web URL when user shares a downloaded file from safari.
     [item loadItemForTypeIdentifier:@"public.file-url" options:nil completionHandler:fileHandlerSimple];
