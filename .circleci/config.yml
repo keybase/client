@@ -42,7 +42,7 @@ jobs:
       # Build-Tools 27.0.3 not accepted.', that probably means that the
       # CircleCI docker needs to be rebuilt. As a short term hack, we could
       # do also append to the license file here.
-      - run: mv $ANDROID_HOME/platforms/android-31 $ANDROID_HOME/platforms/android-31-bak
+      - run: cp $ANDROID_HOME/platforms/android-31 $ANDROID_HOME/android-31
       - run:
           working_directory: shared/android
           environment:
