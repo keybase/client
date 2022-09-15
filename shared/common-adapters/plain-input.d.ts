@@ -1,5 +1,6 @@
 import * as React from 'react'
 import {StylesCrossPlatform, globalMargins, CustomStyles} from '../styles'
+import {type PastedFile} from '@mattermost/react-native-paste-input'
 import {TextType} from './text'
 
 export type KeyboardType =
@@ -58,6 +59,8 @@ export type Selection = {
 export type InputStyle = CustomStyles<'padding', {}>
 
 export type Props = {
+  allowImagePaste?: boolean // mobile only
+  onPasteImage?: (error: string | null | undefined, files: Array<PastedFile>) => void // mobile only, if allowImagePaste is on
   autoFocus?: boolean
   // Enable if you want this to always have focus (desktop only)
   globalCaptureKeypress?: boolean

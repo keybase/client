@@ -45,6 +45,10 @@
 		DB3B470D27EB8BCB0002139E /* rpc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DB3B470C27EB8BCB0002139E /* rpc.cpp */; };
 		DB59F9B72238A27E00E271C1 /* JavaScriptCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DB59F97B2238A27E00E271C1 /* JavaScriptCore.framework */; };
 		DB779E0627D2B96600CDB0F7 /* GoJSIBridge.mm in Sources */ = {isa = PBXBuildFile; fileRef = DB779E0527D2B96600CDB0F7 /* GoJSIBridge.mm */; };
+		DBB17C7628D11A41001F3E25 /* ItemProviderHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = DBB17C7528D11A41001F3E25 /* ItemProviderHelper.m */; };
+		DBB17C7728D11A41001F3E25 /* ItemProviderHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = DBB17C7528D11A41001F3E25 /* ItemProviderHelper.m */; };
+		DBB17C7828D12237001F3E25 /* MediaUtils.m in Sources */ = {isa = PBXBuildFile; fileRef = 07C3A80A23FF2F5F00A75BA0 /* MediaUtils.m */; };
+		DBB17C7B28D22C2D001F3E25 /* DropViewManager.m in Sources */ = {isa = PBXBuildFile; fileRef = DBB17C7A28D22C2D001F3E25 /* DropViewManager.m */; };
 		DBBCC6131D9C4A8100312652 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = DBBCC6121D9C4A8100312652 /* AppDelegate.m */; };
 		DBBCC6181D9C5C6A00312652 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = DBBCC6171D9C5C6A00312652 /* main.m */; };
 		DBCE36251B90F14800ECADDE /* Engine.m in Sources */ = {isa = PBXBuildFile; fileRef = DBCE36241B90F14800ECADDE /* Engine.m */; };
@@ -137,6 +141,10 @@
 		DB59F97B2238A27E00E271C1 /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		DB779DFC27D2AD0B00CDB0F7 /* GoJSIBridge.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GoJSIBridge.h; sourceTree = "<group>"; };
 		DB779E0527D2B96600CDB0F7 /* GoJSIBridge.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = GoJSIBridge.mm; sourceTree = "<group>"; };
+		DBB17C7428D11A41001F3E25 /* ItemProviderHelper.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ItemProviderHelper.h; sourceTree = "<group>"; };
+		DBB17C7528D11A41001F3E25 /* ItemProviderHelper.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ItemProviderHelper.m; sourceTree = "<group>"; };
+		DBB17C7928D22C2D001F3E25 /* DropViewManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DropViewManager.h; sourceTree = "<group>"; };
+		DBB17C7A28D22C2D001F3E25 /* DropViewManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DropViewManager.m; sourceTree = "<group>"; };
 		DBBCC6111D9C4A8100312652 /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		DBBCC6121D9C4A8100312652 /* AppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
 		DBBCC6171D9C5C6A00312652 /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
@@ -190,8 +198,6 @@
 				279FB5A42139AB6A005E4864 /* Info.plist */,
 				279FB59F2139AB6A005E4864 /* ShareViewController.m */,
 				279FB5A12139AB6A005E4864 /* MainInterface.storyboard */,
-				07C3A80923FF2F5F00A75BA0 /* MediaUtils.h */,
-				07C3A80A23FF2F5F00A75BA0 /* MediaUtils.m */,
 			);
 			path = KeybaseShare;
 			sourceTree = "<group>";
@@ -302,9 +308,15 @@
 				DBBCC6171D9C5C6A00312652 /* main.m */,
 				DB27DE561D747A6C003DE8BC /* Utils.m */,
 				DB27DE551D747A6B003DE8BC /* Utils.h */,
+				DBB17C7428D11A41001F3E25 /* ItemProviderHelper.h */,
+				DBB17C7528D11A41001F3E25 /* ItemProviderHelper.m */,
+				07C3A80923FF2F5F00A75BA0 /* MediaUtils.h */,
+				07C3A80A23FF2F5F00A75BA0 /* MediaUtils.m */,
 				A969A4161CF65CB200F273F2 /* LogSend.h */,
 				DB779DFC27D2AD0B00CDB0F7 /* GoJSIBridge.h */,
 				DB779E0527D2B96600CDB0F7 /* GoJSIBridge.mm */,
+				DBB17C7928D22C2D001F3E25 /* DropViewManager.h */,
+				DBB17C7A28D22C2D001F3E25 /* DropViewManager.m */,
 				DB3B470C27EB8BCB0002139E /* rpc.cpp */,
 				A969A4091CF65C9C00F273F2 /* LogSend.m */,
 				375CA6901FFD418D00210B11 /* Storybook.h */,
@@ -379,7 +391,6 @@
 				ORGANIZATIONNAME = Keybase;
 				TargetAttributes = {
 					13B07F861A680F5B00A75B9A = {
-						DevelopmentTeam = 99229SGT5K;
 						LastSwiftMigration = 800;
 						ProvisioningStyle = Automatic;
 						SystemCapabilities = {
@@ -405,7 +416,6 @@
 					};
 					279FB59B2139AB6A005E4864 = {
 						CreatedOnToolsVersion = 9.4.1;
-						DevelopmentTeam = 99229SGT5K;
 						ProvisioningStyle = Automatic;
 						SystemCapabilities = {
 							com.apple.ApplicationGroups.iOS = {
@@ -577,9 +587,12 @@
 				DB27DE571D747A6C003DE8BC /* Utils.m in Sources */,
 				DB07050522E21B8B002F273D /* KeepThisFile.swift in Sources */,
 				279FB66921402D68005E4864 /* Fs.m in Sources */,
+				DBB17C7628D11A41001F3E25 /* ItemProviderHelper.m in Sources */,
 				A969A40A1CF65C9C00F273F2 /* LogSend.m in Sources */,
 				DBBCC6181D9C5C6A00312652 /* main.m in Sources */,
+				DBB17C7B28D22C2D001F3E25 /* DropViewManager.m in Sources */,
 				DB3B470D27EB8BCB0002139E /* rpc.cpp in Sources */,
+				DBB17C7828D12237001F3E25 /* MediaUtils.m in Sources */,
 				27EE26A820A140EF00F92CD1 /* Pusher.m in Sources */,
 				DB779E0627D2B96600CDB0F7 /* GoJSIBridge.mm in Sources */,
 				A90CD4A81FCE1D0B00F97901 /* NativeLogger.m in Sources */,
@@ -598,6 +611,7 @@
 				27F0BBB52142C19D007195B7 /* Pusher.m in Sources */,
 				279FB66A21402D68005E4864 /* Fs.m in Sources */,
 				279FB5A02139AB6A005E4864 /* ShareViewController.m in Sources */,
+				DBB17C7728D11A41001F3E25 /* ItemProviderHelper.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -652,7 +666,7 @@
 					"$(SRCROOT)/KeybaseGo",
 				);
 				INFOPLIST_FILE = Keybase/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.4;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -707,7 +721,7 @@
 					"$(SRCROOT)/KeybaseGo",
 				);
 				INFOPLIST_FILE = Keybase/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.4;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -768,7 +782,7 @@
 				);
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				INFOPLIST_FILE = KeybaseShare/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.4;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -819,7 +833,7 @@
 				);
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				INFOPLIST_FILE = KeybaseShare/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.4;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -887,7 +901,7 @@
 					"$(inherited)",
 					"$(SRCROOT)/../node_modules/msgpack-cxx-4.1.1/include/**",
 				);
-				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.4;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_SWIFT_FLAGS = "-DDEBUG";
@@ -944,7 +958,7 @@
 					"$(inherited)",
 					"$(SRCROOT)/../node_modules/msgpack-cxx-4.1.1/include",
 				);
-				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.4;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				OTHER_SWIFT_FLAGS = "";
 				SDKROOT = iphoneos;

@@ -20,6 +20,7 @@ import {isOpen} from '../../../../util/keyboard'
 import {parseUri, launchCameraAsync, launchImageLibraryAsync} from '../../../../util/expo-image-picker'
 import {standardTransformer} from '../suggestors/common'
 import {useSuggestors} from '../suggestors'
+import {type PastedFile} from '@mattermost/react-native-paste-input'
 import {
   createAnimatedComponent,
   skipAnimations,
@@ -388,6 +389,20 @@ const PlatformInput = (p: Props) => {
     [whichMenu, toggleShowingPopup]
   )
 
+  const dispatch = Container.useDispatch()
+  const onPasteImage = React.useCallback(
+    (error: string | null | undefined, files: Array<PastedFile>) => {
+      if (error) return
+      const pathAndOutboxIDs = files.map(f => ({outboxID: null, path: f.uri.substring('file://'.length)}))
+      dispatch(
+        RouteTreeGen.createNavigateAppend({
+          path: [{props: {conversationIDKey, pathAndOutboxIDs}, selected: 'chatAttachmentGetTitles'}],
+        })
+      )
+    },
+    [conversationIDKey, dispatch]
+  )
+
   return (
     <Kb.Box2
       direction="vertical"
@@ -411,6 +426,8 @@ const PlatformInput = (p: Props) => {
           {/* in order to get auto correct submit working we move focus to this and then back so we can 'blur' without losing keyboard */}
           <Kb.PlainInput key="silent" ref={silentInput} style={styles.hidden} />
           <AnimatedInput
+            allowImagePaste={true}
+            onPasteImage={onPasteImage}
             autoCorrect={true}
             autoCapitalize="sentences"
             disabled={cannotWrite ?? false}

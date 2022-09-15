@@ -44,12 +44,14 @@ static void InitializeFlipper(UIApplication *application) {
 #import <UserNotifications/UserNotifications.h>
 #import <keybase/keybase.h>
 #import <RNHWKeyboardEvent.h>
+#import "ItemProviderHelper.h"
 
 static const DDLogLevel ddLogLevel = DDLogLevelDebug;
 
 @interface AppDelegate ()
 @property UIBackgroundTaskIdentifier backgroundTask;
 @property UIBackgroundTaskIdentifier shutdownTask;
+@property (nonatomic, strong) ItemProviderHelper * iph;
 @end
 
 @implementation AppDelegate
@@ -76,6 +78,10 @@ static const DDLogLevel ddLogLevel = DDLogLevelDebug;
   self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
   UIViewController *rootViewController = [UIViewController new];
   rootViewController.view = rootView;
+  UIDropInteraction *udi = [[UIDropInteraction alloc] initWithDelegate:self];
+  udi.allowsSimultaneousDropSessions = YES;
+  rootView.interactions = @[udi];
+  
   self.window.rootViewController = rootViewController;
   [self.window makeKeyAndVisible];
 
@@ -103,7 +109,7 @@ static const DDLogLevel ddLogLevel = DDLogLevelDebug;
   [self setupLogger];
   [self setupGo];
   [self notifyAppState:application];
-
+  
   UNUserNotificationCenter *center =
       [UNUserNotificationCenter currentNotificationCenter];
   center.delegate = self;
@@ -137,6 +143,31 @@ static const DDLogLevel ddLogLevel = DDLogLevelDebug;
   [[UIApplication sharedApplication] setMinimumBackgroundFetchInterval: UIApplicationBackgroundFetchIntervalMinimum];
 }
 
+- (BOOL)dropInteraction:(UIDropInteraction *)interaction canHandleSession:(id<UIDropSession>)session
+{
+  return YES;
+}
+
+- (UIDropProposal *)dropInteraction:(UIDropInteraction *)interaction
+                   sessionDidUpdate:(id<UIDropSession>)session{
+  return [[UIDropProposal alloc] initWithDropOperation:UIDropOperationCopy];
+}
+
+- (void)dropInteraction:(UIDropInteraction *)interaction performDrop:(id<UIDropSession>)session {
+  __weak typeof(self) weakSelf = self;
+  NSMutableArray * items = [NSMutableArray arrayWithCapacity:session.items.count];
+  [session.items enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+    UIDragItem * i = obj;
+    [items addObject:i.itemProvider];
+  }];
+  self.iph = [[ItemProviderHelper alloc] initForShare: false withItems:items attrString:@"" completionHandler:^{
+    NSURL * url = [NSURL URLWithString:@"keybase://incoming-share"];
+    [weakSelf application:[UIApplication sharedApplication] openURL:url options:@{}];
+    weakSelf.iph = nil;
+  }];
+  [self.iph startProcessing];
+}
+
 - (void)setupGo {
 #if TARGET_OS_SIMULATOR
   BOOL securityAccessGroupOverride = YES;
@@ -159,7 +190,7 @@ static const DDLogLevel ddLogLevel = DDLogLevelDebug;
     @"serverURI" : @"",
     @"SecurityAccessGroupOverride" : @(securityAccessGroupOverride)
   }
-                                           error:&err];
+  error:&err];
 }
 
 - (void)setupLogger {

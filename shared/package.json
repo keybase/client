@@ -67,6 +67,7 @@
         "@emotion/react": "11.10.4",
         "@emotion/styled": "11.10.4",
         "@gorhom/portal": "1.0.14",
+        "@mattermost/react-native-paste-input": "0.5.0",
         "@msgpack/msgpack": "2.8.0",
         "@react-native-clipboard/clipboard": "1.11.0",
         "@react-native-community/netinfo": "9.3.0",

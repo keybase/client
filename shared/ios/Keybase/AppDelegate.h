@@ -14,9 +14,8 @@
 
 @class Engine;
 
-@interface AppDelegate : EXAppDelegateWrapper <UIApplicationDelegate, RCTBridgeDelegate, UNUserNotificationCenterDelegate>
+@interface AppDelegate : EXAppDelegateWrapper <UIApplicationDelegate, RCTBridgeDelegate, UNUserNotificationCenterDelegate, UIDropInteractionDelegate>
 
-// @property (nonatomic, strong) UMModuleRegistryAdapter *moduleRegistryAdapter;
 @property (nonatomic, strong) UIWindow *window;
 @property (nonatomic, strong) Engine *engine;
 @property (nonatomic, strong) DDFileLogger *fileLogger;

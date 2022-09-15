@@ -56,6 +56,8 @@
   }
   
   if (!CGImageDestinationFinalize(cgDestination)) {
+    CFRelease(cgDestination);
+    CFRelease(cgSource);
     return [NSError errorWithDomain:@"MediaUtils" code:1 userInfo:@{@"message":@"CGImageDestinationFinalize failed"}];
   }
   
@@ -83,16 +85,19 @@
   
   error = [MediaUtils _scaleDownCGImageSourceRef:cgSource dstURL:scaledURL options:[MediaUtils _scaledImageOptions]];
   if (error != nil) {
+    CFRelease(cgSource);
     completion(error, nil, nil);
     return;
   }
   
   error = [MediaUtils _scaleDownCGImageSourceRef:cgSource dstURL:thumbnailURL options:[MediaUtils _thumbnailImageOptions]];
   if (error != nil) {
+    CFRelease(cgSource);
     completion(error, nil, nil);
     return;
   }
   
+  CFRelease(cgSource);
   completion(nil, scaledURL, thumbnailURL);
 }
 
@@ -140,6 +145,7 @@
   [generateImg setAppliesPreferredTrackTransform:YES];
   CGImageRef cgOriginal = [generateImg copyCGImageAtTime:time actualTime:NULL error:&error];
   if (error != nil) {
+    CFRelease(cgOriginal);
     completion(error, nil, nil);
     return;
   }
@@ -156,6 +162,7 @@
   }
    */
   NSData * thumbnail = UIImageJPEGRepresentation([UIImage imageWithCGImage:cgOriginal], 0.85);
+  CFRelease(cgOriginal);
   BOOL OK = [thumbnail writeToURL:thumbnailURL atomically:true];
   if (!OK) {
     completion([NSError errorWithDomain:@"MediaUtils" code:1 userInfo:@{NSLocalizedDescriptionKey:@"error getting thumbnail for video"}], nil, nil);
