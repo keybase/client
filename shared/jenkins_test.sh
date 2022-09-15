@@ -13,6 +13,11 @@ else
 fi
 
 echo "shared/jenkins_test.sh recieved type: ${test_type} commit_hash: ${commit_hash} change_target: ${change_target} change_base: ${change_base}"
+NODE_VERSION="16.16.0"
+NVM_DIR="$HOME/.nvm"
+"$NVM_DIR/nvm.sh" && nvm install ${NODE_VERSION}
+"$NVM_DIR/nvm.sh" && nvm use v${NODE_VERSION}
+"$NVM_DIR/nvm.sh" && nvm alias default v${NODE_VERSION}
 
 check_rc() {
   # exit if passed in value is not = 0
