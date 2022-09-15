@@ -1,7 +1,9 @@
-import {requireNativeComponent} from 'react-native'
+import {Platform, requireNativeComponent, View} from 'react-native'
 import * as React from 'react'
 import type * as Styles from '../styles'
-const IMPL = requireNativeComponent('DropView')
+
+const isSupported = Platform.OS === 'ios'
+const IMPL = isSupported ? requireNativeComponent('DropView') : null
 
 export type DropItems = Array<{originalPath?: string; content?: string}>
 export type Props = {
@@ -9,7 +11,7 @@ export type Props = {
   onDropped: (items: DropItems) => void
   style?: Styles.StylesCrossPlatform
 }
-const DropViewWrapper = (p: Props) => {
+const DropViewWrapperIOS = (p: Props) => {
   const {onDropped} = p
   const onDroppedCB = React.useCallback(
     e => {
@@ -27,4 +29,4 @@ const DropViewWrapper = (p: Props) => {
   // @ts-ignore
   return <IMPL {...p} onDropped={onDroppedCB} />
 }
-export default DropViewWrapper
+export default isSupported ? DropViewWrapperIOS : View

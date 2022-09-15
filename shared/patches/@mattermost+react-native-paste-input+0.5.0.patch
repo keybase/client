@@ -1,3 +1,16 @@
+diff --git a/node_modules/@mattermost/react-native-paste-input/android/src/main/java/com/mattermost/pasteinput/PasteInputManager.kt b/node_modules/@mattermost/react-native-paste-input/android/src/main/java/com/mattermost/pasteinput/PasteInputManager.kt
+index 8cb70cf..92f50e0 100644
+--- a/node_modules/@mattermost/react-native-paste-input/android/src/main/java/com/mattermost/pasteinput/PasteInputManager.kt
++++ b/node_modules/@mattermost/react-native-paste-input/android/src/main/java/com/mattermost/pasteinput/PasteInputManager.kt
+@@ -18,7 +18,7 @@ class PasteInputManager(reactContext: ReactContext) : ReactTextInputManager() {
+ 
+   companion object {
+     const val REACT_CLASS = "PasteInput"
+-    const val CACHE_DIR_NAME = "mmPasteInput"
++    const val CACHE_DIR_NAME = "Audio"
+   }
+ 
+   override fun getName(): String {
 diff --git a/node_modules/@mattermost/react-native-paste-input/ios/UIPasteboard+GetImageInfo.m b/node_modules/@mattermost/react-native-paste-input/ios/UIPasteboard+GetImageInfo.m
 index df52bb7..a4424b8 100644
 --- a/node_modules/@mattermost/react-native-paste-input/ios/UIPasteboard+GetImageInfo.m
