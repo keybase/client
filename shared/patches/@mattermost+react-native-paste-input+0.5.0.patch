@@ -47,6 +47,43 @@ index 73ed099..51b082c 100644
          }
      }
      
+diff --git a/node_modules/@mattermost/react-native-paste-input/ios/PasteInputView.h b/node_modules/@mattermost/react-native-paste-input/ios/PasteInputView.h
+index be73123..900fd06 100644
+--- a/node_modules/@mattermost/react-native-paste-input/ios/PasteInputView.h
++++ b/node_modules/@mattermost/react-native-paste-input/ios/PasteInputView.h
+@@ -10,7 +10,7 @@
+ 
+ NS_ASSUME_NONNULL_BEGIN
+ 
+-@interface PasteInputView : RCTMultilineTextInputView
++@interface PasteInputView : RCTMultilineTextInputView<UIDropInteractionDelegate>
+     @property (nonatomic, assign) BOOL disableCopyPaste;
+     @property (nonatomic, copy, nullable) RCTDirectEventBlock onPaste;
+ @end
+diff --git a/node_modules/@mattermost/react-native-paste-input/ios/PasteInputView.m b/node_modules/@mattermost/react-native-paste-input/ios/PasteInputView.m
+index 4d3b464..0fe800e 100644
+--- a/node_modules/@mattermost/react-native-paste-input/ios/PasteInputView.m
++++ b/node_modules/@mattermost/react-native-paste-input/ios/PasteInputView.m
+@@ -24,6 +24,7 @@
+     _backedTextInputView = [[PasteInputTextView alloc] initWithFrame:self.bounds];
+     _backedTextInputView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+     _backedTextInputView.textInputDelegate = self;
++    _backedTextInputView.interactions = @[[[UIDropInteraction alloc] initWithDelegate:self]];
+ 
+     [self addSubview:_backedTextInputView];
+   }
+@@ -31,6 +32,11 @@
+   return self;
+ }
+ 
++- (BOOL)dropInteraction:(UIDropInteraction *)interaction canHandleSession:(id<UIDropSession>)session
++{
++  return NO;
++}
++
+ - (id<RCTBackedTextInputViewProtocol>)backedTextInputView
+ {
+   return _backedTextInputView;
 diff --git a/node_modules/@mattermost/react-native-paste-input/ios/UIPasteboard+GetImageInfo.m b/node_modules/@mattermost/react-native-paste-input/ios/UIPasteboard+GetImageInfo.m
 index df52bb7..a4424b8 100644
 --- a/node_modules/@mattermost/react-native-paste-input/ios/UIPasteboard+GetImageInfo.m

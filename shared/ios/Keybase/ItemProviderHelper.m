@@ -24,10 +24,8 @@
 
 - (void) completeProcessingItemAlreadyInMainThread {
   if(--self.unprocessed > 0) { return; }
-  dispatch_async(dispatch_get_main_queue(), ^{
     [self writeManifest];
     self.completionHandler();
-  });
 }
 
 - (NSURL *)getIncomingShareFolder {
