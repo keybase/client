@@ -12,7 +12,7 @@ index 8cb70cf..92f50e0 100644
  
    override fun getName(): String {
 diff --git a/node_modules/@mattermost/react-native-paste-input/ios/PasteInputTextView.m b/node_modules/@mattermost/react-native-paste-input/ios/PasteInputTextView.m
-index 73ed099..51b082c 100644
+index 73ed099..aebf25b 100644
 --- a/node_modules/@mattermost/react-native-paste-input/ios/PasteInputTextView.m
 +++ b/node_modules/@mattermost/react-native-paste-input/ios/PasteInputTextView.m
 @@ -35,8 +35,6 @@
@@ -24,29 +24,35 @@ index 73ed099..51b082c 100644
      UIPasteboard *pasteboard = [UIPasteboard generalPasteboard];
  
      BOOL hasStrings = pasteboard.hasStrings;
-@@ -46,9 +44,10 @@
+@@ -46,9 +44,14 @@
              hasStrings = [s length] != 0 && ![s containsString:@"<img src="];
          }
      }
 -    if (pasteboard.hasURLs || hasStrings || pasteboard.hasColors) {
 +    
-+    /*if (pasteboard.hasURLs || hasStrings || pasteboard.hasColors) {
++    if ([pasteboard hasStrings] && ![pasteboard hasImages]) {
++        [super paste:sender];
          return;
--    }
+     }
++    /*if (pasteboard.hasURLs || hasStrings || pasteboard.hasColors) {
++        return;
 +    }*/
      
      if (_onPaste) {
          NSArray<NSDictionary *> *files = [pasteboard getCopiedFiles];
-@@ -57,7 +56,8 @@
+@@ -56,11 +59,11 @@
+             _onPaste(@{
                  @"data": files,
              });
-         } else {
--            return;
-+            [super paste:sender];
-+     //       return;
+-        } else {
+             return;
          }
      }
      
++    [super paste:sender];
+     // Dismiss contextual menu
+     [self resignFirstResponder];
+ }
 diff --git a/node_modules/@mattermost/react-native-paste-input/ios/PasteInputView.h b/node_modules/@mattermost/react-native-paste-input/ios/PasteInputView.h
 index be73123..900fd06 100644
 --- a/node_modules/@mattermost/react-native-paste-input/ios/PasteInputView.h
