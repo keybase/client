@@ -55,6 +55,7 @@ pvl-tools/node_modules
 shared/.tsOuts/.*
 # Storybook
 shared/.cache
+node_modules
 
 Keybase.app.dSYM.zip
 
@@ -80,3 +81,4 @@ go/keybase/keybase_production
 go/keybase_freebsd
 go/keybase_netbsd
 go/keybase_openbsd
+
