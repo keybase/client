@@ -1,0 +1,16 @@
+language: node_js
+sudo: true
+dist: trusty
+node_js:
+  - 10
+  - 12
+  - 14
+script:
+  - npm run lint
+  - npm test
+notifications:
+  email:
+    on_failure: change
+    on_success: change
+after_success:
+  - npm run coveralls

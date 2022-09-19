@@ -1,0 +1,16 @@
+165a900a78de3a879bc9c95386ecbbb0  bin/jetifier-standalone
+553c35c94edd5c7707773f6d2c199437  bin/jetifier-standalone.bat
+553c35c94edd5c7707773f6d2c199437  bin/jetifier-standalone.bat
+f4fb462172517b46b6cd90003508515a  lib/annotations-13.0.jar
+305b31315dbca9c3cddac687b4a0e04c  lib/asm-6.0.jar
+cbe9c8e4ed2a7e27de503b43f6dc4d61  lib/asm-commons-6.0.jar
+076f7668703c07ff671837ad17f59ea1  lib/asm-tree-6.0.jar
+ddd94acc28c09f938523c9f440cd97cc  lib/asm-util-6.0.jar
+8d5fa2a42fef17d9034b35a9ac9cc750  lib/commons-cli-1.3.1.jar
+a42f1f5bfa4e6f123ddcab3de7e0ff81  lib/gson-2.8.0.jar
+86a30c9b1ddc08ca155747890db423b7  lib/jdom2-2.0.6.jar
+a6b614ed04be204ab4ca983b36e1a737  lib/jetifier-core-1.0.0-beta09.jar
+e61c807b62018a2951fb9ad632ef2fb9  lib/jetifier-processor-1.0.0-beta09.jar
+ec943aac5c72b809cf811241e4ab7fea  lib/jetifier-standalone.jar
+13e7dc2fb38e2ea9d5246beb3a9d3224  lib/kotlin-stdlib-1.3.60.jar
+ea1e6cebb9e2ebf429ae73de935c67c4  lib/kotlin-stdlib-common-1.3.60.jar
