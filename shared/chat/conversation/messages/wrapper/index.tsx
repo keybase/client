@@ -138,6 +138,64 @@ type TEMP = {
   showSendIndicator: boolean
   youAreAuthor: boolean
 } & Kb.OverlayParentProps
+
+const useGetLongPress = (p, children: React.ReactNode) => {
+  const {
+    decorate,
+    toggleShowingMenu,
+    dismissKeyboard,
+    onSwipeLeft,
+    showCenteredHighlight,
+    showUsername,
+    isPendingPayment,
+    message,
+    showingMenu,
+    showingPicker,
+    onMouseOver,
+    setAttachmentRef,
+  } = p
+  if (Styles.isMobile) {
+    return (
+      <LongPressable
+        onLongPress={decorate ? toggleShowingMenu : undefined}
+        onPress={decorate ? dismissKeyboard : undefined}
+        // @ts-ignore bad types
+        onSwipeLeft={decorate ? onSwipeLeft : undefined}
+        style={Styles.collapseStyles([
+          styles.container,
+          showCenteredHighlight && styles.centeredOrdinal,
+          !showUsername && styles.containerNoUsername,
+        ] as const)}
+      >
+        {children}
+      </LongPressable>
+    )
+  }
+  return (
+    <LongPressable
+      // @ts-ignore bad types
+      className={Styles.classNames(
+        {
+          'WrapperMessage-author': showUsername,
+          'WrapperMessage-centered': showCenteredHighlight,
+          'WrapperMessage-decorated': decorate,
+          'WrapperMessage-hoverColor': !isPendingPayment,
+          'WrapperMessage-noOverflow': isPendingPayment,
+          'WrapperMessage-systemMessage': message.type.startsWith('system'),
+          active: showingMenu || showingPicker,
+        },
+        'WrapperMessage-hoverBox'
+      )}
+      onContextMenu={toggleShowingMenu}
+      onMouseOver={onMouseOver}
+      // attach popups to the message itself
+      ref={setAttachmentRef}
+    >
+      {children}
+    </LongPressable>
+  )
+}
+
 const _WrapperMessageTemp = (p: TEMP) => {
   const {showSendIndicator, message, centeredOrdinal, orangeLineAbove, showUsername, onAuthorClick} = p
   const {isPendingPayment, failureDescription, onCancel, onEdit, onRetry, exploded, hasUnfurlPrompts} = p
@@ -631,45 +689,6 @@ const _WrapperMessageTemp = (p: TEMP) => {
     )
   }
 
-  const containerProps = (() => {
-    if (Styles.isMobile) {
-      const props = {
-        style: Styles.collapseStyles([
-          styles.container,
-          showCenteredHighlight && styles.centeredOrdinal,
-          !showUsername && styles.containerNoUsername,
-        ] as const),
-      }
-      return decorate
-        ? {
-            ...props,
-            onLongPress: toggleShowingMenu,
-            onPress: dismissKeyboard,
-            onSwipeLeft: onSwipeLeft,
-          }
-        : props
-    } else {
-      return {
-        className: Styles.classNames(
-          {
-            'WrapperMessage-author': showUsername,
-            'WrapperMessage-centered': showCenteredHighlight,
-            'WrapperMessage-decorated': decorate,
-            'WrapperMessage-hoverColor': !isPendingPayment,
-            'WrapperMessage-noOverflow': isPendingPayment,
-            'WrapperMessage-systemMessage': message.type.startsWith('system'),
-            active: showingMenu || showingPicker,
-          },
-          'WrapperMessage-hoverBox'
-        ),
-        onContextMenu: toggleShowingMenu,
-        onMouseOver: onMouseOver,
-        // attach popups to the message itself
-        ref: setAttachmentRef,
-      }
-    }
-  })()
-
   const updateHighlightMode = React.useCallback(() => {
     switch (centeredOrdinal) {
       case 'flash':
@@ -702,66 +721,45 @@ const _WrapperMessageTemp = (p: TEMP) => {
     measure()
   }
 
-  // return (
-  //   <_WrapperMessage
-  //     {...rest}
-  //     updateHighlightMode={updateHighlightMode}
-  //     containerProps={containerProps}
-  //     authorAndContent={authorAndContent}
-  //     messageAndButtons={messageAndButtons}
-  //     messageNode={messageNode}
-  //     mounted={mountedRef.current}
-  //     disableCenteredHighlight={disableCenteredHighlight}
-  //     setDisableCenteredHighlight={setDisableCenteredHighlight}
-  //     showMenuButton={showMenuButton}
-  //     setShowMenuButton={setShowMenuButton}
-  //     showingPicker={showingPicker}
-  //     setShowingPicker={setShowingPicker}
-  //     isExploding={isExploding}
-  //     isShowingIndicator={isShowingIndicator}
-  //     sendIndicator={sendIndicator}
-  //     showCenteredHighlight={showCenteredHighlight}
-  //     onAuthorClick={onAuthorClick}
-  //     orangeLine={orangeLine}
-  //     canFixOverdraw={canFixOverdraw}
-  //     canFixOverdrawValue={canFixOverdrawValue}
-  //     dismissKeyboard={dismissKeyboard}
-  //     isEdited={isEdited}
-  //     isFailed={isFailed}
-  //     unfurlPrompts={unfurlPrompts}
-  //     unfurlList={unfurlList}
-  //     coinFlip={coinFlip}
-  //     reactionsRow={reactionsRow}
-  //     hasReactions={hasReactions}
-  //     keyedBot={keyedBot}
-  //     popup={popup}
-  //   />
-  // )
+  const longPressable = useGetLongPress(
+    {
+      decorate,
+      toggleShowingMenu,
+      dismissKeyboard,
+      onSwipeLeft,
+      showCenteredHighlight,
+      showUsername,
+      isPendingPayment,
+      message,
+      showingPicker,
+      showingMenu,
+      onMouseOver,
+      setAttachmentRef,
+    },
+    [
+      message.type === 'journeycard' ? (
+        <TeamJourney key="journey" message={message} />
+      ) : (
+        authorAndContent([
+          messageAndButtons(messageNode),
+          isEdited(),
+          isFailed(),
+          unfurlPrompts(),
+          unfurlList(),
+          coinFlip(),
+          reactionsRow(),
+        ])
+      ),
+      orangeLine(),
+    ]
+  )
 
   if (!message || !messageNode) {
     return null
   }
   return (
     <Styles.StyleContext.Provider value={canFixOverdrawValue}>
-      <LongPressable
-        {...containerProps}
-        children={[
-          message.type === 'journeycard' ? (
-            <TeamJourney key="journey" message={message} />
-          ) : (
-            authorAndContent([
-              messageAndButtons(messageNode),
-              isEdited(),
-              isFailed(),
-              unfurlPrompts(),
-              unfurlList(),
-              coinFlip(),
-              reactionsRow(),
-            ])
-          ),
-          orangeLine(),
-        ]}
-      />
+      {longPressable}
       {popup()}
     </Styles.StyleContext.Provider>
   )
