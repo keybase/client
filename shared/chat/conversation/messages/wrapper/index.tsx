@@ -1,4 +1,5 @@
 import * as Kb from '../../../../common-adapters'
+import * as Container from '../../../../util/container'
 import * as React from 'react'
 import * as Styles from '../../../../styles'
 import * as Constants from '../../../../constants/chat2'
@@ -144,7 +145,6 @@ const _WrapperMessageTemp = (p: TEMP) => {
   const {getAttachmentRef, showingMenu, authorIsBot, isRevoked, showCoinsIcon, forceAsh} = p
   const {decorate, isLastInThread, botAlias, authorIsOwner, showCrowns, authorIsAdmin} = p
   const {onSwipeLeft, setAttachmentRef} = p
-  const {...rest} = p
 
   const [disableCenteredHighlight, setDisableCenteredHighlight] = React.useState(false)
   const [showMenuButton, setShowMenuButton] = React.useState(false)
@@ -670,7 +670,7 @@ const _WrapperMessageTemp = (p: TEMP) => {
     }
   })()
 
-  const updateHighlightMode = () => {
+  const updateHighlightMode = React.useCallback(() => {
     switch (centeredOrdinal) {
       case 'flash':
         setDisableCenteredHighlight(false)
@@ -685,97 +685,86 @@ const _WrapperMessageTemp = (p: TEMP) => {
         setDisableCenteredHighlight(false)
         break
     }
+  }, [])
+
+  React.useEffect(() => {
+    updateHighlightMode()
+  }, [])
+
+  const prevCenteredOrdinal = Container.usePrevious(centeredOrdinal)
+  if (prevCenteredOrdinal !== centeredOrdinal) {
+    updateHighlightMode()
   }
 
+  const prevMessage = Container.usePrevious(message)
+  const prevOrange = Container.usePrevious(orangeLineAbove)
+  if (measure && (message !== prevMessage || prevOrange !== orangeLineAbove)) {
+    measure()
+  }
+
+  // return (
+  //   <_WrapperMessage
+  //     {...rest}
+  //     updateHighlightMode={updateHighlightMode}
+  //     containerProps={containerProps}
+  //     authorAndContent={authorAndContent}
+  //     messageAndButtons={messageAndButtons}
+  //     messageNode={messageNode}
+  //     mounted={mountedRef.current}
+  //     disableCenteredHighlight={disableCenteredHighlight}
+  //     setDisableCenteredHighlight={setDisableCenteredHighlight}
+  //     showMenuButton={showMenuButton}
+  //     setShowMenuButton={setShowMenuButton}
+  //     showingPicker={showingPicker}
+  //     setShowingPicker={setShowingPicker}
+  //     isExploding={isExploding}
+  //     isShowingIndicator={isShowingIndicator}
+  //     sendIndicator={sendIndicator}
+  //     showCenteredHighlight={showCenteredHighlight}
+  //     onAuthorClick={onAuthorClick}
+  //     orangeLine={orangeLine}
+  //     canFixOverdraw={canFixOverdraw}
+  //     canFixOverdrawValue={canFixOverdrawValue}
+  //     dismissKeyboard={dismissKeyboard}
+  //     isEdited={isEdited}
+  //     isFailed={isFailed}
+  //     unfurlPrompts={unfurlPrompts}
+  //     unfurlList={unfurlList}
+  //     coinFlip={coinFlip}
+  //     reactionsRow={reactionsRow}
+  //     hasReactions={hasReactions}
+  //     keyedBot={keyedBot}
+  //     popup={popup}
+  //   />
+  // )
+
+  if (!message || !messageNode) {
+    return null
+  }
   return (
-    <_WrapperMessage
-      {...rest}
-      updateHighlightMode={updateHighlightMode}
-      containerProps={containerProps}
-      authorAndContent={authorAndContent}
-      messageAndButtons={messageAndButtons}
-      messageNode={messageNode}
-      mounted={mountedRef.current}
-      disableCenteredHighlight={disableCenteredHighlight}
-      setDisableCenteredHighlight={setDisableCenteredHighlight}
-      showMenuButton={showMenuButton}
-      setShowMenuButton={setShowMenuButton}
-      showingPicker={showingPicker}
-      setShowingPicker={setShowingPicker}
-      isExploding={isExploding}
-      isShowingIndicator={isShowingIndicator}
-      sendIndicator={sendIndicator}
-      showCenteredHighlight={showCenteredHighlight}
-      onAuthorClick={onAuthorClick}
-      orangeLine={orangeLine}
-      canFixOverdraw={canFixOverdraw}
-      canFixOverdrawValue={canFixOverdrawValue}
-      dismissKeyboard={dismissKeyboard}
-      isEdited={isEdited}
-      isFailed={isFailed}
-      unfurlPrompts={unfurlPrompts}
-      unfurlList={unfurlList}
-      coinFlip={coinFlip}
-      reactionsRow={reactionsRow}
-      hasReactions={hasReactions}
-      keyedBot={keyedBot}
-      popup={popup}
-    />
+    <Styles.StyleContext.Provider value={canFixOverdrawValue}>
+      <LongPressable
+        {...containerProps}
+        children={[
+          message.type === 'journeycard' ? (
+            <TeamJourney key="journey" message={message} />
+          ) : (
+            authorAndContent([
+              messageAndButtons(messageNode),
+              isEdited(),
+              isFailed(),
+              unfurlPrompts(),
+              unfurlList(),
+              coinFlip(),
+              reactionsRow(),
+            ])
+          ),
+          orangeLine(),
+        ]}
+      />
+      {popup()}
+    </Styles.StyleContext.Provider>
   )
-}
-
-class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps> {
-  componentDidMount() {
-    this.props.updateHighlightMode()
-  }
-
-  componentDidUpdate(prevProps: Props) {
-    if (this.props.centeredOrdinal !== prevProps.centeredOrdinal) {
-      this.props.updateHighlightMode()
-    }
-    if (this.props.measure) {
-      const changed =
-        this.props.orangeLineAbove !== prevProps.orangeLineAbove || this.props.message !== prevProps.message
-
-      if (changed) {
-        this.props.measure()
-      }
-    }
-  }
-
-  render() {
-    if (!this.props.message) {
-      return null
-    }
-    const msgNode = this.props.messageNode
-    if (!msgNode) {
-      return null
-    }
-    return (
-      <Styles.StyleContext.Provider value={this.props.canFixOverdrawValue}>
-        <LongPressable
-          {...this.props.containerProps}
-          children={[
-            this.props.message.type === 'journeycard' ? (
-              <TeamJourney key="journey" message={this.props.message} />
-            ) : (
-              this.props.authorAndContent([
-                this.props.messageAndButtons(msgNode),
-                this.props.isEdited(),
-                this.props.isFailed(),
-                this.props.unfurlPrompts(),
-                this.props.unfurlList(),
-                this.props.coinFlip(),
-                this.props.reactionsRow(),
-              ])
-            ),
-            this.props.orangeLine(),
-          ]}
-        />
-        {this.props.popup()}
-      </Styles.StyleContext.Provider>
-    )
-  }
 }
 
 const WrapperMessage = Kb.OverlayParentHOC(_WrapperMessageTemp)
