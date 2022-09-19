@@ -44,6 +44,8 @@ import {formatTimeForChat} from '../../../../util/timestamp'
  */
 
 export type Props = {
+  updateHighlightMode: () => void
+  containerProps: any
   authorAndContent: (children: React.ReactNode) => React.ReactNode
   messageAndButtons: (child: React.ReactNode) => React.ReactNode
   messageNode: React.ReactNode
@@ -81,7 +83,6 @@ export type Props = {
   onAuthorClick: () => void
   onCancel?: () => void
   onEdit?: () => void
-  onMouseOver: () => void
   onRetry?: () => void
   onSwipeLeft?: () => void
   orangeLine: () => React.ReactNode
@@ -142,6 +143,7 @@ const _WrapperMessageTemp = (p: TEMP) => {
   const {conversationIDKey, toggleShowingMenu, measure, shouldShowPopup, youAreAuthor} = p
   const {getAttachmentRef, showingMenu, authorIsBot, isRevoked, showCoinsIcon, forceAsh} = p
   const {decorate, isLastInThread, botAlias, authorIsOwner, showCrowns, authorIsAdmin} = p
+  const {onSwipeLeft, setAttachmentRef} = p
   const {...rest} = p
 
   const [disableCenteredHighlight, setDisableCenteredHighlight] = React.useState(false)
@@ -629,9 +631,67 @@ const _WrapperMessageTemp = (p: TEMP) => {
     )
   }
 
+  const containerProps = (() => {
+    if (Styles.isMobile) {
+      const props = {
+        style: Styles.collapseStyles([
+          styles.container,
+          showCenteredHighlight && styles.centeredOrdinal,
+          !showUsername && styles.containerNoUsername,
+        ] as const),
+      }
+      return decorate
+        ? {
+            ...props,
+            onLongPress: toggleShowingMenu,
+            onPress: dismissKeyboard,
+            onSwipeLeft: onSwipeLeft,
+          }
+        : props
+    } else {
+      return {
+        className: Styles.classNames(
+          {
+            'WrapperMessage-author': showUsername,
+            'WrapperMessage-centered': showCenteredHighlight,
+            'WrapperMessage-decorated': decorate,
+            'WrapperMessage-hoverColor': !isPendingPayment,
+            'WrapperMessage-noOverflow': isPendingPayment,
+            'WrapperMessage-systemMessage': message.type.startsWith('system'),
+            active: showingMenu || showingPicker,
+          },
+          'WrapperMessage-hoverBox'
+        ),
+        onContextMenu: toggleShowingMenu,
+        onMouseOver: onMouseOver,
+        // attach popups to the message itself
+        ref: setAttachmentRef,
+      }
+    }
+  })()
+
+  const updateHighlightMode = () => {
+    switch (centeredOrdinal) {
+      case 'flash':
+        setDisableCenteredHighlight(false)
+        // TODO fix timeout
+        setTimeout(() => {
+          if (mountedRef.current) {
+            setDisableCenteredHighlight(true)
+          }
+        }, 2000)
+        break
+      case 'always':
+        setDisableCenteredHighlight(false)
+        break
+    }
+  }
+
   return (
     <_WrapperMessage
       {...rest}
+      updateHighlightMode={updateHighlightMode}
+      containerProps={containerProps}
       authorAndContent={authorAndContent}
       messageAndButtons={messageAndButtons}
       messageNode={messageNode}
@@ -642,7 +702,6 @@ const _WrapperMessageTemp = (p: TEMP) => {
       setShowMenuButton={setShowMenuButton}
       showingPicker={showingPicker}
       setShowingPicker={setShowingPicker}
-      onMouseOver={onMouseOver}
       isExploding={isExploding}
       isShowingIndicator={isShowingIndicator}
       sendIndicator={sendIndicator}
@@ -667,12 +726,12 @@ const _WrapperMessageTemp = (p: TEMP) => {
 
 class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps> {
   componentDidMount() {
-    this.updateHighlightMode()
+    this.props.updateHighlightMode()
   }
 
   componentDidUpdate(prevProps: Props) {
     if (this.props.centeredOrdinal !== prevProps.centeredOrdinal) {
-      this.updateHighlightMode()
+      this.props.updateHighlightMode()
     }
     if (this.props.measure) {
       const changed =
@@ -680,60 +739,6 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps> {
 
       if (changed) {
         this.props.measure()
-      }
-    }
-  }
-  private updateHighlightMode = () => {
-    switch (this.props.centeredOrdinal) {
-      case 'flash':
-        this.props.setDisableCenteredHighlight(false)
-        setTimeout(() => {
-          if (this.props.mounted) {
-            this.props.setDisableCenteredHighlight(true)
-          }
-        }, 2000)
-        break
-      case 'always':
-        this.props.setDisableCenteredHighlight(false)
-        break
-    }
-  }
-
-  private containerProps = () => {
-    if (Styles.isMobile) {
-      const props = {
-        style: Styles.collapseStyles([
-          styles.container,
-          this.props.showCenteredHighlight && styles.centeredOrdinal,
-          !this.props.showUsername && styles.containerNoUsername,
-        ] as const),
-      }
-      return this.props.decorate
-        ? {
-            ...props,
-            onLongPress: this.props.toggleShowingMenu,
-            onPress: this.props.dismissKeyboard,
-            onSwipeLeft: this.props.onSwipeLeft,
-          }
-        : props
-    } else {
-      return {
-        className: Styles.classNames(
-          {
-            'WrapperMessage-author': this.props.showUsername,
-            'WrapperMessage-centered': this.props.showCenteredHighlight,
-            'WrapperMessage-decorated': this.props.decorate,
-            'WrapperMessage-hoverColor': !this.props.isPendingPayment,
-            'WrapperMessage-noOverflow': this.props.isPendingPayment,
-            'WrapperMessage-systemMessage': this.props.message.type.startsWith('system'),
-            active: this.props.showingMenu || this.props.showingPicker,
-          },
-          'WrapperMessage-hoverBox'
-        ),
-        onContextMenu: this.props.toggleShowingMenu,
-        onMouseOver: this.props.onMouseOver,
-        // attach popups to the message itself
-        ref: this.props.setAttachmentRef,
       }
     }
   }
@@ -749,7 +754,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps> {
     return (
       <Styles.StyleContext.Provider value={this.props.canFixOverdrawValue}>
         <LongPressable
-          {...this.containerProps()}
+          {...this.props.containerProps}
           children={[
             this.props.message.type === 'journeycard' ? (
               <TeamJourney key="journey" message={this.props.message} />
