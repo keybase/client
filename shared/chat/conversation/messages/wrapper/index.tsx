@@ -84,33 +84,18 @@ const useGetLongPress = (
     canFixOverdraw: boolean
   }
 ) => {
-  const {
-    decorate,
-    toggleShowingMenu,
-    onSwipeLeft,
-    showUsername,
-    isPendingPayment,
-    message,
-    showingMenu,
-    setAttachmentRef,
-    orangeLineAbove,
-  } = p
+  const {decorate, toggleShowingMenu, onSwipeLeft, showUsername, orangeLineAbove} = p
+  const {isPendingPayment, message, showingMenu, setAttachmentRef} = p
   const {showCenteredHighlight, canFixOverdraw} = o
   const [showMenuButton, setShowMenuButton] = React.useState(false)
   const [showingPicker, setShowingPicker] = React.useState(false)
 
-  let authorAndContent = useAuthorAndContent(p, {
+  const authorAndContent = useAuthorAndContent(p, {
     canFixOverdraw,
     showCenteredHighlight,
     showMenuButton,
     setShowingPicker,
   })
-
-  if (isPendingPayment) {
-    authorAndContent = (
-      <PendingPaymentBackground key="pendingBackground">{authorAndContent}</PendingPaymentBackground>
-    )
-  }
 
   const orangeLine = orangeLineAbove ? (
     <Kb.Box2
@@ -120,10 +105,12 @@ const useGetLongPress = (
     />
   ) : null
 
-  const children = [
-    message.type === 'journeycard' ? <TeamJourney key="journey" message={message} /> : authorAndContent,
-    orangeLine,
-  ]
+  const children = (
+    <>
+      {authorAndContent}
+      {orangeLine}
+    </>
+  )
 
   const dismissKeyboard = React.useCallback(() => dismiss(), [dismiss])
   const onMouseOver = React.useCallback(() => setShowMenuButton(true), [setShowMenuButton])
@@ -400,13 +387,21 @@ const useAuthorAndContent = (
     setShowingPicker: (s: boolean) => void
   }
 ) => {
-  const {showUsername, authorIsOwner, authorIsAdmin, authorIsBot, message} = p
+  const {showUsername, authorIsOwner, authorIsAdmin, authorIsBot, message, isPendingPayment} = p
   const {onAuthorClick, youAreAuthor, botAlias, showCrowns} = p
   const {showCenteredHighlight, canFixOverdraw, showMenuButton, setShowingPicker} = o
   const children = useBottomComponents(p, {showCenteredHighlight, showMenuButton, setShowingPicker})
 
+  if (message.type === 'journeycard') {
+    return <TeamJourney key="journey" message={message} />
+  }
+
   if (!showUsername) {
-    return children
+    return isPendingPayment ? (
+      <PendingPaymentBackground key="pendingBackground">{children}</PendingPaymentBackground>
+    ) : (
+      children
+    )
   }
 
   const username = (
@@ -457,7 +452,7 @@ const useAuthorAndContent = (
     </Kb.WithTooltip>
   ) : null
 
-  return (
+  const content = (
     <React.Fragment key="authorAndContent">
       <Kb.Box2 key="author" direction="horizontal" style={styles.authorContainer} gap="tiny">
         <Kb.Avatar
@@ -485,6 +480,12 @@ const useAuthorAndContent = (
         {children}
       </Kb.Box2>
     </React.Fragment>
+  )
+
+  return isPendingPayment ? (
+    <PendingPaymentBackground key="pendingBackground">{content}</PendingPaymentBackground>
+  ) : (
+    content
   )
 }
 
