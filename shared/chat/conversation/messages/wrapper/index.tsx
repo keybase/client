@@ -45,68 +45,6 @@ import {formatTimeForChat} from '../../../../util/timestamp'
  */
 
 export type Props = {
-  updateHighlightMode: () => void
-  containerProps: any
-  authorAndContent: (children: React.ReactNode) => React.ReactNode
-  messageAndButtons: (child: React.ReactNode) => React.ReactNode
-  messageNode: React.ReactNode
-  keyedBot: string
-  popup: () => React.ReactNode
-  unfurlPrompts: () => React.ReactNode
-  unfurlList: () => React.ReactNode
-  coinFlip: () => React.ReactNode
-  reactionsRow: () => React.ReactNode
-  hasReactions: boolean
-  dismissKeyboard: () => void
-  canFixOverdraw: boolean
-  canFixOverdrawValue: {canFixOverdraw: boolean}
-  authorIsAdmin?: boolean
-  authorIsBot?: boolean
-  authorIsOwner?: boolean
-  botAlias: string
-  centeredOrdinal: Types.CenterOrdinalHighlightMode
-  conversationIDKey: Types.ConversationIDKey
-  decorate: boolean
-  disableCenteredHighlight: boolean
-  exploded: boolean
-  failureDescription: string
-  forceAsh: boolean
-  hasUnfurlPrompts: boolean
-  isExploding: boolean
-  isJoinLeave: boolean
-  isLastInThread: boolean
-  isPendingPayment: boolean
-  isRevoked: boolean
-  isShowingIndicator: boolean
-  measure?: () => void
-  message: Types.Message
-  mounted: boolean
-  onAuthorClick: () => void
-  onCancel?: () => void
-  onEdit?: () => void
-  onRetry?: () => void
-  onSwipeLeft?: () => void
-  orangeLine: () => React.ReactNode
-  orangeLineAbove: boolean
-  previous?: Types.Message
-  sendIndicator: () => React.ReactNode
-  isEdited: () => React.ReactNode
-  isFailed: () => React.ReactNode
-  setDisableCenteredHighlight: (b: boolean) => void
-  setShowMenuButton: (b: boolean) => void
-  setShowingPicker: (b: boolean) => void
-  shouldShowPopup: boolean
-  showCenteredHighlight: boolean
-  showCoinsIcon: boolean
-  showCrowns: boolean
-  showMenuButton: boolean
-  showSendIndicator: boolean
-  showUsername: string
-  showingPicker: boolean
-  youAreAuthor: boolean
-}
-
-type TEMP = {
   authorIsAdmin?: boolean
   authorIsOwner?: boolean
   authorIsBot?: boolean
@@ -139,21 +77,27 @@ type TEMP = {
   youAreAuthor: boolean
 } & Kb.OverlayParentProps
 
-const useGetLongPress = (p, children: React.ReactNode) => {
+const useGetLongPress = (
+  p: Props,
+  o: {
+    dismissKeyboard: () => void
+    showCenteredHighlight: boolean
+    showingPicker: boolean
+    onMouseOver: () => void
+  },
+  children: React.ReactNode
+) => {
   const {
     decorate,
     toggleShowingMenu,
-    dismissKeyboard,
     onSwipeLeft,
-    showCenteredHighlight,
     showUsername,
     isPendingPayment,
     message,
     showingMenu,
-    showingPicker,
-    onMouseOver,
     setAttachmentRef,
   } = p
+  const {dismissKeyboard, showCenteredHighlight, showingPicker, onMouseOver} = o
   if (Styles.isMobile) {
     return (
       <LongPressable
@@ -196,15 +140,422 @@ const useGetLongPress = (p, children: React.ReactNode) => {
   )
 }
 
-const _WrapperMessageTemp = (p: TEMP) => {
-  const {showSendIndicator, message, centeredOrdinal, orangeLineAbove, showUsername, onAuthorClick} = p
-  const {isPendingPayment, failureDescription, onCancel, onEdit, onRetry, exploded, hasUnfurlPrompts} = p
-  const {conversationIDKey, toggleShowingMenu, measure, shouldShowPopup, youAreAuthor} = p
-  const {getAttachmentRef, showingMenu, authorIsBot, isRevoked, showCoinsIcon, forceAsh} = p
-  const {decorate, isLastInThread, botAlias, authorIsOwner, showCrowns, authorIsAdmin} = p
-  const {onSwipeLeft, setAttachmentRef} = p
+const useMessageNode = (p: Props, o: {showCenteredHighlight: boolean}) => {
+  const {message, toggleShowingMenu, youAreAuthor} = p
+  const {showCenteredHighlight} = o
+  switch (message.type) {
+    case 'text':
+      return <TextMessage isHighlighted={showCenteredHighlight} key="text" message={message} />
+    case 'attachment':
+      return (
+        <AttachmentMessage
+          key="attachment"
+          message={message}
+          isHighlighted={showCenteredHighlight}
+          toggleMessageMenu={toggleShowingMenu}
+        />
+      )
+    case 'requestPayment':
+      return <PaymentMessage key="requestPayment" message={message} />
+    case 'sendPayment':
+      return <PaymentMessage key="sendPayment" message={message} />
+    case 'placeholder':
+      return <MessagePlaceholder key="placeholder" message={message} />
+    case 'systemInviteAccepted':
+      return <SystemInviteAccepted key="systemInviteAccepted" message={message} />
+    case 'systemSBSResolved':
+      if (youAreAuthor) {
+        return <SystemSBSResolved key="systemSbsResolved" message={message} />
+      } else {
+        return (
+          <SystemJoined
+            key="systemJoined"
+            message={{...message, joiners: [message.prover], leavers: [], type: 'systemJoined'}}
+          />
+        )
+      }
+    case 'systemSimpleToComplex':
+      return <SystemSimpleToComplex key="systemSimpleToComplex" message={message} />
+    case 'systemGitPush':
+      return <SystemGitPush key="systemGitPush" message={message} />
+    case 'systemCreateTeam':
+      return <SystemCreateTeam key="systemCreateTeam" message={message} />
+    case 'systemAddedToTeam':
+      return <SystemAddedToTeam key="systemAddedToTeam" message={message} />
+    case 'systemChangeRetention':
+      return <SystemChangeRetention key="systemChangeRetention" message={message} />
+    case 'systemUsersAddedToConversation':
+      return <SystemUsersAddedToConv key="systemUsersAddedToConv" message={message} />
+    case 'systemJoined':
+      return <SystemJoined key="systemJoined" message={message} />
+    case 'systemText':
+      return <SystemText key="systemText" message={message} />
+    case 'systemLeft':
+      return <SystemLeft key="systemLeft" message={message} />
+    case 'systemChangeAvatar':
+      return <SystemChangeAvatar key="systemChangeAvatar" message={message} />
+    case 'systemNewChannel':
+      return <SystemNewChannel key="systemNewChannel" message={message} />
+    case 'setDescription':
+      return <SetDescription key="setDescription" message={message} />
+    case 'pin':
+      return (
+        <Pin key="pin" conversationIDKey={message.conversationIDKey} messageID={message.pinnedMessageID} />
+      )
+    case 'setChannelname':
+      // suppress this message for the #general channel, it is redundant.
+      return message.newChannelname === 'general' ? null : (
+        <SetChannelname key="setChannelname" message={message} />
+      )
+    case 'journeycard':
+      return <TeamJourney key="journey" message={message} />
+    case 'deleted':
+      return null
+    default:
+      return null
+  }
+}
 
+const useHighlightMode = (p: {
+  centeredOrdinal: Types.CenterOrdinalHighlightMode
+  mountedRef: React.MutableRefObject<boolean>
+}) => {
   const [disableCenteredHighlight, setDisableCenteredHighlight] = React.useState(false)
+  const {centeredOrdinal, mountedRef} = p
+  const updateHighlightMode = React.useCallback(() => {
+    switch (centeredOrdinal) {
+      case 'flash':
+        setDisableCenteredHighlight(false)
+        // TODO fix timeout
+        setTimeout(() => {
+          if (mountedRef.current) {
+            setDisableCenteredHighlight(true)
+          }
+        }, 2000)
+        break
+      case 'always':
+        setDisableCenteredHighlight(false)
+        break
+    }
+  }, [setDisableCenteredHighlight])
+
+  React.useEffect(() => {
+    updateHighlightMode()
+  }, [])
+
+  const prevCenteredOrdinal = Container.usePrevious(centeredOrdinal)
+  if (prevCenteredOrdinal !== centeredOrdinal) {
+    updateHighlightMode()
+  }
+
+  return !disableCenteredHighlight && centeredOrdinal !== 'none'
+}
+
+const useAuthorAndContent = (
+  p: Props,
+  o: {
+    canFixOverdraw: boolean
+    showCenteredHighlight: boolean
+  },
+  children: React.ReactNode
+) => {
+  const {
+    onAuthorClick,
+    youAreAuthor,
+    showUsername,
+    botAlias,
+    showCrowns,
+    authorIsOwner,
+    authorIsAdmin,
+    isPendingPayment,
+    authorIsBot,
+    message,
+  } = p
+  const {canFixOverdraw, showCenteredHighlight} = o
+  let result: React.ReactNode
+  const username = (
+    <Kb.ConnectedUsernames
+      colorBroken={true}
+      colorFollowing={true}
+      colorYou={true}
+      onUsernameClicked={onAuthorClick}
+      fixOverdraw={canFixOverdraw}
+      style={showCenteredHighlight && youAreAuthor ? styles.usernameHighlighted : undefined}
+      type="BodySmallBold"
+      usernames={showUsername}
+      virtualText={true}
+    />
+  )
+  if (showUsername) {
+    result = (
+      <React.Fragment key="authorAndContent">
+        <Kb.Box2 key="author" direction="horizontal" style={styles.authorContainer} gap="tiny">
+          <Kb.Avatar
+            size={32}
+            username={showUsername}
+            skipBackground={true}
+            onClick={onAuthorClick}
+            style={styles.avatar}
+          />
+          <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true} style={styles.usernameCrown}>
+            {botAlias ? (
+              <Kb.Box2 direction="horizontal">
+                <Kb.Text type="BodySmallBold" style={styles.botAlias} lineClamp={1}>
+                  {botAlias}
+                </Kb.Text>
+                <Kb.Text type="BodySmallBold" style={{color: Styles.globalColors.black}}>
+                  &nbsp;[
+                </Kb.Text>
+                {username}
+                <Kb.Text type="BodySmallBold" style={{color: Styles.globalColors.black}}>
+                  ]
+                </Kb.Text>
+              </Kb.Box2>
+            ) : (
+              username
+            )}
+            {showCrowns && (authorIsOwner || authorIsAdmin) && (
+              <Kb.WithTooltip tooltip={authorIsOwner ? 'Owner' : 'Admin'}>
+                <Kb.Icon
+                  color={authorIsOwner ? Styles.globalColors.yellowDark : Styles.globalColors.black_35}
+                  fontSize={10}
+                  type="iconfont-crown-owner"
+                />
+              </Kb.WithTooltip>
+            )}
+            {authorIsBot && (
+              <Kb.WithTooltip tooltip="Bot">
+                <Kb.Icon fontSize={13} color={Styles.globalColors.black_35} type="iconfont-bot" />
+              </Kb.WithTooltip>
+            )}
+            <Kb.Text
+              type="BodyTiny"
+              fixOverdraw={canFixOverdraw}
+              virtualText={true}
+              style={Styles.collapseStyles([showCenteredHighlight && styles.timestampHighlighted])}
+            >
+              {formatTimeForChat(message.timestamp)}
+            </Kb.Text>
+          </Kb.Box2>
+        </Kb.Box2>
+        <Kb.Box2
+          key="content"
+          direction="vertical"
+          fullWidth={true}
+          style={styles.contentUnderAuthorContainer}
+        >
+          {children}
+        </Kb.Box2>
+      </React.Fragment>
+    )
+  } else {
+    result = children
+  }
+
+  return isPendingPayment ? (
+    <PendingPaymentBackground key="pendingBackground">{result}</PendingPaymentBackground>
+  ) : (
+    result
+  )
+}
+
+const useMessageAndButtons = (
+  p: Props,
+  o: {
+    shouldShowPopup: boolean
+    showMenuButton: boolean
+    setShowingPicker: (s: boolean) => void
+    hasReactions: boolean
+    showCenteredHighlight: boolean
+    isExploding: boolean
+  },
+  children: React.ReactNode
+) => {
+  const {
+    message,
+    forceAsh,
+    isRevoked,
+    conversationIDKey,
+    measure,
+    showCoinsIcon,
+    authorIsBot,
+    toggleShowingMenu,
+  } = p
+  const {decorate, isLastInThread, showSendIndicator, showUsername, showingMenu} = p
+  const {showMenuButton, isExploding, showCenteredHighlight, shouldShowPopup} = o
+  const {setShowingPicker, hasReactions} = o
+  const showMenuButton2 = !Styles.isMobile && showMenuButton
+
+  const keyedBot = (message.type === 'text' && message.botUsername) || ''
+
+  const sent =
+    (message.type !== 'text' && message.type !== 'attachment') || !message.submitState || message.exploded
+  const failed =
+    (message.type === 'text' || message.type === 'attachment') && message.submitState === 'failed'
+  const isShowingIndicator = !sent || failed
+
+  const cachedMenuStylesRef = React.useRef(new Map<string, Styles.StylesCrossPlatform>())
+  const menuAreaStyle = (exploded: boolean, exploding: boolean) => {
+    const commonWidth = 20
+    const iconSizes = [
+      isRevoked ? commonWidth : 0, // revoked
+      showCoinsIcon ? commonWidth : 0, // coin stack
+      exploded || Styles.isMobile ? 0 : 16, // ... menu
+      exploding ? (Styles.isMobile ? commonWidth : 20) : commonWidth, // exploding or gutter
+      keyedBot && !authorIsBot ? commonWidth : 0,
+    ].filter(Boolean)
+    const padding = Styles.globalMargins.tiny
+    const width =
+      iconSizes.length <= 0 ? 0 : iconSizes.reduce((total, size) => total + size, iconSizes.length * padding)
+
+    const key = `${width}:${showUsername ? 1 : 0}:${exploding ? 1 : 0}:${exploded ? 1 : 0}`
+
+    if (!cachedMenuStylesRef.current.has(key)) {
+      cachedMenuStylesRef.current.set(
+        key,
+        Styles.collapseStyles([
+          styles.menuButtons,
+          !exploded && {width},
+          !!showUsername && styles.menuButtonsWithAuthor,
+        ])
+      )
+    }
+    return cachedMenuStylesRef.current.get(key)
+  }
+
+  let exploded = false
+  let explodedBy = ''
+  switch (message.type) {
+    case 'text':
+      exploded = message.exploded
+      explodedBy = message.explodedBy
+      break
+    case 'attachment':
+      exploded = message.exploded
+      explodedBy = message.explodedBy
+      break
+    default:
+  }
+  const exploding = isExploding
+  const maybeExplodedChild = exploding ? (
+    <ExplodingHeightRetainer
+      explodedBy={explodedBy}
+      exploding={exploding}
+      measure={measure}
+      messageKey={Constants.getMessageKey(message)}
+      retainHeight={forceAsh || exploded}
+    >
+      {children}
+    </ExplodingHeightRetainer>
+  ) : (
+    children
+  )
+
+  // We defer mounting the menu buttons since they are expensive and only show up on hover on desktop and not at all on mobile
+  // but this creates complexity as we can't use box2 gap stuff since we can either
+  // 1. Haven't mounted it yet
+  // 2. Have mounted but its hidden w/ css
+  // TODO cleaner way to do this, or speedup react button maybe
+  if (decorate && !exploded) {
+    const sendIndicator = showSendIndicator ? (
+      <SendIndicator
+        key="sendIndicator"
+        sent={sent}
+        failed={failed}
+        id={message.timestamp}
+        isExploding={isExploding}
+        style={styles.send}
+      />
+    ) : null
+
+    return (
+      <Kb.Box2 key="messageAndButtons" direction="horizontal" fullWidth={true}>
+        {maybeExplodedChild}
+        <Kb.Box2 direction="horizontal" style={menuAreaStyle(exploded, exploding)}>
+          {sendIndicator}
+          {exploding && !isShowingIndicator && (
+            <ExplodingMeta
+              conversationIDKey={conversationIDKey}
+              isParentHighlighted={showCenteredHighlight}
+              onClick={toggleShowingMenu}
+              ordinal={message.ordinal}
+            />
+          )}
+          {isRevoked && (
+            <Kb.WithTooltip tooltip="Revoked device">
+              <Kb.Icon
+                type="iconfont-rip"
+                style={styles.paddingLeftTiny}
+                color={Styles.globalColors.black_35}
+              />
+            </Kb.WithTooltip>
+          )}
+          {showCoinsIcon && <Kb.Icon type="icon-stellar-coins-stacked-16" style={styles.paddingLeftTiny} />}
+          {keyedBot && !authorIsBot && (
+            <Kb.WithTooltip tooltip={`Encrypted for @${keyedBot}`}>
+              <Kb.Icon
+                color={Styles.globalColors.black_35}
+                type="iconfont-bot"
+                onClick={() => null}
+                style={styles.paddingLeftTiny}
+              />
+            </Kb.WithTooltip>
+          )}
+          {showMenuButton2 ? (
+            <Kb.Box className="WrapperMessage-buttons">
+              {!hasReactions && Constants.isMessageWithReactions(message) && !showingMenu && (
+                <EmojiRow
+                  className="WrapperMessage-emojiButton"
+                  conversationIDKey={conversationIDKey}
+                  onShowingEmojiPicker={setShowingPicker}
+                  ordinal={message.ordinal}
+                  tooltipPosition={isLastInThread ? 'top center' : 'bottom center'}
+                  style={Styles.collapseStyles([
+                    styles.emojiRow,
+                    isLastInThread && styles.emojiRowLast,
+                  ] as const)}
+                />
+              )}
+              <Kb.Box>
+                {shouldShowPopup && (
+                  <Kb.WithTooltip tooltip="More actions..." toastStyle={styles.moreActionsTooltip}>
+                    <Kb.Box style={styles.ellipsis}>
+                      <Kb.Icon type="iconfont-ellipsis" onClick={toggleShowingMenu} />
+                    </Kb.Box>
+                  </Kb.WithTooltip>
+                )}
+              </Kb.Box>
+            </Kb.Box>
+          ) : null}
+        </Kb.Box2>
+      </Kb.Box2>
+    )
+  } else if (exploding) {
+    // extra box so the hierarchy stays the same when exploding or you'll remount
+    return (
+      <Kb.Box2 key="messageAndButtons" direction="horizontal" fullWidth={true}>
+        {maybeExplodedChild}
+        <Kb.Box2 direction="horizontal" style={menuAreaStyle(exploded, exploding)}>
+          <ExplodingMeta
+            conversationIDKey={conversationIDKey}
+            isParentHighlighted={showCenteredHighlight}
+            onClick={toggleShowingMenu}
+            ordinal={message.ordinal}
+          />
+        </Kb.Box2>
+      </Kb.Box2>
+    )
+  } else {
+    return maybeExplodedChild
+  }
+}
+
+const _WrapperMessage = (p: Props) => {
+  const {message, centeredOrdinal, orangeLineAbove, showUsername} = p
+  const {isPendingPayment, failureDescription, onCancel, onEdit, onRetry, exploded, hasUnfurlPrompts} = p
+  const {conversationIDKey, toggleShowingMenu, measure, shouldShowPopup} = p
+  const {getAttachmentRef, showingMenu} = p
+
   const [showMenuButton, setShowMenuButton] = React.useState(false)
   const [showingPicker, setShowingPicker] = React.useState(false)
 
@@ -215,13 +566,9 @@ const _WrapperMessageTemp = (p: TEMP) => {
     }
   }, [])
 
+  const showCenteredHighlight = useHighlightMode({centeredOrdinal, mountedRef})
+
   const isExploding = (message.type === 'text' || message.type === 'attachment') && message.exploding
-  const sent =
-    (message.type !== 'text' && message.type !== 'attachment') || !message.submitState || message.exploded
-  const failed =
-    (message.type === 'text' || message.type === 'attachment') && message.submitState === 'failed'
-  const isShowingIndicator = !sent || failed
-  const showCenteredHighlight = !disableCenteredHighlight && centeredOrdinal !== 'none'
   const onMouseOver = React.useCallback(() => setShowMenuButton(true), [setShowMenuButton])
   const canFixOverdraw = !isPendingPayment && !showCenteredHighlight
   const canFixOverdrawValue = React.useMemo(() => ({canFixOverdraw}), [canFixOverdraw])
@@ -234,22 +581,6 @@ const _WrapperMessageTemp = (p: TEMP) => {
         style={Styles.collapseStyles([styles.orangeLine, !showUsername && styles.orangeLineCompensationLeft])}
       />
     )
-
-  const sendIndicator = React.useCallback(() => {
-    if (!showSendIndicator) {
-      return null
-    }
-    return (
-      <SendIndicator
-        key="sendIndicator"
-        sent={sent}
-        failed={failed}
-        id={message.timestamp}
-        isExploding={isExploding}
-        style={styles.send}
-      />
-    )
-  }, [message, isExploding, showSendIndicator, sent, failed])
 
   const isEdited = () =>
     message.hasBeenEdited && (
@@ -346,8 +677,6 @@ const _WrapperMessageTemp = (p: TEMP) => {
       />
     )
 
-  const keyedBot = (message.type === 'text' && message.botUsername) || ''
-
   const {type} = message
   const popup = () =>
     (type === 'text' ||
@@ -380,340 +709,7 @@ const _WrapperMessageTemp = (p: TEMP) => {
       />
     )
 
-  const cachedMenuStylesRef = React.useRef(new Map<string, Styles.StylesCrossPlatform>())
-  const menuAreaStyle = (exploded: boolean, exploding: boolean) => {
-    const commonWidth = 20
-    const iconSizes = [
-      isRevoked ? commonWidth : 0, // revoked
-      showCoinsIcon ? commonWidth : 0, // coin stack
-      exploded || Styles.isMobile ? 0 : 16, // ... menu
-      exploding ? (Styles.isMobile ? commonWidth : 20) : commonWidth, // exploding or gutter
-      keyedBot && !authorIsBot ? commonWidth : 0,
-    ].filter(Boolean)
-    const padding = Styles.globalMargins.tiny
-    const width =
-      iconSizes.length <= 0 ? 0 : iconSizes.reduce((total, size) => total + size, iconSizes.length * padding)
-
-    const key = `${width}:${showUsername ? 1 : 0}:${exploding ? 1 : 0}:${exploded ? 1 : 0}`
-
-    if (!cachedMenuStylesRef.current.has(key)) {
-      cachedMenuStylesRef.current.set(
-        key,
-        Styles.collapseStyles([
-          styles.menuButtons,
-          !exploded && {width},
-          !!showUsername && styles.menuButtonsWithAuthor,
-        ])
-      )
-    }
-    return cachedMenuStylesRef.current.get(key)
-  }
-
-  const messageNode = (() => {
-    switch (message.type) {
-      case 'text':
-        return <TextMessage isHighlighted={showCenteredHighlight} key="text" message={message} />
-      case 'attachment':
-        return (
-          <AttachmentMessage
-            key="attachment"
-            message={message}
-            isHighlighted={showCenteredHighlight}
-            toggleMessageMenu={toggleShowingMenu}
-          />
-        )
-      case 'requestPayment':
-        return <PaymentMessage key="requestPayment" message={message} />
-      case 'sendPayment':
-        return <PaymentMessage key="sendPayment" message={message} />
-      case 'placeholder':
-        return <MessagePlaceholder key="placeholder" message={message} />
-      case 'systemInviteAccepted':
-        return <SystemInviteAccepted key="systemInviteAccepted" message={message} />
-      case 'systemSBSResolved':
-        if (youAreAuthor) {
-          return <SystemSBSResolved key="systemSbsResolved" message={message} />
-        } else {
-          return (
-            <SystemJoined
-              key="systemJoined"
-              message={{...message, joiners: [message.prover], leavers: [], type: 'systemJoined'}}
-            />
-          )
-        }
-      case 'systemSimpleToComplex':
-        return <SystemSimpleToComplex key="systemSimpleToComplex" message={message} />
-      case 'systemGitPush':
-        return <SystemGitPush key="systemGitPush" message={message} />
-      case 'systemCreateTeam':
-        return <SystemCreateTeam key="systemCreateTeam" message={message} />
-      case 'systemAddedToTeam':
-        return <SystemAddedToTeam key="systemAddedToTeam" message={message} />
-      case 'systemChangeRetention':
-        return <SystemChangeRetention key="systemChangeRetention" message={message} />
-      case 'systemUsersAddedToConversation':
-        return <SystemUsersAddedToConv key="systemUsersAddedToConv" message={message} />
-      case 'systemJoined':
-        return <SystemJoined key="systemJoined" message={message} />
-      case 'systemText':
-        return <SystemText key="systemText" message={message} />
-      case 'systemLeft':
-        return <SystemLeft key="systemLeft" message={message} />
-      case 'systemChangeAvatar':
-        return <SystemChangeAvatar key="systemChangeAvatar" message={message} />
-      case 'systemNewChannel':
-        return <SystemNewChannel key="systemNewChannel" message={message} />
-      case 'setDescription':
-        return <SetDescription key="setDescription" message={message} />
-      case 'pin':
-        return (
-          <Pin key="pin" conversationIDKey={message.conversationIDKey} messageID={message.pinnedMessageID} />
-        )
-      case 'setChannelname':
-        // suppress this message for the #general channel, it is redundant.
-        return message.newChannelname === 'general' ? null : (
-          <SetChannelname key="setChannelname" message={message} />
-        )
-      case 'journeycard':
-        return <TeamJourney key="journey" message={message} />
-      case 'deleted':
-        return null
-      default:
-        return null
-    }
-  })()
-
-  const messageAndButtons = (child: React.ReactNode) => {
-    const showMenuButton2 = !Styles.isMobile && showMenuButton
-    let exploded = false
-    let explodedBy = ''
-    switch (message.type) {
-      case 'text':
-        exploded = message.exploded
-        explodedBy = message.explodedBy
-        break
-      case 'attachment':
-        exploded = message.exploded
-        explodedBy = message.explodedBy
-        break
-      default:
-    }
-    const exploding = isExploding
-    const maybeExplodedChild = exploding ? (
-      <ExplodingHeightRetainer
-        explodedBy={explodedBy}
-        exploding={exploding}
-        measure={measure}
-        messageKey={Constants.getMessageKey(message)}
-        retainHeight={forceAsh || exploded}
-      >
-        {child}
-      </ExplodingHeightRetainer>
-    ) : (
-      child
-    )
-
-    // We defer mounting the menu buttons since they are expensive and only show up on hover on desktop and not at all on mobile
-    // but this creates complexity as we can't use box2 gap stuff since we can either
-    // 1. Haven't mounted it yet
-    // 2. Have mounted but its hidden w/ css
-    // TODO cleaner way to do this, or speedup react button maybe
-    if (decorate && !exploded) {
-      return (
-        <Kb.Box2 key="messageAndButtons" direction="horizontal" fullWidth={true}>
-          {maybeExplodedChild}
-          <Kb.Box2 direction="horizontal" style={menuAreaStyle(exploded, exploding)}>
-            {sendIndicator()}
-            {exploding && !isShowingIndicator && (
-              <ExplodingMeta
-                conversationIDKey={conversationIDKey}
-                isParentHighlighted={showCenteredHighlight}
-                onClick={toggleShowingMenu}
-                ordinal={message.ordinal}
-              />
-            )}
-            {isRevoked && (
-              <Kb.WithTooltip tooltip="Revoked device">
-                <Kb.Icon
-                  type="iconfont-rip"
-                  style={styles.paddingLeftTiny}
-                  color={Styles.globalColors.black_35}
-                />
-              </Kb.WithTooltip>
-            )}
-            {showCoinsIcon && <Kb.Icon type="icon-stellar-coins-stacked-16" style={styles.paddingLeftTiny} />}
-            {keyedBot && !authorIsBot && (
-              <Kb.WithTooltip tooltip={`Encrypted for @${keyedBot}`}>
-                <Kb.Icon
-                  color={Styles.globalColors.black_35}
-                  type="iconfont-bot"
-                  onClick={() => null}
-                  style={styles.paddingLeftTiny}
-                />
-              </Kb.WithTooltip>
-            )}
-            {showMenuButton2 ? (
-              <Kb.Box className="WrapperMessage-buttons">
-                {!hasReactions && Constants.isMessageWithReactions(message) && !showingMenu && (
-                  <EmojiRow
-                    className="WrapperMessage-emojiButton"
-                    conversationIDKey={conversationIDKey}
-                    onShowingEmojiPicker={setShowingPicker}
-                    ordinal={message.ordinal}
-                    tooltipPosition={isLastInThread ? 'top center' : 'bottom center'}
-                    style={Styles.collapseStyles([
-                      styles.emojiRow,
-                      isLastInThread && styles.emojiRowLast,
-                    ] as const)}
-                  />
-                )}
-                <Kb.Box>
-                  {shouldShowPopup && (
-                    <Kb.WithTooltip tooltip="More actions..." toastStyle={styles.moreActionsTooltip}>
-                      <Kb.Box style={styles.ellipsis}>
-                        <Kb.Icon type="iconfont-ellipsis" onClick={toggleShowingMenu} />
-                      </Kb.Box>
-                    </Kb.WithTooltip>
-                  )}
-                </Kb.Box>
-              </Kb.Box>
-            ) : null}
-          </Kb.Box2>
-        </Kb.Box2>
-      )
-    } else if (exploding) {
-      // extra box so the hierarchy stays the same when exploding or you'll remount
-      return (
-        <Kb.Box2 key="messageAndButtons" direction="horizontal" fullWidth={true}>
-          {maybeExplodedChild}
-          <Kb.Box2 direction="horizontal" style={menuAreaStyle(exploded, exploding)}>
-            <ExplodingMeta
-              conversationIDKey={conversationIDKey}
-              isParentHighlighted={showCenteredHighlight}
-              onClick={toggleShowingMenu}
-              ordinal={message.ordinal}
-            />
-          </Kb.Box2>
-        </Kb.Box2>
-      )
-    } else {
-      return maybeExplodedChild
-    }
-  }
-
-  const authorAndContent = (children: React.ReactNode) => {
-    let result
-    const username = (
-      <Kb.ConnectedUsernames
-        colorBroken={true}
-        colorFollowing={true}
-        colorYou={true}
-        onUsernameClicked={onAuthorClick}
-        fixOverdraw={canFixOverdraw}
-        style={showCenteredHighlight && youAreAuthor ? styles.usernameHighlighted : undefined}
-        type="BodySmallBold"
-        usernames={showUsername}
-        virtualText={true}
-      />
-    )
-    if (showUsername) {
-      result = (
-        <React.Fragment key="authorAndContent">
-          <Kb.Box2 key="author" direction="horizontal" style={styles.authorContainer} gap="tiny">
-            <Kb.Avatar
-              size={32}
-              username={showUsername}
-              skipBackground={true}
-              onClick={onAuthorClick}
-              style={styles.avatar}
-            />
-            <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true} style={styles.usernameCrown}>
-              {botAlias ? (
-                <Kb.Box2 direction="horizontal">
-                  <Kb.Text type="BodySmallBold" style={styles.botAlias} lineClamp={1}>
-                    {botAlias}
-                  </Kb.Text>
-                  <Kb.Text type="BodySmallBold" style={{color: Styles.globalColors.black}}>
-                    &nbsp;[
-                  </Kb.Text>
-                  {username}
-                  <Kb.Text type="BodySmallBold" style={{color: Styles.globalColors.black}}>
-                    ]
-                  </Kb.Text>
-                </Kb.Box2>
-              ) : (
-                username
-              )}
-              {showCrowns && (authorIsOwner || authorIsAdmin) && (
-                <Kb.WithTooltip tooltip={authorIsOwner ? 'Owner' : 'Admin'}>
-                  <Kb.Icon
-                    color={authorIsOwner ? Styles.globalColors.yellowDark : Styles.globalColors.black_35}
-                    fontSize={10}
-                    type="iconfont-crown-owner"
-                  />
-                </Kb.WithTooltip>
-              )}
-              {authorIsBot && (
-                <Kb.WithTooltip tooltip="Bot">
-                  <Kb.Icon fontSize={13} color={Styles.globalColors.black_35} type="iconfont-bot" />
-                </Kb.WithTooltip>
-              )}
-              <Kb.Text
-                type="BodyTiny"
-                fixOverdraw={canFixOverdraw}
-                virtualText={true}
-                style={Styles.collapseStyles([showCenteredHighlight && styles.timestampHighlighted])}
-              >
-                {formatTimeForChat(message.timestamp)}
-              </Kb.Text>
-            </Kb.Box2>
-          </Kb.Box2>
-          <Kb.Box2
-            key="content"
-            direction="vertical"
-            fullWidth={true}
-            style={styles.contentUnderAuthorContainer}
-          >
-            {children}
-          </Kb.Box2>
-        </React.Fragment>
-      )
-    } else {
-      result = children
-    }
-
-    return isPendingPayment ? (
-      <PendingPaymentBackground key="pendingBackground">{result}</PendingPaymentBackground>
-    ) : (
-      result
-    )
-  }
-
-  const updateHighlightMode = React.useCallback(() => {
-    switch (centeredOrdinal) {
-      case 'flash':
-        setDisableCenteredHighlight(false)
-        // TODO fix timeout
-        setTimeout(() => {
-          if (mountedRef.current) {
-            setDisableCenteredHighlight(true)
-          }
-        }, 2000)
-        break
-      case 'always':
-        setDisableCenteredHighlight(false)
-        break
-    }
-  }, [])
-
-  React.useEffect(() => {
-    updateHighlightMode()
-  }, [])
-
-  const prevCenteredOrdinal = Container.usePrevious(centeredOrdinal)
-  if (prevCenteredOrdinal !== centeredOrdinal) {
-    updateHighlightMode()
-  }
+  const messageNode = useMessageNode(p, {showCenteredHighlight})
 
   const prevMessage = Container.usePrevious(message)
   const prevOrange = Container.usePrevious(orangeLineAbove)
@@ -721,35 +717,33 @@ const _WrapperMessageTemp = (p: TEMP) => {
     measure()
   }
 
-  const longPressable = useGetLongPress(
+  const mb = useMessageAndButtons(
+    p,
+    {isExploding, showCenteredHighlight, shouldShowPopup, showMenuButton, setShowingPicker, hasReactions},
+    messageNode
+  )
+
+  const authorAndContent = useAuthorAndContent(
+    p,
     {
-      decorate,
-      toggleShowingMenu,
-      dismissKeyboard,
-      onSwipeLeft,
+      canFixOverdraw,
       showCenteredHighlight,
-      showUsername,
-      isPendingPayment,
-      message,
+    },
+    message.type === 'journeycard'
+      ? []
+      : [mb, isEdited(), isFailed(), unfurlPrompts(), unfurlList(), coinFlip(), reactionsRow()]
+  )
+
+  const longPressable = useGetLongPress(
+    p,
+    {
+      dismissKeyboard,
+      showCenteredHighlight,
       showingPicker,
-      showingMenu,
       onMouseOver,
-      setAttachmentRef,
     },
     [
-      message.type === 'journeycard' ? (
-        <TeamJourney key="journey" message={message} />
-      ) : (
-        authorAndContent([
-          messageAndButtons(messageNode),
-          isEdited(),
-          isFailed(),
-          unfurlPrompts(),
-          unfurlList(),
-          coinFlip(),
-          reactionsRow(),
-        ])
-      ),
+      message.type === 'journeycard' ? <TeamJourney key="journey" message={message} /> : authorAndContent,
       orangeLine(),
     ]
   )
@@ -765,7 +759,7 @@ const _WrapperMessageTemp = (p: TEMP) => {
   )
 }
 
-const WrapperMessage = Kb.OverlayParentHOC(_WrapperMessageTemp)
+const WrapperMessage = Kb.OverlayParentHOC(_WrapperMessage)
 
 const styles = Styles.styleSheetCreate(
   () =>
