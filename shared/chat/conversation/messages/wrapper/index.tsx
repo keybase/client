@@ -374,7 +374,7 @@ const useAuthorAndContent = (
   const children = useBottomComponents(p, {showCenteredHighlight, showMenuButton, setShowingPicker})
 
   if (!showUsername) {
-    children
+    return children
   }
 
   const username = (
