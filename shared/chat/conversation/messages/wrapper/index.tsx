@@ -251,28 +251,132 @@ const useHighlightMode = (p: {
   return !disableCenteredHighlight && centeredOrdinal !== 'none'
 }
 
+const useBottomComponents = (
+  p: Props,
+  o: {showCenteredHighlight: boolean; showMenuButton: boolean; setShowingPicker: (s: boolean) => void}
+) => {
+  const {message} = p
+  const {isPendingPayment, failureDescription, onCancel, onEdit, onRetry, exploded, hasUnfurlPrompts} = p
+  const {conversationIDKey, toggleShowingMenu, measure, shouldShowPopup} = p
+  const {showCenteredHighlight, showMenuButton, setShowingPicker} = o
+
+  const hasReactions = !!message.reactions?.size || isPendingPayment
+  const isExploding = (message.type === 'text' || message.type === 'attachment') && message.exploding
+
+  const messageNode = useMessageNode(p, {showCenteredHighlight})
+
+  const messageAndButtons = useMessageAndButtons(
+    p,
+    {isExploding, showCenteredHighlight, shouldShowPopup, showMenuButton, setShowingPicker, hasReactions},
+    messageNode
+  )
+
+  const isEdited = message.hasBeenEdited ? (
+    <Kb.Text
+      key="isEdited"
+      type="BodyTiny"
+      style={Styles.collapseStyles([styles.edited, showCenteredHighlight && styles.editedHighlighted])}
+    >
+      EDITED
+    </Kb.Text>
+  ) : null
+
+  // hide error messages if the exploding message already exploded
+  const isFailed =
+    !!failureDescription && !(isExploding && exploded) ? (
+      <Kb.Text key="isFailed" type="BodySmall">
+        <Kb.Text type="BodySmall" style={isExploding ? styles.failExploding : styles.fail}>
+          {isExploding && (
+            <>
+              <Kb.Icon fontSize={16} boxStyle={styles.failExplodingIcon} type="iconfont-block" />{' '}
+            </>
+          )}
+          {failureDescription}.{' '}
+        </Kb.Text>
+        {!!onCancel && (
+          <Kb.Text type="BodySmall" style={styles.failUnderline} onClick={onCancel}>
+            Cancel
+          </Kb.Text>
+        )}
+        {!!onCancel && (!!onEdit || !!onRetry) && <Kb.Text type="BodySmall"> or </Kb.Text>}
+        {!!onEdit && (
+          <Kb.Text type="BodySmall" style={styles.failUnderline} onClick={onEdit}>
+            Edit
+          </Kb.Text>
+        )}
+        {!!onRetry && (
+          <Kb.Text type="BodySmall" style={styles.failUnderline} onClick={onRetry}>
+            Retry
+          </Kb.Text>
+        )}
+      </Kb.Text>
+    ) : null
+
+  const unfurlPrompts = hasUnfurlPrompts ? (
+    <UnfurlPromptList
+      key="UnfurlPromptList"
+      conversationIDKey={conversationIDKey}
+      ordinal={message.ordinal}
+    />
+  ) : null
+
+  const unfurlList =
+    message.type === 'text' && message.unfurls && !!message.unfurls.size ? (
+      <UnfurlList
+        key="UnfurlList"
+        conversationIDKey={conversationIDKey}
+        ordinal={message.ordinal}
+        toggleMessagePopup={toggleShowingMenu}
+      />
+    ) : null
+
+  const coinFlip =
+    message.type === 'text' && !!message.flipGameID ? (
+      <CoinFlip
+        key="CoinFlip"
+        conversationIDKey={conversationIDKey}
+        flipGameID={message.flipGameID}
+        measure={measure}
+        isSendError={!!message.errorReason}
+        text={message.text}
+      />
+    ) : null
+
+  const reactionsRow = hasReactions ? (
+    <ReactionsRow
+      key="ReactionsRow"
+      btnClassName="WrapperMessage-emojiButton"
+      newBtnClassName="WrapperMessage-newEmojiButton"
+      conversationIDKey={conversationIDKey}
+      ordinal={message.ordinal}
+    />
+  ) : null
+
+  if (!messageNode) return null
+
+  return message.type === 'journeycard'
+    ? []
+    : [messageAndButtons, isEdited, isFailed, unfurlPrompts, unfurlList, coinFlip, reactionsRow]
+}
+
 const useAuthorAndContent = (
   p: Props,
   o: {
     canFixOverdraw: boolean
     showCenteredHighlight: boolean
-  },
-  children: React.ReactNode
+    showMenuButton: boolean
+    setShowingPicker: (s: boolean) => void
+  }
 ) => {
-  const {
-    onAuthorClick,
-    youAreAuthor,
-    showUsername,
-    botAlias,
-    showCrowns,
-    authorIsOwner,
-    authorIsAdmin,
-    isPendingPayment,
-    authorIsBot,
-    message,
-  } = p
-  const {canFixOverdraw, showCenteredHighlight} = o
-  let result: React.ReactNode
+  const {showUsername, authorIsOwner, authorIsAdmin, authorIsBot, message} = p
+  const {onAuthorClick, youAreAuthor, botAlias, showCrowns} = p
+  const {showCenteredHighlight, canFixOverdraw, showMenuButton, setShowingPicker} = o
+  const children = useBottomComponents(p, {showCenteredHighlight, showMenuButton, setShowingPicker})
+
+  if (!showUsername) {
+    children
+  }
+
   const username = (
     <Kb.ConnectedUsernames
       colorBroken={true}
@@ -286,76 +390,69 @@ const useAuthorAndContent = (
       virtualText={true}
     />
   )
-  if (showUsername) {
-    result = (
-      <React.Fragment key="authorAndContent">
-        <Kb.Box2 key="author" direction="horizontal" style={styles.authorContainer} gap="tiny">
-          <Kb.Avatar
-            size={32}
-            username={showUsername}
-            skipBackground={true}
-            onClick={onAuthorClick}
-            style={styles.avatar}
-          />
-          <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true} style={styles.usernameCrown}>
-            {botAlias ? (
-              <Kb.Box2 direction="horizontal">
-                <Kb.Text type="BodySmallBold" style={styles.botAlias} lineClamp={1}>
-                  {botAlias}
-                </Kb.Text>
-                <Kb.Text type="BodySmallBold" style={{color: Styles.globalColors.black}}>
-                  &nbsp;[
-                </Kb.Text>
-                {username}
-                <Kb.Text type="BodySmallBold" style={{color: Styles.globalColors.black}}>
-                  ]
-                </Kb.Text>
-              </Kb.Box2>
-            ) : (
-              username
-            )}
-            {showCrowns && (authorIsOwner || authorIsAdmin) && (
-              <Kb.WithTooltip tooltip={authorIsOwner ? 'Owner' : 'Admin'}>
-                <Kb.Icon
-                  color={authorIsOwner ? Styles.globalColors.yellowDark : Styles.globalColors.black_35}
-                  fontSize={10}
-                  type="iconfont-crown-owner"
-                />
-              </Kb.WithTooltip>
-            )}
-            {authorIsBot && (
-              <Kb.WithTooltip tooltip="Bot">
-                <Kb.Icon fontSize={13} color={Styles.globalColors.black_35} type="iconfont-bot" />
-              </Kb.WithTooltip>
-            )}
-            <Kb.Text
-              type="BodyTiny"
-              fixOverdraw={canFixOverdraw}
-              virtualText={true}
-              style={Styles.collapseStyles([showCenteredHighlight && styles.timestampHighlighted])}
-            >
-              {formatTimeForChat(message.timestamp)}
-            </Kb.Text>
-          </Kb.Box2>
-        </Kb.Box2>
-        <Kb.Box2
-          key="content"
-          direction="vertical"
-          fullWidth={true}
-          style={styles.contentUnderAuthorContainer}
-        >
-          {children}
-        </Kb.Box2>
-      </React.Fragment>
-    )
-  } else {
-    result = children
-  }
 
-  return isPendingPayment ? (
-    <PendingPaymentBackground key="pendingBackground">{result}</PendingPaymentBackground>
+  const botAliasOrUsername = botAlias ? (
+    <Kb.Box2 direction="horizontal">
+      <Kb.Text type="BodySmallBold" style={styles.botAlias} lineClamp={1}>
+        {botAlias}
+      </Kb.Text>
+      <Kb.Text type="BodySmallBold" style={{color: Styles.globalColors.black}}>
+        &nbsp;[
+      </Kb.Text>
+      {username}
+      <Kb.Text type="BodySmallBold" style={{color: Styles.globalColors.black}}>
+        ]
+      </Kb.Text>
+    </Kb.Box2>
   ) : (
-    result
+    username
+  )
+
+  const ownerAdminTooltipIcon =
+    showCrowns && (authorIsOwner || authorIsAdmin) ? (
+      <Kb.WithTooltip tooltip={authorIsOwner ? 'Owner' : 'Admin'}>
+        <Kb.Icon
+          color={authorIsOwner ? Styles.globalColors.yellowDark : Styles.globalColors.black_35}
+          fontSize={10}
+          type="iconfont-crown-owner"
+        />
+      </Kb.WithTooltip>
+    ) : null
+
+  const botIcon = authorIsBot ? (
+    <Kb.WithTooltip tooltip="Bot">
+      <Kb.Icon fontSize={13} color={Styles.globalColors.black_35} type="iconfont-bot" />
+    </Kb.WithTooltip>
+  ) : null
+
+  return (
+    <React.Fragment key="authorAndContent">
+      <Kb.Box2 key="author" direction="horizontal" style={styles.authorContainer} gap="tiny">
+        <Kb.Avatar
+          size={32}
+          username={showUsername}
+          skipBackground={true}
+          onClick={onAuthorClick}
+          style={styles.avatar}
+        />
+        <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true} style={styles.usernameCrown}>
+          {botAliasOrUsername}
+          {ownerAdminTooltipIcon}
+          {botIcon}
+          <Kb.Text
+            type="BodyTiny"
+            fixOverdraw={canFixOverdraw}
+            virtualText={true}
+            style={Styles.collapseStyles([showCenteredHighlight && styles.timestampHighlighted])}
+          >
+            {formatTimeForChat(message.timestamp)}
+          </Kb.Text>
+        </Kb.Box2>
+      </Kb.Box2>
+      <Kb.Box2 key="content" direction="vertical" fullWidth={true} style={styles.contentUnderAuthorContainer}>
+        {children}
+      </Kb.Box2>
+    </React.Fragment>
   )
 }
 
@@ -550,10 +647,31 @@ const useMessageAndButtons = (
   }
 }
 
+const messageShowsPopup = (type: Types.Message['type']) =>
+  [
+    'text',
+    'attachment',
+    'sendPayment',
+    'requestPayment',
+    'setChannelname',
+    'setDescription',
+    'pin',
+    'systemAddedToTeam',
+    'systemChangeRetention',
+    'systemGitPush',
+    'systemInviteAccepted',
+    'systemSimpleToComplex',
+    'systemSBSResolved',
+    'systemText',
+    'systemUsersAddedToConversation',
+    'systemNewChannel',
+    'journeycard',
+  ].includes(type)
+
 const _WrapperMessage = (p: Props) => {
   const {message, centeredOrdinal, orangeLineAbove, showUsername} = p
-  const {isPendingPayment, failureDescription, onCancel, onEdit, onRetry, exploded, hasUnfurlPrompts} = p
-  const {conversationIDKey, toggleShowingMenu, measure, shouldShowPopup} = p
+  const {isPendingPayment} = p
+  const {toggleShowingMenu, measure, shouldShowPopup} = p
   const {getAttachmentRef, showingMenu} = p
 
   const [showMenuButton, setShowMenuButton] = React.useState(false)
@@ -567,137 +685,15 @@ const _WrapperMessage = (p: Props) => {
   }, [])
 
   const showCenteredHighlight = useHighlightMode({centeredOrdinal, mountedRef})
-
-  const isExploding = (message.type === 'text' || message.type === 'attachment') && message.exploding
   const onMouseOver = React.useCallback(() => setShowMenuButton(true), [setShowMenuButton])
   const canFixOverdraw = !isPendingPayment && !showCenteredHighlight
   const canFixOverdrawValue = React.useMemo(() => ({canFixOverdraw}), [canFixOverdraw])
 
-  const orangeLine = () =>
-    orangeLineAbove && (
-      <Kb.Box2
-        key="orangeLine"
-        direction="vertical"
-        style={Styles.collapseStyles([styles.orangeLine, !showUsername && styles.orangeLineCompensationLeft])}
-      />
-    )
-
-  const isEdited = () =>
-    message.hasBeenEdited && (
-      <Kb.Text
-        key="isEdited"
-        type="BodyTiny"
-        style={Styles.collapseStyles([styles.edited, showCenteredHighlight && styles.editedHighlighted])}
-      >
-        EDITED
-      </Kb.Text>
-    )
-
-  const isFailed = () =>
-    // hide error messages if the exploding message already exploded
-    !!failureDescription &&
-    !(isExploding && exploded) && (
-      <Kb.Text key="isFailed" type="BodySmall">
-        <Kb.Text type="BodySmall" style={isExploding ? styles.failExploding : styles.fail}>
-          {isExploding && (
-            <>
-              <Kb.Icon fontSize={16} boxStyle={styles.failExplodingIcon} type="iconfont-block" />{' '}
-            </>
-          )}
-          {failureDescription}.{' '}
-        </Kb.Text>
-        {!!onCancel && (
-          <Kb.Text type="BodySmall" style={styles.failUnderline} onClick={onCancel}>
-            Cancel
-          </Kb.Text>
-        )}
-        {!!onCancel && (!!onEdit || !!onRetry) && <Kb.Text type="BodySmall"> or </Kb.Text>}
-        {!!onEdit && (
-          <Kb.Text type="BodySmall" style={styles.failUnderline} onClick={onEdit}>
-            Edit
-          </Kb.Text>
-        )}
-        {!!onRetry && (
-          <Kb.Text type="BodySmall" style={styles.failUnderline} onClick={onRetry}>
-            Retry
-          </Kb.Text>
-        )}
-      </Kb.Text>
-    )
-
   const dismissKeyboard = React.useCallback(() => dismiss(), [dismiss])
 
-  const unfurlPrompts = () =>
-    hasUnfurlPrompts && (
-      <UnfurlPromptList
-        key="UnfurlPromptList"
-        conversationIDKey={conversationIDKey}
-        ordinal={message.ordinal}
-      />
-    )
-
-  const unfurlList = () =>
-    message.type === 'text' &&
-    message.unfurls &&
-    !!message.unfurls.size && (
-      <UnfurlList
-        key="UnfurlList"
-        conversationIDKey={conversationIDKey}
-        ordinal={message.ordinal}
-        toggleMessagePopup={toggleShowingMenu}
-      />
-    )
-
-  const coinFlip = () => {
-    return (
-      message.type === 'text' &&
-      !!message.flipGameID && (
-        <CoinFlip
-          key="CoinFlip"
-          conversationIDKey={conversationIDKey}
-          flipGameID={message.flipGameID}
-          measure={measure}
-          isSendError={!!message.errorReason}
-          text={message.text}
-        />
-      )
-    )
-  }
-
-  const hasReactions = (!!message.reactions && !!message.reactions.size) || isPendingPayment
-
-  const reactionsRow = () =>
-    hasReactions && (
-      <ReactionsRow
-        key="ReactionsRow"
-        btnClassName="WrapperMessage-emojiButton"
-        newBtnClassName="WrapperMessage-newEmojiButton"
-        conversationIDKey={conversationIDKey}
-        ordinal={message.ordinal}
-      />
-    )
-
   const {type} = message
-  const popup = () =>
-    (type === 'text' ||
-      type === 'attachment' ||
-      type === 'sendPayment' ||
-      type === 'requestPayment' ||
-      type === 'setChannelname' ||
-      type === 'setDescription' ||
-      type === 'pin' ||
-      type === 'systemAddedToTeam' ||
-      type === 'systemChangeRetention' ||
-      type === 'systemGitPush' ||
-      type === 'systemInviteAccepted' ||
-      type === 'systemSimpleToComplex' ||
-      type === 'systemSBSResolved' ||
-      type === 'systemText' ||
-      type === 'systemUsersAddedToConversation' ||
-      type === 'systemNewChannel' ||
-      type === 'journeycard') &&
-    shouldShowPopup &&
-    showingMenu && (
+  const popup =
+    messageShowsPopup(type) && shouldShowPopup && showingMenu ? (
       <MessagePopup
         key="popup"
         attachTo={getAttachmentRef}
@@ -707,9 +703,7 @@ const _WrapperMessage = (p: Props) => {
         style={styles.messagePopupContainer}
         visible={showingMenu}
       />
-    )
-
-  const messageNode = useMessageNode(p, {showCenteredHighlight})
+    ) : null
 
   const prevMessage = Container.usePrevious(message)
   const prevOrange = Container.usePrevious(orangeLineAbove)
@@ -717,22 +711,26 @@ const _WrapperMessage = (p: Props) => {
     measure()
   }
 
-  const mb = useMessageAndButtons(
-    p,
-    {isExploding, showCenteredHighlight, shouldShowPopup, showMenuButton, setShowingPicker, hasReactions},
-    messageNode
-  )
+  let authorAndContent = useAuthorAndContent(p, {
+    canFixOverdraw,
+    showCenteredHighlight,
+    showMenuButton,
+    setShowingPicker,
+  })
 
-  const authorAndContent = useAuthorAndContent(
-    p,
-    {
-      canFixOverdraw,
-      showCenteredHighlight,
-    },
-    message.type === 'journeycard'
-      ? []
-      : [mb, isEdited(), isFailed(), unfurlPrompts(), unfurlList(), coinFlip(), reactionsRow()]
-  )
+  if (isPendingPayment) {
+    authorAndContent = (
+      <PendingPaymentBackground key="pendingBackground">{authorAndContent}</PendingPaymentBackground>
+    )
+  }
+
+  const orangeLine = orangeLineAbove ? (
+    <Kb.Box2
+      key="orangeLine"
+      direction="vertical"
+      style={Styles.collapseStyles([styles.orangeLine, !showUsername && styles.orangeLineCompensationLeft])}
+    />
+  ) : null
 
   const longPressable = useGetLongPress(
     p,
@@ -744,17 +742,17 @@ const _WrapperMessage = (p: Props) => {
     },
     [
       message.type === 'journeycard' ? <TeamJourney key="journey" message={message} /> : authorAndContent,
-      orangeLine(),
+      orangeLine,
     ]
   )
 
-  if (!message || !messageNode) {
+  if (!message) {
     return null
   }
   return (
     <Styles.StyleContext.Provider value={canFixOverdrawValue}>
       {longPressable}
-      {popup()}
+      {popup}
     </Styles.StyleContext.Provider>
   )
 }
