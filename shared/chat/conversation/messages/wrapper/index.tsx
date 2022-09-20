@@ -276,19 +276,18 @@ const useBottomComponents = (
 ) => {
   const {message} = p
   const {isPendingPayment, failureDescription, onCancel, onEdit, onRetry, exploded, hasUnfurlPrompts} = p
-  const {conversationIDKey, toggleShowingMenu, measure, shouldShowPopup} = p
+  const {conversationIDKey, toggleShowingMenu, measure} = p
   const {showCenteredHighlight, showMenuButton, setShowingPicker} = o
-
   const hasReactions = !!message.reactions?.size || isPendingPayment
   const isExploding = (message.type === 'text' || message.type === 'attachment') && message.exploding
 
-  const messageNode = useMessageNode(p, {showCenteredHighlight})
-
-  const messageAndButtons = useMessageAndButtons(
-    p,
-    {isExploding, showCenteredHighlight, shouldShowPopup, showMenuButton, setShowingPicker, hasReactions},
-    messageNode
-  )
+  const messageAndButtons = useMessageAndButtons(p, {
+    isExploding,
+    showCenteredHighlight,
+    showMenuButton,
+    setShowingPicker,
+    hasReactions,
+  })
 
   const isEdited = message.hasBeenEdited ? (
     <Kb.Text
@@ -371,11 +370,21 @@ const useBottomComponents = (
     />
   ) : null
 
-  if (!messageNode) return null
+  if (!messageAndButtons) return null
 
-  return message.type === 'journeycard'
-    ? []
-    : [messageAndButtons, isEdited, isFailed, unfurlPrompts, unfurlList, coinFlip, reactionsRow]
+  return message.type === 'journeycard' ? (
+    <></>
+  ) : (
+    <>
+      {messageAndButtons}
+      {isEdited}
+      {isFailed}
+      {unfurlPrompts}
+      {unfurlList}
+      {coinFlip}
+      {reactionsRow}
+    </>
+  )
 }
 
 const useAuthorAndContent = (
@@ -492,28 +501,17 @@ const useAuthorAndContent = (
 const useMessageAndButtons = (
   p: Props,
   o: {
-    shouldShowPopup: boolean
     showMenuButton: boolean
     setShowingPicker: (s: boolean) => void
     hasReactions: boolean
     showCenteredHighlight: boolean
     isExploding: boolean
-  },
-  children: React.ReactNode
+  }
 ) => {
-  const {
-    message,
-    forceAsh,
-    isRevoked,
-    conversationIDKey,
-    measure,
-    showCoinsIcon,
-    authorIsBot,
-    toggleShowingMenu,
-  } = p
-  const {decorate, isLastInThread, showSendIndicator, showUsername, showingMenu} = p
-  const {showMenuButton, isExploding, showCenteredHighlight, shouldShowPopup} = o
-  const {setShowingPicker, hasReactions} = o
+  const {message, forceAsh, isRevoked, conversationIDKey} = p
+  const {measure, showCoinsIcon, authorIsBot, toggleShowingMenu} = p
+  const {decorate, isLastInThread, showSendIndicator, showUsername, showingMenu, shouldShowPopup} = p
+  const {setShowingPicker, hasReactions, showMenuButton, isExploding, showCenteredHighlight} = o
   const showMenuButton2 = !Styles.isMobile && showMenuButton
 
   const keyedBot = (message.type === 'text' && message.botUsername) || ''
@@ -553,6 +551,8 @@ const useMessageAndButtons = (
     return cachedMenuStylesRef.current.get(key)
   }
 
+  const messageNode = useMessageNode(p, {showCenteredHighlight})
+
   let exploded = false
   let explodedBy = ''
   switch (message.type) {
@@ -575,10 +575,10 @@ const useMessageAndButtons = (
       messageKey={Constants.getMessageKey(message)}
       retainHeight={forceAsh || exploded}
     >
-      {children}
+      {messageNode}
     </ExplodingHeightRetainer>
   ) : (
-    children
+    messageNode
   )
 
   // We defer mounting the menu buttons since they are expensive and only show up on hover on desktop and not at all on mobile
@@ -597,66 +597,69 @@ const useMessageAndButtons = (
         style={styles.send}
       />
     ) : null
+    const explodingMeta =
+      exploding && !isShowingIndicator ? (
+        <ExplodingMeta
+          conversationIDKey={conversationIDKey}
+          isParentHighlighted={showCenteredHighlight}
+          onClick={toggleShowingMenu}
+          ordinal={message.ordinal}
+        />
+      ) : null
+    const revokedIcon = isRevoked ? (
+      <Kb.WithTooltip tooltip="Revoked device">
+        <Kb.Icon type="iconfont-rip" style={styles.paddingLeftTiny} color={Styles.globalColors.black_35} />
+      </Kb.WithTooltip>
+    ) : null
+    const bot =
+      keyedBot && !authorIsBot ? (
+        <Kb.WithTooltip tooltip={`Encrypted for @${keyedBot}`}>
+          <Kb.Icon
+            color={Styles.globalColors.black_35}
+            type="iconfont-bot"
+            onClick={() => null}
+            style={styles.paddingLeftTiny}
+          />
+        </Kb.WithTooltip>
+      ) : null
+
+    const showMenu = showMenuButton2 ? (
+      <Kb.Box className="WrapperMessage-buttons">
+        {!hasReactions && Constants.isMessageWithReactions(message) && !showingMenu && (
+          <EmojiRow
+            className="WrapperMessage-emojiButton"
+            conversationIDKey={conversationIDKey}
+            onShowingEmojiPicker={setShowingPicker}
+            ordinal={message.ordinal}
+            tooltipPosition={isLastInThread ? 'top center' : 'bottom center'}
+            style={Styles.collapseStyles([styles.emojiRow, isLastInThread && styles.emojiRowLast] as const)}
+          />
+        )}
+        <Kb.Box>
+          {shouldShowPopup && (
+            <Kb.WithTooltip tooltip="More actions..." toastStyle={styles.moreActionsTooltip}>
+              <Kb.Box style={styles.ellipsis}>
+                <Kb.Icon type="iconfont-ellipsis" onClick={toggleShowingMenu} />
+              </Kb.Box>
+            </Kb.WithTooltip>
+          )}
+        </Kb.Box>
+      </Kb.Box>
+    ) : null
+    const coinsIcon = showCoinsIcon ? (
+      <Kb.Icon type="icon-stellar-coins-stacked-16" style={styles.paddingLeftTiny} />
+    ) : null
 
     return (
       <Kb.Box2 key="messageAndButtons" direction="horizontal" fullWidth={true}>
         {maybeExplodedChild}
         <Kb.Box2 direction="horizontal" style={menuAreaStyle(exploded, exploding)}>
           {sendIndicator}
-          {exploding && !isShowingIndicator && (
-            <ExplodingMeta
-              conversationIDKey={conversationIDKey}
-              isParentHighlighted={showCenteredHighlight}
-              onClick={toggleShowingMenu}
-              ordinal={message.ordinal}
-            />
-          )}
-          {isRevoked && (
-            <Kb.WithTooltip tooltip="Revoked device">
-              <Kb.Icon
-                type="iconfont-rip"
-                style={styles.paddingLeftTiny}
-                color={Styles.globalColors.black_35}
-              />
-            </Kb.WithTooltip>
-          )}
-          {showCoinsIcon && <Kb.Icon type="icon-stellar-coins-stacked-16" style={styles.paddingLeftTiny} />}
-          {keyedBot && !authorIsBot && (
-            <Kb.WithTooltip tooltip={`Encrypted for @${keyedBot}`}>
-              <Kb.Icon
-                color={Styles.globalColors.black_35}
-                type="iconfont-bot"
-                onClick={() => null}
-                style={styles.paddingLeftTiny}
-              />
-            </Kb.WithTooltip>
-          )}
-          {showMenuButton2 ? (
-            <Kb.Box className="WrapperMessage-buttons">
-              {!hasReactions && Constants.isMessageWithReactions(message) && !showingMenu && (
-                <EmojiRow
-                  className="WrapperMessage-emojiButton"
-                  conversationIDKey={conversationIDKey}
-                  onShowingEmojiPicker={setShowingPicker}
-                  ordinal={message.ordinal}
-                  tooltipPosition={isLastInThread ? 'top center' : 'bottom center'}
-                  style={Styles.collapseStyles([
-                    styles.emojiRow,
-                    isLastInThread && styles.emojiRowLast,
-                  ] as const)}
-                />
-              )}
-              <Kb.Box>
-                {shouldShowPopup && (
-                  <Kb.WithTooltip tooltip="More actions..." toastStyle={styles.moreActionsTooltip}>
-                    <Kb.Box style={styles.ellipsis}>
-                      <Kb.Icon type="iconfont-ellipsis" onClick={toggleShowingMenu} />
-                    </Kb.Box>
-                  </Kb.WithTooltip>
-                )}
-              </Kb.Box>
-            </Kb.Box>
-          ) : null}
+          {explodingMeta}
+          {revokedIcon}
+          {coinsIcon}
+          {bot}
+          {showMenu}
         </Kb.Box2>
       </Kb.Box2>
     )
