@@ -80,12 +80,9 @@ export type Props = {
 const useGetLongPress = (
   p: Props,
   o: {
-    dismissKeyboard: () => void
     showCenteredHighlight: boolean
-    showingPicker: boolean
-    onMouseOver: () => void
-  },
-  children: React.ReactNode
+    canFixOverdraw: boolean
+  }
 ) => {
   const {
     decorate,
@@ -96,8 +93,41 @@ const useGetLongPress = (
     message,
     showingMenu,
     setAttachmentRef,
+    orangeLineAbove,
   } = p
-  const {dismissKeyboard, showCenteredHighlight, showingPicker, onMouseOver} = o
+  const {showCenteredHighlight, canFixOverdraw} = o
+  const [showMenuButton, setShowMenuButton] = React.useState(false)
+  const [showingPicker, setShowingPicker] = React.useState(false)
+
+  let authorAndContent = useAuthorAndContent(p, {
+    canFixOverdraw,
+    showCenteredHighlight,
+    showMenuButton,
+    setShowingPicker,
+  })
+
+  if (isPendingPayment) {
+    authorAndContent = (
+      <PendingPaymentBackground key="pendingBackground">{authorAndContent}</PendingPaymentBackground>
+    )
+  }
+
+  const orangeLine = orangeLineAbove ? (
+    <Kb.Box2
+      key="orangeLine"
+      direction="vertical"
+      style={Styles.collapseStyles([styles.orangeLine, !showUsername && styles.orangeLineCompensationLeft])}
+    />
+  ) : null
+
+  const children = [
+    message.type === 'journeycard' ? <TeamJourney key="journey" message={message} /> : authorAndContent,
+    orangeLine,
+  ]
+
+  const dismissKeyboard = React.useCallback(() => dismiss(), [dismiss])
+  const onMouseOver = React.useCallback(() => setShowMenuButton(true), [setShowMenuButton])
+
   if (Styles.isMobile) {
     return (
       <LongPressable
@@ -216,21 +246,17 @@ const useMessageNode = (p: Props, o: {showCenteredHighlight: boolean}) => {
   }
 }
 
-const useHighlightMode = (p: {
-  centeredOrdinal: Types.CenterOrdinalHighlightMode
-  mountedRef: React.MutableRefObject<boolean>
-}) => {
+const useHighlightMode = (centeredOrdinal: Types.CenterOrdinalHighlightMode) => {
   const [disableCenteredHighlight, setDisableCenteredHighlight] = React.useState(false)
-  const {centeredOrdinal, mountedRef} = p
+  const timeoutIDRef = React.useRef<any>(null)
   const updateHighlightMode = React.useCallback(() => {
     switch (centeredOrdinal) {
       case 'flash':
         setDisableCenteredHighlight(false)
-        // TODO fix timeout
-        setTimeout(() => {
-          if (mountedRef.current) {
-            setDisableCenteredHighlight(true)
-          }
+        clearTimeout(timeoutIDRef.current)
+        timeoutIDRef.current = setTimeout(() => {
+          setDisableCenteredHighlight(true)
+          timeoutIDRef.current = 0
         }, 2000)
         break
       case 'always':
@@ -238,6 +264,12 @@ const useHighlightMode = (p: {
         break
     }
   }, [setDisableCenteredHighlight])
+
+  React.useEffect(() => {
+    return () => {
+      clearTimeout(timeoutIDRef.current)
+    }
+  })
 
   React.useEffect(() => {
     updateHighlightMode()
@@ -669,27 +701,11 @@ const messageShowsPopup = (type: Types.Message['type']) =>
   ].includes(type)
 
 const _WrapperMessage = (p: Props) => {
-  const {message, centeredOrdinal, orangeLineAbove, showUsername} = p
-  const {isPendingPayment} = p
-  const {toggleShowingMenu, measure, shouldShowPopup} = p
-  const {getAttachmentRef, showingMenu} = p
-
-  const [showMenuButton, setShowMenuButton] = React.useState(false)
-  const [showingPicker, setShowingPicker] = React.useState(false)
-
-  const mountedRef = React.useRef(true)
-  React.useEffect(() => {
-    return () => {
-      mountedRef.current = false
-    }
-  }, [])
-
-  const showCenteredHighlight = useHighlightMode({centeredOrdinal, mountedRef})
-  const onMouseOver = React.useCallback(() => setShowMenuButton(true), [setShowMenuButton])
+  const {isPendingPayment, message, centeredOrdinal, orangeLineAbove} = p
+  const {toggleShowingMenu, measure, shouldShowPopup, getAttachmentRef, showingMenu} = p
+  const showCenteredHighlight = useHighlightMode(centeredOrdinal)
   const canFixOverdraw = !isPendingPayment && !showCenteredHighlight
   const canFixOverdrawValue = React.useMemo(() => ({canFixOverdraw}), [canFixOverdraw])
-
-  const dismissKeyboard = React.useCallback(() => dismiss(), [dismiss])
 
   const {type} = message
   const popup =
@@ -711,40 +727,10 @@ const _WrapperMessage = (p: Props) => {
     measure()
   }
 
-  let authorAndContent = useAuthorAndContent(p, {
+  const longPressable = useGetLongPress(p, {
     canFixOverdraw,
     showCenteredHighlight,
-    showMenuButton,
-    setShowingPicker,
   })
-
-  if (isPendingPayment) {
-    authorAndContent = (
-      <PendingPaymentBackground key="pendingBackground">{authorAndContent}</PendingPaymentBackground>
-    )
-  }
-
-  const orangeLine = orangeLineAbove ? (
-    <Kb.Box2
-      key="orangeLine"
-      direction="vertical"
-      style={Styles.collapseStyles([styles.orangeLine, !showUsername && styles.orangeLineCompensationLeft])}
-    />
-  ) : null
-
-  const longPressable = useGetLongPress(
-    p,
-    {
-      dismissKeyboard,
-      showCenteredHighlight,
-      showingPicker,
-      onMouseOver,
-    },
-    [
-      message.type === 'journeycard' ? <TeamJourney key="journey" message={message} /> : authorAndContent,
-      orangeLine,
-    ]
-  )
 
   if (!message) {
     return null
