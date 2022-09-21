@@ -109,29 +109,25 @@ const getFailureDescriptionAllowCancel = (message: Types.Message, you: string) =
 export default Container.connect(
   (state, ownProps: OwnProps) => {
     const {conversationIDKey, ordinal, previous: previousOrdinal} = ownProps
-    const {orangeLineMap, unfurlPromptMap} = state.chat2
+    const {orangeLineMap} = state.chat2
     const _participantInfo = Constants.getParticipantInfo(state, conversationIDKey)
     const message = Constants.getMessage(state, conversationIDKey, ordinal) || missingMessage
-    const {type, id, author} = message
+    const {id, author} = message
     const previous =
       (previousOrdinal && Constants.getMessage(state, conversationIDKey, previousOrdinal)) || undefined
     const orangeLineAbove = orangeLineMap.get(conversationIDKey) === id
-    const hasUnfurlPrompts = type === 'text' && !!unfurlPromptMap.get(conversationIDKey)?.get(id)?.size
     // TODO: possibly useTeamSubscribe here
     const meta = Constants.getMeta(state, conversationIDKey)
     const {teamname, teamID} = meta
     const authorIsAdmin = teamname ? TeamConstants.userIsRoleInTeam(state, teamID, author, 'admin') : false
     const authorIsBot = Constants.messageAuthorIsBot(state, meta, message, _participantInfo)
     const authorIsOwner = teamname ? TeamConstants.userIsRoleInTeam(state, teamID, author, 'owner') : false
-    const ordinals = Constants.getMessageOrdinals(state, conversationIDKey)
     return {
       _you: state.config.username,
       authorIsAdmin,
       authorIsBot,
       authorIsOwner,
       conversationIDKey,
-      hasUnfurlPrompts,
-      isLastInThread: ordinals[ordinals.length - 1] === ordinal,
       isPendingPayment: Constants.isPendingPaymentMessage(state, message),
       message,
       orangeLineAbove,
@@ -158,17 +154,14 @@ export default Container.connect(
   (stateProps, dispatchProps, ownProps: OwnProps) => {
     const {measure} = ownProps
     const {message, _you} = stateProps
-    const {conversationIDKey, orangeLineAbove, isLastInThread, isPendingPayment} = stateProps
-    const {previous, shouldShowPopup, showCoinsIcon, showCrowns, hasUnfurlPrompts} = stateProps
+    const {conversationIDKey, orangeLineAbove, isPendingPayment} = stateProps
+    const {previous, shouldShowPopup, showCoinsIcon, showCrowns} = stateProps
     const showUsername = getUsernameToShow(message, previous, _you, orangeLineAbove)
     // TODO type guard
     const outboxID: Types.OutboxID | null = (message as any).outboxID || null
-    const {allowCancel, allowRetry, resolveByEdit, failureDescription} = getFailureDescriptionAllowCancel(
-      message,
-      _you
-    )
+    const {allowCancel, allowRetry, resolveByEdit} = getFailureDescriptionAllowCancel(message, _you)
 
-    const {author, type, ordinal, id, deviceRevokedAt} = message
+    const {author, ordinal, id} = message
 
     // show send only if its possible we sent while you're looking at it
     const youAreAuthor = _you === author
@@ -179,21 +172,9 @@ export default Container.connect(
         ? () => dispatchProps._onRetry(conversationIDKey, outboxID)
         : undefined
 
-    // TODO type guard
-    const forceAsh = !!(message as any).explodingUnreadable
-    const textOrAttachment = type === 'attachment' || type === 'text'
-    const isJoinLeave = type === 'systemJoined' || type === 'systemLeft'
-
     return {
       conversationIDKey,
-      exploded: textOrAttachment && !!message.exploded,
-      failureDescription,
-      forceAsh,
-      hasUnfurlPrompts,
-      isJoinLeave,
-      isLastInThread,
       isPendingPayment,
-      isRevoked: textOrAttachment && !!deviceRevokedAt,
       measure,
       message,
       onAuthorClick: () => dispatchProps._onAuthorClick(showUsername),

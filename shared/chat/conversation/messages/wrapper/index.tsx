@@ -3,6 +3,7 @@ import * as Container from '../../../../util/container'
 import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../../../styles'
+import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import EmojiRow from '../react-button/emoji-row/container'
 import ExplodingHeightRetainer from './exploding-height-retainer'
 import ExplodingMeta from './exploding-meta/container'
@@ -47,14 +48,8 @@ import {formatTimeForChat} from '../../../../util/timestamp'
 export type Props = {
   ordinal: Types.Ordinal
   conversationIDKey: Types.ConversationIDKey
-  exploded: boolean
-  failureDescription: string
-  forceAsh: boolean
-  hasUnfurlPrompts: boolean
-  isJoinLeave: boolean
-  isLastInThread: boolean
+
   isPendingPayment: boolean
-  isRevoked: boolean
   showCoinsIcon: boolean
   showUsername: string
   measure?: () => void
@@ -94,11 +89,11 @@ const useGetLongPress = (
     message,
     meta,
   } = o
+  const isTextOrAttachment = Constants.isTextOrAttachment(message)
   const [showMenuButton, setShowMenuButton] = React.useState(false)
   const [showingPicker, setShowingPicker] = React.useState(false)
 
-  const decorate =
-    (message.type === 'text' || message.type === 'attachment') && !message.exploded && !message.errorReason
+  const decorate = isTextOrAttachment && !message.exploded && !message.errorReason
 
   const authorAndContent = useAuthorAndContent(p, {
     canFixOverdraw,
@@ -361,9 +356,7 @@ const useBottomComponents = (
     decorate: boolean
   }
 ) => {
-  const {message} = p
-  const {isPendingPayment, failureDescription, onCancel, onEdit, onRetry, exploded, hasUnfurlPrompts} = p
-  const {conversationIDKey, measure} = p
+  const {message, conversationIDKey, measure, isPendingPayment, onCancel, onEdit, onRetry} = p
   const {
     decorate,
     showCenteredHighlight,
@@ -373,8 +366,37 @@ const useBottomComponents = (
     showingPopup,
     authorIsBot,
   } = o
+  const {id, type, errorReason, submitState} = message
+  const isTextOrAttachment = Constants.isTextOrAttachment(message)
   const hasReactions = !!message.reactions?.size || isPendingPayment
-  const isExploding = (message.type === 'text' || message.type === 'attachment') && message.exploding
+  const exploded = isTextOrAttachment && !!message.exploded
+  const isExploding = isTextOrAttachment && message.exploding
+  const you = Container.useSelector(state => state.config.username)
+  const hasUnfurlPrompts = Container.useSelector(
+    state => type === 'text' && !!state.chat2.unfurlPromptMap.get(conversationIDKey)?.get(id)?.size
+  )
+
+  let failureDescription = ''
+  if (isTextOrAttachment && errorReason) {
+    failureDescription = errorReason
+    if (you && ['pending', 'failed'].includes(submitState as string)) {
+      // This is a message still in the outbox, we can retry/edit to fix, but
+      // for flip messages, don't allow retry/cancel
+      failureDescription = `This ${type === 'attachment' ? 'attachment' : 'message'} failed to send`
+      const resolveByEdit =
+        !!message.outboxID && !!you && message.errorTyp === RPCChatTypes.OutboxErrorType.toolong
+      if (resolveByEdit) {
+        failureDescription += `, ${errorReason}`
+      }
+      if (!!message.outboxID && !!you) {
+        switch (message.errorTyp) {
+          case RPCChatTypes.OutboxErrorType.minwriter:
+          case RPCChatTypes.OutboxErrorType.restrictedbot:
+            failureDescription = `Unable to send, ${errorReason}`
+        }
+      }
+    }
+  }
 
   const messageAndButtons = useMessageAndButtons(p, {
     authorIsBot,
@@ -674,18 +696,22 @@ const useMessageAndButtons = (
     decorate: boolean
   }
 ) => {
-  const {measure, showCoinsIcon, message, forceAsh, isRevoked, conversationIDKey} = p
-  const {isLastInThread, showSendIndicator, showUsername, shouldShowPopup} = p
+  const {ordinal, measure, showCoinsIcon, message, conversationIDKey} = p
+  const {showSendIndicator, showUsername, shouldShowPopup} = p
+  const isLastInThread = Container.useSelector(state => {
+    const ordinals = Constants.getMessageOrdinals(state, conversationIDKey)
+    return ordinals[ordinals.length - 1] === ordinal
+  })
   const {setShowingPicker, hasReactions, showMenuButton, isExploding, showingPopup} = o
   const {authorIsBot, showCenteredHighlight, toggleShowingPopup, decorate} = o
   const showMenuButton2 = !Styles.isMobile && showMenuButton
-
-  const keyedBot = (message.type === 'text' && message.botUsername) || ''
-
-  const sent =
-    (message.type !== 'text' && message.type !== 'attachment') || !message.submitState || message.exploded
-  const failed =
-    (message.type === 'text' || message.type === 'attachment') && message.submitState === 'failed'
+  const {type} = message
+  const isTextOrAttachment = Constants.isTextOrAttachment(message)
+  const isRevoked = isTextOrAttachment && !!message.deviceRevokedAt
+  const keyedBot = (type === 'text' && message.botUsername) || ''
+  const forceAsh = !!(message as any).explodingUnreadable
+  const sent = (type !== 'text' && type !== 'attachment') || !message.submitState || message.exploded
+  const failed = isTextOrAttachment && message.submitState === 'failed'
   const isShowingIndicator = !sent || failed
 
   const cachedMenuStylesRef = React.useRef(new Map<string, Styles.StylesCrossPlatform>())
@@ -718,20 +744,8 @@ const useMessageAndButtons = (
   }
 
   const messageNode = useMessageNode(p, {showCenteredHighlight, toggleShowingPopup})
-
-  let exploded = false
-  let explodedBy = ''
-  switch (message.type) {
-    case 'text':
-      exploded = message.exploded
-      explodedBy = message.explodedBy
-      break
-    case 'attachment':
-      exploded = message.exploded
-      explodedBy = message.explodedBy
-      break
-    default:
-  }
+  const exploded = isTextOrAttachment ? message.exploded ?? false : false
+  const explodedBy = isTextOrAttachment ? message.explodedBy ?? '' : ''
   const exploding = isExploding
   const maybeExplodedChild = exploding ? (
     <ExplodingHeightRetainer
