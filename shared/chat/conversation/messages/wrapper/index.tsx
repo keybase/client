@@ -1,4 +1,5 @@
 import * as Constants from '../../../../constants/chat2'
+import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as ProfileGen from '../../../../actions/profile-gen'
 import * as Tracker2Gen from '../../../../actions/tracker2-gen'
 import * as Container from '../../../../util/container'
@@ -50,15 +51,12 @@ import {formatTimeForChat} from '../../../../util/timestamp'
 export type Props = {
   ordinal: Types.Ordinal
   conversationIDKey: Types.ConversationIDKey
-
   measure?: () => void
+  previous?: Types.Message
+
   message: Types.Message
-  onCancel?: () => void
-  onEdit?: () => void
-  onRetry?: () => void
   onSwipeLeft?: () => void
   orangeLineAbove: boolean
-  previous?: Types.Message
   shouldShowPopup: boolean
   showCrowns: boolean
   showSendIndicator: boolean
@@ -404,6 +402,37 @@ const useHighlightMode = (o: {ordinal: Types.Ordinal; conversationIDKey: Types.C
   return !disableCenteredHighlight && centeredOrdinalType !== undefined
 }
 
+const getFailureDescriptionAllowCancel = (message: Types.Message, you: string) => {
+  let failureDescription = ''
+  let allowCancel = false
+  let allowRetry = false
+  let resolveByEdit = false
+  const {type, errorReason} = message
+  if ((type === 'text' || type === 'attachment') && errorReason) {
+    failureDescription = errorReason
+    if (you && ['pending', 'failed'].includes(message.submitState as string)) {
+      // This is a message still in the outbox, we can retry/edit to fix, but
+      // for flip messages, don't allow retry/cancel
+      allowCancel = allowRetry =
+        message.type === 'attachment' || (message.type === 'text' && !message.flipGameID)
+      const messageType = type === 'attachment' ? 'attachment' : 'message'
+      failureDescription = `This ${messageType} failed to send`
+      resolveByEdit = !!message.outboxID && !!you && message.errorTyp === RPCChatTypes.OutboxErrorType.toolong
+      if (resolveByEdit) {
+        failureDescription += `, ${errorReason}`
+      }
+      if (!!message.outboxID && !!you) {
+        switch (message.errorTyp) {
+          case RPCChatTypes.OutboxErrorType.minwriter:
+          case RPCChatTypes.OutboxErrorType.restrictedbot:
+            failureDescription = `Unable to send, ${errorReason}`
+            allowRetry = false
+        }
+      }
+    }
+  }
+  return {allowCancel, allowRetry, failureDescription, resolveByEdit}
+}
 const useBottomComponents = (
   p: Props,
   o: {
@@ -418,19 +447,11 @@ const useBottomComponents = (
     showUsername: string
   }
 ) => {
-  const {message, conversationIDKey, measure, onCancel, onEdit, onRetry} = p
-  const {
-    decorate,
-    showCenteredHighlight,
-    showMenuButton,
-    setShowingPicker,
-    toggleShowingPopup,
-    showingPopup,
-    authorIsBot,
-    isPendingPayment,
-    showUsername,
-  } = o
-  const {id, type, errorReason, submitState} = message
+  const {ordinal, message, conversationIDKey, measure} = p
+  const {decorate, showCenteredHighlight, showMenuButton, setShowingPicker} = o
+  const {toggleShowingPopup, showingPopup, authorIsBot, isPendingPayment, showUsername} = o
+  const {id, type} = message
+  const outboxID: Types.OutboxID | null = (message as any).outboxID || null
   const isTextOrAttachment = Constants.isTextOrAttachment(message)
   const hasReactions = !!message.reactions?.size || isPendingPayment
   const exploded = isTextOrAttachment && !!message.exploded
@@ -440,27 +461,25 @@ const useBottomComponents = (
     state => type === 'text' && !!state.chat2.unfurlPromptMap.get(conversationIDKey)?.get(id)?.size
   )
 
-  let failureDescription = ''
-  if (isTextOrAttachment && errorReason) {
-    failureDescription = errorReason
-    if (you && ['pending', 'failed'].includes(submitState as string)) {
-      // This is a message still in the outbox, we can retry/edit to fix, but
-      // for flip messages, don't allow retry/cancel
-      failureDescription = `This ${type === 'attachment' ? 'attachment' : 'message'} failed to send`
-      const resolveByEdit =
-        !!message.outboxID && !!you && message.errorTyp === RPCChatTypes.OutboxErrorType.toolong
-      if (resolveByEdit) {
-        failureDescription += `, ${errorReason}`
-      }
-      if (!!message.outboxID && !!you) {
-        switch (message.errorTyp) {
-          case RPCChatTypes.OutboxErrorType.minwriter:
-          case RPCChatTypes.OutboxErrorType.restrictedbot:
-            failureDescription = `Unable to send, ${errorReason}`
-        }
-      }
-    }
-  }
+  const {allowCancel, allowRetry, failureDescription, resolveByEdit} = getFailureDescriptionAllowCancel(
+    message,
+    you
+  )
+
+  const dispatch = Container.useDispatch()
+  const onCancel = React.useCallback(() => {
+    allowCancel && dispatch(Chat2Gen.createMessageDelete({conversationIDKey, ordinal}))
+  }, [allowCancel, conversationIDKey, ordinal])
+
+  const onEdit = React.useCallback(() => {
+    resolveByEdit && dispatch(Chat2Gen.createMessageSetEditing({conversationIDKey, ordinal}))
+  }, [conversationIDKey, ordinal])
+  const onRetry = React.useCallback(() => {
+    allowRetry &&
+      !resolveByEdit &&
+      outboxID &&
+      dispatch(Chat2Gen.createMessageRetry({conversationIDKey, outboxID}))
+  }, [conversationIDKey, outboxID])
 
   const messageAndButtons = useMessageAndButtons(p, {
     authorIsBot,
@@ -607,23 +626,10 @@ const useAuthorAndContent = (
   }
 ) => {
   const {youAreAuthor, showCrowns, conversationIDKey} = p
-  const {
-    showCenteredHighlight,
-    canFixOverdraw,
-    showMenuButton,
-    setShowingPicker,
-    toggleShowingPopup,
-    showingPopup,
-    meta,
-    message,
-    decorate,
-    isPendingPayment,
-    showUsername,
-  } = o
-
+  const {showCenteredHighlight, canFixOverdraw, showMenuButton, setShowingPicker, toggleShowingPopup} = o
+  const {showingPopup, meta, message, decorate, isPendingPayment, showUsername} = o
   const {author} = message
   const {teamID, teamname, teamType, botAliases} = meta
-
   const botAlias = botAliases[author] ?? ''
 
   const dispatch = Container.useDispatch()
