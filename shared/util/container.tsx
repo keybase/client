@@ -48,11 +48,19 @@ export type Dispatch = TypedDispatch
 export const useAnyWaiting = (...waitingKeys: string[]) =>
   useSelector(state => anyWaiting(state, ...waitingKeys))
 export const useAnyErrors = (...waitingKeys: string[]) => useSelector(state => anyErrors(state, waitingKeys))
+// Deprecated: use usePrevious2
 export function usePrevious<T>(value: T) {
   const ref = React.useRef<T>()
   React.useEffect(() => {
     ref.current = value
   })
+  return ref.current
+}
+export function usePrevious2<T>(value: T) {
+  const ref = React.useRef<T>()
+  React.useEffect(() => {
+    ref.current = value
+  }, [value])
   return ref.current
 }
 

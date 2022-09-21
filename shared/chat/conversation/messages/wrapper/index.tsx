@@ -55,9 +55,6 @@ export type Props = {
   previous?: Types.Message
 
   message: Types.Message
-  onSwipeLeft?: () => void
-  orangeLineAbove: boolean
-  shouldShowPopup: boolean
   showCrowns: boolean
   showSendIndicator: boolean
   youAreAuthor: boolean
@@ -129,27 +126,24 @@ const useGetLongPress = (
     meta: Types.ConversationMeta
     message: Types.Message
     isPendingPayment: boolean
+    orangeLineAbove: boolean
+    shouldShowPopup: boolean
   }
 ) => {
-  const {onSwipeLeft, orangeLineAbove, previous} = p
-  const {
-    canFixOverdraw,
-    showCenteredHighlight,
-    showingPopup,
-    toggleShowingPopup,
-    popupAnchor,
-    message,
-    meta,
-    isPendingPayment,
-  } = o
+  const {previous, conversationIDKey, ordinal} = p
+  const {canFixOverdraw, showCenteredHighlight, showingPopup, toggleShowingPopup} = o
+  const {popupAnchor, message, meta, isPendingPayment, orangeLineAbove, shouldShowPopup} = o
   const isTextOrAttachment = Constants.isTextOrAttachment(message)
   const [showMenuButton, setShowMenuButton] = React.useState(false)
   const [showingPicker, setShowingPicker] = React.useState(false)
-
   const you = Container.useSelector(state => state.config.username)
   const showUsername = getUsernameToShow(message, previous, you, orangeLineAbove)
-
   const decorate = isTextOrAttachment && !message.exploded && !message.errorReason
+  const canSwipeLeft = message.type !== 'journeycard'
+  const dispatch = Container.useDispatch()
+  const onSwipeLeft = React.useCallback(() => {
+    canSwipeLeft && dispatch(Chat2Gen.createToggleReplyToMessage({conversationIDKey, ordinal}))
+  }, [canSwipeLeft, conversationIDKey, ordinal])
 
   const authorAndContent = useAuthorAndContent(p, {
     canFixOverdraw,
@@ -161,6 +155,7 @@ const useGetLongPress = (
     showCenteredHighlight,
     showMenuButton,
     showingPopup,
+    shouldShowPopup,
     showUsername,
     toggleShowingPopup,
   })
@@ -189,7 +184,7 @@ const useGetLongPress = (
         onLongPress={decorate ? toggleShowingPopup : undefined}
         onPress={decorate ? dismissKeyboard : undefined}
         // @ts-ignore bad types
-        onSwipeLeft={decorate ? onSwipeLeft : undefined}
+        onSwipeLeft={decorate && canSwipeLeft ? onSwipeLeft : undefined}
         style={Styles.collapseStyles([
           styles.container,
           showCenteredHighlight && styles.centeredOrdinal,
@@ -445,10 +440,11 @@ const useBottomComponents = (
     decorate: boolean
     isPendingPayment: boolean
     showUsername: string
+    shouldShowPopup: boolean
   }
 ) => {
   const {ordinal, message, conversationIDKey, measure} = p
-  const {decorate, showCenteredHighlight, showMenuButton, setShowingPicker} = o
+  const {decorate, showCenteredHighlight, showMenuButton, setShowingPicker, shouldShowPopup} = o
   const {toggleShowingPopup, showingPopup, authorIsBot, isPendingPayment, showUsername} = o
   const {id, type} = message
   const outboxID: Types.OutboxID | null = (message as any).outboxID || null
@@ -491,6 +487,7 @@ const useBottomComponents = (
     showMenuButton,
     showingPopup,
     showUsername,
+    shouldShowPopup,
     toggleShowingPopup,
   })
 
@@ -623,11 +620,12 @@ const useAuthorAndContent = (
     decorate: boolean
     isPendingPayment: boolean
     showUsername: string
+    shouldShowPopup: boolean
   }
 ) => {
   const {youAreAuthor, showCrowns, conversationIDKey} = p
   const {showCenteredHighlight, canFixOverdraw, showMenuButton, setShowingPicker, toggleShowingPopup} = o
-  const {showingPopup, meta, message, decorate, isPendingPayment, showUsername} = o
+  const {showingPopup, meta, message, decorate, isPendingPayment, showUsername, shouldShowPopup} = o
   const {author} = message
   const {teamID, teamname, teamType, botAliases} = meta
   const botAlias = botAliases[author] ?? ''
@@ -666,6 +664,7 @@ const useAuthorAndContent = (
     showCenteredHighlight,
     showMenuButton,
     showingPopup,
+    shouldShowPopup,
     showUsername,
     toggleShowingPopup,
   })
@@ -781,11 +780,11 @@ const useMessageAndButtons = (
     authorIsBot: boolean
     decorate: boolean
     showUsername: string
+    shouldShowPopup: boolean
   }
 ) => {
-  const {ordinal, measure, message, conversationIDKey} = p
-  const {showSendIndicator, shouldShowPopup} = p
-  const {setShowingPicker, hasReactions, showMenuButton, isExploding, showingPopup} = o
+  const {showSendIndicator, ordinal, measure, message, conversationIDKey} = p
+  const {setShowingPicker, hasReactions, showMenuButton, isExploding, showingPopup, shouldShowPopup} = o
   const {authorIsBot, showCenteredHighlight, toggleShowingPopup, decorate, showUsername} = o
   const isLastInThread = Container.useSelector(state => {
     const ordinals = Constants.getMessageOrdinals(state, conversationIDKey)
@@ -977,14 +976,17 @@ const messageShowsPopup = (type: Types.Message['type']) =>
 const missingMessage = Constants.makeMessageDeleted({})
 
 const WrapperMessage = (p: Props) => {
-  const {orangeLineAbove, conversationIDKey, ordinal} = p
+  const {measure, conversationIDKey, ordinal} = p
   const message = Container.useSelector(
     state => Constants.getMessage(state, conversationIDKey, ordinal) || missingMessage
   )
+  const {type, id} = message
+  const orangeLineAbove = Container.useSelector(
+    state => state.chat2.orangeLineMap.get(conversationIDKey) === id
+  )
   const meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
-  const {measure, shouldShowPopup} = p
-  const {type} = message
   const isPendingPayment = Container.useSelector(state => Constants.isPendingPaymentMessage(state, message))
+  const shouldShowPopup = Container.useSelector(state => Constants.shouldShowPopup(state, message))
   const showCenteredHighlight = useHighlightMode({conversationIDKey, ordinal})
   const canFixOverdraw = !isPendingPayment && !showCenteredHighlight
   const canFixOverdrawValue = React.useMemo(() => ({canFixOverdraw}), [canFixOverdraw])
@@ -1002,8 +1004,8 @@ const WrapperMessage = (p: Props) => {
     ) : null
   )
 
-  const prevMessage = Container.usePrevious(message)
-  const prevOrange = Container.usePrevious(orangeLineAbove)
+  const prevMessage = Container.usePrevious2(message)
+  const prevOrange = Container.usePrevious2(orangeLineAbove)
   if (measure && (message !== prevMessage || prevOrange !== orangeLineAbove)) {
     measure()
   }
@@ -1012,8 +1014,10 @@ const WrapperMessage = (p: Props) => {
     canFixOverdraw,
     isPendingPayment,
     message,
+    orangeLineAbove,
     meta,
     popupAnchor,
+    shouldShowPopup,
     showCenteredHighlight,
     showingPopup,
     toggleShowingPopup,
