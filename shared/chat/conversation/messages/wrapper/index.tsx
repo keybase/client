@@ -80,15 +80,15 @@ const useGetLongPress = (
     canFixOverdraw: boolean
     showingPopup: boolean
     toggleShowingPopup: () => void
-    popupAnchor: React.MutableRefObject<React.Component<any, {}, any> | null>
+    popupAnchor: React.MutableRefObject<React.Component | null>
     meta: Types.ConversationMeta
     message: Types.Message
   }
 ) => {
   const {isPendingPayment, decorate, onSwipeLeft, showUsername, orangeLineAbove} = p
   const {
-    showCenteredHighlight,
     canFixOverdraw,
+    showCenteredHighlight,
     showingPopup,
     toggleShowingPopup,
     popupAnchor,
@@ -100,13 +100,13 @@ const useGetLongPress = (
 
   const authorAndContent = useAuthorAndContent(p, {
     canFixOverdraw,
+    message,
+    meta,
+    setShowingPicker,
     showCenteredHighlight,
     showMenuButton,
-    setShowingPicker,
-    toggleShowingPopup,
     showingPopup,
-    meta,
-    message,
+    toggleShowingPopup,
   })
 
   const orangeLine = orangeLineAbove ? (
@@ -124,7 +124,7 @@ const useGetLongPress = (
     </>
   )
 
-  const dismissKeyboard = React.useCallback(() => dismiss(), [dismiss])
+  const dismissKeyboard = React.useCallback(() => dismiss(), [])
   const onMouseOver = React.useCallback(() => setShowMenuButton(true), [setShowMenuButton])
 
   if (Styles.isMobile) {
@@ -302,12 +302,15 @@ const useHighlightMode = (o: {ordinal: Types.Ordinal; conversationIDKey: Types.C
   const centeredOrdinalInfo = Container.useSelector(state =>
     state.chat2.messageCenterOrdinals.get(conversationIDKey)
   )
-  const centeredOrdinal =
-    centeredOrdinalInfo?.ordinal === ordinal ? centeredOrdinalInfo?.highlightMode : 'none'
+  const centeredOrdinalType =
+    centeredOrdinalInfo?.ordinal === ordinal ? centeredOrdinalInfo?.highlightMode : undefined
   const [disableCenteredHighlight, setDisableCenteredHighlight] = React.useState(false)
   const timeoutIDRef = React.useRef<any>(null)
   const updateHighlightMode = React.useCallback(() => {
-    switch (centeredOrdinal) {
+    if (disableCenteredHighlight) {
+      return
+    }
+    switch (centeredOrdinalType) {
       case 'flash':
         setDisableCenteredHighlight(false)
         clearTimeout(timeoutIDRef.current)
@@ -320,7 +323,7 @@ const useHighlightMode = (o: {ordinal: Types.Ordinal; conversationIDKey: Types.C
         setDisableCenteredHighlight(false)
         break
     }
-  }, [setDisableCenteredHighlight])
+  }, [disableCenteredHighlight, setDisableCenteredHighlight, centeredOrdinalType])
 
   React.useEffect(() => {
     return () => {
@@ -330,14 +333,17 @@ const useHighlightMode = (o: {ordinal: Types.Ordinal; conversationIDKey: Types.C
 
   React.useEffect(() => {
     updateHighlightMode()
+    // once on mount only
+    // eslint-disable-next-line
   }, [])
 
-  const prevCenteredOrdinal = Container.usePrevious(centeredOrdinal)
-  if (prevCenteredOrdinal !== centeredOrdinal) {
+  const prevCenteredOrdinalTypeRef = React.useRef(centeredOrdinalType)
+  if (centeredOrdinalType && prevCenteredOrdinalTypeRef.current !== centeredOrdinalType) {
+    prevCenteredOrdinalTypeRef.current = centeredOrdinalType
     updateHighlightMode()
   }
 
-  return !disableCenteredHighlight && centeredOrdinal !== 'none'
+  return !disableCenteredHighlight && centeredOrdinalType !== undefined
 }
 
 const useBottomComponents = (
@@ -366,14 +372,14 @@ const useBottomComponents = (
   const isExploding = (message.type === 'text' || message.type === 'attachment') && message.exploding
 
   const messageAndButtons = useMessageAndButtons(p, {
-    showMenuButton,
-    setShowingPicker,
-    hasReactions,
-    showCenteredHighlight,
-    isExploding,
-    toggleShowingPopup,
-    showingPopup,
     authorIsBot,
+    hasReactions,
+    isExploding,
+    setShowingPicker,
+    showCenteredHighlight,
+    showMenuButton,
+    showingPopup,
+    toggleShowingPopup,
   })
 
   const isEdited = message.hasBeenEdited ? (
@@ -539,12 +545,12 @@ const useAuthorAndContent = (
   const authorIsAdmin = authorRoleInTeam === 'admin'
 
   const children = useBottomComponents(p, {
+    authorIsBot,
+    setShowingPicker,
     showCenteredHighlight,
     showMenuButton,
-    setShowingPicker,
-    toggleShowingPopup,
     showingPopup,
-    authorIsBot,
+    toggleShowingPopup,
   })
 
   if (message.type === 'journeycard') {
@@ -890,12 +896,12 @@ const WrapperMessage = (p: Props) => {
 
   const longPressable = useGetLongPress(p, {
     canFixOverdraw,
+    message,
+    meta,
+    popupAnchor,
     showCenteredHighlight,
     showingPopup,
     toggleShowingPopup,
-    popupAnchor,
-    message,
-    meta,
   })
 
   if (!message) {
