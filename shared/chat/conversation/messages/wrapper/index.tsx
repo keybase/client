@@ -47,7 +47,6 @@ import {formatTimeForChat} from '../../../../util/timestamp'
 export type Props = {
   ordinal: Types.Ordinal
   conversationIDKey: Types.ConversationIDKey
-  decorate: boolean
   exploded: boolean
   failureDescription: string
   forceAsh: boolean
@@ -85,7 +84,7 @@ const useGetLongPress = (
     message: Types.Message
   }
 ) => {
-  const {isPendingPayment, decorate, onSwipeLeft, showUsername, orangeLineAbove} = p
+  const {isPendingPayment, onSwipeLeft, showUsername, orangeLineAbove} = p
   const {
     canFixOverdraw,
     showCenteredHighlight,
@@ -98,8 +97,12 @@ const useGetLongPress = (
   const [showMenuButton, setShowMenuButton] = React.useState(false)
   const [showingPicker, setShowingPicker] = React.useState(false)
 
+  const decorate =
+    (message.type === 'text' || message.type === 'attachment') && !message.exploded && !message.errorReason
+
   const authorAndContent = useAuthorAndContent(p, {
     canFixOverdraw,
+    decorate,
     message,
     meta,
     setShowingPicker,
@@ -355,12 +358,14 @@ const useBottomComponents = (
     toggleShowingPopup: () => void
     showingPopup: boolean
     authorIsBot: boolean
+    decorate: boolean
   }
 ) => {
   const {message} = p
   const {isPendingPayment, failureDescription, onCancel, onEdit, onRetry, exploded, hasUnfurlPrompts} = p
   const {conversationIDKey, measure} = p
   const {
+    decorate,
     showCenteredHighlight,
     showMenuButton,
     setShowingPicker,
@@ -373,6 +378,7 @@ const useBottomComponents = (
 
   const messageAndButtons = useMessageAndButtons(p, {
     authorIsBot,
+    decorate,
     hasReactions,
     isExploding,
     setShowingPicker,
@@ -508,6 +514,7 @@ const useAuthorAndContent = (
     toggleShowingPopup: () => void
     meta: Types.ConversationMeta
     message: Types.Message
+    decorate: boolean
   }
 ) => {
   const {showUsername, isPendingPayment} = p
@@ -521,6 +528,7 @@ const useAuthorAndContent = (
     showingPopup,
     meta,
     message,
+    decorate,
   } = o
 
   const {author} = message
@@ -546,6 +554,7 @@ const useAuthorAndContent = (
 
   const children = useBottomComponents(p, {
     authorIsBot,
+    decorate,
     setShowingPicker,
     showCenteredHighlight,
     showMenuButton,
@@ -662,12 +671,13 @@ const useMessageAndButtons = (
     toggleShowingPopup: () => void
     showingPopup: boolean
     authorIsBot: boolean
+    decorate: boolean
   }
 ) => {
   const {measure, showCoinsIcon, message, forceAsh, isRevoked, conversationIDKey} = p
-  const {decorate, isLastInThread, showSendIndicator, showUsername, shouldShowPopup} = p
+  const {isLastInThread, showSendIndicator, showUsername, shouldShowPopup} = p
   const {setShowingPicker, hasReactions, showMenuButton, isExploding, showingPopup} = o
-  const {authorIsBot, showCenteredHighlight, toggleShowingPopup} = o
+  const {authorIsBot, showCenteredHighlight, toggleShowingPopup, decorate} = o
   const showMenuButton2 = !Styles.isMobile && showMenuButton
 
   const keyedBot = (message.type === 'text' && message.botUsername) || ''

@@ -106,16 +106,6 @@ const getFailureDescriptionAllowCancel = (message: Types.Message, you: string) =
   return {allowCancel, allowRetry, failureDescription, resolveByEdit}
 }
 
-const getDecorate = (message: Types.Message) => {
-  switch (message.type) {
-    case 'text': // fallthrough
-    case 'attachment':
-      return !message.exploded && !message.errorReason
-    default:
-      return true
-  }
-}
-
 export default Container.connect(
   (state, ownProps: OwnProps) => {
     const {conversationIDKey, ordinal, previous: previousOrdinal} = ownProps
@@ -183,7 +173,6 @@ export default Container.connect(
     // show send only if its possible we sent while you're looking at it
     const youAreAuthor = _you === author
     const showSendIndicator = youAreAuthor && ordinal !== id
-    const decorate = getDecorate(message)
     const onCancel = allowCancel ? () => dispatchProps._onCancel(conversationIDKey, ordinal) : undefined
     const onRetry =
       allowRetry && !resolveByEdit && outboxID
@@ -197,7 +186,6 @@ export default Container.connect(
 
     return {
       conversationIDKey,
-      decorate,
       exploded: textOrAttachment && !!message.exploded,
       failureDescription,
       forceAsh,
