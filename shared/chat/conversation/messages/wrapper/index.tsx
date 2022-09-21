@@ -148,23 +148,23 @@ const WrapperMessage = (p: Props) => {
 
   const longPressable = useGetLongPress({
     ...p,
-    decorate,
     canFixOverdraw,
+    decorate,
     isPendingPayment,
     message,
-    orangeLineAbove,
     meta,
+    orangeLineAbove,
     popupAnchor,
+    setShowMenuButton,
+    setShowingPicker,
     shouldShowPopup,
     showCenteredHighlight,
+    showMenuButton,
+    showUsername,
+    showingPicker,
     showingPopup,
     toggleShowingPopup,
     youAreAuthor,
-    showMenuButton,
-    setShowMenuButton,
-    showingPicker,
-    showUsername,
-    setShowingPicker,
   })
 
   if (!message) {
@@ -290,7 +290,7 @@ const useGetLongPress = (p: Shared) => {
   const dispatch = Container.useDispatch()
   const onSwipeLeft = React.useCallback(() => {
     canSwipeLeft && dispatch(Chat2Gen.createToggleReplyToMessage({conversationIDKey, ordinal}))
-  }, [canSwipeLeft, conversationIDKey, ordinal])
+  }, [dispatch, canSwipeLeft, conversationIDKey, ordinal])
   const authorAndContent = useAuthorAndContent(p)
 
   const orangeLine = orangeLineAbove ? (
@@ -368,7 +368,7 @@ const useAuthorAndContent = (p: Shared) => {
     } else {
       dispatch(Tracker2Gen.createShowUser({asTracker: true, username}))
     }
-  }, [showUsername])
+  }, [dispatch, showUsername])
 
   const authorRoleInTeam = Container.useSelector(
     state => state.teams.teamIDToMembers.get(teamID)?.get(author)?.type
@@ -539,16 +539,16 @@ const useBottomComponents = (p: Shared, o: {authorIsBot: boolean}) => {
   const dispatch = Container.useDispatch()
   const onCancel = React.useCallback(() => {
     allowCancel && dispatch(Chat2Gen.createMessageDelete({conversationIDKey, ordinal}))
-  }, [allowCancel, conversationIDKey, ordinal])
+  }, [dispatch, allowCancel, conversationIDKey, ordinal])
   const onEdit = React.useCallback(() => {
     resolveByEdit && dispatch(Chat2Gen.createMessageSetEditing({conversationIDKey, ordinal}))
-  }, [conversationIDKey, ordinal])
+  }, [resolveByEdit, dispatch, conversationIDKey, ordinal])
   const onRetry = React.useCallback(() => {
     allowRetry &&
       !resolveByEdit &&
       outboxID &&
       dispatch(Chat2Gen.createMessageRetry({conversationIDKey, outboxID}))
-  }, [conversationIDKey, outboxID])
+  }, [resolveByEdit, allowRetry, dispatch, conversationIDKey, outboxID])
 
   const messageAndButtons = useMessageAndButtons(p, {
     authorIsBot,
