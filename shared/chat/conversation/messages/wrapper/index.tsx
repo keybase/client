@@ -45,8 +45,7 @@ import {formatTimeForChat} from '../../../../util/timestamp'
  */
 
 export type Props = {
-  botAlias: string
-  centeredOrdinal: Types.CenterOrdinalHighlightMode
+  ordinal: Types.Ordinal
   conversationIDKey: Types.ConversationIDKey
   decorate: boolean
   exploded: boolean
@@ -82,10 +81,20 @@ const useGetLongPress = (
     showingPopup: boolean
     toggleShowingPopup: () => void
     popupAnchor: React.MutableRefObject<React.Component<any, {}, any> | null>
+    meta: Types.ConversationMeta
+    message: Types.Message
   }
 ) => {
-  const {isPendingPayment, message, decorate, onSwipeLeft, showUsername, orangeLineAbove} = p
-  const {showCenteredHighlight, canFixOverdraw, showingPopup, toggleShowingPopup, popupAnchor} = o
+  const {isPendingPayment, decorate, onSwipeLeft, showUsername, orangeLineAbove} = p
+  const {
+    showCenteredHighlight,
+    canFixOverdraw,
+    showingPopup,
+    toggleShowingPopup,
+    popupAnchor,
+    message,
+    meta,
+  } = o
   const [showMenuButton, setShowMenuButton] = React.useState(false)
   const [showingPicker, setShowingPicker] = React.useState(false)
 
@@ -96,6 +105,8 @@ const useGetLongPress = (
     setShowingPicker,
     toggleShowingPopup,
     showingPopup,
+    meta,
+    message,
   })
 
   const orangeLine = orangeLineAbove ? (
@@ -286,7 +297,13 @@ const useMessageNode = (p: Props, o: {showCenteredHighlight: boolean; toggleShow
   }
 }
 
-const useHighlightMode = (centeredOrdinal: Types.CenterOrdinalHighlightMode) => {
+const useHighlightMode = (o: {ordinal: Types.Ordinal; conversationIDKey: Types.ConversationIDKey}) => {
+  const {ordinal, conversationIDKey} = o
+  const centeredOrdinalInfo = Container.useSelector(state =>
+    state.chat2.messageCenterOrdinals.get(conversationIDKey)
+  )
+  const centeredOrdinal =
+    centeredOrdinalInfo?.ordinal === ordinal ? centeredOrdinalInfo?.highlightMode : 'none'
   const [disableCenteredHighlight, setDisableCenteredHighlight] = React.useState(false)
   const timeoutIDRef = React.useRef<any>(null)
   const updateHighlightMode = React.useCallback(() => {
@@ -483,10 +500,12 @@ const useAuthorAndContent = (
     showingPopup: boolean
     setShowingPicker: (s: boolean) => void
     toggleShowingPopup: () => void
+    meta: Types.ConversationMeta
+    message: Types.Message
   }
 ) => {
-  const {showUsername, message, isPendingPayment} = p
-  const {onAuthorClick, youAreAuthor, botAlias, showCrowns, conversationIDKey} = p
+  const {showUsername, isPendingPayment} = p
+  const {onAuthorClick, youAreAuthor, showCrowns, conversationIDKey} = p
   const {
     showCenteredHighlight,
     canFixOverdraw,
@@ -494,11 +513,14 @@ const useAuthorAndContent = (
     setShowingPicker,
     toggleShowingPopup,
     showingPopup,
+    meta,
+    message,
   } = o
 
   const {author} = message
-  const meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
-  const {teamID, teamname, teamType} = meta
+  const {teamID, teamname, teamType, botAliases} = meta
+
+  const botAlias = botAliases[author] ?? ''
 
   const authorRoleInTeam = Container.useSelector(
     state => state.teams.teamIDToMembers.get(teamID)?.get(author)?.type
@@ -832,11 +854,18 @@ const messageShowsPopup = (type: Types.Message['type']) =>
     'journeycard',
   ].includes(type)
 
+// If there is no matching message treat it like a deleted
+const missingMessage = Constants.makeMessageDeleted({})
+
 const WrapperMessage = (p: Props) => {
-  const {isPendingPayment, message, centeredOrdinal, orangeLineAbove} = p
+  const {isPendingPayment, orangeLineAbove, conversationIDKey, ordinal} = p
+  const message = Container.useSelector(
+    state => Constants.getMessage(state, conversationIDKey, ordinal) || missingMessage
+  )
+  const meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
   const {measure, shouldShowPopup} = p
   const {type} = message
-  const showCenteredHighlight = useHighlightMode(centeredOrdinal)
+  const showCenteredHighlight = useHighlightMode({conversationIDKey, ordinal})
   const canFixOverdraw = !isPendingPayment && !showCenteredHighlight
   const canFixOverdrawValue = React.useMemo(() => ({canFixOverdraw}), [canFixOverdraw])
   const {toggleShowingPopup, showingPopup, popup, popupAnchor} = Kb.usePopup(attachTo =>
@@ -865,6 +894,8 @@ const WrapperMessage = (p: Props) => {
     showingPopup,
     toggleShowingPopup,
     popupAnchor,
+    message,
+    meta,
   })
 
   if (!message) {

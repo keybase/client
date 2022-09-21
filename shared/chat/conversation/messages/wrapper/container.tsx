@@ -119,7 +119,7 @@ const getDecorate = (message: Types.Message) => {
 export default Container.connect(
   (state, ownProps: OwnProps) => {
     const {conversationIDKey, ordinal, previous: previousOrdinal} = ownProps
-    const {orangeLineMap, unfurlPromptMap, messageCenterOrdinals} = state.chat2
+    const {orangeLineMap, unfurlPromptMap} = state.chat2
     const _participantInfo = Constants.getParticipantInfo(state, conversationIDKey)
     const message = Constants.getMessage(state, conversationIDKey, ordinal) || missingMessage
     const {type, id, author} = message
@@ -127,26 +127,18 @@ export default Container.connect(
       (previousOrdinal && Constants.getMessage(state, conversationIDKey, previousOrdinal)) || undefined
     const orangeLineAbove = orangeLineMap.get(conversationIDKey) === id
     const hasUnfurlPrompts = type === 'text' && !!unfurlPromptMap.get(conversationIDKey)?.get(id)?.size
-    const centeredOrdinalInfo = messageCenterOrdinals.get(conversationIDKey)
-    const centeredOrdinal =
-      centeredOrdinalInfo && centeredOrdinalInfo.ordinal === ordinal
-        ? centeredOrdinalInfo.highlightMode
-        : 'none'
     // TODO: possibly useTeamSubscribe here
     const meta = Constants.getMeta(state, conversationIDKey)
-    const {teamname, teamID, botAliases} = meta
+    const {teamname, teamID} = meta
     const authorIsAdmin = teamname ? TeamConstants.userIsRoleInTeam(state, teamID, author, 'admin') : false
     const authorIsBot = Constants.messageAuthorIsBot(state, meta, message, _participantInfo)
     const authorIsOwner = teamname ? TeamConstants.userIsRoleInTeam(state, teamID, author, 'owner') : false
     const ordinals = Constants.getMessageOrdinals(state, conversationIDKey)
-    const botAlias = botAliases[author] ?? ''
     return {
       _you: state.config.username,
       authorIsAdmin,
       authorIsBot,
       authorIsOwner,
-      botAlias,
-      centeredOrdinal,
       conversationIDKey,
       hasUnfurlPrompts,
       isLastInThread: ordinals[ordinals.length - 1] === ordinal,
@@ -175,8 +167,8 @@ export default Container.connect(
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => {
     const {measure} = ownProps
-    const {authorIsOwner, authorIsBot, authorIsAdmin, message, _you, botAlias} = stateProps
-    const {centeredOrdinal, conversationIDKey, orangeLineAbove, isLastInThread, isPendingPayment} = stateProps
+    const {message, _you} = stateProps
+    const {conversationIDKey, orangeLineAbove, isLastInThread, isPendingPayment} = stateProps
     const {previous, shouldShowPopup, showCoinsIcon, showCrowns, hasUnfurlPrompts} = stateProps
     const showUsername = getUsernameToShow(message, previous, _you, orangeLineAbove)
     // TODO type guard
@@ -204,11 +196,6 @@ export default Container.connect(
     const isJoinLeave = type === 'systemJoined' || type === 'systemLeft'
 
     return {
-      authorIsAdmin,
-      authorIsBot,
-      authorIsOwner,
-      botAlias,
-      centeredOrdinal,
       conversationIDKey,
       decorate,
       exploded: textOrAttachment && !!message.exploded,
@@ -230,6 +217,7 @@ export default Container.connect(
           ? () => dispatchProps._onSwipeLeft(message.conversationIDKey, message.ordinal)
           : undefined,
       orangeLineAbove,
+      ordinal: ownProps.ordinal,
       previous,
       shouldShowPopup,
       showCoinsIcon,
