@@ -679,27 +679,13 @@ const useMessageAndButtons = (
     isExploding: boolean
   }
 ) => {
-  const {
-    ordinal,
-    measure,
-    conversationIDKey,
-    message,
-    shouldShowPopup,
-    showCenteredHighlight,
-    showingPopup,
-    toggleShowingPopup,
-    youAreAuthor,
-    decorate,
-    setShowingPicker,
-    showMenuButton,
-    showUsername,
-  } = p
+  const {showingPopup, toggleShowingPopup, ordinal, measure, conversationIDKey, message, shouldShowPopup} = p
+  const {showCenteredHighlight, youAreAuthor, decorate, setShowingPicker, showMenuButton, showUsername} = p
   const {authorIsBot, hasReactions, isExploding} = o
   const isLastInThread = Container.useSelector(state => {
     const ordinals = Constants.getMessageOrdinals(state, conversationIDKey)
     return ordinals[ordinals.length - 1] === ordinal
   })
-
   const {type, id} = message
   const showSendIndicator = youAreAuthor && message.ordinal !== id
   const showMenuButton2 = !Styles.isMobile && showMenuButton
@@ -710,9 +696,7 @@ const useMessageAndButtons = (
   const sent = (type !== 'text' && type !== 'attachment') || !message.submitState || message.exploded
   const failed = isTextOrAttachment && message.submitState === 'failed'
   const isShowingIndicator = !sent || failed
-
   const showCoinsIcon = Container.useSelector(state => Constants.hasSuccessfulInlinePayments(state, message))
-
   const cachedMenuStylesRef = React.useRef(new Map<string, Styles.StylesCrossPlatform>())
   const menuAreaStyle = (exploded: boolean, exploding: boolean) => {
     const commonWidth = 20
@@ -726,9 +710,7 @@ const useMessageAndButtons = (
     const padding = Styles.globalMargins.tiny
     const width =
       iconSizes.length <= 0 ? 0 : iconSizes.reduce((total, size) => total + size, iconSizes.length * padding)
-
     const key = `${width}:${showUsername ? 1 : 0}:${exploding ? 1 : 0}:${exploded ? 1 : 0}`
-
     if (!cachedMenuStylesRef.current.has(key)) {
       cachedMenuStylesRef.current.set(
         key,
