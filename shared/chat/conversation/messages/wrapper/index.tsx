@@ -45,9 +45,6 @@ import {formatTimeForChat} from '../../../../util/timestamp'
  */
 
 export type Props = {
-  authorIsAdmin?: boolean
-  authorIsOwner?: boolean
-  authorIsBot?: boolean
   botAlias: string
   centeredOrdinal: Types.CenterOrdinalHighlightMode
   conversationIDKey: Types.ConversationIDKey
@@ -334,12 +331,20 @@ const useBottomComponents = (
     setShowingPicker: (s: boolean) => void
     toggleShowingPopup: () => void
     showingPopup: boolean
+    authorIsBot: boolean
   }
 ) => {
   const {message} = p
   const {isPendingPayment, failureDescription, onCancel, onEdit, onRetry, exploded, hasUnfurlPrompts} = p
   const {conversationIDKey, measure} = p
-  const {showCenteredHighlight, showMenuButton, setShowingPicker, toggleShowingPopup, showingPopup} = o
+  const {
+    showCenteredHighlight,
+    showMenuButton,
+    setShowingPicker,
+    toggleShowingPopup,
+    showingPopup,
+    authorIsBot,
+  } = o
   const hasReactions = !!message.reactions?.size || isPendingPayment
   const isExploding = (message.type === 'text' || message.type === 'attachment') && message.exploding
 
@@ -351,6 +356,7 @@ const useBottomComponents = (
     isExploding,
     toggleShowingPopup,
     showingPopup,
+    authorIsBot,
   })
 
   const isEdited = message.hasBeenEdited ? (
@@ -479,8 +485,8 @@ const useAuthorAndContent = (
     toggleShowingPopup: () => void
   }
 ) => {
-  const {showUsername, authorIsOwner, authorIsAdmin, authorIsBot, message, isPendingPayment} = p
-  const {onAuthorClick, youAreAuthor, botAlias, showCrowns} = p
+  const {showUsername, message, isPendingPayment} = p
+  const {onAuthorClick, youAreAuthor, botAlias, showCrowns, conversationIDKey} = p
   const {
     showCenteredHighlight,
     canFixOverdraw,
@@ -489,12 +495,34 @@ const useAuthorAndContent = (
     toggleShowingPopup,
     showingPopup,
   } = o
+
+  const {author} = message
+  const meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
+  const {teamID, teamname, teamType} = meta
+
+  const authorRoleInTeam = Container.useSelector(
+    state => state.teams.teamIDToMembers.get(teamID)?.get(author)?.type
+  )
+
+  const authorIsBot = Container.useSelector(state => {
+    const participantInfoNames = Constants.getParticipantInfo(state, conversationIDKey).name
+    return teamname
+      ? authorRoleInTeam === 'restrictedbot' || authorRoleInTeam === 'bot'
+      : teamType === 'adhoc' && participantInfoNames.length > 0 // teams without info may have type adhoc with an empty participant name list
+      ? !participantInfoNames.includes(author) // if adhoc, check if author in participants
+      : false // if we don't have team information, don't show bot icon
+  })
+
+  const authorIsOwner = authorRoleInTeam === 'owner'
+  const authorIsAdmin = authorRoleInTeam === 'admin'
+
   const children = useBottomComponents(p, {
     showCenteredHighlight,
     showMenuButton,
     setShowingPicker,
     toggleShowingPopup,
     showingPopup,
+    authorIsBot,
   })
 
   if (message.type === 'journeycard') {
@@ -605,12 +633,13 @@ const useMessageAndButtons = (
     isExploding: boolean
     toggleShowingPopup: () => void
     showingPopup: boolean
+    authorIsBot: boolean
   }
 ) => {
-  const {authorIsBot, measure, showCoinsIcon, message, forceAsh, isRevoked, conversationIDKey} = p
+  const {measure, showCoinsIcon, message, forceAsh, isRevoked, conversationIDKey} = p
   const {decorate, isLastInThread, showSendIndicator, showUsername, shouldShowPopup} = p
   const {setShowingPicker, hasReactions, showMenuButton, isExploding, showingPopup} = o
-  const {showCenteredHighlight, toggleShowingPopup} = o
+  const {authorIsBot, showCenteredHighlight, toggleShowingPopup} = o
   const showMenuButton2 = !Styles.isMobile && showMenuButton
 
   const keyedBot = (message.type === 'text' && message.botUsername) || ''
