@@ -128,12 +128,10 @@ export default Container.connect(
       authorIsBot,
       authorIsOwner,
       conversationIDKey,
-      isPendingPayment: Constants.isPendingPaymentMessage(state, message),
       message,
       orangeLineAbove,
       previous,
       shouldShowPopup: Constants.shouldShowPopup(state, message),
-      showCoinsIcon: Constants.hasSuccessfulInlinePayments(state, message),
       showCrowns: true,
     }
   },
@@ -154,8 +152,8 @@ export default Container.connect(
   (stateProps, dispatchProps, ownProps: OwnProps) => {
     const {measure} = ownProps
     const {message, _you} = stateProps
-    const {conversationIDKey, orangeLineAbove, isPendingPayment} = stateProps
-    const {previous, shouldShowPopup, showCoinsIcon, showCrowns} = stateProps
+    const {conversationIDKey, orangeLineAbove} = stateProps
+    const {previous, shouldShowPopup, showCrowns} = stateProps
     const showUsername = getUsernameToShow(message, previous, _you, orangeLineAbove)
     // TODO type guard
     const outboxID: Types.OutboxID | null = (message as any).outboxID || null
@@ -174,7 +172,6 @@ export default Container.connect(
 
     return {
       conversationIDKey,
-      isPendingPayment,
       measure,
       message,
       onAuthorClick: () => dispatchProps._onAuthorClick(showUsername),
@@ -189,7 +186,6 @@ export default Container.connect(
       ordinal: ownProps.ordinal,
       previous,
       shouldShowPopup,
-      showCoinsIcon,
       showCrowns,
       showSendIndicator,
       showUsername,

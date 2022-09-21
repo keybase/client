@@ -49,8 +49,6 @@ export type Props = {
   ordinal: Types.Ordinal
   conversationIDKey: Types.ConversationIDKey
 
-  isPendingPayment: boolean
-  showCoinsIcon: boolean
   showUsername: string
   measure?: () => void
   message: Types.Message
@@ -77,9 +75,10 @@ const useGetLongPress = (
     popupAnchor: React.MutableRefObject<React.Component | null>
     meta: Types.ConversationMeta
     message: Types.Message
+    isPendingPayment: boolean
   }
 ) => {
-  const {isPendingPayment, onSwipeLeft, showUsername, orangeLineAbove} = p
+  const {onSwipeLeft, showUsername, orangeLineAbove} = p
   const {
     canFixOverdraw,
     showCenteredHighlight,
@@ -88,6 +87,7 @@ const useGetLongPress = (
     popupAnchor,
     message,
     meta,
+    isPendingPayment,
   } = o
   const isTextOrAttachment = Constants.isTextOrAttachment(message)
   const [showMenuButton, setShowMenuButton] = React.useState(false)
@@ -98,6 +98,7 @@ const useGetLongPress = (
   const authorAndContent = useAuthorAndContent(p, {
     canFixOverdraw,
     decorate,
+    isPendingPayment,
     message,
     meta,
     setShowingPicker,
@@ -354,9 +355,10 @@ const useBottomComponents = (
     showingPopup: boolean
     authorIsBot: boolean
     decorate: boolean
+    isPendingPayment: boolean
   }
 ) => {
-  const {message, conversationIDKey, measure, isPendingPayment, onCancel, onEdit, onRetry} = p
+  const {message, conversationIDKey, measure, onCancel, onEdit, onRetry} = p
   const {
     decorate,
     showCenteredHighlight,
@@ -365,6 +367,7 @@ const useBottomComponents = (
     toggleShowingPopup,
     showingPopup,
     authorIsBot,
+    isPendingPayment,
   } = o
   const {id, type, errorReason, submitState} = message
   const isTextOrAttachment = Constants.isTextOrAttachment(message)
@@ -537,9 +540,10 @@ const useAuthorAndContent = (
     meta: Types.ConversationMeta
     message: Types.Message
     decorate: boolean
+    isPendingPayment: boolean
   }
 ) => {
-  const {showUsername, isPendingPayment} = p
+  const {showUsername} = p
   const {onAuthorClick, youAreAuthor, showCrowns, conversationIDKey} = p
   const {
     showCenteredHighlight,
@@ -551,6 +555,7 @@ const useAuthorAndContent = (
     meta,
     message,
     decorate,
+    isPendingPayment,
   } = o
 
   const {author} = message
@@ -577,6 +582,7 @@ const useAuthorAndContent = (
   const children = useBottomComponents(p, {
     authorIsBot,
     decorate,
+    isPendingPayment,
     setShowingPicker,
     showCenteredHighlight,
     showMenuButton,
@@ -696,7 +702,7 @@ const useMessageAndButtons = (
     decorate: boolean
   }
 ) => {
-  const {ordinal, measure, showCoinsIcon, message, conversationIDKey} = p
+  const {ordinal, measure, message, conversationIDKey} = p
   const {showSendIndicator, showUsername, shouldShowPopup} = p
   const isLastInThread = Container.useSelector(state => {
     const ordinals = Constants.getMessageOrdinals(state, conversationIDKey)
@@ -713,6 +719,8 @@ const useMessageAndButtons = (
   const sent = (type !== 'text' && type !== 'attachment') || !message.submitState || message.exploded
   const failed = isTextOrAttachment && message.submitState === 'failed'
   const isShowingIndicator = !sent || failed
+
+  const showCoinsIcon = Container.useSelector(state => Constants.hasSuccessfulInlinePayments(state, message))
 
   const cachedMenuStylesRef = React.useRef(new Map<string, Styles.StylesCrossPlatform>())
   const menuAreaStyle = (exploded: boolean, exploding: boolean) => {
@@ -888,13 +896,14 @@ const messageShowsPopup = (type: Types.Message['type']) =>
 const missingMessage = Constants.makeMessageDeleted({})
 
 const WrapperMessage = (p: Props) => {
-  const {isPendingPayment, orangeLineAbove, conversationIDKey, ordinal} = p
+  const {orangeLineAbove, conversationIDKey, ordinal} = p
   const message = Container.useSelector(
     state => Constants.getMessage(state, conversationIDKey, ordinal) || missingMessage
   )
   const meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
   const {measure, shouldShowPopup} = p
   const {type} = message
+  const isPendingPayment = Container.useSelector(state => Constants.isPendingPaymentMessage(state, message))
   const showCenteredHighlight = useHighlightMode({conversationIDKey, ordinal})
   const canFixOverdraw = !isPendingPayment && !showCenteredHighlight
   const canFixOverdrawValue = React.useMemo(() => ({canFixOverdraw}), [canFixOverdraw])
@@ -920,6 +929,7 @@ const WrapperMessage = (p: Props) => {
 
   const longPressable = useGetLongPress(p, {
     canFixOverdraw,
+    isPendingPayment,
     message,
     meta,
     popupAnchor,
