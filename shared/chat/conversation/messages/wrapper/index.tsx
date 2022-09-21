@@ -1,41 +1,41 @@
-import * as Kb from '../../../../common-adapters'
+import * as Constants from '../../../../constants/chat2'
 import * as Container from '../../../../util/container'
+import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../../../styles'
-import * as Constants from '../../../../constants/chat2'
-import type * as Types from '../../../../constants/types/chat2'
-import SystemCreateTeam from '../system-create-team/container'
-import SystemAddedToTeam from '../system-added-to-team/container'
-import SystemChangeRetention from '../system-change-retention/container'
-import SystemGitPush from '../system-git-push/container'
-import SystemInviteAccepted from '../system-invite-accepted/container'
-import SystemJoined from '../system-joined/container'
-import SystemLeft from '../system-left/container'
-import SystemSBSResolved from '../system-sbs-resolve/container'
-import SystemSimpleToComplex from '../system-simple-to-complex/container'
-import SystemText from '../system-text/container'
-import SystemUsersAddedToConv from '../system-users-added-to-conv/container'
-import SystemChangeAvatar from '../system-change-avatar'
-import SystemNewChannel from '../system-new-channel/container'
-import SetDescription from '../set-description/container'
-import Pin from '../pin'
-import SetChannelname from '../set-channelname/container'
-import TextMessage from '../text/container'
-import AttachmentMessage from '../attachment/container'
-import PaymentMessage from '../account-payment/container'
-import MessagePlaceholder from '../placeholder/container'
+import EmojiRow from '../react-button/emoji-row/container'
 import ExplodingHeightRetainer from './exploding-height-retainer'
 import ExplodingMeta from './exploding-meta/container'
 import LongPressable from './long-pressable'
 import MessagePopup from '../message-popup'
 import PendingPaymentBackground from '../account-payment/pending-background'
-import EmojiRow from '../react-button/emoji-row/container'
 import ReactionsRow from '../reactions-row/container'
 import SendIndicator from './send-indicator'
-import UnfurlList from './unfurl/unfurl-list/container'
-import UnfurlPromptList from './unfurl/prompt-list/container'
-import CoinFlip from '../coinflip/container'
-import TeamJourney from '../cards/team-journey/container'
+import type * as Types from '../../../../constants/types/chat2'
+import type AttachmentMessageType from '../attachment/container'
+import type CoinFlipType from '../coinflip/container'
+import type MessagePlaceholderType from '../placeholder/container'
+import type PaymentMessageType from '../account-payment/container'
+import type PinType from '../pin'
+import type SetChannelnameType from '../set-channelname/container'
+import type SetDescriptionType from '../set-description/container'
+import type SystemAddedToTeamType from '../system-added-to-team/container'
+import type SystemChangeAvatarType from '../system-change-avatar'
+import type SystemChangeRetentionType from '../system-change-retention/container'
+import type SystemCreateTeamType from '../system-create-team/container'
+import type SystemGitPushType from '../system-git-push/container'
+import type SystemInviteAcceptedType from '../system-invite-accepted/container'
+import type SystemJoinedType from '../system-joined/container'
+import type SystemLeftType from '../system-left/container'
+import type SystemNewChannelType from '../system-new-channel/container'
+import type SystemSBSResolvedType from '../system-sbs-resolve/container'
+import type SystemSimpleToComplexType from '../system-simple-to-complex/container'
+import type SystemTextType from '../system-text/container'
+import type SystemUsersAddedToConvType from '../system-users-added-to-conv/container'
+import type TeamJourneyType from '../cards/team-journey/container'
+import type TextMessageType from '../text/container'
+import type UnfurlListType from './unfurl/unfurl-list/container'
+import type UnfurlPromptListType from './unfurl/prompt-list/container'
 import {dismiss} from '../../../../util/keyboard'
 import {formatTimeForChat} from '../../../../util/timestamp'
 
@@ -161,9 +161,12 @@ const useMessageNode = (p: Props, o: {showCenteredHighlight: boolean}) => {
   const {message, toggleShowingMenu, youAreAuthor} = p
   const {showCenteredHighlight} = o
   switch (message.type) {
-    case 'text':
+    case 'text': {
+      const TextMessage = require('../text/container').default as typeof TextMessageType
       return <TextMessage isHighlighted={showCenteredHighlight} key="text" message={message} />
-    case 'attachment':
+    }
+    case 'attachment': {
+      const AttachmentMessage = require('../attachment/container').default as typeof AttachmentMessageType
       return (
         <AttachmentMessage
           key="attachment"
@@ -172,18 +175,31 @@ const useMessageNode = (p: Props, o: {showCenteredHighlight: boolean}) => {
           toggleMessageMenu={toggleShowingMenu}
         />
       )
-    case 'requestPayment':
+    }
+    case 'requestPayment': {
+      const PaymentMessage = require('../account-payment/container').default as typeof PaymentMessageType
       return <PaymentMessage key="requestPayment" message={message} />
-    case 'sendPayment':
+    }
+    case 'sendPayment': {
+      const PaymentMessage = require('../account-payment/container').default as typeof PaymentMessageType
       return <PaymentMessage key="sendPayment" message={message} />
-    case 'placeholder':
+    }
+    case 'placeholder': {
+      const MessagePlaceholder = require('../placeholder/container').default as typeof MessagePlaceholderType
       return <MessagePlaceholder key="placeholder" message={message} />
-    case 'systemInviteAccepted':
+    }
+    case 'systemInviteAccepted': {
+      const SystemInviteAccepted = require('../system-invite-accepted/container')
+        .default as typeof SystemInviteAcceptedType
       return <SystemInviteAccepted key="systemInviteAccepted" message={message} />
+    }
     case 'systemSBSResolved':
       if (youAreAuthor) {
+        const SystemSBSResolved = require('../system-sbs-resolve/container')
+          .default as typeof SystemSBSResolvedType
         return <SystemSBSResolved key="systemSbsResolved" message={message} />
       } else {
+        const SystemJoined = require('../system-joined/container').default as typeof SystemJoinedType
         return (
           <SystemJoined
             key="systemJoined"
@@ -191,41 +207,77 @@ const useMessageNode = (p: Props, o: {showCenteredHighlight: boolean}) => {
           />
         )
       }
-    case 'systemSimpleToComplex':
+    case 'systemSimpleToComplex': {
+      const SystemSimpleToComplex = require('../system-simple-to-complex/container')
+        .default as typeof SystemSimpleToComplexType
       return <SystemSimpleToComplex key="systemSimpleToComplex" message={message} />
-    case 'systemGitPush':
+    }
+    case 'systemGitPush': {
+      const SystemGitPush = require('../system-git-push/container').default as typeof SystemGitPushType
       return <SystemGitPush key="systemGitPush" message={message} />
-    case 'systemCreateTeam':
+    }
+    case 'systemCreateTeam': {
+      const SystemCreateTeam = require('../system-create-team/container')
+        .default as typeof SystemCreateTeamType
       return <SystemCreateTeam key="systemCreateTeam" message={message} />
-    case 'systemAddedToTeam':
+    }
+    case 'systemAddedToTeam': {
+      const SystemAddedToTeam = require('../system-added-to-team/container')
+        .default as typeof SystemAddedToTeamType
       return <SystemAddedToTeam key="systemAddedToTeam" message={message} />
-    case 'systemChangeRetention':
+    }
+    case 'systemChangeRetention': {
+      const SystemChangeRetention = require('../system-change-retention/container')
+        .default as typeof SystemChangeRetentionType
       return <SystemChangeRetention key="systemChangeRetention" message={message} />
-    case 'systemUsersAddedToConversation':
+    }
+    case 'systemUsersAddedToConversation': {
+      const SystemUsersAddedToConv = require('../system-users-added-to-conv/container')
+        .default as typeof SystemUsersAddedToConvType
       return <SystemUsersAddedToConv key="systemUsersAddedToConv" message={message} />
-    case 'systemJoined':
+    }
+    case 'systemJoined': {
+      const SystemJoined = require('../system-joined/container').default as typeof SystemJoinedType
       return <SystemJoined key="systemJoined" message={message} />
-    case 'systemText':
+    }
+    case 'systemText': {
+      const SystemText = require('../system-text/container').default as typeof SystemTextType
       return <SystemText key="systemText" message={message} />
-    case 'systemLeft':
+    }
+    case 'systemLeft': {
+      const SystemLeft = require('../system-left/container').default as typeof SystemLeftType
       return <SystemLeft key="systemLeft" message={message} />
-    case 'systemChangeAvatar':
+    }
+    case 'systemChangeAvatar': {
+      const SystemChangeAvatar = require('../system-change-avatar').default as typeof SystemChangeAvatarType
       return <SystemChangeAvatar key="systemChangeAvatar" message={message} />
-    case 'systemNewChannel':
+    }
+    case 'systemNewChannel': {
+      const SystemNewChannel = require('../system-new-channel/container')
+        .default as typeof SystemNewChannelType
       return <SystemNewChannel key="systemNewChannel" message={message} />
-    case 'setDescription':
+    }
+    case 'setDescription': {
+      const SetDescription = require('../set-description/container').default as typeof SetDescriptionType
       return <SetDescription key="setDescription" message={message} />
-    case 'pin':
+    }
+    case 'pin': {
+      const Pin = require('../pin').default as typeof PinType
       return (
         <Pin key="pin" conversationIDKey={message.conversationIDKey} messageID={message.pinnedMessageID} />
       )
-    case 'setChannelname':
+    }
+    case 'setChannelname': {
       // suppress this message for the #general channel, it is redundant.
+      const SetChannelname = require('../set-channelname/container').default as typeof SetChannelnameType
       return message.newChannelname === 'general' ? null : (
         <SetChannelname key="setChannelname" message={message} />
       )
-    case 'journeycard':
+    }
+    case 'journeycard': {
+      const TeamJourney = require('../cards/team-journey/container').default as typeof TeamJourneyType
       return <TeamJourney key="journey" message={message} />
+    }
     case 'deleted':
       return null
     default:
@@ -330,35 +382,52 @@ const useBottomComponents = (
       </Kb.Text>
     ) : null
 
-  const unfurlPrompts = hasUnfurlPrompts ? (
-    <UnfurlPromptList
-      key="UnfurlPromptList"
-      conversationIDKey={conversationIDKey}
-      ordinal={message.ordinal}
-    />
-  ) : null
+  const unfurlPrompts = (() => {
+    if (hasUnfurlPrompts) {
+      const UnfurlPromptList = require('./unfurl/prompt-list/container')
+        .default as typeof UnfurlPromptListType
+      return (
+        <UnfurlPromptList
+          key="UnfurlPromptList"
+          conversationIDKey={conversationIDKey}
+          ordinal={message.ordinal}
+        />
+      )
+    }
+    return null
+  })()
 
-  const unfurlList =
-    message.type === 'text' && message.unfurls && !!message.unfurls.size ? (
-      <UnfurlList
-        key="UnfurlList"
-        conversationIDKey={conversationIDKey}
-        ordinal={message.ordinal}
-        toggleMessagePopup={toggleShowingMenu}
-      />
-    ) : null
+  const unfurlList = (() => {
+    const UnfurlList = require('./unfurl/unfurl-list/container').default as typeof UnfurlListType
+    if (message.type === 'text' && message.unfurls && !!message.unfurls.size) {
+      return (
+        <UnfurlList
+          key="UnfurlList"
+          conversationIDKey={conversationIDKey}
+          ordinal={message.ordinal}
+          toggleMessagePopup={toggleShowingMenu}
+        />
+      )
+    }
+    return null
+  })()
 
-  const coinFlip =
-    message.type === 'text' && !!message.flipGameID ? (
-      <CoinFlip
-        key="CoinFlip"
-        conversationIDKey={conversationIDKey}
-        flipGameID={message.flipGameID}
-        measure={measure}
-        isSendError={!!message.errorReason}
-        text={message.text}
-      />
-    ) : null
+  const coinFlip = (() => {
+    if (message.type === 'text' && !!message.flipGameID) {
+      const CoinFlip = require('../coinflip/container').default as typeof CoinFlipType
+      return (
+        <CoinFlip
+          key="CoinFlip"
+          conversationIDKey={conversationIDKey}
+          flipGameID={message.flipGameID}
+          measure={measure}
+          isSendError={!!message.errorReason}
+          text={message.text}
+        />
+      )
+    }
+    return null
+  })()
 
   const reactionsRow = hasReactions ? (
     <ReactionsRow
@@ -402,6 +471,7 @@ const useAuthorAndContent = (
   const children = useBottomComponents(p, {showCenteredHighlight, showMenuButton, setShowingPicker})
 
   if (message.type === 'journeycard') {
+    const TeamJourney = require('../cards/team-journey/container').default as typeof TeamJourneyType
     return <TeamJourney key="journey" message={message} />
   }
 
