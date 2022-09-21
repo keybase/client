@@ -75,18 +75,20 @@ export type Props = {
   showCrowns: boolean
   showSendIndicator: boolean
   youAreAuthor: boolean
-} & Kb.OverlayParentProps
+}
 
 const useGetLongPress = (
   p: Props,
   o: {
     showCenteredHighlight: boolean
     canFixOverdraw: boolean
+    showingPopup: boolean
+    toggleShowingPopup: () => void
+    popupAnchor: React.MutableRefObject<React.Component<any, {}, any> | null>
   }
 ) => {
-  const {decorate, toggleShowingMenu, onSwipeLeft, showUsername, orangeLineAbove} = p
-  const {isPendingPayment, message, showingMenu, setAttachmentRef} = p
-  const {showCenteredHighlight, canFixOverdraw} = o
+  const {isPendingPayment, message, decorate, onSwipeLeft, showUsername, orangeLineAbove} = p
+  const {showCenteredHighlight, canFixOverdraw, showingPopup, toggleShowingPopup, popupAnchor} = o
   const [showMenuButton, setShowMenuButton] = React.useState(false)
   const [showingPicker, setShowingPicker] = React.useState(false)
 
@@ -95,6 +97,8 @@ const useGetLongPress = (
     showCenteredHighlight,
     showMenuButton,
     setShowingPicker,
+    toggleShowingPopup,
+    showingPopup,
   })
 
   const orangeLine = orangeLineAbove ? (
@@ -118,7 +122,7 @@ const useGetLongPress = (
   if (Styles.isMobile) {
     return (
       <LongPressable
-        onLongPress={decorate ? toggleShowingMenu : undefined}
+        onLongPress={decorate ? toggleShowingPopup : undefined}
         onPress={decorate ? dismissKeyboard : undefined}
         // @ts-ignore bad types
         onSwipeLeft={decorate ? onSwipeLeft : undefined}
@@ -143,23 +147,23 @@ const useGetLongPress = (
           'WrapperMessage-hoverColor': !isPendingPayment,
           'WrapperMessage-noOverflow': isPendingPayment,
           'WrapperMessage-systemMessage': message.type.startsWith('system'),
-          active: showingMenu || showingPicker,
+          active: showingPopup || showingPicker,
         },
         'WrapperMessage-hoverBox'
       )}
-      onContextMenu={toggleShowingMenu}
+      onContextMenu={toggleShowingPopup}
       onMouseOver={onMouseOver}
       // attach popups to the message itself
-      ref={setAttachmentRef}
+      ref={popupAnchor as any}
     >
       {children}
     </LongPressable>
   )
 }
 
-const useMessageNode = (p: Props, o: {showCenteredHighlight: boolean}) => {
-  const {message, toggleShowingMenu, youAreAuthor} = p
-  const {showCenteredHighlight} = o
+const useMessageNode = (p: Props, o: {showCenteredHighlight: boolean; toggleShowingPopup: () => void}) => {
+  const {message, youAreAuthor} = p
+  const {showCenteredHighlight, toggleShowingPopup} = o
   switch (message.type) {
     case 'text': {
       const TextMessage = require('../text/container').default as typeof TextMessageType
@@ -172,7 +176,7 @@ const useMessageNode = (p: Props, o: {showCenteredHighlight: boolean}) => {
           key="attachment"
           message={message}
           isHighlighted={showCenteredHighlight}
-          toggleMessageMenu={toggleShowingMenu}
+          toggleMessageMenu={toggleShowingPopup}
         />
       )
     }
@@ -324,21 +328,29 @@ const useHighlightMode = (centeredOrdinal: Types.CenterOrdinalHighlightMode) => 
 
 const useBottomComponents = (
   p: Props,
-  o: {showCenteredHighlight: boolean; showMenuButton: boolean; setShowingPicker: (s: boolean) => void}
+  o: {
+    showCenteredHighlight: boolean
+    showMenuButton: boolean
+    setShowingPicker: (s: boolean) => void
+    toggleShowingPopup: () => void
+    showingPopup: boolean
+  }
 ) => {
   const {message} = p
   const {isPendingPayment, failureDescription, onCancel, onEdit, onRetry, exploded, hasUnfurlPrompts} = p
-  const {conversationIDKey, toggleShowingMenu, measure} = p
-  const {showCenteredHighlight, showMenuButton, setShowingPicker} = o
+  const {conversationIDKey, measure} = p
+  const {showCenteredHighlight, showMenuButton, setShowingPicker, toggleShowingPopup, showingPopup} = o
   const hasReactions = !!message.reactions?.size || isPendingPayment
   const isExploding = (message.type === 'text' || message.type === 'attachment') && message.exploding
 
   const messageAndButtons = useMessageAndButtons(p, {
-    isExploding,
-    showCenteredHighlight,
     showMenuButton,
     setShowingPicker,
     hasReactions,
+    showCenteredHighlight,
+    isExploding,
+    toggleShowingPopup,
+    showingPopup,
   })
 
   const isEdited = message.hasBeenEdited ? (
@@ -405,7 +417,7 @@ const useBottomComponents = (
           key="UnfurlList"
           conversationIDKey={conversationIDKey}
           ordinal={message.ordinal}
-          toggleMessagePopup={toggleShowingMenu}
+          toggleMessagePopup={toggleShowingPopup}
         />
       )
     }
@@ -462,13 +474,28 @@ const useAuthorAndContent = (
     canFixOverdraw: boolean
     showCenteredHighlight: boolean
     showMenuButton: boolean
+    showingPopup: boolean
     setShowingPicker: (s: boolean) => void
+    toggleShowingPopup: () => void
   }
 ) => {
   const {showUsername, authorIsOwner, authorIsAdmin, authorIsBot, message, isPendingPayment} = p
   const {onAuthorClick, youAreAuthor, botAlias, showCrowns} = p
-  const {showCenteredHighlight, canFixOverdraw, showMenuButton, setShowingPicker} = o
-  const children = useBottomComponents(p, {showCenteredHighlight, showMenuButton, setShowingPicker})
+  const {
+    showCenteredHighlight,
+    canFixOverdraw,
+    showMenuButton,
+    setShowingPicker,
+    toggleShowingPopup,
+    showingPopup,
+  } = o
+  const children = useBottomComponents(p, {
+    showCenteredHighlight,
+    showMenuButton,
+    setShowingPicker,
+    toggleShowingPopup,
+    showingPopup,
+  })
 
   if (message.type === 'journeycard') {
     const TeamJourney = require('../cards/team-journey/container').default as typeof TeamJourneyType
@@ -576,12 +603,14 @@ const useMessageAndButtons = (
     hasReactions: boolean
     showCenteredHighlight: boolean
     isExploding: boolean
+    toggleShowingPopup: () => void
+    showingPopup: boolean
   }
 ) => {
-  const {message, forceAsh, isRevoked, conversationIDKey} = p
-  const {measure, showCoinsIcon, authorIsBot, toggleShowingMenu} = p
-  const {decorate, isLastInThread, showSendIndicator, showUsername, showingMenu, shouldShowPopup} = p
-  const {setShowingPicker, hasReactions, showMenuButton, isExploding, showCenteredHighlight} = o
+  const {authorIsBot, measure, showCoinsIcon, message, forceAsh, isRevoked, conversationIDKey} = p
+  const {decorate, isLastInThread, showSendIndicator, showUsername, shouldShowPopup} = p
+  const {setShowingPicker, hasReactions, showMenuButton, isExploding, showingPopup} = o
+  const {showCenteredHighlight, toggleShowingPopup} = o
   const showMenuButton2 = !Styles.isMobile && showMenuButton
 
   const keyedBot = (message.type === 'text' && message.botUsername) || ''
@@ -621,7 +650,7 @@ const useMessageAndButtons = (
     return cachedMenuStylesRef.current.get(key)
   }
 
-  const messageNode = useMessageNode(p, {showCenteredHighlight})
+  const messageNode = useMessageNode(p, {showCenteredHighlight, toggleShowingPopup})
 
   let exploded = false
   let explodedBy = ''
@@ -672,7 +701,7 @@ const useMessageAndButtons = (
         <ExplodingMeta
           conversationIDKey={conversationIDKey}
           isParentHighlighted={showCenteredHighlight}
-          onClick={toggleShowingMenu}
+          onClick={toggleShowingPopup}
           ordinal={message.ordinal}
         />
       ) : null
@@ -695,7 +724,7 @@ const useMessageAndButtons = (
 
     const showMenu = showMenuButton2 ? (
       <Kb.Box className="WrapperMessage-buttons">
-        {!hasReactions && Constants.isMessageWithReactions(message) && !showingMenu && (
+        {!hasReactions && Constants.isMessageWithReactions(message) && !showingPopup && (
           <EmojiRow
             className="WrapperMessage-emojiButton"
             conversationIDKey={conversationIDKey}
@@ -709,7 +738,7 @@ const useMessageAndButtons = (
           {shouldShowPopup && (
             <Kb.WithTooltip tooltip="More actions..." toastStyle={styles.moreActionsTooltip}>
               <Kb.Box style={styles.ellipsis}>
-                <Kb.Icon type="iconfont-ellipsis" onClick={toggleShowingMenu} />
+                <Kb.Icon type="iconfont-ellipsis" onClick={toggleShowingPopup} />
               </Kb.Box>
             </Kb.WithTooltip>
           )}
@@ -742,7 +771,7 @@ const useMessageAndButtons = (
           <ExplodingMeta
             conversationIDKey={conversationIDKey}
             isParentHighlighted={showCenteredHighlight}
-            onClick={toggleShowingMenu}
+            onClick={toggleShowingPopup}
             ordinal={message.ordinal}
           />
         </Kb.Box2>
@@ -774,26 +803,26 @@ const messageShowsPopup = (type: Types.Message['type']) =>
     'journeycard',
   ].includes(type)
 
-const _WrapperMessage = (p: Props) => {
+const WrapperMessage = (p: Props) => {
   const {isPendingPayment, message, centeredOrdinal, orangeLineAbove} = p
-  const {toggleShowingMenu, measure, shouldShowPopup, getAttachmentRef, showingMenu} = p
+  const {measure, shouldShowPopup} = p
+  const {type} = message
   const showCenteredHighlight = useHighlightMode(centeredOrdinal)
   const canFixOverdraw = !isPendingPayment && !showCenteredHighlight
   const canFixOverdrawValue = React.useMemo(() => ({canFixOverdraw}), [canFixOverdraw])
-
-  const {type} = message
-  const popup =
-    messageShowsPopup(type) && shouldShowPopup && showingMenu ? (
+  const {toggleShowingPopup, showingPopup, popup, popupAnchor} = Kb.usePopup(attachTo =>
+    messageShowsPopup(type) && shouldShowPopup && showingPopup ? (
       <MessagePopup
         key="popup"
-        attachTo={getAttachmentRef}
+        attachTo={attachTo}
         message={message}
-        onHidden={toggleShowingMenu}
+        onHidden={toggleShowingPopup}
         position="top right"
         style={styles.messagePopupContainer}
-        visible={showingMenu}
+        visible={showingPopup}
       />
     ) : null
+  )
 
   const prevMessage = Container.usePrevious(message)
   const prevOrange = Container.usePrevious(orangeLineAbove)
@@ -804,6 +833,9 @@ const _WrapperMessage = (p: Props) => {
   const longPressable = useGetLongPress(p, {
     canFixOverdraw,
     showCenteredHighlight,
+    showingPopup,
+    toggleShowingPopup,
+    popupAnchor,
   })
 
   if (!message) {
@@ -816,8 +848,6 @@ const _WrapperMessage = (p: Props) => {
     </Styles.StyleContext.Provider>
   )
 }
-
-const WrapperMessage = Kb.OverlayParentHOC(_WrapperMessage)
 
 const styles = Styles.styleSheetCreate(
   () =>
