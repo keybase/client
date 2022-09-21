@@ -3,8 +3,6 @@ import * as Constants from '../../../../constants/chat2'
 import * as TeamConstants from '../../../../constants/teams'
 import * as MessageConstants from '../../../../constants/chat2/message'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
-import * as ProfileGen from '../../../../actions/profile-gen'
-import * as Tracker2Gen from '../../../../actions/tracker2-gen'
 import * as Types from '../../../../constants/types/chat2'
 import * as Container from '../../../../util/container'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
@@ -18,61 +16,6 @@ type OwnProps = {
 
 // If there is no matching message treat it like a deleted
 const missingMessage = MessageConstants.makeMessageDeleted({})
-
-// Used to decide whether to show the author for sequential messages
-const authorIsCollapsible = ({type}: Types.Message) =>
-  type === 'text' || type === 'deleted' || type === 'attachment'
-
-const getUsernameToShow = (
-  message: Types.Message,
-  previous: Types.Message | undefined,
-  you: string,
-  orangeLineAbove: boolean
-) => {
-  const {author} = message
-  const sequentialUserMessages =
-    previous?.author === author && authorIsCollapsible(message) && authorIsCollapsible(previous)
-
-  const sequentialBotKeyed =
-    previous?.author === author &&
-    previous.type === 'text' &&
-    message.type === 'text' &&
-    previous.botUsername === message.botUsername &&
-    authorIsCollapsible(message) &&
-    authorIsCollapsible(previous)
-
-  const enoughTimeBetween = MessageConstants.enoughTimeBetweenMessages(message, previous)
-  const timestamp = orangeLineAbove || !previous || enoughTimeBetween ? message.timestamp : null
-  switch (message.type) {
-    case 'attachment':
-    case 'requestPayment':
-    case 'sendPayment':
-    case 'text':
-      return !sequentialBotKeyed || !previous || !sequentialUserMessages || !!timestamp ? author : ''
-    case 'setChannelname':
-      // suppress this message for the #general channel, it is redundant.
-      return (!previous || !sequentialUserMessages || !!timestamp) && message.newChannelname !== 'general'
-        ? author
-        : ''
-    case 'systemAddedToTeam':
-      return message.adder
-    case 'systemInviteAccepted':
-      return message.invitee === you ? '' : message.invitee
-    case 'setDescription':
-      return author
-    case 'pin':
-      return author
-    case 'systemUsersAddedToConversation':
-      return author
-    case 'systemJoined':
-      return message.joiners.length + message.leavers.length > 1 ? '' : author
-    case 'systemSBSResolved':
-      return message.prover
-    case 'journeycard':
-      return 'placeholder'
-  }
-  return author
-}
 
 const getFailureDescriptionAllowCancel = (message: Types.Message, you: string) => {
   let failureDescription = ''
@@ -136,10 +79,6 @@ export default Container.connect(
     }
   },
   dispatch => ({
-    _onAuthorClick: (username: string) =>
-      Container.isMobile
-        ? dispatch(ProfileGen.createShowUserProfile({username}))
-        : dispatch(Tracker2Gen.createShowUser({asTracker: true, username})),
     _onCancel: (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ordinal) =>
       dispatch(Chat2Gen.createMessageDelete({conversationIDKey, ordinal})),
     _onEdit: (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ordinal) =>
@@ -154,7 +93,6 @@ export default Container.connect(
     const {message, _you} = stateProps
     const {conversationIDKey, orangeLineAbove} = stateProps
     const {previous, shouldShowPopup, showCrowns} = stateProps
-    const showUsername = getUsernameToShow(message, previous, _you, orangeLineAbove)
     // TODO type guard
     const outboxID: Types.OutboxID | null = (message as any).outboxID || null
     const {allowCancel, allowRetry, resolveByEdit} = getFailureDescriptionAllowCancel(message, _you)
@@ -174,7 +112,6 @@ export default Container.connect(
       conversationIDKey,
       measure,
       message,
-      onAuthorClick: () => dispatchProps._onAuthorClick(showUsername),
       onCancel,
       onEdit: resolveByEdit ? () => dispatchProps._onEdit(conversationIDKey, ordinal) : undefined,
       onRetry,
@@ -188,7 +125,6 @@ export default Container.connect(
       shouldShowPopup,
       showCrowns,
       showSendIndicator,
-      showUsername,
       youAreAuthor,
     }
   }

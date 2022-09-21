@@ -1,4 +1,6 @@
 import * as Constants from '../../../../constants/chat2'
+import * as ProfileGen from '../../../../actions/profile-gen'
+import * as Tracker2Gen from '../../../../actions/tracker2-gen'
 import * as Container from '../../../../util/container'
 import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
@@ -49,10 +51,8 @@ export type Props = {
   ordinal: Types.Ordinal
   conversationIDKey: Types.ConversationIDKey
 
-  showUsername: string
   measure?: () => void
   message: Types.Message
-  onAuthorClick: () => void
   onCancel?: () => void
   onEdit?: () => void
   onRetry?: () => void
@@ -63,6 +63,61 @@ export type Props = {
   showCrowns: boolean
   showSendIndicator: boolean
   youAreAuthor: boolean
+}
+
+// Used to decide whether to show the author for sequential messages
+const authorIsCollapsible = ({type}: Types.Message) =>
+  type === 'text' || type === 'deleted' || type === 'attachment'
+
+const getUsernameToShow = (
+  message: Types.Message,
+  previous: Types.Message | undefined,
+  you: string,
+  orangeLineAbove: boolean
+) => {
+  const {author} = message
+  const sequentialUserMessages =
+    previous?.author === author && authorIsCollapsible(message) && authorIsCollapsible(previous)
+
+  const sequentialBotKeyed =
+    previous?.author === author &&
+    previous.type === 'text' &&
+    message.type === 'text' &&
+    previous.botUsername === message.botUsername &&
+    authorIsCollapsible(message) &&
+    authorIsCollapsible(previous)
+
+  const enoughTimeBetween = Constants.enoughTimeBetweenMessages(message, previous)
+  const timestamp = orangeLineAbove || !previous || enoughTimeBetween ? message.timestamp : null
+  switch (message.type) {
+    case 'attachment':
+    case 'requestPayment':
+    case 'sendPayment':
+    case 'text':
+      return !sequentialBotKeyed || !previous || !sequentialUserMessages || !!timestamp ? author : ''
+    case 'setChannelname':
+      // suppress this message for the #general channel, it is redundant.
+      return (!previous || !sequentialUserMessages || !!timestamp) && message.newChannelname !== 'general'
+        ? author
+        : ''
+    case 'systemAddedToTeam':
+      return message.adder
+    case 'systemInviteAccepted':
+      return message.invitee === you ? '' : message.invitee
+    case 'setDescription':
+      return author
+    case 'pin':
+      return author
+    case 'systemUsersAddedToConversation':
+      return author
+    case 'systemJoined':
+      return message.joiners.length + message.leavers.length > 1 ? '' : author
+    case 'systemSBSResolved':
+      return message.prover
+    case 'journeycard':
+      return 'placeholder'
+  }
+  return author
 }
 
 const useGetLongPress = (
@@ -78,7 +133,7 @@ const useGetLongPress = (
     isPendingPayment: boolean
   }
 ) => {
-  const {onSwipeLeft, showUsername, orangeLineAbove} = p
+  const {onSwipeLeft, orangeLineAbove, previous} = p
   const {
     canFixOverdraw,
     showCenteredHighlight,
@@ -93,6 +148,9 @@ const useGetLongPress = (
   const [showMenuButton, setShowMenuButton] = React.useState(false)
   const [showingPicker, setShowingPicker] = React.useState(false)
 
+  const you = Container.useSelector(state => state.config.username)
+  const showUsername = getUsernameToShow(message, previous, you, orangeLineAbove)
+
   const decorate = isTextOrAttachment && !message.exploded && !message.errorReason
 
   const authorAndContent = useAuthorAndContent(p, {
@@ -105,6 +163,7 @@ const useGetLongPress = (
     showCenteredHighlight,
     showMenuButton,
     showingPopup,
+    showUsername,
     toggleShowingPopup,
   })
 
@@ -356,6 +415,7 @@ const useBottomComponents = (
     authorIsBot: boolean
     decorate: boolean
     isPendingPayment: boolean
+    showUsername: string
   }
 ) => {
   const {message, conversationIDKey, measure, onCancel, onEdit, onRetry} = p
@@ -368,6 +428,7 @@ const useBottomComponents = (
     showingPopup,
     authorIsBot,
     isPendingPayment,
+    showUsername,
   } = o
   const {id, type, errorReason, submitState} = message
   const isTextOrAttachment = Constants.isTextOrAttachment(message)
@@ -410,6 +471,7 @@ const useBottomComponents = (
     showCenteredHighlight,
     showMenuButton,
     showingPopup,
+    showUsername,
     toggleShowingPopup,
   })
 
@@ -541,10 +603,10 @@ const useAuthorAndContent = (
     message: Types.Message
     decorate: boolean
     isPendingPayment: boolean
+    showUsername: string
   }
 ) => {
-  const {showUsername} = p
-  const {onAuthorClick, youAreAuthor, showCrowns, conversationIDKey} = p
+  const {youAreAuthor, showCrowns, conversationIDKey} = p
   const {
     showCenteredHighlight,
     canFixOverdraw,
@@ -556,12 +618,23 @@ const useAuthorAndContent = (
     message,
     decorate,
     isPendingPayment,
+    showUsername,
   } = o
 
   const {author} = message
   const {teamID, teamname, teamType, botAliases} = meta
 
   const botAlias = botAliases[author] ?? ''
+
+  const dispatch = Container.useDispatch()
+  const onAuthorClick = React.useCallback(() => {
+    const username = showUsername
+    if (Container.isMobile) {
+      dispatch(ProfileGen.createShowUserProfile({username}))
+    } else {
+      dispatch(Tracker2Gen.createShowUser({asTracker: true, username}))
+    }
+  }, [showUsername])
 
   const authorRoleInTeam = Container.useSelector(
     state => state.teams.teamIDToMembers.get(teamID)?.get(author)?.type
@@ -587,6 +660,7 @@ const useAuthorAndContent = (
     showCenteredHighlight,
     showMenuButton,
     showingPopup,
+    showUsername,
     toggleShowingPopup,
   })
 
@@ -700,16 +774,17 @@ const useMessageAndButtons = (
     showingPopup: boolean
     authorIsBot: boolean
     decorate: boolean
+    showUsername: string
   }
 ) => {
   const {ordinal, measure, message, conversationIDKey} = p
-  const {showSendIndicator, showUsername, shouldShowPopup} = p
+  const {showSendIndicator, shouldShowPopup} = p
+  const {setShowingPicker, hasReactions, showMenuButton, isExploding, showingPopup} = o
+  const {authorIsBot, showCenteredHighlight, toggleShowingPopup, decorate, showUsername} = o
   const isLastInThread = Container.useSelector(state => {
     const ordinals = Constants.getMessageOrdinals(state, conversationIDKey)
     return ordinals[ordinals.length - 1] === ordinal
   })
-  const {setShowingPicker, hasReactions, showMenuButton, isExploding, showingPopup} = o
-  const {authorIsBot, showCenteredHighlight, toggleShowingPopup, decorate} = o
   const showMenuButton2 = !Styles.isMobile && showMenuButton
   const {type} = message
   const isTextOrAttachment = Constants.isTextOrAttachment(message)
