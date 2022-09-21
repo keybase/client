@@ -1,3 +1,2 @@
-import Wrapper from './wrapper/container'
-
+import Wrapper from './wrapper'
 export default Wrapper
