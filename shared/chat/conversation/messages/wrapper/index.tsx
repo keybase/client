@@ -81,20 +81,28 @@ const missingMessage = Constants.makeMessageDeleted({})
 
 type Shared = {
   canFixOverdraw: boolean
+  decorate: boolean
   isPendingPayment: boolean
   message: Types.Message
   meta: Types.ConversationMeta
   orangeLineAbove: boolean
   popupAnchor: React.MutableRefObject<React.Component | null>
+  setShowMenuButton: (s: boolean) => void
+  setShowingPicker: (s: boolean) => void
   shouldShowPopup: boolean
   showCenteredHighlight: boolean
+  showMenuButton: boolean
+  showUsername: string
+  showingPicker: boolean
   showingPopup: boolean
   toggleShowingPopup: () => void
   youAreAuthor: boolean
 } & Props
 
 const WrapperMessage = (p: Props) => {
-  const {measure, conversationIDKey, ordinal} = p
+  const {measure, conversationIDKey, ordinal, previous} = p
+  const [showMenuButton, setShowMenuButton] = React.useState(false)
+  const [showingPicker, setShowingPicker] = React.useState(false)
   const message = Container.useSelector(
     state => Constants.getMessage(state, conversationIDKey, ordinal) || missingMessage
   )
@@ -131,8 +139,16 @@ const WrapperMessage = (p: Props) => {
     measure()
   }
 
+  const isTextOrAttachment = Constants.isTextOrAttachment(message)
+  const decorate = isTextOrAttachment && !message.exploded && !message.errorReason
+  const previousMsg = Container.useSelector(
+    state => (previous && Constants.getMessage(state, conversationIDKey, previous)) || undefined
+  )
+  const showUsername = getUsernameToShow(message, previousMsg, you, orangeLineAbove)
+
   const longPressable = useGetLongPress({
     ...p,
+    decorate,
     canFixOverdraw,
     isPendingPayment,
     message,
@@ -144,6 +160,11 @@ const WrapperMessage = (p: Props) => {
     showingPopup,
     toggleShowingPopup,
     youAreAuthor,
+    showMenuButton,
+    setShowMenuButton,
+    showingPicker,
+    showUsername,
+    setShowingPicker,
   })
 
   if (!message) {
@@ -262,30 +283,15 @@ const getUsernameToShow = (
 }
 
 const useGetLongPress = (p: Shared) => {
-  const {showCenteredHighlight, previous, conversationIDKey, ordinal} = p
+  const {showCenteredHighlight, conversationIDKey, ordinal} = p
   const {orangeLineAbove, showingPopup, toggleShowingPopup} = p
-  const {popupAnchor, message, isPendingPayment} = p
-  const isTextOrAttachment = Constants.isTextOrAttachment(message)
-  const [showMenuButton, setShowMenuButton] = React.useState(false)
-  const [showingPicker, setShowingPicker] = React.useState(false)
-  const you = Container.useSelector(state => state.config.username)
-  const previousMsg = Container.useSelector(
-    state => (previous && Constants.getMessage(state, conversationIDKey, previous)) || undefined
-  )
-  const showUsername = getUsernameToShow(message, previousMsg, you, orangeLineAbove)
-  const decorate = isTextOrAttachment && !message.exploded && !message.errorReason
+  const {popupAnchor, message, isPendingPayment, setShowMenuButton, decorate, showUsername, showingPicker} = p
   const canSwipeLeft = message.type !== 'journeycard'
   const dispatch = Container.useDispatch()
   const onSwipeLeft = React.useCallback(() => {
     canSwipeLeft && dispatch(Chat2Gen.createToggleReplyToMessage({conversationIDKey, ordinal}))
   }, [canSwipeLeft, conversationIDKey, ordinal])
-
-  const authorAndContent = useAuthorAndContent(p, {
-    decorate,
-    setShowingPicker,
-    showMenuButton,
-    showUsername,
-  })
+  const authorAndContent = useAuthorAndContent(p)
 
   const orangeLine = orangeLineAbove ? (
     <Kb.Box2
@@ -347,25 +353,9 @@ const useGetLongPress = (p: Shared) => {
   )
 }
 
-const useAuthorAndContent = (
-  p: Shared,
-  o: {
-    decorate: boolean
-    setShowingPicker: (s: boolean) => void
-    showMenuButton: boolean
-    showUsername: string
-  }
-) => {
-  const {
-    canFixOverdraw,
-    conversationIDKey,
-    isPendingPayment,
-    message,
-    meta,
-    showCenteredHighlight,
-    youAreAuthor,
-  } = p
-  const {decorate, setShowingPicker, showMenuButton, showUsername} = o
+const useAuthorAndContent = (p: Shared) => {
+  const {canFixOverdraw, conversationIDKey, isPendingPayment} = p
+  const {showUsername, message, meta, showCenteredHighlight, youAreAuthor} = p
   const {author} = message
   const {teamID, teamname, teamType, botAliases} = meta
   const botAlias = botAliases[author] ?? ''
@@ -396,13 +386,7 @@ const useAuthorAndContent = (
   const authorIsOwner = authorRoleInTeam === 'owner'
   const authorIsAdmin = authorRoleInTeam === 'admin'
 
-  const children = useBottomComponents(p, {
-    authorIsBot,
-    decorate,
-    setShowingPicker,
-    showMenuButton,
-    showUsername,
-  })
+  const children = useBottomComponents(p, {authorIsBot})
 
   if (message.type === 'journeycard') {
     const TeamJourney = require('../cards/team-journey/container').default as typeof TeamJourneyType
@@ -534,26 +518,10 @@ const getFailureDescriptionAllowCancel = (message: Types.Message, you: string) =
   return {allowCancel, allowRetry, failureDescription, resolveByEdit}
 }
 
-const useBottomComponents = (
-  p: Shared,
-  o: {
-    authorIsBot: boolean
-    decorate: boolean
-    setShowingPicker: (s: boolean) => void
-    showMenuButton: boolean
-    showUsername: string
-  }
-) => {
-  const {
-    ordinal,
-    conversationIDKey,
-    measure,
-    showCenteredHighlight,
-    message,
-    toggleShowingPopup,
-    isPendingPayment,
-  } = p
-  const {authorIsBot, decorate, setShowingPicker, showMenuButton, showUsername} = o
+const useBottomComponents = (p: Shared, o: {authorIsBot: boolean}) => {
+  const {ordinal, conversationIDKey, measure, showCenteredHighlight} = p
+  const {message, toggleShowingPopup, isPendingPayment} = p
+  const {authorIsBot} = o
   const {id, type} = message
   const outboxID: Types.OutboxID | null = (message as any).outboxID || null
   const isTextOrAttachment = Constants.isTextOrAttachment(message)
@@ -564,17 +532,14 @@ const useBottomComponents = (
   const hasUnfurlPrompts = Container.useSelector(
     state => type === 'text' && !!state.chat2.unfurlPromptMap.get(conversationIDKey)?.get(id)?.size
   )
-
   const {allowCancel, allowRetry, failureDescription, resolveByEdit} = getFailureDescriptionAllowCancel(
     message,
     you
   )
-
   const dispatch = Container.useDispatch()
   const onCancel = React.useCallback(() => {
     allowCancel && dispatch(Chat2Gen.createMessageDelete({conversationIDKey, ordinal}))
   }, [allowCancel, conversationIDKey, ordinal])
-
   const onEdit = React.useCallback(() => {
     resolveByEdit && dispatch(Chat2Gen.createMessageSetEditing({conversationIDKey, ordinal}))
   }, [conversationIDKey, ordinal])
@@ -587,12 +552,8 @@ const useBottomComponents = (
 
   const messageAndButtons = useMessageAndButtons(p, {
     authorIsBot,
-    decorate,
     hasReactions,
     isExploding,
-    setShowingPicker,
-    showMenuButton,
-    showUsername,
   })
 
   const isEdited = message.hasBeenEdited ? (
@@ -714,12 +675,8 @@ const useMessageAndButtons = (
   p: Shared,
   o: {
     authorIsBot: boolean
-    decorate: boolean
     hasReactions: boolean
     isExploding: boolean
-    setShowingPicker: (s: boolean) => void
-    showMenuButton: boolean
-    showUsername: string
   }
 ) => {
   const {
@@ -732,8 +689,12 @@ const useMessageAndButtons = (
     showingPopup,
     toggleShowingPopup,
     youAreAuthor,
+    decorate,
+    setShowingPicker,
+    showMenuButton,
+    showUsername,
   } = p
-  const {authorIsBot, decorate, hasReactions, isExploding, setShowingPicker, showMenuButton, showUsername} = o
+  const {authorIsBot, hasReactions, isExploding} = o
   const isLastInThread = Container.useSelector(state => {
     const ordinals = Constants.getMessageOrdinals(state, conversationIDKey)
     return ordinals[ordinals.length - 1] === ordinal
