@@ -1,0 +1,24 @@
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/getPathFromState.d.ts b/node_modules/@react-navigation/core/lib/typescript/src/getPathFromState.d.ts
+index c490438..a48ad3b 100644
+--- a/node_modules/@react-navigation/core/lib/typescript/src/getPathFromState.d.ts
++++ b/node_modules/@react-navigation/core/lib/typescript/src/getPathFromState.d.ts
+@@ -1,6 +1,6 @@
+ import type { NavigationState, PartialState } from '@react-navigation/routers';
+ import type { PathConfigMap } from './types';
+-declare type Options<ParamList> = {
++declare type Options<ParamList extends {}> = {
+     initialRouteName?: string;
+     screens: PathConfigMap<ParamList>;
+ };
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/types.d.ts b/node_modules/@react-navigation/core/lib/typescript/src/types.d.ts
+index a116b25..c9db6e0 100644
+--- a/node_modules/@react-navigation/core/lib/typescript/src/types.d.ts
++++ b/node_modules/@react-navigation/core/lib/typescript/src/types.d.ts
+@@ -516,6 +516,6 @@ export declare type PathConfig<ParamList extends {}> = {
+     initialRouteName?: keyof ParamList;
+ };
+ export declare type PathConfigMap<ParamList extends {}> = {
+-    [RouteName in keyof ParamList]?: NonNullable<ParamList[RouteName]> extends NavigatorScreenParams<infer T, any> ? string | PathConfig<T> : string | Omit<PathConfig<{}>, 'screens' | 'initialRouteName'>;
++    [RouteName in keyof ParamList]?: NonNullable<ParamList[RouteName]> extends NavigatorScreenParams<infer T extends {}, any> ? string | PathConfig<T> : string | Omit<PathConfig<{}>, 'screens' | 'initialRouteName'>;
+ };
+ export {};
