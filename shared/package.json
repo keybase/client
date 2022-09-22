@@ -181,6 +181,7 @@
     "@welldone-software/why-did-you-render": "7.0.1",
     "babel-core": "7.0.0-bridge.0",
     "babel-loader": "8.2.5",
+    "babel-plugin-module-resolver": "4.1.0",
     "babel-plugin-react-native-web": "0.18.9",
     "cross-env": "7.0.3",
     "css-loader": "6.7.1",
