@@ -200,26 +200,32 @@ const useHandleKeyEvents = (p: UseHandleKeyEventsProps) => {
 
       let shouldCallParentCallback = true
       // check trigger keys (up, down, enter, tab)
-      if (evt.key === 'ArrowDown') {
-        evt.preventDefault()
-        onMoveRef.current?.(false)
-        shouldCallParentCallback = false
-      } else if (evt.key === 'ArrowUp') {
-        evt.preventDefault()
-        onMoveRef.current?.(true)
-        shouldCallParentCallback = false
-      } else if (evt.key === 'Enter') {
-        evt.preventDefault()
-        shouldCallParentCallback = !onSubmitRef.current?.()
-      } else if (evt.key === 'Tab') {
-        evt.preventDefault()
-        if (filter.length) {
-          onSubmitRef.current?.()
-        } else {
-          // shift held -> move up
-          onMoveRef.current?.(evt.shiftKey)
-        }
-        shouldCallParentCallback = false
+      switch (evt.key) {
+        case 'ArrowDown':
+          evt.preventDefault()
+          onMoveRef.current?.(false)
+          shouldCallParentCallback = false
+          break
+        case 'ArrowUp':
+          evt.preventDefault()
+          onMoveRef.current?.(true)
+          shouldCallParentCallback = false
+          break
+        case 'Enter':
+          if (!(evt.altKey || evt.shiftKey || evt.metaKey)) {
+            evt.preventDefault()
+            shouldCallParentCallback = !onSubmitRef.current?.()
+          }
+          break
+        case 'Tab':
+          evt.preventDefault()
+          if (filter.length) {
+            onSubmitRef.current?.()
+          } else {
+            // shift held -> move up
+            onMoveRef.current?.(evt.shiftKey)
+          }
+          shouldCallParentCallback = false
       }
 
       if (shouldCallParentCallback) {
