@@ -309,6 +309,9 @@ module.exports = {
   get WithTooltip() {
     return require('./with-tooltip').default
   },
+  get ZoomableImage() {
+    return require('./zoomable-image').default
+  },
   get isValidIconType() {
     return require('./icon.shared').isValidIconType
   },

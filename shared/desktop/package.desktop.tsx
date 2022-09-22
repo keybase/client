@@ -55,12 +55,12 @@ const packagerOpts: Options = {
   dir: desktopPath('./build'),
   download: {
     checksums: {
-      'electron-v20.0.3-darwin-arm64.zip': 'cc7f3caf673f17b887d803114494cb15babac1574e246780070cda5d79138004',
-      'electron-v20.0.3-darwin-x64.zip': '6fd3ab4152a609e4923af5776ef8d2c3fb1d1842616706ac3acd1e78fc2cb2a9',
-      'electron-v20.0.3-linux-arm64.zip': '4b92fe8a46c937fcea3f689f5498e6978da763653d2e314001800b436a0e1fe7',
-      'electron-v20.0.3-linux-x64.zip': '2fd2bf1bcfc05ea37b31cab23b4e5a3081b5e974ced16d5fdd34b09e6d70b2e8',
-      'electron-v20.0.3-win32-x64.zip': '77b9879f2d9841a41b4daefd15ab9f342dc798066ecf9964ab0979b4173a2463',
-      'hunspell_dictionaries.zip': '211f39a653f75fc29eaf8b7effcb428d67252c232a5344dd1c7a8ed311062987',
+      'electron-v20.2.0-darwin-arm64.zip': '0d4ea1a4f530b9bee78bd0a78430778a7e8982f78cf1d5ba8daac334a1312ce1',
+      'electron-v20.2.0-darwin-x64.zip': '8cc8ec2823f561493e3ab22b9f73ea01af2f8eea4904af25d74ee91ee4cbfe2f',
+      'electron-v20.2.0-linux-arm64.zip': '1d2dd05f060786eae5ce687794aa071df8a5f5733b7b2efa1481de8db75d7738',
+      'electron-v20.2.0-linux-x64.zip': 'c0e3522de34819b838f4a35ddf30c6283c61be1bb8dff02089cda3f641938aad',
+      'electron-v20.2.0-win32-x64.zip': '6387e61760d0a3dd986df259950b3df2fe16b924ea0bd640d019373b674df492',
+      'hunspell_dictionaries.zip': 'df976a613c05c433fa5db6342a8a8ffd1f7fd192ef6af7d90989bd671c43b938',
     },
   },
   electronVersion: undefined,

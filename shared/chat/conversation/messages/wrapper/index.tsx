@@ -1,42 +1,46 @@
+import * as Constants from '../../../../constants/chat2'
+import * as Chat2Gen from '../../../../actions/chat2-gen'
+import * as ProfileGen from '../../../../actions/profile-gen'
+import * as Tracker2Gen from '../../../../actions/tracker2-gen'
+import * as Container from '../../../../util/container'
 import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../../../styles'
-import * as Constants from '../../../../constants/chat2'
-import type * as Types from '../../../../constants/types/chat2'
-import SystemCreateTeam from '../system-create-team/container'
-import SystemAddedToTeam from '../system-added-to-team/container'
-import SystemChangeRetention from '../system-change-retention/container'
-import SystemGitPush from '../system-git-push/container'
-import SystemInviteAccepted from '../system-invite-accepted/container'
-import SystemJoined from '../system-joined/container'
-import SystemLeft from '../system-left/container'
-import SystemSBSResolved from '../system-sbs-resolve/container'
-import SystemSimpleToComplex from '../system-simple-to-complex/container'
-import SystemText from '../system-text/container'
-import SystemUsersAddedToConv from '../system-users-added-to-conv/container'
-import SystemChangeAvatar from '../system-change-avatar'
-import SystemNewChannel from '../system-new-channel/container'
-import SetDescription from '../set-description/container'
-import Pin from '../pin'
-import SetChannelname from '../set-channelname/container'
-import TextMessage from '../text/container'
-import AttachmentMessage from '../attachment/container'
-import PaymentMessage from '../account-payment/container'
-import MessagePlaceholder from '../placeholder/container'
+import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
+import EmojiRow from '../react-button/emoji-row/container'
 import ExplodingHeightRetainer from './exploding-height-retainer'
 import ExplodingMeta from './exploding-meta/container'
 import LongPressable from './long-pressable'
 import MessagePopup from '../message-popup'
 import PendingPaymentBackground from '../account-payment/pending-background'
-import EmojiRow from '../react-button/emoji-row/container'
 import ReactionsRow from '../reactions-row/container'
 import SendIndicator from './send-indicator'
-import UnfurlList from './unfurl/unfurl-list/container'
-import UnfurlPromptList from './unfurl/prompt-list/container'
-import CoinFlip from '../coinflip/container'
-import TeamJourney from '../cards/team-journey/container'
-import {dismiss as dismissKeyboard} from '../../../../util/keyboard'
-import {memoize} from '../../../../util/memoize'
+import type * as Types from '../../../../constants/types/chat2'
+import type AttachmentMessageType from '../attachment/container'
+import type CoinFlipType from '../coinflip/container'
+import type MessagePlaceholderType from '../placeholder/container'
+import type PaymentMessageType from '../account-payment/container'
+import type PinType from '../pin'
+import type SetChannelnameType from '../set-channelname/container'
+import type SetDescriptionType from '../set-description/container'
+import type SystemAddedToTeamType from '../system-added-to-team/container'
+import type SystemChangeAvatarType from '../system-change-avatar'
+import type SystemChangeRetentionType from '../system-change-retention/container'
+import type SystemCreateTeamType from '../system-create-team/container'
+import type SystemGitPushType from '../system-git-push/container'
+import type SystemInviteAcceptedType from '../system-invite-accepted/container'
+import type SystemJoinedType from '../system-joined/container'
+import type SystemLeftType from '../system-left/container'
+import type SystemNewChannelType from '../system-new-channel/container'
+import type SystemSBSResolvedType from '../system-sbs-resolve/container'
+import type SystemSimpleToComplexType from '../system-simple-to-complex/container'
+import type SystemTextType from '../system-text/container'
+import type SystemUsersAddedToConvType from '../system-users-added-to-conv/container'
+import type TeamJourneyType from '../cards/team-journey/container'
+import type TextMessageType from '../text/container'
+import type UnfurlListType from './unfurl/unfurl-list/container'
+import type UnfurlPromptListType from './unfurl/prompt-list/container'
+import {dismiss} from '../../../../util/keyboard'
 import {formatTimeForChat} from '../../../../util/timestamp'
 
 /**
@@ -45,672 +49,927 @@ import {formatTimeForChat} from '../../../../util/timestamp'
  */
 
 export type Props = {
-  authorIsAdmin?: boolean
-  authorIsOwner?: boolean
-  authorIsBot?: boolean
-  botAlias: string
-  centeredOrdinal: Types.CenterOrdinalHighlightMode
+  ordinal: Types.Ordinal
   conversationIDKey: Types.ConversationIDKey
-  decorate: boolean
-  exploded: boolean
-  failureDescription: string
-  forceAsh: boolean
-  hasUnfurlPrompts: boolean
-  isJoinLeave: boolean
-  isLastInThread: boolean
-  isPendingPayment: boolean
-  isRevoked: boolean
-  showCoinsIcon: boolean
-  showUsername: string
   measure?: () => void
+  previous?: Types.Ordinal
+}
+
+const messageShowsPopup = (type: Types.Message['type']) =>
+  [
+    'text',
+    'attachment',
+    'sendPayment',
+    'requestPayment',
+    'setChannelname',
+    'setDescription',
+    'pin',
+    'systemAddedToTeam',
+    'systemChangeRetention',
+    'systemGitPush',
+    'systemInviteAccepted',
+    'systemSimpleToComplex',
+    'systemSBSResolved',
+    'systemText',
+    'systemUsersAddedToConversation',
+    'systemNewChannel',
+    'journeycard',
+  ].includes(type)
+
+// If there is no matching message treat it like a deleted
+const missingMessage = Constants.makeMessageDeleted({})
+
+type Shared = {
+  canFixOverdraw: boolean
+  decorate: boolean
+  isPendingPayment: boolean
   message: Types.Message
-  onAuthorClick: () => void
-  onCancel?: () => void
-  onEdit?: () => void
-  onRetry?: () => void
-  onSwipeLeft?: () => void
+  meta: Types.ConversationMeta
   orangeLineAbove: boolean
-  previous?: Types.Message
+  popupAnchor: React.MutableRefObject<React.Component | null>
+  setShowMenuButton: (s: boolean) => void
+  setShowingPicker: (s: boolean) => void
   shouldShowPopup: boolean
-  showCrowns: boolean
-  showSendIndicator: boolean
-  youAreAuthor: boolean
-}
-
-type State = {
-  disableCenteredHighlight: boolean
-  showingPicker: boolean
+  showCenteredHighlight: boolean
   showMenuButton: boolean
+  showUsername: string
+  showingPicker: boolean
+  showingPopup: boolean
+  toggleShowingPopup: () => void
+  youAreAuthor: boolean
+} & Props
+
+const WrapperMessage = (p: Props) => {
+  const {measure, conversationIDKey, ordinal, previous} = p
+  const [showMenuButton, setShowMenuButton] = React.useState(false)
+  const [showingPicker, setShowingPicker] = React.useState(false)
+  const message = Container.useSelector(
+    state => Constants.getMessage(state, conversationIDKey, ordinal) || missingMessage
+  )
+
+  const you = Container.useSelector(state => state.config.username)
+  const youAreAuthor = you === message.author
+  const {type, id} = message
+  const orangeLineAbove = Container.useSelector(
+    state => state.chat2.orangeLineMap.get(conversationIDKey) === id
+  )
+  const meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
+  const isPendingPayment = Container.useSelector(state => Constants.isPendingPaymentMessage(state, message))
+  const shouldShowPopup = Container.useSelector(state => Constants.shouldShowPopup(state, message))
+  const showCenteredHighlight = useHighlightMode(p)
+  const canFixOverdraw = !isPendingPayment && !showCenteredHighlight
+  const canFixOverdrawValue = React.useMemo(() => ({canFixOverdraw}), [canFixOverdraw])
+  const {toggleShowingPopup, showingPopup, popup, popupAnchor} = Kb.usePopup(attachTo =>
+    messageShowsPopup(type) && shouldShowPopup && showingPopup ? (
+      <MessagePopup
+        key="popup"
+        attachTo={attachTo}
+        message={message}
+        onHidden={toggleShowingPopup}
+        position="top right"
+        style={styles.messagePopupContainer}
+        visible={showingPopup}
+      />
+    ) : null
+  )
+
+  const prevMessage = Container.usePrevious2(message)
+  const prevOrange = Container.usePrevious2(orangeLineAbove)
+  if (measure && (message !== prevMessage || prevOrange !== orangeLineAbove)) {
+    measure()
+  }
+
+  const isTextOrAttachment = Constants.isTextOrAttachment(message)
+  const decorate = isTextOrAttachment && !message.exploded && !message.errorReason
+  const previousMsg = Container.useSelector(
+    state => (previous && Constants.getMessage(state, conversationIDKey, previous)) || undefined
+  )
+  const showUsername = getUsernameToShow(message, previousMsg, you, orangeLineAbove)
+
+  const longPressable = useGetLongPress({
+    ...p,
+    canFixOverdraw,
+    decorate,
+    isPendingPayment,
+    message,
+    meta,
+    orangeLineAbove,
+    popupAnchor,
+    setShowMenuButton,
+    setShowingPicker,
+    shouldShowPopup,
+    showCenteredHighlight,
+    showMenuButton,
+    showUsername,
+    showingPicker,
+    showingPopup,
+    toggleShowingPopup,
+    youAreAuthor,
+  })
+
+  if (!message) {
+    return null
+  }
+  return (
+    <Styles.StyleContext.Provider value={canFixOverdrawValue}>
+      {longPressable}
+      {popup}
+    </Styles.StyleContext.Provider>
+  )
 }
 
-class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, State> {
-  private mounted = false
-  state = {
-    disableCenteredHighlight: false,
-    showMenuButton: false,
-    showingPicker: false,
-  }
-
-  componentDidMount() {
-    this.mounted = true
-    this.updateHighlightMode()
-  }
-
-  componentWillUnmount() {
-    this.mounted = false
-  }
-
-  componentDidUpdate(prevProps: Props) {
-    if (this.props.centeredOrdinal !== prevProps.centeredOrdinal) {
-      this.updateHighlightMode()
+const useHighlightMode = (p: Props) => {
+  const {ordinal, conversationIDKey} = p
+  const centeredOrdinalInfo = Container.useSelector(state =>
+    state.chat2.messageCenterOrdinals.get(conversationIDKey)
+  )
+  const centeredOrdinalType =
+    centeredOrdinalInfo?.ordinal === ordinal ? centeredOrdinalInfo?.highlightMode : undefined
+  const [disableCenteredHighlight, setDisableCenteredHighlight] = React.useState(false)
+  const timeoutIDRef = React.useRef<any>(null)
+  const updateHighlightMode = React.useCallback(() => {
+    if (disableCenteredHighlight) {
+      return
     }
-    if (this.props.measure) {
-      const changed =
-        this.props.orangeLineAbove !== prevProps.orangeLineAbove || this.props.message !== prevProps.message
-
-      if (changed) {
-        this.props.measure()
-      }
-    }
-  }
-  private updateHighlightMode = () => {
-    switch (this.props.centeredOrdinal) {
+    switch (centeredOrdinalType) {
       case 'flash':
-        this.setState({disableCenteredHighlight: false})
-        setTimeout(() => {
-          if (this.mounted) {
-            this.setState({disableCenteredHighlight: true})
-          }
+        setDisableCenteredHighlight(false)
+        clearTimeout(timeoutIDRef.current)
+        timeoutIDRef.current = setTimeout(() => {
+          setDisableCenteredHighlight(true)
+          timeoutIDRef.current = 0
         }, 2000)
         break
       case 'always':
-        this.setState({disableCenteredHighlight: false})
+        setDisableCenteredHighlight(false)
         break
     }
-  }
-  private showCenteredHighlight = () =>
-    !this.state.disableCenteredHighlight && this.props.centeredOrdinal !== 'none'
-  private onMouseOver = () => this.setState(o => (o.showMenuButton ? null : {showMenuButton: true}))
-  private setShowingPicker = (showingPicker: boolean) =>
-    this.setState(s => (s.showingPicker === showingPicker ? null : {showingPicker}))
-  private dismissKeyboard = () => dismissKeyboard()
-  private orangeLine = () =>
-    this.props.orangeLineAbove && (
-      <Kb.Box2
-        key="orangeLine"
-        direction="vertical"
-        style={Styles.collapseStyles([
-          styles.orangeLine,
-          !this.props.showUsername && styles.orangeLineCompensationLeft,
-        ])}
-      />
-    )
-  private onAuthorClick = () => this.props.onAuthorClick()
-  private isExploding = () =>
-    (this.props.message.type === 'text' || this.props.message.type === 'attachment') &&
-    this.props.message.exploding
+  }, [disableCenteredHighlight, setDisableCenteredHighlight, centeredOrdinalType])
 
-  private canFixOverdraw = () => !this.props.isPendingPayment && !this.showCenteredHighlight()
-  private canFixOverdrawValue = memoize((canFixOverdraw: boolean) => ({canFixOverdraw}))
-
-  private authorAndContent = (children: React.ReactNode) => {
-    let result
-    const username = (
-      <Kb.ConnectedUsernames
-        colorBroken={true}
-        colorFollowing={true}
-        colorYou={true}
-        onUsernameClicked={this.onAuthorClick}
-        fixOverdraw={this.canFixOverdraw()}
-        style={
-          this.showCenteredHighlight() && this.props.youAreAuthor ? styles.usernameHighlighted : undefined
-        }
-        type="BodySmallBold"
-        usernames={this.props.showUsername}
-        virtualText={true}
-      />
-    )
-    if (this.props.showUsername) {
-      result = (
-        <React.Fragment key="authorAndContent">
-          <Kb.Box2 key="author" direction="horizontal" style={styles.authorContainer} gap="tiny">
-            <Kb.Avatar
-              size={32}
-              username={this.props.showUsername}
-              skipBackground={true}
-              onClick={this.onAuthorClick}
-              style={styles.avatar}
-            />
-            <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true} style={styles.usernameCrown}>
-              {this.props.botAlias ? (
-                <Kb.Box2 direction="horizontal">
-                  <Kb.Text type="BodySmallBold" style={styles.botAlias} lineClamp={1}>
-                    {this.props.botAlias}
-                  </Kb.Text>
-                  <Kb.Text type="BodySmallBold" style={{color: Styles.globalColors.black}}>
-                    &nbsp;[
-                  </Kb.Text>
-                  {username}
-                  <Kb.Text type="BodySmallBold" style={{color: Styles.globalColors.black}}>
-                    ]
-                  </Kb.Text>
-                </Kb.Box2>
-              ) : (
-                username
-              )}
-              {this.props.showCrowns && (this.props.authorIsOwner || this.props.authorIsAdmin) && (
-                <Kb.WithTooltip tooltip={this.props.authorIsOwner ? 'Owner' : 'Admin'}>
-                  <Kb.Icon
-                    color={
-                      this.props.authorIsOwner ? Styles.globalColors.yellowDark : Styles.globalColors.black_35
-                    }
-                    fontSize={10}
-                    type="iconfont-crown-owner"
-                  />
-                </Kb.WithTooltip>
-              )}
-              {this.props.authorIsBot && (
-                <Kb.WithTooltip tooltip="Bot">
-                  <Kb.Icon fontSize={13} color={Styles.globalColors.black_35} type="iconfont-bot" />
-                </Kb.WithTooltip>
-              )}
-              <Kb.Text
-                type="BodyTiny"
-                fixOverdraw={this.canFixOverdraw()}
-                virtualText={true}
-                style={Styles.collapseStyles([this.showCenteredHighlight() && styles.timestampHighlighted])}
-              >
-                {formatTimeForChat(this.props.message.timestamp)}
-              </Kb.Text>
-            </Kb.Box2>
-          </Kb.Box2>
-          <Kb.Box2
-            key="content"
-            direction="vertical"
-            fullWidth={true}
-            style={styles.contentUnderAuthorContainer}
-          >
-            {children}
-          </Kb.Box2>
-        </React.Fragment>
-      )
-    } else {
-      result = children
+  React.useEffect(() => {
+    return () => {
+      clearTimeout(timeoutIDRef.current)
     }
+  })
 
-    return this.props.isPendingPayment ? (
-      <PendingPaymentBackground key="pendingBackground">{result}</PendingPaymentBackground>
+  React.useEffect(() => {
+    updateHighlightMode()
+    // once on mount only
+    // eslint-disable-next-line
+  }, [])
+
+  const prevCenteredOrdinalTypeRef = React.useRef(centeredOrdinalType)
+  if (centeredOrdinalType && prevCenteredOrdinalTypeRef.current !== centeredOrdinalType) {
+    prevCenteredOrdinalTypeRef.current = centeredOrdinalType
+    updateHighlightMode()
+  }
+
+  return !disableCenteredHighlight && centeredOrdinalType !== undefined
+}
+
+// Used to decide whether to show the author for sequential messages
+const authorIsCollapsible = ({type}: Types.Message) =>
+  type === 'text' || type === 'deleted' || type === 'attachment'
+
+const getUsernameToShow = (
+  message: Types.Message,
+  previous: Types.Message | undefined,
+  you: string,
+  orangeLineAbove: boolean
+) => {
+  const {author} = message
+  const sequentialUserMessages =
+    previous?.author === author && authorIsCollapsible(message) && authorIsCollapsible(previous)
+
+  const sequentialBotKeyed =
+    previous?.author === author &&
+    previous.type === 'text' &&
+    message.type === 'text' &&
+    previous.botUsername === message.botUsername &&
+    authorIsCollapsible(message) &&
+    authorIsCollapsible(previous)
+
+  const enoughTimeBetween = Constants.enoughTimeBetweenMessages(message, previous)
+  const timestamp = orangeLineAbove || !previous || enoughTimeBetween ? message.timestamp : null
+  switch (message.type) {
+    case 'attachment':
+    case 'requestPayment':
+    case 'sendPayment':
+    case 'text':
+      return !sequentialBotKeyed || !previous || !sequentialUserMessages || !!timestamp ? author : ''
+    case 'setChannelname':
+      // suppress this message for the #general channel, it is redundant.
+      return (!previous || !sequentialUserMessages || !!timestamp) && message.newChannelname !== 'general'
+        ? author
+        : ''
+    case 'systemAddedToTeam':
+      return message.adder
+    case 'systemInviteAccepted':
+      return message.invitee === you ? '' : message.invitee
+    case 'setDescription':
+      return author
+    case 'pin':
+      return author
+    case 'systemUsersAddedToConversation':
+      return author
+    case 'systemJoined':
+      return message.joiners.length + message.leavers.length > 1 ? '' : author
+    case 'systemSBSResolved':
+      return message.prover
+    case 'journeycard':
+      return 'placeholder'
+  }
+  return author
+}
+
+const useGetLongPress = (p: Shared) => {
+  const {showCenteredHighlight, conversationIDKey, ordinal} = p
+  const {orangeLineAbove, showingPopup, toggleShowingPopup} = p
+  const {popupAnchor, message, isPendingPayment, setShowMenuButton, decorate, showUsername, showingPicker} = p
+  const canSwipeLeft = message.type !== 'journeycard'
+  const dispatch = Container.useDispatch()
+  const onSwipeLeft = React.useCallback(() => {
+    canSwipeLeft && dispatch(Chat2Gen.createToggleReplyToMessage({conversationIDKey, ordinal}))
+  }, [dispatch, canSwipeLeft, conversationIDKey, ordinal])
+  const authorAndContent = useAuthorAndContent(p)
+
+  const orangeLine = orangeLineAbove ? (
+    <Kb.Box2
+      key="orangeLine"
+      direction="vertical"
+      style={Styles.collapseStyles([styles.orangeLine, !showUsername && styles.orangeLineCompensationLeft])}
+    />
+  ) : null
+
+  const children = (
+    <>
+      {authorAndContent}
+      {orangeLine}
+    </>
+  )
+
+  const dismissKeyboard = React.useCallback(() => dismiss(), [])
+  const onMouseOver = React.useCallback(() => setShowMenuButton(true), [setShowMenuButton])
+
+  if (Styles.isMobile) {
+    return (
+      <LongPressable
+        onLongPress={decorate ? toggleShowingPopup : undefined}
+        onPress={decorate ? dismissKeyboard : undefined}
+        // @ts-ignore bad types
+        onSwipeLeft={decorate && canSwipeLeft ? onSwipeLeft : undefined}
+        style={Styles.collapseStyles([
+          styles.container,
+          showCenteredHighlight && styles.centeredOrdinal,
+          !showUsername && styles.containerNoUsername,
+        ] as const)}
+      >
+        {children}
+      </LongPressable>
+    )
+  }
+  return (
+    <LongPressable
+      // @ts-ignore bad types
+      className={Styles.classNames(
+        {
+          'WrapperMessage-author': showUsername,
+          'WrapperMessage-centered': showCenteredHighlight,
+          'WrapperMessage-decorated': decorate,
+          'WrapperMessage-hoverColor': !isPendingPayment,
+          'WrapperMessage-noOverflow': isPendingPayment,
+          'WrapperMessage-systemMessage': message.type.startsWith('system'),
+          active: showingPopup || showingPicker,
+        },
+        'WrapperMessage-hoverBox'
+      )}
+      onContextMenu={toggleShowingPopup}
+      onMouseOver={onMouseOver}
+      // attach popups to the message itself
+      ref={popupAnchor as any}
+    >
+      {children}
+    </LongPressable>
+  )
+}
+
+const useAuthorAndContent = (p: Shared) => {
+  const {canFixOverdraw, conversationIDKey, isPendingPayment} = p
+  const {showUsername, message, meta, showCenteredHighlight, youAreAuthor} = p
+  const {author} = message
+  const {teamID, teamname, teamType, botAliases} = meta
+  const botAlias = botAliases[author] ?? ''
+
+  const dispatch = Container.useDispatch()
+  const onAuthorClick = React.useCallback(() => {
+    const username = showUsername
+    if (Container.isMobile) {
+      dispatch(ProfileGen.createShowUserProfile({username}))
+    } else {
+      dispatch(Tracker2Gen.createShowUser({asTracker: true, username}))
+    }
+  }, [dispatch, showUsername])
+
+  const authorRoleInTeam = Container.useSelector(
+    state => state.teams.teamIDToMembers.get(teamID)?.get(author)?.type
+  )
+
+  const authorIsBot = Container.useSelector(state => {
+    const participantInfoNames = Constants.getParticipantInfo(state, conversationIDKey).name
+    return teamname
+      ? authorRoleInTeam === 'restrictedbot' || authorRoleInTeam === 'bot'
+      : teamType === 'adhoc' && participantInfoNames.length > 0 // teams without info may have type adhoc with an empty participant name list
+      ? !participantInfoNames.includes(author) // if adhoc, check if author in participants
+      : false // if we don't have team information, don't show bot icon
+  })
+
+  const authorIsOwner = authorRoleInTeam === 'owner'
+  const authorIsAdmin = authorRoleInTeam === 'admin'
+
+  const children = useBottomComponents(p, {authorIsBot})
+
+  if (message.type === 'journeycard') {
+    const TeamJourney = require('../cards/team-journey/container').default as typeof TeamJourneyType
+    return <TeamJourney key="journey" message={message} />
+  }
+
+  if (!showUsername) {
+    return isPendingPayment ? (
+      <PendingPaymentBackground key="pendingBackground">{children}</PendingPaymentBackground>
     ) : (
-      result
+      children
     )
   }
 
-  private isEdited = () =>
-    this.props.message.hasBeenEdited && (
-      <Kb.Text
-        key="isEdited"
-        type="BodyTiny"
-        style={Styles.collapseStyles([
-          styles.edited,
-          this.showCenteredHighlight() && styles.editedHighlighted,
-        ])}
-      >
-        EDITED
-      </Kb.Text>
-    )
+  const username = (
+    <Kb.ConnectedUsernames
+      colorBroken={true}
+      colorFollowing={true}
+      colorYou={true}
+      onUsernameClicked={onAuthorClick}
+      fixOverdraw={canFixOverdraw}
+      style={showCenteredHighlight && youAreAuthor ? styles.usernameHighlighted : undefined}
+      type="BodySmallBold"
+      usernames={showUsername}
+      virtualText={true}
+    />
+  )
 
-  private isFailed = () =>
-    // hide error messages if the exploding message already exploded
-    !!this.props.failureDescription &&
-    !(this.isExploding() && this.props.exploded) && (
+  const botAliasOrUsername = botAlias ? (
+    <Kb.Box2 direction="horizontal">
+      <Kb.Text type="BodySmallBold" style={styles.botAlias} lineClamp={1}>
+        {botAlias}
+      </Kb.Text>
+      <Kb.Text type="BodySmallBold" style={{color: Styles.globalColors.black}}>
+        &nbsp;[
+      </Kb.Text>
+      {username}
+      <Kb.Text type="BodySmallBold" style={{color: Styles.globalColors.black}}>
+        ]
+      </Kb.Text>
+    </Kb.Box2>
+  ) : (
+    username
+  )
+
+  const ownerAdminTooltipIcon =
+    authorIsOwner || authorIsAdmin ? (
+      <Kb.WithTooltip tooltip={authorIsOwner ? 'Owner' : 'Admin'}>
+        <Kb.Icon
+          color={authorIsOwner ? Styles.globalColors.yellowDark : Styles.globalColors.black_35}
+          fontSize={10}
+          type="iconfont-crown-owner"
+        />
+      </Kb.WithTooltip>
+    ) : null
+
+  const botIcon = authorIsBot ? (
+    <Kb.WithTooltip tooltip="Bot">
+      <Kb.Icon fontSize={13} color={Styles.globalColors.black_35} type="iconfont-bot" />
+    </Kb.WithTooltip>
+  ) : null
+
+  const content = (
+    <React.Fragment key="authorAndContent">
+      <Kb.Box2 key="author" direction="horizontal" style={styles.authorContainer} gap="tiny">
+        <Kb.Avatar
+          size={32}
+          username={showUsername}
+          skipBackground={true}
+          onClick={onAuthorClick}
+          style={styles.avatar}
+        />
+        <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true} style={styles.usernameCrown}>
+          {botAliasOrUsername}
+          {ownerAdminTooltipIcon}
+          {botIcon}
+          <Kb.Text
+            type="BodyTiny"
+            fixOverdraw={canFixOverdraw}
+            virtualText={true}
+            style={Styles.collapseStyles([showCenteredHighlight && styles.timestampHighlighted])}
+          >
+            {formatTimeForChat(message.timestamp)}
+          </Kb.Text>
+        </Kb.Box2>
+      </Kb.Box2>
+      <Kb.Box2 key="content" direction="vertical" fullWidth={true} style={styles.contentUnderAuthorContainer}>
+        {children}
+      </Kb.Box2>
+    </React.Fragment>
+  )
+
+  return isPendingPayment ? (
+    <PendingPaymentBackground key="pendingBackground">{content}</PendingPaymentBackground>
+  ) : (
+    content
+  )
+}
+
+const getFailureDescriptionAllowCancel = (message: Types.Message, you: string) => {
+  let failureDescription = ''
+  let allowCancel = false
+  let allowRetry = false
+  let resolveByEdit = false
+  const {type, errorReason} = message
+  if ((type === 'text' || type === 'attachment') && errorReason) {
+    failureDescription = errorReason
+    if (you && ['pending', 'failed'].includes(message.submitState as string)) {
+      // This is a message still in the outbox, we can retry/edit to fix, but
+      // for flip messages, don't allow retry/cancel
+      allowCancel = allowRetry =
+        message.type === 'attachment' || (message.type === 'text' && !message.flipGameID)
+      const messageType = type === 'attachment' ? 'attachment' : 'message'
+      failureDescription = `This ${messageType} failed to send`
+      resolveByEdit = !!message.outboxID && !!you && message.errorTyp === RPCChatTypes.OutboxErrorType.toolong
+      if (resolveByEdit) {
+        failureDescription += `, ${errorReason}`
+      }
+      if (!!message.outboxID && !!you) {
+        switch (message.errorTyp) {
+          case RPCChatTypes.OutboxErrorType.minwriter:
+          case RPCChatTypes.OutboxErrorType.restrictedbot:
+            failureDescription = `Unable to send, ${errorReason}`
+            allowRetry = false
+        }
+      }
+    }
+  }
+  return {allowCancel, allowRetry, failureDescription, resolveByEdit}
+}
+
+const useBottomComponents = (p: Shared, o: {authorIsBot: boolean}) => {
+  const {ordinal, conversationIDKey, measure, showCenteredHighlight} = p
+  const {message, toggleShowingPopup, isPendingPayment} = p
+  const {authorIsBot} = o
+  const {id, type} = message
+  const outboxID: Types.OutboxID | null = (message as any).outboxID || null
+  const isTextOrAttachment = Constants.isTextOrAttachment(message)
+  const hasReactions = !!message.reactions?.size || isPendingPayment
+  const exploded = isTextOrAttachment && !!message.exploded
+  const isExploding = isTextOrAttachment && message.exploding
+  const you = Container.useSelector(state => state.config.username)
+  const hasUnfurlPrompts = Container.useSelector(
+    state => type === 'text' && !!state.chat2.unfurlPromptMap.get(conversationIDKey)?.get(id)?.size
+  )
+  const {allowCancel, allowRetry, failureDescription, resolveByEdit} = getFailureDescriptionAllowCancel(
+    message,
+    you
+  )
+  const dispatch = Container.useDispatch()
+  const onCancel = React.useCallback(() => {
+    allowCancel && dispatch(Chat2Gen.createMessageDelete({conversationIDKey, ordinal}))
+  }, [dispatch, allowCancel, conversationIDKey, ordinal])
+  const onEdit = React.useCallback(() => {
+    resolveByEdit && dispatch(Chat2Gen.createMessageSetEditing({conversationIDKey, ordinal}))
+  }, [resolveByEdit, dispatch, conversationIDKey, ordinal])
+  const onRetry = React.useCallback(() => {
+    allowRetry &&
+      !resolveByEdit &&
+      outboxID &&
+      dispatch(Chat2Gen.createMessageRetry({conversationIDKey, outboxID}))
+  }, [resolveByEdit, allowRetry, dispatch, conversationIDKey, outboxID])
+
+  const messageAndButtons = useMessageAndButtons(p, {
+    authorIsBot,
+    hasReactions,
+    isExploding,
+  })
+
+  const isEdited = message.hasBeenEdited ? (
+    <Kb.Text
+      key="isEdited"
+      type="BodyTiny"
+      style={Styles.collapseStyles([styles.edited, showCenteredHighlight && styles.editedHighlighted])}
+    >
+      EDITED
+    </Kb.Text>
+  ) : null
+
+  // hide error messages if the exploding message already exploded
+  const isFailed =
+    !!failureDescription && !(isExploding && exploded) ? (
       <Kb.Text key="isFailed" type="BodySmall">
-        <Kb.Text type="BodySmall" style={this.isExploding() ? styles.failExploding : styles.fail}>
-          {this.isExploding() && (
+        <Kb.Text type="BodySmall" style={isExploding ? styles.failExploding : styles.fail}>
+          {isExploding && (
             <>
               <Kb.Icon fontSize={16} boxStyle={styles.failExplodingIcon} type="iconfont-block" />{' '}
             </>
           )}
-          {this.props.failureDescription}.{' '}
+          {failureDescription}.{' '}
         </Kb.Text>
-        {!!this.props.onCancel && (
-          <Kb.Text type="BodySmall" style={styles.failUnderline} onClick={this.props.onCancel}>
+        {!!onCancel && (
+          <Kb.Text type="BodySmall" style={styles.failUnderline} onClick={onCancel}>
             Cancel
           </Kb.Text>
         )}
-        {!!this.props.onCancel && (!!this.props.onEdit || !!this.props.onRetry) && (
-          <Kb.Text type="BodySmall"> or </Kb.Text>
-        )}
-        {!!this.props.onEdit && (
-          <Kb.Text type="BodySmall" style={styles.failUnderline} onClick={this.props.onEdit}>
+        {!!onCancel && (!!onEdit || !!onRetry) && <Kb.Text type="BodySmall"> or </Kb.Text>}
+        {!!onEdit && (
+          <Kb.Text type="BodySmall" style={styles.failUnderline} onClick={onEdit}>
             Edit
           </Kb.Text>
         )}
-        {!!this.props.onRetry && (
-          <Kb.Text type="BodySmall" style={styles.failUnderline} onClick={this.props.onRetry}>
+        {!!onRetry && (
+          <Kb.Text type="BodySmall" style={styles.failUnderline} onClick={onRetry}>
             Retry
           </Kb.Text>
         )}
       </Kb.Text>
-    )
+    ) : null
 
-  private unfurlPrompts = () =>
-    this.props.hasUnfurlPrompts && (
-      <UnfurlPromptList
-        key="UnfurlPromptList"
-        conversationIDKey={this.props.conversationIDKey}
-        ordinal={this.props.message.ordinal}
-      />
-    )
+  const unfurlPrompts = (() => {
+    if (hasUnfurlPrompts) {
+      const UnfurlPromptList = require('./unfurl/prompt-list/container')
+        .default as typeof UnfurlPromptListType
+      return (
+        <UnfurlPromptList
+          key="UnfurlPromptList"
+          conversationIDKey={conversationIDKey}
+          ordinal={message.ordinal}
+        />
+      )
+    }
+    return null
+  })()
 
-  private unfurlList = () =>
-    this.props.message.type === 'text' &&
-    this.props.message.unfurls &&
-    !!this.props.message.unfurls.size && (
-      <UnfurlList
-        key="UnfurlList"
-        conversationIDKey={this.props.conversationIDKey}
-        ordinal={this.props.message.ordinal}
-        toggleMessagePopup={this.props.toggleShowingMenu}
-      />
-    )
+  const unfurlList = (() => {
+    const UnfurlList = require('./unfurl/unfurl-list/container').default as typeof UnfurlListType
+    if (message.type === 'text' && message.unfurls && !!message.unfurls.size) {
+      return (
+        <UnfurlList
+          key="UnfurlList"
+          conversationIDKey={conversationIDKey}
+          ordinal={message.ordinal}
+          toggleMessagePopup={toggleShowingPopup}
+        />
+      )
+    }
+    return null
+  })()
 
-  private coinFlip = () => {
-    const message = this.props.message
-    return (
-      message.type === 'text' &&
-      !!message.flipGameID && (
+  const coinFlip = (() => {
+    if (message.type === 'text' && !!message.flipGameID) {
+      const CoinFlip = require('../coinflip/container').default as typeof CoinFlipType
+      return (
         <CoinFlip
           key="CoinFlip"
-          conversationIDKey={this.props.conversationIDKey}
+          conversationIDKey={conversationIDKey}
           flipGameID={message.flipGameID}
-          measure={this.props.measure}
+          measure={measure}
           isSendError={!!message.errorReason}
           text={message.text}
         />
       )
-    )
-  }
-
-  private hasReactions = () =>
-    (!!this.props.message.reactions && !!this.props.message.reactions.size) || this.props.isPendingPayment
-
-  private reactionsRow = () =>
-    this.hasReactions() && (
-      <ReactionsRow
-        key="ReactionsRow"
-        btnClassName="WrapperMessage-emojiButton"
-        newBtnClassName="WrapperMessage-newEmojiButton"
-        conversationIDKey={this.props.conversationIDKey}
-        ordinal={this.props.message.ordinal}
-      />
-    )
-
-  private getKeyedBot = () => this.props.message.type === 'text' && this.props.message.botUsername
-
-  private popup = () =>
-    (this.props.message.type === 'text' ||
-      this.props.message.type === 'attachment' ||
-      this.props.message.type === 'sendPayment' ||
-      this.props.message.type === 'requestPayment' ||
-      this.props.message.type === 'setChannelname' ||
-      this.props.message.type === 'setDescription' ||
-      this.props.message.type === 'pin' ||
-      this.props.message.type === 'systemAddedToTeam' ||
-      this.props.message.type === 'systemChangeRetention' ||
-      this.props.message.type === 'systemGitPush' ||
-      this.props.message.type === 'systemInviteAccepted' ||
-      this.props.message.type === 'systemSimpleToComplex' ||
-      this.props.message.type === 'systemSBSResolved' ||
-      this.props.message.type === 'systemText' ||
-      this.props.message.type === 'systemUsersAddedToConversation' ||
-      this.props.message.type === 'systemNewChannel' ||
-      this.props.message.type === 'journeycard') &&
-    this.props.shouldShowPopup &&
-    this.props.showingMenu && (
-      <MessagePopup
-        key="popup"
-        attachTo={this.props.getAttachmentRef}
-        message={this.props.message}
-        onHidden={this.props.toggleShowingMenu}
-        position="top right"
-        style={styles.messagePopupContainer}
-        visible={this.props.showingMenu}
-      />
-    )
-
-  private containerProps = () => {
-    if (Styles.isMobile) {
-      const props = {
-        style: Styles.collapseStyles([
-          styles.container,
-          this.showCenteredHighlight() && styles.centeredOrdinal,
-          !this.props.showUsername && styles.containerNoUsername,
-        ] as const),
-      }
-      return this.props.decorate
-        ? {
-            ...props,
-            onLongPress: this.props.toggleShowingMenu,
-            onPress: this.dismissKeyboard,
-            onSwipeLeft: this.props.onSwipeLeft,
-          }
-        : props
-    } else {
-      return {
-        className: Styles.classNames(
-          {
-            'WrapperMessage-author': this.props.showUsername,
-            'WrapperMessage-centered': this.showCenteredHighlight(),
-            'WrapperMessage-decorated': this.props.decorate,
-            'WrapperMessage-hoverColor': !this.props.isPendingPayment,
-            'WrapperMessage-noOverflow': this.props.isPendingPayment,
-            'WrapperMessage-systemMessage': this.props.message.type.startsWith('system'),
-            active: this.props.showingMenu || this.state.showingPicker,
-          },
-          'WrapperMessage-hoverBox'
-        ),
-        onContextMenu: this.props.toggleShowingMenu,
-        onMouseOver: this.onMouseOver,
-        // attach popups to the message itself
-        ref: this.props.setAttachmentRef,
-      }
     }
-  }
+    return null
+  })()
 
-  private sendIndicator = () => {
-    if (!this.props.showSendIndicator) {
-      return null
-    }
-    const {failed, sent} = this.sentFailedStatus()
-    return (
-      <SendIndicator
-        key="sendIndicator"
-        sent={sent}
-        failed={failed}
-        id={this.props.message.timestamp}
-        isExploding={this.isExploding()}
-        style={styles.send}
-      />
-    )
-  }
+  const reactionsRow = hasReactions ? (
+    <ReactionsRow
+      key="ReactionsRow"
+      btnClassName="WrapperMessage-emojiButton"
+      newBtnClassName="WrapperMessage-newEmojiButton"
+      conversationIDKey={conversationIDKey}
+      ordinal={message.ordinal}
+    />
+  ) : null
 
-  private sentFailedStatus = () => {
-    const message = this.props.message
-    const sent =
-      (message.type !== 'text' && message.type !== 'attachment') || !message.submitState || message.exploded
-    const failed =
-      (message.type === 'text' || message.type === 'attachment') && message.submitState === 'failed'
-    return {failed, sent}
-  }
+  if (!messageAndButtons) return null
 
-  private isShowingIndicator = () => {
-    const {failed, sent} = this.sentFailedStatus()
-    return !sent || failed
-  }
+  return message.type === 'journeycard' ? (
+    <></>
+  ) : (
+    <>
+      {messageAndButtons}
+      {isEdited}
+      {isFailed}
+      {unfurlPrompts}
+      {unfurlList}
+      {coinFlip}
+      {reactionsRow}
+    </>
+  )
+}
 
-  private cachedMenuStyles = new Map<string, Styles.StylesCrossPlatform>()
-  private menuAreaStyle = (exploded: boolean, exploding: boolean) => {
+const useMessageAndButtons = (
+  p: Shared,
+  o: {
+    authorIsBot: boolean
+    hasReactions: boolean
+    isExploding: boolean
+  }
+) => {
+  const {showingPopup, toggleShowingPopup, ordinal, measure, conversationIDKey, message, shouldShowPopup} = p
+  const {showCenteredHighlight, youAreAuthor, decorate, setShowingPicker, showMenuButton, showUsername} = p
+  const {authorIsBot, hasReactions, isExploding} = o
+  const isLastInThread = Container.useSelector(state => {
+    const ordinals = Constants.getMessageOrdinals(state, conversationIDKey)
+    return ordinals[ordinals.length - 1] === ordinal
+  })
+  const {type, id} = message
+  const showSendIndicator = youAreAuthor && message.ordinal !== id
+  const showMenuButton2 = !Styles.isMobile && showMenuButton
+  const isTextOrAttachment = Constants.isTextOrAttachment(message)
+  const isRevoked = isTextOrAttachment && !!message.deviceRevokedAt
+  const keyedBot = (type === 'text' && message.botUsername) || ''
+  const forceAsh = !!(message as any).explodingUnreadable
+  const sent = (type !== 'text' && type !== 'attachment') || !message.submitState || message.exploded
+  const failed = isTextOrAttachment && message.submitState === 'failed'
+  const isShowingIndicator = !sent || failed
+  const showCoinsIcon = Container.useSelector(state => Constants.hasSuccessfulInlinePayments(state, message))
+  const cachedMenuStylesRef = React.useRef(new Map<string, Styles.StylesCrossPlatform>())
+  const menuAreaStyle = (exploded: boolean, exploding: boolean) => {
     const commonWidth = 20
     const iconSizes = [
-      this.props.isRevoked ? commonWidth : 0, // revoked
-      this.props.showCoinsIcon ? commonWidth : 0, // coin stack
+      isRevoked ? commonWidth : 0, // revoked
+      showCoinsIcon ? commonWidth : 0, // coin stack
       exploded || Styles.isMobile ? 0 : 16, // ... menu
       exploding ? (Styles.isMobile ? commonWidth : 20) : commonWidth, // exploding or gutter
-      this.getKeyedBot() && !this.props.authorIsBot ? commonWidth : 0,
+      keyedBot && !authorIsBot ? commonWidth : 0,
     ].filter(Boolean)
     const padding = Styles.globalMargins.tiny
     const width =
       iconSizes.length <= 0 ? 0 : iconSizes.reduce((total, size) => total + size, iconSizes.length * padding)
-
-    const key = `${width}:${this.props.showUsername ? 1 : 0}:${exploding ? 1 : 0}:${exploded ? 1 : 0}`
-
-    if (!this.cachedMenuStyles.has(key)) {
-      this.cachedMenuStyles.set(
+    const key = `${width}:${showUsername ? 1 : 0}:${exploding ? 1 : 0}:${exploded ? 1 : 0}`
+    if (!cachedMenuStylesRef.current.has(key)) {
+      cachedMenuStylesRef.current.set(
         key,
         Styles.collapseStyles([
           styles.menuButtons,
           !exploded && {width},
-          !!this.props.showUsername && styles.menuButtonsWithAuthor,
+          !!showUsername && styles.menuButtonsWithAuthor,
         ])
       )
     }
-    return this.cachedMenuStyles.get(key)
+    return cachedMenuStylesRef.current.get(key)
   }
 
-  private messageNode = () => {
-    const message = this.props.message
-    switch (message.type) {
-      case 'text':
-        return <TextMessage isHighlighted={this.showCenteredHighlight()} key="text" message={message} />
-      case 'attachment':
-        return (
-          <AttachmentMessage
-            key="attachment"
-            message={message}
-            isHighlighted={this.showCenteredHighlight()}
-            toggleMessageMenu={this.props.toggleShowingMenu}
-          />
-        )
-      case 'requestPayment':
-        return <PaymentMessage key="requestPayment" message={message} />
-      case 'sendPayment':
-        return <PaymentMessage key="sendPayment" message={message} />
-      case 'placeholder':
-        return <MessagePlaceholder key="placeholder" message={message} />
-      case 'systemInviteAccepted':
-        return <SystemInviteAccepted key="systemInviteAccepted" message={message} />
-      case 'systemSBSResolved':
-        if (this.props.youAreAuthor) {
-          return <SystemSBSResolved key="systemSbsResolved" message={message} />
-        } else {
-          return (
-            <SystemJoined
-              key="systemJoined"
-              message={{...message, joiners: [message.prover], leavers: [], type: 'systemJoined'}}
-            />
-          )
-        }
-      case 'systemSimpleToComplex':
-        return <SystemSimpleToComplex key="systemSimpleToComplex" message={message} />
-      case 'systemGitPush':
-        return <SystemGitPush key="systemGitPush" message={message} />
-      case 'systemCreateTeam':
-        return <SystemCreateTeam key="systemCreateTeam" message={message} />
-      case 'systemAddedToTeam':
-        return <SystemAddedToTeam key="systemAddedToTeam" message={message} />
-      case 'systemChangeRetention':
-        return <SystemChangeRetention key="systemChangeRetention" message={message} />
-      case 'systemUsersAddedToConversation':
-        return <SystemUsersAddedToConv key="systemUsersAddedToConv" message={message} />
-      case 'systemJoined':
-        return <SystemJoined key="systemJoined" message={message} />
-      case 'systemText':
-        return <SystemText key="systemText" message={message} />
-      case 'systemLeft':
-        return <SystemLeft key="systemLeft" message={message} />
-      case 'systemChangeAvatar':
-        return <SystemChangeAvatar key="systemChangeAvatar" message={message} />
-      case 'systemNewChannel':
-        return <SystemNewChannel key="systemNewChannel" message={message} />
-      case 'setDescription':
-        return <SetDescription key="setDescription" message={message} />
-      case 'pin':
-        return (
-          <Pin key="pin" conversationIDKey={message.conversationIDKey} messageID={message.pinnedMessageID} />
-        )
-      case 'setChannelname':
-        // suppress this message for the #general channel, it is redundant.
-        return message.newChannelname === 'general' ? null : (
-          <SetChannelname key="setChannelname" message={message} />
-        )
-      case 'journeycard':
-        return <TeamJourney key="journey" message={message} />
-      case 'deleted':
-        return null
-      default:
-        return null
-    }
-  }
+  const messageNode = useMessageNode(p)
+  const exploded = isTextOrAttachment ? message.exploded ?? false : false
+  const explodedBy = isTextOrAttachment ? message.explodedBy ?? '' : ''
+  const exploding = isExploding
+  const maybeExplodedChild = exploding ? (
+    <ExplodingHeightRetainer
+      explodedBy={explodedBy}
+      exploding={exploding}
+      measure={measure}
+      messageKey={Constants.getMessageKey(message)}
+      retainHeight={forceAsh || exploded}
+    >
+      {messageNode}
+    </ExplodingHeightRetainer>
+  ) : (
+    messageNode
+  )
 
-  private messageAndButtons = (child: React.ReactNode) => {
-    const showMenuButton = !Styles.isMobile && this.state.showMenuButton
-    const message = this.props.message
-    let exploded = false
-    let explodedBy = ''
-    switch (message.type) {
-      case 'text':
-        exploded = message.exploded
-        explodedBy = message.explodedBy
-        break
-      case 'attachment':
-        exploded = message.exploded
-        explodedBy = message.explodedBy
-        break
-      default:
-    }
-    const exploding = this.isExploding()
-    const maybeExplodedChild = exploding ? (
-      <ExplodingHeightRetainer
-        explodedBy={explodedBy}
-        exploding={exploding}
-        measure={this.props.measure}
-        messageKey={Constants.getMessageKey(message)}
-        retainHeight={this.props.forceAsh || exploded}
-      >
-        {child}
-      </ExplodingHeightRetainer>
-    ) : (
-      child
-    )
-
-    // We defer mounting the menu buttons since they are expensive and only show up on hover on desktop and not at all on mobile
-    // but this creates complexity as we can't use box2 gap stuff since we can either
-    // 1. Haven't mounted it yet
-    // 2. Have mounted but its hidden w/ css
-    // TODO cleaner way to do this, or speedup react button maybe
-    if (this.props.decorate && !exploded) {
-      return (
-        <Kb.Box2 key="messageAndButtons" direction="horizontal" fullWidth={true}>
-          {maybeExplodedChild}
-          <Kb.Box2 direction="horizontal" style={this.menuAreaStyle(exploded, exploding)}>
-            {this.sendIndicator()}
-            {exploding && !this.isShowingIndicator() && (
-              <ExplodingMeta
-                conversationIDKey={this.props.conversationIDKey}
-                isParentHighlighted={this.showCenteredHighlight()}
-                onClick={this.props.toggleShowingMenu}
-                ordinal={message.ordinal}
-              />
-            )}
-            {this.props.isRevoked && (
-              <Kb.WithTooltip tooltip="Revoked device">
-                <Kb.Icon
-                  type="iconfont-rip"
-                  style={styles.paddingLeftTiny}
-                  color={Styles.globalColors.black_35}
-                />
-              </Kb.WithTooltip>
-            )}
-            {this.props.showCoinsIcon && (
-              <Kb.Icon type="icon-stellar-coins-stacked-16" style={styles.paddingLeftTiny} />
-            )}
-            {this.getKeyedBot() && !this.props.authorIsBot && (
-              <Kb.WithTooltip tooltip={`Encrypted for @${this.getKeyedBot()}`}>
-                <Kb.Icon
-                  color={Styles.globalColors.black_35}
-                  type="iconfont-bot"
-                  onClick={() => null}
-                  style={styles.paddingLeftTiny}
-                />
-              </Kb.WithTooltip>
-            )}
-            {showMenuButton ? (
-              <Kb.Box className="WrapperMessage-buttons">
-                {!this.hasReactions() &&
-                  Constants.isMessageWithReactions(this.props.message) &&
-                  !this.props.showingMenu && (
-                    <EmojiRow
-                      className="WrapperMessage-emojiButton"
-                      conversationIDKey={this.props.conversationIDKey}
-                      onShowingEmojiPicker={this.setShowingPicker}
-                      ordinal={message.ordinal}
-                      tooltipPosition={this.props.isLastInThread ? 'top center' : 'bottom center'}
-                      style={Styles.collapseStyles([
-                        styles.emojiRow,
-                        this.props.isLastInThread && styles.emojiRowLast,
-                      ] as const)}
-                    />
-                  )}
-                <Kb.Box>
-                  {this.props.shouldShowPopup && (
-                    <Kb.WithTooltip tooltip="More actions..." toastStyle={styles.moreActionsTooltip}>
-                      <Kb.Box style={styles.ellipsis}>
-                        <Kb.Icon type="iconfont-ellipsis" onClick={this.props.toggleShowingMenu} />
-                      </Kb.Box>
-                    </Kb.WithTooltip>
-                  )}
-                </Kb.Box>
-              </Kb.Box>
-            ) : null}
-          </Kb.Box2>
-        </Kb.Box2>
-      )
-    } else if (exploding) {
-      // extra box so the hierarchy stays the same when exploding or you'll remount
-      return (
-        <Kb.Box2 key="messageAndButtons" direction="horizontal" fullWidth={true}>
-          {maybeExplodedChild}
-          <Kb.Box2 direction="horizontal" style={this.menuAreaStyle(exploded, exploding)}>
-            <ExplodingMeta
-              conversationIDKey={this.props.conversationIDKey}
-              isParentHighlighted={this.showCenteredHighlight()}
-              onClick={this.props.toggleShowingMenu}
-              ordinal={message.ordinal}
-            />
-          </Kb.Box2>
-        </Kb.Box2>
-      )
-    } else {
-      return maybeExplodedChild
-    }
-  }
-
-  render() {
-    if (!this.props.message) {
-      return null
-    }
-    const msgNode = this.messageNode()
-    if (!msgNode) {
-      return null
-    }
-    return (
-      <Styles.StyleContext.Provider value={this.canFixOverdrawValue(this.canFixOverdraw())}>
-        <LongPressable
-          {...this.containerProps()}
-          children={[
-            this.props.message.type === 'journeycard' ? (
-              <TeamJourney key="journey" message={this.props.message} />
-            ) : (
-              this.authorAndContent([
-                this.messageAndButtons(msgNode),
-                this.isEdited(),
-                this.isFailed(),
-                this.unfurlPrompts(),
-                this.unfurlList(),
-                this.coinFlip(),
-                this.reactionsRow(),
-              ])
-            ),
-            this.orangeLine(),
-          ]}
+  // We defer mounting the menu buttons since they are expensive and only show up on hover on desktop and not at all on mobile
+  // but this creates complexity as we can't use box2 gap stuff since we can either
+  // 1. Haven't mounted it yet
+  // 2. Have mounted but its hidden w/ css
+  // TODO cleaner way to do this, or speedup react button maybe
+  if (decorate && !exploded) {
+    const sendIndicator = showSendIndicator ? (
+      <SendIndicator
+        key="sendIndicator"
+        sent={sent}
+        failed={failed}
+        id={message.timestamp}
+        isExploding={isExploding}
+        style={styles.send}
+      />
+    ) : null
+    const explodingMeta =
+      exploding && !isShowingIndicator ? (
+        <ExplodingMeta
+          conversationIDKey={conversationIDKey}
+          isParentHighlighted={showCenteredHighlight}
+          onClick={toggleShowingPopup}
+          ordinal={message.ordinal}
         />
-        {this.popup()}
-      </Styles.StyleContext.Provider>
+      ) : null
+    const revokedIcon = isRevoked ? (
+      <Kb.WithTooltip tooltip="Revoked device">
+        <Kb.Icon type="iconfont-rip" style={styles.paddingLeftTiny} color={Styles.globalColors.black_35} />
+      </Kb.WithTooltip>
+    ) : null
+    const bot =
+      keyedBot && !authorIsBot ? (
+        <Kb.WithTooltip tooltip={`Encrypted for @${keyedBot}`}>
+          <Kb.Icon
+            color={Styles.globalColors.black_35}
+            type="iconfont-bot"
+            onClick={() => null}
+            style={styles.paddingLeftTiny}
+          />
+        </Kb.WithTooltip>
+      ) : null
+
+    const showMenu = showMenuButton2 ? (
+      <Kb.Box className="WrapperMessage-buttons">
+        {!hasReactions && Constants.isMessageWithReactions(message) && !showingPopup && (
+          <EmojiRow
+            className="WrapperMessage-emojiButton"
+            conversationIDKey={conversationIDKey}
+            onShowingEmojiPicker={setShowingPicker}
+            ordinal={message.ordinal}
+            tooltipPosition={isLastInThread ? 'top center' : 'bottom center'}
+            style={Styles.collapseStyles([styles.emojiRow, isLastInThread && styles.emojiRowLast] as const)}
+          />
+        )}
+        <Kb.Box>
+          {shouldShowPopup && (
+            <Kb.WithTooltip tooltip="More actions..." toastStyle={styles.moreActionsTooltip}>
+              <Kb.Box style={styles.ellipsis}>
+                <Kb.Icon type="iconfont-ellipsis" onClick={toggleShowingPopup} />
+              </Kb.Box>
+            </Kb.WithTooltip>
+          )}
+        </Kb.Box>
+      </Kb.Box>
+    ) : null
+    const coinsIcon = showCoinsIcon ? (
+      <Kb.Icon type="icon-stellar-coins-stacked-16" style={styles.paddingLeftTiny} />
+    ) : null
+
+    return (
+      <Kb.Box2 key="messageAndButtons" direction="horizontal" fullWidth={true}>
+        {maybeExplodedChild}
+        <Kb.Box2 direction="horizontal" style={menuAreaStyle(exploded, exploding)}>
+          {sendIndicator}
+          {explodingMeta}
+          {revokedIcon}
+          {coinsIcon}
+          {bot}
+          {showMenu}
+        </Kb.Box2>
+      </Kb.Box2>
     )
+  } else if (exploding) {
+    // extra box so the hierarchy stays the same when exploding or you'll remount
+    return (
+      <Kb.Box2 key="messageAndButtons" direction="horizontal" fullWidth={true}>
+        {maybeExplodedChild}
+        <Kb.Box2 direction="horizontal" style={menuAreaStyle(exploded, exploding)}>
+          <ExplodingMeta
+            conversationIDKey={conversationIDKey}
+            isParentHighlighted={showCenteredHighlight}
+            onClick={toggleShowingPopup}
+            ordinal={message.ordinal}
+          />
+        </Kb.Box2>
+      </Kb.Box2>
+    )
+  } else {
+    return maybeExplodedChild
   }
 }
 
-const WrapperMessage = Kb.OverlayParentHOC(_WrapperMessage)
+const useMessageNode = (p: Shared) => {
+  const {message, showCenteredHighlight, toggleShowingPopup, youAreAuthor} = p
+  switch (message.type) {
+    case 'text': {
+      const TextMessage = require('../text/container').default as typeof TextMessageType
+      return <TextMessage isHighlighted={showCenteredHighlight} key="text" message={message} />
+    }
+    case 'attachment': {
+      const AttachmentMessage = require('../attachment/container').default as typeof AttachmentMessageType
+      return (
+        <AttachmentMessage
+          key="attachment"
+          message={message}
+          isHighlighted={showCenteredHighlight}
+          toggleMessageMenu={toggleShowingPopup}
+        />
+      )
+    }
+    case 'requestPayment': {
+      const PaymentMessage = require('../account-payment/container').default as typeof PaymentMessageType
+      return <PaymentMessage key="requestPayment" message={message} />
+    }
+    case 'sendPayment': {
+      const PaymentMessage = require('../account-payment/container').default as typeof PaymentMessageType
+      return <PaymentMessage key="sendPayment" message={message} />
+    }
+    case 'placeholder': {
+      const MessagePlaceholder = require('../placeholder/container').default as typeof MessagePlaceholderType
+      return <MessagePlaceholder key="placeholder" message={message} />
+    }
+    case 'systemInviteAccepted': {
+      const SystemInviteAccepted = require('../system-invite-accepted/container')
+        .default as typeof SystemInviteAcceptedType
+      return <SystemInviteAccepted key="systemInviteAccepted" message={message} />
+    }
+    case 'systemSBSResolved':
+      if (youAreAuthor) {
+        const SystemSBSResolved = require('../system-sbs-resolve/container')
+          .default as typeof SystemSBSResolvedType
+        return <SystemSBSResolved key="systemSbsResolved" message={message} />
+      } else {
+        const SystemJoined = require('../system-joined/container').default as typeof SystemJoinedType
+        return (
+          <SystemJoined
+            key="systemJoined"
+            message={{...message, joiners: [message.prover], leavers: [], type: 'systemJoined'}}
+          />
+        )
+      }
+    case 'systemSimpleToComplex': {
+      const SystemSimpleToComplex = require('../system-simple-to-complex/container')
+        .default as typeof SystemSimpleToComplexType
+      return <SystemSimpleToComplex key="systemSimpleToComplex" message={message} />
+    }
+    case 'systemGitPush': {
+      const SystemGitPush = require('../system-git-push/container').default as typeof SystemGitPushType
+      return <SystemGitPush key="systemGitPush" message={message} />
+    }
+    case 'systemCreateTeam': {
+      const SystemCreateTeam = require('../system-create-team/container')
+        .default as typeof SystemCreateTeamType
+      return <SystemCreateTeam key="systemCreateTeam" message={message} />
+    }
+    case 'systemAddedToTeam': {
+      const SystemAddedToTeam = require('../system-added-to-team/container')
+        .default as typeof SystemAddedToTeamType
+      return <SystemAddedToTeam key="systemAddedToTeam" message={message} />
+    }
+    case 'systemChangeRetention': {
+      const SystemChangeRetention = require('../system-change-retention/container')
+        .default as typeof SystemChangeRetentionType
+      return <SystemChangeRetention key="systemChangeRetention" message={message} />
+    }
+    case 'systemUsersAddedToConversation': {
+      const SystemUsersAddedToConv = require('../system-users-added-to-conv/container')
+        .default as typeof SystemUsersAddedToConvType
+      return <SystemUsersAddedToConv key="systemUsersAddedToConv" message={message} />
+    }
+    case 'systemJoined': {
+      const SystemJoined = require('../system-joined/container').default as typeof SystemJoinedType
+      return <SystemJoined key="systemJoined" message={message} />
+    }
+    case 'systemText': {
+      const SystemText = require('../system-text/container').default as typeof SystemTextType
+      return <SystemText key="systemText" message={message} />
+    }
+    case 'systemLeft': {
+      const SystemLeft = require('../system-left/container').default as typeof SystemLeftType
+      return <SystemLeft key="systemLeft" message={message} />
+    }
+    case 'systemChangeAvatar': {
+      const SystemChangeAvatar = require('../system-change-avatar').default as typeof SystemChangeAvatarType
+      return <SystemChangeAvatar key="systemChangeAvatar" message={message} />
+    }
+    case 'systemNewChannel': {
+      const SystemNewChannel = require('../system-new-channel/container')
+        .default as typeof SystemNewChannelType
+      return <SystemNewChannel key="systemNewChannel" message={message} />
+    }
+    case 'setDescription': {
+      const SetDescription = require('../set-description/container').default as typeof SetDescriptionType
+      return <SetDescription key="setDescription" message={message} />
+    }
+    case 'pin': {
+      const Pin = require('../pin').default as typeof PinType
+      return (
+        <Pin key="pin" conversationIDKey={message.conversationIDKey} messageID={message.pinnedMessageID} />
+      )
+    }
+    case 'setChannelname': {
+      // suppress this message for the #general channel, it is redundant.
+      const SetChannelname = require('../set-channelname/container').default as typeof SetChannelnameType
+      return message.newChannelname === 'general' ? null : (
+        <SetChannelname key="setChannelname" message={message} />
+      )
+    }
+    case 'journeycard': {
+      const TeamJourney = require('../cards/team-journey/container').default as typeof TeamJourneyType
+      return <TeamJourney key="journey" message={message} />
+    }
+    case 'deleted':
+      return null
+    default:
+      return null
+  }
+}
 
 const styles = Styles.styleSheetCreate(
   () =>
@@ -728,16 +987,12 @@ const styles = Styles.styleSheetCreate(
         isMobile: {marginLeft: Styles.globalMargins.tiny},
       }),
       botAlias: Styles.platformStyles({
-        common: {
-          color: Styles.globalColors.black,
-        },
+        common: {color: Styles.globalColors.black},
         isElectron: {
           maxWidth: 240,
           wordBreak: 'break-all',
         },
-        isMobile: {
-          maxWidth: 120,
-        },
+        isMobile: {maxWidth: 120},
       }),
       centeredOrdinal: {backgroundColor: Styles.globalColors.yellowOrYellowAlt},
       container: Styles.platformStyles({isMobile: {overflow: 'hidden'}}),
@@ -791,11 +1046,7 @@ const styles = Styles.styleSheetCreate(
           zIndex: 2,
         },
       }),
-      emojiRowLast: Styles.platformStyles({
-        isElectron: {
-          top: -Styles.globalMargins.medium + 5,
-        },
-      }),
+      emojiRowLast: Styles.platformStyles({isElectron: {top: -Styles.globalMargins.medium + 5}}),
       fail: {color: Styles.globalColors.redDark},
       failExploding: {color: Styles.globalColors.black_50},
       failExplodingIcon: Styles.platformStyles({
@@ -817,9 +1068,7 @@ const styles = Styles.styleSheetCreate(
       }),
       menuButtonsWithAuthor: {marginTop: -16},
       messagePopupContainer: {marginRight: Styles.globalMargins.small},
-      moreActionsTooltip: {
-        marginRight: -Styles.globalMargins.xxtiny,
-      },
+      moreActionsTooltip: {marginRight: -Styles.globalMargins.xxtiny},
       orangeLine: {
         // don't push down content due to orange line
         backgroundColor: Styles.globalColors.orange,
@@ -831,14 +1080,11 @@ const styles = Styles.styleSheetCreate(
         top: 0,
       },
       orangeLineCompensationLeft: Styles.platformStyles({
-        isMobile: {
-          left: -Styles.globalMargins.mediumLarge, // compensate for containerNoUsername's padding
-        },
+        // compensate for containerNoUsername's padding
+        isMobile: {left: -Styles.globalMargins.mediumLarge},
       }),
       paddingLeftTiny: {paddingLeft: Styles.globalMargins.tiny},
-      send: Styles.platformStyles({
-        isElectron: {pointerEvents: 'none'},
-      }),
+      send: Styles.platformStyles({isElectron: {pointerEvents: 'none'}}),
       timestamp: Styles.platformStyles({
         isElectron: {
           flexShrink: 0,
@@ -853,9 +1099,7 @@ const styles = Styles.styleSheetCreate(
           position: 'relative',
           top: -2,
         },
-        isMobile: {
-          alignItems: 'center',
-        },
+        isMobile: {alignItems: 'center'},
       }),
       usernameHighlighted: {color: Styles.globalColors.blackOrBlack},
     } as const)

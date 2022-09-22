@@ -18,6 +18,7 @@
 #import <FlipperKitReactPlugin/FlipperKitReactPlugin.h>
 #import <FlipperKitUserDefaultsPlugin/FKUserDefaultsPlugin.h>
 #import <SKIOSNetworkPlugin/SKIOSNetworkAdapter.h>
+#import <FlipperPerformancePlugin.h>
 
 static void InitializeFlipper(UIApplication *application) {
   FlipperClient *client = [FlipperClient sharedClient];
@@ -30,6 +31,7 @@ static void InitializeFlipper(UIApplication *application) {
   [client addPlugin:[FlipperKitReactPlugin new]];
   [client addPlugin:[[FlipperKitNetworkPlugin alloc]
                         initWithNetworkAdapter:[SKIOSNetworkAdapter new]]];
+  [client addPlugin:[FlipperPerformancePlugin new]];
   [client start];
 }
 #endif
@@ -94,7 +96,7 @@ static const DDLogLevel ddLogLevel = DDLogLevelDebug;
 #if DEBUG
   // uncomment to get a prod bundle. If you set this it remembers so set it back
   // and re-run to reset it!
-  // [[RCTBundleURLProvider sharedSettings] setEnableDev: false];
+   //[[RCTBundleURLProvider sharedSettings] setEnableDev: false];
   return
       [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@"index" fallbackResource:nil];
 #else
