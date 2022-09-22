@@ -230,6 +230,12 @@ export const getMessage = (
   ordinal: Types.Ordinal
 ): Types.Message | null => state.chat2.messageMap.get(id)?.get(ordinal) ?? null
 
+export const isTextOrAttachment = (
+  message: Types.Message
+): message is Types.MessageText | Types.MessageAttachment => {
+  return message.type === 'text' || message.type === 'attachment'
+}
+
 export const isMessageWithReactions = (message: Types.Message): message is Types.MessagesWithReactions => {
   return !(
     message.type === 'placeholder' ||
