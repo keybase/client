@@ -23,9 +23,4 @@ public class DropViewViewManager extends SimpleViewManager<View> {
     public View createViewInstance(ThemedReactContext reactContext) {
         return new View(reactContext);
     }
-
-    @ReactProp(name = "color")
-    public void setColor(View view, String color) {
-        view.setBackgroundColor(Color.parseColor(color));
-    }
 }

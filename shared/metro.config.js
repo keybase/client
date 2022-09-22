@@ -31,11 +31,6 @@ const modules = []
     })
   )
   .sort()
-// .filter(
-//   (m, i, self) =>
-//     // Remove duplicates and package names of the packages in the monorepo
-//     self.lastIndexOf(m) === i && !m.startsWith('@react-navigation/')
-// );
 
 const defaultConfig = getDefaultConfig(__dirname)
 console.log('aaa', defaultConfig, defaultConfig.resolver?.sourceExts)
@@ -61,22 +56,6 @@ module.exports = {
       return acc
     }, {}),
   },
-  // server: {
-  //   ...defaultConfig.server,
-  //   enhanceMiddleware: middleware => {
-  //     console.log('aaaa in midd')
-  //     // return (req, res, next) => {
-  //     //   console.log('aaaa in midd2,')
-  //     //   // When an asset is imported outside the project root, it has wrong path on Android
-  //     //   // So we fix the path to correct one
-  //     //   if (/\/packages\/.+\.png\?.+$/.test(req.url)) {
-  //     //     req.url = `/assets/../${req.url}`
-  //     //   }
-
-  //     //   return middleware(req, res, next)
-  //     // }
-  //   },
-  // },
   transformer: {
     ...defaultConfig.transformer,
     babelTransformerPath: require.resolve('./rn-transformer.js'),
