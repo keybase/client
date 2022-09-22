@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
-import ZoomableImage from '../../../common-adapters/zoomable-image.desktop'
 import MessagePopup from '../messages/message-popup'
 import * as Styles from '../../../styles'
 import type {Props} from '.'
@@ -96,7 +95,7 @@ const _Fullscreen = (p: Props & Kb.OverlayParentProps) => {
                     <style>{showPlayButton}</style>
                   </video>
                 ) : (
-                  <ZoomableImage src={path} onZoomed={onZoomed} />
+                  <Kb.ZoomableImage src={path} onZoomed={onZoomed} />
                 )}
               </Kb.Box2>
               {!isZoomed && <Arrow left={false} onClick={onNextAttachment} />}
