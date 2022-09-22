@@ -82,47 +82,39 @@ class GetTitles extends React.Component<Props, State> {
 
     return (
       <Kb.PopupWrapper onCancel={this.props.onCancel}>
-        <Kb.Box2 direction="vertical" style={styles.containerOuter} fullHeight={true} fullWidth={true}>
-          <Kb.ScrollView style={styles.scrollView} contentContainerStyle={Styles.globalStyles.fullHeight}>
-            <Kb.Box2
-              alignItems="center"
-              direction="vertical"
-              fullHeight={true}
-              fullWidth={true}
-              style={styles.container}
-            >
-              <Kb.Box2 alignItems="center" direction="vertical" style={styles.imageContainer}>
-                {info.type === 'image' ? (
-                  <Kb.ZoomableImage src={Styles.isAndroid ? `file://${path}` : path} style={styles.image} />
-                ) : (
-                  <Kb.Icon type="icon-file-uploading-48" />
-                )}
-              </Kb.Box2>
-              {this.props.pathAndInfos.length > 0 && !Styles.isMobile && (
-                <Kb.Box2 direction="vertical" style={styles.filename}>
-                  <Kb.Text type="BodySmallSemibold">Filename</Kb.Text>
-                  <Kb.Text type="BodySmall" center={true}>
-                    {info.filename} ({this.state.index + 1} of {this.props.pathAndInfos.length})
-                  </Kb.Text>
-                </Kb.Box2>
+        <Kb.Box2 direction="vertical" style={styles.containerOuter} fullWidth={true}>
+          <Kb.Box2 alignItems="center" direction="vertical" fullWidth={true} style={styles.container}>
+            <Kb.BoxGrow style={styles.boxGrow}>
+              {info.type === 'image' ? (
+                <Kb.ZoomableImage src={Styles.isAndroid ? `file://${path}` : path} style={styles.image} />
+              ) : (
+                <Kb.Icon type="icon-file-uploading-48" />
               )}
-              <Kb.Box2 direction="vertical" fullWidth={true} style={styles.inputContainer}>
-                <Kb.PlainInput
-                  style={styles.input}
-                  autoFocus={true}
-                  autoCorrect={true}
-                  placeholder={titleHint}
-                  multiline={true}
-                  rowsMin={2}
-                  padding="tiny"
-                  value={this.state.titles[this.state.index]}
-                  onEnterKeyDown={this._onNext}
-                  onChangeText={this._updateTitle}
-                  selectTextOnFocus={true}
-                />
+            </Kb.BoxGrow>
+            {this.props.pathAndInfos.length > 0 && !Styles.isMobile && (
+              <Kb.Box2 direction="vertical" style={styles.filename}>
+                <Kb.Text type="BodySmallSemibold">Filename</Kb.Text>
+                <Kb.Text type="BodySmall" center={true}>
+                  {info.filename} ({this.state.index + 1} of {this.props.pathAndInfos.length})
+                </Kb.Text>
               </Kb.Box2>
+            )}
+            <Kb.Box2 direction="vertical" fullWidth={true} style={styles.inputContainer}>
+              <Kb.PlainInput
+                style={styles.input}
+                autoFocus={true}
+                autoCorrect={true}
+                placeholder={titleHint}
+                multiline={true}
+                rowsMin={2}
+                padding="tiny"
+                value={this.state.titles[this.state.index]}
+                onEnterKeyDown={this._onNext}
+                onChangeText={this._updateTitle}
+                selectTextOnFocus={true}
+              />
             </Kb.Box2>
-          </Kb.ScrollView>
+          </Kb.Box2>
           <Kb.ButtonBar fullWidth={true} small={true} style={styles.buttonContainer}>
             {!Styles.isMobile && (
               <Kb.Button fullWidth={true} type="Dim" onClick={this.props.onCancel} label="Cancel" />
@@ -150,6 +142,10 @@ class GetTitles extends React.Component<Props, State> {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
+      boxGrow: {
+        margin: Styles.globalMargins.small,
+        width: '100%',
+      },
       buttonContainer: Styles.platformStyles({
         isElectron: {
           alignSelf: 'flex-end',
@@ -162,19 +158,17 @@ const styles = Styles.styleSheetCreate(
         isMobile: Styles.padding(Styles.globalMargins.xsmall, Styles.globalMargins.small, 0),
       }),
       cancelButton: {marginRight: Styles.globalMargins.tiny},
-      container: Styles.platformStyles({
-        isElectron: {justifyContent: 'space-between'},
-        isMobile: {
-          justifyContent: 'space-around',
-          paddingLeft: Styles.globalMargins.small,
-          paddingRight: Styles.globalMargins.small,
-        },
-      }),
+      container: {
+        flexGrow: 1,
+        paddingLeft: Styles.globalMargins.small,
+        paddingRight: Styles.globalMargins.small,
+      },
       containerOuter: Styles.platformStyles({
         isElectron: {
           height: 560,
           width: 400,
         },
+        isMobile: {flexGrow: 1},
       }),
       filename: Styles.platformStyles({
         isElectron: {
@@ -182,18 +176,10 @@ const styles = Styles.styleSheetCreate(
           marginBottom: Styles.globalMargins.small,
         },
       }),
-      image: Styles.platformStyles({
-        isElectron: {
-          maxHeight: '100%',
-          maxWidth: '100%',
-        },
-        isMobile: {
-          height: 125,
-          marginBottom: Styles.globalMargins.tiny,
-          marginTop: Styles.globalMargins.tiny,
-          width: 150,
-        },
-      }),
+      image: {
+        maxHeight: '100%',
+        maxWidth: '100%',
+      },
       imageContainer: Styles.platformStyles({
         common: {justifyContent: 'center'},
         isElectron: {
@@ -204,8 +190,8 @@ const styles = Styles.styleSheetCreate(
           width: 325,
         },
         isMobile: {
-          height: 150,
-          width: 150,
+          height: '100%',
+          width: '100%',
         },
       }),
       input: Styles.platformStyles({
