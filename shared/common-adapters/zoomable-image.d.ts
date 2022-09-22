@@ -6,4 +6,4 @@ export type Props = {
   style?: Styles.StylesCrossPlatform
 }
 
-export class ZoomableImage extends React.Component<Props> {}
+export default class ZoomableImage extends React.Component<Props> {}

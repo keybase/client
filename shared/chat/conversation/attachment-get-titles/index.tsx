@@ -88,7 +88,9 @@ class GetTitles extends React.Component<Props, State> {
               {info.type === 'image' ? (
                 <Kb.ZoomableImage src={Styles.isAndroid ? `file://${path}` : path} style={styles.image} />
               ) : (
-                <Kb.Icon type="icon-file-uploading-48" />
+                <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} centerChildren={true}>
+                  <Kb.Icon type="icon-file-uploading-48" />
+                </Kb.Box2>
               )}
             </Kb.BoxGrow>
             {this.props.pathAndInfos.length > 0 && !Styles.isMobile && (
@@ -214,6 +216,10 @@ const styles = Styles.styleSheetCreate(
           paddingRight: Styles.globalMargins.small,
         },
       }),
+      nonImage: {
+        alignSelf: 'center',
+        justifyContentSelf: 'center',
+      },
       scrollView: Styles.platformStyles({
         common: {
           backgroundColor: Styles.globalColors.blueGrey,

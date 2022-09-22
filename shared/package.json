@@ -162,7 +162,7 @@
     "@types/lodash": "4.14.185",
     "@types/lodash-es": "4.17.6",
     "@types/mousetrap": "1.6.9",
-    "@types/react": "18.0.18",
+    "@types/react": "18.0.20",
     "@types/react-dom": "17.0.11",
     "@types/react-gateway": "2.8.4",
     "@types/react-is": "17.0.3",
@@ -220,6 +220,7 @@
     "**/purepack": "keybase/nullModule",
     "react-devtools-core": "4.24.3",
     "**/@types/react-native": "0.66.16",
+    "**/@types/react": "18.0.20",
     "**/expo-file-system": "13.1.4"
   },
   "expo": {
