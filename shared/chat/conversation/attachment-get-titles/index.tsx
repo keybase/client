@@ -1,7 +1,7 @@
 import * as React from 'react'
-import type * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
-import * as Kb from '../../../common-adapters/index'
+import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
+import type * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 
 export type Info = {
   type: 'image' | 'file'
@@ -93,7 +93,7 @@ class GetTitles extends React.Component<Props, State> {
             >
               <Kb.Box2 alignItems="center" direction="vertical" style={styles.imageContainer}>
                 {info.type === 'image' ? (
-                  <Kb.Image src={Styles.isAndroid ? `file://${path}` : path} style={styles.image} />
+                  <Kb.ZoomableImage src={Styles.isAndroid ? `file://${path}` : path} style={styles.image} />
                 ) : (
                   <Kb.Icon type="icon-file-uploading-48" />
                 )}
