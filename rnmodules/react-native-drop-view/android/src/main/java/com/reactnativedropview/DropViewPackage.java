@@ -17,6 +17,7 @@ public class DropViewPackage implements ReactPackage {
 
     @Override
     public List<ViewManager> createViewManagers(ReactApplicationContext reactContext) {
-        return Arrays.<ViewManager>asList(new DropViewViewManager());
+        DropViewViewManager dvvm = new DropViewViewManager();
+        return Arrays.<ViewManager>asList(dvvm);
     }
 }

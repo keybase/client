@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { View, ViewStyle } from 'react-native';
+import { ViewStyle } from 'react-native';
 export declare type DropItems = Array<{
     originalPath?: string;
     content?: string;
@@ -9,5 +9,5 @@ export declare type Props = {
     onDropped: (items: DropItems) => void;
     style?: ViewStyle;
 };
-declare const _default: ((p: Props) => JSX.Element) | typeof View;
-export default _default;
+declare const DropViewWrapper: (p: Props) => JSX.Element;
+export default DropViewWrapper;

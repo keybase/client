@@ -22,6 +22,7 @@
         "!**/__mocks__"
     ],
     "scripts": {
+        "postinstall": "npx patch-package",
         "prepare": "bob build"
     },
     "keywords": [],
@@ -32,6 +33,7 @@
     "devDependencies": {
         "@types/react": "18.0.18",
         "@types/react-native": "0.66.16",
+        "react-native": "0.67.3",
         "react-native-builder-bob": "^0.18.3",
         "typescript": "4.8.3"
     },
@@ -41,6 +43,14 @@
     "peerDependencies": {
         "react": "*",
         "react-native": "*"
+    },
+    "NOJIMA": {
+        "targets": [
+            "aar",
+            {
+                "androidBundleName": "android-release.aar"
+            }
+        ]
     },
     "react-native-builder-bob": {
         "source": "src",

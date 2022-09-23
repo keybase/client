@@ -19,13 +19,13 @@ const LINKING_ERROR = `The package 'react-native-drop-view' doesn't seem to be l
   ios: "- You have run 'pod install'\n",
   default: ''
 }) + '- You rebuilt the app after installing the package\n' + '- You are not using Expo managed workflow\n';
-const ComponentName = 'DropView';
-const isSupported = _reactNative.Platform.OS === 'ios';
+const ComponentName = 'DropView'; // const isSupported = Platform.OS === 'ios'
+
 const IMPL = _reactNative.UIManager.getViewManagerConfig(ComponentName) != null ? (0, _reactNative.requireNativeComponent)(ComponentName) : () => {
   throw new Error(LINKING_ERROR);
 };
 
-const DropViewWrapperIOS = p => {
+const DropViewWrapper = p => {
   const {
     onDropped
   } = p;
@@ -44,9 +44,9 @@ const DropViewWrapperIOS = p => {
   return /*#__PURE__*/React.createElement(IMPL, _extends({}, p, {
     onDropped: onDroppedCB
   }));
-};
+}; // export default isSupported ? DropViewWrapperIOS : View
 
-var _default = isSupported ? DropViewWrapperIOS : _reactNative.View;
 
+var _default = DropViewWrapper;
 exports.default = _default;
 //# sourceMappingURL=index.js.map

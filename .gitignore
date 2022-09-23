@@ -56,6 +56,8 @@ shared/.tsOuts/.*
 # Storybook
 shared/.cache
 node_modules
+.gradle
+rnmodules/react-native-drop-view/android/build
 
 Keybase.app.dSYM.zip
 
