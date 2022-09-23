@@ -1,6 +1,6 @@
 import * as React from 'react'
 import {
-    // View,
+    View,
     requireNativeComponent,
     UIManager,
     Platform,
@@ -21,13 +21,15 @@ export type Props = {
 }
 
 const ComponentName = 'DropView';
-// const isSupported = Platform.OS === 'ios'
+const isSupported = Platform.OS === 'ios'
 const IMPL =
-    UIManager.getViewManagerConfig(ComponentName) != null
-        ? requireNativeComponent<Props>(ComponentName)
-        : () => {
-            throw new Error(LINKING_ERROR);
-        };
+    isSupported ?
+        UIManager.getViewManagerConfig(ComponentName) != null
+            ? requireNativeComponent<Props>(ComponentName)
+            : () => {
+                throw new Error(LINKING_ERROR);
+            }
+        : null
 
 const DropViewWrapper = (p: Props) => {
     const { onDropped } = p
@@ -47,5 +49,4 @@ const DropViewWrapper = (p: Props) => {
     // @ts-ignore
     return <IMPL {...p} onDropped={onDroppedCB} />
 }
-// export default isSupported ? DropViewWrapperIOS : View
-export default DropViewWrapper
+export default isSupported ? DropViewWrapper : View
