@@ -17,15 +17,19 @@ const DropViewWrapper = p => {
     onDropped
   } = p;
   const onDroppedCB = React.useCallback(e => {
-    const manifest = e.nativeEvent.manifest;
-    const cleanedUp = manifest.reduce((arr, item) => {
-      if (item.originalPath || item.content) {
-        arr.push(item);
-      }
+    try {
+      const manifest = e.nativeEvent.manifest;
+      const cleanedUp = manifest.reduce((arr, item) => {
+        if (item.originalPath || item.content) {
+          arr.push(item);
+        }
 
-      return arr;
-    }, new Array());
-    onDropped(cleanedUp);
+        return arr;
+      }, new Array());
+      onDropped(cleanedUp);
+    } catch (e) {
+      console.log('drop view error', e);
+    }
   }, [onDropped]); // @ts-ignore
 
   return /*#__PURE__*/React.createElement(IMPL, _extends({}, p, {

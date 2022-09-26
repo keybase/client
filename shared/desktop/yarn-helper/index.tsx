@@ -6,6 +6,7 @@ import prettierCommands from './prettier'
 import {execSync} from 'child_process'
 import path from 'path'
 import fs from 'fs'
+import os from 'os'
 import rimraf from 'rimraf'
 
 const [, , command, ...rest] = process.argv
@@ -32,6 +33,7 @@ const commands = {
       clearTSCache()
       getMsgPack()
       patch()
+      prepareSubmodules()
     },
     help: '',
   },
@@ -52,6 +54,19 @@ const commands = {
 
 const patch = () => {
   exec('patch-package')
+}
+
+const prepareSubmodules = () => {
+  if (process.platform === 'darwin') {
+    const root = path.resolve(__dirname, '..', '..', '..', 'rnmodules')
+    fs.readdirSync(root, {withFileTypes: true}).forEach(f => {
+      if (f.isDirectory()) {
+        const full = path.resolve(root, f.name)
+        const cmd = `cd ${full} && yarn prepare`
+        exec(cmd)
+      }
+    })
+  }
 }
 
 const checkFSEvents = () => {
