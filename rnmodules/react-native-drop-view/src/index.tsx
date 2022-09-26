@@ -35,14 +35,18 @@ const DropViewWrapper = (p: Props) => {
     const { onDropped } = p
     const onDroppedCB = React.useCallback(
         (e: any) => {
-            const manifest = e.nativeEvent.manifest as DropItems
-            const cleanedUp = manifest.reduce((arr, item) => {
-                if (item.originalPath || item.content) {
-                    arr.push(item)
-                }
-                return arr
-            }, new Array<DropItems[0]>())
-            onDropped(cleanedUp)
+            try {
+                const manifest = e.nativeEvent.manifest as DropItems
+                const cleanedUp = manifest.reduce((arr, item) => {
+                    if (item.originalPath || item.content) {
+                        arr.push(item)
+                    }
+                    return arr
+                }, new Array<DropItems[0]>())
+                onDropped(cleanedUp)
+            } catch (e) {
+                console.log('drop view error', e)
+            }
         },
         [onDropped]
     )

@@ -28,6 +28,7 @@ import {
   useAnimatedStyle,
   withTiming,
 } from '../../../../common-adapters/reanimated'
+import logger from '../../../../logger'
 
 const singleLineHeight = 36
 const threeLineHeight = 78
@@ -392,13 +393,29 @@ const PlatformInput = (p: Props) => {
   const dispatch = Container.useDispatch()
   const onPasteImage = React.useCallback(
     (error: string | null | undefined, files: Array<PastedFile>) => {
-      if (error) return
-      const pathAndOutboxIDs = files.map(f => ({outboxID: null, path: f.uri.substring('file://'.length)}))
-      dispatch(
-        RouteTreeGen.createNavigateAppend({
-          path: [{props: {conversationIDKey, pathAndOutboxIDs}, selected: 'chatAttachmentGetTitles'}],
-        })
-      )
+      try {
+        if (error) return
+        const pathAndOutboxIDs = files.reduce<Array<Types.PathAndOutboxID>>((arr, f) => {
+          // @ts-ignore actually exists!
+          if (!f.error) {
+            const filePrefixLen = 'file://'.length
+            const uriLen = f.uri?.length ?? 0
+            if (uriLen > filePrefixLen) {
+              arr.push({outboxID: null, path: f.uri.substring(filePrefixLen)})
+            }
+          }
+          return arr
+        }, [])
+        if (pathAndOutboxIDs.length) {
+          dispatch(
+            RouteTreeGen.createNavigateAppend({
+              path: [{props: {conversationIDKey, pathAndOutboxIDs}, selected: 'chatAttachmentGetTitles'}],
+            })
+          )
+        }
+      } catch (e) {
+        logger.info('onPasteImage error', e)
+      }
     },
     [conversationIDKey, dispatch]
   )
