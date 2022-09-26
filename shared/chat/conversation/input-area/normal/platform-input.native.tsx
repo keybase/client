@@ -396,7 +396,11 @@ const PlatformInput = (p: Props) => {
       const pathAndOutboxIDs = files.reduce<Array<Types.PathAndOutboxID>>((arr, f) => {
         // @ts-ignore actually exists!
         if (!f.error) {
-          arr.push({outboxID: null, path: f.uri.substring('file://'.length)})
+          const filePrefixLen = 'file://'.length
+          const uriLen = f.uri?.length ?? 0
+          if (uriLen > filePrefixLen) {
+            arr.push({outboxID: null, path: f.uri.substring(filePrefixLen)})
+          }
         }
         return arr
       }, [])
