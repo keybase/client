@@ -393,12 +393,20 @@ const PlatformInput = (p: Props) => {
   const onPasteImage = React.useCallback(
     (error: string | null | undefined, files: Array<PastedFile>) => {
       if (error) return
-      const pathAndOutboxIDs = files.map(f => ({outboxID: null, path: f.uri.substring('file://'.length)}))
-      dispatch(
-        RouteTreeGen.createNavigateAppend({
-          path: [{props: {conversationIDKey, pathAndOutboxIDs}, selected: 'chatAttachmentGetTitles'}],
-        })
-      )
+      const pathAndOutboxIDs = files.reduce<Array<Types.PathAndOutboxID>>((arr, f) => {
+        // @ts-ignore actually exists!
+        if (!f.error) {
+          arr.push({outboxID: null, path: f.uri.substring('file://'.length)})
+        }
+        return arr
+      }, [])
+      if (pathAndOutboxIDs.length) {
+        dispatch(
+          RouteTreeGen.createNavigateAppend({
+            path: [{props: {conversationIDKey, pathAndOutboxIDs}, selected: 'chatAttachmentGetTitles'}],
+          })
+        )
+      }
     },
     [conversationIDKey, dispatch]
   )
