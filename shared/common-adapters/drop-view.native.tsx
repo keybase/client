@@ -1,6 +1,7 @@
 import {Platform, requireNativeComponent, View} from 'react-native'
 import * as React from 'react'
 import type * as Styles from '../styles'
+import logger from '../logger'
 
 const isSupported = Platform.OS === 'ios'
 const IMPL = isSupported ? requireNativeComponent('DropView') : null
@@ -15,14 +16,18 @@ const DropViewWrapperIOS = (p: Props) => {
   const {onDropped} = p
   const onDroppedCB = React.useCallback(
     e => {
-      const manifest = e.nativeEvent.manifest as DropItems
-      const cleanedUp = manifest.reduce((arr, item) => {
-        if (item.originalPath || item.content) {
-          arr.push(item)
-        }
-        return arr
-      }, new Array<DropItems[0]>())
-      onDropped(cleanedUp)
+      try {
+        const manifest = e.nativeEvent.manifest as DropItems
+        const cleanedUp = manifest.reduce((arr, item) => {
+          if (item.originalPath || item.content) {
+            arr.push(item)
+          }
+          return arr
+        }, new Array<DropItems[0]>())
+        onDropped(cleanedUp)
+      } catch (e) {
+        logger.warn('drop view error', e)
+      }
     },
     [onDropped]
   )
