@@ -10,7 +10,6 @@
 
 #import "AppDelegate.h"
 #import "GoJSIBridge.h"
-#import "Utils.h"
 #import <React/RCTEventDispatcher.h>
 #import <keybase/keybase.h>
 

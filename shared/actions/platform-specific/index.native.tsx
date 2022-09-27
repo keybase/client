@@ -39,6 +39,7 @@ import {Audio} from 'expo-av'
 import * as ExpoLocation from 'expo-location'
 import * as FileSystem from 'expo-file-system'
 import * as ExpoTaskManager from 'expo-task-manager'
+import {getDefaultCountryCode} from 'react-native-kb'
 
 const requestPermissionsToWrite = async () => {
   if (isAndroid) {
@@ -478,7 +479,7 @@ const manageContactsCache = async (
   }
   let defaultCountryCode: string = ''
   try {
-    defaultCountryCode = await NativeModules.Utils.getDefaultCountryCode()
+    defaultCountryCode = await getDefaultCountryCode()
     if (__DEV__ && !defaultCountryCode) {
       // behavior of parsing can be unexpectedly different with no country code.
       // iOS sim + android emu don't supply country codes, so use this one.

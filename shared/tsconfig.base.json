@@ -13,7 +13,9 @@
     "lib": ["ESNext"],
     "module": "commonjs",
     "paths": {
-      "react-native-reanimated": ["override-d.ts/react-native-reanimated/react-native-reanimated.d.ts"],
+      "react-native-reanimated": [
+        "override-d.ts/react-native-reanimated/react-native-reanimated.d.ts"
+      ],
       "@react-native-picker/picker": ["override-d.ts/@react-native-picker/index.d.ts"],
       "@emotion/native": ["override-d.ts/@emotion/index.d.ts"],
       "@emotion/react": ["override-d.ts/@emotion/index.d.ts"],
@@ -32,7 +34,7 @@
     "strict": true,
     "target": "ESNext",
     "tsBuildInfoFile": "./.tsOuts/.tsOut/cache",
-    "typeRoots": ["./node_modules/@types/", "./custom-d.ts/"]
+    "typeRoots": ["./node_modules/@types/", "./custom-d.ts/", "../rnmodules"]
   },
   "include": ["globals.d.ts"],
   "exclude": [

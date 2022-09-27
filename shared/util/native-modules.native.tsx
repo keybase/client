@@ -27,7 +27,6 @@ type NativeModulesType = {
     install: () => void
   }
   Utils: {
-    getDefaultCountryCode: () => Promise<string>
     // android only
     androidGetRegistrationToken?: () => Promise<string>
     // android only
@@ -87,9 +86,6 @@ if (!NativeModules.KeybaseEngine) {
 }
 if (!NativeModules.GoJSIBridge) {
   throw new Error('Missing native GoJSIBridge')
-}
-if (!NativeModules.Utils) {
-  throw new Error('Missing native Utils')
 }
 if (!NativeModules.LogSend) {
   throw new Error('Missing native LogSend')
