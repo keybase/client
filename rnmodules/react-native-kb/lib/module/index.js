@@ -10,7 +10,6 @@ const Kb = NativeModules.Kb ? NativeModules.Kb : new Proxy({}, {
 
 });
 export const getDefaultCountryCode = () => {
-  console.log('aaaa new one');
   return Kb.getDefaultCountryCode();
 };
 //# sourceMappingURL=index.js.map

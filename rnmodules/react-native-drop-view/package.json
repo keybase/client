@@ -48,7 +48,8 @@
         "source": "src",
         "output": "lib",
         "targets": [
-            "module"
+            "module",
+            "typescript"
         ]
     }
 }
