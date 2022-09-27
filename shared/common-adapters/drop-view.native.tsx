@@ -1,7 +1,3 @@
-import * as React from 'react'
 import DropViewView from 'react-native-drop-view'
 export default DropViewView
-
-export const TEMP = () => {
-  return <DropViewView blah={123} />
-}
+export type {DropItems} from 'react-native-drop-view'
