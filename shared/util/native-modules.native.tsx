@@ -43,16 +43,6 @@ type NativeModulesType = {
     androidCheckPushPermissions?: () => Promise<boolean>
     androidRequestPushPermissions?: () => Promise<boolean>
   }
-  LogSend: {
-    logSend: (
-      status: string,
-      feedback: string,
-      sendLogs: boolean,
-      sendMaxBytes: boolean,
-      traceDir: string,
-      cpuProfileDir: string
-    ) => Promise<string>
-  }
   NativeLogger?: {
     log: (tagsAndLogs: Array<[string, string]>) => void
     dump: (prefix: string) => Promise<Array<string>>
@@ -86,9 +76,6 @@ if (!NativeModules.KeybaseEngine) {
 }
 if (!NativeModules.GoJSIBridge) {
   throw new Error('Missing native GoJSIBridge')
-}
-if (!NativeModules.LogSend) {
-  throw new Error('Missing native LogSend')
 }
 if (!NativeModules.NativeLogger) {
   throw new Error('Missing native NativeLogger')

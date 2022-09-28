@@ -39,7 +39,6 @@ static void InitializeFlipper(UIApplication *application) {
 #import <React/RCTLinkingManager.h>
 #import "Engine.h"
 #import "Fs.h"
-#import "LogSend.h"
 #import "Pusher.h"
 #import <AVFoundation/AVFoundation.h>
 #import <RNCPushNotificationIOS.h>

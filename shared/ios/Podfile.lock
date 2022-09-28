@@ -806,7 +806,7 @@ SPEC CHECKSUMS:
   react-native-drop-view: 0b1a0f6396eed5b26850bb1710b1bf167c2a792e
   react-native-flipper-performance-plugin: 2b873b68da3e368afeaf29c9c7a8c2b0ff908c4f
   react-native-hw-keyboard-event: b517cefb8d5c659a38049c582de85ff43337dc53
-  react-native-kb: c8d1660e9db05512f53f45f672f8926303647e84
+  react-native-kb: ae37ac7c2cf24dccc87a905dece5671f0b2dfb73
   react-native-netinfo: 129bd99f607a2dc5bb096168f3e5c150fd1f1c95
   react-native-paste-input: 3037f113267c367e863790bcfd57cdb3ace3cad6
   react-native-safe-area-context: dfe5aa13bee37a0c7e8059d14f72ffc076d120e9

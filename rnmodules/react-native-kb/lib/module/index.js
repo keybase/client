@@ -12,4 +12,7 @@ const Kb = NativeModules.Kb ? NativeModules.Kb : new Proxy({}, {
 export const getDefaultCountryCode = () => {
   return Kb.getDefaultCountryCode();
 };
+export const logSend = (status, feedback, sendLogs, sendMaxBytes, traceDir, cpuProfileDir) => {
+  return Kb.logSend(status, feedback, sendLogs, sendMaxBytes, traceDir, cpuProfileDir);
+};
 //# sourceMappingURL=index.js.map

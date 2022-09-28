@@ -18,3 +18,21 @@ const Kb = NativeModules.Kb ? NativeModules.Kb : new Proxy(
 export const getDefaultCountryCode = (): Promise<string> => {
     return Kb.getDefaultCountryCode()
 }
+
+export const logSend = (
+    status: string,
+    feedback: string,
+    sendLogs: boolean,
+    sendMaxBytes: boolean,
+    traceDir: string,
+    cpuProfileDir: string
+): Promise<string> => {
+    return Kb.logSend(
+        status,
+        feedback,
+        sendLogs,
+        sendMaxBytes,
+        traceDir,
+        cpuProfileDir,
+    )
+}

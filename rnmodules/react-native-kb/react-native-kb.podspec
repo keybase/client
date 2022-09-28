@@ -15,6 +15,7 @@ Pod::Spec.new do |s|
   s.source       = { :git => "https://github.com/chrisnojima/react-native-kb.git", :tag => "#{s.version}" }
 
   s.source_files = "ios/**/*.{h,m,mm}"
+  s.pod_target_xcconfig = { 'HEADER_SEARCH_PATHS' => '$(PODS_ROOT)/../keybase.xcframework/ios-arm64/Keybase.framework/Headers' }
 
   s.dependency "React-Core"
 
