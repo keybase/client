@@ -15,4 +15,11 @@ export const getDefaultCountryCode = () => {
 export const logSend = (status, feedback, sendLogs, sendMaxBytes, traceDir, cpuProfileDir) => {
   return Kb.logSend(status, feedback, sendLogs, sendMaxBytes, traceDir, cpuProfileDir);
 };
+export const iosGetHasShownPushPrompt = () => {
+  if (Platform.OS === 'ios') {
+    return Kb.iosGetHasShownPushPrompt();
+  }
+
+  return Promise.resolve(false);
+};
 //# sourceMappingURL=index.js.map

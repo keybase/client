@@ -60,12 +60,6 @@ type NativeModulesType = {
     open: () => void
   }
   // android only end
-
-  // ios only start
-  IOSPushPrompt?: {
-    getHasShownPushPrompt: () => Promise<boolean>
-  }
-  // ios only end
 }
 
 const NativeModules = RNNativeModules as NativeModulesType
@@ -80,11 +74,7 @@ if (!NativeModules.GoJSIBridge) {
 if (!NativeModules.NativeLogger) {
   throw new Error('Missing native NativeLogger')
 }
-if (isIOS) {
-  if (!NativeModules.IOSPushPrompt) {
-    throw new Error('Missing native IOSPushPrompt')
-  }
-} else {
+if (!isIOS) {
   if (!NativeModules.AndroidScreenProtector) {
     throw new Error('Missing native AndroidScreenProtector')
   }

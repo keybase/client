@@ -17,6 +17,7 @@ import type * as Types from '../../constants/types/push'
 import {NativeEventEmitter} from 'react-native'
 import {NativeModules} from '../../util/native-modules.native'
 import {isIOS, isAndroid} from '../../constants/platform'
+import {iosGetHasShownPushPrompt} from 'react-native-kb'
 
 const setApplicationIconBadgeNumber = (n: number) => {
   if (isIOS) {
@@ -274,9 +275,7 @@ const requestPermissionsFromNative: () => Promise<{
       )
 
 const askNativeIfSystemPushPromptHasBeenShown = async () =>
-  isIOS
-    ? NativeModules.IOSPushPrompt?.getHasShownPushPrompt() ?? Promise.resolve(false)
-    : Promise.resolve(false)
+  isIOS ? iosGetHasShownPushPrompt() ?? Promise.resolve(false) : Promise.resolve(false)
 const checkPermissionsFromNative = async () =>
   new Promise<{alert?: boolean; badge?: boolean; sound?: boolean}>((resolve, reject) => {
     if (isIOS) {

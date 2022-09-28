@@ -36,3 +36,10 @@ export const logSend = (
         cpuProfileDir,
     )
 }
+
+export const iosGetHasShownPushPrompt = (): Promise<boolean> => {
+    if (Platform.OS === 'ios') {
+        return Kb.iosGetHasShownPushPrompt() 
+    }
+    return Promise.resolve(false)
+}

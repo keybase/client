@@ -1,7 +1,9 @@
 #import "Kb.h"
+#import "Keybase.h"
 #import <CoreTelephony/CTCarrier.h>
 #import <CoreTelephony/CTTelephonyNetworkInfo.h>
-#import "Keybase.h"
+#import <Foundation/Foundation.h>
+#import <UserNotifications/UserNotifications.h>
 
 #ifdef RCT_NEW_ARCH_ENABLED
 #import "RNKbSpec.h"
@@ -39,6 +41,23 @@ RCT_REMAP_METHOD(logSend, status
     // Leave message nil so that err's message is used.
     reject(@"log_send_err", nil, err);
   }
+}
+
+RCT_REMAP_METHOD(iosGetHasShownPushPrompt, getHasShownPushPromptWithResolver
+                 : (RCTPromiseResolveBlock)resolve rejecter
+                 : (RCTPromiseRejectBlock)reject) {
+  UNUserNotificationCenter *current =
+      UNUserNotificationCenter.currentNotificationCenter;
+  [current getNotificationSettingsWithCompletionHandler:^(
+               UNNotificationSettings *_Nonnull settings) {
+    if (settings.authorizationStatus == UNAuthorizationStatusNotDetermined) {
+      // We haven't asked yet
+      resolve(@FALSE);
+      return;
+    }
+    resolve(@TRUE);
+    return;
+  }];
 }
 
 // Don't compile this code when we build for the old architecture.
