@@ -2,8 +2,6 @@ package io.keybase.ossifrage.modules;
 
 import android.content.res.AssetFileDescriptor;
 import android.app.DownloadManager;
-import android.content.Context;
-import android.telephony.TelephonyManager;
 import java.io.File;
 import java.io.IOException;
 import android.net.Uri;
@@ -86,17 +84,6 @@ public class Utils extends ReactContextBaseJavaModule {
                         promise.resolve(token);
                     }
                 });
-    }
-
-    @ReactMethod
-    public void getDefaultCountryCode(Promise promise) {
-        try {
-            TelephonyManager tm = (TelephonyManager) this.getReactApplicationContext().getSystemService(Context.TELEPHONY_SERVICE);
-            String countryCode = tm.getNetworkCountryIso();
-            promise.resolve(countryCode);
-        } catch (Exception e) {
-            promise.reject(e);
-        }
     }
 
     private static final String FILE_PREFIX_BUNDLE_ASSET = "bundle-assets://";

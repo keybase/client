@@ -33,7 +33,6 @@ const modules = []
   .sort()
 
 const defaultConfig = getDefaultConfig(__dirname)
-console.log('aaa', defaultConfig, defaultConfig.resolver?.sourceExts)
 module.exports = {
   // watch our rnmodules
   watchFolders: [root, path.resolve(__dirname, '../rnmodules')],
