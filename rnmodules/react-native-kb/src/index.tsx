@@ -52,5 +52,11 @@ export const iosLog = (tagsAndLogs: Array<[string, string]>) => {
 }
 export const logDump = (prefix: string): Promise<Array<string>> => {
     return Kb.logDump(prefix)
-
 }
+
+export const androidOpenSettings = () => {
+    if (Platform.OS === 'android') {
+        Kb.androidOpenSettings()
+    }
+}
+

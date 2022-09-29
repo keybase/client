@@ -52,9 +52,6 @@ type NativeModulesType = {
     shareText: (text: string, mimeType: string) => Promise<boolean>
     share: (text: string, mimeType: string) => Promise<boolean>
   }
-  AndroidSettings?: {
-    open: () => void
-  }
   // android only end
 }
 
@@ -73,9 +70,6 @@ if (!isIOS) {
   }
   if (!NativeModules.AndroidShareFiles) {
     throw new Error('Missing native AndroidShareFiles')
-  }
-  if (!NativeModules.AndroidSettings) {
-    throw new Error('Missing native AndroidSettings')
   }
 }
 

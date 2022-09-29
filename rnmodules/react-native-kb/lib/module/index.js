@@ -30,4 +30,9 @@ export const iosLog = tagsAndLogs => {
 export const logDump = prefix => {
   return Kb.logDump(prefix);
 };
+export const androidOpenSettings = () => {
+  if (Platform.OS === 'android') {
+    Kb.androidOpenSettings();
+  }
+};
 //# sourceMappingURL=index.js.map

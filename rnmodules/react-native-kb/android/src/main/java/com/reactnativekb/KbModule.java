@@ -1,10 +1,12 @@
 package com.reactnativekb;
 
+import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
+import android.provider.Settings;
+import android.telephony.TelephonyManager;
 import android.util.Log;
 import androidx.annotation.NonNull;
-import android.provider.Settings;
-import android.content.Context;
-import android.telephony.TelephonyManager;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -12,12 +14,12 @@ import java.io.InputStreamReader;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
+import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.module.annotations.ReactModule;
 
 import keybase.Keybase;
@@ -27,6 +29,7 @@ public class KbModule extends ReactContextBaseJavaModule {
     public static final String NAME = "Kb";
     private static final String RN_NAME = "ReactNativeJS";
     private boolean misTestDevice;
+    private final ReactApplicationContext reactContext;
 
     // Is this a robot controlled test device? (i.e. pre-launch report?)
     private static boolean isTestDevice(ReactApplicationContext context) {
@@ -36,6 +39,7 @@ public class KbModule extends ReactContextBaseJavaModule {
 
     public KbModule(ReactApplicationContext reactContext) {
         super(reactContext);
+        this.reactContext = reactContext;
         this.misTestDevice = isTestDevice(reactContext);
     }
 
@@ -96,5 +100,16 @@ public class KbModule extends ReactContextBaseJavaModule {
             promise.reject(e);
             Log.e(RN_NAME, formatLine("e", "Exception in dump: "+ Log.getStackTraceString(e)));
         }
+    }
+
+
+    @ReactMethod
+    public void androidOpenSettings() {
+        Intent intent = new Intent();
+        intent.setAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+        Uri uri = Uri.fromParts("package", reactContext.getPackageName(), null);
+        intent.setData(uri);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        reactContext.startActivity(intent);
     }
 }

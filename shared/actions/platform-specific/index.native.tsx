@@ -39,7 +39,7 @@ import {Audio} from 'expo-av'
 import * as ExpoLocation from 'expo-location'
 import * as FileSystem from 'expo-file-system'
 import * as ExpoTaskManager from 'expo-task-manager'
-import {getDefaultCountryCode} from 'react-native-kb'
+import {getDefaultCountryCode, androidOpenSettings} from 'react-native-kb'
 
 const requestPermissionsToWrite = async () => {
   if (isAndroid) {
@@ -173,7 +173,7 @@ export const showShareActionSheet = async (options: {
 
 const openAppSettings = async () => {
   if (isAndroid) {
-    NativeModules.AndroidSettings?.open()
+    androidOpenSettings()
   } else {
     const settingsURL = 'app-settings:'
     const can = await Linking.canOpenURL(settingsURL)

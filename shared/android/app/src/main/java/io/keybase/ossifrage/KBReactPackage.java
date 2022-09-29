@@ -12,8 +12,6 @@ import java.util.List;
 import io.keybase.ossifrage.modules.GoJSIBridge;
 import io.keybase.ossifrage.modules.KeybaseEngine;
 import io.keybase.ossifrage.modules.KillableModule;
-import io.keybase.ossifrage.modules.NativeLogger;
-import io.keybase.ossifrage.modules.NativeSettings;
 import io.keybase.ossifrage.modules.ScreenProtector;
 import io.keybase.ossifrage.modules.ShareFiles;
 import io.keybase.ossifrage.modules.Utils;
@@ -33,8 +31,6 @@ public class KBReactPackage implements com.facebook.react.ReactPackage {
         final KeybaseEngine kbEngine = new KeybaseEngine(reactApplicationContext);
         final GoJSIBridge kbJSI = new GoJSIBridge(reactApplicationContext);
         final ScreenProtector screenProtector = new ScreenProtector(reactApplicationContext);
-        final NativeSettings nativeSettings = new NativeSettings(reactApplicationContext);
-        final NativeLogger nativeLogger = new NativeLogger(reactApplicationContext);
         final ShareFiles shareFiles = new ShareFiles(reactApplicationContext);
         final Utils utils = new Utils(reactApplicationContext);
 
@@ -44,8 +40,6 @@ public class KBReactPackage implements com.facebook.react.ReactPackage {
         modules.add(kbEngine);
         modules.add(kbJSI);
         modules.add(screenProtector);
-        modules.add(nativeSettings);
-        modules.add(nativeLogger);
         modules.add(shareFiles);
         modules.add(utils);
 
