@@ -43,11 +43,6 @@ type NativeModulesType = {
     androidCheckPushPermissions?: () => Promise<boolean>
     androidRequestPushPermissions?: () => Promise<boolean>
   }
-  // android only start
-  AndroidScreenProtector?: {
-    setSecureFlagSetting: (s: boolean) => Promise<boolean>
-    getSecureFlagSetting: () => Promise<boolean>
-  }
   AndroidShareFiles?: {
     shareText: (text: string, mimeType: string) => Promise<boolean>
     share: (text: string, mimeType: string) => Promise<boolean>
@@ -65,9 +60,6 @@ if (!NativeModules.GoJSIBridge) {
   throw new Error('Missing native GoJSIBridge')
 }
 if (!isIOS) {
-  if (!NativeModules.AndroidScreenProtector) {
-    throw new Error('Missing native AndroidScreenProtector')
-  }
   if (!NativeModules.AndroidShareFiles) {
     throw new Error('Missing native AndroidShareFiles')
   }

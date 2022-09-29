@@ -35,4 +35,18 @@ export const androidOpenSettings = () => {
     Kb.androidOpenSettings();
   }
 };
+export const androidSetSecureFlagSetting = s => {
+  if (Platform.OS === 'android') {
+    return Kb.androidSetSecureFlagSetting(s);
+  }
+
+  return Promise.resolve(false);
+};
+export const androidGetSecureFlagSetting = () => {
+  if (Platform.OS === 'android') {
+    return Kb.androidGetSecureFlagSetting();
+  }
+
+  return Promise.resolve(false);
+};
 //# sourceMappingURL=index.js.map

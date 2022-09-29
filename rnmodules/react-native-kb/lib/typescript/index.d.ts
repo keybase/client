@@ -4,3 +4,5 @@ export declare const iosGetHasShownPushPrompt: () => Promise<boolean>;
 export declare const iosLog: (tagsAndLogs: Array<[string, string]>) => void;
 export declare const logDump: (prefix: string) => Promise<Array<string>>;
 export declare const androidOpenSettings: () => void;
+export declare const androidSetSecureFlagSetting: (s: boolean) => Promise<boolean>;
+export declare const androidGetSecureFlagSetting: () => Promise<boolean>;

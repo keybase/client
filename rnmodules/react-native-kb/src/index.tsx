@@ -50,6 +50,7 @@ export const iosLog = (tagsAndLogs: Array<[string, string]>) => {
     }
 
 }
+
 export const logDump = (prefix: string): Promise<Array<string>> => {
     return Kb.logDump(prefix)
 }
@@ -60,3 +61,16 @@ export const androidOpenSettings = () => {
     }
 }
 
+export const androidSetSecureFlagSetting = (s: boolean): Promise<boolean> => {
+    if (Platform.OS === 'android') {
+        return Kb.androidSetSecureFlagSetting(s)
+    }
+    return Promise.resolve(false)
+}
+
+export const androidGetSecureFlagSetting = (): Promise<boolean> => {
+    if (Platform.OS === 'android') {
+        return Kb.androidGetSecureFlagSetting()
+    }
+    return Promise.resolve(false)
+}
