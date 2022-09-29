@@ -88,3 +88,22 @@ export const androidShare = (text: string, mimeType: string): Promise<boolean> =
     }
     return Promise.resolve(false)
 }
+
+export const androidCheckPushPermissions = (): Promise<boolean> => {
+    if (Platform.OS === 'android') {
+        return Kb.androidCheckPushPermissions()
+    }
+    return Promise.resolve(false)
+}
+export const androidRequestPushPermissions = (): Promise<boolean> => {
+    if (Platform.OS === 'android') {
+        return Kb.androidRequestPushPermissions()
+    }
+    return Promise.resolve(false)
+}
+export const androidGetRegistrationToken = (): Promise<string> => {
+    if (Platform.OS === 'android') {
+        return Kb.androidGetRegistrationToken()
+    }
+    return Promise.resolve('')
+}

@@ -127,6 +127,7 @@ dependencies {
   implementation "com.facebook.react:react-native:+"
 // From node_modules
 
+    implementation "com.google.firebase:firebase-messaging:17.3.0"
     implementation project(':keybaselib')
 }
 

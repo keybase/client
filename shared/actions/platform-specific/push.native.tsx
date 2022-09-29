@@ -17,7 +17,12 @@ import type * as Types from '../../constants/types/push'
 import {NativeEventEmitter} from 'react-native'
 import {NativeModules} from '../../util/native-modules.native'
 import {isIOS, isAndroid} from '../../constants/platform'
-import {iosGetHasShownPushPrompt} from 'react-native-kb'
+import {
+  iosGetHasShownPushPrompt,
+  androidRequestPushPermissions,
+  androidCheckPushPermissions,
+  androidGetRegistrationToken,
+} from 'react-native-kb'
 
 const setApplicationIconBadgeNumber = (n: number) => {
   if (isIOS) {
@@ -58,7 +63,7 @@ const updateAppBadge = (_: unknown, action: NotificationsGen.ReceivedBadgeStateP
 // event listener before the event is emitted. In that case you can always use
 // `getInitialPushAndroid`.
 const listenForNativeAndroidIntentNotifications = async (listenerApi: Container.ListenerApi) => {
-  const pushToken = (await NativeModules.Utils.androidGetRegistrationToken?.()) ?? ''
+  const pushToken = await androidGetRegistrationToken()
   logger.debug('[PushToken] received new token: ', pushToken)
   listenerApi.dispatch(PushGen.createUpdatePushToken({token: pushToken}))
 
@@ -269,7 +274,7 @@ const requestPermissionsFromNative: () => Promise<{
   isIOS
     ? (PushNotificationIOS.requestPermissions() as any)
     : new Promise((resolve, reject) =>
-        NativeModules.Utils.androidRequestPushPermissions?.()
+        androidRequestPushPermissions()
           ?.then(on => resolve({alert: on, badge: on, sound: on}))
           .catch(() => reject())
       )
@@ -281,7 +286,7 @@ const checkPermissionsFromNative = async () =>
     if (isIOS) {
       PushNotificationIOS.checkPermissions(perms => resolve(perms))
     } else {
-      NativeModules.Utils.androidCheckPushPermissions?.()
+      androidCheckPushPermissions()
         .then(on => resolve({alert: on, badge: on, sound: on}))
         .catch(() => reject())
     }

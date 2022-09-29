@@ -63,4 +63,25 @@ export const androidShare = (text, mimeType) => {
 
   return Promise.resolve(false);
 };
+export const androidCheckPushPermissions = () => {
+  if (Platform.OS === 'android') {
+    return Kb.androidCheckPushPermissions();
+  }
+
+  return Promise.resolve(false);
+};
+export const androidRequestPushPermissions = () => {
+  if (Platform.OS === 'android') {
+    return Kb.androidRequestPushPermissions();
+  }
+
+  return Promise.resolve(false);
+};
+export const androidGetRegistrationToken = () => {
+  if (Platform.OS === 'android') {
+    return Kb.androidGetRegistrationToken();
+  }
+
+  return Promise.resolve('');
+};
 //# sourceMappingURL=index.js.map

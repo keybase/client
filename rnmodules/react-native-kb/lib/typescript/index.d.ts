@@ -8,3 +8,6 @@ export declare const androidSetSecureFlagSetting: (s: boolean) => Promise<boolea
 export declare const androidGetSecureFlagSetting: () => Promise<boolean>;
 export declare const androidShareText: (text: string, mimeType: string) => Promise<boolean>;
 export declare const androidShare: (text: string, mimeType: string) => Promise<boolean>;
+export declare const androidCheckPushPermissions: () => Promise<boolean>;
+export declare const androidRequestPushPermissions: () => Promise<boolean>;
+export declare const androidGetRegistrationToken: () => Promise<string>;

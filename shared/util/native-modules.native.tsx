@@ -27,9 +27,6 @@ type NativeModulesType = {
     install: () => void
   }
   Utils: {
-    // android only
-    androidGetRegistrationToken?: () => Promise<string>
-    // android only
     androidAddCompleteDownload?: (o: {
       description: string
       mime: string
@@ -37,11 +34,7 @@ type NativeModulesType = {
       showNotification: boolean
       title: string
     }) => Promise<void>
-    // android only
     androidUnlink?: (path: string) => Promise<void>
-    // android only
-    androidCheckPushPermissions?: () => Promise<boolean>
-    androidRequestPushPermissions?: () => Promise<boolean>
   }
   // android only end
 }

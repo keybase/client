@@ -1,9 +1,11 @@
 package com.reactnativekb;
 
 import android.app.Activity;
+import android.app.DownloadManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.AssetFileDescriptor;
 import android.net.Uri;
 import android.os.Build;
 import android.provider.Settings;
@@ -12,15 +14,25 @@ import android.util.Log;
 import android.view.Window;
 import android.view.WindowManager;
 import androidx.annotation.NonNull;
+import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.FileProvider;
+import com.facebook.react.BuildConfig;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.LifecycleEventListener;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
+import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.WritableArray;
+import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.module.annotations.ReactModule;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.FirebaseOptions;
+import com.google.firebase.iid.FirebaseInstanceId;
+import com.google.firebase.iid.InstanceIdResult;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -235,5 +247,61 @@ public class KbModule extends ReactContextBaseJavaModule {
         } else {
             promise.reject(new Exception("Invalid chooser"));
         }
+    }
+
+    // Push 
+
+    @ReactMethod
+    public void androidCheckPushPermissions(Promise promise) {
+        ReactApplicationContext reactContext = getReactApplicationContext();
+        NotificationManagerCompat managerCompat = NotificationManagerCompat.from(reactContext);
+        promise.resolve(managerCompat.areNotificationsEnabled());
+    }
+
+    @ReactMethod
+    public void androidRequestPushPermissions(Promise promise) {
+        this.ensureFirebase();
+        FirebaseInstanceId.getInstance().getInstanceId()
+                .addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<InstanceIdResult> task) {
+                        androidCheckPushPermissions(promise);
+                    }
+                });
+    }
+
+    private void ensureFirebase() {
+        boolean firebaseInitialized = FirebaseApp.getApps(getReactApplicationContext()).size() == 1;
+        if (!firebaseInitialized) {
+            FirebaseApp.initializeApp(getReactApplicationContext(),
+                    new FirebaseOptions.Builder()
+                            .setApplicationId(BuildConfig.LIBRARY_PACKAGE_NAME)
+                            .setProjectId("keybase-c30fb")
+                            .setGcmSenderId("9603251415")
+                            .build()
+            );
+        }
+    }
+
+    @ReactMethod
+    public void androidGetRegistrationToken(Promise promise) {
+        this.ensureFirebase();
+        FirebaseInstanceId.getInstance().getInstanceId()
+                .addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<InstanceIdResult> task) {
+                        if (!task.isSuccessful()) {
+                            Log.i(RN_NAME, formatLine("w", "getInstanceId failed" + Log.getStackTraceString(task.getException())));
+                            promise.reject(task.getException());
+                            return;
+                        }
+
+
+                        // Get new Instance ID token
+                        String token = task.getResult().getToken();
+                        Log.i(RN_NAME, formatLine("i", "Got token: " + token));
+                        promise.resolve(token);
+                    }
+                });
     }
 }

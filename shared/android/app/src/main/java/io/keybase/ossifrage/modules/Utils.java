@@ -32,60 +32,6 @@ public class Utils extends ReactContextBaseJavaModule {
     @Override
     public String getName() { return NAME; }
 
-    @ReactMethod
-    public void androidCheckPushPermissions(Promise promise) {
-        ReactApplicationContext reactContext = getReactApplicationContext();
-        NotificationManagerCompat managerCompat = NotificationManagerCompat.from(reactContext);
-        promise.resolve(managerCompat.areNotificationsEnabled());
-    }
-
-    @ReactMethod
-    public void androidRequestPushPermissions(Promise promise) {
-        this.ensureFirebase();
-        FirebaseInstanceId.getInstance().getInstanceId()
-                .addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
-                    @Override
-                    public void onComplete(@NonNull Task<InstanceIdResult> task) {
-                        androidCheckPushPermissions(promise);
-                    }
-                });
-    }
-
-    private void ensureFirebase() {
-        boolean firebaseInitialized = FirebaseApp.getApps(getReactApplicationContext()).size() == 1;
-        if (!firebaseInitialized) {
-            FirebaseApp.initializeApp(getReactApplicationContext(),
-                    new FirebaseOptions.Builder()
-                            .setApplicationId(BuildConfig.LIBRARY_PACKAGE_NAME)
-                            .setProjectId("keybase-c30fb")
-                            .setGcmSenderId("9603251415")
-                            .build()
-            );
-        }
-    }
-
-    @ReactMethod
-    public void androidGetRegistrationToken(Promise promise) {
-        this.ensureFirebase();
-        FirebaseInstanceId.getInstance().getInstanceId()
-                .addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
-                    @Override
-                    public void onComplete(@NonNull Task<InstanceIdResult> task) {
-                        if (!task.isSuccessful()) {
-                            NativeLogger.warn("getInstanceId failed", task.getException());
-                            promise.reject(task.getException());
-                            return;
-                        }
-
-
-                        // Get new Instance ID token
-                        String token = task.getResult().getToken();
-                        NativeLogger.info("Got token: " + token);
-                        promise.resolve(token);
-                    }
-                });
-    }
-
     private static final String FILE_PREFIX_BUNDLE_ASSET = "bundle-assets://";
 
     private String normalizePath(String path) {
