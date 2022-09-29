@@ -1,10 +1,19 @@
 package com.reactnativekb;
 
+import android.util.Log;
 import androidx.annotation.NonNull;
 import android.provider.Settings;
 import android.content.Context;
 import android.telephony.TelephonyManager;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import com.facebook.react.bridge.WritableArray;
+import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
@@ -16,6 +25,7 @@ import keybase.Keybase;
 @ReactModule(name = KbModule.NAME)
 public class KbModule extends ReactContextBaseJavaModule {
     public static final String NAME = "Kb";
+    private static final String RN_NAME = "ReactNativeJS";
     private boolean misTestDevice;
 
     // Is this a robot controlled test device? (i.e. pre-launch report?)
@@ -57,6 +67,34 @@ public class KbModule extends ReactContextBaseJavaModule {
             promise.resolve(logID);
         } catch (Exception e) {
             promise.reject(e);
+        }
+    }
+
+    private static String formatLine(String tagPrefix, String toLog) {
+        // Copies the Style JS outputs in native/logger.native.tsx
+        return tagPrefix + NAME + ": [" + System.currentTimeMillis() + ",\"" + toLog + "\"]";
+    }
+
+    @ReactMethod
+    public void logDump(String tagPrefix, Promise promise) {
+        try {
+            String cmd = "logcat -m 10000 -d " + RN_NAME + ":I *:S";
+
+            Process process = Runtime.getRuntime().exec(cmd);
+            BufferedReader r = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            String line;
+            final WritableArray totalArray = Arguments.createArray();
+            final Pattern pattern = Pattern.compile(".*" + tagPrefix + NAME + ": (.*)");
+            while ((line = r.readLine()) != null) {
+                Matcher m = pattern.matcher(line);
+                if (m.matches()) {
+                    totalArray.pushString(m.group(1));
+                }
+            }
+            promise.resolve(totalArray);
+        } catch (IOException e) {
+            promise.reject(e);
+            Log.e(RN_NAME, formatLine("e", "Exception in dump: "+ Log.getStackTraceString(e)));
         }
     }
 }
