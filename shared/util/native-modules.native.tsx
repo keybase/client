@@ -43,10 +43,6 @@ type NativeModulesType = {
     androidCheckPushPermissions?: () => Promise<boolean>
     androidRequestPushPermissions?: () => Promise<boolean>
   }
-  AndroidShareFiles?: {
-    shareText: (text: string, mimeType: string) => Promise<boolean>
-    share: (text: string, mimeType: string) => Promise<boolean>
-  }
   // android only end
 }
 
@@ -58,11 +54,6 @@ if (!NativeModules.KeybaseEngine) {
 }
 if (!NativeModules.GoJSIBridge) {
   throw new Error('Missing native GoJSIBridge')
-}
-if (!isIOS) {
-  if (!NativeModules.AndroidShareFiles) {
-    throw new Error('Missing native AndroidShareFiles')
-  }
 }
 
 export {NativeModules}

@@ -39,7 +39,7 @@ import {Audio} from 'expo-av'
 import * as ExpoLocation from 'expo-location'
 import * as FileSystem from 'expo-file-system'
 import * as ExpoTaskManager from 'expo-task-manager'
-import {getDefaultCountryCode, androidOpenSettings} from 'react-native-kb'
+import {getDefaultCountryCode, androidOpenSettings, androidShare, androidShareText} from 'react-native-kb'
 
 const requestPermissionsToWrite = async () => {
   if (isAndroid) {
@@ -155,7 +155,7 @@ export const showShareActionSheet = async (options: {
   } else {
     if (!options.filePath && options.message) {
       try {
-        await NativeModules.AndroidShareFiles?.shareText(options.message, options.mimeType)
+        await androidShareText(options.message, options.mimeType)
         return {completed: true, method: ''}
       } catch (_) {
         return {completed: false, method: ''}
@@ -163,7 +163,7 @@ export const showShareActionSheet = async (options: {
     }
 
     try {
-      await NativeModules.AndroidShareFiles?.share(options.filePath ?? '', options.mimeType)
+      await androidShare(options.filePath ?? '', options.mimeType)
       return {completed: true, method: ''}
     } catch (_) {
       return {completed: false, method: ''}

@@ -49,4 +49,18 @@ export const androidGetSecureFlagSetting = () => {
 
   return Promise.resolve(false);
 };
+export const androidShareText = (text, mimeType) => {
+  if (Platform.OS === 'android') {
+    return Kb.androidShareText(text, mimeType);
+  }
+
+  return Promise.resolve(false);
+};
+export const androidShare = (text, mimeType) => {
+  if (Platform.OS === 'android') {
+    return Kb.androidShare(text, mimeType);
+  }
+
+  return Promise.resolve(false);
+};
 //# sourceMappingURL=index.js.map

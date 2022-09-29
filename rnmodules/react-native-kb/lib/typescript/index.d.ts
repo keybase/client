@@ -6,3 +6,5 @@ export declare const logDump: (prefix: string) => Promise<Array<string>>;
 export declare const androidOpenSettings: () => void;
 export declare const androidSetSecureFlagSetting: (s: boolean) => Promise<boolean>;
 export declare const androidGetSecureFlagSetting: () => Promise<boolean>;
+export declare const androidShareText: (text: string, mimeType: string) => Promise<boolean>;
+export declare const androidShare: (text: string, mimeType: string) => Promise<boolean>;

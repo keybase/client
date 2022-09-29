@@ -74,3 +74,17 @@ export const androidGetSecureFlagSetting = (): Promise<boolean> => {
     }
     return Promise.resolve(false)
 }
+
+export const androidShareText = (text: string, mimeType: string): Promise<boolean> => {
+    if (Platform.OS === 'android') {
+        return Kb.androidShareText(text, mimeType)
+    }
+    return Promise.resolve(false)
+}
+
+export const androidShare = (text: string, mimeType: string): Promise<boolean> => {
+    if (Platform.OS === 'android') {
+        return Kb.androidShare(text, mimeType)
+    }
+    return Promise.resolve(false)
+}
