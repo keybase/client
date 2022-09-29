@@ -26,17 +26,6 @@ type NativeModulesType = {
   GoJSIBridge: {
     install: () => void
   }
-  Utils: {
-    androidAddCompleteDownload?: (o: {
-      description: string
-      mime: string
-      path: string
-      showNotification: boolean
-      title: string
-    }) => Promise<void>
-    androidUnlink?: (path: string) => Promise<void>
-  }
-  // android only end
 }
 
 const NativeModules = RNNativeModules as NativeModulesType

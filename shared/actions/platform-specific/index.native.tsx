@@ -39,7 +39,13 @@ import {Audio} from 'expo-av'
 import * as ExpoLocation from 'expo-location'
 import * as FileSystem from 'expo-file-system'
 import * as ExpoTaskManager from 'expo-task-manager'
-import {getDefaultCountryCode, androidOpenSettings, androidShare, androidShareText} from 'react-native-kb'
+import {
+  getDefaultCountryCode,
+  androidOpenSettings,
+  androidShare,
+  androidShareText,
+  androidUnlink,
+} from 'react-native-kb'
 
 const requestPermissionsToWrite = async () => {
   if (isAndroid) {
@@ -124,7 +130,7 @@ export async function saveAttachmentToCameraRoll(filePath: string, mimeType: str
     throw e
   } finally {
     try {
-      await NativeModules.Utils.androidUnlink?.(filePath)
+      await androidUnlink(filePath)
     } catch (_) {
       logger.warn('failed to unlink')
     }

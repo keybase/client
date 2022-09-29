@@ -84,4 +84,18 @@ export const androidGetRegistrationToken = () => {
 
   return Promise.resolve('');
 };
+export const androidUnlink = path => {
+  if (Platform.OS === 'android') {
+    return Kb.androidUnlink(path);
+  }
+
+  return Promise.resolve();
+};
+export const androidAddCompleteDownload = o => {
+  if (Platform.OS === 'android') {
+    return Kb.androidAddCompleteDownload(o);
+  }
+
+  return Promise.resolve();
+};
 //# sourceMappingURL=index.js.map

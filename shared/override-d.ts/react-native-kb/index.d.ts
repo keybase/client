@@ -11,3 +11,11 @@ export declare const androidShare: (text: string, mimeType: string) => Promise<b
 export declare const androidCheckPushPermissions: () => Promise<boolean>;
 export declare const androidRequestPushPermissions: () => Promise<boolean>;
 export declare const androidGetRegistrationToken: () => Promise<string>;
+export declare const androidUnlink: (path: string) => Promise<void>;
+export declare const androidAddCompleteDownload: (o: {
+    description: string;
+    mime: string;
+    path: string;
+    showNotification: boolean;
+    title: string;
+}) => Promise<void>;

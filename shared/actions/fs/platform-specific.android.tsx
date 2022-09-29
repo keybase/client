@@ -6,6 +6,7 @@ import * as Container from '../../util/container'
 import {PermissionsAndroid} from 'react-native'
 import nativeInit from './common.native'
 import {NativeModules} from '../../util/native-modules.native'
+import {androidAddCompleteDownload} from 'react-native-kb'
 
 export const ensureDownloadPermissionPromise = async () => {
   const permissionStatus = await PermissionsAndroid.request(
@@ -50,7 +51,7 @@ const finishedRegularDownload = async (
     return null
   }
   try {
-    await NativeModules.Utils.androidAddCompleteDownload?.({
+    await androidAddCompleteDownload({
       description: `Keybase downloaded ${downloadInfo.filename}`,
       mime: mimeType,
       path: downloadState.localPath,

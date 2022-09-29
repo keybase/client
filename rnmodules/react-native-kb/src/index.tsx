@@ -107,3 +107,23 @@ export const androidGetRegistrationToken = (): Promise<string> => {
     }
     return Promise.resolve('')
 }
+
+export const androidUnlink = (path: string): Promise<void> => {
+    if (Platform.OS === 'android') {
+        return Kb.androidUnlink(path)
+    }
+    return Promise.resolve()
+}
+
+export const androidAddCompleteDownload = (o: {
+    description: string
+    mime: string
+    path: string
+    showNotification: boolean
+    title: string
+}): Promise<void> => {
+    if (Platform.OS === 'android') {
+        return Kb.androidAddCompleteDownload(o)
+    }
+    return Promise.resolve()
+}
