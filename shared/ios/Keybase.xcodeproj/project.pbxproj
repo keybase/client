@@ -35,7 +35,6 @@
 		37E0D89122A5C7FB008CA4ED /* SourceCodePro-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 37E0D88722A5C7FB008CA4ED /* SourceCodePro-Medium.ttf */; };
 		37E0D89322A5C83B008CA4ED /* keybasemessage.wav in Resources */ = {isa = PBXBuildFile; fileRef = 37E0D89222A5C83B008CA4ED /* keybasemessage.wav */; };
 		9E1460E4A90E8D73A7347FED /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2585B4B360D5D792D408D511 /* ExpoModulesProvider.swift */; };
-		A90CD4A81FCE1D0B00F97901 /* NativeLogger.m in Sources */ = {isa = PBXBuildFile; fileRef = A90CD4A61FCE1D0A00F97901 /* NativeLogger.m */; };
 		D1FCCAC47E689E1A984FAC43 /* libPods-Keybase.a in Frameworks */ = {isa = PBXBuildFile; fileRef = AC024A34A307F5688461FEB2 /* libPods-Keybase.a */; };
 		DB07050522E21B8B002F273D /* KeepThisFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB07050422E21B8B002F273D /* KeepThisFile.swift */; };
 		DB190420275A898B00E85B2E /* keybase.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 60B93983273F902C00A226FF /* keybase.xcframework */; };
@@ -118,8 +117,6 @@
 		60B93983273F902C00A226FF /* keybase.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; path = keybase.xcframework; sourceTree = "<group>"; };
 		698E0E782682CDB9F02EDD13 /* Pods-KeybaseShare.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-KeybaseShare.release.xcconfig"; path = "Pods/Target Support Files/Pods-KeybaseShare/Pods-KeybaseShare.release.xcconfig"; sourceTree = "<group>"; };
 		97CE18EF12A69D8F947E9CB1 /* libPods-Keybase For Tests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Keybase For Tests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		A90CD4A61FCE1D0A00F97901 /* NativeLogger.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NativeLogger.m; sourceTree = "<group>"; };
-		A90CD4A71FCE1D0A00F97901 /* NativeLogger.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NativeLogger.h; sourceTree = "<group>"; };
 		AC024A34A307F5688461FEB2 /* libPods-Keybase.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Keybase.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		AFDBCC82D860F984765A47D7 /* Pods-Keybase-KeybaseShare.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Keybase-KeybaseShare.release.xcconfig"; path = "Pods/Target Support Files/Pods-Keybase-KeybaseShare/Pods-Keybase-KeybaseShare.release.xcconfig"; sourceTree = "<group>"; };
 		BC9A5DEFC49AB353E670A84C /* Pods-Keybase For Tests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Keybase For Tests.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Keybase For Tests/Pods-Keybase For Tests.debug.xcconfig"; sourceTree = "<group>"; };
@@ -303,8 +300,6 @@
 				DB3B470C27EB8BCB0002139E /* rpc.cpp */,
 				375CA6901FFD418D00210B11 /* Storybook.h */,
 				375CA6641FFD40D300210B11 /* Storybook.m */,
-				A90CD4A71FCE1D0A00F97901 /* NativeLogger.h */,
-				A90CD4A61FCE1D0A00F97901 /* NativeLogger.m */,
 				DBDCF3441B8D04FC00BA95D8 /* Keybase-Bridging-Header.h */,
 				0044E59C1BCD7CEA008EF7EE /* LaunchScreen.storyboard */,
 				27EE26A720A140EF00F92CD1 /* Pusher.m */,
@@ -592,7 +587,6 @@
 				DBB17C7828D12237001F3E25 /* MediaUtils.m in Sources */,
 				27EE26A820A140EF00F92CD1 /* Pusher.m in Sources */,
 				DB779E0627D2B96600CDB0F7 /* GoJSIBridge.mm in Sources */,
-				A90CD4A81FCE1D0B00F97901 /* NativeLogger.m in Sources */,
 				DBCE36251B90F14800ECADDE /* Engine.m in Sources */,
 				DBBCC6131D9C4A8100312652 /* AppDelegate.m in Sources */,
 				375CA6651FFD40D300210B11 /* Storybook.m in Sources */,

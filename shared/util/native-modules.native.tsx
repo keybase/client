@@ -43,10 +43,6 @@ type NativeModulesType = {
     androidCheckPushPermissions?: () => Promise<boolean>
     androidRequestPushPermissions?: () => Promise<boolean>
   }
-  NativeLogger?: {
-    log: (tagsAndLogs: Array<[string, string]>) => void
-    dump: (prefix: string) => Promise<Array<string>>
-  }
   // android only start
   AndroidScreenProtector?: {
     setSecureFlagSetting: (s: boolean) => Promise<boolean>
@@ -70,9 +66,6 @@ if (!NativeModules.KeybaseEngine) {
 }
 if (!NativeModules.GoJSIBridge) {
   throw new Error('Missing native GoJSIBridge')
-}
-if (!NativeModules.NativeLogger) {
-  throw new Error('Missing native NativeLogger')
 }
 if (!isIOS) {
   if (!NativeModules.AndroidScreenProtector) {

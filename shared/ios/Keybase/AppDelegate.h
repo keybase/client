@@ -18,7 +18,6 @@
 
 @property (nonatomic, strong) UIWindow *window;
 @property (nonatomic, strong) Engine *engine;
-@property (nonatomic, strong) DDFileLogger *fileLogger;
 @property UIImageView *resignImageView;
 
 @end

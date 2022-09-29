@@ -1,13 +1,9 @@
-import {NativeModules} from '../util/native-modules.native'
 import type {NativeLogDump} from './logger'
 import debounce from 'lodash/debounce'
 import {isAndroid} from '../constants/platform'
+import {iosLog, logDump} from 'react-native-kb'
 
 type TagAndLog = Array<[string, string]>
-
-export type RealNativeLog = (tagsAndLogs: TagAndLog) => void
-const _log: RealNativeLog =
-  __STORYBOOK__ || isAndroid ? (_tagsAndLogs: TagAndLog) => {} : NativeModules.NativeLogger?.log ?? (() => {})
 
 // Don't send over the wire immediately. That has horrible performance
 const actuallyLog = debounce(() => {
@@ -30,7 +26,7 @@ const actuallyLog = debounce(() => {
     }
   } else {
     // iOS is using lumberjack for logging, so keep this for now
-    _log(toSend)
+    iosLog(toSend)
   }
   toSend = []
 }, 5000)
@@ -44,7 +40,7 @@ const log = (tagPrefix: string, toLog: string) => {
 
 const dump: NativeLogDump = async (prefix: string) => {
   actuallyLog.flush()
-  return NativeModules.NativeLogger?.dump(prefix) ?? Promise.resolve([])
+  return await logDump(prefix)
 }
 
 const flush = actuallyLog.flush

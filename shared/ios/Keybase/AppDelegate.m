@@ -107,7 +107,6 @@ static const DDLogLevel ddLogLevel = DDLogLevelDebug;
   // allow audio to be mixed
   [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryAmbient
                                          error:nil];
-  [self setupLogger];
   [self setupGo];
   [self notifyAppState:application];
   
@@ -192,19 +191,6 @@ static const DDLogLevel ddLogLevel = DDLogLevelDebug;
     @"SecurityAccessGroupOverride" : @(securityAccessGroupOverride)
   }
   error:&err];
-}
-
-- (void)setupLogger {
-  self.fileLogger = [[DDFileLogger alloc] init];
-  self.fileLogger.rollingFrequency = 60 * 60 * 24;            // 24 hour rolling
-  self.fileLogger.logFileManager.maximumNumberOfLogFiles = 3; // 3 days
-  [DDLog addLogger:self.fileLogger];
-
-  DDLogInfo(
-      @"%@%@: [%@,\"%@\"]", @"d", @"NativeLogger",
-      [NSString
-          stringWithFormat:@"%f", [[NSDate date] timeIntervalSince1970] * 1000],
-      @"logger setup success");
 }
 
 - (void)application:(UIApplication *)application

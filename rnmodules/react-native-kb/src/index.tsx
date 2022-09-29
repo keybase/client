@@ -39,7 +39,18 @@ export const logSend = (
 
 export const iosGetHasShownPushPrompt = (): Promise<boolean> => {
     if (Platform.OS === 'ios') {
-        return Kb.iosGetHasShownPushPrompt() 
+        return Kb.iosGetHasShownPushPrompt()
     }
     return Promise.resolve(false)
+}
+
+export const iosLog = (tagsAndLogs: Array<[string, string]>) => {
+    if (Platform.OS === 'ios') {
+        Kb.iosLog(tagsAndLogs)
+    }
+
+}
+export const logDump = (prefix: string): Promise<Array<string>> => {
+    return Kb.logDump(prefix)
+
 }

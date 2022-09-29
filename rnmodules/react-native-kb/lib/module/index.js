@@ -22,4 +22,12 @@ export const iosGetHasShownPushPrompt = () => {
 
   return Promise.resolve(false);
 };
+export const iosLog = tagsAndLogs => {
+  if (Platform.OS === 'ios') {
+    Kb.iosLog(tagsAndLogs);
+  }
+};
+export const logDump = prefix => {
+  return Kb.logDump(prefix);
+};
 //# sourceMappingURL=index.js.map
