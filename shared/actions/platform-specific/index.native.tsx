@@ -45,6 +45,8 @@ import {
   androidShare,
   androidShareText,
   androidUnlink,
+  fsCacheDir,
+  fsDownloadDir,
 } from 'react-native-kb'
 
 const requestPermissionsToWrite = async () => {
@@ -657,8 +659,8 @@ const configureFileAttachmentDownloadForAndroid = async () =>
   RPCChatTypes.localConfigureFileAttachmentDownloadLocalRpcPromise({
     // Android's cache dir is (when I tried) [app]/cache but Go side uses
     // [app]/.cache by default, which can't be used for sharing to other apps.
-    cacheDirOverride: NativeModules.KeybaseEngine.fsCacheDir,
-    downloadDirOverride: NativeModules.KeybaseEngine.fsDownloadDir,
+    cacheDirOverride: fsCacheDir,
+    downloadDirOverride: fsDownloadDir,
   })
 
 const stopAudioRecording = async (

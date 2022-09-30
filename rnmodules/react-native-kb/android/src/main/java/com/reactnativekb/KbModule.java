@@ -2,21 +2,24 @@ package com.reactnativekb;
 
 import android.app.Activity;
 import android.app.DownloadManager;
+import android.app.KeyguardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.AssetFileDescriptor;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Bundle;
+import android.os.Environment;
 import android.provider.Settings;
 import android.telephony.TelephonyManager;
+import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.Window;
 import android.view.WindowManager;
 import androidx.annotation.NonNull;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.FileProvider;
-import com.facebook.react.BuildConfig;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.LifecycleEventListener;
 import com.facebook.react.bridge.Promise;
@@ -27,6 +30,7 @@ import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.module.annotations.ReactModule;
+import com.facebook.react.modules.core.DeviceEventManagerModule;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.FirebaseApp;
@@ -39,9 +43,13 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.lang.reflect.Field;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import keybase.Keybase;
+import static keybase.Keybase.version;
 
 @ReactModule(name = KbModule.NAME)
 public class KbModule extends ReactContextBaseJavaModule {
@@ -57,6 +65,28 @@ public class KbModule extends ReactContextBaseJavaModule {
       String testLabSetting = Settings.System.getString(context.getContentResolver(), "firebase.test.lab");
       return "true".equals(testLabSetting);
     }
+
+/**
+ * Gets a field from the project's BuildConfig. This is useful when, for example, flavors
+ * are used at the project level to set custom fields.
+ * @param context       Used to find the correct file
+ * @param fieldName     The name of the field-to-access
+ * @return              The value of the field, or {@code null} if the field is not found.
+ */
+public static Object getBuildConfigValue(Context context, String fieldName) {
+    try {
+        Class<?> clazz = Class.forName(context.getPackageName() + ".BuildConfig");
+        Field field = clazz.getField(fieldName);
+        return field.get(null);
+    } catch (ClassNotFoundException e) {
+        e.printStackTrace();
+    } catch (NoSuchFieldException e) {
+        e.printStackTrace();
+    } catch (IllegalAccessException e) {
+        e.printStackTrace();
+    }
+    return null;
+}
 
     public KbModule(ReactApplicationContext reactContext) {
         super(reactContext);
@@ -84,6 +114,62 @@ public class KbModule extends ReactContextBaseJavaModule {
     @NonNull
     public String getName() {
         return NAME;
+    }
+
+    private String readGuiConfig() {
+        return GuiConfig.getInstance(this.reactContext.getFilesDir()).asString();
+    }
+
+    @Override
+    public Map<String, Object> getConstants() {
+        String versionCode = String.valueOf(getBuildConfigValue(this.reactContext, "VERSION_CODE"));
+        String versionName = String.valueOf(getBuildConfigValue(this.reactContext, "VERSION_NAME"));
+        boolean isDeviceSecure = false;
+
+        try {
+            final KeyguardManager keyguardManager = (KeyguardManager) this.reactContext.getSystemService(Context.KEYGUARD_SERVICE);
+            isDeviceSecure = keyguardManager.isKeyguardSecure();
+        } catch (Exception e) {
+            NativeLogger.warn(": Error reading keyguard secure state", e);
+        }
+
+        String serverConfig = "";
+        try {
+            serverConfig = ReadFileAsString.read(this.reactContext.getCacheDir().getAbsolutePath() + "/Keybase/keybase.app.serverConfig");
+        } catch (Exception e) {
+            NativeLogger.warn(": Error reading server config", e);
+        }
+
+
+        String cacheDir = "";
+        {
+            File dir = this.reactContext.getCacheDir();
+            if (dir != null) {
+                cacheDir = dir.getAbsolutePath();
+            } 
+        }
+
+        String downloadDir = "";
+        {
+            File dir = this.reactContext.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS);
+            if (dir != null) {
+                downloadDir = dir.getAbsolutePath();
+            }
+        }
+
+        final Map<String, Object> constants = new HashMap<>();
+        constants.put("androidIsDeviceSecure", isDeviceSecure);
+        constants.put("androidIsTestDevice", misTestDevice);
+        constants.put("appVersionCode", versionCode);
+        constants.put("appVersionName", versionName);
+        constants.put("darkModeSupported", false);
+        constants.put("fsCacheDir", cacheDir);
+        constants.put("fsDownloadDir", downloadDir);
+        constants.put("guiConfig", readGuiConfig());
+        constants.put("serverConfig", serverConfig);
+        constants.put("uses24HourClock", DateFormat.is24HourFormat(this.reactContext));
+        constants.put("version", version());
+        return constants;
     }
 
     // country code
@@ -114,11 +200,6 @@ public class KbModule extends ReactContextBaseJavaModule {
         }
     }
 
-    private static String formatLine(String tagPrefix, String toLog) {
-        // Copies the Style JS outputs in native/logger.native.tsx
-        return tagPrefix + NAME + ": [" + System.currentTimeMillis() + ",\"" + toLog + "\"]";
-    }
-
     @ReactMethod
     public void logDump(String tagPrefix, Promise promise) {
         try {
@@ -138,7 +219,7 @@ public class KbModule extends ReactContextBaseJavaModule {
             promise.resolve(totalArray);
         } catch (IOException e) {
             promise.reject(e);
-            Log.e(RN_NAME, formatLine("e", "Exception in dump: "+ Log.getStackTraceString(e)));
+            NativeLogger.error("Exception in dump: ", e);
         }
     }
 
@@ -275,7 +356,7 @@ public class KbModule extends ReactContextBaseJavaModule {
         if (!firebaseInitialized) {
             FirebaseApp.initializeApp(getReactApplicationContext(),
                     new FirebaseOptions.Builder()
-                            .setApplicationId(BuildConfig.LIBRARY_PACKAGE_NAME)
+                            .setApplicationId(String.valueOf(getBuildConfigValue(this.reactContext, "LIBRARY_PACKAGE_NAME")))
                             .setProjectId("keybase-c30fb")
                             .setGcmSenderId("9603251415")
                             .build()
@@ -291,7 +372,7 @@ public class KbModule extends ReactContextBaseJavaModule {
                     @Override
                     public void onComplete(@NonNull Task<InstanceIdResult> task) {
                         if (!task.isSuccessful()) {
-                            Log.i(RN_NAME, formatLine("w", "getInstanceId failed" + Log.getStackTraceString(task.getException())));
+                            NativeLogger.warn("getInstanceId failed", task.getException());
                             promise.reject(task.getException());
                             return;
                         }
@@ -299,7 +380,7 @@ public class KbModule extends ReactContextBaseJavaModule {
 
                         // Get new Instance ID token
                         String token = task.getResult().getToken();
-                        Log.i(RN_NAME, formatLine("i", "Got token: " + token));
+                        NativeLogger.info("Got token: " + token);
                         promise.resolve(token);
                     }
                 });

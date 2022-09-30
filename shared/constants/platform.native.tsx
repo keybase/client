@@ -1,13 +1,17 @@
 import {Dimensions, Platform} from 'react-native'
-import {NativeModules} from '../util/native-modules.native'
 import * as iPhoneXHelper from 'react-native-iphone-x-helper'
 import Constants from 'expo-constants'
-import {androidSetSecureFlagSetting, androidGetSecureFlagSetting} from 'react-native-kb'
+import {
+  androidIsDeviceSecure,
+  androidSetSecureFlagSetting,
+  androidGetSecureFlagSetting,
+  fsCacheDir,
+} from 'react-native-kb'
+
+export {version, androidIsTestDevice, uses24HourClock, fsCacheDir} from 'react-native-kb'
 
 export const setSecureFlagSetting = androidSetSecureFlagSetting
 export const getSecureFlagSetting = androidGetSecureFlagSetting
-export const {version, androidIsTestDevice, uses24HourClock, androidIsDeviceSecure, fsCacheDir} =
-  NativeModules.KeybaseEngine
 // Currently this is given to us as a boolean, but no real documentation on this, so just in case it changes in the future.
 // Android only field that tells us if there is a lock screen.
 export const isDeviceSecureAndroid = androidIsDeviceSecure

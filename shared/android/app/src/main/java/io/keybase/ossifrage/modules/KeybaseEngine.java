@@ -87,61 +87,6 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
     }
 
 
-    private String readGuiConfig() {
-        return GuiConfig.getInstance(this.reactContext.getFilesDir()).asString();
-    }
-
-    @Override
-    public Map<String, Object> getConstants() {
-        String versionCode = String.valueOf(BuildConfig.VERSION_CODE);
-        String versionName = BuildConfig.VERSION_NAME;
-        boolean isDeviceSecure = false;
-
-        try {
-            final KeyguardManager keyguardManager = (KeyguardManager) this.reactContext.getSystemService(Context.KEYGUARD_SERVICE);
-            isDeviceSecure = keyguardManager.isKeyguardSecure();
-        } catch (Exception e) {
-          NativeLogger.warn(NAME + ": Error reading keyguard secure state", e);
-        }
-
-        String serverConfig = "";
-        try {
-            serverConfig = ReadFileAsString.read(this.reactContext.getCacheDir().getAbsolutePath() + "/Keybase/keybase.app.serverConfig");
-        } catch (Exception e) {
-            NativeLogger.warn(NAME + ": Error reading server config", e);
-        }
-
-
-        String cacheDir = "";
-        {
-            File dir = this.reactContext.getCacheDir();
-            if (dir != null) {
-                cacheDir = dir.getAbsolutePath();
-            } 
-        }
-
-        String downloadDir = "";
-        {
-            File dir = this.reactContext.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS);
-            if (dir != null) {
-                downloadDir = dir.getAbsolutePath();
-            }
-        }
-
-        final Map<String, Object> constants = new HashMap<>();
-        constants.put("androidIsDeviceSecure", isDeviceSecure);
-        constants.put("androidIsTestDevice", misTestDevice);
-        constants.put("appVersionCode", versionCode);
-        constants.put("appVersionName", versionName);
-        constants.put("darkModeSupported", false);
-        constants.put("fsCacheDir", cacheDir);
-        constants.put("fsDownloadDir", downloadDir);
-        constants.put("guiConfig", readGuiConfig());
-        constants.put("serverConfig", serverConfig);
-        constants.put("uses24HourClock", DateFormat.is24HourFormat(this.reactContext));
-        constants.put("version", version());
-        return constants;
-    }
 
     @ReactMethod
     public void reset() {

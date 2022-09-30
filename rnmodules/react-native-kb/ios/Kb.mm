@@ -122,6 +122,76 @@ RCT_REMAP_METHOD(logDump, tagPrefix
   });
 }
 
+// from react-native-localize
+- (bool)uses24HourClockForLocale:(NSLocale *_Nonnull)locale {
+  NSDateFormatter *formatter = [NSDateFormatter new];
+
+  [formatter setLocale:locale];
+  [formatter setTimeZone:[NSTimeZone timeZoneForSecondsFromGMT:0]];
+  [formatter setDateStyle:NSDateFormatterNoStyle];
+  [formatter setTimeStyle:NSDateFormatterShortStyle];
+
+  NSDate *date = [NSDate dateWithTimeIntervalSince1970:72000];
+  return [[formatter stringFromDate:date] containsString:@"20"];
+}
+
+- (NSString*)setupServerConfig {
+  NSArray *paths = NSSearchPathForDirectoriesInDomains(NSCachesDirectory,
+                                                       NSUserDomainMask, YES);
+  NSString *cachePath = [paths objectAtIndex:0];
+  NSString *filePath = [cachePath
+      stringByAppendingPathComponent:@"/Keybase/keybase.app.serverConfig"];
+  NSError *err;
+  return [NSString stringWithContentsOfFile:filePath
+                                                encoding:NSUTF8StringEncoding
+                                                   error:&err];
+}
+
+- (NSString*)setupGuiConfig {
+    id<KbProvider> kbProvider = (id<KbProvider>)[[UIApplication sharedApplication] delegate];
+  NSString *filePath = [[kbProvider sharedHome]
+      stringByAppendingPathComponent:
+          @"/Library/Application Support/Keybase/gui_config.json"];
+  NSError *err;
+  return [NSString stringWithContentsOfFile:filePath
+                                             encoding:NSUTF8StringEncoding
+                                                error:&err];
+}
+
+- (NSDictionary *)constantsToExport {
+  NSString * serverConfig = [self setupServerConfig];
+  NSString * guiConfig = [self setupGuiConfig];
+
+  NSString *darkModeSupported = @"0";
+  if (@available(iOS 13.0, *)) {
+    darkModeSupported = @"1";
+  };
+
+  NSString *appVersionString = [[NSBundle mainBundle]
+      objectForInfoDictionaryKey:@"CFBundleShortVersionString"];
+  NSString *appBuildString =
+      [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleVersion"];
+  NSLocale *currentLocale = [NSLocale currentLocale];
+  NSString *cacheDir = [NSSearchPathForDirectoriesInDomains(
+      NSCachesDirectory, NSUserDomainMask, YES) firstObject];
+  NSString *downloadDir = [NSSearchPathForDirectoriesInDomains(
+      NSDownloadsDirectory, NSUserDomainMask, YES) firstObject];
+
+  return @{
+    @"androidIsDeviceSecure" : @NO,
+    @"androidIsTestDevice" : @NO,
+    @"appVersionCode" : appBuildString,
+    @"appVersionName" : appVersionString,
+    @"darkModeSupported" : darkModeSupported,
+    @"fsCacheDir" : cacheDir,
+    @"fsDownloadDir" : downloadDir,
+    @"guiConfig" : guiConfig,
+    @"serverConfig" : serverConfig,
+    @"uses24HourClock" : @([self uses24HourClockForLocale:currentLocale]),
+    @"version" : KeybaseVersion()
+  };
+}
+
 // Don't compile this code when we build for the old architecture.
 #ifdef RCT_NEW_ARCH_ENABLED
 - (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:

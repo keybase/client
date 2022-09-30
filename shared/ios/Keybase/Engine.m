@@ -20,7 +20,6 @@ static Engine *sharedEngine = nil;
 
 @property dispatch_queue_t readQueue;
 @property(strong) KeybaseEngine *keybaseEngine;
-@property(strong) NSString *sharedHome;
 
 - (void)start:(KeybaseEngine *)emitter;
 - (void)startReadLoop;
@@ -122,8 +121,6 @@ static NSString *const metaEventEngineReset = @"kb-engine-reset";
 #pragma mark - Engine exposed to react
 
 @interface KeybaseEngine ()
-@property(strong) NSString *serverConfig;
-@property(strong) NSString *guiConfig;
 @end
 
 @implementation KeybaseEngine
@@ -141,74 +138,5 @@ RCT_EXPORT_MODULE();
 RCT_EXPORT_METHOD(reset) { [sharedEngine reset]; }
 
 RCT_EXPORT_METHOD(start) { [sharedEngine start:self]; }
-
-- (void)setupServerConfig {
-  NSArray *paths = NSSearchPathForDirectoriesInDomains(NSCachesDirectory,
-                                                       NSUserDomainMask, YES);
-  NSString *cachePath = [paths objectAtIndex:0];
-  NSString *filePath = [cachePath
-      stringByAppendingPathComponent:@"/Keybase/keybase.app.serverConfig"];
-  NSError *err;
-  self.serverConfig = [NSString stringWithContentsOfFile:filePath
-                                                encoding:NSUTF8StringEncoding
-                                                   error:&err];
-}
-
-- (void)setupGuiConfig {
-  NSString *filePath = [[sharedEngine sharedHome]
-      stringByAppendingPathComponent:
-          @"/Library/Application Support/Keybase/gui_config.json"];
-  NSError *err;
-  self.guiConfig = [NSString stringWithContentsOfFile:filePath
-                                             encoding:NSUTF8StringEncoding
-                                                error:&err];
-}
-
-// from react-native-localize
-- (bool)uses24HourClockForLocale:(NSLocale *_Nonnull)locale {
-  NSDateFormatter *formatter = [NSDateFormatter new];
-
-  [formatter setLocale:locale];
-  [formatter setTimeZone:[NSTimeZone timeZoneForSecondsFromGMT:0]];
-  [formatter setDateStyle:NSDateFormatterNoStyle];
-  [formatter setTimeStyle:NSDateFormatterShortStyle];
-
-  NSDate *date = [NSDate dateWithTimeIntervalSince1970:72000];
-  return [[formatter stringFromDate:date] containsString:@"20"];
-}
-
-- (NSDictionary *)constantsToExport {
-  [self setupServerConfig];
-  [self setupGuiConfig];
-
-  NSString *darkModeSupported = @"0";
-  if (@available(iOS 13.0, *)) {
-    darkModeSupported = @"1";
-  };
-
-  NSString *appVersionString = [[NSBundle mainBundle]
-      objectForInfoDictionaryKey:@"CFBundleShortVersionString"];
-  NSString *appBuildString =
-      [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleVersion"];
-  NSLocale *currentLocale = [NSLocale currentLocale];
-  NSString *cacheDir = [NSSearchPathForDirectoriesInDomains(
-      NSCachesDirectory, NSUserDomainMask, YES) firstObject];
-  NSString *downloadDir = [NSSearchPathForDirectoriesInDomains(
-      NSDownloadsDirectory, NSUserDomainMask, YES) firstObject];
-
-  return @{
-    @"androidIsDeviceSecure" : @NO,
-    @"androidIsTestDevice" : @NO,
-    @"appVersionCode" : appBuildString,
-    @"appVersionName" : appVersionString,
-    @"darkModeSupported" : darkModeSupported,
-    @"fsCacheDir" : cacheDir,
-    @"fsDownloadDir" : downloadDir,
-    @"guiConfig" : self.guiConfig ? self.guiConfig : @"",
-    @"serverConfig" : self.serverConfig ? self.serverConfig : @"",
-    @"uses24HourClock" : @([self uses24HourClockForLocale:currentLocale]),
-    @"version" : KeybaseVersion()
-  };
-}
 
 @end

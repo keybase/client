@@ -10,18 +10,6 @@ type NativeModulesType = {
     androidSetApplicationIconBadgeNumber?: (n: number) => void
     reset: () => void
     start: () => void
-
-    androidIsDeviceSecure: boolean
-    androidIsTestDevice: boolean
-    appVersionCode: string
-    appVersionName: string
-    darkModeSupported: boolean
-    fsCacheDir: string
-    fsDownloadDir: string
-    guiConfig: string
-    serverConfig: string
-    uses24HourClock: boolean
-    version: string
   }
   GoJSIBridge: {
     install: () => void

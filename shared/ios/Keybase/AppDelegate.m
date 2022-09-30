@@ -426,4 +426,8 @@ RNHWKeyboardEvent *hwKeyEvent = nil;
   [hwKeyEvent sendHWKeyEvent:@"shift-enter"];
 }
 
+- (NSString*) sharedHome {
+  return [self.engine sharedHome];
+}
+
 @end

@@ -19,3 +19,14 @@ export declare const androidAddCompleteDownload: (o: {
     showNotification: boolean;
     title: string;
 }) => Promise<void>;
+export declare const androidIsDeviceSecure: boolean;
+export declare const androidIsTestDevice: boolean;
+export declare const appVersionCode: string;
+export declare const appVersionName: string;
+export declare const darkModeSupported: boolean;
+export declare const fsCacheDir: string;
+export declare const fsDownloadDir: string;
+export declare const guiConfig: string;
+export declare const serverConfig: string;
+export declare const uses24HourClock: boolean;
+export declare const version: string;

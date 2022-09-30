@@ -127,3 +127,15 @@ export const androidAddCompleteDownload = (o: {
     }
     return Promise.resolve()
 }
+
+export const androidIsDeviceSecure: boolean = Kb.getConstants().androidIsDeviceSecure
+export const androidIsTestDevice: boolean = Kb.getConstants().androidIsTestDevice
+export const appVersionCode: string = Kb.getConstants().appVersionCode
+export const appVersionName: string = Kb.getConstants().appVersionCode
+export const darkModeSupported: boolean = Kb.getConstants().darkModeSupported
+export const fsCacheDir: string = Kb.getConstants().fsCacheDir
+export const fsDownloadDir: string = Kb.getConstants().fsDownloadDir
+export const guiConfig: string = Kb.getConstants().guiConfig
+export const serverConfig: string = Kb.getConstants().serverConfig
+export const uses24HourClock: boolean = Kb.getConstants().uses24HourClock
+export const version: string = Kb.getConstants().version
