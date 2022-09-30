@@ -5,9 +5,6 @@ import {LogBox} from 'react-native'
 import {serverConfig} from 'react-native-kb'
 import noop from 'lodash/noop'
 
-// TEMP remove
-console.log('aaa', require('react-native-kb'))
-
 // Toggle this to disable yellowboxes
 LogBox.ignoreAllLogs()
 
