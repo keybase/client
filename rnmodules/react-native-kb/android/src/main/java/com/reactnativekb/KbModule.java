@@ -44,11 +44,13 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import keybase.Keybase;
+import me.leolin.shortcutbadger.ShortcutBadger;
 import static keybase.Keybase.version;
 
 @ReactModule(name = KbModule.NAME)
@@ -73,9 +75,9 @@ public class KbModule extends ReactContextBaseJavaModule {
  * @param fieldName     The name of the field-to-access
  * @return              The value of the field, or {@code null} if the field is not found.
  */
-public static Object getBuildConfigValue(Context context, String fieldName) {
+private Object getBuildConfigValue(String fieldName) {
     try {
-        Class<?> clazz = Class.forName(context.getPackageName() + ".BuildConfig");
+        Class<?> clazz = Class.forName(this.reactContext.getPackageName() + ".BuildConfig");
         Field field = clazz.getField(fieldName);
         return field.get(null);
     } catch (ClassNotFoundException e) {
@@ -87,6 +89,23 @@ public static Object getBuildConfigValue(Context context, String fieldName) {
     }
     return null;
 }
+
+
+    private Class getMainActivityClass() {
+        // String packageName = this.reactContext.getPackageName();
+        // Intent launchIntent = this.reactContext.getPackageManager().getLaunchIntentForPackage(packageName);
+        // String className = launchIntent.getComponent().getClassName();
+        try {
+            // return Class.forName(className);
+            return Class.forName(this.reactContext.getPackageName() + ".MainActivity");
+            // Field field = clazz.getField(fieldName);
+            // return field.get(null);
+            // return Class.forName(className);
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
 
     public KbModule(ReactApplicationContext reactContext) {
         super(reactContext);
@@ -122,8 +141,8 @@ public static Object getBuildConfigValue(Context context, String fieldName) {
 
     @Override
     public Map<String, Object> getConstants() {
-        String versionCode = String.valueOf(getBuildConfigValue(this.reactContext, "VERSION_CODE"));
-        String versionName = String.valueOf(getBuildConfigValue(this.reactContext, "VERSION_NAME"));
+        String versionCode = String.valueOf(getBuildConfigValue("VERSION_CODE"));
+        String versionName = String.valueOf(getBuildConfigValue("VERSION_NAME"));
         boolean isDeviceSecure = false;
 
         try {
@@ -356,7 +375,7 @@ public static Object getBuildConfigValue(Context context, String fieldName) {
         if (!firebaseInitialized) {
             FirebaseApp.initializeApp(getReactApplicationContext(),
                     new FirebaseOptions.Builder()
-                            .setApplicationId(String.valueOf(getBuildConfigValue(this.reactContext, "LIBRARY_PACKAGE_NAME")))
+                            .setApplicationId(String.valueOf(getBuildConfigValue("LIBRARY_PACKAGE_NAME")))
                             .setProjectId("keybase-c30fb")
                             .setGcmSenderId("9603251415")
                             .build()
@@ -498,5 +517,28 @@ public static Object getBuildConfigValue(Context context, String fieldName) {
         } catch (Exception ex) {
             promise.reject("EUNSPECIFIED", ex.getLocalizedMessage());
         }
+    }
+
+    // Dark mode
+    // Same type as DarkModePreference: 'system' | 'alwaysDark' | 'alwaysLight'
+    @ReactMethod
+    public void androidAppColorSchemeChanged(String prefString) {
+        try {
+            final Activity activity = this.reactContext.getCurrentActivity();
+            if (activity != null) {
+                Method m = activity.getClass().getMethod("setBackgroundColor", String.class);
+                final DarkModePreference pref = DarkModePrefHelper.fromString(prefString);
+                m.invoke(activity, pref);
+                // activity.setBackgroundColor(pref);
+            }
+        } catch (Exception ex) {
+        }
+    }
+
+    // Badging
+
+    @ReactMethod
+    public void androidSetApplicationIconBadgeNumber(int badge) {
+        ShortcutBadger.applyCount(this.reactContext, badge);
     }
 }

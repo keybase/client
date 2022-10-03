@@ -22,13 +22,14 @@ import {
   androidRequestPushPermissions,
   androidCheckPushPermissions,
   androidGetRegistrationToken,
+  androidSetApplicationIconBadgeNumber,
 } from 'react-native-kb'
 
 const setApplicationIconBadgeNumber = (n: number) => {
   if (isIOS) {
     PushNotificationIOS.setApplicationIconBadgeNumber(n)
   } else {
-    NativeModules.KeybaseEngine.androidSetApplicationIconBadgeNumber?.(n)
+    androidSetApplicationIconBadgeNumber(n)
   }
 }
 

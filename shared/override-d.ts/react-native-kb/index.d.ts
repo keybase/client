@@ -19,6 +19,8 @@ export declare const androidAddCompleteDownload: (o: {
     showNotification: boolean;
     title: string;
 }) => Promise<void>;
+export declare const androidAppColorSchemeChanged: (mode: 'system' | 'alwaysDark' | 'alwaysLight' | '') => void;
+export declare const androidSetApplicationIconBadgeNumber: (n: number) => void;
 export declare const androidIsDeviceSecure: boolean;
 export declare const androidIsTestDevice: boolean;
 export declare const appVersionCode: string;

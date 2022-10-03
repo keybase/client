@@ -98,6 +98,16 @@ export const androidAddCompleteDownload = o => {
 
   return Promise.resolve();
 };
+export const androidAppColorSchemeChanged = mode => {
+  if (Platform.OS === 'android') {
+    Kb.androidAppColorSchemeChanged(mode);
+  }
+};
+export const androidSetApplicationIconBadgeNumber = n => {
+  if (Platform.OS === 'android') {
+    Kb.androidSetApplicationIconBadgeNumber(n);
+  }
+};
 export const androidIsDeviceSecure = Kb.getConstants().androidIsDeviceSecure;
 export const androidIsTestDevice = Kb.getConstants().androidIsTestDevice;
 export const appVersionCode = Kb.getConstants().appVersionCode;

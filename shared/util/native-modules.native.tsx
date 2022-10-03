@@ -3,11 +3,9 @@ export const isIOS = Platform.OS === 'ios'
 
 type NativeModulesType = {
   KeybaseEngine: {
-    androidAppColorSchemeChanged?: (mode: 'system' | 'alwaysDark' | 'alwaysLight' | '') => void
     androidGetInitialBundleFromNotification?: () => Promise<any>
     androidGetInitialShareFileUrl?: () => Promise<string>
     androidGetInitialShareText?: () => Promise<string>
-    androidSetApplicationIconBadgeNumber?: (n: number) => void
     reset: () => void
     start: () => void
   }

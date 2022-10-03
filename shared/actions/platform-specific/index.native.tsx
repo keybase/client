@@ -20,7 +20,6 @@ import type * as FsTypes from '../../constants/types/fs'
 import {getEngine} from '../../engine/require'
 // this CANNOT be an import *, totally screws up the packager
 import {Alert, Linking, ActionSheetIOS, PermissionsAndroid, Vibration} from 'react-native'
-import {NativeModules} from '../../util/native-modules.native'
 import Clipboard from '@react-native-clipboard/clipboard'
 import NetInfo from '@react-native-community/netinfo'
 import PushNotificationIOS from '@react-native-community/push-notification-ios'
@@ -47,6 +46,7 @@ import {
   androidUnlink,
   fsCacheDir,
   fsDownloadDir,
+  androidAppColorSchemeChanged,
 } from 'react-native-kb'
 
 const requestPermissionsToWrite = async () => {
@@ -894,7 +894,7 @@ const checkNav = async (
 
 const notifyNativeOfDarkModeChange = (state: Container.TypedState) => {
   if (isAndroid) {
-    NativeModules.KeybaseEngine.androidAppColorSchemeChanged?.(state.config.darkModePreference ?? '')
+    androidAppColorSchemeChanged?.(state.config.darkModePreference ?? '')
   }
 }
 

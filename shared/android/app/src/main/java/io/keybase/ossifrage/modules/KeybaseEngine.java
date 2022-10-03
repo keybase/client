@@ -26,7 +26,6 @@ import io.keybase.ossifrage.MainActivity;
 import io.keybase.ossifrage.util.GuiConfig;
 import io.keybase.ossifrage.util.ReadFileAsString;
 import keybase.Keybase;
-import me.leolin.shortcutbadger.ShortcutBadger;
 
 import static io.keybase.ossifrage.MainActivity.isTestDevice;
 import static keybase.Keybase.version;
@@ -134,21 +133,6 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
     public void androidGetInitialShareText(Promise promise) {
         promise.resolve(this.shareText);
         this.shareText = null;
-    }
-
-    // Same type as DarkModePreference: 'system' | 'alwaysDark' | 'alwaysLight'
-    @ReactMethod
-    public void androidAppColorSchemeChanged(String prefString) {
-        final DarkModePreference pref = DarkModePrefHelper.fromString(prefString);
-        final MainActivity activity = (MainActivity) reactContext.getCurrentActivity();
-        if (activity != null) {
-          activity.setBackgroundColor(pref);
-        }
-    }
-
-    @ReactMethod
-    public void androidSetApplicationIconBadgeNumber(int badge) {
-        ShortcutBadger.applyCount(this.reactContext, badge);
     }
 
     public void setInitialBundleFromNotification(Bundle bundle) {
