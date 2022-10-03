@@ -22,7 +22,6 @@
 		27EE26A820A140EF00F92CD1 /* Pusher.m in Sources */ = {isa = PBXBuildFile; fileRef = 27EE26A720A140EF00F92CD1 /* Pusher.m */; };
 		27F0BBB52142C19D007195B7 /* Pusher.m in Sources */ = {isa = PBXBuildFile; fileRef = 27EE26A720A140EF00F92CD1 /* Pusher.m */; };
 		338AE322D1D19D1B68AD9975 /* libPods-KeybaseShare.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1CB354B49777AEAF1FF91BE3 /* libPods-KeybaseShare.a */; };
-		375CA6651FFD40D300210B11 /* Storybook.m in Sources */ = {isa = PBXBuildFile; fileRef = 375CA6641FFD40D300210B11 /* Storybook.m */; };
 		37E0D88822A5C7FB008CA4ED /* keybase-semibold-italic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 37E0D87E22A5C7FA008CA4ED /* keybase-semibold-italic.ttf */; };
 		37E0D88922A5C7FB008CA4ED /* keybase-extrabold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 37E0D87F22A5C7FA008CA4ED /* keybase-extrabold.ttf */; };
 		37E0D88A22A5C7FB008CA4ED /* keybase-bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 37E0D88022A5C7FA008CA4ED /* keybase-bold.ttf */; };
@@ -100,8 +99,6 @@
 		279FB6F521403B8B005E4864 /* KeybaseShare.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = KeybaseShare.entitlements; sourceTree = "<group>"; };
 		27EE26A720A140EF00F92CD1 /* Pusher.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = Pusher.m; sourceTree = "<group>"; };
 		27EE26A920A1466300F92CD1 /* Pusher.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Pusher.h; sourceTree = "<group>"; };
-		375CA6641FFD40D300210B11 /* Storybook.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = Storybook.m; sourceTree = "<group>"; };
-		375CA6901FFD418D00210B11 /* Storybook.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Storybook.h; sourceTree = "<group>"; };
 		3791A8A220C71FE6001C2E86 /* UserNotifications.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UserNotifications.framework; path = System/Library/Frameworks/UserNotifications.framework; sourceTree = SDKROOT; };
 		37E0D87E22A5C7FA008CA4ED /* keybase-semibold-italic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "keybase-semibold-italic.ttf"; path = "../fonts/keybase-semibold-italic.ttf"; sourceTree = "<group>"; };
 		37E0D87F22A5C7FA008CA4ED /* keybase-extrabold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "keybase-extrabold.ttf"; path = "../fonts/keybase-extrabold.ttf"; sourceTree = "<group>"; };
@@ -298,15 +295,13 @@
 				DB779DFC27D2AD0B00CDB0F7 /* GoJSIBridge.h */,
 				DB779E0527D2B96600CDB0F7 /* GoJSIBridge.mm */,
 				DB3B470C27EB8BCB0002139E /* rpc.cpp */,
-				375CA6901FFD418D00210B11 /* Storybook.h */,
-				375CA6641FFD40D300210B11 /* Storybook.m */,
 				DBDCF3441B8D04FC00BA95D8 /* Keybase-Bridging-Header.h */,
 				0044E59C1BCD7CEA008EF7EE /* LaunchScreen.storyboard */,
-				27EE26A720A140EF00F92CD1 /* Pusher.m */,
 				27EE26A920A1466300F92CD1 /* Pusher.h */,
+				27EE26A720A140EF00F92CD1 /* Pusher.m */,
+				279FB69821402D82005E4864 /* Fs.h */,
 				279FB66821402D68005E4864 /* Fs.m */,
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
-				279FB69821402D82005E4864 /* Fs.h */,
 			);
 			path = Keybase;
 			sourceTree = "<group>";
@@ -589,7 +584,6 @@
 				DB779E0627D2B96600CDB0F7 /* GoJSIBridge.mm in Sources */,
 				DBCE36251B90F14800ECADDE /* Engine.m in Sources */,
 				DBBCC6131D9C4A8100312652 /* AppDelegate.m in Sources */,
-				375CA6651FFD40D300210B11 /* Storybook.m in Sources */,
 				9E1460E4A90E8D73A7347FED /* ExpoModulesProvider.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
