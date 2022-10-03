@@ -40,7 +40,6 @@ static NSString *const metaEventEngineReset = @"kb-engine-reset";
   if ((self = [super init])) {
     sharedEngine = self;
     self.sharedHome = settings[@"sharedHome"];
-    [GoJSIBridge setEngine:self];
     [[NSNotificationCenter defaultCenter]
         addObserver:self
            selector:@selector(onRNReload)
@@ -96,14 +95,6 @@ static NSString *const metaEventEngineReset = @"kb-engine-reset";
 - (void)start:(KeybaseEngine *)emitter {
   self.keybaseEngine = emitter;
   [self startReadLoop];
-}
-
-- (void)rpcToGo:(NSData *)data {
-  NSError *error = nil;
-  KeybaseWriteArr(data, &error);
-  if (error) {
-    NSLog(@"Error writing data: %@", error);
-  }
 }
 
 - (void)reset {

@@ -7,12 +7,12 @@
 #import <cstring>
 #import <jsi/jsi.h>
 #import <sys/utsname.h>
+#import <Keybase/Keybase.h>
 
 using namespace facebook::jsi;
 using namespace facebook;
 using namespace std;
 
-static Engine *_engine = nil;
 static const DDLogLevel ddLogLevel = DDLogLevelDebug;
 static const NSString *tagName = @"NativeLogger";
 
@@ -25,10 +25,6 @@ RCT_EXPORT_MODULE()
 
 + (BOOL)requiresMainQueueSetup {
   return YES;
-}
-
-+ (void)setEngine:(Engine *)engine {
-  _engine = engine;
 }
 
 static Runtime *g_jsiRuntime = nullptr;
@@ -84,7 +80,11 @@ static void install(Runtime &jsiRuntime, GoJSIBridge *goJSIBridge) {
                          NSData *result = [NSData dataWithBytesNoCopy:ptr
                                                                length:size
                                                          freeWhenDone:NO];
-                         [_engine rpcToGo:result];
+                          NSError *error = nil;
+                          KeybaseWriteArr(result, &error);
+                          if (error) {
+                            NSLog(@"Error writing data: %@", error);
+                          }
                        });
       });
   jsiRuntime.global().setProperty(jsiRuntime, "rpcOnGo", move(rpcOnGo));
