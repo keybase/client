@@ -49,6 +49,8 @@ import io.keybase.ossifrage.util.GuiConfig;
 import io.keybase.ossifrage.util.VideoHelper;
 import keybase.Keybase;
 
+import com.reactnativekb.KbModule;
+
 import static keybase.Keybase.initOnce;
 
 public class MainActivity extends ReactActivity {
@@ -284,16 +286,16 @@ public class MainActivity extends ReactActivity {
         }
 
         private void run() {
-          KeybaseEngine engine = context.getNativeModule(KeybaseEngine.class);
+          KbModule kb = context.getNativeModule(KbModule.class);
           if (bundleFromNotification != null) {
-            engine.setInitialBundleFromNotification(bundleFromNotification);
+            kb.setInitialBundleFromNotification(bundleFromNotification);
           } else if (uri != null) {
             String filePath = readFileFromUri(getReactContext(), uri);
             if (filePath != null) {
-              engine.setInitialShareFileUrl(filePath);
+              kb.setInitialShareFileUrl(filePath);
             }
           } else if (textPayload.length() > 0){
-            engine.setInitialShareText(textPayload);
+            kb.setInitialShareText(textPayload);
           }
 
           assert emitter != null;

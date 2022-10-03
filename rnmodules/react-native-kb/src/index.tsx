@@ -141,6 +141,25 @@ export const androidSetApplicationIconBadgeNumber = (n: number): void => {
     }
 }
 
+export const androidGetInitialBundleFromNotification = (): Promise<any> => {
+    if (Platform.OS === 'android') {
+        return Kb.androidGetInitialBundleFromNotification()
+    }
+    return Promise.resolve(null)
+}
+export const androidGetInitialShareFileUrl = (): Promise<string> => {
+    if (Platform.OS === 'android') {
+        return Kb.androidGetInitialShareFileUrl()
+    }
+    return Promise.resolve('')
+}
+export const androidGetInitialShareText = (): Promise<string> => {
+    if (Platform.OS === 'android') {
+        return Kb.androidGetInitialShareText()
+    }
+    return Promise.resolve('')
+}
+
 export const androidIsDeviceSecure: boolean = Kb.getConstants().androidIsDeviceSecure
 export const androidIsTestDevice: boolean = Kb.getConstants().androidIsTestDevice
 export const appVersionCode: string = Kb.getConstants().appVersionCode

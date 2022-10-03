@@ -21,6 +21,9 @@ export declare const androidAddCompleteDownload: (o: {
 }) => Promise<void>;
 export declare const androidAppColorSchemeChanged: (mode: 'system' | 'alwaysDark' | 'alwaysLight' | '') => void;
 export declare const androidSetApplicationIconBadgeNumber: (n: number) => void;
+export declare const androidGetInitialBundleFromNotification: () => Promise<any>;
+export declare const androidGetInitialShareFileUrl: () => Promise<string>;
+export declare const androidGetInitialShareText: () => Promise<string>;
 export declare const androidIsDeviceSecure: boolean;
 export declare const androidIsTestDevice: boolean;
 export declare const appVersionCode: string;

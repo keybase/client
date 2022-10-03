@@ -108,6 +108,27 @@ export const androidSetApplicationIconBadgeNumber = n => {
     Kb.androidSetApplicationIconBadgeNumber(n);
   }
 };
+export const androidGetInitialBundleFromNotification = () => {
+  if (Platform.OS === 'android') {
+    return Kb.androidGetInitialBundleFromNotification();
+  }
+
+  return Promise.resolve(null);
+};
+export const androidGetInitialShareFileUrl = () => {
+  if (Platform.OS === 'android') {
+    return Kb.androidGetInitialShareFileUrl();
+  }
+
+  return Promise.resolve('');
+};
+export const androidGetInitialShareText = () => {
+  if (Platform.OS === 'android') {
+    return Kb.androidGetInitialShareText();
+  }
+
+  return Promise.resolve('');
+};
 export const androidIsDeviceSecure = Kb.getConstants().androidIsDeviceSecure;
 export const androidIsTestDevice = Kb.getConstants().androidIsTestDevice;
 export const appVersionCode = Kb.getConstants().appVersionCode;

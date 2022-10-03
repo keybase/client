@@ -60,6 +60,10 @@ public class KbModule extends ReactContextBaseJavaModule {
     private static final int MAX_TEXT_FILE_SIZE = 100 * 1024; // 100 kiB
     private static final String LINE_SEPARATOR = System.getProperty("line.separator");
     private boolean misTestDevice;
+    private Bundle initialBundleFromNotification;
+    private HashMap<String, String> initialIntent;
+    private String shareFileUrl;
+    private String shareText;
     private final ReactApplicationContext reactContext;
 
     // Is this a robot controlled test device? (i.e. pre-launch report?)
@@ -540,5 +544,44 @@ private Object getBuildConfigValue(String fieldName) {
     @ReactMethod
     public void androidSetApplicationIconBadgeNumber(int badge) {
         ShortcutBadger.applyCount(this.reactContext, badge);
+    }
+
+
+    // init bundles
+    // This isn't related to the Go Engine, but it's a small thing that wouldn't be worth putting in
+    // its own react module. That's because starting up a react module is a bit expensive and we
+    // wouldn't be able to lazy load this because we need it on startup.
+    @ReactMethod
+    public void androidGetInitialBundleFromNotification(Promise promise) {
+        if (this.initialBundleFromNotification != null) {
+            WritableMap map = Arguments.fromBundle(this.initialBundleFromNotification);
+            promise.resolve(map);
+            this.initialBundleFromNotification = null;
+        }
+        else {
+            promise.resolve(null);
+        }
+    }
+
+    @ReactMethod
+    public void androidGetInitialShareFileUrl(Promise promise) {
+        promise.resolve(this.shareFileUrl);
+        this.shareFileUrl = null;
+    }
+
+    @ReactMethod
+    public void androidGetInitialShareText(Promise promise) {
+        promise.resolve(this.shareText);
+        this.shareText = null;
+    }
+
+    public void setInitialBundleFromNotification(Bundle bundle) {
+        this.initialBundleFromNotification = bundle;
+    }
+    public void setInitialShareFileUrl(String s) {
+        this.shareFileUrl = s;
+    }
+    public void setInitialShareText(String text) {
+        this.shareText = text;
     }
 }

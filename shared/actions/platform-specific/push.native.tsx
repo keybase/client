@@ -23,6 +23,9 @@ import {
   androidCheckPushPermissions,
   androidGetRegistrationToken,
   androidSetApplicationIconBadgeNumber,
+  androidGetInitialBundleFromNotification,
+  androidGetInitialShareFileUrl,
+  androidGetInitialShareText,
 } from 'react-native-kb'
 
 const setApplicationIconBadgeNumber = (n: number) => {
@@ -409,9 +412,8 @@ const _checkPermissions = async (
 
 const getStartupDetailsFromInitialShare = async () => {
   if (isAndroid) {
-    const fileUrl = await (NativeModules.KeybaseEngine.androidGetInitialShareFileUrl?.() ??
-      Promise.resolve(''))
-    const text = await (NativeModules.KeybaseEngine.androidGetInitialShareText?.() ?? Promise.resolve(''))
+    const fileUrl = await (androidGetInitialShareFileUrl() ?? Promise.resolve(''))
+    const text = await (androidGetInitialShareText() ?? Promise.resolve(''))
     return {fileUrl, text}
   } else {
     return Promise.resolve(undefined)
@@ -446,8 +448,7 @@ const getStartupDetailsFromInitialPush = async () => {
 }
 
 const getInitialPushAndroid = async () => {
-  const n = await (NativeModules.KeybaseEngine.androidGetInitialBundleFromNotification?.() ??
-    Promise.resolve({}))
+  const n = await (androidGetInitialBundleFromNotification() ?? Promise.resolve({}))
   const notification = n && Constants.normalizePush(n)
   return notification && PushGen.createNotification({notification})
 }

@@ -39,11 +39,6 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
 
     private Boolean started = false;
     private ReactApplicationContext reactContext;
-    private Bundle initialBundleFromNotification;
-    private HashMap<String, String> initialIntent;
-    private String shareFileUrl;
-    private String shareText;
-    private boolean misTestDevice;
 
     private static void relayReset(ReactApplicationContext reactContext) {
         if (!reactContext.hasActiveCatalystInstance()) {
@@ -69,7 +64,6 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
         super(reactContext);
         NativeLogger.info("KeybaseEngine constructed");
         this.reactContext = reactContext;
-        this.misTestDevice = isTestDevice(reactContext);
     }
 
     public void destroy() {
@@ -107,43 +101,4 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
             NativeLogger.error("Exception in KeybaseEngine.start", e);
         }
     }
-
-    // This isn't related to the Go Engine, but it's a small thing that wouldn't be worth putting in
-    // its own react module. That's because starting up a react module is a bit expensive and we
-    // wouldn't be able to lazy load this because we need it on startup.
-    @ReactMethod
-    public void androidGetInitialBundleFromNotification(Promise promise) {
-        if (this.initialBundleFromNotification != null) {
-            WritableMap map = Arguments.fromBundle(this.initialBundleFromNotification);
-            promise.resolve(map);
-            this.initialBundleFromNotification = null;
-        }
-        else {
-            promise.resolve(null);
-        }
-    }
-
-    @ReactMethod
-    public void androidGetInitialShareFileUrl(Promise promise) {
-        promise.resolve(this.shareFileUrl);
-        this.shareFileUrl = null;
-    }
-
-    @ReactMethod
-    public void androidGetInitialShareText(Promise promise) {
-        promise.resolve(this.shareText);
-        this.shareText = null;
-    }
-
-    public void setInitialBundleFromNotification(Bundle bundle) {
-        this.initialBundleFromNotification = bundle;
-    }
-
-    public void setInitialShareFileUrl(String s) {
-        this.shareFileUrl = s;
-    }
-    public void setInitialShareText(String text) {
-        this.shareText = text;
-    }
-
 }

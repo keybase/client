@@ -3,9 +3,6 @@ export const isIOS = Platform.OS === 'ios'
 
 type NativeModulesType = {
   KeybaseEngine: {
-    androidGetInitialBundleFromNotification?: () => Promise<any>
-    androidGetInitialShareFileUrl?: () => Promise<string>
-    androidGetInitialShareText?: () => Promise<string>
     reset: () => void
     start: () => void
   }
