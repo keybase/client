@@ -18,7 +18,6 @@
 @interface AppDelegate : EXAppDelegateWrapper <UIApplicationDelegate, RCTBridgeDelegate, UNUserNotificationCenterDelegate, UIDropInteractionDelegate, KbProvider>
 
 @property (nonatomic, strong) UIWindow *window;
-@property (nonatomic, strong) Engine *engine;
 @property UIImageView *resignImageView;
-
+@property(nonatomic, strong) NSDictionary *fsPaths;
 @end

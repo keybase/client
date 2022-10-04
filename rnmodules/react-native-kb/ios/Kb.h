@@ -2,7 +2,7 @@
 #import "CocoaLumberjack.h"
 
 @protocol KbProvider
-- (NSString *) sharedHome;
+- (NSDictionary *) fsPaths;
 @end
 
 @interface Kb : NSObject <RCTBridgeModule>

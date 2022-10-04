@@ -37,7 +37,6 @@ static void InitializeFlipper(UIApplication *application) {
 #endif
 
 #import <React/RCTLinkingManager.h>
-#import "Engine.h"
 #import "Fs.h"
 #import "Pusher.h"
 #import <AVFoundation/AVFoundation.h>
@@ -169,28 +168,30 @@ static const DDLogLevel ddLogLevel = DDLogLevelDebug;
 }
 
 - (void)setupGo {
-#if TARGET_OS_SIMULATOR
-  BOOL securityAccessGroupOverride = YES;
-#else
-  BOOL securityAccessGroupOverride = NO;
-#endif
   // set to true to see logs in xcode
   BOOL skipLogFile = false;
   // uncomment to get more console.logs
   // RCTSetLogThreshold(RCTLogLevelInfo - 1);
-
-  NSDictionary *fsPaths = [[FsHelper alloc] setupFs:skipLogFile
+  self.fsPaths = [[FsHelper alloc] setupFs:skipLogFile
                                     setupSharedHome:YES];
+  
+  
+  NSString *systemVer = [[UIDevice currentDevice] systemVersion];
+  BOOL isIPad =
+      [[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad;
+  BOOL isIOS = YES;
+  
+#if TARGET_OS_SIMULATOR
+      BOOL securityAccessGroupOverride = YES;
+#else
+      BOOL securityAccessGroupOverride = NO;
+#endif
+  
   NSError *err;
-  self.engine = [[Engine alloc] initWithSettings:@{
-    @"runmode" : @"prod",
-    @"homedir" : fsPaths[@"home"],
-    @"sharedHome" : fsPaths[@"sharedHome"],
-    @"logFile" : fsPaths[@"logFile"],
-    @"serverURI" : @"",
-    @"SecurityAccessGroupOverride" : @(securityAccessGroupOverride)
-  }
-  error:&err];
+  KeybaseInit(self.fsPaths[@"homedir"], self.fsPaths[@"sharedHome"],
+              self.fsPaths[@"logFile"], @"prod",
+              securityAccessGroupOverride, NULL, NULL, systemVer,
+              isIPad, NULL, isIOS, &err);
 }
 
 - (void)application:(UIApplication *)application
@@ -424,10 +425,6 @@ RNHWKeyboardEvent *hwKeyEvent = nil;
 - (void)sendShiftEnter:(UIKeyCommand *)sender {
   // Detects user pressing the shift-enter combination
   [hwKeyEvent sendHWKeyEvent:@"shift-enter"];
-}
-
-- (NSString*) sharedHome {
-  return [self.engine sharedHome];
 }
 
 @end

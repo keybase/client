@@ -149,7 +149,7 @@ RCT_REMAP_METHOD(logDump, tagPrefix
 
 - (NSString*)setupGuiConfig {
     id<KbProvider> kbProvider = (id<KbProvider>)[[UIApplication sharedApplication] delegate];
-  NSString *filePath = [[kbProvider sharedHome]
+  NSString *filePath = [[kbProvider fsPaths][@"sharedHome"]
       stringByAppendingPathComponent:
           @"/Library/Application Support/Keybase/gui_config.json"];
   NSError *err;

@@ -10,11 +10,6 @@
 #import <React/RCTBridgeModule.h>
 #import <React/RCTEventEmitter.h>
 
-@interface Engine : NSObject
-- (instancetype)initWithSettings:(NSDictionary *)settings error:(NSError **)error;
-@property(strong) NSString *sharedHome;
-@end
-
 @interface KeybaseEngine : RCTEventEmitter <RCTBridgeModule>
   + (BOOL)requiresMainQueueSetup;
 @end
