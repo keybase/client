@@ -71,7 +71,7 @@ const listenForNativeAndroidIntentNotifications = async (listenerApi: Container.
   logger.debug('[PushToken] received new token: ', pushToken)
   listenerApi.dispatch(PushGen.createUpdatePushToken({token: pushToken}))
 
-  const RNEmitter = new NativeEventEmitter(NativeModules.KeybaseEngine as any)
+  const RNEmitter = new NativeEventEmitter(NativeModules.Kb as any)
   RNEmitter.addListener('initialIntentFromNotification', evt => {
     const notification = evt && Constants.normalizePush(evt)
     notification && listenerApi.dispatch(PushGen.createNotification({notification}))

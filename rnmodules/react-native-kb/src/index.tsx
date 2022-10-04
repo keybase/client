@@ -159,6 +159,12 @@ export const androidGetInitialShareText = (): Promise<string> => {
     }
     return Promise.resolve('')
 }
+export const engineReset = (): void => {
+    return Kb.engineReset()
+}
+export const engineStart = (): void => {
+    return Kb.engineStart()
+}
 
 export const androidIsDeviceSecure: boolean = Kb.getConstants().androidIsDeviceSecure
 export const androidIsTestDevice: boolean = Kb.getConstants().androidIsTestDevice

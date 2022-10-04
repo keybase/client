@@ -1,13 +1,13 @@
 #import "GoJSIBridge.h"
-#import "../../android/app/src/main/cpp/rpc.h"
-#import "AppDelegate.h"
+#import "rpc.h"
 #import "CocoaLumberjack.h"
-#import <React/RCTBridge+Private.h>
-#import <React/RCTUtils.h>
 #import <cstring>
 #import <jsi/jsi.h>
 #import <sys/utsname.h>
-#import <Keybase/Keybase.h>
+#import "Keybase.h"
+#import <React/RCTBridge.h>
+#import <React/RCTBridge+Private.h>
+#import <ReactCommon/CallInvoker.h>
 
 using namespace facebook::jsi;
 using namespace facebook;
@@ -15,6 +15,11 @@ using namespace std;
 
 static const DDLogLevel ddLogLevel = DDLogLevelDebug;
 static const NSString *tagName = @"NativeLogger";
+
+@interface RCTBridge (KB)
+- (std::shared_ptr<facebook::react::CallInvoker>)jsCallInvoker;
+@end
+
 
 @implementation GoJSIBridge
 

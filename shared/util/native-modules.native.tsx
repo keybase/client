@@ -2,10 +2,7 @@ import {NativeModules as RNNativeModules, Platform} from 'react-native'
 export const isIOS = Platform.OS === 'ios'
 
 type NativeModulesType = {
-  KeybaseEngine: {
-    reset: () => void
-    start: () => void
-  }
+  Kb: unknown
   GoJSIBridge: {
     install: () => void
   }
@@ -14,9 +11,6 @@ type NativeModulesType = {
 const NativeModules = RNNativeModules as NativeModulesType
 
 // sanity check
-if (!NativeModules.KeybaseEngine) {
-  throw new Error('Missing native KeybaseEngine')
-}
 if (!NativeModules.GoJSIBridge) {
   throw new Error('Missing native GoJSIBridge')
 }

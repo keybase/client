@@ -24,6 +24,8 @@ export declare const androidSetApplicationIconBadgeNumber: (n: number) => void;
 export declare const androidGetInitialBundleFromNotification: () => Promise<any>;
 export declare const androidGetInitialShareFileUrl: () => Promise<string>;
 export declare const androidGetInitialShareText: () => Promise<string>;
+export declare const engineReset: () => void;
+export declare const engineStart: () => void;
 export declare const androidIsDeviceSecure: boolean;
 export declare const androidIsTestDevice: boolean;
 export declare const appVersionCode: string;

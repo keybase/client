@@ -4,8 +4,9 @@ import {TransportShared, sharedCreateClient, rpcLog} from './transport-shared'
 import {encode} from '@msgpack/msgpack'
 import type {SendArg, incomingRPCCallbackType, connectDisconnectCB} from './index.platform'
 import logger from '../logger'
+import {engineStart, engineReset} from 'react-native-kb'
 
-const RNEmitter = new NativeEventEmitter(NativeModules.KeybaseEngine as any)
+const RNEmitter = new NativeEventEmitter(NativeModules.Kb as any)
 
 class NativeTransport extends TransportShared {
   constructor(
@@ -71,7 +72,7 @@ function createClient(
     }
   }
 
-  NativeModules.KeybaseEngine.start()
+  engineStart()
 
   RNEmitter.addListener('kb-meta-engine-event', (payload: string) => {
     try {
@@ -89,7 +90,7 @@ function createClient(
 
 function resetClient() {
   // Tell the RN bridge to reset itself
-  NativeModules.KeybaseEngine.reset()
+  engineReset()
 }
 
 export {resetClient, createClient, rpcLog}

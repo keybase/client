@@ -4,6 +4,9 @@
 #import <CoreTelephony/CTTelephonyNetworkInfo.h>
 #import <Foundation/Foundation.h>
 #import <UserNotifications/UserNotifications.h>
+#import <React/RCTEventDispatcher.h>
+#import <React/RCTBridge.h>
+#import "GoJSIBridge.h"
 
 #ifdef RCT_NEW_ARCH_ENABLED
 #import "RNKbSpec.h"
@@ -11,6 +14,13 @@
 
 static const DDLogLevel ddLogLevel = DDLogLevelDebug;
 static const NSString *tagName = @"NativeLogger";
+static NSString *const eventName = @"kb-engine-event";
+static NSString *const metaEventName = @"kb-meta-engine-event";
+static NSString *const metaEventEngineReset = @"kb-engine-reset";
+
+@interface Kb ()
+@property dispatch_queue_t readQueue;
+@end
 
 @implementation Kb
 RCT_EXPORT_MODULE()
@@ -158,6 +168,39 @@ RCT_REMAP_METHOD(logDump, tagPrefix
                                                 error:&err];
 }
 
+RCT_EXPORT_METHOD(engineReset) {
+  NSError *error = nil;
+  KeybaseReset(&error);
+  [self sendEventWithName:metaEventName body:metaEventEngineReset];
+  if (error) {
+    NSLog(@"Error in reset: %@", error);
+  }
+}
+
+RCT_EXPORT_METHOD(engineStart) {
+  dispatch_async(dispatch_get_main_queue(), ^{
+    [[NSNotificationCenter defaultCenter]
+     addObserver:self
+     selector:@selector(engineReset)
+     name:RCTJavaScriptWillStartLoadingNotification
+     object:nil];
+    self.readQueue = dispatch_queue_create("go_bridge_queue_read", DISPATCH_QUEUE_SERIAL);
+    
+    dispatch_async(self.readQueue, ^{
+      while (true) {
+        NSError *error = nil;
+        NSData *data = KeybaseReadArr(&error);
+        if (error) {
+          NSLog(@"Error reading data: %@", error);
+        }
+        if (data) {
+          [GoJSIBridge sendToJS:data];
+        }
+      }
+    });
+  });
+}
+
 - (NSDictionary *)constantsToExport {
   NSString * serverConfig = [self setupServerConfig];
   NSString * guiConfig = [self setupGuiConfig];
@@ -190,6 +233,10 @@ RCT_REMAP_METHOD(logDump, tagPrefix
     @"uses24HourClock" : @([self uses24HourClockForLocale:currentLocale]),
     @"version" : KeybaseVersion()
   };
+}
+
+- (NSArray<NSString *> *)supportedEvents {
+  return @[ eventName, metaEventName ];
 }
 
 // Don't compile this code when we build for the old architecture.

@@ -129,6 +129,12 @@ export const androidGetInitialShareText = () => {
 
   return Promise.resolve('');
 };
+export const engineReset = () => {
+  return Kb.engineReset();
+};
+export const engineStart = () => {
+  return Kb.engineStart();
+};
 export const androidIsDeviceSecure = Kb.getConstants().androidIsDeviceSecure;
 export const androidIsTestDevice = Kb.getConstants().androidIsTestDevice;
 export const appVersionCode = Kb.getConstants().appVersionCode;
