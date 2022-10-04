@@ -1,5 +1,5 @@
 #import "GoJSIBridge.h"
-#import "rpc.h"
+#import "../cpp/rpc.h"
 #import "CocoaLumberjack.h"
 #import <cstring>
 #import <jsi/jsi.h>

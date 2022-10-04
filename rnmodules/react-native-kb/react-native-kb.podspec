@@ -14,8 +14,8 @@ Pod::Spec.new do |s|
   s.platforms    = { :ios => "10.0" }
   s.source       = { :git => "https://github.com/chrisnojima/react-native-kb.git", :tag => "#{s.version}" }
 
-  s.source_files = "ios/**/*.{h,m,mm}"
-  s.pod_target_xcconfig = { 'HEADER_SEARCH_PATHS' => '$(PODS_ROOT)/../../node_modules/msgpack-cxx-4.1.1/include $(PODS_ROOT)/../../android/app/src/main/cpp $(PODS_ROOT)/../keybase.xcframework/ios-arm64/Keybase.framework/Headers', 'GCC_PREPROCESSOR_DEFINITIONS' => '$(inherited) MSGPACK_NO_BOOST=1' }
+  s.source_files = "ios/**/*.{h,m,mm}", "cpp/rpc.cpp"
+  s.pod_target_xcconfig = { 'HEADER_SEARCH_PATHS' => '$(PODS_ROOT)/../../node_modules/msgpack-cxx-4.1.1/include $(PODS_ROOT)/../keybase.xcframework/ios-arm64/Keybase.framework/Headers', 'GCC_PREPROCESSOR_DEFINITIONS' => '$(inherited) MSGPACK_NO_BOOST=1' }
 
   s.dependency "React-Core"
 
