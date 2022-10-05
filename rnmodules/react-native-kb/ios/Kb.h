@@ -8,4 +8,5 @@
 
 @interface Kb : RCTEventEmitter <RCTBridgeModule>
 @property (nonatomic, strong) DDFileLogger *fileLogger;
+@property (nonatomic, assign) BOOL setBridgeOnMainQueue;
 @end

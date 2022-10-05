@@ -14,8 +14,6 @@ import PushNotificationIOS from '@react-native-community/push-notification-ios'
 import logger from '../../logger'
 import type * as ChatTypes from '../../constants/types/chat2'
 import type * as Types from '../../constants/types/push'
-import {NativeEventEmitter} from 'react-native'
-import {NativeModules} from '../../util/native-modules.native'
 import {isIOS, isAndroid} from '../../constants/platform'
 import {
   iosGetHasShownPushPrompt,
@@ -26,6 +24,7 @@ import {
   androidGetInitialBundleFromNotification,
   androidGetInitialShareFileUrl,
   androidGetInitialShareText,
+  getNativeEmitter,
 } from 'react-native-kb'
 
 const setApplicationIconBadgeNumber = (n: number) => {
@@ -71,7 +70,7 @@ const listenForNativeAndroidIntentNotifications = async (listenerApi: Container.
   logger.debug('[PushToken] received new token: ', pushToken)
   listenerApi.dispatch(PushGen.createUpdatePushToken({token: pushToken}))
 
-  const RNEmitter = new NativeEventEmitter(NativeModules.Kb as any)
+  const RNEmitter = getNativeEmitter()
   RNEmitter.addListener('initialIntentFromNotification', evt => {
     const notification = evt && Constants.normalizePush(evt)
     notification && listenerApi.dispatch(PushGen.createNotification({notification}))

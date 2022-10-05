@@ -1,3 +1,4 @@
+import { NativeEventEmitter } from 'react-native';
 export declare const getDefaultCountryCode: () => Promise<string>;
 export declare const logSend: (status: string, feedback: string, sendLogs: boolean, sendMaxBytes: boolean, traceDir: string, cpuProfileDir: string) => Promise<string>;
 export declare const iosGetHasShownPushPrompt: () => Promise<boolean>;
@@ -26,6 +27,8 @@ export declare const androidGetInitialShareFileUrl: () => Promise<string>;
 export declare const androidGetInitialShareText: () => Promise<string>;
 export declare const engineReset: () => void;
 export declare const engineStart: () => void;
+export declare const installJSI: () => void;
+export declare const getNativeEmitter: () => NativeEventEmitter;
 export declare const androidIsDeviceSecure: boolean;
 export declare const androidIsTestDevice: boolean;
 export declare const appVersionCode: string;

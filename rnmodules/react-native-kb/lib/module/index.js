@@ -1,4 +1,4 @@
-import { NativeModules, Platform } from 'react-native';
+import { NativeModules, Platform, NativeEventEmitter } from 'react-native';
 const LINKING_ERROR = `The package 'react-native-kb' doesn't seem to be linked. Make sure: \n\n` + Platform.select({
   ios: "- You have run 'pod install'\n",
   default: ''
@@ -134,6 +134,12 @@ export const engineReset = () => {
 };
 export const engineStart = () => {
   return Kb.engineStart();
+};
+export const installJSI = () => {
+  return Kb.installJSI();
+};
+export const getNativeEmitter = () => {
+  return new NativeEventEmitter(Kb);
 };
 export const androidIsDeviceSecure = Kb.getConstants().androidIsDeviceSecure;
 export const androidIsTestDevice = Kb.getConstants().androidIsTestDevice;

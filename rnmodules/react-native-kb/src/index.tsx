@@ -1,4 +1,4 @@
-import { NativeModules, Platform } from 'react-native';
+import { NativeModules, Platform, NativeEventEmitter } from 'react-native';
 
 const LINKING_ERROR =
     `The package 'react-native-kb' doesn't seem to be linked. Make sure: \n\n` +
@@ -164,6 +164,13 @@ export const engineReset = (): void => {
 }
 export const engineStart = (): void => {
     return Kb.engineStart()
+}
+export const installJSI = (): void => {
+    return Kb.installJSI()
+}
+
+export const getNativeEmitter = () => {
+    return new NativeEventEmitter(Kb as any)
 }
 
 export const androidIsDeviceSecure: boolean = Kb.getConstants().androidIsDeviceSecure
