@@ -1,3 +1,4 @@
+// TODO not actually building in library
 // from
 // https://github.com/ammarahm-ed/react-native-jsi-template/blob/master/android/cpp-adapter.cpp
 #include "pthread.h"

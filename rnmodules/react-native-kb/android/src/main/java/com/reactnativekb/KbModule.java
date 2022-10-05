@@ -31,6 +31,7 @@ import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.module.annotations.ReactModule;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
+import com.facebook.react.turbomodule.core.CallInvokerHolderImpl;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.FirebaseApp;
@@ -47,24 +48,37 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import keybase.Keybase;
 import me.leolin.shortcutbadger.ShortcutBadger;
+import static keybase.Keybase.readArr;
 import static keybase.Keybase.version;
+import static keybase.Keybase.writeArr;
 
 @ReactModule(name = KbModule.NAME)
 public class KbModule extends ReactContextBaseJavaModule {
     public static final String NAME = "Kb";
     private static final String RN_NAME = "ReactNativeJS";
+    private static final String RPC_META_EVENT_NAME = "kb-meta-engine-event";
+    private static final String RPC_META_EVENT_ENGINE_RESET = "kb-engine-reset";
     private static final int MAX_TEXT_FILE_SIZE = 100 * 1024; // 100 kiB
     private static final String LINE_SEPARATOR = System.getProperty("line.separator");
+    private Boolean started = false;
     private boolean misTestDevice;
     private Bundle initialBundleFromNotification;
     private HashMap<String, String> initialIntent;
     private String shareFileUrl;
     private String shareText;
     private final ReactApplicationContext reactContext;
+
+    private native void nativeInstall(long jsiPtr);
+    private native void nativeEmit(long jsiPtr, CallInvokerHolderImpl jsInvoker, byte[] data);
+    private ExecutorService executor;
+    private Boolean jsiInstalled = false;
 
     // Is this a robot controlled test device? (i.e. pre-launch report?)
     private static boolean isTestDevice(ReactApplicationContext context) {
@@ -94,17 +108,9 @@ private Object getBuildConfigValue(String fieldName) {
     return null;
 }
 
-
     private Class getMainActivityClass() {
-        // String packageName = this.reactContext.getPackageName();
-        // Intent launchIntent = this.reactContext.getPackageManager().getLaunchIntentForPackage(packageName);
-        // String className = launchIntent.getComponent().getClassName();
         try {
-            // return Class.forName(className);
             return Class.forName(this.reactContext.getPackageName() + ".MainActivity");
-            // Field field = clazz.getField(fieldName);
-            // return field.get(null);
-            // return Class.forName(className);
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
             return null;
@@ -583,5 +589,148 @@ private Object getBuildConfigValue(String fieldName) {
     }
     public void setInitialShareText(String text) {
         this.shareText = text;
+    }
+
+    // engine
+    private static void relayReset(ReactApplicationContext reactContext) {
+        if (!reactContext.hasActiveCatalystInstance()) {
+            NativeLogger.info(NAME + ": JS Bridge is dead, Can't send EOF message");
+        } else {
+            reactContext
+                .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+                .emit(RPC_META_EVENT_NAME, RPC_META_EVENT_ENGINE_RESET);
+        }
+    }
+    @ReactMethod
+    public void engineReset() {
+      try {
+          Keybase.reset();
+          relayReset(reactContext);
+      } catch (Exception e) {
+          NativeLogger.error("Exception in engineReset", e);
+      }
+    }
+
+    @ReactMethod
+    public void engineStart() {
+        NativeLogger.info("KeybaseEngine started");
+        try {
+            started = true;
+
+        } catch (Exception e) {
+            NativeLogger.error("Exception in engineStart", e);
+        }
+    }
+
+// JSI
+   @ReactMethod
+    public void addListener(String eventName) {
+      // needed
+    }
+
+    @ReactMethod
+    public void removeListeners(Integer count) {
+      // needed
+    }
+
+    private class ReadFromKBLib implements Runnable {
+        private final ReactApplicationContext reactContext;
+
+        public ReadFromKBLib(ReactApplicationContext reactContext) {
+            this.reactContext = reactContext;
+
+            reactContext.addLifecycleEventListener(new LifecycleEventListener() {
+                @Override
+                public void onHostResume() {
+                    // if (jsiInstalled && executor == null) {
+                    //     executor = Executors.newSingleThreadExecutor();
+                    //     executor.execute(new ReadFromKBLib(reactContext));
+                    // }
+                }
+
+                @Override
+                public void onHostPause() {
+                }
+
+                @Override
+                public void onHostDestroy() {
+                    destroy();
+                }
+            });
+        }
+
+        @Override
+        public void run() {
+            do {
+                try {
+
+                    Thread.currentThread().setName("ReadFromKBLib");
+                    final byte[] data = readArr();
+
+                    if (!reactContext.hasActiveCatalystInstance()) {
+                        NativeLogger.info(NAME + ": JS Bridge is dead, dropping engine message: " + data);
+                    }
+
+                    CallInvokerHolderImpl callInvoker = (CallInvokerHolderImpl) reactContext.getCatalystInstance().getJSCallInvokerHolder();
+                    nativeEmit(reactContext.getJavaScriptContextHolder().get(), callInvoker, data);
+                } catch (Exception e) {
+                    if (e.getMessage() != null && e.getMessage().equals("Read error: EOF")) {
+                        NativeLogger.info("Got EOF from read. Likely because of reset.");
+                    } else {
+                        NativeLogger.error("Exception in ReadFromKBLib.run", e);
+                    }
+                }
+            } while (!Thread.currentThread().isInterrupted() && reactContext.hasActiveCatalystInstance());
+        }
+    }
+
+    public void destroy() {
+        try {
+            Keybase.reset();
+            relayReset(reactContext);
+        } catch (Exception e) {
+            NativeLogger.error("Exception in KeybaseEngine.destroy", e);
+        }
+
+        try {
+            if (executor != null) {
+                executor.shutdownNow();
+            }
+
+            // We often hit this timeout during app resume, e.g. hit the back
+            // button to go to home screen and then tap Keybase app icon again.
+            if (executor != null && !executor.awaitTermination(3, TimeUnit.SECONDS)) {
+                NativeLogger.warn(NAME + ": Executor pool didn't shut down cleanly");
+            }
+            executor = null;
+        } catch (Exception e) {
+            NativeLogger.error("Exception in JSI.destroy", e);
+        }
+    }
+
+    @ReactMethod(isBlockingSynchronousMethod = true)
+    public boolean installJSI() {
+        jsiInstalled = true;
+        try {
+            System.loadLibrary("gojsi");
+            ReactApplicationContext context = getReactApplicationContext();
+            this.nativeInstall(context.getJavaScriptContextHolder().get());
+            if (executor == null) {
+                executor = Executors.newSingleThreadExecutor();
+                executor.execute(new ReadFromKBLib(this.reactContext));
+            }
+            return true;
+        } catch (Exception exception) {
+            NativeLogger.error("Exception in installJSI", exception);
+            return false;
+        }
+    }
+
+    public void rpcOnGo(byte[] arr) {
+        try {
+            writeArr(arr);
+        } catch (Exception e) {
+            NativeLogger.error("Exception in GoJSIBridge.rpcOnGo", e);
+        }
     }
 }
