@@ -55,7 +55,9 @@
     "DEPRECATED_storybook-build": "cross-env-shell build-storybook -c .storybook -o .static-storybook",
     "DEPRECATED_rn-storybook": "cross-env-shell node_modules/@storybook/react-native-server/bin/index.js -p 7007",
     "DEPRECATED_build-storybook": "build-storybook",
-    "DEPRECATED_test": "yarn run _helper test"
+    "DEPRECATED_test": "yarn run _helper test",
+    "pod-install": "cd ios; pod install --repo-update",
+    "pod-install-new": "cd ios; RCT_NEW_ARCH_ENABLED=1 pod install --repo-update"
   },
   "keywords": [],
   "author": "",
