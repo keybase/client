@@ -6,14 +6,24 @@ const LINKING_ERROR =
     '- You rebuilt the app after installing the package\n' +
     '- You are not using Expo managed workflow\n';
 
-const Kb = NativeModules.Kb ? NativeModules.Kb : new Proxy(
-    {},
-    {
-        get() {
-            throw new Error(LINKING_ERROR);
-        },
-    }
-)
+// @ts-ignore
+const isTurboModuleEnabled: boolean = global.__turboModuleProxy != null;
+
+const KbModule = isTurboModuleEnabled
+    ? require('./NativeKb').default
+    : NativeModules.Kb;
+
+
+const Kb = KbModule
+    ? KbModule
+    : new Proxy(
+        {},
+        {
+            get() {
+                throw new Error(LINKING_ERROR);
+            },
+        }
+    )
 
 export const getDefaultCountryCode = (): Promise<string> => {
     return Kb.getDefaultCountryCode()

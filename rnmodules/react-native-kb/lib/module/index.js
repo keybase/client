@@ -2,8 +2,11 @@ import { NativeModules, Platform, NativeEventEmitter } from 'react-native';
 const LINKING_ERROR = `The package 'react-native-kb' doesn't seem to be linked. Make sure: \n\n` + Platform.select({
   ios: "- You have run 'pod install'\n",
   default: ''
-}) + '- You rebuilt the app after installing the package\n' + '- You are not using Expo managed workflow\n';
-const Kb = NativeModules.Kb ? NativeModules.Kb : new Proxy({}, {
+}) + '- You rebuilt the app after installing the package\n' + '- You are not using Expo managed workflow\n'; // @ts-ignore
+
+const isTurboModuleEnabled = global.__turboModuleProxy != null;
+const KbModule = isTurboModuleEnabled ? require('./NativeKb').default : NativeModules.Kb;
+const Kb = KbModule ? KbModule : new Proxy({}, {
   get() {
     throw new Error(LINKING_ERROR);
   }
