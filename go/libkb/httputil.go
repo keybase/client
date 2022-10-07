@@ -21,13 +21,13 @@ func discardAndClose(rc io.ReadCloser) error {
 //
 // Instead of doing:
 //
-//   res, _ := ...
-//   defer res.Body.Close()
+//	res, _ := ...
+//	defer res.Body.Close()
 //
 // do
 //
-//   res, _ := ...
-//   defer DiscardAndCloseBody(res)
+//	res, _ := ...
+//	defer DiscardAndCloseBody(res)
 //
 // instead.
 func DiscardAndCloseBody(resp *http.Response) error {

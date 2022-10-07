@@ -120,7 +120,8 @@ func TestRenameInflateSubteamAfterRenameParent(t *testing.T) {
 // A.B gets renames to R.C
 // A new R.B gets created (different subteam ID)
 // U1 gets added to R.B and loads.
-//   They see a name conflict and fail to load, but it's not real.
+//
+//	They see a name conflict and fail to load, but it's not real.
 func TestRenameIntoMovedSubteam(t *testing.T) {
 	fus, tcs, cleanup := setupNTests(t, 2)
 	defer cleanup()

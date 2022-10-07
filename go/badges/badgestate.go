@@ -129,11 +129,10 @@ type unverifiedCountBody struct {
 // and doesn't count those badges toward the badge count. Note that the shape
 // of this map is two-deep.
 //
-//   { 1 : { 2 : 3, 4 : 5 }, 3 : { 10001 : 1 } }
+//	{ 1 : { 2 : 3, 4 : 5 }, 3 : { 10001 : 1 } }
 //
 // Implies that are 3 badges on TODO type PROOF, 5 badges on TODO type FOLLOW,
 // and 1 badges in ANNOUNCEMENTs.
-//
 func countKnownBadges(m libkb.HomeItemMap) int {
 	var ret int
 	for itemType, todoMap := range m {

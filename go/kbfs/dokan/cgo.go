@@ -662,7 +662,7 @@ func (ctx *dokanCtx) Run(path string, flags MountFlag) error {
 	return nil
 }
 
-//nolint
+// nolint
 func dokanErrString(code int32) string {
 	switch code {
 	case C.kbfsLibDokan_ERROR:

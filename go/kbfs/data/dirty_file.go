@@ -12,9 +12,9 @@ import (
 
 // dirtyBlockSyncState represents that state of a block with respect to
 // whether it's currently being synced.  There can be three states:
-//  0) Not being synced
-//  1) Currently being synced to the server.
-//  2) Finished syncing, but the rest of the sync hasn't finished yet.
+//  0. Not being synced
+//  1. Currently being synced to the server.
+//  2. Finished syncing, but the rest of the sync hasn't finished yet.
 type dirtyBlockSyncState int
 
 const (

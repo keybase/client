@@ -112,8 +112,9 @@ func (p Path) Plaintext() string {
 // TLF.
 //
 // Examples: /keybase/private/alice -> "/", true
-//           /keybase/private/alice/folder -> "/folder", true
-//           /keybase/private -> "", false
+//
+//	/keybase/private/alice/folder -> "/folder", true
+//	/keybase/private -> "", false
 func (p Path) PlaintextSansTlf() (string, bool) {
 	if len(p.Path) == 0 {
 		return "", false

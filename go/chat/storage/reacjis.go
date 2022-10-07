@@ -176,11 +176,12 @@ type ReacjiStore struct {
 // Keeps map counting emoji used in reactions for each user. Used to populate
 // the reacji heads up display.
 // Data is stored in an encrypted leveldb in the form:
-// uid -> {
-//                reacjiName: frequency,
-//                ":+1:": 5,
-//                ...
-//         },
+//
+//	uid -> {
+//	               reacjiName: frequency,
+//	               ":+1:": 5,
+//	               ...
+//	        },
 func NewReacjiStore(g *globals.Context) *ReacjiStore {
 	keyFn := func(ctx context.Context) ([32]byte, error) {
 		return GetSecretBoxKey(ctx, g.ExternalG())

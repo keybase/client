@@ -29,10 +29,11 @@ func SkipPointersForSeqno(s Seqno) (pointers []Seqno) {
 
 // SkipPointersPath takes two seqno 0 < start <= end. It returns a slice of
 // Seqno `pointers` such that:
-// - start \in SkipPointersForSeqno(pointers[0]),
-// - pointers[len(pointers)] == end,
-// - pointers[i-1] \in SkipPointersForSeqno(pointers[i])
-//       for i = 1...len(pointers)-1.
+//   - start \in SkipPointersForSeqno(pointers[0]),
+//   - pointers[len(pointers)] == end,
+//   - pointers[i-1] \in SkipPointersForSeqno(pointers[i])
+//     for i = 1...len(pointers)-1.
+//
 // If start == end, returns [end]. The sequence has length
 // at most logarithmic in end - start.
 func SkipPointersPath(start, end Seqno) (pointers []Seqno, err error) {

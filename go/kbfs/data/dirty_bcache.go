@@ -45,15 +45,15 @@ const (
 // itself according to how fast bytes are synced to the server.
 // Conceptually, there are two buffers:
 //
-//   syncBuf: The bytes that are currently syncing, or have finished
-//   syncing, back to the servers.  Each TLF has only one sync at a
-//   time, but multiple TLFs may be syncing at the same time.  We also
-//   track how many bytes within this buffer have finished syncing.
+//	syncBuf: The bytes that are currently syncing, or have finished
+//	syncing, back to the servers.  Each TLF has only one sync at a
+//	time, but multiple TLFs may be syncing at the same time.  We also
+//	track how many bytes within this buffer have finished syncing.
 //
-//   waitBuf: The bytes that have not yet begun syncing to the
-//   servers.  Again, this can be for multiple TLFs, and from multiple
-//   files within a TLF.  In the TCP analogy, think of this as the
-//   congestion window (cwnd).
+//	waitBuf: The bytes that have not yet begun syncing to the
+//	servers.  Again, this can be for multiple TLFs, and from multiple
+//	files within a TLF.  In the TCP analogy, think of this as the
+//	congestion window (cwnd).
 //
 // The goal is to make sure that syncBuf can always be transmitted to
 // the server within the file system operation timeout forced on us by

@@ -53,7 +53,9 @@ func assertAssetIsSane(asset stellar1.Asset) error {
 
 // Example: "157.5000000 XLM"
 // Example: "12.9000000 USD"
-//   (where USD is a non-native asset issued by someone).
+//
+//	(where USD is a non-native asset issued by someone).
+//
 // User interfaces should be careful to never give user just amount + asset
 // code, but annotate when it's a non-native asset and make Issuer ID and
 // Verified Domain visible.

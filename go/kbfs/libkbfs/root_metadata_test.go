@@ -36,15 +36,15 @@ var testMetadataVers = []kbfsmd.MetadataVer{
 // metadata versions to test. The test is assumed to be parallelizable
 // with other instances of itself. Example use:
 //
-// func TestFoo(t *testing.T) {
-//	runTestOverMetadataVers(t, testFoo)
-// }
+//	func TestFoo(t *testing.T) {
+//		runTestOverMetadataVers(t, testFoo)
+//	}
 //
-// func testFoo(t *testing.T, ver MetadataVer) {
-//	...
-// 	brmd, err := MakeInitialRootMetadata(ver, ...)
-//	...
-// }
+//	func testFoo(t *testing.T, ver MetadataVer) {
+//		...
+//		brmd, err := MakeInitialRootMetadata(ver, ...)
+//		...
+//	}
 func runTestOverMetadataVers(
 	t *testing.T, f func(t *testing.T, ver kbfsmd.MetadataVer)) {
 	for _, ver := range testMetadataVers {
@@ -60,15 +60,15 @@ func runTestOverMetadataVers(
 // for all the test function names, and the names of the subtest will
 // be taken to be the strings after that prefix. Example use:
 //
-// func TestFoo(t *testing.T) {
-// 	tests := []func(*testing.T, kbfsmd.MetadataVer){
-//		testFooBar1,
-//		testFooBar2,
-//		testFooBar3,
-//		...
+//	func TestFoo(t *testing.T) {
+//		tests := []func(*testing.T, kbfsmd.MetadataVer){
+//			testFooBar1,
+//			testFooBar2,
+//			testFooBar3,
+//			...
+//		}
+//		runTestsOverMetadataVers(t, "testFoo", tests)
 //	}
-//	runTestsOverMetadataVers(t, "testFoo", tests)
-// }
 func runTestsOverMetadataVers(t *testing.T, prefix string,
 	fs []func(t *testing.T, ver kbfsmd.MetadataVer)) {
 	for _, f := range fs {
@@ -90,15 +90,15 @@ func runTestsOverMetadataVers(t *testing.T, prefix string,
 // runBenchmarkOverMetadataVers runs the given benchmark function over
 // all metadata versions to test. Example use:
 //
-// func BenchmarkFoo(b *testing.B) {
-//	runBenchmarkOverMetadataVers(b, testFoo)
-// }
+//	func BenchmarkFoo(b *testing.B) {
+//		runBenchmarkOverMetadataVers(b, testFoo)
+//	}
 //
-// func benchmarkFoo(b *testing.B, ver kbfsmd.MetadataVer) {
-//	...
-// 	brmd, err := MakeInitialRootMetadata(ver, ...)
-//	...
-// }
+//	func benchmarkFoo(b *testing.B, ver kbfsmd.MetadataVer) {
+//		...
+//		brmd, err := MakeInitialRootMetadata(ver, ...)
+//		...
+//	}
 func runBenchmarkOverMetadataVers(
 	b *testing.B, f func(b *testing.B, ver kbfsmd.MetadataVer)) {
 	for _, ver := range testMetadataVers {

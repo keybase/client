@@ -1893,12 +1893,13 @@ var hardcodedInviteRuleExceptionSigIDs = map[keybase1.SigIDMapKey]bool{
 
 // sanityCheckInvites sanity checks a raw SCTeamInvites section and coerces it into a
 // format that we can use. It checks:
-//  - inviting owners is sometimes banned
-//  - invite IDs aren't repeated
-//  - <name,type> pairs aren't reused
-//  - IDs parse into proper keybase1.TeamInviteIDs
-//  - the invite type parses into proper TeamInviteType, or that it's an unknown
-//    invite that we're OK to not act upon.
+//   - inviting owners is sometimes banned
+//   - invite IDs aren't repeated
+//   - <name,type> pairs aren't reused
+//   - IDs parse into proper keybase1.TeamInviteIDs
+//   - the invite type parses into proper TeamInviteType, or that it's an unknown
+//     invite that we're OK to not act upon.
+//
 // Implicit teams are different:
 // - owners and readers are the only allowed roles
 func (t *teamSigchainPlayer) sanityCheckInvites(mctx libkb.MetaContext,

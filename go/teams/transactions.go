@@ -619,10 +619,11 @@ func (a AddMemberCandidate) DebugString() string {
 // ResolveUPKV2FromAssertion itself does not modify the transaction.
 //
 // If your use case is:
-// - you have an assertion,
-// - that should be resolved,
-// - and based on the resolution it should either add it to the transaction or
-//   not,
+//   - you have an assertion,
+//   - that should be resolved,
+//   - and based on the resolution it should either add it to the transaction or
+//     not,
+//
 // this is the way to go.
 //
 // See documentation of AddOrInviteMemberByAssertion to find out what assertion
@@ -832,11 +833,11 @@ func (tx *AddMemberTx) ConsumeInviteByID(ctx context.Context, inviteID keybase1.
 // being added outside of SBS handling. There are two cases in which this
 // function completes an invite:
 //
-// 1) An admin is racing SBS handler by adding a user after they add a proof but
-//    before server sends out SBS notifications.
-// 2) There was more than one social invite that resolved to the same user
-// 3) ...or other cases (or bugs) when there are outstanding invites that
-//    resolve to a user but they were not added through SBS handler.
+//  1. An admin is racing SBS handler by adding a user after they add a proof but
+//     before server sends out SBS notifications.
+//  2. There was more than one social invite that resolved to the same user
+//  3. ...or other cases (or bugs) when there are outstanding invites that
+//     resolve to a user but they were not added through SBS handler.
 //
 // Note that (2) is likely still not handled correctly if there are social
 // invites that someone who is already in the team adds proofs for.

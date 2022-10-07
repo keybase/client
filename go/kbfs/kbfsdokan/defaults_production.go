@@ -7,5 +7,4 @@
 
 package main
 
-//
 const defaultMountType = "default"

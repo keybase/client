@@ -181,8 +181,9 @@ func (r *ReporterKBPKI) ReportErr(ctx context.Context,
 // Notify implements the Reporter interface for ReporterKBPKI.
 //
 // TODO: might be useful to get the debug tags out of ctx and store
-//       them in the notifyBuffer as well so that send() can put
-//       them back in its context.
+//
+//	them in the notifyBuffer as well so that send() can put
+//	them back in its context.
 func (r *ReporterKBPKI) Notify(ctx context.Context, notification *keybase1.FSNotification) {
 	r.shutdownLock.RLock()
 	defer r.shutdownLock.RUnlock()
@@ -222,8 +223,9 @@ func (r *ReporterKBPKI) setLastNotifyPath(p string) (same bool) {
 // NotifyPathUpdated implements the Reporter interface for ReporterKBPKI.
 //
 // TODO: might be useful to get the debug tags out of ctx and store
-//       them in the notifyPathBuffer as well so that send() can put
-//       them back in its context.
+//
+//	them in the notifyPathBuffer as well so that send() can put
+//	them back in its context.
 func (r *ReporterKBPKI) NotifyPathUpdated(ctx context.Context, path string) {
 	r.shutdownLock.RLock()
 	defer r.shutdownLock.RUnlock()
@@ -266,8 +268,9 @@ func (r *ReporterKBPKI) NotifyPathUpdated(ctx context.Context, path string) {
 // NotifySyncStatus implements the Reporter interface for ReporterKBPKI.
 //
 // TODO: might be useful to get the debug tags out of ctx and store
-//       them in the notifyBuffer as well so that send() can put
-//       them back in its context.
+//
+//	them in the notifyBuffer as well so that send() can put
+//	them back in its context.
 func (r *ReporterKBPKI) NotifySyncStatus(ctx context.Context,
 	status *keybase1.FSPathSyncStatus) {
 	r.shutdownLock.RLock()

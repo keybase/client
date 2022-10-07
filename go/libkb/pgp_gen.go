@@ -39,7 +39,8 @@ func ui32p(i int) *uint32 {
 // If config is nil, sensible defaults will be used.
 //
 // Modification of: https://code.google.com/p/go/source/browse/openpgp/keys.go?repo=crypto&r=8fec09c61d5d66f460d227fd1df3473d7e015bc6#456
-//  From golang.com/x/crypto/openpgp/keys.go
+//
+//	From golang.com/x/crypto/openpgp/keys.go
 func GeneratePGPKeyBundle(g *GlobalContext, arg PGPGenArg, logUI LogUI) (*PGPKeyBundle, error) {
 	currentTime := arg.Config.Now()
 

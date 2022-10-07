@@ -280,12 +280,13 @@ func (m *ChainManager) checkRatchetsOnAdvance(mctx libkb.MetaContext, ratchets k
 
 // Advance the stored hidden team storage by the given update. Before this function is called, we should
 // have checked many things:
-//  - that the PTKs match the unverified seeds sent down by the server.
-//  - that the postImages of the seedChecks are continuous, given a consistent set of seeds
-//  - that all full (unstubbed links) have valid reverse signatures
-//  - that all prevs are self consistent, and consistent with any preloaded data
-//  - that if the update starts in the middle of the chain, that its head has a prev, and that prev is consistent.
-//  - that the updates are consistent with any known ratchets
+//   - that the PTKs match the unverified seeds sent down by the server.
+//   - that the postImages of the seedChecks are continuous, given a consistent set of seeds
+//   - that all full (unstubbed links) have valid reverse signatures
+//   - that all prevs are self consistent, and consistent with any preloaded data
+//   - that if the update starts in the middle of the chain, that its head has a prev, and that prev is consistent.
+//   - that the updates are consistent with any known ratchets
+//
 // See hidden.go for and the caller of this function for where that happens.
 func (m *ChainManager) Advance(mctx libkb.MetaContext, dat keybase1.HiddenTeamChain, expectedPrev *keybase1.LinkTriple) (err error) {
 	mctx = withLogTag(mctx)

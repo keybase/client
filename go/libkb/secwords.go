@@ -70,8 +70,8 @@ func SecWord(n int) string {
 }
 
 // Wordlist from BIP0039:
-//  https://github.com/bitcoin/bips/blob/master/bip-0039/english.txt
 //
+//	https://github.com/bitcoin/bips/blob/master/bip-0039/english.txt
 var secwords = []string{
 	"abandon",
 	"ability",

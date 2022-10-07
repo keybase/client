@@ -682,16 +682,16 @@ func cropToRightmostSubchain(m MetaContext, links []*ChainLink, eldest keybase1.
 
 // When we're *in the middle of a subchain* (see the note below), there are
 // four ways we can tell that a link is the start of a new subchain:
-// 1) The link is seqno 1, the very first link the user ever makes.
-// 2) The link has the type "eldest". Modern seqno 1 links and sigchain resets
-//    take this form, but old ones don't.
-// 3) The link has a new eldest kid relative to the one that came before. In
-//    the olden days, all sigchain resets were of this form. Note that oldest
-//    links didn't have the eldest_kid field at all, so the signing kid was
-//    assumed to be the eldest.
-// 4) One of a set of six hardcoded links that made it in back when case 3 was
-//    the norm, but we forgot to prohibit reusing the same eldest key. We figured
-//    out this set from server data, once we noticed the mistake.
+//  1. The link is seqno 1, the very first link the user ever makes.
+//  2. The link has the type "eldest". Modern seqno 1 links and sigchain resets
+//     take this form, but old ones don't.
+//  3. The link has a new eldest kid relative to the one that came before. In
+//     the olden days, all sigchain resets were of this form. Note that oldest
+//     links didn't have the eldest_kid field at all, so the signing kid was
+//     assumed to be the eldest.
+//  4. One of a set of six hardcoded links that made it in back when case 3 was
+//     the norm, but we forgot to prohibit reusing the same eldest key. We figured
+//     out this set from server data, once we noticed the mistake.
 //
 // Note: This excludes cases where a subchain has length zero, either because
 // the account is totally new, or because it just did a reset but has no new
