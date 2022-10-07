@@ -69,10 +69,7 @@ public class KbModule extends ReactContextBaseJavaModule {
     private static final String LINE_SEPARATOR = System.getProperty("line.separator");
     private Boolean started = false;
     private boolean misTestDevice;
-    private Bundle initialBundleFromNotification;
     private HashMap<String, String> initialIntent;
-    private String shareFileUrl;
-    private String shareText;
     private final ReactApplicationContext reactContext;
 
     private native void nativeInstall(long jsiPtr);
@@ -107,15 +104,6 @@ private Object getBuildConfigValue(String fieldName) {
     }
     return null;
 }
-
-    private Class getMainActivityClass() {
-        try {
-            return Class.forName(this.reactContext.getPackageName() + ".MainActivity");
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
 
     public KbModule(ReactApplicationContext reactContext) {
         super(reactContext);
@@ -206,7 +194,7 @@ private Object getBuildConfigValue(String fieldName) {
     @ReactMethod
     public void getDefaultCountryCode(Promise promise) {
         try {
-            TelephonyManager tm = (TelephonyManager) this.getReactApplicationContext().getSystemService(Context.TELEPHONY_SERVICE);
+            TelephonyManager tm = (TelephonyManager) this.reactContext.getSystemService(Context.TELEPHONY_SERVICE);
             String countryCode = tm.getNetworkCountryIso();
             promise.resolve(countryCode);
         } catch (Exception e) {
@@ -453,7 +441,7 @@ private Object getBuildConfigValue(String fieldName) {
         if (path.startsWith(FILE_PREFIX_BUNDLE_ASSET)) {
             return path;
         } else
-            return PathResolver.getRealPathFromURI(this.getReactApplicationContext(), uri);
+            return PathResolver.getRealPathFromURI(this.reactContext, uri);
     }
 
     @ReactMethod
@@ -475,7 +463,7 @@ private Object getBuildConfigValue(String fieldName) {
             WritableMap stat = Arguments.createMap();
             if (this.isAsset(path)) {
                 String name = path.replace(FILE_PREFIX_BUNDLE_ASSET, "");
-                AssetFileDescriptor fd = this.getReactApplicationContext().getAssets().openFd(name);
+                AssetFileDescriptor fd = this.reactContext.getAssets().openFd(name);
                 stat.putString("filename", name);
                 stat.putString("path", path);
                 stat.putString("type", "asset");
@@ -502,7 +490,7 @@ private Object getBuildConfigValue(String fieldName) {
 
     @ReactMethod
     public void androidAddCompleteDownload(ReadableMap config, Promise promise) {
-        DownloadManager dm = (DownloadManager) this.getReactApplicationContext().getSystemService(this.getReactApplicationContext().DOWNLOAD_SERVICE);
+        DownloadManager dm = (DownloadManager) this.reactContext.getSystemService(this.reactContext.DOWNLOAD_SERVICE);
         if (config == null || !config.hasKey("path")) {
             promise.reject("EINVAL", "addCompleteDownload config or path missing.");
             return;
@@ -559,36 +547,50 @@ private Object getBuildConfigValue(String fieldName) {
     // wouldn't be able to lazy load this because we need it on startup.
     @ReactMethod
     public void androidGetInitialBundleFromNotification(Promise promise) {
-        if (this.initialBundleFromNotification != null) {
-            WritableMap map = Arguments.fromBundle(this.initialBundleFromNotification);
-            promise.resolve(map);
-            this.initialBundleFromNotification = null;
+        try {
+        final Activity activity = this.reactContext.getCurrentActivity();
+        if (activity != null) {
+            Method m = activity.getClass().getMethod("getInitialBundleFromNotification");
+            Bundle initialBundleFromNotification = (Bundle)(m.invoke(activity));
+            if (initialBundleFromNotification != null) {
+                WritableMap map = Arguments.fromBundle(initialBundleFromNotification);
+                promise.resolve(map);
+                return;
+            }
         }
-        else {
-            promise.resolve(null);
-        }
+        } catch (Exception ex){ }
+
+        promise.resolve(null);
     }
 
     @ReactMethod
     public void androidGetInitialShareFileUrl(Promise promise) {
-        promise.resolve(this.shareFileUrl);
-        this.shareFileUrl = null;
+        try {
+
+        final Activity activity = this.reactContext.getCurrentActivity();
+        if (activity != null) {
+            Method m = activity.getClass().getMethod("getShareFileUrl");
+            String shareFileUrl = String.valueOf(m.invoke(activity));
+            promise.resolve(shareFileUrl);
+            return;
+        }
+        } catch (Exception ex){}
+        promise.resolve("");
     }
 
     @ReactMethod
     public void androidGetInitialShareText(Promise promise) {
-        promise.resolve(this.shareText);
-        this.shareText = null;
-    }
+        try {
 
-    public void setInitialBundleFromNotification(Bundle bundle) {
-        this.initialBundleFromNotification = bundle;
-    }
-    public void setInitialShareFileUrl(String s) {
-        this.shareFileUrl = s;
-    }
-    public void setInitialShareText(String text) {
-        this.shareText = text;
+        final Activity activity = this.reactContext.getCurrentActivity();
+        if (activity != null) {
+            Method m = activity.getClass().getMethod("getShareText");
+            String shareText =String.valueOf(m.invoke(activity));
+            promise.resolve(shareText);
+            return;
+        }
+        } catch (Exception ex){}
+        promise.resolve("");
     }
 
     // engine

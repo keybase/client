@@ -28,6 +28,7 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
+import io.keybase.ossifrage.modules.NativeLogger;
 import keybase.ChatNotification;
 import keybase.Message;
 import keybase.PushNotifier;
@@ -35,7 +36,6 @@ import keybase.PushNotifier;
 public class KBPushNotifier implements PushNotifier {
   private final Context context;
   private Bundle bundle;
-
   private SmallMsgRingBuffer convMsgCache;
 
   private MessagingStyle buildStyle(Person person) {
@@ -85,8 +85,8 @@ public class KBPushNotifier implements PushNotifier {
     open_activity_intent.setPackage(context.getPackageName());
     open_activity_intent.putExtra("notification", bundle);
 
-    PendingIntent pending_intent = PendingIntent.getActivity(this.context, 0, open_activity_intent,
-      PendingIntent.FLAG_MUTABLE);
+    // unique so our intents are deduped, else it'll reuse old ones
+    PendingIntent pending_intent = PendingIntent.getActivity(this.context, (int)(System.currentTimeMillis()/1000) , open_activity_intent, PendingIntent.FLAG_MUTABLE);
 
     return pending_intent;
   }
