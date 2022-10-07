@@ -49,6 +49,16 @@ android {
     sourceCompatibility JavaVersion.VERSION_1_8
     targetCompatibility JavaVersion.VERSION_1_8
   }
+
+  sourceSets {
+    main {
+      if (isNewArchitectureEnabled()) {
+          java.srcDirs += ['src/turbo']
+      } else {
+          java.srcDirs += ['src/legacy']
+      }
+    }
+  }
 }
 
 repositories {
@@ -124,9 +134,7 @@ repositories {
 
 dependencies {
     //noinspection GradleDynamicVersion
-  implementation "com.facebook.react:react-native:+"
-// From node_modules
-
+    implementation "com.facebook.react:react-native:+"
     implementation "com.google.firebase:firebase-messaging:17.3.0"
     implementation "me.leolin:ShortcutBadger:1.1.22@aar"
     implementation project(':keybaselib')

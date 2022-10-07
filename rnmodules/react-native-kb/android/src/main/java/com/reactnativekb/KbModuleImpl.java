@@ -59,8 +59,11 @@ import static keybase.Keybase.readArr;
 import static keybase.Keybase.version;
 import static keybase.Keybase.writeArr;
 
-@ReactModule(name = KbModule.NAME)
-public class KbModule extends ReactContextBaseJavaModule {
+public class KbModuleImpl  {
+/**
+ * This is where the module implementation lives
+ * The exposed methods can be defined in the `turbo` and `legacy` folders
+ */
     public static final String NAME = "Kb";
     private static final String RN_NAME = "ReactNativeJS";
     private static final String RPC_META_EVENT_NAME = "kb-meta-engine-event";
@@ -117,8 +120,7 @@ private Object getBuildConfigValue(String fieldName) {
         }
     }
 
-    public KbModule(ReactApplicationContext reactContext) {
-        super(reactContext);
+    KbModuleImpl(ReactApplicationContext reactContext) {
         this.reactContext = reactContext;
         this.misTestDevice = isTestDevice(reactContext);
         this.setSecureFlag();
@@ -139,17 +141,10 @@ private Object getBuildConfigValue(String fieldName) {
         });
     }
 
-    @Override
-    @NonNull
-    public String getName() {
-        return NAME;
-    }
-
     private String readGuiConfig() {
         return GuiConfig.getInstance(this.reactContext.getFilesDir()).asString();
     }
 
-    @Override
     public Map<String, Object> getConstants() {
         String versionCode = String.valueOf(getBuildConfigValue("VERSION_CODE"));
         String versionName = String.valueOf(getBuildConfigValue("VERSION_NAME"));
@@ -202,11 +197,9 @@ private Object getBuildConfigValue(String fieldName) {
     }
 
     // country code
-
-    @ReactMethod
     public void getDefaultCountryCode(Promise promise) {
         try {
-            TelephonyManager tm = (TelephonyManager) this.getReactApplicationContext().getSystemService(Context.TELEPHONY_SERVICE);
+            TelephonyManager tm = (TelephonyManager) this.reactContext.getSystemService(Context.TELEPHONY_SERVICE);
             String countryCode = tm.getNetworkCountryIso();
             promise.resolve(countryCode);
         } catch (Exception e) {
@@ -215,8 +208,6 @@ private Object getBuildConfigValue(String fieldName) {
     }
 
     // Logging
-
-    @ReactMethod
     public void logSend(String status, String feedback, boolean sendLogs, boolean sendMaxBytes, String traceDir, String cpuProfileDir, Promise promise) {
         if (misTestDevice) {
             return;
@@ -229,7 +220,6 @@ private Object getBuildConfigValue(String fieldName) {
         }
     }
 
-    @ReactMethod
     public void logDump(String tagPrefix, Promise promise) {
         try {
             String cmd = "logcat -m 10000 -d " + RN_NAME + ":I *:S";
@@ -253,8 +243,6 @@ private Object getBuildConfigValue(String fieldName) {
     }
 
     // Settings
-
-    @ReactMethod
     public void androidOpenSettings() {
         Intent intent = new Intent();
         intent.setAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
@@ -265,8 +253,6 @@ private Object getBuildConfigValue(String fieldName) {
     }
 
     // Screen protector
-
-    @ReactMethod
     public void androidSetSecureFlagSetting(boolean setSecure, Promise promise) {
         final SharedPreferences prefs = reactContext.getSharedPreferences("SecureFlag", Context.MODE_PRIVATE);
         final boolean success = prefs.edit().putBoolean("setSecure", setSecure).commit();
@@ -274,7 +260,6 @@ private Object getBuildConfigValue(String fieldName) {
         setSecureFlag();
     }
 
-    @ReactMethod
     public void androidGetSecureFlagSetting(Promise promise) {
         final SharedPreferences prefs = this.reactContext.getSharedPreferences("SecureFlag", Context.MODE_PRIVATE);
         final boolean setSecure = prefs.getBoolean("setSecure", !misTestDevice);
@@ -301,7 +286,6 @@ private Object getBuildConfigValue(String fieldName) {
     }
 
     // Sharing
-    @ReactMethod
     public void androidShare(String uriPath, String mimeType, Promise promise) {
         File file = new File(uriPath);
         Intent intent = new Intent(Intent.ACTION_SEND).setType(mimeType);
@@ -343,7 +327,6 @@ private Object getBuildConfigValue(String fieldName) {
         }
     }
 
-    @ReactMethod
     public void androidShareText(String text, String mimeType, Promise promise) {
         Intent intent = new Intent(Intent.ACTION_SEND).setType(mimeType);
         intent.putExtra(Intent.EXTRA_TEXT, text);
@@ -361,14 +344,11 @@ private Object getBuildConfigValue(String fieldName) {
 
     // Push 
 
-    @ReactMethod
     public void androidCheckPushPermissions(Promise promise) {
-        ReactApplicationContext reactContext = getReactApplicationContext();
-        NotificationManagerCompat managerCompat = NotificationManagerCompat.from(reactContext);
+        NotificationManagerCompat managerCompat = NotificationManagerCompat.from(this.reactContext);
         promise.resolve(managerCompat.areNotificationsEnabled());
     }
 
-    @ReactMethod
     public void androidRequestPushPermissions(Promise promise) {
         this.ensureFirebase();
         FirebaseInstanceId.getInstance().getInstanceId()
@@ -381,9 +361,9 @@ private Object getBuildConfigValue(String fieldName) {
     }
 
     private void ensureFirebase() {
-        boolean firebaseInitialized = FirebaseApp.getApps(getReactApplicationContext()).size() == 1;
+        boolean firebaseInitialized = FirebaseApp.getApps(this.reactContext).size() == 1;
         if (!firebaseInitialized) {
-            FirebaseApp.initializeApp(getReactApplicationContext(),
+            FirebaseApp.initializeApp(this.reactContext,
                     new FirebaseOptions.Builder()
                             .setApplicationId(String.valueOf(getBuildConfigValue("LIBRARY_PACKAGE_NAME")))
                             .setProjectId("keybase-c30fb")
@@ -393,7 +373,6 @@ private Object getBuildConfigValue(String fieldName) {
         }
     }
 
-    @ReactMethod
     public void androidGetRegistrationToken(Promise promise) {
         this.ensureFirebase();
         FirebaseInstanceId.getInstance().getInstanceId()
@@ -453,10 +432,9 @@ private Object getBuildConfigValue(String fieldName) {
         if (path.startsWith(FILE_PREFIX_BUNDLE_ASSET)) {
             return path;
         } else
-            return PathResolver.getRealPathFromURI(this.getReactApplicationContext(), uri);
+            return PathResolver.getRealPathFromURI(this.reactContext, uri);
     }
 
-    @ReactMethod
     public void androidUnlink(String path, Promise promise) {
         try {
             String normalizedPath = this.normalizePath(path);
@@ -475,7 +453,7 @@ private Object getBuildConfigValue(String fieldName) {
             WritableMap stat = Arguments.createMap();
             if (this.isAsset(path)) {
                 String name = path.replace(FILE_PREFIX_BUNDLE_ASSET, "");
-                AssetFileDescriptor fd = this.getReactApplicationContext().getAssets().openFd(name);
+                AssetFileDescriptor fd = this.reactContext.getAssets().openFd(name);
                 stat.putString("filename", name);
                 stat.putString("path", path);
                 stat.putString("type", "asset");
@@ -500,9 +478,8 @@ private Object getBuildConfigValue(String fieldName) {
         }
     }
 
-    @ReactMethod
     public void androidAddCompleteDownload(ReadableMap config, Promise promise) {
-        DownloadManager dm = (DownloadManager) this.getReactApplicationContext().getSystemService(this.getReactApplicationContext().DOWNLOAD_SERVICE);
+        DownloadManager dm = (DownloadManager) this.reactContext.getSystemService(this.reactContext.DOWNLOAD_SERVICE);
         if (config == null || !config.hasKey("path")) {
             promise.reject("EINVAL", "addCompleteDownload config or path missing.");
             return;
@@ -531,7 +508,6 @@ private Object getBuildConfigValue(String fieldName) {
 
     // Dark mode
     // Same type as DarkModePreference: 'system' | 'alwaysDark' | 'alwaysLight'
-    @ReactMethod
     public void androidAppColorSchemeChanged(String prefString) {
         try {
             final Activity activity = this.reactContext.getCurrentActivity();
@@ -547,7 +523,6 @@ private Object getBuildConfigValue(String fieldName) {
 
     // Badging
 
-    @ReactMethod
     public void androidSetApplicationIconBadgeNumber(int badge) {
         ShortcutBadger.applyCount(this.reactContext, badge);
     }
@@ -557,7 +532,6 @@ private Object getBuildConfigValue(String fieldName) {
     // This isn't related to the Go Engine, but it's a small thing that wouldn't be worth putting in
     // its own react module. That's because starting up a react module is a bit expensive and we
     // wouldn't be able to lazy load this because we need it on startup.
-    @ReactMethod
     public void androidGetInitialBundleFromNotification(Promise promise) {
         if (this.initialBundleFromNotification != null) {
             WritableMap map = Arguments.fromBundle(this.initialBundleFromNotification);
@@ -569,13 +543,11 @@ private Object getBuildConfigValue(String fieldName) {
         }
     }
 
-    @ReactMethod
     public void androidGetInitialShareFileUrl(Promise promise) {
         promise.resolve(this.shareFileUrl);
         this.shareFileUrl = null;
     }
 
-    @ReactMethod
     public void androidGetInitialShareText(Promise promise) {
         promise.resolve(this.shareText);
         this.shareText = null;
@@ -601,7 +573,6 @@ private Object getBuildConfigValue(String fieldName) {
                 .emit(RPC_META_EVENT_NAME, RPC_META_EVENT_ENGINE_RESET);
         }
     }
-    @ReactMethod
     public void engineReset() {
       try {
           Keybase.reset();
@@ -611,7 +582,6 @@ private Object getBuildConfigValue(String fieldName) {
       }
     }
 
-    @ReactMethod
     public void engineStart() {
         NativeLogger.info("KeybaseEngine started");
         try {
@@ -623,16 +593,6 @@ private Object getBuildConfigValue(String fieldName) {
     }
 
 // JSI
-   @ReactMethod
-    public void addListener(String eventName) {
-      // needed
-    }
-
-    @ReactMethod
-    public void removeListeners(Integer count) {
-      // needed
-    }
-
     private class ReadFromKBLib implements Runnable {
         private final ReactApplicationContext reactContext;
 
@@ -708,13 +668,11 @@ private Object getBuildConfigValue(String fieldName) {
         }
     }
 
-    @ReactMethod(isBlockingSynchronousMethod = true)
     public boolean installJSI() {
         jsiInstalled = true;
         try {
             System.loadLibrary("gojsi");
-            ReactApplicationContext context = getReactApplicationContext();
-            this.nativeInstall(context.getJavaScriptContextHolder().get());
+            this.nativeInstall(this.reactContext.getJavaScriptContextHolder().get());
             if (executor == null) {
                 executor = Executors.newSingleThreadExecutor();
                 executor.execute(new ReadFromKBLib(this.reactContext));
