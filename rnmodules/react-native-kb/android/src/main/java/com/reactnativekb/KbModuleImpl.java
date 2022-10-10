@@ -72,16 +72,24 @@ public class KbModuleImpl  {
     private static final String LINE_SEPARATOR = System.getProperty("line.separator");
     private Boolean started = false;
     private boolean misTestDevice;
-    private Bundle initialBundleFromNotification;
     private HashMap<String, String> initialIntent;
-    private String shareFileUrl;
-    private String shareText;
     private final ReactApplicationContext reactContext;
 
-    private native void nativeInstall(long jsiPtr);
+    private native void nativeInstallJSI(long jsiPtr);
     private native void nativeEmit(long jsiPtr, CallInvokerHolderImpl jsInvoker, byte[] data);
     private ExecutorService executor;
     private Boolean jsiInstalled = false;
+
+    static {
+        try {
+            // Used to load the 'native-lib' library on application startup.
+            NativeLogger.warn("aaa about to load cpp before");
+            System.loadLibrary("cpp");
+            NativeLogger.warn("aaa about to load cpp after");
+        } catch (Exception ignored) {
+            NativeLogger.warn("aaa about to load cpp failed" + ignored.toString());
+        }
+    }
 
     // Is this a robot controlled test device? (i.e. pre-launch report?)
     private static boolean isTestDevice(ReactApplicationContext context) {
@@ -89,35 +97,26 @@ public class KbModuleImpl  {
       return "true".equals(testLabSetting);
     }
 
-/**
- * Gets a field from the project's BuildConfig. This is useful when, for example, flavors
- * are used at the project level to set custom fields.
- * @param context       Used to find the correct file
- * @param fieldName     The name of the field-to-access
- * @return              The value of the field, or {@code null} if the field is not found.
- */
-private Object getBuildConfigValue(String fieldName) {
-    try {
-        Class<?> clazz = Class.forName(this.reactContext.getPackageName() + ".BuildConfig");
-        Field field = clazz.getField(fieldName);
-        return field.get(null);
-    } catch (ClassNotFoundException e) {
-        e.printStackTrace();
-    } catch (NoSuchFieldException e) {
-        e.printStackTrace();
-    } catch (IllegalAccessException e) {
-        e.printStackTrace();
-    }
-    return null;
-}
-
-    private Class getMainActivityClass() {
+    /**
+     * Gets a field from the project's BuildConfig. This is useful when, for example, flavors
+     * are used at the project level to set custom fields.
+     * @param context       Used to find the correct file
+     * @param fieldName     The name of the field-to-access
+     * @return              The value of the field, or {@code null} if the field is not found.
+     */
+    private Object getBuildConfigValue(String fieldName) {
         try {
-            return Class.forName(this.reactContext.getPackageName() + ".MainActivity");
+            Class<?> clazz = Class.forName(this.reactContext.getPackageName() + ".BuildConfig");
+            Field field = clazz.getField(fieldName);
+            return field.get(null);
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
-            return null;
+        } catch (NoSuchFieldException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
         }
+        return null;
     }
 
     KbModuleImpl(ReactApplicationContext reactContext) {
@@ -533,34 +532,48 @@ private Object getBuildConfigValue(String fieldName) {
     // its own react module. That's because starting up a react module is a bit expensive and we
     // wouldn't be able to lazy load this because we need it on startup.
     public void androidGetInitialBundleFromNotification(Promise promise) {
-        if (this.initialBundleFromNotification != null) {
-            WritableMap map = Arguments.fromBundle(this.initialBundleFromNotification);
-            promise.resolve(map);
-            this.initialBundleFromNotification = null;
+        try {
+        final Activity activity = this.reactContext.getCurrentActivity();
+        if (activity != null) {
+            Method m = activity.getClass().getMethod("getInitialBundleFromNotification");
+            Bundle initialBundleFromNotification = (Bundle)(m.invoke(activity));
+            if (initialBundleFromNotification != null) {
+                WritableMap map = Arguments.fromBundle(initialBundleFromNotification);
+                promise.resolve(map);
+                return;
+            }
         }
-        else {
-            promise.resolve(null);
-        }
+        } catch (Exception ex){ }
+
+        promise.resolve(null);
     }
 
     public void androidGetInitialShareFileUrl(Promise promise) {
-        promise.resolve(this.shareFileUrl);
-        this.shareFileUrl = null;
+        try {
+
+        final Activity activity = this.reactContext.getCurrentActivity();
+        if (activity != null) {
+            Method m = activity.getClass().getMethod("getShareFileUrl");
+            String shareFileUrl = String.valueOf(m.invoke(activity));
+            promise.resolve(shareFileUrl);
+            return;
+        }
+        } catch (Exception ex){}
+        promise.resolve("");
     }
 
     public void androidGetInitialShareText(Promise promise) {
-        promise.resolve(this.shareText);
-        this.shareText = null;
-    }
+        try {
 
-    public void setInitialBundleFromNotification(Bundle bundle) {
-        this.initialBundleFromNotification = bundle;
-    }
-    public void setInitialShareFileUrl(String s) {
-        this.shareFileUrl = s;
-    }
-    public void setInitialShareText(String text) {
-        this.shareText = text;
+        final Activity activity = this.reactContext.getCurrentActivity();
+        if (activity != null) {
+            Method m = activity.getClass().getMethod("getShareText");
+            String shareText =String.valueOf(m.invoke(activity));
+            promise.resolve(shareText);
+            return;
+        }
+        } catch (Exception ex){}
+        promise.resolve("");
     }
 
     // engine
@@ -671,8 +684,8 @@ private Object getBuildConfigValue(String fieldName) {
     public boolean installJSI() {
         jsiInstalled = true;
         try {
-            System.loadLibrary("gojsi");
-            this.nativeInstall(this.reactContext.getJavaScriptContextHolder().get());
+            // System.loadLibrary("gojsi");
+            this.nativeInstallJSI(this.reactContext.getJavaScriptContextHolder().get());
             if (executor == null) {
                 executor = Executors.newSingleThreadExecutor();
                 executor.execute(new ReadFromKBLib(this.reactContext));

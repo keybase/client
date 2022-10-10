@@ -59,6 +59,7 @@ node_modules
 .gradle
 rnmodules/react-native-drop-view/android/build
 rnmodules/react-native-kb/android/build
+rnmodules/react-native-kb/android/.cxx
 
 Keybase.app.dSYM.zip
 
