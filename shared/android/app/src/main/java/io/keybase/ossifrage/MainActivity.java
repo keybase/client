@@ -29,7 +29,6 @@ import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 import com.facebook.react.modules.core.PermissionListener;
 
-
 import com.github.emilioicai.hwkeyboardevent.HWKeyboardEventModule;
 
 import java.io.File;
@@ -58,7 +57,6 @@ public class MainActivity extends ReactActivity {
     private Bundle initialBundleFromNotification;
     private String shareFileUrl;
     private String shareText;
-
 
     public void setInitialBundleFromNotification(Bundle bundle) {
         this.initialBundleFromNotification = bundle;
