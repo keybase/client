@@ -45,8 +45,9 @@ import java.util.UUID;
 
 import io.keybase.ossifrage.modules.NativeLogger;
 import io.keybase.ossifrage.util.DNSNSFetcher;
-import io.keybase.ossifrage.util.GuiConfig;
 import io.keybase.ossifrage.util.VideoHelper;
+import com.reactnativekb.GuiConfig;
+import com.reactnativekb.DarkModePreference;
 import keybase.Keybase;
 
 import static keybase.Keybase.initOnce;
