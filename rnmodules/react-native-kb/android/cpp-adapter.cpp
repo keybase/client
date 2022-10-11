@@ -11,7 +11,6 @@
 
 using namespace facebook;
 using namespace facebook::jsi;
-// using namespace facebook::jni;
 using namespace std;
 
 JavaVM *java_vm;

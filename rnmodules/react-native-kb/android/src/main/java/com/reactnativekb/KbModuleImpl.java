@@ -83,11 +83,8 @@ public class KbModuleImpl  {
     static {
         try {
             // Used to load the 'native-lib' library on application startup.
-            NativeLogger.warn("aaa about to load cpp before");
             System.loadLibrary("cpp");
-            NativeLogger.warn("aaa about to load cpp after");
         } catch (Exception ignored) {
-            NativeLogger.warn("aaa about to load cpp failed" + ignored.toString());
         }
     }
 
@@ -131,12 +128,10 @@ public class KbModuleImpl  {
             }
 
             @Override
-            public void onHostPause() {
-            }
+            public void onHostPause() { }
 
             @Override
-            public void onHostDestroy() {
-            }
+            public void onHostDestroy() { }
         });
     }
 
@@ -162,7 +157,6 @@ public class KbModuleImpl  {
         } catch (Exception e) {
             NativeLogger.warn(": Error reading server config", e);
         }
-
 
         String cacheDir = "";
         {
@@ -383,7 +377,6 @@ public class KbModuleImpl  {
                             promise.reject(task.getException());
                             return;
                         }
-
 
                         // Get new Instance ID token
                         String token = task.getResult().getToken();
@@ -615,10 +608,10 @@ public class KbModuleImpl  {
             reactContext.addLifecycleEventListener(new LifecycleEventListener() {
                 @Override
                 public void onHostResume() {
-                    // if (jsiInstalled && executor == null) {
-                    //     executor = Executors.newSingleThreadExecutor();
-                    //     executor.execute(new ReadFromKBLib(reactContext));
-                    // }
+                    if (executor == null) {
+                        executor = Executors.newSingleThreadExecutor();
+                        executor.execute(new ReadFromKBLib(reactContext));
+                    }
                 }
 
                 @Override
@@ -684,7 +677,6 @@ public class KbModuleImpl  {
     public boolean installJSI() {
         jsiInstalled = true;
         try {
-            // System.loadLibrary("gojsi");
             this.nativeInstallJSI(this.reactContext.getJavaScriptContextHolder().get());
             if (executor == null) {
                 executor = Executors.newSingleThreadExecutor();

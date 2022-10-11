@@ -69,7 +69,6 @@ find_library(
         NO_CMAKE_FIND_ROOT_PATH
 )
 
-# find_package(fbjni REQUIRED CONFIG)
 find_library(
         FBJNI_LIB
         fbjni

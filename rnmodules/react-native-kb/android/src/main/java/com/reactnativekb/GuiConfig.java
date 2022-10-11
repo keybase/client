@@ -37,7 +37,6 @@ public class GuiConfig {
       String darkModeString = jsonObjectUI.getString("darkMode");
       return DarkModePrefHelper.fromString(darkModeString);
     } catch (JSONException e) {
-      NativeLogger.error("Error in getting Dark Mode", e);
       return DarkModePreference.System;
     }
   }
