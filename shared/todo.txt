@@ -1,2 +1,0 @@
-patches
-triplet in gradle

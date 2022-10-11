@@ -232,20 +232,6 @@ android {
         }
 
         multiDexEnabled true
-        // configurations.all {
-        //     // force flipper dep to be compat w/ android 30
-        //     resolutionStrategy { force 'androidx.sqlite:sqlite-framework:2.1.0' }
-        //     exclude module: 'fbjni-java-only'
-
-        // }
-        // externalNativeBuild {
-        //     cmake {
-        //         cppFlags "-fexceptions", "-frtti", "-std=c++1y", "-DONANDROID"
-        //             arguments '-DANDROID_STL=c++_shared',
-        //                       "-DNODE_MODULES_DIR=${nodeModules}",
-        //                       "-DPREBUILT_DIR=${prebuiltDir}"
-        //     }
-        // }
     }
 
     splits {
@@ -311,36 +297,22 @@ android {
         prefab true
     }
 
-packagingOptions {
-    pickFirst 'lib/x86/libc++_shared.so'
-    pickFirst 'lib/x86_64/libc++_shared.so'
-    pickFirst 'lib/armeabi-v7a/libc++_shared.so'
-    pickFirst 'lib/arm64-v8a/libc++_shared.so'
-}
+    packagingOptions {
+        pickFirst 'lib/x86/libc++_shared.so'
+            pickFirst 'lib/x86_64/libc++_shared.so'
+            pickFirst 'lib/armeabi-v7a/libc++_shared.so'
+            pickFirst 'lib/arm64-v8a/libc++_shared.so'
+    }
 
-    // packagingOptions {
-    // }
-
-    // configurations {
-    //     extractJNI
-    // }
-
-    // externalNativeBuild {
-    //     cmake {
-    //         path "CMakeLists.txt"
-    //     }
-    // }
-
-   // play {
-   //     track = 'internal'
-   //     serviceAccountCredentials = file(KB_SERVICE_ACCT_JSON)
-   // }
+   play {
+       track = 'internal'
+       serviceAccountCredentials = file(KB_SERVICE_ACCT_JSON)
+   }
 }
 
 dependencies {
     implementation fileTree(dir: "libs", include: ["*.jar"])
     implementation "com.facebook.react:react-native:+"  // From node_modules
-    // implementation 'com.facebook.fbjni:fbjni:0.2.2'
     implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.0.0"
     implementation 'androidx.work:work-runtime:2.7.1'
     debugImplementation("com.facebook.flipper:flipper:${FLIPPER_VERSION}") {
@@ -374,8 +346,6 @@ dependencies {
     implementation project(':keybaselib')
     implementation 'com.android.installreferrer:installreferrer:2.2'
     implementation "me.leolin:ShortcutBadger:1.1.22@aar"
-    // def rnAAR = fileTree(defaultDir).matching({ it.include "**/**/*.aar" }).singleFile
-    // extractJNI(files(rnAAR))
 }
 
 if (isNewArchitectureEnabled()) {
@@ -397,27 +367,6 @@ task copyDownloadableDepsToLibs(type: Copy) {
     into 'libs'
 }
 
-// def extracted = false;
-// task extractJNIFiles {
-//   if (extracted) return
-//   doLast {
-//     configurations.extractJNI.files.each {
-//       def file = it.absoluteFile
-
-//       copy {
-//         from zipTree(file)
-//         into "$buildDir/$file.name"
-//         include "jni/**/*"
-//       }
-//       extracted = true;
-//     }
-//   }
-// }
-
-// // Extract JNI files as soon as first task is added
-// tasks.whenTaskAdded { task ->
-//   task.dependsOn(extractJNIFiles);
-// }
 apply from: new File(["node", "--print", "require.resolve('@react-native-community/cli-platform-android/package.json')"].execute(null, rootDir).text.trim(), "../native_modules.gradle")
 applyNativeModulesAppBuildGradle(project)
 
