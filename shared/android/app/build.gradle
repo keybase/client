@@ -1,5 +1,5 @@
 apply plugin: "com.android.application"
-// apply plugin: 'com.github.triplet.play'
+apply plugin: 'com.github.triplet.play'
 
 import com.android.build.OutputFile
 import org.apache.tools.ant.taskdefs.condition.Os
