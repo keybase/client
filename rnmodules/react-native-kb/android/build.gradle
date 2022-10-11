@@ -28,6 +28,7 @@ def getExtOrIntegerDefault(name) {
 }
 
 def prebuiltDir = "$buildDir/react-native-0*/jni"
+def defaultDir = ""
 
 android {
   ndkVersion getExtOrDefault('ndkVersion')
@@ -81,7 +82,7 @@ repositories {
   google()
 
   def found = false
-  def defaultDir = null
+  // def defaultDir = null
   def androidSourcesName = 'React Native sources'
 
   if (rootProject.ext.has('reactNativeAndroidRoot')) {
@@ -89,7 +90,7 @@ repositories {
   } else {
     defaultDir = new File(
       projectDir,
-      '/../../../node_modules/react-native/android'
+      '/../../../shared/node_modules/react-native/android'
     )
   }
 
@@ -144,6 +145,10 @@ repositories {
       "Ensure you have you installed React Native as a dependency in your project and try again."
     )
   }
+
+    configurations {
+        extractJNI
+    }
 }
 
 
@@ -153,6 +158,30 @@ dependencies {
     implementation "com.google.firebase:firebase-messaging:17.3.0"
     implementation "me.leolin:ShortcutBadger:1.1.22@aar"
     implementation project(':keybaselib')
+    def rnAAR = fileTree(defaultDir).matching({ it.include "**/**/*.aar" }).singleFile
+    extractJNI(files(rnAAR))
+}
+
+def extracted = false;
+task extractJNIFiles {
+  if (extracted) return
+  doLast {
+    configurations.extractJNI.files.each {
+      def file = it.absoluteFile
+
+      copy {
+        from zipTree(file)
+        into "$buildDir/$file.name"
+        include "jni/**/*"
+      }
+      extracted = true;
+    }
+  }
+}
+
+// Extract JNI files as soon as first task is added
+tasks.whenTaskAdded { task ->
+  task.dependsOn(extractJNIFiles);
 }
 
 if (isNewArchitectureEnabled()) {

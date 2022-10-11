@@ -22,7 +22,6 @@
         "!**/__mocks__"
     ],
     "scripts": {
-        "postinstall": "npx patch-package",
         "prepare": "bob build"
     },
     "keywords": [],
@@ -31,14 +30,14 @@
     "homepage": "https://github.com/keybase/client/react-native-drop-view#readme",
     "private": true,
     "devDependencies": {
-        "@types/react": "18.0.18",
-        "@types/react-native": "0.66.16",
-        "react-native": "0.67.3",
+        "@types/react": "18.0.20",
+        "@types/react-native": "0.68.0",
+        "react-native": "0.68.3",
         "react-native-builder-bob": "^0.18.3",
         "typescript": "4.8.3"
     },
     "resolutions": {
-        "@types/react": "18.0.18"
+        "@types/react": "18.0.20"
     },
     "peerDependencies": {
         "react": "*",
