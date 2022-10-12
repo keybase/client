@@ -4,7 +4,7 @@ import Box from './box'
 import type {Props} from './video'
 import useFixStatusbar from './use-fix-statusbar.native'
 import {StatusBar} from 'react-native'
-import {Video as AVVideo} from 'expo-av'
+import {Video as AVVideo, VideoFullscreenUpdate} from 'expo-av'
 import {useVideoSizer, CheckURL} from './video.shared'
 
 const Kb = {
@@ -44,7 +44,7 @@ const Video = (props: Props) => {
             useNativeControls={true}
             shouldPlay={true}
             onFullscreenUpdate={event => {
-              if (event.fullscreenUpdate === AVVideo.FULLSCREEN_UPDATE_PLAYER_DID_DISMISS) {
+              if (event.fullscreenUpdate === VideoFullscreenUpdate.PLAYER_DID_DISMISS) {
                 StatusBar.setHidden(false)
               }
             }}

@@ -20,6 +20,8 @@ import android.view.KeyEvent;
 import android.view.Window;
 import android.webkit.MimeTypeMap;
 
+import com.facebook.react.ReactActivityDelegate;
+import com.facebook.react.ReactRootView;
 import com.facebook.react.ReactApplication;
 import com.facebook.react.ReactInstanceManager;
 import com.facebook.react.bridge.Arguments;
@@ -43,8 +45,9 @@ import java.util.UUID;
 
 import io.keybase.ossifrage.modules.NativeLogger;
 import io.keybase.ossifrage.util.DNSNSFetcher;
-import io.keybase.ossifrage.util.GuiConfig;
 import io.keybase.ossifrage.util.VideoHelper;
+import com.reactnativekb.GuiConfig;
+import com.reactnativekb.DarkModePreference;
 import keybase.Keybase;
 
 import static keybase.Keybase.initOnce;
@@ -381,99 +384,120 @@ public class MainActivity extends ReactActivity {
         }
     }
 
-@Override
-protected void onResume() {
-    NativeLogger.info("Activity onResume");
-    super.onResume();
-    Keybase.setAppStateForeground();
-    // Emit the intent data to JS
-    Intent intent = getIntent();
-    if (intent != null) {
-        (new IntentEmitter(intent)).emit();
-    }
-}
-
-@Override
-protected void onStart() {
-    NativeLogger.info("Activity onStart");
-    super.onStart();
-    Keybase.setAppStateForeground();
-}
-
-@Override
-protected void onDestroy() {
-    NativeLogger.info("Activity onDestroy");
-    super.onDestroy();
-    Keybase.appWillExit(new KBPushNotifier(this, new Bundle()));
-}
-
-@Override
-public void onNewIntent(Intent intent) {
-    super.onNewIntent(intent);
-    setIntent(intent);
-}
-
-/**
- * Returns the name of the main component registered from JavaScript. This is
- * used to schedule rendering of the component.
- */
-@Override
-protected String getMainComponentName() {
-    return "Keybase";
-}
-
-@Override
-public void onConfigurationChanged(Configuration newConfig) {
-    super.onConfigurationChanged(newConfig);
-    ReactInstanceManager instanceManager = ((ReactApplication) getApplication()).getReactNativeHost().getReactInstanceManager();
-
-    try {
-        setBackgroundColor(GuiConfig.getInstance(getFilesDir()).getDarkMode());
-    } catch (Exception e) {}
-
-    if (newConfig.hardKeyboardHidden == Configuration.HARDKEYBOARDHIDDEN_NO) {
-        isUsingHardwareKeyboard = true;
-    } else if (newConfig.hardKeyboardHidden == Configuration.HARDKEYBOARDHIDDEN_YES) {
-        isUsingHardwareKeyboard = false;
-    }
-}
-
-public void setBackgroundColor(DarkModePreference pref) {
-    final int bgColor;
-    if (pref == DarkModePreference.System) {
-        bgColor = this.colorSchemeForCurrentConfiguration().equals("light") ? R.color.white : R.color.black;
-    } else if (pref == DarkModePreference.AlwaysDark) {
-        bgColor = R.color.black;
-    } else {
-        bgColor = R.color.white;
-    }
-    final Window mainWindow = this.getWindow();
-    Handler handler = new Handler(Looper.getMainLooper());
-    // Run this on the main thread.
-    handler.post(() -> {
-        mainWindow.setBackgroundDrawableResource(bgColor);
-    });
-}
-
-@Override
-public boolean dispatchKeyEvent(KeyEvent event) {
-    if (isUsingHardwareKeyboard && event.getKeyCode() == KeyEvent.KEYCODE_ENTER) {
-        // Detects user pressing the enter key
-        if (event.getAction() == KeyEvent.ACTION_DOWN && !event.isShiftPressed()) {
-            // Enter is pressed
-            HWKeyboardEventModule.getInstance().keyPressed("enter");
-            return true;
-        }
-        if (event.getAction() == KeyEvent.ACTION_DOWN && event.isShiftPressed()) {
-            // Shift-Enter is pressed
-            HWKeyboardEventModule.getInstance().keyPressed("shift-enter");
-            return true;
+    @Override
+    protected void onResume() {
+        NativeLogger.info("Activity onResume");
+        super.onResume();
+        Keybase.setAppStateForeground();
+        // Emit the intent data to JS
+        Intent intent = getIntent();
+        if (intent != null) {
+            (new IntentEmitter(intent)).emit();
         }
     }
-    return super.dispatchKeyEvent(event);
-}
 
-private void updateIsUsingHardwareKeyboard()  {
-    isUsingHardwareKeyboard = getResources().getConfiguration().keyboard == Configuration.KEYBOARD_QWERTY;
-}
+    @Override
+    protected void onStart() {
+        NativeLogger.info("Activity onStart");
+        super.onStart();
+        Keybase.setAppStateForeground();
+    }
+
+    @Override
+    protected void onDestroy() {
+        NativeLogger.info("Activity onDestroy");
+        super.onDestroy();
+        Keybase.appWillExit(new KBPushNotifier(this, new Bundle()));
+    }
+
+    @Override
+    public void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+    }
+
+    /**
+     * Returns the name of the main component registered from JavaScript. This is
+     * used to schedule rendering of the component.
+     */
+    @Override
+    protected String getMainComponentName() {
+        return "Keybase";
+    }
+
+    /**
+     * Returns the instance of the {@link ReactActivityDelegate}. There the RootView is created and
+     * you can specify the rendered you wish to use (Fabric or the older renderer).
+     */
+    @Override
+    protected ReactActivityDelegate createReactActivityDelegate() {
+        return new MainActivityDelegate(this, getMainComponentName());
+    }
+    public static class MainActivityDelegate extends ReactActivityDelegate {
+        public MainActivityDelegate(ReactActivity activity, String mainComponentName) {
+            super(activity, mainComponentName);
+        }
+        @Override
+        protected ReactRootView createRootView() {
+            ReactRootView reactRootView = new ReactRootView(getContext());
+            // If you opted-in for the New Architecture, we enable the Fabric Renderer.
+            reactRootView.setIsFabric(BuildConfig.IS_NEW_ARCHITECTURE_ENABLED);
+            return reactRootView;
+        }
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        ReactInstanceManager instanceManager = ((ReactApplication) getApplication()).getReactNativeHost().getReactInstanceManager();
+
+        try {
+            setBackgroundColor(GuiConfig.getInstance(getFilesDir()).getDarkMode());
+        } catch (Exception e) {}
+
+        if (newConfig.hardKeyboardHidden == Configuration.HARDKEYBOARDHIDDEN_NO) {
+            isUsingHardwareKeyboard = true;
+        } else if (newConfig.hardKeyboardHidden == Configuration.HARDKEYBOARDHIDDEN_YES) {
+            isUsingHardwareKeyboard = false;
+        }
+    }
+
+    public void setBackgroundColor(DarkModePreference pref) {
+        final int bgColor;
+        if (pref == DarkModePreference.System) {
+            bgColor = this.colorSchemeForCurrentConfiguration().equals("light") ? R.color.white : R.color.black;
+        } else if (pref == DarkModePreference.AlwaysDark) {
+            bgColor = R.color.black;
+        } else {
+            bgColor = R.color.white;
+        }
+        final Window mainWindow = this.getWindow();
+        Handler handler = new Handler(Looper.getMainLooper());
+        // Run this on the main thread.
+        handler.post(() -> {
+            mainWindow.setBackgroundDrawableResource(bgColor);
+        });
+    }
+
+    @Override
+    public boolean dispatchKeyEvent(KeyEvent event) {
+        if (isUsingHardwareKeyboard && event.getKeyCode() == KeyEvent.KEYCODE_ENTER) {
+            // Detects user pressing the enter key
+            if (event.getAction() == KeyEvent.ACTION_DOWN && !event.isShiftPressed()) {
+                // Enter is pressed
+                HWKeyboardEventModule.getInstance().keyPressed("enter");
+                return true;
+            }
+            if (event.getAction() == KeyEvent.ACTION_DOWN && event.isShiftPressed()) {
+                // Shift-Enter is pressed
+                HWKeyboardEventModule.getInstance().keyPressed("shift-enter");
+                return true;
+            }
+        }
+        return super.dispatchKeyEvent(event);
+    }
+
+    private void updateIsUsingHardwareKeyboard()  {
+        isUsingHardwareKeyboard = getResources().getConfiguration().keyboard == Configuration.KEYBOARD_QWERTY;
+    }
 }

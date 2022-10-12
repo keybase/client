@@ -10,83 +10,89 @@
 #import <React/RCTBridge.h>
 #import <React/RCTBundleURLProvider.h>
 #import <React/RCTRootView.h>
+#import <React/RCTAppSetupUtils.h>
+#if RCT_NEW_ARCH_ENABLED
+#import <React/CoreModulesPlugins.h>
+#import <React/RCTCxxBridgeDelegate.h>
+#import <React/RCTFabricSurfaceHostingProxyRootView.h>
+#import <React/RCTSurfacePresenter.h>
+#import <React/RCTSurfacePresenterBridgeAdapter.h>
+#import <ReactCommon/RCTTurboModuleManager.h>
+#import <react/config/ReactNativeConfig.h>
 
-#ifdef FB_SONARKIT_ENABLED
-#import <FlipperKit/FlipperClient.h>
-#import <FlipperKitLayoutPlugin/FlipperKitLayoutPlugin.h>
-#import <FlipperKitNetworkPlugin/FlipperKitNetworkPlugin.h>
-#import <FlipperKitReactPlugin/FlipperKitReactPlugin.h>
-#import <FlipperKitUserDefaultsPlugin/FKUserDefaultsPlugin.h>
-#import <SKIOSNetworkPlugin/SKIOSNetworkAdapter.h>
-#import <FlipperPerformancePlugin.h>
-
-static void InitializeFlipper(UIApplication *application) {
-  FlipperClient *client = [FlipperClient sharedClient];
-  SKDescriptorMapper *layoutDescriptorMapper =
-      [[SKDescriptorMapper alloc] initWithDefaults];
-  [client addPlugin:[[FlipperKitLayoutPlugin alloc]
-                            initWithRootNode:application
-                        withDescriptorMapper:layoutDescriptorMapper]];
-  [client addPlugin:[[FKUserDefaultsPlugin alloc] initWithSuiteName:nil]];
-  [client addPlugin:[FlipperKitReactPlugin new]];
-  [client addPlugin:[[FlipperKitNetworkPlugin alloc]
-                        initWithNetworkAdapter:[SKIOSNetworkAdapter new]]];
-  [client addPlugin:[FlipperPerformancePlugin new]];
-  [client start];
+@interface AppDelegate () <RCTCxxBridgeDelegate,
+                           RCTTurboModuleManagerDelegate> {
+  RCTTurboModuleManager *_turboModuleManager;
+  RCTSurfacePresenterBridgeAdapter *_bridgeAdapter;
+  std::shared_ptr<const facebook::react::ReactNativeConfig> _reactNativeConfig;
+  facebook::react::ContextContainer::Shared _contextContainer;
 }
+@end
 #endif
 
-#import <React/RCTLinkingManager.h>
 #import "Fs.h"
+#import "ItemProviderHelper.h"
 #import "Pusher.h"
 #import <AVFoundation/AVFoundation.h>
 #import <RNCPushNotificationIOS.h>
+#import <RNHWKeyboardEvent.h>
+#import <React/RCTLinkingManager.h>
 #import <UserNotifications/UserNotifications.h>
 #import <keybase/keybase.h>
-#import <RNHWKeyboardEvent.h>
-#import "ItemProviderHelper.h"
+
+@interface AppDelegate (Kb)
+@property UIBackgroundTaskIdentifier backgroundTask;
+@property UIBackgroundTaskIdentifier shutdownTask;
+@property(nonatomic, strong) ItemProviderHelper *iph;
+@end
 
 static const DDLogLevel ddLogLevel = DDLogLevelDebug;
 
-@interface AppDelegate ()
-@property UIBackgroundTaskIdentifier backgroundTask;
-@property UIBackgroundTaskIdentifier shutdownTask;
-@property (nonatomic, strong) ItemProviderHelper * iph;
-@end
-
 @implementation AppDelegate
 
-- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
-{
-#ifdef FB_SONARKIT_ENABLED
-  InitializeFlipper(application);
-#endif
+- (BOOL)application:(UIApplication *)application
+    didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
+  // KB add setup
+  [self didLaunchSetupBefore:application];
+  // end KB
 
-  [self didLaunchSetupBefore: application];
-  
-  RCTBridge *bridge = [[RCTBridge alloc] initWithDelegate:self launchOptions:launchOptions];
-  RCTRootView *rootView = [[RCTRootView alloc] initWithBridge:bridge
-                                                   moduleName:@"Keybase"
-                                            initialProperties:nil];
-  
+  RCTAppSetupPrepareApp(application);
+  RCTBridge *bridge = [[RCTBridge alloc] initWithDelegate:self
+                                            launchOptions:launchOptions];
+#if RCT_NEW_ARCH_ENABLED
+  _contextContainer =
+      std::make_shared<facebook::react::ContextContainer const>();
+  _reactNativeConfig =
+      std::make_shared<facebook::react::EmptyReactNativeConfig const>();
+  _contextContainer->insert("ReactNativeConfig", _reactNativeConfig);
+  _bridgeAdapter = [[RCTSurfacePresenterBridgeAdapter alloc]
+        initWithBridge:bridge
+      contextContainer:_contextContainer];
+  bridge.surfacePresenter = _bridgeAdapter.surfacePresenter;
+#endif
+  UIView *rootView = RCTAppSetupDefaultRootView(bridge, @"Keybase", nil);
   if (@available(iOS 13.0, *)) {
     rootView.backgroundColor = [UIColor systemBackgroundColor];
   } else {
     rootView.backgroundColor = [UIColor whiteColor];
   }
-
   self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
   UIViewController *rootViewController = [UIViewController new];
   rootViewController.view = rootView;
+
+  // KB add drop
   UIDropInteraction *udi = [[UIDropInteraction alloc] initWithDelegate:self];
   udi.allowsSimultaneousDropSessions = YES;
-  rootView.interactions = @[udi];
-  
+  rootView.interactions = @[ udi ];
+  // end KB
+
   self.window.rootViewController = rootViewController;
   [self.window makeKeyAndVisible];
 
+  // KB setup
   [self didLaunchSetupAfter:rootView];
-  
+  // end KB
+
   return YES;
 }
 
@@ -96,25 +102,56 @@ static const DDLogLevel ddLogLevel = DDLogLevelDebug;
   // and re-run to reset it!
   // [[RCTBundleURLProvider sharedSettings] setEnableDev: false];
   return
-      [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@"index" fallbackResource:nil];
+      [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@"index"];
 #else
-  return [[NSBundle mainBundle] URLForResource:@"main" withExtension:@"jsbundle"];
+  return [[NSBundle mainBundle] URLForResource:@"main"
+                                 withExtension:@"jsbundle"];
 #endif
 }
 
-- (void) didLaunchSetupBefore: (UIApplication *)application {
+#if RCT_NEW_ARCH_ENABLED
+#pragma mark - RCTCxxBridgeDelegate
+- (std::unique_ptr<facebook::react::JSExecutorFactory>)
+    jsExecutorFactoryForBridge:(RCTBridge *)bridge {
+  _turboModuleManager =
+      [[RCTTurboModuleManager alloc] initWithBridge:bridge
+                                           delegate:self
+                                          jsInvoker:bridge.jsCallInvoker];
+  return RCTAppSetupDefaultJsExecutorFactory(bridge, _turboModuleManager);
+}
+#pragma mark RCTTurboModuleManagerDelegate
+- (Class)getModuleClassFromName:(const char *)name {
+  return RCTCoreModulesClassProvider(name);
+}
+- (std::shared_ptr<facebook::react::TurboModule>)
+    getTurboModule:(const std::string &)name
+         jsInvoker:(std::shared_ptr<facebook::react::CallInvoker>)jsInvoker {
+  return nullptr;
+}
+- (std::shared_ptr<facebook::react::TurboModule>)
+    getTurboModule:(const std::string &)name
+        initParams:
+            (const facebook::react::ObjCTurboModule::InitParams &)params {
+  return nullptr;
+}
+- (id<RCTTurboModule>)getModuleInstanceFromClass:(Class)moduleClass {
+  return RCTAppSetupDefaultModuleFromClass(moduleClass);
+}
+#endif
+
+- (void)didLaunchSetupBefore:(UIApplication *)application {
   // allow audio to be mixed
   [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryAmbient
                                          error:nil];
   [self setupGo];
   [self notifyAppState:application];
-  
+
   UNUserNotificationCenter *center =
       [UNUserNotificationCenter currentNotificationCenter];
   center.delegate = self;
 }
 
-- (void) didLaunchSetupAfter: (RCTRootView *)rootView {
+- (void)didLaunchSetupAfter:(RCTRootView *)rootView {
   // To simplify the cover animation raciness
   // With iPads, we had a bug with this resignImageView where if
   // you backgrounded the app in portrait and then rotated to
@@ -139,31 +176,42 @@ static const DDLogLevel ddLogLevel = DDLogLevelDebug;
   [self.resignImageView setImage:[UIImage imageNamed:@"LaunchImage"]];
   [self.window addSubview:self.resignImageView];
 
-  [[UIApplication sharedApplication] setMinimumBackgroundFetchInterval: UIApplicationBackgroundFetchIntervalMinimum];
+  [[UIApplication sharedApplication]
+      setMinimumBackgroundFetchInterval:
+          UIApplicationBackgroundFetchIntervalMinimum];
 }
 
-- (BOOL)dropInteraction:(UIDropInteraction *)interaction canHandleSession:(id<UIDropSession>)session
-{
+- (BOOL)dropInteraction:(UIDropInteraction *)interaction
+       canHandleSession:(id<UIDropSession>)session {
   return YES;
 }
 
 - (UIDropProposal *)dropInteraction:(UIDropInteraction *)interaction
-                   sessionDidUpdate:(id<UIDropSession>)session{
+                   sessionDidUpdate:(id<UIDropSession>)session {
   return [[UIDropProposal alloc] initWithDropOperation:UIDropOperationCopy];
 }
 
-- (void)dropInteraction:(UIDropInteraction *)interaction performDrop:(id<UIDropSession>)session {
-  __weak typeof(self) weakSelf = self;
-  NSMutableArray * items = [NSMutableArray arrayWithCapacity:session.items.count];
-  [session.items enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
-    UIDragItem * i = obj;
-    [items addObject:i.itemProvider];
-  }];
-  self.iph = [[ItemProviderHelper alloc] initForShare: false withItems:items attrString:@"" completionHandler:^{
-    NSURL * url = [NSURL URLWithString:@"keybase://incoming-share"];
-    [weakSelf application:[UIApplication sharedApplication] openURL:url options:@{}];
-    weakSelf.iph = nil;
-  }];
+- (void)dropInteraction:(UIDropInteraction *)interaction
+            performDrop:(id<UIDropSession>)session {
+  __weak AppDelegate * weakSelf = self;
+  NSMutableArray *items =
+      [NSMutableArray arrayWithCapacity:session.items.count];
+  [session.items
+      enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+        UIDragItem *i = obj;
+        [items addObject:i.itemProvider];
+      }];
+  self.iph = [[ItemProviderHelper alloc]
+           initForShare:false
+              withItems:items
+             attrString:@""
+      completionHandler:^{
+        NSURL *url = [NSURL URLWithString:@"keybase://incoming-share"];
+        [weakSelf application:[UIApplication sharedApplication]
+                      openURL:url
+                      options:@{}];
+        weakSelf.iph = nil;
+      }];
   [self.iph startProcessing];
 }
 
@@ -172,26 +220,23 @@ static const DDLogLevel ddLogLevel = DDLogLevelDebug;
   BOOL skipLogFile = false;
   // uncomment to get more console.logs
   // RCTSetLogThreshold(RCTLogLevelInfo - 1);
-  self.fsPaths = [[FsHelper alloc] setupFs:skipLogFile
-                                    setupSharedHome:YES];
-  
-  
+  self.fsPaths = [[FsHelper alloc] setupFs:skipLogFile setupSharedHome:YES];
+
   NSString *systemVer = [[UIDevice currentDevice] systemVersion];
   BOOL isIPad =
       [[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad;
   BOOL isIOS = YES;
-  
+
 #if TARGET_OS_SIMULATOR
-      BOOL securityAccessGroupOverride = YES;
+  BOOL securityAccessGroupOverride = YES;
 #else
-      BOOL securityAccessGroupOverride = NO;
+  BOOL securityAccessGroupOverride = NO;
 #endif
-  
+
   NSError *err;
   KeybaseInit(self.fsPaths[@"homedir"], self.fsPaths[@"sharedHome"],
-              self.fsPaths[@"logFile"], @"prod",
-              securityAccessGroupOverride, NULL, NULL, systemVer,
-              isIPad, NULL, isIOS, &err);
+              self.fsPaths[@"logFile"], @"prod", securityAccessGroupOverride,
+              NULL, NULL, systemVer, isIPad, NULL, isIOS, &err);
 }
 
 - (void)application:(UIApplication *)application

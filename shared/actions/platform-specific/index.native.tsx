@@ -34,7 +34,7 @@ import * as Contacts from 'expo-contacts'
 import {launchImageLibraryAsync} from '../../util/expo-image-picker'
 import * as Haptics from 'expo-haptics'
 import {_getNavigator} from '../../constants/router2'
-import {Audio} from 'expo-av'
+import {Audio, InterruptionModeIOS, InterruptionModeAndroid} from 'expo-av'
 import * as ExpoLocation from 'expo-location'
 import * as FileSystem from 'expo-file-system'
 import * as ExpoTaskManager from 'expo-task-manager'
@@ -775,8 +775,8 @@ const onEnableAudioRecording = async (
   }
   await Audio.setAudioModeAsync({
     allowsRecordingIOS: true,
-    interruptionModeAndroid: Audio.INTERRUPTION_MODE_ANDROID_DO_NOT_MIX,
-    interruptionModeIOS: Audio.INTERRUPTION_MODE_IOS_DO_NOT_MIX,
+    interruptionModeAndroid: InterruptionModeAndroid.DoNotMix,
+    interruptionModeIOS: InterruptionModeIOS.DoNotMix,
     playThroughEarpieceAndroid: false,
     playsInSilentModeIOS: true,
     shouldDuckAndroid: false,

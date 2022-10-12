@@ -1,4 +1,3 @@
-// TODO use the library one
 // from
 // https://github.com/ammarahm-ed/react-native-jsi-template/blob/master/android/cpp-adapter.cpp
 #include "pthread.h"
@@ -12,7 +11,6 @@
 
 using namespace facebook;
 using namespace facebook::jsi;
-using namespace facebook::jni;
 using namespace std;
 
 JavaVM *java_vm;
@@ -111,8 +109,9 @@ void install(facebook::jsi::Runtime &jsiRuntime) {
   jsiRuntime.global().setProperty(jsiRuntime, "rpcOnGo", move(rpcOnGo));
 }
 
-extern "C" JNIEXPORT void JNICALL Java_com_reactnativekb_KbModule_nativeInstall(
-    JNIEnv *env, jobject thiz, jlong jsi) {
+extern "C" JNIEXPORT void JNICALL
+Java_com_reactnativekb_KbModuleImpl_nativeInstallJSI(JNIEnv *env, jobject thiz,
+                                                     jlong jsi) {
   auto runtime = reinterpret_cast<facebook::jsi::Runtime *>(jsi);
   if (runtime) {
     install(*runtime);
@@ -121,9 +120,11 @@ extern "C" JNIEXPORT void JNICALL Java_com_reactnativekb_KbModule_nativeInstall(
   java_object = env->NewGlobalRef(thiz);
 }
 
-extern "C" JNIEXPORT void JNICALL Java_com_reactnativekb_KbModule_nativeEmit(
-    JNIEnv *env, jclass clazz, jlong jsi, jobject boxedCallInvokerHolder,
-    jbyteArray data) {
+extern "C" JNIEXPORT void JNICALL
+Java_com_reactnativekb_KbModuleImpl_nativeEmit(JNIEnv *env, jclass clazz,
+                                               jlong jsi,
+                                               jobject boxedCallInvokerHolder,
+                                               jbyteArray data) {
   auto rPtr = reinterpret_cast<facebook::jsi::Runtime *>(jsi);
   auto &runtime = *rPtr;
   auto boxedCallInvokerRef = jni::make_local(boxedCallInvokerHolder);

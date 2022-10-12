@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../../../../../common-adapters/index'
 import * as Styles from '../../../../../../styles'
 import logger from '../../../../../../logger'
-import {Video as AVVideo} from 'expo-av'
+import {Video as AVVideo, ResizeMode} from 'expo-av'
 import type {Props} from './video.types'
 
 export const Video = (props: Props) => {
@@ -37,7 +37,7 @@ export const Video = (props: Props) => {
         onError={e => {
           logger.error(`Error loading vid: ${JSON.stringify(e)}`)
         }}
-        resizeMode="contain"
+        resizeMode={ResizeMode.CONTAIN}
         style={Styles.collapseStyles([styles.player, style])}
         isLooping={true}
         isMuted={true}

@@ -59,8 +59,11 @@ import static keybase.Keybase.readArr;
 import static keybase.Keybase.version;
 import static keybase.Keybase.writeArr;
 
-@ReactModule(name = KbModule.NAME)
-public class KbModule extends ReactContextBaseJavaModule {
+public class KbModuleImpl  {
+/**
+ * This is where the module implementation lives
+ * The exposed methods can be defined in the `turbo` and `legacy` folders
+ */
     public static final String NAME = "Kb";
     private static final String RN_NAME = "ReactNativeJS";
     private static final String RPC_META_EVENT_NAME = "kb-meta-engine-event";
@@ -72,10 +75,18 @@ public class KbModule extends ReactContextBaseJavaModule {
     private HashMap<String, String> initialIntent;
     private final ReactApplicationContext reactContext;
 
-    private native void nativeInstall(long jsiPtr);
+    private native void nativeInstallJSI(long jsiPtr);
     private native void nativeEmit(long jsiPtr, CallInvokerHolderImpl jsInvoker, byte[] data);
     private ExecutorService executor;
     private Boolean jsiInstalled = false;
+
+    static {
+        try {
+            // Used to load the 'native-lib' library on application startup.
+            System.loadLibrary("cpp");
+        } catch (Exception ignored) {
+        }
+    }
 
     // Is this a robot controlled test device? (i.e. pre-launch report?)
     private static boolean isTestDevice(ReactApplicationContext context) {
@@ -83,30 +94,29 @@ public class KbModule extends ReactContextBaseJavaModule {
       return "true".equals(testLabSetting);
     }
 
-/**
- * Gets a field from the project's BuildConfig. This is useful when, for example, flavors
- * are used at the project level to set custom fields.
- * @param context       Used to find the correct file
- * @param fieldName     The name of the field-to-access
- * @return              The value of the field, or {@code null} if the field is not found.
- */
-private Object getBuildConfigValue(String fieldName) {
-    try {
-        Class<?> clazz = Class.forName(this.reactContext.getPackageName() + ".BuildConfig");
-        Field field = clazz.getField(fieldName);
-        return field.get(null);
-    } catch (ClassNotFoundException e) {
-        e.printStackTrace();
-    } catch (NoSuchFieldException e) {
-        e.printStackTrace();
-    } catch (IllegalAccessException e) {
-        e.printStackTrace();
+    /**
+     * Gets a field from the project's BuildConfig. This is useful when, for example, flavors
+     * are used at the project level to set custom fields.
+     * @param context       Used to find the correct file
+     * @param fieldName     The name of the field-to-access
+     * @return              The value of the field, or {@code null} if the field is not found.
+     */
+    private Object getBuildConfigValue(String fieldName) {
+        try {
+            Class<?> clazz = Class.forName(this.reactContext.getPackageName() + ".BuildConfig");
+            Field field = clazz.getField(fieldName);
+            return field.get(null);
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } catch (NoSuchFieldException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
-    return null;
-}
 
-    public KbModule(ReactApplicationContext reactContext) {
-        super(reactContext);
+    KbModuleImpl(ReactApplicationContext reactContext) {
         this.reactContext = reactContext;
         this.misTestDevice = isTestDevice(reactContext);
         this.setSecureFlag();
@@ -118,26 +128,17 @@ private Object getBuildConfigValue(String fieldName) {
             }
 
             @Override
-            public void onHostPause() {
-            }
+            public void onHostPause() { }
 
             @Override
-            public void onHostDestroy() {
-            }
+            public void onHostDestroy() { }
         });
-    }
-
-    @Override
-    @NonNull
-    public String getName() {
-        return NAME;
     }
 
     private String readGuiConfig() {
         return GuiConfig.getInstance(this.reactContext.getFilesDir()).asString();
     }
 
-    @Override
     public Map<String, Object> getConstants() {
         String versionCode = String.valueOf(getBuildConfigValue("VERSION_CODE"));
         String versionName = String.valueOf(getBuildConfigValue("VERSION_NAME"));
@@ -156,7 +157,6 @@ private Object getBuildConfigValue(String fieldName) {
         } catch (Exception e) {
             NativeLogger.warn(": Error reading server config", e);
         }
-
 
         String cacheDir = "";
         {
@@ -190,8 +190,6 @@ private Object getBuildConfigValue(String fieldName) {
     }
 
     // country code
-
-    @ReactMethod
     public void getDefaultCountryCode(Promise promise) {
         try {
             TelephonyManager tm = (TelephonyManager) this.reactContext.getSystemService(Context.TELEPHONY_SERVICE);
@@ -203,8 +201,6 @@ private Object getBuildConfigValue(String fieldName) {
     }
 
     // Logging
-
-    @ReactMethod
     public void logSend(String status, String feedback, boolean sendLogs, boolean sendMaxBytes, String traceDir, String cpuProfileDir, Promise promise) {
         if (misTestDevice) {
             return;
@@ -217,7 +213,6 @@ private Object getBuildConfigValue(String fieldName) {
         }
     }
 
-    @ReactMethod
     public void logDump(String tagPrefix, Promise promise) {
         try {
             String cmd = "logcat -m 10000 -d " + RN_NAME + ":I *:S";
@@ -241,8 +236,6 @@ private Object getBuildConfigValue(String fieldName) {
     }
 
     // Settings
-
-    @ReactMethod
     public void androidOpenSettings() {
         Intent intent = new Intent();
         intent.setAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
@@ -253,8 +246,6 @@ private Object getBuildConfigValue(String fieldName) {
     }
 
     // Screen protector
-
-    @ReactMethod
     public void androidSetSecureFlagSetting(boolean setSecure, Promise promise) {
         final SharedPreferences prefs = reactContext.getSharedPreferences("SecureFlag", Context.MODE_PRIVATE);
         final boolean success = prefs.edit().putBoolean("setSecure", setSecure).commit();
@@ -262,7 +253,6 @@ private Object getBuildConfigValue(String fieldName) {
         setSecureFlag();
     }
 
-    @ReactMethod
     public void androidGetSecureFlagSetting(Promise promise) {
         final SharedPreferences prefs = this.reactContext.getSharedPreferences("SecureFlag", Context.MODE_PRIVATE);
         final boolean setSecure = prefs.getBoolean("setSecure", !misTestDevice);
@@ -289,7 +279,6 @@ private Object getBuildConfigValue(String fieldName) {
     }
 
     // Sharing
-    @ReactMethod
     public void androidShare(String uriPath, String mimeType, Promise promise) {
         File file = new File(uriPath);
         Intent intent = new Intent(Intent.ACTION_SEND).setType(mimeType);
@@ -331,7 +320,6 @@ private Object getBuildConfigValue(String fieldName) {
         }
     }
 
-    @ReactMethod
     public void androidShareText(String text, String mimeType, Promise promise) {
         Intent intent = new Intent(Intent.ACTION_SEND).setType(mimeType);
         intent.putExtra(Intent.EXTRA_TEXT, text);
@@ -349,14 +337,11 @@ private Object getBuildConfigValue(String fieldName) {
 
     // Push 
 
-    @ReactMethod
     public void androidCheckPushPermissions(Promise promise) {
-        ReactApplicationContext reactContext = getReactApplicationContext();
-        NotificationManagerCompat managerCompat = NotificationManagerCompat.from(reactContext);
+        NotificationManagerCompat managerCompat = NotificationManagerCompat.from(this.reactContext);
         promise.resolve(managerCompat.areNotificationsEnabled());
     }
 
-    @ReactMethod
     public void androidRequestPushPermissions(Promise promise) {
         this.ensureFirebase();
         FirebaseInstanceId.getInstance().getInstanceId()
@@ -369,9 +354,9 @@ private Object getBuildConfigValue(String fieldName) {
     }
 
     private void ensureFirebase() {
-        boolean firebaseInitialized = FirebaseApp.getApps(getReactApplicationContext()).size() == 1;
+        boolean firebaseInitialized = FirebaseApp.getApps(this.reactContext).size() == 1;
         if (!firebaseInitialized) {
-            FirebaseApp.initializeApp(getReactApplicationContext(),
+            FirebaseApp.initializeApp(this.reactContext,
                     new FirebaseOptions.Builder()
                             .setApplicationId(String.valueOf(getBuildConfigValue("LIBRARY_PACKAGE_NAME")))
                             .setProjectId("keybase-c30fb")
@@ -381,7 +366,6 @@ private Object getBuildConfigValue(String fieldName) {
         }
     }
 
-    @ReactMethod
     public void androidGetRegistrationToken(Promise promise) {
         this.ensureFirebase();
         FirebaseInstanceId.getInstance().getInstanceId()
@@ -393,7 +377,6 @@ private Object getBuildConfigValue(String fieldName) {
                             promise.reject(task.getException());
                             return;
                         }
-
 
                         // Get new Instance ID token
                         String token = task.getResult().getToken();
@@ -444,7 +427,6 @@ private Object getBuildConfigValue(String fieldName) {
             return PathResolver.getRealPathFromURI(this.reactContext, uri);
     }
 
-    @ReactMethod
     public void androidUnlink(String path, Promise promise) {
         try {
             String normalizedPath = this.normalizePath(path);
@@ -488,7 +470,6 @@ private Object getBuildConfigValue(String fieldName) {
         }
     }
 
-    @ReactMethod
     public void androidAddCompleteDownload(ReadableMap config, Promise promise) {
         DownloadManager dm = (DownloadManager) this.reactContext.getSystemService(this.reactContext.DOWNLOAD_SERVICE);
         if (config == null || !config.hasKey("path")) {
@@ -519,7 +500,6 @@ private Object getBuildConfigValue(String fieldName) {
 
     // Dark mode
     // Same type as DarkModePreference: 'system' | 'alwaysDark' | 'alwaysLight'
-    @ReactMethod
     public void androidAppColorSchemeChanged(String prefString) {
         try {
             final Activity activity = this.reactContext.getCurrentActivity();
@@ -535,7 +515,6 @@ private Object getBuildConfigValue(String fieldName) {
 
     // Badging
 
-    @ReactMethod
     public void androidSetApplicationIconBadgeNumber(int badge) {
         ShortcutBadger.applyCount(this.reactContext, badge);
     }
@@ -545,7 +524,6 @@ private Object getBuildConfigValue(String fieldName) {
     // This isn't related to the Go Engine, but it's a small thing that wouldn't be worth putting in
     // its own react module. That's because starting up a react module is a bit expensive and we
     // wouldn't be able to lazy load this because we need it on startup.
-    @ReactMethod
     public void androidGetInitialBundleFromNotification(Promise promise) {
         try {
         final Activity activity = this.reactContext.getCurrentActivity();
@@ -563,7 +541,6 @@ private Object getBuildConfigValue(String fieldName) {
         promise.resolve(null);
     }
 
-    @ReactMethod
     public void androidGetInitialShareFileUrl(Promise promise) {
         try {
 
@@ -578,7 +555,6 @@ private Object getBuildConfigValue(String fieldName) {
         promise.resolve("");
     }
 
-    @ReactMethod
     public void androidGetInitialShareText(Promise promise) {
         try {
 
@@ -603,7 +579,6 @@ private Object getBuildConfigValue(String fieldName) {
                 .emit(RPC_META_EVENT_NAME, RPC_META_EVENT_ENGINE_RESET);
         }
     }
-    @ReactMethod
     public void engineReset() {
       try {
           Keybase.reset();
@@ -613,7 +588,6 @@ private Object getBuildConfigValue(String fieldName) {
       }
     }
 
-    @ReactMethod
     public void engineStart() {
         NativeLogger.info("KeybaseEngine started");
         try {
@@ -625,16 +599,6 @@ private Object getBuildConfigValue(String fieldName) {
     }
 
 // JSI
-   @ReactMethod
-    public void addListener(String eventName) {
-      // needed
-    }
-
-    @ReactMethod
-    public void removeListeners(Integer count) {
-      // needed
-    }
-
     private class ReadFromKBLib implements Runnable {
         private final ReactApplicationContext reactContext;
 
@@ -644,10 +608,10 @@ private Object getBuildConfigValue(String fieldName) {
             reactContext.addLifecycleEventListener(new LifecycleEventListener() {
                 @Override
                 public void onHostResume() {
-                    // if (jsiInstalled && executor == null) {
-                    //     executor = Executors.newSingleThreadExecutor();
-                    //     executor.execute(new ReadFromKBLib(reactContext));
-                    // }
+                    if (executor == null) {
+                        executor = Executors.newSingleThreadExecutor();
+                        executor.execute(new ReadFromKBLib(reactContext));
+                    }
                 }
 
                 @Override
@@ -710,13 +674,10 @@ private Object getBuildConfigValue(String fieldName) {
         }
     }
 
-    @ReactMethod(isBlockingSynchronousMethod = true)
     public boolean installJSI() {
         jsiInstalled = true;
         try {
-            System.loadLibrary("gojsi");
-            ReactApplicationContext context = getReactApplicationContext();
-            this.nativeInstall(context.getJavaScriptContextHolder().get());
+            this.nativeInstallJSI(this.reactContext.getJavaScriptContextHolder().get());
             if (executor == null) {
                 executor = Executors.newSingleThreadExecutor();
                 executor.execute(new ReadFromKBLib(this.reactContext));
