@@ -101,12 +101,12 @@ arguments "-DANDROID_STL=c++_shared",
   }
 }
 
-def defaultDir = null
 
 repositories {
   mavenCentral()
   google()
 
+  def defaultDir = null
   def found = false
   def androidSourcesName = 'React Native sources'
 
@@ -187,46 +187,7 @@ dependencies {
   compileOnly 'com.facebook.fbjni:fbjni:0.2.2'
   extractHeaders 'com.facebook.fbjni:fbjni:0.2.2:headers'
   extractJNI 'com.facebook.fbjni:fbjni:0.2.2'
-
-    // def rnAAR = fileTree(defaultDir).matching({ it.include "**/**/*.aar" }).singleFile
-    // extractJNI(files(rnAAR))
 }
-
-// def extracted = false;
-// task extractJNIFiles {
-//   if (extracted) return
-//   doLast {
-//     configurations.extractJNI.files.each {
-//       def file = it.absoluteFile
-
-//       copy {
-//         from zipTree(file)
-//         into "$buildDir/$file.name"
-//         include "jni/**/*"
-//       }
-//       extracted = true;
-//     }
-//   }
-// }
-
-// task extractAARHeaders {
-//   doLast {
-//     configurations.extractHeaders.files.each {
-//       def file = it.absoluteFile
-//       copy {
-//         from zipTree(file)
-//         into "$buildDir/$file.name"
-//         include "**/*.h"
-//       }
-//     }
-//   }
-// }
-
-// Extract JNI files as soon as first task is added
-// tasks.whenTaskAdded { task ->
-//   task.dependsOn(extractJNIFiles);
-//   task.dependsOn(extractAARHeaders);
-// }
 
 if (isNewArchitectureEnabled()) {
   react {
@@ -235,7 +196,6 @@ if (isNewArchitectureEnabled()) {
     codegenJavaPackageName = "com.reactnativekb"
   }
 }
-
 
 def extractReactNativeAAR = { buildType ->
   def suffix = buildType == 'Debug' ? '-debug' : '-release'
@@ -314,5 +274,4 @@ tasks.whenTaskAdded { task ->
     def buildType = task.name.endsWith('Debug') ? 'Debug' : 'Release'
     task.dependsOn(":ReactAndroid:copy${buildType}JniLibsProjectOnly")
   }
-
 }
