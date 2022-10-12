@@ -30,6 +30,7 @@ const commands = {
       fixModules()
       checkFSEvents()
       clearTSCache()
+      clearAndroidBuild()
       getMsgPack()
       patch()
       prepareSubmodules()
@@ -157,6 +158,19 @@ const getMsgPack = () => {
         exec(checkAndUntar)
       }
     }
+  }
+}
+
+const clearAndroidBuild = () => {
+  const paths = [
+    '../../android/build',
+    '../../../rnmodules/react-native-kb/android/build',
+    '../../../rnmodules/react-native-kb/android/.cxx',
+    '../../../rnmodules/react-native-drop-view/android/build',
+  ]
+  for (const p of paths) {
+    const glob = path.resolve(__dirname, p)
+    rimraf(glob, {}, warnFail)
   }
 }
 

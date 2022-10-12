@@ -57,7 +57,8 @@
     "DEPRECATED_build-storybook": "build-storybook",
     "DEPRECATED_test": "yarn run _helper test",
     "pod-install": "cd ios; pod install --repo-update",
-    "pod-install-new": "cd ios; RCT_NEW_ARCH_ENABLED=1 pod install --repo-update"
+    "pod-install-new": "cd ios; RCT_NEW_ARCH_ENABLED=1 pod install --repo-update",
+    "android-clean": "cd android; ./gradlew clean"
   },
   "keywords": [],
   "author": "",
