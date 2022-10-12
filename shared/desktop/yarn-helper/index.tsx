@@ -127,8 +127,6 @@ const decorateInfo = info => {
   return temp
 }
 
-const warnFail = err => err && console.warn(`Error cleaning tscache ${err}, tsc may be inaccurate.`)
-
 const getMsgPack = () => {
   if (process.platform === 'darwin') {
     const ver = '4.1.1'
@@ -162,6 +160,7 @@ const getMsgPack = () => {
 }
 
 const clearAndroidBuild = () => {
+  const warnFail = err => err && console.warn(`Error cleaning android build dir, likely fine`)
   const paths = [
     '../../android/build',
     '../../../rnmodules/react-native-kb/android/build',
@@ -169,12 +168,15 @@ const clearAndroidBuild = () => {
     '../../../rnmodules/react-native-drop-view/android/build',
   ]
   for (const p of paths) {
-    const glob = path.resolve(__dirname, p)
-    rimraf(glob, {}, warnFail)
+    try {
+      const glob = path.resolve(__dirname, p)
+      rimraf(glob, {}, warnFail)
+    } catch {}
   }
 }
 
 const clearTSCache = () => {
+  const warnFail = err => err && console.warn(`Error cleaning tscache ${err}, tsc may be inaccurate.`)
   const glob = path.resolve(__dirname, '..', '..', '.tsOuts', '.tsOut*')
   rimraf(glob, {}, warnFail)
 }
