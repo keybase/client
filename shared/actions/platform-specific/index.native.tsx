@@ -785,22 +785,22 @@ const onEnableAudioRecording = async (
   const r = new Audio.Recording()
   await r.prepareToRecordAsync({
     android: {
-      audioEncoder: Audio.RECORDING_OPTION_ANDROID_AUDIO_ENCODER_AAC,
+      audioEncoder: Audio.AndroidAudioEncoder.AAC,
       bitRate: 32000,
       extension: '.m4a',
       numberOfChannels: 1,
-      outputFormat: Audio.RECORDING_OPTION_ANDROID_OUTPUT_FORMAT_MPEG_4,
+      outputFormat: Audio.AndroidOutputFormat.MPEG_4,
       sampleRate: 22050,
     },
     ios: {
-      audioQuality: Audio.RECORDING_OPTION_IOS_AUDIO_QUALITY_MIN,
+      audioQuality: Audio.IOSAudioQuality.MIN,
       bitRate: 32000,
       extension: '.m4a',
       linearPCMBitDepth: 16,
       linearPCMIsBigEndian: false,
       linearPCMIsFloat: false,
       numberOfChannels: 1,
-      outputFormat: Audio.RECORDING_OPTION_IOS_OUTPUT_FORMAT_MPEG4AAC,
+      outputFormat: Audio.IOSOutputFormat.MPEG4AAC,
       sampleRate: 22050,
     },
     isMeteringEnabled: true,
