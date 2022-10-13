@@ -13,8 +13,11 @@ const TEMP_SKIP_BUILD: boolean = false
 const electronVersion = '21.1.1'
 
 // To get the hashes download the SHASUMS.txt file and run
-// cat SHASUMS256.txt | grep 'electron.*\(darwin-arm64\|darwin-x64\|linux-arm64\|linux-x64\|win32-x64\)\.zip'
-// | awk ' { t = $1; $1 = substr($2,2); $2 = ":"; $3 = t; print $1 $2 $3; } '
+/*
+ cat SHASUMS256.txt |
+  grep 'electron.*\(darwin-arm64\|darwin-x64\|linux-arm64\|linux-x64\|win32-x64\)\.zip\|hunspell_dictionaries' |
+  awk ' { t = $1; $1 = substr($2,2); $2 = ":"; $3 = t; print $1 $2 $3; } '
+*/
 
 // prettier-ignore
 const electronChecksums = {
