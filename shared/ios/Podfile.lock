@@ -20,6 +20,8 @@ PODS:
     - ExpoModulesCore
   - EXContacts (10.2.0):
     - ExpoModulesCore
+  - EXErrorRecovery (3.1.0):
+    - ExpoModulesCore
   - EXFileSystem (14.0.0):
     - ExpoModulesCore
   - EXFont (10.1.0):
@@ -130,7 +132,7 @@ PODS:
   - libwebp/mux (1.2.3):
     - libwebp/demux
   - libwebp/webp (1.2.3)
-  - lottie-ios (3.4.3)
+  - lottie-ios (3.4.4)
   - lottie-react-native (5.1.4):
     - lottie-ios (~> 3.4.0)
     - React-Core
@@ -353,12 +355,12 @@ PODS:
     - React
   - react-native-kb (0.1.0):
     - React-Core
-  - react-native-netinfo (9.3.0):
+  - react-native-netinfo (9.3.4):
     - React-Core
-  - react-native-paste-input (0.5.0):
+  - react-native-paste-input (0.5.1):
     - React-Core
     - Swime (= 3.0.6)
-  - react-native-safe-area-context (4.3.4):
+  - react-native-safe-area-context (4.4.1):
     - RCT-Folly
     - RCTRequired
     - RCTTypeSafety
@@ -462,9 +464,9 @@ PODS:
     - ReactCommon/turbomodule/core (= 0.68.3)
   - RNCClipboard (1.11.1):
     - React-Core
-  - RNCMaskedView (0.2.7):
+  - RNCMaskedView (0.2.8):
     - React-Core
-  - RNCPicker (2.4.4):
+  - RNCPicker (2.4.7):
     - React-Core
   - RNCPushNotificationIOS (1.10.1):
     - React-Core
@@ -472,7 +474,7 @@ PODS:
     - React-Core
     - SDWebImage (~> 5.12.1)
     - SDWebImageWebPCoder (~> 0.8.4)
-  - RNGestureHandler (2.6.1):
+  - RNGestureHandler (2.7.1):
     - React-Core
   - RNReanimated (2.10.0):
     - DoubleConversion
@@ -501,9 +503,6 @@ PODS:
     - React-RCTText
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNScreens (3.17.0):
-    - React-Core
-    - React-RCTImage
   - SDWebImage (5.12.6):
     - SDWebImage/Core (= 5.12.6)
   - SDWebImage/Core (5.12.6)
@@ -531,6 +530,7 @@ DEPENDENCIES:
   - EXBarCodeScanner (from `../node_modules/expo-barcode-scanner/ios`)
   - EXConstants (from `../node_modules/expo-constants/ios`)
   - EXContacts (from `../node_modules/expo-contacts/ios`)
+  - EXErrorRecovery (from `../node_modules/expo-error-recovery/ios`)
   - EXFileSystem (from `../node_modules/expo-file-system/ios`)
   - EXFont (from `../node_modules/expo-font/ios`)
   - EXImageLoader (from `../node_modules/expo-image-loader/ios`)
@@ -613,7 +613,6 @@ DEPENDENCIES:
   - RNFastImage (from `../node_modules/react-native-fast-image`)
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
   - RNReanimated (from `../node_modules/react-native-reanimated`)
-  - RNScreens (from `../node_modules/react-native-screens`)
   - UMAppLoader (from `../node_modules/unimodules-app-loader/ios`)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
@@ -656,6 +655,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-constants/ios"
   EXContacts:
     :path: "../node_modules/expo-contacts/ios"
+  EXErrorRecovery:
+    :path: "../node_modules/expo-error-recovery/ios"
   EXFileSystem:
     :path: "../node_modules/expo-file-system/ios"
   EXFont:
@@ -772,8 +773,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-gesture-handler"
   RNReanimated:
     :path: "../node_modules/react-native-reanimated"
-  RNScreens:
-    :path: "../node_modules/react-native-screens"
   UMAppLoader:
     :path: "../node_modules/unimodules-app-loader/ios"
   Yoga:
@@ -789,6 +788,7 @@ SPEC CHECKSUMS:
   EXBarCodeScanner: b9e1b69371c233a80fc857edcf95843f14ae9e7b
   EXConstants: fdbe52259365b6a6faaa5e99a3b82cfa6bc2eb61
   EXContacts: 0111049e342dc033fa39e9c477e681ec2fccc07b
+  EXErrorRecovery: 3ce46e5d42e53c0371ff048a7f0cbc959968ef4a
   EXFileSystem: 2aa2d9289f84bca9532b9ccbd81504fa31eb1ded
   EXFont: 04235cc22e6fef86028feb67db452978dc6f240f
   EXImageLoader: b88e053d760f85a82405b1db2de4abf11978fc9f
@@ -817,7 +817,7 @@ SPEC CHECKSUMS:
   glog: 476ee3e89abb49e07f822b48323c51c57124b572
   libevent: 4049cae6c81cdb3654a443be001fb9bdceff7913
   libwebp: 60305b2e989864154bd9be3d772730f08fc6a59c
-  lottie-ios: 9ae750cdc7820fecbd3c2f0cfc493038208fcdc4
+  lottie-ios: 8f97d3271e155c2d688875c29cd3c74908aef5f8
   lottie-react-native: b702fab740cdb952a8e2354713d3beda63ff97b0
   OpenSSL-Universal: ebc357f1e6bc71fa463ccb2fe676756aff50e88c
   RCT-Folly: 4d8508a426467c48885f1151029bc15fa5d7b3b8
@@ -837,9 +837,9 @@ SPEC CHECKSUMS:
   react-native-flipper-performance-plugin: 2b873b68da3e368afeaf29c9c7a8c2b0ff908c4f
   react-native-hw-keyboard-event: b517cefb8d5c659a38049c582de85ff43337dc53
   react-native-kb: 3465c38c4a2990554fd19177874fff8d5cc0079a
-  react-native-netinfo: 129bd99f607a2dc5bb096168f3e5c150fd1f1c95
-  react-native-paste-input: 3037f113267c367e863790bcfd57cdb3ace3cad6
-  react-native-safe-area-context: dfe5aa13bee37a0c7e8059d14f72ffc076d120e9
+  react-native-netinfo: 6ac9bcc7c88dc51717bda3484eb99093acb755e0
+  react-native-paste-input: 183ad7dc224e192719616f4258dde5b548627d08
+  react-native-safe-area-context: 99b24a0c5acd0d5dcac2b1a7f18c49ea317be99a
   react-native-webview: d33e2db8925d090871ffeb232dfa50cb3a727581
   React-perflogger: fa15d1d29ff7557ee25ea48f7f59e65896fb3215
   React-RCTActionSheet: e83515333352a3cc19c146e3c7a63a8a9269da8f
@@ -854,13 +854,12 @@ SPEC CHECKSUMS:
   React-runtimeexecutor: 8cdd80915ed6dabf2221a689f1f7ddb50ea5e9f3
   ReactCommon: 5b1b43a7d81a1ac4eec85f7c4db3283a14a3b13d
   RNCClipboard: 2834e1c4af68697089cdd455ee4a4cdd198fa7dd
-  RNCMaskedView: cb9670ea9239998340eaab21df13fa12a1f9de15
-  RNCPicker: 0b65be85fe7954fbb2062ef079e3d1cde252d888
+  RNCMaskedView: bc0170f389056201c82a55e242e5d90070e18e5a
+  RNCPicker: 35b5d45693bb46c0e5514116081509e15a64a145
   RNCPushNotificationIOS: 87b8d16d3ede4532745e05b03c42cff33a36cc45
   RNFastImage: ab1f02d1afcf4d2333d39aa3fccc82841e044569
-  RNGestureHandler: 28ad20bf02257791f7f137b31beef34b9549f54b
+  RNGestureHandler: b7a872907ee289ada902127f2554fa1d2c076122
   RNReanimated: 5bdcbcc3a72aedeee7bb099604262403aa75a1e5
-  RNScreens: 0df01424e9e0ed7827200d6ed1087ddd06c493f9
   SDWebImage: a47aea9e3d8816015db4e523daff50cfd294499d
   SDWebImageWebPCoder: 908b83b6adda48effe7667cd2b7f78c897e5111d
   SocketRocket: fccef3f9c5cedea1353a9ef6ada904fde10d6608

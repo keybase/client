@@ -2,13 +2,12 @@ import logger from '../../logger'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import Feedback from '.'
-import {logSend} from 'react-native-kb'
 import * as Container from '../../util/container'
 import {isAndroid, version, pprofDir} from '../../constants/platform'
 import {writeLogLinesToFile} from '../../util/forward-logs'
 import {Platform} from 'react-native'
 import {getExtraChatLogsForLogSend, getPushTokenForLogSend} from '../../constants/settings'
-import {appVersionName, appVersionCode} from 'react-native-kb'
+import {logSend, appVersionName, appVersionCode} from 'react-native-kb'
 
 type OwnProps = Container.RouteProps<'settingsTabs.feedbackTab'>
 
