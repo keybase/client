@@ -190,7 +190,7 @@
     "babel-plugin-react-native-web": "0.18.9",
     "cross-env": "7.0.3",
     "css-loader": "6.7.1",
-    "electron": "20.2.0",
+    "electron": "21.1.1",
     "electron-packager": "16.0.0",
     "eslint": "8.25.0",
     "eslint-plugin-promise": "6.1.0",
@@ -219,7 +219,7 @@
     "typescript": "4.8.4",
     "webpack": "5.74.0",
     "webpack-cli": "4.10.0",
-    "webpack-dev-server": "4.10.1",
+    "webpack-dev-server": "4.11.1",
     "webpack-merge": "5.8.0"
   },
   "resolutions": {
