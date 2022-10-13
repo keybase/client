@@ -28,8 +28,7 @@ LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)
 LOCAL_SHARED_LIBRARIES := \
   libfabricjni \
   libfbjni \
-  libfolly_futures \
-  libfolly_json \
+  libfolly_runtime \
   libglog \
   libjsi \
   libreact_codegen_rncore \

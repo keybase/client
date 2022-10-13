@@ -1,8 +1,8 @@
 diff --git a/node_modules/@types/react-native/index.d.ts b/node_modules/@types/react-native/index.d.ts
-index 407a4bb..c57340c 100755
+index f1c0dc0..7d40655 100755
 --- a/node_modules/@types/react-native/index.d.ts
 +++ b/node_modules/@types/react-native/index.d.ts
-@@ -55,7 +55,7 @@
+@@ -57,7 +57,7 @@
  //
  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
  
@@ -10,4 +10,4 @@ index 407a4bb..c57340c 100755
 +
  /// <reference path="legacy-properties.d.ts" />
  /// <reference path="BatchedBridge.d.ts" />
- /// <reference path="Devtools.d.ts" />
+ /// <reference path="Codegen.d.ts" />
