@@ -278,11 +278,8 @@ const requestPermissionsFromNative: () => Promise<{
     const perm = await (PushNotificationIOS.requestPermissions() as any)
     return perm
   } else {
-    const perm = await new Promise((resolve, reject) =>
-      androidRequestPushPermissions()
-        ?.then(on => resolve({alert: on, badge: on, sound: on}))
-        .catch(() => reject())
-    )
+    const on = await androidRequestPushPermissions()
+    const perm = {alert: on, badge: on, sound: on}
     return perm
   }
 }
