@@ -372,7 +372,7 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
   }, [unsentText, setTextInput])
 
   const isActiveForFocus = Container.useSelector(state => state.chat2.focus === null)
-  React.useEffect(() => {
+  Container.useDepChangeEffect(() => {
     inputRef.current?.focus()
   }, [inputRef, focusInputCounter, isActiveForFocus, isEditing])
 
