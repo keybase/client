@@ -5,8 +5,8 @@
 //  Created by Chris Nojima on 9/14/22.
 //  Copyright © 2022 Keybase. All rights reserved.
 //
-#import <React/RCTViewManager.h>
 #import "../../../shared/ios/Keybase/ItemProviderHelper.h"
+#import <React/RCTViewManager.h>
 
 #pragma mark DropView
 @interface DropView : UIView <UIDropInteractionDelegate>
@@ -20,7 +20,7 @@
   if (self = [super init]) {
     UIDropInteraction *udi = [[UIDropInteraction alloc] initWithDelegate:self];
     udi.allowsSimultaneousDropSessions = YES;
-    self.interactions = @[ udi ];
+    [self addInteraction:udi];
   }
   return self;
 }
@@ -29,7 +29,7 @@
   if (self = [super initWithCoder:coder]) {
     UIDropInteraction *udi = [[UIDropInteraction alloc] initWithDelegate:self];
     udi.allowsSimultaneousDropSessions = YES;
-    self.interactions = @[ udi ];
+    [self addInteraction:udi];
   }
   return self;
 }
@@ -38,7 +38,7 @@
   if (self = [super initWithFrame:frame]) {
     UIDropInteraction *udi = [[UIDropInteraction alloc] initWithDelegate:self];
     udi.allowsSimultaneousDropSessions = YES;
-    self.interactions = @[ udi ];
+    [self addInteraction:udi];
   }
   return self;
 }
