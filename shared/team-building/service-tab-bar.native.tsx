@@ -196,7 +196,7 @@ export const ServiceTabBar = (props: Props) => {
       showsHorizontalScrollIndicator={false}
       scrollEventThrottle={16}
       keyboardDismissMode="on-drag"
-      keyboardShouldPersistTaps="handled"
+      // keyboardShouldPersistTaps="handled"
       contentContainerStyle={Styles.collapseStyles([{height: '100%'}, Styles.isTablet && {width: '100%'}])}
       style={[styles.scroll, animatedStyles]}
     >

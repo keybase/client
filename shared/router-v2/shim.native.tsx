@@ -1,4 +1,5 @@
 import * as Kb from '../common-adapters/mobile.native'
+// import {AnimatedKeyboardAvoidingView} from '../common-adapters/keyboard-avoiding-view.native'
 import * as React from 'react'
 import * as Styles from '../styles'
 import * as Shared from './shim.shared'
@@ -22,14 +23,19 @@ const shimNewRoute = (Original: any, isModal: boolean, isLoggedOut: boolean) => 
     const isSafe = navigationOptions?.needsSafe || isModal || isLoggedOut
     if (isSafe) {
       wrap = (
-        <SafeAreaView style={Styles.collapseStyles([styles.keyboard, navigationOptions?.safeAreaStyle])}>
+        <SafeAreaView style={Styles.collapseStyles([styles.safe, navigationOptions?.safeAreaStyle])}>
           {wrap}
         </SafeAreaView>
       )
     }
 
     // TODO remove and make all root views have a good background
-    wrap = <Kb.NativeView style={styles.keyboard}>{wrap}</Kb.NativeView>
+    wrap = <Kb.NativeView style={styles.safe}>{wrap}</Kb.NativeView>
+    // wrap = (
+    //   <AnimatedKeyboardAvoidingView style={styles.keyboard} behavior={Styles.isIOS ? 'padding' : undefined}>
+    //     <Kb.NativeView style={styles.safe}>{wrap}</Kb.NativeView>
+    //   </AnimatedKeyboardAvoidingView>
+    // )
     return wrap
   })
   Container.hoistNonReactStatic(ShimmedNew, Original)
@@ -40,6 +46,10 @@ const styles = Styles.styleSheetCreate(
   () =>
     ({
       keyboard: {
+        flexGrow: 1,
+        position: 'relative',
+      },
+      safe: {
         backgroundColor: Styles.globalColors.fastBlank,
         flexGrow: 1,
         maxHeight: '100%',

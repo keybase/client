@@ -235,7 +235,7 @@ const SettingsTab = (p: Props) => {
   return (
     <Kb.SectionList
       stickySectionHeadersEnabled={true}
-      keyboardShouldPersistTaps="handled"
+      // keyboardShouldPersistTaps="handled"
       renderSectionHeader={({section}: any) => section?.renderSectionHeader?.({section}) ?? null}
       sections={[
         ...p.commonSections,

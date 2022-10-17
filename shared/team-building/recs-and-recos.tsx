@@ -165,8 +165,8 @@ export const RecsAndRecos = (
         <SectionList
           ref={sectionListRef}
           contentContainerStyle={{minHeight: '133%'}}
-          keyboardDismissMode="on-drag"
-          keyboardShouldPersistTaps="handled"
+          // keyboardDismissMode="on-drag"
+          // keyboardShouldPersistTaps="handled"
           stickySectionHeadersEnabled={false}
           scrollEventThrottle={1}
           onScroll={onScroll}

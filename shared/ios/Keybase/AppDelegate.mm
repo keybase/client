@@ -86,7 +86,7 @@ static const DDLogLevel ddLogLevel = DDLogLevelDebug;
   // KB add drop
   UIDropInteraction *udi = [[UIDropInteraction alloc] initWithDelegate:self];
   udi.allowsSimultaneousDropSessions = YES;
-  rootView.interactions = @[ udi ];
+  [rootView addInteraction:udi];
   // end KB
 
   self.window.rootViewController = rootViewController;

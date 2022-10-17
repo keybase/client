@@ -379,7 +379,7 @@ const BotTab = (props: Props) => {
   return (
     <Kb.SectionList
       stickySectionHeadersEnabled={true}
-      keyboardShouldPersistTaps="handled"
+      // keyboardShouldPersistTaps="handled"
       renderSectionHeader={({section}) => section?.renderSectionHeader?.({section}) ?? null}
       sections={[...props.commonSections, ...sections]}
     />

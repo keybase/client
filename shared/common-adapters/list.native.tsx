@@ -8,9 +8,9 @@ import noop from 'lodash/noop'
 const AnimatedFlatList = createAnimatedComponent(FlatList)
 
 class List<Item> extends PureComponent<Props<Item>> {
-  static defaultProps = {
-    keyboardShouldPersistTaps: 'handled',
-  }
+  // static defaultProps = {
+  //   keyboardShouldPersistTaps: 'handled',
+  // }
   _itemRender = ({item, index}: {item: Item; index: number}) => {
     return this.props.renderItem(index, item)
   }
@@ -46,6 +46,7 @@ class List<Item> extends PureComponent<Props<Item>> {
         <View style={Styles.globalStyles.fillAbsolute}>
           <List
             overScrollMode="never"
+            keyboardDismissMode="on-drag"
             onScrollToIndexFailed={noop}
             bounces={this.props.bounces}
             contentContainerStyle={this.props.contentContainerStyle}
@@ -53,7 +54,7 @@ class List<Item> extends PureComponent<Props<Item>> {
             data={this.props.items}
             getItemLayout={this.props.fixedHeight ? this._getItemLayout : undefined}
             keyExtractor={this._keyExtractor}
-            keyboardShouldPersistTaps={this.props.keyboardShouldPersistTaps}
+            // keyboardShouldPersistTaps={this.props.keyboardShouldPersistTaps}
             ListHeaderComponent={this.props.ListHeaderComponent}
             onEndReached={this.props.onEndReached}
             onEndReachedThreshold={this.props.onEndReachedThreshold}

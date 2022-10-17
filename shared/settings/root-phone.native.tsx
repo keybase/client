@@ -73,7 +73,7 @@ function SettingsNav(props: Props) {
     <Kb.NativeSectionList
       overScrollMode="never"
       onScrollToIndexFailed={noop}
-      keyboardShouldPersistTaps="handled"
+      // keyboardShouldPersistTaps="handled"
       keyExtractor={(item, index) => item.text + index}
       initialNumToRender={20}
       renderItem={renderItem}

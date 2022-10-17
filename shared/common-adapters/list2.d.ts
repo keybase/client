@@ -40,7 +40,7 @@ export type Props<Item> = {
   estimatedItemHeight?: number
   selectedIndex?: number // TODO,
   bounces?: boolean // mobile only,
-  keyboardShouldPersistTaps?: 'never' | 'always' | 'handled' // mobile only,
+  // keyboardShouldPersistTaps?: 'never' | 'always' | 'handled' // mobile only,
   windowSize?: number // Mobile only, has a non-RN default,
   onEndReached?: () => void
   reAnimated?: boolean // mobile only, make list animated

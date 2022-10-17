@@ -373,7 +373,7 @@ class InboxSearch extends React.Component<Props, State> {
           // @ts-ignore
           renderSectionHeader={this.renderSectionHeader}
           keyExtractor={this.keyExtractor}
-          keyboardShouldPersistTaps="handled"
+          // keyboardShouldPersistTaps="handled"
           sections={sections}
         />
       </Kb.Box2>

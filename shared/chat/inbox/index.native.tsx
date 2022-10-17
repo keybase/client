@@ -266,7 +266,7 @@ class Inbox extends React.PureComponent<T.Props, State> {
               ref={this.listRef}
               onViewableItemsChanged={this.onViewChanged}
               windowSize={5}
-              keyboardShouldPersistTaps="handled"
+              // keyboardShouldPersistTaps="handled"
               getItemLayout={this.getItemLayout}
               onScrollToIndexFailed={noop}
             />

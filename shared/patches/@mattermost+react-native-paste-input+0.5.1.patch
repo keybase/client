@@ -67,14 +67,14 @@ index be73123..900fd06 100644
      @property (nonatomic, copy, nullable) RCTDirectEventBlock onPaste;
  @end
 diff --git a/node_modules/@mattermost/react-native-paste-input/ios/PasteInputView.m b/node_modules/@mattermost/react-native-paste-input/ios/PasteInputView.m
-index 4d3b464..0fe800e 100644
+index 4d3b464..026d3ff 100644
 --- a/node_modules/@mattermost/react-native-paste-input/ios/PasteInputView.m
 +++ b/node_modules/@mattermost/react-native-paste-input/ios/PasteInputView.m
 @@ -24,6 +24,7 @@
      _backedTextInputView = [[PasteInputTextView alloc] initWithFrame:self.bounds];
      _backedTextInputView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
      _backedTextInputView.textInputDelegate = self;
-+    _backedTextInputView.interactions = @[[[UIDropInteraction alloc] initWithDelegate:self]];
++    [_backedTextInputView addInteraction:[[UIDropInteraction alloc] initWithDelegate:self]];
  
      [self addSubview:_backedTextInputView];
    }
