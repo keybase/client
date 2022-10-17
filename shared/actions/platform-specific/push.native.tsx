@@ -273,14 +273,16 @@ const requestPermissionsFromNative: () => Promise<{
   alert: boolean
   badge: boolean
   sound: boolean
-}> = async () =>
-  isIOS
-    ? (PushNotificationIOS.requestPermissions() as any)
-    : new Promise((resolve, reject) =>
-        androidRequestPushPermissions()
-          ?.then(on => resolve({alert: on, badge: on, sound: on}))
-          .catch(() => reject())
-      )
+}> = async () => {
+  if (isIOS) {
+    const perm = await (PushNotificationIOS.requestPermissions() as any)
+    return perm
+  } else {
+    const on = await androidRequestPushPermissions()
+    const perm = {alert: on, badge: on, sound: on}
+    return perm
+  }
+}
 
 const askNativeIfSystemPushPromptHasBeenShown = async () =>
   isIOS ? iosGetHasShownPushPrompt() ?? Promise.resolve(false) : Promise.resolve(false)

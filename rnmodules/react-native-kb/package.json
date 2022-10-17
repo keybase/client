@@ -30,14 +30,14 @@
     "homepage": "https://github.com/keybase/client",
     "private": true,
     "devDependencies": {
-        "@types/react": "18.0.20",
-        "@types/react-native": "0.68.0",
-        "react-native": "0.68.3",
+        "@types/react": "18.0.21",
+        "@types/react-native": "0.69.13",
+        "react-native": "0.69.6",
         "react-native-builder-bob": "^0.18.3",
-        "typescript": "4.8.3"
+        "typescript": "4.8.4"
     },
     "resolutions": {
-        "@types/react": "18.0.20"
+        "@types/react": "18.0.21"
     },
     "peerDependencies": {
         "react": "*",

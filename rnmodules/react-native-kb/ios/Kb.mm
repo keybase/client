@@ -33,6 +33,7 @@ static NSString *const metaEventEngineReset = @"kb-engine-reset";
 
 @interface Kb ()
 @property dispatch_queue_t readQueue;
+@property BOOL bridgeDead;
 @end
 
 @implementation Kb
@@ -43,6 +44,15 @@ RCT_EXPORT_MODULE()
 
 + (BOOL)requiresMainQueueSetup {
   return YES;
+}
+
+- (void)invalidate
+{
+    [super invalidate];
+    self.bridgeDead = YES;
+    NSError *error = nil;
+    KeybaseReset(&error);
+    self.readQueue = nil;
 }
 
 static Runtime *g_jsiRuntime = nullptr;
@@ -262,6 +272,7 @@ RCT_EXPORT_METHOD(engineReset) {
 }
 
 RCT_EXPORT_METHOD(engineStart) {
+  self.bridgeDead = NO;
   dispatch_async(dispatch_get_main_queue(), ^{
     [[NSNotificationCenter defaultCenter]
      addObserver:self
@@ -272,6 +283,10 @@ RCT_EXPORT_METHOD(engineStart) {
     
     dispatch_async(self.readQueue, ^{
       while (true) {
+          if (self.bridgeDead) {
+              NSLog(@"Bridge dead, bailing");
+              return;
+          }
         NSError *error = nil;
         NSData *data = KeybaseReadArr(&error);
         if (error) {
