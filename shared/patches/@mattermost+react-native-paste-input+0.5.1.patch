@@ -74,7 +74,7 @@ index 4d3b464..0fe800e 100644
      _backedTextInputView = [[PasteInputTextView alloc] initWithFrame:self.bounds];
      _backedTextInputView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
      _backedTextInputView.textInputDelegate = self;
-+    _backedTextInputView.interactions = @[[[UIDropInteraction alloc] initWithDelegate:self]];
++    [_backedTextInputView addInteraction:[[UIDropInteraction alloc] initWithDelegate:self]];
  
      [self addSubview:_backedTextInputView];
    }
@@ -106,87 +106,3 @@ index df52bb7..a4424b8 100644
          BOOL success = [fileData writeToURL:tempFileURL atomically:YES];
          if (success) {
            added = YES;
-diff --git a/node_modules/@mattermost/react-native-paste-input/src/ios.tsx b/node_modules/@mattermost/react-native-paste-input/src/ios.tsx
-index 51534e8..2fea4cc 100644
---- a/node_modules/@mattermost/react-native-paste-input/src/ios.tsx
-+++ b/node_modules/@mattermost/react-native-paste-input/src/ios.tsx
-@@ -18,6 +18,7 @@ import {
- } from 'react-native';
- import TextInputState from 'react-native/Libraries/Components/TextInput/TextInputState';
- import TextAncestor from 'react-native/Libraries/Text/TextAncestor';
-+import setAndForwardRef from 'react-native/Libraries/Utilities/setAndForwardRef';
- 
- import type {
-     PasteEvent,
-@@ -202,6 +203,62 @@ const PasteInput = forwardRef((props: PasteInputProps, ref) => {
-         });
-     };
- 
-+    function clear() {
-+        if (inputRef.current != null) {
-+            viewCommands.setTextAndSelection(
-+                inputRef.current,
-+                mostRecentEventCount,
-+                '',
-+                0,
-+                0
-+            );
-+        }
-+    }
-+
-+    // TODO: Fix this returning true on null === null, when no input is focused
-+    function isFocused() {
-+        return TextInputState.currentlyFocusedInput() === inputRef.current;
-+    }
-+
-+    function getNativeRef() {
-+        return inputRef.current;
-+    }
-+
-+    const _setNativeRef = setAndForwardRef({
-+        getForwardedRef: () => props.forwardedRef,
-+        setLocalRef: (ref) => {
-+            inputRef.current = ref;
-+
-+            /*
-+         Hi reader from the future. I'm sorry for this.
-+ 
-+         This is a hack. Ideally we would forwardRef to the underlying
-+         host component. However, since TextInput has it's own methods that can be
-+         called as well, if we used the standard forwardRef then these
-+         methods wouldn't be accessible and thus be a breaking change.
-+ 
-+         We have a couple of options of how to handle this:
-+         - Return a new ref with everything we methods from both. This is problematic
-+           because we need React to also know it is a host component which requires
-+           internals of the class implementation of the ref.
-+         - Break the API and have some other way to call one set of the methods or
-+           the other. This is our long term approach as we want to eventually
-+           get the methods on host components off the ref. So instead of calling
-+           ref.measure() you might call ReactNative.measure(ref). This would hopefully
-+           let the ref for TextInput then have the methods like `.clear`. Or we do it
-+           the other way and make it TextInput.clear(textInputRef) which would be fine
-+           too. Either way though is a breaking change that is longer term.
-+         - Mutate this ref. :( Gross, but accomplishes what we need in the meantime
-+           before we can get to the long term breaking change.
-+         */
-+            if (ref) {
-+                ref.clear = clear;
-+                ref.isFocused = isFocused;
-+                ref.getNativeRef = getNativeRef;
-+            }
-+        },
-+    });
-+
-     return (
-         <TextAncestor.Provider value={true}>
-             <TouchableWithoutFeedback
-@@ -231,7 +288,7 @@ const PasteInput = forwardRef((props: PasteInputProps, ref) => {
-                     style={[props.style]}
-                     textBreakStrategy={props.textBreakStrategy}
-                     //@ts-ignore
--                    ref={inputRef}
-+                    ref={_setNativeRef}
-                 />
-             </TouchableWithoutFeedback>
-         </TextAncestor.Provider>

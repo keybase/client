@@ -10,6 +10,25 @@ import rootConfig from './webpack.config.babel'
 
 const TEMP_SKIP_BUILD: boolean = false
 
+const electronVersion = '21.1.1'
+
+// To get the hashes download the SHASUMS.txt file and run
+/*
+ cat SHASUMS256.txt |
+  grep 'electron.*\(darwin-arm64\|darwin-x64\|linux-arm64\|linux-x64\|win32-x64\)\.zip\|hunspell_dictionaries' |
+  awk ' { t = $1; $1 = substr($2,2); $2 = ":"; $3 = t; print $1 $2 $3; } '
+*/
+
+// prettier-ignore
+const electronChecksums = {
+  [`electron-v${electronVersion}-darwin-arm64.zip`]:    '353b54f370b5f59e222db43a8cca9359426aa60a6d7ddde3e794cf641d497721',
+  [`electron-v${electronVersion}-darwin-x64.zip`]:      'babc6c8a48c2248a16d99cae1819f0803085d44c3e7e0c9234bbce98b1bb8c29',
+  [`electron-v${electronVersion}-linux-arm64.zip`]:     '2beb80b98935e16b27b52fc9b99d1c6339943e726b2b7f831ed9c9cc130b6942',
+  [`electron-v${electronVersion}-linux-x64.zip`]:       '6e63bbb6b909c694e00e20bef7d4051bbf78828112cc76ec8ec66bb1b9264154',
+  [`electron-v${electronVersion}-win32-x64.zip`]:       'ea14b1b3b6f71efc546b81442fa6088bb8c00268516bbf3582da2f458703b172',
+  'hunspell_dictionaries.zip':                          'dc13268c6c4efba2bb7a999d289a4bc0dfe50f85c48dfc11753a81f8deb8c96a',
+}
+
 // absolute path relative to this script
 const desktopPath = (...args: Array<string>) => path.join(__dirname, ...args)
 
@@ -53,16 +72,7 @@ const packagerOpts: Options = {
   buildVersion: String(appVersion) + String(comment),
   darwinDarkModeSupport: true,
   dir: desktopPath('./build'),
-  download: {
-    checksums: {
-      'electron-v20.2.0-darwin-arm64.zip': '0d4ea1a4f530b9bee78bd0a78430778a7e8982f78cf1d5ba8daac334a1312ce1',
-      'electron-v20.2.0-darwin-x64.zip': '8cc8ec2823f561493e3ab22b9f73ea01af2f8eea4904af25d74ee91ee4cbfe2f',
-      'electron-v20.2.0-linux-arm64.zip': '1d2dd05f060786eae5ce687794aa071df8a5f5733b7b2efa1481de8db75d7738',
-      'electron-v20.2.0-linux-x64.zip': 'c0e3522de34819b838f4a35ddf30c6283c61be1bb8dff02089cda3f641938aad',
-      'electron-v20.2.0-win32-x64.zip': '6387e61760d0a3dd986df259950b3df2fe16b924ea0bd640d019373b674df492',
-      'hunspell_dictionaries.zip': 'df976a613c05c433fa5db6342a8a8ffd1f7fd192ef6af7d90989bd671c43b938',
-    },
-  },
+  download: {checksums: electronChecksums},
   electronVersion: undefined,
   // macOS file association to saltpack files
   extendInfo: {
