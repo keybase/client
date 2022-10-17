@@ -20,7 +20,6 @@ import type * as FsTypes from '../../constants/types/fs'
 import {getEngine} from '../../engine/require'
 // this CANNOT be an import *, totally screws up the packager
 import {Alert, Linking, ActionSheetIOS, PermissionsAndroid, Vibration} from 'react-native'
-import {NativeModules} from '../../util/native-modules.native'
 import Clipboard from '@react-native-clipboard/clipboard'
 import NetInfo from '@react-native-community/netinfo'
 import PushNotificationIOS from '@react-native-community/push-notification-ios'
@@ -35,10 +34,20 @@ import * as Contacts from 'expo-contacts'
 import {launchImageLibraryAsync} from '../../util/expo-image-picker'
 import * as Haptics from 'expo-haptics'
 import {_getNavigator} from '../../constants/router2'
-import {Audio} from 'expo-av'
+import {Audio, InterruptionModeIOS, InterruptionModeAndroid} from 'expo-av'
 import * as ExpoLocation from 'expo-location'
 import * as FileSystem from 'expo-file-system'
 import * as ExpoTaskManager from 'expo-task-manager'
+import {
+  getDefaultCountryCode,
+  androidOpenSettings,
+  androidShare,
+  androidShareText,
+  androidUnlink,
+  fsCacheDir,
+  fsDownloadDir,
+  androidAppColorSchemeChanged,
+} from 'react-native-kb'
 
 const requestPermissionsToWrite = async () => {
   if (isAndroid) {
@@ -123,7 +132,7 @@ export async function saveAttachmentToCameraRoll(filePath: string, mimeType: str
     throw e
   } finally {
     try {
-      await NativeModules.Utils.androidUnlink?.(filePath)
+      await androidUnlink(filePath)
     } catch (_) {
       logger.warn('failed to unlink')
     }
@@ -154,7 +163,7 @@ export const showShareActionSheet = async (options: {
   } else {
     if (!options.filePath && options.message) {
       try {
-        await NativeModules.AndroidShareFiles?.shareText(options.message, options.mimeType)
+        await androidShareText(options.message, options.mimeType)
         return {completed: true, method: ''}
       } catch (_) {
         return {completed: false, method: ''}
@@ -162,7 +171,7 @@ export const showShareActionSheet = async (options: {
     }
 
     try {
-      await NativeModules.AndroidShareFiles?.share(options.filePath ?? '', options.mimeType)
+      await androidShare(options.filePath ?? '', options.mimeType)
       return {completed: true, method: ''}
     } catch (_) {
       return {completed: false, method: ''}
@@ -172,7 +181,7 @@ export const showShareActionSheet = async (options: {
 
 const openAppSettings = async () => {
   if (isAndroid) {
-    NativeModules.AndroidSettings?.open()
+    androidOpenSettings()
   } else {
     const settingsURL = 'app-settings:'
     const can = await Linking.canOpenURL(settingsURL)
@@ -478,7 +487,7 @@ const manageContactsCache = async (
   }
   let defaultCountryCode: string = ''
   try {
-    defaultCountryCode = await NativeModules.Utils.getDefaultCountryCode()
+    defaultCountryCode = await getDefaultCountryCode()
     if (__DEV__ && !defaultCountryCode) {
       // behavior of parsing can be unexpectedly different with no country code.
       // iOS sim + android emu don't supply country codes, so use this one.
@@ -650,8 +659,8 @@ const configureFileAttachmentDownloadForAndroid = async () =>
   RPCChatTypes.localConfigureFileAttachmentDownloadLocalRpcPromise({
     // Android's cache dir is (when I tried) [app]/cache but Go side uses
     // [app]/.cache by default, which can't be used for sharing to other apps.
-    cacheDirOverride: NativeModules.KeybaseEngine.fsCacheDir,
-    downloadDirOverride: NativeModules.KeybaseEngine.fsDownloadDir,
+    cacheDirOverride: fsCacheDir,
+    downloadDirOverride: fsDownloadDir,
   })
 
 const stopAudioRecording = async (
@@ -766,8 +775,8 @@ const onEnableAudioRecording = async (
   }
   await Audio.setAudioModeAsync({
     allowsRecordingIOS: true,
-    interruptionModeAndroid: Audio.INTERRUPTION_MODE_ANDROID_DO_NOT_MIX,
-    interruptionModeIOS: Audio.INTERRUPTION_MODE_IOS_DO_NOT_MIX,
+    interruptionModeAndroid: InterruptionModeAndroid.DoNotMix,
+    interruptionModeIOS: InterruptionModeIOS.DoNotMix,
     playThroughEarpieceAndroid: false,
     playsInSilentModeIOS: true,
     shouldDuckAndroid: false,
@@ -776,22 +785,22 @@ const onEnableAudioRecording = async (
   const r = new Audio.Recording()
   await r.prepareToRecordAsync({
     android: {
-      audioEncoder: Audio.RECORDING_OPTION_ANDROID_AUDIO_ENCODER_AAC,
+      audioEncoder: Audio.AndroidAudioEncoder.AAC,
       bitRate: 32000,
       extension: '.m4a',
       numberOfChannels: 1,
-      outputFormat: Audio.RECORDING_OPTION_ANDROID_OUTPUT_FORMAT_MPEG_4,
+      outputFormat: Audio.AndroidOutputFormat.MPEG_4,
       sampleRate: 22050,
     },
     ios: {
-      audioQuality: Audio.RECORDING_OPTION_IOS_AUDIO_QUALITY_MIN,
+      audioQuality: Audio.IOSAudioQuality.MIN,
       bitRate: 32000,
       extension: '.m4a',
       linearPCMBitDepth: 16,
       linearPCMIsBigEndian: false,
       linearPCMIsFloat: false,
       numberOfChannels: 1,
-      outputFormat: Audio.RECORDING_OPTION_IOS_OUTPUT_FORMAT_MPEG4AAC,
+      outputFormat: Audio.IOSOutputFormat.MPEG4AAC,
       sampleRate: 22050,
     },
     isMeteringEnabled: true,
@@ -885,7 +894,7 @@ const checkNav = async (
 
 const notifyNativeOfDarkModeChange = (state: Container.TypedState) => {
   if (isAndroid) {
-    NativeModules.KeybaseEngine.androidAppColorSchemeChanged?.(state.config.darkModePreference ?? '')
+    androidAppColorSchemeChanged?.(state.config.darkModePreference ?? '')
   }
 }
 

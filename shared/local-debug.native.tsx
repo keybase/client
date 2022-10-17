@@ -2,7 +2,7 @@
  * File to stash local debug changes to. Never check this in with changes
  */
 import {LogBox} from 'react-native'
-import {NativeModules} from './util/native-modules.native'
+import {serverConfig} from 'react-native-kb'
 import noop from 'lodash/noop'
 
 // Toggle this to disable yellowboxes
@@ -111,11 +111,11 @@ if (PERF) {
   config.userTimings = true
 }
 
-if (NativeModules.KeybaseEngine.serverConfig) {
+if (serverConfig) {
   try {
-    const serverConfig = JSON.parse(NativeModules.KeybaseEngine.serverConfig)
-    if (serverConfig.lastLoggedInUser) {
-      const userConfig = serverConfig[serverConfig.lastLoggedInUser] || {}
+    const sc = JSON.parse(serverConfig)
+    if (sc.lastLoggedInUser) {
+      const userConfig = sc[sc.lastLoggedInUser] || {}
       if (userConfig.printRPCStats) {
         config.printRPCStats = true
       }

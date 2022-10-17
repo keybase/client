@@ -4,8 +4,8 @@ import * as React from 'react'
 import * as SettingsConstants from '../../constants/settings'
 import * as SettingsGen from '../../actions/settings-gen'
 import {e164ToDisplay} from '../../util/phone-numbers'
-import {NativeModules} from '../../util/native-modules.native'
 import logger from '../../logger'
+import {getDefaultCountryCode} from 'react-native-kb'
 
 // Contact info coming from the native contacts library.
 export type Contact = {
@@ -43,7 +43,7 @@ const fetchContacts = async (regionFromState: string): Promise<[Array<Contact>, 
     region = regionFromState
   } else {
     try {
-      let defaultCountryCode = await NativeModules.Utils.getDefaultCountryCode()
+      let defaultCountryCode = await getDefaultCountryCode()
       if (__DEV__ && !defaultCountryCode) {
         // behavior of parsing can be unexpectedly different with no country code.
         // iOS sim + android emu don't supply country codes, so use this one.

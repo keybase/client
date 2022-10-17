@@ -11,14 +11,13 @@
 #import <UserNotifications/UNUserNotificationCenter.h>
 #import <UIKit/UIKit.h>
 #import <Expo/Expo.h>
+#import <Kb.h>
 
 @class Engine;
 
-@interface AppDelegate : EXAppDelegateWrapper <UIApplicationDelegate, RCTBridgeDelegate, UNUserNotificationCenterDelegate, UIDropInteractionDelegate>
+@interface AppDelegate : EXAppDelegateWrapper <UIApplicationDelegate, RCTBridgeDelegate, UNUserNotificationCenterDelegate, UIDropInteractionDelegate, KbProvider>
 
 @property (nonatomic, strong) UIWindow *window;
-@property (nonatomic, strong) Engine *engine;
-@property (nonatomic, strong) DDFileLogger *fileLogger;
 @property UIImageView *resignImageView;
-
+@property(nonatomic, strong) NSDictionary *fsPaths;
 @end

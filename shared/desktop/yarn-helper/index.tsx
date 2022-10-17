@@ -30,8 +30,10 @@ const commands = {
       fixModules()
       checkFSEvents()
       clearTSCache()
+      clearAndroidBuild()
       getMsgPack()
       patch()
+      prepareSubmodules()
     },
     help: '',
   },
@@ -52,6 +54,21 @@ const commands = {
 
 const patch = () => {
   exec('patch-package')
+}
+
+const prepareSubmodules = () => {
+  if (process.platform === 'darwin') {
+    const root = path.resolve(__dirname, '..', '..', '..', 'rnmodules')
+    const tsOverride = path.resolve(__dirname, '..', '..', 'override-d.ts')
+    fs.readdirSync(root, {withFileTypes: true}).forEach(f => {
+      if (f.isDirectory()) {
+        const full = path.resolve(root, f.name)
+        exec(`cd ${full} && yarn`)
+        // need top bring our TS over, hacky but other things were more complex
+        exec(`cp ${full}/lib/typescript/index.d.ts ${tsOverride}/${f.name}`)
+      }
+    })
+  }
 }
 
 const checkFSEvents = () => {
@@ -110,8 +127,6 @@ const decorateInfo = info => {
   return temp
 }
 
-const warnFail = err => err && console.warn(`Error cleaning tscache ${err}, tsc may be inaccurate.`)
-
 const getMsgPack = () => {
   if (process.platform === 'darwin') {
     const ver = '4.1.1'
@@ -144,7 +159,24 @@ const getMsgPack = () => {
   }
 }
 
+const clearAndroidBuild = () => {
+  const warnFail = err => err && console.warn(`Error cleaning android build dir, likely fine`)
+  const paths = [
+    '../../android/build',
+    '../../../rnmodules/react-native-kb/android/build',
+    '../../../rnmodules/react-native-kb/android/.cxx',
+    '../../../rnmodules/react-native-drop-view/android/build',
+  ]
+  for (const p of paths) {
+    try {
+      const glob = path.resolve(__dirname, p)
+      rimraf(glob, {}, warnFail)
+    } catch {}
+  }
+}
+
 const clearTSCache = () => {
+  const warnFail = err => err && console.warn(`Error cleaning tscache ${err}, tsc may be inaccurate.`)
   const glob = path.resolve(__dirname, '..', '..', '.tsOuts', '.tsOut*')
   rimraf(glob, {}, warnFail)
 }

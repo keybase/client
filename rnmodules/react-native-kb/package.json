@@ -1,0 +1,54 @@
+{
+    "name": "react-native-kb",
+    "version": "0.1.0",
+    "description": "misc kb",
+    "main": "lib/commonjs/index",
+    "module": "lib/module/index",
+    "types": "lib/typescript/index.d.ts",
+    "react-native": "src/index",
+    "source": "src/index",
+    "files": [
+        "src",
+        "lib",
+        "android",
+        "ios",
+        "cpp",
+        "react-native-kb.podspec",
+        "!lib/typescript/example",
+        "!android/build",
+        "!ios/build",
+        "!**/__tests__",
+        "!**/__fixtures__",
+        "!**/__mocks__"
+    ],
+    "scripts": {
+        "prepare": "bob build"
+    },
+    "keywords": [],
+    "repository": "https://github.com/keybase/client",
+    "author": "keybase (https://github.com/keybase/client)",
+    "homepage": "https://github.com/keybase/client",
+    "private": true,
+    "devDependencies": {
+        "@types/react": "18.0.21",
+        "@types/react-native": "0.69.13",
+        "react-native": "0.69.6",
+        "react-native-builder-bob": "^0.18.3",
+        "typescript": "4.8.4"
+    },
+    "resolutions": {
+        "@types/react": "18.0.21"
+    },
+    "peerDependencies": {
+        "react": "*",
+        "react-native": "*"
+    },
+    "react-native-builder-bob": {
+        "source": "src",
+        "output": "lib",
+        "targets": [
+            "module",
+            "typescript"
+        ]
+    }
+}
