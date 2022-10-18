@@ -567,12 +567,7 @@ const styles = Styles.styleSheetCreate(
         justifyContent: 'center',
         width: 36,
       },
-      hidden: {
-        backgroundColor: 'blue',
-        display: 'none',
-        width: 0,
-        height: 0,
-      },
+      hidden: {display: 'none'},
       iconBottom: {
         bottom: 0,
         left: 1,
@@ -592,7 +587,6 @@ const styles = Styles.styleSheetCreate(
       },
       input: Styles.platformStyles({
         common: {
-          backgroundColor: 'red',
           flex: 1,
           flexShrink: 1,
           marginRight: Styles.globalMargins.tiny,

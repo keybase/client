@@ -4,6 +4,7 @@ import type * as Styles from '../styles'
 
 export type AnimatedProps = {
   children: React.ReactNode
+  wrapStyle?: 'padding' | 'translate'
   style?: Styles.StylesCrossPlatform
 }
 

@@ -19,26 +19,30 @@ export const EncryptInput = () => {
   }, [dispatch])
 
   return (
-    <>
-      <OperationBanner operation={operation} />
-      <Recipients />
-      <Input operation={operation} />
-      <InputActionsBar operation={operation}>
-        <EncryptOptions />
-      </InputActionsBar>
-    </>
+    <Kb.AnimatedKeyboardAvoidingView>
+      <Kb.HideKeyboardBox>
+        <Kb.Box2 direction="vertical" fullHeight={true}>
+          <OperationBanner operation={operation} />
+          <Recipients />
+          <Input operation={operation} />
+          <InputActionsBar operation={operation}>
+            <EncryptOptions />
+          </InputActionsBar>
+        </Kb.Box2>
+      </Kb.HideKeyboardBox>
+    </Kb.AnimatedKeyboardAvoidingView>
   )
 }
 
 export const EncryptOutput = () => {
   return (
-    <>
+    <Kb.Box2 direction="vertical" fullHeight={true}>
       <EncryptOutputBanner />
       <SignedSender operation={operation} />
       <Kb.Divider />
       <OperationOutput operation={operation} />
       <OutputActionsBar operation={operation} />
-    </>
+    </Kb.Box2>
   )
 }
 

@@ -1,6 +1,9 @@
 // @ts-nocheck
 /* eslint-disable */
 module.exports = {
+  get AnimatedKeyboardAvoidingView() {
+    return require('./keyboard-avoiding-view').AnimatedKeyboardAvoidingView
+  },
   get Animation() {
     return require('./animation').default
   },
@@ -125,6 +128,9 @@ module.exports = {
   },
   get HeaderLeftCancel() {
     return require('./header-hoc').HeaderLeftCancel
+  },
+  get HideKeyboardBox() {
+    return require('./hide-keyboard-box').default
   },
   get HotKey() {
     return require('./hot-key').HotKey

@@ -3,7 +3,6 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Constants from '../../constants/chat2'
 import * as Container from '../../util/container'
-import {AnimatedKeyboardAvoidingView} from '../../common-adapters/keyboard-avoiding-view'
 import Normal from './normal/container'
 import NoConversation from './no-conversation'
 import Error from './error/container'
@@ -115,9 +114,9 @@ const Conversation = (p: SwitchProps) => {
 
   if (Styles.isMobile) {
     content = (
-      <AnimatedKeyboardAvoidingView style={styles.keyboard}>
+      <Kb.AnimatedKeyboardAvoidingView wrapStyle="translate">
         <Kb.SafeAreaView style={styles.safe}>{content}</Kb.SafeAreaView>
-      </AnimatedKeyboardAvoidingView>
+      </Kb.AnimatedKeyboardAvoidingView>
     )
   }
   return content

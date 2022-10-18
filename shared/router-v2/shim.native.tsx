@@ -1,5 +1,4 @@
 import * as Kb from '../common-adapters/mobile.native'
-// import {AnimatedKeyboardAvoidingView} from '../common-adapters/keyboard-avoiding-view.native'
 import * as React from 'react'
 import * as Styles from '../styles'
 import * as Shared from './shim.shared'
@@ -31,11 +30,6 @@ const shimNewRoute = (Original: any, isModal: boolean, isLoggedOut: boolean) => 
 
     // TODO remove and make all root views have a good background
     wrap = <Kb.NativeView style={styles.safe}>{wrap}</Kb.NativeView>
-    // wrap = (
-    //   <AnimatedKeyboardAvoidingView style={styles.keyboard} behavior={Styles.isIOS ? 'padding' : undefined}>
-    //     <Kb.NativeView style={styles.safe}>{wrap}</Kb.NativeView>
-    //   </AnimatedKeyboardAvoidingView>
-    // )
     return wrap
   })
   Container.hoistNonReactStatic(ShimmedNew, Original)
