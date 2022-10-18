@@ -5,12 +5,12 @@ import {ScrollView, type ScrollViewProps} from 'react-native'
 // changes this behavior: https://github.com/facebook/react-native/issues/4087
 
 const BetterScrollView = React.forwardRef<ScrollView, ScrollViewProps>((props, ref) => {
-  // const keyboardShouldPersistTaps = props.keyboardShouldPersistTaps ?? 'handled'
+  const keyboardShouldPersistTaps = props.keyboardShouldPersistTaps ?? 'handled'
   return (
     <ScrollView
       ref={ref}
       {...props}
-      // keyboardShouldPersistTaps={keyboardShouldPersistTaps}
+      keyboardShouldPersistTaps={keyboardShouldPersistTaps}
       overScrollMode="never"
     />
   )

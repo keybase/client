@@ -107,7 +107,7 @@ export type Props<SectionT extends Section<any, any>> = {
    * - false, deprecated, use 'never' instead
    * - true, deprecated, use 'always' instead
    */
-  // keyboardShouldPersistTaps?: boolean | 'always' | 'never' | 'handled'
+  keyboardShouldPersistTaps?: boolean | 'always' | 'never' | 'handled'
 
   keyboardDismissMode?: 'on-drag'
   scrollEventThrottle?: number

@@ -114,7 +114,6 @@ const Conversation = (p: SwitchProps) => {
   }
 
   if (Styles.isMobile) {
-    // content = <Kb.SafeAreaView style={styles.safe}>{content}</Kb.SafeAreaView>
     content = (
       <AnimatedKeyboardAvoidingView style={styles.keyboard}>
         <Kb.SafeAreaView style={styles.safe}>{content}</Kb.SafeAreaView>

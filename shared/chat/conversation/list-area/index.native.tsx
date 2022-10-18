@@ -311,7 +311,7 @@ const ConversationList = React.memo(function ConversationList(p: {
           maintainVisibleContentPosition={maintainVisibleContentPosition}
           viewabilityConfigCallbackPairs={viewabilityConfigCallbackPairsRef.current}
           keyboardDismissMode="on-drag"
-          // keyboardShouldPersistTaps="handled"
+          keyboardShouldPersistTaps="handled"
           keyExtractor={keyExtractor}
           // Limit the number of pages rendered ahead of time (which also limits attachment previews loaded)
           windowSize={5}

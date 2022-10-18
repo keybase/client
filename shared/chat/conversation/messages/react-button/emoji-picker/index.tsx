@@ -381,7 +381,7 @@ class EmojiPicker extends React.PureComponent<Props, State> {
             getSectionHeaderHeight={sectionIndex =>
               sections[sectionIndex].key === 'not-found' ? notFoundHeight : 32
             }
-            // keyboardShouldPersistTaps="handled"
+            keyboardShouldPersistTaps="handled"
             initialNumToRender={14}
             sections={sections}
             onSectionChange={this.onSectionChange}

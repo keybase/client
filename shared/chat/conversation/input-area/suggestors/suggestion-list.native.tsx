@@ -19,7 +19,7 @@ const SuggestionList = (props: Props) => (
       style={styles.noGrow}
       data={props.items}
       keyExtractor={props.keyExtractor || (item => item)}
-      // keyboardShouldPersistTaps="always"
+      keyboardShouldPersistTaps="always"
       windowSize={10}
       onScrollToIndexFailed={noop}
     />
