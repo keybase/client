@@ -33,6 +33,7 @@ const commands = {
       clearAndroidBuild()
       getMsgPack()
       patch()
+      patchIosKBLib()
       prepareSubmodules()
     },
     help: '',
@@ -154,6 +155,27 @@ const getMsgPack = () => {
         exec(`cd node_modules ; rm .cache/${file}`)
         exec(downloadMP)
         exec(checkAndUntar)
+      }
+    }
+  }
+}
+
+const patchIosKBLib = () => {
+  if (process.platform === 'darwin') {
+    const prefixes = [
+      'ios/keybase.xcframework/ios-arm64',
+      'ios/keybase.xcframework/ios-arm64_x86_64-simulator',
+    ]
+    const files = ['Keybase.objc.h', 'Universe.objc.h']
+    for (const prefix of prefixes) {
+      for (const file of files) {
+        const path = `${prefix}/Keybase.framework/Versions/Current/Headers/${file}`
+        try {
+          console.log('Patching go libs', path)
+          exec(`sed -i -e 's/@import Foundation;/#include <Foundation\\/Foundation.h>/' ${path}`)
+        } catch {
+          console.log('Patching skipped')
+        }
       }
     }
   }
