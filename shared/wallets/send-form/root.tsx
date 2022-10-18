@@ -27,8 +27,8 @@ const PoweredByStellar = () => (
 )
 
 const Root = (props: Props) => {
-  let child = (
-    <>
+  const child = (
+    <Kb.AnimatedKeyboardAvoidingView>
       <Kb.Box2 direction="vertical" style={styles.container}>
         <Header
           isRequest={props.isRequest}
@@ -38,7 +38,7 @@ const Root = (props: Props) => {
         {props.children}
       </Kb.Box2>
       {!Styles.isMobile && <PoweredByStellar />}
-    </>
+    </Kb.AnimatedKeyboardAvoidingView>
   )
   return <Kb.MaybePopup onClose={props.onClose}>{child}</Kb.MaybePopup>
 }
