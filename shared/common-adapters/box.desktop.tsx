@@ -37,24 +37,25 @@ const _Box2 = (props: Box2Props, ref: React.Ref<HTMLDivElement>) => {
       onMouseUp={onMouseUp}
       onMouseOver={onMouseOver}
       onCopyCapture={onCopyCapture}
-      className={[
-        `box2_${horizontal ? 'horizontal' : 'vertical'}`,
-        reverse && 'box2_reverse',
-        fullHeight && 'box2_fullHeight',
-        fullWidth && 'box2_fullWidth',
-        !fullHeight && !fullWidth && 'box2_centered',
-        centerChildren && 'box2_centeredChildren',
-        alignSelf && `box2_alignSelf_${alignSelf}`,
-        alignItems && `box2_alignItems_${alignItems}`,
-        noShrink && 'box2_no_shrink',
-        pointerEvents === 'none' && 'box2_pointerEvents_none',
-        gap && `box2_gap_${gap}`,
-        gapStart && `box2_gapStart_${gap}`,
-        gapEnd && `box2_gapEnd_${gap}`,
-        className,
-      ]
-        .filter(Boolean)
-        .join(' ')}
+      className={Styles.classNames(
+        {
+          box2_horizontal: horizontal,
+          box2_vertical: !horizontal,
+          box2_reverse: reverse,
+          box2_fullHeight: fullHeight,
+          box2_fullWidth: fullWidth,
+          box2_centered: !fullHeight && !fullWidth,
+          box2_centeredChildren: centerChildren,
+          [`box2_alignSelf_${alignSelf ?? ''}`]: alignSelf,
+          [`box2_alignItems_${alignItems ?? ''}`]: alignItems,
+          box2_no_shrink: noShrink,
+          box2_pointerEvents_none: pointerEvents === 'none',
+          [`box2_gap_${gap ?? ''}`]: gap,
+          [`box2_gapStart_${gap ?? ''}`]: gapStart,
+          [`box2_gapEnd_${gap ?? ''}`]: gapEnd,
+        },
+        className
+      )}
       style={collapsedStyle}
     >
       {children}
