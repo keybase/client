@@ -246,9 +246,13 @@ RCT_REMAP_METHOD(logDump, tagPrefix
   NSString *filePath = [cachePath
       stringByAppendingPathComponent:@"/Keybase/keybase.app.serverConfig"];
   NSError *err;
-  return [NSString stringWithContentsOfFile:filePath
+  NSString * val = [NSString stringWithContentsOfFile:filePath
                                                 encoding:NSUTF8StringEncoding
                                                    error:&err];
+    if (err != nil || val == nil) {
+        return @"";
+    }
+    return val;
 }
 
 - (NSString*)setupGuiConfig {
@@ -257,9 +261,13 @@ RCT_REMAP_METHOD(logDump, tagPrefix
       stringByAppendingPathComponent:
           @"/Library/Application Support/Keybase/gui_config.json"];
   NSError *err;
-  return [NSString stringWithContentsOfFile:filePath
+  NSString * val =  [NSString stringWithContentsOfFile:filePath
                                              encoding:NSUTF8StringEncoding
                                                 error:&err];
+    if (err != nil || val == nil) {
+        return @"";
+    }
+    return val;
 }
 
 RCT_EXPORT_METHOD(engineReset) {
@@ -311,14 +319,24 @@ RCT_EXPORT_METHOD(engineStart) {
 
   NSString *appVersionString = [[NSBundle mainBundle]
       objectForInfoDictionaryKey:@"CFBundleShortVersionString"];
+    if (appVersionString == nil) {
+        appVersionString = @"";
+    }
   NSString *appBuildString =
       [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleVersion"];
+    if (appBuildString == nil) {
+        appBuildString = @"";
+    }
   NSLocale *currentLocale = [NSLocale currentLocale];
   NSString *cacheDir = [NSSearchPathForDirectoriesInDomains(
       NSCachesDirectory, NSUserDomainMask, YES) firstObject];
   NSString *downloadDir = [NSSearchPathForDirectoriesInDomains(
       NSDownloadsDirectory, NSUserDomainMask, YES) firstObject];
 
+    NSString * kbVersion = KeybaseVersion();
+    if (kbVersion == nil) {
+        kbVersion = @"";
+    }
   return @{
     @"androidIsDeviceSecure" : @NO,
     @"androidIsTestDevice" : @NO,
@@ -330,7 +348,7 @@ RCT_EXPORT_METHOD(engineStart) {
     @"guiConfig" : guiConfig,
     @"serverConfig" : serverConfig,
     @"uses24HourClock" : @([self uses24HourClockForLocale:currentLocale]),
-    @"version" : KeybaseVersion()
+    @"version" : kbVersion
   };
 }
 
