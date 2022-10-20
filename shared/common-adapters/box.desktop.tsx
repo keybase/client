@@ -39,20 +39,20 @@ const _Box2 = (props: Box2Props, ref: React.Ref<HTMLDivElement>) => {
       onCopyCapture={onCopyCapture}
       className={Styles.classNames(
         {
-          box2_horizontal: horizontal,
-          box2_vertical: !horizontal,
-          box2_reverse: reverse,
-          box2_fullHeight: fullHeight,
-          box2_fullWidth: fullWidth,
+          [`box2_alignItems_${alignItems ?? ''}`]: alignItems,
+          [`box2_alignSelf_${alignSelf ?? ''}`]: alignSelf,
+          [`box2_gapEnd_${gap ?? ''}`]: gapEnd,
+          [`box2_gapStart_${gap ?? ''}`]: gapStart,
+          [`box2_gap_${gap ?? ''}`]: gap,
           box2_centered: !fullHeight && !fullWidth,
           box2_centeredChildren: centerChildren,
-          [`box2_alignSelf_${alignSelf ?? ''}`]: alignSelf,
-          [`box2_alignItems_${alignItems ?? ''}`]: alignItems,
+          box2_fullHeight: fullHeight,
+          box2_fullWidth: fullWidth,
+          box2_horizontal: horizontal,
           box2_no_shrink: noShrink,
           box2_pointerEvents_none: pointerEvents === 'none',
-          [`box2_gap_${gap ?? ''}`]: gap,
-          [`box2_gapStart_${gap ?? ''}`]: gapStart,
-          [`box2_gapEnd_${gap ?? ''}`]: gapEnd,
+          box2_reverse: reverse,
+          box2_vertical: !horizontal,
         },
         className
       )}
