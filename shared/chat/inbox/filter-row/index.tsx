@@ -104,7 +104,6 @@ class ConversationFilterInput extends React.PureComponent<Props> {
         ])}
         gapStart={this.props.showSearch}
         gapEnd={true}
-        fullWidth={true}
       >
         {!Styles.isMobile && <Kb.HotKey hotKeys={this.hotKeys} onHotKey={this.onHotKeys} />}
         {this.props.showSearch && searchInput}
@@ -149,9 +148,14 @@ const styles = Styles.styleSheetCreate(
           backgroundColor: Styles.globalColors.blueGrey,
           height: undefined,
           position: 'relative',
+          width: '100%',
         },
         isElectron: {
-          ...Styles.padding(0, Styles.globalMargins.xtiny),
+          alignSelf: 'stretch',
+          flexGrow: 1,
+          marginLeft: Styles.globalMargins.tiny,
+          marginRight: Styles.globalMargins.tiny,
+          width: undefined,
         },
         isPhone: {
           backgroundColor: Styles.globalColors.white,

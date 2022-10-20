@@ -135,6 +135,8 @@ const render = (Component = Main) => {
     throw new Error('No root element?')
   }
 
+  // Note we get warnings about moving to createRoot but react-native-web doesn't actually
+  // work with it yet, the nav is broken when enabled
   ReactDOM.render(
     <Root store={store}>
       <DarkCSSInjector />
