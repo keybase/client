@@ -19,7 +19,7 @@ const shimNewRoute = (Original: any, isModal: boolean, isLoggedOut: boolean) => 
     const body = original
     let wrap = body
 
-    const isSafe = navigationOptions?.needsSafe || isModal || isLoggedOut
+    const isSafe = isModal || isLoggedOut
     if (isSafe) {
       wrap = (
         <SafeAreaView style={Styles.collapseStyles([styles.safe, navigationOptions?.safeAreaStyle])}>

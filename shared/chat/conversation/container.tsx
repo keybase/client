@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
 import * as Constants from '../../constants/chat2'
 import * as Container from '../../util/container'
 import Normal from './normal/container'
@@ -112,11 +111,9 @@ const Conversation = (p: SwitchProps) => {
       break
   }
 
-  if (Styles.isMobile) {
+  if (Container.isMobile) {
     content = (
-      <Kb.AnimatedKeyboardAvoidingView wrapStyle="translate">
-        <Kb.SafeAreaView style={styles.safe}>{content}</Kb.SafeAreaView>
-      </Kb.AnimatedKeyboardAvoidingView>
+      <Kb.AnimatedKeyboardAvoidingView wrapStyle="translate">{content}</Kb.AnimatedKeyboardAvoidingView>
     )
   }
   return content
@@ -125,26 +122,9 @@ const Conversation = (p: SwitchProps) => {
 // @ts-ignore
 Conversation.navigationOptions = ({route}) => ({
   ...headerNavigationOptions(route),
-  needsSafe: true,
 })
 
 const ConversationMemoed = React.memo(Conversation)
 Container.hoistNonReactStatic(ConversationMemoed, Conversation)
-
-const styles = Styles.styleSheetCreate(
-  () =>
-    ({
-      keyboard: {
-        flexGrow: 1,
-        position: 'relative',
-      },
-      safe: {
-        backgroundColor: Styles.globalColors.fastBlank,
-        flexGrow: 1,
-        maxHeight: '100%',
-        position: 'relative',
-      },
-    } as const)
-)
 
 export default ConversationMemoed
