@@ -1,7 +1,7 @@
 // A box that flex grows but constrains children
 import * as React from 'react'
 import * as Styles from '../styles'
-import Box, {LayoutEvent} from './box'
+import Box, {type LayoutEvent} from './box'
 
 type Props = {
   children?: React.ReactNode

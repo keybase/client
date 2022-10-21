@@ -110,7 +110,7 @@ const Conversation = React.memo(function Conversation(props: Props) {
   )
 
   return (
-    <Kb.Box style={styles.innerContainer}>
+    <Kb.Box style={styles.conversation}>
       <DropView style={styles.dropView} onDropped={onDropped}>
         <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
           {props.threadLoadedOffline && <Offline />}
@@ -125,9 +125,13 @@ const Conversation = React.memo(function Conversation(props: Props) {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
+      conversation: {
+        flexGrow: 1,
+        position: 'relative',
+      },
       dropView: {flexGrow: 1},
       innerContainer: {
-        flex: 1,
+        flexGrow: 1,
         position: 'relative',
       },
       offline: {padding: Styles.globalMargins.xxtiny},
