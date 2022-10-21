@@ -11,7 +11,6 @@ import {checkTextInfo} from './input.shared'
 import {getStyle as getTextStyle} from './text'
 import {isIOS} from '../constants/platform'
 import PasteInput from '@mattermost/react-native-paste-input'
-import {View} from 'react-native'
 
 // A plain text input component. Handles callbacks, text styling, and auto resizing but
 // adds no styling.
