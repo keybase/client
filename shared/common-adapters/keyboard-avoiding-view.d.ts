@@ -1,5 +1,4 @@
 import * as React from 'react'
-export {KeyboardAvoidingView as default} from 'react-native'
 import type * as Styles from '../styles'
 
 export type AnimatedProps = {
@@ -10,4 +9,13 @@ export type AnimatedProps = {
   ignoreSafe?: boolean
 }
 
+export type SimpleProps = {
+  children: React.ReactNode
+  style?: Styles.StylesCrossPlatform
+  pointerEvents?: 'box-none' | 'none' | 'box-only' | 'auto' | undefined
+}
+
+// usually use this
+export class SimpleKeyboardAvoidingView extends React.Component<SimpleProps> {}
+// use this for nice animations
 export class AnimatedKeyboardAvoidingView extends React.Component<AnimatedProps> {}

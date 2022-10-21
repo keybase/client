@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as Kb from '../common-adapters/mobile.native'
+import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import Router from '../router-v2/router'
 import {PortalHost} from '@gorhom/portal'
@@ -18,15 +18,11 @@ const Main = () => {
         pointerEvents="box-none"
         style={Styles.globalStyles.fillAbsolute}
       />
-      <Kb.KeyboardAvoidingView
-        style={Styles.globalStyles.fillAbsolute}
-        pointerEvents="box-none"
-        behavior={Styles.isIOS ? 'padding' : undefined}
-      >
+      <Kb.SimpleKeyboardAvoidingView style={Styles.globalStyles.fillAbsolute} pointerEvents="box-none">
         <Kb.Box2 direction="vertical" pointerEvents="box-none" fullWidth={true} style={styles.portalParent}>
           <PortalHost name="keyboard-avoiding-root" />
         </Kb.Box2>
-      </Kb.KeyboardAvoidingView>
+      </Kb.SimpleKeyboardAvoidingView>
       <ResetModal />
       <GlobalError />
       <OutOfDate />

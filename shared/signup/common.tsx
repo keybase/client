@@ -152,93 +152,98 @@ type SignupScreenProps = {
 
 // Screens with header + body bg color (i.e. all but join-or-login)
 export const SignupScreen = (props: SignupScreenProps) => (
-  <Kb.Box2
-    direction="vertical"
-    fullWidth={true}
-    fullHeight={true}
-    alignItems="center"
-    style={styles.whiteBackground}
-  >
-    {!Styles.isMobile && (
-      <Header
-        onBack={props.onBack}
-        title={props.title}
-        titleComponent={props.titleComponent}
-        showInfoIcon={!!props.showHeaderInfoicon}
-        showInfoIconRow={!!props.showHeaderInfoiconRow}
-        style={Styles.collapseStyles([props.noBackground && styles.whiteHeaderContainer, props.headerStyle])}
-        negative={!!props.negativeHeader}
-        rightActionComponent={props.rightActionComponent}
-        rightActionLabel={props.rightActionLabel}
-        onRightAction={props.onRightAction}
-      />
-    )}
-    {Styles.isMobile && !props.skipMobileHeader && (
-      <Kb.ModalHeader
-        leftButton={
-          props.leftAction && props.onBack ? (
-            <Kb.Text type="BodyBigLink" onClick={props.onBack}>
-              {props.leftActionText || props.leftAction}
-            </Kb.Text>
-          ) : null
-        }
-        rightButton={
-          props.onRightAction ? (
-            <Kb.Text type="BodyBigLink" onClick={props.onRightAction}>
-              {props.rightActionLabel || props.rightActionComponent}
-            </Kb.Text>
-          ) : null
-        }
-        style={props.headerStyle}
-        title={props.title ? <Kb.Text type="BodyBig">{props.title}</Kb.Text> : props.titleComponent}
-      />
-    )}
-    {Styles.isMobile && props.header}
+  <Kb.SimpleKeyboardAvoidingView>
     <Kb.Box2
-      alignItems="center"
       direction="vertical"
-      style={Styles.collapseStyles([
-        styles.background,
-        props.noBackground ? styles.whiteBackground : styles.blueBackground,
-        props.containerStyle,
-      ])}
       fullWidth={true}
+      fullHeight={true}
+      alignItems="center"
+      style={styles.whiteBackground}
     >
+      {!Styles.isMobile && (
+        <Header
+          onBack={props.onBack}
+          title={props.title}
+          titleComponent={props.titleComponent}
+          showInfoIcon={!!props.showHeaderInfoicon}
+          showInfoIconRow={!!props.showHeaderInfoiconRow}
+          style={Styles.collapseStyles([
+            props.noBackground && styles.whiteHeaderContainer,
+            props.headerStyle,
+          ])}
+          negative={!!props.negativeHeader}
+          rightActionComponent={props.rightActionComponent}
+          rightActionLabel={props.rightActionLabel}
+          onRightAction={props.onRightAction}
+        />
+      )}
+      {Styles.isMobile && !props.skipMobileHeader && (
+        <Kb.ModalHeader
+          leftButton={
+            props.leftAction && props.onBack ? (
+              <Kb.Text type="BodyBigLink" onClick={props.onBack}>
+                {props.leftActionText || props.leftAction}
+              </Kb.Text>
+            ) : null
+          }
+          rightButton={
+            props.onRightAction ? (
+              <Kb.Text type="BodyBigLink" onClick={props.onRightAction}>
+                {props.rightActionLabel || props.rightActionComponent}
+              </Kb.Text>
+            ) : null
+          }
+          style={props.headerStyle}
+          title={props.title ? <Kb.Text type="BodyBig">{props.title}</Kb.Text> : props.titleComponent}
+        />
+      )}
+      {Styles.isMobile && props.header}
       <Kb.Box2
         alignItems="center"
         direction="vertical"
-        style={Styles.collapseStyles([styles.body, props.contentContainerStyle])}
+        style={Styles.collapseStyles([
+          styles.background,
+          props.noBackground ? styles.whiteBackground : styles.blueBackground,
+          props.containerStyle,
+        ])}
         fullWidth={true}
       >
-        {props.children}
-      </Kb.Box2>
-      {/* Banners after children so they go on top */}
-      {!!props.banners && <Kb.Box2 direction="vertical" style={styles.banners} children={props.banners} />}
-      {!!props.buttons && (
-        <Kb.ButtonBar
-          direction="column"
-          fullWidth={Styles.isMobile && !Styles.isTablet}
-          style={styles.buttonBar}
+        <Kb.Box2
+          alignItems="center"
+          direction="vertical"
+          style={Styles.collapseStyles([styles.body, props.contentContainerStyle])}
+          fullWidth={true}
         >
-          {props.buttons.map(b =>
-            b.waitingKey !== undefined ? (
-              <Kb.WaitingButton
-                key={b.label}
-                style={styles.button}
-                {...b}
-                // TS doesn't narrow the type inside ButtonMeta, so still thinks
-                // waitingKey can be undefined unless we pull it out
-                waitingKey={b.waitingKey}
-                fullWidth={true}
-              />
-            ) : (
-              <Kb.Button key={b.label} style={styles.button} {...b} fullWidth={true} />
-            )
-          )}
-        </Kb.ButtonBar>
-      )}
+          {props.children}
+        </Kb.Box2>
+        {/* Banners after children so they go on top */}
+        {!!props.banners && <Kb.Box2 direction="vertical" style={styles.banners} children={props.banners} />}
+        {!!props.buttons && (
+          <Kb.ButtonBar
+            direction="column"
+            fullWidth={Styles.isMobile && !Styles.isTablet}
+            style={styles.buttonBar}
+          >
+            {props.buttons.map(b =>
+              b.waitingKey !== undefined ? (
+                <Kb.WaitingButton
+                  key={b.label}
+                  style={styles.button}
+                  {...b}
+                  // TS doesn't narrow the type inside ButtonMeta, so still thinks
+                  // waitingKey can be undefined unless we pull it out
+                  waitingKey={b.waitingKey}
+                  fullWidth={true}
+                />
+              ) : (
+                <Kb.Button key={b.label} style={styles.button} {...b} fullWidth={true} />
+              )
+            )}
+          </Kb.ButtonBar>
+        )}
+      </Kb.Box2>
     </Kb.Box2>
-  </Kb.Box2>
+  </Kb.SimpleKeyboardAvoidingView>
 )
 SignupScreen.defaultProps = {
   leftAction: 'cancel',

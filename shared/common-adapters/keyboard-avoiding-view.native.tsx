@@ -3,7 +3,7 @@ import * as Styles from '../styles'
 import {KeyboardAvoidingView} from 'react-native'
 import Animated, {useAnimatedKeyboard, useAnimatedStyle} from 'react-native-reanimated'
 import {useSafeAreaInsets} from 'react-native-safe-area-context'
-import type {AnimatedProps} from './keyboard-avoiding-view'
+import type {AnimatedProps, SimpleProps} from './keyboard-avoiding-view'
 
 export const AnimatedKeyboardAvoidingView = Styles.isIOS
   ? (p: AnimatedProps) => {
@@ -34,6 +34,18 @@ export const AnimatedKeyboardAvoidingView = Styles.isIOS
       )
     }
 
+export const SimpleKeyboardAvoidingView = (p: SimpleProps) => {
+  return (
+    <KeyboardAvoidingView
+      pointerEvents={p.pointerEvents}
+      behavior={Styles.isIOS ? 'padding' : undefined}
+      style={[styles.keyboard, p.style]}
+    >
+      {p.children}
+    </KeyboardAvoidingView>
+  )
+}
+
 const styles = Styles.styleSheetCreate(
   () =>
     ({
@@ -43,5 +55,3 @@ const styles = Styles.styleSheetCreate(
       },
     } as const)
 )
-
-export default KeyboardAvoidingView

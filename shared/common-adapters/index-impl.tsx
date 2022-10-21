@@ -150,9 +150,6 @@ module.exports = {
   get Input() {
     return require('./input').default
   },
-  get KeyboardAvoidingView() {
-    return require('./keyboard-avoiding-view').default
-  },
   get LabeledInput() {
     return require('./labeled-input').default
   },
@@ -278,6 +275,9 @@ module.exports = {
   },
   get SectionList() {
     return require('./section-list').default
+  },
+  get SimpleKeyboardAvoidingView() {
+    return require('./keyboard-avoiding-view').SimpleKeyboardAvoidingView
   },
   get SimpleToast() {
     return require('./simple-toast').default
