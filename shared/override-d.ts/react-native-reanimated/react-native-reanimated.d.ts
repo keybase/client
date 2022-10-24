@@ -43,6 +43,18 @@ declare module 'react-native-reanimated' {
   export const RepeatAnimation: any
   export const SequenceAnimation: any
   export const StyleLayoutAnimation: any
+  export enum KeyboardState {
+    UNKNOWN = 0,
+    OPENING = 1,
+    OPEN = 2,
+    CLOSING = 3,
+    CLOSED = 4,
+  }
+  export type AnimatedKeyboardInfo = {
+    height: SharedValue<number>
+    state: SharedValue<KeyboardState>
+  }
+  export function useAnimatedKeyboard(): AnimatedKeyboardInfo
   // export {
   //   Animation,
   //   TimingAnimation,

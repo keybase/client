@@ -718,6 +718,8 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
         editingMap.set(conversationIDKey, ordinal)
         if (message.type === 'text') {
           unsentTextMap.set(conversationIDKey, message.text)
+        } else if (message.type === 'attachment') {
+          unsentTextMap.set(conversationIDKey, new HiddenString(message.title))
         }
       }
       return
