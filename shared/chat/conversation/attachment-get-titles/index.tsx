@@ -146,6 +146,7 @@ const styles = Styles.styleSheetCreate(
     ({
       boxGrow: {
         margin: Styles.globalMargins.small,
+        overflow: 'hidden',
         width: '100%',
       },
       buttonContainer: Styles.platformStyles({
@@ -179,8 +180,10 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       image: {
+        height: '100%',
         maxHeight: '100%',
         maxWidth: '100%',
+        width: '100%',
       },
       imageContainer: Styles.platformStyles({
         common: {justifyContent: 'center'},
