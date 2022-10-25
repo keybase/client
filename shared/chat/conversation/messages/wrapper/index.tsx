@@ -584,12 +584,12 @@ const useBottomComponents = (p: Shared, o: {authorIsBot: boolean}) => {
           </Kb.Text>
         )}
         {!!onCancel && (!!onEdit || !!onRetry) && <Kb.Text type="BodySmall"> or </Kb.Text>}
-        {!!onEdit && (
+        {resolveByEdit && !!onEdit && (
           <Kb.Text type="BodySmall" style={styles.failUnderline} onClick={onEdit}>
             Edit
           </Kb.Text>
         )}
-        {!!onRetry && (
+        {allowRetry && !resolveByEdit && !!onRetry && (
           <Kb.Text type="BodySmall" style={styles.failUnderline} onClick={onRetry}>
             Retry
           </Kb.Text>

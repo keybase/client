@@ -699,8 +699,9 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     }
   },
   [Chat2Gen.messageSetEditing]: (draftState, action) => {
-    const {conversationIDKey, editLastUser, ordinal} = action.payload
+    const {conversationIDKey, editLastUser} = action.payload
     const {editingMap, messageOrdinals, unsentTextMap} = draftState
+    let ordinal = action.payload.ordinal
 
     // clearing
     if (!editLastUser && !ordinal) {
@@ -711,7 +712,22 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
 
     const messageMap = draftState.messageMap.get(conversationIDKey)
 
-    // editing a specific message
+    // Editing last message
+    if (!ordinal && editLastUser) {
+      // Editing your last message
+      const ordinals = messageOrdinals.get(conversationIDKey) ?? []
+      ordinal =
+        findLast(ordinals, o => {
+          const message = messageMap?.get(o)
+          return !!(
+            (message?.type === 'text' || message?.type === 'attachment') &&
+            message.author === editLastUser &&
+            !message.exploded &&
+            message.isEditable
+          )
+        }) ?? null
+    }
+
     if (ordinal) {
       const message = messageMap?.get(ordinal)
       if (message?.type === 'text' || message?.type === 'attachment') {
@@ -721,26 +737,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
         } else if (message.type === 'attachment') {
           unsentTextMap.set(conversationIDKey, new HiddenString(message.title))
         }
-      }
-      return
-    }
-
-    // Editing your last message
-    const ordinals = messageOrdinals.get(conversationIDKey) ?? []
-    const found = findLast(ordinals, o => {
-      const message = messageMap?.get(o)
-      return !!(
-        (message?.type === 'text' || message?.type === 'attachment') &&
-        message.author === editLastUser &&
-        !message.exploded &&
-        message.isEditable
-      )
-    })
-    if (found) {
-      editingMap.set(conversationIDKey, found)
-      const message = messageMap?.get(found)
-      if (message?.type === 'text') {
-        unsentTextMap.set(conversationIDKey, message.text)
       }
     }
   },
