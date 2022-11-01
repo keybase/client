@@ -38,6 +38,7 @@
 		DB05E98E28EE243000FBD6B4 /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = DB05E98D28EE242F00FBD6B4 /* AppDelegate.mm */; };
 		DB07050522E21B8B002F273D /* KeepThisFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB07050422E21B8B002F273D /* KeepThisFile.swift */; };
 		DB190420275A898B00E85B2E /* keybase.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 60B93983273F902C00A226FF /* keybase.xcframework */; };
+		DB4FA4AA29100922005E46B3 /* AppDelegate+KB.mm in Sources */ = {isa = PBXBuildFile; fileRef = DB4FA4A929100922005E46B3 /* AppDelegate+KB.mm */; };
 		DB59F9B72238A27E00E271C1 /* JavaScriptCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DB59F97B2238A27E00E271C1 /* JavaScriptCore.framework */; };
 		DBB17C7628D11A41001F3E25 /* ItemProviderHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = DBB17C7528D11A41001F3E25 /* ItemProviderHelper.m */; };
 		DBB17C7728D11A41001F3E25 /* ItemProviderHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = DBB17C7528D11A41001F3E25 /* ItemProviderHelper.m */; };
@@ -119,6 +120,8 @@
 		DB05E98D28EE242F00FBD6B4 /* AppDelegate.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = AppDelegate.mm; sourceTree = "<group>"; };
 		DB07050422E21B8B002F273D /* KeepThisFile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeepThisFile.swift; sourceTree = "<group>"; };
 		DB190422275A8B4B00E85B2E /* keybase.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; path = keybase.xcframework; sourceTree = "<group>"; };
+		DB4FA4A629100909005E46B3 /* AppDelegate+KB.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "AppDelegate+KB.h"; sourceTree = "<group>"; };
+		DB4FA4A929100922005E46B3 /* AppDelegate+KB.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = "AppDelegate+KB.mm"; sourceTree = "<group>"; };
 		DB59F97B2238A27E00E271C1 /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		DBB17C7428D11A41001F3E25 /* ItemProviderHelper.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ItemProviderHelper.h; sourceTree = "<group>"; };
 		DBB17C7528D11A41001F3E25 /* ItemProviderHelper.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ItemProviderHelper.m; sourceTree = "<group>"; };
@@ -275,6 +278,8 @@
 				DBBCC6111D9C4A8100312652 /* AppDelegate.h */,
 				DB05E98D28EE242F00FBD6B4 /* AppDelegate.mm */,
 				DBDCF3081B8D03DD00BA95D8 /* Images.xcassets */,
+				DB4FA4A629100909005E46B3 /* AppDelegate+KB.h */,
+				DB4FA4A929100922005E46B3 /* AppDelegate+KB.mm */,
 				DBDCF3091B8D03DD00BA95D8 /* Info.plist */,
 				DB07050422E21B8B002F273D /* KeepThisFile.swift */,
 				DBBCC6171D9C5C6A00312652 /* main.m */,
@@ -566,6 +571,7 @@
 				DB07050522E21B8B002F273D /* KeepThisFile.swift in Sources */,
 				279FB66921402D68005E4864 /* Fs.m in Sources */,
 				DB05E98E28EE243000FBD6B4 /* AppDelegate.mm in Sources */,
+				DB4FA4AA29100922005E46B3 /* AppDelegate+KB.mm in Sources */,
 				DBB17C7628D11A41001F3E25 /* ItemProviderHelper.m in Sources */,
 				DBBCC6181D9C5C6A00312652 /* main.m in Sources */,
 				DBB17C7828D12237001F3E25 /* MediaUtils.m in Sources */,
