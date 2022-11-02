@@ -47,6 +47,4 @@
   [self localNotification:ident msg:msg badgeCount:notification.badgeCount soundName:notification.soundName convID:notification.convID typ:@"chat.newmessage"];
 }
 
-
 @end
-

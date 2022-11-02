@@ -122,7 +122,7 @@
 
 - (void)dropInteraction:(UIDropInteraction *)interaction
             performDrop:(id<UIDropSession>)session {
-  __weak AppDelegate *weakSelf = self;
+  __weak __typeof__(self) weakSelf = self;
   NSMutableArray *items =
       [NSMutableArray arrayWithCapacity:session.items.count];
   [session.items
@@ -136,10 +136,11 @@
              attrString:@""
       completionHandler:^{
         NSURL *url = [NSURL URLWithString:@"keybase://incoming-share"];
-        [weakSelf application:[UIApplication sharedApplication]
+        __typeof__(self) strongSelf = weakSelf;
+        [strongSelf application:[UIApplication sharedApplication]
                       openURL:url
                       options:@{}];
-        weakSelf.iph = nil;
+        strongSelf.iph = nil;
       }];
   [self.iph startProcessing];
 }
@@ -263,24 +264,32 @@
   NSLog(@"applicationDidEnterBackground: setting keyz screen alpha to 1.");
   self.resignImageView.alpha = 1;
 
+  NSLog(@"applicationDidEnterBackground: notifying go.");
   const bool requestTime = KeybaseAppDidEnterBackground();
+  NSLog(@"applicationDidEnterBackground: after notifying go.");
   if (requestTime &&
       (!self.shutdownTask || self.shutdownTask == UIBackgroundTaskInvalid)) {
     UIApplication *app = [UIApplication sharedApplication];
+    __weak __typeof__(self) weakSelf = self;
     self.shutdownTask = [app beginBackgroundTaskWithExpirationHandler:^{
+      NSLog(@"applicationDidEnterBackground: shutdown task run.");
       KeybaseAppWillExit([[PushNotifier alloc] init]);
-      [app endBackgroundTask:self.shutdownTask];
-      self.shutdownTask = UIBackgroundTaskInvalid;
+      __typeof__(self) strongSelf = weakSelf;
+      if (strongSelf != nil) {
+        [app endBackgroundTask:strongSelf.shutdownTask];
+        strongSelf.shutdownTask = UIBackgroundTaskInvalid;
+      }
     }];
     // The service can tell us to end this task early, so if it does, then
     // shutdown
     dispatch_async(
         dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(void) {
           KeybaseAppBeginBackgroundTask([[PushNotifier alloc] init]);
-          if (self.shutdownTask &&
-              self.shutdownTask != UIBackgroundTaskInvalid) {
-            [app endBackgroundTask:self.shutdownTask];
-            self.shutdownTask = UIBackgroundTaskInvalid;
+          __typeof__(self) strongSelf = weakSelf;
+          if (strongSelf && strongSelf.shutdownTask &&
+              strongSelf.shutdownTask != UIBackgroundTaskInvalid) {
+            [app endBackgroundTask:strongSelf.shutdownTask];
+            strongSelf.shutdownTask = UIBackgroundTaskInvalid;
           }
         });
   }
@@ -348,7 +357,5 @@ RNHWKeyboardEvent *hwKeyEvent = nil;
   // Detects user pressing the shift-enter combination
   [hwKeyEvent sendHWKeyEvent:@"shift-enter"];
 }
-
-
 
 @end
