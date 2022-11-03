@@ -12,10 +12,10 @@ index 8cb70cf..92f50e0 100644
  
    override fun getName(): String {
 diff --git a/node_modules/@mattermost/react-native-paste-input/ios/PasteInputTextView.m b/node_modules/@mattermost/react-native-paste-input/ios/PasteInputTextView.m
-index 73ed099..aebf25b 100644
+index 73ed099..a0326ae 100644
 --- a/node_modules/@mattermost/react-native-paste-input/ios/PasteInputTextView.m
 +++ b/node_modules/@mattermost/react-native-paste-input/ios/PasteInputTextView.m
-@@ -35,8 +35,6 @@
+@@ -35,20 +35,23 @@
  }
  
  -(void)paste:(id)sender {
@@ -23,12 +23,16 @@ index 73ed099..aebf25b 100644
 -    
      UIPasteboard *pasteboard = [UIPasteboard generalPasteboard];
  
-     BOOL hasStrings = pasteboard.hasStrings;
-@@ -46,9 +44,14 @@
+-    BOOL hasStrings = pasteboard.hasStrings;
++    /*BOOL hasStrings = pasteboard.hasStrings;
+     if (hasStrings) {
+         NSArray<NSString *> *strs = pasteboard.strings;
+         for (NSString *s in strs) {
              hasStrings = [s length] != 0 && ![s containsString:@"<img src="];
          }
-     }
+-    }
 -    if (pasteboard.hasURLs || hasStrings || pasteboard.hasColors) {
++    }*/
 +    
 +    if ([pasteboard hasStrings] && ![pasteboard hasImages]) {
 +        [super paste:sender];
@@ -91,7 +95,7 @@ index 4d3b464..026d3ff 100644
  {
    return _backedTextInputView;
 diff --git a/node_modules/@mattermost/react-native-paste-input/ios/UIPasteboard+GetImageInfo.m b/node_modules/@mattermost/react-native-paste-input/ios/UIPasteboard+GetImageInfo.m
-index df52bb7..a4424b8 100644
+index df52bb7..92872b7 100644
 --- a/node_modules/@mattermost/react-native-paste-input/ios/UIPasteboard+GetImageInfo.m
 +++ b/node_modules/@mattermost/react-native-paste-input/ios/UIPasteboard+GetImageInfo.m
 @@ -54,7 +54,10 @@
@@ -106,3 +110,13 @@ index df52bb7..a4424b8 100644
          BOOL success = [fileData writeToURL:tempFileURL atomically:YES];
          if (success) {
            added = YES;
+@@ -85,6 +88,9 @@
+     CGImageSourceRef source = CGImageSourceCreateWithData(cfdata, nil);
+     CGImageRef imageRef = CGImageSourceCreateImageAtIndex(source, 0, nil);
+     image = [[UIImage alloc] initWithCGImage:imageRef];
++    CFRelease(imageRef);
++    CFRelease(source);
++    CFRelease(cfdata);
+   } else {
+     image = (UIImage *)imageData;
+   }
