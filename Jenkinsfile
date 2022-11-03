@@ -254,7 +254,7 @@ helpers.rootLinuxNode(env, {
             )
           },
           test_windows: {
-            if (hasGoChanges || hasJenkinsfileChanges) {
+            if (false) { // hasGoChanges || hasJenkinsfileChanges) {
               helpers.nodeWithCleanup('windows-ssh', {}, {}) {
                 def BASEDIR="${pwd()}"
                 def GOPATH="${BASEDIR}\\go"
