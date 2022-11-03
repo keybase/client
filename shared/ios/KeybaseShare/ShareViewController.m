@@ -148,8 +148,12 @@ const BOOL isSimulator = NO;
 - (void)viewDidLoad {
   [super viewDidLoad];
   NSExtensionItem *input = self.extensionContext.inputItems.firstObject;
+  __weak __typeof__(self) weakSelf = self;
   self.iph = [[ItemProviderHelper alloc] initForShare: true withItems: [self getSendableAttachments] attrString: input.attributedContentText.string completionHandler:^{
-    [self completeRequestAlreadyInMainThread];
+    __typeof__(self) strongSelf = weakSelf;
+    if (strongSelf != nil) {
+      [strongSelf completeRequestAlreadyInMainThread];
+    }
   }];
   [self showProgressView];
   [self.iph startProcessing];

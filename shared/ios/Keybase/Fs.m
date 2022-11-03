@@ -89,14 +89,22 @@
   return YES;
 }
 
++ (NSString*) getAppKeybasePath {
+  return [@"~/Library/Application Support/Keybase" stringByExpandingTildeInPath];
+}
+
++ (NSString*) getEraseableKVPath {
+  return [[FsHelper getAppKeybasePath] stringByAppendingPathComponent:@"eraseablekvstore/device-eks"];
+}
+
 - (NSString*) setupAppHome:(NSString*)home sharedHome:(NSString*)sharedHome {
   NSURL* tempUrl = [[NSFileManager defaultManager] temporaryDirectory];
   // workaround a problem where iOS dyld3 loader crashes if accessing .closure files
   // with complete data protection on
   NSString* dyldDir = [NSString stringWithFormat:@"%@/com.apple.dyld", [tempUrl path]];
   // Setup all directories
-  NSString* appKeybasePath = [@"~/Library/Application Support/Keybase" stringByExpandingTildeInPath];
-  NSString* appEraseableKVPath = [@"~/Library/Application Support/Keybase/eraseablekvstore/device-eks" stringByExpandingTildeInPath];
+  NSString* appKeybasePath = [FsHelper getAppKeybasePath];
+  NSString* appEraseableKVPath = [FsHelper getEraseableKVPath];
   [self createBackgroundReadableDirectory:dyldDir setAllFiles:YES];
   [self createBackgroundReadableDirectory:appKeybasePath setAllFiles:YES];
   [self createBackgroundReadableDirectory:appEraseableKVPath setAllFiles:YES];
@@ -105,10 +113,10 @@
 }
 
 - (NSString*) setupSharedHome:(NSString*) home sharedHome:(NSString*)sharedHome {
-  NSString* appKeybasePath = [@"~/Library/Application Support/Keybase" stringByExpandingTildeInPath];
-  NSString* appEraseableKVPath = [@"~/Library/Application Support/Keybase/eraseablekvstore/device-eks" stringByExpandingTildeInPath];
+  NSString* appKeybasePath = [FsHelper getAppKeybasePath];
+  NSString* appEraseableKVPath = [FsHelper getEraseableKVPath];
   NSString* sharedKeybasePath = [NSString stringWithFormat:@"%@/Library/Application Support/Keybase", sharedHome];
-  NSString* sharedEraseableKVPath =  [NSString stringWithFormat:@"%@/Library/Application Support/Keybase/eraseablekvstore/device-eks", sharedHome];
+  NSString* sharedEraseableKVPath = [sharedKeybasePath stringByAppendingPathComponent:@"eraseablekvstore/device-eks"];
   [self createBackgroundReadableDirectory:sharedKeybasePath setAllFiles:YES];
   [self createBackgroundReadableDirectory:sharedEraseableKVPath setAllFiles:YES];
   [self addSkipBackupAttributeToItemAtPath:sharedKeybasePath];
@@ -131,30 +139,31 @@
     sharedHome = [self setupSharedHome:home sharedHome:sharedHome];
   }
 
+  NSString* appKeybasePath = [FsHelper getAppKeybasePath];
   // Setup app level directories
-  NSString* levelDBPath = [@"~/Library/Application Support/Keybase/keybase.leveldb" stringByExpandingTildeInPath];
-  NSString* chatLevelDBPath = [@"~/Library/Application Support/Keybase/keybase.chat.leveldb" stringByExpandingTildeInPath];
-  NSString* kbfsBlockCacheDBPath = [@"~/Library/Application Support/Keybase/kbfs_block_cache" stringByExpandingTildeInPath];
-  NSString* kbfsBlockMetaDBPath = [@"~/Library/Application Support/Keybase/kbfs_block_metadata" stringByExpandingTildeInPath];
-  NSString* kbfsConflictsDBPath = [@"~/Library/Application Support/Keybase/kbfs_conflicts" stringByExpandingTildeInPath];
-  NSString* kbfsFavoritesDBPath = [@"~/Library/Application Support/Keybase/kbfs_favorites" stringByExpandingTildeInPath];
-  NSString* kbfsJournalPath = [@"~/Library/Application Support/Keybase/kbfs_journal" stringByExpandingTildeInPath];
-  NSString* kbfsMDCachePath = [@"~/Library/Application Support/Keybase/kbfs_md_cache" stringByExpandingTildeInPath];
-  NSString* kbfsQuotaCachePath = [@"~/Library/Application Support/Keybase/kbfs_quota_cache" stringByExpandingTildeInPath];
-  NSString* kbfsSyncCachePath = [@"~/Library/Application Support/Keybase/kbfs_sync_cache" stringByExpandingTildeInPath];
-  NSString* kbfsSettingsPath = [@"~/Library/Application Support/Keybase/kbfs_settings" stringByExpandingTildeInPath];
-  NSString* kbfsSyncedTlfsPath = [@"~/Library/Application Support/Keybase/synced_tlf_config" stringByExpandingTildeInPath];
+  NSString* levelDBPath = [appKeybasePath stringByAppendingPathComponent:@"keybase.leveldb"];
+  NSString* chatLevelDBPath = [appKeybasePath stringByAppendingPathComponent:@"keybase.chat.leveldb"];
+  NSString* kbfsBlockCacheDBPath = [appKeybasePath stringByAppendingPathComponent:@"kbfs_block_cache"];
+  NSString* kbfsBlockMetaDBPath = [appKeybasePath stringByAppendingPathComponent:@"kbfs_block_metadata"];
+  NSString* kbfsConflictsDBPath = [appKeybasePath stringByAppendingPathComponent:@"kbfs_conflicts"];
+  NSString* kbfsFavoritesDBPath = [appKeybasePath stringByAppendingPathComponent:@"kbfs_favorites"];
+  NSString* kbfsJournalPath = [appKeybasePath stringByAppendingPathComponent:@"kbfs_journal"];
+  NSString* kbfsMDCachePath = [appKeybasePath stringByAppendingPathComponent:@"kbfs_md_cache"];
+  NSString* kbfsQuotaCachePath = [appKeybasePath stringByAppendingPathComponent:@"kbfs_quota_cache"];
+  NSString* kbfsSyncCachePath = [appKeybasePath stringByAppendingPathComponent:@"kbfs_sync_cache"];
+  NSString* kbfsSettingsPath = [appKeybasePath stringByAppendingPathComponent:@"kbfs_settings"];
+  NSString* kbfsSyncedTlfsPath = [appKeybasePath stringByAppendingPathComponent:@"synced_tlf_config"];
   NSString* oldLogPath = [@"~/Library/Caches/Keybase" stringByExpandingTildeInPath];
   // Put logs in a subdir that is entirely background readable
-  NSString* logPath = [oldLogPath stringByAppendingString:@"/logs"];
-  NSString* serviceLogFile = skipLogFile ? @"" : [logPath stringByAppendingString:@"/ios.log"];
+  NSString* logPath = [oldLogPath stringByAppendingPathComponent:@"logs"];
+  NSString* serviceLogFile = skipLogFile ? @"" : [logPath stringByAppendingPathComponent:@"ios.log"];
 
   if (!skipLogFile) {
       // cleanup old log files
       NSFileManager* fm = [NSFileManager defaultManager];
-      NSArray<NSString*>* logs = @[@"/ios.log", @"/ios.log.ek"];
+      NSArray<NSString*>* logs = @[@"ios.log", @"ios.log.ek"];
       for (NSString* file in logs) {
-          NSString* oldPath = [oldLogPath stringByAppendingString:file];
+          NSString* oldPath = [oldLogPath stringByAppendingPathComponent:file];
           [fm removeItemAtPath:oldPath error:NULL];
       }
   }
