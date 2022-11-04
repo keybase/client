@@ -1,17 +1,18 @@
 #import "Kb.h"
+#import "../cpp/rpc.h"
 #import "Keybase.h"
 #import <CoreTelephony/CTCarrier.h>
 #import <CoreTelephony/CTTelephonyNetworkInfo.h>
 #import <Foundation/Foundation.h>
-#import <UserNotifications/UserNotifications.h>
-#import <React/RCTEventDispatcher.h>
-#import <React/RCTBridge.h>
 #import <React/RCTBridge+Private.h>
+#import <React/RCTBridge.h>
+#import <React/RCTEventDispatcher.h>
 #import <ReactCommon/CallInvoker.h>
+#import <UserNotifications/UserNotifications.h>
+#import <JavaScriptCore/JavaScriptCore.h>
 #import <cstring>
 #import <jsi/jsi.h>
 #import <sys/utsname.h>
-#import "../cpp/rpc.h"
 
 #ifdef RCT_NEW_ARCH_ENABLED
 #import "RNKbSpec.h"
@@ -27,12 +28,18 @@ static NSString *const eventName = @"kb-engine-event";
 static NSString *const metaEventName = @"kb-meta-engine-event";
 static NSString *const metaEventEngineReset = @"kb-engine-reset";
 
-@interface RCTBridge (KB)
+@interface RCTBridge ()
+
+- (JSGlobalContextRef)jsContextRef;
+- (void *)runtime;
+- (void)dispatchBlock:(dispatch_block_t)block queue:(dispatch_queue_t)queue;
 - (std::shared_ptr<facebook::react::CallInvoker>)jsCallInvoker;
+
 @end
 
 @interface Kb ()
 @property dispatch_queue_t readQueue;
+@property(nonatomic, weak) RCTBridge *bridge;
 @property BOOL bridgeDead;
 @end
 
@@ -46,42 +53,16 @@ RCT_EXPORT_MODULE()
   return YES;
 }
 
-- (void)invalidate
-{
-    [super invalidate];
-    self.bridgeDead = YES;
-    NSError *error = nil;
-    KeybaseReset(&error);
-    self.readQueue = nil;
+- (void)invalidate {
+  [super invalidate];
+  self.bridgeDead = YES;
+  NSError *error = nil;
+  KeybaseReset(&error);
+  self.readQueue = nil;
 }
 
 static Runtime *g_jsiRuntime = nullptr;
-static RCTCxxBridge *g_cxxBridge = nullptr;
-
-// Installing JSI Bindings as done by
-// https://github.com/mrousavy/react-native-mmkv
-RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(installJSI) {
-  RCTBridge *bridge = [RCTBridge currentBridge];
-  RCTCxxBridge *cxxBridge = (RCTCxxBridge *)bridge;
-  if (cxxBridge == nil) {
-    return @false;
-  }
-
-  auto jsiRuntime = (Runtime *)cxxBridge.runtime;
-  if (jsiRuntime == nil) {
-    return @false;
-  }
-
-  g_jsiRuntime = jsiRuntime;
-  g_cxxBridge = cxxBridge;
-  DDLogInfo(
-      @"%@%@: [%@,\"%@\"]", @"d", @"NativeLogger",
-      [NSString
-          stringWithFormat:@"%f", [[NSDate date] timeIntervalSince1970] * 1000],
-      @"jsi install success");
-  install(*(Runtime *)jsiRuntime, self);
-  return @true;
-}
+static RCTBridge *g_cxxBridge = nullptr;
 
 - (void)sendToJS:(NSData *)data {
   int size = (int)[data length];
@@ -98,26 +79,69 @@ RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(installJSI) {
   });
 }
 
-static void install(Runtime &jsiRuntime, Kb *goJSIBridge) {
-  auto rpcOnGo = Function::createFromHostFunction(
-      jsiRuntime, PropNameID::forAscii(jsiRuntime, "rpcOnGo"), 1,
-      [goJSIBridge](Runtime &runtime, const Value &thisValue,
-                    const Value *arguments, size_t count) -> Value {
-        return RpcOnGo(runtime, thisValue, arguments, count,
-                       [](void *ptr, size_t size) {
-                         NSData *result = [NSData dataWithBytesNoCopy:ptr
-                                                               length:size
-                                                         freeWhenDone:NO];
-                          NSError *error = nil;
-                          KeybaseWriteArr(result, &error);
-                          if (error) {
-                            NSLog(@"Error writing data: %@", error);
-                          }
-                       });
-      });
-  jsiRuntime.global().setProperty(jsiRuntime, "rpcOnGo", move(rpcOnGo));
+- (JSGlobalContextRef)javaScriptContextRef
+{
+  if ([self.bridge respondsToSelector:@selector(jsContextRef)]) {
+    return self.bridge.jsContextRef;
+  } else if (self.bridge.runtime) {
+    // In react-native 0.59 vm is abstracted by JSI and all JSC specific references are removed
+    // To access jsc context we are extracting specific offset in jsi::Runtime, JSGlobalContextRef
+    // is first field inside Runtime class and in memory it's preceded only by pointer to virtual method table.
+    // WARNING: This is temporary solution that may break with new react-native releases.
+    return *(((JSGlobalContextRef *)(self.bridge.runtime)) + 1);
+  }
+  return nil;
 }
 
+- (void *)javaScriptRuntimePointer
+{
+  if ([self.bridge respondsToSelector:@selector(runtime)]) {
+    return self.bridge.runtime;
+  } else {
+    return nil;
+  }
+}
+
+- (void)installJsiBindings {
+  RCTBridge *bridge = [RCTBridge currentBridge];
+  
+  if (bridge == nil) {
+      return;
+  }
+
+  auto pjsiRuntime = (Runtime *)bridge.runtime;
+  if (pjsiRuntime == nil) {
+    return;
+  }
+  Runtime & jsiRuntime = *pjsiRuntime;
+
+  g_jsiRuntime = pjsiRuntime;
+  g_cxxBridge = bridge;
+  DDLogInfo(
+      @"%@%@: [%@,\"%@\"]", @"d", @"NativeLogger",
+      [NSString
+          stringWithFormat:@"%f", [[NSDate date] timeIntervalSince1970] * 1000],
+      @"jsi install success");
+
+  auto rpcOnGoWrap = [](Runtime &runtime, const Value &thisValue,
+                    const Value *arguments, size_t count) -> Value {
+    return RpcOnGo(runtime, thisValue, arguments, count,
+                   [](void *ptr, size_t size) {
+                     NSData *result = [NSData dataWithBytesNoCopy:ptr
+                                                           length:size
+                                                     freeWhenDone:NO];
+                     NSError *error = nil;
+                     KeybaseWriteArr(result, &error);
+                     if (error) {
+                       NSLog(@"Error writing data: %@", error);
+                     }
+                   });
+       };
+    
+  jsiRuntime.global().setProperty(jsiRuntime, "rpcOnGo",
+    Function::createFromHostFunction(jsiRuntime,
+        PropNameID::forAscii(jsiRuntime, "rpcOnGo"), 1, move(rpcOnGoWrap)));
+}
 
 RCT_REMAP_METHOD(getDefaultCountryCode, resolver
                  : (RCTPromiseResolveBlock)resolve rejecter
@@ -239,35 +263,36 @@ RCT_REMAP_METHOD(logDump, tagPrefix
   return [[formatter stringFromDate:date] containsString:@"20"];
 }
 
-- (NSString*)setupServerConfig {
+- (NSString *)setupServerConfig {
   NSArray *paths = NSSearchPathForDirectoriesInDomains(NSCachesDirectory,
                                                        NSUserDomainMask, YES);
   NSString *cachePath = [paths objectAtIndex:0];
   NSString *filePath = [cachePath
       stringByAppendingPathComponent:@"/Keybase/keybase.app.serverConfig"];
   NSError *err;
-  NSString * val = [NSString stringWithContentsOfFile:filePath
-                                                encoding:NSUTF8StringEncoding
-                                                   error:&err];
-    if (err != nil || val == nil) {
-        return @"";
-    }
-    return val;
+  NSString *val = [NSString stringWithContentsOfFile:filePath
+                                            encoding:NSUTF8StringEncoding
+                                               error:&err];
+  if (err != nil || val == nil) {
+    return @"";
+  }
+  return val;
 }
 
-- (NSString*)setupGuiConfig {
-    id<KbProvider> kbProvider = (id<KbProvider>)[[UIApplication sharedApplication] delegate];
+- (NSString *)setupGuiConfig {
+  id<KbProvider> kbProvider =
+      (id<KbProvider>)[[UIApplication sharedApplication] delegate];
   NSString *filePath = [[kbProvider fsPaths][@"sharedHome"]
       stringByAppendingPathComponent:
           @"/Library/Application Support/Keybase/gui_config.json"];
   NSError *err;
-  NSString * val =  [NSString stringWithContentsOfFile:filePath
-                                             encoding:NSUTF8StringEncoding
-                                                error:&err];
-    if (err != nil || val == nil) {
-        return @"";
-    }
-    return val;
+  NSString *val = [NSString stringWithContentsOfFile:filePath
+                                            encoding:NSUTF8StringEncoding
+                                               error:&err];
+  if (err != nil || val == nil) {
+    return @"";
+  }
+  return val;
 }
 
 RCT_EXPORT_METHOD(engineReset) {
@@ -283,18 +308,19 @@ RCT_EXPORT_METHOD(engineStart) {
   self.bridgeDead = NO;
   dispatch_async(dispatch_get_main_queue(), ^{
     [[NSNotificationCenter defaultCenter]
-     addObserver:self
-     selector:@selector(engineReset)
-     name:RCTJavaScriptWillStartLoadingNotification
-     object:nil];
-    self.readQueue = dispatch_queue_create("go_bridge_queue_read", DISPATCH_QUEUE_SERIAL);
-    
+        addObserver:self
+           selector:@selector(engineReset)
+               name:RCTJavaScriptWillStartLoadingNotification
+             object:nil];
+    self.readQueue =
+        dispatch_queue_create("go_bridge_queue_read", DISPATCH_QUEUE_SERIAL);
+
     dispatch_async(self.readQueue, ^{
       while (true) {
-          if (self.bridgeDead) {
-              NSLog(@"Bridge dead, bailing");
-              return;
-          }
+        if (self.bridgeDead) {
+          NSLog(@"Bridge dead, bailing");
+          return;
+        }
         NSError *error = nil;
         NSData *data = KeybaseReadArr(&error);
         if (error) {
@@ -309,8 +335,9 @@ RCT_EXPORT_METHOD(engineStart) {
 }
 
 - (NSDictionary *)constantsToExport {
-  NSString * serverConfig = [self setupServerConfig];
-  NSString * guiConfig = [self setupGuiConfig];
+  [self installJsiBindings];
+  NSString *serverConfig = [self setupServerConfig];
+  NSString *guiConfig = [self setupGuiConfig];
 
   NSString *darkModeSupported = @"0";
   if (@available(iOS 13.0, *)) {
@@ -319,24 +346,24 @@ RCT_EXPORT_METHOD(engineStart) {
 
   NSString *appVersionString = [[NSBundle mainBundle]
       objectForInfoDictionaryKey:@"CFBundleShortVersionString"];
-    if (appVersionString == nil) {
-        appVersionString = @"";
-    }
+  if (appVersionString == nil) {
+    appVersionString = @"";
+  }
   NSString *appBuildString =
       [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleVersion"];
-    if (appBuildString == nil) {
-        appBuildString = @"";
-    }
+  if (appBuildString == nil) {
+    appBuildString = @"";
+  }
   NSLocale *currentLocale = [NSLocale currentLocale];
   NSString *cacheDir = [NSSearchPathForDirectoriesInDomains(
       NSCachesDirectory, NSUserDomainMask, YES) firstObject];
   NSString *downloadDir = [NSSearchPathForDirectoriesInDomains(
       NSDownloadsDirectory, NSUserDomainMask, YES) firstObject];
 
-    NSString * kbVersion = KeybaseVersion();
-    if (kbVersion == nil) {
-        kbVersion = @"";
-    }
+  NSString *kbVersion = KeybaseVersion();
+  if (kbVersion == nil) {
+    kbVersion = @"";
+  }
   return @{
     @"androidIsDeviceSecure" : @NO,
     @"androidIsTestDevice" : @NO,
