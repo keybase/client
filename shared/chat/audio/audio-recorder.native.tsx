@@ -150,19 +150,16 @@ const BigBackground = (props: {initialBounce: SVN}) => {
   return <Animated.View pointerEvents="box-none" style={[styles.bigBackgroundStyle, animatedStyle]} />
 }
 
-const dragXOpacity = (dragX: SVN, dragY: SVN) => {
-  'worklet'
-  // worklet needs this locally for some reason
-  const dragDistanceX = -50
-  return dragY.value < -10 ? 1 : interpolate(dragX.value, [dragDistanceX, 0], [0, 1], Extrapolation.CLAMP)
-}
-
 const AmpCircle = (props: {ampScale: SVN; dragX: SVN; dragY: SVN; initialBounce: SVN; locked: boolean}) => {
   const {ampScale, dragX, dragY, initialBounce, locked} = props
-  const animatedStyle = useAnimatedStyle(() => ({
-    opacity: withTiming(dragXOpacity(dragX, dragY)),
+  const animatedStyle = useAnimatedStyle(() => {
+  const dragDistanceX = -50
+  const dragXOpacity = dragY.value < -10 ? 1 : interpolate(dragX.value, [dragDistanceX, 0], [0, 1], Extrapolation.CLAMP)
+  return ({
+    opacity: withTiming(dragXOpacity),
     transform: [{translateY: locked ? 0 : dragY.value}, {scale: ampScale.value * initialBounce.value}],
-  }))
+  })}
+    )
   return (
     <Animated.View
       style={[
@@ -182,10 +179,14 @@ const InnerCircle = (props: {
   stopRecording: (stopType: Types.AudioStopType) => void
 }) => {
   const {dragX, dragY, initialBounce, locked, stopRecording} = props
-  const circleStyle = useAnimatedStyle(() => ({
-    opacity: withTiming(dragXOpacity(dragX, dragY)),
+  const circleStyle = useAnimatedStyle(() => {
+  // worklet needs this locally for some reason
+  const dragDistanceX = -50
+  const dragXOpacity = dragY.value < -10 ? 1 : interpolate(dragX.value, [dragDistanceX, 0], [0, 1], Extrapolation.CLAMP)
+  return ({
+    opacity: withTiming(dragXOpacity),
     transform: [{translateY: locked ? 0 : dragY.value}, {scale: initialBounce.value}],
-  }))
+  })})
   const stopStyle = useAnimatedStyle(() => ({opacity: locked ? withTiming(1) : 0}))
   const onStop = React.useCallback(() => {
     stopRecording(Types.AudioStopType.STOPBUTTON)
@@ -213,16 +214,27 @@ const LockHint = (props: {initialBounce: SVN; locked: boolean; dragX: SVN; dragY
   const slideAmount = 150
   const spaceBetween = 20
   const deltaY = 50
-  const arrowStyle = useAnimatedStyle(() => ({
+  const arrowStyle = useAnimatedStyle(() => {
+
+  // worklet needs this locally for some reason
+  const dragDistanceX = -50
+  const dragXOpacity = dragY.value < -10 ? 1 : interpolate(dragX.value, [dragDistanceX, 0], [0, 1], Extrapolation.CLAMP)
+        return ({
     opacity: locked
       ? withTiming(0)
       : initialBounce.value *
         interpolate(dragY.value, [dragDistanceX, 0], [0, 1], Extrapolation.CLAMP) *
-        dragXOpacity(dragX, dragY),
+        dragXOpacity,
     transform: [{translateX: 10}, {translateY: deltaY - initialBounce.value * slideAmount}],
-  }))
-  const lockStyle = useAnimatedStyle(() => ({
-    opacity: locked ? withTiming(0) : initialBounce.value * dragXOpacity(dragX, dragY),
+  })})
+  const lockStyle = useAnimatedStyle(() => {
+
+  // worklet needs this locally for some reason
+  const dragDistanceX = -50
+  const dragXOpacity = dragY.value < -10 ? 1 : interpolate(dragX.value, [dragDistanceX, 0], [0, 1], Extrapolation.CLAMP)
+
+        return ({
+    opacity: locked ? withTiming(0) : initialBounce.value * dragXOpacity,
     transform: [
       {translateX: 5},
       {
@@ -233,7 +245,7 @@ const LockHint = (props: {initialBounce: SVN; locked: boolean; dragX: SVN; dragY
           interpolate(dragY.value, [dragDistanceX, 0], [spaceBetween, 0], Extrapolation.CLAMP),
       },
     ],
-  }))
+  })})
   return (
     <>
       <AnimatedIcon type="iconfont-arrow-up" sizeType="Tiny" style={[styles.lockHintStyle, arrowStyle]} />
