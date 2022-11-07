@@ -140,6 +140,13 @@ public class KbModuleImpl  {
     }
 
     public Map<String, Object> getConstants() {
+        try {
+            jsiInstalled = true;
+            this.nativeInstallJSI(this.reactContext.getJavaScriptContextHolder().get());
+        } catch (Exception exception) {
+            NativeLogger.error("Exception in installJSI", exception);
+        }
+
         String versionCode = String.valueOf(getBuildConfigValue("VERSION_CODE"));
         String versionName = String.valueOf(getBuildConfigValue("VERSION_NAME"));
         boolean isDeviceSecure = false;
@@ -592,7 +599,10 @@ public class KbModuleImpl  {
         NativeLogger.info("KeybaseEngine started");
         try {
             started = true;
-
+            if (executor == null) {
+                executor = Executors.newSingleThreadExecutor();
+                executor.execute(new ReadFromKBLib(this.reactContext));
+            }
         } catch (Exception e) {
             NativeLogger.error("Exception in engineStart", e);
         }
@@ -671,21 +681,6 @@ public class KbModuleImpl  {
             executor = null;
         } catch (Exception e) {
             NativeLogger.error("Exception in JSI.destroy", e);
-        }
-    }
-
-    public boolean installJSI() {
-        jsiInstalled = true;
-        try {
-            this.nativeInstallJSI(this.reactContext.getJavaScriptContextHolder().get());
-            if (executor == null) {
-                executor = Executors.newSingleThreadExecutor();
-                executor.execute(new ReadFromKBLib(this.reactContext));
-            }
-            return true;
-        } catch (Exception exception) {
-            NativeLogger.error("Exception in installJSI", exception);
-            return false;
         }
     }
 

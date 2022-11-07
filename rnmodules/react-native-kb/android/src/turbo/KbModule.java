@@ -139,12 +139,6 @@ public class KbModule extends NativeKbSpec {
     public void engineStart() {
         this.impl.engineStart();
     }
-
-    @Override
-    @ReactMethod(isBlockingSynchronousMethod = true)
-    public boolean installJSI() {
-        return this.impl.installJSI();
-    }
 }
 
 
