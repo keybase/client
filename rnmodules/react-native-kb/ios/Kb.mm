@@ -30,30 +30,30 @@ static NSString *const metaEventEngineReset = @"kb-engine-reset";
 
 @interface RCTBridge ()
 
-    - (JSGlobalContextRef)jsContextRef;
-    - (void *)runtime;
-    - (void)dispatchBlock:(dispatch_block_t)block queue:(dispatch_queue_t)queue;
-    - (std::shared_ptr<facebook::react::CallInvoker>)jsCallInvoker;
+- (JSGlobalContextRef)jsContextRef;
+- (void *)runtime;
+- (void)dispatchBlock:(dispatch_block_t)block queue:(dispatch_queue_t)queue;
+- (std::shared_ptr<facebook::react::CallInvoker>)jsCallInvoker;
 
-    @end
+@end
 
 @interface Kb ()
-    @property dispatch_queue_t readQueue;
-    @property(nonatomic, weak) RCTBridge *bridge;
-    @end
+@property dispatch_queue_t readQueue;
+@property(nonatomic, weak) RCTBridge *bridge;
+@end
 
-    @implementation Kb
-    @synthesize bridge = _bridge;
-    @synthesize methodQueue = _methodQueue;
+@implementation Kb
+@synthesize bridge = _bridge;
+@synthesize methodQueue = _methodQueue;
 
-    // sanity check the runtime isn't out of sync due to reload etc
-    void * currentRuntime = nil;
+// sanity check the runtime isn't out of sync due to reload etc
+void * currentRuntime = nil;
 
 RCT_EXPORT_MODULE()
 
-    + (BOOL)requiresMainQueueSetup {
-        return YES;
-    }
++ (BOOL)requiresMainQueueSetup {
+    return YES;
+}
 
 - (void)invalidate {
     currentRuntime = nil;
@@ -68,35 +68,35 @@ RCT_EXPORT_MODULE()
 - (void)sendToJS:(NSData *)data {
     __weak __typeof__(self) weakSelf = self;
     auto invoker = self.bridge.jsCallInvoker;
-
+    
     if (!invoker) {
         NSLog(@"Failed to find invoker in sendToJS!!!");
         return;
     }
-
+    
     invoker->invokeAsync([data, weakSelf]() {
-            __typeof__(self) strongSelf = weakSelf;
-            if (!strongSelf) {
+        __typeof__(self) strongSelf = weakSelf;
+        if (!strongSelf) {
             NSLog(@"Failed to find self in sendToJS invokeAsync!!!");
             return;
-            }
-            auto jsRuntimePtr = [strongSelf javaScriptRuntimePointer];
-            if (!jsRuntimePtr) {
+        }
+        auto jsRuntimePtr = [strongSelf javaScriptRuntimePointer];
+        if (!jsRuntimePtr) {
             NSLog(@"Failed to find jsi in sendToJS invokeAsync!!!");
             return;
-            }
-
-            int size = (int)[data length];
-            auto& jsiRuntime = *jsRuntimePtr;
-            auto values = PrepRpcOnJS(jsiRuntime, (uint8_t *)[data bytes], size);
-
-            RpcOnJS(jsiRuntime, values, [](const std::string &err) {
-                    DDLogInfo(@"%@%@: [%@,\"jsi rpconjs error: %@\"]", @"d", @"NativeLogger",
-                            [NSString stringWithFormat:@"%f", [[NSDate date]
-                            timeIntervalSince1970] *
-                            1000],
-                            [NSString stringWithUTF8String:err.c_str()]);
-                    });
+        }
+        
+        int size = (int)[data length];
+        auto& jsiRuntime = *jsRuntimePtr;
+        auto values = PrepRpcOnJS(jsiRuntime, (uint8_t *)[data bytes], size);
+        
+        RpcOnJS(jsiRuntime, values, [](const std::string &err) {
+            DDLogInfo(@"%@%@: [%@,\"jsi rpconjs error: %@\"]", @"d", @"NativeLogger",
+                      [NSString stringWithFormat:@"%f", [[NSDate date]
+                                                         timeIntervalSince1970] *
+                       1000],
+                      [NSString stringWithUTF8String:err.c_str()]);
+        });
     });
 }
 
@@ -115,88 +115,88 @@ RCT_EXPORT_MODULE()
 
 // used to keep track of objects getting destroyed on the js side
 class KBTearDown : public jsi::HostObject {
-    public:
-        KBTearDown() {
-            Tearup();
-        }
-        virtual ~KBTearDown() {
-            NSLog(@"KBTeardown!!!");
-            Teardown();
-        }
-        virtual jsi::Value get(jsi::Runtime &, const jsi::PropNameID &name) {
-            return jsi::Value::undefined();
-        }
-        virtual void set(jsi::Runtime &, const jsi::PropNameID &name, const jsi::Value &value) {}
-        virtual std::vector<jsi::PropNameID> getPropertyNames(jsi::Runtime &rt) {
-            return {};
-        }
+public:
+    KBTearDown() {
+        Tearup();
+    }
+    virtual ~KBTearDown() {
+        NSLog(@"KBTeardown!!!");
+        Teardown();
+    }
+    virtual jsi::Value get(jsi::Runtime &, const jsi::PropNameID &name) {
+        return jsi::Value::undefined();
+    }
+    virtual void set(jsi::Runtime &, const jsi::PropNameID &name, const jsi::Value &value) {}
+    virtual std::vector<jsi::PropNameID> getPropertyNames(jsi::Runtime &rt) {
+        return {};
+    }
 };
 
 - (void)installJsiBindings {
     // stash the current runtime to keep in sync
     currentRuntime = self.bridge.runtime;
     auto rpcOnGoWrap = [](Runtime &runtime, const Value &thisValue,
-            const Value *arguments, size_t count) -> Value {
+                          const Value *arguments, size_t count) -> Value {
         return RpcOnGo(runtime, thisValue, arguments, count,
-                [](void *ptr, size_t size) {
-                NSData *result = [NSData dataWithBytesNoCopy:ptr
-                length:size
-                freeWhenDone:NO];
-                NSError *error = nil;
-                KeybaseWriteArr(result, &error);
-                if (error) {
+                       [](void *ptr, size_t size) {
+            NSData *result = [NSData dataWithBytesNoCopy:ptr
+                                                  length:size
+                                            freeWhenDone:NO];
+            NSError *error = nil;
+            KeybaseWriteArr(result, &error);
+            if (error) {
                 NSLog(@"Error writing data: %@", error);
-                }
-                });
+            }
+        });
     };
-
+    
     auto jsRuntimePtr = [self javaScriptRuntimePointer];
     if (!jsRuntimePtr) {
         NSLog(@"Failed to install jsi!!!");
         return;
     }
-
+    
     DDLogInfo(
-            @"%@%@: [%@,\"%@\"]", @"d", @"NativeLogger",
-            [NSString
-            stringWithFormat:@"%f", [[NSDate date] timeIntervalSince1970] * 1000],
-            @"jsi install success");
-
-
+              @"%@%@: [%@,\"%@\"]", @"d", @"NativeLogger",
+              [NSString
+               stringWithFormat:@"%f", [[NSDate date] timeIntervalSince1970] * 1000],
+              @"jsi install success");
+    
+    
     auto& jsiRuntime = *jsRuntimePtr;
     // register the global JS uses to call go
     jsiRuntime.global().setProperty(jsiRuntime, "rpcOnGo",
-            Function::createFromHostFunction(jsiRuntime,
-                PropNameID::forAscii(jsiRuntime, "rpcOnGo"), 1, move(rpcOnGoWrap)));
-
+                                    Function::createFromHostFunction(jsiRuntime,
+                                                                     PropNameID::forAscii(jsiRuntime, "rpcOnGo"), 1, move(rpcOnGoWrap)));
+    
     // register a global so we get notified when the runtime is killed so we can cleanup
     jsiRuntime.global().setProperty(jsiRuntime, "kbTeardown",
-            jsi::Object::createFromHostObject(jsiRuntime, std::make_shared<KBTearDown>()));
+                                    jsi::Object::createFromHostObject(jsiRuntime, std::make_shared<KBTearDown>()));
 }
 
 RCT_REMAP_METHOD(getDefaultCountryCode, resolver
-        : (RCTPromiseResolveBlock)resolve rejecter
-        : (RCTPromiseRejectBlock)reject) {
+                 : (RCTPromiseResolveBlock)resolve rejecter
+                 : (RCTPromiseRejectBlock)reject) {
     CTTelephonyNetworkInfo *network_Info = [CTTelephonyNetworkInfo new];
     CTCarrier *carrier = network_Info.subscriberCellularProvider;
-
+    
     resolve(carrier.isoCountryCode);
 }
 
 RCT_REMAP_METHOD(logSend, status
-        : (NSString *)status feedback
-        : (NSString *)feedback sendLogs
-        : (BOOL)sendLogs sendMaxBytes
-        : (BOOL)sendMaxBytes traceDir
-        : (NSString *)traceDir cpuProfileDir
-        : (NSString *)cpuProfileDir resolver
-        : (RCTPromiseResolveBlock)resolve rejecter
-        : (RCTPromiseRejectBlock)reject) {
-
+                 : (NSString *)status feedback
+                 : (NSString *)feedback sendLogs
+                 : (BOOL)sendLogs sendMaxBytes
+                 : (BOOL)sendMaxBytes traceDir
+                 : (NSString *)traceDir cpuProfileDir
+                 : (NSString *)cpuProfileDir resolver
+                 : (RCTPromiseResolveBlock)resolve rejecter
+                 : (RCTPromiseRejectBlock)reject) {
+    
     NSString *logId = nil;
     NSError *err = nil;
     logId = KeybaseLogSend(status, feedback, sendLogs, sendMaxBytes, traceDir,
-            cpuProfileDir, &err);
+                           cpuProfileDir, &err);
     if (err == nil) {
         resolve(logId);
     } else {
@@ -206,20 +206,20 @@ RCT_REMAP_METHOD(logSend, status
 }
 
 RCT_REMAP_METHOD(iosGetHasShownPushPrompt, getHasShownPushPromptWithResolver
-        : (RCTPromiseResolveBlock)resolve rejecter
-        : (RCTPromiseRejectBlock)reject) {
+                 : (RCTPromiseResolveBlock)resolve rejecter
+                 : (RCTPromiseRejectBlock)reject) {
     UNUserNotificationCenter *current =
-        UNUserNotificationCenter.currentNotificationCenter;
+    UNUserNotificationCenter.currentNotificationCenter;
     [current getNotificationSettingsWithCompletionHandler:^(
-            UNNotificationSettings *_Nonnull settings) {
-        if (settings.authorizationStatus == UNAuthorizationStatusNotDetermined) {
-            // We haven't asked yet
-            resolve(@FALSE);
-            return;
-        }
-        resolve(@TRUE);
-        return;
-    }];
+                                                            UNNotificationSettings *_Nonnull settings) {
+                                                                if (settings.authorizationStatus == UNAuthorizationStatusNotDetermined) {
+                                                                    // We haven't asked yet
+                                                                    resolve(@FALSE);
+                                                                    return;
+                                                                }
+                                                                resolve(@TRUE);
+                                                                return;
+                                                            }];
 }
 
 RCT_REMAP_METHOD(iosLog, tagsAndLogs : (NSArray *)tagsAndLogs) {
@@ -239,71 +239,71 @@ RCT_REMAP_METHOD(iosLog, tagsAndLogs : (NSArray *)tagsAndLogs) {
     self.fileLogger.rollingFrequency = 60 * 60 * 24;            // 24 hour rolling
     self.fileLogger.logFileManager.maximumNumberOfLogFiles = 3; // 3 days
     [DDLog addLogger:self.fileLogger];
-
+    
     DDLogInfo(
-            @"%@%@: [%@,\"%@\"]", @"d", @"NativeLogger",
-            [NSString
-            stringWithFormat:@"%f", [[NSDate date] timeIntervalSince1970] * 1000],
-            @"logger setup success");
+              @"%@%@: [%@,\"%@\"]", @"d", @"NativeLogger",
+              [NSString
+               stringWithFormat:@"%f", [[NSDate date] timeIntervalSince1970] * 1000],
+              @"logger setup success");
 }
 
 RCT_REMAP_METHOD(logDump, tagPrefix
-        : (NSString *)tagPrefix resolver
-        : (RCTPromiseResolveBlock)resolve rejecter
-        : (RCTPromiseRejectBlock)reject) {
+                 : (NSString *)tagPrefix resolver
+                 : (RCTPromiseResolveBlock)resolve rejecter
+                 : (RCTPromiseRejectBlock)reject) {
     dispatch_async(dispatch_get_main_queue(), ^{
-            [self setupLogger];
-            DDFileLogger *fileLogger = self.fileLogger;
-
-            dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_LOW, 0), ^{
-                    NSMutableArray<NSString *> *lines = [[NSMutableArray alloc] init];
-                    NSArray<NSString *> *paths =
-                    [[fileLogger logFileManager] sortedLogFilePaths];
-                    for (NSString *path in paths) {
-                    NSString *fileContents =
-                    [NSString stringWithContentsOfFile:path
-                    encoding:NSUTF8StringEncoding
-                    error:NULL];
-                    for (NSString *line in
-                            [fileContents componentsSeparatedByCharactersInSet:
-                            [NSCharacterSet newlineCharacterSet]]) {
+        [self setupLogger];
+        DDFileLogger *fileLogger = self.fileLogger;
+        
+        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_LOW, 0), ^{
+            NSMutableArray<NSString *> *lines = [[NSMutableArray alloc] init];
+            NSArray<NSString *> *paths =
+            [[fileLogger logFileManager] sortedLogFilePaths];
+            for (NSString *path in paths) {
+                NSString *fileContents =
+                [NSString stringWithContentsOfFile:path
+                                          encoding:NSUTF8StringEncoding
+                                             error:NULL];
+                for (NSString *line in
+                     [fileContents componentsSeparatedByCharactersInSet:
+                      [NSCharacterSet newlineCharacterSet]]) {
                     NSRange range = [line
-                    rangeOfString:[NSString stringWithFormat:@"%@%@: ", tagPrefix,
-                    tagName]];
+                                     rangeOfString:[NSString stringWithFormat:@"%@%@: ", tagPrefix,
+                                                    tagName]];
                     if (range.location != NSNotFound) {
-                    [lines addObject:[line substringFromIndex:range.location +
-                    range.length]];
+                        [lines addObject:[line substringFromIndex:range.location +
+                                          range.length]];
                     }
-                    }
-                    }
-                    resolve(lines);
-            });
+                }
+            }
+            resolve(lines);
+        });
     });
 }
 
 // from react-native-localize
 - (bool)uses24HourClockForLocale:(NSLocale *_Nonnull)locale {
     NSDateFormatter *formatter = [NSDateFormatter new];
-
+    
     [formatter setLocale:locale];
     [formatter setTimeZone:[NSTimeZone timeZoneForSecondsFromGMT:0]];
     [formatter setDateStyle:NSDateFormatterNoStyle];
     [formatter setTimeStyle:NSDateFormatterShortStyle];
-
+    
     NSDate *date = [NSDate dateWithTimeIntervalSince1970:72000];
     return [[formatter stringFromDate:date] containsString:@"20"];
 }
 
 - (NSString *)setupServerConfig {
     NSArray *paths = NSSearchPathForDirectoriesInDomains(NSCachesDirectory,
-            NSUserDomainMask, YES);
+                                                         NSUserDomainMask, YES);
     NSString *cachePath = [paths objectAtIndex:0];
     NSString *filePath = [cachePath
-        stringByAppendingPathComponent:@"/Keybase/keybase.app.serverConfig"];
+                          stringByAppendingPathComponent:@"/Keybase/keybase.app.serverConfig"];
     NSError *err;
     NSString *val = [NSString stringWithContentsOfFile:filePath
-        encoding:NSUTF8StringEncoding
-        error:&err];
+                                              encoding:NSUTF8StringEncoding
+                                                 error:&err];
     if (err != nil || val == nil) {
         return @"";
     }
@@ -312,14 +312,14 @@ RCT_REMAP_METHOD(logDump, tagPrefix
 
 - (NSString *)setupGuiConfig {
     id<KbProvider> kbProvider =
-        (id<KbProvider>)[[UIApplication sharedApplication] delegate];
+    (id<KbProvider>)[[UIApplication sharedApplication] delegate];
     NSString *filePath = [[kbProvider fsPaths][@"sharedHome"]
-        stringByAppendingPathComponent:
-        @"/Library/Application Support/Keybase/gui_config.json"];
+                          stringByAppendingPathComponent:
+                              @"/Library/Application Support/Keybase/gui_config.json"];
     NSError *err;
     NSString *val = [NSString stringWithContentsOfFile:filePath
-        encoding:NSUTF8StringEncoding
-        error:&err];
+                                              encoding:NSUTF8StringEncoding
+                                                 error:&err];
     if (err != nil || val == nil) {
         return @"";
     }
@@ -337,40 +337,40 @@ RCT_EXPORT_METHOD(engineReset) {
 
 RCT_EXPORT_METHOD(engineStart) {
     __weak __typeof__(self) weakSelf = self;
-
+    
     dispatch_async(dispatch_get_main_queue(), ^{
-            [[NSNotificationCenter defaultCenter]
-            addObserver:self
-            selector:@selector(engineReset)
-            name:RCTJavaScriptWillStartLoadingNotification
-            object:nil];
-            self.readQueue =
-            dispatch_queue_create("go_bridge_queue_read", DISPATCH_QUEUE_SERIAL);
-
-            dispatch_async(self.readQueue, ^{
-                    while (true) {
-                    {
+        [[NSNotificationCenter defaultCenter]
+         addObserver:self
+         selector:@selector(engineReset)
+         name:RCTJavaScriptWillStartLoadingNotification
+         object:nil];
+        self.readQueue =
+        dispatch_queue_create("go_bridge_queue_read", DISPATCH_QUEUE_SERIAL);
+        
+        dispatch_async(self.readQueue, ^{
+            while (true) {
+                {
                     __typeof__(self) strongSelf = weakSelf;
                     if (!strongSelf || !strongSelf.bridge) {
-                    NSLog(@"Bridge dead, bailing");
-                    printf("aaa <<< bridge dead read loop bail\n");
-                    return;
+                        NSLog(@"Bridge dead, bailing");
+                        printf("aaa <<< bridge dead read loop bail\n");
+                        return;
                     }
-                    }
-
-                    NSError *error = nil;
-                    NSData *data = KeybaseReadArr(&error);
-                    if (error) {
+                }
+                
+                NSError *error = nil;
+                NSData *data = KeybaseReadArr(&error);
+                if (error) {
                     NSLog(@"Error reading data: %@", error);
-                    }
-                    else if (data) {
+                }
+                else if (data) {
                     __typeof__(self) strongSelf = weakSelf;
                     if (strongSelf) {
-                    [strongSelf sendToJS:data];
+                        [strongSelf sendToJS:data];
                     }
-                    }
-                    }
-            });
+                }
+            }
+        });
     });
 }
 
@@ -378,44 +378,44 @@ RCT_EXPORT_METHOD(engineStart) {
     [self installJsiBindings];
     NSString *serverConfig = [self setupServerConfig];
     NSString *guiConfig = [self setupGuiConfig];
-
+    
     NSString *darkModeSupported = @"0";
     if (@available(iOS 13.0, *)) {
         darkModeSupported = @"1";
     };
-
+    
     NSString *appVersionString = [[NSBundle mainBundle]
-        objectForInfoDictionaryKey:@"CFBundleShortVersionString"];
+                                  objectForInfoDictionaryKey:@"CFBundleShortVersionString"];
     if (appVersionString == nil) {
         appVersionString = @"";
     }
     NSString *appBuildString =
-        [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleVersion"];
+    [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleVersion"];
     if (appBuildString == nil) {
         appBuildString = @"";
     }
     NSLocale *currentLocale = [NSLocale currentLocale];
     NSString *cacheDir = [NSSearchPathForDirectoriesInDomains(
-            NSCachesDirectory, NSUserDomainMask, YES) firstObject];
+                                                              NSCachesDirectory, NSUserDomainMask, YES) firstObject];
     NSString *downloadDir = [NSSearchPathForDirectoriesInDomains(
-            NSDownloadsDirectory, NSUserDomainMask, YES) firstObject];
-
+                                                                 NSDownloadsDirectory, NSUserDomainMask, YES) firstObject];
+    
     NSString *kbVersion = KeybaseVersion();
     if (kbVersion == nil) {
         kbVersion = @"";
     }
     return @{
         @"androidIsDeviceSecure" : @NO,
-            @"androidIsTestDevice" : @NO,
-            @"appVersionCode" : appBuildString,
-            @"appVersionName" : appVersionString,
-            @"darkModeSupported" : darkModeSupported,
-            @"fsCacheDir" : cacheDir,
-            @"fsDownloadDir" : downloadDir,
-            @"guiConfig" : guiConfig,
-            @"serverConfig" : serverConfig,
-            @"uses24HourClock" : @([self uses24HourClockForLocale:currentLocale]),
-            @"version" : kbVersion
+        @"androidIsTestDevice" : @NO,
+        @"appVersionCode" : appBuildString,
+        @"appVersionName" : appVersionString,
+        @"darkModeSupported" : darkModeSupported,
+        @"fsCacheDir" : cacheDir,
+        @"fsDownloadDir" : downloadDir,
+        @"guiConfig" : guiConfig,
+        @"serverConfig" : serverConfig,
+        @"uses24HourClock" : @([self uses24HourClockForLocale:currentLocale]),
+        @"version" : kbVersion
     };
 }
 
