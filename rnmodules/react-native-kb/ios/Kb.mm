@@ -353,7 +353,6 @@ RCT_EXPORT_METHOD(engineStart) {
                     __typeof__(self) strongSelf = weakSelf;
                     if (!strongSelf || !strongSelf.bridge) {
                         NSLog(@"Bridge dead, bailing");
-                        printf("aaa <<< bridge dead read loop bail\n");
                         return;
                     }
                 }
