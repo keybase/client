@@ -18,7 +18,7 @@ void Tearup() {
 }
 
 Value RpcOnGo(Runtime &runtime, const Value &thisValue, const Value *arguments,
-              size_t count, void (*callback)(void *ptr, size_t size)) {
+        size_t count, void (*callback)(void *ptr, size_t size)) {
     try {
         auto obj = arguments[0].asObject(runtime);
         auto buffer = obj.getArrayBuffer(runtime);
@@ -69,46 +69,46 @@ Value convertMPToJSI(Runtime &runtime, msgpack::object &o) {
         case msgpack::type::EXT:
             return jsi::Value::undefined();
         case msgpack::type::MAP: {
-            jsi::Object obj = jsi::Object(runtime);
-            auto *p = o.via.map.ptr;
-            auto *const pend = o.via.map.ptr + o.via.map.size;
-            for (; p < pend; ++p) {
-                auto key = mpToString(p->key);
-                auto val = convertMPToJSI(runtime, p->val);
-                obj.setProperty(runtime, key.c_str(), val);
-            }
-            return obj;
-        }
+                                     jsi::Object obj = jsi::Object(runtime);
+                                     auto *p = o.via.map.ptr;
+                                     auto *const pend = o.via.map.ptr + o.via.map.size;
+                                     for (; p < pend; ++p) {
+                                         auto key = mpToString(p->key);
+                                         auto val = convertMPToJSI(runtime, p->val);
+                                         obj.setProperty(runtime, key.c_str(), val);
+                                     }
+                                     return obj;
+                                 }
         case msgpack::type::BIN: {
-            auto ptr = o.via.bin.ptr;
-            int size = o.via.bin.size;
-            // make ArrayBuffer and copy in data
-            Function arrayBufferCtor =
-            runtime.global().getPropertyAsFunction(runtime, "ArrayBuffer");
-            Value ab = arrayBufferCtor.callAsConstructor(runtime, size);
-            Object abo = ab.getObject(runtime);
-            ArrayBuffer abbuf = abo.getArrayBuffer(runtime);
-            std::copy(ptr, ptr + size, abbuf.data(runtime));
-            
-            // Wrap in Buffer like framed-msg-pack
-            Object bufObj = runtime.global().getPropertyAsObject(runtime, "Buffer");
-            Function bufFrom = bufObj.getPropertyAsFunction(runtime, "from");
-            Value buf = bufFrom.callWithThis(
+                                     auto ptr = o.via.bin.ptr;
+                                     int size = o.via.bin.size;
+                                     // make ArrayBuffer and copy in data
+                                     Function arrayBufferCtor =
+                                         runtime.global().getPropertyAsFunction(runtime, "ArrayBuffer");
+                                     Value ab = arrayBufferCtor.callAsConstructor(runtime, size);
+                                     Object abo = ab.getObject(runtime);
+                                     ArrayBuffer abbuf = abo.getArrayBuffer(runtime);
+                                     std::copy(ptr, ptr + size, abbuf.data(runtime));
+
+                                     // Wrap in Buffer like framed-msg-pack
+                                     Object bufObj = runtime.global().getPropertyAsObject(runtime, "Buffer");
+                                     Function bufFrom = bufObj.getPropertyAsFunction(runtime, "from");
+                                     Value buf = bufFrom.callWithThis(
                                              runtime, bufObj,
                                              std::move(ab)); // Buffer shares the memory and just wraps
-            return buf;
-        }
+                                     return buf;
+                                 }
         case msgpack::type::ARRAY: {
-            auto size = o.via.array.size;
-            jsi::Array arr(runtime, size);
-            for (int i = 0; i < size; ++i) {
-                arr.setValueAtIndex(runtime, i,
-                                    convertMPToJSI(runtime, o.via.array.ptr[i]));
-            }
-            return arr;
-        }
+                                       auto size = o.via.array.size;
+                                       jsi::Array arr(runtime, size);
+                                       for (int i = 0; i < size; ++i) {
+                                           arr.setValueAtIndex(runtime, i,
+                                                   convertMPToJSI(runtime, o.via.array.ptr[i]));
+                                       }
+                                       return arr;
+                                   }
         default:
-            return jsi::Value::undefined();
+                                   return jsi::Value::undefined();
     }
 }
 
@@ -146,12 +146,12 @@ ShareValues PrepRpcOnJS(Runtime &runtime, uint8_t *data, int size) {
 }
 
 void RpcOnJS(Runtime &runtime, ShareValues values,
-             void (*err_callback)(const std::string &err)) {
+        void (*err_callback)(const std::string &err)) {
     try {
         if (isTowndown.load()) {
             return;
         }
-        
+
         for (auto &result : *values) {
             msgpack::object obj(result.get());
             Value value = convertMPToJSI(runtime, obj);
@@ -159,7 +159,7 @@ void RpcOnJS(Runtime &runtime, ShareValues values,
                 return;
             }
             Function rpcOnJs =
-            runtime.global().getPropertyAsFunction(runtime, "rpcOnJs");
+                runtime.global().getPropertyAsFunction(runtime, "rpcOnJs");
             rpcOnJs.call(runtime, move(value), 1);
         }
     } catch (const std::exception &e) {
