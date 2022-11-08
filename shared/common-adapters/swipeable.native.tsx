@@ -6,6 +6,7 @@
 import * as React from 'react'
 import {Component} from 'react'
 import {Animated, StyleSheet, View, I18nManager, LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native'
+
 import {
   GestureEvent,
   HandlerStateChangeEvent,
@@ -20,6 +21,11 @@ import {
 const DRAG_TOSS = 0.05
 
 type SwipeableExcludes = Exclude<keyof PanGestureHandlerProps, 'onGestureEvent' | 'onHandlerStateChange'>
+
+// Animated.AnimatedInterpolation has been converted to a generic type
+// in @types/react-native 0.70. This way we can maintain compatibility
+// with all versions of @types/react-native
+type AnimatedInterpolation = ReturnType<Animated.Value['interpolate']>
 
 export interface SwipeableProps extends Pick<PanGestureHandlerProps, SwipeableExcludes> {
   /**
@@ -90,12 +96,12 @@ export interface SwipeableProps extends Pick<PanGestureHandlerProps, SwipeableEx
   /**
    * Called when action panel gets open (either right or left).
    */
-  onSwipeableOpen?: (direction: 'left' | 'right') => void
+  onSwipeableOpen?: (direction: 'left' | 'right', swipeable: Swipeable) => void
 
   /**
    * Called when action panel is closed.
    */
-  onSwipeableClose?: (direction: 'left' | 'right') => void
+  onSwipeableClose?: (direction: 'left' | 'right', swipeable: Swipeable) => void
 
   /**
    * @deprecated Use `direction` argument of onSwipeableWillOpen()
@@ -131,8 +137,8 @@ export interface SwipeableProps extends Pick<PanGestureHandlerProps, SwipeableEx
    * To support `rtl` flexbox layouts use `flexDirection` styling.
    * */
   renderLeftActions?: (
-    progressAnimatedValue: Animated.AnimatedInterpolation,
-    dragAnimatedValue: Animated.AnimatedInterpolation
+    progressAnimatedValue: AnimatedInterpolation,
+    dragAnimatedValue: AnimatedInterpolation
   ) => React.ReactNode
   /**
    *
@@ -144,8 +150,9 @@ export interface SwipeableProps extends Pick<PanGestureHandlerProps, SwipeableEx
    * To support `rtl` flexbox layouts use `flexDirection` styling.
    * */
   renderRightActions?: (
-    progressAnimatedValue: Animated.AnimatedInterpolation,
-    dragAnimatedValue: Animated.AnimatedInterpolation
+    progressAnimatedValue: AnimatedInterpolation,
+    dragAnimatedValue: AnimatedInterpolation,
+    swipeable: Swipeable
   ) => React.ReactNode
 
   useNativeAnimations?: boolean
@@ -216,11 +223,11 @@ export default class Swipeable extends Component<SwipeableProps, SwipeableState>
   }
 
   private onGestureEvent?: (event: GestureEvent<PanGestureHandlerEventPayload>) => void
-  private transX?: Animated.AnimatedInterpolation
-  private showLeftAction?: Animated.AnimatedInterpolation | Animated.Value
-  private leftActionTranslate?: Animated.AnimatedInterpolation
-  private showRightAction?: Animated.AnimatedInterpolation | Animated.Value
-  private rightActionTranslate?: Animated.AnimatedInterpolation
+  private transX?: AnimatedInterpolation
+  private showLeftAction?: AnimatedInterpolation | Animated.Value
+  private leftActionTranslate?: AnimatedInterpolation
+  private showRightAction?: AnimatedInterpolation | Animated.Value
+  private rightActionTranslate?: AnimatedInterpolation
 
   private updateAnimatedEvent = (props: SwipeableProps, state: SwipeableState) => {
     const {friction, overshootFriction} = props
@@ -358,13 +365,13 @@ export default class Swipeable extends Component<SwipeableProps, SwipeableState>
       if (finished) {
         if (toValue > 0) {
           this.props.onSwipeableLeftOpen?.()
-          this.props.onSwipeableOpen?.('left')
+          this.props.onSwipeableOpen?.('left', this)
         } else if (toValue < 0) {
           this.props.onSwipeableRightOpen?.()
-          this.props.onSwipeableOpen?.('right')
+          this.props.onSwipeableOpen?.('right', this)
         } else {
           const closingDirection = fromValue > 0 ? 'left' : 'right'
-          this.props.onSwipeableClose?.(closingDirection)
+          this.props.onSwipeableClose?.(closingDirection, this)
         }
       }
     })
@@ -441,7 +448,7 @@ export default class Swipeable extends Component<SwipeableProps, SwipeableState>
 
     const right = renderRightActions && (
       <Animated.View style={[styles.rightActions, {transform: [{translateX: this.rightActionTranslate!}]}]}>
-        {renderRightActions(this.showRightAction!, this.transX!)}
+        {renderRightActions(this.showRightAction!, this.transX!, this)}
         <View
           onLayout={({nativeEvent}) => {
             // KB just stash it
