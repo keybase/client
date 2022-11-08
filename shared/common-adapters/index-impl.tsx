@@ -1,6 +1,9 @@
 // @ts-nocheck
 /* eslint-disable */
 module.exports = {
+  get AnimatedKeyboardAvoidingView() {
+    return require('./keyboard-avoiding-view').AnimatedKeyboardAvoidingView
+  },
   get Animation() {
     return require('./animation').default
   },
@@ -126,6 +129,9 @@ module.exports = {
   get HeaderLeftCancel() {
     return require('./header-hoc').HeaderLeftCancel
   },
+  get HideKeyboardBox() {
+    return require('./hide-keyboard-box').default
+  },
   get HotKey() {
     return require('./hot-key').HotKey
   },
@@ -143,9 +149,6 @@ module.exports = {
   },
   get Input() {
     return require('./input').default
-  },
-  get KeyboardAvoidingView() {
-    return require('./keyboard-avoiding-view').default
   },
   get LabeledInput() {
     return require('./labeled-input').default
@@ -272,6 +275,9 @@ module.exports = {
   },
   get SectionList() {
     return require('./section-list').default
+  },
+  get SimpleKeyboardAvoidingView() {
+    return require('./keyboard-avoiding-view').SimpleKeyboardAvoidingView
   },
   get SimpleToast() {
     return require('./simple-toast').default

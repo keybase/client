@@ -140,9 +140,6 @@ module.exports = {
   get Input() {
     return Index.Input
   },
-  get KeyboardAvoidingView() {
-    return Index.KeyboardAvoidingView
-  },
   get LabeledInput() {
     return Index.LabeledInput
   },

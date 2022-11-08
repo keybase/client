@@ -1,4 +1,5 @@
 import * as React from 'react'
+import * as Kb from '../../common-adapters'
 import * as Constants from '../../constants/chat2'
 import * as Container from '../../util/container'
 import Normal from './normal/container'
@@ -6,12 +7,13 @@ import NoConversation from './no-conversation'
 import Error from './error/container'
 import YouAreReset from './you-are-reset'
 import Rekey from './rekey/container'
-import {headerNavigationOptions} from './header-area/container'
 import {useFocusEffect, useNavigation} from '@react-navigation/core'
 import {tabBarStyle} from '../../router-v2/common'
+import {headerNavigationOptions} from './header-area/container'
 import type {RouteProps} from '../../router-v2/route-params'
 
 type SwitchProps = RouteProps<'chatConversation'>
+
 const hideTabBarStyle = {display: 'none'}
 
 // due to timing issues if we go between convos we can 'lose track' of focus in / out
@@ -76,9 +78,11 @@ const Conversation = (p: SwitchProps) => {
     }
   })
 
+  let content: React.ReactNode = null
   switch (type) {
     case 'error':
-      return <Error key={conversationIDKey} conversationIDKey={conversationIDKey} />
+      content = <Error key={conversationIDKey} conversationIDKey={conversationIDKey} />
+      break
     case 'noConvo':
       // When navigating back to the inbox on mobile, we deselect
       // conversationIDKey by called mobileChangeSelection. This results in
@@ -90,23 +94,34 @@ const Conversation = (p: SwitchProps) => {
       // On iOS it is less noticeable because screen transitions slide away to
       // the right, though it is visible for a small amount of time.
       // To solve this we render a blank screen on mobile conversation views with "noConvo"
-      return Container.isPhone ? null : <NoConversation />
+      content = Container.isPhone ? null : <NoConversation />
+      break
     case 'normal':
       // the id as key is so we entirely force a top down redraw to ensure nothing is possibly from another convo
-      return <Normal key={conversationIDKey} conversationIDKey={conversationIDKey} />
+      content = <Normal key={conversationIDKey} conversationIDKey={conversationIDKey} />
+      break
     case 'youAreReset':
-      return <YouAreReset />
+      content = <YouAreReset />
+      break
     case 'rekey':
-      return <Rekey key={conversationIDKey} conversationIDKey={conversationIDKey} />
+      content = <Rekey key={conversationIDKey} conversationIDKey={conversationIDKey} />
+      break
     default:
-      return <NoConversation />
+      content = <NoConversation />
+      break
   }
+
+  if (Container.isMobile) {
+    content = (
+      <Kb.AnimatedKeyboardAvoidingView wrapStyle="translate">{content}</Kb.AnimatedKeyboardAvoidingView>
+    )
+  }
+  return content
 }
 
 // @ts-ignore
 Conversation.navigationOptions = ({route}) => ({
   ...headerNavigationOptions(route),
-  needsSafe: true,
 })
 
 const ConversationMemoed = React.memo(Conversation)

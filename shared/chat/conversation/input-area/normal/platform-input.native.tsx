@@ -28,11 +28,11 @@ import {
   useAnimatedStyle,
   withTiming,
 } from '../../../../common-adapters/reanimated'
+import {useAnimatedKeyboard} from 'react-native-reanimated'
 import logger from '../../../../logger'
 
 const singleLineHeight = 36
 const threeLineHeight = 78
-const inputAreaHeight = 91
 
 type MenuType = 'exploding' | 'filepickerpopup' | 'moremenu'
 
@@ -496,15 +496,36 @@ const AnimatedInput = (() => {
       const {expanded, ...rest} = p
       return <AnimatedPlainInput {...rest} ref={ref} style={[rest.style]} />
     })
-  } else {
+  } else if (Styles.isAndroid) {
+    // android useAnimatedKeyboard causes some weird side effects, so ignore for now
     return React.forwardRef<any, any>((p: any, ref) => {
       const {maxInputArea, expanded, ...rest} = p
       const offset = useSharedValue(expanded ? 1 : 0)
+      const inputAreaHeight = 91
       const maxHeight = maxInputArea - inputAreaHeight - 15
       const as = useAnimatedStyle(() => ({
         maxHeight: withTiming(offset.value ? maxHeight : threeLineHeight),
         minHeight: withTiming(offset.value ? maxHeight : singleLineHeight),
       }))
+
+      React.useEffect(() => {
+        offset.value = expanded ? 1 : 0
+      }, [expanded, offset])
+      return <AnimatedPlainInput {...rest} ref={ref} style={[rest.style, as]} />
+    })
+  } else {
+    return React.forwardRef<any, any>((p: any, ref) => {
+      const {maxInputArea, expanded, ...rest} = p
+      const offset = useSharedValue(expanded ? 1 : 0)
+      const keyboard = useAnimatedKeyboard()
+
+      const as = useAnimatedStyle(() => {
+        const maxHeight = maxInputArea - keyboard.height.value - 45
+        return {
+          maxHeight: withTiming(offset.value ? maxHeight : threeLineHeight, {duration: 100}),
+          minHeight: withTiming(offset.value ? maxHeight : singleLineHeight, {duration: 100}),
+        }
+      })
       React.useEffect(() => {
         offset.value = expanded ? 1 : 0
       }, [expanded, offset])

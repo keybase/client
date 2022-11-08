@@ -119,10 +119,6 @@ const styles = Styles.styleSheetCreate(
           minWidth: Styles.globalMargins.xlarge,
         },
       }),
-      keyboard: {
-        flexGrow: 1,
-        position: 'relative',
-      },
       label: {marginLeft: Styles.globalMargins.medium},
       labelDarkMode: {color: Styles.globalColors.black_50},
       labelDarkModeFocused: {color: Styles.globalColors.black},
@@ -356,7 +352,7 @@ const RNApp = React.memo(function RNApp() {
   const barStyle = useBarStyle()
 
   return (
-    <Kb.KeyboardAvoidingView style={styles.keyboard} behavior={Styles.isIOS ? 'padding' : undefined}>
+    <>
       <StatusBar barStyle={barStyle} />
       <NavigationContainer
         fallback={<Kb.NativeView style={{backgroundColor: Styles.globalColors.white, flex: 1}} />}
@@ -394,7 +390,7 @@ const RNApp = React.memo(function RNApp() {
           {loggedInLoaded && !loggedIn && <RootStack.Screen name="loggedOut" component={LoggedOut} />}
         </RootStack.Navigator>
       </NavigationContainer>
-    </Kb.KeyboardAvoidingView>
+    </>
   )
 })
 

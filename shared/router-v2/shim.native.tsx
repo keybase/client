@@ -19,17 +19,17 @@ const shimNewRoute = (Original: any, isModal: boolean, isLoggedOut: boolean) => 
     const body = original
     let wrap = body
 
-    const isSafe = navigationOptions?.needsSafe || isModal || isLoggedOut
+    const isSafe = isModal || isLoggedOut
     if (isSafe) {
       wrap = (
-        <SafeAreaView style={Styles.collapseStyles([styles.keyboard, navigationOptions?.safeAreaStyle])}>
+        <SafeAreaView style={Styles.collapseStyles([styles.safe, navigationOptions?.safeAreaStyle])}>
           {wrap}
         </SafeAreaView>
       )
     }
 
     // TODO remove and make all root views have a good background
-    wrap = <Kb.NativeView style={styles.keyboard}>{wrap}</Kb.NativeView>
+    wrap = <Kb.NativeView style={styles.safe}>{wrap}</Kb.NativeView>
     return wrap
   })
   Container.hoistNonReactStatic(ShimmedNew, Original)
@@ -40,6 +40,10 @@ const styles = Styles.styleSheetCreate(
   () =>
     ({
       keyboard: {
+        flexGrow: 1,
+        position: 'relative',
+      },
+      safe: {
         backgroundColor: Styles.globalColors.fastBlank,
         flexGrow: 1,
         maxHeight: '100%',
