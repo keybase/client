@@ -120,11 +120,5 @@ public class KbModule extends ReactContextBaseJavaModule {
     public void engineStart() {
         this.impl.engineStart();
     }
-
-    @ReactMethod(isBlockingSynchronousMethod = true)
-    public boolean installJSI() {
-        return this.impl.installJSI();
-    }
-
 }
 

@@ -14,3 +14,5 @@ facebook::jsi::Value RpcOnGo(facebook::jsi::Runtime &runtime,
 typedef std::shared_ptr<std::vector<msgpack::object_handle>> ShareValues;
 ShareValues PrepRpcOnJS(facebook::jsi::Runtime &runtime, uint8_t *data, int size);
 void RpcOnJS(facebook::jsi::Runtime &runtime, ShareValues values, void (*err_callback)(const std::string & err));
+void Teardown();
+void Tearup();

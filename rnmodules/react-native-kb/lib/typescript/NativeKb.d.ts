@@ -29,7 +29,6 @@ export interface Spec extends TurboModule {
     androidGetInitialShareText(): Promise<string>;
     engineReset(): void;
     engineStart(): void;
-    installJSI(): void;
     getNativeEmitter(): {};
 }
 declare const _default: Spec;

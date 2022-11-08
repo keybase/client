@@ -138,9 +138,6 @@ export const engineReset = () => {
 export const engineStart = () => {
   return Kb.engineStart();
 };
-export const installJSI = () => {
-  return Kb.installJSI();
-};
 export const getNativeEmitter = () => {
   return new NativeEventEmitter(Kb);
 };

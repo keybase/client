@@ -2,7 +2,7 @@ import {TransportShared, sharedCreateClient, rpcLog} from './transport-shared'
 import {encode} from '@msgpack/msgpack'
 import type {SendArg, incomingRPCCallbackType, connectDisconnectCB} from './index.platform'
 import logger from '../logger'
-import {engineStart, engineReset, getNativeEmitter, installJSI} from 'react-native-kb'
+import {engineStart, engineReset, getNativeEmitter} from 'react-native-kb'
 
 const RNEmitter = getNativeEmitter()
 
@@ -41,9 +41,6 @@ class NativeTransport extends TransportShared {
     buf.set(len, 0)
     buf.set(packed, len.length)
     // Pass data over to the native side to be handled, with JSI!
-    if (typeof global.rpcOnGo !== 'function') {
-      installJSI()
-    }
     try {
       global.rpcOnGo(buf.buffer)
     } catch (e) {

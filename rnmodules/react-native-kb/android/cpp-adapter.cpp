@@ -89,10 +89,7 @@ static jstring string2jstring(JNIEnv *env, const string &str) {
 }
 
 void install(facebook::jsi::Runtime &jsiRuntime) {
-  auto rpcOnGo = Function::createFromHostFunction(
-      jsiRuntime, PropNameID::forAscii(jsiRuntime, "rpcOnGo"), 1,
-      [](Runtime &runtime, const Value &thisValue, const Value *arguments,
-         size_t count) -> Value {
+  auto rpcOnGoWrap = [](Runtime &runtime, const Value &thisValue, const Value *arguments, size_t count) -> Value {
         return RpcOnGo(
             runtime, thisValue, arguments, count, [](void *ptr, size_t size) {
               JNIEnv *jniEnv = GetJniEnv();
@@ -105,8 +102,10 @@ void install(facebook::jsi::Runtime &jsiRuntime) {
               params[0].l = jba;
               jniEnv->CallVoidMethodA(java_object, rpcOnGo, params);
             });
-      });
-  jsiRuntime.global().setProperty(jsiRuntime, "rpcOnGo", move(rpcOnGo));
+      };
+  jsiRuntime.global().setProperty(jsiRuntime, "rpcOnGo", 
+      Function::createFromHostFunction(
+      jsiRuntime, PropNameID::forAscii(jsiRuntime, "rpcOnGo"), 1, move(rpcOnGoWrap)));
 }
 
 extern "C" JNIEXPORT void JNICALL
