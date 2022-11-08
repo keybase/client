@@ -358,7 +358,7 @@ PODS:
     - React
   - react-native-kb (0.1.0):
     - React-Core
-  - react-native-netinfo (9.3.4):
+  - react-native-netinfo (9.3.6):
     - React-Core
   - react-native-paste-input (0.5.1):
     - React-Core
@@ -472,17 +472,17 @@ PODS:
     - React-Core
   - RNCMaskedView (0.2.8):
     - React-Core
-  - RNCPicker (2.4.7):
+  - RNCPicker (2.4.8):
     - React-Core
   - RNCPushNotificationIOS (1.10.1):
     - React-Core
-  - RNFastImage (8.6.1):
+  - RNFastImage (8.6.3):
     - React-Core
     - SDWebImage (~> 5.12.1)
     - SDWebImageWebPCoder (~> 0.8.4)
   - RNGestureHandler (2.8.0):
     - React-Core
-  - RNReanimated (2.11.0):
+  - RNReanimated (2.12.0):
     - DoubleConversion
     - FBLazyVector
     - FBReactNativeSpec
@@ -853,7 +853,7 @@ SPEC CHECKSUMS:
   react-native-flipper-performance-plugin: 2b873b68da3e368afeaf29c9c7a8c2b0ff908c4f
   react-native-hw-keyboard-event: b517cefb8d5c659a38049c582de85ff43337dc53
   react-native-kb: 3465c38c4a2990554fd19177874fff8d5cc0079a
-  react-native-netinfo: 6ac9bcc7c88dc51717bda3484eb99093acb755e0
+  react-native-netinfo: f80db8cac2151405633324cb645c60af098ee461
   react-native-paste-input: 183ad7dc224e192719616f4258dde5b548627d08
   react-native-safe-area-context: 99b24a0c5acd0d5dcac2b1a7f18c49ea317be99a
   react-native-webview: d33e2db8925d090871ffeb232dfa50cb3a727581
@@ -871,11 +871,11 @@ SPEC CHECKSUMS:
   ReactCommon: 1e783348b9aa73ae68236271df972ba898560a95
   RNCClipboard: 2834e1c4af68697089cdd455ee4a4cdd198fa7dd
   RNCMaskedView: bc0170f389056201c82a55e242e5d90070e18e5a
-  RNCPicker: 35b5d45693bb46c0e5514116081509e15a64a145
+  RNCPicker: 0bf8ef8f7800524f32d2bb2a8bcadd53eda0ecd1
   RNCPushNotificationIOS: 87b8d16d3ede4532745e05b03c42cff33a36cc45
-  RNFastImage: ab1f02d1afcf4d2333d39aa3fccc82841e044569
+  RNFastImage: 65fc4932ac71ad7569adc60b66db6a6ed30dad89
   RNGestureHandler: 62232ba8f562f7dea5ba1b3383494eb5bf97a4d3
-  RNReanimated: 592be8a2435199971d3441da13a1047e4b54a230
+  RNReanimated: c3e58924b9418883b0bde9e78c4c957302f02435
   RNScreens: 34cc502acf1b916c582c60003dc3089fa01dc66d
   SDWebImage: a47aea9e3d8816015db4e523daff50cfd294499d
   SDWebImageWebPCoder: 908b83b6adda48effe7667cd2b7f78c897e5111d
