@@ -10,10 +10,10 @@ import {saveAttachmentToCameraRoll, showShareActionSheet} from '../platform-spec
 const pickAndUploadToPromise = async (_: Container.TypedState, action: FsGen.PickAndUploadPayload) => {
   try {
     const result = await launchImageLibraryAsync(action.payload.type)
-    return result.cancelled
+    return result.canceled || (result.assets?.length ?? 0) === 0
       ? null
       : FsGen.createUpload({
-          localPath: parseUri(result),
+          localPath: parseUri(result.assets[0]),
           parentPath: action.payload.parentPath,
         })
   } catch (e) {
