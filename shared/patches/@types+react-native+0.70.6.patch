@@ -1,0 +1,22 @@
+diff --git a/node_modules/@types/react-native/index.d.ts b/node_modules/@types/react-native/index.d.ts
+index e9cced2..c211a00 100755
+--- a/node_modules/@types/react-native/index.d.ts
++++ b/node_modules/@types/react-native/index.d.ts
+@@ -58,7 +58,7 @@
+ //
+ ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+ 
+-/// <reference path="globals.d.ts" />
++
+ /// <reference path="legacy-properties.d.ts" />
+ /// <reference path="BatchedBridge.d.ts" />
+ /// <reference path="Codegen.d.ts" />
+@@ -8839,7 +8839,7 @@ export namespace Animated {
+         resetAnimation: (callback: (value: ColorValue) => unknown) => void;
+     }
+ 
+-    class AnimatedInterpolation<OutputT extends number | string> extends AnimatedWithChildren {
++    class AnimatedInterpolation<OutputT extends number | string = number> extends AnimatedWithChildren {
+         interpolate(config: InterpolationConfigType): AnimatedInterpolation<OutputT>;
+     }
+ 

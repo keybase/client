@@ -1,0 +1,13 @@
+diff --git a/node_modules/expo-image-picker/ios/ImagePickerModule.swift b/node_modules/expo-image-picker/ios/ImagePickerModule.swift
+index 57ce901..7fde085 100644
+--- a/node_modules/expo-image-picker/ios/ImagePickerModule.swift
++++ b/node_modules/expo-image-picker/ios/ImagePickerModule.swift
+@@ -117,7 +117,7 @@ public class ImagePickerModule: Module, OnMediaPickingResultHandler {
+     }
+ 
+     picker.mediaTypes = options.mediaTypes.toArray()
+-    picker.videoExportPreset = options.videoExportPreset.toAVAssetExportPreset()
++    // picker.videoExportPreset = options.videoExportPreset.toAVAssetExportPreset()
+     picker.videoQuality = options.videoQuality.toQualityType()
+     picker.videoMaximumDuration = options.videoMaxDuration
+ 
