@@ -110,6 +110,7 @@ const WalletsRootNav = () => {
           component={WalletSubNavigator}
           options={{
             ...Common.defaultNavigationOptions,
+            // @ts-ignore this is used by desktops implementation, TODO better typing / naming
             headerRightActions: () => <HeaderRightActions />,
             headerTitle: () => <HeaderTitle />,
             ...(Container.isTablet
