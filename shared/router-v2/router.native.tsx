@@ -17,8 +17,7 @@ import {NavigationContainer} from '@react-navigation/native'
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs'
 import {modalRoutes, routes, loggedOutRoutes, tabRoots} from './routes'
 import {enableFreeze} from 'react-native-screens'
-import {createStackNavigator} from '@react-navigation/stack'
-import {TransitionPresets} from '@react-navigation/stack'
+import {createStackNavigator, TransitionPresets} from '@react-navigation/stack'
 
 enableFreeze()
 
