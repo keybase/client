@@ -32,7 +32,7 @@ export const defaultNavigationOptions = {
     </Kb.Text>
   ),
   headerTitleContainerStyle: {
-    alignItems: 'stretch',
+    alignItems: 'stretch' as const,
     flexGrow: 1,
   },
 }

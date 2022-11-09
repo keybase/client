@@ -17,8 +17,7 @@ import {NavigationContainer} from '@react-navigation/native'
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs'
 import {modalRoutes, routes, loggedOutRoutes, tabRoots} from './routes'
 import {enableFreeze} from 'react-native-screens'
-import createNoDupeStackNavigator from './stack'
-import {TransitionPresets} from '@react-navigation/stack'
+import {createStackNavigator, TransitionPresets} from '@react-navigation/stack'
 
 enableFreeze()
 
@@ -158,7 +157,7 @@ const fastTransitionSpec = {
 // we must ensure we don't keep remaking these components
 const tabScreensCache = new Map()
 const makeTabStack = (tab: string) => {
-  const S = createNoDupeStackNavigator()
+  const S = createStackNavigator()
 
   let tabScreens = tabScreensCache.get(tab)
   if (!tabScreens) {
@@ -252,7 +251,7 @@ const AppTabs = React.memo(
   () => true // ignore all props
 )
 
-const LoggedOutStack = createNoDupeStackNavigator()
+const LoggedOutStack = createStackNavigator()
 const LoggedOutScreens = makeNavScreens(Shim.shim(loggedOutRoutes, false, true), LoggedOutStack.Screen, false)
 const LoggedOut = React.memo(function LoggedOut() {
   return (
@@ -315,7 +314,7 @@ enum GoodLinkingState {
   GoodLinkingHandled,
 }
 
-const RootStack = createNoDupeStackNavigator()
+const RootStack = createStackNavigator()
 const ModalScreens = makeNavScreens(Shim.shim(modalRoutes, true, false), RootStack.Screen, true)
 
 const useBarStyle = () => {

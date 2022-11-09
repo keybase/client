@@ -4,7 +4,7 @@ import * as Kb from '../common-adapters'
 import * as React from 'react'
 import * as Shim from '../router-v2/shim'
 import * as Styles from '../styles'
-import createNoDupeStackNavigator from '../router-v2/stack'
+import {createStackNavigator} from '@react-navigation/stack'
 import type AccountReloaderType from './common/account-reloader'
 import type Wallet from './wallet/container'
 import type WalletListType from './wallet-list/container'
@@ -96,7 +96,7 @@ const WalletSubNavigator = () => (
   </TabNavigator.Navigator>
 )
 
-const RootStack = createNoDupeStackNavigator()
+const RootStack = createStackNavigator()
 
 const WalletsRootNav = () => {
   const acceptedDisclaimer = Container.useSelector(state => state.wallets.acceptedDisclaimer)
@@ -110,6 +110,7 @@ const WalletsRootNav = () => {
           component={WalletSubNavigator}
           options={{
             ...Common.defaultNavigationOptions,
+            // @ts-ignore this is used by desktops implementation, TODO better typing / naming
             headerRightActions: () => <HeaderRightActions />,
             headerTitle: () => <HeaderTitle />,
             ...(Container.isTablet

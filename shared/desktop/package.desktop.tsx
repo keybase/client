@@ -10,7 +10,7 @@ import rootConfig from './webpack.config.babel'
 
 const TEMP_SKIP_BUILD: boolean = false
 
-const electronVersion = '21.1.1'
+const electronVersion = '21.2.2'
 
 // To get the hashes download the SHASUMS.txt file and run
 /*
@@ -21,12 +21,12 @@ const electronVersion = '21.1.1'
 
 // prettier-ignore
 const electronChecksums = {
-  [`electron-v${electronVersion}-darwin-arm64.zip`]:    '353b54f370b5f59e222db43a8cca9359426aa60a6d7ddde3e794cf641d497721',
-  [`electron-v${electronVersion}-darwin-x64.zip`]:      'babc6c8a48c2248a16d99cae1819f0803085d44c3e7e0c9234bbce98b1bb8c29',
-  [`electron-v${electronVersion}-linux-arm64.zip`]:     '2beb80b98935e16b27b52fc9b99d1c6339943e726b2b7f831ed9c9cc130b6942',
-  [`electron-v${electronVersion}-linux-x64.zip`]:       '6e63bbb6b909c694e00e20bef7d4051bbf78828112cc76ec8ec66bb1b9264154',
-  [`electron-v${electronVersion}-win32-x64.zip`]:       'ea14b1b3b6f71efc546b81442fa6088bb8c00268516bbf3582da2f458703b172',
-  'hunspell_dictionaries.zip':                          'dc13268c6c4efba2bb7a999d289a4bc0dfe50f85c48dfc11753a81f8deb8c96a',
+  [`electron-v${electronVersion}-darwin-arm64.zip`]:    '9cb71fd42c146e6ad503c2c99e50e800e7959a33644fba76ff4d7af5675f4e1b',
+  [`electron-v${electronVersion}-darwin-x64.zip`]:      'd958fdce151782b925c3921b758dc20f7dd9fe59b8cc3fcb6c07d561d5733510',
+  [`electron-v${electronVersion}-linux-arm64.zip`]:     '460e2c3e0a243277889510fc3d64277fddc17bad05a26dd64f8ebaee22d2336e',
+  [`electron-v${electronVersion}-linux-x64.zip`]:       '745708dc83b36eadfefddbc055e49922602514d333c6ef16b04b792c0e45f562',
+  [`electron-v${electronVersion}-win32-x64.zip`]:       '19c730d9fdad5c20742bdbaa6233610e4c5fa9c8687a16d8f8f235f54e99ad39',
+  'hunspell_dictionaries.zip':                          'e5d0b210f4e64e426b1c8bdd0ea65c485bc45b593b5d5debe21f126987783476',
 }
 
 // absolute path relative to this script
