@@ -5,7 +5,7 @@ import * as Styles from '../styles'
 import * as React from 'react'
 import {useMemo} from '../util/memoize'
 import {createLeftTabNavigator} from './left-tab-navigator.desktop'
-import createNoDupeStackNavigator from './stack'
+import {createStackNavigator} from '@react-navigation/stack'
 import {NavigationContainer} from '@react-navigation/native'
 import {modalRoutes, routes, loggedOutRoutes, tabRoots} from './routes'
 import type {RouteMap} from '../util/container'
@@ -34,7 +34,7 @@ const routesMinusRoots = (tab: DesktopTabs) => {
 // we must ensure we don't keep remaking these components
 const tabScreensCache = new Map()
 const makeTabStack = (tab: DesktopTabs) => {
-  const S = createNoDupeStackNavigator()
+  const S = createStackNavigator()
 
   let tabScreens = tabScreensCache.get(tab)
   if (!tabScreens) {
@@ -111,7 +111,7 @@ const AppTabs = React.memo(
   () => true // ignore all props
 )
 
-const LoggedOutStack = createNoDupeStackNavigator()
+const LoggedOutStack = createStackNavigator()
 const LoggedOutScreens = makeNavScreens(Shim.shim(loggedOutRoutes, false, true), LoggedOutStack.Screen, false)
 const LoggedOut = React.memo(function LoggedOut() {
   return (
@@ -131,7 +131,7 @@ const LoggedOut = React.memo(function LoggedOut() {
   )
 })
 
-const RootStack = createNoDupeStackNavigator()
+const RootStack = createStackNavigator()
 const ModalScreens = makeNavScreens(Shim.shim(modalRoutes, true, false), RootStack.Screen, true)
 const documentTitle = {
   formatter: () => {

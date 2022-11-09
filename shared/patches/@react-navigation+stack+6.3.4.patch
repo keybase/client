@@ -1,0 +1,49 @@
+diff --git a/node_modules/@react-navigation/stack/src/navigators/createStackNavigator.tsx b/node_modules/@react-navigation/stack/src/navigators/createStackNavigator.tsx
+index 40f3bc1..7f6b3f6 100644
+--- a/node_modules/@react-navigation/stack/src/navigators/createStackNavigator.tsx
++++ b/node_modules/@react-navigation/stack/src/navigators/createStackNavigator.tsx
+@@ -6,7 +6,7 @@ import {
+   StackActionHelpers,
+   StackActions,
+   StackNavigationState,
+-  StackRouter,
++  StackRouter as OriginalStackRouter,
+   StackRouterOptions,
+   useNavigationBuilder,
+ } from '@react-navigation/native';
+@@ -21,6 +21,35 @@ import type {
+ } from '../types';
+ import StackView from '../views/Stack/StackView';
+ 
++const StackRouter = options => {
++  const router = OriginalStackRouter(options)
++  return {
++    ...router,
++    getStateForAction(state, action, options) {
++      switch (action.type) {
++        case 'NAVIGATE': // fallthrough
++        case 'PUSH': {
++          const s = router.getStateForAction(state, action, options)
++          // not handled by us or weird internal state
++          if (!s || !state.routes) {
++            return s
++          }
++          if (state.routes.length + 1 === s?.routes?.length) {
++            const oldLast = state.routes[state.routes.length - 1]
++            const newLast = s?.routes?.[s?.routes?.length - 1]
++            if (oldLast?.name === newLast?.name && isEqual(oldLast?.params, newLast?.params)) {
++              return state
++            }
++          }
++          return s
++        }
++        default:
++          return router.getStateForAction(state, action, options)
++      }
++    },
++  }
++}
++
+ type Props = DefaultNavigatorOptions<
+   ParamListBase,
+   StackNavigationState<ParamListBase>,
