@@ -4,6 +4,7 @@
 #include <fbjni/fbjni.h>
 #include <react/renderer/componentregistry/ComponentDescriptorProviderRegistry.h>
 #include <react/renderer/components/rncore/ComponentDescriptors.h>
+#include <rncli.h>
 
 namespace facebook {
 namespace react {
@@ -14,6 +15,9 @@ std::shared_ptr<ComponentDescriptorProviderRegistry const>
 MainComponentsRegistry::sharedProviderRegistry() {
   auto providerRegistry = CoreComponentsRegistry::sharedProviderRegistry();
 
+  // Autolinked providers registered by RN CLI
+  rncli_registerProviders(providerRegistry);
+
   // Custom Fabric Components go here. You can register custom
   // components coming from your App or from 3rd party libraries here.
   //
@@ -23,9 +27,8 @@ MainComponentsRegistry::sharedProviderRegistry() {
 }
 
 jni::local_ref<MainComponentsRegistry::jhybriddata>
-MainComponentsRegistry::initHybrid(
-    jni::alias_ref<jclass>,
-    ComponentFactory *delegate) {
+MainComponentsRegistry::initHybrid(jni::alias_ref<jclass>,
+                                   ComponentFactory *delegate) {
   auto instance = makeCxxInstance(delegate);
 
   auto buildRegistryFunction =
@@ -41,8 +44,8 @@ MainComponentsRegistry::initHybrid(
 
     mutableRegistry->setFallbackComponentDescriptor(
         std::make_shared<UnimplementedNativeViewComponentDescriptor>(
-            ComponentDescriptorParameters{
-                eventDispatcher, contextContainer, nullptr}));
+            ComponentDescriptorParameters{eventDispatcher, contextContainer,
+                                          nullptr}));
 
     return registry;
   };
