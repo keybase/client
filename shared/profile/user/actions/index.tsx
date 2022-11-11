@@ -173,7 +173,17 @@ const Actions = (p: Props) => {
   )
 }
 
-const DropdownButton = Kb.OverlayParentHOC((p: Kb.PropsWithOverlay<DropdownProps>) => {
+const DropdownButton = (p: DropdownProps) => {
+  const {toggleShowingPopup, showingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
+    <Kb.FloatingMenu
+      closeOnSelect={true}
+      attachTo={attachTo}
+      items={items}
+      onHidden={toggleShowingPopup}
+      position="bottom right"
+      visible={showingPopup}
+    />
+  ))
   const items: Kb.MenuItems = [
     p.isBot
       ? {icon: 'iconfont-nav-2-robot', onClick: p.onInstallBot, title: 'Install bot in team or chat'}
@@ -195,23 +205,16 @@ const DropdownButton = Kb.OverlayParentHOC((p: Kb.PropsWithOverlay<DropdownProps
   }, [])
 
   return (
-    <Kb.ClickableBox onClick={p.toggleShowingMenu} ref={p.setAttachmentRef}>
+    <Kb.ClickableBox onClick={toggleShowingPopup} ref={popupAnchor}>
       <Kb.Box2 direction="horizontal" fullWidth={true} gap="xsmall">
         <Kb.Button onClick={undefined} mode="Secondary" style={styles.dropdownButton}>
           <Kb.Icon color={Styles.globalColors.blue} type="iconfont-ellipsis" />
         </Kb.Button>
       </Kb.Box2>
-      <Kb.FloatingMenu
-        closeOnSelect={true}
-        attachTo={p.getAttachmentRef}
-        items={items}
-        onHidden={p.toggleShowingMenu}
-        position="bottom right"
-        visible={p.showingMenu}
-      />
+      {popup}
     </Kb.ClickableBox>
   )
-})
+}
 
 const styles = Styles.styleSheetCreate(() => ({
   chatIcon: {marginRight: Styles.globalMargins.tiny},
