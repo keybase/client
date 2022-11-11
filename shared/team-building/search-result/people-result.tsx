@@ -134,7 +134,7 @@ type DropdownProps = {
   onUnfollow?: () => void
 }
 
-const DropdownButton = Kb.OverlayParentHOC((p: Kb.PropsWithOverlay<DropdownProps>) => {
+const DropdownButton = (p: DropdownProps) => {
   const items: Kb.MenuItems = [
     p.onAddToTeam && {icon: 'iconfont-add', onClick: p.onAddToTeam, title: 'Add to team...'},
     p.onSendLumens && {icon: 'iconfont-stellar-send', onClick: p.onSendLumens, title: 'Send Lumens (XLM)'},
@@ -164,30 +164,34 @@ const DropdownButton = Kb.OverlayParentHOC((p: Kb.PropsWithOverlay<DropdownProps
     return arr
   }, [])
 
+  const {toggleShowingPopup, showingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
+    <Kb.FloatingMenu
+      closeOnSelect={true}
+      attachTo={attachTo}
+      items={items}
+      onHidden={toggleShowingPopup}
+      position="bottom right"
+      visible={showingPopup}
+    />
+  ))
+
   return (
     <Kb.ClickableBox
       onClick={e => {
         e.stopPropagation()
-        p.toggleShowingMenu()
+        toggleShowingPopup()
       }}
-      ref={p.setAttachmentRef}
+      ref={popupAnchor}
     >
       <Kb.Box2 direction="horizontal" fullWidth={true} gap="xsmall">
         <Kb.Button onClick={undefined} mode="Secondary" style={styles.dropdownButton} small={true}>
           <Kb.Icon color={Styles.globalColors.blue} type="iconfont-ellipsis" />
         </Kb.Button>
       </Kb.Box2>
-      <Kb.FloatingMenu
-        closeOnSelect={true}
-        attachTo={p.getAttachmentRef}
-        items={items}
-        onHidden={p.toggleShowingMenu}
-        position="bottom right"
-        visible={p.showingMenu}
-      />
+      {popup}
     </Kb.ClickableBox>
   )
-})
+}
 
 const styles = Styles.styleSheetCreate(() => ({
   chatIcon: {marginRight: Styles.globalMargins.tiny},
