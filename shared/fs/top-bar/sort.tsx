@@ -65,4 +65,4 @@ const Sort = (props: SortBarProps) => {
   ) : null
 }
 
-export default Kb.OverlayParentHOC(Sort)
+export default Sort

@@ -9,98 +9,97 @@ export type Props = {
   hideSyncToggle: boolean
   syncConfig?: Types.TlfSyncConfig | null
   waiting: boolean
-} & Kb.OverlayParentProps
-
-class HideFloatingMenuWhenDone extends React.PureComponent<Props> {
-  componentDidUpdate(prevProps: Props) {
-    prevProps.waiting && !this.props.waiting && this.props.showingMenu && this.props.toggleShowingMenu()
-  }
-  render() {
-    return null
-  }
 }
 
-const Confirm = props => (
-  <Kb.Box2 direction="vertical" style={styles.popupContainer} centerChildren={true}>
-    <Kb.Text key="title" type="BodyBig">
-      Unsync this folder now?
-    </Kb.Text>
-    <Kb.Text key="explain" type="BodySmall" center={true} style={styles.explainText}>
-      This will delete your local copies of all the files in this folder.
-    </Kb.Text>
-    {!Styles.isMobile && (
-      <Kb.Box2
-        direction="horizontal"
-        style={styles.popupButtonContainer}
-        fullWidth={true}
-        gap="xtiny"
-        centerChildren={true}
-      >
-        <Kb.Button
-          key="cancel"
-          small={true}
-          type="Dim"
-          label="Cancel"
-          onClick={props.toggleShowingMenu}
-          disabled={props.waiting}
-        />
-        <Kb.Button
-          key="yes"
-          small={true}
-          type="Danger"
-          label="Yes, unsync"
-          onClick={props.disableSync}
-          disabled={props.waiting}
-          waiting={props.waiting}
-        />
-      </Kb.Box2>
-    )}
-    <HideFloatingMenuWhenDone {...props} />
-  </Kb.Box2>
-)
+const Confirm = (props: Props & {showingPopup: boolean; toggleShowingPopup: () => void}) => {
+  const wasWaiting = React.useRef(props.waiting)
+  if (wasWaiting.current !== props.waiting) {
+    wasWaiting.current = props.waiting
+    if (props.showingPopup) {
+      props.toggleShowingPopup()
+    }
+  }
+  return (
+    <Kb.Box2 direction="vertical" style={styles.popupContainer} centerChildren={true}>
+      <Kb.Text key="title" type="BodyBig">
+        Unsync this folder now?
+      </Kb.Text>
+      <Kb.Text key="explain" type="BodySmall" center={true} style={styles.explainText}>
+        This will delete your local copies of all the files in this folder.
+      </Kb.Text>
+      {!Styles.isMobile && (
+        <Kb.Box2
+          direction="horizontal"
+          style={styles.popupButtonContainer}
+          fullWidth={true}
+          gap="xtiny"
+          centerChildren={true}
+        >
+          <Kb.Button
+            key="cancel"
+            small={true}
+            type="Dim"
+            label="Cancel"
+            onClick={props.toggleShowingPopup}
+            disabled={props.waiting}
+          />
+          <Kb.Button
+            key="yes"
+            small={true}
+            type="Danger"
+            label="Yes, unsync"
+            onClick={props.disableSync}
+            disabled={props.waiting}
+            waiting={props.waiting}
+          />
+        </Kb.Box2>
+      )}
+    </Kb.Box2>
+  )
+}
 
-const SyncToggle = (props: Props) =>
-  props.syncConfig && !props.hideSyncToggle ? (
+const SyncToggle = (props: Props) => {
+  const {toggleShowingPopup, showingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
+    <Kb.FloatingMenu
+      attachTo={attachTo}
+      visible={showingPopup}
+      onHidden={toggleShowingPopup}
+      position="bottom left"
+      closeOnSelect={false}
+      containerStyle={styles.floating}
+      header={<Confirm {...props} showingPopup={showingPopup} toggleShowingPopup={toggleShowingPopup} />}
+      items={
+        Styles.isMobile
+          ? [
+              {
+                danger: true,
+                disabled: props.waiting,
+                icon: 'iconfont-cloud',
+                inProgress: props.waiting,
+                onClick: props.disableSync,
+                style: props.waiting ? {opacity: 0.3} : undefined,
+                title: props.waiting ? 'Unsyncing' : 'Yes, unsync',
+              } as const,
+            ]
+          : []
+      }
+    />
+  ))
+  return props.syncConfig && !props.hideSyncToggle ? (
     <>
       <Kb.Switch
         align="right"
-        onClick={
-          props.syncConfig.mode === Types.TlfSyncMode.Enabled ? props.toggleShowingMenu : props.enableSync
-        }
+        onClick={props.syncConfig.mode === Types.TlfSyncMode.Enabled ? toggleShowingPopup : props.enableSync}
         on={props.syncConfig.mode === Types.TlfSyncMode.Enabled}
         color="green"
         label="Sync on this device"
-        ref={props.setAttachmentRef}
+        ref={popupAnchor}
         disabled={props.waiting}
       />
-      {props.showingMenu && (
-        <Kb.FloatingMenu
-          attachTo={props.getAttachmentRef}
-          visible={props.showingMenu}
-          onHidden={props.toggleShowingMenu}
-          position="bottom left"
-          closeOnSelect={false}
-          containerStyle={styles.floating}
-          header={<Confirm {...props} />}
-          items={
-            Styles.isMobile
-              ? ([
-                  {
-                    danger: true,
-                    disabled: props.waiting,
-                    icon: 'iconfont-cloud',
-                    inProgress: props.waiting,
-                    onClick: props.disableSync,
-                    style: props.waiting ? {opacity: 0.3} : null,
-                    title: props.waiting ? 'Unsyncing' : 'Yes, unsync',
-                  },
-                ] as Kb.MenuItems)
-              : ([] as Kb.MenuItems)
-          }
-        />
-      )}
+      {showingPopup && popup}
     </>
   ) : null
+}
 
 const styles = Styles.styleSheetCreate(
   () =>
@@ -138,4 +137,4 @@ const styles = Styles.styleSheetCreate(
     } as const)
 )
 
-export default Kb.OverlayParentHOC(SyncToggle)
+export default SyncToggle
