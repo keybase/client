@@ -5,23 +5,25 @@ import WalletSwitcher from './wallet-switcher/container'
 
 type Props = React.PropsWithChildren<{}>
 
-// @ts-ignore to fix wrap in fragment
-const NoSwitcher: React.FunctionComponent<Props> = props => props.children
+const NoSwitcher = (props: Props) => props.children
 
-const _Switcher: React.FunctionComponent<Kb.PropsWithOverlay<Props>> = props => (
-  <Kb.ClickableBox onClick={props.toggleShowingMenu} ref={props.setAttachmentRef}>
-    {props.children}
+const Switcher = (props: Props) => {
+  const {toggleShowingPopup, setShowingPopup, showingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
     <WalletSwitcher
-      getAttachmentRef={props.getAttachmentRef}
-      hideMenu={() => props.setShowingMenu(false)}
-      showingMenu={props.showingMenu}
+      getAttachmentRef={attachTo}
+      hideMenu={() => setShowingPopup(false)}
+      showingMenu={showingPopup}
     />
-  </Kb.ClickableBox>
-)
+  ))
 
-const Switcher = Kb.OverlayParentHOC(_Switcher)
+  return (
+    <Kb.ClickableBox onClick={toggleShowingPopup} ref={popupAnchor}>
+      {props.children}
+      {popup}
+    </Kb.ClickableBox>
+  )
+}
 
-// TODO these types don't make sense
 const MaybeSwitcher = isPhone ? Switcher : NoSwitcher
 
-export default MaybeSwitcher as any
+export default MaybeSwitcher
