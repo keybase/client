@@ -51,52 +51,55 @@ const IconClickable = props => (
   </Kb.WithTooltip>
 )
 
-const PathItemAction = Kb.OverlayParentHOC((props: Props & Kb.OverlayParentProps) => {
+const PathItemAction = (props: Props) => {
+  const dispatch = Container.useDispatch()
+  const {initView} = props
+
+  const {setShowingPopup, showingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
+    <ChooseView
+      path={props.path}
+      mode={props.mode}
+      floatingMenuProps={{
+        attachTo,
+        containerStyle: styles.floatingContainer,
+        hide,
+        visible: showingPopup,
+      }}
+    />
+  ))
+
+  const onClick = React.useCallback(() => {
+    dispatch(FsGen.createSetPathItemActionMenuView({view: initView}))
+    setShowingPopup(true)
+  }, [initView, dispatch, setShowingPopup])
+  const hide = React.useCallback(() => {
+    setShowingPopup(false)
+    dispatch(FsGen.createSetPathItemActionMenuDownload({downloadID: null, intent: null}))
+  }, [setShowingPopup, dispatch])
+
   if (props.path === Constants.defaultPath) {
     return null
   }
-
-  const dispatch = Container.useDispatch()
-  const {setShowingMenu, initView} = props
-  const onClick = React.useCallback(() => {
-    dispatch(FsGen.createSetPathItemActionMenuView({view: initView}))
-    setShowingMenu(true)
-  }, [initView, dispatch, setShowingMenu])
-  const hide = React.useCallback(() => {
-    setShowingMenu(false)
-    dispatch(FsGen.createSetPathItemActionMenuDownload({downloadID: null, intent: null}))
-  }, [setShowingMenu, dispatch])
 
   // TODO: should probably React.memo this as it's on every row. Would need to
   // do something about the `clickable` prop though, perhaps flattening it.
   return (
     <>
       {props.clickable.type === 'component' && (
-        <props.clickable.component onClick={onClick} setRef={props.setAttachmentRef} />
+        <props.clickable.component onClick={onClick} setRef={popupAnchor as any} />
       )}
       {props.clickable.type === 'icon' && (
         <IconClickable
           onClick={onClick}
-          setRef={props.setAttachmentRef}
+          setRef={popupAnchor}
           sizeType={props.clickable.sizeType}
           actionIconWhite={props.clickable.actionIconWhite}
         />
       )}
-      {props.showingMenu && (
-        <ChooseView
-          path={props.path}
-          mode={props.mode}
-          floatingMenuProps={{
-            attachTo: props.getAttachmentRef,
-            containerStyle: styles.floatingContainer,
-            hide,
-            visible: props.showingMenu,
-          }}
-        />
-      )}
+      {showingPopup && popup}
     </>
   )
-})
+}
 
 const styles = Styles.styleSheetCreate(
   () =>
