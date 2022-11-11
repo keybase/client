@@ -73,51 +73,48 @@ const MinWriterRole = (props: Props) => {
   )
 }
 
-type DropdownProps = Kb.OverlayParentProps & {
+type DropdownProps = {
   minWriterRole: TeamTypes.TeamRoleType
   items: Kb.MenuItems
   saving: boolean
 }
 
-const _Dropdown = ({
-  getAttachmentRef,
-  items,
-  minWriterRole,
-  saving,
-  setAttachmentRef,
-  showingMenu,
-  toggleShowingMenu,
-}: DropdownProps) => (
-  <>
-    <Kb.ClickableBox
-      style={styles.dropdown}
-      ref={Style.isMobile ? null : setAttachmentRef}
-      onClick={toggleShowingMenu}
-      underlayColor={Style.globalColors.white_40}
-    >
-      <Kb.Box2 direction="horizontal" style={styles.label}>
-        <Kb.Text type="BodySemibold">{upperFirst(minWriterRole)}</Kb.Text>
-      </Kb.Box2>
-      <Kb.Icon type="iconfont-caret-down" inheritColor={true} fontSize={7} sizeType="Tiny" />
-    </Kb.ClickableBox>
+const Dropdown = (p: DropdownProps) => {
+  const {items, minWriterRole, saving} = p
+  const {toggleShowingPopup, showingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
     <Kb.FloatingMenu
-      attachTo={getAttachmentRef}
+      attachTo={attachTo}
       closeOnSelect={true}
-      visible={showingMenu}
+      visible={showingPopup}
       items={items}
-      onHidden={toggleShowingMenu}
+      onHidden={toggleShowingPopup}
       position="top center"
       positionFallbacks={['bottom center']}
     />
-    <Kb.SaveIndicator
-      saving={saving}
-      style={styles.saveIndicator}
-      minSavingTimeMs={300}
-      savedTimeoutMs={2500}
-    />
-  </>
-)
-const Dropdown = Kb.OverlayParentHOC(_Dropdown)
+  ))
+  return (
+    <>
+      <Kb.ClickableBox
+        style={styles.dropdown}
+        ref={Style.isMobile ? null : popupAnchor}
+        onClick={toggleShowingPopup}
+        underlayColor={Style.globalColors.white_40}
+      >
+        <Kb.Box2 direction="horizontal" style={styles.label}>
+          <Kb.Text type="BodySemibold">{upperFirst(minWriterRole)}</Kb.Text>
+        </Kb.Box2>
+        <Kb.Icon type="iconfont-caret-down" inheritColor={true} fontSize={7} sizeType="Tiny" />
+      </Kb.ClickableBox>
+      {popup}
+      <Kb.SaveIndicator
+        saving={saving}
+        style={styles.saveIndicator}
+        minSavingTimeMs={300}
+        savedTimeoutMs={2500}
+      />
+    </>
+  )
+}
 
 const Display = ({minWriterRole}: {minWriterRole: TeamTypes.TeamRoleType}) => (
   <Kb.Text type="BodySmall">
