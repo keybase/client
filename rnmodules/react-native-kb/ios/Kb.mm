@@ -15,7 +15,9 @@
 #import <sys/utsname.h>
 
 #ifdef RCT_NEW_ARCH_ENABLED
-#import "RNKbSpec.h"
+#import <Kb/Kb.h>
+@interface Kb () <NativeKbSpec>
+@end
 #endif
 
 using namespace facebook::jsi;

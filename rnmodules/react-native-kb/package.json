@@ -50,5 +50,13 @@
       "module",
       "typescript"
     ]
+  },
+  "codegenConfig": {
+    "name": "Kb",
+    "type": "all",
+    "jsSrcsDir": ".",
+    "android": {
+      "javaPackageName": "com.facebook.fbreact.specs"
+    }
   }
 }

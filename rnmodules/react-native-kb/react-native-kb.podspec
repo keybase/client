@@ -23,8 +23,9 @@ Pod::Spec.new do |s|
   if ENV['RCT_NEW_ARCH_ENABLED'] == '1' then
     s.compiler_flags = folly_compiler_flags + " -DRCT_NEW_ARCH_ENABLED=1"
     s.pod_target_xcconfig    = {
-        "HEADER_SEARCH_PATHS" => "\"$(PODS_ROOT)/boost\"",
-        "CLANG_CXX_LANGUAGE_STANDARD" => "c++17"
+        "HEADER_SEARCH_PATHS" => "\"$(PODS_ROOT)/boost\" $(PODS_ROOT)/../../node_modules/msgpack-cxx-4.1.1/include $(PODS_ROOT)/../keybase.xcframework/ios-arm64/Keybase.framework/Headers",
+        "CLANG_CXX_LANGUAGE_STANDARD" => "c++17",
+        "GCC_PREPROCESSOR_DEFINITIONS" => "$(inherited) MSGPACK_NO_BOOST=1"
     }
 
     s.dependency "React-Codegen"

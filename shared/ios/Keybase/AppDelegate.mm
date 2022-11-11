@@ -40,7 +40,7 @@ static const DDLogLevel ddLogLevel = DDLogLevelDebug;
 
 - (BOOL)application:(UIApplication *)application
 didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
-  
+  RCTEnableTurboModule(YES);
   [self didLaunchSetupBefore:application];
   
   RCTAppSetupPrepareApp(application);
