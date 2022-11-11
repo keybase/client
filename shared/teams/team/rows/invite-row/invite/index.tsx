@@ -36,27 +36,27 @@ export const TeamInviteRow = (props: Props) => {
   )
 }
 
-const _TeamInviteMenu = (props: Kb.PropsWithOverlay<{onCancelInvite?: () => void}>) => {
+const TeamInviteMenu = (props: {onCancelInvite?: () => void}) => {
+  const {toggleShowingPopup, showingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
+    <Kb.FloatingMenu
+      items={[{danger: true, icon: 'iconfont-remove', onClick: props.onCancelInvite, title: 'Cancel invite'}]}
+      visible={showingPopup}
+      onHidden={toggleShowingPopup}
+      closeOnSelect={true}
+      attachTo={attachTo}
+    />
+  ))
   return (
     <>
       <Kb.Button
-        ref={props.setAttachmentRef}
+        ref={popupAnchor}
         mode="Secondary"
         type="Dim"
         small={true}
         icon="iconfont-ellipsis"
-        onClick={props.toggleShowingMenu}
+        onClick={toggleShowingPopup}
       />
-      <Kb.FloatingMenu
-        items={[
-          {danger: true, icon: 'iconfont-remove', onClick: props.onCancelInvite, title: 'Cancel invite'},
-        ]}
-        visible={props.showingMenu}
-        onHidden={props.toggleShowingMenu}
-        closeOnSelect={true}
-        attachTo={props.getAttachmentRef}
-      />
+      {popup}
     </>
   )
 }
-const TeamInviteMenu = Kb.OverlayParentHOC(_TeamInviteMenu)
