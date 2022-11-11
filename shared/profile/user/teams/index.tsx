@@ -21,26 +21,25 @@ export type Props = {
   onEdit?: () => void
 }
 
-const _TeamShowcase = p => (
-  <Kb.ClickableBox ref={p.setAttachmentRef} onClick={p.toggleShowingMenu}>
-    <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" style={styles.showcase}>
-      <>
-        <TeamInfo
-          {...p}
-          attachTo={p.getAttachmentRef}
-          onHidden={p.toggleShowingMenu}
-          visible={p.showingMenu}
-        />
-        <Kb.Avatar size={32} teamname={p.name} isTeam={true} />
-      </>
-      <Kb.Text type="BodySemiboldLink" style={styles.link}>
-        {p.name}
-      </Kb.Text>
-      <OpenMeta isOpen={p.isOpen} />
-    </Kb.Box2>
-  </Kb.ClickableBox>
-)
-const TeamShowcase = Kb.OverlayParentHOC(_TeamShowcase)
+const TeamShowcase = p => {
+  const {toggleShowingPopup, showingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
+    <TeamInfo {...p} attachTo={attachTo} onHidden={toggleShowingPopup} visible={showingPopup} />
+  ))
+  return (
+    <Kb.ClickableBox ref={popupAnchor} onClick={toggleShowingPopup}>
+      <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" style={styles.showcase}>
+        <>
+          {popup}
+          <Kb.Avatar size={32} teamname={p.name} isTeam={true} />
+        </>
+        <Kb.Text type="BodySemiboldLink" style={styles.link}>
+          {p.name}
+        </Kb.Text>
+        <OpenMeta isOpen={p.isOpen} />
+      </Kb.Box2>
+    </Kb.ClickableBox>
+  )
+}
 
 const ShowcaseTeamsOffer = p => (
   <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
