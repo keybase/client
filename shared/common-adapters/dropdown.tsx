@@ -67,29 +67,17 @@ type Props<N> = {
 }
 
 function Dropdown<N>(p: Props<N>) {
-  const [expanded, setExpanded] = React.useState(false)
   const disabled = p.disabled ?? false
   const {style, onChanged, onChangedIdx, overlayStyle, selectedBoxStyle} = p
   const {position, itemBoxStyle, items, selected} = p
 
-  const toggleOpen = React.useCallback(
-    (evt?: React.BaseSyntheticEvent) => {
-      evt && evt.stopPropagation && evt.stopPropagation()
-      evt && evt.preventDefault && evt.preventDefault()
-      setExpanded(e => !e)
-    },
-    [setExpanded]
-  )
-
-  const onSelect = React.useCallback(() => {
-    setExpanded(false)
-  }, [setExpanded])
-
-  const {popup, popupAnchor} = Kb.usePopup<typeof ButtonBox>(attachTo => (
+  const {toggleShowingPopup, showingPopup, setShowingPopup, popup, popupAnchor} = Kb.usePopup<
+    typeof ButtonBox
+  >(attachTo => (
     <Kb.Overlay
       style={Styles.collapseStyles([styles.overlay, overlayStyle])}
       attachTo={attachTo}
-      visible={expanded}
+      visible={showingPopup}
       onHidden={toggleOpen}
       position={position || 'center center'}
     >
@@ -98,13 +86,13 @@ function Dropdown<N>(p: Props<N>) {
           <Kb.ClickableBox
             key={idx}
             onClick={evt => {
-              evt.stopPropagation && evt.stopPropagation()
-              evt.preventDefault && evt.preventDefault()
+              evt?.stopPropagation?.()
+              evt?.preventDefault?.()
               // Bug in flow that doesn't let us just call this function
               // onSelect(i)
-              onChanged && onChanged(i)
-              onChangedIdx && onChangedIdx(idx)
-              onSelect()
+              onChanged?.(i)
+              onChangedIdx?.(idx)
+              setShowingPopup(false)
             }}
             style={styles.itemClickBox}
           >
@@ -114,6 +102,15 @@ function Dropdown<N>(p: Props<N>) {
       </Kb.ScrollView>
     </Kb.Overlay>
   ))
+
+  const toggleOpen = React.useCallback(
+    (evt?: React.BaseSyntheticEvent) => {
+      evt?.stopPropagation?.()
+      evt?.preventDefault?.()
+      toggleShowingPopup()
+    },
+    [toggleShowingPopup]
+  )
 
   return (
     <Kb.Box style={Styles.collapseStyles([styles.overlayContainer, style])}>

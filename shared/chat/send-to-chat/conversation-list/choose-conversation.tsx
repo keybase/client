@@ -33,7 +33,7 @@ const ChooseConversation = (props: Props) => {
             {text}
           </Kb.Text>
         }
-        setAttachmentRef={popupAnchor as any}
+        popupAnchor={popupAnchor}
         toggleOpen={toggleShowingPopup}
         style={Styles.collapseStyles([styles.dropdownButton, props.dropdownButtonStyle])}
       />
