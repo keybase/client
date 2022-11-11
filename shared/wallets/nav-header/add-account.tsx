@@ -8,17 +8,8 @@ type AddAccountProps = {
   onLinkExisting: () => void
 }
 
-const _AddAccount = (props: Kb.PropsWithOverlay<AddAccountProps>) => (
-  <>
-    <Kb.Button
-      ref={props.setAttachmentRef}
-      type="Wallet"
-      mode="Secondary"
-      small={true}
-      fullWidth={true}
-      onClick={props.toggleShowingMenu}
-      label="Add an account"
-    />
+const AddAccount = (props: AddAccountProps) => {
+  const {toggleShowingPopup, showingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
     <Kb.FloatingMenu
       items={[
         {
@@ -32,15 +23,28 @@ const _AddAccount = (props: Kb.PropsWithOverlay<AddAccountProps>) => (
           title: 'Link an existing Stellar account',
         },
       ]}
-      visible={props.showingMenu}
-      attachTo={props.getAttachmentRef}
+      visible={showingPopup}
+      attachTo={attachTo}
       closeOnSelect={true}
-      onHidden={props.toggleShowingMenu}
+      onHidden={toggleShowingPopup}
       position="bottom center"
     />
-  </>
-)
-const AddAccount = Kb.OverlayParentHOC(_AddAccount)
+  ))
+  return (
+    <>
+      <Kb.Button
+        ref={popupAnchor}
+        type="Wallet"
+        mode="Secondary"
+        small={true}
+        fullWidth={true}
+        onClick={toggleShowingPopup}
+        label="Add an account"
+      />
+      {popup}
+    </>
+  )
+}
 
 const mapDispatchToProps = dispatch => ({
   onAddNew: () => {
