@@ -198,10 +198,10 @@ const ChatFilePicker = (p: ChatFilePickerProps) => {
   const launchNativeImagePicker = React.useCallback(
     (mediaType: 'photo' | 'video' | 'mixed', location: string) => {
       const handleSelection = (result: ImagePicker.ImagePickerResult) => {
-        if (result.cancelled || !conversationIDKey) {
+        if (result.canceled || (result.assets.length ?? 0) == 0 || !conversationIDKey) {
           return
         }
-        const filename = parseUri(result)
+        const filename = parseUri(result.assets[0])
         if (filename) {
           const props = {
             conversationIDKey,
