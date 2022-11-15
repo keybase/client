@@ -1,5 +1,5 @@
 diff --git a/node_modules/@react-navigation/stack/src/navigators/createStackNavigator.tsx b/node_modules/@react-navigation/stack/src/navigators/createStackNavigator.tsx
-index 40f3bc1..7f6b3f6 100644
+index 40f3bc1..1ed566f 100644
 --- a/node_modules/@react-navigation/stack/src/navigators/createStackNavigator.tsx
 +++ b/node_modules/@react-navigation/stack/src/navigators/createStackNavigator.tsx
 @@ -6,7 +6,7 @@ import {
@@ -11,10 +11,12 @@ index 40f3bc1..7f6b3f6 100644
    StackRouterOptions,
    useNavigationBuilder,
  } from '@react-navigation/native';
-@@ -21,6 +21,35 @@ import type {
+@@ -20,6 +20,36 @@ import type {
+   StackNavigationOptions,
  } from '../types';
  import StackView from '../views/Stack/StackView';
- 
++import isEqual from 'lodash/isEqual'
++
 +const StackRouter = options => {
 +  const router = OriginalStackRouter(options)
 +  return {
@@ -43,7 +45,6 @@ index 40f3bc1..7f6b3f6 100644
 +    },
 +  }
 +}
-+
+ 
  type Props = DefaultNavigatorOptions<
    ParamListBase,
-   StackNavigationState<ParamListBase>,
