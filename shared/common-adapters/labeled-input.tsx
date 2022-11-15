@@ -93,7 +93,6 @@ const ReflessLabeledInput = (props: Props & RefProps) => {
           {placeholder}
         </Text>
       </Box2>
-
       <PlainInput
         {...plainInputProps}
         onChangeText={_onChangeText}
@@ -165,6 +164,7 @@ const styles = Styles.styleSheetCreate(
           width: '100%',
         },
         isElectron: {
+          marginTop: 14 + Styles.globalMargins.xsmall,
           zIndex: 0,
         },
       }),
