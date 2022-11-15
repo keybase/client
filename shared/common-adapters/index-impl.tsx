@@ -198,9 +198,6 @@ module.exports = {
   get Overlay() {
     return require('./overlay').default
   },
-  get OverlayParentHOC() {
-    return require('./overlay/parent-hoc').default
-  },
   get PhoneInput() {
     return require('./phone-input').default
   },

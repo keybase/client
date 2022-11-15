@@ -293,9 +293,6 @@ module.exports = {
   get Overlay() {
     return Index.Overlay
   },
-  get OverlayParentHOC() {
-    return Index.OverlayParentHOC
-  },
   get Placeholder() {
     return Index.Placeholder
   },

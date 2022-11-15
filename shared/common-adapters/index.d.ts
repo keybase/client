@@ -1,6 +1,5 @@
 // Any additions to this file should also be added to ./index-impl.tsx
 
-export type {OverlayParentProps, PropsWithOverlay} from './overlay/parent-hoc'
 export type {MenuItem, MenuItems} from './floating-menu/menu-layout'
 export type {IconType} from './icon.constants-gen'
 export type {WebViewProps, WebViewInjections} from './web-view'
@@ -38,7 +37,6 @@ export {default as FloatingBox} from './floating-box'
 export {default as FloatingMenu} from './floating-menu'
 export {default as FloatingPicker} from './floating-picker'
 export {usePopup} from './use-popup'
-export {default as OverlayParentHOC} from './overlay/parent-hoc'
 export {HeaderHocHeader, HeaderHocWrapper, HeaderLeftBlank, HeaderLeftCancel} from './header-hoc'
 export {PopupWrapper} from './header-or-popup'
 export {HotKey, useHotKey} from './hot-key'
