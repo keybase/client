@@ -49,6 +49,8 @@
     "./android",
     "./desktop/dist",
     "./desktop/build",
-    "./common-adapters/swipeable.native.tsx"
+    "./common-adapters/swipeable.native.tsx",
+    "./common-adapters/index-impl.tsx",
+    "./common-adapters/mobile.native.native.tsx"
   ]
 }
