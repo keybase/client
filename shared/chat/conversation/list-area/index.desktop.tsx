@@ -234,7 +234,7 @@ const useScrolling = (
   const scrollToCentered = React.useCallback(() => {
     // grab the waypoint we made for the centered ordinal and scroll to it
     const scrollWaypoint = listRef.current?.querySelectorAll(`[data-key=${scrollOrdinalKey}]`)
-    scrollWaypoint?.[0].scrollIntoView({block: 'center', inline: 'nearest'})
+    scrollWaypoint?.[0]?.scrollIntoView({block: 'center', inline: 'nearest'})
   }, [listRef])
 
   const scrollDown = React.useCallback(() => {

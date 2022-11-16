@@ -71,7 +71,7 @@ echo "Packager running with PID $rn_packager_pid"
 # Build and publish the apk
 cd "$android_dir"
 ./gradlew clean
-yarn jetify
+# yarn jetify
 ./gradlew publishReleaseBundle
 
 "$client_dir/packaging/slack/send.sh" "Finished releasing android"

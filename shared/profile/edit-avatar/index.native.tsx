@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters/mobile.native'
 import * as Styles from '../../styles'
 import {isIOS, isTablet} from '../../constants/platform'
-import {Props} from '.'
+import {type Props} from '.'
 import {parseUri, launchImageLibraryAsync} from '../../util/expo-image-picker'
 import {ModalTitle} from '../../teams/common'
 import * as Container from '../../util/container'
@@ -23,8 +23,8 @@ const AvatarUploadWrapper = (props: Props) => {
   const onChooseNewAvatar = React.useCallback(async () => {
     try {
       const result = await launchImageLibraryAsync('photo')
-      if (!result.cancelled) {
-        setSelectedImage(result)
+      if (!result.canceled && (result.assets?.length ?? 0) > 0) {
+        setSelectedImage(result.assets[0])
       } else if (!props.wizard) {
         navUp()
       }

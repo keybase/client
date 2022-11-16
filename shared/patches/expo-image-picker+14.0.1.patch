@@ -1,5 +1,5 @@
 diff --git a/node_modules/expo-image-picker/ios/ImagePickerModule.swift b/node_modules/expo-image-picker/ios/ImagePickerModule.swift
-index cc94f67..725e6c8 100644
+index 57ce901..7fde085 100644
 --- a/node_modules/expo-image-picker/ios/ImagePickerModule.swift
 +++ b/node_modules/expo-image-picker/ios/ImagePickerModule.swift
 @@ -117,7 +117,7 @@ public class ImagePickerModule: Module, OnMediaPickingResultHandler {

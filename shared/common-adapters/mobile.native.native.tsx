@@ -1,8 +1,8 @@
+// this file is ignored by ts
 // @ts-nocheck
-module.hot &&
-  module.hot.accept(() => {
-    console.log('accepted update in common-adapters/mobile.native')
-  })
+module.hot?.accept(() => {
+  console.log('accepted update in common-adapters/mobile.native')
+})
 
 const Index = require('./index.native')
 const NativeWrappers = require('./native-wrappers.native')
