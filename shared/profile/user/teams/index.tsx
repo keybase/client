@@ -1,14 +1,13 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
-import * as Types from '../../../constants/types/tracker2'
+import type * as Types from '../../../constants/types/tracker2'
 import * as Styles from '../../../styles'
-import {TeamID} from '../../../constants/types/teams'
+import type {TeamID} from '../../../constants/types/teams'
 import OpenMeta from './openmeta'
 import TeamInfo from './teaminfo'
 
 export type Props = {
   // lint totally confused
-  // eslint-disable-next-line no-use-before-define
   teamShowcase: ReadonlyArray<Types.TeamShowcase>
   teamMeta: {
     [K in string]: {

@@ -296,6 +296,7 @@ export class Settings extends React.Component<Props, State> {
       ...this.state,
       setBoolSettings: this.setBoolSettings,
     }
+
     return (
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.outerBox}>
         <Kb.Box2 direction="vertical" alignItems="flex-start" style={styles.main}>
