@@ -217,7 +217,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
           >
             <Kb.Icon type="iconfont-ellipsis" color={Styles.globalColors.blue} />
           </Kb.Button>
-          {popup}
+          {teamMenu.popup}
         </Kb.Box2>
       </Kb.Box2>
       {popup}
