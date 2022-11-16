@@ -95,7 +95,6 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     draftState.teamInviteDetails.inviteDetails = action.payload.details
   },
   [TeamsGen.setTeamRetentionPolicy]: (draftState, action) => {
-    console.log('aaa', action.payload)
     draftState.teamIDToRetentionPolicy.set(action.payload.teamID, action.payload.retentionPolicy)
   },
   [TeamsGen.setTeamLoadingInvites]: (draftState, action) => {
