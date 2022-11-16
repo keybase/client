@@ -18,60 +18,58 @@ const getAncestors = memoize(path =>
     ? []
     : Types.getPathElements(path)
         .slice(1, -1)
-        .reduce((list, current) => [...list, Types.pathConcat(list[list.length - 1], current)], [
-          Constants.defaultPath,
-        ])
+        .reduce(
+          (list, current) => [...list, Types.pathConcat(list[list.length - 1], current)],
+          [Constants.defaultPath]
+        )
 )
 
-const _Breadcrumb = (props: Props & Kb.OverlayParentProps) => {
+const Breadcrumb = (props: Props) => {
   const ancestors = getAncestors(props.path || Constants.defaultPath)
 
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   const onOpenPath = (path: Types.Path) =>
     props.inDestinationPicker
-      ? Constants.makeActionsForDestinationPickerOpen(
-          0,
-          path,
-          nav.safeNavigateAppendPayload
-        ).forEach(action => dispatch(action))
+      ? Constants.makeActionsForDestinationPickerOpen(0, path, nav.safeNavigateAppendPayload).forEach(
+          action => dispatch(action)
+        )
       : dispatch(nav.safeNavigateAppendPayload({path: [{props: {path}, selected: 'fsRoot'}]}))
+
+  const {toggleShowingPopup, showingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
+    <Kb.FloatingMenu
+      containerStyle={styles.floating}
+      attachTo={attachTo}
+      visible={showingPopup}
+      onHidden={toggleShowingPopup}
+      items={ancestors
+        .slice(0, -2)
+        .reverse()
+        .map(path => ({
+          onClick: () => onOpenPath(path),
+          title: Types.getPathName(path),
+          view: (
+            <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
+              <Kbfs.ItemIcon path={path} size={16} />
+              <Kb.Text type="Body" lineClamp={1}>
+                {Types.getPathName(path)}
+              </Kb.Text>
+            </Kb.Box2>
+          ),
+        }))}
+      position="bottom left"
+      closeOnSelect={true}
+    />
+  ))
 
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true}>
       {ancestors.length > 2 && (
         <React.Fragment key="dropdown">
-          <Kb.Text
-            key="dots"
-            type="BodyTinyLink"
-            onClick={props.toggleShowingMenu}
-            ref={props.setAttachmentRef}
-          >
+          <Kb.Text key="dots" type="BodyTinyLink" onClick={toggleShowingPopup} ref={popupAnchor as any}>
             •••
           </Kb.Text>
-          <Kb.FloatingMenu
-            containerStyle={styles.floating}
-            attachTo={props.getAttachmentRef}
-            visible={props.showingMenu}
-            onHidden={props.toggleShowingMenu}
-            items={ancestors
-              .slice(0, -2)
-              .reverse()
-              .map(path => ({
-                onClick: () => onOpenPath(path),
-                title: Types.getPathName(path),
-                view: (
-                  <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
-                    <Kbfs.ItemIcon path={path} size={16} />
-                    <Kb.Text type="Body" lineClamp={1}>
-                      {Types.getPathName(path)}
-                    </Kb.Text>
-                  </Kb.Box2>
-                ),
-              }))}
-            position="bottom left"
-            closeOnSelect={true}
-          />
+          {popup}
         </React.Fragment>
       )}
       {ancestors.slice(-2).map(path => (
@@ -94,7 +92,6 @@ const _Breadcrumb = (props: Props & Kb.OverlayParentProps) => {
     </Kb.Box2>
   )
 }
-const Breadcrumb = Kb.OverlayParentHOC(_Breadcrumb)
 
 const MaybePublicTag = ({path}: {path: Types.Path}) =>
   Constants.hasPublicTag(path) ? (

@@ -11,7 +11,7 @@ type SendProps = {
   thisDeviceIsLockedOut: boolean
 }
 
-const _SendButton = (props: Kb.PropsWithOverlay<SendProps>) => {
+export const SendButton = (props: SendProps) => {
   const menuItems: Kb.MenuItems = [
     {icon: 'iconfont-mention', onClick: props.onSendToKeybaseUser, title: 'To a Keybase user'},
     {icon: 'iconfont-identity-stellar', onClick: props.onSendToStellarAddress, title: 'To a Stellar address'},
@@ -21,25 +21,28 @@ const _SendButton = (props: Kb.PropsWithOverlay<SendProps>) => {
       title: 'To one of your other Stellar accounts',
     },
   ]
+  const {toggleShowingPopup, showingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
+    <Kb.FloatingMenu
+      attachTo={attachTo}
+      closeOnSelect={true}
+      items={menuItems}
+      onHidden={toggleShowingPopup}
+      visible={showingPopup}
+      position="bottom center"
+    />
+  ))
   const button = (
     <>
       <Kb.Button
         small={props.small}
-        onClick={props.disabled ? undefined : props.toggleShowingMenu}
-        ref={props.setAttachmentRef}
+        onClick={props.disabled ? undefined : toggleShowingPopup}
+        ref={popupAnchor}
         type="Wallet"
         label="Send"
         disabled={props.disabled}
         narrow={Styles.isMobile}
       />
-      <Kb.FloatingMenu
-        attachTo={props.getAttachmentRef}
-        closeOnSelect={true}
-        items={menuItems}
-        onHidden={props.toggleShowingMenu}
-        visible={props.showingMenu}
-        position="bottom center"
-      />
+      {popup}
     </>
   )
   return props.thisDeviceIsLockedOut ? (
@@ -50,4 +53,3 @@ const _SendButton = (props: Kb.PropsWithOverlay<SendProps>) => {
     button
   )
 }
-export const SendButton = Kb.OverlayParentHOC(_SendButton)

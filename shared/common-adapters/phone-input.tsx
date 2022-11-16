@@ -7,10 +7,10 @@ import FloatingMenu from './floating-menu'
 import SearchFilter from './search-filter'
 import PlainInput from './plain-input'
 import FloatingPicker from './floating-picker'
-import OverlayParentHOC, {PropsWithOverlay} from './overlay/parent-hoc'
 import ProgressIndicator from './progress-indicator'
 import ClickableBox from './clickable-box'
 import Icon from './icon'
+import {usePopup} from './use-popup'
 import {isIOS, isMobile} from '../constants/platform'
 import {
   countryData,
@@ -29,11 +29,11 @@ const Kb = {
   FloatingMenu,
   FloatingPicker,
   Icon,
-  OverlayParentHOC,
   PlainInput,
   ProgressIndicator,
   SearchFilter,
   Text,
+  usePopup,
 }
 
 const normalizeCountryCode = (countryCode: string) =>
@@ -265,32 +265,28 @@ type Props = {
   style?: Styles.StylesCrossPlatform
 }
 
-type State = {
-  country?: string
-  prefix?: string
-  formatted: string
-  formatter?: libphonenumber.AsYouTypeFormatter
+type OldProps = Props & {
+  popup: any
+  popupAnchor: any
+  country: string | undefined
+  setCountry: React.Dispatch<React.SetStateAction<string | undefined>>
   focused: boolean
+  setFocused: React.Dispatch<React.SetStateAction<boolean>>
+  formatted: string
+  setFormatted: React.Dispatch<React.SetStateAction<string>>
+  formatter?: libphonenumber.AsYouTypeFormatter
+  setFormatter: React.Dispatch<React.SetStateAction<libphonenumber.AsYouTypeFormatter | undefined>>
+  prefix: string | undefined
+  setPrefix: React.Dispatch<React.SetStateAction<string | undefined>>
+  phoneInputRef: React.MutableRefObject<PlainInput | null>
+  countrySelectorRef: React.MutableRefObject<CountrySelector | null>
+  toggleShowingMenu: () => void
 }
 
-class _PhoneInput extends React.Component<PropsWithOverlay<Props>, State> {
-  state = {
-    country: this.props.defaultCountry,
-    focused: false,
-    formatted: '',
-    formatter: this.props.defaultCountry ? new AsYouTypeFormatter(this.props.defaultCountry) : undefined,
-    prefix: this.props.defaultCountry && getCallingCode(this.props.defaultCountry).slice(1),
-  }
-  private countrySelectorRef = React.createRef<CountrySelector>()
-  private phoneInputRef = React.createRef<PlainInput>()
-
-  private setFormattedPhoneNumber = (formatted: string) =>
-    this.setState(s => {
-      if (s.formatted === formatted) {
-        return null
-      }
-      return {formatted}
-    }, this.updateParent)
+class _PhoneInput extends React.Component<OldProps> {
+  private setFormattedPhoneNumber = (formatted: string) => this.props.setFormatted(formatted)
+  // TODO
+  // }, this.updateParent)
 
   // AsYouTypeFormatter doesn't support backspace
   // To get around this, on every text change:
@@ -299,7 +295,7 @@ class _PhoneInput extends React.Component<PropsWithOverlay<Props>, State> {
   // 3. Feed the new text into the formatter char by char
   // 4. Set the value of the input to the new formatted
   private reformatPhoneNumber = (_newText: string, skipCountry: boolean) => {
-    if (!this.state.formatter) {
+    if (!this.props.formatter) {
       return
     }
 
@@ -312,20 +308,20 @@ class _PhoneInput extends React.Component<PropsWithOverlay<Props>, State> {
     // 2) It only runs when the total length decreased
     // 3) It only runs when we had formatted text before
     // 4) It should not do anything if it wasn't a whitespace change in the middle
-    if (!skipCountry && newText.length < this.state.formatted.length && this.state.formatted.length !== 0) {
+    if (!skipCountry && newText.length < this.props.formatted.length && this.props.formatted.length !== 0) {
       // Look at the new text and figure out which character is different
       let diffIndex: number = -1
       for (let i = 0; i < newText.length; i++) {
-        if (i + 1 > this.state.formatted.length || newText[i] !== this.state.formatted[i]) {
+        if (i + 1 > this.props.formatted.length || newText[i] !== this.props.formatted[i]) {
           diffIndex = i
           break
         }
       }
 
       // Make sure that the change was in the middle of the text
-      if (diffIndex !== -1 && diffIndex + 1 <= this.state.formatted.length) {
+      if (diffIndex !== -1 && diffIndex + 1 <= this.props.formatted.length) {
         // Look at the original character at that location
-        const changedChar = this.state.formatted[diffIndex]
+        const changedChar = this.props.formatted[diffIndex]
 
         // Make sure that the changed char isn't a number
         if (isNaN(parseInt(changedChar, 10))) {
@@ -342,7 +338,7 @@ class _PhoneInput extends React.Component<PropsWithOverlay<Props>, State> {
       }
     }
 
-    this.state.formatter.clear()
+    this.props.formatter.clear()
     newText = filterNumeric(newText)
 
     if (newText.trim().length === 0) {
@@ -350,20 +346,20 @@ class _PhoneInput extends React.Component<PropsWithOverlay<Props>, State> {
       return
     }
     for (let i = 0; i < newText.length - 1; i++) {
-      this.state.formatter.inputDigit(newText[i])
+      this.props.formatter.inputDigit(newText[i])
     }
-    const formatted = this.state.formatter.inputDigit(newText[newText.length - 1])
+    const formatted = this.props.formatter.inputDigit(newText[newText.length - 1])
     this.setFormattedPhoneNumber(formatted)
 
     // Special case for NA area
-    if (this.state.prefix === '1' && !skipCountry) {
+    if (this.props.prefix === '1' && !skipCountry) {
       // Only numeric, trimmed from whitespace
       const trimmedText = newText.trim()
       // If the area code is present...
       if (trimmedText.length >= 3) {
         // Prepare the potential 4 number prefix
         const areaCode = trimmedText.slice(0, 3)
-        const extPrefix = this.state.prefix + ' ' + areaCode
+        const extPrefix = this.props.prefix + ' ' + areaCode
 
         // First look it up against the table
         const possibleMatch = codeToCountry()[extPrefix]
@@ -397,24 +393,15 @@ class _PhoneInput extends React.Component<PropsWithOverlay<Props>, State> {
     if (newText.length === 4) {
       newText = newText[0]
     }
-    this.setState({
-      prefix: newText,
-    })
+    this.props.setPrefix(newText)
   }
 
-  private updateParent = () => {
-    const validation = validateNumber(this.state.formatted, this.state.country)
-    this.props.onChangeNumber(validation.e164, validation.valid)
-  }
-
-  private setCountry = (country: string, keepPrefix: boolean) => {
-    if (this.state.country !== country) {
+  setCountry = (country: string, keepPrefix: boolean) => {
+    if (this.props.country !== country) {
       country = normalizeCountryCode(country)
 
-      this.setState({
-        country,
-        formatter: country ? new AsYouTypeFormatter(country) : undefined,
-      })
+      this.props.setCountry(country)
+      this.props.setFormatter(country ? new AsYouTypeFormatter(country) : undefined)
 
       // Special behaviour for NA numbers
       if (getCallingCode(country).length === 6) {
@@ -426,17 +413,8 @@ class _PhoneInput extends React.Component<PropsWithOverlay<Props>, State> {
     }
   }
 
-  private toggleShowingMenu = () => {
-    if (!this.state.country && this.props.defaultCountry) {
-      this.countrySelectorRef.current &&
-        this.countrySelectorRef.current.onSelectMenu(this.props.defaultCountry)
-    }
-    this.countrySelectorRef.current && this.countrySelectorRef.current.clearFilter()
-    this.props.toggleShowingMenu()
-  }
-
   private onPrefixEnter = () => {
-    this.phoneInputRef.current && this.phoneInputRef.current.focus()
+    this.props.phoneInputRef.current && this.props.phoneInputRef.current.focus()
   }
 
   private isSmall = () => {
@@ -444,7 +422,7 @@ class _PhoneInput extends React.Component<PropsWithOverlay<Props>, State> {
   }
 
   private renderCountrySelector = () => {
-    if (this.state.country === undefined) {
+    if (this.props.country === undefined) {
       return null
     }
 
@@ -454,11 +432,11 @@ class _PhoneInput extends React.Component<PropsWithOverlay<Props>, State> {
           type="BodySemibold"
           style={Styles.collapseStyles([styles.countrySelector, styles.countrySelectorBig])}
         >
-          {!this.state.country
-            ? !this.state.prefix
+          {!this.props.country
+            ? !this.props.prefix
               ? '- Pick a country -'
               : '- Invalid country prefix -'
-            : countryData()[this.state.country].emoji + ' ' + countryData()[this.state.country].name}
+            : countryData()[this.props.country].emoji + ' ' + countryData()[this.props.country].name}
         </Kb.Text>
       )
     }
@@ -466,31 +444,29 @@ class _PhoneInput extends React.Component<PropsWithOverlay<Props>, State> {
     return (
       <>
         <Kb.Text type="Body" style={styles.countrySelector}>
-          {getCountryEmoji(this.state.country)}
+          {getCountryEmoji(this.props.country)}
         </Kb.Text>
         <Kb.Text type="BodySemibold" style={styles.countrySelector}>
-          {'+' + this.state.prefix}
+          {'+' + this.props.prefix}
         </Kb.Text>
       </>
     )
   }
 
-  private onSelectCountry = (code: string | undefined) => {
-    this.setCountry(code ?? '', false)
-    this.phoneInputRef.current && this.phoneInputRef.current.focus()
-  }
+  componentDidUpdate(prevProps: OldProps) {
+    if (this.props.formatted !== prevProps.formatted) {
+      const validation = validateNumber(this.props.formatted, this.props.country)
+      this.props.onChangeNumber(validation.e164, validation.valid)
+    }
 
-  componentDidUpdate(prevProps: Props) {
     if (prevProps.defaultCountry) {
       return null
     }
 
-    if (!this.state.country && this.props.defaultCountry) {
-      this.setState({
-        country: this.props.defaultCountry,
-        formatter: new AsYouTypeFormatter(this.props.defaultCountry),
-        prefix: getCallingCode(this.props.defaultCountry).slice(1),
-      })
+    if (!this.props.country && this.props.defaultCountry) {
+      this.props.setCountry(this.props.defaultCountry)
+      this.props.setFormatter(new AsYouTypeFormatter(this.props.defaultCountry))
+      this.props.setPrefix(getCallingCode(this.props.defaultCountry).slice(1))
     }
 
     return null
@@ -498,7 +474,7 @@ class _PhoneInput extends React.Component<PropsWithOverlay<Props>, State> {
 
   render() {
     // If country is falsey, the input is loading
-    if (this.state.country === undefined) {
+    if (this.props.country === undefined) {
       return (
         <Kb.Box2
           direction={this.isSmall() ? 'horizontal' : 'vertical'}
@@ -517,7 +493,7 @@ class _PhoneInput extends React.Component<PropsWithOverlay<Props>, State> {
         direction={this.isSmall() ? 'horizontal' : 'vertical'}
         style={Styles.collapseStyles([
           this.isSmall() ? styles.containerSmall : styles.containerBig,
-          this.isSmall() && this.state.focused && styles.highlight,
+          this.isSmall() && this.props.focused && styles.highlight,
         ])}
       >
         <Kb.Box2
@@ -530,7 +506,7 @@ class _PhoneInput extends React.Component<PropsWithOverlay<Props>, State> {
           }
         >
           <Kb.ClickableBox
-            onClick={this.toggleShowingMenu}
+            onClick={this.props.toggleShowingMenu}
             style={this.isSmall() ? styles.fullWidthDesktopOnly : styles.fullWidth}
           >
             <Kb.Box2
@@ -538,7 +514,7 @@ class _PhoneInput extends React.Component<PropsWithOverlay<Props>, State> {
               style={styles.countrySelectorContainer}
               alignItems="center"
               gap="xtiny"
-              ref={this.props.setAttachmentRef}
+              ref={this.props.popupAnchor}
             >
               {this.renderCountrySelector()}
               <Kb.Icon type="iconfont-caret-down" sizeType="Tiny" />
@@ -571,7 +547,7 @@ class _PhoneInput extends React.Component<PropsWithOverlay<Props>, State> {
                 maxLength={3}
                 onEnterKeyDown={this.onPrefixEnter}
                 returnKeyType="next"
-                value={this.state.prefix}
+                value={this.props.prefix}
               />
             </Kb.Box2>
           )}
@@ -581,7 +557,7 @@ class _PhoneInput extends React.Component<PropsWithOverlay<Props>, State> {
             style={Styles.collapseStyles([
               styles.phoneNumberContainer,
               !this.isSmall() && styles.fakeInputBig,
-              !this.isSmall() && this.state.focused && styles.highlight,
+              !this.isSmall() && this.props.focused && styles.highlight,
             ])}
           >
             <Kb.PlainInput
@@ -589,14 +565,14 @@ class _PhoneInput extends React.Component<PropsWithOverlay<Props>, State> {
               style={this.isSmall() ? styles.plainInputSmall : styles.plainInputBig}
               flexable={true}
               keyboardType={isIOS ? 'number-pad' : 'numeric'}
-              placeholder={getPlaceholder(this.state.country)}
+              placeholder={getPlaceholder(this.props.country)}
               onChangeText={x => this.reformatPhoneNumber(x, false)}
               onEnterKeyDown={this.props.onEnterKeyDown}
-              onFocus={() => this.setState({focused: true})}
-              onBlur={() => this.setState({focused: false})}
-              value={this.state.formatted}
-              disabled={!this.state.country}
-              ref={this.phoneInputRef}
+              onFocus={() => this.props.setFocused(true)}
+              onBlur={() => this.props.setFocused(false)}
+              value={this.props.formatted}
+              disabled={!this.props.country}
+              ref={this.props.phoneInputRef}
               maxLength={17}
               textContentType="telephoneNumber"
             />
@@ -605,19 +581,75 @@ class _PhoneInput extends React.Component<PropsWithOverlay<Props>, State> {
             )}
           </Kb.Box2>
         </Kb.Box2>
-        <CountrySelector
-          attachTo={this.props.getAttachmentRef}
-          onSelect={this.onSelectCountry}
-          onHidden={this.toggleShowingMenu}
-          selected={this.state.country}
-          visible={this.props.showingMenu}
-          ref={this.countrySelectorRef}
-        />
+        {this.props.popup}
       </Kb.Box2>
     )
   }
 }
-const PhoneInput = Kb.OverlayParentHOC(_PhoneInput)
+
+const PhoneInput = (p: Props) => {
+  const [country, setCountry] = React.useState(p.defaultCountry)
+  const [focused, setFocused] = React.useState(false)
+  const [formatted, setFormatted] = React.useState('')
+  const [formatter, setFormatter] = React.useState<libphonenumber.AsYouTypeFormatter | undefined>(
+    p.defaultCountry ? new AsYouTypeFormatter(p.defaultCountry) : undefined
+  )
+  const [prefix, setPrefix] = React.useState(p.defaultCountry && getCallingCode(p.defaultCountry).slice(1))
+
+  const oldRef = React.useRef<_PhoneInput | null>(null)
+  const phoneInputRef = React.useRef<PlainInput | null>(null)
+  const countrySelectorRef = React.useRef<CountrySelector | null>(null)
+
+  const onSelectCountry = React.useCallback((code: string | undefined) => {
+    oldRef.current?.setCountry(code ?? '', false)
+    phoneInputRef.current?.focus()
+  }, [])
+
+  const {defaultCountry} = p
+
+  const {toggleShowingPopup, showingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
+    <CountrySelector
+      attachTo={attachTo}
+      onSelect={onSelectCountry}
+      onHidden={toggleShowingMenu}
+      selected={country}
+      visible={showingPopup}
+      ref={countrySelectorRef}
+    />
+  ))
+
+  const toggleShowingMenu = React.useCallback(() => {
+    if (!country && defaultCountry) {
+      countrySelectorRef.current?.onSelectMenu(defaultCountry)
+    }
+    countrySelectorRef.current?.clearFilter()
+    toggleShowingPopup()
+  }, [country, defaultCountry, toggleShowingPopup])
+
+  // this component is a mess. Has a lot of circular logic in the helpers which can't be easily hookified and i don't
+  // want to rewrite this now
+  return (
+    <_PhoneInput
+      {...p}
+      ref={oldRef}
+      popup={popup}
+      popupAnchor={popupAnchor}
+      countrySelectorRef={countrySelectorRef}
+      country={country}
+      setCountry={setCountry}
+      focused={focused}
+      setFocused={setFocused}
+      formatted={formatted}
+      setFormatted={setFormatted}
+      formatter={formatter}
+      setFormatter={setFormatter}
+      prefix={prefix}
+      setPrefix={setPrefix}
+      phoneInputRef={phoneInputRef}
+      toggleShowingMenu={toggleShowingMenu}
+    />
+  )
+}
 
 const styles = Styles.styleSheetCreate(
   () =>

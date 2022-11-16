@@ -1,40 +1,24 @@
-import * as React from 'react'
-import * as Types from '../../../constants/types/chat2'
 import * as Constants from '../../../constants/chat2'
-import * as Styles from '../../../styles'
-import * as TeamTypes from '../../../constants/types/teams'
-import * as TeamsGen from '../../../actions/teams-gen'
 import * as Kb from '../../../common-adapters'
-import {connect} from '../../../util/container'
+import * as React from 'react'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
+import * as Styles from '../../../styles'
+import * as TeamsGen from '../../../actions/teams-gen'
+import type * as TeamTypes from '../../../constants/types/teams'
+import type * as Types from '../../../constants/types/chat2'
+import {connect} from '../../../util/container'
 
 type Props = {
   isAdmin: boolean
   isGeneralChannel: boolean
   onAddPeople: () => void
   onAddToChannel: () => void
-} & Kb.OverlayParentProps
+}
 
 const _AddPeople = (props: Props) => {
-  let menu: React.ReactNode = null
   let directAction: null | (() => void) = null
   let directLabel: string | null = null
   if (!props.isGeneralChannel) {
-    // general channel & small teams don't need a menu
-    const items: Kb.MenuItems = [
-      {icon: 'iconfont-people', onClick: props.onAddPeople, title: 'To team'},
-      {icon: 'iconfont-hash', onClick: props.onAddToChannel, title: 'To channel'},
-    ]
-    menu = (
-      <Kb.FloatingMenu
-        attachTo={props.getAttachmentRef}
-        visible={props.showingMenu}
-        items={items}
-        onHidden={props.toggleShowingMenu}
-        position="bottom left"
-        closeOnSelect={true}
-      />
-    )
   } else {
     directAction = props.onAddPeople
     directLabel = 'Add people to team'
@@ -43,15 +27,36 @@ const _AddPeople = (props: Props) => {
     directAction = props.onAddToChannel
     directLabel = 'Add members to channel'
   }
+
+  const {toggleShowingPopup, showingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => {
+    if (!props.isGeneralChannel) {
+      // general channel & small teams don't need a menu
+      const items: Kb.MenuItems = [
+        {icon: 'iconfont-people', onClick: props.onAddPeople, title: 'To team'},
+        {icon: 'iconfont-hash', onClick: props.onAddToChannel, title: 'To channel'},
+      ]
+      return (
+        <Kb.FloatingMenu
+          attachTo={attachTo}
+          visible={showingPopup}
+          items={items}
+          onHidden={toggleShowingPopup}
+          position="bottom left"
+          closeOnSelect={true}
+        />
+      )
+    } else return null
+  })
+
   return (
     <Kb.Box2 direction="vertical" fullWidth={true}>
-      {menu}
+      {popup}
       <Kb.Button
         mode="Primary"
         type="Default"
-        onClick={directAction || props.toggleShowingMenu}
+        onClick={directAction || toggleShowingPopup}
         label={directLabel || 'Add people...'}
-        ref={props.setAttachmentRef}
+        ref={popupAnchor}
         style={styles.addButtonContainer}
       />
     </Kb.Box2>
@@ -88,7 +93,7 @@ const AddPeople = connect(
     onAddPeople: () => d._onAddPeople(s.teamID),
     onAddToChannel: () => d._onAddToChannel(o.conversationIDKey, s.teamID),
   })
-)(Kb.OverlayParentHOC(_AddPeople))
+)(_AddPeople)
 
 const styles = Styles.styleSheetCreate(
   () =>

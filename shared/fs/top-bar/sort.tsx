@@ -26,42 +26,43 @@ const getTextFromSortSetting = (sortSetting: Types.SortSetting) => {
   }
 }
 
-const makeSortOptionItem = (sortSetting, onClick) => ({
+const makeSortOptionItem = (sortSetting: Types.SortSetting, onClick?: () => void) => ({
   onClick,
   title: getTextFromSortSetting(sortSetting),
 })
 
-const Sort = (props: SortBarProps & Kb.OverlayParentProps) =>
-  props.sortSetting ? (
+const Sort = (props: SortBarProps) => {
+  const {sortSetting} = props
+  const {toggleShowingPopup, showingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
+    <Kb.FloatingMenu
+      attachTo={attachTo}
+      visible={showingPopup}
+      onHidden={toggleShowingPopup}
+      position="bottom left"
+      closeOnSelect={true}
+      items={[
+        ...(props.sortByNameAsc ? [makeSortOptionItem(Types.SortSetting.NameAsc, props.sortByNameAsc)] : []),
+        ...(props.sortByNameDesc
+          ? [makeSortOptionItem(Types.SortSetting.NameDesc, props.sortByNameDesc)]
+          : []),
+        ...(props.sortByTimeAsc ? [makeSortOptionItem(Types.SortSetting.TimeAsc, props.sortByTimeAsc)] : []),
+        ...(props.sortByTimeDesc
+          ? [makeSortOptionItem(Types.SortSetting.TimeDesc, props.sortByTimeDesc)]
+          : []),
+      ]}
+    />
+  ))
+  return sortSetting ? (
     <>
-      <Kb.ClickableBox onClick={props.toggleShowingMenu} ref={props.setAttachmentRef}>
+      <Kb.ClickableBox onClick={toggleShowingPopup} ref={popupAnchor}>
         <Kb.Box2 direction="horizontal" fullWidth={true} gap="xxtiny" centerChildren={Styles.isMobile}>
           <Kb.Icon type="iconfont-arrow-full-down" padding="xtiny" sizeType="Small" />
-          <Kb.Text type="BodySmallSemibold">{getTextFromSortSetting(props.sortSetting)}</Kb.Text>
+          <Kb.Text type="BodySmallSemibold">{getTextFromSortSetting(sortSetting)}</Kb.Text>
         </Kb.Box2>
       </Kb.ClickableBox>
-      <Kb.FloatingMenu
-        attachTo={props.getAttachmentRef}
-        visible={props.showingMenu}
-        onHidden={props.toggleShowingMenu}
-        position="bottom left"
-        closeOnSelect={true}
-        items={[
-          ...(props.sortByNameAsc
-            ? [makeSortOptionItem(Types.SortSetting.NameAsc, props.sortByNameAsc)]
-            : []),
-          ...(props.sortByNameDesc
-            ? [makeSortOptionItem(Types.SortSetting.NameDesc, props.sortByNameDesc)]
-            : []),
-          ...(props.sortByTimeAsc
-            ? [makeSortOptionItem(Types.SortSetting.TimeAsc, props.sortByTimeAsc)]
-            : []),
-          ...(props.sortByTimeDesc
-            ? [makeSortOptionItem(Types.SortSetting.TimeDesc, props.sortByTimeDesc)]
-            : []),
-        ]}
-      />
+      {popup}
     </>
   ) : null
+}
 
-export default Kb.OverlayParentHOC(Sort)
+export default Sort

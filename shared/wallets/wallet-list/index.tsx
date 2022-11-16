@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import {AccountID} from '../../constants/types/wallets'
+import type {AccountID} from '../../constants/types/wallets'
 import AddAccount from '../nav-header/add-account'
 import WalletRow from './wallet-row/container'
 
@@ -12,19 +12,10 @@ type AddProps = {
 
 const rowHeight = 48
 
-const _AddWallet = (props: AddProps & Kb.OverlayParentProps) => (
-  <Kb.ClickableBox onClick={props.toggleShowingMenu} ref={props.setAttachmentRef}>
-    <Kb.Box2
-      style={styles.addContainerBox}
-      direction="horizontal"
-      fullWidth={true}
-      className="hover_background_color_blueGreyDark"
-    >
-      <Kb.Icon type="icon-wallet-placeholder-add-32" style={styles.icon} />
-      <Kb.Text type="BodySemibold">Add an account</Kb.Text>
-    </Kb.Box2>
+const AddWallet = (props: AddProps) => {
+  const {toggleShowingPopup, showingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
     <Kb.FloatingMenu
-      attachTo={props.getAttachmentRef}
+      attachTo={attachTo}
       closeOnSelect={true}
       items={[
         {icon: 'iconfont-new', onClick: () => props.onAddNew(), title: 'Create a new account'},
@@ -34,14 +25,27 @@ const _AddWallet = (props: AddProps & Kb.OverlayParentProps) => (
           title: 'Link an existing Stellar account',
         },
       ]}
-      onHidden={props.toggleShowingMenu}
-      visible={props.showingMenu}
+      onHidden={toggleShowingPopup}
+      visible={showingPopup}
       position="bottom center"
     />
-  </Kb.ClickableBox>
-)
+  ))
 
-const AddWallet = Kb.OverlayParentHOC(_AddWallet)
+  return (
+    <Kb.ClickableBox onClick={toggleShowingPopup} ref={popupAnchor}>
+      <Kb.Box2
+        style={styles.addContainerBox}
+        direction="horizontal"
+        fullWidth={true}
+        className="hover_background_color_blueGreyDark"
+      >
+        <Kb.Icon type="icon-wallet-placeholder-add-32" style={styles.icon} />
+        <Kb.Text type="BodySemibold">Add an account</Kb.Text>
+      </Kb.Box2>
+      {popup}
+    </Kb.ClickableBox>
+  )
+}
 
 const WhatIsStellar = (props: {onWhatIsStellar: () => void}) => (
   <Kb.ClickableBox onClick={props.onWhatIsStellar} style={styles.whatIsStellar}>

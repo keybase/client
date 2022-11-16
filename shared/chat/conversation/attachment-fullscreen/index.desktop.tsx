@@ -29,10 +29,9 @@ const Arrow = (props: ArrowProps) => {
   )
 }
 
-const _Fullscreen = (p: Props & Kb.OverlayParentProps) => {
+const Fullscreen = (p: Props) => {
   const {path, title, message, progress, progressLabel} = p
   const {onNextAttachment, onPreviousAttachment, onClose, onDownloadAttachment, onShowInFinder, isVideo} = p
-  const {setAttachmentRef, toggleShowingMenu, showingMenu, getAttachmentRef} = p
 
   const [isZoomed, setIsZoomed] = React.useState(false)
   const onZoomed = React.useCallback((zoomed: boolean) => {
@@ -47,6 +46,16 @@ const _Fullscreen = (p: Props & Kb.OverlayParentProps) => {
   }
   const isDownloadError = !!message.transferErrMsg
 
+  const {toggleShowingPopup, showingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
+    <MessagePopup
+      attachTo={attachTo}
+      message={message}
+      onHidden={toggleShowingPopup}
+      position="bottom left"
+      visible={showingPopup}
+    />
+  ))
+
   return (
     <Kb.PopupDialog onClose={onClose} fill={true}>
       <Kb.Box style={styles.container}>
@@ -56,22 +65,16 @@ const _Fullscreen = (p: Props & Kb.OverlayParentProps) => {
             {title}
           </Kb.Markdown>
           <Kb.Icon
-            ref={setAttachmentRef}
+            ref={popupAnchor as any}
             type="iconfont-ellipsis"
             style={Styles.platformStyles({
               common: {marginLeft: Styles.globalMargins.tiny},
               isElectron: {cursor: 'pointer'},
             })}
             color={Styles.globalColors.black_50}
-            onClick={toggleShowingMenu}
+            onClick={toggleShowingPopup}
           />
-          <MessagePopup
-            attachTo={getAttachmentRef}
-            message={message}
-            onHidden={toggleShowingMenu}
-            position="bottom left"
-            visible={showingMenu}
-          />
+          {popup}
         </Kb.Box>
         {path && (
           <Kb.BoxGrow>
@@ -135,8 +138,6 @@ const _Fullscreen = (p: Props & Kb.OverlayParentProps) => {
     </Kb.PopupDialog>
   )
 }
-
-const Fullscreen = Kb.OverlayParentHOC(_Fullscreen)
 
 const styles = Styles.styleSheetCreate(
   () =>

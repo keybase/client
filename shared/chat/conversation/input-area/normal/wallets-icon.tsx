@@ -11,9 +11,8 @@ export type WalletsIconProps = {
   size: number
   style?: Styles.StylesCrossPlatform
 }
-const WalletsIcon = (props: WalletsIconProps & Kb.OverlayParentProps) => {
+const WalletsIcon = (props: WalletsIconProps) => {
   const {size, style, conversationIDKey} = props
-  const {setAttachmentRef, toggleShowingMenu, getAttachmentRef, showingMenu} = props
   const you = Container.useSelector(state => state.config.username)
   const participantInfo = Container.useSelector(state =>
     Constants.getParticipantInfo(state, conversationIDKey)
@@ -27,24 +26,29 @@ const WalletsIcon = (props: WalletsIconProps & Kb.OverlayParentProps) => {
   const onSend = () => {
     dispatch(WalletsGen.createOpenSendRequestForm({isRequest: false, recipientType: 'keybaseUser', to}))
   }
+
+  const {toggleShowingPopup, showingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
+    <Kb.FloatingMenu
+      closeOnSelect={true}
+      attachTo={attachTo}
+      items={[
+        {icon: 'iconfont-stellar-send', onClick: onSend, title: 'Send Lumens (XLM)'},
+        {icon: 'iconfont-stellar-request', onClick: onRequest, title: 'Request Lumens (XLM)'},
+      ]}
+      onHidden={toggleShowingPopup}
+      position="top right"
+      visible={showingPopup}
+    />
+  ))
+
   return (
     <Kb.Box2
-      ref={setAttachmentRef}
+      ref={popupAnchor}
       direction="horizontal"
       style={Styles.collapseStyles([styles.container, style])}
     >
-      <Kb.Icon type="iconfont-dollar-sign" fontSize={size} onClick={toggleShowingMenu} />
-      <Kb.FloatingMenu
-        closeOnSelect={true}
-        attachTo={getAttachmentRef}
-        items={[
-          {icon: 'iconfont-stellar-send', onClick: onSend, title: 'Send Lumens (XLM)'},
-          {icon: 'iconfont-stellar-request', onClick: onRequest, title: 'Request Lumens (XLM)'},
-        ]}
-        onHidden={toggleShowingMenu}
-        position="top right"
-        visible={showingMenu}
-      />
+      <Kb.Icon type="iconfont-dollar-sign" fontSize={size} onClick={toggleShowingPopup} />
+      {popup}
     </Kb.Box2>
   )
 }
@@ -88,4 +92,4 @@ const styles = Styles.styleSheetCreate(
     } as const)
 )
 
-export default Kb.OverlayParentHOC(WalletsIcon)
+export default WalletsIcon

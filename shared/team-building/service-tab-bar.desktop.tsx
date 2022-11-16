@@ -69,13 +69,25 @@ const ServiceIcon = (props: IconProps) => {
   )
 }
 
-const MoreNetworksButton = Kb.OverlayParentHOC(
-  (
-    props: Kb.PropsWithOverlay<{
-      services: Array<ServiceIdWithContact>
-      onChangeService: (service: ServiceIdWithContact) => void
-    }>
-  ) => (
+const MoreNetworksButton = (props: {
+  services: Array<ServiceIdWithContact>
+  onChangeService: (service: ServiceIdWithContact) => void
+}) => {
+  const {toggleShowingPopup, showingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
+    <Kb.FloatingMenu
+      attachTo={attachTo}
+      closeOnSelect={true}
+      items={props.services.map(service => ({
+        onClick: () => props.onChangeService(service),
+        title: service,
+        view: <MoreNetworkItem service={service} />,
+      }))}
+      onHidden={toggleShowingPopup}
+      visible={showingPopup}
+    />
+  ))
+
+  return (
     <>
       <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.moreNetworks0}>
         <Kb.Box2
@@ -83,10 +95,10 @@ const MoreNetworksButton = Kb.OverlayParentHOC(
           style={styles.moreNetworks1}
           fullHeight={true}
           centerChildren={true}
-          ref={props.setAttachmentRef}
+          ref={popupAnchor}
         >
           <Kb.WithTooltip tooltip="More networks" containerStyle={styles.moreNetworks2}>
-            <Kb.ClickableBox onClick={props.toggleShowingMenu} style={styles.moreNetworks3}>
+            <Kb.ClickableBox onClick={toggleShowingPopup} style={styles.moreNetworks3}>
               <Kb.Text type="BodyBigExtrabold" style={styles.moreText}>
                 •••
               </Kb.Text>
@@ -95,20 +107,10 @@ const MoreNetworksButton = Kb.OverlayParentHOC(
         </Kb.Box2>
         <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.inactiveTabBar} />
       </Kb.Box2>
-      <Kb.FloatingMenu
-        attachTo={props.getAttachmentRef}
-        closeOnSelect={true}
-        items={props.services.map(service => ({
-          onClick: () => props.onChangeService(service),
-          title: service,
-          view: <MoreNetworkItem service={service} />,
-        }))}
-        onHidden={props.toggleShowingMenu}
-        visible={props.showingMenu}
-      />
+      {popup}
     </>
   )
-)
+}
 
 const MoreNetworkItem = (props: {service: ServiceIdWithContact}) => (
   <Kb.Box2 direction="horizontal" fullHeight={true} alignItems="center">

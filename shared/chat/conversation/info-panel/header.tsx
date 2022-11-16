@@ -11,12 +11,12 @@ import type * as ChatTypes from '../../../constants/types/chat2'
 import * as InfoPanelCommon from './common'
 import AddPeople from './add-people'
 
-type SmallProps = {conversationIDKey: ChatTypes.ConversationIDKey} & Kb.OverlayParentProps
+type SmallProps = {conversationIDKey: ChatTypes.ConversationIDKey}
 
 const gearIconSize = Styles.isMobile ? 24 : 16
 
-const _TeamHeader = (props: SmallProps) => {
-  const {conversationIDKey, toggleShowingMenu, getAttachmentRef, showingMenu, setAttachmentRef} = props
+const TeamHeader = (props: SmallProps) => {
+  const {conversationIDKey} = props
   const dispatch = Container.useDispatch()
   const meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
   const {teamname, teamID, channelname, descriptionDecorated: description, membershipType, teamType} = meta
@@ -33,18 +33,23 @@ const _TeamHeader = (props: SmallProps) => {
     title += '#' + channelname
   }
   const isGeneralChannel = !!(channelname && channelname === 'general')
+
+  const {toggleShowingPopup, showingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
+    <InfoPanelMenu
+      attachTo={attachTo}
+      floatingMenuContainerStyle={styles.floatingMenuContainerStyle}
+      onHidden={toggleShowingPopup}
+      hasHeader={false}
+      isSmallTeam={isSmallTeam}
+      conversationIDKey={conversationIDKey}
+      visible={showingPopup}
+    />
+  ))
+
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} gap="small">
       <Kb.Box2 direction="horizontal" style={styles.smallContainer} fullWidth={true}>
-        <InfoPanelMenu
-          attachTo={getAttachmentRef}
-          floatingMenuContainerStyle={styles.floatingMenuContainerStyle}
-          onHidden={toggleShowingMenu}
-          hasHeader={false}
-          isSmallTeam={isSmallTeam}
-          conversationIDKey={conversationIDKey}
-          visible={showingMenu}
-        />
+        {popup}
         {isSmallTeam ? (
           <>
             <Kb.ConnectedNameWithIcon
@@ -106,8 +111,8 @@ const _TeamHeader = (props: SmallProps) => {
         )}
         <Kb.Icon
           type="iconfont-gear"
-          onClick={toggleShowingMenu}
-          ref={setAttachmentRef}
+          onClick={toggleShowingPopup}
+          ref={popupAnchor as any}
           style={styles.gear}
           fontSize={gearIconSize}
         />
@@ -138,7 +143,6 @@ const _TeamHeader = (props: SmallProps) => {
     </Kb.Box2>
   )
 }
-const TeamHeader = Kb.OverlayParentHOC(_TeamHeader)
 
 type AdhocHeaderProps = {conversationIDKey: ChatTypes.ConversationIDKey}
 
