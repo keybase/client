@@ -9,9 +9,16 @@ import webpack from 'webpack'
 import HtmlWebpackPlugin from 'html-webpack-plugin'
 const ReactRefreshWebpackPlugin = require('@pmmmwh/react-refresh-webpack-plugin')
 
+const isProfiling = false
+if (isProfiling) {
+  for (let i = 0; i < 100; ++i) {
+    console.log('profiling build on in webpack.config.babel!')
+  }
+}
+
 // When we start the hot server we want to build the main/dll without hot reloading statically
 const config = (_, {mode}) => {
-  const isDev = mode !== 'production'
+  const isDev = mode !== 'production' && !isProfiling
   const isHot = isDev && !!process.env['HOT']
 
   console.error('Flags: ', {isDev, isHot})
@@ -92,6 +99,12 @@ const config = (_, {mode}) => {
     console.warn('Injecting defines: ', defines)
 
     const alias = {
+      ...(isProfiling
+        ? {
+            'react-dom$': 'react-dom/profiling',
+            'scheduler/tracing': 'scheduler/tracing-profiling',
+          }
+        : {}),
       'react-native$': 'react-native-web',
       'react-native-reanimated': false,
     }
@@ -99,6 +112,8 @@ const config = (_, {mode}) => {
       // enable why did you render
       alias['react-redux'] = 'react-redux/dist/react-redux.js'
     }
+
+    console.warn('Using alias: ', alias)
 
     return {
       bail: true,
@@ -131,12 +146,14 @@ const config = (_, {mode}) => {
                   parallel: true,
                   terserOptions: {
                     parse: {ecma: 8},
-                    compress: {
-                      comparisons: false,
-                      ecma: 5,
-                      inline: 2,
-                      warnings: false,
-                    },
+                    compress: isProfiling
+                      ? false
+                      : {
+                          comparisons: false,
+                          ecma: 5,
+                          inline: 2,
+                          warnings: false,
+                        },
                     keep_fnames: true,
                     keep_classnames: true,
                     mangle: false,
