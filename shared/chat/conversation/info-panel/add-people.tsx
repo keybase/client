@@ -1,12 +1,12 @@
-import * as React from 'react'
-import * as Types from '../../../constants/types/chat2'
 import * as Constants from '../../../constants/chat2'
-import * as Styles from '../../../styles'
-import * as TeamTypes from '../../../constants/types/teams'
-import * as TeamsGen from '../../../actions/teams-gen'
 import * as Kb from '../../../common-adapters'
-import {connect} from '../../../util/container'
+import * as React from 'react'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
+import * as Styles from '../../../styles'
+import * as TeamsGen from '../../../actions/teams-gen'
+import type * as TeamTypes from '../../../constants/types/teams'
+import type * as Types from '../../../constants/types/chat2'
+import {connect} from '../../../util/container'
 
 type Props = {
   isAdmin: boolean
