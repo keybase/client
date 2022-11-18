@@ -31,6 +31,7 @@ const commands = {
       checkFSEvents()
       clearTSCache()
       clearAndroidBuild()
+      clearXcodeNode()
       getMsgPack()
       patch()
       patchIosKBLib()
@@ -179,6 +180,14 @@ const patchIosKBLib = () => {
       }
     }
   }
+}
+
+const clearXcodeNode = () => {
+  const warnFail = err => err && console.warn(`Error cleaning android build dir, likely fine`)
+  try {
+    const glob = path.resolve(__dirname, '../../ios/.xcode.env.local')
+    rimraf(glob, {}, warnFail)
+  } catch {}
 }
 
 const clearAndroidBuild = () => {
