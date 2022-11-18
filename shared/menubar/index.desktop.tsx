@@ -10,7 +10,7 @@ import FilesPreview from './files-container.desktop'
 import {isDarwin} from '../constants/platform'
 import OutOfDate from './out-of-date'
 import Upload from '../fs/footer/upload'
-import UploadCountdownHOC from '../fs/footer/upload-countdown-hoc'
+import {useUploadCountdown} from '../fs/footer/use-upload-countdown'
 import {Loading} from '../fs/simple-screens'
 import SpaceWarning from './space-warning'
 
@@ -51,7 +51,28 @@ type State = {
 }
 
 const ArrowTick = () => <Kb.Box style={styles.arrowTick} />
-const UploadWithCountdown = UploadCountdownHOC(Upload)
+type UWCDProps = {
+  endEstimate?: number
+  files: number
+  fileName: string | null
+  totalSyncingBytes: number
+  isOnline: boolean
+  smallMode: boolean
+}
+const UploadWithCountdown = (p: UWCDProps) => {
+  const {endEstimate, files, fileName, totalSyncingBytes, isOnline, smallMode} = p
+
+  const np = useUploadCountdown({
+    endEstimate,
+    fileName,
+    files,
+    isOnline,
+    smallMode,
+    totalSyncingBytes,
+  })
+
+  return <Upload {...np} />
+}
 
 class MenubarRender extends React.Component<Props, State> {
   state: State = {showingMenu: false}

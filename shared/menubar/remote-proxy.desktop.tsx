@@ -1,5 +1,6 @@
 // A mirror of the remote menubar windows.
 import * as ChatConstants from '../constants/chat2'
+import * as FSConstants from '../constants/fs'
 import type * as NotificationTypes from '../constants/types/notifications'
 import * as FSTypes from '../constants/types/fs'
 import * as Container from '../util/container'
@@ -9,7 +10,6 @@ import {intersect} from '../util/set'
 import useSerializeProps from '../desktop/remote/use-serialize-props.desktop'
 import {serialize, type ProxyProps, type RemoteTlfUpdates} from './remote-serializer.desktop'
 import {isSystemDarkMode} from '../styles/dark-mode'
-import {uploadsToUploadCountdownHOCProps} from '../fs/footer/upload-container'
 import {mapFilterByKey} from '../util/map'
 import {memoize} from '../util/memoize'
 import shallowEqual from 'shallowequal'
@@ -134,8 +134,27 @@ const RemoteProxy = () => {
   const following = React.useMemo(() => intersect(_following, usernames), [_following, usernames])
   const infoMap = React.useMemo(() => mapFilterByKey(_infoMap, usernames), [_infoMap, usernames])
 
+  // We just use syncingPaths rather than merging with writingToJournal here
+  // since journal status comes a bit slower, and merging the two causes
+  // flakes on our perception of overall upload status.
+
+  // Filter out folder paths.
+  const filePaths = [...uploads.syncingPaths].filter(
+    path => FSConstants.getPathItem(pathItems, path).type !== FSTypes.PathType.Folder
+  )
+
+  const upDown = {
+    // We just use syncingPaths rather than merging with writingToJournal here
+    // since journal status comes a bit slower, and merging the two causes
+    // flakes on our perception of overall upload status.
+    endEstimate: uploads.endEstimate || 0,
+    fileName: filePaths.length === 1 ? FSTypes.getPathName(filePaths[1] || FSTypes.stringToPath('')) : null,
+    files: filePaths.length,
+    totalSyncingBytes: uploads.totalSyncingBytes,
+  }
+
   const p: ProxyProps & WidgetProps = {
-    ...uploadsToUploadCountdownHOCProps(pathItems, uploads),
+    ...upDown,
     avatarRefreshCounter,
     conversationsToSend,
     daemonHandshakeState,
