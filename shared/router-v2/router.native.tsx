@@ -13,7 +13,7 @@ import * as ConfigConstants from '../constants/config'
 import {useMemo} from '../util/memoize'
 import {StatusBar} from 'react-native'
 import {HeaderLeftCancel} from '../common-adapters/header-hoc'
-import {NavigationContainer} from '@react-navigation/native'
+import {getFocusedRouteNameFromRoute, NavigationContainer} from '@react-navigation/native'
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs'
 import {modalRoutes, routes, loggedOutRoutes, tabRoots} from './routes'
 import {enableFreeze} from 'react-native-screens'
@@ -198,6 +198,12 @@ const AppTabsInner = () => {
           key={tab}
           name={tab}
           component={makeTabStack(tab)}
+          options={({route}) => {
+            const routeName = getFocusedRouteNameFromRoute(route)
+            return {
+              tabBarStyle: routeName === 'chatConversation' ? Common.tabBarStyleHidden : Common.tabBarStyle,
+            }
+          }}
           listeners={() => ({
             tabLongPress: () => {
               dispatch(RouteTreeGen.createTabLongPress({tab}))

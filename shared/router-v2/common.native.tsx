@@ -21,6 +21,9 @@ export const tabBarStyle = {
     return Styles.globalColors.blueDarkOrGreyDarkest
   },
 }
+export const tabBarStyleHidden = {
+  display: 'none',
+}
 
 const actionWidth = 64
 const DEBUGCOLORS = __DEV__ && false
