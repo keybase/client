@@ -16,7 +16,6 @@ export function useSafeSubmit<F extends Function>(f: F, shouldReset: boolean) {
   React.useEffect(() => {
     if (shouldReset) {
       safeToCallRef.current = true
-      console.log('aaa SAFEWRAp reset')
     }
   }, [shouldReset])
 
@@ -24,10 +23,8 @@ export function useSafeSubmit<F extends Function>(f: F, shouldReset: boolean) {
     (...args: Array<any>) => {
       if (safeToCallRef.current) {
         safeToCallRef.current = false
-        console.log('aaa SAFEWRAp called')
         f(...args)
       } else {
-        console.log('aaa SAFEWRAp diabled')
       }
     },
     [f]
