@@ -7,7 +7,6 @@ import Icon from '../icon'
 import SafeAreaView, {SafeAreaViewTop} from '../safe-area-view'
 import * as Styles from '../../styles'
 import type {Action, Props, LeftActionProps} from '.'
-import {hoistNonReactStatic} from '../../util/container'
 
 const MAX_RIGHT_ACTIONS = 3
 
@@ -238,25 +237,6 @@ export const HeaderHocWrapper = (props: Props & {children: React.ReactNode; skip
   )
 }
 
-/** TODO deprecate **/
-function HeaderHoc<P extends {}>(WrappedComponent: React.ComponentType<P>) {
-  const HeaderHocWrapper = (props: P & Props) => (
-    <Box style={styles.container}>
-      {!!props.customSafeAreaTopStyle && <SafeAreaViewTop style={props.customSafeAreaTopStyle} />}
-      <HeaderHocHeader {...props} />
-      <Box style={styles.grow}>
-        <Box style={styles.innerWrapper}>
-          <WrappedComponent {...(props as P)} />
-        </Box>
-      </Box>
-      {!!props.customSafeAreaBottomStyle && <SafeAreaView style={props.customSafeAreaBottomStyle} />}
-    </Box>
-  )
-
-  hoistNonReactStatic(HeaderHocWrapper, WrappedComponent)
-  return HeaderHocWrapper
-}
-
 // If layout is changed here, please make sure the Files header is updated as
 // well to match this. fs/nav-header/mobile-header.js
 
@@ -385,4 +365,3 @@ const HeaderLeftCancel_ = (hp: {
   ) : null
 
 export const HeaderLeftCancel = React.memo(HeaderLeftCancel_)
-export default HeaderHoc
