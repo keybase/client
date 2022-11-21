@@ -10,8 +10,32 @@ import * as Container from './container'
 // safeSubmit(['onSubmit', 'onBack'], ['error'])
 // )(MyComponent)
 
+export function useSafeSubmit<F extends Function>(f: F, shouldReset: boolean) {
+  const safeToCallRef = React.useRef(true)
+
+  React.useEffect(() => {
+    safeToCallRef.current = true
+    console.log('aaa SAFEWRAp reset')
+  }, [shouldReset])
+
+  const safeWrapped = React.useCallback(
+    (...args: Array<any>) => {
+      if (safeToCallRef.current) {
+        safeToCallRef.current = false
+        console.log('aaa SAFEWRAp called')
+        f(...args)
+      } else {
+        console.log('aaa SAFEWRAp diabled')
+      }
+    },
+    [f]
+  )
+
+  return safeWrapped as any as F
+}
+
 export function safeSubmit(submitProps: Array<string>, resetSafeProps: Array<string>) {
-  return function<P extends {}>(BaseComponent: React.ComponentType<P>): React.ComponentType<P> {
+  return function <P extends {}>(BaseComponent: React.ComponentType<P>): React.ComponentType<P> {
     class SafeSubmit extends React.Component<P> {
       // a map of name to boolean if we can call it safely
       _safeToCallWrappedMap = submitProps.reduce<{[key: string]: boolean}>((map, name) => {
