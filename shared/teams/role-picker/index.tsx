@@ -4,7 +4,6 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import capitalize from 'lodash/capitalize'
 import {pluralize} from '../../util/string'
-import type {Position} from '../../common-adapters/relative-popup-hoc.types'
 import type {TeamRoleType} from '../../constants/types/teams'
 import type {StylesCrossPlatform} from '../../styles/css'
 
@@ -417,7 +416,7 @@ const styles = Styles.styleSheetCreate(
 
 // Helper to use this as a floating box
 export type FloatingProps<T extends boolean> = {
-  position?: Position
+  position?: Styles.Position
   children?: React.ReactNode
   floatingContainerStyle?: StylesCrossPlatform
   open: boolean

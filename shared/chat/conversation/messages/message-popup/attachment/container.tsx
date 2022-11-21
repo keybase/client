@@ -10,8 +10,7 @@ import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import {getCanPerformByID} from '../../../../../constants/teams'
 import * as Container from '../../../../../util/container'
 import {isMobile, isIOS} from '../../../../../constants/platform'
-import type {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
-import type {StylesCrossPlatform} from '../../../../../styles/css'
+import type {Position, StylesCrossPlatform} from '../../../../../styles'
 import Attachment from '.'
 
 type OwnProps = {

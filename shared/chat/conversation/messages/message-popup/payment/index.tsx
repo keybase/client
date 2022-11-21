@@ -3,7 +3,6 @@ import toUpper from 'lodash/toUpper'
 import upperFirst from 'lodash/upperFirst'
 import * as Styles from '../../../../../styles'
 
-import {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
 import {Box2} from '../../../../../common-adapters/box'
 import Text, {AllowedColors} from '../../../../../common-adapters/text'
 import Icon from '../../../../../common-adapters/icon'
@@ -61,7 +60,7 @@ export type Props = {
   onClaimLumens: (() => void) | null
   onHidden: () => void
   onSeeDetails: (() => void) | null
-  position: Position
+  position: Styles.Position
   style?: Styles.StylesCrossPlatform
   visible: boolean
 } & HeaderProps

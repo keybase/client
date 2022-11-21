@@ -6,9 +6,8 @@
 
 import * as React from 'react'
 import Overlay from '../overlay'
-import {Position} from '../relative-popup-hoc.types'
 import MenuLayout, {MenuItems as _MenuItems} from './menu-layout'
-import {Color, StylesCrossPlatform} from '../../styles'
+import {Position, Color, StylesCrossPlatform} from '../../styles'
 
 export type MenuItems = _MenuItems
 

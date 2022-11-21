@@ -2,8 +2,7 @@ import * as React from 'react'
 import MessagePopupHeader from '../header'
 import * as Kb from '../../../../../common-adapters'
 import {DeviceType} from '../../../../../constants/types/devices'
-import {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
-import {StylesCrossPlatform} from '../../../../../styles/css'
+import type {Position, StylesCrossPlatform} from '../../../../../styles'
 import ReactionItem from '../reactionitem'
 
 type Props = {

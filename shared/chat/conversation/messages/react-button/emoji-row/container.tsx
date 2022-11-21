@@ -3,8 +3,7 @@ import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import * as Constants from '../../../../../constants/chat2'
 import type * as Types from '../../../../../constants/types/chat2'
-import type {StylesCrossPlatform} from '../../../../../styles'
-import type {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
+import type {Position, StylesCrossPlatform} from '../../../../../styles'
 import EmojiRow from '.'
 
 type OwnProps = {

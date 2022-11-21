@@ -7,7 +7,6 @@ import without from 'lodash/without'
 import Box from './box'
 import ReactDOM from 'react-dom'
 import {EscapeHandler} from '../util/key-event-handler.desktop'
-import type {Position} from './relative-popup-hoc.types'
 
 const Kb = {
   Box,
@@ -53,7 +52,7 @@ type ComputedStyle = {
   bottom?: number | 'auto'
 }
 
-const positions: Array<Position> = [
+const positions: Array<Styles.Position> = [
   'top left',
   'top right',
   'bottom right',
@@ -67,7 +66,7 @@ const positions: Array<Position> = [
 
 // Modified from https://github.com/Semantic-Org/Semantic-UI-React/blob/454daaab6e31459741e1cbce1b0c9a1a5f07bd2e/src/modules/Popup/Popup.js#L150
 function _computePopupStyle(
-  position: Position,
+  position: Styles.Position,
   coords: ClientRect,
   popupCoords: ClientRect,
   matchDimension: boolean,
@@ -238,13 +237,13 @@ function pushStyleIntoViewport(style, popupCoords: ClientRect) {
 }
 
 function computePopupStyle(
-  position: Position,
+  position: Styles.Position,
   coords: ClientRect,
   popupCoords: ClientRect,
   matchDimension: boolean,
   offset: number | null,
   // When specified, will only use the fallbacks regardless of visibility
-  positionFallbacks?: Position[]
+  positionFallbacks?: Styles.Position[]
 ): ComputedStyle {
   let style = _computePopupStyle(position, coords, popupCoords, matchDimension, offset)
 
@@ -260,8 +259,8 @@ function computePopupStyle(
 
 type ModalPositionRelativeProps<PP> = {
   targetRect: ClientRect | null
-  position: Position
-  positionFallbacks?: Position[]
+  position: Styles.Position
+  positionFallbacks?: Styles.Position[]
   matchDimension?: boolean
   onClosePopup: () => void
   propagateOutsideClicks?: boolean
