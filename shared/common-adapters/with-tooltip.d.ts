@@ -1,6 +1,5 @@
 import * as React from 'react'
-import {StylesCrossPlatform} from '../styles'
-import {Position} from './relative-popup-hoc.types'
+import {StylesCrossPlatform, Position} from '../styles'
 
 export type Props = {
   backgroundColor?: string

@@ -4,7 +4,6 @@ import * as Styles from '../../../../../styles'
 import {formatTimeForPopup, formatTimeForRevoked, msToDHMS} from '../../../../../util/timestamp'
 import {addTicker, removeTicker, type TickerID} from '../../../../../util/second-timer'
 import {type DeviceType} from '../../../../../constants/types/devices'
-import {type Position} from '../../../../../common-adapters/relative-popup-hoc.types'
 
 const headerIconType = Styles.isMobile ? 'icon-fancy-bomb-mobile-226-96' : 'icon-fancy-bomb-desktop-150-72'
 const headerIconHeight = Styles.isMobile ? 96 : 72
@@ -20,7 +19,7 @@ type Props = {
   hideTimer: boolean
   items: Kb.MenuItems
   onHidden: () => void
-  position: Position
+  position: Styles.Position
   style?: Styles.StylesCrossPlatform
   timestamp: number
   visible: boolean

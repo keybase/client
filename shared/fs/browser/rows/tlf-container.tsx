@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Types from '../../../constants/types/fs'
 import * as Constants from '../../../constants/fs'
 import * as Container from '../../../util/container'
-import OpenHOC from '../../common/open-hoc'
+import {useOpen} from '../../common/use-open'
 import Tlf from './tlf'
 
 export type OwnProps = {
@@ -13,31 +13,24 @@ export type OwnProps = {
   tlfType: Types.TlfType
 }
 
-const mapStateToProps = (state, {tlfType, name}: OwnProps) => ({
-  _tlf: Constants.getTlfFromTlfs(state.fs.tlfs, tlfType, name),
-  _username: state.config.username,
-})
-
-const mergeProps = (
-  stateProps,
-  _,
-  {tlfType, name, mixedMode, destinationPickerIndex, disabled}: OwnProps
-) => {
+export default (p: OwnProps) => {
+  const {tlfType, name, mixedMode, destinationPickerIndex, disabled} = p
+  const tlf = Container.useSelector(state => Constants.getTlfFromTlfs(state.fs.tlfs, tlfType, name))
+  const username = Container.useSelector(state => state.config.username)
   const path = Constants.tlfTypeAndNameToPath(tlfType, name)
-  const usernames = Constants.getUsernamesFromTlfName(name).filter(name => name !== stateProps._username)
-  return {
+  const usernames = Constants.getUsernamesFromTlfName(name).filter(name => name !== username)
+  const onOpen = useOpen({destinationPickerIndex, path})
+  const np = {
     destinationPickerIndex,
     disabled,
-    isIgnored: stateProps._tlf.isIgnored,
-    loadPathMetadata:
-      stateProps._tlf.syncConfig && stateProps._tlf.syncConfig.mode !== Types.TlfSyncMode.Disabled,
+    isIgnored: tlf.isIgnored,
+    loadPathMetadata: tlf.syncConfig && tlf.syncConfig.mode !== Types.TlfSyncMode.Disabled,
     mixedMode,
     name,
+    onOpen,
     path,
     // Only include the user if they're the only one
-    usernames: !usernames.length ? [stateProps._username] : usernames,
+    usernames: !usernames.length ? [username] : usernames,
   }
+  return <Tlf {...np} />
 }
-
-export default ((ComposedComponent: React.ComponentType<any>) =>
-  Container.connect(mapStateToProps, () => ({}), mergeProps)(OpenHOC(ComposedComponent)))(Tlf)

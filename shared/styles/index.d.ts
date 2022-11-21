@@ -112,6 +112,17 @@ export declare const windowStyle: {
   height: number
 }
 
+export type Position =
+  | 'top left'
+  | 'top right'
+  | 'bottom right'
+  | 'bottom left'
+  | 'right center'
+  | 'left center'
+  | 'top center'
+  | 'bottom center'
+  | 'center center'
+
 export declare function padding(
   top: number,
   right?: number,

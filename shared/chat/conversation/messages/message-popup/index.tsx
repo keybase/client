@@ -1,12 +1,11 @@
 import * as React from 'react'
-import * as Types from '../../../../constants/types/chat2'
+import type * as Types from '../../../../constants/types/chat2'
 import AttachmentMessage from './attachment/container'
 import TextMessage from './text/container'
 import ExplodingMessage from './exploding/container'
 import PaymentMessage from './payment/container'
 import JourneycardMessage from './journeycard/container'
-import {Position} from '../../../../common-adapters/relative-popup-hoc.types'
-import {StylesCrossPlatform} from '../../../../styles/css'
+import type {Position, StylesCrossPlatform} from '../../../../styles'
 
 type Props = {
   attachTo?: () => React.Component<any> | null

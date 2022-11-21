@@ -1,5 +1,5 @@
 import * as React from 'react'
-import type {Position} from '../relative-popup-hoc.types'
+import type {Position} from '../../styles'
 import type {StylesCrossPlatform} from '../../styles/css'
 
 /**

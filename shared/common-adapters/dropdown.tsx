@@ -5,7 +5,6 @@ import ClickableBox from './clickable-box'
 import Text from './text'
 import Overlay from './overlay'
 import ScrollView from './scroll-view'
-import type {Position} from './relative-popup-hoc.types'
 import Icon from './icon'
 import {smallHeight, regularHeight} from './button'
 import {usePopup} from './use-popup'
@@ -60,7 +59,7 @@ type Props<N> = {
   onChanged?: (selected: N) => void
   onChangedIdx?: (selectedIdx: number) => void
   overlayStyle?: Styles.StylesCrossPlatform
-  position?: Position
+  position?: Styles.Position
   selected?: N
   selectedBoxStyle?: Styles.StylesCrossPlatform
   style?: Styles.StylesCrossPlatform

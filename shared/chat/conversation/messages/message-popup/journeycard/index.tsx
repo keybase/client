@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Kb from '../../../../../common-adapters'
-import {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
-import {StylesCrossPlatform} from '../../../../../styles/css'
+import type {Position, StylesCrossPlatform} from '../../../../../styles'
 
 type Props = {
   attachTo?: () => React.Component<any> | null
