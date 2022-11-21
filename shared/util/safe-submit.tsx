@@ -14,8 +14,10 @@ export function useSafeSubmit<F extends Function>(f: F, shouldReset: boolean) {
   const safeToCallRef = React.useRef(true)
 
   React.useEffect(() => {
-    safeToCallRef.current = true
-    console.log('aaa SAFEWRAp reset')
+    if (shouldReset) {
+      safeToCallRef.current = true
+      console.log('aaa SAFEWRAp reset')
+    }
   }, [shouldReset])
 
   const safeWrapped = React.useCallback(
