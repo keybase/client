@@ -387,10 +387,10 @@ export class RelativeFloatingBox extends React.Component<ModalPositionRelativePr
         <Kb.Box style={this.state.style}>
           {this.props.onClosePopup && (
             <EscapeHandler onESC={this.props.onClosePopup}>
-              <Kb.Box {...(this.props as any)} />
+              <Kb.Box> {this.props.children} </Kb.Box>
             </EscapeHandler>
           )}
-          {!this.props.onClosePopup && <Kb.Box {...(this.props as any)} />}
+          {!this.props.onClosePopup && <Kb.Box>{this.props.children}</Kb.Box>}
         </Kb.Box>
       </Modal>
     )
