@@ -73,6 +73,7 @@ export const TeamJourney = (props: Props) => {
             {props.actions.map(action =>
               action == 'wave' ? (
                 <Kb.WaveButton
+                  key="wave"
                   conversationIDKey={conversationIDKey}
                   small={true}
                   style={styles.buttonSpace}
