@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import QRLines from '../../../common-adapters/qr-lines'
-import {Props} from '.'
+import type {Props} from '.'
 // Basically only used for storybook
 
 const QRScan = (props: Props) => (
