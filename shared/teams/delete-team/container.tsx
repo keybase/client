@@ -1,3 +1,4 @@
+import * as React from 'react'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Container from '../../util/container'
@@ -8,33 +9,37 @@ import {anyWaiting} from '../../constants/waiting'
 
 type OwnProps = Container.RouteProps<'teamDeleteTeam'>
 
-export default Container.connect(
-  (state, ownProps: OwnProps) => {
-    const teamID = ownProps.route.params?.teamID ?? Types.noTeamID
-    const {teamname} = Constants.getTeamMeta(state, teamID)
-    const teamDetails = Constants.getTeamDetails(state, teamID)
-    return {
-      deleteWaiting: anyWaiting(state, Constants.deleteTeamWaitingKey(teamID)),
-      teamDetails,
-      teamID,
-      teamMetas: state.teams.teamMeta,
-      teamname,
-    }
-  },
-  dispatch => ({
-    onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
-    onDelete: (teamID: string) => dispatch(TeamsGen.createDeleteTeam({teamID})),
-  }),
-  (stateProps, dispatchProps, _: OwnProps) => ({
-    deleteWaiting: stateProps.deleteWaiting,
-    onBack: stateProps.deleteWaiting ? () => {} : dispatchProps.onBack,
-    onDelete: () => dispatchProps.onDelete(stateProps.teamID),
-    subteamNames: stateProps.teamDetails.subteams.size
-      ? [...stateProps.teamDetails.subteams]
-          .map(subteamID => stateProps.teamMetas.get(subteamID)?.teamname ?? '')
-          .filter(name => !!name)
-      : undefined,
-    teamID: stateProps.teamID,
-    teamname: stateProps.teamname,
-  })
-)(Container.safeSubmit(['onDelete'], ['deleteWaiting'])(ReallyDeleteTeam))
+export default (op: OwnProps) => {
+  const teamID = op.route.params?.teamID ?? Types.noTeamID
+  const {teamname} = Container.useSelector(state => Constants.getTeamMeta(state, teamID))
+  const teamDetails = Container.useSelector(state => Constants.getTeamDetails(state, teamID))
+  const deleteWaiting = Container.useSelector(state =>
+    anyWaiting(state, Constants.deleteTeamWaitingKey(teamID))
+  )
+  const teamMetas = Container.useSelector(state => state.teams.teamMeta)
+  const subteamNames = teamDetails.subteams.size
+    ? [...teamDetails.subteams]
+        .map(subteamID => teamMetas.get(subteamID)?.teamname ?? '')
+        .filter(name => !!name)
+    : undefined
+
+  const dispatch = Container.useDispatch()
+  const _onBack = React.useCallback(() => dispatch(RouteTreeGen.createNavigateUp()), [dispatch])
+  const onBack = deleteWaiting ? () => {} : _onBack
+  const _onDelete = React.useCallback(
+    () => () => dispatch(TeamsGen.createDeleteTeam({teamID})),
+    [dispatch, teamID]
+  )
+  const onDelete = Container.useSafeSubmit(_onDelete, !deleteWaiting)
+
+  return (
+    <ReallyDeleteTeam
+      deleteWaiting={deleteWaiting}
+      onBack={onBack}
+      onDelete={onDelete}
+      subteamNames={subteamNames}
+      teamID={teamID}
+      teamname={teamname}
+    />
+  )
+}
