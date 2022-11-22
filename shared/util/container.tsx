@@ -26,11 +26,6 @@ if (!__DEV__) {
   setAutoFreeze(false)
 }
 
-// to keep fallback objects static for react
-// export const emptyArray: Array<any> = []
-// export const emptySet = new Set<any>()
-// export const emptyMap = new Map<any, any>()
-
 export const networkErrorCodes = [
   StatusCode.scgenericapierror,
   StatusCode.scapinetworkerror,
