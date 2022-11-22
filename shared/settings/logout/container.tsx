@@ -1,3 +1,4 @@
+import * as React from 'react'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/settings'
 import * as ConfigGen from '../../actions/config-gen'
@@ -6,37 +7,52 @@ import * as SettingsGen from '../../actions/settings-gen'
 import HiddenString from '../../util/hidden-string'
 import LogOut from '.'
 
-type OwnProps = {}
+export default () => {
+  const checkPasswordIsCorrect = Container.useSelector(state => state.settings.checkPasswordIsCorrect)
+  const hasRandomPW = Container.useSelector(state => state.settings.password.randomPW)
+  const waitingForResponse = Container.useSelector(state =>
+    Container.anyWaiting(state, Constants.settingsWaitingKey)
+  )
 
-export default Container.connect(
-  state => ({
-    checkPasswordIsCorrect: state.settings.checkPasswordIsCorrect,
-    hasRandomPW: state.settings.password.randomPW,
-    waitingForResponse: Container.anyWaiting(state, Constants.settingsWaitingKey),
-  }),
-  dispatch => ({
-    onBootstrap: () => dispatch(SettingsGen.createLoadHasRandomPw()),
-    onCancel: () => {
-      dispatch(SettingsGen.createLoadedCheckPassword({}))
-      dispatch(RouteTreeGen.createNavigateUp())
-    },
-    onCheckPassword: (password: string) => {
+  const dispatch = Container.useDispatch()
+  const onBootstrap = React.useCallback(() => dispatch(SettingsGen.createLoadHasRandomPw()), [dispatch])
+  const onCancel = React.useCallback(() => {
+    dispatch(SettingsGen.createLoadedCheckPassword({}))
+    dispatch(RouteTreeGen.createNavigateUp())
+  }, [dispatch])
+  const onCheckPassword = React.useCallback(
+    (password: string) => {
       if (password) {
         dispatch(SettingsGen.createCheckPassword({password: new HiddenString(password)}))
       }
     },
-    onLogout: () => {
-      dispatch(ConfigGen.createLogout())
-      dispatch(SettingsGen.createLoadedCheckPassword({}))
-    },
-    onSavePassword: (password: string) => {
+    [dispatch]
+  )
+  const _onLogout = React.useCallback(() => {
+    dispatch(ConfigGen.createLogout())
+    dispatch(SettingsGen.createLoadedCheckPassword({}))
+  }, [dispatch])
+  const onSavePassword = React.useCallback(
+    (password: string) => {
       dispatch(SettingsGen.createOnChangeNewPassword({password: new HiddenString(password)}))
       dispatch(SettingsGen.createOnChangeNewPasswordConfirm({password: new HiddenString(password)}))
       dispatch(SettingsGen.createOnSubmitNewPassword({thenSignOut: true}))
     },
-  }),
-  (stateProps, dispatchProps, _: OwnProps) => ({
-    ...stateProps,
-    ...dispatchProps,
-  })
-)(Container.safeSubmitPerMount(['onLogout'])(LogOut))
+    [dispatch]
+  )
+
+  const onLogout = Container.useSafeSubmit(_onLogout, false)
+
+  return (
+    <LogOut
+      checkPasswordIsCorrect={checkPasswordIsCorrect}
+      hasRandomPW={hasRandomPW}
+      onBootstrap={onBootstrap}
+      onCancel={onCancel}
+      onCheckPassword={onCheckPassword}
+      onLogout={onLogout}
+      onSavePassword={onSavePassword}
+      waitingForResponse={waitingForResponse}
+    />
+  )
+}
