@@ -1,3 +1,4 @@
+import * as React from 'react'
 import * as Constants from '../../constants/provision'
 import * as Container from '../../util/container'
 import * as DevicesConstants from '../../constants/devices'
@@ -6,42 +7,47 @@ import * as RouteTreeGen from '../../actions/route-tree-gen'
 import CodePage2 from '.'
 import HiddenString from '../../util/hidden-string'
 
-type OwnProps = {}
+export default () => {
+  const currentDeviceAlreadyProvisioned = Container.useSelector(state => !!state.config.deviceName)
+  // we either have a name for real or we asked on a previous screen
+  const currentDeviceName = Container.useSelector(
+    state => (currentDeviceAlreadyProvisioned ? state.config.deviceName : state.provision.deviceName) || ''
+  )
+  const currentDevice = Container.useSelector(state =>
+    DevicesConstants.getDevice(state, state.config.deviceID)
+  )
+  const error = Container.useSelector(state => state.provision.error.stringValue())
+  const iconNumber = Container.useSelector(state =>
+    DevicesConstants.getDeviceIconNumber(state, state.provision.codePageOtherDevice.id)
+  )
+  const otherDevice = Container.useSelector(state => state.provision.codePageOtherDevice)
+  const textCode = Container.useSelector(state => state.provision.codePageIncomingTextCode.stringValue())
+  const waiting = Container.useSelector(state => Container.anyWaiting(state, Constants.waitingKey))
 
-const prov = Container.connect(
-  (state: Container.TypedState) => {
-    const currentDeviceAlreadyProvisioned = !!state.config.deviceName
-    return {
-      currentDeviceAlreadyProvisioned,
-      // we either have a name for real or we asked on a previous screen
-      currentDeviceName:
-        (currentDeviceAlreadyProvisioned ? state.config.deviceName : state.provision.deviceName) || '',
-      device: DevicesConstants.getDevice(state, state.config.deviceID),
-      error: state.provision.error.stringValue(),
-      iconNumber: DevicesConstants.getDeviceIconNumber(state, state.provision.codePageOtherDevice.id),
-      otherDevice: state.provision.codePageOtherDevice,
-      textCode: state.provision.codePageIncomingTextCode.stringValue(),
-      waiting: Container.anyWaiting(state, Constants.waitingKey),
-    }
-  },
-  (dispatch: Container.TypedDispatch) => ({
-    onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
-    onClose: () => dispatch(ProvisionGen.createCancelProvision()),
-    onSubmitTextCode: (code: string) =>
-      dispatch(ProvisionGen.createSubmitTextCode({phrase: new HiddenString(code)})),
-  }),
-  (stateProps, dispatchProps, _: OwnProps) => ({
-    currentDevice: stateProps.device,
-    currentDeviceAlreadyProvisioned: stateProps.currentDeviceAlreadyProvisioned,
-    currentDeviceName: stateProps.currentDeviceName,
-    error: stateProps.error,
-    iconNumber: stateProps.iconNumber,
-    onBack: dispatchProps.onBack,
-    onClose: dispatchProps.onClose,
-    onSubmitTextCode: (code: string) => !stateProps.waiting && dispatchProps.onSubmitTextCode(code),
-    otherDevice: stateProps.otherDevice,
-    textCode: stateProps.textCode,
-    waiting: stateProps.waiting,
-  })
-)(Container.safeSubmit(['onBack', 'onSubmitTextCode'], ['error'])(CodePage2))
-export default prov
+  const dispatch = Container.useDispatch()
+  const onBack = React.useCallback(() => dispatch(RouteTreeGen.createNavigateUp()), [dispatch])
+  const onClose = React.useCallback(() => dispatch(ProvisionGen.createCancelProvision()), [dispatch])
+  const _onSubmitTextCode = React.useCallback(
+    (code: string) => {
+      !waiting && dispatch(ProvisionGen.createSubmitTextCode({phrase: new HiddenString(code)}))
+    },
+    [dispatch, waiting]
+  )
+  const onSubmitTextCode = Container.useSafeSubmit(_onSubmitTextCode, !!error)
+
+  return (
+    <CodePage2
+      error={error}
+      currentDevice={currentDevice}
+      currentDeviceAlreadyProvisioned={currentDeviceAlreadyProvisioned}
+      currentDeviceName={currentDeviceName}
+      iconNumber={iconNumber}
+      otherDevice={otherDevice}
+      textCode={textCode}
+      onBack={onBack}
+      onClose={onClose}
+      onSubmitTextCode={onSubmitTextCode}
+      waiting={waiting}
+    />
+  )
+}

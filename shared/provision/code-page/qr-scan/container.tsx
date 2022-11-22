@@ -3,7 +3,7 @@ import * as ProvisionGen from '../../../actions/provision-gen'
 import * as Constants from '../../../constants/provision'
 import * as WaitingConstants from '../../../constants/waiting'
 import * as Container from '../../../util/container'
-import CodePage2 from '.'
+import QRScan from '.'
 import HiddenString from '../../../util/hidden-string'
 
 export default () => {
@@ -15,5 +15,5 @@ export default () => {
     [dispatch]
   )
   const onSubmitTextCode = Container.useSafeSubmit(_onSubmitTextCode, !!error)
-  return <CodePage2 onSubmitTextCode={onSubmitTextCode} waiting={waiting} />
+  return <QRScan onSubmitTextCode={onSubmitTextCode} waiting={waiting} />
 }
