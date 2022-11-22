@@ -1,65 +1,68 @@
-import Footer from '.'
-import * as RouteTreeGen from '../../../actions/route-tree-gen'
-import * as WalletsGen from '../../../actions/wallets-gen'
 import * as Constants from '../../../constants/wallets'
-import * as Types from '../../../constants/types/wallets'
 import * as Container from '../../../util/container'
+import * as React from 'react'
+import * as RouteTreeGen from '../../../actions/route-tree-gen'
+import * as Types from '../../../constants/types/wallets'
+import * as WalletsGen from '../../../actions/wallets-gen'
+import Footer from '.'
 import {anyWaiting} from '../../../constants/waiting'
 
-type OwnProps = {
-  onConfirm?: () => void // if showing confirm form directly (not through routing)
-}
+export default () => {
+  const accountID = Container.useSelector(state => state.wallets.building.from)
+  const thisDeviceIsLockedOut = Container.useSelector(state =>
+    Types.isValidAccountID(accountID)
+      ? Constants.getAccount(state, accountID).deviceReadOnly
+      : Constants.getDefaultAccount(state.wallets).deviceReadOnly
+  )
+  const isRequest = Container.useSelector(state => state.wallets.building.isRequest)
+  const isReady = Container.useSelector(state =>
+    isRequest ? state.wallets.builtRequest.readyToRequest : state.wallets.builtPayment.readyToReview
+  )
+  const currencyWaiting = Container.useSelector(state =>
+    anyWaiting(state, Constants.getDisplayCurrencyWaitingKey(accountID))
+  )
 
-const mapStateToProps = (state: Container.TypedState) => {
-  const accountID = state.wallets.building.from
-  let thisDeviceIsLockedOut = false
-  if (Types.isValidAccountID(accountID)) {
-    thisDeviceIsLockedOut = Constants.getAccount(state, accountID).deviceReadOnly
-  } else {
-    thisDeviceIsLockedOut = Constants.getDefaultAccount(state.wallets).deviceReadOnly
-  }
-  const {isRequest} = state.wallets.building
-  const isReady = isRequest
-    ? state.wallets.builtRequest.readyToRequest
-    : state.wallets.builtPayment.readyToReview
-  const currencyWaiting = anyWaiting(state, Constants.getDisplayCurrencyWaitingKey(accountID))
-  return {
-    calculating:
+  const worthDescription = Container.useSelector(state =>
+    isRequest ? state.wallets.builtRequest.worthDescription : state.wallets.builtPayment.worthDescription
+  )
+
+  const waitingKey = isRequest ? Constants.requestPaymentWaitingKey : Constants.buildPaymentWaitingKey
+
+  const calculating = Container.useSelector(
+    state =>
       !!state.wallets.building.amount &&
       (anyWaiting(state, Constants.buildPaymentWaitingKey) ||
-        anyWaiting(state, Constants.requestPaymentWaitingKey)),
-    disabled: !isReady || currencyWaiting || thisDeviceIsLockedOut,
-    isRequest,
-    thisDeviceIsLockedOut,
-    waitingKey: state.wallets.building.isRequest
-      ? Constants.requestPaymentWaitingKey
-      : Constants.buildPaymentWaitingKey,
-    worthDescription: isRequest
-      ? state.wallets.builtRequest.worthDescription
-      : state.wallets.builtPayment.worthDescription,
-  }
-}
+        anyWaiting(state, Constants.requestPaymentWaitingKey))
+  )
 
-const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
-  onClickRequest: () => {
+  const disabled = !isReady || currencyWaiting || thisDeviceIsLockedOut
+
+  const dispatch = Container.useDispatch()
+
+  const _onClickRequest = React.useCallback(() => {
     dispatch(WalletsGen.createRequestPayment())
-  },
-  onClickSend: () => {
+  }, [dispatch])
+
+  const onClickRequest = Container.useSafeSubmit(_onClickRequest, calculating)
+
+  const onClickSend = React.useCallback(() => {
     dispatch(WalletsGen.createReviewPayment())
     dispatch(
       RouteTreeGen.createNavigateAppend({
         path: [Constants.confirmFormRouteKey],
       })
     )
-  },
-})
+  }, [dispatch])
 
-export default Container.connect(mapStateToProps, mapDispatchToProps, (s, d, _: OwnProps) => ({
-  calculating: s.calculating,
-  disabled: s.disabled,
-  onClickRequest: s.isRequest ? d.onClickRequest : undefined,
-  onClickSend: s.isRequest ? undefined : d.onClickSend,
-  thisDeviceIsLockedOut: s.thisDeviceIsLockedOut,
-  waitingKey: s.waitingKey,
-  worthDescription: s.worthDescription,
-}))(Container.safeSubmit(['onClickRequest'], ['calculating'])(Footer))
+  const np = {
+    calculating,
+    disabled,
+    onClickRequest: isRequest ? onClickRequest : undefined,
+    onClickSend: isRequest ? undefined : onClickSend,
+    thisDeviceIsLockedOut,
+    waitingKey,
+    worthDescription,
+  }
+
+  return <Footer {...np} />
+}
