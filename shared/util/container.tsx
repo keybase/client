@@ -109,7 +109,7 @@ const connect = typedConnect
 export {connect}
 export {isMobile, isIOS, isAndroid, isPhone, isTablet} from '../constants/platform'
 export {anyWaiting, anyErrors} from '../constants/waiting'
-export {safeSubmit, safeSubmitPerMount, useSafeSubmit} from './safe-submit'
+export {useSafeSubmit} from './safe-submit'
 export {useSafeNavigation} from './safe-navigation'
 export type TypedActions = _TypedActions
 export type TypedState = _TypedState
