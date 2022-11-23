@@ -10,7 +10,7 @@ const Kb = {
   NativeTouchableWithoutFeedback,
 }
 
-const ClickableBoxInner = (props, ref) => {
+const ClickableBoxInner = (props: Props, ref: any) => {
   const {feedback = true, onClick, onPressIn, onPressOut, onLongPress} = props
   const {style, activeOpacity, children, pointerEvents} = props
   if (onClick) {

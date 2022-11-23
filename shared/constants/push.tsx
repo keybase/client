@@ -11,7 +11,9 @@ export const tokenType = isIOS ? (isDevApplePushToken ? 'appledev' : 'apple') : 
 export const androidSenderID = '9603251415'
 export const permissionsRequestingWaitingKey = 'push:permissionsRequesting'
 
-const anyToConversationMembersType = (a: any): RPCChatTypes.ConversationMembersType | undefined => {
+const anyToConversationMembersType = (
+  a: string | number
+): RPCChatTypes.ConversationMembersType | undefined => {
   const membersTypeNumber: number = typeof a === 'string' ? parseInt(a, 10) : a || -1
   switch (membersTypeNumber) {
     case RPCChatTypes.ConversationMembersType.kbfs:
@@ -27,62 +29,110 @@ const anyToConversationMembersType = (a: any): RPCChatTypes.ConversationMembersT
   }
 }
 
-export const normalizePush = (n: any): Types.PushNotification | undefined => {
+type DataCommon = {
+  userInteraction: boolean
+}
+type DataReadMessage = DataCommon & {
+  type: 'chat.readmessage'
+  b: string | number
+}
+type DataNewMessage = DataCommon & {
+  type: 'chat.newmessage'
+  convID?: string
+  t: string | number
+  m: string
+}
+type DataNewMessageSilent2 = DataCommon & {
+  type: 'chat.newmessageSilent_2'
+  t: string | number
+  c?: string
+  m: string
+}
+type DataFollow = DataCommon & {
+  type: 'follow'
+  username?: string
+}
+type DataChatExtension = DataCommon & {
+  type: 'chat.extension'
+  convID?: string
+}
+
+type Data = DataReadMessage | DataNewMessage | DataNewMessageSilent2 | DataFollow | DataChatExtension
+
+type PushN = {
+  data?: Data
+  _data?: Data
+  message: string
+} & Data
+
+export const normalizePush = (_n: Object | null): Types.PushNotification | undefined => {
   try {
-    if (!n) {
+    if (!_n) {
       return undefined
     }
 
+    const n = _n as PushN
     const data = isIOS ? n.data || n._data : n
-    const userInteraction = !!data.userInteraction
-    const message = n.message
-
     if (!data) {
       return undefined
     }
+    const userInteraction = !!data.userInteraction
 
-    if (data.type === 'chat.readmessage') {
-      const badges = typeof data.b === 'string' ? parseInt(data.b) : data.b
-      return {
-        badges,
-        type: 'chat.readmessage',
-      }
-    } else if (data.type === 'chat.newmessage' && data.convID) {
-      return {
-        conversationIDKey: ChatTypes.stringToConversationIDKey(data.convID),
-        membersType: anyToConversationMembersType(data.t),
-        type: 'chat.newmessage',
-        unboxPayload: data.m || '',
-        userInteraction,
-      }
-    } else if (data.type === 'chat.newmessageSilent_2' && data.c) {
-      const membersType = anyToConversationMembersType(data.t)
-      if (membersType) {
+    switch (data.type) {
+      case 'chat.readmessage': {
+        const badges = typeof data.b === 'string' ? parseInt(data.b) : data.b
         return {
-          conversationIDKey: ChatTypes.stringToConversationIDKey(data.c),
-          membersType,
-          type: 'chat.newmessageSilent_2',
-          unboxPayload: data.m || '',
+          badges,
+          type: 'chat.readmessage',
+        } as const
+      }
+      case 'chat.newmessage':
+        return data.convID
+          ? {
+              conversationIDKey: ChatTypes.stringToConversationIDKey(data.convID),
+              membersType: anyToConversationMembersType(data.t),
+              type: 'chat.newmessage',
+              unboxPayload: data.m || '',
+              userInteraction,
+            }
+          : undefined
+      case 'chat.newmessageSilent_2':
+        if (data.c) {
+          const membersType = anyToConversationMembersType(data.t)
+          if (membersType) {
+            return {
+              conversationIDKey: ChatTypes.stringToConversationIDKey(data.c),
+              membersType,
+              type: 'chat.newmessageSilent_2',
+              unboxPayload: data.m || '',
+            }
+          }
         }
-      }
-    } else if (data.type === 'follow' && data.username) {
-      return {
-        type: 'follow',
-        userInteraction,
-        username: data.username,
-      }
-    } else if (data.type === 'chat.extension' && data.convID) {
-      return {
-        conversationIDKey: ChatTypes.stringToConversationIDKey(data.convID),
-        type: 'chat.extension',
-      }
-    } else if (typeof message === 'string' && message.startsWith('Your contact') && userInteraction) {
-      return {
-        type: 'settings.contacts',
-      }
-    }
+        return undefined
+      case 'follow':
+        return data.username
+          ? {
+              type: 'follow',
+              userInteraction,
+              username: data.username,
+            }
+          : undefined
+      case 'chat.extension':
+        return data.convID
+          ? {
+              conversationIDKey: ChatTypes.stringToConversationIDKey(data.convID),
+              type: 'chat.extension',
+            }
+          : undefined
+      default:
+        if (typeof n.message === 'string' && n.message.startsWith('Your contact') && userInteraction) {
+          return {
+            type: 'settings.contacts',
+          }
+        }
 
-    return undefined
+        return undefined
+    }
   } catch (e) {
     logger.error('Error handling push', e)
     return undefined

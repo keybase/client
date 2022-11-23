@@ -10,45 +10,7 @@ import * as Styles from '../../styles'
 // automatically, we are just relying on whether data is available from the
 // redux store.
 
-type OwnProps = {
-  path: Types.Path
-}
-
-const mapStateToProps = (state, {path}: OwnProps) => ({
-  _pathItem: Constants.getPathItem(state.fs.pathItems, path),
-  _tlfsLoaded: !!state.fs.tlfs.private.size,
-})
-
-const mergeProps = (stateProps, _, {path}: OwnProps) => {
-  const parsedPath = Constants.parsePath(path)
-  switch (parsedPath.kind) {
-    case Types.PathKind.Root:
-      return {show: false}
-    case Types.PathKind.TlfList:
-      return {show: !stateProps._tlfsLoaded}
-    case Types.PathKind.TeamTlf:
-    case Types.PathKind.GroupTlf:
-    case Types.PathKind.InTeamTlf:
-    case Types.PathKind.InGroupTlf:
-      // Only show the loading spinner when we are first-time loading a pathItem.
-      // If we already have content to show, just don't show spinner anymore even
-      // if we are loading.
-      if (stateProps._pathItem.type === Types.PathType.Unknown) {
-        return {show: true}
-      }
-      if (
-        stateProps._pathItem.type === Types.PathType.Folder &&
-        stateProps._pathItem.progress === Types.ProgressType.Pending
-      ) {
-        return {show: true}
-      }
-      return {show: false}
-    default:
-      return {show: false}
-  }
-}
-
-const Loading = props => props.show && <Kb.ProgressIndicator style={styles.progressIndicator} />
+type OwnProps = {path: Types.Path}
 
 const styles = Styles.styleSheetCreate(
   () =>
@@ -60,4 +22,36 @@ const styles = Styles.styleSheetCreate(
     } as const)
 )
 
-export default Container.connect(mapStateToProps, () => ({}), mergeProps)(Loading)
+export default (op: OwnProps) => {
+  const {path} = op
+  const _pathItem = Container.useSelector(state => Constants.getPathItem(state.fs.pathItems, path))
+  const _tlfsLoaded = Container.useSelector(state => !!state.fs.tlfs.private.size)
+  const parsedPath = Constants.parsePath(path)
+  let show = false
+
+  switch (parsedPath.kind) {
+    case Types.PathKind.TlfList:
+      show = !_tlfsLoaded
+      break
+    case Types.PathKind.TeamTlf:
+    case Types.PathKind.GroupTlf:
+    case Types.PathKind.InTeamTlf:
+    case Types.PathKind.InGroupTlf:
+      // Only show the loading spinner when we are first-time loading a pathItem.
+      // If we already have content to show, just don't show spinner anymore even
+      // if we are loading.
+      if (_pathItem.type === Types.PathType.Unknown) {
+        show = true
+        break
+      }
+      if (_pathItem.type === Types.PathType.Folder && _pathItem.progress === Types.ProgressType.Pending) {
+        show = true
+        break
+      }
+      break
+    case Types.PathKind.Root:
+    default:
+  }
+
+  return show && <Kb.ProgressIndicator style={styles.progressIndicator} />
+}
