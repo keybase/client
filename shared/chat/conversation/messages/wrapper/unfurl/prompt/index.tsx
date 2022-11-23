@@ -26,10 +26,10 @@ class UnfurlPrompt extends React.PureComponent<Props> {
             <Kb.Text type="Body">Your Keybase app will visit the link and post a preview of it.</Kb.Text>
           </Kb.Box2>
           <Kb.Text onClick={this.props.onAlways} type="BodyPrimaryLink">
-            Always, for any site
+            Always for any site
           </Kb.Text>
           <Kb.Text onClick={this.props.onAccept} type="BodyPrimaryLink">
-            Always, for {this.props.domain}
+            Always for {this.props.domain}
           </Kb.Text>
           <Kb.Text onClick={this.props.onOnetime} type="BodyPrimaryLink">
             Yes, but ask me again for {this.props.domain}
@@ -38,7 +38,7 @@ class UnfurlPrompt extends React.PureComponent<Props> {
             Not now
           </Kb.Text>
           <Kb.Text onClick={this.props.onNever} type="BodyPrimaryLink">
-            Never, for any site
+            Never for any site
           </Kb.Text>
         </Kb.Box2>
         <Kb.Box2 direction="horizontal" style={styles.closeContainer}>
