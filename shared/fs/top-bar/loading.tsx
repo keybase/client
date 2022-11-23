@@ -53,5 +53,5 @@ export default (op: OwnProps) => {
     default:
   }
 
-  return show && <Kb.ProgressIndicator style={styles.progressIndicator} />
+  return show ? <Kb.ProgressIndicator style={styles.progressIndicator} /> : null
 }
