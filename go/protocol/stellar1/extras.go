@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"sort"
 	"time"
 )
 
@@ -64,6 +65,36 @@ func (t TransactionID) String() string {
 
 func (t TransactionID) Eq(b TransactionID) bool {
 	return t == b
+}
+
+type byTxID []TransactionID
+
+func (s byTxID) Len() int {
+	return len(s)
+}
+func (s byTxID) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
+}
+func (s byTxID) Less(i, j int) bool {
+	return s[i] < s[j]
+}
+
+func TransactionIDsEq(x, y []TransactionID) bool {
+	if len(x) != len(y) {
+		return false
+	}
+	xs := make([]TransactionID, len(x))
+	ys := make([]TransactionID, len(y))
+	copy(xs, x)
+	copy(ys, y)
+	sort.Sort(byTxID(xs))
+	sort.Sort(byTxID(ys))
+	for i, _ := range xs {
+		if xs[i] != ys[i] {
+			return false
+		}
+	}
+	return true
 }
 
 func KeybaseRequestIDFromString(s string) (KeybaseRequestID, error) {
