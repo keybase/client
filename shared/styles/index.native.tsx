@@ -82,7 +82,7 @@ if (isIOS) {
 
 export const statusBarHeight = iPhoneXHelper.getStatusBarHeight(true)
 export const hairlineWidth = StyleSheet.hairlineWidth
-export const styleSheetCreate = (obj: any) => styleSheetCreateProxy(obj, o => StyleSheet.create(o))
+export const styleSheetCreate = (obj: any) => styleSheetCreateProxy(obj, o => StyleSheet.create(o as any))
 export {isDarkMode}
 export const collapseStyles = (
   styles: ReadonlyArray<CollapsibleStyle>

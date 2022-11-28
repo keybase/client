@@ -14,7 +14,6 @@ import throttle from 'lodash/throttle'
 import type {DeserializeProps} from './remote-serializer.desktop'
 import {createOpenPopup as createOpenRekeyPopup} from '../actions/unlock-folders-gen'
 import {isWindows, isDarwin, isLinux} from '../constants/platform'
-import {urlHelper} from '../util/url-helper'
 import KB2 from '../util/electron.desktop'
 
 const {hideWindow, ctlQuit} = KB2.functions
@@ -34,8 +33,7 @@ const RemoteContainer = () => {
         dispatch(FsGen.createLoadPathMetadata({path: Types.stringToPath('/keybase/private' + name)}))
       }}
       showUser={() => {
-        const link = urlHelper('user', {username})
-        link && openUrl(link)
+        openUrl(`https://keybase.io/${username || ''}`)
       }}
       logIn={() => {
         dispatch(ConfigGen.createShowMain())
@@ -75,8 +73,7 @@ const RemoteContainer = () => {
         )
       }}
       showHelp={() => {
-        const link = urlHelper('help')
-        link && openUrl(link)
+        openUrl('https://keybase.io/docs')
         hideWindow?.()
       }}
       showInFinder={() => dispatch(FsGen.createOpenPathInSystemFileManager({path: FsConstants.defaultPath}))}

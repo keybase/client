@@ -8,13 +8,13 @@ export const MastadonIcon = (
   <Kb.Icon type="iconfont-identity-mastodon" colorOverride="#2b90d9" fontSize={64} />
 )
 
-const siteIconToSrcSet = siteIcon =>
+const siteIconToSrcSet = (siteIcon: SiteIconSet) =>
   `-webkit-image-set(${siteIcon
     .slice()
     .sort((a, b) => a.width - b.width)
     .map((si, idx) => `url(${si.path}) ${idx + 1}x`)
     .join(', ')})`
-const siteIconToNativeSrcSet = siteIcon =>
+const siteIconToNativeSrcSet = (siteIcon: SiteIconSet) =>
   siteIcon.map(si => ({height: si.width, uri: si.path, width: si.width}))
 
 type SiteIconProps = {

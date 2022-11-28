@@ -13,12 +13,13 @@ const Kb = {
 }
 
 const getModalRoot = () => document.getElementById('modal-root')
-class Modal extends React.Component<{
+type ModalProps = {
   setNode: (node: HTMLElement) => void
   children?: React.ReactNode
-}> {
+}
+class Modal extends React.Component<ModalProps> {
   el: HTMLElement
-  constructor(props) {
+  constructor(props: ModalProps) {
     super(props)
     this.el = document.createElement('div')
   }
@@ -26,7 +27,7 @@ class Modal extends React.Component<{
   componentDidMount() {
     const modalRoot = getModalRoot()
     // TODO defer this else it mutates the dom constantly
-    modalRoot && modalRoot.appendChild(this.el)
+    modalRoot?.appendChild(this.el)
     const firstChild = this.el.firstChild
     if (firstChild instanceof HTMLElement) {
       this.props.setNode(firstChild)
@@ -35,7 +36,7 @@ class Modal extends React.Component<{
 
   componentWillUnmount() {
     const modalRoot = getModalRoot()
-    modalRoot && modalRoot.removeChild(this.el)
+    modalRoot?.removeChild(this.el)
   }
 
   render() {
@@ -133,7 +134,7 @@ function _computePopupStyle(
   return style
 }
 
-function isStyleInViewport(style, popupCoords: ClientRect): boolean {
+function isStyleInViewport(style: ComputedStyle, popupCoords: ClientRect): boolean {
   const {
     pageYOffset,
     pageXOffset,
@@ -170,7 +171,7 @@ function isStyleInViewport(style, popupCoords: ClientRect): boolean {
   return true
 }
 
-function pushStyleIntoViewport(style, popupCoords: ClientRect) {
+function pushStyleIntoViewport(style: ComputedStyle, popupCoords: ClientRect) {
   const {
     pageYOffset,
     pageXOffset,
@@ -269,7 +270,8 @@ type ModalPositionRelativeProps = {
   children: React.ReactNode
 }
 
-export class RelativeFloatingBox extends React.Component<ModalPositionRelativeProps, {style: any}> {
+type Snapshot = {width?: number; height?: number}
+export class RelativeFloatingBox extends React.Component<ModalPositionRelativeProps, {style: any}, Snapshot> {
   popupNode: HTMLElement | null = null
   down: undefined | {x: number; y: number}
   state: {style: {}}
@@ -305,7 +307,7 @@ export class RelativeFloatingBox extends React.Component<ModalPositionRelativePr
     return {height, width}
   }
 
-  componentDidUpdate(prevProps: any, _, snapshot) {
+  componentDidUpdate(prevProps: ModalPositionRelativeProps, _: unknown, snapshot: Snapshot) {
     if (
       (this.props.targetRect && this.props.targetRect !== prevProps.targetRect) ||
       this.props.remeasureHint !== prevProps.remeasureHint
@@ -375,7 +377,7 @@ export class RelativeFloatingBox extends React.Component<ModalPositionRelativePr
     }
   }
 
-  _setRef = r => {
+  _setRef = (r: HTMLElement | null) => {
     if (!r) return
     this.popupNode = r
     this._computeStyle(this.props.targetRect)
