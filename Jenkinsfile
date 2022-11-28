@@ -497,7 +497,7 @@ def testGoBuilds(prefix, packagesToTest, hasKBFSChanges) {
     }
     dir('kbfs/data') {
       retry(5) {
-        timeout(activity: true, time: 90, unit: 'SECONDS') {
+        timeout(activity: true, time: 300, unit: 'SECONDS') {
           sh '''
             set -e -x
             ./gen_mocks.sh
@@ -508,7 +508,7 @@ def testGoBuilds(prefix, packagesToTest, hasKBFSChanges) {
     }
     dir('kbfs/libkbfs') {
       retry(5) {
-        timeout(activity: true, time: 90, unit: 'SECONDS') {
+        timeout(activity: true, time: 300, unit: 'SECONDS') {
           sh '''
             set -e -x
             ./gen_mocks.sh
