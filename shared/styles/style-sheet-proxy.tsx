@@ -1,13 +1,16 @@
 import {isDarkMode, isDarkModePreference} from './dark-mode'
+import type {StylesCrossPlatform} from '.'
 
 // Support a closure to enable simple dark mode.
 // transform is to allow native styleSheetCreate to convert the object
 
-type Transform = (o: any) => any
+type Transform = (o: MapToStyles) => MapToStyles
 
-const styleSheetCreate = (f: () => any, transform: Transform) => {
-  let lightCached: any
-  let darkCached: any
+type MapToStyles = Record<string, StylesCrossPlatform>
+
+const styleSheetCreate = (f: () => MapToStyles, transform: Transform) => {
+  let lightCached: MapToStyles | undefined
+  let darkCached: MapToStyles | undefined
 
   let darkModePrefCached = isDarkModePreference()
 
