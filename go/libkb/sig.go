@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"encoding/hex"
 	"fmt"
+	"io"
 
 	"strings"
 
@@ -125,7 +126,7 @@ func (ps *ParsedSig) ExtractPayload() (payload []byte, err error) {
 	if err != nil {
 		return nil, err
 	}
-	data, err := io.ReadAllUnverifiedBody)
+	data, err := io.ReadAll(md.UnverifiedBody)
 	if err != nil {
 		return nil, err
 	}
@@ -165,7 +166,7 @@ func (ps *ParsedSig) Verify(k PGPKeyBundle) (err error) {
 		return
 	}
 
-	ps.LiteralData, err = io.ReadAllMD.UnverifiedBody)
+	ps.LiteralData, err = io.ReadAll(ps.MD.UnverifiedBody)
 	if err != nil {
 		return
 	}

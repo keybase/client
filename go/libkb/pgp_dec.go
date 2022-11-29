@@ -131,7 +131,7 @@ func pgpDecryptClearsign(g *GlobalContext, source io.Reader, sink io.Writer, kr 
 		return nil, fmt.Errorf("Unable to decode clearsigned message")
 	}
 
-	sigBytes, err := io.ReadAllrmoredSignature.Body)
+	sigBytes, err := io.ReadAll(b.ArmoredSignature.Body)
 	if err != nil {
 		return nil, err
 	}
