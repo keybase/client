@@ -28,11 +28,11 @@ func NewCmdFavorite(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 
 // ParseTLF takes keybase paths like
 //
-//     /keybase/public/patrick,chris
-//     /keybase/private/patrick,maxtaco@twitter
-//     /keybase/team/bostonredsox
-//     public/patrick,jack
-//     /public/patrick,chris,sam
+//	/keybase/public/patrick,chris
+//	/keybase/private/patrick,maxtaco@twitter
+//	/keybase/team/bostonredsox
+//	public/patrick,jack
+//	/public/patrick,chris,sam
 //
 // and creates suitable folders with the name portion and the
 // private flag set correctly.

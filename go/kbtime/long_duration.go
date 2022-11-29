@@ -19,14 +19,14 @@ var durationRxp = regexp.MustCompile(`^([0-9]+)\s?(([nuµμm]?s)|[mhdDMyY])$`)
 // time in `now`, returning the resulting time. The duration format is similar
 // to `time` package duration format, with the following changes:
 // - additional duration units are supported:
-//    - 'D' for days,
-//    - 'M' for months,
-//    - 'Y' for years,
-// - fractional numbers are *not* supported,
-// - negative numbers are *not* supported,
-// - whitespace at the beginning and end of duration string is ignored,
-// - optionally there can be one whitespace character between the number
-//   and unit.
+//   - 'D' for days,
+//   - 'M' for months,
+//   - 'Y' for years,
+//   - fractional numbers are *not* supported,
+//   - negative numbers are *not* supported,
+//   - whitespace at the beginning and end of duration string is ignored,
+//   - optionally there can be one whitespace character between the number
+//     and unit.
 //
 // Long durations are handled using Time.AddDate function, which works by
 // adding given number of years, months, and days to tval. It normalizes its
@@ -34,9 +34,10 @@ var durationRxp = regexp.MustCompile(`^([0-9]+)\s?(([nuµμm]?s)|[mhdDMyY])$`)
 // normalized form for November 31.
 //
 // Examples:
-//   `AddLongDuration(time.Now(), "1000 Y")`
-//   `AddLongDuration(time.Now(), "7 D")`
-//   `AddLongDuration(then, "1 M")`
+//
+//	`AddLongDuration(time.Now(), "1000 Y")`
+//	`AddLongDuration(time.Now(), "7 D")`
+//	`AddLongDuration(then, "1 M")`
 func AddLongDuration(tval time.Time, duration string) (ret time.Time, err error) {
 	duration = strings.TrimSpace(duration)
 

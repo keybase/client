@@ -246,7 +246,6 @@ func EmbedExpansionObj(statement *jsonw.Wrapper) (expansion *jsonw.Wrapper, sum 
 
 // =========================================================================
 // Remote, Web and Social
-//
 type RemoteProofChainLink interface {
 	TypedChainLink
 	DisplayPriorityKey() string
@@ -538,7 +537,6 @@ func remoteProofInsertIntoTable(l RemoteProofChainLink, tab *IdentityTable) {
 
 // =========================================================================
 // TrackChainLink
-//
 type TrackChainLink struct {
 	GenericChainLink
 	whomUsername  NormalizedUsername

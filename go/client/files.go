@@ -183,7 +183,6 @@ func (s *FileSource) Read(p []byte) (n int, err error) {
 // The alternative is to remove the Close() in Read(),
 // but leave that untouched so as not to break
 // anything that depends on that behavior.
-//
 func (s *FileSource) Seek(offset int64, whence int) (int64, error) {
 	if s.file == nil {
 		// the file could be nil because Read(...) closes

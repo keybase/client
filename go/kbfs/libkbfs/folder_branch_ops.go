@@ -209,37 +209,37 @@ type editChannelActivity struct {
 // concurrent access whenever possible.  See design/state_machine.md
 // for more details.  There are three important locks:
 //
-// 1) mdWriterLock: Any "remote-sync" operation (one which modifies the
-//    folder's metadata) must take this lock during the entirety of
-//    its operation, to avoid forking the MD.
+//  1. mdWriterLock: Any "remote-sync" operation (one which modifies the
+//     folder's metadata) must take this lock during the entirety of
+//     its operation, to avoid forking the MD.
 //
-// 2) headLock: This is a read/write mutex.  It must be taken for
-//    reading before accessing any part of the current head MD.  It
-//    should be taken for the shortest time possible -- that means in
-//    general that it should be taken, and the MD copied to a
-//    goroutine-local variable, and then it can be released.
-//    Remote-sync operations should take it for writing after pushing
-//    all of the blocks and MD to the KBFS servers (i.e., all network
-//    accesses), and then hold it until after all notifications have
-//    been fired, to ensure that no concurrent "local" operations ever
-//    see inconsistent state locally.
+//  2. headLock: This is a read/write mutex.  It must be taken for
+//     reading before accessing any part of the current head MD.  It
+//     should be taken for the shortest time possible -- that means in
+//     general that it should be taken, and the MD copied to a
+//     goroutine-local variable, and then it can be released.
+//     Remote-sync operations should take it for writing after pushing
+//     all of the blocks and MD to the KBFS servers (i.e., all network
+//     accesses), and then hold it until after all notifications have
+//     been fired, to ensure that no concurrent "local" operations ever
+//     see inconsistent state locally.
 //
-// 3) blockLock: This too is a read/write mutex.  It must be taken for
-//    reading before accessing any blocks in the block cache that
-//    belong to this folder/branch.  This includes checking their
-//    dirty status.  It should be taken for the shortest time possible
-//    -- that means in general it should be taken, and then the blocks
-//    that will be modified should be copied to local variables in the
-//    goroutine, and then it should be released.  The blocks should
-//    then be modified locally, and then readied and pushed out
-//    remotely.  Only after the blocks have been pushed to the server
-//    should a remote-sync operation take the lock again (this time
-//    for writing) and put/finalize the blocks.  Write and Truncate
-//    should take blockLock for their entire lifetime, since they
-//    don't involve writes over the network.  Furthermore, if a block
-//    is not in the cache and needs to be fetched, we should release
-//    the mutex before doing the network operation, and lock it again
-//    before writing the block back to the cache.
+//  3. blockLock: This too is a read/write mutex.  It must be taken for
+//     reading before accessing any blocks in the block cache that
+//     belong to this folder/branch.  This includes checking their
+//     dirty status.  It should be taken for the shortest time possible
+//     -- that means in general it should be taken, and then the blocks
+//     that will be modified should be copied to local variables in the
+//     goroutine, and then it should be released.  The blocks should
+//     then be modified locally, and then readied and pushed out
+//     remotely.  Only after the blocks have been pushed to the server
+//     should a remote-sync operation take the lock again (this time
+//     for writing) and put/finalize the blocks.  Write and Truncate
+//     should take blockLock for their entire lifetime, since they
+//     don't involve writes over the network.  Furthermore, if a block
+//     is not in the cache and needs to be fetched, we should release
+//     the mutex before doing the network operation, and lock it again
+//     before writing the block back to the cache.
 //
 // We want to allow writes and truncates to a file that's currently
 // being sync'd, like any good networked file system.  The tricky part
@@ -5782,22 +5782,22 @@ type cleanupFn func(context.Context, *kbfssync.LockState, []data.BlockPointer, e
 // startSyncLocked readies the blocks and other state needed to sync a
 // single file.  It returns:
 //
-// * `doSync`: Whether or not the sync should actually happen.
-// * `stillDirty`: Whether the file should still be considered dirty when
-//   this function returns.  (That is, if `doSync` is false, and `stillDirty`
-//   is true, then the file has outstanding changes but the sync was vetoed for
-//   some other reason.)
-// * `fblock`: the root file block for the file being sync'd.
-// * `lbc`: A local block cache consisting of a dirtied version of the parent
-//   directory for this file.
-// * `bps`: All the blocks that need to be put to the server.
-// * `syncState`: Must be passed to the `FinishSyncLocked` call after the
-//   update completes.
-// * `cleanupFn`: A function that, if non-nil, must be called after the sync
-//   is done.  `cleanupFn` should be passed the set of bad blocks that couldn't
-//   be sync'd (if any), and the error.
-// * `err`: The best, greatest return value, everyone says it's absolutely
-//   stunning.
+//   - `doSync`: Whether or not the sync should actually happen.
+//   - `stillDirty`: Whether the file should still be considered dirty when
+//     this function returns.  (That is, if `doSync` is false, and `stillDirty`
+//     is true, then the file has outstanding changes but the sync was vetoed for
+//     some other reason.)
+//   - `fblock`: the root file block for the file being sync'd.
+//   - `lbc`: A local block cache consisting of a dirtied version of the parent
+//     directory for this file.
+//   - `bps`: All the blocks that need to be put to the server.
+//   - `syncState`: Must be passed to the `FinishSyncLocked` call after the
+//     update completes.
+//   - `cleanupFn`: A function that, if non-nil, must be called after the sync
+//     is done.  `cleanupFn` should be passed the set of bad blocks that couldn't
+//     be sync'd (if any), and the error.
+//   - `err`: The best, greatest return value, everyone says it's absolutely
+//     stunning.
 func (fbo *folderBranchOps) startSyncLocked(ctx context.Context,
 	lState *kbfssync.LockState, md *RootMetadata, node Node, file data.Path) (
 	doSync, stillDirty bool, fblock *data.FileBlock, dirtyDe *data.DirEntry,

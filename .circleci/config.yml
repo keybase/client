@@ -5,7 +5,7 @@ jobs:
     parallelism: 1
 
     docker:
-      - image: keybaseprivate/circleci-client:node16.16
+      - image: keybaseprivate/circleci-client:go1.19
     resource_class: medium+
 
     steps:

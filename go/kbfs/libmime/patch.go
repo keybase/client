@@ -13,7 +13,9 @@ import "mime"
 // additional ones are added after the `mime` package loads from a few
 // filesystem locations such as /etc/apache2/mime.types. In other words, the
 // overriding precedence is:
-//     filesystem -> builtin in this package -> optional additional parameter
+//
+//	filesystem -> builtin in this package -> optional additional parameter
+//
 // where the ones on right side can override what's from ones on the left side.
 //
 // Note that due to unpredictibility of what's on the device's file system,

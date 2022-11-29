@@ -1031,7 +1031,6 @@ func (k *SimpleFS) SimpleFSList(ctx context.Context, arg keybase1.SimpleFSListAr
 // the result for the opID when it completes.
 //
 // TODO: refactor SimpleFSList to use this too (finalDepth = 0)
-//
 func (k *SimpleFS) listRecursiveToDepth(opID keybase1.OpID,
 	path keybase1.Path, filter keybase1.ListFilter,
 	finalDepth int, refreshSubscription bool) func(context.Context) error {

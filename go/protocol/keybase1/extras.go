@@ -1907,10 +1907,12 @@ func (ut UserOrTeamID) IsValidID() bool {
 }
 
 // Preconditions:
-// 	-first four bits (in Little Endian) of UserOrTeamID are
-// 	 	independent and uniformly distributed
-//	-UserOrTeamID must have an even number of bits, or this will always
-//   	return 0
+//
+//		-first four bits (in Little Endian) of UserOrTeamID are
+//		 	independent and uniformly distributed
+//		-UserOrTeamID must have an even number of bits, or this will always
+//	  	return 0
+//
 // Returns a number in [0, shardCount) which can be treated as roughly
 // uniformly distributed. Used for things that need to shard by user.
 func (ut UserOrTeamID) GetShard(shardCount int) (int, error) {

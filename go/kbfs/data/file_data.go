@@ -384,19 +384,19 @@ func (fd *FileData) fileTopBlocker(df *DirtyFile) createTopBlockFn {
 // Write sets the given data and the given offset within the file,
 // making new blocks and new levels of indirection as needed. Return
 // params:
-// * newDe: a new directory entry with the EncodedSize cleared if the file
-//   was extended.
-// * dirtyPtrs: a slice of the BlockPointers that have been dirtied during
-//   the write.  This includes any interior indirect blocks that may not
-//   have been changed yet, but which will need to change as part of the
-//   sync process because of leaf node changes below it.
-// * unrefs: a slice of BlockInfos that must be unreferenced as part of an
-//   eventual sync of this write.  May be non-nil even if err != nil.
-// * newlyDirtiedChildBytes is the total amount of block data dirtied by this
-//   write, including the entire size of blocks that have had at least one
-//   byte dirtied.  As above, it may be non-zero even if err != nil.
-// * bytesExtended is the number of bytes the length of the file has been
-//   extended as part of this write.
+//   - newDe: a new directory entry with the EncodedSize cleared if the file
+//     was extended.
+//   - dirtyPtrs: a slice of the BlockPointers that have been dirtied during
+//     the write.  This includes any interior indirect blocks that may not
+//     have been changed yet, but which will need to change as part of the
+//     sync process because of leaf node changes below it.
+//   - unrefs: a slice of BlockInfos that must be unreferenced as part of an
+//     eventual sync of this write.  May be non-nil even if err != nil.
+//   - newlyDirtiedChildBytes is the total amount of block data dirtied by this
+//     write, including the entire size of blocks that have had at least one
+//     byte dirtied.  As above, it may be non-zero even if err != nil.
+//   - bytesExtended is the number of bytes the length of the file has been
+//     extended as part of this write.
 func (fd *FileData) Write(ctx context.Context, data []byte, off Int64Offset,
 	topBlock *FileBlock, oldDe DirEntry, df *DirtyFile) (
 	newDe DirEntry, dirtyPtrs []BlockPointer, unrefs []BlockInfo,
@@ -580,9 +580,9 @@ func (fd *FileData) Write(ctx context.Context, data []byte, off Int64Offset,
 
 // TruncateExtend increases file size to the given size by appending
 // a "hole" to the file. Return params:
-// * newDe: a new directory entry with the EncodedSize cleared.
-// * dirtyPtrs: a slice of the BlockPointers that have been dirtied during
-//   the truncate.
+//   - newDe: a new directory entry with the EncodedSize cleared.
+//   - dirtyPtrs: a slice of the BlockPointers that have been dirtied during
+//     the truncate.
 func (fd *FileData) TruncateExtend(ctx context.Context, size uint64,
 	topBlock *FileBlock, parentBlocks []ParentBlockAndChildIndex,
 	oldDe DirEntry, df *DirtyFile) (
@@ -644,17 +644,17 @@ func (fd *FileData) TruncateExtend(ctx context.Context, size uint64,
 }
 
 // TruncateShrink shrinks the file to the given size. Return params:
-// * newDe: a new directory entry with the EncodedSize cleared if the file
-//   shrunk.
-// * dirtyPtrs: a slice of the BlockPointers that have been dirtied during
-//   the truncate.  This includes any interior indirect blocks that may not
-//   have been changed yet, but which will need to change as part of the
-//   sync process because of leaf node changes below it.
-// * unrefs: a slice of BlockInfos that must be unreferenced as part of an
-//   eventual sync of this write.  May be non-nil even if err != nil.
-// * newlyDirtiedChildBytes is the total amount of block data dirtied by this
-//   truncate, including the entire size of blocks that have had at least one
-//   byte dirtied.  As above, it may be non-zero even if err != nil.
+//   - newDe: a new directory entry with the EncodedSize cleared if the file
+//     shrunk.
+//   - dirtyPtrs: a slice of the BlockPointers that have been dirtied during
+//     the truncate.  This includes any interior indirect blocks that may not
+//     have been changed yet, but which will need to change as part of the
+//     sync process because of leaf node changes below it.
+//   - unrefs: a slice of BlockInfos that must be unreferenced as part of an
+//     eventual sync of this write.  May be non-nil even if err != nil.
+//   - newlyDirtiedChildBytes is the total amount of block data dirtied by this
+//     truncate, including the entire size of blocks that have had at least one
+//     byte dirtied.  As above, it may be non-zero even if err != nil.
 func (fd *FileData) TruncateShrink(ctx context.Context, size uint64,
 	topBlock *FileBlock, oldDe DirEntry) (
 	newDe DirEntry, dirtyPtrs []BlockPointer, unrefs []BlockInfo,

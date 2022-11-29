@@ -90,8 +90,7 @@ func lambdaInvoke(functionName string, buf []byte) error {
 
 // generic aws call without the dependencies, adopted from this shell script:
 //
-//  https://superuser.com/questions/279986/uploading-files-to-s3-account-from-linux-command-line
-//
+//	https://superuser.com/questions/279986/uploading-files-to-s3-account-from-linux-command-line
 func awsCall(service string, host string, path string, method string, buf []byte) (response []byte, err error) {
 	payloadHash := hashToHex(buf)
 	now := time.Now().UTC()

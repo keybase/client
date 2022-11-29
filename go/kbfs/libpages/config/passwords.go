@@ -142,11 +142,11 @@ func GenerateSHA256PasswordHash(cleartext string) (string, error) {
 
 // newPassword takes a password hash (usually from a .kbp_config file) and
 // makes a password object out of it. Accepted password hashes are:
-//   1. bcrypt hashes. For example:
-//       $2a$04$DXabUWtVUX/nOEQ2R8aBT.wRUZxllKA2Lbm6Z3cGhkRLwMb6u8Esq
-//   2. sha256 hashes in format of sha256:<hex of salt>:<hex of sha256sum>.
-//      For example:
-//       sha256:249704a205894bb003b9f82a:6f2e235f076f1c7e1cfedec477091343dd4b1a678b11554321ee1a493925695c
+//  1. bcrypt hashes. For example:
+//     $2a$04$DXabUWtVUX/nOEQ2R8aBT.wRUZxllKA2Lbm6Z3cGhkRLwMb6u8Esq
+//  2. sha256 hashes in format of sha256:<hex of salt>:<hex of sha256sum>.
+//     For example:
+//     sha256:249704a205894bb003b9f82a:6f2e235f076f1c7e1cfedec477091343dd4b1a678b11554321ee1a493925695c
 func newPassword(passwordHashFromConfig string) (password, error) {
 	if strings.HasPrefix(passwordHashFromConfig, sha256PasswordHashPrefix) {
 		if len(passwordHashFromConfig) != sha256PasswordHashLength {

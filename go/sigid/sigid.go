@@ -61,7 +61,7 @@ func isModernSigIDMaker(clientName string, clientVersionString string) YNM {
 //
 // The commit that fixes the 2016 bug is:
 //
-//     https://github.com/keybase/client/commit/ca023e2d6f9192fd8e923f3113ae4a11cda8b53a
+//	https://github.com/keybase/client/commit/ca023e2d6f9192fd8e923f3113ae4a11cda8b53a
 //
 // So code on opposite sides of this bug will generate SigIDs in two
 // different ways.

@@ -254,7 +254,7 @@ helpers.rootLinuxNode(env, {
             )
           },
           test_windows: {
-            if (hasGoChanges || hasJenkinsfileChanges) {
+            if (false) { // hasGoChanges || hasJenkinsfileChanges) { // TODO(ZCLIENT-3850) re-enable
               helpers.nodeWithCleanup('windows-ssh', {}, {}) {
                 def BASEDIR="${pwd()}"
                 def GOPATH="${BASEDIR}\\go"
@@ -444,7 +444,7 @@ def testGoBuilds(prefix, packagesToTest, hasKBFSChanges) {
     }
   }
   retry(5) {
-    timeout(activity: true, time: 300, unit: 'SECONDS') {
+    timeout(activity: true, time: 1200, unit: 'SECONDS') {
       sh 'make -s lint'
     }
   }
