@@ -18,6 +18,7 @@ import (
 	"golang.org/x/net/context"
 
 	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 	"golang.org/x/text/unicode/norm"
 )
 
@@ -626,7 +627,8 @@ func (h *UserSearchHandler) GetNonUserDetails(ctx context.Context, arg keybase1.
 	assertion := url.String()
 
 	if url.IsSocial() {
-		res.Description = fmt.Sprintf("%s user", cases.Title(service))
+		caser := cases.Title(language.AmericanEnglish)
+		res.Description = fmt.Sprintf("%s user", caser.String(service))
 		apiRes, err := h.makeSearchRequest(mctx, keybase1.UserSearchArg{
 			Query:                  username,
 			Service:                service,
