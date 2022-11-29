@@ -88,7 +88,7 @@ func TestPGPEncryptString(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		text, err := io.ReadAllUnverifiedBody)
+		text, err := io.ReadAll(md.UnverifiedBody)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -129,7 +129,7 @@ func TestPGPEncryptQuick(t *testing.T) {
 			if err != nil {
 				return false
 			}
-			data, err := io.ReadAllUnverifiedBody)
+			data, err := io.ReadAll(md.UnverifiedBody)
 			if err != nil {
 				return false
 			}
@@ -185,7 +185,7 @@ func TestPGPEncryptLong(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		text, err := io.ReadAllUnverifiedBody)
+		text, err := io.ReadAll(md.UnverifiedBody)
 		if err != nil {
 			t.Fatal(err)
 		}

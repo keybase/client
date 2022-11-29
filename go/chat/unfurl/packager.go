@@ -160,7 +160,7 @@ func (p *Packager) uploadVideo(ctx context.Context, uid gregor1.UID, convID chat
 
 func (p *Packager) uploadVideoWithBody(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	body io.ReadCloser, len int64, video chat1.UnfurlVideo) (res chat1.Asset, err error) {
-	dat, err := io.ReadAlly)
+	dat, err := io.ReadAll(body)
 	if err != nil {
 		return res, err
 	}

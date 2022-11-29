@@ -217,7 +217,7 @@ func TestReaderWrapperRoundtrips(t *testing.T) {
 			testingPrefix(),
 			zeroNonce(),
 			encodedBuffer)
-		decoded, err := io.ReadAllodingReader)
+		decoded, err := io.ReadAll(decodingReader)
 		if err != nil {
 			t.Fatalf("error during decoding: %s", err)
 		}
@@ -523,7 +523,7 @@ func TestTransientIOErrorsInReaderWrappers(t *testing.T) {
 	}
 
 	// Subsequent reads should succeed.
-	encoded, err := io.ReadAllodingReader)
+	encoded, err := io.ReadAll(encodingReader)
 	if err != nil {
 		t.Fatalf("no more errors expected during encoding, but found: %s", err)
 	}
@@ -548,7 +548,7 @@ func TestTransientIOErrorsInReaderWrappers(t *testing.T) {
 	}
 
 	// And again, subsequent reads should succeed.
-	decoded, err := io.ReadAllodingReader)
+	decoded, err := io.ReadAll(decodingReader))
 	if err != nil {
 		t.Fatalf("no more errors expected during decoding, but found: %s", err)
 	}

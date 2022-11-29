@@ -171,7 +171,7 @@ func GetVersionedPathForDb(
 	currentDbVersion uint64) (versionedDirPath string, err error) {
 	// Read the version file
 	versionFilepath := filepath.Join(dirPath, diskCacheVersionFilename)
-	versionBytes, err := os.ReadFile(versionFilepath)
+	versionBytes, err := ioutil.ReadFile(versionFilepath)
 	// We expect the file to open successfully or not exist. Anything else is a
 	// problem.
 	version := currentDbVersion
@@ -242,7 +242,7 @@ func GetVersionedPathForDb(
 		return "", err
 	}
 	versionString := strconv.FormatUint(version, 10)
-	err = os.WriteFile(versionFilepath, []byte(versionString), 0600)
+	err = ioutil.WriteFile(versionFilepath, []byte(versionString), 0600)
 	if err != nil {
 		// This also needs to be fatal.
 		return "", err

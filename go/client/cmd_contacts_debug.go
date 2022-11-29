@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 
 	"github.com/keybase/cli"
@@ -131,7 +132,7 @@ func (c *CmdSaveContacts) Run() error {
 	if err != nil {
 		return err
 	}
-	bytes, err := io.ReadAllStdin)
+	bytes, err := io.ReadAll(os.Stdin)
 	if err != nil {
 		return err
 	}

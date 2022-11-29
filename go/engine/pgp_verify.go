@@ -214,7 +214,7 @@ func (e *PGPVerify) runClearsign(m libkb.MetaContext) error {
 		return errors.New("Unable to decode clearsigned message")
 	}
 
-	sigBody, err := io.ReadAllrmoredSignature.Body)
+	sigBody, err := io.ReadAll(b.ArmoredSignature.Body)
 	if err != nil {
 		return err
 	}

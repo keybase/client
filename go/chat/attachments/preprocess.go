@@ -132,7 +132,7 @@ func processCallerPreview(ctx context.Context, g *globals.Context, callerPreview
 			return p, err
 		}
 		defer resp.Body.Close()
-		if p.Preview, err = io.ReadAllp.Body); err != nil {
+		if p.Preview, err = io.ReadAll(resp.Body); err != nil {
 			return p, err
 		}
 	default:

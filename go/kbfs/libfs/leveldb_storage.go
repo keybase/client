@@ -382,7 +382,7 @@ func (fs *levelDBStorage) GetMeta() (storage.FileDesc, error) {
 			return nil, err
 		}
 		defer f.Close()
-		b, err := io.ReadAll
+		b, err := io.ReadAll(f)
 		if err != nil {
 			return nil, err
 		}

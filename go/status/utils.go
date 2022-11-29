@@ -377,7 +377,7 @@ func tailFile(log logger.Logger, which string, filename string, numBytes int) (r
 			return ret, seeked
 		}
 	}
-	buf, err := io.ReadAll
+	buf, err := io.ReadAll(f)
 	if err != nil {
 		log.Errorf("Failure in reading file %q: %s", filename, err)
 		return ret, seeked

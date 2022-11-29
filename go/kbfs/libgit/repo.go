@@ -303,7 +303,7 @@ func makeExistingRepoError(
 		return err
 	}
 	defer f.Close()
-	buf, err := io.ReadAll
+	buf, err := io.ReadAll(f)
 	if err != nil {
 		return err
 	}
@@ -501,7 +501,7 @@ func getOrCreateRepoAndID(
 	}
 	defer f.Close()
 
-	buf, err := io.ReadAll
+	buf, err := io.ReadAll(f)
 	if err != nil {
 		return nil, NullID, err
 	}
@@ -648,7 +648,7 @@ func renameRepoInConfigFile(
 		return err
 	}
 	defer f.Close()
-	buf, err := io.ReadAll
+	buf, err := io.ReadAll(f)
 	if err != nil {
 		return err
 	}

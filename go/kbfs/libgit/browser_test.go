@@ -153,7 +153,7 @@ func testBrowser(t *testing.T, sharedCache sharedInBrowserCache) {
 		f2, err := b.Open(link)
 		require.NoError(t, err)
 		defer f2.Close()
-		data, err = io.ReadAll
+		data, err = io.ReadAll(f2)
 		require.NoError(t, err)
 		require.Equal(t, "hello", string(data))
 	}

@@ -51,7 +51,7 @@ func TestSignEncrypter(t *testing.T) {
 
 	d := NewSignDecrypter()
 	dr := d.Decrypt(bytes.NewReader(ct), e.EncryptKey(), e.VerifyKey())
-	ptOut, err := io.ReadAll
+	ptOut, err := io.ReadAll(dr)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -67,7 +67,7 @@ func TestSignEncrypter(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	ct2, err := io.ReadAll)
+	ct2, err := io.ReadAll(er2)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -86,7 +86,7 @@ func TestSignEncrypter(t *testing.T) {
 	}
 
 	dr2 := d.Decrypt(bytes.NewReader(ct2), e.EncryptKey(), e.VerifyKey())
-	ptOut2, err := io.ReadAll)
+	ptOut2, err := io.ReadAll(dr2)
 	if err != nil {
 		t.Fatal(err)
 	}
