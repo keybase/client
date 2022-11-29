@@ -500,7 +500,11 @@ func CacheSizeInfo(g *libkb.GlobalContext) (info []keybase1.DirSizeInfo, err err
 	var totalFiles int
 	for _, file := range files {
 		if !file.IsDir() {
-			totalSize += uint64(file.Size())
+			info, err := file.Info()
+			if err != nil {
+				return nil, err
+			}
+			totalSize += uint64(info.Size())
 			continue
 		}
 		dirPath := filepath.Join(cacheDir, file.Name())
