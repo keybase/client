@@ -4,7 +4,6 @@
 package engine
 
 import (
-	"io/ioutil"
 	"path"
 	"testing"
 
@@ -108,7 +107,7 @@ func TestPGPSelectThenPushSecret(t *testing.T) {
 	require.False(t, ok)
 
 	// Import secret key afterwards with pushing to the server.
-	keyBytes, err := ioutil.ReadFile(path.Join(tc.Tp.GPGHome, "secring.gpg"))
+	keyBytes, err := io.ReadFile(path.Join(tc.Tp.GPGHome, "secring.gpg"))
 	require.NoError(t, err)
 	pgpEng, err := NewPGPKeyImportEngineFromBytes(tc.G, keyBytes, true /* pushSecret*/)
 	require.NoError(t, err)

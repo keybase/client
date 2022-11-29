@@ -7,7 +7,7 @@ import (
 	"bytes"
 	"encoding/base64"
 	"io"
-	"io/ioutil"
+
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -22,7 +22,7 @@ func newStreamFromBase64String(t *testing.T, s string) io.Reader {
 }
 
 func assertStreamEqBase64(t *testing.T, r io.Reader, m string) {
-	buf, err := ioutil.ReadAll(r)
+	buf, err := io.ReadAll(r)
 	if err != nil {
 		t.Fatalf("an error occurred during stream draining")
 	}

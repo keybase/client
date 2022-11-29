@@ -5,13 +5,12 @@ package libkb
 
 import (
 	"crypto/x509"
-	"io/ioutil"
 )
 
 func addCert(out *x509.CertPool, fn string) (ret *x509.CertPool, err error) {
 	var data []byte
 	ret = x509.NewCertPool()
-	if data, err = ioutil.ReadFile(fn); err != nil {
+	if data, err = io.ReadFile(fn); err != nil {
 		err = ConfigError{fn, err.Error()}
 	} else if !ret.AppendCertsFromPEM(data) {
 		err = ConfigError{fn, "Bad CA Cert file; failed to parse"}

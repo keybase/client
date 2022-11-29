@@ -5,7 +5,6 @@ package engine
 
 import (
 	"bytes"
-	"io/ioutil"
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
@@ -57,7 +56,7 @@ func TestPGPSign(t *testing.T) {
 
 		earg := PGPSignArg{
 			Sink:   libkb.NopWriteCloser{W: &sink},
-			Source: ioutil.NopCloser(bytes.NewBufferString(test.input)),
+			Source: io.NopCloser(bytes.NewBufferString(test.input)),
 			Opts: keybase1.PGPSignOptions{
 				Mode: keybase1.SignMode_ATTACHED,
 			},

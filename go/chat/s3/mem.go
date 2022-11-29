@@ -5,11 +5,11 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"fmt"
-	"github.com/keybase/client/go/libkb"
 	"io"
-	"io/ioutil"
 	"sort"
 	"sync"
+
+	"github.com/keybase/client/go/libkb"
 
 	"golang.org/x/net/context"
 )
@@ -93,7 +93,7 @@ func (b *MemBucket) GetReader(ctx context.Context, path string) (io.ReadCloser, 
 	if !ok {
 		return nil, fmt.Errorf("bucket %q, path %q does not exist", b.name, path)
 	}
-	return ioutil.NopCloser(bytes.NewBuffer(obj)), nil
+	return io.NopCloser(bytes.NewBuffer(obj)), nil
 }
 
 func (b *MemBucket) GetReaderWithRange(ctx context.Context, path string, begin, end int64) (io.ReadCloser, error) {
@@ -106,7 +106,7 @@ func (b *MemBucket) GetReaderWithRange(ctx context.Context, path string, begin, 
 	if end >= int64(len(obj)) {
 		end = int64(len(obj))
 	}
-	return ioutil.NopCloser(bytes.NewBuffer(obj[begin:end])), nil
+	return io.NopCloser(bytes.NewBuffer(obj[begin:end])), nil
 }
 
 func (b *MemBucket) PutReader(ctx context.Context, path string, r io.Reader, length int64, contType string, perm ACL, options Options) error {

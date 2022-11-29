@@ -67,7 +67,7 @@ func setupMDJournalTest(t testing.TB, ver kbfsmd.MetadataVer) (
 		kbfscrypto.MakeTLFCryptKey([32]byte{0x1}),
 	}
 
-	tempdir, err := ioutil.TempDir(os.TempDir(), "md_journal")
+	tempdir, err := os.MkdirTemp(os.TempDir(), "md_journal")
 	require.NoError(t, err)
 
 	// Clean up the tempdir if the rest of the setup fails.
@@ -624,7 +624,7 @@ func testMDJournalFlushAll(t *testing.T, ver kbfsmd.MetadataVer) {
 	names := listDir(t, j.dir)
 	require.Equal(t, getMDJournalNames(ver), names)
 
-	err := ioutil.WriteFile(filepath.Join(j.dir, "extra_file"), nil, 0600)
+	err := io.WriteFile(filepath.Join(j.dir, "extra_file"), nil, 0600)
 	require.NoError(t, err)
 
 	flushAllMDs(ctx, t, signer, j)

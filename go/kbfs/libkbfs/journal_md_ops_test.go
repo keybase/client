@@ -21,7 +21,7 @@ import (
 func setupJournalMDOpsTest(t *testing.T) (
 	tempdir string, ctx context.Context, cancel context.CancelFunc,
 	config *ConfigLocal, oldMDOps MDOps, jManager *JournalManager) {
-	tempdir, err := ioutil.TempDir(os.TempDir(), "journal_md_ops")
+	tempdir, err := os.MkdirTemp(os.TempDir(), "journal_md_ops")
 	require.NoError(t, err)
 
 	// Clean up the tempdir if the rest of the setup fails.

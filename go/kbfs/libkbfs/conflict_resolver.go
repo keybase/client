@@ -7,7 +7,6 @@ package libkbfs
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	sysPath "path"
 	"runtime/debug"
@@ -3470,7 +3469,7 @@ func (cr *ConflictResolver) makeDiskBlockCache(ctx context.Context) (
 			<-dbc.Shutdown(ctx)
 		}
 	} else {
-		tempDir, err := ioutil.TempDir(
+		tempDir, err := os.MkdirTemp(
 			cr.config.StorageRoot(), ConflictStorageRootPrefix)
 		if err != nil {
 			return nil, nil, err

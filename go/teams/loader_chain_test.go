@@ -3,7 +3,7 @@ package teams
 import (
 	"context"
 	"encoding/json"
-	"io/ioutil"
+
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -141,7 +141,7 @@ func TestUnits(t *testing.T) {
 func runUnitFile(t *testing.T, jsonPath string) (*Team, bool) {
 	fileName := filepath.Base(jsonPath)
 	t.Logf("reading test json file: %v", fileName)
-	data, err := ioutil.ReadFile(jsonPath)
+	data, err := io.ReadFile(jsonPath)
 	require.NoError(t, err)
 	var unit TestCase
 	err = json.Unmarshal(data, &unit)

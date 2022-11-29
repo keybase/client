@@ -5,7 +5,6 @@
 package libgit
 
 import (
-	"io/ioutil"
 	"os"
 	"path"
 	"testing"
@@ -93,7 +92,7 @@ func testBrowser(t *testing.T, sharedCache sharedInBrowserCache) {
 	f, err := b.Open("foo")
 	require.NoError(t, err)
 	defer f.Close()
-	data, err := ioutil.ReadAll(f)
+	data, err := io.ReadAll(f)
 	require.NoError(t, err)
 	require.Equal(t, "hello", string(data))
 
@@ -154,7 +153,7 @@ func testBrowser(t *testing.T, sharedCache sharedInBrowserCache) {
 		f2, err := b.Open(link)
 		require.NoError(t, err)
 		defer f2.Close()
-		data, err = ioutil.ReadAll(f2)
+		data, err = io.ReadAll
 		require.NoError(t, err)
 		require.Equal(t, "hello", string(data))
 	}

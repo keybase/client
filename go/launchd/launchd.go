@@ -11,6 +11,7 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
+
 	"os"
 	"os/exec"
 	"os/user"
@@ -587,7 +588,7 @@ func (p Plist) Check(path string) (bool, error) {
 		return false, nil
 	}
 
-	buf, err := ioutil.ReadFile(path)
+	buf, err := io.ReadFile(path)
 	if err != nil {
 		return false, err
 	}

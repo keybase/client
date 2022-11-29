@@ -26,7 +26,7 @@ func makeTestKBFSConfig(t *testing.T) (
 	cfg := libkbfs.MakeTestConfigOrBustLoggedInWithMode(
 		t, 0, libkbfs.InitSingleOp, "alice", "bob")
 
-	tempdir, err := ioutil.TempDir(os.TempDir(), "journal_server")
+	tempdir, err := os.MkdirTemp(os.TempDir(), "journal_server")
 	require.NoError(t, err)
 	defer func() {
 		if err != nil {

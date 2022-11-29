@@ -3,7 +3,6 @@ package client
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"sort"
 	"strconv"
 
@@ -100,7 +99,7 @@ func (c *CmdNetworkStats) load() ([]keybase1.InstrumentationStat, error) {
 func (c *CmdNetworkStats) Run() (err error) {
 	var stats []keybase1.InstrumentationStat
 	if c.infile != "" {
-		b, err := ioutil.ReadFile(c.infile)
+		b, err := io.ReadFile(c.infile)
 		if err != nil {
 			return err
 		}

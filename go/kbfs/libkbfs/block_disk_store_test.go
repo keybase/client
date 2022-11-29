@@ -22,7 +22,7 @@ import (
 func setupBlockDiskStoreTest(t *testing.T) (tempdir string, s *blockDiskStore) {
 	codec := kbfscodec.NewMsgpack()
 
-	tempdir, err := ioutil.TempDir(os.TempDir(), "block_disk_store")
+	tempdir, err := os.MkdirTemp(os.TempDir(), "block_disk_store")
 	require.NoError(t, err)
 
 	s = makeBlockDiskStore(codec, tempdir)

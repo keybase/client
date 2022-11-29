@@ -5,7 +5,6 @@ import (
 	"context"
 	"errors"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -149,7 +148,7 @@ func TestChatSrvAttachmentHTTPSrv(t *testing.T) {
 	readAsset := func(msg chat1.UIMessage, cacheHit bool) {
 		httpRes, err := http.Get(msg.Valid().AssetUrlInfo.FullUrl)
 		require.NoError(t, err)
-		body, err := ioutil.ReadAll(httpRes.Body)
+		body, err := io.ReadAll(httpRes.Body)
 		require.NoError(t, err)
 		require.Equal(t, "HI", string(body))
 		if cacheHit {

@@ -2,7 +2,7 @@ package libkb
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 
 	"github.com/buger/jsonparser"
 	"github.com/keybase/client/go/jsonparserw"
@@ -121,7 +121,7 @@ func (hsc *HighSigChain) LoadFromServer(m MetaContext, t *MerkleTriple, selfUID 
 	}
 	defer finisher()
 	recordFin := tbs.Record("HighSigChain.LoadFromServer.ReadAll")
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		recordFin()
 		return nil, err

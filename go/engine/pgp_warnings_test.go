@@ -2,7 +2,6 @@ package engine
 
 import (
 	"crypto"
-	"io/ioutil"
 	"strings"
 	"testing"
 	"time"
@@ -205,7 +204,7 @@ func (e encryptTest) test(t *testing.T, users map[string]map[crypto.Hash]*pgpWar
 	if e.Mode == "sign" {
 		sink := libkb.NewBufferCloser()
 		arg := &PGPSignArg{
-			Source: ioutil.NopCloser(strings.NewReader(pgpWarningsMsg)),
+			Source: io.NopCloser(strings.NewReader(pgpWarningsMsg)),
 			Sink:   sink,
 		}
 		eng := NewPGPSignEngine(alice.tc.G, arg)

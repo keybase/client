@@ -99,7 +99,7 @@ func setupBlockJournalTest(t *testing.T) (
 	codec := kbfscodec.NewMsgpack()
 	log = logger.NewTestLogger(t)
 
-	tempdir, err := ioutil.TempDir(os.TempDir(), "block_journal")
+	tempdir, err := os.MkdirTemp(os.TempDir(), "block_journal")
 	require.NoError(t, err)
 
 	// Clean up the tempdir if the rest of the setup fails.

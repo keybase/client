@@ -8,7 +8,6 @@ import (
 	"image/color"
 	"image/png"
 	"io"
-	"io/ioutil"
 	"net/url"
 	"os"
 	"runtime"
@@ -32,7 +31,7 @@ const avatarPlaceholder = "iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAAAAAB3tzPbAAADwElEQ
 
 func getAvatarPlaceholder() io.ReadCloser {
 	dat, _ := base64.StdEncoding.DecodeString(avatarPlaceholder)
-	return ioutil.NopCloser(bytes.NewBuffer(dat))
+	return io.NopCloser(bytes.NewBuffer(dat))
 }
 
 func FetchAvatar(ctx context.Context, g *globals.Context, username string) (res io.ReadCloser, err error) {
@@ -108,7 +107,7 @@ func GetBorderedCircleAvatar(ctx context.Context, g *globals.Context, username s
 	if err != nil {
 		return res, length, err
 	}
-	return ioutil.NopCloser(bytes.NewReader(buf.Bytes())), int64(buf.Len()), nil
+	return io.NopCloser(bytes.NewReader(buf.Bytes())), int64(buf.Len()), nil
 }
 
 type circleMask struct {

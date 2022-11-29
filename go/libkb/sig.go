@@ -7,7 +7,7 @@ import (
 	"bytes"
 	"encoding/hex"
 	"fmt"
-	"io/ioutil"
+
 	"strings"
 
 	"github.com/keybase/client/go/kbcrypto"
@@ -46,7 +46,7 @@ func PGPOpenSig(armored string) (ps *ParsedSig, err error) {
 	if err != nil {
 		return
 	}
-	pso.SigBody, err = ioutil.ReadAll(pso.Block.Body)
+	pso.SigBody, err = io.ReadAll(pso.Block.Body)
 	if err != nil {
 		return
 	}
@@ -125,7 +125,7 @@ func (ps *ParsedSig) ExtractPayload() (payload []byte, err error) {
 	if err != nil {
 		return nil, err
 	}
-	data, err := ioutil.ReadAll(md.UnverifiedBody)
+	data, err := io.ReadAllUnverifiedBody)
 	if err != nil {
 		return nil, err
 	}
@@ -165,7 +165,7 @@ func (ps *ParsedSig) Verify(k PGPKeyBundle) (err error) {
 		return
 	}
 
-	ps.LiteralData, err = ioutil.ReadAll(ps.MD.UnverifiedBody)
+	ps.LiteralData, err = io.ReadAllMD.UnverifiedBody)
 	if err != nil {
 		return
 	}

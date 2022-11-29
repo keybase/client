@@ -6,7 +6,6 @@ package libgit
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"testing"
 	"time"
@@ -51,7 +50,7 @@ func checkAutogitOneFile(t *testing.T, rootFS *libfs.FS) {
 	f, err := rootFS.Open(".kbfs_autogit/test/foo")
 	require.NoError(t, err)
 	defer f.Close()
-	data, err := ioutil.ReadAll(f)
+	data, err := io.ReadAll(f)
 	require.NoError(t, err)
 	require.Equal(t, "hello", string(data))
 }
@@ -63,13 +62,13 @@ func checkAutogitTwoFiles(t *testing.T, rootFS *libfs.FS) {
 	f, err := rootFS.Open(".kbfs_autogit/test/foo")
 	require.NoError(t, err)
 	defer f.Close()
-	data, err := ioutil.ReadAll(f)
+	data, err := io.ReadAll
 	require.NoError(t, err)
 	require.Equal(t, "hello", string(data))
 	f2, err := rootFS.Open(".kbfs_autogit/test/foo2")
 	require.NoError(t, err)
 	defer f2.Close()
-	data2, err := ioutil.ReadAll(f2)
+	data2, err := io.ReadAll
 	require.NoError(t, err)
 	require.Equal(t, "hello2", string(data2))
 	// Make sure a non-existent file gives the right error.
@@ -154,7 +153,7 @@ func TestAutogitRepoNode(t *testing.T) {
 			".kbfs_autogit_branch_test-branch/foo3")
 	require.NoError(t, err)
 	defer f3.Close()
-	data3, err := ioutil.ReadAll(f3)
+	data3, err := io.ReadAll
 	require.NoError(t, err)
 	require.Equal(t, "hello3", string(data3))
 
@@ -163,7 +162,7 @@ func TestAutogitRepoNode(t *testing.T) {
 		".kbfs_autogit/test/.kbfs_autogit_branch_dir^test-branch/foo3")
 	require.NoError(t, err)
 	defer f4.Close()
-	data4, err := ioutil.ReadAll(f4)
+	data4, err := io.ReadAll
 	require.NoError(t, err)
 	require.Equal(t, "hello3", string(data4))
 
@@ -171,7 +170,7 @@ func TestAutogitRepoNode(t *testing.T) {
 	f5, err := rootFS.Open(".kbfs_autogit/test.git/foo")
 	require.NoError(t, err)
 	defer f5.Close()
-	data5, err := ioutil.ReadAll(f5)
+	data5, err := io.ReadAll
 	require.NoError(t, err)
 	require.Equal(t, "hello", string(data5))
 
@@ -309,7 +308,7 @@ func TestAutogitCommitFile(t *testing.T) {
 		".kbfs_autogit/test.git/" + AutogitCommitPrefix + hash1.String())
 	require.NoError(t, err)
 	defer f1.Close()
-	data1, err := ioutil.ReadAll(f1)
+	data1, err := io.ReadAll
 	require.NoError(t, err)
 	require.Equal(t, expectedCommit1, string(data1))
 
@@ -351,7 +350,7 @@ index %s..%s 100644
 		".kbfs_autogit/test.git/" + AutogitCommitPrefix + hash2.String())
 	require.NoError(t, err)
 	defer f2.Close()
-	data2, err := ioutil.ReadAll(f2)
+	data2, err := io.ReadAll
 	require.NoError(t, err)
 	require.Equal(t, expectedCommit2, string(data2))
 }

@@ -130,7 +130,7 @@ func (j diskJournal) journalEntryPath(o journalOrdinal) string {
 // ioutil.IsNotExist() returns true.
 
 func (j diskJournal) readOrdinalFromDisk(path string) (journalOrdinal, error) {
-	buf, err := ioutil.ReadFile(path)
+	buf, err := io.ReadFile(path)
 	if err != nil {
 		return 0, err
 	}

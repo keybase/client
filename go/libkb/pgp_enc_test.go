@@ -6,7 +6,7 @@ package libkb
 import (
 	"bytes"
 	"crypto/rand"
-	"io/ioutil"
+
 	"strings"
 	"testing"
 	"testing/quick"
@@ -47,7 +47,7 @@ func TestPGPEncrypt(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		text, err := ioutil.ReadAll(md.UnverifiedBody)
+		text, err := io.ReadAll(md.UnverifiedBody)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -88,7 +88,7 @@ func TestPGPEncryptString(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		text, err := ioutil.ReadAll(md.UnverifiedBody)
+		text, err := io.ReadAllUnverifiedBody)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -129,7 +129,7 @@ func TestPGPEncryptQuick(t *testing.T) {
 			if err != nil {
 				return false
 			}
-			data, err := ioutil.ReadAll(md.UnverifiedBody)
+			data, err := io.ReadAllUnverifiedBody)
 			if err != nil {
 				return false
 			}
@@ -185,7 +185,7 @@ func TestPGPEncryptLong(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		text, err := ioutil.ReadAll(md.UnverifiedBody)
+		text, err := io.ReadAllUnverifiedBody)
 		if err != nil {
 			t.Fatal(err)
 		}

@@ -7,7 +7,7 @@
 package install
 
 import (
-	"io/ioutil"
+	"io"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -30,7 +30,7 @@ func maybeKernelOpenFiles(mountDir string, log Log) bool {
 	}
 	defer f.Close()
 
-	b, err := ioutil.ReadAll(f)
+	b, err := io.ReadAll(f)
 	if err != nil {
 		log.Debug("Couldn't read the open file count in %s: %+v", p, err)
 		return true

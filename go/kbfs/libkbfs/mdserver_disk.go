@@ -97,7 +97,7 @@ func NewMDServerDir(
 // NewMDServerTempDir constructs a new MDServerDisk that stores its
 // data in a temp directory which is cleaned up on shutdown.
 func NewMDServerTempDir(config mdServerLocalConfig) (*MDServerDisk, error) {
-	tempdir, err := ioutil.TempDir(os.TempDir(), "kbfs_mdserver_tmp")
+	tempdir, err := os.MkdirTemp(os.TempDir(), "kbfs_mdserver_tmp")
 	if err != nil {
 		return nil, err
 	}

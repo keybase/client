@@ -12,7 +12,6 @@ import (
 	"image/jpeg"
 	"image/png"
 	"io"
-	"io/ioutil"
 	"strings"
 
 	"github.com/keybase/client/go/chat/types"
@@ -179,7 +178,7 @@ func previewImage(ctx context.Context, log utils.DebugLabeler, src io.Reader, ba
 // previewGIF handles resizing multiple frames in an animated gif.
 // Based on code in https://github.com/dpup/go-scratch/blob/master/gif-resize/gif-resize.go
 func previewGIF(ctx context.Context, log utils.DebugLabeler, src io.Reader, basename string) (*PreviewRes, error) {
-	raw, err := ioutil.ReadAll(src)
+	raw, err := io.ReadAll(src)
 	if err != nil {
 		return nil, err
 	}

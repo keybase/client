@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+
 	"mime/multipart"
 	"os"
 	"os/exec"
@@ -329,7 +330,7 @@ func tailSystemdJournal(log logger.Logger, userUnits []string, numBytes int) (re
 	// Once we start reading output, don't short-circuit on errors. Just log
 	// them, and return whatever we got.
 	stdoutLimited := io.LimitReader(stdout, int64(maxBytes))
-	output, err := ioutil.ReadAll(stdoutLimited)
+	output, err := io.ReadAll(stdoutLimited)
 	if err != nil {
 		output = appendError(log, output, "Error reading from journalctl pipe: %s", err)
 	}
@@ -377,7 +378,7 @@ func tailFile(log logger.Logger, which string, filename string, numBytes int) (r
 			return ret, seeked
 		}
 	}
-	buf, err := ioutil.ReadAll(f)
+	buf, err := io.ReadAll
 	if err != nil {
 		log.Errorf("Failure in reading file %q: %s", filename, err)
 		return ret, seeked

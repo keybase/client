@@ -177,7 +177,7 @@ func TestMultipleMDUpdatesUnembedChanges(t *testing.T) {
 }
 
 func TestGetTLFCryptKeysWhileUnmergedAfterRestart(t *testing.T) {
-	tempdir, err := ioutil.TempDir(os.TempDir(), "journal_for_gettlfcryptkeys")
+	tempdir, err := os.MkdirTemp(os.TempDir(), "journal_for_gettlfcryptkeys")
 	require.NoError(t, err)
 	defer func() {
 		err := ioutil.RemoveAll(tempdir)
@@ -792,7 +792,7 @@ func TestBasicCRFileConflict(t *testing.T) {
 // Tests that if CR fails enough times it will stop trying,
 // and that we can move the conflicts out of the way.
 func TestBasicCRFailureAndFixing(t *testing.T) {
-	tempdir, err := ioutil.TempDir(os.TempDir(), "journal_for_fail_fix")
+	tempdir, err := os.MkdirTemp(os.TempDir(), "journal_for_fail_fix")
 	defer os.RemoveAll(tempdir)
 
 	// simulate two users
@@ -1975,7 +1975,7 @@ func TestUnmergedPutAfterCanceledUnmergedPut(t *testing.T) {
 }
 
 func TestForceStuckConflict(t *testing.T) {
-	tempdir, err := ioutil.TempDir(os.TempDir(), "journal_for_stuck_cr")
+	tempdir, err := os.MkdirTemp(os.TempDir(), "journal_for_stuck_cr")
 	defer os.RemoveAll(tempdir)
 	require.NoError(t, err)
 
@@ -2035,7 +2035,7 @@ func TestForceStuckConflict(t *testing.T) {
 // Tests that if clearing a CR conflict can fast-forward if needed.
 func TestBasicCRFailureClearAndFastForward(t *testing.T) {
 	t.Skip()
-	tempdir, err := ioutil.TempDir(os.TempDir(), "journal_for_fail_fix")
+	tempdir, err := os.MkdirTemp(os.TempDir(), "journal_for_fail_fix")
 	defer os.RemoveAll(tempdir)
 
 	// simulate two users

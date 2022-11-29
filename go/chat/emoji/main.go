@@ -6,7 +6,6 @@ import (
 	"flag"
 	"fmt"
 	"go/format"
-	"io/ioutil"
 	"log"
 	"os"
 	"sort"
@@ -37,7 +36,7 @@ func UnifiedToChar(unified string) (string, error) {
 }
 
 func createEmojiDataCodeMap(path string) (map[string]string, map[string][]string, error) {
-	emojiFile, err := ioutil.ReadFile(path)
+	emojiFile, err := io.ReadFile(path)
 	if err != nil {
 		return nil, nil, err
 	}

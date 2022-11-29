@@ -2598,11 +2598,11 @@ func (j *tlfJournal) moveAway(ctx context.Context) (string, error) {
 	}
 
 	// Copy over the info.json file
-	infoData, err := ioutil.ReadFile(getTLFJournalInfoFilePath(fullDirName))
+	infoData, err := io.ReadFile(getTLFJournalInfoFilePath(fullDirName))
 	if err != nil {
 		return "", err
 	}
-	err = ioutil.WriteFile(getTLFJournalInfoFilePath(j.dir), infoData, 0600)
+	err = io.WriteFile(getTLFJournalInfoFilePath(j.dir), infoData, 0600)
 	if err != nil {
 		return "", err
 	}

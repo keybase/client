@@ -33,7 +33,7 @@ func TestMDServerTlfStorageBasic(t *testing.T) {
 	verifyingKey := kbfscrypto.MakeFakeVerifyingKeyOrBust("test key")
 	signer := kbfscrypto.SigningKeySigner{Key: signingKey}
 
-	tempdir, err := ioutil.TempDir(os.TempDir(), "mdserver_tlf_storage")
+	tempdir, err := os.MkdirTemp(os.TempDir(), "mdserver_tlf_storage")
 	require.NoError(t, err)
 	defer func() {
 		err := ioutil.RemoveAll(tempdir)

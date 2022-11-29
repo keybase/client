@@ -6,7 +6,7 @@ package libkbfs
 
 import (
 	"crypto/rand"
-	"io/ioutil"
+
 	"os"
 	"path/filepath"
 	"testing"
@@ -40,7 +40,7 @@ func newDiskMDCacheLocalForTestWithStorage(
 func newDiskMDCacheLocalForTest(t *testing.T) (*DiskMDCacheLocal, string) {
 	// Use a disk-based level, instead of memory storage, because we
 	// want to simulate a restart and memory storages can't be reused.
-	tempdir, err := ioutil.TempDir(os.TempDir(), "disk_md_cache")
+	tempdir, err := os.MkdirTemp(os.TempDir(), "disk_md_cache")
 	require.NoError(t, err)
 	s, err := storage.OpenFile(filepath.Join(tempdir, "heads"), false)
 	require.NoError(t, err)

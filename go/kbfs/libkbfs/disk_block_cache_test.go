@@ -701,7 +701,7 @@ func TestDiskBlockCacheUnsyncTlf(t *testing.T) {
 	t.Parallel()
 	t.Log("Test that blocks are cleaned up after unsyncing a TLF.")
 
-	tempdir, err := ioutil.TempDir(os.TempDir(), "kbfscache")
+	tempdir, err := os.MkdirTemp(os.TempDir(), "kbfscache")
 	require.NoError(t, err)
 	defer func() {
 		err := ioutil.RemoveAll(tempdir)
