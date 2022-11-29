@@ -483,7 +483,7 @@ func TestSimpleFSLocalSrcFile(t *testing.T) {
 	defer os.RemoveAll(tempdir)
 	require.NoError(t, err)
 	path1 := keybase1.NewPathWithLocal(filepath.Join(tempdir, "test1.txt"))
-	err = io.WriteFile(path1.Local(), []byte("foo"), 0644)
+	err = os.WriteFile(path1.Local(), []byte("foo"), 0644)
 	require.NoError(t, err)
 
 	isSrcDir, srcPathString, err := checkPathIsDir(context.TODO(), SimpleFSMock{localExists: true}, path1)
@@ -745,7 +745,7 @@ func TestSimpleFSLocalExists(t *testing.T) {
 	defer os.RemoveAll(tempdir)
 	require.NoError(t, err)
 	tempFile := filepath.Join(tempdir, "test1.txt")
-	err = io.WriteFile(tempFile, []byte("foo"), 0644)
+	err = os.WriteFile(tempFile, []byte("foo"), 0644)
 	require.NoError(t, err)
 
 	testPath, err := makeSimpleFSPath(tempdir)
@@ -776,11 +776,11 @@ func TestSimpleFSPlatformGlob(t *testing.T) {
 	tempdir, err := os.MkdirTemp("", "simpleFstest")
 	defer os.RemoveAll(tempdir)
 	require.NoError(t, err)
-	err = io.WriteFile(filepath.Join(tempdir, "test1.txt"), []byte("foo"), 0644)
+	err = os.WriteFile(filepath.Join(tempdir, "test1.txt"), []byte("foo"), 0644)
 	require.NoError(t, err)
-	err = io.WriteFile(filepath.Join(tempdir, "test2.txt"), []byte("foo"), 0644)
+	err = os.WriteFile(filepath.Join(tempdir, "test2.txt"), []byte("foo"), 0644)
 	require.NoError(t, err)
-	err = io.WriteFile(filepath.Join(tempdir, "test3.txt"), []byte("foo"), 0644)
+	err = os.WriteFile(filepath.Join(tempdir, "test3.txt"), []byte("foo"), 0644)
 	require.NoError(t, err)
 	path1 := keybase1.NewPathWithLocal(filepath.Join(tempdir, "*.txt"))
 

@@ -48,7 +48,7 @@ func TestErasableKVStore(t *testing.T) {
 	noiseName := fmt.Sprintf("%s%s", key, noiseSuffix)
 	storageDir := getStorageDir(mctx, subDir)
 	noiseFilePath := filepath.Join(storageDir, noiseName)
-	noise, err := io.ReadFile(noiseFilePath)
+	noise, err := os.ReadFile(noiseFilePath)
 	require.NoError(t, err)
 
 	// flip one bit
@@ -56,7 +56,7 @@ func TestErasableKVStore(t *testing.T) {
 	copy(corruptedNoise, noise)
 	corruptedNoise[0] ^= 0x01
 
-	err = io.WriteFile(noiseFilePath, corruptedNoise, PermFile)
+	err = os.WriteFile(noiseFilePath, corruptedNoise, PermFile)
 	require.NoError(t, err)
 
 	var corrupt string

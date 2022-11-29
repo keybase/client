@@ -101,13 +101,13 @@ func ToggleAutostart(context Context, on bool, forAutoinstall bool) error {
 		fmt.Println(`Installing autostart file. Manage autostart settings with ` + backtick + `keybase ctl autostart` + backtick + `.`)
 	}
 
-	err = io.WriteFile(autostartFilePath(context), []byte(text), 0644)
+	err = os.WriteFile(autostartFilePath(context), []byte(text), 0644)
 	if err != nil {
 		return err
 	}
 
 	if forAutoinstall {
-		err = io.WriteFile(sentinelFilePath(context), []byte(sentinelFileText), 0644)
+		err = os.WriteFile(sentinelFilePath(context), []byte(sentinelFileText), 0644)
 		if err != nil {
 			return err
 		}
@@ -117,7 +117,7 @@ func ToggleAutostart(context Context, on bool, forAutoinstall bool) error {
 }
 
 func GetAutostart(context Context) keybase1.OnLoginStartupStatus {
-	bs, _ := io.ReadFile(autostartFilePath(context))
+	bs, _ := os.ReadFile(autostartFilePath(context))
 	switch string(bs) {
 	case autostartFileText:
 		return keybase1.OnLoginStartupStatus_ENABLED

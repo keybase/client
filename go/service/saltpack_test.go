@@ -160,7 +160,7 @@ func testSignToTextFile(tc libkb.TestContext, h *SaltpackHandler, u1, u2 *kbtest
 	require.NoError(tc.T, err)
 	defer os.Remove(verifyRes.VerifiedFilename)
 	require.True(tc.T, verifyRes.Verified)
-	fdata, err := io.ReadFile(verifyRes.VerifiedFilename)
+	fdata, err := os.ReadFile(verifyRes.VerifiedFilename)
 	require.NoError(tc.T, err)
 	require.Equal(tc.T, []byte(signArg.Plaintext), fdata)
 }
@@ -187,7 +187,7 @@ func testEncryptToTextFile(tc libkb.TestContext, h *SaltpackHandler, u1, u2 *kbt
 	require.NoError(tc.T, err)
 	defer os.Remove(decRes.DecryptedFilename)
 	require.True(tc.T, decRes.Signed)
-	fdata, err := io.ReadFile(decRes.DecryptedFilename)
+	fdata, err := os.ReadFile(decRes.DecryptedFilename)
 	require.NoError(tc.T, err)
 	require.Equal(tc.T, []byte(encArg.Plaintext), fdata)
 }
@@ -255,9 +255,9 @@ func testSignVerifyDirectory(tc libkb.TestContext, h *SaltpackHandler, u1, u2 *k
 }
 
 func filesEqual(tc libkb.TestContext, a, b string) {
-	adata, err := io.ReadFile(a)
+	adata, err := os.ReadFile(a)
 	require.NoError(tc.T, err)
-	bdata, err := io.ReadFile(b)
+	bdata, err := os.ReadFile(b)
 	require.NoError(tc.T, err)
 	require.Equal(tc.T, adata, bdata)
 }
@@ -294,7 +294,7 @@ func checkZipArchive(tc libkb.TestContext, filename string) {
 
 func checkZipFileEqual(tc libkb.TestContext, f *zip.File) {
 	localName := filepath.Join("testdata", f.Name)
-	localData, err := io.ReadFile(localName)
+	localData, err := os.ReadFile(localName)
 	require.NoError(tc.T, err)
 	fz, err := f.Open()
 	require.NoError(tc.T, err)

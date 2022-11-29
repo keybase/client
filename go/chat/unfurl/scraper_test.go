@@ -60,7 +60,7 @@ func (d *dummyHTTPSrv) Stop() {
 func (d *dummyHTTPSrv) serveAppleTouchIcon(w http.ResponseWriter, r *http.Request) {
 	if d.shouldServeAppleTouchIcon {
 		w.WriteHeader(200)
-		dat, _ := io.ReadFile(filepath.Join("testcases", "github.png"))
+		dat, _ := os.ReadFile(filepath.Join("testcases", "github.png"))
 		_, _ = io.Copy(w, bytes.NewBuffer(dat))
 		return
 	}
@@ -83,7 +83,7 @@ func createTestCaseHTTPSrv(t *testing.T) *dummyHTTPSrv {
 		if len(contentType) > 0 {
 			w.Header().Set("Content-Type", contentType)
 		}
-		dat, err := io.ReadFile(filepath.Join("testcases", name))
+		dat, err := os.ReadFile(filepath.Join("testcases", name))
 		require.NoError(t, err)
 		_, err = io.Copy(w, bytes.NewBuffer(dat))
 		require.NoError(t, err)

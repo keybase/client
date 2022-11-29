@@ -7,7 +7,6 @@ package libpages
 import (
 	"context"
 	"database/sql"
-	"io/ioutil"
 
 	"os"
 	"path/filepath"
@@ -133,11 +132,11 @@ func (g *fileinfoActivesGetter) GetActives(
 // GetActivesGetter implement the ActivityStatsStorer interface.
 func (s *fileBasedActivityStatsStorer) GetActivesGetter() (
 	getter ActivesGetter, err error) {
-	tlfStamps, err := ioutil.ReadDir(filepath.Join(s.root, dirnameTlfStamps))
+	tlfStamps, err := os.ReadDir(filepath.Join(s.root, dirnameTlfStamps))
 	if err != nil {
 		return nil, err
 	}
-	hostStamps, err := ioutil.ReadDir(filepath.Join(s.root, dirnameHostStamps))
+	hostStamps, err := os.ReadDir(filepath.Join(s.root, dirnameHostStamps))
 	if err != nil {
 		return nil, err
 	}
@@ -166,7 +165,7 @@ func MigrateActivityStatsStorerFromFileBasedToMySQL(
 	}
 
 	logger.Info("tlf stamps")
-	tlfStamps, err := ioutil.ReadDir(filepath.Join(fbRootDir, dirnameTlfStamps))
+	tlfStamps, err := os.ReadDir(filepath.Join(fbRootDir, dirnameTlfStamps))
 	if err != nil {
 		logger.Error("ReadDir tlf stamps", zap.Error(err))
 		return
@@ -182,7 +181,7 @@ func MigrateActivityStatsStorerFromFileBasedToMySQL(
 	}
 
 	logger.Info("host stamps")
-	hostStamps, err := ioutil.ReadDir(filepath.Join(fbRootDir, dirnameHostStamps))
+	hostStamps, err := os.ReadDir(filepath.Join(fbRootDir, dirnameHostStamps))
 	if err != nil {
 		logger.Error("ReadDir host stamps", zap.Error(err))
 		return

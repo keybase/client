@@ -67,9 +67,7 @@ func (p *ProgressWriter) report() {
 }
 
 func (p *ProgressWriter) notify(now time.Time) {
-	if p.progress != nil {
-		p.progress(p.complete, p.total)
-	}
+	p.progress(p.complete, p.total)
 	p.lastReport = p.percent()
 	p.lastReportTime = now
 }
@@ -83,16 +81,9 @@ func (p *ProgressWriter) percent() int64 {
 
 // send 0% progress
 func (p *ProgressWriter) initialReport() {
-	if p.progress == nil {
-		return
-	}
-
 	p.progress(0, p.total)
 }
 
 func (p *ProgressWriter) Finish() {
-	if p.progress == nil {
-		return
-	}
 	p.progress(p.total, p.total)
 }

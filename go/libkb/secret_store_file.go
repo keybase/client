@@ -61,7 +61,7 @@ func (s *SecretStoreFile) RetrieveSecret(mctx MetaContext, username NormalizedUs
 func (s *SecretStoreFile) retrieveSecretV1(mctx MetaContext, username NormalizedUsername) (LKSecFullSecret, error) {
 	userpath := s.userpath(username)
 	mctx.Debug("SecretStoreFile.retrieveSecretV1: checking path: %s", userpath)
-	secret, err := io.ReadFile(userpath)
+	secret, err := os.ReadFile(userpath)
 	if err != nil {
 		if os.IsNotExist(err) {
 			return LKSecFullSecret{}, NewErrSecretForUserNotFound(username)
@@ -76,7 +76,7 @@ func (s *SecretStoreFile) retrieveSecretV1(mctx MetaContext, username Normalized
 func (s *SecretStoreFile) retrieveSecretV2(mctx MetaContext, username NormalizedUsername) (LKSecFullSecret, error) {
 	userpath := s.userpathV2(username)
 	mctx.Debug("SecretStoreFile.retrieveSecretV2: checking path: %s", userpath)
-	xor, err := io.ReadFile(userpath)
+	xor, err := os.ReadFile(userpath)
 	if err != nil {
 		if os.IsNotExist(err) {
 			return LKSecFullSecret{}, NewErrSecretForUserNotFound(username)
@@ -85,7 +85,7 @@ func (s *SecretStoreFile) retrieveSecretV2(mctx MetaContext, username Normalized
 		return LKSecFullSecret{}, err
 	}
 
-	noise, err := io.ReadFile(s.noisepathV2(username))
+	noise, err := os.ReadFile(s.noisepathV2(username))
 	if err != nil {
 		if os.IsNotExist(err) {
 			return LKSecFullSecret{}, NewErrSecretForUserNotFound(username)

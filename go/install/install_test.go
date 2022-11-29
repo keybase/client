@@ -72,9 +72,9 @@ func TestLastModifiedMatchingFile(t *testing.T) {
 	require.Nil(t, match)
 
 	// no matches with two files that each only half match
-	err = io.WriteFile(filepath.Join(tmpdir, fmt.Sprintf("first%sfile.txt", nameMatch)), []byte(unmatchingContent), 0644)
+	err = os.WriteFile(filepath.Join(tmpdir, fmt.Sprintf("first%sfile.txt", nameMatch)), []byte(unmatchingContent), 0644)
 	require.NoError(t, err)
-	err = io.WriteFile(filepath.Join(tmpdir, "secondfile.txt"), []byte(matchingContent), 0644)
+	err = os.WriteFile(filepath.Join(tmpdir, "secondfile.txt"), []byte(matchingContent), 0644)
 	require.NoError(t, err)
 
 	match, err = LastModifiedMatchingFile(filePattern, contentMatch)
@@ -83,7 +83,7 @@ func TestLastModifiedMatchingFile(t *testing.T) {
 
 	// with an actual match
 	fullPath := filepath.Join(tmpdir, fmt.Sprintf("third%sfile.txt", nameMatch))
-	err = io.WriteFile(fullPath, []byte(matchingContent), 0644)
+	err = os.WriteFile(fullPath, []byte(matchingContent), 0644)
 	require.NoError(t, err)
 	match, err = LastModifiedMatchingFile(filePattern, contentMatch)
 	require.NoError(t, err)
@@ -92,7 +92,7 @@ func TestLastModifiedMatchingFile(t *testing.T) {
 
 	// with another match
 	fullPath = filepath.Join(tmpdir, fmt.Sprintf("fourth%sfile.txt", nameMatch))
-	err = io.WriteFile(fullPath, []byte(matchingContent), 0644)
+	err = os.WriteFile(fullPath, []byte(matchingContent), 0644)
 	require.NoError(t, err)
 	match, err = LastModifiedMatchingFile(filePattern, contentMatch)
 	require.NoError(t, err)
@@ -100,9 +100,9 @@ func TestLastModifiedMatchingFile(t *testing.T) {
 	require.Equal(t, fullPath, *match)
 
 	// result doesn't change after additional files are added
-	err = io.WriteFile(filepath.Join(tmpdir, fmt.Sprintf("fifth%sfile.txt", nameMatch)), []byte(unmatchingContent), 0644)
+	err = os.WriteFile(filepath.Join(tmpdir, fmt.Sprintf("fifth%sfile.txt", nameMatch)), []byte(unmatchingContent), 0644)
 	require.NoError(t, err)
-	err = io.WriteFile(filepath.Join(tmpdir, "sixthfile.txt"), []byte(matchingContent), 0644)
+	err = os.WriteFile(filepath.Join(tmpdir, "sixthfile.txt"), []byte(matchingContent), 0644)
 	require.NoError(t, err)
 	match, err = LastModifiedMatchingFile(filePattern, contentMatch)
 	require.NoError(t, err)

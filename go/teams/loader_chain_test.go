@@ -141,7 +141,7 @@ func TestUnits(t *testing.T) {
 func runUnitFile(t *testing.T, jsonPath string) (*Team, bool) {
 	fileName := filepath.Base(jsonPath)
 	t.Logf("reading test json file: %v", fileName)
-	data, err := io.ReadFile(jsonPath)
+	data, err := os.ReadFile(jsonPath)
 	require.NoError(t, err)
 	var unit TestCase
 	err = json.Unmarshal(data, &unit)

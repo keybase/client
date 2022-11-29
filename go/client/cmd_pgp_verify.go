@@ -4,6 +4,8 @@
 package client
 
 import (
+	"os"
+
 	"golang.org/x/net/context"
 
 	"github.com/keybase/cli"
@@ -94,7 +96,7 @@ func (c *CmdPGPVerify) ParseArgv(ctx *cli.Context) error {
 	c.detachedFilename = ctx.String("detached")
 
 	if len(c.detachedFilename) > 0 {
-		data, err := io.ReadFile(c.detachedFilename)
+		data, err := os.ReadFile(c.detachedFilename)
 		if err != nil {
 			return err
 		}

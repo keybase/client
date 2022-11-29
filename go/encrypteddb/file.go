@@ -23,7 +23,7 @@ func NewFile(g *libkb.GlobalContext, path string, getSecretBoxKey KeyFn) *Encryp
 }
 
 func (f *EncryptedFile) Get(ctx context.Context, res interface{}) error {
-	enc, err := io.ReadFile(f.path)
+	enc, err := os.ReadFile(f.path)
 	if err != nil {
 		return err
 	}
@@ -38,7 +38,7 @@ func (f *EncryptedFile) Put(ctx context.Context, data interface{}) error {
 	if err != nil {
 		return err
 	}
-	return io.WriteFile(f.path, b, 0644)
+	return os.WriteFile(f.path, b, 0644)
 }
 
 func (f *EncryptedFile) Remove(ctx context.Context) error {

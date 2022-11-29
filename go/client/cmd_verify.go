@@ -5,6 +5,7 @@ package client
 
 import (
 	"errors"
+	"os"
 
 	"golang.org/x/net/context"
 
@@ -85,7 +86,7 @@ func (c *CmdVerify) ParseArgv(ctx *cli.Context) error {
 	detachedFilename := ctx.String("detached")
 
 	if len(detachedFilename) > 0 {
-		data, err := io.ReadFile(detachedFilename)
+		data, err := os.ReadFile(detachedFilename)
 		if err != nil {
 			return err
 		}

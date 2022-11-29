@@ -4,6 +4,7 @@
 package simplefs
 
 import (
+	"os"
 	"path/filepath"
 
 	"golang.org/x/net/context"
@@ -11,7 +12,7 @@ import (
 
 // Quarantine is for adding the mark of the web.
 func Quarantine(ctx context.Context, path string) error {
-	return io.WriteFile(path+":Zone.Identifier", []byte("[ZoneTransfer]\r\nZoneId=3"), 0644)
+	return os.WriteFile(path+":Zone.Identifier", []byte("[ZoneTransfer]\r\nZoneId=3"), 0644)
 }
 
 // limitFilenameLengthForWindowsDownloads truncates the filename so that its

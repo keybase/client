@@ -624,7 +624,7 @@ func testMDJournalFlushAll(t *testing.T, ver kbfsmd.MetadataVer) {
 	names := listDir(t, j.dir)
 	require.Equal(t, getMDJournalNames(ver), names)
 
-	err := io.WriteFile(filepath.Join(j.dir, "extra_file"), nil, 0600)
+	err := os.WriteFile(filepath.Join(j.dir, "extra_file"), nil, 0600)
 	require.NoError(t, err)
 
 	flushAllMDs(ctx, t, signer, j)

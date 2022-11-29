@@ -2,6 +2,7 @@ package avatars
 
 import (
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"runtime"

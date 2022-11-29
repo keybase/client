@@ -545,10 +545,10 @@ func TestCopyRecursive(t *testing.T) {
 	require.Len(t, fis, 0)
 
 	// Populate local starting directory.
-	err = io.WriteFile(
+	err = os.WriteFile(
 		filepath.Join(tempdir, "testdir", "test1.txt"), []byte("foo"), 0600)
 	require.NoError(t, err)
-	err = io.WriteFile(
+	err = os.WriteFile(
 		filepath.Join(tempdir, "testdir", "test2.txt"), []byte("bar"), 0600)
 	require.NoError(t, err)
 
@@ -591,11 +591,11 @@ func TestCopyRecursive(t *testing.T) {
 		ctx, t, sfs, opid2, keybase1.AsyncOps_COPY, pathKbfs, path3, true)
 	err = sfs.SimpleFSWait(ctx, opid2)
 	require.NoError(t, err)
-	dataFoo, err := io.ReadFile(
+	dataFoo, err := os.ReadFile(
 		filepath.Join(tempdir2, "testdir", "test1.txt"))
 	require.NoError(t, err)
 	require.Equal(t, "foo", string(dataFoo))
-	dataBar, err := io.ReadFile(
+	dataBar, err := os.ReadFile(
 		filepath.Join(tempdir2, "testdir", "test2.txt"))
 	require.NoError(t, err)
 	require.Equal(t, "bar", string(dataBar))
@@ -648,7 +648,7 @@ func TestCopyToRemote(t *testing.T) {
 	require.NoError(t, err)
 	path1 := keybase1.NewPathWithLocal(tempdir)
 	defer deleteTempLocalPath(path1)
-	err = io.WriteFile(filepath.Join(path1.Local(), "test1.txt"), []byte("foo"), 0644)
+	err = os.WriteFile(filepath.Join(path1.Local(), "test1.txt"), []byte("foo"), 0644)
 	require.NoError(t, err)
 
 	opid, err := sfs.SimpleFSMakeOpid(ctx)
@@ -851,10 +851,10 @@ func TestCopyProgress(t *testing.T) {
 	// Make local starting directory.
 	err = os.Mkdir(filepath.Join(tempdir, "testdir"), 0700)
 	require.NoError(t, err)
-	err = io.WriteFile(
+	err = os.WriteFile(
 		filepath.Join(tempdir, "testdir", "test1.txt"), []byte("foo"), 0600)
 	require.NoError(t, err)
-	err = io.WriteFile(
+	err = os.WriteFile(
 		filepath.Join(tempdir, "testdir", "test2.txt"), []byte("bar"), 0600)
 	require.NoError(t, err)
 	path1 := keybase1.NewPathWithLocal(

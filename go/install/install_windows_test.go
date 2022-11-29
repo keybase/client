@@ -33,14 +33,14 @@ func TestIsInUse(t *testing.T) {
 	require.False(t, IsInUse(tmpdir, tc.G.Log))
 
 	d := []byte("5")
-	assert.Nil(t, io.WriteFile(signalFileName, d, 0644))
+	assert.Nil(t, os.WriteFile(signalFileName, d, 0644))
 	defer os.Remove(signalFileName)
 
 	// Should be true if special file has a number
 	require.True(t, IsInUse(tmpdir, tc.G.Log))
 
 	d = []byte("0")
-	assert.Nil(t, io.WriteFile(signalFileName, d, 0644))
+	assert.Nil(t, os.WriteFile(signalFileName, d, 0644))
 
 	// Should be false if special file has a zero
 	require.False(t, IsInUse(tmpdir, tc.G.Log))

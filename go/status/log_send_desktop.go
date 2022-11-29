@@ -8,6 +8,7 @@ package status
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
 	"regexp"
 	"runtime"
@@ -44,7 +45,7 @@ func keybaseProcessList() string {
 func getOSInfo() (string, error) {
 	switch runtime.GOOS {
 	case "linux":
-		osinfo, err := io.ReadFile("/etc/os-release")
+		osinfo, err := os.ReadFile("/etc/os-release")
 		return string(osinfo), err
 	case "darwin": // no ios
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)

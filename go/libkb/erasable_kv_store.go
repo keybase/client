@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"fmt"
-	"io/ioutil"
 
 	"net/url"
 	"os"
@@ -286,7 +285,7 @@ func (s *FileErasableKVStore) get(mctx MetaContext, key string, val interface{})
 func (s *FileErasableKVStore) read(mctx MetaContext, key string) (data []byte, err error) {
 	defer mctx.Trace(fmt.Sprintf("FileErasableKVStore#read: %v", key), &err)()
 	filepath := s.filepath(key)
-	return io.ReadFile(filepath)
+	return os.ReadFile(filepath)
 }
 
 func (s *FileErasableKVStore) noiseHash(noiseBytes []byte) []byte {
@@ -327,7 +326,7 @@ func (s *FileErasableKVStore) AllKeys(mctx MetaContext, keySuffix string) (keys 
 	if err := os.MkdirAll(s.storageDir, PermDir); err != nil {
 		return nil, err
 	}
-	files, err := ioutil.ReadDir(s.storageDir)
+	files, err := os.ReadDir(s.storageDir)
 	if err != nil {
 		return nil, err
 	}

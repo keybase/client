@@ -452,7 +452,7 @@ func (j mdJournal) getMDAndExtra(ctx context.Context, entry mdIDJournalEntry,
 	// Read data.
 
 	p := j.mdDataPath(entry.ID)
-	data, err := io.ReadFile(p)
+	data, err := os.ReadFile(p)
 	if err != nil {
 		return nil, nil, time.Time{}, err
 	}

@@ -11,7 +11,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 
 	"mime/multipart"
 	"os"
@@ -214,7 +213,7 @@ func listLogFiles(log logger.Logger, stem string) (ret []string) {
 	stem = filepath.Clean(stem)
 	dir := filepath.Dir(stem)
 	base := filepath.Base(stem)
-	files, err := ioutil.ReadDir(dir)
+	files, err := os.ReadDir(dir)
 
 	defer func() {
 		log.Debug("listLogFiles(%q) -> %v", stem, ret)
@@ -492,7 +491,7 @@ func DirSize(dirPath string) (size uint64, numFiles int, err error) {
 
 func CacheSizeInfo(g *libkb.GlobalContext) (info []keybase1.DirSizeInfo, err error) {
 	cacheDir := g.GetCacheDir()
-	files, err := ioutil.ReadDir(cacheDir)
+	files, err := os.ReadDir(cacheDir)
 	if err != nil {
 		return nil, err
 	}

@@ -10,7 +10,6 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
-	"io/ioutil"
 
 	"os"
 	"os/exec"
@@ -372,7 +371,7 @@ func ListServices(filters []string) (services []Service, err error) {
 	if _, derr := os.Stat(launchAgentDir); os.IsNotExist(derr) {
 		return
 	}
-	files, err := ioutil.ReadDir(launchAgentDir)
+	files, err := os.ReadDir(launchAgentDir)
 	if err != nil {
 		return
 	}
@@ -588,7 +587,7 @@ func (p Plist) Check(path string) (bool, error) {
 		return false, nil
 	}
 
-	buf, err := io.ReadFile(path)
+	buf, err := os.ReadFile(path)
 	if err != nil {
 		return false, err
 	}

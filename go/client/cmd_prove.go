@@ -56,7 +56,7 @@ func (p *CmdProve) ParseArgv(ctx *cli.Context) error {
 
 func (p *CmdProve) fileOutputHook(txt string) (err error) {
 	p.G().Log.Info("Writing proof to file '" + p.output + "'...")
-	err = io.WriteFile(p.output, []byte(txt), os.FileMode(0644))
+	err = os.WriteFile(p.output, []byte(txt), os.FileMode(0644))
 	p.G().Log.Info("Written.")
 	return
 }

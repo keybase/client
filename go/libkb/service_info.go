@@ -61,7 +61,7 @@ func LoadServiceInfo(path string) (*ServiceInfo, error) {
 	if _, ferr := os.Stat(path); os.IsNotExist(ferr) {
 		return nil, nil
 	}
-	dat, err := io.ReadFile(path)
+	dat, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}

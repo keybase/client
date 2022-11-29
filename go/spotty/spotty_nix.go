@@ -7,7 +7,6 @@
 package spotty
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -40,7 +39,7 @@ func Discover() (string, error) {
 }
 
 func findFileIn(ss *syscall.Stat_t, dir string, re *regexp.Regexp) (string, error) {
-	v, err := ioutil.ReadDir(dir)
+	v, err := os.ReadDir(dir)
 	if err != nil {
 		if _, ok := err.(*os.PathError); ok {
 			return "", nil

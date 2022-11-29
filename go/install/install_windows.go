@@ -343,7 +343,7 @@ func IsInUse(mountDir string, log Log) bool {
 		return false
 	}
 
-	dat, err := io.ReadFile(filepath.Join(mountDir, ".kbfs_number_of_handles"))
+	dat, err := os.ReadFile(filepath.Join(mountDir, ".kbfs_number_of_handles"))
 	if err != nil {
 		log.Debug("Error reading kbfs handles: %s", err)
 		return false

@@ -1403,7 +1403,7 @@ func fallbackKillProcess(context Context, log Log, label string, infoPath, pidPa
 	}
 
 	log.Debug("fallback pid file exists for %s", svc.Label())
-	p, err := io.ReadFile(fpid)
+	p, err := os.ReadFile(fpid)
 	if err != nil {
 		return err
 	}
@@ -1426,7 +1426,7 @@ func fallbackKillProcess(context Context, log Log, label string, infoPath, pidPa
 	}
 
 	if !found && pidPath != "" {
-		lp, err := io.ReadFile(pidPath)
+		lp, err := os.ReadFile(pidPath)
 		if err != nil {
 			return err
 		}

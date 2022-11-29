@@ -26,7 +26,7 @@ func getPid(g *libkb.GlobalContext) (int, error) {
 	if err != nil {
 		return -1, err
 	}
-	data, err := io.ReadFile(fn)
+	data, err := os.ReadFile(fn)
 	if err != nil {
 		return -1, err
 	}

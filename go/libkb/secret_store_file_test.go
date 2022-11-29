@@ -24,7 +24,7 @@ func testSSDir(t *testing.T) (string, func()) {
 	require.NoError(t, err)
 
 	create := func(name, secret string) {
-		err := io.WriteFile(filepath.Join(td, name+".ss"), []byte(secret), PermFile)
+		err := os.WriteFile(filepath.Join(td, name+".ss"), []byte(secret), PermFile)
 		require.NoError(t, err)
 	}
 
@@ -224,13 +224,13 @@ func TestSecretStoreFileNoise(t *testing.T) {
 	ss := NewSecretStoreFile(td)
 	err = ss.StoreSecret(m, "ogden", lksec)
 	require.NoError(t, err)
-	noise, err := io.ReadFile(filepath.Join(td, "ogden.ns2"))
+	noise, err := os.ReadFile(filepath.Join(td, "ogden.ns2"))
 	require.NoError(t, err)
 
 	// flip one bit
 	noise[0] ^= 0x01
 
-	err = io.WriteFile(filepath.Join(td, "ogden.ns2"), noise, PermFile)
+	err = os.WriteFile(filepath.Join(td, "ogden.ns2"), noise, PermFile)
 	require.NoError(t, err)
 
 	corrupt, err := ss.RetrieveSecret(m, "ogden")

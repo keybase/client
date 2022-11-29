@@ -845,7 +845,7 @@ func ShredFile(filename string) error {
 		if err != nil {
 			return err
 		}
-		if err := io.WriteFile(filename, noise, stat.Mode().Perm()); err != nil {
+		if err := os.WriteFile(filename, noise, stat.Mode().Perm()); err != nil {
 			return err
 		}
 	}
