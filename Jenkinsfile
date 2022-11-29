@@ -444,7 +444,7 @@ def testGoBuilds(prefix, packagesToTest, hasKBFSChanges) {
     }
   }
   retry(5) {
-    timeout(activity: true, time: 300, unit: 'SECONDS') {
+    timeout(activity: true, time: 600, unit: 'SECONDS') {
       sh 'make -s lint'
     }
   }
