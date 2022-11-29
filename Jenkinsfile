@@ -254,7 +254,7 @@ helpers.rootLinuxNode(env, {
             )
           },
           test_windows: {
-            if (false) { // hasGoChanges || hasJenkinsfileChanges) {
+            if (false) { // hasGoChanges || hasJenkinsfileChanges) { // TODO(ZCLIENT-3850) re-enable
               helpers.nodeWithCleanup('windows-ssh', {}, {}) {
                 def BASEDIR="${pwd()}"
                 def GOPATH="${BASEDIR}\\go"
