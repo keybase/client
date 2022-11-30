@@ -76,7 +76,7 @@ require (
 	golang.org/x/crypto v0.0.0-20220722155217-630584e8d5aa
 	golang.org/x/image v0.0.0-20190802002840-cff245a6509b
 	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616
-	golang.org/x/mobile v0.0.0-20211109191125-d61a72f26a1a
+	golang.org/x/mobile v0.0.0-20221110043201-43a038452099
 	golang.org/x/net v0.0.0-20220722155237-a158d28d115b
 	golang.org/x/sync v0.0.0-20220819030929-7fc1605a5dde
 	golang.org/x/sys v0.0.0-20220915200043-7b5979e65e41
@@ -322,7 +322,7 @@ require (
 replace (
 	bazil.org/fuse => github.com/keybase/fuse v0.0.0-20210104232444-d36009698767
 	github.com/stellar/go => github.com/keybase/stellar-org v0.0.0-20191010205648-0fc3bfe3dfa7
-	github.com/syndtr/goleveldb => github.com/keybase/goleveldb v1.0.1-0.20211106225230-2a53fac0721c
+	github.com/syndtr/goleveldb => github.com/keybase/goleveldb v1.0.1-0.20221007195407-9881c0c26e65
 	gopkg.in/src-d/go-billy.v4 => github.com/keybase/go-billy v3.1.1-0.20180828145748-b5a7b7bc2074+incompatible
 	gopkg.in/src-d/go-git.v4 => github.com/keybase/go-git v4.0.0-rc9.0.20190209005256-3a78daa8ce8e+incompatible
 	mvdan.cc/xurls/v2 => github.com/keybase/xurls/v2 v2.0.1-0.20190725180013-1e015cacd06c
