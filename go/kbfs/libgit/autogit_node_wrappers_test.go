@@ -6,6 +6,7 @@ package libgit
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"testing"
 	"time"

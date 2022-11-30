@@ -5,7 +5,7 @@ package kbhttp
 
 import (
 	"fmt"
-
+	"io"
 	"net/http"
 	"testing"
 

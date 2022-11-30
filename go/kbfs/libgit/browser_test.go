@@ -5,6 +5,7 @@
 package libgit
 
 import (
+	"io"
 	"os"
 	"path"
 	"testing"

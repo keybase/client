@@ -3,6 +3,7 @@ package systests
 import (
 	"context"
 
+	"io"
 	"net/http"
 	"testing"
 

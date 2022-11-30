@@ -5,6 +5,7 @@ package engine
 
 import (
 	"bytes"
+	"io"
 	"strings"
 	"testing"
 

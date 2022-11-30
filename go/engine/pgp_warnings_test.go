@@ -2,6 +2,7 @@ package engine
 
 import (
 	"crypto"
+	"io"
 	"strings"
 	"testing"
 	"time"

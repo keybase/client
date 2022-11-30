@@ -100,7 +100,7 @@ func getTeamchainJSONDir(t *testing.T) string {
 func TestUnits(t *testing.T) {
 	t.Logf("running units")
 	jsonDir := getTeamchainJSONDir(t)
-	files, err := ioutil.ReadDir(jsonDir)
+	files, err := os.ReadDir(jsonDir)
 	require.NoError(t, err)
 	selectUnit := os.Getenv("KEYBASE_TEAM_TEST_SELECT")
 	var runLog []string

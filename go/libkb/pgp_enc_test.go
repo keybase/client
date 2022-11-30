@@ -6,6 +6,7 @@ package libkb
 import (
 	"bytes"
 	"crypto/rand"
+	"io"
 
 	"strings"
 	"testing"

@@ -4,6 +4,7 @@
 package engine
 
 import (
+	"io"
 	"strings"
 	"testing"
 

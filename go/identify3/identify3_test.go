@@ -1,6 +1,7 @@
 package identify3
 
 import (
+	"io"
 	"net/http"
 	"sync"
 	"testing"
