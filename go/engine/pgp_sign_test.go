@@ -5,6 +5,7 @@ package engine
 
 import (
 	"bytes"
+	"io"
 	"testing"
 
 	"github.com/keybase/client/go/libkb"

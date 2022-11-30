@@ -548,7 +548,7 @@ func TestTransientIOErrorsInReaderWrappers(t *testing.T) {
 	}
 
 	// And again, subsequent reads should succeed.
-	decoded, err := io.ReadAll(decodingReader))
+	decoded, err := io.ReadAll(decodingReader)
 	if err != nil {
 		t.Fatalf("no more errors expected during decoding, but found: %s", err)
 	}

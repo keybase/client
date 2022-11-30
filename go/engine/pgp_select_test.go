@@ -4,6 +4,7 @@
 package engine
 
 import (
+	"os"
 	"path"
 	"testing"
 
