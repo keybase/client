@@ -292,7 +292,7 @@ func (m mockGregord) Sync(ctx context.Context, arg gregor1.SyncArg) (gregor1.Syn
 		return res, err
 	}
 	for _, msg := range msgs {
-		if imb, ok := msg.(gregor1.InBandMessage); ok {
+		if ibm, ok := msg.(gregor1.InBandMessage); ok {
 			res.Msgs = append(res.Msgs, ibm)
 		} else {
 			m.log.Warning("Bad cast in serveSync (type=%T): %+v", msg)

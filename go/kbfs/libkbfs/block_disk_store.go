@@ -6,7 +6,6 @@ package libkbfs
 
 import (
 	"context"
-	"os"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -145,7 +144,7 @@ func (s *blockDiskStore) makeDir(id kbfsblock.ID) error {
 
 	// TODO: Only write if the file doesn't exist.
 
-	return os.WriteFile(s.idPath(id), []byte(id.String()), 0600)
+	return ioutil.WriteFile(s.idPath(id), []byte(id.String()), 0600)
 }
 
 // blockJournalInfo contains info about a particular block in the
@@ -264,7 +263,7 @@ func (s *blockDiskStore) addRefsExclusive(
 // present.  `exclusify` must be called by the caller.
 func (s *blockDiskStore) getDataExclusive(id kbfsblock.ID) (
 	[]byte, kbfscrypto.BlockCryptKeyServerHalf, error) {
-	data, err := os.ReadFile(s.dataPath(id))
+	data, err := ioutil.ReadFile(s.dataPath(id))
 	if ioutil.IsNotExist(err) {
 		return nil, kbfscrypto.BlockCryptKeyServerHalf{},
 			blockNonExistentError{id}
@@ -273,7 +272,7 @@ func (s *blockDiskStore) getDataExclusive(id kbfsblock.ID) (
 	}
 
 	keyServerHalfPath := s.keyServerHalfPath(id)
-	buf, err := os.ReadFile(keyServerHalfPath)
+	buf, err := ioutil.ReadFile(keyServerHalfPath)
 	if ioutil.IsNotExist(err) {
 		return nil, kbfscrypto.BlockCryptKeyServerHalf{},
 			blockNonExistentError{id}
@@ -532,7 +531,7 @@ func (s *blockDiskStore) getAllRefsForTest() (map[kbfsblock.ID]blockRefMap, erro
 
 			idPath := filepath.Join(
 				s.dir, name, subName, idFilename)
-			idBytes, err := os.ReadFile(idPath)
+			idBytes, err := ioutil.ReadFile(idPath)
 			if err != nil {
 				return nil, err
 			}
@@ -621,7 +620,7 @@ func (s *blockDiskStore) put(
 			return false, err
 		}
 
-		err = os.WriteFile(s.dataPath(id), buf, 0600)
+		err = ioutil.WriteFile(s.dataPath(id), buf, 0600)
 		if err != nil {
 			return false, err
 		}
@@ -632,7 +631,7 @@ func (s *blockDiskStore) put(
 		if err != nil {
 			return false, err
 		}
-		err = os.WriteFile(s.keyServerHalfPath(id), data, 0600)
+		err = ioutil.WriteFile(s.keyServerHalfPath(id), data, 0600)
 		if err != nil {
 			return false, err
 		}

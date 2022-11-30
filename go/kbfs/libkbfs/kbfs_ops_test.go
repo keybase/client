@@ -4581,7 +4581,7 @@ func TestKBFSOpsPartialSyncConfig(t *testing.T) {
 	require.NoError(t, err)
 	kbfsOps := config.KBFSOps()
 
-	tempdir, err := os.MkdirTemp(os.TempDir(), "disk_cache")
+	tempdir, err := ioutil.TempDir(os.TempDir(), "disk_cache")
 	require.NoError(t, err)
 	defer func() {
 		err := ioutil.RemoveAll(tempdir)
@@ -4723,7 +4723,7 @@ func TestKBFSOpsPartialSync(t *testing.T) {
 	require.NoError(t, err)
 	kbfsOps := config.KBFSOps()
 
-	tempdir, err := os.MkdirTemp(os.TempDir(), "disk_cache")
+	tempdir, err := ioutil.TempDir(os.TempDir(), "disk_cache")
 	require.NoError(t, err)
 	defer func() {
 		err := ioutil.RemoveAll(tempdir)
@@ -4957,7 +4957,7 @@ func TestKBFSOpsRecentHistorySync(t *testing.T) {
 	require.NoError(t, err)
 	kbfsOps := config.KBFSOps()
 
-	tempdir, err := os.MkdirTemp(os.TempDir(), "disk_cache")
+	tempdir, err := ioutil.TempDir(os.TempDir(), "disk_cache")
 	require.NoError(t, err)
 	defer func() {
 		err := ioutil.RemoveAll(tempdir)
@@ -5060,7 +5060,7 @@ func TestKBFSOpsCancelUploads(t *testing.T) {
 	config, _, ctx, cancel := kbfsOpsInitNoMocks(t, userName)
 	defer kbfsTestShutdownNoMocks(ctx, t, config, cancel)
 
-	tempdir, err := os.MkdirTemp(os.TempDir(), "kbfs_ops_test")
+	tempdir, err := ioutil.TempDir(os.TempDir(), "kbfs_ops_test")
 	require.NoError(t, err)
 	defer func() {
 		err := ioutil.RemoveAll(tempdir)

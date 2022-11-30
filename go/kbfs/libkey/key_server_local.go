@@ -102,7 +102,7 @@ func NewKeyServerDir(
 // data in a temp directory which is cleaned up on shutdown.
 func NewKeyServerTempDir(
 	config KeyServerConfig, log logger.Logger) (*KeyServerLocal, error) {
-	tempdir, err := os.MkdirTemp(os.TempDir(), "kbfs_keyserver_tmp")
+	tempdir, err := ioutil.TempDir(os.TempDir(), "kbfs_keyserver_tmp")
 	if err != nil {
 		return nil, err
 	}

@@ -33,7 +33,7 @@ func requireEqualOrdinal(t *testing.T, o journalOrdinal, err error,
 // TestDiskJournalOrdinals makes sure the in-memory ordinals stay in
 // sync with the on-disk ones.
 func TestDiskJournalOrdinals(t *testing.T) {
-	tempdir, err := os.MkdirTemp(os.TempDir(), "disk_journal")
+	tempdir, err := ioutil.TempDir(os.TempDir(), "disk_journal")
 	require.NoError(t, err)
 	defer func() {
 		err := ioutil.RemoveAll(tempdir)
@@ -104,7 +104,7 @@ func TestDiskJournalOrdinals(t *testing.T) {
 }
 
 func TestDiskJournalClear(t *testing.T) {
-	tempdir, err := os.MkdirTemp(os.TempDir(), "disk_journal")
+	tempdir, err := ioutil.TempDir(os.TempDir(), "disk_journal")
 	require.NoError(t, err)
 	defer func() {
 		err := ioutil.RemoveAll(tempdir)
@@ -132,7 +132,7 @@ func TestDiskJournalClear(t *testing.T) {
 }
 
 func TestDiskJournalMoveEmpty(t *testing.T) {
-	tempdir, err := os.MkdirTemp(os.TempDir(), "disk_journal")
+	tempdir, err := ioutil.TempDir(os.TempDir(), "disk_journal")
 	require.NoError(t, err)
 	defer func() {
 		err := ioutil.RemoveAll(tempdir)
@@ -155,7 +155,7 @@ func TestDiskJournalMoveEmpty(t *testing.T) {
 }
 
 func TestDiskJournalMove(t *testing.T) {
-	tempdir, err := os.MkdirTemp(os.TempDir(), "disk_journal")
+	tempdir, err := ioutil.TempDir(os.TempDir(), "disk_journal")
 	require.NoError(t, err)
 	defer func() {
 		err := ioutil.RemoveAll(tempdir)

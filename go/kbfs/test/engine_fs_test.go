@@ -189,7 +189,7 @@ func (e *fsEngine) GetRootDirAtRelTimeString(
 	}
 	p := d.(fsNode)
 	fileName := libfs.ArchivedRelTimeFilePrefix + relTimeString
-	revDir, err := os.ReadFile(filepath.Join(p.path, fileName))
+	revDir, err := ioutil.ReadFile(filepath.Join(p.path, fileName))
 	if err != nil {
 		return nil, err
 	}
@@ -330,7 +330,7 @@ func (*fsEngine) GetDirChildrenTypes(u User, parentDir Node) (children map[strin
 func (*fsEngine) DisableUpdatesForTesting(user User, tlfName string, t tlf.Type) (err error) {
 	u := user.(*fsUser)
 	path := buildTlfPath(u, tlfName, t)
-	return os.WriteFile(
+	return ioutil.WriteFile(
 		filepath.Join(path, libfs.DisableUpdatesFileName),
 		[]byte("off"), 0644)
 }
@@ -345,7 +345,7 @@ func (*fsEngine) MakeNaïveStaller(u User) *libkbfs.NaïveStaller {
 func (*fsEngine) ReenableUpdates(user User, tlfName string, t tlf.Type) (err error) {
 	u := user.(*fsUser)
 	path := buildTlfPath(u, tlfName, t)
-	return os.WriteFile(
+	return ioutil.WriteFile(
 		filepath.Join(path, libfs.EnableUpdatesFileName),
 		[]byte("on"), 0644)
 }
@@ -355,7 +355,7 @@ func (*fsEngine) ReenableUpdates(user User, tlfName string, t tlf.Type) (err err
 func (e *fsEngine) SyncFromServer(user User, tlfName string, t tlf.Type) (err error) {
 	u := user.(*fsUser)
 	path := buildTlfPath(u, tlfName, t)
-	return os.WriteFile(
+	return ioutil.WriteFile(
 		filepath.Join(path, libfs.SyncFromServerFileName),
 		[]byte("x"), 0644)
 }
@@ -364,7 +364,7 @@ func (e *fsEngine) SyncFromServer(user User, tlfName string, t tlf.Type) (err er
 func (*fsEngine) ForceQuotaReclamation(user User, tlfName string, t tlf.Type) (err error) {
 	u := user.(*fsUser)
 	path := buildTlfPath(u, tlfName, t)
-	return os.WriteFile(
+	return ioutil.WriteFile(
 		filepath.Join(path, libfs.ReclaimQuotaFileName),
 		[]byte("x"), 0644)
 }
@@ -385,7 +385,7 @@ func (e *fsEngine) ChangeTeamName(user User, oldName, newName string) error {
 func (*fsEngine) Rekey(user User, tlfName string, t tlf.Type) error {
 	u := user.(*fsUser)
 	path := buildTlfPath(u, tlfName, t)
-	return os.WriteFile(
+	return ioutil.WriteFile(
 		filepath.Join(path, libfs.RekeyFileName),
 		[]byte("x"), 0644)
 }
@@ -396,7 +396,7 @@ func (*fsEngine) EnableJournal(user User, tlfName string,
 	t tlf.Type) (err error) {
 	u := user.(*fsUser)
 	path := buildTlfPath(u, tlfName, t)
-	return os.WriteFile(
+	return ioutil.WriteFile(
 		filepath.Join(path, libfs.EnableJournalFileName),
 		[]byte("on"), 0644)
 }
@@ -407,7 +407,7 @@ func (*fsEngine) PauseJournal(user User, tlfName string,
 	t tlf.Type) (err error) {
 	u := user.(*fsUser)
 	path := buildTlfPath(u, tlfName, t)
-	return os.WriteFile(
+	return ioutil.WriteFile(
 		filepath.Join(path, libfs.PauseJournalBackgroundWorkFileName),
 		[]byte("on"), 0644)
 }
@@ -418,7 +418,7 @@ func (*fsEngine) ResumeJournal(user User, tlfName string,
 	t tlf.Type) (err error) {
 	u := user.(*fsUser)
 	path := buildTlfPath(u, tlfName, t)
-	return os.WriteFile(
+	return ioutil.WriteFile(
 		filepath.Join(path, libfs.ResumeJournalBackgroundWorkFileName),
 		[]byte("on"), 0644)
 }
@@ -429,7 +429,7 @@ func (*fsEngine) FlushJournal(user User, tlfName string,
 	t tlf.Type) (err error) {
 	u := user.(*fsUser)
 	path := buildTlfPath(u, tlfName, t)
-	return os.WriteFile(
+	return ioutil.WriteFile(
 		filepath.Join(path, libfs.FlushJournalFileName),
 		[]byte("on"), 0644)
 }
@@ -439,7 +439,7 @@ func (*fsEngine) UnflushedPaths(user User, tlfName string, t tlf.Type) (
 	[]string, error) {
 	u := user.(*fsUser)
 	path := buildTlfPath(u, tlfName, t)
-	buf, err := os.ReadFile(filepath.Join(path, libfs.StatusFileName))
+	buf, err := ioutil.ReadFile(filepath.Join(path, libfs.StatusFileName))
 	if err != nil {
 		return nil, err
 	}
@@ -457,7 +457,7 @@ func (*fsEngine) UnflushedPaths(user User, tlfName string, t tlf.Type) (
 func (*fsEngine) UserEditHistory(user User) (
 	history []keybase1.FSFolderEditHistory, err error) {
 	u := user.(*fsUser)
-	buf, err := os.ReadFile(
+	buf, err := ioutil.ReadFile(
 		filepath.Join(u.mntDir, libfs.EditHistoryName))
 	if err != nil {
 		return nil, err
@@ -476,7 +476,7 @@ func (*fsEngine) DirtyPaths(user User, tlfName string, t tlf.Type) (
 	[]string, error) {
 	u := user.(*fsUser)
 	path := buildTlfPath(u, tlfName, t)
-	buf, err := os.ReadFile(filepath.Join(path, libfs.StatusFileName))
+	buf, err := ioutil.ReadFile(filepath.Join(path, libfs.StatusFileName))
 	if err != nil {
 		return nil, err
 	}
@@ -497,7 +497,7 @@ func (*fsEngine) TogglePrefetch(user User, enable bool) error {
 	if enable {
 		filename = libfs.EnableBlockPrefetchingFileName
 	}
-	return os.WriteFile(
+	return ioutil.WriteFile(
 		filepath.Join(u.mntDir, filename),
 		[]byte("1"), 0644)
 }
@@ -652,7 +652,7 @@ func (*fsEngine) GetPrevRevisions(u User, file Node) (
 	n := file.(fsNode)
 	d, f := filepath.Split(n.path)
 	fullPath := filepath.Join(d, libfs.FileInfoPrefix+f)
-	buf, err := os.ReadFile(fullPath)
+	buf, err := ioutil.ReadFile(fullPath)
 	if err != nil {
 		return nil, err
 	}
@@ -752,7 +752,7 @@ func (e *fsEngine) InitTest(ver kbfsmd.MetadataVer,
 	}
 
 	if journal {
-		jdir, err := os.MkdirTemp(os.TempDir(), "kbfs_journal")
+		jdir, err := ioutil.TempDir(os.TempDir(), "kbfs_journal")
 		if err != nil {
 			e.tb.Fatalf("Couldn't enable journaling: %v", err)
 		}

@@ -66,7 +66,7 @@ func NewBlockServerDir(codec kbfscodec.Codec,
 // data in a temp directory which is cleaned up on shutdown.
 func NewBlockServerTempDir(codec kbfscodec.Codec,
 	log logger.Logger) (*BlockServerDisk, error) {
-	tempdir, err := os.MkdirTemp(os.TempDir(), "kbfs_bserver_tmp")
+	tempdir, err := ioutil.TempDir(os.TempDir(), "kbfs_bserver_tmp")
 	if err != nil {
 		return nil, err
 	}

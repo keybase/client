@@ -30,7 +30,7 @@ func setupJournalManagerTest(t *testing.T) (
 	tempdir string, ctx context.Context, cancel context.CancelFunc,
 	config *ConfigLocal, quotaUsage *EventuallyConsistentQuotaUsage,
 	jManager *JournalManager) {
-	tempdir, err := os.MkdirTemp(os.TempDir(), "journal_server")
+	tempdir, err := ioutil.TempDir(os.TempDir(), "journal_server")
 	require.NoError(t, err)
 
 	// Clean up the tempdir if the rest of the setup fails.

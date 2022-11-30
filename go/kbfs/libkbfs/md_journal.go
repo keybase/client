@@ -5,7 +5,6 @@
 package libkbfs
 
 import (
-	"os"
 	"path/filepath"
 	"time"
 
@@ -452,7 +451,7 @@ func (j mdJournal) getMDAndExtra(ctx context.Context, entry mdIDJournalEntry,
 	// Read data.
 
 	p := j.mdDataPath(entry.ID)
-	data, err := os.ReadFile(p)
+	data, err := ioutil.ReadFile(p)
 	if err != nil {
 		return nil, nil, time.Time{}, err
 	}
@@ -715,7 +714,7 @@ func (j *mdJournal) convertToBranch(
 
 	j.log.CDebugf(ctx, "New branch ID=%s", bid)
 
-	journalTempDir, err := os.MkdirTemp(j.dir, "md_journal")
+	journalTempDir, err := ioutil.TempDir(j.dir, "md_journal")
 	if err != nil {
 		return err
 	}
@@ -1551,7 +1550,7 @@ func (j *mdJournal) resolveAndClear(
 	// First make a new journal to hold the block.
 
 	// Give this new journal a new ID journal.
-	idJournalTempDir, err := os.MkdirTemp(j.dir, "md_journal")
+	idJournalTempDir, err := ioutil.TempDir(j.dir, "md_journal")
 	if err != nil {
 		return kbfsmd.ID{}, kbfsmd.ID{}, err
 	}

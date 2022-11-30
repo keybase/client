@@ -288,7 +288,7 @@ func setupTLFJournalTest(
 		testDoneCh: make(chan struct{}),
 	}
 
-	tempdir, err = os.MkdirTemp(os.TempDir(), "tlf_journal")
+	tempdir, err = ioutil.TempDir(os.TempDir(), "tlf_journal")
 	require.NoError(t, err)
 
 	// Clean up the tempdir if anything in the rest of the setup
