@@ -4,7 +4,7 @@ import (
 	"crypto/rand"
 	"flag"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"os/exec"
@@ -91,7 +91,7 @@ func createWalletUser() (string, error) {
 		return "", err
 	}
 	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	fmt.Printf("friendbot body: %s\n", string(body))
 	if err != nil {
 		return "", err

@@ -5,7 +5,6 @@ package client
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 
 	"golang.org/x/net/context"
@@ -57,7 +56,7 @@ func (p *CmdProve) ParseArgv(ctx *cli.Context) error {
 
 func (p *CmdProve) fileOutputHook(txt string) (err error) {
 	p.G().Log.Info("Writing proof to file '" + p.output + "'...")
-	err = ioutil.WriteFile(p.output, []byte(txt), os.FileMode(0644))
+	err = os.WriteFile(p.output, []byte(txt), os.FileMode(0644))
 	p.G().Log.Info("Written.")
 	return
 }

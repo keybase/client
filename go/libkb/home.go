@@ -5,7 +5,6 @@ package libkb
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/user"
 	"path/filepath"
@@ -166,7 +165,7 @@ func (x XdgPosix) InfoDir() string    { return x.RuntimeDir() }
 func (x XdgPosix) ServiceSpawnDir() (ret string, err error) {
 	ret = x.RuntimeDir()
 	if len(ret) == 0 {
-		ret, err = ioutil.TempDir("", "keybase_service")
+		ret, err = os.MkdirTemp("", "keybase_service")
 	}
 	return
 }

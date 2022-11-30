@@ -6,7 +6,7 @@ package libkb
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
+
 	"os"
 	"path/filepath"
 	"sync"
@@ -44,7 +44,7 @@ func (td *teardowner) teardown() {
 }
 
 func createTempLevelDbForTest(tc *TestContext, td *teardowner) (*LevelDb, error) {
-	dir, err := ioutil.TempDir("", "level-db-test-")
+	dir, err := os.MkdirTemp("", "level-db-test-")
 	if err != nil {
 		return nil, err
 	}
@@ -62,11 +62,11 @@ func createTempLevelDbForTest(tc *TestContext, td *teardowner) (*LevelDb, error)
 }
 
 func doSomeIO() error {
-	dir, err := ioutil.TempDir("", "level-db-test-")
+	dir, err := os.MkdirTemp("", "level-db-test-")
 	if err != nil {
 		return err
 	}
-	return ioutil.WriteFile(filepath.Join(dir, "some-io"), []byte("O_O"), 0666)
+	return os.WriteFile(filepath.Join(dir, "some-io"), []byte("O_O"), 0666)
 }
 
 func testLevelDbPut(db *LevelDb) (key DbKey, err error) {

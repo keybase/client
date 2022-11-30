@@ -2,7 +2,6 @@ package ephemeral
 
 import (
 	"fmt"
-	"io/ioutil"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -239,7 +238,7 @@ func TestNewTeamEKNeeded(t *testing.T) {
 	key, err := rawDeviceEKStorage.key(mctx, expectedDeviceEKGen)
 	require.NoError(t, err)
 	noiseFilePath := getNoiseFilePath(tc, key)
-	noise, err := ioutil.ReadFile(noiseFilePath)
+	noise, err := os.ReadFile(noiseFilePath)
 	require.NoError(t, err)
 
 	// flip one bit
@@ -247,7 +246,7 @@ func TestNewTeamEKNeeded(t *testing.T) {
 	copy(corruptedNoise, noise)
 	corruptedNoise[0] ^= 0x01
 
-	err = ioutil.WriteFile(noiseFilePath, corruptedNoise, libkb.PermFile)
+	err = os.WriteFile(noiseFilePath, corruptedNoise, libkb.PermFile)
 	require.NoError(t, err)
 	tc.G.GetDeviceEKStorage().ClearCache()
 

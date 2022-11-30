@@ -6,7 +6,6 @@ package libgit
 
 import (
 	"context"
-	"io/ioutil"
 	"os"
 
 	"github.com/keybase/client/go/kbfs/libcontext"
@@ -38,7 +37,7 @@ const (
 func Params(kbCtx libkbfs.Context,
 	storageRoot string, paramsBase *libkbfs.InitParams) (
 	params libkbfs.InitParams, tempDir string, err error) {
-	tempDir, err = ioutil.TempDir(storageRoot, libkbfs.GitStorageRootPrefix)
+	tempDir, err = os.MkdirTemp(storageRoot, libkbfs.GitStorageRootPrefix)
 	if err != nil {
 		return libkbfs.InitParams{}, "", err
 	}

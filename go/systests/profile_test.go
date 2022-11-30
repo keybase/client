@@ -2,7 +2,8 @@ package systests
 
 import (
 	"context"
-	"io/ioutil"
+
+	"io"
 	"net/http"
 	"testing"
 
@@ -151,7 +152,7 @@ func checkIcon(t testing.TB, icon keybase1.SizedImage) {
 		resp, err := http.Get(icon.Path)
 		require.Equal(t, 200, resp.StatusCode, "icon file should be reachable: %v", icon.Path)
 		require.NoError(t, err)
-		body, err := ioutil.ReadAll(resp.Body)
+		body, err := io.ReadAll(resp.Body)
 		require.NoError(t, err)
 		if len(body) < 150 {
 			t.Fatalf("unreasonable icon payload size")

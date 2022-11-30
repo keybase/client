@@ -11,7 +11,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
+
 	"mime/multipart"
 	"os"
 	"os/exec"
@@ -213,7 +213,7 @@ func listLogFiles(log logger.Logger, stem string) (ret []string) {
 	stem = filepath.Clean(stem)
 	dir := filepath.Dir(stem)
 	base := filepath.Base(stem)
-	files, err := ioutil.ReadDir(dir)
+	files, err := os.ReadDir(dir)
 
 	defer func() {
 		log.Debug("listLogFiles(%q) -> %v", stem, ret)
@@ -329,7 +329,7 @@ func tailSystemdJournal(log logger.Logger, userUnits []string, numBytes int) (re
 	// Once we start reading output, don't short-circuit on errors. Just log
 	// them, and return whatever we got.
 	stdoutLimited := io.LimitReader(stdout, int64(maxBytes))
-	output, err := ioutil.ReadAll(stdoutLimited)
+	output, err := io.ReadAll(stdoutLimited)
 	if err != nil {
 		output = appendError(log, output, "Error reading from journalctl pipe: %s", err)
 	}
@@ -377,7 +377,7 @@ func tailFile(log logger.Logger, which string, filename string, numBytes int) (r
 			return ret, seeked
 		}
 	}
-	buf, err := ioutil.ReadAll(f)
+	buf, err := io.ReadAll(f)
 	if err != nil {
 		log.Errorf("Failure in reading file %q: %s", filename, err)
 		return ret, seeked
@@ -491,7 +491,7 @@ func DirSize(dirPath string) (size uint64, numFiles int, err error) {
 
 func CacheSizeInfo(g *libkb.GlobalContext) (info []keybase1.DirSizeInfo, err error) {
 	cacheDir := g.GetCacheDir()
-	files, err := ioutil.ReadDir(cacheDir)
+	files, err := os.ReadDir(cacheDir)
 	if err != nil {
 		return nil, err
 	}
@@ -500,7 +500,11 @@ func CacheSizeInfo(g *libkb.GlobalContext) (info []keybase1.DirSizeInfo, err err
 	var totalFiles int
 	for _, file := range files {
 		if !file.IsDir() {
-			totalSize += uint64(file.Size())
+			info, err := file.Info()
+			if err != nil {
+				return nil, err
+			}
+			totalSize += uint64(info.Size())
 			continue
 		}
 		dirPath := filepath.Join(cacheDir, file.Name())

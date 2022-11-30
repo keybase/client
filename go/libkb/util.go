@@ -14,7 +14,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"math"
 	"math/big"
 	"net/url"
@@ -846,7 +845,7 @@ func ShredFile(filename string) error {
 		if err != nil {
 			return err
 		}
-		if err := ioutil.WriteFile(filename, noise, stat.Mode().Perm()); err != nil {
+		if err := os.WriteFile(filename, noise, stat.Mode().Perm()); err != nil {
 			return err
 		}
 	}

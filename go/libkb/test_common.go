@@ -10,7 +10,6 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
@@ -252,7 +251,7 @@ func setupTestContext(tb TestingTB, name string, tcPrev *TestContext) (tc TestCo
 	// Set up our testing parameters.  We might add others later on
 	if tcPrev != nil {
 		tc.Tp = tcPrev.Tp
-	} else if tc.Tp.Home, err = ioutil.TempDir(os.TempDir(), develName); err != nil {
+	} else if tc.Tp.Home, err = os.MkdirTemp(os.TempDir(), develName); err != nil {
 		return
 	}
 
@@ -707,7 +706,7 @@ func ReplaceSecretStoreForTests(tc TestContext, dataDir string) {
 }
 
 func CreateReadOnlySecretStoreDir(tc TestContext) (string, func()) {
-	td, err := ioutil.TempDir("", "ss")
+	td, err := os.MkdirTemp("", "ss")
 	require.NoError(tc.T, err)
 
 	// Change mode of test dir to read-only so secret store on this dir can

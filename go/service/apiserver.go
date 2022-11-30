@@ -5,7 +5,7 @@ package service
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"io"
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -101,7 +101,7 @@ func (a *APIServerHandler) doGet(mctx libkb.MetaContext, arg GenericArg, session
 		if err != nil {
 			return res, err
 		}
-		body, err := ioutil.ReadAll(resp.Body)
+		body, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return res, err
 		}

@@ -21,10 +21,10 @@ import (
 // (without the performance overhead of writing to a temp file and
 // renaming it).  NOTE: it's technically possible a partial OS write
 // could lead to a corrupted file, though in practice this seems much
-// more rare than ioutil.WriteFile() leaving behind an empty file.
+// more rare than os.WriteFile() leaving behind an empty file.
 func WriteSerializedFile(
 	filename string, data []byte, perm os.FileMode) (err error) {
-	// Don't use ioutil.WriteFile because it truncates the file first,
+	// Don't use os.WriteFile because it truncates the file first,
 	// and if there's a crash it will leave the file in an unknown
 	// state.
 	f, err := OpenFile(filename, os.O_WRONLY|os.O_CREATE, 0600)

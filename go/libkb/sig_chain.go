@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"time"
 
 	"github.com/buger/jsonparser"
@@ -271,7 +270,7 @@ func (sc *SigChain) LoadFromServer(m MetaContext, t *MerkleTriple, selfUID keyba
 	defer finisher()
 
 	recordFin := tbs.Record("SigChain.LoadFromServer.ReadAll")
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		recordFin()
 		return nil, err

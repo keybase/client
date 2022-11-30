@@ -3,7 +3,6 @@ package unzip
 import (
 	"archive/zip"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 )
@@ -50,7 +49,7 @@ func Unzip(src, dest string) error {
 			}
 
 			if fileInfo.Mode()&os.ModeSymlink != 0 {
-				linkName, err := ioutil.ReadAll(rc)
+				linkName, err := io.ReadAll(rc)
 				if err != nil {
 					return err
 				}

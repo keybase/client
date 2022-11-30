@@ -5,7 +5,6 @@ package client
 
 import (
 	"fmt"
-	"io/ioutil"
 	"net"
 	"os"
 	"runtime"
@@ -27,7 +26,7 @@ func getPid(g *libkb.GlobalContext) (int, error) {
 	if err != nil {
 		return -1, err
 	}
-	data, err := ioutil.ReadFile(fn)
+	data, err := os.ReadFile(fn)
 	if err != nil {
 		return -1, err
 	}

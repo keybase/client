@@ -1,7 +1,6 @@
 package lru
 
 import (
-	"io/ioutil"
 	"os"
 	"testing"
 	"time"
@@ -154,12 +153,12 @@ func TestDiskLRUClean(t *testing.T) {
 	defer tc.Cleanup()
 
 	ctx := context.TODO()
-	cacheDir, err := ioutil.TempDir("", "")
+	cacheDir, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 	defer os.RemoveAll(cacheDir)
 	l := NewDiskLRU("josh", 1, 10)
 
-	file, err := ioutil.TempFile(cacheDir, "tmpfile")
+	file, err := os.CreateTemp(cacheDir, "tmpfile")
 	require.NoError(t, err)
 	data, err := libkb.RandBytes(1024 * 1024)
 	require.NoError(t, err)

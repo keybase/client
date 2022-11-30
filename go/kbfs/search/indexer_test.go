@@ -8,7 +8,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io/ioutil"
+
 	"os"
 	"path"
 	"testing"
@@ -150,7 +150,7 @@ func TestIndexFile(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, "user1", "user2")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 
-	tempdir, err := ioutil.TempDir("", "indexTest")
+	tempdir, err := os.MkdirTemp("", "indexTest")
 	require.NoError(t, err)
 	defer os.RemoveAll(tempdir)
 	config.SetStorageRoot(tempdir)
@@ -301,7 +301,7 @@ func TestFullIndexSyncedTlf(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, "user1", "user2")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 
-	tempdir, err := ioutil.TempDir("", "indexTest")
+	tempdir, err := os.MkdirTemp("", "indexTest")
 	require.NoError(t, err)
 	defer os.RemoveAll(tempdir)
 	config.SetStorageRoot(tempdir)
@@ -438,7 +438,7 @@ func TestFullIndexSearch(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, "user1", "user2")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 
-	tempdir, err := ioutil.TempDir("", "indexTest")
+	tempdir, err := os.MkdirTemp("", "indexTest")
 	require.NoError(t, err)
 	defer os.RemoveAll(tempdir)
 	config.SetStorageRoot(tempdir)

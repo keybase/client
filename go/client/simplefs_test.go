@@ -6,7 +6,6 @@ package client
 import (
 	"crypto/rand"
 	"errors"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -480,11 +479,11 @@ func TestSimpleFSLocalSrcFile(t *testing.T) {
 	defer tc.Cleanup()
 
 	// make a temp local dest directory + files we will clean up later
-	tempdir, err := ioutil.TempDir("", "simpleFStest")
+	tempdir, err := os.MkdirTemp("", "simpleFStest")
 	defer os.RemoveAll(tempdir)
 	require.NoError(t, err)
 	path1 := keybase1.NewPathWithLocal(filepath.Join(tempdir, "test1.txt"))
-	err = ioutil.WriteFile(path1.Local(), []byte("foo"), 0644)
+	err = os.WriteFile(path1.Local(), []byte("foo"), 0644)
 	require.NoError(t, err)
 
 	isSrcDir, srcPathString, err := checkPathIsDir(context.TODO(), SimpleFSMock{localExists: true}, path1)
@@ -543,7 +542,7 @@ func TestSimpleFSRemoteSrcFile(t *testing.T) {
 	defer tc.Cleanup()
 
 	// make a temp local dest directory + files we will clean up later
-	tempdir, err := ioutil.TempDir("", "simpleFstest")
+	tempdir, err := os.MkdirTemp("", "simpleFstest")
 	defer os.RemoveAll(tempdir)
 	require.NoError(t, err)
 
@@ -605,7 +604,7 @@ func TestSimpleFSLocalSrcDir(t *testing.T) {
 	defer tc.Cleanup()
 
 	// make a temp local dest directory + files we will clean up later
-	tempdir, err := ioutil.TempDir("", "simpleFStest")
+	tempdir, err := os.MkdirTemp("", "simpleFStest")
 	defer os.RemoveAll(tempdir)
 	require.NoError(t, err)
 	path1 := keybase1.NewPathWithLocal(tempdir)
@@ -673,7 +672,7 @@ func TestSimpleFSRemoteSrcDir(t *testing.T) {
 	defer tc.Cleanup()
 
 	// make a temp local dest directory + files we will clean up later
-	tempdir, err := ioutil.TempDir("", "simpleFStest")
+	tempdir, err := os.MkdirTemp("", "simpleFStest")
 	defer os.RemoveAll(tempdir)
 	require.NoError(t, err)
 	destPathInitial := keybase1.NewPathWithLocal(tempdir)
@@ -742,11 +741,11 @@ func TestSimpleFSLocalExists(t *testing.T) {
 	defer tc.Cleanup()
 
 	// make a temp local dest directory + files we will clean up later
-	tempdir, err := ioutil.TempDir("", "simpleFstest")
+	tempdir, err := os.MkdirTemp("", "simpleFstest")
 	defer os.RemoveAll(tempdir)
 	require.NoError(t, err)
 	tempFile := filepath.Join(tempdir, "test1.txt")
-	err = ioutil.WriteFile(tempFile, []byte("foo"), 0644)
+	err = os.WriteFile(tempFile, []byte("foo"), 0644)
 	require.NoError(t, err)
 
 	testPath, err := makeSimpleFSPath(tempdir)
@@ -774,14 +773,14 @@ func TestSimpleFSPlatformGlob(t *testing.T) {
 	defer tc.Cleanup()
 
 	// make a temp local dest directory + files we will clean up later
-	tempdir, err := ioutil.TempDir("", "simpleFstest")
+	tempdir, err := os.MkdirTemp("", "simpleFstest")
 	defer os.RemoveAll(tempdir)
 	require.NoError(t, err)
-	err = ioutil.WriteFile(filepath.Join(tempdir, "test1.txt"), []byte("foo"), 0644)
+	err = os.WriteFile(filepath.Join(tempdir, "test1.txt"), []byte("foo"), 0644)
 	require.NoError(t, err)
-	err = ioutil.WriteFile(filepath.Join(tempdir, "test2.txt"), []byte("foo"), 0644)
+	err = os.WriteFile(filepath.Join(tempdir, "test2.txt"), []byte("foo"), 0644)
 	require.NoError(t, err)
-	err = ioutil.WriteFile(filepath.Join(tempdir, "test3.txt"), []byte("foo"), 0644)
+	err = os.WriteFile(filepath.Join(tempdir, "test3.txt"), []byte("foo"), 0644)
 	require.NoError(t, err)
 	path1 := keybase1.NewPathWithLocal(filepath.Join(tempdir, "*.txt"))
 

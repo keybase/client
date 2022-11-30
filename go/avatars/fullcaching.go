@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -358,7 +357,7 @@ func (c *FullCachingSource) commitAvatarToDisk(m libkb.MetaContext, data io.Read
 		}
 		path = file.Name()
 	} else {
-		if file, err = ioutil.TempFile(c.getCacheDir(m), "avatar"); err != nil {
+		if file, err = os.CreateTemp(c.getCacheDir(m), "avatar"); err != nil {
 			return path, err
 		}
 		shouldRename = true

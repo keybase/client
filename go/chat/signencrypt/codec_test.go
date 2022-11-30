@@ -5,7 +5,6 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"strings"
 	"testing"
 
@@ -207,7 +206,7 @@ func TestReaderWrapperRoundtrips(t *testing.T) {
 			testingPrefix(),
 			zeroNonce(),
 			inputBuffer)
-		encoded, err := ioutil.ReadAll(encodingReader)
+		encoded, err := io.ReadAll(encodingReader)
 		if err != nil {
 			t.Fatalf("errors shouldn't be possible for encoding: %s", err)
 		}
@@ -218,7 +217,7 @@ func TestReaderWrapperRoundtrips(t *testing.T) {
 			testingPrefix(),
 			zeroNonce(),
 			encodedBuffer)
-		decoded, err := ioutil.ReadAll(decodingReader)
+		decoded, err := io.ReadAll(decodingReader)
 		if err != nil {
 			t.Fatalf("error during decoding: %s", err)
 		}
@@ -524,7 +523,7 @@ func TestTransientIOErrorsInReaderWrappers(t *testing.T) {
 	}
 
 	// Subsequent reads should succeed.
-	encoded, err := ioutil.ReadAll(encodingReader)
+	encoded, err := io.ReadAll(encodingReader)
 	if err != nil {
 		t.Fatalf("no more errors expected during encoding, but found: %s", err)
 	}
@@ -549,7 +548,7 @@ func TestTransientIOErrorsInReaderWrappers(t *testing.T) {
 	}
 
 	// And again, subsequent reads should succeed.
-	decoded, err := ioutil.ReadAll(decodingReader)
+	decoded, err := io.ReadAll(decodingReader)
 	if err != nil {
 		t.Fatalf("no more errors expected during decoding, but found: %s", err)
 	}

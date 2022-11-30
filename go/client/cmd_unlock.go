@@ -4,7 +4,7 @@
 package client
 
 import (
-	"io/ioutil"
+	"io"
 	"os"
 
 	"github.com/keybase/cli"
@@ -58,7 +58,7 @@ func (c *CmdUnlock) Run() error {
 		return err
 	}
 	if c.stdin {
-		stdinBytes, err := ioutil.ReadAll(os.Stdin)
+		stdinBytes, err := io.ReadAll(os.Stdin)
 		if err != nil {
 			return err
 		}

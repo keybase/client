@@ -10,7 +10,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -266,7 +265,7 @@ func (h *SaltpackHandler) signString(ctx context.Context, sessionID int, plainte
 	sink := libkb.NewBufferCloser()
 	earg := &engine.SaltpackSignArg{
 		Sink:   sink,
-		Source: ioutil.NopCloser(bytes.NewBufferString(plaintext)),
+		Source: io.NopCloser(bytes.NewBufferString(plaintext)),
 	}
 
 	if err := h.frontendSign(ctx, sessionID, earg); err != nil {
@@ -773,7 +772,7 @@ func (h *SaltpackHandler) writeStringToFile(ctx context.Context, contents, suffi
 	if err := os.MkdirAll(dir, libkb.PermDir); err != nil {
 		return "", err
 	}
-	tmpfile, err := ioutil.TempFile(dir, "keybase_*"+suffix)
+	tmpfile, err := os.CreateTemp(dir, "keybase_*"+suffix)
 	if err != nil {
 		return "", err
 	}
