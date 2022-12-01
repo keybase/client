@@ -76,10 +76,6 @@ js_tests() {
     yarn lint
     check_rc $? 'yarn run lint fail' 1
 
-    echo 'yarn test'
-    yarn test
-    check_rc $? 'yarn test fail' 1
-
     echo 'yarn prettier-check'
     yarn prettier-check
     check_rc $? 'yarn prettier-check fail' 1
