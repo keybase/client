@@ -1,28 +1,35 @@
 import React from 'react'
 import * as Types from '../../constants/types/chat2'
-import * as Container from '../../util/container'
-import * as Chat2Gen from '../../actions/chat2-gen'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Constants from '../../constants/chat2'
 import AudioPlayer from './audio-player'
+import {Portal} from '@gorhom/portal'
 
 type Props = {
-  conversationIDKey: Types.ConversationIDKey
+  audioInfoRef: React.MutableRefObject<Types.AudioRecordingInfo | undefined>
+  stopRecording: (stopType: Types.AudioStopType) => Promise<void>
+  sendAudioRecording: (fromStaged: boolean) => Promise<void>
+}
+
+export const ShowAudioSendContext = React.createContext({
+  setShowAudioSend: (_s: boolean) => {},
+  showAudioSend: false,
+})
+
+export const AudioSendWrapper = () => {
+  return <Portal name="audioSend" />
 }
 
 const AudioSend = (props: Props) => {
-  const {conversationIDKey} = props
-  const audioRecording = Container.useSelector(state => state.chat2.audioRecording.get(conversationIDKey))
-  const dispatch = Container.useDispatch()
-  const onCancel = () => {
-    dispatch(Chat2Gen.createStopAudioRecording({conversationIDKey, stopType: Types.AudioStopType.CANCEL}))
-  }
-  const onSend = () => {
-    if (audioRecording) {
-      dispatch(Chat2Gen.createSendAudioRecording({conversationIDKey, fromStaged: true, info: audioRecording}))
-    }
-  }
+  const {audioInfoRef, stopRecording, sendAudioRecording} = props
+  const audioRecording = audioInfoRef.current
+  const onCancel = React.useCallback(async () => {
+    await stopRecording(Types.AudioStopType.CANCEL)
+  }, [stopRecording])
+  const onSend = React.useCallback(async () => {
+    await sendAudioRecording(true)
+  }, [sendAudioRecording])
 
   // render
   let player = <Kb.Text type="Body">No recording available</Kb.Text>

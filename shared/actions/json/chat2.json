@@ -4,8 +4,7 @@
     "import type * as Types from '../constants/types/chat2'",
     "import type * as TeamsTypes from '../constants/types/teams'",
     "import type HiddenString from '../util/hidden-string'",
-    "import type {RetentionPolicy} from '../constants/types/retention-policy'",
-    "import type {AmpTracker} from '../chat/audio/amptracker'"
+    "import type {RetentionPolicy} from '../constants/types/retention-policy'"
   ],
   "actions": {
     "toggleSmallTeamsExpanded": {},
@@ -812,31 +811,10 @@
       "ignoreWrite?": "boolean",
       "rows": "number"
     },
-    "enableAudioRecording": {
-      "conversationIDKey": "Types.ConversationIDKey",
-      "meteringCb": "(amp: number) => void"
-    },
-    "attemptAudioRecording": {
-      "conversationIDKey": "Types.ConversationIDKey",
-      "meteringCb": "(amp: number) => void"
-    },
-    "stopAudioRecording": {
-      "conversationIDKey": "Types.ConversationIDKey",
-      "stopType": "Types.AudioStopType",
-      "amps?": "AmpTracker"
-    },
-    "lockAudioRecording": {
-      "conversationIDKey": "Types.ConversationIDKey"
-    },
     "sendAudioRecording": {
       "conversationIDKey": "Types.ConversationIDKey",
       "fromStaged": "boolean",
       "info": "Types.AudioRecordingInfo"
-    },
-    "setAudioRecordingPostInfo": {
-      "conversationIDKey": "Types.ConversationIDKey",
-      "path": "string",
-      "outboxID": "Buffer"
     },
     "loadNextBotPage": {
       "_description": "loads next page of featured bots from backend",

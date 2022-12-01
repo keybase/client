@@ -5,7 +5,6 @@ import type * as Types from '../constants/types/chat2'
 import type * as TeamsTypes from '../constants/types/teams'
 import type HiddenString from '../util/hidden-string'
 import type {RetentionPolicy} from '../constants/types/retention-policy'
-import type {AmpTracker} from '../chat/audio/amptracker'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of chat2 but is handled by every reducer. NEVER dispatch this
@@ -26,7 +25,6 @@ export const attachmentUploadCanceled = 'chat2:attachmentUploadCanceled'
 export const attachmentUploaded = 'chat2:attachmentUploaded'
 export const attachmentUploading = 'chat2:attachmentUploading'
 export const attachmentsUpload = 'chat2:attachmentsUpload'
-export const attemptAudioRecording = 'chat2:attemptAudioRecording'
 export const badgesUpdated = 'chat2:badgesUpdated'
 export const blockConversation = 'chat2:blockConversation'
 export const changeFocus = 'chat2:changeFocus'
@@ -45,7 +43,6 @@ export const dismissBlockButtons = 'chat2:dismissBlockButtons'
 export const dismissBottomBanner = 'chat2:dismissBottomBanner'
 export const dismissJourneycard = 'chat2:dismissJourneycard'
 export const editBotSettings = 'chat2:editBotSettings'
-export const enableAudioRecording = 'chat2:enableAudioRecording'
 export const fetchUserEmoji = 'chat2:fetchUserEmoji'
 export const findGeneralConvIDFromTeamID = 'chat2:findGeneralConvIDFromTeamID'
 export const giphyGotSearchResult = 'chat2:giphyGotSearchResult'
@@ -74,7 +71,6 @@ export const loadNextBotPage = 'chat2:loadNextBotPage'
 export const loadOlderMessagesDueToScroll = 'chat2:loadOlderMessagesDueToScroll'
 export const loadedMutualTeams = 'chat2:loadedMutualTeams'
 export const loadedUserEmoji = 'chat2:loadedUserEmoji'
-export const lockAudioRecording = 'chat2:lockAudioRecording'
 export const markConversationsStale = 'chat2:markConversationsStale'
 export const markInitiallyLoadedThreadAsRead = 'chat2:markInitiallyLoadedThreadAsRead'
 export const markTeamAsRead = 'chat2:markTeamAsRead'
@@ -127,7 +123,6 @@ export const selectedConversation = 'chat2:selectedConversation'
 export const sendAudioRecording = 'chat2:sendAudioRecording'
 export const sendTyping = 'chat2:sendTyping'
 export const setAttachmentViewStatus = 'chat2:setAttachmentViewStatus'
-export const setAudioRecordingPostInfo = 'chat2:setAudioRecordingPostInfo'
 export const setBotPublicCommands = 'chat2:setBotPublicCommands'
 export const setBotRoleInConv = 'chat2:setBotRoleInConv'
 export const setBotSettings = 'chat2:setBotSettings'
@@ -151,7 +146,6 @@ export const setThreadSearchStatus = 'chat2:setThreadSearchStatus'
 export const setUnsentText = 'chat2:setUnsentText'
 export const showInfoPanel = 'chat2:showInfoPanel'
 export const staticConfigLoaded = 'chat2:staticConfigLoaded'
-export const stopAudioRecording = 'chat2:stopAudioRecording'
 export const tabSelected = 'chat2:tabSelected'
 export const threadSearch = 'chat2:threadSearch'
 export const threadSearchResults = 'chat2:threadSearchResults'
@@ -1331,10 +1325,6 @@ export const createAttachFromDragAndDrop = (payload: {
   readonly paths: Array<Types.PathAndOutboxID>
   readonly titles: Array<string>
 }) => ({payload, type: attachFromDragAndDrop as typeof attachFromDragAndDrop})
-export const createAttemptAudioRecording = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly meteringCb: (amp: number) => void
-}) => ({payload, type: attemptAudioRecording as typeof attemptAudioRecording})
 export const createChannelSuggestionsTriggered = (payload: {
   readonly conversationIDKey: Types.ConversationIDKey
 }) => ({payload, type: channelSuggestionsTriggered as typeof channelSuggestionsTriggered})
@@ -1350,10 +1340,6 @@ export const createDismissBlockButtons = (payload: {readonly teamID: RPCTypes.Te
   payload,
   type: dismissBlockButtons as typeof dismissBlockButtons,
 })
-export const createEnableAudioRecording = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly meteringCb: (amp: number) => void
-}) => ({payload, type: enableAudioRecording as typeof enableAudioRecording})
 export const createJoinConversation = (payload: {readonly conversationIDKey: Types.ConversationIDKey}) => ({
   payload,
   type: joinConversation as typeof joinConversation,
@@ -1377,10 +1363,6 @@ export const createLoadedMutualTeams = (payload: {
 export const createLoadedUserEmoji = (payload: {readonly results: RPCChatTypes.UserEmojiRes}) => ({
   payload,
   type: loadedUserEmoji as typeof loadedUserEmoji,
-})
-export const createLockAudioRecording = (payload: {readonly conversationIDKey: Types.ConversationIDKey}) => ({
-  payload,
-  type: lockAudioRecording as typeof lockAudioRecording,
 })
 export const createMessageSendByUsernames = (payload: {
   readonly usernames: string
@@ -1408,11 +1390,6 @@ export const createSendAudioRecording = (payload: {
   readonly fromStaged: boolean
   readonly info: Types.AudioRecordingInfo
 }) => ({payload, type: sendAudioRecording as typeof sendAudioRecording})
-export const createSetAudioRecordingPostInfo = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly path: string
-  readonly outboxID: Buffer
-}) => ({payload, type: setAudioRecordingPostInfo as typeof setAudioRecordingPostInfo})
 export const createSetInboxNumSmallRows = (payload: {
   readonly ignoreWrite?: boolean
   readonly rows: number
@@ -1422,11 +1399,6 @@ export const createShowInfoPanel = (payload: {
   readonly show: boolean
   readonly conversationIDKey?: Types.ConversationIDKey
 }) => ({payload, type: showInfoPanel as typeof showInfoPanel})
-export const createStopAudioRecording = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly stopType: Types.AudioStopType
-  readonly amps?: AmpTracker
-}) => ({payload, type: stopAudioRecording as typeof stopAudioRecording})
 export const createToggleSmallTeamsExpanded = (payload?: undefined) => ({
   payload,
   type: toggleSmallTeamsExpanded as typeof toggleSmallTeamsExpanded,
@@ -1457,7 +1429,6 @@ export type AttachmentUploadCanceledPayload = ReturnType<typeof createAttachment
 export type AttachmentUploadedPayload = ReturnType<typeof createAttachmentUploaded>
 export type AttachmentUploadingPayload = ReturnType<typeof createAttachmentUploading>
 export type AttachmentsUploadPayload = ReturnType<typeof createAttachmentsUpload>
-export type AttemptAudioRecordingPayload = ReturnType<typeof createAttemptAudioRecording>
 export type BadgesUpdatedPayload = ReturnType<typeof createBadgesUpdated>
 export type BlockConversationPayload = ReturnType<typeof createBlockConversation>
 export type ChangeFocusPayload = ReturnType<typeof createChangeFocus>
@@ -1476,7 +1447,6 @@ export type DismissBlockButtonsPayload = ReturnType<typeof createDismissBlockBut
 export type DismissBottomBannerPayload = ReturnType<typeof createDismissBottomBanner>
 export type DismissJourneycardPayload = ReturnType<typeof createDismissJourneycard>
 export type EditBotSettingsPayload = ReturnType<typeof createEditBotSettings>
-export type EnableAudioRecordingPayload = ReturnType<typeof createEnableAudioRecording>
 export type FetchUserEmojiPayload = ReturnType<typeof createFetchUserEmoji>
 export type FindGeneralConvIDFromTeamIDPayload = ReturnType<typeof createFindGeneralConvIDFromTeamID>
 export type GiphyGotSearchResultPayload = ReturnType<typeof createGiphyGotSearchResult>
@@ -1505,7 +1475,6 @@ export type LoadNextBotPagePayload = ReturnType<typeof createLoadNextBotPage>
 export type LoadOlderMessagesDueToScrollPayload = ReturnType<typeof createLoadOlderMessagesDueToScroll>
 export type LoadedMutualTeamsPayload = ReturnType<typeof createLoadedMutualTeams>
 export type LoadedUserEmojiPayload = ReturnType<typeof createLoadedUserEmoji>
-export type LockAudioRecordingPayload = ReturnType<typeof createLockAudioRecording>
 export type MarkConversationsStalePayload = ReturnType<typeof createMarkConversationsStale>
 export type MarkInitiallyLoadedThreadAsReadPayload = ReturnType<typeof createMarkInitiallyLoadedThreadAsRead>
 export type MarkTeamAsReadPayload = ReturnType<typeof createMarkTeamAsRead>
@@ -1558,7 +1527,6 @@ export type SelectedConversationPayload = ReturnType<typeof createSelectedConver
 export type SendAudioRecordingPayload = ReturnType<typeof createSendAudioRecording>
 export type SendTypingPayload = ReturnType<typeof createSendTyping>
 export type SetAttachmentViewStatusPayload = ReturnType<typeof createSetAttachmentViewStatus>
-export type SetAudioRecordingPostInfoPayload = ReturnType<typeof createSetAudioRecordingPostInfo>
 export type SetBotPublicCommandsPayload = ReturnType<typeof createSetBotPublicCommands>
 export type SetBotRoleInConvPayload = ReturnType<typeof createSetBotRoleInConv>
 export type SetBotSettingsPayload = ReturnType<typeof createSetBotSettings>
@@ -1582,7 +1550,6 @@ export type SetThreadSearchStatusPayload = ReturnType<typeof createSetThreadSear
 export type SetUnsentTextPayload = ReturnType<typeof createSetUnsentText>
 export type ShowInfoPanelPayload = ReturnType<typeof createShowInfoPanel>
 export type StaticConfigLoadedPayload = ReturnType<typeof createStaticConfigLoaded>
-export type StopAudioRecordingPayload = ReturnType<typeof createStopAudioRecording>
 export type TabSelectedPayload = ReturnType<typeof createTabSelected>
 export type ThreadSearchPayload = ReturnType<typeof createThreadSearch>
 export type ThreadSearchResultsPayload = ReturnType<typeof createThreadSearchResults>
@@ -1632,7 +1599,6 @@ export type Actions =
   | AttachmentUploadedPayload
   | AttachmentUploadingPayload
   | AttachmentsUploadPayload
-  | AttemptAudioRecordingPayload
   | BadgesUpdatedPayload
   | BlockConversationPayload
   | ChangeFocusPayload
@@ -1651,7 +1617,6 @@ export type Actions =
   | DismissBottomBannerPayload
   | DismissJourneycardPayload
   | EditBotSettingsPayload
-  | EnableAudioRecordingPayload
   | FetchUserEmojiPayload
   | FindGeneralConvIDFromTeamIDPayload
   | GiphyGotSearchResultPayload
@@ -1680,7 +1645,6 @@ export type Actions =
   | LoadOlderMessagesDueToScrollPayload
   | LoadedMutualTeamsPayload
   | LoadedUserEmojiPayload
-  | LockAudioRecordingPayload
   | MarkConversationsStalePayload
   | MarkInitiallyLoadedThreadAsReadPayload
   | MarkTeamAsReadPayload
@@ -1733,7 +1697,6 @@ export type Actions =
   | SendAudioRecordingPayload
   | SendTypingPayload
   | SetAttachmentViewStatusPayload
-  | SetAudioRecordingPostInfoPayload
   | SetBotPublicCommandsPayload
   | SetBotRoleInConvPayload
   | SetBotSettingsPayload
@@ -1757,7 +1720,6 @@ export type Actions =
   | SetUnsentTextPayload
   | ShowInfoPanelPayload
   | StaticConfigLoadedPayload
-  | StopAudioRecordingPayload
   | TabSelectedPayload
   | ThreadSearchPayload
   | ThreadSearchResultsPayload

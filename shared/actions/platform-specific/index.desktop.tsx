@@ -319,7 +319,6 @@ const onSetOpenAtLogin = async (state: Container.TypedState) => {
 }
 
 export const requestLocationPermission = async () => Promise.resolve()
-export const requestAudioPermission = async () => Promise.resolve()
 export const watchPositionForMap = async () => Promise.resolve(() => {})
 
 const checkNav = async (

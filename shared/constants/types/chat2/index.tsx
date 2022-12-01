@@ -236,7 +236,6 @@ export type State = {
     Common.ConversationIDKey,
     Map<RPCChatTypes.GalleryItemTyp, AttachmentViewInfo>
   >
-  readonly audioRecording: Map<Common.ConversationIDKey, AudioRecordingInfo>
   readonly badgeMap: ConversationCountMap // id to the badge count,
   readonly smallTeamBadgeCount: number
   readonly bigTeamBadgeCount: number
