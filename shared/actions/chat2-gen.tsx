@@ -1387,8 +1387,9 @@ export const createPendingMessageWasEdited = (payload: {
 }) => ({payload, type: pendingMessageWasEdited as typeof pendingMessageWasEdited})
 export const createSendAudioRecording = (payload: {
   readonly conversationIDKey: Types.ConversationIDKey
-  readonly fromStaged: boolean
-  readonly info: Types.AudioRecordingInfo
+  readonly duration: number
+  readonly path: string
+  readonly amps: Array<number>
 }) => ({payload, type: sendAudioRecording as typeof sendAudioRecording})
 export const createSetInboxNumSmallRows = (payload: {
   readonly ignoreWrite?: boolean

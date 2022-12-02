@@ -175,9 +175,9 @@ export const makeAttachmentViewInfo = (): Types.AttachmentViewInfo => ({
 //   )
 // }
 
-export const audioRecordingDuration = (audioRecording: Types.AudioRecordingInfo) => {
-  return (audioRecording.recordEnd || audioRecording.recordStart) - audioRecording.recordStart
-}
+// export const audioRecordingDuration = (audioRecording: Types.AudioRecordingInfo) => {
+//   return (audioRecording.recordEnd || audioRecording.recordStart) - audioRecording.recordStart
+// }
 
 // export const isCancelledAudioRecording = (audioRecording: Types.AudioRecordingInfo | undefined) => {
 //   return audioRecording && audioRecording.status === Types.AudioRecordingStatus.CANCELLED

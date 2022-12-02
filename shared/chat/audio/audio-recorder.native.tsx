@@ -1,11 +1,10 @@
 import * as Chat2Gen from '../../actions/chat2-gen'
-import * as Constants from '../../constants/chat2'
 import * as Container from '../../util/container'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as Kb from '../../common-adapters/mobile.native'
 import * as React from 'react'
 import * as Styles from '../../styles'
-import * as Types from '../../constants/types/chat2'
+import type * as Types from '../../constants/types/chat2'
 import Animated, {
   Extrapolation,
   interpolate,
@@ -26,8 +25,8 @@ import {formatAudioRecordDuration} from '../../util/timestamp'
 import {Audio, InterruptionModeIOS, InterruptionModeAndroid} from 'expo-av'
 import logger from '../../logger'
 import * as Haptics from 'expo-haptics'
-import * as FileSystem from 'expo-file-system'
-import AudioSend, {ShowAudioSendContext} from './audio-send'
+// import * as FileSystem from 'expo-file-system'
+// import AudioSend, {ShowAudioSendContext} from './audio-send'
 
 type SVN = SharedValue<number>
 
@@ -35,385 +34,55 @@ type Props = {
   conversationIDKey: Types.ConversationIDKey
 }
 
-const makeAudioRecordingInfo = (): Types.AudioRecordingInfo => ({
-  isLocked: false,
-  outboxID: new Buffer('hex'),
-  path: '',
-  recordStart: Date.now(),
-  status: Types.AudioRecordingStatus.INITIAL,
-})
+// enum AudioStopType {
+//   CANCEL = 0,
+//   RELEASE,
+//   SEND,
+//   STOPBUTTON,
+// }
 
-const showAudioRecording = (audioRecording: Types.AudioRecordingInfo | undefined) => {
-  return !(
-    !audioRecording ||
-    audioRecording.status === Types.AudioRecordingStatus.INITIAL ||
-    audioRecording.status === Types.AudioRecordingStatus.STOPPED ||
-    audioRecording.status === Types.AudioRecordingStatus.STAGED ||
-    audioRecording.status === Types.AudioRecordingStatus.CANCELLED
-  )
-}
+// type AudioRecordingInfo = {
+//   outboxID: Buffer
+//   path: string
+//   recordEnd?: number
+//   recordStart: number
+//   amps?: AmpTracker
+// }
 
-const isStoppedAudioRecordingStatus = (status: Types.AudioRecordingStatus) => {
-  return (
-    status === Types.AudioRecordingStatus.STOPPED ||
-    status === Types.AudioRecordingStatus.STAGED ||
-    status === Types.AudioRecordingStatus.CANCELLED
-  )
-}
+// enum AudioRecordingStatus {
+//   INITIAL = 0,
+//   RECORDING,
+//   STAGED,
+//   STOPPED,
+//   CANCELLED,
+// }
 
-const isCancelledAudioRecording = (audioRecording: Types.AudioRecordingInfo | undefined) => {
-  return !!audioRecording && audioRecording.status === Types.AudioRecordingStatus.CANCELLED
-}
+// const audioRecordingDuration = (recordStart: number, recordEnd?: number) => {
+//   return (recordEnd || recordStart) - recordStart
+// }
 
-const useRecording = (conversationIDKey: Types.ConversationIDKey, setVisible: (v: Visible) => void) => {
-  const ampTracker = React.useRef(new AmpTracker()).current
-  const ampScale = useSharedValue(0)
-  const ampToScale = (amp: number) => {
-    const maxScale = 8
-    const minScale = 3
-    return minScale + amp * (maxScale - minScale)
-  }
-  const meteringCb = React.useCallback(
-    (inamp: number) => {
-      const amp = 10 ** (inamp * 0.05)
-      ampTracker.addAmp(amp)
-      ampScale.value = withTiming(ampToScale(amp), {duration: 100})
-    },
-    [ampTracker, ampScale]
-  )
-  const dispatch = Container.useDispatch()
+// const makeAudioRecordingInfo = (): AudioRecordingInfo => ({
+//   outboxID: new Buffer('hex'),
+//   path: '',
+//   recordStart: Date.now(),
+// })
 
-  const recordingRef = React.useRef<Audio.Recording | undefined>()
-  const audioInfoRef = React.useRef<Types.AudioRecordingInfo | undefined>()
+// const showAudioRecording = (status: AudioRecordingStatus) => {
+//   return !(
+//     status === AudioRecordingStatus.INITIAL ||
+//     status === AudioRecordingStatus.STOPPED ||
+//     status === AudioRecordingStatus.STAGED ||
+//     status === AudioRecordingStatus.CANCELLED
+//   )
+// }
 
-  const onSetAudioRecordingPostInfo = React.useCallback(
-    async (outboxID: Buffer, path: string) => {
-      const audio = audioInfoRef.current
-      const info = audioInfoRef.current
-      if (info?.status === Types.AudioRecordingStatus.INITIAL) {
-        info.outboxID = outboxID
-        info.path = path
-        info.status = Types.AudioRecordingStatus.RECORDING
-      }
-
-      if (!audio || audio.status !== Types.AudioRecordingStatus.RECORDING) {
-        logger.info('onSetAudioRecordingPostInfo: not in recording mode anymore, bailing')
-        return
-      }
-
-      const recording = recordingRef.current
-      await recording?.startAsync()
-    },
-    [audioInfoRef]
-  )
-
-  const onEnableAudioRecording = React.useCallback(async () => {
-    audioInfoRef.current = makeAudioRecordingInfo()
-    const audio = audioInfoRef.current
-    const oldRecording = recordingRef.current
-    if (!audio || isCancelledAudioRecording(audio)) {
-      logger.info('enableAudioRecording: no recording info set, bailing')
-      return
-    }
-
-    if (Container.isIOS) {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
-    } else {
-      Vibration.vibrate(50)
-    }
-    const outboxID = Constants.generateOutboxID()
-    if (oldRecording) {
-      try {
-        oldRecording.setOnRecordingStatusUpdate(null)
-      } catch {}
-      try {
-        await oldRecording.stopAndUnloadAsync()
-      } catch {}
-      recordingRef.current = undefined
-    }
-    await Audio.setAudioModeAsync({
-      allowsRecordingIOS: true,
-      interruptionModeAndroid: InterruptionModeAndroid.DoNotMix,
-      interruptionModeIOS: InterruptionModeIOS.DoNotMix,
-      playThroughEarpieceAndroid: false,
-      playsInSilentModeIOS: true,
-      shouldDuckAndroid: false,
-      staysActiveInBackground: false,
-    })
-    const r = new Audio.Recording()
-    await r.prepareToRecordAsync({
-      android: {
-        audioEncoder: Audio.AndroidAudioEncoder.AAC,
-        bitRate: 32000,
-        extension: '.m4a',
-        numberOfChannels: 1,
-        outputFormat: Audio.AndroidOutputFormat.MPEG_4,
-        sampleRate: 22050,
-      },
-      ios: {
-        audioQuality: Audio.IOSAudioQuality.MIN,
-        bitRate: 32000,
-        extension: '.m4a',
-        linearPCMBitDepth: 16,
-        linearPCMIsBigEndian: false,
-        linearPCMIsFloat: false,
-        numberOfChannels: 1,
-        outputFormat: Audio.IOSOutputFormat.MPEG4AAC,
-        sampleRate: 22050,
-      },
-      isMeteringEnabled: true,
-      web: {},
-    })
-    const audioPath = r.getURI()?.substring('file://'.length)
-    if (!audioPath) {
-      throw new Error("Couldn't start audio recording")
-    }
-    recordingRef.current = r
-    const recording = r
-    recording.setProgressUpdateInterval(100)
-    recording.setOnRecordingStatusUpdate((status: Audio.RecordingStatus) => {
-      status.metering !== undefined && meteringCb(status.metering)
-    })
-    logger.info('onEnableAudioRecording: setting recording info')
-    await onSetAudioRecordingPostInfo(outboxID, audioPath)
-  }, [onSetAudioRecordingPostInfo, meteringCb, audioInfoRef])
-
-  const onAttemptAudioRecording = React.useCallback(async () => {
-    let chargeForward = true
-    try {
-      let {status} = await Audio.getPermissionsAsync()
-      if (status === Audio.PermissionStatus.UNDETERMINED) {
-        const askRes = await Audio.requestPermissionsAsync()
-        status = askRes.status
-        chargeForward = false
-      }
-      if (status === Audio.PermissionStatus.DENIED) {
-        throw new Error('Please allow Keybase to access the microphone in the phone settings.')
-      }
-    } catch (_error) {
-      const error = _error as any
-      logger.info('failed to get audio perms: ' + error.message)
-      dispatch(
-        Chat2Gen.createSetCommandStatusInfo({
-          conversationIDKey,
-          info: {
-            actions: [RPCChatTypes.UICommandStatusActionTyp.appsettings],
-            displayText: `Failed to access audio. ${error.message}`,
-            displayType: RPCChatTypes.UICommandStatusDisplayTyp.error,
-          },
-        })
-      )
-      return
-    }
-    if (chargeForward) {
-      await onEnableAudioRecording()
-    }
-  }, [dispatch, conversationIDKey, onEnableAudioRecording])
-
-  const enableRecording = React.useCallback(async () => {
-    setVisible(Visible.SHOW)
-    ampTracker.reset()
-    await onAttemptAudioRecording()
-  }, [ampTracker, onAttemptAudioRecording, setVisible])
-
-  const onSendAudioRecording = React.useCallback(
-    async (fromStaged: boolean) => {
-      recordingRef.current = undefined
-      if (!fromStaged) {
-        if (Container.isIOS) {
-          try {
-            await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
-          } catch {}
-        } else {
-          Vibration.vibrate(50)
-        }
-      }
-      const info = audioInfoRef.current
-      audioInfoRef.current = undefined
-      if (info) {
-        dispatch(Chat2Gen.createSendAudioRecording({conversationIDKey, fromStaged, info}))
-      }
-    },
-    [dispatch, conversationIDKey, audioInfoRef]
-  )
-
-  const stopAudioRecordingAction = React.useCallback(
-    async (stopType: Types.AudioStopType) => {
-      const info = audioInfoRef.current
-      if (info) {
-        // don't do anything if we are recording and are in locked mode.
-        if (showAudioRecording(info) && info.isLocked) {
-          return
-        }
-      }
-      logger.info('stopAudioRecording: stopping recording')
-      const recording = recordingRef.current
-      recording?.setOnRecordingStatusUpdate(null)
-      try {
-        await recording?.stopAndUnloadAsync()
-      } catch (e) {
-        console.log('Recoding stopping fail', e)
-      } finally {
-        recordingRef.current = undefined
-      }
-
-      if (!info) {
-        logger.info('stopAudioRecording: no audio record, not sending')
-        return
-      }
-
-      let cancelRecord =
-        info.status === Types.AudioRecordingStatus.CANCELLED || stopType === Types.AudioStopType.CANCEL
-      if (Constants.audioRecordingDuration(info) < 500 || info.path.length === 0) {
-        logger.info('stopAudioRecording: recording too short, skipping')
-        cancelRecord = true
-        await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error)
-      }
-
-      if (cancelRecord) {
-        logger.info('stopAudioRecording: recording cancelled, bailing out')
-        try {
-          if (info.path) {
-            await FileSystem.deleteAsync(info.path, {idempotent: true})
-          }
-        } catch (e) {
-          console.log('Recording delete failed', e)
-        }
-        return
-      }
-
-      if (info.status === Types.AudioRecordingStatus.STAGED) {
-        logger.info('stopAudioRecording: in staged mode, not sending')
-        return
-      }
-      await onSendAudioRecording(false)
-    },
-    [onSendAudioRecording, audioInfoRef]
-  )
-
-  const stopAudioRecordingReducer = React.useCallback(
-    (stopType: Types.AudioStopType) => {
-      const info = audioInfoRef.current
-      if (!info) {
-        return
-      }
-      let nextStatus: Types.AudioRecordingStatus = info.status
-      if (nextStatus === Types.AudioRecordingStatus.CANCELLED) {
-        return
-      }
-      let nextPath = info.path
-      if (info.isLocked) {
-        switch (stopType) {
-          case Types.AudioStopType.CANCEL:
-            nextStatus = Types.AudioRecordingStatus.CANCELLED
-            nextPath = ''
-            break
-          case Types.AudioStopType.SEND:
-            nextStatus = Types.AudioRecordingStatus.STOPPED
-            break
-          case Types.AudioStopType.STOPBUTTON:
-            nextStatus = Types.AudioRecordingStatus.STAGED
-            break
-          case Types.AudioStopType.RELEASE:
-            break
-        }
-      } else {
-        switch (stopType) {
-          case Types.AudioStopType.CANCEL:
-            nextStatus = Types.AudioRecordingStatus.CANCELLED
-            nextPath = ''
-            break
-          default:
-            nextStatus = Types.AudioRecordingStatus.STOPPED
-        }
-      }
-      info.amps = ampTracker
-      info.path = nextPath
-      info.recordEnd = isStoppedAudioRecordingStatus(nextStatus) ? Date.now() : undefined
-      info.status = nextStatus
-      info.isLocked = false
-    },
-    [ampTracker, audioInfoRef]
-  )
-
-  const stopRecording = React.useCallback(
-    async (stopType: Types.AudioStopType) => {
-      setVisible(Visible.START_HIDDEN)
-      stopAudioRecordingReducer(stopType)
-      await stopAudioRecordingAction(stopType)
-    },
-    [stopAudioRecordingReducer, stopAudioRecordingAction, setVisible]
-  )
-
-  const lockRecording = React.useCallback(() => {
-    const info = audioInfoRef.current
-    if (info) {
-      info.isLocked = true
-    }
-  }, [audioInfoRef])
-
-  // on unmount stop
-  React.useEffect(() => {
-    return () => {
-      stopRecording(Types.AudioStopType.CANCEL)
-        .then(() => {})
-        .catch(() => {})
-    }
-  }, [stopRecording])
-
-  return {
-    ampScale,
-    audioInfoRef,
-    enableRecording,
-    lockRecording,
-    onSendAudioRecording,
-    stopRecording,
-  }
-}
-
-const Tooltip = (props: {onHide: () => void}) => {
-  const {onHide} = props
-  const opacity = useSharedValue(0)
-  opacity.value = withSequence(
-    withTiming(1, {duration: 200}),
-    withDelay(
-      1000,
-      withTiming(0, {duration: 200}, () => {
-        runOnJS(onHide)()
-      })
-    )
-  )
-  const animatedStyles = useAnimatedStyle(() => ({opacity: opacity.value}))
-  return (
-    <Animated.View style={animatedStyles}>
-      <Kb.Box2 direction="horizontal" style={styles.tooltipContainer}>
-        <Kb.Text type="BodySmall" negative={true}>
-          Hold to record audio.
-        </Kb.Text>
-      </Kb.Box2>
-    </Animated.View>
-  )
-}
-
-const maxCancelDrift = -120
-const maxLockDrift = -100
-
-// pulled out to not scope too much in closure
-const makeTapTimeout = (
-  stillGesturingRef: React.MutableRefObject<boolean>,
-  enableRecording: () => Promise<void>,
-  setShowToolTip: (s: boolean) => void
-) => {
-  return setTimeout(() => {
-    if (stillGesturingRef.current) {
-      enableRecording()
-        .then(() => {})
-        .catch(() => {})
-    } else {
-      setShowToolTip(true)
-    }
-  }, 100)
-}
+// const isStoppedAudioRecordingStatus = (status: AudioRecordingStatus) => {
+//   return (
+//     status === AudioRecordingStatus.STOPPED ||
+//     status === AudioRecordingStatus.STAGED ||
+//     status === AudioRecordingStatus.CANCELLED
+//   )
+// }
 
 enum Visible {
   HIDDEN,
@@ -421,192 +90,619 @@ enum Visible {
   SHOW,
 }
 
-const AudioRecorder = React.memo(function AudioRecorder(props: Props) {
-  const {conversationIDKey} = props
-  const dragX = useSharedValue(0)
-  const dragY = useSharedValue(0)
-  // don't set it immediately
-  const [visible, setVisible] = React.useState(Visible.HIDDEN)
-  const {ampScale, audioInfoRef, enableRecording, stopRecording, lockRecording, onSendAudioRecording} =
-    useRecording(conversationIDKey, setVisible)
-  const audioRecording = audioInfoRef.current
+const useTooltip = () => {
+  const [showTooltip, setShowTooltip] = React.useState(false)
+  const opacitySV = useSharedValue(0)
 
-  const initialBounce = useSharedValue(0)
+  const animatedStyles = useAnimatedStyle(() => ({opacity: opacitySV.value}))
 
-  React.useEffect(() => {
-    initialBounce.value =
-      visible === Visible.SHOW
-        ? withSpring(1)
-        : withTiming(0, {duration: 200}, () => {
-            // hide after we're done animating
-            runOnJS(setVisible)(Visible.HIDDEN)
+  opacitySV.value = showTooltip
+    ? withSequence(
+        withTiming(1, {duration: 200}),
+        withDelay(
+          1000,
+          withTiming(0, {duration: 200}, () => {
+            runOnJS(setShowTooltip)(false)
           })
+        )
+      )
+    : 0
 
-    dragX.value = withTiming(0)
-    dragY.value = withTiming(0)
-  }, [initialBounce, setVisible, dragX, dragY, visible])
+  const tooltip = showTooltip ? (
+    <Portal hostName="convOverlay">
+      <Animated.View style={animatedStyles}>
+        <Kb.Box2 direction="horizontal" style={styles.tooltipContainer}>
+          <Kb.Text type="BodySmall" negative={true}>
+            Hold to record audio.
+          </Kb.Text>
+        </Kb.Box2>
+      </Animated.View>
+    </Portal>
+  ) : null
 
-  const locked = audioRecording?.isLocked ?? false
-  const onCancel = React.useCallback(async () => {
-    await stopRecording(Types.AudioStopType.CANCEL)
-  }, [stopRecording])
+  const flashTip = React.useCallback(() => {
+    setShowTooltip(true)
+  }, [setShowTooltip])
 
-  const [showToolTip, setShowToolTip] = React.useState(false)
+  return {flashTip, tooltip}
+}
 
-  const {showAudioSend, setShowAudioSend} = React.useContext(ShowAudioSendContext)
+const useIconAndOverlay = (p: {
+  flashTip: () => void
+  startRecording: () => void
+  sendRecording: () => void
+  stageRecording: () => void
+  cancelRecording: () => void
+}) => {
+  const {stageRecording, startRecording, sendRecording, cancelRecording, flashTip} = p
+  const [panEnabled, setPanEnabled] = React.useState(true)
+  const [visible, setVisible] = React.useState(Visible.HIDDEN)
+  const [locked, setLocked] = React.useState(false)
+  // for reanimated only, react uses the above
+  const lockedSV = useSharedValue(0)
+  const dragXSV = useSharedValue(0)
+  const dragYSV = useSharedValue(0)
 
-  const onHideTooltip = React.useCallback(() => {
-    setShowToolTip(false)
+  const onReset = React.useCallback(() => {
+    setPanEnabled(true)
+    setVisible(Visible.START_HIDDEN)
+    dragXSV.value = 0
+    dragYSV.value = 0
+    lockedSV.value = 0
+    setLocked(false)
+  }, [setPanEnabled, setVisible, dragXSV, dragYSV, setLocked, lockedSV])
+
+  const onCancelRecording = React.useCallback(() => {
+    onReset()
+    cancelRecording()
+  }, [cancelRecording, onReset])
+
+  const onSendRecording = React.useCallback(() => {
+    onReset()
+    sendRecording()
+  }, [sendRecording, onReset])
+
+  const onPanFinalize = React.useCallback(
+    (success: boolean, panLocked: boolean) => {
+      // cancelled
+      if (!panEnabled) {
+        onCancelRecording()
+        return
+      }
+
+      if (!success) {
+        flashTip()
+        return
+      }
+
+      setLocked(panLocked)
+      if (!panLocked) {
+        sendRecording()
+        setVisible(Visible.START_HIDDEN)
+      }
+    },
+    [flashTip, onCancelRecording, setVisible, panEnabled, sendRecording]
+  )
+
+  const onPanStart = React.useCallback(() => {
+    startRecording()
+    setVisible(Visible.SHOW)
+  }, [startRecording, setVisible])
+  const onPanCancel = React.useCallback(() => {
+    setPanEnabled(false)
   }, [])
-  const stillGesturingRef = React.useRef(false)
-  const tapStartTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
-  React.useEffect(() => {
-    return () => {
-      tapStartTimerRef.current && clearTimeout(tapStartTimerRef.current)
-      tapStartTimerRef.current = null
-    }
-  }, [])
-  // after the initial tap see if we're still gesturing. if so we start to record, if not we show the tooltip
-
-  const onTapStart = React.useCallback(() => {
-    stillGesturingRef.current = true
-    tapStartTimerRef.current = makeTapTimeout(stillGesturingRef, enableRecording, setShowToolTip)
-  }, [enableRecording, setShowToolTip, stillGesturingRef])
-
-  const onTapEnd = React.useCallback(async () => {
-    stillGesturingRef.current = false
-    // we're locked, ignore the tap
-    if (!locked) {
-      await stopRecording(Types.AudioStopType.RELEASE)
-    }
-  }, [stopRecording, locked, stillGesturingRef])
-
-  const tapStart = useSharedValue(0)
-  const translationX = useSharedValue(0)
-  const translationY = useSharedValue(0)
-  const tapGesture = Gesture.Tap()
-    .maxDuration(Number.MAX_SAFE_INTEGER)
-    .shouldCancelWhenOutside(false)
-    .onBegin(() => {
-      // mark the time
-      tapStart.value = Date.now()
-      // start the timer, when the timer fires we start recording
-      runOnJS(onTapStart)()
-    })
-    .onEnd(() => {
-      runOnJS(onTapEnd)()
-    })
-    .enabled(!locked)
-
+  const maxCancelDrift = -120
+  const maxLockDrift = -100
   const panGesture = Gesture.Pan()
+    .minDistance(0)
+    .minPointers(1)
+    .maxPointers(1)
+    .activateAfterLongPress(200)
+    .onStart(() => {
+      console.log('aaa pan onStart')
+      runOnJS(onPanStart)()
+    })
+    .onFinalize((_e, success) => {
+      console.log('aaa pan onFinalize', success)
+      runOnJS(onPanFinalize)(success, lockedSV.value === 1)
+    })
     .onUpdate(e => {
-      translationX.value = e.translationX
-      translationY.value = e.translationY
-      dragY.value = interpolate(e.translationY, [maxLockDrift, 0], [maxLockDrift, 0], Extrapolation.CLAMP)
-      dragX.value = interpolate(e.translationX, [maxCancelDrift, 0], [maxCancelDrift, 0], Extrapolation.CLAMP)
+      if (lockedSV.value) {
+        return
+      }
+      dragYSV.value = interpolate(e.translationY, [maxLockDrift, 0], [maxLockDrift, 0], Extrapolation.CLAMP)
+      dragXSV.value = interpolate(
+        e.translationX,
+        [maxCancelDrift, 0],
+        [maxCancelDrift, 0],
+        Extrapolation.CLAMP
+      )
 
       if (e.translationX < maxCancelDrift) {
-        runOnJS(stopRecording)(Types.AudioStopType.CANCEL)
+        runOnJS(onPanCancel)()
       } else if (e.translationY < maxLockDrift) {
-        runOnJS(lockRecording)()
+        lockedSV.value = 1
+        runOnJS(setLocked)(true)
       }
     })
-    .enabled(!locked)
-  const composedGesture = Gesture.Simultaneous(tapGesture, panGesture)
+    .enabled(panEnabled)
+  const gesture = panGesture
+  const icon = (
+    <View>
+      <GestureDetector gesture={gesture}>
+        <Kb.Icon type="iconfont-mic" style={styles.iconStyle} />
+      </GestureDetector>
+    </View>
+  )
 
-  // const showAudioSend = !!audio && audio.status === Types.AudioRecordingStatus.STAGED
-  const audioSend =
-    audioInfoRef.current?.status === Types.AudioRecordingStatus.STAGED ? (
-      <AudioSend
-        audioInfoRef={audioInfoRef}
-        stopRecording={stopRecording}
-        sendAudioRecording={onSendAudioRecording}
-      />
-    ) : null
+  const fadeSV = useSharedValue(0)
+  const ampSV = useSharedValue(0)
 
-  // update context so the input can show it
-  if (!!audioSend !== showAudioSend) {
-    setShowAudioSend(!!audioSend)
+  const updateAmpScale = React.useCallback(
+    (amp: number) => {
+      const maxScale = 8
+      const minScale = 3
+      const scaled = minScale + amp * (maxScale - minScale)
+      ampSV.value = withTiming(scaled, {duration: 100})
+    },
+    [ampSV]
+  )
+  React.useEffect(() => {
+    switch (visible) {
+      case Visible.SHOW:
+        fadeSV.value = withSpring(1)
+        break
+      case Visible.START_HIDDEN:
+        fadeSV.value = withTiming(0, {duration: 200}, () => {
+          // hide after we're done animating
+          runOnJS(setVisible)(Visible.HIDDEN)
+        })
+        break
+      default:
+    }
+    dragXSV.value = withTiming(0)
+    dragYSV.value = withTiming(0)
+  }, [fadeSV, setVisible, dragXSV, dragYSV, visible])
+  const overlay =
+    visible === Visible.HIDDEN ? null : (
+      <Portal hostName="convOverlay">
+        <Animated.View style={styles.container} pointerEvents="box-none">
+          <BigBackground fadeSV={fadeSV} />
+          <AmpCircle fadeSV={fadeSV} ampSV={ampSV} dragXSV={dragXSV} dragYSV={dragYSV} locked={lockedSV} />
+          <InnerCircle
+            fadeSV={fadeSV}
+            dragXSV={dragXSV}
+            dragYSV={dragYSV}
+            locked={lockedSV}
+            stageRecording={stageRecording}
+          />
+          <LockHint fadeSV={fadeSV} dragXSV={dragXSV} dragYSV={dragYSV} locked={lockedSV} />
+          <CancelHint onCancel={onCancelRecording} fadeSV={fadeSV} locked={lockedSV} dragXSV={dragXSV} />
+          <SendRecordingButton fadeSV={fadeSV} locked={lockedSV} sendRecording={onSendRecording} />
+          <AudioCounter fadeSV={fadeSV} />
+        </Animated.View>
+      </Portal>
+    )
+
+  return {icon, locked, overlay, updateAmpScale}
+}
+
+// const useAudioSend = (p: {
+//   stopRecording: any // TODO
+//   onSendAudioRecording: any // TODO
+// }) => {
+//   const {stopRecording, onSendAudioRecording} = p
+//   const {showAudioSend, setShowAudioSend} = React.useContext(ShowAudioSendContext)
+
+//   const cancelRecording = React.useCallback(() => {
+//     stopRecording(AudioStopType.CANCEL)
+//       .then(() => {})
+//       .catch(() => {})
+//   }, [stopRecording])
+//   const sendStagedRecording = React.useCallback(() => {
+//     onSendAudioRecording(true)
+//       .then(() => {})
+//       .catch(() => {})
+//   }, [onSendAudioRecording])
+
+//   const audioSend =
+//     recordingStatus === AudioRecordingStatus.STAGED ? (
+//       <Portal hostName="audioSend">
+//         <AudioSend
+//           cancelRecording={cancelRecording}
+//           sendRecording={sendStagedRecording}
+//           duration={duration}
+//           amps={info.amps}
+//           path={info.path}
+//         />
+//       </Portal>
+//     ) : null
+
+//   // update context so the input can show it
+//   if (!!audioSend !== showAudioSend) {
+//     setShowAudioSend(!!audioSend)
+//   }
+
+//   return {audioSend}
+// }
+
+// Hook for gestures and animations
+// const useAnimation = () => {
+// }
+
+const vibrate = (_short: boolean) => {
+  if (Container.isIOS) {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+      .then(() => {})
+      .catch(() => {})
+  } else {
+    Vibration.vibrate(50)
   }
+}
 
-  console.log('aaa render audio reocrder', {
-    audioSend,
-    locked,
-    showToolTip,
-    visible,
+const makeRecorder = async (onRecordingStatusUpdate: (s: Audio.RecordingStatus) => void) => {
+  vibrate(true)
+
+  await Audio.setAudioModeAsync({
+    allowsRecordingIOS: true,
+    interruptionModeAndroid: InterruptionModeAndroid.DoNotMix,
+    interruptionModeIOS: InterruptionModeIOS.DoNotMix,
+    playThroughEarpieceAndroid: false,
+    playsInSilentModeIOS: true,
+    shouldDuckAndroid: false,
+    staysActiveInBackground: false,
   })
+  const recording = new Audio.Recording()
+  await recording.prepareToRecordAsync({
+    android: {
+      audioEncoder: Audio.AndroidAudioEncoder.AAC,
+      bitRate: 32000,
+      extension: '.m4a',
+      numberOfChannels: 1,
+      outputFormat: Audio.AndroidOutputFormat.MPEG_4,
+      sampleRate: 22050,
+    },
+    ios: {
+      audioQuality: Audio.IOSAudioQuality.MIN,
+      bitRate: 32000,
+      extension: '.m4a',
+      linearPCMBitDepth: 16,
+      linearPCMIsBigEndian: false,
+      linearPCMIsFloat: false,
+      numberOfChannels: 1,
+      outputFormat: Audio.IOSOutputFormat.MPEG4AAC,
+      sampleRate: 22050,
+    },
+    isMeteringEnabled: true,
+    web: {},
+  })
+  recording.setProgressUpdateInterval(100)
+  recording.setOnRecordingStatusUpdate(onRecordingStatusUpdate)
+  return recording
+}
+
+// Hook for interfacing with the native recorder
+const useRecorder = (p: {conversationIDKey: Types.ConversationIDKey; ampSV: SVN}) => {
+  const {conversationIDKey, ampSV} = p
+  const recordingRef = React.useRef<Audio.Recording | undefined>()
+  const recordStartRef = React.useRef(0)
+  const recordEndRef = React.useRef(0)
+  const pathRef = React.useRef('')
+  // const recordingStatusRef = React.useRef(AudioRecordingStatus.INITIAL)
+  const dispatch = Container.useDispatch()
+  const ampTracker = React.useRef(new AmpTracker()).current
+
+  const onReset = React.useCallback(async () => {
+    const r = recordingRef.current
+    try {
+      r?.setOnRecordingStatusUpdate(null)
+    } catch {}
+    try {
+      await r?.stopAndUnloadAsync()
+    } catch {}
+    recordingRef.current = undefined
+    ampTracker.reset()
+    pathRef.current = ''
+    // recordingStatusRef.current = AudioRecordingStatus.INITIAL
+    recordStartRef.current = 0
+    recordEndRef.current = 0
+  }, [ampTracker])
+
+  const startRecording = React.useCallback(() => {
+    console.log('aaa start recording')
+    // calls of this never handle the promise so just handle it here
+    const checkPerms = async () => {
+      try {
+        let {status} = await Audio.getPermissionsAsync()
+        if (status === Audio.PermissionStatus.UNDETERMINED) {
+          const askRes = await Audio.requestPermissionsAsync()
+          status = askRes.status
+        }
+        if (status === Audio.PermissionStatus.DENIED) {
+          throw new Error('Please allow Keybase to access the microphone in the phone settings.')
+        }
+        return true
+      } catch (_error) {
+        const error = _error as any
+        logger.info('failed to get audio perms: ' + error.message)
+        dispatch(
+          Chat2Gen.createSetCommandStatusInfo({
+            conversationIDKey,
+            info: {
+              actions: [RPCChatTypes.UICommandStatusActionTyp.appsettings],
+              displayText: `Failed to access audio. ${error.message}`,
+              displayType: RPCChatTypes.UICommandStatusDisplayTyp.error,
+            },
+          })
+        )
+      }
+      return false
+    }
+    const impl = async () => {
+      await onReset()
+      const goodPerms = await checkPerms()
+      if (!goodPerms) {
+        await onReset()
+        return
+      }
+
+      const onRecordingStatusUpdate = (status: Audio.RecordingStatus) => {
+        const inamp = status.metering
+        if (inamp === undefined) {
+          return
+        }
+        const amp = 10 ** (inamp * 0.05)
+        ampTracker.addAmp(amp)
+        ampSV.value = amp
+      }
+
+      const recording = await makeRecorder(onRecordingStatusUpdate)
+      const audioPath = recording.getURI()?.substring('file://'.length)
+      if (!audioPath) {
+        await onReset()
+        throw new Error("Couldn't start audio recording")
+      }
+      pathRef.current = audioPath
+      recordingRef.current = recording
+
+      try {
+        await recording.startAsync()
+        // recordingStatusRef.current = AudioRecordingStatus.RECORDING
+        recordStartRef.current = Date.now()
+        recordEndRef.current = recordStartRef.current
+      } catch {
+        await onReset()
+      }
+    }
+    impl()
+      .then(() => {})
+      .catch(() => {})
+    return
+  }, [ampTracker, conversationIDKey, dispatch, onReset, ampSV])
+
+  //   // const onSendAudioRecording = React.useCallback(
+  //   //   async (fromStaged: boolean) => {
+  //   //     recordingRef.current = undefined
+  //   //     if (!fromStaged) {
+  //   //       if (Container.isIOS) {
+  //   //         try {
+  //   //           await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+  //   //         } catch {}
+  //   //       } else {
+  //   //         Vibration.vibrate(50)
+  //   //       }
+  //   //     }
+  //   //     audioInfoRef.current = undefined
+  //   //     if (info) {
+  //   //       const duration = audioRecordingDuration(info)
+  //   //       submitRecording(duration)
+  //   //       dispatch(
+  //   //         Chat2Gen.createSendAudioRecording({
+  //   //           amps: info.amps?.getBucketedAmps(duration) ?? [],
+  //   //           conversationIDKey,
+  //   //           duration,
+  //   //           fromStaged,
+  //   //           path: info.path,
+  //   //         })
+  //   //       )
+  //   //     }
+  //   //   },
+  //   //   [dispatch, conversationIDKey]
+  //   // )
+  const sendRecording = React.useCallback(() => {
+    console.log('aaa sendrecording')
+  }, [])
+  const stageRecording = React.useCallback(() => {
+    console.log('aaa stage recording')
+  }, [])
+  const cancelRecording = React.useCallback(() => {
+    console.log('aaa cancel recording')
+  }, [])
+  //   const stopRecording = React.useCallback(async (stopType: AudioStopType) => {
+  //     // recordEndRef.current = Date.now()
+  //     // let nextStatus = recordingStatusRef.current
+  //     // if (nextStatus === AudioRecordingStatus.CANCELLED) {
+  //     //   return
+  //     // }
+  //     // if (locked) {
+  //     //   switch (stopType) {
+  //     //     case AudioStopType.CANCEL:
+  //     //       recordingStatusRef.current = AudioRecordingStatus.CANCELLED
+  //     //       break
+  //     //     case AudioStopType.SEND:
+  //     //       recordingStatusRef.current = AudioRecordingStatus.STOPPED
+  //     //       break
+  //     //     case AudioStopType.STOPBUTTON:
+  //     //       recordingStatusRef.current = AudioRecordingStatus.STAGED
+  //     //       break
+  //     //     case AudioStopType.RELEASE:
+  //     //       break
+  //     //   }
+  //     // } else {
+  //     //   switch (stopType) {
+  //     //     case AudioStopType.CANCEL:
+  //     //       recordingStatusRef.current = AudioRecordingStatus.CANCELLED
+  //     //       break
+  //     //     default:
+  //     //       recordingStatusRef.current = AudioRecordingStatus.STOPPED
+  //     //   }
+  //     // }
+  //     // if (info) {
+  //     //   // don't do anything if we are recording and are in locked mode.
+  //     //   if (showAudioRecording(recordingStatus) && locked) {
+  //     //     return
+  //     //   }
+  //     // }
+  //     // logger.info('stopAudioRecording: stopping recording')
+  //     // const recording = recordingRef.current
+  //     // recording?.setOnRecordingStatusUpdate(null)
+  //     // try {
+  //     //   await recording?.stopAndUnloadAsync()
+  //     // } catch (e) {
+  //     //   console.log('Recoding stopping fail', e)
+  //     // } finally {
+  //     //   recordingRef.current = undefined
+  //     // }
+  //     // if (!info) {
+  //     //   logger.info('stopAudioRecording: no audio record, not sending')
+  //     //   return
+  //     // }
+  //     // let cancelRecord = recordingStatus === AudioRecordingStatus.CANCELLED || stopType === AudioStopType.CANCEL
+  //     // if (audioRecordingDuration(info) < 500 || info.path.length === 0) {
+  //     //   logger.info('stopAudioRecording: recording too short, skipping')
+  //     //   cancelRecord = true
+  //     //   await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error)
+  //     // }
+  //     // if (cancelRecord) {
+  //     //   logger.info('stopAudioRecording: recording cancelled, bailing out')
+  //     //   try {
+  //     //     if (info.path) {
+  //     //       await FileSystem.deleteAsync(info.path, {idempotent: true})
+  //     //     }
+  //     //   } catch (e) {
+  //     //     console.log('Recording delete failed', e)
+  //     //   }
+  //     //   return
+  //     // }
+  //     // if (recordingStatus === AudioRecordingStatus.STAGED) {
+  //     //   logger.info('stopAudioRecording: in staged mode, not sending')
+  //     //   return
+  //     // }
+  //     // await onSendAudioRecording(false)
+  //   }, [])
+
+  //   // on unmount stop
+  //   React.useEffect(() => {
+  //     return () => {
+  //       stopRecording(AudioStopType.CANCEL)
+  //         .then(() => {})
+  //         .catch(() => {})
+  //     }
+  //   }, [stopRecording])
+
+  return {cancelRecording, sendRecording, stageRecording, startRecording}
+}
+
+const AudioRecorder = React.memo(function AudioRecorder(props: Props) {
+  const {conversationIDKey} = props
+
+  const ampSV = useSharedValue(0)
+
+  const {startRecording, cancelRecording, sendRecording, stageRecording} = useRecorder({
+    ampSV,
+    conversationIDKey,
+  })
+
+  // const {audioSend} = useAudioSend({
+  //   stopRecording,
+  //   onSendAudioRecording,
+  // })
+  // const {overlay, updateAmpScale} = useOverlay({
+  //   dragXSV,
+  //   dragYSV,
+  //   locked,
+  //   onCancel,
+  //   setVisible,
+  //   stopRecording,
+  //   visible,
+  // })
+  // const {icon} = useIcon({dragXSV, dragYSV, stopRecording})
+
+  // const {icon, tooltip} = useIconAndTooltip({
+  //   dragXSV,
+  //   dragYSV,
+  //   stopRecording,
+  //   startRecording,
+  //   locked,
+  //   setLocked,
+  // })
+  // const dispatch = Container.useDispatch()
+
+  // const onCancel = React.useCallback(async () => {
+  //   await stopRecording(AudioStopType.CANCEL)
+  // }, [stopRecording])
+
+  // console.log('aaa render audio reocrder', {
+  //   audioSend,
+  //   locked,
+  //   showToolTip,
+  //   visible,
+  // })
+
+  // const {dragXSV, dragYSV, updateAmpScale, overlay, icon, audioSend} = useAnimation()
+  //
+  const {tooltip, flashTip} = useTooltip()
+  // TODO maybr move useIconAndOverlay to this
+  const {icon, overlay} = useIconAndOverlay({
+    cancelRecording,
+    flashTip,
+    sendRecording,
+    stageRecording,
+    startRecording,
+  })
+
+  // TODO
+  const audioSend = null
 
   return (
     <>
-      {showToolTip && (
-        <Portal hostName="convOverlay">
-          <Tooltip onHide={onHideTooltip} />
-        </Portal>
-      )}
-      {audioSend ? <Portal hostName="audioSend">{audioSend}</Portal> : null}
-      <View>
-        <GestureDetector gesture={composedGesture}>
-          <Kb.Icon type="iconfont-mic" style={styles.iconStyle} />
-        </GestureDetector>
-      </View>
-      <Portal hostName="convOverlay">
-        {visible === Visible.HIDDEN ? null : (
-          <Animated.View style={styles.container} pointerEvents="box-none">
-            <BigBackground initialBounce={initialBounce} />
-            <AmpCircle
-              initialBounce={initialBounce}
-              ampScale={ampScale}
-              dragX={dragX}
-              dragY={dragY}
-              locked={locked}
-            />
-            <InnerCircle
-              initialBounce={initialBounce}
-              dragX={dragX}
-              dragY={dragY}
-              locked={locked}
-              stopRecording={stopRecording}
-            />
-            <LockHint initialBounce={initialBounce} dragX={dragX} dragY={dragY} locked={locked} />
-            <CancelHint onCancel={onCancel} initialBounce={initialBounce} locked={locked} dragX={dragX} />
-            <SendRecordingButton
-              initialBounce={initialBounce}
-              locked={locked}
-              stopRecording={stopRecording}
-            />
-            <AudioCounter initialBounce={initialBounce} />
-          </Animated.View>
-        )}
-      </Portal>
+      {tooltip}
+      {audioSend}
+      {icon}
+      {overlay}
     </>
   )
 })
 
-const BigBackground = (props: {initialBounce: SVN}) => {
-  const {initialBounce} = props
+const BigBackground = (props: {fadeSV: SVN}) => {
+  const {fadeSV} = props
   const animatedStyle = useAnimatedStyle(() => ({
-    opacity: initialBounce.value * 0.9,
-    transform: [{scale: initialBounce.value}],
+    opacity: fadeSV.value * 0.9,
+    transform: [{scale: fadeSV.value}],
   }))
   return <Animated.View pointerEvents="box-none" style={[styles.bigBackgroundStyle, animatedStyle]} />
 }
 
-const AmpCircle = (props: {ampScale: SVN; dragX: SVN; dragY: SVN; initialBounce: SVN; locked: boolean}) => {
-  const {ampScale, dragX, dragY, initialBounce, locked} = props
+const AmpCircle = (props: {ampSV: SVN; dragXSV: SVN; dragYSV: SVN; fadeSV: SVN; locked: SVN}) => {
+  const {ampSV, dragXSV, dragYSV, fadeSV, locked} = props
   const animatedStyle = useAnimatedStyle(() => {
     const dragDistanceX = -50
     const dragXOpacity =
-      dragY.value < -10 ? 1 : interpolate(dragX.value, [dragDistanceX, 0], [0, 1], Extrapolation.CLAMP)
+      dragYSV.value < -10 ? 1 : interpolate(dragXSV.value, [dragDistanceX, 0], [0, 1], Extrapolation.CLAMP)
     return {
       opacity: withTiming(dragXOpacity),
-      transform: [{translateY: locked ? 0 : dragY.value}, {scale: ampScale.value * initialBounce.value}],
+      transform: [{translateY: locked.value ? 0 : dragYSV.value}, {scale: ampSV.value * fadeSV.value}],
     }
   })
   return (
     <Animated.View
       style={[
         styles.ampCircleStyle,
-        {backgroundColor: locked ? Styles.globalColors.redLight : Styles.globalColors.blueLighterOrBlueLight},
+        {
+          backgroundColor: locked.value
+            ? Styles.globalColors.redLight
+            : Styles.globalColors.blueLighterOrBlueLight,
+        },
         animatedStyle,
       ]}
     />
@@ -614,47 +710,44 @@ const AmpCircle = (props: {ampScale: SVN; dragX: SVN; dragY: SVN; initialBounce:
 }
 
 const InnerCircle = (props: {
-  dragX: SVN
-  dragY: SVN
-  initialBounce: SVN
-  locked: boolean
-  stopRecording: (stopType: Types.AudioStopType) => void
+  dragXSV: SVN
+  dragYSV: SVN
+  fadeSV: SVN
+  locked: SVN
+  stageRecording: () => void
 }) => {
-  const {dragX, dragY, initialBounce, locked, stopRecording} = props
+  const {dragXSV, dragYSV, fadeSV, locked, stageRecording} = props
   const circleStyle = useAnimatedStyle(() => {
     // worklet needs this locally for some reason
     const dragDistanceX = -50
     const dragXOpacity =
-      dragY.value < -10 ? 1 : interpolate(dragX.value, [dragDistanceX, 0], [0, 1], Extrapolation.CLAMP)
+      dragYSV.value < -10 ? 1 : interpolate(dragXSV.value, [dragDistanceX, 0], [0, 1], Extrapolation.CLAMP)
     return {
       opacity: withTiming(dragXOpacity),
-      transform: [{translateY: locked ? 0 : dragY.value}, {scale: initialBounce.value}],
+      transform: [{translateY: locked.value ? 0 : dragYSV.value}, {scale: fadeSV.value}],
     }
   })
-  const stopStyle = useAnimatedStyle(() => ({opacity: locked ? withTiming(1) : 0}))
-  const onStop = React.useCallback(() => {
-    stopRecording(Types.AudioStopType.STOPBUTTON)
-  }, [stopRecording])
+  const stopStyle = useAnimatedStyle(() => ({opacity: locked.value ? withTiming(1) : 0}))
   return (
     <Animated.View
       style={[
         styles.innerCircleStyle,
-        {backgroundColor: locked ? Styles.globalColors.red : Styles.globalColors.blue},
+        {backgroundColor: locked.value ? Styles.globalColors.red : Styles.globalColors.blue},
         circleStyle,
       ]}
     >
       <AnimatedIcon
         type="iconfont-stop"
         color={Styles.globalColors.whiteOrWhite}
-        onClick={onStop}
+        onClick={stageRecording}
         style={stopStyle}
       />
     </Animated.View>
   )
 }
 
-const LockHint = (props: {initialBounce: SVN; locked: boolean; dragX: SVN; dragY: SVN}) => {
-  const {locked, initialBounce, dragX, dragY} = props
+const LockHint = (props: {fadeSV: SVN; locked: SVN; dragXSV: SVN; dragYSV: SVN}) => {
+  const {locked, fadeSV, dragXSV, dragYSV} = props
   const slideAmount = 150
   const spaceBetween = 20
   const deltaY = 50
@@ -662,32 +755,32 @@ const LockHint = (props: {initialBounce: SVN; locked: boolean; dragX: SVN; dragY
     // worklet needs this locally for some reason
     const dragDistanceX = -50
     const dragXOpacity =
-      dragY.value < -10 ? 1 : interpolate(dragX.value, [dragDistanceX, 0], [0, 1], Extrapolation.CLAMP)
+      dragYSV.value < -10 ? 1 : interpolate(dragXSV.value, [dragDistanceX, 0], [0, 1], Extrapolation.CLAMP)
     return {
-      opacity: locked
+      opacity: locked.value
         ? withTiming(0)
-        : initialBounce.value *
-          interpolate(dragY.value, [dragDistanceX, 0], [0, 1], Extrapolation.CLAMP) *
+        : fadeSV.value *
+          interpolate(dragYSV.value, [dragDistanceX, 0], [0, 1], Extrapolation.CLAMP) *
           dragXOpacity,
-      transform: [{translateX: 10}, {translateY: deltaY - initialBounce.value * slideAmount}],
+      transform: [{translateX: 10}, {translateY: deltaY - fadeSV.value * slideAmount}],
     }
   })
   const lockStyle = useAnimatedStyle(() => {
     // worklet needs this locally for some reason
     const dragDistanceX = -50
     const dragXOpacity =
-      dragY.value < -10 ? 1 : interpolate(dragX.value, [dragDistanceX, 0], [0, 1], Extrapolation.CLAMP)
+      dragYSV.value < -10 ? 1 : interpolate(dragXSV.value, [dragDistanceX, 0], [0, 1], Extrapolation.CLAMP)
 
     return {
-      opacity: locked ? withTiming(0) : initialBounce.value * dragXOpacity,
+      opacity: locked.value ? withTiming(0) : fadeSV.value * dragXOpacity,
       transform: [
         {translateX: 5},
         {
           translateY:
             deltaY +
             spaceBetween -
-            initialBounce.value * slideAmount -
-            interpolate(dragY.value, [dragDistanceX, 0], [spaceBetween, 0], Extrapolation.CLAMP),
+            fadeSV.value * slideAmount -
+            interpolate(dragYSV.value, [dragDistanceX, 0], [spaceBetween, 0], Extrapolation.CLAMP),
         },
       ],
     }
@@ -703,36 +796,49 @@ const LockHint = (props: {initialBounce: SVN; locked: boolean; dragX: SVN; dragY
 const AnimatedIcon = Animated.createAnimatedComponent(Kb.Icon)
 const AnimatedText = Animated.createAnimatedComponent(Kb.Text)
 
-const dragDistanceX = -50
-
-const CancelHint = (props: {initialBounce: SVN; dragX: SVN; locked: boolean; onCancel: () => void}) => {
-  const {locked, initialBounce, onCancel, dragX} = props
-  const deltaX = 180
-  const slideAmount = 220
-  const spaceBetween = 20
-  const arrowStyle = useAnimatedStyle(() => ({
-    opacity: locked
-      ? withTiming(0)
-      : initialBounce.value * interpolate(dragX.value, [dragDistanceX, 0], [0, 1], Extrapolation.CLAMP),
-    transform: [{translateX: deltaX - spaceBetween - initialBounce.value * slideAmount}, {translateY: -4}],
-  }))
-  const closeStyle = useAnimatedStyle(() => ({
-    opacity: locked
-      ? withTiming(0)
-      : initialBounce.value * interpolate(dragX.value, [dragDistanceX, 0], [1, 0], Extrapolation.CLAMP),
-    transform: [{translateX: deltaX - spaceBetween - initialBounce.value * slideAmount}, {translateY: -4}],
-  }))
-  const textStyle = useAnimatedStyle(() => ({
-    opacity: initialBounce.value,
-    transform: [
-      {
-        translateX:
-          deltaX -
-          initialBounce.value * slideAmount -
-          interpolate(dragX.value, [dragDistanceX, 0], [8, 0], Extrapolation.CLAMP),
-      },
-    ],
-  }))
+const CancelHint = (props: {fadeSV: SVN; dragXSV: SVN; locked: SVN; onCancel: () => void}) => {
+  const {locked, fadeSV, onCancel, dragXSV} = props
+  const arrowStyle = useAnimatedStyle(() => {
+    // copy paste so we don't share as many vars between jsc contexts
+    const dragDistanceX = -50
+    const deltaX = 180
+    const slideAmount = 220
+    const spaceBetween = 20
+    return {
+      opacity: locked.value
+        ? withTiming(0)
+        : fadeSV.value * interpolate(dragXSV.value, [dragDistanceX, 0], [0, 1], Extrapolation.CLAMP),
+      transform: [{translateX: deltaX - spaceBetween - fadeSV.value * slideAmount}, {translateY: -4}],
+    }
+  })
+  const closeStyle = useAnimatedStyle(() => {
+    const dragDistanceX = -50
+    const deltaX = 180
+    const slideAmount = 220
+    const spaceBetween = 20
+    return {
+      opacity: locked.value
+        ? withTiming(0)
+        : fadeSV.value * interpolate(dragXSV.value, [dragDistanceX, 0], [1, 0], Extrapolation.CLAMP),
+      transform: [{translateX: deltaX - spaceBetween - fadeSV.value * slideAmount}, {translateY: -4}],
+    }
+  })
+  const textStyle = useAnimatedStyle(() => {
+    const dragDistanceX = -50
+    const deltaX = 180
+    const slideAmount = 220
+    return {
+      opacity: fadeSV.value,
+      transform: [
+        {
+          translateX:
+            deltaX -
+            fadeSV.value * slideAmount -
+            interpolate(dragXSV.value, [dragDistanceX, 0], [8, 0], Extrapolation.CLAMP),
+        },
+      ],
+    }
+  })
 
   return (
     <>
@@ -743,35 +849,28 @@ const CancelHint = (props: {initialBounce: SVN; dragX: SVN; locked: boolean; onC
       />
       <AnimatedIcon sizeType="Tiny" type={'iconfont-close'} style={[styles.cancelHintStyle, closeStyle]} />
       <AnimatedText
-        type={locked ? 'BodySmallPrimaryLink' : 'BodySmall'}
+        type={locked.value ? 'BodySmallPrimaryLink' : 'BodySmall'}
         onClick={onCancel}
         style={[styles.cancelHintStyle, textStyle]}
       >
-        {locked ? 'Cancel' : 'Slide to cancel'}
+        {locked.value ? 'Cancel' : 'Slide to cancel'}
       </AnimatedText>
     </>
   )
 }
 
-const SendRecordingButton = (props: {
-  initialBounce: SVN
-  locked: boolean
-  stopRecording: (stopType: Types.AudioStopType) => void
-}) => {
-  const {initialBounce, locked, stopRecording} = props
+const SendRecordingButton = (props: {fadeSV: SVN; locked: SVN; sendRecording: () => void}) => {
+  const {fadeSV, locked, sendRecording} = props
   const buttonStyle = useAnimatedStyle(() => ({
-    opacity: locked ? initialBounce.value : withTiming(0),
-    transform: [{translateY: withTiming(locked ? -100 : 50)}],
+    opacity: locked.value ? fadeSV.value : withTiming(0),
+    transform: [{translateY: withTiming(locked.value ? -100 : 50)}],
   }))
-  const onSend = React.useCallback(() => {
-    stopRecording(Types.AudioStopType.SEND)
-  }, [stopRecording])
   return (
     <Animated.View style={[styles.sendRecordingButtonStyle, buttonStyle]}>
       <Kb.Icon
         padding="tiny"
         color={Styles.globalColors.whiteOrWhite}
-        onClick={onSend}
+        onClick={sendRecording}
         sizeType="Small"
         type="iconfont-arrow-full-up"
       />
@@ -779,8 +878,8 @@ const SendRecordingButton = (props: {
   )
 }
 
-const AudioCounter = (props: {initialBounce: SVN}) => {
-  const {initialBounce} = props
+const AudioCounter = (props: {fadeSV: SVN}) => {
+  const {fadeSV} = props
   const [seconds, setSeconds] = React.useState(0)
   const startTime = React.useRef(Date.now()).current
   React.useEffect(() => {
@@ -790,7 +889,7 @@ const AudioCounter = (props: {initialBounce: SVN}) => {
     return () => clearTimeout(timer)
   }, [seconds, startTime])
   const durationStyle = useAnimatedStyle(() => ({
-    opacity: initialBounce.value,
+    opacity: fadeSV.value,
   }))
   return (
     <Animated.View style={[styles.audioCounterStyle, durationStyle]}>

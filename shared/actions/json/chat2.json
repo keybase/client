@@ -813,8 +813,9 @@
     },
     "sendAudioRecording": {
       "conversationIDKey": "Types.ConversationIDKey",
-      "fromStaged": "boolean",
-      "info": "Types.AudioRecordingInfo"
+      "duration": "number",
+      "path": "string",
+      "amps": "Array<number>"
     },
     "loadNextBotPage": {
       "_description": "loads next page of featured bots from backend",

@@ -1,15 +1,15 @@
 import React from 'react'
-import * as Types from '../../constants/types/chat2'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import * as Constants from '../../constants/chat2'
 import AudioPlayer from './audio-player'
 import {Portal} from '@gorhom/portal'
 
 type Props = {
-  audioInfoRef: React.MutableRefObject<Types.AudioRecordingInfo | undefined>
-  stopRecording: (stopType: Types.AudioStopType) => Promise<void>
-  sendAudioRecording: (fromStaged: boolean) => Promise<void>
+  cancelRecording: () => void
+  sendRecording: () => void
+  duration: number
+  amps: Array<number>
+  path: string
 }
 
 export const ShowAudioSendContext = React.createContext({
@@ -22,39 +22,21 @@ export const AudioSendWrapper = () => {
 }
 
 const AudioSend = (props: Props) => {
-  const {audioInfoRef, stopRecording, sendAudioRecording} = props
-  const audioRecording = audioInfoRef.current
-  const onCancel = React.useCallback(async () => {
-    await stopRecording(Types.AudioStopType.CANCEL)
-  }, [stopRecording])
-  const onSend = React.useCallback(async () => {
-    await sendAudioRecording(true)
-  }, [sendAudioRecording])
+  const {cancelRecording, sendRecording, duration, amps, path} = props
 
   // render
   let player = <Kb.Text type="Body">No recording available</Kb.Text>
-  if (audioRecording) {
-    const audioUrl = `file://${audioRecording.path}`
-    const duration = Constants.audioRecordingDuration(audioRecording)
-    player = (
-      <AudioPlayer
-        big={false}
-        duration={duration}
-        maxWidth={120}
-        url={audioUrl}
-        visAmps={audioRecording.amps ? audioRecording.amps.getBucketedAmps(duration) : []}
-      />
-    )
-  }
+  const audioUrl = `file://${path}`
+  player = <AudioPlayer big={false} duration={duration} maxWidth={120} url={audioUrl} visAmps={amps} />
   return (
     <Kb.Box2 direction="horizontal" style={styles.container} fullWidth={true}>
       <Kb.Box2 direction="horizontal" alignItems="center">
         <Kb.Box style={styles.icon}>
-          <Kb.Icon type="iconfont-remove" onClick={onCancel} />
+          <Kb.Icon type="iconfont-remove" onClick={cancelRecording} />
         </Kb.Box>
         {player}
       </Kb.Box2>
-      <Kb.Button type="Default" small={true} style={styles.send} onClick={onSend} label="Send" />
+      <Kb.Button type="Default" small={true} style={styles.send} onClick={sendRecording} label="Send" />
     </Kb.Box2>
   )
 }
