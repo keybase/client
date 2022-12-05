@@ -29,7 +29,7 @@ import {Audio, InterruptionModeIOS, InterruptionModeAndroid} from 'expo-av'
 import logger from '../../logger'
 import * as Haptics from 'expo-haptics'
 import * as FileSystem from 'expo-file-system'
-// import AudioSend, {ShowAudioSendContext} from './audio-send'
+import {useAudioSend} from './audio-send'
 
 type SVN = SharedValue<number>
 
@@ -231,7 +231,7 @@ const useIconAndOverlay = (p: {
       if (e.translationX < maxCancelDrift) {
         runOnJS(onPanCancel)()
       } else if (e.translationY < maxLockDrift) {
-        lockedSV.value = withTiming(1, {duration: 200})
+        lockedSV.value = 1
         runOnJS(setLocked)(true)
       }
     })
@@ -377,8 +377,8 @@ const useRecorder = (p: {conversationIDKey: Types.ConversationIDKey; ampSV: SVN}
   }, [])
 
   const onReset = React.useCallback(
-    async (isError?: boolean) => {
-      console.log('aaa everything reset', {isError})
+    async (why: string) => {
+      console.log('aaa everything reset', why)
       try {
         await stopRecording()
       } catch {}
@@ -428,7 +428,7 @@ const useRecorder = (p: {conversationIDKey: Types.ConversationIDKey; ampSV: SVN}
       return false
     }
     const impl = async () => {
-      await onReset(false)
+      await onReset('about to record')
       const goodPerms = await checkPerms()
       if (!goodPerms) {
         throw new Error("Couldn't get audio permissions")
@@ -465,7 +465,7 @@ const useRecorder = (p: {conversationIDKey: Types.ConversationIDKey; ampSV: SVN}
       .then(() => {})
       .catch(e => {
         console.log('aaa start failed', e)
-        onReset()
+        onReset('record exception')
           .then(() => {})
           .catch(() => {})
       })
@@ -492,48 +492,60 @@ const useRecorder = (p: {conversationIDKey: Types.ConversationIDKey; ampSV: SVN}
       } else {
         console.log('aaa bail on too short or not path', duration, path, amps)
       }
-      await onReset(false)
+      await onReset('done sending, clean reset')
     }
     impl()
       .then(() => {})
       .catch(() => {})
   }, [dispatch, conversationIDKey, ampTracker, onReset, stopRecording])
 
+  const cancelRecording = React.useCallback(() => {
+    console.log('aaa cancel recording')
+    onReset('cancel recording')
+      .then(() => {})
+      .catch(() => {})
+  }, [onReset])
+
+  const {audioSend, setShowAudioSend} = useAudioSend({
+    ampTracker,
+    cancelRecording,
+    duration: (recordEndRef.current || recordStartRef.current) - recordStartRef.current,
+    path: pathRef.current,
+    sendRecording,
+  })
+
   const stageRecording = React.useCallback(() => {
     const impl = async () => {
       console.log('aaa stage recording')
       await stopRecording()
       setStaged(true)
+      setShowAudioSend(true)
     }
     impl()
       .then(() => {})
       .catch(() => {})
   }, [stopRecording, setStaged])
 
-  const cancelRecording = React.useCallback(() => {
-    console.log('aaa cancel recording')
-    onReset()
-      .then(() => {})
-      .catch(() => {})
-  }, [onReset])
-
   // on unmount cleanup
   React.useEffect(() => {
+    console.log('aaaa useefect onreset mount')
     return () => {
-      onReset(false)
+      console.log('aaaa useefect onreset UNmount')
+      setShowAudioSend(false)
+      onReset('unmount')
         .then(() => {})
         .catch(() => {})
     }
   }, [onReset])
 
-  return {cancelRecording, sendRecording, stageRecording, staged, startRecording}
+  return {cancelRecording, sendRecording, stageRecording, staged, startRecording, audioSend}
 }
 
 const AudioRecorder = React.memo(function AudioRecorder(props: Props) {
   const {conversationIDKey} = props
   const ampSV = useSharedValue(0)
 
-  const {startRecording, cancelRecording, sendRecording, stageRecording} = useRecorder({
+  const {startRecording, cancelRecording, sendRecording, stageRecording, audioSend} = useRecorder({
     ampSV,
     conversationIDKey,
   })
@@ -546,9 +558,6 @@ const AudioRecorder = React.memo(function AudioRecorder(props: Props) {
     stageRecording,
     startRecording,
   })
-
-  // TODO
-  const audioSend = null
 
   return (
     <>

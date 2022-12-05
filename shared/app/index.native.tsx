@@ -88,20 +88,18 @@ const Keybase = () => {
   ensureStore()
   if (!_store) return null // never happens
   return (
-    <React.StrictMode>
-      <GestureHandlerRootView style={styles.gesture}>
-        <Provider store={_store.store}>
-          <PortalProvider>
-            <SafeAreaProvider>
-              <Styles.StyleContext.Provider value={Styles.yesFixOverdraw}>
-                <Main />
-              </Styles.StyleContext.Provider>
-            </SafeAreaProvider>
-          </PortalProvider>
-          <NativeEventsToRedux />
-        </Provider>
-      </GestureHandlerRootView>
-    </React.StrictMode>
+    <GestureHandlerRootView style={styles.gesture}>
+      <Provider store={_store.store}>
+        <PortalProvider>
+          <SafeAreaProvider>
+            <Styles.StyleContext.Provider value={Styles.yesFixOverdraw}>
+              <Main />
+            </Styles.StyleContext.Provider>
+          </SafeAreaProvider>
+        </PortalProvider>
+        <NativeEventsToRedux />
+      </Provider>
+    </GestureHandlerRootView>
   )
 }
 

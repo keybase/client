@@ -3,13 +3,20 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import AudioPlayer from './audio-player'
 import {Portal} from '@gorhom/portal'
+import {AmpTracker} from './amptracker'
 
 type Props = {
   cancelRecording: () => void
   sendRecording: () => void
   duration: number
-  amps: Array<number>
+  ampTracker: AmpTracker
   path: string
+}
+
+export const useAudioSend = (p: Props) => {
+  const {showAudioSend, setShowAudioSend} = React.useContext(ShowAudioSendContext)
+  const audioSend = showAudioSend ? <AudioSend {...p} /> : null
+  return {audioSend, setShowAudioSend}
 }
 
 export const ShowAudioSendContext = React.createContext({
@@ -22,12 +29,20 @@ export const AudioSendWrapper = () => {
 }
 
 const AudioSend = (props: Props) => {
-  const {cancelRecording, sendRecording, duration, amps, path} = props
+  const {cancelRecording, sendRecording, duration, ampTracker, path} = props
 
   // render
   let player = <Kb.Text type="Body">No recording available</Kb.Text>
   const audioUrl = `file://${path}`
-  player = <AudioPlayer big={false} duration={duration} maxWidth={120} url={audioUrl} visAmps={amps} />
+  player = (
+    <AudioPlayer
+      big={false}
+      duration={duration}
+      maxWidth={120}
+      url={audioUrl}
+      visAmps={ampTracker.getBucketedAmps(duration)}
+    />
+  )
   return (
     <Kb.Box2 direction="horizontal" style={styles.container} fullWidth={true}>
       <Kb.Box2 direction="horizontal" alignItems="center">
