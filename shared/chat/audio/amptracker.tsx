@@ -9,7 +9,7 @@ export class AmpTracker {
 
   addAmp = (amp: number) => {
     this.amps.push(amp)
-    console.log('aaa amps now', this.amps.length)
+    console.log('aaa amps now', this.amps.length, amp)
   }
 
   private curve = (v: number) => {

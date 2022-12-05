@@ -133,8 +133,9 @@ const useIconAndOverlay = (p: {
   sendRecording: () => void
   stageRecording: () => void
   cancelRecording: () => void
+  ampSV: SVN
 }) => {
-  const {stageRecording, startRecording, sendRecording, cancelRecording, flashTip} = p
+  const {stageRecording, startRecording, sendRecording, cancelRecording, flashTip, ampSV} = p
   const [panEnabled, setPanEnabled] = React.useState(true)
   const [visible, setVisible] = React.useState(Visible.HIDDEN)
   const [locked, setLocked] = React.useState(false)
@@ -242,17 +243,17 @@ const useIconAndOverlay = (p: {
   )
 
   const fadeSV = useSharedValue(0)
-  const ampSV = useSharedValue(0)
+  // const ampSV = useSharedValue(0)
 
-  const updateAmpScale = React.useCallback(
-    (amp: number) => {
-      const maxScale = 8
-      const minScale = 3
-      const scaled = minScale + amp * (maxScale - minScale)
-      ampSV.value = withTiming(scaled, {duration: 100})
-    },
-    [ampSV]
-  )
+  // const updateAmpScale = React.useCallback(
+  //   (amp: number) => {
+  //     const maxScale = 8
+  //     const minScale = 3
+  //     const scaled = minScale + amp * (maxScale - minScale)
+  //     ampSV.value = withTiming(scaled, {duration: 100})
+  //   },
+  //   [ampSV]
+  // )
   React.useEffect(() => {
     switch (visible) {
       case Visible.SHOW:
@@ -290,7 +291,7 @@ const useIconAndOverlay = (p: {
       </Portal>
     )
 
-  return {icon, locked, overlay, updateAmpScale}
+  return {icon, locked, overlay /*, updateAmpScale*/}
 }
 
 // const useAudioSend = (p: {
@@ -623,6 +624,7 @@ const AudioRecorder = React.memo(function AudioRecorder(props: Props) {
   const {tooltip, flashTip} = useTooltip()
   // TODO maybr move useIconAndOverlay to this
   const {icon, overlay} = useIconAndOverlay({
+    ampSV,
     cancelRecording,
     flashTip,
     sendRecording,
