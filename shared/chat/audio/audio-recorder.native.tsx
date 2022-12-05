@@ -20,12 +20,12 @@ import Animated, {
 import {AmpTracker} from './amptracker'
 import {Gesture, GestureDetector} from 'react-native-gesture-handler'
 import {Portal} from '@gorhom/portal'
-import {View, Vibration} from 'react-native'
+import {View} from 'react-native'
 import {formatAudioRecordDuration} from '../../util/timestamp'
 import {Audio, InterruptionModeIOS, InterruptionModeAndroid} from 'expo-av'
 import logger from '../../logger'
 import * as Haptics from 'expo-haptics'
-// import * as FileSystem from 'expo-file-system'
+import * as FileSystem from 'expo-file-system'
 // import AudioSend, {ShowAudioSendContext} from './audio-send'
 
 type SVN = SharedValue<number>
@@ -193,17 +193,23 @@ const useIconAndOverlay = (p: {
   }, [])
   const maxCancelDrift = -120
   const maxLockDrift = -100
+  const startedSV = useSharedValue(0)
   const panGesture = Gesture.Pan()
     .minDistance(0)
     .minPointers(1)
     .maxPointers(1)
     .activateAfterLongPress(200)
     .onStart(() => {
-      console.log('aaa pan onStart')
+      // we get this multiple times for some reason
+      if (startedSV.value) {
+        return
+      }
+
+      startedSV.value = 1
       runOnJS(onPanStart)()
     })
     .onFinalize((_e, success) => {
-      console.log('aaa pan onFinalize', success)
+      startedSV.value = 0
       runOnJS(onPanFinalize)(success, lockedSV.value === 1)
     })
     .onUpdate(e => {
@@ -330,17 +336,20 @@ const useIconAndOverlay = (p: {
 // const useAnimation = () => {
 // }
 
-const vibrate = (_short: boolean) => {
-  if (Container.isIOS) {
+const vibrate = (short: boolean) => {
+  if (short) {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
       .then(() => {})
       .catch(() => {})
   } else {
-    Vibration.vibrate(50)
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+      .then(() => {})
+      .catch(() => {})
   }
 }
 
 const makeRecorder = async (onRecordingStatusUpdate: (s: Audio.RecordingStatus) => void) => {
+  console.log('aaa making recorder')
   vibrate(true)
 
   await Audio.setAudioModeAsync({
@@ -378,6 +387,7 @@ const makeRecorder = async (onRecordingStatusUpdate: (s: Audio.RecordingStatus) 
   })
   recording.setProgressUpdateInterval(100)
   recording.setOnRecordingStatusUpdate(onRecordingStatusUpdate)
+  console.log('aaa making recorder success')
   return recording
 }
 
@@ -388,25 +398,47 @@ const useRecorder = (p: {conversationIDKey: Types.ConversationIDKey; ampSV: SVN}
   const recordStartRef = React.useRef(0)
   const recordEndRef = React.useRef(0)
   const pathRef = React.useRef('')
-  // const recordingStatusRef = React.useRef(AudioRecordingStatus.INITIAL)
   const dispatch = Container.useDispatch()
   const ampTracker = React.useRef(new AmpTracker()).current
+  const [staged, setStaged] = React.useState(false)
 
-  const onReset = React.useCallback(async () => {
-    const r = recordingRef.current
-    try {
-      r?.setOnRecordingStatusUpdate(null)
-    } catch {}
-    try {
-      await r?.stopAndUnloadAsync()
-    } catch {}
-    recordingRef.current = undefined
-    ampTracker.reset()
-    pathRef.current = ''
-    // recordingStatusRef.current = AudioRecordingStatus.INITIAL
-    recordStartRef.current = 0
-    recordEndRef.current = 0
-  }, [ampTracker])
+  const stopRecording = React.useCallback(async () => {
+    recordEndRef.current = Date.now()
+    const recording = recordingRef.current
+    if (recording) {
+      console.log('aaa recording no updates')
+      recording.setOnRecordingStatusUpdate(null)
+      try {
+        console.log('aaa recording STOP')
+        await recording.stopAndUnloadAsync()
+      } catch (e) {
+        console.log('Recoding stopping fail', e)
+      } finally {
+        recordingRef.current = undefined
+      }
+    }
+  }, [])
+
+  const onReset = React.useCallback(
+    async (isError?: boolean) => {
+      console.log('aaa everything reset', {isError})
+      try {
+        await stopRecording()
+      } catch {}
+      ampTracker.reset()
+      if (pathRef.current) {
+        try {
+          await FileSystem.deleteAsync(pathRef.current, {idempotent: true})
+        } catch {}
+        pathRef.current = ''
+      }
+      recordStartRef.current = 0
+      recordEndRef.current = 0
+      setStaged(false)
+      console.log('aaa everything reset done')
+    },
+    [setStaged, ampTracker, stopRecording]
+  )
 
   const startRecording = React.useCallback(() => {
     console.log('aaa start recording')
@@ -423,7 +455,7 @@ const useRecorder = (p: {conversationIDKey: Types.ConversationIDKey; ampSV: SVN}
         }
         return true
       } catch (_error) {
-        const error = _error as any
+        const error = _error as {message: string}
         logger.info('failed to get audio perms: ' + error.message)
         dispatch(
           Chat2Gen.createSetCommandStatusInfo({
@@ -439,11 +471,10 @@ const useRecorder = (p: {conversationIDKey: Types.ConversationIDKey; ampSV: SVN}
       return false
     }
     const impl = async () => {
-      await onReset()
+      await onReset(false)
       const goodPerms = await checkPerms()
       if (!goodPerms) {
-        await onReset()
-        return
+        throw new Error("Couldn't get audio permissions")
       }
 
       const onRecordingStatusUpdate = (status: Audio.RecordingStatus) => {
@@ -453,154 +484,92 @@ const useRecorder = (p: {conversationIDKey: Types.ConversationIDKey; ampSV: SVN}
         }
         const amp = 10 ** (inamp * 0.05)
         ampTracker.addAmp(amp)
-        ampSV.value = amp
+        const maxScale = 8
+        const minScale = 3
+        ampSV.value = withTiming(minScale + amp * (maxScale - minScale), {duration: 100})
       }
 
       const recording = await makeRecorder(onRecordingStatusUpdate)
       const audioPath = recording.getURI()?.substring('file://'.length)
       if (!audioPath) {
-        await onReset()
         throw new Error("Couldn't start audio recording")
       }
       pathRef.current = audioPath
+      console.log('aaa old recording', recordingRef.current)
       recordingRef.current = recording
 
-      try {
-        await recording.startAsync()
-        // recordingStatusRef.current = AudioRecordingStatus.RECORDING
-        recordStartRef.current = Date.now()
-        recordEndRef.current = recordStartRef.current
-      } catch {
-        await onReset()
+      console.log('aaa recording start async')
+      await recording.startAsync()
+      console.log('aaa recording start async success')
+      recordStartRef.current = Date.now()
+      recordEndRef.current = recordStartRef.current
+    }
+    impl()
+      .then(() => {})
+      .catch(e => {
+        console.log('aaa start failed', e)
+        onReset()
+          .then(() => {})
+          .catch(() => {})
+      })
+    return
+  }, [ampTracker, conversationIDKey, dispatch, onReset, ampSV])
+
+  const sendRecording = React.useCallback(() => {
+    const impl = async () => {
+      console.log('aaa sendrecording')
+      await stopRecording()
+      vibrate(false)
+      const duration = (recordEndRef.current || recordStartRef.current) - recordStartRef.current
+      const path = pathRef.current
+      const amps = ampTracker.getBucketedAmps(duration)
+      if (duration > 500 && path && amps.length) {
+        dispatch(
+          Chat2Gen.createSendAudioRecording({
+            amps,
+            conversationIDKey,
+            duration,
+            path,
+          })
+        )
+      } else {
+        console.log('aaa bail on too short or not path', duration, path, amps)
       }
+      await onReset(false)
     }
     impl()
       .then(() => {})
       .catch(() => {})
-    return
-  }, [ampTracker, conversationIDKey, dispatch, onReset, ampSV])
+  }, [dispatch, conversationIDKey, ampTracker, onReset, stopRecording])
 
-  //   // const onSendAudioRecording = React.useCallback(
-  //   //   async (fromStaged: boolean) => {
-  //   //     recordingRef.current = undefined
-  //   //     if (!fromStaged) {
-  //   //       if (Container.isIOS) {
-  //   //         try {
-  //   //           await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
-  //   //         } catch {}
-  //   //       } else {
-  //   //         Vibration.vibrate(50)
-  //   //       }
-  //   //     }
-  //   //     audioInfoRef.current = undefined
-  //   //     if (info) {
-  //   //       const duration = audioRecordingDuration(info)
-  //   //       submitRecording(duration)
-  //   //       dispatch(
-  //   //         Chat2Gen.createSendAudioRecording({
-  //   //           amps: info.amps?.getBucketedAmps(duration) ?? [],
-  //   //           conversationIDKey,
-  //   //           duration,
-  //   //           fromStaged,
-  //   //           path: info.path,
-  //   //         })
-  //   //       )
-  //   //     }
-  //   //   },
-  //   //   [dispatch, conversationIDKey]
-  //   // )
-  const sendRecording = React.useCallback(() => {
-    console.log('aaa sendrecording')
-  }, [])
   const stageRecording = React.useCallback(() => {
-    console.log('aaa stage recording')
-  }, [])
+    const impl = async () => {
+      console.log('aaa stage recording')
+      await stopRecording()
+      setStaged(true)
+    }
+    impl()
+      .then(() => {})
+      .catch(() => {})
+  }, [stopRecording, setStaged])
+
   const cancelRecording = React.useCallback(() => {
     console.log('aaa cancel recording')
-  }, [])
-  //   const stopRecording = React.useCallback(async (stopType: AudioStopType) => {
-  //     // recordEndRef.current = Date.now()
-  //     // let nextStatus = recordingStatusRef.current
-  //     // if (nextStatus === AudioRecordingStatus.CANCELLED) {
-  //     //   return
-  //     // }
-  //     // if (locked) {
-  //     //   switch (stopType) {
-  //     //     case AudioStopType.CANCEL:
-  //     //       recordingStatusRef.current = AudioRecordingStatus.CANCELLED
-  //     //       break
-  //     //     case AudioStopType.SEND:
-  //     //       recordingStatusRef.current = AudioRecordingStatus.STOPPED
-  //     //       break
-  //     //     case AudioStopType.STOPBUTTON:
-  //     //       recordingStatusRef.current = AudioRecordingStatus.STAGED
-  //     //       break
-  //     //     case AudioStopType.RELEASE:
-  //     //       break
-  //     //   }
-  //     // } else {
-  //     //   switch (stopType) {
-  //     //     case AudioStopType.CANCEL:
-  //     //       recordingStatusRef.current = AudioRecordingStatus.CANCELLED
-  //     //       break
-  //     //     default:
-  //     //       recordingStatusRef.current = AudioRecordingStatus.STOPPED
-  //     //   }
-  //     // }
-  //     // if (info) {
-  //     //   // don't do anything if we are recording and are in locked mode.
-  //     //   if (showAudioRecording(recordingStatus) && locked) {
-  //     //     return
-  //     //   }
-  //     // }
-  //     // logger.info('stopAudioRecording: stopping recording')
-  //     // const recording = recordingRef.current
-  //     // recording?.setOnRecordingStatusUpdate(null)
-  //     // try {
-  //     //   await recording?.stopAndUnloadAsync()
-  //     // } catch (e) {
-  //     //   console.log('Recoding stopping fail', e)
-  //     // } finally {
-  //     //   recordingRef.current = undefined
-  //     // }
-  //     // if (!info) {
-  //     //   logger.info('stopAudioRecording: no audio record, not sending')
-  //     //   return
-  //     // }
-  //     // let cancelRecord = recordingStatus === AudioRecordingStatus.CANCELLED || stopType === AudioStopType.CANCEL
-  //     // if (audioRecordingDuration(info) < 500 || info.path.length === 0) {
-  //     //   logger.info('stopAudioRecording: recording too short, skipping')
-  //     //   cancelRecord = true
-  //     //   await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error)
-  //     // }
-  //     // if (cancelRecord) {
-  //     //   logger.info('stopAudioRecording: recording cancelled, bailing out')
-  //     //   try {
-  //     //     if (info.path) {
-  //     //       await FileSystem.deleteAsync(info.path, {idempotent: true})
-  //     //     }
-  //     //   } catch (e) {
-  //     //     console.log('Recording delete failed', e)
-  //     //   }
-  //     //   return
-  //     // }
-  //     // if (recordingStatus === AudioRecordingStatus.STAGED) {
-  //     //   logger.info('stopAudioRecording: in staged mode, not sending')
-  //     //   return
-  //     // }
-  //     // await onSendAudioRecording(false)
-  //   }, [])
+    onReset()
+      .then(() => {})
+      .catch(() => {})
+  }, [onReset])
 
-  //   // on unmount stop
-  //   React.useEffect(() => {
-  //     return () => {
-  //       stopRecording(AudioStopType.CANCEL)
-  //         .then(() => {})
-  //         .catch(() => {})
-  //     }
-  //   }, [stopRecording])
+  // on unmount cleanup
+  React.useEffect(() => {
+    return () => {
+      onReset(false)
+        .then(() => {})
+        .catch(() => {})
+    }
+  }, [onReset])
 
-  return {cancelRecording, sendRecording, stageRecording, startRecording}
+  return {cancelRecording, sendRecording, stageRecording, staged, startRecording}
 }
 
 const AudioRecorder = React.memo(function AudioRecorder(props: Props) {
@@ -608,7 +577,7 @@ const AudioRecorder = React.memo(function AudioRecorder(props: Props) {
 
   const ampSV = useSharedValue(0)
 
-  const {startRecording, cancelRecording, sendRecording, stageRecording} = useRecorder({
+  const {startRecording, cancelRecording, sendRecording, stageRecording /*, staged*/} = useRecorder({
     ampSV,
     conversationIDKey,
   })
