@@ -9,7 +9,6 @@ export class AmpTracker {
 
   addAmp = (amp: number) => {
     this.amps.push(amp)
-    console.log('aaa amps now', this.amps.length, amp)
   }
 
   private curve = (v: number) => {
@@ -53,7 +52,6 @@ export class AmpTracker {
 
   reset = () => {
     this.amps = []
-    console.log('aaa amps now clear')
   }
 }
 

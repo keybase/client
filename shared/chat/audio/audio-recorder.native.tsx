@@ -4,10 +4,13 @@ import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as Kb from '../../common-adapters/mobile.native'
 import * as React from 'react'
 import * as Styles from '../../styles'
+// we need to use the raw colors to animate
+import {colors} from '../../styles/colors'
 import type * as Types from '../../constants/types/chat2'
 import Animated, {
   Extrapolation,
   interpolate,
+  interpolateColor,
   runOnJS,
   type SharedValue,
   useAnimatedStyle,
@@ -228,7 +231,7 @@ const useIconAndOverlay = (p: {
       if (e.translationX < maxCancelDrift) {
         runOnJS(onPanCancel)()
       } else if (e.translationY < maxLockDrift) {
-        lockedSV.value = 1
+        lockedSV.value = withTiming(1, {duration: 200})
         runOnJS(setLocked)(true)
       }
     })
@@ -243,17 +246,6 @@ const useIconAndOverlay = (p: {
   )
 
   const fadeSV = useSharedValue(0)
-  // const ampSV = useSharedValue(0)
-
-  // const updateAmpScale = React.useCallback(
-  //   (amp: number) => {
-  //     const maxScale = 8
-  //     const minScale = 3
-  //     const scaled = minScale + amp * (maxScale - minScale)
-  //     ampSV.value = withTiming(scaled, {duration: 100})
-  //   },
-  //   [ampSV]
-  // )
   React.useEffect(() => {
     switch (visible) {
       case Visible.SHOW:
@@ -275,67 +267,31 @@ const useIconAndOverlay = (p: {
       <Portal hostName="convOverlay">
         <Animated.View style={styles.container} pointerEvents="box-none">
           <BigBackground fadeSV={fadeSV} />
-          <AmpCircle fadeSV={fadeSV} ampSV={ampSV} dragXSV={dragXSV} dragYSV={dragYSV} locked={lockedSV} />
+          <AmpCircle fadeSV={fadeSV} ampSV={ampSV} dragXSV={dragXSV} dragYSV={dragYSV} lockedSV={lockedSV} />
           <InnerCircle
             fadeSV={fadeSV}
             dragXSV={dragXSV}
             dragYSV={dragYSV}
-            locked={lockedSV}
+            locked={locked}
+            lockedSV={lockedSV}
             stageRecording={stageRecording}
           />
-          <LockHint fadeSV={fadeSV} dragXSV={dragXSV} dragYSV={dragYSV} locked={lockedSV} />
-          <CancelHint onCancel={onCancelRecording} fadeSV={fadeSV} locked={lockedSV} dragXSV={dragXSV} />
-          <SendRecordingButton fadeSV={fadeSV} locked={lockedSV} sendRecording={onSendRecording} />
+          <LockHint fadeSV={fadeSV} dragXSV={dragXSV} dragYSV={dragYSV} lockedSV={lockedSV} />
+          <CancelHint
+            onCancel={onCancelRecording}
+            fadeSV={fadeSV}
+            locked={locked}
+            lockedSV={lockedSV}
+            dragXSV={dragXSV}
+          />
+          <SendRecordingButton fadeSV={fadeSV} lockedSV={lockedSV} sendRecording={onSendRecording} />
           <AudioCounter fadeSV={fadeSV} />
         </Animated.View>
       </Portal>
     )
 
-  return {icon, locked, overlay /*, updateAmpScale*/}
+  return {icon, overlay}
 }
-
-// const useAudioSend = (p: {
-//   stopRecording: any // TODO
-//   onSendAudioRecording: any // TODO
-// }) => {
-//   const {stopRecording, onSendAudioRecording} = p
-//   const {showAudioSend, setShowAudioSend} = React.useContext(ShowAudioSendContext)
-
-//   const cancelRecording = React.useCallback(() => {
-//     stopRecording(AudioStopType.CANCEL)
-//       .then(() => {})
-//       .catch(() => {})
-//   }, [stopRecording])
-//   const sendStagedRecording = React.useCallback(() => {
-//     onSendAudioRecording(true)
-//       .then(() => {})
-//       .catch(() => {})
-//   }, [onSendAudioRecording])
-
-//   const audioSend =
-//     recordingStatus === AudioRecordingStatus.STAGED ? (
-//       <Portal hostName="audioSend">
-//         <AudioSend
-//           cancelRecording={cancelRecording}
-//           sendRecording={sendStagedRecording}
-//           duration={duration}
-//           amps={info.amps}
-//           path={info.path}
-//         />
-//       </Portal>
-//     ) : null
-
-//   // update context so the input can show it
-//   if (!!audioSend !== showAudioSend) {
-//     setShowAudioSend(!!audioSend)
-//   }
-
-//   return {audioSend}
-// }
-
-// Hook for gestures and animations
-// const useAnimation = () => {
-// }
 
 const vibrate = (short: boolean) => {
   if (short) {
@@ -575,54 +531,13 @@ const useRecorder = (p: {conversationIDKey: Types.ConversationIDKey; ampSV: SVN}
 
 const AudioRecorder = React.memo(function AudioRecorder(props: Props) {
   const {conversationIDKey} = props
-
   const ampSV = useSharedValue(0)
 
-  const {startRecording, cancelRecording, sendRecording, stageRecording /*, staged*/} = useRecorder({
+  const {startRecording, cancelRecording, sendRecording, stageRecording} = useRecorder({
     ampSV,
     conversationIDKey,
   })
-
-  // const {audioSend} = useAudioSend({
-  //   stopRecording,
-  //   onSendAudioRecording,
-  // })
-  // const {overlay, updateAmpScale} = useOverlay({
-  //   dragXSV,
-  //   dragYSV,
-  //   locked,
-  //   onCancel,
-  //   setVisible,
-  //   stopRecording,
-  //   visible,
-  // })
-  // const {icon} = useIcon({dragXSV, dragYSV, stopRecording})
-
-  // const {icon, tooltip} = useIconAndTooltip({
-  //   dragXSV,
-  //   dragYSV,
-  //   stopRecording,
-  //   startRecording,
-  //   locked,
-  //   setLocked,
-  // })
-  // const dispatch = Container.useDispatch()
-
-  // const onCancel = React.useCallback(async () => {
-  //   await stopRecording(AudioStopType.CANCEL)
-  // }, [stopRecording])
-
-  // console.log('aaa render audio reocrder', {
-  //   audioSend,
-  //   locked,
-  //   showToolTip,
-  //   visible,
-  // })
-
-  // const {dragXSV, dragYSV, updateAmpScale, overlay, icon, audioSend} = useAnimation()
-  //
   const {tooltip, flashTip} = useTooltip()
-  // TODO maybr move useIconAndOverlay to this
   const {icon, overlay} = useIconAndOverlay({
     ampSV,
     cancelRecording,
@@ -654,71 +569,56 @@ const BigBackground = (props: {fadeSV: SVN}) => {
   return <Animated.View pointerEvents="box-none" style={[styles.bigBackgroundStyle, animatedStyle]} />
 }
 
-const AmpCircle = (props: {ampSV: SVN; dragXSV: SVN; dragYSV: SVN; fadeSV: SVN; locked: SVN}) => {
-  const {ampSV, dragXSV, dragYSV, fadeSV, locked} = props
+const AmpCircle = (props: {ampSV: SVN; dragXSV: SVN; dragYSV: SVN; fadeSV: SVN; lockedSV: SVN}) => {
+  const {ampSV, dragXSV, dragYSV, fadeSV, lockedSV} = props
   const animatedStyle = useAnimatedStyle(() => {
     const dragDistanceX = -50
     const dragXOpacity =
       dragYSV.value < -10 ? 1 : interpolate(dragXSV.value, [dragDistanceX, 0], [0, 1], Extrapolation.CLAMP)
     return {
+      backgroundColor: interpolateColor(lockedSV.value, [0, 1], [colors.blue, colors.red]),
       opacity: withTiming(dragXOpacity),
-      transform: [{translateY: locked.value ? 0 : dragYSV.value}, {scale: ampSV.value * fadeSV.value}],
+      transform: [{translateY: lockedSV.value ? 0 : dragYSV.value}, {scale: ampSV.value * fadeSV.value}],
     }
   })
-  return (
-    <Animated.View
-      style={[
-        styles.ampCircleStyle,
-        {
-          backgroundColor: locked.value
-            ? Styles.globalColors.redLight
-            : Styles.globalColors.blueLighterOrBlueLight,
-        },
-        animatedStyle,
-      ]}
-    />
-  )
+  return <Animated.View style={[styles.ampCircleStyle, animatedStyle]} />
 }
 
 const InnerCircle = (props: {
   dragXSV: SVN
   dragYSV: SVN
   fadeSV: SVN
-  locked: SVN
+  lockedSV: SVN
+  locked: boolean
   stageRecording: () => void
 }) => {
-  const {dragXSV, dragYSV, fadeSV, locked, stageRecording} = props
+  const {dragXSV, dragYSV, fadeSV, locked, lockedSV, stageRecording} = props
   const circleStyle = useAnimatedStyle(() => {
     // worklet needs this locally for some reason
     const dragDistanceX = -50
     const dragXOpacity =
       dragYSV.value < -10 ? 1 : interpolate(dragXSV.value, [dragDistanceX, 0], [0, 1], Extrapolation.CLAMP)
     return {
+      backgroundColor: interpolateColor(lockedSV.value, [0, 1], [colors.blue, colors.red]),
       opacity: withTiming(dragXOpacity),
-      transform: [{translateY: locked.value ? 0 : dragYSV.value}, {scale: fadeSV.value}],
+      transform: [{translateY: lockedSV.value ? 0 : dragYSV.value}, {scale: fadeSV.value}],
     }
   })
-  const stopStyle = useAnimatedStyle(() => ({opacity: locked.value ? withTiming(1) : 0}))
   return (
-    <Animated.View
-      style={[
-        styles.innerCircleStyle,
-        {backgroundColor: locked.value ? Styles.globalColors.red : Styles.globalColors.blue},
-        circleStyle,
-      ]}
-    >
-      <AnimatedIcon
-        type="iconfont-stop"
-        color={Styles.globalColors.whiteOrWhite}
-        onClick={stageRecording}
-        style={stopStyle}
-      />
+    <Animated.View style={[styles.innerCircleStyle, circleStyle]}>
+      {locked ? (
+        <AnimatedIcon
+          type="iconfont-stop"
+          color={Styles.globalColors.whiteOrWhite}
+          onClick={stageRecording}
+        />
+      ) : null}
     </Animated.View>
   )
 }
 
-const LockHint = (props: {fadeSV: SVN; locked: SVN; dragXSV: SVN; dragYSV: SVN}) => {
-  const {locked, fadeSV, dragXSV, dragYSV} = props
+const LockHint = (props: {fadeSV: SVN; lockedSV: SVN; dragXSV: SVN; dragYSV: SVN}) => {
+  const {lockedSV, fadeSV, dragXSV, dragYSV} = props
   const slideAmount = 150
   const spaceBetween = 20
   const deltaY = 50
@@ -728,7 +628,7 @@ const LockHint = (props: {fadeSV: SVN; locked: SVN; dragXSV: SVN; dragYSV: SVN})
     const dragXOpacity =
       dragYSV.value < -10 ? 1 : interpolate(dragXSV.value, [dragDistanceX, 0], [0, 1], Extrapolation.CLAMP)
     return {
-      opacity: locked.value
+      opacity: lockedSV.value
         ? withTiming(0)
         : fadeSV.value *
           interpolate(dragYSV.value, [dragDistanceX, 0], [0, 1], Extrapolation.CLAMP) *
@@ -743,7 +643,7 @@ const LockHint = (props: {fadeSV: SVN; locked: SVN; dragXSV: SVN; dragYSV: SVN})
       dragYSV.value < -10 ? 1 : interpolate(dragXSV.value, [dragDistanceX, 0], [0, 1], Extrapolation.CLAMP)
 
     return {
-      opacity: locked.value ? withTiming(0) : fadeSV.value * dragXOpacity,
+      opacity: lockedSV.value ? withTiming(0) : fadeSV.value * dragXOpacity,
       transform: [
         {translateX: 5},
         {
@@ -767,8 +667,14 @@ const LockHint = (props: {fadeSV: SVN; locked: SVN; dragXSV: SVN; dragYSV: SVN})
 const AnimatedIcon = Animated.createAnimatedComponent(Kb.Icon)
 const AnimatedText = Animated.createAnimatedComponent(Kb.Text)
 
-const CancelHint = (props: {fadeSV: SVN; dragXSV: SVN; locked: SVN; onCancel: () => void}) => {
-  const {locked, fadeSV, onCancel, dragXSV} = props
+const CancelHint = (props: {
+  fadeSV: SVN
+  dragXSV: SVN
+  locked: boolean
+  lockedSV: SVN
+  onCancel: () => void
+}) => {
+  const {locked, lockedSV, fadeSV, onCancel, dragXSV} = props
   const arrowStyle = useAnimatedStyle(() => {
     // copy paste so we don't share as many vars between jsc contexts
     const dragDistanceX = -50
@@ -776,7 +682,7 @@ const CancelHint = (props: {fadeSV: SVN; dragXSV: SVN; locked: SVN; onCancel: ()
     const slideAmount = 220
     const spaceBetween = 20
     return {
-      opacity: locked.value
+      opacity: lockedSV.value
         ? withTiming(0)
         : fadeSV.value * interpolate(dragXSV.value, [dragDistanceX, 0], [0, 1], Extrapolation.CLAMP),
       transform: [{translateX: deltaX - spaceBetween - fadeSV.value * slideAmount}, {translateY: -4}],
@@ -788,7 +694,7 @@ const CancelHint = (props: {fadeSV: SVN; dragXSV: SVN; locked: SVN; onCancel: ()
     const slideAmount = 220
     const spaceBetween = 20
     return {
-      opacity: locked.value
+      opacity: lockedSV.value
         ? withTiming(0)
         : fadeSV.value * interpolate(dragXSV.value, [dragDistanceX, 0], [1, 0], Extrapolation.CLAMP),
       transform: [{translateX: deltaX - spaceBetween - fadeSV.value * slideAmount}, {translateY: -4}],
@@ -820,21 +726,21 @@ const CancelHint = (props: {fadeSV: SVN; dragXSV: SVN; locked: SVN; onCancel: ()
       />
       <AnimatedIcon sizeType="Tiny" type={'iconfont-close'} style={[styles.cancelHintStyle, closeStyle]} />
       <AnimatedText
-        type={locked.value ? 'BodySmallPrimaryLink' : 'BodySmall'}
+        type={locked ? 'BodySmallPrimaryLink' : 'BodySmall'}
         onClick={onCancel}
         style={[styles.cancelHintStyle, textStyle]}
       >
-        {locked.value ? 'Cancel' : 'Slide to cancel'}
+        {locked ? 'Cancel' : 'Slide to cancel'}
       </AnimatedText>
     </>
   )
 }
 
-const SendRecordingButton = (props: {fadeSV: SVN; locked: SVN; sendRecording: () => void}) => {
-  const {fadeSV, locked, sendRecording} = props
+const SendRecordingButton = (props: {fadeSV: SVN; lockedSV: SVN; sendRecording: () => void}) => {
+  const {fadeSV, lockedSV, sendRecording} = props
   const buttonStyle = useAnimatedStyle(() => ({
-    opacity: locked.value ? fadeSV.value : withTiming(0),
-    transform: [{translateY: withTiming(locked.value ? -100 : 50)}],
+    opacity: lockedSV.value ? fadeSV.value : withTiming(0),
+    transform: [{translateY: withTiming(lockedSV.value ? -100 : 50)}],
   }))
   return (
     <Animated.View style={[styles.sendRecordingButtonStyle, buttonStyle]}>
