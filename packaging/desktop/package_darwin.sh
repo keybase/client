@@ -28,7 +28,7 @@ echo "Cleaning up packaging dir from previous runs"
 rm -rf "$dir/node_modules"
 
 # Ensure we have packaging tools
-yarn install --pure-lockfile --ignore-engines   
+yarn install --pure-lockfile --ignore-engines
 node_bin="$dir/node_modules/.bin"
 
 app_name=Keybase
@@ -50,6 +50,7 @@ saltpack_icon="$client_dir/media/icons/saltpack.icns"
 echo "Loading release tool"
 (cd "$client_dir/go/buildtools"; go install "github.com/keybase/release")
 release_bin="$GOPATH/bin/release"
+echo "$(go version)"
 
 if [ "$keybase_version" = "" ]; then
   if [ ! "$keybase_binpath" = "" ]; then

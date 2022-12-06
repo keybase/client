@@ -28,6 +28,7 @@ tgz="keybase-$version.tgz"
 echo "Loading release tool"
 (cd "$client_dir/go" && go install "github.com/keybase/release")
 release_bin="$GOPATH/bin/release"
+echo "$(go version)"
 
 build() {
   rm -rf "$build_dir"

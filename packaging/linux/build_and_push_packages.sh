@@ -51,6 +51,7 @@ echo "Loading release tool"
 release_gopath="$HOME/release_gopath"
 (cd "$client_dir/go/buildtools"; GOPATH="$release_gopath" go install "github.com/keybase/release")
 release_bin="$release_gopath/bin/release"
+echo "$(go version)"
 
 # Build all the packages!
 "$here/build_binaries.sh" "$mode" "$build_dir"
