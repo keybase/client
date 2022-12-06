@@ -1,5 +1,4 @@
-Debian/Ubuntu:
-=======
+# Debian/Ubuntu:
 
 To build a package for debian from a local branch in client (on amd64):
 
@@ -19,7 +18,7 @@ Then, from inside the docker environment:
     git remote add localclient /CLIENT
     git fetch localclient
     git checkout localclient/<NAME_OF_LOCAL_BRANCH_TO_TEST>
-    KEYBASE_SKIP_32_BIT=1 packaging/linux/build_binaries.sh prerelease /root/build
+    packaging/linux/build_binaries.sh prerelease /root/build
     packaging/linux/deb/package_binaries.sh /root/build
     packaging/linux/rpm/package_binaries.sh /root/build
     exit
@@ -52,6 +51,7 @@ Then inside it:
     run_keybase
 
 After that you can upgrade it:
+
     exit  # back to root
     cd /root/build/deb/amd64
     dpkg -i `ls -tr *.deb | tail -1`
@@ -85,8 +85,7 @@ The following packages will be upgraded:
   keybase
 ```
 
-Ubuntu with systemd:
-=======
+# Ubuntu with systemd:
 
 Systemd requires that the docker container be run as a daemon:
 
@@ -100,8 +99,7 @@ Then inside the container you can use the same steps as above to
 install and start keybase. Instead of `su`, you may need to `login <user>`
 so the systemd pam config runs.
 
-Centos:
-========
+# Centos:
 
     docker pull centos
     docker build -t keybase-centos-test $GOPATH/src/github.com/keybase/client/packaging/linux/test/keybase-centos-test
@@ -122,6 +120,7 @@ Then inside it:
     run_keybase
 
 After that you can upgrade it:
+
     exit  # back to root
     cd /root/build/rpm/x86_64/RPMS/x86_64
     rpm -Uvh `ls -tr *.rpm | tail -1`
@@ -169,13 +168,12 @@ Note that reinstalling will overwrite this change unless you `sudo touch
 comment out codesigning while testing). You also need to `rm -r /root/build/rpm
 /root/build/rpm_repo` in between `layout_repo`s.
 
-Centos with systemd:
-=======
+# Centos with systemd:
+
 You can use the Dockerfile at https://github.com/xrowgmbh/docker-systemd-example-httpd, but note that centos
 doesn't support systemd user services right now, so Keybase will be using background anyway.
 
-Arch:
-=====
+# Arch:
 
     docker pull base/archlinux
     docker build -t keybase-arch-test $GOPATH/src/github.com/keybase/client/packaging/linux/test/keybase-arch-test
