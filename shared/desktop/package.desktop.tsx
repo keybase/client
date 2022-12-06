@@ -205,12 +205,12 @@ async function startPack() {
     let aps = [[platform, arch]]
     if (platform === 'darwin') {
       aps = [
-        ['x64', 'darwin'],
-        ['arm64', 'darwin'],
+        ['darwin', 'x64'],
+        ['darwin', 'arm64'],
       ]
     }
     await Promise.all(
-      aps.map(async ([arch, plat]) => {
+      aps.map(async ([plat, arch]) => {
         try {
           const appPaths = await pack(plat, arch)
           postPack(appPaths, plat, arch)
