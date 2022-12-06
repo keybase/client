@@ -21,7 +21,7 @@ RUN apt-get install -y fakeroot reprepro rpm createrepo git wget \
 RUN pip install s3cmd
 
 # Install nodejs and yarn. (Note that this depends on curl above.)
-RUN curl -sL https://deb.nodesource.com/setup_10.x | bash -
+RUN curl -sL https://deb.nodesource.com/setup_16.x | bash -
 RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
 RUN echo "deb http://dl.yarnpkg.com/debian/ stable main" > /etc/apt/sources.list.d/yarn.list
 RUN apt-get update
