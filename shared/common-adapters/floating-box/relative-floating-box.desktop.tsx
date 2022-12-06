@@ -7,6 +7,7 @@ import without from 'lodash/without'
 import Box from '../box'
 import ReactDOM from 'react-dom'
 import {EscapeHandler} from '../../util/key-event-handler.desktop'
+import isEqual from 'lodash/isEqual'
 
 const Kb = {
   Box,
@@ -271,7 +272,11 @@ type ModalPositionRelativeProps = {
 }
 
 type Snapshot = {width?: number; height?: number}
-export class RelativeFloatingBox extends React.Component<ModalPositionRelativeProps, {style: any}, Snapshot> {
+export class RelativeFloatingBox extends React.PureComponent<
+  ModalPositionRelativeProps,
+  {style: any},
+  Snapshot
+> {
   popupNode: HTMLElement | null = null
   down: undefined | {x: number; y: number}
   state: {style: {}}
@@ -299,7 +304,12 @@ export class RelativeFloatingBox extends React.Component<ModalPositionRelativePr
       ),
       this.props.style,
     ] as any)
-    this.setState({style})
+    this.setState(s => {
+      if (!isEqual(s.style, style)) {
+        return {style}
+      }
+      return
+    })
   }
 
   getSnapshotBeforeUpdate() {

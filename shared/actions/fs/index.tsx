@@ -1118,8 +1118,10 @@ const maybeClearCriticalUpdate = (state: Container.TypedState, action: RouteTree
   // Clear critical update when we nav away from tab
   if (
     state.fs.criticalUpdate &&
-    Router2Constants.getRouteTab(prev) === Tabs.fsTab &&
-    Router2Constants.getRouteTab(next) !== Tabs.fsTab
+    prev &&
+    Router2Constants.getTab(prev) === Tabs.fsTab &&
+    next &&
+    Router2Constants.getTab(next) !== Tabs.fsTab
   ) {
     return FsGen.createSetCriticalUpdate({val: false})
   }
@@ -1129,8 +1131,8 @@ const maybeClearCriticalUpdate = (state: Container.TypedState, action: RouteTree
 const fsRrouteNames = ['fsRoot', 'barePreview']
 const maybeOnFSTab = (_: unknown, action: RouteTreeGen.OnNavChangedPayload) => {
   const {prev, next} = action.payload
-  const wasScreen = fsRrouteNames.includes(prev[prev.length - 1]?.name)
-  const isScreen = fsRrouteNames.includes(next[next.length - 1]?.name)
+  const wasScreen = fsRrouteNames.includes(Router2Constants.getVisibleScreen(prev)?.name ?? '')
+  const isScreen = fsRrouteNames.includes(Router2Constants.getVisibleScreen(next)?.name ?? '')
 
   if (wasScreen === isScreen) {
     return false

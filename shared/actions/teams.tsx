@@ -1100,7 +1100,7 @@ const refreshTeamRoleMap = async (
 }
 
 const teamDeletedOrExit = () => {
-  if (Router2Constants.getCurrentTab() == Tabs.teamsTab) {
+  if (Router2Constants.getTab(null) == Tabs.teamsTab) {
     return RouteTreeGen.createNavUpToScreen({name: 'teamsRoot'})
   }
   return false
@@ -1618,8 +1618,10 @@ const teamSeen = async (_: unknown, action: TeamsGen.TeamSeenPayload) => {
 const maybeClearBadges = (_: unknown, action: RouteTreeGen.OnNavChangedPayload) => {
   const {prev, next} = action.payload
   if (
-    Router2Constants.getRouteTab(prev) === Tabs.teamsTab &&
-    Router2Constants.getRouteTab(next) !== Tabs.teamsTab
+    prev &&
+    Router2Constants.getTab(prev) === Tabs.teamsTab &&
+    next &&
+    Router2Constants.getTab(next) !== Tabs.teamsTab
   ) {
     return TeamsGen.createClearNavBadges()
   }

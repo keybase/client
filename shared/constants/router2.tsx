@@ -13,7 +13,12 @@ export const _getNavigator = () => {
   return navigationRef_.isReady() ? navigationRef_ : undefined
 }
 
-export const findVisibleRoute = (arr: Array<Route>, s: NavState): Array<Route> => {
+export const getRootState = (): NavState | undefined => {
+  if (!navigationRef_.isReady()) return
+  return navigationRef_.getRootState()
+}
+
+const findVisibleRoute = (arr: Array<Route>, s: NavState): Array<Route> => {
   if (!s || !s.routes || s.index === undefined) {
     return arr
   }
@@ -41,36 +46,25 @@ const _isLoggedIn = (s: NavState) => {
   return s?.routes?.[0]?.name === 'loggedIn'
 }
 
-// Private API only used by config sagas
-const findModalRoute = (s: NavState) => {
-  if (!s) {
-    return []
-  }
-  if (!_isLoggedIn(s)) {
-    return []
-  }
-
-  return s.routes?.slice(1) ?? []
-}
-
-export const _getVisiblePathForNavigator = (navState: NavState) => {
-  if (!navState) return []
-  return findVisibleRoute([], navState)
-}
-
 // Public API
-export const getVisiblePath = () => {
-  if (!navigationRef_.isReady()) return []
-  return findVisibleRoute([], navigationRef_.getRootState())
+export const getVisiblePath = (navState?: NavState) => {
+  const rs = navState || getRootState()
+  return rs ? findVisibleRoute([], rs) : []
 }
 
-export const getModalStack = () => {
-  if (!navigationRef_.isReady()) return []
-  return findModalRoute(navigationRef_.getRootState())
+export const getModalStack = (navState?: NavState) => {
+  const rs = navState || getRootState()
+  if (!rs) {
+    return []
+  }
+  if (!_isLoggedIn(rs)) {
+    return []
+  }
+  return rs.routes?.slice(1) ?? []
 }
 
-export const getVisibleScreen = () => {
-  const visible = getVisiblePath()
+export const getVisibleScreen = (navState?: NavState) => {
+  const visible = getVisiblePath(navState)
   return visible[visible.length - 1]
 }
 
@@ -103,7 +97,7 @@ const oldActionToNewActions = (action: RTGActions, navigationState: any, allowAp
         return
       }
 
-      const path = _getVisiblePathForNavigator(navigationState)
+      const path = getVisiblePath(navigationState)
       const visible = path[path.length - 1]
       if (visible) {
         if (!allowAppendDupe && routeName === visible.name && shallowEqual(visible.params, params)) {
@@ -237,10 +231,11 @@ type RTGActions =
   | RouteTreeGen.PopStackPayload
 
 export const dispatchOldAction = (action: RTGActions) => {
-  if (!navigationRef_.isReady()) {
+  const rs = getRootState()
+  if (!rs) {
     return
   }
-  const actions = oldActionToNewActions(action, navigationRef_.getRootState()) || []
+  const actions = oldActionToNewActions(action, rs) || []
   try {
     actions.forEach(a => {
       navigationRef_.dispatch(a)
@@ -250,38 +245,19 @@ export const dispatchOldAction = (action: RTGActions) => {
   }
 }
 
-export const getCurrentTab = () => {
-  if (navigationRef_.isReady()) {
-    const s = navigationRef_.getRootState()
-    const loggedInRoute = s.routes[0]
-    if (loggedInRoute?.name === 'loggedIn') {
-      return loggedInRoute.state?.routes?.[loggedInRoute.state?.index ?? 0]?.name
-    }
+export const getTab = (navState: NavState | null) => {
+  const s = navState || getRootState()
+  const loggedInRoute = s?.routes[0]
+  if (loggedInRoute?.name === 'loggedIn') {
+    return loggedInRoute.state?.routes?.[loggedInRoute.state?.index ?? 0]?.name
   }
   return undefined
-}
-
-export const isLoggedIn = () => {
-  return _isLoggedIn(navigationRef_.getRootState())
-}
-
-export const getModalPath = () => {
-  const rs = _getNavigator()?.getRootState()
-  if (!rs) return []
-  return rs.routes.slice(1)
-}
-
-export const getAppPath = () => {
-  const rs = _getNavigator()?.getRootState()
-  if (!rs) return []
-  const root = rs.routes[0]
-  return findVisibleRoute([rs.routes[0]], root?.state)
 }
 
 const isSplit = !Container.isMobile || Container.isTablet // Whether the inbox and conversation panels are visible side-by-side.
 
 export const navToThread = (conversationIDKey: ConversationIDKey) => {
-  const rs = _getNavigator()?.getRootState()
+  const rs = getRootState()
   // some kind of unknown race, just bail
   if (!rs) {
     console.log('Avoiding trying to nav to thread when missing nav state, bailing')
@@ -356,14 +332,6 @@ export const navToThread = (conversationIDKey: ConversationIDKey) => {
   if (!isEqual(rs, nextState)) {
     rs.key && _getNavigator()?.dispatch({...CommonActions.reset(nextState), target: rs.key})
   }
-}
-
-export const chatRootKey = () => {
-  const rs = _getNavigator()?.getRootState()
-  if (!rs) return
-  const chatTabIdx = rs.routes[0]?.state?.routes.findIndex(r => r.name === Tabs.chatTab)
-  if (!chatTabIdx) return
-  return rs.routes[0]?.state?.routes?.[chatTabIdx]?.state?.routes?.[0]?.key
 }
 
 export const getRouteTab = (route: Array<Route>) => {

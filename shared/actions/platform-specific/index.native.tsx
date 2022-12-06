@@ -225,12 +225,12 @@ const persistRoute = async (_state: Container.TypedState, action: ConfigGen.Pers
   let routeName = Tabs.peopleTab
 
   if (path) {
-    const cur = RouterConstants.getCurrentTab()
+    const cur = RouterConstants.getTab(null)
     if (cur) {
       routeName = cur
     }
 
-    const ap = RouterConstants.getAppPath()
+    const ap = RouterConstants.getVisiblePath()
     ap.some(r => {
       if (r.name == 'chatConversation') {
         param = {

@@ -3656,16 +3656,20 @@ const onShowInfoPanel = (_: unknown, action: Chat2Gen.ShowInfoPanelPayload) => {
 
 const maybeChangeChatSelection = (_: unknown, action: RouteTreeGen.OnNavChangedPayload) => {
   const {prev, next} = action.payload
-  const p = prev[prev.length - 1]
-  const n = next[next.length - 1]
+  const wasModal = prev && Router2Constants.getModalStack(prev).length > 0
+  const isModal = next && Router2Constants.getModalStack(next).length > 0
 
-  const wasModal = prev.length && !Router2Constants.getRouteLoggedIn(prev)
-  const isModal = !Router2Constants.getRouteLoggedIn(next)
+  console.log('aaa chat on nav', {wasModal, isModal})
 
   // ignore if changes involve a modal
   if (wasModal || isModal) {
     return
   }
+
+  const p = Router2Constants.getVisibleScreen(prev)
+  const n = Router2Constants.getVisibleScreen(next)
+
+  console.log('aaa chat on nav', {p, n})
   const wasChat = p?.name === Constants.threadRouteName
   const isChat = n?.name === Constants.threadRouteName
 
@@ -3714,10 +3718,7 @@ const maybeChangeChatSelection = (_: unknown, action: RouteTreeGen.OnNavChangedP
 
 const maybeChatTabSelected = (_: unknown, action: RouteTreeGen.OnNavChangedPayload) => {
   const {prev, next} = action.payload
-  if (
-    Router2Constants.getRouteTab(prev) !== Tabs.chatTab &&
-    Router2Constants.getRouteTab(next) === Tabs.chatTab
-  ) {
+  if (Router2Constants.getTab(prev) !== Tabs.chatTab && Router2Constants.getTab(next) === Tabs.chatTab) {
     return Chat2Gen.createTabSelected()
   }
   return false
