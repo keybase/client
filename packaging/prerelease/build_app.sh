@@ -54,6 +54,7 @@ fi
 echo "Loading release tool"
 (cd "$client_dir/go/buildtools"; go install "github.com/keybase/release")
 release_bin="$GOPATH/bin/release"
+echo "$(go version)"
 
 client_branch=`cd "$client_dir" && git rev-parse --abbrev-ref HEAD`
 function reset {

@@ -25,6 +25,7 @@ fi
 echo "Loading release tool"
 (cd "$client_dir/go/buildtools"; go install "github.com/keybase/release")
 release_bin="$GOPATH/bin/release"
+echo "$(go version)"
 
 echo "Creating index files"
 if [ "$platform" = "darwin" ]; then
