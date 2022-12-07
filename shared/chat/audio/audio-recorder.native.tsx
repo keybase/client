@@ -7,19 +7,7 @@ import * as Styles from '../../styles'
 // we need to use the raw colors to animate
 import {colors} from '../../styles/colors'
 import type * as Types from '../../constants/types/chat2'
-import Animated, {
-  Extrapolation,
-  interpolate,
-  interpolateColor,
-  runOnJS,
-  type SharedValue,
-  useAnimatedStyle,
-  useSharedValue,
-  withDelay,
-  withSequence,
-  withSpring,
-  withTiming,
-} from 'react-native-reanimated'
+import * as Reanimated from 'react-native-reanimated'
 import {AmpTracker} from './amptracker'
 import {Gesture, GestureDetector} from 'react-native-gesture-handler'
 import {Portal} from '@gorhom/portal'
@@ -31,7 +19,9 @@ import * as Haptics from 'expo-haptics'
 import * as FileSystem from 'expo-file-system'
 import AudioSend from './audio-send'
 
-type SVN = SharedValue<number>
+const Animated = Reanimated.default
+
+type SVN = Reanimated.SharedValue<number>
 
 type Props = {
   conversationIDKey: Types.ConversationIDKey
@@ -97,17 +87,17 @@ enum Visible {
 
 const useTooltip = () => {
   const [showTooltip, setShowTooltip] = React.useState(false)
-  const opacitySV = useSharedValue(0)
+  const opacitySV = Reanimated.useSharedValue(0)
 
-  const animatedStyles = useAnimatedStyle(() => ({opacity: opacitySV.value}))
+  const animatedStyles = Reanimated.useAnimatedStyle(() => ({opacity: opacitySV.value}))
 
   opacitySV.value = showTooltip
-    ? withSequence(
-        withTiming(1, {duration: 200}),
-        withDelay(
+    ? Reanimated.withSequence(
+        Reanimated.withTiming(1, {duration: 200}),
+        Reanimated.withDelay(
           1000,
-          withTiming(0, {duration: 200}, () => {
-            runOnJS(setShowTooltip)(false)
+          Reanimated.withTiming(0, {duration: 200}, () => {
+            Reanimated.runOnJS(setShowTooltip)(false)
           })
         )
       )
@@ -145,9 +135,9 @@ const useIconAndOverlay = (p: {
   const [visible, setVisible] = React.useState(Visible.HIDDEN)
   const [locked, setLocked] = React.useState(false)
   // for reanimated only, react uses the above
-  const lockedSV = useSharedValue(0)
-  const dragXSV = useSharedValue(0)
-  const dragYSV = useSharedValue(0)
+  const lockedSV = Reanimated.useSharedValue(0)
+  const dragXSV = Reanimated.useSharedValue(0)
+  const dragYSV = Reanimated.useSharedValue(0)
 
   const onReset = React.useCallback(() => {
     setPanEnabled(true)
@@ -204,7 +194,7 @@ const useIconAndOverlay = (p: {
   }, [])
   const maxCancelDrift = -120
   const maxLockDrift = -100
-  const startedSV = useSharedValue(0)
+  const startedSV = Reanimated.useSharedValue(0)
   const panGesture = Gesture.Pan()
     .minDistance(0)
     .minPointers(1)
@@ -217,29 +207,34 @@ const useIconAndOverlay = (p: {
       }
 
       startedSV.value = 1
-      runOnJS(onPanStart)()
+      Reanimated.runOnJS(onPanStart)()
     })
     .onFinalize((_e, success) => {
       startedSV.value = 0
-      runOnJS(onPanFinalize)(success, lockedSV.value === 1)
+      Reanimated.runOnJS(onPanFinalize)(success, lockedSV.value === 1)
     })
     .onUpdate(e => {
       if (lockedSV.value) {
         return
       }
-      dragYSV.value = interpolate(e.translationY, [maxLockDrift, 0], [maxLockDrift, 0], Extrapolation.CLAMP)
-      dragXSV.value = interpolate(
+      dragYSV.value = Reanimated.interpolate(
+        e.translationY,
+        [maxLockDrift, 0],
+        [maxLockDrift, 0],
+        Reanimated.Extrapolation.CLAMP
+      )
+      dragXSV.value = Reanimated.interpolate(
         e.translationX,
         [maxCancelDrift, 0],
         [maxCancelDrift, 0],
-        Extrapolation.CLAMP
+        Reanimated.Extrapolation.CLAMP
       )
 
       if (e.translationX < maxCancelDrift) {
-        runOnJS(onPanCancel)()
+        Reanimated.runOnJS(onPanCancel)()
       } else if (e.translationY < maxLockDrift) {
         lockedSV.value = 1
-        runOnJS(setLocked)(true)
+        Reanimated.runOnJS(setLocked)(true)
       }
     })
     .enabled(panEnabled)
@@ -252,22 +247,22 @@ const useIconAndOverlay = (p: {
     </View>
   )
 
-  const fadeSV = useSharedValue(0)
+  const fadeSV = Reanimated.useSharedValue(0)
   React.useEffect(() => {
     switch (visible) {
       case Visible.SHOW:
-        fadeSV.value = withSpring(1)
+        fadeSV.value = Reanimated.withSpring(1)
         break
       case Visible.START_HIDDEN:
-        fadeSV.value = withTiming(0, {duration: 200}, () => {
+        fadeSV.value = Reanimated.withTiming(0, {duration: 200}, () => {
           // hide after we're done animating
-          runOnJS(setVisible)(Visible.HIDDEN)
+          Reanimated.runOnJS(setVisible)(Visible.HIDDEN)
         })
         break
       default:
     }
-    dragXSV.value = withTiming(0)
-    dragYSV.value = withTiming(0)
+    dragXSV.value = Reanimated.withTiming(0)
+    dragYSV.value = Reanimated.withTiming(0)
   }, [fadeSV, setVisible, dragXSV, dragYSV, visible])
   const overlay =
     visible === Visible.HIDDEN ? null : (
@@ -384,25 +379,22 @@ const useRecorder = (p: {
     }
   }, [])
 
-  const onReset = React.useCallback(
-    async (why: string) => {
+  const onReset = React.useCallback(async () => {
+    try {
+      await stopRecording()
+    } catch {}
+    ampTracker.reset()
+    if (pathRef.current) {
       try {
-        await stopRecording()
+        await FileSystem.deleteAsync(pathRef.current, {idempotent: true})
       } catch {}
-      ampTracker.reset()
-      if (pathRef.current) {
-        try {
-          await FileSystem.deleteAsync(pathRef.current, {idempotent: true})
-        } catch {}
-        pathRef.current = ''
-      }
-      recordStartRef.current = 0
-      recordEndRef.current = 0
-      setStaged(false)
-      setShowAudioSend(false)
-    },
-    [setStaged, ampTracker, stopRecording, setShowAudioSend]
-  )
+      pathRef.current = ''
+    }
+    recordStartRef.current = 0
+    recordEndRef.current = 0
+    setStaged(false)
+    setShowAudioSend(false)
+  }, [setStaged, ampTracker, stopRecording, setShowAudioSend])
 
   const startRecording = React.useCallback(() => {
     // calls of this never handle the promise so just handle it here
@@ -434,7 +426,7 @@ const useRecorder = (p: {
       return false
     }
     const impl = async () => {
-      await onReset('about to record')
+      await onReset()
       const goodPerms = await checkPerms()
       if (!goodPerms) {
         throw new Error("Couldn't get audio permissions")
@@ -449,7 +441,7 @@ const useRecorder = (p: {
         ampTracker.addAmp(amp)
         const maxScale = 8
         const minScale = 3
-        ampSV.value = withTiming(minScale + amp * (maxScale - minScale), {duration: 100})
+        ampSV.value = Reanimated.withTiming(minScale + amp * (maxScale - minScale), {duration: 100})
       }
 
       const recording = await makeRecorder(onRecordingStatusUpdate)
@@ -466,8 +458,8 @@ const useRecorder = (p: {
     }
     impl()
       .then(() => {})
-      .catch(e => {
-        onReset('record exception')
+      .catch(() => {
+        onReset()
           .then(() => {})
           .catch(() => {})
       })
@@ -493,7 +485,7 @@ const useRecorder = (p: {
       } else {
         console.log('bail on too short or not path', duration, path, amps)
       }
-      await onReset('done sending, clean reset')
+      await onReset()
     }
     impl()
       .then(() => {})
@@ -501,7 +493,7 @@ const useRecorder = (p: {
   }, [dispatch, conversationIDKey, ampTracker, onReset, stopRecording])
 
   const cancelRecording = React.useCallback(() => {
-    onReset('cancel recording')
+    onReset()
       .then(() => {})
       .catch(() => {})
   }, [onReset])
@@ -531,7 +523,7 @@ const useRecorder = (p: {
   React.useEffect(() => {
     return () => {
       setShowAudioSend(false)
-      onReset('unmount')
+      onReset()
         .then(() => {})
         .catch(() => {})
     }
@@ -542,7 +534,7 @@ const useRecorder = (p: {
 
 const AudioRecorder = React.memo(function AudioRecorder(props: Props) {
   const {conversationIDKey, setShowAudioSend, showAudioSend} = props
-  const ampSV = useSharedValue(0)
+  const ampSV = Reanimated.useSharedValue(0)
 
   const {startRecording, cancelRecording, sendRecording, stageRecording, audioSend} = useRecorder({
     ampSV,
@@ -572,7 +564,7 @@ const AudioRecorder = React.memo(function AudioRecorder(props: Props) {
 
 const BigBackground = (props: {fadeSV: SVN}) => {
   const {fadeSV} = props
-  const animatedStyle = useAnimatedStyle(() => ({
+  const animatedStyle = Reanimated.useAnimatedStyle(() => ({
     opacity: fadeSV.value * 0.9,
     transform: [{scale: fadeSV.value}],
   }))
@@ -581,17 +573,19 @@ const BigBackground = (props: {fadeSV: SVN}) => {
 
 const AmpCircle = (props: {ampSV: SVN; dragXSV: SVN; dragYSV: SVN; fadeSV: SVN; lockedSV: SVN}) => {
   const {ampSV, dragXSV, dragYSV, fadeSV, lockedSV} = props
-  const animatedStyle = useAnimatedStyle(() => {
+  const animatedStyle = Reanimated.useAnimatedStyle(() => {
     const dragDistanceX = -50
     const dragXOpacity =
-      dragYSV.value < -10 ? 1 : interpolate(dragXSV.value, [dragDistanceX, 0], [0, 1], Extrapolation.CLAMP)
+      dragYSV.value < -10
+        ? 1
+        : Reanimated.interpolate(dragXSV.value, [dragDistanceX, 0], [0, 1], Reanimated.Extrapolation.CLAMP)
     return {
-      backgroundColor: interpolateColor(
+      backgroundColor: Reanimated.interpolateColor(
         lockedSV.value,
         [0, 1],
         [colors.blueLighterOrBlueLight, colors.redLight]
       ),
-      opacity: withTiming(dragXOpacity),
+      opacity: Reanimated.withTiming(dragXOpacity),
       transform: [{translateY: lockedSV.value ? 0 : dragYSV.value}, {scale: ampSV.value * fadeSV.value}],
     }
   })
@@ -607,14 +601,16 @@ const InnerCircle = (props: {
   stageRecording: () => void
 }) => {
   const {dragXSV, dragYSV, fadeSV, locked, lockedSV, stageRecording} = props
-  const circleStyle = useAnimatedStyle(() => {
+  const circleStyle = Reanimated.useAnimatedStyle(() => {
     // worklet needs this locally for some reason
     const dragDistanceX = -50
     const dragXOpacity =
-      dragYSV.value < -10 ? 1 : interpolate(dragXSV.value, [dragDistanceX, 0], [0, 1], Extrapolation.CLAMP)
+      dragYSV.value < -10
+        ? 1
+        : Reanimated.interpolate(dragXSV.value, [dragDistanceX, 0], [0, 1], Reanimated.Extrapolation.CLAMP)
     return {
-      backgroundColor: interpolateColor(lockedSV.value, [0, 1], [colors.blue, colors.red]),
-      opacity: withTiming(dragXOpacity),
+      backgroundColor: Reanimated.interpolateColor(lockedSV.value, [0, 1], [colors.blue, colors.red]),
+      opacity: Reanimated.withTiming(dragXOpacity),
       transform: [{translateY: lockedSV.value ? 0 : dragYSV.value}, {scale: fadeSV.value}],
     }
   })
@@ -636,28 +632,32 @@ const LockHint = (props: {fadeSV: SVN; lockedSV: SVN; dragXSV: SVN; dragYSV: SVN
   const slideAmount = 150
   const spaceBetween = 20
   const deltaY = 50
-  const arrowStyle = useAnimatedStyle(() => {
+  const arrowStyle = Reanimated.useAnimatedStyle(() => {
     // worklet needs this locally for some reason
     const dragDistanceX = -50
     const dragXOpacity =
-      dragYSV.value < -10 ? 1 : interpolate(dragXSV.value, [dragDistanceX, 0], [0, 1], Extrapolation.CLAMP)
+      dragYSV.value < -10
+        ? 1
+        : Reanimated.interpolate(dragXSV.value, [dragDistanceX, 0], [0, 1], Reanimated.Extrapolation.CLAMP)
     return {
       opacity: lockedSV.value
-        ? withTiming(0)
+        ? Reanimated.withTiming(0)
         : fadeSV.value *
-          interpolate(dragYSV.value, [dragDistanceX, 0], [0, 1], Extrapolation.CLAMP) *
+          Reanimated.interpolate(dragYSV.value, [dragDistanceX, 0], [0, 1], Reanimated.Extrapolation.CLAMP) *
           dragXOpacity,
       transform: [{translateX: 10}, {translateY: deltaY - fadeSV.value * slideAmount}],
     }
   })
-  const lockStyle = useAnimatedStyle(() => {
+  const lockStyle = Reanimated.useAnimatedStyle(() => {
     // worklet needs this locally for some reason
     const dragDistanceX = -50
     const dragXOpacity =
-      dragYSV.value < -10 ? 1 : interpolate(dragXSV.value, [dragDistanceX, 0], [0, 1], Extrapolation.CLAMP)
+      dragYSV.value < -10
+        ? 1
+        : Reanimated.interpolate(dragXSV.value, [dragDistanceX, 0], [0, 1], Reanimated.Extrapolation.CLAMP)
 
     return {
-      opacity: lockedSV.value ? withTiming(0) : fadeSV.value * dragXOpacity,
+      opacity: lockedSV.value ? Reanimated.withTiming(0) : fadeSV.value * dragXOpacity,
       transform: [
         {translateX: 5},
         {
@@ -665,7 +665,12 @@ const LockHint = (props: {fadeSV: SVN; lockedSV: SVN; dragXSV: SVN; dragYSV: SVN
             deltaY +
             spaceBetween -
             fadeSV.value * slideAmount -
-            interpolate(dragYSV.value, [dragDistanceX, 0], [spaceBetween, 0], Extrapolation.CLAMP),
+            Reanimated.interpolate(
+              dragYSV.value,
+              [dragDistanceX, 0],
+              [spaceBetween, 0],
+              Reanimated.Extrapolation.CLAMP
+            ),
         },
       ],
     }
@@ -689,7 +694,7 @@ const CancelHint = (props: {
   onCancel: () => void
 }) => {
   const {locked, lockedSV, fadeSV, onCancel, dragXSV} = props
-  const arrowStyle = useAnimatedStyle(() => {
+  const arrowStyle = Reanimated.useAnimatedStyle(() => {
     // copy paste so we don't share as many vars between jsc contexts
     const dragDistanceX = -50
     const deltaX = 180
@@ -697,24 +702,26 @@ const CancelHint = (props: {
     const spaceBetween = 20
     return {
       opacity: lockedSV.value
-        ? withTiming(0)
-        : fadeSV.value * interpolate(dragXSV.value, [dragDistanceX, 0], [0, 1], Extrapolation.CLAMP),
+        ? Reanimated.withTiming(0)
+        : fadeSV.value *
+          Reanimated.interpolate(dragXSV.value, [dragDistanceX, 0], [0, 1], Reanimated.Extrapolation.CLAMP),
       transform: [{translateX: deltaX - spaceBetween - fadeSV.value * slideAmount}, {translateY: -4}],
     }
   })
-  const closeStyle = useAnimatedStyle(() => {
+  const closeStyle = Reanimated.useAnimatedStyle(() => {
     const dragDistanceX = -50
     const deltaX = 180
     const slideAmount = 220
     const spaceBetween = 20
     return {
       opacity: lockedSV.value
-        ? withTiming(0)
-        : fadeSV.value * interpolate(dragXSV.value, [dragDistanceX, 0], [1, 0], Extrapolation.CLAMP),
+        ? Reanimated.withTiming(0)
+        : fadeSV.value *
+          Reanimated.interpolate(dragXSV.value, [dragDistanceX, 0], [1, 0], Reanimated.Extrapolation.CLAMP),
       transform: [{translateX: deltaX - spaceBetween - fadeSV.value * slideAmount}, {translateY: -4}],
     }
   })
-  const textStyle = useAnimatedStyle(() => {
+  const textStyle = Reanimated.useAnimatedStyle(() => {
     const dragDistanceX = -50
     const deltaX = 180
     const slideAmount = 220
@@ -725,7 +732,7 @@ const CancelHint = (props: {
           translateX:
             deltaX -
             fadeSV.value * slideAmount -
-            interpolate(dragXSV.value, [dragDistanceX, 0], [8, 0], Extrapolation.CLAMP),
+            Reanimated.interpolate(dragXSV.value, [dragDistanceX, 0], [8, 0], Reanimated.Extrapolation.CLAMP),
         },
       ],
     }
@@ -752,9 +759,9 @@ const CancelHint = (props: {
 
 const SendRecordingButton = (props: {fadeSV: SVN; lockedSV: SVN; sendRecording: () => void}) => {
   const {fadeSV, lockedSV, sendRecording} = props
-  const buttonStyle = useAnimatedStyle(() => ({
-    opacity: lockedSV.value ? fadeSV.value : withTiming(0),
-    transform: [{translateY: withTiming(lockedSV.value ? -100 : 50)}],
+  const buttonStyle = Reanimated.useAnimatedStyle(() => ({
+    opacity: lockedSV.value ? fadeSV.value : Reanimated.withTiming(0),
+    transform: [{translateY: Reanimated.withTiming(lockedSV.value ? -100 : 50)}],
   }))
   return (
     <Animated.View style={[styles.sendRecordingButtonStyle, buttonStyle]}>
@@ -779,7 +786,7 @@ const AudioCounter = (props: {fadeSV: SVN}) => {
     }, 1000)
     return () => clearTimeout(timer)
   }, [seconds, startTime])
-  const durationStyle = useAnimatedStyle(() => ({
+  const durationStyle = Reanimated.useAnimatedStyle(() => ({
     opacity: fadeSV.value,
   }))
   return (
