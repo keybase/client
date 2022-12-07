@@ -54,7 +54,7 @@ fi
 # Copy the RPM files into our repo. This is flatter than the way Debian's
 # reprepro does things, and it's allowed to contain multiple copies of the same
 # package.
-for arch in i386 x86_64 ; do
+for arch in x86_64 ; do
   rpmfile="$(ls "$build_root/rpm/$arch/RPMS/$arch"/*.rpm)"  # keybase, kdstage, or kbdev
   rpmname="$(basename "$rpmfile")"
   destdir="$repo_root/repo/$arch"

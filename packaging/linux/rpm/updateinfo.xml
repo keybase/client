@@ -10,7 +10,6 @@
       <collection>
         <name>Keybase</name>
         <package arch="x86_64" name="keybase" release="1" version="2.11.0.20181115195458.06d3f3f3c4"></package>
-        <package arch="i386" name="keybase" release="1" version="2.11.0.20181115195458.06d3f3f3c4"></package>
       </collection>
     </pkglist>
   </update>
@@ -27,9 +26,6 @@
       <collection>
         <name>Keybase</name>
         <package arch="x86_64" name="keybase" release="1" version="2.8.0.20181023124437.06221a8264">
-            <reboot_suggested>True</reboot_suggested>
-        </package>
-        <package arch="i386" name="keybase" release="1" version="2.8.0.20181023124437.06221a8264">
             <reboot_suggested>True</reboot_suggested>
         </package>
       </collection>

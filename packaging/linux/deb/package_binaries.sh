@@ -1,9 +1,8 @@
 #! /usr/bin/env bash
 
-# Builds the keybase binary and packages it into two ".deb" files, one for i386
-# and one for amd64. The argument to this script is the output directory of a
-# build_binaries.sh build. The package files are created there, in their
-# respective architecture folders.
+# Builds the keybase binary and packages it into a ".deb" file for amd64. The
+# argument to this script is the output directory of a build_binaries.sh build.
+# The package files are created there, in their respective architecture folders.
 #
 # Usage:
 #   ./package_binaries.sh <build_root>
@@ -97,7 +96,4 @@ build_one_architecture() {
 }
 
 export debian_arch=amd64
-build_one_architecture
-
-export debian_arch=i386
 build_one_architecture

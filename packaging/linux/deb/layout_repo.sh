@@ -37,11 +37,11 @@ mkdir -p "$repo_root/repo/conf"
 cat > "$repo_root/repo/conf/distributions" << END
 Codename: stable
 Components: main
-Architectures: i386 amd64
+Architectures: amd64
 SignWith: $code_signing_fingerprint
 END
 
-for debian_arch in amd64 i386 ; do
+for debian_arch in amd64 ; do
   echo Creating the Debian repo hierarchy.
   # Create/update the Debian repository hierarchy. The layout of this is
   # described here: https://wiki.debian.org/RepositoryFormat We use the
