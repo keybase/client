@@ -1559,18 +1559,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       []
     )
     toHide.forEach(id => (draftState.threadSearchInfoMap.get(id)!.visible = false))
-
-    // stop all audio recording
-    // const audioIDs = [...draftState.audioRecording.keys()]
-    // audioIDs.forEach(conversationIDKey => {
-    //   stopAudioRecording(
-    //     draftState,
-    //     Chat2Gen.createStopAudioRecording({
-    //       conversationIDKey,
-    //       stopType: Types.AudioStopType.CANCEL,
-    //     })
-    //   )
-    // })
   },
   [Chat2Gen.setBotRoleInConv]: (draftState, action) => {
     const roles =
@@ -1583,7 +1571,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     }
     draftState.botTeamRoleInConvMap.set(action.payload.conversationIDKey, roles)
   },
-  // ...audioActions,
   ...botActions,
   ...giphyActions,
   ...paymentActions,
