@@ -11,7 +11,9 @@ export default () => {
   const waiting = Container.useSelector(state => WaitingConstants.anyWaiting(state, Constants.waitingKey))
   const dispatch = Container.useDispatch()
   const _onSubmitTextCode = React.useCallback(
-    () => (code: string) => dispatch(ProvisionGen.createSubmitTextCode({phrase: new HiddenString(code)})),
+    (code: string) => {
+      dispatch(ProvisionGen.createSubmitTextCode({phrase: new HiddenString(code)}))
+    },
     [dispatch]
   )
   const onSubmitTextCode = Container.useSafeSubmit(_onSubmitTextCode, !!error)
