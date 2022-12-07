@@ -849,8 +849,10 @@ const maybeClearAddedEmail = (state: Container.TypedState, action: RouteTreeGen.
   // Clear "check your inbox" in settings when you leave the settings tab
   if (
     state.settings.email.addedEmail &&
-    Router2Constants.getRouteTab(prev) === Tabs.settingsTab &&
-    Router2Constants.getRouteTab(next) !== Tabs.settingsTab
+    prev &&
+    Router2Constants.getTab(prev) === Tabs.settingsTab &&
+    next &&
+    Router2Constants.getTab(next) !== Tabs.settingsTab
   ) {
     return SettingsGen.createClearAddedEmail()
   }

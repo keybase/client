@@ -14,7 +14,7 @@ type Props = {
   style?: Styles.StylesCrossPlatform
 }
 
-const ZoomableImage = (p: Props) => {
+const ZoomableImage = React.memo(function ZoomableImage(p: Props) {
   const {src, onZoomed, style} = p
   const [isZoomed, setIsZoomed] = React.useState(false)
   const [imgSize, setImgSize] = React.useState({height: 0, width: 0})
@@ -137,6 +137,11 @@ const ZoomableImage = (p: Props) => {
     },
     [adjustImageStyle]
   )
+
+  const attachTo = React.useCallback(() => {
+    return toastAnchorRef.current
+  }, [toastAnchorRef])
+
   return (
     <div
       id="scrollAttach"
@@ -151,14 +156,14 @@ const ZoomableImage = (p: Props) => {
       onWheel={isZoomed ? onImageWheel : undefined}
     >
       <img id="imgAttach" src={src} style={isZoomed ? styles.imgZoomed : (styles.imgOrig as any)} />
-      <Kb.Toast visible={showToast} attachTo={() => toastAnchorRef.current}>
+      <Kb.Toast visible={showToast} attachTo={attachTo}>
         <Kb.Text type="Body" negative={true}>
           Scroll to zoom. Move to pan
         </Kb.Text>
       </Kb.Toast>
     </div>
   )
-}
+})
 
 const styles = Styles.styleSheetCreate(
   () =>

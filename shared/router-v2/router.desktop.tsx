@@ -1,18 +1,18 @@
+import * as Common from './common.desktop'
 import * as Constants from '../constants/router2'
-import * as Tabs from '../constants/tabs'
-import * as Shared from './router.shared'
-import * as Styles from '../styles'
 import * as React from 'react'
-import {useMemo} from '../util/memoize'
+import * as Shared from './router.shared'
+import * as Shim from './shim.desktop'
+import * as Styles from '../styles'
+import * as Tabs from '../constants/tabs'
+import Header from './header/index.desktop'
+import type {RouteMap} from '../util/container'
+import {HeaderLeftCancel} from '../common-adapters/header-hoc'
+import {NavigationContainer} from '@react-navigation/native'
 import {createLeftTabNavigator} from './left-tab-navigator.desktop'
 import {createStackNavigator} from '@react-navigation/stack'
-import {NavigationContainer} from '@react-navigation/native'
 import {modalRoutes, routes, loggedOutRoutes, tabRoots} from './routes'
-import type {RouteMap} from '../util/container'
-import * as Shim from './shim.desktop'
-import * as Common from './common.desktop'
-import {HeaderLeftCancel} from '../common-adapters/header-hoc'
-import Header from './header/index.desktop'
+import {useMemo} from '../util/memoize'
 
 export const headerDefaultStyle = Common.headerDefaultStyle
 const Tab = createLeftTabNavigator()
@@ -135,7 +135,7 @@ const RootStack = createStackNavigator()
 const ModalScreens = makeNavScreens(Shim.shim(modalRoutes, true, false), RootStack.Screen, true)
 const documentTitle = {
   formatter: () => {
-    const tabLabel = Tabs.desktopTabMeta[Constants.getCurrentTab() ?? '']?.label ?? ''
+    const tabLabel = Tabs.desktopTabMeta[Constants.getTab(null) ?? '']?.label ?? ''
     return `Keybase: ${tabLabel}`
   },
 }
