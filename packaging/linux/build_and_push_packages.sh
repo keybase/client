@@ -116,9 +116,7 @@ another_copy() {
 }
 copy_bins() {
     another_copy "$build_dir/deb_repo/keybase-latest-amd64.deb" "s3://$1/keybase_amd64.deb"
-    another_copy "$build_dir/deb_repo/keybase-latest-i386.deb" "s3://$1/keybase_i386.deb"
     another_copy "$build_dir/rpm_repo/keybase-latest-x86_64.rpm" "s3://$1/keybase_amd64.rpm"
-    another_copy "$build_dir/rpm_repo/keybase-latest-i386.rpm" "s3://$1/keybase_i386.rpm"
 }
 if [ -n "$KEYBASE_RELEASE" ]; then
     copy_bins "$BUCKET_NAME"
