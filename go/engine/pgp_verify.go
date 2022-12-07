@@ -8,7 +8,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -103,7 +102,7 @@ func (e *PGPVerify) Signer() *libkb.User {
 func (e *PGPVerify) runAttached(m libkb.MetaContext) error {
 	arg := &PGPDecryptArg{
 		Source:       e.source,
-		Sink:         libkb.NopWriteCloser{W: ioutil.Discard},
+		Sink:         libkb.NopWriteCloser{W: io.Discard},
 		AssertSigned: true,
 		SignedBy:     e.arg.SignedBy,
 	}
@@ -206,7 +205,7 @@ func (e *PGPVerify) runDetached(m libkb.MetaContext) error {
 func (e *PGPVerify) runClearsign(m libkb.MetaContext) error {
 	// clearsign decode only works with the whole data slice, not a reader
 	// so have to read it all here:
-	msg, err := ioutil.ReadAll(e.source)
+	msg, err := io.ReadAll(e.source)
 	if err != nil {
 		return err
 	}
@@ -215,7 +214,7 @@ func (e *PGPVerify) runClearsign(m libkb.MetaContext) error {
 		return errors.New("Unable to decode clearsigned message")
 	}
 
-	sigBody, err := ioutil.ReadAll(b.ArmoredSignature.Body)
+	sigBody, err := io.ReadAll(b.ArmoredSignature.Body)
 	if err != nil {
 		return err
 	}

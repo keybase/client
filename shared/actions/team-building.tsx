@@ -168,10 +168,10 @@ const maybeCancelTeamBuilding =
   (_: unknown, action: RouteTreeGen.OnNavChangedPayload) => {
     const {prev, next} = action.payload
 
-    const wasTeamBuilding = namespaceToRoute.get(namespace) === prev[prev.length - 1]?.name
+    const wasTeamBuilding = namespaceToRoute.get(namespace) === RouterConstants.getVisibleScreen(prev)?.name
     if (wasTeamBuilding) {
       // team building or modal on top of that still
-      const isTeamBuilding = next[prev.length - 1] === prev[prev.length - 1]
+      const isTeamBuilding = namespaceToRoute.get(namespace) === RouterConstants.getVisibleScreen(next)?.name
       if (!isTeamBuilding) {
         return TeamBuildingGen.createCancelTeamBuilding({namespace})
       }

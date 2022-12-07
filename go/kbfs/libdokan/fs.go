@@ -399,7 +399,7 @@ func (f *FS) open(ctx context.Context, oc *openContext, ps []string) (dokan.File
 }
 
 // windowsPathSplit handles paths we get from Dokan.
-// As a special case `` means `\`, it gets generated
+// As a special case “ means `\`, it gets generated
 // on special occasions.
 func windowsPathSplit(raw string) ([]string, error) {
 	if raw == `` {

@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -598,7 +597,7 @@ func (h ConfigHandler) UpdateLastLoggedInAndServerConfig(
 
 	// Try to read from the old config file. But ignore any error and just
 	// create a new one.
-	oldBytes, err := ioutil.ReadFile(serverConfigPath)
+	oldBytes, err := os.ReadFile(serverConfigPath)
 	if err != nil {
 		jw = jsonw.NewDictionary()
 	} else if jw, err = jsonw.Unmarshal(oldBytes); err != nil {

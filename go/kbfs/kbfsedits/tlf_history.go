@@ -90,7 +90,7 @@ func (wbr *writersByRevision) Pop() interface{} {
 //
 // There will be two users of a TlfHistory instance:
 //
-//   * One user (likely something outside of the kbfsedits package,
+//   - One user (likely something outside of the kbfsedits package,
 //     e.g. libkbfs.folderBranchOps) will read notifications from the
 //     corresponding TLF and add them to this history.  After adding a
 //     batch or several batches of messages, it should call
@@ -98,7 +98,7 @@ func (wbr *writersByRevision) Pop() interface{} {
 //     it should fetch more notifications for the indicated writer and
 //     repeat.
 //
-//   * The other user (within the kbfsedits package) will collate the
+//   - The other user (within the kbfsedits package) will collate the
 //     histories from multiple TlfHistory instances together using
 //     `getHistory()` from each one.  It may also construct pretty
 //     versions of individual edit histories for a particular TLF.

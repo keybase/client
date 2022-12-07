@@ -37,10 +37,11 @@ type crChain struct {
 // collapse finds complementary pairs of operations that cancel each
 // other out, and remove the relevant operations from the chain.
 // Examples include:
-//  * A create followed by a remove for the same name (delete both ops)
-//  * A create followed by a create (renamed == true) for the same name
-//    (delete the create op)
-//  * A remove that only unreferences blocks created within this branch
+//   - A create followed by a remove for the same name (delete both ops)
+//   - A create followed by a create (renamed == true) for the same name
+//     (delete the create op)
+//   - A remove that only unreferences blocks created within this branch
+//
 // This function returns the list of pointers that should be unreferenced
 // as part of an eventual resolution of the corresponding branch.
 func (cc *crChain) collapse(createdOriginals map[data.BlockPointer]bool,

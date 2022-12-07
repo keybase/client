@@ -316,11 +316,11 @@ type SyncedTlfMD struct {
 // a per-top-level-folder basis.
 //
 // There are two types of operations that could block:
-//   * remote-sync operations, that need to synchronously update the
+//   - remote-sync operations, that need to synchronously update the
 //     MD for the corresponding top-level folder.  When these
 //     operations return successfully, they will have guaranteed to
 //     have successfully written the modification to the KBFS servers.
-//   * remote-access operations, that don't sync any modifications to KBFS
+//   - remote-access operations, that don't sync any modifications to KBFS
 //     servers, but may block on reading data from the servers.
 //
 // KBFSOps implementations are supposed to give git-like consistency
@@ -2161,13 +2161,13 @@ type OnlineStatusTracker interface {
 //
 // The two Subscribe methods are for path and non-path subscriptions
 // respectively. Notes on some common arguments:
-// 1) subscriptionID needs to be unique among all subscriptions that happens
-//    with this process. A UUID or even just a timestamp might work. If
-//    duplicate subscriptionIDs are used, an error is returned.
-// 2) Optionally a deduplicateInterval can be used. When this arg is set, we
-//    debounce the events so it doesn't send more frequently than the interval.
-//    If deduplicateInterval is not set, i.e. nil, no deduplication is done and
-//    all events will be delivered.
+//  1. subscriptionID needs to be unique among all subscriptions that happens
+//     with this process. A UUID or even just a timestamp might work. If
+//     duplicate subscriptionIDs are used, an error is returned.
+//  2. Optionally a deduplicateInterval can be used. When this arg is set, we
+//     debounce the events so it doesn't send more frequently than the interval.
+//     If deduplicateInterval is not set, i.e. nil, no deduplication is done and
+//     all events will be delivered.
 type SubscriptionManager interface {
 	// SubscribePath subscribes to changes about path, when topic happens.
 	SubscribePath(

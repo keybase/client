@@ -5,7 +5,7 @@ package engine
 
 import (
 	"bytes"
-	"io/ioutil"
+	"io"
 	"strings"
 	"testing"
 
@@ -46,7 +46,7 @@ func TestSaltpackSignVerify(t *testing.T) {
 
 		sarg := &SaltpackSignArg{
 			Sink:   libkb.NopWriteCloser{W: &sink},
-			Source: ioutil.NopCloser(bytes.NewBufferString(test.input)),
+			Source: io.NopCloser(bytes.NewBufferString(test.input)),
 		}
 
 		eng := NewSaltpackSign(tc.G, sarg)
@@ -114,7 +114,7 @@ func TestSaltpackSignVerify(t *testing.T) {
 
 		sarg := &SaltpackSignArg{
 			Sink:   libkb.NopWriteCloser{W: &sink},
-			Source: ioutil.NopCloser(bytes.NewBufferString(test.input)),
+			Source: io.NopCloser(bytes.NewBufferString(test.input)),
 			Opts: keybase1.SaltpackSignOptions{
 				Detached: true,
 			},
@@ -167,7 +167,7 @@ func TestSaltpackSignVerifyBinary(t *testing.T) {
 
 		sarg := &SaltpackSignArg{
 			Sink:   libkb.NopWriteCloser{W: &sink},
-			Source: ioutil.NopCloser(bytes.NewBufferString(test.input)),
+			Source: io.NopCloser(bytes.NewBufferString(test.input)),
 			Opts: keybase1.SaltpackSignOptions{
 				Binary: true,
 			},
@@ -210,7 +210,7 @@ func TestSaltpackSignVerifyBinary(t *testing.T) {
 
 		sarg := &SaltpackSignArg{
 			Sink:   libkb.NopWriteCloser{W: &sink},
-			Source: ioutil.NopCloser(bytes.NewBufferString(test.input)),
+			Source: io.NopCloser(bytes.NewBufferString(test.input)),
 			Opts: keybase1.SaltpackSignOptions{
 				Binary:   true,
 				Detached: true,
@@ -261,7 +261,7 @@ func TestSaltpackSignVerifyNotSelf(t *testing.T) {
 
 	sarg := &SaltpackSignArg{
 		Sink:   libkb.NopWriteCloser{W: &sink},
-		Source: ioutil.NopCloser(bytes.NewBufferString("this is from me")),
+		Source: io.NopCloser(bytes.NewBufferString("this is from me")),
 	}
 
 	eng := NewSaltpackSign(tc.G, sarg)
@@ -335,7 +335,7 @@ func TestSaltpackVerifyRevoked(t *testing.T) {
 
 	sarg := &SaltpackSignArg{
 		Sink:   libkb.NopWriteCloser{W: &sink},
-		Source: ioutil.NopCloser(bytes.NewBufferString("test input wooo")),
+		Source: io.NopCloser(bytes.NewBufferString("test input wooo")),
 	}
 
 	eng := NewSaltpackSign(tc.G, sarg)
@@ -421,7 +421,7 @@ func TestSaltpackSignForceVersion(t *testing.T) {
 			var sink bytes.Buffer
 			sarg := &SaltpackSignArg{
 				Sink:   libkb.NopWriteCloser{W: &sink},
-				Source: ioutil.NopCloser(bytes.NewBufferString("some test input")),
+				Source: io.NopCloser(bytes.NewBufferString("some test input")),
 				Opts: keybase1.SaltpackSignOptions{
 					Binary:          true,
 					SaltpackVersion: versionFlag,

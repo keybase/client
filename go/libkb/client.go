@@ -10,7 +10,6 @@ import (
 	"crypto/x509"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net"
 	"net/http"
 	"net/http/cookiejar"
@@ -301,7 +300,7 @@ func (b *InstrumentedBody) Read(p []byte) (n int, err error) {
 
 func (b *InstrumentedBody) Close() (err error) {
 	// instrument the full body size even if the caller hasn't consumed it.
-	_, _ = io.Copy(ioutil.Discard, b.body)
+	_, _ = io.Copy(io.Discard, b.body)
 	// Do actual instrumentation in the background
 	go func() {
 		if b.uncompressed {
@@ -344,7 +343,7 @@ func NewInstrumentedRoundTripper(g *GlobalContext, tagger func(*http.Request) st
 		tagger:       tagger,
 		gzipPool: sync.Pool{
 			New: func() interface{} {
-				return gzip.NewWriter(ioutil.Discard)
+				return gzip.NewWriter(io.Discard)
 			},
 		},
 	}

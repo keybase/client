@@ -51,14 +51,14 @@ import (
 //
 //   - id:   The full block ID in binary format. Always present.
 //   - data: The raw block data that should hash to the block ID.
-//           May be missing.
+//     May be missing.
 //   - ksh:  The raw data for the associated key server half.
-//           May be missing, but should be present when data is.
+//     May be missing, but should be present when data is.
 //   - refs: The list of references to the block, along with other
-//           block-specific info, encoded as a serialized
-//           blockJournalInfo. May be missing.  TODO: rename this to
-//           something more generic if we ever upgrade the journal
-//           version.
+//     block-specific info, encoded as a serialized
+//     blockJournalInfo. May be missing.  TODO: rename this to
+//     something more generic if we ever upgrade the journal
+//     version.
 //
 // Future versions of the disk store might add more files to this
 // directory; if any code is written to move blocks around, it should
@@ -67,7 +67,7 @@ import (
 // The maximum number of characters added to the root dir by a block
 // disk store is 44:
 //
-//   /01ff/f...(30 characters total)...ff/data
+//	/01ff/f...(30 characters total)...ff/data
 //
 // blockDiskStore is goroutine-safe on a per-operation, per-block ID
 // basis, so any code that uses it can make concurrent calls.

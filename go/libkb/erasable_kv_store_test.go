@@ -3,7 +3,8 @@ package libkb
 import (
 	"crypto/sha256"
 	"fmt"
-	"io/ioutil"
+	"os"
+
 	"path/filepath"
 	"testing"
 
@@ -31,7 +32,7 @@ func TestErasableKVStore(t *testing.T) {
 
 	// create a tmp file in the storage dir, ensure we clean it up when calling
 	// `AllKeys`
-	tmp, err := ioutil.TempFile(s.storageDir, key)
+	tmp, err := os.CreateTemp(s.storageDir, key)
 	require.NoError(t, err)
 	for i := 0; i < 5; i++ {
 		keys, err := s.AllKeys(mctx, ".key")
@@ -48,7 +49,7 @@ func TestErasableKVStore(t *testing.T) {
 	noiseName := fmt.Sprintf("%s%s", key, noiseSuffix)
 	storageDir := getStorageDir(mctx, subDir)
 	noiseFilePath := filepath.Join(storageDir, noiseName)
-	noise, err := ioutil.ReadFile(noiseFilePath)
+	noise, err := os.ReadFile(noiseFilePath)
 	require.NoError(t, err)
 
 	// flip one bit
@@ -56,7 +57,7 @@ func TestErasableKVStore(t *testing.T) {
 	copy(corruptedNoise, noise)
 	corruptedNoise[0] ^= 0x01
 
-	err = ioutil.WriteFile(noiseFilePath, corruptedNoise, PermFile)
+	err = os.WriteFile(noiseFilePath, corruptedNoise, PermFile)
 	require.NoError(t, err)
 
 	var corrupt string

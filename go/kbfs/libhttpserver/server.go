@@ -164,7 +164,8 @@ func (s *Server) getHTTPFileSystem(ctx context.Context, requestPath string) (
 
 // serve accepts "/<fs path>?token=<token>"
 // For example:
-//     /team/keybase/file.txt?token=1234567890abcdef1234567890abcdef
+//
+//	/team/keybase/file.txt?token=1234567890abcdef1234567890abcdef
 func (s *Server) serve(w http.ResponseWriter, req *http.Request) {
 	s.vlog.Log(libkb.VLog1, "Incoming request from %q: %s", req.UserAgent(), req.URL)
 	addr, err := s.server.Addr()

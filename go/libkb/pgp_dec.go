@@ -7,7 +7,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"io/ioutil"
+
 	"time"
 
 	"github.com/keybase/go-crypto/openpgp"
@@ -122,7 +122,7 @@ func PGPDecrypt(g *GlobalContext, source io.Reader, sink io.Writer, kr openpgp.K
 func pgpDecryptClearsign(g *GlobalContext, source io.Reader, sink io.Writer, kr openpgp.KeyRing) (*SignatureStatus, error) {
 	// clearsign decode only works with the whole data slice, not a reader
 	// so have to read it all here:
-	msg, err := ioutil.ReadAll(source)
+	msg, err := io.ReadAll(source)
 	if err != nil {
 		return nil, err
 	}
@@ -131,7 +131,7 @@ func pgpDecryptClearsign(g *GlobalContext, source io.Reader, sink io.Writer, kr 
 		return nil, fmt.Errorf("Unable to decode clearsigned message")
 	}
 
-	sigBytes, err := ioutil.ReadAll(b.ArmoredSignature.Body)
+	sigBytes, err := io.ReadAll(b.ArmoredSignature.Body)
 	if err != nil {
 		return nil, err
 	}

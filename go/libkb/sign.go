@@ -88,13 +88,13 @@ func AttachedSignWrapper(out io.WriteCloser, key PGPKeyBundle, armored bool) (
 	return
 }
 
-// NopWriteCloser is like an ioutil.NopCloser, but for an io.Writer.
+// NopWriteCloser is like an io.NopCloser, but for an io.Writer.
 // TODO: we have two of these in OpenPGP packages alone. This probably needs
 // to be promoted somewhere more common.
 //
 // From here:
-//     https://code.google.com/p/go/source/browse/openpgp/write.go?repo=crypto&r=1e7a3e301825bf9cb32e0535f3761d62d2d369d1#364
 //
+//	https://code.google.com/p/go/source/browse/openpgp/write.go?repo=crypto&r=1e7a3e301825bf9cb32e0535f3761d62d2d369d1#364
 type NopWriteCloser struct {
 	W io.Writer
 }

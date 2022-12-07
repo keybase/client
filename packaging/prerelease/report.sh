@@ -11,6 +11,7 @@ bucket_name=${BUCKET_NAME:-}
 echo "Loading release tool"
 (cd "$client_dir/go" && go install "github.com/keybase/release")
 release_bin="$GOPATH/bin/release"
+echo "$(go version)"
 
 report=`"$release_bin" updates-report --bucket-name="$bucket_name"`
 "$client_dir/packaging/slack/send.sh" "\`\`\`$report\`\`\`"

@@ -202,13 +202,3 @@ if [ -z "${KEYBASE_SKIP_64_BIT:-}" ] ; then
 else
   echo SKIPPING 64-bit build
 fi
-
-if [ -z "${KEYBASE_SKIP_32_BIT:-}" ] ; then
-  echo "Keybase: Building for x86"
-  export GOARCH=386
-  export debian_arch=i386
-  export electron_arch=ia32
-  build_one_architecture
-else
-  echo SKIPPING 32-bit build
-fi

@@ -280,14 +280,13 @@ func TestHiddenNeedRotate(t *testing.T) {
 
 // See Y2K-611, the scenario we are testing is:
 //
-//    visible[1] - root - PTK[1]
-//    visible[2] - add member
-//    visible[3] - rotate - PTK[2]
-//    hidden[1] - rotate - PTK[3]
+//	visible[1] - root - PTK[1]
+//	visible[2] - add member
+//	visible[3] - rotate - PTK[2]
+//	hidden[1] - rotate - PTK[3]
 //
 // Now let's say we FTL load this team first, and then full load it. We'll be slotting in
 // the PTK at generation 2 after we've loaded PTK at generation 3 via the hidden chain.
-//
 func TestHiddenRotateOtherFTLThenSlowLoad(t *testing.T) {
 
 	fus, tcs, cleanup := setupNTests(t, 2)
@@ -329,17 +328,16 @@ func TestHiddenRotateOtherFTLThenSlowLoad(t *testing.T) {
 
 // See Y2K-679, the scenario we are testing is:
 //
-//    visible[1] - root - PTK[1]
-//    visible[2] - add member
-//    hidden[1] - rotate - PTK[2]
-//    hidden[2] - rotate - PTK[3]
-//    hidden[3] - rotate - PTK[4]
-//    hidden[4] - rotate - PTK[5]
+//	visible[1] - root - PTK[1]
+//	visible[2] - add member
+//	hidden[1] - rotate - PTK[2]
+//	hidden[2] - rotate - PTK[3]
+//	hidden[3] - rotate - PTK[4]
+//	hidden[4] - rotate - PTK[5]
 //
 // Then we:
 //   - FTL generations 1,2,4 (leaving a hole at 3)
 //   - Full load the team with hidden_low=1 and low=0
-//
 func TestHiddenFTLHole(t *testing.T) {
 
 	fus, tcs, cleanup := setupNTests(t, 2)

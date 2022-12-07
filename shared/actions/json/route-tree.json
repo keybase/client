@@ -1,53 +1,53 @@
 {
-    "prelude": [
-        "import type * as Tabs from '../constants/tabs'",
-        "import type * as Types from '../constants/types/route-tree'",
-    ],
-    "actions": {
-        "navigateAppend": {
-            "fromKey?": "string",
-            "path": "any",
-            "replace?": "boolean"
-        },
-        "navigateUp": {
-            "fromKey?": "string"
-        },
-        "navigateUpNoop": {
-            "_description": "Nav up but no longer focused, for logging only"
-        },
-        "clearModals": {
-            "_description": "ONLY used by the new nav. use this to clear any modal routes"
-        },
-        "navUpToScreen": {
-            "_description": "ONLY used by the new nav. Navigates up to this route if it already exists, noops otherwise.",
-            "name": "string",
-            "params?": "Object"
-        },
-        "switchLoggedIn": {
-            "_description": "ONLY used by the new nav. Switch login stacks",
-            "loggedIn": "boolean"
-        },
-        "switchTab": {
-            "_description": "ONLY used by the new nav. Switch to a different tab.",
-            "tab": "Tabs.AppTab",
-            "params?": "Object"
-        },
-        "popStack": {
-            "_description": "Reset a stack"
-        },
-        "onNavChanged": {
-            "prev": "Array<Types.Route>",
-            "next": "Array<Types.Route>",
-            "navAction": "any"
-        },
-        "setParams": {
-            "_description": "deprecated soon",
-            "params": "Object",
-            "key": "string"
-        },
-        "tabLongPress": {
-            "_description": "a tab was pressed",
-            "tab": "string"
-        }
+  "prelude": [
+    "import type * as Tabs from '../constants/tabs'",
+    "import type * as Types from '../constants/types/route-tree'"
+  ],
+  "actions": {
+    "navigateAppend": {
+      "fromKey?": "string",
+      "path": "any",
+      "replace?": "boolean"
+    },
+    "navigateUp": {
+      "fromKey?": "string"
+    },
+    "navigateUpNoop": {
+      "_description": "Nav up but no longer focused, for logging only"
+    },
+    "clearModals": {
+      "_description": "ONLY used by the new nav. use this to clear any modal routes"
+    },
+    "navUpToScreen": {
+      "_description": "ONLY used by the new nav. Navigates up to this route if it already exists, noops otherwise.",
+      "name": "string",
+      "params?": "Object"
+    },
+    "switchLoggedIn": {
+      "_description": "ONLY used by the new nav. Switch login stacks",
+      "loggedIn": "boolean"
+    },
+    "switchTab": {
+      "_description": "ONLY used by the new nav. Switch to a different tab.",
+      "tab": "Tabs.AppTab",
+      "params?": "Object"
+    },
+    "popStack": {
+      "_description": "Reset a stack"
+    },
+    "onNavChanged": {
+      "prev": "Types.NavState | undefined",
+      "next": "Types.NavState | undefined",
+      "navAction": "any"
+    },
+    "setParams": {
+      "_description": "deprecated soon",
+      "params": "Object",
+      "key": "string"
+    },
+    "tabLongPress": {
+      "_description": "a tab was pressed",
+      "tab": "string"
     }
+  }
 }

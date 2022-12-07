@@ -6,12 +6,10 @@ package test
 
 import "testing"
 
-//
 // 1) alice writes
 // 2) bob reads
 // 3) alice reads
 // 4) eve reads & tries to write(w/o permission),
-//
 func TestWriteReadWriteFail(t *testing.T) {
 	test(t,
 		skip("dokan", "Does not work with Dokan."),
@@ -32,11 +30,9 @@ func TestWriteReadWriteFail(t *testing.T) {
 	)
 }
 
-//
 // 1) alice creates a directory, creates a file, writes more to the file w/o sync
 // 2) bob writes to the same file and syncs
 // 3) alice syncs
-//
 func TestConflict(t *testing.T) {
 	test(t,
 		users("alice", "bob"),

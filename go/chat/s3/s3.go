@@ -18,7 +18,6 @@ import (
 	"encoding/xml"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
@@ -99,7 +98,6 @@ type Owner struct {
 }
 
 // Fold options into an Options struct
-//
 type Options struct {
 	SSE              bool
 	Meta             map[string][]string
@@ -238,7 +236,7 @@ func (b *Bucket) Get(ctx context.Context, path string) (data []byte, err error) 
 	if err != nil {
 		return nil, err
 	}
-	data, err = ioutil.ReadAll(body)
+	data, err = io.ReadAll(body)
 	return data, err
 }
 
@@ -639,41 +637,41 @@ type Key struct {
 //
 // For example, given these keys in a bucket:
 //
-//     index.html
-//     index2.html
-//     photos/2006/January/sample.jpg
-//     photos/2006/February/sample2.jpg
-//     photos/2006/February/sample3.jpg
-//     photos/2006/February/sample4.jpg
+//	index.html
+//	index2.html
+//	photos/2006/January/sample.jpg
+//	photos/2006/February/sample2.jpg
+//	photos/2006/February/sample3.jpg
+//	photos/2006/February/sample4.jpg
 //
 // Listing this bucket with delimiter set to "/" would yield the
 // following result:
 //
-//     &ListResp{
-//         Name:      "sample-bucket",
-//         MaxKeys:   1000,
-//         Delimiter: "/",
-//         Contents:  []Key{
-//             {Key: "index.html", "index2.html"},
-//         },
-//         CommonPrefixes: []string{
-//             "photos/",
-//         },
-//     }
+//	&ListResp{
+//	    Name:      "sample-bucket",
+//	    MaxKeys:   1000,
+//	    Delimiter: "/",
+//	    Contents:  []Key{
+//	        {Key: "index.html", "index2.html"},
+//	    },
+//	    CommonPrefixes: []string{
+//	        "photos/",
+//	    },
+//	}
 //
 // Listing the same bucket with delimiter set to "/" and prefix set to
 // "photos/2006/" would yield the following result:
 //
-//     &ListResp{
-//         Name:      "sample-bucket",
-//         MaxKeys:   1000,
-//         Delimiter: "/",
-//         Prefix:    "photos/2006/",
-//         CommonPrefixes: []string{
-//             "photos/2006/February/",
-//             "photos/2006/January/",
-//         },
-//     }
+//	&ListResp{
+//	    Name:      "sample-bucket",
+//	    MaxKeys:   1000,
+//	    Delimiter: "/",
+//	    Prefix:    "photos/2006/",
+//	    CommonPrefixes: []string{
+//	        "photos/2006/February/",
+//	        "photos/2006/January/",
+//	    },
+//	}
 //
 // See http://goo.gl/YjQTc for details.
 func (b *Bucket) List(prefix, delim, marker string, max int) (result *ListResp, err error) {
@@ -946,7 +944,7 @@ func (s3 *S3) run(ctx context.Context, req *request, resp interface{}) (*http.Re
 		delete(req.headers, "Content-Length")
 	}
 	if req.payload != nil {
-		hreq.Body = ioutil.NopCloser(req.payload)
+		hreq.Body = io.NopCloser(req.payload)
 	}
 
 	if s3.client == nil {
@@ -1021,13 +1019,13 @@ func (e *Error) Error() string {
 func buildError(r *http.Response) error {
 	if debug {
 		log.Printf("got error (status code %v)", r.StatusCode)
-		data, err := ioutil.ReadAll(r.Body)
+		data, err := io.ReadAll(r.Body)
 		if err != nil {
 			log.Printf("\tread error: %v", err)
 		} else {
 			log.Printf("\tdata:\n%s\n\n", data)
 		}
-		r.Body = ioutil.NopCloser(bytes.NewBuffer(data))
+		r.Body = io.NopCloser(bytes.NewBuffer(data))
 	}
 
 	err := Error{}
@@ -1080,7 +1078,7 @@ func shouldRetry(err error) bool {
 		}
 	// let's handle tls handshake timeout issues and similar temporary errors
 	case net.Error:
-		return e.Temporary()
+		return e.Temporary() //nolint
 	}
 
 	return false

@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"image/gif"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"sort"
@@ -815,7 +814,7 @@ func (s *DevConvEmojiSource) syncCrossTeam(ctx context.Context, uid gregor1.UID,
 		s.testingRefreshedSyncConv <- struct{}{}
 	}
 	// download from the original source
-	sink, err := ioutil.TempFile(s.getCacheDir(), "emoji")
+	sink, err := os.CreateTemp(s.getCacheDir(), "emoji")
 	if err != nil {
 		return res, err
 	}

@@ -10,7 +10,6 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"path"
 	"regexp"
@@ -194,7 +193,7 @@ func UpdateRepoMD(ctx context.Context, config libkbfs.Config,
 		return err
 	}
 	defer f.Close()
-	buf, err := ioutil.ReadAll(f)
+	buf, err := io.ReadAll(f)
 	if err != nil {
 		return err
 	}
@@ -304,7 +303,7 @@ func makeExistingRepoError(
 		return err
 	}
 	defer f.Close()
-	buf, err := ioutil.ReadAll(f)
+	buf, err := io.ReadAll(f)
 	if err != nil {
 		return err
 	}
@@ -502,7 +501,7 @@ func getOrCreateRepoAndID(
 	}
 	defer f.Close()
 
-	buf, err := ioutil.ReadAll(f)
+	buf, err := io.ReadAll(f)
 	if err != nil {
 		return nil, NullID, err
 	}
@@ -649,7 +648,7 @@ func renameRepoInConfigFile(
 		return err
 	}
 	defer f.Close()
-	buf, err := ioutil.ReadAll(f)
+	buf, err := io.ReadAll(f)
 	if err != nil {
 		return err
 	}

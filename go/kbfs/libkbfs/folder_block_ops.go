@@ -154,39 +154,39 @@ type deferredState struct {
 // It's the responsibility of folderBlockOps (and its helper struct
 // dirtyFile) to update these totals in DirtyBlockCache for the
 // individual files within this TLF.  This is complicated by a few things:
-//   * New writes to a file are "deferred" while a Sync is happening, and
+//   - New writes to a file are "deferred" while a Sync is happening, and
 //     are replayed after the Sync finishes.
-//   * Syncs can be canceled or error out halfway through syncing the blocks,
+//   - Syncs can be canceled or error out halfway through syncing the blocks,
 //     leaving the file in a dirty state until the next Sync.
-//   * Syncs can fail with a /recoverable/ error, in which case they get
+//   - Syncs can fail with a /recoverable/ error, in which case they get
 //     retried automatically by folderBranchOps.  In that case, the retried
 //     Sync also sucks in any outstanding deferred writes.
 //
 // With all that in mind, here is the rough breakdown of how this
 // bytes-tracking is implemented:
-//   * On a Write/Truncate to a block, folderBranchOps counts all the
+//   - On a Write/Truncate to a block, folderBranchOps counts all the
 //     newly-dirtied bytes in a file as "unsynced".  That is, if the block was
 //     already in the dirty cache (and not already being synced), only
 //     extensions to the block count as "unsynced" bytes.
-//   * When a Sync starts, dirtyFile remembers the total of bytes being synced,
+//   - When a Sync starts, dirtyFile remembers the total of bytes being synced,
 //     and the size of each block being synced.
-//   * When each block put finishes successfully, dirtyFile subtracts the size
+//   - When each block put finishes successfully, dirtyFile subtracts the size
 //     of that block from "unsynced".
-//   * When a Sync finishes successfully, the total sum of bytes in that sync
+//   - When a Sync finishes successfully, the total sum of bytes in that sync
 //     are subtracted from the "total" dirty bytes outstanding.
-//   * If a Sync fails, but some blocks were put successfully, those blocks
+//   - If a Sync fails, but some blocks were put successfully, those blocks
 //     are "re-dirtied", which means they count as unsynced bytes again.
 //     dirtyFile handles this.
-//   * When a Write/Truncate is deferred due to an ongoing Sync, its bytes
+//   - When a Write/Truncate is deferred due to an ongoing Sync, its bytes
 //     still count towards the "unsynced" total.  In fact, this essentially
 //     creates a new copy of those blocks, and the whole size of that block
 //     (not just the newly-dirtied bytes) count for the total.  However,
 //     when the write gets replayed, folderBlockOps first subtracts those bytes
 //     from the system-wide numbers, since they are about to be replayed.
-//   * When a Sync is retried after a recoverable failure, dirtyFile adds
+//   - When a Sync is retried after a recoverable failure, dirtyFile adds
 //     the newly-dirtied deferred bytes to the system-wide numbers, since they
 //     are now being assimilated into this Sync.
-//   * dirtyFile also exposes a concept of "orphaned" blocks.  These are child
+//   - dirtyFile also exposes a concept of "orphaned" blocks.  These are child
 //     blocks being synced that are now referenced via a new, permanent block
 //     ID from the parent indirect block.  This matters for when hard failures
 //     occur during a Sync -- the blocks will no longer be accessible under
@@ -2930,21 +2930,21 @@ func (fbo *folderBlockOps) mergeDirtyEntryWithDBM(
 // writes since the last sync. Must be used with CleanupSyncState()
 // and UpdatePointers/FinishSyncLocked() like so:
 //
-// 	fblock, bps, dirtyDe, syncState, err :=
-//		...fbo.StartSync(ctx, lState, md, uid, file)
-//	defer func() {
-//		...fbo.CleanupSyncState(
-//			ctx, lState, md, file, ..., syncState, err)
-//	}()
-//	if err != nil {
-//		...
-//	}
-//      ...
+//		fblock, bps, dirtyDe, syncState, err :=
+//			...fbo.StartSync(ctx, lState, md, uid, file)
+//		defer func() {
+//			...fbo.CleanupSyncState(
+//				ctx, lState, md, file, ..., syncState, err)
+//		}()
+//		if err != nil {
+//			...
+//		}
+//	     ...
 //
 //
-//	... = fbo.UpdatePointers(..., func() error {
-//      ...fbo.FinishSyncLocked(ctx, lState, file, ..., syncState)
-//  })
+//		... = fbo.UpdatePointers(..., func() error {
+//	     ...fbo.FinishSyncLocked(ctx, lState, file, ..., syncState)
+//	 })
 func (fbo *folderBlockOps) StartSync(ctx context.Context,
 	lState *kbfssync.LockState, md *RootMetadata, file data.Path) (
 	fblock *data.FileBlock, bps blockPutStateCopiable, dirtyDe *data.DirEntry,

@@ -347,7 +347,7 @@ func (u *Unfurler) doneUnfurling(outboxID chat1.OutboxID) {
 func (u *Unfurler) detectPermError(err error) bool {
 	switch e := err.(type) {
 	case *net.DNSError:
-		return !e.Temporary()
+		return !e.Temporary() //nolint
 	case *url.Error:
 		return !e.Temporary()
 	case *unfurlPermanentError:

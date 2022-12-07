@@ -125,7 +125,6 @@ func (s *ScanKeys) KeysById(id uint64, fp []byte) []openpgp.Key {
 // requiredUsage will only equal KeyFlagSign, thus only public
 // keys are required.  If this ever changes upstream in openpgp,
 // this function will panic.
-//
 func (s *ScanKeys) KeysByIdUsage(id uint64, fp []byte, requiredUsage byte) []openpgp.Key {
 	if requiredUsage != packet.KeyFlagSign {
 		panic(fmt.Sprintf("ScanKeys: unexpected requiredUsage flags set: %x", requiredUsage))

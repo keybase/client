@@ -232,21 +232,22 @@ helpers.rootLinuxNode(env, {
                       docker.withRegistry('https://897413463132.dkr.ecr.us-east-1.amazonaws.com', 'ecr:us-east-1:aws-ecr-user') {
                         kbfsfuseImage.push(env.BUILD_TAG)
                       }
-                      if (env.BRANCH_NAME == "master" && cause != "upstream") {
-                        build([
-                          job: "/kbfs-server/master",
-                          parameters: [
-                            string(
-                              name: 'kbfsProjectName',
-                              value: env.BUILD_TAG,
-                            ),
-                            string(
-                              name: 'kbwebProjectName',
-                              value: kbwebTag,
-                            ),
-                          ]
-                        ])
-                      }
+                      // TODO(ZCLIENT-2469)
+                      // if (env.BRANCH_NAME == "master" && cause != "upstream") {
+                      //   build([
+                      //     job: "/kbfs-server/master",
+                      //     parameters: [
+                      //       string(
+                      //         name: 'kbfsProjectName',
+                      //         value: env.BUILD_TAG,
+                      //       ),
+                      //       string(
+                      //         name: 'kbwebProjectName',
+                      //         value: kbwebTag,
+                      //       ),
+                      //     ]
+                      //   ])
+                      // }
                     }
                   }
                 }
@@ -254,34 +255,35 @@ helpers.rootLinuxNode(env, {
             )
           },
           test_windows: {
-            if (hasGoChanges || hasJenkinsfileChanges) {
-              helpers.nodeWithCleanup('windows-ssh', {}, {}) {
-                def BASEDIR="${pwd()}"
-                def GOPATH="${BASEDIR}\\go"
-                withEnv([
-                  'GOROOT=C:\\Program Files\\go',
-                  "GOPATH=\"${GOPATH}\"",
-                  "PATH=\"C:\\tools\\go\\bin\";\"C:\\Program Files (x86)\\GNU\\GnuPG\";\"C:\\Program Files\\nodejs\";\"C:\\tools\\python\";\"C:\\Program Files\\graphicsmagick-1.3.24-q8\";\"${GOPATH}\\bin\";${env.PATH}",
-                  "KEYBASE_SERVER_URI=http://${kbwebNodePrivateIP}:3000",
-                  "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePrivateIP}:9911",
-                  "TMP=C:\\Users\\Administrator\\AppData\\Local\\Temp",
-                  "TEMP=C:\\Users\\Administrator\\AppData\\Local\\Temp",
-                ]) {
-                ws("client") {
-                  println "Checkout Windows"
-                  retry(3) {
-                    checkout scm
-                  }
+            // TODO(ZCLIENT-3850) re-enable once the window's runner Java version is upgraded.
+            // if (hasGoChanges || hasJenkinsfileChanges) {
+            //   helpers.nodeWithCleanup('windows-ssh', {}, {}) {
+            //     def BASEDIR="${pwd()}"
+            //     def GOPATH="${BASEDIR}\\go"
+            //     withEnv([
+            //       'GOROOT=C:\\Program Files\\go',
+            //       "GOPATH=\"${GOPATH}\"",
+            //       "PATH=\"C:\\tools\\go\\bin\";\"C:\\Program Files (x86)\\GNU\\GnuPG\";\"C:\\Program Files\\nodejs\";\"C:\\tools\\python\";\"C:\\Program Files\\graphicsmagick-1.3.24-q8\";\"${GOPATH}\\bin\";${env.PATH}",
+            //       "KEYBASE_SERVER_URI=http://${kbwebNodePrivateIP}:3000",
+            //       "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePrivateIP}:9911",
+            //       "TMP=C:\\Users\\Administrator\\AppData\\Local\\Temp",
+            //       "TEMP=C:\\Users\\Administrator\\AppData\\Local\\Temp",
+            //     ]) {
+            //     ws("client") {
+            //       println "Checkout Windows"
+            //       retry(3) {
+            //         checkout scm
+            //       }
 
-                  println "Test Windows"
-                  parallel (
-                    test_windows_go: {
-                      testGo("test_windows_go_", getPackagesToTest(dependencyFiles, hasJenkinsfileChanges), hasKBFSChanges)
-                    }
-                  )
-                }}
-              }
-            }
+            //       println "Test Windows"
+            //       parallel (
+            //         test_windows_go: {
+            //           testGo("test_windows_go_", getPackagesToTest(dependencyFiles, hasJenkinsfileChanges), hasKBFSChanges)
+            //         }
+            //       )
+            //     }}
+            //   }
+            // }
           },
         )
       }
@@ -444,7 +446,7 @@ def testGoBuilds(prefix, packagesToTest, hasKBFSChanges) {
     }
   }
   retry(5) {
-    timeout(activity: true, time: 300, unit: 'SECONDS') {
+    timeout(activity: true, time: 1200, unit: 'SECONDS') {
       sh 'make -s lint'
     }
   }

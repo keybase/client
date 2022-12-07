@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/hex"
-	"fmt"
 	"io"
 	"log"
 	"os"
@@ -15,7 +14,7 @@ import (
 )
 
 func failf(format string, args ...interface{}) {
-	log.Print(fmt.Sprintf(format, args...))
+	log.Printf(format, args...)
 	os.Exit(1)
 }
 

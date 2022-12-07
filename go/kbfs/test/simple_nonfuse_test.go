@@ -11,7 +11,6 @@ import "testing"
 
 // os.Rename doesn't support overriding empty dst dir, so skip this test if
 // FUSE engine is used.
-//
 func TestRenameDirOverDir(t *testing.T) {
 	test(t,
 		users("alice"),

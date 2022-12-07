@@ -5,7 +5,6 @@
 package search
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -30,7 +29,7 @@ func newIndexedTlfDbForTest(t *testing.T) (
 	*IndexedTlfDb, string) {
 	// Use a disk-based level, instead of memory storage, because we
 	// want to simulate a restart and memory storages can't be reused.
-	tempdir, err := ioutil.TempDir(os.TempDir(), "indexed_tlfs_db")
+	tempdir, err := os.MkdirTemp(os.TempDir(), "indexed_tlfs_db")
 	require.NoError(t, err)
 	tlfS, err := storage.OpenFile(filepath.Join(tempdir, "tlfs"), false)
 	require.NoError(t, err)
@@ -51,7 +50,7 @@ func TestIndexedTlfDbCreate(t *testing.T) {
 		require.NoError(t, err)
 	}()
 
-	tempdir, err := ioutil.TempDir(os.TempDir(), "indexed_tlfs_db")
+	tempdir, err := os.MkdirTemp(os.TempDir(), "indexed_tlfs_db")
 	require.NoError(t, err)
 	db, err := newIndexedTlfDb(config, tempdir)
 	require.NoError(t, err)

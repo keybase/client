@@ -5,10 +5,9 @@ package client
 
 import (
 	"fmt"
+	"io"
 
 	"golang.org/x/net/context"
-
-	"io/ioutil"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
@@ -93,7 +92,7 @@ func (s *CmdPGPImport) readKeyData() error {
 		return err
 	}
 	defer src.Close()
-	s.arg.Key, err = ioutil.ReadAll(src)
+	s.arg.Key, err = io.ReadAll(src)
 	return err
 }
 

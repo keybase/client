@@ -3,12 +3,11 @@ package libkb
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 )
 
 func discardAndClose(rc io.ReadCloser) error {
-	_, _ = io.Copy(ioutil.Discard, rc)
+	_, _ = io.Copy(io.Discard, rc)
 	return rc.Close()
 }
 
@@ -21,13 +20,13 @@ func discardAndClose(rc io.ReadCloser) error {
 //
 // Instead of doing:
 //
-//   res, _ := ...
-//   defer res.Body.Close()
+//	res, _ := ...
+//	defer res.Body.Close()
 //
 // do
 //
-//   res, _ := ...
-//   defer DiscardAndCloseBody(res)
+//	res, _ := ...
+//	defer DiscardAndCloseBody(res)
 //
 // instead.
 func DiscardAndCloseBody(resp *http.Response) error {

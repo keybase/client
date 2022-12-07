@@ -8,7 +8,7 @@ type State = {
   targetRect: ClientRect | null
 }
 
-class FloatingBox extends React.Component<Props, State> {
+class FloatingBox extends React.PureComponent<Props, State> {
   state: State
 
   constructor(props: Props) {

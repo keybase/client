@@ -5,7 +5,7 @@ package libkb
 
 import (
 	"bytes"
-	"io/ioutil"
+
 	"os"
 	"path/filepath"
 	"runtime"
@@ -20,11 +20,11 @@ func newNilMetaContext() MetaContext {
 }
 
 func testSSDir(t *testing.T) (string, func()) {
-	td, err := ioutil.TempDir("", "ss")
+	td, err := os.MkdirTemp("", "ss")
 	require.NoError(t, err)
 
 	create := func(name, secret string) {
-		err := ioutil.WriteFile(filepath.Join(td, name+".ss"), []byte(secret), PermFile)
+		err := os.WriteFile(filepath.Join(td, name+".ss"), []byte(secret), PermFile)
 		require.NoError(t, err)
 	}
 
@@ -224,13 +224,13 @@ func TestSecretStoreFileNoise(t *testing.T) {
 	ss := NewSecretStoreFile(td)
 	err = ss.StoreSecret(m, "ogden", lksec)
 	require.NoError(t, err)
-	noise, err := ioutil.ReadFile(filepath.Join(td, "ogden.ns2"))
+	noise, err := os.ReadFile(filepath.Join(td, "ogden.ns2"))
 	require.NoError(t, err)
 
 	// flip one bit
 	noise[0] ^= 0x01
 
-	err = ioutil.WriteFile(filepath.Join(td, "ogden.ns2"), noise, PermFile)
+	err = os.WriteFile(filepath.Join(td, "ogden.ns2"), noise, PermFile)
 	require.NoError(t, err)
 
 	corrupt, err := ss.RetrieveSecret(m, "ogden")

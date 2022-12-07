@@ -1,14 +1,12 @@
-import * as Types from './types/teams'
-import * as RPCTypes from './types/rpc-gen'
 import * as RPCChatTypes from './types/rpc-chat-gen'
-import * as ChatTypes from './types/chat2'
-import {getCurrentTab} from './router2'
-import invert from 'lodash/invert'
-import {teamsTab} from './tabs'
-import {memoize} from '../util/memoize'
+import * as RPCTypes from './types/rpc-gen'
+import * as Types from './types/teams'
 import * as TeamBuildingConstants from './team-building'
+import invert from 'lodash/invert'
+import type * as ChatTypes from './types/chat2'
+import type {TypedState} from './reducer'
 import {RetentionPolicy} from './types/retention-policy'
-import {TypedState} from './reducer'
+import {memoize} from '../util/memoize'
 
 export const teamRoleTypes = ['reader', 'writer', 'admin', 'owner'] as const
 
@@ -687,8 +685,6 @@ export const publicAdminsLimit = 6
 export const chosenChannelsGregorKey = 'chosenChannelsForTeam'
 export const newRequestsGregorPrefix = 'team.request_access:'
 export const newRequestsGregorKey = (teamID: Types.TeamID) => `${newRequestsGregorPrefix}${teamID}`
-
-export const isOnTeamsTab = () => getCurrentTab() == teamsTab
 
 // Merge new teamMeta objs into old ones, removing any old teams that are not in the new map
 export const mergeTeamMeta = (oldMap: Types.State['teamMeta'], newMap: Types.State['teamMeta']) => {

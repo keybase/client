@@ -29,7 +29,7 @@ const Arrow = (props: ArrowProps) => {
   )
 }
 
-const Fullscreen = (p: Props) => {
+const Fullscreen = React.memo(function Fullscreen(p: Props) {
   const {path, title, message, progress, progressLabel} = p
   const {onNextAttachment, onPreviousAttachment, onClose, onDownloadAttachment, onShowInFinder, isVideo} = p
 
@@ -137,7 +137,7 @@ const Fullscreen = (p: Props) => {
       </Kb.Box>
     </Kb.PopupDialog>
   )
-}
+})
 
 const styles = Styles.styleSheetCreate(
   () =>

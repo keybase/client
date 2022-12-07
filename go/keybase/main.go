@@ -6,7 +6,6 @@ package main
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/signal"
 	"runtime"
@@ -495,7 +494,7 @@ func startProfile(g *libkb.GlobalContext) {
 		for {
 			time.Sleep(interval)
 			g.Log.Debug("dumping periodic memory profile")
-			f, err := ioutil.TempFile("", "keybase_memprofile")
+			f, err := os.CreateTemp("", "keybase_memprofile")
 			if err != nil {
 				g.Log.Debug("could not create memory profile: ", err)
 				continue

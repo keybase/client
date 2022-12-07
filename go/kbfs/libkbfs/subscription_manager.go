@@ -29,15 +29,17 @@ const (
 // type is dealing with without needing them to know if a path is canonicalized
 // at any time.
 // Examples:
-//   "/keybase/public/karlthefog@twitter/dir
-//   "/keybase/team/keybase/dir/../file"
+//
+//	"/keybase/public/karlthefog@twitter/dir
+//	"/keybase/team/keybase/dir/../file"
 type userPath string
 
 // cleanInTlfPath is clean path rooted at a TLF, and it's what we get
 // from Node.GetPathPlaintextSansTlf().
 // Examples, considering TLF /keybase/private/user1,user2:
-//   "/foo/bar" (representing /keybase/private/user1,user2/foo/bar)
-//   "/"        (representing /keybase/private/user1,user2)
+//
+//	"/foo/bar" (representing /keybase/private/user1,user2/foo/bar)
+//	"/"        (representing /keybase/private/user1,user2)
 type cleanInTlfPath string
 
 func getCleanInTlfPath(p *parsedPath) cleanInTlfPath {

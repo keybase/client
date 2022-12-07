@@ -736,7 +736,8 @@ func (s *Storage) updateMinDeletableMessage(ctx context.Context, convID chat1.Co
 // Returns a non-nil expunge if deletes happened.
 // Shortcircuits so it's ok to call a lot.
 // The actual effect will be to delete upto the max of `expungeExplicit` (which can be nil)
-//   and the DeleteHistory-type messages.
+//
+//	and the DeleteHistory-type messages.
 func (s *Storage) handleDeleteHistory(ctx context.Context, conv types.UnboxConversationInfo,
 	uid gregor1.UID, msgs []chat1.MessageUnboxed, expungeExplicit *chat1.Expunge) (*chat1.Expunge, Error) {
 

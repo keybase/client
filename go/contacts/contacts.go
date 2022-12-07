@@ -94,7 +94,6 @@ func fillResolvedUserInfo(mctx libkb.MetaContext, provider ContactsProvider, uid
 
 // ResolveContacts resolves contacts with cache for UI. See API documentation
 // in phone_numbers.avdl
-//
 func ResolveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts []keybase1.Contact) (res []keybase1.ProcessedContact, err error) {
 
 	if len(contacts) == 0 {

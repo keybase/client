@@ -79,8 +79,8 @@ export const createNavigateUp = (payload: {readonly fromKey?: string} = {}) => (
   type: navigateUp as typeof navigateUp,
 })
 export const createOnNavChanged = (payload: {
-  readonly prev: Array<Types.Route>
-  readonly next: Array<Types.Route>
+  readonly prev: Types.NavState | undefined
+  readonly next: Types.NavState | undefined
   readonly navAction: any
 }) => ({payload, type: onNavChanged as typeof onNavChanged})
 

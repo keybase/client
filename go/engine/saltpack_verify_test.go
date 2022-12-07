@@ -2,7 +2,7 @@ package engine
 
 import (
 	"bytes"
-	"io/ioutil"
+	"io"
 	"strings"
 	"testing"
 
@@ -22,7 +22,7 @@ func TestSaltpackVerifyErrors(t *testing.T) {
 	msg := "10 days in Japan"
 	sarg := &SaltpackSignArg{
 		Sink:   libkb.NopWriteCloser{W: &sink},
-		Source: ioutil.NopCloser(bytes.NewBufferString(msg)),
+		Source: io.NopCloser(bytes.NewBufferString(msg)),
 	}
 
 	eng := NewSaltpackSign(tc.G, sarg)

@@ -111,12 +111,12 @@ func (ibrmd ImmutableBareRootMetadata) MakeBareTlfHandleWithExtra() (
 // The maximum number of characters added to the root dir by an MD
 // journal is 50:
 //
-//   /mds/01ff/f...(30 characters total)...ff/info.json
+//	/mds/01ff/f...(30 characters total)...ff/info.json
 //
 // This covers even the temporary files created in convertToBranch and
 // resolveAndClear, which create paths like
 //
-//   /md_journal123456789/0...(16 characters total)...001
+//	/md_journal123456789/0...(16 characters total)...001
 //
 // which have only 37 characters.
 //

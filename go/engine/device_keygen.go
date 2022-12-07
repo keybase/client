@@ -46,7 +46,6 @@ type DeviceKeygenArgs struct {
 //
 // The User argument is optional, but it is necessary if the
 // user's sigchain changes between key generation and key push.
-//
 type DeviceKeygenPushArgs struct {
 	SkipSignerPush bool
 	Signer         libkb.GenericKey

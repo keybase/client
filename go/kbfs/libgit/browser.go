@@ -6,7 +6,7 @@ package libgit
 
 import (
 	"context"
-	"io/ioutil"
+	"io"
 	"os"
 	"path"
 	"strings"
@@ -168,7 +168,7 @@ func (b *Browser) readLink(filename string) (string, error) {
 		return "", err
 	}
 	defer r.Close()
-	data, err := ioutil.ReadAll(r)
+	data, err := io.ReadAll(r)
 	if err != nil {
 		return "", err
 	}

@@ -7,7 +7,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"os"
 
 	"golang.org/x/net/context"
@@ -73,7 +72,7 @@ func realMain() (exitStatus int) {
 
 	log := logger.New("")
 
-	tempDir, err := ioutil.TempDir(kbCtx.GetDataDir(), "kbfstool")
+	tempDir, err := os.MkdirTemp(kbCtx.GetDataDir(), "kbfstool")
 	if err != nil {
 		panic(err.Error())
 	}
