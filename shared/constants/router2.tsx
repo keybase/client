@@ -18,27 +18,6 @@ export const getRootState = (): NavState | undefined => {
   return navigationRef_.getRootState()
 }
 
-const findVisibleRoute = (arr: Array<Route>, s: NavState): Array<Route> => {
-  if (!s || !s.routes || s.index === undefined) {
-    return arr
-  }
-  const route: Route = s.routes[s.index] as Route
-  if (!route) {
-    return arr
-  }
-
-  let toAdd: Array<Route>
-  // include items in the stack
-  if (s.type === 'stack') {
-    toAdd = s.routes as Array<Route>
-  } else {
-    toAdd = [route]
-  }
-
-  const nextArr = [...arr, ...toAdd]
-  return route.state?.routes ? findVisibleRoute(nextArr, route.state) : nextArr
-}
-
 const _isLoggedIn = (s: NavState) => {
   if (!s) {
     return false
@@ -47,9 +26,43 @@ const _isLoggedIn = (s: NavState) => {
 }
 
 // Public API
+// gives you loggedin/tab/stackitems + modals
 export const getVisiblePath = (navState?: NavState) => {
   const rs = navState || getRootState()
-  return rs ? findVisibleRoute([], rs) : []
+
+  const findVisibleRoute = (arr: Array<Route>, s: NavState, depth: number): Array<Route> => {
+    if (!s || !s.routes || s.index === undefined) {
+      return arr
+    }
+    let childRoute: Route = s.routes[s.index] as Route
+    if (!childRoute) {
+      return arr
+    }
+
+    let toAdd: Array<Route>
+    let toAddModals: Array<Route> = []
+    // special handling of modals, we keep them to the side to add them later, then go down the visible tab
+    if (depth === 0) {
+      childRoute = s.routes[0] as Route
+      toAdd = [childRoute]
+      toAddModals = s.routes.slice(1) as Array<Route>
+    } else {
+      // include items in the stack
+      if (s.type === 'stack') {
+        toAdd = s.routes as Array<Route>
+      } else {
+        toAdd = [childRoute]
+      }
+    }
+
+    const nextArr = [...arr, ...toAdd]
+    const children = findVisibleRoute(nextArr, childRoute.state, depth + 1)
+    return [...children, ...toAddModals]
+  }
+
+  if (!rs) return []
+  const vs = findVisibleRoute([], rs, 0)
+  return vs
 }
 
 export const getModalStack = (navState?: NavState) => {

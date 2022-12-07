@@ -3654,12 +3654,10 @@ const onShowInfoPanel = (_: unknown, action: Chat2Gen.ShowInfoPanelPayload) => {
   }
 }
 
-const maybeChangeChatSelection = (_: unknown, action: RouteTreeGen.OnNavChangedPayload) => {
+const maybeChangeChatSelection = (state: Container.TypedState, action: RouteTreeGen.OnNavChangedPayload) => {
   const {prev, next} = action.payload
   const wasModal = prev && Router2Constants.getModalStack(prev).length > 0
   const isModal = next && Router2Constants.getModalStack(next).length > 0
-
-  console.log('aaa chat on nav', {wasModal, isModal})
 
   // ignore if changes involve a modal
   if (wasModal || isModal) {
@@ -3669,7 +3667,6 @@ const maybeChangeChatSelection = (_: unknown, action: RouteTreeGen.OnNavChangedP
   const p = Router2Constants.getVisibleScreen(prev)
   const n = Router2Constants.getVisibleScreen(next)
 
-  console.log('aaa chat on nav', {p, n})
   const wasChat = p?.name === Constants.threadRouteName
   const isChat = n?.name === Constants.threadRouteName
 
@@ -3687,7 +3684,10 @@ const maybeChangeChatSelection = (_: unknown, action: RouteTreeGen.OnNavChangedP
 
   // same? ignore
   if (wasChat && isChat && wasID === isID) {
-    return false
+    // if we've never loaded anything, keep going so we load it
+    if (!isID || state.chat2.containsLatestMessageMap.get(isID) !== undefined) {
+      return false
+    }
   }
 
   // deselect if there was one
