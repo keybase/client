@@ -7,33 +7,36 @@ import Error from './error/container'
 import YouAreReset from './you-are-reset'
 import Rekey from './rekey/container'
 import {headerNavigationOptions} from './header-area/container'
-import {useFocusEffect, useNavigation} from '@react-navigation/core'
-import {tabBarStyle} from '../../router-v2/common'
+import {/*useFocusEffect, */ useNavigation} from '@react-navigation/core'
+// import {tabBarStyle} from '../../router-v2/common'
 import type {RouteProps} from '../../router-v2/route-params'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
+import {navToThread} from '../../constants/router2'
 
 type SwitchProps = RouteProps<'chatConversation'>
-const hideTabBarStyle = {display: 'none'}
+// const hideTabBarStyle = {display: 'none'}
 
 // due to timing issues if we go between convos we can 'lose track' of focus in / out
 // so instead we keep a count and only bring back the tab if we're entirely gone
-let focusRefCount = 0
+// let focusRefCount = 0
 
-let showDeferId: any = 0
-const deferChangeTabOptions = (tabNav, tabBarStyle, defer) => {
-  if (showDeferId) {
-    clearTimeout(showDeferId)
-  }
-  if (tabNav) {
-    if (defer) {
-      showDeferId = setTimeout(() => {
-        tabNav.setOptions({tabBarStyle})
-      }, 1)
-    } else {
-      tabNav.setOptions({tabBarStyle})
-    }
-  }
-}
+// let showDeferId: any = 0
+// const deferChangeTabOptions = (tabNav, tabBarStyle, defer) => {
+// if (showDeferId) {
+//   clearTimeout(showDeferId)
+// }
+// if (tabNav) {
+//   if (defer) {
+//     showDeferId = setTimeout(() => {
+//       tabNav.setOptions({tabBarStyle})
+//     }, 1)
+//   } else {
+//     tabNav.setOptions({tabBarStyle})
+//   }
+// }
+// }
 
+let ONCERef = false
 const Conversation = (p: SwitchProps) => {
   const navigation = useNavigation()
   let tabNav: any = navigation.getParent()
@@ -41,23 +44,39 @@ const Conversation = (p: SwitchProps) => {
     tabNav = undefined
   }
 
-  useFocusEffect(
-    React.useCallback(() => {
-      if (!Container.isPhone) {
-        return
-      }
-      ++focusRefCount
-      deferChangeTabOptions(tabNav, hideTabBarStyle, false)
-      return () => {
-        --focusRefCount
-        if (focusRefCount === 0) {
-          deferChangeTabOptions(tabNav, tabBarStyle, true)
-        }
-      }
-    }, [tabNav])
-  )
+  // useFocusEffect(
+  //   React.useCallback(() => {
+  //     if (!Container.isPhone) {
+  //       return
+  //     }
+  //     ++focusRefCount
+  //     deferChangeTabOptions(tabNav, hideTabBarStyle, false)
+  //     return () => {
+  //       --focusRefCount
+  //       if (focusRefCount === 0) {
+  //         deferChangeTabOptions(tabNav, tabBarStyle, true)
+  //       }
+  //     }
+  //   }, [tabNav])
+  // )
 
   const conversationIDKey = p.route.params?.conversationIDKey ?? Constants.noConversationIDKey
+  const TEMPRef = React.useRef(conversationIDKey)
+  const dispatch = Container.useDispatch()
+  if (!TEMPRef.current) {
+    TEMPRef.current = conversationIDKey
+  }
+
+  if (TEMPRef.current && !ONCERef) {
+    ONCERef = true
+    setInterval(() => {
+      dispatch(RouteTreeGen.createNavigateUp())
+      setTimeout(() => {
+        navToThread(TEMPRef.current)
+      }, 300)
+    }, 600)
+  }
+
   const type = Container.useSelector(state => {
     const meta = Constants.getMeta(state, conversationIDKey)
     switch (conversationIDKey) {
