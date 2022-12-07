@@ -2,8 +2,8 @@ import React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import AudioPlayer from './audio-player'
-import {Portal} from '@gorhom/portal'
-import {AmpTracker} from './amptracker'
+import {Portal, PortalHost} from '@gorhom/portal'
+import type {AmpTracker} from './amptracker'
 
 type Props = {
   cancelRecording: () => void
@@ -13,21 +13,17 @@ type Props = {
   path: string
 }
 
-export const useAudioSend = (p: Props) => {
-  const {showAudioSend, setShowAudioSend} = React.useContext(ShowAudioSendContext)
-  const audioSend = showAudioSend ? <AudioSend {...p} /> : null
-  return {audioSend, setShowAudioSend}
-}
-
 export const ShowAudioSendContext = React.createContext({
   setShowAudioSend: (_s: boolean) => {},
   showAudioSend: false,
 })
 
 export const AudioSendWrapper = () => {
-  return <Portal name="audioSend" />
+  return <PortalHost name="audioSend" />
 }
 
+// This is created and driven by the AudioRecorder button but its ultimately rendered
+// through a portal into the parent PlatformInput
 const AudioSend = (props: Props) => {
   const {cancelRecording, sendRecording, duration, ampTracker, path} = props
 
@@ -44,15 +40,17 @@ const AudioSend = (props: Props) => {
     />
   )
   return (
-    <Kb.Box2 direction="horizontal" style={styles.container} fullWidth={true}>
-      <Kb.Box2 direction="horizontal" alignItems="center">
-        <Kb.Box style={styles.icon}>
-          <Kb.Icon type="iconfont-remove" onClick={cancelRecording} />
-        </Kb.Box>
-        {player}
+    <Portal hostName="audioSend">
+      <Kb.Box2 direction="horizontal" style={styles.container} fullWidth={true}>
+        <Kb.Box2 direction="horizontal" alignItems="center">
+          <Kb.Box style={styles.icon}>
+            <Kb.Icon type="iconfont-remove" onClick={cancelRecording} />
+          </Kb.Box>
+          {player}
+        </Kb.Box2>
+        <Kb.Button type="Default" small={true} style={styles.send} onClick={sendRecording} label="Send" />
       </Kb.Box2>
-      <Kb.Button type="Default" small={true} style={styles.send} onClick={sendRecording} label="Send" />
-    </Kb.Box2>
+    </Portal>
   )
 }
 

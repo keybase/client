@@ -5,7 +5,6 @@ import type * as Types from '../../../constants/types/chat2'
 import Normal from './normal'
 import Preview from './preview/container'
 import ThreadSearch from '../search/container'
-import {ShowAudioSendContext, AudioSendWrapper} from '../../audio/audio-send'
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
@@ -27,9 +26,6 @@ export default (p: OwnProps) => {
     onRequestScrollToBottom,
     maxInputArea,
   } = p
-  const [showAudioSend, setShowAudioSend] = React.useState(false)
-  const value = React.useMemo(() => ({setShowAudioSend, showAudioSend}), [showAudioSend, setShowAudioSend])
-
   const meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
   const showThreadSearch = Container.useSelector(
     state => Constants.getThreadSearchInfo(state, conversationIDKey).visible
@@ -54,20 +50,15 @@ export default (p: OwnProps) => {
   if (showThreadSearch && Container.isMobile) {
     return <ThreadSearch conversationIDKey={p.conversationIDKey} />
   }
-  if (showAudioSend) {
-    return <AudioSendWrapper />
-  }
   return (
-    <ShowAudioSendContext.Provider value={value}>
-      <Normal
-        focusInputCounter={focusInputCounter}
-        jumpToRecent={jumpToRecent}
-        onRequestScrollDown={onRequestScrollDown}
-        onRequestScrollToBottom={onRequestScrollToBottom}
-        onRequestScrollUp={onRequestScrollUp}
-        conversationIDKey={conversationIDKey}
-        maxInputArea={maxInputArea}
-      />
-    </ShowAudioSendContext.Provider>
+    <Normal
+      focusInputCounter={focusInputCounter}
+      jumpToRecent={jumpToRecent}
+      onRequestScrollDown={onRequestScrollDown}
+      onRequestScrollToBottom={onRequestScrollToBottom}
+      onRequestScrollUp={onRequestScrollUp}
+      conversationIDKey={conversationIDKey}
+      maxInputArea={maxInputArea}
+    />
   )
 }

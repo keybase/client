@@ -29,12 +29,14 @@ import {Audio, InterruptionModeIOS, InterruptionModeAndroid} from 'expo-av'
 import logger from '../../logger'
 import * as Haptics from 'expo-haptics'
 import * as FileSystem from 'expo-file-system'
-import {useAudioSend} from './audio-send'
+import AudioSend from './audio-send'
 
 type SVN = SharedValue<number>
 
 type Props = {
   conversationIDKey: Types.ConversationIDKey
+  showAudioSend: boolean
+  setShowAudioSend: (s: boolean) => void
 }
 
 // enum AudioStopType {
@@ -161,6 +163,11 @@ const useIconAndOverlay = (p: {
     cancelRecording()
   }, [cancelRecording, onReset])
 
+  const onStageRecording = React.useCallback(() => {
+    onReset()
+    stageRecording()
+  }, [stageRecording, onReset])
+
   const onSendRecording = React.useCallback(() => {
     onReset()
     sendRecording()
@@ -274,7 +281,7 @@ const useIconAndOverlay = (p: {
             dragYSV={dragYSV}
             locked={locked}
             lockedSV={lockedSV}
-            stageRecording={stageRecording}
+            stageRecording={onStageRecording}
           />
           <LockHint fadeSV={fadeSV} dragXSV={dragXSV} dragYSV={dragYSV} lockedSV={lockedSV} />
           <CancelHint
@@ -349,8 +356,13 @@ const makeRecorder = async (onRecordingStatusUpdate: (s: Audio.RecordingStatus) 
 }
 
 // Hook for interfacing with the native recorder
-const useRecorder = (p: {conversationIDKey: Types.ConversationIDKey; ampSV: SVN}) => {
-  const {conversationIDKey, ampSV} = p
+const useRecorder = (p: {
+  conversationIDKey: Types.ConversationIDKey
+  ampSV: SVN
+  setShowAudioSend: (s: boolean) => void
+  showAudioSend: boolean
+}) => {
+  const {conversationIDKey, ampSV, setShowAudioSend, showAudioSend} = p
   const recordingRef = React.useRef<Audio.Recording | undefined>()
   const recordStartRef = React.useRef(0)
   const recordEndRef = React.useRef(0)
@@ -392,9 +404,10 @@ const useRecorder = (p: {conversationIDKey: Types.ConversationIDKey; ampSV: SVN}
       recordStartRef.current = 0
       recordEndRef.current = 0
       setStaged(false)
+      setShowAudioSend(false)
       console.log('aaa everything reset done')
     },
-    [setStaged, ampTracker, stopRecording]
+    [setStaged, ampTracker, stopRecording, setShowAudioSend]
   )
 
   const startRecording = React.useCallback(() => {
@@ -506,13 +519,15 @@ const useRecorder = (p: {conversationIDKey: Types.ConversationIDKey; ampSV: SVN}
       .catch(() => {})
   }, [onReset])
 
-  const {audioSend, setShowAudioSend} = useAudioSend({
-    ampTracker,
-    cancelRecording,
-    duration: (recordEndRef.current || recordStartRef.current) - recordStartRef.current,
-    path: pathRef.current,
-    sendRecording,
-  })
+  const audioSend = showAudioSend ? (
+    <AudioSend
+      ampTracker={ampTracker}
+      cancelRecording={cancelRecording}
+      duration={(recordEndRef.current || recordStartRef.current) - recordStartRef.current}
+      path={pathRef.current}
+      sendRecording={sendRecording}
+    />
+  ) : null
 
   const stageRecording = React.useCallback(() => {
     const impl = async () => {
@@ -524,7 +539,7 @@ const useRecorder = (p: {conversationIDKey: Types.ConversationIDKey; ampSV: SVN}
     impl()
       .then(() => {})
       .catch(() => {})
-  }, [stopRecording, setStaged])
+  }, [stopRecording, setStaged, setShowAudioSend])
 
   // on unmount cleanup
   React.useEffect(() => {
@@ -536,18 +551,27 @@ const useRecorder = (p: {conversationIDKey: Types.ConversationIDKey; ampSV: SVN}
         .then(() => {})
         .catch(() => {})
     }
-  }, [onReset])
+  }, [onReset, setShowAudioSend])
 
-  return {cancelRecording, sendRecording, stageRecording, staged, startRecording, audioSend}
+  React.useEffect(() => {
+    console.log('aaaa useefect CLEAN mount')
+    return () => {
+      console.log('aaaa useefect CLEAN UNmount')
+    }
+  }, [])
+
+  return {audioSend, cancelRecording, sendRecording, stageRecording, staged, startRecording}
 }
 
 const AudioRecorder = React.memo(function AudioRecorder(props: Props) {
-  const {conversationIDKey} = props
+  const {conversationIDKey, setShowAudioSend, showAudioSend} = props
   const ampSV = useSharedValue(0)
 
   const {startRecording, cancelRecording, sendRecording, stageRecording, audioSend} = useRecorder({
     ampSV,
     conversationIDKey,
+    setShowAudioSend,
+    showAudioSend,
   })
   const {tooltip, flashTip} = useTooltip()
   const {icon, overlay} = useIconAndOverlay({
@@ -558,6 +582,8 @@ const AudioRecorder = React.memo(function AudioRecorder(props: Props) {
     stageRecording,
     startRecording,
   })
+
+  console.log('aaaa render recorder audio send', audioSend)
 
   return (
     <>
@@ -585,7 +611,11 @@ const AmpCircle = (props: {ampSV: SVN; dragXSV: SVN; dragYSV: SVN; fadeSV: SVN; 
     const dragXOpacity =
       dragYSV.value < -10 ? 1 : interpolate(dragXSV.value, [dragDistanceX, 0], [0, 1], Extrapolation.CLAMP)
     return {
-      backgroundColor: interpolateColor(lockedSV.value, [0, 1], [colors.blue, colors.red]),
+      backgroundColor: interpolateColor(
+        lockedSV.value,
+        [0, 1],
+        [colors.blueLighterOrBlueLight, colors.redLight]
+      ),
       opacity: withTiming(dragXOpacity),
       transform: [{translateY: lockedSV.value ? 0 : dragYSV.value}, {scale: ampSV.value * fadeSV.value}],
     }
