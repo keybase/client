@@ -7,10 +7,10 @@ PODS:
   - DoubleConversion (1.1.6)
   - EXApplication (5.0.1):
     - ExpoModulesCore
-  - EXAV (13.0.1):
+  - EXAV (13.0.2):
     - ExpoModulesCore
     - ReactCommon/turbomodule/core
-  - EXBarCodeScanner (12.0.0):
+  - EXBarCodeScanner (12.1.0):
     - EXImageLoader
     - ExpoModulesCore
     - ZXingObjC/OneD
@@ -33,7 +33,7 @@ PODS:
   - EXMediaLibrary (15.0.0):
     - ExpoModulesCore
     - React-Core
-  - Expo (47.0.6):
+  - Expo (47.0.8):
     - ExpoModulesCore
   - ExpoHaptics (12.0.1):
     - ExpoModulesCore
@@ -357,7 +357,7 @@ PODS:
     - React
   - react-native-kb (0.1.0):
     - React-Core
-  - react-native-netinfo (9.3.6):
+  - react-native-netinfo (9.3.7):
     - React-Core
   - react-native-paste-input (0.5.1):
     - React-Core
@@ -368,7 +368,7 @@ PODS:
     - RCTTypeSafety
     - React-Core
     - ReactCommon/turbomodule/core
-  - react-native-webview (11.23.1):
+  - react-native-webview (11.25.1):
     - React-Core
   - React-perflogger (0.70.6)
   - React-RCTActionSheet (0.70.6):
@@ -767,8 +767,8 @@ SPEC CHECKSUMS:
   CocoaLumberjack: 78abfb691154e2a9df8ded4350d504ee19d90732
   DoubleConversion: 5189b271737e1565bdce30deb4a08d647e3f5f54
   EXApplication: 034b1c40a8e9fe1bff76a1e511ee90dff64ad834
-  EXAV: 766516466675fc5fdd7c500acced5934e8b00de2
-  EXBarCodeScanner: 50ad56220f9d543d4fe8884c0d3d46eae628b244
+  EXAV: 9a45d37772c5329294c054a041dcc39931fc5032
+  EXBarCodeScanner: cb4deb49e59b6c7ed6bbf38d187802359908d2a8
   EXConstants: 3c86653c422dd77e40d10cbbabb3025003977415
   EXContacts: 81d2963abb188d5f79d746cfff94c58cc7e8d713
   EXErrorRecovery: ae43433feb0608a64dc5b1c8363b3e7769a9ea24
@@ -777,7 +777,7 @@ SPEC CHECKSUMS:
   EXImageLoader: 84b65e6bd9d3345d6fbb3ab936a546c54496a64d
   EXLocation: 7d08926d931f4fb619bfa25e73669f1e19b102c6
   EXMediaLibrary: b1c4f78878e45f6a359aff3a059e1660c41b73ab
-  Expo: a581e979539bae3e49cd02d9dee2432947383d3b
+  Expo: 36b5f625d36728adbdd1934d4d57182f319ab832
   ExpoHaptics: 5a56d30a87ea213dd00b09566dc4b441a4dff97f
   ExpoImagePicker: d2a1cea4023008ae2fb0d95f33422b80772cc76e
   ExpoKeepAwake: 69b59d0a8d2b24de9f82759c39b3821fec030318
@@ -821,10 +821,10 @@ SPEC CHECKSUMS:
   react-native-flipper-performance-plugin: 2b873b68da3e368afeaf29c9c7a8c2b0ff908c4f
   react-native-hw-keyboard-event: b517cefb8d5c659a38049c582de85ff43337dc53
   react-native-kb: 3465c38c4a2990554fd19177874fff8d5cc0079a
-  react-native-netinfo: f80db8cac2151405633324cb645c60af098ee461
+  react-native-netinfo: 2517ad504b3d303e90d7a431b0fcaef76d207983
   react-native-paste-input: 183ad7dc224e192719616f4258dde5b548627d08
   react-native-safe-area-context: 99b24a0c5acd0d5dcac2b1a7f18c49ea317be99a
-  react-native-webview: d33e2db8925d090871ffeb232dfa50cb3a727581
+  react-native-webview: 91a6bd643c6c298f6dfac309231c15d60b8e9505
   React-perflogger: 8c79399b0500a30ee8152d0f9f11beae7fc36595
   React-RCTActionSheet: 7316773acabb374642b926c19aef1c115df5c466
   React-RCTAnimation: 5341e288375451297057391227f691d9b2326c3d
