@@ -5,7 +5,6 @@ pkgbase = keybase-bin
 	pkgrel = 1
 	url = https://keybase.io
 	install = keybase.install
-	arch = i686
 	arch = x86_64
 	license = BSD
 	depends = fuse
@@ -20,10 +19,7 @@ pkgbase = keybase-bin
 	conflicts = keybase-git
 	conflicts = keybase-gui
 	conflicts = kbfs
-	source_i686 = https://prerelease.keybase.io/linux_binaries/deb/keybase_@@DEBVER@@_i386.deb
-	sha256sums_i686 = @@SUM_i686@@
 	source_x86_64 = https://prerelease.keybase.io/linux_binaries/deb/keybase_@@DEBVER@@_amd64.deb
 	sha256sums_x86_64 = @@SUM_x86_64@@
 
 pkgname = keybase-bin
-
