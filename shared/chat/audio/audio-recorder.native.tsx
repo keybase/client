@@ -20,7 +20,6 @@ import * as FileSystem from 'expo-file-system'
 import AudioSend from './audio-send'
 
 const Animated = Reanimated.default
-
 type SVN = Reanimated.SharedValue<number>
 
 type Props = {
@@ -28,56 +27,6 @@ type Props = {
   showAudioSend: boolean
   setShowAudioSend: (s: boolean) => void
 }
-
-// enum AudioStopType {
-//   CANCEL = 0,
-//   RELEASE,
-//   SEND,
-//   STOPBUTTON,
-// }
-
-// type AudioRecordingInfo = {
-//   outboxID: Buffer
-//   path: string
-//   recordEnd?: number
-//   recordStart: number
-//   amps?: AmpTracker
-// }
-
-// enum AudioRecordingStatus {
-//   INITIAL = 0,
-//   RECORDING,
-//   STAGED,
-//   STOPPED,
-//   CANCELLED,
-// }
-
-// const audioRecordingDuration = (recordStart: number, recordEnd?: number) => {
-//   return (recordEnd || recordStart) - recordStart
-// }
-
-// const makeAudioRecordingInfo = (): AudioRecordingInfo => ({
-//   outboxID: new Buffer('hex'),
-//   path: '',
-//   recordStart: Date.now(),
-// })
-
-// const showAudioRecording = (status: AudioRecordingStatus) => {
-//   return !(
-//     status === AudioRecordingStatus.INITIAL ||
-//     status === AudioRecordingStatus.STOPPED ||
-//     status === AudioRecordingStatus.STAGED ||
-//     status === AudioRecordingStatus.CANCELLED
-//   )
-// }
-
-// const isStoppedAudioRecordingStatus = (status: AudioRecordingStatus) => {
-//   return (
-//     status === AudioRecordingStatus.STOPPED ||
-//     status === AudioRecordingStatus.STAGED ||
-//     status === AudioRecordingStatus.CANCELLED
-//   )
-// }
 
 enum Visible {
   HIDDEN,
