@@ -4,7 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"os"
 	"runtime"
@@ -43,7 +42,7 @@ func read() []byte {
 		errout("provide 0 or 1 args")
 	}
 
-	all, err := ioutil.ReadAll(in)
+	all, err := io.ReadAll(in)
 	if err != nil {
 		errout(err.Error())
 	}

@@ -1,4 +1,4 @@
-FROM golang:1.17.3-alpine3.14 AS builder
+FROM golang:1.19.4-alpine3.16 AS builder
 
 RUN apk add --update --no-cache gnupg bash build-base
 
@@ -11,7 +11,6 @@ RUN gpg --import /code_signing_key
 COPY . /go/src/github.com/keybase/client
 RUN SOURCE_COMMIT=${SOURCE_COMMIT} \
     KEYBASE_NO_GUI=1 \
-    KEYBASE_SKIP_32_BIT=1 \
     /go/src/github.com/keybase/client/packaging/linux/build_binaries.sh \
     prerelease /
 RUN gpg --detach-sign --armor --use-agent --local-user "$SIGNING_FINGERPRINT" \
@@ -24,7 +23,7 @@ RUN chmod +x /binaries/amd64/usr/bin/keybase \
     && chmod +x /binaries/amd64/usr/bin/kbfsfuse \
     && chmod +x /binaries/amd64/usr/bin/git-remote-keybase
 
-FROM alpine:3.14
+FROM alpine:3.16
 LABEL maintainer="Keybase <admin@keybase.io>"
 
 RUN apk add --update --no-cache gnupg procps ca-certificates bash

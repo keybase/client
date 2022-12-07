@@ -2157,13 +2157,8 @@ const sendAudioRecording = async (
   state: Container.TypedState,
   action: Chat2Gen.SendAudioRecordingPayload
 ) => {
-  // sit here for 400ms for animations
-  if (!action.payload.fromStaged) {
-    await Container.timeoutPromise(400)
-  }
-  const {conversationIDKey, info} = action.payload
-  const audioRecording = info
-  const {amps, path, outboxID} = audioRecording
+  const {conversationIDKey, amps, path, duration} = action.payload
+  const outboxID = Constants.generateOutboxID()
   const clientPrev = Constants.getClientPrev(state, conversationIDKey)
   const ephemeralLifetime = Constants.getConversationExplodingMode(state, conversationIDKey)
   const meta = state.chat2.metaMap.get(conversationIDKey)
@@ -2174,11 +2169,7 @@ const sendAudioRecording = async (
 
   let callerPreview: RPCChatTypes.MakePreviewRes | undefined
   if (amps) {
-    const duration = Constants.audioRecordingDuration(audioRecording)
-    callerPreview = await RPCChatTypes.localMakeAudioPreviewRpcPromise({
-      amps: amps.getBucketedAmps(duration),
-      duration,
-    })
+    callerPreview = await RPCChatTypes.localMakeAudioPreviewRpcPromise({amps, duration})
   }
   const ephemeralData = ephemeralLifetime !== 0 ? {ephemeralLifetime} : {}
   try {
@@ -3654,18 +3645,19 @@ const onShowInfoPanel = (_: unknown, action: Chat2Gen.ShowInfoPanelPayload) => {
   }
 }
 
-const maybeChangeChatSelection = (_: unknown, action: RouteTreeGen.OnNavChangedPayload) => {
+const maybeChangeChatSelection = (state: Container.TypedState, action: RouteTreeGen.OnNavChangedPayload) => {
   const {prev, next} = action.payload
-  const p = prev[prev.length - 1]
-  const n = next[next.length - 1]
-
-  const wasModal = prev.length && !Router2Constants.getRouteLoggedIn(prev)
-  const isModal = !Router2Constants.getRouteLoggedIn(next)
+  const wasModal = prev && Router2Constants.getModalStack(prev).length > 0
+  const isModal = next && Router2Constants.getModalStack(next).length > 0
 
   // ignore if changes involve a modal
   if (wasModal || isModal) {
     return
   }
+
+  const p = Router2Constants.getVisibleScreen(prev)
+  const n = Router2Constants.getVisibleScreen(next)
+
   const wasChat = p?.name === Constants.threadRouteName
   const isChat = n?.name === Constants.threadRouteName
 
@@ -3683,7 +3675,10 @@ const maybeChangeChatSelection = (_: unknown, action: RouteTreeGen.OnNavChangedP
 
   // same? ignore
   if (wasChat && isChat && wasID === isID) {
-    return false
+    // if we've never loaded anything, keep going so we load it
+    if (!isID || state.chat2.containsLatestMessageMap.get(isID) !== undefined) {
+      return false
+    }
   }
 
   // deselect if there was one
@@ -3714,10 +3709,7 @@ const maybeChangeChatSelection = (_: unknown, action: RouteTreeGen.OnNavChangedP
 
 const maybeChatTabSelected = (_: unknown, action: RouteTreeGen.OnNavChangedPayload) => {
   const {prev, next} = action.payload
-  if (
-    Router2Constants.getRouteTab(prev) !== Tabs.chatTab &&
-    Router2Constants.getRouteTab(next) === Tabs.chatTab
-  ) {
+  if (Router2Constants.getTab(prev) !== Tabs.chatTab && Router2Constants.getTab(next) === Tabs.chatTab) {
     return Chat2Gen.createTabSelected()
   }
   return false

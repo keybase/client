@@ -8,7 +8,7 @@ import (
 	"crypto/rand"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -1095,7 +1095,7 @@ func testSign(t *testing.T, tc libkb.TestContext) {
 
 	sarg := &SaltpackSignArg{
 		Sink:   libkb.NopWriteCloser{W: &sink},
-		Source: ioutil.NopCloser(bytes.NewBufferString("hello")),
+		Source: io.NopCloser(bytes.NewBufferString("hello")),
 	}
 
 	signEng := NewSaltpackSign(tc.G, sarg)
@@ -4157,7 +4157,7 @@ func signString(tc libkb.TestContext, input string, secUI libkb.SecretUI) error 
 
 	earg := PGPSignArg{
 		Sink:   libkb.NopWriteCloser{W: &sink},
-		Source: ioutil.NopCloser(bytes.NewBufferString(input)),
+		Source: io.NopCloser(bytes.NewBufferString(input)),
 		Opts: keybase1.PGPSignOptions{
 			Mode: keybase1.SignMode_ATTACHED,
 		},

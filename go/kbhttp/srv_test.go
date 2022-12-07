@@ -5,7 +5,7 @@ package kbhttp
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"testing"
 
@@ -27,7 +27,7 @@ func TestSrv(t *testing.T) {
 		t.Logf("url: %s", url)
 		resp, err := http.Get(url)
 		require.NoError(t, err)
-		out, err := ioutil.ReadAll(resp.Body)
+		out, err := io.ReadAll(resp.Body)
 		require.NoError(t, err)
 		require.Equal(t, "success", string(out))
 		<-srv.Stop()

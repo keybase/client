@@ -308,9 +308,6 @@ module.exports = {
   get PopupDialog() {
     return Index.PopupDialog
   },
-  get PopupDialogHoc() {
-    return Index.PopupDialogHoc
-  },
   get PopupHeaderText() {
     return Index.PopupHeaderText
   },

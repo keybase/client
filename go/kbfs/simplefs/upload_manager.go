@@ -7,7 +7,6 @@ package simplefs
 import (
 	"encoding/base64"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
@@ -69,7 +68,7 @@ func (m *uploadManager) makeTempDir() (tempDirPath string, err error) {
 	if err != nil {
 		return "", err
 	}
-	tempDirPath, err = ioutil.TempDir(cacheDirAbs, "uploads-")
+	tempDirPath, err = os.MkdirTemp(cacheDirAbs, "uploads-")
 	if err != nil {
 		return "", err
 	}

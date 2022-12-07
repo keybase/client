@@ -9,7 +9,6 @@ import (
 	"image"
 	"image/png"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"time"
 
@@ -133,5 +132,5 @@ func DecorateMap(ctx context.Context, avatarReader, mapReader io.Reader) (res io
 	if err != nil {
 		return res, length, err
 	}
-	return ioutil.NopCloser(bytes.NewReader(buf.Bytes())), int64(buf.Len()), nil
+	return io.NopCloser(bytes.NewReader(buf.Bytes())), int64(buf.Len()), nil
 }

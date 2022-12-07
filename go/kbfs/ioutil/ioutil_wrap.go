@@ -6,16 +6,15 @@ package ioutil
 
 import (
 	"io"
+	"io/fs"
 	"os"
-
-	ioutil_base "io/ioutil"
 
 	"github.com/pkg/errors"
 )
 
-// ReadAll wraps ReadAll from "io/ioutil".
+// ReadAll wraps ReadAll from "io".
 func ReadAll(r io.Reader) ([]byte, error) {
-	buf, err := ioutil_base.ReadAll(r)
+	buf, err := io.ReadAll(r)
 	if err != nil {
 		return nil, errors.Wrapf(
 			err, "failed to read all from reader %v", r)
@@ -24,28 +23,35 @@ func ReadAll(r io.Reader) ([]byte, error) {
 	return buf, nil
 }
 
-// ReadDir wraps ReadDir from "io/ioutil".
+// ReadDir wraps ReadDir from "os".
 func ReadDir(dirname string) ([]os.FileInfo, error) {
-	list, err := ioutil_base.ReadDir(dirname)
+	entries, err := os.ReadDir(dirname)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to read dir %q", dirname)
 	}
-
-	return list, nil
+	infos := make([]fs.FileInfo, 0, len(entries))
+	for _, entry := range entries {
+		info, err := entry.Info()
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to read dir %q", dirname)
+		}
+		infos = append(infos, info)
+	}
+	return infos, nil
 }
 
-// ReadFile wraps ReadFile from "io/ioutil".
+// ReadFile wraps ReadFile from "os".
 func ReadFile(filename string) ([]byte, error) {
-	buf, err := ioutil_base.ReadFile(filename)
+	buf, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to read file %q", filename)
 	}
 	return buf, nil
 }
 
-// TempDir wraps TempDir from "io/ioutil".
+// TempDir wraps MkdirTemp from "os".
 func TempDir(dir, prefix string) (name string, err error) {
-	name, err = ioutil_base.TempDir(dir, prefix)
+	name, err = os.MkdirTemp(dir, prefix)
 	if err != nil {
 		return "", errors.Wrapf(err,
 			"failed to make temp dir in %q with prefix %q",
@@ -54,9 +60,9 @@ func TempDir(dir, prefix string) (name string, err error) {
 	return name, nil
 }
 
-// WriteFile wraps WriteFile from "io/ioutil".
+// WriteFile wraps WriteFile from "os".
 func WriteFile(filename string, data []byte, perm os.FileMode) error {
-	err := ioutil_base.WriteFile(filename, data, perm)
+	err := os.WriteFile(filename, data, perm)
 	if err != nil {
 		return errors.Wrapf(err, "failed to write file %q", filename)
 	}

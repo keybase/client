@@ -6,7 +6,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
+
 	"net/http"
 	"net/url"
 	"path"
@@ -390,7 +391,7 @@ func httpGet(mctx libkb.MetaContext, url, authToken string) (int, []byte, error)
 	}
 	defer res.Body.Close()
 
-	body, err := ioutil.ReadAll(res.Body)
+	body, err := io.ReadAll(res.Body)
 	if err != nil {
 		return 0, nil, err
 	}
@@ -423,7 +424,7 @@ func httpPost(mctx libkb.MetaContext, url, authToken string, data url.Values) (i
 	}
 	defer res.Body.Close()
 
-	body, err := ioutil.ReadAll(res.Body)
+	body, err := io.ReadAll(res.Body)
 	if err != nil {
 		return 0, nil, err
 	}

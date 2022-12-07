@@ -3,7 +3,7 @@ package teams
 import (
 	"context"
 	"encoding/json"
-	"io/ioutil"
+
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -100,7 +100,7 @@ func getTeamchainJSONDir(t *testing.T) string {
 func TestUnits(t *testing.T) {
 	t.Logf("running units")
 	jsonDir := getTeamchainJSONDir(t)
-	files, err := ioutil.ReadDir(jsonDir)
+	files, err := os.ReadDir(jsonDir)
 	require.NoError(t, err)
 	selectUnit := os.Getenv("KEYBASE_TEAM_TEST_SELECT")
 	var runLog []string
@@ -141,7 +141,7 @@ func TestUnits(t *testing.T) {
 func runUnitFile(t *testing.T, jsonPath string) (*Team, bool) {
 	fileName := filepath.Base(jsonPath)
 	t.Logf("reading test json file: %v", fileName)
-	data, err := ioutil.ReadFile(jsonPath)
+	data, err := os.ReadFile(jsonPath)
 	require.NoError(t, err)
 	var unit TestCase
 	err = json.Unmarshal(data, &unit)

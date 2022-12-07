@@ -2,7 +2,7 @@ package avatars
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"os"
 	"runtime"
@@ -77,7 +77,7 @@ func TestAvatarsFullCaching(t *testing.T) {
 		file, err := os.Open(path)
 		require.NoError(t, err)
 		defer file.Close()
-		dat, err := ioutil.ReadAll(file)
+		dat, err := io.ReadAll(file)
 		require.NoError(t, err)
 		return string(dat)
 	}

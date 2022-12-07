@@ -83,9 +83,10 @@ func TestLoadUserPlusKeysRevoked(t *testing.T) {
 }
 
 // TestMerkleHashMetaAndFirstAppearedInKeyFamily tests new user & key family features:
-//   * FirstAppearedMerkleSeqnoUnverified in sig chain links
-//   * EldestSeqno in sig chain links
-//   * HashMeta in sig chain links
+//   - FirstAppearedMerkleSeqnoUnverified in sig chain links
+//   - EldestSeqno in sig chain links
+//   - HashMeta in sig chain links
+//
 // We should be able to see these fields in sigchains and also propagated through
 // to the KeyFamilies
 func TestMerkleHashMetaAndFirstAppearedInKeyFamily(t *testing.T) {

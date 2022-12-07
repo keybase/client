@@ -8,7 +8,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"sync"
 	"time"
 
@@ -334,7 +334,7 @@ func (s *MerkleStoreImpl) pastDue(m libkb.MetaContext, event time.Time, limit ti
 }
 
 func (s *MerkleStoreImpl) readFile(path string) (keybase1.MerkleStoreKit, keybase1.MerkleStoreKitHash, error) {
-	buf, err := ioutil.ReadFile(path)
+	buf, err := os.ReadFile(path)
 	kitJSON := keybase1.MerkleStoreKit(string(buf))
 	return kitJSON, s.hash(kitJSON), err
 }

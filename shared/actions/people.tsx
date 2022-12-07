@@ -219,8 +219,10 @@ const onTeamBuildingAdded = (_: Container.TypedState, action: TeamBuildingGen.Ad
 const maybeMarkViewed = (_: unknown, action: RouteTreeGen.OnNavChangedPayload) => {
   const {prev, next} = action.payload
   if (
-    Router2Constants.getRouteTab(prev) === Tabs.peopleTab &&
-    Router2Constants.getRouteTab(next) !== Tabs.peopleTab
+    prev &&
+    Router2Constants.getTab(prev) === Tabs.peopleTab &&
+    next &&
+    Router2Constants.getTab(next) !== Tabs.peopleTab
   ) {
     return PeopleGen.createMarkViewed()
   }

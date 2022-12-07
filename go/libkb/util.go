@@ -14,7 +14,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"math"
 	"math/big"
 	"net/url"
@@ -273,9 +272,10 @@ func safeWriteToFileOnce(g SafeWriteLogger, t SafeWriter, mode os.FileMode) (err
 
 // Pluralize returns pluralized string with value.
 // For example,
-//   Pluralize(1, "zebra", "zebras", true) => "1 zebra"
-//   Pluralize(2, "zebra", "zebras", true) => "2 zebras"
-//   Pluralize(2, "zebra", "zebras", false) => "zebras"
+//
+//	Pluralize(1, "zebra", "zebras", true) => "1 zebra"
+//	Pluralize(2, "zebra", "zebras", true) => "2 zebras"
+//	Pluralize(2, "zebra", "zebras", false) => "zebras"
 func Pluralize(n int, singular string, plural string, nshow bool) string {
 	if n == 1 {
 		if nshow {
@@ -634,13 +634,15 @@ func Digest(r io.Reader) (string, error) {
 }
 
 // TimeLog calls out with the time since start.  Use like this:
-//    defer TimeLog("MyFunc", time.Now(), e.G().Log.Warning)
+//
+//	defer TimeLog("MyFunc", time.Now(), e.G().Log.Warning)
 func TimeLog(name string, start time.Time, out func(string, ...interface{})) {
 	out("time> %s: %s", name, time.Since(start))
 }
 
 // CTimeLog calls out with the time since start.  Use like this:
-//    defer CTimeLog(ctx, "MyFunc", time.Now(), e.G().Log.Warning)
+//
+//	defer CTimeLog(ctx, "MyFunc", time.Now(), e.G().Log.Warning)
 func CTimeLog(ctx context.Context, name string, start time.Time, out func(context.Context, string, ...interface{})) {
 	out(ctx, "time> %s: %s", name, time.Since(start))
 }
@@ -843,7 +845,7 @@ func ShredFile(filename string) error {
 		if err != nil {
 			return err
 		}
-		if err := ioutil.WriteFile(filename, noise, stat.Mode().Perm()); err != nil {
+		if err := os.WriteFile(filename, noise, stat.Mode().Perm()); err != nil {
 			return err
 		}
 	}

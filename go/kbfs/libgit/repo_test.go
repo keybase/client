@@ -6,7 +6,6 @@ package libgit
 
 import (
 	"context"
-	"io/ioutil"
 	"os"
 	"testing"
 	"time"
@@ -34,7 +33,7 @@ func initConfig(t *testing.T) (
 
 	ctx, cancel = context.WithTimeout(ctx, 10*time.Second)
 
-	tempdir, err := ioutil.TempDir(os.TempDir(), "journal_server")
+	tempdir, err := os.MkdirTemp(os.TempDir(), "journal_server")
 	require.NoError(t, err)
 	defer func() {
 		if !success {
@@ -152,7 +151,7 @@ func TestCreateDuplicateRepo(t *testing.T) {
 	config2 := libkbfs.ConfigAsUser(config, "user2")
 	ctx2, cancel2 := context.WithCancel(context.Background())
 	defer cancel2()
-	tempdir, err := ioutil.TempDir(os.TempDir(), "journal_server")
+	tempdir, err := os.MkdirTemp(os.TempDir(), "journal_server")
 	require.NoError(t, err)
 	defer os.RemoveAll(tempdir)
 	err = config2.EnableDiskLimiter(tempdir)

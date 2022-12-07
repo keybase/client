@@ -1,18 +1,14 @@
 import * as React from 'react'
 import {findDOMNode} from 'react-dom'
-import {Box} from '..'
-import {ModalPositionRelative} from '../relative-popup-hoc.desktop'
-import {Props} from '.'
+import type {Props} from '.'
 import logger from '../../logger'
-
-const StyleOnlyBox = (props: any) => <Box children={props.children} />
-const RelativeFloatingBox = ModalPositionRelative<any>(StyleOnlyBox)
+import {RelativeFloatingBox} from './relative-floating-box.desktop'
 
 type State = {
   targetRect: ClientRect | null
 }
 
-class FloatingBox extends React.Component<Props, State> {
+class FloatingBox extends React.PureComponent<Props, State> {
   state: State
 
   constructor(props: Props) {

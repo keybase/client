@@ -6,7 +6,7 @@ package simplefs
 
 import (
 	"fmt"
-	"io/ioutil"
+
 	"os"
 	"path/filepath"
 	"strings"
@@ -32,10 +32,10 @@ func TestDownloadManager(t *testing.T) {
 		ctx, t, sfs, pathAppend(pathPriv, `test.txt`), []byte(`foo`))
 	syncFS(ctx, t, sfs, "/private/jdoe")
 
-	cacheDir, err := ioutil.TempDir("", "simplefs-downloadtest-cache")
+	cacheDir, err := os.MkdirTemp("", "simplefs-downloadtest-cache")
 	require.NoError(t, err)
 	defer os.RemoveAll(cacheDir)
-	downloadDir, err := ioutil.TempDir("", "simplefs-downloadtest-download")
+	downloadDir, err := os.MkdirTemp("", "simplefs-downloadtest-download")
 	require.NoError(t, err)
 	defer os.RemoveAll(downloadDir)
 

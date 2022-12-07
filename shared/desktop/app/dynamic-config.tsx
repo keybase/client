@@ -5,11 +5,17 @@ const getConfigOverload = () => {
   // Load overrides from server config
   if (fs.existsSync(serverConfigFileName)) {
     try {
-      const serverConfig = JSON.parse(fs.readFileSync(serverConfigFileName, 'utf8'))
-      if (serverConfig.lastLoggedInUser) {
-        const userConfig = serverConfig[serverConfig.lastLoggedInUser] || {}
-        if (userConfig.printRPCStats) {
-          config.printRPCStats = true
+      const serverConfig = JSON.parse(fs.readFileSync(serverConfigFileName, 'utf8')) as
+        | {lastLoggedInUser?: string}
+        | undefined
+
+      const lastLoggedInUser = serverConfig?.lastLoggedInUser
+      if (typeof lastLoggedInUser === 'string') {
+        if (lastLoggedInUser) {
+          const userConfig = serverConfig[lastLoggedInUser] as {printRPCStats?: boolean} | undefined
+          if (userConfig?.printRPCStats) {
+            config.printRPCStats = true
+          }
         }
       }
     } catch (e) {

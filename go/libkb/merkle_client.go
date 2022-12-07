@@ -364,8 +364,7 @@ func (mrp MerkleRootPayload) shortHash() NodeHashShort {
 }
 
 func (mrp MerkleRootPayload) hasSkips() bool {
-	tab := mrp.unpacked.Body.Skips
-	return tab != nil && len(tab) > 0
+	return len(mrp.unpacked.Body.Skips) > 0
 }
 
 type MerkleRootPayloadUnpacked struct {

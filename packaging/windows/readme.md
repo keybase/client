@@ -3,17 +3,20 @@
 ## Install Prereqs
 
 ### Go
+
 - [go for windows](https://golang.org/dl)
 - Environment: `set GOPATH=C:\work`
 
 ### Git
 
 - [git for windows](https://git-scm.com/downloads)
+
   - Select "Use Git and optional Unix tools from the Command Prompt" (so scripts with `rm` will work)
   - Checkout as-is, conmmit Unix style line endings
   - Use Windows' default console window (especially on Windows 10)
 
 - Open a command console and make a directory for cloning the repo, e.g.:
+
 ```
 git clone https://github.com/keybase/client.git c:\work\src\github.com\keybase\client
 git clone https://github.com/keybase/go-updater.git c:\work\src\github.com\keybase\go-updater
@@ -46,7 +49,7 @@ git clone https://github.com/keybase/go-updater.git c:\work\src\github.com\keyba
 > npm i -g yarn
 ```
 
-###  Mingpw
+### Mingpw
 
 - [GCC via Mingw-64](https://sourceforge.net/projects/mingw-w64/) (for building kbfsdokan)
   - Be sure and choose architecture x86-64, NOT i686
@@ -54,11 +57,14 @@ git clone https://github.com/keybase/go-updater.git c:\work\src\github.com\keyba
     - Try `C:\mingw-w64\.... instead`
 
 ## Building
+
 [GCC via Mingw-64](https://sourceforge.net/projects/mingw-w64/) (for building kbfsdokan)
+
 - Be sure and choose architecture x86-64, NOT i686
 - Also recommend not installing in `program files`, e.g. `C:\mingw-w64\...` instead of `C:\Program Files (x86)\mingw-w64\...`
 
 Environment:
+
 ```
 set PATH=C:\mingw-w64\x86_64-8.1.0-posix-seh-rt_v6-rev0\mingw64\bin;%PATH%
 set CC=C:\mingw-w64\x86_64-8.1.0-posix-seh-rt_v6-rev0\mingw64\bin\gcc
@@ -68,7 +74,7 @@ set CPATH=C:\mingw-w64\x86_64-8.1.0-posix-seh-rt_v6-rev0\mingw64\include
 ## Building Installers
 
 - [Visual Studio 2015 Professional](https://visualstudio.microsoft.com/vs/older-downloads/)
-(may require live.com account)
+  (may require live.com account)
 
 - Environment:
   - `call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\Tools\vsvars32.bat"`
@@ -79,6 +85,7 @@ set CPATH=C:\mingw-w64\x86_64-8.1.0-posix-seh-rt_v6-rev0\mingw64\include
 ## Building a debug installer without codesigning
 
 - Environment:
+
   - `set KEYBASE_WINBUILD=0`
 
 - Invoke the scripts to build the executables:
@@ -90,18 +97,21 @@ doinstaller_wix.cmd debug
 ```
 
 - OR, there's a little script that combines the above:
-   - `.\build_debug_installer.cmd`
+
+  - `.\build_debug_installer.cmd`
 
 - Make sure you restart `CMD.exe` after doing the above installs; otherwise, these scripts
   won't be able to find WIX.
 
 ## Production CMD Scripts
+
 - `build_prerelease.cmd` builds most of the client executables
 - `buildui.cmd` builds the ui
 - `doinstaller_wix.cmd` does codesigning on all the executabls and builds the installer (requires signing certificate)
 - `dorelease.cmd` calls the above scripts and copies to s3. Invoked by the build bot.
 
 # Upgrading Dokan
+
 Download `DokanSetup_redist.exe` from https://github.com/dokan-dev/dokany/releases
 Upload to S3 at prerelease.keybase.io/windows-support/dokan-dev/[VERSION]/DokanSetup_redist.exe
 Get the sha1 hash of DokanSetup_redist.exe:
@@ -111,15 +121,19 @@ Change the version the service considers new enough: https://github.com/keybase/
 Optional: change the minimum version KBFS will work with: https://github.com/keybase/client/blob/master/go/kbfs/dokan/loaddll.go#L110
 
 # Windows VMs
+
 - available [here](https://dev.windows.com/en-us/microsoft-edge/tools/vms/windows/)
 - full isos [here](https://www.microsoft.com/en-gb/software-download/windows10ISO), which might need product keys
 
-#  Might be Useful...
+# Might be Useful...
+
 - [Chocolatey](https://chocolatey.org/install) (helpful for yarn)
   - then: `choco install yarn`
 
 # Installed Product Layout and Functionality
+
 The installer places/updates all the files and adds:
+
 - startup shortcut for
 - start menu shortcut
 - background tile color
@@ -141,4 +155,3 @@ Notable executables
 `prompter.exe` - updater GUI
 `upd.exe` - updater
 `Gui\Keybase.exe` - GUI
-

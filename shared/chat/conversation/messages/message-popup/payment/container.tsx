@@ -8,8 +8,8 @@ import * as WalletGen from '../../../../../actions/wallets-gen'
 import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import {formatTimeForMessages} from '../../../../../util/timestamp'
 import PaymentPopup from '.'
-import {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
 import {StylesCrossPlatform} from '../../../../../styles/css'
+import {Position} from '../../../../../styles'
 
 type OwnProps = {
   attachTo?: () => React.Component<any> | null

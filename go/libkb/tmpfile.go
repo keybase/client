@@ -14,7 +14,6 @@ import (
 //
 // OpenTempFile("foo", ".zip", 0755) => "foo.RCG2KUSCGYOO3PCKNWQHBOXBKACOPIKL.zip"
 // OpenTempFile(path.Join(os.TempDir(), "foo"), "", 0) => "/tmp/foo.RCG2KUSCGYOO3PCKNWQHBOXBKACOPIKL"
-//
 func OpenTempFile(prefix string, suffix string, mode os.FileMode) (string, *os.File, error) {
 	if prefix == "" {
 		return "", nil, fmt.Errorf("Prefix was an empty string")

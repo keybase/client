@@ -1,7 +1,7 @@
 package identify3
 
 import (
-	"io/ioutil"
+	"io"
 	"net/http"
 	"sync"
 	"testing"
@@ -341,7 +341,7 @@ func checkIcon(t testing.TB, service string, icon []keybase1.SizedImage) {
 			require.NoError(t, err, "%v", service)
 			require.Equal(t, 200, resp.StatusCode, "icon file should be reachable")
 			require.NoError(t, err)
-			body, err := ioutil.ReadAll(resp.Body)
+			body, err := io.ReadAll(resp.Body)
 			require.NoError(t, err)
 			if len(body) < 150 {
 				t.Fatalf("unreasonable icon payload size")

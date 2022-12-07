@@ -8,7 +8,6 @@ package install
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -21,7 +20,7 @@ import (
 var testLog = logger.New("test")
 
 func TestCommandLine(t *testing.T) {
-	testDir, err := ioutil.TempDir("", "kbbin")
+	testDir, err := os.MkdirTemp("", "kbbin")
 	defer os.RemoveAll(testDir)
 	if err != nil {
 		t.Fatalf("%s", err)
@@ -58,7 +57,7 @@ func TestLastModifiedMatchingFile(t *testing.T) {
 	var err error
 	tc := libkb.SetupTest(t, "TestLastModifiedMatchingFile", 1)
 	defer tc.Cleanup()
-	tmpdir, err := ioutil.TempDir("", "TestLastModifiedMatchingFile")
+	tmpdir, err := os.MkdirTemp("", "TestLastModifiedMatchingFile")
 	defer os.RemoveAll(tmpdir)
 	require.NoError(t, err)
 	nameMatch := "blerg"
@@ -73,9 +72,9 @@ func TestLastModifiedMatchingFile(t *testing.T) {
 	require.Nil(t, match)
 
 	// no matches with two files that each only half match
-	err = ioutil.WriteFile(filepath.Join(tmpdir, fmt.Sprintf("first%sfile.txt", nameMatch)), []byte(unmatchingContent), 0644)
+	err = os.WriteFile(filepath.Join(tmpdir, fmt.Sprintf("first%sfile.txt", nameMatch)), []byte(unmatchingContent), 0644)
 	require.NoError(t, err)
-	err = ioutil.WriteFile(filepath.Join(tmpdir, "secondfile.txt"), []byte(matchingContent), 0644)
+	err = os.WriteFile(filepath.Join(tmpdir, "secondfile.txt"), []byte(matchingContent), 0644)
 	require.NoError(t, err)
 
 	match, err = LastModifiedMatchingFile(filePattern, contentMatch)
@@ -84,7 +83,7 @@ func TestLastModifiedMatchingFile(t *testing.T) {
 
 	// with an actual match
 	fullPath := filepath.Join(tmpdir, fmt.Sprintf("third%sfile.txt", nameMatch))
-	err = ioutil.WriteFile(fullPath, []byte(matchingContent), 0644)
+	err = os.WriteFile(fullPath, []byte(matchingContent), 0644)
 	require.NoError(t, err)
 	match, err = LastModifiedMatchingFile(filePattern, contentMatch)
 	require.NoError(t, err)
@@ -93,7 +92,7 @@ func TestLastModifiedMatchingFile(t *testing.T) {
 
 	// with another match
 	fullPath = filepath.Join(tmpdir, fmt.Sprintf("fourth%sfile.txt", nameMatch))
-	err = ioutil.WriteFile(fullPath, []byte(matchingContent), 0644)
+	err = os.WriteFile(fullPath, []byte(matchingContent), 0644)
 	require.NoError(t, err)
 	match, err = LastModifiedMatchingFile(filePattern, contentMatch)
 	require.NoError(t, err)
@@ -101,9 +100,9 @@ func TestLastModifiedMatchingFile(t *testing.T) {
 	require.Equal(t, fullPath, *match)
 
 	// result doesn't change after additional files are added
-	err = ioutil.WriteFile(filepath.Join(tmpdir, fmt.Sprintf("fifth%sfile.txt", nameMatch)), []byte(unmatchingContent), 0644)
+	err = os.WriteFile(filepath.Join(tmpdir, fmt.Sprintf("fifth%sfile.txt", nameMatch)), []byte(unmatchingContent), 0644)
 	require.NoError(t, err)
-	err = ioutil.WriteFile(filepath.Join(tmpdir, "sixthfile.txt"), []byte(matchingContent), 0644)
+	err = os.WriteFile(filepath.Join(tmpdir, "sixthfile.txt"), []byte(matchingContent), 0644)
 	require.NoError(t, err)
 	match, err = LastModifiedMatchingFile(filePattern, contentMatch)
 	require.NoError(t, err)

@@ -1,5 +1,5 @@
 import * as React from 'react'
-import type {Position} from '../common-adapters/relative-popup-hoc.types'
+import type {Position} from '../styles'
 import type {Box2} from '../common-adapters/box'
 
 export type Props = {

@@ -5,7 +5,6 @@ package libkb
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -62,7 +61,7 @@ func (s *SecretStoreFile) RetrieveSecret(mctx MetaContext, username NormalizedUs
 func (s *SecretStoreFile) retrieveSecretV1(mctx MetaContext, username NormalizedUsername) (LKSecFullSecret, error) {
 	userpath := s.userpath(username)
 	mctx.Debug("SecretStoreFile.retrieveSecretV1: checking path: %s", userpath)
-	secret, err := ioutil.ReadFile(userpath)
+	secret, err := os.ReadFile(userpath)
 	if err != nil {
 		if os.IsNotExist(err) {
 			return LKSecFullSecret{}, NewErrSecretForUserNotFound(username)
@@ -77,7 +76,7 @@ func (s *SecretStoreFile) retrieveSecretV1(mctx MetaContext, username Normalized
 func (s *SecretStoreFile) retrieveSecretV2(mctx MetaContext, username NormalizedUsername) (LKSecFullSecret, error) {
 	userpath := s.userpathV2(username)
 	mctx.Debug("SecretStoreFile.retrieveSecretV2: checking path: %s", userpath)
-	xor, err := ioutil.ReadFile(userpath)
+	xor, err := os.ReadFile(userpath)
 	if err != nil {
 		if os.IsNotExist(err) {
 			return LKSecFullSecret{}, NewErrSecretForUserNotFound(username)
@@ -86,7 +85,7 @@ func (s *SecretStoreFile) retrieveSecretV2(mctx MetaContext, username Normalized
 		return LKSecFullSecret{}, err
 	}
 
-	noise, err := ioutil.ReadFile(s.noisepathV2(username))
+	noise, err := os.ReadFile(s.noisepathV2(username))
 	if err != nil {
 		if os.IsNotExist(err) {
 			return LKSecFullSecret{}, NewErrSecretForUserNotFound(username)
@@ -124,11 +123,11 @@ func (s *SecretStoreFile) StoreSecret(mctx MetaContext, username NormalizedUsern
 		return err
 	}
 
-	fsec, err := ioutil.TempFile(s.dir, username.String())
+	fsec, err := os.CreateTemp(s.dir, username.String())
 	if err != nil {
 		return err
 	}
-	fnoise, err := ioutil.TempFile(s.dir, username.String())
+	fnoise, err := os.CreateTemp(s.dir, username.String())
 	if err != nil {
 		return err
 	}

@@ -1,54 +1,56 @@
 import React from 'react'
-import * as Types from '../../constants/types/chat2'
-import * as Container from '../../util/container'
-import * as Chat2Gen from '../../actions/chat2-gen'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import * as Constants from '../../constants/chat2'
 import AudioPlayer from './audio-player'
+import {Portal, PortalHost} from '@gorhom/portal'
+import type {AmpTracker} from './amptracker'
 
 type Props = {
-  conversationIDKey: Types.ConversationIDKey
+  cancelRecording: () => void
+  sendRecording: () => void
+  duration: number
+  ampTracker: AmpTracker
+  path: string
 }
 
+export const ShowAudioSendContext = React.createContext({
+  setShowAudioSend: (_s: boolean) => {},
+  showAudioSend: false,
+})
+
+export const AudioSendWrapper = () => {
+  return <PortalHost name="audioSend" />
+}
+
+// This is created and driven by the AudioRecorder button but its ultimately rendered
+// through a portal into the parent PlatformInput
 const AudioSend = (props: Props) => {
-  const {conversationIDKey} = props
-  const audioRecording = Container.useSelector(state => state.chat2.audioRecording.get(conversationIDKey))
-  const dispatch = Container.useDispatch()
-  const onCancel = () => {
-    dispatch(Chat2Gen.createStopAudioRecording({conversationIDKey, stopType: Types.AudioStopType.CANCEL}))
-  }
-  const onSend = () => {
-    if (audioRecording) {
-      dispatch(Chat2Gen.createSendAudioRecording({conversationIDKey, fromStaged: true, info: audioRecording}))
-    }
-  }
+  const {cancelRecording, sendRecording, duration, ampTracker, path} = props
 
   // render
   let player = <Kb.Text type="Body">No recording available</Kb.Text>
-  if (audioRecording) {
-    const audioUrl = `file://${audioRecording.path}`
-    const duration = Constants.audioRecordingDuration(audioRecording)
-    player = (
-      <AudioPlayer
-        big={false}
-        duration={duration}
-        maxWidth={120}
-        url={audioUrl}
-        visAmps={audioRecording.amps ? audioRecording.amps.getBucketedAmps(duration) : []}
-      />
-    )
-  }
+  const audioUrl = `file://${path}`
+  player = (
+    <AudioPlayer
+      big={false}
+      duration={duration}
+      maxWidth={120}
+      url={audioUrl}
+      visAmps={ampTracker.getBucketedAmps(duration)}
+    />
+  )
   return (
-    <Kb.Box2 direction="horizontal" style={styles.container} fullWidth={true}>
-      <Kb.Box2 direction="horizontal" alignItems="center">
-        <Kb.Box style={styles.icon}>
-          <Kb.Icon type="iconfont-remove" onClick={onCancel} />
-        </Kb.Box>
-        {player}
+    <Portal hostName="audioSend">
+      <Kb.Box2 direction="horizontal" style={styles.container} fullWidth={true}>
+        <Kb.Box2 direction="horizontal" alignItems="center">
+          <Kb.Box style={styles.icon}>
+            <Kb.Icon type="iconfont-remove" onClick={cancelRecording} />
+          </Kb.Box>
+          {player}
+        </Kb.Box2>
+        <Kb.Button type="Default" small={true} style={styles.send} onClick={sendRecording} label="Send" />
       </Kb.Box2>
-      <Kb.Button type="Default" small={true} style={styles.send} onClick={onSend} label="Send" />
-    </Kb.Box2>
+    </Portal>
   )
 }
 

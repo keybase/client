@@ -35,7 +35,7 @@ func newExternalFile(path string) (*SpecialReadFile, error) { // nolint
 					return
 				}
 				fileTime = info.ModTime()
-				data, err = ioutil.ReadFile(path)
+				data, err = os.ReadFile(path)
 			})
 			return data, fileTime, err
 		},

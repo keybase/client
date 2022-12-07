@@ -1,30 +1,37 @@
+import * as React from 'react'
 import * as ProvisionGen from '../../actions/provision-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
-import SelectOtherDevice from '.'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/provision'
 import * as AutoresetGen from '../../actions/autoreset-gen'
+import SelectOtherDevice from '.'
 
-type OwnProps = {}
+export default () => {
+  const devices = Container.useSelector(state => state.provision.devices)
+  const username = Container.useSelector(state => state.provision.username)
+  const waiting = Container.useSelector(state => Container.anyWaiting(state, Constants.waitingKey))
 
-export default Container.connect(
-  (state: Container.TypedState) => ({
-    devices: state.provision.devices,
-    username: state.provision.username,
-    waiting: Container.anyWaiting(state, Constants.waitingKey),
-  }),
-  (dispatch: Container.TypedDispatch) => ({
-    onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
-    onResetAccount: (username: string) =>
-      dispatch(AutoresetGen.createStartAccountReset({skipPassword: false, username})),
-    onSelect: (name: string) => {
-      dispatch(ProvisionGen.createSubmitDeviceSelect({name}))
+  const dispatch = Container.useDispatch()
+  const _onBack = React.useCallback(() => {
+    dispatch(RouteTreeGen.createNavigateUp())
+  }, [dispatch])
+  const onBack = Container.useSafeSubmit(_onBack, false)
+  const onResetAccount = React.useCallback(() => {
+    dispatch(AutoresetGen.createStartAccountReset({skipPassword: false, username}))
+  }, [dispatch, username])
+  const _onSelect = React.useCallback(
+    (name: string) => {
+      !waiting && dispatch(ProvisionGen.createSubmitDeviceSelect({name}))
     },
-  }),
-  (stateProps, dispatchProps, _: OwnProps) => ({
-    devices: stateProps.devices,
-    onBack: dispatchProps.onBack,
-    onResetAccount: () => dispatchProps.onResetAccount(stateProps.username),
-    onSelect: (name: string) => !stateProps.waiting && dispatchProps.onSelect(name),
-  })
-)(Container.safeSubmitPerMount(['onSelect', 'onBack'])(SelectOtherDevice))
+    [dispatch, waiting]
+  )
+  const onSelect = Container.useSafeSubmit(_onSelect, false)
+  return (
+    <SelectOtherDevice
+      devices={devices}
+      onBack={onBack}
+      onSelect={onSelect}
+      onResetAccount={onResetAccount}
+    />
+  )
+}

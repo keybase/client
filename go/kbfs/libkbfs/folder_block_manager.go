@@ -261,13 +261,13 @@ func (fbm *folderBlockManager) shutdown() {
 // server. This is usually used in a defer right before a call to
 // fbo.doBlockPuts like so:
 //
-//  defer func() {
-//    if err != nil {
-//      ...cleanUpBlockState(md.ReadOnly(), bps)
-//    }
-//  }()
+//	defer func() {
+//	  if err != nil {
+//	    ...cleanUpBlockState(md.ReadOnly(), bps)
+//	  }
+//	}()
 //
-//  ... = ...doBlockPuts(ctx, md.ReadOnly(), *bps)
+//	... = ...doBlockPuts(ctx, md.ReadOnly(), *bps)
 //
 // The exception is for when blocks might get reused across multiple
 // attempts at the same operation (like for a Sync).  In that case,
@@ -320,14 +320,14 @@ func (fbm *folderBlockManager) enqueueBlocksToDeleteAfterShortDelay(
 // doesn't block, but instead spawns a goroutine to handle the sending.
 //
 // This is necessary to prevent a situation like following:
-// 1. A delete fails when fbm.blocksToDeleteChan is full
-// 2. The goroutine tries to put the failed toDelete back to
-//    fbm.blocksToDeleteChan
-// 3. Step 2 becomes synchronous and is blocked because
-//    fbm.blocksToDeleteChan is already full
-// 4. fbm.blocksToDeleteChan never gets drained because the goroutine that
-//    drains it is waiting for sending on the same channel.
-// 5. Deadlock!
+//  1. A delete fails when fbm.blocksToDeleteChan is full
+//  2. The goroutine tries to put the failed toDelete back to
+//     fbm.blocksToDeleteChan
+//  3. Step 2 becomes synchronous and is blocked because
+//     fbm.blocksToDeleteChan is already full
+//  4. fbm.blocksToDeleteChan never gets drained because the goroutine that
+//     drains it is waiting for sending on the same channel.
+//  5. Deadlock!
 func (fbm *folderBlockManager) enqueueBlocksToDeleteNoWait(toDelete blocksToDelete) {
 	fbm.blocksToDeleteWaitGroup.Add(1)
 

@@ -3,8 +3,7 @@ import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as ChatTypes from '../../../../../constants/types/chat2'
 import * as RPCChatTypes from '../../../../../constants/types/rpc-chat-gen'
 import * as Container from '../../../../../util/container'
-import {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
-import {StylesCrossPlatform} from '../../../../../styles/css'
+import type {Position, StylesCrossPlatform} from '../../../../../styles'
 import Journeycard from '.'
 
 type OwnProps = {

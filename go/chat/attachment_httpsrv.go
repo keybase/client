@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"hash"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
@@ -736,7 +735,7 @@ func (c *CachingAttachmentFetcher) createAttachmentFile(ctx context.Context) (*o
 	if err != nil {
 		return nil, err
 	}
-	file, err := ioutil.TempFile(c.getCacheDir(), "att")
+	file, err := os.CreateTemp(c.getCacheDir(), "att")
 	file.Close()
 	if err != nil {
 		return nil, err

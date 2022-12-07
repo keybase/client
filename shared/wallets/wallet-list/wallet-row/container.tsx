@@ -1,9 +1,10 @@
-import {WalletRow, Props} from '.'
 import * as Container from '../../../util/container'
-import {getAccount, getSelectedAccount} from '../../../constants/wallets'
-import * as WalletsGen from '../../../actions/wallets-gen'
+import * as React from 'react'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
-import {AccountID} from '../../../constants/types/wallets'
+import * as WalletsGen from '../../../actions/wallets-gen'
+import type {AccountID} from '../../../constants/types/wallets'
+import {WalletRow} from '.'
+import {getAccount, getSelectedAccount} from '../../../constants/wallets'
 
 // TODO: This is now desktop-only, so remove references to isMobile.
 
@@ -11,46 +12,34 @@ type OwnProps = {
   accountID: AccountID
 }
 
-const mapStateToProps = (
-  state,
-  ownProps: {
-    accountID: AccountID
-  }
-) => {
-  const account = getAccount(state, ownProps.accountID)
+export default (op: OwnProps) => {
+  const {accountID} = op
+  const account = Container.useSelector(state => getAccount(state, accountID))
   const name = account.name
-  const me = state.config.username
+  const me = Container.useSelector(state => state.config.username)
   const keybaseUser = account.isDefault ? me : ''
-  const selectedAccount = getSelectedAccount(state)
-  return {
-    contents: account.balanceDescription,
-    isSelected: selectedAccount === ownProps.accountID,
-    keybaseUser,
-    name,
-    selectedAccount,
-    unreadPayments: state.wallets.unreadPaymentsMap.get(ownProps.accountID) ?? 0,
-  }
-}
+  const selectedAccount = Container.useSelector(state => getSelectedAccount(state))
+  const contents = account.balanceDescription
+  const isSelected = !Container.isPhone && selectedAccount === accountID
+  const unreadPayments = Container.useSelector(state => state.wallets.unreadPaymentsMap.get(accountID) ?? 0)
 
-const mapDispatchToProps = dispatch => ({
-  _onSelectAccount: (accountID: AccountID) => {
+  const dispatch = Container.useDispatch()
+  const onSelectAccount = React.useCallback(() => {
     if (!Container.isPhone) {
       dispatch(RouteTreeGen.createNavUpToScreen({name: 'wallet'}))
     }
     dispatch(WalletsGen.createSelectAccount({accountID, reason: 'user-selected', show: true}))
-  },
-})
+  }, [dispatch, accountID])
 
-const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
-  contents: stateProps.contents,
-  isSelected: !Container.isPhone && stateProps.isSelected,
-  keybaseUser: stateProps.keybaseUser,
-  name: stateProps.name,
-  onSelect: () => {
-    // First clear any new payments on the currently selected acct.
-    dispatchProps._onSelectAccount(ownProps.accountID)
-  },
-  unreadPayments: stateProps.unreadPayments,
-})
-
-export default Container.connect(mapStateToProps, mapDispatchToProps, mergeProps)(WalletRow)
+  return (
+    <WalletRow
+      contents={contents}
+      isSelected={isSelected}
+      keybaseUser={keybaseUser}
+      name={name}
+      // First clear any new payments on the currently selected acct.
+      onSelect={onSelectAccount}
+      unreadPayments={unreadPayments}
+    />
+  )
+}

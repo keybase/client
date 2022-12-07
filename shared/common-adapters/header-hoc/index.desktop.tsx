@@ -4,8 +4,7 @@ import BackButton from '../back-button'
 import Box from '../box'
 import Icon from '../icon'
 import * as Styles from '../../styles'
-import {Props, LeftActionProps} from '.'
-import {hoistNonReactStatic} from '../../util/container'
+import type {Props, LeftActionProps} from '.'
 
 export const HeaderHocHeader = ({
   headerStyle,
@@ -71,12 +70,6 @@ export const LeftAction = ({
       ))}
   </Box>
 )
-
-function HeaderHoc<P extends {}>(WrappedComponent: React.ComponentType<P>) {
-  const HH = (props: P & Props) => <WrappedComponent {...(props as P)} />
-  hoistNonReactStatic(HH, WrappedComponent)
-  return HH
-}
 
 export const HeaderHocWrapper = (props: Props & {children: React.ReactNode}) => {
   return props.children
@@ -185,5 +178,3 @@ export const HeaderLeftCancel = hp =>
       customIconColor={hp.tintColor}
     />
   ) : null
-
-export default HeaderHoc

@@ -859,10 +859,10 @@ func (w WriteRange) End() uint64 {
 // operation and `other` overlap in some way.  Specifically, it
 // returns true if:
 //
-// - both operations are writes and their write ranges overlap;
-// - one operation is a write and one is a truncate, and the truncate is
-//   within the write's range or before it; or
-// - both operations are truncates.
+//   - both operations are writes and their write ranges overlap;
+//   - one operation is a write and one is a truncate, and the truncate is
+//     within the write's range or before it; or
+//   - both operations are truncates.
 func (w WriteRange) Affects(other WriteRange) bool {
 	if w.isTruncate() {
 		if other.isTruncate() {

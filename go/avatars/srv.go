@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net"
 	"net/http"
 	"net/url"
@@ -156,7 +155,7 @@ func (s *Srv) serve(w http.ResponseWriter, req *http.Request) {
 			s.makeError(w, http.StatusInternalServerError, "failed to load placeholder: %s", err)
 			return
 		}
-		reader = ioutil.NopCloser(bytes.NewReader(placeholder))
+		reader = io.NopCloser(bytes.NewReader(placeholder))
 	} else {
 		if reader, err = s.loadFromURL(url.String()); err != nil {
 			s.makeError(w, http.StatusInternalServerError, "failed to get URL reader: %s", err)

@@ -22,7 +22,6 @@ import (
 // where the "pending" tx doesn't make it to wallet state
 // before the second seqno provider refreshes the seqno
 // from the network.
-//
 func TestSeqno(t *testing.T) {
 	tcs, cleanup := setupNTests(t, 1)
 	defer cleanup()

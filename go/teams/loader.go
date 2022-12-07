@@ -1300,16 +1300,16 @@ func (l *TeamLoader) userPreload(ctx context.Context, links []*ChainLinkUnpacked
 // discardCache - the caller should throw out their cached copy and repoll.
 // repoll - hit up merkle for the latest tail
 // Considers:
-// - NeedAdmin
-// - NeedKeyGeneration
-// - NeedApplicationsAtGenerations
-// - WantMembers
-// - ForceRepoll
-// - Cache freshness / StaleOK
-// - NeedSeqnos
-// - JustUpdated
-// - If this user is in global "force repoll" mode, where it would be too spammy to
-//   push out individual team changed notifications, so all team loads need a repoll.
+//   - NeedAdmin
+//   - NeedKeyGeneration
+//   - NeedApplicationsAtGenerations
+//   - WantMembers
+//   - ForceRepoll
+//   - Cache freshness / StaleOK
+//   - NeedSeqnos
+//   - JustUpdated
+//   - If this user is in global "force repoll" mode, where it would be too spammy to
+//     push out individual team changed notifications, so all team loads need a repoll.
 func (l *TeamLoader) load2DecideRepoll(mctx libkb.MetaContext, arg load2ArgT, fromCache Teamer, cachedPolledAt *keybase1.Time) (discardCache bool, repoll bool) {
 	var reason string
 	defer func() {

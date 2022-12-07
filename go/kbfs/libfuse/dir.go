@@ -195,13 +195,13 @@ func (f *Folder) resolve(ctx context.Context) (*tlfhandle.Handle, error) {
 //
 // The arguments follow KBFS semantics:
 //
-//     - Len > 0: "bytes Off..Off+Len were mutated"
-//     - Len == 0: "new file Len is Off"
+//   - Len > 0: "bytes Off..Off+Len were mutated"
+//   - Len == 0: "new file Len is Off"
 //
 // For comparison, the FUSE semantics are:
 //
-//     - Len < 0: "forget data in range Off..infinity"
-//     - Len > 0: "forget data in range Off..Off+Len"
+//   - Len < 0: "forget data in range Off..infinity"
+//   - Len > 0: "forget data in range Off..Off+Len"
 func (f *Folder) invalidateNodeDataRange(node fs.Node, write libkbfs.WriteRange) error {
 	if file, ok := node.(*File); ok {
 		file.eiCache.destroy()

@@ -1,33 +1,37 @@
 import * as React from 'react'
-import {WebViewProps} from './web-view'
+import type {WebViewProps} from './web-view'
 
-type WebviewElement = any
+// not properly exposed in electron yet
+type WebviewTag = ReturnType<Document['createElement']>
+
 class WebView extends React.PureComponent<WebViewProps> {
-  _webviewRef: WebviewElement | null
-
-  _setWebviewRef = (r: HTMLElement | null) => {
-    this._webviewRef = r as any
-  }
+  _webviewRef = React.createRef<WebviewTag>()
 
   componentDidMount() {
-    const css = (this.props.injections && this.props.injections.css) || ''
-    const javaScript = (this.props.injections && this.props.injections.javaScript) || ''
+    const css = this.props.injections?.css || ''
+    const javaScript = this.props.injections?.javaScript || ''
     if (!css && !javaScript) {
       return
     }
     if (!this._webviewRef) {
       return
     }
-    const ref: WebviewElement = this._webviewRef
-    ref.addEventListener('dom-ready', () => {
-      ref.insertCSS(css)
-      ref.executeJavaScript(javaScript)
+    const ref = this._webviewRef.current
+    ref?.addEventListener('dom-ready', () => {
+      ref
+        ?.insertCSS(css)
+        .then(() => {})
+        .catch(() => {})
+      ref
+        ?.executeJavaScript(javaScript)
+        .then(() => {})
+        .catch(() => {})
     })
     const {onError} = this.props
-    onError && ref.addEventListener('did-fail-load', ({errorDescription}) => onError(errorDescription))
+    onError && ref?.addEventListener('did-fail-load', ({errorDescription}) => onError(errorDescription))
   }
   render() {
-    return <webview ref={this._setWebviewRef} style={this.props.style} src={this.props.url} />
+    return <webview ref={this._webviewRef} style={this.props.style} src={this.props.url} />
   }
 }
 

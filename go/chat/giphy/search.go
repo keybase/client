@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -144,7 +143,7 @@ func runAPICall(mctx libkb.MetaContext, endpoint string, srv types.AttachmentURL
 		return res, err
 	}
 	defer resp.Body.Close()
-	dat, err := ioutil.ReadAll(resp.Body)
+	dat, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return res, err
 	}

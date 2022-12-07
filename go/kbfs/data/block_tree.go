@@ -482,13 +482,13 @@ func checkForHolesAndTruncate(
 // return whatever prefix of the data it could fetch within the
 // deadine.  Return params:
 //
-//   * pathsFromRoot is a slice, ordered by offset, of paths from
+//   - pathsFromRoot is a slice, ordered by offset, of paths from
 //     the root to each block that makes up the range.  If the path is
 //     empty, it indicates that pblock is a direct block and has no
 //     children.
-//   * blocks: a map from block pointer to a data-containing leaf node
+//   - blocks: a map from block pointer to a data-containing leaf node
 //     in the given range of offsets, if `getDirect` is true.
-//   * nextBlockOff is the offset of the block that follows the last
+//   - nextBlockOff is the offset of the block that follows the last
 //     block given in `pathsFromRoot`.  If `pathsFromRoot` contains
 //     the last block among the children, nextBlockOff is nil.
 func (bt *blockTree) getBlocksForOffsetRange(ctx context.Context,

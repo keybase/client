@@ -26,12 +26,6 @@ if (!__DEV__) {
   setAutoFreeze(false)
 }
 
-// to keep fallback objects static for react
-export const emptyArray: Array<any> = []
-export const emptySet = new Set<any>()
-export const emptyMap = new Map<any, any>()
-export const NullComponent = () => null
-
 export const networkErrorCodes = [
   StatusCode.scgenericapierror,
   StatusCode.scapinetworkerror,
@@ -110,7 +104,7 @@ const connect = typedConnect
 export {connect}
 export {isMobile, isIOS, isAndroid, isPhone, isTablet} from '../constants/platform'
 export {anyWaiting, anyErrors} from '../constants/waiting'
-export {safeSubmit, safeSubmitPerMount} from './safe-submit'
+export {useSafeSubmit} from './safe-submit'
 export {useSafeNavigation} from './safe-navigation'
 export type TypedActions = _TypedActions
 export type TypedState = _TypedState

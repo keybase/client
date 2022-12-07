@@ -8,7 +8,7 @@
 package libfuse
 
 import (
-	"io/ioutil"
+	"io"
 	"os"
 	"strings"
 	"time"
@@ -51,7 +51,7 @@ func (tpf timedProfileFile) Open(ctx context.Context,
 		return nil, err
 	}
 
-	buf, err := ioutil.ReadAll(f)
+	buf, err := io.ReadAll(f)
 	if err != nil {
 		return nil, err
 	}

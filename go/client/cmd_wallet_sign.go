@@ -4,7 +4,7 @@
 package client
 
 import (
-	"io/ioutil"
+	"io"
 	"os"
 	"strings"
 
@@ -65,7 +65,7 @@ func (c *CmdWalletSign) Run() (err error) {
 	}
 
 	if c.XDR == "" {
-		bytes, err := ioutil.ReadAll(os.Stdin)
+		bytes, err := io.ReadAll(os.Stdin)
 		if err != nil {
 			return err
 		}

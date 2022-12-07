@@ -5,7 +5,7 @@ package logger
 
 import (
 	"fmt"
-	"io/ioutil"
+
 	"os"
 	"path/filepath"
 	"testing"
@@ -15,7 +15,7 @@ import (
 )
 
 func TestScanOldLogFiles(t *testing.T) {
-	dir, err := ioutil.TempDir("", "log-rotation-test")
+	dir, err := os.MkdirTemp("", "log-rotation-test")
 	require.NoError(t, err)
 	defer os.RemoveAll(dir)
 	fmt.Println(dir)
@@ -41,7 +41,7 @@ func TestScanOldLogFiles(t *testing.T) {
 		filepath.Join(dir, "keybase.kbfs-20170214T142129-0600-20170214T142252-0600"),
 	}
 	for _, fn := range append(logFilenames, nonLogFilenames...) {
-		require.NoError(t, ioutil.WriteFile(fn, []byte("hello"), 0644))
+		require.NoError(t, os.WriteFile(fn, []byte("hello"), 0644))
 	}
 
 	fNames, err := scanOldLogFiles(p)

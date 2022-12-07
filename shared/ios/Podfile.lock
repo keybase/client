@@ -37,7 +37,7 @@ PODS:
     - ExpoModulesCore
   - ExpoHaptics (12.0.1):
     - ExpoModulesCore
-  - ExpoImagePicker (14.0.1):
+  - ExpoImagePicker (14.0.2):
     - ExpoModulesCore
   - ExpoKeepAwake (11.0.1):
     - ExpoModulesCore
@@ -779,7 +779,7 @@ SPEC CHECKSUMS:
   EXMediaLibrary: b1c4f78878e45f6a359aff3a059e1660c41b73ab
   Expo: a581e979539bae3e49cd02d9dee2432947383d3b
   ExpoHaptics: 5a56d30a87ea213dd00b09566dc4b441a4dff97f
-  ExpoImagePicker: 6c4f80a63e36eb24a4775c82d46f8815b4195066
+  ExpoImagePicker: d2a1cea4023008ae2fb0d95f33422b80772cc76e
   ExpoKeepAwake: 69b59d0a8d2b24de9f82759c39b3821fec030318
   ExpoMailComposer: 5bd9a732104eb1721a5aa4744903673787d1410c
   ExpoModulesCore: b5d21c8880afda6fb6ee95469f9ac2ec9b98e995

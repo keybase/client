@@ -4,7 +4,6 @@ import * as Styles from '../../../../../styles'
 import type * as Types from '../../../../../constants/types/chat2'
 import type * as RPCTypes from '../../../../../constants/types/rpc-gen'
 import {EmojiPickerDesktop} from '../emoji-picker/container'
-import type {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
 import {renderEmoji, RPCUserReacjiToRenderableEmoji} from '../../../../../util/emoji'
 
 type Props = {
@@ -17,7 +16,7 @@ type Props = {
   onShowingEmojiPicker?: (arg0: boolean) => void
   ordinal: Types.Ordinal
   style?: Styles.StylesCrossPlatform
-  tooltipPosition?: Position
+  tooltipPosition?: Styles.Position
 }
 
 class HoverEmoji extends React.Component<

@@ -86,7 +86,7 @@ func (k *LibKBFS) InitTest(ver kbfsmd.MetadataVer,
 	}
 
 	if journal {
-		jdir, err := ioutil.TempDir(os.TempDir(), "kbfs_journal")
+		jdir, err := os.MkdirTemp(os.TempDir(), "kbfs_journal")
 		if err != nil {
 			k.tb.Fatalf("Couldn't enable journaling: %v", err)
 		}

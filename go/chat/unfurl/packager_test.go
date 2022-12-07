@@ -6,7 +6,6 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -103,7 +102,7 @@ func TestPackager(t *testing.T) {
 	require.False(t, valid)
 
 	compareSol := func(name string, resDat []byte) {
-		dat, err := ioutil.ReadFile(filepath.Join("testcases", name))
+		dat, err := os.ReadFile(filepath.Join("testcases", name))
 		require.NoError(t, err)
 		require.True(t, bytes.Equal(dat, resDat))
 	}

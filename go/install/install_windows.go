@@ -21,8 +21,6 @@ import (
 	"golang.org/x/text/encoding/unicode"
 	"golang.org/x/text/transform"
 
-	"io/ioutil"
-
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -345,7 +343,7 @@ func IsInUse(mountDir string, log Log) bool {
 		return false
 	}
 
-	dat, err := ioutil.ReadFile(filepath.Join(mountDir, ".kbfs_number_of_handles"))
+	dat, err := os.ReadFile(filepath.Join(mountDir, ".kbfs_number_of_handles"))
 	if err != nil {
 		log.Debug("Error reading kbfs handles: %s", err)
 		return false

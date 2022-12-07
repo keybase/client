@@ -1,7 +1,6 @@
 package systests
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -97,7 +96,7 @@ func runTeamAPI(t *testing.T, u *userPlusDevice, json string) (string, error) {
 	if err := cmd.Run(); err != nil {
 		return "", err
 	}
-	out, err := ioutil.ReadFile(filename)
+	out, err := os.ReadFile(filename)
 	if err != nil {
 		return "", err
 	}

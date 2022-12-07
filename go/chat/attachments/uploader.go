@@ -3,7 +3,6 @@ package attachments
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"sync"
@@ -425,7 +424,7 @@ func (u *Uploader) uploadFile(ctx context.Context, diskLRU *disklru.DiskLRU, dir
 	if err := os.MkdirAll(dir, os.ModePerm); err != nil {
 		return nil, err
 	}
-	f, err = ioutil.TempFile(dir, prefix)
+	f, err = os.CreateTemp(dir, prefix)
 	if err != nil {
 		return nil, err
 	}
@@ -557,7 +556,7 @@ func (u *Uploader) upload(ctx context.Context, uid gregor1.UID, convID chat1.Con
 		uf, err := u.uploadFullFile(ctx, pre.BaseMetadata())
 		if err != nil {
 			u.Debug(bgctx, "upload: failed to create uploaded full file: %s", err)
-			encryptedOut = ioutil.Discard
+			encryptedOut = io.Discard
 			uf = nil
 		} else {
 			defer uf.Close()
@@ -622,7 +621,7 @@ func (u *Uploader) upload(ctx context.Context, uid gregor1.UID, convID chat1.Con
 			up, err := u.uploadPreviewFile(ctx)
 			if err != nil {
 				u.Debug(bgctx, "upload: failed to create uploaded preview file: %s", err)
-				encryptedOut = ioutil.Discard
+				encryptedOut = io.Discard
 				up = nil
 			} else {
 				defer up.Close()

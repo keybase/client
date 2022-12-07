@@ -6,7 +6,6 @@ package client
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"time"
 
@@ -186,7 +185,7 @@ func (c *CmdChatSend) ParseArgv(ctx *cli.Context) (err error) {
 			c.message = ctx.Args().Get(1)
 		case 1:
 			if !c.hasTTY {
-				bytes, err := ioutil.ReadAll(io.LimitReader(os.Stdin, msgchecker.TextMessageMaxLength))
+				bytes, err := io.ReadAll(io.LimitReader(os.Stdin, msgchecker.TextMessageMaxLength))
 				if err != nil {
 					return err
 				}

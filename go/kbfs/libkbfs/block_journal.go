@@ -56,7 +56,7 @@ import (
 // The maximum number of characters added to the root dir by a block
 // journal is 51:
 //
-//   /blocks/(max 44 characters)
+//	/blocks/(max 44 characters)
 //
 // blockJournal is not goroutine-safe, so any code that uses it must
 // guarantee that only one goroutine at a time calls its functions.

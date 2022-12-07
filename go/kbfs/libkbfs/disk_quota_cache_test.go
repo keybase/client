@@ -5,7 +5,6 @@
 package libkbfs
 
 import (
-	"io/ioutil"
 	"math/rand"
 	"os"
 	"path/filepath"
@@ -39,7 +38,7 @@ func newDiskQuotaCacheLocalForTest(t *testing.T) (
 	*DiskQuotaCacheLocal, string) {
 	// Use a disk-based level, instead of memory storage, because we
 	// want to simulate a restart and memory storages can't be reused.
-	tempdir, err := ioutil.TempDir(os.TempDir(), "disk_quota_cache")
+	tempdir, err := os.MkdirTemp(os.TempDir(), "disk_quota_cache")
 	require.NoError(t, err)
 	s, err := storage.OpenFile(filepath.Join(tempdir, "quota"), false)
 	require.NoError(t, err)

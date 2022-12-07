@@ -17,7 +17,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"runtime"
 	"sort"
@@ -289,7 +288,7 @@ func (fs *levelDBStorage) setMetaRLocked(fd storage.FileDesc) error {
 			return err
 		}
 		defer f.Close()
-		b, err := ioutil.ReadAll(f)
+		b, err := io.ReadAll(f)
 		if err != nil {
 			fs.logRLocked(fmt.Sprintf("backup CURRENT: %v", err))
 			return err
@@ -383,7 +382,7 @@ func (fs *levelDBStorage) GetMeta() (storage.FileDesc, error) {
 			return nil, err
 		}
 		defer f.Close()
-		b, err := ioutil.ReadAll(f)
+		b, err := io.ReadAll(f)
 		if err != nil {
 			return nil, err
 		}

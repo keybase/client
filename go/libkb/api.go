@@ -10,7 +10,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"runtime"
@@ -771,7 +770,7 @@ func (a *InternalAPIEngine) getDecode(m MetaContext, arg APIArg, v APIResponseWr
 
 	reader := resp.Body.(io.Reader)
 	if a.G().Env.GetAPIDump() {
-		body, err := ioutil.ReadAll(reader)
+		body, err := io.ReadAll(reader)
 		if err != nil {
 			return err
 		}

@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Types from '../../../constants/types/fs'
-import * as Container from '../../../util/container'
-import OpenHOC from '../../common/open-hoc'
+import {useOpen} from '../../common/use-open'
 import TlfType from './tlf-type'
 
 type OwnProps = {
@@ -9,16 +8,16 @@ type OwnProps = {
   name: Types.TlfType
 }
 
-export default ((ComposedComponent: React.ComponentType<any>) =>
-  Container.connect(
-    () => ({}),
-    () => ({}),
-    (_, __, {name, destinationPickerIndex}: OwnProps) => {
-      const path = Types.stringToPath(`/keybase/${name}`)
-      return {
-        destinationPickerIndex,
-        name,
-        path,
-      }
-    }
-  )(OpenHOC(ComposedComponent)))(TlfType)
+export default (p: OwnProps) => {
+  const {destinationPickerIndex, name} = p
+  const path = Types.stringToPath(`/keybase/${name}`)
+  const onOpen = useOpen({destinationPickerIndex, path})
+  const np = {
+    destinationPickerIndex,
+    name,
+    onOpen,
+    path,
+  }
+
+  return <TlfType {...np} />
+}

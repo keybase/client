@@ -332,7 +332,7 @@ const SideButtons = (p: SideButtonsProps) => {
   )
 }
 
-const PlatformInput = (p: Props) => {
+const PlatformInput = React.memo(function PlatformInput(p: Props) {
   const {cannotWrite, conversationIDKey, explodingModeSeconds, onCancelEditing} = p
   const {showWalletsIcon, hintText, inputSetRef, isEditing, onSubmit} = p
   const {onRequestScrollDown, onRequestScrollUp, showReplyPreview} = p
@@ -455,7 +455,7 @@ const PlatformInput = (p: Props) => {
       </KeyEventHandler>
     </>
   )
-}
+})
 
 const styles = Styles.styleSheetCreate(
   () =>

@@ -6,7 +6,6 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"io"
-	"io/ioutil"
 	"strings"
 	"testing"
 
@@ -41,7 +40,7 @@ func TestSignEncrypter(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	ct, err := ioutil.ReadAll(er)
+	ct, err := io.ReadAll(er)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -52,7 +51,7 @@ func TestSignEncrypter(t *testing.T) {
 
 	d := NewSignDecrypter()
 	dr := d.Decrypt(bytes.NewReader(ct), e.EncryptKey(), e.VerifyKey())
-	ptOut, err := ioutil.ReadAll(dr)
+	ptOut, err := io.ReadAll(dr)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -68,7 +67,7 @@ func TestSignEncrypter(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	ct2, err := ioutil.ReadAll(er2)
+	ct2, err := io.ReadAll(er2)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -87,7 +86,7 @@ func TestSignEncrypter(t *testing.T) {
 	}
 
 	dr2 := d.Decrypt(bytes.NewReader(ct2), e.EncryptKey(), e.VerifyKey())
-	ptOut2, err := ioutil.ReadAll(dr2)
+	ptOut2, err := io.ReadAll(dr2)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -204,7 +203,7 @@ func TestUploadAssetSmall(t *testing.T) {
 	s := NewStoreTesting(g, nil)
 	ctx := context.Background()
 	plaintext, task := makeUploadTask(t, 1*MB)
-	a, err := s.UploadAsset(ctx, task, ioutil.Discard)
+	a, err := s.UploadAsset(ctx, task, io.Discard)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -229,7 +228,7 @@ func TestUploadAssetLarge(t *testing.T) {
 	s := NewStoreTesting(g, nil)
 	ctx := context.Background()
 	plaintext, task := makeUploadTask(t, 12*MB)
-	a, err := s.UploadAsset(ctx, task, ioutil.Discard)
+	a, err := s.UploadAsset(ctx, task, io.Discard)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -275,7 +274,7 @@ func TestStreamAsset(t *testing.T) {
 		total := mb*MB + kb
 		t.Logf("total: %d mb: %d kb: %d", total, mb, kb)
 		plaintext, task := makeUploadTask(t, total)
-		a, err := s.UploadAsset(ctx, task, ioutil.Discard)
+		a, err := s.UploadAsset(ctx, task, io.Discard)
 		require.NoError(t, err)
 
 		// basic
@@ -354,7 +353,7 @@ func (u *uploader) keyTracker(e, s []byte) {
 
 func (u *uploader) UploadResume() chat1.Asset {
 	u.s.blockLimit = 0
-	a, err := u.s.UploadAsset(context.Background(), u.task, ioutil.Discard)
+	a, err := u.s.UploadAsset(context.Background(), u.task, io.Discard)
 	if err != nil {
 		u.t.Fatalf("expected second UploadAsset call to work, got: %s", err)
 	}
@@ -378,7 +377,7 @@ func (u *uploader) UploadResume() chat1.Asset {
 func (u *uploader) UploadPartial(blocks int) {
 	u.s.blockLimit = blocks
 
-	_, err := u.s.UploadAsset(context.Background(), u.task, ioutil.Discard)
+	_, err := u.s.UploadAsset(context.Background(), u.task, io.Discard)
 	if err == nil {
 		u.t.Fatal("expected incomplete upload to have error")
 	}

@@ -12,6 +12,7 @@ import Loading from '../login/loading'
 import type {Theme} from '@react-navigation/native'
 import {isDarkMode} from '../styles/dark-mode'
 import {colors, darkColors} from '../styles/colors'
+import type {NavState} from '../constants/types/route-tree'
 
 export enum AppState {
   UNINIT, // haven't rendered the nav yet
@@ -89,7 +90,7 @@ export const useShared = () => {
   const loggedIn = Container.useSelector(state => state.config.loggedIn)
   const dispatch = Container.useDispatch()
   const navContainerKey = React.useRef(1)
-  const oldNavPath = React.useRef<any>([])
+  const oldNavState = React.useRef<NavState | undefined>(undefined)
   // keep track if we went to an init route yet or not
   const appState = React.useRef(loggedInLoaded ? AppState.NEEDS_INIT : AppState.UNINIT)
 
@@ -98,17 +99,18 @@ export const useShared = () => {
   }
 
   const onStateChange = React.useCallback(() => {
-    const old = oldNavPath.current
-    const vp = Constants.getVisiblePath()
-    dispatch(
-      RouteTreeGen.createOnNavChanged({
-        navAction: undefined,
-        next: vp,
-        prev: old,
-      })
-    )
-    oldNavPath.current = vp
-  }, [oldNavPath, dispatch])
+    const old = oldNavState.current
+    const ns = Constants.getRootState()
+    ns &&
+      dispatch(
+        RouteTreeGen.createOnNavChanged({
+          navAction: undefined,
+          next: ns,
+          prev: old,
+        })
+      )
+    oldNavState.current = ns
+  }, [oldNavState, dispatch])
 
   const navKey = useNavKey(appState.current, navContainerKey)
   const initialState = useInitialState()

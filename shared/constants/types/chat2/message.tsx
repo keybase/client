@@ -69,6 +69,8 @@ type _MessageCommon = {
   errorReason?: string
   errorTyp?: number
   exploded?: boolean
+  exploding?: boolean
+  explodedBy?: string // only if 'explode now' happened,
   hasBeenEdited?: boolean
   id: MessageID
   isDeleteable?: boolean

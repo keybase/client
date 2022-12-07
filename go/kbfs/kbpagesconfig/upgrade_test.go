@@ -6,7 +6,6 @@ package main
 
 import (
 	"context"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -17,7 +16,7 @@ import (
 )
 
 func TestUpgrade(t *testing.T) {
-	configDir, err := ioutil.TempDir(".", "kbpagesconfig-editor-test-")
+	configDir, err := os.MkdirTemp(".", "kbpagesconfig-editor-test-")
 	require.NoError(t, err)
 	defer os.RemoveAll(configDir)
 	kbpConfigPath := filepath.Join(configDir, config.DefaultConfigFilename)

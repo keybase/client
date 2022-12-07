@@ -13,7 +13,8 @@ import (
 // gets pegged to their incarnation. After the target resets,
 // the logged-in user will be alerted even if there's no explicit following.
 // CORE-10522 For now, pegboard is disabled by default and when enabled
-//            only has in-memory storage.
+//
+//	only has in-memory storage.
 type Pegboard struct {
 	mu      sync.Mutex
 	enabled bool

@@ -42,13 +42,13 @@ type dnsRootLoader struct {
 // used in all non-test scenarios.
 //
 // When loading from DNS, it does so with following steps:
-//   1. Construct a domain name by prefixing the `domain` parameter with
-//      "_keybase_pages." or "_keybasepages". So for example,
-//      "static.keybase.io" turns into "_keybase_pages.static.keybase.io" or
-//      "_keybasepages.static.keybase.io".
-//   2. Load TXT record(s) from the domain constructed in step 1, and look for
-//      one starting with "kbp=". If exactly one exists, parse it into a `Root`
-//      and return it.
+//  1. Construct a domain name by prefixing the `domain` parameter with
+//     "_keybase_pages." or "_keybasepages". So for example,
+//     "static.keybase.io" turns into "_keybase_pages.static.keybase.io" or
+//     "_keybasepages.static.keybase.io".
+//  2. Load TXT record(s) from the domain constructed in step 1, and look for
+//     one starting with "kbp=". If exactly one exists, parse it into a `Root`
+//     and return it.
 //
 // There must be exactly one "kbp=" TXT record configured for domain. If more
 // than one exists, an ErrKeybasePagesRecordTooMany{} is returned. If none is
@@ -65,11 +65,11 @@ type dnsRootLoader struct {
 // Examples for "static.keybase.io", "meatball.gao.io", "song.gao.io",
 // "blah.strib.io", and "kbp.jzila.com" respectively:
 //
-//   _keybase_pages.static.keybase.io TXT "kbp=/keybase/team/keybase.bots/static.keybase.io"
-//   _keybase_pages.meatball.gao.io   TXT "kbp=/keybase/public/songgao/meatball/"
-//   _keybase_pages.song.gao.io       TXT "kbp=/keybase/private/songgao,kb_bot/blah"
-//   _keybase_pages.blah.strib.io     TXT "kbp=/keybase/private/strib#kb_bot/blahblahb" "lah/blah/"
-//   _keybase_pages.kbp.jzila.com     TXT "kbp=git@keybase:private/jzila,kb_bot/kbp.git"
+//	_keybase_pages.static.keybase.io TXT "kbp=/keybase/team/keybase.bots/static.keybase.io"
+//	_keybase_pages.meatball.gao.io   TXT "kbp=/keybase/public/songgao/meatball/"
+//	_keybase_pages.song.gao.io       TXT "kbp=/keybase/private/songgao,kb_bot/blah"
+//	_keybase_pages.blah.strib.io     TXT "kbp=/keybase/private/strib#kb_bot/blahblahb" "lah/blah/"
+//	_keybase_pages.kbp.jzila.com     TXT "kbp=git@keybase:private/jzila,kb_bot/kbp.git"
 func NewDNSRootLoader(log *zap.Logger) RootLoader {
 	return &dnsRootLoader{
 		log:       log,

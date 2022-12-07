@@ -6,7 +6,6 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -140,7 +139,7 @@ func (r *runner) flushLogsToS3(logName string, log bytes.Buffer) (string, error)
 }
 
 func (r *runner) flushTestLogsToTemp(logName string, log bytes.Buffer) (string, error) {
-	tmpfile, err := ioutil.TempFile("", fmt.Sprintf("%s-", logName))
+	tmpfile, err := os.CreateTemp("", fmt.Sprintf("%s-", logName))
 	if err != nil {
 		return "", err
 	}

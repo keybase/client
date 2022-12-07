@@ -29,6 +29,7 @@ import {
   withTiming,
 } from '../../../../common-adapters/reanimated'
 import logger from '../../../../logger'
+import {AudioSendWrapper} from '../../../audio/audio-send'
 
 const singleLineHeight = 36
 const threeLineHeight = 78
@@ -47,11 +48,14 @@ type ButtonsProps = Pick<
   onSubmit: () => void
   ourShowMenu: (m: MenuType) => void
   onSelectionChange?: (p: {start: number | null; end: number | null}) => void
+  showAudioSend: boolean
+  setShowAudioSend: (s: boolean) => void
 }
 
 const Buttons = (p: ButtonsProps) => {
   const {conversationIDKey, insertText, ourShowMenu, onSubmit, onCancelEditing} = p
   const {hasText, isEditing, isExploding, explodingModeSeconds, cannotWrite, toggleShowingMenu} = p
+  const {showAudioSend, setShowAudioSend} = p
 
   const openFilePicker = React.useCallback(() => {
     ourShowMenu('filepickerpopup')
@@ -115,7 +119,11 @@ const Buttons = (p: ButtonsProps) => {
       {!hasText && (
         <Kb.Box2 direction="horizontal" alignItems="flex-end">
           <Kb.Icon onClick={openFilePicker} padding="tiny" type="iconfont-camera" fixOverdraw={true} />
-          <AudioRecorder conversationIDKey={conversationIDKey} iconStyle={styles.audioRecorderIconStyle} />
+          <AudioRecorder
+            conversationIDKey={conversationIDKey}
+            showAudioSend={showAudioSend}
+            setShowAudioSend={setShowAudioSend}
+          />
           <Kb.Icon onClick={openMoreMenu} padding="tiny" type="iconfont-add" fixOverdraw={true} />
         </Kb.Box2>
       )}
@@ -245,6 +253,7 @@ const ChatFilePicker = (p: ChatFilePickerProps) => {
 }
 
 const PlatformInput = (p: Props) => {
+  const [showAudioSend, setShowAudioSend] = React.useState(false)
   const [height, setHeight] = React.useState(0)
   const [expanded, setExpanded] = React.useState(false) // updates immediately, used for the icon etc
   const inputRef = React.useRef<Kb.PlainInput | null>(null)
@@ -420,72 +429,88 @@ const PlatformInput = (p: Props) => {
     [conversationIDKey, dispatch]
   )
 
+  const onLayout = React.useCallback((p: LayoutEvent) => {
+    const {nativeEvent} = p
+    const {layout} = nativeEvent
+    const {height} = layout
+    setHeight(height)
+  }, [])
+
+  const onAnimatedInputRef = React.useCallback(
+    (ref: Kb.PlainInput | null) => {
+      inputSetRef.current = ref
+      inputRef.current = ref
+    },
+    [inputSetRef, inputRef]
+  )
+  const aiOnChangeText = React.useCallback(
+    (text: string) => {
+      setHasText(!!text)
+      lastText.current = text
+      onChangeText(text)
+    },
+    [setHasText, onChangeText]
+  )
+
   return (
-    <Kb.Box2
-      direction="vertical"
-      fullWidth={true}
-      onLayout={(p: LayoutEvent) => {
-        const {nativeEvent} = p
-        const {layout} = nativeEvent
-        const {height} = layout
-        setHeight(height)
-      }}
-    >
-      {popup}
-      {menu}
-      {showTypingStatus && !popup && <Typing conversationIDKey={conversationIDKey} />}
-      <Kb.Box2
-        direction="vertical"
-        style={Styles.collapseStyles([styles.container, isExploding && styles.explodingContainer])}
-        fullWidth={true}
-      >
-        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.inputContainer}>
-          {/* in order to get auto correct submit working we move focus to this and then back so we can 'blur' without losing keyboard */}
-          <Kb.PlainInput key="silent" ref={silentInput} style={styles.hidden} />
-          <AnimatedInput
-            allowImagePaste={true}
-            onPasteImage={onPasteImage}
-            autoCorrect={true}
-            autoCapitalize="sentences"
-            disabled={cannotWrite ?? false}
-            placeholder={hintText}
-            maxInputArea={maxInputArea}
-            multiline={true}
-            onBlur={onBlur}
-            onFocus={onFocusAndMaybeSubmit}
-            onChangeText={(text: string) => {
-              setHasText(!!text)
-              lastText.current = text
-              onChangeText(text)
-            }}
+    <>
+      <Kb.Box2 direction="vertical" fullWidth={true} onLayout={onLayout} style={styles.outerContainer}>
+        {popup}
+        {menu}
+        {showTypingStatus && !popup && <Typing conversationIDKey={conversationIDKey} />}
+        <Kb.Box2
+          direction="vertical"
+          style={Styles.collapseStyles([styles.container, isExploding && styles.explodingContainer])}
+          fullWidth={true}
+        >
+          <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.inputContainer}>
+            {/* in order to get auto correct submit working we move focus to this and then back so we can 'blur' without losing keyboard */}
+            <Kb.PlainInput key="silent" ref={silentInput} style={styles.hidden} />
+            <AnimatedInput
+              allowImagePaste={true}
+              onPasteImage={onPasteImage}
+              autoCorrect={true}
+              autoCapitalize="sentences"
+              disabled={cannotWrite ?? false}
+              placeholder={hintText}
+              maxInputArea={maxInputArea}
+              multiline={true}
+              onBlur={onBlur}
+              onFocus={onFocusAndMaybeSubmit}
+              onChangeText={aiOnChangeText}
+              onSelectionChange={onSelectionChange}
+              ref={onAnimatedInputRef}
+              style={styles.input}
+              textType="Body"
+              rowsMin={1}
+              expanded={expanded}
+            />
+            <AnimatedExpand expandInput={toggleExpandInput} expanded={expanded} />
+          </Kb.Box2>
+          <Buttons
+            conversationIDKey={conversationIDKey}
+            insertText={insertText}
+            ourShowMenu={ourShowMenu}
+            onCancelEditing={onCancelEditing}
             onSelectionChange={onSelectionChange}
-            ref={(ref: null | Kb.PlainInput) => {
-              inputSetRef.current = ref
-              inputRef.current = ref
-            }}
-            style={styles.input}
-            textType="Body"
-            rowsMin={1}
-            expanded={expanded}
+            onSubmit={onQueueSubmit}
+            hasText={hasText}
+            isEditing={isEditing}
+            isExploding={isExploding}
+            explodingModeSeconds={explodingModeSeconds}
+            cannotWrite={cannotWrite}
+            toggleShowingMenu={() => ourShowMenu('exploding')}
+            showAudioSend={showAudioSend}
+            setShowAudioSend={setShowAudioSend}
           />
-          <AnimatedExpand expandInput={toggleExpandInput} expanded={expanded} />
         </Kb.Box2>
-        <Buttons
-          conversationIDKey={conversationIDKey}
-          insertText={insertText}
-          ourShowMenu={ourShowMenu}
-          onCancelEditing={onCancelEditing}
-          onSelectionChange={onSelectionChange}
-          onSubmit={onQueueSubmit}
-          hasText={hasText}
-          isEditing={isEditing}
-          isExploding={isExploding}
-          explodingModeSeconds={explodingModeSeconds}
-          cannotWrite={cannotWrite}
-          toggleShowingMenu={() => ourShowMenu('exploding')}
-        />
       </Kb.Box2>
-    </Kb.Box2>
+      {showAudioSend && (
+        <Kb.Box2 fullHeight={true} fullWidth={true} direction="vertical" style={styles.sendWrapper}>
+          <AudioSendWrapper />
+        </Kb.Box2>
+      )}
+    </>
   )
 }
 
@@ -520,7 +545,6 @@ const styles = Styles.styleSheetCreate(
         flexShrink: 0,
         minHeight: 32,
       },
-      audioRecorderIconStyle: {padding: Styles.globalMargins.tiny},
       container: {
         alignItems: 'center',
         backgroundColor: Styles.globalColors.fastBlank,
@@ -601,7 +625,9 @@ const styles = Styles.styleSheetCreate(
         maxHeight: '100%',
         paddingBottom: Styles.globalMargins.tiny,
       },
+      outerContainer: {position: 'relative'},
       sendBtn: {marginRight: Styles.globalMargins.tiny},
+      sendWrapper: {backgroundColor: Styles.globalColors.white_90, position: 'absolute'},
       suggestionList: Styles.platformStyles({
         isMobile: {
           backgroundColor: Styles.globalColors.white,

@@ -51,6 +51,7 @@ echo "Loading release tool"
 release_gopath="$HOME/release_gopath"
 (cd "$client_dir/go/buildtools"; GOPATH="$release_gopath" go install "github.com/keybase/release")
 release_bin="$release_gopath/bin/release"
+echo "$(go version)"
 
 # Build all the packages!
 "$here/build_binaries.sh" "$mode" "$build_dir"
@@ -115,9 +116,7 @@ another_copy() {
 }
 copy_bins() {
     another_copy "$build_dir/deb_repo/keybase-latest-amd64.deb" "s3://$1/keybase_amd64.deb"
-    another_copy "$build_dir/deb_repo/keybase-latest-i386.deb" "s3://$1/keybase_i386.deb"
     another_copy "$build_dir/rpm_repo/keybase-latest-x86_64.rpm" "s3://$1/keybase_amd64.rpm"
-    another_copy "$build_dir/rpm_repo/keybase-latest-i386.rpm" "s3://$1/keybase_i386.rpm"
 }
 if [ -n "$KEYBASE_RELEASE" ]; then
     copy_bins "$BUCKET_NAME"

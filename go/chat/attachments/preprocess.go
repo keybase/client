@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -124,7 +123,7 @@ func processCallerPreview(ctx context.Context, g *globals.Context, callerPreview
 			return p, err
 		}
 		defer f.Close()
-		if p.Preview, err = ioutil.ReadAll(f); err != nil {
+		if p.Preview, err = io.ReadAll(f); err != nil {
 			return p, err
 		}
 	case chat1.PreviewLocationTyp_URL:
@@ -133,7 +132,7 @@ func processCallerPreview(ctx context.Context, g *globals.Context, callerPreview
 			return p, err
 		}
 		defer resp.Body.Close()
-		if p.Preview, err = ioutil.ReadAll(resp.Body); err != nil {
+		if p.Preview, err = io.ReadAll(resp.Body); err != nil {
 			return p, err
 		}
 	default:

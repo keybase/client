@@ -78,7 +78,7 @@ func TestPaperKey(t *testing.T) {
 	m = m.WithNewProvisionalLoginContext()
 	err = libkb.PassphraseLoginNoPrompt(m, fu.Username, fu.Passphrase)
 	require.NoError(t, err, "passphrase login still worked")
-	m = m.CommitProvisionalLogin()
+	m.CommitProvisionalLogin()
 
 	// make sure the backup key device id is different than the actual device id
 	// and that the actual device id didn't change.

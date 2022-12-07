@@ -16,7 +16,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"sync"
 
@@ -28,7 +27,7 @@ import (
 // DebugDumpKey is used only in debugging. For now it's not in
 // use but we might need it in the future.
 func DebugDumpKey(g *GlobalContext, name string, b []byte) {
-	tmp, err := ioutil.TempFile(os.TempDir(), "dump-"+name)
+	tmp, err := os.CreateTemp(os.TempDir(), "dump-"+name)
 	if err != nil {
 		g.Log.Warning("Failed to dumpKey %s: %s", name, err)
 		return

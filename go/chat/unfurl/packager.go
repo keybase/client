@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"strings"
 
 	"github.com/keybase/client/go/avatars"
@@ -102,7 +101,7 @@ func (p *Packager) uploadAsset(ctx context.Context, uid gregor1.UID, convID chat
 		UserID:         uid,
 		OutboxID:       outboxID,
 	}
-	if res, err = p.store.UploadAsset(ctx, &task, ioutil.Discard); err != nil {
+	if res, err = p.store.UploadAsset(ctx, &task, io.Discard); err != nil {
 		return res, err
 	}
 	res.MimeType = contentType
@@ -116,7 +115,7 @@ func (p *Packager) assetFromURLWithBody(ctx context.Context, body io.ReadCloser,
 	if contentLength > 0 && contentLength > p.maxAssetSize {
 		return res, fmt.Errorf("asset too large: %d > %d", contentLength, p.maxAssetSize)
 	}
-	dat, err := ioutil.ReadAll(body)
+	dat, err := io.ReadAll(body)
 	if err != nil {
 		return res, err
 	}
@@ -161,7 +160,7 @@ func (p *Packager) uploadVideo(ctx context.Context, uid gregor1.UID, convID chat
 
 func (p *Packager) uploadVideoWithBody(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	body io.ReadCloser, len int64, video chat1.UnfurlVideo) (res chat1.Asset, err error) {
-	dat, err := ioutil.ReadAll(body)
+	dat, err := io.ReadAll(body)
 	if err != nil {
 		return res, err
 	}

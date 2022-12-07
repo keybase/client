@@ -141,8 +141,9 @@ func shouldPreventTeamCreation(err error) bool {
 // Try to resolve implicit team members.
 // Modifies the arguments `resSet` and appends to `resolvedAssertions`.
 // For each assertion in `sourceAssertions`, try to resolve them.
-//   If they resolve, add the username to `resSet` and the assertion to `resolvedAssertions`.
-//   If they don't resolve, add the SocialAssertion to `resSet`, but nothing to `resolvedAssertions`.
+//
+//	If they resolve, add the username to `resSet` and the assertion to `resolvedAssertions`.
+//	If they don't resolve, add the SocialAssertion to `resSet`, but nothing to `resolvedAssertions`.
 func ResolveImplicitTeamSetUntrusted(ctx context.Context, g *libkb.GlobalContext,
 	sourceAssertions []libkb.AssertionExpression, resSet *keybase1.ImplicitTeamUserSet, resolvedAssertions *[]libkb.ResolvedAssertion) error {
 

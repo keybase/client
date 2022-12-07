@@ -8,7 +8,7 @@ package install
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -144,7 +144,7 @@ func loadPlist(plistPath string, log Log) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	return ioutil.ReadAll(plistFile)
+	return io.ReadAll(plistFile)
 }
 
 func fuseInstallVersion(log Log) (string, error) {

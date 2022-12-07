@@ -5,7 +5,6 @@
 package search
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -32,7 +31,7 @@ func newIndexedBlockDbForTest(t *testing.T) (
 	db *IndexedBlockDb, tempdir string, done func()) {
 	// Use a disk-based level, instead of memory storage, because we
 	// want to simulate a restart and memory storages can't be reused.
-	tempdir, err := ioutil.TempDir(os.TempDir(), "indexed_blocks_db")
+	tempdir, err := os.MkdirTemp(os.TempDir(), "indexed_blocks_db")
 	require.NoError(t, err)
 	blockS, err := storage.OpenFile(filepath.Join(tempdir, "blocks"), false)
 	require.NoError(t, err)
@@ -54,7 +53,7 @@ func TestIndexedBlockDbCreate(t *testing.T) {
 		err := config.Shutdown(context.Background())
 		require.NoError(t, err)
 	}()
-	tempdir, err := ioutil.TempDir(os.TempDir(), "indexed_blocks_db")
+	tempdir, err := os.MkdirTemp(os.TempDir(), "indexed_blocks_db")
 	require.NoError(t, err)
 	db, err := newIndexedBlockDb(config, tempdir)
 	require.NoError(t, err)
