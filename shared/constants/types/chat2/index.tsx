@@ -8,7 +8,6 @@ import type * as Team from '../teams'
 import type * as TeamBuildingTypes from '../team-building'
 import type * as Wallet from '../wallets'
 import type HiddenString from '../../../util/hidden-string'
-import type {AmpTracker} from '../../../chat/audio/amptracker'
 
 export type PaymentConfirmInfo = {
   error?: RPCTypes.Status
@@ -119,31 +118,6 @@ export type Coordinate = {
   lon: number
 }
 
-export enum AudioRecordingStatus {
-  INITIAL = 0,
-  RECORDING,
-  STAGED,
-  STOPPED,
-  CANCELLED,
-}
-
-export enum AudioStopType {
-  CANCEL = 0,
-  RELEASE,
-  SEND,
-  STOPBUTTON,
-}
-
-export type AudioRecordingInfo = {
-  status: AudioRecordingStatus
-  outboxID: Buffer
-  path: string
-  recordEnd?: number
-  recordStart: number
-  isLocked: boolean
-  amps?: AmpTracker
-}
-
 export type BlockButtonsInfo = {
   adder: string
 }
@@ -236,7 +210,6 @@ export type State = {
     Common.ConversationIDKey,
     Map<RPCChatTypes.GalleryItemTyp, AttachmentViewInfo>
   >
-  readonly audioRecording: Map<Common.ConversationIDKey, AudioRecordingInfo>
   readonly badgeMap: ConversationCountMap // id to the badge count,
   readonly smallTeamBadgeCount: number
   readonly bigTeamBadgeCount: number

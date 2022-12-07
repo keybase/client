@@ -523,11 +523,11 @@ const useBottomComponents = (p: Shared, o: {authorIsBot: boolean}) => {
   const {message, toggleShowingPopup, isPendingPayment} = p
   const {authorIsBot} = o
   const {id, type} = message
-  const outboxID: Types.OutboxID | null = (message as any).outboxID || null
+  const outboxID = message.outboxID ?? null
   const isTextOrAttachment = Constants.isTextOrAttachment(message)
   const hasReactions = !!message.reactions?.size || isPendingPayment
   const exploded = isTextOrAttachment && !!message.exploded
-  const isExploding = isTextOrAttachment && message.exploding
+  const isExploding = isTextOrAttachment && !!message.exploding
   const you = Container.useSelector(state => state.config.username)
   const hasUnfurlPrompts = Container.useSelector(
     state => type === 'text' && !!state.chat2.unfurlPromptMap.get(conversationIDKey)?.get(id)?.size

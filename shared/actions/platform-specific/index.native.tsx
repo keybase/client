@@ -4,7 +4,6 @@ import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as SettingsConstants from '../../constants/settings'
 import * as PushConstants from '../../constants/push'
 import * as RouterConstants from '../../constants/router2'
-import * as ChatConstants from '../../constants/chat2'
 import * as ConfigGen from '../config-gen'
 import * as Chat2Gen from '../chat2-gen'
 import * as ProfileGen from '../profile-gen'
@@ -18,8 +17,7 @@ import * as Types from '../../constants/types/chat2'
 import * as MediaLibrary from 'expo-media-library'
 import type * as FsTypes from '../../constants/types/fs'
 import {getEngine} from '../../engine/require'
-// this CANNOT be an import *, totally screws up the packager
-import {Alert, Linking, ActionSheetIOS, PermissionsAndroid, Vibration} from 'react-native'
+import {Alert, Linking, ActionSheetIOS, PermissionsAndroid} from 'react-native'
 import Clipboard from '@react-native-clipboard/clipboard'
 import NetInfo from '@react-native-community/netinfo'
 import PushNotificationIOS from '@react-native-community/push-notification-ios'
@@ -32,11 +30,8 @@ import {
 import * as Container from '../../util/container'
 import * as Contacts from 'expo-contacts'
 import {launchImageLibraryAsync} from '../../util/expo-image-picker'
-import * as Haptics from 'expo-haptics'
 import {_getNavigator} from '../../constants/router2'
-import {Audio, InterruptionModeIOS, InterruptionModeAndroid} from 'expo-av'
 import * as ExpoLocation from 'expo-location'
-import * as FileSystem from 'expo-file-system'
 import * as ExpoTaskManager from 'expo-task-manager'
 import {
   getDefaultCountryCode,
@@ -66,20 +61,6 @@ const requestPermissionsToWrite = async () => {
       : Promise.resolve()
   }
   return Promise.resolve()
-}
-
-export const requestAudioPermission = async () => {
-  let chargeForward = true
-  let {status} = await Audio.getPermissionsAsync()
-  if (status === Audio.PermissionStatus.UNDETERMINED) {
-    const askRes = await Audio.requestPermissionsAsync()
-    status = askRes.status
-    chargeForward = false
-  }
-  if (status === Audio.PermissionStatus.DENIED) {
-    throw new Error('Please allow Keybase to access the microphone in the phone settings.')
-  }
-  return chargeForward
 }
 
 export const requestLocationPermission = async (mode: RPCChatTypes.UIWatchPositionPerm) => {
@@ -663,174 +644,6 @@ const configureFileAttachmentDownloadForAndroid = async () =>
     downloadDirOverride: fsDownloadDir,
   })
 
-const stopAudioRecording = async (
-  state: Container.TypedState,
-  action: Chat2Gen.StopAudioRecordingPayload
-) => {
-  const conversationIDKey = action.payload.conversationIDKey
-  if (state.chat2.audioRecording) {
-    // don't do anything if we are recording and are in locked mode.
-    const audio = state.chat2.audioRecording.get(conversationIDKey)
-    if (audio && ChatConstants.showAudioRecording(audio) && audio.isLocked) {
-      return false
-    }
-  }
-  logger.info('stopAudioRecording: stopping recording')
-  recording?.setOnRecordingStatusUpdate(null)
-  try {
-    await recording?.stopAndUnloadAsync()
-  } catch (e) {
-    console.log('Recoding stopping fail', e)
-  } finally {
-    recording = undefined
-  }
-
-  if (!state.chat2.audioRecording) {
-    return false
-  }
-  const audio = state.chat2.audioRecording.get(conversationIDKey)
-  if (!audio) {
-    logger.info('stopAudioRecording: no audio record, not sending')
-    return false
-  }
-  if (
-    audio.status === Types.AudioRecordingStatus.CANCELLED ||
-    action.payload.stopType === Types.AudioStopType.CANCEL
-  ) {
-    logger.info('stopAudioRecording: recording cancelled, bailing out')
-    try {
-      if (audio.path) {
-        await FileSystem.deleteAsync(audio.path, {idempotent: true})
-      }
-    } catch (e) {
-      console.log('Recording delete failed', e)
-    }
-    return false
-  }
-  if (ChatConstants.audioRecordingDuration(audio) < 500 || audio.path.length === 0) {
-    logger.info('stopAudioRecording: recording too short, skipping')
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error)
-      .then(() => {})
-      .catch(() => {})
-    return Chat2Gen.createStopAudioRecording({conversationIDKey, stopType: Types.AudioStopType.CANCEL})
-  }
-
-  if (audio.status === Types.AudioRecordingStatus.STAGED) {
-    logger.info('stopAudioRecording: in staged mode, not sending')
-    return false
-  }
-
-  return Chat2Gen.createSendAudioRecording({conversationIDKey, fromStaged: false, info: audio})
-}
-
-const onAttemptAudioRecording = async (_: unknown, action: Chat2Gen.AttemptAudioRecordingPayload) => {
-  let chargeForward = true
-  try {
-    chargeForward = await requestAudioPermission()
-  } catch (_error) {
-    const error = _error as any
-    logger.info('failed to get audio perms: ' + error.message)
-    return setPermissionDeniedCommandStatus(
-      action.payload.conversationIDKey,
-      `Failed to access audio. ${error.message}`
-    )
-  }
-  if (!chargeForward) {
-    return false
-  }
-  return Chat2Gen.createEnableAudioRecording({
-    conversationIDKey: action.payload.conversationIDKey,
-    meteringCb: action.payload.meteringCb,
-  })
-}
-
-let recording: Audio.Recording | undefined
-const onEnableAudioRecording = async (
-  state: Container.TypedState,
-  action: Chat2Gen.EnableAudioRecordingPayload
-) => {
-  const conversationIDKey = action.payload.conversationIDKey
-  const audio = state.chat2.audioRecording.get(conversationIDKey)
-  if (!audio || ChatConstants.isCancelledAudioRecording(audio)) {
-    logger.info('enableAudioRecording: no recording info set, bailing')
-    return false
-  }
-
-  if (isIOS) {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
-      .then(() => {})
-      .catch(() => {})
-  } else {
-    Vibration.vibrate(50)
-  }
-  const outboxID = ChatConstants.generateOutboxID()
-  if (recording) {
-    try {
-      recording?.setOnRecordingStatusUpdate(null)
-    } catch {}
-    try {
-      await recording?.stopAndUnloadAsync()
-    } catch {}
-    recording = undefined
-  }
-  await Audio.setAudioModeAsync({
-    allowsRecordingIOS: true,
-    interruptionModeAndroid: InterruptionModeAndroid.DoNotMix,
-    interruptionModeIOS: InterruptionModeIOS.DoNotMix,
-    playThroughEarpieceAndroid: false,
-    playsInSilentModeIOS: true,
-    shouldDuckAndroid: false,
-    staysActiveInBackground: false,
-  })
-  const r = new Audio.Recording()
-  await r.prepareToRecordAsync({
-    android: {
-      audioEncoder: Audio.AndroidAudioEncoder.AAC,
-      bitRate: 32000,
-      extension: '.m4a',
-      numberOfChannels: 1,
-      outputFormat: Audio.AndroidOutputFormat.MPEG_4,
-      sampleRate: 22050,
-    },
-    ios: {
-      audioQuality: Audio.IOSAudioQuality.MIN,
-      bitRate: 32000,
-      extension: '.m4a',
-      linearPCMBitDepth: 16,
-      linearPCMIsBigEndian: false,
-      linearPCMIsFloat: false,
-      numberOfChannels: 1,
-      outputFormat: Audio.IOSOutputFormat.MPEG4AAC,
-      sampleRate: 22050,
-    },
-    isMeteringEnabled: true,
-    web: {},
-  })
-  const audioPath = r.getURI()?.substring('file://'.length)
-  if (!audioPath) {
-    throw new Error("Couldn't start audio recording")
-  }
-  recording = r
-  recording?.setProgressUpdateInterval(100)
-  recording?.setOnRecordingStatusUpdate((status: Audio.RecordingStatus) => {
-    status.metering !== undefined && action.payload.meteringCb(status.metering)
-  })
-  logger.info('onEnableAudioRecording: setting recording info')
-  return Chat2Gen.createSetAudioRecordingPostInfo({conversationIDKey, outboxID, path: audioPath})
-}
-
-const onSendAudioRecording = async (_: unknown, action: Chat2Gen.SendAudioRecordingPayload) => {
-  if (!action.payload.fromStaged) {
-    if (isIOS) {
-      try {
-        await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
-      } catch {}
-    } else {
-      Vibration.vibrate(50)
-    }
-  }
-}
-
 const onTabLongPress = (state: Container.TypedState, action: RouteTreeGen.TabLongPressPayload) => {
   if (action.payload.tab !== Tabs.peopleTab) return
   const accountRows = state.config.configuredAccounts
@@ -843,18 +656,6 @@ const onTabLongPress = (state: Container.TypedState, action: RouteTreeGen.TabLon
     ]
   }
   return undefined
-}
-
-const onSetAudioRecordingPostInfo = async (
-  state: Container.TypedState,
-  action: Chat2Gen.SetAudioRecordingPostInfoPayload
-) => {
-  const audio = state.chat2.audioRecording.get(action.payload.conversationIDKey)
-  if (!audio || audio.status !== Types.AudioRecordingStatus.RECORDING) {
-    logger.info('onSetAudioRecordingPostInfo: not in recording mode anymore, bailing')
-    return
-  }
-  await recording?.startAsync()
 }
 
 const onPersistRoute = async () => {
@@ -938,12 +739,6 @@ export const initPlatformListener = () => {
   Container.listenAction(ConfigGen.daemonHandshake, checkNav)
   Container.listenAction(ConfigGen.setDarkModePreference, notifyNativeOfDarkModeChange)
 
-  // Audio
-  Container.listenAction(Chat2Gen.stopAudioRecording, stopAudioRecording)
-  Container.listenAction(Chat2Gen.attemptAudioRecording, onAttemptAudioRecording)
-  Container.listenAction(Chat2Gen.enableAudioRecording, onEnableAudioRecording)
-  Container.listenAction(Chat2Gen.sendAudioRecording, onSendAudioRecording)
-  Container.listenAction(Chat2Gen.setAudioRecordingPostInfo, onSetAudioRecordingPostInfo)
   Container.listenAction(RouteTreeGen.onNavChanged, onPersistRoute)
 
   // Start this immediately instead of waiting so we can do more things in parallel

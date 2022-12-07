@@ -2157,13 +2157,8 @@ const sendAudioRecording = async (
   state: Container.TypedState,
   action: Chat2Gen.SendAudioRecordingPayload
 ) => {
-  // sit here for 400ms for animations
-  if (!action.payload.fromStaged) {
-    await Container.timeoutPromise(400)
-  }
-  const {conversationIDKey, info} = action.payload
-  const audioRecording = info
-  const {amps, path, outboxID} = audioRecording
+  const {conversationIDKey, amps, path, duration} = action.payload
+  const outboxID = Constants.generateOutboxID()
   const clientPrev = Constants.getClientPrev(state, conversationIDKey)
   const ephemeralLifetime = Constants.getConversationExplodingMode(state, conversationIDKey)
   const meta = state.chat2.metaMap.get(conversationIDKey)
@@ -2174,11 +2169,7 @@ const sendAudioRecording = async (
 
   let callerPreview: RPCChatTypes.MakePreviewRes | undefined
   if (amps) {
-    const duration = Constants.audioRecordingDuration(audioRecording)
-    callerPreview = await RPCChatTypes.localMakeAudioPreviewRpcPromise({
-      amps: amps.getBucketedAmps(duration),
-      duration,
-    })
+    callerPreview = await RPCChatTypes.localMakeAudioPreviewRpcPromise({amps, duration})
   }
   const ephemeralData = ephemeralLifetime !== 0 ? {ephemeralLifetime} : {}
   try {

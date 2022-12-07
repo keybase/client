@@ -84,83 +84,6 @@ const botActions: Container.ActionHandler<Actions, Types.State> = {
   },
 }
 
-const stopAudioRecording = (
-  draftState: Container.Draft<Types.State>,
-  action: Chat2Gen.StopAudioRecordingPayload
-) => {
-  const {conversationIDKey, stopType, amps} = action.payload
-  const info = draftState.audioRecording.get(conversationIDKey)
-  if (!info) {
-    return
-  }
-  let nextStatus: Types.AudioRecordingStatus = info.status
-  if (nextStatus === Types.AudioRecordingStatus.CANCELLED) {
-    return
-  }
-  let nextPath = info.path
-  if (info.isLocked) {
-    switch (stopType) {
-      case Types.AudioStopType.CANCEL:
-        nextStatus = Types.AudioRecordingStatus.CANCELLED
-        nextPath = ''
-        break
-      case Types.AudioStopType.SEND:
-        nextStatus = Types.AudioRecordingStatus.STOPPED
-        break
-      case Types.AudioStopType.STOPBUTTON:
-        nextStatus = Types.AudioRecordingStatus.STAGED
-        break
-    }
-  } else {
-    switch (stopType) {
-      case Types.AudioStopType.CANCEL:
-        nextStatus = Types.AudioRecordingStatus.CANCELLED
-        nextPath = ''
-        break
-      default:
-        nextStatus = Types.AudioRecordingStatus.STOPPED
-    }
-  }
-  info.amps = amps
-  info.path = nextPath
-  info.recordEnd = Constants.isStoppedAudioRecordingStatus(nextStatus) ? Date.now() : undefined
-  info.status = nextStatus
-  info.isLocked = false
-}
-
-const audioActions: Container.ActionHandler<Actions, Types.State> = {
-  [Chat2Gen.enableAudioRecording]: (draftState, action) => {
-    const {conversationIDKey} = action.payload
-    draftState.audioRecording.set(conversationIDKey, Constants.makeAudioRecordingInfo())
-  },
-  [Chat2Gen.stopAudioRecording]: stopAudioRecording,
-  [Chat2Gen.lockAudioRecording]: (draftState, action) => {
-    const {conversationIDKey} = action.payload
-    const {audioRecording} = draftState
-    const info = mapGetEnsureValue(audioRecording, conversationIDKey, Constants.makeAudioRecordingInfo())
-    info.isLocked = true
-  },
-  [Chat2Gen.sendAudioRecording]: (draftState, action) => {
-    const {conversationIDKey} = action.payload
-    const {audioRecording} = draftState
-    audioRecording.delete(conversationIDKey)
-  },
-  [Chat2Gen.setAudioRecordingPostInfo]: (draftState, action) => {
-    const {conversationIDKey, outboxID, path} = action.payload
-    const {audioRecording} = draftState
-    const info = audioRecording.get(conversationIDKey)
-    if (info) {
-      if (info.status !== Types.AudioRecordingStatus.INITIAL) {
-        return
-      }
-      audioRecording.set(conversationIDKey, info)
-      info.outboxID = outboxID
-      info.path = path
-      info.status = Types.AudioRecordingStatus.RECORDING
-    }
-  },
-}
-
 const giphyActions: Container.ActionHandler<Actions, Types.State> = {
   [Chat2Gen.giphyToggleWindow]: (draftState, action) => {
     const {conversationIDKey, show, clearInput} = action.payload
@@ -1636,18 +1559,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       []
     )
     toHide.forEach(id => (draftState.threadSearchInfoMap.get(id)!.visible = false))
-
-    // stop all audio recording
-    const audioIDs = [...draftState.audioRecording.keys()]
-    audioIDs.forEach(conversationIDKey => {
-      stopAudioRecording(
-        draftState,
-        Chat2Gen.createStopAudioRecording({
-          conversationIDKey,
-          stopType: Types.AudioStopType.CANCEL,
-        })
-      )
-    })
   },
   [Chat2Gen.setBotRoleInConv]: (draftState, action) => {
     const roles =
@@ -1660,7 +1571,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     }
     draftState.botTeamRoleInConvMap.set(action.payload.conversationIDKey, roles)
   },
-  ...audioActions,
   ...botActions,
   ...giphyActions,
   ...paymentActions,

@@ -15,7 +15,6 @@ export declare function showShareActionSheet(options: {
 
 export declare function saveAttachmentToCameraRoll(fileURL: string, mimeType: string): Promise<void>
 export declare function requestLocationPermission(mode: RPCChatTypes.UIWatchPositionPerm): Promise<void>
-export declare function requestAudioPermission(): Promise<void>
 export declare function watchPositionForMap(
   dispatch: Container.TypedDispatch,
   conversationIDKey: Types.ConversationIDKey
