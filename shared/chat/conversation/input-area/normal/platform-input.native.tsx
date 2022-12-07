@@ -429,19 +429,32 @@ const PlatformInput = (p: Props) => {
     [conversationIDKey, dispatch]
   )
 
+  const onLayout = React.useCallback((p: LayoutEvent) => {
+    const {nativeEvent} = p
+    const {layout} = nativeEvent
+    const {height} = layout
+    setHeight(height)
+  }, [])
+
+  const onAnimatedInputRef = React.useCallback(
+    (ref: Kb.PlainInput | null) => {
+      inputSetRef.current = ref
+      inputRef.current = ref
+    },
+    [inputSetRef, inputRef]
+  )
+  const aiOnChangeText = React.useCallback(
+    (text: string) => {
+      setHasText(!!text)
+      lastText.current = text
+      onChangeText(text)
+    },
+    [setHasText, onChangeText]
+  )
+
   return (
     <>
-      <Kb.Box2
-        direction="vertical"
-        fullWidth={true}
-        onLayout={(p: LayoutEvent) => {
-          const {nativeEvent} = p
-          const {layout} = nativeEvent
-          const {height} = layout
-          setHeight(height)
-        }}
-        style={styles.outerContainer}
-      >
+      <Kb.Box2 direction="vertical" fullWidth={true} onLayout={onLayout} style={styles.outerContainer}>
         {popup}
         {menu}
         {showTypingStatus && !popup && <Typing conversationIDKey={conversationIDKey} />}
@@ -464,16 +477,9 @@ const PlatformInput = (p: Props) => {
               multiline={true}
               onBlur={onBlur}
               onFocus={onFocusAndMaybeSubmit}
-              onChangeText={(text: string) => {
-                setHasText(!!text)
-                lastText.current = text
-                onChangeText(text)
-              }}
+              onChangeText={aiOnChangeText}
               onSelectionChange={onSelectionChange}
-              ref={(ref: null | Kb.PlainInput) => {
-                inputSetRef.current = ref
-                inputRef.current = ref
-              }}
+              ref={onAnimatedInputRef}
               style={styles.input}
               textType="Body"
               rowsMin={1}
