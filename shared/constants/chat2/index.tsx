@@ -149,40 +149,6 @@ export const makeAttachmentViewInfo = (): Types.AttachmentViewInfo => ({
   status: 'loading',
 })
 
-// export const makeAudioRecordingInfo = (): Types.AudioRecordingInfo => ({
-//   isLocked: false,
-//   outboxID: new Buffer('hex'),
-//   path: '',
-//   recordStart: Date.now(),
-//   status: Types.AudioRecordingStatus.INITIAL,
-// })
-
-// export const showAudioRecording = (audioRecording: Types.AudioRecordingInfo | undefined) => {
-//   return !(
-//     !audioRecording ||
-//     audioRecording.status === Types.AudioRecordingStatus.INITIAL ||
-//     audioRecording.status === Types.AudioRecordingStatus.STOPPED ||
-//     audioRecording.status === Types.AudioRecordingStatus.STAGED ||
-//     audioRecording.status === Types.AudioRecordingStatus.CANCELLED
-//   )
-// }
-
-// export const isStoppedAudioRecordingStatus = (status: Types.AudioRecordingStatus) => {
-//   return (
-//     status === Types.AudioRecordingStatus.STOPPED ||
-//     status === Types.AudioRecordingStatus.STAGED ||
-//     status === Types.AudioRecordingStatus.CANCELLED
-//   )
-// }
-
-// export const audioRecordingDuration = (audioRecording: Types.AudioRecordingInfo) => {
-//   return (audioRecording.recordEnd || audioRecording.recordStart) - audioRecording.recordStart
-// }
-
-// export const isCancelledAudioRecording = (audioRecording: Types.AudioRecordingInfo | undefined) => {
-//   return audioRecording && audioRecording.status === Types.AudioRecordingStatus.CANCELLED
-// }
-
 export const getInboxSearchSelected = (inboxSearch: Types.InboxSearchInfo) => {
   const {selectedIndex, nameResults, botsResults, openTeamsResults, textResults} = inboxSearch
   const firstTextResultIdx = botsResults.length + openTeamsResults.length + nameResults.length
