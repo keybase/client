@@ -17,15 +17,8 @@ type OwnProps = {
 }
 
 export default (p: OwnProps) => {
-  const {
-    conversationIDKey,
-    focusInputCounter,
-    jumpToRecent,
-    onRequestScrollUp,
-    onRequestScrollDown,
-    onRequestScrollToBottom,
-    maxInputArea,
-  } = p
+  const {conversationIDKey, focusInputCounter, jumpToRecent, maxInputArea} = p
+  const {onRequestScrollUp, onRequestScrollDown, onRequestScrollToBottom} = p
   const meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
   const showThreadSearch = Container.useSelector(
     state => Constants.getThreadSearchInfo(state, conversationIDKey).visible
