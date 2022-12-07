@@ -2,6 +2,7 @@
 // if (__DEV__) {
 //   console.log('\n\n\nDEBUG: WHY DID YOU RENDER enabled')
 //   const whyDidYouRender = require('@welldone-software/why-did-you-render')
+//   const ReactRedux = require('react-redux')
 //   whyDidYouRender(React, {
 //     // TODO reduce these
 //     exclude: [
@@ -22,7 +23,7 @@
 //     ],
 //     // logOnDifferentValues: true,
 //     trackAllPureComponents: true,
-//     trackExtraHooks: [[require('react-redux'), 'useSelector']],
+//     trackExtraHooks: [[ReactRedux, 'useSelector']],
 //   })
 // }
 
