@@ -313,7 +313,6 @@ const vibrate = (short: boolean) => {
 }
 
 const makeRecorder = async (onRecordingStatusUpdate: (s: Audio.RecordingStatus) => void) => {
-  console.log('aaa making recorder')
   vibrate(true)
 
   await Audio.setAudioModeAsync({
@@ -351,7 +350,6 @@ const makeRecorder = async (onRecordingStatusUpdate: (s: Audio.RecordingStatus) 
   })
   recording.setProgressUpdateInterval(100)
   recording.setOnRecordingStatusUpdate(onRecordingStatusUpdate)
-  console.log('aaa making recorder success')
   return recording
 }
 
@@ -375,10 +373,8 @@ const useRecorder = (p: {
     recordEndRef.current = Date.now()
     const recording = recordingRef.current
     if (recording) {
-      console.log('aaa recording no updates')
       recording.setOnRecordingStatusUpdate(null)
       try {
-        console.log('aaa recording STOP')
         await recording.stopAndUnloadAsync()
       } catch (e) {
         console.log('Recoding stopping fail', e)
@@ -390,7 +386,6 @@ const useRecorder = (p: {
 
   const onReset = React.useCallback(
     async (why: string) => {
-      console.log('aaa everything reset', why)
       try {
         await stopRecording()
       } catch {}
@@ -405,13 +400,11 @@ const useRecorder = (p: {
       recordEndRef.current = 0
       setStaged(false)
       setShowAudioSend(false)
-      console.log('aaa everything reset done')
     },
     [setStaged, ampTracker, stopRecording, setShowAudioSend]
   )
 
   const startRecording = React.useCallback(() => {
-    console.log('aaa start recording')
     // calls of this never handle the promise so just handle it here
     const checkPerms = async () => {
       try {
@@ -465,19 +458,15 @@ const useRecorder = (p: {
         throw new Error("Couldn't start audio recording")
       }
       pathRef.current = audioPath
-      console.log('aaa old recording', recordingRef.current)
       recordingRef.current = recording
 
-      console.log('aaa recording start async')
       await recording.startAsync()
-      console.log('aaa recording start async success')
       recordStartRef.current = Date.now()
       recordEndRef.current = recordStartRef.current
     }
     impl()
       .then(() => {})
       .catch(e => {
-        console.log('aaa start failed', e)
         onReset('record exception')
           .then(() => {})
           .catch(() => {})
@@ -487,7 +476,6 @@ const useRecorder = (p: {
 
   const sendRecording = React.useCallback(() => {
     const impl = async () => {
-      console.log('aaa sendrecording')
       await stopRecording()
       vibrate(false)
       const duration = (recordEndRef.current || recordStartRef.current) - recordStartRef.current
@@ -503,7 +491,7 @@ const useRecorder = (p: {
           })
         )
       } else {
-        console.log('aaa bail on too short or not path', duration, path, amps)
+        console.log('bail on too short or not path', duration, path, amps)
       }
       await onReset('done sending, clean reset')
     }
@@ -513,7 +501,6 @@ const useRecorder = (p: {
   }, [dispatch, conversationIDKey, ampTracker, onReset, stopRecording])
 
   const cancelRecording = React.useCallback(() => {
-    console.log('aaa cancel recording')
     onReset('cancel recording')
       .then(() => {})
       .catch(() => {})
@@ -531,7 +518,6 @@ const useRecorder = (p: {
 
   const stageRecording = React.useCallback(() => {
     const impl = async () => {
-      console.log('aaa stage recording')
       await stopRecording()
       setStaged(true)
       setShowAudioSend(true)
@@ -543,22 +529,13 @@ const useRecorder = (p: {
 
   // on unmount cleanup
   React.useEffect(() => {
-    console.log('aaaa useefect onreset mount')
     return () => {
-      console.log('aaaa useefect onreset UNmount')
       setShowAudioSend(false)
       onReset('unmount')
         .then(() => {})
         .catch(() => {})
     }
   }, [onReset, setShowAudioSend])
-
-  React.useEffect(() => {
-    console.log('aaaa useefect CLEAN mount')
-    return () => {
-      console.log('aaaa useefect CLEAN UNmount')
-    }
-  }, [])
 
   return {audioSend, cancelRecording, sendRecording, stageRecording, staged, startRecording}
 }
@@ -582,8 +559,6 @@ const AudioRecorder = React.memo(function AudioRecorder(props: Props) {
     stageRecording,
     startRecording,
   })
-
-  console.log('aaaa render recorder audio send', audioSend)
 
   return (
     <>
