@@ -6,7 +6,7 @@ jobs:
 
     docker:
       - image: keybaseprivate/circleci-client:go1.19
-    resource_class: medium+
+    resource_class: large
 
     steps:
       ##
