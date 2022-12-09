@@ -9,7 +9,12 @@ import {colors} from '../../styles/colors'
 import type * as Types from '../../constants/types/chat2'
 import * as Reanimated from 'react-native-reanimated'
 import {AmpTracker} from './amptracker'
-import {Gesture, GestureDetector} from 'react-native-gesture-handler'
+import {
+  Gesture,
+  GestureDetector,
+  type GestureUpdateEvent,
+  type PanGestureHandlerEventPayload,
+} from 'react-native-gesture-handler'
 import {Portal} from '@gorhom/portal'
 import {View} from 'react-native'
 import {formatAudioRecordDuration} from '../../util/timestamp'
@@ -71,6 +76,191 @@ const useTooltip = () => {
   return {flashTip, tooltip}
 }
 
+// these need to be out so they capture as little scope as possible
+const makePanOnFinalize = (p: {
+  startedSV: SVN
+  lockedSV: SVN
+  panEnabled: boolean
+  onCancelRecording: () => void
+  flashTip: () => void
+  setLocked: (s: boolean) => void
+  sendRecording: () => void
+  setVisible: (v: Visible) => void
+}) => {
+  const {panEnabled, onCancelRecording, flashTip, setLocked} = p
+  const {sendRecording, setVisible, startedSV, lockedSV} = p
+  const onPanFinalizeJS = (success: boolean, panLocked: boolean) => {
+    // cancelled
+    if (!panEnabled) {
+      onCancelRecording()
+      return
+    }
+
+    if (!success) {
+      flashTip()
+      return
+    }
+
+    setLocked(panLocked)
+    if (!panLocked) {
+      sendRecording()
+      setVisible(Visible.START_HIDDEN)
+    }
+  }
+
+  const onPanFinalizeWorklet = (_e: unknown, success: boolean) => {
+    startedSV.value = 0
+    Reanimated.runOnJS(onPanFinalizeJS)(success, lockedSV.value === 1)
+  }
+
+  return onPanFinalizeWorklet
+}
+
+const makePanOnStart = (p: {
+  startRecording: () => void
+  setVisible: (v: Visible) => void
+  startedSV: SVN
+}) => {
+  const {startRecording, setVisible, startedSV} = p
+  const onPanStartJS = () => {
+    startRecording()
+    setVisible(Visible.SHOW)
+  }
+
+  const onPanStartWorklet = () => {
+    // we get this multiple times for some reason
+    if (startedSV.value) {
+      return
+    }
+
+    startedSV.value = 1
+    Reanimated.runOnJS(onPanStartJS)()
+  }
+
+  return onPanStartWorklet
+}
+
+const makePanOnUpdate = (p: {
+  lockedSV: SVN
+  dragYSV: SVN
+  dragXSV: SVN
+  onPanCancel: () => void
+  setLocked: (l: boolean) => void
+}) => {
+  const {lockedSV, dragYSV, dragXSV, onPanCancel, setLocked} = p
+  const onOnUpdateWorklet = (e: GestureUpdateEvent<PanGestureHandlerEventPayload>) => {
+    if (lockedSV.value) {
+      return
+    }
+    const maxCancelDrift = -120
+    const maxLockDrift = -100
+    dragYSV.value = Reanimated.interpolate(
+      e.translationY,
+      [maxLockDrift, 0],
+      [maxLockDrift, 0],
+      Reanimated.Extrapolation.CLAMP
+    )
+    dragXSV.value = Reanimated.interpolate(
+      e.translationX,
+      [maxCancelDrift, 0],
+      [maxCancelDrift, 0],
+      Reanimated.Extrapolation.CLAMP
+    )
+
+    if (e.translationX < maxCancelDrift) {
+      Reanimated.runOnJS(onPanCancel)()
+    } else if (e.translationY < maxLockDrift) {
+      lockedSV.value = 1
+      Reanimated.runOnJS(setLocked)(true)
+    }
+  }
+  return onOnUpdateWorklet
+}
+
+const useIcon = (p: {
+  panOnFinalize: ReturnType<typeof makePanOnFinalize>
+  panOnUpdate: ReturnType<typeof makePanOnUpdate>
+  panOnStart: ReturnType<typeof makePanOnStart>
+  panEnabled: boolean
+}) => {
+  const {panOnStart, panOnUpdate, panOnFinalize, panEnabled} = p
+  const panGesture = Gesture.Pan()
+    .minDistance(0)
+    .minPointers(1)
+    .maxPointers(1)
+    .activateAfterLongPress(200)
+    .onStart(panOnStart)
+    .onFinalize(panOnFinalize)
+    .onUpdate(panOnUpdate)
+    .enabled(panEnabled)
+  return (
+    <View>
+      <GestureDetector gesture={panGesture}>
+        <Kb.Icon type="iconfont-mic" style={styles.iconStyle} />
+      </GestureDetector>
+    </View>
+  )
+}
+
+const useOverlay = (p: {
+  onSendRecording: () => void
+  onStageRecording: () => void
+  onCancelRecording: () => void
+  ampSV: SVN
+  dragXSV: SVN
+  dragYSV: SVN
+  lockedSV: SVN
+  visible: Visible
+  setVisible: (v: Visible) => void
+  locked: boolean
+}) => {
+  const {onStageRecording, onSendRecording, onCancelRecording, ampSV} = p
+  const {setVisible, visible, dragXSV, dragYSV, lockedSV, locked} = p
+  const fadeSV = Reanimated.useSharedValue(0)
+  React.useEffect(() => {
+    switch (visible) {
+      case Visible.SHOW:
+        fadeSV.value = Reanimated.withSpring(1)
+        break
+      case Visible.START_HIDDEN:
+        fadeSV.value = Reanimated.withTiming(0, {duration: 200}, () => {
+          // hide after we're done animating
+          Reanimated.runOnJS(setVisible)(Visible.HIDDEN)
+        })
+        break
+      default:
+    }
+    dragXSV.value = Reanimated.withTiming(0)
+    dragYSV.value = Reanimated.withTiming(0)
+  }, [fadeSV, setVisible, dragXSV, dragYSV, visible])
+  return visible === Visible.HIDDEN ? null : (
+    <Portal hostName="convOverlay">
+      <Animated.View style={styles.container} pointerEvents="box-none">
+        <BigBackground fadeSV={fadeSV} />
+        <AmpCircle fadeSV={fadeSV} ampSV={ampSV} dragXSV={dragXSV} dragYSV={dragYSV} lockedSV={lockedSV} />
+        <InnerCircle
+          fadeSV={fadeSV}
+          dragXSV={dragXSV}
+          dragYSV={dragYSV}
+          locked={locked}
+          lockedSV={lockedSV}
+          stageRecording={onStageRecording}
+        />
+        <LockHint fadeSV={fadeSV} dragXSV={dragXSV} dragYSV={dragYSV} lockedSV={lockedSV} />
+        <CancelHint
+          onCancel={onCancelRecording}
+          fadeSV={fadeSV}
+          locked={locked}
+          lockedSV={lockedSV}
+          dragXSV={dragXSV}
+        />
+        <SendRecordingButton fadeSV={fadeSV} lockedSV={lockedSV} sendRecording={onSendRecording} />
+        <AudioCounter fadeSV={fadeSV} />
+      </Animated.View>
+    </Portal>
+  )
+}
+
 const useIconAndOverlay = (p: {
   flashTip: () => void
   startRecording: () => void
@@ -87,6 +277,11 @@ const useIconAndOverlay = (p: {
   const lockedSV = Reanimated.useSharedValue(0)
   const dragXSV = Reanimated.useSharedValue(0)
   const dragYSV = Reanimated.useSharedValue(0)
+  const startedSV = Reanimated.useSharedValue(0)
+
+  const onPanCancel = React.useCallback(() => {
+    setPanEnabled(false)
+  }, [setPanEnabled])
 
   const onReset = React.useCallback(() => {
     setPanEnabled(true)
@@ -112,134 +307,40 @@ const useIconAndOverlay = (p: {
     sendRecording()
   }, [sendRecording, onReset])
 
-  const onPanFinalize = React.useCallback(
-    (success: boolean, panLocked: boolean) => {
-      // cancelled
-      if (!panEnabled) {
-        onCancelRecording()
-        return
-      }
+  const icon = useIcon({
+    panEnabled,
+    panOnFinalize: makePanOnFinalize({
+      flashTip,
+      lockedSV,
+      onCancelRecording,
+      panEnabled,
+      sendRecording,
+      setLocked,
+      setVisible,
+      startedSV,
+    }),
+    panOnStart: makePanOnStart({setVisible, startRecording, startedSV}),
+    panOnUpdate: makePanOnUpdate({
+      dragXSV,
+      dragYSV,
+      lockedSV,
+      onPanCancel,
+      setLocked,
+    }),
+  })
 
-      if (!success) {
-        flashTip()
-        return
-      }
-
-      setLocked(panLocked)
-      if (!panLocked) {
-        sendRecording()
-        setVisible(Visible.START_HIDDEN)
-      }
-    },
-    [flashTip, onCancelRecording, setVisible, panEnabled, sendRecording]
-  )
-
-  const onPanStart = React.useCallback(() => {
-    startRecording()
-    setVisible(Visible.SHOW)
-  }, [startRecording, setVisible])
-  const onPanCancel = React.useCallback(() => {
-    setPanEnabled(false)
-  }, [])
-  const maxCancelDrift = -120
-  const maxLockDrift = -100
-  const startedSV = Reanimated.useSharedValue(0)
-  const panGesture = Gesture.Pan()
-    .minDistance(0)
-    .minPointers(1)
-    .maxPointers(1)
-    .activateAfterLongPress(200)
-    .onStart(() => {
-      // we get this multiple times for some reason
-      if (startedSV.value) {
-        return
-      }
-
-      startedSV.value = 1
-      Reanimated.runOnJS(onPanStart)()
-    })
-    .onFinalize((_e, success) => {
-      startedSV.value = 0
-      Reanimated.runOnJS(onPanFinalize)(success, lockedSV.value === 1)
-    })
-    .onUpdate(e => {
-      if (lockedSV.value) {
-        return
-      }
-      dragYSV.value = Reanimated.interpolate(
-        e.translationY,
-        [maxLockDrift, 0],
-        [maxLockDrift, 0],
-        Reanimated.Extrapolation.CLAMP
-      )
-      dragXSV.value = Reanimated.interpolate(
-        e.translationX,
-        [maxCancelDrift, 0],
-        [maxCancelDrift, 0],
-        Reanimated.Extrapolation.CLAMP
-      )
-
-      if (e.translationX < maxCancelDrift) {
-        Reanimated.runOnJS(onPanCancel)()
-      } else if (e.translationY < maxLockDrift) {
-        lockedSV.value = 1
-        Reanimated.runOnJS(setLocked)(true)
-      }
-    })
-    .enabled(panEnabled)
-  const gesture = panGesture
-  const icon = (
-    <View>
-      <GestureDetector gesture={gesture}>
-        <Kb.Icon type="iconfont-mic" style={styles.iconStyle} />
-      </GestureDetector>
-    </View>
-  )
-
-  const fadeSV = Reanimated.useSharedValue(0)
-  React.useEffect(() => {
-    switch (visible) {
-      case Visible.SHOW:
-        fadeSV.value = Reanimated.withSpring(1)
-        break
-      case Visible.START_HIDDEN:
-        fadeSV.value = Reanimated.withTiming(0, {duration: 200}, () => {
-          // hide after we're done animating
-          Reanimated.runOnJS(setVisible)(Visible.HIDDEN)
-        })
-        break
-      default:
-    }
-    dragXSV.value = Reanimated.withTiming(0)
-    dragYSV.value = Reanimated.withTiming(0)
-  }, [fadeSV, setVisible, dragXSV, dragYSV, visible])
-  const overlay =
-    visible === Visible.HIDDEN ? null : (
-      <Portal hostName="convOverlay">
-        <Animated.View style={styles.container} pointerEvents="box-none">
-          <BigBackground fadeSV={fadeSV} />
-          <AmpCircle fadeSV={fadeSV} ampSV={ampSV} dragXSV={dragXSV} dragYSV={dragYSV} lockedSV={lockedSV} />
-          <InnerCircle
-            fadeSV={fadeSV}
-            dragXSV={dragXSV}
-            dragYSV={dragYSV}
-            locked={locked}
-            lockedSV={lockedSV}
-            stageRecording={onStageRecording}
-          />
-          <LockHint fadeSV={fadeSV} dragXSV={dragXSV} dragYSV={dragYSV} lockedSV={lockedSV} />
-          <CancelHint
-            onCancel={onCancelRecording}
-            fadeSV={fadeSV}
-            locked={locked}
-            lockedSV={lockedSV}
-            dragXSV={dragXSV}
-          />
-          <SendRecordingButton fadeSV={fadeSV} lockedSV={lockedSV} sendRecording={onSendRecording} />
-          <AudioCounter fadeSV={fadeSV} />
-        </Animated.View>
-      </Portal>
-    )
+  const overlay = useOverlay({
+    ampSV,
+    dragXSV,
+    dragYSV,
+    locked,
+    lockedSV,
+    onCancelRecording,
+    onSendRecording,
+    onStageRecording,
+    setVisible,
+    visible,
+  })
 
   return {icon, overlay}
 }
