@@ -166,30 +166,34 @@ const makePanOnUpdate = (p: {lockedSV: SVN; canceledSV: SVN; dragYSV: SVN; dragX
   return onOnUpdateWorklet
 }
 
-const GestureIcon = (p: {
-  panOnFinalize: ReturnType<typeof makePanOnFinalize>
-  panOnUpdate: ReturnType<typeof makePanOnUpdate>
-  panOnStart: ReturnType<typeof makePanOnStart>
-}) => {
-  console.log('aaaa GestuerIcon render')
-  const {panOnStart, panOnUpdate, panOnFinalize} = p
-  return (
-    <View>
-      <GestureDetector
-        gesture={Gesture.Pan()
-          .minDistance(0)
-          .minPointers(1)
-          .maxPointers(1)
-          .activateAfterLongPress(200)
-          .onStart(panOnStart)
-          .onFinalize(panOnFinalize)
-          .onUpdate(panOnUpdate)}
-      >
-        <Kb.Icon type="iconfont-mic" style={styles.iconStyle} />
-      </GestureDetector>
-    </View>
-  )
-}
+const GestureIcon = React.memo(
+  function GestureIcon(p: {
+    panOnFinalize: ReturnType<typeof makePanOnFinalize>
+    panOnUpdate: ReturnType<typeof makePanOnUpdate>
+    panOnStart: ReturnType<typeof makePanOnStart>
+  }) {
+    console.log('aaaa GestuerIcon render')
+    const {panOnStart, panOnUpdate, panOnFinalize} = p
+    return (
+      <View>
+        <GestureDetector
+          gesture={Gesture.Pan()
+            .minDistance(0)
+            .minPointers(1)
+            .maxPointers(1)
+            .activateAfterLongPress(200)
+            .onStart(panOnStart)
+            .onFinalize(panOnFinalize)
+            .onUpdate(panOnUpdate)}
+        >
+          <Kb.Icon type="iconfont-mic" style={styles.iconStyle} />
+        </GestureDetector>
+      </View>
+    )
+  },
+  // we never want to rerender the icon, all the helpers are fine at mount
+  () => true
+)
 
 const useIconAndOverlay = (p: {
   flashTip: () => void
