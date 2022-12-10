@@ -110,7 +110,6 @@ const makePanOnFinalize = (p: {
 
     if (!panLocked) {
       sendRecording()
-      // setVisible(Visible.START_HIDDEN)
       fadeSV.value = withTiming(0, {duration: 200})
     }
   }
@@ -202,7 +201,6 @@ const useIconAndOverlay = (p: {
   const {stageRecording, startRecording, sendRecording, cancelRecording, flashTip, ampSV} = p
   const [visible, setVisible] = React.useState(Visible.HIDDEN)
 
-  // for , react uses the above
   const lockedSV = useSharedValue(0)
   const canceledSV = useSharedValue(0)
   const dragXSV = useSharedValue(0)
@@ -467,7 +465,7 @@ const useRecorder = (p: {
     }
     impl()
       .then(() => {})
-      .catch(e => {
+      .catch(() => {
         onReset()
           .then(() => {})
           .catch(() => {})
