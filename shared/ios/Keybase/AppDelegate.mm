@@ -100,9 +100,9 @@ didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
 
 - (NSURL *)sourceURLForBridge:(RCTBridge *)bridge {
 #if DEBUG
-  // uncomment to get a prod bundle. If you set this it remembers so set it back
-  // and re-run to reset it!
-  // [[RCTBundleURLProvider sharedSettings] setEnableDev: false];  
+  [[RCTBundleURLProvider sharedSettings] setEnableDev: true];
+  // uncomment to get a prod bundle.
+//   [[RCTBundleURLProvider sharedSettings] setEnableDev: false];
   return
   [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@"index"];
 #else
