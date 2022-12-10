@@ -43,7 +43,6 @@ enum Visible {
 
 const useTooltip = () => {
   const [showTooltip, setShowTooltip] = React.useState(false)
-  console.log('aaa showTooltip', showTooltip)
   const opacitySV = useSharedValue(0)
 
   const animatedStyles = useAnimatedStyle(() => ({opacity: opacitySV.value}))
@@ -99,7 +98,6 @@ const makePanOnFinalize = (p: {
   const {onCancelRecording, onFlashTip} = p
   const {sendRecording, fadeSV, startedSV, lockedSV, canceledSV} = p
   const onPanFinalizeJS = (needTip: boolean, wasCancel: boolean, panLocked: boolean) => {
-    console.log('aaa onPanFinalizeJS ', {needTip, panLocked, wasCancel})
     if (wasCancel) {
       onCancelRecording()
       return
@@ -149,7 +147,6 @@ const makePanOnUpdate = (p: {lockedSV: SVN; canceledSV: SVN; dragYSV: SVN; dragX
   const {lockedSV, dragYSV, dragXSV, canceledSV} = p
   const onOnUpdateWorklet = (e: GestureUpdateEvent<PanGestureHandlerEventPayload>) => {
     if (lockedSV.value || canceledSV.value) {
-      console.log('aaa update bail on locked or canceld', lockedSV.value, canceledSV.value)
       return
     }
     const maxCancelDrift = -120
@@ -172,7 +169,6 @@ const GestureIcon = React.memo(
     panOnUpdate: ReturnType<typeof makePanOnUpdate>
     panOnStart: ReturnType<typeof makePanOnStart>
   }) {
-    console.log('aaaa GestuerIcon render')
     const {panOnStart, panOnUpdate, panOnFinalize} = p
     return (
       <View>
@@ -377,8 +373,6 @@ const useRecorder = (p: {
   const ampTracker = React.useRef(new AmpTracker()).current
   const [staged, setStaged] = React.useState(false)
 
-  console.log('aaa staged', staged)
-
   const stopRecording = React.useCallback(async () => {
     recordEndRef.current = Date.now()
     const recording = recordingRef.current
@@ -474,7 +468,6 @@ const useRecorder = (p: {
     impl()
       .then(() => {})
       .catch(e => {
-        console.log('aaa start recording throw catch', e)
         onReset()
           .then(() => {})
           .catch(() => {})
@@ -548,8 +541,6 @@ const useRecorder = (p: {
   return {audioSend, cancelRecording, sendRecording, stageRecording, staged, startRecording}
 }
 
-let NOJIMA = {}
-
 const AudioRecorder = React.memo(function AudioRecorder(props: Props) {
   const {conversationIDKey, setShowAudioSend, showAudioSend} = props
   const ampSV = useSharedValue(0)
@@ -569,38 +560,6 @@ const AudioRecorder = React.memo(function AudioRecorder(props: Props) {
     stageRecording,
     startRecording,
   })
-
-  console.log('aaa audio recorder render', Math.random())
-  React.useEffect(() => {
-    console.log('aaa mounted')
-    return () => {
-      console.log('aaa UNmounted')
-    }
-  }, [])
-
-  const TEMP = {
-    audioSend,
-    cancelRecording,
-    conversationIDKey,
-    flashTip,
-    icon,
-    overlay,
-    sendRecording,
-    setShowAudioSend,
-    showAudioSend,
-    stageRecording,
-    startRecording,
-    tooltip,
-  }
-
-  if (NOJIMA) {
-    Object.keys(TEMP).forEach(k => {
-      TEMP[k] !== NOJIMA[k] && console.log('aaa DIFF >>>> ', k)
-    })
-  }
-  NOJIMA = TEMP
-
-  console.log('aaaa tooltip', tooltip)
 
   return (
     <>
