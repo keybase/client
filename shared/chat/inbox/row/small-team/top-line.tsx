@@ -114,7 +114,7 @@ const SimpleTopLine = React.memo(function SimpleTopLine(props: Props) {
       >
         {timestamp}
       </Kb.Text>
-      {showGear && !Styles.isMobile && (
+      {showGear && (
         <Kb.Icon
           type="iconfont-gear"
           className="conversation-gear"
