@@ -228,7 +228,7 @@ const useIconAndOverlay = (p: {
   )
 
   const onReset = React.useCallback(() => {
-    fadeSV.value = 0
+    fadeSV.value = withTiming(0, {duration: 200})
     dragXSV.value = 0
     dragYSV.value = 0
     lockedSV.value = 0
