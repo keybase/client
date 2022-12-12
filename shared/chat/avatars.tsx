@@ -3,23 +3,10 @@ import * as Kb from '../common-adapters'
 import type {Props as IconProps} from '../common-adapters/icon'
 import type {AvatarSize} from '../common-adapters/avatar'
 import * as Styles from '../styles'
-import shallowEqual from 'shallowequal'
-import memoize from 'lodash/memoize'
-
-// All this complexity isn't great but the current implementation of avatar forces us to juggle all these colors and
-// forces us to explicitly choose undefined/the background/ etc. This can be cleaned up when avatar is simplified
-function rowBorderColor(idx: number, isLastParticipant: boolean, backgroundColor?: string) {
-  // Only color the foreground items
-  if (isLastParticipant) {
-    return undefined
-  }
-
-  // We don't want a border if we're a single avatar
-  return !idx && isLastParticipant ? undefined : backgroundColor
-}
 
 type AvatarProps = {
-  participants: Array<string> | string
+  participantOne?: string
+  participantTwo?: string
   isHovered: boolean
   isLocked: boolean
   isMuted: boolean
@@ -113,97 +100,80 @@ const MutedIcon = (p: {
   return Styles.isMobile ? MobileMutedIcon(p) : DesktopMutedIcon(p)
 }
 
-class Avatars extends React.Component<AvatarProps> {
-  shouldComponentUpdate(nextProps: AvatarProps) {
-    return !shallowEqual(this.props, nextProps, (_, __, key) => {
-      if (key === 'participants') {
-        return shallowEqual(this.props.participants, nextProps.participants)
-      }
+const Avatars = React.memo(function Avatars(p: AvatarProps) {
+  const {participantOne, participantTwo, backgroundColor} = p
+  const singleSize = p.singleSize ?? 48
+  const {isHovered, isLocked, isMuted, isSelected} = p
+  const opacity = isLocked ? 0.4 : 1
 
-      return undefined
-    })
-  }
+  const leftProps = {
+    loadingColor: Styles.globalColors.greyLight,
+    size: 32,
+    skipBackground: Styles.isMobile,
+    style: {left: 0, position: 'absolute', top: 0},
+    username: participantTwo,
+  } as const
 
-  render() {
-    const {participants, isHovered, isLocked, isMuted, isSelected, backgroundColor, singleSize} = this.props
+  const rightProps = {
+    borderColor: backgroundColor,
+    loadingColor: Styles.globalColors.greyLight,
+    size: 32,
+    skipBackground: Styles.isMobile,
+    style: {bottom: 0, position: 'absolute', right: 0},
+    username: participantOne,
+  } as const
 
-    const participantsArray = typeof participants === 'string' ? [participants] : participants
+  const containerStyle = Styles.collapseStyles([styles.container, {height: singleSize, width: singleSize}])
 
-    const avatarCount = Math.min(2, participantsArray.length)
-    const opacity = isLocked ? 0.4 : 1
-    const avatarProps = participantsArray.slice(0, 2).map(
-      (username, idx) =>
-        ({
-          borderColor: rowBorderColor(idx, idx === avatarCount - 1, backgroundColor),
-          loadingColor: Styles.globalColors.greyLight,
-          size: singleSize || 32,
-          skipBackground: Styles.isMobile,
-          username,
-        } as const)
-    )
-
+  if (!participantTwo) {
     return (
-      <Kb.Box style={styles.avatarBox}>
-        <Kb.Box style={styles.avatarInnerBox}>
-          <Kb.MultiAvatar
-            singleSize={singleSize || 48}
-            multiSize={32}
-            avatarProps={avatarProps}
-            multiPadding={Styles.isMobile ? 2 : 0}
-            style={opacity === 1 ? multiStyle(backgroundColor) : {...multiStyle(backgroundColor), opacity}}
-          />
+      <Kb.Box style={containerStyle}>
+        <Kb.Box style={styles.outerBox}>
+          <Kb.Avatar username={participantOne} size={singleSize || 48} style={{backgroundColor, opacity}} />
           <MutedIcon isHovered={isHovered} isSelected={isSelected} isMuted={isMuted} isLocked={isLocked} />
         </Kb.Box>
       </Kb.Box>
     )
   }
-}
 
-const multiStyle = memoize(backgroundColor => {
-  return {
-    ...(Styles.isMobile ? {backgroundColor, paddingBottom: 10, paddingTop: 10} : {}),
-    height: 48,
-    width: 48,
-  }
+  return (
+    <Kb.Box2 direction="horizontal" alignItems="center" style={containerStyle}>
+      <Kb.Avatar {...leftProps} />
+      <Kb.Avatar {...rightProps} />
+      <MutedIcon isHovered={isHovered} isSelected={isSelected} isMuted={isMuted} isLocked={isLocked} />
+    </Kb.Box2>
+  )
 })
 
 const styles = Styles.styleSheetCreate(() => ({
-  avatarBox: {
-    ...Styles.globalStyles.flexBoxRow,
-    alignItems: 'center',
+  container: {
     flexShrink: 0,
     justifyContent: 'flex-start',
     marginRight: Styles.globalMargins.tiny,
     position: 'relative',
   },
-  avatarInnerBox: {
-    position: 'relative',
-  },
   mutedIcon: Styles.platformStyles({
-    common: {
-      position: 'absolute',
-    },
-    isElectron: {
-      bottom: -3,
-      right: -1,
-    },
-    isMobile: {
-      bottom: -1,
-      right: -1,
-    },
+    common: {position: 'absolute'},
+    isElectron: {bottom: -3, right: -1},
+    isMobile: {bottom: -1, right: -1},
   }),
+  outerBox: {position: 'relative'},
 }))
 
-const TeamAvatar = React.memo(
-  (p: {teamname: string; isHovered: boolean; isMuted: boolean; isSelected: boolean; size?: AvatarSize}) => {
-    const {teamname, size, isSelected, isMuted, isHovered} = p
-    return (
-      <Kb.Box style={styles.avatarBox}>
-        <Kb.Avatar teamname={teamname} size={size || 48} />
-        <MutedIcon isSelected={isSelected} isMuted={isMuted} isHovered={isHovered} isLocked={false} />
-      </Kb.Box>
-    )
-  }
-)
+const TeamAvatar = React.memo(function TeamAvatar(p: {
+  teamname: string
+  isHovered: boolean
+  isMuted: boolean
+  isSelected: boolean
+  size?: AvatarSize
+}) {
+  const {teamname, size, isSelected, isMuted, isHovered} = p
+  return (
+    <Kb.Box style={styles.container}>
+      <Kb.Avatar teamname={teamname} size={size || 48} />
+      <MutedIcon isSelected={isSelected} isMuted={isMuted} isHovered={isHovered} isLocked={false} />
+    </Kb.Box>
+  )
+})
 
 export {Avatars, TeamAvatar}

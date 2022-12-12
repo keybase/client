@@ -63,7 +63,8 @@ const AdhocHeader = (props: AdhocHeaderProps) => {
         isLocked={false}
         isMuted={props.isMuted}
         isSelected={false}
-        participants={channelHumans}
+        participantOne={channelHumans[0]}
+        participantTwo={channelHumans[1]}
         singleSize={Styles.isMobile ? 48 : 32}
       />
       <Kb.Box2 alignItems="flex-start" direction="vertical">

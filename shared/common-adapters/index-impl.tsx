@@ -187,9 +187,6 @@ module.exports = {
   get ModalHeader() {
     return require('./modal').Header
   },
-  get MultiAvatar() {
-    return require('./multi-avatar').default
-  },
   get NameWithIcon() {
     return require('./name-with-icon').default
   },

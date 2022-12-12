@@ -46,7 +46,8 @@ const _itemRenderer = (index: number, row: Row) => {
             isLocked={false}
             isMuted={false}
             isSelected={row.isSelected}
-            participants={item.parts ?? []}
+            participantOne={item.parts?.[0]}
+            participantTwo={item.parts?.[1]}
           />
         )}
         <Kb.Text type="Body" style={{alignSelf: 'center'}} lineClamp={1}>
