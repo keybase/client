@@ -79,7 +79,8 @@ class SelectableSmallTeam extends React.PureComponent<Props, State> {
               isMuted={props.isMuted}
               isSelected={props.isSelected}
               isLocked={props.isLocked}
-              participants={props.participants}
+              participantOne={props.participants[0]}
+              participantTwo={props.participants[1]}
             />
           )}
           <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexOne}>

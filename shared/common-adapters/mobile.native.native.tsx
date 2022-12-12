@@ -179,9 +179,6 @@ module.exports = {
   get ModalHeader() {
     return Index.ModalHeader
   },
-  get MultiAvatar() {
-    return Index.MultiAvatar
-  },
   get NameWithIcon() {
     return Index.NameWithIcon
   },

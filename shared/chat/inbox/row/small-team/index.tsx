@@ -30,7 +30,7 @@ export type Props = {
   onMuteConversation: (muted: boolean) => void
   onSelectConversation?: () => void
   participantNeedToRekey: boolean
-  participants: Array<string> | string
+  participants: Array<string>
   showBold: boolean
   snippet: string
   snippetDecoration: RPCChatTypes.SnippetDecoration
@@ -116,7 +116,8 @@ class SmallTeam extends React.PureComponent<Props, State> {
                 isMuted={props.isMuted}
                 isLocked={props.youNeedToRekey || props.participantNeedToRekey || props.isFinalized}
                 isSelected={props.isSelected}
-                participants={props.participants}
+                participantOne={props.participants[0]}
+                participantTwo={props.participants[1]}
               />
             )}
             <Kb.Box style={Styles.collapseStyles([styles.conversationRow, styles.fastBlank])}>

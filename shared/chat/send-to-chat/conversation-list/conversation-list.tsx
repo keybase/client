@@ -42,11 +42,9 @@ const _itemRenderer = (index: number, row: Row) => {
           <TeamAvatar isHovered={false} isMuted={false} isSelected={row.isSelected} teamname={item.tlfName} />
         ) : (
           <Avatars
-            isHovered={false}
-            isLocked={false}
-            isMuted={false}
             isSelected={row.isSelected}
-            participants={item.parts ?? []}
+            participantOne={item.parts?.[0]}
+            participantTwo={item.parts?.[1]}
           />
         )}
         <Kb.Text type="Body" style={{alignSelf: 'center'}} lineClamp={1}>

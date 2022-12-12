@@ -91,13 +91,7 @@ const TeamPicker = (props: Props) => {
               teamname={item.name.split('#')[0]}
             />
           ) : (
-            <Avatars
-              isHovered={false}
-              isLocked={false}
-              isMuted={false}
-              isSelected={false}
-              participants={item.parts ?? []}
-            />
+            <Avatars participantOne={item.parts?.[0]} participantTwo={item.parts?.[1]} />
           )}
           <Kb.Text type="Body" style={{alignSelf: 'center'}}>
             {item.name}
