@@ -52,18 +52,21 @@ const OverlayIcon = (p: {isHovered: boolean; isMuted: boolean; isSelected: boole
 type Props = {
   participantOne?: string
   participantTwo?: string
-  isHovered: boolean
-  isLocked: boolean
-  isMuted: boolean
-  isSelected: boolean
+  isHovered?: boolean
+  isLocked?: boolean
+  isMuted?: boolean
+  isSelected?: boolean
   backgroundColor?: string
   singleSize?: AvatarSize
 }
 
 const Avatars = React.memo(function Avatars(p: Props) {
   const {participantOne, participantTwo, backgroundColor} = p
-  const singleSize = p.singleSize ?? 48
-  const {isHovered, isLocked, isMuted, isSelected} = p
+  const {singleSize = 48} = p
+  const {isHovered = false} = p
+  const {isLocked = false} = p
+  const {isMuted = false} = p
+  const {isSelected = false} = p
   const opacity = isLocked ? 0.4 : 1
 
   const leftProps = {
