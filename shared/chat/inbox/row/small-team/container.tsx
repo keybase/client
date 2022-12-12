@@ -87,7 +87,7 @@ export default Container.connect(
       ? ownProps.name.split(',')
       : [ownProps.name]
 
-    const participants = participantsArray.length === 1 ? participantsArray[0] : participantsArray
+    const participants = participantsArray
 
     return {
       backgroundColor: styles.backgroundColor,

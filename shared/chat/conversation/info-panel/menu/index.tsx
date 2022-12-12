@@ -59,11 +59,9 @@ const AdhocHeader = (props: AdhocHeaderProps) => {
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.headerContainer}>
       <Avatars
         backgroundColor={Styles.globalColors.white}
-        isHovered={false}
-        isLocked={false}
         isMuted={props.isMuted}
-        isSelected={false}
-        participants={channelHumans}
+        participantOne={channelHumans[0]}
+        participantTwo={channelHumans[1]}
         singleSize={Styles.isMobile ? 48 : 32}
       />
       <Kb.Box2 alignItems="flex-start" direction="vertical">

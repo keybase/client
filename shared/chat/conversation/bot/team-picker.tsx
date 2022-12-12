@@ -66,13 +66,7 @@ const BotTeamPicker = (props: Props) => {
           {item.isTeam ? (
             <TeamAvatar isHovered={false} isMuted={false} isSelected={false} teamname={item.name} />
           ) : (
-            <Avatars
-              isHovered={false}
-              isLocked={false}
-              isMuted={false}
-              isSelected={false}
-              participants={item.parts ?? []}
-            />
+            <Avatars participantOne={item.parts?.[0]} participantTwo={item.parts?.[1]} />
           )}
           <Kb.Text type="Body" style={{alignSelf: 'center'}}>
             {item.name}

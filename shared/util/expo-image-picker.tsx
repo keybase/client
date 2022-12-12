@@ -28,6 +28,7 @@ const retyAfterAskingPerm =
   }
 
 const defaultOptions = {
+  allowsEditing: true,
   exif: false,
   quality: 0.4,
   videoQuality: ImagePicker.UIImagePickerControllerQualityType.Medium,
