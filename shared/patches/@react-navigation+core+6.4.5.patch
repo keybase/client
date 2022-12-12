@@ -1,5 +1,5 @@
 diff --git a/node_modules/@react-navigation/core/lib/typescript/src/getPathFromState.d.ts b/node_modules/@react-navigation/core/lib/typescript/src/getPathFromState.d.ts
-index c490438..a48ad3b 100644
+index 0cdb6c0..2ad63e5 100644
 --- a/node_modules/@react-navigation/core/lib/typescript/src/getPathFromState.d.ts
 +++ b/node_modules/@react-navigation/core/lib/typescript/src/getPathFromState.d.ts
 @@ -1,6 +1,6 @@
@@ -11,10 +11,10 @@ index c490438..a48ad3b 100644
      screens: PathConfigMap<ParamList>;
  };
 diff --git a/node_modules/@react-navigation/core/lib/typescript/src/types.d.ts b/node_modules/@react-navigation/core/lib/typescript/src/types.d.ts
-index a116b25..c9db6e0 100644
+index f959586..519c9ea 100644
 --- a/node_modules/@react-navigation/core/lib/typescript/src/types.d.ts
 +++ b/node_modules/@react-navigation/core/lib/typescript/src/types.d.ts
-@@ -516,6 +516,6 @@ export declare type PathConfig<ParamList extends {}> = {
+@@ -516,7 +516,7 @@ export declare type PathConfig<ParamList extends {}> = {
      initialRouteName?: keyof ParamList;
  };
  export declare type PathConfigMap<ParamList extends {}> = {
@@ -22,3 +22,5 @@ index a116b25..c9db6e0 100644
 +    [RouteName in keyof ParamList]?: NonNullable<ParamList[RouteName]> extends NavigatorScreenParams<infer T extends {}, any> ? string | PathConfig<T> : string | Omit<PathConfig<{}>, 'screens' | 'initialRouteName'>;
  };
  export {};
+ //# sourceMappingURL=types.d.ts.map
+\ No newline at end of file
