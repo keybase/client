@@ -209,18 +209,13 @@ const ChatFilePicker = (p: ChatFilePickerProps) => {
         if (result.canceled || (result.assets.length ?? 0) == 0 || !conversationIDKey) {
           return
         }
-        const filename = parseUri(result.assets[0])
-        if (filename) {
-          const props = {
-            conversationIDKey,
-            pathAndOutboxIDs: [{outboxID: null, path: filename}],
-          }
-          dispatch(
-            RouteTreeGen.createNavigateAppend({
-              path: [{props, selected: 'chatAttachmentGetTitles'}],
-            })
-          )
-        }
+        const pathAndOutboxIDs = result.assets.map(p => ({outboxID: null, path: parseUri(p)}))
+        const props = {conversationIDKey, pathAndOutboxIDs}
+        dispatch(
+          RouteTreeGen.createNavigateAppend({
+            path: [{props, selected: 'chatAttachmentGetTitles'}],
+          })
+        )
       }
 
       const onFilePickerError = (error: Error) => {
