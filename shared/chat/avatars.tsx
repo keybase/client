@@ -1,11 +1,55 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters'
-import type {Props as IconProps} from '../common-adapters/icon'
 import type {AvatarSize} from '../common-adapters/avatar'
 import * as Styles from '../styles'
 import './chat.css'
 
-type AvatarProps = {
+const OverlayIcon = (p: {isHovered: boolean; isMuted: boolean; isSelected: boolean; isLocked: boolean}) => {
+  const {isHovered, isMuted, isSelected, isLocked} = p
+
+  if (Styles.isMobile) {
+    const type = isMuted
+      ? isSelected
+        ? 'icon-shh-active-26-21'
+        : 'icon-shh-26-21'
+      : isLocked
+      ? isSelected
+        ? 'icon-addon-lock-active-22'
+        : 'icon-addon-lock-22'
+      : null
+    if (!type) return null
+    return <Kb.Icon type={type} style={styles.mutedIcon} />
+  }
+  const type = isMuted ? 'iconfont-shh' : isLocked ? 'iconfont-lock' : null
+  if (!type) return null
+
+  return (
+    <Kb.Box style={styles.mutedIcon}>
+      <Kb.Icon
+        className={Styles.classNames('overlay-icon', 'stroked', {
+          hovered: isHovered,
+          locked: isLocked,
+          muted: isMuted,
+          selected: isSelected,
+        })}
+        type={type}
+        fontSize={18}
+      />
+      <Kb.Icon
+        className={Styles.classNames('overlay-icon', {
+          hovered: isHovered,
+          locked: isLocked,
+          muted: isMuted,
+          selected: isSelected,
+        })}
+        type={type}
+        fontSize={16}
+      />
+    </Kb.Box>
+  )
+}
+
+type Props = {
   participantOne?: string
   participantTwo?: string
   isHovered: boolean
@@ -16,87 +60,7 @@ type AvatarProps = {
   singleSize?: AvatarSize
 }
 
-const MobileMutedIcon = (p: {
-  isHovered: boolean
-  isMuted: boolean
-  isSelected: boolean
-  isLocked: boolean
-}): React.ReactElement | null => {
-  const {isMuted, isSelected, isLocked} = p
-  const type = isMuted
-    ? isSelected
-      ? 'icon-shh-active-26-21'
-      : 'icon-shh-26-21'
-    : isLocked
-    ? isSelected
-      ? 'icon-addon-lock-active-22'
-      : 'icon-addon-lock-22'
-    : null
-  return type ? <Kb.Icon type={type} style={styles.mutedIcon} /> : null
-}
-
-type StrokedIconProps = IconProps & {
-  isHovered: boolean
-  isSelected: boolean
-}
-const StrokedIcon = Styles.styled(Kb.Icon)((props: StrokedIconProps) => ({
-  '&.stroke': {
-    WebkitTextStroke: `3px ${
-      props.isHovered && !props.isSelected
-        ? Styles.globalColors.blueGreyDark
-        : props.isSelected
-        ? Styles.globalColors.blue
-        : Styles.globalColors.blueGrey
-    }`,
-    bottom: 0,
-    color:
-      props.isHovered && !props.isSelected
-        ? Styles.globalColors.blueGreyDark
-        : props.isSelected
-        ? Styles.globalColors.blue
-        : Styles.globalColors.blueGrey,
-    right: 0,
-  },
-  bottom: 1,
-  color:
-    props.isHovered && !props.isSelected
-      ? Styles.globalColors.black_20
-      : props.isSelected
-      ? Styles.globalColors.white
-      : Styles.globalColors.black_20,
-  position: 'absolute',
-  right: 1,
-}))
-
-// const noTheme = {}
-const DesktopMutedIcon = (p: {
-  isHovered: boolean
-  isMuted: boolean
-  isSelected: boolean
-  isLocked: boolean
-}): React.ReactElement | null => {
-  const {isHovered, isMuted, isSelected, isLocked} = p
-  const type = isMuted ? 'iconfont-shh' : isLocked ? 'iconfont-lock' : null
-  return type ? (
-    <Kb.Box style={styles.mutedIcon}>
-      <Kb.Icon
-        className={Styles.classNames('stroke', {
-          hoverd: isHovered,
-          locked: isLocked,
-          muted: isMuted,
-          selected: isSelected,
-        })}
-        type={type}
-        fontSize={18}
-      />
-    </Kb.Box>
-  ) : null
-}
-// <Kb.Icon isSelected={isSelected} isHovered={isHovered} type={type} fontSize={16} theme={noTheme} />
-
-const MutedIcon = Styles.isMobile ? MobileMutedIcon : DesktopMutedIcon
-
-const Avatars = React.memo(function Avatars(p: AvatarProps) {
+const Avatars = React.memo(function Avatars(p: Props) {
   const {participantOne, participantTwo, backgroundColor} = p
   const singleSize = p.singleSize ?? 48
   const {isHovered, isLocked, isMuted, isSelected} = p
@@ -126,7 +90,7 @@ const Avatars = React.memo(function Avatars(p: AvatarProps) {
       <Kb.Box style={containerStyle}>
         <Kb.Box style={styles.outerBox}>
           <Kb.Avatar username={participantOne} size={singleSize || 48} style={{backgroundColor, opacity}} />
-          <MutedIcon isHovered={isHovered} isSelected={isSelected} isMuted={isMuted} isLocked={isLocked} />
+          <OverlayIcon isHovered={isHovered} isSelected={isSelected} isMuted={isMuted} isLocked={isLocked} />
         </Kb.Box>
       </Kb.Box>
     )
@@ -136,7 +100,7 @@ const Avatars = React.memo(function Avatars(p: AvatarProps) {
     <Kb.Box2 direction="horizontal" alignItems="center" style={containerStyle}>
       <Kb.Avatar {...leftProps} />
       <Kb.Avatar {...rightProps} />
-      <MutedIcon isHovered={isHovered} isSelected={isSelected} isMuted={isMuted} isLocked={isLocked} />
+      <OverlayIcon isHovered={isHovered} isSelected={isSelected} isMuted={isMuted} isLocked={isLocked} />
     </Kb.Box2>
   )
 })
@@ -167,7 +131,7 @@ const TeamAvatar = React.memo(function TeamAvatar(p: {
   return (
     <Kb.Box style={styles.container}>
       <Kb.Avatar teamname={teamname} size={size || 48} />
-      <MutedIcon isSelected={isSelected} isMuted={isMuted} isHovered={isHovered} isLocked={false} />
+      <OverlayIcon isSelected={isSelected} isMuted={isMuted} isHovered={isHovered} isLocked={false} />
     </Kb.Box>
   )
 })
