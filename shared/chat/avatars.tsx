@@ -3,6 +3,7 @@ import * as Kb from '../common-adapters'
 import type {Props as IconProps} from '../common-adapters/icon'
 import type {AvatarSize} from '../common-adapters/avatar'
 import * as Styles from '../styles'
+import './chat.css'
 
 type AvatarProps = {
   participantOne?: string
@@ -67,7 +68,7 @@ const StrokedIcon = Styles.styled(Kb.Icon)((props: StrokedIconProps) => ({
   right: 1,
 }))
 
-const noTheme = {}
+// const noTheme = {}
 const DesktopMutedIcon = (p: {
   isHovered: boolean
   isMuted: boolean
@@ -78,27 +79,22 @@ const DesktopMutedIcon = (p: {
   const type = isMuted ? 'iconfont-shh' : isLocked ? 'iconfont-lock' : null
   return type ? (
     <Kb.Box style={styles.mutedIcon}>
-      <StrokedIcon
-        isSelected={isSelected}
-        isHovered={isHovered}
-        className="stroke"
+      <Kb.Icon
+        className={Styles.classNames('stroke', {
+          hoverd: isHovered,
+          locked: isLocked,
+          muted: isMuted,
+          selected: isSelected,
+        })}
         type={type}
         fontSize={18}
-        theme={noTheme}
       />
-      <StrokedIcon isSelected={isSelected} isHovered={isHovered} type={type} fontSize={16} theme={noTheme} />
     </Kb.Box>
   ) : null
 }
+// <Kb.Icon isSelected={isSelected} isHovered={isHovered} type={type} fontSize={16} theme={noTheme} />
 
-const MutedIcon = (p: {
-  isHovered: boolean
-  isMuted: boolean
-  isSelected: boolean
-  isLocked: boolean
-}): React.ReactElement | null => {
-  return Styles.isMobile ? MobileMutedIcon(p) : DesktopMutedIcon(p)
-}
+const MutedIcon = Styles.isMobile ? MobileMutedIcon : DesktopMutedIcon
 
 const Avatars = React.memo(function Avatars(p: AvatarProps) {
   const {participantOne, participantTwo, backgroundColor} = p
