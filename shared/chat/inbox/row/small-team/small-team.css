@@ -1,16 +1,17 @@
 .small-row {
   background-color: #f2f4f7;
 }
-.dark-mode .small-row {
+.darkMode .small-row {
   background-color: #202020;
 }
 .small-row:hover {
   background-color: #e0e8f6;
 }
-.dark-mode .small-row:hover {
+.darkMode .small-row:hover {
   background-color: rgba(24, 45, 110, 0.5);
 }
-.small-row.selected {
+.small-row.selected,
+.darkMode .small-row.selected {
   background-color: #4c8eff;
 }
 .small-row .conversation-gear {
