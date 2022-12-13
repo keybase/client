@@ -189,7 +189,6 @@ const makeTabStack = (tab: string) => {
 
 const AppTabs = React.memo(
   function AppTabs() {
-    console.log('aaa apptabs')
     const dispatch = Container.useDispatch()
 
     // so we have a stack per tab
@@ -210,6 +209,31 @@ const AppTabs = React.memo(
       [dispatch]
     )
 
+    const makeTabBarIcon =
+      (routeName: string) =>
+      ({focused}) =>
+        <TabBarIcon isFocused={focused} routeName={routeName as Tabs.Tab} />
+    const makeTabBarLabel =
+      (routeName: string) =>
+      ({focused}) =>
+        (
+          <Kb.Text
+            style={Styles.collapseStyles([
+              styles.label,
+              Styles.isDarkMode()
+                ? focused
+                  ? styles.labelDarkModeFocused
+                  : styles.labelDarkMode
+                : focused
+                ? styles.labelLightModeFocused
+                : styles.labelLightMode,
+            ])}
+            type="BodyBig"
+          >
+            {tabToData[routeName].label}
+          </Kb.Text>
+        )
+
     return (
       <Tab.Navigator
         backBehavior="none"
@@ -219,25 +243,9 @@ const AppTabs = React.memo(
             headerShown: false,
             tabBarActiveBackgroundColor: Styles.globalColors.transparent,
             tabBarHideOnKeyboard: true,
-            tabBarIcon: ({focused}) => <TabBarIcon isFocused={focused} routeName={route.name as Tabs.Tab} />,
+            tabBarIcon: makeTabBarIcon(route.name),
             tabBarInactiveBackgroundColor: Styles.globalColors.transparent,
-            tabBarLabel: ({focused}) => (
-              <Kb.Text
-                style={Styles.collapseStyles([
-                  styles.label,
-                  Styles.isDarkMode()
-                    ? focused
-                      ? styles.labelDarkModeFocused
-                      : styles.labelDarkMode
-                    : focused
-                    ? styles.labelLightModeFocused
-                    : styles.labelLightMode,
-                ])}
-                type="BodyBig"
-              >
-                {tabToData[route.name].label}
-              </Kb.Text>
-            ),
+            tabBarLabel: makeTabBarLabel(route.name),
             tabBarShowLabel: Styles.isTablet,
             tabBarStyle: Common.tabBarStyle,
           }
