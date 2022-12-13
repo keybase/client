@@ -9,11 +9,12 @@ import Message from '../messages/wrapper'
 import SpecialBottomMessage from '../messages/special-bottom-message'
 import SpecialTopMessage from '../messages/special-top-message'
 import logger from '../../../logger'
-import {Animated, type ListRenderItemInfo, type ViewToken} from 'react-native'
+import {Animated, type ViewToken} from 'react-native'
 import type {ItemType} from '.'
 import {mobileTypingContainerHeight} from '../input-area/normal/typing'
 import * as Hooks from './hooks'
 import sortedIndexOf from 'lodash/sortedIndexOf'
+import {FlashList, type ListRenderItemInfo} from '@shopify/flash-list'
 
 // Bookkeep whats animating so it finishes and isn't replaced, if we've animated it we keep the key and use null
 const animatingMap = new Map<string, null | React.ReactElement>()
@@ -78,9 +79,7 @@ const Sent_ = ({conversationIDKey, ordinal, prevOrdinal}: SentProps) => {
     return state
   }
 
-  const children = (
-    <Message key={ordinal} ordinal={ordinal} previous={prevOrdinal} conversationIDKey={conversationIDKey} />
-  )
+  const children = <Message ordinal={ordinal} previous={prevOrdinal} conversationIDKey={conversationIDKey} />
 
   // if state is null we already animated it
   if (youSent && state === undefined) {
@@ -109,7 +108,7 @@ const useScrolling = (p: {
   centeredOrdinal: Types.Ordinal
   messageOrdinals: Array<Types.Ordinal>
   conversationIDKey: Types.ConversationIDKey
-  listRef: React.MutableRefObject<Kb.NativeVirtualizedList<ItemType> | null>
+  listRef: React.MutableRefObject<FlashList<ItemType> | null>
 }) => {
   const {listRef, centeredOrdinal, messageOrdinals, conversationIDKey} = p
   const dispatch = Container.useDispatch()
@@ -218,58 +217,61 @@ const ConversationList = React.memo(function ConversationList(p: {
   const centeredOrdinal = Container.useSelector(
     state => Constants.getMessageCenterOrdinal(state, conversationIDKey)?.ordinal ?? -1
   )
-  const messageOrdinals = Container.useSelector(state =>
+  const _messageOrdinals = Container.useSelector(state =>
     Constants.getMessageOrdinals(state, conversationIDKey)
   )
-  const listRef = React.useRef<Kb.NativeFlatList<ItemType> | null>(null)
+
+  const messageOrdinals = React.useMemo(() => {
+    return [..._messageOrdinals].reverse()
+  }, [_messageOrdinals])
+
+  const listRef = React.useRef<FlashList<ItemType> | null>(null)
   const {markInitiallyLoadedThreadAsRead} = Hooks.useActions({conversationIDKey})
   const keyExtractor = React.useCallback(
-    (_item: ItemType, idx: number) => {
-      const index = messageOrdinals.length - 1 - idx
+    (_item: ItemType, index: number) => {
       const ordinal = messageOrdinals[index]
       return String(ordinal)
     },
     [messageOrdinals]
   )
   const renderItem = React.useCallback(
-    (info: ListRenderItemInfo<ItemType>) => {
-      // since the list is inverted but the data is not we flip the index when rendering and ignore `item`
-      const index = messageOrdinals.length - 1 - info.index
+    (info: ListRenderItemInfo<ItemType> | null | undefined) => {
+      const index = info?.index ?? 0
       const ordinal = messageOrdinals[index]
       if (!ordinal) {
         return null
       }
-      const prevOrdinal = index > 0 ? messageOrdinals[index - 1] : undefined
-      if (messageOrdinals.length - 1 === index) {
-        return (
-          <Sent
-            key={ordinal}
-            ordinal={ordinal}
-            prevOrdinal={prevOrdinal}
-            conversationIDKey={conversationIDKey}
-          />
-        )
+      const prevOrdinal = messageOrdinals[index + 1]
+      if (!index) {
+        return <Sent ordinal={ordinal} prevOrdinal={prevOrdinal} conversationIDKey={conversationIDKey} />
       }
 
-      return (
-        <Message
-          key={ordinal}
-          ordinal={ordinal}
-          previous={prevOrdinal}
-          conversationIDKey={conversationIDKey}
-        />
-      )
+      return <Message ordinal={ordinal} previous={prevOrdinal} conversationIDKey={conversationIDKey} />
     },
     [messageOrdinals, conversationIDKey]
   )
 
-  const {scrollToCentered, onScrollToIndexFailed, scrollToBottom, viewabilityConfigCallbackPairsRef} =
-    useScrolling({
-      centeredOrdinal,
-      conversationIDKey,
-      listRef,
-      messageOrdinals,
-    })
+  const getItemType = React.useCallback(
+    (_info: unknown, idx: number) => {
+      const index = messageOrdinals.length - 1 - (idx ?? 0)
+      const ordinal = messageOrdinals[index]
+      if (!ordinal) {
+        return 'null'
+      }
+      if (messageOrdinals.length - 1 === index) {
+        return 'sent'
+      }
+      return 'message'
+    },
+    [messageOrdinals]
+  )
+
+  const {scrollToCentered, scrollToBottom, viewabilityConfigCallbackPairsRef} = useScrolling({
+    centeredOrdinal,
+    conversationIDKey,
+    listRef,
+    messageOrdinals,
+  })
 
   const jumpToRecent = Hooks.useJumpToRecent(conversationIDKey, scrollToBottom, messageOrdinals.length)
 
@@ -300,12 +302,14 @@ const ConversationList = React.memo(function ConversationList(p: {
   return (
     <Kb.ErrorBoundary>
       <Kb.Box style={styles.container}>
-        <Kb.NativeFlatList
+        <FlashList
+          estimatedItemSize={100}
           ListHeaderComponent={listHeaderComponent}
           ListFooterComponent={listFooterComponent}
           overScrollMode="never"
           contentContainerStyle={styles.contentContainer}
           data={messageOrdinals}
+          getItemType={getItemType}
           inverted={true}
           renderItem={renderItem}
           maintainVisibleContentPosition={maintainVisibleContentPosition}
@@ -313,10 +317,7 @@ const ConversationList = React.memo(function ConversationList(p: {
           keyboardDismissMode="on-drag"
           keyboardShouldPersistTaps="handled"
           keyExtractor={keyExtractor}
-          // Limit the number of pages rendered ahead of time (which also limits attachment previews loaded)
-          windowSize={5}
           ref={listRef}
-          onScrollToIndexFailed={onScrollToIndexFailed}
           removeClippedSubviews={Styles.isAndroid}
         />
         {jumpToRecent}

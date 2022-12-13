@@ -448,6 +448,8 @@ PODS:
     - React-Core
     - SDWebImage (~> 5.12.1)
     - SDWebImageWebPCoder (~> 0.8.4)
+  - RNFlashList (1.4.0):
+    - React-Core
   - RNGestureHandler (2.8.0):
     - React-Core
   - RNReanimated (3.0.0-rc.8):
@@ -589,6 +591,7 @@ DEPENDENCIES:
   - "RNCPicker (from `../node_modules/@react-native-picker/picker`)"
   - "RNCPushNotificationIOS (from `../node_modules/@react-native-community/push-notification-ios`)"
   - RNFastImage (from `../node_modules/react-native-fast-image`)
+  - "RNFlashList (from `../node_modules/@shopify/flash-list`)"
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
   - RNReanimated (from `../node_modules/react-native-reanimated`)
   - RNScreens (from `../node_modules/react-native-screens`)
@@ -750,6 +753,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-community/push-notification-ios"
   RNFastImage:
     :path: "../node_modules/react-native-fast-image"
+  RNFlashList:
+    :path: "../node_modules/@shopify/flash-list"
   RNGestureHandler:
     :path: "../node_modules/react-native-gesture-handler"
   RNReanimated:
@@ -842,6 +847,7 @@ SPEC CHECKSUMS:
   RNCPicker: 0bf8ef8f7800524f32d2bb2a8bcadd53eda0ecd1
   RNCPushNotificationIOS: 87b8d16d3ede4532745e05b03c42cff33a36cc45
   RNFastImage: 65fc4932ac71ad7569adc60b66db6a6ed30dad89
+  RNFlashList: 399bf6a0db68f594ad2c86aaff3ea39564f39f8a
   RNGestureHandler: 62232ba8f562f7dea5ba1b3383494eb5bf97a4d3
   RNReanimated: e6c9dc235b60a291ad6f2f6c029bc4333fdc7dd7
   RNScreens: 34cc502acf1b916c582c60003dc3089fa01dc66d
