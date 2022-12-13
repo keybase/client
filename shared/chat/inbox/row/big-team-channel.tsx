@@ -15,23 +15,25 @@ type Props = {
   selected: boolean
 }
 
-const BigTeamChannel = (props: Props) => {
+const BigTeamChannel = React.memo(function BigTeamChannel(props: Props) {
   const {conversationIDKey, selected} = props
   const dispatch = Container.useDispatch()
-  const meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
+  const channelname = Container.useSelector(
+    state => Constants.getMeta(state, conversationIDKey).channelname || props.channelname
+  )
+  const isError = Container.useSelector(
+    state => Constants.getMeta(state, conversationIDKey).trustedState === 'error'
+  )
+  const snippetDecoration = Container.useSelector(
+    state => Constants.getMeta(state, conversationIDKey).snippetDecoration
+  )
   const hasBadge = Container.useSelector(state => Constants.getHasBadge(state, conversationIDKey))
-  const getDraft = Container.useSelector(state => !!Constants.getDraft(state, conversationIDKey))
+  const hasDraft = Container.useSelector(state => !selected && !!Constants.getDraft(state, conversationIDKey))
   const hasUnread = Container.useSelector(state => Constants.getHasUnread(state, conversationIDKey))
   const isMuted = Container.useSelector(state => Constants.isMuted(state, conversationIDKey))
-  const isSelected = selected
 
   const onSelectConversation = () =>
     dispatch(Chat2Gen.createNavigateToThread({conversationIDKey, reason: 'inboxBig'}))
-
-  const channelname = meta.channelname || props.channelname
-  const hasDraft = getDraft && !isSelected
-  const isError = meta.trustedState === 'error'
-  const snippetDecoration = meta.snippetDecoration
 
   let outboxIcon: React.ReactNode = null
   switch (snippetDecoration) {
@@ -42,7 +44,7 @@ const BigTeamChannel = (props: Props) => {
             style={styles.icon}
             sizeType="Small"
             type={'iconfont-hourglass'}
-            color={isSelected ? Styles.globalColors.white : Styles.globalColors.black_20}
+            color={selected ? Styles.globalColors.white : Styles.globalColors.black_20}
           />
         </Kb.WithTooltip>
       )
@@ -53,11 +55,12 @@ const BigTeamChannel = (props: Props) => {
           <Kb.Icon
             style={styles.icon}
             type={'iconfont-exclamation'}
-            color={isSelected ? Styles.globalColors.white : Styles.globalColors.red}
+            color={selected ? Styles.globalColors.white : Styles.globalColors.red}
           />
         </Kb.WithTooltip>
       )
       break
+    default:
   }
 
   return (
@@ -69,24 +72,24 @@ const BigTeamChannel = (props: Props) => {
           fullWidth={!Styles.isMobile}
           style={Styles.collapseStyles([
             styles.channelBackground,
-            isSelected && styles.selectedChannelBackground,
+            selected && styles.selectedChannelBackground,
           ])}
         >
           <Kb.Text
             lineClamp={1}
             type="Body"
             fixOverdraw={Styles.isPhone}
-            style={Styles.collapseStyles([styles.channelHash, isSelected && styles.channelHashSelected])}
+            style={Styles.collapseStyles([styles.channelHash, selected && styles.channelHashSelected])}
           >
             #{' '}
             <Kb.Text
-              type={isSelected ? 'BodySemibold' : 'Body'}
+              type={selected ? 'BodySemibold' : 'Body'}
               fixOverdraw={Styles.isPhone}
               style={Styles.collapseStyles([
                 styles.channelText,
                 isError
                   ? styles.textError
-                  : isSelected
+                  : selected
                   ? hasUnread
                     ? (styles.textSelectedBold as any)
                     : styles.textSelected
@@ -102,10 +105,10 @@ const BigTeamChannel = (props: Props) => {
             <Kb.WithTooltip tooltip="Muted conversation">
               <Kb.Icon
                 fixOverdraw={Styles.isPhone}
-                color={isSelected ? Styles.globalColors.white : Styles.globalColors.black_20}
+                color={selected ? Styles.globalColors.white : Styles.globalColors.black_20}
                 style={styles.muted}
                 type={
-                  Styles.isPhone ? (isSelected ? 'icon-shh-active-26-21' : 'icon-shh-26-21') : 'iconfont-shh'
+                  Styles.isPhone ? (selected ? 'icon-shh-active-26-21' : 'icon-shh-26-21') : 'iconfont-shh'
                 }
               />
             </Kb.WithTooltip>
@@ -117,7 +120,7 @@ const BigTeamChannel = (props: Props) => {
                   type="iconfont-edit"
                   style={styles.icon}
                   sizeType="Small"
-                  color={isSelected ? Styles.globalColors.white : undefined}
+                  color={selected ? Styles.globalColors.white : undefined}
                 />
               </Kb.WithTooltip>
             )}
@@ -128,7 +131,7 @@ const BigTeamChannel = (props: Props) => {
       </Kb.Box2>
     </Kb.ClickableBox>
   )
-}
+})
 
 const styles = Styles.styleSheetCreate(() => ({
   channelBackground: Styles.platformStyles({
@@ -215,4 +218,4 @@ const styles = Styles.styleSheetCreate(() => ({
   }),
 }))
 
-export default React.memo(BigTeamChannel)
+export default BigTeamChannel
