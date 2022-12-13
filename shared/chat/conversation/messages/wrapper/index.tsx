@@ -99,7 +99,7 @@ type Shared = {
   youAreAuthor: boolean
 } & Props
 
-const WrapperMessage = (p: Props) => {
+const WrapperMessage = React.memo(function WrapperMessage(p: Props) {
   const {measure, conversationIDKey, ordinal, previous} = p
   const [showMenuButton, setShowMenuButton] = React.useState(false)
   const [showingPicker, setShowingPicker] = React.useState(false)
@@ -176,7 +176,7 @@ const WrapperMessage = (p: Props) => {
       {popup}
     </Styles.StyleContext.Provider>
   )
-}
+})
 
 const useHighlightMode = (p: Props) => {
   const {ordinal, conversationIDKey} = p

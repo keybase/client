@@ -11,6 +11,12 @@
 #import <React/RCTBridge.h>
 #import <React/RCTBundleURLProvider.h>
 #import <React/RCTRootView.h>
+
+#ifdef FB_SONARKIT_ENABLED
+#import <FlipperKit/FlipperClient.h>
+#import <FlipperPerformancePlugin.h>
+#endif
+
 #if RCT_NEW_ARCH_ENABLED
 #import <React/CoreModulesPlugins.h>
 #import <React/RCTCxxBridgeDelegate.h>
@@ -42,6 +48,11 @@ static const DDLogLevel ddLogLevel = DDLogLevelDebug;
 didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
   
   [self didLaunchSetupBefore:application];
+  
+#ifdef FB_SONARKIT_ENABLED
+  FlipperClient *client = [FlipperClient sharedClient];
+  [client addPlugin:[FlipperPerformancePlugin new]];
+#endif
   
   RCTAppSetupPrepareApp(application);
   RCTBridge *bridge = [[RCTBridge alloc] initWithDelegate:self
