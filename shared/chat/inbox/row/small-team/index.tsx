@@ -9,6 +9,7 @@ import * as RowSizes from '../sizes'
 import type * as ChatTypes from '../../../../constants/types/chat2'
 import SwipeConvActions from './swipe-conv-actions'
 import type * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
+import './small-team.css'
 
 export type Props = {
   backgroundColor?: string
@@ -45,38 +46,16 @@ export type Props = {
 }
 
 type State = {
-  isHovered: boolean
   showMenu: boolean
 }
 
-const SmallTeamBox = Styles.isMobile
-  ? Kb.ClickableBox
-  : Styles.styled(Kb.Box)(() => ({
-      '& .conversation-gear': {display: 'none'},
-      ':hover .conversation-gear': {display: 'unset'},
-      ':hover .conversation-timestamp': {display: 'none'},
-    }))
-
 class SmallTeam extends React.PureComponent<Props, State> {
   state = {
-    isHovered: false,
     showMenu: false,
   }
 
-  _onMouseLeave = () => this.setState({isHovered: false})
-  _onMouseOver = () => this.setState({isHovered: true})
   _onForceShowMenu = () => this.setState({showMenu: true})
   _onForceHideMenu = () => this.setState({showMenu: false})
-
-  _backgroundColor = () =>
-    // props.backgroundColor should always override hover styles, otherwise, there's a
-    // moment when the conversation is loading that the selected inbox row is styled
-    // with hover styles instead of props.backgroundColor.
-    this.props.isSelected
-      ? this.props.backgroundColor
-      : this.state.isHovered
-      ? Styles.globalColors.blueGreyDark
-      : this.props.backgroundColor
 
   private onMuteConversation = () => {
     this.props.onMuteConversation(!this.props.isMuted)
@@ -88,8 +67,6 @@ class SmallTeam extends React.PureComponent<Props, State> {
       onClick: props.onSelectConversation,
       // its invalid to use onLongPress with no onClick
       ...(Styles.isMobile ? {onLongPress: props.onSelectConversation && this._onForceShowMenu} : {}),
-      onMouseLeave: this._onMouseLeave,
-      onMouseOver: this._onMouseOver,
     }
     return (
       <SwipeConvActions
@@ -97,9 +74,10 @@ class SmallTeam extends React.PureComponent<Props, State> {
         onHideConversation={this.props.onHideConversation}
         onMuteConversation={this.onMuteConversation}
       >
-        <SmallTeamBox
+        <Kb.ClickableBox
+          className={Styles.classNames('small-row', {selected: props.isSelected})}
           {...clickProps}
-          style={Styles.collapseStyles([{backgroundColor: this._backgroundColor()}, styles.container])}
+          style={styles.container}
         >
           <Kb.Box style={Styles.collapseStyles([styles.rowContainer, styles.fastBlank] as const)}>
             {props.teamname ? (
@@ -107,12 +85,11 @@ class SmallTeam extends React.PureComponent<Props, State> {
                 teamname={props.teamname}
                 isMuted={props.isMuted}
                 isSelected={this.props.isSelected}
-                isHovered={this.state.isHovered}
+                isHovered={false}
               />
             ) : (
               <Avatars
-                backgroundColor={this._backgroundColor()}
-                isHovered={this.state.isHovered}
+                backgroundColor={props.backgroundColor}
                 isMuted={props.isMuted}
                 isLocked={props.youNeedToRekey || props.participantNeedToRekey || props.isFinalized}
                 isSelected={props.isSelected}
@@ -174,7 +151,7 @@ class SmallTeam extends React.PureComponent<Props, State> {
               )}
             </Kb.Box>
           </Kb.Box>
-        </SmallTeamBox>
+        </Kb.ClickableBox>
       </SwipeConvActions>
     )
   }

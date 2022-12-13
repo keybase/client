@@ -1,0 +1,28 @@
+.small-row {
+  background-color: #f2f4f7;
+}
+.darkMode .small-row {
+  background-color: #202020;
+}
+.small-row:hover {
+  background-color: #e0e8f6;
+}
+.darkMode .small-row:hover {
+  background-color: rgba(24, 45, 110, 0.5);
+}
+.small-row.selected,
+.darkMode .small-row.selected {
+  background-color: #4c8eff;
+}
+.small-row .conversation-gear {
+  display: none;
+}
+.small-row:hover .conversation-gear {
+  display: flex;
+}
+.small-row:hover .conversation-timestamp {
+  display: flex;
+}
+.small-row:hover .conversation-timestamp {
+  display: none;
+}

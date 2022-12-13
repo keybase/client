@@ -187,67 +187,74 @@ const makeTabStack = (tab: string) => {
   return Comp
 }
 
-const AppTabsInner = () => {
-  const dispatch = Container.useDispatch()
-
-  // so we have a stack per tab
-  const tabStacks = useMemo(
-    () =>
-      tabs.map(tab => (
-        <Tab.Screen
-          key={tab}
-          name={tab}
-          component={makeTabStack(tab)}
-          listeners={() => ({
-            tabLongPress: () => {
-              dispatch(RouteTreeGen.createTabLongPress({tab}))
-            },
-          })}
-        />
-      )),
-    [dispatch]
-  )
-
-  return (
-    <Tab.Navigator
-      backBehavior="none"
-      screenOptions={({route}) => {
-        return {
-          ...Common.defaultNavigationOptions,
-          headerShown: false,
-          tabBarActiveBackgroundColor: Styles.globalColors.transparent,
-          tabBarHideOnKeyboard: true,
-          tabBarIcon: ({focused}) => <TabBarIcon isFocused={focused} routeName={route.name as Tabs.Tab} />,
-          tabBarInactiveBackgroundColor: Styles.globalColors.transparent,
-          tabBarLabel: ({focused}) => (
-            <Kb.Text
-              style={Styles.collapseStyles([
-                styles.label,
-                Styles.isDarkMode()
-                  ? focused
-                    ? styles.labelDarkModeFocused
-                    : styles.labelDarkMode
-                  : focused
-                  ? styles.labelLightModeFocused
-                  : styles.labelLightMode,
-              ])}
-              type="BodyBig"
-            >
-              {tabToData[route.name].label}
-            </Kb.Text>
-          ),
-          tabBarShowLabel: Styles.isTablet,
-          tabBarStyle: Common.tabBarStyle,
-        }
-      }}
-    >
-      {tabStacks}
-    </Tab.Navigator>
-  )
-}
-
 const AppTabs = React.memo(
-  AppTabsInner,
+  function AppTabs() {
+    const dispatch = Container.useDispatch()
+
+    // so we have a stack per tab
+    const tabStacks = useMemo(
+      () =>
+        tabs.map(tab => (
+          <Tab.Screen
+            key={tab}
+            name={tab}
+            component={makeTabStack(tab)}
+            listeners={() => ({
+              tabLongPress: () => {
+                dispatch(RouteTreeGen.createTabLongPress({tab}))
+              },
+            })}
+          />
+        )),
+      [dispatch]
+    )
+
+    const makeTabBarIcon =
+      (routeName: string) =>
+      ({focused}) =>
+        <TabBarIcon isFocused={focused} routeName={routeName as Tabs.Tab} />
+    const makeTabBarLabel =
+      (routeName: string) =>
+      ({focused}) =>
+        (
+          <Kb.Text
+            style={Styles.collapseStyles([
+              styles.label,
+              Styles.isDarkMode()
+                ? focused
+                  ? styles.labelDarkModeFocused
+                  : styles.labelDarkMode
+                : focused
+                ? styles.labelLightModeFocused
+                : styles.labelLightMode,
+            ])}
+            type="BodyBig"
+          >
+            {tabToData[routeName].label}
+          </Kb.Text>
+        )
+
+    return (
+      <Tab.Navigator
+        backBehavior="none"
+        screenOptions={({route}) => {
+          return {
+            ...Common.defaultNavigationOptions,
+            headerShown: false,
+            tabBarActiveBackgroundColor: Styles.globalColors.transparent,
+            tabBarHideOnKeyboard: true,
+            tabBarIcon: makeTabBarIcon(route.name),
+            tabBarInactiveBackgroundColor: Styles.globalColors.transparent,
+            tabBarLabel: makeTabBarLabel(route.name),
+            tabBarShowLabel: Styles.isTablet,
+            tabBarStyle: Common.tabBarStyle,
+          }
+        }}
+      >
+        {tabStacks}
+      </Tab.Navigator>
+    )
+  },
   () => true // ignore all props
 )
 
@@ -255,12 +262,7 @@ const LoggedOutStack = createStackNavigator()
 const LoggedOutScreens = makeNavScreens(Shim.shim(loggedOutRoutes, false, true), LoggedOutStack.Screen, false)
 const LoggedOut = React.memo(function LoggedOut() {
   return (
-    <LoggedOutStack.Navigator
-      initialRouteName="login"
-      screenOptions={{
-        headerShown: false,
-      }}
-    >
+    <LoggedOutStack.Navigator initialRouteName="login" screenOptions={{headerShown: false}}>
       {LoggedOutScreens}
     </LoggedOutStack.Navigator>
   )
