@@ -525,14 +525,12 @@ const useSyncClosing = (
 ) => {
   const [hasSwiped, setHasSwiped] = React.useState(false)
   const closeSelf = React.useCallback(() => {
-    console.log('aaa closeSelf')
     swipeCloseRef?.current?.()
     if (swipeCloseRef) {
       swipeCloseRef.current = null
     }
   }, [swipeCloseRef])
   const closeOthersAndRegisterClose = React.useCallback(() => {
-    console.log('aaa closeOthersAndRegisterClose ')
     setHasSwiped(true)
     swipeCloseRef?.current?.()
     if (swipeCloseRef) {
