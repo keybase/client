@@ -1,14 +1,7 @@
+import {SwipeTrigger} from '../../../../../common-adapters/swipeable.native'
 import * as React from 'react'
 import * as Kb from '../../../../../common-adapters/mobile.native'
 import * as Styles from '../../../../../styles'
-
-const _renderRightActions = () => {
-  return (
-    <Kb.Box2 direction="horizontal">
-      <Kb.Icon type="iconfont-reply" style={styles.replyIcon} />
-    </Kb.Box2>
-  )
-}
 
 const Inner = React.memo(function Inner(p: any) {
   const {children, ...rest} = p
@@ -26,27 +19,22 @@ const Inner = React.memo(function Inner(p: any) {
 // See './index.d.ts' for explanation
 const LongPressable = (props: {children: React.ElementType; onSwipeLeft?: () => void}) => {
   const {onSwipeLeft, ...rest} = props
-  const swipeable = React.useRef<Kb.Swipeable>(null)
-  const onRightOpen = React.useCallback(() => {
-    onSwipeLeft?.()
-    swipeable.current?.close()
-  }, [onSwipeLeft])
 
   const inner = <Inner {...rest} />
   // Only swipeable if there is an onSwipeLeft handler.
-  if (props.onSwipeLeft) {
+  if (onSwipeLeft) {
     return (
-      <Kb.Swipeable
-        ref={swipeable}
-        renderRightActions={_renderRightActions}
-        onSwipeableRightWillOpen={onRightOpen}
-        friction={2}
-        rightThreshold={100}
-        // @ts-ignore failOffsetX exists in GestureHandler but not swipable
-        failOffsetX={0}
+      <SwipeTrigger
+        actionWidth={100}
+        onSwiped={onSwipeLeft}
+        action={
+          <Kb.Box2 direction="vertical" style={styles.reply}>
+            <Kb.Icon type="iconfont-reply" style={styles.replyIcon} />
+          </Kb.Box2>
+        }
       >
         {inner}
-      </Kb.Swipeable>
+      </SwipeTrigger>
     )
   } else {
     return inner
@@ -56,9 +44,11 @@ const LongPressable = (props: {children: React.ElementType; onSwipeLeft?: () => 
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      replyIcon: {
-        paddingRight: Styles.globalMargins.small,
+      reply: {
+        alignSelf: 'flex-end',
+        justifyContent: 'flex-end',
       },
+      replyIcon: {paddingRight: Styles.globalMargins.small},
       view: {
         ...Styles.globalStyles.flexBoxColumn,
         position: 'relative',
