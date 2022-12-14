@@ -514,6 +514,7 @@ export const Swipeable2 = React.memo(function Swipeable2(p: {
   const dx = Reanimated.useSharedValue(0)
   const openSync = Reanimated.useSharedValue(false)
   const [actionsEnabled, setActionsEnabled] = React.useState(false)
+  const [hasSwiped, setHasSwiped] = React.useState(false)
 
   Reanimated.useAnimatedReaction(
     () => -tx.value > actionWidth * 0.8,
@@ -535,6 +536,7 @@ export const Swipeable2 = React.memo(function Swipeable2(p: {
     }
   }, [swipeCloseRef])
   const closeOthersAndRegisterClose = React.useCallback(() => {
+    setHasSwiped(true)
     swipeCloseRef?.current?.()
     if (swipeCloseRef) {
       swipeCloseRef.current = () => {
@@ -570,7 +572,9 @@ export const Swipeable2 = React.memo(function Swipeable2(p: {
       })
     })
 
-  console.log('aaa acitonenabled', actionsEnabled)
+  const actions = React.useMemo(() => {
+    return hasSwiped ? makeActions(tx) : null
+  }, [makeActions, hasSwiped])
 
   return (
     <GestureDetector gesture={gesture}>
@@ -579,7 +583,7 @@ export const Swipeable2 = React.memo(function Swipeable2(p: {
           style={[styles.actionContainer, actionStyle]}
           pointerEvents={actionsEnabled ? undefined : 'none'}
         >
-          {makeActions(tx)}
+          {actions}
         </Reanimated.default.View>
         <Reanimated.default.View style={[styles.rowContainer, rowStyle]}>
           <Pressable
