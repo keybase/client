@@ -5,6 +5,7 @@ export type Props = {
   isMuted: boolean
   onHideConversation: () => void
   onMuteConversation: () => void
+  swipeCloseRef?: React.MutableRefObject<(() => void) | null>
 }
 
 declare class SwipeConvActions extends React.Component<Props> {}

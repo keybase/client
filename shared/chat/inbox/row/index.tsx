@@ -8,7 +8,11 @@ import {Box} from '../../../common-adapters'
 import {globalStyles, globalMargins, isMobile} from '../../../styles'
 import type * as Types from '../../../constants/types/chat2'
 
-const makeRow = (item: Types.ChatInboxRowItem, navKey: string) => {
+const makeRow = (
+  item: Types.ChatInboxRowItem,
+  navKey: string,
+  swipeCloseRef?: React.MutableRefObject<(() => void) | null>
+) => {
   if (item.type === 'bigTeamsLabel') {
     return (
       <Box style={_bigTeamLabelStyle} key="bigTeamsLabel">
@@ -43,6 +47,7 @@ const makeRow = (item: Types.ChatInboxRowItem, navKey: string) => {
           time={item.time || 0}
           snippet={item.snippet}
           snippetDecoration={item.snippetDecoration}
+          swipeCloseRef={swipeCloseRef}
         />
       )
   }

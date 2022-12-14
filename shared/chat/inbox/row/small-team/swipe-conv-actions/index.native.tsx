@@ -1,94 +1,66 @@
 import * as React from 'react'
 import * as Kb from '../../../../../common-adapters/mobile.native'
+import {Swipeable2} from '../../../../../common-adapters/swipeable.native'
 import * as Styles from '../../../../../styles'
 import {RectButton} from 'react-native-gesture-handler'
+import * as Reanimated from 'react-native-reanimated'
 import type {Props} from '.'
-
-let openSwipeRef: React.RefObject<Kb.Swipeable> | undefined
 
 const Action = (p: {
   text: string
+  mult: number
   color: Styles.Color
   iconType: Kb.IconType
-  x: number
   onClick: () => void
-  progress: Kb.NativeAnimated.AnimatedInterpolation
+  progress: Reanimated.SharedValue<number>
 }) => {
-  const {text, color, iconType, x, onClick, progress} = p
-  const trans = progress.interpolate({
-    inputRange: [0, 1],
-    outputRange: [x, 0],
-  })
+  const {text, color, iconType, onClick, progress, mult} = p
+  const as = Reanimated.useAnimatedStyle(() => ({
+    transform: [{translateX: -mult * progress.value}],
+  }))
+
   return (
-    <Kb.NativeAnimated.View style={{flex: 1, transform: [{translateX: trans}]}}>
+    <Reanimated.default.View style={[styles.action, as]}>
       <RectButton style={[styles.rightAction, {backgroundColor: color as string}]} onPress={onClick}>
         <Kb.Icon type={iconType} color={Styles.globalColors.white} />
         <Kb.Text type="BodySmall" style={styles.actionText}>
           {text}
         </Kb.Text>
       </RectButton>
-    </Kb.NativeAnimated.View>
+    </Reanimated.default.View>
   )
 }
 
 const SwipeConvActions = (props: Props) => {
-  const swipeRef = React.useRef<Kb.Swipeable>(null)
-  const {children, isMuted, onMuteConversation, onHideConversation} = props
-
-  const onCleanRef = React.useCallback(() => {
-    // we're unmounting, so lets not hold the ref
-    if (swipeRef === openSwipeRef) {
-      openSwipeRef = undefined
-    }
-  }, [swipeRef])
-
-  const onClose = React.useCallback(() => {
-    swipeRef.current?.close()
-    onCleanRef()
-  }, [swipeRef, onCleanRef])
+  const {children, isMuted, onMuteConversation, onHideConversation, swipeCloseRef} = props
 
   const onMute = React.useCallback(() => {
     onMuteConversation()
-    onClose()
-  }, [onClose, onMuteConversation])
+    swipeCloseRef?.current?.()
+  }, [swipeCloseRef, onMuteConversation])
 
   const onHide = React.useCallback(() => {
     onHideConversation()
-    onClose()
-  }, [onClose, onHideConversation])
+    swipeCloseRef?.current?.()
+  }, [swipeCloseRef, onHideConversation])
 
-  const onWillOpen = React.useCallback(() => {
-    // close others
-    if (openSwipeRef !== swipeRef) {
-      openSwipeRef?.current?.close()
-      openSwipeRef = swipeRef
-    }
-  }, [swipeRef])
-
-  React.useEffect(() => {
-    return () => {
-      onCleanRef()
-    }
-    // eslint-disable-next-line
-  }, []) // only run on unmount
-
-  const renderRightActions = React.useCallback(
-    (progress: Kb.NativeAnimated.AnimatedInterpolation) => (
+  const makeActions = React.useCallback(
+    (progress: Reanimated.SharedValue<number>) => (
       <Kb.NativeView style={styles.container}>
         <Action
           text={isMuted ? 'Unmute' : 'Mute'}
           color={Styles.globalColors.orange}
           iconType="iconfont-shh"
-          x={128}
           onClick={onMute}
+          mult={0}
           progress={progress}
         />
         <Action
           text="Hide"
           color={Styles.globalColors.greyDarker}
           iconType="iconfont-hide"
-          x={64}
           onClick={onHide}
+          mult={0.5}
           progress={progress}
         />
       </Kb.NativeView>
@@ -97,35 +69,37 @@ const SwipeConvActions = (props: Props) => {
   )
 
   return (
-    <Kb.Swipeable
-      ref={swipeRef}
-      renderRightActions={renderRightActions}
-      onSwipeableWillOpen={onWillOpen}
-      friction={2}
-      leftThreshold={30}
-      rightThreshold={40}
-    >
+    <Swipeable2 actionWidth={128} swipeCloseRef={swipeCloseRef} makeActions={makeActions}>
       {children}
-    </Kb.Swipeable>
+    </Swipeable2>
   )
 }
 
 const styles = Styles.styleSheetCreate(
   () =>
     ({
+      action: {
+        height: '100%',
+        left: 0,
+        position: 'absolute',
+        top: 0,
+        width: 64,
+      },
       actionText: {
         backgroundColor: 'transparent',
         color: Styles.globalColors.white,
       },
       container: {
+        display: 'flex',
         flexDirection: 'row',
+        height: '100%',
         width: 128,
       },
       rightAction: {
         alignItems: 'center',
-        flex: 1,
+        height: '100%',
         justifyContent: 'center',
-        width: 65, // set to one pixel larger to stop a visual blinking artifact
+        width: '100%',
       },
     } as const)
 )

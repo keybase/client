@@ -369,6 +369,9 @@ module.exports = {
     return require('./swipeable.native').default
     // return require('react-native-gesture-handler/Swipeable').default
   },
+  get Swipeable2() {
+    return require('./swipeable.native').Swipeable2
+  },
   get Switch() {
     return Index.Switch
   },

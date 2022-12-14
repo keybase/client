@@ -5,7 +5,16 @@
 
 import * as React from 'react'
 import {Component} from 'react'
-import {Animated, StyleSheet, View, I18nManager, LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native'
+import {
+  Animated,
+  StyleSheet,
+  View,
+  I18nManager,
+  LayoutChangeEvent,
+  StyleProp,
+  ViewStyle,
+  Pressable,
+} from 'react-native'
 
 import {
   GestureEvent,
@@ -16,7 +25,12 @@ import {
   TapGestureHandler,
   TapGestureHandlerEventPayload,
   State,
+  Gesture,
+  GestureUpdateEvent,
+  GestureDetector,
 } from 'react-native-gesture-handler'
+
+import * as Reanimated from 'react-native-reanimated'
 
 const DRAG_TOSS = 0.05
 
@@ -488,9 +502,113 @@ export default class Swipeable extends Component<SwipeableProps, SwipeableState>
   }
 }
 
+export const Swipeable2 = React.memo(function Swipeable2(p: {
+  children: React.ReactNode
+  actionWidth: number
+  makeActions: (progress: Reanimated.SharedValue<number>) => React.ReactNode
+  swipeCloseRef?: React.MutableRefObject<(() => void) | null>
+}) {
+  const {children, actionWidth, makeActions, swipeCloseRef} = p
+  const tx = Reanimated.useSharedValue(0)
+  const startx = Reanimated.useSharedValue(0)
+  const dx = Reanimated.useSharedValue(0)
+  const openSync = Reanimated.useSharedValue(false)
+  const [actionsEnabled, setActionsEnabled] = React.useState(false)
+
+  Reanimated.useAnimatedReaction(
+    () => -tx.value > actionWidth * 0.8,
+    open => {
+      if (open !== openSync.value) {
+        openSync.value = open
+        Reanimated.runOnJS(setActionsEnabled)(open)
+      }
+    }
+  )
+
+  const rowStyle = Reanimated.useAnimatedStyle(() => ({transform: [{translateX: tx.value}]}))
+  const actionStyle = Reanimated.useAnimatedStyle(() => ({width: -tx.value}))
+
+  const closeSelf = React.useCallback(() => {
+    swipeCloseRef?.current?.()
+    if (swipeCloseRef) {
+      swipeCloseRef.current = null
+    }
+  }, [swipeCloseRef])
+  const closeOthersAndRegisterClose = React.useCallback(() => {
+    swipeCloseRef?.current?.()
+    if (swipeCloseRef) {
+      swipeCloseRef.current = () => {
+        tx.value = Reanimated.withSpring(0, {
+          stiffness: 100,
+          damping: 30,
+        })
+        swipeCloseRef.current = null
+      }
+    }
+  }, [swipeCloseRef])
+
+  const gesture = Gesture.Pan()
+    .activeOffsetX([-10, 10])
+    .minPointers(1)
+    .maxPointers(1)
+    .onStart(() => {
+      Reanimated.runOnJS(closeOthersAndRegisterClose)()
+    })
+    .onFinalize(() => {
+      const target = dx.value >= 0 ? 0 : -actionWidth
+      tx.value = Reanimated.withSpring(target, {
+        stiffness: 100,
+        damping: 30,
+      })
+      startx.value = target
+    })
+    .onUpdate((e: GestureUpdateEvent<PanGestureHandlerEventPayload>) => {
+      dx.value = e.velocityX
+      tx.value = Reanimated.withSpring(Math.min(0, Math.max(-actionWidth, e.translationX + startx.value)), {
+        stiffness: 100,
+        damping: 30,
+      })
+    })
+
+  console.log('aaa acitonenabled', actionsEnabled)
+
+  return (
+    <GestureDetector gesture={gesture}>
+      <View style={styles.container}>
+        <Reanimated.default.View
+          style={[styles.actionContainer, actionStyle]}
+          pointerEvents={actionsEnabled ? undefined : 'none'}
+        >
+          {makeActions(tx)}
+        </Reanimated.default.View>
+        <Reanimated.default.View style={[styles.rowContainer, rowStyle]}>
+          <Pressable
+            pointerEvents={actionsEnabled ? 'box-only' : undefined}
+            onPress={actionsEnabled ? closeSelf : undefined}
+          >
+            {children}
+          </Pressable>
+        </Reanimated.default.View>
+      </View>
+    </GestureDetector>
+  )
+})
+
 const styles = StyleSheet.create({
   container: {
     overflow: 'hidden',
+    position: 'relative',
+    width: '100%',
+    flexDirection: 'column',
+  },
+  rowContainer: {
+    width: '100%',
+  },
+  actionContainer: {
+    position: 'absolute',
+    alignSelf: 'flex-end',
+    overflow: 'hidden',
+    height: '100%',
   },
   leftActions: {
     ...StyleSheet.absoluteFillObject,
