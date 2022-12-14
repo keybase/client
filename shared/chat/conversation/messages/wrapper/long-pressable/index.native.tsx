@@ -3,9 +3,14 @@ import * as React from 'react'
 import * as Kb from '../../../../../common-adapters/mobile.native'
 import * as Styles from '../../../../../styles'
 
-const Inner = React.memo(function Inner(p: any) {
-  const {children, ...rest} = p
-  return (
+// See './index.d.ts' for explanation
+const LongPressable = React.memo(function LongPressable(props: {
+  children: React.ReactNode
+  onSwipeLeft?: () => void
+}) {
+  const {onSwipeLeft, children, ...rest} = props
+
+  const inner = (
     <Kb.NativeTouchableHighlight
       key="longPressable"
       underlayColor={Styles.globalColors.transparent}
@@ -14,32 +19,26 @@ const Inner = React.memo(function Inner(p: any) {
       <Kb.NativeView style={styles.view}>{children}</Kb.NativeView>
     </Kb.NativeTouchableHighlight>
   )
-})
 
-// See './index.d.ts' for explanation
-const LongPressable = (props: {children: React.ElementType; onSwipeLeft?: () => void}) => {
-  const {onSwipeLeft, ...rest} = props
+  const makeAction = React.useCallback(() => {
+    return (
+      <Kb.Box2 direction="vertical" style={styles.reply}>
+        <Kb.Icon type="iconfont-reply" style={styles.replyIcon} />
+      </Kb.Box2>
+    )
+  }, [])
 
-  const inner = <Inner {...rest} />
   // Only swipeable if there is an onSwipeLeft handler.
   if (onSwipeLeft) {
     return (
-      <SwipeTrigger
-        actionWidth={100}
-        onSwiped={onSwipeLeft}
-        action={
-          <Kb.Box2 direction="vertical" style={styles.reply}>
-            <Kb.Icon type="iconfont-reply" style={styles.replyIcon} />
-          </Kb.Box2>
-        }
-      >
+      <SwipeTrigger actionWidth={100} onSwiped={onSwipeLeft} makeAction={makeAction}>
         {inner}
       </SwipeTrigger>
     )
   } else {
     return inner
   }
-}
+})
 
 const styles = Styles.styleSheetCreate(
   () =>

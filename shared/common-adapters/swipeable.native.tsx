@@ -134,11 +134,15 @@ export const Swipeable2 = React.memo(function Swipeable2(p: {
 })
 
 const useGestureTrigger = (actionWidth: number, tx: Reanimated.SharedValue<number>, onSwiped: () => void) => {
+  const [hasSwiped, setHasSwiped] = React.useState(false)
   const called = Reanimated.useSharedValue(false)
   const gesture = Gesture.Pan()
     .activeOffsetX([-10, 10])
     .minPointers(1)
     .maxPointers(1)
+    .onStart(() => {
+      Reanimated.runOnJS(setHasSwiped)(true)
+    })
     .onFinalize((_e, success) => {
       if (success) {
         tx.value = Reanimated.withSpring(0, {stiffness: 100, damping: 30})
@@ -157,21 +161,24 @@ const useGestureTrigger = (actionWidth: number, tx: Reanimated.SharedValue<numbe
         Reanimated.runOnJS(onSwiped)()
       }
     })
-  return gesture
+  return {gesture, hasSwiped}
 }
 
 // A row swipe container. Shows an action which triggers on a full swipe
 export const SwipeTrigger = React.memo(function (p: {
   children: React.ReactNode
   actionWidth: number
-  action: React.ReactNode
+  makeAction: () => React.ReactNode
   onSwiped: () => void
 }) {
-  const {children, actionWidth, action, onSwiped} = p
+  const {children, actionWidth, makeAction, onSwiped} = p
   const tx = Reanimated.useSharedValue(0)
   const rowStyle = Reanimated.useAnimatedStyle(() => ({transform: [{translateX: tx.value}]}))
   const actionStyle = Reanimated.useAnimatedStyle(() => ({width: -tx.value}))
-  const gesture = useGestureTrigger(actionWidth, tx, onSwiped)
+  const {gesture, hasSwiped} = useGestureTrigger(actionWidth, tx, onSwiped)
+  const action = React.useMemo(() => {
+    return hasSwiped ? makeAction() : null
+  }, [makeAction, hasSwiped])
 
   return (
     <GestureDetector gesture={gesture}>
