@@ -11,13 +11,9 @@ const LongPressable = React.memo(function LongPressable(props: {
   const {onSwipeLeft, children, ...rest} = props
 
   const inner = (
-    <Kb.NativeTouchableHighlight
-      key="longPressable"
-      underlayColor={Styles.globalColors.transparent}
-      {...rest}
-    >
+    <Kb.NativePressable key="longPressable" {...rest}>
       <Kb.NativeView style={styles.view}>{children}</Kb.NativeView>
-    </Kb.NativeTouchableHighlight>
+    </Kb.NativePressable>
   )
 
   const makeAction = React.useCallback(() => {

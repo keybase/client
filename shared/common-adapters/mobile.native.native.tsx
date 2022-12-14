@@ -236,6 +236,9 @@ module.exports = {
   get NativePicker() {
     return NativeWrappers.NativePicker
   },
+  get NativePressable() {
+    return NativeWrappers.NativePressable
+  },
   get NativeRefreshControl() {
     return NativeWrappers.NativeRefreshControl
   },
