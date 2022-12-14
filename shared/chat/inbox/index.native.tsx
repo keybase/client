@@ -67,6 +67,12 @@ class Inbox extends React.PureComponent<T.Props, State> {
 
   state = {showFloating: false, showUnread: false, unreadCount: 0}
 
+  componentWillUnmount(): void {
+    this.swipeCloseRef.current?.()
+    // @ts-ignore
+    this.swipeCloseRef.current = null
+  }
+
   componentDidUpdate(prevProps: T.Props) {
     if (
       !shallowEqual(prevProps.unreadIndices, this.props.unreadIndices) ||

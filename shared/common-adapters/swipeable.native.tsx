@@ -502,20 +502,10 @@ export default class Swipeable extends Component<SwipeableProps, SwipeableState>
   }
 }
 
-export const Swipeable2 = React.memo(function Swipeable2(p: {
-  children: React.ReactNode
-  actionWidth: number
-  makeActions: (progress: Reanimated.SharedValue<number>) => React.ReactNode
-  swipeCloseRef?: React.MutableRefObject<(() => void) | null>
-}) {
-  const {children, actionWidth, makeActions, swipeCloseRef} = p
-  const tx = Reanimated.useSharedValue(0)
-  const startx = Reanimated.useSharedValue(0)
-  const dx = Reanimated.useSharedValue(0)
+// to be extra careful about closing over extra variables, we try and limit sharing any parent scopes
+const useActionsEnabled = (actionWidth: number, tx: Reanimated.SharedValue<number>) => {
   const openSync = Reanimated.useSharedValue(false)
   const [actionsEnabled, setActionsEnabled] = React.useState(false)
-  const [hasSwiped, setHasSwiped] = React.useState(false)
-
   Reanimated.useAnimatedReaction(
     () => -tx.value > actionWidth * 0.8,
     open => {
@@ -526,16 +516,23 @@ export const Swipeable2 = React.memo(function Swipeable2(p: {
     }
   )
 
-  const rowStyle = Reanimated.useAnimatedStyle(() => ({transform: [{translateX: tx.value}]}))
-  const actionStyle = Reanimated.useAnimatedStyle(() => ({width: -tx.value}))
+  return {actionsEnabled}
+}
 
+const useSyncClosing = (
+  tx: Reanimated.SharedValue<number>,
+  swipeCloseRef?: React.MutableRefObject<(() => void) | null>
+) => {
+  const [hasSwiped, setHasSwiped] = React.useState(false)
   const closeSelf = React.useCallback(() => {
+    console.log('aaa closeSelf')
     swipeCloseRef?.current?.()
     if (swipeCloseRef) {
       swipeCloseRef.current = null
     }
   }, [swipeCloseRef])
   const closeOthersAndRegisterClose = React.useCallback(() => {
+    console.log('aaa closeOthersAndRegisterClose ')
     setHasSwiped(true)
     swipeCloseRef?.current?.()
     if (swipeCloseRef) {
@@ -549,6 +546,18 @@ export const Swipeable2 = React.memo(function Swipeable2(p: {
     }
   }, [swipeCloseRef])
 
+  return {closeSelf, closeOthersAndRegisterClose, hasSwiped}
+}
+
+const useGesture = (
+  actionWidth: number,
+  tx: Reanimated.SharedValue<number>,
+  closeOthersAndRegisterClose: () => void,
+  closeSelf: () => void
+) => {
+  const startx = Reanimated.useSharedValue(0)
+  const dx = Reanimated.useSharedValue(0)
+
   const gesture = Gesture.Pan()
     .activeOffsetX([-10, 10])
     .minPointers(1)
@@ -556,13 +565,18 @@ export const Swipeable2 = React.memo(function Swipeable2(p: {
     .onStart(() => {
       Reanimated.runOnJS(closeOthersAndRegisterClose)()
     })
-    .onFinalize(() => {
-      const target = dx.value >= 0 ? 0 : -actionWidth
-      tx.value = Reanimated.withSpring(target, {
-        stiffness: 100,
-        damping: 30,
-      })
-      startx.value = target
+    .onFinalize((_e, success) => {
+      const closing = dx.value >= 0
+      if (!success || closing) {
+        startx.value = 0
+        Reanimated.runOnJS(closeSelf)()
+      } else {
+        tx.value = Reanimated.withSpring(-actionWidth, {
+          stiffness: 100,
+          damping: 30,
+        })
+        startx.value = -actionWidth
+      }
     })
     .onUpdate((e: GestureUpdateEvent<PanGestureHandlerEventPayload>) => {
       dx.value = e.velocityX
@@ -571,7 +585,22 @@ export const Swipeable2 = React.memo(function Swipeable2(p: {
         damping: 30,
       })
     })
+  return gesture
+}
 
+export const Swipeable2 = React.memo(function Swipeable2(p: {
+  children: React.ReactNode
+  actionWidth: number
+  makeActions: (progress: Reanimated.SharedValue<number>) => React.ReactNode
+  swipeCloseRef?: React.MutableRefObject<(() => void) | null>
+}) {
+  const {children, actionWidth, makeActions, swipeCloseRef} = p
+  const tx = Reanimated.useSharedValue(0)
+  const {actionsEnabled} = useActionsEnabled(actionWidth, tx)
+  const rowStyle = Reanimated.useAnimatedStyle(() => ({transform: [{translateX: tx.value}]}))
+  const actionStyle = Reanimated.useAnimatedStyle(() => ({width: -tx.value}))
+  const {closeSelf, closeOthersAndRegisterClose, hasSwiped} = useSyncClosing(tx, swipeCloseRef)
+  const gesture = useGesture(actionWidth, tx, closeOthersAndRegisterClose, closeSelf)
   const actions = React.useMemo(() => {
     return hasSwiped ? makeActions(tx) : null
   }, [makeActions, hasSwiped])
