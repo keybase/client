@@ -1,0 +1,19 @@
+diff --git a/node_modules/react-native-reanimated/Common/cpp/NativeModules/NativeReanimatedModule.cpp b/node_modules/react-native-reanimated/Common/cpp/NativeModules/NativeReanimatedModule.cpp
+index b9a31a8..c99bc23 100644
+--- a/node_modules/react-native-reanimated/Common/cpp/NativeModules/NativeReanimatedModule.cpp
++++ b/node_modules/react-native-reanimated/Common/cpp/NativeModules/NativeReanimatedModule.cpp
+@@ -206,12 +206,12 @@ void NativeReanimatedModule::scheduleOnUI(
+       shareableWorklet->valueType() == Shareable::WorkletType &&
+       "only worklets can be scheduled to run on UI");
+   auto uiRuntime = runtimeHelper->uiRuntime();
+-  frameCallbacks.push_back([=](double timestamp) {
++  scheduler->scheduleOnUI([=] {
+     jsi::Runtime &rt = *uiRuntime;
+     auto workletValue = shareableWorklet->getJSValue(rt);
+     workletValue.asObject(rt).asFunction(rt).call(rt);
+   });
+-  maybeRequestRender();
++  //maybeRequestRender();
+ }
+ 
+ jsi::Value NativeReanimatedModule::makeSynchronizedDataHolder(

@@ -1,10 +1,14 @@
-import {NativeTouchableHighlight} from '../../../../../common-adapters/mobile.native'
-
-/**
- * This exists so we can attach onLongPress on native without having to do a
- * more major layout split. '.native' exports NativeTouchableHighlight while
- * '.desktop. exports Box. Note that NativeTouchableHighlight only supports one
- * child so multiple children will need to be wrapped.
- */
-
-export default NativeTouchableHighlight
+import * as React from 'react'
+import * as Styles from '../../../../../styles'
+export default class LongPressable extends React.Component<{
+  children: React.ReactNode
+  // mobile
+  onLongPress?: () => void
+  onPress?: () => void
+  onSwipeLeft?: () => void
+  style?: Styles.StylesCrossPlatform
+  // desktop
+  className?: string
+  onContextMenu?: () => void
+  onMouseOver?: () => void
+}> {}

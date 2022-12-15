@@ -43,6 +43,7 @@ export type Props = {
   youAreReset: boolean
   youNeedToRekey: boolean
   isInWidget?: boolean
+  swipeCloseRef?: React.MutableRefObject<(() => void) | null>
 }
 
 type State = {
@@ -73,6 +74,7 @@ class SmallTeam extends React.PureComponent<Props, State> {
         isMuted={this.props.isMuted}
         onHideConversation={this.props.onHideConversation}
         onMuteConversation={this.onMuteConversation}
+        swipeCloseRef={this.props.swipeCloseRef}
       >
         <Kb.ClickableBox
           className={Styles.classNames('small-row', {selected: props.isSelected})}
