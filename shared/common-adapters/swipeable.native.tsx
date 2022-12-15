@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {StyleSheet, View, Pressable} from 'react-native'
+import {StyleSheet, View, Pressable, Animated, PanResponder} from 'react-native'
 import {
   PanGestureHandlerEventPayload,
   Gesture,
@@ -189,6 +189,68 @@ export const SwipeTrigger = React.memo(function (p: {
         <Reanimated.default.View style={[styles.rowContainer, rowStyle]}>{children}</Reanimated.default.View>
       </View>
     </GestureDetector>
+  )
+})
+
+export const SwipeTriggerSimple = React.memo(function (p: {
+  children: React.ReactNode
+  actionWidth: number
+  makeAction: () => React.ReactNode
+  onSwiped: () => void
+}) {
+  const [hasSwiped, setHasSwiped] = React.useState(false)
+  const {children, makeAction, onSwiped} = p
+  const resetPosition = React.useCallback(() => {
+    Animated.timing(pan, {
+      toValue: {x: 0, y: 0},
+      duration: 200,
+      useNativeDriver: true,
+    }).start()
+  }, [])
+
+  const threshold = 10
+  const pan = React.useRef(new Animated.ValueXY()).current
+  const panResponder = React.useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => false,
+      onMoveShouldSetPanResponder: (_, gestureState) => -gestureState.dx > threshold,
+      onPanResponderGrant: () => {
+        pan.setOffset({x: 0, y: 0})
+        pan.setValue({x: 0, y: 0})
+        setHasSwiped(true)
+      },
+      onPanResponderMove: (_, gesture) => {
+        pan.setValue({x: gesture.dx, y: 0})
+      },
+      onPanResponderRelease: () => {
+        pan.flattenOffset()
+        onSwiped()
+        resetPosition()
+        setHasSwiped(false)
+      },
+      onPanResponderTerminate: () => {
+        Animated.spring(pan, {
+          toValue: {x: 0, y: 0},
+          useNativeDriver: true,
+        }).start()
+      },
+    })
+  ).current
+
+  const action = React.useMemo(() => {
+    return hasSwiped ? makeAction() : null
+  }, [makeAction, hasSwiped])
+
+  return (
+    <View style={styles.container}>
+      <Animated.View style={[styles.actionContainerTrigger]}>{action}</Animated.View>
+      <Animated.View
+        style={[styles.rowContainer, {transform: [{translateX: pan.x}]}]}
+        {...panResponder.panHandlers}
+      >
+        {children}
+      </Animated.View>
+    </View>
   )
 })
 
