@@ -16,6 +16,7 @@ type OwnProps = {
   snippet?: string
   snippetDecoration: RPCChatTypes.SnippetDecoration
   time: number
+  swipeCloseRef?: React.MutableRefObject<(() => void) | null>
 }
 
 export default Container.connect(
@@ -76,6 +77,7 @@ export default Container.connect(
       dispatch(Chat2Gen.createNavigateToThread({conversationIDKey, reason: 'inboxSmall'})),
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => {
+    const {swipeCloseRef} = ownProps
     const isSelected = stateProps.isSelected
     const hasUnread = stateProps.hasUnread
     const styles = Constants.getRowStyles(isSelected, hasUnread)
@@ -126,6 +128,7 @@ export default Container.connect(
       snippet: stateProps.snippet,
       snippetDecoration: stateProps.snippetDecoration,
       subColor: styles.subColor as AllowedColors,
+      swipeCloseRef,
       teamname,
       timestamp: formatTimeForConversationList(timestamp),
       usernameColor: styles.usernameColor,

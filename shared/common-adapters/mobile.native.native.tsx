@@ -236,6 +236,9 @@ module.exports = {
   get NativePicker() {
     return NativeWrappers.NativePicker
   },
+  get NativePressable() {
+    return NativeWrappers.NativePressable
+  },
   get NativeRefreshControl() {
     return NativeWrappers.NativeRefreshControl
   },
@@ -364,10 +367,6 @@ module.exports = {
   },
   get StandardScreen() {
     return Index.StandardScreen
-  },
-  get Swipeable() {
-    return require('./swipeable.native').default
-    // return require('react-native-gesture-handler/Swipeable').default
   },
   get Switch() {
     return Index.Switch

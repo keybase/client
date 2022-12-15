@@ -312,17 +312,22 @@ const useGetLongPress = (p: Shared) => {
   const onMouseOver = React.useCallback(() => setShowMenuButton(true), [setShowMenuButton])
 
   if (Styles.isMobile) {
+    let style = styles.longPressable
+    if (showCenteredHighlight) {
+      if (!showUsername) {
+        style = styles.longPressableHighlightNoUsername
+      } else {
+        style = styles.longPressableHighlight
+      }
+    } else if (!showUsername) {
+      style = styles.longPressableNoUsername
+    }
     return (
       <LongPressable
         onLongPress={decorate ? toggleShowingPopup : undefined}
         onPress={decorate ? dismissKeyboard : undefined}
-        // @ts-ignore bad types
         onSwipeLeft={decorate && canSwipeLeft ? onSwipeLeft : undefined}
-        style={Styles.collapseStyles([
-          styles.container,
-          showCenteredHighlight && styles.centeredOrdinal,
-          !showUsername && styles.containerNoUsername,
-        ] as const)}
+        style={style}
       >
         {children}
       </LongPressable>
@@ -330,7 +335,6 @@ const useGetLongPress = (p: Shared) => {
   }
   return (
     <LongPressable
-      // @ts-ignore bad types
       className={Styles.classNames(
         {
           'WrapperMessage-author': showUsername,
@@ -994,20 +998,6 @@ const styles = Styles.styleSheetCreate(
         },
         isMobile: {maxWidth: 120},
       }),
-      centeredOrdinal: {backgroundColor: Styles.globalColors.yellowOrYellowAlt},
-      container: Styles.platformStyles({isMobile: {overflow: 'hidden'}}),
-      containerNoUsername: Styles.platformStyles({
-        isMobile: {
-          paddingBottom: 3,
-          paddingLeft:
-            // Space for below the avatar
-            Styles.globalMargins.tiny + // right margin
-            Styles.globalMargins.tiny + // left margin
-            Styles.globalMargins.mediumLarge, // avatar
-          paddingRight: Styles.globalMargins.tiny,
-          paddingTop: 3,
-        },
-      }),
       contentUnderAuthorContainer: Styles.platformStyles({
         isElectron: {
           marginTop: -16,
@@ -1056,6 +1046,35 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       failUnderline: {color: Styles.globalColors.redDark, textDecorationLine: 'underline'},
+      longPressable: {overflow: 'hidden'},
+      longPressableHighlight: {
+        overflow: 'hidden',
+        backgroundColor: Styles.globalColors.yellowOrYellowAlt,
+      },
+      longPressableHighlightNoUsername: {
+        overflow: 'hidden',
+        backgroundColor: Styles.globalColors.yellowOrYellowAlt,
+        paddingBottom: 3,
+        paddingLeft:
+          // Space for below the avatar
+          Styles.globalMargins.tiny + // right margin
+          Styles.globalMargins.tiny + // left margin
+          Styles.globalMargins.mediumLarge, // avatar
+        paddingRight: Styles.globalMargins.tiny,
+        paddingTop: 3,
+      },
+      longPressableNoUsername: {
+        overflow: 'hidden',
+        paddingBottom: 3,
+        paddingLeft:
+          // Space for below the avatar
+          Styles.globalMargins.tiny + // right margin
+          Styles.globalMargins.tiny + // left margin
+          Styles.globalMargins.mediumLarge, // avatar
+        paddingRight: Styles.globalMargins.tiny,
+        paddingTop: 3,
+      },
+
       menuButtons: Styles.platformStyles({
         common: {
           alignSelf: 'flex-start',

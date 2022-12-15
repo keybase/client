@@ -54,6 +54,8 @@ type State = {
 }
 
 class Inbox extends React.PureComponent<T.Props, State> {
+  // used to close other rows
+  private swipeCloseRef = React.createRef<() => void>()
   private listRef = React.createRef<Kb.NativeFlatList<RowItem>>()
   // Help us calculate row heights and offsets quickly
   private dividerIndex: number = -1
@@ -64,6 +66,12 @@ class Inbox extends React.PureComponent<T.Props, State> {
   private lastVisibleIdx: number = -1
 
   state = {showFloating: false, showUnread: false, unreadCount: 0}
+
+  componentWillUnmount(): void {
+    this.swipeCloseRef.current?.()
+    // @ts-ignore
+    this.swipeCloseRef.current = null
+  }
 
   componentDidUpdate(prevProps: T.Props) {
     if (
@@ -94,7 +102,7 @@ class Inbox extends React.PureComponent<T.Props, State> {
     } else if (row.type === 'teamBuilder') {
       element = <BuildTeam />
     } else {
-      element = makeRow(row, this.props.navKey)
+      element = makeRow(row, this.props.navKey, this.swipeCloseRef)
     }
 
     if (virtualListMarks) {
