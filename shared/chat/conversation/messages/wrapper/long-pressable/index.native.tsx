@@ -1,4 +1,4 @@
-import {SwipeTrigger, SwipeTriggerSimple} from '../../../../../common-adapters/swipeable.native'
+import {SwipeTrigger} from '../../../../../common-adapters/swipeable.native'
 import * as React from 'react'
 import * as Kb from '../../../../../common-adapters/mobile.native'
 import * as Styles from '../../../../../styles'
@@ -27,9 +27,9 @@ const LongPressable = React.memo(function LongPressable(props: {
   // Only swipeable if there is an onSwipeLeft handler.
   if (onSwipeLeft) {
     return (
-      <SwipeTriggerSimple actionWidth={100} onSwiped={onSwipeLeft} makeAction={makeAction}>
+      <SwipeTrigger actionWidth={100} onSwiped={onSwipeLeft} makeAction={makeAction}>
         {inner}
-      </SwipeTriggerSimple>
+      </SwipeTrigger>
     )
   } else {
     return inner

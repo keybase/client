@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Kb from '../../../../../common-adapters/mobile.native'
-import {Swipeable2} from '../../../../../common-adapters/swipeable.native'
+import {Swipeable} from '../../../../../common-adapters/swipeable.native'
 import * as Styles from '../../../../../styles'
 import {RectButton} from 'react-native-gesture-handler'
 import * as Reanimated from 'react-native-reanimated'
@@ -69,9 +69,9 @@ const SwipeConvActions = (props: Props) => {
   )
 
   return (
-    <Swipeable2 actionWidth={128} swipeCloseRef={swipeCloseRef} makeActions={makeActions}>
+    <Swipeable actionWidth={128} swipeCloseRef={swipeCloseRef} makeActions={makeActions}>
       {children}
-    </Swipeable2>
+    </Swipeable>
   )
 }
 
