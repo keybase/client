@@ -335,7 +335,6 @@ const useGetLongPress = (p: Shared) => {
   }
   return (
     <LongPressable
-      // @ts-ignore bad types
       className={Styles.classNames(
         {
           'WrapperMessage-author': showUsername,
