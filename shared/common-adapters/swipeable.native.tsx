@@ -201,6 +201,7 @@ export const SwipeTriggerSimple = React.memo(function SwipeTriggerSimple(p: {
   const [hasSwiped, setHasSwiped] = React.useState(false)
   const {children, makeAction, onSwiped} = p
   const resetPosition = React.useCallback(() => {
+    setHasSwiped(false)
     Animated.timing(pan, {
       toValue: {x: 0, y: 0},
       duration: 200,
@@ -220,19 +221,15 @@ export const SwipeTriggerSimple = React.memo(function SwipeTriggerSimple(p: {
         setHasSwiped(true)
       },
       onPanResponderMove: (_, gesture) => {
-        pan.setValue({x: gesture.dx, y: 0})
+        pan.setValue({x: Math.min(gesture.dx, 0), y: 0})
       },
       onPanResponderRelease: () => {
         pan.flattenOffset()
         onSwiped()
         resetPosition()
-        setHasSwiped(false)
       },
       onPanResponderTerminate: () => {
-        Animated.spring(pan, {
-          toValue: {x: 0, y: 0},
-          useNativeDriver: true,
-        }).start()
+        resetPosition()
       },
     })
   ).current
