@@ -192,7 +192,7 @@ export const SwipeTrigger = React.memo(function (p: {
   )
 })
 
-export const SwipeTriggerSimple = React.memo(function (p: {
+export const SwipeTriggerSimple = React.memo(function SwipeTriggerSimple(p: {
   children: React.ReactNode
   actionWidth: number
   makeAction: () => React.ReactNode
@@ -208,7 +208,7 @@ export const SwipeTriggerSimple = React.memo(function (p: {
     }).start()
   }, [])
 
-  const threshold = 10
+  const threshold = 40
   const pan = React.useRef(new Animated.ValueXY()).current
   const panResponder = React.useRef(
     PanResponder.create({
