@@ -349,6 +349,30 @@ const checkNav = async (
   }
 }
 
+const maybePauseVideos = (_: unknown, action: ConfigGen.ChangedFocusPayload) => {
+  const {appFocused} = action.payload
+  const videos = document.querySelectorAll('video')
+  const allVideos = Array.from(videos)
+
+  allVideos.forEach(v => {
+    if (appFocused) {
+      if (v.hasAttribute('data-focus-paused')) {
+        if (v.paused) {
+          v.play()
+            .then(() => {})
+            .catch(() => {})
+        }
+      }
+    } else {
+      // only pause looping videos
+      if (!v.paused && v.hasAttribute('loop') && v.hasAttribute('autoplay')) {
+        v.setAttribute('data-focus-paused', 'true')
+        v.pause()
+      }
+    }
+  })
+}
+
 export const initPlatformListener = () => {
   Container.listenAction(ConfigGen.setOpenAtLogin, onSetOpenAtLogin)
   Container.listenAction(ConfigGen.setNotifySound, setNotifySound)
@@ -369,6 +393,7 @@ export const initPlatformListener = () => {
   Container.listenAction(ConfigGen.setUseNativeFrame, saveUseNativeFrame)
   Container.listenAction(ConfigGen.loggedIn, initOsNetworkStatus)
   Container.listenAction(ConfigGen.updateWindowState, saveWindowState)
+  Container.listenAction(ConfigGen.changedFocus, maybePauseVideos)
 
   if (isWindows) {
     Container.listenAction(ConfigGen.daemonHandshake, checkRPCOwnership)
