@@ -1048,12 +1048,12 @@ const styles = Styles.styleSheetCreate(
       failUnderline: {color: Styles.globalColors.redDark, textDecorationLine: 'underline'},
       longPressable: {overflow: 'hidden'},
       longPressableHighlight: {
-        overflow: 'hidden',
         backgroundColor: Styles.globalColors.yellowOrYellowAlt,
+        overflow: 'hidden',
       },
       longPressableHighlightNoUsername: {
-        overflow: 'hidden',
         backgroundColor: Styles.globalColors.yellowOrYellowAlt,
+        overflow: 'hidden',
         paddingBottom: 3,
         paddingLeft:
           // Space for below the avatar
