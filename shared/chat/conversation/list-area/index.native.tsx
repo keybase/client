@@ -113,7 +113,7 @@ const useScrolling = (p: {
   const {listRef, centeredOrdinal, messageOrdinals, conversationIDKey} = p
   const dispatch = Container.useDispatch()
   const lastLoadOrdinal = React.useRef<Types.Ordinal>(-1)
-  const oldestOrdinal = messageOrdinals[0] ?? -1
+  const oldestOrdinal = messageOrdinals[messageOrdinals.length - 1] ?? -1
   const loadOlderMessages = React.useCallback(() => {
     // already loaded and nothing has changed
     if (lastLoadOrdinal.current === oldestOrdinal) {
@@ -166,12 +166,16 @@ const useScrolling = (p: {
       if (typeof topRecord?.index !== 'number' || typeof bottomRecord?.index !== 'number') {
         return
       }
+
       // load more before we get to the top
       const triggerIndex = messageOrdinals.length - 10
       // we scroll back in time if the specialTop item is the last viewable, *unless* we are currently
       // attempting to scroll to a centered ordinal
       if (topRecord.index > triggerIndex) {
+        console.log('aaa load older messages')
         loadOlderMessages()
+      } else {
+        console.log('aaa NO load ', topRecord.index, triggerIndex)
       }
     },
     [loadOlderMessages, messageOrdinals]

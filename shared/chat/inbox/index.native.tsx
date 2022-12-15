@@ -206,8 +206,7 @@ class Inbox extends React.PureComponent<T.Props, State> {
     }
   }, 1000)
 
-  private getItemType = (_info: unknown, idx: number) => {
-    const item = this.props.rows[idx]
+  private getItemType = (item: RowItem) => {
     return item.type
   }
 
