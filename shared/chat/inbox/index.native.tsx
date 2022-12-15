@@ -1,6 +1,5 @@
 import * as Kb from '../../common-adapters/mobile.native'
 import * as React from 'react'
-import * as RowSizes from './row/sizes'
 import * as Styles from '../../styles'
 import type * as T from './index.d'
 import type * as Types from '../../constants/types/chat2'
@@ -16,9 +15,9 @@ import UnreadShortcut from './unread-shortcut'
 import debounce from 'lodash/debounce'
 import {makeRow} from './row'
 import {virtualListMarks} from '../../local-debug'
-import type {ViewToken, ListRenderItemInfo} from 'react-native'
+import type {ViewToken} from 'react-native'
 import shallowEqual from 'shallowequal'
-import noop from 'lodash/noop'
+import {FlashList, type ListRenderItemInfo} from '@shopify/flash-list'
 
 type RowItem = Types.ChatInboxRowItem
 
@@ -56,11 +55,7 @@ type State = {
 class Inbox extends React.PureComponent<T.Props, State> {
   // used to close other rows
   private swipeCloseRef = React.createRef<() => void>()
-  private listRef = React.createRef<Kb.NativeFlatList<RowItem>>()
-  // Help us calculate row heights and offsets quickly
-  private dividerIndex: number = -1
-  // 2 different sizes
-  private dividerShowButton: boolean = false
+  private listRef = React.createRef<FlashList<RowItem>>()
   // stash first offscreen index for callback
   private firstOffscreenIdx: number = -1
   private lastVisibleIdx: number = -1
@@ -92,7 +87,6 @@ class Inbox extends React.PureComponent<T.Props, State> {
     if (row.type === 'divider') {
       element = (
         <TeamsDivider
-          key="divider"
           showButton={row.showButton}
           toggle={this.props.toggleSmallTeamsExpanded}
           rows={this.props.rows}
@@ -212,44 +206,12 @@ class Inbox extends React.PureComponent<T.Props, State> {
     }
   }, 1000)
 
-  private getItemLayout = (data: null | Array<RowItem> | undefined, index: number) => {
-    // We cache the divider location so we can divide the list into small and large. We can calculate the small cause they're all
-    // the same height. We iterate over the big since that list is small and we don't know the number of channels easily
-    const smallHeight = RowSizes.smallRowHeight
-    if (index < this.dividerIndex || this.dividerIndex === -1) {
-      const offset = index ? smallHeight * index : 0
-      const length = smallHeight
-      return {index, length, offset}
-    }
-
-    const dividerHeight = RowSizes.dividerHeight(this.dividerShowButton)
-    if (index === this.dividerIndex) {
-      const offset = smallHeight * index
-      const length = dividerHeight
-      return {index, length, offset}
-    }
-
-    let offset = smallHeight * this.dividerIndex + dividerHeight
-    let i = this.dividerIndex + 1
-
-    for (; i < index; ++i) {
-      const h = data?.[i].type === 'big' ? RowSizes.bigRowHeight : RowSizes.bigHeaderHeight
-      offset += h
-    }
-    const length = data?.[i].type === 'big' ? RowSizes.bigRowHeight : RowSizes.bigHeaderHeight
-    return {index, length, offset}
+  private getItemType = (_info: unknown, idx: number) => {
+    const item = this.props.rows[idx]
+    return item.type
   }
 
   render() {
-    this.dividerShowButton = false
-    this.dividerIndex = this.props.rows.findIndex(r => {
-      if (r.type === 'divider') {
-        this.dividerShowButton = r.showButton
-        return true
-      }
-      return false
-    })
-
     const noChats = !this.props.neverLoaded && !this.props.isSearching && !this.props.rows.length && (
       <NoChats onNewChat={this.props.onNewChat} />
     )
@@ -265,18 +227,17 @@ class Inbox extends React.PureComponent<T.Props, State> {
               <InboxSearch header={HeadComponent} />
             </Kb.Box2>
           ) : (
-            <Kb.NativeFlatList
+            <FlashList
+              estimatedItemSize={64}
               overScrollMode="never"
               ListHeaderComponent={HeadComponent}
               data={this.props.rows}
               keyExtractor={this.keyExtractor}
+              getItemType={this.getItemType}
               renderItem={this.renderItem}
               ref={this.listRef}
               onViewableItemsChanged={this.onViewChanged}
-              windowSize={5}
               keyboardShouldPersistTaps="handled"
-              getItemLayout={this.getItemLayout}
-              onScrollToIndexFailed={noop}
             />
           )}
           {noChats}
@@ -321,7 +282,7 @@ const styles = Styles.styleSheetCreate(
         common: {
           ...Styles.globalStyles.flexBoxColumn,
           backgroundColor: Styles.globalColors.fastBlank,
-          flexShrink: 1,
+          flexGrow: 1,
           position: 'relative',
         },
         isTablet: {

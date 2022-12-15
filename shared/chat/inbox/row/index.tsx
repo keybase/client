@@ -15,20 +15,17 @@ const makeRow = (
 ) => {
   if (item.type === 'bigTeamsLabel') {
     return (
-      <Box style={_bigTeamLabelStyle} key="bigTeamsLabel">
+      <Box style={_bigTeamLabelStyle}>
         <BigTeamsLabel />
       </Box>
     )
   }
   switch (item.type) {
     case 'bigHeader':
-      return (
-        <BigTeamHeader key={item.teamname} teamname={item.teamname} teamID={item.teamID} navKey={navKey} />
-      )
+      return <BigTeamHeader teamname={item.teamname} teamID={item.teamID} navKey={navKey} />
     case 'big':
       return (
         <BigTeamChannel
-          key={item.conversationIDKey}
           conversationIDKey={item.conversationIDKey}
           channelname={item.channelname}
           selected={item.selected}
@@ -38,7 +35,6 @@ const makeRow = (
     case 'small':
       return (
         <SmallTeam
-          key={item.conversationIDKey}
           conversationIDKey={item.conversationIDKey}
           isTeam={item.isTeam}
           navKey={navKey}
