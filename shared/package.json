@@ -84,6 +84,7 @@
     "@react-navigation/native": "6.1.1",
     "@react-navigation/stack": "6.3.9",
     "@reduxjs/toolkit": "1.9.1",
+    "@shopify/flash-list": "1.4.0",
     "base64-js": "1.5.1",
     "buffer": "6.0.3",
     "classnames": "2.3.2",
