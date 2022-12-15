@@ -172,10 +172,7 @@ const useScrolling = (p: {
       // we scroll back in time if the specialTop item is the last viewable, *unless* we are currently
       // attempting to scroll to a centered ordinal
       if (topRecord.index > triggerIndex) {
-        console.log('aaa load older messages')
         loadOlderMessages()
-      } else {
-        console.log('aaa NO load ', topRecord.index, triggerIndex)
       }
     },
     [loadOlderMessages, messageOrdinals]
