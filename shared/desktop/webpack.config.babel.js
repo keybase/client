@@ -25,6 +25,14 @@ const config = (_, {mode}) => {
         plugins: [...(isHot && !nodeThread ? ['react-refresh/babel'] : [])],
         presets: [
           ['@babel/preset-env', {debug: false, modules: false, targets: {electron: '19.0.4'}}],
+          [
+            '@babel/preset-react',
+            {
+              runtime: 'automatic',
+              development: isDev,
+              importSource: '@welldone-software/why-did-you-render',
+            },
+          ],
           '@babel/preset-typescript',
         ],
       },

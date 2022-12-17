@@ -48,7 +48,14 @@ module.exports = function (api /*: any */) {
       ],
       presets: [
         isTest ? ['@babel/preset-env', {targets: {node: 'current'}}] : '@babel/preset-env',
-        '@babel/preset-react',
+        [
+          '@babel/preset-react',
+          {
+            runtime: 'automatic',
+            development: process.env.NODE_ENV === 'development',
+            importSource: '@welldone-software/why-did-you-render',
+          },
+        ],
         '@babel/preset-typescript',
       ],
     }
