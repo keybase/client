@@ -5,11 +5,7 @@ import type {ActionHandler as _ActionHandler} from './make-reducer'
 import type {TypedState as _TypedState} from '../constants/reducer'
 import {StatusCode} from '../constants/types/rpc-gen'
 import {anyWaiting, anyErrors} from '../constants/waiting'
-import {
-  // useSelector as RRuseSelector,
-  useDispatch as RRuseDispatch,
-  type TypedUseSelectorHook,
-} from 'react-redux'
+import {useDispatch as RRuseDispatch, type TypedUseSelectorHook} from 'react-redux'
 import type {Dispatch as RRDispatch} from 'redux'
 import flowRight from 'lodash/flowRight'
 import typedConnect from './typed-connect'
@@ -122,7 +118,6 @@ export {default as useRPC} from './use-rpc'
 export {default as useSafeCallback} from './use-safe-callback'
 export type RootState = _TypedState
 export const useDispatch = () => RRuseDispatch<RRDispatch<_TypedActions>>()
-// export const useSelector: TypedUseSelectorHook<RootState> = RRuseSelector
 export {useSelector}
 
 // BEGIN debugging connect
