@@ -4,7 +4,6 @@ import * as Styles from '../../../../styles'
 import TeamMenu from '../../../conversation/info-panel/menu/container'
 import type * as ChatTypes from '../../../../constants/types/chat2'
 import type {AllowedColors} from '../../../../common-adapters/text'
-import * as Container from '../../../../util/container'
 
 type Props = {
   channelname?: string
@@ -30,14 +29,9 @@ const SimpleTopLine = React.memo(function SimpleTopLine(props: Props) {
   const {isSelected, onForceHideMenu, participants, showBold, showGear, subColor, timestamp} = props
   const {usernameColor, hasBadge} = props
 
-  // TEMP
-  const temp = Container.useSelector(() => {
-    return [1, 2, 3]
-  })
-
   const {showingPopup, toggleShowingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
     <TeamMenu
-      visible={showingPopup || forceShowMenu || temp.length}
+      visible={showingPopup || forceShowMenu}
       attachTo={attachTo}
       onHidden={onHidden}
       hasHeader={true}
