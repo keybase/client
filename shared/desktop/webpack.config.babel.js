@@ -118,8 +118,6 @@ const config = (_, {mode}) => {
       'react-native-reanimated': false,
     }
     if (isDev) {
-      // enable why did you render
-      alias['react-redux'] = 'react-redux/dist/react-redux.js'
     } else {
       alias['@welldone-software/why-did-you-render'] = false
     }

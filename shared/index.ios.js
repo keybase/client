@@ -1,7 +1,7 @@
 // React-native tooling assumes this file is here, so we just require our real entry point
 /* eslint-disable @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-argument,@typescript-eslint/no-unsafe-member-access */
-import 'react-native-gesture-handler' // MUST BE FIRST https://github.com/software-mansion/react-native-gesture-handler/issues/320
 import './why-did-you-render'
+import 'react-native-gesture-handler' // MUST BE FIRST https://github.com/software-mansion/react-native-gesture-handler/issues/320
 import './app/globals.native'
 import {Appearance} from 'react-native'
 import {darkModeSupported, guiConfig} from 'react-native-kb'

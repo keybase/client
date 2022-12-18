@@ -6,6 +6,7 @@ let isTest = null
 
 module.exports = function (api /*: any */) {
   const apiEnv = api.env()
+  const isDev = apiEnv === 'development'
 
   if (apiEnv === 'test') {
     isTest = true
@@ -26,7 +27,7 @@ module.exports = function (api /*: any */) {
 
   api.cache(true)
 
-  // console.error('KB babel.config.js ', {isElectron, isReactNative})
+  // console.error('KB babel.config.js ', {isElectron, isReactNative, apiEnv})
 
   if (!isElectron && !isReactNative) {
     throw new Error('MUST have env var BABEL_PLATFORM to all babel')
@@ -50,7 +51,7 @@ module.exports = function (api /*: any */) {
         isTest ? ['@babel/preset-env', {targets: {node: 'current'}}] : '@babel/preset-env',
         [
           '@babel/preset-react',
-          apiEnv === 'development'
+          isDev
             ? {
                 runtime: 'automatic',
                 development: true,
@@ -67,8 +68,20 @@ module.exports = function (api /*: any */) {
       plugins: [
         ...(skipAnimation ? [] : ['react-native-reanimated/plugin']),
         '@babel/plugin-proposal-numeric-separator',
+        isDev
+          ? [
+              '@babel/plugin-transform-react-jsx-development',
+              {
+                runtime: 'automatic',
+                importSource: '@welldone-software/why-did-you-render',
+              },
+            ]
+          : ['@babel/plugin-transform-react-jsx', {runtime: 'automatic'}],
       ],
-      presets: ['module:metro-react-native-babel-preset'],
+      presets: [
+        // lets us set our own jsx above
+        ['module:metro-react-native-babel-preset', {useTransformReactJSXExperimental: true}],
+      ],
     }
   }
 }

@@ -5,6 +5,7 @@ if (__DEV__) {
   const whyDidYouRender = require('@welldone-software/why-did-you-render')
   console.log('\n\n\nDEBUG: WHY DID YOU RENDER enabled')
   if (whyDidYouRender && typeof whyDidYouRender === 'function') {
+    const ush = require('./util/use-selector').default
     whyDidYouRender(React, {
       // TODO reduce these
       exclude: [
@@ -25,7 +26,7 @@ if (__DEV__) {
       ],
       // logOnDifferentValues: true,
       trackAllPureComponents: true,
-      trackExtraHooks: [[require('react-redux'), 'useSelector']],
+      trackExtraHooks: [[ush, 'useSelector']],
     })
   }
 }
