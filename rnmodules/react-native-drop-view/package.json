@@ -30,6 +30,7 @@
   "homepage": "https://github.com/keybase/client/react-native-drop-view#readme",
   "private": true,
   "devDependencies": {
+    "@welldone-software/why-did-you-render": "7.0.1",
     "@types/react": "18.0.25",
     "@types/react-native": "0.70.6",
     "react-native": "0.70.5",
