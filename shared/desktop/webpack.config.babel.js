@@ -25,12 +25,34 @@ const config = (_, {mode}) => {
         plugins: [...(isHot && !nodeThread ? ['react-refresh/babel'] : [])],
         presets: [
           ['@babel/preset-env', {debug: false, modules: false, targets: {electron: '19.0.4'}}],
+          ...(isDev
+            ? [
+                [
+                  '@babel/preset-react',
+                  {
+                    runtime: 'automatic',
+                    development: isDev,
+                    importSource: '@welldone-software/why-did-you-render',
+                  },
+                ],
+              ]
+            : []),
           '@babel/preset-typescript',
         ],
       },
     }
 
     return [
+      ...(isDev
+        ? []
+        : [
+            {
+              // Don't include why did you render
+              include: /welldone/,
+              test: /\.(ts|js)x?$/,
+              use: ['null-loader'],
+            },
+          ]),
       {
         // Don't include large mock images in a prod build
         include: path.resolve(__dirname, '../images/mock'),
@@ -96,8 +118,8 @@ const config = (_, {mode}) => {
       'react-native-reanimated': false,
     }
     if (isDev) {
-      // enable why did you render
-      alias['react-redux'] = 'react-redux/dist/react-redux.js'
+    } else {
+      alias['@welldone-software/why-did-you-render'] = false
     }
 
     return {
