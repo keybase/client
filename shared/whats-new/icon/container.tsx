@@ -1,3 +1,4 @@
+import * as React from 'react'
 import type * as Kb from '../../common-adapters'
 import * as Container from '../../util/container'
 import type {IconStyle} from '../../common-adapters/icon'
