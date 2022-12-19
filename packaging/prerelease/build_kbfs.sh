@@ -22,19 +22,20 @@ ldflags="-X github.com/keybase/client/go/kbfs/libkbfs.PrereleaseBuild=$kbfs_buil
 pkg="github.com/keybase/client/go/kbfs/kbfsfuse"
 git_remote_helper_pkg="github.com/keybase/client/go/kbfs/kbfsgit/git-remote-keybase"
 redirector_pkg="github.com/keybase/client/go/kbfs/redirector"
+arch=${ARCH:-"amd64"}
 
 if [ "$PLATFORM" = "windows" ]; then
   pkg="github.com/keybase/client/go/kbfs/kbfsdokan"
 fi
 
-echo "Building $build_dir/kbfs ($kbfs_build) with $(go version)"
-go build -a -tags "$tags" -ldflags "$ldflags" -o "$build_dir/kbfs" $pkg
+echo "Building $build_dir/kbfs ($kbfs_build) with $(go version) on arch: $arch"
+GOARCH="$arch" go build -a -tags "$tags" -ldflags "$ldflags" -o "$build_dir/kbfs" $pkg
 
-echo "Building $build_dir/kbfs/kbfsgit ($kbfs_build) with $(go version)"
-go build -a -tags "$tags" -ldflags "$ldflags" -o "$build_dir/git-remote-keybase" $git_remote_helper_pkg
+echo "Building $build_dir/kbfs/kbfsgit ($kbfs_build) with $(go version) on arch: $arch"
+GOARCH="$arch" go build -a -tags "$tags" -ldflags "$ldflags" -o "$build_dir/git-remote-keybase" $git_remote_helper_pkg
 
-echo "Building $build_dir/kbfs/redirector ($kbfs_build) with $(go version)"
-go build -a -tags "$tags" -ldflags "$ldflags" -o "$build_dir/keybase-redirector" $redirector_pkg
+echo "Building $build_dir/kbfs/redirector ($kbfs_build) with $(go version) on arch: $arch"
+GOARCH="$arch" go build -a -tags "$tags" -ldflags "$ldflags" -o "$build_dir/keybase-redirector" $redirector_pkg
 
 if [ "$PLATFORM" = "darwin" ]; then
   echo "Signing binaries..."

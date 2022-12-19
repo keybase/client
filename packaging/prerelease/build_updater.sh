@@ -9,14 +9,15 @@ build_dir=${BUILD_DIR:-/tmp/keybase}
 gopath=${GOPATH:-}
 package="github.com/keybase/go-updater/service"
 dest="$build_dir/updater"
+arch=${ARCH:-"amd64"}
 
 src_dir="$gopath/src/$package"
 cd "$src_dir"
 
 mkdir -p "$build_dir"
 
-echo "Building $build_dir/updater with $(go version)"
-go build -a -o "$dest" "$package"
+echo "Building $build_dir/updater with $(go version) on arch: $arch"
+GOARCH="$arch" go build -a -o "$dest" "$package"
 
 if [ "$PLATFORM" = "darwin" ]; then
   echo "Signing binary..."

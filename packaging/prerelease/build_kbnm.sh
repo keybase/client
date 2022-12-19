@@ -17,9 +17,10 @@ kbnm_build=${KBNM_BUILD:-$build}
 tags=${TAGS:-"prerelease production"}
 ldflags="-X main.Version=$kbnm_build -s -w"
 pkg="github.com/keybase/client/go/kbnm"
+arch=${ARCH:-"amd64"}
 
-echo "Building $build_dir/kbnm ($kbnm_build) with $(go version)"
-(cd $client_dir && go build -a -tags "$tags" -ldflags "$ldflags" -o "$build_dir/kbnm" "$pkg")
+echo "Building $build_dir/kbnm ($kbnm_build) with $(go version) on arch: $arch"
+(cd $client_dir && GOARCH="$arch" go build -a -tags "$tags" -ldflags "$ldflags" -o "$build_dir/kbnm" "$pkg")
 
 if [ "$PLATFORM" = "darwin" ]; then
   echo "Signing binary..."
