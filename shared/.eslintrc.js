@@ -1,3 +1,4 @@
+const isFixMode = process.argv.includes('--fix')
 module.exports = {
   env: {es6: true},
   extends: ['eslint:recommended', 'plugin:@typescript-eslint/recommended-requiring-type-checking'],
@@ -186,7 +187,7 @@ module.exports = {
     '@typescript-eslint/no-this-alias': 'error',
     '@typescript-eslint/no-type-alias': 'off',
     '@typescript-eslint/no-unnecessary-boolean-literal-compare': 'error',
-    '@typescript-eslint/no-unnecessary-condition': 'warn',
+    '@typescript-eslint/no-unnecessary-condition': isFixMode ? 'off' : 'warn',
     '@typescript-eslint/no-unnecessary-qualifier': 'error',
     '@typescript-eslint/no-unnecessary-type-arguments': 'error',
     '@typescript-eslint/no-unnecessary-type-assertion': 'error',
