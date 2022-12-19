@@ -1,4 +1,4 @@
-import React, {Component} from 'react'
+import * as React from 'react'
 import logger from '../../logger'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
@@ -14,7 +14,7 @@ type State = {
   cachedDetails?: string
 }
 
-class GlobalError extends Component<Props, State> {
+class GlobalError extends React.Component<Props, State> {
   state: State
   private timerID?: ReturnType<typeof setInterval>
   private mounted: boolean = false

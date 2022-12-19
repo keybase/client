@@ -1,9 +1,9 @@
-import React, {Component} from 'react'
+import * as React from 'react'
 import {Props} from './progress-indicator'
 import {NativeActivityIndicator} from './native-wrappers.native'
 import {globalColors, collapseStyles} from '../styles'
 
-class ProgressIndicator extends Component<Props> {
+class ProgressIndicator extends React.Component<Props> {
   render() {
     const size = this.props.type === 'Large' ? 'large' : 'small'
 

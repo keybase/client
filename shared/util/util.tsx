@@ -1,4 +1,4 @@
-import React from 'react'
+import * as React from 'react'
 
 function renderElementOrComponentOrNot(
   item: React.ComponentType<any> | React.ReactElement | null | undefined

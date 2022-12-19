@@ -1,4 +1,4 @@
-import React, {PureComponent} from 'react'
+import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import * as Constants from '../constants/chat2'
@@ -24,7 +24,7 @@ type State = {
   isHovered: boolean
 }
 
-class SelectableBigTeamChannel extends PureComponent<Props, State> {
+class SelectableBigTeamChannel extends React.PureComponent<Props, State> {
   state = {
     isHovered: false,
   }

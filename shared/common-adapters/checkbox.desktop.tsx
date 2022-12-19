@@ -1,4 +1,4 @@
-import React from 'react'
+import * as React from 'react'
 import Box, {Box2} from './box'
 import Icon from './icon'
 import Text from './text'

@@ -1,4 +1,4 @@
-import React from 'react'
+import * as React from 'react'
 import Text, {StylesTextCrossPlatform} from '../../../common-adapters/text'
 import {Box2} from '../../../common-adapters/box'
 import * as Styles from '../../../styles'

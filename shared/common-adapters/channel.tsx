@@ -1,4 +1,4 @@
-import React from 'react'
+import * as React from 'react'
 import Text, {StylesTextCrossPlatform} from './text'
 import {ConversationIDKey} from '../constants/types/chat2'
 

@@ -1,4 +1,4 @@
-import React from 'react'
+import * as React from 'react'
 import ClickableBox from './clickable-box'
 import Text from './text'
 import * as Styles from '../styles'

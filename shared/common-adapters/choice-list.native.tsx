@@ -2,7 +2,7 @@ import Box from './box'
 import ClickableBox from './clickable-box'
 import Icon, {IconType} from './icon'
 import Text from './text'
-import React, {Component} from 'react'
+import * as React from 'react'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 import {Props} from './choice-list'
 
@@ -10,7 +10,7 @@ type State = {
   activeIndex: number | null
 }
 
-class ChoiceList extends Component<Props, State> {
+class ChoiceList extends React.Component<Props, State> {
   state: State = {activeIndex: null}
 
   componentDidUpdate(prevProps: Props) {

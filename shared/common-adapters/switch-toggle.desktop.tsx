@@ -1,4 +1,4 @@
-import React from 'react'
+import * as React from 'react'
 import * as Styles from '../styles'
 import {Props} from './switch-toggle'
 
