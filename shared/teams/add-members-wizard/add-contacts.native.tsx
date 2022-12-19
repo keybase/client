@@ -6,7 +6,7 @@ import * as TeamsGen from '../../actions/teams-gen'
 import * as RPCGen from '../../constants/types/rpc-gen'
 import {pluralize} from '../../util/string'
 import {ModalTitle} from '../common'
-import ContactsList, {useContacts, Contact, EnableContactsPopup} from '../common/contacts-list.native'
+import ContactsList, {useContacts, EnableContactsPopup, type Contact} from '../common/contacts-list.native'
 
 const AddContacts = () => {
   const dispatch = Container.useDispatch()

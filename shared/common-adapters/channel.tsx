@@ -1,5 +1,5 @@
-import Text, {StylesTextCrossPlatform} from './text'
-import {ConversationIDKey} from '../constants/types/chat2'
+import Text, {type StylesTextCrossPlatform} from './text'
+import type {ConversationIDKey} from '../constants/types/chat2'
 
 export type Props = {
   name: string

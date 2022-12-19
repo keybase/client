@@ -3,7 +3,7 @@ import * as Constants from '../../../constants/recover-password'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import {SignupScreen, InfoIcon} from '../../../signup/common'
-import {ButtonType} from '../../../common-adapters/button'
+import type {ButtonType} from '../../../common-adapters/button'
 
 export type Props = {
   error: string

@@ -1,6 +1,6 @@
 import * as Kb from '../../../../../common-adapters'
 import {typeToLabel} from '../../../../../constants/teams'
-import {TeamRoleType} from '../../../../../constants/types/teams'
+import type {TeamRoleType} from '../../../../../constants/types/teams'
 
 export type Props = {
   isKeybaseUser?: boolean

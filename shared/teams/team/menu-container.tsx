@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Constants from '../../constants/teams'
-import * as Types from '../../constants/types/teams'
+import type * as Types from '../../constants/types/teams'
 import * as FsConstants from '../../constants/fs'
 import * as FsTypes from '../../constants/types/fs'
 import * as Container from '../../util/container'

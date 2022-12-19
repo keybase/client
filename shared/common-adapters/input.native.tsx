@@ -218,7 +218,7 @@ class Input extends React.Component<Props, State> {
       }
     }
   }) => {
-    let {start: _start, end: _end} = event.nativeEvent.selection
+    const {start: _start, end: _end} = event.nativeEvent.selection
     // Work around Android bug which sometimes puts end before start:
     // https://github.com/facebook/react-native/issues/18579 .
     const start = Math.min(_start, _end)

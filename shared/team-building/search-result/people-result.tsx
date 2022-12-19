@@ -9,7 +9,7 @@ import * as WalletsType from '../../constants/types/wallets'
 import * as ChatConstants from '../../constants/chat2'
 import * as Container from '../../util/container'
 import * as Chat2Gen from '../../actions/chat2-gen'
-import CommonResult, {ResultProps} from './common-result'
+import CommonResult, {type ResultProps} from './common-result'
 
 /*
  * This component is intended to be a drop-in replacement for UserResult.

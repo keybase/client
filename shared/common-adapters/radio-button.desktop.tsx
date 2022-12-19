@@ -1,6 +1,6 @@
 import * as Styles from '../styles'
 import Text from './text'
-import {Props} from './radio-button'
+import type {Props} from './radio-button'
 
 const Kb = {
   Text,

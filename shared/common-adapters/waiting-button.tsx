@@ -1,6 +1,6 @@
 import * as React from 'react'
-import {default as Button, Props as ButtonProps} from './button'
-import ClickableBox from './clickable-box'
+import {default as Button, type Props as ButtonProps} from './button'
+import type ClickableBox from './clickable-box'
 import * as Container from '../util/container'
 import * as WaitingConstants from '../constants/waiting'
 

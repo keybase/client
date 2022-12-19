@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {Props} from './list-item'
+import type {Props} from './list-item'
 import Box from './box'
 import ClickableBox from './clickable-box'
 import {globalStyles} from '../styles'

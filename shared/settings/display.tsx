@@ -4,7 +4,7 @@ import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import * as Container from '../util/container'
 import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
-import {DarkModePreference, isDarkModeSystemSupported} from '../styles/dark-mode'
+import {isDarkModeSystemSupported, type DarkModePreference} from '../styles/dark-mode'
 import logger from '../logger'
 
 const Display = () => {

@@ -4,7 +4,7 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {subtitle} from '../../util/platforms'
 import openUrl from '../../util/open-url'
-import {ProvablePlatformsType} from '../../constants/types/more'
+import type {ProvablePlatformsType} from '../../constants/types/more'
 import Modal from '../modal'
 
 export type Props = {

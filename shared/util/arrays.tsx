@@ -7,7 +7,7 @@ export function intersperseFn<A, B>(
     return arr
   }
 
-  let toReturn = new Array(arr.length * 2 - 1)
+  const toReturn = new Array(arr.length * 2 - 1)
   toReturn[0] = arr[0]
   for (let i = 1; i < arr.length; i++) {
     toReturn[i * 2 - 1] = separatorFn(i, arr[i], arr)

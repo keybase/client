@@ -1,8 +1,8 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters/mobile.native'
 import * as Styles from '../../styles'
-import {RPCError} from '../../util/errors'
-import {Props} from './index'
+import type {RPCError} from '../../util/errors'
+import type {Props} from './index'
 
 type Size = 'Closed' | 'Small' | 'Big'
 

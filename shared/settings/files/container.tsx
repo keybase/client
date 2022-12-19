@@ -4,7 +4,7 @@ import * as FsGen from '../../actions/fs-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Container from '../../util/container'
 import {isMobile} from '../../constants/platform'
-import {PickerItem} from '../../common-adapters/floating-picker'
+import type {PickerItem} from '../../common-adapters/floating-picker'
 
 type OwnProps = {}
 const SettingsFiles = Container.connect(

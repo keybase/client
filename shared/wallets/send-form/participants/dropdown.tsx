@@ -1,7 +1,7 @@
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import {AccountEntry} from '../../common'
-import {Account} from '.'
+import type {Account} from '.'
 
 type DropdownTextProps = {
   spinner?: boolean

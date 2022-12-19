@@ -21,7 +21,7 @@ const AudioVideo = (props: Props) => {
   const onTimeUpdate = React.useCallback(
     (e: any) => {
       const ct = e?.target?.currentTime ?? -1
-      let dur = e?.target?.duration ?? -1
+      const dur = e?.target?.duration ?? -1
       if (dur === 0) {
         return
       }

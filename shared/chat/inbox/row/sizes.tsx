@@ -1,7 +1,7 @@
 // In order for the inbox rows to be calculated quickly we use fixed sizes for each type so
 // in order for the list and the rows to ensure they're the same size we keep the sizes here
 import * as Styles from '../../../styles'
-import * as Types from '../../../constants/types/chat2'
+import type * as Types from '../../../constants/types/chat2'
 
 export const smallRowHeight = Styles.isMobile ? 64 : 56
 export const bigRowHeight = Styles.isMobile ? 40 : 24

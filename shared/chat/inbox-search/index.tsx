@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
-import * as Types from '../../constants/types/chat2'
-import * as RPCTypes from '../../constants/types/rpc-gen'
+import type * as Types from '../../constants/types/chat2'
+import type * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/chat2'
 import * as TeamsGen from '../../actions/teams-gen'
@@ -13,7 +13,7 @@ import {inboxWidth} from '../inbox/row/sizes'
 import {TeamAvatar} from '../avatars'
 import Rover from './background'
 import TeamInfo from '../../profile/user/teams/teaminfo'
-import {Section as _Section} from '../../common-adapters/section-list'
+import type {Section as _Section} from '../../common-adapters/section-list'
 import {Bot} from '../conversation/info-panel/bot'
 
 type NameResult = {

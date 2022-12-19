@@ -1,4 +1,4 @@
-import * as Types from '../../constants/types/fs'
+import type * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import * as Container from '../../util/container'
 import LastModifiedLine from './last-modified-line'

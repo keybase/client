@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
-import {UploadProps} from './upload'
+import type {UploadProps} from './upload'
 import {NativeAnimated, NativeEasing} from '../../common-adapters/native-wrappers.native'
 
 const lightPatternImage = require('../../images/upload-pattern-80.png')

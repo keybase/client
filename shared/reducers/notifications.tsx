@@ -1,7 +1,7 @@
 import * as Container from '../util/container'
 import * as NotificationsGen from '../actions/notifications-gen'
 import * as Tabs from '../constants/tabs'
-import * as Types from '../constants/types/notifications'
+import type * as Types from '../constants/types/notifications'
 import isEqual from 'lodash/isEqual'
 
 const initialState: Types.State = {

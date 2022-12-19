@@ -1,4 +1,4 @@
-import * as Types from '../constants/types/git'
+import type * as Types from '../constants/types/git'
 import * as GitGen from '../actions/git-gen'
 import * as Container from '../util/container'
 

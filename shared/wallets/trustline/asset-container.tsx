@@ -1,5 +1,5 @@
 import * as Container from '../../util/container'
-import * as Types from '../../constants/types/wallets'
+import type * as Types from '../../constants/types/wallets'
 import * as Constants from '../../constants/wallets'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as WalletsGen from '../../actions/wallets-gen'

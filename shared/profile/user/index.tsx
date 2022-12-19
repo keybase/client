@@ -435,7 +435,7 @@ class User extends React.Component<Props, State> {
         ? this.props.followers
         : null
     const {itemsInARow, itemWidth} = widthToDimensions(this.state.width)
-    let chunks: ChunkType = this.state.width ? chunk(friends, itemsInARow) : []
+    const chunks: ChunkType = this.state.width ? chunk(friends, itemsInARow) : []
     if (chunks.length === 0) {
       if (this.props.following && this.props.followers) {
         chunks.push({

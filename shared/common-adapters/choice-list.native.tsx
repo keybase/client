@@ -1,10 +1,10 @@
 import Box from './box'
 import ClickableBox from './clickable-box'
-import Icon, {IconType} from './icon'
+import Icon, {type IconType} from './icon'
 import Text from './text'
 import * as React from 'react'
 import {globalStyles, globalColors, globalMargins} from '../styles'
-import {Props} from './choice-list'
+import type {Props} from './choice-list'
 
 type State = {
   activeIndex: number | null

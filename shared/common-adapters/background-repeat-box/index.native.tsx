@@ -2,7 +2,7 @@ import * as React from 'react'
 import Box from '../box'
 import * as Styles from '../../styles'
 import {NativeImage} from '../native-wrappers.native'
-import {Props} from '.'
+import type {Props} from '.'
 
 const BackgroundRepeatBox = (props: Props) => {
   let backgroundImage: React.ReactNode = null

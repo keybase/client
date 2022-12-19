@@ -1,7 +1,7 @@
 import * as SettingsGen from '../../actions/settings-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Container from '../../util/container'
-import * as RPCTypes from '../../constants/types/rpc-gen'
+import type * as RPCTypes from '../../constants/types/rpc-gen'
 import {ProxySettings as ProxySettingsComponent, ProxySettingsPopup} from '.'
 
 type OwnProps = {}

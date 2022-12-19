@@ -5,7 +5,7 @@ import {_setDarkModePreference} from '../styles/dark-mode'
 import DeviceList from './device-list.desktop'
 import PaperKeyInput from './paper-key-input.desktop'
 import Success from './success.desktop'
-import {State, Device} from '../constants/types/unlock-folders'
+import type {State, Device} from '../constants/types/unlock-folders'
 
 export type Props = {
   darkMode: boolean

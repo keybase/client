@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import * as Types from '../../constants/types/wallets'
+import type * as Types from '../../constants/types/wallets'
 import AccountReloader from '../common/account-reloader'
 import Asset from '../asset/container'
 import Transaction from '../transaction/container'

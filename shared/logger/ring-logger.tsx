@@ -1,4 +1,4 @@
-import {LogLine, Logger, LogLevel, LogLineWithLevel} from './types'
+import type {LogLine, Logger, LogLevel, LogLineWithLevel} from './types'
 import {toStringForLog} from '../util/string'
 
 // Simple in memory ring Logger

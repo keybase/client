@@ -2,7 +2,7 @@ import * as TeamsGen from '../../../../../actions/teams-gen'
 import * as Constants from '../../../../../constants/teams'
 import * as Container from '../../../../../util/container'
 import {TeamInviteRow} from '.'
-import {InviteInfo, TeamID} from '../../../../../constants/types/teams'
+import type {InviteInfo, TeamID} from '../../../../../constants/types/teams'
 import {formatPhoneNumber} from '../../../../../util/phone-numbers'
 
 type OwnProps = {

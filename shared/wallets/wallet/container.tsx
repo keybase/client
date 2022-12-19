@@ -2,11 +2,11 @@ import * as Container from '../../util/container'
 import * as WalletsGen from '../../actions/wallets-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Constants from '../../constants/wallets'
-import * as Types from '../../constants/types/wallets'
+import type * as Types from '../../constants/types/wallets'
 import Header from './header/container'
 import Onboarding from '../onboarding/container'
 import partition from 'lodash/partition'
-import Wallet, {AssetSectionTitle, Props} from '.'
+import Wallet, {AssetSectionTitle, type Props} from '.'
 
 type OwnProps = {}
 

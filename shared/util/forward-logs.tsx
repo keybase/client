@@ -1,4 +1,4 @@
-import {LogLineWithLevelISOTimestamp} from '../logger/types'
+import type {LogLineWithLevelISOTimestamp} from '../logger/types'
 import {isMobile} from '../constants/platform'
 import noop from 'lodash/noop'
 import {getEngine} from '../engine/require'

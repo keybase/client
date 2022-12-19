@@ -4,7 +4,7 @@ import * as Kb from '../../../common-adapters'
 import * as Container from '../../../util/container'
 import * as Kbfs from '../../common/hooks'
 import * as FsGen from '../../../actions/fs-gen'
-import {FloatingMenuProps} from './types'
+import type {FloatingMenuProps} from './types'
 import {fileUIName} from '../../../constants/platform'
 import Header from './header'
 

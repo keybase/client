@@ -1,8 +1,8 @@
 // TODO deprecate
-import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
-import * as Types from '../../../../constants/types/chat2'
-import * as TeamTypes from '../../../../constants/types/teams'
-import {PlainInput} from '../../../../common-adapters'
+import type * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
+import type * as Types from '../../../../constants/types/chat2'
+import type * as TeamTypes from '../../../../constants/types/teams'
+import type {PlainInput} from '../../../../common-adapters'
 
 type CommonProps = {
   botRestrictMap?: Map<string, boolean>

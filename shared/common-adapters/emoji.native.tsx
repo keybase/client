@@ -1,7 +1,7 @@
 import {emojiIndexByName} from './markdown/emoji-gen'
 import Text from './text'
 
-import {Props} from './emoji'
+import type {Props} from './emoji'
 
 const EmojiWrapper = (props: Props) => {
   const {emojiName, size} = props

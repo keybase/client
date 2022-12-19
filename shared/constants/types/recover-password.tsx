@@ -1,6 +1,6 @@
-import * as ProvisionTypes from './provision'
-import * as RPCTypes from './rpc-gen'
-import HiddenString from '../../util/hidden-string'
+import type * as ProvisionTypes from './provision'
+import type * as RPCTypes from './rpc-gen'
+import type HiddenString from '../../util/hidden-string'
 
 export type State = {
   readonly devices: Array<ProvisionTypes.Device>

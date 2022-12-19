@@ -1,6 +1,6 @@
 import * as Constants from '../constants/chat2'
 import SelectableBigTeamChannel from './selectable-big-team-channel'
-import * as Types from '../constants/types/chat2'
+import type * as Types from '../constants/types/chat2'
 import * as Container from '../util/container'
 
 type OwnProps = {

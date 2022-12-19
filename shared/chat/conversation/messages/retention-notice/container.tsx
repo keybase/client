@@ -1,5 +1,5 @@
 import * as Chat2Gen from '../../../../actions/chat2-gen'
-import * as ChatTypes from '../../../../constants/types/chat2'
+import type * as ChatTypes from '../../../../constants/types/chat2'
 import * as Container from '../../../../util/container'
 import * as TeamConstants from '../../../../constants/teams'
 import RetentionNotice from '.'

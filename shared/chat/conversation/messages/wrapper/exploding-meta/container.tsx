@@ -1,8 +1,8 @@
 import * as Container from '../../../../../util/container'
-import * as Types from '../../../../../constants/types/chat2'
+import type * as Types from '../../../../../constants/types/chat2'
 import * as Constants from '../../../../../constants/chat2'
-import {StylesCrossPlatform} from '../../../../../styles'
-import ExplodingMeta, {Props as ViewProps} from '.'
+import type {StylesCrossPlatform} from '../../../../../styles'
+import ExplodingMeta, {type Props as ViewProps} from '.'
 
 const emptyProps = {
   exploded: true,

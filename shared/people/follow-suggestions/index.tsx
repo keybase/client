@@ -1,4 +1,4 @@
-import * as Types from '../../constants/types/people'
+import type * as Types from '../../constants/types/people'
 import {Box, ConnectedNameWithIcon, ScrollView, Text} from '../../common-adapters'
 import * as Styles from '../../styles'
 

@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Container from '../util/container'
-import * as Types from '../constants/types/teams'
+import type * as Types from '../constants/types/teams'
 import * as TeamsGen from '../actions/teams-gen'
 import {useFocusEffect} from '@react-navigation/core'
 

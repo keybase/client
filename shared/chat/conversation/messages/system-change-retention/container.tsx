@@ -3,7 +3,7 @@ import * as Constants from '../../../../constants/chat2'
 import * as Container from '../../../../util/container'
 import * as ProfileGen from '../../../../actions/profile-gen'
 import * as Tracker2Gen from '../../../../actions/tracker2-gen'
-import * as Types from '../../../../constants/types/chat2'
+import type * as Types from '../../../../constants/types/chat2'
 import SystemChangeRetention from '.'
 import {getCanPerform} from '../../../../constants/teams'
 

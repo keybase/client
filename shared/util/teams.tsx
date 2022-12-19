@@ -1,5 +1,5 @@
 import {publicAdminsLimit} from '../constants/teams'
-import {RetentionPolicy} from '../constants/types/retention-policy'
+import type {RetentionPolicy} from '../constants/types/retention-policy'
 
 type SortedAdmins = {
   publicAdmins: Array<string>

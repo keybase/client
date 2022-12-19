@@ -1,11 +1,11 @@
 // High level avatar class. Handdles converting from usernames to urls. Deals with testing mode.
 import * as React from 'react'
 import Avatar from './avatar.render'
-import {iconTypeToImgSet, urlsToImgSet, IconType, IconStyle} from './icon'
+import {iconTypeToImgSet, urlsToImgSet, type IconType, type IconStyle} from './icon'
 import * as Container from '../util/container'
 import * as Styles from '../styles'
 import * as ProfileGen from '../actions/profile-gen'
-import * as Types from '../constants/types/teams'
+import type * as Types from '../constants/types/teams'
 import './avatar.css'
 
 // Desktop sizes also imported for edit-avatar

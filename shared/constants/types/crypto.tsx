@@ -1,6 +1,6 @@
-import * as TeamBuildingTypes from './team-building'
-import HiddenString from '../../util/hidden-string'
-import {IconType} from '../../common-adapters/icon.constants-gen'
+import type * as TeamBuildingTypes from './team-building'
+import type HiddenString from '../../util/hidden-string'
+import type {IconType} from '../../common-adapters/icon.constants-gen'
 
 export type StringWaitingKey =
   | 'crypto:encrypt:string'

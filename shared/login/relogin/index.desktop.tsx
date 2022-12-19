@@ -4,7 +4,7 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import UserCard from '../user-card'
 import {errorBanner, SignupScreen} from '../../signup/common'
-import {Props} from '.'
+import type {Props} from '.'
 
 type State = {
   open: boolean

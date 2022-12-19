@@ -1,5 +1,5 @@
 import * as Styles from '../../../../../styles'
-import {Props} from '.'
+import type {Props} from '.'
 
 const patternImage = Styles.backgroundURL('payment-pattern-80.png')
 

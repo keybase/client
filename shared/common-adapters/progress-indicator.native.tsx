@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {Props} from './progress-indicator'
+import type {Props} from './progress-indicator'
 import {NativeActivityIndicator} from './native-wrappers.native'
 import {globalColors, collapseStyles} from '../styles'
 

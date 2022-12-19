@@ -1,7 +1,7 @@
 import * as React from 'react'
 import Box from './box'
 import {globalStyles, desktopStyles} from '../styles'
-import {Props} from './list-item'
+import type {Props} from './list-item'
 
 class ListItem extends React.Component<Props> {
   render() {

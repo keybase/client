@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {Props, Section} from './section-list'
+import type {Props, Section} from './section-list'
 import {SectionList as NativeSectionList} from 'react-native'
 import noop from 'lodash/noop'
 

@@ -192,7 +192,7 @@ const buildGood = (old: Info, info: Info) => {
 }
 
 const convertLine = isGUI ? convertGuiLine : convertCoreLine
-let lines = fs.readFileSync(logfile, 'utf8').split('\n')
+const lines = fs.readFileSync(logfile, 'utf8').split('\n')
 // to help debug a single line just override it here
 // lines = [
 // 'Line to debug',

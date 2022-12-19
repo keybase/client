@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
-import * as Types from '../../constants/types/teams'
+import type * as Types from '../../constants/types/teams'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as Container from '../../util/container'
 import Banner from './banner'

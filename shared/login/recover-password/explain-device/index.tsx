@@ -3,7 +3,7 @@ import * as Styles from '../../../styles'
 import * as RPCTypes from '../../../constants/types/rpc-gen'
 import {globalColors} from '../../../styles'
 import {SignupScreen, InfoIcon} from '../../../signup/common'
-import {ButtonType} from '../../../common-adapters/button'
+import type {ButtonType} from '../../../common-adapters/button'
 
 export type Props = {
   deviceName: string

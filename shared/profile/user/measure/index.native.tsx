@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters/mobile.native'
 import * as Styles from '../../../styles'
-import {Props} from '.'
+import type {Props} from '.'
 
 class Measure extends React.Component<Props> {
   _onLayout = e => {

@@ -3,7 +3,7 @@ import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import * as Kb from '../../common-adapters'
 import * as Container from '../../util/container'
-import {IconType} from '../../common-adapters/icon'
+import type {IconType} from '../../common-adapters/icon'
 
 export type Size = 96 | 48 | 32 | 16
 type SizeString = '96' | '48' | '32' | '16'

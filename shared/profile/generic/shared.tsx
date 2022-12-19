@@ -1,6 +1,6 @@
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import {SiteIconSet} from '../../constants/types/tracker2'
+import type {SiteIconSet} from '../../constants/types/tracker2'
 
 export const ProofSuccessIcon = <Kb.Icon type="icon-proof-success" color={Styles.globalColors.green} />
 export const MastadonIcon = (

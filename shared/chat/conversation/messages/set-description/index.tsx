@@ -1,6 +1,6 @@
 import * as Styles from '../../../../styles'
 import * as Kb from '../../../../common-adapters'
-import * as Types from '../../../../constants/types/chat2'
+import type * as Types from '../../../../constants/types/chat2'
 
 type Props = {
   message: Types.MessageSetDescription

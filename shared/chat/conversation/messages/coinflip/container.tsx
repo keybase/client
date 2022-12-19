@@ -1,10 +1,10 @@
-import CoinFlip, {Props} from '.'
+import CoinFlip, {type Props} from '.'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
-import * as Types from '../../../../constants/types/chat2'
+import type * as Types from '../../../../constants/types/chat2'
 import * as Constants from '../../../../constants/chat2'
 import * as Container from '../../../../util/container'
-import HiddenString from '../../../../util/hidden-string'
+import type HiddenString from '../../../../util/hidden-string'
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey

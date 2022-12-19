@@ -4,14 +4,14 @@ import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as TeamsGen from '../../../../../actions/teams-gen'
 import * as Constants from '../../../../../constants/chat2'
 import * as Container from '../../../../../util/container'
-import * as MessageTypes from '../../../../../constants/types/chat2/message'
+import type * as MessageTypes from '../../../../../constants/types/chat2/message'
 import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import * as RPCChatTypes from '../../../../../constants/types/rpc-chat-gen'
 import * as TeamConstants from '../../../../../constants/teams'
-import * as TeamTypes from '../../../../../constants/types/teams'
+import type * as TeamTypes from '../../../../../constants/types/teams'
 import {teamsTab} from '../../../../../constants/tabs'
-import * as ChatTypes from '../../../../../constants/types/chat2'
-import {TeamJourney, Action} from '.'
+import type * as ChatTypes from '../../../../../constants/types/chat2'
+import {TeamJourney, type Action} from '.'
 import {renderWelcomeMessage} from './util'
 import {useAllChannelMetas} from '../../../../../teams/common/channel-hooks'
 
@@ -221,15 +221,8 @@ const TeamJourneyConnected = Container.connect(
       dispatch(RouteTreeGen.createNavigateAppend({path: [teamsTab, {props: {teamID}, selected: 'team'}]})),
   }),
   (stateProps, dispatchProps, ownProps) => {
-    const {
-      canShowcase,
-      cannotWrite,
-      channelname,
-      conversationIDKey,
-      teamname,
-      isBigTeam,
-      welcomeMessage,
-    } = stateProps
+    const {canShowcase, cannotWrite, channelname, conversationIDKey, teamname, isBigTeam, welcomeMessage} =
+      stateProps
 
     return {
       canShowcase,

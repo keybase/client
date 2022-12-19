@@ -1,5 +1,5 @@
-import * as Types from '../../../../constants/types/chat2'
-import {ServiceIdWithContact} from '../../../../constants/types/team-building'
+import type * as Types from '../../../../constants/types/chat2'
+import type {ServiceIdWithContact} from '../../../../constants/types/team-building'
 import * as Kb from '../../../../common-adapters'
 import {e164ToDisplay} from '../../../../util/phone-numbers'
 import {serviceIdToPrettyName} from '../../../../constants/team-building'

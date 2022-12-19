@@ -1,5 +1,5 @@
 import {NativeImage} from './native-image.native'
-import {Props, ReqProps} from './image'
+import type {Props, ReqProps} from './image'
 
 const Image = ({onLoad, src, style}: Props) => (
   <NativeImage

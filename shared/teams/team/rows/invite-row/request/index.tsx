@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as Types from '../../../../../constants/types/teams'
+import type * as Types from '../../../../../constants/types/teams'
 import * as Kb from '../../../../../common-adapters'
 import {FloatingRolePicker} from '../../../../role-picker'
 import * as Styles from '../../../../../styles'

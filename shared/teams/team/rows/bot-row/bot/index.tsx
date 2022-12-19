@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
 import {isLargeScreen} from '../../../../../constants/platform'
-import {MemberStatus, TeamRoleType} from '../../../../../constants/types/teams'
+import type {MemberStatus, TeamRoleType} from '../../../../../constants/types/teams'
 import BotMenu from '../bot-menu'
 
 export type Props = {
@@ -26,7 +26,7 @@ export type Props = {
 
 export const TeamBotRow = (props: Props) => {
   let descriptionLabel
-  let menuRef = React.useRef<Kb.Box>(null)
+  const menuRef = React.useRef<Kb.Box>(null)
   const [showMenu, setShowMenu] = React.useState(false)
 
   const _getAttachmentRef = () => menuRef.current

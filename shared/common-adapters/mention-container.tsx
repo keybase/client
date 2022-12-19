@@ -1,6 +1,6 @@
 import * as ProfileGen from '../actions/profile-gen'
 import * as Tracker2Gen from '../actions/tracker2-gen'
-import Mention, {OwnProps} from './mention'
+import Mention, {type OwnProps} from './mention'
 import {isSpecialMention} from '../constants/chat2'
 import * as Container from '../util/container'
 

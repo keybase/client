@@ -1,10 +1,10 @@
 import * as Container from '../../util/container'
 import * as TeamsConstants from '../../constants/teams'
-import * as TeamsTypes from '../../constants/types/teams'
+import type * as TeamsTypes from '../../constants/types/teams'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as TeamsGen from '../../actions/teams-gen'
 import {TeamWithPopup} from './'
-import {TextType} from '../text'
+import type {TextType} from '../text'
 
 type OwnProps = {
   inline?: boolean

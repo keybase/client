@@ -1,7 +1,7 @@
 import logger from '../logger'
 import * as SettingsGen from '../actions/settings-gen'
 import * as EngineGen from '../actions/engine-gen-gen'
-import * as Types from '../constants/types/settings'
+import type * as Types from '../constants/types/settings'
 import * as Constants from '../constants/settings'
 import * as Container from '../util/container'
 import {isValidEmail} from '../util/simple-validators'

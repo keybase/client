@@ -8,7 +8,7 @@ import ClickableBox from './clickable-box'
 import Text from './text'
 import {animated} from 'react-spring'
 import * as Styles from '../styles'
-import {Props} from './with-tooltip'
+import type {Props} from './with-tooltip'
 
 // This uses a similar mechanism to relative-popup-hoc.desktop.js. It's only
 // ever used for tooltips on mobile for now. If we end up needing relative

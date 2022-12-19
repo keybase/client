@@ -1,4 +1,4 @@
-import * as Types from './types/recover-password'
+import type * as Types from './types/recover-password'
 import HiddenString from '../util/hidden-string'
 
 export const waitingKey = 'recover-password:waiting'

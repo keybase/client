@@ -1,6 +1,6 @@
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import {Props} from '.'
+import type {Props} from '.'
 
 const UserCard = ({
   avatarSize,

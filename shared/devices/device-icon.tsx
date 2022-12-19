@@ -1,8 +1,8 @@
 import * as Kb from '../common-adapters'
-import * as Types from '../constants/types/devices'
-import * as ProvisionTypes from '../constants/types/provision'
+import type * as Types from '../constants/types/devices'
+import type * as ProvisionTypes from '../constants/types/provision'
 import * as Constants from '../constants/devices'
-import {IconStyle} from '../common-adapters/icon'
+import type {IconStyle} from '../common-adapters/icon'
 
 export type Props = {
   current?: boolean

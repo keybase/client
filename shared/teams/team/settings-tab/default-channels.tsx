@@ -2,9 +2,9 @@ import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Container from '../../../util/container'
 import * as RPCChatGen from '../../../constants/types/rpc-chat-gen'
-import * as Types from '../../../constants/types/teams'
+import type * as Types from '../../../constants/types/teams'
 import * as Constants from '../../../constants/teams'
-import {RPCError} from '../../../util/errors'
+import type {RPCError} from '../../../util/errors'
 import {ChannelsWidget} from '../../common'
 
 type Props = {

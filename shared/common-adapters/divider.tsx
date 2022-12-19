@@ -1,7 +1,7 @@
 import Box from './box'
 import * as Styles from '../styles'
 
-import {Props} from './divider.d'
+import type {Props} from './divider.d'
 
 const Divider = (props: Props) => (
   <Box

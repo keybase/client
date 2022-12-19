@@ -3,7 +3,7 @@ import * as Kb from '../../../../../common-adapters/mobile.native'
 import * as Styles from '../../../../../styles'
 import {memoize} from '../../../../../util/memoize'
 import logger from '../../../../../logger'
-import {Video, AVPlaybackStatus, ResizeMode} from 'expo-av'
+import {Video, ResizeMode, type AVPlaybackStatus} from 'expo-av'
 import type {Props} from './image-render.types'
 
 type State = {

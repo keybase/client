@@ -1,4 +1,4 @@
-import * as Types from '../constants/types/pinentry'
+import type * as Types from '../constants/types/pinentry'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as PinentryGen from '../actions/pinentry-gen'
 import * as Container from '../util/container'

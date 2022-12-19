@@ -2,7 +2,7 @@
 // correctly
 
 import * as RouteTreeGen from './route-tree-gen'
-import * as TeamTypes from '../constants/types/teams'
+import type * as TeamTypes from '../constants/types/teams'
 
 // TODO i think this should go away. either we dispatch a team building action that's typed that produces these or
 // we actually type the routes / props

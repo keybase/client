@@ -1,5 +1,5 @@
 import * as Kb from '../../../../common-adapters'
-import * as Types from '../../../../constants/types/chat2'
+import type * as Types from '../../../../constants/types/chat2'
 import * as FsGen from '../../../../actions/fs-gen'
 import * as Container from '../../../../util/container'
 import * as Styles from '../../../../styles'

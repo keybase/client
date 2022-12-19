@@ -1,6 +1,6 @@
 import * as Constants from '../../../constants/chat2'
 import * as React from 'react'
-import * as Types from '../../../constants/types/chat2'
+import type * as Types from '../../../constants/types/chat2'
 import OldProfileReset from './system-old-profile-reset-notice/container'
 import ResetUser from './reset-user/container'
 import * as Container from '../../../util/container'

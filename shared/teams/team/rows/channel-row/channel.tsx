@@ -1,5 +1,5 @@
-import * as Types from '../../../../constants/types/teams'
-import * as ChatTypes from '../../../../constants/types/chat2'
+import type * as Types from '../../../../constants/types/teams'
+import type * as ChatTypes from '../../../../constants/types/chat2'
 import * as Constants from '../../../../constants/teams'
 import * as Kb from '../../../../common-adapters'
 import * as Container from '../../../../util/container'

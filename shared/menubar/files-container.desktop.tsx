@@ -5,7 +5,7 @@ import * as ProfileGen from '../actions/profile-gen'
 import * as FsUtil from '../util/kbfs'
 import * as TimestampUtil from '../util/timestamp'
 import {FilesPreview} from './files.desktop'
-import {DeserializeProps} from '../menubar/remote-serializer.desktop'
+import type {DeserializeProps} from '../menubar/remote-serializer.desktop'
 
 const FilesContainer = () => {
   const state = Container.useRemoteStore<DeserializeProps>()

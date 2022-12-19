@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as DevicesGen from '../../actions/devices-gen'
-import * as Types from '../../constants/types/devices'
+import type * as Types from '../../constants/types/devices'
 import * as Constants from '../../constants/devices'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
@@ -100,7 +100,7 @@ const DevicePage = (props: Props) => {
     <Kb.Meta title="revoked" style={styles.meta} backgroundColor={Styles.globalColors.red} />
   ) : null
 
-  let maybeIcon = (
+  const maybeIcon = (
     {
       backup: 'icon-paper-key-96',
       desktop: `icon-computer-background-${props.iconNumber}-96`,

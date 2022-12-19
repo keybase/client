@@ -1,8 +1,8 @@
 import * as React from 'react'
-import {MessageExplodeDescription} from '../../../../constants/types/chat2'
-import {MenuItems, Box2, Icon, Text, FloatingMenu} from '../../../../common-adapters'
+import type {MessageExplodeDescription} from '../../../../constants/types/chat2'
+import {Box2, Icon, Text, FloatingMenu, type MenuItems} from '../../../../common-adapters'
 import {platformStyles, globalColors} from '../../../../styles'
-import {Props} from '.'
+import type {Props} from '.'
 
 const quantityTextStyle = platformStyles({
   common: {

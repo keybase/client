@@ -43,7 +43,7 @@ const ProofBrokenBannerNonEmpty = (props: ProofBrokenBannerNonEmptyProps) => {
                 ' and ',
                 {onClick: () => onClickUsername(props.users[1]), text: props.users[1]},
               ]
-            : props.users.reduce(
+            : props.users.reduce<Array<string | {text: string; onClick: () => void}>>(
                 (content, user, index, {length}) => [
                   ...content,
                   ...(index === length - 1
@@ -52,7 +52,7 @@ const ProofBrokenBannerNonEmpty = (props: ProofBrokenBannerNonEmptyProps) => {
                     ? [{onClick: () => onClickUsername(user), text: user}, ', and ']
                     : [{onClick: () => onClickUsername(user), text: user}, ', ']),
                 ],
-                [] as Array<string | {text: string; onClick: () => void}>
+                []
               )),
           ' have changed their proofs since you last followed them.',
         ]

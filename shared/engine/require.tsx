@@ -1,5 +1,5 @@
 // Helper to get engine and break require loops
-import {Engine} from '.'
+import type {Engine} from '.'
 export type {ListenerApi} from '../util/redux-toolkit'
 
 let _engine: Engine

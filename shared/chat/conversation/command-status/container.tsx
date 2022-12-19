@@ -1,4 +1,4 @@
-import * as Types from '../../../constants/types/chat2'
+import type * as Types from '../../../constants/types/chat2'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as ConfigGen from '../../../actions/config-gen'
 import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'

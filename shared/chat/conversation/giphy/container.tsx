@@ -1,4 +1,4 @@
-import * as Types from '../../../constants/types/chat2'
+import type * as Types from '../../../constants/types/chat2'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Container from '../../../util/container'
 import HiddenString from '../../../util/hidden-string'

@@ -1,7 +1,7 @@
 import {globalStyles, globalColors, globalMargins} from '../styles'
 import {Box, Text} from '../common-adapters'
 
-import {Props} from './subheading'
+import type {Props} from './subheading'
 
 function SubHeading({children}: Props) {
   return (

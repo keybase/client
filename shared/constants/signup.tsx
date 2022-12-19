@@ -1,4 +1,4 @@
-import * as Types from './types/signup'
+import type * as Types from './types/signup'
 import * as Platforms from '../constants/platform'
 import HiddenString from '../util/hidden-string'
 

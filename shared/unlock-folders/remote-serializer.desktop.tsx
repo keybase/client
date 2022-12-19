@@ -1,4 +1,4 @@
-import {State} from '../constants/types/unlock-folders'
+import type {State} from '../constants/types/unlock-folders'
 export type ProxyProps = {
   darkMode: boolean
 } & Pick<State, 'devices' | 'paperkeyError' | 'phase' | 'waiting'>

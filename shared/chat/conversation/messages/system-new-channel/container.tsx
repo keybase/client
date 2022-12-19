@@ -1,7 +1,7 @@
-import * as Types from '../../../../constants/types/chat2'
+import type * as Types from '../../../../constants/types/chat2'
 import * as Constants from '../../../../constants/chat2'
 import * as TeamsGen from '../../../../actions/teams-gen'
-import {TeamID} from '../../../../constants/types/teams'
+import type {TeamID} from '../../../../constants/types/teams'
 import SystemNewChannel from '.'
 import {connect} from '../../../../util/container'
 

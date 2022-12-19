@@ -1,5 +1,5 @@
-import {PlatformsExpandedType} from '../constants/types/more'
-import {IconType} from '../common-adapters/icon.constants-gen' // do NOT pull in all of common-adapters
+import type {PlatformsExpandedType} from '../constants/types/more'
+import type {IconType} from '../common-adapters/icon.constants-gen' // do NOT pull in all of common-adapters
 
 export function subtitle(platform: PlatformsExpandedType): string | null {
   switch (platform) {

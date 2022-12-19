@@ -1,7 +1,7 @@
 import * as Container from '../util/container'
 import * as DevicesGen from '../actions/devices-gen'
 import * as ProvisionGen from '../actions/provision-gen'
-import * as Types from '../constants/types/devices'
+import type * as Types from '../constants/types/devices'
 import HiddenString from '../util/hidden-string'
 
 const initialState: Types.State = {

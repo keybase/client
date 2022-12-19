@@ -44,7 +44,7 @@ const getPeopleData = async (state: Container.TypedState, action: PeopleGen.GetP
     const oldItems: Array<Types.PeopleScreenItem> = (data.items ?? [])
       .filter(item => !item.badged && item.data.t !== RPCTypes.HomeScreenItemType.todo)
       .reduce(Constants.reduceRPCItemToPeopleItem, [])
-    let newItems: Array<Types.PeopleScreenItem> = (data.items ?? [])
+    const newItems: Array<Types.PeopleScreenItem> = (data.items ?? [])
       .filter(item => item.badged || item.data.t === RPCTypes.HomeScreenItemType.todo)
       .reduce(Constants.reduceRPCItemToPeopleItem, [])
 

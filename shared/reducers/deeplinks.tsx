@@ -1,4 +1,4 @@
-import * as Types from '../constants/types/deeplinks'
+import type * as Types from '../constants/types/deeplinks'
 import * as DeeplinksGen from '../actions/deeplinks-gen'
 import * as Container from '../util/container'
 

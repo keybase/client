@@ -1,5 +1,5 @@
 import * as Constants from '../constants/provision'
-import * as Types from '../constants/types/provision'
+import type * as Types from '../constants/types/provision'
 import * as Container from '../util/container'
 import * as ProvisionGen from '../actions/provision-gen'
 import HiddenString from '../util/hidden-string'

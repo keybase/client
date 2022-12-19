@@ -130,7 +130,7 @@ export type MessageText = {
   mentionsAt: MentionsAt
   mentionsChannel: MentionsChannel
   mentionsChannelName: MentionsChannelName
-  // eslint-disable-next-line no-use-before-define
+   
   replyTo: Message | null
   text: HiddenString
   paymentInfo: ChatPaymentInfo | null // If null, we are waiting on this from the service,

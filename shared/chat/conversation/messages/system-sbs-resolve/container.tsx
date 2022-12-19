@@ -1,5 +1,5 @@
 import SystemInviteAccepted from '.'
-import * as Types from '../../../../constants/types/chat2'
+import type * as Types from '../../../../constants/types/chat2'
 import {connect} from '../../../../util/container'
 
 type OwnProps = {

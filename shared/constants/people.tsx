@@ -1,7 +1,7 @@
-import * as Types from './types/people'
+import type * as Types from './types/people'
 import * as RPCTypes from './types/rpc-gen'
 import invert from 'lodash/invert'
-import {IconType} from '../common-adapters/icon.constants-gen' // do NOT pull in all of common-adapters
+import type {IconType} from '../common-adapters/icon.constants-gen' // do NOT pull in all of common-adapters
 import {isMobile} from './platform'
 
 export const defaultNumFollowSuggestions = 10

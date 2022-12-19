@@ -4,7 +4,7 @@ import * as Styles from '../../../../../styles'
 import {ImageRender} from './image-render'
 import {isMobile} from '../../../../../util/container'
 import {memoize} from '../../../../../util/memoize'
-import * as Types from '../../../../../constants/types/chat2'
+import type * as Types from '../../../../../constants/types/chat2'
 import * as Constants from '../../../../../constants/chat2'
 import {getEditStyle, ShowToastAfterSaving} from '../shared'
 

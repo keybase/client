@@ -2,8 +2,8 @@ import * as Kb from '../../common-adapters/mobile.native'
 import * as React from 'react'
 import * as Styles from '../../styles'
 import {FloatingRolePicker} from '../role-picker'
-import {TeamRoleType} from '../../constants/types/teams'
-import {Contact} from '../common/use-contacts.native'
+import type {TeamRoleType} from '../../constants/types/teams'
+import type {Contact} from '../common/use-contacts.native'
 
 // Contact info + other things needed for list row.
 export type ContactRowProps = Contact & {

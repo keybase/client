@@ -1,5 +1,5 @@
 import * as Kb from '../../common-adapters'
-import {StylesTextCrossPlatform} from '../../common-adapters/text'
+import type {StylesTextCrossPlatform} from '../../common-adapters/text'
 
 type TextType = any
 // TODO: import { TextType } from '../../common-adapters/text';

@@ -1,4 +1,4 @@
-import {Logger, LogLineWithLevel} from './types'
+import type {Logger, LogLineWithLevel} from './types'
 
 type ConsoleLogLevel = 'log' | 'warn' | 'error'
 // Use console.level

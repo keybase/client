@@ -1,7 +1,7 @@
-import * as Types from '../../../constants/types/chat2'
-import * as WalletTypes from '../../../constants/types/wallets'
+import type * as Types from '../../../constants/types/chat2'
+import type * as WalletTypes from '../../../constants/types/wallets'
 import * as Container from '../../../util/container'
-import PaymentStatus, {Props} from '.'
+import PaymentStatus, {type Props} from '.'
 
 type OwnProps = {
   allowFontScaling?: boolean | null

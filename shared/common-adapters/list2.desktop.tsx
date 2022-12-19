@@ -1,7 +1,7 @@
 import * as React from 'react'
 import AutoSizer from 'react-virtualized-auto-sizer'
 import {FixedSizeList, VariableSizeList} from 'react-window'
-import {Props} from './list2'
+import type {Props} from './list2'
 import {smallHeight, largeHeight} from './list-item2'
 
 class List2<T> extends React.PureComponent<Props<T>> {

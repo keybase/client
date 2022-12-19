@@ -1,5 +1,5 @@
 import * as Kb from '../common-adapters'
-import * as FsTypes from '../constants/types/fs'
+import type * as FsTypes from '../constants/types/fs'
 
 type Props = {
   hidden: boolean
