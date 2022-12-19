@@ -89,6 +89,9 @@ if [ "$smoke_test" = "1" ]; then
   number_of_builds=2
 fi
 
+# required for cross compilation to arm64 on darwin amd64 machine.
+export CGO_ENABLED=1
+
 # Okay, here's where we start generating version numbers and doing builds.
 for ((i=1; i<=$number_of_builds; i++)); do
   if [ ! "$nobuild" = "1" ]; then
