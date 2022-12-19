@@ -11,10 +11,12 @@ export type Props = {
   onOpenAccountSwitcher?: () => void
   signupEmail: string
   myUsername: string
-  waiting: boolean
 }
+export type WrapProps = {
+  waiting: boolean
+} & Props
 
-export default class People extends React.Component<Props> {}
+export default class People extends React.Component<WrapProps> {}
 export class Header extends React.Component<{
   onClickUser: (username: string) => void
   myUsername: string

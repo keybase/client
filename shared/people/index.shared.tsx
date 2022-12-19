@@ -112,24 +112,26 @@ const ResentEmailVerificationBanner = () => {
   )
 }
 
-export const PeoplePageList = (props: Props) => (
-  <Kb.Box style={{...Styles.globalStyles.flexBoxColumn, position: 'relative', width: '100%'}}>
-    <EmailVerificationBanner />
-    <ResentEmailVerificationBanner />
-    {props.newItems
-      .filter(item => item.type !== 'todo' || item.todoType !== 'verifyAllEmail' || !props.signupEmail)
-      .map(item => itemToComponent(item, props))}
-    {Array.from(props.wotUpdates, ([key, item]) => (
-      <WotTask
-        key={key}
-        voucher={item.voucher}
-        vouchee={item.vouchee}
-        status={item.status}
-        onClickUser={props.onClickUser}
-      />
-    ))}
+export const PeoplePageList = React.memo(function PeoplePageList(props: Props) {
+  return (
+    <Kb.Box style={{...Styles.globalStyles.flexBoxColumn, position: 'relative', width: '100%'}}>
+      <EmailVerificationBanner />
+      <ResentEmailVerificationBanner />
+      {props.newItems
+        .filter(item => item.type !== 'todo' || item.todoType !== 'verifyAllEmail' || !props.signupEmail)
+        .map(item => itemToComponent(item, props))}
+      {Array.from(props.wotUpdates, ([key, item]) => (
+        <WotTask
+          key={key}
+          voucher={item.voucher}
+          vouchee={item.vouchee}
+          status={item.status}
+          onClickUser={props.onClickUser}
+        />
+      ))}
 
-    <FollowSuggestions suggestions={props.followSuggestions} />
-    {props.oldItems.map(item => itemToComponent(item, props))}
-  </Kb.Box>
-)
+      <FollowSuggestions suggestions={props.followSuggestions} />
+      {props.oldItems.map(item => itemToComponent(item, props))}
+    </Kb.Box>
+  )
+})

@@ -153,11 +153,9 @@ const keysMap = Tabs.desktopTabs.reduce((map, tab, index) => {
 }, {})
 const hotKeys = Object.keys(keysMap)
 
-const TabBar = (props: Props) => {
+const TabBar = React.memo(function TabBar(props: Props) {
   const {navigation, state} = props
   const username = Container.useSelector(state => state.config.username)
-  const badgeNumbers = Container.useSelector(state => state.notifications.navBadges)
-  const fsCriticalUpdate = Container.useSelector(state => state.fs.criticalUpdate)
 
   const onHotKey = React.useCallback(
     (cmd: string) => {
@@ -183,26 +181,30 @@ const TabBar = (props: Props) => {
           index={index}
           isSelected={index === state.index}
           onTabClick={() => onSelectTab(route.name)}
-          badge={
-            (badgeNumbers.get(route.name) ?? 0) + (route.name === Tabs.fsTab && fsCriticalUpdate ? 1 : 0)
-          }
         />
       ))}
       <RuntimeStats />
     </Kb.Box2>
   ) : null
-}
+})
 
 type TabProps = {
   tab: Tabs.AppTab
   index: number
   isSelected: boolean
   onTabClick: (t: Tabs.AppTab) => void
-  badge?: number
+}
+
+const TabBadge = (p: {name}) => {
+  const {name} = p
+  const badgeNumbers = Container.useSelector(state => state.notifications.navBadges)
+  const fsCriticalUpdate = Container.useSelector(state => state.fs.criticalUpdate)
+  const badge = (badgeNumbers.get(name) ?? 0) + (name === Tabs.fsTab && fsCriticalUpdate ? 1 : 0)
+  return badge ? <Kb.Badge className="tab-badge" badgeNumber={badge} /> : null
 }
 
 const Tab = React.memo(function Tab(props: TabProps) {
-  const {tab, index, isSelected, onTabClick, badge} = props
+  const {tab, index, isSelected, onTabClick} = props
   const {label} = Tabs.desktopTabMeta[tab]
 
   const dispatch = Container.useDispatch()
@@ -285,7 +287,7 @@ const Tab = React.memo(function Tab(props: TabProps) {
           <Kb.Text className="tab-label" type="BodySmallSemibold">
             {label}
           </Kb.Text>
-          {!!badge && <Kb.Badge className="tab-badge" badgeNumber={badge} />}
+          <TabBadge name={tab} />
         </Kb.Box2>
       </Kb.WithTooltip>
     </Kb.ClickableBox>
