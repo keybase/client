@@ -11,7 +11,7 @@ const Kb = {
   Toast,
 }
 
-const WithTooltip = (p: Props) => {
+const WithTooltip = React.memo(function WithTooltip(p: Props) {
   const {containerStyle, className, multiline, backgroundColor, toastStyle} = p
   const {disabled, toastClassName, children, position, textStyle, tooltip} = p
   const attachmentRef = React.useRef(null)
@@ -69,7 +69,7 @@ const WithTooltip = (p: Props) => {
       )}
     </>
   )
-}
+})
 
 const styles = Styles.styleSheetCreate(() => ({
   container: Styles.platformStyles({

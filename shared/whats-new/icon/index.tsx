@@ -84,7 +84,7 @@ const Icon = (props: Props) => {
   )
 }
 
-export const IconWithPopup = (props: PopupProps) => {
+export const IconWithPopup = React.memo(function IconWithPopup(props: PopupProps) {
   const {badgeColor, color, newRelease, attachToRef} = props
   const [popupVisible, setPopupVisible] = React.useState(false)
   const baseColor = Styles.globalColors.black_50
@@ -128,7 +128,7 @@ export const IconWithPopup = (props: PopupProps) => {
       )}
     </>
   )
-}
+})
 
 const styles = Styles.styleSheetCreate(() => ({
   badgeContainerStyle: {
