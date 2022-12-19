@@ -471,21 +471,7 @@ const attachmentActions: Container.ActionHandler<Actions, Types.State> = {
   },
 }
 
-let temp = false
 const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
-  TEMP: draftState => {
-    const cid = '0000b386ba31eebeea5d8ba781aa8ccb4e0c31b6d9a210e74964b42d2d5726c1'
-    const m = draftState.messageMap.get(cid)?.get(5158)
-    if (m.type === 'text') {
-      const old = m.text.stringValue()
-      const next = old.substring(0, old.length - 1) + (temp ? 'a' : 'b')
-      m.text = new HiddenString(next)
-      if (m.decoratedText) {
-        m.decoratedText = new HiddenString(next)
-      }
-      temp = !temp
-    }
-  },
   [Chat2Gen.resetStore]: draftState => {
     return {...initialState, staticConfig: draftState.staticConfig as Types.State['staticConfig']}
   },

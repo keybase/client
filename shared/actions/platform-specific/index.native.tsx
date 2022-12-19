@@ -745,11 +745,4 @@ export const initPlatformListener = () => {
   Container.spawn(loadStartupDetails, 'loadStartupDetails')
   initPushListener()
   Container.spawn(setupNetInfoWatcher, 'setupNetInfoWatcher')
-
-  // TEMP
-  Container.spawn((listenerApi: Container.ListenerApi) => {
-    setInterval(() => {
-      listenerApi.dispatch({type: 'TEMP'})
-    }, 500)
-  }, 'TEMP')
 }
