@@ -17,6 +17,9 @@ nowait=${NOWAIT:-} # Don't wait for CI
 smoke_test=${SMOKE_TEST:-} # If set to 1, enable smoke testing
 skip_notarize=${NONOTARIZE:-} # Skip notarize
 arch=${ARCH:-"amd64"} # architecture
+if [ "$platform" = "darwin" && "$arch" = "arm64" ]; then
+  platform="darwin-arm64"
+fi
 
 if [ "$gopath" = "" ]; then
   echo "No GOPATH"
@@ -106,7 +109,7 @@ for ((i=1; i<=$number_of_builds; i++)); do
   save_dir="/tmp/build_desktop"
   rm -rf "$save_dir"
 
-  if [ "$platform" = "darwin" ]; then
+  if [ "$platform" = "darwin" || "$platform" = "darwin-arm64" ]; then
     SAVE_DIR="$save_dir" KEYBASE_BINPATH="$build_dir_keybase/keybase" KBFS_BINPATH="$build_dir_kbfs/kbfs" GIT_REMOTE_KEYBASE_BINPATH="$build_dir_kbfs/git-remote-keybase" REDIRECTOR_BINPATH="$build_dir_kbfs/keybase-redirector" KBNM_BINPATH="$build_dir_kbnm/kbnm" \
       UPDATER_BINPATH="$build_dir_updater/updater" BUCKET_NAME="$bucket_name" S3HOST="$s3host" SKIP_NOTARIZE="$skip_notarize" "$dir/../desktop/package_darwin.sh"
   else
@@ -137,7 +140,7 @@ else
   if [ "$number_of_builds" = "2" ]; then
     # Announce the new builds to the API server.
     echo "Announcing builds: $build_a and $build_b."
-    BUCKET_NAME="$bucket_name" S3HOST="$s3host" "$release_bin" announce-build --build-a="$build_a" --build-b="$build_b" --platform="darwin"
+    BUCKET_NAME="$bucket_name" S3HOST="$s3host" "$release_bin" announce-build --build-a="$build_a" --build-b="$build_b" --platform="$platform"
   fi
 
   BUCKET_NAME="$bucket_name" "$dir/report.sh"

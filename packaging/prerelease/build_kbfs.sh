@@ -37,7 +37,7 @@ GOARCH="$arch" go build -a -tags "$tags" -ldflags "$ldflags" -o "$build_dir/git-
 echo "Building $build_dir/kbfs/redirector ($kbfs_build) with $(go version) on arch: $arch"
 GOARCH="$arch" go build -a -tags "$tags" -ldflags "$ldflags" -o "$build_dir/keybase-redirector" $redirector_pkg
 
-if [ "$PLATFORM" = "darwin" ]; then
+if [ "$PLATFORM" = "darwin" || "$PLATFORM" = "darwin-arm64" ]; then
   echo "Signing binaries..."
   code_sign_identity="9FC3A5BC09FA2EE307C04060C918486411869B65" # "Developer ID Application: Keybase, Inc. (99229SGT5K)"
   codesign --verbose --force --deep --timestamp --options runtime --sign "$code_sign_identity" $build_dir/kbfs

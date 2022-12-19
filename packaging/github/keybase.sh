@@ -64,7 +64,6 @@ create_release() {
     echo "Release already exists, skipping"
   else
     cd "$build_dir"
-    platform=`$release_bin platform`
     echo "Creating release"
     "$release_bin" create --version="$version" --repo="client"
   fi

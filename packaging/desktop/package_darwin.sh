@@ -13,11 +13,14 @@ save_dir=${SAVE_DIR:-}
 tmp_dir="/tmp/package_darwin/tmp"
 bucket_name=${BUCKET_NAME:-}
 run_mode="prod"
-platform="darwin"
 s3host=${S3HOST:-}
 istest=${TEST:-}
 skip_notarize=${SKIP_NOTARIZE:-}
 arch=${ARCH:-"amd64"}
+platform="darwin"
+if [ "$arch" = "arm64" ]; then
+  platform="darwin-arm64"
+fi
 
 if [ ! "$bucket_name" = "" ] && [ "$s3host" = "" ]; then
   # Use this syntax since bucket_name might have dots (.)
