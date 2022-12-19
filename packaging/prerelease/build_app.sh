@@ -11,15 +11,12 @@ istest=${TEST:-} # If set to true, only build (for testing)
 nopull=${NOPULL:-} # Don't git pull
 client_commit=${CLIENT_COMMIT:-} # Commit on client to build from
 bucket_name=${BUCKET_NAME:-"prerelease.keybase.io"}
-platform=${PLATFORM:-} # darwin,linux,windows (Only darwin is supported in this script)
+platform=${PLATFORM:-} # darwin,darwin-arm64,linux,windows (Only darwin/darwin-arm64 is supported in this script)
 nos3=${NOS3:-} # Don't sync to S3
 nowait=${NOWAIT:-} # Don't wait for CI
 smoke_test=${SMOKE_TEST:-} # If set to 1, enable smoke testing
 skip_notarize=${NONOTARIZE:-} # Skip notarize
 arch=${ARCH:-"amd64"} # architecture
-if [ "$platform" = "darwin" && "$arch" = "arm64" ]; then
-  platform="darwin-arm64"
-fi
 
 if [ "$gopath" = "" ]; then
   echo "No GOPATH"
@@ -27,7 +24,7 @@ if [ "$gopath" = "" ]; then
 fi
 
 if [ "$platform" = "" ]; then
-  echo "No PLATFORM. You can specify darwin, linux or windows."
+  echo "No PLATFORM. You can specify darwin, darwin-arm64, linux or windows."
   exit 1
 fi
 echo "Platform: $platform"
@@ -111,7 +108,7 @@ for ((i=1; i<=$number_of_builds; i++)); do
 
   if [ "$platform" = "darwin" || "$platform" = "darwin-arm64" ]; then
     SAVE_DIR="$save_dir" KEYBASE_BINPATH="$build_dir_keybase/keybase" KBFS_BINPATH="$build_dir_kbfs/kbfs" GIT_REMOTE_KEYBASE_BINPATH="$build_dir_kbfs/git-remote-keybase" REDIRECTOR_BINPATH="$build_dir_kbfs/keybase-redirector" KBNM_BINPATH="$build_dir_kbnm/kbnm" \
-      UPDATER_BINPATH="$build_dir_updater/updater" BUCKET_NAME="$bucket_name" S3HOST="$s3host" SKIP_NOTARIZE="$skip_notarize" "$dir/../desktop/package_darwin.sh"
+      UPDATER_BINPATH="$build_dir_updater/updater" BUCKET_NAME="$bucket_name" S3HOST="$s3host" SKIP_NOTARIZE="$skip_notarize" PLATFORM="$platform" $dir/../desktop/package_darwin.sh"
   else
     # TODO: Support Linux build here?
     echo "Unknown platform: $platform"
@@ -131,7 +128,7 @@ done
 
 
 if [ "$istest" = "1" ]; then
-  "$client_dir/packaging/slack/send.sh" "Finished *test* build $platform (keybase: $version). See $s3host/darwin-test/index.html"
+  "$client_dir/packaging/slack/send.sh" "Finished *test* build $platform (keybase: $version). See $s3host/$platform-test/index.html"
 else
   # Promote the build we just made to the test channel -- if smoketest, then
   # promote the first build; if not, then promote the only build.
