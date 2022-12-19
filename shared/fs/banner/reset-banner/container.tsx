@@ -1,4 +1,3 @@
-import * as React from 'react'
 import * as ProfileGen from '../../../actions/profile-gen'
 import * as Tracker2Gen from '../../../actions/tracker2-gen'
 import * as Constants from '../../../constants/fs'

@@ -1,4 +1,3 @@
-import * as React from 'react'
 import {NativeImage} from './native-image.native'
 import {Props, ReqProps} from './image'
 

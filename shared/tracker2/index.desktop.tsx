@@ -1,4 +1,3 @@
-import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Constants from '../constants/tracker2'
 import * as Types from '../constants/types/tracker2'

@@ -1,6 +1,5 @@
 import * as Kb from '../common-adapters'
 import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
-import * as React from 'react'
 import emojidata from 'emoji-datasource-apple'
 import groupBy from 'lodash/groupBy'
 import type * as Styles from '../styles'

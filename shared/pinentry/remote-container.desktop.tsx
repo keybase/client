@@ -1,4 +1,3 @@
-import * as React from 'react'
 import * as Container from '../util/container'
 import * as PinentryGen from '../actions/pinentry-gen'
 import Pinentry from './index.desktop'

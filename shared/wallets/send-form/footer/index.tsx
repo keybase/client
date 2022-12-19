@@ -1,4 +1,3 @@
-import * as React from 'react'
 import * as Constants from '../../../constants/wallets'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'

@@ -1,4 +1,3 @@
-import * as React from 'react'
 import * as Types from '../../../constants/types/chat2'
 import * as Constants from '../../../constants/chat2'
 import ParticipantRekey from './participant-rekey'

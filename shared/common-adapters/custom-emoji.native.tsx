@@ -1,4 +1,3 @@
-import * as React from 'react'
 import {FastImage} from './native-image.native'
 import type {Props} from './custom-emoji'
 

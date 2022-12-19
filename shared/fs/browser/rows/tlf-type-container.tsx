@@ -1,4 +1,3 @@
-import * as React from 'react'
 import * as Types from '../../../constants/types/fs'
 import {useOpen} from '../../common/use-open'
 import TlfType from './tlf-type'

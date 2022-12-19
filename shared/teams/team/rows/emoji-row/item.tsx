@@ -1,4 +1,3 @@
-import * as React from 'react'
 import * as Styles from '../../../../styles'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import * as ChatTypes from '../../../../constants/types/chat2'

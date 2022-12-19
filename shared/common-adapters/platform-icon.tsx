@@ -1,4 +1,3 @@
-import * as React from 'react'
 import {PlatformsExpandedType} from '../constants/types/more'
 import Box from './box'
 import Icon, {IconType} from './icon'

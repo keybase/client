@@ -1,4 +1,3 @@
-import * as React from 'react'
 import Text from './text'
 import * as Styles from '../styles'
 import {WithProfileCardPopup} from './profile-card'

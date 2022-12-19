@@ -1,4 +1,3 @@
-import * as React from 'react'
 import ScrollView from './scroll-view'
 import type {Props} from './zoomable-box'
 

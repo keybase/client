@@ -1,4 +1,3 @@
-import * as React from 'react'
 import * as Styles from '../../../styles'
 import {NativeTouchableOpacity, NativeSafeAreaView} from '../../native-wrappers.native'
 import Badge from '../../badge'

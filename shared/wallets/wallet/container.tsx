@@ -1,4 +1,3 @@
-import * as React from 'react'
 import * as Container from '../../util/container'
 import * as WalletsGen from '../../actions/wallets-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'

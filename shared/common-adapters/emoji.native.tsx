@@ -1,4 +1,3 @@
-import * as React from 'react'
 import {emojiIndexByName} from './markdown/emoji-gen'
 import Text from './text'
 

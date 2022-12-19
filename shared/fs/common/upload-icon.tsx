@@ -1,4 +1,3 @@
-import * as React from 'react'
 import * as Types from '../../constants/types/fs'
 import Icon, {IconStyle} from '../../common-adapters/icon'
 

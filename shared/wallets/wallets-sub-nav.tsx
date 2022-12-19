@@ -1,7 +1,6 @@
 import * as Common from '../router-v2/common'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
-import * as React from 'react'
 import * as Shim from '../router-v2/shim'
 import * as Styles from '../styles'
 import {createStackNavigator} from '@react-navigation/stack'

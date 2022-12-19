@@ -1,4 +1,3 @@
-import * as React from 'react'
 import * as Types from '../../constants/types/wallets'
 import * as RPCTypes from '../../constants/types/rpc-stellar-gen'
 import * as Constants from '../../constants/wallets'

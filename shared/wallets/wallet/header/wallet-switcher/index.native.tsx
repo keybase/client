@@ -1,4 +1,3 @@
-import * as React from 'react'
 import WalletRow from './wallet-row/container'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'

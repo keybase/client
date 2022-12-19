@@ -1,4 +1,3 @@
-import * as React from 'react'
 import * as Styles from '../styles'
 import Badge from './badge'
 import ClickableBox from './clickable-box'

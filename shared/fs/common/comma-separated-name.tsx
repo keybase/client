@@ -1,4 +1,3 @@
-import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import {StylesTextCrossPlatform} from '../../common-adapters/text'
 

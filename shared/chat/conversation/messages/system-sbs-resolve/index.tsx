@@ -1,4 +1,3 @@
-import * as React from 'react'
 import * as Types from '../../../../constants/types/chat2'
 import {ServiceIdWithContact} from '../../../../constants/types/team-building'
 import * as Kb from '../../../../common-adapters'

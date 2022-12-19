@@ -1,4 +1,3 @@
-import * as React from 'react'
 import * as Types from '../../../constants/types/fs'
 import * as Container from '../../../util/container'
 import {FloatingMenuProps} from './types'

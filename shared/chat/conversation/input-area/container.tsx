@@ -1,4 +1,3 @@
-import * as React from 'react'
 import * as Constants from '../../../constants/chat2'
 import * as Container from '../../../util/container'
 import type * as Types from '../../../constants/types/chat2'

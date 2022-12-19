@@ -1,4 +1,3 @@
-import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Types from '../../constants/types/fs'
 import {fileUIName} from '../../constants/platform'

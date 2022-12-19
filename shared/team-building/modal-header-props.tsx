@@ -1,4 +1,3 @@
-import * as React from 'react'
 import {ModalTitle as TeamsModalTitle} from '../teams/common'
 import type * as Types from './types'
 import {noTeamID} from '../constants/types/teams'

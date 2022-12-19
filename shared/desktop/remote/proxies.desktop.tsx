@@ -1,4 +1,3 @@
-import * as React from 'react'
 import RemoteMenubar from '../../menubar/remote-proxy.desktop'
 import RemoteProfile from '../../tracker2/remote-proxy.desktop'
 import RemotePinentry from '../../pinentry/remote-proxy.desktop'

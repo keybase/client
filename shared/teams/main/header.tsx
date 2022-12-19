@@ -1,4 +1,3 @@
-import * as React from 'react'
 import {ClickableBox, Box2, Button, Icon, ProgressIndicator, Text, IconType} from '../../common-adapters'
 import {
   desktopStyles,

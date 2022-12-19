@@ -1,4 +1,3 @@
-import * as React from 'react'
 import * as Types from '../../../constants/types/teams'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'

@@ -1,7 +1,6 @@
 import * as Constants from '../../../constants/fs'
 import * as Container from '../../../util/container'
 import * as FsGen from '../../../actions/fs-gen'
-import * as React from 'react'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as Types from '../../../constants/types/fs'
 import DestinationPicker from '.'

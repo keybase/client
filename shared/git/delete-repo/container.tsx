@@ -1,4 +1,3 @@
-import * as React from 'react'
 import * as GitGen from '../../actions/git-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Constants from '../../constants/git'

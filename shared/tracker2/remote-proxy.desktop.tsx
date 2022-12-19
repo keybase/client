@@ -1,6 +1,5 @@
 // A mirror of the remote tracker windows.
-import * as React from 'react'
-import * as Container from '../util/container'
+import * as Container from '../util/container';
 import * as Constants from '../constants/tracker2'
 import * as Styles from '../styles'
 import useSerializeProps from '../desktop/remote/use-serialize-props.desktop'

@@ -1,4 +1,3 @@
-import * as React from 'react'
 import {View} from 'react-native'
 import {useSafeAreaInsets} from 'react-native-safe-area-context'
 import {Props} from './safe-area-view'

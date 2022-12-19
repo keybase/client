@@ -1,4 +1,3 @@
-import * as React from 'react'
 import {Box2, Text} from '../../common-adapters'
 import {Background} from '../../common-adapters/text'
 import * as Styles from '../../styles'

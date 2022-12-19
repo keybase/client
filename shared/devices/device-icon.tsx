@@ -1,4 +1,3 @@
-import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Types from '../constants/types/devices'
 import * as ProvisionTypes from '../constants/types/provision'

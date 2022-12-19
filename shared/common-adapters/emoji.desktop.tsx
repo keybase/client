@@ -1,4 +1,3 @@
-import * as React from 'react'
 import type {Props} from './emoji'
 import {type EmojiData, emojiNameMap, skinTones} from '../util/emoji'
 
