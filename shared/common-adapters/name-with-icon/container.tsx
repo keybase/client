@@ -1,9 +1,9 @@
+import * as React from 'react'
 import * as ProfileGen from '../../actions/profile-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Tracker2Gen from '../../actions/tracker2-gen'
-import NameWithIcon, {NameWithIconProps} from '.'
+import NameWithIcon, {type NameWithIconProps} from '.'
 import * as Container from '../../util/container'
-import {TeamID} from '../../constants/types/teams'
 
 export type ConnectedNameWithIconProps = {
   onClick?: 'tracker' | 'profile' | NameWithIconProps['onClick']
@@ -11,58 +11,60 @@ export type ConnectedNameWithIconProps = {
 
 type OwnProps = ConnectedNameWithIconProps
 
-const ConnectedNameWithIcon = Container.connect(
-  state => ({_teamNameToID: state.teams.teamNameToID}),
-  dispatch => ({
-    onOpenTeamProfile: (teamID: TeamID) => {
-      dispatch(RouteTreeGen.createClearModals())
-      dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'team'}]}))
-    },
-    onOpenTracker: (username: string) => dispatch(Tracker2Gen.createShowUser({asTracker: true, username})),
-    onOpenUserProfile: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
-  }),
-  (_stateProps, dispatchProps, ownProps: OwnProps) => {
-    const {onClick, username, teamname, ...props} = ownProps
-    const teamID = teamname && _stateProps._teamNameToID.get(teamname)
-    let functionOnClick: NameWithIconProps['onClick']
-    let clickType: NameWithIconProps['clickType'] = 'onClick'
+const ConnectedNameWithIcon = (p: OwnProps) => {
+  const {onClick, username, teamname, ...props} = p
+  const teamID = Container.useSelector(state => state.teams.teamNameToID.get(teamname ?? ''))
+  const dispatch = Container.useDispatch()
+  const onOpenTeamProfile = React.useCallback(() => {
+    dispatch(RouteTreeGen.createClearModals())
+    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'team'}]}))
+  }, [dispatch, teamID])
+  const onOpenTracker = React.useCallback(() => {
+    username && dispatch(Tracker2Gen.createShowUser({asTracker: true, username}))
+  }, [dispatch, username])
+  const onOpenUserProfile = React.useCallback(() => {
+    username && dispatch(ProfileGen.createShowUserProfile({username}))
+  }, [dispatch, username])
 
-    switch (onClick) {
-      case 'tracker': {
-        if (!Container.isMobile) {
-          if (username) {
-            functionOnClick = () => dispatchProps.onOpenTracker(username)
-          }
-        } else {
-          if (username) {
-            functionOnClick = () => dispatchProps.onOpenUserProfile(username)
-          } else if (teamID) {
-            functionOnClick = () => dispatchProps.onOpenTeamProfile(teamID)
-          }
-        }
-        break
-      }
-      case 'profile': {
+  let functionOnClick: NameWithIconProps['onClick']
+  let clickType: NameWithIconProps['clickType'] = 'onClick'
+  switch (onClick) {
+    case 'tracker': {
+      if (!Container.isMobile) {
         if (username) {
-          functionOnClick = () => dispatchProps.onOpenUserProfile(username)
-        } else if (teamID) {
-          functionOnClick = () => dispatchProps.onOpenTeamProfile(teamID)
+          functionOnClick = onOpenTracker
         }
-        clickType = 'profile'
-        break
+      } else {
+        if (username) {
+          functionOnClick = onOpenUserProfile
+        } else if (teamID) {
+          functionOnClick = onOpenTeamProfile
+        }
       }
-      default:
-        functionOnClick = onClick
+      break
     }
-
-    return {
-      ...props,
-      clickType,
-      onClick: functionOnClick,
-      teamname,
-      username,
+    case 'profile': {
+      if (username) {
+        functionOnClick = onOpenUserProfile
+      } else if (teamID) {
+        functionOnClick = onOpenTeamProfile
+      }
+      clickType = 'profile'
+      break
     }
+    default:
+      functionOnClick = onClick
   }
-)(NameWithIcon)
+
+  return (
+    <NameWithIcon
+      {...props}
+      clickType={clickType}
+      onClick={functionOnClick}
+      teamname={teamname}
+      username={username}
+    />
+  )
+}
 
 export default ConnectedNameWithIcon

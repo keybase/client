@@ -1,60 +1,59 @@
-import GlobalError from '.'
-import * as Container from '../../util/container'
 import * as ConfigGen from '../../actions/config-gen'
-import {settingsTab} from '../../constants/tabs'
+import * as Container from '../../util/container'
 import * as Platform from '../../constants/platform'
+import * as React from 'react'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
+import GlobalError from '.'
+import {settingsTab} from '../../constants/tabs'
 
-type OwnProps = {}
+const Connected = () => {
+  const loggedIn = Container.useSelector(state => state.config.loggedIn)
+  const daemonError = Container.useSelector(state => state.config.daemonError)
+  const error = Container.useSelector(state => state.config.globalError)
+  const dispatch = Container.useDispatch()
 
-const Connected = Container.connect(
-  state => {
-    const {loggedIn, daemonError, globalError} = state.config
-    return {
-      _loggedIn: loggedIn,
-      daemonError,
-      error: globalError,
-    }
-  },
-  dispatch => ({
-    _onFeedback: (loggedIn: boolean) => {
-      dispatch(ConfigGen.createGlobalError({}))
-      if (loggedIn) {
-        dispatch(RouteTreeGen.createClearModals())
-        if (Platform.isMobile) {
-          dispatch(RouteTreeGen.createNavigateAppend({path: [settingsTab]}))
-          dispatch(
-            RouteTreeGen.createNavigateAppend({
-              path: [
-                {
-                  props: {heading: 'Oh no, a bug!'},
-                  selected: require('../../constants/settings').feedbackTab,
-                },
-              ],
-            })
-          )
-        } else {
-          dispatch(RouteTreeGen.createNavigateAppend({path: ['modalFeedback']}))
-        }
+  const onFeedback = React.useCallback(() => {
+    dispatch(ConfigGen.createGlobalError({}))
+    if (loggedIn) {
+      dispatch(RouteTreeGen.createClearModals())
+      if (Platform.isMobile) {
+        dispatch(RouteTreeGen.createNavigateAppend({path: [settingsTab]}))
+        dispatch(
+          RouteTreeGen.createNavigateAppend({
+            path: [
+              {
+                props: {heading: 'Oh no, a bug!'},
+                selected: require('../../constants/settings').feedbackTab,
+              },
+            ],
+          })
+        )
       } else {
-        dispatch(RouteTreeGen.createNavigateAppend({path: ['feedback']}))
+        dispatch(RouteTreeGen.createNavigateAppend({path: ['modalFeedback']}))
       }
-    },
-    copyToClipboard: (text: string) => dispatch(ConfigGen.createCopyToClipboard({text})),
-    onDismiss: () => {
-      dispatch(ConfigGen.createGlobalError({}))
-    },
-  }),
-  (stateProps, dispatchProps, _: OwnProps) => {
-    const {daemonError, error, _loggedIn} = stateProps
-    const {copyToClipboard, onDismiss, _onFeedback} = dispatchProps
-    return {
-      copyToClipboard,
-      daemonError,
-      error,
-      onDismiss,
-      onFeedback: () => _onFeedback(_loggedIn),
+    } else {
+      dispatch(RouteTreeGen.createNavigateAppend({path: ['feedback']}))
     }
+  }, [loggedIn, dispatch])
+  const copyToClipboard = React.useCallback(
+    (text: string) => dispatch(ConfigGen.createCopyToClipboard({text})),
+    [dispatch]
+  )
+  const onDismiss = React.useCallback(() => {
+    dispatch(ConfigGen.createGlobalError({}))
+  }, [dispatch])
+
+  if (daemonError || error) {
+    return (
+      <GlobalError
+        copyToClipboard={copyToClipboard}
+        daemonError={daemonError}
+        error={error}
+        onDismiss={onDismiss}
+        onFeedback={onFeedback}
+      />
+    )
   }
-)(GlobalError)
+  return null
+}
 export default Connected
