@@ -51,5 +51,7 @@ else
   exit 1
 fi
 
-kbfs_version=$("$build_dir"/kbfs -version)
-echo "KBFS version: $kbfs_version"
+if [ ! "$PLATFORM" = "darwin-arm64" ]; then # we can't run the arm64 binary on the amd64 build machine!
+  kbfs_version=$("$build_dir"/kbfs -version)
+  echo "KBFS version: $kbfs_version"
+fi
