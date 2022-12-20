@@ -10,7 +10,7 @@ type Props = {
   mode: 'Icon' | 'Button'
 }
 
-export default (props: Props) => {
+const SFMIPopup = (props: Props) => {
   const driverStatus = Container.useSelector(state => state.fs.sfmi.driverStatus)
   const dispatch = Container.useDispatch()
   const enableDriver = () => dispatch(FsGen.createDriverEnable())
@@ -123,3 +123,4 @@ const styles = Styles.styleSheetCreate(() => ({
     paddingTop: Styles.globalMargins.tiny,
   },
 }))
+export default SFMIPopup

@@ -180,7 +180,24 @@ const load = () => {
   store = temp.store
   setupApp(store, initListeners)
   setupHMR(store)
-  render()
+
+  if (__DEV__) {
+    // let us load devtools first
+    const DEBUG_DEFER = false
+    if (DEBUG_DEFER) {
+      for (let i = 0; i < 10; ++i) {
+        console.log('DEBUG_DEFER on!!!')
+      }
+      ReactDOM.render(<div>temp</div>, document.getElementById('root'))
+      setTimeout(() => {
+        render()
+      }, 5000)
+    } else {
+      render()
+    }
+  } else {
+    render()
+  }
 }
 
 load()

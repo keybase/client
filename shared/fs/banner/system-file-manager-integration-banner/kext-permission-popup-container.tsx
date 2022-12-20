@@ -4,7 +4,7 @@ import * as FsGen from '../../../actions/fs-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import KextPermissionPopup from './kext-permission-popup'
 
-export default () => {
+const KPPContainer = () => {
   const driverStatus = Container.useSelector(state => state.fs.sfmi.driverStatus)
   const dispatch = Container.useDispatch()
   const onCancel = React.useCallback(() => dispatch(RouteTreeGen.createNavigateUp()), [dispatch])
@@ -20,3 +20,4 @@ export default () => {
     />
   )
 }
+export default KPPContainer

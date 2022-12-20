@@ -6,7 +6,7 @@ import * as Container from '../../../util/container'
 import QRScan from '.'
 import HiddenString from '../../../util/hidden-string'
 
-export default () => {
+const QRScanContainer = () => {
   const error = Container.useSelector(state => state.provision.error.stringValue())
   const waiting = Container.useSelector(state => WaitingConstants.anyWaiting(state, Constants.waitingKey))
   const dispatch = Container.useDispatch()
@@ -19,3 +19,4 @@ export default () => {
   const onSubmitTextCode = Container.useSafeSubmit(_onSubmitTextCode, !!error)
   return <QRScan onSubmitTextCode={onSubmitTextCode} waiting={waiting} />
 }
+export default QRScanContainer

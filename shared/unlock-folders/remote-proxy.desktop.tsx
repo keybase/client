@@ -24,7 +24,7 @@ const UnlockFolders = (p: ProxyProps) => {
 
 const UnlockFoldersMemo = React.memo(UnlockFolders)
 
-export default () => {
+const UnlockRemoteProxy = () => {
   const unlockFolders = Container.useSelector(s => s.unlockFolders)
   const {popupOpen} = unlockFolders
   if (popupOpen) {
@@ -41,3 +41,4 @@ export default () => {
   }
   return null
 }
+export default UnlockRemoteProxy

@@ -10,7 +10,7 @@ type OwnProps = {
   path: Types.Path
 }
 
-export default (p: OwnProps) => {
+const StillContainer = (p: OwnProps) => {
   const {destinationPickerIndex, path} = p
   const _downloads = Container.useSelector(state => state.fs.downloads)
   const _pathItem = Container.useSelector(state => Constants.getPathItem(state.fs.pathItems, path))
@@ -40,3 +40,4 @@ export default (p: OwnProps) => {
   }
   return <Still {...np} />
 }
+export default StillContainer

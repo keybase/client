@@ -512,12 +512,12 @@ const PlatformInput = (p: Props) => {
 const AnimatedPlainInput = createAnimatedComponent(Kb.PlainInput)
 const AnimatedInput = (() => {
   if (skipAnimations) {
-    return React.forwardRef<any, any>((p: any, ref) => {
+    return React.forwardRef<any, any>(function AnimatedInput(p: any, ref) {
       const {expanded, ...rest} = p
       return <AnimatedPlainInput {...rest} ref={ref} style={[rest.style]} />
     })
   } else {
-    return React.forwardRef<any, any>((p: any, ref) => {
+    return React.forwardRef<any, any>(function AnimatedInput(p: any, ref) {
       const {maxInputArea, expanded, ...rest} = p
       const offset = useSharedValue(expanded ? 1 : 0)
       const maxHeight = maxInputArea - inputAreaHeight - 15

@@ -26,7 +26,7 @@ const getDebugToggleShow = dispatch => {
   }
 }
 
-export default () => {
+const UpoadContainer = () => {
   const kbfsDaemonStatus = Container.useSelector(state => state.fs.kbfsDaemonStatus)
   const pathItems = Container.useSelector(state => state.fs.pathItems)
   const uploads = Container.useSelector(state => state.fs.uploads)
@@ -56,3 +56,4 @@ export default () => {
 
   return <Upload {...np} />
 }
+export default UpoadContainer

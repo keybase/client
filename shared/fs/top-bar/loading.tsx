@@ -21,7 +21,7 @@ const styles = Styles.styleSheetCreate(
     } as const)
 )
 
-export default (op: OwnProps) => {
+const Loading = (op: OwnProps) => {
   const {path} = op
   const _pathItem = Container.useSelector(state => Constants.getPathItem(state.fs.pathItems, path))
   const _tlfsLoaded = Container.useSelector(state => !!state.fs.tlfs.private.size)
@@ -54,3 +54,4 @@ export default (op: OwnProps) => {
 
   return show ? <Kb.ProgressIndicator style={styles.progressIndicator} /> : null
 }
+export default Loading

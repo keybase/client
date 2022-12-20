@@ -7,7 +7,7 @@ import * as WalletsGen from '../../../actions/wallets-gen'
 import Footer from '.'
 import {anyWaiting} from '../../../constants/waiting'
 
-export default () => {
+const FooterContainer = () => {
   const accountID = Container.useSelector(state => state.wallets.building.from)
   const thisDeviceIsLockedOut = Container.useSelector(state =>
     Types.isValidAccountID(accountID)
@@ -66,3 +66,4 @@ export default () => {
 
   return <Footer {...np} />
 }
+export default FooterContainer

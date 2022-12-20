@@ -92,8 +92,9 @@ class ReflessNewInput extends React.Component<Props & RefProps, State> {
     )
   }
 }
-const NewInputInner = (props, ref) => <ReflessNewInput {...props} forwardedRef={ref} />
-const NewInput = React.forwardRef<PlainInput, Props>(NewInputInner)
+const NewInput = React.forwardRef<PlainInput, Props>(function NewInputInner(props, ref) {
+  return <ReflessNewInput {...props} forwardedRef={ref} />
+})
 
 const styles = Styles.styleSheetCreate(
   () =>

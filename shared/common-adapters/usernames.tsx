@@ -173,107 +173,110 @@ UsernameText.defaultProps = {
 
 const inlineProps = Styles.isMobile ? {lineClamp: 1 as const} : {}
 
-const _Usernames = (props: Props) => {
-  const styleContext = React.useContext(Styles.StyleContext)
-  const containerStyle: Styles.StylesCrossPlatform = props.inline
-    ? (styles.inlineStyle as any)
-    : (styles.nonInlineStyle as any)
-  const bgMode = props.backgroundMode || null
-  const isNegative = backgroundModeIsNegative(bgMode)
+const Usernames = React.memo(
+  function Usernames(props: Props) {
+    const styleContext = React.useContext(Styles.StyleContext)
+    const containerStyle: Styles.StylesCrossPlatform = props.inline
+      ? (styles.inlineStyle as any)
+      : (styles.nonInlineStyle as any)
+    const bgMode = props.backgroundMode || null
+    const isNegative = backgroundModeIsNegative(bgMode)
 
-  const dispatch = Container.useDispatch()
+    const dispatch = Container.useDispatch()
 
-  const onOpenProfile = (username: string) => dispatch(ProfileGen.createShowUserProfile({username}))
-  const onOpenTracker = (username: string) =>
-    dispatch(Tracker2Gen.createShowUser({asTracker: true, username}))
-  const you = Container.useSelector(state => state.config.username)
+    const onOpenProfile = (username: string) => dispatch(ProfileGen.createShowUserProfile({username}))
+    const onOpenTracker = (username: string) =>
+      dispatch(Tracker2Gen.createShowUser({asTracker: true, username}))
+    const you = Container.useSelector(state => state.config.username)
 
-  const usernamesArray = typeof props.usernames === 'string' ? [props.usernames] : props.usernames
-  const followingArray = Container.useSelector(state => {
-    const {following} = state.config
-    return usernamesArray.map(user => following.has(user))
-  }, shallowEqual)
-  const brokenArray = Container.useSelector(state => {
-    const {infoMap} = state.users
-    return usernamesArray.map(user => UsersConstants.getIsBroken(infoMap, user) || false)
-  }, shallowEqual)
+    const usernamesArray = typeof props.usernames === 'string' ? [props.usernames] : props.usernames
+    const followingArray = Container.useSelector(state => {
+      const {following} = state.config
+      return usernamesArray.map(user => following.has(user))
+    }, shallowEqual)
 
-  const users = usernamesArray.reduce<Array<User>>((arr, username, idx) => {
-    const isYou = you === username
-    if (!props.skipSelf || !isYou) {
-      arr.push({
-        broken: brokenArray[idx],
-        following: followingArray[idx],
-        username,
-        you: isYou,
-      })
-    }
-    return arr
-  }, [])
+    const brokenArray = Container.useSelector(state => {
+      const {infoMap} = state.users
+      return usernamesArray.map(user => UsersConstants.getIsBroken(infoMap, user) || false)
+    }, shallowEqual)
 
-  const rwers = users.filter(u => !u.readOnly)
-  const readers = users.filter(u => !!u.readOnly)
-
-  let onUsernameClicked: undefined | ((s: string) => void)
-  switch (props.onUsernameClicked) {
-    case 'tracker':
-      onUsernameClicked = onOpenTracker
-      break
-    case 'profile':
-      onUsernameClicked = onOpenProfile
-      break
-    default:
-      if (typeof props.onUsernameClicked === 'function') {
-        onUsernameClicked = props.onUsernameClicked
+    const users = usernamesArray.reduce<Array<User>>((arr, username, idx) => {
+      const isYou = you === username
+      if (!props.skipSelf || !isYou) {
+        arr.push({
+          broken: brokenArray[idx],
+          following: followingArray[idx],
+          username,
+          you: isYou,
+        })
       }
-  }
+      return arr
+    }, [])
 
-  return (
-    <Text
-      type={props.type}
-      negative={isNegative}
-      fixOverdraw={props.fixOverdraw === 'auto' ? styleContext.canFixOverdraw : props.fixOverdraw ?? false}
-      style={Styles.collapseStyles([containerStyle, props.containerStyle])}
-      title={props.title}
-      ellipsizeMode="tail"
-      lineClamp={props.lineClamp}
-      {...(props.inline ? inlineProps : {})}
-    >
-      {!!props.prefix && (
-        <Text type={props.type} negative={isNegative} style={props.style}>
-          {props.prefix}
-        </Text>
-      )}
-      <UsernameText {...props} onUsernameClicked={onUsernameClicked} users={rwers} />
-      {!!readers.length && (
-        <Text
-          type={props.type}
-          negative={isNegative}
-          style={Styles.collapseStyles([props.style, {marginRight: 1}])}
-        >
-          #
-        </Text>
-      )}
-      <UsernameText {...props} onUsernameClicked={onUsernameClicked} users={readers} />
-      {!!props.suffix && (
-        <Text
-          type={props.suffixType || props.type}
-          negative={isNegative}
-          style={Styles.collapseStyles([props.style, {marginLeft: Styles.globalMargins.xtiny}])}
-        >
-          {props.suffix}
-        </Text>
-      )}
-    </Text>
-  )
-}
-const Usernames = React.memo(_Usernames, (p, n) =>
-  shallowEqual(p, n, (v, o) => {
-    if (isArray(v) && isArray(o)) {
-      return shallowEqual(v, o)
+    const rwers = users.filter(u => !u.readOnly)
+    const readers = users.filter(u => !!u.readOnly)
+
+    let onUsernameClicked: undefined | ((s: string) => void)
+    switch (props.onUsernameClicked) {
+      case 'tracker':
+        onUsernameClicked = onOpenTracker
+        break
+      case 'profile':
+        onUsernameClicked = onOpenProfile
+        break
+      default:
+        if (typeof props.onUsernameClicked === 'function') {
+          onUsernameClicked = props.onUsernameClicked
+        }
     }
-    return undefined
-  })
+
+    return (
+      <Text
+        type={props.type}
+        negative={isNegative}
+        fixOverdraw={props.fixOverdraw === 'auto' ? styleContext.canFixOverdraw : props.fixOverdraw ?? false}
+        style={Styles.collapseStyles([containerStyle, props.containerStyle])}
+        title={props.title}
+        ellipsizeMode="tail"
+        lineClamp={props.lineClamp}
+        {...(props.inline ? inlineProps : {})}
+      >
+        {!!props.prefix && (
+          <Text type={props.type} negative={isNegative} style={props.style}>
+            {props.prefix}
+          </Text>
+        )}
+        <UsernameText {...props} onUsernameClicked={onUsernameClicked} users={rwers} />
+        {!!readers.length && (
+          <Text
+            type={props.type}
+            negative={isNegative}
+            style={Styles.collapseStyles([props.style, {marginRight: 1}])}
+          >
+            #
+          </Text>
+        )}
+        <UsernameText {...props} onUsernameClicked={onUsernameClicked} users={readers} />
+        {!!props.suffix && (
+          <Text
+            type={props.suffixType || props.type}
+            negative={isNegative}
+            style={Styles.collapseStyles([props.style, {marginLeft: Styles.globalMargins.xtiny}])}
+          >
+            {props.suffix}
+          </Text>
+        )}
+      </Text>
+    )
+  },
+  (p, n) => {
+    return shallowEqual(p, n, (v, o) => {
+      if (isArray(v) && isArray(o)) {
+        return shallowEqual(v, o)
+      }
+      return undefined
+    })
+  }
 )
 
 // 15550123456@phone => +1 (555) 012-3456

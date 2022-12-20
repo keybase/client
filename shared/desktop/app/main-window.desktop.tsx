@@ -273,7 +273,7 @@ export const closeWindows = () => {
   hideDockIcon()
 }
 
-export default () => {
+const MainWindow = () => {
   setupDefaultSession()
   loadWindowState()
 
@@ -336,3 +336,4 @@ export const getMainWindow = (): Electron.BrowserWindow | null => {
   const w = Electron.BrowserWindow.getAllWindows().find(w => w.webContents.getURL().includes('/main.'))
   return w || null
 }
+export default MainWindow

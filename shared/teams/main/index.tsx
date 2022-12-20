@@ -48,7 +48,7 @@ type RowProps = {
   onViewTeam: () => void
 }
 
-export const TeamRow = React.memo<RowProps>((props: RowProps) => {
+export const TeamRow = React.memo<RowProps>(function TeamRow(props: RowProps) {
   const badgeCount = props.newRequests + props.resetUserCount
   const ChatIcon = () => (
     <Kb.Icon

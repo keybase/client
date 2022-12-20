@@ -5,7 +5,7 @@ import * as Container from '../../util/container'
 import * as WalletsGen from '../../actions/wallets-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 
-export default () => {
+const QRContainer = () => {
   const dispatch = Container.useDispatch()
   const _onSubmitCode = React.useCallback(
     (to: string | null) => {
@@ -30,3 +30,4 @@ export default () => {
   const safeOnSubmitCode = Container.useSafeSubmit(_onSubmitCode, false)
   return <QRScan onSubmitCode={safeOnSubmitCode} />
 }
+export default QRContainer

@@ -1,1 +1,2 @@
-export default () => null
+const InviteContainer = () => null
+export default InviteContainer

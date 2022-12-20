@@ -83,7 +83,10 @@ const Progress = ({small, white}: {small?: boolean; white: boolean}) => {
   )
 }
 
-const ButtonInner = (props: Props, ref: React.Ref<ClickableBox>) => {
+const Button = React.forwardRef<ClickableBox, Props>(function ButtonInner(
+  props: Props,
+  ref: React.Ref<ClickableBox>
+) {
   const {mode = 'Primary', type = 'Default'} = props
   let containerStyle: Styles.StylesCrossPlatform = props.backgroundColor
     ? backgroundColorContainerStyles[mode as any]
@@ -224,8 +227,7 @@ const ButtonInner = (props: Props, ref: React.Ref<ClickableBox>) => {
   }
 
   return content
-}
-const Button = React.forwardRef<ClickableBox, Props>(ButtonInner)
+})
 
 const typeToColorName = {
   Default: 'blue',

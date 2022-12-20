@@ -117,9 +117,9 @@ ReflessLabeledInput.defaultProps = {
   textType: 'BodySemibold',
 }
 
-const LabeledInput = React.forwardRef<PlainInput, Props>((props, ref) => (
-  <ReflessLabeledInput {...props} forwardedRef={ref} />
-))
+const LabeledInput = React.forwardRef<PlainInput, Props>(function LabeledInput(props, ref) {
+  return <ReflessLabeledInput {...props} forwardedRef={ref} />
+})
 
 const styles = Styles.styleSheetCreate(
   () =>

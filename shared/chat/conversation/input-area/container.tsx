@@ -15,7 +15,7 @@ type OwnProps = {
   maxInputArea?: number
 }
 
-export default (p: OwnProps) => {
+const InputAreaContainer = (p: OwnProps) => {
   const {conversationIDKey, focusInputCounter, jumpToRecent, maxInputArea} = p
   const {onRequestScrollUp, onRequestScrollDown, onRequestScrollToBottom} = p
   const meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
@@ -54,3 +54,4 @@ export default (p: OwnProps) => {
     />
   )
 }
+export default InputAreaContainer

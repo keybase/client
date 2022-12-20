@@ -7,7 +7,7 @@ type OwnProps = {
   name: Types.TlfType
 }
 
-export default (p: OwnProps) => {
+const TLFTypeContainer = (p: OwnProps) => {
   const {destinationPickerIndex, name} = p
   const path = Types.stringToPath(`/keybase/${name}`)
   const onOpen = useOpen({destinationPickerIndex, path})
@@ -20,3 +20,4 @@ export default (p: OwnProps) => {
 
   return <TlfType {...np} />
 }
+export default TLFTypeContainer

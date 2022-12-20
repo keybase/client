@@ -7,7 +7,7 @@ import * as Devices from '../../constants/devices'
 import * as Container from '../../util/container'
 import SetPublicName from '.'
 
-export default () => {
+const PublicNameContainer = () => {
   const devices = Container.useSelector(state => state.provision.devices)
   const error = Container.useSelector(state => state.provision.error.stringValue())
   const waiting = Container.useSelector(state => Container.anyWaiting(state, Constants.waitingKey))
@@ -38,3 +38,4 @@ export default () => {
     />
   )
 }
+export default PublicNameContainer

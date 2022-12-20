@@ -7,7 +7,7 @@ import * as SettingsGen from '../../actions/settings-gen'
 import HiddenString from '../../util/hidden-string'
 import LogOut from '.'
 
-export default () => {
+const LogoutContainer = () => {
   const checkPasswordIsCorrect = Container.useSelector(state => state.settings.checkPasswordIsCorrect)
   const hasRandomPW = Container.useSelector(state => state.settings.password.randomPW)
   const waitingForResponse = Container.useSelector(state =>
@@ -56,3 +56,4 @@ export default () => {
     />
   )
 }
+export default LogoutContainer

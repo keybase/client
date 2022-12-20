@@ -7,7 +7,7 @@ import * as RouteTreeGen from '../../actions/route-tree-gen'
 import CodePage2 from '.'
 import HiddenString from '../../util/hidden-string'
 
-export default () => {
+const CodePageContainer = () => {
   const currentDeviceAlreadyProvisioned = Container.useSelector(state => !!state.config.deviceName)
   // we either have a name for real or we asked on a previous screen
   const currentDeviceName = Container.useSelector(
@@ -51,3 +51,4 @@ export default () => {
     />
   )
 }
+export default CodePageContainer

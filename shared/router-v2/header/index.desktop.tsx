@@ -7,6 +7,7 @@ import SyncingFolders from './syncing-folders'
 import {IconWithPopup as WhatsNewIconWithPopup} from '../../whats-new/icon/container'
 import * as ReactIs from 'react-is'
 import KB2 from '../../util/electron.desktop'
+import shallowEqual from 'shallowequal'
 
 const {closeWindow, minimizeWindow, toggleMaximizeWindow} = KB2.functions
 
@@ -81,14 +82,16 @@ export const SystemButtons = ({isMaximized}: {isMaximized: boolean}) => (
   </Kb.Box2>
 )
 
-class DesktopHeader extends React.PureComponent<Props> {
-  _pop = () => {
-    this.props.back && this.props.navigation.pop()
-  }
+const DesktopHeader = React.memo(
+  function DesktopHeader(p: Props) {
+    const {back, navigation, options, loggedIn, useNativeFrame, params, isMaximized} = p
 
-  render() {
+    const pop = React.useCallback(() => {
+      back && navigation.pop()
+    }, [back, navigation])
+
     // TODO add more here as we use more options on the mobile side maybe
-    const opt = this.props.options
+    const opt = options
     if (opt.headerMode === 'none') {
       return null
     }
@@ -103,7 +106,7 @@ class DesktopHeader extends React.PureComponent<Props> {
         title = opt.headerTitle
       } else if (ReactIs.isValidElementType(opt.headerTitle)) {
         const CustomTitle = opt.headerTitle as any
-        title = <CustomTitle params={this.props.params}>{opt.title}</CustomTitle>
+        title = <CustomTitle params={params}>{opt.title}</CustomTitle>
       }
     }
 
@@ -129,7 +132,7 @@ class DesktopHeader extends React.PureComponent<Props> {
       showDivider = false
     }
 
-    const windowDecorationsAreNeeded = !Platform.isMac && !this.props.useNativeFrame
+    const windowDecorationsAreNeeded = !Platform.isMac && !useNativeFrame
 
     // We normally have the back arrow at the top of the screen. It doesn't overlap with the system
     // icons (minimize etc) because the left nav bar pushes it to the right -- unless you're logged
@@ -137,12 +140,12 @@ class DesktopHeader extends React.PureComponent<Props> {
     // push the back arrow down below the system icons.
     const iconContainerStyle: Styles.StylesCrossPlatform = Styles.collapseStyles([
       styles.iconContainer,
-      !this.props.back && styles.iconContainerInactive,
-      !this.props.loggedIn && Platform.isDarwin && styles.iconContainerDarwin,
+      !back && styles.iconContainerInactive,
+      !loggedIn && Platform.isDarwin && styles.iconContainerDarwin,
     ] as const)
-    const iconColor = this.props.back
+    const iconColor = back
       ? Styles.globalColors.black_50
-      : this.props.loggedIn
+      : loggedIn
       ? Styles.globalColors.black_10
       : Styles.globalColors.transparent
 
@@ -173,15 +176,15 @@ class DesktopHeader extends React.PureComponent<Props> {
             {opt.headerLeft !== null && (
               <Kb.Box
                 className={Styles.classNames('hover_container', {
-                  hover_background_color_black_10: !!this.props.back,
+                  hover_background_color_black_10: !!back,
                 })}
-                onClick={this._pop}
+                onClick={pop}
                 style={iconContainerStyle}
               >
                 <Kb.Icon
                   type="iconfont-arrow-left"
                   color={iconColor}
-                  className={Styles.classNames({hover_contained_color_blackOrBlack: this.props.back})}
+                  className={Styles.classNames({hover_contained_color_blackOrBlack: back})}
                   boxStyle={styles.icon}
                 />
               </Kb.Box>
@@ -189,13 +192,13 @@ class DesktopHeader extends React.PureComponent<Props> {
             <Kb.Box2 direction="horizontal" style={styles.topRightContainer}>
               <SyncingFolders
                 negative={
-                  this.props.style?.backgroundColor !== Styles.globalColors.transparent &&
-                  this.props.style?.backgroundColor !== Styles.globalColors.white
+                  p.style?.backgroundColor !== Styles.globalColors.transparent &&
+                  p.style?.backgroundColor !== Styles.globalColors.white
                 }
               />
-              {this.props.loggedIn && <WhatsNewIconWithPopup attachToRef={whatsNewAttachToRef} />}
+              {loggedIn && <WhatsNewIconWithPopup attachToRef={whatsNewAttachToRef} />}
               {!title && rightActions}
-              {windowDecorationsAreNeeded && <SystemButtons isMaximized={this.props.isMaximized} />}
+              {windowDecorationsAreNeeded && <SystemButtons isMaximized={isMaximized} />}
             </Kb.Box2>
           </Kb.Box2>
           <Kb.Box2
@@ -213,8 +216,16 @@ class DesktopHeader extends React.PureComponent<Props> {
         {subHeader}
       </Kb.Box2>
     )
+  },
+  (p, n) => {
+    return !shallowEqual(p, n, (obj, oth, key) => {
+      if (key === 'options') {
+        return shallowEqual(obj, oth)
+      }
+      return undefined
+    })
   }
-}
+)
 
 const styles = Styles.styleSheetCreate(
   () =>
@@ -305,17 +316,25 @@ const styles = Styles.styleSheetCreate(
 
 type HeaderProps = Omit<Props, 'loggedIn' | 'useNativeFrame' | 'isMaximized'>
 
-export default (p: HeaderProps) => {
+const DesktopHeaderWrapper = (p: HeaderProps) => {
+  const {options, back, style, params, navigation} = p
   const useNativeFrame = Container.useSelector(state => state.config.useNativeFrame)
   const loggedIn = Container.useSelector(state => state.config.loggedIn)
   const isMaximized = Container.useSelector(state => state.config.mainWindowMax)
+
   return (
     <DesktopHeader
       useNativeFrame={useNativeFrame}
       loggedIn={loggedIn}
       key={String(isMaximized)}
       isMaximized={isMaximized}
-      {...p}
+      options={options}
+      back={back}
+      style={style}
+      params={params}
+      navigation={navigation}
     />
   )
 }
+
+export default DesktopHeaderWrapper

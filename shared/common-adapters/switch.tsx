@@ -89,8 +89,8 @@ const getStyle = (props: Props) =>
     props.style,
   ])
 
-const Switch = React.forwardRef<ClickableBox, Props>((props: Props, ref) =>
-  Styles.isMobile || !props.labelTooltip ? (
+const Switch = React.forwardRef<ClickableBox, Props>(function Switch(props: Props, ref) {
+  return Styles.isMobile || !props.labelTooltip ? (
     <Kb.Box style={getStyle(props)}>{getContent(props, ref)}</Kb.Box>
   ) : (
     <Kb.WithTooltip
@@ -101,7 +101,7 @@ const Switch = React.forwardRef<ClickableBox, Props>((props: Props, ref) =>
       {getContent(props, ref)}
     </Kb.WithTooltip>
   )
-)
+})
 
 export default Switch
 
