@@ -9,6 +9,7 @@ cd "$dir"
 
 version=${VERSION:-}
 token=${GITHUB_TOKEN:-}
+arch=${ARCH:-"amd64"}
 
 if [ "$version" = "" ]; then
   echo "Specify VERSION to build"
@@ -50,7 +51,7 @@ build() {
   mv "kbfs-$version" "$go_dir/src/github.com/keybase"
 
   echo "Building kbfs"
-  GOPATH="$go_dir" go build -a -tags "production" -o kbfs github.com/keybase/client/go/kbfs/kbfsfuse
+  GOARCH="$arch" GOPATH="$go_dir" go build -a -tags "production" -o kbfs github.com/keybase/client/go/kbfs/kbfsfuse
 
   echo "Packaging"
   rm -rf "$tgz"
@@ -72,6 +73,9 @@ create_release() {
 upload_release() {
   cd "$build_dir"
   platform=`$release_bin platform`
+  if [ "$platform" = "darwin" && "$arch" = "arm64" ]; then
+    platform="$platform-$arch"
+  fi
   echo "Uploading release"
   "$release_bin" upload --src="$tgz" --dest="kbfs-$version-$platform.tgz" --version="$version" --repo="kbfs"
 }
