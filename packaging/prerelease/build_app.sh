@@ -91,6 +91,13 @@ fi
 
 # required for cross compilation to arm64 on darwin amd64 machine.
 export CGO_ENABLED=1
+current_date=`date -u +%Y%m%d%H%M%S` # UTC
+commit_short=`git log -1 --pretty=format:%h`
+build="$current_date+$commit_short"
+# Consumed by build_keybase.sh and on darwin-arm64 builds below. We the value
+# here so it is consistent across the build compilation and build announcement
+# since we can't echo the version of the binary when cross compiling.
+export KEYBASE_BUILD=${KEYBASE_BUILD:-$build}
 
 # Okay, here's where we start generating version numbers and doing builds.
 for ((i=1; i<=$number_of_builds; i++)); do
@@ -101,10 +108,20 @@ for ((i=1; i<=$number_of_builds; i++)); do
     BUILD_DIR="$build_dir_updater" UPDATER_DIR="$updater_dir" "$dir/build_updater.sh"
   fi
 
-  version=$($build_dir_keybase/keybase version -S)
-  kbfs_version=$($build_dir_kbfs/kbfs -version)
-  kbnm_version=$($build_dir_kbnm/kbnm -version)
-  updater_version=$($build_dir_updater/updater -version)
+  if [ "$PLATFORM" == "darwin-arm64" ]; then # we can't run the arm64 binary on the amd64 build machine!
+    # manually build out the keybase version, used to announce the build below
+    kb_version="$(grep 'Version = ' $client_dir/go/libkb/version.go | sed 's/.*Version = \"\(.*\)\"/\1/')"
+    version="$kb_version-$KEYBASE_BUILD"
+    # noop these, just used for logging
+    kbfs_version=""
+    kbnm_version=""
+    updater_version=""
+  else
+    version=$($build_dir_keybase/keybase version -S)
+    kbfs_version=$($build_dir_kbfs/kbfs -version)
+    kbnm_version=$($build_dir_kbnm/kbnm -version)
+    updater_version=$($build_dir_updater/updater -version)
+  fi
 
   save_dir="/tmp/build_desktop"
   rm -rf "$save_dir"
