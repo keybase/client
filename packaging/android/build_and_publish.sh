@@ -25,10 +25,10 @@ trap notify_slack ERR
 "$client_dir/packaging/check_status_and_pull.sh" "$client_dir"
 
 # Reset on exit
-client_branch=`cd "$client_dir" && git rev-parse --abbrev-ref HEAD`
+client_branch=$(cd "$client_dir" && git rev-parse --abbrev-ref HEAD)
 rn_packager_pid=""
 function reset {
-  (cd "$client_dir" && git checkout $client_branch)
+  (cd "$client_dir" && git checkout "$client_branch")
 
   if [ ! "$rn_packager_pid" = "" ]; then
     echo "Killing packager $rn_packager_pid"

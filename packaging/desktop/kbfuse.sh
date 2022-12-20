@@ -10,7 +10,7 @@
 set -e -u -o pipefail # Fail on error
 
 dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
-cd $dir
+cd "$dir"
 
 client_dir="$dir/../.."
 fuse_dir="$client_dir/osx/Fuse"

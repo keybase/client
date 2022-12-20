@@ -56,9 +56,9 @@ echo "Loading release tool"
 release_bin="$GOPATH/bin/release"
 echo "$(go version)"
 
-client_branch=`cd "$client_dir" && git rev-parse --abbrev-ref HEAD`
+client_branch=$(cd "$client_dir" && git rev-parse --abbrev-ref HEAD)
 function reset {
-  (cd "$client_dir" && git checkout $client_branch)
+  (cd "$client_dir" && git checkout "$client_branch")
 }
 trap reset EXIT
 
@@ -74,9 +74,9 @@ fi
 # NB: This is duplicated in packaging/linux/build_and_push_packages.sh.
 if [ ! "$nowait" = "1" ]; then
   echo "Checking client CI"
-  "$release_bin" wait-ci --repo="client" --commit=`git -C $client_dir log -1 --pretty=format:%h` --context="continuous-integration/jenkins/branch" --context="ci/circleci"
+  "$release_bin" wait-ci --repo="client" --commit=$(git -C "$client_dir" log -1 --pretty=format:%h) --context="continuous-integration/jenkins/branch" --context="ci/circleci"
   echo "Checking updater CI"
-  "$release_bin" wait-ci --repo="go-updater" --commit=`git -C $updater_dir log -1 --pretty=format:%h` --context="continuous-integration/travis-ci/push"
+  "$release_bin" wait-ci --repo="go-updater" --commit=$(git -C "$updater_dir" log -1 --pretty=format:%h) --context="continuous-integration/travis-ci/push"
 
   "$client_dir/packaging/slack/send.sh" "CI tests passed! Starting build for $platform."
 fi
@@ -101,15 +101,15 @@ for ((i=1; i<=$number_of_builds; i++)); do
     BUILD_DIR="$build_dir_updater" UPDATER_DIR="$updater_dir" "$dir/build_updater.sh"
   fi
 
-  version=`$build_dir_keybase/keybase version -S`
-  kbfs_version=`$build_dir_kbfs/kbfs -version`
-  kbnm_version=`$build_dir_kbnm/kbnm -version`
-  updater_version=`$build_dir_updater/updater -version`
+  version=$($build_dir_keybase/keybase version -S)
+  kbfs_version=$($build_dir_kbfs/kbfs -version)
+  kbnm_version=$($build_dir_kbnm/kbnm -version)
+  updater_version=$($build_dir_updater/updater -version)
 
   save_dir="/tmp/build_desktop"
   rm -rf "$save_dir"
 
-  if [ "$platform" = "darwin" || "$platform" = "darwin-arm64" ]; then
+  if [ "$platform" = "darwin" ] || [ "$platform" = "darwin-arm64" ]; then
     SAVE_DIR="$save_dir" KEYBASE_BINPATH="$build_dir_keybase/keybase" KBFS_BINPATH="$build_dir_kbfs/kbfs" GIT_REMOTE_KEYBASE_BINPATH="$build_dir_kbfs/git-remote-keybase" REDIRECTOR_BINPATH="$build_dir_kbfs/keybase-redirector" KBNM_BINPATH="$build_dir_kbnm/kbnm" \
       UPDATER_BINPATH="$build_dir_updater/updater" BUCKET_NAME="$bucket_name" S3HOST="$s3host" SKIP_NOTARIZE="$skip_notarize" PLATFORM="$platform" "$dir/../desktop/package_darwin.sh"
   else
@@ -145,5 +145,5 @@ else
 
   BUCKET_NAME="$bucket_name" "$dir/report.sh"
 
-  "$client_dir/packaging/slack/send.sh" "Finished build $platform (keybase: $version, kbfs: $kbfs_version, kbnm: $kbnm_version). See $s3host";
+  "$client_dir/packaging/slack/send.sh" "Finished build $platform (keybase: $version, kbfs: $kbfs_version, kbnm: $kbnm_version, updater: $updater_version). See $s3host";
 fi
