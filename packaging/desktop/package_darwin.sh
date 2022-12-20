@@ -13,11 +13,11 @@ save_dir=${SAVE_DIR:-}
 tmp_dir="/tmp/package_darwin/tmp"
 bucket_name=${BUCKET_NAME:-}
 run_mode="prod"
-platform="darwin"
 s3host=${S3HOST:-}
 istest=${TEST:-}
 skip_notarize=${SKIP_NOTARIZE:-}
 arch=${ARCH:-"amd64"}
+platform=${PLATFORM:-"darwin"}
 
 if [ ! "$bucket_name" = "" ] && [ "$s3host" = "" ]; then
   # Use this syntax since bucket_name might have dots (.)
@@ -104,6 +104,7 @@ app_executable_path="$out_dir/Keybase.app/Contents/MacOS/Keybase"
 shared_support_dir="$out_dir/Keybase.app/Contents/SharedSupport"
 resources_dir="$out_dir/Keybase.app/Contents/Resources/"
 
+# TODO build and publish an arm64 version
 # The KeybaseInstaller.app installs KBFuse, keybase.Helper, services and CLI via a native app
 installer_url="https://prerelease.keybase.io/darwin-package/KeybaseInstaller-1.1.91-darwin.tgz"
 # KeybaseUpdater.app is the native updater UI (prompt dialogs)
@@ -151,7 +152,7 @@ get_deps() {(
     echo "Using local keybase binpath: $keybase_binpath"
     cp "$keybase_binpath" .
   else
-    keybase_url="https://github.com/keybase/client/releases/download/v$keybase_version/keybase-$keybase_version-darwin.tgz"
+    keybase_url="https://github.com/keybase/client/releases/download/v$keybase_version/keybase-$keybase_version-$platform.tgz"
     echo "Getting $keybase_url"
     ensure_url "$keybase_url" "You need to build the binary for this Github release/version. See packaging/github to create/build a release."
     curl -J -L -Ss "$keybase_url" | tar zx
@@ -164,7 +165,7 @@ get_deps() {(
     echo "Using local redirector binpath: $redirector_binpath"
     cp "$redirector_binpath" .
   else
-    kbfs_url="https://github.com/keybase/client/go/kbfs/releases/download/v$kbfs_version/kbfs-$kbfs_version-darwin.tgz"
+    kbfs_url="https://github.com/keybase/client/go/kbfs/releases/download/v$kbfs_version/kbfs-$kbfs_version-$platform.tgz"
     echo "Getting $kbfs_url"
     ensure_url $kbfs_url "You need to build the binary for this Github release/version. See packaging/github to create/build a release."
     curl -J -L -Ss "$kbfs_url" | tar zx
@@ -174,7 +175,7 @@ get_deps() {(
     echo "Using local kbnm binpath: $kbnm_binpath"
     cp "$kbnm_binpath" .
   else
-    kbnm_url="https://github.com/keybase/kbnm/releases/download/v$kbnm_version/kbnm-$kbnm_version-darwin.tgz"
+    kbnm_url="https://github.com/keybase/kbnm/releases/download/v$kbnm_version/kbnm-$kbnm_version-$platform.tgz"
     echo "Getting $kbnm_url"
     ensure_url $kbnm_url "You need to build the binary for this Github release/version. See packaging/github to create/build a release."
     curl -J -L -Ss "$kbnm_url" | tar zx

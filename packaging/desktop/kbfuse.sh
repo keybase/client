@@ -15,6 +15,7 @@ cd $dir
 client_dir="$dir/../.."
 fuse_dir="$client_dir/osx/Fuse"
 tmp_dir="/tmp/desktop-kbfuse"
+# TODO build and publish arm64 version
 installer_url="https://prerelease.keybase.io/darwin-package/KeybaseInstaller-1.1.91-darwin.tgz"
 
 if [ "$EUID" -ne 0 ]; then

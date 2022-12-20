@@ -9,6 +9,7 @@ cd "$dir"
 
 version=${VERSION:-}
 token=${GITHUB_TOKEN:-}
+arch=${ARCH:-"amd64"}
 
 if [ "$version" = "" ]; then
   echo "Specify VERSION to build"
@@ -50,7 +51,7 @@ build() {
   mv "client-$version" "$go_dir/src/github.com/keybase/client"
 
   echo "Building keybase"
-  (cd $client_dir/go GOPATH="$go_dir" && go build -a -tags "production" -o keybase github.com/keybase/client/go/keybase)
+  (cd $client_dir/go GOPATH="$go_dir" && GOARCH="$arch" go build -a -tags "production" -o keybase github.com/keybase/client/go/keybase)
 
   echo "Packaging"
   rm -rf "$tgz"
@@ -64,7 +65,6 @@ create_release() {
     echo "Release already exists, skipping"
   else
     cd "$build_dir"
-    platform=`$release_bin platform`
     echo "Creating release"
     "$release_bin" create --version="$version" --repo="client"
   fi
@@ -73,6 +73,9 @@ create_release() {
 upload_release() {
   cd "$build_dir"
   platform=`$release_bin platform`
+  if [ "$platform" = "darwin" && "$arch" = "arm64" ]; then
+    platform="$platform-$arch"
+  fi
   echo "Uploading release"
   "$release_bin" upload --src="$tgz" --dest="keybase-$version-$platform.tgz" --version="$version" --repo="client"
 }
