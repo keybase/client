@@ -33,5 +33,7 @@ else
   exit 1
 fi
 
-version=$("$build_dir"/keybase version -S)
-echo "Keybase version: $version"
+if [ ! "$PLATFORM" = "darwin-arm64" ]; then # we can't run the arm64 binary on the amd64 build machine!
+  version=$("$build_dir"/keybase version -S)
+  echo "Keybase version: $version"
+fi
