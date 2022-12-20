@@ -7,7 +7,7 @@ type OwnProps = {
   alwaysShow?: boolean | null
 }
 
-export default (op: OwnProps) => {
+const SFMIContainer = (op: OwnProps) => {
   const driverStatus = Container.useSelector(state => state.fs.sfmi.driverStatus)
   const settings = Container.useSelector(state => state.fs.settings)
   const dispatch = Container.useDispatch()
@@ -28,3 +28,4 @@ export default (op: OwnProps) => {
     />
   )
 }
+export default SFMIContainer

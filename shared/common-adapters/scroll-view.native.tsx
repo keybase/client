@@ -4,7 +4,7 @@ import {ScrollView, type ScrollViewProps} from 'react-native'
 // an input with focus and a button, tapping the button won't work until you click it twice. Setting these defaults
 // changes this behavior: https://github.com/facebook/react-native/issues/4087
 
-const BetterScrollView = React.forwardRef<ScrollView, ScrollViewProps>((props, ref) => {
+const BetterScrollView = React.forwardRef<ScrollView, ScrollViewProps>(function BetterScrollView(props, ref) {
   const keyboardShouldPersistTaps = props.keyboardShouldPersistTaps ?? 'handled'
   return (
     <ScrollView

@@ -183,7 +183,7 @@ const load = () => {
 
   if (__DEV__) {
     // let us load devtools first
-    const DEBUG_DEFER = true
+    const DEBUG_DEFER = false
     if (DEBUG_DEFER) {
       for (let i = 0; i < 10; ++i) {
         console.log('DEBUG_DEFER on!!!')

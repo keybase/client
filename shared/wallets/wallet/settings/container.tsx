@@ -39,7 +39,7 @@ const prepareExternalPartners = (
     url: transformUrl(accountID, partner.url, username),
   }))
 
-export default () => {
+const SettingsContainer = () => {
   const accountID = Container.useSelector(state => Constants.getSelectedAccount(state))
   const account = Container.useSelector(state => Constants.getAccount(state, accountID))
   const name = account.name
@@ -144,3 +144,4 @@ export default () => {
     />
   )
 }
+export default SettingsContainer

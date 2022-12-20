@@ -6,7 +6,7 @@ const Kb = {
   Box,
 }
 
-const LoadingLine = React.memo<{}>(() => {
+const LoadingLine = React.memo(function LoadingLine() {
   const realCSS = `
     @keyframes fadeIn {
       from { opacity: 0; }

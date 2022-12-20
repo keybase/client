@@ -6,7 +6,7 @@ import LoadingStateView from './loading-state-view'
 const RequireImage = React.forwardRef<any, ReqProps>(({src, style}: ReqProps, ref: any) => (
   <img ref={ref} src={src} style={style as any} />
 ))
-const Image = React.forwardRef<any, Props>((props: Props, ref: any) => {
+const Image = React.forwardRef<any, Props>(function Image(props: Props, ref: any) {
   const [loading, setLoading] = React.useState(true)
   const isMounted = React.useRef<Boolean>(true)
   React.useEffect(

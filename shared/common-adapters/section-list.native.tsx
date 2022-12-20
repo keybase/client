@@ -3,36 +3,36 @@ import type {Props, Section} from './section-list'
 import {SectionList as NativeSectionList} from 'react-native'
 import noop from 'lodash/noop'
 
-const SectionList = React.forwardRef<NativeSectionList, Props<any>>(
-  <T extends Section<any, any>>(props: Props<T>, forwardedRef: React.Ref<NativeSectionList>) => {
-    const {getItemHeight, getSectionHeaderHeight, onSectionChange, ...rest} = props
-    const getItemLayout =
-      getItemHeight && getSectionHeaderHeight
-        ? getGetItemLayout({
-            getItemHeight,
-            getSectionHeaderHeight,
-          })
-        : undefined
-    const onViewableItemsChanged = onSectionChange
-      ? e => {
-          const section = e.viewableItems[0]?.section
-          section && onSectionChange(section)
-        }
+const SectionList = React.forwardRef<NativeSectionList, Props<any>>(function SectionList<
+  T extends Section<any, any>
+>(props: Props<T>, forwardedRef: React.Ref<NativeSectionList>) {
+  const {getItemHeight, getSectionHeaderHeight, onSectionChange, ...rest} = props
+  const getItemLayout =
+    getItemHeight && getSectionHeaderHeight
+      ? getGetItemLayout({
+          getItemHeight,
+          getSectionHeaderHeight,
+        })
       : undefined
+  const onViewableItemsChanged = onSectionChange
+    ? e => {
+        const section = e.viewableItems[0]?.section
+        section && onSectionChange(section)
+      }
+    : undefined
 
-    const NativeSectionListAny = NativeSectionList as any
-    return (
-      <NativeSectionListAny
-        overScrollMode="never"
-        onScrollToIndexFailed={noop}
-        ref={forwardedRef}
-        {...rest}
-        getItemLayout={getItemLayout as any}
-        onViewableItemsChanged={onViewableItemsChanged}
-      />
-    )
-  }
-)
+  const NativeSectionListAny = NativeSectionList as any
+  return (
+    <NativeSectionListAny
+      overScrollMode="never"
+      onScrollToIndexFailed={noop}
+      ref={forwardedRef}
+      {...rest}
+      getItemLayout={getItemLayout as any}
+      onViewableItemsChanged={onViewableItemsChanged}
+    />
+  )
+})
 
 export default SectionList
 

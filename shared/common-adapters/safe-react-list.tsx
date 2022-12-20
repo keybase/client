@@ -29,7 +29,7 @@ type ReactListProps = {
   useTranslate3d?: boolean | undefined
 }
 
-const SafeReactList = React.forwardRef<ReactList, ReactListProps>((p, ref) => {
+const SafeReactList = React.forwardRef<ReactList, ReactListProps>(function SafeReactList(p, ref) {
   const [force, setForce] = React.useState(0)
   const mountedRef = React.useRef(true)
 

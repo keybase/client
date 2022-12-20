@@ -316,7 +316,7 @@ const styles = Styles.styleSheetCreate(
 
 type HeaderProps = Omit<Props, 'loggedIn' | 'useNativeFrame' | 'isMaximized'>
 
-export default (p: HeaderProps) => {
+const DesktopHeaderWrapper = (p: HeaderProps) => {
   const {options, back, style, params, navigation} = p
   const useNativeFrame = Container.useSelector(state => state.config.useNativeFrame)
   const loggedIn = Container.useSelector(state => state.config.loggedIn)
@@ -336,3 +336,5 @@ export default (p: HeaderProps) => {
     />
   )
 }
+
+export default DesktopHeaderWrapper

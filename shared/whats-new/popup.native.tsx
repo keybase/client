@@ -1,1 +1,2 @@
-export default () => null
+const WhatsNew = () => null
+export default WhatsNew

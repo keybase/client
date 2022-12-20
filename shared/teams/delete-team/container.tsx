@@ -9,7 +9,7 @@ import {anyWaiting} from '../../constants/waiting'
 
 type OwnProps = Container.RouteProps<'teamDeleteTeam'>
 
-export default (op: OwnProps) => {
+const DeleteTeamContainer = (op: OwnProps) => {
   const teamID = op.route.params?.teamID ?? Types.noTeamID
   const {teamname} = Container.useSelector(state => Constants.getTeamMeta(state, teamID))
   const teamDetails = Container.useSelector(state => Constants.getTeamDetails(state, teamID))
@@ -43,3 +43,4 @@ export default (op: OwnProps) => {
     />
   )
 }
+export default DeleteTeamContainer

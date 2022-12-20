@@ -30,7 +30,7 @@ type Bounds = {
   height: number
 }
 
-export default (menubarWindowIDCallback: (id: number) => void) => {
+const MenuBar = (menubarWindowIDCallback: (id: number) => void) => {
   const icon = Electron.nativeImage.createFromPath(getAssetPath('images', 'menubarIcon', iconPath))
   if (useImageTemplate && !iconPathIsBadged) {
     icon.setTemplateImage(true)
@@ -221,3 +221,4 @@ export default (menubarWindowIDCallback: (id: number) => void) => {
     })
   }
 }
+export default MenuBar

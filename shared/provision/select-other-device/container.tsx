@@ -6,7 +6,7 @@ import * as Constants from '../../constants/provision'
 import * as AutoresetGen from '../../actions/autoreset-gen'
 import SelectOtherDevice from '.'
 
-export default () => {
+const SelectOtherDeviceContainer = () => {
   const devices = Container.useSelector(state => state.provision.devices)
   const username = Container.useSelector(state => state.provision.username)
   const waiting = Container.useSelector(state => Container.anyWaiting(state, Constants.waitingKey))
@@ -35,3 +35,4 @@ export default () => {
     />
   )
 }
+export default SelectOtherDeviceContainer

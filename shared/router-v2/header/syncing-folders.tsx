@@ -26,7 +26,7 @@ const SyncingFolders = (props: Props) =>
     </Kb.WithTooltip>
   ) : null
 
-export default (op: OwnProps) => {
+const SyncFolders = (op: OwnProps) => {
   const syncingFoldersProgress = Container.useSelector(
     state => state.fs.overallSyncStatus.syncingFoldersProgress
   )
@@ -46,3 +46,4 @@ export default (op: OwnProps) => {
   )
   return <SyncingFolders negative={negative} show={online} tooltip={tooltip} progress={progress} />
 }
+export default SyncFolders

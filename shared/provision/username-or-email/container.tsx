@@ -32,7 +32,7 @@ const decodeInlineError = (inlineRPCError: RPCError | undefined) => {
   return {inlineError, inlineSignUpLink}
 }
 
-export default (op: OwnProps) => {
+const UsernameOrEmailContainer = (op: OwnProps) => {
   const _error = Container.useSelector(state => state.provision.error.stringValue())
   const {inlineError, inlineSignUpLink} = Container.useSelector(state =>
     decodeInlineError(state.provision.inlineError)
@@ -82,3 +82,4 @@ export default (op: OwnProps) => {
     />
   )
 }
+export default UsernameOrEmailContainer

@@ -12,7 +12,7 @@ export type OwnProps = {
   tlfType: Types.TlfType
 }
 
-export default (p: OwnProps) => {
+const TLFContainer = (p: OwnProps) => {
   const {tlfType, name, mixedMode, destinationPickerIndex, disabled} = p
   const tlf = Container.useSelector(state => Constants.getTlfFromTlfs(state.fs.tlfs, tlfType, name))
   const username = Container.useSelector(state => state.config.username)
@@ -33,3 +33,4 @@ export default (p: OwnProps) => {
   }
   return <Tlf {...np} />
 }
+export default TLFContainer

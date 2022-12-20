@@ -25,7 +25,7 @@ type TextProps = {
   type: IconType
 }
 type Writeable<T> = {-readonly [P in keyof T]: T[P]}
-const Text = React.forwardRef<NativeText, TextProps>((p, ref) => {
+const Text = React.forwardRef<NativeText, TextProps>(function Text(p, ref) {
   const style: Writeable<Styles.StylesCrossPlatform> = {}
 
   // we really should disallow reaching into style like this but this is what the old code does.

@@ -31,7 +31,7 @@ export type WrapperProps = {
   onOpenEmojiPicker: () => void
 } & OwnProps
 
-const Wrapper = React.forwardRef((props: WrapperProps, ref: any) => {
+const Wrapper = React.forwardRef(function Wrapper(props: WrapperProps, ref: any) {
   return props.emoji ? (
     <ReactButton
       ref={ref}

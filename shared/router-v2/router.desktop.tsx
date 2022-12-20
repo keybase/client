@@ -43,7 +43,7 @@ const makeTabStack = (tab: DesktopTabs) => {
   }
 
   const Comp = React.memo(
-    () => {
+    function TabStackNavigator() {
       return (
         <S.Navigator
           initialRouteName={tabRoots[tab]}

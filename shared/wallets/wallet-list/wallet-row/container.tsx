@@ -12,7 +12,7 @@ type OwnProps = {
   accountID: AccountID
 }
 
-export default (op: OwnProps) => {
+const WalletRowContainer = (op: OwnProps) => {
   const {accountID} = op
   const account = Container.useSelector(state => getAccount(state, accountID))
   const name = account.name
@@ -43,3 +43,4 @@ export default (op: OwnProps) => {
     />
   )
 }
+export default WalletRowContainer

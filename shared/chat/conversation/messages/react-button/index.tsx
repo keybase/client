@@ -68,7 +68,8 @@ const markdownOverride = {
     ...(Styles.isMobile ? {} : {display: 'flex', fontSize: 14}),
   },
 }
-const ReactButtonInner = (props: Props, ref) => {
+
+const ReactButton = React.forwardRef<ClickableBox, Props>(function ReactButton(props: Props, ref) {
   const text = props.decorated.length ? props.decorated : props.emoji
   return (
     <ButtonBox
@@ -110,9 +111,7 @@ const ReactButtonInner = (props: Props, ref) => {
       </Box2>
     </ButtonBox>
   )
-}
-
-const ReactButton = React.forwardRef<ClickableBox, Props>(ReactButtonInner)
+})
 
 const iconCycle = ['iconfont-reacji', 'iconfont-reacji', 'iconfont-reacji', 'iconfont-reacji'] as const
 export type NewReactionButtonProps = {

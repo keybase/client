@@ -13,7 +13,7 @@ const invertedDark = invert(darkColors)
 
 const Icon = React.memo<Props>(
   // @ts-ignore
-  React.forwardRef<HTMLDivElement | HTMLImageElement, Props>((props, ref) => {
+  React.forwardRef<HTMLDivElement | HTMLImageElement, Props>(function Icon(props, ref) {
     const {type, inheritColor, opacity, fontSize, noContainer, onMouseEnter, onMouseLeave, style} = props
     const {className, hint, colorOverride, padding, boxStyle} = props
     const iconType = Shared.typeToIconMapper(type)

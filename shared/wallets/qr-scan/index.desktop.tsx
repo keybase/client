@@ -1,2 +1,3 @@
 // No such screen
-export default () => null
+const QRScan = () => null
+export default QRScan

@@ -10,7 +10,10 @@ export class Box extends React.PureComponent<any> {
   }
 }
 
-const _Box2 = (props: Box2Props, ref: React.Ref<HTMLDivElement>) => {
+export const Box2 = React.forwardRef<HTMLDivElement, Box2Props>(function Box2(
+  props: Box2Props,
+  ref: React.Ref<HTMLDivElement>
+) {
   const {direction, fullHeight, fullWidth, centerChildren, alignSelf, alignItems, noShrink} = props
   const {onMouseDown, onMouseLeave, onMouseUp, onMouseOver, onCopyCapture, children, style} = props
   const {gap, gapStart, gapEnd, pointerEvents, onDragLeave, onDragOver, onDrop, className} = props
@@ -61,8 +64,6 @@ const _Box2 = (props: Box2Props, ref: React.Ref<HTMLDivElement>) => {
       {children}
     </div>
   )
-}
-
-export const Box2 = React.forwardRef<HTMLDivElement, Box2Props>(_Box2)
+})
 
 export default Box

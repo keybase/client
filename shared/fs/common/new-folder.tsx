@@ -10,7 +10,7 @@ type OwnProps = {path: Types.Path}
 
 const styles = Styles.styleSheetCreate(() => ({headerIcon: {padding: Styles.globalMargins.tiny}} as const))
 
-export default (op: OwnProps) => {
+const NewFolder = (op: OwnProps) => {
   const {path} = op
   const pathItem = Container.useSelector(state => Constants.getPathItem(state.fs.pathItems, path))
   const canCreateNewFolder = pathItem.type === Types.PathType.Folder && pathItem.writable
@@ -33,3 +33,4 @@ export default (op: OwnProps) => {
     )
   )
 }
+export default NewFolder

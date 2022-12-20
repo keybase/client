@@ -25,7 +25,7 @@ export type Props = {
  *  waiting store (store.waiting), which will be set by a saga somewhere.
  */
 
-const WaitingButton = React.forwardRef<ClickableBox, Props>((props, ref) => {
+const WaitingButton = React.forwardRef<ClickableBox, Props>(function WaitingButton(props, ref) {
   const {onlyDisable, waitingKey, ...buttonProps} = props
   const storeWaiting = Container.useSelector(state =>
     typeof waitingKey === 'string'
