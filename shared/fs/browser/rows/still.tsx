@@ -1,8 +1,7 @@
-import * as React from 'react'
 import * as Types from '../../../constants/types/fs'
 import * as Constants from '../../../constants/fs'
 import * as Styles from '../../../styles'
-import {rowStyles, StillCommon, StillCommonProps} from './common'
+import {rowStyles, StillCommon, type StillCommonProps} from './common'
 import * as Kb from '../../../common-adapters'
 import {LastModifiedLine, Filename} from '../../common'
 

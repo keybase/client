@@ -1,4 +1,3 @@
-import * as React from 'react'
 import * as Styles from '../styles'
 import Text from './text'
 import {Box2} from './box'

@@ -3,7 +3,7 @@ import * as TeamsGen from '../../../actions/teams-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as Constants from '../../../constants/tracker2'
 import {noTeamID} from '../../../constants/types/teams'
-import Teams, {Props} from '.'
+import Teams, {type Props} from '.'
 
 type OwnProps = {
   username: string

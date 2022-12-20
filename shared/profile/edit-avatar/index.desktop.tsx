@@ -196,7 +196,7 @@ class EditAvatar extends React.Component<Props, State> {
     const scaledImageHeight = this.state.startingImageHeight * scale
     // eslint-disable-next-line
     const scaledImageWidth = this.state.startingImageWidth * scale
-    // eslint-disable-next-line
+
     const ratio = this.state.naturalImageWidth / scaledImageWidth
     const offsetLeft = clamp(
       // eslint-disable-next-line
@@ -273,7 +273,7 @@ class EditAvatar extends React.Component<Props, State> {
       AVATAR_SIZE - this.state.scaledImageHeight,
       0
     )
-    // eslint-disable-next-line
+
     const ratio = this.state.naturalImageWidth / this.state.scaledImageWidth
     // eslint-disable-next-line
     const viewingCenterX = (VIEWPORT_CENTER - this.state.offsetLeft) * ratio

@@ -1,4 +1,3 @@
-import * as React from 'react'
 import * as CryptoGen from '../../actions/crypto-gen'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/crypto'

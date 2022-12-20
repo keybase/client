@@ -1,6 +1,6 @@
 import logger from '../logger'
-import * as Types from './types/team-building'
-import * as RPCTypes from './types/rpc-gen'
+import type * as Types from './types/team-building'
+import type * as RPCTypes from './types/rpc-gen'
 import {serviceIdFromString} from '../util/platforms'
 
 const searchServices: Array<Types.ServiceId> = ['keybase', 'twitter', 'github', 'reddit', 'hackernews']

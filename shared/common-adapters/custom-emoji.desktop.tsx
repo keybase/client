@@ -1,4 +1,3 @@
-import * as React from 'react'
 import * as Styles from '../styles'
 import Image from './image'
 import Text from './text'

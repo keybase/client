@@ -1,4 +1,4 @@
-import React from 'react'
+import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import {isMobile} from '../../util/container'
 import * as Styles from '../../styles'

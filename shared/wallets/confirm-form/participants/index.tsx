@@ -1,8 +1,7 @@
-import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import {ParticipantsRow, AccountEntry} from '../../common'
-import {CounterpartyType, AccountID} from '../../../constants/types/wallets'
+import type {CounterpartyType, AccountID} from '../../../constants/types/wallets'
 
 export type ParticipantsProps = {
   recipientType: CounterpartyType

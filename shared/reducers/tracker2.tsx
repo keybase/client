@@ -1,5 +1,5 @@
 import * as Constants from '../constants/tracker2'
-import * as Types from '../constants/types/tracker2'
+import type * as Types from '../constants/types/tracker2'
 import * as ConfigGen from '../actions/config-gen'
 import * as Tracker2Gen from '../actions/tracker2-gen'
 import * as Container from '../util/container'

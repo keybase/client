@@ -1,22 +1,21 @@
 const localLog = console.log.bind(console)
 
-const _base = (messageObject: boolean, colors: Array<string>) => (
-  shortLabel: string,
-  longerMessage?: string | null,
-  optionalSuffix?: string | null,
-  ...rest: Array<any>
-) =>
-  localLog(
-    `%c%s%c${messageObject ? '%O' : '%s'}%c%s%c`,
-    `background-color: ${colors[0]}; color: #fff; padding: 2px 4px; font-weight: bold;`,
-    shortLabel || '',
-    messageObject ? '' : `background-color: ${colors[1]}; color: #000; padding: 2px 4px;`,
-    longerMessage || '',
-    optionalSuffix ? `background-color: ${colors[0]}; color: #fff; padding: 2px 4px; font-weight: bold;` : '',
-    optionalSuffix || '',
-    `background-color: white; color: black; padding: 2px 4px; font-weight: normal; font-style: italic;`,
-    ...rest
-  )
+const _base =
+  (messageObject: boolean, colors: Array<string>) =>
+  (shortLabel: string, longerMessage?: string | null, optionalSuffix?: string | null, ...rest: Array<any>) =>
+    localLog(
+      `%c%s%c${messageObject ? '%O' : '%s'}%c%s%c`,
+      `background-color: ${colors[0]}; color: #fff; padding: 2px 4px; font-weight: bold;`,
+      shortLabel || '',
+      messageObject ? '' : `background-color: ${colors[1]}; color: #000; padding: 2px 4px;`,
+      longerMessage || '',
+      optionalSuffix
+        ? `background-color: ${colors[0]}; color: #fff; padding: 2px 4px; font-weight: bold;`
+        : '',
+      optionalSuffix || '',
+      `background-color: white; color: black; padding: 2px 4px; font-weight: normal; font-style: italic;`,
+      ...rest
+    )
 
 const blue = _base(false, ['#1E88E5', '#90CAF9'])
 const blueObject = _base(true, ['#1E88E5', '#90CAF9'])

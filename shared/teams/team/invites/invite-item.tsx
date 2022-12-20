@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import * as Container from '../../../util/container'
-import * as Types from '../../../constants/types/teams'
+import type * as Types from '../../../constants/types/teams'
 import * as TeamsGen from '../../../actions/teams-gen'
 
 export const InviteItem = ({

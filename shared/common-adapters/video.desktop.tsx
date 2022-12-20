@@ -1,6 +1,6 @@
 import * as React from 'react'
 import Measure from 'react-measure'
-import {Props, State} from './video'
+import type {Props, State} from './video'
 import * as Styles from '../styles'
 import {getVideoSize, CheckURL} from './video.shared'
 

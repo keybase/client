@@ -1,5 +1,5 @@
 import * as Styles from '../../styles'
-import React, {PureComponent} from 'react'
+import * as React from 'react'
 import SimpleMarkdown from 'simple-markdown'
 import Text from '../text'
 import logger from '../../logger'
@@ -263,7 +263,7 @@ const isAllEmoji = ast => {
   return false
 }
 
-class SimpleMarkdownComponent extends PureComponent<MarkdownProps, {hasError: boolean}> {
+class SimpleMarkdownComponent extends React.PureComponent<MarkdownProps, {hasError: boolean}> {
   state = {hasError: false}
 
   static getDerivedStateFromError() {

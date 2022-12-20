@@ -4,7 +4,7 @@ import * as Styles from '../../styles'
 import Text, {type TextType} from '../text'
 import TeamInfo from '../../profile/user/teams/teaminfo'
 import DelayedMounting from '../delayed-mounting'
-import * as TeamsTypes from '../../constants/types/teams'
+import type * as TeamsTypes from '../../constants/types/teams'
 import {TeamDetailsSubscriber} from '../../teams/subscriber'
 
 const Kb = {

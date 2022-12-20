@@ -1,6 +1,6 @@
 import * as GitGen from '../../../../actions/git-gen'
 import * as ProfileGen from '../../../../actions/profile-gen'
-import * as Types from '../../../../constants/types/chat2'
+import type * as Types from '../../../../constants/types/chat2'
 import * as Tracker2Gen from '../../../../actions/tracker2-gen'
 import Git from '.'
 import * as Container from '../../../../util/container'

@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as Types from '../../constants/types/fs'
+import type * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'

@@ -1,8 +1,8 @@
 import * as React from 'react'
 import MessagePopupHeader from '../header'
-import {FloatingMenu, MenuItem, MenuItems} from '../../../../../common-adapters'
-import {type Position, fileUIName, StylesCrossPlatform} from '../../../../../styles'
-import {DeviceType} from '../../../../../constants/types/devices'
+import {FloatingMenu, type MenuItem, type MenuItems} from '../../../../../common-adapters'
+import {type Position, fileUIName, type StylesCrossPlatform} from '../../../../../styles'
+import type {DeviceType} from '../../../../../constants/types/devices'
 import ReactionItem from '../reactionitem'
 
 type Props = {

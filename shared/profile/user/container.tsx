@@ -92,7 +92,7 @@ const connected = Container.connect(
       // For SBS profiles, display service username as the "big username". Some
       // profiles will have a special formatting for the name, e.g. phone numbers
       // will be formatted.
-      let title = nonUserDetails.formattedName || name
+      const title = nonUserDetails.formattedName || name
 
       return {
         ...commonProps,

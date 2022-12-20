@@ -1,8 +1,7 @@
-import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import * as Container from '../../../../util/container'
-import * as Chat2Types from '../../../../constants/types/chat2'
+import type * as Chat2Types from '../../../../constants/types/chat2'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 
 type Props = {

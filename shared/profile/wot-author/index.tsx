@@ -196,7 +196,7 @@ export const ReviewWrapper = (props: Container.RouteProps<'profileWotReview'>) =
   const error = Container.useSelector(state => state.profile.wotAuthorError)
   const [lastAction, setLastAction] = React.useState<ReviewAction | undefined>(undefined)
   const isWaiting = Container.useAnyWaiting(UsersConstants.wotReactWaitingKey)
-  let waiting = isWaiting ? lastAction : undefined
+  const waiting = isWaiting ? lastAction : undefined
   let fatalError = ''
   if (!sigID) {
     fatalError = 'Routing missing ID.'

@@ -1,7 +1,6 @@
-import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
-import * as ConfigTypes from '../constants/types/config'
+import type * as ConfigTypes from '../constants/types/config'
 
 type Props = {
   outOfDate?: ConfigTypes.OutOfDate

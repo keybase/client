@@ -1,4 +1,4 @@
-import {toISOTimestamp, Logger, LogLevel, LogLineWithLevelISOTimestamp} from './types'
+import {toISOTimestamp, type Logger, type LogLevel, type LogLineWithLevelISOTimestamp} from './types'
 import {requestIdleCallback} from '../util/idle-callback'
 
 type FileWriterFn = (lines: Array<LogLineWithLevelISOTimestamp>) => Promise<void>

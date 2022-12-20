@@ -239,7 +239,12 @@ export const VerifyPhone = () => {
   const verifyWaiting = Container.useAnyWaiting(Constants.verifyPhoneNumberWaitingKey)
 
   // clean everything on unmount
-  React.useEffect(() => () => {dispatch(SettingsGen.createClearPhoneNumberAdd())}, [dispatch])
+  React.useEffect(
+    () => () => {
+      dispatch(SettingsGen.createClearPhoneNumberAdd())
+    },
+    [dispatch]
+  )
   // Clear on success
   React.useEffect(() => {
     if (verificationState === 'success' && !error) {

@@ -1,5 +1,5 @@
-import {WebOfTrustVerificationType} from './more'
-import * as RPCTypes from './rpc-gen'
+import type {WebOfTrustVerificationType} from './more'
+import type * as RPCTypes from './rpc-gen'
 
 export type TeamShowcase = {
   description: string

@@ -3,9 +3,9 @@ import * as Container from '../../util/container'
 import * as React from 'react'
 import * as SettingsConstants from '../../constants/settings'
 import * as TeamsGen from '../../actions/teams-gen'
-import * as Types from '../../constants/types/teams'
-import useContacts, {Contact} from '../common/use-contacts.native'
-import {ContactRowProps, InviteByContact} from './index.native'
+import type * as Types from '../../constants/types/teams'
+import useContacts, {type Contact} from '../common/use-contacts.native'
+import {InviteByContact, type ContactRowProps} from './index.native'
 import {useTeamDetailsSubscribe} from '../subscriber'
 
 // Seitan invite names (labels) look like this: "[name] ([phone number])". Try

@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
-import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
+import type * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 
 export type Props = {
   attachTo?: () => React.Component<any> | null

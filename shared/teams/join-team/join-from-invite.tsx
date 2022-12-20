@@ -8,9 +8,11 @@ import {Success} from '.'
 
 const JoinFromInvite = () => {
   const dispatch = Container.useDispatch()
-  const {inviteID: id, inviteKey: key, inviteDetails: details} = Container.useSelector(
-    state => state.teams.teamInviteDetails
-  )
+  const {
+    inviteID: id,
+    inviteKey: key,
+    inviteDetails: details,
+  } = Container.useSelector(state => state.teams.teamInviteDetails)
   const error = Container.useSelector(state => state.teams.errorInTeamJoin)
   const loaded = details !== undefined || !!error
   React.useEffect(() => {

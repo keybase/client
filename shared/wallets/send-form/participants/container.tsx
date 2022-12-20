@@ -1,4 +1,3 @@
-import * as React from 'react'
 import {ParticipantsKeybaseUser, ParticipantsStellarPublicKey, ParticipantsOtherAccount} from '.'
 import * as ProfileGen from '../../../actions/profile-gen'
 import * as WalletsGen from '../../../actions/wallets-gen'

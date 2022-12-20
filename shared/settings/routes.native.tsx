@@ -29,7 +29,7 @@ export const newRoutes = {
   [Constants.contactsTab]: {
     getScreen: (): typeof ManageContactsTab => require('./manage-contacts.native').default,
   },
-  // eslint-disable-next-line sort-keys
+
   privacyPolicy: {getScreen: (): typeof WebLink => require('./web-links.native').default},
   terms: {getScreen: (): typeof WebLink => require('./web-links.native').default},
 }

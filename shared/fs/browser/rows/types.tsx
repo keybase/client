@@ -1,5 +1,5 @@
-import * as Types from '../../../constants/types/fs'
-import * as React from 'react'
+import type * as Types from '../../../constants/types/fs'
+import type * as React from 'react'
 
 export enum RowType {
   TlfType,

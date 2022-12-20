@@ -1,7 +1,6 @@
-import * as React from 'react'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
-import {Props} from '.'
+import type {Props} from '.'
 
 const UserCard = ({
   avatarBackgroundStyle,

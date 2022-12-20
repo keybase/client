@@ -1,7 +1,6 @@
-import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
-import {ServiceIdWithContact} from '../constants/types/team-building'
+import type {ServiceIdWithContact} from '../constants/types/team-building'
 import {e164ToDisplay} from '../util/phone-numbers'
 
 export type Props = {

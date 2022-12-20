@@ -1,4 +1,4 @@
-import * as Types from '../constants/types/signup'
+import type * as Types from '../constants/types/signup'
 import * as SignupGen from '../actions/signup-gen'
 import * as SettingsGen from '../actions/settings-gen'
 import HiddenString from '../util/hidden-string'

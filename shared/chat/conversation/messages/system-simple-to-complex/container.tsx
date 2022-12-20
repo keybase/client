@@ -1,8 +1,8 @@
-import * as Types from '../../../../constants/types/chat2'
+import type * as Types from '../../../../constants/types/chat2'
 import * as Constants from '../../../../constants/chat2'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import * as TeamsGen from '../../../../actions/teams-gen'
-import {TeamID} from '../../../../constants/types/teams'
+import type {TeamID} from '../../../../constants/types/teams'
 import SystemSimpleToComplex from '.'
 import {connect} from '../../../../util/container'
 

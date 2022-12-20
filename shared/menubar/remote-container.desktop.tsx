@@ -1,4 +1,3 @@
-import * as React from 'react'
 import * as ConfigGen from '../actions/config-gen'
 import * as Container from '../util/container'
 import * as FsConstants from '../constants/fs'

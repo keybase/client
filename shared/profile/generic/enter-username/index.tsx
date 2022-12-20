@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import {SiteIcon} from '../shared'
-import {SiteIconSet} from '../../../constants/types/tracker2'
+import type {SiteIconSet} from '../../../constants/types/tracker2'
 
 type InputProps = {
   error: boolean
@@ -32,7 +32,7 @@ class EnterUsernameInput extends React.Component<InputProps, InputState> {
 
   render() {
     // If ever there become more than 2 choices, this can be pushed into a protocol parameter.
-    let usernamePlaceholder =
+    const usernamePlaceholder =
       this.props.serviceSuffix === '@theqrl.org' ? 'Your QRL address' : 'Your username'
     return (
       <Kb.Box2

@@ -507,6 +507,7 @@ if (isIOS) {
     // @ts-ignore
     obj[name] = DynamicColorIOS({dark: darkColors[name], light: colors[name]})
     return obj
+    // eslint-disable-next-line
   }, {} as Color)
 } else {
   iosDynamicColors = colors
@@ -540,6 +541,7 @@ export const themed: {[P in keyof typeof colors]: typeof colors[P]} = names.redu
       },
     })
   }
+  // eslint-disable-next-line
 }, {} as Color)
 
 export default colors

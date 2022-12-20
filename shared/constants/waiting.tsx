@@ -1,5 +1,5 @@
-import {RPCError} from '../util/errors'
-import * as Container from '../util/container'
+import type {RPCError} from '../util/errors'
+import type * as Container from '../util/container'
 
 export const anyWaiting = (state: Container.TypedState, ...keys: Array<string>) => {
   return !!keys.some(k => (state.waiting.counts.get(k) || 0) > 0)

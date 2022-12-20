@@ -1,8 +1,8 @@
-import * as Types from '../../../constants/types/chat2'
+import type * as Types from '../../../constants/types/chat2'
 import * as Constants from '../../../constants/chat2'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import {getCanPerform} from '../../../constants/teams'
-import {anyWaiting, connect, TypedState, TypedDispatch} from '../../../util/container'
+import * as Container from '../../../util/container'
 import PinnedMessage from '.'
 
 type OwnProps = {
@@ -22,7 +22,7 @@ const empty = {
   unpinning: false,
 }
 
-const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
+const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const meta = Constants.getMeta(state, ownProps.conversationIDKey)
   if (!meta) {
     return empty
@@ -54,11 +54,11 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
           ? message.decoratedText.stringValue()
           : ''
         : message.title || message.fileName,
-    unpinning: anyWaiting(state, Constants.waitingKeyUnpin(ownProps.conversationIDKey)),
+    unpinning: Container.anyWaiting(state, Constants.waitingKeyUnpin(ownProps.conversationIDKey)),
   }
 }
 
-const mapDispatchToProps = (dispatch: TypedDispatch, {conversationIDKey}: OwnProps) => ({
+const mapDispatchToProps = (dispatch: Container.TypedDispatch, {conversationIDKey}: OwnProps) => ({
   _onClick: (messageID: Types.MessageID) =>
     dispatch(
       Chat2Gen.createReplyJump({
@@ -70,7 +70,7 @@ const mapDispatchToProps = (dispatch: TypedDispatch, {conversationIDKey}: OwnPro
   _onUnpin: () => dispatch(Chat2Gen.createUnpinMessage({conversationIDKey})),
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, (stateProps, dispatchProps) => {
+export default Container.connect(mapStateToProps, mapDispatchToProps, (stateProps, dispatchProps) => {
   const yourMessage = stateProps._pinnerUsername === stateProps._you
   const dismissUnpins = yourMessage || stateProps._canAdminDelete
   return {

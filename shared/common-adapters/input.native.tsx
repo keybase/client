@@ -1,6 +1,6 @@
 // Known issues:
 // When input gets focus it shifts down 1 pixel when the cursor appears. This happens with a naked TextInput on RN...
-import React, {Component} from 'react'
+import * as React from 'react'
 import Box from './box'
 import Text, {getStyle as getTextStyle} from './text.native'
 import {NativeTextInput} from './native-wrappers.native'
@@ -15,7 +15,7 @@ type State = {
   height: number | null
 }
 
-class Input extends Component<Props, State> {
+class Input extends React.Component<Props, State> {
   state: State
   private input = React.createRef<TextInput>()
   private lastNativeText: string | null = null
@@ -218,7 +218,7 @@ class Input extends Component<Props, State> {
       }
     }
   }) => {
-    let {start: _start, end: _end} = event.nativeEvent.selection
+    const {start: _start, end: _end} = event.nativeEvent.selection
     // Work around Android bug which sometimes puts end before start:
     // https://github.com/facebook/react-native/issues/18579 .
     const start = Math.min(_start, _end)

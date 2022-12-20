@@ -30,10 +30,10 @@ export const FollowButton = (props: FollowProps) => {
     }
   }, [username, guiID, dispatch])
 
-  const onFollow = React.useCallback(() => dispatch(Tracker2Gen.createChangeFollow({follow: true, guiID})), [
-    dispatch,
-    guiID,
-  ])
+  const onFollow = React.useCallback(
+    () => dispatch(Tracker2Gen.createChangeFollow({follow: true, guiID})),
+    [dispatch, guiID]
+  )
   const onUnfollow = React.useCallback(
     () => dispatch(Tracker2Gen.createChangeFollow({follow: false, guiID})),
     [dispatch, guiID]

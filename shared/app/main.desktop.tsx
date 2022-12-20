@@ -1,4 +1,3 @@
-import * as React from 'react'
 import Router from '../router-v2/router'
 import ResetModal from '../login/reset/modal'
 import GlobalError from './global-errors/container'

@@ -1,4 +1,3 @@
-import * as React from 'react'
 import * as FsGen from '../../actions/fs-gen'
 import * as Types from '../../constants/types/fs'
 import * as Container from '../../util/container'

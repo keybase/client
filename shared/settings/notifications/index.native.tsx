@@ -1,7 +1,6 @@
 import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters/mobile.native'
 import * as PushGen from '../../actions/push-gen'
-import * as React from 'react'
 import * as Styles from '../../styles'
 import Notifications from './render'
 import type {Props} from '.'

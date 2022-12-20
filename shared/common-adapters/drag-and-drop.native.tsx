@@ -1,4 +1,4 @@
-import {Props} from './drag-and-drop'
+import type {Props} from './drag-and-drop'
 
 const RenderChildren = (props: Props) => props.children || null
 

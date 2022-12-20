@@ -1,8 +1,8 @@
-import React from 'react'
+import * as React from 'react'
 import Text from '../../../common-adapters/text'
 import Button from '../../../common-adapters/button'
 import {Box2} from '../../../common-adapters/box'
-import {MenuItems} from '../../../common-adapters/floating-menu/menu-layout'
+import type {MenuItems} from '../../../common-adapters/floating-menu/menu-layout'
 import FloatingMenu from '../../../common-adapters/floating-menu'
 import * as Styles from '../../../styles'
 

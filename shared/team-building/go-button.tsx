@@ -1,7 +1,6 @@
-import * as React from 'react'
 import * as Kb from '../common-adapters/index'
 import * as Styles from '../styles'
-import {GoButtonLabel} from '../constants/types/team-building'
+import type {GoButtonLabel} from '../constants/types/team-building'
 
 export type Props = {
   onClick: () => void

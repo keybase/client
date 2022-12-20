@@ -1,6 +1,5 @@
-import * as React from 'react'
 import {Box2, FloatingBox} from '..'
-import {Props} from '.'
+import type {Props} from '.'
 import * as Styles from '../../styles'
 
 const Overlay = (props: Props) => {

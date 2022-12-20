@@ -1,8 +1,8 @@
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
-import * as Types from '../../../../constants/types/wallets'
+import type * as Types from '../../../../constants/types/wallets'
 import * as Styles from '../../../../styles'
-import {Props} from '.'
+import type {Props} from '.'
 
 const headerKey = '_header'
 

@@ -1,9 +1,8 @@
-import * as React from 'react'
 import * as Kb from '../common-adapters'
-import * as Types from '../constants/types/devices'
-import * as ProvisionTypes from '../constants/types/provision'
+import type * as Types from '../constants/types/devices'
+import type * as ProvisionTypes from '../constants/types/provision'
 import * as Constants from '../constants/devices'
-import {IconStyle} from '../common-adapters/icon'
+import type {IconStyle} from '../common-adapters/icon'
 
 export type Props = {
   current?: boolean
@@ -22,11 +21,13 @@ const DeviceIcon = (props: Props) => {
   const iconNumber = (deviceNumberOfType % Constants.numBackgrounds) + 1
   const badge = props.current ? 'success-' : ''
 
-  const maybeIcon = ({
-    backup: `icon-paper-key-${props.size}`,
-    desktop: `icon-computer-${badge}background-${iconNumber}-${props.size}`,
-    mobile: `icon-phone-${badge}background-${iconNumber}-${props.size}`,
-  } as const)[type]
+  const maybeIcon = (
+    {
+      backup: `icon-paper-key-${props.size}`,
+      desktop: `icon-computer-${badge}background-${iconNumber}-${props.size}`,
+      mobile: `icon-phone-${badge}background-${iconNumber}-${props.size}`,
+    } as const
+  )[type]
   const icon: Kb.IconType = Kb.isValidIconType(maybeIcon) ? maybeIcon : defaultIcons[type]
 
   return <Kb.Icon type={icon} style={props.style} />

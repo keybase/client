@@ -1,4 +1,3 @@
-import * as React from 'react'
 import * as Constants from '../../constants/settings'
 import * as Container from '../../util/container'
 import * as Styles from '../../styles'

@@ -748,7 +748,7 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     }
 
     // remove all deleted messages from ordinals that we are passed as a parameter
-    let os =
+    const os =
       messageOrdinals.get(conversationIDKey)?.reduce((arr, o) => {
         if (deletedMessages.find(m => m.ordinal === o)) {
           return arr
@@ -875,7 +875,7 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     }
     draftState.containsLatestMessageMap = containsLatestMessageMap
 
-    let messageCenterOrdinals = new Map(draftState.messageCenterOrdinals)
+    const messageCenterOrdinals = new Map(draftState.messageCenterOrdinals)
     const centeredMessageIDs = action.payload.centeredMessageIDs || []
     centeredMessageIDs.forEach(cm => {
       let ordinal = messageIDToOrdinal(

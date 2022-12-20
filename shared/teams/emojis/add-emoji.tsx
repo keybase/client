@@ -332,7 +332,7 @@ const AddEmojiAliasAndConfirm = (props: AddEmojiAliasAndConfirmProps) => {
   const {dragOver, onDragLeave, onDragOver, onDrop, pick} = usePickFiles(props.addFiles)
   const {emojisToAdd} = props
   const items = React.useMemo(() => {
-    const ret = emojisToAdd.reduce((arr, emojiToAdd, index) => {
+    const ret = emojisToAdd.reduce<Array<EmojiToAddOrAddRow>>((arr, emojiToAdd, index) => {
       const previous = arr[index - 1]
       arr.push({
         emojiToAdd,
@@ -342,7 +342,7 @@ const AddEmojiAliasAndConfirm = (props: AddEmojiAliasAndConfirmProps) => {
         type: 'emoji',
       })
       return arr
-    }, [] as Array<EmojiToAddOrAddRow>)
+    }, [])
     const last = ret[ret.length - 1]
     ret.push({
       add: pick,

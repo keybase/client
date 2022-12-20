@@ -1,4 +1,3 @@
-import * as React from 'react'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import * as Kb from '../../common-adapters'
@@ -9,7 +8,7 @@ import * as Kbfs from '../../fs/common'
 import * as FsGen from '../../actions/fs-gen'
 import RefreshDriverStatusOnMount from '../../fs/common/refresh-driver-status-on-mount'
 import RefreshSettings from './refresh-settings'
-import {Props} from '.'
+import type {Props} from '.'
 
 export const allowedNotificationThresholds = [100 * 1024 ** 2, 1024 ** 3, 3 * 1024 ** 3, 10 * 1024 ** 3]
 export const defaultNotificationThreshold = 100 * 1024 ** 2

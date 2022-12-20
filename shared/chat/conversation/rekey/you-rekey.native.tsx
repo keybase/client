@@ -1,7 +1,6 @@
-import * as React from 'react'
 import * as Kb from '../../../common-adapters/mobile.native'
 import * as Styles from '../../../styles'
-import {Props} from './you-rekey'
+import type {Props} from './you-rekey'
 
 const YouRekey = ({onEnterPaperkey}: Props) => (
   <Kb.Box2 direction="vertical">

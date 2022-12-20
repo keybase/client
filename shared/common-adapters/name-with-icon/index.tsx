@@ -1,10 +1,15 @@
 import * as React from 'react'
 import * as Styles from '../../styles'
-import Avatar, {AvatarSize} from '../avatar'
+import Avatar, {type AvatarSize} from '../avatar'
 import {Box} from '../box'
 import ClickableBox from '../clickable-box'
-import Icon, {IconType} from '../icon'
-import Text, {TextType, StylesTextCrossPlatform, AllowedColors, TextTypeBold} from '../text'
+import Icon, {type IconType} from '../icon'
+import Text, {
+  type TextType,
+  type StylesTextCrossPlatform,
+  type AllowedColors,
+  type TextTypeBold,
+} from '../text'
 import ConnectedUsernames from '../usernames'
 
 type Size = 'smaller' | 'small' | 'default' | 'big' | 'huge'

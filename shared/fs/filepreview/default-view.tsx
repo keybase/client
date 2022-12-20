@@ -1,4 +1,3 @@
-import * as React from 'react'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import * as Styles from '../../styles'
@@ -45,23 +44,25 @@ const DefaultView = (props: DefaultViewProps) => {
             This document can not be opened on mobile. You can still interact with it using the ••• menu.
           </Kb.Text>
         )}
-        {// Enable this button for desktop when we have in-app sharing.
-        hasShare('screen', props.path, props.pathItem, fileContext) && (
-          <>
-            <Kb.Box2 direction="vertical" gap="medium" gapStart={true} />
-            <PathItemAction
-              clickable={{
-                component: ({onClick, setRef}) => (
-                  <Kb.Button key="share" label="Share" onClick={onClick} ref={setRef} />
-                ),
-                type: 'component',
-              }}
-              path={props.path}
-              initView={Types.PathItemActionMenuView.Share}
-              mode="screen"
-            />
-          </>
-        )}
+        {
+          // Enable this button for desktop when we have in-app sharing.
+          hasShare('screen', props.path, props.pathItem, fileContext) && (
+            <>
+              <Kb.Box2 direction="vertical" gap="medium" gapStart={true} />
+              <PathItemAction
+                clickable={{
+                  component: ({onClick, setRef}) => (
+                    <Kb.Button key="share" label="Share" onClick={onClick} ref={setRef} />
+                  ),
+                  type: 'component',
+                }}
+                path={props.path}
+                initView={Types.PathItemActionMenuView.Share}
+                mode="screen"
+              />
+            </>
+          )
+        }
         {!isIOS &&
           (props.sfmiEnabled ? (
             <Kb.Button

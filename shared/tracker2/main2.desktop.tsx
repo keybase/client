@@ -1,4 +1,3 @@
-import * as React from 'react'
 import * as Styles from '../styles'
 import Tracker2 from './remote-container.desktop'
 import load from '../desktop/remote/component-loader.desktop'

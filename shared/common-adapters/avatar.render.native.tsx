@@ -4,7 +4,7 @@ import * as Styles from '../styles'
 import ClickableBox from './clickable-box'
 import Box from './box'
 import {NativeImage} from './native-image.native'
-import {Props, AvatarSize} from './avatar.render'
+import type {Props, AvatarSize} from './avatar.render'
 
 const Kb = {
   Box,

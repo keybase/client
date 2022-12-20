@@ -1,4 +1,4 @@
-import React, {Component} from 'react'
+import * as React from 'react'
 
 export type Props = {
   label: string | React.ReactNode
@@ -8,5 +8,5 @@ export type Props = {
   disabled?: boolean
 }
 
-declare class RadioButton extends Component<Props> {}
+declare class RadioButton extends React.Component<Props> {}
 export default RadioButton

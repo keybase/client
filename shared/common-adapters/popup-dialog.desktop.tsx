@@ -3,7 +3,7 @@ import Box from './box'
 import Icon from './icon'
 import {EscapeHandler} from '../util/key-event-handler.desktop'
 import * as Styles from '../styles'
-import {Props} from './popup-dialog'
+import type {Props} from './popup-dialog'
 
 function stopBubbling(ev) {
   ev.stopPropagation()

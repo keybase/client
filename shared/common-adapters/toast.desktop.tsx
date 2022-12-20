@@ -1,5 +1,4 @@
-import * as React from 'react'
-import {Props} from './toast'
+import type {Props} from './toast'
 import FloatingBox from './floating-box'
 import * as Styles from '../styles'
 

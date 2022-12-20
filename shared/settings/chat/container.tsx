@@ -1,12 +1,12 @@
 import * as ConfigGen from '../../actions/config-gen'
 import * as SettingsGen from '../../actions/settings-gen'
 import * as WaitingGen from '../../actions/waiting-gen'
-import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
+import type * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as Container from '../../util/container'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Constants from '../../constants/settings'
 import * as TeamConstants from '../../constants/teams'
-import * as TeamTypes from '../../constants/types/teams'
+import type * as TeamTypes from '../../constants/types/teams'
 
 import Chat from '.'
 

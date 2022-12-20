@@ -1,10 +1,9 @@
-import * as React from 'react'
-import * as Types from '../../../constants/types/teams'
-import * as ChatTypes from '../../../constants/types/chat2'
+import type * as Types from '../../../constants/types/teams'
+import type * as ChatTypes from '../../../constants/types/chat2'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import * as Container from '../../../util/container'
-import {Tab as TabType} from '../../../common-adapters/tabs'
+import type {Tab as TabType} from '../../../common-adapters/tabs'
 
 export type TabKey = 'members' | 'attachments' | 'bots' | 'settings' | 'loading'
 

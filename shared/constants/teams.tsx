@@ -5,7 +5,7 @@ import * as TeamBuildingConstants from './team-building'
 import invert from 'lodash/invert'
 import type * as ChatTypes from './types/chat2'
 import type {TypedState} from './reducer'
-import {RetentionPolicy} from './types/retention-policy'
+import type {RetentionPolicy} from './types/retention-policy'
 import {memoize} from '../util/memoize'
 
 export const teamRoleTypes = ['reader', 'writer', 'admin', 'owner'] as const

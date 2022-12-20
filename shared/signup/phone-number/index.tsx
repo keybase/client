@@ -5,7 +5,7 @@ import * as Platform from '../../constants/platform'
 import * as Container from '../../util/container'
 import * as SettingsGen from '../../actions/settings-gen'
 import {SignupScreen, errorBanner} from '../common'
-import {ButtonType} from '../../common-adapters/button'
+import type {ButtonType} from '../../common-adapters/button'
 
 export type Props = {
   error: string

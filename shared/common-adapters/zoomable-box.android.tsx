@@ -1,13 +1,13 @@
 import * as React from 'react'
 import {
   PanResponder as NativePanResponder,
-  PanResponderInstance as NativePanResponderInstance,
-  NativeTouchEvent,
-  PanResponderGestureState,
+  type PanResponderInstance as NativePanResponderInstance,
+  type NativeTouchEvent,
+  type PanResponderGestureState,
 } from 'react-native'
 import Box from './box'
 import clamp from 'lodash/clamp'
-import {Props} from './zoomable-box'
+import type {Props} from './zoomable-box'
 
 const Kb = {
   Box,

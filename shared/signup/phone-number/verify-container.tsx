@@ -4,7 +4,7 @@ import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as SettingsGen from '../../actions/settings-gen'
 import * as SettingsConstants from '../../constants/settings'
 import {anyWaiting} from '../../constants/waiting'
-import VerifyPhoneNumber, {Props} from './verify'
+import VerifyPhoneNumber, {type Props} from './verify'
 
 type OwnProps = {}
 

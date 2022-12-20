@@ -1,9 +1,9 @@
 import * as React from 'react'
 import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
-import {TickerID, addTicker, removeTicker} from '../../../../../util/second-timer'
+import {addTicker, removeTicker, type TickerID} from '../../../../../util/second-timer'
 import {formatDurationShort} from '../../../../../util/timestamp'
-import SharedTimer, {SharedTimerID} from '../../../../../util/shared-timers'
+import SharedTimer, {type SharedTimerID} from '../../../../../util/shared-timers'
 import {animationDuration} from '../exploding-height-retainer'
 
 const oneMinuteInMs = 60 * 1000

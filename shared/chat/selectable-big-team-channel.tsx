@@ -1,11 +1,11 @@
-import React, {PureComponent} from 'react'
+import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import * as Constants from '../constants/chat2'
 import {TeamAvatar} from './avatars'
 import {pluralize} from '../util/string'
 import {BottomLine} from './inbox/row/small-team/bottom-line'
-import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
+import type * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 
 type Props = {
   isSelected: boolean
@@ -24,7 +24,7 @@ type State = {
   isHovered: boolean
 }
 
-class SelectableBigTeamChannel extends PureComponent<Props, State> {
+class SelectableBigTeamChannel extends React.PureComponent<Props, State> {
   state = {
     isHovered: false,
   }

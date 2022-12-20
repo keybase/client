@@ -2,7 +2,7 @@ import * as Container from '../../../util/container'
 import {memoize} from '../../../util/memoize'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as Constants from '../../../constants/wallets'
-import * as Types from '../../../constants/types/wallets'
+import type * as Types from '../../../constants/types/wallets'
 import Header from '.'
 
 const otherUnreadPayments = memoize(

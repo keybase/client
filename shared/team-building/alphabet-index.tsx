@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {NativeSyntheticEvent, NativeTouchEvent} from 'react-native'
+import type {NativeSyntheticEvent, NativeTouchEvent} from 'react-native'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 

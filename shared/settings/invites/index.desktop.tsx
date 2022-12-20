@@ -1,9 +1,9 @@
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import * as Types from '../../constants/types/settings'
-import React, {Component} from 'react'
+import type * as Types from '../../constants/types/settings'
+import * as React from 'react'
 import SubHeading from '../subheading'
-import {Props} from '.'
+import type {Props} from '.'
 import {intersperseFn} from '../../util/arrays'
 import * as dateFns from 'date-fns'
 
@@ -13,7 +13,7 @@ type State = {
   showMessageField: boolean
 }
 
-class Invites extends Component<Props, State> {
+class Invites extends React.Component<Props, State> {
   state: State
 
   constructor(props: Props) {

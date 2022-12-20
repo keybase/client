@@ -1,7 +1,7 @@
 import * as React from 'react'
 import {Box2, Button, Text} from '../../../common-adapters'
 import {assertionToDisplay} from '../../../common-adapters/usernames'
-import {Props as TextProps} from '../../../common-adapters/text'
+import type {Props as TextProps} from '../../../common-adapters/text'
 import * as Styles from '../../../styles'
 import {isMobile} from '../../../constants/platform'
 

@@ -1,4 +1,4 @@
-import HiddenString from '../../util/hidden-string'
+import type HiddenString from '../../util/hidden-string'
 
 export type DeviceType = 'mobile' | 'desktop' | 'backup'
 export type DeviceID = string

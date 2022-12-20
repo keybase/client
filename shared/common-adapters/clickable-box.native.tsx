@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Styles from '../styles'
 import Box from './box'
 import {NativeTouchableOpacity, NativeTouchableWithoutFeedback} from './native-wrappers.native'
-import {Props} from './clickable-box'
+import type {Props} from './clickable-box'
 
 const Kb = {
   Box,

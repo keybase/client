@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
-import {Props} from '.'
+import type {Props} from '.'
 
 const Prompt = () => (
   <Kb.Box2 direction="vertical" fullWidth={true} style={styles.promptContainer}>

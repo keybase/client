@@ -1,5 +1,5 @@
 import * as Container from '../util/container'
-import * as Types from '../constants/types/autoreset'
+import type * as Types from '../constants/types/autoreset'
 import * as AutoresetGen from '../actions/autoreset-gen'
 
 const initialState: Types.State = {

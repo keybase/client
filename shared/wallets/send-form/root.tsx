@@ -27,7 +27,7 @@ const PoweredByStellar = () => (
 )
 
 const Root = (props: Props) => {
-  let child = (
+  const child = (
     <>
       <Kb.Box2 direction="vertical" style={styles.container}>
         <Header

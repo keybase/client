@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import * as Types from '../../constants/types/wallets'
+import type * as Types from '../../constants/types/wallets'
 import {WalletBackButton} from '../common'
 import {AssetPathIntermediate} from '../send-form/asset-input/asset-input-advanced'
 import AssetInput from './asset-input-container'

@@ -62,7 +62,7 @@ export function fontSize(type: IconType): {fontSize: number} | null {
 
 export function isValidIconType(inputType: string): inputType is IconType {
   // @ts-ignore this type is what we're checking
-  let iconType = typeToIconMapper(inputType)
+  const iconType = typeToIconMapper(inputType)
   return !!iconType && !!iconMeta[iconType]
 }
 

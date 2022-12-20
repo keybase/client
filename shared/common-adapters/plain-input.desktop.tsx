@@ -182,7 +182,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
   }
 
   _getCommonProps = () => {
-    let commonProps: any = {
+    const commonProps: any = {
       ...pick(this.props, ['maxLength', 'value']), // Props we should only passthrough if supplied
       autoFocus: this.props.autoFocus,
       className: Styles.classNames(this.props.allowKeyboardEvents && 'mousetrap', this.props.className),

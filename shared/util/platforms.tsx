@@ -1,5 +1,5 @@
-import {PlatformsExpandedType} from '../constants/types/more'
-import {IconType} from '../common-adapters/icon.constants-gen' // do NOT pull in all of common-adapters
+import type {PlatformsExpandedType} from '../constants/types/more'
+import type {IconType} from '../common-adapters/icon.constants-gen' // do NOT pull in all of common-adapters
 
 export function subtitle(platform: PlatformsExpandedType): string | null {
   switch (platform) {
@@ -19,25 +19,29 @@ export function subtitle(platform: PlatformsExpandedType): string | null {
 export type ServiceId = 'facebook' | 'github' | 'hackernews' | 'keybase' | 'reddit' | 'twitter'
 
 export function serviceIdToIcon(service: ServiceId): IconType {
-  return ({
-    facebook: 'iconfont-identity-facebook',
-    github: 'iconfont-identity-github',
-    hackernews: 'iconfont-identity-hn',
-    keybase: 'iconfont-identity-devices',
-    reddit: 'iconfont-identity-reddit',
-    twitter: 'iconfont-identity-twitter',
-  } as const)[service]
+  return (
+    {
+      facebook: 'iconfont-identity-facebook',
+      github: 'iconfont-identity-github',
+      hackernews: 'iconfont-identity-hn',
+      keybase: 'iconfont-identity-devices',
+      reddit: 'iconfont-identity-reddit',
+      twitter: 'iconfont-identity-twitter',
+    } as const
+  )[service]
 }
 
 export function serviceIdToLogo24(service: ServiceId): IconType {
-  return ({
-    facebook: 'icon-facebook-logo-24',
-    github: 'icon-github-logo-24',
-    hackernews: 'icon-hacker-news-logo-24',
-    keybase: 'icon-keybase-logo-24',
-    reddit: 'icon-reddit-logo-24',
-    twitter: 'icon-twitter-logo-24',
-  } as const)[service]
+  return (
+    {
+      facebook: 'icon-facebook-logo-24',
+      github: 'icon-github-logo-24',
+      hackernews: 'icon-hacker-news-logo-24',
+      keybase: 'icon-keybase-logo-24',
+      reddit: 'icon-reddit-logo-24',
+      twitter: 'icon-twitter-logo-24',
+    } as const
+  )[service]
 }
 
 // a user id in the form of 'foo' if a keybase user
@@ -58,9 +62,7 @@ export function serviceIdFromString(val: string): ServiceId {
   }
 }
 
-export function parseUserId(
-  id: UserId
-): {
+export function parseUserId(id: UserId): {
   username: string
   serviceId: ServiceId
 } {

@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {State} from './video'
+import type {State} from './video'
 import {Box2} from './box'
 import Text from './text'
 import URL from 'url-parse'

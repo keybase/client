@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as TeamBuildingTypes from '../constants/types/team-building'
+import type * as TeamBuildingTypes from '../constants/types/team-building'
 import * as Constants from '../constants/team-building'
 import {ServiceTabBar} from './service-tab-bar'
 

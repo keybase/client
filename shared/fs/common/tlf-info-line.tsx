@@ -1,7 +1,6 @@
-import * as React from 'react'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
-import * as Types from '../../constants/types/fs'
+import type * as Types from '../../constants/types/fs'
 import {formatTimeForFS} from '../../util/timestamp'
 
 export type Props = {

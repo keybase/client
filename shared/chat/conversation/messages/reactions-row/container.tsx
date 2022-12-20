@@ -1,6 +1,6 @@
 import * as Container from '../../../../util/container'
 import * as Constants from '../../../../constants/chat2'
-import * as Types from '../../../../constants/types/chat2'
+import type * as Types from '../../../../constants/types/chat2'
 import ReactionsRow from '.'
 
 // Get array of emoji names in the order of their earliest reaction

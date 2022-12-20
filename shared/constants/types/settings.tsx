@@ -1,6 +1,6 @@
-import * as RPCChatTypes from './rpc-chat-gen'
-import HiddenString from '../../util/hidden-string'
-import * as RPCTypes from './rpc-gen'
+import type * as RPCChatTypes from './rpc-chat-gen'
+import type HiddenString from '../../util/hidden-string'
+import type * as RPCTypes from './rpc-gen'
 
 type InviteBase = {
   id: string

@@ -1,4 +1,3 @@
-import * as React from 'react'
 import * as Container from '../util/container'
 import * as FsTypes from '../constants/types/fs'
 import * as FsGen from '../actions/fs-gen'
@@ -6,7 +5,7 @@ import * as ProfileGen from '../actions/profile-gen'
 import * as FsUtil from '../util/kbfs'
 import * as TimestampUtil from '../util/timestamp'
 import {FilesPreview} from './files.desktop'
-import {DeserializeProps} from '../menubar/remote-serializer.desktop'
+import type {DeserializeProps} from '../menubar/remote-serializer.desktop'
 
 const FilesContainer = () => {
   const state = Container.useRemoteStore<DeserializeProps>()

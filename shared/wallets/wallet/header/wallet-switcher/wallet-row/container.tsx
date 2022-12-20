@@ -2,7 +2,7 @@ import {WalletRow} from '.'
 import * as Container from '../../../../../util/container'
 import {getAccount, getSelectedAccount} from '../../../../../constants/wallets'
 import * as WalletsGen from '../../../../../actions/wallets-gen'
-import {AccountID} from '../../../../../constants/types/wallets'
+import type {AccountID} from '../../../../../constants/types/wallets'
 
 type OwnProps = {
   accountID: AccountID

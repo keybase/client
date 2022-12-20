@@ -1,11 +1,11 @@
-import React, {Component} from 'react'
-import {Props} from './list-item'
+import * as React from 'react'
+import type {Props} from './list-item'
 import Box from './box'
 import ClickableBox from './clickable-box'
 import {globalStyles} from '../styles'
 
 // TODO Add swipe for action
-class ListItem extends Component<Props> {
+class ListItem extends React.Component<Props> {
   render() {
     const height = {Large: 64, Small: 48}[this.props.type] // minimum height
     const listItem = (

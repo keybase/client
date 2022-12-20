@@ -1,5 +1,5 @@
 import * as Constants from '../constants/recover-password'
-import * as Types from '../constants/types/recover-password'
+import type * as Types from '../constants/types/recover-password'
 import * as RecoverPasswordGen from '../actions/recover-password-gen'
 import * as Container from '../util/container'
 

@@ -1,8 +1,7 @@
-import * as React from 'react'
 import * as Styles from '../../../styles'
 import * as Constants from '../../../constants/fs'
 import * as Types from '../../../constants/types/fs'
-import {rowStyles, StillCommon, StillCommonProps} from './common'
+import {rowStyles, StillCommon, type StillCommonProps} from './common'
 import * as Kb from '../../../common-adapters'
 import {useFsPathMetadata, TlfInfoLine, Filename} from '../../common'
 
@@ -64,9 +63,7 @@ const Tlf = (props: TlfProps) => (
           <Kb.Box style={rowStyles.itemBox}>
             <Content {...props} />
           </Kb.Box>
-        ) : (
-          undefined
-        )
+        ) : undefined
       }
       content={
         !Styles.isMobile ? (
@@ -74,9 +71,7 @@ const Tlf = (props: TlfProps) => (
             <Content {...props} />
             <Avatars {...props} />
           </>
-        ) : (
-          undefined
-        )
+        ) : undefined
       }
     />
   </>

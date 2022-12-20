@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Shared from './icon.shared'
 import * as Styles from '../styles'
 import logger from '../logger'
-import {IconType, Props, SizeType} from './icon'
+import type {IconType, Props, SizeType} from './icon'
 import {NativeImage, NativeText, NativeTouchableOpacity} from './native-wrappers.native'
 import {iconMeta} from './icon.constants-gen'
 

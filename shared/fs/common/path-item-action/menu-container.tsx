@@ -168,7 +168,7 @@ const mergeProps = (
   return {
     ...rest,
     // menu items
-    // eslint-disable-next-line sort-keys
+
     delete: layout.delete ? c(dispatchProps._delete) : null,
     download: layout.download ? c(dispatchProps._download) : null,
     ignoreTlf: layout.ignoreTlf

@@ -1,9 +1,9 @@
-import * as Container from '../util/container'
+import type * as Container from '../util/container'
 import {mapGetEnsureValue} from '../util/map'
 import * as Constants from '../constants/team-building'
-import * as Types from '../constants/types/team-building'
+import type * as Types from '../constants/types/team-building'
 import * as TeamBuildingGen from '../actions/team-building-gen'
-import {ActionHandler} from '../util/make-reducer'
+import type {ActionHandler} from '../util/make-reducer'
 import trim from 'lodash/trim'
 
 const initialState = Constants.makeSubState()

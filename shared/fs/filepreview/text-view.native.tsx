@@ -1,7 +1,6 @@
-import * as React from 'react'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
-import {Props} from './text-view'
+import type {Props} from './text-view'
 
 const TextView = (props: Props) => (
   <Kb.Box2 fullHeight={true} fullWidth={true} direction="vertical">

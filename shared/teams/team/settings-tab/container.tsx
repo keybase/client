@@ -1,5 +1,5 @@
 import * as Constants from '../../../constants/teams'
-import * as Types from '../../../constants/types/teams'
+import type * as Types from '../../../constants/types/teams'
 import * as TeamsGen from '../../../actions/teams-gen'
 import * as Container from '../../../util/container'
 import {Settings} from '.'

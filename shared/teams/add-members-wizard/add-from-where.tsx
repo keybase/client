@@ -1,4 +1,3 @@
-import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
@@ -61,9 +60,7 @@ const AddFromWhere = () => {
           <Kb.Text type="BodyBigLink" onClick={onClose}>
             Cancel
           </Kb.Text>
-        ) : (
-          undefined
-        ),
+        ) : undefined,
         rightButton: newTeam ? <Skip /> : undefined,
         title: (
           <ModalTitle

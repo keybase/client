@@ -3,7 +3,7 @@ import * as Container from '../../util/container'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Constants from '../../constants/teams'
-import * as TeamsTypes from '../../constants/types/teams'
+import type * as TeamsTypes from '../../constants/types/teams'
 import * as Tracker2Constants from '../../constants/tracker2'
 import * as Tracker2Gen from '../../actions/tracker2-gen'
 

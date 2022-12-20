@@ -1,7 +1,6 @@
-import * as React from 'react'
 import * as Styles from '../../styles'
 
-import {Props} from './container'
+import type {Props} from './container'
 
 const Container = ({children, style, outerStyle}: Props) => {
   return (

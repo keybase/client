@@ -1,4 +1,3 @@
-import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import {isMobile} from '../../../constants/platform'
@@ -48,12 +47,14 @@ const Banner = ({resetParticipants, onReAddToTeam, onViewProfile, onOpenWithoutR
           backgroundMode="Terminal"
         />
         &nbsp;
-        {// This needs to be in the same node as the sister
-        // ConnectedUsernames node, because otherwise it gets re-flowed
-        // awkwardly.
-        'lost all of their devices and ' +
-          (resetParticipants.length === 1 ? 'this account has' : 'these accounts have') +
-          ' new keys.'}
+        {
+          // This needs to be in the same node as the sister
+          // ConnectedUsernames node, because otherwise it gets re-flowed
+          // awkwardly.
+          'lost all of their devices and ' +
+            (resetParticipants.length === 1 ? 'this account has' : 'these accounts have') +
+            ' new keys.'
+        }
       </Kb.Text>
       <Kb.Text type="BodySemibold" negative={true}>
         If you want to let them into this folder and the matching chat, you should either:

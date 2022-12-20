@@ -1,11 +1,10 @@
-import * as React from 'react'
 import * as Styles from '../styles'
 import {SafeAreaView} from 'react-native'
 import {Picker} from '@react-native-picker/picker'
 import {Box2} from './box'
 import Overlay from './overlay'
 import Text from './text'
-import {Props} from './floating-picker'
+import type {Props} from './floating-picker'
 
 // NOTE: this doesn't seem to work well when debugging w/ chrome. aka if you scroll and set a value the native component will undo it a bunch and its very finnicky. works fine outside of that it seems
 const FloatingPicker = <T extends string | number>(props: Props<T>) => {

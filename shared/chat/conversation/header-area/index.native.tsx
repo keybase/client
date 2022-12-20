@@ -1,4 +1,3 @@
-import * as React from 'react'
 import {Avatar, Box2, Icon, Text, ConnectedUsernames} from '../../../common-adapters'
 import {assertionToDisplay} from '../../../common-adapters/usernames'
 import * as Styles from '../../../styles'

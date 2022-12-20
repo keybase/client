@@ -1,5 +1,5 @@
 import * as RPCTypes from '../constants/types/rpc-gen'
-import * as Types from '../constants/types/pinentry'
+import type * as Types from '../constants/types/pinentry'
 
 export type ProxyProps = {
   darkMode: boolean

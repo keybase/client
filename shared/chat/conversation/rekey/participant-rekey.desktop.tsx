@@ -1,7 +1,6 @@
-import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
-import {Props} from './participant-rekey.types'
+import type {Props} from './participant-rekey.types'
 
 const Row = (props: {username: string; onUsernameClicked: (s: string) => void}) => (
   <Kb.Box style={styles.row} onClick={() => props.onUsernameClicked(props.username)}>

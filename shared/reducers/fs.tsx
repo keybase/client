@@ -3,7 +3,7 @@ import * as Constants from '../constants/fs'
 import * as Types from '../constants/types/fs'
 import * as Container from '../util/container'
 import * as RPCTypes from '../constants/types/rpc-gen'
-import {produce, Draft} from 'immer'
+import {produce, type Draft} from 'immer'
 
 const initialState: Types.State = {
   badge: RPCTypes.FilesTabBadge.none,

@@ -1,8 +1,7 @@
-import * as React from 'react'
 import * as Constants from '../../constants/teams'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import {Props} from './index'
+import type {Props} from './index'
 
 const CreateChannel = (props: Props) => (
   <Kb.Box>

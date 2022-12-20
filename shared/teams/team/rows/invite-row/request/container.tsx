@@ -1,11 +1,12 @@
 import * as React from 'react'
 import * as TeamsGen from '../../../../../actions/teams-gen'
-import * as Types from '../../../../../constants/types/teams'
+import type * as Types from '../../../../../constants/types/teams'
 import * as Constants from '../../../../../constants/teams'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as Container from '../../../../../util/container'
 import {sendNotificationFooter} from '../../../../role-picker'
-import {TeamRequestRow, RowProps} from '.'
+import type {RowProps} from '.'
+import {TeamRequestRow} from '.'
 import {createShowUserProfile} from '../../../../../actions/profile-gen'
 
 type OwnProps = {

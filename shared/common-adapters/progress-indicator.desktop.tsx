@@ -1,6 +1,6 @@
 import Animation from './animation'
 import * as React from 'react'
-import {Props} from './progress-indicator'
+import type {Props} from './progress-indicator'
 import * as Styles from '../styles'
 
 const Kb = {

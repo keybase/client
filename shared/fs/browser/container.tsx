@@ -1,6 +1,6 @@
 import * as Container from '../../util/container'
 import Browser from '.'
-import * as Types from '../../constants/types/fs'
+import type * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 
 type OwnProps = {

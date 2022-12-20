@@ -1,4 +1,4 @@
-import * as RPCTypes from './types/rpc-gen'
+import type * as RPCTypes from './types/rpc-gen'
 
 export const waitingKeyBotSearchFeatured = 'bots:search:featured'
 export const waitingKeyBotSearchUsers = 'bots:search:users'

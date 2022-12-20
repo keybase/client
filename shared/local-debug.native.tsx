@@ -26,7 +26,7 @@ window.console._info = window.console.info
 // Set this to true if you want to turn off most console logging so you can profile easier
 const PERF = false
 
-let config = {
+const config = {
   allowMultipleInstances: false,
   enableActionLogging: true, // Log actions to the log
   enableStoreLogging: false, // Log full store changes

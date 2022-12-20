@@ -1,8 +1,7 @@
-import * as React from 'react'
 import * as Container from '../util/container'
 import * as PinentryGen from '../actions/pinentry-gen'
 import Pinentry from './index.desktop'
-import {DeserializeProps} from './remote-serializer.desktop'
+import type {DeserializeProps} from './remote-serializer.desktop'
 
 const RemoteContainer = () => {
   const state = Container.useRemoteStore<DeserializeProps>()

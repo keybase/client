@@ -1,4 +1,3 @@
-import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Container from '../../../util/container'
 import * as Styles from '../../../styles'
@@ -22,9 +21,7 @@ const TeamPurpose = () => {
           <Kb.Text type="BodyBigLink" onClick={onBack}>
             Cancel
           </Kb.Text>
-        ) : (
-          undefined
-        ),
+        ) : undefined,
         title: <ModalTitle teamID={Types.noTeamID} title="New team" />,
       }}
       allowOverflow={true}

@@ -1,4 +1,4 @@
-import * as Types from '../constants/types/devices'
+import type * as Types from '../constants/types/devices'
 import * as React from 'react'
 import * as Kb from '../common-adapters'
 import DeviceRow from './row/container'

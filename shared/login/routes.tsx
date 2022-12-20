@@ -1,4 +1,3 @@
-import * as React from 'react'
 import * as Container from '../util/container'
 import type Feedback from '../settings/feedback/container'
 import type {ProxySettingsPopup} from '../settings/proxy'

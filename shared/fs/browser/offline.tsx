@@ -1,5 +1,4 @@
 import * as Kb from '../../common-adapters'
-import React from 'react'
 import * as Styles from '../../styles/index'
 import * as Types from '../../constants/types/fs'
 import TopBar from '../top-bar'

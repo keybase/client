@@ -1,7 +1,6 @@
-import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import {StyleOverride} from '../../common-adapters/markdown'
+import type {StyleOverride} from '../../common-adapters/markdown'
 
 const styleOverride: StyleOverride = Styles.styleSheetCreate(() => ({
   del: {

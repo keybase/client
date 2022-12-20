@@ -1,4 +1,3 @@
-import * as React from 'react'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import {formatTimeForFS} from '../../util/timestamp'

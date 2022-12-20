@@ -1,4 +1,4 @@
-import * as Container from '../util/container'
+import type * as Container from '../util/container'
 import * as TeamBuildingGen from '../actions/team-building-gen'
 
 export function teamBuilderReducerCreator<State>(

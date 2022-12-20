@@ -1,8 +1,8 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
-import * as TeamTypes from '../../../constants/types/teams'
-import * as Types from '../../../constants/types/chat2'
+import type * as TeamTypes from '../../../constants/types/teams'
+import type * as Types from '../../../constants/types/chat2'
 import {memoize} from '../../../util/memoize'
 import {makeInsertMatcher} from '../../../util/string'
 

@@ -4,7 +4,7 @@ import * as React from 'react'
 import Row from './row.desktop'
 import {Text, Box2} from '../../common-adapters'
 
-import {Props} from '.'
+import type {Props} from '.'
 
 class GPGSign extends React.Component<Props> {
   render() {

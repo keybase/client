@@ -1,7 +1,6 @@
-import * as React from 'react'
-import {PlatformsExpandedType} from '../constants/types/more'
+import type {PlatformsExpandedType} from '../constants/types/more'
 import Box from './box'
-import Icon, {IconType} from './icon'
+import Icon, {type IconType} from './icon'
 import {isMobile} from '../constants/platform'
 
 type Props = {

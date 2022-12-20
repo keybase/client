@@ -1,9 +1,9 @@
-import * as Types from '../../../constants/types/fs'
+import type * as Types from '../../../constants/types/fs'
 import * as Constants from '../../../constants/fs'
 import * as FsGen from '../../../actions/fs-gen'
 import * as Container from '../../../util/container'
-import Confirm, {Props} from './confirm'
-import {FloatingMenuProps} from './types'
+import Confirm, {type Props} from './confirm'
+import type {FloatingMenuProps} from './types'
 
 type OwnProps = {
   floatingMenuProps: FloatingMenuProps

@@ -1,4 +1,4 @@
-import React, {Component} from 'react'
+import * as React from 'react'
 import type {MenuLayoutProps, MenuItem} from '.'
 import Box from '../../box'
 import Divider from '../../divider'
@@ -9,7 +9,7 @@ import Badge from '../../badge'
 import ProgressIndicator from '../../progress-indicator'
 import * as Styles from '../../../styles'
 
-class MenuLayout extends Component<MenuLayoutProps> {
+class MenuLayout extends React.Component<MenuLayoutProps> {
   private renderDivider = (index: number) => (
     <Divider style={index === 0 ? styles.dividerFirst : styles.divider} key={index} />
   )

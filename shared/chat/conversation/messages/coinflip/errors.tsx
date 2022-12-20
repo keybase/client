@@ -1,4 +1,3 @@
-import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'

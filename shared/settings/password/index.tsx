@@ -1,4 +1,4 @@
-import React, {Component} from 'react'
+import * as React from 'react'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 
@@ -23,7 +23,7 @@ type State = {
   errorSaving: string
 }
 
-class UpdatePassword extends Component<Props, State> {
+class UpdatePassword extends React.Component<Props, State> {
   state: State
 
   constructor(props: Props) {

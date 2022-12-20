@@ -1,9 +1,9 @@
-import React, {Component} from 'react'
+import * as React from 'react'
 import Box from './box'
 import {globalStyles, desktopStyles} from '../styles'
-import {Props} from './list-item'
+import type {Props} from './list-item'
 
-class ListItem extends Component<Props> {
+class ListItem extends React.Component<Props> {
   render() {
     const clickable = !!this.props.onClick
     const minHeight = {Large: 56, Small: 40}[this.props.type]
