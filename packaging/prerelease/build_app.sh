@@ -97,26 +97,28 @@ build="$current_date+$commit_short"
 # Consumed by build_keybase.sh and on darwin-arm64 builds below. We the value
 # here so it is consistent across the build compilation and build announcement
 # since we can't echo the version of the binary when cross compiling.
-export KEYBASE_BUILD=${KEYBASE_BUILD:-$build}
+KEYBASE_BUILD=${KEYBASE_BUILD:-$build}
+KBNM_BUILD=${KBNM_BUILD:-$build}
+KBFS_BUILD=${KBFS_BUILD:-$build}
+kb_version="$(grep 'Version = ' $client_dir/go/libkb/version.go | sed 's/.*Version = \"\(.*\)\"/\1/')"
+KEYBASE_VERSION=${KEYBASE_VERSION:-"$kb_version-$KEYBASE_BUILD"}
+KBNM_VERSION=${$KBNM_VERSION:-"$kb_version-$KBNM_BUILD"}
+KBFS_VERSION=${$KBFS_VERSION:-"$kb_version-$KBFS_BUILD"}
 
 # Okay, here's where we start generating version numbers and doing builds.
 for ((i=1; i<=$number_of_builds; i++)); do
   if [ ! "$nobuild" = "1" ]; then
-    BUILD_DIR="$build_dir_keybase" "$dir/build_keybase.sh"
-    BUILD_DIR="$build_dir_kbfs" CLIENT_DIR="$client_dir" "$dir/build_kbfs.sh"
-    BUILD_DIR="$build_dir_kbnm" "$dir/build_kbnm.sh"
+    KEYBASE_BUILD="$KEYBASE_BUILD" BUILD_DIR="$build_dir_keybase" "$dir/build_keybase.sh"
+    KBFS_BUILD="$KBFS_BUILD" BUILD_DIR="$build_dir_kbfs" CLIENT_DIR="$client_dir" "$dir/build_kbfs.sh"
+    KBNM_BUILD="$KBNM_BUILD" BUILD_DIR="$build_dir_kbnm" "$dir/build_kbnm.sh"
     BUILD_DIR="$build_dir_updater" UPDATER_DIR="$updater_dir" "$dir/build_updater.sh"
   fi
 
-  if [ "$PLATFORM" == "darwin-arm64" ]; then # we can't run the arm64 binary on the amd64 build machine!
-    # manually build out the keybase version, used to announce the build below
-    kb_version="$(grep 'Version = ' $client_dir/go/libkb/version.go | sed 's/.*Version = \"\(.*\)\"/\1/')"
-    version="$kb_version-$KEYBASE_BUILD"
-    # noop these, just used for logging
-    kbfs_version=""
-    kbnm_version=""
-    updater_version=""
-  else
+  version="$KEYBASE_VERSION"
+  kbfs_version="$KBFS_VERSION"
+  kbnm_version="$KBNM_VERSION"
+  updater_version="" # noop, just used for logging
+  if [ ! "$PLATFORM" == "darwin-arm64" ]; then # we can't run the arm64 binary on the amd64 build machine!
     version=$($build_dir_keybase/keybase version -S)
     kbfs_version=$($build_dir_kbfs/kbfs -version)
     kbnm_version=$($build_dir_kbnm/kbnm -version)
@@ -128,7 +130,8 @@ for ((i=1; i<=$number_of_builds; i++)); do
 
   if [ "$platform" = "darwin" ] || [ "$platform" = "darwin-arm64" ]; then
     SAVE_DIR="$save_dir" KEYBASE_BINPATH="$build_dir_keybase/keybase" KBFS_BINPATH="$build_dir_kbfs/kbfs" GIT_REMOTE_KEYBASE_BINPATH="$build_dir_kbfs/git-remote-keybase" REDIRECTOR_BINPATH="$build_dir_kbfs/keybase-redirector" KBNM_BINPATH="$build_dir_kbnm/kbnm" \
-      UPDATER_BINPATH="$build_dir_updater/updater" BUCKET_NAME="$bucket_name" S3HOST="$s3host" SKIP_NOTARIZE="$skip_notarize" PLATFORM="$platform" "$dir/../desktop/package_darwin.sh"
+      UPDATER_BINPATH="$build_dir_updater/updater" BUCKET_NAME="$bucket_name" S3HOST="$s3host" SKIP_NOTARIZE="$skip_notarize" PLATFORM="$platform" \
+      KEYBASE_VERSION="$KEYBASE_VERSION" KBNM_VERSION="$KBFS_VERSION" KBFS_VERSION="$KBFS_VERSION" "$dir/../desktop/package_darwin.sh"
   else
     # TODO: Support Linux build here?
     echo "Unknown platform: $platform"
