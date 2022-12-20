@@ -20,7 +20,7 @@ ldflags="-X github.com/keybase/client/go/libkb.PrereleaseBuild=$keybase_build -s
 echo "Building $build_dir/keybase ($keybase_build) with $(go version)"
 (cd $client_dir && go build -a -tags "$tags" -ldflags "$ldflags" -o "$build_dir/keybase" "github.com/keybase/client/go/keybase")
 
-if [ "$PLATFORM" = "darwin" ]; then
+if [ "$PLATFORM" = "darwin" || "$PLATFORM" = "darwin-arm64" ]; then
   echo "Signing binary..."
   code_sign_identity="9FC3A5BC09FA2EE307C04060C918486411869B65" # "Developer ID Application: Keybase, Inc. (99229SGT5K)"
   codesign --verbose --force --deep --timestamp --options runtime --sign "$code_sign_identity" "$build_dir/keybase"

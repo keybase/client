@@ -2057,7 +2057,11 @@ func GetPlatformString() string {
 	if isIOS {
 		return "ios"
 	}
-	return runtime.GOOS
+	platform := runtime.GOOS
+	if platform == "darwin" && runtime.GOARCH == "arm64" {
+		platform = "darwin-arm64"
+	}
+	return platform
 }
 
 func IsMobilePlatform() bool {

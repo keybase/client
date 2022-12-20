@@ -27,13 +27,13 @@ echo "Loading release tool"
 release_bin="$GOPATH/bin/release"
 
 echo "Creating index files"
-if [ "$platform" = "darwin" ]; then
-  prefix="darwin"
+if [ "$platform" = "darwin" || "$platform" = "darwin-arm64" ]; then
+  prefix=$platform
   if [ "$istest" = "1" ]; then
-    prefix="darwin-test"
+    prefix="$platform-test"
   fi
-
   "$release_bin" index-html --bucket-name="$bucket_name" --prefixes="$prefix/" --upload="$prefix/index.html"
+
   "$release_bin" index-html --bucket-name="$bucket_name" --prefixes="electron-sourcemaps/" --upload="electron-sourcemaps/index.html"
 elif [ "$platform" = "linux" ]; then
   "$release_bin" index-html --bucket-name="$bucket_name" --prefixes="linux_binaries/deb/" --upload="linux_binaries/deb/index.html"
