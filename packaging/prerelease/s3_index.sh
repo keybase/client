@@ -3,7 +3,7 @@
 set -e -u -o pipefail # Fail on error
 
 dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
-cd $dir
+cd "$dir"
 
 # If editing this file, you may also want to update windows/s3_prerelease.cmd
 
@@ -27,7 +27,7 @@ echo "Loading release tool"
 release_bin="$GOPATH/bin/release"
 
 echo "Creating index files"
-if [ "$platform" = "darwin" || "$platform" = "darwin-arm64" ]; then
+if [ "$platform" = "darwin" ] || [ "$platform" = "darwin-arm64" ]; then
   prefix=$platform
   if [ "$istest" = "1" ]; then
     prefix="$platform-test"

@@ -3,7 +3,7 @@
 set -e -u -o pipefail # Fail on error
 
 dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
-cd $dir
+cd "$dir"
 
 client_dir="$dir/../.."
 shared_dir="$client_dir/shared"
@@ -40,7 +40,7 @@ comment=""
 keybase_binpath=${KEYBASE_BINPATH:-}
 git_remote_keybase_binpath=${GIT_REMOTE_KEYBASE_BINPATH:-}
 kbfs_binpath=${KBFS_BINPATH:-}
-redirector_binpath=${REDIRECTOR_BINPATH:-`dirname $KBFS_BINPATH`/keybase-redirector}
+redirector_binpath=${REDIRECTOR_BINPATH:-$(dirname "$KBFS_BINPATH")/keybase-redirector}
 kbnm_binpath=${KBNM_BINPATH:-}
 updater_binpath=${UPDATER_BINPATH:-}
 
@@ -53,21 +53,21 @@ release_bin="$GOPATH/bin/release"
 
 if [ "$keybase_version" = "" ]; then
   if [ ! "$keybase_binpath" = "" ]; then
-    keybase_version=`$keybase_binpath version -S`
+    keybase_version=$($keybase_binpath version -S)
     echo "Using keybase (bin) version: $keybase_version"
   fi
 fi
 
 if [ "$kbfs_version" = "" ]; then
   if [ ! "$kbfs_binpath" = "" ]; then
-    kbfs_version=`$kbfs_binpath -version`
+    kbfs_version=$($kbfs_binpath -version)
     echo "Using kbfs (bin) version: $kbfs_version"
   fi
 fi
 
 if [ "$kbnm_version" = "" ]; then
   if [ ! "$kbnm_binpath" = "" ]; then
-    kbnm_version=`$kbnm_binpath -version`
+    kbnm_version=$($kbnm_binpath -version)
     echo "Using kbnm (bin) version: $kbnm_version"
   fi
 fi
@@ -156,7 +156,7 @@ get_deps() {(
   else
     kbfs_url="https://github.com/keybase/client/go/kbfs/releases/download/v$kbfs_version/kbfs-$kbfs_version-$platform.tgz"
     echo "Getting $kbfs_url"
-    ensure_url $kbfs_url "You need to build the binary for this Github release/version. See packaging/github to create/build a release."
+    ensure_url "$kbfs_url" "You need to build the binary for this Github release/version. See packaging/github to create/build a release."
     curl -J -L -Ss "$kbfs_url" | tar zx
   fi
 
@@ -166,7 +166,7 @@ get_deps() {(
   else
     kbnm_url="https://github.com/keybase/kbnm/releases/download/v$kbnm_version/kbnm-$kbnm_version-$platform.tgz"
     echo "Getting $kbnm_url"
-    ensure_url $kbnm_url "You need to build the binary for this Github release/version. See packaging/github to create/build a release."
+    ensure_url "$kbnm_url" "You need to build the binary for this Github release/version. See packaging/github to create/build a release."
     curl -J -L -Ss "$kbnm_url" | tar zx
   fi
 
@@ -240,7 +240,7 @@ sign() {(
   codesign --verbose --force --deep --timestamp --options runtime --sign "$code_sign_identity" "$app_name.app/Contents/Frameworks/Electron Framework.framework/Versions/A/Libraries/libvk_swiftshader.dylib"
   codesign --verbose --force --deep --timestamp --options runtime --sign "$code_sign_identity" "$app_name.app/Contents/Frameworks/Squirrel.framework/Versions/A/Resources/ShipIt"
 
-  codesign --verbose --force --deep --timestamp --options runtime --entitlements $client_dir/osx/Keybase.entitlements --sign "$code_sign_identity" "$app_name.app"
+  codesign --verbose --force --deep --timestamp --options runtime --entitlements "$client_dir"/osx/Keybase.entitlements --sign "$code_sign_identity" "$app_name.app"
 
 
 
@@ -284,13 +284,13 @@ notarize_dmg() {(
     return
   fi
   echo "Uploading $dmg_name to notarization service in $out_dir"
-  uuid=`xcrun altool --notarize-app --primary-bundle-id "keybase.notarize" --username "apple-dev@keyba.se" --password "@keychain:notarization" --file "$dmg_name" 2>&1 | grep 'RequestUUID' | awk '{ print $3 }'`
+  uuid=$(xcrun altool --notarize-app --primary-bundle-id "keybase.notarize" --username "apple-dev@keyba.se" --password "@keychain:notarization" --file "$dmg_name" 2>&1 | grep 'RequestUUID' | awk '{ print $3 }')
   echo "Successfully uploaded to notarization service, polling for result: $uuid"
   sleep 15
   while :
   do
-    fullstatus=`xcrun altool --notarization-info "$uuid" --username "apple-dev@keyba.se" --password "@keychain:notarization" 2>&1`
-    status=`echo "$fullstatus" | grep 'Status\:' | awk '{ print $2 }'`
+    fullstatus=$(xcrun altool --notarization-info "$uuid" --username "apple-dev@keyba.se" --password "@keychain:notarization" 2>&1)
+    status=$(echo "$fullstatus" | grep 'Status\:' | awk '{ print $2 }')
     if [ "$status" = "success" ]; then
       echo "Notarization success"
       xcrun stapler staple "$dmg_name"
@@ -341,7 +341,7 @@ save() {(
     echo "Saved files to $out_dir"
     return
   fi
-  mkdir -p $save_dir
+  mkdir -p "$save_dir"
   cd "$save_dir"
   platform_dir="$save_dir/$platform"
   if [ "$istest" = "1" ]; then
@@ -364,7 +364,7 @@ save() {(
 
 s3sync() {
   if [ ! "$bucket_name" = "" ] && [ ! "$save_dir" = "" ]; then
-    s3cmd sync --acl-public --disable-multipart $save_dir/* s3://$bucket_name/
+    s3cmd sync --acl-public --disable-multipart "$save_dir"/* s3://"$bucket_name"/
   else
     echo "S3 sync disabled"
   fi
