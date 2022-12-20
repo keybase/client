@@ -5,7 +5,7 @@ import * as Constants from '../../../../../constants/teams'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as Container from '../../../../../util/container'
 import {sendNotificationFooter} from '../../../../role-picker'
-import type {RowProps} from '.';
+import type {RowProps} from '.'
 import {TeamRequestRow} from '.'
 import {createShowUserProfile} from '../../../../../actions/profile-gen'
 

@@ -142,9 +142,7 @@ const ChannelRow = (props: ChannelRowProps) => {
         tooltip="More actions"
       />
     </Kb.Box2>
-  ) : (
-    undefined
-  )
+  ) : undefined
   const massActionsProps = canPerform.deleteChannel
     ? {
         containerStyleOverride: styles.listItemMargin,

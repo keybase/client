@@ -75,10 +75,10 @@ const ListUpdateOnMount = (props: BodyProps) => {
   // hack to get `ReactList` to render more than one item on initial mount.
   // Somehow we need two updates here.
   const [updateCounter, setUpdateCounter] = React.useState(0)
-  React.useEffect(() => setUpdateCounter(updateCounter => (updateCounter > 1 ? 2 : updateCounter + 1)), [
-    updateCounter,
-    setUpdateCounter,
-  ])
+  React.useEffect(
+    () => setUpdateCounter(updateCounter => (updateCounter > 1 ? 2 : updateCounter + 1)),
+    [updateCounter, setUpdateCounter]
+  )
 
   return (
     <Kb.BoxGrow>

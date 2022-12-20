@@ -9,9 +9,10 @@ import CalculateAdvancedButton from '../calculate-advanced-button'
 const FooterAdvanced = () => {
   const builtPaymentAdvanced = Container.useSelector(state => state.wallets.builtPaymentAdvanced)
   const dispatch = Container.useDispatch()
-  const onClickSendAdvanced = React.useCallback(() => dispatch(WalletsGen.createSendPaymentAdvanced()), [
-    dispatch,
-  ])
+  const onClickSendAdvanced = React.useCallback(
+    () => dispatch(WalletsGen.createSendPaymentAdvanced()),
+    [dispatch]
+  )
   return builtPaymentAdvanced.findPathError ? (
     <Kb.Banner style={Styles.globalStyles.rounded} color="red">
       <Kb.BannerParagraph bannerColor="red" content={builtPaymentAdvanced.findPathError} />

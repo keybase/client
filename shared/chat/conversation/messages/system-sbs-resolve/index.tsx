@@ -17,8 +17,9 @@ const formatAssertion = (serviceUser: string, service: ServiceIdWithContact, isY
     case 'email':
       return `verified ${isYou ? 'your' : 'their'} email address ${serviceUser}`
     default:
-      return `proved ${isYou ? 'you' : 'they'} are ${serviceUser} on ${serviceIdToPrettyName(service) ||
-        service}`
+      return `proved ${isYou ? 'you' : 'they'} are ${serviceUser} on ${
+        serviceIdToPrettyName(service) || service
+      }`
   }
 }
 

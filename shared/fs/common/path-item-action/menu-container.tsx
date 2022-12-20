@@ -168,7 +168,7 @@ const mergeProps = (
   return {
     ...rest,
     // menu items
-     
+
     delete: layout.delete ? c(dispatchProps._delete) : null,
     download: layout.download ? c(dispatchProps._download) : null,
     ignoreTlf: layout.ignoreTlf

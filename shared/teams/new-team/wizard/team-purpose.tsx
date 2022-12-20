@@ -21,9 +21,7 @@ const TeamPurpose = () => {
           <Kb.Text type="BodyBigLink" onClick={onBack}>
             Cancel
           </Kb.Text>
-        ) : (
-          undefined
-        ),
+        ) : undefined,
         title: <ModalTitle teamID={Types.noTeamID} title="New team" />,
       }}
       allowOverflow={true}

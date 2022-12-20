@@ -42,7 +42,9 @@ const _ReallyLeaveTeam = (props: Props) => {
   const {name} = props
   const dispatch = Container.useDispatch()
   React.useEffect(
-    () => () => {dispatch(WaitingGen.createClearWaiting({key: Constants.leaveTeamWaitingKey(name)}))},
+    () => () => {
+      dispatch(WaitingGen.createClearWaiting({key: Constants.leaveTeamWaitingKey(name)}))
+    },
     [name, dispatch]
   )
   const [leavePermanently, setLeavePermanently] = React.useState(false)

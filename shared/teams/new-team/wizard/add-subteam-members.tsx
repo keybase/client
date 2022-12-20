@@ -88,9 +88,7 @@ const AddSubteamMembers = () => {
               {doneLabel}
             </Kb.Text>
           </Kb.Box2>
-        ) : (
-          undefined
-        ),
+        ) : undefined,
         title: <ModalTitle teamID={Types.newTeamWizardTeamID} title="Add members" />,
       }}
       footer={

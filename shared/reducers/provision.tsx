@@ -60,10 +60,7 @@ export default Container.makeReducer<ProvisionGen.Actions, Types.State>(initialS
   },
   [ProvisionGen.submitTextCode]: (draftState, action) => {
     // clean up spaces
-    const good = action.payload.phrase
-      .stringValue()
-      .replace(/\W+/g, ' ')
-      .trim()
+    const good = action.payload.phrase.stringValue().replace(/\W+/g, ' ').trim()
     draftState.codePageOutgoingTextCode = new HiddenString(good)
     draftState.error = initialState.error
   },

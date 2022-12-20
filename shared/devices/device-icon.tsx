@@ -21,11 +21,13 @@ const DeviceIcon = (props: Props) => {
   const iconNumber = (deviceNumberOfType % Constants.numBackgrounds) + 1
   const badge = props.current ? 'success-' : ''
 
-  const maybeIcon = ({
-    backup: `icon-paper-key-${props.size}`,
-    desktop: `icon-computer-${badge}background-${iconNumber}-${props.size}`,
-    mobile: `icon-phone-${badge}background-${iconNumber}-${props.size}`,
-  } as const)[type]
+  const maybeIcon = (
+    {
+      backup: `icon-paper-key-${props.size}`,
+      desktop: `icon-computer-${badge}background-${iconNumber}-${props.size}`,
+      mobile: `icon-phone-${badge}background-${iconNumber}-${props.size}`,
+    } as const
+  )[type]
   const icon: Kb.IconType = Kb.isValidIconType(maybeIcon) ? maybeIcon : defaultIcons[type]
 
   return <Kb.Icon type={icon} style={props.style} />
