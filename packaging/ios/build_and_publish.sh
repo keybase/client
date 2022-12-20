@@ -24,12 +24,12 @@ function notify_slack {
 trap notify_slack ERR
 
 # Reset on exit
-kbfs_branch=`cd "$kbfs_dir" && git rev-parse --abbrev-ref HEAD`
-client_branch=`cd "$client_dir" && git rev-parse --abbrev-ref HEAD`
+kbfs_branch=$(cd "$kbfs_dir" && git rev-parse --abbrev-ref HEAD)
+client_branch=$(cd "$client_dir" && git rev-parse --abbrev-ref HEAD)
 rn_packager_pid=""
 function reset {
-  (cd "$kbfs_dir" && git checkout $kbfs_branch)
-  (cd "$client_dir" && git checkout $client_branch)
+  (cd "$kbfs_dir" && git checkout "$kbfs_branch")
+  (cd "$client_dir" && git checkout "$client_branch")
   (cd "$client_dir" && git checkout shared/ios/)
 
   if [ ! "$rn_packager_pid" = "" ]; then

@@ -51,7 +51,7 @@ build() {
   mv "client-$version" "$go_dir/src/github.com/keybase/client"
 
   echo "Building keybase"
-  (cd $client_dir/go GOPATH="$go_dir" && GOARCH="$arch" go build -a -tags "production" -o keybase github.com/keybase/client/go/keybase)
+  (cd "$client_dir"/go GOPATH="$go_dir" && GOARCH="$arch" go build -a -tags "production" -o keybase github.com/keybase/client/go/keybase)
 
   echo "Packaging"
   rm -rf "$tgz"
@@ -60,7 +60,7 @@ build() {
 
 create_release() {
   echo "Checking for existing release: $version"
-  api_url=`$release_bin url --user=keybase --repo=client --version=$version`
+  api_url=$($release_bin url --user=keybase --repo=client --version="$version")
   if [ ! "$api_url" = "" ]; then
     echo "Release already exists, skipping"
   else
@@ -72,8 +72,8 @@ create_release() {
 
 upload_release() {
   cd "$build_dir"
-  platform=`$release_bin platform`
-  if [ "$platform" = "darwin" && "$arch" = "arm64" ]; then
+  platform=$($release_bin platform)
+  if [ "$platform" = "darwin" ] && [ "$arch" = "arm64" ]; then
     platform="$platform-$arch"
   fi
   echo "Uploading release"

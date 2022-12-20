@@ -21,18 +21,18 @@ version_branch="keybase-$version"
 repo=$(brew --repository)
 
 function onExit {
-	cd $repo
+	cd "$repo"
 	git checkout master
-	git branch -D $version_branch
+	git branch -D "$version_branch"
 }
 trap onExit EXIT
 
 
 echo "Brew repository: $repo"
-cd $repo
+cd "$repo"
 git checkout master
 brew update
-git checkout -b $version_branch
+git checkout -b "$version_branch"
 # this next step could be automated by copying the keybase.rb file from
 # keybase/homebrew-beta repo:
 brew edit keybase
@@ -42,6 +42,6 @@ brew unlink keybase
 brew install keybase
 brew test keybase
 git commit Library/Formula/keybase.rb
-git push --set-upstream keybase $version_branch
+git push --set-upstream keybase "$version_branch"
 
 open https://github.com/keybase/homebrew

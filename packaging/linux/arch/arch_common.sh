@@ -35,7 +35,7 @@ setup_arch_build() {
     sum_amd64="$(sha256sum "$deb_amd64" | awk '{print $1}')"
 
     if [ "$src_prefix" = "." ]; then
-        cp $deb_amd64 $keybase_bin_repo/keybase_${debver}_amd64.deb
+        cp "$deb_amd64" "$keybase_bin_repo"/keybase_"${debver}"_amd64.deb
     fi
 
     cat "$here/PKGBUILD.bin.in" \
