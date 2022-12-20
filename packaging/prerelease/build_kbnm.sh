@@ -35,5 +35,7 @@ else
   exit 1
 fi
 
-kbnm_version=$("$build_dir"/kbnm -version)
-echo "KBNM version: $kbnm_version"
+if [ ! "$PLATFORM" = "darwin-arm64" ]; then # we can't run the arm64 binary on the amd64 build machine!
+  kbnm_version=$("$build_dir"/kbnm -version)
+  echo "KBNM version: $kbnm_version"
+fi

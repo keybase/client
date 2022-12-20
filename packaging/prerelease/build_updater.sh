@@ -32,5 +32,7 @@ else
   exit 1
 fi
 
-updater_version=$("$build_dir"/updater -version)
-echo "Updater version: $updater_version"
+if [ ! "$PLATFORM" = "darwin-arm64" ]; then # we can't run the arm64 binary on the amd64 build machine!
+  updater_version=$("$build_dir"/updater -version)
+  echo "Updater version: $updater_version"
+fi
