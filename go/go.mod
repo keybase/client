@@ -44,13 +44,13 @@ require (
 	github.com/keybase/go-ps v0.0.0-20190827175125-91aafc93ba19
 	github.com/keybase/go-triplesec v0.0.0-20211109205539-1f96eeacbd86
 	github.com/keybase/go-triplesec-insecure v0.0.0-20211118164850-99654891ba7c
-	github.com/keybase/go-updater v0.0.0-20221220145943-a391ca81498e
+	github.com/keybase/go-updater v0.0.0-20221220221613-1f73fc2aff5c
 	github.com/keybase/go-winio v0.4.12-0.20180913221037-b1d96ab97b58
 	github.com/keybase/golang-ico v0.0.0-20181117022008-819cbeb217c9
 	github.com/keybase/gomounts v0.0.0-20180302000443-349507f4d353
 	github.com/keybase/keybase-test-vectors v1.0.12-0.20200309162119-ea1e58fecd5d
 	github.com/keybase/pipeliner v0.0.0-20190828022149-31ef4ee63659
-	github.com/keybase/release v0.0.0-20221220151231-3739646b3328
+	github.com/keybase/release v0.0.0-20221220220653-50771d921175
 	github.com/keybase/saltpack v0.0.0-20211118165207-4039c5df46c0
 	github.com/keybase/stellarnet v0.0.0-20200311180805-6c05850f9050
 	github.com/kr/text v0.2.0
@@ -116,7 +116,7 @@ require (
 	github.com/asaskevich/govalidator v0.0.0-20180319081651-7d2e70ef918f // indirect
 	github.com/ashanbrown/forbidigo v1.3.0 // indirect
 	github.com/ashanbrown/makezero v1.1.1 // indirect
-	github.com/aws/aws-sdk-go v1.44.163 // indirect
+	github.com/aws/aws-sdk-go v1.44.164 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bkielbasa/cyclop v1.2.0 // indirect
 	github.com/blevesearch/blevex v0.0.0-20190916190636-152f0fe5c040 // indirect
