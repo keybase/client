@@ -1,4 +1,3 @@
-import * as React from 'react'
 import * as ProfileGen from '../../actions/profile-gen'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'

@@ -1,7 +1,7 @@
 import * as Container from '../util/container'
-import * as Types from '../constants/types/waiting'
+import type * as Types from '../constants/types/waiting'
 import * as WaitingGen from '../actions/waiting-gen'
-import {RPCError} from '../util/errors'
+import type {RPCError} from '../util/errors'
 
 // set to true to see helpful debug info
 const debugWaiting = false && __DEV__

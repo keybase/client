@@ -1,10 +1,10 @@
-import React, {Component} from 'react'
+import * as React from 'react'
 import * as Styles from '../../styles'
 import {Box, Button, Icon, Text} from '../../common-adapters'
 
-import {Props} from './index'
+import type {Props} from './index'
 
-class InviteGeneratedRender extends Component<Props> {
+class InviteGeneratedRender extends React.Component<Props> {
   render() {
     return (
       <Box

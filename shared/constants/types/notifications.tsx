@@ -1,4 +1,4 @@
-import {Tab} from '../tabs'
+import type {Tab} from '../tabs'
 
 export type NotificationKeys = 'kbfsUploading' | 'outOfSpace'
 export type BadgeType = 'regular' | 'update' | 'error' | 'uploading'

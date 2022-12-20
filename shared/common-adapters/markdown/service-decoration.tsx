@@ -1,4 +1,4 @@
-import React from 'react'
+import * as React from 'react'
 import * as Container from '../../util/container'
 import type * as Types from '../../constants/types/chat2'
 import * as WalletTypes from '../../constants/types/wallets'

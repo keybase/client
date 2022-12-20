@@ -109,7 +109,7 @@ function exec(command: string, env?: any, options?: Object) {
 }
 
 const decorateInfo = info => {
-  let temp = {
+  const temp = {
     ...info,
     env: {
       ...process.env,

@@ -3,7 +3,7 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import EnterKey from './enter-key'
 import {EnterName, WalletPopup} from '../common'
-import {ValidationState} from '../../constants/types/wallets'
+import type {ValidationState} from '../../constants/types/wallets'
 import {isLargeScreen} from '../../constants/platform'
 
 type View = 'key' | 'name'

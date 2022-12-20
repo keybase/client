@@ -1,7 +1,7 @@
 import {spawn} from 'child_process'
 import {keybaseBinPath} from './paths.desktop'
 
-export default function() {
+export default function () {
   console.log('Not connected - starting keybase')
   const binPath = keybaseBinPath()
   if (!binPath) {

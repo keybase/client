@@ -1,4 +1,3 @@
-import * as React from 'react'
 import * as Kb from '../../../../common-adapters/mobile.native'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import * as Container from '../../../../util/container'

@@ -1,4 +1,4 @@
-import {Background} from './text'
+import type {Background} from './text'
 /* eslint-disable sort-keys */
 export const allTextTypes = {
   Body: 'Body',

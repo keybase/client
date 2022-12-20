@@ -1,8 +1,7 @@
-import * as React from 'react'
 import {Box2} from './box'
 import Text from './text'
 import Icon from './icon'
-import {IconType} from './icon.constants-gen'
+import type {IconType} from './icon.constants-gen'
 import * as Styles from '../styles'
 
 type Props = {

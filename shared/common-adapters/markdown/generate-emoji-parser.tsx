@@ -2,7 +2,7 @@ import fs from 'fs'
 import path from 'path'
 import emojiData from 'emoji-datasource-apple'
 // MUST be lodash for node to work simply
-// eslint-disable-next-line
+
 import {escapeRegExp} from 'lodash'
 import prettier from 'prettier'
 

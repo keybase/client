@@ -1,4 +1,4 @@
-import {RPCError} from '../../util/errors'
+import type {RPCError} from '../../util/errors'
 
 export type State = {
   readonly counts: Map<string, number>

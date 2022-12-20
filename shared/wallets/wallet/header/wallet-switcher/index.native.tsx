@@ -1,8 +1,7 @@
-import * as React from 'react'
 import WalletRow from './wallet-row/container'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
-import {Props} from '.'
+import type {Props} from '.'
 
 export const WalletSwitcher = (props: Props) => {
   const onWhatIsStellar = () => {
@@ -20,7 +19,7 @@ export const WalletSwitcher = (props: Props) => {
     </Kb.ClickableBox>
   )
 
-  let items: Kb.MenuItems = []
+  const items: Kb.MenuItems = []
   items.push(
     {
       icon: 'iconfont-new',

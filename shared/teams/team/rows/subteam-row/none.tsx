@@ -1,4 +1,3 @@
-import * as React from 'react'
 import {Box, Text} from '../../../../common-adapters'
 import {globalMargins, globalStyles} from '../../../../styles'
 

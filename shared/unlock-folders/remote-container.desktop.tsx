@@ -1,8 +1,7 @@
 import * as Container from '../util/container'
-import * as React from 'react'
 import * as UnlockFoldersGen from '../actions/unlock-folders-gen'
 import UnlockFolders from './index.desktop'
-import {DeserializeProps} from './remote-serializer.desktop'
+import type {DeserializeProps} from './remote-serializer.desktop'
 
 const RemoteContainer = () => {
   const state = Container.useRemoteStore<DeserializeProps>()

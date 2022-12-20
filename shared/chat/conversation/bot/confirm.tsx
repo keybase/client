@@ -1,4 +1,3 @@
-import * as React from 'react'
 import * as Container from '../../../util/container'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Kb from '../../../common-adapters'

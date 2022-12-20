@@ -1,5 +1,5 @@
 import * as Styles from '../styles'
-import {MetaType, TextType, Background} from './text'
+import type {MetaType, TextType, Background} from './text'
 
 export function defaultColor(backgroundMode: Background | null) {
   return {

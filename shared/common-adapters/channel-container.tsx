@@ -1,8 +1,8 @@
-import * as Types from '../constants/types/chat2'
+import type * as Types from '../constants/types/chat2'
 import * as Chat2Gen from '../actions/chat2-gen'
 import {Channel} from './channel'
 import * as Container from '../util/container'
-import {StylesTextCrossPlatform} from './text'
+import type {StylesTextCrossPlatform} from './text'
 
 type OwnProps = {
   name: string

@@ -5,7 +5,7 @@ import {Box2} from './box'
 import ClickableBox from './clickable-box'
 import Avatar from './avatar'
 import Text from './text'
-import {IconType} from './icon.constants-gen'
+import type {IconType} from './icon.constants-gen'
 import Icon from './icon'
 
 type Props = {

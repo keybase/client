@@ -5,12 +5,12 @@ import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
 import * as Chat2Gen from '../../actions/chat2-gen'
 import TeamMenu from './menu-container'
-import {TeamID} from '../../constants/types/teams'
+import type {TeamID} from '../../constants/types/teams'
 import {pluralize} from '../../util/string'
 import capitalize from 'lodash/capitalize'
 import {Activity, useActivityLevels, useTeamLinkPopup} from '../common'
 import * as TeamsGen from '../../actions/teams-gen'
-import * as Types from '../../constants/types/teams'
+import type * as Types from '../../constants/types/teams'
 
 const AddPeopleButton = ({teamID}: {teamID: TeamID}) => {
   const dispatch = Container.useDispatch()

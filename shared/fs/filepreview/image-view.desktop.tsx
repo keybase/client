@@ -1,7 +1,6 @@
-import * as React from 'react'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
-import {ImageViewProps} from './image-view'
+import type {ImageViewProps} from './image-view'
 
 const ImageView = ({url, onUrlError}: ImageViewProps) => (
   <Kb.Box2

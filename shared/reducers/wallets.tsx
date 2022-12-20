@@ -1,5 +1,5 @@
 import logger from '../logger'
-import * as TeamBuildingGen from '../actions/team-building-gen'
+import type * as TeamBuildingGen from '../actions/team-building-gen'
 import * as Constants from '../constants/wallets'
 import * as Container from '../util/container'
 import * as Types from '../constants/types/wallets'

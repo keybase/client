@@ -1,4 +1,4 @@
-import {Logger, LogLevel} from './types'
+import type {Logger, LogLevel} from './types'
 
 // Log to multiple loggers, only dump from the first one
 class TeeLogger implements Logger {

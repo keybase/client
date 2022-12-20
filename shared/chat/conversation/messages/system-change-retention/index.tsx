@@ -1,4 +1,3 @@
-import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import UserNotice from '../user-notice'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'

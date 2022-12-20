@@ -1,10 +1,10 @@
-import React, {PureComponent} from 'react'
+import * as React from 'react'
 import AutoSizer from 'react-virtualized-auto-sizer'
 import {FixedSizeList, VariableSizeList} from 'react-window'
-import {Props} from './list2'
+import type {Props} from './list2'
 import {smallHeight, largeHeight} from './list-item2'
 
-class List2<T> extends PureComponent<Props<T>> {
+class List2<T> extends React.PureComponent<Props<T>> {
   _keyExtractor = index => {
     const item = this.props.items[index]
     if (this.props.indexAsKey || !item) {

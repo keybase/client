@@ -1,4 +1,3 @@
-import * as React from 'react'
 import {Reloadable} from '../../common-adapters'
 import * as SettingsGen from '../../actions/settings-gen'
 import * as Container from '../../util/container'

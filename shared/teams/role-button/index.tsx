@@ -1,8 +1,7 @@
-import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {InlineDropdown} from '../../common-adapters/dropdown'
-import {TeamRoleType} from '../../constants/types/teams'
+import type {TeamRoleType} from '../../constants/types/teams'
 import {roleIconMap} from '../role-picker'
 import capitalize from 'lodash/capitalize'
 

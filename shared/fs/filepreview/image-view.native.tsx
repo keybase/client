@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters/mobile.native'
-import {ImageViewProps} from './image-view'
+import type {ImageViewProps} from './image-view'
 
 const {width: screenWidth, height: screenHeight} = Kb.NativeDimensions.get('window')
 

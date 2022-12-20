@@ -1,7 +1,6 @@
-import * as React from 'react'
 import * as Kb from '../../../common-adapters/mobile.native'
 import * as Styles from '../../../styles'
-import {Props} from './participant-rekey.types'
+import type {Props} from './participant-rekey.types'
 
 const Row = ({username, onUsernameClicked}: {username: string; onUsernameClicked: (s: string) => void}) => (
   <Kb.ClickableBox onClick={() => onUsernameClicked(username)}>

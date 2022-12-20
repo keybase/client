@@ -1,8 +1,7 @@
 import * as Types from '../../constants/types/fs'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import * as React from 'react'
-import {allTextTypes} from '../../common-adapters/text.shared'
+import type {allTextTypes} from '../../common-adapters/text.shared'
 
 type TextType = keyof typeof allTextTypes
 

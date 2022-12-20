@@ -1,6 +1,6 @@
 import * as Styles from '../styles'
-import {ServiceIdWithContact, ServiceMap} from '../constants/types/team-building'
-import {IconType} from '../common-adapters/icon.constants-gen'
+import type {ServiceIdWithContact, ServiceMap} from '../constants/types/team-building'
+import type {IconType} from '../common-adapters/icon.constants-gen'
 import {allServices} from '../constants/team-building'
 
 const serviceColors: {[K in ServiceIdWithContact]: string} = {

@@ -1,7 +1,6 @@
 import * as Container from '../../util/container'
 import * as PeopleGen from '../../actions/people-gen'
 import * as ProfileGen from '../../actions/profile-gen'
-import * as React from 'react'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as SettingsGen from '../../actions/settings-gen'
 import * as SettingsTabs from '../../constants/settings'

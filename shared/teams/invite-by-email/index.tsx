@@ -3,7 +3,7 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {FloatingRolePicker} from '../role-picker'
 import capitalize from 'lodash/capitalize'
-import {TeamRoleType} from '../../constants/types/teams'
+import type {TeamRoleType} from '../../constants/types/teams'
 
 export type Props = {
   errorMessage: string

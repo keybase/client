@@ -2,7 +2,7 @@ import * as React from 'react'
 import './account-switcher.css'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import * as ConfigTypes from '../../constants/types/config'
+import type * as ConfigTypes from '../../constants/types/config'
 import * as Constants from '../../constants/config'
 export type AccountRowItem = {
   account: ConfigTypes.ConfiguredAccount

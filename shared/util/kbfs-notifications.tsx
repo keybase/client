@@ -27,7 +27,7 @@ function decodeKBFSError(user: string, notification: FSNotification): DecodedKBF
   const tlf = tlfForNotification(notification)
   switch (notification.errorType) {
     case FSErrorType.accessDenied: {
-      let prefix = user ? `${user} does` : 'You do'
+      const prefix = user ? `${user} does` : 'You do'
       return {
         body: `${prefix} not have ${notification.params.mode} access to ${notification.filename}`,
         title: 'Keybase: Access denied',
@@ -170,9 +170,9 @@ export function kbfsNotification(notification: FSNotification, notify: any, stat
     notification.errorType === FSErrorType.diskCacheErrorLogSend
   ) {
     console.log(`KBFS failed to initialize its disk cache. Please send logs.`)
-    let title = `KBFS: Disk cache not initialized`
-    let body = `Please Send Feedback to Keybase`
-    let rateLimitKey = body
+    const title = `KBFS: Disk cache not initialized`
+    const body = `Please Send Feedback to Keybase`
+    const rateLimitKey = body
     notify(title, {body}, 10, rateLimitKey)
   }
 
@@ -188,7 +188,7 @@ export function kbfsNotification(notification: FSNotification, notify: any, stat
 
   let title = `KBFS: ${action}`
   let body = `Chat or files with ${usernames} ${notification.status}`
-  let user = state.config.username
+  const user = state.config.username
   let rateLimitKey
 
   const isError = notification.statusCode === FSStatusCode.error

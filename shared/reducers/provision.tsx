@@ -1,5 +1,5 @@
 import * as Constants from '../constants/provision'
-import * as Types from '../constants/types/provision'
+import type * as Types from '../constants/types/provision'
 import * as Container from '../util/container'
 import * as ProvisionGen from '../actions/provision-gen'
 import HiddenString from '../util/hidden-string'
@@ -60,10 +60,7 @@ export default Container.makeReducer<ProvisionGen.Actions, Types.State>(initialS
   },
   [ProvisionGen.submitTextCode]: (draftState, action) => {
     // clean up spaces
-    const good = action.payload.phrase
-      .stringValue()
-      .replace(/\W+/g, ' ')
-      .trim()
+    const good = action.payload.phrase.stringValue().replace(/\W+/g, ' ').trim()
     draftState.codePageOutgoingTextCode = new HiddenString(good)
     draftState.error = initialState.error
   },

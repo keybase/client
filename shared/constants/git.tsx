@@ -1,6 +1,6 @@
-import * as Types from './types/git'
+import type * as Types from './types/git'
 import * as RPCTypes from './types/rpc-gen'
-import {TypedState} from './reducer'
+import type {TypedState} from './reducer'
 import * as dateFns from 'date-fns'
 
 const emptyInfo = {
@@ -51,8 +51,8 @@ const parseRepoError = (result: RPCTypes.GitRepoResult): Error => {
 }
 
 export const parseRepos = (results: Array<RPCTypes.GitRepoResult>) => {
-  let errors: Array<Error> = []
-  let repos = new Map<string, Types.GitInfo>()
+  const errors: Array<Error> = []
+  const repos = new Map<string, Types.GitInfo>()
   results.forEach(result => {
     if (result.state === RPCTypes.GitRepoResultState.ok && result.ok) {
       const parsedRepo = parseRepoResult(result)
@@ -68,7 +68,7 @@ export const parseRepos = (results: Array<RPCTypes.GitRepoResult>) => {
 
 export const repoIDTeamnameToId = (state: TypedState, repoID: string, teamname: string) => {
   let repo: undefined | Types.GitInfo
-  for (let [, info] of state.git.idToInfo) {
+  for (const [, info] of state.git.idToInfo) {
     if (info.repoID === repoID && info.teamname === teamname) {
       repo = info
       break

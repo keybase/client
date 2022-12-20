@@ -1,4 +1,3 @@
-import * as React from 'react'
 import * as Constants from '../../../constants/crypto'
 import * as Container from '../../../util/container'
 import * as Kb from '../../../common-adapters'

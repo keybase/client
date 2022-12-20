@@ -1,6 +1,6 @@
 import * as React from 'react'
 import {Box2, Text, FloatingPicker} from '../../../../common-adapters/mobile.native'
-import {Props} from '.'
+import type {Props} from '.'
 
 const Prompt = () => (
   <Box2

@@ -1,14 +1,13 @@
-import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import FromField from './from-field'
 import {
-  ToKeybaseUserProps,
+  type ToKeybaseUserProps,
+  type ToStellarPublicKeyProps,
   ToKeybaseUser,
-  ToStellarPublicKeyProps,
   ToStellarPublicKey,
   ToOtherAccount,
 } from './to-field'
-import {AccountID} from '../../../constants/types/wallets'
+import type {AccountID} from '../../../constants/types/wallets'
 
 const ParticipantsKeybaseUser = (props: ToKeybaseUserProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true}>

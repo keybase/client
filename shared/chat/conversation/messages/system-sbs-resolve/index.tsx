@@ -1,6 +1,5 @@
-import * as React from 'react'
-import * as Types from '../../../../constants/types/chat2'
-import {ServiceIdWithContact} from '../../../../constants/types/team-building'
+import type * as Types from '../../../../constants/types/chat2'
+import type {ServiceIdWithContact} from '../../../../constants/types/team-building'
 import * as Kb from '../../../../common-adapters'
 import {e164ToDisplay} from '../../../../util/phone-numbers'
 import {serviceIdToPrettyName} from '../../../../constants/team-building'
@@ -18,8 +17,9 @@ const formatAssertion = (serviceUser: string, service: ServiceIdWithContact, isY
     case 'email':
       return `verified ${isYou ? 'your' : 'their'} email address ${serviceUser}`
     default:
-      return `proved ${isYou ? 'you' : 'they'} are ${serviceUser} on ${serviceIdToPrettyName(service) ||
-        service}`
+      return `proved ${isYou ? 'you' : 'they'} are ${serviceUser} on ${
+        serviceIdToPrettyName(service) || service
+      }`
   }
 }
 

@@ -1,8 +1,8 @@
-import ProfileFinished from './finished.desktop'
-import ProfileGenerate from './generate.desktop'
-import ProfileImport from './import.desktop'
-import ProfilePgp from './choice.desktop'
-import ProfileProvideInfo from './info.desktop'
+import type ProfileFinished from './finished.desktop'
+import type ProfileGenerate from './generate.desktop'
+import type ProfileImport from './import.desktop'
+import type ProfilePgp from './choice.desktop'
+import type ProfileProvideInfo from './info.desktop'
 
 export const newRoutes = {
   profileFinished: {getScreen: (): typeof ProfileFinished => require('./finished.desktop').default},

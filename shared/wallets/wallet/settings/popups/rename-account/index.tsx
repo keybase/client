@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Kb from '../../../../../common-adapters'
-import {ValidationState} from '../../../../../constants/types/wallets'
+import type {ValidationState} from '../../../../../constants/types/wallets'
 import {EnterName, WalletPopup} from '../../../../common'
 import * as Styles from '../../../../../styles'
 

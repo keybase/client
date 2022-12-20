@@ -1,6 +1,6 @@
-import * as RPCGen from './types/rpc-gen'
-import * as Types from './types/profile'
-import {WebOfTrustVerificationType} from './types/more'
+import type * as RPCGen from './types/rpc-gen'
+import type * as Types from './types/profile'
+import type {WebOfTrustVerificationType} from './types/more'
 
 export const makeInitialState = (): Types.State => ({
   errorText: '',

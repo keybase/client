@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as Types from '../../../constants/types/chat2'
+import type * as Types from '../../../constants/types/chat2'
 import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 import * as Container from '../../../util/container'
 import * as Kb from '../../../common-adapters'

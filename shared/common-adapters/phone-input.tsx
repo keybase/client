@@ -14,11 +14,11 @@ import {usePopup} from './use-popup'
 import {isIOS, isMobile} from '../constants/platform'
 import {
   countryData,
-  CountryData,
   codeToCountry,
   areaCodeIsCanadian,
   AsYouTypeFormatter,
   validateNumber,
+  type CountryData,
 } from '../util/phone-numbers'
 import {memoize} from '../util/memoize'
 

@@ -1,8 +1,7 @@
-import * as React from 'react'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import {teamWaitingKey} from '../../constants/teams'
-import * as Types from '../../constants/types/teams'
+import type * as Types from '../../constants/types/teams'
 import {useTeamsSubscribe} from '../../teams/subscriber'
 
 export type RowProps = {

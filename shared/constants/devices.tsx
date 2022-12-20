@@ -2,7 +2,7 @@ import * as SettingsConstants from './settings'
 import * as Tabs from './tabs'
 import * as Types from './types/devices'
 import * as WaitingConstants from './waiting'
-import * as RPCTypes from './types/rpc-gen'
+import type * as RPCTypes from './types/rpc-gen'
 import * as Container from '../util/container'
 import {memoize} from '../util/memoize'
 

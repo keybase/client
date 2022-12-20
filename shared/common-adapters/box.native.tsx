@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Styles from '../styles'
 import {View} from 'react-native'
 import {intersperseFn} from '../util/arrays'
-import {Box2Props} from './box'
+import type {Box2Props} from './box'
 
 const Box = View
 

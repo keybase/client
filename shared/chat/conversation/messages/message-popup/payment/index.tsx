@@ -2,16 +2,15 @@ import * as React from 'react'
 import toUpper from 'lodash/toUpper'
 import upperFirst from 'lodash/upperFirst'
 import * as Styles from '../../../../../styles'
-
 import {Box2} from '../../../../../common-adapters/box'
-import Text, {AllowedColors} from '../../../../../common-adapters/text'
+import Text, {type AllowedColors} from '../../../../../common-adapters/text'
 import Icon from '../../../../../common-adapters/icon'
 import Avatar from '../../../../../common-adapters/avatar'
 import ConnectedUsernames from '../../../../../common-adapters/usernames'
 import ProgressIndicator from '../../../../../common-adapters/progress-indicator'
 import Divider from '../../../../../common-adapters/divider'
 import FloatingMenu from '../../../../../common-adapters/floating-menu'
-import {MenuItem, MenuItems} from '../../../../../common-adapters/floating-menu/menu-layout'
+import type {MenuItem, MenuItems} from '../../../../../common-adapters/floating-menu/menu-layout'
 
 // This is actually a dependency of common-adapters/markdown so we have to treat it like a common-adapter, no * import allowed
 // TODO could make this more dynamic to avoid this (aka register with markdown what custom stuff you want)

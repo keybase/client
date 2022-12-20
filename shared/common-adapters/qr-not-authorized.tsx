@@ -1,4 +1,3 @@
-import * as React from 'react'
 import * as ConfigGen from '../actions/config-gen'
 import * as Styles from '../styles'
 import * as Container from '../util/container'

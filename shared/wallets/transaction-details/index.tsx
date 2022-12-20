@@ -432,16 +432,18 @@ const TransactionDetails = (props: NotLoadingProps) => {
           </Kb.Box2>
         )}
 
-        {props.operations && props.operations.length && !(props.trustline && props.operations.length <= 1) && (
-          <Kb.Box2 direction="vertical" gap="xxtiny" fullWidth={true}>
-            <Kb.Text type="BodySmallSemibold">Operations:</Kb.Text>
-            {props.operations.map((op, i) => (
-              <Kb.Text key={i} selectable={true} style={styles.operation} type="Body">
-                {i + 1}. {op}
-              </Kb.Text>
-            ))}
-          </Kb.Box2>
-        )}
+        {props.operations &&
+          props.operations.length &&
+          !(props.trustline && props.operations.length <= 1) && (
+            <Kb.Box2 direction="vertical" gap="xxtiny" fullWidth={true}>
+              <Kb.Text type="BodySmallSemibold">Operations:</Kb.Text>
+              {props.operations.map((op, i) => (
+                <Kb.Text key={i} selectable={true} style={styles.operation} type="Body">
+                  {i + 1}. {op}
+                </Kb.Text>
+              ))}
+            </Kb.Box2>
+          )}
 
         <Kb.Box2 direction="vertical" gap="xxtiny" fullWidth={true}>
           <Kb.Text type="BodySmallSemibold">Status:</Kb.Text>

@@ -24,7 +24,7 @@ class DragAndDrop extends React.PureComponent<Props, State> {
       : []
     if (paths.length) {
       if (!this.props.allowFolders) {
-        for (let path of paths) {
+        for (const path of paths) {
           // Check if any file is a directory and bail out if not
           try {
             const isDir = await (isDirectory?.(path) ?? Promise.resolve(false))

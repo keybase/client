@@ -1,4 +1,4 @@
-import React, {PureComponent} from 'react'
+import * as React from 'react'
 import {FlatList, View} from 'react-native'
 import * as Styles from '../styles'
 import {smallHeight, largeHeight} from './list-item2'
@@ -8,7 +8,7 @@ import noop from 'lodash/noop'
 
 const AnimatedFlatList = createAnimatedComponent(FlatList)
 
-class List2<T> extends PureComponent<Props<T>> {
+class List2<T> extends React.PureComponent<Props<T>> {
   static defaultProps = {
     keyboardShouldPersistTaps: 'handled',
   }

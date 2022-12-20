@@ -1,5 +1,5 @@
 import * as Constants from '../../../../constants/chat2'
-import * as Types from '../../../../constants/types/chat2'
+import type * as Types from '../../../../constants/types/chat2'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import ProfileResetNotice from '.'
 import {connect} from '../../../../util/container'

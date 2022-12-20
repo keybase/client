@@ -3,10 +3,9 @@ import * as Constants from '../constants/chat2'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
-import * as React from 'react'
 import * as Styles from '../styles'
-import * as Types from '../constants/types/chat2'
-import {DeserializeProps} from './remote-serializer.desktop'
+import type * as Types from '../constants/types/chat2'
+import type {DeserializeProps} from './remote-serializer.desktop'
 import {SmallTeam} from '../chat/inbox/row/small-team'
 
 type RowProps = {

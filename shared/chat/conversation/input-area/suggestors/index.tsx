@@ -122,7 +122,7 @@ export const useSyncInput = (p: UseSyncInputProps) => {
         }
       }
       // @ts-ignore we know entries will give this type
-      for (let [suggestor, marker]: [string, string | RegExp] of Object.entries(suggestorToMarker)) {
+      for (const [suggestor, marker]: [string, string | RegExp] of Object.entries(suggestorToMarker)) {
         const matchInfo = matchesMarker(word, marker as any)
         if (matchInfo.matches && inputRef.current?.isFocused()) {
           setActive(suggestor as ActiveType)

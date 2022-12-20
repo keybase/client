@@ -8,7 +8,7 @@ import HiddenString from '../../util/hidden-string'
 import Login from '.'
 import sortBy from 'lodash/sortBy'
 import * as Container from '../../util/container'
-import * as ConfigTypes from '../../constants/types/config'
+import type * as ConfigTypes from '../../constants/types/config'
 
 const needPasswordError = 'passphrase cannot be empty'
 

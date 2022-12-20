@@ -1,4 +1,3 @@
-import * as React from 'react'
 import type * as Container from '../../util/container'
 import TeamInviteByContact from './team-invite-by-contacts.native'
 

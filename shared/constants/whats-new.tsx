@@ -1,5 +1,5 @@
 import semver from 'semver'
-import {
+import type {
   NoVersion,
   CurrentVersion,
   LastVersion,

@@ -1,4 +1,4 @@
-import {Props} from './safe-area-view'
+import type {Props} from './safe-area-view'
 
 const RenderChildren = (props: Props) => props.children || null
 export const useSafeAreaInsets = () => ({

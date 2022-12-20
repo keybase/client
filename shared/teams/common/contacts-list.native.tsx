@@ -1,8 +1,8 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters/mobile.native'
 import * as Styles from '../../styles'
-import {Section as _Section} from '../../common-adapters/section-list'
-import useContacts, {Contact as _Contact} from './use-contacts.native'
+import type {Section as _Section} from '../../common-adapters/section-list'
+import useContacts, {type Contact as _Contact} from './use-contacts.native'
 import {memoize} from '../../util/memoize'
 import {mapGetEnsureValue} from '../../util/map'
 

@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {Props as PropsCommon} from './copyable-text'
+import type {Props as PropsCommon} from './copyable-text'
 import {useTimeout} from './use-timers'
 import Text from './text'
 import Box from './box'

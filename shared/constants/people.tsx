@@ -1,7 +1,7 @@
-import * as Types from './types/people'
+import type * as Types from './types/people'
 import * as RPCTypes from './types/rpc-gen'
 import invert from 'lodash/invert'
-import {IconType} from '../common-adapters/icon.constants-gen' // do NOT pull in all of common-adapters
+import type {IconType} from '../common-adapters/icon.constants-gen' // do NOT pull in all of common-adapters
 import {isMobile} from './platform'
 
 export const defaultNumFollowSuggestions = 10
@@ -55,8 +55,7 @@ export const todoTypeToInstructions: {[K in Types.TodoType]: string} = {
   paperkey:
     'Please make a paper key. Unlike your account password, paper keys can provision new devices and recover data, for ultimate safety.',
   proof: 'Add some proofs to your profile. The more you have, the stronger your cryptographic identity.',
-  team:
-    'Create a team! Keybase team chats are end-to-end encrypted - unlike Slack - and work for any kind of group, from casual friends to large communities.',
+  team: 'Create a team! Keybase team chats are end-to-end encrypted - unlike Slack - and work for any kind of group, from casual friends to large communities.',
   teamShowcase: `Tip: Keybase team chats are private, but you can choose to publish that you're an admin. Check out the team settings on any team you manage.`,
   verifyAllEmail: '',
   verifyAllPhoneNumber: '',

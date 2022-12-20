@@ -1,7 +1,7 @@
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as Constants from '../../../../constants/chat2'
 import * as ProfileGen from '../../../../actions/profile-gen'
-import * as Types from '../../../../constants/types/chat2'
+import type * as Types from '../../../../constants/types/chat2'
 import ResetUser from '.'
 import {connect} from '../../../../util/container'
 

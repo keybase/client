@@ -1,4 +1,3 @@
-import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import AssetInputBasic from '../asset-input/asset-input-basic-container'
@@ -8,7 +7,7 @@ import * as Constants from '../../../constants/wallets'
 import * as Container from '../../../util/container'
 import {SecretNote, PublicMemo} from '../note-and-memo/container'
 import Participants from '../participants/container'
-import {Banner as BannerType} from '../../../constants/types/wallets'
+import type {Banner as BannerType} from '../../../constants/types/wallets'
 import {sharedStyles} from './shared'
 
 type SendBodyProps = {

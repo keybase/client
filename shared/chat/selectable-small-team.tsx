@@ -5,7 +5,7 @@ import * as Constants from '../constants/chat2'
 import {FilteredTopLine} from './top-line'
 import {BottomLine} from './inbox/row/small-team/bottom-line'
 import {Avatars, TeamAvatar} from './avatars'
-import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
+import type * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 
 type Props = {
   backgroundColor?: string

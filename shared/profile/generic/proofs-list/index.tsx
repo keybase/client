@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as Types from '../../../constants/types/tracker2'
+import type * as Types from '../../../constants/types/tracker2'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import {SiteIcon} from '../shared'
@@ -68,8 +68,8 @@ class Providers extends React.Component<ProvidersProps> {
   render() {
     const filterRegexp = makeInsertMatcher(this.props.filter)
 
-    let exact: Array<IdentityProvider> = []
-    let inexact: Array<IdentityProvider> = []
+    const exact: Array<IdentityProvider> = []
+    const inexact: Array<IdentityProvider> = []
     this.props.providers.forEach(p => {
       if (p.name === this.props.filter) {
         exact.push(p)

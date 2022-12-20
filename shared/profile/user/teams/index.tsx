@@ -1,4 +1,3 @@
-import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import type * as Types from '../../../constants/types/tracker2'
 import * as Styles from '../../../styles'

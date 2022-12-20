@@ -1,6 +1,6 @@
-import * as RPCTypes from './rpc-gen'
-import {PlatformsExpandedType} from './more'
-import {SiteIconSet} from './tracker2'
+import type * as RPCTypes from './rpc-gen'
+import type {PlatformsExpandedType} from './more'
+import type {SiteIconSet} from './tracker2'
 
 export type ProveGenericParams = {
   readonly logoBlack: SiteIconSet

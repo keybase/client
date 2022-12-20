@@ -1,5 +1,5 @@
 import * as UnlockFoldersGen from '../actions/unlock-folders-gen'
-import * as Types from '../constants/types/unlock-folders'
+import type * as Types from '../constants/types/unlock-folders'
 import * as DeviceTypes from '../constants/types/devices'
 import * as Container from '../util/container'
 

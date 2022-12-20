@@ -1,7 +1,7 @@
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/devices'
 import * as DevicesGen from '../../actions/devices-gen'
-import * as Types from '../../constants/types/devices'
+import type * as Types from '../../constants/types/devices'
 import DeviceRow from '.'
 
 type OwnProps = {

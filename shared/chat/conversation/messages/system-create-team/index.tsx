@@ -1,6 +1,5 @@
-import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
-import * as TeamsTypes from '../../../../constants/types/teams'
+import type * as TeamsTypes from '../../../../constants/types/teams'
 import UserNotice from '../user-notice'
 import * as Container from '../../../../util/container'
 import * as TeamsGen from '../../../../actions/teams-gen'

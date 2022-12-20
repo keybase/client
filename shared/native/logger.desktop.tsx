@@ -1,4 +1,4 @@
-import {NativeLog, NativeLogDump} from './logger'
+import type {NativeLog, NativeLogDump} from './logger'
 
 export const log: NativeLog = () => {
   console.error('not supported on desktop!')

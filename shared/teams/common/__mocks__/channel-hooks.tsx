@@ -1,5 +1,5 @@
-import * as Types from '../../../constants/types/teams'
-import * as ChatTypes from '../../../constants/types/chat2'
+import type * as Types from '../../../constants/types/teams'
+import type * as ChatTypes from '../../../constants/types/chat2'
 import * as ChatConstants from '../../../constants/chat2'
 
 export const useChannelParticipants = () => ['channelMember1', 'channelMember2', 'thomasjefferson']

@@ -1,9 +1,9 @@
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/wallets'
-import * as Types from '../../constants/types/wallets'
+import type * as Types from '../../constants/types/wallets'
 import * as ProfileGen from '../../actions/profile-gen'
 import * as WalletsGen from '../../actions/wallets-gen'
-import {Transaction, ReadState} from '.'
+import {Transaction, type ReadState} from '.'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 
 export type OwnProps = {

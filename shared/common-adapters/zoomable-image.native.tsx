@@ -1,4 +1,3 @@
-import * as React from 'react'
 import * as Styles from '../styles'
 import {ZoomableBox} from './zoomable-box'
 import Image from './image.native'

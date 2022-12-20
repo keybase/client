@@ -34,7 +34,7 @@ const DeleteChannel = (props: Props) => {
   )
 
   const {channelMetas} = useAllChannelMetas(teamID)
-  let channelnames: string[] = []
+  const channelnames: string[] = []
 
   channelIDs.forEach(channelID => {
     const conversationMeta = channelMetas?.get(channelID)

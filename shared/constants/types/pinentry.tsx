@@ -1,4 +1,4 @@
-import * as RPCTypes from './rpc-gen'
+import type * as RPCTypes from './rpc-gen'
 
 export type State = {
   readonly cancelLabel?: string

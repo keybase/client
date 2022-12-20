@@ -1,6 +1,7 @@
 import type DeviceSelector from './device-selector/container'
 import type ExplainDevice from './explain-device/container'
-import Error, {ConnectedErrorModal} from './error/container'
+import {type ConnectedErrorModal} from './error/container'
+import type Error from './error/container'
 import type PaperKey from './paper-key/container'
 import type {PromptResetAccount, PromptResetPassword} from './prompt-reset'
 import type Password from './password'

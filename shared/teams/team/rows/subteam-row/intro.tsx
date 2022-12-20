@@ -4,7 +4,7 @@ import * as Constants from '../../../../constants/teams'
 import * as GregorGen from '../../../../actions/gregor-gen'
 import {Box, Icon, Text} from '../../../../common-adapters'
 import {styleSheetCreate, platformStyles, globalColors, globalMargins, globalStyles} from '../../../../styles'
-import {TeamID} from '../../../../constants/types/teams'
+import type {TeamID} from '../../../../constants/types/teams'
 
 export type Props = {
   teamID: TeamID

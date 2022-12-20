@@ -1,5 +1,5 @@
-import HiddenString from '../../util/hidden-string'
-import {RPCError} from '../../util/errors'
+import type HiddenString from '../../util/hidden-string'
+import type {RPCError} from '../../util/errors'
 
 export type AutoInviteRequestState = 'NotRequested' | 'Requested' | 'Done'
 

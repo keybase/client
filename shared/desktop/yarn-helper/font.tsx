@@ -123,7 +123,7 @@ function updateIconFont(web) {
    * Example
    * { "127-kb-iconfont-nav-2-files-24": "0xe97e" }
    */
-  let seenCounters = new Set()
+  const seenCounters = new Set()
   const codepointsMap = svgFilenames.reduce((pointsMap, {counter, filePath}) => {
     // Character code value converted from decimal to hexidecimal
     const charCodeHex = computeCounter(counter).toString(16)
@@ -199,7 +199,7 @@ const generateWebCSS = result => {
 
   // hash and write
   const types = ['ttf', 'woff', 'svg'].map(type => {
-    let hash = crypto.createHash('md5')
+    const hash = crypto.createHash('md5')
     hash.update(result[type])
     try {
       fs.writeFileSync(path.join(paths.webFonts, `kb.${type}`), result[type])

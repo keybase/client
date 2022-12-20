@@ -1,8 +1,7 @@
-import * as React from 'react'
 import * as Kb from '../../common-adapters/mobile.native'
 import * as QR from '../../common-adapters/qr.native'
 import * as Styles from '../../styles'
-import {Props} from '.'
+import type {Props} from '.'
 
 const QRScan = (props: Props) => (
   <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>

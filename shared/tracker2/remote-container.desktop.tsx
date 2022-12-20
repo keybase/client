@@ -1,5 +1,4 @@
 // Inside tracker we use an embedded Avatar which is connected.
-import * as React from 'react'
 import * as Chat2Gen from '../actions/chat2-gen'
 import * as ConfigGen from '../actions/config-gen'
 import * as Constants from '../constants/tracker2'

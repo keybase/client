@@ -1,7 +1,6 @@
-import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Constants from '../constants/tracker2'
-import * as Types from '../constants/types/tracker2'
+import type * as Types from '../constants/types/tracker2'
 import * as Styles from '../styles'
 import {_setDarkModePreference} from '../styles/dark-mode'
 import Assertion from './assertion/container'

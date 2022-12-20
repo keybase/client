@@ -1,5 +1,5 @@
-import * as Types from './types/users'
-import {TypedState} from './reducer'
+import type * as Types from './types/users'
+import type {TypedState} from './reducer'
 
 export const getFullname = (state: TypedState, username: string) =>
   state.users.infoMap.get(username)?.fullname

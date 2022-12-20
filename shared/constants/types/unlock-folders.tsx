@@ -1,5 +1,5 @@
-import {DeviceID} from './rpc-gen'
-import {DeviceType} from './devices'
+import type {DeviceID} from './rpc-gen'
+import type {DeviceType} from './devices'
 
 export type Device = {
   type: DeviceType

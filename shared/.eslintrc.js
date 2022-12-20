@@ -1,3 +1,4 @@
+const isFixMode = process.argv.includes('--fix')
 module.exports = {
   env: {es6: true},
   extends: ['eslint:recommended', 'plugin:@typescript-eslint/recommended-requiring-type-checking'],
@@ -98,7 +99,7 @@ module.exports = {
     'react/jsx-sort-props': 'off',
     'react/jsx-space-before-closing': 'off',
     'react/jsx-tag-spacing': 'off',
-    'react/jsx-uses-react': 'error',
+    'react/jsx-uses-react': 'off',
     'react/jsx-uses-vars': 'error',
     'react/jsx-wrap-multilines': 'off',
     'react/no-access-state-in-setstate': 'error',
@@ -129,7 +130,7 @@ module.exports = {
     'react/prefer-read-only-props': 'error',
     'react/prefer-stateless-function': 'warn',
     'react/prop-types': 'off',
-    'react/react-in-jsx-scope': 'error',
+    'react/react-in-jsx-scope': 'off',
     'react/require-default-props': 'off',
     'react/require-optimization': 'off',
     'react/require-render-return': 'off',
@@ -186,7 +187,7 @@ module.exports = {
     '@typescript-eslint/no-this-alias': 'error',
     '@typescript-eslint/no-type-alias': 'off',
     '@typescript-eslint/no-unnecessary-boolean-literal-compare': 'error',
-    '@typescript-eslint/no-unnecessary-condition': 'warn',
+    '@typescript-eslint/no-unnecessary-condition': isFixMode ? 'off' : 'warn',
     '@typescript-eslint/no-unnecessary-qualifier': 'error',
     '@typescript-eslint/no-unnecessary-type-arguments': 'error',
     '@typescript-eslint/no-unnecessary-type-assertion': 'error',

@@ -14,7 +14,7 @@ const HellobotResult = React.memo(function HellobotResult(props: ResultProps) {
       dispatch(Chat2Gen.createPreviewConversation({participants: [props.username], reason: 'search'}))
     }, 500)
   }
-  let bottomRow: React.ReactNode = <Kb.Text type="BodySmall">Say hi, play puzzles, or ask for help</Kb.Text>
+  const bottomRow: React.ReactNode = <Kb.Text type="BodySmall">Say hi, play puzzles, or ask for help</Kb.Text>
 
   return <CommonResult {...props} onAdd={onSelfChat} rowStyle={styles.rowContainer} bottomRow={bottomRow} />
 })

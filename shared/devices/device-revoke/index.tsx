@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Constants from '../../constants/devices'
-import * as Types from '../../constants/types/devices'
+import type * as Types from '../../constants/types/devices'
 import * as Kb from '../../common-adapters'
 import {HeaderLeftCancel} from '../../common-adapters/header-hoc'
 import * as Styles from '../../styles'

@@ -1,8 +1,7 @@
-import * as React from 'react'
 import {NativeTouchableWithoutFeedback} from '../native-wrappers.native'
 import {Box, Box2} from '../box'
 import FloatingBox from '../floating-box'
-import {Props} from '.'
+import type {Props} from '.'
 import * as Styles from '../../styles'
 
 const Overlay = (props: Props) => {

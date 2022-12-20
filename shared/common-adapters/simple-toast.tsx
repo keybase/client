@@ -1,4 +1,3 @@
-import * as React from 'react'
 import Toast from './toast'
 import {Box2} from './box'
 import Icon, {type IconType} from './icon'

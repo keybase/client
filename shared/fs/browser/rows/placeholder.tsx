@@ -1,4 +1,3 @@
-import * as React from 'react'
 import {rowStyles} from './common'
 import * as Styles from '../../../styles'
 import * as Types from '../../../constants/types/fs'

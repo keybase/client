@@ -1,4 +1,3 @@
-import * as React from 'react'
 import Box from './box'
 import {useSpring, animated} from 'react-spring'
 import * as Styles from '../styles'

@@ -1,8 +1,7 @@
-import * as React from 'react'
 import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import * as RPCTypes from '../../constants/types/rpc-gen'
+import type * as RPCTypes from '../../constants/types/rpc-gen'
 import {FollowButton} from './buttons'
 import * as Tracker2Constants from '../../constants/tracker2'
 

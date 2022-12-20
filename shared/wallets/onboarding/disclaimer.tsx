@@ -3,7 +3,7 @@ import * as Constants from '../../constants/wallets'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import openURL from '../../util/open-url'
-import {addTicker, removeTicker, TickerID} from '../../util/second-timer'
+import {addTicker, removeTicker, type TickerID} from '../../util/second-timer'
 
 type DisclaimerProps = {
   acceptDisclaimerError: string

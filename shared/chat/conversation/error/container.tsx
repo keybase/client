@@ -1,4 +1,4 @@
-import * as Types from '../../../constants/types/chat2'
+import type * as Types from '../../../constants/types/chat2'
 import * as Constants from '../../../constants/chat2'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import {connect} from '../../../util/container'

@@ -1,7 +1,6 @@
-import * as React from 'react'
 import * as Types from '../../../constants/types/fs'
 import * as Container from '../../../util/container'
-import {FloatingMenuProps} from './types'
+import type {FloatingMenuProps} from './types'
 import Menu from './menu-container'
 import Confirm from './confirm-container'
 

@@ -1,4 +1,4 @@
-import React, {Component} from 'react'
+import * as React from 'react'
 import {Box, Button, Input, Icon} from '../common-adapters'
 import {globalColors, globalStyles, desktopStyles, platformStyles} from '../styles'
 import {defaultKBFSPath} from '../constants/config'
@@ -80,7 +80,7 @@ const UserInput = ({isPublic, onSubmit, onCancel, onUpdateText, username, text}:
   )
 }
 
-class UserAdd extends Component<Props, State> {
+class UserAdd extends React.Component<Props, State> {
   state: State
 
   constructor(props: Props) {

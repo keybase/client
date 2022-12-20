@@ -3,7 +3,7 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as TeamsGen from '../../actions/teams-gen'
-import * as Types from '../../constants/types/teams'
+import type * as Types from '../../constants/types/teams'
 import * as RPCGen from '../../constants/types/rpc-gen'
 import {ModalTitle} from '../common'
 

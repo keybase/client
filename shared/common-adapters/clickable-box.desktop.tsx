@@ -1,8 +1,8 @@
 import * as React from 'react'
 import {collapseStyles, globalStyles, desktopStyles} from '../styles'
 
-import {Props as _Props} from './clickable-box'
-import {_StylesCrossPlatform} from '../styles/css'
+import type {Props as _Props} from './clickable-box'
+import type {_StylesCrossPlatform} from '../styles/css'
 
 type Props = _Props & {children: React.ReactNode}
 

@@ -1,4 +1,3 @@
-import * as React from 'react'
 import * as ChatConstants from '../constants/chat2'
 import * as Chat2Gen from '../actions/chat2-gen'
 import * as ConfigGen from '../actions/config-gen'

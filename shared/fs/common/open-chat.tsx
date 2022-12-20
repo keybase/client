@@ -5,7 +5,6 @@ import * as Kb from '../../common-adapters'
 import * as Chat2Gen from '../../actions/chat2-gen'
 import * as Styles from '../../styles'
 import * as Util from '../../util/kbfs'
-import * as React from 'react'
 
 type OwnProps = {
   path: Types.Path

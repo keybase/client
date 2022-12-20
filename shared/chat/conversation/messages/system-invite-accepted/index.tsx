@@ -1,7 +1,6 @@
-import * as React from 'react'
-import * as Types from '../../../../constants/types/chat2'
+import type * as Types from '../../../../constants/types/chat2'
 import * as Kb from '../../../../common-adapters'
-import * as TeamTypes from '../../../../constants/types/teams'
+import type * as TeamTypes from '../../../../constants/types/teams'
 import UserNotice from '../user-notice'
 import {typeToLabel} from '../../../../constants/teams'
 

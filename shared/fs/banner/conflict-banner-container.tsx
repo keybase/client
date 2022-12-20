@@ -1,5 +1,5 @@
 import * as Constants from '../../constants/fs'
-import * as Types from '../../constants/types/fs'
+import type * as Types from '../../constants/types/fs'
 import * as SettingsConstants from '../../constants/settings'
 import * as FsGen from '../../actions/fs-gen'
 import * as Container from '../../util/container'

@@ -7,7 +7,7 @@ import * as AutoresetConstants from '../../../constants/autoreset'
 import * as RecoverPasswordGen from '../../../actions/recover-password-gen'
 import * as RPCTypes from '../../../constants/types/rpc-gen'
 import {SignupScreen, InfoIcon} from '../../../signup/common'
-import {ButtonType} from '../../../common-adapters/button'
+import type {ButtonType} from '../../../common-adapters/button'
 
 export type Props = {
   resetPassword?: boolean

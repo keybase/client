@@ -1,8 +1,7 @@
-import * as React from 'react'
 import * as Kb from '../../common-adapters'
-import * as Types from '../../constants/types/crypto'
+import type * as Types from '../../constants/types/crypto'
 import * as Styles from '../../styles'
-import {IconType} from '../../common-adapters/icon.constants-gen'
+import type {IconType} from '../../common-adapters/icon.constants-gen'
 
 type Props = {
   title: string

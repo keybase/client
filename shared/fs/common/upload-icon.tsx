@@ -1,6 +1,5 @@
-import * as React from 'react'
 import * as Types from '../../constants/types/fs'
-import Icon, {IconStyle} from '../../common-adapters/icon'
+import Icon, {type IconStyle} from '../../common-adapters/icon'
 
 type Props = {
   style?: IconStyle

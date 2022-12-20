@@ -1,6 +1,6 @@
-import HiddenString from '../../util/hidden-string'
-import * as StellarRPCTypes from './rpc-stellar-gen'
-import * as TeamBuildingTypes from './team-building'
+import type HiddenString from '../../util/hidden-string'
+import type * as StellarRPCTypes from './rpc-stellar-gen'
+import type * as TeamBuildingTypes from './team-building'
 
 // When accepting the Stellar disclaimer, next path after acceptance
 export type NextScreenAfterAcceptance = 'airdrop' | 'openWallet'

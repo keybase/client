@@ -1,5 +1,5 @@
 import * as Constants from '../../../constants/teams'
-import * as Types from '../../../constants/types/teams'
+import type * as Types from '../../../constants/types/teams'
 import Tabs from '.'
 import * as Container from '../../../util/container'
 import {anyWaiting} from '../../../constants/waiting'

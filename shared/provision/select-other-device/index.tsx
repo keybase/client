@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as Types from '../../constants/types/provision'
+import type * as Types from '../../constants/types/provision'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {SignupScreen} from '../../signup/common'

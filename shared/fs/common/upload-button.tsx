@@ -3,7 +3,6 @@ import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import * as Kb from '../../common-adapters'
 import * as FsGen from '../../actions/fs-gen'
-import * as React from 'react'
 import * as Platforms from '../../constants/platform'
 import type * as Styles from '../../styles'
 

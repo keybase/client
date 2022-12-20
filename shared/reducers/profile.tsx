@@ -1,5 +1,5 @@
 import * as ProfileGen from '../actions/profile-gen'
-import * as Types from '../constants/types/profile'
+import type * as Types from '../constants/types/profile'
 import * as More from '../constants/types/more'
 import * as Container from '../util/container'
 import * as Constants from '../constants/profile'

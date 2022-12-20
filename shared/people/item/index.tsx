@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {formatTimeForPeopleItem} from '../../util/timestamp'
-import {Props as ButtonProps} from '../../common-adapters/button'
+import type {Props as ButtonProps} from '../../common-adapters/button'
 
 export type TaskButton =
   | {

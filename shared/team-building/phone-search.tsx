@@ -5,8 +5,8 @@ import * as Constants from '../constants/team-building'
 import * as Container from '../util/container'
 import * as TeamBuildingGen from '../actions/team-building-gen'
 import * as SettingsGen from '../actions/settings-gen'
-import * as Types from 'constants/types/team-building'
-import {AllowedNamespace} from '../constants/types/team-building'
+import type * as Types from 'constants/types/team-building'
+import type {AllowedNamespace} from '../constants/types/team-building'
 import ContinueButton from './continue-button'
 
 type PhoneSearchProps = {

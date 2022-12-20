@@ -1,8 +1,8 @@
 import * as DeviceTypes from './types/devices'
-import * as Types from './types/provision'
+import type * as Types from './types/provision'
 import * as RPCTypes from './types/rpc-gen'
 import HiddenString from '../util/hidden-string'
-import {CommonResponseHandler, RPCError} from '../engine/types'
+import type {CommonResponseHandler, RPCError} from '../engine/types'
 
 export const waitingKey = 'provision:waiting'
 export const forgotUsernameWaitingKey = 'provision:forgotUsername'

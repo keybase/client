@@ -1,4 +1,3 @@
-import * as React from 'react'
 import * as Kb from '../../../common-adapters/mobile.native'
 import * as QR from '../../../common-adapters/qr.native'
 import * as Styles from '../../../styles'

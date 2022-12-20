@@ -1,7 +1,6 @@
-import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
-import * as Tracker2Types from '../../../constants/types/tracker2'
+import type * as Tracker2Types from '../../../constants/types/tracker2'
 import {SiteIcon} from '../shared'
 
 type Props = {

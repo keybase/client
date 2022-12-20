@@ -1,7 +1,6 @@
-import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import * as Types from '../../constants/types/wallets'
+import type * as Types from '../../constants/types/wallets'
 import {SmallAccountID, SendButton} from '../common'
 import {HeaderRightActions as ConnectedHeaderRightActions} from './container'
 

@@ -1,15 +1,15 @@
 import * as React from 'react'
 import * as Container from '../../../../../util/container'
 import * as Constants from '../../../../../constants/chat2'
-import * as Types from '../../../../../constants/types/chat2'
+import type * as Types from '../../../../../constants/types/chat2'
 import * as WalletConstants from '../../../../../constants/wallets'
-import * as WalletTypes from '../../../../../constants/types/wallets'
+import type * as WalletTypes from '../../../../../constants/types/wallets'
 import * as WalletGen from '../../../../../actions/wallets-gen'
 import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import {formatTimeForMessages} from '../../../../../util/timestamp'
 import PaymentPopup from '.'
-import {StylesCrossPlatform} from '../../../../../styles/css'
-import {Position} from '../../../../../styles'
+import type {StylesCrossPlatform} from '../../../../../styles/css'
+import type {Position} from '../../../../../styles'
 
 type OwnProps = {
   attachTo?: () => React.Component<any> | null

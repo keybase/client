@@ -1,4 +1,3 @@
-import * as React from 'react'
 import {Text} from '../../../common-adapters'
 import {Wrapper} from '../common'
 

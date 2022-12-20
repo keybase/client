@@ -3,7 +3,7 @@ import * as Styles from '../styles'
 import Box from './box'
 import Text, {getStyle as getTextStyle} from './text.desktop'
 
-import {Props, Selection, TextInfo} from './input'
+import type {Props, Selection, TextInfo} from './input'
 import {checkTextInfo} from './input.shared'
 
 type State = {

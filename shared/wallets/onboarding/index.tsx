@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as Types from '../../constants/types/wallets'
+import type * as Types from '../../constants/types/wallets'
 import Disclaimer from './disclaimer'
 import Intro from './intro'
 
