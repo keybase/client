@@ -106,6 +106,11 @@ const Username = React.memo(function Username(p: UsernameProps) {
     },
     [dispatch, username]
   )
+  const onPassThrough = React.useCallback(() => {
+    if (typeof onUsernameClicked === 'function') {
+      onUsernameClicked(username)
+    }
+  }, [username, onUsernameClicked])
   let onClicked: undefined | ((evt?: any) => void)
   switch (onUsernameClicked) {
     case 'tracker':
@@ -116,7 +121,7 @@ const Username = React.memo(function Username(p: UsernameProps) {
       break
     default:
       if (typeof onUsernameClicked === 'function') {
-        onClicked = onUsernameClicked
+        onClicked = onPassThrough
       }
   }
 
