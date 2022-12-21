@@ -6,6 +6,28 @@ import {useNavigationBuilder, TabRouter, createNavigatorFactory} from '@react-na
 
 type BackBehavior = Parameters<typeof TabRouter>[0]['backBehavior']
 type Props = Parameters<typeof useNavigationBuilder>[1] & {backBehavior: BackBehavior}
+type Route = ReturnType<typeof useNavigationBuilder>['state']['routes'][0]
+type Desc = ReturnType<typeof useNavigationBuilder>['descriptors'][0]
+
+const RouteBox = React.memo(function RouteBox(p: {
+  shouldRender: (key: string, selected: boolean) => boolean
+  route: Route
+  selected: boolean
+  desc: Desc
+}) {
+  const {shouldRender, selected, route, desc} = p
+  return (
+    <Kb.Box2
+      key={route.key}
+      direction="vertical"
+      fullHeight={true}
+      fullWidth={true}
+      style={selected ? undefined : styles.hidden}
+    >
+      {shouldRender(route.key, selected) ? desc.render() : null}
+    </Kb.Box2>
+  )
+})
 
 const LeftTabNavigator = React.memo(function LeftTabNavigator({
   backBehavior,
@@ -42,15 +64,13 @@ const LeftTabNavigator = React.memo(function LeftTabNavigator({
         <TabBar state={state} navigation={navigation} />
         <Kb.BoxGrow>
           {state.routes.map((route, i) => (
-            <Kb.Box2
-              key={route.key}
-              direction="vertical"
-              fullHeight={true}
-              fullWidth={true}
-              style={i === state.index ? undefined : styles.hidden}
-            >
-              {shouldRender(route.key, i === state.index) ? descriptors[route.key].render() : null}
-            </Kb.Box2>
+            <RouteBox
+              shouldRender={shouldRender}
+              key={route.name}
+              selected={i === state.index}
+              route={route}
+              desc={descriptors[route.key]}
+            />
           ))}
         </Kb.BoxGrow>
       </Kb.Box2>

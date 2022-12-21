@@ -164,6 +164,7 @@ const TabBar = React.memo(function TabBar(props: Props) {
     [navigation]
   )
 
+  // TODO thrashes as state thrashes
   const onSelectTab = Common.useSubnavTabAction(navigation, state)
 
   return username ? (
@@ -180,7 +181,7 @@ const TabBar = React.memo(function TabBar(props: Props) {
           tab={route.name}
           index={index}
           isSelected={index === state.index}
-          onTabClick={() => onSelectTab(route.name)}
+          onSelectTab={onSelectTab}
         />
       ))}
       <RuntimeStats />
@@ -192,7 +193,7 @@ type TabProps = {
   tab: Tabs.AppTab
   index: number
   isSelected: boolean
-  onTabClick: (t: Tabs.AppTab) => void
+  onSelectTab: (t: Tabs.AppTab) => void
 }
 
 const TabBadge = (p: {name}) => {
@@ -204,7 +205,7 @@ const TabBadge = (p: {name}) => {
 }
 
 const Tab = React.memo(function Tab(props: TabProps) {
-  const {tab, index, isSelected, onTabClick} = props
+  const {tab, index, isSelected, onSelectTab} = props
   const {label} = Tabs.desktopTabMeta[tab]
 
   const dispatch = Container.useDispatch()
@@ -220,11 +221,11 @@ const Tab = React.memo(function Tab(props: TabProps) {
               dispatch(ConfigGen.createSetUserSwitching({userSwitching: true}))
               dispatch(LoginGen.createLogin({password: new HiddenString(''), username: row.username}))
             } else {
-              onTabClick(tab)
+              onSelectTab(tab)
             }
           }
         : undefined,
-    [accountRows, dispatch, index, current, onTabClick, tab]
+    [accountRows, dispatch, index, current, onSelectTab, tab]
   )
 
   // no long press on desktop so a quick version
@@ -260,11 +261,15 @@ const Tab = React.memo(function Tab(props: TabProps) {
     [index]
   )
 
+  const onClick = React.useCallback(() => {
+    onSelectTab(tab)
+  }, [onSelectTab, tab])
+
   return (
     <Kb.ClickableBox
       feedback={false}
       key={tab}
-      onClick={() => onTabClick(tab)}
+      onClick={onClick}
       onMouseDown={onMouseDown}
       onMouseUp={onMouseUp}
       onMouseLeave={onMouseLeave}
