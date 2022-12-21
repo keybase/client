@@ -203,12 +203,6 @@ async function startPack() {
     rimraf.sync(desktopPath('release'))
 
     let aps = [[platform, arch]]
-    if (platform === 'darwin') {
-      aps = [
-        ['darwin', 'x64'],
-        ['darwin', 'arm64'],
-      ]
-    }
     await Promise.all(
       aps.map(async ([plat, arch]) => {
         try {
