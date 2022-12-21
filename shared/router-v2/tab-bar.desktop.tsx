@@ -164,7 +164,6 @@ const TabBar = React.memo(function TabBar(props: Props) {
     [navigation]
   )
 
-  // TODO thrashes as state thrashes
   const onSelectTab = Common.useSubnavTabAction(navigation, state)
 
   return username ? (
