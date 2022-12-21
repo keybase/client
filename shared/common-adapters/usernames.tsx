@@ -37,7 +37,6 @@ export type Props = {
   notFollowingColorOverride?: AllowedColors
   onUsernameClicked?: ((username: string) => void) | 'tracker' | 'profile'
   prefix?: string | null
-  redColor?: AllowedColors
   selectable?: boolean
   showAnd?: boolean
   skipSelf?: boolean
@@ -60,7 +59,98 @@ const space = Styles.isMobile ? ` ` : <>&nbsp;</>
 let WithProfileCardPopup: React.ComponentType<any> | null
 export const _setWithProfileCardPopup = (Comp: React.ComponentType<any>) => (WithProfileCardPopup = Comp)
 
-const UsernameText = (
+type UsernameProps = {
+  backgroundMode?: Background
+  username: string
+  colorFollowing: boolean
+  colorBroken: boolean
+  notFollowingColorOverride?: AllowedColors
+  colorYou: boolean
+  inline: boolean
+  style?: StylesTextCrossPlatform
+  type: TextType
+  showAnd: boolean
+}
+const Username = function Username(p: UsernameProps) {
+  const {colorFollowing, colorBroken, username, notFollowingColorOverride, colorYou, inline, style} = p
+  const {type, backgroundMode, showAnd} = p
+  const you = Container.useSelector(state => state.config.username === username)
+  const following = Container.useSelector(state => state.config.following.has(username))
+  const broken = Container.useSelector(state => state.users.infoMap.get(username)?.broken ?? false)
+
+  let userStyle = Styles.platformStyles({
+    common: {
+      ...(colorFollowing && !you
+        ? ({
+            color: following
+              ? Styles.globalColors.greenDark
+              : notFollowingColorOverride || Styles.globalColors.blueDark,
+          } as const)
+        : null),
+      ...(colorBroken && broken && !you ? ({color: Styles.globalColors.redDark} as const) : null),
+      ...(colorYou && you
+        ? ({
+            color: typeof colorYou === 'string' ? colorYou : Styles.globalColors.black,
+          } as const)
+        : null),
+    },
+    isElectron: inline ? {display: 'inline'} : {},
+  })
+  userStyle = Styles.collapseStyles([userStyle, style, type.startsWith('Body') && styles.kerning] as const)
+
+  // Make sure onClick is undefined when _onUsernameClicked is, so
+  // as to not override any existing onClick handler from containers
+  // on native. (See DESKTOP-3963.)
+  const isNegative = backgroundModeIsNegative(backgroundMode || null)
+  return (
+    // type is set to Body here to prevent unwanted hover behaviors
+    // line height is unset to prevent some text clipping issues
+    // in children with larger text styles on Android (HOTPOT-2112)
+    // see also https://github.com/keybase/client/pull/22331#discussion_r374224355
+    <Text className="noLineHeight" type="Body" style={{lineHeight: undefined}} key={username}>
+      {i !== 0 && i === props.users.length - 1 && showAnd && (
+        <Text type={props.type} negative={isNegative} style={derivedJoinerStyle} underlineNever={true}>
+          {'and '}
+        </Text>
+      )}
+      <Text
+        type={props.type}
+        negative={isNegative}
+        className={Styles.classNames({'hover-underline': props.underline})}
+        selectable={props.selectable}
+        onLongPress={onLongPress}
+        lineClamp={props.lineClamp}
+        virtualText={props.virtualText}
+        onClick={
+          onUsernameClicked
+            ? evt => {
+                evt && evt.stopPropagation()
+                onUsernameClicked(u.username)
+              }
+            : undefined
+        }
+        style={userStyle}
+      >
+        {assertionToDisplay(u.username)}
+      </Text>
+      {/* Injecting the commas here so we never wrap and have newlines starting with a , */}
+      {i !== props.users.length - 1 && (!props.inlineGrammar || props.users.length > 2) && (
+        <Text type={props.type} negative={isNegative} style={derivedJoinerStyle}>
+          ,
+        </Text>
+      )}
+      {i !== props.users.length - 1 && (
+        <Text type={props.type} negative={isNegative} style={derivedJoinerStyle}>
+          {space}
+        </Text>
+      )}
+    </Text>
+  )
+
+  return renderText
+}
+
+const UsernamesText = (
   props: Omit<Props, 'users' | 'onUsernameClicked'> & {
     onUsernameClicked: undefined | ((s: string) => void)
     users: Array<User>
@@ -75,94 +165,20 @@ const UsernameText = (
   return (
     <>
       {props.users.map((u, i) => {
-        let userStyle = Styles.platformStyles({
-          common: {
-            ...(props.colorFollowing && !u.you
-              ? ({
-                  color: u.following
-                    ? Styles.globalColors.greenDark
-                    : props.notFollowingColorOverride || Styles.globalColors.blueDark,
-                } as const)
-              : null),
-            ...(props.colorBroken && u.broken && !u.you
-              ? ({color: props.redColor || Styles.globalColors.redDark} as const)
-              : null),
-            ...(props.colorYou && u.you
-              ? ({
-                  color: typeof props.colorYou === 'string' ? props.colorYou : Styles.globalColors.black,
-                } as const)
-              : null),
-          },
-          isElectron: props.inline ? {display: 'inline'} : {},
-        })
-        userStyle = Styles.collapseStyles([
-          userStyle,
-          props.style,
-          props.type.startsWith('Body') && styles.kerning,
-        ] as const)
-
-        // Make sure onClick is undefined when _onUsernameClicked is, so
-        // as to not override any existing onClick handler from containers
-        // on native. (See DESKTOP-3963.)
-        const onUsernameClicked = props.onUsernameClicked
-        const isNegative = backgroundModeIsNegative(props.backgroundMode || null)
-        const renderText = (onLongPress?: () => void) => (
-          // type is set to Body here to prevent unwanted hover behaviors
-          // line height is unset to prevent some text clipping issues
-          // in children with larger text styles on Android (HOTPOT-2112)
-          // see also https://github.com/keybase/client/pull/22331#discussion_r374224355
-          <Text className="noLineHeight" type="Body" style={{lineHeight: undefined}} key={u.username}>
-            {i !== 0 && i === props.users.length - 1 && props.showAnd && (
-              <Text type={props.type} negative={isNegative} style={derivedJoinerStyle} underlineNever={true}>
-                {'and '}
-              </Text>
-            )}
-            <Text
-              type={props.type}
-              negative={isNegative}
-              className={Styles.classNames({'hover-underline': props.underline})}
-              selectable={props.selectable}
-              onLongPress={onLongPress}
-              lineClamp={props.lineClamp}
-              virtualText={props.virtualText}
-              onClick={
-                onUsernameClicked
-                  ? evt => {
-                      evt && evt.stopPropagation()
-                      onUsernameClicked(u.username)
-                    }
-                  : undefined
-              }
-              style={userStyle}
-            >
-              {assertionToDisplay(u.username)}
-            </Text>
-            {/* Injecting the commas here so we never wrap and have newlines starting with a , */}
-            {i !== props.users.length - 1 && (!props.inlineGrammar || props.users.length > 2) && (
-              <Text type={props.type} negative={isNegative} style={derivedJoinerStyle}>
-                ,
-              </Text>
-            )}
-            {i !== props.users.length - 1 && (
-              <Text type={props.type} negative={isNegative} style={derivedJoinerStyle}>
-                {space}
-              </Text>
-            )}
-          </Text>
-        )
-
-        return props.withProfileCardPopup && WithProfileCardPopup ? (
-          <WithProfileCardPopup key={u.username} username={u.username} ellipsisStyle={styles.inlineStyle}>
-            {renderText}
-          </WithProfileCardPopup>
-        ) : (
-          renderText()
-        )
+        return <Username username={u} />
+        // TODO
+        // return props.withProfileCardPopup && WithProfileCardPopup ? (
+        //   <WithProfileCardPopup key={u.username} username={u.username} ellipsisStyle={styles.inlineStyle}>
+        //     {renderText}
+        //   </WithProfileCardPopup>
+        // ) : (
+        //   renderText
+        // )
       })}
     </>
   )
 }
-UsernameText.defaultProps = {
+UsernamesText.defaultProps = {
   colorBroken: true,
   inlineGrammar: false,
   selectable: undefined,
@@ -246,7 +262,7 @@ const Usernames = React.memo(
             {props.prefix}
           </Text>
         )}
-        <UsernameText {...props} onUsernameClicked={onUsernameClicked} users={rwers} />
+        <UsernamesText {...props} onUsernameClicked={onUsernameClicked} users={rwers} />
         {!!readers.length && (
           <Text
             type={props.type}
@@ -256,7 +272,7 @@ const Usernames = React.memo(
             #
           </Text>
         )}
-        <UsernameText {...props} onUsernameClicked={onUsernameClicked} users={readers} />
+        <UsernamesText {...props} onUsernameClicked={onUsernameClicked} users={readers} />
         {!!props.suffix && (
           <Text
             type={props.suffixType || props.type}
@@ -320,5 +336,4 @@ const styles = Styles.styleSheetCreate(() => ({
   } as const),
 }))
 
-export {UsernameText}
 export default Usernames
