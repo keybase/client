@@ -218,7 +218,7 @@ const DesktopHeader = React.memo(
     )
   },
   (p, n) => {
-    return !shallowEqual(p, n, (obj, oth, key) => {
+    return shallowEqual(p, n, (obj, oth, key) => {
       if (key === 'options') {
         return shallowEqual(obj, oth)
       }

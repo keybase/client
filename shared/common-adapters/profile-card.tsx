@@ -246,6 +246,12 @@ export const WithProfileCardPopup = ({username, children, ellipsisStyle}: WithPr
   const [remeasureHint, setRemeasureHint] = React.useState(0)
   const onLayoutChange = React.useCallback(() => setRemeasureHint(Date.now()), [setRemeasureHint])
   const isSelf = Container.useSelector(state => state.config.username === username)
+  const onShow = React.useCallback(() => {
+    setShowing(true)
+  }, [])
+  const onHide = React.useCallback(() => {
+    setShowing(false)
+  }, [])
   if (isSelf) {
     return children()
   }
@@ -275,14 +281,14 @@ export const WithProfileCardPopup = ({username, children, ellipsisStyle}: WithPr
   )
   return Styles.isMobile ? (
     <>
-      {children(() => setShowing(true))}
+      {children(onShow)}
       {popup}
     </>
   ) : (
     <Kb.Box
       style={Styles.collapseStyles([styles.popupTextContainer, ellipsisStyle])}
-      onMouseOver={() => setShowing(true)}
-      onMouseLeave={() => setShowing(false)}
+      onMouseOver={onShow}
+      onMouseLeave={onHide}
       ref={ref}
     >
       {children()}
