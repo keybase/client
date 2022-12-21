@@ -213,7 +213,6 @@ type UsernamesTextProps = {
 }
 const UsernamesText = (p: UsernamesTextProps) => {
   const {showAnd, inlineGrammar, users, joinerStyle, commaColor, ...rest} = p
-  // const {joinerStyle, users, commaColor, showAnd, onUsernameClicked, inlineGrammar} = p
   const derivedJoinerStyle = React.useMemo(() => {
     return Styles.collapseStyles([joinerStyle, styles.joinerStyle, {color: commaColor}])
   }, [commaColor, joinerStyle])
@@ -357,10 +356,9 @@ const styles = Styles.styleSheetCreate(() => ({
       whiteSpace: 'nowrap',
     },
   } as const),
-  joinerStyle: Styles.platformStyles({
-    isElectron: {textDecoration: 'none'},
-  } as const),
+  joinerStyle: Styles.platformStyles({isElectron: {textDecoration: 'none'}} as const),
   kerning: {letterSpacing: 0.2},
+  noLineHeight: {lineHeight: undefined},
   nonInlineStyle: Styles.platformStyles({
     common: {
       ...Styles.globalStyles.flexBoxRow,
@@ -368,9 +366,6 @@ const styles = Styles.styleSheetCreate(() => ({
     },
     isElectron: {textDecoration: 'inherit'},
   } as const),
-  noLineHeight: {
-    lineHeight: undefined,
-  },
 }))
 
 export default Usernames
