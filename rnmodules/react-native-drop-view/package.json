@@ -22,6 +22,7 @@
     "!**/__mocks__"
   ],
   "scripts": {
+    "postinstall": "yarn patch-package",
     "prepare": "bob build"
   },
   "keywords": [],
@@ -35,6 +36,7 @@
     "@types/react-native": "0.70.6",
     "react-native": "0.70.5",
     "react-native-builder-bob": "^0.18.3",
+    "patch-package": "6.5.0",
     "typescript": "4.8.4"
   },
   "resolutions": {

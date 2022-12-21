@@ -1,0 +1,22 @@
+diff --git a/node_modules/@welldone-software/why-did-you-render/jsx-dev-runtime.js b/node_modules/@welldone-software/why-did-you-render/jsx-dev-runtime.js
+index fabd293..0d6a323 100644
+--- a/node_modules/@welldone-software/why-did-you-render/jsx-dev-runtime.js
++++ b/node_modules/@welldone-software/why-did-you-render/jsx-dev-runtime.js
+@@ -5,8 +5,9 @@ var WDYR = require('@welldone-software/why-did-you-render')
+ var origJsxDev = jsxDevRuntime.jsxDEV
+ var wdyrStore = WDYR.wdyrStore
+ 
+-module.exports = jsxDevRuntime
+-module.exports.jsxDEV = function jsxDEV(){
++module.exports = {
++	...jsxDevRuntime,
++	jsxDEV: function jsxDEV(){
+   var args = Array.prototype.slice.call(arguments)
+ 
+   if(wdyrStore.React && wdyrStore.React.isWDYR){
+@@ -35,4 +36,4 @@ module.exports.jsxDEV = function jsxDEV(){
+   }
+ 
+   return origJsxDev.apply(null, args)
+-}
++}}
