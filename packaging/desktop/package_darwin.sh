@@ -17,7 +17,11 @@ s3host=${S3HOST:-}
 istest=${TEST:-}
 skip_notarize=${SKIP_NOTARIZE:-}
 arch=${ARCH:-"amd64"}
+electron_arch="x64"
 platform=${PLATFORM:-"darwin"}
+if [ "$arch" = "arm64" ]; then
+  electron_arch = "arm64"
+fi
 
 if [ ! "$bucket_name" = "" ] && [ "$s3host" = "" ]; then
   # Use this syntax since bucket_name might have dots (.)
@@ -188,7 +192,7 @@ package_electron() {(
   rm -rf "$shared_dir/node_modules"
 
   yarn install --pure-lockfile --ignore-engines
-  yarn run package -- --appVersion="$app_version" --comment="$comment" --icon="$icon_path" --saltpackIcon="$saltpack_icon"  --outDir="$build_dir"
+  yarn run package -- --appVersion="$app_version" --comment="$comment" --icon="$icon_path" --saltpackIcon="$saltpack_icon"  --outDir="$build_dir" --arch="$electron_arch"
 
   # Create symlink for Electron to overcome Gatekeeper bug https://github.com/keybase/go-updater/pull/4
   cd "$out_dir/$app_name.app/Contents/MacOS"
