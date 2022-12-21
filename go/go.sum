@@ -529,8 +529,8 @@ github.com/keybase/saltpack v0.0.0-20221220231257-f6cce11cfd0f h1:q6W4z1Qbv9UfOP
 github.com/keybase/saltpack v0.0.0-20221220231257-f6cce11cfd0f/go.mod h1:8hM5WwVH+oXJVaxqscISOuOjPHV20Htnl56CBLAPzMY=
 github.com/keybase/stellar-org v0.0.0-20191010205648-0fc3bfe3dfa7 h1:wOqDICze0HpgV4PfV6m4fWvHV5XZteSgFHrT6KVDOkg=
 github.com/keybase/stellar-org v0.0.0-20191010205648-0fc3bfe3dfa7/go.mod h1:U4zGmzxsNw5Kr0Z8f0clhHVFOIfi80iVh8MBp7y8pY0=
-github.com/keybase/stellarnet v0.0.0-20211117211618-42803c16835a h1:CzTkvOzj05EX6PkeZ8N9DKor1zRpppcexlQkxn5kkcQ=
-github.com/keybase/stellarnet v0.0.0-20211117211618-42803c16835a/go.mod h1:/1o8s3EFCziBg62SdDwi9adh55HI1KjwDpgAqXdlkcQ=
+github.com/keybase/stellarnet v0.0.0-20200311180805-6c05850f9050 h1:S1Zlz3H0Jg6qZKKfURnXgv/tOvV6ZLWoFF1ajLiHj78=
+github.com/keybase/stellarnet v0.0.0-20200311180805-6c05850f9050/go.mod h1:/1o8s3EFCziBg62SdDwi9adh55HI1KjwDpgAqXdlkcQ=
 github.com/keybase/vcr v0.0.0-20191017153547-a32d93056205 h1:uCmsvpAhA50qxlUJ2TzUa46r6CWuf/Bfu2c/797qaK4=
 github.com/keybase/vcr v0.0.0-20191017153547-a32d93056205/go.mod h1:zHO0jwR3zva9zehtZ/JQ8FbJC74vy3LdpOPG/cpXMjI=
 github.com/keybase/xurls/v2 v2.0.1-0.20190725180013-1e015cacd06c h1:EnJEsaC69e6m8tSJnuf4PmzZ2kb7CpTIkAGH2+5A2jU=
