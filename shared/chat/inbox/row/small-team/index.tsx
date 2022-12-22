@@ -26,9 +26,8 @@ export type Props = {
   isSelected: boolean
   isTypingSnippet: boolean
   layoutSnippet?: string
-  layoutSnippetDecoration: RPCChatTypes.SnippetDecoration
   onHideConversation: () => void
-  onMuteConversation: (muted: boolean) => void
+  onMuteConversation: () => void
   onSelectConversation?: () => void
   participantNeedToRekey: boolean
   participants: Array<string>
@@ -46,122 +45,98 @@ export type Props = {
   swipeCloseRef?: React.MutableRefObject<(() => void) | null>
 }
 
-type State = {
-  showMenu: boolean
-}
-
-class SmallTeam extends React.PureComponent<Props, State> {
-  state = {
-    showMenu: false,
-  }
-
-  _onForceShowMenu = () => this.setState({showMenu: true})
-  _onForceHideMenu = () => this.setState({showMenu: false})
-
-  private onMuteConversation = () => {
-    this.props.onMuteConversation(!this.props.isMuted)
-  }
-
-  render() {
-    const props = this.props
-    const clickProps = {
-      onClick: props.onSelectConversation,
-      // its invalid to use onLongPress with no onClick
-      ...(Styles.isMobile ? {onLongPress: props.onSelectConversation && this._onForceShowMenu} : {}),
-    }
-    return (
-      <SwipeConvActions
-        isMuted={this.props.isMuted}
-        onHideConversation={this.props.onHideConversation}
-        onMuteConversation={this.onMuteConversation}
-        swipeCloseRef={this.props.swipeCloseRef}
+const SmallTeam = React.memo(function (p: Props) {
+  const {backgroundColor, channelname, draft, hasBadge, hasBottomLine, hasResetUsers} = p
+  const {hasUnread, iconHoverColor, isDecryptingSnippet, isFinalized, isMuted, isSelected} = p
+  const {isTypingSnippet, layoutSnippet, onMuteConversation, onHideConversation} = p
+  const {participants, showBold, snippet, subColor, teamname, conversationIDKey} = p
+  const {timestamp, usernameColor, youAreReset, youNeedToRekey, isInWidget, swipeCloseRef} = p
+  const {onSelectConversation, participantNeedToRekey, snippetDecoration} = p
+  return (
+    <SwipeConvActions
+      isMuted={isMuted}
+      onHideConversation={onHideConversation}
+      onMuteConversation={onMuteConversation}
+      swipeCloseRef={swipeCloseRef}
+    >
+      <Kb.ClickableBox
+        className={Styles.classNames('small-row', {selected: isSelected})}
+        onClick={onSelectConversation}
+        style={
+          isInWidget
+            ? Styles.collapseStyles([styles.container, {backgroundColor: backgroundColor}])
+            : styles.container
+        }
       >
-        <Kb.ClickableBox
-          className={Styles.classNames('small-row', {selected: props.isSelected})}
-          {...clickProps}
-          style={
-            props.isInWidget
-              ? Styles.collapseStyles([styles.container, {backgroundColor: props.backgroundColor}])
-              : styles.container
-          }
-        >
-          <Kb.Box style={Styles.collapseStyles([styles.rowContainer, styles.fastBlank] as const)}>
-            {props.teamname ? (
-              <TeamAvatar
-                teamname={props.teamname}
-                isMuted={props.isMuted}
-                isSelected={this.props.isSelected}
-                isHovered={false}
+        <Kb.Box style={Styles.collapseStyles([styles.rowContainer, styles.fastBlank] as const)}>
+          {teamname ? (
+            <TeamAvatar teamname={teamname} isMuted={isMuted} isSelected={isSelected} isHovered={false} />
+          ) : (
+            <Avatars
+              backgroundColor={backgroundColor}
+              isMuted={isMuted}
+              isLocked={youNeedToRekey || participantNeedToRekey || isFinalized}
+              isSelected={isSelected}
+              participantOne={participants[0]}
+              participantTwo={participants[1]}
+            />
+          )}
+          <Kb.Box style={Styles.collapseStyles([styles.conversationRow, styles.fastBlank])}>
+            <Kb.Box
+              style={Styles.collapseStyles([
+                Styles.globalStyles.flexBoxColumn,
+                styles.flexOne,
+                hasBottomLine ? styles.withBottomLine : styles.withoutBottomLine,
+              ])}
+            >
+              <SimpleTopLine
+                backgroundColor={backgroundColor}
+                hasUnread={hasUnread}
+                hasBadge={hasBadge}
+                iconHoverColor={iconHoverColor}
+                isSelected={isSelected}
+                participants={teamname ? teamname : participants}
+                showBold={showBold}
+                showGear={!isInWidget}
+                subColor={subColor}
+                timestamp={timestamp}
+                usernameColor={usernameColor}
+                teamname={teamname}
+                conversationIDKey={conversationIDKey}
+                {...(channelname ? {channelname: channelname} : {})}
               />
-            ) : (
-              <Avatars
-                backgroundColor={props.backgroundColor}
-                isMuted={props.isMuted}
-                isLocked={props.youNeedToRekey || props.participantNeedToRekey || props.isFinalized}
-                isSelected={props.isSelected}
-                participantOne={props.participants[0]}
-                participantTwo={props.participants[1]}
-              />
-            )}
-            <Kb.Box style={Styles.collapseStyles([styles.conversationRow, styles.fastBlank])}>
+            </Kb.Box>
+            {hasBottomLine && (
               <Kb.Box
                 style={Styles.collapseStyles([
                   Styles.globalStyles.flexBoxColumn,
                   styles.flexOne,
-                  props.hasBottomLine ? styles.withBottomLine : styles.withoutBottomLine,
+                  {justifyContent: 'flex-start'},
                 ])}
               >
-                <SimpleTopLine
-                  backgroundColor={props.backgroundColor}
-                  hasUnread={props.hasUnread}
-                  hasBadge={props.hasBadge}
-                  iconHoverColor={props.iconHoverColor}
-                  isSelected={props.isSelected}
-                  participants={props.teamname ? props.teamname : props.participants}
-                  showBold={props.showBold}
-                  showGear={!props.isInWidget}
-                  forceShowMenu={this.state.showMenu}
-                  onForceHideMenu={this._onForceHideMenu}
-                  subColor={props.subColor}
-                  timestamp={props.timestamp}
-                  usernameColor={props.usernameColor}
-                  teamname={props.teamname}
-                  conversationIDKey={props.conversationIDKey}
-                  {...(props.channelname ? {channelname: props.channelname} : {})}
+                <BottomLine
+                  backgroundColor={backgroundColor}
+                  participantNeedToRekey={participantNeedToRekey}
+                  youAreReset={youAreReset}
+                  showBold={showBold}
+                  snippet={snippet || layoutSnippet || ''}
+                  snippetDecoration={snippetDecoration}
+                  subColor={subColor}
+                  hasResetUsers={hasResetUsers}
+                  youNeedToRekey={youNeedToRekey}
+                  isSelected={isSelected}
+                  isDecryptingSnippet={isDecryptingSnippet}
+                  isTypingSnippet={isTypingSnippet}
+                  draft={draft}
                 />
               </Kb.Box>
-              {props.hasBottomLine && (
-                <Kb.Box
-                  style={Styles.collapseStyles([
-                    Styles.globalStyles.flexBoxColumn,
-                    styles.flexOne,
-                    {justifyContent: 'flex-start'},
-                  ])}
-                >
-                  <BottomLine
-                    backgroundColor={props.backgroundColor}
-                    participantNeedToRekey={props.participantNeedToRekey}
-                    youAreReset={props.youAreReset}
-                    showBold={props.showBold}
-                    snippet={props.snippet || props.layoutSnippet || ''}
-                    snippetDecoration={props.snippetDecoration}
-                    subColor={props.subColor}
-                    hasResetUsers={props.hasResetUsers}
-                    youNeedToRekey={props.youNeedToRekey}
-                    isSelected={props.isSelected}
-                    isDecryptingSnippet={props.isDecryptingSnippet}
-                    isTypingSnippet={props.isTypingSnippet}
-                    draft={props.draft}
-                  />
-                </Kb.Box>
-              )}
-            </Kb.Box>
+            )}
           </Kb.Box>
-        </Kb.ClickableBox>
-      </SwipeConvActions>
-    )
-  }
-}
+        </Kb.Box>
+      </Kb.ClickableBox>
+    </SwipeConvActions>
+  )
+})
 
 const styles = Styles.styleSheetCreate(() => ({
   container: Styles.platformStyles({

@@ -9,11 +9,9 @@ type Props = {
   channelname?: string
   teamname?: string
   conversationIDKey: ChatTypes.ConversationIDKey
-  forceShowMenu: boolean
   hasUnread: boolean
   iconHoverColor: string
   isSelected: boolean
-  onForceHideMenu: () => void
   participants: Array<string> | string
   showBold: boolean
   showGear: boolean
@@ -25,25 +23,20 @@ type Props = {
 }
 
 const SimpleTopLine = React.memo(function SimpleTopLine(props: Props) {
-  const {backgroundColor, channelname, teamname, conversationIDKey, forceShowMenu, iconHoverColor} = props
-  const {isSelected, onForceHideMenu, participants, showBold, showGear, subColor, timestamp} = props
+  const {backgroundColor, channelname, teamname, conversationIDKey, iconHoverColor} = props
+  const {isSelected, participants, showBold, showGear, subColor, timestamp} = props
   const {usernameColor, hasBadge} = props
 
   const {showingPopup, toggleShowingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
     <TeamMenu
-      visible={showingPopup || forceShowMenu}
+      visible={showingPopup}
       attachTo={attachTo}
-      onHidden={onHidden}
+      onHidden={toggleShowingPopup}
       hasHeader={true}
       isSmallTeam={true}
       conversationIDKey={conversationIDKey}
     />
   ))
-
-  const onHidden = React.useCallback(() => {
-    toggleShowingPopup()
-    onForceHideMenu()
-  }, [toggleShowingPopup, onForceHideMenu])
 
   const nameContainerStyle = React.useMemo(
     () =>
@@ -79,7 +72,7 @@ const SimpleTopLine = React.memo(function SimpleTopLine(props: Props) {
 
   return (
     <Kb.Box style={styles.container}>
-      {showGear && (showingPopup || forceShowMenu) && popup}
+      {showGear && showingPopup && popup}
       <Kb.Box style={styles.insideContainer}>
         <Kb.Box style={styles.nameContainer}>
           {teamname && channelname ? (
