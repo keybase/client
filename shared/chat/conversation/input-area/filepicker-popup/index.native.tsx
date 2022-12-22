@@ -31,9 +31,14 @@ class FilePickerPopup extends React.Component<Props> {
         title: 'Take photo or video',
       },
       {
+        icon: 'iconfont-video-library',
+        onClick: () => this.props.onSelect('video', 'library'),
+        title: 'Choose video from library',
+      },
+      {
         icon: 'iconfont-photo-library',
-        onClick: () => this.props.onSelect('mixed', 'library'),
-        title: 'Choose from library',
+        onClick: () => this.props.onSelect('photo', 'library'),
+        title: 'Choose photos from library',
       },
     ]
 
