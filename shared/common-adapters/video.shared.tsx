@@ -4,13 +4,18 @@ import {Box2} from './box'
 import Text from './text'
 import URL from 'url-parse'
 
+const Kb = {
+  Box2,
+  Text,
+}
+
 type Size = {
   height: number
   width: number
 }
 
 // we get string "undefined" if source is audio
-const isPositive = thing => typeof thing === 'number' && thing > 0
+const isPositive = (thing: unknown) => typeof thing === 'number' && thing > 0
 
 // getVideoSize returns a size used for sizing <Video />. The width is same
 // as container width, then try to maintain aspect ratio, unless height is
@@ -21,10 +26,18 @@ export const getVideoSize = (state: State): Size => {
   if (!isPositive(containerHeight) || !isPositive(containerWidth)) {
     return {height: 0, width: 0}
   }
+
+  // not loaded yet, just use container size
+  if (!state.loadedVideoSize) {
+    return {
+      height: containerHeight,
+      width: containerWidth,
+    }
+  }
   if (!isPositive(videoHeight) || !isPositive(videoWidth)) {
     // Might be an audio file. In this case height doesn't seem to affect
     // desktop at all.
-    return state.loadedVideoSize ? {height: 96, width: containerWidth} : {height: 0, width: 0}
+    return {height: 96, width: containerWidth}
   }
 
   const idealHeight = (containerWidth * videoHeight) / videoWidth
@@ -41,11 +54,11 @@ export const useVideoSizer = () => {
   const [videoNaturalWidth, setVideoNaturalWidth] = React.useState(0)
   const [loadedVideoNaturalSize, setLoadedVideoNaturalSize] = React.useState(false)
 
-  const setContainerSize = (height, width) => {
+  const setContainerSize = (height: number, width: number) => {
     setContainerHeight(height)
     setContainerWidth(width)
   }
-  const setVideoNaturalSize = (height, width) => {
+  const setVideoNaturalSize = (height: number, width: number) => {
     setVideoNaturalHeight(height)
     setVideoNaturalWidth(width)
     setLoadedVideoNaturalSize(true)
@@ -64,23 +77,37 @@ export const useVideoSizer = () => {
   ] as const
 }
 
-const allowedHosts = ['127.0.0.1', 'localhost']
+const urlIsOK = (url: string, allowFile?: boolean) => {
+  const allowedHosts = ['127.0.0.1', 'localhost']
 
-const urlIsOK = url =>
   // This should be as limited as possible, to avoid injections.
-  /^[a-zA-Z0-9=.%:?/&-_]*$/.test(url) &&
-  (__STORYBOOK__ || __STORYSHOT__ || allowedHosts.includes(new URL(url).hostname))
+  if (/^[a-zA-Z0-9=.%:?/&-_]*$/.test(url)) {
+    if (__STORYBOOK__ || __STORYSHOT__) {
+      return true
+    }
+    const u = new URL(url)
+    if (allowedHosts.includes(u.hostname)) {
+      return true
+    }
+
+    if (allowFile && u.hostname === '') {
+      return true
+    }
+  }
+  return false
+}
 
 type CheckURLProps = {
   url: string
-  children: React.ReactNode
+  children: React.ReactElement
+  allowFile?: boolean
 }
 
-export const CheckURL: React.FunctionComponent<CheckURLProps> = (props: CheckURLProps) =>
-  urlIsOK(props.url) ? (
-    (props.children as any)
+export const CheckURL = (props: CheckURLProps) =>
+  urlIsOK(props.url, props.allowFile) ? (
+    props.children
   ) : (
-    <Box2 direction="horizontal" fullWidth={true} fullHeight={true} centerChildren={true}>
-      <Text type="BodySmall">Invalid URL: {props.url}</Text>
-    </Box2>
+    <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true} centerChildren={true}>
+      <Kb.Text type="BodySmall">Invalid URL: {props.url}</Kb.Text>
+    </Kb.Box2>
   )

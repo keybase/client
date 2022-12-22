@@ -45,7 +45,7 @@ export default class extends React.PureComponent<Props, State> {
   render() {
     const {onUrlError} = this.props
     return (
-      <CheckURL url={this.props.url}>
+      <CheckURL url={this.props.url} allowFile={this.props.allowFile}>
         <Measure bounds={true} onResize={this._onContainerResize}>
           {({measureRef}) => (
             <div ref={measureRef} style={Styles.collapseStyles([styles.container, this.props.style])}>

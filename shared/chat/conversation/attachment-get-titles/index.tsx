@@ -4,7 +4,7 @@ import * as Styles from '../../../styles'
 import type * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 
 export type Info = {
-  type: 'image' | 'file'
+  type: 'image' | 'file' | 'video'
   title: string
   filename: string
   outboxID: RPCChatTypes.OutboxID | null
@@ -80,19 +80,32 @@ class GetTitles extends React.Component<Props, State> {
     const titleHint = 'Add a caption...'
     if (!info) return null
 
+    let preview: React.ReactNode = null
+    switch (info.type) {
+      case 'image':
+        preview = <Kb.ZoomableImage src={Styles.isAndroid ? `file://${path}` : path} style={styles.image} />
+        break
+      case 'video':
+        preview = (
+          <Kb.Video
+            allowFile={true}
+            url={Styles.isAndroid ? `${path.substring(2)}` : `file://${encodeURI(path)}`}
+          />
+        )
+        break
+      default:
+        preview = (
+          <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} centerChildren={true}>
+            <Kb.Icon type="icon-file-uploading-48" />
+          </Kb.Box2>
+        )
+    }
+
     return (
       <Kb.PopupWrapper onCancel={this.props.onCancel}>
         <Kb.Box2 direction="vertical" style={styles.containerOuter} fullWidth={true}>
           <Kb.Box2 alignItems="center" direction="vertical" fullWidth={true} style={styles.container}>
-            <Kb.BoxGrow style={styles.boxGrow}>
-              {info.type === 'image' ? (
-                <Kb.ZoomableImage src={Styles.isAndroid ? `file://${path}` : path} style={styles.image} />
-              ) : (
-                <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} centerChildren={true}>
-                  <Kb.Icon type="icon-file-uploading-48" />
-                </Kb.Box2>
-              )}
-            </Kb.BoxGrow>
+            <Kb.BoxGrow style={styles.boxGrow}>{preview}</Kb.BoxGrow>
             {this.props.pathAndInfos.length > 0 && !Styles.isMobile && (
               <Kb.Box2 direction="vertical" style={styles.filename}>
                 <Kb.Text type="BodySmallSemibold">Filename</Kb.Text>

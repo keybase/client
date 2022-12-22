@@ -24,39 +24,42 @@ const styles = Styles.styleSheetCreate(
 
 class FilePickerPopup extends React.Component<Props> {
   render() {
-    const iosItems: Kb.MenuItems = [
-      {
-        icon: 'iconfont-camera',
-        onClick: () => this.props.onSelect('mixed', 'camera'),
-        title: 'Take photo or video',
-      },
-      {
-        icon: 'iconfont-video-library',
-        onClick: () => this.props.onSelect('video', 'library'),
-        title: 'Choose video from library',
-      },
-      {
-        icon: 'iconfont-photo-library',
-        onClick: () => this.props.onSelect('photo', 'library'),
-        title: 'Choose photos from library',
-      },
-    ]
-
-    const androidItems: Kb.MenuItems = [
-      {icon: 'iconfont-camera', onClick: () => this.props.onSelect('photo', 'camera'), title: 'Take photo'},
-      {icon: 'iconfont-film', onClick: () => this.props.onSelect('video', 'camera'), title: 'Take video'},
-      {
-        icon: 'iconfont-photo-library',
-        onClick: () => this.props.onSelect('photo', 'library'),
-        title: 'Photo from library',
-      },
-      {
-        icon: 'iconfont-video-library',
-        onClick: () => this.props.onSelect('video', 'library'),
-        title: 'Video from library',
-      },
-    ]
-    const items = isIOS ? iosItems : androidItems
+    const items = isIOS
+      ? ([
+          {
+            icon: 'iconfont-camera',
+            onClick: () => this.props.onSelect('mixed', 'camera'),
+            title: 'Take photo or video',
+          },
+          {
+            icon: 'iconfont-video-library',
+            onClick: () => this.props.onSelect('video', 'library'),
+            title: 'Choose video from library',
+          },
+          {
+            icon: 'iconfont-photo-library',
+            onClick: () => this.props.onSelect('photo', 'library'),
+            title: 'Choose photos from library',
+          },
+        ] as const)
+      : ([
+          {
+            icon: 'iconfont-camera',
+            onClick: () => this.props.onSelect('photo', 'camera'),
+            title: 'Take photo',
+          },
+          {icon: 'iconfont-film', onClick: () => this.props.onSelect('video', 'camera'), title: 'Take video'},
+          {
+            icon: 'iconfont-photo-library',
+            onClick: () => this.props.onSelect('photo', 'library'),
+            title: 'Photo from library',
+          },
+          {
+            icon: 'iconfont-video-library',
+            onClick: () => this.props.onSelect('video', 'library'),
+            title: 'Video from library',
+          },
+        ] as const)
 
     const header = <Prompt />
     return (

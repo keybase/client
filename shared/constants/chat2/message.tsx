@@ -1382,7 +1382,16 @@ export const getClientPrev = (
 }
 
 const imageFileNameRegex = /[^/]+\.(jpg|png|gif|jpeg|bmp)$/i
-export const pathToAttachmentType = (path: string) => (imageFileNameRegex.test(path) ? 'image' : 'file')
+const videoFileNameRegex = /[^/]+\.(mp4|mov|avi|mkv)$/i
+export const pathToAttachmentType = (path: string) => {
+  if (imageFileNameRegex.test(path)) {
+    return 'image'
+  }
+  if (videoFileNameRegex.test(path)) {
+    return 'video'
+  }
+  return 'file'
+}
 export const isSpecialMention = (s: string) => ['here', 'channel', 'everyone'].includes(s)
 
 export const specialMentions = ['here', 'channel', 'everyone']

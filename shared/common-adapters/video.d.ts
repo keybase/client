@@ -6,6 +6,7 @@ export type Props = {
   onUrlError?: (err: string) => void
   style?: Styles.StylesCrossPlatform | null
   url: string
+  allowFile?: boolean
 }
 
 export type State = {
