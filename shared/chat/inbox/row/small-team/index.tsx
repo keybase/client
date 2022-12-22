@@ -79,7 +79,11 @@ class SmallTeam extends React.PureComponent<Props, State> {
         <Kb.ClickableBox
           className={Styles.classNames('small-row', {selected: props.isSelected})}
           {...clickProps}
-          style={styles.container}
+          style={
+            props.isInWidget
+              ? Styles.collapseStyles([styles.container, {backgroundColor: props.backgroundColor}])
+              : styles.container
+          }
         >
           <Kb.Box style={Styles.collapseStyles([styles.rowContainer, styles.fastBlank] as const)}>
             {props.teamname ? (
