@@ -33,7 +33,6 @@ export type Props = {
   snippet: string
   name: string
   snippetDecoration: RPCChatTypes.SnippetDecoration
-  subColor: AllowedColors
   teamname: string
   conversationIDKey: ChatTypes.ConversationIDKey
   timestamp: string
@@ -48,11 +47,18 @@ const SmallTeam = React.memo(function (p: Props) {
   const {backgroundColor, channelname, draft, hasBottomLine, hasResetUsers} = p
   const {isDecryptingSnippet, isFinalized, isMuted, isSelected} = p
   const {isTypingSnippet, layoutSnippet, onMuteConversation, onHideConversation} = p
-  const {participants, snippet, subColor, teamname, conversationIDKey, hasUnread} = p
+  const {participants, snippet, teamname, conversationIDKey, hasUnread} = p
   const {timestamp, usernameColor, youAreReset, youNeedToRekey, isInWidget, swipeCloseRef} = p
   const {onSelectConversation, participantNeedToRekey, snippetDecoration, name, isTeam} = p
 
   const showBold = !isSelected && hasUnread
+
+  const subColor = isSelected
+    ? Styles.globalColors.white
+    : hasUnread
+    ? Styles.globalColors.black
+    : Styles.globalColors.black_50
+
   return (
     <SwipeConvActions
       isMuted={isMuted}
@@ -94,7 +100,6 @@ const SmallTeam = React.memo(function (p: Props) {
                 backgroundColor={backgroundColor}
                 isSelected={isSelected}
                 showGear={!isInWidget}
-                subColor={subColor}
                 timestamp={timestamp}
                 usernameColor={usernameColor}
                 name={name}

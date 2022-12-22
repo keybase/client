@@ -13,7 +13,6 @@ type Props = {
   isSelected: boolean
   showGear: boolean
   backgroundColor?: string
-  subColor: string
   timestamp?: string
   usernameColor?: AllowedColors
   name: string
@@ -22,16 +21,22 @@ type Props = {
 
 const SimpleTopLine = React.memo(function SimpleTopLine(props: Props) {
   const {backgroundColor, channelname, conversationIDKey} = props
-  const {isSelected, showGear, subColor, timestamp} = props
+  const {isSelected, showGear, timestamp} = props
   const {usernameColor, isTeam, name} = props
 
   const you = Container.useSelector(state => state.config.username)
-  const showBold = Container.useSelector(
-    state => !isSelected && (state.chat2.unreadMap.get(conversationIDKey) ?? 0 > 0)
-  )
+  const hasUnread = Container.useSelector(state => (state.chat2.unreadMap.get(conversationIDKey) ?? 0) > 0)
   const teamname = Container.useSelector(state =>
     state.chat2.metaMap.get(conversationIDKey)?.teamname || isTeam ? name : ''
   )
+
+  const showBold = !isSelected && hasUnread
+
+  const subColor = isSelected
+    ? Styles.globalColors.white
+    : hasUnread
+    ? Styles.globalColors.black
+    : Styles.globalColors.black_50
 
   const participants = Container.useSelector(state => {
     const participantInfo = state.chat2.participantMap.get(conversationIDKey)
