@@ -1,5 +1,7 @@
 declare var __HOT__: boolean
 declare var __VERSION__: string
+declare var __FILE_SUFFIX__: string
+declare var __PROFILE__: boolean
 declare var __STORYBOOK__: boolean
 declare var __STORYSHOT__: boolean
 
