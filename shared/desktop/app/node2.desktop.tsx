@@ -258,7 +258,7 @@ const willFinishLaunching = () => {
 let menubarWindowID = 0
 
 const remoteURL = (windowComponent: string, windowParam: string) =>
-  `${htmlPrefix}${assetRoot}${windowComponent}${__DEV__ ? '.dev' : ''}.html?param=${windowParam}`
+  `${htmlPrefix}${assetRoot}${windowComponent}${__FILE_SUFFIX__}.html?param=${windowParam}`
 
 const findRemoteComponent = (windowComponent: string, windowParam: string) => {
   const url = remoteURL(windowComponent, windowParam)
@@ -783,7 +783,7 @@ const plumbEvents = () => {
             contextIsolation: true,
             nodeIntegration: false,
             nodeIntegrationInWorker: false,
-            preload: `${assetRoot}preload${__DEV__ ? '.dev' : ''}.bundle.js`,
+            preload: `${assetRoot}preload${__FILE_SUFFIX__}.bundle.js`,
           },
           ...action.payload.windowOpts,
         }

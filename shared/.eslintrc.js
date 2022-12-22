@@ -6,6 +6,7 @@ module.exports = {
     __DEV__: false,
     __HOT__: false,
     __STORYBOOK__: false,
+    __FILE_SUFFIX__: false,
     __STORYSHOT__: false,
     cancelAnimationFrame: 'readonly',
     requestAnimationFrame: 'readonly',

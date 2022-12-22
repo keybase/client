@@ -15,7 +15,7 @@ if (pathSep !== '/' && pathSep !== '\\') {
 }
 
 const kb2: KB2['constants'] = {
-  assetRoot: path.resolve(__DEV__ ? '.' : app.getAppPath()).replaceAll('\\', '/') + '/',
+  assetRoot: path.resolve(__DEV__ || __PROFILE__ ? '.' : app.getAppPath()).replaceAll('\\', '/') + '/',
   configOverload: {}, // filled in later
   dokanPath: path.resolve(env.LOCALAPPDATA ?? '', 'Keybase', 'DokanSetup_redist.exe'),
   downloadFolder: path.join(os.homedir(), 'Downloads'),

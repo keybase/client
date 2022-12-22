@@ -14,6 +14,11 @@ const commands = {
     help: '[Path to sourcemaps]: Copy sourcemaps into currently installed Keybase app',
     shell: "a(){ cp '$1'/* /Applications/Keybase.app/Contents/Resources/app/desktop/dist; };a",
   },
+  profile: {
+    env: {PROFILE: 'true'},
+    help: 'Start electron with profiling react',
+    shell: 'yarn run build-profile && yarn run start-profile',
+  },
   start: {
     help: 'Do a simple dev build',
     shell: 'yarn run build-dev && yarn run start-cold',
@@ -31,6 +36,10 @@ const commands = {
   'start-prod': {
     help: 'Launch installed Keybase app with console output',
     shell: '/Applications/Keybase.app/Contents/MacOS/Electron',
+  },
+  'start-profile': {
+    help: 'Start electron with profile',
+    shell: `electron ${path.resolve(__dirname, '../dist/node.profile.bundle.js')}`,
   },
 }
 

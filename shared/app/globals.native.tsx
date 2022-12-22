@@ -17,3 +17,6 @@ __STORYBOOK__ = false
 
 // We don't storyshot RN
 __STORYSHOT__ = false
+
+__FILE_SUFFIX__ = ''
+__PROFILE__ = false

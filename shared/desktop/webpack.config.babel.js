@@ -13,8 +13,16 @@ const ReactRefreshWebpackPlugin = require('@pmmmwh/react-refresh-webpack-plugin'
 const config = (_, {mode}) => {
   const isDev = mode !== 'production'
   const isHot = isDev && !!process.env['HOT']
+  const isProfile = !isDev && !!process.env['PROFILE']
+  if (isProfile) {
+    for (let i = 0; i < 10; ++i) {
+      console.log('Webpack profiling on')
+    }
+  }
 
-  console.error('Flags: ', {isDev, isHot})
+  const fileSuffix = isDev ? '.dev' : isProfile ? '.profile' : ''
+
+  console.error('Flags: ', {isDev, isHot, isProfile})
 
   const makeRules = nodeThread => {
     const babelRule = {
@@ -101,6 +109,8 @@ const config = (_, {mode}) => {
   const makeCommonConfig = () => {
     // If we use the hot server it pulls in this config
     const defines = {
+      __FILE_SUFFIX__: JSON.stringify(fileSuffix),
+      __PROFILE__: isProfile,
       __DEV__: isDev,
       __HOT__: isHot,
       __STORYBOOK__: false,
@@ -115,6 +125,9 @@ const config = (_, {mode}) => {
     }
     if (isDev) {
     } else {
+      if (isProfile) {
+        alias['react-dom$'] = 'react-dom/profiling'
+      }
       alias['@welldone-software/why-did-you-render'] = false
     }
 
@@ -125,7 +138,7 @@ const config = (_, {mode}) => {
       mode: isDev ? 'development' : 'production',
       node: false,
       output: {
-        filename: `[name]${isDev ? '.dev' : ''}.bundle.js`,
+        filename: `[name]${fileSuffix}.bundle.js`,
         path: path.resolve(__dirname, 'dist'),
         // can be the same?
         publicPath,
@@ -183,7 +196,7 @@ const config = (_, {mode}) => {
     target: 'electron-main',
   })
 
-  const makeHtmlName = name => `${name}${isDev ? '.dev' : ''}.html`
+  const makeHtmlName = name => `${name}${fileSuffix}.html`
   const makeViewPlugins = names =>
     [
       // needed to help webpack and electron renderer
