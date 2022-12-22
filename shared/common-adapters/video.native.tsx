@@ -31,10 +31,10 @@ const Video = (props: Props) => {
       <DelayMount>
         <Kb.Box
           style={styles.container}
-          onLayout={event =>
+          onLayout={event => {
             event?.nativeEvent?.layout &&
-            setContainerSize(event.nativeEvent.layout.height, event.nativeEvent.layout.width)
-          }
+              setContainerSize(event.nativeEvent.layout.height, event.nativeEvent.layout.width)
+          }}
         >
           <AVVideo
             source={{uri: props.url}}

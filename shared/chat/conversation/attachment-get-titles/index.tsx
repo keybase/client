@@ -86,7 +86,12 @@ class GetTitles extends React.Component<Props, State> {
         preview = <Kb.ZoomableImage src={Styles.isAndroid ? `file://${path}` : path} style={styles.image} />
         break
       case 'video':
-        preview = <Kb.Video allowFile={true} url={`file://${encodeURI(path)}`} />
+        preview = (
+          <Kb.Video
+            allowFile={true}
+            url={Styles.isAndroid ? `${path.substring(2)}` : `file://${encodeURI(path)}`}
+          />
+        )
         break
       default:
         preview = (

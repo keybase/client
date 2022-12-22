@@ -209,6 +209,7 @@ const ChatFilePicker = (p: ChatFilePickerProps) => {
         if (result.canceled || (result.assets.length ?? 0) == 0 || !conversationIDKey) {
           return
         }
+
         const pathAndOutboxIDs = result.assets.map(p => ({outboxID: null, path: parseUri(p)}))
         const props = {conversationIDKey, pathAndOutboxIDs}
         dispatch(

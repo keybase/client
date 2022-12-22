@@ -26,10 +26,18 @@ export const getVideoSize = (state: State): Size => {
   if (!isPositive(containerHeight) || !isPositive(containerWidth)) {
     return {height: 0, width: 0}
   }
+
+  // not loaded yet, just use container size
+  if (!state.loadedVideoSize) {
+    return {
+      height: containerHeight,
+      width: containerWidth,
+    }
+  }
   if (!isPositive(videoHeight) || !isPositive(videoWidth)) {
     // Might be an audio file. In this case height doesn't seem to affect
     // desktop at all.
-    return state.loadedVideoSize ? {height: 96, width: containerWidth} : {height: 0, width: 0}
+    return {height: 96, width: containerWidth}
   }
 
   const idealHeight = (containerWidth * videoHeight) / videoWidth
@@ -82,7 +90,7 @@ const urlIsOK = (url: string, allowFile?: boolean) => {
       return true
     }
 
-    if (allowFile && u.protocol === 'file:' && u.hostname === '') {
+    if (allowFile && u.hostname === '') {
       return true
     }
   }
@@ -91,7 +99,7 @@ const urlIsOK = (url: string, allowFile?: boolean) => {
 
 type CheckURLProps = {
   url: string
-  children: React.ReactNode
+  children: React.ReactElement
   allowFile?: boolean
 }
 
