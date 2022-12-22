@@ -18,7 +18,6 @@ export type Props = {
   hasBadge: boolean
   hasBottomLine: boolean
   hasResetUsers: boolean
-  hasUnread: boolean
   iconHoverColor: string
   isDecryptingSnippet: boolean
   isFinalized: boolean
@@ -47,7 +46,7 @@ export type Props = {
 
 const SmallTeam = React.memo(function (p: Props) {
   const {backgroundColor, channelname, draft, hasBadge, hasBottomLine, hasResetUsers} = p
-  const {hasUnread, iconHoverColor, isDecryptingSnippet, isFinalized, isMuted, isSelected} = p
+  const {iconHoverColor, isDecryptingSnippet, isFinalized, isMuted, isSelected} = p
   const {isTypingSnippet, layoutSnippet, onMuteConversation, onHideConversation} = p
   const {participants, showBold, snippet, subColor, teamname, conversationIDKey} = p
   const {timestamp, usernameColor, youAreReset, youNeedToRekey, isInWidget, swipeCloseRef} = p
@@ -91,7 +90,6 @@ const SmallTeam = React.memo(function (p: Props) {
             >
               <SimpleTopLine
                 backgroundColor={backgroundColor}
-                hasUnread={hasUnread}
                 hasBadge={hasBadge}
                 iconHoverColor={iconHoverColor}
                 isSelected={isSelected}

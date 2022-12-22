@@ -9,7 +9,6 @@ type Props = {
   channelname?: string
   teamname?: string
   conversationIDKey: ChatTypes.ConversationIDKey
-  hasUnread: boolean
   iconHoverColor: string
   isSelected: boolean
   participants: Array<string> | string
