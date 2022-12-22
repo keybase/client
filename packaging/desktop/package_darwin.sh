@@ -20,7 +20,7 @@ arch=${ARCH:-"amd64"}
 electron_arch="x64"
 platform=${PLATFORM:-"darwin"}
 if [ "$arch" = "arm64" ]; then
-  electron_arch = "arm64"
+  electron_arch="arm64"
 fi
 
 if [ ! "$bucket_name" = "" ] && [ "$s3host" = "" ]; then
