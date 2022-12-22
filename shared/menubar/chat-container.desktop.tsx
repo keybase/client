@@ -33,6 +33,7 @@ const RemoteSmallTeam = (props: RowProps) => {
       channelname={conversation.channelname}
       conversationIDKey={conversationIDKey}
       hasBottomLine={true}
+      hasUnread={hasUnread}
       hasResetUsers={!!conversation.resetParticipants && conversation.resetParticipants.size > 0}
       isDecryptingSnippet={false}
       isFinalized={!!conversation.wasFinalizedBy}
@@ -45,7 +46,6 @@ const RemoteSmallTeam = (props: RowProps) => {
       onSelectConversation={() => dispatch(Chat2Gen.createOpenChatFromWidget({conversationIDKey}))}
       participantNeedToRekey={participantNeedToRekey}
       participants={conversation.teamname ? [] : Constants.getRowParticipants(participantInfo, username)}
-      showBold={styles.showBold}
       snippet={conversation.snippet}
       snippetDecoration={conversation.snippetDecoration}
       subColor={styles.subColor}

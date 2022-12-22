@@ -11,7 +11,6 @@ type Props = {
   channelname?: string
   conversationIDKey: ChatTypes.ConversationIDKey
   isSelected: boolean
-  showBold: boolean
   showGear: boolean
   backgroundColor?: string
   subColor: string
@@ -23,11 +22,13 @@ type Props = {
 
 const SimpleTopLine = React.memo(function SimpleTopLine(props: Props) {
   const {backgroundColor, channelname, conversationIDKey} = props
-  const {isSelected, showBold, showGear, subColor, timestamp} = props
+  const {isSelected, showGear, subColor, timestamp} = props
   const {usernameColor, isTeam, name} = props
 
   const you = Container.useSelector(state => state.config.username)
-
+  const showBold = Container.useSelector(
+    state => !isSelected && (state.chat2.unreadMap.get(conversationIDKey) ?? 0 > 0)
+  )
   const teamname = Container.useSelector(state =>
     state.chat2.metaMap.get(conversationIDKey)?.teamname || isTeam ? name : ''
   )

@@ -79,6 +79,7 @@ export type DeserializeProps = Omit<ProxyProps, ConfigHoistedProps | UsersHoiste
     badgeMap: Map<string, number>
     metaMap: Map<string, any>
     participantMap: Map<string, any>
+    unreadMap: Map<string, number>
   }
   config: Pick<ConfigState, ConfigHoistedProps>
   users: Pick<UsersState, UsersHoistedProps>
@@ -89,6 +90,7 @@ const initialState: DeserializeProps = {
     badgeMap: new Map(),
     metaMap: new Map(),
     participantMap: new Map(),
+    unreadMap: new Map(),
   },
   config: {
     avatarRefreshCounter: new Map(),
@@ -158,13 +160,15 @@ export const deserialize = (
   } = props
 
   const badgeMap = state.chat2.badgeMap ?? new Map<string, number>()
+  const unreadMap = state.chat2.unreadMap ?? new Map<string, number>()
   const metaMap = state.chat2.metaMap ?? new Map<string, any>()
   const participantMap = state.chat2.participantMap ?? new Map<string, any>()
   rest.conversationsToSend?.forEach(c => {
-    const {participantInfo, conversation} = c
+    const {participantInfo, conversation, hasUnread} = c
     const {conversationIDKey} = conversation
     badgeMap.set(conversationIDKey, c.hasBadge ? 1 : 0)
     participantMap.set(conversationIDKey, participantInfo)
+    unreadMap.set(conversationIDKey, hasUnread ? 1 : 0)
   })
 
   return {
@@ -174,6 +178,7 @@ export const deserialize = (
       badgeMap,
       metaMap,
       participantMap,
+      unreadMap,
     },
     config: {
       ...state.config,

@@ -109,7 +109,6 @@ const SmallTeamContainer = (p: OwnProps) => {
     onSelectConversation: isSelected ? undefined : onSelectConversation,
     participantNeedToRekey,
     participants,
-    showBold: styles.showBold,
     snippet,
     snippetDecoration,
     subColor: styles.subColor as AllowedColors,
