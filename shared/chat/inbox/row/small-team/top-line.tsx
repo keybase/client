@@ -1,30 +1,53 @@
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
+import * as Container from '../../../../util/container'
 import * as Styles from '../../../../styles'
 import TeamMenu from '../../../conversation/info-panel/menu/container'
 import type * as ChatTypes from '../../../../constants/types/chat2'
 import type {AllowedColors} from '../../../../common-adapters/text'
+import shallowEqual from 'shallowequal'
 
 type Props = {
   channelname?: string
-  teamname?: string
   conversationIDKey: ChatTypes.ConversationIDKey
-  iconHoverColor: string
   isSelected: boolean
-  participants: Array<string> | string
   showBold: boolean
   showGear: boolean
   backgroundColor?: string
   subColor: string
   timestamp?: string
   usernameColor?: AllowedColors
-  hasBadge: boolean
+  name: string
+  isTeam: boolean
 }
 
 const SimpleTopLine = React.memo(function SimpleTopLine(props: Props) {
-  const {backgroundColor, channelname, teamname, conversationIDKey, iconHoverColor} = props
-  const {isSelected, participants, showBold, showGear, subColor, timestamp} = props
-  const {usernameColor, hasBadge} = props
+  const {backgroundColor, channelname, conversationIDKey} = props
+  const {isSelected, showBold, showGear, subColor, timestamp} = props
+  const {usernameColor, isTeam, name} = props
+
+  const you = Container.useSelector(state => state.config.username)
+
+  const teamname = Container.useSelector(state =>
+    state.chat2.metaMap.get(conversationIDKey)?.teamname || isTeam ? name : ''
+  )
+
+  const participants = Container.useSelector(state => {
+    const participantInfo = state.chat2.participantMap.get(conversationIDKey)
+    if (participantInfo?.all.length) {
+      // Filter out ourselves unless it's our 1:1 conversation
+      return participantInfo.name.filter((participant, _, list) =>
+        list.length === 1 ? true : participant !== you
+      )
+    }
+    if (isTeam) {
+      return [name]
+    }
+    return name.split(',')
+  }, shallowEqual)
+
+  const hasBadge = Container.useSelector(state => (state.chat2.badgeMap.get(conversationIDKey) ?? 0) > 0)
+  const iconHoverColor = isSelected ? Styles.globalColors.white_75 : Styles.globalColors.black
 
   const {showingPopup, toggleShowingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
     <TeamMenu

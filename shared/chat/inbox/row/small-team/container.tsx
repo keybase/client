@@ -21,7 +21,7 @@ type OwnProps = {
 }
 
 const SmallTeamContainer = (p: OwnProps) => {
-  const {conversationIDKey, selected, swipeCloseRef, isTeam, name, time} = p
+  const {conversationIDKey, selected, swipeCloseRef, isTeam, name, time, snippetDecoration} = p
   const _meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
   const isEmptyMeta = _meta.conversationIDKey !== conversationIDKey
   const youAreReset = _meta.membershipType === 'youAreReset'
@@ -51,7 +51,6 @@ const SmallTeamContainer = (p: OwnProps) => {
   const timestamp = _meta.timestamp > 0 ? _meta.timestamp : time || 0
 
   const _draft = Container.useSelector(state => Constants.getDraft(state, conversationIDKey))
-  const hasBadge = Container.useSelector(state => Constants.getHasBadge(state, conversationIDKey))
   const isMuted = Container.useSelector(state => Constants.isMuted(state, conversationIDKey))
 
   const hasResetUsers = _meta.resetParticipants.size !== 0
@@ -84,7 +83,6 @@ const SmallTeamContainer = (p: OwnProps) => {
     channelname: undefined,
     conversationIDKey,
     draft: _draft && !isSelected && !hasUnread ? _draft : undefined,
-    hasBadge,
     hasBottomLine:
       youAreReset ||
       participantNeedToRekey ||
@@ -94,16 +92,17 @@ const SmallTeamContainer = (p: OwnProps) => {
       hasResetUsers,
     hasResetUsers,
     hasUnread,
-    iconHoverColor: styles.iconHoverColor,
     isDecryptingSnippet,
     isFinalized,
     isInWidget: false,
     isMuted,
     isSelected,
+    isTeam,
     isTypingSnippet,
     layoutIsTeam: isTeam,
     layoutName: name,
     layoutSnippet: p.snippet,
+    name,
     onHideConversation,
     onMuteConversation,
     // Don't allow you to select yourself
@@ -112,6 +111,7 @@ const SmallTeamContainer = (p: OwnProps) => {
     participants,
     showBold: styles.showBold,
     snippet,
+    snippetDecoration,
     subColor: styles.subColor as AllowedColors,
     swipeCloseRef,
     teamname,

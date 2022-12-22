@@ -460,11 +460,9 @@ export const getRowStyles = (isSelected: boolean, hasUnread: boolean) => {
     ? globalColors.black
     : globalColors.black_50
   const usernameColor = isSelected ? globalColors.white : globalColors.black
-  const iconHoverColor = isSelected ? globalColors.white_75 : globalColors.black
 
   return {
     backgroundColor,
-    iconHoverColor,
     showBold,
     subColor,
     usernameColor,

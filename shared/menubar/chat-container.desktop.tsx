@@ -2,7 +2,6 @@ import * as Chat2Gen from '../actions/chat2-gen'
 import * as Constants from '../constants/chat2'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
-import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 import * as Styles from '../styles'
 import type * as Types from '../constants/types/chat2'
 import type {DeserializeProps} from './remote-serializer.desktop'
@@ -20,7 +19,7 @@ const RemoteSmallTeam = (props: RowProps) => {
   const {conversationIDKey} = props
   const {conversationsToSend, config} = state
   const {username} = config
-  const {hasBadge, hasUnread, conversation, participantInfo} = conversationsToSend.find(
+  const {hasUnread, conversation, participantInfo} = conversationsToSend.find(
     c => c.conversation.conversationIDKey === conversationIDKey
   )!
   const styles = Constants.getRowStyles(false, hasUnread)
@@ -28,21 +27,19 @@ const RemoteSmallTeam = (props: RowProps) => {
   const youNeedToRekey = !!participantNeedToRekey && conversation.rekeyers.has(username)
   return (
     <SmallTeam
+      isTeam={conversation.teamType !== 'adhoc'}
+      name={conversation.tlfname}
       backgroundColor={Styles.globalColors.white}
       channelname={conversation.channelname}
       conversationIDKey={conversationIDKey}
-      hasBadge={hasBadge}
       hasBottomLine={true}
       hasResetUsers={!!conversation.resetParticipants && conversation.resetParticipants.size > 0}
-      hasUnread={hasUnread}
-      iconHoverColor={styles.iconHoverColor}
       isDecryptingSnippet={false}
       isFinalized={!!conversation.wasFinalizedBy}
       isInWidget={true}
       isMuted={conversation.isMuted}
       isSelected={false}
       isTypingSnippet={false}
-      layoutSnippetDecoration={RPCChatTypes.SnippetDecoration.none}
       onHideConversation={noop}
       onMuteConversation={noop}
       onSelectConversation={() => dispatch(Chat2Gen.createOpenChatFromWidget({conversationIDKey}))}
@@ -63,6 +60,7 @@ const RemoteSmallTeam = (props: RowProps) => {
 
 const ChatPreview = (p: {convLimit?: number}) => {
   const state = Container.useRemoteStore<DeserializeProps>()
+  console.log('aaa state', state)
   const dispatch = Container.useDispatch()
   const {convLimit} = p
   const {conversationsToSend} = state

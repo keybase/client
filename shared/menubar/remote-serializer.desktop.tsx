@@ -75,11 +75,21 @@ type SerializeProps = Omit<
 }
 
 export type DeserializeProps = Omit<ProxyProps, ConfigHoistedProps | UsersHoistedProps> & {
+  chat2: {
+    badgeMap: Map<string, number>
+    metaMap: Map<string, any>
+    participantMap: Map<string, any>
+  }
   config: Pick<ConfigState, ConfigHoistedProps>
   users: Pick<UsersState, UsersHoistedProps>
 }
 
 const initialState: DeserializeProps = {
+  chat2: {
+    badgeMap: new Map(),
+    metaMap: new Map(),
+    participantMap: new Map(),
+  },
   config: {
     avatarRefreshCounter: new Map(),
     daemonHandshakeState: 'starting',
@@ -111,6 +121,7 @@ const initialState: DeserializeProps = {
 }
 
 export const serialize = (p: ProxyProps): Partial<SerializeProps> => {
+  // TODO don't send whole conversations
   const {avatarRefreshCounter, conversationsToSend, followers, following, infoMap, ...toSend} = p
   return {
     ...toSend,
@@ -146,9 +157,24 @@ export const deserialize = (
     ...rest
   } = props
 
+  const badgeMap = state.chat2.badgeMap ?? new Map<string, number>()
+  const metaMap = state.chat2.metaMap ?? new Map<string, any>()
+  const participantMap = state.chat2.participantMap ?? new Map<string, any>()
+  rest.conversationsToSend?.forEach(c => {
+    const {participantInfo, conversation} = c
+    const {conversationIDKey} = conversation
+    badgeMap.set(conversationIDKey, c.hasBadge ? 1 : 0)
+    participantMap.set(conversationIDKey, participantInfo)
+  })
+
   return {
     ...state,
     ...rest,
+    chat2: {
+      badgeMap,
+      metaMap,
+      participantMap,
+    },
     config: {
       ...state.config,
       avatarRefreshCounter: avatarRefreshCounter

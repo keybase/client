@@ -15,15 +15,14 @@ export type Props = {
   backgroundColor?: string
   channelname?: string
   draft?: string
-  hasBadge: boolean
   hasBottomLine: boolean
   hasResetUsers: boolean
-  iconHoverColor: string
   isDecryptingSnippet: boolean
   isFinalized: boolean
   isMuted: boolean
   isSelected: boolean
   isTypingSnippet: boolean
+  isTeam: boolean
   layoutSnippet?: string
   onHideConversation: () => void
   onMuteConversation: () => void
@@ -32,6 +31,7 @@ export type Props = {
   participants: Array<string>
   showBold: boolean
   snippet: string
+  name: string
   snippetDecoration: RPCChatTypes.SnippetDecoration
   subColor: AllowedColors
   teamname: string
@@ -45,12 +45,12 @@ export type Props = {
 }
 
 const SmallTeam = React.memo(function (p: Props) {
-  const {backgroundColor, channelname, draft, hasBadge, hasBottomLine, hasResetUsers} = p
-  const {iconHoverColor, isDecryptingSnippet, isFinalized, isMuted, isSelected} = p
+  const {backgroundColor, channelname, draft, hasBottomLine, hasResetUsers} = p
+  const {isDecryptingSnippet, isFinalized, isMuted, isSelected} = p
   const {isTypingSnippet, layoutSnippet, onMuteConversation, onHideConversation} = p
   const {participants, showBold, snippet, subColor, teamname, conversationIDKey} = p
   const {timestamp, usernameColor, youAreReset, youNeedToRekey, isInWidget, swipeCloseRef} = p
-  const {onSelectConversation, participantNeedToRekey, snippetDecoration} = p
+  const {onSelectConversation, participantNeedToRekey, snippetDecoration, name, isTeam} = p
   return (
     <SwipeConvActions
       isMuted={isMuted}
@@ -90,16 +90,14 @@ const SmallTeam = React.memo(function (p: Props) {
             >
               <SimpleTopLine
                 backgroundColor={backgroundColor}
-                hasBadge={hasBadge}
-                iconHoverColor={iconHoverColor}
                 isSelected={isSelected}
-                participants={teamname ? teamname : participants}
                 showBold={showBold}
                 showGear={!isInWidget}
                 subColor={subColor}
                 timestamp={timestamp}
                 usernameColor={usernameColor}
-                teamname={teamname}
+                name={name}
+                isTeam={isTeam}
                 conversationIDKey={conversationIDKey}
                 {...(channelname ? {channelname: channelname} : {})}
               />
