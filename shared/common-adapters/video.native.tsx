@@ -27,7 +27,7 @@ const Video = (props: Props) => {
   const [videoSize, setContainerSize, setVideoNaturalSize] = useVideoSizer()
   useFixStatusbar()
   return (
-    <CheckURL url={props.url}>
+    <CheckURL url={props.url} allowFile={props.allowFile}>
       <DelayMount>
         <Kb.Box
           style={styles.container}

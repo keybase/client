@@ -211,7 +211,7 @@ const config = (_, {mode}) => {
     object-src 'self' http://127.0.0.1:*;
     frame-src http://127.0.0.1:*;
     font-src 'self' ${htmlWebpackPlugin.options.isDev ? 'http://localhost:4000' : ''};
-    media-src http://127.0.0.1:*;
+    media-src 'self' http://127.0.0.1:*;
     img-src 'self' data: http://127.0.0.1:* https://keybase.io/ https://pbs.twimg.com/ https://avatars.githubusercontent.com/ https://s3.amazonaws.com/keybase_processed_uploads/ ${
       htmlWebpackPlugin.options.isDev ? 'http://localhost:4000' : ''
     };
