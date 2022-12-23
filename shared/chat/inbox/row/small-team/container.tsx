@@ -82,7 +82,6 @@ const SmallTeamContainer = (p: OwnProps) => {
       !!snippet ||
       youNeedToRekey ||
       hasResetUsers,
-    hasResetUsers,
     hasUnread,
     isDecryptingSnippet,
     isFinalized,

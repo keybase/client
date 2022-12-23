@@ -13,7 +13,6 @@ export type Props = {
   draft?: string
   hasUnread: boolean
   hasBottomLine: boolean
-  hasResetUsers: boolean
   isDecryptingSnippet: boolean
   isFinalized: boolean
   isMuted: boolean
@@ -37,7 +36,7 @@ export type Props = {
 }
 
 const SmallTeam = React.memo(function (p: Props) {
-  const {draft, hasBottomLine, hasResetUsers} = p
+  const {draft, hasBottomLine} = p
   const {isDecryptingSnippet, isFinalized, isMuted, isSelected, time} = p
   const {isTypingSnippet, layoutSnippet, onMuteConversation, onHideConversation} = p
   const {participants, snippet, teamname, conversationIDKey} = p
@@ -103,7 +102,6 @@ const SmallTeam = React.memo(function (p: Props) {
                   conversationIDKey={conversationIDKey}
                   backgroundColor={backgroundColor}
                   snippet={snippet || layoutSnippet || ''}
-                  hasResetUsers={hasResetUsers}
                   youNeedToRekey={youNeedToRekey}
                   isSelected={isSelected}
                   isDecryptingSnippet={isDecryptingSnippet}

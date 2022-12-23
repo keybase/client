@@ -174,7 +174,9 @@ export const deserialize = (
     meta.teamname = conversation.teamname
     meta.timestamp = conversation.timestamp
     meta.channelname = conversation.channelname
+    // its not important to show rekey/reset stuff in the widget
     meta.rekeyers = emptySet
+    meta.resetParticipants = emptySet
     metaMap.set(conversationIDKey, meta)
   })
 

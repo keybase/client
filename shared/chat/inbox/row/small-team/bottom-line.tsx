@@ -8,9 +8,9 @@ import type * as Types from '../../../../constants/types/chat2'
 type Props = {
   conversationIDKey: Types.ConversationIDKey
   backgroundColor?: string
+  // this is passed in to override, but when convo is valid we can get the acutal snippet, todo
   snippet: string | null
   youNeedToRekey: boolean
-  hasResetUsers: boolean
   isSelected: boolean
   isDecryptingSnippet: boolean
   isTypingSnippet: boolean
@@ -31,7 +31,7 @@ const SnippetDecoration = (type: Kb.IconType, color: string, tooltip?: string) =
 
 const BottomLine = React.memo(function BottomLine(p: Props) {
   const {conversationIDKey, backgroundColor, snippet} = p
-  const {youNeedToRekey, hasResetUsers, isSelected, isDecryptingSnippet, isTypingSnippet, draft} = p
+  const {youNeedToRekey, isSelected, isDecryptingSnippet, isTypingSnippet, draft} = p
 
   const hasUnread = Container.useSelector(state => (state.chat2.unreadMap.get(conversationIDKey) ?? 0) > 0)
   const youAreReset = Container.useSelector(
@@ -39,6 +39,9 @@ const BottomLine = React.memo(function BottomLine(p: Props) {
   )
   const participantNeedToRekey = Container.useSelector(
     state => (state.chat2.metaMap.get(conversationIDKey)?.rekeyers?.size ?? 0) > 0
+  )
+  const hasResetUsers = Container.useSelector(
+    state => (state.chat2.metaMap.get(conversationIDKey)?.resetParticipants.size ?? 0) > 0
   )
 
   const subColor = isSelected
