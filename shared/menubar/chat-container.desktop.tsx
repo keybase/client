@@ -25,7 +25,7 @@ const RemoteSmallTeam = (props: RowProps) => {
       isSelected={false}
       layoutIsTeam={conversation?.teamType !== 'adhoc'}
       layoutName={conversation?.tlfname}
-      layoutSnippet={conversation?.snippet}
+      layoutSnippet={conversation?.snippetDecorated}
     />
   )
 }

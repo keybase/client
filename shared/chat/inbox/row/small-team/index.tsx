@@ -13,12 +13,12 @@ import shallowEqual from 'shallowequal'
 import './small-team.css'
 
 export type Props = {
-  isSelected: boolean
-  layoutIsTeam?: boolean
-  layoutSnippet?: string
-  layoutName?: string
   conversationIDKey: Types.ConversationIDKey
   isInWidget: boolean
+  isSelected: boolean
+  layoutIsTeam?: boolean
+  layoutName?: string
+  layoutSnippet?: string
   layoutTime?: number
   swipeCloseRef?: React.MutableRefObject<(() => void) | null>
 }
@@ -122,7 +122,7 @@ const RowAvatars = React.memo(function RowAvatars(p: RowAvatarProps) {
   const partOneTwo = Container.useSelector(state => {
     const participantInfo = state.chat2.participantMap.get(conversationIDKey)
     let part: Array<string>
-    if (participantInfo?.all.length) {
+    if (participantInfo?.name.length) {
       // Filter out ourselves unless it's our 1:1 conversation
       part = participantInfo.name.filter((participant, _, list) =>
         list.length === 1 ? true : participant !== state.config.username

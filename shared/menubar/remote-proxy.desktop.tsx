@@ -1,5 +1,4 @@
 // A mirror of the remote menubar windows.
-import * as ChatConstants from '../constants/chat2'
 import * as FSConstants from '../constants/fs'
 import type * as NotificationTypes from '../constants/types/notifications'
 import * as FSTypes from '../constants/types/fs'
@@ -108,20 +107,22 @@ const RemoteProxy = React.memo(function MenubarRemoteProxy() {
     () =>
       widgetList?.map(v => {
         const c = metaMap.get(v.convID)
+
+        let participants = participantMap.get(v.convID)?.name ?? []
+        participants = participants.slice(0, 3)
+
         return {
           conversation: {
             channelname: c?.channelname,
             conversationIDKey: v.convID,
-            snippet: c?.snippet,
             snippetDecorated: c?.snippetDecorated,
             teamType: c?.teamType,
-            teamname: c?.teamname,
             timestamp: c?.timestamp,
             tlfname: c?.tlfname,
           },
-          hasBadge: !!badgeMap.get(v.convID),
-          hasUnread: !!unreadMap.get(v.convID),
-          participantInfo: participantMap.get(v.convID) ?? ChatConstants.noParticipantInfo,
+          ...(badgeMap.get(v.convID) ? {hasBadge: true as const} : {}),
+          ...(unreadMap.get(v.convID) ? {hasUnread: true as const} : {}),
+          ...(participants.length ? {participants} : {}),
         }
       }) ?? [],
     [widgetList, metaMap, badgeMap, unreadMap, participantMap]
@@ -130,11 +131,7 @@ const RemoteProxy = React.memo(function MenubarRemoteProxy() {
   // filter some data based on visible users
   const usernamesArr: Array<string> = []
   tlfUpdates.forEach(update => usernamesArr.push(update.writer))
-  conversationsToSend.forEach(c => {
-    if (c.conversation.teamType === 'adhoc') {
-      usernamesArr.push(...c.participantInfo.all)
-    }
-  })
+  conversationsToSend.forEach(c => usernamesArr.push(...(c.participants ?? [])))
 
   // memoize so useMemos work below
   const usernames = getCachedUsernames(usernamesArr)
@@ -157,10 +154,12 @@ const RemoteProxy = React.memo(function MenubarRemoteProxy() {
     // We just use syncingPaths rather than merging with writingToJournal here
     // since journal status comes a bit slower, and merging the two causes
     // flakes on our perception of overall upload status.
-    endEstimate: uploads.endEstimate || 0,
-    fileName: filePaths.length === 1 ? FSTypes.getPathName(filePaths[1] || FSTypes.stringToPath('')) : null,
-    files: filePaths.length,
-    totalSyncingBytes: uploads.totalSyncingBytes,
+    ...(uploads.endEstimate ? {endEstimate: uploads.endEstimate} : {}),
+    ...(filePaths.length === 1
+      ? {filename: FSTypes.getPathName(filePaths[1] || FSTypes.stringToPath(''))}
+      : {}),
+    ...(filePaths.length ? {files: filePaths.length} : {}),
+    ...(uploads.totalSyncingBytes ? {totalSyncingBytes: uploads.totalSyncingBytes} : {}),
   }
 
   const p: ProxyProps & WidgetProps = {
@@ -168,7 +167,7 @@ const RemoteProxy = React.memo(function MenubarRemoteProxy() {
     avatarRefreshCounter,
     conversationsToSend,
     daemonHandshakeState,
-    darkMode,
+    ...(darkMode ? {darkMode} : {}),
     desktopAppBadgeCount,
     diskSpaceStatus,
     followers,
@@ -182,7 +181,7 @@ const RemoteProxy = React.memo(function MenubarRemoteProxy() {
     navBadges,
     outOfDate,
     remoteTlfUpdates,
-    showingDiskSpaceBanner: showingBanner,
+    ...(showingBanner ? {showingDiskSpaceBanner: true} : {}),
     username,
     widgetBadge,
     windowShownCount,

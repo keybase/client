@@ -33,7 +33,6 @@ type UsersHoistedProps = 'infoMap'
 type Conversation = {
   conversation: {
     conversationIDKey: string
-    snippet?: string
     teamType?: ChatTypes.TeamType
     tlfname?: string
     teamname?: string
@@ -41,9 +40,9 @@ type Conversation = {
     channelname?: string
     snippetDecorated?: string
   }
-  hasBadge: boolean
-  hasUnread: boolean
-  participantInfo: ChatTypes.ParticipantInfo
+  hasBadge?: true
+  hasUnread?: true
+  participants?: Array<string>
 }
 
 type KbfsDaemonStatus = {
@@ -53,16 +52,16 @@ type KbfsDaemonStatus = {
 
 export type ProxyProps = {
   conversationsToSend: Array<Conversation>
-  darkMode: boolean
+  darkMode?: boolean
   diskSpaceStatus: FSTypes.DiskSpaceStatus
-  endEstimate: number
-  files: number
-  fileName: string | null
+  endEstimate?: number
+  files?: number
+  fileName?: string
   kbfsDaemonStatus: KbfsDaemonStatus
   kbfsEnabled: boolean
   remoteTlfUpdates: Array<RemoteTlfUpdates>
-  showingDiskSpaceBanner: boolean
-  totalSyncingBytes: number
+  showingDiskSpaceBanner?: boolean
+  totalSyncingBytes?: number
 } & Pick<ConfigState, ConfigHoistedProps> &
   Pick<NotificationsState, 'navBadges'> &
   Pick<UsersState, UsersHoistedProps>
@@ -86,7 +85,15 @@ type SerializeProps = Omit<
   windowShownCount: number
 }
 
-export type DeserializeProps = Omit<ProxyProps, ConfigHoistedProps | UsersHoistedProps> & {
+// props we don't send at all if they're falsey
+type RemovedEmpties = 'darkMode' | 'fileName' | 'files' | 'totalSyncingBytes' | 'showingDiskSpaceBanner'
+
+export type DeserializeProps = Omit<ProxyProps, ConfigHoistedProps | UsersHoistedProps | RemovedEmpties> & {
+  darkMode: boolean
+  files: number
+  fileName: string
+  totalSyncingBytes: number
+  showingDiskSpaceBanner: boolean
   chat2: {
     badgeMap: Map<string, number>
     draftMap: Map<string, number>
@@ -124,7 +131,7 @@ const initialState: DeserializeProps = {
   darkMode: false,
   diskSpaceStatus: FSTypes.DiskSpaceStatus.Ok,
   endEstimate: 0,
-  fileName: null,
+  fileName: '',
   files: 0,
   kbfsDaemonStatus: {
     onlineStatus: FSTypes.KbfsDaemonOnlineStatus.Unknown,
@@ -139,7 +146,6 @@ const initialState: DeserializeProps = {
 }
 
 export const serialize = (p: ProxyProps): Partial<SerializeProps> => {
-  // TODO don't send whole conversations
   const {avatarRefreshCounter, conversationsToSend, followers, following, infoMap, ...toSend} = p
   return {
     ...toSend,
@@ -158,34 +164,21 @@ export const deserialize = (
   props: SerializeProps
 ): DeserializeProps => {
   if (!props) return state
-
-  const {
-    avatarRefreshCounter,
-    daemonHandshakeState,
-    followers,
-    following,
-    httpSrvAddress,
-    httpSrvToken,
-    infoMap,
-    loggedIn,
-    navBadges,
-    outOfDate,
-    username,
-    windowShownCount,
-    ...rest
-  } = props
-
+  const {avatarRefreshCounter, conversationsToSend, daemonHandshakeState, darkMode, diskSpaceStatus} = props
+  const {fileName, files, followers, following, httpSrvAddress, httpSrvToken, infoMap} = props
+  const {endEstimate, kbfsDaemonStatus, kbfsEnabled, loggedIn, navBadges, outOfDate} = props
+  const {remoteTlfUpdates, showingDiskSpaceBanner, totalSyncingBytes, username, windowShownCount} = props
   const badgeMap = state.chat2.badgeMap ?? new Map<string, number>()
   const unreadMap = state.chat2.unreadMap ?? new Map<string, number>()
   const metaMap = state.chat2.metaMap ?? new Map<string, any>()
   const participantMap = state.chat2.participantMap ?? new Map<string, any>()
   const draftMap = emptyMap
   const mutedMap = emptyMap
-  rest.conversationsToSend?.forEach(c => {
-    const {participantInfo, conversation, hasUnread, hasBadge} = c
+  conversationsToSend?.forEach(c => {
+    const {participants, conversation, hasUnread, hasBadge} = c
     const {conversationIDKey} = conversation
     badgeMap.set(conversationIDKey, hasBadge ? 1 : 0)
-    participantMap.set(conversationIDKey, participantInfo)
+    participantMap.set(conversationIDKey, {name: participants ?? []})
     unreadMap.set(conversationIDKey, hasUnread ? 1 : 0)
     const meta = metaMap.get(conversationIDKey) ?? {}
     meta.teamname = conversation.teamname
@@ -203,7 +196,6 @@ export const deserialize = (
 
   return {
     ...state,
-    ...rest,
     chat2: {
       badgeMap,
       draftMap,
@@ -227,7 +219,18 @@ export const deserialize = (
       username: username ?? state.config.username,
       windowShownCount: new Map<string, number>([['menu', windowShownCount]]),
     },
+    conversationsToSend,
+    darkMode: darkMode ?? false,
+    diskSpaceStatus,
+    endEstimate: endEstimate ?? 0,
+    fileName: fileName ?? '',
+    files: files ?? 0,
+    kbfsDaemonStatus,
+    kbfsEnabled,
     navBadges: navBadges ? new Map(navBadges) : state.navBadges,
+    remoteTlfUpdates,
+    showingDiskSpaceBanner: showingDiskSpaceBanner ?? false,
+    totalSyncingBytes: totalSyncingBytes ?? 0,
     users: {infoMap: infoMap ? new Map(infoMap) : state.users.infoMap},
   }
 }
