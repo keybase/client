@@ -19,29 +19,24 @@ type OwnProps = {
 const SmallTeamContainer = (p: OwnProps) => {
   const {conversationIDKey, selected, swipeCloseRef, isTeam, name, time} = p
   const _meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
-  const isEmptyMeta = _meta.conversationIDKey !== conversationIDKey
   const youAreReset = _meta.membershipType === 'youAreReset'
-  const typers = Container.useSelector(state => state.chat2.typingMap.get(conversationIDKey))
   let snippet: string = Container.useSelector(state =>
     state.chat2.metaMap.get(conversationIDKey) ? _meta.snippetDecorated : p.snippet || ''
   )
-  // valid meta or empty?
-  let isTypingSnippet = false
-  if (typers && typers.size > 0) {
-    isTypingSnippet = true
-    snippet =
-      typers.size === 1
-        ? `${typers.values().next().value as string} is typing...`
-        : 'Multiple people typing...'
-  }
   const _participantInfo = Container.useSelector(state =>
     Constants.getParticipantInfo(state, conversationIDKey)
   )
   const participantNeedToRekey = _meta.rekeyers.size > 0
   const _username = Container.useSelector(state => state.config.username)
   const hasUnread = Container.useSelector(state => Constants.getHasUnread(state, conversationIDKey))
-  const isDecryptingSnippet =
-    (hasUnread || snippet.length === 0) && Constants.isDecryptingSnippet(_meta.trustedState) && isEmptyMeta
+
+  const isDecryptingSnippet = Container.useSelector(state => {
+    if (!snippet) {
+      const trustedState = state.chat2.metaMap.get(conversationIDKey)?.trustedState
+      return !trustedState || trustedState === 'requesting' || trustedState === 'untrusted'
+    }
+    return false
+  })
 
   const teamname = _meta.teamname ? _meta.teamname : isTeam ? name : ''
 
@@ -90,7 +85,6 @@ const SmallTeamContainer = (p: OwnProps) => {
     isMuted,
     isSelected,
     isTeam,
-    isTypingSnippet,
     layoutIsTeam: isTeam,
     layoutName: name,
     layoutSnippet: p.snippet,

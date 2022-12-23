@@ -35,7 +35,6 @@ const RemoteSmallTeam = (props: RowProps) => {
       isInWidget={true}
       isMuted={conversation.isMuted}
       isSelected={false}
-      isTypingSnippet={false}
       onHideConversation={noop}
       onMuteConversation={noop}
       onSelectConversation={() => dispatch(Chat2Gen.createOpenChatFromWidget({conversationIDKey}))}

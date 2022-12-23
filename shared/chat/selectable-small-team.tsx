@@ -17,7 +17,7 @@ type Props = {
   participants: Array<string>
   showBadge: boolean
   showBold: boolean
-  snippet: string | null
+  snippet?: string
   snippetDecoration: RPCChatTypes.SnippetDecoration
   teamname: string
   usernameColor: string
@@ -91,12 +91,7 @@ class SelectableSmallTeam extends React.PureComponent<Props, State> {
               usernameColor={props.usernameColor}
             />
             {!props.numSearchHits && (
-              <BottomLine
-                conversationIDKey=""
-                snippet={props.snippet}
-                isSelected={props.isSelected}
-                isTypingSnippet={false}
-              />
+              <BottomLine conversationIDKey="" layoutSnippet={props.snippet} isSelected={props.isSelected} />
             )}
           </Kb.Box2>
           {this.props.showBadge && <Kb.Box2 direction="horizontal" style={styles.badge} />}

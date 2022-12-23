@@ -15,7 +15,7 @@ type Props = {
   onSelectConversation: () => void
   showBadge: boolean
   showBold: boolean
-  snippet: string | null
+  snippet?: string
   snippetDecoration: RPCChatTypes.SnippetDecoration
 }
 
@@ -84,9 +84,8 @@ class SelectableBigTeamChannel extends React.PureComponent<Props, State> {
           {!this.props.numSearchHits && (
             <BottomLine
               conversationIDKey=""
-              snippet={this.props.snippet}
+              layoutSnippet={this.props.snippet}
               isSelected={this.props.isSelected}
-              isTypingSnippet={false}
             />
           )}
           {!!this.props.numSearchHits && (

@@ -16,7 +16,6 @@ export type Props = {
   isFinalized: boolean
   isMuted: boolean
   isSelected: boolean
-  isTypingSnippet: boolean
   isTeam: boolean
   layoutSnippet?: string
   onHideConversation: () => void
@@ -35,11 +34,9 @@ export type Props = {
 }
 
 const SmallTeam = React.memo(function (p: Props) {
-  const {draft, hasBottomLine} = p
-  const {isFinalized, isMuted, isSelected, time} = p
-  const {isTypingSnippet, layoutSnippet, onMuteConversation, onHideConversation} = p
-  const {participants, snippet, teamname, conversationIDKey} = p
-  const {youNeedToRekey, isInWidget, swipeCloseRef} = p
+  const {teamname, draft, hasBottomLine, isFinalized, isMuted, isSelected, time} = p
+  const {participants, layoutSnippet, onMuteConversation, onHideConversation} = p
+  const {conversationIDKey, youNeedToRekey, isInWidget, swipeCloseRef} = p
   const {onSelectConversation, participantNeedToRekey, name, isTeam} = p
 
   const backgroundColor = isInWidget
@@ -98,11 +95,11 @@ const SmallTeam = React.memo(function (p: Props) {
             {hasBottomLine && (
               <Kb.Box2 direction="vertical" style={styles.bottom} fullWidth={true}>
                 <BottomLine
+                  isInWidget={isInWidget}
                   conversationIDKey={conversationIDKey}
                   backgroundColor={backgroundColor}
-                  snippet={snippet || layoutSnippet || ''}
+                  layoutSnippet={layoutSnippet}
                   isSelected={isSelected}
-                  isTypingSnippet={isTypingSnippet}
                   draft={draft}
                 />
               </Kb.Box2>

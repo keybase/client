@@ -8,11 +8,10 @@ import type * as Types from '../../../../constants/types/chat2'
 type Props = {
   conversationIDKey: Types.ConversationIDKey
   backgroundColor?: string
-  // this is passed in to override, but when convo is valid we can get the acutal snippet, todo
-  snippet: string | null
-  isSelected: boolean
-  isTypingSnippet: boolean
+  layoutSnippet?: string
+  isSelected?: boolean
   draft?: string
+  isInWidget?: boolean
 }
 
 const SnippetDecoration = (type: Kb.IconType, color: string, tooltip?: string) => {
@@ -28,8 +27,7 @@ const SnippetDecoration = (type: Kb.IconType, color: string, tooltip?: string) =
 }
 
 const BottomLine = React.memo(function BottomLine(p: Props) {
-  const {conversationIDKey, backgroundColor, snippet} = p
-  const {isSelected, isTypingSnippet, draft} = p
+  const {isSelected, draft, conversationIDKey, backgroundColor, isInWidget, layoutSnippet} = p
 
   const hasUnread = Container.useSelector(state => (state.chat2.unreadMap.get(conversationIDKey) ?? 0) > 0)
   const youAreReset = Container.useSelector(
@@ -45,12 +43,28 @@ const BottomLine = React.memo(function BottomLine(p: Props) {
     state => (state.chat2.metaMap.get(conversationIDKey)?.resetParticipants.size ?? 0) > 0
   )
 
+  const storeSnippet = Container.useSelector(
+    state => state.chat2.metaMap.get(conversationIDKey)?.snippetDecorated
+  )
+
+  const typingSnippet = Container.useSelector(state => {
+    if (isInWidget) {
+      return ''
+    }
+    const typers = state.chat2.typingMap.get(conversationIDKey)
+    if (typers?.size) {
+      return typers.size === 1
+        ? `${typers.values().next().value as string} is typing...`
+        : 'Multiple people typing...'
+    }
+    return ''
+  })
+
+  const snippet = typingSnippet || storeSnippet || layoutSnippet || ''
+
   const isDecryptingSnippet = Container.useSelector(state => {
-    console.log('aaa isde', {hasUnread, snippet})
     if (!snippet) {
       const trustedState = state.chat2.metaMap.get(conversationIDKey)?.trustedState
-
-      console.log('aaa isde', {trustedState})
       return !trustedState || trustedState === 'requesting' || trustedState === 'untrusted'
     }
     return false
@@ -70,7 +84,7 @@ const BottomLine = React.memo(function BottomLine(p: Props) {
       color: subColor,
       ...(showBold ? Styles.globalStyles.fontBold : {}),
     },
-    isTypingSnippet ? styles.typingSnippet : null,
+    typingSnippet ? styles.typingSnippet : null,
   ])
   if (youNeedToRekey) {
     content = null
