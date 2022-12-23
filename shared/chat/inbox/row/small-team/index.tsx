@@ -13,7 +13,6 @@ import './small-team.css'
 
 export type Props = {
   backgroundColor?: string
-  channelname?: string
   draft?: string
   hasUnread: boolean
   hasBottomLine: boolean
@@ -44,7 +43,7 @@ export type Props = {
 }
 
 const SmallTeam = React.memo(function (p: Props) {
-  const {backgroundColor, channelname, draft, hasBottomLine, hasResetUsers} = p
+  const {backgroundColor, draft, hasBottomLine, hasResetUsers} = p
   const {isDecryptingSnippet, isFinalized, isMuted, isSelected, time} = p
   const {isTypingSnippet, layoutSnippet, onMuteConversation, onHideConversation} = p
   const {participants, snippet, teamname, conversationIDKey, hasUnread} = p
@@ -105,7 +104,6 @@ const SmallTeam = React.memo(function (p: Props) {
                 isTeam={isTeam}
                 time={time}
                 conversationIDKey={conversationIDKey}
-                {...(channelname ? {channelname: channelname} : {})}
               />
             </Kb.Box>
             {hasBottomLine && (

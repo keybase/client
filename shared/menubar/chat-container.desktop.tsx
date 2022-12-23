@@ -30,7 +30,6 @@ const RemoteSmallTeam = (props: RowProps) => {
       isTeam={conversation.teamType !== 'adhoc'}
       name={conversation.tlfname}
       backgroundColor={Styles.globalColors.white}
-      channelname={conversation.channelname}
       conversationIDKey={conversationIDKey}
       hasBottomLine={true}
       hasUnread={hasUnread}

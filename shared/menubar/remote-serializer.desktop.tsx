@@ -172,6 +172,7 @@ export const deserialize = (
     const meta = metaMap.get(conversationIDKey) ?? {}
     meta.teamname = conversation.teamname
     meta.timestamp = conversation.timestamp
+    meta.channelname = conversation.channelname
     metaMap.set(conversationIDKey, meta)
   })
 

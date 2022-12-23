@@ -77,7 +77,6 @@ const SmallTeamContainer = (p: OwnProps) => {
 
   const props = {
     backgroundColor: styles.backgroundColor,
-    channelname: undefined,
     conversationIDKey,
     draft: _draft && !isSelected && !hasUnread ? _draft : undefined,
     hasBottomLine:
@@ -109,8 +108,8 @@ const SmallTeamContainer = (p: OwnProps) => {
     snippet,
     snippetDecoration,
     swipeCloseRef,
-    time,
     teamname,
+    time,
     usernameColor: styles.usernameColor,
     youAreReset,
     youNeedToRekey,

@@ -9,7 +9,6 @@ import shallowEqual from 'shallowequal'
 import {formatTimeForConversationList} from '../../../../util/timestamp'
 
 type Props = {
-  channelname?: string
   conversationIDKey: ChatTypes.ConversationIDKey
   isSelected: boolean
   showGear: boolean
@@ -21,7 +20,7 @@ type Props = {
 }
 
 const SimpleTopLine = React.memo(function SimpleTopLine(props: Props) {
-  const {backgroundColor, channelname, conversationIDKey} = props
+  const {backgroundColor, conversationIDKey} = props
   const {isSelected, showGear, time, usernameColor, isTeam, name} = props
 
   const you = Container.useSelector(state => state.config.username)
@@ -29,6 +28,7 @@ const SimpleTopLine = React.memo(function SimpleTopLine(props: Props) {
   const teamname = Container.useSelector(state =>
     state.chat2.metaMap.get(conversationIDKey)?.teamname || isTeam ? name : ''
   )
+  const channelname = Container.useSelector(state => state.chat2.metaMap.get(conversationIDKey)?.channelname)
 
   const showBold = !isSelected && hasUnread
 
