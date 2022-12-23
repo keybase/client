@@ -5,6 +5,9 @@ import type {State as NotificationsState} from '../constants/types/notifications
 import type {State as UsersState, UserInfo} from '../constants/types/users'
 import type {Tab} from '../constants/tabs'
 
+const emptySet = new Set()
+const emptyMap = new Map()
+
 export type RemoteTlfUpdates = {
   timestamp: number
   tlf: FSTypes.Path
@@ -77,6 +80,7 @@ type SerializeProps = Omit<
 export type DeserializeProps = Omit<ProxyProps, ConfigHoistedProps | UsersHoistedProps> & {
   chat2: {
     badgeMap: Map<string, number>
+    draftMap: Map<string, number>
     metaMap: Map<string, any>
     participantMap: Map<string, any>
     unreadMap: Map<string, number>
@@ -88,6 +92,7 @@ export type DeserializeProps = Omit<ProxyProps, ConfigHoistedProps | UsersHoiste
 const initialState: DeserializeProps = {
   chat2: {
     badgeMap: new Map(),
+    draftMap: emptyMap,
     metaMap: new Map(),
     participantMap: new Map(),
     unreadMap: new Map(),
@@ -137,7 +142,6 @@ export const serialize = (p: ProxyProps): Partial<SerializeProps> => {
   }
 }
 
-const emptySet = new Set()
 export const deserialize = (
   state: DeserializeProps = initialState,
   props: SerializeProps
@@ -164,6 +168,7 @@ export const deserialize = (
   const unreadMap = state.chat2.unreadMap ?? new Map<string, number>()
   const metaMap = state.chat2.metaMap ?? new Map<string, any>()
   const participantMap = state.chat2.participantMap ?? new Map<string, any>()
+  const draftMap = emptyMap
   rest.conversationsToSend?.forEach(c => {
     const {participantInfo, conversation, hasUnread} = c
     const {conversationIDKey} = conversation
@@ -188,6 +193,7 @@ export const deserialize = (
     ...rest,
     chat2: {
       badgeMap,
+      draftMap,
       metaMap,
       participantMap,
       unreadMap,

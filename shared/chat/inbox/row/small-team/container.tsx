@@ -40,7 +40,6 @@ const SmallTeamContainer = (p: OwnProps) => {
 
   const teamname = _meta.teamname ? _meta.teamname : isTeam ? name : ''
 
-  const _draft = Container.useSelector(state => Constants.getDraft(state, conversationIDKey))
   const isMuted = Container.useSelector(state => Constants.isMuted(state, conversationIDKey))
 
   const hasResetUsers = _meta.resetParticipants.size !== 0
@@ -69,7 +68,6 @@ const SmallTeamContainer = (p: OwnProps) => {
 
   const props = {
     conversationIDKey,
-    draft: _draft && !isSelected && !hasUnread ? _draft : undefined,
     // TODO
     hasBottomLine:
       youAreReset ||

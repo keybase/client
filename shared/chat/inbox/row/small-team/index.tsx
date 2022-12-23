@@ -10,7 +10,6 @@ import SwipeConvActions from './swipe-conv-actions'
 import './small-team.css'
 
 export type Props = {
-  draft?: string
   hasUnread: boolean
   hasBottomLine: boolean
   isFinalized: boolean
@@ -34,7 +33,7 @@ export type Props = {
 }
 
 const SmallTeam = React.memo(function (p: Props) {
-  const {teamname, draft, hasBottomLine, isFinalized, isMuted, isSelected, time} = p
+  const {teamname, hasBottomLine, isFinalized, isMuted, isSelected, time} = p
   const {participants, layoutSnippet, onMuteConversation, onHideConversation} = p
   const {conversationIDKey, youNeedToRekey, isInWidget, swipeCloseRef} = p
   const {onSelectConversation, participantNeedToRekey, name, isTeam} = p
@@ -100,7 +99,6 @@ const SmallTeam = React.memo(function (p: Props) {
                   backgroundColor={backgroundColor}
                   layoutSnippet={layoutSnippet}
                   isSelected={isSelected}
-                  draft={draft}
                 />
               </Kb.Box2>
             )}

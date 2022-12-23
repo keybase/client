@@ -10,7 +10,6 @@ type Props = {
   backgroundColor?: string
   layoutSnippet?: string
   isSelected?: boolean
-  draft?: string
   isInWidget?: boolean
 }
 
@@ -27,7 +26,7 @@ const SnippetDecoration = (type: Kb.IconType, color: string, tooltip?: string) =
 }
 
 const BottomLine = React.memo(function BottomLine(p: Props) {
-  const {isSelected, draft, conversationIDKey, backgroundColor, isInWidget, layoutSnippet} = p
+  const {isSelected, conversationIDKey, backgroundColor, isInWidget, layoutSnippet} = p
 
   const hasUnread = Container.useSelector(state => (state.chat2.unreadMap.get(conversationIDKey) ?? 0) > 0)
   const youAreReset = Container.useSelector(
@@ -61,6 +60,10 @@ const BottomLine = React.memo(function BottomLine(p: Props) {
   })
 
   const snippet = typingSnippet || storeSnippet || layoutSnippet || ''
+
+  const draft = Container.useSelector(
+    state => (!isSelected && !hasUnread && state.chat2.draftMap.get(conversationIDKey)) || ''
+  )
 
   const isDecryptingSnippet = Container.useSelector(state => {
     if (!snippet) {
