@@ -25,7 +25,6 @@ const RemoteSmallTeam = (props: RowProps) => {
       layoutIsTeam={conversation.teamType !== 'adhoc'}
       layoutName={conversation.tlfname}
       conversationIDKey={conversationIDKey}
-      hasBottomLine={true}
       isInWidget={true}
       isMuted={conversation.isMuted}
       isSelected={false}

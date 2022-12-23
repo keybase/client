@@ -7,26 +7,21 @@ import {SmallTeam} from '.'
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
-  isTeam: boolean
-  navKey: string
-  name: string
-  selected: boolean
-  snippet?: string
-  time: number
+  layoutIsTeam: boolean
+  layoutName: string
+  isSelected: boolean
+  layoutSnippet?: string
+  layoutTime: number
   swipeCloseRef?: React.MutableRefObject<(() => void) | null>
 }
 
 const SmallTeamContainer = (p: OwnProps) => {
-  const {conversationIDKey, selected, swipeCloseRef, isTeam, name, time} = p
-  const layoutIsTeam = isTeam
-  const layoutName = name
+  const {conversationIDKey, isSelected, swipeCloseRef, layoutIsTeam, layoutName, layoutTime, layoutSnippet} =
+    p
   const _meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
-  const youAreReset = _meta.membershipType === 'youAreReset'
   let snippet: string = Container.useSelector(state =>
-    state.chat2.metaMap.get(conversationIDKey) ? _meta.snippetDecorated : p.snippet || ''
+    state.chat2.metaMap.get(conversationIDKey) ? _meta.snippetDecorated : layoutSnippet || ''
   )
-  const participantNeedToRekey = _meta.rekeyers.size > 0
-  const _username = Container.useSelector(state => state.config.username)
   const hasUnread = Container.useSelector(state => Constants.getHasUnread(state, conversationIDKey))
 
   const isDecryptingSnippet = Container.useSelector(state => {
@@ -38,10 +33,6 @@ const SmallTeamContainer = (p: OwnProps) => {
   })
 
   const isMuted = Container.useSelector(state => Constants.isMuted(state, conversationIDKey))
-
-  const hasResetUsers = _meta.resetParticipants.size !== 0
-  const isSelected = selected
-  const youNeedToRekey = !!participantNeedToRekey && _meta.rekeyers.has(_username)
 
   const dispatch = Container.useDispatch()
   const onHideConversation = React.useCallback(() => {
@@ -56,14 +47,6 @@ const SmallTeamContainer = (p: OwnProps) => {
 
   const props = {
     conversationIDKey,
-    // TODO
-    hasBottomLine:
-      youAreReset ||
-      participantNeedToRekey ||
-      isDecryptingSnippet ||
-      !!snippet ||
-      youNeedToRekey ||
-      hasResetUsers,
     hasUnread,
     isDecryptingSnippet,
     isInWidget: false,
@@ -71,8 +54,8 @@ const SmallTeamContainer = (p: OwnProps) => {
     isSelected,
     layoutIsTeam,
     layoutName,
-    layoutSnippet: p.snippet,
-    layoutTime: time,
+    layoutSnippet,
+    layoutTime,
     onHideConversation,
     onMuteConversation,
     // Don't allow you to select yourself

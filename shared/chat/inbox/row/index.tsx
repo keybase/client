@@ -36,12 +36,11 @@ const makeRow = (
       return (
         <SmallTeam
           conversationIDKey={item.conversationIDKey}
-          isTeam={item.isTeam}
-          navKey={navKey}
-          name={item.teamname}
-          selected={item.selected}
-          time={item.time || 0}
-          snippet={item.snippet}
+          layoutIsTeam={item.isTeam}
+          layoutName={item.teamname}
+          isSelected={item.selected}
+          layoutTime={item.time || 0}
+          layoutSnippet={item.snippet}
           swipeCloseRef={swipeCloseRef}
         />
       )

@@ -11,7 +11,6 @@ import SwipeConvActions from './swipe-conv-actions'
 import './small-team.css'
 
 export type Props = {
-  hasBottomLine: boolean
   isMuted: boolean
   isSelected: boolean
   layoutIsTeam: boolean
@@ -27,7 +26,7 @@ export type Props = {
 }
 
 const SmallTeam = React.memo(function SmallTeam(p: Props) {
-  const {hasBottomLine, isMuted, isSelected, layoutTime} = p
+  const {isMuted, isSelected, layoutTime} = p
   const {layoutSnippet, onMuteConversation, onHideConversation} = p
   const {conversationIDKey, isInWidget, swipeCloseRef} = p
   const {onSelectConversation, layoutName, layoutIsTeam} = p
@@ -66,11 +65,7 @@ const SmallTeam = React.memo(function SmallTeam(p: Props) {
             isSelected={isSelected}
           />
           <Kb.Box style={Styles.collapseStyles([styles.conversationRow, styles.fastBlank])}>
-            <Kb.Box2
-              direction="vertical"
-              style={hasBottomLine ? styles.withBottomLine : styles.withoutBottomLine}
-              fullWidth={true}
-            >
+            <Kb.Box2 direction="vertical" style={styles.withBottomLine} fullWidth={true}>
               <SimpleTopLine
                 isSelected={isSelected}
                 isInWidget={isInWidget}
@@ -81,17 +76,15 @@ const SmallTeam = React.memo(function SmallTeam(p: Props) {
                 conversationIDKey={conversationIDKey}
               />
             </Kb.Box2>
-            {hasBottomLine && (
-              <Kb.Box2 direction="vertical" style={styles.bottom} fullWidth={true}>
-                <BottomLine
-                  isInWidget={isInWidget}
-                  conversationIDKey={conversationIDKey}
-                  backgroundColor={backgroundColor}
-                  layoutSnippet={layoutSnippet}
-                  isSelected={isSelected}
-                />
-              </Kb.Box2>
-            )}
+            <Kb.Box2 direction="vertical" style={styles.bottom} fullWidth={true}>
+              <BottomLine
+                isInWidget={isInWidget}
+                conversationIDKey={conversationIDKey}
+                backgroundColor={backgroundColor}
+                layoutSnippet={layoutSnippet}
+                isSelected={isSelected}
+              />
+            </Kb.Box2>
           </Kb.Box>
         </Kb.Box>
       </Kb.ClickableBox>
