@@ -515,9 +515,6 @@ export const getConversationRetentionPolicy = (
   return conv.retentionPolicy
 }
 
-export const isDecryptingSnippet = (trustedState: Types.MetaTrustedState) =>
-  trustedState === 'requesting' || trustedState === 'untrusted'
-
 export const getTeams = (metaMap: Types.MetaMap) =>
   [...metaMap.values()].reduce<Array<string>>((l, meta) => {
     if (meta.teamname && meta.channelname === 'general') {

@@ -12,7 +12,6 @@ import './small-team.css'
 
 export type Props = {
   hasBottomLine: boolean
-  isFinalized: boolean
   isMuted: boolean
   isSelected: boolean
   layoutIsTeam: boolean
@@ -24,16 +23,15 @@ export type Props = {
   layoutName: string
   teamname: string
   conversationIDKey: Types.ConversationIDKey
-  youNeedToRekey: boolean
   isInWidget: boolean
   layoutTime?: number
   swipeCloseRef?: React.MutableRefObject<(() => void) | null>
 }
 
 const SmallTeam = React.memo(function SmallTeam(p: Props) {
-  const {teamname, hasBottomLine, isFinalized, isMuted, isSelected, layoutTime} = p
+  const {teamname, hasBottomLine, isMuted, isSelected, layoutTime} = p
   const {layoutSnippet, onMuteConversation, onHideConversation} = p
-  const {conversationIDKey, youNeedToRekey, isInWidget, swipeCloseRef} = p
+  const {conversationIDKey, isInWidget, swipeCloseRef} = p
   const {onSelectConversation, participantNeedToRekey, layoutName, layoutIsTeam} = p
 
   const backgroundColor = isInWidget
@@ -66,12 +64,10 @@ const SmallTeam = React.memo(function SmallTeam(p: Props) {
             layoutIsTeam={layoutIsTeam}
             conversationIDKey={conversationIDKey}
             backgroundColor={backgroundColor}
-            isFinalized={isFinalized}
             isMuted={isMuted}
             isSelected={isSelected}
             participantNeedToRekey={participantNeedToRekey}
             teamname={teamname}
-            youNeedToRekey={youNeedToRekey}
           />
           <Kb.Box style={Styles.collapseStyles([styles.conversationRow, styles.fastBlank])}>
             <Kb.Box2
@@ -110,12 +106,10 @@ const SmallTeam = React.memo(function SmallTeam(p: Props) {
 type RowAvatarProps = {
   conversationIDKey: Types.ConversationIDKey
   backgroundColor: any
-  isFinalized: any
   isMuted: any
   isSelected: any
   participantNeedToRekey: any
   teamname: any
-  youNeedToRekey: any
   layoutName: any
   layoutIsTeam: any
 }
@@ -124,12 +118,10 @@ const RowAvatars = React.memo(function RowAvatars(p: RowAvatarProps) {
   const {
     conversationIDKey,
     backgroundColor,
-    isFinalized,
     isMuted,
     isSelected,
     participantNeedToRekey,
     teamname,
-    youNeedToRekey,
     layoutName,
     layoutIsTeam,
   } = p
@@ -160,6 +152,14 @@ const RowAvatars = React.memo(function RowAvatars(p: RowAvatarProps) {
     }
     return layoutName.split(',')[1]
   })
+
+  const youNeedToRekey = Container.useSelector(
+    state => state.chat2.metaMap.get(conversationIDKey)?.rekeyers?.has(state.config.username) ?? false
+  )
+
+  const isFinalized = Container.useSelector(
+    state => !!state.chat2.metaMap.get(conversationIDKey)?.wasFinalizedBy
+  )
 
   return teamname ? (
     <TeamAvatar teamname={teamname} isMuted={isMuted} isSelected={isSelected} isHovered={false} />
@@ -195,9 +195,7 @@ const styles = Styles.styleSheetCreate(() => ({
     paddingLeft: Styles.globalMargins.tiny,
   },
   fastBlank: Styles.platformStyles({
-    isPhone: {
-      backgroundColor: Styles.globalColors.fastBlank,
-    },
+    isPhone: {backgroundColor: Styles.globalColors.fastBlank},
   }),
   flexOne: {flex: 1},
   rowContainer: Styles.platformStyles({

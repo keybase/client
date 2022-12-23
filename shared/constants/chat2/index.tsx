@@ -586,7 +586,6 @@ export {
   getRowStyles,
   getTeams,
   inboxUIItemToConversationMeta,
-  isDecryptingSnippet,
   makeConversationMeta,
   shouldShowWalletsIcon,
   timestampToString,

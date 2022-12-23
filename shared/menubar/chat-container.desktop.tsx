@@ -16,20 +16,17 @@ const RemoteSmallTeam = (props: RowProps) => {
   const state = Container.useRemoteStore<DeserializeProps>()
   const dispatch = Container.useDispatch()
   const {conversationIDKey} = props
-  const {conversationsToSend, config} = state
-  const {username} = config
+  const {conversationsToSend} = state
   const {conversation} = conversationsToSend.find(
     c => c.conversation.conversationIDKey === conversationIDKey
   )!
   const participantNeedToRekey = conversation.rekeyers.size > 0
-  const youNeedToRekey = !!participantNeedToRekey && conversation.rekeyers.has(username)
   return (
     <SmallTeam
       layoutIsTeam={conversation.teamType !== 'adhoc'}
       layoutName={conversation.tlfname}
       conversationIDKey={conversationIDKey}
       hasBottomLine={true}
-      isFinalized={!!conversation.wasFinalizedBy}
       isInWidget={true}
       isMuted={conversation.isMuted}
       isSelected={false}
@@ -39,7 +36,6 @@ const RemoteSmallTeam = (props: RowProps) => {
       participantNeedToRekey={participantNeedToRekey}
       layoutSnippet={conversation.snippet}
       teamname={conversation.teamname}
-      youNeedToRekey={youNeedToRekey}
     />
   )
 }

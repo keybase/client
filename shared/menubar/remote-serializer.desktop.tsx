@@ -184,6 +184,7 @@ export const deserialize = (
     // its not important to show rekey/reset stuff in the widget
     meta.rekeyers = emptySet
     meta.resetParticipants = emptySet
+    meta.wasFinalizedBy = null
 
     metaMap.set(conversationIDKey, meta)
   })

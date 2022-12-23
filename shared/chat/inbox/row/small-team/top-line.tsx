@@ -20,7 +20,6 @@ type Props = {
 const SimpleTopLine = React.memo(function SimpleTopLine(props: Props) {
   const {conversationIDKey, isSelected, showGear, layoutTime, layoutIsTeam, layoutName, isInWidget} = props
 
-  const you = Container.useSelector(state => state.config.username)
   const hasUnread = Container.useSelector(state => (state.chat2.unreadMap.get(conversationIDKey) ?? 0) > 0)
   const teamname = Container.useSelector(state =>
     state.chat2.metaMap.get(conversationIDKey)?.teamname || layoutIsTeam ? layoutName : ''
@@ -49,6 +48,7 @@ const SimpleTopLine = React.memo(function SimpleTopLine(props: Props) {
   const participants = Container.useSelector(state => {
     const participantInfo = state.chat2.participantMap.get(conversationIDKey)
     if (participantInfo?.all.length) {
+      const you = state.config.username
       // Filter out ourselves unless it's our 1:1 conversation
       return participantInfo.name.filter((participant, _, list) =>
         list.length === 1 ? true : participant !== you

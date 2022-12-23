@@ -43,7 +43,6 @@ const SmallTeamContainer = (p: OwnProps) => {
 
   const hasResetUsers = _meta.resetParticipants.size !== 0
   const isSelected = selected
-  const isFinalized = !!_meta.wasFinalizedBy
   const youNeedToRekey = !!participantNeedToRekey && _meta.rekeyers.has(_username)
 
   const dispatch = Container.useDispatch()
@@ -69,7 +68,6 @@ const SmallTeamContainer = (p: OwnProps) => {
       hasResetUsers,
     hasUnread,
     isDecryptingSnippet,
-    isFinalized,
     isInWidget: false,
     isMuted,
     isSelected,
@@ -84,7 +82,6 @@ const SmallTeamContainer = (p: OwnProps) => {
     participantNeedToRekey,
     swipeCloseRef,
     teamname,
-    youNeedToRekey,
   }
   return <SmallTeam {...props} />
 }
