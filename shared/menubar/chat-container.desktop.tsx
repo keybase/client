@@ -1,5 +1,4 @@
 import * as Chat2Gen from '../actions/chat2-gen'
-import * as Constants from '../constants/chat2'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
@@ -19,18 +18,17 @@ const RemoteSmallTeam = (props: RowProps) => {
   const {conversationIDKey} = props
   const {conversationsToSend, config} = state
   const {username} = config
-  const {hasUnread, conversation, participantInfo} = conversationsToSend.find(
+  const {conversation} = conversationsToSend.find(
     c => c.conversation.conversationIDKey === conversationIDKey
   )!
   const participantNeedToRekey = conversation.rekeyers.size > 0
   const youNeedToRekey = !!participantNeedToRekey && conversation.rekeyers.has(username)
   return (
     <SmallTeam
-      isTeam={conversation.teamType !== 'adhoc'}
-      name={conversation.tlfname}
+      layoutIsTeam={conversation.teamType !== 'adhoc'}
+      layoutName={conversation.tlfname}
       conversationIDKey={conversationIDKey}
       hasBottomLine={true}
-      hasUnread={hasUnread}
       isFinalized={!!conversation.wasFinalizedBy}
       isInWidget={true}
       isMuted={conversation.isMuted}
@@ -39,10 +37,8 @@ const RemoteSmallTeam = (props: RowProps) => {
       onMuteConversation={noop}
       onSelectConversation={() => dispatch(Chat2Gen.createOpenChatFromWidget({conversationIDKey}))}
       participantNeedToRekey={participantNeedToRekey}
-      participants={conversation.teamname ? [] : Constants.getRowParticipants(participantInfo, username)}
-      snippet={conversation.snippet}
+      layoutSnippet={conversation.snippet}
       teamname={conversation.teamname}
-      time={0}
       youNeedToRekey={youNeedToRekey}
     />
   )

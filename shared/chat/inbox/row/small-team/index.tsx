@@ -1,42 +1,40 @@
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
+import * as Container from '../../../../util/container'
 import * as Styles from '../../../../styles'
 import {SimpleTopLine} from './top-line'
 import {BottomLine} from './bottom-line'
 import {Avatars, TeamAvatar} from '../../../avatars'
 import * as RowSizes from '../sizes'
-import type * as ChatTypes from '../../../../constants/types/chat2'
+import type * as Types from '../../../../constants/types/chat2'
 import SwipeConvActions from './swipe-conv-actions'
 import './small-team.css'
 
 export type Props = {
-  hasUnread: boolean
   hasBottomLine: boolean
   isFinalized: boolean
   isMuted: boolean
   isSelected: boolean
-  isTeam: boolean
+  layoutIsTeam: boolean
   layoutSnippet?: string
   onHideConversation: () => void
   onMuteConversation: () => void
   onSelectConversation?: () => void
   participantNeedToRekey: boolean
-  participants: Array<string>
-  snippet: string
-  name: string
+  layoutName: string
   teamname: string
-  conversationIDKey: ChatTypes.ConversationIDKey
+  conversationIDKey: Types.ConversationIDKey
   youNeedToRekey: boolean
   isInWidget: boolean
-  time: number
+  layoutTime?: number
   swipeCloseRef?: React.MutableRefObject<(() => void) | null>
 }
 
-const SmallTeam = React.memo(function (p: Props) {
-  const {teamname, hasBottomLine, isFinalized, isMuted, isSelected, time} = p
-  const {participants, layoutSnippet, onMuteConversation, onHideConversation} = p
+const SmallTeam = React.memo(function SmallTeam(p: Props) {
+  const {teamname, hasBottomLine, isFinalized, isMuted, isSelected, layoutTime} = p
+  const {layoutSnippet, onMuteConversation, onHideConversation} = p
   const {conversationIDKey, youNeedToRekey, isInWidget, swipeCloseRef} = p
-  const {onSelectConversation, participantNeedToRekey, name, isTeam} = p
+  const {onSelectConversation, participantNeedToRekey, layoutName, layoutIsTeam} = p
 
   const backgroundColor = isInWidget
     ? Styles.globalColors.white
@@ -63,18 +61,18 @@ const SmallTeam = React.memo(function (p: Props) {
         }
       >
         <Kb.Box style={Styles.collapseStyles([styles.rowContainer, styles.fastBlank] as const)}>
-          {teamname ? (
-            <TeamAvatar teamname={teamname} isMuted={isMuted} isSelected={isSelected} isHovered={false} />
-          ) : (
-            <Avatars
-              backgroundColor={backgroundColor}
-              isMuted={isMuted}
-              isLocked={youNeedToRekey || participantNeedToRekey || isFinalized}
-              isSelected={isSelected}
-              participantOne={participants[0]}
-              participantTwo={participants[1]}
-            />
-          )}
+          <RowAvatars
+            layoutName={layoutName}
+            layoutIsTeam={layoutIsTeam}
+            conversationIDKey={conversationIDKey}
+            backgroundColor={backgroundColor}
+            isFinalized={isFinalized}
+            isMuted={isMuted}
+            isSelected={isSelected}
+            participantNeedToRekey={participantNeedToRekey}
+            teamname={teamname}
+            youNeedToRekey={youNeedToRekey}
+          />
           <Kb.Box style={Styles.collapseStyles([styles.conversationRow, styles.fastBlank])}>
             <Kb.Box2
               direction="vertical"
@@ -85,9 +83,9 @@ const SmallTeam = React.memo(function (p: Props) {
                 isSelected={isSelected}
                 isInWidget={isInWidget}
                 showGear={!isInWidget}
-                name={name}
-                isTeam={isTeam}
-                time={time}
+                layoutName={layoutName}
+                layoutIsTeam={layoutIsTeam}
+                layoutTime={layoutTime}
                 conversationIDKey={conversationIDKey}
               />
             </Kb.Box2>
@@ -106,6 +104,74 @@ const SmallTeam = React.memo(function (p: Props) {
         </Kb.Box>
       </Kb.ClickableBox>
     </SwipeConvActions>
+  )
+})
+
+type RowAvatarProps = {
+  conversationIDKey: Types.ConversationIDKey
+  backgroundColor: any
+  isFinalized: any
+  isMuted: any
+  isSelected: any
+  participantNeedToRekey: any
+  teamname: any
+  youNeedToRekey: any
+  layoutName: any
+  layoutIsTeam: any
+}
+const RowAvatars = React.memo(function RowAvatars(p: RowAvatarProps) {
+  // TODO dont passs thewse
+  const {
+    conversationIDKey,
+    backgroundColor,
+    isFinalized,
+    isMuted,
+    isSelected,
+    participantNeedToRekey,
+    teamname,
+    youNeedToRekey,
+    layoutName,
+    layoutIsTeam,
+  } = p
+
+  const participantOne = Container.useSelector(state => {
+    const participantInfo = state.chat2.participantMap.get(conversationIDKey)
+    if (participantInfo?.all.length) {
+      // Filter out ourselves unless it's our 1:1 conversation
+      return participantInfo.name.filter((participant, _, list) =>
+        list.length === 1 ? true : participant !== state.config.username
+      )[0]
+    }
+    if (layoutIsTeam) {
+      return [layoutName]
+    }
+    return layoutName.split(',')[0]
+  })
+  const participantTwo = Container.useSelector(state => {
+    const participantInfo = state.chat2.participantMap.get(conversationIDKey)
+    if (participantInfo?.all.length) {
+      // Filter out ourselves unless it's our 1:1 conversation
+      return participantInfo.name.filter((participant, _, list) =>
+        list.length === 1 ? true : participant !== state.config.username
+      )[1]
+    }
+    if (layoutIsTeam) {
+      return ''
+    }
+    return layoutName.split(',')[1]
+  })
+
+  return teamname ? (
+    <TeamAvatar teamname={teamname} isMuted={isMuted} isSelected={isSelected} isHovered={false} />
+  ) : (
+    <Avatars
+      backgroundColor={backgroundColor}
+      isMuted={isMuted}
+      isLocked={youNeedToRekey || participantNeedToRekey || isFinalized}
+      isSelected={isSelected}
+      participantOne={participantOne}
+      participantTwo={participantTwo}
+    />
   )
 })
 

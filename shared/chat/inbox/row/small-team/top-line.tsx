@@ -11,25 +11,25 @@ type Props = {
   conversationIDKey: ChatTypes.ConversationIDKey
   isSelected: boolean
   showGear: boolean
-  name: string
-  isTeam: boolean
+  layoutName: string
+  layoutIsTeam: boolean
   isInWidget: boolean
-  time: number
+  layoutTime?: number
 }
 
 const SimpleTopLine = React.memo(function SimpleTopLine(props: Props) {
-  const {conversationIDKey, isSelected, showGear, time, isTeam, name, isInWidget} = props
+  const {conversationIDKey, isSelected, showGear, layoutTime, layoutIsTeam, layoutName, isInWidget} = props
 
   const you = Container.useSelector(state => state.config.username)
   const hasUnread = Container.useSelector(state => (state.chat2.unreadMap.get(conversationIDKey) ?? 0) > 0)
   const teamname = Container.useSelector(state =>
-    state.chat2.metaMap.get(conversationIDKey)?.teamname || isTeam ? name : ''
+    state.chat2.metaMap.get(conversationIDKey)?.teamname || layoutIsTeam ? layoutName : ''
   )
   const channelname = Container.useSelector(state => state.chat2.metaMap.get(conversationIDKey)?.channelname)
-  const rawTime = Container.useSelector(
-    state => state.chat2.metaMap.get(conversationIDKey)?.timestamp ?? time
+  const timeNum = Container.useSelector(
+    state => state.chat2.metaMap.get(conversationIDKey)?.timestamp ?? layoutTime
   )
-  const timestamp = React.useMemo(() => (rawTime ? formatTimeForConversationList(rawTime) : ''), [rawTime])
+  const timestamp = React.useMemo(() => (timeNum ? formatTimeForConversationList(timeNum) : ''), [timeNum])
 
   const usernameColor = isSelected ? Styles.globalColors.white : Styles.globalColors.black
   const backgroundColor = isInWidget
@@ -54,10 +54,10 @@ const SimpleTopLine = React.memo(function SimpleTopLine(props: Props) {
         list.length === 1 ? true : participant !== you
       )
     }
-    if (isTeam) {
-      return [name]
+    if (layoutIsTeam) {
+      return [layoutName]
     }
-    return name.split(',')
+    return layoutName.split(',')
   }, shallowEqual)
 
   const hasBadge = Container.useSelector(state => (state.chat2.badgeMap.get(conversationIDKey) ?? 0) > 0)
@@ -168,18 +168,14 @@ const styles = Styles.styleSheetCreate(
         ...Styles.globalStyles.flexBoxRow,
         alignItems: 'center',
       },
-      icon: {
-        position: 'relative',
-      },
+      icon: {position: 'relative'},
       insideContainer: {
         ...Styles.globalStyles.flexBoxRow,
         flexGrow: 1,
         height: Styles.isMobile ? 21 : 17,
         position: 'relative',
       },
-      name: {
-        paddingRight: Styles.globalMargins.tiny,
-      },
+      name: {paddingRight: Styles.globalMargins.tiny},
       nameContainer: {
         ...Styles.globalStyles.flexBoxRow,
         ...Styles.globalStyles.fillAbsolute,
@@ -197,9 +193,7 @@ const styles = Styles.styleSheetCreate(
           backgroundColor: Styles.globalColors.fastBlank,
           color: Styles.globalColors.blueDark,
         },
-        isTablet: {
-          backgroundColor: undefined,
-        },
+        isTablet: {backgroundColor: undefined},
       }),
       unreadDotStyle: {
         backgroundColor: Styles.globalColors.orange,

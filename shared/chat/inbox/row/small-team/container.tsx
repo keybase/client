@@ -18,13 +18,12 @@ type OwnProps = {
 
 const SmallTeamContainer = (p: OwnProps) => {
   const {conversationIDKey, selected, swipeCloseRef, isTeam, name, time} = p
+  const layoutIsTeam = isTeam
+  const layoutName = name
   const _meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
   const youAreReset = _meta.membershipType === 'youAreReset'
   let snippet: string = Container.useSelector(state =>
     state.chat2.metaMap.get(conversationIDKey) ? _meta.snippetDecorated : p.snippet || ''
-  )
-  const _participantInfo = Container.useSelector(state =>
-    Constants.getParticipantInfo(state, conversationIDKey)
   )
   const participantNeedToRekey = _meta.rekeyers.size > 0
   const _username = Container.useSelector(state => state.config.username)
@@ -38,7 +37,7 @@ const SmallTeamContainer = (p: OwnProps) => {
     return false
   })
 
-  const teamname = _meta.teamname ? _meta.teamname : isTeam ? name : ''
+  const teamname = _meta.teamname ? _meta.teamname : layoutIsTeam ? layoutName : ''
 
   const isMuted = Container.useSelector(state => Constants.isMuted(state, conversationIDKey))
 
@@ -58,14 +57,6 @@ const SmallTeamContainer = (p: OwnProps) => {
     dispatch(Chat2Gen.createNavigateToThread({conversationIDKey, reason: 'inboxSmall'}))
   }, [dispatch, conversationIDKey])
 
-  const participantsArray = _participantInfo.all.length
-    ? Constants.getRowParticipants(_participantInfo, _username)
-    : !isTeam
-    ? name.split(',')
-    : [name]
-
-  const participants = participantsArray
-
   const props = {
     conversationIDKey,
     // TODO
@@ -82,21 +73,17 @@ const SmallTeamContainer = (p: OwnProps) => {
     isInWidget: false,
     isMuted,
     isSelected,
-    isTeam,
-    layoutIsTeam: isTeam,
-    layoutName: name,
+    layoutIsTeam,
+    layoutName,
     layoutSnippet: p.snippet,
-    name,
+    layoutTime: time,
     onHideConversation,
     onMuteConversation,
     // Don't allow you to select yourself
     onSelectConversation: isSelected ? undefined : onSelectConversation,
     participantNeedToRekey,
-    participants,
-    snippet,
     swipeCloseRef,
     teamname,
-    time,
     youNeedToRekey,
   }
   return <SmallTeam {...props} />
