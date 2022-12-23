@@ -9,6 +9,7 @@ import {Avatars, TeamAvatar} from '../../../avatars'
 import * as RowSizes from '../sizes'
 import type * as Types from '../../../../constants/types/chat2'
 import SwipeConvActions from './swipe-conv-actions'
+import shallowEqual from 'shallowequal'
 import './small-team.css'
 
 export type Props = {
@@ -116,38 +117,25 @@ type RowAvatarProps = {
   layoutIsTeam?: boolean
 }
 const RowAvatars = React.memo(function RowAvatars(p: RowAvatarProps) {
-  // TODO dont passs thewse
   const {conversationIDKey, backgroundColor, isMuted, isSelected, layoutName, layoutIsTeam} = p
 
-  const participantOne =
-    Container.useSelector(state => {
-      const participantInfo = state.chat2.participantMap.get(conversationIDKey)
-      if (participantInfo?.all.length) {
-        // Filter out ourselves unless it's our 1:1 conversation
-        return participantInfo.name.filter((participant, _, list) =>
-          list.length === 1 ? true : participant !== state.config.username
-        )[0]
-      }
-      if (layoutIsTeam) {
-        return layoutName
-      }
-      return layoutName?.split(',')?.[0]
-    }) ?? ''
-  const participantTwo =
-    Container.useSelector(state => {
-      const participantInfo = state.chat2.participantMap.get(conversationIDKey)
-      if (participantInfo?.all.length) {
-        // Filter out ourselves unless it's our 1:1 conversation
-        return participantInfo.name.filter((participant, _, list) =>
-          list.length === 1 ? true : participant !== state.config.username
-        )[1]
-      }
-      if (layoutIsTeam) {
-        return
-      }
-      return layoutName?.split(',')?.[1]
-    }) ?? ''
-
+  const partOneTwo = Container.useSelector(state => {
+    const participantInfo = state.chat2.participantMap.get(conversationIDKey)
+    let part: Array<string>
+    if (participantInfo?.all.length) {
+      // Filter out ourselves unless it's our 1:1 conversation
+      part = participantInfo.name.filter((participant, _, list) =>
+        list.length === 1 ? true : participant !== state.config.username
+      )
+    } else if (layoutIsTeam && layoutName) {
+      part = [layoutName]
+    } else {
+      part = layoutName?.split(',') ?? []
+    }
+    return part
+  }, shallowEqual)
+  const participantOne = partOneTwo[0]
+  const participantTwo = partOneTwo[1]
   const teamname = Container.useSelector(state =>
     state.chat2.metaMap.get(conversationIDKey)?.teamname ?? layoutIsTeam ? layoutName : ''
   )
