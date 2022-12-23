@@ -37,8 +37,6 @@ const SmallTeamContainer = (p: OwnProps) => {
     return false
   })
 
-  const teamname = _meta.teamname ? _meta.teamname : layoutIsTeam ? layoutName : ''
-
   const isMuted = Container.useSelector(state => Constants.isMuted(state, conversationIDKey))
 
   const hasResetUsers = _meta.resetParticipants.size !== 0
@@ -79,9 +77,7 @@ const SmallTeamContainer = (p: OwnProps) => {
     onMuteConversation,
     // Don't allow you to select yourself
     onSelectConversation: isSelected ? undefined : onSelectConversation,
-    participantNeedToRekey,
     swipeCloseRef,
-    teamname,
   }
   return <SmallTeam {...props} />
 }

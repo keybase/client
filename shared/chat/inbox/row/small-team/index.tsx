@@ -19,9 +19,7 @@ export type Props = {
   onHideConversation: () => void
   onMuteConversation: () => void
   onSelectConversation?: () => void
-  participantNeedToRekey: boolean
   layoutName: string
-  teamname: string
   conversationIDKey: Types.ConversationIDKey
   isInWidget: boolean
   layoutTime?: number
@@ -29,10 +27,10 @@ export type Props = {
 }
 
 const SmallTeam = React.memo(function SmallTeam(p: Props) {
-  const {teamname, hasBottomLine, isMuted, isSelected, layoutTime} = p
+  const {hasBottomLine, isMuted, isSelected, layoutTime} = p
   const {layoutSnippet, onMuteConversation, onHideConversation} = p
   const {conversationIDKey, isInWidget, swipeCloseRef} = p
-  const {onSelectConversation, participantNeedToRekey, layoutName, layoutIsTeam} = p
+  const {onSelectConversation, layoutName, layoutIsTeam} = p
 
   const backgroundColor = isInWidget
     ? Styles.globalColors.white
@@ -66,8 +64,6 @@ const SmallTeam = React.memo(function SmallTeam(p: Props) {
             backgroundColor={backgroundColor}
             isMuted={isMuted}
             isSelected={isSelected}
-            participantNeedToRekey={participantNeedToRekey}
-            teamname={teamname}
           />
           <Kb.Box style={Styles.collapseStyles([styles.conversationRow, styles.fastBlank])}>
             <Kb.Box2
@@ -105,61 +101,54 @@ const SmallTeam = React.memo(function SmallTeam(p: Props) {
 
 type RowAvatarProps = {
   conversationIDKey: Types.ConversationIDKey
-  backgroundColor: any
-  isMuted: any
-  isSelected: any
-  participantNeedToRekey: any
-  teamname: any
-  layoutName: any
-  layoutIsTeam: any
+  backgroundColor: string
+  isMuted: boolean
+  isSelected: boolean
+  layoutName?: string
+  layoutIsTeam: boolean
 }
 const RowAvatars = React.memo(function RowAvatars(p: RowAvatarProps) {
   // TODO dont passs thewse
-  const {
-    conversationIDKey,
-    backgroundColor,
-    isMuted,
-    isSelected,
-    participantNeedToRekey,
-    teamname,
-    layoutName,
-    layoutIsTeam,
-  } = p
+  const {conversationIDKey, backgroundColor, isMuted, isSelected, layoutName, layoutIsTeam} = p
 
-  const participantOne = Container.useSelector(state => {
-    const participantInfo = state.chat2.participantMap.get(conversationIDKey)
-    if (participantInfo?.all.length) {
-      // Filter out ourselves unless it's our 1:1 conversation
-      return participantInfo.name.filter((participant, _, list) =>
-        list.length === 1 ? true : participant !== state.config.username
-      )[0]
-    }
-    if (layoutIsTeam) {
-      return [layoutName]
-    }
-    return layoutName.split(',')[0]
-  })
-  const participantTwo = Container.useSelector(state => {
-    const participantInfo = state.chat2.participantMap.get(conversationIDKey)
-    if (participantInfo?.all.length) {
-      // Filter out ourselves unless it's our 1:1 conversation
-      return participantInfo.name.filter((participant, _, list) =>
-        list.length === 1 ? true : participant !== state.config.username
-      )[1]
-    }
-    if (layoutIsTeam) {
-      return ''
-    }
-    return layoutName.split(',')[1]
-  })
+  const participantOne =
+    Container.useSelector(state => {
+      const participantInfo = state.chat2.participantMap.get(conversationIDKey)
+      if (participantInfo?.all.length) {
+        // Filter out ourselves unless it's our 1:1 conversation
+        return participantInfo.name.filter((participant, _, list) =>
+          list.length === 1 ? true : participant !== state.config.username
+        )[0]
+      }
+      if (layoutIsTeam) {
+        return layoutName
+      }
+      return layoutName?.split(',')?.[0]
+    }) ?? ''
+  const participantTwo =
+    Container.useSelector(state => {
+      const participantInfo = state.chat2.participantMap.get(conversationIDKey)
+      if (participantInfo?.all.length) {
+        // Filter out ourselves unless it's our 1:1 conversation
+        return participantInfo.name.filter((participant, _, list) =>
+          list.length === 1 ? true : participant !== state.config.username
+        )[1]
+      }
+      if (layoutIsTeam) {
+        return
+      }
+      return layoutName?.split(',')?.[1]
+    }) ?? ''
 
-  const youNeedToRekey = Container.useSelector(
-    state => state.chat2.metaMap.get(conversationIDKey)?.rekeyers?.has(state.config.username) ?? false
+  const teamname = Container.useSelector(state =>
+    state.chat2.metaMap.get(conversationIDKey)?.teamname ?? layoutIsTeam ? layoutName : ''
   )
-
-  const isFinalized = Container.useSelector(
-    state => !!state.chat2.metaMap.get(conversationIDKey)?.wasFinalizedBy
-  )
+  const isLocked = Container.useSelector(state => {
+    const meta = state.chat2.metaMap.get(conversationIDKey)
+    return (
+      meta?.rekeyers?.has(state.config.username) || (meta?.rekeyers.size ?? 0) > 0 || !!meta?.wasFinalizedBy
+    )
+  })
 
   return teamname ? (
     <TeamAvatar teamname={teamname} isMuted={isMuted} isSelected={isSelected} isHovered={false} />
@@ -167,7 +156,7 @@ const RowAvatars = React.memo(function RowAvatars(p: RowAvatarProps) {
     <Avatars
       backgroundColor={backgroundColor}
       isMuted={isMuted}
-      isLocked={youNeedToRekey || participantNeedToRekey || isFinalized}
+      isLocked={isLocked}
       isSelected={isSelected}
       participantOne={participantOne}
       participantTwo={participantTwo}

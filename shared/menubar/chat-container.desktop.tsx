@@ -20,7 +20,6 @@ const RemoteSmallTeam = (props: RowProps) => {
   const {conversation} = conversationsToSend.find(
     c => c.conversation.conversationIDKey === conversationIDKey
   )!
-  const participantNeedToRekey = conversation.rekeyers.size > 0
   return (
     <SmallTeam
       layoutIsTeam={conversation.teamType !== 'adhoc'}
@@ -33,9 +32,7 @@ const RemoteSmallTeam = (props: RowProps) => {
       onHideConversation={noop}
       onMuteConversation={noop}
       onSelectConversation={() => dispatch(Chat2Gen.createOpenChatFromWidget({conversationIDKey}))}
-      participantNeedToRekey={participantNeedToRekey}
       layoutSnippet={conversation.snippet}
-      teamname={conversation.teamname}
     />
   )
 }
