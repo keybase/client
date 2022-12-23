@@ -85,7 +85,6 @@ class SelectableBigTeamChannel extends React.PureComponent<Props, State> {
             <BottomLine
               conversationIDKey=""
               snippet={this.props.snippet}
-              youNeedToRekey={false}
               isSelected={this.props.isSelected}
               isDecryptingSnippet={false}
               isTypingSnippet={false}

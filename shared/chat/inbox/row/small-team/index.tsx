@@ -102,7 +102,6 @@ const SmallTeam = React.memo(function (p: Props) {
                   conversationIDKey={conversationIDKey}
                   backgroundColor={backgroundColor}
                   snippet={snippet || layoutSnippet || ''}
-                  youNeedToRekey={youNeedToRekey}
                   isSelected={isSelected}
                   isDecryptingSnippet={isDecryptingSnippet}
                   isTypingSnippet={isTypingSnippet}

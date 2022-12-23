@@ -51,7 +51,7 @@ const SmallTeamContainer = (p: OwnProps) => {
   const hasResetUsers = _meta.resetParticipants.size !== 0
   const isSelected = selected
   const isFinalized = !!_meta.wasFinalizedBy
-  const youNeedToRekey = !participantNeedToRekey && _meta.rekeyers.has(_username)
+  const youNeedToRekey = !!participantNeedToRekey && _meta.rekeyers.has(_username)
 
   const dispatch = Container.useDispatch()
   const onHideConversation = React.useCallback(() => {
@@ -75,6 +75,7 @@ const SmallTeamContainer = (p: OwnProps) => {
   const props = {
     conversationIDKey,
     draft: _draft && !isSelected && !hasUnread ? _draft : undefined,
+    // TODO
     hasBottomLine:
       youAreReset ||
       participantNeedToRekey ||
