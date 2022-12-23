@@ -66,7 +66,7 @@ const BottomLine = React.memo(function BottomLine(p: Props) {
   )
 
   const isDecryptingSnippet = Container.useSelector(state => {
-    if (!snippet) {
+    if (conversationIDKey && !snippet) {
       const trustedState = state.chat2.metaMap.get(conversationIDKey)?.trustedState
       return !trustedState || trustedState === 'requesting' || trustedState === 'untrusted'
     }
