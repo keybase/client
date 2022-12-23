@@ -5,7 +5,6 @@ import * as Container from '../../../../util/container'
 import type * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import type * as Types from '../../../../constants/types/chat2'
 import {SmallTeam} from '.'
-import {formatTimeForConversationList} from '../../../../util/timestamp'
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
@@ -47,7 +46,6 @@ const SmallTeamContainer = (p: OwnProps) => {
     (hasUnread || snippet.length === 0) && Constants.isDecryptingSnippet(_meta.trustedState) && isEmptyMeta
 
   const teamname = _meta.teamname ? _meta.teamname : isTeam ? name : ''
-  const timestamp = _meta.timestamp > 0 ? _meta.timestamp : time || 0
 
   const _draft = Container.useSelector(state => Constants.getDraft(state, conversationIDKey))
   const isMuted = Container.useSelector(state => Constants.isMuted(state, conversationIDKey))
@@ -111,8 +109,8 @@ const SmallTeamContainer = (p: OwnProps) => {
     snippet,
     snippetDecoration,
     swipeCloseRef,
+    time,
     teamname,
-    timestamp: formatTimeForConversationList(timestamp),
     usernameColor: styles.usernameColor,
     youAreReset,
     youNeedToRekey,

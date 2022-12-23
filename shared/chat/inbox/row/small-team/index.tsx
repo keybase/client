@@ -35,20 +35,20 @@ export type Props = {
   snippetDecoration: RPCChatTypes.SnippetDecoration
   teamname: string
   conversationIDKey: ChatTypes.ConversationIDKey
-  timestamp: string
   usernameColor: AllowedColors
   youAreReset: boolean
   youNeedToRekey: boolean
   isInWidget?: boolean
+  time: number
   swipeCloseRef?: React.MutableRefObject<(() => void) | null>
 }
 
 const SmallTeam = React.memo(function (p: Props) {
   const {backgroundColor, channelname, draft, hasBottomLine, hasResetUsers} = p
-  const {isDecryptingSnippet, isFinalized, isMuted, isSelected} = p
+  const {isDecryptingSnippet, isFinalized, isMuted, isSelected, time} = p
   const {isTypingSnippet, layoutSnippet, onMuteConversation, onHideConversation} = p
   const {participants, snippet, teamname, conversationIDKey, hasUnread} = p
-  const {timestamp, usernameColor, youAreReset, youNeedToRekey, isInWidget, swipeCloseRef} = p
+  const {usernameColor, youAreReset, youNeedToRekey, isInWidget, swipeCloseRef} = p
   const {onSelectConversation, participantNeedToRekey, snippetDecoration, name, isTeam} = p
 
   const showBold = !isSelected && hasUnread
@@ -100,10 +100,10 @@ const SmallTeam = React.memo(function (p: Props) {
                 backgroundColor={backgroundColor}
                 isSelected={isSelected}
                 showGear={!isInWidget}
-                timestamp={timestamp}
                 usernameColor={usernameColor}
                 name={name}
                 isTeam={isTeam}
+                time={time}
                 conversationIDKey={conversationIDKey}
                 {...(channelname ? {channelname: channelname} : {})}
               />

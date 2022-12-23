@@ -48,9 +48,8 @@ const RemoteSmallTeam = (props: RowProps) => {
       participants={conversation.teamname ? [] : Constants.getRowParticipants(participantInfo, username)}
       snippet={conversation.snippet}
       snippetDecoration={conversation.snippetDecoration}
-      subColor={styles.subColor}
       teamname={conversation.teamname}
-      timestamp={Constants.timestampToString(conversation)}
+      time={0}
       usernameColor={styles.usernameColor}
       youAreReset={conversation.membershipType === 'youAreReset'}
       youNeedToRekey={youNeedToRekey}

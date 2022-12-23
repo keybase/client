@@ -6,6 +6,7 @@ import TeamMenu from '../../../conversation/info-panel/menu/container'
 import type * as ChatTypes from '../../../../constants/types/chat2'
 import type {AllowedColors} from '../../../../common-adapters/text'
 import shallowEqual from 'shallowequal'
+import {formatTimeForConversationList} from '../../../../util/timestamp'
 
 type Props = {
   channelname?: string
@@ -13,16 +14,15 @@ type Props = {
   isSelected: boolean
   showGear: boolean
   backgroundColor?: string
-  timestamp?: string
   usernameColor?: AllowedColors
   name: string
   isTeam: boolean
+  time: number
 }
 
 const SimpleTopLine = React.memo(function SimpleTopLine(props: Props) {
   const {backgroundColor, channelname, conversationIDKey} = props
-  const {isSelected, showGear, timestamp} = props
-  const {usernameColor, isTeam, name} = props
+  const {isSelected, showGear, time, usernameColor, isTeam, name} = props
 
   const you = Container.useSelector(state => state.config.username)
   const hasUnread = Container.useSelector(state => (state.chat2.unreadMap.get(conversationIDKey) ?? 0) > 0)
@@ -31,6 +31,11 @@ const SimpleTopLine = React.memo(function SimpleTopLine(props: Props) {
   )
 
   const showBold = !isSelected && hasUnread
+
+  const rawTime = Container.useSelector(
+    state => state.chat2.metaMap.get(conversationIDKey)?.timestamp ?? time
+  )
+  const timestamp = React.useMemo(() => (rawTime ? formatTimeForConversationList(rawTime) : ''), [rawTime])
 
   const subColor = isSelected
     ? Styles.globalColors.white

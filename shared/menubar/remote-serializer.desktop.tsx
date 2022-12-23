@@ -169,6 +169,10 @@ export const deserialize = (
     badgeMap.set(conversationIDKey, c.hasBadge ? 1 : 0)
     participantMap.set(conversationIDKey, participantInfo)
     unreadMap.set(conversationIDKey, hasUnread ? 1 : 0)
+    const meta = metaMap.get(conversationIDKey) ?? {}
+    meta.teamname = conversation.teamname
+    meta.timestamp = conversation.timestamp
+    metaMap.set(conversationIDKey, meta)
   })
 
   return {
