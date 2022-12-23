@@ -3,12 +3,12 @@ import * as Kb from '../../../../common-adapters'
 import * as Container from '../../../../util/container'
 import * as Styles from '../../../../styles'
 import TeamMenu from '../../../conversation/info-panel/menu/container'
-import type * as ChatTypes from '../../../../constants/types/chat2'
+import type * as Types from '../../../../constants/types/chat2'
 import shallowEqual from 'shallowequal'
 import {formatTimeForConversationList} from '../../../../util/timestamp'
 
 type Props = {
-  conversationIDKey: ChatTypes.ConversationIDKey
+  conversationIDKey: Types.ConversationIDKey
   isSelected: boolean
   showGear: boolean
   layoutName?: string
@@ -17,17 +17,18 @@ type Props = {
   layoutTime?: number
 }
 
+const getMeta = (state: Container.TypedState, conversationIDKey: Types.ConversationIDKey) =>
+  state.chat2.metaMap.get(conversationIDKey)
+
 const SimpleTopLine = React.memo(function SimpleTopLine(props: Props) {
   const {conversationIDKey, isSelected, showGear, layoutTime, layoutIsTeam, layoutName, isInWidget} = props
 
   const hasUnread = Container.useSelector(state => (state.chat2.unreadMap.get(conversationIDKey) ?? 0) > 0)
   const teamname = Container.useSelector(state =>
-    state.chat2.metaMap.get(conversationIDKey)?.teamname || layoutIsTeam ? layoutName : ''
+    getMeta(state, conversationIDKey)?.teamname || layoutIsTeam ? layoutName : ''
   )
-  const channelname = Container.useSelector(state => state.chat2.metaMap.get(conversationIDKey)?.channelname)
-  const timeNum = Container.useSelector(
-    state => state.chat2.metaMap.get(conversationIDKey)?.timestamp ?? layoutTime
-  )
+  const channelname = Container.useSelector(state => getMeta(state, conversationIDKey)?.channelname)
+  const timeNum = Container.useSelector(state => getMeta(state, conversationIDKey)?.timestamp ?? layoutTime)
   const timestamp = React.useMemo(() => (timeNum ? formatTimeForConversationList(timeNum) : ''), [timeNum])
 
   const usernameColor = isSelected ? Styles.globalColors.white : Styles.globalColors.black
