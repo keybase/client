@@ -31,7 +31,16 @@ type ConfigHoistedProps =
 type UsersHoistedProps = 'infoMap'
 
 type Conversation = {
-  conversation: ChatTypes.ConversationMeta
+  conversation: {
+    conversationIDKey: string
+    snippet?: string
+    teamType?: ChatTypes.TeamType
+    tlfname?: string
+    teamname?: string
+    timestamp?: number
+    channelname?: string
+    snippetDecorated?: string
+  }
   hasBadge: boolean
   hasUnread: boolean
   participantInfo: ChatTypes.ParticipantInfo
@@ -173,9 +182,9 @@ export const deserialize = (
   const draftMap = emptyMap
   const mutedMap = emptyMap
   rest.conversationsToSend?.forEach(c => {
-    const {participantInfo, conversation, hasUnread} = c
+    const {participantInfo, conversation, hasUnread, hasBadge} = c
     const {conversationIDKey} = conversation
-    badgeMap.set(conversationIDKey, c.hasBadge ? 1 : 0)
+    badgeMap.set(conversationIDKey, hasBadge ? 1 : 0)
     participantMap.set(conversationIDKey, participantInfo)
     unreadMap.set(conversationIDKey, hasUnread ? 1 : 0)
     const meta = metaMap.get(conversationIDKey) ?? {}

@@ -63,7 +63,8 @@ const getCachedUsernames = memoize(
   ([a], [b]) => shallowEqual(a, b)
 )
 
-const RemoteProxy = () => {
+// TODO could make this render less
+const RemoteProxy = React.memo(function MenubarRemoteProxy() {
   const notifications = Container.useSelector(s => s.notifications)
   const {desktopAppBadgeCount, navBadges, widgetBadge} = notifications
 
@@ -105,15 +106,24 @@ const RemoteProxy = () => {
 
   const conversationsToSend = React.useMemo(
     () =>
-      widgetList?.map(v => ({
-        conversation: metaMap.get(v.convID) || {
-          ...ChatConstants.makeConversationMeta(),
-          conversationIDKey: v.convID,
-        },
-        hasBadge: !!badgeMap.get(v.convID),
-        hasUnread: !!unreadMap.get(v.convID),
-        participantInfo: participantMap.get(v.convID) ?? ChatConstants.noParticipantInfo,
-      })) ?? [],
+      widgetList?.map(v => {
+        const c = metaMap.get(v.convID)
+        return {
+          conversation: {
+            channelname: c?.channelname,
+            conversationIDKey: v.convID,
+            snippet: c?.snippet,
+            snippetDecorated: c?.snippetDecorated,
+            teamType: c?.teamType,
+            teamname: c?.teamname,
+            timestamp: c?.timestamp,
+            tlfname: c?.tlfname,
+          },
+          hasBadge: !!badgeMap.get(v.convID),
+          hasUnread: !!unreadMap.get(v.convID),
+          participantInfo: participantMap.get(v.convID) ?? ChatConstants.noParticipantInfo,
+        }
+      }) ?? [],
     [widgetList, metaMap, badgeMap, unreadMap, participantMap]
   )
 
@@ -179,5 +189,6 @@ const RemoteProxy = () => {
   }
 
   return <Widget {...p} />
-}
+})
+
 export default RemoteProxy
