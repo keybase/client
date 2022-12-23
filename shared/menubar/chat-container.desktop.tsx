@@ -32,7 +32,6 @@ const RemoteSmallTeam = (props: RowProps) => {
 
 const ChatPreview = (p: {convLimit?: number}) => {
   const state = Container.useRemoteStore<DeserializeProps>()
-  console.log('aaa state', state)
   const dispatch = Container.useDispatch()
   const {convLimit} = p
   const {conversationsToSend} = state
