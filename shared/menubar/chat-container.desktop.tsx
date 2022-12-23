@@ -22,14 +22,12 @@ const RemoteSmallTeam = (props: RowProps) => {
   const {hasUnread, conversation, participantInfo} = conversationsToSend.find(
     c => c.conversation.conversationIDKey === conversationIDKey
   )!
-  const styles = Constants.getRowStyles(false, hasUnread)
   const participantNeedToRekey = conversation.rekeyers.size > 0
   const youNeedToRekey = !!participantNeedToRekey && conversation.rekeyers.has(username)
   return (
     <SmallTeam
       isTeam={conversation.teamType !== 'adhoc'}
       name={conversation.tlfname}
-      backgroundColor={Styles.globalColors.white}
       conversationIDKey={conversationIDKey}
       hasBottomLine={true}
       hasUnread={hasUnread}
@@ -49,7 +47,6 @@ const RemoteSmallTeam = (props: RowProps) => {
       snippetDecoration={conversation.snippetDecoration}
       teamname={conversation.teamname}
       time={0}
-      usernameColor={styles.usernameColor}
       youAreReset={conversation.membershipType === 'youAreReset'}
       youNeedToRekey={youNeedToRekey}
     />

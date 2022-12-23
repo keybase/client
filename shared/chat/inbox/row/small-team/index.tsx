@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
-import type {AllowedColors} from '../../../../common-adapters/text'
 import * as Styles from '../../../../styles'
 import {SimpleTopLine} from './top-line'
 import {BottomLine} from './bottom-line'
@@ -12,7 +11,6 @@ import type * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import './small-team.css'
 
 export type Props = {
-  backgroundColor?: string
   draft?: string
   hasUnread: boolean
   hasBottomLine: boolean
@@ -34,23 +32,30 @@ export type Props = {
   snippetDecoration: RPCChatTypes.SnippetDecoration
   teamname: string
   conversationIDKey: ChatTypes.ConversationIDKey
-  usernameColor: AllowedColors
   youAreReset: boolean
   youNeedToRekey: boolean
-  isInWidget?: boolean
+  isInWidget: boolean
   time: number
   swipeCloseRef?: React.MutableRefObject<(() => void) | null>
 }
 
 const SmallTeam = React.memo(function (p: Props) {
-  const {backgroundColor, draft, hasBottomLine, hasResetUsers} = p
+  const {draft, hasBottomLine, hasResetUsers} = p
   const {isDecryptingSnippet, isFinalized, isMuted, isSelected, time} = p
   const {isTypingSnippet, layoutSnippet, onMuteConversation, onHideConversation} = p
   const {participants, snippet, teamname, conversationIDKey, hasUnread} = p
-  const {usernameColor, youAreReset, youNeedToRekey, isInWidget, swipeCloseRef} = p
+  const {youAreReset, youNeedToRekey, isInWidget, swipeCloseRef} = p
   const {onSelectConversation, participantNeedToRekey, snippetDecoration, name, isTeam} = p
 
   const showBold = !isSelected && hasUnread
+
+  const backgroundColor = isInWidget
+    ? Styles.globalColors.white
+    : isSelected
+    ? Styles.globalColors.blue
+    : Styles.isPhone
+    ? Styles.globalColors.fastBlank
+    : Styles.globalColors.blueGrey
 
   const subColor = isSelected
     ? Styles.globalColors.white
@@ -88,32 +93,23 @@ const SmallTeam = React.memo(function (p: Props) {
             />
           )}
           <Kb.Box style={Styles.collapseStyles([styles.conversationRow, styles.fastBlank])}>
-            <Kb.Box
-              style={Styles.collapseStyles([
-                Styles.globalStyles.flexBoxColumn,
-                styles.flexOne,
-                hasBottomLine ? styles.withBottomLine : styles.withoutBottomLine,
-              ])}
+            <Kb.Box2
+              direction="vertical"
+              style={hasBottomLine ? styles.withBottomLine : styles.withoutBottomLine}
+              fullWidth={true}
             >
               <SimpleTopLine
-                backgroundColor={backgroundColor}
                 isSelected={isSelected}
+                isInWidget={isInWidget}
                 showGear={!isInWidget}
-                usernameColor={usernameColor}
                 name={name}
                 isTeam={isTeam}
                 time={time}
                 conversationIDKey={conversationIDKey}
               />
-            </Kb.Box>
+            </Kb.Box2>
             {hasBottomLine && (
-              <Kb.Box
-                style={Styles.collapseStyles([
-                  Styles.globalStyles.flexBoxColumn,
-                  styles.flexOne,
-                  {justifyContent: 'flex-start'},
-                ])}
-              >
+              <Kb.Box2 direction="vertical" style={styles.bottom} fullWidth={true}>
                 <BottomLine
                   backgroundColor={backgroundColor}
                   participantNeedToRekey={participantNeedToRekey}
@@ -129,7 +125,7 @@ const SmallTeam = React.memo(function (p: Props) {
                   isTypingSnippet={isTypingSnippet}
                   draft={draft}
                 />
-              </Kb.Box>
+              </Kb.Box2>
             )}
           </Kb.Box>
         </Kb.Box>
@@ -139,6 +135,7 @@ const SmallTeam = React.memo(function (p: Props) {
 })
 
 const styles = Styles.styleSheetCreate(() => ({
+  bottom: {justifyContent: 'flex-start'},
   container: Styles.platformStyles({
     common: {
       flexShrink: 0,
@@ -161,9 +158,7 @@ const styles = Styles.styleSheetCreate(() => ({
       backgroundColor: Styles.globalColors.fastBlank,
     },
   }),
-  flexOne: {
-    flex: 1,
-  },
+  flexOne: {flex: 1},
   rowContainer: Styles.platformStyles({
     common: {
       ...Styles.globalStyles.flexBoxRow,

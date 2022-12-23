@@ -4,7 +4,6 @@ import * as Container from '../../../../util/container'
 import * as Styles from '../../../../styles'
 import TeamMenu from '../../../conversation/info-panel/menu/container'
 import type * as ChatTypes from '../../../../constants/types/chat2'
-import type {AllowedColors} from '../../../../common-adapters/text'
 import shallowEqual from 'shallowequal'
 import {formatTimeForConversationList} from '../../../../util/timestamp'
 
@@ -12,16 +11,14 @@ type Props = {
   conversationIDKey: ChatTypes.ConversationIDKey
   isSelected: boolean
   showGear: boolean
-  backgroundColor?: string
-  usernameColor?: AllowedColors
   name: string
   isTeam: boolean
+  isInWidget: boolean
   time: number
 }
 
 const SimpleTopLine = React.memo(function SimpleTopLine(props: Props) {
-  const {backgroundColor, conversationIDKey} = props
-  const {isSelected, showGear, time, usernameColor, isTeam, name} = props
+  const {conversationIDKey, isSelected, showGear, time, isTeam, name, isInWidget} = props
 
   const you = Container.useSelector(state => state.config.username)
   const hasUnread = Container.useSelector(state => (state.chat2.unreadMap.get(conversationIDKey) ?? 0) > 0)
@@ -29,14 +26,20 @@ const SimpleTopLine = React.memo(function SimpleTopLine(props: Props) {
     state.chat2.metaMap.get(conversationIDKey)?.teamname || isTeam ? name : ''
   )
   const channelname = Container.useSelector(state => state.chat2.metaMap.get(conversationIDKey)?.channelname)
-
-  const showBold = !isSelected && hasUnread
-
   const rawTime = Container.useSelector(
     state => state.chat2.metaMap.get(conversationIDKey)?.timestamp ?? time
   )
   const timestamp = React.useMemo(() => (rawTime ? formatTimeForConversationList(rawTime) : ''), [rawTime])
 
+  const usernameColor = isSelected ? Styles.globalColors.white : Styles.globalColors.black
+  const backgroundColor = isInWidget
+    ? Styles.globalColors.white
+    : isSelected
+    ? Styles.globalColors.blue
+    : Styles.isPhone
+    ? Styles.globalColors.fastBlank
+    : Styles.globalColors.blueGrey
+  const showBold = !isSelected && hasUnread
   const subColor = isSelected
     ? Styles.globalColors.white
     : hasUnread

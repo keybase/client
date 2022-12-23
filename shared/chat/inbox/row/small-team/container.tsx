@@ -66,7 +66,6 @@ const SmallTeamContainer = (p: OwnProps) => {
     dispatch(Chat2Gen.createNavigateToThread({conversationIDKey, reason: 'inboxSmall'}))
   }, [dispatch, conversationIDKey])
 
-  const styles = Constants.getRowStyles(isSelected, hasUnread)
   const participantsArray = _participantInfo.all.length
     ? Constants.getRowParticipants(_participantInfo, _username)
     : !isTeam
@@ -76,7 +75,6 @@ const SmallTeamContainer = (p: OwnProps) => {
   const participants = participantsArray
 
   const props = {
-    backgroundColor: styles.backgroundColor,
     conversationIDKey,
     draft: _draft && !isSelected && !hasUnread ? _draft : undefined,
     hasBottomLine:
@@ -110,7 +108,6 @@ const SmallTeamContainer = (p: OwnProps) => {
     swipeCloseRef,
     teamname,
     time,
-    usernameColor: styles.usernameColor,
     youAreReset,
     youNeedToRekey,
   }
