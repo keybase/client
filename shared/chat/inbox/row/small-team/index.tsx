@@ -1,4 +1,5 @@
 import * as React from 'react'
+import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as Kb from '../../../../common-adapters'
 import * as Container from '../../../../util/container'
 import * as Styles from '../../../../styles'
@@ -11,14 +12,10 @@ import SwipeConvActions from './swipe-conv-actions'
 import './small-team.css'
 
 export type Props = {
-  isMuted: boolean
   isSelected: boolean
-  layoutIsTeam: boolean
+  layoutIsTeam?: boolean
   layoutSnippet?: string
-  onHideConversation: () => void
-  onMuteConversation: () => void
-  onSelectConversation?: () => void
-  layoutName: string
+  layoutName?: string
   conversationIDKey: Types.ConversationIDKey
   isInWidget: boolean
   layoutTime?: number
@@ -26,10 +23,28 @@ export type Props = {
 }
 
 const SmallTeam = React.memo(function SmallTeam(p: Props) {
-  const {isMuted, isSelected, layoutTime} = p
-  const {layoutSnippet, onMuteConversation, onHideConversation} = p
+  const {isSelected, layoutTime} = p
+  const {layoutSnippet} = p
   const {conversationIDKey, isInWidget, swipeCloseRef} = p
-  const {onSelectConversation, layoutName, layoutIsTeam} = p
+  const {layoutName, layoutIsTeam} = p
+
+  const isMuted = Container.useSelector(state => state.chat2.mutedMap.get(conversationIDKey) ?? false)
+  const dispatch = Container.useDispatch()
+  const onHideConversation = React.useCallback(() => {
+    dispatch(Chat2Gen.createHideConversation({conversationIDKey}))
+  }, [dispatch, conversationIDKey])
+  const onMuteConversation = React.useCallback(() => {
+    dispatch(Chat2Gen.createMuteConversation({conversationIDKey, muted: !isMuted}))
+  }, [dispatch, conversationIDKey, isMuted])
+  const _onSelectConversation = React.useCallback(() => {
+    if (isInWidget) {
+      dispatch(Chat2Gen.createOpenChatFromWidget({conversationIDKey}))
+    } else {
+      dispatch(Chat2Gen.createNavigateToThread({conversationIDKey, reason: 'inboxSmall'}))
+    }
+  }, [dispatch, conversationIDKey, isInWidget])
+
+  const onSelectConversation = isSelected ? undefined : _onSelectConversation
 
   const backgroundColor = isInWidget
     ? Styles.globalColors.white
@@ -98,7 +113,7 @@ type RowAvatarProps = {
   isMuted: boolean
   isSelected: boolean
   layoutName?: string
-  layoutIsTeam: boolean
+  layoutIsTeam?: boolean
 }
 const RowAvatars = React.memo(function RowAvatars(p: RowAvatarProps) {
   // TODO dont passs thewse

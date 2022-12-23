@@ -10,28 +10,22 @@ type RowProps = {
   conversationIDKey: Types.ConversationIDKey
 }
 
-const noop = () => {}
-
 const RemoteSmallTeam = (props: RowProps) => {
   const state = Container.useRemoteStore<DeserializeProps>()
-  const dispatch = Container.useDispatch()
   const {conversationIDKey} = props
   const {conversationsToSend} = state
-  const {conversation} = conversationsToSend.find(
-    c => c.conversation.conversationIDKey === conversationIDKey
-  )!
+  const c = conversationsToSend.find(c => c.conversation.conversationIDKey === conversationIDKey)
+  if (!c) return null
+  const {conversation} = c
+
   return (
     <SmallTeam
-      layoutIsTeam={conversation.teamType !== 'adhoc'}
-      layoutName={conversation.tlfname}
       conversationIDKey={conversationIDKey}
       isInWidget={true}
-      isMuted={conversation.isMuted}
       isSelected={false}
-      onHideConversation={noop}
-      onMuteConversation={noop}
-      onSelectConversation={() => dispatch(Chat2Gen.createOpenChatFromWidget({conversationIDKey}))}
-      layoutSnippet={conversation.snippet}
+      layoutIsTeam={conversation?.teamType !== 'adhoc'}
+      layoutName={conversation?.tlfname}
+      layoutSnippet={conversation?.snippet}
     />
   )
 }

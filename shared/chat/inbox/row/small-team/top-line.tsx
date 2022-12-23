@@ -11,8 +11,8 @@ type Props = {
   conversationIDKey: ChatTypes.ConversationIDKey
   isSelected: boolean
   showGear: boolean
-  layoutName: string
-  layoutIsTeam: boolean
+  layoutName?: string
+  layoutIsTeam?: boolean
   isInWidget: boolean
   layoutTime?: number
 }
@@ -54,10 +54,10 @@ const SimpleTopLine = React.memo(function SimpleTopLine(props: Props) {
         list.length === 1 ? true : participant !== you
       )
     }
-    if (layoutIsTeam) {
+    if (layoutIsTeam && layoutName) {
       return [layoutName]
     }
-    return layoutName.split(',')
+    return layoutName?.split(',') ?? []
   }, shallowEqual)
 
   const hasBadge = Container.useSelector(state => (state.chat2.badgeMap.get(conversationIDKey) ?? 0) > 0)

@@ -84,6 +84,7 @@ export type DeserializeProps = Omit<ProxyProps, ConfigHoistedProps | UsersHoiste
     metaMap: Map<string, any>
     participantMap: Map<string, any>
     unreadMap: Map<string, number>
+    mutedMap: Map<string, number>
   }
   config: Pick<ConfigState, ConfigHoistedProps>
   users: Pick<UsersState, UsersHoistedProps>
@@ -94,6 +95,7 @@ const initialState: DeserializeProps = {
     badgeMap: new Map(),
     draftMap: emptyMap,
     metaMap: new Map(),
+    mutedMap: new Map(),
     participantMap: new Map(),
     unreadMap: new Map(),
   },
@@ -169,6 +171,7 @@ export const deserialize = (
   const metaMap = state.chat2.metaMap ?? new Map<string, any>()
   const participantMap = state.chat2.participantMap ?? new Map<string, any>()
   const draftMap = emptyMap
+  const mutedMap = emptyMap
   rest.conversationsToSend?.forEach(c => {
     const {participantInfo, conversation, hasUnread} = c
     const {conversationIDKey} = conversation
@@ -196,6 +199,7 @@ export const deserialize = (
       badgeMap,
       draftMap,
       metaMap,
+      mutedMap,
       participantMap,
       unreadMap,
     },
