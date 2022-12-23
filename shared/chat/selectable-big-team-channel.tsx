@@ -85,13 +85,12 @@ class SelectableBigTeamChannel extends React.PureComponent<Props, State> {
           </Kb.Box2>
           {!this.props.numSearchHits && (
             <BottomLine
+              conversationIDKey=""
               participantNeedToRekey={false}
               showBold={false}
               subColor={subColor}
               snippet={this.props.snippet}
-              snippetDecoration={this.props.snippetDecoration}
               youNeedToRekey={false}
-              youAreReset={false}
               hasResetUsers={false}
               isSelected={this.props.isSelected}
               isDecryptingSnippet={false}

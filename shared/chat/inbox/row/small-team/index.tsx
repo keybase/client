@@ -7,7 +7,6 @@ import {Avatars, TeamAvatar} from '../../../avatars'
 import * as RowSizes from '../sizes'
 import type * as ChatTypes from '../../../../constants/types/chat2'
 import SwipeConvActions from './swipe-conv-actions'
-import type * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import './small-team.css'
 
 export type Props = {
@@ -29,10 +28,8 @@ export type Props = {
   participants: Array<string>
   snippet: string
   name: string
-  snippetDecoration: RPCChatTypes.SnippetDecoration
   teamname: string
   conversationIDKey: ChatTypes.ConversationIDKey
-  youAreReset: boolean
   youNeedToRekey: boolean
   isInWidget: boolean
   time: number
@@ -44,8 +41,8 @@ const SmallTeam = React.memo(function (p: Props) {
   const {isDecryptingSnippet, isFinalized, isMuted, isSelected, time} = p
   const {isTypingSnippet, layoutSnippet, onMuteConversation, onHideConversation} = p
   const {participants, snippet, teamname, conversationIDKey, hasUnread} = p
-  const {youAreReset, youNeedToRekey, isInWidget, swipeCloseRef} = p
-  const {onSelectConversation, participantNeedToRekey, snippetDecoration, name, isTeam} = p
+  const {youNeedToRekey, isInWidget, swipeCloseRef} = p
+  const {onSelectConversation, participantNeedToRekey, name, isTeam} = p
 
   const showBold = !isSelected && hasUnread
 
@@ -111,12 +108,11 @@ const SmallTeam = React.memo(function (p: Props) {
             {hasBottomLine && (
               <Kb.Box2 direction="vertical" style={styles.bottom} fullWidth={true}>
                 <BottomLine
+                  conversationIDKey={conversationIDKey}
                   backgroundColor={backgroundColor}
                   participantNeedToRekey={participantNeedToRekey}
-                  youAreReset={youAreReset}
                   showBold={showBold}
                   snippet={snippet || layoutSnippet || ''}
-                  snippetDecoration={snippetDecoration}
                   subColor={subColor}
                   hasResetUsers={hasResetUsers}
                   youNeedToRekey={youNeedToRekey}

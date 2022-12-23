@@ -2,7 +2,6 @@ import * as React from 'react'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as Constants from '../../../../constants/chat2'
 import * as Container from '../../../../util/container'
-import type * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import type * as Types from '../../../../constants/types/chat2'
 import {SmallTeam} from '.'
 
@@ -13,13 +12,12 @@ type OwnProps = {
   name: string
   selected: boolean
   snippet?: string
-  snippetDecoration: RPCChatTypes.SnippetDecoration
   time: number
   swipeCloseRef?: React.MutableRefObject<(() => void) | null>
 }
 
 const SmallTeamContainer = (p: OwnProps) => {
-  const {conversationIDKey, selected, swipeCloseRef, isTeam, name, time, snippetDecoration} = p
+  const {conversationIDKey, selected, swipeCloseRef, isTeam, name, time} = p
   const _meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
   const isEmptyMeta = _meta.conversationIDKey !== conversationIDKey
   const youAreReset = _meta.membershipType === 'youAreReset'
@@ -104,11 +102,9 @@ const SmallTeamContainer = (p: OwnProps) => {
     participantNeedToRekey,
     participants,
     snippet,
-    snippetDecoration,
     swipeCloseRef,
     teamname,
     time,
-    youAreReset,
     youNeedToRekey,
   }
   return <SmallTeam {...props} />

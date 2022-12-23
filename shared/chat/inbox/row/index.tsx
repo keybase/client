@@ -42,7 +42,6 @@ const makeRow = (
           selected={item.selected}
           time={item.time || 0}
           snippet={item.snippet}
-          snippetDecoration={item.snippetDecoration}
           swipeCloseRef={swipeCloseRef}
         />
       )
