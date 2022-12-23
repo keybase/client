@@ -137,6 +137,7 @@ export const serialize = (p: ProxyProps): Partial<SerializeProps> => {
   }
 }
 
+const emptySet = new Set()
 export const deserialize = (
   state: DeserializeProps = initialState,
   props: SerializeProps
@@ -173,6 +174,7 @@ export const deserialize = (
     meta.teamname = conversation.teamname
     meta.timestamp = conversation.timestamp
     meta.channelname = conversation.channelname
+    meta.rekeyers = emptySet
     metaMap.set(conversationIDKey, meta)
   })
 

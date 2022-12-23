@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
-import * as Constants from '../constants/chat2'
 import {FilteredTopLine} from './top-line'
 import {BottomLine} from './inbox/row/small-team/bottom-line'
 import {Avatars, TeamAvatar} from './avatars'
@@ -47,7 +46,6 @@ class SelectableSmallTeam extends React.PureComponent<Props, State> {
         </Kb.ClickableBox>
       )
     }
-    const subColor = Constants.getRowStyles(props.isSelected, false).subColor
     return (
       <Kb.ClickableBox onClick={props.onSelectConversation} style={styles.container}>
         <Kb.Box2
@@ -95,9 +93,6 @@ class SelectableSmallTeam extends React.PureComponent<Props, State> {
             {!props.numSearchHits && (
               <BottomLine
                 conversationIDKey=""
-                participantNeedToRekey={false}
-                showBold={false}
-                subColor={subColor}
                 snippet={props.snippet}
                 youNeedToRekey={false}
                 hasResetUsers={false}

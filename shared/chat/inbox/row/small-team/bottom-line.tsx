@@ -4,15 +4,11 @@ import * as Container from '../../../../util/container'
 import * as Styles from '../../../../styles'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import type * as Types from '../../../../constants/types/chat2'
-import type {AllowedColors} from '../../../../common-adapters/text'
 
 type Props = {
   conversationIDKey: Types.ConversationIDKey
   backgroundColor?: string
-  participantNeedToRekey: boolean
-  showBold: boolean
   snippet: string | null
-  subColor: AllowedColors
   youNeedToRekey: boolean
   hasResetUsers: boolean
   isSelected: boolean
@@ -34,24 +30,23 @@ const SnippetDecoration = (type: Kb.IconType, color: string, tooltip?: string) =
 }
 
 const BottomLine = React.memo(function BottomLine(p: Props) {
-  const {
-    conversationIDKey,
-    backgroundColor,
-    participantNeedToRekey,
-    showBold,
-    snippet,
-    subColor,
-    youNeedToRekey,
-    hasResetUsers,
-    isSelected,
-    isDecryptingSnippet,
-    isTypingSnippet,
-    draft,
-  } = p
+  const {conversationIDKey, backgroundColor, snippet} = p
+  const {youNeedToRekey, hasResetUsers, isSelected, isDecryptingSnippet, isTypingSnippet, draft} = p
 
+  const hasUnread = Container.useSelector(state => (state.chat2.unreadMap.get(conversationIDKey) ?? 0) > 0)
   const youAreReset = Container.useSelector(
     state => state.chat2.metaMap.get(conversationIDKey)?.membershipType === 'youAreReset'
   )
+  const participantNeedToRekey = Container.useSelector(
+    state => (state.chat2.metaMap.get(conversationIDKey)?.rekeyers?.size ?? 0) > 0
+  )
+
+  const subColor = isSelected
+    ? Styles.globalColors.white
+    : hasUnread
+    ? Styles.globalColors.black
+    : Styles.globalColors.black_50
+  const showBold = !isSelected && hasUnread
 
   let content: React.ReactNode
   const style = Styles.collapseStyles([

@@ -40,11 +40,9 @@ const SmallTeam = React.memo(function (p: Props) {
   const {draft, hasBottomLine, hasResetUsers} = p
   const {isDecryptingSnippet, isFinalized, isMuted, isSelected, time} = p
   const {isTypingSnippet, layoutSnippet, onMuteConversation, onHideConversation} = p
-  const {participants, snippet, teamname, conversationIDKey, hasUnread} = p
+  const {participants, snippet, teamname, conversationIDKey} = p
   const {youNeedToRekey, isInWidget, swipeCloseRef} = p
   const {onSelectConversation, participantNeedToRekey, name, isTeam} = p
-
-  const showBold = !isSelected && hasUnread
 
   const backgroundColor = isInWidget
     ? Styles.globalColors.white
@@ -53,12 +51,6 @@ const SmallTeam = React.memo(function (p: Props) {
     : Styles.isPhone
     ? Styles.globalColors.fastBlank
     : Styles.globalColors.blueGrey
-
-  const subColor = isSelected
-    ? Styles.globalColors.white
-    : hasUnread
-    ? Styles.globalColors.black
-    : Styles.globalColors.black_50
 
   return (
     <SwipeConvActions
@@ -110,10 +102,7 @@ const SmallTeam = React.memo(function (p: Props) {
                 <BottomLine
                   conversationIDKey={conversationIDKey}
                   backgroundColor={backgroundColor}
-                  participantNeedToRekey={participantNeedToRekey}
-                  showBold={showBold}
                   snippet={snippet || layoutSnippet || ''}
-                  subColor={subColor}
                   hasResetUsers={hasResetUsers}
                   youNeedToRekey={youNeedToRekey}
                   isSelected={isSelected}
