@@ -31,7 +31,6 @@ const RemoteSmallTeam = (props: RowProps) => {
       conversationIDKey={conversationIDKey}
       hasBottomLine={true}
       hasUnread={hasUnread}
-      isDecryptingSnippet={false}
       isFinalized={!!conversation.wasFinalizedBy}
       isInWidget={true}
       isMuted={conversation.isMuted}

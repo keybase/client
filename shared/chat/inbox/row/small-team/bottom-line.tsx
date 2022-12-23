@@ -11,7 +11,6 @@ type Props = {
   // this is passed in to override, but when convo is valid we can get the acutal snippet, todo
   snippet: string | null
   isSelected: boolean
-  isDecryptingSnippet: boolean
   isTypingSnippet: boolean
   draft?: string
 }
@@ -30,7 +29,7 @@ const SnippetDecoration = (type: Kb.IconType, color: string, tooltip?: string) =
 
 const BottomLine = React.memo(function BottomLine(p: Props) {
   const {conversationIDKey, backgroundColor, snippet} = p
-  const {isSelected, isDecryptingSnippet, isTypingSnippet, draft} = p
+  const {isSelected, isTypingSnippet, draft} = p
 
   const hasUnread = Container.useSelector(state => (state.chat2.unreadMap.get(conversationIDKey) ?? 0) > 0)
   const youAreReset = Container.useSelector(
@@ -45,6 +44,17 @@ const BottomLine = React.memo(function BottomLine(p: Props) {
   const hasResetUsers = Container.useSelector(
     state => (state.chat2.metaMap.get(conversationIDKey)?.resetParticipants.size ?? 0) > 0
   )
+
+  const isDecryptingSnippet = Container.useSelector(state => {
+    console.log('aaa isde', {hasUnread, snippet})
+    if (!snippet) {
+      const trustedState = state.chat2.metaMap.get(conversationIDKey)?.trustedState
+
+      console.log('aaa isde', {trustedState})
+      return !trustedState || trustedState === 'requesting' || trustedState === 'untrusted'
+    }
+    return false
+  })
 
   const subColor = isSelected
     ? Styles.globalColors.white

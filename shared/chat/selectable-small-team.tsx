@@ -95,7 +95,6 @@ class SelectableSmallTeam extends React.PureComponent<Props, State> {
                 conversationIDKey=""
                 snippet={props.snippet}
                 isSelected={props.isSelected}
-                isDecryptingSnippet={false}
                 isTypingSnippet={false}
               />
             )}
