@@ -11,12 +11,12 @@ type RowProps = {
 }
 
 const RemoteSmallTeam = (props: RowProps) => {
-  const state = Container.useRemoteStore<DeserializeProps>()
   const {conversationIDKey} = props
+  const state = Container.useRemoteStore<DeserializeProps>()
   const {conversationsToSend} = state
-  const c = conversationsToSend.find(c => c.conversation.conversationIDKey === conversationIDKey)
-  if (!c) return null
-  const {conversation} = c
+  const conversation = conversationsToSend.find(
+    c => c.conversation.conversationIDKey === conversationIDKey
+  )?.conversation
 
   return (
     <SmallTeam
