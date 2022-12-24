@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
-import * as Constants from '../constants/chat2'
 import {FilteredTopLine} from './top-line'
 import {BottomLine} from './inbox/row/small-team/bottom-line'
 import {Avatars, TeamAvatar} from './avatars'
@@ -18,7 +17,7 @@ type Props = {
   participants: Array<string>
   showBadge: boolean
   showBold: boolean
-  snippet: string | null
+  snippet?: string
   snippetDecoration: RPCChatTypes.SnippetDecoration
   teamname: string
   usernameColor: string
@@ -47,7 +46,6 @@ class SelectableSmallTeam extends React.PureComponent<Props, State> {
         </Kb.ClickableBox>
       )
     }
-    const subColor = Constants.getRowStyles(props.isSelected, false).subColor
     return (
       <Kb.ClickableBox onClick={props.onSelectConversation} style={styles.container}>
         <Kb.Box2
@@ -93,19 +91,7 @@ class SelectableSmallTeam extends React.PureComponent<Props, State> {
               usernameColor={props.usernameColor}
             />
             {!props.numSearchHits && (
-              <BottomLine
-                participantNeedToRekey={false}
-                showBold={false}
-                subColor={subColor}
-                snippet={props.snippet}
-                snippetDecoration={props.snippetDecoration}
-                youNeedToRekey={false}
-                youAreReset={false}
-                hasResetUsers={false}
-                isSelected={props.isSelected}
-                isDecryptingSnippet={false}
-                isTypingSnippet={false}
-              />
+              <BottomLine conversationIDKey="" layoutSnippet={props.snippet} isSelected={props.isSelected} />
             )}
           </Kb.Box2>
           {this.props.showBadge && <Kb.Box2 direction="horizontal" style={styles.badge} />}

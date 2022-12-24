@@ -35,14 +35,13 @@ const makeRow = (
     case 'small':
       return (
         <SmallTeam
+          isInWidget={false}
           conversationIDKey={item.conversationIDKey}
-          isTeam={item.isTeam}
-          navKey={navKey}
-          name={item.teamname}
-          selected={item.selected}
-          time={item.time || 0}
-          snippet={item.snippet}
-          snippetDecoration={item.snippetDecoration}
+          layoutIsTeam={item.isTeam}
+          layoutName={item.teamname}
+          isSelected={item.selected}
+          layoutTime={item.time}
+          layoutSnippet={item.snippet}
           swipeCloseRef={swipeCloseRef}
         />
       )

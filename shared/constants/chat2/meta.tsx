@@ -460,11 +460,9 @@ export const getRowStyles = (isSelected: boolean, hasUnread: boolean) => {
     ? globalColors.black
     : globalColors.black_50
   const usernameColor = isSelected ? globalColors.white : globalColors.black
-  const iconHoverColor = isSelected ? globalColors.white_75 : globalColors.black
 
   return {
     backgroundColor,
-    iconHoverColor,
     showBold,
     subColor,
     usernameColor,
@@ -516,9 +514,6 @@ export const getConversationRetentionPolicy = (
   const conv = getMeta(state, conversationIDKey)
   return conv.retentionPolicy
 }
-
-export const isDecryptingSnippet = (trustedState: Types.MetaTrustedState) =>
-  trustedState === 'requesting' || trustedState === 'untrusted'
 
 export const getTeams = (metaMap: Types.MetaMap) =>
   [...metaMap.values()].reduce<Array<string>>((l, meta) => {

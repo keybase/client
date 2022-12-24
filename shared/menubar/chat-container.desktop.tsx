@@ -1,8 +1,6 @@
 import * as Chat2Gen from '../actions/chat2-gen'
-import * as Constants from '../constants/chat2'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
-import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 import * as Styles from '../styles'
 import type * as Types from '../constants/types/chat2'
 import type {DeserializeProps} from './remote-serializer.desktop'
@@ -12,51 +10,20 @@ type RowProps = {
   conversationIDKey: Types.ConversationIDKey
 }
 
-const noop = () => {}
-
 const RemoteSmallTeam = (props: RowProps) => {
-  const state = Container.useRemoteStore<DeserializeProps>()
-  const dispatch = Container.useDispatch()
   const {conversationIDKey} = props
-  const {conversationsToSend, config} = state
-  const {username} = config
-  const {hasBadge, hasUnread, conversation, participantInfo} = conversationsToSend.find(
-    c => c.conversation.conversationIDKey === conversationIDKey
-  )!
-  const styles = Constants.getRowStyles(false, hasUnread)
-  const participantNeedToRekey = conversation.rekeyers.size > 0
-  const youNeedToRekey = !!participantNeedToRekey && conversation.rekeyers.has(username)
+  const state = Container.useRemoteStore<DeserializeProps>()
+  const {conversationsToSend} = state
+  const conversation = conversationsToSend.find(c => c.conversationIDKey === conversationIDKey)
+
   return (
     <SmallTeam
-      backgroundColor={Styles.globalColors.white}
-      channelname={conversation.channelname}
       conversationIDKey={conversationIDKey}
-      hasBadge={hasBadge}
-      hasBottomLine={true}
-      hasResetUsers={!!conversation.resetParticipants && conversation.resetParticipants.size > 0}
-      hasUnread={hasUnread}
-      iconHoverColor={styles.iconHoverColor}
-      isDecryptingSnippet={false}
-      isFinalized={!!conversation.wasFinalizedBy}
       isInWidget={true}
-      isMuted={conversation.isMuted}
       isSelected={false}
-      isTypingSnippet={false}
-      layoutSnippetDecoration={RPCChatTypes.SnippetDecoration.none}
-      onHideConversation={noop}
-      onMuteConversation={noop}
-      onSelectConversation={() => dispatch(Chat2Gen.createOpenChatFromWidget({conversationIDKey}))}
-      participantNeedToRekey={participantNeedToRekey}
-      participants={conversation.teamname ? [] : Constants.getRowParticipants(participantInfo, username)}
-      showBold={styles.showBold}
-      snippet={conversation.snippet}
-      snippetDecoration={conversation.snippetDecoration}
-      subColor={styles.subColor}
-      teamname={conversation.teamname}
-      timestamp={Constants.timestampToString(conversation)}
-      usernameColor={styles.usernameColor}
-      youAreReset={conversation.membershipType === 'youAreReset'}
-      youNeedToRekey={youNeedToRekey}
+      layoutIsTeam={conversation?.teamType !== 'adhoc'}
+      layoutName={conversation?.tlfname}
+      layoutSnippet={conversation?.snippetDecorated}
     />
   )
 }
@@ -71,7 +38,7 @@ const ChatPreview = (p: {convLimit?: number}) => {
     ? []
     : conversationsToSend
         .slice(0, convLimit ? convLimit : conversationsToSend.length)
-        .map(c => c.conversation.conversationIDKey)
+        .map(c => c.conversationIDKey)
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.chatContainer}>

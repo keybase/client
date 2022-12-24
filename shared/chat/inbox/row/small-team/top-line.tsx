@@ -1,49 +1,79 @@
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
+import * as Container from '../../../../util/container'
 import * as Styles from '../../../../styles'
 import TeamMenu from '../../../conversation/info-panel/menu/container'
-import type * as ChatTypes from '../../../../constants/types/chat2'
-import type {AllowedColors} from '../../../../common-adapters/text'
+import type * as Types from '../../../../constants/types/chat2'
+import shallowEqual from 'shallowequal'
+import {formatTimeForConversationList} from '../../../../util/timestamp'
 
 type Props = {
-  channelname?: string
-  teamname?: string
-  conversationIDKey: ChatTypes.ConversationIDKey
-  forceShowMenu: boolean
-  hasUnread: boolean
-  iconHoverColor: string
+  conversationIDKey: Types.ConversationIDKey
   isSelected: boolean
-  onForceHideMenu: () => void
-  participants: Array<string> | string
-  showBold: boolean
   showGear: boolean
-  backgroundColor?: string
-  subColor: string
-  timestamp?: string
-  usernameColor?: AllowedColors
-  hasBadge: boolean
+  layoutName?: string
+  layoutIsTeam?: boolean
+  isInWidget: boolean
+  layoutTime?: number
 }
 
+const getMeta = (state: Container.TypedState, conversationIDKey: Types.ConversationIDKey) =>
+  state.chat2.metaMap.get(conversationIDKey)
+
 const SimpleTopLine = React.memo(function SimpleTopLine(props: Props) {
-  const {backgroundColor, channelname, teamname, conversationIDKey, forceShowMenu, iconHoverColor} = props
-  const {isSelected, onForceHideMenu, participants, showBold, showGear, subColor, timestamp} = props
-  const {usernameColor, hasBadge} = props
+  const {conversationIDKey, isSelected, showGear, layoutTime, layoutIsTeam, layoutName, isInWidget} = props
+
+  const hasUnread = Container.useSelector(state => (state.chat2.unreadMap.get(conversationIDKey) ?? 0) > 0)
+  const teamname = Container.useSelector(state =>
+    getMeta(state, conversationIDKey)?.teamname || layoutIsTeam ? layoutName : ''
+  )
+  const channelname = Container.useSelector(state => getMeta(state, conversationIDKey)?.channelname)
+  const timeNum = Container.useSelector(state => getMeta(state, conversationIDKey)?.timestamp ?? layoutTime)
+  const timestamp = React.useMemo(() => (timeNum ? formatTimeForConversationList(timeNum) : ''), [timeNum])
+
+  const usernameColor = isSelected ? Styles.globalColors.white : Styles.globalColors.black
+  const backgroundColor = isInWidget
+    ? Styles.globalColors.white
+    : isSelected
+    ? Styles.globalColors.blue
+    : Styles.isPhone
+    ? Styles.globalColors.fastBlank
+    : Styles.globalColors.blueGrey
+  const showBold = !isSelected && hasUnread
+  const subColor = isSelected
+    ? Styles.globalColors.white
+    : hasUnread
+    ? Styles.globalColors.black
+    : Styles.globalColors.black_50
+
+  const participants = Container.useSelector(state => {
+    const participantInfo = state.chat2.participantMap.get(conversationIDKey)
+    if (participantInfo?.name.length) {
+      const you = state.config.username
+      // Filter out ourselves unless it's our 1:1 conversation
+      return participantInfo.name.filter((participant, _, list) =>
+        list.length === 1 ? true : participant !== you
+      )
+    }
+    if (layoutIsTeam && layoutName) {
+      return [layoutName]
+    }
+    return layoutName?.split(',') ?? []
+  }, shallowEqual)
+
+  const hasBadge = Container.useSelector(state => (state.chat2.badgeMap.get(conversationIDKey) ?? 0) > 0)
+  const iconHoverColor = isSelected ? Styles.globalColors.white_75 : Styles.globalColors.black
 
   const {showingPopup, toggleShowingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
     <TeamMenu
-      visible={showingPopup || forceShowMenu}
+      visible={showingPopup}
       attachTo={attachTo}
-      onHidden={onHidden}
+      onHidden={toggleShowingPopup}
       hasHeader={true}
       isSmallTeam={true}
       conversationIDKey={conversationIDKey}
     />
   ))
-
-  const onHidden = React.useCallback(() => {
-    toggleShowingPopup()
-    onForceHideMenu()
-  }, [toggleShowingPopup, onForceHideMenu])
 
   const nameContainerStyle = React.useMemo(
     () =>
@@ -79,7 +109,7 @@ const SimpleTopLine = React.memo(function SimpleTopLine(props: Props) {
 
   return (
     <Kb.Box style={styles.container}>
-      {showGear && (showingPopup || forceShowMenu) && popup}
+      {showGear && showingPopup && popup}
       <Kb.Box style={styles.insideContainer}>
         <Kb.Box style={styles.nameContainer}>
           {teamname && channelname ? (
@@ -139,18 +169,14 @@ const styles = Styles.styleSheetCreate(
         ...Styles.globalStyles.flexBoxRow,
         alignItems: 'center',
       },
-      icon: {
-        position: 'relative',
-      },
+      icon: {position: 'relative'},
       insideContainer: {
         ...Styles.globalStyles.flexBoxRow,
         flexGrow: 1,
         height: Styles.isMobile ? 21 : 17,
         position: 'relative',
       },
-      name: {
-        paddingRight: Styles.globalMargins.tiny,
-      },
+      name: {paddingRight: Styles.globalMargins.tiny},
       nameContainer: {
         ...Styles.globalStyles.flexBoxRow,
         ...Styles.globalStyles.fillAbsolute,
@@ -168,9 +194,7 @@ const styles = Styles.styleSheetCreate(
           backgroundColor: Styles.globalColors.fastBlank,
           color: Styles.globalColors.blueDark,
         },
-        isTablet: {
-          backgroundColor: undefined,
-        },
+        isTablet: {backgroundColor: undefined},
       }),
       unreadDotStyle: {
         backgroundColor: Styles.globalColors.orange,

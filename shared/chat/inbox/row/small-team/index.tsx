@@ -1,169 +1,167 @@
 import * as React from 'react'
+import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as Kb from '../../../../common-adapters'
-import type {AllowedColors} from '../../../../common-adapters/text'
+import * as Container from '../../../../util/container'
 import * as Styles from '../../../../styles'
 import {SimpleTopLine} from './top-line'
 import {BottomLine} from './bottom-line'
 import {Avatars, TeamAvatar} from '../../../avatars'
 import * as RowSizes from '../sizes'
-import type * as ChatTypes from '../../../../constants/types/chat2'
+import type * as Types from '../../../../constants/types/chat2'
 import SwipeConvActions from './swipe-conv-actions'
-import type * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
+import shallowEqual from 'shallowequal'
 import './small-team.css'
 
 export type Props = {
-  backgroundColor?: string
-  channelname?: string
-  draft?: string
-  hasBadge: boolean
-  hasBottomLine: boolean
-  hasResetUsers: boolean
-  hasUnread: boolean
-  iconHoverColor: string
-  isDecryptingSnippet: boolean
-  isFinalized: boolean
-  isMuted: boolean
+  conversationIDKey: Types.ConversationIDKey
+  isInWidget: boolean
   isSelected: boolean
-  isTypingSnippet: boolean
+  layoutIsTeam?: boolean
+  layoutName?: string
   layoutSnippet?: string
-  layoutSnippetDecoration: RPCChatTypes.SnippetDecoration
-  onHideConversation: () => void
-  onMuteConversation: (muted: boolean) => void
-  onSelectConversation?: () => void
-  participantNeedToRekey: boolean
-  participants: Array<string>
-  showBold: boolean
-  snippet: string
-  snippetDecoration: RPCChatTypes.SnippetDecoration
-  subColor: AllowedColors
-  teamname: string
-  conversationIDKey: ChatTypes.ConversationIDKey
-  timestamp: string
-  usernameColor: AllowedColors
-  youAreReset: boolean
-  youNeedToRekey: boolean
-  isInWidget?: boolean
+  layoutTime?: number
   swipeCloseRef?: React.MutableRefObject<(() => void) | null>
 }
 
-type State = {
-  showMenu: boolean
-}
+const SmallTeam = React.memo(function SmallTeam(p: Props) {
+  const {isSelected, layoutTime} = p
+  const {layoutSnippet} = p
+  const {conversationIDKey, isInWidget, swipeCloseRef} = p
+  const {layoutName, layoutIsTeam} = p
 
-class SmallTeam extends React.PureComponent<Props, State> {
-  state = {
-    showMenu: false,
-  }
-
-  _onForceShowMenu = () => this.setState({showMenu: true})
-  _onForceHideMenu = () => this.setState({showMenu: false})
-
-  private onMuteConversation = () => {
-    this.props.onMuteConversation(!this.props.isMuted)
-  }
-
-  render() {
-    const props = this.props
-    const clickProps = {
-      onClick: props.onSelectConversation,
-      // its invalid to use onLongPress with no onClick
-      ...(Styles.isMobile ? {onLongPress: props.onSelectConversation && this._onForceShowMenu} : {}),
+  const isMuted = Container.useSelector(state => state.chat2.mutedMap.get(conversationIDKey) ?? false)
+  const dispatch = Container.useDispatch()
+  const onHideConversation = React.useCallback(() => {
+    dispatch(Chat2Gen.createHideConversation({conversationIDKey}))
+  }, [dispatch, conversationIDKey])
+  const onMuteConversation = React.useCallback(() => {
+    dispatch(Chat2Gen.createMuteConversation({conversationIDKey, muted: !isMuted}))
+  }, [dispatch, conversationIDKey, isMuted])
+  const _onSelectConversation = React.useCallback(() => {
+    if (isInWidget) {
+      dispatch(Chat2Gen.createOpenChatFromWidget({conversationIDKey}))
+    } else {
+      dispatch(Chat2Gen.createNavigateToThread({conversationIDKey, reason: 'inboxSmall'}))
     }
-    return (
-      <SwipeConvActions
-        isMuted={this.props.isMuted}
-        onHideConversation={this.props.onHideConversation}
-        onMuteConversation={this.onMuteConversation}
-        swipeCloseRef={this.props.swipeCloseRef}
+  }, [dispatch, conversationIDKey, isInWidget])
+
+  const onSelectConversation = isSelected ? undefined : _onSelectConversation
+
+  const backgroundColor = isInWidget
+    ? Styles.globalColors.white
+    : isSelected
+    ? Styles.globalColors.blue
+    : Styles.isPhone
+    ? Styles.globalColors.fastBlank
+    : Styles.globalColors.blueGrey
+
+  return (
+    <SwipeConvActions
+      isMuted={isMuted}
+      onHideConversation={onHideConversation}
+      onMuteConversation={onMuteConversation}
+      swipeCloseRef={swipeCloseRef}
+    >
+      <Kb.ClickableBox
+        className={Styles.classNames('small-row', {selected: isSelected})}
+        onClick={onSelectConversation}
+        style={
+          isInWidget
+            ? Styles.collapseStyles([styles.container, {backgroundColor: backgroundColor}])
+            : styles.container
+        }
       >
-        <Kb.ClickableBox
-          className={Styles.classNames('small-row', {selected: props.isSelected})}
-          {...clickProps}
-          style={
-            props.isInWidget
-              ? Styles.collapseStyles([styles.container, {backgroundColor: props.backgroundColor}])
-              : styles.container
-          }
-        >
-          <Kb.Box style={Styles.collapseStyles([styles.rowContainer, styles.fastBlank] as const)}>
-            {props.teamname ? (
-              <TeamAvatar
-                teamname={props.teamname}
-                isMuted={props.isMuted}
-                isSelected={this.props.isSelected}
-                isHovered={false}
+        <Kb.Box style={Styles.collapseStyles([styles.rowContainer, styles.fastBlank] as const)}>
+          <RowAvatars
+            layoutName={layoutName}
+            layoutIsTeam={layoutIsTeam}
+            conversationIDKey={conversationIDKey}
+            backgroundColor={backgroundColor}
+            isMuted={isMuted}
+            isSelected={isSelected}
+          />
+          <Kb.Box style={Styles.collapseStyles([styles.conversationRow, styles.fastBlank])}>
+            <Kb.Box2 direction="vertical" style={styles.withBottomLine} fullWidth={true}>
+              <SimpleTopLine
+                isSelected={isSelected}
+                isInWidget={isInWidget}
+                showGear={!isInWidget}
+                layoutName={layoutName}
+                layoutIsTeam={layoutIsTeam}
+                layoutTime={layoutTime}
+                conversationIDKey={conversationIDKey}
               />
-            ) : (
-              <Avatars
-                backgroundColor={props.backgroundColor}
-                isMuted={props.isMuted}
-                isLocked={props.youNeedToRekey || props.participantNeedToRekey || props.isFinalized}
-                isSelected={props.isSelected}
-                participantOne={props.participants[0]}
-                participantTwo={props.participants[1]}
+            </Kb.Box2>
+            <Kb.Box2 direction="vertical" style={styles.bottom} fullWidth={true}>
+              <BottomLine
+                isInWidget={isInWidget}
+                conversationIDKey={conversationIDKey}
+                backgroundColor={backgroundColor}
+                layoutSnippet={layoutSnippet}
+                isSelected={isSelected}
               />
-            )}
-            <Kb.Box style={Styles.collapseStyles([styles.conversationRow, styles.fastBlank])}>
-              <Kb.Box
-                style={Styles.collapseStyles([
-                  Styles.globalStyles.flexBoxColumn,
-                  styles.flexOne,
-                  props.hasBottomLine ? styles.withBottomLine : styles.withoutBottomLine,
-                ])}
-              >
-                <SimpleTopLine
-                  backgroundColor={props.backgroundColor}
-                  hasUnread={props.hasUnread}
-                  hasBadge={props.hasBadge}
-                  iconHoverColor={props.iconHoverColor}
-                  isSelected={props.isSelected}
-                  participants={props.teamname ? props.teamname : props.participants}
-                  showBold={props.showBold}
-                  showGear={!props.isInWidget}
-                  forceShowMenu={this.state.showMenu}
-                  onForceHideMenu={this._onForceHideMenu}
-                  subColor={props.subColor}
-                  timestamp={props.timestamp}
-                  usernameColor={props.usernameColor}
-                  teamname={props.teamname}
-                  conversationIDKey={props.conversationIDKey}
-                  {...(props.channelname ? {channelname: props.channelname} : {})}
-                />
-              </Kb.Box>
-              {props.hasBottomLine && (
-                <Kb.Box
-                  style={Styles.collapseStyles([
-                    Styles.globalStyles.flexBoxColumn,
-                    styles.flexOne,
-                    {justifyContent: 'flex-start'},
-                  ])}
-                >
-                  <BottomLine
-                    backgroundColor={props.backgroundColor}
-                    participantNeedToRekey={props.participantNeedToRekey}
-                    youAreReset={props.youAreReset}
-                    showBold={props.showBold}
-                    snippet={props.snippet || props.layoutSnippet || ''}
-                    snippetDecoration={props.snippetDecoration}
-                    subColor={props.subColor}
-                    hasResetUsers={props.hasResetUsers}
-                    youNeedToRekey={props.youNeedToRekey}
-                    isSelected={props.isSelected}
-                    isDecryptingSnippet={props.isDecryptingSnippet}
-                    isTypingSnippet={props.isTypingSnippet}
-                    draft={props.draft}
-                  />
-                </Kb.Box>
-              )}
-            </Kb.Box>
+            </Kb.Box2>
           </Kb.Box>
-        </Kb.ClickableBox>
-      </SwipeConvActions>
-    )
-  }
+        </Kb.Box>
+      </Kb.ClickableBox>
+    </SwipeConvActions>
+  )
+})
+
+type RowAvatarProps = {
+  conversationIDKey: Types.ConversationIDKey
+  backgroundColor: string
+  isMuted: boolean
+  isSelected: boolean
+  layoutName?: string
+  layoutIsTeam?: boolean
 }
+const RowAvatars = React.memo(function RowAvatars(p: RowAvatarProps) {
+  const {conversationIDKey, backgroundColor, isMuted, isSelected, layoutName, layoutIsTeam} = p
+
+  const partOneTwo = Container.useSelector(state => {
+    const participantInfo = state.chat2.participantMap.get(conversationIDKey)
+    let part: Array<string>
+    if (participantInfo?.name.length) {
+      // Filter out ourselves unless it's our 1:1 conversation
+      part = participantInfo.name.filter((participant, _, list) =>
+        list.length === 1 ? true : participant !== state.config.username
+      )
+    } else if (layoutIsTeam && layoutName) {
+      part = [layoutName]
+    } else {
+      part = layoutName?.split(',') ?? []
+    }
+    return part
+  }, shallowEqual)
+  const participantOne = partOneTwo[0]
+  const participantTwo = partOneTwo[1]
+  const teamname = Container.useSelector(state =>
+    state.chat2.metaMap.get(conversationIDKey)?.teamname ?? layoutIsTeam ? layoutName : ''
+  )
+  const isLocked = Container.useSelector(state => {
+    const meta = state.chat2.metaMap.get(conversationIDKey)
+    return (
+      meta?.rekeyers?.has(state.config.username) || (meta?.rekeyers.size ?? 0) > 0 || !!meta?.wasFinalizedBy
+    )
+  })
+
+  return teamname ? (
+    <TeamAvatar teamname={teamname} isMuted={isMuted} isSelected={isSelected} isHovered={false} />
+  ) : (
+    <Avatars
+      backgroundColor={backgroundColor}
+      isMuted={isMuted}
+      isLocked={isLocked}
+      isSelected={isSelected}
+      participantOne={participantOne}
+      participantTwo={participantTwo}
+    />
+  )
+})
 
 const styles = Styles.styleSheetCreate(() => ({
+  bottom: {justifyContent: 'flex-start'},
   container: Styles.platformStyles({
     common: {
       flexShrink: 0,
@@ -182,13 +180,9 @@ const styles = Styles.styleSheetCreate(() => ({
     paddingLeft: Styles.globalMargins.tiny,
   },
   fastBlank: Styles.platformStyles({
-    isPhone: {
-      backgroundColor: Styles.globalColors.fastBlank,
-    },
+    isPhone: {backgroundColor: Styles.globalColors.fastBlank},
   }),
-  flexOne: {
-    flex: 1,
-  },
+  flexOne: {flex: 1},
   rowContainer: Styles.platformStyles({
     common: {
       ...Styles.globalStyles.flexBoxRow,
