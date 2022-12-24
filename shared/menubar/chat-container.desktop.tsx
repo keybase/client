@@ -14,9 +14,7 @@ const RemoteSmallTeam = (props: RowProps) => {
   const {conversationIDKey} = props
   const state = Container.useRemoteStore<DeserializeProps>()
   const {conversationsToSend} = state
-  const conversation = conversationsToSend.find(
-    c => c.conversation.conversationIDKey === conversationIDKey
-  )?.conversation
+  const conversation = conversationsToSend.find(c => c.conversationIDKey === conversationIDKey)
 
   return (
     <SmallTeam
@@ -40,7 +38,7 @@ const ChatPreview = (p: {convLimit?: number}) => {
     ? []
     : conversationsToSend
         .slice(0, convLimit ? convLimit : conversationsToSend.length)
-        .map(c => c.conversation.conversationIDKey)
+        .map(c => c.conversationIDKey)
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.chatContainer}>

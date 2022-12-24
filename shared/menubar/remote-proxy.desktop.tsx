@@ -112,14 +112,12 @@ const RemoteProxy = React.memo(function MenubarRemoteProxy() {
         participants = participants.slice(0, 3)
 
         return {
-          conversation: {
-            channelname: c?.channelname,
-            conversationIDKey: v.convID,
-            snippetDecorated: c?.snippetDecorated,
-            teamType: c?.teamType,
-            timestamp: c?.timestamp,
-            tlfname: c?.tlfname,
-          },
+          channelname: c?.channelname,
+          conversationIDKey: v.convID,
+          snippetDecorated: c?.snippetDecorated,
+          teamType: c?.teamType,
+          timestamp: c?.timestamp,
+          tlfname: c?.tlfname,
           ...(badgeMap.get(v.convID) ? {hasBadge: true as const} : {}),
           ...(unreadMap.get(v.convID) ? {hasUnread: true as const} : {}),
           ...(participants.length ? {participants} : {}),

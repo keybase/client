@@ -4,9 +4,9 @@ import type {State as ConfigState} from '../constants/types/config'
 import type {State as NotificationsState} from '../constants/types/notifications'
 import type {State as UsersState, UserInfo} from '../constants/types/users'
 import type {Tab} from '../constants/tabs'
+import {produce} from 'immer'
 
-const emptySet = new Set()
-const emptyMap = new Map()
+const emptySet = new Set<any>()
 
 export type RemoteTlfUpdates = {
   timestamp: number
@@ -31,15 +31,13 @@ type ConfigHoistedProps =
 type UsersHoistedProps = 'infoMap'
 
 type Conversation = {
-  conversation: {
-    conversationIDKey: string
-    teamType?: ChatTypes.TeamType
-    tlfname?: string
-    teamname?: string
-    timestamp?: number
-    channelname?: string
-    snippetDecorated?: string
-  }
+  conversationIDKey: string
+  teamType?: ChatTypes.TeamType
+  tlfname?: string
+  teamname?: string
+  timestamp?: number
+  channelname?: string
+  snippetDecorated?: string
   hasBadge?: true
   hasUnread?: true
   participants?: Array<string>
@@ -68,21 +66,14 @@ export type ProxyProps = {
 
 type SerializeProps = Omit<
   ProxyProps,
-  | 'avatarRefreshCounter'
-  | 'followers'
-  | 'following'
-  | 'infoMap'
-  | 'navBadges'
-  | 'conversationsToSend'
-  | 'windowShownCount'
+  'avatarRefreshCounter' | 'followers' | 'following' | 'infoMap' | 'navBadges' | 'windowShownCount'
 > & {
-  avatarRefreshCounter: Array<[string, number]>
-  conversationsToSend: Array<Conversation>
-  followers: Array<string>
-  following: Array<string>
-  infoMap: Array<[string, UserInfo]>
-  navBadges: Array<[Tab, number]>
-  windowShownCount: number
+  avatarRefreshCounterArr: Array<[string, number]>
+  followersArr: Array<string>
+  followingArr: Array<string>
+  infoMapArr: Array<[string, UserInfo]>
+  navBadgesArr: Array<[Tab, number]>
+  windowShownCountNum: number
 }
 
 // props we don't send at all if they're falsey
@@ -97,8 +88,20 @@ export type DeserializeProps = Omit<ProxyProps, ConfigHoistedProps | UsersHoiste
   chat2: {
     badgeMap: Map<string, number>
     draftMap: Map<string, number>
-    metaMap: Map<string, any>
-    participantMap: Map<string, any>
+    metaMap: Map<
+      string,
+      {
+        teamname?: string
+        timestamp?: number
+        channelname?: string
+        snippetDecorated?: string
+        // its not important to show rekey/reset stuff in the widget
+        rekeyers?: Set<string>
+        resetParticipants?: Set<string>
+        wasFinalizedBy?: string
+      }
+    >
+    participantMap: Map<string, {name: Array<string>}>
     unreadMap: Map<string, number>
     mutedMap: Map<string, number>
   }
@@ -109,7 +112,7 @@ export type DeserializeProps = Omit<ProxyProps, ConfigHoistedProps | UsersHoiste
 const initialState: DeserializeProps = {
   chat2: {
     badgeMap: new Map(),
-    draftMap: emptyMap,
+    draftMap: new Map(),
     metaMap: new Map(),
     mutedMap: new Map(),
     participantMap: new Map(),
@@ -125,7 +128,7 @@ const initialState: DeserializeProps = {
     loggedIn: false,
     outOfDate: undefined,
     username: '',
-    windowShownCount: new Map(),
+    windowShownCount: new Map([['menu', 0]]),
   },
   conversationsToSend: [],
   darkMode: false,
@@ -146,92 +149,125 @@ const initialState: DeserializeProps = {
 }
 
 export const serialize = (p: ProxyProps): Partial<SerializeProps> => {
-  const {avatarRefreshCounter, conversationsToSend, followers, following, infoMap, ...toSend} = p
+  const {avatarRefreshCounter, followers, following, infoMap, ...toSend} = p
   return {
     ...toSend,
-    avatarRefreshCounter: [...avatarRefreshCounter.entries()],
-    conversationsToSend,
-    followers: [...followers],
-    following: [...following],
-    infoMap: [...infoMap.entries()],
-    navBadges: [...p.navBadges.entries()],
-    windowShownCount: p.windowShownCount.get('menu') ?? 0,
+    avatarRefreshCounterArr: [...avatarRefreshCounter.entries()],
+    followersArr: [...followers],
+    followingArr: [...following],
+    infoMapArr: [...infoMap.entries()],
+    navBadgesArr: [...p.navBadges.entries()],
+    windowShownCountNum: p.windowShownCount.get('menu') ?? 0,
   }
 }
 
 export const deserialize = (
   state: DeserializeProps = initialState,
-  props: SerializeProps
+  props: Partial<SerializeProps>
 ): DeserializeProps => {
   if (!props) return state
-  const {avatarRefreshCounter, conversationsToSend, daemonHandshakeState, darkMode, diskSpaceStatus} = props
-  const {fileName, files, followers, following, httpSrvAddress, httpSrvToken, infoMap} = props
-  const {endEstimate, kbfsDaemonStatus, kbfsEnabled, loggedIn, navBadges, outOfDate} = props
-  const {remoteTlfUpdates, showingDiskSpaceBanner, totalSyncingBytes, username, windowShownCount} = props
-  const badgeMap = state.chat2.badgeMap ?? new Map<string, number>()
-  const unreadMap = state.chat2.unreadMap ?? new Map<string, number>()
-  const metaMap = state.chat2.metaMap ?? new Map<string, any>()
-  const participantMap = state.chat2.participantMap ?? new Map<string, any>()
-  const draftMap = emptyMap
-  const mutedMap = emptyMap
-  conversationsToSend?.forEach(c => {
-    const {participants, conversation, hasUnread, hasBadge} = c
-    const {conversationIDKey} = conversation
-    badgeMap.set(conversationIDKey, hasBadge ? 1 : 0)
-    participantMap.set(conversationIDKey, {name: participants ?? []})
-    unreadMap.set(conversationIDKey, hasUnread ? 1 : 0)
-    const meta = metaMap.get(conversationIDKey) ?? {}
-    meta.teamname = conversation.teamname
-    meta.timestamp = conversation.timestamp
-    meta.channelname = conversation.channelname
-    meta.snippetDecorated = conversation.snippetDecorated
+  const {avatarRefreshCounterArr, conversationsToSend, daemonHandshakeState, diskSpaceStatus} = props
+  const {fileName, files, followersArr, followingArr, httpSrvAddress, httpSrvToken, infoMapArr} = props
+  const {endEstimate, kbfsDaemonStatus, kbfsEnabled, loggedIn, navBadgesArr, darkMode, outOfDate} = props
+  const {remoteTlfUpdates, showingDiskSpaceBanner, totalSyncingBytes, username, windowShownCountNum} = props
 
-    // its not important to show rekey/reset stuff in the widget
-    meta.rekeyers = emptySet
-    meta.resetParticipants = emptySet
-    meta.wasFinalizedBy = null
+  return produce(state, s => {
+    if (avatarRefreshCounterArr !== undefined) {
+      s.config.avatarRefreshCounter = new Map(avatarRefreshCounterArr)
+    }
+    if (daemonHandshakeState !== undefined) {
+      s.config.daemonHandshakeState = daemonHandshakeState
+    }
+    if (followersArr !== undefined) {
+      s.config.followers = new Set(followersArr)
+    }
+    if (followingArr !== undefined) {
+      s.config.following = new Set(followingArr)
+    }
+    if (httpSrvAddress !== undefined) {
+      s.config.httpSrvAddress = httpSrvAddress
+    }
+    if (httpSrvToken !== undefined) {
+      s.config.httpSrvToken = httpSrvToken
+    }
+    if (loggedIn !== undefined) {
+      s.config.loggedIn = loggedIn
+    }
+    if (outOfDate !== undefined) {
+      s.config.outOfDate = outOfDate
+    }
+    if (username !== undefined) {
+      s.config.username = username
+    }
+    if (windowShownCountNum !== undefined) {
+      s.config.windowShownCount.set('menu', windowShownCountNum)
+    }
+    if (conversationsToSend !== undefined) {
+      s.conversationsToSend = conversationsToSend
+    }
+    if (darkMode !== undefined) {
+      s.darkMode = darkMode
+    }
+    if (diskSpaceStatus !== undefined) {
+      s.diskSpaceStatus = diskSpaceStatus
+    }
+    if (endEstimate !== undefined) {
+      s.endEstimate = endEstimate
+    }
+    if (fileName !== undefined) {
+      s.fileName = fileName
+    }
+    if (files !== undefined) {
+      s.files = files
+    }
+    if (kbfsDaemonStatus !== undefined) {
+      s.kbfsDaemonStatus = kbfsDaemonStatus
+    }
+    if (kbfsEnabled !== undefined) {
+      s.kbfsEnabled = kbfsEnabled
+    }
+    if (navBadgesArr !== undefined) {
+      s.navBadges = new Map(navBadgesArr)
+    }
+    if (remoteTlfUpdates !== undefined) {
+      s.remoteTlfUpdates = remoteTlfUpdates
+    }
+    if (showingDiskSpaceBanner !== undefined) {
+      s.showingDiskSpaceBanner = showingDiskSpaceBanner
+    }
+    if (totalSyncingBytes !== undefined) {
+      s.totalSyncingBytes = totalSyncingBytes
+    }
+    if (infoMapArr !== undefined) {
+      s.users.infoMap = new Map(infoMapArr)
+    }
 
-    metaMap.set(conversationIDKey, meta)
+    conversationsToSend?.forEach(c => {
+      const {participants, conversationIDKey, hasUnread, hasBadge} = c
+      const {teamname, timestamp, channelname, snippetDecorated} = c
+      s.chat2.badgeMap.set(conversationIDKey, hasBadge ? 1 : 0)
+      s.chat2.participantMap.set(conversationIDKey, {name: participants ?? []})
+      s.chat2.unreadMap.set(conversationIDKey, hasUnread ? 1 : 0)
+      const meta = s.chat2.metaMap.get(conversationIDKey) ?? {
+        channelname: undefined,
+        rekeyers: undefined,
+        resetParticipants: undefined,
+        snippetDecorated: undefined,
+        teamname: undefined,
+        timestamp: undefined,
+        wasFinalizedBy: undefined,
+      }
+      meta.teamname = teamname
+      meta.timestamp = timestamp
+      meta.channelname = channelname
+      meta.snippetDecorated = snippetDecorated
+
+      // its not important to show rekey/reset stuff in the widget
+      meta.rekeyers = emptySet
+      meta.resetParticipants = emptySet
+      meta.wasFinalizedBy = ''
+
+      s.chat2.metaMap.set(conversationIDKey, meta)
+    })
   })
-
-  // TODO use produce eventually
-  return {
-    ...state,
-    chat2: {
-      badgeMap,
-      draftMap,
-      metaMap,
-      mutedMap,
-      participantMap,
-      unreadMap,
-    },
-    config: {
-      ...state.config,
-      avatarRefreshCounter: avatarRefreshCounter
-        ? new Map(avatarRefreshCounter)
-        : state.config.avatarRefreshCounter,
-      daemonHandshakeState: daemonHandshakeState ?? state.config.daemonHandshakeState,
-      followers: followers ? new Set(followers) : state.config.followers,
-      following: following ? new Set(following) : state.config.following,
-      httpSrvAddress: httpSrvAddress ?? state.config.httpSrvAddress,
-      httpSrvToken: httpSrvToken ?? state.config.httpSrvToken,
-      loggedIn: loggedIn ?? state.config.loggedIn,
-      outOfDate: outOfDate ?? state.config.outOfDate,
-      username: username ?? state.config.username,
-      windowShownCount: new Map<string, number>([['menu', windowShownCount]]),
-    },
-    conversationsToSend: conversationsToSend ?? state.conversationsToSend,
-    darkMode: darkMode ?? false,
-    diskSpaceStatus,
-    endEstimate: endEstimate ?? 0,
-    fileName: fileName ?? '',
-    files: files ?? 0,
-    kbfsDaemonStatus: kbfsDaemonStatus ?? state.kbfsDaemonStatus,
-    kbfsEnabled,
-    navBadges: navBadges ? new Map(navBadges) : state.navBadges,
-    remoteTlfUpdates: remoteTlfUpdates ?? state.remoteTlfUpdates,
-    showingDiskSpaceBanner: showingDiskSpaceBanner ?? false,
-    totalSyncingBytes: totalSyncingBytes ?? 0,
-    users: {infoMap: infoMap ? new Map(infoMap) : state.users.infoMap},
-  }
 }
