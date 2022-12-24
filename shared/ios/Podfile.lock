@@ -19,6 +19,8 @@ PODS:
     - ExpoModulesCore
   - EXContacts (11.0.1):
     - ExpoModulesCore
+  - EXErrorRecovery (4.0.1):
+    - ExpoModulesCore
   - EXFileSystem (15.1.1):
     - ExpoModulesCore
   - EXFont (11.0.1):
@@ -31,7 +33,7 @@ PODS:
   - EXMediaLibrary (15.0.0):
     - ExpoModulesCore
     - React-Core
-  - Expo (47.0.8):
+  - Expo (47.0.9):
     - ExpoModulesCore
   - ExpoHaptics (12.0.1):
     - ExpoModulesCore
@@ -41,7 +43,7 @@ PODS:
     - ExpoModulesCore
   - ExpoMailComposer (12.0.0):
     - ExpoModulesCore
-  - ExpoModulesCore (1.0.3):
+  - ExpoModulesCore (1.0.4):
     - React-Core
     - ReactCommon/turbomodule/core
   - EXSMS (11.0.0):
@@ -366,7 +368,7 @@ PODS:
     - RCTTypeSafety
     - React-Core
     - ReactCommon/turbomodule/core
-  - react-native-webview (11.25.1):
+  - react-native-webview (11.26.0):
     - React-Core
   - React-perflogger (0.70.6)
   - React-RCTActionSheet (0.70.6):
@@ -450,7 +452,7 @@ PODS:
     - React-Core
   - RNGestureHandler (2.8.0):
     - React-Core
-  - RNReanimated (3.0.0-rc.8):
+  - RNReanimated (3.0.0-rc.9):
     - DoubleConversion
     - FBLazyVector
     - FBReactNativeSpec
@@ -507,6 +509,7 @@ DEPENDENCIES:
   - EXBarCodeScanner (from `../node_modules/expo-barcode-scanner/ios`)
   - EXConstants (from `../node_modules/expo-constants/ios`)
   - EXContacts (from `../node_modules/expo-contacts/ios`)
+  - EXErrorRecovery (from `../node_modules/expo-error-recovery/ios`)
   - EXFileSystem (from `../node_modules/expo-file-system/ios`)
   - EXFont (from `../node_modules/expo-font/ios`)
   - EXImageLoader (from `../node_modules/expo-image-loader/ios`)
@@ -634,6 +637,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-constants/ios"
   EXContacts:
     :path: "../node_modules/expo-contacts/ios"
+  EXErrorRecovery:
+    :path: "../node_modules/expo-error-recovery/ios"
   EXFileSystem:
     :path: "../node_modules/expo-file-system/ios"
   EXFont:
@@ -771,17 +776,18 @@ SPEC CHECKSUMS:
   EXBarCodeScanner: cb4deb49e59b6c7ed6bbf38d187802359908d2a8
   EXConstants: 3c86653c422dd77e40d10cbbabb3025003977415
   EXContacts: 81d2963abb188d5f79d746cfff94c58cc7e8d713
+  EXErrorRecovery: ae43433feb0608a64dc5b1c8363b3e7769a9ea24
   EXFileSystem: 60602b6eefa6873f97172c684b7537c9760b50d6
   EXFont: 319606bfe48c33b5b5063fb0994afdc496befe80
   EXImageLoader: 84b65e6bd9d3345d6fbb3ab936a546c54496a64d
   EXLocation: 7d08926d931f4fb619bfa25e73669f1e19b102c6
   EXMediaLibrary: b1c4f78878e45f6a359aff3a059e1660c41b73ab
-  Expo: 36b5f625d36728adbdd1934d4d57182f319ab832
+  Expo: 5523a4835730104a301caeac1e68dad095a9dfff
   ExpoHaptics: 5a56d30a87ea213dd00b09566dc4b441a4dff97f
   ExpoImagePicker: d2a1cea4023008ae2fb0d95f33422b80772cc76e
   ExpoKeepAwake: 69b59d0a8d2b24de9f82759c39b3821fec030318
   ExpoMailComposer: 5bd9a732104eb1721a5aa4744903673787d1410c
-  ExpoModulesCore: b5d21c8880afda6fb6ee95469f9ac2ec9b98e995
+  ExpoModulesCore: 8211c89bcc3ba86e2d02c54b1d31f1fa81acb6de
   EXSMS: 9b0da8ca484165b7f1ebbd5cfedd670b5abf87fd
   EXTaskManager: 0afcc6fd813dec5dee98aa5ec4f22c2a840dd4a7
   FBLazyVector: 48289402952f4f7a4e235de70a9a590aa0b79ef4
@@ -823,7 +829,7 @@ SPEC CHECKSUMS:
   react-native-netinfo: 2517ad504b3d303e90d7a431b0fcaef76d207983
   react-native-paste-input: 183ad7dc224e192719616f4258dde5b548627d08
   react-native-safe-area-context: 99b24a0c5acd0d5dcac2b1a7f18c49ea317be99a
-  react-native-webview: 91a6bd643c6c298f6dfac309231c15d60b8e9505
+  react-native-webview: 994b9f8fbb504d6314dc40d83f94f27c6831b3bf
   React-perflogger: 8c79399b0500a30ee8152d0f9f11beae7fc36595
   React-RCTActionSheet: 7316773acabb374642b926c19aef1c115df5c466
   React-RCTAnimation: 5341e288375451297057391227f691d9b2326c3d
@@ -843,7 +849,7 @@ SPEC CHECKSUMS:
   RNFastImage: 65fc4932ac71ad7569adc60b66db6a6ed30dad89
   RNFlashList: 399bf6a0db68f594ad2c86aaff3ea39564f39f8a
   RNGestureHandler: 62232ba8f562f7dea5ba1b3383494eb5bf97a4d3
-  RNReanimated: e6c9dc235b60a291ad6f2f6c029bc4333fdc7dd7
+  RNReanimated: 26051acc62d07b6d9d7374cd5e682ef2515bd04c
   RNScreens: 34cc502acf1b916c582c60003dc3089fa01dc66d
   SDWebImage: a47aea9e3d8816015db4e523daff50cfd294499d
   SDWebImageWebPCoder: 908b83b6adda48effe7667cd2b7f78c897e5111d
