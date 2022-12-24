@@ -6,7 +6,7 @@ import {
   GestureUpdateEvent,
   GestureDetector,
 } from 'react-native-gesture-handler'
-
+import * as Styles from '../styles'
 import * as Reanimated from 'react-native-reanimated'
 
 // to be extra careful about closing over extra variables, we try and limit sharing any parent scopes
@@ -99,8 +99,9 @@ export const Swipeable = React.memo(function Swipeable2(p: {
   actionWidth: number
   makeActions: (progress: Reanimated.SharedValue<number>) => React.ReactNode
   swipeCloseRef?: React.MutableRefObject<(() => void) | null>
+  style?: Styles.StylesCrossPlatform
 }) {
-  const {children, actionWidth, makeActions, swipeCloseRef} = p
+  const {children, actionWidth, makeActions, swipeCloseRef, style} = p
   const tx = Reanimated.useSharedValue(0)
   const {actionsEnabled} = useActionsEnabled(actionWidth, tx)
   const rowStyle = Reanimated.useAnimatedStyle(() => ({transform: [{translateX: tx.value}]}))
@@ -113,7 +114,7 @@ export const Swipeable = React.memo(function Swipeable2(p: {
 
   return (
     <GestureDetector gesture={gesture}>
-      <View style={styles.container}>
+      <View style={[styles.container, style]}>
         <Reanimated.default.View
           style={[styles.actionContainer, actionStyle]}
           pointerEvents={actionsEnabled ? undefined : 'none'}

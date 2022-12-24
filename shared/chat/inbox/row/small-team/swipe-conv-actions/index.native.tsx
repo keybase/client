@@ -1,10 +1,11 @@
-import * as React from 'react'
 import * as Kb from '../../../../../common-adapters/mobile.native'
-import {Swipeable} from '../../../../../common-adapters/swipeable.native'
-import * as Styles from '../../../../../styles'
-import {RectButton} from 'react-native-gesture-handler'
+import * as React from 'react'
 import * as Reanimated from 'react-native-reanimated'
+import * as RowSizes from '../../sizes'
+import * as Styles from '../../../../../styles'
 import type {Props} from '.'
+import {RectButton} from 'react-native-gesture-handler'
+import {Swipeable} from '../../../../../common-adapters/swipeable.native'
 
 const Action = (p: {
   text: string
@@ -69,7 +70,7 @@ const SwipeConvActions = (props: Props) => {
   )
 
   return (
-    <Swipeable actionWidth={128} swipeCloseRef={swipeCloseRef} makeActions={makeActions}>
+    <Swipeable actionWidth={128} swipeCloseRef={swipeCloseRef} makeActions={makeActions} style={styles.row}>
       {children}
     </Swipeable>
   )
@@ -100,6 +101,10 @@ const styles = Styles.styleSheetCreate(
         height: '100%',
         justifyContent: 'center',
         width: '100%',
+      },
+      row: {
+        flexShrink: 0,
+        height: RowSizes.smallRowHeight,
       },
     } as const)
 )

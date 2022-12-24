@@ -160,9 +160,7 @@ const styles = Styles.styleSheetCreate(() => ({
       paddingLeft: Styles.globalMargins.tiny,
     },
   }),
-  channelHash: {
-    color: Styles.globalColors.black_20,
-  },
+  channelHash: {color: Styles.globalColors.black_20},
   channelHashSelected: {color: Styles.globalColors.white_60},
   channelText: Styles.platformStyles({
     isElectron: {wordBreak: 'break-all'},

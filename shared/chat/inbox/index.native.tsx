@@ -1,11 +1,9 @@
+import * as Constants from '../../constants/chat2'
+import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters/mobile.native'
 import * as React from 'react'
+import * as RowSizes from './row/sizes'
 import * as Styles from '../../styles'
-import type * as T from './index.d'
-import type * as Types from '../../constants/types/chat2'
-import {anyWaiting} from '../../constants/waiting'
-import * as Container from '../../util/container'
-import * as Constants from '../../constants/chat2'
 import BigTeamsDivider from './row/big-teams-divider'
 import BuildTeam from './row/build-team'
 import ChatInboxHeader from './header/container'
@@ -13,11 +11,14 @@ import InboxSearch from '../inbox-search/container'
 import TeamsDivider from './row/teams-divider'
 import UnreadShortcut from './unread-shortcut'
 import debounce from 'lodash/debounce'
+import shallowEqual from 'shallowequal'
+import type * as T from './index.d'
+import type * as Types from '../../constants/types/chat2'
+import type {ViewToken} from 'react-native'
+import {FlashList, type ListRenderItemInfo} from '@shopify/flash-list'
+import {anyWaiting} from '../../constants/waiting'
 import {makeRow} from './row'
 import {virtualListMarks} from '../../local-debug'
-import type {ViewToken} from 'react-native'
-import shallowEqual from 'shallowequal'
-import {FlashList, type ListRenderItemInfo} from '@shopify/flash-list'
 
 type RowItem = Types.ChatInboxRowItem
 
@@ -210,6 +211,29 @@ class Inbox extends React.PureComponent<T.Props, State> {
     return item.type
   }
 
+  private overrideItemLayout = (layout: {span?: number; size?: number}, item: RowItem) => {
+    switch (item.type) {
+      case 'small':
+        layout.size = RowSizes.smallRowHeight
+        break
+      case 'bigTeamsLabel':
+        layout.size = 32
+        break
+      case 'bigHeader':
+        layout.size = RowSizes.bigHeaderHeight
+        break
+      case 'big':
+        layout.size = RowSizes.bigRowHeight
+        break
+      case 'divider':
+        layout.size = 68
+        break
+      case 'teamBuilder':
+        layout.size = 120
+        break
+    }
+  }
+
   render() {
     const noChats = !this.props.neverLoaded && !this.props.isSearching && !this.props.rows.length && (
       <NoChats onNewChat={this.props.onNewChat} />
@@ -237,6 +261,7 @@ class Inbox extends React.PureComponent<T.Props, State> {
               ref={this.listRef}
               onViewableItemsChanged={this.onViewChanged}
               keyboardShouldPersistTaps="handled"
+              overrideItemLayout={this.overrideItemLayout}
             />
           )}
           {noChats}
