@@ -9,18 +9,18 @@ import * as Styles from '../../../styles'
 import type * as Types from '../../../constants/types/chat2'
 
 type Props = {
-  channelname: string
+  layoutChannelname: string
   conversationIDKey: Types.ConversationIDKey
   navKey: string
   selected: boolean
 }
 
 const BigTeamChannel = React.memo(function BigTeamChannel(props: Props) {
-  const {conversationIDKey, selected} = props
+  const {conversationIDKey, selected, layoutChannelname} = props
   const dispatch = Container.useDispatch()
-  const channelname = Container.useSelector(
-    state => Constants.getMeta(state, conversationIDKey).channelname || props.channelname
-  )
+  const channelname =
+    Container.useSelector(state => Constants.getMeta(state, conversationIDKey).channelname) ||
+    layoutChannelname
   const isError = Container.useSelector(
     state => Constants.getMeta(state, conversationIDKey).trustedState === 'error'
   )
@@ -63,6 +63,55 @@ const BigTeamChannel = React.memo(function BigTeamChannel(props: Props) {
     default:
   }
 
+  const nameStyle = Styles.collapseStyles([
+    styles.channelText,
+    isError
+      ? styles.textError
+      : selected
+      ? hasUnread
+        ? (styles.textSelectedBold as any)
+        : styles.textSelected
+      : hasUnread
+      ? styles.textPlainBold
+      : (styles.textPlain as any),
+  ] as any)
+
+  const name = (
+    <Kb.Text
+      lineClamp={1}
+      type="Body"
+      fixOverdraw={Styles.isPhone}
+      style={Styles.collapseStyles([styles.channelHash, selected && styles.channelHashSelected])}
+    >
+      #{' '}
+      <Kb.Text type={selected ? 'BodySemibold' : 'Body'} fixOverdraw={Styles.isPhone} style={nameStyle}>
+        {channelname}
+      </Kb.Text>
+    </Kb.Text>
+  )
+
+  const mutedIcon = isMuted ? (
+    <Kb.WithTooltip tooltip="Muted conversation">
+      <Kb.Icon
+        fixOverdraw={Styles.isPhone}
+        color={selected ? Styles.globalColors.white : Styles.globalColors.black_20}
+        style={styles.muted}
+        type={Styles.isPhone ? (selected ? 'icon-shh-active-26-21' : 'icon-shh-26-21') : 'iconfont-shh'}
+      />
+    </Kb.WithTooltip>
+  ) : null
+
+  const draftIcon = hasDraft ? (
+    <Kb.WithTooltip tooltip="Draft message">
+      <Kb.Icon
+        type="iconfont-edit"
+        style={styles.icon}
+        sizeType="Small"
+        color={selected ? Styles.globalColors.white : undefined}
+      />
+    </Kb.WithTooltip>
+  ) : null
+
   return (
     <Kb.ClickableBox onClick={onSelectConversation} style={styles.container}>
       <Kb.Box2 direction="horizontal" fullHeight={true} style={styles.rowContainer}>
@@ -75,55 +124,10 @@ const BigTeamChannel = React.memo(function BigTeamChannel(props: Props) {
             selected && styles.selectedChannelBackground,
           ])}
         >
-          <Kb.Text
-            lineClamp={1}
-            type="Body"
-            fixOverdraw={Styles.isPhone}
-            style={Styles.collapseStyles([styles.channelHash, selected && styles.channelHashSelected])}
-          >
-            #{' '}
-            <Kb.Text
-              type={selected ? 'BodySemibold' : 'Body'}
-              fixOverdraw={Styles.isPhone}
-              style={Styles.collapseStyles([
-                styles.channelText,
-                isError
-                  ? styles.textError
-                  : selected
-                  ? hasUnread
-                    ? (styles.textSelectedBold as any)
-                    : styles.textSelected
-                  : hasUnread
-                  ? styles.textPlainBold
-                  : (styles.textPlain as any),
-              ] as any)}
-            >
-              {channelname}
-            </Kb.Text>
-          </Kb.Text>
-          {isMuted && (
-            <Kb.WithTooltip tooltip="Muted conversation">
-              <Kb.Icon
-                fixOverdraw={Styles.isPhone}
-                color={selected ? Styles.globalColors.white : Styles.globalColors.black_20}
-                style={styles.muted}
-                type={
-                  Styles.isPhone ? (selected ? 'icon-shh-active-26-21' : 'icon-shh-26-21') : 'iconfont-shh'
-                }
-              />
-            </Kb.WithTooltip>
-          )}
+          {name}
+          {mutedIcon}
           <Kb.Box style={styles.iconContainer}>
-            {hasDraft && (
-              <Kb.WithTooltip tooltip="Draft message">
-                <Kb.Icon
-                  type="iconfont-edit"
-                  style={styles.icon}
-                  sizeType="Small"
-                  color={selected ? Styles.globalColors.white : undefined}
-                />
-              </Kb.WithTooltip>
-            )}
+            {draftIcon}
             {outboxIcon}
             {hasBadge && <Kb.Box style={styles.unread} />}
           </Kb.Box>
