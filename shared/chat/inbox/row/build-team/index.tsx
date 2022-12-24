@@ -38,6 +38,7 @@ const styles = Styles.styleSheetCreate(() => ({
       ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small),
       backgroundColor: Styles.globalColors.fastBlank,
       flexShrink: 0,
+      height: 120,
       width: '100%',
     },
     isTablet: {backgroundColor: Styles.globalColors.transparent},
