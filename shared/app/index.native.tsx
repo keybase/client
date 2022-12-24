@@ -87,6 +87,7 @@ const ensureStore = () => {
 const Keybase = () => {
   ensureStore()
   if (!_store) return null // never happens
+
   return (
     <React.StrictMode>
       <GestureHandlerRootView style={styles.gesture}>
