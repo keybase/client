@@ -152,12 +152,10 @@ const RemoteProxy = React.memo(function MenubarRemoteProxy() {
     // We just use syncingPaths rather than merging with writingToJournal here
     // since journal status comes a bit slower, and merging the two causes
     // flakes on our perception of overall upload status.
-    ...(uploads.endEstimate ? {endEstimate: uploads.endEstimate} : {}),
-    ...(filePaths.length === 1
-      ? {filename: FSTypes.getPathName(filePaths[1] || FSTypes.stringToPath(''))}
-      : {}),
-    ...(filePaths.length ? {files: filePaths.length} : {}),
-    ...(uploads.totalSyncingBytes ? {totalSyncingBytes: uploads.totalSyncingBytes} : {}),
+    endEstimate: uploads.endEstimate ?? 0,
+    filename: FSTypes.getPathName(filePaths[1] || FSTypes.stringToPath('')),
+    files: filePaths.length,
+    totalSyncingBytes: uploads.totalSyncingBytes,
   }
 
   const p: ProxyProps & WidgetProps = {
@@ -165,7 +163,7 @@ const RemoteProxy = React.memo(function MenubarRemoteProxy() {
     avatarRefreshCounter,
     conversationsToSend,
     daemonHandshakeState,
-    ...(darkMode ? {darkMode} : {}),
+    darkMode,
     desktopAppBadgeCount,
     diskSpaceStatus,
     followers,
@@ -179,7 +177,7 @@ const RemoteProxy = React.memo(function MenubarRemoteProxy() {
     navBadges,
     outOfDate,
     remoteTlfUpdates,
-    ...(showingBanner ? {showingDiskSpaceBanner: true} : {}),
+    showingDiskSpaceBanner: showingBanner,
     username,
     widgetBadge,
     windowShownCount,
