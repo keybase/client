@@ -194,6 +194,7 @@ export const deserialize = (
     metaMap.set(conversationIDKey, meta)
   })
 
+  // TODO use produce eventually
   return {
     ...state,
     chat2: {
@@ -219,16 +220,16 @@ export const deserialize = (
       username: username ?? state.config.username,
       windowShownCount: new Map<string, number>([['menu', windowShownCount]]),
     },
-    conversationsToSend,
+    conversationsToSend: conversationsToSend ?? state.conversationsToSend,
     darkMode: darkMode ?? false,
     diskSpaceStatus,
     endEstimate: endEstimate ?? 0,
     fileName: fileName ?? '',
     files: files ?? 0,
-    kbfsDaemonStatus,
+    kbfsDaemonStatus: kbfsDaemonStatus ?? state.kbfsDaemonStatus,
     kbfsEnabled,
     navBadges: navBadges ? new Map(navBadges) : state.navBadges,
-    remoteTlfUpdates,
+    remoteTlfUpdates: remoteTlfUpdates ?? state.remoteTlfUpdates,
     showingDiskSpaceBanner: showingDiskSpaceBanner ?? false,
     totalSyncingBytes: totalSyncingBytes ?? 0,
     users: {infoMap: infoMap ? new Map(infoMap) : state.users.infoMap},
