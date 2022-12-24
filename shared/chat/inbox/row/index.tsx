@@ -27,7 +27,7 @@ const makeRow = (
       return (
         <BigTeamChannel
           conversationIDKey={item.conversationIDKey}
-          channelname={item.channelname}
+          layoutChannelname={item.channelname}
           selected={item.selected}
           navKey={navKey}
         />
@@ -45,6 +45,7 @@ const makeRow = (
           swipeCloseRef={swipeCloseRef}
         />
       )
+    default:
   }
   logger.error(`Unhandled row type ${item.type}`)
   return null
