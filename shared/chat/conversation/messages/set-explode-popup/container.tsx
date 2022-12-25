@@ -1,4 +1,4 @@
-import type * as React from 'react'
+import * as React from 'react'
 import * as Container from '../../../../util/container'
 import * as Constants from '../../../../constants/chat2'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
@@ -24,33 +24,33 @@ type OwnProps = {
   visible: boolean
 }
 
-const SetExplodePopup = Container.connect(
-  (state, ownProps: OwnProps) => {
-    const {conversationIDKey} = ownProps
-    return {
-      _meta: Constants.getMeta(state, conversationIDKey),
-      selected: Constants.getConversationExplodingMode(state, conversationIDKey),
-    }
-  },
-  (dispatch, ownProps: OwnProps) => ({
-    onSelect: (seconds: number) => {
-      dispatch(Chat2Gen.createSetConvExplodingMode({conversationIDKey: ownProps.conversationIDKey, seconds}))
-      ownProps.onAfterSelect?.(seconds)
+const SetExplodePopup = React.memo(function SetExplodePopup(p: OwnProps) {
+  const {onHidden, visible, attachTo, conversationIDKey, onAfterSelect} = p
+  const _meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
+  const selected = Container.useSelector(state =>
+    Constants.getConversationExplodingMode(state, conversationIDKey)
+  )
+
+  const dispatch = Container.useDispatch()
+  const onSelect = React.useCallback(
+    (seconds: number) => {
+      dispatch(Chat2Gen.createSetConvExplodingMode({conversationIDKey, seconds}))
+      onAfterSelect?.(seconds)
     },
-  }),
-  (stateProps, dispatchProps, ownProps) => {
-    const {_meta, selected} = stateProps
-    const {onHidden, visible, attachTo} = ownProps
-    const {onSelect} = dispatchProps
-    return {
-      attachTo,
-      items: makeItems(_meta),
-      onHidden,
-      onSelect,
-      selected,
-      visible,
-    }
+    [dispatch, onAfterSelect, conversationIDKey]
+  )
+
+  const items = React.useMemo(() => makeItems(_meta), [_meta])
+
+  const props = {
+    attachTo,
+    items,
+    onHidden,
+    onSelect,
+    selected,
+    visible,
   }
-)(SetExplodeTime)
+  return <SetExplodeTime {...props} />
+})
 
 export default SetExplodePopup
