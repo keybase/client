@@ -7,6 +7,7 @@ import * as Styles from '../../../styles'
 import * as Container from '../../../util/container'
 import * as Types from '../../../constants/types/chat2'
 import Message from '../messages/wrapper'
+import type {Text2} from '../messages/text/text2'
 import SpecialBottomMessage from '../messages/special-bottom-message'
 import SpecialTopMessage from '../messages/special-top-message'
 import shallowEqual from 'shallowequal'
@@ -422,22 +423,44 @@ const useScrolling = (
 const useItems = (p: {
   conversationIDKey: Types.ConversationIDKey
   messageOrdinals: Array<Types.Ordinal>
+  messageMap?: Map<Types.Ordinal, Types.Message>
   centeredOrdinal: Types.Ordinal | undefined
   resizeObserve: ReturnType<typeof useResizeObserver>
   intersectionObserve: ReturnType<typeof useIntersectionObserver>
 }) => {
-  const {conversationIDKey, messageOrdinals, centeredOrdinal, resizeObserve, intersectionObserve} = p
+  const {conversationIDKey, messageOrdinals, centeredOrdinal, messageMap} = p
+  const {resizeObserve, intersectionObserve} = p
   const ordinalsInAWaypoint = 10
   const rowRenderer = React.useCallback(
-    (ordinal: Types.Ordinal, previous?: Types.Ordinal) => (
-      <Message
-        key={String(ordinal)}
-        ordinal={ordinal}
-        previous={previous}
-        conversationIDKey={conversationIDKey}
-      />
-    ),
-    [conversationIDKey]
+    (ordinal: Types.Ordinal, previous: Types.Ordinal | undefined) => {
+      const type = messageMap?.get(ordinal)?.type
+      switch (type) {
+        case 'text': {
+          const Text2Impl = require('../messages/text/text2').Text2 as typeof Text2
+          return (
+            <Text2Impl
+              key={String(ordinal)}
+              ordinal={ordinal}
+              previous={previous}
+              conversationIDKey={conversationIDKey}
+            />
+          )
+        }
+        case undefined:
+          // TODO
+          return <div>no type?</div>
+        default:
+          return (
+            <Message
+              key={String(ordinal)}
+              ordinal={ordinal}
+              previous={previous}
+              conversationIDKey={conversationIDKey}
+            />
+          )
+      }
+    },
+    [conversationIDKey, messageMap]
   )
 
   const items = useMemo(() => {
@@ -519,6 +542,7 @@ const useItems = (p: {
 const ThreadWrapperInner = (p: Props) => {
   const {conversationIDKey, onFocusInput} = p
   const {requestScrollDownRef, requestScrollToBottomRef, requestScrollUpRef} = p
+  const messageMap = Container.useSelector(state => state.chat2.messageMap.get(conversationIDKey))
   const messageOrdinals = Container.useSelector(state =>
     Constants.getMessageOrdinals(state, conversationIDKey)
   )
@@ -613,6 +637,7 @@ const ThreadWrapperInner = (p: Props) => {
     centeredOrdinal,
     conversationIDKey,
     intersectionObserve,
+    messageMap,
     messageOrdinals,
     resizeObserve,
   })
@@ -635,7 +660,7 @@ const ThreadWrapper = React.memo(ThreadWrapperInner)
 
 type OrdinalWaypointProps = {
   id: string
-  rowRenderer: (ordinal: Types.Ordinal, previous?: Types.Ordinal) => React.ReactNode
+  rowRenderer: (ordinal: Types.Ordinal, previous: Types.Ordinal | undefined) => React.ReactNode
   ordinals: Array<Types.Ordinal>
   previous?: Types.Ordinal
   resizeObserve: ReturnType<typeof useResizeObserver>
