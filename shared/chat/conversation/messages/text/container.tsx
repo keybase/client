@@ -1,10 +1,12 @@
-import * as Constants from '../../../../constants/chat2'
-import type * as Types from '../../../../constants/types/chat2'
+import * as React from 'react'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
+import * as Constants from '../../../../constants/chat2'
 import * as Container from '../../../../util/container'
-import * as WalletConstants from '../../../../constants/wallets'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
+import * as WalletConstants from '../../../../constants/wallets'
 import TextMessage, {type ReplyProps} from '.'
+import shallowEqual from 'shallowequal'
+import type * as Types from '../../../../constants/types/chat2'
 
 type OwnProps = {
   isHighlighted?: boolean
@@ -55,13 +57,13 @@ const getReplyProps = (
   return undefined
 }
 
-const getClaimProps = (state: Container.TypedState, ownProps: OwnProps) => {
-  const paymentInfo = Constants.getPaymentMessageInfo(state, ownProps.message)
+const getClaimProps = (state: Container.TypedState, message: Types.MessageText) => {
+  const paymentInfo = Constants.getPaymentMessageInfo(state, message)
   if (!paymentInfo) {
     return undefined
   }
 
-  const youAreSender = ownProps.message.author === state.config.username
+  const youAreSender = message.author === state.config.username
   const cancelable = paymentInfo.status === 'claimable'
   const acceptedDisclaimer = WalletConstants.getAcceptedDisclaimer(state)
   if (youAreSender || !cancelable || acceptedDisclaimer) {
@@ -72,39 +74,40 @@ const getClaimProps = (state: Container.TypedState, ownProps: OwnProps) => {
     ? `${paymentInfo.amountDescription}/${paymentInfo.issuerDescription}`
     : paymentInfo.amountDescription
   const amount = paymentInfo.worth ? paymentInfo.worth : amountDescription
+  // TODO dont return this object
   return {amount, label}
 }
 
-export default Container.connect(
-  (state: Container.TypedState, ownProps: OwnProps) => {
-    const editInfo = Constants.getEditInfo(state, ownProps.message.conversationIDKey)
-    const isEditing = !!(editInfo && editInfo.ordinal === ownProps.message.ordinal)
-    const claim = getClaimProps(state, ownProps)
-    return {claim, isEditing}
-  },
-  (dispatch: Container.TypedDispatch, {message}: OwnProps) => ({
-    _onClaim: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['walletOnboarding']})),
-    _onReplyClick: (messageID: Types.MessageID) =>
-      dispatch(
-        Chat2Gen.createReplyJump({
-          conversationIDKey: message.conversationIDKey,
-          messageID,
-        })
-      ),
-  }),
-  (stateProps, dispatchProps, ownProps: OwnProps) => ({
-    claim: stateProps.claim ? {onClaim: dispatchProps._onClaim, ...stateProps.claim} : undefined,
-    isEditing: stateProps.isEditing,
-    isHighlighted: ownProps.isHighlighted,
-    message: ownProps.message,
-    reply: getReplyProps(ownProps.message.replyTo || undefined, dispatchProps._onReplyClick),
-    text: ownProps.message.decoratedText
-      ? ownProps.message.decoratedText.stringValue()
-      : ownProps.message.text.stringValue(),
-    type: ownProps.message.errorReason
-      ? ('error' as const)
-      : !ownProps.message.submitState
-      ? ('sent' as const)
-      : ('pending' as const),
+const TextMessageContainer = React.memo(function TextMessageContainer(p: OwnProps) {
+  const {message, isHighlighted} = p
+  const {conversationIDKey, ordinal, decoratedText, text, errorReason, replyTo} = message
+  const isEditing = Container.useSelector(state => {
+    const editInfo = Constants.getEditInfo(state, conversationIDKey)
+    return !!(editInfo && editInfo.ordinal === ordinal)
   })
-)(TextMessage)
+  const claim = Container.useSelector(state => getClaimProps(state, message), shallowEqual)
+  const dispatch = Container.useDispatch()
+  const onClaim = React.useCallback(() => {
+    dispatch(RouteTreeGen.createNavigateAppend({path: ['walletOnboarding']}))
+  }, [dispatch])
+  const onReplyClick = React.useCallback(
+    (messageID: Types.MessageID) => {
+      dispatch(Chat2Gen.createReplyJump({conversationIDKey, messageID}))
+    },
+    [dispatch, conversationIDKey]
+  )
+
+  const props = {
+    claim: claim ? {onClaim, ...claim} : undefined,
+    isEditing,
+    isHighlighted,
+    message: message,
+    reply: getReplyProps(replyTo || undefined, onReplyClick),
+    text: decoratedText ? decoratedText.stringValue() : text.stringValue(),
+    type: errorReason ? ('error' as const) : !message.submitState ? ('sent' as const) : ('pending' as const),
+  }
+
+  return <TextMessage {...props} />
+})
+
+export default TextMessageContainer

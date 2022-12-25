@@ -27,7 +27,7 @@ type Props = {
   message: Types.MessageAttachment
   progress: number
   transferState: Types.MessageAttachmentTransferState
-  showButton: null | 'play' | 'film'
+  showButton: boolean
   title: string
   toggleMessageMenu: () => void
   videoDuration: string
@@ -178,7 +178,7 @@ class ImageAttachment extends React.PureComponent<Props, State> {
                           >
                             {!!this.props.showButton && (
                               <Kb.Icon
-                                type={this.props.showButton === 'play' ? 'icon-play-64' : 'icon-film-64'}
+                                type={this.props.showButton ? 'icon-play-64' : 'icon-film-64'}
                                 style={styles.playButton}
                               />
                             )}
