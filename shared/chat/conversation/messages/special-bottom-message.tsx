@@ -37,21 +37,22 @@ type OwnProps = {
   measure: (() => void) | null
 }
 
-export default Container.connect(
-  (state, ownProps: OwnProps) => {
-    const meta = Constants.getMeta(state, ownProps.conversationIDKey)
-    const showResetParticipants = meta.resetParticipants.size !== 0 ? ownProps.conversationIDKey : null
-    const showSuperseded =
-      meta && (meta.wasFinalizedBy || meta.supersededBy !== Constants.noConversationIDKey)
-        ? ownProps.conversationIDKey
-        : null
+const BottomMessageContainer = React.memo(function BottomMessageContainer(p: OwnProps) {
+  const {conversationIDKey, measure} = p
+  const showResetParticipants = Container.useSelector(state => {
+    const meta = Constants.getMeta(state, conversationIDKey)
+    return meta.resetParticipants.size !== 0
+  })
+  const showSuperseded = Container.useSelector(state => {
+    const meta = Constants.getMeta(state, conversationIDKey)
+    return !!meta.wasFinalizedBy || meta.supersededBy !== Constants.noConversationIDKey
+  })
 
-    return {
-      measure: ownProps.measure,
-      showResetParticipants,
-      showSuperseded,
-    }
-  },
-  () => ({}),
-  (stateProps, dispatchProps) => ({...stateProps, ...dispatchProps})
-)(BottomMessage) as any
+  const props = {
+    measure,
+    showResetParticipants: showResetParticipants ? conversationIDKey : null,
+    showSuperseded: showSuperseded ? conversationIDKey : null,
+  }
+  return <BottomMessage {...props} />
+})
+export default BottomMessageContainer
