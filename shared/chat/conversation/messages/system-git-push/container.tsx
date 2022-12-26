@@ -1,40 +1,50 @@
+import * as Container from '../../../../util/container'
+import * as FsConstants from '../../../../constants/fs'
+import * as FsTypes from '../../../../constants/types/fs'
 import * as GitGen from '../../../../actions/git-gen'
 import * as ProfileGen from '../../../../actions/profile-gen'
-import type * as Types from '../../../../constants/types/chat2'
+import * as React from 'react'
 import * as Tracker2Gen from '../../../../actions/tracker2-gen'
 import Git from '.'
-import * as Container from '../../../../util/container'
-import * as FsTypes from '../../../../constants/types/fs'
-import * as FsConstants from '../../../../constants/fs'
+import type * as Types from '../../../../constants/types/chat2'
 
 type OwnProps = {
   message: Types.MessageSystemGitPush
 }
 
-const getAutogitPath = (commitHash: string, ownProps: OwnProps): FsTypes.Path =>
-  FsTypes.stringToPath(
-    '/keybase/team/' +
-      ownProps.message.team +
-      '/.kbfs_autogit/' +
-      ownProps.message.repo +
-      '/.kbfs_autogit_commit_' +
-      commitHash
+const GitContainer = React.memo(function GitContainer(p: OwnProps) {
+  const {message} = p
+  const dispatch = Container.useDispatch()
+  const onClickCommit = React.useCallback(
+    (commitHash: string) => {
+      const path = FsTypes.stringToPath(
+        '/keybase/team/' +
+          message.team +
+          '/.kbfs_autogit/' +
+          message.repo +
+          '/.kbfs_autogit_commit_' +
+          commitHash
+      )
+      dispatch(FsConstants.makeActionForOpenPathInFilesTab(path))
+    },
+    [dispatch, message]
   )
-
-const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProps) => ({
-  onClickCommit: (commitHash: string) =>
-    dispatch(FsConstants.makeActionForOpenPathInFilesTab(getAutogitPath(commitHash, ownProps))),
-  onClickUserAvatar: (username: string) =>
-    Container.isMobile
-      ? dispatch(ProfileGen.createShowUserProfile({username}))
-      : dispatch(Tracker2Gen.createShowUser({asTracker: true, username})),
-  onViewGitRepo: (repoID: string, teamname: string) => {
-    dispatch(GitGen.createNavigateToTeamRepo({repoID, teamname}))
-  },
+  const onClickUserAvatar = React.useCallback(
+    (username: string) => {
+      Container.isMobile
+        ? dispatch(ProfileGen.createShowUserProfile({username}))
+        : dispatch(Tracker2Gen.createShowUser({asTracker: true, username}))
+    },
+    [dispatch]
+  )
+  const onViewGitRepo = React.useCallback(
+    (repoID: string, teamname: string) => {
+      dispatch(GitGen.createNavigateToTeamRepo({repoID, teamname}))
+    },
+    [dispatch]
+  )
+  const props = {message, onClickCommit, onClickUserAvatar, onViewGitRepo}
+  return <Git {...props} />
 })
 
-export default Container.connect(
-  state => ({you: state.config.username}),
-  mapDispatchToProps,
-  (s, d, o: OwnProps) => ({...o, ...s, ...d})
-)(Git)
+export default GitContainer
