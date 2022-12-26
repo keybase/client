@@ -8,7 +8,7 @@ import * as Container from '../../../util/container'
 type Props = {
   showResetParticipants: Types.ConversationIDKey | null
   showSuperseded: Types.ConversationIDKey | null
-  measure: (() => void) | null
+  measure?: () => void
 }
 
 class BottomMessage extends React.PureComponent<Props> {
@@ -34,7 +34,7 @@ class BottomMessage extends React.PureComponent<Props> {
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
-  measure: (() => void) | null
+  measure?: () => void
 }
 
 const BottomMessageContainer = React.memo(function BottomMessageContainer(p: OwnProps) {
