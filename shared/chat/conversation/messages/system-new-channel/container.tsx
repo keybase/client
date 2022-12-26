@@ -1,26 +1,27 @@
+import * as React from 'react'
 import type * as Types from '../../../../constants/types/chat2'
 import * as Constants from '../../../../constants/chat2'
 import * as TeamsGen from '../../../../actions/teams-gen'
-import type {TeamID} from '../../../../constants/types/teams'
 import SystemNewChannel from '.'
-import {connect} from '../../../../util/container'
+import * as Container from '../../../../util/container'
 
-type OwnProps = {
-  message: Types.MessageSystemNewChannel
-}
+type OwnProps = {message: Types.MessageSystemNewChannel}
 
-export default connect(
-  (state, ownProps: OwnProps) => {
-    const {teamID} = Constants.getMeta(state, ownProps.message.conversationIDKey)
-    return {
-      teamID,
-    }
-  },
-  dispatch => ({
-    _onManageChannels: (teamID: TeamID) => dispatch(TeamsGen.createManageChatChannels({teamID})),
-  }),
-  (stateProps, dispatchProps, ownProps) => ({
-    message: ownProps.message,
-    onManageChannels: () => dispatchProps._onManageChannels(stateProps.teamID),
-  })
-)(SystemNewChannel)
+const SystemNewChannelContainer = React.memo(function SystemNewChannelContainer(p: OwnProps) {
+  const {message} = p
+  const {conversationIDKey} = message
+  const {teamID} = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
+  const dispatch = Container.useDispatch()
+  const onManageChannels = React.useCallback(() => {
+    dispatch(TeamsGen.createManageChatChannels({teamID}))
+  }, [dispatch, teamID])
+
+  const props = {
+    message,
+    onManageChannels,
+  }
+
+  return <SystemNewChannel {...props} />
+})
+
+export default SystemNewChannelContainer

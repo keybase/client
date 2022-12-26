@@ -1,33 +1,24 @@
-import SystemInviteAccepted from '.'
-import * as RouteTreeGen from '../../../../actions/route-tree-gen'
-import type * as Types from '../../../../constants/types/chat2'
 import * as Constants from '../../../../constants/chat2'
-import type {TeamID} from '../../../../constants/types/teams'
-import {connect} from '../../../../util/container'
+import * as Container from '../../../../util/container'
+import * as React from 'react'
+import * as RouteTreeGen from '../../../../actions/route-tree-gen'
+import SystemInviteAccepted from '.'
+import type * as Types from '../../../../constants/types/chat2'
 
-type OwnProps = {
-  message: Types.MessageSystemInviteAccepted
-}
+type OwnProps = {message: Types.MessageSystemInviteAccepted}
 
-export default connect(
-  (state, ownProps: OwnProps) => {
-    const {teamID, teamname} = Constants.getMeta(state, ownProps.message.conversationIDKey)
-    return {
-      teamID,
-      teamname,
-      you: state.config.username,
-    }
-  },
-  dispatch => ({
-    _onViewTeam: (teamID: TeamID) => {
-      dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'team'}]}))
-    },
-  }),
-  (stateProps, dispatchProps, ownProps: OwnProps) => ({
-    message: ownProps.message,
-    onViewTeam: () => dispatchProps._onViewTeam(stateProps.teamID),
-    role: ownProps.message.role,
-    teamname: stateProps.teamname,
-    you: stateProps.you,
-  })
-)(SystemInviteAccepted)
+const SystemInviteAcceptedContainer = React.memo(function SystemInviteAcceptedContainer(p: OwnProps) {
+  const {message} = p
+  const {role, conversationIDKey} = message
+  const {teamID, teamname} = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
+  const you = Container.useSelector(state => state.config.username)
+  const dispatch = Container.useDispatch()
+  const onViewTeam = React.useCallback(() => {
+    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'team'}]}))
+  }, [dispatch, teamID])
+
+  const props = {message, onViewTeam, role, teamname, you}
+  return <SystemInviteAccepted {...props} />
+})
+
+export default SystemInviteAcceptedContainer

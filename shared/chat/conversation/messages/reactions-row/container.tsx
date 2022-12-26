@@ -1,3 +1,4 @@
+import * as React from 'react'
 import * as Container from '../../../../util/container'
 import * as Constants from '../../../../constants/chat2'
 import type * as Types from '../../../../constants/types/chat2'
@@ -30,20 +31,21 @@ export type OwnProps = {
   ordinal: Types.Ordinal
 }
 
-export default Container.connect(
-  (state, ownProps: OwnProps) => {
-    const message = Constants.getMessage(state, ownProps.conversationIDKey, ownProps.ordinal)
-    if (!message || !Constants.isMessageWithReactions(message)) {
-      // nothing to see here
-      return {_reactions: null}
-    }
-    return {
-      _reactions: message.reactions,
-    }
-  },
-  () => ({}),
-  (stateProps, _, ownProps: OwnProps) => ({
-    ...ownProps,
-    emojis: getOrderedReactions(stateProps._reactions),
-  })
-)(ReactionsRow)
+const ReactonsRowContainer = React.memo(function ReactonsRowContainer(p: OwnProps) {
+  const {conversationIDKey, ordinal} = p
+  const message = Container.useSelector(state => Constants.getMessage(state, conversationIDKey, ordinal))
+  const reactions = !message || !Constants.isMessageWithReactions(message) ? null : message.reactions
+
+  const emojis = React.useMemo(() => {
+    return getOrderedReactions(reactions)
+  }, [reactions])
+
+  const props = {
+    ...p,
+    emojis,
+  }
+
+  return <ReactionsRow {...props} />
+})
+
+export default ReactonsRowContainer

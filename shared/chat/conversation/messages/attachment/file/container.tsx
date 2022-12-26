@@ -1,3 +1,4 @@
+import * as React from 'react'
 import type * as Types from '../../../../../constants/types/chat2'
 import * as Constants from '../../../../../constants/chat2'
 import type * as CryptoTypes from '../../../../../constants/types/crypto'
@@ -16,88 +17,76 @@ type OwnProps = {
   message: Types.MessageAttachment
 }
 
-export default Container.connect(
-  (state: Container.TypedState, ownProps: OwnProps) => {
-    const editInfo = Constants.getEditInfo(state, ownProps.message.conversationIDKey)
-    const isEditing = !!(editInfo && editInfo.ordinal === ownProps.message.ordinal)
-    return {isEditing}
-  },
-  dispatch => ({
-    _onDownload: (message: Types.MessageAttachment) => {
-      switch (message.transferState) {
-        case 'uploading':
-        case 'downloading':
-        case 'mobileSaving':
-          return
-      }
-      dispatch(Chat2Gen.createAttachmentDownload({message}))
-    },
-    _onSaltpackFileOpen: (path: string, operation: CryptoTypes.Operations) => {
+const FileContainer = React.memo(function FileContainer(p: OwnProps) {
+  const {message, isHighlighted} = p
+  const editInfo = Container.useSelector(state => Constants.getEditInfo(state, message.conversationIDKey))
+  const isEditing = !!(editInfo && editInfo.ordinal === message.ordinal)
+
+  const dispatch = Container.useDispatch()
+
+  const onSaltpackFileOpen = React.useCallback(
+    (path: string, operation: CryptoTypes.Operations) => {
       dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.cryptoTab}))
-      dispatch(
-        CryptoGen.createOnSaltpackOpenFile({
-          operation,
-          path: new Container.HiddenString(path),
-        })
-      )
+      dispatch(CryptoGen.createOnSaltpackOpenFile({operation, path: new Container.HiddenString(path)}))
     },
-    _onShare: (message: Types.MessageAttachment) => {
+    [dispatch]
+  )
+  const onShowInFinder = React.useCallback(() => {
+    message.downloadPath &&
+      dispatch(FsGen.createOpenLocalPathInSystemFileManager({localPath: message.downloadPath}))
+  }, [dispatch, message])
+
+  const onDownload = React.useCallback(() => {
+    if (Container.isMobile) {
       dispatch(Chat2Gen.createMessageAttachmentNativeShare({message}))
-    },
-    _onShowInFinder: (message: Types.MessageAttachment) => {
-      message.downloadPath &&
-        dispatch(FsGen.createOpenLocalPathInSystemFileManager({localPath: message.downloadPath}))
-    },
-    _onShowPDF: (message: Types.MessageAttachment) => {
-      dispatch(
-        RouteTreeGen.createNavigateAppend({
-          path: [{props: {message}, selected: 'chatPDF'}],
-        })
-      )
-    },
-  }),
-  (stateProps, dispatchProps, ownProps: OwnProps) => {
-    const message = ownProps.message
-    const {downloadPath, transferState} = message
-    const arrowColor = Container.isMobile
-      ? ''
-      : downloadPath
-      ? globalColors.green
-      : transferState === 'downloading'
-      ? globalColors.blue
-      : ''
-    const hasProgress =
-      !!transferState && transferState !== 'remoteUploading' && transferState !== 'mobileSaving'
-    return {
-      arrowColor,
-      errorMsg: message.transferErrMsg || '',
-      fileName: message.fileName,
-      hasProgress,
-      isEditing: stateProps.isEditing,
-      isHighlighted: ownProps.isHighlighted,
-      isSaltpackFile: isPathSaltpack(message.fileName),
-      message,
-      onDownload: () => {
-        if (Container.isMobile) {
-          dispatchProps._onShare(message)
+    } else {
+      if (!message.downloadPath) {
+        if (message.fileType === 'application/pdf') {
+          dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {message}, selected: 'chatPDF'}]}))
         } else {
-          if (!message.downloadPath) {
-            if (message.fileType === 'application/pdf') {
-              dispatchProps._onShowPDF(message)
-            } else {
-              dispatchProps._onDownload(message)
-            }
+          switch (message.transferState) {
+            case 'uploading':
+            case 'downloading':
+            case 'mobileSaving':
+              return
+            default:
           }
+          dispatch(Chat2Gen.createAttachmentDownload({message}))
         }
-      },
-      onSaltpackFileOpen: dispatchProps._onSaltpackFileOpen,
-      onShowInFinder:
-        !Container.isMobile && message.downloadPath
-          ? () => dispatchProps._onShowInFinder(message)
-          : undefined,
-      progress: message.transferProgress,
-      title: message.decoratedText?.stringValue() || message.title || message.fileName,
-      transferState,
+      }
     }
+  }, [dispatch, message])
+
+  const {downloadPath, transferState} = message
+
+  const arrowColor = Container.isMobile
+    ? ''
+    : downloadPath
+    ? globalColors.green
+    : transferState === 'downloading'
+    ? globalColors.blue
+    : ''
+  const hasProgress =
+    !!transferState && transferState !== 'remoteUploading' && transferState !== 'mobileSaving'
+
+  const props = {
+    arrowColor,
+    errorMsg: message.transferErrMsg || '',
+    fileName: message.fileName,
+    hasProgress,
+    isEditing,
+    isHighlighted,
+    isSaltpackFile: isPathSaltpack(message.fileName),
+    message,
+    onDownload,
+    onSaltpackFileOpen,
+    onShowInFinder: !Container.isMobile && message.downloadPath ? onShowInFinder : undefined,
+    progress: message.transferProgress,
+    title: message.decoratedText?.stringValue() || message.title || message.fileName,
+    transferState,
   }
-)(File)
+
+  return <File {...props} />
+})
+
+export default FileContainer

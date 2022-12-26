@@ -146,6 +146,7 @@ const SpecialTopMessage = React.memo(function SpecialTopMessage(props: Props) {
     state => Constants.getMeta(state, conversationIDKey).teamRetentionPolicy
   )
 
+  // could not expose this and just return an enum for the is*convos
   const participantInfoAll = Container.useSelector(
     state => Constants.getParticipantInfo(state, conversationIDKey).all,
     (a, b) => shallowEqual(a, b)
