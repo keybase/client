@@ -28,7 +28,7 @@ const retyAfterAskingPerm =
   }
 
 const defaultOptions = {
-  allowsEditing: true,
+  allowsEditing: false,
   exif: false,
   quality: 0.4,
   videoQuality: ImagePicker.UIImagePickerControllerQualityType.Medium,
@@ -63,12 +63,8 @@ export const launchImageLibraryAsync = async (
 ): Promise<ImagePicker.ImagePickerResult> => {
   return ImagePicker.launchImageLibraryAsync({
     ...defaultOptions,
-    ...(mediaType === 'photo'
-      ? {
-          allowsEditing: false,
-          allowsMultipleSelection: true,
-        }
-      : {}),
+    ...(mediaType === 'video' ? {allowsEditing: true} : {}),
+    ...(mediaType === 'photo' ? {allowsMultipleSelection: true} : {}),
     mediaTypes: mediaTypeToImagePickerMediaType(mediaType),
   }).catch(
     retyAfterAskingPerm(
