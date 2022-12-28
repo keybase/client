@@ -21,7 +21,7 @@ require (
 	github.com/dustin/go-humanize v1.0.0
 	github.com/eapache/channels v1.1.0
 	github.com/gammazero/workerpool v0.0.0-20181230203049-86a96b5d5d92
-	github.com/go-errors/errors v1.0.1
+	github.com/go-errors/errors v1.4.2
 	github.com/go-sql-driver/mysql v1.5.1-0.20200311113236-681ffa848bae
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da
 	github.com/golang/mock v1.6.0
@@ -34,24 +34,24 @@ require (
 	github.com/keybase/colly v1.1.1-0.20190207010505-9a56fbe6c0e6
 	github.com/keybase/go-codec v0.0.0-20180928230036-164397562123
 	github.com/keybase/go-crypto v0.0.0-20200123153347-de78d2cb44f4
-	github.com/keybase/go-framed-msgpack-rpc v0.0.0-20211118173254-f892386581e8
+	github.com/keybase/go-framed-msgpack-rpc v0.0.0-20221220224508-1d421c15fa25
 	github.com/keybase/go-jsonw v0.0.0-20200325173637-df90f282c233
-	github.com/keybase/go-kext v0.0.0-20211119181951-8d5d2e919472
-	github.com/keybase/go-keychain v0.0.0-20220610143837-c2ce06069005
-	github.com/keybase/go-logging v0.0.0-20211118164508-35a15a9fa71a
-	github.com/keybase/go-merkle-tree v0.0.0-20211118173306-f89b06604d00
+	github.com/keybase/go-kext v0.0.0-20221220214016-0b515ccced3b
+	github.com/keybase/go-keychain v0.0.0-20221221221913-9be78f6c498b
+	github.com/keybase/go-logging v0.0.0-20221220224924-396ca573808c
+	github.com/keybase/go-merkle-tree v0.0.0-20221220225120-009ea00ffb15
 	github.com/keybase/go-porterstemmer v1.0.2-0.20181016185745-521f1ed5c3f7
 	github.com/keybase/go-ps v0.0.0-20190827175125-91aafc93ba19
-	github.com/keybase/go-triplesec v0.0.0-20211109205539-1f96eeacbd86
-	github.com/keybase/go-triplesec-insecure v0.0.0-20211118164850-99654891ba7c
-	github.com/keybase/go-updater v0.0.0-20221221215057-da7f21f4d90b
+	github.com/keybase/go-triplesec v0.0.0-20221220225315-06ddee08f3c2
+	github.com/keybase/go-triplesec-insecure v0.0.0-20221220225342-ddc3aa12adec
+	github.com/keybase/go-updater v0.0.0-20221221194633-9e97736a0b42
 	github.com/keybase/go-winio v0.4.12-0.20180913221037-b1d96ab97b58
 	github.com/keybase/golang-ico v0.0.0-20181117022008-819cbeb217c9
 	github.com/keybase/gomounts v0.0.0-20180302000443-349507f4d353
 	github.com/keybase/keybase-test-vectors v1.0.12-0.20200309162119-ea1e58fecd5d
-	github.com/keybase/pipeliner v0.0.0-20190828022149-31ef4ee63659
+	github.com/keybase/pipeliner v0.0.0-20211118220306-ca1be321c9e5
 	github.com/keybase/release v0.0.0-20221220220653-50771d921175
-	github.com/keybase/saltpack v0.0.0-20211118165207-4039c5df46c0
+	github.com/keybase/saltpack v0.0.0-20221220231257-f6cce11cfd0f
 	github.com/keybase/stellarnet v0.0.0-20200311180805-6c05850f9050
 	github.com/kr/text v0.2.0
 	github.com/kyokomi/emoji v2.2.2+incompatible
@@ -67,20 +67,20 @@ require (
 	github.com/stathat/go v1.0.0
 	// NOTE: if stellar/go is updated, consider removing the `replace` directive
 	// for goautoneg at the bottom of this go.mod
-	github.com/stellar/go v0.0.0-20191010205648-0fc3bfe3dfa7
-	github.com/stretchr/testify v1.8.0
+	github.com/stellar/go v0.0.0-20221209134558-b4ba6f8e67f2
+	github.com/stretchr/testify v1.8.1
 	github.com/syndtr/goleveldb v1.0.0
 	github.com/urfave/cli v1.22.1
 	github.com/vividcortex/ewma v1.1.2-0.20170804035156-43880d236f69
 	go.uber.org/zap v1.17.0
-	golang.org/x/crypto v0.0.0-20220722155217-630584e8d5aa
+	golang.org/x/crypto v0.4.0
 	golang.org/x/image v0.0.0-20190802002840-cff245a6509b
 	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616
 	golang.org/x/mobile v0.0.0-20221110043201-43a038452099
-	golang.org/x/net v0.1.0
+	golang.org/x/net v0.4.0
 	golang.org/x/sync v0.0.0-20220819030929-7fc1605a5dde
-	golang.org/x/sys v0.1.0
-	golang.org/x/text v0.4.0
+	golang.org/x/sys v0.3.0
+	golang.org/x/text v0.5.0
 	golang.org/x/time v0.0.0-20200416051211-89c76fbcd5d1
 	gopkg.in/src-d/go-billy.v4 v4.3.2
 	gopkg.in/src-d/go-git.v4 v4.13.1
@@ -96,7 +96,7 @@ require (
 	github.com/Abirdcfly/dupword v0.0.7 // indirect
 	github.com/Antonboom/errname v0.1.7 // indirect
 	github.com/Antonboom/nilnil v0.1.1 // indirect
-	github.com/BurntSushi/toml v1.2.0 // indirect
+	github.com/BurntSushi/toml v1.2.1 // indirect
 	github.com/Djarvur/go-err113 v0.0.0-20210108212216-aea10b59be24 // indirect
 	github.com/GaijinEntertainment/go-exhaustruct/v2 v2.3.0 // indirect
 	github.com/Masterminds/semver v1.5.0 // indirect
@@ -207,7 +207,7 @@ require (
 	github.com/ldez/gomoddirectives v0.2.3 // indirect
 	github.com/ldez/tagliatelle v0.3.1 // indirect
 	github.com/leonklingele/grouper v1.1.0 // indirect
-	github.com/lib/pq v1.10.6 // indirect
+	github.com/lib/pq v1.10.7 // indirect
 	github.com/lufeee/execinquery v1.2.1 // indirect
 	github.com/magiconair/properties v1.8.6 // indirect
 	github.com/manucorporat/sse v0.0.0-20160126180136-ee05b128a739 // indirect
@@ -255,7 +255,7 @@ require (
 	github.com/securego/gosec/v2 v2.13.1 // indirect
 	github.com/segmentio/go-loggly v0.5.1-0.20171222203950-eb91657e62b2 // indirect
 	github.com/shazow/go-diff v0.0.0-20160112020656-b6b7b6733b8c // indirect
-	github.com/shopspring/decimal v1.1.1-0.20191009025716-f1972eb1d1f5 // indirect
+	github.com/shopspring/decimal v1.3.1 // indirect
 	github.com/simplereach/timeutils v1.2.0 // indirect
 	github.com/sirupsen/logrus v1.9.0 // indirect
 	github.com/sivchari/containedctx v1.0.2 // indirect
@@ -272,9 +272,9 @@ require (
 	github.com/src-d/gcfg v1.3.0 // indirect
 	github.com/ssgreg/nlreturn/v2 v2.2.1 // indirect
 	github.com/stbenjam/no-sprintf-host-port v0.1.1 // indirect
-	github.com/stellar/go-xdr v0.0.0-20180917104419-0bc96f33a18e // indirect
+	github.com/stellar/go-xdr v0.0.0-20211103144802-8017fc4bdfee // indirect
 	github.com/steveyen/gtreap v0.0.0-20150807155958-0abe01ef9be2 // indirect
-	github.com/stretchr/objx v0.4.0 // indirect
+	github.com/stretchr/objx v0.5.0 // indirect
 	github.com/strib/gomounts v0.0.0-20180215003523-d9ea4eaa52ca // indirect
 	github.com/subosito/gotenv v1.4.1 // indirect
 	github.com/tdakkota/asciicheck v0.1.1 // indirect
