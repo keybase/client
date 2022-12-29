@@ -85,7 +85,6 @@ type Shared = {
   isPendingPayment: boolean
   message: Types.Message
   meta: Types.ConversationMeta
-  orangeLineAbove: boolean
   popupAnchor: React.MutableRefObject<React.Component | null>
   setShowMenuButton: (s: boolean) => void
   setShowingPicker: (s: boolean) => void
@@ -109,10 +108,7 @@ const WrapperMessage = React.memo(function WrapperMessage(p: Props) {
 
   const you = Container.useSelector(state => state.config.username)
   const youAreAuthor = you === message.author
-  const {type, id} = message
-  const orangeLineAbove = Container.useSelector(
-    state => state.chat2.orangeLineMap.get(conversationIDKey) === id
-  )
+  const {type} = message
   const meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
   const isPendingPayment = Container.useSelector(state => Constants.isPendingPaymentMessage(state, message))
   const shouldShowPopup = Container.useSelector(state => Constants.shouldShowPopup(state, message))
@@ -134,8 +130,7 @@ const WrapperMessage = React.memo(function WrapperMessage(p: Props) {
   )
 
   const prevMessage = Container.usePrevious2(message)
-  const prevOrange = Container.usePrevious2(orangeLineAbove)
-  if (measure && (message !== prevMessage || prevOrange !== orangeLineAbove)) {
+  if (measure && message !== prevMessage) {
     measure()
   }
 
@@ -144,7 +139,7 @@ const WrapperMessage = React.memo(function WrapperMessage(p: Props) {
   const previousMsg = Container.useSelector(
     state => (previous && Constants.getMessage(state, conversationIDKey, previous)) || undefined
   )
-  const showUsername = getUsernameToShow(message, previousMsg, you, orangeLineAbove)
+  const showUsername = getUsernameToShow(message, previousMsg, you, false)
 
   const longPressable = useGetLongPress({
     ...p,
@@ -153,7 +148,6 @@ const WrapperMessage = React.memo(function WrapperMessage(p: Props) {
     isPendingPayment,
     message,
     meta,
-    orangeLineAbove,
     popupAnchor,
     setShowMenuButton,
     setShowingPicker,
@@ -282,9 +276,64 @@ const getUsernameToShow = (
   return author
 }
 
+type BProps = {
+  ordinal: Types.Ordinal
+  conversationIDKey: Types.ConversationIDKey
+  previous?: Types.Ordinal
+}
+// Edited, reactions, orangeLine (top side but needs to render on top so here)
+const BottomSide = React.memo(function BottomSide(p: BProps) {
+  const {conversationIDKey, ordinal} = p
+  const orangeLineAbove = Container.useSelector(
+    state => state.chat2.orangeLineMap.get(conversationIDKey) === ordinal
+  )
+  const orangeLine = orangeLineAbove ? (
+    <Kb.Box2 key="orangeLine" direction="vertical" style={styles.orangeLine} />
+  ) : null
+  return <>{orangeLine}</>
+})
+
+// Author Avatar
+type LProps = {
+  ordinal: Types.Ordinal
+  conversationIDKey: Types.ConversationIDKey
+  previous?: Types.Ordinal
+}
+const LeftSide = React.memo(function LeftSide(p: BProps) {
+  const {conversationIDKey, ordinal, previous} = p
+
+  const username = Container.useSelector(state => {
+    const message = Constants.getMessage(state, conversationIDKey, ordinal) || missingMessage
+    const previousMsg =
+      (previous && Constants.getMessage(state, conversationIDKey, previous)) || missingMessage
+    const you = state.config.username
+    return getUsernameToShow(message, previousMsg, you, false)
+  })
+
+  const dispatch = Container.useDispatch()
+  const onAuthorClick = React.useCallback(() => {
+    if (!username) return
+    if (Container.isMobile) {
+      dispatch(ProfileGen.createShowUserProfile({username}))
+    } else {
+      dispatch(Tracker2Gen.createShowUser({asTracker: true, username}))
+    }
+  }, [dispatch, username])
+
+  return username ? (
+    <Kb.Avatar
+      size={32}
+      username={username}
+      skipBackground={true}
+      onClick={onAuthorClick}
+      style={styles.avatar}
+    />
+  ) : null
+})
+
 const useGetLongPress = (p: Shared) => {
-  const {showCenteredHighlight, conversationIDKey, ordinal} = p
-  const {orangeLineAbove, showingPopup, toggleShowingPopup} = p
+  const {showCenteredHighlight, conversationIDKey, ordinal, previous} = p
+  const {showingPopup, toggleShowingPopup} = p
   const {popupAnchor, message, isPendingPayment, setShowMenuButton, decorate, showUsername, showingPicker} = p
   const canSwipeLeft = message.type !== 'journeycard'
   const dispatch = Container.useDispatch()
@@ -293,18 +342,13 @@ const useGetLongPress = (p: Shared) => {
   }, [dispatch, canSwipeLeft, conversationIDKey, ordinal])
   const authorAndContent = useAuthorAndContent(p)
 
-  const orangeLine = orangeLineAbove ? (
-    <Kb.Box2
-      key="orangeLine"
-      direction="vertical"
-      style={Styles.collapseStyles([styles.orangeLine, !showUsername && styles.orangeLineCompensationLeft])}
-    />
-  ) : null
-
   const children = (
     <>
-      {authorAndContent}
-      {orangeLine}
+      <LeftSide conversationIDKey={conversationIDKey} ordinal={ordinal} previous={previous} />
+      <Kb.Box2 direction="vertical" style={styles.middleSide} fullWidth={true}>
+        {authorAndContent}
+      </Kb.Box2>
+      <BottomSide conversationIDKey={conversationIDKey} ordinal={ordinal} previous={previous} />
     </>
   )
 
@@ -456,13 +500,6 @@ const useAuthorAndContent = (p: Shared) => {
   const content = (
     <React.Fragment key="authorAndContent">
       <Kb.Box2 key="author" direction="horizontal" style={styles.authorContainer} gap="tiny">
-        <Kb.Avatar
-          size={32}
-          username={showUsername}
-          skipBackground={true}
-          onClick={onAuthorClick}
-          style={styles.avatar}
-        />
         <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true} style={styles.usernameCrown}>
           {botAliasOrUsername}
           {ownerAdminTooltipIcon}
@@ -982,13 +1019,14 @@ const styles = Styles.styleSheetCreate(
         common: {
           alignItems: 'flex-start',
           alignSelf: 'flex-start',
-          height: Styles.globalMargins.mediumLarge,
+          // height: Styles.globalMargins.mediumLarge,
         },
         isMobile: {marginTop: 8},
       }),
       avatar: Styles.platformStyles({
-        isElectron: {marginLeft: Styles.globalMargins.small},
-        isMobile: {marginLeft: Styles.globalMargins.tiny},
+        common: {position: 'absolute', top: 8},
+        isElectron: {left: Styles.globalMargins.small},
+        isMobile: {left: Styles.globalMargins.tiny},
       }),
       botAlias: Styles.platformStyles({
         common: {color: Styles.globalColors.black},
@@ -1000,22 +1038,22 @@ const styles = Styles.styleSheetCreate(
       }),
       contentUnderAuthorContainer: Styles.platformStyles({
         isElectron: {
-          marginTop: -16,
-          paddingLeft:
-            // Space for below the avatar
-            Styles.globalMargins.tiny + // right margin
-            Styles.globalMargins.small + // left margin
-            Styles.globalMargins.mediumLarge, // avatar
+          // marginTop: -16,
+          // paddingLeft:
+          //   // Space for below the avatar
+          //   Styles.globalMargins.tiny + // right margin
+          //   Styles.globalMargins.small + // left margin
+          //   Styles.globalMargins.mediumLarge, // avatar
         },
         isMobile: {
-          marginTop: -12,
-          paddingBottom: 3,
-          paddingLeft:
-            // Space for below the avatar
-            Styles.globalMargins.tiny + // right margin
-            Styles.globalMargins.tiny + // left margin
-            Styles.globalMargins.mediumLarge, // avatar
-          paddingRight: Styles.globalMargins.tiny,
+          // marginTop: -12,
+          // paddingBottom: 3,
+          // paddingLeft:
+          //   // Space for below the avatar
+          //   Styles.globalMargins.tiny + // right margin
+          //   Styles.globalMargins.tiny + // left margin
+          //   Styles.globalMargins.mediumLarge, // avatar
+          // paddingRight: Styles.globalMargins.tiny,
         },
       }),
       edited: {color: Styles.globalColors.black_20},
@@ -1087,6 +1125,10 @@ const styles = Styles.styleSheetCreate(
       }),
       menuButtonsWithAuthor: {marginTop: -16},
       messagePopupContainer: {marginRight: Styles.globalMargins.small},
+      middleSide: {
+        alignItems: 'stretch',
+        marginLeft: 56,
+      },
       moreActionsTooltip: {marginRight: -Styles.globalMargins.xxtiny},
       orangeLine: {
         // don't push down content due to orange line
