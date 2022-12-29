@@ -299,7 +299,7 @@ type LProps = {
   conversationIDKey: Types.ConversationIDKey
   previous?: Types.Ordinal
 }
-const LeftSide = React.memo(function LeftSide(p: BProps) {
+const LeftSide = React.memo(function LeftSide(p: LProps) {
   const {conversationIDKey, ordinal, previous} = p
 
   const username = Container.useSelector(state => {
