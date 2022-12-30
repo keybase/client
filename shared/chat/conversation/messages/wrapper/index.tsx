@@ -537,10 +537,11 @@ type BProps = {
   conversationIDKey: Types.ConversationIDKey
   previous?: Types.Ordinal
   showCenteredHighlight: boolean
+  toggleShowingPopup: () => void
 }
 // Edited, reactions, orangeLine (top side but needs to render on top so here)
 const BottomSide = React.memo(function BottomSide(p: BProps) {
-  const {conversationIDKey, ordinal, showCenteredHighlight} = p
+  const {conversationIDKey, ordinal, showCenteredHighlight, toggleShowingPopup} = p
   const orangeLineAbove = Container.useSelector(
     state => state.chat2.orangeLineMap.get(conversationIDKey) === ordinal
   )
@@ -548,6 +549,7 @@ const BottomSide = React.memo(function BottomSide(p: BProps) {
     <Kb.Box2 key="orangeLine" direction="vertical" style={styles.orangeLine} />
   ) : null
 
+  // TODO move to text only
   const hasBeenEdited = Container.useSelector(
     state => state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)?.hasBeenEdited ?? false
   )
@@ -560,6 +562,42 @@ const BottomSide = React.memo(function BottomSide(p: BProps) {
       EDITED
     </Kb.Text>
   ) : null
+
+  // TODO move to text only
+  const hasUnfurlPrompts = Container.useSelector(state => {
+    const id = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)?.id
+    if (!id) return false
+    return (state.chat2.unfurlPromptMap.get(conversationIDKey)?.get(id)?.size ?? 0) > 0
+  })
+  const unfurlPrompts = (() => {
+    if (hasUnfurlPrompts) {
+      const UnfurlPromptList = require('./unfurl/prompt-list/container')
+        .default as typeof UnfurlPromptListType
+      return <UnfurlPromptList conversationIDKey={conversationIDKey} ordinal={ordinal} />
+    }
+    return null
+  })()
+
+  // TODO move to text only
+  const hasUnfurlList = Container.useSelector(state => {
+    const message = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
+    return message?.type === 'text' && (message.unfurls?.size ?? 0) > 0
+  })
+
+  const unfurlList = (() => {
+    const UnfurlList = require('./unfurl/unfurl-list/container').default as typeof UnfurlListType
+    if (hasUnfurlList) {
+      return (
+        <UnfurlList
+          key="UnfurlList"
+          conversationIDKey={conversationIDKey}
+          ordinal={ordinal}
+          toggleMessagePopup={toggleShowingPopup}
+        />
+      )
+    }
+    return null
+  })()
 
   const hasReactions = Container.useSelector(
     state => (state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)?.reactions?.size ?? 0) > 0
@@ -578,6 +616,8 @@ const BottomSide = React.memo(function BottomSide(p: BProps) {
       {orangeLine}
       {edited}
       <EditCancelRetry conversationIDKey={conversationIDKey} ordinal={ordinal} />
+      {unfurlPrompts}
+      {unfurlList}
       {reactionsRow}
     </>
   )
@@ -673,6 +713,7 @@ const useGetLongPress = (p: Shared) => {
           ordinal={ordinal}
           previous={previous}
           showCenteredHighlight={showCenteredHighlight}
+          toggleShowingPopup={toggleShowingPopup}
         />
       </Kb.Box2>
     </>
@@ -725,52 +766,17 @@ const useGetLongPress = (p: Shared) => {
 }
 
 const useBottomComponents = (p: Shared, o: {authorIsBot: boolean}) => {
-  const {conversationIDKey, measure} = p
-  const {message, toggleShowingPopup, isPendingPayment} = p
+  const {conversationIDKey, measure, message, isPendingPayment} = p
   const {authorIsBot} = o
-  const {id, type} = message
   const isTextOrAttachment = Constants.isTextOrAttachment(message)
   const hasReactions = !!message.reactions?.size || isPendingPayment
   const isExploding = isTextOrAttachment && !!message.exploding
-  const hasUnfurlPrompts = Container.useSelector(
-    state => type === 'text' && !!state.chat2.unfurlPromptMap.get(conversationIDKey)?.get(id)?.size
-  )
 
   const messageAndButtons = useMessageAndButtons(p, {
     authorIsBot,
     hasReactions,
     isExploding,
   })
-
-  const unfurlPrompts = (() => {
-    if (hasUnfurlPrompts) {
-      const UnfurlPromptList = require('./unfurl/prompt-list/container')
-        .default as typeof UnfurlPromptListType
-      return (
-        <UnfurlPromptList
-          key="UnfurlPromptList"
-          conversationIDKey={conversationIDKey}
-          ordinal={message.ordinal}
-        />
-      )
-    }
-    return null
-  })()
-
-  const unfurlList = (() => {
-    const UnfurlList = require('./unfurl/unfurl-list/container').default as typeof UnfurlListType
-    if (message.type === 'text' && message.unfurls && !!message.unfurls.size) {
-      return (
-        <UnfurlList
-          key="UnfurlList"
-          conversationIDKey={conversationIDKey}
-          ordinal={message.ordinal}
-          toggleMessagePopup={toggleShowingPopup}
-        />
-      )
-    }
-    return null
-  })()
 
   const coinFlip = (() => {
     if (message.type === 'text' && !!message.flipGameID) {
@@ -794,8 +800,6 @@ const useBottomComponents = (p: Shared, o: {authorIsBot: boolean}) => {
   return (
     <>
       {messageAndButtons}
-      {unfurlPrompts}
-      {unfurlList}
       {coinFlip}
     </>
   )
