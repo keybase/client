@@ -403,6 +403,87 @@ const TopSide = React.memo(function TopSide(p: TProps) {
   )
 })
 
+type ECRProps = {
+  ordinal: Types.Ordinal
+  conversationIDKey: Types.ConversationIDKey
+}
+const EditCancelRetry = React.memo(function EditCancelRetry(p: ECRProps) {
+  const {ordinal, conversationIDKey} = p
+  const message = Container.useSelector(state => state.chat2.messageMap.get(conversationIDKey)?.get(ordinal))
+  const you = Container.useSelector(state => state.config.username)
+  let failureDescription = ''
+  let allowCancel = false
+  let allowRetry = false
+  let resolveByEdit = false
+  const {errorReason, submitState, type, outboxID, errorTyp, exploding, exploded} = message ?? {}
+  const flipGameID = message?.type === 'text' ? message?.flipGameID : undefined
+  if ((type === 'text' || type === 'attachment') && errorReason) {
+    failureDescription = errorReason
+    if (you && ['pending', 'failed'].includes(submitState as string)) {
+      // This is a message still in the outbox, we can retry/edit to fix, but
+      // for flip messages, don't allow retry/cancel
+      allowCancel = allowRetry = type === 'attachment' || (type === 'text' && !flipGameID)
+      const messageType = type === 'attachment' ? 'attachment' : 'message'
+      failureDescription = `This ${messageType} failed to send`
+      resolveByEdit = !!outboxID && !!you && errorTyp === RPCChatTypes.OutboxErrorType.toolong
+      if (resolveByEdit) {
+        failureDescription += `, ${errorReason}`
+      }
+      if (!!outboxID && !!you) {
+        switch (errorTyp) {
+          case RPCChatTypes.OutboxErrorType.minwriter:
+          case RPCChatTypes.OutboxErrorType.restrictedbot:
+            failureDescription = `Unable to send, ${errorReason}`
+            allowRetry = false
+        }
+      }
+    }
+  }
+
+  const dispatch = Container.useDispatch()
+  const onCancel = React.useCallback(() => {
+    allowCancel && dispatch(Chat2Gen.createMessageDelete({conversationIDKey, ordinal}))
+  }, [dispatch, allowCancel, conversationIDKey, ordinal])
+  const onEdit = React.useCallback(() => {
+    resolveByEdit && dispatch(Chat2Gen.createMessageSetEditing({conversationIDKey, ordinal}))
+  }, [resolveByEdit, dispatch, conversationIDKey, ordinal])
+  const onRetry = React.useCallback(() => {
+    allowRetry &&
+      !resolveByEdit &&
+      outboxID &&
+      dispatch(Chat2Gen.createMessageRetry({conversationIDKey, outboxID}))
+  }, [resolveByEdit, allowRetry, dispatch, conversationIDKey, outboxID])
+  // hide error messages if the exploding message already exploded
+  return !!failureDescription && !(exploding && exploded) ? (
+    <Kb.Text key="isFailed" type="BodySmall">
+      <Kb.Text type="BodySmall" style={exploding ? styles.failExploding : styles.fail}>
+        {exploding && (
+          <>
+            <Kb.Icon fontSize={16} boxStyle={styles.failExplodingIcon} type="iconfont-block" />{' '}
+          </>
+        )}
+        {failureDescription}.{' '}
+      </Kb.Text>
+      {!!onCancel && (
+        <Kb.Text type="BodySmall" style={styles.failUnderline} onClick={onCancel}>
+          Cancel
+        </Kb.Text>
+      )}
+      {!!onCancel && (!!onEdit || !!onRetry) && <Kb.Text type="BodySmall"> or </Kb.Text>}
+      {resolveByEdit && !!onEdit && (
+        <Kb.Text type="BodySmall" style={styles.failUnderline} onClick={onEdit}>
+          Edit
+        </Kb.Text>
+      )}
+      {allowRetry && !resolveByEdit && !!onRetry && (
+        <Kb.Text type="BodySmall" style={styles.failUnderline} onClick={onRetry}>
+          Retry
+        </Kb.Text>
+      )}
+    </Kb.Text>
+  ) : null
+})
+
 type BProps = {
   ordinal: Types.Ordinal
   conversationIDKey: Types.ConversationIDKey
@@ -436,6 +517,7 @@ const BottomSide = React.memo(function BottomSide(p: BProps) {
     <>
       {orangeLine}
       {edited}
+      <EditCancelRetry conversationIDKey={conversationIDKey} ordinal={ordinal} />
     </>
   )
 })
@@ -503,6 +585,9 @@ const useGetLongPress = (p: Shared) => {
   // TODO thin out
   const content = useBottomComponents(p, {authorIsBot})
 
+  const dismissKeyboard = React.useCallback(() => dismiss(), [])
+  const onMouseOver = React.useCallback(() => setShowMenuButton(true), [setShowMenuButton])
+
   if (message.type === 'journeycard') {
     const TeamJourney = require('../cards/team-journey/container').default as typeof TeamJourneyType
     return <TeamJourney key="journey" message={message} />
@@ -531,9 +616,6 @@ const useGetLongPress = (p: Shared) => {
       </Kb.Box2>
     </>
   )
-
-  const dismissKeyboard = React.useCallback(() => dismiss(), [])
-  const onMouseOver = React.useCallback(() => setShowMenuButton(true), [setShowMenuButton])
 
   if (Styles.isMobile) {
     let style = styles.longPressable
@@ -581,106 +663,23 @@ const useGetLongPress = (p: Shared) => {
   )
 }
 
-const getFailureDescriptionAllowCancel = (message: Types.Message, you: string) => {
-  let failureDescription = ''
-  let allowCancel = false
-  let allowRetry = false
-  let resolveByEdit = false
-  const {type, errorReason} = message
-  if ((type === 'text' || type === 'attachment') && errorReason) {
-    failureDescription = errorReason
-    if (you && ['pending', 'failed'].includes(message.submitState as string)) {
-      // This is a message still in the outbox, we can retry/edit to fix, but
-      // for flip messages, don't allow retry/cancel
-      allowCancel = allowRetry =
-        message.type === 'attachment' || (message.type === 'text' && !message.flipGameID)
-      const messageType = type === 'attachment' ? 'attachment' : 'message'
-      failureDescription = `This ${messageType} failed to send`
-      resolveByEdit = !!message.outboxID && !!you && message.errorTyp === RPCChatTypes.OutboxErrorType.toolong
-      if (resolveByEdit) {
-        failureDescription += `, ${errorReason}`
-      }
-      if (!!message.outboxID && !!you) {
-        switch (message.errorTyp) {
-          case RPCChatTypes.OutboxErrorType.minwriter:
-          case RPCChatTypes.OutboxErrorType.restrictedbot:
-            failureDescription = `Unable to send, ${errorReason}`
-            allowRetry = false
-        }
-      }
-    }
-  }
-  return {allowCancel, allowRetry, failureDescription, resolveByEdit}
-}
-
 const useBottomComponents = (p: Shared, o: {authorIsBot: boolean}) => {
-  const {ordinal, conversationIDKey, measure} = p
+  const {conversationIDKey, measure} = p
   const {message, toggleShowingPopup, isPendingPayment} = p
   const {authorIsBot} = o
   const {id, type} = message
-  const outboxID = message.outboxID ?? null
   const isTextOrAttachment = Constants.isTextOrAttachment(message)
   const hasReactions = !!message.reactions?.size || isPendingPayment
-  const exploded = isTextOrAttachment && !!message.exploded
   const isExploding = isTextOrAttachment && !!message.exploding
-  const you = Container.useSelector(state => state.config.username)
   const hasUnfurlPrompts = Container.useSelector(
     state => type === 'text' && !!state.chat2.unfurlPromptMap.get(conversationIDKey)?.get(id)?.size
   )
-  const {allowCancel, allowRetry, failureDescription, resolveByEdit} = getFailureDescriptionAllowCancel(
-    message,
-    you
-  )
-  const dispatch = Container.useDispatch()
-  const onCancel = React.useCallback(() => {
-    allowCancel && dispatch(Chat2Gen.createMessageDelete({conversationIDKey, ordinal}))
-  }, [dispatch, allowCancel, conversationIDKey, ordinal])
-  const onEdit = React.useCallback(() => {
-    resolveByEdit && dispatch(Chat2Gen.createMessageSetEditing({conversationIDKey, ordinal}))
-  }, [resolveByEdit, dispatch, conversationIDKey, ordinal])
-  const onRetry = React.useCallback(() => {
-    allowRetry &&
-      !resolveByEdit &&
-      outboxID &&
-      dispatch(Chat2Gen.createMessageRetry({conversationIDKey, outboxID}))
-  }, [resolveByEdit, allowRetry, dispatch, conversationIDKey, outboxID])
 
   const messageAndButtons = useMessageAndButtons(p, {
     authorIsBot,
     hasReactions,
     isExploding,
   })
-
-  // hide error messages if the exploding message already exploded
-  const isFailed =
-    !!failureDescription && !(isExploding && exploded) ? (
-      <Kb.Text key="isFailed" type="BodySmall">
-        <Kb.Text type="BodySmall" style={isExploding ? styles.failExploding : styles.fail}>
-          {isExploding && (
-            <>
-              <Kb.Icon fontSize={16} boxStyle={styles.failExplodingIcon} type="iconfont-block" />{' '}
-            </>
-          )}
-          {failureDescription}.{' '}
-        </Kb.Text>
-        {!!onCancel && (
-          <Kb.Text type="BodySmall" style={styles.failUnderline} onClick={onCancel}>
-            Cancel
-          </Kb.Text>
-        )}
-        {!!onCancel && (!!onEdit || !!onRetry) && <Kb.Text type="BodySmall"> or </Kb.Text>}
-        {resolveByEdit && !!onEdit && (
-          <Kb.Text type="BodySmall" style={styles.failUnderline} onClick={onEdit}>
-            Edit
-          </Kb.Text>
-        )}
-        {allowRetry && !resolveByEdit && !!onRetry && (
-          <Kb.Text type="BodySmall" style={styles.failUnderline} onClick={onRetry}>
-            Retry
-          </Kb.Text>
-        )}
-      </Kb.Text>
-    ) : null
 
   const unfurlPrompts = (() => {
     if (hasUnfurlPrompts) {
@@ -744,7 +743,6 @@ const useBottomComponents = (p: Shared, o: {authorIsBot: boolean}) => {
   return (
     <>
       {messageAndButtons}
-      {isFailed}
       {unfurlPrompts}
       {unfurlList}
       {coinFlip}
