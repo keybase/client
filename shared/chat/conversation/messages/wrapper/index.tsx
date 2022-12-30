@@ -466,10 +466,13 @@ const useGetLongPress = (p: Shared) => {
   const onSwipeLeft = React.useCallback(() => {
     canSwipeLeft && dispatch(Chat2Gen.createToggleReplyToMessage({conversationIDKey, ordinal}))
   }, [dispatch, canSwipeLeft, conversationIDKey, ordinal])
-  const authorAndContent = useAuthorAndContent(p)
+  const content = useContent(p)
+
+  const paymentBackground = isPendingPayment ? <PendingPaymentBackground /> : null
 
   const children = (
     <>
+      {paymentBackground}
       <LeftSide conversationIDKey={conversationIDKey} ordinal={ordinal} previous={previous} />
       <Kb.Box2 direction="vertical" style={styles.middleSide} fullWidth={true}>
         <TopSide
@@ -478,7 +481,7 @@ const useGetLongPress = (p: Shared) => {
           previous={previous}
           showCenteredHighlight={showCenteredHighlight}
         />
-        {authorAndContent}
+        {content}
       </Kb.Box2>
       <BottomSide conversationIDKey={conversationIDKey} ordinal={ordinal} previous={previous} />
     </>
@@ -533,8 +536,8 @@ const useGetLongPress = (p: Shared) => {
   )
 }
 
-const useAuthorAndContent = (p: Shared) => {
-  const {isPendingPayment, showUsername, message, meta, conversationIDKey} = p
+const useContent = (p: Shared) => {
+  const {message, meta, conversationIDKey} = p
   const {author} = message
   const {teamType, teamname, teamID} = meta
 
@@ -555,27 +558,7 @@ const useAuthorAndContent = (p: Shared) => {
     return <TeamJourney key="journey" message={message} />
   }
 
-  if (!showUsername) {
-    return isPendingPayment ? (
-      <PendingPaymentBackground key="pendingBackground">{children}</PendingPaymentBackground>
-    ) : (
-      children
-    )
-  }
-
-  const content = (
-    <React.Fragment key="authorAndContent">
-      <Kb.Box2 key="content" direction="vertical" fullWidth={true} style={styles.contentUnderAuthorContainer}>
-        {children}
-      </Kb.Box2>
-    </React.Fragment>
-  )
-
-  return isPendingPayment ? (
-    <PendingPaymentBackground key="pendingBackground">{content}</PendingPaymentBackground>
-  ) : (
-    content
-  )
+  return children
 }
 
 const getFailureDescriptionAllowCancel = (message: Types.Message, you: string) => {
@@ -1070,7 +1053,6 @@ const styles = Styles.styleSheetCreate(
         common: {
           alignItems: 'flex-start',
           alignSelf: 'flex-start',
-          // height: Styles.globalMargins.mediumLarge,
         },
         isMobile: {marginTop: 8},
       }),
