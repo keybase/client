@@ -276,6 +276,133 @@ const getUsernameToShow = (
   return author
 }
 
+type TProps = {
+  ordinal: Types.Ordinal
+  conversationIDKey: Types.ConversationIDKey
+  previous?: Types.Ordinal
+  showCenteredHighlight: boolean
+}
+// Author
+const TopSide = React.memo(function TopSide(p: TProps) {
+  const {conversationIDKey, ordinal, previous, showCenteredHighlight} = p
+
+  const you = Container.useSelector(state => state.config.username)
+  const canFixOverdraw = false // TODO?
+  const message = Container.useSelector(state => Constants.getMessage(state, conversationIDKey, ordinal))
+  const author = message?.author ?? ''
+  const timestamp = message?.timestamp ?? 0
+  const youAreAuthor = you === author
+  const meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
+  const {teamname, teamType, botAliases, teamID} = meta
+
+  const username = Container.useSelector(state => {
+    const message = Constants.getMessage(state, conversationIDKey, ordinal) || missingMessage
+    const previousMsg = (previous && Constants.getMessage(state, conversationIDKey, previous)) || undefined
+    const you = state.config.username
+    return getUsernameToShow(message, previousMsg, you, false)
+  })
+
+  const authorRoleInTeam = Container.useSelector(
+    state => state.teams.teamIDToMembers.get(teamID)?.get(author)?.type
+  )
+  const authorIsBot = Container.useSelector(state => {
+    const participantInfoNames = Constants.getParticipantInfo(state, conversationIDKey).name
+    return teamname
+      ? authorRoleInTeam === 'restrictedbot' || authorRoleInTeam === 'bot'
+      : teamType === 'adhoc' && participantInfoNames.length > 0 // teams without info may have type adhoc with an empty participant name list
+      ? !participantInfoNames.includes(author) // if adhoc, check if author in participants
+      : false // if we don't have team information, don't show bot icon
+  })
+
+  const dispatch = Container.useDispatch()
+  const onAuthorClick = React.useCallback(() => {
+    if (Container.isMobile) {
+      dispatch(ProfileGen.createShowUserProfile({username}))
+    } else {
+      dispatch(Tracker2Gen.createShowUser({asTracker: true, username}))
+    }
+  }, [dispatch, username])
+
+  if (!username) {
+    return null
+  }
+
+  const botAlias = botAliases[author] ?? ''
+
+  const authorIsOwner = authorRoleInTeam === 'owner'
+  const authorIsAdmin = authorRoleInTeam === 'admin'
+
+  const usernameNode = (
+    <Kb.ConnectedUsernames
+      colorBroken={true}
+      colorFollowing={true}
+      colorYou={true}
+      onUsernameClicked={onAuthorClick}
+      fixOverdraw={canFixOverdraw}
+      style={showCenteredHighlight && youAreAuthor ? styles.usernameHighlighted : undefined}
+      type="BodySmallBold"
+      usernames={username}
+      virtualText={true}
+    />
+  )
+
+  const ownerAdminTooltipIcon =
+    authorIsOwner || authorIsAdmin ? (
+      <Kb.WithTooltip tooltip={authorIsOwner ? 'Owner' : 'Admin'}>
+        <Kb.Icon
+          color={authorIsOwner ? Styles.globalColors.yellowDark : Styles.globalColors.black_35}
+          fontSize={10}
+          type="iconfont-crown-owner"
+        />
+      </Kb.WithTooltip>
+    ) : null
+
+  const botIcon = authorIsBot ? (
+    <Kb.WithTooltip tooltip="Bot">
+      <Kb.Icon fontSize={13} color={Styles.globalColors.black_35} type="iconfont-bot" />
+    </Kb.WithTooltip>
+  ) : null
+
+  const botAliasOrUsername = botAlias ? (
+    <Kb.Box2 direction="horizontal">
+      <Kb.Text type="BodySmallBold" style={styles.botAlias} lineClamp={1}>
+        {botAlias}
+      </Kb.Text>
+      <Kb.Text type="BodySmallBold" style={{color: Styles.globalColors.black}}>
+        &nbsp;[
+      </Kb.Text>
+      {username}
+      <Kb.Text type="BodySmallBold" style={{color: Styles.globalColors.black}}>
+        ]
+      </Kb.Text>
+    </Kb.Box2>
+  ) : (
+    usernameNode
+  )
+
+  const timestampNode = (
+    <Kb.Text
+      type="BodyTiny"
+      fixOverdraw={canFixOverdraw}
+      virtualText={true}
+      style={Styles.collapseStyles([showCenteredHighlight && styles.timestampHighlighted])}
+    >
+      {formatTimeForChat(timestamp)}
+    </Kb.Text>
+  )
+
+  return (
+    <Kb.Box2 key="author" direction="horizontal" style={styles.authorContainer} gap="tiny">
+      <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true} style={styles.usernameCrown}>
+        {botAliasOrUsername}
+        {ownerAdminTooltipIcon}
+        {botIcon}
+        {timestampNode}
+      </Kb.Box2>
+    </Kb.Box2>
+  )
+})
+
 type BProps = {
   ordinal: Types.Ordinal
   conversationIDKey: Types.ConversationIDKey
@@ -304,8 +431,7 @@ const LeftSide = React.memo(function LeftSide(p: LProps) {
 
   const username = Container.useSelector(state => {
     const message = Constants.getMessage(state, conversationIDKey, ordinal) || missingMessage
-    const previousMsg =
-      (previous && Constants.getMessage(state, conversationIDKey, previous)) || missingMessage
+    const previousMsg = (previous && Constants.getMessage(state, conversationIDKey, previous)) || undefined
     const you = state.config.username
     return getUsernameToShow(message, previousMsg, you, false)
   })
@@ -346,6 +472,12 @@ const useGetLongPress = (p: Shared) => {
     <>
       <LeftSide conversationIDKey={conversationIDKey} ordinal={ordinal} previous={previous} />
       <Kb.Box2 direction="vertical" style={styles.middleSide} fullWidth={true}>
+        <TopSide
+          conversationIDKey={conversationIDKey}
+          ordinal={ordinal}
+          previous={previous}
+          showCenteredHighlight={showCenteredHighlight}
+        />
         {authorAndContent}
       </Kb.Box2>
       <BottomSide conversationIDKey={conversationIDKey} ordinal={ordinal} previous={previous} />
@@ -402,37 +534,19 @@ const useGetLongPress = (p: Shared) => {
 }
 
 const useAuthorAndContent = (p: Shared) => {
-  const {canFixOverdraw, conversationIDKey, isPendingPayment} = p
-  const {showUsername, message, meta, showCenteredHighlight, youAreAuthor} = p
+  const {isPendingPayment, showUsername, message, meta, conversationIDKey} = p
   const {author} = message
-  const {teamID, teamname, teamType, botAliases} = meta
-  const botAlias = botAliases[author] ?? ''
-
-  const dispatch = Container.useDispatch()
-  const onAuthorClick = React.useCallback(() => {
-    const username = showUsername
-    if (Container.isMobile) {
-      dispatch(ProfileGen.createShowUserProfile({username}))
-    } else {
-      dispatch(Tracker2Gen.createShowUser({asTracker: true, username}))
-    }
-  }, [dispatch, showUsername])
-
-  const authorRoleInTeam = Container.useSelector(
-    state => state.teams.teamIDToMembers.get(teamID)?.get(author)?.type
-  )
+  const {teamType, teamname, teamID} = meta
 
   const authorIsBot = Container.useSelector(state => {
     const participantInfoNames = Constants.getParticipantInfo(state, conversationIDKey).name
+    const authorRoleInTeam = state.teams.teamIDToMembers.get(teamID)?.get(author)?.type
     return teamname
       ? authorRoleInTeam === 'restrictedbot' || authorRoleInTeam === 'bot'
       : teamType === 'adhoc' && participantInfoNames.length > 0 // teams without info may have type adhoc with an empty participant name list
       ? !participantInfoNames.includes(author) // if adhoc, check if author in participants
       : false // if we don't have team information, don't show bot icon
   })
-
-  const authorIsOwner = authorRoleInTeam === 'owner'
-  const authorIsAdmin = authorRoleInTeam === 'admin'
 
   const children = useBottomComponents(p, {authorIsBot})
 
@@ -449,71 +563,8 @@ const useAuthorAndContent = (p: Shared) => {
     )
   }
 
-  const username = (
-    <Kb.ConnectedUsernames
-      colorBroken={true}
-      colorFollowing={true}
-      colorYou={true}
-      onUsernameClicked={onAuthorClick}
-      fixOverdraw={canFixOverdraw}
-      style={showCenteredHighlight && youAreAuthor ? styles.usernameHighlighted : undefined}
-      type="BodySmallBold"
-      usernames={showUsername}
-      virtualText={true}
-    />
-  )
-
-  const botAliasOrUsername = botAlias ? (
-    <Kb.Box2 direction="horizontal">
-      <Kb.Text type="BodySmallBold" style={styles.botAlias} lineClamp={1}>
-        {botAlias}
-      </Kb.Text>
-      <Kb.Text type="BodySmallBold" style={{color: Styles.globalColors.black}}>
-        &nbsp;[
-      </Kb.Text>
-      {username}
-      <Kb.Text type="BodySmallBold" style={{color: Styles.globalColors.black}}>
-        ]
-      </Kb.Text>
-    </Kb.Box2>
-  ) : (
-    username
-  )
-
-  const ownerAdminTooltipIcon =
-    authorIsOwner || authorIsAdmin ? (
-      <Kb.WithTooltip tooltip={authorIsOwner ? 'Owner' : 'Admin'}>
-        <Kb.Icon
-          color={authorIsOwner ? Styles.globalColors.yellowDark : Styles.globalColors.black_35}
-          fontSize={10}
-          type="iconfont-crown-owner"
-        />
-      </Kb.WithTooltip>
-    ) : null
-
-  const botIcon = authorIsBot ? (
-    <Kb.WithTooltip tooltip="Bot">
-      <Kb.Icon fontSize={13} color={Styles.globalColors.black_35} type="iconfont-bot" />
-    </Kb.WithTooltip>
-  ) : null
-
   const content = (
     <React.Fragment key="authorAndContent">
-      <Kb.Box2 key="author" direction="horizontal" style={styles.authorContainer} gap="tiny">
-        <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true} style={styles.usernameCrown}>
-          {botAliasOrUsername}
-          {ownerAdminTooltipIcon}
-          {botIcon}
-          <Kb.Text
-            type="BodyTiny"
-            fixOverdraw={canFixOverdraw}
-            virtualText={true}
-            style={Styles.collapseStyles([showCenteredHighlight && styles.timestampHighlighted])}
-          >
-            {formatTimeForChat(message.timestamp)}
-          </Kb.Text>
-        </Kb.Box2>
-      </Kb.Box2>
       <Kb.Box2 key="content" direction="vertical" fullWidth={true} style={styles.contentUnderAuthorContainer}>
         {children}
       </Kb.Box2>
@@ -1127,7 +1178,8 @@ const styles = Styles.styleSheetCreate(
       messagePopupContainer: {marginRight: Styles.globalMargins.small},
       middleSide: {
         alignItems: 'stretch',
-        marginLeft: 56,
+        paddingLeft: 56,
+        paddingRight: 4,
       },
       moreActionsTooltip: {marginRight: -Styles.globalMargins.xxtiny},
       orangeLine: {
