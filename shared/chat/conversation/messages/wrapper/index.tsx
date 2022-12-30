@@ -485,7 +485,23 @@ const useGetLongPress = (p: Shared) => {
   const onSwipeLeft = React.useCallback(() => {
     canSwipeLeft && dispatch(Chat2Gen.createToggleReplyToMessage({conversationIDKey, ordinal}))
   }, [dispatch, canSwipeLeft, conversationIDKey, ordinal])
-  const content = useContent(p)
+
+  const {author} = message
+  const {meta} = p
+  const {teamID, teamname, teamType} = meta
+  // TODO remove
+  const authorIsBot = Container.useSelector(state => {
+    const participantInfoNames = Constants.getParticipantInfo(state, conversationIDKey).name
+    const authorRoleInTeam = state.teams.teamIDToMembers.get(teamID)?.get(author)?.type
+    return teamname
+      ? authorRoleInTeam === 'restrictedbot' || authorRoleInTeam === 'bot'
+      : teamType === 'adhoc' && participantInfoNames.length > 0 // teams without info may have type adhoc with an empty participant name list
+      ? !participantInfoNames.includes(author) // if adhoc, check if author in participants
+      : false // if we don't have team information, don't show bot icon
+  })
+
+  // TODO thin out
+  const content = useBottomComponents(p, {authorIsBot})
 
   if (message.type === 'journeycard') {
     const TeamJourney = require('../cards/team-journey/container').default as typeof TeamJourneyType
@@ -563,26 +579,6 @@ const useGetLongPress = (p: Shared) => {
       {children}
     </LongPressable>
   )
-}
-
-const useContent = (p: Shared) => {
-  const {message, meta, conversationIDKey} = p
-  const {author} = message
-  const {teamType, teamname, teamID} = meta
-
-  const authorIsBot = Container.useSelector(state => {
-    const participantInfoNames = Constants.getParticipantInfo(state, conversationIDKey).name
-    const authorRoleInTeam = state.teams.teamIDToMembers.get(teamID)?.get(author)?.type
-    return teamname
-      ? authorRoleInTeam === 'restrictedbot' || authorRoleInTeam === 'bot'
-      : teamType === 'adhoc' && participantInfoNames.length > 0 // teams without info may have type adhoc with an empty participant name list
-      ? !participantInfoNames.includes(author) // if adhoc, check if author in participants
-      : false // if we don't have team information, don't show bot icon
-  })
-
-  const children = useBottomComponents(p, {authorIsBot})
-
-  return children
 }
 
 const getFailureDescriptionAllowCancel = (message: Types.Message, you: string) => {
