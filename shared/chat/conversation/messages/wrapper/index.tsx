@@ -792,7 +792,7 @@ const useMessageAndButtons = (
         Styles.collapseStyles([
           styles.menuButtons,
           !exploded && {width},
-          !!showUsername && styles.menuButtonsWithAuthor,
+          // !!showUsername && styles.menuButtonsWithAuthor,
         ])
       )
     }
@@ -1137,11 +1137,6 @@ const styles = Styles.styleSheetCreate(
       longPressableNoUsername: {
         overflow: 'hidden',
         paddingBottom: 3,
-        paddingLeft:
-          // Space for below the avatar
-          Styles.globalMargins.tiny + // right margin
-          Styles.globalMargins.tiny + // left margin
-          Styles.globalMargins.mediumLarge, // avatar
         paddingRight: Styles.globalMargins.tiny,
         paddingTop: 3,
       },
@@ -1156,7 +1151,7 @@ const styles = Styles.styleSheetCreate(
         isElectron: {height: 20},
         isMobile: {height: 24},
       }),
-      menuButtonsWithAuthor: {marginTop: -16},
+      // menuButtonsWithAuthor: {marginTop: -16},
       messagePopupContainer: {marginRight: Styles.globalMargins.small},
       middleSide: {
         alignItems: 'stretch',
