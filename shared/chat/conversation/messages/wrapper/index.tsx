@@ -538,10 +538,11 @@ type BProps = {
   previous?: Types.Ordinal
   showCenteredHighlight: boolean
   toggleShowingPopup: () => void
+  measure?: () => void
 }
 // Edited, reactions, orangeLine (top side but needs to render on top so here)
 const BottomSide = React.memo(function BottomSide(p: BProps) {
-  const {conversationIDKey, ordinal, showCenteredHighlight, toggleShowingPopup} = p
+  const {conversationIDKey, ordinal, showCenteredHighlight, toggleShowingPopup, measure} = p
   const orangeLineAbove = Container.useSelector(
     state => state.chat2.orangeLineMap.get(conversationIDKey) === ordinal
   )
@@ -599,6 +600,21 @@ const BottomSide = React.memo(function BottomSide(p: BProps) {
     return null
   })()
 
+  // TODO move to text only
+  const hasCoinFlip = Container.useSelector(state => {
+    const message = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
+    return message?.type === 'text' && !!message.flipGameID
+  })
+  const coinflip = (() => {
+    if (hasCoinFlip) {
+      const CoinFlip = require('../coinflip/container').default as typeof CoinFlipType
+      return (
+        <CoinFlip key="CoinFlip" conversationIDKey={conversationIDKey} ordinal={ordinal} measure={measure} />
+      )
+    }
+    return null
+  })()
+
   const hasReactions = Container.useSelector(
     state => (state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)?.reactions?.size ?? 0) > 0
   )
@@ -618,6 +634,7 @@ const BottomSide = React.memo(function BottomSide(p: BProps) {
       <EditCancelRetry conversationIDKey={conversationIDKey} ordinal={ordinal} />
       {unfurlPrompts}
       {unfurlList}
+      {coinflip}
       {reactionsRow}
     </>
   )
@@ -661,8 +678,9 @@ const LeftSide = React.memo(function LeftSide(p: LProps) {
 })
 
 const useGetLongPress = (p: Shared) => {
-  const {showCenteredHighlight, conversationIDKey, ordinal, previous, showingPopup, toggleShowingPopup} = p
-  const {popupAnchor, isPendingPayment, setShowMenuButton, decorate, showUsername, showingPicker, message} = p
+  const {showCenteredHighlight, conversationIDKey, ordinal, previous, showingPopup} = p
+  const {popupAnchor, decorate, showUsername, showingPicker, message, meta} = p
+  const {toggleShowingPopup, measure, isPendingPayment, setShowMenuButton} = p
   const canSwipeLeft = message.type !== 'journeycard'
   const dispatch = Container.useDispatch()
   const onSwipeLeft = React.useCallback(() => {
@@ -670,7 +688,6 @@ const useGetLongPress = (p: Shared) => {
   }, [dispatch, canSwipeLeft, conversationIDKey, ordinal])
 
   const {author} = message
-  const {meta} = p
   const {teamID, teamname, teamType} = meta
   // TODO remove
   const authorIsBot = Container.useSelector(state => {
@@ -683,8 +700,15 @@ const useGetLongPress = (p: Shared) => {
       : false // if we don't have team information, don't show bot icon
   })
 
-  // TODO thin out
-  const content = useBottomComponents(p, {authorIsBot})
+  const isTextOrAttachment = Constants.isTextOrAttachment(message)
+  const hasReactions = !!message.reactions?.size || isPendingPayment
+  const isExploding = isTextOrAttachment && !!message.exploding
+
+  const content = useMessageAndButtons(p, {
+    authorIsBot,
+    hasReactions,
+    isExploding,
+  })
 
   const dismissKeyboard = React.useCallback(() => dismiss(), [])
   const onMouseOver = React.useCallback(() => setShowMenuButton(true), [setShowMenuButton])
@@ -709,6 +733,7 @@ const useGetLongPress = (p: Shared) => {
         />
         {content}
         <BottomSide
+          measure={measure}
           conversationIDKey={conversationIDKey}
           ordinal={ordinal}
           previous={previous}
@@ -762,46 +787,6 @@ const useGetLongPress = (p: Shared) => {
     >
       {children}
     </LongPressable>
-  )
-}
-
-const useBottomComponents = (p: Shared, o: {authorIsBot: boolean}) => {
-  const {conversationIDKey, measure, message, isPendingPayment} = p
-  const {authorIsBot} = o
-  const isTextOrAttachment = Constants.isTextOrAttachment(message)
-  const hasReactions = !!message.reactions?.size || isPendingPayment
-  const isExploding = isTextOrAttachment && !!message.exploding
-
-  const messageAndButtons = useMessageAndButtons(p, {
-    authorIsBot,
-    hasReactions,
-    isExploding,
-  })
-
-  const coinFlip = (() => {
-    if (message.type === 'text' && !!message.flipGameID) {
-      const CoinFlip = require('../coinflip/container').default as typeof CoinFlipType
-      return (
-        <CoinFlip
-          key="CoinFlip"
-          conversationIDKey={conversationIDKey}
-          flipGameID={message.flipGameID}
-          measure={measure}
-          isSendError={!!message.errorReason}
-          text={message.text}
-        />
-      )
-    }
-    return null
-  })()
-
-  if (!messageAndButtons) return null
-
-  return (
-    <>
-      {messageAndButtons}
-      {coinFlip}
-    </>
   )
 }
 

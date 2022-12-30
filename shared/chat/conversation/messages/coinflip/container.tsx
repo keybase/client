@@ -5,27 +5,28 @@ import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import * as React from 'react'
 import CoinFlip, {type Props} from '.'
 import type * as Types from '../../../../constants/types/chat2'
-import type HiddenString from '../../../../util/hidden-string'
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
   measure?: () => void
-  isSendError: boolean
-  flipGameID: string
-  text: HiddenString
+  ordinal: Types.Ordinal
 }
 
 const noParticipants: Array<RPCChatTypes.UICoinFlipParticipant> = []
 type PhaseType = Props['phase']
 
 const CoinFlipContainer = React.memo(function CoinFlipContainer(p: OwnProps) {
-  const {conversationIDKey, measure, isSendError, flipGameID, text} = p
+  const {conversationIDKey, measure, ordinal} = p
+
+  const message = Container.useSelector(state => state.chat2.messageMap.get(conversationIDKey)?.get(ordinal))
+  const isSendError = message?.type === 'text' ? !!message.errorReason : false
+  const text = message?.type === 'text' ? message.text : undefined
+  const flipGameID = (message?.type === 'text' && message.flipGameID) || ''
   const status = Container.useSelector(state => state.chat2.flipStatusMap.get(flipGameID))
   const dispatch = Container.useDispatch()
-  const onFlipAgain = React.useCallback(
-    () => dispatch(Chat2Gen.createMessageSend({conversationIDKey, text})),
-    [dispatch, conversationIDKey, text]
-  )
+  const onFlipAgain = React.useCallback(() => {
+    text && dispatch(Chat2Gen.createMessageSend({conversationIDKey, text}))
+  }, [dispatch, conversationIDKey, text])
   const props = !status
     ? {
         commitmentVis: '',
