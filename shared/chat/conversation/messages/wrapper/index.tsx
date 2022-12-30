@@ -42,6 +42,7 @@ import type UnfurlListType from './unfurl/unfurl-list/container'
 import type UnfurlPromptListType from './unfurl/prompt-list/container'
 import {dismiss} from '../../../../util/keyboard'
 import {formatTimeForChat} from '../../../../util/timestamp'
+import capitalize from 'lodash/capitalize'
 
 /**
  * WrapperMessage adds the orange line, menu button, menu, reacji
@@ -407,81 +408,128 @@ type ECRProps = {
   ordinal: Types.Ordinal
   conversationIDKey: Types.ConversationIDKey
 }
+enum EditCancelRetryType {
+  NONE,
+  CANCEL,
+  EDIT_CANCEL,
+  RETRY_CANCEL,
+}
 const EditCancelRetry = React.memo(function EditCancelRetry(p: ECRProps) {
   const {ordinal, conversationIDKey} = p
-  const message = Container.useSelector(state => state.chat2.messageMap.get(conversationIDKey)?.get(ordinal))
-  const you = Container.useSelector(state => state.config.username)
-  let failureDescription = ''
-  let allowCancel = false
-  let allowRetry = false
-  let resolveByEdit = false
-  const {errorReason, submitState, type, outboxID, errorTyp, exploding, exploded} = message ?? {}
-  const flipGameID = message?.type === 'text' ? message?.flipGameID : undefined
-  if ((type === 'text' || type === 'attachment') && errorReason) {
-    failureDescription = errorReason
-    if (you && ['pending', 'failed'].includes(submitState as string)) {
-      // This is a message still in the outbox, we can retry/edit to fix, but
-      // for flip messages, don't allow retry/cancel
-      allowCancel = allowRetry = type === 'attachment' || (type === 'text' && !flipGameID)
-      const messageType = type === 'attachment' ? 'attachment' : 'message'
-      failureDescription = `This ${messageType} failed to send`
-      resolveByEdit = !!outboxID && !!you && errorTyp === RPCChatTypes.OutboxErrorType.toolong
-      if (resolveByEdit) {
-        failureDescription += `, ${errorReason}`
-      }
-      if (!!outboxID && !!you) {
-        switch (errorTyp) {
-          case RPCChatTypes.OutboxErrorType.minwriter:
-          case RPCChatTypes.OutboxErrorType.restrictedbot:
-            failureDescription = `Unable to send, ${errorReason}`
-            allowRetry = false
-        }
+  const outboxID = Container.useSelector(
+    state => state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)?.outboxID
+  )
+  const failureDescription = Container.useSelector(state => {
+    const reason = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)?.errorReason ?? ''
+    return `This messge failed to send${reason ? '. ' : ''}${capitalize(reason)}`
+  })
+  const ecrType = Container.useSelector(state => {
+    const message = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
+    if (!message || !state.config.username) {
+      return EditCancelRetryType.NONE
+    }
+    const {errorReason, type, submitState} = message
+    if (
+      !errorReason ||
+      (type !== 'text' && type !== 'attachment') ||
+      (submitState !== 'pending' && submitState !== 'failed') ||
+      (message.type === 'text' && message.flipGameID)
+    ) {
+      return EditCancelRetryType.NONE
+    }
+
+    const {outboxID, errorTyp} = message
+    if (!!outboxID && errorTyp === RPCChatTypes.OutboxErrorType.toolong) {
+      return EditCancelRetryType.EDIT_CANCEL
+    }
+    if (outboxID) {
+      switch (errorTyp) {
+        case RPCChatTypes.OutboxErrorType.minwriter:
+        case RPCChatTypes.OutboxErrorType.restrictedbot:
+          return EditCancelRetryType.CANCEL
       }
     }
-  }
+    return EditCancelRetryType.RETRY_CANCEL
+  })
+
+  // const message = Container.useSelector(state => state.chat2.messageMap.get(conversationIDKey)?.get(ordinal))
+  // const you = Container.useSelector(state => state.config.username)
+  // let failureDescription = ''
+  // let allowCancel = false
+  // let allowRetry = false
+  // let resolveByEdit = false
+  // const {errorReason, submitState, type, outboxID, errorTyp, exploding, exploded} = message ?? {}
+  // const flipGameID = message?.type === 'text' ? message?.flipGameID : undefined
+  // if ((type === 'text' || type === 'attachment') && errorReason) {
+  //   failureDescription = errorReason
+  //   if (you && ['pending', 'failed'].includes(submitState as string)) {
+  //     // This is a message still in the outbox, we can retry/edit to fix, but
+  //     // for flip messages, don't allow retry/cancel
+  //     allowCancel = allowRetry = type === 'attachment' || (type === 'text' && !flipGameID)
+  //     const messageType = type === 'attachment' ? 'attachment' : 'message'
+  //     failureDescription = `This ${messageType} failed to send`
+  //     resolveByEdit = !!outboxID && !!you && errorTyp === RPCChatTypes.OutboxErrorType.toolong
+  //     if (resolveByEdit) {
+  //       failureDescription += `, ${errorReason}`
+  //     }
+  //     if (!!outboxID && !!you) {
+  //       switch (errorTyp) {
+  //         case RPCChatTypes.OutboxErrorType.minwriter:
+  //         case RPCChatTypes.OutboxErrorType.restrictedbot:
+  //           failureDescription = `Unable to send, ${errorReason}`
+  //           allowRetry = false
+  //       }
+  //     }
+  //   }
+  // }
 
   const dispatch = Container.useDispatch()
   const onCancel = React.useCallback(() => {
-    allowCancel && dispatch(Chat2Gen.createMessageDelete({conversationIDKey, ordinal}))
-  }, [dispatch, allowCancel, conversationIDKey, ordinal])
+    dispatch(Chat2Gen.createMessageDelete({conversationIDKey, ordinal}))
+  }, [dispatch, conversationIDKey, ordinal])
   const onEdit = React.useCallback(() => {
-    resolveByEdit && dispatch(Chat2Gen.createMessageSetEditing({conversationIDKey, ordinal}))
-  }, [resolveByEdit, dispatch, conversationIDKey, ordinal])
+    dispatch(Chat2Gen.createMessageSetEditing({conversationIDKey, ordinal}))
+  }, [dispatch, conversationIDKey, ordinal])
   const onRetry = React.useCallback(() => {
-    allowRetry &&
-      !resolveByEdit &&
-      outboxID &&
-      dispatch(Chat2Gen.createMessageRetry({conversationIDKey, outboxID}))
-  }, [resolveByEdit, allowRetry, dispatch, conversationIDKey, outboxID])
-  // hide error messages if the exploding message already exploded
-  return !!failureDescription && !(exploding && exploded) ? (
+    outboxID && dispatch(Chat2Gen.createMessageRetry({conversationIDKey, outboxID}))
+  }, [dispatch, conversationIDKey, outboxID])
+
+  if (ecrType === EditCancelRetryType.NONE) {
+    return null
+  }
+
+  const cancel = (
+    <Kb.Text type="BodySmall" style={styles.failUnderline} onClick={onCancel}>
+      Cancel
+    </Kb.Text>
+  )
+
+  const or =
+    ecrType === EditCancelRetryType.EDIT_CANCEL || ecrType === EditCancelRetryType.RETRY_CANCEL ? (
+      <Kb.Text type="BodySmall"> or </Kb.Text>
+    ) : null
+
+  let action: React.ReactNode =
+    ecrType === EditCancelRetryType.EDIT_CANCEL || ecrType === EditCancelRetryType.RETRY_CANCEL ? (
+      <Kb.Text
+        type="BodySmall"
+        style={styles.failUnderline}
+        onClick={ecrType === EditCancelRetryType.EDIT_CANCEL ? onEdit : onRetry}
+      >
+        {ecrType === EditCancelRetryType.EDIT_CANCEL ? 'Edit' : 'Retry'}
+      </Kb.Text>
+    ) : null
+
+  return (
     <Kb.Text key="isFailed" type="BodySmall">
-      <Kb.Text type="BodySmall" style={exploding ? styles.failExploding : styles.fail}>
-        {exploding && (
-          <>
-            <Kb.Icon fontSize={16} boxStyle={styles.failExplodingIcon} type="iconfont-block" />{' '}
-          </>
-        )}
+      <Kb.Text type="BodySmall" style={styles.fail}>
         {failureDescription}.{' '}
       </Kb.Text>
-      {!!onCancel && (
-        <Kb.Text type="BodySmall" style={styles.failUnderline} onClick={onCancel}>
-          Cancel
-        </Kb.Text>
-      )}
-      {!!onCancel && (!!onEdit || !!onRetry) && <Kb.Text type="BodySmall"> or </Kb.Text>}
-      {resolveByEdit && !!onEdit && (
-        <Kb.Text type="BodySmall" style={styles.failUnderline} onClick={onEdit}>
-          Edit
-        </Kb.Text>
-      )}
-      {allowRetry && !resolveByEdit && !!onRetry && (
-        <Kb.Text type="BodySmall" style={styles.failUnderline} onClick={onRetry}>
-          Retry
-        </Kb.Text>
-      )}
+      {action}
+      {or}
+      {cancel}
     </Kb.Text>
-  ) : null
+  )
 })
 
 type BProps = {
