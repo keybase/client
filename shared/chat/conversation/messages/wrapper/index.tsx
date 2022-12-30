@@ -561,11 +561,24 @@ const BottomSide = React.memo(function BottomSide(p: BProps) {
     </Kb.Text>
   ) : null
 
+  const hasReactions = Container.useSelector(
+    state => (state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)?.reactions?.size ?? 0) > 0
+  )
+  const reactionsRow = hasReactions ? (
+    <ReactionsRow
+      btnClassName="WrapperMessage-emojiButton"
+      newBtnClassName="WrapperMessage-newEmojiButton"
+      conversationIDKey={conversationIDKey}
+      ordinal={ordinal}
+    />
+  ) : null
+
   return (
     <>
       {orangeLine}
       {edited}
       <EditCancelRetry conversationIDKey={conversationIDKey} ordinal={ordinal} />
+      {reactionsRow}
     </>
   )
 })
@@ -776,16 +789,6 @@ const useBottomComponents = (p: Shared, o: {authorIsBot: boolean}) => {
     return null
   })()
 
-  const reactionsRow = hasReactions ? (
-    <ReactionsRow
-      key="ReactionsRow"
-      btnClassName="WrapperMessage-emojiButton"
-      newBtnClassName="WrapperMessage-newEmojiButton"
-      conversationIDKey={conversationIDKey}
-      ordinal={message.ordinal}
-    />
-  ) : null
-
   if (!messageAndButtons) return null
 
   return (
@@ -794,7 +797,6 @@ const useBottomComponents = (p: Shared, o: {authorIsBot: boolean}) => {
       {unfurlPrompts}
       {unfurlList}
       {coinFlip}
-      {reactionsRow}
     </>
   )
 }
