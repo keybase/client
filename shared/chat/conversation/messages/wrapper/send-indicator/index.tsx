@@ -1,3 +1,6 @@
+import type * as Types from '../../../../../constants/types/chat2'
+import * as Constants from '../../../../../constants/chat2'
+import * as Container from '../../../../../util/container'
 import * as React from 'react'
 import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
@@ -32,11 +35,8 @@ const sentTimeout = 400
 const shownEncryptingSet = new Set()
 
 type Props = {
-  isExploding: boolean
-  sent: boolean
-  failed: boolean
-  id?: number
-  style?: any
+  conversationIDKey: Types.ConversationIDKey
+  ordinal: Types.Ordinal
 }
 
 type State = {
@@ -44,10 +44,42 @@ type State = {
   visible: boolean
 }
 
-class SendIndicator extends React.Component<Props, State> {
+const SendIndicatorContainer = React.memo(function SendIndicatorContainer(p: Props) {
+  const {conversationIDKey, ordinal} = p
+  const isExploding = Container.useSelector(state => {
+    const message = Constants.getMessage(state, conversationIDKey, ordinal)
+    return !!message?.exploding
+  })
+  const sent = Container.useSelector(state => {
+    const message = Constants.getMessage(state, conversationIDKey, ordinal)
+    return (
+      (message?.type !== 'text' && message?.type !== 'attachment') || !message.submitState || message.exploded
+    )
+  })
+  const failed = Container.useSelector(state => {
+    const message = Constants.getMessage(state, conversationIDKey, ordinal)
+    return (message?.type === 'text' || message?.type === 'attachment') && message.submitState === 'failed'
+  })
+  const id = Container.useSelector(state => {
+    const message = Constants.getMessage(state, conversationIDKey, ordinal)
+    return message?.timestamp
+  })
+
+  const props = {failed, id, isExploding, sent}
+  return <SendIndicator {...props} />
+})
+
+type IProps = {
+  isExploding: boolean
+  sent: boolean
+  failed: boolean
+  id?: number
+}
+
+class SendIndicator extends React.Component<IProps, State> {
   state: State
 
-  constructor(props: Props) {
+  constructor(props: IProps) {
     super(props)
     const state: State = {animationStatus: 'encrypting', visible: !props.sent}
 
@@ -111,7 +143,7 @@ class SendIndicator extends React.Component<Props, State> {
     }
   }
 
-  componentDidUpdate(prevProps: Props) {
+  componentDidUpdate(prevProps: IProps) {
     if (this.props.failed && !prevProps.failed) {
       this._onFailed()
     } else if (this.props.sent && !prevProps.sent) {
@@ -145,7 +177,7 @@ class SendIndicator extends React.Component<Props, State> {
       <Kb.Animation
         animationType={this.animationType()}
         className="sendingStatus"
-        containerStyle={this.props.style}
+        containerStyle={styles.send}
         style={this.state.visible ? styles.animationVisible : styles.animationInvisible}
       />
     )
@@ -163,9 +195,8 @@ const styles = Styles.styleSheetCreate(
         common: {height: 20, opacity: 1, width: 20},
         isMobile: {backgroundColor: Styles.globalColors.white},
       }),
+      send: Styles.platformStyles({isElectron: {pointerEvents: 'none'}}),
     } as const)
 )
 
-const TimedSendIndicator = SendIndicator
-
-export default TimedSendIndicator
+export default SendIndicatorContainer

@@ -677,6 +677,28 @@ const LeftSide = React.memo(function LeftSide(p: LProps) {
   ) : null
 })
 
+// Exploding, ... , sending, tombstone
+type RProps = {
+  ordinal: Types.Ordinal
+  conversationIDKey: Types.ConversationIDKey
+}
+const RightSide = React.memo(function RightSide(p: RProps) {
+  const {conversationIDKey, ordinal} = p
+  const showSendIndicator = Container.useSelector(state => {
+    const you = state.config.username
+    const message = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
+    return you === message?.author && message.id !== ordinal
+  })
+  const sendIndicator = showSendIndicator ? (
+    <SendIndicator ordinal={ordinal} conversationIDKey={conversationIDKey} />
+  ) : null
+  return (
+    <Kb.Box2 direction="vertical" style={styles.rightSide}>
+      {sendIndicator}
+    </Kb.Box2>
+  )
+})
+
 const useGetLongPress = (p: Shared) => {
   const {showCenteredHighlight, conversationIDKey, ordinal, previous, showingPopup} = p
   const {popupAnchor, decorate, showUsername, showingPicker, message, meta} = p
@@ -724,6 +746,7 @@ const useGetLongPress = (p: Shared) => {
     <>
       {paymentBackground}
       <LeftSide conversationIDKey={conversationIDKey} ordinal={ordinal} previous={previous} />
+      <RightSide conversationIDKey={conversationIDKey} ordinal={ordinal} />
       <Kb.Box2 direction="vertical" style={styles.middleSide} fullWidth={true}>
         <TopSide
           conversationIDKey={conversationIDKey}
@@ -799,14 +822,13 @@ const useMessageAndButtons = (
   }
 ) => {
   const {showingPopup, toggleShowingPopup, ordinal, measure, conversationIDKey, message, shouldShowPopup} = p
-  const {showCenteredHighlight, youAreAuthor, decorate, setShowingPicker, showMenuButton, showUsername} = p
+  const {showCenteredHighlight, decorate, setShowingPicker, showMenuButton, showUsername} = p
   const {authorIsBot, hasReactions, isExploding} = o
   const isLastInThread = Container.useSelector(state => {
     const ordinals = Constants.getMessageOrdinals(state, conversationIDKey)
     return ordinals[ordinals.length - 1] === ordinal
   })
-  const {type, id} = message
-  const showSendIndicator = youAreAuthor && message.ordinal !== id
+  const {type} = message
   const showMenuButton2 = !Styles.isMobile && showMenuButton
   const isTextOrAttachment = Constants.isTextOrAttachment(message)
   const isRevoked = isTextOrAttachment && !!message.deviceRevokedAt
@@ -867,16 +889,6 @@ const useMessageAndButtons = (
   // 2. Have mounted but its hidden w/ css
   // TODO cleaner way to do this, or speedup react button maybe
   if (decorate && !exploded) {
-    const sendIndicator = showSendIndicator ? (
-      <SendIndicator
-        key="sendIndicator"
-        sent={sent}
-        failed={failed}
-        id={message.timestamp}
-        isExploding={isExploding}
-        style={styles.send}
-      />
-    ) : null
     const explodingMeta =
       exploding && !isShowingIndicator ? (
         <ExplodingMeta
@@ -934,7 +946,6 @@ const useMessageAndButtons = (
       <Kb.Box2 key="messageAndButtons" direction="horizontal" fullWidth={true}>
         {maybeExplodedChild}
         <Kb.Box2 direction="horizontal" style={menuAreaStyle(exploded, exploding)}>
-          {sendIndicator}
           {explodingMeta}
           {revokedIcon}
           {coinsIcon}
@@ -1218,7 +1229,12 @@ const styles = Styles.styleSheetCreate(
         isMobile: {left: -Styles.globalMargins.mediumLarge},
       }),
       paddingLeftTiny: {paddingLeft: Styles.globalMargins.tiny},
-      send: Styles.platformStyles({isElectron: {pointerEvents: 'none'}}),
+      rightSide: {
+        backgroundColor: Styles.globalColors.white,
+        position: 'absolute',
+        right: 20,
+        top: 0,
+      },
       timestamp: Styles.platformStyles({
         isElectron: {
           flexShrink: 0,
