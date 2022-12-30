@@ -42,7 +42,6 @@ import type UnfurlListType from './unfurl/unfurl-list/container'
 import type UnfurlPromptListType from './unfurl/prompt-list/container'
 import {dismiss} from '../../../../util/keyboard'
 import {formatTimeForChat} from '../../../../util/timestamp'
-import {makeMessageJourneycard} from '../../../../constants/chat2/message'
 
 /**
  * WrapperMessage adds the orange line, menu button, menu, reacji
@@ -408,17 +407,37 @@ type BProps = {
   ordinal: Types.Ordinal
   conversationIDKey: Types.ConversationIDKey
   previous?: Types.Ordinal
+  showCenteredHighlight: boolean
 }
 // Edited, reactions, orangeLine (top side but needs to render on top so here)
 const BottomSide = React.memo(function BottomSide(p: BProps) {
-  const {conversationIDKey, ordinal} = p
+  const {conversationIDKey, ordinal, showCenteredHighlight} = p
   const orangeLineAbove = Container.useSelector(
     state => state.chat2.orangeLineMap.get(conversationIDKey) === ordinal
   )
   const orangeLine = orangeLineAbove ? (
     <Kb.Box2 key="orangeLine" direction="vertical" style={styles.orangeLine} />
   ) : null
-  return <>{orangeLine}</>
+
+  const hasBeenEdited = Container.useSelector(
+    state => state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)?.hasBeenEdited ?? false
+  )
+  const edited = hasBeenEdited ? (
+    <Kb.Text
+      key="isEdited"
+      type="BodyTiny"
+      style={showCenteredHighlight ? styles.editedHighlighted : styles.edited}
+    >
+      EDITED
+    </Kb.Text>
+  ) : null
+
+  return (
+    <>
+      {orangeLine}
+      {edited}
+    </>
+  )
 })
 
 // Author Avatar
@@ -487,8 +506,13 @@ const useGetLongPress = (p: Shared) => {
           showCenteredHighlight={showCenteredHighlight}
         />
         {content}
+        <BottomSide
+          conversationIDKey={conversationIDKey}
+          ordinal={ordinal}
+          previous={previous}
+          showCenteredHighlight={showCenteredHighlight}
+        />
       </Kb.Box2>
-      <BottomSide conversationIDKey={conversationIDKey} ordinal={ordinal} previous={previous} />
     </>
   )
 
@@ -594,7 +618,7 @@ const getFailureDescriptionAllowCancel = (message: Types.Message, you: string) =
 }
 
 const useBottomComponents = (p: Shared, o: {authorIsBot: boolean}) => {
-  const {ordinal, conversationIDKey, measure, showCenteredHighlight} = p
+  const {ordinal, conversationIDKey, measure} = p
   const {message, toggleShowingPopup, isPendingPayment} = p
   const {authorIsBot} = o
   const {id, type} = message
@@ -630,16 +654,6 @@ const useBottomComponents = (p: Shared, o: {authorIsBot: boolean}) => {
     hasReactions,
     isExploding,
   })
-
-  const isEdited = message.hasBeenEdited ? (
-    <Kb.Text
-      key="isEdited"
-      type="BodyTiny"
-      style={Styles.collapseStyles([styles.edited, showCenteredHighlight && styles.editedHighlighted])}
-    >
-      EDITED
-    </Kb.Text>
-  ) : null
 
   // hide error messages if the exploding message already exploded
   const isFailed =
@@ -731,12 +745,9 @@ const useBottomComponents = (p: Shared, o: {authorIsBot: boolean}) => {
 
   if (!messageAndButtons) return null
 
-  return message.type === 'journeycard' ? (
-    <></>
-  ) : (
+  return (
     <>
       {messageAndButtons}
-      {isEdited}
       {isFailed}
       {unfurlPrompts}
       {unfurlList}
