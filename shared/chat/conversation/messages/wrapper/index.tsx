@@ -42,6 +42,7 @@ import type UnfurlListType from './unfurl/unfurl-list/container'
 import type UnfurlPromptListType from './unfurl/prompt-list/container'
 import {dismiss} from '../../../../util/keyboard'
 import {formatTimeForChat} from '../../../../util/timestamp'
+import {makeMessageJourneycard} from '../../../../constants/chat2/message'
 
 /**
  * WrapperMessage adds the orange line, menu button, menu, reacji
@@ -458,15 +459,19 @@ const LeftSide = React.memo(function LeftSide(p: LProps) {
 })
 
 const useGetLongPress = (p: Shared) => {
-  const {showCenteredHighlight, conversationIDKey, ordinal, previous} = p
-  const {showingPopup, toggleShowingPopup} = p
-  const {popupAnchor, message, isPendingPayment, setShowMenuButton, decorate, showUsername, showingPicker} = p
+  const {showCenteredHighlight, conversationIDKey, ordinal, previous, showingPopup, toggleShowingPopup} = p
+  const {popupAnchor, isPendingPayment, setShowMenuButton, decorate, showUsername, showingPicker, message} = p
   const canSwipeLeft = message.type !== 'journeycard'
   const dispatch = Container.useDispatch()
   const onSwipeLeft = React.useCallback(() => {
     canSwipeLeft && dispatch(Chat2Gen.createToggleReplyToMessage({conversationIDKey, ordinal}))
   }, [dispatch, canSwipeLeft, conversationIDKey, ordinal])
   const content = useContent(p)
+
+  if (message.type === 'journeycard') {
+    const TeamJourney = require('../cards/team-journey/container').default as typeof TeamJourneyType
+    return <TeamJourney key="journey" message={message} />
+  }
 
   const paymentBackground = isPendingPayment ? <PendingPaymentBackground /> : null
 
@@ -552,11 +557,6 @@ const useContent = (p: Shared) => {
   })
 
   const children = useBottomComponents(p, {authorIsBot})
-
-  if (message.type === 'journeycard') {
-    const TeamJourney = require('../cards/team-journey/container').default as typeof TeamJourneyType
-    return <TeamJourney key="journey" message={message} />
-  }
 
   return children
 }
