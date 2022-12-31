@@ -727,12 +727,38 @@ const RightSide = React.memo(function RightSide(p: RProps) {
   })
   const coinsIcon = showCoinsIcon ? <Kb.Icon type="icon-stellar-coins-stacked-16" /> : null
 
+  const botName = Container.useSelector(state => {
+    const message = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
+    if (!message) return ''
+    const keyedBot = message.botUsername
+    if (!keyedBot) return ''
+    const {author} = message
+    const meta = state.chat2.metaMap.get(conversationIDKey)
+    if (!meta) return ''
+    const {teamID, teamname, teamType} = meta
+    const participantInfoNames = Constants.getParticipantInfo(state, conversationIDKey).name
+    const authorRoleInTeam = state.teams.teamIDToMembers.get(teamID)?.get(author)?.type
+    const authorIsBot = teamname
+      ? authorRoleInTeam === 'restrictedbot' || authorRoleInTeam === 'bot'
+      : teamType === 'adhoc' && participantInfoNames.length > 0 // teams without info may have type adhoc with an empty participant name list
+      ? !participantInfoNames.includes(author) // if adhoc, check if author in participants
+      : false // if we don't have team information, don't show bot icon
+    return !authorIsBot ? keyedBot : ''
+  })
+
+  const bot = botName ? (
+    <Kb.WithTooltip tooltip={`Encrypted for @${botName}`}>
+      <Kb.Icon color={Styles.globalColors.black_35} type="iconfont-bot" />
+    </Kb.WithTooltip>
+  ) : null
+
   return (
     <Kb.Box2 direction="vertical" style={styles.rightSide}>
       {sendIndicator}
       {explodingCountdown}
       {revokedIcon}
       {coinsIcon}
+      {bot}
     </Kb.Box2>
   )
 })
@@ -929,18 +955,6 @@ const useMessageAndButtons = (
   // 2. Have mounted but its hidden w/ css
   // TODO cleaner way to do this, or speedup react button maybe
   if (decorate && !exploded) {
-    const bot =
-      keyedBot && !authorIsBot ? (
-        <Kb.WithTooltip tooltip={`Encrypted for @${keyedBot}`}>
-          <Kb.Icon
-            color={Styles.globalColors.black_35}
-            type="iconfont-bot"
-            onClick={() => null}
-            style={styles.paddingLeftTiny}
-          />
-        </Kb.WithTooltip>
-      ) : null
-
     const showMenu = showMenuButton2 ? (
       <Kb.Box className="WrapperMessage-buttons">
         {!hasReactions && Constants.isMessageWithReactions(message) && !showingPopup && (
@@ -969,7 +983,6 @@ const useMessageAndButtons = (
       <Kb.Box2 key="messageAndButtons" direction="horizontal" fullWidth={true}>
         {maybeExplodedChild}
         <Kb.Box2 direction="horizontal" style={menuAreaStyle(exploded, exploding)}>
-          {bot}
           {showMenu}
         </Kb.Box2>
       </Kb.Box2>

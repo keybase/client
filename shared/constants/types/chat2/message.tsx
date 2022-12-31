@@ -64,6 +64,7 @@ export type PathAndOutboxID = {
 type _MessageCommon = {
   author: string
   bodySummary: HiddenString
+  botUsername?: string
   conversationIDKey: Common.ConversationIDKey
   deviceRevokedAt?: number
   errorReason?: string
