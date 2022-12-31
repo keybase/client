@@ -721,11 +721,18 @@ const RightSide = React.memo(function RightSide(p: RProps) {
     </Kb.WithTooltip>
   ) : null
 
+  const showCoinsIcon = Container.useSelector(state => {
+    const message = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
+    return message && Constants.hasSuccessfulInlinePayments(state, message)
+  })
+  const coinsIcon = showCoinsIcon ? <Kb.Icon type="icon-stellar-coins-stacked-16" /> : null
+
   return (
     <Kb.Box2 direction="vertical" style={styles.rightSide}>
       {sendIndicator}
       {explodingCountdown}
       {revokedIcon}
+      {coinsIcon}
     </Kb.Box2>
   )
 })
@@ -957,15 +964,11 @@ const useMessageAndButtons = (
         </Kb.Box>
       </Kb.Box>
     ) : null
-    const coinsIcon = showCoinsIcon ? (
-      <Kb.Icon type="icon-stellar-coins-stacked-16" style={styles.paddingLeftTiny} />
-    ) : null
 
     return (
       <Kb.Box2 key="messageAndButtons" direction="horizontal" fullWidth={true}>
         {maybeExplodedChild}
         <Kb.Box2 direction="horizontal" style={menuAreaStyle(exploded, exploding)}>
-          {coinsIcon}
           {bot}
           {showMenu}
         </Kb.Box2>
