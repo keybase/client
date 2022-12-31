@@ -698,9 +698,8 @@ const RightSide = React.memo(function RightSide(p: RProps) {
   const showExplodingCountdown = Container.useSelector(state => {
     const message = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
     if (!message) return false
-    const {type, exploding, exploded} = message
-    const isFailed = (type === 'text' || type === 'attachment') && message.submitState === 'failed'
-    return exploding && !exploded && !isFailed
+    const {exploding, exploded, submitState} = message
+    return exploding && !exploded && submitState !== 'failed'
   })
   const explodingCountdown = showExplodingCountdown ? (
     <ExplodingMeta
@@ -711,10 +710,22 @@ const RightSide = React.memo(function RightSide(p: RProps) {
     />
   ) : null
 
+  const showRevoked = Container.useSelector(state => {
+    const message = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
+    return !!message?.deviceRevokedAt
+  })
+
+  const revokedIcon = showRevoked ? (
+    <Kb.WithTooltip tooltip="Revoked device">
+      <Kb.Icon type="iconfont-rip" color={Styles.globalColors.black_35} />
+    </Kb.WithTooltip>
+  ) : null
+
   return (
     <Kb.Box2 direction="vertical" style={styles.rightSide}>
       {sendIndicator}
       {explodingCountdown}
+      {revokedIcon}
     </Kb.Box2>
   )
 })
@@ -911,20 +922,6 @@ const useMessageAndButtons = (
   // 2. Have mounted but its hidden w/ css
   // TODO cleaner way to do this, or speedup react button maybe
   if (decorate && !exploded) {
-    // const explodingMeta =
-    //   exploding && !isShowingIndicator ? (
-    //     <ExplodingMeta
-    //       conversationIDKey={conversationIDKey}
-    //       isParentHighlighted={showCenteredHighlight}
-    //       onClick={toggleShowingPopup}
-    //       ordinal={message.ordinal}
-    //     />
-    //   ) : null
-    const revokedIcon = isRevoked ? (
-      <Kb.WithTooltip tooltip="Revoked device">
-        <Kb.Icon type="iconfont-rip" style={styles.paddingLeftTiny} color={Styles.globalColors.black_35} />
-      </Kb.WithTooltip>
-    ) : null
     const bot =
       keyedBot && !authorIsBot ? (
         <Kb.WithTooltip tooltip={`Encrypted for @${keyedBot}`}>
@@ -968,8 +965,6 @@ const useMessageAndButtons = (
       <Kb.Box2 key="messageAndButtons" direction="horizontal" fullWidth={true}>
         {maybeExplodedChild}
         <Kb.Box2 direction="horizontal" style={menuAreaStyle(exploded, exploding)}>
-          {/* {explodingMeta} */}
-          {revokedIcon}
           {coinsIcon}
           {bot}
           {showMenu}
