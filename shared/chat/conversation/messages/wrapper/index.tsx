@@ -681,9 +681,11 @@ const LeftSide = React.memo(function LeftSide(p: LProps) {
 type RProps = {
   ordinal: Types.Ordinal
   conversationIDKey: Types.ConversationIDKey
+  showCenteredHighlight: boolean
+  toggleShowingPopup: () => void
 }
 const RightSide = React.memo(function RightSide(p: RProps) {
-  const {conversationIDKey, ordinal} = p
+  const {conversationIDKey, ordinal, showCenteredHighlight, toggleShowingPopup} = p
   const showSendIndicator = Container.useSelector(state => {
     const you = state.config.username
     const message = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
@@ -692,9 +694,27 @@ const RightSide = React.memo(function RightSide(p: RProps) {
   const sendIndicator = showSendIndicator ? (
     <SendIndicator ordinal={ordinal} conversationIDKey={conversationIDKey} />
   ) : null
+
+  const showExplodingCountdown = Container.useSelector(state => {
+    const message = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
+    if (!message) return false
+    const {type, exploding, exploded} = message
+    const isFailed = (type === 'text' || type === 'attachment') && message.submitState === 'failed'
+    return exploding && !exploded && !isFailed
+  })
+  const explodingCountdown = showExplodingCountdown ? (
+    <ExplodingMeta
+      conversationIDKey={conversationIDKey}
+      isParentHighlighted={showCenteredHighlight}
+      onClick={toggleShowingPopup}
+      ordinal={ordinal}
+    />
+  ) : null
+
   return (
     <Kb.Box2 direction="vertical" style={styles.rightSide}>
       {sendIndicator}
+      {explodingCountdown}
     </Kb.Box2>
   )
 })
@@ -746,7 +766,12 @@ const useGetLongPress = (p: Shared) => {
     <>
       {paymentBackground}
       <LeftSide conversationIDKey={conversationIDKey} ordinal={ordinal} previous={previous} />
-      <RightSide conversationIDKey={conversationIDKey} ordinal={ordinal} />
+      <RightSide
+        conversationIDKey={conversationIDKey}
+        ordinal={ordinal}
+        showCenteredHighlight={showCenteredHighlight}
+        toggleShowingPopup={toggleShowingPopup}
+      />
       <Kb.Box2 direction="vertical" style={styles.middleSide} fullWidth={true}>
         <TopSide
           conversationIDKey={conversationIDKey}
@@ -834,9 +859,6 @@ const useMessageAndButtons = (
   const isRevoked = isTextOrAttachment && !!message.deviceRevokedAt
   const keyedBot = (type === 'text' && message.botUsername) || ''
   const forceAsh = !!(message as any).explodingUnreadable
-  const sent = (type !== 'text' && type !== 'attachment') || !message.submitState || message.exploded
-  const failed = isTextOrAttachment && message.submitState === 'failed'
-  const isShowingIndicator = !sent || failed
   const showCoinsIcon = Container.useSelector(state => Constants.hasSuccessfulInlinePayments(state, message))
   const cachedMenuStylesRef = React.useRef(new Map<string, Styles.StylesCrossPlatform>())
   const menuAreaStyle = (exploded: boolean, exploding: boolean) => {
@@ -889,15 +911,15 @@ const useMessageAndButtons = (
   // 2. Have mounted but its hidden w/ css
   // TODO cleaner way to do this, or speedup react button maybe
   if (decorate && !exploded) {
-    const explodingMeta =
-      exploding && !isShowingIndicator ? (
-        <ExplodingMeta
-          conversationIDKey={conversationIDKey}
-          isParentHighlighted={showCenteredHighlight}
-          onClick={toggleShowingPopup}
-          ordinal={message.ordinal}
-        />
-      ) : null
+    // const explodingMeta =
+    //   exploding && !isShowingIndicator ? (
+    //     <ExplodingMeta
+    //       conversationIDKey={conversationIDKey}
+    //       isParentHighlighted={showCenteredHighlight}
+    //       onClick={toggleShowingPopup}
+    //       ordinal={message.ordinal}
+    //     />
+    //   ) : null
     const revokedIcon = isRevoked ? (
       <Kb.WithTooltip tooltip="Revoked device">
         <Kb.Icon type="iconfont-rip" style={styles.paddingLeftTiny} color={Styles.globalColors.black_35} />
@@ -946,7 +968,7 @@ const useMessageAndButtons = (
       <Kb.Box2 key="messageAndButtons" direction="horizontal" fullWidth={true}>
         {maybeExplodedChild}
         <Kb.Box2 direction="horizontal" style={menuAreaStyle(exploded, exploding)}>
-          {explodingMeta}
+          {/* {explodingMeta} */}
           {revokedIcon}
           {coinsIcon}
           {bot}
