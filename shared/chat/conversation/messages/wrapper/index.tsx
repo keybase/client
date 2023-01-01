@@ -40,7 +40,6 @@ import type TeamJourneyType from '../cards/team-journey/container'
 import type TextMessageType from '../text/container'
 import type UnfurlListType from './unfurl/unfurl-list/container'
 import type UnfurlPromptListType from './unfurl/prompt-list/container'
-import {dismiss} from '../../../../util/keyboard'
 import {formatTimeForChat} from '../../../../util/timestamp'
 import capitalize from 'lodash/capitalize'
 
@@ -113,8 +112,7 @@ const WrapperMessage = React.memo(function WrapperMessage(p: Props) {
     measure()
   }
 
-  const isTextOrAttachment = Constants.isTextOrAttachment(message)
-  const decorate = isTextOrAttachment && !message.exploded && !message.errorReason
+  const decorate = !message.exploded && !message.errorReason
   const previousMsg = Container.useSelector(
     state => (previous && Constants.getMessage(state, conversationIDKey, previous)) || undefined
   )
@@ -125,7 +123,6 @@ const WrapperMessage = React.memo(function WrapperMessage(p: Props) {
     decorate,
     isPendingPayment,
     measure,
-    message,
     ordinal,
     popupAnchor,
     previous,
@@ -754,8 +751,6 @@ type UGLP = {
   popupAnchor: React.MutableRefObject<React.Component | null>
   decorate: boolean
   showUsername: string
-  // TODO remov
-  message: Types.Message
   showingPicker: boolean
   toggleShowingPopup: () => void
   measure: (() => void) | undefined
@@ -764,13 +759,10 @@ type UGLP = {
 }
 const useGetLongPress = (p: UGLP) => {
   const {showCenteredHighlight, conversationIDKey, ordinal, previous, showingPopup} = p
-  const {popupAnchor, decorate, showUsername, showingPicker, message} = p
+  const {popupAnchor, decorate, showUsername, showingPicker} = p
   const {toggleShowingPopup, measure, isPendingPayment, setShowingPicker} = p
 
-  const dispatch = Container.useDispatch()
-  const onSwipeLeft = React.useCallback(() => {
-    dispatch(Chat2Gen.createToggleReplyToMessage({conversationIDKey, ordinal}))
-  }, [dispatch, conversationIDKey, ordinal])
+  const type = Container.useSelector(state => Constants.getMessage(state, conversationIDKey, ordinal)?.type)
 
   const messageNode = useMessageNode({conversationIDKey, ordinal, showCenteredHighlight, toggleShowingPopup})
   const exploding = Container.useSelector(
@@ -785,8 +777,6 @@ const useGetLongPress = (p: UGLP) => {
   ) : (
     messageNode
   )
-
-  const dismissKeyboard = React.useCallback(() => dismiss(), [])
 
   // TODO this goes away when we invert the relationship
   const isJourneyCard = Container.useSelector(
@@ -835,20 +825,16 @@ const useGetLongPress = (p: UGLP) => {
   if (Styles.isMobile) {
     let style = styles.longPressable
     if (showCenteredHighlight) {
-      if (!showUsername) {
-        style = styles.longPressableHighlightNoUsername
-      } else {
-        style = styles.longPressableHighlight
-      }
+      style = showUsername ? styles.longPressableHighlight : styles.longPressableHighlightNoUsername
     } else if (!showUsername) {
       style = styles.longPressableNoUsername
     }
     return (
       <LongPressable
         onLongPress={decorate ? toggleShowingPopup : undefined}
-        onPress={decorate ? dismissKeyboard : undefined}
-        onSwipeLeft={decorate ? onSwipeLeft : undefined}
         style={style}
+        conversationIDKey={conversationIDKey}
+        ordinal={decorate ? ordinal : 0}
       >
         {children}
       </LongPressable>
@@ -856,6 +842,8 @@ const useGetLongPress = (p: UGLP) => {
   }
   return (
     <LongPressable
+      conversationIDKey={conversationIDKey}
+      ordinal={decorate ? ordinal : 0}
       className={Styles.classNames(
         {
           'WrapperMessage-author': showUsername,
@@ -863,7 +851,7 @@ const useGetLongPress = (p: UGLP) => {
           'WrapperMessage-decorated': decorate,
           'WrapperMessage-hoverColor': !isPendingPayment,
           'WrapperMessage-noOverflow': isPendingPayment,
-          'WrapperMessage-systemMessage': message.type.startsWith('system'),
+          'WrapperMessage-systemMessage': type?.startsWith('system'),
           active: showingPopup || showingPicker,
           'hover-container': true,
         },
