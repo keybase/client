@@ -33,8 +33,9 @@ const MessageAction = React.memo(function MessageAction(p: Props) {
       if (exploding) {
         return (
           <ExplodingMessage
+            conversationIDKey={conversationIDKey}
+            ordinal={ordinal}
             attachTo={attachTo}
-            message={message}
             onHidden={onHidden}
             position={position}
             style={style}
