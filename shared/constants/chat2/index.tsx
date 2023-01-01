@@ -202,12 +202,16 @@ export const isTextOrAttachment = (
 }
 
 export const isMessageWithReactions = (message: Types.Message): message is Types.MessagesWithReactions => {
-  return !(
-    message.type === 'placeholder' ||
-    message.type === 'deleted' ||
-    message.type === 'systemJoined' ||
-    message.type === 'systemLeft' ||
-    message.type === 'journeycard'
+  return (
+    !(
+      message.type === 'placeholder' ||
+      message.type === 'deleted' ||
+      message.type === 'systemJoined' ||
+      message.type === 'systemLeft' ||
+      message.type === 'journeycard'
+    ) &&
+    !message.exploded &&
+    !message.errorReason
   )
 }
 export const getMessageKey = (message: Types.Message) =>

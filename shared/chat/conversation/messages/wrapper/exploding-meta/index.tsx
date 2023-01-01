@@ -19,7 +19,6 @@ type Props = {
   messageKey: string
   onClick?: () => void
   pending: boolean
-  style?: Styles.StylesCrossPlatform
 }
 
 type Props2 = {
@@ -34,12 +33,11 @@ type Props2 = {
   setMode: (m: Mode) => void
   sharedTimerIDRef: React.MutableRefObject<number>
   sharedTimerKeyRef: React.MutableRefObject<string>
-  style?: Styles.StylesCrossPlatform
   tickerIDRef: React.MutableRefObject<number>
 }
 
 const ExplodingMeta = (p: Props) => {
-  const {exploded, explodesAt, isParentHighlighted, messageKey, onClick, pending, style} = p
+  const {exploded, explodesAt, isParentHighlighted, messageKey, onClick, pending} = p
 
   const [mode, setMode] = React.useState<Mode>('none')
 
@@ -60,7 +58,6 @@ const ExplodingMeta = (p: Props) => {
     setMode,
     sharedTimerIDRef,
     sharedTimerKeyRef,
-    style,
     tickerIDRef,
   }
 
@@ -211,10 +208,7 @@ class ExplodingMeta2 extends React.Component<Props2> {
     }
 
     return (
-      <Kb.ClickableBox
-        onClick={this.props.onClick}
-        style={Styles.collapseStyles([styles.container, this.props.style])}
-      >
+      <Kb.ClickableBox onClick={this.props.onClick} style={styles.container}>
         {children}
       </Kb.ClickableBox>
     )
@@ -269,7 +263,7 @@ const styles = Styles.styleSheetCreate(
       container: {
         ...Styles.globalStyles.flexBoxRow,
         height: 20,
-        marginLeft: Styles.globalMargins.tiny,
+        // marginLeft: Styles.globalMargins.tiny,
         position: 'relative',
       },
       countdown: Styles.platformStyles({

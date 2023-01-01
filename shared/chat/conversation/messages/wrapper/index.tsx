@@ -87,11 +87,11 @@ type Shared = {
   message: Types.Message
   meta: Types.ConversationMeta
   popupAnchor: React.MutableRefObject<React.Component | null>
-  setShowMenuButton: (s: boolean) => void
+  // setShowMenuButton: (s: boolean) => void
   setShowingPicker: (s: boolean) => void
   shouldShowPopup: boolean
   showCenteredHighlight: boolean
-  showMenuButton: boolean
+  // showMenuButton: boolean
   showUsername: string
   showingPicker: boolean
   showingPopup: boolean
@@ -101,7 +101,7 @@ type Shared = {
 
 const WrapperMessage = React.memo(function WrapperMessage(p: Props) {
   const {measure, conversationIDKey, ordinal, previous} = p
-  const [showMenuButton, setShowMenuButton] = React.useState(false)
+  // const [showMenuButton, setShowMenuButton] = React.useState(false)
   const [showingPicker, setShowingPicker] = React.useState(false)
   const message = Container.useSelector(
     state => Constants.getMessage(state, conversationIDKey, ordinal) || missingMessage
@@ -150,11 +150,11 @@ const WrapperMessage = React.memo(function WrapperMessage(p: Props) {
     message,
     meta,
     popupAnchor,
-    setShowMenuButton,
+    // setShowMenuButton,
     setShowingPicker,
     shouldShowPopup,
     showCenteredHighlight,
-    showMenuButton,
+    // showMenuButton,
     showUsername,
     showingPicker,
     showingPopup,
@@ -539,10 +539,13 @@ type BProps = {
   showCenteredHighlight: boolean
   toggleShowingPopup: () => void
   measure?: () => void
+  showingPopup: boolean
+  setShowingPicker: (s: boolean) => void
 }
 // Edited, reactions, orangeLine (top side but needs to render on top so here)
 const BottomSide = React.memo(function BottomSide(p: BProps) {
-  const {conversationIDKey, ordinal, showCenteredHighlight, toggleShowingPopup, measure} = p
+  const {conversationIDKey, ordinal, showCenteredHighlight} = p
+  const {toggleShowingPopup, measure, showingPopup, setShowingPicker} = p
   const orangeLineAbove = Container.useSelector(
     state => state.chat2.orangeLineMap.get(conversationIDKey) === ordinal
   )
@@ -627,6 +630,31 @@ const BottomSide = React.memo(function BottomSide(p: BProps) {
     />
   ) : null
 
+  // TODO could defer until shown
+  const reactionsPopupPosition = Container.useSelector(state => {
+    if (hasReactions) {
+      return 'none'
+    }
+    const message = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
+    const validMessage = message && Constants.isMessageWithReactions(message)
+    if (!validMessage) return 'none'
+
+    const ordinals = Constants.getMessageOrdinals(state, conversationIDKey)
+    return ordinals[ordinals.length - 1] === ordinal ? 'last' : 'middle'
+  })
+
+  const reactionsPopup =
+    reactionsPopupPosition !== 'none' && !showingPopup ? (
+      <EmojiRow
+        className={Styles.classNames('WrapperMessage-emojiButton', 'hover-visible')}
+        conversationIDKey={conversationIDKey}
+        onShowingEmojiPicker={setShowingPicker}
+        ordinal={ordinal}
+        tooltipPosition={reactionsPopupPosition === 'middle' ? 'top center' : 'bottom center'}
+        style={reactionsPopupPosition === 'last' ? styles.emojiRowLast : styles.emojiRow}
+      />
+    ) : null
+
   return (
     <>
       {orangeLine}
@@ -636,6 +664,7 @@ const BottomSide = React.memo(function BottomSide(p: BProps) {
       {unfurlList}
       {coinflip}
       {reactionsRow}
+      {reactionsPopup}
     </>
   )
 })
@@ -689,7 +718,7 @@ const RightSide = React.memo(function RightSide(p: RProps) {
   const showSendIndicator = Container.useSelector(state => {
     const you = state.config.username
     const message = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
-    return you === message?.author && message.id !== ordinal
+    return !message?.submitState && !message?.exploded && you === message?.author && message.id !== ordinal
   })
   const sendIndicator = showSendIndicator ? (
     <SendIndicator ordinal={ordinal} conversationIDKey={conversationIDKey} />
@@ -752,13 +781,22 @@ const RightSide = React.memo(function RightSide(p: RProps) {
     </Kb.WithTooltip>
   ) : null
 
+  const menu = (
+    <Kb.WithTooltip tooltip="More actions..." toastStyle={styles.moreActionsTooltip}>
+      <Kb.Box style={styles.ellipsis} className="hover-visible">
+        <Kb.Icon type="iconfont-ellipsis" onClick={toggleShowingPopup} />
+      </Kb.Box>
+    </Kb.WithTooltip>
+  )
+
   return (
-    <Kb.Box2 direction="vertical" style={styles.rightSide}>
+    <Kb.Box2 direction="horizontal" style={styles.rightSide} gap="tiny">
       {sendIndicator}
       {explodingCountdown}
       {revokedIcon}
       {coinsIcon}
       {bot}
+      {menu}
     </Kb.Box2>
   )
 })
@@ -766,7 +804,7 @@ const RightSide = React.memo(function RightSide(p: RProps) {
 const useGetLongPress = (p: Shared) => {
   const {showCenteredHighlight, conversationIDKey, ordinal, previous, showingPopup} = p
   const {popupAnchor, decorate, showUsername, showingPicker, message, meta} = p
-  const {toggleShowingPopup, measure, isPendingPayment, setShowMenuButton} = p
+  const {toggleShowingPopup, measure, isPendingPayment, setShowingPicker} = p
   const canSwipeLeft = message.type !== 'journeycard'
   const dispatch = Container.useDispatch()
   const onSwipeLeft = React.useCallback(() => {
@@ -797,7 +835,6 @@ const useGetLongPress = (p: Shared) => {
   })
 
   const dismissKeyboard = React.useCallback(() => dismiss(), [])
-  const onMouseOver = React.useCallback(() => setShowMenuButton(true), [setShowMenuButton])
 
   if (message.type === 'journeycard') {
     const TeamJourney = require('../cards/team-journey/container').default as typeof TeamJourneyType
@@ -831,6 +868,8 @@ const useGetLongPress = (p: Shared) => {
           previous={previous}
           showCenteredHighlight={showCenteredHighlight}
           toggleShowingPopup={toggleShowingPopup}
+          setShowingPicker={setShowingPicker}
+          showingPopup={showingPopup}
         />
       </Kb.Box2>
     </>
@@ -869,11 +908,11 @@ const useGetLongPress = (p: Shared) => {
           'WrapperMessage-noOverflow': isPendingPayment,
           'WrapperMessage-systemMessage': message.type.startsWith('system'),
           active: showingPopup || showingPicker,
+          'hover-container': true,
         },
         'WrapperMessage-hoverBox'
       )}
       onContextMenu={toggleShowingPopup}
-      onMouseOver={onMouseOver}
       // attach popups to the message itself
       ref={popupAnchor as any}
     >
@@ -890,121 +929,32 @@ const useMessageAndButtons = (
     isExploding: boolean
   }
 ) => {
-  const {showingPopup, toggleShowingPopup, ordinal, measure, conversationIDKey, message, shouldShowPopup} = p
-  const {showCenteredHighlight, decorate, setShowingPicker, showMenuButton, showUsername} = p
-  const {authorIsBot, hasReactions, isExploding} = o
-  const isLastInThread = Container.useSelector(state => {
-    const ordinals = Constants.getMessageOrdinals(state, conversationIDKey)
-    return ordinals[ordinals.length - 1] === ordinal
-  })
-  const {type} = message
-  const showMenuButton2 = !Styles.isMobile && showMenuButton
+  const {measure, message} = p
+  const {isExploding} = o
   const isTextOrAttachment = Constants.isTextOrAttachment(message)
-  const isRevoked = isTextOrAttachment && !!message.deviceRevokedAt
-  const keyedBot = (type === 'text' && message.botUsername) || ''
   const forceAsh = !!(message as any).explodingUnreadable
-  const showCoinsIcon = Container.useSelector(state => Constants.hasSuccessfulInlinePayments(state, message))
-  const cachedMenuStylesRef = React.useRef(new Map<string, Styles.StylesCrossPlatform>())
-  const menuAreaStyle = (exploded: boolean, exploding: boolean) => {
-    const commonWidth = 20
-    const iconSizes = [
-      isRevoked ? commonWidth : 0, // revoked
-      showCoinsIcon ? commonWidth : 0, // coin stack
-      exploded || Styles.isMobile ? 0 : 16, // ... menu
-      exploding ? (Styles.isMobile ? commonWidth : 20) : commonWidth, // exploding or gutter
-      keyedBot && !authorIsBot ? commonWidth : 0,
-    ].filter(Boolean)
-    const padding = Styles.globalMargins.tiny
-    const width =
-      iconSizes.length <= 0 ? 0 : iconSizes.reduce((total, size) => total + size, iconSizes.length * padding)
-    const key = `${width}:${showUsername ? 1 : 0}:${exploding ? 1 : 0}:${exploded ? 1 : 0}`
-    if (!cachedMenuStylesRef.current.has(key)) {
-      cachedMenuStylesRef.current.set(
-        key,
-        Styles.collapseStyles([
-          styles.menuButtons,
-          !exploded && {width},
-          // !!showUsername && styles.menuButtonsWithAuthor,
-        ])
-      )
-    }
-    return cachedMenuStylesRef.current.get(key)
-  }
 
   const messageNode = useMessageNode(p)
   const exploded = isTextOrAttachment ? message.exploded ?? false : false
   const explodedBy = isTextOrAttachment ? message.explodedBy ?? '' : ''
   const exploding = isExploding
   const maybeExplodedChild = exploding ? (
-    <ExplodingHeightRetainer
-      explodedBy={explodedBy}
-      exploding={exploding}
-      measure={measure}
-      messageKey={Constants.getMessageKey(message)}
-      retainHeight={forceAsh || exploded}
-    >
-      {messageNode}
-    </ExplodingHeightRetainer>
+    <Kb.Box2 direction="horizontal" fullWidth={true}>
+      <ExplodingHeightRetainer
+        explodedBy={explodedBy}
+        exploding={exploding}
+        measure={measure}
+        messageKey={Constants.getMessageKey(message)}
+        retainHeight={forceAsh || exploded}
+      >
+        {messageNode}
+      </ExplodingHeightRetainer>
+    </Kb.Box2>
   ) : (
     messageNode
   )
 
-  // We defer mounting the menu buttons since they are expensive and only show up on hover on desktop and not at all on mobile
-  // but this creates complexity as we can't use box2 gap stuff since we can either
-  // 1. Haven't mounted it yet
-  // 2. Have mounted but its hidden w/ css
-  // TODO cleaner way to do this, or speedup react button maybe
-  if (decorate && !exploded) {
-    const showMenu = showMenuButton2 ? (
-      <Kb.Box className="WrapperMessage-buttons">
-        {!hasReactions && Constants.isMessageWithReactions(message) && !showingPopup && (
-          <EmojiRow
-            className="WrapperMessage-emojiButton"
-            conversationIDKey={conversationIDKey}
-            onShowingEmojiPicker={setShowingPicker}
-            ordinal={message.ordinal}
-            tooltipPosition={isLastInThread ? 'top center' : 'bottom center'}
-            style={Styles.collapseStyles([styles.emojiRow, isLastInThread && styles.emojiRowLast] as const)}
-          />
-        )}
-        <Kb.Box>
-          {shouldShowPopup && (
-            <Kb.WithTooltip tooltip="More actions..." toastStyle={styles.moreActionsTooltip}>
-              <Kb.Box style={styles.ellipsis}>
-                <Kb.Icon type="iconfont-ellipsis" onClick={toggleShowingPopup} />
-              </Kb.Box>
-            </Kb.WithTooltip>
-          )}
-        </Kb.Box>
-      </Kb.Box>
-    ) : null
-
-    return (
-      <Kb.Box2 key="messageAndButtons" direction="horizontal" fullWidth={true}>
-        {maybeExplodedChild}
-        <Kb.Box2 direction="horizontal" style={menuAreaStyle(exploded, exploding)}>
-          {showMenu}
-        </Kb.Box2>
-      </Kb.Box2>
-    )
-  } else if (exploding) {
-    // extra box so the hierarchy stays the same when exploding or you'll remount
-    return (
-      <Kb.Box2 key="messageAndButtons" direction="horizontal" fullWidth={true}>
-        {maybeExplodedChild}
-        <Kb.Box2 direction="horizontal" style={menuAreaStyle(exploded, exploding)}>
-          <ExplodingMeta
-            conversationIDKey={conversationIDKey}
-            isParentHighlighted={showCenteredHighlight}
-            onClick={toggleShowingPopup}
-            ordinal={message.ordinal}
-          />
-        </Kb.Box2>
-      </Kb.Box2>
-    )
-  } else {
-    return maybeExplodedChild
-  }
+  return maybeExplodedChild
 }
 
 const useMessageNode = (p: Shared) => {
@@ -1180,7 +1130,7 @@ const styles = Styles.styleSheetCreate(
       edited: {color: Styles.globalColors.black_20},
       editedHighlighted: {color: Styles.globalColors.black_20OrBlack},
       ellipsis: {
-        marginLeft: Styles.globalMargins.tiny,
+        // marginLeft: Styles.globalMargins.tiny,
         paddingTop: 3,
       },
       emojiRow: Styles.platformStyles({
@@ -1195,7 +1145,19 @@ const styles = Styles.styleSheetCreate(
           zIndex: 2,
         },
       }),
-      emojiRowLast: Styles.platformStyles({isElectron: {top: -Styles.globalMargins.medium + 5}}),
+      emojiRowLast: Styles.platformStyles({
+        isElectron: {
+          backgroundColor: Styles.globalColors.white,
+          border: `1px solid ${Styles.globalColors.black_10}`,
+          borderRadius: Styles.borderRadius,
+          bottom: -Styles.globalMargins.medium + 3,
+          paddingRight: Styles.globalMargins.xtiny,
+          position: 'absolute',
+          right: 96,
+          top: -Styles.globalMargins.medium + 5,
+          zIndex: 2,
+        },
+      }),
       fail: {color: Styles.globalColors.redDark},
       failExploding: {color: Styles.globalColors.black_50},
       failExplodingIcon: Styles.platformStyles({
@@ -1263,10 +1225,14 @@ const styles = Styles.styleSheetCreate(
       }),
       paddingLeftTiny: {paddingLeft: Styles.globalMargins.tiny},
       rightSide: {
-        backgroundColor: Styles.globalColors.white,
+        backgroundColor: Styles.globalColors.white_90,
+        borderRadius: Styles.borderRadius,
+        paddingLeft: Styles.globalMargins.tiny,
+        paddingRight: Styles.globalMargins.tiny,
         position: 'absolute',
-        right: 20,
-        top: 0,
+        minHeight: 20,
+        right: 21,
+        top: 1,
       },
       timestamp: Styles.platformStyles({
         isElectron: {
