@@ -3,6 +3,7 @@ import * as Kb from '../../../../../common-adapters'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as TeamsGen from '../../../../../actions/teams-gen'
 import * as Constants from '../../../../../constants/chat2'
+import {makeMessageJourneycard} from '../../../../../constants/chat2/message'
 import * as Container from '../../../../../util/container'
 import type * as MessageTypes from '../../../../../constants/types/chat2/message'
 import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
@@ -16,7 +17,8 @@ import {renderWelcomeMessage} from './util'
 import {useAllChannelMetas} from '../../../../../teams/common/channel-hooks'
 
 type OwnProps = {
-  message: MessageTypes.MessageJourneycard
+  conversationIDKey: ChatTypes.ConversationIDKey
+  ordinal: ChatTypes.Ordinal
 }
 
 type Props = {
@@ -178,10 +180,15 @@ const TeamJourneyContainer = (props: Props) => {
   ) : null
 }
 
+const emptyJourney = makeMessageJourneycard({})
+
 const TeamJourneyConnected = Container.connect(
   (state, ownProps: OwnProps) => {
-    const conv = Constants.getMeta(state, ownProps.message.conversationIDKey)
-    const {cannotWrite, channelname, conversationIDKey, teamname, teamID} = conv
+    const {conversationIDKey, ordinal} = ownProps
+    const m = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
+    const message = m?.type === 'journeycard' ? m : emptyJourney
+    const conv = Constants.getMeta(state, conversationIDKey)
+    const {cannotWrite, channelname, teamname, teamID} = conv
     const welcomeMessage = {display: '', raw: '', set: false}
     return {
       _teamID: teamID,
@@ -190,6 +197,7 @@ const TeamJourneyConnected = Container.connect(
       channelname,
       conversationIDKey,
       isBigTeam: TeamConstants.isBigTeam(state, teamID),
+      message,
       teamname,
       welcomeMessage,
     }
@@ -220,9 +228,17 @@ const TeamJourneyConnected = Container.connect(
     _onShowTeam: (teamID: TeamTypes.TeamID) =>
       dispatch(RouteTreeGen.createNavigateAppend({path: [teamsTab, {props: {teamID}, selected: 'team'}]})),
   }),
-  (stateProps, dispatchProps, ownProps) => {
-    const {canShowcase, cannotWrite, channelname, conversationIDKey, teamname, isBigTeam, welcomeMessage} =
-      stateProps
+  (stateProps, dispatchProps) => {
+    const {
+      canShowcase,
+      cannotWrite,
+      channelname,
+      conversationIDKey,
+      teamname,
+      isBigTeam,
+      welcomeMessage,
+      message,
+    } = stateProps
 
     return {
       canShowcase,
@@ -230,17 +246,13 @@ const TeamJourneyConnected = Container.connect(
       channelname,
       conversationIDKey,
       isBigTeam,
-      message: ownProps.message,
+      message,
       onAddPeopleToTeam: () => dispatchProps._onAddPeopleToTeam(stateProps._teamID),
       onAuthorClick: () => dispatchProps._onAuthorClick(stateProps._teamID),
       onBrowseChannels: () => dispatchProps._onManageChannels(stateProps._teamID),
       onCreateChatChannels: () => dispatchProps._onCreateChannel(stateProps._teamID),
       onDismiss: () =>
-        dispatchProps._onDismiss(
-          stateProps.conversationIDKey,
-          ownProps.message.cardType,
-          ownProps.message.ordinal
-        ),
+        dispatchProps._onDismiss(stateProps.conversationIDKey, message.cardType, message.ordinal),
       onGoToChannel: (channelName: string) => dispatchProps._onGoToChannel(channelName, stateProps.teamname),
       onPublishTeam: () => dispatchProps._onPublishTeam(stateProps._teamID),
       onScrollBack: () => console.log('onScrollBack'),

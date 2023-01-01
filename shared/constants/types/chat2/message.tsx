@@ -65,6 +65,7 @@ type _MessageCommon = {
   author: string
   bodySummary: HiddenString
   botUsername?: string
+  explodingUnreadable?: boolean
   conversationIDKey: Common.ConversationIDKey
   deviceRevokedAt?: number
   errorReason?: string

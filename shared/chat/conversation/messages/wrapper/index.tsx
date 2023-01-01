@@ -8,7 +8,7 @@ import * as React from 'react'
 import * as Styles from '../../../../styles'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import EmojiRow from '../react-button/emoji-row/container'
-import ExplodingHeightRetainer from './exploding-height-retainer'
+import ExplodingHeightRetainer from './exploding-height-retainer/container'
 import ExplodingMeta from './exploding-meta/container'
 import LongPressable from './long-pressable'
 import MessagePopup from '../message-popup'
@@ -80,37 +80,15 @@ const messageShowsPopup = (type: Types.Message['type']) =>
 // If there is no matching message treat it like a deleted
 const missingMessage = Constants.makeMessageDeleted({})
 
-type Shared = {
-  canFixOverdraw: boolean
-  decorate: boolean
-  isPendingPayment: boolean
-  message: Types.Message
-  meta: Types.ConversationMeta
-  popupAnchor: React.MutableRefObject<React.Component | null>
-  // setShowMenuButton: (s: boolean) => void
-  setShowingPicker: (s: boolean) => void
-  shouldShowPopup: boolean
-  showCenteredHighlight: boolean
-  // showMenuButton: boolean
-  showUsername: string
-  showingPicker: boolean
-  showingPopup: boolean
-  toggleShowingPopup: () => void
-  youAreAuthor: boolean
-} & Props
-
 const WrapperMessage = React.memo(function WrapperMessage(p: Props) {
   const {measure, conversationIDKey, ordinal, previous} = p
-  // const [showMenuButton, setShowMenuButton] = React.useState(false)
   const [showingPicker, setShowingPicker] = React.useState(false)
   const message = Container.useSelector(
     state => Constants.getMessage(state, conversationIDKey, ordinal) || missingMessage
   )
 
   const you = Container.useSelector(state => state.config.username)
-  const youAreAuthor = you === message.author
   const {type} = message
-  const meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
   const isPendingPayment = Container.useSelector(state => Constants.isPendingPaymentMessage(state, message))
   const shouldShowPopup = Container.useSelector(state => Constants.shouldShowPopup(state, message))
   const showCenteredHighlight = useHighlightMode(p)
@@ -143,23 +121,20 @@ const WrapperMessage = React.memo(function WrapperMessage(p: Props) {
   const showUsername = getUsernameToShow(message, previousMsg, you, false)
 
   const longPressable = useGetLongPress({
-    ...p,
-    canFixOverdraw,
+    conversationIDKey,
     decorate,
     isPendingPayment,
+    measure,
     message,
-    meta,
+    ordinal,
     popupAnchor,
-    // setShowMenuButton,
+    previous,
     setShowingPicker,
-    shouldShowPopup,
     showCenteredHighlight,
-    // showMenuButton,
     showUsername,
     showingPicker,
     showingPopup,
     toggleShowingPopup,
-    youAreAuthor,
   })
 
   if (!message) {
@@ -451,37 +426,6 @@ const EditCancelRetry = React.memo(function EditCancelRetry(p: ECRProps) {
     }
     return EditCancelRetryType.RETRY_CANCEL
   })
-
-  // const message = Container.useSelector(state => state.chat2.messageMap.get(conversationIDKey)?.get(ordinal))
-  // const you = Container.useSelector(state => state.config.username)
-  // let failureDescription = ''
-  // let allowCancel = false
-  // let allowRetry = false
-  // let resolveByEdit = false
-  // const {errorReason, submitState, type, outboxID, errorTyp, exploding, exploded} = message ?? {}
-  // const flipGameID = message?.type === 'text' ? message?.flipGameID : undefined
-  // if ((type === 'text' || type === 'attachment') && errorReason) {
-  //   failureDescription = errorReason
-  //   if (you && ['pending', 'failed'].includes(submitState as string)) {
-  //     // This is a message still in the outbox, we can retry/edit to fix, but
-  //     // for flip messages, don't allow retry/cancel
-  //     allowCancel = allowRetry = type === 'attachment' || (type === 'text' && !flipGameID)
-  //     const messageType = type === 'attachment' ? 'attachment' : 'message'
-  //     failureDescription = `This ${messageType} failed to send`
-  //     resolveByEdit = !!outboxID && !!you && errorTyp === RPCChatTypes.OutboxErrorType.toolong
-  //     if (resolveByEdit) {
-  //       failureDescription += `, ${errorReason}`
-  //     }
-  //     if (!!outboxID && !!you) {
-  //       switch (errorTyp) {
-  //         case RPCChatTypes.OutboxErrorType.minwriter:
-  //         case RPCChatTypes.OutboxErrorType.restrictedbot:
-  //           failureDescription = `Unable to send, ${errorReason}`
-  //           allowRetry = false
-  //       }
-  //     }
-  //   }
-  // }
 
   const dispatch = Container.useDispatch()
   const onCancel = React.useCallback(() => {
@@ -801,44 +745,57 @@ const RightSide = React.memo(function RightSide(p: RProps) {
   )
 })
 
-const useGetLongPress = (p: Shared) => {
+type UGLP = {
+  showCenteredHighlight: boolean
+  conversationIDKey: string
+  ordinal: number
+  previous: number | undefined
+  showingPopup: boolean
+  popupAnchor: React.MutableRefObject<React.Component | null>
+  decorate: boolean
+  showUsername: string
+  // TODO remov
+  message: Types.Message
+  showingPicker: boolean
+  toggleShowingPopup: () => void
+  measure: (() => void) | undefined
+  isPendingPayment: boolean
+  setShowingPicker: (s: boolean) => void
+}
+const useGetLongPress = (p: UGLP) => {
   const {showCenteredHighlight, conversationIDKey, ordinal, previous, showingPopup} = p
-  const {popupAnchor, decorate, showUsername, showingPicker, message, meta} = p
+  const {popupAnchor, decorate, showUsername, showingPicker, message} = p
   const {toggleShowingPopup, measure, isPendingPayment, setShowingPicker} = p
-  const canSwipeLeft = message.type !== 'journeycard'
+
   const dispatch = Container.useDispatch()
   const onSwipeLeft = React.useCallback(() => {
-    canSwipeLeft && dispatch(Chat2Gen.createToggleReplyToMessage({conversationIDKey, ordinal}))
-  }, [dispatch, canSwipeLeft, conversationIDKey, ordinal])
+    dispatch(Chat2Gen.createToggleReplyToMessage({conversationIDKey, ordinal}))
+  }, [dispatch, conversationIDKey, ordinal])
 
-  const {author} = message
-  const {teamID, teamname, teamType} = meta
-  // TODO remove
-  const authorIsBot = Container.useSelector(state => {
-    const participantInfoNames = Constants.getParticipantInfo(state, conversationIDKey).name
-    const authorRoleInTeam = state.teams.teamIDToMembers.get(teamID)?.get(author)?.type
-    return teamname
-      ? authorRoleInTeam === 'restrictedbot' || authorRoleInTeam === 'bot'
-      : teamType === 'adhoc' && participantInfoNames.length > 0 // teams without info may have type adhoc with an empty participant name list
-      ? !participantInfoNames.includes(author) // if adhoc, check if author in participants
-      : false // if we don't have team information, don't show bot icon
-  })
-
-  const isTextOrAttachment = Constants.isTextOrAttachment(message)
-  const hasReactions = !!message.reactions?.size || isPendingPayment
-  const isExploding = isTextOrAttachment && !!message.exploding
-
-  const content = useMessageAndButtons(p, {
-    authorIsBot,
-    hasReactions,
-    isExploding,
-  })
+  const messageNode = useMessageNode({conversationIDKey, ordinal, showCenteredHighlight, toggleShowingPopup})
+  const exploding = Container.useSelector(
+    state => Constants.getMessage(state, conversationIDKey, ordinal)?.exploding
+  )
+  const content = exploding ? (
+    <Kb.Box2 direction="horizontal" fullWidth={true}>
+      <ExplodingHeightRetainer conversationIDKey={conversationIDKey} ordinal={ordinal} measure={measure}>
+        {messageNode}
+      </ExplodingHeightRetainer>
+    </Kb.Box2>
+  ) : (
+    messageNode
+  )
 
   const dismissKeyboard = React.useCallback(() => dismiss(), [])
 
-  if (message.type === 'journeycard') {
+  // TODO this goes away when we invert the relationship
+  const isJourneyCard = Container.useSelector(
+    state => Constants.getMessage(state, conversationIDKey, ordinal)?.type === 'journeycard'
+  )
+
+  if (isJourneyCard) {
     const TeamJourney = require('../cards/team-journey/container').default as typeof TeamJourneyType
-    return <TeamJourney key="journey" message={message} />
+    return <TeamJourney key="journey" conversationIDKey={conversationIDKey} ordinal={ordinal} />
   }
 
   const paymentBackground = isPendingPayment ? <PendingPaymentBackground /> : null
@@ -890,7 +847,7 @@ const useGetLongPress = (p: Shared) => {
       <LongPressable
         onLongPress={decorate ? toggleShowingPopup : undefined}
         onPress={decorate ? dismissKeyboard : undefined}
-        onSwipeLeft={decorate && canSwipeLeft ? onSwipeLeft : undefined}
+        onSwipeLeft={decorate ? onSwipeLeft : undefined}
         style={style}
       >
         {children}
@@ -921,44 +878,22 @@ const useGetLongPress = (p: Shared) => {
   )
 }
 
-const useMessageAndButtons = (
-  p: Shared,
-  o: {
-    authorIsBot: boolean
-    hasReactions: boolean
-    isExploding: boolean
-  }
-) => {
-  const {measure, message} = p
-  const {isExploding} = o
-  const isTextOrAttachment = Constants.isTextOrAttachment(message)
-  const forceAsh = !!(message as any).explodingUnreadable
+type UMN = {
+  ordinal: Types.Ordinal
+  conversationIDKey: Types.ConversationIDKey
+  showCenteredHighlight: boolean
+  toggleShowingPopup: () => void
+}
+const useMessageNode = (p: UMN) => {
+  const {showCenteredHighlight, toggleShowingPopup, conversationIDKey, ordinal} = p
 
-  const messageNode = useMessageNode(p)
-  const exploded = isTextOrAttachment ? message.exploded ?? false : false
-  const explodedBy = isTextOrAttachment ? message.explodedBy ?? '' : ''
-  const exploding = isExploding
-  const maybeExplodedChild = exploding ? (
-    <Kb.Box2 direction="horizontal" fullWidth={true}>
-      <ExplodingHeightRetainer
-        explodedBy={explodedBy}
-        exploding={exploding}
-        measure={measure}
-        messageKey={Constants.getMessageKey(message)}
-        retainHeight={forceAsh || exploded}
-      >
-        {messageNode}
-      </ExplodingHeightRetainer>
-    </Kb.Box2>
-  ) : (
-    messageNode
+  const message = Container.useSelector(state => Constants.getMessage(state, conversationIDKey, ordinal))
+  const youAreAuthor = Container.useSelector(
+    state => Constants.getMessage(state, conversationIDKey, ordinal)?.author === state.config.username
   )
 
-  return maybeExplodedChild
-}
+  if (!message) return null
 
-const useMessageNode = (p: Shared) => {
-  const {message, showCenteredHighlight, toggleShowingPopup, youAreAuthor} = p
   switch (message.type) {
     case 'text': {
       const TextMessage = require('../text/container').default as typeof TextMessageType
@@ -1072,10 +1007,6 @@ const useMessageNode = (p: Shared) => {
       return message.newChannelname === 'general' ? null : (
         <SetChannelname key="setChannelname" message={message} />
       )
-    }
-    case 'journeycard': {
-      const TeamJourney = require('../cards/team-journey/container').default as typeof TeamJourneyType
-      return <TeamJourney key="journey" message={message} />
     }
     case 'deleted':
       return null
