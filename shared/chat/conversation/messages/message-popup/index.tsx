@@ -115,22 +115,13 @@ const MessageAction = React.memo(function MessageAction(p: Props) {
           visible={visible}
         />
       )
-    case 'sendPayment':
-      return (
-        <PaymentMessage
-          attachTo={attachTo}
-          message={message}
-          onHidden={onHidden}
-          position={position}
-          style={style}
-          visible={visible}
-        />
-      )
+    case 'sendPayment': // fallthrough
     case 'requestPayment':
       return (
         <PaymentMessage
           attachTo={attachTo}
-          message={message}
+          conversationIDKey={conversationIDKey}
+          ordinal={ordinal}
           onHidden={onHidden}
           position={position}
           style={style}
