@@ -12,7 +12,9 @@ const LongPressable = React.memo(function LongPressable(props: Props) {
 
   const dispatch = Container.useDispatch()
   const onReply = React.useCallback(() => {
-    ordinal && dispatch(Chat2Gen.createToggleReplyToMessage({conversationIDKey, ordinal}))
+    conversationIDKey &&
+      ordinal &&
+      dispatch(Chat2Gen.createToggleReplyToMessage({conversationIDKey, ordinal}))
   }, [dispatch, conversationIDKey, ordinal])
 
   const dismissKeyboard = React.useCallback(() => dismiss(), [])

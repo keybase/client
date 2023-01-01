@@ -4,8 +4,8 @@ import type * as Types from '../../../../../constants/types/chat2'
 
 export type Props = {
   children: React.ReactNode
-  conversationIDKey: Types.ConversationIDKey
-  ordinal: Types.Ordinal
+  conversationIDKey?: Types.ConversationIDKey
+  ordinal?: Types.Ordinal
   // mobile
   onLongPress?: () => void
   style?: Styles.StylesCrossPlatform

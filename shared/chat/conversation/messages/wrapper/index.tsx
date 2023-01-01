@@ -96,9 +96,10 @@ const WrapperMessage = React.memo(function WrapperMessage(p: Props) {
   const {toggleShowingPopup, showingPopup, popup, popupAnchor} = Kb.usePopup(attachTo =>
     messageShowsPopup(type) && shouldShowPopup && showingPopup ? (
       <MessagePopup
+        conversationIDKey={conversationIDKey}
+        ordinal={ordinal}
         key="popup"
         attachTo={attachTo}
-        message={message}
         onHidden={toggleShowingPopup}
         position="top right"
         style={styles.messagePopupContainer}
@@ -842,8 +843,6 @@ const useGetLongPress = (p: UGLP) => {
   }
   return (
     <LongPressable
-      conversationIDKey={conversationIDKey}
-      ordinal={decorate ? ordinal : 0}
       className={Styles.classNames(
         {
           'WrapperMessage-author': showUsername,
