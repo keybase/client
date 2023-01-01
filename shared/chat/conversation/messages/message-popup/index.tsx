@@ -82,7 +82,8 @@ const MessageAction = React.memo(function MessageAction(p: Props) {
       return (
         <JourneycardMessage
           attachTo={attachTo}
-          message={message}
+          conversationIDKey={conversationIDKey}
+          ordinal={ordinal}
           onHidden={onHidden}
           position={position}
           style={style}
@@ -94,7 +95,8 @@ const MessageAction = React.memo(function MessageAction(p: Props) {
         return (
           <ExplodingMessage
             attachTo={attachTo}
-            message={message}
+            conversationIDKey={conversationIDKey}
+            ordinal={ordinal}
             onHidden={onHidden}
             position={position}
             style={style}
@@ -105,7 +107,8 @@ const MessageAction = React.memo(function MessageAction(p: Props) {
       return (
         <AttachmentMessage
           attachTo={attachTo}
-          message={message}
+          conversationIDKey={conversationIDKey}
+          ordinal={ordinal}
           onHidden={onHidden}
           position={position}
           style={style}

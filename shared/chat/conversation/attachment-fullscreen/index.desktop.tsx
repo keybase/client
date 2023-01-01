@@ -49,7 +49,8 @@ const Fullscreen = React.memo(function Fullscreen(p: Props) {
   const {toggleShowingPopup, showingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
     <MessagePopup
       attachTo={attachTo}
-      message={message}
+      conversationIDKey={message.conversationIDKey}
+      ordinal={message.id}
       onHidden={toggleShowingPopup}
       position="bottom left"
       visible={showingPopup}

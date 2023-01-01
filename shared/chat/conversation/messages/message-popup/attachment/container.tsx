@@ -1,30 +1,36 @@
-import type * as React from 'react'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as ConfigGen from '../../../../../actions/config-gen'
+import * as Constants from '../../../../../constants/chat2'
+import * as Container from '../../../../../util/container'
 import * as DeeplinksConstants from '../../../../../constants/deeplinks'
 import * as FsGen from '../../../../../actions/fs-gen'
-import * as Constants from '../../../../../constants/chat2'
-import type * as Types from '../../../../../constants/types/chat2'
-import type * as TeamTypes from '../../../../../constants/types/teams'
 import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
-import {getCanPerformByID} from '../../../../../constants/teams'
-import * as Container from '../../../../../util/container'
-import {isMobile, isIOS} from '../../../../../constants/platform'
-import type {Position, StylesCrossPlatform} from '../../../../../styles'
 import Attachment from '.'
+import type * as React from 'react'
+import type * as TeamTypes from '../../../../../constants/types/teams'
+import type * as Types from '../../../../../constants/types/chat2'
+import type {Position, StylesCrossPlatform} from '../../../../../styles'
+import {getCanPerformByID} from '../../../../../constants/teams'
+import {isMobile, isIOS} from '../../../../../constants/platform'
+import {makeMessageAttachment} from '../../../../../constants/chat2/message'
 
 type OwnProps = {
   attachTo?: () => React.Component<any> | null
-  message: Types.MessageAttachment
+  ordinal: Types.Ordinal
+  conversationIDKey: Types.ConversationIDKey
   onHidden: () => void
   position: Position
   style?: StylesCrossPlatform
   visible: boolean
 }
 
+const emptyMessage = makeMessageAttachment({})
+
 export default Container.connect(
   (state, ownProps: OwnProps) => {
-    const message = ownProps.message
+    const {conversationIDKey, ordinal} = ownProps
+    const m = Constants.getMessage(state, conversationIDKey, ordinal)
+    const message = m?.type === 'attachment' ? m : emptyMessage
     const meta = Constants.getMeta(state, message.conversationIDKey)
     const isTeam = !!meta.teamname
     const participantInfo = Constants.getParticipantInfo(state, message.conversationIDKey)
@@ -45,6 +51,7 @@ export default Container.connect(
       _teamMembers,
       _you: state.config.username,
       pending: !!message.transferState,
+      message,
     }
   },
   dispatch => ({
@@ -165,10 +172,10 @@ export default Container.connect(
     },
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => {
-    const message = ownProps.message
+    const {message} = stateProps
     const yourMessage = message.author === stateProps._you
     const isDeleteable = yourMessage || stateProps._canAdminDelete
-    const isEditable = !!(ownProps.message.isEditable && yourMessage)
+    const isEditable = !!(message.isEditable && yourMessage)
     const authorInTeam = stateProps._teamMembers?.has(message.author) ?? true
     return {
       attachTo: ownProps.attachTo,
