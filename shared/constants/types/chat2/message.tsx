@@ -68,6 +68,8 @@ type _MessageCommon = {
   explodingUnreadable?: boolean
   conversationIDKey: Common.ConversationIDKey
   deviceRevokedAt?: number
+  deviceName?: string
+  deviceType?: DeviceType
   errorReason?: string
   errorTyp?: number
   exploded?: boolean

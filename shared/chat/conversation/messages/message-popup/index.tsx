@@ -45,8 +45,9 @@ const MessageAction = React.memo(function MessageAction(p: Props) {
       }
       return (
         <TextMessage
+          conversationIDKey={conversationIDKey}
+          ordinal={ordinal}
           attachTo={attachTo}
-          message={message}
           onHidden={onHidden}
           position={position}
           style={style}
@@ -69,7 +70,8 @@ const MessageAction = React.memo(function MessageAction(p: Props) {
       return (
         <TextMessage
           attachTo={attachTo}
-          message={message}
+          conversationIDKey={conversationIDKey}
+          ordinal={ordinal}
           onHidden={onHidden}
           position={position}
           style={style}
