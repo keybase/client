@@ -115,7 +115,9 @@ class PaymentStatus extends React.Component<Props, State> {
         visible={this.state.showPopup}
         paymentID={this.props.paymentID}
         position="top center"
+        ordinal={this.props.message.id}
         message={this.props.message}
+        conversationIDKey={this.props.message.conversationIDKey}
         onHidden={this._hidePopup}
       />
     )

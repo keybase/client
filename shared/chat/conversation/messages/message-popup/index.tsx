@@ -24,11 +24,8 @@ const MessageAction = React.memo(function MessageAction(p: Props) {
   const exploding = Container.useSelector(
     state => Constants.getMessage(state, conversationIDKey, ordinal)?.exploding
   )
-  // TODO remove
-  const message = Container.useSelector(state => Constants.getMessage(state, conversationIDKey, ordinal))
-  if (!message) return null
-
-  switch (message.type) {
+  const type = Container.useSelector(state => Constants.getMessage(state, conversationIDKey, ordinal)?.type)
+  switch (type) {
     case 'text':
       if (exploding) {
         return (

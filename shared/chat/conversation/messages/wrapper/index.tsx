@@ -55,7 +55,8 @@ export type Props = {
   previous?: Types.Ordinal
 }
 
-const messageShowsPopup = (type: Types.Message['type']) =>
+const messageShowsPopup = (type?: Types.Message['type']) =>
+  !!type &&
   [
     'text',
     'attachment',
@@ -82,14 +83,17 @@ const missingMessage = Constants.makeMessageDeleted({})
 const WrapperMessage = React.memo(function WrapperMessage(p: Props) {
   const {measure, conversationIDKey, ordinal, previous} = p
   const [showingPicker, setShowingPicker] = React.useState(false)
-  const message = Container.useSelector(
-    state => Constants.getMessage(state, conversationIDKey, ordinal) || missingMessage
-  )
 
-  const you = Container.useSelector(state => state.config.username)
-  const {type} = message
-  const isPendingPayment = Container.useSelector(state => Constants.isPendingPaymentMessage(state, message))
-  const shouldShowPopup = Container.useSelector(state => Constants.shouldShowPopup(state, message))
+  const type = Container.useSelector(state => Constants.getMessage(state, conversationIDKey, ordinal)?.type)
+  const isPendingPayment = Container.useSelector(state =>
+    Constants.isPendingPaymentMessage(
+      state,
+      Constants.getMessage(state, conversationIDKey, ordinal) ?? undefined
+    )
+  )
+  const shouldShowPopup = Container.useSelector(state =>
+    Constants.shouldShowPopup(state, Constants.getMessage(state, conversationIDKey, ordinal) ?? undefined)
+  )
   const showCenteredHighlight = useHighlightMode(p)
   const canFixOverdraw = !isPendingPayment && !showCenteredHighlight
   const canFixOverdrawValue = React.useMemo(() => ({canFixOverdraw}), [canFixOverdraw])
@@ -108,20 +112,14 @@ const WrapperMessage = React.memo(function WrapperMessage(p: Props) {
     ) : null
   )
 
-  const prevMessage = Container.usePrevious2(message)
-  if (measure && message !== prevMessage) {
-    measure()
-  }
-
-  const decorate = !message.exploded && !message.errorReason
-  const previousMsg = Container.useSelector(
-    state => (previous && Constants.getMessage(state, conversationIDKey, previous)) || undefined
-  )
-  const showUsername = getUsernameToShow(message, previousMsg, you, false)
+  // TODO better way to measure
+  // const prevMessage = Container.usePrevious2(message)
+  // if (measure && message !== prevMessage) {
+  //   measure()
+  // }
 
   const longPressable = useGetLongPress({
     conversationIDKey,
-    decorate,
     isPendingPayment,
     measure,
     ordinal,
@@ -129,15 +127,11 @@ const WrapperMessage = React.memo(function WrapperMessage(p: Props) {
     previous,
     setShowingPicker,
     showCenteredHighlight,
-    showUsername,
     showingPicker,
     showingPopup,
     toggleShowingPopup,
   })
 
-  if (!message) {
-    return null
-  }
   return (
     <Styles.StyleContext.Provider value={canFixOverdrawValue}>
       {longPressable}
@@ -199,12 +193,18 @@ const useHighlightMode = (p: Props) => {
 const authorIsCollapsible = ({type}: Types.Message) =>
   type === 'text' || type === 'deleted' || type === 'attachment'
 
-const getUsernameToShow = (
-  message: Types.Message,
-  previous: Types.Message | undefined,
-  you: string,
+const useGetUsernameToShow = (
+  conversationIDKey: Types.ConversationIDKey,
+  ordinal: Types.Ordinal,
+  previousOrdinal: Types.Ordinal | undefined,
   orangeLineAbove: boolean
 ) => {
+  const message = Container.useSelector(state => Constants.getMessage(state, conversationIDKey, ordinal))
+  const previous = Container.useSelector(
+    state => Constants.getMessage(state, conversationIDKey, previousOrdinal ?? 0) ?? undefined
+  )
+  const you = Container.useSelector(state => state.config.username)
+  if (!message) return ''
   const {author} = message
   const sequentialUserMessages =
     previous?.author === author && authorIsCollapsible(message) && authorIsCollapsible(previous)
@@ -269,12 +269,7 @@ const TopSide = React.memo(function TopSide(p: TProps) {
   const meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
   const {teamname, teamType, botAliases, teamID} = meta
 
-  const username = Container.useSelector(state => {
-    const message = Constants.getMessage(state, conversationIDKey, ordinal) || missingMessage
-    const previousMsg = (previous && Constants.getMessage(state, conversationIDKey, previous)) || undefined
-    const you = state.config.username
-    return getUsernameToShow(message, previousMsg, you, false)
-  })
+  const username = useGetUsernameToShow(conversationIDKey, ordinal, previous, false)
 
   const authorRoleInTeam = Container.useSelector(
     state => state.teams.teamIDToMembers.get(teamID)?.get(author)?.type
@@ -620,13 +615,7 @@ type LProps = {
 const LeftSide = React.memo(function LeftSide(p: LProps) {
   const {conversationIDKey, ordinal, previous} = p
 
-  const username = Container.useSelector(state => {
-    const message = Constants.getMessage(state, conversationIDKey, ordinal) || missingMessage
-    const previousMsg = (previous && Constants.getMessage(state, conversationIDKey, previous)) || undefined
-    const you = state.config.username
-    return getUsernameToShow(message, previousMsg, you, false)
-  })
-
+  const username = useGetUsernameToShow(conversationIDKey, ordinal, previous, false)
   const dispatch = Container.useDispatch()
   const onAuthorClick = React.useCallback(() => {
     if (!username) return
@@ -750,8 +739,6 @@ type UGLP = {
   previous: number | undefined
   showingPopup: boolean
   popupAnchor: React.MutableRefObject<React.Component | null>
-  decorate: boolean
-  showUsername: string
   showingPicker: boolean
   toggleShowingPopup: () => void
   measure: (() => void) | undefined
@@ -759,10 +746,15 @@ type UGLP = {
   setShowingPicker: (s: boolean) => void
 }
 const useGetLongPress = (p: UGLP) => {
-  const {showCenteredHighlight, conversationIDKey, ordinal, previous, showingPopup} = p
-  const {popupAnchor, decorate, showUsername, showingPicker} = p
-  const {toggleShowingPopup, measure, isPendingPayment, setShowingPicker} = p
+  const {showCenteredHighlight, conversationIDKey, ordinal, previous, showingPopup, showingPicker} = p
+  const {toggleShowingPopup, measure, isPendingPayment, setShowingPicker, popupAnchor} = p
 
+  const decorate = Container.useSelector(state => {
+    const message = Constants.getMessage(state, conversationIDKey, ordinal) || missingMessage
+    return !message.exploded && !message.errorReason
+  })
+
+  const showUsername = useGetUsernameToShow(conversationIDKey, ordinal, previous, false)
   const type = Container.useSelector(state => Constants.getMessage(state, conversationIDKey, ordinal)?.type)
 
   const messageNode = useMessageNode({conversationIDKey, ordinal, showCenteredHighlight, toggleShowingPopup})
