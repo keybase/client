@@ -66,6 +66,12 @@ type _MessageCommon = {
   bodySummary: HiddenString
   botUsername?: string
   cardType?: RPCChatTypes.JourneycardType
+  newChannelname?: string
+  invitee?: string
+  adder?: string
+  prover?: string
+  joiners?: Array<string>
+  leavers?: Array<string>
   explodingUnreadable?: boolean
   conversationIDKey: Common.ConversationIDKey
   deviceRevokedAt?: number

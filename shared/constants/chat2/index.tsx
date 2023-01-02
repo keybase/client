@@ -600,7 +600,6 @@ export {
 
 export {
   allMessageTypes,
-  enoughTimeBetweenMessages,
   getClientPrev,
   getDeletableByDeleteHistory,
   getMapUnfurl,

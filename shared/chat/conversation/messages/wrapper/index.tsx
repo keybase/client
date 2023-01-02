@@ -189,65 +189,100 @@ const useHighlightMode = (p: Props) => {
   return !disableCenteredHighlight && centeredOrdinalType !== undefined
 }
 
+const enoughTimeBetweenMessages = (mtimestamp?: number, ptimestamp?: number): boolean =>
+  !!ptimestamp && !!mtimestamp && mtimestamp - ptimestamp > 1000 * 60 * 15
+
 // Used to decide whether to show the author for sequential messages
-const authorIsCollapsible = ({type}: Types.Message) =>
+const authorIsCollapsible = (type?: Types.MessageType) =>
   type === 'text' || type === 'deleted' || type === 'attachment'
 
 const useGetUsernameToShow = (
   conversationIDKey: Types.ConversationIDKey,
   ordinal: Types.Ordinal,
-  previousOrdinal: Types.Ordinal | undefined,
+  previousOrdinal_: Types.Ordinal | undefined,
   orangeLineAbove: boolean
 ) => {
-  const message = Container.useSelector(state => Constants.getMessage(state, conversationIDKey, ordinal))
-  const previous = Container.useSelector(
-    state => Constants.getMessage(state, conversationIDKey, previousOrdinal ?? 0) ?? undefined
-  )
+  const previousOrdinal = previousOrdinal_ ?? 0
   const you = Container.useSelector(state => state.config.username)
-  if (!message) return ''
-  const {author} = message
+  const mtype = Container.useSelector(state => Constants.getMessage(state, conversationIDKey, ordinal)?.type)
+  const ptype = Container.useSelector(
+    state => Constants.getMessage(state, conversationIDKey, previousOrdinal)?.type
+  )
+  const mbotUsername = Container.useSelector(
+    state => Constants.getMessage(state, conversationIDKey, ordinal)?.botUsername
+  )
+  const pbotUsername = Container.useSelector(
+    state => Constants.getMessage(state, conversationIDKey, previousOrdinal)?.botUsername
+  )
+  const mauthor = Container.useSelector(
+    state => Constants.getMessage(state, conversationIDKey, ordinal)?.author
+  )
+  const pauthor = Container.useSelector(
+    state => Constants.getMessage(state, conversationIDKey, previousOrdinal)?.author
+  )
+  const mtimestamp = Container.useSelector(
+    state => Constants.getMessage(state, conversationIDKey, ordinal)?.timestamp
+  )
+  const ptimestamp = Container.useSelector(
+    state => Constants.getMessage(state, conversationIDKey, previousOrdinal)?.timestamp
+  )
+  const newChannelname = Container.useSelector(
+    state => Constants.getMessage(state, conversationIDKey, ordinal)?.newChannelname
+  )
+  const invitee = Container.useSelector(
+    state => Constants.getMessage(state, conversationIDKey, ordinal)?.invitee
+  )
+  const adder = Container.useSelector(state => Constants.getMessage(state, conversationIDKey, ordinal)?.adder)
+  const prover = Container.useSelector(
+    state => Constants.getMessage(state, conversationIDKey, ordinal)?.prover
+  )
+
+  const joinLeaveLength = Container.useSelector(state => {
+    const m = Constants.getMessage(state, conversationIDKey, previousOrdinal)
+    return (m?.joiners?.length ?? 0) + (m?.leavers?.length ?? 0)
+  })
+
+  if (!mtype) return ''
   const sequentialUserMessages =
-    previous?.author === author && authorIsCollapsible(message) && authorIsCollapsible(previous)
+    pauthor === mauthor && authorIsCollapsible(mtype) && authorIsCollapsible(ptype)
 
   const sequentialBotKeyed =
-    previous?.author === author &&
-    previous.type === 'text' &&
-    message.type === 'text' &&
-    previous.botUsername === message.botUsername &&
-    authorIsCollapsible(message) &&
-    authorIsCollapsible(previous)
+    pauthor === mauthor &&
+    ptype === 'text' &&
+    mtype === 'text' &&
+    pbotUsername === mbotUsername &&
+    authorIsCollapsible(mtype) &&
+    authorIsCollapsible(ptype)
 
-  const enoughTimeBetween = Constants.enoughTimeBetweenMessages(message, previous)
-  const timestamp = orangeLineAbove || !previous || enoughTimeBetween ? message.timestamp : null
-  switch (message.type) {
+  const enoughTimeBetween = enoughTimeBetweenMessages(mtimestamp, ptimestamp)
+  const timestamp = orangeLineAbove || !ptype || enoughTimeBetween ? mtimestamp : null
+  switch (mtype) {
     case 'attachment':
     case 'requestPayment':
     case 'sendPayment':
     case 'text':
-      return !sequentialBotKeyed || !previous || !sequentialUserMessages || !!timestamp ? author : ''
+      return !sequentialBotKeyed || !ptype || !sequentialUserMessages || !!timestamp ? mauthor : ''
     case 'setChannelname':
       // suppress this message for the #general channel, it is redundant.
-      return (!previous || !sequentialUserMessages || !!timestamp) && message.newChannelname !== 'general'
-        ? author
-        : ''
+      return (!ptype || !sequentialUserMessages || !!timestamp) && newChannelname !== 'general' ? mauthor : ''
     case 'systemAddedToTeam':
-      return message.adder
+      return adder
     case 'systemInviteAccepted':
-      return message.invitee === you ? '' : message.invitee
+      return invitee === you ? '' : invitee
     case 'setDescription':
-      return author
+      return mauthor
     case 'pin':
-      return author
+      return mauthor
     case 'systemUsersAddedToConversation':
-      return author
+      return mauthor
     case 'systemJoined':
-      return message.joiners.length + message.leavers.length > 1 ? '' : author
+      return joinLeaveLength > 1 ? '' : mauthor
     case 'systemSBSResolved':
-      return message.prover
+      return prover
     case 'journeycard':
       return 'placeholder'
   }
-  return author
+  return mauthor
 }
 
 type TProps = {
@@ -286,9 +321,9 @@ const TopSide = React.memo(function TopSide(p: TProps) {
   const dispatch = Container.useDispatch()
   const onAuthorClick = React.useCallback(() => {
     if (Container.isMobile) {
-      dispatch(ProfileGen.createShowUserProfile({username}))
+      username && dispatch(ProfileGen.createShowUserProfile({username}))
     } else {
-      dispatch(Tracker2Gen.createShowUser({asTracker: true, username}))
+      username && dispatch(Tracker2Gen.createShowUser({asTracker: true, username}))
     }
   }, [dispatch, username])
 
