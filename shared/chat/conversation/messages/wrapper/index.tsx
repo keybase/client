@@ -238,8 +238,8 @@ const useGetUsernameToShow = (
   )
 
   const joinLeaveLength = Container.useSelector(state => {
-    const m = Constants.getMessage(state, conversationIDKey, previousOrdinal)
-    return (m?.joiners?.length ?? 0) + (m?.leavers?.length ?? 0)
+    const message = Constants.getMessage(state, conversationIDKey, previousOrdinal)
+    return (message?.joiners?.length ?? 0) + (message?.leavers?.length ?? 0)
   })
 
   if (!mtype) return ''
@@ -297,20 +297,24 @@ const TopSide = React.memo(function TopSide(p: TProps) {
 
   const you = Container.useSelector(state => state.config.username)
   const canFixOverdraw = false // TODO?
-  const message = Container.useSelector(state => Constants.getMessage(state, conversationIDKey, ordinal))
-  const author = message?.author ?? ''
-  const timestamp = message?.timestamp ?? 0
+  const author = Container.useSelector(
+    state => Constants.getMessage(state, conversationIDKey, ordinal)?.author ?? ''
+  )
+  const timestamp = Container.useSelector(
+    state => Constants.getMessage(state, conversationIDKey, ordinal)?.timestamp ?? 0
+  )
   const youAreAuthor = you === author
-  const meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
-  const {teamname, teamType, botAliases, teamID} = meta
-
   const username = useGetUsernameToShow(conversationIDKey, ordinal, previous, false)
 
   const authorRoleInTeam = Container.useSelector(
-    state => state.teams.teamIDToMembers.get(teamID)?.get(author)?.type
+    state =>
+      state.teams.teamIDToMembers.get(Constants.getMeta(state, conversationIDKey)?.teamID ?? '')?.get(author)
+        ?.type
   )
   const authorIsBot = Container.useSelector(state => {
     const participantInfoNames = Constants.getParticipantInfo(state, conversationIDKey).name
+    const meta = Constants.getMeta(state, conversationIDKey)
+    const {teamname, teamType} = meta
     return teamname
       ? authorRoleInTeam === 'restrictedbot' || authorRoleInTeam === 'bot'
       : teamType === 'adhoc' && participantInfoNames.length > 0 // teams without info may have type adhoc with an empty participant name list
@@ -331,7 +335,10 @@ const TopSide = React.memo(function TopSide(p: TProps) {
     return null
   }
 
-  const botAlias = botAliases[author] ?? ''
+  const botAlias = Container.useSelector(state => {
+    const meta = Constants.getMeta(state, conversationIDKey)
+    return meta?.botAliases[author] ?? ''
+  })
 
   const authorIsOwner = authorRoleInTeam === 'owner'
   const authorIsAdmin = authorRoleInTeam === 'admin'
