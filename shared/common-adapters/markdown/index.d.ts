@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as Styles from '../../styles'
+import type * as Types from '../../constants/types/chat2'
 import {StylesTextCrossPlatform, LineClampType} from '../../common-adapters/text'
 import {MessageText, MessageAttachment} from '../../constants/types/chat2'
 
@@ -65,7 +65,7 @@ export type Props = {
   // TODO type this up or remove it
   style?: any
   allowFontScaling?: boolean
-  meta?: MarkdownMeta | null
+  messageType?: Types.MessageType
   // This changes the specific style for specific types of text
   // for example you may want to make paragraphs, italics, etc to be black_50
   // but want blue_30 for the inline code

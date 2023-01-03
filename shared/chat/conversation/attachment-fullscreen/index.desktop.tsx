@@ -62,7 +62,7 @@ const Fullscreen = React.memo(function Fullscreen(p: Props) {
       <Kb.Box style={styles.container}>
         <Kb.HotKey hotKeys={hotKeys} onHotKey={onHotKey} />
         <Kb.Box style={styles.headerFooter}>
-          <Kb.Markdown lineClamp={2} style={Styles.globalStyles.flexOne} meta={{message: message}}>
+          <Kb.Markdown lineClamp={2} style={Styles.globalStyles.flexOne}>
             {title}
           </Kb.Markdown>
           <Kb.Icon

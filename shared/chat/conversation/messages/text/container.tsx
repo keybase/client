@@ -120,17 +120,12 @@ const TextMessageContainer = React.memo(function TextMessageContainer(p: OwnProp
     return getReplyProps(replyTo || undefined, onReplyClick)
   })
 
-  // TODO remove
-  const message = Container.useSelector(state => state.chat2.messageMap.get(conversationIDKey)?.get(ordinal))
-  if (message?.type !== 'text') return null
-
   const claim = claimProps ? {onClaim, ...claimProps} : undefined
 
   const props = {
     claim,
     isEditing,
     isHighlighted,
-    message,
     reply,
     text,
     type,

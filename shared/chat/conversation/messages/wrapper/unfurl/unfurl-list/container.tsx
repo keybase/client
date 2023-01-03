@@ -1,56 +1,49 @@
+import * as React from 'react'
 import * as Constants from '../../../../../../constants/chat2'
 import * as Chat2Gen from '../../../../../../actions/chat2-gen'
 import * as Types from '../../../../../../constants/types/chat2'
 import * as Container from '../../../../../../util/container'
+import {ConvoIDContext, OrdinalContext} from '../../../ids-context'
 import UnfurlList from '.'
 
 type OwnProps = {
-  conversationIDKey: Types.ConversationIDKey
-  ordinal: Types.Ordinal
   toggleMessagePopup: () => void
 }
 
-const mapStateToProps = (state: Container.TypedState, {conversationIDKey, ordinal}: OwnProps) => {
-  const message = Constants.getMessage(state, conversationIDKey, ordinal)
-  return {
-    _unfurls: message && message.type === 'text' ? message.unfurls : null,
-    author: message ? message.author : undefined,
-    isAuthor: message ? state.config.username === message.author : false,
-    showClose: message ? message.author === state.config.username : false,
+const UnfurlListContainer = React.memo(function UnfurlListContainer(p: OwnProps) {
+  const {toggleMessagePopup} = p
+  const conversationIDKey = React.useContext(ConvoIDContext)
+  const ordinal = React.useContext(OrdinalContext)
+  const message = Container.useSelector(state => Constants.getMessage(state, conversationIDKey, ordinal))
+  const you = Container.useSelector(state => state.config.username)
+  const _unfurls = message && message.type === 'text' ? message.unfurls : null
+  const author = message ? message.author : undefined
+  const isAuthor = message ? you === message.author : false
+  const dispatch = Container.useDispatch()
+  const onClose = (messageID: Types.MessageID) => {
+    dispatch(Chat2Gen.createUnfurlRemove({conversationIDKey, messageID}))
   }
-}
-
-const mapDispatchToProps = (dispatch: Container.TypedDispatch, {conversationIDKey}: OwnProps) => ({
-  onClose: (messageID: Types.MessageID) =>
-    dispatch(Chat2Gen.createUnfurlRemove({conversationIDKey, messageID})),
-  onCollapse: (messageID: Types.MessageID, collapse: boolean) =>
-    dispatch(Chat2Gen.createToggleMessageCollapse({collapse, conversationIDKey, messageID})),
+  const onCollapse = (messageID: Types.MessageID, collapse: boolean) => {
+    dispatch(Chat2Gen.createToggleMessageCollapse({collapse, conversationIDKey, messageID}))
+  }
+  const unfurls = _unfurls
+    ? [..._unfurls.values()].map(u => {
+        return {
+          isCollapsed: u.isCollapsed,
+          onClose: isAuthor ? () => onClose(Types.numberToMessageID(u.unfurlMessageID)) : undefined,
+          onCollapse: () => onCollapse(Types.numberToMessageID(u.unfurlMessageID), !u.isCollapsed),
+          unfurl: u.unfurl,
+          url: u.url,
+        }
+      })
+    : []
+  const props = {
+    author,
+    conversationIDKey,
+    isAuthor,
+    toggleMessagePopup,
+    unfurls,
+  }
+  return <UnfurlList {...props} />
 })
-
-export default Container.connect(
-  mapStateToProps,
-  mapDispatchToProps,
-  (stateProps, dispatchProps, ownProps) => {
-    const unfurls = stateProps._unfurls
-      ? [...stateProps._unfurls.values()].map(u => {
-          return {
-            isCollapsed: u.isCollapsed,
-            onClose: stateProps.showClose
-              ? () => dispatchProps.onClose(Types.numberToMessageID(u.unfurlMessageID))
-              : undefined,
-            onCollapse: () =>
-              dispatchProps.onCollapse(Types.numberToMessageID(u.unfurlMessageID), !u.isCollapsed),
-            unfurl: u.unfurl,
-            url: u.url,
-          }
-        })
-      : []
-    return {
-      author: stateProps.author,
-      conversationIDKey: ownProps.conversationIDKey,
-      isAuthor: stateProps.isAuthor,
-      toggleMessagePopup: ownProps.toggleMessagePopup,
-      unfurls,
-    }
-  }
-)(UnfurlList)
+export default UnfurlListContainer

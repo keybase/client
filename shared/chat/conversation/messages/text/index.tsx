@@ -2,7 +2,6 @@ import * as React from 'react'
 import * as Constants from '../../../../constants/chat2'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
-import type * as Types from '../../../../constants/types/chat2'
 import {useMemo} from '../../../../util/memoize'
 import {sharedStyles} from '../shared-styles'
 
@@ -112,23 +111,22 @@ export type Props = {
   claim?: ClaimProps
   isEditing: boolean
   isHighlighted?: boolean
-  message: Types.MessageText
   reply?: ReplyProps
   text: string
   type: 'error' | 'pending' | 'sent'
 }
 
 const MessageText = (p: Props) => {
-  const {claim, isEditing, isHighlighted, message, reply, text, type} = p
-  const wrappedMeta = useMemo(() => ({message}), [message])
+  const {claim, isEditing, isHighlighted, reply, text, type} = p
   const styleOverride = useMemo(
     () => (Styles.isMobile ? {paragraph: getStyle(type, isEditing, isHighlighted)} : undefined),
     [type, isEditing, isHighlighted]
   )
+
   const markdown = (
     <Kb.Markdown
       style={getStyle(type, isEditing, isHighlighted)}
-      meta={wrappedMeta}
+      messageType={'text'}
       styleOverride={styleOverride}
       allowFontScaling={true}
     >

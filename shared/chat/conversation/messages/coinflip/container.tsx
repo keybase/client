@@ -1,22 +1,22 @@
 import * as Chat2Gen from '../../../../actions/chat2-gen'
+import {ConvoIDContext, OrdinalContext} from '../ids-context'
 import * as Constants from '../../../../constants/chat2'
 import * as Container from '../../../../util/container'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import * as React from 'react'
 import CoinFlip, {type Props} from '.'
-import type * as Types from '../../../../constants/types/chat2'
 
 type OwnProps = {
-  conversationIDKey: Types.ConversationIDKey
   measure?: () => void
-  ordinal: Types.Ordinal
 }
 
 const noParticipants: Array<RPCChatTypes.UICoinFlipParticipant> = []
 type PhaseType = Props['phase']
 
 const CoinFlipContainer = React.memo(function CoinFlipContainer(p: OwnProps) {
-  const {conversationIDKey, measure, ordinal} = p
+  const {measure} = p
+  const conversationIDKey = React.useContext(ConvoIDContext)
+  const ordinal = React.useContext(OrdinalContext)
 
   const message = Container.useSelector(state => state.chat2.messageMap.get(conversationIDKey)?.get(ordinal))
   const isSendError = message?.type === 'text' ? !!message.errorReason : false

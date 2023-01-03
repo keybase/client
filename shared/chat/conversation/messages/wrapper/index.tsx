@@ -1201,8 +1201,6 @@ type WTBProps = {
 const WrapperTextBottom = React.memo(function WrapperTextBottom(p: WTBProps) {
   const {hasBeenEdited, hasUnfurlPrompts, hasUnfurlList, hasCoinFlip} = p
   const {toggleShowingPopup, measure, showCenteredHighlight} = p
-  const conversationIDKey = React.useContext(ConvoIDContext)
-  const ordinal = React.useContext(OrdinalContext)
   const edited = hasBeenEdited ? (
     <Kb.Text
       key="isEdited"
@@ -1217,7 +1215,7 @@ const WrapperTextBottom = React.memo(function WrapperTextBottom(p: WTBProps) {
     if (hasUnfurlPrompts) {
       const UnfurlPromptList = require('./unfurl/prompt-list/container')
         .default as typeof UnfurlPromptListType
-      return <UnfurlPromptList conversationIDKey={conversationIDKey} ordinal={ordinal} />
+      return <UnfurlPromptList />
     }
     return null
   })()
@@ -1225,14 +1223,7 @@ const WrapperTextBottom = React.memo(function WrapperTextBottom(p: WTBProps) {
   const unfurlList = (() => {
     const UnfurlList = require('./unfurl/unfurl-list/container').default as typeof UnfurlListType
     if (hasUnfurlList) {
-      return (
-        <UnfurlList
-          key="UnfurlList"
-          conversationIDKey={conversationIDKey}
-          ordinal={ordinal}
-          toggleMessagePopup={toggleShowingPopup}
-        />
-      )
+      return <UnfurlList key="UnfurlList" toggleMessagePopup={toggleShowingPopup} />
     }
     return null
   })()
@@ -1240,9 +1231,7 @@ const WrapperTextBottom = React.memo(function WrapperTextBottom(p: WTBProps) {
   const coinflip = (() => {
     if (hasCoinFlip) {
       const CoinFlip = require('../coinflip/container').default as typeof CoinFlipType
-      return (
-        <CoinFlip key="CoinFlip" conversationIDKey={conversationIDKey} ordinal={ordinal} measure={measure} />
-      )
+      return <CoinFlip key="CoinFlip" measure={measure} />
     }
     return null
   })()
