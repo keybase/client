@@ -15,7 +15,6 @@ export type IdentityProvider = {
 
 export type Props = {
   onCancel: () => void
-  onClickLearn: () => void
   providerClicked: (key: string) => void
   providers: Array<IdentityProvider>
   title: string
@@ -133,12 +132,6 @@ class ProofsList extends React.Component<Props, State> {
               <Providers {...this.props} filter={this.state.filter} />
               <Kb.Divider />
             </Kb.Box2>
-            <HoverBox onClick={this.props.onClickLearn} style={styles.footer}>
-              <Kb.Icon color={Styles.globalColors.black_50} fontSize={16} type="iconfont-info" />
-              <Kb.Text center={true} type="BodySmall" style={styles.footerText}>
-                Learn how to list your platform here
-              </Kb.Text>
-            </HoverBox>
           </Kb.Box2>
         </Kb.Box>
       </Kb.PopupWrapper>

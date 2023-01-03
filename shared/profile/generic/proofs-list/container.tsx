@@ -2,7 +2,6 @@ import * as Container from '../../../util/container'
 import * as ProfileGen from '../../../actions/profile-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import ProofsList from '.'
-import openURL from '../../../util/open-url'
 import * as Styles from '../../../styles'
 
 type OwnProps = {}
@@ -14,7 +13,6 @@ export default Container.connect(
   }),
   (stateProps, dispatchProps, _: OwnProps) => ({
     onCancel: dispatchProps.onCancel,
-    onClickLearn: () => openURL('https://book.keybase.io/guides/proof-integration-guide'),
     providerClicked: dispatchProps.providerClicked,
     providers: stateProps._proofSuggestions.map(s => ({
       desc: s.pickerSubtext,
