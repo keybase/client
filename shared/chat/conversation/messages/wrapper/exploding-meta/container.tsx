@@ -1,18 +1,19 @@
 import * as React from 'react'
+import {ConvoIDContext, OrdinalContext} from '../../ids-context'
 import * as Constants from '../../../../../constants/chat2'
 import * as Container from '../../../../../util/container'
 import ExplodingMeta from '.'
-import type * as Types from '../../../../../constants/types/chat2'
 
 export type OwnProps = {
-  conversationIDKey: Types.ConversationIDKey
   isParentHighlighted: boolean
   onClick?: () => void
-  ordinal: Types.Ordinal
 }
 
 const ExplodingMetaContainer = React.memo(function ExplodingMetaContainer(p: OwnProps) {
-  const {conversationIDKey, isParentHighlighted, onClick, ordinal} = p
+  const {isParentHighlighted, onClick} = p
+
+  const conversationIDKey = React.useContext(ConvoIDContext)
+  const ordinal = React.useContext(OrdinalContext)
 
   const message = Container.useSelector(state => Constants.getMessage(state, conversationIDKey, ordinal))
   if (!message || (message.type !== 'text' && message.type !== 'attachment') || !message.exploding) {

@@ -1,4 +1,4 @@
-import type * as Types from '../../../../../constants/types/chat2'
+import {ConvoIDContext, OrdinalContext} from '../../ids-context'
 import * as Constants from '../../../../../constants/chat2'
 import * as Container from '../../../../../util/container'
 import * as React from 'react'
@@ -31,13 +31,9 @@ const statusToIconDark: {[K in AnimationStatus]: Kb.AnimationType} = {
 
 const shownEncryptingSet = new Set()
 
-type Props = {
-  conversationIDKey: Types.ConversationIDKey
-  ordinal: Types.Ordinal
-}
-
-const SendIndicatorContainer = React.memo(function SendIndicatorContainer(p: Props) {
-  const {conversationIDKey, ordinal} = p
+const SendIndicatorContainer = React.memo(function SendIndicatorContainer() {
+  const conversationIDKey = React.useContext(ConvoIDContext)
+  const ordinal = React.useContext(OrdinalContext)
   const isExploding = Container.useSelector(state => {
     const message = Constants.getMessage(state, conversationIDKey, ordinal)
     return !!message?.exploding

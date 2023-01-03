@@ -7,6 +7,7 @@ import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../../../styles'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
+import {ConvoIDContext, OrdinalContext} from '../ids-context'
 import EmojiRow from '../react-button/emoji-row/container'
 import ExplodingHeightRetainer from './exploding-height-retainer/container'
 import ExplodingMeta from './exploding-meta/container'
@@ -55,6 +56,12 @@ export type Props = {
   previous?: Types.Ordinal
 }
 
+// Some components needs these ids but will render only if
+type IdsRefType = React.MutableRefObject<{
+  conversationIDKey: Types.ConversationIDKey
+  ordinal: Types.Ordinal
+}>
+
 const messageShowsPopup = (type?: Types.Message['type']) =>
   !!type &&
   [
@@ -82,6 +89,13 @@ const missingMessage = Constants.makeMessageDeleted({})
 
 const useCommon = (p: Props) => {
   const {conversationIDKey, ordinal} = p
+
+  // we don't want children to render when ordinals change, unless they need it
+  // TODO maybe this is too dangerous, lets see
+  const idsRef = React.useRef({conversationIDKey, ordinal})
+  idsRef.current.conversationIDKey = conversationIDKey
+  idsRef.current.ordinal = ordinal
+
   const showCenteredHighlight = useHighlightMode(p)
 
   const type = Container.useSelector(state => Constants.getMessage(state, conversationIDKey, ordinal)?.type)
@@ -104,7 +118,7 @@ const useCommon = (p: Props) => {
     ) : null
   )
 
-  return {showCenteredHighlight, toggleShowingPopup, showingPopup, popup, popupAnchor}
+  return {idsRef, popup, popupAnchor, showCenteredHighlight, showingPopup, toggleShowingPopup}
 }
 
 type WMProps = {
@@ -114,7 +128,8 @@ type WMProps = {
   toggleShowingPopup: () => void
   showingPopup: boolean
   popup: React.ReactNode
-  popupAnchor: React.MutableRefObject<React.Component<any, {}, any> | null>
+  popupAnchor: React.MutableRefObject<React.Component | null>
+  idsRef: IdsRefType
 } & Props
 
 const WrapperMessage = React.memo(function WrapperMessage(p: WMProps) {
@@ -154,10 +169,14 @@ const WrapperMessage = React.memo(function WrapperMessage(p: WMProps) {
   })
 
   return (
-    <Styles.StyleContext.Provider value={canFixOverdrawValue}>
-      {longPressable}
-      {popup}
-    </Styles.StyleContext.Provider>
+    <ConvoIDContext.Provider value={conversationIDKey}>
+      <OrdinalContext.Provider value={ordinal}>
+        <Styles.StyleContext.Provider value={canFixOverdrawValue}>
+          {longPressable}
+          {popup}
+        </Styles.StyleContext.Provider>
+      </OrdinalContext.Provider>
+    </ConvoIDContext.Provider>
   )
 })
 
@@ -307,59 +326,29 @@ const useGetUsernameToShow = (
 }
 
 type TProps = {
-  ordinal: Types.Ordinal
-  conversationIDKey: Types.ConversationIDKey
-  previous?: Types.Ordinal
   showCenteredHighlight: boolean
+  showUsername: string
+  authorRoleInTeam?: string
+  authorIsBot: boolean
+  author: string
+  botAlias: string
+  you: string
+  timestamp: number
 }
 // Author
 const TopSide = React.memo(function TopSide(p: TProps) {
-  const {conversationIDKey, ordinal, previous, showCenteredHighlight} = p
-
-  const you = Container.useSelector(state => state.config.username)
-  const canFixOverdraw = false // TODO?
-  const author = Container.useSelector(
-    state => Constants.getMessage(state, conversationIDKey, ordinal)?.author ?? ''
-  )
-  const timestamp = Container.useSelector(
-    state => Constants.getMessage(state, conversationIDKey, ordinal)?.timestamp ?? 0
-  )
+  const {you, author, botAlias, showUsername, authorIsBot, authorRoleInTeam, showCenteredHighlight} = p
+  const {timestamp} = p
   const youAreAuthor = you === author
-  const username = useGetUsernameToShow(conversationIDKey, ordinal, previous, false)
-
-  const authorRoleInTeam = Container.useSelector(
-    state =>
-      state.teams.teamIDToMembers.get(Constants.getMeta(state, conversationIDKey)?.teamID ?? '')?.get(author)
-        ?.type
-  )
-  const authorIsBot = Container.useSelector(state => {
-    const participantInfoNames = Constants.getParticipantInfo(state, conversationIDKey).name
-    const meta = Constants.getMeta(state, conversationIDKey)
-    const {teamname, teamType} = meta
-    return teamname
-      ? authorRoleInTeam === 'restrictedbot' || authorRoleInTeam === 'bot'
-      : teamType === 'adhoc' && participantInfoNames.length > 0 // teams without info may have type adhoc with an empty participant name list
-      ? !participantInfoNames.includes(author) // if adhoc, check if author in participants
-      : false // if we don't have team information, don't show bot icon
-  })
 
   const dispatch = Container.useDispatch()
   const onAuthorClick = React.useCallback(() => {
     if (Container.isMobile) {
-      username && dispatch(ProfileGen.createShowUserProfile({username}))
+      showUsername && dispatch(ProfileGen.createShowUserProfile({username: showUsername}))
     } else {
-      username && dispatch(Tracker2Gen.createShowUser({asTracker: true, username}))
+      showUsername && dispatch(Tracker2Gen.createShowUser({asTracker: true, username: showUsername}))
     }
-  }, [dispatch, username])
-
-  const botAlias = Container.useSelector(state => {
-    const meta = Constants.getMeta(state, conversationIDKey)
-    return meta?.botAliases[author] ?? ''
-  })
-
-  if (!username) {
-    return null
-  }
+  }, [dispatch, showUsername])
 
   const authorIsOwner = authorRoleInTeam === 'owner'
   const authorIsAdmin = authorRoleInTeam === 'admin'
@@ -370,10 +359,10 @@ const TopSide = React.memo(function TopSide(p: TProps) {
       colorFollowing={true}
       colorYou={true}
       onUsernameClicked={onAuthorClick}
-      fixOverdraw={canFixOverdraw}
+      fixOverdraw="auto"
       style={showCenteredHighlight && youAreAuthor ? styles.usernameHighlighted : undefined}
       type="BodySmallBold"
-      usernames={username}
+      usernames={showUsername}
       virtualText={true}
     />
   )
@@ -403,7 +392,7 @@ const TopSide = React.memo(function TopSide(p: TProps) {
       <Kb.Text type="BodySmallBold" style={{color: Styles.globalColors.black}}>
         &nbsp;[
       </Kb.Text>
-      {username}
+      {showUsername}
       <Kb.Text type="BodySmallBold" style={{color: Styles.globalColors.black}}>
         ]
       </Kb.Text>
@@ -415,7 +404,7 @@ const TopSide = React.memo(function TopSide(p: TProps) {
   const timestampNode = (
     <Kb.Text
       type="BodyTiny"
-      fixOverdraw={canFixOverdraw}
+      fixOverdraw={false}
       virtualText={true}
       style={Styles.collapseStyles([showCenteredHighlight && styles.timestampHighlighted])}
     >
@@ -607,14 +596,10 @@ const BottomSide = React.memo(function BottomSide(p: BProps) {
 
 // Author Avatar
 type LProps = {
-  ordinal: Types.Ordinal
-  conversationIDKey: Types.ConversationIDKey
-  previous?: Types.Ordinal
+  username?: string
 }
 const LeftSide = React.memo(function LeftSide(p: LProps) {
-  const {conversationIDKey, ordinal, previous} = p
-
-  const username = useGetUsernameToShow(conversationIDKey, ordinal, previous, false)
+  const {username} = p
   const dispatch = Container.useDispatch()
   const onAuthorClick = React.useCallback(() => {
     if (!username) return
@@ -638,41 +623,22 @@ const LeftSide = React.memo(function LeftSide(p: LProps) {
 
 // Exploding, ... , sending, tombstone
 type RProps = {
-  ordinal: Types.Ordinal
-  conversationIDKey: Types.ConversationIDKey
   showCenteredHighlight: boolean
   toggleShowingPopup: () => void
+  showSendIndicator: boolean
+  showExplodingCountdown: boolean
+  showRevoked: boolean
+  showCoinsIcon: boolean
+  botname?: string
 }
 const RightSide = React.memo(function RightSide(p: RProps) {
-  const {conversationIDKey, ordinal, showCenteredHighlight, toggleShowingPopup} = p
-  const showSendIndicator = Container.useSelector(state => {
-    const you = state.config.username
-    const message = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
-    return !message?.submitState && !message?.exploded && you === message?.author && message.id !== ordinal
-  })
-  const sendIndicator = showSendIndicator ? (
-    <SendIndicator ordinal={ordinal} conversationIDKey={conversationIDKey} />
-  ) : null
+  const {showCenteredHighlight, toggleShowingPopup, showSendIndicator, showCoinsIcon} = p
+  const {showExplodingCountdown, showRevoked, botname} = p
+  const sendIndicator = showSendIndicator ? <SendIndicator /> : null
 
-  const showExplodingCountdown = Container.useSelector(state => {
-    const message = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
-    if (!message) return false
-    const {exploding, exploded, submitState} = message
-    return exploding && !exploded && submitState !== 'failed'
-  })
   const explodingCountdown = showExplodingCountdown ? (
-    <ExplodingMeta
-      conversationIDKey={conversationIDKey}
-      isParentHighlighted={showCenteredHighlight}
-      onClick={toggleShowingPopup}
-      ordinal={ordinal}
-    />
+    <ExplodingMeta isParentHighlighted={showCenteredHighlight} onClick={toggleShowingPopup} />
   ) : null
-
-  const showRevoked = Container.useSelector(state => {
-    const message = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
-    return !!message?.deviceRevokedAt
-  })
 
   const revokedIcon = showRevoked ? (
     <Kb.WithTooltip tooltip="Revoked device">
@@ -680,33 +646,10 @@ const RightSide = React.memo(function RightSide(p: RProps) {
     </Kb.WithTooltip>
   ) : null
 
-  const showCoinsIcon = Container.useSelector(state => {
-    const message = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
-    return message && Constants.hasSuccessfulInlinePayments(state, message)
-  })
   const coinsIcon = showCoinsIcon ? <Kb.Icon type="icon-stellar-coins-stacked-16" /> : null
 
-  const botName = Container.useSelector(state => {
-    const message = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
-    if (!message) return ''
-    const keyedBot = message.botUsername
-    if (!keyedBot) return ''
-    const {author} = message
-    const meta = state.chat2.metaMap.get(conversationIDKey)
-    if (!meta) return ''
-    const {teamID, teamname, teamType} = meta
-    const participantInfoNames = Constants.getParticipantInfo(state, conversationIDKey).name
-    const authorRoleInTeam = state.teams.teamIDToMembers.get(teamID)?.get(author)?.type
-    const authorIsBot = teamname
-      ? authorRoleInTeam === 'restrictedbot' || authorRoleInTeam === 'bot'
-      : teamType === 'adhoc' && participantInfoNames.length > 0 // teams without info may have type adhoc with an empty participant name list
-      ? !participantInfoNames.includes(author) // if adhoc, check if author in participants
-      : false // if we don't have team information, don't show bot icon
-    return !authorIsBot ? keyedBot : ''
-  })
-
-  const bot = botName ? (
-    <Kb.WithTooltip tooltip={`Encrypted for @${botName}`}>
+  const bot = botname ? (
+    <Kb.WithTooltip tooltip={`Encrypted for @${botname}`}>
       <Kb.Icon color={Styles.globalColors.black_35} type="iconfont-bot" />
     </Kb.WithTooltip>
   ) : null
@@ -757,7 +700,26 @@ const useGetLongPress = (p: UGLP) => {
   })
 
   const showUsername = useGetUsernameToShow(conversationIDKey, ordinal, previous, false)
+
   const type = Container.useSelector(state => Constants.getMessage(state, conversationIDKey, ordinal)?.type)
+
+  const showSendIndicator = Container.useSelector(state => {
+    const you = state.config.username
+    const message = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
+    return !message?.submitState && !message?.exploded && you === message?.author && message.id !== ordinal
+  })
+
+  const showRevoked = Container.useSelector(state => {
+    const message = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
+    return !!message?.deviceRevokedAt
+  })
+
+  const showExplodingCountdown = Container.useSelector(state => {
+    const message = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
+    if (!message) return false
+    const {exploding, exploded, submitState} = message
+    return !!exploding && !exploded && submitState !== 'failed'
+  })
 
   const exploding = Container.useSelector(
     state => Constants.getMessage(state, conversationIDKey, ordinal)?.exploding
@@ -772,35 +734,86 @@ const useGetLongPress = (p: UGLP) => {
     children
   )
 
-  // TODO this goes away when we invert the relationship
-  const isJourneyCard = Container.useSelector(
-    state => Constants.getMessage(state, conversationIDKey, ordinal)?.type === 'journeycard'
-  )
+  const showCoinsIcon = Container.useSelector(state => {
+    const message = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
+    return !!message && Constants.hasSuccessfulInlinePayments(state, message)
+  })
 
-  if (isJourneyCard) {
-    const TeamJourney = require('../cards/team-journey/container').default as typeof TeamJourneyType
-    return <TeamJourney key="journey" conversationIDKey={conversationIDKey} ordinal={ordinal} />
-  }
+  const botname = Container.useSelector(state => {
+    const message = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
+    if (!message) return ''
+    const keyedBot = message.botUsername
+    if (!keyedBot) return ''
+    const {author} = message
+    const meta = state.chat2.metaMap.get(conversationIDKey)
+    if (!meta) return ''
+    const {teamID, teamname, teamType} = meta
+    const participantInfoNames = Constants.getParticipantInfo(state, conversationIDKey).name
+    const authorRoleInTeam = state.teams.teamIDToMembers.get(teamID)?.get(author)?.type
+    const authorIsBot = teamname
+      ? authorRoleInTeam === 'restrictedbot' || authorRoleInTeam === 'bot'
+      : teamType === 'adhoc' && participantInfoNames.length > 0 // teams without info may have type adhoc with an empty participant name list
+      ? !participantInfoNames.includes(author) // if adhoc, check if author in participants
+      : false // if we don't have team information, don't show bot icon
+    return !authorIsBot ? keyedBot : ''
+  })
 
   const paymentBackground = isPendingPayment ? <PendingPaymentBackground /> : null
+
+  const you = Container.useSelector(state => state.config.username)
+  const author = Container.useSelector(
+    state => Constants.getMessage(state, conversationIDKey, ordinal)?.author ?? ''
+  )
+  const timestamp = Container.useSelector(
+    state => Constants.getMessage(state, conversationIDKey, ordinal)?.timestamp ?? 0
+  )
+  const authorRoleInTeam = Container.useSelector(
+    state =>
+      state.teams.teamIDToMembers.get(Constants.getMeta(state, conversationIDKey)?.teamID ?? '')?.get(author)
+        ?.type
+  )
+  const authorIsBot = Container.useSelector(state => {
+    const participantInfoNames = Constants.getParticipantInfo(state, conversationIDKey).name
+    const meta = Constants.getMeta(state, conversationIDKey)
+    const {teamname, teamType} = meta
+    return teamname
+      ? authorRoleInTeam === 'restrictedbot' || authorRoleInTeam === 'bot'
+      : teamType === 'adhoc' && participantInfoNames.length > 0 // teams without info may have type adhoc with an empty participant name list
+      ? !participantInfoNames.includes(author) // if adhoc, check if author in participants
+      : false // if we don't have team information, don't show bot icon
+  })
+
+  const botAlias = Container.useSelector(state => {
+    const meta = Constants.getMeta(state, conversationIDKey)
+    return meta?.botAliases[author] ?? ''
+  })
 
   const presschildren = (
     <>
       {paymentBackground}
-      <LeftSide conversationIDKey={conversationIDKey} ordinal={ordinal} previous={previous} />
+      <LeftSide username={showUsername} />
       <RightSide
-        conversationIDKey={conversationIDKey}
-        ordinal={ordinal}
+        botname={botname}
+        showSendIndicator={showSendIndicator}
+        showExplodingCountdown={showExplodingCountdown}
+        showRevoked={showRevoked}
+        showCoinsIcon={showCoinsIcon}
         showCenteredHighlight={showCenteredHighlight}
         toggleShowingPopup={toggleShowingPopup}
       />
       <Kb.Box2 direction="vertical" style={styles.middleSide} fullWidth={true}>
-        <TopSide
-          conversationIDKey={conversationIDKey}
-          ordinal={ordinal}
-          previous={previous}
-          showCenteredHighlight={showCenteredHighlight}
-        />
+        {showUsername ? (
+          <TopSide
+            author={author}
+            botAlias={botAlias}
+            showUsername={showUsername}
+            showCenteredHighlight={showCenteredHighlight}
+            you={you}
+            timestamp={timestamp}
+            authorRoleInTeam={authorRoleInTeam}
+            authorIsBot={authorIsBot}
+          />
+        ) : null}
         {content}
         <BottomSide
           bottomChildren={bottomChildren}
@@ -1135,10 +1148,10 @@ const styles = Styles.styleSheetCreate(
       rightSide: {
         backgroundColor: Styles.globalColors.white_90,
         borderRadius: Styles.borderRadius,
+        minHeight: 20,
         paddingLeft: Styles.globalMargins.tiny,
         paddingRight: Styles.globalMargins.tiny,
         position: 'absolute',
-        minHeight: 20,
         right: 21,
         top: 1,
       },
@@ -1168,6 +1181,8 @@ export const getMessageRender = (type: Types.MessageType) => {
   switch (type) {
     case 'text':
       return WrapperText
+    case 'journeycard':
+      return WrapperJourneyCard
     default:
       return WrapperGeneric
   }
@@ -1178,7 +1193,7 @@ const WrapperGeneric = React.memo(function WrapperText(p: Props) {
   const common = useCommon(p)
   const {showCenteredHighlight, toggleShowingPopup} = common
 
-  const messageNode = useMessageNode({showCenteredHighlight, toggleShowingPopup, conversationIDKey, ordinal})
+  const messageNode = useMessageNode({conversationIDKey, showCenteredHighlight, toggleShowingPopup, ordinal})
 
   return (
     <WrapperMessage {...p} {...common}>
@@ -1187,15 +1202,26 @@ const WrapperGeneric = React.memo(function WrapperText(p: Props) {
   )
 })
 
-const WrapperText = React.memo(function WrapperText(p: Props) {
-  const {conversationIDKey, ordinal, measure} = p
-  const common = useCommon(p)
-  const {showCenteredHighlight, toggleShowingPopup} = common
-  const TextMessage = require('../text/container').default as typeof TextMessageType
+const WrapperJourneyCard = React.memo(function WrapperJourneyCard(p: Props) {
+  const {conversationIDKey, ordinal} = p
+  const TeamJourney = require('../cards/team-journey/container').default as typeof TeamJourneyType
+  return <TeamJourney key="journey" conversationIDKey={conversationIDKey} ordinal={ordinal} />
+})
 
-  const hasBeenEdited = Container.useSelector(
-    state => state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)?.hasBeenEdited ?? false
-  )
+type WTBProps = {
+  showCenteredHighlight: boolean
+  hasBeenEdited: boolean
+  hasUnfurlPrompts: boolean
+  hasUnfurlList: boolean
+  hasCoinFlip: boolean
+  toggleShowingPopup: () => void
+  measure: (() => void) | undefined
+  idsRef: IdsRefType
+}
+const WrapperTextBottom = React.memo(function WrapperTextBottom(p: WTBProps) {
+  const {hasBeenEdited, hasUnfurlPrompts, hasUnfurlList, hasCoinFlip} = p
+  const {toggleShowingPopup, measure, idsRef, showCenteredHighlight} = p
+  const {conversationIDKey, ordinal} = idsRef.current
   const edited = hasBeenEdited ? (
     <Kb.Text
       key="isEdited"
@@ -1206,11 +1232,6 @@ const WrapperText = React.memo(function WrapperText(p: Props) {
     </Kb.Text>
   ) : null
 
-  const hasUnfurlPrompts = Container.useSelector(state => {
-    const id = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)?.id
-    if (!id) return false
-    return (state.chat2.unfurlPromptMap.get(conversationIDKey)?.get(id)?.size ?? 0) > 0
-  })
   const unfurlPrompts = (() => {
     if (hasUnfurlPrompts) {
       const UnfurlPromptList = require('./unfurl/prompt-list/container')
@@ -1219,11 +1240,6 @@ const WrapperText = React.memo(function WrapperText(p: Props) {
     }
     return null
   })()
-
-  const hasUnfurlList = Container.useSelector(state => {
-    const message = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
-    return message?.type === 'text' && (message.unfurls?.size ?? 0) > 0
-  })
 
   const unfurlList = (() => {
     const UnfurlList = require('./unfurl/unfurl-list/container').default as typeof UnfurlListType
@@ -1240,10 +1256,6 @@ const WrapperText = React.memo(function WrapperText(p: Props) {
     return null
   })()
 
-  const hasCoinFlip = Container.useSelector(state => {
-    const message = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
-    return message?.type === 'text' && !!message.flipGameID
-  })
   const coinflip = (() => {
     if (hasCoinFlip) {
       const CoinFlip = require('../coinflip/container').default as typeof CoinFlipType
@@ -1254,7 +1266,7 @@ const WrapperText = React.memo(function WrapperText(p: Props) {
     return null
   })()
 
-  const bottomChildren = (
+  return (
     <>
       {edited}
       {unfurlPrompts}
@@ -1262,6 +1274,45 @@ const WrapperText = React.memo(function WrapperText(p: Props) {
       {coinflip}
     </>
   )
+})
+const WrapperText = React.memo(function WrapperText(p: Props) {
+  const {conversationIDKey, ordinal, measure} = p
+  const common = useCommon(p)
+  const {showCenteredHighlight, toggleShowingPopup, idsRef} = common
+  const TextMessage = require('../text/container').default as typeof TextMessageType
+
+  const hasBeenEdited = Container.useSelector(
+    state => state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)?.hasBeenEdited ?? false
+  )
+
+  const hasUnfurlPrompts = Container.useSelector(state => {
+    const id = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)?.id
+    if (!id) return false
+    return (state.chat2.unfurlPromptMap.get(conversationIDKey)?.get(id)?.size ?? 0) > 0
+  })
+
+  const hasUnfurlList = Container.useSelector(state => {
+    const message = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
+    return message?.type === 'text' && (message.unfurls?.size ?? 0) > 0
+  })
+
+  const hasCoinFlip = Container.useSelector(state => {
+    const message = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
+    return message?.type === 'text' && !!message.flipGameID
+  })
+
+  const bprops = {
+    hasBeenEdited,
+    hasCoinFlip,
+    hasUnfurlList,
+    hasUnfurlPrompts,
+    idsRef,
+    measure,
+    showCenteredHighlight,
+    toggleShowingPopup,
+  }
+
+  const bottomChildren = <WrapperTextBottom {...bprops} />
 
   return (
     <WrapperMessage {...p} {...common} bottomChildren={bottomChildren}>
