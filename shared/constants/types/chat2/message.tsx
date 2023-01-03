@@ -89,6 +89,7 @@ type _MessageCommon = {
   ordinal: Ordinal
   outboxID?: OutboxID
   reactions?: Reactions
+  replyTo?: Message | null
   submitState?: 'deleting' | 'editing' | 'pending' | 'failed'
   timestamp: number
 }

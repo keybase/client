@@ -6,7 +6,7 @@ import * as Constants from '../../../constants/chat2'
 import * as Styles from '../../../styles'
 import * as Container from '../../../util/container'
 import * as Types from '../../../constants/types/chat2'
-import Message from '../messages/wrapper'
+import {getMessageRender} from '../messages/wrapper'
 import SpecialBottomMessage from '../messages/special-bottom-message'
 import SpecialTopMessage from '../messages/special-top-message'
 import shallowEqual from 'shallowequal'
@@ -425,19 +425,26 @@ const useItems = (p: {
   centeredOrdinal: Types.Ordinal | undefined
   resizeObserve: ReturnType<typeof useResizeObserver>
   intersectionObserve: ReturnType<typeof useIntersectionObserver>
+  messageMap: Map<Types.Ordinal, Types.Message> | undefined
 }) => {
-  const {conversationIDKey, messageOrdinals, centeredOrdinal, resizeObserve, intersectionObserve} = p
+  const {conversationIDKey, messageOrdinals, centeredOrdinal} = p
+  const {resizeObserve, intersectionObserve, messageMap} = p
   const ordinalsInAWaypoint = 10
   const rowRenderer = React.useCallback(
-    (ordinal: Types.Ordinal, previous?: Types.Ordinal) => (
-      <Message
-        key={String(ordinal)}
-        ordinal={ordinal}
-        previous={previous}
-        conversationIDKey={conversationIDKey}
-      />
-    ),
-    [conversationIDKey]
+    (ordinal: Types.Ordinal, previous?: Types.Ordinal) => {
+      const type = messageMap?.get(ordinal)?.type
+      if (!type) return null
+      const Clazz = getMessageRender(type)
+      return (
+        <Clazz
+          key={String(ordinal)}
+          ordinal={ordinal}
+          previous={previous}
+          conversationIDKey={conversationIDKey}
+        />
+      )
+    },
+    [conversationIDKey, messageMap]
   )
 
   const items = useMemo(() => {
@@ -516,12 +523,14 @@ const useItems = (p: {
   return items
 }
 
-const ThreadWrapperInner = (p: Props) => {
+const ThreadWrapper = React.memo(function ThreadWrapper(p: Props) {
   const {conversationIDKey, onFocusInput} = p
   const {requestScrollDownRef, requestScrollToBottomRef, requestScrollUpRef} = p
   const messageOrdinals = Container.useSelector(state =>
     Constants.getMessageOrdinals(state, conversationIDKey)
   )
+  const messageMap = Container.useSelector(state => state.chat2.messageMap.get(conversationIDKey))
+
   const centeredOrdinal = Container.useSelector(
     state => Constants.getMessageCenterOrdinal(state, conversationIDKey)?.ordinal
   )
@@ -613,6 +622,7 @@ const ThreadWrapperInner = (p: Props) => {
     centeredOrdinal,
     conversationIDKey,
     intersectionObserve,
+    messageMap,
     messageOrdinals,
     resizeObserve,
   })
@@ -629,9 +639,7 @@ const ThreadWrapperInner = (p: Props) => {
       </div>
     </ErrorBoundary>
   )
-}
-
-const ThreadWrapper = React.memo(ThreadWrapperInner)
+})
 
 type OrdinalWaypointProps = {
   id: string

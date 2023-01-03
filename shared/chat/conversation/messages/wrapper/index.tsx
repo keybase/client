@@ -80,23 +80,15 @@ const messageShowsPopup = (type?: Types.Message['type']) =>
 // If there is no matching message treat it like a deleted
 const missingMessage = Constants.makeMessageDeleted({})
 
-const WrapperMessage = React.memo(function WrapperMessage(p: Props) {
-  const {measure, conversationIDKey, ordinal, previous} = p
-  const [showingPicker, setShowingPicker] = React.useState(false)
+const useCommon = (p: Props) => {
+  const {conversationIDKey, ordinal} = p
+  const showCenteredHighlight = useHighlightMode(p)
 
   const type = Container.useSelector(state => Constants.getMessage(state, conversationIDKey, ordinal)?.type)
-  const isPendingPayment = Container.useSelector(state =>
-    Constants.isPendingPaymentMessage(
-      state,
-      Constants.getMessage(state, conversationIDKey, ordinal) ?? undefined
-    )
-  )
   const shouldShowPopup = Container.useSelector(state =>
     Constants.shouldShowPopup(state, Constants.getMessage(state, conversationIDKey, ordinal) ?? undefined)
   )
-  const showCenteredHighlight = useHighlightMode(p)
-  const canFixOverdraw = !isPendingPayment && !showCenteredHighlight
-  const canFixOverdrawValue = React.useMemo(() => ({canFixOverdraw}), [canFixOverdraw])
+
   const {toggleShowingPopup, showingPopup, popup, popupAnchor} = Kb.usePopup(attachTo =>
     messageShowsPopup(type) && shouldShowPopup && showingPopup ? (
       <MessagePopup
@@ -112,6 +104,33 @@ const WrapperMessage = React.memo(function WrapperMessage(p: Props) {
     ) : null
   )
 
+  return {showCenteredHighlight, toggleShowingPopup, showingPopup, popup, popupAnchor}
+}
+
+type WMProps = {
+  children: React.ReactNode
+  bottomChildren?: React.ReactNode
+  showCenteredHighlight: boolean
+  toggleShowingPopup: () => void
+  showingPopup: boolean
+  popup: React.ReactNode
+  popupAnchor: React.MutableRefObject<React.Component<any, {}, any> | null>
+} & Props
+
+const WrapperMessage = React.memo(function WrapperMessage(p: WMProps) {
+  const {measure, conversationIDKey, ordinal, previous, bottomChildren, children} = p
+  const {showCenteredHighlight, toggleShowingPopup, showingPopup, popup, popupAnchor} = p
+  const [showingPicker, setShowingPicker] = React.useState(false)
+
+  const isPendingPayment = Container.useSelector(state =>
+    Constants.isPendingPaymentMessage(
+      state,
+      Constants.getMessage(state, conversationIDKey, ordinal) ?? undefined
+    )
+  )
+  const canFixOverdraw = !isPendingPayment && !showCenteredHighlight
+  const canFixOverdrawValue = React.useMemo(() => ({canFixOverdraw}), [canFixOverdraw])
+
   // TODO better way to measure
   // const prevMessage = Container.usePrevious2(message)
   // if (measure && message !== prevMessage) {
@@ -119,6 +138,8 @@ const WrapperMessage = React.memo(function WrapperMessage(p: Props) {
   // }
 
   const longPressable = useGetLongPress({
+    bottomChildren,
+    children,
     conversationIDKey,
     isPendingPayment,
     measure,
@@ -331,14 +352,14 @@ const TopSide = React.memo(function TopSide(p: TProps) {
     }
   }, [dispatch, username])
 
-  if (!username) {
-    return null
-  }
-
   const botAlias = Container.useSelector(state => {
     const meta = Constants.getMeta(state, conversationIDKey)
     return meta?.botAliases[author] ?? ''
   })
+
+  if (!username) {
+    return null
+  }
 
   const authorIsOwner = authorRoleInTeam === 'owner'
   const authorIsAdmin = authorRoleInTeam === 'admin'
@@ -520,82 +541,17 @@ type BProps = {
   measure?: () => void
   showingPopup: boolean
   setShowingPicker: (s: boolean) => void
+  bottomChildren?: React.ReactNode
 }
 // Edited, reactions, orangeLine (top side but needs to render on top so here)
 const BottomSide = React.memo(function BottomSide(p: BProps) {
-  const {conversationIDKey, ordinal, showCenteredHighlight} = p
-  const {toggleShowingPopup, measure, showingPopup, setShowingPicker} = p
+  const {showingPopup, setShowingPicker, conversationIDKey, ordinal, bottomChildren} = p
   const orangeLineAbove = Container.useSelector(
     state => state.chat2.orangeLineMap.get(conversationIDKey) === ordinal
   )
   const orangeLine = orangeLineAbove ? (
     <Kb.Box2 key="orangeLine" direction="vertical" style={styles.orangeLine} />
   ) : null
-
-  // TODO move to text only
-  const hasBeenEdited = Container.useSelector(
-    state => state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)?.hasBeenEdited ?? false
-  )
-  const edited = hasBeenEdited ? (
-    <Kb.Text
-      key="isEdited"
-      type="BodyTiny"
-      style={showCenteredHighlight ? styles.editedHighlighted : styles.edited}
-    >
-      EDITED
-    </Kb.Text>
-  ) : null
-
-  // TODO move to text only
-  const hasUnfurlPrompts = Container.useSelector(state => {
-    const id = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)?.id
-    if (!id) return false
-    return (state.chat2.unfurlPromptMap.get(conversationIDKey)?.get(id)?.size ?? 0) > 0
-  })
-  const unfurlPrompts = (() => {
-    if (hasUnfurlPrompts) {
-      const UnfurlPromptList = require('./unfurl/prompt-list/container')
-        .default as typeof UnfurlPromptListType
-      return <UnfurlPromptList conversationIDKey={conversationIDKey} ordinal={ordinal} />
-    }
-    return null
-  })()
-
-  // TODO move to text only
-  const hasUnfurlList = Container.useSelector(state => {
-    const message = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
-    return message?.type === 'text' && (message.unfurls?.size ?? 0) > 0
-  })
-
-  const unfurlList = (() => {
-    const UnfurlList = require('./unfurl/unfurl-list/container').default as typeof UnfurlListType
-    if (hasUnfurlList) {
-      return (
-        <UnfurlList
-          key="UnfurlList"
-          conversationIDKey={conversationIDKey}
-          ordinal={ordinal}
-          toggleMessagePopup={toggleShowingPopup}
-        />
-      )
-    }
-    return null
-  })()
-
-  // TODO move to text only
-  const hasCoinFlip = Container.useSelector(state => {
-    const message = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
-    return message?.type === 'text' && !!message.flipGameID
-  })
-  const coinflip = (() => {
-    if (hasCoinFlip) {
-      const CoinFlip = require('../coinflip/container').default as typeof CoinFlipType
-      return (
-        <CoinFlip key="CoinFlip" conversationIDKey={conversationIDKey} ordinal={ordinal} measure={measure} />
-      )
-    }
-    return null
-  })()
 
   const hasReactions = Container.useSelector(
     state => (state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)?.reactions?.size ?? 0) > 0
@@ -637,11 +593,8 @@ const BottomSide = React.memo(function BottomSide(p: BProps) {
   return (
     <>
       {orangeLine}
-      {edited}
+      {bottomChildren ?? null}
       <EditCancelRetry conversationIDKey={conversationIDKey} ordinal={ordinal} />
-      {unfurlPrompts}
-      {unfurlList}
-      {coinflip}
       {reactionsRow}
       {reactionsPopup}
     </>
@@ -786,10 +739,13 @@ type UGLP = {
   measure: (() => void) | undefined
   isPendingPayment: boolean
   setShowingPicker: (s: boolean) => void
+  bottomChildren: React.ReactNode
+  children: React.ReactNode
 }
 const useGetLongPress = (p: UGLP) => {
-  const {showCenteredHighlight, conversationIDKey, ordinal, previous, showingPopup, showingPicker} = p
-  const {toggleShowingPopup, measure, isPendingPayment, setShowingPicker, popupAnchor} = p
+  const {showCenteredHighlight, conversationIDKey, ordinal, previous} = p
+  const {showingPopup, showingPicker, children, popupAnchor, bottomChildren} = p
+  const {toggleShowingPopup, measure, isPendingPayment, setShowingPicker} = p
 
   const decorate = Container.useSelector(state => {
     const message = Constants.getMessage(state, conversationIDKey, ordinal) || missingMessage
@@ -799,18 +755,17 @@ const useGetLongPress = (p: UGLP) => {
   const showUsername = useGetUsernameToShow(conversationIDKey, ordinal, previous, false)
   const type = Container.useSelector(state => Constants.getMessage(state, conversationIDKey, ordinal)?.type)
 
-  const messageNode = useMessageNode({conversationIDKey, ordinal, showCenteredHighlight, toggleShowingPopup})
   const exploding = Container.useSelector(
     state => Constants.getMessage(state, conversationIDKey, ordinal)?.exploding
   )
   const content = exploding ? (
     <Kb.Box2 direction="horizontal" fullWidth={true}>
       <ExplodingHeightRetainer conversationIDKey={conversationIDKey} ordinal={ordinal} measure={measure}>
-        {messageNode}
+        {children}
       </ExplodingHeightRetainer>
     </Kb.Box2>
   ) : (
-    messageNode
+    children
   )
 
   // TODO this goes away when we invert the relationship
@@ -825,7 +780,7 @@ const useGetLongPress = (p: UGLP) => {
 
   const paymentBackground = isPendingPayment ? <PendingPaymentBackground /> : null
 
-  const children = (
+  const presschildren = (
     <>
       {paymentBackground}
       <LeftSide conversationIDKey={conversationIDKey} ordinal={ordinal} previous={previous} />
@@ -844,6 +799,7 @@ const useGetLongPress = (p: UGLP) => {
         />
         {content}
         <BottomSide
+          bottomChildren={bottomChildren}
           measure={measure}
           conversationIDKey={conversationIDKey}
           ordinal={ordinal}
@@ -871,7 +827,7 @@ const useGetLongPress = (p: UGLP) => {
         conversationIDKey={conversationIDKey}
         ordinal={decorate ? ordinal : 0}
       >
-        {children}
+        {presschildren}
       </LongPressable>
     )
   }
@@ -894,7 +850,7 @@ const useGetLongPress = (p: UGLP) => {
       // attach popups to the message itself
       ref={popupAnchor as any}
     >
-      {children}
+      {presschildren}
     </LongPressable>
   )
 }
@@ -916,10 +872,6 @@ const useMessageNode = (p: UMN) => {
   if (!message) return null
 
   switch (message.type) {
-    case 'text': {
-      const TextMessage = require('../text/container').default as typeof TextMessageType
-      return <TextMessage isHighlighted={showCenteredHighlight} key="text" message={message} />
-    }
     case 'attachment': {
       const AttachmentMessage = require('../attachment/container').default as typeof AttachmentMessageType
       return (
@@ -1192,7 +1144,7 @@ const styles = Styles.styleSheetCreate(
           lineHeight: 19,
         },
       }),
-      timestampHighlighted: {color: 'red' /*Styles.globalColors.black_50OrBlack_40*/},
+      timestampHighlighted: {color: Styles.globalColors.black_50OrBlack_40},
       usernameCrown: Styles.platformStyles({
         isElectron: {
           alignItems: 'baseline',
@@ -1207,3 +1159,113 @@ const styles = Styles.styleSheetCreate(
 )
 
 export default WrapperMessage
+
+export const getMessageRender = (type: Types.MessageType) => {
+  switch (type) {
+    case 'text':
+      return WrapperText
+    default:
+      return WrapperGeneric
+  }
+}
+
+const WrapperGeneric = React.memo(function WrapperText(p: Props) {
+  const {conversationIDKey, ordinal} = p
+  const common = useCommon(p)
+  const {showCenteredHighlight, toggleShowingPopup} = common
+
+  const messageNode = useMessageNode({showCenteredHighlight, toggleShowingPopup, conversationIDKey, ordinal})
+
+  return (
+    <WrapperMessage {...p} {...common}>
+      {messageNode}
+    </WrapperMessage>
+  )
+})
+
+const WrapperText = React.memo(function WrapperText(p: Props) {
+  const {conversationIDKey, ordinal, measure} = p
+  const common = useCommon(p)
+  const {showCenteredHighlight, toggleShowingPopup} = common
+  const TextMessage = require('../text/container').default as typeof TextMessageType
+
+  const hasBeenEdited = Container.useSelector(
+    state => state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)?.hasBeenEdited ?? false
+  )
+  const edited = hasBeenEdited ? (
+    <Kb.Text
+      key="isEdited"
+      type="BodyTiny"
+      style={showCenteredHighlight ? styles.editedHighlighted : styles.edited}
+    >
+      EDITED
+    </Kb.Text>
+  ) : null
+
+  const hasUnfurlPrompts = Container.useSelector(state => {
+    const id = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)?.id
+    if (!id) return false
+    return (state.chat2.unfurlPromptMap.get(conversationIDKey)?.get(id)?.size ?? 0) > 0
+  })
+  const unfurlPrompts = (() => {
+    if (hasUnfurlPrompts) {
+      const UnfurlPromptList = require('./unfurl/prompt-list/container')
+        .default as typeof UnfurlPromptListType
+      return <UnfurlPromptList conversationIDKey={conversationIDKey} ordinal={ordinal} />
+    }
+    return null
+  })()
+
+  const hasUnfurlList = Container.useSelector(state => {
+    const message = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
+    return message?.type === 'text' && (message.unfurls?.size ?? 0) > 0
+  })
+
+  const unfurlList = (() => {
+    const UnfurlList = require('./unfurl/unfurl-list/container').default as typeof UnfurlListType
+    if (hasUnfurlList) {
+      return (
+        <UnfurlList
+          key="UnfurlList"
+          conversationIDKey={conversationIDKey}
+          ordinal={ordinal}
+          toggleMessagePopup={toggleShowingPopup}
+        />
+      )
+    }
+    return null
+  })()
+
+  const hasCoinFlip = Container.useSelector(state => {
+    const message = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
+    return message?.type === 'text' && !!message.flipGameID
+  })
+  const coinflip = (() => {
+    if (hasCoinFlip) {
+      const CoinFlip = require('../coinflip/container').default as typeof CoinFlipType
+      return (
+        <CoinFlip key="CoinFlip" conversationIDKey={conversationIDKey} ordinal={ordinal} measure={measure} />
+      )
+    }
+    return null
+  })()
+
+  const bottomChildren = (
+    <>
+      {edited}
+      {unfurlPrompts}
+      {unfurlList}
+      {coinflip}
+    </>
+  )
+
+  return (
+    <WrapperMessage {...p} {...common} bottomChildren={bottomChildren}>
+      <TextMessage
+        isHighlighted={showCenteredHighlight}
+        conversationIDKey={conversationIDKey}
+        ordinal={ordinal}
+      />
+    </WrapperMessage>
+  )
+})

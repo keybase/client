@@ -10,7 +10,8 @@ import type * as Types from '../../../../constants/types/chat2'
 
 type OwnProps = {
   isHighlighted?: boolean
-  message: Types.MessageText
+  ordinal: Types.Ordinal
+  conversationIDKey: Types.ConversationIDKey
 }
 
 const replyNoop = () => {}
@@ -79,13 +80,15 @@ const getClaimProps = (state: Container.TypedState, message: Types.MessageText) 
 }
 
 const TextMessageContainer = React.memo(function TextMessageContainer(p: OwnProps) {
-  const {message, isHighlighted} = p
-  const {conversationIDKey, ordinal, decoratedText, text, errorReason, replyTo} = message
+  const {conversationIDKey, ordinal, isHighlighted} = p
   const isEditing = Container.useSelector(state => {
     const editInfo = Constants.getEditInfo(state, conversationIDKey)
     return !!(editInfo && editInfo.ordinal === ordinal)
   })
-  const claim = Container.useSelector(state => getClaimProps(state, message), shallowEqual)
+  const claimProps = Container.useSelector(state => {
+    const m = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
+    return m?.type === 'text' ? getClaimProps(state, m) : undefined
+  }, shallowEqual)
   const dispatch = Container.useDispatch()
   const onClaim = React.useCallback(() => {
     dispatch(RouteTreeGen.createNavigateAppend({path: ['walletOnboarding']}))
@@ -97,14 +100,40 @@ const TextMessageContainer = React.memo(function TextMessageContainer(p: OwnProp
     [dispatch, conversationIDKey]
   )
 
+  const text = Container.useSelector(state => {
+    const m = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
+    if (m?.type !== 'text') return ''
+    const decoratedText = m.decoratedText
+    const text = m.text
+    return decoratedText ? decoratedText.stringValue() : text ? text.stringValue() : ''
+  })
+
+  const type = Container.useSelector(state => {
+    const m = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
+    const errorReason = m?.errorReason
+    return errorReason ? ('error' as const) : !m?.submitState ? ('sent' as const) : ('pending' as const)
+  })
+
+  const reply = Container.useSelector(state => {
+    const m = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
+    const replyTo = m?.replyTo
+    return getReplyProps(replyTo || undefined, onReplyClick)
+  })
+
+  // TODO remove
+  const message = Container.useSelector(state => state.chat2.messageMap.get(conversationIDKey)?.get(ordinal))
+  if (message?.type !== 'text') return null
+
+  const claim = claimProps ? {onClaim, ...claimProps} : undefined
+
   const props = {
-    claim: claim ? {onClaim, ...claim} : undefined,
+    claim,
     isEditing,
     isHighlighted,
-    message: message,
-    reply: getReplyProps(replyTo || undefined, onReplyClick),
-    text: decoratedText ? decoratedText.stringValue() : text.stringValue(),
-    type: errorReason ? ('error' as const) : !message.submitState ? ('sent' as const) : ('pending' as const),
+    message,
+    reply,
+    text,
+    type,
   }
 
   return <TextMessage {...props} />

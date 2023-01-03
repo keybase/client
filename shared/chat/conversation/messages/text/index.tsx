@@ -118,7 +118,8 @@ export type Props = {
   type: 'error' | 'pending' | 'sent'
 }
 
-const MessageText = ({claim, isEditing, isHighlighted, message, reply, text, type}: Props) => {
+const MessageText = (p: Props) => {
+  const {claim, isEditing, isHighlighted, message, reply, text, type} = p
   const wrappedMeta = useMemo(() => ({message}), [message])
   const styleOverride = useMemo(
     () => (Styles.isMobile ? {paragraph: getStyle(type, isEditing, isHighlighted)} : undefined),
