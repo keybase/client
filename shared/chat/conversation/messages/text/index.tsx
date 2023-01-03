@@ -118,18 +118,15 @@ export type Props = {
 
 const MessageText = (p: Props) => {
   const {claim, isEditing, isHighlighted, reply, text, type} = p
+
+  const style = useMemo(() => getStyle(type, isEditing, isHighlighted), [type, isEditing, isHighlighted])
   const styleOverride = useMemo(
     () => (Styles.isMobile ? {paragraph: getStyle(type, isEditing, isHighlighted)} : undefined),
     [type, isEditing, isHighlighted]
   )
 
   const markdown = (
-    <Kb.Markdown
-      style={getStyle(type, isEditing, isHighlighted)}
-      messageType={'text'}
-      styleOverride={styleOverride}
-      allowFontScaling={true}
-    >
+    <Kb.Markdown style={style} messageType={'text'} styleOverride={styleOverride} allowFontScaling={true}>
       {text}
     </Kb.Markdown>
   )
