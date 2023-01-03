@@ -554,19 +554,23 @@ const BottomSide = React.memo(function BottomSide(p: BProps) {
   ) : null
 
   const hasReactions = Container.useSelector(
-    state => (state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)?.reactions?.size ?? 0) > 0
+    state =>
+      !Container.isMobile &&
+      (state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)?.reactions?.size ?? 0) > 0
   )
-  const reactionsRow = hasReactions ? (
-    <ReactionsRow
-      btnClassName="WrapperMessage-emojiButton"
-      newBtnClassName="WrapperMessage-newEmojiButton"
-      conversationIDKey={conversationIDKey}
-      ordinal={ordinal}
-    />
-  ) : null
+  const reactionsRow =
+    !Container.isMobile && hasReactions ? (
+      <ReactionsRow
+        btnClassName="WrapperMessage-emojiButton"
+        newBtnClassName="WrapperMessage-newEmojiButton"
+        conversationIDKey={conversationIDKey}
+        ordinal={ordinal}
+      />
+    ) : null
 
   // TODO could defer until shown
   const reactionsPopupPosition = Container.useSelector(state => {
+    if (Container.isMobile) return 'none'
     if (hasReactions) {
       return 'none'
     }
@@ -579,7 +583,7 @@ const BottomSide = React.memo(function BottomSide(p: BProps) {
   })
 
   const reactionsPopup =
-    reactionsPopupPosition !== 'none' && !showingPopup ? (
+    !Container.isMobile && reactionsPopupPosition !== 'none' && !showingPopup ? (
       <EmojiRow
         className={Styles.classNames('WrapperMessage-emojiButton', 'hover-visible')}
         conversationIDKey={conversationIDKey}

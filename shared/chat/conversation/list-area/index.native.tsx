@@ -5,7 +5,7 @@ import * as Kb from '../../../common-adapters/mobile.native'
 import * as React from 'react'
 import * as Styles from '../../../styles'
 import * as Types from '../../../constants/types/chat2'
-import Message from '../messages/wrapper'
+import {getMessageRender} from '../messages/wrapper'
 import SpecialBottomMessage from '../messages/special-bottom-message'
 import SpecialTopMessage from '../messages/special-top-message'
 import logger from '../../../logger'
@@ -74,12 +74,18 @@ const Sent_ = ({conversationIDKey, ordinal, prevOrdinal}: SentProps) => {
   const key = `${conversationIDKey}:${ordinal}`
   const state = animatingMap.get(key)
 
+  const type = Container.useSelector(
+    state => state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)?.type
+  )
+  if (!type) return null
+
   // if its animating always show it
   if (state) {
     return state
   }
 
-  const children = <Message ordinal={ordinal} previous={prevOrdinal} conversationIDKey={conversationIDKey} />
+  const Clazz = getMessageRender(type)
+  const children = <Clazz ordinal={ordinal} previous={prevOrdinal} conversationIDKey={conversationIDKey} />
 
   // if state is null we already animated it
   if (youSent && state === undefined) {
@@ -226,6 +232,8 @@ const ConversationList = React.memo(function ConversationList(p: {
     return [..._messageOrdinals].reverse()
   }, [_messageOrdinals])
 
+  const messageMap = Container.useSelector(state => state.chat2.messageMap.get(conversationIDKey))
+
   const listRef = React.useRef<FlashList<ItemType> | null>(null)
   const {markInitiallyLoadedThreadAsRead} = Hooks.useActions({conversationIDKey})
   const keyExtractor = React.useCallback(
@@ -247,24 +255,26 @@ const ConversationList = React.memo(function ConversationList(p: {
         return <Sent ordinal={ordinal} prevOrdinal={prevOrdinal} conversationIDKey={conversationIDKey} />
       }
 
-      return <Message ordinal={ordinal} previous={prevOrdinal} conversationIDKey={conversationIDKey} />
+      const type = messageMap?.get(ordinal)?.type
+      if (!type) return null
+      const Clazz = getMessageRender(type)
+      return <Clazz ordinal={ordinal} previous={prevOrdinal} conversationIDKey={conversationIDKey} />
     },
-    [messageOrdinals, conversationIDKey]
+    [messageOrdinals, conversationIDKey, messageMap]
   )
 
   const getItemType = React.useCallback(
-    (_info: unknown, idx: number) => {
-      const index = messageOrdinals.length - 1 - (idx ?? 0)
-      const ordinal = messageOrdinals[index]
+    (ordinal: Types.Ordinal, idx: number) => {
       if (!ordinal) {
         return 'null'
       }
-      if (messageOrdinals.length - 1 === index) {
+      if (messageOrdinals.length - 1 === idx) {
         return 'sent'
       }
-      return 'message'
+      const type = messageMap?.get(ordinal)?.type
+      return type ?? 'generic'
     },
-    [messageOrdinals]
+    [messageOrdinals, messageMap]
   )
 
   const {scrollToCentered, scrollToBottom, viewabilityConfigCallbackPairsRef} = useScrolling({
