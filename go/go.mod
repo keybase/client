@@ -34,7 +34,7 @@ require (
 	github.com/keybase/colly v1.1.1-0.20190207010505-9a56fbe6c0e6
 	github.com/keybase/go-codec v0.0.0-20180928230036-164397562123
 	github.com/keybase/go-crypto v0.0.0-20200123153347-de78d2cb44f4
-	github.com/keybase/go-framed-msgpack-rpc v0.0.0-20221220224508-1d421c15fa25
+	github.com/keybase/go-framed-msgpack-rpc v0.0.0-20230103222906-22eaf566afad
 	github.com/keybase/go-jsonw v0.0.0-20200325173637-df90f282c233
 	github.com/keybase/go-kext v0.0.0-20221220214016-0b515ccced3b
 	github.com/keybase/go-keychain v0.0.0-20221221221913-9be78f6c498b
@@ -78,7 +78,7 @@ require (
 	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616
 	golang.org/x/mobile v0.0.0-20221110043201-43a038452099
 	golang.org/x/net v0.4.0
-	golang.org/x/sync v0.0.0-20220819030929-7fc1605a5dde
+	golang.org/x/sync v0.1.0
 	golang.org/x/sys v0.3.0
 	golang.org/x/text v0.5.0
 	golang.org/x/time v0.0.0-20200416051211-89c76fbcd5d1
@@ -196,7 +196,7 @@ require (
 	github.com/julz/importas v0.1.0 // indirect
 	github.com/kennygrant/sanitize v1.2.4 // indirect
 	github.com/kevinburke/ssh_config v0.0.0-20180830205328-81db2a75821e // indirect
-	github.com/keybase/msgpackzip v0.0.0-20211109205514-10e4bc329851 // indirect
+	github.com/keybase/msgpackzip v0.0.0-20221220225959-4abf538d2b9c // indirect
 	github.com/keybase/vcr v0.0.0-20191017153547-a32d93056205 // indirect
 	github.com/kisielk/errcheck v1.6.2 // indirect
 	github.com/kisielk/gotool v1.0.0 // indirect
