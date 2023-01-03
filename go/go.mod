@@ -34,7 +34,7 @@ require (
 	github.com/keybase/colly v1.1.1-0.20190207010505-9a56fbe6c0e6
 	github.com/keybase/go-codec v0.0.0-20180928230036-164397562123
 	github.com/keybase/go-crypto v0.0.0-20200123153347-de78d2cb44f4
-	github.com/keybase/go-framed-msgpack-rpc v0.0.0-20230103222906-22eaf566afad
+	github.com/keybase/go-framed-msgpack-rpc v0.0.0-20230103225103-1f052922b096
 	github.com/keybase/go-jsonw v0.0.0-20200325173637-df90f282c233
 	github.com/keybase/go-kext v0.0.0-20221220214016-0b515ccced3b
 	github.com/keybase/go-keychain v0.0.0-20221221221913-9be78f6c498b
