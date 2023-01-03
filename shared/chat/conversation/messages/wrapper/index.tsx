@@ -711,7 +711,7 @@ const RightSide = React.memo(function RightSide(p: RProps) {
     </Kb.WithTooltip>
   ) : null
 
-  const menu = (
+  const menu = Container.isMobile ? null : (
     <Kb.WithTooltip tooltip="More actions..." toastStyle={styles.moreActionsTooltip}>
       <Kb.Box style={styles.ellipsis} className="hover-visible">
         <Kb.Icon type="iconfont-ellipsis" onClick={toggleShowingPopup} />
