@@ -56,12 +56,6 @@ export type Props = {
   previous?: Types.Ordinal
 }
 
-// Some components needs these ids but will render only if
-type IdsRefType = React.MutableRefObject<{
-  conversationIDKey: Types.ConversationIDKey
-  ordinal: Types.Ordinal
-}>
-
 const messageShowsPopup = (type?: Types.Message['type']) =>
   !!type &&
   [
@@ -89,13 +83,6 @@ const missingMessage = Constants.makeMessageDeleted({})
 
 const useCommon = (p: Props) => {
   const {conversationIDKey, ordinal} = p
-
-  // we don't want children to render when ordinals change, unless they need it
-  // TODO maybe this is too dangerous, lets see
-  const idsRef = React.useRef({conversationIDKey, ordinal})
-  idsRef.current.conversationIDKey = conversationIDKey
-  idsRef.current.ordinal = ordinal
-
   const showCenteredHighlight = useHighlightMode(p)
 
   const type = Container.useSelector(state => Constants.getMessage(state, conversationIDKey, ordinal)?.type)
@@ -118,7 +105,7 @@ const useCommon = (p: Props) => {
     ) : null
   )
 
-  return {idsRef, popup, popupAnchor, showCenteredHighlight, showingPopup, toggleShowingPopup}
+  return {popup, popupAnchor, showCenteredHighlight, showingPopup, toggleShowingPopup}
 }
 
 type WMProps = {
@@ -129,7 +116,6 @@ type WMProps = {
   showingPopup: boolean
   popup: React.ReactNode
   popupAnchor: React.MutableRefObject<React.Component | null>
-  idsRef: IdsRefType
 } & Props
 
 const WrapperMessage = React.memo(function WrapperMessage(p: WMProps) {
@@ -424,18 +410,16 @@ const TopSide = React.memo(function TopSide(p: TProps) {
   )
 })
 
-type ECRProps = {
-  ordinal: Types.Ordinal
-  conversationIDKey: Types.ConversationIDKey
-}
 enum EditCancelRetryType {
   NONE,
   CANCEL,
   EDIT_CANCEL,
   RETRY_CANCEL,
 }
-const EditCancelRetry = React.memo(function EditCancelRetry(p: ECRProps) {
-  const {ordinal, conversationIDKey} = p
+const EditCancelRetry = React.memo(function EditCancelRetry(p: {ecrType: EditCancelRetryType}) {
+  const {ecrType} = p
+  const conversationIDKey = React.useContext(ConvoIDContext)
+  const ordinal = React.useContext(OrdinalContext)
   const outboxID = Container.useSelector(
     state => state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)?.outboxID
   )
@@ -443,35 +427,6 @@ const EditCancelRetry = React.memo(function EditCancelRetry(p: ECRProps) {
     const reason = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)?.errorReason ?? ''
     return `This messge failed to send${reason ? '. ' : ''}${capitalize(reason)}`
   })
-  const ecrType = Container.useSelector(state => {
-    const message = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
-    if (!message || !state.config.username) {
-      return EditCancelRetryType.NONE
-    }
-    const {errorReason, type, submitState} = message
-    if (
-      !errorReason ||
-      (type !== 'text' && type !== 'attachment') ||
-      (submitState !== 'pending' && submitState !== 'failed') ||
-      (message.type === 'text' && message.flipGameID)
-    ) {
-      return EditCancelRetryType.NONE
-    }
-
-    const {outboxID, errorTyp} = message
-    if (!!outboxID && errorTyp === RPCChatTypes.OutboxErrorType.toolong) {
-      return EditCancelRetryType.EDIT_CANCEL
-    }
-    if (outboxID) {
-      switch (errorTyp) {
-        case RPCChatTypes.OutboxErrorType.minwriter:
-        case RPCChatTypes.OutboxErrorType.restrictedbot:
-          return EditCancelRetryType.CANCEL
-      }
-    }
-    return EditCancelRetryType.RETRY_CANCEL
-  })
-
   const dispatch = Container.useDispatch()
   const onCancel = React.useCallback(() => {
     dispatch(Chat2Gen.createMessageDelete({conversationIDKey, ordinal}))
@@ -482,10 +437,6 @@ const EditCancelRetry = React.memo(function EditCancelRetry(p: ECRProps) {
   const onRetry = React.useCallback(() => {
     outboxID && dispatch(Chat2Gen.createMessageRetry({conversationIDKey, outboxID}))
   }, [dispatch, conversationIDKey, outboxID])
-
-  if (ecrType === EditCancelRetryType.NONE) {
-    return null
-  }
 
   const cancel = (
     <Kb.Text type="BodySmall" style={styles.failUnderline} onClick={onCancel}>
@@ -522,62 +473,39 @@ const EditCancelRetry = React.memo(function EditCancelRetry(p: ECRProps) {
 })
 
 type BProps = {
-  ordinal: Types.Ordinal
-  conversationIDKey: Types.ConversationIDKey
-  previous?: Types.Ordinal
   showCenteredHighlight: boolean
   toggleShowingPopup: () => void
   measure?: () => void
   showingPopup: boolean
   setShowingPicker: (s: boolean) => void
   bottomChildren?: React.ReactNode
+  hasReactions: boolean
+  orangeLineAbove: boolean
+  reactionsPopupPosition: 'none' | 'last' | 'middle'
+  ecrType: EditCancelRetryType
 }
 // Edited, reactions, orangeLine (top side but needs to render on top so here)
 const BottomSide = React.memo(function BottomSide(p: BProps) {
-  const {showingPopup, setShowingPicker, conversationIDKey, ordinal, bottomChildren} = p
-  const orangeLineAbove = Container.useSelector(
-    state => state.chat2.orangeLineMap.get(conversationIDKey) === ordinal
-  )
+  const {showingPopup, setShowingPicker, bottomChildren, ecrType} = p
+  const {orangeLineAbove, hasReactions, reactionsPopupPosition} = p
+
   const orangeLine = orangeLineAbove ? (
     <Kb.Box2 key="orangeLine" direction="vertical" style={styles.orangeLine} />
   ) : null
 
-  const hasReactions = Container.useSelector(
-    state =>
-      !Container.isMobile &&
-      (state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)?.reactions?.size ?? 0) > 0
-  )
   const reactionsRow =
     !Container.isMobile && hasReactions ? (
       <ReactionsRow
         btnClassName="WrapperMessage-emojiButton"
         newBtnClassName="WrapperMessage-newEmojiButton"
-        conversationIDKey={conversationIDKey}
-        ordinal={ordinal}
       />
     ) : null
-
-  // TODO could defer until shown
-  const reactionsPopupPosition = Container.useSelector(state => {
-    if (Container.isMobile) return 'none'
-    if (hasReactions) {
-      return 'none'
-    }
-    const message = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
-    const validMessage = message && Constants.isMessageWithReactions(message)
-    if (!validMessage) return 'none'
-
-    const ordinals = Constants.getMessageOrdinals(state, conversationIDKey)
-    return ordinals[ordinals.length - 1] === ordinal ? 'last' : 'middle'
-  })
 
   const reactionsPopup =
     !Container.isMobile && reactionsPopupPosition !== 'none' && !showingPopup ? (
       <EmojiRow
         className={Styles.classNames('WrapperMessage-emojiButton', 'hover-visible')}
-        conversationIDKey={conversationIDKey}
         onShowingEmojiPicker={setShowingPicker}
-        ordinal={ordinal}
         tooltipPosition={reactionsPopupPosition === 'middle' ? 'top center' : 'bottom center'}
         style={reactionsPopupPosition === 'last' ? styles.emojiRowLast : styles.emojiRow}
       />
@@ -587,7 +515,7 @@ const BottomSide = React.memo(function BottomSide(p: BProps) {
     <>
       {orangeLine}
       {bottomChildren ?? null}
-      <EditCancelRetry conversationIDKey={conversationIDKey} ordinal={ordinal} />
+      {ecrType !== EditCancelRetryType.NONE ? <EditCancelRetry ecrType={ecrType} /> : null}
       {reactionsRow}
       {reactionsPopup}
     </>
@@ -788,6 +716,58 @@ const useGetLongPress = (p: UGLP) => {
     return meta?.botAliases[author] ?? ''
   })
 
+  const orangeLineAbove = Container.useSelector(
+    state => state.chat2.orangeLineMap.get(conversationIDKey) === ordinal
+  )
+
+  const hasReactions = Container.useSelector(
+    state =>
+      !Container.isMobile &&
+      (state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)?.reactions?.size ?? 0) > 0
+  )
+
+  const reactionsPopupPosition = Container.useSelector(state => {
+    if (Container.isMobile) return 'none'
+    if (hasReactions) {
+      return 'none'
+    }
+    const message = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
+    const validMessage = message && Constants.isMessageWithReactions(message)
+    if (!validMessage) return 'none'
+
+    const ordinals = Constants.getMessageOrdinals(state, conversationIDKey)
+    return ordinals[ordinals.length - 1] === ordinal ? 'last' : 'middle'
+  })
+
+  const ecrType = Container.useSelector(state => {
+    const message = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
+    if (!message || !state.config.username) {
+      return EditCancelRetryType.NONE
+    }
+    const {errorReason, type, submitState} = message
+    if (
+      !errorReason ||
+      (type !== 'text' && type !== 'attachment') ||
+      (submitState !== 'pending' && submitState !== 'failed') ||
+      (message.type === 'text' && message.flipGameID)
+    ) {
+      return EditCancelRetryType.NONE
+    }
+
+    const {outboxID, errorTyp} = message
+    if (!!outboxID && errorTyp === RPCChatTypes.OutboxErrorType.toolong) {
+      return EditCancelRetryType.EDIT_CANCEL
+    }
+    if (outboxID) {
+      switch (errorTyp) {
+        case RPCChatTypes.OutboxErrorType.minwriter:
+        case RPCChatTypes.OutboxErrorType.restrictedbot:
+          return EditCancelRetryType.CANCEL
+      }
+    }
+    return EditCancelRetryType.RETRY_CANCEL
+  })
+
   const presschildren = (
     <>
       {paymentBackground}
@@ -816,11 +796,12 @@ const useGetLongPress = (p: UGLP) => {
         ) : null}
         {content}
         <BottomSide
+          ecrType={ecrType}
+          reactionsPopupPosition={reactionsPopupPosition}
+          hasReactions={hasReactions}
+          orangeLineAbove={orangeLineAbove}
           bottomChildren={bottomChildren}
           measure={measure}
-          conversationIDKey={conversationIDKey}
-          ordinal={ordinal}
-          previous={previous}
           showCenteredHighlight={showCenteredHighlight}
           toggleShowingPopup={toggleShowingPopup}
           setShowingPicker={setShowingPicker}
@@ -1193,7 +1174,7 @@ const WrapperGeneric = React.memo(function WrapperText(p: Props) {
   const common = useCommon(p)
   const {showCenteredHighlight, toggleShowingPopup} = common
 
-  const messageNode = useMessageNode({conversationIDKey, showCenteredHighlight, toggleShowingPopup, ordinal})
+  const messageNode = useMessageNode({conversationIDKey, ordinal, showCenteredHighlight, toggleShowingPopup})
 
   return (
     <WrapperMessage {...p} {...common}>
@@ -1216,12 +1197,12 @@ type WTBProps = {
   hasCoinFlip: boolean
   toggleShowingPopup: () => void
   measure: (() => void) | undefined
-  idsRef: IdsRefType
 }
 const WrapperTextBottom = React.memo(function WrapperTextBottom(p: WTBProps) {
   const {hasBeenEdited, hasUnfurlPrompts, hasUnfurlList, hasCoinFlip} = p
-  const {toggleShowingPopup, measure, idsRef, showCenteredHighlight} = p
-  const {conversationIDKey, ordinal} = idsRef.current
+  const {toggleShowingPopup, measure, showCenteredHighlight} = p
+  const conversationIDKey = React.useContext(ConvoIDContext)
+  const ordinal = React.useContext(OrdinalContext)
   const edited = hasBeenEdited ? (
     <Kb.Text
       key="isEdited"
@@ -1278,7 +1259,7 @@ const WrapperTextBottom = React.memo(function WrapperTextBottom(p: WTBProps) {
 const WrapperText = React.memo(function WrapperText(p: Props) {
   const {conversationIDKey, ordinal, measure} = p
   const common = useCommon(p)
-  const {showCenteredHighlight, toggleShowingPopup, idsRef} = common
+  const {showCenteredHighlight, toggleShowingPopup} = common
   const TextMessage = require('../text/container').default as typeof TextMessageType
 
   const hasBeenEdited = Container.useSelector(
@@ -1301,18 +1282,27 @@ const WrapperText = React.memo(function WrapperText(p: Props) {
     return message?.type === 'text' && !!message.flipGameID
   })
 
-  const bprops = {
+  const bottomChildren = React.useMemo(() => {
+    return (
+      <WrapperTextBottom
+        hasBeenEdited={hasBeenEdited}
+        hasCoinFlip={hasCoinFlip}
+        hasUnfurlList={hasUnfurlList}
+        hasUnfurlPrompts={hasUnfurlPrompts}
+        measure={measure}
+        showCenteredHighlight={showCenteredHighlight}
+        toggleShowingPopup={toggleShowingPopup}
+      />
+    )
+  }, [
     hasBeenEdited,
     hasCoinFlip,
     hasUnfurlList,
     hasUnfurlPrompts,
-    idsRef,
     measure,
     showCenteredHighlight,
     toggleShowingPopup,
-  }
-
-  const bottomChildren = <WrapperTextBottom {...bprops} />
+  ])
 
   return (
     <WrapperMessage {...p} {...common} bottomChildren={bottomChildren}>

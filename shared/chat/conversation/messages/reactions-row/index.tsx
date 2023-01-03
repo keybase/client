@@ -83,8 +83,6 @@ class ReactionsRow extends React.PureComponent<Props, State> {
         ) : (
           <EmojiRow
             className={Styles.classNames([this.props.btnClassName, this.props.newBtnClassName])}
-            conversationIDKey={this.props.conversationIDKey}
-            ordinal={this.props.ordinal}
             style={styles.emojiRow}
           />
         )}

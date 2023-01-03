@@ -3,6 +3,7 @@ import * as Container from '../../../../util/container'
 import * as Constants from '../../../../constants/chat2'
 import type * as Types from '../../../../constants/types/chat2'
 import ReactionsRow from '.'
+import {ConvoIDContext, OrdinalContext} from '../ids-context'
 
 // Get array of emoji names in the order of their earliest reaction
 const getOrderedReactions = (reactions: Types.Reactions | null) => {
@@ -27,12 +28,11 @@ const getOrderedReactions = (reactions: Types.Reactions | null) => {
 export type OwnProps = {
   btnClassName?: string
   newBtnClassName?: string
-  conversationIDKey: Types.ConversationIDKey
-  ordinal: Types.Ordinal
 }
 
 const ReactonsRowContainer = React.memo(function ReactonsRowContainer(p: OwnProps) {
-  const {conversationIDKey, ordinal} = p
+  const conversationIDKey = React.useContext(ConvoIDContext)
+  const ordinal = React.useContext(OrdinalContext)
   const message = Container.useSelector(state => Constants.getMessage(state, conversationIDKey, ordinal))
   const reactions = !message || !Constants.isMessageWithReactions(message) ? null : message.reactions
 
@@ -42,7 +42,9 @@ const ReactonsRowContainer = React.memo(function ReactonsRowContainer(p: OwnProp
 
   const props = {
     ...p,
+    conversationIDKey,
     emojis,
+    ordinal,
   }
 
   return <ReactionsRow {...props} />
