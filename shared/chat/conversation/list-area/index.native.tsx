@@ -232,7 +232,7 @@ const ConversationList = React.memo(function ConversationList(p: {
     return [..._messageOrdinals].reverse()
   }, [_messageOrdinals])
 
-  const messageMap = Container.useSelector(state => state.chat2.messageMap.get(conversationIDKey))
+  const messageTypeMap = Container.useSelector(state => state.chat2.messageTypeMap.get(conversationIDKey))
 
   const listRef = React.useRef<FlashList<ItemType> | null>(null)
   const {markInitiallyLoadedThreadAsRead} = Hooks.useActions({conversationIDKey})
@@ -255,12 +255,12 @@ const ConversationList = React.memo(function ConversationList(p: {
         return <Sent ordinal={ordinal} prevOrdinal={prevOrdinal} conversationIDKey={conversationIDKey} />
       }
 
-      const type = messageMap?.get(ordinal)?.type
+      const type = messageTypeMap?.get(ordinal) ?? 'text'
       if (!type) return null
       const Clazz = getMessageRender(type)
       return <Clazz ordinal={ordinal} previous={prevOrdinal} conversationIDKey={conversationIDKey} />
     },
-    [messageOrdinals, conversationIDKey, messageMap]
+    [messageOrdinals, conversationIDKey, messageTypeMap]
   )
 
   const getItemType = React.useCallback(
@@ -271,10 +271,10 @@ const ConversationList = React.memo(function ConversationList(p: {
       if (messageOrdinals.length - 1 === idx) {
         return 'sent'
       }
-      const type = messageMap?.get(ordinal)?.type
+      const type = messageTypeMap?.get(ordinal) ?? 'text'
       return type ?? 'generic'
     },
-    [messageOrdinals, messageMap]
+    [messageOrdinals, messageTypeMap]
   )
 
   const {scrollToCentered, scrollToBottom, viewabilityConfigCallbackPairsRef} = useScrolling({

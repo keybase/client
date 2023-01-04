@@ -16,6 +16,7 @@ import {isLargeScreen} from '../../../../constants/platform'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import * as Platform from '../../../../constants/platform'
 import {assertionToDisplay} from '../../../../common-adapters/usernames'
+import shallowEqual from 'shallowequal'
 
 type Props = {
   conversationIDKey: Types.ConversationIDKey
@@ -35,12 +36,16 @@ const useHintText = (p: {
   minWriterRole: Types.ConversationMeta['minWriterRole']
 }) => {
   const {minWriterRole, conversationIDKey, isExploding, isEditing, cannotWrite} = p
-  const teamType = Container.useSelector(state => Constants.getMeta(state, conversationIDKey).teamType)
-  const teamname = Container.useSelector(state => Constants.getMeta(state, conversationIDKey).teamname)
-  const channelname = Container.useSelector(state => Constants.getMeta(state, conversationIDKey).channelname)
-  const username = Container.useSelector(state => state.config.username)
+  const {teamType, teamname, channelname, username} = Container.useSelector(state => {
+    const teamType = Constants.getMeta(state, conversationIDKey).teamType
+    const teamname = Constants.getMeta(state, conversationIDKey).teamname
+    const channelname = Constants.getMeta(state, conversationIDKey).channelname
+    const username = state.config.username
+    return {teamType, teamname, channelname, username}
+  }, shallowEqual)
   const participantInfoName = Container.useSelector(
-    state => state.chat2.participantMap.get(conversationIDKey)?.name || Constants.noParticipantInfo.name
+    state => state.chat2.participantMap.get(conversationIDKey)?.name || Constants.noParticipantInfo.name,
+    shallowEqual
   )
   if (Styles.isMobile && isExploding) {
     return isLargeScreen ? `Write an exploding message` : 'Exploding message'
