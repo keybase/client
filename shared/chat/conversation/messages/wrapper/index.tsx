@@ -255,8 +255,8 @@ const useGetUsernameToShow = (
       case 'requestPayment':
       case 'sendPayment':
       case 'text': {
-        const {botUsername, type, author, timestamp} = message
-        return {type, botUsername, author, timestamp}
+        const {author, botUsername, timestamp, type} = message
+        return {author, botUsername, timestamp, type}
       }
       default:
         return message.author
@@ -266,8 +266,8 @@ const useGetUsernameToShow = (
   const p = Container.useSelector(state => {
     if (typeof m === 'string') return
     const message = Constants.getMessage(state, conversationIDKey, previousOrdinal ?? 0) ?? missingMessage
-    const {botUsername, type, author, timestamp} = message
-    return {type, botUsername, author, timestamp}
+    const {author, botUsername, timestamp, type} = message
+    return {author, botUsername, timestamp, type}
   }, shallowEqual)
 
   if (typeof m === 'string') return m
