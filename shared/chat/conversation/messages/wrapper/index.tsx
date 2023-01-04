@@ -7,6 +7,7 @@ import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../../../styles'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
+import shallowEqual from 'shallowequal'
 import {ConvoIDContext, OrdinalContext} from '../ids-context'
 import EmojiRow from '../react-button/emoji-row/container'
 import ExplodingHeightRetainer from './exploding-height-retainer/container'
@@ -225,90 +226,67 @@ const authorIsCollapsible = (type?: Types.MessageType) =>
 const useGetUsernameToShow = (
   conversationIDKey: Types.ConversationIDKey,
   ordinal: Types.Ordinal,
-  previousOrdinal_: Types.Ordinal | undefined,
+  previousOrdinal: Types.Ordinal | undefined,
   orangeLineAbove: boolean
 ) => {
-  const previousOrdinal = previousOrdinal_ ?? 0
-  const you = Container.useSelector(state => state.config.username)
-  const mtype = Container.useSelector(state => Constants.getMessage(state, conversationIDKey, ordinal)?.type)
-  const ptype = Container.useSelector(
-    state => Constants.getMessage(state, conversationIDKey, previousOrdinal)?.type
-  )
-  const mbotUsername = Container.useSelector(
-    state => Constants.getMessage(state, conversationIDKey, ordinal)?.botUsername
-  )
-  const pbotUsername = Container.useSelector(
-    state => Constants.getMessage(state, conversationIDKey, previousOrdinal)?.botUsername
-  )
-  const mauthor = Container.useSelector(
-    state => Constants.getMessage(state, conversationIDKey, ordinal)?.author
-  )
-  const pauthor = Container.useSelector(
-    state => Constants.getMessage(state, conversationIDKey, previousOrdinal)?.author
-  )
-  const mtimestamp = Container.useSelector(
-    state => Constants.getMessage(state, conversationIDKey, ordinal)?.timestamp
-  )
-  const ptimestamp = Container.useSelector(
-    state => Constants.getMessage(state, conversationIDKey, previousOrdinal)?.timestamp
-  )
-  const newChannelname = Container.useSelector(
-    state => Constants.getMessage(state, conversationIDKey, ordinal)?.newChannelname
-  )
-  const invitee = Container.useSelector(
-    state => Constants.getMessage(state, conversationIDKey, ordinal)?.invitee
-  )
-  const adder = Container.useSelector(state => Constants.getMessage(state, conversationIDKey, ordinal)?.adder)
-  const prover = Container.useSelector(
-    state => Constants.getMessage(state, conversationIDKey, ordinal)?.prover
-  )
+  const m = Container.useSelector(state => {
+    const message = Constants.getMessage(state, conversationIDKey, ordinal) ?? missingMessage
+    switch (message.type) {
+      case 'journeycard':
+        return 'placeholder'
+      case 'systemAddedToTeam':
+        return message.adder
+      case 'systemInviteAccepted':
+        return message.invitee === state.config.username ? '' : message.invitee
+      case 'setDescription':
+      case 'pin':
+      case 'systemUsersAddedToConversation':
+        return message.author
+      case 'systemJoined': {
+        const joinLeaveLength = (message?.joiners?.length ?? 0) + (message?.leavers?.length ?? 0)
+        return joinLeaveLength > 1 ? '' : message.author
+      }
+      case 'systemSBSResolved':
+        return message.prover
+      case 'setChannelname':
+        // suppress this message for the #general channel, it is redundant.
+        return message.newChannelname !== 'general' ? message.author : ''
+      case 'attachment':
+      case 'requestPayment':
+      case 'sendPayment':
+      case 'text': {
+        const {botUsername, type, author, timestamp} = message
+        return {type, botUsername, author, timestamp}
+      }
+      default:
+        return message.author
+    }
+  }, shallowEqual)
 
-  const joinLeaveLength = Container.useSelector(state => {
-    const message = Constants.getMessage(state, conversationIDKey, previousOrdinal)
-    return (message?.joiners?.length ?? 0) + (message?.leavers?.length ?? 0)
-  })
+  const p = Container.useSelector(state => {
+    if (typeof m === 'string') return
+    const message = Constants.getMessage(state, conversationIDKey, previousOrdinal ?? 0) ?? missingMessage
+    const {botUsername, type, author, timestamp} = message
+    return {type, botUsername, author, timestamp}
+  }, shallowEqual)
 
-  if (!mtype) return ''
-  const sequentialUserMessages =
-    pauthor === mauthor && authorIsCollapsible(mtype) && authorIsCollapsible(ptype)
+  if (typeof m === 'string') return m
 
-  const sequentialBotKeyed =
-    pauthor === mauthor &&
-    ptype === 'text' &&
-    mtype === 'text' &&
-    pbotUsername === mbotUsername &&
-    authorIsCollapsible(mtype) &&
-    authorIsCollapsible(ptype)
+  if (!m.type || !p) return ''
 
-  const enoughTimeBetween = enoughTimeBetweenMessages(mtimestamp, ptimestamp)
-  const timestamp = orangeLineAbove || !ptype || enoughTimeBetween ? mtimestamp : null
-  switch (mtype) {
-    case 'attachment':
-    case 'requestPayment':
-    case 'sendPayment':
-    case 'text':
-      return !sequentialBotKeyed || !ptype || !sequentialUserMessages || !!timestamp ? mauthor : ''
-    case 'setChannelname':
-      // suppress this message for the #general channel, it is redundant.
-      return (!ptype || !sequentialUserMessages || !!timestamp) && newChannelname !== 'general' ? mauthor : ''
-    case 'systemAddedToTeam':
-      return adder
-    case 'systemInviteAccepted':
-      return invitee === you ? '' : invitee
-    case 'setDescription':
-      return mauthor
-    case 'pin':
-      return mauthor
-    case 'systemUsersAddedToConversation':
-      return mauthor
-    case 'systemJoined':
-      return joinLeaveLength > 1 ? '' : mauthor
-    case 'systemSBSResolved':
-      return prover
-    case 'journeycard':
-      return 'placeholder'
+  if (
+    orangeLineAbove ||
+    !p.type ||
+    p.author !== m.author ||
+    p.botUsername !== m.botUsername ||
+    !authorIsCollapsible(m.type) ||
+    !authorIsCollapsible(p.type) ||
+    enoughTimeBetweenMessages(m.timestamp, p.timestamp)
+  ) {
+    return m.author
   }
-  return mauthor
+  // should be impossible
+  return ''
 }
 
 type TProps = {
@@ -590,7 +568,9 @@ const RightSide = React.memo(function RightSide(p: RProps) {
     </Kb.WithTooltip>
   )
 
-  return (
+  const any = sendIndicator || explodingCountdown || revokedIcon || coinsIcon || bot || menu
+
+  return any ? (
     <Kb.Box2 direction="horizontal" style={styles.rightSide} gap="tiny">
       {sendIndicator}
       {explodingCountdown}
@@ -599,7 +579,7 @@ const RightSide = React.memo(function RightSide(p: RProps) {
       {bot}
       {menu}
     </Kb.Box2>
-  )
+  ) : null
 })
 
 type UGLP = {
@@ -1251,25 +1231,18 @@ const WrapperText = React.memo(function WrapperText(p: Props) {
   const {showCenteredHighlight, toggleShowingPopup} = common
   const TextMessage = require('../text/container').default as typeof TextMessageType
 
-  const hasBeenEdited = Container.useSelector(
-    state => state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)?.hasBeenEdited ?? false
-  )
-
-  const hasUnfurlPrompts = Container.useSelector(state => {
-    const id = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)?.id
-    if (!id) return false
-    return (state.chat2.unfurlPromptMap.get(conversationIDKey)?.get(id)?.size ?? 0) > 0
-  })
-
-  const hasUnfurlList = Container.useSelector(state => {
+  const {hasBeenEdited, hasUnfurlPrompts, hasCoinFlip, hasUnfurlList} = Container.useSelector(state => {
     const message = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
-    return message?.type === 'text' && (message.unfurls?.size ?? 0) > 0
-  })
+    const hasCoinFlip = message?.type === 'text' && !!message.flipGameID
+    const hasUnfurlList = message?.type === 'text' && (message.unfurls.size ?? 0) > 0
 
-  const hasCoinFlip = Container.useSelector(state => {
-    const message = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
-    return message?.type === 'text' && !!message.flipGameID
-  })
+    const id = message?.id
+    const hasUnfurlPrompts = id
+      ? (state.chat2.unfurlPromptMap.get(conversationIDKey)?.get(id)?.size ?? 0) > 0
+      : false
+    const hasBeenEdited = message?.hasBeenEdited ?? false
+    return {hasBeenEdited, hasCoinFlip, hasUnfurlList, hasUnfurlPrompts}
+  }, shallowEqual)
 
   const bottomChildren = React.useMemo(() => {
     return (
