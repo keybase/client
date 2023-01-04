@@ -791,19 +791,19 @@ const useGetLongPress = (p: UGLP) => {
     </>
   )
 
+  const dispatch = Container.useDispatch()
+  const onReply = React.useCallback(() => {
+    conversationIDKey &&
+      ordinal &&
+      dispatch(Chat2Gen.createToggleReplyToMessage({conversationIDKey, ordinal}))
+  }, [dispatch, conversationIDKey, ordinal])
+
   if (Styles.isMobile) {
-    let style = styles.longPressable
-    if (showCenteredHighlight) {
-      style = showUsername ? styles.longPressableHighlight : styles.longPressableHighlightNoUsername
-    } else if (!showUsername) {
-      style = styles.longPressableNoUsername
-    }
     return (
       <LongPressable
         onLongPress={decorate ? toggleShowingPopup : undefined}
-        style={style}
-        conversationIDKey={conversationIDKey}
-        ordinal={decorate ? ordinal : 0}
+        onSwipeLeft={onReply}
+        style={showCenteredHighlight ? styles.longPressableHighlight : styles.longPressable}
       >
         {presschildren}
       </LongPressable>
@@ -1049,30 +1049,19 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       failUnderline: {color: Styles.globalColors.redDark, textDecorationLine: 'underline'},
-      longPressable: {overflow: 'hidden'},
+      longPressable: {
+        overflow: 'hidden',
+        paddingBottom: 3,
+        paddingRight: Styles.globalMargins.tiny,
+        paddingTop: 3,
+      },
       longPressableHighlight: {
         backgroundColor: Styles.globalColors.yellowOrYellowAlt,
         overflow: 'hidden',
-      },
-      longPressableHighlightNoUsername: {
-        backgroundColor: Styles.globalColors.yellowOrYellowAlt,
-        overflow: 'hidden',
-        paddingBottom: 3,
-        paddingLeft:
-          // Space for below the avatar
-          Styles.globalMargins.tiny + // right margin
-          Styles.globalMargins.tiny + // left margin
-          Styles.globalMargins.mediumLarge, // avatar
-        paddingRight: Styles.globalMargins.tiny,
-        paddingTop: 3,
-      },
-      longPressableNoUsername: {
-        overflow: 'hidden',
         paddingBottom: 3,
         paddingRight: Styles.globalMargins.tiny,
         paddingTop: 3,
       },
-
       menuButtons: Styles.platformStyles({
         common: {
           alignSelf: 'flex-start',
