@@ -85,6 +85,7 @@ export const makeState = (): Types.State => ({
   maybeMentionMap: new Map(),
   messageCenterOrdinals: new Map(), // ordinals to center threads on,
   messageMap: new Map(), // messages in a thread,
+  messageTypeMap: new Map(),
   messageOrdinals: new Map(), // ordered ordinals in a thread,
   metaMap: new Map(), // metadata about a thread, There is a special node for the pending conversation,
   moreToLoadMap: new Map(), // if we have more data to load,

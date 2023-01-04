@@ -1,3 +1,4 @@
+import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Container from '../../../../util/container'
 import * as Styles from '../../../../styles'
@@ -12,7 +13,7 @@ export type Props = {
   teamPolicy: RetentionPolicy
 }
 
-const RetentionNotice = (props: Props) => {
+const RetentionNotice = React.memo(function RetentionNotice(props: Props) {
   Container.useDepChangeEffect(() => {
     props.measure?.()
   }, [props.canChange, props.policy, props.teamPolicy])
@@ -44,7 +45,7 @@ const RetentionNotice = (props: Props) => {
       )}
     </Kb.Box>
   )
-}
+})
 export default RetentionNotice
 
 const styles = Styles.styleSheetCreate(

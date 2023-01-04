@@ -425,14 +425,14 @@ const useItems = (p: {
   centeredOrdinal: Types.Ordinal | undefined
   resizeObserve: ReturnType<typeof useResizeObserver>
   intersectionObserve: ReturnType<typeof useIntersectionObserver>
-  messageMap: Map<Types.Ordinal, Types.Message> | undefined
+  messageTypeMap: Map<Types.Ordinal, Types.MessageType> | undefined
 }) => {
   const {conversationIDKey, messageOrdinals, centeredOrdinal} = p
-  const {resizeObserve, intersectionObserve, messageMap} = p
+  const {resizeObserve, intersectionObserve, messageTypeMap} = p
   const ordinalsInAWaypoint = 10
   const rowRenderer = React.useCallback(
     (ordinal: Types.Ordinal, previous?: Types.Ordinal) => {
-      const type = messageMap?.get(ordinal)?.type
+      const type = messageTypeMap?.get(ordinal) ?? 'text'
       if (!type) return null
       const Clazz = getMessageRender(type)
       return (
@@ -444,7 +444,7 @@ const useItems = (p: {
         />
       )
     },
-    [conversationIDKey, messageMap]
+    [conversationIDKey, messageTypeMap]
   )
 
   const items = useMemo(() => {
@@ -529,7 +529,7 @@ const ThreadWrapper = React.memo(function ThreadWrapper(p: Props) {
   const messageOrdinals = Container.useSelector(state =>
     Constants.getMessageOrdinals(state, conversationIDKey)
   )
-  const messageMap = Container.useSelector(state => state.chat2.messageMap.get(conversationIDKey))
+  const messageTypeMap = Container.useSelector(state => state.chat2.messageTypeMap.get(conversationIDKey))
 
   const centeredOrdinal = Container.useSelector(
     state => Constants.getMessageCenterOrdinal(state, conversationIDKey)?.ordinal
@@ -622,8 +622,8 @@ const ThreadWrapper = React.memo(function ThreadWrapper(p: Props) {
     centeredOrdinal,
     conversationIDKey,
     intersectionObserve,
-    messageMap,
     messageOrdinals,
+    messageTypeMap,
     resizeObserve,
   })
 

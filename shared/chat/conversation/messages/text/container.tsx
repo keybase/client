@@ -118,7 +118,7 @@ const TextMessageContainer = React.memo(function TextMessageContainer(p: OwnProp
     const m = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
     const replyTo = m?.replyTo
     return getReplyProps(replyTo || undefined, onReplyClick)
-  })
+  }, shallowEqual)
 
   const claim = claimProps ? {onClaim, ...claimProps} : undefined
 
