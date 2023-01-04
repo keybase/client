@@ -55,7 +55,7 @@ module.exports = function (api /*: any */) {
             ? {
                 runtime: 'automatic',
                 development: true,
-                importSource: '@welldone-software/why-did-you-render',
+                // importSource: '@welldone-software/why-did-you-render',
               }
             : {},
         ],
@@ -73,7 +73,7 @@ module.exports = function (api /*: any */) {
               '@babel/plugin-transform-react-jsx-development',
               {
                 runtime: 'automatic',
-                importSource: '@welldone-software/why-did-you-render',
+                // importSource: '@welldone-software/why-did-you-render',
               },
             ]
           : ['@babel/plugin-transform-react-jsx', {runtime: 'automatic'}],

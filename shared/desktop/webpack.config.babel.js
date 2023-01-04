@@ -38,7 +38,7 @@ const config = (_, {mode}) => {
             {
               runtime: 'automatic',
               development: isDev,
-              ...(isDev ? {importSource: '@welldone-software/why-did-you-render'} : {}),
+              // ...(isDev ? {importSource: '@welldone-software/why-did-you-render'} : {}),
             },
           ],
           '@babel/preset-typescript',
