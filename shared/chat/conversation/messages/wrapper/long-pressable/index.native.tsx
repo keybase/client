@@ -23,7 +23,7 @@ const LongPressable = React.memo(function LongPressable(props: Props) {
     )
   }, [])
 
-  // Only swipeable if there is an onSwipeLeft handler.
+  // Only swipeable if there is an onSwipeLeft handler
   if (onSwipeLeft) {
     return (
       <SwipeTrigger actionWidth={100} onSwiped={onSwipeLeft} makeAction={makeAction}>

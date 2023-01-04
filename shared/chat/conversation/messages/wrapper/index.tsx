@@ -44,6 +44,7 @@ import type UnfurlListType from './unfurl/unfurl-list/container'
 import type UnfurlPromptListType from './unfurl/prompt-list/container'
 import {formatTimeForChat} from '../../../../util/timestamp'
 import capitalize from 'lodash/capitalize'
+import type {TeamRoleType} from '../../../../constants/types/teams'
 
 /**
  * WrapperMessage adds the orange line, menu button, menu, reacji
@@ -119,17 +120,126 @@ type WMProps = {
   popupAnchor: React.MutableRefObject<React.Component | null>
 } & Props
 
+const useRedux = (
+  conversationIDKey: Types.ConversationIDKey,
+  ordinal: Types.Ordinal,
+  previous?: Types.Ordinal
+) => {
+  const getBotname = (
+    state: Container.TypedState,
+    message: Types.Message,
+    meta: Types.ConversationMeta,
+    authorRoleInTeam?: TeamRoleType
+  ) => {
+    const keyedBot = message.botUsername
+    if (!keyedBot) return ''
+    const participantInfoNames = Constants.getParticipantInfo(state, message.conversationIDKey).name
+    const authorIsBot = meta.teamname
+      ? authorRoleInTeam === 'restrictedbot' || authorRoleInTeam === 'bot'
+      : meta.teamType === 'adhoc' && participantInfoNames.length > 0 // teams without info may have type adhoc with an empty participant name list
+      ? !participantInfoNames.includes(message.author) // if adhoc, check if author in participants
+      : false // if we don't have team information, don't show bot icon
+    return !authorIsBot ? keyedBot : ''
+  }
+
+  const getUsernameToShow = (message: Types.Message, pMessage: Types.Message | undefined, you: string) => {
+    switch (message.type) {
+      case 'journeycard':
+        return 'placeholder'
+      case 'systemAddedToTeam':
+        return message.adder
+      case 'systemInviteAccepted':
+        return message.invitee === you ? '' : message.invitee
+      case 'setDescription':
+      case 'pin':
+      case 'systemUsersAddedToConversation':
+        return message.author
+      case 'systemJoined': {
+        const joinLeaveLength = (message?.joiners?.length ?? 0) + (message?.leavers?.length ?? 0)
+        return joinLeaveLength > 1 ? '' : message.author
+      }
+      case 'systemSBSResolved':
+        return message.prover
+      case 'setChannelname':
+        // suppress this message for the #general channel, it is redundant.
+        return message.newChannelname !== 'general' ? message.author : ''
+      case 'attachment':
+      case 'requestPayment':
+      case 'sendPayment':
+      case 'text':
+        break
+      default:
+        return message.author
+    }
+
+    if (!pMessage) return ''
+
+    if (
+      !pMessage.type ||
+      pMessage.author !== message.author ||
+      pMessage.botUsername !== message.botUsername ||
+      !authorIsCollapsible(message.type) ||
+      !authorIsCollapsible(pMessage.type) ||
+      enoughTimeBetweenMessages(message.timestamp, pMessage.timestamp)
+    ) {
+      return message.author
+    }
+    // should be impossible
+    return ''
+  }
+
+  return Container.useSelector(state => {
+    const you = state.config.username
+    const m = Constants.getMessage(state, conversationIDKey, ordinal) ?? missingMessage
+    const meta = Constants.getMeta(state, conversationIDKey)
+    const {exploding, exploded, submitState, author, timestamp, id} = m
+    const isPendingPayment = Constants.isPendingPaymentMessage(state, m)
+    const decorate = !exploded && !m.errorReason
+    const type = m.type
+    const showSendIndicator = !submitState && !exploded && you === author && id !== ordinal
+    const showRevoked = !!m?.deviceRevokedAt
+    const showExplodingCountdown = !!exploding && !exploded && submitState !== 'failed'
+    const showCoinsIcon = Constants.hasSuccessfulInlinePayments(state, m)
+    const hasReactions = !Container.isMobile && (m.reactions?.size ?? 0) > 0
+    const authorRoleInTeam = state.teams.teamIDToMembers.get(meta.teamID ?? '')?.get(author)?.type
+    const botAlias = meta.botAliases[author] ?? ''
+    const orangeLineAbove = state.chat2.orangeLineMap.get(conversationIDKey) === ordinal
+    const botname = getBotname(state, m, meta, authorRoleInTeam)
+    const pmessage = (previous && Constants.getMessage(state, conversationIDKey, previous)) || undefined
+    const showUsername = getUsernameToShow(m, pmessage, you)
+
+    return {
+      author,
+      authorRoleInTeam,
+      botAlias,
+      botname,
+      decorate,
+      exploding,
+      hasReactions,
+      isPendingPayment,
+      orangeLineAbove,
+      showCoinsIcon,
+      showExplodingCountdown,
+      showRevoked,
+      showSendIndicator,
+      showUsername,
+      timestamp,
+      type,
+    }
+  }, shallowEqual)
+}
+
 const WrapperMessage = React.memo(function WrapperMessage(p: WMProps) {
   const {measure, conversationIDKey, ordinal, previous, bottomChildren, children} = p
   const {showCenteredHighlight, toggleShowingPopup, showingPopup, popup, popupAnchor} = p
   const [showingPicker, setShowingPicker] = React.useState(false)
 
-  const isPendingPayment = Container.useSelector(state =>
-    Constants.isPendingPaymentMessage(
-      state,
-      Constants.getMessage(state, conversationIDKey, ordinal) ?? undefined
-    )
-  )
+  const mdata = useRedux(conversationIDKey, ordinal, previous)
+
+  const {isPendingPayment, decorate, type, author, timestamp, hasReactions} = mdata
+  const {showSendIndicator, showRevoked, showExplodingCountdown, exploding, showUsername} = mdata
+  const {showCoinsIcon, authorRoleInTeam, botAlias, orangeLineAbove, botname} = mdata
+
   const canFixOverdraw = !isPendingPayment && !showCenteredHighlight
   const canFixOverdrawValue = React.useMemo(() => ({canFixOverdraw}), [canFixOverdraw])
 
@@ -139,21 +249,152 @@ const WrapperMessage = React.memo(function WrapperMessage(p: WMProps) {
   //   measure()
   // }
 
-  const longPressable = useGetLongPress({
-    bottomChildren,
-    children,
-    conversationIDKey,
-    isPendingPayment,
-    measure,
-    ordinal,
-    popupAnchor,
-    previous,
-    setShowingPicker,
-    showCenteredHighlight,
-    showingPicker,
-    showingPopup,
-    toggleShowingPopup,
+  const content = exploding ? (
+    <Kb.Box2 direction="horizontal" fullWidth={true}>
+      <ExplodingHeightRetainer conversationIDKey={conversationIDKey} ordinal={ordinal} measure={measure}>
+        {children}
+      </ExplodingHeightRetainer>
+    </Kb.Box2>
+  ) : (
+    children
+  )
+
+  const paymentBackground = isPendingPayment ? <PendingPaymentBackground /> : null
+
+  const you = Container.useSelector(state => state.config.username)
+  const authorIsBot = Container.useSelector(state => {
+    const participantInfoNames = Constants.getParticipantInfo(state, conversationIDKey).name
+    const meta = Constants.getMeta(state, conversationIDKey)
+    const {teamname, teamType} = meta
+    return teamname
+      ? authorRoleInTeam === 'restrictedbot' || authorRoleInTeam === 'bot'
+      : teamType === 'adhoc' && participantInfoNames.length > 0 // teams without info may have type adhoc with an empty participant name list
+      ? !participantInfoNames.includes(author) // if adhoc, check if author in participants
+      : false // if we don't have team information, don't show bot icon
   })
+
+  const reactionsPopupPosition = Container.useSelector(state => {
+    if (Container.isMobile) return 'none'
+    if (hasReactions) {
+      return 'none'
+    }
+    const message = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
+    const validMessage = message && Constants.isMessageWithReactions(message)
+    if (!validMessage) return 'none'
+
+    const ordinals = Constants.getMessageOrdinals(state, conversationIDKey)
+    return ordinals[ordinals.length - 1] === ordinal ? 'last' : 'middle'
+  })
+
+  const ecrType = Container.useSelector(state => {
+    const message = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
+    if (!message || !state.config.username) {
+      return EditCancelRetryType.NONE
+    }
+    const {errorReason, type, submitState} = message
+    if (
+      !errorReason ||
+      (type !== 'text' && type !== 'attachment') ||
+      (submitState !== 'pending' && submitState !== 'failed') ||
+      (message.type === 'text' && message.flipGameID)
+    ) {
+      return EditCancelRetryType.NONE
+    }
+
+    const {outboxID, errorTyp} = message
+    if (!!outboxID && errorTyp === RPCChatTypes.OutboxErrorType.toolong) {
+      return EditCancelRetryType.EDIT_CANCEL
+    }
+    if (outboxID) {
+      switch (errorTyp) {
+        case RPCChatTypes.OutboxErrorType.minwriter:
+        case RPCChatTypes.OutboxErrorType.restrictedbot:
+          return EditCancelRetryType.CANCEL
+      }
+    }
+    return EditCancelRetryType.RETRY_CANCEL
+  })
+
+  const presschildren = (
+    <>
+      {paymentBackground}
+      <LeftSide username={showUsername} />
+      <RightSide
+        botname={botname}
+        showSendIndicator={showSendIndicator}
+        showExplodingCountdown={showExplodingCountdown}
+        showRevoked={showRevoked}
+        showCoinsIcon={showCoinsIcon}
+        showCenteredHighlight={showCenteredHighlight}
+        toggleShowingPopup={toggleShowingPopup}
+      />
+      <Kb.Box2 direction="vertical" style={styles.middleSide} fullWidth={true}>
+        {showUsername ? (
+          <TopSide
+            author={author}
+            botAlias={botAlias}
+            showUsername={showUsername}
+            showCenteredHighlight={showCenteredHighlight}
+            you={you}
+            timestamp={timestamp}
+            authorRoleInTeam={authorRoleInTeam}
+            authorIsBot={authorIsBot}
+          />
+        ) : null}
+        {content}
+        <BottomSide
+          ecrType={ecrType}
+          reactionsPopupPosition={reactionsPopupPosition}
+          hasReactions={hasReactions}
+          orangeLineAbove={orangeLineAbove}
+          bottomChildren={bottomChildren}
+          measure={measure}
+          showCenteredHighlight={showCenteredHighlight}
+          toggleShowingPopup={toggleShowingPopup}
+          setShowingPicker={setShowingPicker}
+          showingPopup={showingPopup}
+        />
+      </Kb.Box2>
+    </>
+  )
+
+  const dispatch = Container.useDispatch()
+  const onReply = React.useCallback(() => {
+    conversationIDKey &&
+      ordinal &&
+      dispatch(Chat2Gen.createToggleReplyToMessage({conversationIDKey, ordinal}))
+  }, [dispatch, conversationIDKey, ordinal])
+
+  const longPressable = Styles.isMobile ? (
+    <LongPressable
+      onLongPress={decorate ? toggleShowingPopup : undefined}
+      onSwipeLeft={onReply}
+      style={showCenteredHighlight ? styles.longPressableHighlight : styles.longPressable}
+    >
+      {presschildren}
+    </LongPressable>
+  ) : (
+    <LongPressable
+      className={Styles.classNames(
+        {
+          'WrapperMessage-author': showUsername,
+          'WrapperMessage-centered': showCenteredHighlight,
+          'WrapperMessage-decorated': decorate,
+          'WrapperMessage-hoverColor': !isPendingPayment,
+          'WrapperMessage-noOverflow': isPendingPayment,
+          'WrapperMessage-systemMessage': type?.startsWith('system'),
+          active: showingPopup || showingPicker,
+          'hover-container': true,
+        },
+        'WrapperMessage-hoverBox'
+      )}
+      onContextMenu={toggleShowingPopup}
+      // attach popups to the message itself
+      ref={popupAnchor as any}
+    >
+      {presschildren}
+    </LongPressable>
+  )
 
   return (
     <ConvoIDContext.Provider value={conversationIDKey}>
@@ -222,72 +463,6 @@ const enoughTimeBetweenMessages = (mtimestamp?: number, ptimestamp?: number): bo
 // Used to decide whether to show the author for sequential messages
 const authorIsCollapsible = (type?: Types.MessageType) =>
   type === 'text' || type === 'deleted' || type === 'attachment'
-
-const useGetUsernameToShow = (
-  conversationIDKey: Types.ConversationIDKey,
-  ordinal: Types.Ordinal,
-  previousOrdinal: Types.Ordinal | undefined,
-  orangeLineAbove: boolean
-) => {
-  const m = Container.useSelector(state => {
-    const message = Constants.getMessage(state, conversationIDKey, ordinal) ?? missingMessage
-    switch (message.type) {
-      case 'journeycard':
-        return 'placeholder'
-      case 'systemAddedToTeam':
-        return message.adder
-      case 'systemInviteAccepted':
-        return message.invitee === state.config.username ? '' : message.invitee
-      case 'setDescription':
-      case 'pin':
-      case 'systemUsersAddedToConversation':
-        return message.author
-      case 'systemJoined': {
-        const joinLeaveLength = (message?.joiners?.length ?? 0) + (message?.leavers?.length ?? 0)
-        return joinLeaveLength > 1 ? '' : message.author
-      }
-      case 'systemSBSResolved':
-        return message.prover
-      case 'setChannelname':
-        // suppress this message for the #general channel, it is redundant.
-        return message.newChannelname !== 'general' ? message.author : ''
-      case 'attachment':
-      case 'requestPayment':
-      case 'sendPayment':
-      case 'text': {
-        const {author, botUsername, timestamp, type} = message
-        return {author, botUsername, timestamp, type}
-      }
-      default:
-        return message.author
-    }
-  }, shallowEqual)
-
-  const p = Container.useSelector(state => {
-    if (typeof m === 'string') return
-    const message = Constants.getMessage(state, conversationIDKey, previousOrdinal ?? 0) ?? missingMessage
-    const {author, botUsername, timestamp, type} = message
-    return {author, botUsername, timestamp, type}
-  }, shallowEqual)
-
-  if (typeof m === 'string') return m
-
-  if (!m.type || !p) return ''
-
-  if (
-    orangeLineAbove ||
-    !p.type ||
-    p.author !== m.author ||
-    p.botUsername !== m.botUsername ||
-    !authorIsCollapsible(m.type) ||
-    !authorIsCollapsible(p.type) ||
-    enoughTimeBetweenMessages(m.timestamp, p.timestamp)
-  ) {
-    return m.author
-  }
-  // should be impossible
-  return ''
-}
 
 type TProps = {
   showCenteredHighlight: boolean
@@ -581,257 +756,6 @@ const RightSide = React.memo(function RightSide(p: RProps) {
     </Kb.Box2>
   ) : null
 })
-
-type UGLP = {
-  showCenteredHighlight: boolean
-  conversationIDKey: string
-  ordinal: number
-  previous: number | undefined
-  showingPopup: boolean
-  popupAnchor: React.MutableRefObject<React.Component | null>
-  showingPicker: boolean
-  toggleShowingPopup: () => void
-  measure: (() => void) | undefined
-  isPendingPayment: boolean
-  setShowingPicker: (s: boolean) => void
-  bottomChildren: React.ReactNode
-  children: React.ReactNode
-}
-const useGetLongPress = (p: UGLP) => {
-  const {showCenteredHighlight, conversationIDKey, ordinal, previous} = p
-  const {showingPopup, showingPicker, children, popupAnchor, bottomChildren} = p
-  const {toggleShowingPopup, measure, isPendingPayment, setShowingPicker} = p
-
-  const decorate = Container.useSelector(state => {
-    const message = Constants.getMessage(state, conversationIDKey, ordinal) || missingMessage
-    return !message.exploded && !message.errorReason
-  })
-
-  const showUsername = useGetUsernameToShow(conversationIDKey, ordinal, previous, false)
-
-  const type = Container.useSelector(state => Constants.getMessage(state, conversationIDKey, ordinal)?.type)
-
-  const showSendIndicator = Container.useSelector(state => {
-    const you = state.config.username
-    const message = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
-    return !message?.submitState && !message?.exploded && you === message?.author && message.id !== ordinal
-  })
-
-  const showRevoked = Container.useSelector(state => {
-    const message = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
-    return !!message?.deviceRevokedAt
-  })
-
-  const showExplodingCountdown = Container.useSelector(state => {
-    const message = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
-    if (!message) return false
-    const {exploding, exploded, submitState} = message
-    return !!exploding && !exploded && submitState !== 'failed'
-  })
-
-  const exploding = Container.useSelector(
-    state => Constants.getMessage(state, conversationIDKey, ordinal)?.exploding
-  )
-  const content = exploding ? (
-    <Kb.Box2 direction="horizontal" fullWidth={true}>
-      <ExplodingHeightRetainer conversationIDKey={conversationIDKey} ordinal={ordinal} measure={measure}>
-        {children}
-      </ExplodingHeightRetainer>
-    </Kb.Box2>
-  ) : (
-    children
-  )
-
-  const showCoinsIcon = Container.useSelector(state => {
-    const message = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
-    return !!message && Constants.hasSuccessfulInlinePayments(state, message)
-  })
-
-  const botname = Container.useSelector(state => {
-    const message = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
-    if (!message) return ''
-    const keyedBot = message.botUsername
-    if (!keyedBot) return ''
-    const {author} = message
-    const meta = state.chat2.metaMap.get(conversationIDKey)
-    if (!meta) return ''
-    const {teamID, teamname, teamType} = meta
-    const participantInfoNames = Constants.getParticipantInfo(state, conversationIDKey).name
-    const authorRoleInTeam = state.teams.teamIDToMembers.get(teamID)?.get(author)?.type
-    const authorIsBot = teamname
-      ? authorRoleInTeam === 'restrictedbot' || authorRoleInTeam === 'bot'
-      : teamType === 'adhoc' && participantInfoNames.length > 0 // teams without info may have type adhoc with an empty participant name list
-      ? !participantInfoNames.includes(author) // if adhoc, check if author in participants
-      : false // if we don't have team information, don't show bot icon
-    return !authorIsBot ? keyedBot : ''
-  })
-
-  const paymentBackground = isPendingPayment ? <PendingPaymentBackground /> : null
-
-  const you = Container.useSelector(state => state.config.username)
-  const author = Container.useSelector(
-    state => Constants.getMessage(state, conversationIDKey, ordinal)?.author ?? ''
-  )
-  const timestamp = Container.useSelector(
-    state => Constants.getMessage(state, conversationIDKey, ordinal)?.timestamp ?? 0
-  )
-  const authorRoleInTeam = Container.useSelector(
-    state =>
-      state.teams.teamIDToMembers.get(Constants.getMeta(state, conversationIDKey)?.teamID ?? '')?.get(author)
-        ?.type
-  )
-  const authorIsBot = Container.useSelector(state => {
-    const participantInfoNames = Constants.getParticipantInfo(state, conversationIDKey).name
-    const meta = Constants.getMeta(state, conversationIDKey)
-    const {teamname, teamType} = meta
-    return teamname
-      ? authorRoleInTeam === 'restrictedbot' || authorRoleInTeam === 'bot'
-      : teamType === 'adhoc' && participantInfoNames.length > 0 // teams without info may have type adhoc with an empty participant name list
-      ? !participantInfoNames.includes(author) // if adhoc, check if author in participants
-      : false // if we don't have team information, don't show bot icon
-  })
-
-  const botAlias = Container.useSelector(state => {
-    const meta = Constants.getMeta(state, conversationIDKey)
-    return meta?.botAliases[author] ?? ''
-  })
-
-  const orangeLineAbove = Container.useSelector(
-    state => state.chat2.orangeLineMap.get(conversationIDKey) === ordinal
-  )
-
-  const hasReactions = Container.useSelector(
-    state =>
-      !Container.isMobile &&
-      (state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)?.reactions?.size ?? 0) > 0
-  )
-
-  const reactionsPopupPosition = Container.useSelector(state => {
-    if (Container.isMobile) return 'none'
-    if (hasReactions) {
-      return 'none'
-    }
-    const message = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
-    const validMessage = message && Constants.isMessageWithReactions(message)
-    if (!validMessage) return 'none'
-
-    const ordinals = Constants.getMessageOrdinals(state, conversationIDKey)
-    return ordinals[ordinals.length - 1] === ordinal ? 'last' : 'middle'
-  })
-
-  const ecrType = Container.useSelector(state => {
-    const message = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
-    if (!message || !state.config.username) {
-      return EditCancelRetryType.NONE
-    }
-    const {errorReason, type, submitState} = message
-    if (
-      !errorReason ||
-      (type !== 'text' && type !== 'attachment') ||
-      (submitState !== 'pending' && submitState !== 'failed') ||
-      (message.type === 'text' && message.flipGameID)
-    ) {
-      return EditCancelRetryType.NONE
-    }
-
-    const {outboxID, errorTyp} = message
-    if (!!outboxID && errorTyp === RPCChatTypes.OutboxErrorType.toolong) {
-      return EditCancelRetryType.EDIT_CANCEL
-    }
-    if (outboxID) {
-      switch (errorTyp) {
-        case RPCChatTypes.OutboxErrorType.minwriter:
-        case RPCChatTypes.OutboxErrorType.restrictedbot:
-          return EditCancelRetryType.CANCEL
-      }
-    }
-    return EditCancelRetryType.RETRY_CANCEL
-  })
-
-  const presschildren = (
-    <>
-      {paymentBackground}
-      <LeftSide username={showUsername} />
-      <RightSide
-        botname={botname}
-        showSendIndicator={showSendIndicator}
-        showExplodingCountdown={showExplodingCountdown}
-        showRevoked={showRevoked}
-        showCoinsIcon={showCoinsIcon}
-        showCenteredHighlight={showCenteredHighlight}
-        toggleShowingPopup={toggleShowingPopup}
-      />
-      <Kb.Box2 direction="vertical" style={styles.middleSide} fullWidth={true}>
-        {showUsername ? (
-          <TopSide
-            author={author}
-            botAlias={botAlias}
-            showUsername={showUsername}
-            showCenteredHighlight={showCenteredHighlight}
-            you={you}
-            timestamp={timestamp}
-            authorRoleInTeam={authorRoleInTeam}
-            authorIsBot={authorIsBot}
-          />
-        ) : null}
-        {content}
-        <BottomSide
-          ecrType={ecrType}
-          reactionsPopupPosition={reactionsPopupPosition}
-          hasReactions={hasReactions}
-          orangeLineAbove={orangeLineAbove}
-          bottomChildren={bottomChildren}
-          measure={measure}
-          showCenteredHighlight={showCenteredHighlight}
-          toggleShowingPopup={toggleShowingPopup}
-          setShowingPicker={setShowingPicker}
-          showingPopup={showingPopup}
-        />
-      </Kb.Box2>
-    </>
-  )
-
-  const dispatch = Container.useDispatch()
-  const onReply = React.useCallback(() => {
-    conversationIDKey &&
-      ordinal &&
-      dispatch(Chat2Gen.createToggleReplyToMessage({conversationIDKey, ordinal}))
-  }, [dispatch, conversationIDKey, ordinal])
-
-  if (Styles.isMobile) {
-    return (
-      <LongPressable
-        onLongPress={decorate ? toggleShowingPopup : undefined}
-        onSwipeLeft={onReply}
-        style={showCenteredHighlight ? styles.longPressableHighlight : styles.longPressable}
-      >
-        {presschildren}
-      </LongPressable>
-    )
-  }
-  return (
-    <LongPressable
-      className={Styles.classNames(
-        {
-          'WrapperMessage-author': showUsername,
-          'WrapperMessage-centered': showCenteredHighlight,
-          'WrapperMessage-decorated': decorate,
-          'WrapperMessage-hoverColor': !isPendingPayment,
-          'WrapperMessage-noOverflow': isPendingPayment,
-          'WrapperMessage-systemMessage': type?.startsWith('system'),
-          active: showingPopup || showingPicker,
-          'hover-container': true,
-        },
-        'WrapperMessage-hoverBox'
-      )}
-      onContextMenu={toggleShowingPopup}
-      // attach popups to the message itself
-      ref={popupAnchor as any}
-    >
-      {presschildren}
-    </LongPressable>
-  )
-}
 
 type UMN = {
   ordinal: Types.Ordinal

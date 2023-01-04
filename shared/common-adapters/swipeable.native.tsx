@@ -183,7 +183,7 @@ export const SwipeTrigger = React.memo(function SwipeTrigger(p: {
 
   return (
     <View style={styles.container}>
-      <Animated.View style={[styles.actionContainerTrigger]}>{action}</Animated.View>
+      {action ? <Animated.View style={[styles.actionContainerTrigger]}>{action}</Animated.View> : null}
       <Animated.View
         style={[styles.rowContainer, {transform: [{translateX: pan.x}]}]}
         {...panResponder.panHandlers}
