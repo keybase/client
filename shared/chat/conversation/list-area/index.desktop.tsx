@@ -1,22 +1,23 @@
 /* eslint-env browser */
-import * as ConfigGen from '../../../actions/config-gen'
 import * as Chat2Gen from '../../../actions/chat2-gen'
-import * as React from 'react'
+import * as ConfigGen from '../../../actions/config-gen'
 import * as Constants from '../../../constants/chat2'
-import * as Styles from '../../../styles'
 import * as Container from '../../../util/container'
+import * as Hooks from './hooks'
+import * as React from 'react'
+import * as Styles from '../../../styles'
 import * as Types from '../../../constants/types/chat2'
-import {getMessageRender} from '../messages/wrapper'
 import SpecialBottomMessage from '../messages/special-bottom-message'
 import SpecialTopMessage from '../messages/special-top-message'
-import shallowEqual from 'shallowequal'
-import {ErrorBoundary} from '../../../common-adapters'
-import type {Props} from '.'
 import chunk from 'lodash/chunk'
+import shallowEqual from 'shallowequal'
+import type {Props} from '.'
+import {ConvoIDContext} from '../messages/ids-context'
+import {ErrorBoundary} from '../../../common-adapters'
+import {findLast} from '../../../util/arrays'
+import {getMessageRender} from '../messages/wrapper'
 import {globalMargins} from '../../../styles/shared'
 import {useMemo} from '../../../util/memoize'
-import * as Hooks from './hooks'
-import {findLast} from '../../../util/arrays'
 
 // Infinite scrolling list.
 // We group messages into a series of Waypoints. When the waypoint exits the screen we replace it with a single div instead
@@ -420,14 +421,13 @@ const useScrolling = (
 }
 
 const useItems = (p: {
-  conversationIDKey: Types.ConversationIDKey
   messageOrdinals: Array<Types.Ordinal>
   centeredOrdinal: Types.Ordinal | undefined
   resizeObserve: ReturnType<typeof useResizeObserver>
   intersectionObserve: ReturnType<typeof useIntersectionObserver>
   messageTypeMap: Map<Types.Ordinal, Types.MessageType> | undefined
 }) => {
-  const {conversationIDKey, messageOrdinals, centeredOrdinal} = p
+  const {messageOrdinals, centeredOrdinal} = p
   const {resizeObserve, intersectionObserve, messageTypeMap} = p
   const ordinalsInAWaypoint = 10
   const rowRenderer = React.useCallback(
@@ -435,22 +435,13 @@ const useItems = (p: {
       const type = messageTypeMap?.get(ordinal) ?? 'text'
       if (!type) return null
       const Clazz = getMessageRender(type)
-      return (
-        <Clazz
-          key={String(ordinal)}
-          ordinal={ordinal}
-          previous={previous}
-          conversationIDKey={conversationIDKey}
-        />
-      )
+      return <Clazz key={String(ordinal)} ordinal={ordinal} previous={previous} />
     },
-    [conversationIDKey, messageTypeMap]
+    [messageTypeMap]
   )
 
   const items = useMemo(() => {
-    const items: Array<React.ReactNode> = [
-      <SpecialTopMessage key="specialTop" conversationIDKey={conversationIDKey} />,
-    ]
+    const items: Array<React.ReactNode> = [<SpecialTopMessage key="specialTop" />]
 
     const numOrdinals = messageOrdinals.length
     let ordinals: Array<Types.Ordinal> = []
@@ -516,9 +507,9 @@ const useItems = (p: {
         ordinals.push(ordinal)
       }
     })
-    items.push(<SpecialBottomMessage key="specialBottom" conversationIDKey={conversationIDKey} />)
+    items.push(<SpecialBottomMessage key="specialBottom" />)
     return items
-  }, [conversationIDKey, messageOrdinals, centeredOrdinal, rowRenderer, resizeObserve, intersectionObserve])
+  }, [messageOrdinals, centeredOrdinal, rowRenderer, resizeObserve, intersectionObserve])
 
   return items
 }
@@ -620,7 +611,6 @@ const ThreadWrapper = React.memo(function ThreadWrapper(p: Props) {
 
   const items = useItems({
     centeredOrdinal,
-    conversationIDKey,
     intersectionObserve,
     messageOrdinals,
     messageTypeMap,
@@ -629,14 +619,16 @@ const ThreadWrapper = React.memo(function ThreadWrapper(p: Props) {
 
   return (
     <ErrorBoundary>
-      <div style={styles.container as any} onClick={handleListClick} onCopyCapture={onCopyCapture}>
-        <div className="chat-scroller" key={conversationIDKey} style={styles.list as any} ref={setListRef}>
-          <div style={styles.listContents} ref={setListContents}>
-            {items}
+      <ConvoIDContext.Provider value={conversationIDKey}>
+        <div style={styles.container as any} onClick={handleListClick} onCopyCapture={onCopyCapture}>
+          <div className="chat-scroller" key={conversationIDKey} style={styles.list as any} ref={setListRef}>
+            <div style={styles.listContents} ref={setListContents}>
+              {items}
+            </div>
           </div>
+          {jumpToRecent}
         </div>
-        {jumpToRecent}
-      </div>
+      </ConvoIDContext.Provider>
     </ErrorBoundary>
   )
 })

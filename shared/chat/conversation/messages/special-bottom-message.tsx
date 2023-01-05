@@ -1,9 +1,10 @@
 import * as Constants from '../../../constants/chat2'
+import * as Container from '../../../util/container'
 import * as React from 'react'
-import type * as Types from '../../../constants/types/chat2'
 import OldProfileReset from './system-old-profile-reset-notice/container'
 import ResetUser from './reset-user/container'
-import * as Container from '../../../util/container'
+import type * as Types from '../../../constants/types/chat2'
+import {ConvoIDContext} from './ids-context'
 
 type Props = {
   showResetParticipants: Types.ConversationIDKey | null
@@ -33,12 +34,12 @@ class BottomMessage extends React.PureComponent<Props> {
 }
 
 type OwnProps = {
-  conversationIDKey: Types.ConversationIDKey
   measure?: () => void
 }
 
 const BottomMessageContainer = React.memo(function BottomMessageContainer(p: OwnProps) {
-  const {conversationIDKey, measure} = p
+  const {measure} = p
+  const conversationIDKey = React.useContext(ConvoIDContext)
   const showResetParticipants = Container.useSelector(state => {
     const meta = Constants.getMeta(state, conversationIDKey)
     return meta.resetParticipants.size !== 0

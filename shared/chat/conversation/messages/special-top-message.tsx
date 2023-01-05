@@ -7,7 +7,7 @@ import * as Kb from '../../../common-adapters'
 import * as RPCTypes from '../../../constants/types/rpc-gen'
 import * as React from 'react'
 import * as Styles from '../../../styles'
-import type * as Types from '../../../constants/types/chat2'
+import {ConvoIDContext} from './ids-context'
 import HelloBotCard from './cards/hello-bot'
 import MakeTeamCard from './cards/make-team'
 import NewChatCard from './cards/new-chat'
@@ -16,7 +16,6 @@ import RetentionNotice from './retention-notice/container'
 import shallowEqual from 'shallowequal'
 
 type Props = {
-  conversationIDKey: Types.ConversationIDKey
   measure?: () => void
 }
 
@@ -120,7 +119,8 @@ const ErrorMessage = () => {
 }
 
 const SpecialTopMessage = React.memo(function SpecialTopMessage(props: Props) {
-  const {conversationIDKey, measure} = props
+  const {measure} = props
+  const conversationIDKey = React.useContext(ConvoIDContext)
   const username = Container.useSelector(state => state.config.username)
   const dispatch = Container.useDispatch()
 

@@ -9,35 +9,11 @@ import type * as Types from '../../../constants/types/chat2'
 import {ChannelHeader, UsernameHeader, PhoneOrEmailHeader} from './index.native'
 import {HeaderLeftArrow} from '../../../common-adapters/header-hoc'
 import {getVisiblePath} from '../../../constants/router2'
-// import {Alert} from 'react-native'
-// import {DEBUGDump as DEBUGDumpView} from '../list-area/index.native'
-// import {DEBUGDump as DEBUGDumpStore} from '../../../store/configure-store'
 import {getRouteParamsFromRoute} from '../../../router-v2/route-params'
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
 }
-
-// const DEBUGCHATMAYBE = (gotoNav: () => void) => {
-//   if (!Constants.DEBUG_CHAT_DUMP) {
-//     return
-//   }
-//   Alert.alert(
-//     'Send chat debug info?',
-//     'This is temporary tool to do a log send for chats. This will log extra info to the server, is this ok? After this you MUST log send',
-//     [
-//       {
-//         onPress: () => {
-//           const conversationIDKey = DEBUGDumpView()
-//           DEBUGDumpStore(conversationIDKey ?? '')
-//           gotoNav()
-//         },
-//         text: 'Ok',
-//       },
-//       {text: 'Nope'},
-//     ]
-//   )
-// }
 
 export const HeaderAreaRight = (props: OwnProps) => {
   const {conversationIDKey} = props
@@ -55,12 +31,6 @@ export const HeaderAreaRight = (props: OwnProps) => {
     () => dispatch(Chat2Gen.createToggleThreadSearch({conversationIDKey})),
     [dispatch, conversationIDKey]
   )
-  // const onLongPress = React.useCallback(() => {
-  //   if (!Constants.DEBUG_CHAT_DUMP) {
-  //     return
-  //   }
-  //   DEBUGCHATMAYBE(() => dispatch(RouteTreeGen.createNavigateAppend({path: ['settingsTabs.feedbackTab']})))
-  // }, [dispatch])
   return pendingWaiting ? null : (
     <Kb.Box2 direction="horizontal" gap="small">
       <Kb.Icon type="iconfont-search" onClick={onToggleThreadSearch} />

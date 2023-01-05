@@ -263,7 +263,6 @@ const styles = Styles.styleSheetCreate(
       container: {
         ...Styles.globalStyles.flexBoxRow,
         height: 20,
-        // marginLeft: Styles.globalMargins.tiny,
         position: 'relative',
       },
       countdown: Styles.platformStyles({

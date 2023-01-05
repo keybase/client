@@ -1,20 +1,21 @@
-import * as Container from '../../../util/container'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Constants from '../../../constants/chat2'
+import * as Container from '../../../util/container'
+import * as Hooks from './hooks'
 import * as Kb from '../../../common-adapters/mobile.native'
 import * as React from 'react'
 import * as Styles from '../../../styles'
 import * as Types from '../../../constants/types/chat2'
-import {getMessageRender} from '../messages/wrapper'
 import SpecialBottomMessage from '../messages/special-bottom-message'
 import SpecialTopMessage from '../messages/special-top-message'
 import logger from '../../../logger'
-import {Animated, type ViewToken} from 'react-native'
-import type {ItemType} from '.'
-import {mobileTypingContainerHeight} from '../input-area/normal/typing'
-import * as Hooks from './hooks'
 import sortedIndexOf from 'lodash/sortedIndexOf'
+import type {ItemType} from '.'
+import {Animated, type ViewToken} from 'react-native'
+import {ConvoIDContext} from '../messages/ids-context'
 import {FlashList, type ListRenderItemInfo} from '@shopify/flash-list'
+import {getMessageRender} from '../messages/wrapper'
+import {mobileTypingContainerHeight} from '../input-area/normal/typing'
 
 // Bookkeep whats animating so it finishes and isn't replaced, if we've animated it we keep the key and use null
 const animatingMap = new Map<string, null | React.ReactElement>()
@@ -85,7 +86,7 @@ const Sent_ = ({conversationIDKey, ordinal, prevOrdinal}: SentProps) => {
   }
 
   const Clazz = getMessageRender(type)
-  const children = <Clazz ordinal={ordinal} previous={prevOrdinal} conversationIDKey={conversationIDKey} />
+  const children = <Clazz ordinal={ordinal} previous={prevOrdinal} />
 
   // if state is null we already animated it
   if (youSent && state === undefined) {
@@ -258,7 +259,7 @@ const ConversationList = React.memo(function ConversationList(p: {
       const type = messageTypeMap?.get(ordinal) ?? 'text'
       if (!type) return null
       const Clazz = getMessageRender(type)
-      return <Clazz ordinal={ordinal} previous={prevOrdinal} conversationIDKey={conversationIDKey} />
+      return <Clazz ordinal={ordinal} previous={prevOrdinal} />
     },
     [messageOrdinals, conversationIDKey, messageTypeMap]
   )
@@ -297,42 +298,31 @@ const ConversationList = React.memo(function ConversationList(p: {
     }
   }, [markInitiallyLoadedThreadAsRead])
 
-  const listHeaderComponent = React.useMemo(
-    function ListHeaderComponent() {
-      return <SpecialBottomMessage conversationIDKey={conversationIDKey} />
-    },
-    [conversationIDKey]
-  )
-  const listFooterComponent = React.useMemo(
-    function ListFooterComponent() {
-      return <SpecialTopMessage conversationIDKey={conversationIDKey} />
-    },
-    [conversationIDKey]
-  )
-
   return (
     <Kb.ErrorBoundary>
-      <Kb.Box style={styles.container}>
-        <FlashList
-          estimatedItemSize={100}
-          ListHeaderComponent={listHeaderComponent}
-          ListFooterComponent={listFooterComponent}
-          overScrollMode="never"
-          contentContainerStyle={styles.contentContainer}
-          data={messageOrdinals}
-          getItemType={getItemType}
-          inverted={true}
-          renderItem={renderItem}
-          maintainVisibleContentPosition={maintainVisibleContentPosition}
-          viewabilityConfigCallbackPairs={viewabilityConfigCallbackPairsRef.current}
-          keyboardDismissMode="on-drag"
-          keyboardShouldPersistTaps="handled"
-          keyExtractor={keyExtractor}
-          ref={listRef}
-          removeClippedSubviews={Styles.isAndroid}
-        />
-        {jumpToRecent}
-      </Kb.Box>
+      <ConvoIDContext.Provider value={conversationIDKey}>
+        <Kb.Box style={styles.container}>
+          <FlashList
+            estimatedItemSize={100}
+            ListHeaderComponent={SpecialBottomMessage}
+            ListFooterComponent={SpecialTopMessage}
+            overScrollMode="never"
+            contentContainerStyle={styles.contentContainer}
+            data={messageOrdinals}
+            getItemType={getItemType}
+            inverted={true}
+            renderItem={renderItem}
+            maintainVisibleContentPosition={maintainVisibleContentPosition}
+            viewabilityConfigCallbackPairs={viewabilityConfigCallbackPairsRef.current}
+            keyboardDismissMode="on-drag"
+            keyboardShouldPersistTaps="handled"
+            keyExtractor={keyExtractor}
+            ref={listRef}
+            removeClippedSubviews={Styles.isAndroid}
+          />
+          {jumpToRecent}
+        </Kb.Box>
+      </ConvoIDContext.Provider>
     </Kb.ErrorBoundary>
   )
 })

@@ -1,7 +1,7 @@
 import partition from 'lodash/partition'
-import * as Kb from '../../../../common-adapters'
-import * as Styles from '../../../../styles'
-import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
+import * as Kb from '../../../../../common-adapters'
+import * as Styles from '../../../../../styles'
+import * as RPCChatTypes from '../../../../../constants/types/rpc-chat-gen'
 
 type Props = {
   result: RPCChatTypes.UICoinFlipResult

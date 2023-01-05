@@ -1,10 +1,10 @@
-import * as Chat2Gen from '../../../../actions/chat2-gen'
-import {ConvoIDContext, OrdinalContext} from '../ids-context'
-import * as Constants from '../../../../constants/chat2'
-import * as Container from '../../../../util/container'
-import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
+import * as Chat2Gen from '../../../../../actions/chat2-gen'
+import * as Constants from '../../../../../constants/chat2'
+import * as Container from '../../../../../util/container'
+import * as RPCChatTypes from '../../../../../constants/types/rpc-chat-gen'
 import * as React from 'react'
 import CoinFlip, {type Props} from '.'
+import {ConvoIDContext, OrdinalContext} from '../../ids-context'
 
 type OwnProps = {
   measure?: () => void
