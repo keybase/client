@@ -485,8 +485,8 @@ github.com/keybase/go-codec v0.0.0-20180928230036-164397562123 h1:yg56lYPqh9suJe
 github.com/keybase/go-codec v0.0.0-20180928230036-164397562123/go.mod h1:r/eVVWCngg6TsFV/3HuS9sWhDkAzGG8mXhiuYA+Z/20=
 github.com/keybase/go-crypto v0.0.0-20200123153347-de78d2cb44f4 h1:cTxwSmnaqLoo+4tLukHoB9iqHOu3LmLhRmgUxZo6Vp4=
 github.com/keybase/go-crypto v0.0.0-20200123153347-de78d2cb44f4/go.mod h1:ghbZscTyKdM07+Fw3KSi0hcJm+AlEUWj8QLlPtijN/M=
-github.com/keybase/go-framed-msgpack-rpc v0.0.0-20221220224508-1d421c15fa25 h1:Uip9Krkwl0PROuzuad/vPTQbONq5dRxgutY8tSpUu2M=
-github.com/keybase/go-framed-msgpack-rpc v0.0.0-20221220224508-1d421c15fa25/go.mod h1:MUvEHCotFub/amvPNfj0rNlB4GBpTedjqPmUuLs8h6U=
+github.com/keybase/go-framed-msgpack-rpc v0.0.0-20230103225103-1f052922b096 h1:rMDGkwIszgGP7HodB/YdMVT39mMI5s+LUI6DOrJO0DE=
+github.com/keybase/go-framed-msgpack-rpc v0.0.0-20230103225103-1f052922b096/go.mod h1:XO67nMjltHJ8OsBWnFiDU1F67wR+rtJB21NXtb1TKyA=
 github.com/keybase/go-git v4.0.0-rc9.0.20190209005256-3a78daa8ce8e+incompatible h1:vGk0ZpLiX9X58raUx86zSlmvmJmEEoUBz/Wr0aIYHIs=
 github.com/keybase/go-git v4.0.0-rc9.0.20190209005256-3a78daa8ce8e+incompatible/go.mod h1:UXHGv5gdZq3WKJwTqUz51rTso8HiW4pPAq6h8bCBGUY=
 github.com/keybase/go-jsonw v0.0.0-20200325173637-df90f282c233 h1:zLk+cB/0ShMCBcgBOXYgellLZiZahXFicJleKyrlqiM=
@@ -519,8 +519,8 @@ github.com/keybase/gomounts v0.0.0-20180302000443-349507f4d353 h1:7+JGi0kc98ugL6
 github.com/keybase/gomounts v0.0.0-20180302000443-349507f4d353/go.mod h1:LJNWKEO+J6j4hj9xQWPWnNT8344YyuGKiSCjyJAAmbI=
 github.com/keybase/keybase-test-vectors v1.0.12-0.20200309162119-ea1e58fecd5d h1:AuV96cODzV3oEHhMcNr+7t2RxfxkAV6WpCWlKLP4mOo=
 github.com/keybase/keybase-test-vectors v1.0.12-0.20200309162119-ea1e58fecd5d/go.mod h1:X9vCtvYYyA79MN7GvnlYKjIUkxlo5e0uZ+dYL5kTBqg=
-github.com/keybase/msgpackzip v0.0.0-20211109205514-10e4bc329851 h1:W5xs9wKnbzBFuVhwaGvcvV6jXWvslTAT5Pa6BCAuvXw=
-github.com/keybase/msgpackzip v0.0.0-20211109205514-10e4bc329851/go.mod h1:/2b2CTSWA/tFpJaq69Cox1bX1LqRBM7Tlvy8ccU58YA=
+github.com/keybase/msgpackzip v0.0.0-20221220225959-4abf538d2b9c h1:PRG2AXSelSy7MiDI+PwJR2QSqI1N3OybRUutsMiHtpo=
+github.com/keybase/msgpackzip v0.0.0-20221220225959-4abf538d2b9c/go.mod h1:DkylHDco/FLr1+GM6wg0GF4E3CCKov54MSYojKYAbS0=
 github.com/keybase/pipeliner v0.0.0-20211118220306-ca1be321c9e5 h1:uOr2TADf5Cx7+PQwiCJIa48GavS1t6nXsWy959mzSew=
 github.com/keybase/pipeliner v0.0.0-20211118220306-ca1be321c9e5/go.mod h1:zIf2LD88KIut7wqLV0IIOfUeXwYyvXDl41rsrkBzNYE=
 github.com/keybase/release v0.0.0-20221220220653-50771d921175 h1:NmV1FvKs0zlOoZ28W7P/0gFb7CkworBjpetsEb+NC8k=
@@ -1078,8 +1078,8 @@ golang.org/x/sync v0.0.0-20201020160332-67f06af15bc9/go.mod h1:RxMgew5VJxzue5/jJ
 golang.org/x/sync v0.0.0-20201207232520-09787c993a3a/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=
 golang.org/x/sync v0.0.0-20210220032951-036812b2e83c/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=
 golang.org/x/sync v0.0.0-20220722155255-886fb9371eb4/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=
-golang.org/x/sync v0.0.0-20220819030929-7fc1605a5dde h1:ejfdSekXMDxDLbRrJMwUk6KnSLZ2McaUCVcIKM+N6jc=
-golang.org/x/sync v0.0.0-20220819030929-7fc1605a5dde/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=
+golang.org/x/sync v0.1.0 h1:wsuoTGHzEhffawBOhz5CYhcrV4IdKZbEyZjBMuTp12o=
+golang.org/x/sync v0.1.0/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=
 golang.org/x/sys v0.0.0-20180830151530-49385e6e1522/go.mod h1:STP8DvDyc/dI5b8T5hshtkjS+E42TnysNCUPdjciGhY=
 golang.org/x/sys v0.0.0-20180905080454-ebe1bf3edb33/go.mod h1:STP8DvDyc/dI5b8T5hshtkjS+E42TnysNCUPdjciGhY=
 golang.org/x/sys v0.0.0-20180909124046-d0be0721c37e/go.mod h1:STP8DvDyc/dI5b8T5hshtkjS+E42TnysNCUPdjciGhY=
