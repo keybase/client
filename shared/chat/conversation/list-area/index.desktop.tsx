@@ -435,6 +435,7 @@ const useItems = (p: {
       const type = messageTypeMap?.get(ordinal) ?? 'text'
       if (!type) return null
       const Clazz = getMessageRender(type)
+      if (!Clazz) return null
       return <Clazz key={String(ordinal)} ordinal={ordinal} previous={previous} />
     },
     [messageTypeMap]

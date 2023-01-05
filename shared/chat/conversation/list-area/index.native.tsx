@@ -86,6 +86,7 @@ const Sent_ = ({conversationIDKey, ordinal, prevOrdinal}: SentProps) => {
   }
 
   const Clazz = getMessageRender(type)
+  if (!Clazz) return null
   const children = <Clazz ordinal={ordinal} previous={prevOrdinal} />
 
   // if state is null we already animated it

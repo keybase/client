@@ -18,7 +18,6 @@ import PendingPaymentBackground from '../account-payment/pending-background'
 import ReactionsRow from '../reactions-row/container'
 import SendIndicator from './send-indicator'
 import type * as Types from '../../../../constants/types/chat2'
-import type MessagePlaceholderType from '../placeholder/container'
 import type PaymentMessageType from '../account-payment/container'
 import type PinType from '../pin'
 import type SetChannelnameType from '../set-channelname/container'
@@ -767,10 +766,6 @@ const useMessageNode = (ordinal: Types.Ordinal) => {
       const PaymentMessage = require('../account-payment/container').default as typeof PaymentMessageType
       return <PaymentMessage key="sendPayment" message={message} />
     }
-    case 'placeholder': {
-      const MessagePlaceholder = require('../placeholder/container').default as typeof MessagePlaceholderType
-      return <MessagePlaceholder key="placeholder" message={message} />
-    }
     case 'systemInviteAccepted': {
       const SystemInviteAccepted = require('../system-invite-accepted/container')
         .default as typeof SystemInviteAcceptedType
@@ -857,8 +852,6 @@ const useMessageNode = (ordinal: Types.Ordinal) => {
         <SetChannelname key="setChannelname" message={message} />
       )
     }
-    case 'deleted':
-      return null
     default:
       console.log('WrapperGeneric missing type???', message.type)
       return null
