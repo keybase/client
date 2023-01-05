@@ -6,7 +6,7 @@
 	<dict>
 		<key>Resources/License.rtf</key>
 		<data>
-		x6c37K72BlICVZ9LMOEiRsvpmY0=
+		Mwjz7gi9MLysLbm8GlJWeXvLVII=
 		</data>
 		<key>Resources/Volume.icns</key>
 		<data>
@@ -14,42 +14,42 @@
 		</data>
 		<key>Resources/load_kbfuse</key>
 		<data>
-		OnWcr9+MyAZ+WyGtLwrcJlQd0KY=
+		0iEvwCSGsuryvzsAq3+xdrQ4M9k=
 		</data>
 		<key>Resources/mount_kbfuse</key>
 		<data>
-		HCoX68qx9FDoHhU2panhUncJFmU=
+		+FrcaQTfSulzDzucr5uDnQ/DP5A=
 		</data>
 		<key>version.plist</key>
 		<data>
-		r2DkCLgX+6CcbRH0tqFytU3nazc=
+		fvVT6//ts6VLccQKcj4UgwmV3lQ=
 		</data>
 	</dict>
 	<key>files2</key>
 	<dict>
-		<key>Extensions/11/kbfuse.kext/Contents/Info.plist</key>
+		<key>Extensions/12/kbfuse.kext/Contents/Info.plist</key>
 		<dict>
 			<key>hash</key>
 			<data>
-			pqZAG20pUWyiZ8Qr0z5RIblFMwU=
+			Y27REMqXFAoHAqg6c0jusVndf3E=
 			</data>
 			<key>hash2</key>
 			<data>
-			6pKf9rgzuUh1dx5OPyIA6sdNmc9f31rQQiuAHpl+V1w=
+			cGDjHbOqjsqGju45zJcmpjauPqcGGttonQvt7CH4hhc=
 			</data>
 		</dict>
-		<key>Extensions/11/kbfuse.kext/Contents/MacOS/kbfuse</key>
+		<key>Extensions/12/kbfuse.kext/Contents/MacOS/kbfuse</key>
 		<dict>
 			<key>hash</key>
 			<data>
-			YZrQHp/Ho9OFRWc2tautSFkydOM=
+			aDUaTC0ZxYBvNpCH97xjWjajUVw=
 			</data>
 			<key>hash2</key>
 			<data>
-			8biNuy13BTuP4vf8Yqk158NoPWPQCizUjl8Z8zT6iG0=
+			oSWOWqtd+fMrA4HvrsUd5BLvzy396Mo+y+1YhFJvAU8=
 			</data>
 		</dict>
-		<key>Extensions/11/kbfuse.kext/Contents/_CodeSignature/CodeResources</key>
+		<key>Extensions/12/kbfuse.kext/Contents/_CodeSignature/CodeResources</key>
 		<dict>
 			<key>hash</key>
 			<data>
@@ -60,20 +60,20 @@
 			ZobeEKKKL+EbNsu4bcusyCfPxOoRa02r8YReWu5inps=
 			</data>
 		</dict>
-		<key>Extensions/12</key>
+		<key>Extensions/13</key>
 		<dict>
 			<key>symlink</key>
-			<string>11</string>
+			<string>12</string>
 		</dict>
 		<key>Resources/License.rtf</key>
 		<dict>
 			<key>hash</key>
 			<data>
-			x6c37K72BlICVZ9LMOEiRsvpmY0=
+			Mwjz7gi9MLysLbm8GlJWeXvLVII=
 			</data>
 			<key>hash2</key>
 			<data>
-			zlB84aa6oRTB16StPYMpFR/mqP2gBchvPQcMEKHWSr4=
+			en08fQDSfDm0bSJ5en3MvW9P8H4TLwR01QUw67d2Bf4=
 			</data>
 		</dict>
 		<key>Resources/Volume.icns</key>
@@ -91,33 +91,33 @@
 		<dict>
 			<key>hash</key>
 			<data>
-			OnWcr9+MyAZ+WyGtLwrcJlQd0KY=
+			0iEvwCSGsuryvzsAq3+xdrQ4M9k=
 			</data>
 			<key>hash2</key>
 			<data>
-			IKlBi58U7Qz7gsMqoO/LqxcZdLg9qGmejEjpzduLjyw=
+			EUqaZbBE++6ZmurhTLPriX9NUq8iHdt4VUeiDO3E2wM=
 			</data>
 		</dict>
 		<key>Resources/mount_kbfuse</key>
 		<dict>
 			<key>hash</key>
 			<data>
-			HCoX68qx9FDoHhU2panhUncJFmU=
+			+FrcaQTfSulzDzucr5uDnQ/DP5A=
 			</data>
 			<key>hash2</key>
 			<data>
-			s++3CkI6J133HUECkZ3LFU7eN8EOVXMrBzkDkaK6770=
+			abReLEfLA9GggObz8a2QenjsBwUKhijroNYO67pIk5w=
 			</data>
 		</dict>
 		<key>version.plist</key>
 		<dict>
 			<key>hash</key>
 			<data>
-			r2DkCLgX+6CcbRH0tqFytU3nazc=
+			fvVT6//ts6VLccQKcj4UgwmV3lQ=
 			</data>
 			<key>hash2</key>
 			<data>
-			vY7PjHLFmNdoYVXElQ8yLasZErJdJPjXSjNIYUoGqI0=
+			ej2rEPBNfsWNsBNGanpU7ltP4h7Z3E+057wGCxi+yAw=
 			</data>
 		</dict>
 	</dict>

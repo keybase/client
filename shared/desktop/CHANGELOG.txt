@@ -1,1 +1,1 @@
-• Various bug fixes and performance enhancements
+• Fix Finder integration on macOS Ventura
