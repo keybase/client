@@ -260,6 +260,7 @@ const ConversationList = React.memo(function ConversationList(p: {
       const type = messageTypeMap?.get(ordinal) ?? 'text'
       if (!type) return null
       const Clazz = getMessageRender(type)
+      if (!Clazz) return null
       return <Clazz ordinal={ordinal} previous={prevOrdinal} />
     },
     [messageOrdinals, conversationIDKey, messageTypeMap]

@@ -18,23 +18,6 @@ import PendingPaymentBackground from '../account-payment/pending-background'
 import ReactionsRow from '../reactions-row/container'
 import SendIndicator from './send-indicator'
 import type * as Types from '../../../../constants/types/chat2'
-import type PaymentMessageType from '../account-payment/container'
-import type PinType from '../pin'
-import type SetChannelnameType from '../set-channelname/container'
-import type SetDescriptionType from '../set-description/container'
-import type SystemAddedToTeamType from '../system-added-to-team/container'
-import type SystemChangeAvatarType from '../system-change-avatar'
-import type SystemChangeRetentionType from '../system-change-retention/container'
-import type SystemCreateTeamType from '../system-create-team/container'
-import type SystemGitPushType from '../system-git-push/container'
-import type SystemInviteAcceptedType from '../system-invite-accepted/container'
-import type SystemJoinedType from '../system-joined/container'
-import type SystemLeftType from '../system-left/container'
-import type SystemNewChannelType from '../system-new-channel/container'
-import type SystemSBSResolvedType from '../system-sbs-resolve/container'
-import type SystemSimpleToComplexType from '../system-simple-to-complex/container'
-import type SystemTextType from '../system-text/container'
-import type SystemUsersAddedToConvType from '../system-users-added-to-conv/container'
 import {formatTimeForChat} from '../../../../util/timestamp'
 import capitalize from 'lodash/capitalize'
 import type {TeamRoleType} from '../../../../constants/types/teams'
@@ -747,117 +730,6 @@ const RightSide = React.memo(function RightSide(p: RProps) {
   ) : null
 })
 
-const useMessageNode = (ordinal: Types.Ordinal) => {
-  const conversationIDKey = React.useContext(ConvoIDContext)
-
-  const message = Container.useSelector(state => Constants.getMessage(state, conversationIDKey, ordinal))
-  const youAreAuthor = Container.useSelector(
-    state => Constants.getMessage(state, conversationIDKey, ordinal)?.author === state.config.username
-  )
-
-  if (!message) return null
-
-  switch (message.type) {
-    case 'requestPayment': {
-      const PaymentMessage = require('../account-payment/container').default as typeof PaymentMessageType
-      return <PaymentMessage key="requestPayment" message={message} />
-    }
-    case 'sendPayment': {
-      const PaymentMessage = require('../account-payment/container').default as typeof PaymentMessageType
-      return <PaymentMessage key="sendPayment" message={message} />
-    }
-    case 'systemInviteAccepted': {
-      const SystemInviteAccepted = require('../system-invite-accepted/container')
-        .default as typeof SystemInviteAcceptedType
-      return <SystemInviteAccepted key="systemInviteAccepted" message={message} />
-    }
-    case 'systemSBSResolved':
-      if (youAreAuthor) {
-        const SystemSBSResolved = require('../system-sbs-resolve/container')
-          .default as typeof SystemSBSResolvedType
-        return <SystemSBSResolved key="systemSbsResolved" message={message} />
-      } else {
-        const SystemJoined = require('../system-joined/container').default as typeof SystemJoinedType
-        return (
-          <SystemJoined
-            key="systemJoined"
-            message={{...message, joiners: [message.prover], leavers: [], type: 'systemJoined'}}
-          />
-        )
-      }
-    case 'systemSimpleToComplex': {
-      const SystemSimpleToComplex = require('../system-simple-to-complex/container')
-        .default as typeof SystemSimpleToComplexType
-      return <SystemSimpleToComplex key="systemSimpleToComplex" message={message} />
-    }
-    case 'systemGitPush': {
-      const SystemGitPush = require('../system-git-push/container').default as typeof SystemGitPushType
-      return <SystemGitPush key="systemGitPush" message={message} />
-    }
-    case 'systemCreateTeam': {
-      const SystemCreateTeam = require('../system-create-team/container')
-        .default as typeof SystemCreateTeamType
-      return <SystemCreateTeam key="systemCreateTeam" message={message} />
-    }
-    case 'systemAddedToTeam': {
-      const SystemAddedToTeam = require('../system-added-to-team/container')
-        .default as typeof SystemAddedToTeamType
-      return <SystemAddedToTeam key="systemAddedToTeam" message={message} />
-    }
-    case 'systemChangeRetention': {
-      const SystemChangeRetention = require('../system-change-retention/container')
-        .default as typeof SystemChangeRetentionType
-      return <SystemChangeRetention key="systemChangeRetention" message={message} />
-    }
-    case 'systemUsersAddedToConversation': {
-      const SystemUsersAddedToConv = require('../system-users-added-to-conv/container')
-        .default as typeof SystemUsersAddedToConvType
-      return <SystemUsersAddedToConv key="systemUsersAddedToConv" message={message} />
-    }
-    case 'systemJoined': {
-      const SystemJoined = require('../system-joined/container').default as typeof SystemJoinedType
-      return <SystemJoined key="systemJoined" message={message} />
-    }
-    case 'systemText': {
-      const SystemText = require('../system-text/container').default as typeof SystemTextType
-      return <SystemText key="systemText" message={message} />
-    }
-    case 'systemLeft': {
-      const SystemLeft = require('../system-left/container').default as typeof SystemLeftType
-      return <SystemLeft key="systemLeft" message={message} />
-    }
-    case 'systemChangeAvatar': {
-      const SystemChangeAvatar = require('../system-change-avatar').default as typeof SystemChangeAvatarType
-      return <SystemChangeAvatar key="systemChangeAvatar" message={message} />
-    }
-    case 'systemNewChannel': {
-      const SystemNewChannel = require('../system-new-channel/container')
-        .default as typeof SystemNewChannelType
-      return <SystemNewChannel key="systemNewChannel" message={message} />
-    }
-    case 'setDescription': {
-      const SetDescription = require('../set-description/container').default as typeof SetDescriptionType
-      return <SetDescription key="setDescription" message={message} />
-    }
-    case 'pin': {
-      const Pin = require('../pin').default as typeof PinType
-      return (
-        <Pin key="pin" conversationIDKey={message.conversationIDKey} messageID={message.pinnedMessageID} />
-      )
-    }
-    case 'setChannelname': {
-      // suppress this message for the #general channel, it is redundant.
-      const SetChannelname = require('../set-channelname/container').default as typeof SetChannelnameType
-      return message.newChannelname === 'general' ? null : (
-        <SetChannelname key="setChannelname" message={message} />
-      )
-    }
-    default:
-      console.log('WrapperGeneric missing type???', message.type)
-      return null
-  }
-}
-
 const styles = Styles.styleSheetCreate(
   () =>
     ({
@@ -1016,15 +888,3 @@ const styles = Styles.styleSheetCreate(
       usernameHighlighted: {color: Styles.globalColors.blackOrBlack},
     } as const)
 )
-
-export const WrapperGeneric = React.memo(function WrapperText(p: Props) {
-  const {ordinal} = p
-  const common = useCommon(ordinal)
-  const messageNode = useMessageNode(ordinal)
-
-  return (
-    <WrapperMessage {...p} {...common}>
-      {messageNode}
-    </WrapperMessage>
-  )
-})

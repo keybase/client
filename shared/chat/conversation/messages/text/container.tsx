@@ -16,10 +16,18 @@ type OwnProps = {
 
 const replyNoop = () => {}
 
-const getReplyProps = (
+const useGetReplyProps = (
   replyTo: Types.Message | undefined,
-  onReplyClick: (m: Types.MessageID) => void
+  conversationIDKey: Types.ConversationIDKey
 ): ReplyProps | undefined => {
+  const dispatch = Container.useDispatch()
+
+  const replyToId = replyTo?.id
+
+  const onReplyClick = React.useCallback(() => {
+    replyToId && dispatch(Chat2Gen.createReplyJump({conversationIDKey, messageID: replyToId}))
+  }, [dispatch, conversationIDKey, replyToId])
+
   if (!replyTo) {
     return undefined
   }
@@ -43,7 +51,7 @@ const getReplyProps = (
             imageHeight: attachment ? attachment.previewHeight : undefined,
             imageURL: attachment ? attachment.previewURL : undefined,
             imageWidth: attachment ? attachment.previewWidth : undefined,
-            onClick: () => onReplyClick(replyTo.id),
+            onClick: onReplyClick,
             text:
               replyTo.type === 'attachment'
                 ? replyTo.title || (replyTo.attachmentType === 'image' ? '' : replyTo.fileName)
@@ -93,12 +101,6 @@ const TextMessageContainer = React.memo(function TextMessageContainer(p: OwnProp
   const onClaim = React.useCallback(() => {
     dispatch(RouteTreeGen.createNavigateAppend({path: ['walletOnboarding']}))
   }, [dispatch])
-  const onReplyClick = React.useCallback(
-    (messageID: Types.MessageID) => {
-      dispatch(Chat2Gen.createReplyJump({conversationIDKey, messageID}))
-    },
-    [dispatch, conversationIDKey]
-  )
 
   const text = Container.useSelector(state => {
     const m = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
@@ -114,11 +116,13 @@ const TextMessageContainer = React.memo(function TextMessageContainer(p: OwnProp
     return errorReason ? ('error' as const) : !m?.submitState ? ('sent' as const) : ('pending' as const)
   })
 
-  const reply = Container.useSelector(state => {
+  const replyTo = Container.useSelector(state => {
     const m = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
     const replyTo = m?.replyTo
-    return getReplyProps(replyTo || undefined, onReplyClick)
+    return replyTo
   }, shallowEqual)
+
+  const reply = useGetReplyProps(replyTo || undefined, conversationIDKey)
 
   const claim = claimProps ? {onClaim, ...claimProps} : undefined
 
