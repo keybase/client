@@ -62,7 +62,13 @@ export type PathAndOutboxID = {
 
 // optional props here may never get set depending on the type
 type _MessageCommon = {
+  attachmentType?: AttachmentType
+  fileName?: string
+  transferErrMsg?: string | null
+  transferState?: MessageAttachmentTransferState
+  fileType?: string // MIME type,
   unfurls?: UnfurlMap
+  downloadPath?: string | null // string if downloaded,
   author: string
   bodySummary: HiddenString
   botUsername?: string
