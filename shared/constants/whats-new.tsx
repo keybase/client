@@ -7,6 +7,7 @@ import type {
   WhatsNewVersion,
   WhatsNewVersions,
 } from './types/whats-new'
+import {memoize} from '../util/memoize'
 
 /*
  * IMPORTANT:
@@ -35,11 +36,12 @@ export const isVersionValid = (version: string) => {
   return version ? semver.valid(version) : false
 }
 
-export const anyVersionsUnseen = (lastSeenVersion: string): boolean =>
+export const anyVersionsUnseen = memoize((lastSeenVersion: string): boolean =>
   // On first load of what's new, lastSeenVersion == noVersion so everything is unseen
   lastLastVersion && lastSeenVersion === noVersion
     ? true
     : Object.values(getSeenVersions(lastSeenVersion)).some(seen => !seen)
+)
 
 export const getSeenVersions = (lastSeenVersion: string): seenVersionsMap => {
   // Mark all versions as seen so that the icon doesn't change as Gregor state is loading
