@@ -18,7 +18,6 @@ import PendingPaymentBackground from '../account-payment/pending-background'
 import ReactionsRow from '../reactions-row/container'
 import SendIndicator from './send-indicator'
 import type * as Types from '../../../../constants/types/chat2'
-import type AttachmentMessageType from '../attachment/container'
 import type MessagePlaceholderType from '../placeholder/container'
 import type PaymentMessageType from '../account-payment/container'
 import type PinType from '../pin'
@@ -749,14 +748,8 @@ const RightSide = React.memo(function RightSide(p: RProps) {
   ) : null
 })
 
-type UMN = {
-  ordinal: Types.Ordinal
-  conversationIDKey: Types.ConversationIDKey
-  showCenteredHighlight: boolean
-  toggleShowingPopup: () => void
-}
-const useMessageNode = (p: UMN) => {
-  const {showCenteredHighlight, toggleShowingPopup, conversationIDKey, ordinal} = p
+const useMessageNode = (ordinal: Types.Ordinal) => {
+  const conversationIDKey = React.useContext(ConvoIDContext)
 
   const message = Container.useSelector(state => Constants.getMessage(state, conversationIDKey, ordinal))
   const youAreAuthor = Container.useSelector(
@@ -766,17 +759,6 @@ const useMessageNode = (p: UMN) => {
   if (!message) return null
 
   switch (message.type) {
-    case 'attachment': {
-      const AttachmentMessage = require('../attachment/container').default as typeof AttachmentMessageType
-      return (
-        <AttachmentMessage
-          key="attachment"
-          message={message}
-          isHighlighted={showCenteredHighlight}
-          toggleMessageMenu={toggleShowingPopup}
-        />
-      )
-    }
     case 'requestPayment': {
       const PaymentMessage = require('../account-payment/container').default as typeof PaymentMessageType
       return <PaymentMessage key="requestPayment" message={message} />
@@ -878,6 +860,7 @@ const useMessageNode = (p: UMN) => {
     case 'deleted':
       return null
     default:
+      console.log('WrapperGeneric missing type???', message.type)
       return null
   }
 }
@@ -1042,12 +1025,9 @@ const styles = Styles.styleSheetCreate(
 )
 
 export const WrapperGeneric = React.memo(function WrapperText(p: Props) {
-  const conversationIDKey = React.useContext(ConvoIDContext)
   const {ordinal} = p
   const common = useCommon(ordinal)
-  const {showCenteredHighlight, toggleShowingPopup} = common
-
-  const messageNode = useMessageNode({conversationIDKey, ordinal, showCenteredHighlight, toggleShowingPopup})
+  const messageNode = useMessageNode(ordinal)
 
   return (
     <WrapperMessage {...p} {...common}>
