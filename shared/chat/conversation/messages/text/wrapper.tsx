@@ -111,11 +111,7 @@ const WrapperText = React.memo(function WrapperText(p: Props) {
 
   return (
     <WrapperMessage {...p} {...common} bottomChildren={bottomChildren}>
-      <TextMessage
-        isHighlighted={showCenteredHighlight}
-        conversationIDKey={conversationIDKey}
-        ordinal={ordinal}
-      />
+      <TextMessage isHighlighted={showCenteredHighlight} />
     </WrapperMessage>
   )
 })

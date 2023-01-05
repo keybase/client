@@ -4,6 +4,7 @@ import * as Constants from '../../../../constants/chat2'
 import * as Container from '../../../../util/container'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import * as WalletConstants from '../../../../constants/wallets'
+import {ConvoIDContext, OrdinalContext} from '../ids-context'
 import TextMessage, {type ReplyProps} from '.'
 import shallowEqual from 'shallowequal'
 import type * as Types from '../../../../constants/types/chat2'
@@ -88,7 +89,9 @@ const getClaimProps = (state: Container.TypedState, message: Types.MessageText) 
 }
 
 const TextMessageContainer = React.memo(function TextMessageContainer(p: OwnProps) {
-  const {conversationIDKey, ordinal, isHighlighted} = p
+  const conversationIDKey = React.useContext(ConvoIDContext)
+  const ordinal = React.useContext(OrdinalContext)
+  const {isHighlighted} = p
   const isEditing = Container.useSelector(state => {
     const editInfo = Constants.getEditInfo(state, conversationIDKey)
     return !!(editInfo && editInfo.ordinal === ordinal)

@@ -8,10 +8,9 @@ import * as Styles from '../../../styles'
 import * as Types from '../../../constants/types/chat2'
 import SpecialBottomMessage from '../messages/special-bottom-message'
 import SpecialTopMessage from '../messages/special-top-message'
-import logger from '../../../logger'
 import sortedIndexOf from 'lodash/sortedIndexOf'
 import type {ItemType} from '.'
-import {Animated, type ViewToken} from 'react-native'
+import {Animated /*, type ViewToken*/} from 'react-native'
 import {ConvoIDContext} from '../messages/ids-context'
 import {FlashList, type ListRenderItemInfo} from '@shopify/flash-list'
 import {getMessageRender} from '../messages/wrapper'
@@ -166,56 +165,14 @@ const useScrolling = (p: {
     }
   }, [listRef, centeredOrdinal, getOrdinalIndex])
 
-  // Was using onEndReached but that was really flakey
-  const _onViewableItemsChanged = React.useCallback(
-    ({viewableItems}: {viewableItems: Array<ViewToken>}) => {
-      const topRecord = viewableItems[viewableItems.length - 1]
-      const bottomRecord = viewableItems[0]
-      if (typeof topRecord?.index !== 'number' || typeof bottomRecord?.index !== 'number') {
-        return
-      }
-
-      // load more before we get to the top
-      const triggerIndex = messageOrdinals.length - 10
-      // we scroll back in time if the specialTop item is the last viewable, *unless* we are currently
-      // attempting to scroll to a centered ordinal
-      if (topRecord.index > triggerIndex) {
-        loadOlderMessages()
-      }
-    },
-    [loadOlderMessages, messageOrdinals]
-  )
-  // FlatList doesn't let you change this on the fly for some reason, so stash _onViewableItemsChanged into a ref and call it
-  const _onViewableItemsChangedRef = React.useRef<typeof _onViewableItemsChanged>(() => {})
-  _onViewableItemsChangedRef.current = a => _onViewableItemsChanged(a)
-  const onViewableItemsChangedRef = React.useRef<typeof _onViewableItemsChanged>(a =>
-    _onViewableItemsChangedRef.current(a)
-  )
-  const viewabilityConfigRef = React.useRef({viewAreaCoveragePercentThreshold: 0, waitForInteraction: true})
-  const viewabilityConfigCallbackPairsRef = React.useRef([
-    {
-      onViewableItemsChanged: onViewableItemsChangedRef.current,
-      viewabilityConfig: viewabilityConfigRef.current,
-    },
-  ])
-
-  const onScrollToIndexFailed = React.useCallback(
-    (info: {index: number; highestMeasuredFrameIndex: number; averageItemLength: number}) => {
-      logger.warn(
-        `scroll: onScrollToIndexFailed: failed to scroll to index: centeredOrdinal: ${Types.ordinalToNumber(
-          centeredOrdinal || Types.numberToOrdinal(0)
-        )} arg: ${JSON.stringify(info)}`
-      )
-      listRef.current?.scrollToIndex({animated: false, index: info.highestMeasuredFrameIndex})
-    },
-    [listRef, centeredOrdinal]
-  )
+  const onEndReached = React.useCallback(() => {
+    loadOlderMessages()
+  }, [loadOlderMessages])
 
   return {
-    onScrollToIndexFailed,
+    onEndReached,
     scrollToBottom,
     scrollToCentered,
-    viewabilityConfigCallbackPairsRef,
   }
 }
 
@@ -280,7 +237,7 @@ const ConversationList = React.memo(function ConversationList(p: {
     [messageOrdinals, messageTypeMap]
   )
 
-  const {scrollToCentered, scrollToBottom, viewabilityConfigCallbackPairsRef} = useScrolling({
+  const {scrollToCentered, scrollToBottom, onEndReached} = useScrolling({
     centeredOrdinal,
     conversationIDKey,
     listRef,
@@ -315,7 +272,7 @@ const ConversationList = React.memo(function ConversationList(p: {
             inverted={true}
             renderItem={renderItem}
             maintainVisibleContentPosition={maintainVisibleContentPosition}
-            viewabilityConfigCallbackPairs={viewabilityConfigCallbackPairsRef.current}
+            onEndReached={onEndReached}
             keyboardDismissMode="on-drag"
             keyboardShouldPersistTaps="handled"
             keyExtractor={keyExtractor}
