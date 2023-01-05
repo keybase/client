@@ -50,8 +50,8 @@ export default Container.connect(
       _teamID: meta.teamID,
       _teamMembers,
       _you: state.config.username,
-      pending: !!message.transferState,
       message,
+      pending: !!message.transferState,
     }
   },
   dispatch => ({

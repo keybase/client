@@ -28,7 +28,7 @@ const SimpleTopLine = React.memo(function SimpleTopLine(props: Props) {
     const teamname = (getMeta(state, conversationIDKey)?.teamname || layoutIsTeam ? layoutName : '') || ''
     const channelname = getMeta(state, conversationIDKey)?.channelname ?? ''
     const timeNum = (getMeta(state, conversationIDKey)?.timestamp ?? layoutTime) || 0
-    const hasBadge = Container.useSelector(state => (state.chat2.badgeMap.get(conversationIDKey) ?? 0) > 0)
+    const hasBadge = (state.chat2.badgeMap.get(conversationIDKey) ?? 0) > 0
     return {
       channelname,
       hasBadge,

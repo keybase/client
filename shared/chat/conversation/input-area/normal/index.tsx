@@ -41,7 +41,7 @@ const useHintText = (p: {
     const teamname = Constants.getMeta(state, conversationIDKey).teamname
     const channelname = Constants.getMeta(state, conversationIDKey).channelname
     const username = state.config.username
-    return {teamType, teamname, channelname, username}
+    return {channelname, teamType, teamname, username}
   }, shallowEqual)
   const participantInfoName = Container.useSelector(
     state => state.chat2.participantMap.get(conversationIDKey)?.name || Constants.noParticipantInfo.name,
