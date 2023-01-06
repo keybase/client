@@ -1,12 +1,15 @@
-import {SwipeTrigger} from '../../../../../common-adapters/swipeable.native'
-import {dismiss} from '../../../../../util/keyboard'
-import * as React from 'react'
+import * as Chat2Gen from '../../../../../actions/chat2-gen'
+import * as Container from '../../../../../util/container'
 import * as Kb from '../../../../../common-adapters/mobile.native'
+import * as React from 'react'
 import * as Styles from '../../../../../styles'
 import type {Props} from '.'
+import {GetIdsContext} from '../../ids-context'
+import {SwipeTrigger} from '../../../../../common-adapters/swipeable.native'
+import {dismiss} from '../../../../../util/keyboard'
 
 const LongPressable = React.memo(function LongPressable(props: Props) {
-  const {children, onLongPress, style, onSwipeLeft} = props
+  const {children, onLongPress, style} = props
   const onPress = React.useCallback(() => dismiss(), [])
 
   const inner = (
@@ -22,6 +25,13 @@ const LongPressable = React.memo(function LongPressable(props: Props) {
       </Kb.Box2>
     )
   }, [])
+
+  const getIds = React.useContext(GetIdsContext)
+  const dispatch = Container.useDispatch()
+  const onSwipeLeft = React.useCallback(() => {
+    const {conversationIDKey, ordinal} = getIds()
+    dispatch(Chat2Gen.createToggleReplyToMessage({conversationIDKey, ordinal}))
+  }, [dispatch, getIds])
 
   // Only swipeable if there is an onSwipeLeft handler
   if (onSwipeLeft) {

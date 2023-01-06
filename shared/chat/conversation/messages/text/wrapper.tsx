@@ -6,12 +6,16 @@ import * as Styles from '../../../../styles'
 import {useClaim} from './claim'
 import {useReply} from './reply'
 import {useBottom} from './bottom'
-import {ConvoIDContext} from '../ids-context'
+import {ConvoIDContext, OrdinalContext} from '../ids-context'
 import {WrapperMessage, useCommon, type Props} from '../wrapper/wrapper'
 import {sharedStyles} from '../shared-styles'
 
 // Encoding all 4 states as static objects so we don't re-render
-const getStyle = (type: 'error' | 'sent' | 'pending', isEditing: boolean, isHighlighted?: boolean) => {
+const getStyle = (
+  type: 'error' | 'sent' | 'pending',
+  isEditing: boolean,
+  isHighlighted?: boolean
+): Styles.StylesCrossPlatform => {
   if (isHighlighted) {
     return Styles.collapseStyles([sharedStyles.sent, sharedStyles.highlighted])
   } else if (type === 'sent') {
@@ -23,6 +27,30 @@ const getStyle = (type: 'error' | 'sent' | 'pending', isEditing: boolean, isHigh
       ? sharedStyles.pendingFailEditing
       : Styles.collapseStyles([sharedStyles.pendingFail, Styles.globalStyles.fastBackground])
   }
+}
+
+const MessageMarkdown = (p: {style: Styles.StylesCrossPlatform}) => {
+  const {style} = p
+  const conversationIDKey = React.useContext(ConvoIDContext)
+  const ordinal = React.useContext(OrdinalContext)
+  const text = Container.useSelector(state => {
+    const m = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
+    if (m?.type !== 'text') return ''
+    const decoratedText = m.decoratedText
+    const text = m.text
+    return decoratedText ? decoratedText.stringValue() : text ? text.stringValue() : ''
+  })
+
+  const styleOverride = React.useMemo(
+    () => (Styles.isMobile ? ({paragraph: style} as any) : undefined),
+    [style]
+  )
+
+  return (
+    <Kb.Markdown messageType="text" styleOverride={styleOverride} allowFontScaling={true}>
+      {text}
+    </Kb.Markdown>
+  )
 }
 
 const WrapperText = React.memo(function WrapperText(p: Props) {
@@ -40,14 +68,6 @@ const WrapperText = React.memo(function WrapperText(p: Props) {
     return !!(editInfo && editInfo.ordinal === ordinal)
   })
 
-  const text = Container.useSelector(state => {
-    const m = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
-    if (m?.type !== 'text') return ''
-    const decoratedText = m.decoratedText
-    const text = m.text
-    return decoratedText ? decoratedText.stringValue() : text ? text.stringValue() : ''
-  })
-
   const type = Container.useSelector(state => {
     const m = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
     const errorReason = m?.errorReason
@@ -58,18 +78,20 @@ const WrapperText = React.memo(function WrapperText(p: Props) {
     () => getStyle(type, isEditing, showCenteredHighlight),
     [type, isEditing, showCenteredHighlight]
   )
-  const styleOverride = React.useMemo(
-    () => (Styles.isMobile ? {paragraph: getStyle(type, isEditing, showCenteredHighlight)} : undefined),
-    [type, isEditing, showCenteredHighlight]
-  )
+
+  const children = React.useMemo(() => {
+    return (
+      <>
+        {reply}
+        <MessageMarkdown style={style} />
+        {claim}
+      </>
+    )
+  }, [reply, claim, style])
 
   return (
     <WrapperMessage {...p} {...common} bottomChildren={bottomChildren}>
-      {reply}
-      <Kb.Markdown style={style} messageType="text" styleOverride={styleOverride} allowFontScaling={true}>
-        {text}
-      </Kb.Markdown>
-      {claim}
+      {children}
     </WrapperMessage>
   )
 })

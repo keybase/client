@@ -8,7 +8,7 @@ import * as React from 'react'
 import * as Styles from '../../../../styles'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import shallowEqual from 'shallowequal'
-import {ConvoIDContext, OrdinalContext} from '../ids-context'
+import {ConvoIDContext, OrdinalContext, GetIdsContext} from '../ids-context'
 import EmojiRow from '../react-button/emoji-row/container'
 import ExplodingHeightRetainer from './exploding-height-retainer/container'
 import ExplodingMeta from './exploding-meta/container'
@@ -189,7 +189,7 @@ const useRedux = (
       botAlias,
       botname,
       decorate,
-      exploding,
+      exploding: !!exploding,
       hasReactions,
       isPendingPayment,
       orangeLineAbove,
@@ -204,9 +204,138 @@ const useRedux = (
   }, shallowEqual)
 }
 
+type TSProps = {
+  author: string
+  authorIsBot: boolean
+  authorRoleInTeam?: string
+  botAlias: string
+  botname: string
+  bottomChildren: React.ReactNode
+  children: React.ReactNode
+  decorate: boolean
+  ecrType: EditCancelRetryType
+  exploding: boolean
+  hasReactions: boolean
+  isPendingPayment: boolean
+  measure?: () => void
+  orangeLineAbove: boolean
+  popupAnchor: React.MutableRefObject<React.Component | null>
+  reactionsPopupPosition: 'none' | 'last' | 'middle'
+  setShowingPicker: (s: boolean) => void
+  showCenteredHighlight: boolean
+  showCoinsIcon: boolean
+  showExplodingCountdown: boolean
+  showRevoked: boolean
+  showSendIndicator: boolean
+  showUsername: string
+  showingPicker: boolean
+  showingPopup: boolean
+  timestamp: number
+  toggleShowingPopup: () => void
+  type: Types.MessageType
+  you: string
+}
+
+const TextAndSiblings = React.memo(function TextAndSiblings(p: TSProps) {
+  const {author, authorIsBot, authorRoleInTeam, botAlias, botname, bottomChildren, children, decorate} = p
+  const {ecrType, exploding, hasReactions, isPendingPayment, measure, orangeLineAbove, popupAnchor} = p
+  const {reactionsPopupPosition, setShowingPicker, showCenteredHighlight, showCoinsIcon} = p
+  const {showExplodingCountdown, showRevoked, showSendIndicator, showUsername, showingPicker} = p
+  const {showingPopup, timestamp, toggleShowingPopup, type, you} = p
+  const pressableProps = Styles.isMobile
+    ? {
+        onLongPress: decorate ? toggleShowingPopup : undefined,
+        style: showCenteredHighlight ? styles.longPressableHighlight : styles.longPressable,
+      }
+    : {
+        className: Styles.classNames(
+          {
+            'WrapperMessage-author': showUsername,
+            'WrapperMessage-centered': showCenteredHighlight,
+            'WrapperMessage-decorated': decorate,
+            'WrapperMessage-hoverColor': !isPendingPayment,
+            'WrapperMessage-noOverflow': isPendingPayment,
+            'WrapperMessage-systemMessage': type?.startsWith('system'),
+            active: showingPopup || showingPicker,
+            'hover-container': true,
+          },
+          'WrapperMessage-hoverBox'
+        ),
+        onContextMenu: toggleShowingPopup,
+        // attach popups to the message itself
+        ref: popupAnchor as any,
+      }
+
+  // TODO could move to sentPayment
+  const paymentBackground = isPendingPayment ? <PendingPaymentBackground /> : null
+
+  const content = exploding ? (
+    <Kb.Box2 direction="horizontal" fullWidth={true}>
+      <ExplodingHeightRetainer measure={measure}>{children}</ExplodingHeightRetainer>
+    </Kb.Box2>
+  ) : (
+    children
+  )
+
+  return (
+    <LongPressable {...pressableProps}>
+      {paymentBackground}
+      <LeftSide username={showUsername} />
+      <RightSide
+        botname={botname}
+        showSendIndicator={showSendIndicator}
+        showExplodingCountdown={showExplodingCountdown}
+        showRevoked={showRevoked}
+        showCoinsIcon={showCoinsIcon}
+        showCenteredHighlight={showCenteredHighlight}
+        toggleShowingPopup={toggleShowingPopup}
+      />
+      <Kb.Box2 direction="vertical" style={styles.middleSide} fullWidth={true}>
+        {showUsername ? (
+          <TopSide
+            author={author}
+            showUsername={showUsername}
+            showCenteredHighlight={showCenteredHighlight}
+            botAlias={botAlias}
+            you={you}
+            timestamp={timestamp}
+            authorRoleInTeam={authorRoleInTeam}
+            authorIsBot={authorIsBot}
+          />
+        ) : null}
+        {content}
+        <BottomSide
+          ecrType={ecrType}
+          reactionsPopupPosition={reactionsPopupPosition}
+          hasReactions={hasReactions}
+          orangeLineAbove={orangeLineAbove}
+          bottomChildren={bottomChildren}
+          measure={measure}
+          showCenteredHighlight={showCenteredHighlight}
+          toggleShowingPopup={toggleShowingPopup}
+          setShowingPicker={setShowingPicker}
+          showingPopup={showingPopup}
+        />
+      </Kb.Box2>
+    </LongPressable>
+  )
+})
+
 export const WrapperMessage = React.memo(function WrapperMessage(p: WMProps) {
   const conversationIDKey = React.useContext(ConvoIDContext)
   const {measure, ordinal, previous, bottomChildren, children} = p
+
+  // passed in context so stable
+  const conversationIDKeyRef = React.useRef(conversationIDKey)
+  const ordinalRef = React.useRef(ordinal)
+  React.useEffect(() => {
+    conversationIDKeyRef.current = conversationIDKey
+    ordinalRef.current = ordinal
+  }, [conversationIDKey, ordinal])
+  const getIds = React.useCallback(() => {
+    return {conversationIDKey: conversationIDKeyRef.current, ordinal: ordinalRef.current}
+  }, [])
+
   const {showCenteredHighlight, toggleShowingPopup, showingPopup, popup, popupAnchor} = p
   const [showingPicker, setShowingPicker] = React.useState(false)
 
@@ -218,24 +347,6 @@ export const WrapperMessage = React.memo(function WrapperMessage(p: WMProps) {
 
   const canFixOverdraw = !isPendingPayment && !showCenteredHighlight
   const canFixOverdrawValue = React.useMemo(() => ({canFixOverdraw}), [canFixOverdraw])
-
-  // TODO better way to measure
-  // const prevMessage = Container.usePrevious2(message)
-  // if (measure && message !== prevMessage) {
-  //   measure()
-  // }
-
-  const content = exploding ? (
-    <Kb.Box2 direction="horizontal" fullWidth={true}>
-      <ExplodingHeightRetainer conversationIDKey={conversationIDKey} ordinal={ordinal} measure={measure}>
-        {children}
-      </ExplodingHeightRetainer>
-    </Kb.Box2>
-  ) : (
-    children
-  )
-
-  const paymentBackground = isPendingPayment ? <PendingPaymentBackground /> : null
 
   const you = Container.useSelector(state => state.config.username)
   const authorIsBot = Container.useSelector(state => {
@@ -250,16 +361,16 @@ export const WrapperMessage = React.memo(function WrapperMessage(p: WMProps) {
   })
 
   const reactionsPopupPosition = Container.useSelector(state => {
-    if (Container.isMobile) return 'none'
+    if (Container.isMobile) return 'none' as const
     if (hasReactions) {
-      return 'none'
+      return 'none' as const
     }
     const message = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
     const validMessage = message && Constants.isMessageWithReactions(message)
-    if (!validMessage) return 'none'
+    if (!validMessage) return 'none' as const
 
     const ordinals = Constants.getMessageOrdinals(state, conversationIDKey)
-    return ordinals[ordinals.length - 1] === ordinal ? 'last' : 'middle'
+    return ordinals[ordinals.length - 1] === ordinal ? ('last' as const) : ('middle' as const)
   })
 
   const ecrType = Container.useSelector(state => {
@@ -291,94 +402,48 @@ export const WrapperMessage = React.memo(function WrapperMessage(p: WMProps) {
     return EditCancelRetryType.RETRY_CANCEL
   })
 
-  const presschildren = (
-    <>
-      {paymentBackground}
-      <LeftSide username={showUsername} />
-      <RightSide
-        botname={botname}
-        showSendIndicator={showSendIndicator}
-        showExplodingCountdown={showExplodingCountdown}
-        showRevoked={showRevoked}
-        showCoinsIcon={showCoinsIcon}
-        showCenteredHighlight={showCenteredHighlight}
-        toggleShowingPopup={toggleShowingPopup}
-      />
-      <Kb.Box2 direction="vertical" style={styles.middleSide} fullWidth={true}>
-        {showUsername ? (
-          <TopSide
-            author={author}
-            botAlias={botAlias}
-            showUsername={showUsername}
-            showCenteredHighlight={showCenteredHighlight}
-            you={you}
-            timestamp={timestamp}
-            authorRoleInTeam={authorRoleInTeam}
-            authorIsBot={authorIsBot}
-          />
-        ) : null}
-        {content}
-        <BottomSide
-          ecrType={ecrType}
-          reactionsPopupPosition={reactionsPopupPosition}
-          hasReactions={hasReactions}
-          orangeLineAbove={orangeLineAbove}
-          bottomChildren={bottomChildren}
-          measure={measure}
-          showCenteredHighlight={showCenteredHighlight}
-          toggleShowingPopup={toggleShowingPopup}
-          setShowingPicker={setShowingPicker}
-          showingPopup={showingPopup}
-        />
-      </Kb.Box2>
-    </>
-  )
-
-  const dispatch = Container.useDispatch()
-  const onReply = React.useCallback(() => {
-    conversationIDKey &&
-      ordinal &&
-      dispatch(Chat2Gen.createToggleReplyToMessage({conversationIDKey, ordinal}))
-  }, [dispatch, conversationIDKey, ordinal])
-
-  const longPressable = Styles.isMobile ? (
-    <LongPressable
-      onLongPress={decorate ? toggleShowingPopup : undefined}
-      onSwipeLeft={onReply}
-      style={showCenteredHighlight ? styles.longPressableHighlight : styles.longPressable}
-    >
-      {presschildren}
-    </LongPressable>
-  ) : (
-    <LongPressable
-      className={Styles.classNames(
-        {
-          'WrapperMessage-author': showUsername,
-          'WrapperMessage-centered': showCenteredHighlight,
-          'WrapperMessage-decorated': decorate,
-          'WrapperMessage-hoverColor': !isPendingPayment,
-          'WrapperMessage-noOverflow': isPendingPayment,
-          'WrapperMessage-systemMessage': type?.startsWith('system'),
-          active: showingPopup || showingPicker,
-          'hover-container': true,
-        },
-        'WrapperMessage-hoverBox'
-      )}
-      onContextMenu={toggleShowingPopup}
-      // attach popups to the message itself
-      ref={popupAnchor as any}
-    >
-      {presschildren}
-    </LongPressable>
-  )
+  const tsprops = {
+    author,
+    authorIsBot,
+    authorRoleInTeam,
+    botAlias,
+    botname,
+    bottomChildren,
+    children,
+    decorate,
+    ecrType,
+    exploding,
+    hasReactions,
+    isPendingPayment,
+    measure,
+    orangeLineAbove,
+    popupAnchor,
+    reactionsPopupPosition,
+    setShowingPicker,
+    showCenteredHighlight,
+    showCoinsIcon,
+    showExplodingCountdown,
+    showRevoked,
+    showSendIndicator,
+    showUsername,
+    showingPicker,
+    showingPopup,
+    // hurts recycling and not needed
+    timestamp: showUsername ? timestamp : 0,
+    toggleShowingPopup,
+    type,
+    you,
+  }
 
   return (
-    <OrdinalContext.Provider value={ordinal}>
-      <Styles.StyleContext.Provider value={canFixOverdrawValue}>
-        {longPressable}
-        {popup}
-      </Styles.StyleContext.Provider>
-    </OrdinalContext.Provider>
+    <GetIdsContext.Provider value={getIds}>
+      <OrdinalContext.Provider value={ordinal}>
+        <Styles.StyleContext.Provider value={canFixOverdrawValue}>
+          <TextAndSiblings {...tsprops} />
+          {popup}
+        </Styles.StyleContext.Provider>
+      </OrdinalContext.Provider>
+    </GetIdsContext.Provider>
   )
 })
 

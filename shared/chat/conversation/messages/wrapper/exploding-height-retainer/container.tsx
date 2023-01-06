@@ -2,34 +2,28 @@ import * as React from 'react'
 import * as Constants from '../../../../../constants/chat2'
 import * as Container from '../../../../../util/container'
 import ExplodingHeightRetainer from '.'
-import type * as Types from '../../../../../constants/types/chat2'
+import {ConvoIDContext, OrdinalContext} from '../../ids-context'
+import shallowEqual from 'shallowequal'
 
 type OwnProps = {
-  conversationIDKey: Types.ConversationIDKey
-  ordinal: Types.Ordinal
   children: React.ReactNode
   measure?: () => void
 }
 
 const ExplodingHeightRetainerContainer = React.memo(function ExplodingHeightRetainerContainer(p: OwnProps) {
-  const {conversationIDKey, children, ordinal, measure} = p
-  const forceAsh = Container.useSelector(
-    state => !!Constants.getMessage(state, conversationIDKey, ordinal)?.explodingUnreadable
-  )
-  const exploding = Container.useSelector(
-    state => !!Constants.getMessage(state, conversationIDKey, ordinal)?.exploding
-  )
-  const exploded = Container.useSelector(
-    state => !!Constants.getMessage(state, conversationIDKey, ordinal)?.exploded
-  )
-  const explodedBy = Container.useSelector(
-    state => Constants.getMessage(state, conversationIDKey, ordinal)?.explodedBy
-  )
+  const conversationIDKey = React.useContext(ConvoIDContext)
+  const ordinal = React.useContext(OrdinalContext)
+  const {children, measure} = p
+  const {forceAsh, exploding, exploded, explodedBy, messageKey} = Container.useSelector(state => {
+    const m = Constants.getMessage(state, conversationIDKey, ordinal)
+    const forceAsh = !!m?.explodingUnreadable
+    const exploding = !!m?.exploding
+    const exploded = !!m?.exploded
+    const explodedBy = m?.explodedBy
+    const messageKey = m ? Constants.getMessageKey(m) : ''
+    return {exploded, explodedBy, exploding, forceAsh, messageKey}
+  }, shallowEqual)
 
-  const messageKey = Container.useSelector(state => {
-    const message = Constants.getMessage(state, conversationIDKey, ordinal)
-    return message ? Constants.getMessageKey(message) : ''
-  })
   const retainHeight = forceAsh || exploded
 
   const props = {

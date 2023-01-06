@@ -39,20 +39,31 @@ export const useBottom = (
     return {hasBeenEdited, hasCoinFlip, hasUnfurlList, hasUnfurlPrompts}
   }, shallowEqual)
 
-  return (
-    <WrapperTextBottom
-      hasBeenEdited={hasBeenEdited}
-      hasCoinFlip={hasCoinFlip}
-      hasUnfurlList={hasUnfurlList}
-      hasUnfurlPrompts={hasUnfurlPrompts}
-      measure={measure}
-      showCenteredHighlight={showCenteredHighlight}
-      toggleShowingPopup={toggleShowingPopup}
-    />
+  return React.useMemo(
+    () => (
+      <WrapperTextBottom
+        hasBeenEdited={hasBeenEdited}
+        hasCoinFlip={hasCoinFlip}
+        hasUnfurlList={hasUnfurlList}
+        hasUnfurlPrompts={hasUnfurlPrompts}
+        measure={measure}
+        showCenteredHighlight={showCenteredHighlight}
+        toggleShowingPopup={toggleShowingPopup}
+      />
+    ),
+    [
+      hasBeenEdited,
+      hasCoinFlip,
+      hasUnfurlList,
+      hasUnfurlPrompts,
+      measure,
+      showCenteredHighlight,
+      toggleShowingPopup,
+    ]
   )
 }
 
-const WrapperTextBottom = React.memo(function WrapperTextBottom(p: Props) {
+const WrapperTextBottom = function WrapperTextBottom(p: Props) {
   const {hasBeenEdited, hasUnfurlPrompts, hasUnfurlList, hasCoinFlip} = p
   const {toggleShowingPopup, measure, showCenteredHighlight} = p
   const edited = hasBeenEdited ? (
@@ -98,7 +109,7 @@ const WrapperTextBottom = React.memo(function WrapperTextBottom(p: Props) {
       {coinflip}
     </>
   )
-})
+}
 
 const styles = Styles.styleSheetCreate(
   () =>
