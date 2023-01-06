@@ -262,7 +262,6 @@ const ConversationList = React.memo(function ConversationList(p: {
       <ConvoIDContext.Provider value={conversationIDKey}>
         <Kb.Box style={styles.container}>
           <FlashList
-            estimatedItemSize={100}
             ListHeaderComponent={SpecialBottomMessage}
             ListFooterComponent={SpecialTopMessage}
             overScrollMode="never"
@@ -277,7 +276,6 @@ const ConversationList = React.memo(function ConversationList(p: {
             keyboardShouldPersistTaps="handled"
             keyExtractor={keyExtractor}
             ref={listRef}
-            removeClippedSubviews={Styles.isAndroid}
           />
           {jumpToRecent}
         </Kb.Box>

@@ -25,7 +25,6 @@ const WrapperPlaceholder = React.memo(function WrapperPlaceholder(p: Props) {
       popupAnchor={noAnchor}
     >
       <Kb.Box2 direction="horizontal" gap="tiny" style={styles.container}>
-        <Kb.ProgressIndicator style={styles.spinner} />
         <Kb.Placeholder width={width} />
       </Kb.Box2>
     </WrapperMessage>
