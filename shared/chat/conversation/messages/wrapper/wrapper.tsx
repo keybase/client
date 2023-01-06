@@ -163,11 +163,57 @@ const useRedux = (
     return ''
   }
 
+  const getReactionsPopupPosition = (
+    hasReactions: boolean,
+    message: Types.Message,
+    state: Container.TypedState
+  ) => {
+    if (Container.isMobile) return 'none' as const
+    if (hasReactions) {
+      return 'none' as const
+    }
+    const validMessage = message && Constants.isMessageWithReactions(message)
+    if (!validMessage) return 'none' as const
+
+    const ordinals = Constants.getMessageOrdinals(state, message.conversationIDKey)
+    return ordinals[ordinals.length - 1] === ordinal ? ('last' as const) : ('middle' as const)
+  }
+
+  const getEcrType = (message: Types.Message, you: string) => {
+    if (!message || !you) {
+      return EditCancelRetryType.NONE
+    }
+    const {errorReason, type, submitState} = message
+    if (
+      !errorReason ||
+      (type !== 'text' && type !== 'attachment') ||
+      (submitState !== 'pending' && submitState !== 'failed') ||
+      (message.type === 'text' && message.flipGameID)
+    ) {
+      return EditCancelRetryType.NONE
+    }
+
+    const {outboxID, errorTyp} = message
+    if (!!outboxID && errorTyp === RPCChatTypes.OutboxErrorType.toolong) {
+      return EditCancelRetryType.EDIT_CANCEL
+    }
+    if (outboxID) {
+      switch (errorTyp) {
+        case RPCChatTypes.OutboxErrorType.minwriter:
+        case RPCChatTypes.OutboxErrorType.restrictedbot:
+          return EditCancelRetryType.CANCEL
+      }
+    }
+    return EditCancelRetryType.RETRY_CANCEL
+  }
+
   return Container.useSelector(state => {
     const you = state.config.username
     const m = Constants.getMessage(state, conversationIDKey, ordinal) ?? missingMessage
+    const {exploded, submitState, author, timestamp, id} = m
+    const exploding = !!m.exploding
     const meta = Constants.getMeta(state, conversationIDKey)
-    const {exploding, exploded, submitState, author, timestamp, id} = m
+    const {teamname, teamType, teamID} = meta
     const isPendingPayment = Constants.isPendingPaymentMessage(state, m)
     const decorate = !exploded && !m.errorReason
     const type = m.type
@@ -176,23 +222,33 @@ const useRedux = (
     const showExplodingCountdown = !!exploding && !exploded && submitState !== 'failed'
     const showCoinsIcon = Constants.hasSuccessfulInlinePayments(state, m)
     const hasReactions = !Container.isMobile && (m.reactions?.size ?? 0) > 0
-    const authorRoleInTeam = state.teams.teamIDToMembers.get(meta.teamID ?? '')?.get(author)?.type
+    const authorRoleInTeam = state.teams.teamIDToMembers.get(teamID ?? '')?.get(author)?.type
     const botAlias = meta.botAliases[author] ?? ''
     const orangeLineAbove = state.chat2.orangeLineMap.get(conversationIDKey) === ordinal
     const botname = getBotname(state, m, meta, authorRoleInTeam)
     const pmessage = (previous && Constants.getMessage(state, conversationIDKey, previous)) || undefined
     const showUsername = getUsernameToShow(m, pmessage, you)
-
+    const participantInfoNames = Constants.getParticipantInfo(state, conversationIDKey).name
+    const authorIsBot = teamname
+      ? authorRoleInTeam === 'restrictedbot' || authorRoleInTeam === 'bot'
+      : teamType === 'adhoc' && participantInfoNames.length > 0 // teams without info may have type adhoc with an empty participant name list
+      ? !participantInfoNames.includes(author) // if adhoc, check if author in participants
+      : false // if we don't have team information, don't show bot icon
+    const reactionsPopupPosition = getReactionsPopupPosition(hasReactions, m, state)
+    const ecrType = getEcrType(m, you)
     return {
       author,
+      authorIsBot,
       authorRoleInTeam,
       botAlias,
       botname,
       decorate,
-      exploding: !!exploding,
+      ecrType,
+      exploding,
       hasReactions,
       isPendingPayment,
       orangeLineAbove,
+      reactionsPopupPosition,
       showCoinsIcon,
       showExplodingCountdown,
       showRevoked,
@@ -200,6 +256,7 @@ const useRedux = (
       showUsername,
       timestamp,
       type,
+      you,
     }
   }, shallowEqual)
 }
@@ -341,66 +398,13 @@ export const WrapperMessage = React.memo(function WrapperMessage(p: WMProps) {
 
   const mdata = useRedux(conversationIDKey, ordinal, previous)
 
-  const {isPendingPayment, decorate, type, author, timestamp, hasReactions} = mdata
+  const {isPendingPayment, decorate, type, author, timestamp, hasReactions, authorIsBot} = mdata
   const {showSendIndicator, showRevoked, showExplodingCountdown, exploding, showUsername} = mdata
-  const {showCoinsIcon, authorRoleInTeam, botAlias, orangeLineAbove, botname} = mdata
+  const {showCoinsIcon, authorRoleInTeam, botAlias, orangeLineAbove, botname, you} = mdata
+  const {reactionsPopupPosition, ecrType} = mdata
 
   const canFixOverdraw = !isPendingPayment && !showCenteredHighlight
   const canFixOverdrawValue = React.useMemo(() => ({canFixOverdraw}), [canFixOverdraw])
-
-  const you = Container.useSelector(state => state.config.username)
-  const authorIsBot = Container.useSelector(state => {
-    const participantInfoNames = Constants.getParticipantInfo(state, conversationIDKey).name
-    const meta = Constants.getMeta(state, conversationIDKey)
-    const {teamname, teamType} = meta
-    return teamname
-      ? authorRoleInTeam === 'restrictedbot' || authorRoleInTeam === 'bot'
-      : teamType === 'adhoc' && participantInfoNames.length > 0 // teams without info may have type adhoc with an empty participant name list
-      ? !participantInfoNames.includes(author) // if adhoc, check if author in participants
-      : false // if we don't have team information, don't show bot icon
-  })
-
-  const reactionsPopupPosition = Container.useSelector(state => {
-    if (Container.isMobile) return 'none' as const
-    if (hasReactions) {
-      return 'none' as const
-    }
-    const message = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
-    const validMessage = message && Constants.isMessageWithReactions(message)
-    if (!validMessage) return 'none' as const
-
-    const ordinals = Constants.getMessageOrdinals(state, conversationIDKey)
-    return ordinals[ordinals.length - 1] === ordinal ? ('last' as const) : ('middle' as const)
-  })
-
-  const ecrType = Container.useSelector(state => {
-    const message = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
-    if (!message || !state.config.username) {
-      return EditCancelRetryType.NONE
-    }
-    const {errorReason, type, submitState} = message
-    if (
-      !errorReason ||
-      (type !== 'text' && type !== 'attachment') ||
-      (submitState !== 'pending' && submitState !== 'failed') ||
-      (message.type === 'text' && message.flipGameID)
-    ) {
-      return EditCancelRetryType.NONE
-    }
-
-    const {outboxID, errorTyp} = message
-    if (!!outboxID && errorTyp === RPCChatTypes.OutboxErrorType.toolong) {
-      return EditCancelRetryType.EDIT_CANCEL
-    }
-    if (outboxID) {
-      switch (errorTyp) {
-        case RPCChatTypes.OutboxErrorType.minwriter:
-        case RPCChatTypes.OutboxErrorType.restrictedbot:
-          return EditCancelRetryType.CANCEL
-      }
-    }
-    return EditCancelRetryType.RETRY_CANCEL
-  })
 
   const tsprops = {
     author,
