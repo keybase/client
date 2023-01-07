@@ -7,25 +7,18 @@ import * as Styles from '../../../../styles'
 import * as WalletConstants from '../../../../constants/wallets'
 import shallowEqual from 'shallowequal'
 import type * as Types from '../../../../constants/types/chat2'
-import {ConvoIDContext} from '../ids-context'
-
-export type ClaimProps = {
-  amount: string
-  label: string
-  onClaim: () => void
-}
+import {ConvoIDContext, OrdinalContext} from '../ids-context'
 
 export const useClaim = (ordinal: Types.Ordinal) => {
   const conversationIDKey = React.useContext(ConvoIDContext)
-  const claimProps = Container.useSelector(state => {
+
+  const showClaim = Container.useSelector(state => {
     const m = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
-    return m?.type === 'text' ? getClaimProps(state, m) : undefined
-  }, shallowEqual)
-  const dispatch = Container.useDispatch()
-  const onClaim = React.useCallback(() => {
-    dispatch(RouteTreeGen.createNavigateAppend({path: ['walletOnboarding']}))
-  }, [dispatch])
-  return claimProps ? <Claim {...claimProps} onClaim={onClaim} /> : null
+    const paymentInfo =
+      (m?.type === 'text' || m?.type === 'sendPayment') && Constants.getPaymentMessageInfo(state, m)
+    return !!paymentInfo
+  })
+  return showClaim ? <Claim /> : null
 }
 
 const getClaimProps = (state: Container.TypedState, message: Types.MessageText) => {
@@ -45,17 +38,28 @@ const getClaimProps = (state: Container.TypedState, message: Types.MessageText) 
     ? `${paymentInfo.amountDescription}/${paymentInfo.issuerDescription}`
     : paymentInfo.amountDescription
   const amount = paymentInfo.worth ? paymentInfo.worth : amountDescription
-  // TODO dont return this object
   return {amount, label}
 }
 
-const Claim = (props: ClaimProps) => {
+const Claim = () => {
+  const conversationIDKey = React.useContext(ConvoIDContext)
+  const ordinal = React.useContext(OrdinalContext)
+  const dispatch = Container.useDispatch()
+  const onClaim = React.useCallback(() => {
+    dispatch(RouteTreeGen.createNavigateAppend({path: ['walletOnboarding']}))
+  }, [dispatch])
+  const info = Container.useSelector(state => {
+    const m = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
+    return m?.type === 'text' ? getClaimProps(state, m) : undefined
+  }, shallowEqual)
+  if (!info) return null
+  const {amount, label} = info
   return (
-    <Kb.Button type="Wallet" onClick={props.onClaim} small={true} style={styles.claimButton}>
+    <Kb.Button type="Wallet" onClick={onClaim} small={true} style={styles.claimButton}>
       <Kb.Text style={styles.claimLabel} type="BodySemibold">
-        {props.label}{' '}
+        {label}{' '}
         <Kb.Text style={styles.claimLabel} type="BodyExtrabold">
-          {props.amount}
+          {amount}
         </Kb.Text>
       </Kb.Text>
     </Kb.Button>

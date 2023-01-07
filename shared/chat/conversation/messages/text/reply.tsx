@@ -4,13 +4,12 @@ import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../../../styles'
-import {ConvoIDContext} from '../ids-context'
+import {ConvoIDContext, OrdinalContext} from '../ids-context'
 import type * as Types from '../../../../constants/types/chat2'
-import shallowEqual from 'shallowequal'
 
 const replyNoop = () => {}
 
-export type ReplyProps = {
+type ReplyProps = {
   deleted: boolean
   edited: boolean
   imageHeight?: number
@@ -24,17 +23,29 @@ export type ReplyProps = {
 
 export const useReply = (ordinal: Types.Ordinal, showCenteredHighlight: boolean) => {
   const conversationIDKey = React.useContext(ConvoIDContext)
-  const replyTo = Container.useSelector(state => {
-    const m = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
-    const replyTo = m?.replyTo
-    return replyTo
-  }, shallowEqual)
-
-  const replyProps = useGetReplyProps(replyTo || undefined, conversationIDKey)
-  return replyProps ? <Reply {...replyProps} isParentHighlighted={showCenteredHighlight} /> : null
+  const showReplyTo = Container.useSelector(
+    state => !!state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)?.replyTo
+  )
+  return showReplyTo ? <Reply isParentHighlighted={showCenteredHighlight} /> : null
 }
 
-const useGetReplyProps = (replyTo: Types.Message | undefined, conversationIDKey: Types.ConversationIDKey) => {
+const deletedProps: ReplyProps = {
+  deleted: true,
+  edited: false,
+  onClick: replyNoop,
+  text: '',
+  username: '',
+}
+
+const Reply = (p: {isParentHighlighted: boolean}) => {
+  const {isParentHighlighted} = p
+  const conversationIDKey = React.useContext(ConvoIDContext)
+  const ordinal = React.useContext(OrdinalContext)
+  const replyTo = Container.useSelector(state => {
+    const m = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
+    return m?.replyTo
+  })
+
   const dispatch = Container.useDispatch()
 
   const replyToId = replyTo?.id
@@ -43,22 +54,16 @@ const useGetReplyProps = (replyTo: Types.Message | undefined, conversationIDKey:
     replyToId && dispatch(Chat2Gen.createReplyJump({conversationIDKey, messageID: replyToId}))
   }, [dispatch, conversationIDKey, replyToId])
 
-  if (!replyTo) {
-    return undefined
-  }
-  const deletedProps = {
-    deleted: true,
-    edited: false,
-    onClick: replyNoop,
-    text: '',
-    username: '',
-  }
+  const [imageLoaded, setImageLoaded] = React.useState(false)
+
+  if (!replyTo) return null
+  let props = deletedProps
   switch (replyTo.type) {
-    case 'attachment':
+    case 'attachment': // fallthrough
     case 'text': {
       const attachment: Types.MessageAttachment | undefined =
         replyTo.type === 'attachment' && replyTo.attachmentType === 'image' ? replyTo : undefined
-      return replyTo.exploded
+      props = replyTo.exploded
         ? deletedProps
         : {
             deleted: false,
@@ -73,16 +78,12 @@ const useGetReplyProps = (replyTo: Types.Message | undefined, conversationIDKey:
                 : replyTo.text.stringValue(),
             username: replyTo.author,
           }
+      break
     }
-    case 'deleted':
-    case 'placeholder':
-      return deletedProps
+    default:
+      break
   }
-  return undefined
-}
 
-const Reply = (props: ReplyProps) => {
-  const [imageLoaded, setImageLoaded] = React.useState(false)
   const sizing =
     props.imageWidth && props.imageHeight
       ? Constants.zoomImage(props.imageWidth, props.imageHeight, 80)
@@ -105,7 +106,7 @@ const Reply = (props: ReplyProps) => {
                 type="BodySmallBold"
                 style={Styles.collapseStyles([
                   styles.replyUsername,
-                  props.isParentHighlighted && styles.replyUsernameHighlighted,
+                  isParentHighlighted && styles.replyUsernameHighlighted,
                 ])}
               >
                 {props.username}
@@ -129,7 +130,7 @@ const Reply = (props: ReplyProps) => {
               {!props.deleted ? (
                 <Kb.Text
                   type="BodySmall"
-                  style={Styles.collapseStyles([props.isParentHighlighted && styles.textHighlighted])}
+                  style={Styles.collapseStyles([isParentHighlighted && styles.textHighlighted])}
                   lineClamp={3}
                 >
                   {props.text}
