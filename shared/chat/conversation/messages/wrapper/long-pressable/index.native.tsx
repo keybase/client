@@ -14,7 +14,7 @@ const LongPressable = React.memo(function LongPressable(props: Props) {
 
   const inner = (
     <Kb.NativePressable key="longPressable" style={style} onLongPress={onLongPress} onPress={onPress}>
-      <Kb.NativeView style={styles.view}>{children}</Kb.NativeView>
+      {children}
     </Kb.NativePressable>
   )
 
