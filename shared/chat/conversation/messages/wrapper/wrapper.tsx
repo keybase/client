@@ -62,10 +62,12 @@ export const useCommon = (ordinal: Types.Ordinal) => {
   const conversationIDKey = React.useContext(ConvoIDContext)
   const showCenteredHighlight = useHighlightMode(conversationIDKey, ordinal)
 
-  const type = Container.useSelector(state => Constants.getMessage(state, conversationIDKey, ordinal)?.type)
-  const shouldShowPopup = Container.useSelector(state =>
-    Constants.shouldShowPopup(state, Constants.getMessage(state, conversationIDKey, ordinal) ?? undefined)
-  )
+  const {type, shouldShowPopup} = Container.useSelector(state => {
+    const m = Constants.getMessage(state, conversationIDKey, ordinal)
+    const type = m?.type
+    const shouldShowPopup = Constants.shouldShowPopup(state, m ?? undefined)
+    return {shouldShowPopup, type}
+  }, shallowEqual)
 
   const {toggleShowingPopup, showingPopup, popup, popupAnchor} = Kb.usePopup(attachTo =>
     messageShowsPopup(type) && shouldShowPopup && showingPopup ? (
@@ -479,10 +481,13 @@ const useHighlightMode = (conversationIDKey: Types.ConversationIDKey, ordinal: T
   }, [disableCenteredHighlight, setDisableCenteredHighlight, centeredOrdinalType])
 
   React.useEffect(() => {
-    return () => {
-      clearTimeout(timeoutIDRef.current)
+    if (centeredOrdinalType) {
+      return () => {
+        clearTimeout(timeoutIDRef.current)
+      }
     }
-  })
+    return
+  }, [centeredOrdinalType])
 
   React.useEffect(() => {
     updateHighlightMode()
@@ -615,13 +620,13 @@ const EditCancelRetry = React.memo(function EditCancelRetry(p: {ecrType: EditCan
   const {ecrType} = p
   const conversationIDKey = React.useContext(ConvoIDContext)
   const ordinal = React.useContext(OrdinalContext)
-  const outboxID = Container.useSelector(
-    state => state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)?.outboxID
-  )
-  const failureDescription = Container.useSelector(state => {
-    const reason = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)?.errorReason ?? ''
-    return `This messge failed to send${reason ? '. ' : ''}${capitalize(reason)}`
-  })
+  const {failureDescription, outboxID} = Container.useSelector(state => {
+    const m = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
+    const outboxID = m?.outboxID
+    const reason = m?.errorReason ?? ''
+    const failureDescription = `This messge failed to send${reason ? '. ' : ''}${capitalize(reason)}`
+    return {failureDescription, outboxID}
+  }, shallowEqual)
   const dispatch = Container.useDispatch()
   const onCancel = React.useCallback(() => {
     dispatch(Chat2Gen.createMessageDelete({conversationIDKey, ordinal}))
