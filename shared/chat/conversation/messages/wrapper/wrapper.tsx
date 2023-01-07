@@ -454,54 +454,12 @@ export const WrapperMessage = React.memo(function WrapperMessage(p: WMProps) {
 })
 
 const useHighlightMode = (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ordinal) => {
-  const centeredOrdinalInfo = Container.useSelector(state =>
-    state.chat2.messageCenterOrdinals.get(conversationIDKey)
-  )
-  const centeredOrdinalType =
-    centeredOrdinalInfo?.ordinal === ordinal ? centeredOrdinalInfo?.highlightMode : undefined
-  const [disableCenteredHighlight, setDisableCenteredHighlight] = React.useState(false)
-  const timeoutIDRef = React.useRef<any>(null)
-  const updateHighlightMode = React.useCallback(() => {
-    if (disableCenteredHighlight) {
-      return
-    }
-    switch (centeredOrdinalType) {
-      case 'flash':
-        setDisableCenteredHighlight(false)
-        clearTimeout(timeoutIDRef.current)
-        timeoutIDRef.current = setTimeout(() => {
-          setDisableCenteredHighlight(true)
-          timeoutIDRef.current = 0
-        }, 2000)
-        break
-      case 'always':
-        setDisableCenteredHighlight(false)
-        break
-    }
-  }, [disableCenteredHighlight, setDisableCenteredHighlight, centeredOrdinalType])
+  const centeredOrdinalType = Container.useSelector(state => {
+    const i = state.chat2.messageCenterOrdinals.get(conversationIDKey)
+    return i?.ordinal === ordinal ? i.highlightMode : undefined
+  })
 
-  React.useEffect(() => {
-    if (centeredOrdinalType) {
-      return () => {
-        clearTimeout(timeoutIDRef.current)
-      }
-    }
-    return
-  }, [centeredOrdinalType])
-
-  React.useEffect(() => {
-    updateHighlightMode()
-    // once on mount only
-    // eslint-disable-next-line
-  }, [])
-
-  const prevCenteredOrdinalTypeRef = React.useRef(centeredOrdinalType)
-  if (centeredOrdinalType && prevCenteredOrdinalTypeRef.current !== centeredOrdinalType) {
-    prevCenteredOrdinalTypeRef.current = centeredOrdinalType
-    updateHighlightMode()
-  }
-
-  return !disableCenteredHighlight && centeredOrdinalType !== undefined
+  return centeredOrdinalType !== undefined
 }
 
 const enoughTimeBetweenMessages = (mtimestamp?: number, ptimestamp?: number): boolean =>
