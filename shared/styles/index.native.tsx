@@ -129,7 +129,7 @@ export const borderRadius = 6
 export const dimensionWidth = Dimensions.get('window').width
 export const dimensionHeight = Dimensions.get('window').height
 export const headerExtraHeight = isTablet ? 16 : 0
-export const StyleContext = React.createContext({canFixOverdraw: true})
+export const CanFixOverdrawContext = React.createContext(false)
 export const dontFixOverdraw = {canFixOverdraw: false}
 export const yesFixOverdraw = {canFixOverdraw: true}
 export const undynamicColor = (col: any) => {

@@ -406,7 +406,6 @@ export const WrapperMessage = React.memo(function WrapperMessage(p: WMProps) {
   const {reactionsPopupPosition, ecrType} = mdata
 
   const canFixOverdraw = !isPendingPayment && !showCenteredHighlight
-  const canFixOverdrawValue = React.useMemo(() => ({canFixOverdraw}), [canFixOverdraw])
 
   const tsprops = {
     author,
@@ -444,10 +443,10 @@ export const WrapperMessage = React.memo(function WrapperMessage(p: WMProps) {
   return (
     <GetIdsContext.Provider value={getIds}>
       <OrdinalContext.Provider value={ordinal}>
-        <Styles.StyleContext.Provider value={canFixOverdrawValue}>
+        <Styles.CanFixOverdrawContext.Provider value={canFixOverdraw}>
           <TextAndSiblings {...tsprops} />
           {popup}
-        </Styles.StyleContext.Provider>
+        </Styles.CanFixOverdrawContext.Provider>
       </OrdinalContext.Provider>
     </GetIdsContext.Provider>
   )
@@ -545,12 +544,13 @@ const TopSide = React.memo(function TopSide(p: TProps) {
     usernameNode
   )
 
+  const canFixOverdraw = React.useContext(Styles.CanFixOverdrawContext)
   const timestampNode = (
     <Kb.Text
       type="BodyTiny"
-      fixOverdraw={false}
+      fixOverdraw={canFixOverdraw}
       virtualText={true}
-      style={Styles.collapseStyles([showCenteredHighlight && styles.timestampHighlighted])}
+      style={showCenteredHighlight ? styles.timestampHighlighted : undefined}
     >
       {formatTimeForChat(timestamp)}
     </Kb.Text>

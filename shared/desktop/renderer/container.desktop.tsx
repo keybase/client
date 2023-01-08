@@ -2,7 +2,7 @@ import * as React from 'react'
 import {Provider} from 'react-redux'
 import {GlobalKeyEventHandler} from '../../util/key-event-handler.desktop'
 import {GatewayProvider} from '@chardskarth/react-gateway'
-import {StyleContext, yesFixOverdraw} from '../../styles'
+import {CanFixOverdrawContext} from '../../styles'
 import './style.css'
 
 // if we want to load the read profiler before the app is loaded
@@ -15,9 +15,9 @@ const Root = ({store, children}: any) => {
   return (
     <GlobalKeyEventHandler>
       <GatewayProvider>
-        <StyleContext.Provider value={yesFixOverdraw}>
+        <CanFixOverdrawContext.Provider value={true}>
           <Provider store={store}>{children}</Provider>
-        </StyleContext.Provider>
+        </CanFixOverdrawContext.Provider>
       </GatewayProvider>
     </GlobalKeyEventHandler>
   )

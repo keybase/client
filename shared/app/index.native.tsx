@@ -96,9 +96,9 @@ const Keybase = () => {
       <Provider store={_store.store}>
         <PortalProvider>
           <SafeAreaProvider>
-            <Styles.StyleContext.Provider value={Styles.yesFixOverdraw}>
+            <Styles.CanFixOverdrawContext.Provider value={true}>
               <Main />
-            </Styles.StyleContext.Provider>
+            </Styles.CanFixOverdrawContext.Provider>
           </SafeAreaProvider>
         </PortalProvider>
         <NativeEventsToRedux />

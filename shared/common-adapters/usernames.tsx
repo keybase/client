@@ -259,7 +259,7 @@ const Usernames = React.memo(
     const withProfileCardPopup = p.withProfileCardPopup ?? true
     const you = Container.useSelector(state => state.config.username)
 
-    const styleContext = React.useContext(Styles.StyleContext)
+    const canFixOverdraw = React.useContext(Styles.CanFixOverdrawContext)
     const containerStyle2: Styles.StylesCrossPlatform = inline
       ? (styles.inlineStyle as any)
       : (styles.nonInlineStyle as any)
@@ -280,7 +280,7 @@ const Usernames = React.memo(
       <Text
         type={type}
         negative={isNegative}
-        fixOverdraw={fixOverdraw === 'auto' ? styleContext.canFixOverdraw : fixOverdraw ?? false}
+        fixOverdraw={fixOverdraw === 'auto' ? canFixOverdraw : fixOverdraw ?? false}
         style={Styles.collapseStyles([containerStyle2, containerStyle])}
         title={title}
         ellipsizeMode="tail"

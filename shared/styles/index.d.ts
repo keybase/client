@@ -160,7 +160,7 @@ export type {
 } from './css'
 export {default as classNames} from 'classnames'
 export {default as styled} from '@emotion/styled'
-export declare const StyleContext: React.Context<{canFixOverdraw: boolean}>
+export declare const CanFixOverdrawContext: React.Context<boolean>
 export declare const dontFixOverdraw: {canFixOverdraw: false}
 export declare const yesFixOverdraw: {canFixOverdraw: true}
 export declare const undynamicColor: (col: any) => any
