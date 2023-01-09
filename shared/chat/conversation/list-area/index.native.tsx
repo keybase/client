@@ -8,9 +8,10 @@ import * as Styles from '../../../styles'
 import * as Types from '../../../constants/types/chat2'
 import SpecialBottomMessage from '../messages/special-bottom-message'
 import SpecialTopMessage from '../messages/special-top-message'
+import Separator from '../messages/separator'
 import sortedIndexOf from 'lodash/sortedIndexOf'
 import type {ItemType} from '.'
-import {Animated /*, type ViewToken*/} from 'react-native'
+import {Animated} from 'react-native'
 import {ConvoIDContext} from '../messages/ids-context'
 import {FlashList, type ListRenderItemInfo} from '@shopify/flash-list'
 import {getMessageRender} from '../messages/wrapper'
@@ -63,9 +64,8 @@ type SentProps = {
   children?: React.ReactElement
   conversationIDKey: Types.ConversationIDKey
   ordinal: Types.Ordinal
-  prevOrdinal: Types.Ordinal | undefined
 }
-const Sent_ = ({conversationIDKey, ordinal, prevOrdinal}: SentProps) => {
+const Sent_ = ({conversationIDKey, ordinal}: SentProps) => {
   const you = Container.useSelector(state => state.config.username)
   const youSent = Container.useSelector(state => {
     const message = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
@@ -86,7 +86,7 @@ const Sent_ = ({conversationIDKey, ordinal, prevOrdinal}: SentProps) => {
 
   const Clazz = getMessageRender(type)
   if (!Clazz) return null
-  const children = <Clazz ordinal={ordinal} previous={prevOrdinal} />
+  const children = <Clazz ordinal={ordinal} />
 
   // if state is null we already animated it
   if (youSent && state === undefined) {
@@ -209,16 +209,15 @@ const ConversationList = React.memo(function ConversationList(p: {
       if (!ordinal) {
         return null
       }
-      const prevOrdinal = messageOrdinals[index + 1]
       if (!index) {
-        return <Sent ordinal={ordinal} prevOrdinal={prevOrdinal} conversationIDKey={conversationIDKey} />
+        return <Sent ordinal={ordinal} conversationIDKey={conversationIDKey} />
       }
 
       const type = messageTypeMap?.get(ordinal) ?? 'text'
       if (!type) return null
       const Clazz = getMessageRender(type)
       if (!Clazz) return null
-      return <Clazz ordinal={ordinal} previous={prevOrdinal} />
+      return <Clazz ordinal={ordinal} />
     },
     [messageOrdinals, conversationIDKey, messageTypeMap]
   )
@@ -266,6 +265,7 @@ const ConversationList = React.memo(function ConversationList(p: {
             estimatedItemSize={Styles.isAndroid ? 30 : undefined}
             ListHeaderComponent={SpecialBottomMessage}
             ListFooterComponent={SpecialTopMessage}
+            ItemSeparatorComponent={Separator}
             overScrollMode="never"
             contentContainerStyle={styles.contentContainer}
             data={messageOrdinals}

@@ -1,7 +1,5 @@
 import * as Constants from '../../../../constants/chat2'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
-import * as ProfileGen from '../../../../actions/profile-gen'
-import * as Tracker2Gen from '../../../../actions/tracker2-gen'
 import * as Container from '../../../../util/container'
 import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
@@ -18,19 +16,12 @@ import PendingPaymentBackground from '../account-payment/pending-background'
 import ReactionsRow from '../reactions-row/container'
 import SendIndicator from './send-indicator'
 import type * as Types from '../../../../constants/types/chat2'
-import {formatTimeForChat} from '../../../../util/timestamp'
 import capitalize from 'lodash/capitalize'
 import type {TeamRoleType} from '../../../../constants/types/teams'
-
-/**
- * WrapperMessage adds the orange line, menu button, menu, reacji
- * row, and exploding meta tag.
- */
 
 export type Props = {
   ordinal: Types.Ordinal
   measure?: () => void
-  previous?: Types.Ordinal
 }
 
 const messageShowsPopup = (type?: Types.Message['type']) =>
@@ -97,11 +88,7 @@ type WMProps = {
   popupAnchor: React.MutableRefObject<React.Component | null>
 } & Props
 
-const useRedux = (
-  conversationIDKey: Types.ConversationIDKey,
-  ordinal: Types.Ordinal,
-  previous?: Types.Ordinal
-) => {
+const useRedux = (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ordinal) => {
   const getBotname = (
     state: Container.TypedState,
     message: Types.Message,
@@ -117,52 +104,6 @@ const useRedux = (
       ? !participantInfoNames.includes(message.author) // if adhoc, check if author in participants
       : false // if we don't have team information, don't show bot icon
     return !authorIsBot ? keyedBot : ''
-  }
-
-  const getUsernameToShow = (message: Types.Message, pMessage: Types.Message | undefined, you: string) => {
-    switch (message.type) {
-      case 'journeycard':
-        return 'placeholder'
-      case 'systemAddedToTeam':
-        return message.adder
-      case 'systemInviteAccepted':
-        return message.invitee === you ? '' : message.invitee
-      case 'setDescription':
-      case 'pin':
-      case 'systemUsersAddedToConversation':
-        return message.author
-      case 'systemJoined': {
-        const joinLeaveLength = (message?.joiners?.length ?? 0) + (message?.leavers?.length ?? 0)
-        return joinLeaveLength > 1 ? '' : message.author
-      }
-      case 'systemSBSResolved':
-        return message.prover
-      case 'setChannelname':
-        // suppress this message for the #general channel, it is redundant.
-        return message.newChannelname !== 'general' ? message.author : ''
-      case 'attachment':
-      case 'requestPayment':
-      case 'sendPayment':
-      case 'text':
-        break
-      default:
-        return message.author
-    }
-
-    if (!pMessage) return ''
-
-    if (
-      !pMessage.type ||
-      pMessage.author !== message.author ||
-      pMessage.botUsername !== message.botUsername ||
-      !authorIsCollapsible(message.type) ||
-      !authorIsCollapsible(pMessage.type) ||
-      enoughTimeBetweenMessages(message.timestamp, pMessage.timestamp)
-    ) {
-      return message.author
-    }
-    // should be impossible
-    return ''
   }
 
   const getReactionsPopupPosition = (
@@ -212,10 +153,8 @@ const useRedux = (
   return Container.useSelector(state => {
     const you = state.config.username
     const m = Constants.getMessage(state, conversationIDKey, ordinal) ?? missingMessage
-    const {exploded, submitState, author, timestamp, id} = m
+    const {exploded, submitState, author, id} = m
     const exploding = !!m.exploding
-    const meta = Constants.getMeta(state, conversationIDKey)
-    const {teamname, teamType, teamID} = meta
     const isPendingPayment = Constants.isPendingPaymentMessage(state, m)
     const decorate = !exploded && !m.errorReason
     const type = m.type
@@ -224,39 +163,23 @@ const useRedux = (
     const showExplodingCountdown = !!exploding && !exploded && submitState !== 'failed'
     const showCoinsIcon = Constants.hasSuccessfulInlinePayments(state, m)
     const hasReactions = !Container.isMobile && (m.reactions?.size ?? 0) > 0
-    const authorRoleInTeam = state.teams.teamIDToMembers.get(teamID ?? '')?.get(author)?.type
-    const botAlias = meta.botAliases[author] ?? ''
-    const orangeLineAbove = state.chat2.orangeLineMap.get(conversationIDKey) === ordinal
+    const meta = Constants.getMeta(state, conversationIDKey)
+    const authorRoleInTeam = state.teams.teamIDToMembers.get(meta?.teamID ?? '')?.get(author)?.type
     const botname = getBotname(state, m, meta, authorRoleInTeam)
-    const pmessage = (previous && Constants.getMessage(state, conversationIDKey, previous)) || undefined
-    const showUsername = getUsernameToShow(m, pmessage, you)
-    const participantInfoNames = Constants.getParticipantInfo(state, conversationIDKey).name
-    const authorIsBot = teamname
-      ? authorRoleInTeam === 'restrictedbot' || authorRoleInTeam === 'bot'
-      : teamType === 'adhoc' && participantInfoNames.length > 0 // teams without info may have type adhoc with an empty participant name list
-      ? !participantInfoNames.includes(author) // if adhoc, check if author in participants
-      : false // if we don't have team information, don't show bot icon
     const reactionsPopupPosition = getReactionsPopupPosition(hasReactions, m, state)
     const ecrType = getEcrType(m, you)
     return {
-      author,
-      authorIsBot,
-      authorRoleInTeam,
-      botAlias,
       botname,
       decorate,
       ecrType,
       exploding,
       hasReactions,
       isPendingPayment,
-      orangeLineAbove,
       reactionsPopupPosition,
       showCoinsIcon,
       showExplodingCountdown,
       showRevoked,
       showSendIndicator,
-      showUsername,
-      timestamp,
       type,
       you,
     }
@@ -264,10 +187,6 @@ const useRedux = (
 }
 
 type TSProps = {
-  author: string
-  authorIsBot: boolean
-  authorRoleInTeam?: string
-  botAlias: string
   botname: string
   bottomChildren: React.ReactNode
   children: React.ReactNode
@@ -277,7 +196,6 @@ type TSProps = {
   hasReactions: boolean
   isPendingPayment: boolean
   measure?: () => void
-  orangeLineAbove: boolean
   popupAnchor: React.MutableRefObject<React.Component | null>
   reactionsPopupPosition: 'none' | 'last' | 'middle'
   setShowingPicker: (s: boolean) => void
@@ -286,30 +204,27 @@ type TSProps = {
   showExplodingCountdown: boolean
   showRevoked: boolean
   showSendIndicator: boolean
-  showUsername: string
   showingPicker: boolean
   showingPopup: boolean
-  timestamp: number
   toggleShowingPopup: () => void
   type: Types.MessageType
   you: string
 }
 
 const TextAndSiblings = React.memo(function TextAndSiblings(p: TSProps) {
-  const {author, authorIsBot, authorRoleInTeam, botAlias, botname, bottomChildren, children, decorate} = p
-  const {ecrType, exploding, hasReactions, isPendingPayment, measure, orangeLineAbove, popupAnchor} = p
-  const {reactionsPopupPosition, setShowingPicker, showCenteredHighlight, showCoinsIcon} = p
-  const {showExplodingCountdown, showRevoked, showSendIndicator, showUsername, showingPicker} = p
-  const {showingPopup, timestamp, toggleShowingPopup, type, you} = p
+  const {botname, bottomChildren, children, decorate} = p
+  const {showingPopup, ecrType, exploding, hasReactions, isPendingPayment, measure, popupAnchor} = p
+  const {type, reactionsPopupPosition, setShowingPicker, showCenteredHighlight, showCoinsIcon} = p
+  const {toggleShowingPopup, showExplodingCountdown, showRevoked, showSendIndicator, showingPicker} = p
   const pressableProps = Styles.isMobile
     ? {
-        onLongPress: decorate ? toggleShowingPopup : undefined,
         highlight: showCenteredHighlight,
+        onLongPress: decorate ? toggleShowingPopup : undefined,
       }
     : {
         className: Styles.classNames(
           {
-            'WrapperMessage-author': showUsername,
+            // 'WrapperMessage-author': showUsername,
             'WrapperMessage-centered': showCenteredHighlight,
             'WrapperMessage-decorated': decorate,
             'WrapperMessage-hoverColor': !isPendingPayment,
@@ -337,9 +252,8 @@ const TextAndSiblings = React.memo(function TextAndSiblings(p: TSProps) {
   )
 
   return (
-    <LongPressable {...pressableProps}>
+    <LongPressable {...pressableProps} highlighted={showCenteredHighlight}>
       {paymentBackground}
-      <LeftSide username={showUsername} />
       <RightSide
         botname={botname}
         showSendIndicator={showSendIndicator}
@@ -350,24 +264,11 @@ const TextAndSiblings = React.memo(function TextAndSiblings(p: TSProps) {
         toggleShowingPopup={toggleShowingPopup}
       />
       <Kb.Box2 direction="vertical" style={styles.middleSide} fullWidth={true}>
-        {showUsername ? (
-          <TopSide
-            author={author}
-            showUsername={showUsername}
-            showCenteredHighlight={showCenteredHighlight}
-            botAlias={botAlias}
-            you={you}
-            timestamp={timestamp}
-            authorRoleInTeam={authorRoleInTeam}
-            authorIsBot={authorIsBot}
-          />
-        ) : null}
         {content}
         <BottomSide
           ecrType={ecrType}
           reactionsPopupPosition={reactionsPopupPosition}
           hasReactions={hasReactions}
-          orangeLineAbove={orangeLineAbove}
           bottomChildren={bottomChildren}
           measure={measure}
           showCenteredHighlight={showCenteredHighlight}
@@ -382,7 +283,7 @@ const TextAndSiblings = React.memo(function TextAndSiblings(p: TSProps) {
 
 export const WrapperMessage = React.memo(function WrapperMessage(p: WMProps) {
   const conversationIDKey = React.useContext(ConvoIDContext)
-  const {measure, ordinal, previous, bottomChildren, children} = p
+  const {measure, ordinal, bottomChildren, children} = p
 
   // passed in context so stable
   const conversationIDKeyRef = React.useRef(conversationIDKey)
@@ -398,20 +299,15 @@ export const WrapperMessage = React.memo(function WrapperMessage(p: WMProps) {
   const {showCenteredHighlight, toggleShowingPopup, showingPopup, popup, popupAnchor} = p
   const [showingPicker, setShowingPicker] = React.useState(false)
 
-  const mdata = useRedux(conversationIDKey, ordinal, previous)
+  const mdata = useRedux(conversationIDKey, ordinal)
 
-  const {isPendingPayment, decorate, type, author, timestamp, hasReactions, authorIsBot} = mdata
-  const {showSendIndicator, showRevoked, showExplodingCountdown, exploding, showUsername} = mdata
-  const {showCoinsIcon, authorRoleInTeam, botAlias, orangeLineAbove, botname, you} = mdata
-  const {reactionsPopupPosition, ecrType} = mdata
+  const {isPendingPayment, decorate, type, hasReactions} = mdata
+  const {ecrType, showSendIndicator, showRevoked, showExplodingCountdown, exploding} = mdata
+  const {reactionsPopupPosition, showCoinsIcon, botname, you} = mdata
 
   const canFixOverdraw = !isPendingPayment && !showCenteredHighlight
 
   const tsprops = {
-    author,
-    authorIsBot,
-    authorRoleInTeam,
-    botAlias,
     botname,
     bottomChildren,
     children,
@@ -421,7 +317,6 @@ export const WrapperMessage = React.memo(function WrapperMessage(p: WMProps) {
     hasReactions,
     isPendingPayment,
     measure,
-    orangeLineAbove,
     popupAnchor,
     reactionsPopupPosition,
     setShowingPicker,
@@ -430,11 +325,8 @@ export const WrapperMessage = React.memo(function WrapperMessage(p: WMProps) {
     showExplodingCountdown,
     showRevoked,
     showSendIndicator,
-    showUsername,
     showingPicker,
     showingPopup,
-    // hurts recycling and not needed
-    timestamp: showUsername ? timestamp : 0,
     toggleShowingPopup,
     type,
     you,
@@ -461,113 +353,7 @@ const useHighlightMode = (conversationIDKey: Types.ConversationIDKey, ordinal: T
   return centeredOrdinalType !== undefined
 }
 
-const enoughTimeBetweenMessages = (mtimestamp?: number, ptimestamp?: number): boolean =>
-  !!ptimestamp && !!mtimestamp && mtimestamp - ptimestamp > 1000 * 60 * 15
-
-// Used to decide whether to show the author for sequential messages
-const authorIsCollapsible = (type?: Types.MessageType) =>
-  type === 'text' || type === 'deleted' || type === 'attachment'
-
-type TProps = {
-  showCenteredHighlight: boolean
-  showUsername: string
-  authorRoleInTeam?: string
-  authorIsBot: boolean
-  author: string
-  botAlias: string
-  you: string
-  timestamp: number
-}
 // Author
-const TopSide = React.memo(function TopSide(p: TProps) {
-  const {you, author, botAlias, showUsername, authorIsBot, authorRoleInTeam, showCenteredHighlight} = p
-  const {timestamp} = p
-  const youAreAuthor = you === author
-
-  const dispatch = Container.useDispatch()
-  const onAuthorClick = React.useCallback(() => {
-    if (Container.isMobile) {
-      showUsername && dispatch(ProfileGen.createShowUserProfile({username: showUsername}))
-    } else {
-      showUsername && dispatch(Tracker2Gen.createShowUser({asTracker: true, username: showUsername}))
-    }
-  }, [dispatch, showUsername])
-
-  const authorIsOwner = authorRoleInTeam === 'owner'
-  const authorIsAdmin = authorRoleInTeam === 'admin'
-
-  const usernameNode = (
-    <Kb.ConnectedUsernames
-      colorBroken={true}
-      colorFollowing={true}
-      colorYou={true}
-      onUsernameClicked={onAuthorClick}
-      fixOverdraw="auto"
-      style={showCenteredHighlight && youAreAuthor ? styles.usernameHighlighted : undefined}
-      type="BodySmallBold"
-      usernames={showUsername}
-      virtualText={true}
-    />
-  )
-
-  const ownerAdminTooltipIcon =
-    authorIsOwner || authorIsAdmin ? (
-      <Kb.WithTooltip tooltip={authorIsOwner ? 'Owner' : 'Admin'}>
-        <Kb.Icon
-          color={authorIsOwner ? Styles.globalColors.yellowDark : Styles.globalColors.black_35}
-          fontSize={10}
-          type="iconfont-crown-owner"
-        />
-      </Kb.WithTooltip>
-    ) : null
-
-  const botIcon = authorIsBot ? (
-    <Kb.WithTooltip tooltip="Bot">
-      <Kb.Icon fontSize={13} color={Styles.globalColors.black_35} type="iconfont-bot" />
-    </Kb.WithTooltip>
-  ) : null
-
-  const botAliasOrUsername = botAlias ? (
-    <Kb.Box2 direction="horizontal">
-      <Kb.Text type="BodySmallBold" style={styles.botAlias} lineClamp={1}>
-        {botAlias}
-      </Kb.Text>
-      <Kb.Text type="BodySmallBold" style={{color: Styles.globalColors.black}}>
-        &nbsp;[
-      </Kb.Text>
-      {showUsername}
-      <Kb.Text type="BodySmallBold" style={{color: Styles.globalColors.black}}>
-        ]
-      </Kb.Text>
-    </Kb.Box2>
-  ) : (
-    usernameNode
-  )
-
-  const canFixOverdraw = React.useContext(Styles.CanFixOverdrawContext)
-  const timestampNode = (
-    <Kb.Text
-      type="BodyTiny"
-      fixOverdraw={canFixOverdraw}
-      virtualText={true}
-      style={showCenteredHighlight ? styles.timestampHighlighted : undefined}
-    >
-      {formatTimeForChat(timestamp)}
-    </Kb.Text>
-  )
-
-  return (
-    <Kb.Box2 key="author" direction="horizontal" style={styles.authorContainer} gap="tiny">
-      <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true} style={styles.usernameCrown}>
-        {botAliasOrUsername}
-        {ownerAdminTooltipIcon}
-        {botIcon}
-        {timestampNode}
-      </Kb.Box2>
-    </Kb.Box2>
-  )
-})
-
 enum EditCancelRetryType {
   NONE,
   CANCEL,
@@ -638,18 +424,13 @@ type BProps = {
   setShowingPicker: (s: boolean) => void
   bottomChildren?: React.ReactNode
   hasReactions: boolean
-  orangeLineAbove: boolean
   reactionsPopupPosition: 'none' | 'last' | 'middle'
   ecrType: EditCancelRetryType
 }
-// Edited, reactions, orangeLine (top side but needs to render on top so here)
+// Edited, reactions
 const BottomSide = React.memo(function BottomSide(p: BProps) {
   const {showingPopup, setShowingPicker, bottomChildren, ecrType} = p
-  const {orangeLineAbove, hasReactions, reactionsPopupPosition} = p
-
-  const orangeLine = orangeLineAbove ? (
-    <Kb.Box2 key="orangeLine" direction="vertical" style={styles.orangeLine} />
-  ) : null
+  const {hasReactions, reactionsPopupPosition} = p
 
   const reactionsRow =
     !Container.isMobile && hasReactions ? (
@@ -671,40 +452,12 @@ const BottomSide = React.memo(function BottomSide(p: BProps) {
 
   return (
     <>
-      {orangeLine}
       {bottomChildren ?? null}
       {ecrType !== EditCancelRetryType.NONE ? <EditCancelRetry ecrType={ecrType} /> : null}
       {reactionsRow}
       {reactionsPopup}
     </>
   )
-})
-
-// Author Avatar
-type LProps = {
-  username?: string
-}
-const LeftSide = React.memo(function LeftSide(p: LProps) {
-  const {username} = p
-  const dispatch = Container.useDispatch()
-  const onAuthorClick = React.useCallback(() => {
-    if (!username) return
-    if (Container.isMobile) {
-      dispatch(ProfileGen.createShowUserProfile({username}))
-    } else {
-      dispatch(Tracker2Gen.createShowUser({asTracker: true, username}))
-    }
-  }, [dispatch, username])
-
-  return username ? (
-    <Kb.Avatar
-      size={32}
-      username={username}
-      skipBackground={true}
-      onClick={onAuthorClick}
-      style={styles.avatar}
-    />
-  ) : null
 })
 
 // Exploding, ... , sending, tombstone
@@ -765,46 +518,6 @@ const RightSide = React.memo(function RightSide(p: RProps) {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      authorContainer: Styles.platformStyles({
-        common: {
-          alignItems: 'flex-start',
-          alignSelf: 'flex-start',
-        },
-        isMobile: {marginTop: 8},
-      }),
-      avatar: Styles.platformStyles({
-        common: {position: 'absolute', top: 8},
-        isElectron: {left: Styles.globalMargins.small},
-        isMobile: {left: Styles.globalMargins.tiny},
-      }),
-      botAlias: Styles.platformStyles({
-        common: {color: Styles.globalColors.black},
-        isElectron: {
-          maxWidth: 240,
-          wordBreak: 'break-all',
-        },
-        isMobile: {maxWidth: 120},
-      }),
-      contentUnderAuthorContainer: Styles.platformStyles({
-        isElectron: {
-          // marginTop: -16,
-          // paddingLeft:
-          //   // Space for below the avatar
-          //   Styles.globalMargins.tiny + // right margin
-          //   Styles.globalMargins.small + // left margin
-          //   Styles.globalMargins.mediumLarge, // avatar
-        },
-        isMobile: {
-          // marginTop: -12,
-          // paddingBottom: 3,
-          // paddingLeft:
-          //   // Space for below the avatar
-          //   Styles.globalMargins.tiny + // right margin
-          //   Styles.globalMargins.tiny + // left margin
-          //   Styles.globalMargins.mediumLarge, // avatar
-          // paddingRight: Styles.globalMargins.tiny,
-        },
-      }),
       edited: {color: Styles.globalColors.black_20},
       editedHighlighted: {color: Styles.globalColors.black_20OrBlack},
       ellipsis: {
@@ -855,7 +568,6 @@ const styles = Styles.styleSheetCreate(
         isElectron: {height: 20},
         isMobile: {height: 24},
       }),
-      // menuButtonsWithAuthor: {marginTop: -16},
       messagePopupContainer: {marginRight: Styles.globalMargins.small},
       middleSide: {
         alignItems: 'stretch',
@@ -863,20 +575,6 @@ const styles = Styles.styleSheetCreate(
         paddingRight: 4,
       },
       moreActionsTooltip: {marginRight: -Styles.globalMargins.xxtiny},
-      orangeLine: {
-        // don't push down content due to orange line
-        backgroundColor: Styles.globalColors.orange,
-        flexShrink: 0,
-        height: 1,
-        left: 0,
-        position: 'absolute',
-        right: 0,
-        top: 0,
-      },
-      orangeLineCompensationLeft: Styles.platformStyles({
-        // compensate for containerNoUsername's padding
-        isMobile: {left: -Styles.globalMargins.mediumLarge},
-      }),
       paddingLeftTiny: {paddingLeft: Styles.globalMargins.tiny},
       rightSide: {
         backgroundColor: Styles.globalColors.white_90,
@@ -894,16 +592,5 @@ const styles = Styles.styleSheetCreate(
           lineHeight: 19,
         },
       }),
-      timestampHighlighted: {color: Styles.globalColors.black_50OrBlack_40},
-      usernameCrown: Styles.platformStyles({
-        isElectron: {
-          alignItems: 'baseline',
-          marginRight: 48,
-          position: 'relative',
-          top: -2,
-        },
-        isMobile: {alignItems: 'center'},
-      }),
-      usernameHighlighted: {color: Styles.globalColors.blackOrBlack},
     } as const)
 )

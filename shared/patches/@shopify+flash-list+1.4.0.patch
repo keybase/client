@@ -1,5 +1,5 @@
 diff --git a/node_modules/@shopify/flash-list/dist/FlashList.js b/node_modules/@shopify/flash-list/dist/FlashList.js
-index ea05c45..becc75d 100644
+index ea05c45..f194afa 100644
 --- a/node_modules/@shopify/flash-list/dist/FlashList.js
 +++ b/node_modules/@shopify/flash-list/dist/FlashList.js
 @@ -24,7 +24,7 @@ var FlashList = /** @class */ (function (_super) {
@@ -11,24 +11,12 @@ index ea05c45..becc75d 100644
          _this.transformStyleHorizontal = { transform: [{ scaleX: -1 }] };
          _this.distanceFromWindow = 0;
          _this.contentStyle = {
-diff --git a/node_modules/@shopify/flash-list/src/FlashList.tsx b/node_modules/@shopify/flash-list/src/FlashList.tsx
-index 5ec2c34..35ae9e8 100644
---- a/node_modules/@shopify/flash-list/src/FlashList.tsx
-+++ b/node_modules/@shopify/flash-list/src/FlashList.tsx
-@@ -5,6 +5,7 @@ import {
-   LayoutChangeEvent,
-   NativeSyntheticEvent,
-   NativeScrollEvent,
-+  Platform,
- } from "react-native";
- import {
-   BaseItemAnimator,
-@@ -68,7 +69,7 @@ class FlashList<T> extends React.PureComponent<
-   private rlvRef?: RecyclerListView<RecyclerListViewProps, any>;
-   private stickyContentContainerRef?: PureComponentWrapper;
-   private listFixedDimensionSize = 0; 
--  private transformStyle = { transform: [{ scaleY: -1 }] };
-+  private transformStyle = Platform.OS === 'ios' ? { transform: [{ scaleY: -1 }] } : {scaleY: -1};
-   private transformStyleHorizontal = { transform: [{ scaleX: -1 }] };
-   private distanceFromWindow = 0;
-   private contentStyle: ContentStyleExplicit = {
+@@ -116,7 +116,7 @@ var FlashList = /** @class */ (function (_super) {
+                 return null;
+             }
+             var leadingItem = _this.props.data[index];
+-            var trailingItem = _this.props.data[index + 1];
++            var trailingItem = _this.props.data[index + (this.props.inverted ? -1 : 1)];
+             var props = {
+                 leadingItem: leadingItem,
+                 trailingItem: trailingItem,
