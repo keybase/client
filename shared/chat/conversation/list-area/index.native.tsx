@@ -262,6 +262,7 @@ const ConversationList = React.memo(function ConversationList(p: {
       <ConvoIDContext.Provider value={conversationIDKey}>
         <Kb.Box style={styles.container}>
           <FlashList
+            estimatedItemSize={Styles.isAndroid ? 30 : undefined}
             ListHeaderComponent={SpecialBottomMessage}
             ListFooterComponent={SpecialTopMessage}
             overScrollMode="never"

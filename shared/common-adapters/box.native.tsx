@@ -108,7 +108,7 @@ const Box2 = React.forwardRef(function Box2Inner(props: Box2Props, ref: React.Re
         style,
       ])}
       onLayout={onLayout}
-      pointerEvents={pointerEvents || 'auto'}
+      pointerEvents={pointerEvents}
     >
       {gappedChildren}
     </View>

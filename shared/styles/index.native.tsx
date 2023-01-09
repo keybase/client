@@ -83,6 +83,21 @@ if (isIOS) {
 export const statusBarHeight = iPhoneXHelper.getStatusBarHeight(true)
 export const hairlineWidth = StyleSheet.hairlineWidth
 export const styleSheetCreate = (obj: any) => styleSheetCreateProxy(obj, o => StyleSheet.create(o as any))
+// used to find specific styles to help debug perf
+// export const styleSheetCreate = (obj: any) => {
+//   return styleSheetCreateProxy(obj, o => {
+//     Object.keys(o).forEach(name => {
+//       const style = o[name]
+//       Object.keys(style).forEach(sname => {
+//         if (sname === 'borderRadius') {
+//           console.log('aaa found style', style, sname)
+//         }
+//       })
+//     })
+
+//     return StyleSheet.create(o as any)
+//   })
+// }
 export {isDarkMode}
 export const collapseStyles = (
   styles: ReadonlyArray<CollapsibleStyle>
