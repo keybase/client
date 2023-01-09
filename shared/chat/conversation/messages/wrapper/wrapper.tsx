@@ -304,7 +304,7 @@ const TextAndSiblings = React.memo(function TextAndSiblings(p: TSProps) {
   const pressableProps = Styles.isMobile
     ? {
         onLongPress: decorate ? toggleShowingPopup : undefined,
-        style: showCenteredHighlight ? styles.longPressableHighlight : styles.longPressable,
+        highlight: showCenteredHighlight,
       }
     : {
         className: Styles.classNames(
@@ -845,19 +845,6 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       failUnderline: {color: Styles.globalColors.redDark, textDecorationLine: 'underline'},
-      longPressable: {
-        overflow: 'hidden',
-        paddingBottom: 3,
-        paddingRight: Styles.globalMargins.tiny,
-        paddingTop: 3,
-      },
-      longPressableHighlight: {
-        backgroundColor: Styles.globalColors.yellowOrYellowAlt,
-        overflow: 'hidden',
-        paddingBottom: 3,
-        paddingRight: Styles.globalMargins.tiny,
-        paddingTop: 3,
-      },
       menuButtons: Styles.platformStyles({
         common: {
           alignSelf: 'flex-start',

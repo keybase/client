@@ -9,11 +9,16 @@ import {SwipeTrigger} from '../../../../../common-adapters/swipeable.native'
 import {dismiss} from '../../../../../util/keyboard'
 
 const LongPressable = React.memo(function LongPressable(props: Props) {
-  const {children, onLongPress, style} = props
+  const {children, onLongPress, highlighted} = props
   const onPress = React.useCallback(() => dismiss(), [])
 
   const inner = (
-    <Kb.NativePressable key="longPressable" style={style} onLongPress={onLongPress} onPress={onPress}>
+    <Kb.NativePressable
+      key="longPressable"
+      style={highlighted ? styles.highlight : styles.noHighlight}
+      onLongPress={onLongPress}
+      onPress={onPress}
+    >
       {children}
     </Kb.NativePressable>
   )
@@ -48,6 +53,17 @@ const LongPressable = React.memo(function LongPressable(props: Props) {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
+      highlight: {
+        backgroundColor: Styles.globalColors.yellowOrYellowAlt,
+        paddingBottom: 3,
+        paddingRight: Styles.globalMargins.tiny,
+        paddingTop: 3,
+      },
+      noHighlight: {
+        paddingBottom: 3,
+        paddingRight: Styles.globalMargins.tiny,
+        paddingTop: 3,
+      },
       reply: {
         alignSelf: 'flex-end',
         justifyContent: 'flex-end',
