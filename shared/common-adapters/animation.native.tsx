@@ -2,7 +2,7 @@ import * as React from 'react'
 import Box from './box'
 import LottieView from 'lottie-react-native'
 import type {Props} from './animation'
-import {useDepChangeEffect, isAndroid} from '../util/container'
+import {useDepChangeEffect} from '../util/container'
 type AnimationObject = {
   v: string
   fr: number
@@ -30,8 +30,7 @@ const Animation = React.memo(function Animation(props: Props) {
     source.current = data
   }, [animationType])
 
-  // android perf is really hurt due to this. Short term let it run once and hang out while we decide an alternative
-  const allowLoop = !isAndroid
+  const allowLoop = true
 
   return (
     <Box style={props.containerStyle}>
