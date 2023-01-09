@@ -3,7 +3,7 @@ import * as Styles from '../../../styles'
 import * as Container from '../../../util/container'
 import * as Tracker2Gen from '../../../actions/tracker2-gen'
 import * as Constants from '../../../constants/chat2'
-import * as Kb from '../../../common-adapters/mobile.native'
+import * as Kb from '../../../common-adapters'
 import * as React from 'react'
 import * as Types from '../../../constants/types/chat2'
 import {formatTimeForChat} from '../../../util/timestamp'
@@ -249,7 +249,7 @@ const Separator = React.memo(function Separator(p: SProps) {
 })
 
 type Props = {
-  leadingItem: Types.Ordinal
+  leadingItem?: Types.Ordinal
   trailingItem: Types.Ordinal
 }
 
@@ -279,11 +279,19 @@ const styles = Styles.styleSheetCreate(
           alignSelf: 'flex-start',
           marginLeft: 55,
         },
+        isElectron: {
+          marginBottom: 0,
+          marginTop: 0,
+        },
         isMobile: {marginTop: 8},
       }),
       avatar: Styles.platformStyles({
         common: {position: 'absolute', top: 4},
-        isElectron: {left: Styles.globalMargins.small},
+        isElectron: {
+          left: Styles.globalMargins.small,
+          top: 8,
+          zIndex: 2,
+        },
         isMobile: {left: Styles.globalMargins.tiny},
       }),
       botAlias: Styles.platformStyles({
@@ -294,9 +302,15 @@ const styles = Styles.styleSheetCreate(
         },
         isMobile: {maxWidth: 120},
       }),
-      container: {
-        position: 'relative',
-      },
+      container: Styles.platformStyles({
+        common: {
+          position: 'relative',
+        },
+        isElectron: {
+          marginBottom: -5,
+          paddingTop: 8,
+        },
+      }),
       orangeLine: {
         backgroundColor: Styles.globalColors.orange,
         flexShrink: 0,

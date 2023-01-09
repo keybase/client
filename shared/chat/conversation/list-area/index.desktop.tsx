@@ -7,6 +7,7 @@ import * as Hooks from './hooks'
 import * as React from 'react'
 import * as Styles from '../../../styles'
 import * as Types from '../../../constants/types/chat2'
+import Separator from '../messages/separator'
 import SpecialBottomMessage from '../messages/special-bottom-message'
 import SpecialTopMessage from '../messages/special-top-message'
 import chunk from 'lodash/chunk'
@@ -436,7 +437,12 @@ const useItems = (p: {
       if (!type) return null
       const Clazz = getMessageRender(type)
       if (!Clazz) return null
-      return <Clazz key={String(ordinal)} ordinal={ordinal} previous={previous} />
+      return (
+        <React.Fragment key={String(ordinal)}>
+          <Separator trailingItem={ordinal} leadingItem={previous} />
+          <Clazz ordinal={ordinal} />
+        </React.Fragment>
+      )
     },
     [messageTypeMap]
   )
