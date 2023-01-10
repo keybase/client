@@ -26,7 +26,7 @@ const SimpleTopLine = React.memo(function SimpleTopLine(props: Props) {
   const {hasUnread, teamname, channelname, timeNum, hasBadge} = Container.useSelector(state => {
     const hasUnread = (state.chat2.unreadMap.get(conversationIDKey) ?? 0) > 0
     const teamname = (getMeta(state, conversationIDKey)?.teamname || layoutIsTeam ? layoutName : '') || ''
-    const channelname = getMeta(state, conversationIDKey)?.channelname ?? ''
+    const channelname = isInWidget ? getMeta(state, conversationIDKey)?.channelname ?? '' : ''
     const timeNum = (getMeta(state, conversationIDKey)?.timestamp ?? layoutTime) || 0
     const hasBadge = (state.chat2.badgeMap.get(conversationIDKey) ?? 0) > 0
     return {
