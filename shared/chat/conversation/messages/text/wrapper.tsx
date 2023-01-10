@@ -56,11 +56,11 @@ const MessageMarkdown = (p: {style: Styles.StylesCrossPlatform}) => {
 
 const WrapperText = React.memo(function WrapperText(p: Props) {
   const conversationIDKey = React.useContext(ConvoIDContext)
-  const {ordinal, measure} = p
+  const {ordinal} = p
   const common = useCommon(ordinal)
   const {showCenteredHighlight, toggleShowingPopup} = common
 
-  const bottomChildren = useBottom(ordinal, measure, showCenteredHighlight, toggleShowingPopup)
+  const bottomChildren = useBottom(ordinal, showCenteredHighlight, toggleShowingPopup)
   const reply = useReply(ordinal, showCenteredHighlight)
   const claim = useClaim(ordinal)
 

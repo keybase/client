@@ -7,13 +7,12 @@ import shallowEqual from 'shallowequal'
 
 type OwnProps = {
   children: React.ReactNode
-  measure?: () => void
 }
 
 const ExplodingHeightRetainerContainer = React.memo(function ExplodingHeightRetainerContainer(p: OwnProps) {
   const conversationIDKey = React.useContext(ConvoIDContext)
   const ordinal = React.useContext(OrdinalContext)
-  const {children, measure} = p
+  const {children} = p
   const {forceAsh, exploding, exploded, explodedBy, messageKey} = Container.useSelector(state => {
     const m = Constants.getMessage(state, conversationIDKey, ordinal)
     const forceAsh = !!m?.explodingUnreadable
@@ -32,7 +31,6 @@ const ExplodingHeightRetainerContainer = React.memo(function ExplodingHeightReta
     explodedBy,
     exploding,
     forceAsh,
-    measure,
     messageKey,
     retainHeight,
   }

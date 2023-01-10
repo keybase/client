@@ -15,10 +15,6 @@ import ProfileResetNotice from './system-profile-reset-notice/container'
 import RetentionNotice from './retention-notice/container'
 import shallowEqual from 'shallowequal'
 
-type Props = {
-  measure?: () => void
-}
-
 const ErrorMessage = () => {
   const createConversationError = Container.useSelector(state => state.chat2.createConversationError)
   const dispatch = Container.useDispatch()
@@ -118,8 +114,7 @@ const ErrorMessage = () => {
   )
 }
 
-const SpecialTopMessage = React.memo(function SpecialTopMessage(props: Props) {
-  const {measure} = props
+const SpecialTopMessage = React.memo(function SpecialTopMessage() {
   const conversationIDKey = React.useContext(ConvoIDContext)
   const username = Container.useSelector(state => state.config.username)
   const dispatch = Container.useDispatch()
@@ -187,21 +182,10 @@ const SpecialTopMessage = React.memo(function SpecialTopMessage(props: Props) {
     )
   }, [dispatch, username])
 
-  Container.useDepChangeEffect(() => {
-    measure?.()
-  }, [
-    loadMoreType,
-    showRetentionNotice,
-    hasOlderResetConversation,
-    pendingState,
-    showTeamOffer,
-    allowDigging,
-  ])
-
   return (
     <Kb.Box>
       {loadMoreType === 'noMoreToLoad' && showRetentionNotice && (
-        <RetentionNotice conversationIDKey={conversationIDKey} measure={measure} />
+        <RetentionNotice conversationIDKey={conversationIDKey} />
       )}
       <Kb.Box style={styles.spacer} />
       {hasOlderResetConversation && <ProfileResetNotice conversationIDKey={conversationIDKey} />}

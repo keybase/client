@@ -1,23 +1,17 @@
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
-import * as Container from '../../../../util/container'
 import * as Styles from '../../../../styles'
 import type {RetentionPolicy} from '../../../../constants/types/retention-policy'
 
 export type Props = {
   canChange: boolean
   explanation?: string
-  measure?: () => void
   onChange: () => void
   policy: RetentionPolicy
   teamPolicy: RetentionPolicy
 }
 
 const RetentionNotice = React.memo(function RetentionNotice(props: Props) {
-  Container.useDepChangeEffect(() => {
-    props.measure?.()
-  }, [props.canChange, props.policy, props.teamPolicy])
-
   const iconType =
     props.policy.type === 'explode' ||
     (props.policy.type === 'inherit' && props.teamPolicy.type === 'explode')

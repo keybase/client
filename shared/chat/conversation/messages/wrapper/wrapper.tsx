@@ -21,7 +21,6 @@ import type {TeamRoleType} from '../../../../constants/types/teams'
 
 export type Props = {
   ordinal: Types.Ordinal
-  measure?: () => void
 }
 
 const messageShowsPopup = (type?: Types.Message['type']) =>
@@ -195,7 +194,6 @@ type TSProps = {
   exploding: boolean
   hasReactions: boolean
   isPendingPayment: boolean
-  measure?: () => void
   popupAnchor: React.MutableRefObject<React.Component | null>
   reactionsPopupPosition: 'none' | 'last' | 'middle'
   setShowingPicker: (s: boolean) => void
@@ -213,7 +211,7 @@ type TSProps = {
 
 const TextAndSiblings = React.memo(function TextAndSiblings(p: TSProps) {
   const {botname, bottomChildren, children, decorate} = p
-  const {showingPopup, ecrType, exploding, hasReactions, isPendingPayment, measure, popupAnchor} = p
+  const {showingPopup, ecrType, exploding, hasReactions, isPendingPayment, popupAnchor} = p
   const {type, reactionsPopupPosition, setShowingPicker, showCenteredHighlight, showCoinsIcon} = p
   const {toggleShowingPopup, showExplodingCountdown, showRevoked, showSendIndicator, showingPicker} = p
   const pressableProps = Styles.isMobile
@@ -238,14 +236,14 @@ const TextAndSiblings = React.memo(function TextAndSiblings(p: TSProps) {
 
   const content = exploding ? (
     <Kb.Box2 direction="horizontal" fullWidth={true}>
-      <ExplodingHeightRetainer measure={measure}>{children}</ExplodingHeightRetainer>
+      <ExplodingHeightRetainer>{children}</ExplodingHeightRetainer>
     </Kb.Box2>
   ) : (
     children
   )
 
   return (
-    <LongPressable {...pressableProps} highlighted={showCenteredHighlight}>
+    <LongPressable {...pressableProps}>
       {paymentBackground}
       <RightSide
         botname={botname}
@@ -263,7 +261,6 @@ const TextAndSiblings = React.memo(function TextAndSiblings(p: TSProps) {
           reactionsPopupPosition={reactionsPopupPosition}
           hasReactions={hasReactions}
           bottomChildren={bottomChildren}
-          measure={measure}
           showCenteredHighlight={showCenteredHighlight}
           toggleShowingPopup={toggleShowingPopup}
           setShowingPicker={setShowingPicker}
@@ -349,7 +346,6 @@ const EditCancelRetry = React.memo(function EditCancelRetry(p: {ecrType: EditCan
 type BProps = {
   showCenteredHighlight: boolean
   toggleShowingPopup: () => void
-  measure?: () => void
   showingPopup: boolean
   setShowingPicker: (s: boolean) => void
   bottomChildren?: React.ReactNode
@@ -431,14 +427,14 @@ const RightSide = React.memo(function RightSide(p: RProps) {
     </Kb.WithTooltip>
   )
 
-  const any = sendIndicator || explodingCountdown || revokedIcon || coinsIcon || bot || menu
+  const hasVisibleItems = sendIndicator || explodingCountdown || revokedIcon || coinsIcon || bot
 
-  return any ? (
+  return hasVisibleItems || menu ? (
     <Kb.Box2
       direction="horizontal"
       style={styles.rightSide}
       gap="tiny"
-      className={menu ? 'hover-visible' : undefined}
+      className={!hasVisibleItems && menu ? 'hover-visible' : undefined}
     >
       {sendIndicator}
       {explodingCountdown}
@@ -452,7 +448,7 @@ const RightSide = React.memo(function RightSide(p: RProps) {
 
 export const WrapperMessage = React.memo(function WrapperMessage(p: WMProps) {
   const conversationIDKey = React.useContext(ConvoIDContext)
-  const {measure, ordinal, bottomChildren, children} = p
+  const {ordinal, bottomChildren, children} = p
 
   // passed in context so stable
   const conversationIDKeyRef = React.useRef(conversationIDKey)
@@ -485,7 +481,6 @@ export const WrapperMessage = React.memo(function WrapperMessage(p: WMProps) {
     exploding,
     hasReactions,
     isPendingPayment,
-    measure,
     popupAnchor,
     reactionsPopupPosition,
     setShowingPicker,

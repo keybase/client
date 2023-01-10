@@ -7,13 +7,10 @@ import RetentionNotice from '.'
 import {getMeta} from '../../../../constants/chat2'
 import {makeRetentionNotice} from '../../../../util/teams'
 
-type OwnProps = {
-  conversationIDKey: ChatTypes.ConversationIDKey
-  measure?: () => void
-}
+type OwnProps = {conversationIDKey: ChatTypes.ConversationIDKey}
 
 const RetentionNoticeContainer = React.memo(function RetentionNoticeContainer(p: OwnProps) {
-  const {conversationIDKey, measure} = p
+  const {conversationIDKey} = p
 
   const meta = Container.useSelector(state => getMeta(state, conversationIDKey))
   const canChange = Container.useSelector(state =>
@@ -32,7 +29,6 @@ const RetentionNoticeContainer = React.memo(function RetentionNoticeContainer(p:
   const props = {
     canChange,
     explanation,
-    measure,
     onChange,
     policy: retentionPolicy,
     teamPolicy: teamRetentionPolicy,

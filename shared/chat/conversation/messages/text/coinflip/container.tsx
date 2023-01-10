@@ -6,15 +6,10 @@ import * as React from 'react'
 import CoinFlip, {type Props} from '.'
 import {ConvoIDContext, OrdinalContext} from '../../ids-context'
 
-type OwnProps = {
-  measure?: () => void
-}
-
 const noParticipants: Array<RPCChatTypes.UICoinFlipParticipant> = []
 type PhaseType = Props['phase']
 
-const CoinFlipContainer = React.memo(function CoinFlipContainer(p: OwnProps) {
-  const {measure} = p
+const CoinFlipContainer = React.memo(function CoinFlipContainer() {
   const conversationIDKey = React.useContext(ConvoIDContext)
   const ordinal = React.useContext(OrdinalContext)
 
@@ -32,7 +27,6 @@ const CoinFlipContainer = React.memo(function CoinFlipContainer(p: OwnProps) {
         commitmentVis: '',
         errorInfo: null,
         isSendError,
-        measure,
         onFlipAgain,
         participants: noParticipants,
         phase: null,
@@ -45,7 +39,6 @@ const CoinFlipContainer = React.memo(function CoinFlipContainer(p: OwnProps) {
         commitmentVis: status.commitmentVisualization,
         errorInfo: status.phase === RPCChatTypes.UICoinFlipPhase.error ? status.errorInfo : null,
         isSendError,
-        measure,
         onFlipAgain,
         participants: status.participants || noParticipants,
         phase: Constants.flipPhaseToString(status.phase) as PhaseType,

@@ -16,12 +16,10 @@ type Props = {
   hasUnfurlList: boolean
   hasCoinFlip: boolean
   toggleShowingPopup: () => void
-  measure: (() => void) | undefined
 }
 
 export const useBottom = (
   ordinal: Types.Ordinal,
-  measure: Props['measure'],
   showCenteredHighlight: boolean,
   toggleShowingPopup: () => void
 ) => {
@@ -46,26 +44,17 @@ export const useBottom = (
         hasCoinFlip={hasCoinFlip}
         hasUnfurlList={hasUnfurlList}
         hasUnfurlPrompts={hasUnfurlPrompts}
-        measure={measure}
         showCenteredHighlight={showCenteredHighlight}
         toggleShowingPopup={toggleShowingPopup}
       />
     ),
-    [
-      hasBeenEdited,
-      hasCoinFlip,
-      hasUnfurlList,
-      hasUnfurlPrompts,
-      measure,
-      showCenteredHighlight,
-      toggleShowingPopup,
-    ]
+    [hasBeenEdited, hasCoinFlip, hasUnfurlList, hasUnfurlPrompts, showCenteredHighlight, toggleShowingPopup]
   )
 }
 
 const WrapperTextBottom = function WrapperTextBottom(p: Props) {
   const {hasBeenEdited, hasUnfurlPrompts, hasUnfurlList, hasCoinFlip} = p
-  const {toggleShowingPopup, measure, showCenteredHighlight} = p
+  const {toggleShowingPopup, showCenteredHighlight} = p
   const edited = hasBeenEdited ? (
     <Kb.Text
       key="isEdited"
@@ -96,7 +85,7 @@ const WrapperTextBottom = function WrapperTextBottom(p: Props) {
   const coinflip = (() => {
     if (hasCoinFlip) {
       const CoinFlip = require('./coinflip/container').default as typeof CoinFlipType
-      return <CoinFlip key="CoinFlip" measure={measure} />
+      return <CoinFlip key="CoinFlip" />
     }
     return null
   })()

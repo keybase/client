@@ -4,7 +4,7 @@ import type * as Types from '../../../../../constants/types/chat2'
 export type Props = {
   children: React.ReactNode
   // mobile
-  highlighted: boolean
+  highlighted?: boolean
   onLongPress?: () => void
   onSwipeLeft?: () => void
   // desktop
