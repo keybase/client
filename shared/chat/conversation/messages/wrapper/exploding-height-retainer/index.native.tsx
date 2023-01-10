@@ -2,6 +2,8 @@ import * as React from 'react'
 import * as Kb from '../../../../../common-adapters/mobile.native'
 import * as Styles from '../../../../../styles'
 import throttle from 'lodash/throttle'
+// ios must animated plain colors not the dynamic ones
+import colors, {darkColors} from '../../../../../styles/colors'
 import type {Props} from '.'
 import SharedTimer, {type SharedTimerID} from '../../../../../util/shared-timers'
 
@@ -256,15 +258,15 @@ const styles = Styles.styleSheetCreate(
         width: 20,
       },
       exploded: {
-        backgroundColor: Styles.globalColors.white,
-        color: Styles.globalColors.black_20_on_white,
+        backgroundColor: Styles.isDarkMode() ? darkColors.white : colors.white,
+        color: Styles.isDarkMode() ? darkColors.black_20_on_white : colors.black_20_on_white,
         paddingLeft: Styles.globalMargins.tiny,
       },
       retaining: {
         overflow: 'hidden',
       },
       slider: {
-        backgroundColor: Styles.globalColors.white,
+        backgroundColor: Styles.isDarkMode() ? darkColors.white : colors.white,
         bottom: 0,
         height: '100%',
         left: 0,
