@@ -673,7 +673,9 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     draftState.messageMap.set(message.conversationIDKey, convMap)
 
     const typemap = mapGetEnsureValue(draftState.messageTypeMap, message.conversationIDKey, new Map())
-    typemap.set(message.ordinal, message.type)
+    if (message.type !== 'text') {
+      typemap.set(message.ordinal, message.type)
+    }
   },
   [Chat2Gen.messagesAdd]: (draftState, action) => {
     const {context, conversationIDKey, shouldClearOthers} = action.payload
@@ -847,8 +849,10 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       messageMap.set(conversationIDKey, map)
       map.set(toSet.ordinal, toSet)
 
-      if (toSet.type !== 'text') {
-        const typemap = mapGetEnsureValue(oldMessageTypeMap, conversationIDKey, new Map())
+      const typemap = mapGetEnsureValue(oldMessageTypeMap, conversationIDKey, new Map())
+      if (toSet.type === 'text') {
+        typemap.delete(toSet.ordinal)
+      } else {
         typemap.set(toSet.ordinal, toSet.type)
       }
     })

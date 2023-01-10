@@ -519,7 +519,7 @@ const styles = Styles.styleSheetCreate(
       edited: {color: Styles.globalColors.black_20},
       editedHighlighted: {color: Styles.globalColors.black_20OrBlack},
       ellipsis: Styles.platformStyles({
-        isElectron: {paddingTop: 0, height: 4},
+        isElectron: {height: 4, paddingTop: 0},
         isMobile: {paddingTop: 4},
       }),
       emojiRow: Styles.platformStyles({
