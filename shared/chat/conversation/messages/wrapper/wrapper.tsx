@@ -222,19 +222,12 @@ const TextAndSiblings = React.memo(function TextAndSiblings(p: TSProps) {
         onLongPress: decorate ? toggleShowingPopup : undefined,
       }
     : {
-        className: Styles.classNames(
-          {
-            // 'WrapperMessage-author': showUsername,
-            'WrapperMessage-centered': showCenteredHighlight,
-            'WrapperMessage-decorated': decorate,
-            'WrapperMessage-hoverColor': !isPendingPayment,
-            'WrapperMessage-noOverflow': isPendingPayment,
-            'WrapperMessage-systemMessage': type?.startsWith('system'),
-            active: showingPopup || showingPicker,
-            'hover-container': true,
-          },
-          'WrapperMessage-hoverBox'
-        ),
+        className: Styles.classNames({
+          'WrapperMessage-centered': showCenteredHighlight,
+          'WrapperMessage-noOverflow': isPendingPayment,
+          'WrapperMessage-systemMessage': type?.startsWith('system'),
+          active: showingPopup || showingPicker,
+        }),
         onContextMenu: toggleShowingPopup,
         // attach popups to the message itself
         ref: popupAnchor as any,
@@ -278,69 +271,6 @@ const TextAndSiblings = React.memo(function TextAndSiblings(p: TSProps) {
         />
       </Kb.Box2>
     </LongPressable>
-  )
-})
-
-export const WrapperMessage = React.memo(function WrapperMessage(p: WMProps) {
-  const conversationIDKey = React.useContext(ConvoIDContext)
-  const {measure, ordinal, bottomChildren, children} = p
-
-  // passed in context so stable
-  const conversationIDKeyRef = React.useRef(conversationIDKey)
-  const ordinalRef = React.useRef(ordinal)
-  React.useEffect(() => {
-    conversationIDKeyRef.current = conversationIDKey
-    ordinalRef.current = ordinal
-  }, [conversationIDKey, ordinal])
-  const getIds = React.useCallback(() => {
-    return {conversationIDKey: conversationIDKeyRef.current, ordinal: ordinalRef.current}
-  }, [])
-
-  const {showCenteredHighlight, toggleShowingPopup, showingPopup, popup, popupAnchor} = p
-  const [showingPicker, setShowingPicker] = React.useState(false)
-
-  const mdata = useRedux(conversationIDKey, ordinal)
-
-  const {isPendingPayment, decorate, type, hasReactions} = mdata
-  const {ecrType, showSendIndicator, showRevoked, showExplodingCountdown, exploding} = mdata
-  const {reactionsPopupPosition, showCoinsIcon, botname, you} = mdata
-
-  const canFixOverdraw = !isPendingPayment && !showCenteredHighlight
-
-  const tsprops = {
-    botname,
-    bottomChildren,
-    children,
-    decorate,
-    ecrType,
-    exploding,
-    hasReactions,
-    isPendingPayment,
-    measure,
-    popupAnchor,
-    reactionsPopupPosition,
-    setShowingPicker,
-    showCenteredHighlight,
-    showCoinsIcon,
-    showExplodingCountdown,
-    showRevoked,
-    showSendIndicator,
-    showingPicker,
-    showingPopup,
-    toggleShowingPopup,
-    type,
-    you,
-  }
-
-  return (
-    <GetIdsContext.Provider value={getIds}>
-      <OrdinalContext.Provider value={ordinal}>
-        <Styles.CanFixOverdrawContext.Provider value={canFixOverdraw}>
-          <TextAndSiblings {...tsprops} />
-          {popup}
-        </Styles.CanFixOverdrawContext.Provider>
-      </OrdinalContext.Provider>
-    </GetIdsContext.Provider>
   )
 })
 
@@ -504,7 +434,12 @@ const RightSide = React.memo(function RightSide(p: RProps) {
   const any = sendIndicator || explodingCountdown || revokedIcon || coinsIcon || bot || menu
 
   return any ? (
-    <Kb.Box2 direction="horizontal" style={styles.rightSide} gap="tiny">
+    <Kb.Box2
+      direction="horizontal"
+      style={styles.rightSide}
+      gap="tiny"
+      className={menu ? 'hover-visible' : undefined}
+    >
       {sendIndicator}
       {explodingCountdown}
       {revokedIcon}
@@ -515,15 +450,78 @@ const RightSide = React.memo(function RightSide(p: RProps) {
   ) : null
 })
 
+export const WrapperMessage = React.memo(function WrapperMessage(p: WMProps) {
+  const conversationIDKey = React.useContext(ConvoIDContext)
+  const {measure, ordinal, bottomChildren, children} = p
+
+  // passed in context so stable
+  const conversationIDKeyRef = React.useRef(conversationIDKey)
+  const ordinalRef = React.useRef(ordinal)
+  React.useEffect(() => {
+    conversationIDKeyRef.current = conversationIDKey
+    ordinalRef.current = ordinal
+  }, [conversationIDKey, ordinal])
+  const getIds = React.useCallback(() => {
+    return {conversationIDKey: conversationIDKeyRef.current, ordinal: ordinalRef.current}
+  }, [])
+
+  const {showCenteredHighlight, toggleShowingPopup, showingPopup, popup, popupAnchor} = p
+  const [showingPicker, setShowingPicker] = React.useState(false)
+
+  const mdata = useRedux(conversationIDKey, ordinal)
+
+  const {isPendingPayment, decorate, type, hasReactions} = mdata
+  const {ecrType, showSendIndicator, showRevoked, showExplodingCountdown, exploding} = mdata
+  const {reactionsPopupPosition, showCoinsIcon, botname, you} = mdata
+
+  const canFixOverdraw = !isPendingPayment && !showCenteredHighlight
+
+  const tsprops = {
+    botname,
+    bottomChildren,
+    children,
+    decorate,
+    ecrType,
+    exploding,
+    hasReactions,
+    isPendingPayment,
+    measure,
+    popupAnchor,
+    reactionsPopupPosition,
+    setShowingPicker,
+    showCenteredHighlight,
+    showCoinsIcon,
+    showExplodingCountdown,
+    showRevoked,
+    showSendIndicator,
+    showingPicker,
+    showingPopup,
+    toggleShowingPopup,
+    type,
+    you,
+  }
+
+  return (
+    <GetIdsContext.Provider value={getIds}>
+      <OrdinalContext.Provider value={ordinal}>
+        <Styles.CanFixOverdrawContext.Provider value={canFixOverdraw}>
+          <TextAndSiblings {...tsprops} />
+          {popup}
+        </Styles.CanFixOverdrawContext.Provider>
+      </OrdinalContext.Provider>
+    </GetIdsContext.Provider>
+  )
+})
+
 const styles = Styles.styleSheetCreate(
   () =>
     ({
       edited: {color: Styles.globalColors.black_20},
       editedHighlighted: {color: Styles.globalColors.black_20OrBlack},
-      ellipsis: {
-        // marginLeft: Styles.globalMargins.tiny,
-        paddingTop: 3,
-      },
+      ellipsis: Styles.platformStyles({
+        isElectron: {paddingTop: 0, height: 4},
+        isMobile: {paddingTop: 4},
+      }),
       emojiRow: Styles.platformStyles({
         isElectron: {
           backgroundColor: Styles.globalColors.white,
@@ -574,18 +572,26 @@ const styles = Styles.styleSheetCreate(
         paddingLeft: 56,
         paddingRight: 4,
       },
-      moreActionsTooltip: {marginRight: -Styles.globalMargins.xxtiny},
-      paddingLeftTiny: {paddingLeft: Styles.globalMargins.tiny},
-      rightSide: {
-        backgroundColor: Styles.globalColors.white_90,
-        borderRadius: Styles.borderRadius,
-        minHeight: 20,
-        paddingLeft: Styles.globalMargins.tiny,
-        paddingRight: Styles.globalMargins.tiny,
-        position: 'absolute',
-        right: 21,
-        top: 1,
+      moreActionsTooltip: {
+        marginRight: -Styles.globalMargins.xxtiny,
       },
+      paddingLeftTiny: {paddingLeft: Styles.globalMargins.tiny},
+      rightSide: Styles.platformStyles({
+        common: {
+          backgroundColor: Styles.globalColors.white_90,
+          borderRadius: Styles.borderRadius,
+          minHeight: 20,
+          paddingLeft: Styles.globalMargins.tiny,
+          paddingRight: Styles.globalMargins.tiny,
+          position: 'absolute',
+          right: 21,
+          top: 1,
+        },
+        isElectron: {
+          minHeight: 14,
+          top: 4,
+        },
+      }),
       timestamp: Styles.platformStyles({
         isElectron: {
           flexShrink: 0,

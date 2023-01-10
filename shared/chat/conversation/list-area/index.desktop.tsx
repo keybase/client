@@ -438,10 +438,18 @@ const useItems = (p: {
       const Clazz = getMessageRender(type)
       if (!Clazz) return null
       return (
-        <React.Fragment key={String(ordinal)}>
+        <div
+          key={String(ordinal)}
+          className={Styles.classNames(
+            'hover-container',
+            'WrapperMessage-hoverBox',
+            'WrapperMessage-decorated',
+            'WrapperMessage-hoverColor'
+          )}
+        >
           <Separator trailingItem={ordinal} leadingItem={previous} />
           <Clazz ordinal={ordinal} />
-        </React.Fragment>
+        </div>
       )
     },
     [messageTypeMap]

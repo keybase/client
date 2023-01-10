@@ -232,7 +232,12 @@ const Separator = React.memo(function Separator(p: SProps) {
   const {botAlias, authorRoleInTeam, authorIsBot, timestamp} = mdata
 
   return (
-    <Kb.Box2 direction="horizontal" style={styles.container} fullWidth={true}>
+    <Kb.Box2
+      direction="horizontal"
+      style={styles.container}
+      fullWidth={true}
+      className="WrapperMessage-hoverColor"
+    >
       {showUsername ? <LeftSide username={showUsername} /> : null}
       {showUsername ? (
         <TopSide
@@ -289,7 +294,7 @@ const styles = Styles.styleSheetCreate(
         common: {position: 'absolute', top: 4},
         isElectron: {
           left: Styles.globalMargins.small,
-          top: 8,
+          top: 4,
           zIndex: 2,
         },
         isMobile: {left: Styles.globalMargins.tiny},
@@ -307,8 +312,9 @@ const styles = Styles.styleSheetCreate(
           position: 'relative',
         },
         isElectron: {
-          marginBottom: -5,
-          paddingTop: 8,
+          height: 21,
+          marginBottom: 0,
+          paddingTop: 5,
         },
       }),
       orangeLine: {

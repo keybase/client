@@ -29,6 +29,10 @@
 .WrapperMessage-hoverColor:hover {
   background-color: #ebf2fc;
 }
+
+.WrapperMessage-decorated {
+  min-height: 26px;
+}
 .WrapperMessage-decorated.active {
   background-color: #ebf2fc;
 }
