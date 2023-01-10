@@ -401,16 +401,7 @@ const bigEmojiOutput: SimpleMarkdown.Output<any> = SimpleMarkdown.outputFor(
         node: SimpleMarkdown.SingleASTNode,
         output: SimpleMarkdown.ReactOutput,
         state: SimpleMarkdown.State
-      ) => (
-        <Text
-          type="Body"
-          key={state.key}
-          style={markdownStyles.bigTextBlockStyle}
-          allowFontScaling={state.allowFontScaling}
-        >
-          {output(node.content, {...state, inParagraph: true})}
-        </Text>
-      ),
+      ) => output(node.content, {...state, inParagraph: true}),
     },
   },
   'react'

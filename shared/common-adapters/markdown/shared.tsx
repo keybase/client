@@ -326,6 +326,7 @@ class SimpleMarkdownComponent extends React.PureComponent<MarkdownProps, {hasErr
         </Text>
       )
     }
+
     const inner = this.props.serviceOnly ? (
       <Text
         className={this.props.paragraphTextClassName}
