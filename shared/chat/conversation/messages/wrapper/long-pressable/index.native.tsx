@@ -50,30 +50,31 @@ const LongPressable = React.memo(function LongPressable(props: Props) {
   }
 })
 
-const styles = Styles.styleSheetCreate(
-  () =>
-    ({
-      highlight: {
-        backgroundColor: Styles.globalColors.yellowOrYellowAlt,
-        paddingBottom: 3,
-        paddingRight: Styles.globalMargins.tiny,
-        paddingTop: 3,
-      },
-      noHighlight: {
-        paddingBottom: 3,
-        paddingRight: Styles.globalMargins.tiny,
-        paddingTop: 3,
-      },
-      reply: {
-        alignSelf: 'flex-end',
-        justifyContent: 'flex-end',
-      },
-      replyIcon: {paddingRight: Styles.globalMargins.small},
-      view: {
-        ...Styles.globalStyles.flexBoxColumn,
-        position: 'relative',
-      },
-    } as const)
-)
+const styles = Styles.styleSheetCreate(() => {
+  const common = {
+    flexDirection: 'row',
+    paddingBottom: 3,
+    paddingRight: Styles.globalMargins.tiny,
+    paddingTop: 3,
+  } as const
+  return {
+    highlight: {
+      ...common,
+      backgroundColor: Styles.globalColors.yellowOrYellowAlt,
+    },
+    noHighlight: {
+      ...common,
+    },
+    reply: {
+      alignSelf: 'flex-end',
+      justifyContent: 'flex-end',
+    },
+    replyIcon: {paddingRight: Styles.globalMargins.small},
+    view: {
+      ...Styles.globalStyles.flexBoxColumn,
+      position: 'relative',
+    },
+  } as const
+})
 
 export default LongPressable

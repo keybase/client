@@ -245,16 +245,7 @@ const TextAndSiblings = React.memo(function TextAndSiblings(p: TSProps) {
   return (
     <LongPressable {...pressableProps}>
       {paymentBackground}
-      <RightSide
-        botname={botname}
-        showSendIndicator={showSendIndicator}
-        showExplodingCountdown={showExplodingCountdown}
-        showRevoked={showRevoked}
-        showCoinsIcon={showCoinsIcon}
-        showCenteredHighlight={showCenteredHighlight}
-        toggleShowingPopup={toggleShowingPopup}
-      />
-      <Kb.Box2 direction="vertical" style={styles.middleSide} fullWidth={true}>
+      <Kb.Box2 direction="vertical" style={styles.middleSide} fullWidth={!Styles.isMobile}>
         {content}
         <BottomSide
           ecrType={ecrType}
@@ -267,6 +258,15 @@ const TextAndSiblings = React.memo(function TextAndSiblings(p: TSProps) {
           showingPopup={showingPopup}
         />
       </Kb.Box2>
+      <RightSide
+        botname={botname}
+        showSendIndicator={showSendIndicator}
+        showExplodingCountdown={showExplodingCountdown}
+        showRevoked={showRevoked}
+        showCoinsIcon={showCoinsIcon}
+        showCenteredHighlight={showCenteredHighlight}
+        toggleShowingPopup={toggleShowingPopup}
+      />
     </LongPressable>
   )
 })
@@ -420,8 +420,12 @@ const RightSide = React.memo(function RightSide(p: RProps) {
   ) : null
 
   const menu = Container.isMobile ? null : (
-    <Kb.WithTooltip tooltip="More actions..." toastStyle={styles.moreActionsTooltip}>
-      <Kb.Box style={styles.ellipsis} className="hover-visible">
+    <Kb.WithTooltip
+      tooltip="More actions..."
+      toastStyle={styles.moreActionsTooltip}
+      className="hover-visible"
+    >
+      <Kb.Box style={styles.ellipsis}>
         <Kb.Icon type="iconfont-ellipsis" onClick={toggleShowingPopup} />
       </Kb.Box>
     </Kb.WithTooltip>
@@ -564,6 +568,7 @@ const styles = Styles.styleSheetCreate(
       messagePopupContainer: {marginRight: Styles.globalMargins.small},
       middleSide: {
         alignItems: 'stretch',
+        flexGrow: 1,
         paddingLeft: 56,
         paddingRight: 4,
       },
@@ -573,19 +578,19 @@ const styles = Styles.styleSheetCreate(
       paddingLeftTiny: {paddingLeft: Styles.globalMargins.tiny},
       rightSide: Styles.platformStyles({
         common: {
-          backgroundColor: Styles.globalColors.white_90,
           borderRadius: Styles.borderRadius,
           minHeight: 20,
           paddingLeft: Styles.globalMargins.tiny,
           paddingRight: Styles.globalMargins.tiny,
-          position: 'absolute',
-          right: 21,
-          top: 1,
         },
         isElectron: {
+          backgroundColor: Styles.globalColors.white_90,
           minHeight: 14,
+          position: 'absolute',
+          right: 16,
           top: 4,
         },
+        isMobile: {},
       }),
       timestamp: Styles.platformStyles({
         isElectron: {
