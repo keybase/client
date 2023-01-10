@@ -42,7 +42,8 @@ void kbfsLibdokanSet_path(struct kbfsLibdokanCtx* ctx, void*);
 int kbfsLibdokanFill_find(PFillFindData, PWIN32_FIND_DATAW, PDOKAN_FILE_INFO);
 
 BOOL kbfsLibdokan_RemoveMountPoint(LPCWSTR MountPoint);
-HANDLE kbfsLibdokan_OpenRequestorToken(PDOKAN_FILE_INFO DokanFileInfo);
+// kbfsLibdokanPtr_OpenRequestorToken return value is a HANDLE.
+void* kbfsLibdokan_OpenRequestorToken(PDOKAN_FILE_INFO DokanFileInfo);
 
 enum {
   kbfsLibdokanDebug = DOKAN_OPTION_DEBUG,
