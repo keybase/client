@@ -114,7 +114,6 @@ export const colors = {
     return this.brown_75
   },
   brown_75_on_white: 'rgb(117,87,78)',
-  //
   fastBlank: isIOS ? '#FFFFFF' : undefined, // on iOS overdraw is eliminated if we use white, on Android it's eliminated if it's undefined /shrug
   green: '#37BD99',
   greenDark: '#189e7a',
