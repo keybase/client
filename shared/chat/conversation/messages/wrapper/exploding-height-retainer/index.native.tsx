@@ -215,14 +215,15 @@ const AshTower = (props: {explodedBy?: string; numImages: number; showExploded: 
   let exploded: React.ReactNode = null
   if (props.showExploded) {
     exploded = !props.explodedBy ? (
-      <Kb.Text type="BodyTiny" style={styles.exploded}>
+      <Kb.Text type="BodyTiny" style={styles.exploded} fixOverdraw={true}>
         EXPLODED
       </Kb.Text>
     ) : (
-      <Kb.Text lineClamp={1} type="BodyTiny" style={styles.exploded}>
+      <Kb.Text lineClamp={1} type="BodyTiny" style={styles.exploded} fixOverdraw={true}>
         EXPLODED BY{' '}
         <Kb.ConnectedUsernames
           type="BodySmallBold"
+          fixOverdraw="auto"
           onUsernameClicked="profile"
           usernames={props.explodedBy}
           inline={true}
@@ -244,6 +245,7 @@ const styles = Styles.styleSheetCreate(
   () =>
     ({
       ashes: {
+        backgroundColor: Styles.globalColors.fastBlank,
         height: 80,
         width: 400,
       },
@@ -277,8 +279,9 @@ const styles = Styles.styleSheetCreate(
       tagBox: {
         ...Styles.globalStyles.flexBoxColumn,
         alignItems: 'flex-end',
+        backgroundColor: Styles.globalColors.fastBlank,
         bottom: 2,
-        minWidth: 200,
+        minWidth: 80,
         position: 'absolute',
         right: 0,
       },

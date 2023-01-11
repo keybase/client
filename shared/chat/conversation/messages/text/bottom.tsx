@@ -59,6 +59,7 @@ const WrapperTextBottom = function WrapperTextBottom(p: Props) {
     <Kb.Text
       key="isEdited"
       type="BodyTiny"
+      fixOverdraw={!showCenteredHighlight}
       style={showCenteredHighlight ? styles.editedHighlighted : styles.edited}
     >
       EDITED
