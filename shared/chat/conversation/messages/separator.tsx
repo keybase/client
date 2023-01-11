@@ -47,7 +47,7 @@ const getUsernameToShow = (message: Types.Message, pMessage: Types.Message | und
       return message.author
   }
 
-  if (!pMessage) return ''
+  if (!pMessage) return message.author
 
   if (
     !pMessage.type ||

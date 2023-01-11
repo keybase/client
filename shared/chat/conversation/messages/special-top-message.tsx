@@ -7,6 +7,7 @@ import * as Kb from '../../../common-adapters'
 import * as RPCTypes from '../../../constants/types/rpc-gen'
 import * as React from 'react'
 import * as Styles from '../../../styles'
+import Separator from './separator'
 import {ConvoIDContext} from './ids-context'
 import HelloBotCard from './cards/hello-bot'
 import MakeTeamCard from './cards/make-team'
@@ -119,6 +120,30 @@ const SpecialTopMessage = React.memo(function SpecialTopMessage() {
   const username = Container.useSelector(state => state.config.username)
   const dispatch = Container.useDispatch()
 
+  const {hasLoadedEver, loadMoreType, ordinal, retentionPolicy, supersedes, teamType, teamRetentionPolicy} =
+    Container.useSelector(state => {
+      const ordinals = state.chat2.messageOrdinals.get(conversationIDKey)
+      const hasLoadedEver = ordinals !== undefined
+      const ordinal = ordinals?.[0] ?? 0
+
+      const meta = Constants.getMeta(state, conversationIDKey)
+      const {teamType, supersedes, retentionPolicy, teamRetentionPolicy} = meta
+      const loadMoreType =
+        state.chat2.moreToLoadMap.get(conversationIDKey) !== false
+          ? ('moreToLoad' as const)
+          : ('noMoreToLoad' as const)
+
+      return {
+        hasLoadedEver,
+        loadMoreType,
+        ordinal,
+        retentionPolicy,
+        supersedes,
+        teamType,
+        teamRetentionPolicy,
+      }
+    }, shallowEqual)
+
   // we defer showing this so it doesn't flash so much
   const [allowDigging, setAllowDigging] = React.useState(false)
 
@@ -128,18 +153,6 @@ const SpecialTopMessage = React.memo(function SpecialTopMessage() {
     }, 1000)
     return () => clearTimeout(id)
   }, [])
-
-  const hasLoadedEver = Container.useSelector(
-    state => state.chat2.messageOrdinals.get(conversationIDKey) !== undefined
-  )
-  const teamType = Container.useSelector(state => Constants.getMeta(state, conversationIDKey).teamType)
-  const supersedes = Container.useSelector(state => Constants.getMeta(state, conversationIDKey).supersedes)
-  const retentionPolicy = Container.useSelector(
-    state => Constants.getMeta(state, conversationIDKey).retentionPolicy
-  )
-  const teamRetentionPolicy = Container.useSelector(
-    state => Constants.getMeta(state, conversationIDKey).teamRetentionPolicy
-  )
 
   // could not expose this and just return an enum for the is*convos
   const participantInfoAll = Container.useSelector(
@@ -159,11 +172,6 @@ const SpecialTopMessage = React.memo(function SpecialTopMessage() {
       pendingState = 'done'
       break
   }
-  const loadMoreType = Container.useSelector(state =>
-    state.chat2.moreToLoadMap.get(conversationIDKey) !== false
-      ? ('moreToLoad' as const)
-      : ('noMoreToLoad' as const)
-  )
   const showTeamOffer =
     hasLoadedEver && loadMoreType === 'noMoreToLoad' && teamType === 'adhoc' && participantInfoAll.length > 2
   const hasOlderResetConversation = supersedes !== Constants.noConversationIDKey
@@ -217,6 +225,7 @@ const SpecialTopMessage = React.memo(function SpecialTopMessage() {
           <Kb.Text type="BodySmallSemibold">Digging ancient messages...</Kb.Text>
         </Kb.Box>
       )}
+      <Separator trailingItem={ordinal} leadingItem={undefined} />
     </Kb.Box>
   )
 })
