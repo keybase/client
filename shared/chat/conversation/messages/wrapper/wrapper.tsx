@@ -569,6 +569,7 @@ const styles = Styles.styleSheetCreate(
       middleSide: {
         alignItems: 'stretch',
         flexGrow: 1,
+        flexShrink: 1,
         paddingLeft: 56,
         paddingRight: 4,
       },
