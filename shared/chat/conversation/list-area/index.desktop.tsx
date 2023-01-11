@@ -447,7 +447,7 @@ const useItems = (p: {
             'WrapperMessage-hoverColor'
           )}
         >
-          <Separator trailingItem={ordinal} leadingItem={previous} />
+          {previous ? <Separator trailingItem={ordinal} leadingItem={previous} /> : null}
           <Clazz ordinal={ordinal} />
         </div>
       )

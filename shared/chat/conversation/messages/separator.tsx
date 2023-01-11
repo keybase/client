@@ -143,18 +143,9 @@ const TopSide = React.memo(function TopSide(p: TProps) {
   ) : null
 
   const botAliasOrUsername = botAlias ? (
-    <Kb.Box2 direction="horizontal">
-      <Kb.Text type="BodySmallBold" style={styles.botAlias} lineClamp={1}>
-        {botAlias}
-      </Kb.Text>
-      <Kb.Text type="BodySmallBold" style={{color: Styles.globalColors.black}}>
-        &nbsp;[
-      </Kb.Text>
-      {showUsername}
-      <Kb.Text type="BodySmallBold" style={{color: Styles.globalColors.black}}>
-        ]
-      </Kb.Text>
-    </Kb.Box2>
+    <Kb.Text type="BodySmallBold" style={styles.botAlias} lineClamp={1}>
+      {botAlias} {' [' + showUsername + ']'}
+    </Kb.Text>
   ) : (
     usernameNode
   )

@@ -161,7 +161,7 @@ const useRedux = (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ord
     const showRevoked = !!m?.deviceRevokedAt
     const showExplodingCountdown = !!exploding && !exploded && submitState !== 'failed'
     const showCoinsIcon = Constants.hasSuccessfulInlinePayments(state, m)
-    const hasReactions = !Container.isMobile && (m.reactions?.size ?? 0) > 0
+    const hasReactions = (m.reactions?.size ?? 0) > 0
     const meta = Constants.getMeta(state, conversationIDKey)
     const authorRoleInTeam = state.teams.teamIDToMembers.get(meta?.teamID ?? '')?.get(author)?.type
     const botname = getBotname(state, m, meta, authorRoleInTeam)
@@ -358,13 +358,9 @@ const BottomSide = React.memo(function BottomSide(p: BProps) {
   const {showingPopup, setShowingPicker, bottomChildren, ecrType} = p
   const {hasReactions, reactionsPopupPosition} = p
 
-  const reactionsRow =
-    !Container.isMobile && hasReactions ? (
-      <ReactionsRow
-        btnClassName="WrapperMessage-emojiButton"
-        newBtnClassName="WrapperMessage-newEmojiButton"
-      />
-    ) : null
+  const reactionsRow = hasReactions ? (
+    <ReactionsRow btnClassName="WrapperMessage-emojiButton" newBtnClassName="WrapperMessage-newEmojiButton" />
+  ) : null
 
   const reactionsPopup =
     !Container.isMobile && reactionsPopupPosition !== 'none' && !showingPopup ? (
