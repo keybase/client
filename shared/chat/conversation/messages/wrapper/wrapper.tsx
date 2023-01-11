@@ -433,7 +433,7 @@ const RightSide = React.memo(function RightSide(p: RProps) {
   return hasVisibleItems || menu ? (
     <Kb.Box2
       direction="horizontal"
-      style={styles.rightSide}
+      style={hasVisibleItems ? styles.rightSideItems : styles.rightSide}
       gap="tiny"
       className={!hasVisibleItems && menu ? 'hover-visible' : undefined}
     >
@@ -597,6 +597,20 @@ const styles = Styles.styleSheetCreate(
           position: 'absolute',
           right: 16,
           top: 4,
+        },
+        isMobile: {},
+      }),
+      rightSideItems: Styles.platformStyles({
+        common: {
+          borderRadius: Styles.borderRadius,
+          minHeight: 20,
+          paddingLeft: Styles.globalMargins.tiny,
+          paddingRight: Styles.globalMargins.tiny,
+        },
+        isElectron: {
+          marginRight: 16,
+          marginTop: 4,
+          minHeight: 14,
         },
         isMobile: {},
       }),
