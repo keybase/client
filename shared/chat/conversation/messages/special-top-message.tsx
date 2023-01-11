@@ -139,8 +139,8 @@ const SpecialTopMessage = React.memo(function SpecialTopMessage() {
         ordinal,
         retentionPolicy,
         supersedes,
-        teamType,
         teamRetentionPolicy,
+        teamType,
       }
     }, shallowEqual)
 

@@ -216,12 +216,10 @@ const TextAndSiblings = React.memo(function TextAndSiblings(p: TSProps) {
   const {toggleShowingPopup, showExplodingCountdown, showRevoked, showSendIndicator, showingPicker} = p
   const pressableProps = Styles.isMobile
     ? {
-        highlight: showCenteredHighlight,
         onLongPress: decorate ? toggleShowingPopup : undefined,
       }
     : {
         className: Styles.classNames({
-          'WrapperMessage-centered': showCenteredHighlight,
           'WrapperMessage-noOverflow': isPendingPayment,
           'WrapperMessage-systemMessage': type?.startsWith('system'),
           active: showingPopup || showingPicker,
@@ -231,8 +229,11 @@ const TextAndSiblings = React.memo(function TextAndSiblings(p: TSProps) {
         ref: popupAnchor as any,
       }
 
-  // TODO could move to sentPayment
-  const paymentBackground = isPendingPayment ? <PendingPaymentBackground /> : null
+  const background = isPendingPayment ? (
+    <PendingPaymentBackground />
+  ) : showCenteredHighlight ? (
+    <Kb.Box2 direction="vertical" style={styles.highlighted} />
+  ) : null
 
   const content = exploding ? (
     <Kb.Box2 direction="horizontal" fullWidth={true}>
@@ -244,8 +245,8 @@ const TextAndSiblings = React.memo(function TextAndSiblings(p: TSProps) {
 
   return (
     <LongPressable {...pressableProps}>
-      {paymentBackground}
       <Kb.Box2 direction="vertical" style={styles.middleSide} fullWidth={!Styles.isMobile}>
+        {background}
         {content}
         <BottomSide
           ecrType={ecrType}
@@ -551,6 +552,15 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       failUnderline: {color: Styles.globalColors.redDark, textDecorationLine: 'underline'},
+      highlighted: {
+        backgroundColor: Styles.globalColors.yellowOrYellowAlt,
+        bottom: 0,
+        left: 52,
+        position: 'absolute',
+        right: 0,
+        top: 0,
+        zIndex: -1,
+      },
       menuButtons: Styles.platformStyles({
         common: {
           alignSelf: 'flex-start',
@@ -568,6 +578,7 @@ const styles = Styles.styleSheetCreate(
         flexShrink: 1,
         paddingLeft: 56,
         paddingRight: 4,
+        position: 'relative',
       },
       moreActionsTooltip: {
         marginRight: -Styles.globalMargins.xxtiny,
