@@ -246,7 +246,9 @@ export const deserialize = (
       const {participants, conversationIDKey, hasUnread, hasBadge} = c
       const {teamname, timestamp, channelname, snippetDecorated} = c
       s.chat2.badgeMap.set(conversationIDKey, hasBadge ? 1 : 0)
-      s.chat2.participantMap.set(conversationIDKey, {name: participants ?? []})
+      if (participants) {
+        s.chat2.participantMap.set(conversationIDKey, {name: participants ?? []})
+      }
       s.chat2.unreadMap.set(conversationIDKey, hasUnread ? 1 : 0)
       const meta = s.chat2.metaMap.get(conversationIDKey) ?? {
         channelname: undefined,
