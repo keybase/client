@@ -100,8 +100,9 @@ export const Swipeable = React.memo(function Swipeable2(p: {
   makeActions: (progress: Reanimated.SharedValue<number>) => React.ReactNode
   swipeCloseRef?: React.MutableRefObject<(() => void) | null>
   style?: Styles.StylesCrossPlatform
+  extraData?: unknown
 }) {
-  const {children, actionWidth, makeActions, swipeCloseRef, style} = p
+  const {children, actionWidth, makeActions, swipeCloseRef, style, extraData} = p
   const tx = Reanimated.useSharedValue(0)
   const {actionsEnabled} = useActionsEnabled(actionWidth, tx)
   const rowStyle = Reanimated.useAnimatedStyle(() => ({transform: [{translateX: tx.value}]}))
@@ -111,6 +112,11 @@ export const Swipeable = React.memo(function Swipeable2(p: {
   const actions = React.useMemo(() => {
     return hasSwiped ? makeActions(tx) : null
   }, [makeActions, hasSwiped])
+
+  // parent is different, close immediately
+  React.useEffect(() => {
+    tx.value = 0
+  }, [extraData])
 
   return (
     <GestureDetector gesture={gesture}>
