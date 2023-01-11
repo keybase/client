@@ -16,7 +16,7 @@ const Kb = {
 }
 
 const BackButton = React.memo(function BackButton(props: Props) {
-  const styleContext = React.useContext(Styles.StyleContext)
+  const canFixOverdraw = React.useContext(Styles.CanFixOverdrawContext)
   const dispatch = Container.useDispatch()
   const onBack = props.disabled ? () => {} : props.onClick ?? (() => dispatch(createNavigateUp()))
   return (
@@ -29,7 +29,7 @@ const BackButton = React.memo(function BackButton(props: Props) {
     >
       <Kb.Box style={Styles.collapseStyles([styles.container, props.style])}>
         <Kb.Icon
-          fixOverdraw={styleContext.canFixOverdraw}
+          fixOverdraw={canFixOverdraw}
           type="iconfont-arrow-left"
           color={props.iconColor}
           style={styles.arrow}

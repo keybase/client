@@ -110,7 +110,7 @@ const SmallTeam = React.memo(function SmallTeam(p: Props) {
 
 type RowAvatarProps = {
   conversationIDKey: Types.ConversationIDKey
-  backgroundColor: string
+  backgroundColor?: string
   isMuted: boolean
   isSelected: boolean
   layoutName?: string

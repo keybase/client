@@ -296,12 +296,12 @@ class SimpleMarkdownComponent extends React.PureComponent<MarkdownProps, {hasErr
         // So we add our own new line
         disableAutoBlockNewlines: true,
         inline: false,
-        markdownMeta: this.props.meta,
+        messageType: this.props.messageType,
       })
 
       const state = {
         allowFontScaling,
-        markdownMeta: this.props.meta,
+        messageType: this.props.messageType,
         paragraphTextClassName,
         styleOverride,
         virtualText: this.props.virtualText,
@@ -326,6 +326,7 @@ class SimpleMarkdownComponent extends React.PureComponent<MarkdownProps, {hasErr
         </Text>
       )
     }
+
     const inner = this.props.serviceOnly ? (
       <Text
         className={this.props.paragraphTextClassName}

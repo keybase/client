@@ -73,10 +73,6 @@ class ImageAttachment extends React.PureComponent<Props, State> {
     this.props.onDoubleClick()
   }
 
-  private memoizedMeta = memoize((message: Props['message']) => {
-    return {message}
-  })
-
   private imageRenderStyle = memoize((height, width) =>
     Styles.collapseStyles([
       styles.image,
@@ -224,7 +220,7 @@ class ImageAttachment extends React.PureComponent<Props, State> {
                         alignItems="flex-start"
                       >
                         <Kb.Markdown
-                          meta={this.memoizedMeta(this.props.message)}
+                          messageType="attachment"
                           selectable={true}
                           style={getEditStyle(this.props.isEditing, this.props.isHighlighted)}
                           styleOverride={

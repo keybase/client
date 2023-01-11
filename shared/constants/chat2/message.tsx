@@ -72,8 +72,8 @@ export const getPaymentMessageInfo = (
   )
 }
 
-export const isPendingPaymentMessage = (state: TypedState, message: Types.Message) => {
-  if (message.type !== 'sendPayment') {
+export const isPendingPaymentMessage = (state: TypedState, message?: Types.Message) => {
+  if (message?.type !== 'sendPayment') {
     return false
   }
   const paymentInfo = getPaymentMessageInfo(state, message)
@@ -196,8 +196,6 @@ const makeMessageExplodable = {
   explodingTime: Date.now(),
   explodingUnreadable: false,
 }
-
-export const howLongBetweenTimestampsMs: number = 1000 * 60 * 15
 
 export const makeMessagePlaceholder = (
   m?: Partial<MessageTypes.MessagePlaceholder>
@@ -1508,19 +1506,8 @@ export const upgradeMessage = (old: Types.Message, m: Types.Message): Types.Mess
   return m
 }
 
-export const enoughTimeBetweenMessages = (
-  message: MessageTypes.Message,
-  previous?: MessageTypes.Message
-): boolean =>
-  Boolean(
-    previous &&
-      previous.timestamp &&
-      message.timestamp &&
-      message.timestamp - previous.timestamp > howLongBetweenTimestampsMs
-  )
-
-export const shouldShowPopup = (state: TypedState, message: Types.Message) => {
-  switch (message.type) {
+export const shouldShowPopup = (state: TypedState, message?: Types.Message) => {
+  switch (message?.type) {
     case 'text':
     case 'attachment':
     case 'requestPayment':

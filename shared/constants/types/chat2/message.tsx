@@ -62,10 +62,28 @@ export type PathAndOutboxID = {
 
 // optional props here may never get set depending on the type
 type _MessageCommon = {
+  attachmentType?: AttachmentType
+  fileName?: string
+  transferErrMsg?: string | null
+  transferState?: MessageAttachmentTransferState
+  fileType?: string // MIME type,
+  unfurls?: UnfurlMap
+  downloadPath?: string | null // string if downloaded,
   author: string
   bodySummary: HiddenString
+  botUsername?: string
+  cardType?: RPCChatTypes.JourneycardType
+  newChannelname?: string
+  invitee?: string
+  adder?: string
+  prover?: string
+  joiners?: Array<string>
+  leavers?: Array<string>
+  explodingUnreadable?: boolean
   conversationIDKey: Common.ConversationIDKey
   deviceRevokedAt?: number
+  deviceName?: string
+  deviceType?: DeviceType
   errorReason?: string
   errorTyp?: number
   exploded?: boolean
@@ -78,6 +96,7 @@ type _MessageCommon = {
   ordinal: Ordinal
   outboxID?: OutboxID
   reactions?: Reactions
+  replyTo?: Message | null
   submitState?: 'deleting' | 'editing' | 'pending' | 'failed'
   timestamp: number
 }

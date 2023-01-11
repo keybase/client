@@ -1,8 +1,8 @@
-import * as Kb from '../../../../common-adapters'
-import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
-import * as RouteTreeGen from '../../../../actions/route-tree-gen'
-import * as Styles from '../../../../styles'
-import * as Container from '../../../../util/container'
+import * as Kb from '../../../../../common-adapters'
+import * as RPCChatTypes from '../../../../../constants/types/rpc-chat-gen'
+import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
+import * as Styles from '../../../../../styles'
+import * as Container from '../../../../../util/container'
 
 type Props = {
   error: RPCChatTypes.UICoinFlipError

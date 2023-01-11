@@ -1,3 +1,6 @@
+import {ConvoIDContext, OrdinalContext} from '../../ids-context'
+import * as Constants from '../../../../../constants/chat2'
+import * as Container from '../../../../../util/container'
 import * as React from 'react'
 import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
@@ -26,131 +29,97 @@ const statusToIconDark: {[K in AnimationStatus]: Kb.AnimationType} = {
   sent: 'darkMessageStatusSent',
 }
 
-const encryptingTimeout = 600
-const sentTimeout = 400
-
 const shownEncryptingSet = new Set()
 
-type Props = {
-  isExploding: boolean
-  sent: boolean
-  failed: boolean
-  id?: number
-  style?: any
-}
-
-type State = {
-  animationStatus: AnimationStatus
-  visible: boolean
-}
-
-class SendIndicator extends React.Component<Props, State> {
-  state: State
-
-  constructor(props: Props) {
-    super(props)
-    const state: State = {animationStatus: 'encrypting', visible: !props.sent}
-
-    if (!(this.props.sent || this.props.failed)) {
-      // Only show the `encrypting` icon for messages once
-      if (shownEncryptingSet.has(this.props.id)) {
-        state.animationStatus = 'encrypting'
-      } else {
-        state.animationStatus = 'sending'
-      }
-    } else if (this.props.failed) {
-      // previously failed message
-      state.animationStatus = 'error'
-    } else if (this.props.sent) {
-      // previously sent message
-      state.visible = false
-    }
-
-    this.state = state
-  }
-
-  encryptingTimeoutID?: ReturnType<typeof setInterval>
-  sentTimeoutID?: ReturnType<typeof setInterval>
-
-  _setStatus(animationStatus: AnimationStatus) {
-    this.setState({animationStatus})
-  }
-
-  _setVisible(visible: boolean) {
-    this.setState({visible})
-  }
-
-  _onSent() {
-    this._setStatus('sent')
-    this.sentTimeoutID && clearTimeout(this.sentTimeoutID)
-    this.sentTimeoutID = setTimeout(() => this._setVisible(false), sentTimeout)
-    this.encryptingTimeoutID && clearTimeout(this.encryptingTimeoutID)
-  }
-
-  _onFailed() {
-    this._setStatus('error')
-    this.encryptingTimeoutID && clearTimeout(this.encryptingTimeoutID)
-    this.sentTimeoutID && clearTimeout(this.sentTimeoutID)
-  }
-
-  _onResend() {
-    this._setVisible(true)
-    this._setStatus('sending')
-  }
-
-  componentDidMount() {
-    if (!(this.props.sent || this.props.failed)) {
-      // Only show the `encrypting` icon for messages once
-      if (!shownEncryptingSet.has(this.props.id)) {
-        this._setStatus('encrypting')
-        if (!this.encryptingTimeoutID) {
-          this.encryptingTimeoutID = setTimeout(() => this._setStatus('sending'), encryptingTimeout)
-        }
-        shownEncryptingSet.add(this.props.id)
-      }
-    }
-  }
-
-  componentDidUpdate(prevProps: Props) {
-    if (this.props.failed && !prevProps.failed) {
-      this._onFailed()
-    } else if (this.props.sent && !prevProps.sent) {
-      this._onSent()
-    } else if (!this.props.failed && prevProps.failed) {
-      this._onResend()
-    }
-  }
-
-  componentWillUnmount() {
-    this.encryptingTimeoutID && clearTimeout(this.encryptingTimeoutID)
-    this.sentTimeoutID && clearTimeout(this.sentTimeoutID)
-  }
-
-  private animationType = () => {
-    let animationType = Styles.isDarkMode()
-      ? statusToIconDark[this.state.animationStatus]
-      : statusToIcon[this.state.animationStatus]
-    // There is no exploding-error state
-    if (this.props.isExploding && this.state.animationStatus !== 'error') {
-      animationType = `${animationType}Exploding` as Kb.AnimationType
-    }
-    return animationType
-  }
-
-  render() {
-    if (!this.state.visible || (this.props.isExploding && this.state.animationStatus === 'sent')) {
-      return null
-    }
+const SendIndicatorContainer = React.memo(function SendIndicatorContainer() {
+  const conversationIDKey = React.useContext(ConvoIDContext)
+  const ordinal = React.useContext(OrdinalContext)
+  const isExploding = Container.useSelector(state => {
+    const message = Constants.getMessage(state, conversationIDKey, ordinal)
+    return !!message?.exploding
+  })
+  const sent = Container.useSelector(state => {
+    const message = Constants.getMessage(state, conversationIDKey, ordinal)
     return (
-      <Kb.Animation
-        animationType={this.animationType()}
-        className="sendingStatus"
-        containerStyle={this.props.style}
-        style={this.state.visible ? styles.animationVisible : styles.animationInvisible}
-      />
+      (message?.type !== 'text' && message?.type !== 'attachment') || !message.submitState || message.exploded
     )
+  })
+  const failed = Container.useSelector(state => {
+    const message = Constants.getMessage(state, conversationIDKey, ordinal)
+    return (message?.type === 'text' || message?.type === 'attachment') && message.submitState === 'failed'
+  })
+  const id = Container.useSelector(state => {
+    const message = Constants.getMessage(state, conversationIDKey, ordinal)
+    return message?.timestamp
+  })
+
+  const [status, setStatus] = React.useState<AnimationStatus>(
+    sent ? 'sent' : failed ? 'error' : !shownEncryptingSet.has(id) ? 'encrypting' : 'sending'
+  )
+
+  // only show encrypting once per
+  if (status === 'encrypting') {
+    shownEncryptingSet.add(id)
   }
-}
+
+  const [visible, setVisible] = React.useState(!sent)
+
+  const timeoutRef = React.useRef<ReturnType<typeof setInterval> | undefined>()
+
+  let animationType = Styles.isDarkMode() ? statusToIconDark[status] : statusToIcon[status]
+  // There is no exploding-error state
+  if (isExploding && status !== 'error') {
+    animationType = `${animationType}Exploding` as Kb.AnimationType
+  }
+
+  const lastFailedRef = React.useRef(failed)
+  const lastSentRef = React.useRef(sent)
+  React.useEffect(() => {
+    if (failed && !lastFailedRef.current) {
+      setStatus('error')
+      timeoutRef.current && clearTimeout(timeoutRef.current)
+      timeoutRef.current = undefined
+    } else if (sent && !lastSentRef.current) {
+      setStatus('sent')
+      timeoutRef.current && clearTimeout(timeoutRef.current)
+      timeoutRef.current = setTimeout(() => {
+        setVisible(false)
+        timeoutRef.current = undefined
+      }, 400)
+    } else if (!failed && lastFailedRef.current) {
+      setVisible(true)
+      setStatus('sending')
+    }
+    lastFailedRef.current = failed
+    lastSentRef.current = sent
+  }, [failed, sent])
+
+  if (status === 'encrypting' && !timeoutRef.current) {
+    timeoutRef.current = setTimeout(() => {
+      setStatus('sending')
+      timeoutRef.current = undefined
+    }, 600)
+  }
+
+  React.useEffect(() => {
+    return () => {
+      timeoutRef.current && clearTimeout(timeoutRef.current)
+      timeoutRef.current = undefined
+    }
+  }, [])
+
+  if (!visible || (isExploding && status === 'sent')) {
+    return null
+  }
+  return (
+    <Kb.Animation
+      animationType={animationType}
+      className="sendingStatus"
+      containerStyle={styles.send}
+      style={visible ? styles.animationVisible : styles.animationInvisible}
+    />
+  )
+})
 
 const styles = Styles.styleSheetCreate(
   () =>
@@ -163,9 +132,8 @@ const styles = Styles.styleSheetCreate(
         common: {height: 20, opacity: 1, width: 20},
         isMobile: {backgroundColor: Styles.globalColors.white},
       }),
+      send: Styles.platformStyles({isElectron: {pointerEvents: 'none'}}),
     } as const)
 )
 
-const TimedSendIndicator = SendIndicator
-
-export default TimedSendIndicator
+export default SendIndicatorContainer

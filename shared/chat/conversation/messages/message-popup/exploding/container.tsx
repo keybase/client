@@ -1,46 +1,53 @@
-import * as React from 'react'
-import * as Constants from '../../../../../constants/chat2'
-import * as TeamConstants from '../../../../../constants/teams'
-import type * as Types from '../../../../../constants/types/chat2'
-import type * as TeamTypes from '../../../../../constants/types/teams'
-import * as ConfigGen from '../../../../../actions/config-gen'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
-import * as FsGen from '../../../../../actions/fs-gen'
-import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
+import * as ConfigGen from '../../../../../actions/config-gen'
+import * as Constants from '../../../../../constants/chat2'
 import * as Container from '../../../../../util/container'
-import {isIOS} from '../../../../../constants/platform'
-import type {StylesCrossPlatform} from '../../../../../styles/css'
-import type {Position} from '../../../../../styles'
+import * as FsGen from '../../../../../actions/fs-gen'
+import * as React from 'react'
+import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
+import * as TeamConstants from '../../../../../constants/teams'
 import Exploding from '.'
-import type {MenuItems} from '../../../../../common-adapters'
-import openURL from '../../../../../util/open-url'
 import ReactionItem from '../reactionitem'
+import openURL from '../../../../../util/open-url'
+import type * as TeamTypes from '../../../../../constants/types/teams'
+import type * as Types from '../../../../../constants/types/chat2'
+import type {MenuItems} from '../../../../../common-adapters'
+import type {Position} from '../../../../../styles'
+import type {StylesCrossPlatform} from '../../../../../styles/css'
+import {isIOS} from '../../../../../constants/platform'
+import {makeMessageText} from '../../../../../constants/chat2/message'
 
 export type OwnProps = {
   attachTo?: () => React.Component<any> | null
-  message: Types.MessageAttachment | Types.MessageText
+  ordinal: Types.Ordinal
+  conversationIDKey: Types.ConversationIDKey
   onHidden: () => void
   position: Position
   style?: StylesCrossPlatform
   visible: boolean
 }
 
+const emptyMessage = makeMessageText({})
+
 export default Container.connect(
   (state, ownProps: OwnProps) => {
-    const yourMessage = ownProps.message.author === state.config.username
-    const meta = Constants.getMeta(state, ownProps.message.conversationIDKey)
-    const participantInfo = Constants.getParticipantInfo(state, ownProps.message.conversationIDKey)
+    const {conversationIDKey, ordinal} = ownProps
+    const m = Constants.getMessage(state, conversationIDKey, ordinal)
+    const message = m?.type === 'text' || m?.type === 'attachment' ? m : emptyMessage
+    const yourMessage = message.author === state.config.username
+    const meta = Constants.getMeta(state, message.conversationIDKey)
+    const participantInfo = Constants.getParticipantInfo(state, message.conversationIDKey)
     const _canDeleteHistory =
       meta.teamType === 'adhoc' || TeamConstants.getCanPerformByID(state, meta.teamID).deleteChatHistory
-    const _canExplodeNow = (yourMessage || _canDeleteHistory) && ownProps.message.isDeleteable
-    const _canEdit = yourMessage && ownProps.message.isEditable
-    const _mapUnfurl = Constants.getMapUnfurl(ownProps.message)
+    const _canExplodeNow = (yourMessage || _canDeleteHistory) && message.isDeleteable
+    const _canEdit = yourMessage && message.isEditable
+    const _mapUnfurl = Constants.getMapUnfurl(message)
     // you can reply privately *if* text message, someone else's message, and not in a 1-on-1 chat
     const _canReplyPrivately =
       !yourMessage &&
-      ownProps.message.type === 'text' &&
+      message.type === 'text' &&
       (['small', 'big'].includes(meta.teamType) || participantInfo.all.length > 2)
-    const authorIsBot = Constants.messageAuthorIsBot(state, meta, ownProps.message, participantInfo)
+    const authorIsBot = Constants.messageAuthorIsBot(state, meta, message, participantInfo)
     const _teamMembers = state.teams.teamIDToMembers.get(meta.teamID)
 
     return {
@@ -54,14 +61,16 @@ export default Container.connect(
       _teamID: meta.teamID,
       _teamMembers,
       _teamname: meta.teamname,
-      author: ownProps.message.author,
-      botUsername: ownProps.message.type === 'text' ? ownProps.message.botUsername : undefined,
-      deviceName: ownProps.message.deviceName,
-      deviceRevokedAt: ownProps.message.deviceRevokedAt,
-      deviceType: ownProps.message.deviceType,
-      explodesAt: ownProps.message.explodingTime,
-      hideTimer: ownProps.message.submitState === 'pending' || ownProps.message.submitState === 'failed',
-      timestamp: ownProps.message.timestamp,
+      author: message.author,
+      botUsername: message.type === 'text' ? message.botUsername : undefined,
+      deviceName: message.deviceName,
+      deviceRevokedAt: message.deviceRevokedAt,
+      deviceType: message.deviceType,
+      explodesAt: message.explodingTime,
+      hideTimer: message.submitState === 'pending' || message.submitState === 'failed',
+      // TODO remove
+      message,
+      timestamp: message.timestamp,
       yourMessage,
     }
   },
@@ -72,8 +81,8 @@ export default Container.connect(
           path: [
             {
               props: {
-                conversationIDKey: ownProps.message.conversationIDKey,
-                onPickAddToMessageOrdinal: ownProps.message.ordinal,
+                conversationIDKey: ownProps.conversationIDKey,
+                onPickAddToMessageOrdinal: ownProps.ordinal,
               },
               selected: 'chatChooseEmoji',
             },
@@ -84,34 +93,27 @@ export default Container.connect(
     _onAllMedia: () =>
       dispatch(
         Chat2Gen.createShowInfoPanel({
-          conversationIDKey: ownProps.message.conversationIDKey,
+          conversationIDKey: ownProps.conversationIDKey,
           show: true,
           tab: 'attachments',
         })
       ),
-    _onCopy: () => {
-      if (ownProps.message.type === 'text') {
-        dispatch(ConfigGen.createCopyToClipboard({text: ownProps.message.text.stringValue()}))
-      }
+    _onCopy: (h: Container.HiddenString) => {
+      dispatch(ConfigGen.createCopyToClipboard({text: h.stringValue()}))
     },
-    _onDownload: () =>
-      dispatch(
-        Chat2Gen.createAttachmentDownload({
-          message: ownProps.message,
-        })
-      ),
+    _onDownload: (message: Types.Message) => dispatch(Chat2Gen.createAttachmentDownload({message})),
     _onEdit: () =>
       dispatch(
         Chat2Gen.createMessageSetEditing({
-          conversationIDKey: ownProps.message.conversationIDKey,
-          ordinal: ownProps.message.ordinal,
+          conversationIDKey: ownProps.conversationIDKey,
+          ordinal: ownProps.ordinal,
         })
       ),
     _onExplodeNow: () =>
       dispatch(
         Chat2Gen.createMessageDelete({
-          conversationIDKey: ownProps.message.conversationIDKey,
-          ordinal: ownProps.message.ordinal,
+          conversationIDKey: ownProps.conversationIDKey,
+          ordinal: ownProps.ordinal,
         })
       ),
     _onForward: () => {
@@ -119,17 +121,17 @@ export default Container.connect(
         RouteTreeGen.createNavigateAppend({
           path: [
             {
-              props: {ordinal: ownProps.message.ordinal, srcConvID: ownProps.message.conversationIDKey},
+              props: {ordinal: ownProps.ordinal, srcConvID: ownProps.conversationIDKey},
               selected: 'chatForwardMsgPick',
             },
           ],
         })
       )
     },
-    _onInstallBot: () => {
+    _onInstallBot: (author: string) => {
       dispatch(
         RouteTreeGen.createNavigateAppend({
-          path: [{props: {botUsername: ownProps.message.author}, selected: 'chatInstallBotPick'}],
+          path: [{props: {botUsername: author}, selected: 'chatInstallBotPick'}],
         })
       )
     },
@@ -139,54 +141,46 @@ export default Container.connect(
           path: [{props: {members: [username], teamID}, selected: 'teamReallyRemoveMember'}],
         })
       ),
-    _onPinMessage: () => {
+    _onPinMessage: (id: number) => {
       dispatch(
         Chat2Gen.createPinMessage({
-          conversationIDKey: ownProps.message.conversationIDKey,
-          messageID: ownProps.message.id,
+          conversationIDKey: ownProps.conversationIDKey,
+          messageID: id,
         })
       )
     },
     _onReact: (emoji: string) => {
       dispatch(
         Chat2Gen.createToggleMessageReaction({
-          conversationIDKey: ownProps.message.conversationIDKey,
+          conversationIDKey: ownProps.conversationIDKey,
           emoji,
-          ordinal: ownProps.message.ordinal,
+          ordinal: ownProps.ordinal,
         })
       )
     },
     _onReply: () =>
       dispatch(
         Chat2Gen.createToggleReplyToMessage({
-          conversationIDKey: ownProps.message.conversationIDKey,
-          ordinal: ownProps.message.ordinal,
+          conversationIDKey: ownProps.conversationIDKey,
+          ordinal: ownProps.ordinal,
         })
       ),
     _onReplyPrivately: () => {
       dispatch(
         Chat2Gen.createMessageReplyPrivately({
-          ordinal: ownProps.message.ordinal,
-          sourceConversationIDKey: ownProps.message.conversationIDKey,
+          ordinal: ownProps.ordinal,
+          sourceConversationIDKey: ownProps.conversationIDKey,
         })
       )
     },
-    _onSaveAttachment: () =>
-      dispatch(
-        Chat2Gen.createMessageAttachmentNativeSave({
-          message: ownProps.message,
-        })
-      ),
-    _onShareAttachment: () =>
-      dispatch(
-        Chat2Gen.createMessageAttachmentNativeShare({
-          message: ownProps.message,
-        })
-      ),
-    _onShowInFinder: () => {
-      ownProps.message.type === 'attachment' &&
-        ownProps.message.downloadPath &&
-        dispatch(FsGen.createOpenLocalPathInSystemFileManager({localPath: ownProps.message.downloadPath}))
+    _onSaveAttachment: (message: Types.Message) =>
+      dispatch(Chat2Gen.createMessageAttachmentNativeSave({message})),
+    _onShareAttachment: (message: Types.Message) =>
+      dispatch(Chat2Gen.createMessageAttachmentNativeShare({message})),
+    _onShowInFinder: (message: Types.Message) => {
+      message.type === 'attachment' &&
+        message.downloadPath &&
+        dispatch(FsGen.createOpenLocalPathInSystemFileManager({localPath: message.downloadPath}))
     },
     _onUserBlock: (message: Types.Message, isSingle: boolean) => {
       dispatch(
@@ -207,7 +201,7 @@ export default Container.connect(
     },
   }),
   (stateProps, dispatchProps, ownProps) => {
-    const message = ownProps.message
+    const {message} = stateProps
     const authorInTeam = stateProps._teamMembers?.has(message.author) ?? true
     const items: MenuItems = []
     if (Container.isMobile) {
@@ -228,29 +222,49 @@ export default Container.connect(
     if (message.type === 'attachment') {
       if (Container.isMobile) {
         if (message.attachmentType === 'image') {
-          items.push({icon: 'iconfont-download-2', onClick: dispatchProps._onSaveAttachment, title: 'Save'})
+          items.push({
+            icon: 'iconfont-download-2',
+            onClick: () => dispatchProps._onSaveAttachment(message),
+            title: 'Save',
+          })
         }
         if (isIOS) {
-          items.push({icon: 'iconfont-share', onClick: dispatchProps._onShareAttachment, title: 'Share'})
+          items.push({
+            icon: 'iconfont-share',
+            onClick: () => dispatchProps._onShareAttachment(message),
+            title: 'Share',
+          })
         }
       } else {
         items.push(
           !message.downloadPath
-            ? {icon: 'iconfont-download-2', onClick: dispatchProps._onDownload, title: 'Download'}
-            : {icon: 'iconfont-finder', onClick: dispatchProps._onShowInFinder, title: 'Show in finder'}
+            ? {
+                icon: 'iconfont-download-2',
+                onClick: () => dispatchProps._onDownload(message),
+                title: 'Download',
+              }
+            : {
+                icon: 'iconfont-finder',
+                onClick: () => dispatchProps._onShowInFinder(message),
+                title: 'Show in finder',
+              }
         )
       }
       if (stateProps._authorIsBot) {
         items.push({
           icon: 'iconfont-nav-2-robot',
-          onClick: dispatchProps._onInstallBot,
+          onClick: () => dispatchProps._onInstallBot(message.author),
           title: 'Install bot in another team or chat',
         })
       }
       items.push({icon: 'iconfont-camera', onClick: dispatchProps._onAllMedia, title: 'All media'})
       items.push({icon: 'iconfont-reply', onClick: dispatchProps._onReply, title: 'Reply'})
       items.push({icon: 'iconfont-forward', onClick: dispatchProps._onForward, title: 'Forward'})
-      items.push({icon: 'iconfont-pin', onClick: dispatchProps._onPinMessage, title: 'Pin message'})
+      items.push({
+        icon: 'iconfont-pin',
+        onClick: () => dispatchProps._onPinMessage(message.id),
+        title: 'Pin message',
+      })
     } else {
       if (stateProps._mapUnfurl?.mapInfo && !stateProps._mapUnfurl.mapInfo.isLiveLocationDone) {
         const url = stateProps._mapUnfurl.url
@@ -262,11 +276,15 @@ export default Container.connect(
       if (stateProps._authorIsBot) {
         items.push({
           icon: 'iconfont-nav-2-robot',
-          onClick: dispatchProps._onInstallBot,
+          onClick: () => dispatchProps._onInstallBot(message.author),
           title: 'Install bot in another team or chat',
         })
       }
-      items.push({icon: 'iconfont-clipboard', onClick: dispatchProps._onCopy, title: 'Copy text'})
+      items.push({
+        icon: 'iconfont-clipboard',
+        onClick: () => dispatchProps._onCopy(message.text),
+        title: 'Copy text',
+      })
       items.push({icon: 'iconfont-reply', onClick: dispatchProps._onReply, title: 'Reply'})
       if (message.type === 'text' && message.unfurls.size > 0) {
         items.push({icon: 'iconfont-forward', onClick: dispatchProps._onForward, title: 'Forward'})
@@ -278,7 +296,11 @@ export default Container.connect(
           title: 'Reply privately',
         })
       }
-      items.push({icon: 'iconfont-pin', onClick: dispatchProps._onPinMessage, title: 'Pin message'})
+      items.push({
+        icon: 'iconfont-pin',
+        onClick: () => dispatchProps._onPinMessage(message.id),
+        title: 'Pin message',
+      })
     }
     if (stateProps._canExplodeNow) {
       items.push({

@@ -9,6 +9,9 @@ import webpack from 'webpack'
 import HtmlWebpackPlugin from 'html-webpack-plugin'
 const ReactRefreshWebpackPlugin = require('@pmmmwh/react-refresh-webpack-plugin')
 
+// why did you render
+const enableWDYR = false
+
 // When we start the hot server we want to build the main/dll without hot reloading statically
 const config = (_, {mode}) => {
   const isDev = mode !== 'production'
@@ -38,7 +41,7 @@ const config = (_, {mode}) => {
             {
               runtime: 'automatic',
               development: isDev,
-              ...(isDev ? {importSource: '@welldone-software/why-did-you-render'} : {}),
+              ...(isDev && enableWDYR ? {importSource: '@welldone-software/why-did-you-render'} : {}),
             },
           ],
           '@babel/preset-typescript',

@@ -4,19 +4,29 @@ import * as Container from '../../../../../util/container'
 import * as FsGen from '../../../../../actions/fs-gen'
 import * as React from 'react'
 import ImageAttachment from '.'
-import type * as Types from '../../../../../constants/types/chat2'
+import {ConvoIDContext, OrdinalContext} from '../../ids-context'
 import {globalColors} from '../../../../../styles'
 import {imgMaxWidth} from './image-render'
 
 type OwnProps = {
-  message: Types.MessageAttachment
   toggleMessageMenu: () => void
   isHighlighted?: boolean
 }
 
+const missingMessage = Constants.makeMessageAttachment()
+
 const ImageAttachmentContainer = React.memo(function ImageAttachmentContainer(p: OwnProps) {
-  const {message, isHighlighted, toggleMessageMenu} = p
-  const editInfo = Container.useSelector(state => Constants.getEditInfo(state, message.conversationIDKey))
+  const {isHighlighted, toggleMessageMenu} = p
+  const conversationIDKey = React.useContext(ConvoIDContext)
+  const ordinal = React.useContext(OrdinalContext)
+  // TODO not message
+  const message = Container.useSelector(state => {
+    const m = Constants.getMessage(state, conversationIDKey, ordinal)
+    return m?.type === 'attachment' ? m : missingMessage
+  })
+  const editInfo = Container.useSelector(state =>
+    Constants.getEditInfo(state, message?.conversationIDKey ?? '')
+  )
   const isEditing = !!(editInfo && editInfo.ordinal === message.ordinal)
 
   const dispatch = Container.useDispatch()

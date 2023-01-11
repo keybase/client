@@ -330,7 +330,7 @@ const reactComponentsForMarkdownType = {
         json={node.content}
         key={state.key}
         allowFontScaling={state.allowFontScaling}
-        message={(state.markdownMeta && state.markdownMeta.message) || undefined}
+        messageType={state.messageType}
         styleOverride={state.styleOverride}
         styles={markdownStyles as any}
         disableBigEmojis={false}
@@ -401,16 +401,7 @@ const bigEmojiOutput: SimpleMarkdown.Output<any> = SimpleMarkdown.outputFor(
         node: SimpleMarkdown.SingleASTNode,
         output: SimpleMarkdown.ReactOutput,
         state: SimpleMarkdown.State
-      ) => (
-        <Text
-          type="Body"
-          key={state.key}
-          style={markdownStyles.bigTextBlockStyle}
-          allowFontScaling={state.allowFontScaling}
-        >
-          {output(node.content, {...state, inParagraph: true})}
-        </Text>
-      ),
+      ) => output(node.content, {...state, inParagraph: true}),
     },
   },
   'react'

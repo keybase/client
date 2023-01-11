@@ -120,7 +120,7 @@ class Text extends React.Component<Props> {
           this._nativeText = ref
         }}
         selectable={this.props.selectable}
-        textBreakStrategy={this.props.textBreakStrategy}
+        textBreakStrategy={this.props.textBreakStrategy ?? 'simple'}
         style={style}
         {...lineClamp(this.props.lineClamp || undefined, this.props.ellipsizeMode || undefined)}
         onPress={onPress}

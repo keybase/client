@@ -86,6 +86,7 @@ export const makeState = (): Types.State => ({
   messageCenterOrdinals: new Map(), // ordinals to center threads on,
   messageMap: new Map(), // messages in a thread,
   messageOrdinals: new Map(), // ordered ordinals in a thread,
+  messageTypeMap: new Map(),
   metaMap: new Map(), // metadata about a thread, There is a special node for the pending conversation,
   moreToLoadMap: new Map(), // if we have more data to load,
   mutedMap: new Map(),
@@ -202,12 +203,16 @@ export const isTextOrAttachment = (
 }
 
 export const isMessageWithReactions = (message: Types.Message): message is Types.MessagesWithReactions => {
-  return !(
-    message.type === 'placeholder' ||
-    message.type === 'deleted' ||
-    message.type === 'systemJoined' ||
-    message.type === 'systemLeft' ||
-    message.type === 'journeycard'
+  return (
+    !(
+      message.type === 'placeholder' ||
+      message.type === 'deleted' ||
+      message.type === 'systemJoined' ||
+      message.type === 'systemLeft' ||
+      message.type === 'journeycard'
+    ) &&
+    !message.exploded &&
+    !message.errorReason
   )
 }
 export const getMessageKey = (message: Types.Message) =>
@@ -596,7 +601,6 @@ export {
 
 export {
   allMessageTypes,
-  enoughTimeBetweenMessages,
   getClientPrev,
   getDeletableByDeleteHistory,
   getMapUnfurl,

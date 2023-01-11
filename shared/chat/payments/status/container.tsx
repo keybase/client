@@ -1,12 +1,12 @@
-import type * as Types from '../../../constants/types/chat2'
-import type * as WalletTypes from '../../../constants/types/wallets'
 import * as Container from '../../../util/container'
+import * as React from 'react'
 import PaymentStatus, {type Props} from '.'
+import type * as WalletTypes from '../../../constants/types/wallets'
+import {ConvoIDContext, OrdinalContext} from '../../conversation/messages/ids-context'
 
 type OwnProps = {
   allowFontScaling?: boolean | null
   error?: string | null
-  message: Types.MessageText
   paymentID?: WalletTypes.PaymentID
   text: string
 }
@@ -30,26 +30,38 @@ const reduceStatus = (status: string): Status => {
   }
 }
 
-export default Container.connect(
-  (state, ownProps: OwnProps) => {
-    const {error, paymentID, message, text} = ownProps
-    const paymentInfo = paymentID ? state.chat2.paymentStatusMap.get(paymentID) || null : null
-    const status = error ? 'error' : paymentInfo?.status ?? 'pending'
-    return {
-      allowFontScaling: ownProps.allowFontScaling,
-      allowPopup:
-        status === 'completed' ||
-        status === 'pending' ||
-        status === 'claimable' ||
-        message.author === state.config.username,
-      errorDetail: error || paymentInfo?.statusDetail,
-      isSendError: !!error,
-      message,
-      paymentID,
-      status: reduceStatus(status),
-      text,
-    }
-  },
-  () => ({}),
-  (s, d, _: OwnProps) => ({...s, ...d})
-)(PaymentStatus)
+const PaymentStatusContainer = React.memo(function PaymentStatusContainer(p: OwnProps) {
+  const {error, paymentID, text, allowFontScaling} = p
+  const conversationIDKey = React.useContext(ConvoIDContext)
+  const ordinal = React.useContext(OrdinalContext)
+  const paymentInfo = Container.useSelector(state =>
+    paymentID ? state.chat2.paymentStatusMap.get(paymentID) || null : null
+  )
+  const status = error ? 'error' : paymentInfo?.status ?? 'pending'
+
+  const allowPopup = Container.useSelector(state => {
+    const you = state.config.username
+    const author = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)?.author
+    return status === 'completed' || status === 'pending' || status === 'claimable' || author === you
+  })
+
+  // TODO remove
+  const message = Container.useSelector(state => {
+    return state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
+  })
+
+  if (message?.type !== 'text') return null
+
+  const props = {
+    allowFontScaling,
+    allowPopup,
+    errorDetail: error || paymentInfo?.statusDetail,
+    isSendError: !!error,
+    message,
+    paymentID,
+    status: reduceStatus(status),
+    text,
+  }
+  return <PaymentStatus {...props} />
+})
+export default PaymentStatusContainer

@@ -3,7 +3,7 @@ import Main from '../../app/main.desktop'
 // order of the above 2 must NOT change. needed for patching / hot loading to be correct
 import * as NotificationsGen from '../../actions/notifications-gen'
 import * as React from 'react'
-import ReactDOM from 'react-dom'
+import * as ReactDOM from 'react-dom/client'
 import RemoteProxies from '../remote/proxies.desktop'
 import Root from './container.desktop'
 import makeStore from '../../store/configure-store'
@@ -135,9 +135,7 @@ const render = (Component = Main) => {
     throw new Error('No root element?')
   }
 
-  // Note we get warnings about moving to createRoot but react-native-web doesn't actually
-  // work with it yet, the nav is broken when enabled
-  ReactDOM.render(
+  ReactDOM.createRoot(root).render(
     <Root store={store}>
       <DarkCSSInjector />
       <RemoteProxies />
@@ -145,8 +143,7 @@ const render = (Component = Main) => {
       <div style={{display: 'flex', flex: 1}}>
         <Component />
       </div>
-    </Root>,
-    root
+    </Root>
   )
 }
 
@@ -188,7 +185,8 @@ const load = () => {
       for (let i = 0; i < 10; ++i) {
         console.log('DEBUG_DEFER on!!!')
       }
-      ReactDOM.render(<div>temp</div>, document.getElementById('root'))
+      const e: any = <div>temp</div>
+      ReactDOM.createRoot(document.getElementById('root')!, e)
       setTimeout(() => {
         render()
       }, 5000)

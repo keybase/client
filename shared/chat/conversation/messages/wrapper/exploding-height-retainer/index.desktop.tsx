@@ -33,14 +33,6 @@ class ExplodingHeightRetainer extends React.PureComponent<Props, State> {
     return nextProps.retainHeight ? null : {children: copyChildren(nextProps.children)}
   }
 
-  componentDidMount() {
-    // remeasure if we are already exploded
-    if (this.props.retainHeight && retainedHeights.has(this.props.messageKey) && this.props.measure) {
-      retainedHeights.delete(this.props.messageKey)
-      this.props.measure()
-    }
-  }
-
   componentDidUpdate(prevProps: Props) {
     if (this.props.retainHeight) {
       if (!prevProps.retainHeight) {

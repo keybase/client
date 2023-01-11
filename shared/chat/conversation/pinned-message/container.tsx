@@ -1,87 +1,70 @@
-import type * as Types from '../../../constants/types/chat2'
-import * as Constants from '../../../constants/chat2'
 import * as Chat2Gen from '../../../actions/chat2-gen'
-import {getCanPerform} from '../../../constants/teams'
+import * as Constants from '../../../constants/chat2'
 import * as Container from '../../../util/container'
+import * as React from 'react'
 import PinnedMessage from '.'
+import type * as Types from '../../../constants/types/chat2'
+import {getCanPerform} from '../../../constants/teams'
+import shallowEqual from 'shallowequal'
 
-type OwnProps = {
-  conversationIDKey: Types.ConversationIDKey
-}
+type OwnProps = {conversationIDKey: Types.ConversationIDKey}
 
-const empty = {
-  _canAdminDelete: false,
-  _messageID: 0,
-  _pinnerUsername: '',
-  _you: '',
-  author: '',
-  imageHeight: undefined,
-  imageURL: undefined,
-  imageWidth: undefined,
-  text: '',
-  unpinning: false,
-}
+const PinnedMessageContainer = React.memo(function PinnedMessageContainer(p: OwnProps) {
+  const {conversationIDKey} = p
+  const you = Container.useSelector(state => state.config.username)
+  const {teamname, pinnedMsg} = Container.useSelector(state => {
+    const meta = Constants.getMeta(state, conversationIDKey)
+    return {pinnedMsg: meta?.pinnedMsg, teamname: meta?.teamname}
+  }, shallowEqual)
+  const message = pinnedMsg?.message
+  const yourOperations = Container.useSelector(state => getCanPerform(state, teamname))
+  const unpinning = Container.useSelector(state =>
+    Container.anyWaiting(state, Constants.waitingKeyUnpin(conversationIDKey))
+  )
+  const messageID = message?.id
+  const dispatch = Container.useDispatch()
+  const onClick = React.useCallback(() => {
+    messageID && dispatch(Chat2Gen.createReplyJump({conversationIDKey, messageID}))
+  }, [dispatch, conversationIDKey, messageID])
+  const onIgnore = React.useCallback(() => {
+    dispatch(Chat2Gen.createIgnorePinnedMessage({conversationIDKey}))
+  }, [dispatch, conversationIDKey])
+  const onUnpin = React.useCallback(() => {
+    dispatch(Chat2Gen.createUnpinMessage({conversationIDKey}))
+  }, [dispatch, conversationIDKey])
 
-const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
-  const meta = Constants.getMeta(state, ownProps.conversationIDKey)
-  if (!meta) {
-    return empty
-  }
-  const pinnedMsg = meta.pinnedMsg
-  if (!pinnedMsg) {
-    return empty
-  }
-  const message = pinnedMsg.message
   if (!message || !(message.type === 'text' || message.type === 'attachment')) {
-    return empty
+    return null
   }
-  const yourOperations = getCanPerform(state, meta.teamname)
-  const _canAdminDelete = yourOperations && yourOperations.deleteOtherMessages
+
+  const canAdminDelete = !!yourOperations?.deleteOtherMessages
   const attachment: Types.MessageAttachment | undefined =
     message.type === 'attachment' && message.attachmentType === 'image' ? message : undefined
-  return {
-    _canAdminDelete,
-    _messageID: message.id,
-    _pinnerUsername: pinnedMsg.pinnerUsername,
-    _you: state.config.username,
-    author: message.author,
-    imageHeight: attachment ? attachment.previewHeight : undefined,
-    imageURL: attachment ? attachment.previewURL : undefined,
-    imageWidth: attachment ? attachment.previewWidth : undefined,
-    text:
-      message.type === 'text'
-        ? message.decoratedText
-          ? message.decoratedText.stringValue()
-          : ''
-        : message.title || message.fileName,
-    unpinning: Container.anyWaiting(state, Constants.waitingKeyUnpin(ownProps.conversationIDKey)),
-  }
-}
+  const pinnerUsername = pinnedMsg.pinnerUsername
+  const author = message.author
+  const imageHeight = attachment ? attachment.previewHeight : undefined
+  const imageURL = attachment ? attachment.previewURL : undefined
+  const imageWidth = attachment ? attachment.previewWidth : undefined
+  const text =
+    message.type === 'text'
+      ? message.decoratedText
+        ? message.decoratedText.stringValue()
+        : ''
+      : message.title || message.fileName
 
-const mapDispatchToProps = (dispatch: Container.TypedDispatch, {conversationIDKey}: OwnProps) => ({
-  _onClick: (messageID: Types.MessageID) =>
-    dispatch(
-      Chat2Gen.createReplyJump({
-        conversationIDKey,
-        messageID,
-      })
-    ),
-  _onIgnore: () => dispatch(Chat2Gen.createIgnorePinnedMessage({conversationIDKey})),
-  _onUnpin: () => dispatch(Chat2Gen.createUnpinMessage({conversationIDKey})),
-})
-
-export default Container.connect(mapStateToProps, mapDispatchToProps, (stateProps, dispatchProps) => {
-  const yourMessage = stateProps._pinnerUsername === stateProps._you
-  const dismissUnpins = yourMessage || stateProps._canAdminDelete
-  return {
-    author: stateProps.author,
+  const yourMessage = pinnerUsername === you
+  const dismissUnpins = yourMessage || canAdminDelete
+  const props = {
+    author: author,
     dismissUnpins,
-    imageHeight: stateProps.imageHeight,
-    imageURL: stateProps.imageURL,
-    imageWidth: stateProps.imageWidth,
-    onClick: () => dispatchProps._onClick(stateProps._messageID),
-    onDismiss: dismissUnpins ? dispatchProps._onUnpin : dispatchProps._onIgnore,
-    text: stateProps.text,
-    unpinning: stateProps.unpinning,
+    imageHeight: imageHeight,
+    imageURL: imageURL,
+    imageWidth: imageWidth,
+    onClick,
+    onDismiss: dismissUnpins ? onUnpin : onIgnore,
+    text: text,
+    unpinning: unpinning,
   }
-})(PinnedMessage)
+  return <PinnedMessage {...props} />
+})
+export default PinnedMessageContainer

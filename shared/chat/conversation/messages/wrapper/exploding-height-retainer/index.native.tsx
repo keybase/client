@@ -2,6 +2,8 @@ import * as React from 'react'
 import * as Kb from '../../../../../common-adapters/mobile.native'
 import * as Styles from '../../../../../styles'
 import throttle from 'lodash/throttle'
+// ios must animated plain colors not the dynamic ones
+import colors, {darkColors} from '../../../../../styles/colors'
 import type {Props} from '.'
 import SharedTimer, {type SharedTimerID} from '../../../../../util/shared-timers'
 
@@ -213,14 +215,15 @@ const AshTower = (props: {explodedBy?: string; numImages: number; showExploded: 
   let exploded: React.ReactNode = null
   if (props.showExploded) {
     exploded = !props.explodedBy ? (
-      <Kb.Text type="BodyTiny" style={styles.exploded}>
+      <Kb.Text type="BodyTiny" style={styles.exploded} fixOverdraw={true}>
         EXPLODED
       </Kb.Text>
     ) : (
-      <Kb.Text lineClamp={1} type="BodyTiny" style={styles.exploded}>
+      <Kb.Text lineClamp={1} type="BodyTiny" style={styles.exploded} fixOverdraw={true}>
         EXPLODED BY{' '}
         <Kb.ConnectedUsernames
           type="BodySmallBold"
+          fixOverdraw="auto"
           onUsernameClicked="profile"
           usernames={props.explodedBy}
           inline={true}
@@ -242,6 +245,7 @@ const styles = Styles.styleSheetCreate(
   () =>
     ({
       ashes: {
+        backgroundColor: Styles.globalColors.fastBlank,
         height: 80,
         width: 400,
       },
@@ -256,15 +260,15 @@ const styles = Styles.styleSheetCreate(
         width: 20,
       },
       exploded: {
-        backgroundColor: Styles.globalColors.white,
-        color: Styles.globalColors.black_20_on_white,
+        backgroundColor: Styles.isDarkMode() ? darkColors.white : colors.white,
+        color: Styles.isDarkMode() ? darkColors.black_20_on_white : colors.black_20_on_white,
         paddingLeft: Styles.globalMargins.tiny,
       },
       retaining: {
         overflow: 'hidden',
       },
       slider: {
-        backgroundColor: Styles.globalColors.white,
+        backgroundColor: Styles.isDarkMode() ? darkColors.white : colors.white,
         bottom: 0,
         height: '100%',
         left: 0,
@@ -275,8 +279,9 @@ const styles = Styles.styleSheetCreate(
       tagBox: {
         ...Styles.globalStyles.flexBoxColumn,
         alignItems: 'flex-end',
+        backgroundColor: Styles.globalColors.fastBlank,
         bottom: 2,
-        minWidth: 200,
+        minWidth: 80,
         position: 'absolute',
         right: 0,
       },

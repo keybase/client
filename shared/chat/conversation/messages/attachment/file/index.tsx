@@ -6,7 +6,6 @@ import * as Styles from '../../../../../styles'
 import type * as Types from '../../../../../constants/types/chat2'
 import type * as CryptoTypes from '../../../../../constants/types/crypto'
 import {getEditStyle, ShowToastAfterSaving} from '../shared'
-import {useMemo} from '../../../../../util/memoize'
 import {isPathSaltpackEncrypted, isPathSaltpackSigned, Operations} from '../../../../../constants/crypto'
 
 type Props = {
@@ -16,7 +15,6 @@ type Props = {
   onShowPDF?: () => void
   title: string
   fileName: string
-  message: Types.MessageAttachment
   progress: number
   transferState: Types.MessageAttachmentTransferState
   hasProgress: boolean
@@ -29,7 +27,7 @@ type Props = {
 
 const FileAttachment = React.memo(function FileAttachment(props: Props) {
   const progressLabel = Constants.messageAttachmentTransferStateToProgressLabel(props.transferState)
-  const {message, isSaltpackFile, isEditing, isHighlighted} = props
+  const {isSaltpackFile, isEditing, isHighlighted} = props
   const iconType = isSaltpackFile ? 'icon-file-saltpack-32' : 'icon-file-32'
   const operation = isPathSaltpackEncrypted(props.fileName)
     ? Operations.Decrypt
@@ -37,7 +35,6 @@ const FileAttachment = React.memo(function FileAttachment(props: Props) {
     ? Operations.Verify
     : undefined
   const operationTitle = captialize(operation)
-  const wrappedMeta = useMemo(() => ({message}), [message])
   return (
     <>
       <ShowToastAfterSaving transferState={props.transferState} />
@@ -59,7 +56,7 @@ const FileAttachment = React.memo(function FileAttachment(props: Props) {
               </Kb.Text>
             ) : (
               <Kb.Markdown
-                meta={wrappedMeta}
+                messageType="attachment"
                 selectable={true}
                 style={getEditStyle(isEditing, isHighlighted)}
                 styleOverride={

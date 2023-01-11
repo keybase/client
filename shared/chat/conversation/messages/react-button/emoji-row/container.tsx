@@ -1,60 +1,62 @@
-import * as Container from '../../../../../util/container'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
-import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import * as Constants from '../../../../../constants/chat2'
-import type * as Types from '../../../../../constants/types/chat2'
-import type {Position, StylesCrossPlatform} from '../../../../../styles'
+import * as Container from '../../../../../util/container'
+import * as React from 'react'
+import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import EmojiRow from '.'
+import type {Position, StylesCrossPlatform} from '../../../../../styles'
+import {ConvoIDContext, OrdinalContext} from '../../ids-context'
+import shallowEqual from 'shallowequal'
 
 type OwnProps = {
   className?: string
-  conversationIDKey: Types.ConversationIDKey
   onShowingEmojiPicker?: (arg0: boolean) => void
-  ordinal: Types.Ordinal
   style?: StylesCrossPlatform
   tooltipPosition?: Position
 }
 
-const ConnectedEmojiRow = Container.connect(
-  (state: Container.TypedState, ownProps: OwnProps) => {
-    const message = Constants.getMessage(state, ownProps.conversationIDKey, ownProps.ordinal)
-    return {
-      _hasUnfurls: message && message.type === 'text' && message.unfurls && message.unfurls.size,
-      _messageType: message ? message.type : undefined,
-      topReacjis: state.chat2.userReacjis.topReacjis,
-    }
-  },
-  dispatch => ({
-    _onForward: (srcConvID: Types.ConversationIDKey, ordinal: Types.Ordinal) =>
-      dispatch(
-        RouteTreeGen.createNavigateAppend({
-          path: [{props: {ordinal, srcConvID}, selected: 'chatForwardMsgPick'}],
-        })
-      ),
-    _onReact: (emoji: string, conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ordinal) =>
-      dispatch(Chat2Gen.createToggleMessageReaction({conversationIDKey, emoji, ordinal})),
-    _onReply: (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ordinal) =>
-      dispatch(Chat2Gen.createToggleReplyToMessage({conversationIDKey, ordinal})),
-  }),
-  (stateProps, dispatchProps, ownProps: OwnProps) => ({
-    className: ownProps.className,
-    conversationIDKey: ownProps.conversationIDKey,
-    emojis: stateProps.topReacjis.slice(0, 5),
-    onForward:
-      (stateProps._messageType === 'text' && stateProps._hasUnfurls) ||
-      stateProps._messageType === 'attachment'
-        ? () => dispatchProps._onForward(ownProps.conversationIDKey, ownProps.ordinal)
-        : undefined,
-    onReact: (emoji: string) => dispatchProps._onReact(emoji, ownProps.conversationIDKey, ownProps.ordinal),
-    onReply:
-      stateProps._messageType === 'text' || stateProps._messageType === 'attachment'
-        ? () => dispatchProps._onReply(ownProps.conversationIDKey, ownProps.ordinal)
-        : undefined,
-    onShowingEmojiPicker: ownProps.onShowingEmojiPicker,
-    ordinal: ownProps.ordinal,
-    style: ownProps.style,
-    tooltipPosition: ownProps.tooltipPosition,
-  })
-)(EmojiRow)
+const EmojiRowContainer = React.memo(function EmojiRowContainer(p: OwnProps) {
+  const {className, onShowingEmojiPicker, style, tooltipPosition} = p
+  const conversationIDKey = React.useContext(ConvoIDContext)
+  const ordinal = React.useContext(OrdinalContext)
 
-export default ConnectedEmojiRow
+  const hasUnfurls = Container.useSelector(
+    state => (Constants.getMessage(state, conversationIDKey, ordinal)?.unfurls?.size ?? 0) > 0
+  )
+  const type = Container.useSelector(state => Constants.getMessage(state, conversationIDKey, ordinal)?.type)
+  const emojis = Container.useSelector(state => state.chat2.userReacjis.topReacjis.slice(0, 5), shallowEqual)
+
+  const dispatch = Container.useDispatch()
+
+  const onForward = React.useCallback(() => {
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [{props: {ordinal, srcConvID: conversationIDKey}, selected: 'chatForwardMsgPick'}],
+      })
+    )
+  }, [dispatch, conversationIDKey, ordinal])
+  const onReact = React.useCallback(
+    (emoji: string) => {
+      dispatch(Chat2Gen.createToggleMessageReaction({conversationIDKey, emoji, ordinal}))
+    },
+    [dispatch, conversationIDKey, ordinal]
+  )
+  const onReply = React.useCallback(() => {
+    dispatch(Chat2Gen.createToggleReplyToMessage({conversationIDKey, ordinal}))
+  }, [dispatch, conversationIDKey, ordinal])
+
+  const props = {
+    className,
+    conversationIDKey,
+    emojis,
+    onForward: hasUnfurls || type === 'attachment' ? onForward : undefined,
+    onReact,
+    onReply: type === 'text' || type === 'attachment' ? onReply : undefined,
+    onShowingEmojiPicker,
+    ordinal,
+    style,
+    tooltipPosition,
+  }
+  return <EmojiRow {...props} />
+})
+export default EmojiRowContainer

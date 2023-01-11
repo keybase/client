@@ -1,19 +1,20 @@
-import * as React from 'react'
-import * as Container from '../../../../../util/container'
 import * as Constants from '../../../../../constants/chat2'
-import type * as Types from '../../../../../constants/types/chat2'
-import * as WalletConstants from '../../../../../constants/wallets'
-import type * as WalletTypes from '../../../../../constants/types/wallets'
-import * as WalletGen from '../../../../../actions/wallets-gen'
+import * as Container from '../../../../../util/container'
+import * as React from 'react'
 import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
-import {formatTimeForMessages} from '../../../../../util/timestamp'
+import * as WalletConstants from '../../../../../constants/wallets'
+import * as WalletGen from '../../../../../actions/wallets-gen'
 import PaymentPopup from '.'
-import type {StylesCrossPlatform} from '../../../../../styles/css'
+import type * as Types from '../../../../../constants/types/chat2'
+import type * as WalletTypes from '../../../../../constants/types/wallets'
 import type {Position} from '../../../../../styles'
+import type {StylesCrossPlatform} from '../../../../../styles/css'
+import {formatTimeForMessages} from '../../../../../util/timestamp'
 
 type OwnProps = {
   attachTo?: () => React.Component<any> | null
-  message: Types.MessageRequestPayment | Types.MessageSendPayment | Types.MessageText
+  ordinal: Types.Ordinal
+  conversationIDKey: Types.ConversationIDKey
   paymentID?: WalletTypes.PaymentID
   onHidden: () => void
   position: Position
@@ -237,13 +238,16 @@ const RequestPaymentPopup = Container.connect(
 
 // Wrapper ==============================================
 const PaymentPopupChooser = (props: OwnProps) => {
-  const {message, ...rest} = props
+  const {conversationIDKey, ordinal} = props
+  const message = Container.useSelector(state => Constants.getMessage(state, conversationIDKey, ordinal))
+  if (!message) return null
+
   if (message.type === 'sendPayment') {
-    return <SendPaymentPopup {...rest} message={message} />
+    return <SendPaymentPopup {...props} message={message} />
   } else if (message.type === 'requestPayment') {
-    return <RequestPaymentPopup {...rest} message={message} />
+    return <RequestPaymentPopup {...props} message={message} />
   }
-  throw new Error(`PaymentPopup: impossible case encountered: ${message.type}`)
+  return null
 }
 
 export default PaymentPopupChooser

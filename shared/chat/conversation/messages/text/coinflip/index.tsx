@@ -1,8 +1,8 @@
 import * as React from 'react'
-import * as Kb from '../../../../common-adapters'
-import * as Styles from '../../../../styles'
-import type * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
-import {pluralize} from '../../../../util/string'
+import * as Kb from '../../../../../common-adapters'
+import * as Styles from '../../../../../styles'
+import type * as RPCChatTypes from '../../../../../constants/types/rpc-chat-gen'
+import {pluralize} from '../../../../../util/string'
 import CoinFlipParticipants from './participants'
 import CoinFlipError from './errors'
 import CoinFlipResult from './results'
@@ -10,7 +10,6 @@ import CoinFlipResult from './results'
 export type Props = {
   commitmentVis: string
   isSendError: boolean
-  measure?: () => void
   onFlipAgain: () => void
   revealVis: string
   resultText: string
@@ -88,11 +87,6 @@ class CoinFlip extends React.Component<Props, State> {
       </Kb.Box2>
     )
 
-  componentDidUpdate(prevProps: Props) {
-    if (this.props.phase != prevProps.phase) {
-      this.props.measure?.()
-    }
-  }
   render() {
     const commitSrc = `data:image/png;base64, ${this.props.commitmentVis}`
     const revealSrc = `data:image/png;base64, ${this.props.revealVis}`

@@ -23,12 +23,21 @@ const getMeta = (state: Container.TypedState, conversationIDKey: Types.Conversat
 const SimpleTopLine = React.memo(function SimpleTopLine(props: Props) {
   const {conversationIDKey, isSelected, showGear, layoutTime, layoutIsTeam, layoutName, isInWidget} = props
 
-  const hasUnread = Container.useSelector(state => (state.chat2.unreadMap.get(conversationIDKey) ?? 0) > 0)
-  const teamname = Container.useSelector(state =>
-    getMeta(state, conversationIDKey)?.teamname || layoutIsTeam ? layoutName : ''
-  )
-  const channelname = Container.useSelector(state => getMeta(state, conversationIDKey)?.channelname)
-  const timeNum = Container.useSelector(state => getMeta(state, conversationIDKey)?.timestamp ?? layoutTime)
+  const {hasUnread, teamname, channelname, timeNum, hasBadge} = Container.useSelector(state => {
+    const hasUnread = (state.chat2.unreadMap.get(conversationIDKey) ?? 0) > 0
+    const teamname = (getMeta(state, conversationIDKey)?.teamname || layoutIsTeam ? layoutName : '') || ''
+    const channelname = isInWidget ? getMeta(state, conversationIDKey)?.channelname ?? '' : ''
+    const timeNum = (getMeta(state, conversationIDKey)?.timestamp ?? layoutTime) || 0
+    const hasBadge = (state.chat2.badgeMap.get(conversationIDKey) ?? 0) > 0
+    return {
+      channelname,
+      hasBadge,
+      hasUnread,
+      teamname,
+      timeNum,
+    }
+  }, shallowEqual)
+
   const timestamp = React.useMemo(() => (timeNum ? formatTimeForConversationList(timeNum) : ''), [timeNum])
 
   const usernameColor = isSelected ? Styles.globalColors.white : Styles.globalColors.black
@@ -61,7 +70,6 @@ const SimpleTopLine = React.memo(function SimpleTopLine(props: Props) {
     return layoutName?.split(',') ?? []
   }, shallowEqual)
 
-  const hasBadge = Container.useSelector(state => (state.chat2.badgeMap.get(conversationIDKey) ?? 0) > 0)
   const iconHoverColor = isSelected ? Styles.globalColors.white_75 : Styles.globalColors.black
 
   const {showingPopup, toggleShowingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (

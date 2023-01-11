@@ -72,7 +72,8 @@ const Fullscreen = (p: Props) => {
   const {toggleShowingPopup, showingPopup, popup} = Kb.usePopup(attachTo => (
     <MessagePopup
       attachTo={attachTo}
-      message={message}
+      conversationIDKey={message.conversationIDKey}
+      ordinal={message.id}
       onHidden={toggleShowingPopup}
       position="bottom left"
       visible={showingPopup}

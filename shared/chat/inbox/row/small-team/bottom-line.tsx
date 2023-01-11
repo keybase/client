@@ -209,9 +209,7 @@ const BottomLine = React.memo(function BottomLine(p: Props) {
     <Kb.Box
       style={Styles.collapseStyles([
         styles.outerBox,
-        {
-          backgroundColor: Styles.isMobile ? backgroundColor : undefined,
-        },
+        {backgroundColor: Styles.isMobile ? backgroundColor : undefined},
       ])}
     >
       {hasResetUsers && (

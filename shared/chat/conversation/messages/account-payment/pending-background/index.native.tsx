@@ -26,19 +26,16 @@ class PendingBackground extends React.Component<Props, State> {
 
   render() {
     return (
-      <>
-        <Kb.NativeAnimated.Image
-          resizeMode="repeat"
-          source={Styles.isDarkMode() ? darkPatternImage : lightPatternImage}
-          style={Styles.collapseStyles([
-            styles.image,
-            {
-              transform: [{translateY: this.state.yOffset}] as any,
-            },
-          ])}
-        />
-        {this.props.children}
-      </>
+      <Kb.NativeAnimated.Image
+        resizeMode="repeat"
+        source={Styles.isDarkMode() ? darkPatternImage : lightPatternImage}
+        style={Styles.collapseStyles([
+          styles.image,
+          {
+            transform: [{translateY: this.state.yOffset}] as any,
+          },
+        ])}
+      />
     )
   }
 }

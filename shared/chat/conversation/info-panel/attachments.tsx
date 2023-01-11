@@ -176,7 +176,8 @@ const DocViewRow = (props: DocViewRowProps) => {
     item.message ? (
       <MessagePopup
         attachTo={attachTo}
-        message={item.message}
+        conversationIDKey={item.message.conversationIDKey}
+        ordinal={item.message.id}
         onHidden={toggleShowingPopup}
         position="top right"
         visible={showingPopup}

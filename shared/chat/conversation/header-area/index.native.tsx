@@ -1,109 +1,150 @@
-import {Avatar, Box2, Icon, Text, ConnectedUsernames} from '../../../common-adapters'
-import {assertionToDisplay} from '../../../common-adapters/usernames'
+import * as React from 'react'
+import {getFullname} from '../../../constants/users'
+import * as ProfileGen from '../../../actions/profile-gen'
+import * as Chat2Gen from '../../../actions/chat2-gen'
+import * as Constants from '../../../constants/chat2'
+import * as Container from '../../../util/container'
+import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
-
-export type Props = {
-  badgeNumber?: number
-  channelName?: string
-  contactNames: Map<string, string>
-  muted: boolean
-  onOpenFolder?: () => void
-  onShowProfile: (user: string) => void
-  onShowInfoPanel: () => void
-  onToggleThreadSearch: () => void
-  teamName?: string
-  theirFullname?: string
-  participants: Array<string>
-  pendingWaiting: boolean
-  smallTeam: boolean
-  unMuteConversation: () => void
-}
+import type * as Types from '../../../constants/types/chat2'
+import {assertionToDisplay} from '../../../common-adapters/usernames'
 
 const shhIconColor = Styles.globalColors.black_20
 const shhIconFontSize = 24
 
-const ShhIcon = (props: {onClick: () => void}) => (
-  <Icon
-    type="iconfont-shh"
-    style={styles.shhIcon}
-    color={shhIconColor}
-    fontSize={shhIconFontSize}
-    onClick={props.onClick}
-  />
-)
+type Props = {
+  conversationIDKey: Types.ConversationIDKey
+}
 
-const ChannelHeader = (props: Props) => (
-  <Box2 direction="vertical">
-    <Box2 direction="horizontal" style={styles.channelHeaderContainer}>
-      <Avatar teamname={props.teamName || undefined} size={props.smallTeam ? 16 : (12 as any)} />
-      <Text
-        type={
-          Styles.isMobile
-            ? props.smallTeam
-              ? 'BodyBig'
-              : 'BodyTinySemibold'
-            : props.smallTeam
-            ? 'BodyBig'
-            : 'BodySemibold'
-        }
-        lineClamp={1}
-        ellipsizeMode="middle"
-        style={Styles.collapseStyles([styles.channelName, !props.smallTeam && styles.channelNameLight])}
-      >
-        &nbsp;
-        {props.teamName}
-      </Text>
-      {props.smallTeam && props.muted && <ShhIcon onClick={props.unMuteConversation} />}
-    </Box2>
-    {!props.smallTeam && (
-      <Box2 direction="horizontal" style={styles.channelHeaderContainer}>
-        <Text type="BodyBig" style={styles.channelName} lineClamp={1} ellipsizeMode="tail">
-          #{props.channelName}
-        </Text>
-        {props.muted && <ShhIcon onClick={props.unMuteConversation} />}
-      </Box2>
-    )}
-  </Box2>
-)
+const ShhIcon = (p: Props) => {
+  const {conversationIDKey} = p
+  const isMuted = Container.useSelector(state => Constants.getMeta(state, conversationIDKey).isMuted)
+  const dispatch = Container.useDispatch()
+  const unMuteConversation = React.useCallback(() => {
+    dispatch(Chat2Gen.createMuteConversation({conversationIDKey, muted: false}))
+  }, [dispatch, conversationIDKey])
+  return isMuted ? (
+    <Kb.Icon
+      type="iconfont-shh"
+      style={styles.shhIcon}
+      color={shhIconColor}
+      fontSize={shhIconFontSize}
+      onClick={unMuteConversation}
+    />
+  ) : null
+}
 
-const UsernameHeader = (props: Props) => (
-  <Box2 direction={props.theirFullname ? 'vertical' : 'horizontal'} style={styles.usernameHeaderContainer}>
-    {!!props.theirFullname && (
-      <Text lineClamp={1} type="BodyBig" fixOverdraw={true}>
-        {props.theirFullname}
-      </Text>
-    )}
-    <Box2 direction="horizontal" style={styles.nameMutedContainer}>
-      <ConnectedUsernames
-        colorFollowing={true}
-        inline={false}
-        lineClamp={props.participants.length > 2 ? 2 : 1}
-        commaColor={Styles.globalColors.black_50}
-        type={props.participants.length > 2 || !!props.theirFullname ? 'BodyTinyBold' : 'BodyBig'}
-        usernames={props.participants}
-        containerStyle={styles.center}
-        onUsernameClicked={props.onShowProfile}
-        skipSelf={props.participants.length > 1}
-      />
-      {props.muted && <ShhIcon onClick={props.unMuteConversation} />}
-    </Box2>
-  </Box2>
-)
+const ChannelHeader = (p: Props) => {
+  const {conversationIDKey} = p
+  const channelname = Container.useSelector(state => Constants.getMeta(state, conversationIDKey).channelname)
+  const smallTeam = Container.useSelector(
+    state => Constants.getMeta(state, conversationIDKey).teamType !== 'big'
+  )
+  const teamname = Container.useSelector(state => Constants.getMeta(state, conversationIDKey).teamname)
 
-const PhoneOrEmailHeader = (props: Props) => {
-  const phoneOrEmail = props.participants.find(s => s.endsWith('@phone') || s.endsWith('@email')) || ''
-  const formattedPhoneOrEmail = assertionToDisplay(phoneOrEmail)
-  const name = props.contactNames.get(phoneOrEmail)
   return (
-    <Box2 direction="vertical" style={styles.usernameHeaderContainer}>
-      <Box2 direction="horizontal" style={styles.lessMargins}>
-        <Text type="BodyBig" lineClamp={1} ellipsizeMode="middle">
+    <Kb.Box2 direction="vertical">
+      <Kb.Box2 direction="horizontal" style={styles.channelHeaderContainer}>
+        <Kb.Avatar teamname={teamname || undefined} size={smallTeam ? 16 : (12 as any)} />
+        <Kb.Text
+          type={
+            Styles.isMobile
+              ? smallTeam
+                ? 'BodyBig'
+                : 'BodyTinySemibold'
+              : smallTeam
+              ? 'BodyBig'
+              : 'BodySemibold'
+          }
+          lineClamp={1}
+          ellipsizeMode="middle"
+          style={Styles.collapseStyles([styles.channelName, !smallTeam && styles.channelNameLight])}
+        >
+          &nbsp;
+          {teamname}
+        </Kb.Text>
+        {smallTeam && <ShhIcon conversationIDKey={conversationIDKey} />}
+      </Kb.Box2>
+      {!smallTeam && (
+        <Kb.Box2 direction="horizontal" style={styles.channelHeaderContainer}>
+          <Kb.Text type="BodyBig" style={styles.channelName} lineClamp={1} ellipsizeMode="tail">
+            #{channelname}
+          </Kb.Text>
+          <ShhIcon conversationIDKey={conversationIDKey} />
+        </Kb.Box2>
+      )}
+    </Kb.Box2>
+  )
+}
+
+const emptyArray = []
+const UsernameHeader = (p: Props) => {
+  const {conversationIDKey} = p
+  const meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
+  const participantInfo = Container.useSelector(state =>
+    Constants.getParticipantInfo(state, conversationIDKey)
+  )
+  const participants = (meta.teamname ? null : participantInfo.name) || emptyArray
+  const theirFullname = Container.useSelector(state =>
+    participants?.length === 2
+      ? participants
+          .filter(username => username !== state.config.username)
+          .map(username => getFullname(state, username))[0]
+      : undefined
+  )
+  const dispatch = Container.useDispatch()
+  const onShowProfile = React.useCallback(
+    (username: string) => {
+      dispatch(ProfileGen.createShowUserProfile({username}))
+    },
+    [dispatch]
+  )
+
+  return (
+    <Kb.Box2 direction={theirFullname ? 'vertical' : 'horizontal'} style={styles.usernameHeaderContainer}>
+      {!!theirFullname && (
+        <Kb.Text lineClamp={1} type="BodyBig" fixOverdraw={true}>
+          {theirFullname}
+        </Kb.Text>
+      )}
+      <Kb.Box2 direction="horizontal" style={styles.nameMutedContainer}>
+        <Kb.ConnectedUsernames
+          colorFollowing={true}
+          inline={false}
+          lineClamp={participants.length > 2 ? 2 : 1}
+          commaColor={Styles.globalColors.black_50}
+          type={participants.length > 2 || !!theirFullname ? 'BodyTinyBold' : 'BodyBig'}
+          usernames={participants}
+          containerStyle={styles.center}
+          onUsernameClicked={onShowProfile}
+          skipSelf={participants.length > 1}
+        />
+        <ShhIcon conversationIDKey={conversationIDKey} />
+      </Kb.Box2>
+    </Kb.Box2>
+  )
+}
+
+const PhoneOrEmailHeader = (p: Props) => {
+  const {conversationIDKey} = p
+  const participantInfo = Container.useSelector(state =>
+    Constants.getParticipantInfo(state, conversationIDKey)
+  )
+  const meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
+  const participants = (meta.teamname ? null : participantInfo.name) || emptyArray
+  const phoneOrEmail = participants.find(s => s.endsWith('@phone') || s.endsWith('@email')) || ''
+  const formattedPhoneOrEmail = assertionToDisplay(phoneOrEmail)
+  const name = participantInfo.contactName.get(phoneOrEmail)
+  return (
+    <Kb.Box2 direction="vertical" style={styles.usernameHeaderContainer}>
+      <Kb.Box2 direction="horizontal" style={styles.lessMargins}>
+        <Kb.Text type="BodyBig" lineClamp={1} ellipsizeMode="middle">
           {formattedPhoneOrEmail}
-        </Text>
-        {props.muted && <ShhIcon onClick={props.unMuteConversation} />}
-      </Box2>
-      {!!name && <Text type="BodyTiny">{name}</Text>}
-    </Box2>
+        </Kb.Text>
+        <ShhIcon conversationIDKey={conversationIDKey} />
+      </Kb.Box2>
+      {!!name && <Kb.Text type="BodyTiny">{name}</Kb.Text>}
+    </Kb.Box2>
   )
 }
 

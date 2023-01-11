@@ -1,12 +1,15 @@
-import * as React from 'react'
 import * as Constants from '../../../../constants/chat2'
+import * as Container from '../../../../util/container'
+import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as Kb from '../../../../common-adapters'
+import * as React from 'react'
 import * as Styles from '../../../../styles'
+import {ConvoIDContext, OrdinalContext} from '../ids-context'
 import type * as Types from '../../../../constants/types/chat2'
-import {useMemo} from '../../../../util/memoize'
-import {sharedStyles} from '../shared-styles'
 
-export type ReplyProps = {
+const replyNoop = () => {}
+
+type ReplyProps = {
   deleted: boolean
   edited: boolean
   imageHeight?: number
@@ -18,8 +21,69 @@ export type ReplyProps = {
   username: string
 }
 
-const Reply = (props: ReplyProps) => {
+export const useReply = (ordinal: Types.Ordinal, showCenteredHighlight: boolean) => {
+  const conversationIDKey = React.useContext(ConvoIDContext)
+  const showReplyTo = Container.useSelector(
+    state => !!state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)?.replyTo
+  )
+  return showReplyTo ? <Reply isParentHighlighted={showCenteredHighlight} /> : null
+}
+
+const deletedProps: ReplyProps = {
+  deleted: true,
+  edited: false,
+  onClick: replyNoop,
+  text: '',
+  username: '',
+}
+
+const Reply = (p: {isParentHighlighted: boolean}) => {
+  const {isParentHighlighted} = p
+  const conversationIDKey = React.useContext(ConvoIDContext)
+  const ordinal = React.useContext(OrdinalContext)
+  const replyTo = Container.useSelector(state => {
+    const m = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
+    return m?.replyTo
+  })
+
+  const dispatch = Container.useDispatch()
+
+  const replyToId = replyTo?.id
+
+  const onReplyClick = React.useCallback(() => {
+    replyToId && dispatch(Chat2Gen.createReplyJump({conversationIDKey, messageID: replyToId}))
+  }, [dispatch, conversationIDKey, replyToId])
+
   const [imageLoaded, setImageLoaded] = React.useState(false)
+
+  if (!replyTo) return null
+  let props = deletedProps
+  switch (replyTo.type) {
+    case 'attachment': // fallthrough
+    case 'text': {
+      const attachment: Types.MessageAttachment | undefined =
+        replyTo.type === 'attachment' && replyTo.attachmentType === 'image' ? replyTo : undefined
+      props = replyTo.exploded
+        ? deletedProps
+        : {
+            deleted: false,
+            edited: !!replyTo.hasBeenEdited,
+            imageHeight: attachment ? attachment.previewHeight : undefined,
+            imageURL: attachment ? attachment.previewURL : undefined,
+            imageWidth: attachment ? attachment.previewWidth : undefined,
+            onClick: onReplyClick,
+            text:
+              replyTo.type === 'attachment'
+                ? replyTo.title || (replyTo.attachmentType === 'image' ? '' : replyTo.fileName)
+                : replyTo.text.stringValue(),
+            username: replyTo.author,
+          }
+      break
+    }
+    default:
+      break
+  }
+
   const sizing =
     props.imageWidth && props.imageHeight
       ? Constants.zoomImage(props.imageWidth, props.imageHeight, 80)
@@ -42,7 +106,7 @@ const Reply = (props: ReplyProps) => {
                 type="BodySmallBold"
                 style={Styles.collapseStyles([
                   styles.replyUsername,
-                  props.isParentHighlighted && styles.replyUsernameHighlighted,
+                  isParentHighlighted && styles.replyUsernameHighlighted,
                 ])}
               >
                 {props.username}
@@ -66,7 +130,7 @@ const Reply = (props: ReplyProps) => {
               {!props.deleted ? (
                 <Kb.Text
                   type="BodySmall"
-                  style={Styles.collapseStyles([props.isParentHighlighted && styles.textHighlighted])}
+                  style={Styles.collapseStyles([isParentHighlighted && styles.textHighlighted])}
                   lineClamp={3}
                 >
                   {props.text}
@@ -89,106 +153,17 @@ const Reply = (props: ReplyProps) => {
   )
 }
 
-export type ClaimProps = {
-  amount: string
-  label: string
-  onClaim: () => void
-}
-
-const Claim = (props: ClaimProps) => {
-  return (
-    <Kb.Button type="Wallet" onClick={props.onClaim} small={true} style={styles.claimButton}>
-      <Kb.Text style={styles.claimLabel} type="BodySemibold">
-        {props.label}{' '}
-        <Kb.Text style={styles.claimLabel} type="BodyExtrabold">
-          {props.amount}
-        </Kb.Text>
-      </Kb.Text>
-    </Kb.Button>
-  )
-}
-
-export type Props = {
-  claim?: ClaimProps
-  isEditing: boolean
-  isHighlighted?: boolean
-  message: Types.MessageText
-  reply?: ReplyProps
-  text: string
-  type: 'error' | 'pending' | 'sent'
-}
-
-const MessageText = ({claim, isEditing, isHighlighted, message, reply, text, type}: Props) => {
-  const wrappedMeta = useMemo(() => ({message}), [message])
-  const styleOverride = useMemo(
-    () => (Styles.isMobile ? {paragraph: getStyle(type, isEditing, isHighlighted)} : undefined),
-    [type, isEditing, isHighlighted]
-  )
-  const markdown = (
-    <Kb.Markdown
-      style={getStyle(type, isEditing, isHighlighted)}
-      meta={wrappedMeta}
-      styleOverride={styleOverride}
-      allowFontScaling={true}
-    >
-      {text}
-    </Kb.Markdown>
-  )
-  const content = (
-    <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
-      {!!reply && <Reply {...reply} isParentHighlighted={isHighlighted} />}
-      {markdown}
-      {!!claim && <Claim {...claim} />}
-    </Kb.Box2>
-  )
-
-  return Styles.isMobile ? (
-    <Kb.Box2 direction="vertical" style={styles.wrapper} fullWidth={true}>
-      {content}
-    </Kb.Box2>
-  ) : (
-    content
-  )
-}
-
-// Encoding all 4 states as static objects so we don't re-render
-const getStyle = (type: Props['type'], isEditing: boolean, isHighlighted?: boolean) => {
-  if (isHighlighted) {
-    return Styles.collapseStyles([sharedStyles.sent, sharedStyles.highlighted])
-  } else if (type === 'sent') {
-    return isEditing
-      ? sharedStyles.sentEditing
-      : Styles.collapseStyles([sharedStyles.sent, Styles.globalStyles.fastBackground])
-  } else {
-    return isEditing
-      ? sharedStyles.pendingFailEditing
-      : Styles.collapseStyles([sharedStyles.pendingFail, Styles.globalStyles.fastBackground])
-  }
-}
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      claimButton: {
-        alignSelf: 'flex-start',
-        marginTop: Styles.globalMargins.xtiny,
-      },
-      claimLabel: {
-        color: Styles.globalColors.white,
-      },
       quoteContainer: {
         alignSelf: 'stretch',
         backgroundColor: Styles.globalColors.grey,
         paddingLeft: Styles.globalMargins.xtiny,
       },
-      replyContainer: {
-        paddingTop: Styles.globalMargins.xtiny,
-      },
-      replyContentContainer: {
-        flex: 1,
-      },
-      replyEdited: {
-        color: Styles.globalColors.black_35,
-      },
+      replyContainer: {paddingTop: Styles.globalMargins.xtiny},
+      replyContentContainer: {flex: 1},
+      replyEdited: {color: Styles.globalColors.black_35},
       replyImageContainer: {
         overflow: 'hidden',
         position: 'relative',
@@ -209,17 +184,8 @@ const styles = Styles.styleSheetCreate(
         alignSelf: 'flex-start',
         flex: 1,
       },
-      replyUsername: {
-        alignSelf: 'center',
-      },
-      replyUsernameHighlighted: {
-        color: Styles.globalColors.blackOrBlack,
-      },
-      textHighlighted: {
-        color: Styles.globalColors.black_50OrBlack_50,
-      },
-      wrapper: {alignSelf: 'flex-start', flex: 1},
+      replyUsername: {alignSelf: 'center'},
+      replyUsernameHighlighted: {color: Styles.globalColors.blackOrBlack},
+      textHighlighted: {color: Styles.globalColors.black_50OrBlack_50},
     } as const)
 )
-
-export default MessageText

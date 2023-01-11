@@ -1,20 +1,25 @@
+import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
-import type * as Types from '../../../../constants/types/chat2'
 import * as FsGen from '../../../../actions/fs-gen'
 import * as Container from '../../../../util/container'
 import * as Styles from '../../../../styles'
 import * as Constants from '../../../../constants/chat2'
+import {ConvoIDContext, OrdinalContext} from '../ids-context'
 import AudioPlayer from '../../../audio/audio-player'
 
-type Props = {
-  message: Types.MessageAttachment
-}
+const missingMessage = Constants.makeMessageAttachment()
+const AudioAttachment = () => {
+  const conversationIDKey = React.useContext(ConvoIDContext)
+  const ordinal = React.useContext(OrdinalContext)
 
-const AudioAttachment = (props: Props) => {
-  const {message} = props
+  const dispatch = Container.useDispatch()
+  // TODO not message
+  const message = Container.useSelector(state => {
+    const m = Constants.getMessage(state, conversationIDKey, ordinal)
+    return m?.type === 'attachment' ? m : missingMessage
+  })
   const progressLabel = Constants.messageAttachmentTransferStateToProgressLabel(message.transferState)
   const hasProgress = Constants.messageAttachmentHasProgress(message)
-  const dispatch = Container.useDispatch()
   const onShowInFinder = () => {
     message.downloadPath &&
       dispatch(FsGen.createOpenLocalPathInSystemFileManager({localPath: message.downloadPath}))

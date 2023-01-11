@@ -1419,8 +1419,6 @@ const messageEdit = async (
 
     if (!message.id) {
       listenerApi.dispatch(Chat2Gen.createPendingMessageWasEdited({conversationIDKey, ordinal, text}))
-    } else {
-      logger.warn('Editing non-text message')
     }
   }
 }

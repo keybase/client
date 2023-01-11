@@ -1,5 +1,8 @@
 // Cache in the module. This can get called from multiple places and env vars can get lost
 const skipAnimation = require('./common-adapters/skip-animations')
+// why did you render
+const enableWDYR = false
+
 let isElectron = null
 let isReactNative = null
 let isTest = null
@@ -55,7 +58,7 @@ module.exports = function (api /*: any */) {
             ? {
                 runtime: 'automatic',
                 development: true,
-                importSource: '@welldone-software/why-did-you-render',
+                ...(enableWDYR ? {importSource: '@welldone-software/why-did-you-render'} : {}),
               }
             : {},
         ],
@@ -73,7 +76,7 @@ module.exports = function (api /*: any */) {
               '@babel/plugin-transform-react-jsx-development',
               {
                 runtime: 'automatic',
-                importSource: '@welldone-software/why-did-you-render',
+                ...(enableWDYR ? {importSource: '@welldone-software/why-did-you-render'} : {}),
               },
             ]
           : ['@babel/plugin-transform-react-jsx', {runtime: 'automatic'}],

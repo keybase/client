@@ -1,26 +1,44 @@
-import * as React from 'react'
-import type * as Types from '../../../../../constants/types/chat2'
-import * as Constants from '../../../../../constants/chat2'
-import type * as CryptoTypes from '../../../../../constants/types/crypto'
-import * as Tabs from '../../../../../constants/tabs'
-import * as FsGen from '../../../../../actions/fs-gen'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
-import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
-import * as CryptoGen from '../../../../../actions/crypto-gen'
+import * as Constants from '../../../../../constants/chat2'
 import * as Container from '../../../../../util/container'
+import * as CryptoGen from '../../../../../actions/crypto-gen'
+import * as FsGen from '../../../../../actions/fs-gen'
+import * as React from 'react'
+import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
+import * as Tabs from '../../../../../constants/tabs'
+import File from '.'
+import type * as CryptoTypes from '../../../../../constants/types/crypto'
+import {ConvoIDContext, OrdinalContext} from '../../ids-context'
 import {globalColors} from '../../../../../styles'
 import {isPathSaltpack} from '../../../../../constants/crypto'
-import File from '.'
+import shallowEqual from 'shallowequal'
 
 type OwnProps = {
   isHighlighted?: boolean
-  message: Types.MessageAttachment
 }
 
+const missingMessage = Constants.makeMessageAttachment({})
+
 const FileContainer = React.memo(function FileContainer(p: OwnProps) {
-  const {message, isHighlighted} = p
-  const editInfo = Container.useSelector(state => Constants.getEditInfo(state, message.conversationIDKey))
-  const isEditing = !!(editInfo && editInfo.ordinal === message.ordinal)
+  const {isHighlighted} = p
+  const conversationIDKey = React.useContext(ConvoIDContext)
+  const ordinal = React.useContext(OrdinalContext)
+  const isEditing = Container.useSelector(state => {
+    const editInfo = Constants.getEditInfo(state, conversationIDKey)
+    return editInfo?.ordinal === ordinal
+  })
+
+  const {fileType, downloadPath, transferState, transferErrMsg, fileName} = Container.useSelector(state => {
+    const m = Constants.getMessage(state, conversationIDKey, ordinal) ?? missingMessage
+    const {downloadPath, fileName, fileType, transferErrMsg, transferState} = m
+    return {downloadPath, fileName, fileType, transferErrMsg, transferState}
+  }, shallowEqual)
+
+  // TODO not message
+  const message = Container.useSelector(state => {
+    const m = Constants.getMessage(state, conversationIDKey, ordinal)
+    return m?.type === 'attachment' ? m : missingMessage
+  })
 
   const dispatch = Container.useDispatch()
 
@@ -32,32 +50,29 @@ const FileContainer = React.memo(function FileContainer(p: OwnProps) {
     [dispatch]
   )
   const onShowInFinder = React.useCallback(() => {
-    message.downloadPath &&
-      dispatch(FsGen.createOpenLocalPathInSystemFileManager({localPath: message.downloadPath}))
-  }, [dispatch, message])
+    downloadPath && dispatch(FsGen.createOpenLocalPathInSystemFileManager({localPath: downloadPath}))
+  }, [dispatch, downloadPath])
 
   const onDownload = React.useCallback(() => {
     if (Container.isMobile) {
-      dispatch(Chat2Gen.createMessageAttachmentNativeShare({message}))
+      message && dispatch(Chat2Gen.createMessageAttachmentNativeShare({message}))
     } else {
-      if (!message.downloadPath) {
-        if (message.fileType === 'application/pdf') {
+      if (!downloadPath) {
+        if (fileType === 'application/pdf') {
           dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {message}, selected: 'chatPDF'}]}))
         } else {
-          switch (message.transferState) {
+          switch (transferState) {
             case 'uploading':
             case 'downloading':
             case 'mobileSaving':
               return
             default:
           }
-          dispatch(Chat2Gen.createAttachmentDownload({message}))
+          message && dispatch(Chat2Gen.createAttachmentDownload({message}))
         }
       }
     }
-  }, [dispatch, message])
-
-  const {downloadPath, transferState} = message
+  }, [dispatch, downloadPath, transferState, fileType, message])
 
   const arrowColor = Container.isMobile
     ? ''
@@ -71,19 +86,19 @@ const FileContainer = React.memo(function FileContainer(p: OwnProps) {
 
   const props = {
     arrowColor,
-    errorMsg: message.transferErrMsg || '',
-    fileName: message.fileName,
+    errorMsg: transferErrMsg || '',
+    fileName: fileName ?? '',
     hasProgress,
     isEditing,
     isHighlighted,
-    isSaltpackFile: isPathSaltpack(message.fileName),
+    isSaltpackFile: !!fileName && isPathSaltpack(fileName),
     message,
     onDownload,
     onSaltpackFileOpen,
-    onShowInFinder: !Container.isMobile && message.downloadPath ? onShowInFinder : undefined,
+    onShowInFinder: !Container.isMobile && downloadPath ? onShowInFinder : undefined,
     progress: message.transferProgress,
     title: message.decoratedText?.stringValue() || message.title || message.fileName,
-    transferState,
+    transferState: transferState ?? null,
   }
 
   return <File {...props} />
