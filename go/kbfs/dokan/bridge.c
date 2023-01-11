@@ -352,11 +352,11 @@ BOOL kbfsLibdokan_RemoveMountPoint(LPCWSTR MountPoint) {
 }
 
 
-HANDLE kbfsLibdokan_OpenRequestorToken(PDOKAN_FILE_INFO DokanFileInfo) {
+void* kbfsLibdokan_OpenRequestorToken(PDOKAN_FILE_INFO DokanFileInfo) {
 	HANDLE __stdcall (*openRequestorToken)(PDOKAN_FILE_INFO DokanFileInfo) = (void*)kbfsLibdokanPtr_OpenRequestorToken;
 	if(!openRequestorToken)
-		return INVALID_HANDLE_VALUE;
-	return (*openRequestorToken)(DokanFileInfo);
+		return (void*)INVALID_HANDLE_VALUE;
+	return (void*)((*openRequestorToken)(DokanFileInfo));
 }
 
 ULONG kbfsLibDokan_GetVersion(uintptr_t proc) {

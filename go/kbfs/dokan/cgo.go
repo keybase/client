@@ -696,7 +696,8 @@ func (ctx *dokanCtx) Free() {
 // the requestor of this file system operation. Remember to
 // call Close on the Token.
 func (fi *FileInfo) getRequestorToken() (syscall.Token, error) {
-	hdl := syscall.Handle(C.kbfsLibdokan_OpenRequestorToken(fi.ptr))
+	raw := C.kbfsLibdokan_OpenRequestorToken(fi.ptr)
+	hdl := syscall.Handle(uintptr(raw))
 	var err error
 	if hdl == syscall.InvalidHandle {
 		// Tokens are value types, so returning nil is impossible,
