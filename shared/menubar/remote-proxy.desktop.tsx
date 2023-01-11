@@ -64,39 +64,54 @@ const getCachedUsernames = memoize(
 
 // TODO could make this render less
 const RemoteProxy = React.memo(function MenubarRemoteProxy() {
-  const notifications = Container.useSelector(s => s.notifications)
-  const {desktopAppBadgeCount, navBadges, widgetBadge} = notifications
+  const s = Container.useSelector(state => {
+    const {notifications, config, fs, chat2, users} = state
+    const {desktopAppBadgeCount, navBadges, widgetBadge} = notifications
+    const {httpSrvToken, httpSrvAddress, windowShownCount, username, following} = config
+    const {outOfDate, loggedIn, daemonHandshakeState, avatarRefreshCounter, followers} = config
+    const {pathItems, tlfUpdates, uploads, overallSyncStatus, kbfsDaemonStatus, sfmi} = fs
+    const {inboxLayout, metaMap, badgeMap, unreadMap, participantMap} = chat2
+    const widgetList = inboxLayout?.widgetList
+    const {infoMap} = users
 
-  const daemonHandshakeState = Container.useSelector(s => s.config.daemonHandshakeState)
-  const loggedIn = Container.useSelector(s => s.config.loggedIn)
-  const outOfDate = Container.useSelector(s => s.config.outOfDate)
-  const username = Container.useSelector(s => s.config.username)
-  const windowShownCount = Container.useSelector(s => s.config.windowShownCount)
-  const httpSrvAddress = Container.useSelector(s => s.config.httpSrvAddress)
-  const httpSrvToken = Container.useSelector(s => s.config.httpSrvToken)
+    return {
+      avatarRefreshCounter,
+      badgeMap,
+      daemonHandshakeState,
+      desktopAppBadgeCount,
+      followers,
+      following,
+      httpSrvAddress,
+      httpSrvToken,
+      infoMap,
+      kbfsDaemonStatus,
+      loggedIn,
+      metaMap,
+      navBadges,
+      outOfDate,
+      overallSyncStatus,
+      participantMap,
+      pathItems,
+      sfmi,
+      tlfUpdates,
+      unreadMap,
+      uploads,
+      username,
+      widgetBadge,
+      widgetList,
+      windowShownCount,
+    }
+  }, shallowEqual)
 
-  const _arc = Container.useSelector(s => s.config.avatarRefreshCounter)
-  const _followers = Container.useSelector(s => s.config.followers)
-  const _following = Container.useSelector(s => s.config.following)
-
-  const pathItems = Container.useSelector(s => s.fs.pathItems)
-  const tlfUpdates = Container.useSelector(s => s.fs.tlfUpdates)
-  const uploads = Container.useSelector(s => s.fs.uploads)
-  const overallSyncStatus = Container.useSelector(s => s.fs.overallSyncStatus)
-  const kbfsDaemonStatus = Container.useSelector(s => s.fs.kbfsDaemonStatus)
-  const sfmi = Container.useSelector(s => s.fs.sfmi)
-
-  const widgetList = Container.useSelector(s => s.chat2.inboxLayout?.widgetList)
-  const metaMap = Container.useSelector(s => s.chat2.metaMap)
-  const badgeMap = Container.useSelector(s => s.chat2.badgeMap)
-  const unreadMap = Container.useSelector(s => s.chat2.unreadMap)
-  const participantMap = Container.useSelector(s => s.chat2.participantMap)
+  const {avatarRefreshCounter, badgeMap, daemonHandshakeState, desktopAppBadgeCount, followers, following} = s
+  const {httpSrvAddress, httpSrvToken, infoMap, kbfsDaemonStatus, loggedIn, metaMap} = s
+  const {navBadges, outOfDate, overallSyncStatus, participantMap, pathItems} = s
+  const {sfmi, tlfUpdates, unreadMap, uploads, username} = s
+  const {widgetBadge, widgetList, windowShownCount} = s
 
   const darkMode = Styles.isDarkMode()
   const {diskSpaceStatus, showingBanner} = overallSyncStatus
   const kbfsEnabled = sfmi.driverStatus.type === 'enabled'
-
-  const _infoMap = Container.useSelector(s => s.users.infoMap)
 
   const remoteTlfUpdates = React.useMemo(
     () => tlfUpdates.map(t => GetRowsFromTlfUpdate(t, uploads)),
@@ -134,10 +149,13 @@ const RemoteProxy = React.memo(function MenubarRemoteProxy() {
   // memoize so useMemos work below
   const usernames = getCachedUsernames(usernamesArr)
 
-  const avatarRefreshCounter = React.useMemo(() => mapFilterByKey(_arc, usernames), [_arc, usernames])
-  const followers = React.useMemo(() => intersect(_followers, usernames), [_followers, usernames])
-  const following = React.useMemo(() => intersect(_following, usernames), [_following, usernames])
-  const infoMap = React.useMemo(() => mapFilterByKey(_infoMap, usernames), [_infoMap, usernames])
+  const avatarRefreshCounterFiltered = React.useMemo(
+    () => mapFilterByKey(avatarRefreshCounter, usernames),
+    [avatarRefreshCounter, usernames]
+  )
+  const followersFiltered = React.useMemo(() => intersect(followers, usernames), [followers, usernames])
+  const followingFiltered = React.useMemo(() => intersect(following, usernames), [following, usernames])
+  const infoMapFiltered = React.useMemo(() => mapFilterByKey(infoMap, usernames), [infoMap, usernames])
 
   // We just use syncingPaths rather than merging with writingToJournal here
   // since journal status comes a bit slower, and merging the two causes
@@ -160,17 +178,17 @@ const RemoteProxy = React.memo(function MenubarRemoteProxy() {
 
   const p: ProxyProps & WidgetProps = {
     ...upDown,
-    avatarRefreshCounter,
+    avatarRefreshCounter: avatarRefreshCounterFiltered,
     conversationsToSend,
     daemonHandshakeState,
     darkMode,
     desktopAppBadgeCount,
     diskSpaceStatus,
-    followers,
-    following,
+    followers: followersFiltered,
+    following: followingFiltered,
     httpSrvAddress,
     httpSrvToken,
-    infoMap,
+    infoMap: infoMapFiltered,
     kbfsDaemonStatus,
     kbfsEnabled,
     loggedIn,
