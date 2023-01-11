@@ -61,6 +61,7 @@ const SmallTeam = React.memo(function SmallTeam(p: Props) {
       onHideConversation={onHideConversation}
       onMuteConversation={onMuteConversation}
       swipeCloseRef={swipeCloseRef}
+      extraData={conversationIDKey}
     >
       <Kb.ClickableBox
         className={Styles.classNames('small-row', {selected: isSelected})}

@@ -33,7 +33,7 @@ const Action = (p: {
 }
 
 const SwipeConvActions = (props: Props) => {
-  const {children, isMuted, onMuteConversation, onHideConversation, swipeCloseRef} = props
+  const {children, isMuted, onMuteConversation, onHideConversation, swipeCloseRef, extraData} = props
 
   const onMute = React.useCallback(() => {
     onMuteConversation()
@@ -70,7 +70,13 @@ const SwipeConvActions = (props: Props) => {
   )
 
   return (
-    <Swipeable actionWidth={128} swipeCloseRef={swipeCloseRef} makeActions={makeActions} style={styles.row}>
+    <Swipeable
+      actionWidth={128}
+      swipeCloseRef={swipeCloseRef}
+      makeActions={makeActions}
+      style={styles.row}
+      extraData={extraData}
+    >
       {children}
     </Swipeable>
   )

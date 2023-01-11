@@ -43,7 +43,7 @@ const useSyncClosing = (
     if (swipeCloseRef) {
       swipeCloseRef.current = () => {
         tx.value = Reanimated.withSpring(0, {
-          stiffness: 100,
+          stiffness: 300,
           damping: 30,
         })
         swipeCloseRef.current = null
@@ -58,10 +58,17 @@ const useGesture = (
   actionWidth: number,
   tx: Reanimated.SharedValue<number>,
   closeOthersAndRegisterClose: () => void,
-  closeSelf: () => void
+  closeSelf: () => void,
+  extraData: unknown
 ) => {
   const startx = Reanimated.useSharedValue(0)
   const dx = Reanimated.useSharedValue(0)
+
+  // parent is different, close immediately
+  React.useEffect(() => {
+    startx.value = 0
+    dx.value = 0
+  }, [extraData])
 
   const gesture = Gesture.Pan()
     .activeOffsetX([-10, 10])
@@ -74,21 +81,20 @@ const useGesture = (
       const closing = dx.value >= 0
       if (!success || closing) {
         startx.value = 0
+        dx.value = 0
         Reanimated.runOnJS(closeSelf)()
       } else {
         tx.value = Reanimated.withSpring(-actionWidth, {
           stiffness: 100,
           damping: 30,
         })
-        startx.value = -actionWidth
+        startx.value = tx.value
+        dx.value = 0
       }
     })
     .onUpdate((e: GestureUpdateEvent<PanGestureHandlerEventPayload>) => {
       dx.value = e.velocityX
-      tx.value = Reanimated.withSpring(Math.min(0, Math.max(-actionWidth, e.translationX + startx.value)), {
-        stiffness: 100,
-        damping: 30,
-      })
+      tx.value = Math.min(0, Math.max(-actionWidth, e.translationX + startx.value))
     })
   return gesture
 }
@@ -100,17 +106,23 @@ export const Swipeable = React.memo(function Swipeable2(p: {
   makeActions: (progress: Reanimated.SharedValue<number>) => React.ReactNode
   swipeCloseRef?: React.MutableRefObject<(() => void) | null>
   style?: Styles.StylesCrossPlatform
+  extraData?: unknown
 }) {
-  const {children, actionWidth, makeActions, swipeCloseRef, style} = p
+  const {children, actionWidth, makeActions, swipeCloseRef, style, extraData} = p
   const tx = Reanimated.useSharedValue(0)
   const {actionsEnabled} = useActionsEnabled(actionWidth, tx)
   const rowStyle = Reanimated.useAnimatedStyle(() => ({transform: [{translateX: tx.value}]}))
   const actionStyle = Reanimated.useAnimatedStyle(() => ({width: -tx.value}))
   const {closeSelf, closeOthersAndRegisterClose, hasSwiped} = useSyncClosing(tx, swipeCloseRef)
-  const gesture = useGesture(actionWidth, tx, closeOthersAndRegisterClose, closeSelf)
+  const gesture = useGesture(actionWidth, tx, closeOthersAndRegisterClose, closeSelf, extraData)
   const actions = React.useMemo(() => {
     return hasSwiped ? makeActions(tx) : null
   }, [makeActions, hasSwiped])
+
+  // parent is different, close immediately
+  React.useEffect(() => {
+    tx.value = 0
+  }, [extraData])
 
   return (
     <GestureDetector gesture={gesture}>
