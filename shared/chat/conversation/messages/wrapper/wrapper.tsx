@@ -576,7 +576,7 @@ const styles = Styles.styleSheetCreate(
         alignItems: 'stretch',
         flexGrow: 1,
         flexShrink: 1,
-        paddingLeft: 56,
+        paddingLeft: Styles.isMobile ? 48 : 56,
         paddingRight: 4,
         position: 'relative',
       },

@@ -273,7 +273,7 @@ const styles = Styles.styleSheetCreate(
         common: {
           alignItems: 'flex-start',
           alignSelf: 'flex-start',
-          marginLeft: 55,
+          marginLeft: Styles.isMobile ? 48 : 56,
         },
         isElectron: {
           marginBottom: 0,
