@@ -1,3 +1,4 @@
+import * as React from 'react'
 // Darkmode is managed by redux but for things (proxies and etc) to get this value simply the value is
 // copied here
 export type DarkModePreference = 'system' | 'alwaysDark' | 'alwaysLight'
@@ -33,3 +34,5 @@ export const isDarkMode = () => {
 export const isDarkModeSystemSupported = () => systemSupported
 export const isSystemDarkMode = () => systemDarkMode
 export const isDarkModePreference = () => darkModePreference
+
+export const DarkModeContext = React.createContext(isDarkMode())

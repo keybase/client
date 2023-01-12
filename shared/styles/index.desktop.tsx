@@ -231,7 +231,7 @@ export {default as classNames} from 'classnames'
 export type StylesCrossPlatform = CSS.StylesCrossPlatform
 export const dimensionWidth = 0
 export const dimensionHeight = 0
-export {isDarkMode} from './dark-mode'
+export {isDarkMode, DarkModeContext} from './dark-mode'
 export const headerExtraHeight = 0
 export const CanFixOverdrawContext = React.createContext(false)
 export const dontFixOverdraw = {canFixOverdraw: false}
