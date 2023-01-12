@@ -58,7 +58,7 @@ const NativeEventsToRedux = (p: {setDarkMode: (d: boolean) => void}) => {
       darkSub.remove()
       linkingSub.remove()
     }
-  }, [dispatch])
+  }, [dispatch, dispatchAndSetDarkmode])
 
   return null
 }
