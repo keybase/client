@@ -1,13 +1,15 @@
-import * as React from 'react'
-import {getFullname} from '../../../constants/users'
-import * as ProfileGen from '../../../actions/profile-gen'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Constants from '../../../constants/chat2'
 import * as Container from '../../../util/container'
 import * as Kb from '../../../common-adapters'
+import * as ProfileGen from '../../../actions/profile-gen'
+import * as React from 'react'
+import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as Styles from '../../../styles'
+import shallowEqual from 'shallowequal'
 import type * as Types from '../../../constants/types/chat2'
 import {assertionToDisplay} from '../../../common-adapters/usernames'
+import {getFullname} from '../../../constants/users'
 
 const shhIconColor = Styles.globalColors.black_20
 const shhIconFontSize = 24
@@ -36,28 +38,29 @@ const ShhIcon = (p: Props) => {
 
 const ChannelHeader = (p: Props) => {
   const {conversationIDKey} = p
-  const channelname = Container.useSelector(state => Constants.getMeta(state, conversationIDKey).channelname)
-  const smallTeam = Container.useSelector(
-    state => Constants.getMeta(state, conversationIDKey).teamType !== 'big'
-  )
-  const teamname = Container.useSelector(state => Constants.getMeta(state, conversationIDKey).teamname)
+  const {channelname, smallTeam, teamname, teamID} = Container.useSelector(state => {
+    const meta = Constants.getMeta(state, conversationIDKey)
+    const {channelname, teamname, teamType, teamID} = meta
+    const smallTeam = teamType !== 'big'
+    return {channelname, smallTeam, teamID, teamname}
+  }, shallowEqual)
+
+  const textType = smallTeam ? 'BodyBig' : Styles.isMobile ? 'BodyTinySemibold' : 'BodySemibold'
+
+  const dispatch = Container.useDispatch()
+  const onClick = React.useCallback(() => {
+    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'team'}]}))
+  }, [dispatch, teamID])
 
   return (
     <Kb.Box2 direction="vertical">
       <Kb.Box2 direction="horizontal" style={styles.channelHeaderContainer}>
         <Kb.Avatar teamname={teamname || undefined} size={smallTeam ? 16 : (12 as any)} />
         <Kb.Text
-          type={
-            Styles.isMobile
-              ? smallTeam
-                ? 'BodyBig'
-                : 'BodyTinySemibold'
-              : smallTeam
-              ? 'BodyBig'
-              : 'BodySemibold'
-          }
+          type={textType}
           lineClamp={1}
           ellipsizeMode="middle"
+          onClick={onClick}
           style={Styles.collapseStyles([styles.channelName, !smallTeam && styles.channelNameLight])}
         >
           &nbsp;
