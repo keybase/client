@@ -355,6 +355,13 @@ body {
   opacity: 1;
 }
 
+.hover-container .hover-opacity-full {
+  opacity: 0;
+}
+.hover-container:hover .hover-opacity-full {
+  opacity: 1;
+}
+
 .hover-container .hover-visible {
   display: none;
 }
@@ -396,7 +403,7 @@ body {
 }
 
 .fade-background-color {
-   transition: background-color 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out;
 }
 
 .emoji {
@@ -411,7 +418,8 @@ body {
 }
 
 .emoji-native {
-  font-family: "Segoe UI Emoji", "Segoe UI Symbol", "Segoe UI", "Apple Color Emoji", "Twemoji Mozilla", "Noto Color Emoji", "Android Emoji";
+  font-family: 'Segoe UI Emoji', 'Segoe UI Symbol', 'Segoe UI', 'Apple Color Emoji', 'Twemoji Mozilla',
+    'Noto Color Emoji', 'Android Emoji';
 }
 
 .emoji .emoji-native {
@@ -427,7 +435,7 @@ body {
 }
 
 .center-emojis .emoji > span {
-    vertical-align: middle;
+  vertical-align: middle;
 }
 
 .growFadeInSmall {

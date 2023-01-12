@@ -416,11 +416,17 @@ const RightSide = React.memo(function RightSide(p: RProps) {
     </Kb.WithTooltip>
   ) : null
 
+  const hasVisibleItems = sendIndicator || explodingCountdown || revokedIcon || coinsIcon || bot
+
+  // On mobile there is no ... menu
+  // On Desktop we float the menu on top, if there are no items
+  // if there are items we show them, and also keep space for the ... on float with opacity
+
   const menu = Container.isMobile ? null : (
     <Kb.WithTooltip
       tooltip="More actions..."
       toastStyle={styles.moreActionsTooltip}
-      className="hover-visible"
+      className={hasVisibleItems ? 'hover-opacity-full' : 'hover-visible'}
     >
       <Kb.Box style={styles.ellipsis}>
         <Kb.Icon type="iconfont-ellipsis" onClick={toggleShowingPopup} />
@@ -428,14 +434,15 @@ const RightSide = React.memo(function RightSide(p: RProps) {
     </Kb.WithTooltip>
   )
 
-  const hasVisibleItems = sendIndicator || explodingCountdown || revokedIcon || coinsIcon || bot
+  const className = !hasVisibleItems && menu ? 'hover-visible' : undefined
 
   return hasVisibleItems || menu ? (
     <Kb.Box2
       direction="horizontal"
+      alignSelf="flex-start"
       style={hasVisibleItems ? styles.rightSideItems : styles.rightSide}
       gap="tiny"
-      className={!hasVisibleItems && menu ? 'hover-visible' : undefined}
+      className={className}
     >
       {sendIndicator}
       {explodingCountdown}
