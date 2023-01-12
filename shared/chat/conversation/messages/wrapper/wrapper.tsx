@@ -359,9 +359,7 @@ const BottomSide = React.memo(function BottomSide(p: BProps) {
   const {showingPopup, setShowingPicker, bottomChildren, ecrType} = p
   const {hasReactions, reactionsPopupPosition} = p
 
-  const reactionsRow = hasReactions ? (
-    <ReactionsRow btnClassName="WrapperMessage-emojiButton" newBtnClassName="WrapperMessage-newEmojiButton" />
-  ) : null
+  const reactionsRow = hasReactions ? <ReactionsRow /> : null
 
   const reactionsPopup =
     !Container.isMobile && reactionsPopupPosition !== 'none' && !showingPopup ? (
