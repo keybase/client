@@ -123,6 +123,8 @@ const Icon = React.memo<Props>(
     const hasContainer = p.onClick && p.style
     const iconType = Shared.typeToIconMapper(p.type)
 
+    const isDarkMode = React.useContext(Styles.DarkModeContext)
+
     if (!iconType) {
       logger.warn('Null iconType passed')
       return null
@@ -160,7 +162,7 @@ const Icon = React.memo<Props>(
     } else {
       icon = (
         <Image
-          source={(Styles.isDarkMode() && iconMeta[iconType].requireDark) || iconMeta[iconType].require}
+          source={(isDarkMode && iconMeta[iconType].requireDark) || iconMeta[iconType].require}
           style={hasContainer ? null : p.style}
           ref={wrap ? undefined : ref}
         />

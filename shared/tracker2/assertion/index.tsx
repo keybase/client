@@ -257,6 +257,44 @@ type State = {
   showingMenu: boolean
 }
 
+type SIProps = {
+  full: boolean
+} & Pick<
+  Props,
+  | 'siteIconFullDarkmode'
+  | 'siteIconFull'
+  | 'siteIconDarkmode'
+  | 'siteIcon'
+  | 'onCreateProof'
+  | 'onShowProof'
+  | 'isSuggestion'
+>
+const AssertionSiteIcon = (p: SIProps) => {
+  const {full, siteIconFullDarkmode, siteIconFull, siteIconDarkmode, siteIcon} = p
+  const {onCreateProof, onShowProof, isSuggestion} = p
+  const isDarkMode = React.useContext(Styles.DarkModeContext)
+  const set = full
+    ? isDarkMode
+      ? siteIconFullDarkmode
+      : siteIconFull
+    : isDarkMode
+    ? siteIconDarkmode
+    : siteIcon
+  if (!set) return null
+  let child = <SiteIcon full={full} set={set} />
+  if (full) {
+    return child
+  }
+  if (!Styles.isMobile && isSuggestion) {
+    child = <HoverOpacity>{child}</HoverOpacity>
+  }
+  return (
+    <Kb.ClickableBox onClick={onCreateProof || onShowProof} style={isSuggestion ? styles.halfOpacity : null}>
+      {child}
+    </Kb.ClickableBox>
+  )
+}
+
 class Assertion extends React.PureComponent<Props, State> {
   state = {showingMenu: false}
   _toggleMenu = () => this.setState(s => ({showingMenu: !s.showingMenu}))
@@ -327,7 +365,16 @@ class Assertion extends React.PureComponent<Props, State> {
           fullWidth={true}
         >
           <Kb.Box2 direction="vertical" style={styles.positionRelative}>
-            {this._siteIcon(true)}
+            <AssertionSiteIcon
+              full={true}
+              siteIconFullDarkmode={this.props.siteIconFullDarkmode}
+              siteIconFull={this.props.siteIconFull}
+              siteIconDarkmode={this.props.siteIconDarkmode}
+              siteIcon={this.props.siteIcon}
+              onCreateProof={this.props.onCreateProof}
+              onShowProof={this.props.onShowProof}
+              isSuggestion={this.props.isSuggestion}
+            />
             <Kb.Icon type={stateToDecorationIcon(p.state)} style={styles.siteIconFullDecoration} />
           </Kb.Box2>
           {!!this.props.timestamp && (
@@ -342,31 +389,6 @@ class Assertion extends React.PureComponent<Props, State> {
       ),
       items: [{onClick: p.onShowProof, title: `View ${proofTypeToDesc(p.type)}`}, onRevoke],
     }
-  }
-  _siteIcon = (full: boolean) => {
-    const set = full
-      ? Styles.isDarkMode()
-        ? this.props.siteIconFullDarkmode
-        : this.props.siteIconFull
-      : Styles.isDarkMode()
-      ? this.props.siteIconDarkmode
-      : this.props.siteIcon
-    if (!set) return null
-    let child = <SiteIcon full={full} set={set} />
-    if (full) {
-      return child
-    }
-    if (!Styles.isMobile && this.props.isSuggestion) {
-      child = <HoverOpacity>{child}</HoverOpacity>
-    }
-    return (
-      <Kb.ClickableBox
-        onClick={this.props.onCreateProof || this.props.onShowProof}
-        style={this.props.isSuggestion ? styles.halfOpacity : null}
-      >
-        {child}
-      </Kb.ClickableBox>
-    )
   }
   render() {
     const p = this.props
@@ -388,7 +410,16 @@ class Assertion extends React.PureComponent<Props, State> {
           gapStart={true}
           gapEnd={true}
         >
-          {this._siteIcon(false)}
+          <AssertionSiteIcon
+            full={false}
+            siteIconFullDarkmode={this.props.siteIconFullDarkmode}
+            siteIconFull={this.props.siteIconFull}
+            siteIconDarkmode={this.props.siteIconDarkmode}
+            siteIcon={this.props.siteIcon}
+            onCreateProof={this.props.onCreateProof}
+            onShowProof={this.props.onShowProof}
+            isSuggestion={this.props.isSuggestion}
+          />
           <Kb.Text type="Body" style={styles.textContainer}>
             <Value {...p} />
             {!p.isSuggestion && (

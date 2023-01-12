@@ -18,9 +18,18 @@ module.hot?.accept(() => {
   console.log('accepted update in shared/index.native')
 })
 
-const NativeEventsToRedux = () => {
+const NativeEventsToRedux = (p: {setDarkMode: (d: boolean) => void}) => {
+  const {setDarkMode} = p
   const dispatch = useDispatch()
-  const appStateRef = React.useRef('unknown')
+  const appStateRef = React.useRef('active')
+
+  const dispatchAndSetDarkmode = React.useCallback(
+    (dark: boolean) => {
+      setDarkMode(dark)
+      dispatch(ConfigGen.createSetSystemDarkMode({dark}))
+    },
+    [dispatch, setDarkMode]
+  )
 
   React.useEffect(() => {
     const appStateChangeSub = AppState.addEventListener('change', nextAppState => {
@@ -30,14 +39,14 @@ const NativeEventsToRedux = () => {
         dispatch(ConfigGen.createMobileAppState({nextAppState}))
 
       if (nextAppState === 'active') {
-        dispatch(ConfigGen.createSetSystemDarkMode({dark: Appearance.getColorScheme() === 'dark'}))
+        dispatchAndSetDarkmode(Appearance.getColorScheme() === 'dark')
       }
     })
 
     // only watch dark changes if in foreground due to ios calling this to take snapshots
     const darkSub = Appearance.addChangeListener(() => {
       if (appStateRef.current === 'active') {
-        dispatch(ConfigGen.createSetSystemDarkMode({dark: Appearance.getColorScheme() === 'dark'}))
+        dispatchAndSetDarkmode(Appearance.getColorScheme() === 'dark')
       }
     })
     const linkingSub = Linking.addEventListener('url', ({url}: {url: string}) => {
@@ -49,7 +58,7 @@ const NativeEventsToRedux = () => {
       darkSub.remove()
       linkingSub.remove()
     }
-  }, [dispatch])
+  }, [dispatch, dispatchAndSetDarkmode])
 
   return null
 }
@@ -86,6 +95,9 @@ const ensureStore = () => {
 // on android this can be recreated a bunch so our engine/store / etc should live outside
 const Keybase = () => {
   ensureStore()
+
+  const [darkMode, setDarkMode] = React.useState(Styles.isDarkMode())
+
   if (!_store) return null // never happens
 
   // TODO if we use it, add it here
@@ -96,12 +108,14 @@ const Keybase = () => {
       <Provider store={_store.store}>
         <PortalProvider>
           <SafeAreaProvider>
-            <Styles.CanFixOverdrawContext.Provider value={true}>
-              <Main />
-            </Styles.CanFixOverdrawContext.Provider>
+            <Styles.DarkModeContext.Provider value={darkMode}>
+              <Styles.CanFixOverdrawContext.Provider value={true}>
+                <Main />
+              </Styles.CanFixOverdrawContext.Provider>
+            </Styles.DarkModeContext.Provider>
           </SafeAreaProvider>
         </PortalProvider>
-        <NativeEventsToRedux />
+        <NativeEventsToRedux setDarkMode={setDarkMode} />
       </Provider>
     </GestureHandlerRootView>
   )
