@@ -1,9 +1,9 @@
 import * as Electron from 'electron'
-import {showDevTools} from '../../local-debug'
+import {showDevTools, skipExtensions} from '../../local-debug.desktop'
 import flags from '../../util/feature-flags'
 
 export function setupDevToolsExtensions() {
-  if (process.env.KEYBASE_DEV_TOOL_EXTENSIONS) {
+  if (!skipExtensions && process.env.KEYBASE_DEV_TOOL_EXTENSIONS) {
     process.env.KEYBASE_DEV_TOOL_EXTENSIONS.split(',').forEach(p => {
       Electron.app
         .whenReady()

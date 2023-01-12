@@ -23,6 +23,7 @@ let config = {
   printRPCWaitingSession: false, // session / waiting info
   showDevTools: false,
   skipAppFocusActions: false, // dont emit actions when going foreground/background, helpful while working on other actions stuff
+  skipExtensions: true, // if true dont load devtools extensions
   skipSecondaryDevtools: true,
   userTimings: false, // Add user timings api to timeline in chrome
   virtualListMarks: false, // If true add constraints to items in virtual lists so we can tell when measuring is incorrect
@@ -39,6 +40,7 @@ if (__DEV__) {
   config.printRPCStats = true
   config.printRPCWaitingSession = false
   config.showDevTools = true
+  config.skipExtensions = false
   config.skipSecondaryDevtools = true
   config.userTimings = true
 }
@@ -74,31 +76,33 @@ if (config.PERF) {
   config.printOutstandingRPCs = false
   config.printOutstandingTimerListeners = false
   config.printRPC = false
+  config.skipExtensions = true
   config.userTimings = false
   config.virtualListMarks = false
 }
 
 export const {
-  showDevTools,
   allowMultipleInstances,
-  skipSecondaryDevtools,
   enableActionLogging,
   enableStoreLogging,
   featureFlagsOverride,
   filterActionLogs,
   forceImmediateLogging,
   ignoreDisconnectOverlay,
-  isDevApplePushToken,
   immediateStateLogging,
+  isDevApplePushToken,
   isTesting,
   partyMode,
   printOutstandingRPCs,
   printOutstandingTimerListeners,
   printRPC,
   printRPCBytes,
-  printRPCWaitingSession,
   printRPCStats,
+  printRPCWaitingSession,
+  showDevTools,
   skipAppFocusActions,
+  skipExtensions,
+  skipSecondaryDevtools,
   userTimings,
   virtualListMarks,
 } = config

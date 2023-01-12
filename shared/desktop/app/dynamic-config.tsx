@@ -30,7 +30,9 @@ const getConfigOverload = () => {
       console.log('Loaded', jsonDebugFileName, pathJson)
       config = {...config, ...pathJson}
     } catch (e) {
-      console.warn('Invalid local debug file')
+      console.warn(
+        'Invalid local-debug file, parsing error <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<'
+      )
     }
   }
   return config

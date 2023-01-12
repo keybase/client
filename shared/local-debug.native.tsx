@@ -46,6 +46,7 @@ const config = {
   printRPCWaitingSession: false,
   showDevTools: false,
   skipAppFocusActions: false,
+  skipExtensions: true,
   skipSecondaryDevtools: true,
   userTimings: false, // Add user timings api to timeline in chrome
   virtualListMarks: false, // If true add constraints to items in virtual lists so we can tell when measuring is incorrect
@@ -141,6 +142,7 @@ export const {
   printRPCBytes,
   printRPCStats,
   showDevTools,
+  skipExtensions,
   skipSecondaryDevtools,
   userTimings,
   virtualListMarks,
