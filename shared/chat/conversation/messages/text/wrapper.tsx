@@ -42,10 +42,13 @@ const MessageMarkdown = (p: {style: Styles.StylesCrossPlatform}) => {
     return decoratedText ? decoratedText.stringValue() : text ? text.stringValue() : ''
   })
 
-  const styleOverride = React.useMemo(() => ({paragraph: style} as any), [style])
+  const styleOverride = React.useMemo(
+    () => (Styles.isMobile ? ({paragraph: style} as any) : undefined),
+    [style]
+  )
 
   return (
-    <Kb.Markdown messageType="text" styleOverride={styleOverride} allowFontScaling={true}>
+    <Kb.Markdown messageType="text" style={style} styleOverride={styleOverride} allowFontScaling={true}>
       {text}
     </Kb.Markdown>
   )
