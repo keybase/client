@@ -6,7 +6,7 @@ import * as RPCChatGen from '../../constants/types/rpc-chat-gen'
 import * as Container from '../../util/container'
 import * as ChatTypes from '../../constants/types/chat2'
 import * as ChatConstants from '../../constants/chat2'
-import {EmojiPickerDesktop} from '../../chat/conversation/messages/react-button/emoji-picker/container'
+import {EmojiPickerDesktop} from '../../chat/emoji-picker/container'
 import {
   type EmojiData,
   type RenderableEmoji,

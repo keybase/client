@@ -1,11 +1,11 @@
-import * as Chat2Gen from '../../../../../actions/chat2-gen'
-import * as Constants from '../../../../../constants/chat2'
-import * as Container from '../../../../../util/container'
+import * as Chat2Gen from '../../../../actions/chat2-gen'
+import * as Constants from '../../../../constants/chat2'
+import * as Container from '../../../../util/container'
 import * as React from 'react'
-import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
+import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import EmojiRow from '.'
-import type {Position, StylesCrossPlatform} from '../../../../../styles'
-import {ConvoIDContext, OrdinalContext} from '../../ids-context'
+import type {Position, StylesCrossPlatform} from '../../../../styles'
+import {ConvoIDContext, OrdinalContext} from '../ids-context'
 import shallowEqual from 'shallowequal'
 
 type OwnProps = {
