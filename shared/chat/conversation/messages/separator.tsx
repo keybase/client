@@ -225,7 +225,7 @@ const Separator = React.memo(function Separator(p: SProps) {
   return (
     <Kb.Box2
       direction="horizontal"
-      style={styles.container}
+      style={showUsername ? styles.container : styles.containerNoName}
       fullWidth={true}
       className="WrapperMessage-hoverColor"
     >
@@ -304,6 +304,15 @@ const styles = Styles.styleSheetCreate(
         },
         isElectron: {
           height: 21,
+          marginBottom: 0,
+          paddingTop: 5,
+        },
+      }),
+      containerNoName: Styles.platformStyles({
+        common: {
+          position: 'relative',
+        },
+        isElectron: {
           marginBottom: 0,
           paddingTop: 5,
         },
