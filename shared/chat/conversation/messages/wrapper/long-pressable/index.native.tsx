@@ -33,8 +33,8 @@ const LongPressable = React.memo(function LongPressable(props: Props) {
     dispatch(Chat2Gen.createToggleReplyToMessage({conversationIDKey, ordinal}))
   }, [dispatch, getIds])
 
-  // Only swipeable if there is an onSwipeLeft handler and not android
-  if (onSwipeLeft && !Container.isAndroid) {
+  // Only swipeable if there is an onSwipeLeft handler
+  if (onSwipeLeft) {
     return (
       <SwipeTrigger actionWidth={100} onSwiped={onSwipeLeft} makeAction={makeAction}>
         {inner}
