@@ -103,9 +103,9 @@ for ((i=1; i<=$number_of_builds; i++)); do
   KBNM_BUILD=$build
   KBFS_BUILD=$build
   kb_version="$(grep 'Version = ' $client_dir/go/libkb/version.go | sed 's/.*Version = \"\(.*\)\"/\1/')"
-  KEYBASE_VERSION=${KEYBASE_VERSION:-"$kb_version-$KEYBASE_BUILD"}
-  KBNM_VERSION=${KBNM_VERSION:-"$kb_version-$KBNM_BUILD"}
-  KBFS_VERSION=${KBFS_VERSION:-"$kb_version-$KBFS_BUILD"}
+  KEYBASE_VERSION="$kb_version-$KEYBASE_BUILD"
+  KBNM_VERSION="$kb_version-$KBNM_BUILD"
+  KBFS_VERSION="$kb_version-$KBFS_BUILD"
 
   if [ ! "$nobuild" = "1" ]; then
     KEYBASE_BUILD="$KEYBASE_BUILD" BUILD_DIR="$build_dir_keybase" "$dir/build_keybase.sh"
