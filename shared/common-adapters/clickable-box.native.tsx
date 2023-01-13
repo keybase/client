@@ -1,8 +1,12 @@
 import * as React from 'react'
 import * as Styles from '../styles'
 import Box from './box'
-import {NativeTouchableOpacity, NativeTouchableWithoutFeedback} from './native-wrappers.native'
-import type {Props} from './clickable-box'
+import {
+  NativeTouchableOpacity,
+  NativeTouchableWithoutFeedback,
+  NativePressable,
+} from './native-wrappers.native'
+import type {Props, Props2} from './clickable-box'
 
 const Kb = {
   Box,
@@ -71,3 +75,12 @@ const styles = Styles.styleSheetCreate(() => ({
 }))
 
 export default ClickableBox
+
+export const ClickableBox2 = (p: Props2) => {
+  const {onClick, children, style} = p
+  return (
+    <NativePressable onPress={onClick} style={style}>
+      {children}
+    </NativePressable>
+  )
+}

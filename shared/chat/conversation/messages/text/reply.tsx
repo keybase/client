@@ -4,7 +4,7 @@ import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../../../styles'
-import {ConvoIDContext, OrdinalContext} from '../ids-context'
+import {ConvoIDContext, OrdinalContext, GetIdsContext} from '../ids-context'
 import type * as Types from '../../../../constants/types/chat2'
 
 export const useReply = (ordinal: Types.Ordinal, showCenteredHighlight: boolean) => {
@@ -15,65 +15,88 @@ export const useReply = (ordinal: Types.Ordinal, showCenteredHighlight: boolean)
   return showReplyTo ? <Reply isParentHighlighted={showCenteredHighlight} /> : null
 }
 
-const emptyMessage = Constants.makeMessageDeleted()
+const emptyMessage = Constants.makeMessageText()
 
-const Reply = (p: {isParentHighlighted: boolean}) => {
+const ReplyToContext = React.createContext<Types.Message>(emptyMessage)
+
+const AvatarHolder = (p: {isParentHighlighted: boolean}) => {
+  const {author} = React.useContext(ReplyToContext)
   const {isParentHighlighted} = p
-  const conversationIDKey = React.useContext(ConvoIDContext)
-  const ordinal = React.useContext(OrdinalContext)
-  const replyTo = Container.useSelector(state => {
-    const m = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
-    return m?.replyTo ?? emptyMessage
-  })
+  return (
+    <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true}>
+      <Kb.Avatar username={author} size={16} />
+      <Kb.Text
+        type="BodySmallBold"
+        style={
+          isParentHighlighted
+            ? Styles.collapseStyles([
+                styles.replyUsername,
+                isParentHighlighted && styles.replyUsernameHighlighted,
+              ])
+            : styles.replyUsername
+        }
+      >
+        {author}
+      </Kb.Text>
+    </Kb.Box2>
+  )
+}
 
-  const dispatch = Container.useDispatch()
+const ReplyImage = () => {
+  const replyTo = React.useContext(ReplyToContext)
+  if (replyTo.type !== 'attachment') return null
 
-  const {id, type} = replyTo
-
-  const onReplyClick = React.useCallback(() => {
-    id && dispatch(Chat2Gen.createReplyJump({conversationIDKey, messageID: id}))
-  }, [dispatch, conversationIDKey, id])
-
-  const [imageLoaded, setImageLoaded] = React.useState(false)
-
-  if (!id) return null
-
-  let deleted = true
-  let edited = false
-  let onClick: undefined | (() => void) = undefined
-  let text = ''
-  let username = ''
-  let imageHeight = 0
-  let imageURL = ''
-  let imageWidth = 0
-
-  switch (type) {
-    case 'attachment': // fallthrough
-    case 'text': {
-      const attachment: Types.MessageAttachment | undefined =
-        replyTo.type === 'attachment' && replyTo.attachmentType === 'image' ? replyTo : undefined
-      if (!replyTo.exploded) {
-        deleted = false
-        edited = !!replyTo.hasBeenEdited
-        imageHeight = attachment ? attachment.previewHeight : 0
-        imageURL = attachment ? attachment.previewURL : ''
-        imageWidth = attachment ? attachment.previewWidth : 0
-        onClick = onReplyClick
-        text =
-          replyTo.type === 'attachment'
-            ? replyTo.title || (replyTo.attachmentType === 'image' ? '' : replyTo.fileName)
-            : replyTo.text.stringValue()
-        username = replyTo.author
-      }
-      break
-    }
-    default:
-      break
-  }
-
+  const imageHeight = replyTo.previewHeight
+  const imageURL = replyTo.previewURL
+  const imageWidth = replyTo.previewWidth
   const sizing = imageWidth && imageHeight ? Constants.zoomImage(imageWidth, imageHeight, 80) : undefined
   return (
-    <Kb.ClickableBox onClick={onClick}>
+    <Kb.Box2 direction="vertical" style={styles.replyImageContainer}>
+      <Kb.Box style={sizing?.margins}>
+        <Kb.Image src={imageURL} style={sizing?.dims} />
+      </Kb.Box>
+    </Kb.Box2>
+  )
+}
+
+const ReplyText = (p: {isParentHighlighted: boolean}) => {
+  const {isParentHighlighted} = p
+  const replyTo = React.useContext(ReplyToContext)
+
+  const text =
+    replyTo.type === 'attachment'
+      ? replyTo.title || (replyTo.attachmentType === 'image' ? '' : replyTo.fileName)
+      : replyTo.type === 'text'
+      ? replyTo.text.stringValue()
+      : ''
+
+  return text ? (
+    <Kb.Text type="BodySmall" style={isParentHighlighted ? styles.textHighlighted : undefined} lineClamp={3}>
+      {text}
+    </Kb.Text>
+  ) : null
+}
+
+type RS = {
+  isParentHighlighted: boolean
+  showImage: boolean
+  showEdited: boolean
+  isDeleted: boolean
+}
+
+const ReplyStructure = React.memo(function ReplyStructure(p: RS) {
+  const {isParentHighlighted, showImage, showEdited, isDeleted} = p
+
+  const dispatch = Container.useDispatch()
+  const getIds = React.useContext(GetIdsContext)
+  const onClick = React.useCallback(() => {
+    const {conversationIDKey, ordinal} = getIds()
+    // used to be id but now ordinal, should be ok most of the time but if this fails its cause of that
+    ordinal && dispatch(Chat2Gen.createReplyJump({conversationIDKey, messageID: ordinal}))
+  }, [dispatch, getIds])
+
+  return (
+    <Kb.ClickableBox2 onClick={onClick}>
       <Kb.Box2
         direction="horizontal"
         gap="tiny"
@@ -84,58 +107,57 @@ const Reply = (p: {isParentHighlighted: boolean}) => {
         <Kb.Box2 direction="horizontal" style={styles.quoteContainer} />
         <Kb.Box2 direction="vertical" gap="xtiny" style={styles.replyContentContainer}>
           <Kb.Box2 direction="horizontal" fullWidth={true}>
-            <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true}>
-              <Kb.Avatar username={username} size={16} />
-              <Kb.Text
-                type="BodySmallBold"
-                style={Styles.collapseStyles([
-                  styles.replyUsername,
-                  isParentHighlighted && styles.replyUsernameHighlighted,
-                ])}
-              >
-                {username}
-              </Kb.Text>
-            </Kb.Box2>
+            <AvatarHolder isParentHighlighted={isParentHighlighted} />
           </Kb.Box2>
           <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
-            {!!imageURL && (
-              <Kb.Box2 direction="vertical" style={styles.replyImageContainer}>
-                <Kb.Box style={{...(sizing ? sizing.margins : {})}}>
-                  <Kb.Image
-                    src={imageURL}
-                    onLoad={() => setImageLoaded(true)}
-                    style={{...(sizing ? sizing.dims : {})}}
-                  />
-                  {!imageLoaded && <Kb.ProgressIndicator style={styles.replyProgress} />}
-                </Kb.Box>
-              </Kb.Box2>
-            )}
+            {showImage && <ReplyImage />}
             <Kb.Box2 direction="horizontal" style={styles.replyTextContainer}>
-              {!deleted ? (
-                <Kb.Text
-                  type="BodySmall"
-                  style={Styles.collapseStyles([isParentHighlighted && styles.textHighlighted])}
-                  lineClamp={3}
-                >
-                  {text}
-                </Kb.Text>
-              ) : (
+              {isDeleted ? (
                 <Kb.Text type="BodyTiny" style={styles.replyEdited}>
                   The original message was deleted.
                 </Kb.Text>
+              ) : (
+                <ReplyText isParentHighlighted={isParentHighlighted} />
               )}
             </Kb.Box2>
           </Kb.Box2>
-          {edited && (
+          {showEdited && (
             <Kb.Text type="BodyTiny" style={styles.replyEdited}>
               EDITED
             </Kb.Text>
           )}
         </Kb.Box2>
       </Kb.Box2>
-    </Kb.ClickableBox>
+    </Kb.ClickableBox2>
   )
-}
+})
+
+const Reply = React.memo(function Repy(p: {isParentHighlighted: boolean}) {
+  const {isParentHighlighted} = p
+  const conversationIDKey = React.useContext(ConvoIDContext)
+  const ordinal = React.useContext(OrdinalContext)
+  const replyTo = Container.useSelector(state => {
+    const m = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
+    return m?.replyTo ?? emptyMessage
+  })
+
+  if (!replyTo.id) return null
+
+  const showEdited = !!replyTo.hasBeenEdited
+  const isDeleted = replyTo.exploded || replyTo.type === 'deleted'
+  const showImage = !!replyTo.previewURL
+
+  return (
+    <ReplyToContext.Provider value={replyTo}>
+      <ReplyStructure
+        isParentHighlighted={isParentHighlighted}
+        isDeleted={isDeleted}
+        showImage={showImage}
+        showEdited={showEdited}
+      />
+    </ReplyToContext.Provider>
+  )
+})
 
 const styles = Styles.styleSheetCreate(
   () =>

@@ -28,4 +28,13 @@ export type Props = {
 }
 
 declare class ClickableBox extends React.Component<Props> {}
+
+type Props2 = {
+  onClick?: () => void
+  children: React.ReactNode
+  className?: string
+  style?: StylesCrossPlatform
+}
+export declare class ClickableBox2 extends React.Component<Props2> {}
+
 export default ClickableBox

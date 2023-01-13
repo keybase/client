@@ -16,6 +16,7 @@ import {ConvoIDContext} from '../messages/ids-context'
 import {FlashList, type ListRenderItemInfo} from '@shopify/flash-list'
 import {getMessageRender} from '../messages/wrapper'
 import {mobileTypingContainerHeight} from '../input-area/normal/typing'
+import {SetRecycleTypeContext} from '../recycle-type-context'
 
 // Bookkeep whats animating so it finishes and isn't replaced, if we've animated it we keep the key and use null
 const animatingMap = new Map<string, null | React.ReactElement>()
@@ -222,6 +223,14 @@ const ConversationList = React.memo(function ConversationList(p: {
     [messageOrdinals, conversationIDKey, messageTypeMap]
   )
 
+  const recycleTypeRef = React.useRef(new Map<Types.Ordinal, string>())
+  React.useEffect(() => {
+    recycleTypeRef.current = new Map()
+  }, [conversationIDKey])
+  const setRecycleType = React.useCallback((ordinal: Types.Ordinal, type: string) => {
+    recycleTypeRef.current.set(ordinal, type)
+  }, [])
+
   const getItemType = React.useCallback(
     (ordinal: Types.Ordinal, idx: number) => {
       if (!ordinal) {
@@ -230,8 +239,7 @@ const ConversationList = React.memo(function ConversationList(p: {
       if (messageOrdinals.length - 1 === idx) {
         return 'sent'
       }
-      const type = messageTypeMap?.get(ordinal) ?? 'text'
-      return type ?? 'generic'
+      return recycleTypeRef.current.get(ordinal) ?? messageTypeMap?.get(ordinal) ?? 'text'
     },
     [messageOrdinals, messageTypeMap]
   )
@@ -259,29 +267,31 @@ const ConversationList = React.memo(function ConversationList(p: {
   return (
     <Kb.ErrorBoundary>
       <ConvoIDContext.Provider value={conversationIDKey}>
-        <Kb.Box style={styles.container}>
-          <FlashList
-            removeClippedSubviews={Styles.isAndroid}
-            drawDistance={100}
-            estimatedItemSize={100}
-            ListHeaderComponent={SpecialBottomMessage}
-            ListFooterComponent={SpecialTopMessage}
-            ItemSeparatorComponent={Separator}
-            overScrollMode="never"
-            contentContainerStyle={styles.contentContainer}
-            data={messageOrdinals}
-            getItemType={getItemType}
-            inverted={true}
-            renderItem={renderItem}
-            maintainVisibleContentPosition={maintainVisibleContentPosition}
-            onEndReached={onEndReached}
-            keyboardDismissMode="on-drag"
-            keyboardShouldPersistTaps="handled"
-            keyExtractor={keyExtractor}
-            ref={listRef}
-          />
-          {jumpToRecent}
-        </Kb.Box>
+        <SetRecycleTypeContext.Provider value={setRecycleType}>
+          <Kb.Box style={styles.container}>
+            <FlashList
+              removeClippedSubviews={Styles.isAndroid}
+              drawDistance={100}
+              estimatedItemSize={100}
+              ListHeaderComponent={SpecialBottomMessage}
+              ListFooterComponent={SpecialTopMessage}
+              ItemSeparatorComponent={undefined /* TEMP Separator*/}
+              overScrollMode="never"
+              contentContainerStyle={styles.contentContainer}
+              data={messageOrdinals}
+              getItemType={getItemType}
+              inverted={true}
+              renderItem={renderItem}
+              maintainVisibleContentPosition={maintainVisibleContentPosition}
+              onEndReached={onEndReached}
+              keyboardDismissMode="on-drag"
+              keyboardShouldPersistTaps="handled"
+              keyExtractor={keyExtractor}
+              ref={listRef}
+            />
+            {jumpToRecent}
+          </Kb.Box>
+        </SetRecycleTypeContext.Provider>
       </ConvoIDContext.Provider>
     </Kb.ErrorBoundary>
   )
