@@ -31,9 +31,9 @@ mode="$1"
 version="$2"
 version_tag="v$version"
 
-if [ $mode == "staging" ]; then
+if [ "$mode" == "staging" ]; then
 	formula="kbstage"
-elif [ $mode == "production" ]; then
+elif [ "$mode" == "production" ]; then
 	formula="keybase"
 else
 	echo "Invalid mode $mode.  Should be staging or production."
@@ -53,16 +53,16 @@ kbfsdir=${KBFSDIR:-$GOPATH/src/github.com/keybase/client/go/kbfs}
 version_on_disk="$("$clientdir/packaging/version.sh" "$mode")"
 
 if [ "$version" != "$version_on_disk" ]; then
-	echo Version $version does not match libkb/version.go $version_on_disk
+	echo Version "$version" does not match libkb/version.go "$version_on_disk"
 	exit 1
 fi
 
 echo "-------------------------------------------------------------------------"
 echo "Creating $formula release for version $version"
 echo "-------------------------------------------------------------------------"
-cd $clientdir
+cd "$clientdir"
 
-if git tag -a $version_tag -m $version_tag ; then
+if git tag -a "$version_tag" -m "$version_tag" ; then
 	echo "Tagged client source with $version_tag"
 	git push --tags
 else
@@ -71,12 +71,12 @@ fi
 
 src_url="https://github.com/keybase/client/archive/$version_tag.tar.gz"
 echo "Computing sha256 of $src_url"
-src_sha="$(curl -f -L -s $src_url | shasum -a 256 | cut -f 1 -d ' ')"
+src_sha="$(curl -f -L -s "$src_url" | shasum -a 256 | cut -f 1 -d ' ')"
 echo "sha256 of $src_url is $src_sha"
 
 echo "Updating brew formula $formula"
-sed -e "s/%VERSION%/$version/g" -e "s/%VERSION_TAG%/$version_tag/g" -e "s/%SRC_SHA%/$src_sha/g" $brewdir/$formula.rb.tmpl > $brewdir/$formula.rb
-cd $brewdir
+sed -e "s/%VERSION%/$version/g" -e "s/%VERSION_TAG%/$version_tag/g" -e "s/%SRC_SHA%/$src_sha/g" "$brewdir"/$formula.rb.tmpl > "$brewdir"/$formula.rb
+cd "$brewdir"
 if git commit -a -m "New $formula version $version_tag" ; then
 	git push
 	echo "Done.  brew update && brew upgrade $formula should install version $version"
@@ -89,7 +89,7 @@ echo "Creating Linux packages for version $version"
 echo "-------------------------------------------------------------------------"
 
 # Make sure you have the Keybase code signing key.
-code_signing_fingerprint="$(cat $clientdir/packaging/linux/code_signing_fingerprint)"
+code_signing_fingerprint="$(cat "$clientdir"/packaging/linux/code_signing_fingerprint)"
 if ! gpg -K "$code_signing_fingerprint" ; then
 	echo "You're missing the GPG code signing secret key ($code_signing_fingerprint)."
 	exit 1

@@ -1,1 +1,1 @@
-• Fix Finder integration on macOS Ventura
+• Build app for Apple silicon

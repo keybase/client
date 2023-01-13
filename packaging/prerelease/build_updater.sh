@@ -9,16 +9,17 @@ build_dir=${BUILD_DIR:-/tmp/keybase}
 gopath=${GOPATH:-}
 package="github.com/keybase/go-updater/service"
 dest="$build_dir/updater"
+arch=${ARCH:-"amd64"}
 
-src_dir="$gopath/src/$package"
+src_dir=${UPDATER_DIR:-"$gopath/src/$package"}
 cd "$src_dir"
 
 mkdir -p "$build_dir"
 
-echo "Building $build_dir/updater with $(go version)"
-go build -a -o "$dest" "$package"
+echo "Building $build_dir/updater with $(go version) on arch: $arch"
+GOARCH="$arch" go build -a -o "$dest" "$package"
 
-if [ "$PLATFORM" = "darwin" ]; then
+if [ "$PLATFORM" = "darwin" ] || [ "$PLATFORM" = "darwin-arm64" ]; then
   echo "Signing binary..."
   code_sign_identity="9FC3A5BC09FA2EE307C04060C918486411869B65" # "Developer ID Application: Keybase, Inc. (99229SGT5K)"
   codesign --verbose --force --deep --timestamp --options runtime --sign "$code_sign_identity" "$dest"
@@ -31,5 +32,7 @@ else
   exit 1
 fi
 
-updater_version=`"$build_dir"/updater -version`
-echo "Updater version: $updater_version"
+if [ ! "$PLATFORM" = "darwin-arm64" ]; then # we can't run the arm64 binary on the amd64 build machine!
+  updater_version=$("$build_dir"/updater -version)
+  echo "Updater version: $updater_version"
+fi

@@ -3,7 +3,7 @@
 set -e -u -o pipefail # Fail on error
 
 dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
-cd $dir
+cd "$dir"
 
 client_dir="$dir/../.."
 shared_dir="$client_dir/shared"
@@ -13,10 +13,15 @@ save_dir=${SAVE_DIR:-}
 tmp_dir="/tmp/package_darwin/tmp"
 bucket_name=${BUCKET_NAME:-}
 run_mode="prod"
-platform="darwin"
 s3host=${S3HOST:-}
 istest=${TEST:-}
 skip_notarize=${SKIP_NOTARIZE:-}
+arch=${ARCH:-"amd64"}
+electron_arch="x64"
+platform=${PLATFORM:-"darwin"}
+if [ "$arch" = "arm64" ]; then
+  electron_arch="arm64"
+fi
 
 if [ ! "$bucket_name" = "" ] && [ "$s3host" = "" ]; then
   # Use this syntax since bucket_name might have dots (.)
@@ -27,7 +32,7 @@ echo "Cleaning up packaging dir from previous runs"
 rm -rf "$dir/node_modules"
 
 # Ensure we have packaging tools
-yarn install --pure-lockfile --ignore-engines   
+yarn install --pure-lockfile --ignore-engines
 node_bin="$dir/node_modules/.bin"
 
 app_name=Keybase
@@ -39,7 +44,7 @@ comment=""
 keybase_binpath=${KEYBASE_BINPATH:-}
 git_remote_keybase_binpath=${GIT_REMOTE_KEYBASE_BINPATH:-}
 kbfs_binpath=${KBFS_BINPATH:-}
-redirector_binpath=${REDIRECTOR_BINPATH:-`dirname $KBFS_BINPATH`/keybase-redirector}
+redirector_binpath=${REDIRECTOR_BINPATH:-$(dirname "$KBFS_BINPATH")/keybase-redirector}
 kbnm_binpath=${KBNM_BINPATH:-}
 updater_binpath=${UPDATER_BINPATH:-}
 
@@ -52,21 +57,21 @@ release_bin="$GOPATH/bin/release"
 
 if [ "$keybase_version" = "" ]; then
   if [ ! "$keybase_binpath" = "" ]; then
-    keybase_version=`$keybase_binpath version -S`
+    keybase_version=$($keybase_binpath version -S)
     echo "Using keybase (bin) version: $keybase_version"
   fi
 fi
 
 if [ "$kbfs_version" = "" ]; then
   if [ ! "$kbfs_binpath" = "" ]; then
-    kbfs_version=`$kbfs_binpath -version`
+    kbfs_version=$($kbfs_binpath -version)
     echo "Using kbfs (bin) version: $kbfs_version"
   fi
 fi
 
 if [ "$kbnm_version" = "" ]; then
   if [ ! "$kbnm_binpath" = "" ]; then
-    kbnm_version=`$kbnm_binpath -version`
+    kbnm_version=$($kbnm_binpath -version)
     echo "Using kbnm (bin) version: $kbnm_version"
   fi
 fi
@@ -87,11 +92,22 @@ if [ "$kbnm_version" = "" ]; then
   echo "KBNM_VERSION unspecified, defaulting to: $kbnm_version"
 fi
 
-out_dir="$build_dir/Keybase-darwin-x64"
+if [ "$arch" = "amd64" ]; then
+  out_dir="$build_dir/Keybase-darwin-x64"
+elif [ "$arch" = "arm64" ]; then
+  out_dir="$build_dir/Keybase-darwin-arm64"
+else
+  echo "unknown arch for packaging: $arch"
+  exit 1
+fi
+
+echo "packaging in out_dir: $out_dir"
+
 app_executable_path="$out_dir/Keybase.app/Contents/MacOS/Keybase"
 shared_support_dir="$out_dir/Keybase.app/Contents/SharedSupport"
 resources_dir="$out_dir/Keybase.app/Contents/Resources/"
 
+# TODO build and publish an arm64 version
 # The KeybaseInstaller.app installs KBFuse, keybase.Helper, services and CLI via a native app
 installer_url="https://prerelease.keybase.io/darwin-package/KeybaseInstaller-1.1.91-darwin.tgz"
 # KeybaseUpdater.app is the native updater UI (prompt dialogs)
@@ -139,7 +155,7 @@ get_deps() {(
     echo "Using local keybase binpath: $keybase_binpath"
     cp "$keybase_binpath" .
   else
-    keybase_url="https://github.com/keybase/client/releases/download/v$keybase_version/keybase-$keybase_version-darwin.tgz"
+    keybase_url="https://github.com/keybase/client/releases/download/v$keybase_version/keybase-$keybase_version-$platform.tgz"
     echo "Getting $keybase_url"
     ensure_url "$keybase_url" "You need to build the binary for this Github release/version. See packaging/github to create/build a release."
     curl -J -L -Ss "$keybase_url" | tar zx
@@ -152,9 +168,9 @@ get_deps() {(
     echo "Using local redirector binpath: $redirector_binpath"
     cp "$redirector_binpath" .
   else
-    kbfs_url="https://github.com/keybase/client/go/kbfs/releases/download/v$kbfs_version/kbfs-$kbfs_version-darwin.tgz"
+    kbfs_url="https://github.com/keybase/client/go/kbfs/releases/download/v$kbfs_version/kbfs-$kbfs_version-$platform.tgz"
     echo "Getting $kbfs_url"
-    ensure_url $kbfs_url "You need to build the binary for this Github release/version. See packaging/github to create/build a release."
+    ensure_url "$kbfs_url" "You need to build the binary for this Github release/version. See packaging/github to create/build a release."
     curl -J -L -Ss "$kbfs_url" | tar zx
   fi
 
@@ -162,9 +178,9 @@ get_deps() {(
     echo "Using local kbnm binpath: $kbnm_binpath"
     cp "$kbnm_binpath" .
   else
-    kbnm_url="https://github.com/keybase/kbnm/releases/download/v$kbnm_version/kbnm-$kbnm_version-darwin.tgz"
+    kbnm_url="https://github.com/keybase/kbnm/releases/download/v$kbnm_version/kbnm-$kbnm_version-$platform.tgz"
     echo "Getting $kbnm_url"
-    ensure_url $kbnm_url "You need to build the binary for this Github release/version. See packaging/github to create/build a release."
+    ensure_url "$kbnm_url" "You need to build the binary for this Github release/version. See packaging/github to create/build a release."
     curl -J -L -Ss "$kbnm_url" | tar zx
   fi
 
@@ -186,7 +202,7 @@ package_electron() {(
   rm -rf "$shared_dir/node_modules"
 
   yarn install --pure-lockfile --ignore-engines
-  yarn run package -- --appVersion="$app_version" --comment="$comment" --icon="$icon_path" --saltpackIcon="$saltpack_icon"  --outDir="$build_dir"
+  yarn run package -- --appVersion="$app_version" --comment="$comment" --icon="$icon_path" --saltpackIcon="$saltpack_icon"  --outDir="$build_dir" --arch="$electron_arch"
 
   # Create symlink for Electron to overcome Gatekeeper bug https://github.com/keybase/go-updater/pull/4
   cd "$out_dir/$app_name.app/Contents/MacOS"
@@ -238,7 +254,7 @@ sign() {(
   codesign --verbose --force --deep --timestamp --options runtime --sign "$code_sign_identity" "$app_name.app/Contents/Frameworks/Electron Framework.framework/Versions/A/Libraries/libvk_swiftshader.dylib"
   codesign --verbose --force --deep --timestamp --options runtime --sign "$code_sign_identity" "$app_name.app/Contents/Frameworks/Squirrel.framework/Versions/A/Resources/ShipIt"
 
-  codesign --verbose --force --deep --timestamp --options runtime --entitlements $client_dir/osx/Keybase.entitlements --sign "$code_sign_identity" "$app_name.app"
+  codesign --verbose --force --deep --timestamp --options runtime --entitlements "$client_dir"/osx/Keybase.entitlements --sign "$code_sign_identity" "$app_name.app"
 
 
 
@@ -282,13 +298,13 @@ notarize_dmg() {(
     return
   fi
   echo "Uploading $dmg_name to notarization service in $out_dir"
-  uuid=`xcrun altool --notarize-app --primary-bundle-id "keybase.notarize" --username "apple-dev@keyba.se" --password "@keychain:notarization" --file "$dmg_name" 2>&1 | grep 'RequestUUID' | awk '{ print $3 }'`
+  uuid=$(xcrun altool --notarize-app --primary-bundle-id "keybase.notarize" --username "apple-dev@keyba.se" --password "@keychain:notarization" --file "$dmg_name" 2>&1 | grep 'RequestUUID' | awk '{ print $3 }')
   echo "Successfully uploaded to notarization service, polling for result: $uuid"
   sleep 15
   while :
   do
-    fullstatus=`xcrun altool --notarization-info "$uuid" --username "apple-dev@keyba.se" --password "@keychain:notarization" 2>&1`
-    status=`echo "$fullstatus" | grep 'Status\:' | awk '{ print $2 }'`
+    fullstatus=$(xcrun altool --notarization-info "$uuid" --username "apple-dev@keyba.se" --password "@keychain:notarization" 2>&1)
+    status=$(echo "$fullstatus" | grep 'Status\:' | awk '{ print $2 }')
     if [ "$status" = "success" ]; then
       echo "Notarization success"
       xcrun stapler staple "$dmg_name"
@@ -339,7 +355,7 @@ save() {(
     echo "Saved files to $out_dir"
     return
   fi
-  mkdir -p $save_dir
+  mkdir -p "$save_dir"
   cd "$save_dir"
   platform_dir="$save_dir/$platform"
   if [ "$istest" = "1" ]; then
@@ -362,7 +378,7 @@ save() {(
 
 s3sync() {
   if [ ! "$bucket_name" = "" ] && [ ! "$save_dir" = "" ]; then
-    s3cmd sync --acl-public --disable-multipart $save_dir/* s3://$bucket_name/
+    s3cmd sync --acl-public --disable-multipart "$save_dir"/* s3://"$bucket_name"/
   else
     echo "S3 sync disabled"
   fi

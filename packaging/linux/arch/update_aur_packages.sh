@@ -12,7 +12,7 @@ build_root="$1"
 git_url="aur@aur.archlinux.org:keybase-bin"
 src_prefix="https://prerelease.keybase.io/linux_binaries/deb"
 
-setup_arch_build $build_root $git_url $src_prefix
+setup_arch_build "$build_root" $git_url $src_prefix
 keybase_bin_repo="$build_root/arch/keybase-bin"
 
 if git -C "$keybase_bin_repo" commit -am "version bump" ; then
