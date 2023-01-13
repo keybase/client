@@ -100,14 +100,17 @@ for ((i=1; i<=$number_of_builds; i++)); do
   # Consumed by build_keybase.sh and on darwin-arm64 builds below. We the value
   # here so it is consistent across the build compilation and build announcement
   # since we can't echo the version of the binary when cross compiling.
-  KEYBASE_BUILD=${KEYBASE_BUILD:-$build}
-  KBNM_BUILD=${KBNM_BUILD:-$build}
-  KBFS_BUILD=${KBFS_BUILD:-$build}
+  KEYBASE_BUILD=$build
+  KBNM_BUILD=$build
+  KBFS_BUILD=$build
   kb_version="$(grep 'Version = ' $client_dir/go/libkb/version.go | sed 's/.*Version = \"\(.*\)\"/\1/')"
-  KEYBASE_VERSION=${KEYBASE_VERSION:-"$kb_version-$KEYBASE_BUILD"}
-  KBNM_VERSION=${KBNM_VERSION:-"$kb_version-$KBNM_BUILD"}
-  KBFS_VERSION=${KBFS_VERSION:-"$kb_version-$KBFS_BUILD"}
+  KEYBASE_VERSION="$kb_version-$KEYBASE_BUILD"
+  KBNM_VERSION="$kb_version-$KBNM_BUILD"
+  KBFS_VERSION="$kb_version-$KBFS_BUILD"
 
+  echo "KEYBASE_VERSION: $KEYBASE_VERSION"
+  echo "KNBM_VERSION: $KBNM_VERSION"
+  echo "KBFS_VERSION: $KBFS_VERSION"
   if [ ! "$nobuild" = "1" ]; then
     KEYBASE_BUILD="$KEYBASE_BUILD" BUILD_DIR="$build_dir_keybase" "$dir/build_keybase.sh"
     KBFS_BUILD="$KBFS_BUILD" BUILD_DIR="$build_dir_kbfs" CLIENT_DIR="$client_dir" "$dir/build_kbfs.sh"
