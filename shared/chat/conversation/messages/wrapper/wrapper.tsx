@@ -7,13 +7,13 @@ import * as Styles from '../../../../styles'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import shallowEqual from 'shallowequal'
 import {ConvoIDContext, OrdinalContext, GetIdsContext} from '../ids-context'
-import EmojiRow from '../react-button/emoji-row/container'
+import EmojiRow from '../emoji-row/container'
 import ExplodingHeightRetainer from './exploding-height-retainer/container'
 import ExplodingMeta from './exploding-meta/container'
 import LongPressable from './long-pressable'
 import MessagePopup from '../message-popup'
 import PendingPaymentBackground from '../account-payment/pending-background'
-import ReactionsRow from '../reactions-row/container'
+import ReactionsRow from '../reactions-row'
 import SendIndicator from './send-indicator'
 import type * as Types from '../../../../constants/types/chat2'
 import capitalize from 'lodash/capitalize'
@@ -359,9 +359,7 @@ const BottomSide = React.memo(function BottomSide(p: BProps) {
   const {showingPopup, setShowingPicker, bottomChildren, ecrType} = p
   const {hasReactions, reactionsPopupPosition} = p
 
-  const reactionsRow = hasReactions ? (
-    <ReactionsRow btnClassName="WrapperMessage-emojiButton" newBtnClassName="WrapperMessage-newEmojiButton" />
-  ) : null
+  const reactionsRow = hasReactions ? <ReactionsRow /> : null
 
   const reactionsPopup =
     !Container.isMobile && reactionsPopupPosition !== 'none' && !showingPopup ? (

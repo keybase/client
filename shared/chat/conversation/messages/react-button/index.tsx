@@ -1,5 +1,4 @@
 import * as React from 'react'
-import type * as Types from '../../../../constants/types/chat2'
 import {Box2, ClickableBox, Icon, Text, Markdown} from '../../../../common-adapters'
 import type {Props as ClickableBoxProps} from '../../../../common-adapters/clickable-box'
 import * as Styles from '../../../../styles'
@@ -8,7 +7,6 @@ import DelayInterval from './delay-interval'
 export type Props = {
   active: boolean
   className?: string
-  conversationIDKey: Types.ConversationIDKey
   count: number
   decorated: string
   emoji: string
@@ -17,7 +15,6 @@ export type Props = {
   onMouseLeave?: (evt: React.SyntheticEvent) => void
   onMouseOver?: (evt: React.SyntheticEvent) => void
   getAttachmentRef?: () => React.Component<any> | null
-  ordinal: Types.Ordinal
   style?: Styles.StylesCrossPlatform
 }
 
@@ -69,13 +66,12 @@ const markdownOverride = {
   },
 }
 
-const ReactButton = React.forwardRef<ClickableBox, Props>(function ReactButton(props: Props, ref) {
+const ReactButton = React.memo(function ReactButton(props: Props) {
   const text = props.decorated.length ? props.decorated : props.emoji
   return (
     <ButtonBox
       noEffect={false}
       border={false}
-      ref={ref}
       className={Styles.classNames(props.className, {noShadow: props.active})}
       onLongPress={props.onLongPress}
       onMouseLeave={props.onMouseLeave}

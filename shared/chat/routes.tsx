@@ -26,7 +26,7 @@ import type ChatUnfurlMapPopup from './conversation/messages/text/unfurl/map/pop
 import type PunycodeLinkWarning from './punycode-link-warning'
 import type SendToChat from './send-to-chat'
 import type {RenderableEmoji} from '../util/emoji'
-import type {Routable as ChatChooseEmoji} from './conversation/messages/react-button/emoji-picker/container'
+import type {Routable as ChatChooseEmoji} from './emoji-picker/container'
 import type {BlockModalContext} from './blocking/block-modal'
 
 export const newRoutes = {
@@ -63,8 +63,7 @@ export const newModalRoutes = {
     getScreen: (): typeof BlockModal => require('./blocking/block-modal/container').default,
   },
   chatChooseEmoji: {
-    getScreen: (): typeof ChatChooseEmoji =>
-      require('./conversation/messages/react-button/emoji-picker/container').Routable,
+    getScreen: (): typeof ChatChooseEmoji => require('./emoji-picker/container').Routable,
   },
   chatConfirmNavigateExternal: {
     getScreen: (): typeof PunycodeLinkWarning => require('./punycode-link-warning').default,

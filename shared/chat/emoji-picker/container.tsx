@@ -1,15 +1,15 @@
 import * as React from 'react'
-import * as Container from '../../../../../util/container'
-import * as Kb from '../../../../../common-adapters'
-import type {LayoutEvent} from '../../../../../common-adapters/box'
-import * as Constants from '../../../../../constants/chat2'
-import * as Types from '../../../../../constants/types/chat2'
-import * as TeamsTypes from '../../../../../constants/types/teams'
-import * as Teams from '../../../../../constants/teams'
-import * as Chat2Gen from '../../../../../actions/chat2-gen'
-import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
-import * as Styles from '../../../../../styles'
-import * as Data from '../../../../../util/emoji'
+import * as Container from '../../util/container'
+import * as Kb from '../../common-adapters'
+import type {LayoutEvent} from './../../common-adapters/box'
+import * as Constants from './../../constants/chat2'
+import * as Types from './../../constants/types/chat2'
+import * as TeamsTypes from './../../constants/types/teams'
+import * as Teams from './../../constants/teams'
+import * as Chat2Gen from './../../actions/chat2-gen'
+import * as RouteTreeGen from './../../actions/route-tree-gen'
+import * as Styles from './../../styles'
+import * as Data from './../../util/emoji'
 import startCase from 'lodash/startCase'
 import debounce from 'lodash/debounce'
 import SkinTonePicker from './skin-tone-picker'
@@ -19,9 +19,9 @@ import {
   renderEmoji,
   type EmojiData,
   type RenderableEmoji,
-} from '../../../../../util/emoji'
-import useRPC from '../../../../../util/use-rpc'
-import * as RPCChatGen from '../../../../../constants/types/rpc-chat-gen'
+} from './../../util/emoji'
+import useRPC from './../../util/use-rpc'
+import * as RPCChatGen from './../../constants/types/rpc-chat-gen'
 
 type Props = {
   conversationIDKey: Types.ConversationIDKey

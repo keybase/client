@@ -1,10 +1,10 @@
 import * as React from 'react'
-import * as Kb from '../../../../../common-adapters'
-import * as Styles from '../../../../../styles'
-import type * as Types from '../../../../../constants/types/chat2'
-import type * as RPCTypes from '../../../../../constants/types/rpc-gen'
-import {EmojiPickerDesktop} from '../emoji-picker/container'
-import {renderEmoji, RPCUserReacjiToRenderableEmoji} from '../../../../../util/emoji'
+import * as Kb from '../../../../common-adapters'
+import * as Styles from '../../../../styles'
+import type * as Types from '../../../../constants/types/chat2'
+import type * as RPCTypes from '../../../../constants/types/rpc-gen'
+import {EmojiPickerDesktop} from '../../../emoji-picker/container'
+import {renderEmoji, RPCUserReacjiToRenderableEmoji} from '../../../../util/emoji'
 
 type Props = {
   className?: string

@@ -1,13 +1,13 @@
 import * as React from 'react'
-import type * as Types from '../../../../../constants/types/chat2'
-import type * as RPCTypes from '../../../../../constants/types/rpc-gen'
-import * as Data from '../../../../../util/emoji'
-import * as Kb from '../../../../../common-adapters'
-import * as Styles from '../../../../../styles'
+import type * as Types from './../../constants/types/chat2'
+import type * as RPCTypes from './../../constants/types/rpc-gen'
+import * as Data from './../../util/emoji'
+import * as Kb from './../../common-adapters'
+import * as Styles from './../../styles'
 import debounce from 'lodash/debounce'
-import {isMobile} from '../../../../../constants/platform'
+import {isMobile} from './../../constants/platform'
 import chunk from 'lodash/chunk'
-import {memoize} from '../../../../../util/memoize'
+import {memoize} from './../../util/memoize'
 import {
   emojiDataToRenderableEmoji,
   getEmojiStr,
@@ -15,16 +15,16 @@ import {
   type EmojiData,
   type RenderableEmoji,
   RPCToEmojiData,
-} from '../../../../../util/emoji'
-import type {Section as _Section} from '../../../../../common-adapters/section-list'
-import type * as RPCChatGen from '../../../../../constants/types/rpc-chat-gen'
+} from './../../util/emoji'
+import type {Section as _Section} from './../../common-adapters/section-list'
+import type * as RPCChatGen from './../../constants/types/rpc-chat-gen'
 
 // defer loading this until we need to, very expensive
 const _getData = () => {
-  const categories = require('../../../../../util/emoji').categories as typeof Data.categories
-  const emojiSearch = require('../../../../../util/emoji').emojiSearch as typeof Data.emojiSearch
-  const emojiNameMap = require('../../../../../util/emoji').emojiNameMap as typeof Data.emojiNameMap
-  const emojiSkinTones = require('../../../../../util/emoji').skinTones as typeof Data.skinTones
+  const categories = require('../../util/emoji').categories as typeof Data.categories
+  const emojiSearch = require('../../util/emoji').emojiSearch as typeof Data.emojiSearch
+  const emojiNameMap = require('../../util/emoji').emojiNameMap as typeof Data.emojiNameMap
+  const emojiSkinTones = require('../../util/emoji').skinTones as typeof Data.skinTones
   return {categories, emojiNameMap, emojiSearch, emojiSkinTones}
 }
 

@@ -1,9 +1,9 @@
 import * as React from 'react'
-import * as Kb from '../../../../../common-adapters'
-import * as Styles from '../../../../../styles'
-import * as Types from '../../../../../constants/types/chat2'
+import * as Kb from './../../common-adapters'
+import * as Styles from './../../styles'
+import * as Types from './../../constants/types/chat2'
 import {useSpring, animated} from 'react-spring'
-import {skinTones} from '../../../../../util/emoji'
+import {skinTones} from './../../util/emoji'
 
 const circle = (skinTone: undefined | Types.EmojiSkinTone, isExpanded: boolean, outerCircle: boolean) => {
   return (
