@@ -6,7 +6,7 @@ import os from 'os'
 import packager, {type Options} from 'electron-packager'
 import path from 'path'
 import webpack from 'webpack'
-import rootConfig from './webpack.config.babel'
+import rootConfig from './webpack.config'
 
 const TEMP_SKIP_BUILD: boolean = false
 

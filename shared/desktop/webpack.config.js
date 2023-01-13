@@ -1,13 +1,15 @@
+/* eslint-env node */
 /* Our bundler for the desktop app.
  * We build:
  * Electron main thread / render threads for the main window and remote windows (menubar, trackers, etc)
  */
-import TerserPlugin from 'terser-webpack-plugin'
-import merge from 'webpack-merge'
-import path from 'path'
-import webpack from 'webpack'
-import HtmlWebpackPlugin from 'html-webpack-plugin'
+const TerserPlugin = require('terser-webpack-plugin')
+const merge = require('webpack-merge').default
+const path = require('path')
+const webpack = require('webpack')
+const HtmlWebpackPlugin = require('html-webpack-plugin')
 const ReactRefreshWebpackPlugin = require('@pmmmwh/react-refresh-webpack-plugin')
+const process = require('node:process')
 
 // why did you render
 const enableWDYR = false
@@ -39,8 +41,8 @@ const config = (_, {mode}) => {
           [
             '@babel/preset-react',
             {
-              runtime: 'automatic',
               development: isDev,
+              runtime: 'automatic',
               ...(isDev && enableWDYR ? {importSource: '@welldone-software/why-did-you-render'} : {}),
             },
           ],
@@ -112,10 +114,10 @@ const config = (_, {mode}) => {
   const makeCommonConfig = () => {
     // If we use the hot server it pulls in this config
     const defines = {
-      __FILE_SUFFIX__: JSON.stringify(fileSuffix),
-      __PROFILE__: isProfile,
       __DEV__: isDev,
+      __FILE_SUFFIX__: JSON.stringify(fileSuffix),
       __HOT__: isHot,
+      __PROFILE__: isProfile,
       __STORYBOOK__: false,
       __STORYSHOT__: false,
       __VERSION__: isDev ? JSON.stringify('Development') : JSON.stringify(process.env.APP_VERSION),
@@ -148,7 +150,7 @@ const config = (_, {mode}) => {
       },
       plugins: [
         new webpack.DefinePlugin(defines), // Inject some defines
-        new webpack.IgnorePlugin({resourceRegExp: /^\.\/locale$/, contextRegExp: /moment$/}), // Skip a bunch of crap moment pulls in
+        new webpack.IgnorePlugin({contextRegExp: /moment$/, resourceRegExp: /^\.\/locale$/}), // Skip a bunch of crap moment pulls in
         ...(isDev ? [] : [new webpack.IgnorePlugin({resourceRegExp: /^lodash$/})]), // Disallow entire lodash
       ],
       resolve: {
@@ -164,17 +166,17 @@ const config = (_, {mode}) => {
                 new TerserPlugin({
                   parallel: true,
                   terserOptions: {
-                    parse: {ecma: 8},
                     compress: {
                       comparisons: false,
                       ecma: 5,
                       inline: 2,
                       warnings: false,
                     },
-                    keep_fnames: true,
                     keep_classnames: true,
+                    keep_fnames: true,
                     mangle: false,
                     output: {comments: false},
+                    parse: {ecma: 8},
                     // warnings: 'verbose', // uncomment to see more of what uglify is doing
                   },
                 }),
@@ -261,12 +263,6 @@ const config = (_, {mode}) => {
   const entries = ['main', 'menubar', 'pinentry', 'unlock-folders', 'tracker2']
   const viewConfig = merge(commonConfig, {
     devServer: {
-      compress: false,
-      hot: isHot,
-      port: 4000,
-      devMiddleware: {
-        publicPath: 'http://localhost:4000/dist',
-      },
       client: {
         overlay: true,
         webSocketURL: {
@@ -275,6 +271,10 @@ const config = (_, {mode}) => {
           port: 4000,
         },
       },
+      compress: false,
+      devMiddleware: {publicPath: 'http://localhost:4000/dist'},
+      hot: isHot,
+      port: 4000,
       static: {
         directory: path.resolve(__dirname, 'dist'),
         publicPath: '/dist',
@@ -294,6 +294,7 @@ const config = (_, {mode}) => {
       : {
           optimization: {splitChunks: {chunks: 'all'}},
         }),
+    node: false,
     plugins: makeViewPlugins(entries),
     resolve: {
       alias: {
@@ -303,7 +304,6 @@ const config = (_, {mode}) => {
       fallback: {process: false},
     },
     target: 'web',
-    node: false,
   })
   const preloadConfig = merge(commonConfig, {
     entry: {preload: `./desktop/renderer/preload.desktop.tsx`},
@@ -316,4 +316,4 @@ const config = (_, {mode}) => {
   return [nodeConfig, viewConfig, preloadConfig]
 }
 
-export default config
+module.exports = config

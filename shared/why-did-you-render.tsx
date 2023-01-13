@@ -1,5 +1,5 @@
 /// <reference types="@welldone-software/why-did-you-render" />
-// To enable make changes to babel.config.js and ./desktop/webpack.config.babel.js, change `enableWDYR`
+// To enable make changes to babel.config.js and ./desktop/webpack.config.js, change `enableWDYR`
 // import React from 'react'
 // if (__DEV__) {
 //   console.log('\n\n\nDEBUG: WHY DID YOU RENDER try to load')
