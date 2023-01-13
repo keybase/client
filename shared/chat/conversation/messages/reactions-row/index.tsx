@@ -10,7 +10,7 @@ import type * as Types from '../../../../constants/types/chat2'
 import {ConvoIDContext, OrdinalContext} from '../ids-context'
 
 // Get array of emoji names in the order of their earliest reaction
-const getOrderedReactions = (reactions: Types.Reactions | null) => {
+const getOrderedReactions = (reactions?: Types.Reactions) => {
   if (!reactions) {
     return []
   }
@@ -34,7 +34,7 @@ const ReactionsRow = React.memo(function ReactonsRowContainer() {
   const ordinal = React.useContext(OrdinalContext)
   const reactions = Container.useSelector(state => {
     const message = Constants.getMessage(state, conversationIDKey, ordinal)
-    const reactions = !message || !Constants.isMessageWithReactions(message) ? null : message.reactions
+    const reactions = message?.reactions
     return reactions
   })
 
@@ -48,12 +48,7 @@ const ReactionsRow = React.memo(function ReactonsRowContainer() {
         <RowItem key={emoji} emoji={emoji} />
       ))}
       {Styles.isMobile ? (
-        <ReactButton
-          conversationIDKey={conversationIDKey}
-          ordinal={ordinal}
-          showBorder={true}
-          style={styles.button}
-        />
+        <ReactButton showBorder={true} style={styles.button} />
       ) : (
         <EmojiRow className={Styles.classNames([btnClassName, newBtnClassName])} style={styles.emojiRow} />
       )}
@@ -83,7 +78,7 @@ const RowItem = React.memo(function RowItem(p: IProps) {
   const ordinal = React.useContext(OrdinalContext)
   const {emoji} = p
 
-  const popupAnchor = React.useRef()
+  const popupAnchor = React.useRef<Kb.Box2 | null>(null)
   const [showingPopup, setShowingPopup] = React.useState(false)
 
   const showPopup = React.useCallback(() => {
@@ -105,14 +100,11 @@ const RowItem = React.memo(function RowItem(p: IProps) {
   ) : null
 
   return (
-    <Kb.Box2 direction="vertical" onMouseOver={showPopup} onMouseLeave={hidePopup}>
+    <Kb.Box2 direction="vertical" onMouseOver={showPopup} onMouseLeave={hidePopup} ref={popupAnchor}>
       <ReactButton
         className={btnClassName}
-        conversationIDKey={conversationIDKey}
         emoji={emoji}
         onLongPress={Styles.isMobile ? () => setShowingPopup(true) : undefined}
-        ordinal={ordinal}
-        ref={popupAnchor}
         style={styles.button}
       />
       {popup}
