@@ -6,6 +6,7 @@ import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import type {StylesCrossPlatform} from '../../../../styles'
 import ReactButton, {NewReactionButton} from '.'
+import shallowEqual from 'shallowequal'
 
 export type OwnProps = {
   className?: string
@@ -34,7 +35,7 @@ const ReactButtonContainer = React.memo(function ReactButtonContainer(p: OwnProp
       count: reaction?.users.size ?? 0,
       decorated: reaction?.decorated ?? '',
     }
-  })
+  }, shallowEqual)
 
   const dispatch = Container.useDispatch()
   const onAddReaction = React.useCallback(

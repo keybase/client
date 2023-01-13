@@ -44,8 +44,8 @@ const ReactionsRow = React.memo(function ReactonsRowContainer() {
 
   return emojis.length === 0 ? null : (
     <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true} style={styles.container}>
-      {emojis.map(emoji => (
-        <RowItem key={emoji} emoji={emoji} />
+      {emojis.map((emoji, idx) => (
+        <RowItem key={String(idx)} emoji={emoji} />
       ))}
       {Styles.isMobile ? (
         <ReactButton showBorder={true} style={styles.button} />
