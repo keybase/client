@@ -7,20 +7,6 @@ import * as Styles from '../../../../styles'
 import {ConvoIDContext, OrdinalContext} from '../ids-context'
 import type * as Types from '../../../../constants/types/chat2'
 
-const replyNoop = () => {}
-
-type ReplyProps = {
-  deleted: boolean
-  edited: boolean
-  imageHeight?: number
-  imageURL?: string
-  imageWidth?: number
-  isParentHighlighted?: boolean
-  onClick: () => void
-  text: string
-  username: string
-}
-
 export const useReply = (ordinal: Types.Ordinal, showCenteredHighlight: boolean) => {
   const conversationIDKey = React.useContext(ConvoIDContext)
   const showReplyTo = Container.useSelector(
@@ -29,13 +15,7 @@ export const useReply = (ordinal: Types.Ordinal, showCenteredHighlight: boolean)
   return showReplyTo ? <Reply isParentHighlighted={showCenteredHighlight} /> : null
 }
 
-const deletedProps: ReplyProps = {
-  deleted: true,
-  edited: false,
-  onClick: replyNoop,
-  text: '',
-  username: '',
-}
+const emptyMessage = Constants.makeMessageDeleted()
 
 const Reply = (p: {isParentHighlighted: boolean}) => {
   const {isParentHighlighted} = p
@@ -43,53 +23,57 @@ const Reply = (p: {isParentHighlighted: boolean}) => {
   const ordinal = React.useContext(OrdinalContext)
   const replyTo = Container.useSelector(state => {
     const m = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
-    return m?.replyTo
+    return m?.replyTo ?? emptyMessage
   })
 
   const dispatch = Container.useDispatch()
 
-  const replyToId = replyTo?.id
+  const {id, type} = replyTo
 
   const onReplyClick = React.useCallback(() => {
-    replyToId && dispatch(Chat2Gen.createReplyJump({conversationIDKey, messageID: replyToId}))
-  }, [dispatch, conversationIDKey, replyToId])
+    id && dispatch(Chat2Gen.createReplyJump({conversationIDKey, messageID: id}))
+  }, [dispatch, conversationIDKey, id])
 
   const [imageLoaded, setImageLoaded] = React.useState(false)
 
-  if (!replyTo) return null
-  let props = deletedProps
-  switch (replyTo.type) {
+  if (!id) return null
+
+  let deleted = true
+  let edited = false
+  let onClick: undefined | (() => void) = undefined
+  let text = ''
+  let username = ''
+  let imageHeight = 0
+  let imageURL = ''
+  let imageWidth = 0
+
+  switch (type) {
     case 'attachment': // fallthrough
     case 'text': {
       const attachment: Types.MessageAttachment | undefined =
         replyTo.type === 'attachment' && replyTo.attachmentType === 'image' ? replyTo : undefined
-      props = replyTo.exploded
-        ? deletedProps
-        : {
-            deleted: false,
-            edited: !!replyTo.hasBeenEdited,
-            imageHeight: attachment ? attachment.previewHeight : undefined,
-            imageURL: attachment ? attachment.previewURL : undefined,
-            imageWidth: attachment ? attachment.previewWidth : undefined,
-            onClick: onReplyClick,
-            text:
-              replyTo.type === 'attachment'
-                ? replyTo.title || (replyTo.attachmentType === 'image' ? '' : replyTo.fileName)
-                : replyTo.text.stringValue(),
-            username: replyTo.author,
-          }
+      if (!replyTo.exploded) {
+        deleted = false
+        edited = !!replyTo.hasBeenEdited
+        imageHeight = attachment ? attachment.previewHeight : 0
+        imageURL = attachment ? attachment.previewURL : ''
+        imageWidth = attachment ? attachment.previewWidth : 0
+        onClick = onReplyClick
+        text =
+          replyTo.type === 'attachment'
+            ? replyTo.title || (replyTo.attachmentType === 'image' ? '' : replyTo.fileName)
+            : replyTo.text.stringValue()
+        username = replyTo.author
+      }
       break
     }
     default:
       break
   }
 
-  const sizing =
-    props.imageWidth && props.imageHeight
-      ? Constants.zoomImage(props.imageWidth, props.imageHeight, 80)
-      : undefined
+  const sizing = imageWidth && imageHeight ? Constants.zoomImage(imageWidth, imageHeight, 80) : undefined
   return (
-    <Kb.ClickableBox onClick={props.onClick}>
+    <Kb.ClickableBox onClick={onClick}>
       <Kb.Box2
         direction="horizontal"
         gap="tiny"
@@ -101,7 +85,7 @@ const Reply = (p: {isParentHighlighted: boolean}) => {
         <Kb.Box2 direction="vertical" gap="xtiny" style={styles.replyContentContainer}>
           <Kb.Box2 direction="horizontal" fullWidth={true}>
             <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true}>
-              <Kb.Avatar username={props.username} size={16} />
+              <Kb.Avatar username={username} size={16} />
               <Kb.Text
                 type="BodySmallBold"
                 style={Styles.collapseStyles([
@@ -109,16 +93,16 @@ const Reply = (p: {isParentHighlighted: boolean}) => {
                   isParentHighlighted && styles.replyUsernameHighlighted,
                 ])}
               >
-                {props.username}
+                {username}
               </Kb.Text>
             </Kb.Box2>
           </Kb.Box2>
           <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
-            {!!props.imageURL && (
+            {!!imageURL && (
               <Kb.Box2 direction="vertical" style={styles.replyImageContainer}>
                 <Kb.Box style={{...(sizing ? sizing.margins : {})}}>
                   <Kb.Image
-                    src={props.imageURL}
+                    src={imageURL}
                     onLoad={() => setImageLoaded(true)}
                     style={{...(sizing ? sizing.dims : {})}}
                   />
@@ -127,13 +111,13 @@ const Reply = (p: {isParentHighlighted: boolean}) => {
               </Kb.Box2>
             )}
             <Kb.Box2 direction="horizontal" style={styles.replyTextContainer}>
-              {!props.deleted ? (
+              {!deleted ? (
                 <Kb.Text
                   type="BodySmall"
                   style={Styles.collapseStyles([isParentHighlighted && styles.textHighlighted])}
                   lineClamp={3}
                 >
-                  {props.text}
+                  {text}
                 </Kb.Text>
               ) : (
                 <Kb.Text type="BodyTiny" style={styles.replyEdited}>
@@ -142,7 +126,7 @@ const Reply = (p: {isParentHighlighted: boolean}) => {
               )}
             </Kb.Box2>
           </Kb.Box2>
-          {props.edited && (
+          {edited && (
             <Kb.Text type="BodyTiny" style={styles.replyEdited}>
               EDITED
             </Kb.Text>
