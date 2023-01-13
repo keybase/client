@@ -107,6 +107,9 @@ for ((i=1; i<=$number_of_builds; i++)); do
   KBNM_VERSION="$kb_version-$KBNM_BUILD"
   KBFS_VERSION="$kb_version-$KBFS_BUILD"
 
+  echo "KEYBASE_VERSION: $KEYBASE_VERSION"
+  echo "KNBM_VERSION: $KBNM_VERSION"
+  echo "KBFS_VERSION: $KBFS_VERSION"
   if [ ! "$nobuild" = "1" ]; then
     KEYBASE_BUILD="$KEYBASE_BUILD" BUILD_DIR="$build_dir_keybase" "$dir/build_keybase.sh"
     KBFS_BUILD="$KBFS_BUILD" BUILD_DIR="$build_dir_kbfs" CLIENT_DIR="$client_dir" "$dir/build_kbfs.sh"
