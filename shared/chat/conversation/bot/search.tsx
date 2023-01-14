@@ -8,6 +8,7 @@ import * as Styles from '../../../styles'
 import type * as RPCTypes from '../../../constants/types/rpc-gen'
 import {Bot} from '../info-panel/bot'
 import debounce from 'lodash/debounce'
+import shallowEqual from 'shallowequal'
 
 type Props = Container.RouteProps<'chatSearchBots'>
 
@@ -18,12 +19,15 @@ const renderSectionHeader = ({section}: any) => {
 const userEmptyPlaceholder = '---EMPTYUSERS---'
 const resultEmptyPlaceholder = '---EMPTYRESULT---'
 
+const getResults = (state: Container.TypedState) => {
+  const {botSearchResults, featuredBotsMap} = state.chat2
+  return {botSearchResults, featuredBotsMap}
+}
 const SearchBotPopup = (props: Props) => {
   const conversationIDKey = props.route.params?.conversationIDKey ?? undefined
   const teamID = props.route.params?.teamID ?? undefined
   const [lastQuery, setLastQuery] = React.useState('')
-  const featuredBotsMap = Container.useSelector(state => state.chat2.featuredBotsMap)
-  const results = Container.useSelector(state => state.chat2.botSearchResults)
+  const {featuredBotsMap, botSearchResults} = Container.useSelector(getResults, shallowEqual)
   const waiting = Container.useAnyWaiting(
     Constants.waitingKeyBotSearchUsers,
     Constants.waitingKeyBotSearchFeatured
@@ -45,11 +49,7 @@ const SearchBotPopup = (props: Props) => {
       RouteTreeGen.createNavigateAppend({
         path: [
           {
-            props: {
-              botUsername: username,
-              conversationIDKey,
-              teamID,
-            },
+            props: {botUsername: username, conversationIDKey, teamID},
             selected: 'chatInstallBot',
           },
         ],
@@ -63,7 +63,7 @@ const SearchBotPopup = (props: Props) => {
 
   const botData: Array<RPCTypes.FeaturedBot | string> =
     lastQuery.length > 0
-      ? results?.get(lastQuery)?.bots.slice() ?? []
+      ? botSearchResults?.get(lastQuery)?.bots.slice() ?? []
       : Constants.getFeaturedSorted(featuredBotsMap)
   if (!botData.length && !waiting) {
     botData.push(resultEmptyPlaceholder)
@@ -86,7 +86,7 @@ const SearchBotPopup = (props: Props) => {
   }
   const userData = !lastQuery.length
     ? [userEmptyPlaceholder]
-    : results
+    : botSearchResults
         .get(lastQuery)
         ?.users.filter(u => !featuredBotsMap.get(u))
         .slice(0, 3) ?? []

@@ -9,6 +9,7 @@ import * as FsGen from '../../../actions/fs-gen'
 import Fullscreen from '.'
 import * as Container from '../../../util/container'
 import {imgMaxWidthRaw} from '../messages/attachment/image/image-render'
+import shallowEqual from 'shallowequal'
 
 const blankMessage = Constants.makeMessageAttachment({})
 
@@ -20,16 +21,34 @@ const Connected = (props: OwnProps) => {
   const [ordinal, setOrdinal] = React.useState(inOrdinal)
   const [autoPlay, setAutoPlay] = React.useState(true)
   const dispatch = Container.useDispatch()
-  const m = Container.useSelector(state => Constants.getMessage(state, conversationIDKey, ordinal))
-  const lastOrdinal = Container.useSelector(
-    state => [...(state.chat2.messageOrdinals.get(conversationIDKey) ?? [])].pop() ?? Types.numberToOrdinal(0)
-  )
+  const data = Container.useSelector(state => {
+    const m = Constants.getMessage(state, conversationIDKey, ordinal)
+    const ordinals = state.chat2.messageOrdinals.get(conversationIDKey)
+    const lastOrdinal = ordinals?.[ordinals.length - 1] ?? 0
+    const username = state.config.username
+    const currentDeviceName = state.config.deviceName ?? ''
+    const message = m?.type === 'attachment' ? m : blankMessage
+    const {previewHeight, previewWidth, title, fileURL, previewURL, downloadPath, transferProgress} = message
+    const {id} = message
+    return {
+      currentDeviceName,
+      downloadPath,
+      fileURL,
+      id,
+      lastOrdinal,
+      // TODO dont send entire message
+      message,
+      previewHeight,
+      previewURL,
+      previewWidth,
+      title,
+      transferProgress,
+      username,
+    }
+  }, shallowEqual)
+  const {currentDeviceName, downloadPath, fileURL, id, lastOrdinal} = data
+  const {message, previewHeight, previewURL, previewWidth, title, transferProgress, username} = data
   const getLastOrdinal = () => lastOrdinal
-  const username = Container.useSelector(state => state.config.username)
-  const currentDeviceName = Container.useSelector(state => state.config.deviceName ?? '')
-  const message = m?.type === 'attachment' ? m : blankMessage
-  const {previewHeight, previewWidth, title, fileURL, previewURL, downloadPath, transferProgress} = message
-  const {id} = message
   const {height: clampedHeight, width: clampedWidth} = Constants.clampImageSize(
     previewWidth,
     previewHeight,

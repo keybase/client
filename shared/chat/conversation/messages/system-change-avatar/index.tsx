@@ -7,8 +7,9 @@ import UserNotice from '../user-notice'
 type Props = {
   message: Types.MessageSystemChangeAvatar
 }
+const getUsername = (state: Container.TypedState) => state.config.username
 const SystemChangeAvatar = (props: Props) => {
-  const you = Container.useSelector(state => state.config.username)
+  const you = Container.useSelector(getUsername)
   return (
     <UserNotice>
       <Kb.Text type="BodySmall" style={styles.text}>

@@ -14,6 +14,7 @@ import {
   type EmojiData,
   RPCToEmojiData,
 } from '../../../../util/emoji'
+import shallowEqual from 'shallowequal'
 
 export const transformer = (
   emoji: EmojiData,
@@ -46,6 +47,7 @@ const ItemRenderer = (p: Common.ItemRendererProps<EmojiData>) => {
 
 // 2+ valid emoji chars and no ending colon
 const emojiPrepass = /[a-z0-9_]{2,}(?!.*:)/i
+const empty = []
 
 export const useDataSource = (conversationIDKey: Types.ConversationIDKey, filter: string) => {
   const dispatch = Container.useDispatch()
@@ -53,14 +55,15 @@ export const useDataSource = (conversationIDKey: Types.ConversationIDKey, filter
     dispatch(Chat2Gen.createFetchUserEmoji({conversationIDKey}))
   }, [dispatch, conversationIDKey])
 
-  const userEmojis = Container.useSelector(state => state.chat2.userEmojisForAutocomplete)
-  const userEmojisLoading = Container.useSelector(state =>
-    Waiting.anyWaiting(state, Constants.waitingKeyLoadingEmoji)
-  )
+  const {userEmojis, userEmojisLoading} = Container.useSelector(state => {
+    const userEmojis = state.chat2.userEmojisForAutocomplete
+    const userEmojisLoading = Waiting.anyWaiting(state, Constants.waitingKeyLoadingEmoji)
+    return {userEmojis, userEmojisLoading}
+  }, shallowEqual)
 
   if (!emojiPrepass.test(filter)) {
     return {
-      items: [],
+      items: empty,
       loading: false,
     }
   }

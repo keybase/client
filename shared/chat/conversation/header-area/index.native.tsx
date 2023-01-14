@@ -83,18 +83,19 @@ const ChannelHeader = (p: Props) => {
 const emptyArray = []
 const UsernameHeader = (p: Props) => {
   const {conversationIDKey} = p
-  const meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
-  const participantInfo = Container.useSelector(state =>
-    Constants.getParticipantInfo(state, conversationIDKey)
-  )
-  const participants = (meta.teamname ? null : participantInfo.name) || emptyArray
-  const theirFullname = Container.useSelector(state =>
-    participants?.length === 2
-      ? participants
-          .filter(username => username !== state.config.username)
-          .map(username => getFullname(state, username))[0]
-      : undefined
-  )
+  const {participants, theirFullname} = Container.useSelector(state => {
+    const meta = Constants.getMeta(state, conversationIDKey)
+    const participants =
+      (meta.teamname ? null : Constants.getParticipantInfo(state, conversationIDKey).name) || emptyArray
+    const theirFullname =
+      participants?.length === 2
+        ? participants
+            .filter(username => username !== state.config.username)
+            .map(username => getFullname(state, username))[0]
+        : undefined
+
+    return {participants, theirFullname}
+  }, shallowEqual)
   const dispatch = Container.useDispatch()
   const onShowProfile = React.useCallback(
     (username: string) => {

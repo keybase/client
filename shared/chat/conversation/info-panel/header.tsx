@@ -9,6 +9,7 @@ import InfoPanelMenu from './menu/container'
 import type * as ChatTypes from '../../../constants/types/chat2'
 import * as InfoPanelCommon from './common'
 import AddPeople from './add-people'
+import shallowEqual from 'shallowequal'
 
 type SmallProps = {conversationIDKey: ChatTypes.ConversationIDKey}
 
@@ -17,8 +18,18 @@ const gearIconSize = Styles.isMobile ? 24 : 16
 const TeamHeader = (props: SmallProps) => {
   const {conversationIDKey} = props
   const dispatch = Container.useDispatch()
-  const meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
-  const {teamname, teamID, channelname, descriptionDecorated: description, membershipType, teamType} = meta
+  const {
+    teamname,
+    teamID,
+    channelname,
+    descriptionDecorated: description,
+    membershipType,
+    teamType,
+  } = Container.useSelector(state => {
+    const meta = Constants.getMeta(state, conversationIDKey)
+    const {teamname, teamID, channelname, descriptionDecorated: description, membershipType, teamType} = meta
+    return {channelname, descriptionDecorated: description, membershipType, teamID, teamType, teamname}
+  }, shallowEqual)
   const yourOperations = Container.useSelector(state =>
     teamname ? TeamConstants.getCanPerformByID(state, teamID) : undefined
   )

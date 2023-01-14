@@ -103,6 +103,7 @@ export const useDataSource = (conversationIDKey: Types.ConversationIDKey, filter
       Constants.waitingKeyMutualTeams(conversationIDKey)
     )
 
+    // TODO this will thrash always
     return {
       items: suggestChannels.filter(ch => ch.channelname.toLowerCase().includes(fil)).sort(),
       loading: suggestChannelsLoading,

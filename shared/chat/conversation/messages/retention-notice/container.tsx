@@ -6,18 +6,22 @@ import * as TeamConstants from '../../../../constants/teams'
 import RetentionNotice from '.'
 import {getMeta} from '../../../../constants/chat2'
 import {makeRetentionNotice} from '../../../../util/teams'
+import shallowEqual from 'shallowequal'
 
 type OwnProps = {conversationIDKey: ChatTypes.ConversationIDKey}
 
 const RetentionNoticeContainer = React.memo(function RetentionNoticeContainer(p: OwnProps) {
   const {conversationIDKey} = p
 
-  const meta = Container.useSelector(state => getMeta(state, conversationIDKey))
-  const canChange = Container.useSelector(state =>
-    meta.teamType !== 'adhoc' ? TeamConstants.getCanPerformByID(state, meta.teamID).setRetentionPolicy : true
-  )
-
-  const {teamType, retentionPolicy, teamRetentionPolicy} = meta
+  const {canChange, teamType, retentionPolicy, teamRetentionPolicy} = Container.useSelector(state => {
+    const meta = getMeta(state, conversationIDKey)
+    const canChange =
+      meta.teamType !== 'adhoc'
+        ? TeamConstants.getCanPerformByID(state, meta.teamID).setRetentionPolicy
+        : true
+    const {teamType, retentionPolicy, teamRetentionPolicy} = meta
+    return {canChange, retentionPolicy, teamRetentionPolicy, teamType}
+  }, shallowEqual)
 
   const dispatch = Container.useDispatch()
   const onChange = React.useCallback(

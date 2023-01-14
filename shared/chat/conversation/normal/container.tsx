@@ -7,6 +7,7 @@ import * as Container from '../../../util/container'
 import Normal from '.'
 import type * as Types from '../../../constants/types/chat2'
 import {indefiniteArticle} from '../../../util/string'
+import shallowEqual from 'shallowequal'
 
 type Props = {conversationIDKey: Types.ConversationIDKey}
 
@@ -32,19 +33,21 @@ const NormalWrapper = React.memo(function NormalWrapper(props: Props) {
     requestScrollToBottomRef.current?.()
   }, [])
 
-  const threadLoadedOffline = Container.useSelector(
-    state => Constants.getMeta(state, conversationIDKey).offline
+  const {cannotWrite, minWriterReason, showThreadSearch, threadLoadedOffline} = Container.useSelector(
+    state => {
+      const meta = Constants.getMeta(state, conversationIDKey)
+      const {cannotWrite, offline, minWriterRole} = meta
+      const threadLoadedOffline = offline
+      const showThreadSearch = Constants.getThreadSearchInfo(state, conversationIDKey).visible
+      const minWriterReason = `You must be at least ${indefiniteArticle(
+        minWriterRole
+      )} ${minWriterRole} to post.`
+      return {cannotWrite, minWriterReason, showThreadSearch, threadLoadedOffline}
+    },
+    shallowEqual
   )
-  const cannotWrite = Container.useSelector(state => Constants.getMeta(state, conversationIDKey).cannotWrite)
-  const minWriterReason = Container.useSelector(state => {
-    const {minWriterRole} = Constants.getMeta(state, conversationIDKey)
-    return `You must be at least ${indefiniteArticle(minWriterRole)} ${minWriterRole} to post.`
-  })
-  const dragAndDropRejectReason = cannotWrite ? minWriterReason : undefined
 
-  const showThreadSearch = Container.useSelector(
-    state => Constants.getThreadSearchInfo(state, conversationIDKey).visible
-  )
+  const dragAndDropRejectReason = cannotWrite ? minWriterReason : undefined
 
   React.useEffect(() => {
     if (!Container.isMobile) {

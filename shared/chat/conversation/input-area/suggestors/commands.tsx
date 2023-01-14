@@ -7,6 +7,7 @@ import * as React from 'react'
 import * as Styles from '../../../../styles'
 import type * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import type * as Types from '../../../../constants/types/chat2'
+import shallowEqual from 'shallowequal'
 
 const getCommandPrefix = (command: RPCChatTypes.ConversationCommand) => {
   return command.username ? '!' : '/'
@@ -127,7 +128,7 @@ export const useDataSource = (p: UseDataSourceProps) => {
       c.name.includes(fil)
     )
     return data
-  })
+  }, shallowEqual)
 }
 
 type CommandType = RPCChatTypes.ConversationCommand
