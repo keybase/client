@@ -119,7 +119,7 @@ export default ClickableBox
 export const ClickableBox2 = (p: Props2) => {
   const {onClick, children, style, className} = p
   return (
-    <div onClick={onClick} style={style} className={className}>
+    <div onClick={onClick} style={style as any} className={className}>
       {children}
     </div>
   )

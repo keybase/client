@@ -29,7 +29,7 @@ export type Props = {
 
 declare class ClickableBox extends React.Component<Props> {}
 
-type Props2 = {
+export type Props2 = {
   onClick?: () => void
   children: React.ReactNode
   className?: string
