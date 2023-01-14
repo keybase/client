@@ -11,7 +11,7 @@ import SpecialTopMessage from '../messages/special-top-message'
 import sortedIndexOf from 'lodash/sortedIndexOf'
 import type * as Types from '../../../constants/types/chat2'
 import type {ItemType} from '.'
-import {Animated} from 'react-native'
+import {Animated /*, View*/} from 'react-native'
 import {ConvoIDContext} from '../messages/ids-context'
 import {FlashList, type ListRenderItemInfo} from '@shopify/flash-list'
 import {getMessageRender} from '../messages/wrapper'
@@ -217,6 +217,16 @@ const ConversationList = React.memo(function ConversationList(p: {
       const Clazz = getMessageRender(type)
       if (!Clazz) return null
       return <Clazz ordinal={ordinal} />
+      // used to debug measuring issues w/ items
+      // return (
+      //   <View
+      //     onLayout={e => {
+      //       console.log('aaa', ordinal, e.nativeEvent.layout.height)
+      //     }}
+      //   >
+      //     <Clazz ordinal={ordinal} />
+      //   </View>
+      // )
     },
     [messageOrdinals, conversationIDKey, messageTypeMap]
   )
@@ -229,18 +239,19 @@ const ConversationList = React.memo(function ConversationList(p: {
     recycleTypeRef.current.set(ordinal, type)
   }, [])
 
-  const getItemType = React.useCallback(
-    (ordinal: Types.Ordinal, idx: number) => {
-      if (!ordinal) {
-        return 'null'
-      }
-      if (messageOrdinals.length - 1 === idx) {
-        return 'sent'
-      }
-      return recycleTypeRef.current.get(ordinal) ?? messageTypeMap?.get(ordinal) ?? 'text'
-    },
-    [messageOrdinals, messageTypeMap]
-  )
+  // put this back when https://github.com/Shopify/flash-list/issues/600 is figured out
+  // const getItemType = React.useCallback(
+  //   (ordinal: Types.Ordinal, idx: number) => {
+  //     if (!ordinal) {
+  //       return 'null'
+  //     }
+  //     if (messageOrdinals.length - 1 === idx) {
+  //       return 'sent'
+  //     }
+  //     return recycleTypeRef.current.get(ordinal) ?? messageTypeMap?.get(ordinal) ?? 'text'
+  //   },
+  //   [messageOrdinals, messageTypeMap]
+  // )
 
   const {scrollToCentered, scrollToBottom, onEndReached} = useScrolling({
     centeredOrdinal,
@@ -277,7 +288,7 @@ const ConversationList = React.memo(function ConversationList(p: {
               overScrollMode="never"
               contentContainerStyle={styles.contentContainer}
               data={messageOrdinals}
-              getItemType={getItemType}
+              getItemType={undefined /*getItemType*/}
               inverted={true}
               renderItem={renderItem}
               maintainVisibleContentPosition={maintainVisibleContentPosition}
