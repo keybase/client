@@ -445,19 +445,6 @@ export const isAssertion = (username: string) => username.includes('@')
 const numMessagesOnInitialLoad = isMobile ? 20 : 100
 const numMessagesOnScrollback = isMobile ? 100 : 100
 
-export const flipPhaseToString = (phase: number) => {
-  switch (phase) {
-    case RPCChatTypes.UICoinFlipPhase.commitment:
-      return 'commitments'
-    case RPCChatTypes.UICoinFlipPhase.reveals:
-      return 'secrets'
-    case RPCChatTypes.UICoinFlipPhase.complete:
-      return 'complete'
-    default:
-      return 'loading'
-  }
-}
-
 export const clampImageSize = (width: number, height: number, maxSize: number) =>
   height > width
     ? {

@@ -4,7 +4,7 @@ import * as React from 'react'
 import * as Styles from '../../../../styles'
 import {ConvoIDContext} from '../ids-context'
 import type * as Types from '../../../../constants/types/chat2'
-import type CoinFlipType from './coinflip/container'
+import type CoinFlipType from './coinflip'
 import type UnfurlListType from './unfurl/unfurl-list/container'
 import type UnfurlPromptListType from './unfurl/prompt-list/container'
 import shallowEqual from 'shallowequal'
@@ -85,7 +85,7 @@ const WrapperTextBottom = function WrapperTextBottom(p: Props) {
 
   const coinflip = (() => {
     if (hasCoinFlip) {
-      const CoinFlip = require('./coinflip/container').default as typeof CoinFlipType
+      const CoinFlip = require('./coinflip').default as typeof CoinFlipType
       return <CoinFlip key="CoinFlip" />
     }
     return null

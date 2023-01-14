@@ -6,21 +6,22 @@ import type * as RPCChatTypes from '../../../../../constants/types/rpc-chat-gen'
 export type Props = {
   attachTo?: () => React.Component<any> | null
   onHidden: () => void
-  participants: Array<RPCChatTypes.UICoinFlipParticipant>
+  participants?: Array<RPCChatTypes.UICoinFlipParticipant>
   visible: boolean
 }
 
 const items: Kb.MenuItems = []
 
 const CoinFlipParticipants = (props: Props) => {
+  const {attachTo, onHidden, participants, visible} = props
   const header = (
     <Kb.Box2 direction="vertical" fullWidth={true}>
       <Kb.Box2 direction="vertical" centerChildren={true} style={styles.container}>
-        <Kb.Text type="BodySmall">{props.participants.length} participants</Kb.Text>
+        <Kb.Text type="BodySmall">{participants?.length ?? 0} participants</Kb.Text>
       </Kb.Box2>
       <Kb.Divider />
       <Kb.ScrollView style={styles.partContainer}>
-        {props.participants.map(p => (
+        {participants?.map(p => (
           <Kb.NameWithIcon
             colorBroken={true}
             colorFollowing={true}
@@ -30,7 +31,7 @@ const CoinFlipParticipants = (props: Props) => {
             metaOne={p.deviceName}
             containerStyle={styles.participants}
           />
-        ))}
+        )) ?? null}
       </Kb.ScrollView>
       <Kb.Divider />
       <Kb.Box2 direction="vertical" style={styles.container} centerChildren={true}>
@@ -43,12 +44,12 @@ const CoinFlipParticipants = (props: Props) => {
 
   return (
     <Kb.FloatingMenu
-      attachTo={props.attachTo}
+      attachTo={attachTo}
       closeOnSelect={true}
       header={header}
       items={items}
-      onHidden={props.onHidden}
-      visible={props.visible}
+      onHidden={onHidden}
+      visible={visible}
     />
   )
 }
