@@ -4,6 +4,7 @@ import * as Constants from '../../../../constants/chat2'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import type * as Types from '../../../../constants/types/chat2'
+import shallowEqual from 'shallowequal'
 
 export type WalletsIconProps = {
   conversationIDKey: Types.ConversationIDKey
@@ -12,10 +13,11 @@ export type WalletsIconProps = {
 }
 const WalletsIcon = (props: WalletsIconProps) => {
   const {size, style, conversationIDKey} = props
-  const you = Container.useSelector(state => state.config.username)
-  const participantInfo = Container.useSelector(state =>
-    Constants.getParticipantInfo(state, conversationIDKey)
-  )
+  const {participantInfo, you} = Container.useSelector(state => {
+    const you = state.config.username
+    const participantInfo = Constants.getParticipantInfo(state, conversationIDKey)
+    return {participantInfo, you}
+  }, shallowEqual)
   const otherParticipants = participantInfo.name.filter(u => u !== you)
   const to = otherParticipants[0]
   const dispatch = Container.useDispatch()

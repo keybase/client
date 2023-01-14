@@ -156,6 +156,7 @@ const useDataUsers = (conversationIDKey: Types.ConversationIDKey) => {
       const fullName = teamType === 'small' ? 'Everyone in this team' : 'Everyone in this channel'
       suggestions.push({fullName, username: 'channel'}, {fullName, username: 'here'})
     }
+    // TODO this will thrash on every store change, TODO fix
     return suggestions
   })
 }

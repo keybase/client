@@ -17,6 +17,7 @@ import {FlashList, type ListRenderItemInfo} from '@shopify/flash-list'
 import {getMessageRender} from '../messages/wrapper'
 import {mobileTypingContainerHeight} from '../input-area/normal/typing'
 import {SetRecycleTypeContext} from '../recycle-type-context'
+import shallowEqual from 'shallowequal'
 
 // Bookkeep whats animating so it finishes and isn't replaced, if we've animated it we keep the key and use null
 const animatingMap = new Map<string, null | React.ReactElement>()
@@ -67,17 +68,16 @@ type SentProps = {
   ordinal: Types.Ordinal
 }
 const Sent_ = ({conversationIDKey, ordinal}: SentProps) => {
-  const you = Container.useSelector(state => state.config.username)
-  const youSent = Container.useSelector(state => {
+  const {type, youSent} = Container.useSelector(state => {
+    const you = state.config.username
     const message = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
-    return message && message.author === you && message.ordinal !== message.id
-  })
+    const youSent = message && message.author === you && message.ordinal !== message.id
+    const type = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)?.type
+    return {type, youSent}
+  }, shallowEqual)
   const key = `${conversationIDKey}:${ordinal}`
   const state = animatingMap.get(key)
 
-  const type = Container.useSelector(
-    state => state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)?.type
-  )
   if (!type) return null
 
   // if its animating always show it
@@ -181,18 +181,16 @@ const ConversationList = React.memo(function ConversationList(p: {
   conversationIDKey: Types.ConversationIDKey
 }) {
   const {conversationIDKey} = p
-  const centeredOrdinal = Container.useSelector(
-    state => Constants.getMessageCenterOrdinal(state, conversationIDKey)?.ordinal ?? -1
-  )
-  const _messageOrdinals = Container.useSelector(state =>
-    Constants.getMessageOrdinals(state, conversationIDKey)
-  )
+  const {centeredOrdinal, _messageOrdinals, messageTypeMap} = Container.useSelector(state => {
+    const centeredOrdinal = Constants.getMessageCenterOrdinal(state, conversationIDKey)?.ordinal ?? -1
+    const _messageOrdinals = Constants.getMessageOrdinals(state, conversationIDKey)
+    const messageTypeMap = state.chat2.messageTypeMap.get(conversationIDKey)
+    return {centeredOrdinal, _messageOrdinals, messageTypeMap}
+  }, shallowEqual)
 
   const messageOrdinals = React.useMemo(() => {
     return [..._messageOrdinals].reverse()
   }, [_messageOrdinals])
-
-  const messageTypeMap = Container.useSelector(state => state.chat2.messageTypeMap.get(conversationIDKey))
 
   const listRef = React.useRef<FlashList<ItemType> | null>(null)
   const {markInitiallyLoadedThreadAsRead} = Hooks.useActions({conversationIDKey})

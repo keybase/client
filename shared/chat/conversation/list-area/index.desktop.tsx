@@ -532,16 +532,15 @@ const useItems = (p: {
 const ThreadWrapper = React.memo(function ThreadWrapper(p: Props) {
   const {conversationIDKey, onFocusInput} = p
   const {requestScrollDownRef, requestScrollToBottomRef, requestScrollUpRef} = p
-  const messageOrdinals = Container.useSelector(state =>
-    Constants.getMessageOrdinals(state, conversationIDKey)
-  )
-  const messageTypeMap = Container.useSelector(state => state.chat2.messageTypeMap.get(conversationIDKey))
-
-  const centeredOrdinal = Container.useSelector(
-    state => Constants.getMessageCenterOrdinal(state, conversationIDKey)?.ordinal
-  )
-  const containsLatestMessage = Container.useSelector(
-    state => state.chat2.containsLatestMessageMap.get(conversationIDKey) || false
+  const {centeredOrdinal, containsLatestMessage, messageTypeMap, messageOrdinals} = Container.useSelector(
+    state => {
+      const messageOrdinals = Constants.getMessageOrdinals(state, conversationIDKey)
+      const messageTypeMap = state.chat2.messageTypeMap.get(conversationIDKey)
+      const centeredOrdinal = Constants.getMessageCenterOrdinal(state, conversationIDKey)?.ordinal
+      const containsLatestMessage = state.chat2.containsLatestMessageMap.get(conversationIDKey) || false
+      return {centeredOrdinal, containsLatestMessage, messageTypeMap, messageOrdinals}
+    },
+    shallowEqual
   )
   const dispatch = Container.useDispatch()
   const copyToClipboard = React.useCallback(
