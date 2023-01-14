@@ -28,7 +28,7 @@ const TeamHeader = (props: SmallProps) => {
   } = Container.useSelector(state => {
     const meta = Constants.getMeta(state, conversationIDKey)
     const {teamname, teamID, channelname, descriptionDecorated: description, membershipType, teamType} = meta
-    return {teamname, teamID, channelname, descriptionDecorated: description, membershipType, teamType}
+    return {channelname, descriptionDecorated: description, membershipType, teamID, teamType, teamname}
   }, shallowEqual)
   const yourOperations = Container.useSelector(state =>
     teamname ? TeamConstants.getCanPerformByID(state, teamID) : undefined

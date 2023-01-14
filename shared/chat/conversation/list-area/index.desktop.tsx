@@ -538,7 +538,7 @@ const ThreadWrapper = React.memo(function ThreadWrapper(p: Props) {
       const messageTypeMap = state.chat2.messageTypeMap.get(conversationIDKey)
       const centeredOrdinal = Constants.getMessageCenterOrdinal(state, conversationIDKey)?.ordinal
       const containsLatestMessage = state.chat2.containsLatestMessageMap.get(conversationIDKey) || false
-      return {centeredOrdinal, containsLatestMessage, messageTypeMap, messageOrdinals}
+      return {centeredOrdinal, containsLatestMessage, messageOrdinals, messageTypeMap}
     },
     shallowEqual
   )

@@ -185,7 +185,7 @@ const ConversationList = React.memo(function ConversationList(p: {
     const centeredOrdinal = Constants.getMessageCenterOrdinal(state, conversationIDKey)?.ordinal ?? -1
     const _messageOrdinals = Constants.getMessageOrdinals(state, conversationIDKey)
     const messageTypeMap = state.chat2.messageTypeMap.get(conversationIDKey)
-    return {centeredOrdinal, _messageOrdinals, messageTypeMap}
+    return {_messageOrdinals, centeredOrdinal, messageTypeMap}
   }, shallowEqual)
 
   const messageOrdinals = React.useMemo(() => {

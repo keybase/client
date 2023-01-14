@@ -85,10 +85,8 @@ const UsernameHeader = (p: Props) => {
   const {conversationIDKey} = p
   const {participants, theirFullname} = Container.useSelector(state => {
     const meta = Constants.getMeta(state, conversationIDKey)
-    const participantInfo = Container.useSelector(state =>
-      Constants.getParticipantInfo(state, conversationIDKey)
-    )
-    const participants = (meta.teamname ? null : participantInfo.name) || emptyArray
+    const participants =
+      (meta.teamname ? null : Constants.getParticipantInfo(state, conversationIDKey).name) || emptyArray
     const theirFullname =
       participants?.length === 2
         ? participants
