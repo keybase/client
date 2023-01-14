@@ -8,7 +8,7 @@ import * as Styles from '../../../styles'
 import Separator from '../messages/separator'
 import SpecialBottomMessage from '../messages/special-bottom-message'
 import SpecialTopMessage from '../messages/special-top-message'
-import sortedIndexOf from 'lodash/sortedIndexOf'
+// import sortedIndexOf from 'lodash/sortedIndexOf'
 import type * as Types from '../../../constants/types/chat2'
 import type {ItemType} from '.'
 import {Animated} from 'react-native'
@@ -114,14 +114,13 @@ const maintainVisibleContentPosition = {
 
 const useScrolling = (p: {
   centeredOrdinal: Types.Ordinal
-  messageOrdinals: Array<Types.Ordinal>
+  oldestOrdinal: Types.Ordinal
   conversationIDKey: Types.ConversationIDKey
   listRef: React.MutableRefObject<FlashList<ItemType> | null>
 }) => {
-  const {listRef, centeredOrdinal, messageOrdinals, conversationIDKey} = p
+  const {listRef, centeredOrdinal, oldestOrdinal, conversationIDKey} = p
   const dispatch = Container.useDispatch()
   const lastLoadOrdinal = React.useRef<Types.Ordinal>(-1)
-  const oldestOrdinal = messageOrdinals[messageOrdinals.length - 1] ?? -1
   const loadOlderMessages = React.useCallback(() => {
     // already loaded and nothing has changed
     if (lastLoadOrdinal.current === oldestOrdinal) {
@@ -130,14 +129,6 @@ const useScrolling = (p: {
     lastLoadOrdinal.current = oldestOrdinal
     dispatch(Chat2Gen.createLoadOlderMessagesDueToScroll({conversationIDKey}))
   }, [dispatch, conversationIDKey, oldestOrdinal])
-
-  const getOrdinalIndex = React.useCallback(
-    (target: Types.Ordinal) => {
-      const idx = sortedIndexOf(messageOrdinals, target)
-      return idx === -1 ? -1 : messageOrdinals.length - idx
-    },
-    [messageOrdinals]
-  )
 
   const scrollToBottom = React.useCallback(() => {
     listRef.current?.scrollToOffset({animated: false, offset: 0})
@@ -159,12 +150,8 @@ const useScrolling = (p: {
     }
 
     lastScrollToCentered.current = centeredOrdinal
-    const _index = centeredOrdinal === -1 ? -1 : getOrdinalIndex(centeredOrdinal)
-    if (_index >= 0) {
-      const index = _index + 1 // include the top item
-      list.scrollToIndex({animated: false, index, viewPosition: 0.5})
-    }
-  }, [listRef, centeredOrdinal, getOrdinalIndex])
+    list.scrollToItem({animated: false, item: centeredOrdinal, viewPosition: 0.5})
+  }, [listRef, centeredOrdinal])
 
   const onEndReached = React.useCallback(() => {
     loadOlderMessages()
@@ -246,7 +233,7 @@ const ConversationList = React.memo(function ConversationList(p: {
     centeredOrdinal,
     conversationIDKey,
     listRef,
-    messageOrdinals,
+    oldestOrdinal: messageOrdinals[messageOrdinals.length - 1] ?? -1,
   })
 
   const jumpToRecent = Hooks.useJumpToRecent(conversationIDKey, scrollToBottom, messageOrdinals.length)
@@ -262,6 +249,10 @@ const ConversationList = React.memo(function ConversationList(p: {
     }
   }, [markInitiallyLoadedThreadAsRead])
 
+  const estimatedListSize = React.useMemo(() => {
+    return {height: Styles.dimensionHeight, width: Styles.dimensionWidth}
+  }, [])
+
   return (
     <Kb.ErrorBoundary>
       <ConvoIDContext.Provider value={conversationIDKey}>
@@ -269,6 +260,7 @@ const ConversationList = React.memo(function ConversationList(p: {
           <Kb.Box style={styles.container}>
             <FlashList
               removeClippedSubviews={Styles.isAndroid}
+              estimatedListSize={estimatedListSize}
               drawDistance={100}
               estimatedItemSize={100}
               ListHeaderComponent={SpecialBottomMessage}
