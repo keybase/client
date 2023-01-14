@@ -88,18 +88,15 @@ const useHintText = (p: {
 const Input = (p: Props) => {
   const {conversationIDKey, maxInputArea, jumpToRecent, focusInputCounter} = p
   const {onRequestScrollDown, onRequestScrollUp, onRequestScrollToBottom} = p
-  const replyTo = Container.useSelector(
-    state => Constants.getReplyToMessageID(state, conversationIDKey) ?? undefined
-  )
-  const showCommandMarkdown = Container.useSelector(
-    state => (state.chat2.commandMarkdownMap.get(conversationIDKey) || '') !== ''
-  )
-  const showCommandStatus = Container.useSelector(
-    state => !!state.chat2.commandStatusMap.get(conversationIDKey)
-  )
-  const showGiphySearch = Container.useSelector(
-    state => state.chat2.giphyWindowMap.get(conversationIDKey) || false
-  )
+
+  const {replyTo, showCommandMarkdown, showCommandStatus, showGiphySearch} = Container.useSelector(state => {
+    const replyTo = Constants.getReplyToMessageID(state, conversationIDKey) ?? undefined
+    const showCommandMarkdown = (state.chat2.commandMarkdownMap.get(conversationIDKey) || '') !== ''
+    const showCommandStatus = !!state.chat2.commandStatusMap.get(conversationIDKey)
+    const showGiphySearch = state.chat2.giphyWindowMap.get(conversationIDKey) || false
+    return {replyTo, showCommandMarkdown, showCommandStatus, showGiphySearch}
+  }, shallowEqual)
+
   return (
     <Kb.Box2 style={styles.container} direction="vertical" fullWidth={true}>
       {!!replyTo && <ReplyPreview conversationIDKey={conversationIDKey} />}
@@ -137,12 +134,13 @@ const useUnsentText = (
   React.useEffect(() => {
     considerDraftRef.current = true
   }, [conversationIDKey])
-  const draft = Container.useSelector(state =>
-    considerDraftRef.current ? Constants.getDraft(state, conversationIDKey) : undefined
-  )
+  const {draft, storeUnsentText} = Container.useSelector(state => {
+    const draft = considerDraftRef.current ? Constants.getDraft(state, conversationIDKey) : undefined
+    // we use the hiddenstring since external actions can try and affect the input state (especially clearing it) and that can fail if it doesn't change
+    const storeUnsentText = state.chat2.unsentTextMap.get(conversationIDKey)
+    return {draft, storeUnsentText}
+  }, shallowEqual)
   const prevDraft = Container.usePrevious(draft)
-  // we use the hiddenstring since external actions can try and affect the input state (especially clearing it) and that can fail if it doesn't change
-  const storeUnsentText = Container.useSelector(state => state.chat2.unsentTextMap.get(conversationIDKey))
   const prevStoreUnsentText = Container.usePrevious(storeUnsentText)
 
   let unsentText: string | undefined = undefined
@@ -306,11 +304,14 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
   const {conversationIDKey, focusInputCounter, showCommandMarkdown, onRequestScrollToBottom} = p
   const {onRequestScrollDown, onRequestScrollUp, showGiphySearch, replyTo, jumpToRecent, maxInputArea} = p
   const dispatch = Container.useDispatch()
-  const editOrdinal = Container.useSelector(state => state.chat2.editingMap.get(conversationIDKey))
+  const {editOrdinal, isEditExploded} = Container.useSelector(state => {
+    const editOrdinal = state.chat2.editingMap.get(conversationIDKey)
+    const isEditExploded = editOrdinal
+      ? Constants.getMessage(state, conversationIDKey, editOrdinal)?.exploded ?? false
+      : false
+    return {editOrdinal, isEditExploded}
+  }, shallowEqual)
   const isEditing = !!editOrdinal
-  const isEditExploded = Container.useSelector(state =>
-    editOrdinal ? Constants.getMessage(state, conversationIDKey, editOrdinal)?.exploded ?? false : false
-  )
   const {onSubmit} = useSubmit({
     conversationIDKey,
     editOrdinal,
@@ -376,7 +377,32 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
     }
   }, [unsentText, setTextInput])
 
-  const isActiveForFocus = Container.useSelector(state => state.chat2.focus === null)
+  const data = Container.useSelector(state => {
+    const isActiveForFocus = state.chat2.focus === null
+    const showTypingStatus =
+      Constants.getTyping(state, conversationIDKey).size !== 0 && !showGiphySearch && !showCommandMarkdown
+    const showWalletsIcon = Constants.shouldShowWalletsIcon(state, conversationIDKey)
+    const explodingModeSeconds = Constants.getConversationExplodingMode(state, conversationIDKey)
+    const cannotWrite = Constants.getMeta(state, conversationIDKey).cannotWrite
+    const minWriterRole = Constants.getMeta(state, conversationIDKey).minWriterRole
+    const infoPanelShowing = state.chat2.infoPanelShowing
+    const suggestBotCommandsUpdateStatus =
+      state.chat2.botCommandsUpdateStatusMap.get(conversationIDKey) ||
+      RPCChatTypes.UIBotCommandsUpdateStatusTyp.blank
+    return {
+      cannotWrite,
+      explodingModeSeconds,
+      infoPanelShowing,
+      isActiveForFocus,
+      minWriterRole,
+      showTypingStatus,
+      showWalletsIcon,
+      suggestBotCommandsUpdateStatus,
+    }
+  }, shallowEqual)
+  const {cannotWrite, explodingModeSeconds, infoPanelShowing, isActiveForFocus} = data
+  const {minWriterRole, showTypingStatus, showWalletsIcon, suggestBotCommandsUpdateStatus} = data
+
   Container.useDepChangeEffect(() => {
     inputRef.current?.focus()
   }, [inputRef, focusInputCounter, isActiveForFocus, isEditing])
@@ -392,28 +418,8 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
     }
   }, [isEditing, isEditExploded, onCancelEditing])
 
-  const showTypingStatus = Container.useSelector(
-    state =>
-      Constants.getTyping(state, conversationIDKey).size !== 0 && !showGiphySearch && !showCommandMarkdown
-  )
-  const showWalletsIcon = Container.useSelector(state =>
-    Constants.shouldShowWalletsIcon(state, conversationIDKey)
-  )
-  const explodingModeSeconds = Container.useSelector(state =>
-    Constants.getConversationExplodingMode(state, conversationIDKey)
-  )
   const isExploding = explodingModeSeconds !== 0
-  const cannotWrite = Container.useSelector(state => Constants.getMeta(state, conversationIDKey).cannotWrite)
-  const minWriterRole = Container.useSelector(
-    state => Constants.getMeta(state, conversationIDKey).minWriterRole
-  )
   const hintText = useHintText({cannotWrite, conversationIDKey, isEditing, isExploding, minWriterRole})
-  const infoPanelShowing = Container.useSelector(state => state.chat2.infoPanelShowing)
-  const suggestBotCommandsUpdateStatus = Container.useSelector(
-    state =>
-      state.chat2.botCommandsUpdateStatusMap.get(conversationIDKey) ||
-      RPCChatTypes.UIBotCommandsUpdateStatusTyp.blank
-  )
 
   return (
     <PlatformInput
