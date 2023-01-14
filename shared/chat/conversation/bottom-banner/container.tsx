@@ -7,6 +7,7 @@ import * as Kb from '../../../common-adapters'
 import {InviteBanner} from '.'
 import openSMS from '../../../util/sms'
 import {showShareActionSheet} from '../../../actions/platform-specific'
+import shallowEqual from 'shallowequal'
 
 const installMessage = `I sent you encrypted messages on Keybase. You can install it here: https://keybase.io/phone-app`
 
@@ -59,7 +60,7 @@ const Broken = (p: {conversationIDKey: Types.ConversationIDKey}) => {
     const {infoMap} = state.users
     const participantInfoAll = Constants.getParticipantInfo(state, conversationIDKey).all
     return participantInfoAll.filter(p => following.has(p) && infoMap.get(p)?.broken)
-  })
+  }, shallowEqual)
   return <Kb.ProofBrokenBanner users={users} />
 }
 

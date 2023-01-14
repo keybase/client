@@ -10,20 +10,20 @@ import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import LocationMap from '../../../location-map'
 import HiddenString from '../../../../util/hidden-string'
 import {watchPositionForMap} from '../../../../actions/platform-specific'
+import shallowEqual from 'shallowequal'
 
 type Props = Container.RouteProps<'chatLocationPreview'>
 
 const LocationPopup = (props: Props) => {
   const conversationIDKey = props.route.params?.conversationIDKey ?? Constants.noConversationIDKey
-  const httpSrvAddress = Container.useSelector(state => state.config.httpSrvAddress)
-  const httpSrvToken = Container.useSelector(state => state.config.httpSrvToken)
-  const location = Container.useSelector(state => state.chat2.lastCoord)
-  const locationDenied = Container.useSelector(
-    state =>
+  const {httpSrvAddress, httpSrvToken, location, locationDenied, username} = Container.useSelector(state => {
+    const {httpSrvAddress, httpSrvToken, username} = state.config
+    const location = state.chat2.lastCoord
+    const locationDenied =
       state.chat2.commandStatusMap.get(conversationIDKey)?.displayType ===
       RPCChatTypes.UICommandStatusDisplayTyp.error
-  )
-  const username = Container.useSelector(state => state.config.username)
+    return {httpSrvAddress, httpSrvToken, location, locationDenied, username}
+  }, shallowEqual)
   const [mapLoaded, setMapLoaded] = React.useState(false)
   const dispatch = Container.useDispatch()
   const onClose = () => {

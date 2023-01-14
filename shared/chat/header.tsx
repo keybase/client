@@ -110,8 +110,6 @@ const Header = (props: Props) => {
   // if there is no description (and is not a 1-on-1), don't render the description box
   const renderDescription = description || (fullName && withoutSelf && withoutSelf.length === 1)
 
-  const infoPanelOpen = Container.useSelector(state => state.chat2.infoPanelShowing)
-
   // trim() call makes sure that string is not just whitespace
   if (withoutSelf && withoutSelf.length === 1 && desc.trim()) {
     description = (
@@ -223,7 +221,7 @@ const Header = (props: Props) => {
             </Kb.WithTooltip>
             <Kb.WithTooltip tooltip="Chat info & settings">
               <Kb.Icon
-                color={infoPanelOpen ? Styles.globalColors.blue : undefined}
+                color={infoPanelShowing ? Styles.globalColors.blue : undefined}
                 style={styles.clickable}
                 type="iconfont-info"
                 onClick={onToggleInfoPanel}

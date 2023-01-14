@@ -332,6 +332,8 @@ const SideButtons = (p: SideButtonsProps) => {
   )
 }
 
+const getYou = (state: Container.TypedState) => state.config.username
+
 const PlatformInput = React.memo(function PlatformInput(p: Props) {
   const {cannotWrite, conversationIDKey, explodingModeSeconds, onCancelEditing} = p
   const {showWalletsIcon, hintText, inputSetRef, isEditing, onSubmit} = p
@@ -369,7 +371,7 @@ const PlatformInput = React.memo(function PlatformInput(p: Props) {
     inputRef.current?.focus()
   }, [inputRef])
   const dispatch = Container.useDispatch()
-  const you = Container.useSelector(state => state.config.username)
+  const you = Container.useSelector(getYou)
   const onEditLastMessage = React.useCallback(() => {
     dispatch(
       Chat2Gen.createMessageSetEditing({

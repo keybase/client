@@ -6,6 +6,7 @@ import * as WalletsGen from '../../../../actions/wallets-gen'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import type * as Types from '../../../../constants/types/chat2'
 import HiddenString from '../../../../util/hidden-string'
+import shallowEqual from 'shallowequal'
 
 type Props = {
   conversationIDKey: Types.ConversationIDKey
@@ -15,11 +16,12 @@ type Props = {
 
 const MoreMenuPopup = (props: Props) => {
   const {conversationIDKey, onHidden, visible} = props
-  const participantInfo = Container.useSelector(state =>
-    Constants.getParticipantInfo(state, conversationIDKey)
-  )
-  const wallet = Container.useSelector(state => Constants.shouldShowWalletsIcon(state, conversationIDKey))
-  const you = Container.useSelector(state => state.config.username)
+  const {participantInfo, wallet, you} = Container.useSelector(state => {
+    const participantInfo = Constants.getParticipantInfo(state, conversationIDKey)
+    const wallet = Constants.shouldShowWalletsIcon(state, conversationIDKey)
+    const you = state.config.username
+    return {participantInfo, wallet, you}
+  }, shallowEqual)
   const dispatch = Container.useDispatch()
   const onLumens = (to: string, isRequest: boolean) => {
     dispatch(WalletsGen.createOpenSendRequestForm({isRequest, recipientType: 'keybaseUser', to}))
