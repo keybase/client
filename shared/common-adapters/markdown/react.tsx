@@ -26,6 +26,7 @@ const markdownStyles = Styles.styleSheetCreate(
         isMobile: {
           fontSize: 32,
           lineHeight: undefined,
+          minHeight: 40,
         },
       } as const),
       boldStyle: Styles.platformStyles({
@@ -401,7 +402,16 @@ const bigEmojiOutput: SimpleMarkdown.Output<any> = SimpleMarkdown.outputFor(
         node: SimpleMarkdown.SingleASTNode,
         output: SimpleMarkdown.ReactOutput,
         state: SimpleMarkdown.State
-      ) => output(node.content, {...state, inParagraph: true}),
+      ) => (
+        <Text
+          type="Body"
+          key={state.key}
+          style={markdownStyles.bigTextBlockStyle}
+          allowFontScaling={state.allowFontScaling}
+        >
+          {output(node.content, {...state, inParagraph: true})}
+        </Text>
+      ),
     },
   },
   'react'
