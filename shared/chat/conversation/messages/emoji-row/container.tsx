@@ -15,17 +15,20 @@ type OwnProps = {
   tooltipPosition?: Position
 }
 
+const getEmojis = (state: Container.TypedState) => state.chat2.userReacjis.topReacjis.slice(0, 5)
 const EmojiRowContainer = React.memo(function EmojiRowContainer(p: OwnProps) {
   const {className, onShowingEmojiPicker, style, tooltipPosition} = p
   const conversationIDKey = React.useContext(ConvoIDContext)
   const ordinal = React.useContext(OrdinalContext)
 
-  const hasUnfurls = Container.useSelector(
-    state => (Constants.getMessage(state, conversationIDKey, ordinal)?.unfurls?.size ?? 0) > 0
-  )
-  const type = Container.useSelector(state => Constants.getMessage(state, conversationIDKey, ordinal)?.type)
-  const emojis = Container.useSelector(state => state.chat2.userReacjis.topReacjis.slice(0, 5), shallowEqual)
+  const {hasUnfurls, type} = Container.useSelector(state => {
+    const m = Constants.getMessage(state, conversationIDKey, ordinal)
+    const hasUnfurls = (m?.unfurls?.size ?? 0) > 0
+    const type = m?.type
+    return {hasUnfurls, type}
+  }, shallowEqual)
 
+  const emojis = Container.useSelector(getEmojis, shallowEqual)
   const dispatch = Container.useDispatch()
 
   const onForward = React.useCallback(() => {

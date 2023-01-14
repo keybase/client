@@ -4,6 +4,7 @@ import type * as Types from '../../../constants/types/chat2'
 import Normal from './normal'
 import Preview from './preview/container'
 import ThreadSearch from '../search/container'
+import shallowEqual from 'shallowequal'
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
@@ -18,12 +19,17 @@ type OwnProps = {
 const InputAreaContainer = (p: OwnProps) => {
   const {conversationIDKey, focusInputCounter, jumpToRecent, maxInputArea} = p
   const {onRequestScrollUp, onRequestScrollDown, onRequestScrollToBottom} = p
-  const meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
-  const showThreadSearch = Container.useSelector(
-    state => Constants.getThreadSearchInfo(state, conversationIDKey).visible
+  const {membershipType, resetParticipants, showThreadSearch, wasFinalizedBy} = Container.useSelector(
+    state => {
+      const meta = Constants.getMeta(state, conversationIDKey)
+      const {membershipType, resetParticipants, wasFinalizedBy} = meta
+      const showThreadSearch = Constants.getThreadSearchInfo(state, conversationIDKey).visible
+      return {membershipType, resetParticipants, showThreadSearch, wasFinalizedBy}
+    },
+    shallowEqual
   )
 
-  let noInput = meta.resetParticipants.size > 0 || !!meta.wasFinalizedBy
+  let noInput = resetParticipants.size > 0 || !!wasFinalizedBy
   if (
     conversationIDKey === Constants.pendingWaitingConversationIDKey ||
     conversationIDKey === Constants.pendingErrorConversationIDKey
@@ -31,7 +37,7 @@ const InputAreaContainer = (p: OwnProps) => {
     noInput = true
   }
 
-  const isPreview = meta.membershipType === 'youArePreviewing'
+  const isPreview = membershipType === 'youArePreviewing'
 
   if (noInput) {
     return null

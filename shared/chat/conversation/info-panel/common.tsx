@@ -6,6 +6,7 @@ import type * as ChatTypes from '../../../constants/types/chat2'
 import type * as TeamTypes from '../../../constants/types/teams'
 import * as Container from '../../../util/container'
 import * as TeamsGen from '../../../actions/teams-gen'
+import shallowEqual from 'shallowequal'
 
 export const infoPanelWidthElectron = 320
 export const infoPanelWidthPhone = imgMaxWidthRaw()
@@ -40,14 +41,14 @@ export const useTeamHumans = (teamID: TeamTypes.TeamID) => {
 }
 
 export const useHumans = (conversationIDKey: ChatTypes.ConversationIDKey) => {
-  const conversationMeta = Container.useSelector(state => ChatConstants.getMeta(state, conversationIDKey))
-  const participantInfo = Container.useSelector(state =>
-    ChatConstants.getParticipantInfo(state, conversationIDKey)
-  )
-  const {bots, teamHumanCount} = useTeamHumans(conversationMeta.teamID)
+  const {participantInfo, teamType, teamID} = Container.useSelector(state => {
+    const meta = ChatConstants.getMeta(state, conversationIDKey)
+    const {teamType, teamID} = meta
+    const participantInfo = ChatConstants.getParticipantInfo(state, conversationIDKey)
+    return {participantInfo, teamID, teamType}
+  }, shallowEqual)
+  const {bots, teamHumanCount} = useTeamHumans(teamID)
   const channelHumans =
-    conversationMeta.teamType === 'adhoc'
-      ? participantInfo.name
-      : participantInfo.all.filter(username => !bots.has(username))
+    teamType === 'adhoc' ? participantInfo.name : participantInfo.all.filter(username => !bots.has(username))
   return {channelHumans, teamHumanCount}
 }
