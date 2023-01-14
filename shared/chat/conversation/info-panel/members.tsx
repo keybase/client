@@ -8,6 +8,7 @@ import * as ProfileGen from '../../../actions/profile-gen'
 import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 import Participant from './participant'
 import * as Styles from '../../../styles'
+import shallowEqual from 'shallowequal'
 
 type Props = {
   conversationIDKey: Types.ConversationIDKey
@@ -21,10 +22,13 @@ const spinnerItem = 'spinner item'
 const MembersTab = (props: Props) => {
   const {conversationIDKey} = props
   const dispatch = Container.useDispatch()
-  const meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
-  const {teamID, channelname, teamname} = meta
-  const teamMembers = Container.useSelector(state => state.teams.teamIDToMembers.get(teamID)) ?? new Map()
-  const infoMap = Container.useSelector(state => state.users.infoMap)
+  const {channelname, infoMap, teamMembers, teamname} = Container.useSelector(state => {
+    const meta = Constants.getMeta(state, conversationIDKey)
+    const {teamID, channelname, teamname} = meta
+    const teamMembers = state.teams.teamIDToMembers.get(teamID)
+    const infoMap = state.users.infoMap
+    return {channelname, infoMap, teamMembers, teamname}
+  }, shallowEqual)
   const isGeneral = channelname === 'general'
   const showAuditingBanner = isGeneral && !teamMembers
   const refreshParticipants = Container.useRPC(RPCChatTypes.localRefreshParticipantsRpcPromise)
@@ -48,8 +52,10 @@ const MembersTab = (props: Props) => {
   const participantsItems = participants
     .map(p => ({
       fullname: (infoMap.get(p) || {fullname: ''}).fullname || participantInfo.contactName.get(p) || '',
-      isAdmin: teamname ? TeamConstants.userIsRoleInTeamWithInfo(teamMembers, p, 'admin') : false,
-      isOwner: teamname ? TeamConstants.userIsRoleInTeamWithInfo(teamMembers, p, 'owner') : false,
+      isAdmin:
+        teamname && teamMembers ? TeamConstants.userIsRoleInTeamWithInfo(teamMembers, p, 'admin') : false,
+      isOwner:
+        teamname && teamMembers ? TeamConstants.userIsRoleInTeamWithInfo(teamMembers, p, 'owner') : false,
       key: `user-${p}`,
       username: p,
     }))

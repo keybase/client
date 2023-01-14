@@ -7,34 +7,40 @@ import * as Chat2Gen from '../actions/chat2-gen'
 import * as Styles from '../styles'
 import * as Container from '../util/container'
 import ChatInboxHeader from './inbox/header/container'
+import shallowEqual from 'shallowequal'
 
 type Props = Container.RouteProps<'chatRoot'>
 
 const Header = (props: Props) => {
   const conversationIDKey = props.route.params?.conversationIDKey ?? Constants.noConversationIDKey
-  const teamType = Container.useSelector(state => Constants.getMeta(state, conversationIDKey).teamType)
-  const channelname = Container.useSelector(state => Constants.getMeta(state, conversationIDKey).channelname)
-  const teamname = Container.useSelector(state => Constants.getMeta(state, conversationIDKey).teamname)
-  const isMuted = Container.useSelector(state => Constants.getMeta(state, conversationIDKey).isMuted)
-  const descriptionDecorated = Container.useSelector(
-    state => Constants.getMeta(state, conversationIDKey).descriptionDecorated
-  )
-  const participantInfo = Container.useSelector(state =>
-    Constants.getParticipantInfo(state, conversationIDKey)
-  )
-  const username = Container.useSelector(state => state.config.username)
-  const infoPanelShowing = Container.useSelector(state => state.chat2.infoPanelShowing)
+  const data = Container.useSelector(state => {
+    const meta = Constants.getMeta(state, conversationIDKey)
+    const {channelname, descriptionDecorated, isMuted, teamType, teamname} = meta
+    const participantInfo = Constants.getParticipantInfo(state, conversationIDKey)
+    const username = state.config.username
+    const infoPanelShowing = state.chat2.infoPanelShowing
+    const canEditDesc = TeamConstants.getCanPerform(state, teamname).editChannelDescription
+    return {
+      canEditDesc,
+      channelname,
+      descriptionDecorated,
+      infoPanelShowing,
+      isMuted,
+      participantInfo,
+      teamType,
+      teamname,
+      username,
+    }
+  }, shallowEqual)
 
+  const {canEditDesc, channelname, descriptionDecorated, infoPanelShowing, isMuted} = data
+  const {participantInfo, teamType, teamname, username} = data
   const otherParticipants = Constants.getRowParticipants(participantInfo, username)
   const first: string = teamType === 'adhoc' && otherParticipants.length === 1 ? otherParticipants[0] : ''
   const otherInfo = Container.useSelector(state => state.users.infoMap.get(first))
   // If it's a one-on-one chat, use the user's fullname as the description
   const desc = (otherInfo?.bio && otherInfo.bio.replace(/(\r\n|\n|\r)/gm, ' ')) || descriptionDecorated
   const fullName = otherInfo?.fullname
-
-  const canEditDesc = Container.useSelector(
-    state => TeamConstants.getCanPerform(state, teamname).editChannelDescription
-  )
 
   const dispatch = Container.useDispatch()
   const onOpenFolder = React.useCallback(() => {
