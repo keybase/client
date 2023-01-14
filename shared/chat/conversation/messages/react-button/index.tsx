@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {Box2, ClickableBox, Icon, Text, Markdown} from '../../../../common-adapters'
+import {Box2, ClickableBox2, Icon, Text, Markdown} from '../../../../common-adapters'
 import type {Props as ClickableBoxProps} from '../../../../common-adapters/clickable-box'
 import * as Styles from '../../../../styles'
 import DelayInterval from './delay-interval'
@@ -31,7 +31,7 @@ if (!Styles.isMobile) {
   })
 }
 
-const ButtonBox = Styles.styled(ClickableBox, {
+const ButtonBox = Styles.styled(ClickableBox2, {
   shouldForwardProp: prop => prop !== 'noEffect' && prop !== 'border',
 })((props: ClickableBoxProps & {border: boolean; noEffect: boolean}) =>
   Styles.isMobile || props.noEffect

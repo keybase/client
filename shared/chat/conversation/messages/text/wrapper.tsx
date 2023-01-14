@@ -76,7 +76,16 @@ const WrapperText = React.memo(function WrapperText(p: Props) {
   }, shallowEqual)
 
   const setRecycleType = React.useContext(SetRecycleTypeContext)
-  setRecycleType(ordinal, hasReactions ? 'text:reactions' : 'text')
+  let subType = ''
+  if (reply) {
+    subType += ':reply'
+  }
+  if (hasReactions) {
+    subType += ':reactions'
+  }
+  if (subType) {
+    setRecycleType(ordinal, subType)
+  }
 
   const style = React.useMemo(
     () => getStyle(type, isEditing, showCenteredHighlight),
