@@ -7,6 +7,7 @@ import {useClaim} from './claim'
 import {useReply} from './reply'
 import {useBottom} from './bottom'
 import {ConvoIDContext, OrdinalContext} from '../ids-context'
+import {SetRecycleTypeContext} from '../../recycle-type-context'
 import {WrapperMessage, useCommon, type Props} from '../wrapper/wrapper'
 import {sharedStyles} from '../shared-styles'
 import shallowEqual from 'shallowequal'
@@ -64,14 +65,27 @@ const WrapperText = React.memo(function WrapperText(p: Props) {
   const reply = useReply(ordinal, showCenteredHighlight)
   const claim = useClaim(ordinal)
 
-  const {isEditing, type} = Container.useSelector(state => {
+  const {isEditing, type, hasReactions} = Container.useSelector(state => {
     const editInfo = Constants.getEditInfo(state, conversationIDKey)
     const isEditing = !!(editInfo && editInfo.ordinal === ordinal)
     const m = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
     const errorReason = m?.errorReason
     const type = errorReason ? ('error' as const) : !m?.submitState ? ('sent' as const) : ('pending' as const)
-    return {isEditing, type}
+    const hasReactions = (m?.reactions?.size ?? 0) > 0
+    return {hasReactions, isEditing, type}
   }, shallowEqual)
+
+  const setRecycleType = React.useContext(SetRecycleTypeContext)
+  let subType = ''
+  if (reply) {
+    subType += ':reply'
+  }
+  if (hasReactions) {
+    subType += ':reactions'
+  }
+  if (subType) {
+    setRecycleType(ordinal, subType)
+  }
 
   const style = React.useMemo(
     () => getStyle(type, isEditing, showCenteredHighlight),

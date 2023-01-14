@@ -1,7 +1,7 @@
 import * as React from 'react'
 import {collapseStyles, globalStyles, desktopStyles} from '../styles'
 
-import type {Props as _Props} from './clickable-box'
+import type {Props as _Props, Props2} from './clickable-box'
 import type {_StylesCrossPlatform} from '../styles/css'
 
 type Props = _Props & {children: React.ReactNode}
@@ -115,3 +115,12 @@ const _containerStyle = {
 }
 
 export default ClickableBox
+
+export const ClickableBox2 = (p: Props2) => {
+  const {onClick, children, style, className} = p
+  return (
+    <div onClick={onClick} style={style as any} className={className}>
+      {children}
+    </div>
+  )
+}

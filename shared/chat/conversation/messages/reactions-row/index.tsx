@@ -29,7 +29,7 @@ const getOrderedReactions = (reactions?: Types.Reactions) => {
   return [...reactions.keys()].sort((a, b) => scoreMap.get(a)! - scoreMap.get(b)!)
 }
 
-const ReactionsRow = React.memo(function ReactonsRowContainer() {
+const ReactionsRowContainer = React.memo(function ReactonsRowContainer() {
   const conversationIDKey = React.useContext(ConvoIDContext)
   const ordinal = React.useContext(OrdinalContext)
   const reactions = Container.useSelector(state => {
@@ -104,7 +104,7 @@ const RowItem = React.memo(function RowItem(p: IProps) {
       <ReactButton
         className={btnClassName}
         emoji={emoji}
-        onLongPress={Styles.isMobile ? () => setShowingPopup(true) : undefined}
+        onLongPress={Styles.isMobile ? showPopup : undefined}
         style={styles.button}
       />
       {popup}
@@ -135,4 +135,4 @@ const styles = Styles.styleSheetCreate(
     } as const)
 )
 
-export default ReactionsRow
+export default ReactionsRowContainer
