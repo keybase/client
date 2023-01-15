@@ -11,7 +11,7 @@ import SpecialTopMessage from '../messages/special-top-message'
 import sortedIndexOf from 'lodash/sortedIndexOf'
 import type * as Types from '../../../constants/types/chat2'
 import type {ItemType} from '.'
-import {Animated /*, View*/} from 'react-native'
+import {Animated, FlatList /*, View*/} from 'react-native'
 import {ConvoIDContext} from '../messages/ids-context'
 import {FlashList, type ListRenderItemInfo} from '@shopify/flash-list'
 import {getMessageRender} from '../messages/wrapper'
@@ -177,7 +177,7 @@ const useScrolling = (p: {
   }
 }
 
-const GLOBALREDC = new Map()
+// const GLOBALREDC = new Map()
 
 const ConversationList = React.memo(function ConversationList(p: {
   conversationIDKey: Types.ConversationIDKey
@@ -236,20 +236,20 @@ const ConversationList = React.memo(function ConversationList(p: {
     [messageOrdinals, conversationIDKey, messageTypeMap]
   )
 
-  // const recycleTypeRef = React.useRef(new Map<Types.Ordinal, string>())
-  // React.useEffect(() => {
-  //   recycleTypeRef.current = new Map()
-  // }, [conversationIDKey])
-  // const setRecycleType = React.useCallback((ordinal: Types.Ordinal, type: string) => {
-  //   recycleTypeRef.current.set(ordinal, type)
-  // }, [])
+  const recycleTypeRef = React.useRef(new Map<Types.Ordinal, string>())
+  React.useEffect(() => {
+    recycleTypeRef.current = new Map()
+  }, [conversationIDKey])
   const setRecycleType = React.useCallback((ordinal: Types.Ordinal, type: string) => {
-    let sub = GLOBALREDC.get(conversationIDKey)
-    if (!sub) {
-      sub = GLOBALREDC.set(conversationIDKey, new Map())
-    }
-    sub.set(ordinal, type)
+    recycleTypeRef.current.set(ordinal, type)
   }, [])
+  // const setRecycleType = React.useCallback((ordinal: Types.Ordinal, type: string) => {
+  //   let sub = GLOBALREDC.get(conversationIDKey)
+  //   if (!sub) {
+  //     sub = GLOBALREDC.set(conversationIDKey, new Map())
+  //   }
+  //   sub.set(ordinal, type)
+  // }, [])
 
   const getItemType = React.useCallback(
     (ordinal: Types.Ordinal, _idx: number) => {
@@ -261,8 +261,8 @@ const ConversationList = React.memo(function ConversationList(p: {
       //   return 'sent'
       // }
       // console.log('aaa recycletype', recycleTypeRef.current)
-      // return recycleTypeRef.current.get(ordinal) ?? messageTypeMap?.get(ordinal) ?? 'text'
-      return /*GLOBALREDC.get(conversationIDKey)?.get(ordinal) ??*/ messageTypeMap?.get(ordinal) ?? 'text'
+      return /*recycleTypeRef.current.get(ordinal) ?? */ messageTypeMap?.get(ordinal) ?? 'text'
+      // return GLOBALREDC.get(conversationIDKey)?.get(ordinal) ?? messageTypeMap?.get(ordinal) ?? 'text'
     },
     [/*messageOrdinals, */ messageTypeMap, conversationIDKey]
   )

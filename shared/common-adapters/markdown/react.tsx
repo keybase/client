@@ -25,8 +25,7 @@ const markdownStyles = Styles.styleSheetCreate(
         },
         isMobile: {
           fontSize: 32,
-          lineHeight: undefined,
-          minHeight: 40,
+          lineHeight: 39.5, // matches undefined
         },
       } as const),
       boldStyle: Styles.platformStyles({
