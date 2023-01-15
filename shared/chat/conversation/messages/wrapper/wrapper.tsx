@@ -74,7 +74,7 @@ export const useCommon = (ordinal: Types.Ordinal) => {
     ) : null
   )
 
-  return {popup, popupAnchor, showCenteredHighlight, showingPopup, toggleShowingPopup}
+  return {popup, popupAnchor, showCenteredHighlight, showingPopup, toggleShowingPopup, type}
 }
 
 type WMProps = {
@@ -459,6 +459,7 @@ export const WrapperMessage = React.memo(function WrapperMessage(p: WMProps) {
   // passed in context so stable
   const conversationIDKeyRef = React.useRef(conversationIDKey)
   const ordinalRef = React.useRef(ordinal)
+
   React.useEffect(() => {
     conversationIDKeyRef.current = conversationIDKey
     ordinalRef.current = ordinal
