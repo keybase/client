@@ -687,6 +687,7 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     logger.info(
       `messagesAdd: running in context: ${context.type} messages: ${messages.length} deleted: ${deletedMessages.length}`
     )
+    console.log('aaa deleted', deletedMessages)
     // we want the clear applied when we call findExisting
     const messageOrdinals = new Map(draftState.messageOrdinals)
     const oldPendingOutboxToOrdinal = new Map(draftState.pendingOutboxToOrdinal)

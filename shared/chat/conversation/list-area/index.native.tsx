@@ -177,6 +177,8 @@ const useScrolling = (p: {
   }
 }
 
+const GLOBALREDC = new Map()
+
 const ConversationList = React.memo(function ConversationList(p: {
   conversationIDKey: Types.ConversationIDKey
 }) {
@@ -192,15 +194,18 @@ const ConversationList = React.memo(function ConversationList(p: {
     return [..._messageOrdinals].reverse()
   }, [_messageOrdinals])
 
+  // TEMP don't ever mutate the list, see if that fixes it
+  // const TEMPRef = React.useRef(messageOrdinalsTEMP)
+  // if (!TEMPRef.current.length && messageOrdinalsTEMP.length) {
+  //   TEMPRef.current = messageOrdinalsTEMP
+  // }
+  // const messageOrdinals = TEMPRef.current
+
   const listRef = React.useRef<FlashList<ItemType> | null>(null)
   const {markInitiallyLoadedThreadAsRead} = Hooks.useActions({conversationIDKey})
-  const keyExtractor = React.useCallback(
-    (_item: ItemType, index: number) => {
-      const ordinal = messageOrdinals[index]
-      return String(ordinal)
-    },
-    [messageOrdinals]
-  )
+  const keyExtractor = React.useCallback((ordinal: ItemType) => {
+    return String(ordinal)
+  }, [])
   const renderItem = React.useCallback(
     (info: ListRenderItemInfo<ItemType> | null | undefined) => {
       const index = info?.index ?? 0
@@ -231,27 +236,36 @@ const ConversationList = React.memo(function ConversationList(p: {
     [messageOrdinals, conversationIDKey, messageTypeMap]
   )
 
-  const recycleTypeRef = React.useRef(new Map<Types.Ordinal, string>())
-  React.useEffect(() => {
-    recycleTypeRef.current = new Map()
-  }, [conversationIDKey])
+  // const recycleTypeRef = React.useRef(new Map<Types.Ordinal, string>())
+  // React.useEffect(() => {
+  //   recycleTypeRef.current = new Map()
+  // }, [conversationIDKey])
+  // const setRecycleType = React.useCallback((ordinal: Types.Ordinal, type: string) => {
+  //   recycleTypeRef.current.set(ordinal, type)
+  // }, [])
   const setRecycleType = React.useCallback((ordinal: Types.Ordinal, type: string) => {
-    recycleTypeRef.current.set(ordinal, type)
+    let sub = GLOBALREDC.get(conversationIDKey)
+    if (!sub) {
+      sub = GLOBALREDC.set(conversationIDKey, new Map())
+    }
+    sub.set(ordinal, type)
   }, [])
 
-  // put this back when https://github.com/Shopify/flash-list/issues/600 is figured out
-  // const getItemType = React.useCallback(
-  //   (ordinal: Types.Ordinal, idx: number) => {
-  //     if (!ordinal) {
-  //       return 'null'
-  //     }
-  //     if (messageOrdinals.length - 1 === idx) {
-  //       return 'sent'
-  //     }
-  //     return recycleTypeRef.current.get(ordinal) ?? messageTypeMap?.get(ordinal) ?? 'text'
-  //   },
-  //   [messageOrdinals, messageTypeMap]
-  // )
+  const getItemType = React.useCallback(
+    (ordinal: Types.Ordinal, _idx: number) => {
+      if (!ordinal) {
+        return 'null'
+      }
+      // this messing it up? no, but keep off for now
+      // if (messageOrdinals.length - 1 === idx) {
+      //   return 'sent'
+      // }
+      // console.log('aaa recycletype', recycleTypeRef.current)
+      // return recycleTypeRef.current.get(ordinal) ?? messageTypeMap?.get(ordinal) ?? 'text'
+      return /*GLOBALREDC.get(conversationIDKey)?.get(ordinal) ??*/ messageTypeMap?.get(ordinal) ?? 'text'
+    },
+    [/*messageOrdinals, */ messageTypeMap, conversationIDKey]
+  )
 
   const {scrollToCentered, scrollToBottom, onEndReached} = useScrolling({
     centeredOrdinal,
@@ -272,6 +286,7 @@ const ConversationList = React.memo(function ConversationList(p: {
       markInitiallyLoadedThreadAsRead()
     }
   }, [markInitiallyLoadedThreadAsRead])
+  // console.log('aaa render', messageOrdinals)
 
   return (
     <Kb.ErrorBoundary>
@@ -288,7 +303,7 @@ const ConversationList = React.memo(function ConversationList(p: {
               overScrollMode="never"
               contentContainerStyle={styles.contentContainer}
               data={messageOrdinals}
-              getItemType={undefined /*getItemType*/}
+              getItemType={getItemType}
               inverted={true}
               renderItem={renderItem}
               maintainVisibleContentPosition={maintainVisibleContentPosition}
