@@ -59,20 +59,24 @@ const WrapperText = React.memo(function WrapperText(p: Props) {
   const conversationIDKey = React.useContext(ConvoIDContext)
   const {ordinal} = p
   const common = useCommon(ordinal)
-  const {showCenteredHighlight, toggleShowingPopup} = common
+  const {showCenteredHighlight, toggleShowingPopup, type} = common
 
   const bottomChildren = useBottom(ordinal, showCenteredHighlight, toggleShowingPopup)
   const reply = useReply(ordinal, showCenteredHighlight)
   const claim = useClaim(ordinal)
 
-  const {isEditing, type, hasReactions} = Container.useSelector(state => {
+  const {isEditing, textType, hasReactions} = Container.useSelector(state => {
     const editInfo = Constants.getEditInfo(state, conversationIDKey)
     const isEditing = !!(editInfo && editInfo.ordinal === ordinal)
     const m = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
     const errorReason = m?.errorReason
-    const type = errorReason ? ('error' as const) : !m?.submitState ? ('sent' as const) : ('pending' as const)
+    const textType = errorReason
+      ? ('error' as const)
+      : !m?.submitState
+      ? ('sent' as const)
+      : ('pending' as const)
     const hasReactions = (m?.reactions?.size ?? 0) > 0
-    return {hasReactions, isEditing, type}
+    return {hasReactions, isEditing, textType}
   }, shallowEqual)
 
   const setRecycleType = React.useContext(SetRecycleTypeContext)
@@ -83,13 +87,13 @@ const WrapperText = React.memo(function WrapperText(p: Props) {
   if (hasReactions) {
     subType += ':reactions'
   }
-  if (subType) {
-    setRecycleType(ordinal, subType)
+  if (subType.length) {
+    setRecycleType(ordinal, 'text' + subType)
   }
 
   const style = React.useMemo(
-    () => getStyle(type, isEditing, showCenteredHighlight),
-    [type, isEditing, showCenteredHighlight]
+    () => getStyle(textType, isEditing, showCenteredHighlight),
+    [textType, isEditing, showCenteredHighlight]
   )
 
   const children = React.useMemo(() => {
@@ -101,6 +105,12 @@ const WrapperText = React.memo(function WrapperText(p: Props) {
       </>
     )
   }, [reply, claim, style])
+
+  // due to recycling, we can have items that aren't connected to the list that might have live connectors
+  // so when we load more etc the entire messagMap could no longer have your item
+  if (type !== 'text') {
+    return null
+  }
 
   return (
     <WrapperMessage {...p} {...common} bottomChildren={bottomChildren}>
