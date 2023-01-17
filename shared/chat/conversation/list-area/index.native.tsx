@@ -280,7 +280,7 @@ const ConversationList = React.memo(function ConversationList(p: {
             <FlashList
               removeClippedSubviews={Styles.isAndroid}
               drawDistance={100}
-              estimatedItemSize={300}
+              estimatedItemSize={100}
               ListHeaderComponent={SpecialBottomMessage}
               ListFooterComponent={SpecialTopMessage}
               ItemSeparatorComponent={Separator}
