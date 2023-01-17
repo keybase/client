@@ -120,6 +120,22 @@ export type RootState = _TypedState
 export const useDispatch = () => RRuseDispatch<RRDispatch<_TypedActions>>()
 export {useSelector}
 
+type Fn<ARGS extends any[], R> = (...args: ARGS) => R
+
+// a hacky version of https://github.com/reactjs/rfcs/blob/useevent/text/0000-useevent.md until its really added
+export const useEvent = <Arr extends any[], R>(fn: Fn<Arr, R>): Fn<Arr, R> => {
+  const ref = React.useRef<Fn<Arr, R>>(fn)
+  React.useLayoutEffect(() => {
+    ref.current = fn
+  })
+  return React.useMemo(
+    () =>
+      (...args: Arr): R =>
+        ref.current(...args),
+    []
+  )
+}
+
 // BEGIN debugging connect
 // import isEqual from 'lodash/isEqual'
 // const debugMergeProps = __DEV__
