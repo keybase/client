@@ -24,7 +24,6 @@ type Props = {
 }
 
 const UnfurlMap = (props: Props) => {
-  // dispatch
   const dispatch = Container.useDispatch()
   const onViewMap = !Styles.isMobile
     ? props.toggleMessagePopup
@@ -48,7 +47,6 @@ const UnfurlMap = (props: Props) => {
         )
       }
 
-  // render
   return (
     <Kb.Box2 direction="vertical">
       <UnfurlImage
@@ -84,16 +82,16 @@ type AgeProps = {
 }
 
 const UpdateAge = (props: AgeProps) => {
-  const [timerCounter, setTimerCounter] = React.useState(0)
+  const {time} = props
+  const [duration, setDuration] = React.useState(Date.now() - time)
   React.useEffect(() => {
     const timer = setInterval(() => {
-      setTimerCounter(timerCounter + 1)
+      setDuration(Date.now() - time)
     }, 60000)
     return () => {
       clearInterval(timer)
     }
-  }, [timerCounter])
-  const duration = Date.now() - props.time
+  }, [time])
   let durationText = ''
   if (duration < 60000) {
     durationText = 'updated just now'
@@ -111,17 +109,17 @@ type DurationProps = {
 }
 
 const LiveDuration = (props: DurationProps) => {
-  const [timerCounter, setTimerCounter] = React.useState(0)
+  const {liveLocationEndTime} = props
+  const [duration, setDuration] = React.useState(liveLocationEndTime - Date.now())
   React.useEffect(() => {
     const timer = setInterval(() => {
-      setTimerCounter(timerCounter + 1)
+      setDuration(liveLocationEndTime - Date.now())
     }, 1000)
     return () => {
       clearInterval(timer)
     }
-  }, [timerCounter])
+  }, [liveLocationEndTime])
 
-  const duration = props.liveLocationEndTime - Date.now()
   return (
     <Kb.Text type="BodyTinySemibold">
       {props.isLiveLocationDone || duration <= 0 ? '(finished)' : formatDurationForLocation(duration)}
