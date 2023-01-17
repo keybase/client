@@ -177,8 +177,6 @@ const useScrolling = (p: {
   }
 }
 
-// const GLOBALREDC = new Map()
-
 const ConversationList = React.memo(function ConversationList(p: {
   conversationIDKey: Types.ConversationIDKey
 }) {

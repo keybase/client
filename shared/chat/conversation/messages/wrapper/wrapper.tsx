@@ -460,20 +460,6 @@ export const WrapperMessage = React.memo(function WrapperMessage(p: WMProps) {
   const conversationIDKeyRef = React.useRef(conversationIDKey)
   const ordinalRef = React.useRef(ordinal)
 
-  // const TEMP = React.useRef(0)
-  // React.useEffect(() => {
-  //   const ttype = global.DEBUGStore?.store
-  //     ?.getState()
-  //     .chat2.messageMap.get(conversationIDKey)
-  //     ?.get(TEMP.current)?.type
-  //   const otype = global.DEBUGStore?.store
-  //     ?.getState()
-  //     .chat2.messageMap.get(conversationIDKey)
-  //     ?.get(ordinal)?.type
-  //   console.log('aaa Wrapper ordinal recycle', TEMP.current, ttype, ordinal, otype)
-  //   TEMP.current = ordinal
-  // }, [ordinal])
-
   React.useEffect(() => {
     conversationIDKeyRef.current = conversationIDKey
     ordinalRef.current = ordinal
