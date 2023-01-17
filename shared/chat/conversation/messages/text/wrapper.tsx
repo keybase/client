@@ -91,21 +91,22 @@ const WrapperText = React.memo(function WrapperText(p: Props) {
     setRecycleType(ordinal, 'text' + subType)
   }
 
-  const TEMP = React.useRef(0)
-  const TEMPTYPE = React.useRef('')
-  React.useEffect(() => {
-    const oldtype = TEMPTYPE.current
-    if (TEMP.current) {
-      console.log(
-        'aaa textwrapperrecycle',
-        TEMP.current,
-        ordinal,
-        subType === oldtype ? `SAME ${subType}` : `${subType} != ${oldtype} <<<<<<<<<<<<<<<<<`
-      )
-    }
-    TEMP.current = ordinal
-    TEMPTYPE.current = subType
-  }, [ordinal, subType])
+  // Uncomment to test effective recycling
+  // const DEBUGOldOrdinalRef = React.useRef(0)
+  // const DEBUGOldTypeRef = React.useRef('')
+  // React.useEffect(() => {
+  //   const oldtype = DEBUGOldTypeRef.current
+  //   if (DEBUGOldOrdinalRef.current) {
+  //     console.log(
+  //       'debug textwrapperRecycle',
+  //       DEBUGOldOrdinalRef.current,
+  //       ordinal,
+  //       subType === oldtype ? `SAME ${subType}` : `${subType} != ${oldtype} <<<<<<<<<<<<<<<<<`
+  //     )
+  //   }
+  //   DEBUGOldOrdinalRef.current = ordinal
+  //   DEBUGOldTypeRef.current = subType
+  // }, [ordinal, subType])
 
   const style = React.useMemo(
     () => getStyle(textType, isEditing, showCenteredHighlight),

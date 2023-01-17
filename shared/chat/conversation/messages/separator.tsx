@@ -255,6 +255,7 @@ const SeparatorConnector = (p: Props) => {
   const previous = leadingItem
   const conversationIDKey = React.useContext(ConvoIDContext)
   const {showUsername, orangeLineAbove} = useReduxFast(conversationIDKey, ordinal, previous)
+
   return ordinal && (showUsername || orangeLineAbove) ? (
     <Separator
       conversationIDKey={conversationIDKey}

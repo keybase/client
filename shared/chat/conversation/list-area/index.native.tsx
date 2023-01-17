@@ -11,7 +11,7 @@ import SpecialTopMessage from '../messages/special-top-message'
 import sortedIndexOf from 'lodash/sortedIndexOf'
 import type * as Types from '../../../constants/types/chat2'
 import type {ItemType} from '.'
-import {Animated, FlatList /*, View*/} from 'react-native'
+import {Animated} from 'react-native'
 import {ConvoIDContext} from '../messages/ids-context'
 import {FlashList, type ListRenderItemInfo} from '@shopify/flash-list'
 import {getMessageRender} from '../messages/wrapper'
@@ -64,10 +64,10 @@ const AnimatedChild = React.memo(function AnimatedChild({children, animatingKey}
 
 type SentProps = {
   children?: React.ReactElement
-  conversationIDKey: Types.ConversationIDKey
   ordinal: Types.Ordinal
 }
-const Sent_ = ({conversationIDKey, ordinal}: SentProps) => {
+const Sent_ = ({ordinal}: SentProps) => {
+  const conversationIDKey = React.useContext(ConvoIDContext)
   const {type, youSent} = Container.useSelector(state => {
     const you = state.config.username
     const message = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
@@ -194,13 +194,6 @@ const ConversationList = React.memo(function ConversationList(p: {
     return [..._messageOrdinals].reverse()
   }, [_messageOrdinals])
 
-  // TEMP don't ever mutate the list, see if that fixes it
-  // const TEMPRef = React.useRef(messageOrdinalsTEMP)
-  // if (!TEMPRef.current.length && messageOrdinalsTEMP.length) {
-  //   TEMPRef.current = messageOrdinalsTEMP
-  // }
-  // const messageOrdinals = TEMPRef.current
-
   const listRef = React.useRef<FlashList<ItemType> | null>(null)
   const {markInitiallyLoadedThreadAsRead} = Hooks.useActions({conversationIDKey})
   const keyExtractor = React.useCallback((ordinal: ItemType) => {
@@ -214,7 +207,7 @@ const ConversationList = React.memo(function ConversationList(p: {
         return null
       }
       if (!index) {
-        return <Sent ordinal={ordinal} conversationIDKey={conversationIDKey} />
+        return <Sent ordinal={ordinal} />
       }
 
       const type = messageTypeMap?.get(ordinal) ?? 'text'
@@ -222,18 +215,18 @@ const ConversationList = React.memo(function ConversationList(p: {
       const Clazz = getMessageRender(type)
       if (!Clazz) return null
       return <Clazz ordinal={ordinal} />
-      // used to debug measuring issues w/ items
+      // uncomment to debug measuring issues w/ items
       // return (
       //   <View
       //     onLayout={e => {
-      //       console.log('aaa', ordinal, e.nativeEvent.layout.height)
+      //       console.log('debug', ordinal, e.nativeEvent.layout.height)
       //     }}
       //   >
       //     <Clazz ordinal={ordinal} />
       //   </View>
       // )
     },
-    [messageOrdinals, conversationIDKey, messageTypeMap]
+    [messageOrdinals, messageTypeMap]
   )
 
   const recycleTypeRef = React.useRef(new Map<Types.Ordinal, string>())
@@ -243,28 +236,20 @@ const ConversationList = React.memo(function ConversationList(p: {
   const setRecycleType = React.useCallback((ordinal: Types.Ordinal, type: string) => {
     recycleTypeRef.current.set(ordinal, type)
   }, [])
-  // const setRecycleType = React.useCallback((ordinal: Types.Ordinal, type: string) => {
-  //   let sub = GLOBALREDC.get(conversationIDKey)
-  //   if (!sub) {
-  //     sub = GLOBALREDC.set(conversationIDKey, new Map())
-  //   }
-  //   sub.set(ordinal, type)
-  // }, [])
+
+  const numOrdinals = messageOrdinals.length
 
   const getItemType = React.useCallback(
-    (ordinal: Types.Ordinal, _idx: number) => {
+    (ordinal: Types.Ordinal, idx: number) => {
       if (!ordinal) {
         return 'null'
       }
-      // this messing it up? no, but keep off for now
-      // if (messageOrdinals.length - 1 === idx) {
-      //   return 'sent'
-      // }
-      // console.log('aaa recycletype', recycleTypeRef.current)
-      return /*recycleTypeRef.current.get(ordinal) ?? */ messageTypeMap?.get(ordinal) ?? 'text'
-      // return GLOBALREDC.get(conversationIDKey)?.get(ordinal) ?? messageTypeMap?.get(ordinal) ?? 'text'
+      if (numOrdinals - 1 === idx) {
+        return 'sent'
+      }
+      return recycleTypeRef.current.get(ordinal) ?? messageTypeMap?.get(ordinal) ?? 'text'
     },
-    [/*messageOrdinals, */ messageTypeMap, conversationIDKey]
+    [numOrdinals, messageTypeMap]
   )
 
   const {scrollToCentered, scrollToBottom, onEndReached} = useScrolling({
@@ -286,7 +271,6 @@ const ConversationList = React.memo(function ConversationList(p: {
       markInitiallyLoadedThreadAsRead()
     }
   }, [markInitiallyLoadedThreadAsRead])
-  // console.log('aaa render', messageOrdinals)
 
   return (
     <Kb.ErrorBoundary>
@@ -296,7 +280,7 @@ const ConversationList = React.memo(function ConversationList(p: {
             <FlashList
               removeClippedSubviews={Styles.isAndroid}
               drawDistance={100}
-              estimatedItemSize={100}
+              estimatedItemSize={300}
               ListHeaderComponent={SpecialBottomMessage}
               ListFooterComponent={SpecialTopMessage}
               ItemSeparatorComponent={Separator}
