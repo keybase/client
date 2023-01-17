@@ -82,18 +82,11 @@ type RS = {
   showImage: boolean
   showEdited: boolean
   isDeleted: boolean
+  onClick: () => void
 }
 
 const ReplyStructure = React.memo(function ReplyStructure(p: RS) {
-  const {isParentHighlighted, showImage, showEdited, isDeleted} = p
-
-  const dispatch = Container.useDispatch()
-  const getIds = React.useContext(GetIdsContext)
-  const onClick = React.useCallback(() => {
-    const {conversationIDKey, ordinal} = getIds()
-    // used to be id but now ordinal, should be ok most of the time but if this fails its cause of that
-    ordinal && dispatch(Chat2Gen.createReplyJump({conversationIDKey, messageID: ordinal}))
-  }, [dispatch, getIds])
+  const {isParentHighlighted, showImage, showEdited, isDeleted, onClick} = p
 
   return (
     <Kb.ClickableBox2 onClick={onClick}>
@@ -147,6 +140,14 @@ const Reply = React.memo(function Repy(p: {isParentHighlighted: boolean}) {
   const isDeleted = replyTo.exploded || replyTo.type === 'deleted'
   const showImage = !!replyTo.previewURL
 
+  const dispatch = Container.useDispatch()
+  const getIds = React.useContext(GetIdsContext)
+  const onClick = Container.useEvent(() => {
+    const {conversationIDKey} = getIds()
+    const id = replyTo.id
+    id && dispatch(Chat2Gen.createReplyJump({conversationIDKey, messageID: id}))
+  })
+
   return (
     <ReplyToContext.Provider value={replyTo}>
       <ReplyStructure
@@ -154,6 +155,7 @@ const Reply = React.memo(function Repy(p: {isParentHighlighted: boolean}) {
         isDeleted={isDeleted}
         showImage={showImage}
         showEdited={showEdited}
+        onClick={onClick}
       />
     </ReplyToContext.Provider>
   )
