@@ -134,12 +134,6 @@ const Reply = React.memo(function Repy(p: {isParentHighlighted: boolean}) {
     return m?.replyTo ?? emptyMessage
   })
 
-  if (!replyTo.id) return null
-
-  const showEdited = !!replyTo.hasBeenEdited
-  const isDeleted = replyTo.exploded || replyTo.type === 'deleted'
-  const showImage = !!replyTo.previewURL
-
   const dispatch = Container.useDispatch()
   const getIds = React.useContext(GetIdsContext)
   const onClick = Container.useEvent(() => {
@@ -147,6 +141,12 @@ const Reply = React.memo(function Repy(p: {isParentHighlighted: boolean}) {
     const id = replyTo.id
     id && dispatch(Chat2Gen.createReplyJump({conversationIDKey, messageID: id}))
   })
+
+  if (!replyTo.id) return null
+
+  const showEdited = !!replyTo.hasBeenEdited
+  const isDeleted = replyTo.exploded || replyTo.type === 'deleted'
+  const showImage = !!replyTo.previewURL
 
   return (
     <ReplyToContext.Provider value={replyTo}>
