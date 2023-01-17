@@ -149,11 +149,12 @@ const SpecialTopMessage = React.memo(function SpecialTopMessage() {
   const [allowDigging, setAllowDigging] = React.useState(false)
 
   React.useEffect(() => {
+    setAllowDigging(false)
     const id = setTimeout(() => {
       setAllowDigging(true)
-    }, 1000)
+    }, 3000)
     return () => clearTimeout(id)
-  }, [])
+  }, [ordinal])
 
   // could not expose this and just return an enum for the is*convos
   const participantInfoAll = Container.useSelector(
