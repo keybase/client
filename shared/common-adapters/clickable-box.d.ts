@@ -30,6 +30,8 @@ export type Props = {
 declare class ClickableBox extends React.Component<Props> {}
 
 export type Props2 = {
+  // mobile only
+  onLongPress?: () => void
   onClick?: () => void
   children: React.ReactNode
   className?: string

@@ -11,8 +11,6 @@ import shallowEqual from 'shallowequal'
 export type OwnProps = {
   className?: string
   emoji?: string
-  onMouseLeave?: (evt: React.SyntheticEvent) => void
-  onMouseOver?: (evt: React.SyntheticEvent) => void
   getAttachmentRef?: () => React.Component<any> | null
   onLongPress?: () => void
   onShowPicker?: (showing: boolean) => void
@@ -23,7 +21,7 @@ export type OwnProps = {
 const ReactButtonContainer = React.memo(function ReactButtonContainer(p: OwnProps) {
   const conversationIDKey = React.useContext(ConvoIDContext)
   const ordinal = React.useContext(OrdinalContext)
-  const {emoji, className, onMouseOver, onMouseLeave} = p
+  const {emoji, className} = p
   const {getAttachmentRef, onLongPress, onShowPicker, showBorder, style} = p
   const {active, count, decorated} = Container.useSelector(state => {
     const me = state.config.username
@@ -65,8 +63,6 @@ const ReactButtonContainer = React.memo(function ReactButtonContainer(p: OwnProp
       decorated={decorated}
       onClick={onClick}
       onLongPress={onLongPress}
-      onMouseLeave={onMouseLeave}
-      onMouseOver={onMouseOver}
       style={style}
     />
   ) : (
