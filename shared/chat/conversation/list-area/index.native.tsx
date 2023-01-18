@@ -197,6 +197,7 @@ const ConversationList = React.memo(function ConversationList(p: {
   const keyExtractor = React.useCallback((ordinal: ItemType) => {
     return String(ordinal)
   }, [])
+
   const renderItem = React.useCallback(
     (info: ListRenderItemInfo<ItemType> | null | undefined) => {
       const index = info?.index ?? 0
@@ -213,16 +214,6 @@ const ConversationList = React.memo(function ConversationList(p: {
       const Clazz = getMessageRender(type)
       if (!Clazz) return null
       return <Clazz ordinal={ordinal} />
-      // uncomment to debug measuring issues w/ items
-      // return (
-      //   <View
-      //     onLayout={e => {
-      //       console.log('debug', ordinal, e.nativeEvent.layout.height)
-      //     }}
-      //   >
-      //     <Clazz ordinal={ordinal} />
-      //   </View>
-      // )
     },
     [messageOrdinals, messageTypeMap]
   )

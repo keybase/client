@@ -9,6 +9,10 @@ export const Video = (props: Props) => {
   const {autoPlay, onClick, url, style, width, height} = props
   const [playingVideo, setPlayingVideo] = React.useState(autoPlay)
 
+  React.useEffect(() => {
+    setPlayingVideo(autoPlay)
+  }, [url, autoPlay])
+
   const vidRef = React.useRef<AVVideo>(null)
 
   const _onClick = React.useCallback(() => {

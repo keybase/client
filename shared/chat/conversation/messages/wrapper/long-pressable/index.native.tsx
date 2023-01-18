@@ -11,9 +11,36 @@ import {dismiss} from '../../../../../util/keyboard'
 const LongPressable = React.memo(function LongPressable(props: Props) {
   const {children, onLongPress} = props
   const onPress = React.useCallback(() => dismiss(), [])
+  const getIds = React.useContext(GetIdsContext)
+
+  // uncomment to debug measuring issues w/ items
+  // const thrashMapRef = React.useRef(new Map<number, number>())
+  // const onLayout = React.useCallback(
+  //   (e: any) => {
+  //     const height = e.nativeEvent.layout.height
+  //     const {conversationIDKey, ordinal} = getIds()
+  //     const old = thrashMapRef.current.get(ordinal)
+  //     if (old && old !== height) {
+  //       console.log('debug thrash of row item', {
+  //         height,
+  //         old,
+  //         ordinal,
+  //         type: global.DEBUGStore.store.getState().chat2.messageMap.get(conversationIDKey)?.get(ordinal),
+  //       })
+  //     }
+  //     thrashMapRef.current.set(ordinal, height)
+  //   },
+  //   [getIds]
+  // )
 
   const inner = (
-    <Kb.NativePressable style={styles.pressable} onLongPress={onLongPress} onPress={onPress}>
+    <Kb.NativePressable
+      style={styles.pressable}
+      onLongPress={onLongPress}
+      onPress={onPress}
+      // uncomment to debug measuring issues w/ items
+      // onLayout={onLayout}
+    >
       {children}
     </Kb.NativePressable>
   )
@@ -26,7 +53,6 @@ const LongPressable = React.memo(function LongPressable(props: Props) {
     )
   }, [])
 
-  const getIds = React.useContext(GetIdsContext)
   const dispatch = Container.useDispatch()
   const onSwipeLeft = React.useCallback(() => {
     const {conversationIDKey, ordinal} = getIds()

@@ -40,6 +40,9 @@ const ExplodingMeta = (p: Props) => {
   const {exploded, explodesAt, isParentHighlighted, messageKey, onClick, pending} = p
 
   const [mode, setMode] = React.useState<Mode>('none')
+  React.useEffect(() => {
+    setMode('none')
+  }, [messageKey])
 
   const tickerIDRef = React.useRef<TickerID>(0)
   const sharedTimerIDRef = React.useRef<SharedTimerID>(0)
