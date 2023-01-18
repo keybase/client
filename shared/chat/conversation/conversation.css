@@ -115,3 +115,14 @@
 .darkMode .WrapperMessage-centered:hover .explodingTimeIcon {
   color: rgba(255, 255, 255, 0.85) !important;
 }
+
+.react-button {
+}
+.react-button.border:hover {
+  backgroundcolor: #ebf2fc;
+  bordercolor: #4c8eff;
+}
+.darkMode .react-button.border:hover {
+  backgroundcolor: rgba(24, 45, 110, 0.5);
+  bordercolor: #4c8eff;
+}

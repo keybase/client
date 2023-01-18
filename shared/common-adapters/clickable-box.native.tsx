@@ -77,9 +77,9 @@ const styles = Styles.styleSheetCreate(() => ({
 export default ClickableBox
 
 export const ClickableBox2 = (p: Props2) => {
-  const {onClick, children, style} = p
+  const {onLongPress, onClick, children, style} = p
   return (
-    <NativePressable onPress={onClick} style={style}>
+    <NativePressable onLongPress={onLongPress} onPress={onClick} style={style}>
       {children}
     </NativePressable>
   )

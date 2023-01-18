@@ -1,6 +1,5 @@
 import * as React from 'react'
 import {Box2, ClickableBox2, Icon, Text, Markdown} from '../../../../common-adapters'
-import type {Props as ClickableBoxProps} from '../../../../common-adapters/clickable-box'
 import * as Styles from '../../../../styles'
 import DelayInterval from './delay-interval'
 
@@ -12,44 +11,9 @@ export type Props = {
   emoji: string
   onClick: () => void
   onLongPress?: () => void
-  onMouseLeave?: (evt: React.SyntheticEvent) => void
-  onMouseOver?: (evt: React.SyntheticEvent) => void
   getAttachmentRef?: () => React.Component<any> | null
   style?: Styles.StylesCrossPlatform
 }
-
-let bounceIn: any
-let bounceOut: any
-if (!Styles.isMobile) {
-  bounceIn = Styles.styledKeyframes({
-    from: {transform: 'translateX(-30px)'},
-    to: {transform: 'translateX(-8px)'},
-  })
-  bounceOut = Styles.styledKeyframes({
-    from: {transform: 'translateX(-8px)'},
-    to: {transform: 'translateX(22px)'},
-  })
-}
-
-const ButtonBox = Styles.styled(ClickableBox2, {
-  shouldForwardProp: prop => prop !== 'noEffect' && prop !== 'border',
-})((props: ClickableBoxProps & {border: boolean; noEffect: boolean}) =>
-  Styles.isMobile || props.noEffect
-    ? {borderColor: Styles.globalColors.black_10}
-    : {
-        ...(props.border
-          ? {
-              ':hover': {
-                backgroundColor: Styles.globalColors.blueLighter2,
-                borderColor: Styles.globalColors.blue,
-              },
-            }
-          : {}),
-        '& .centered': {animation: `${bounceIn} 300ms cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards`},
-        '& .offscreen': {animation: `${bounceOut} 300ms cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards`},
-        borderColor: Styles.globalColors.black_10,
-      }
-)
 
 const markdownOverride = {
   customEmoji: {
@@ -66,23 +30,16 @@ const markdownOverride = {
   },
 }
 
-const ReactButton = React.memo(function ReactButton(props: Props) {
-  const text = props.decorated.length ? props.decorated : props.emoji
+const ReactButton = React.memo(function ReactButton(p: Props) {
+  const {decorated, emoji, onLongPress, active, className, onClick} = p
+  const {style, count} = p
+  const text = decorated.length ? decorated : emoji
   return (
-    <ButtonBox
-      noEffect={false}
-      border={false}
-      className={Styles.classNames(props.className, {noShadow: props.active})}
-      onLongPress={props.onLongPress}
-      onMouseLeave={props.onMouseLeave}
-      onMouseOver={props.onMouseOver}
-      onClick={props.onClick}
-      style={Styles.collapseStyles([
-        styles.borderBase,
-        styles.buttonBox,
-        props.active && styles.active,
-        props.style,
-      ])}
+    <ClickableBox2
+      className={Styles.classNames('react-button', className, {noShadow: active})}
+      onLongPress={onLongPress}
+      onClick={onClick}
+      style={Styles.collapseStyles([styles.borderBase, styles.buttonBox, active && styles.active, style])}
     >
       <Box2 centerChildren={true} fullHeight={true} direction="horizontal" style={styles.container}>
         <Box2 direction="horizontal" style={styles.containerInner} gap="xtiny">
@@ -99,13 +56,13 @@ const ReactButton = React.memo(function ReactButton(props: Props) {
           <Text
             type="BodyTinyBold"
             virtualText={true}
-            style={Styles.collapseStyles([styles.count, props.active && styles.countActive])}
+            style={Styles.collapseStyles([styles.count, active && styles.countActive])}
           >
-            {props.count}
+            {count}
           </Text>
         </Box2>
       </Box2>
-    </ButtonBox>
+    </ClickableBox2>
   )
 })
 
@@ -127,6 +84,7 @@ type NewReactionButtonState = {
   showingPicker: boolean
 }
 
+// TODO clean this up, this is only used on mobile so all this rotation / hover stuff never happens
 export class NewReactionButton extends React.Component<NewReactionButtonProps, NewReactionButtonState> {
   state = {applyClasses: false, hovering: false, iconIndex: 0, showingPicker: false}
   _delayInterval = new DelayInterval(1000, 400)
@@ -144,12 +102,12 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
     this._stopCycle()
   }
 
-  _onShowPicker = (evt: React.BaseSyntheticEvent) => {
+  _onShowPicker = (evt?: React.BaseSyntheticEvent) => {
     if (Styles.isMobile) {
       this.props.onOpenEmojiPicker()
       return
     }
-    evt.stopPropagation()
+    evt?.stopPropagation()
     this._setShowingPicker(true)
   }
 
@@ -185,13 +143,10 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
 
   render() {
     return (
-      <ButtonBox
-        noEffect={false}
+      <ClickableBox2
+        className={Styles.classNames('react-button', {border: this.props.showBorder})}
         onLongPress={this.props.onLongPress}
-        border={this.props.showBorder}
         onClick={this._onShowPicker}
-        onMouseLeave={this._stopCycle}
-        onMouseEnter={this._startCycle}
         style={Styles.collapseStyles([
           styles.borderBase,
           styles.newReactionButtonBox,
@@ -232,7 +187,7 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
             ))
           )}
         </Box2>
-      </ButtonBox>
+      </ClickableBox2>
     )
   }
 }
@@ -245,6 +200,7 @@ const styles = Styles.styleSheetCreate(
         borderColor: Styles.globalColors.blue,
       },
       borderBase: {
+        borderColor: Styles.globalColors.black_10,
         borderRadius: Styles.borderRadius,
         borderStyle: 'solid',
       },
@@ -257,7 +213,7 @@ const styles = Styles.styleSheetCreate(
         ...Styles.transition('border-color', 'background-color', 'box-shadow'),
       },
       container: {
-        height: 20,
+        height: Styles.isMobile ? 20 : undefined,
         minWidth: 40,
         paddingLeft: 6,
         paddingRight: 6,
