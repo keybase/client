@@ -20,11 +20,6 @@ import USH from './use-selector'
 
 const useSelector = USH.useSelector as TypedUseSelectorHook<RootState>
 
-// don't pay for this in prod builds
-if (!__DEV__) {
-  setAutoFreeze(false)
-}
-
 export const networkErrorCodes = [
   StatusCode.scgenericapierror,
   StatusCode.scapinetworkerror,
