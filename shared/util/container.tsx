@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {type Draft as _Draft, setAutoFreeze} from 'immer'
+import {type Draft as _Draft} from 'immer'
 import type {TypedActions as _TypedActions} from '../actions/typed-actions-gen'
 import type {ActionHandler as _ActionHandler} from './make-reducer'
 import type {TypedState as _TypedState} from '../constants/reducer'
@@ -19,11 +19,6 @@ export {useDebounce, useDebouncedCallback, useThrottledCallback, type DebouncedS
 import USH from './use-selector'
 
 const useSelector = USH.useSelector as TypedUseSelectorHook<RootState>
-
-// don't pay for this in prod builds
-if (!__DEV__) {
-  setAutoFreeze(false)
-}
 
 export const networkErrorCodes = [
   StatusCode.scgenericapierror,
