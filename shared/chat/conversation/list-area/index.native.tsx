@@ -17,6 +17,7 @@ import {FlashList, type ListRenderItemInfo} from '@shopify/flash-list'
 import {getMessageRender} from '../messages/wrapper'
 import {mobileTypingContainerHeight} from '../input-area/normal/typing'
 import {SetRecycleTypeContext} from '../recycle-type-context'
+import {ForceListRedrawContext} from '../force-list-redraw-context'
 import shallowEqual from 'shallowequal'
 
 // Bookkeep whats animating so it finishes and isn't replaced, if we've animated it we keep the key and use null
@@ -261,33 +262,42 @@ const ConversationList = React.memo(function ConversationList(p: {
     }
   }, [markInitiallyLoadedThreadAsRead])
 
+  // used to force a rerender when a type changes, aka placeholder resolves
+  const [extraData, setExtraData] = React.useState(0)
+  const forceListRedraw = React.useCallback(() => {
+    setExtraData(d => d + 1)
+  }, [])
+
   return (
     <Kb.ErrorBoundary>
       <ConvoIDContext.Provider value={conversationIDKey}>
         <SetRecycleTypeContext.Provider value={setRecycleType}>
-          <Kb.Box style={styles.container}>
-            <FlashList
-              removeClippedSubviews={Styles.isAndroid}
-              drawDistance={100}
-              estimatedItemSize={100}
-              ListHeaderComponent={SpecialBottomMessage}
-              ListFooterComponent={SpecialTopMessage}
-              ItemSeparatorComponent={Separator}
-              overScrollMode="never"
-              contentContainerStyle={styles.contentContainer}
-              data={messageOrdinals}
-              getItemType={getItemType}
-              inverted={true}
-              renderItem={renderItem}
-              maintainVisibleContentPosition={maintainVisibleContentPosition}
-              onEndReached={onEndReached}
-              keyboardDismissMode="on-drag"
-              keyboardShouldPersistTaps="handled"
-              keyExtractor={keyExtractor}
-              ref={listRef}
-            />
-            {jumpToRecent}
-          </Kb.Box>
+          <ForceListRedrawContext.Provider value={forceListRedraw}>
+            <Kb.Box style={styles.container}>
+              <FlashList
+                extraData={extraData}
+                removeClippedSubviews={Styles.isAndroid}
+                drawDistance={100}
+                estimatedItemSize={100}
+                ListHeaderComponent={SpecialBottomMessage}
+                ListFooterComponent={SpecialTopMessage}
+                ItemSeparatorComponent={Separator}
+                overScrollMode="never"
+                contentContainerStyle={styles.contentContainer}
+                data={messageOrdinals}
+                getItemType={getItemType}
+                inverted={true}
+                renderItem={renderItem}
+                maintainVisibleContentPosition={maintainVisibleContentPosition}
+                onEndReached={onEndReached}
+                keyboardDismissMode="on-drag"
+                keyboardShouldPersistTaps="handled"
+                keyExtractor={keyExtractor}
+                ref={listRef}
+              />
+              {jumpToRecent}
+            </Kb.Box>
+          </ForceListRedrawContext.Provider>
         </SetRecycleTypeContext.Provider>
       </ConvoIDContext.Provider>
     </Kb.ErrorBoundary>
