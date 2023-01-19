@@ -11,6 +11,7 @@ import {
   VIEWPORT_CENTER,
 } from '../../common-adapters/avatar'
 import KB2 from '../../util/electron.desktop'
+import './edit-avatar.css'
 
 const {isDirectory} = KB2.functions
 
@@ -395,11 +396,12 @@ class EditAvatar extends React.Component<Props, State> {
             </Kb.Text>{' '}
             for one.
           </Kb.Text>
-          <HoverBox
-            className={Styles.classNames({filled: this.state.hasPreview})}
+          <Kb.Box
+            className={Styles.classNames('hoverbox', {filled: this.state.hasPreview})}
             onClick={this.state.hasPreview ? null : this.filePickerOpen}
             style={{
               borderRadius: this.props.type === 'team' ? 32 : AVATAR_CONTAINER_SIZE,
+              ...hoverStyles.hoverContainer,
             }}
           >
             <input
@@ -442,7 +444,7 @@ class EditAvatar extends React.Component<Props, State> {
                 type="iconfont-camera"
               />
             )}
-          </HoverBox>
+          </Kb.Box>
           {this.state.hasPreview && (
             <input
               disabled={!this.state.hasPreview || this.props.submitting}
@@ -484,8 +486,6 @@ const hoverStyles = Styles.styleSheetCreate(
       hover: {borderColor: Styles.globalColors.black_50},
       hoverContainer: Styles.platformStyles({
         common: {
-          backgroundColor: Styles.globalColors.grey,
-          borderColor: Styles.globalColors.greyDark,
           borderStyle: 'dotted',
           borderWidth: AVATAR_BORDER_SIZE,
           height: AVATAR_CONTAINER_SIZE,
@@ -501,20 +501,6 @@ const hoverStyles = Styles.styleSheetCreate(
       }),
       hoverIcon: {color: Styles.globalColors.black_50},
     } as const)
-)
-
-const HoverBox = Styles.styled(Kb.Box)(
-  () =>
-    ({
-      '&.filled': hoverStyles.filled,
-      '&.filled:active': {cursor: '-webkit-grabbing'},
-      '&.filled:hover': hoverStyles.filledHover,
-      '&:hover': hoverStyles.hover,
-      '&:hover .icon': hoverStyles.hoverIcon,
-      '.dropping &': hoverStyles.dropping,
-      '.dropping & .icon': hoverStyles.droppingIcon,
-      ...hoverStyles.hoverContainer,
-    } as any)
 )
 
 const styles = Styles.styleSheetCreate(() => ({

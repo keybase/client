@@ -1,0 +1,42 @@
+.hoverbox {
+  background: #f0f0f0;
+  border-color: #cccccc;
+}
+.darkMode .hoverbox {
+  background: #444444;
+  border-color: #666666;
+}
+.hoverbox.filled {
+  background-color: #ffffff;
+  border-color: #333333;
+  borderstyle: solid;
+  cursor: -webkit-grab;
+}
+.darkMode .hoverbox.filled {
+  background-color: #191919;
+  border-color: #e6e6e6;
+}
+.hoverbox.filled:active {
+  cursor: -webkit-grabbing;
+}
+// TODO dark mode below
+.hoverbox&.filled:hover {
+  background-color: #191919;
+  border-color: #333333; /* Styles.globalColors.grey; */
+}
+.hoverbox:hover {
+  border-color: rgba(0, 0, 0, 0.5);
+  /* Styles.globalColors.black_50; */
+}
+.hoverbox:hover .icon {
+  color: rgba(0, 0, 0, 0.5);
+  /* color: Styles.globalColors.black_50; */
+}
+.dropping .hoverbox {
+  background-color: rgba(51, 160, 255, 0.6);
+  border-color: rgba(51, 160, 255, 0.6);
+  /* Styles.globalColors.blue_60; */
+}
+.dropping .hoverbox .icon {
+  color: rgba(51, 160, 255, 0.6);
+}

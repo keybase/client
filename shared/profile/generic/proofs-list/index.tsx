@@ -20,12 +20,6 @@ export type Props = {
   title: string
 }
 
-const HoverBox = Styles.isMobile
-  ? Kb.ClickableBox
-  : Styles.styled(Kb.ClickableBox)(() => ({
-      ':hover': {backgroundColor: Styles.globalColors.blueLighter2},
-    }))
-
 type ProvidersProps = {
   filter: string
 } & Props
@@ -38,7 +32,11 @@ class Providers extends React.Component<ProvidersProps> {
   _renderItem = (_, provider) => (
     <React.Fragment key={provider.name}>
       <Kb.Divider />
-      <HoverBox onClick={() => this.props.providerClicked(provider.key)} style={styles.containerBox}>
+      <Kb.ClickableBox
+        className="hover_background_color_blueLighter2"
+        onClick={() => this.props.providerClicked(provider.key)}
+        style={styles.containerBox}
+      >
         <SiteIcon set={provider.icon} style={styles.icon} full={true} />
         <Kb.Box2 direction="vertical" fullWidth={true}>
           <Kb.Text type="BodySemibold" style={styles.title}>
@@ -61,7 +59,7 @@ class Providers extends React.Component<ProvidersProps> {
           fontSize={Styles.isMobile ? 20 : 16}
           style={styles.iconArrow}
         />
-      </HoverBox>
+      </Kb.ClickableBox>
     </React.Fragment>
   )
   render() {
