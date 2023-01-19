@@ -2,8 +2,7 @@
   background-color: transparent;
 }
 .cl-entry:hover {
-  /* blueLighter2 */
-  background-color: #ebf2fc;
+  background-color: var(--color-blueLighter2);
 }
 .darkMode .cl-entry:hover {
   background-color: #140d03;

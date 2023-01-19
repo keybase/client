@@ -81,26 +81,7 @@
 .text_BodyTinySemibold,
 .text_BodyTinySemiboldItalic,
 .text_BodySmallSemibold {
-  color: rgba(0, 0, 0, 0.5);
-}
-
-.darkMode .text_BodySecondaryLink,
-.darkMode .text_BodySmall,
-.darkMode .text_BodySmallBold,
-.darkMode .text_BodySmallItalic,
-.darkMode .text_BodySmallExtrabold,
-.darkMode .text_BodySmallSemiboldItalic,
-.darkMode .text_BodySmallSemiboldSecondaryLink,
-.darkMode .text_BodySmallSecondaryLink,
-.darkMode .text_BodySmallExtraboldSecondaryLink,
-.darkMode .text_BodyTiny,
-.darkMode .text_BodyTinyLink,
-.darkMode .text_BodyTinyBold,
-.darkMode .text_BodyTinyExtrabold,
-.darkMode .text_BodyTinySemibold,
-.darkMode .text_BodyTinySemiboldItalic,
-.darkMode .text_BodySmallSemibold {
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--color-black_50OrWhite_40);
 }
 
 .text_HeaderLink,
@@ -109,7 +90,7 @@
 .text_BodyPrimaryLink,
 .text_BodySmallPrimaryLink,
 .text_BodySmallSemiboldPrimaryLink {
-  color: #3663ea;
+  color: var(--color-blueDark);
 }
 
 .text_HeaderItalic,
@@ -195,7 +176,7 @@
   line-height: 22px;
 }
 .darkMode .text_HeaderLink {
-  color: rgba(24, 45, 110, 0.5);
+  color: var(--color-blueDarker2_75);
 }
 
 .text_BodyBig,
@@ -236,13 +217,13 @@
 }
 
 .text_BodySmallError {
-  color: #eb253b;
+  color: var(--color-redDark);
 }
 .text_BodySmallSuccess {
-  color: #189e7a;
+  color: var(--color-greenDark);
 }
 .text_BodySmallWallet {
-  color: #6d3fd1;
+  color: var(--color-purpleDark);
 }
 
 .text_BodyTiny,
@@ -283,18 +264,18 @@
 }
 
 .text_TerminalComment {
-  color: rgba(168, 204, 255, 0.4);
+  color: var(--color-blueLighter_40);
 }
 
 .text_TerminalEmpty {
-  color: rgba(168, 204, 255, 0.4);
+  color: var(--color-blueLighter_40);
   height: 20px;
 }
 
 .text_TerminalInline {
   line-height: 16px;
   color: #2645a3;
-  background-color: #ebf2fc;
+  background-color: var(--color-blueLighter2);
   border-radius: 2px;
   height: 17px;
   padding: 2px;
