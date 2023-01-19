@@ -95,7 +95,12 @@ function Dropdown<N>(p: Props<N>) {
             }}
             style={styles.itemClickBox}
           >
-            <ItemBox style={itemBoxStyle}>{i}</ItemBox>
+            <Kb.Box
+              style={Styles.collapseStyles([styles.itemBox, itemBoxStyle])}
+              className="hover_background_color_blueLighter2"
+            >
+              {i}
+            </Kb.Box>
           </Kb.ClickableBox>
         ))}
       </Kb.ScrollView>
@@ -187,6 +192,13 @@ const styles = Styles.styleSheetCreate(() => ({
       paddingRight: Styles.globalMargins.tiny,
     },
   }),
+  itemBox: {
+    borderBottomWidth: 1,
+    borderColor: Styles.globalColors.black_10,
+    borderStyle: 'solid',
+    minHeight: Styles.isMobile ? 40 : 32,
+    width: '100%',
+  },
   itemClickBox: Styles.platformStyles({
     common: {
       flexShrink: 0,
@@ -232,22 +244,6 @@ const styles = Styles.styleSheetCreate(() => ({
     minHeight: regularHeight,
     width: '100%',
   },
-}))
-
-const ItemBox = Styles.styled(Kb.Box)(() => ({
-  ...Styles.globalStyles.flexBoxRow,
-  ...(Styles.isMobile
-    ? {}
-    : {
-        ':hover': {
-          backgroundColor: Styles.globalColors.blueLighter2,
-        },
-      }),
-  borderBottomWidth: 1,
-  borderColor: Styles.globalColors.black_10,
-  borderStyle: 'solid',
-  minHeight: Styles.isMobile ? 40 : 32,
-  width: '100%',
 }))
 
 const ButtonBox = Styles.styled(Kb.Box, {shouldForwardProp: prop => prop !== 'inline'})(props => ({
