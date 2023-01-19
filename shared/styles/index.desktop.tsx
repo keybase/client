@@ -227,8 +227,6 @@ export {
 
 // @ts-ignore
 export {keyframes as styledKeyframes} from '@emotion/react'
-// @ts-ignore
-export {default as styled} from '@emotion/styled'
 export {themed as globalColors} from './colors'
 export const statusBarHeight = 0
 export const borderRadius = 4

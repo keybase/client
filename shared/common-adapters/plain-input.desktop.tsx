@@ -5,6 +5,7 @@ import pick from 'lodash/pick'
 import logger from '../logger'
 import {checkTextInfo} from './input.shared'
 import type {InternalProps, TextInfo, Selection} from './plain-input'
+import styled from '@emotion/styled'
 
 const maybeParseInt = (input: string | number, radix: number): number =>
   typeof input === 'string' ? parseInt(input, radix) : input
@@ -313,7 +314,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
 }
 
 // TODO remove styled
-const StyledTextArea = Styles.styled.textarea(
+const StyledTextArea = styled.textarea(
   // @ts-ignore
   (props: {placeholderColor: any; placeholderTextType: any}) => {
     const placeholderStyle = props.placeholderTextType ? getTextStyle(props.placeholderTextType) : {}
@@ -329,7 +330,7 @@ const StyledTextArea = Styles.styled.textarea(
 )
 
 // TODO remove styled
-const StyledInput = Styles.styled.input(
+const StyledInput = styled.input(
   // @ts-ignore
   (props: {placeholderColor: any; placeholderTextType: any}) => {
     const placeholderStyle = props.placeholderTextType ? getTextStyle(props.placeholderTextType) : {}

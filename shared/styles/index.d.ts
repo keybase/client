@@ -159,7 +159,6 @@ export type {
   _StylesMobile,
 } from './css'
 export {default as classNames} from 'classnames'
-export {default as styled} from '@emotion/styled'
 export declare const CanFixOverdrawContext: React.Context<boolean>
 export declare const DarkModeContext: React.Context<boolean>
 export declare const undynamicColor: (col: any) => any
