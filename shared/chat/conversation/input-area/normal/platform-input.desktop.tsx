@@ -39,8 +39,8 @@ const ExplodingButton = (p: ExplodingButtonProps) => {
   )
 
   return (
-    <HoverBox
-      className={Styles.classNames({expanded: showingPopup})}
+    <Kb.Box
+      className={Styles.classNames({expanded: showingPopup}, 'timer-icon-container')}
       onClick={toggleShowingPopup}
       forwardedRef={popupAnchor}
       style={Styles.collapseStyles([
@@ -59,7 +59,7 @@ const ExplodingButton = (p: ExplodingButtonProps) => {
       ) : (
         <Kb.WithTooltip tooltip="Timer">
           <Kb.Icon
-            className="timer"
+            className={Styles.classNames('timer-icon', 'hover_color_black')}
             colorOverride={null}
             onClick={toggleShowingPopup}
             padding="xtiny"
@@ -67,7 +67,7 @@ const ExplodingButton = (p: ExplodingButtonProps) => {
           />
         </Kb.WithTooltip>
       )}
-    </HoverBox>
+    </Kb.Box>
   )
 }
 
@@ -561,11 +561,5 @@ const styles = Styles.styleSheetCreate(
       },
     } as const)
 )
-
-const HoverBox = Styles.styled(Kb.Box)(() => ({
-  ':hover .timer, &.expanded .timer': {
-    color: Styles.globalColors.black,
-  },
-}))
 
 export default PlatformInput

@@ -122,3 +122,22 @@
   backgroundcolor: var(--color-blueLighter2);
   bordercolor: var(--color-blue);
 }
+
+.ashbox {
+  overflow: hidden;
+  transition: width 0s;
+  width: 0;
+}
+
+.ashbox.full-width {
+  overflow: visible;
+  transition: width 2000ms linear;
+  width: 100%;
+}
+
+.timer-icon-container .timer-icon {
+}
+.timer-icon-container:hover .timer-icon,
+.timer-icon-container.expanded .timer-icon {
+  color: var(--color-black);
+}
