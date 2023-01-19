@@ -1,0 +1,26 @@
+.radio-button {
+  transition: background 0.1s ease-out;
+  border-radius: 100%;
+  border: solid 1px var(--color-black_20);
+  flex: none;
+  height: 14px;
+  margin-right: 8px;
+  position: relative;
+  width: 14px;
+  opacity: 1;
+}
+
+.radio-button:hover {
+  border: solid 1px var(--color-blue);
+}
+
+.radio-button.disabled {
+  opacity: 0.4;
+}
+.radio-button.disabled:hover {
+}
+
+.radio-button.selected {
+  border: solid 1px var(--color-blue);
+  background-color: var(--color-blue);
+}
