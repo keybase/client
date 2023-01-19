@@ -355,6 +355,13 @@ body {
   opacity: 1;
 }
 
+.hover-opacity.inverted {
+  opacity: 1;
+}
+.hover-opacity.inverted:hover {
+  opacity: 0.8;
+}
+
 .hover-container .hover-opacity-full {
   opacity: 0;
 }

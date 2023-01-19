@@ -1,10 +1,10 @@
 .tab-container {
-  background-color: #3663ea;
+  background-color: var(--color-blueDark);
   flex-shrink: 0;
   width: 160px;
 }
 .darkMode .tab-container {
-  background-color: #2d2d2d;
+  background-color: var(--color-redLighter);
 }
 .tab {
   flex-shrink: 0;
@@ -22,16 +22,13 @@
   background-color: #1f1f1f;
 }
 .tab .tab-icon {
-  color: #1036ac;
+  color: var(--color-blueDarkerOrBlack_85);
   margin-left: 24px;
   margin-right: 12px;
 }
-.darkMode .tab .tab-icon {
-  color: rgba(0, 0, 0, 0.85);
-}
 .tab:hover .tab-icon,
 .tab-selected .tab-icon {
-  color: #ffffff;
+  color: var(--color-white);
   margin-left: 24px;
   margin-right: 12px;
 }
@@ -40,7 +37,7 @@
   color: rgba(255, 255, 255, 0.85);
 }
 .tab .tab-label {
-  color: #a8ccff;
+  color: var(--color-blueLighter);
   flex-grow: 1;
 }
 .darkMode .tab .tab-label {
@@ -48,7 +45,7 @@
 }
 .tab:hover .tab-label,
 .tab-selected .tab-label {
-  color: #ffffff;
+  color: var(--color-white);
   flex-grow: 1;
 }
 .darkMode .tab:hover .tab-label,
@@ -64,12 +61,12 @@
   width: 3px;
 }
 .tab-selected .tab-highlight {
-  background-color: #ffffff;
+  background-color: var(--color-white);
   width: 3px;
   border-radius: 2px;
 }
 .darkMode .tab-selected .tab-highlight {
-  background-color: #3663ea;
+  background-color: var(--color-blueDark);
 }
 .tab-tooltip {
   display: none !important;

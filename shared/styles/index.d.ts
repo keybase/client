@@ -135,7 +135,6 @@ export declare function padding(
   paddingLeft: number
 }
 
-export declare const styledKeyframes: any
 export declare const isAndroid: boolean
 export declare const isIOS: boolean
 export declare const isMobile: boolean
@@ -159,7 +158,6 @@ export type {
   _StylesMobile,
 } from './css'
 export {default as classNames} from 'classnames'
-export {default as styled} from '@emotion/styled'
 export declare const CanFixOverdrawContext: React.Context<boolean>
 export declare const DarkModeContext: React.Context<boolean>
 export declare const undynamicColor: (col: any) => any

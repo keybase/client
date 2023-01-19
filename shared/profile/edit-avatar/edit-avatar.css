@@ -1,0 +1,30 @@
+.hoverbox {
+  background: var(--color-greyLight);
+  border-color: var(--color-greyDark);
+}
+.hoverbox.filled {
+  background-color: var(--color-white);
+  border-color: var(--color-grey);
+  borderstyle: solid;
+  cursor: -webkit-grab;
+}
+.hoverbox.filled:active {
+  cursor: -webkit-grabbing;
+}
+.hoverbox.filled:hover {
+  background-color: var(--color-white);
+  border-color: var(--color-grey);
+}
+.hoverbox:hover {
+  border-color: var(--color-black_50);
+}
+.hoverbox:hover .icon {
+  color: var(--color-black_50);
+}
+.dropping .hoverbox {
+  background-color: var(--color-blue_60);
+  border-color: var(--color-blue_60);
+}
+.dropping .hoverbox .icon {
+  color: var(--color-blue_60);
+}

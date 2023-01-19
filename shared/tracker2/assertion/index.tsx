@@ -248,10 +248,9 @@ const Value = (p: Props) => {
   return content
 }
 
-const HoverOpacity = Styles.styled(Kb.Box)(() => ({
-  '&:hover': {opacity: 1},
-  opacity: 0.5,
-}))
+const HoverOpacity = (p: {children: React.ReactNode}) => (
+  <Kb.Box className="hover-opacy inverted">{p.children}</Kb.Box>
+)
 
 type State = {
   showingMenu: boolean

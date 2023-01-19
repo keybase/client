@@ -154,27 +154,32 @@ export const initDesktopStyles = () => {
   }
   const style = document.createElement('style')
   style.type = 'text/css'
-  const css = Object.keys(colors).reduce((s, name) => {
-    const color = colors[name]
-    const darkColor = darkColors[name]
-    if (color) {
-      return (
-        s +
-        `.color_${name} {color: ${color};}\n` +
-        `.darkMode .color_${name} {color: ${darkColor};}\n` +
-        `.hover_color_${name}:hover {color: ${color};}\n` +
-        `.darkMode .hover_color_${name}:hover {color: ${darkColor};}\n` +
-        `.hover_container:hover .hover_contained_color_${name} {color: ${color} !important;}\n` +
-        `.darkMode .hover_container:hover .hover_contained_color_${name} {color: ${darkColor} !important;}\n` +
-        `.background_color_${name} {background-color: ${color};}\n` +
-        `.darkMode .background_color_${name} {background-color: ${darkColor};}\n` +
-        `.hover_background_color_${name}:hover {background-color: ${color};}\n` +
-        `.darkMode .hover_background_color_${name}:hover {background-color: ${darkColor};}\n`
-      )
-    } else {
-      return s
-    }
+  const colorNames = Object.keys(colors) as Array<keyof typeof colors>
+  const colorVars = `
+        :root { ${colorNames
+          .reduce((s, name) => {
+            s.push(`--color-${name}: ${colors[name] ?? ''};`)
+            return s
+          }, new Array<string>())
+          .join(' ')} }
+        .darkMode { ${colorNames
+          .reduce((s, name) => {
+            s.push(`--color-${name}: ${darkColors[name] ?? ''};`)
+            return s
+          }, new Array<string>())
+          .join(' ')} }
+`
+  const helpers = colorNames.reduce((s, name) => {
+    return (
+      s +
+      `.color_${name} {color: var(--color-${name});}\n` +
+      `.hover_color_${name}:hover {color: var(--color-${name});}\n` +
+      `.hover_container:hover .hover_contained_color_${name} {color: var(--color-${name}) !important;}\n` +
+      `.background_color_${name} {background-color: var(--color-${name});}\n` +
+      `.hover_background_color_${name}:hover {background-color: var(--color-${name});}\n`
+    )
   }, '')
+  const css = colorVars + helpers
   style.appendChild(document.createTextNode(css))
   head.appendChild(style)
   fixScrollbars()
@@ -220,10 +225,6 @@ export {
   padding,
 } from './shared'
 
-// @ts-ignore
-export {keyframes as styledKeyframes} from '@emotion/react'
-// @ts-ignore
-export {default as styled} from '@emotion/styled'
 export {themed as globalColors} from './colors'
 export const statusBarHeight = 0
 export const borderRadius = 4

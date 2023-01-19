@@ -1,44 +1,26 @@
 .overlay-icon {
   bottom: 1px;
-  color: rgba(0, 0, 0, 0.2);
+  color: var(--color-black_20);
   position: absolute;
   right: 0;
   bottom: 0;
 }
-.darkMode .overlay-icon {
-  color: rgba(255, 255, 255, 0.2);
-}
 .overlay-icon.hovered {
-  color: rgba(0, 0, 0, 0.2);
-}
-.darkMode .overlay-icon.hovered {
-  color: rgba(255, 255, 255, 0.2);
+  color: var(--color-black_20);
 }
 .overlay-icon.selected {
-  color: #ffffff;
+  color: var(--color-white);
 }
-.darkMode .overlay-icon.selected {
-  color: #191919;
-}
-
 .overlay-icon.stroked {
-  -webkit-text-stroke: 2px #f2f4f7;
-  color: #f2f4f7;
+  -webkit-text-stroke: 2px var(--color-blueGrey);
+  color: var(--color-blueGrey);
   right: -1px;
 }
-.darkMode .overlay-icon.stroked {
-  -webkit-text-stroke: 2px #202020;
-  color: #202020;
-}
 .overlay-icon.hovered.stroked {
-  -webkit-text-stroke: 2px #e0e8f6;
-  color: #e0e8f6;
-}
-.darkMode .overlay-icon.hovered.stroked {
-  -webkit-text-stroke: 2px rgba(24, 45, 110, 0.5);
-  color: rgba(24, 45, 110, 0.5);
+  -webkit-text-stroke: 2px var(--color-blueGreyDark);
+  color: var(--color-blueGreyDark);
 }
 .overlay-icon.selected.stroked {
-  -webkit-text-stroke: 2px #4c8eff;
-  color: #4c8eff;
+  -webkit-text-stroke: 2px var(--color-blue);
+  color: var(--color-blue);
 }

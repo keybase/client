@@ -79,7 +79,7 @@
 }
 
 .avatar-background {
-  background-color: #f0f0f0;
+  background-color: var(--color-greyLight);
   bottom: 0;
   left: 0;
   position: absolute;

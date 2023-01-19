@@ -127,7 +127,6 @@ export const collapseStyles = (
 }
 export const transition = () => ({})
 export const backgroundURL = () => ({})
-export const styledKeyframes = () => null
 
 export {isMobile, isPhone, isTablet, fileUIName, isIPhoneX, isIOS, isAndroid} from '../constants/platform'
 export {
@@ -137,7 +136,6 @@ export {
   platformStyles,
   padding,
 } from './shared'
-export {default as styled} from '@emotion/native'
 export {themed as globalColors} from './colors'
 export {default as classNames} from 'classnames'
 export {DarkModeContext} from './dark-mode'

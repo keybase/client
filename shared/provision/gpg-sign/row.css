@@ -1,22 +1,12 @@
 .register-row {
-  background-color: #ffffff;
+  background-color: var(--color-white);
 }
-.darkMode .register-row {
-  background-color: #191919;
-}
-
 .register-row:hover {
-  background-color: #ebf2fc; /* blueLighter2 */
+  background-color: var(--color-blueLighter2);
 }
-
-.darkMode .register-row:hover {
-  background-color: rgba(24, 45, 110, 0.5); /* blueLighter2 */
-}
-
 .register-row:hover .register-background {
   opacity: 0;
 }
-
 .register-row:hover .register-icon {
   transform: translateX(15px);
 }

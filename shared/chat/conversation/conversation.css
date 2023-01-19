@@ -27,20 +27,20 @@
   margin-left: 0;
 }
 .WrapperMessage-hoverColor:hover {
-  background-color: #ebf2fc;
+  background-color: var(--color-blueLighter2);
 }
 
 .WrapperMessage-decorated {
   min-height: 26px;
 }
 .WrapperMessage-decorated.active {
-  background-color: #ebf2fc;
-}
-.darkMode .WrapperMessage-hoverColor:hover {
-  background-color: #101010;
+  background-color: var(--color-blueLighter2);
 }
 .darkMode .WrapperMessage-decorated.active {
-  background-color: #101010;
+  background-color: var(--color-blueLighter3);
+}
+.darkMode .WrapperMessage-hoverColor:hover {
+  background-color: var(--color-blueLighter3);
 }
 .WrapperMessage-author {
   padding-left: 0;
@@ -50,7 +50,7 @@
   transition: box-shadow 0.1s ease-out;
 }
 .WrapperMessage-hoverBox:hover .WrapperMessage-emojiButton {
-  box-shadow: 0 1px 1px 0 rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 1px 0 var(--color-black_10);
 }
 .darkMode .WrapperMessage-hoverBox:hover .WrapperMessage-emojiButton {
   box-shadow: none;
@@ -69,7 +69,10 @@
   box-shadow: 0 1px 1px 0 rgba(0, 0, 0, 0.08);
 }
 .WrapperMessage-centered {
-  background-color: #fff75a;
+  background-color: var(--color-yellow);
+}
+.darkMode .WrapperMessage-centered {
+  background-color: var(--color-yellowAlt);
 }
 .ReplyBox:hover {
   background-color: white;
@@ -80,11 +83,8 @@
 .WrapperMessage-hoverBox:hover .sendingStatus {
   visibility: hidden;
 }
-.darkMode .WrapperMessage-centered {
-  background-color: #e0d733;
-}
 .darkMode .WrapperMessage-centered .text_Body {
-  color: #101010;
+  color: var(--color-blueLighter3);
 }
 .darkMode .WrapperMessage-centered:hover .text_BodySmallBold {
   /* author username */
@@ -119,10 +119,25 @@
 .react-button {
 }
 .react-button.border:hover {
-  backgroundcolor: #ebf2fc;
-  bordercolor: #4c8eff;
+  backgroundcolor: var(--color-blueLighter2);
+  bordercolor: var(--color-blue);
 }
-.darkMode .react-button.border:hover {
-  backgroundcolor: rgba(24, 45, 110, 0.5);
-  bordercolor: #4c8eff;
+
+.ashbox {
+  overflow: hidden;
+  transition: width 0s;
+  width: 0;
+}
+
+.ashbox.full-width {
+  overflow: visible;
+  transition: width 2000ms linear;
+  width: 100%;
+}
+
+.timer-icon-container .timer-icon {
+}
+.timer-icon-container:hover .timer-icon,
+.timer-icon-container.expanded .timer-icon {
+  color: var(--color-black);
 }

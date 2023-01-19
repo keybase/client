@@ -1,0 +1,8 @@
+.dropdown_border {
+  border: solid 1px var(--color-black_10);
+  color: var(--color.black_50);
+}
+.dropdown_border.hover:hover {
+  border: solid 1px var(--color-blue);
+  color: var(--color.blueDark);
+}

@@ -17,9 +17,6 @@
         "override-d.ts/react-native-reanimated/react-native-reanimated.d.ts"
       ],
       "@react-native-picker/picker": ["override-d.ts/@react-native-picker/index.d.ts"],
-      "@emotion/native": ["override-d.ts/@emotion/index.d.ts"],
-      "@emotion/react": ["override-d.ts/@emotion/index.d.ts"],
-      "@emotion/styled": ["override-d.ts/@emotion/index.d.ts"],
       "react-native-kb": ["override-d.ts/react-native-kb/index.d.ts"],
       "react-native-drop-view": ["override-d.ts/react-native-drop-view/index.d.ts"]
     },
