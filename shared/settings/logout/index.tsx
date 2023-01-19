@@ -3,6 +3,7 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Constants from '../../constants/settings'
 import UpdatePassword from '../password'
+import './logout.css'
 
 export type Props = {
   checkPasswordIsCorrect?: boolean
@@ -20,12 +21,6 @@ type State = {
   password: string
   showTyping: boolean
 }
-
-const HoverBox = Styles.isMobile
-  ? Kb.ClickableBox
-  : Styles.styled(Kb.ClickableBox)(() => ({
-      ':hover .text': {textDecoration: 'underline'},
-    }))
 
 class LogOut extends React.Component<Props, State> {
   state = {
@@ -90,12 +85,16 @@ class LogOut extends React.Component<Props, State> {
                 {this.state.loggingOut ? (
                   <Kb.ProgressIndicator style={styles.smallProgress} type="Small" />
                 ) : (
-                  <HoverBox onClick={this.logOut} style={styles.logoutContainer}>
+                  <Kb.ClickableBox
+                    onClick={this.logOut}
+                    style={styles.logoutContainer}
+                    className="hover-underline-container"
+                  >
                     <Kb.Icon type="iconfont-leave" />
-                    <Kb.Text className="text" style={styles.logout} type="BodySmallSecondaryLink">
+                    <Kb.Text className="underline" style={styles.logout} type="BodySmallSecondaryLink">
                       Just sign out
                     </Kb.Text>
-                  </HoverBox>
+                  </Kb.ClickableBox>
                 )}
               </Kb.Box2>
             </Kb.ButtonBar>
