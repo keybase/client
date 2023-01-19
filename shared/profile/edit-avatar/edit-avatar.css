@@ -1,42 +1,30 @@
 .hoverbox {
-  background: #f0f0f0;
-  border-color: #cccccc;
-}
-.darkMode .hoverbox {
-  background: #444444;
-  border-color: #666666;
+  background: var(--color-greyLight);
+  border-color: var(--color-greyDark);
 }
 .hoverbox.filled {
-  background-color: #ffffff;
-  border-color: #333333;
+  background-color: var(--color-white);
+  border-color: var(--color-grey);
   borderstyle: solid;
   cursor: -webkit-grab;
-}
-.darkMode .hoverbox.filled {
-  background-color: #191919;
-  border-color: #e6e6e6;
 }
 .hoverbox.filled:active {
   cursor: -webkit-grabbing;
 }
-// TODO dark mode below
-.hoverbox&.filled:hover {
-  background-color: #191919;
-  border-color: #333333; /* Styles.globalColors.grey; */
+.hoverbox.filled:hover {
+  background-color: var(--color-white);
+  border-color: var(--color-grey);
 }
 .hoverbox:hover {
-  border-color: rgba(0, 0, 0, 0.5);
-  /* Styles.globalColors.black_50; */
+  border-color: var(--color-black_50);
 }
 .hoverbox:hover .icon {
-  color: rgba(0, 0, 0, 0.5);
-  /* color: Styles.globalColors.black_50; */
+  color: var(--color-black_50);
 }
 .dropping .hoverbox {
-  background-color: rgba(51, 160, 255, 0.6);
-  border-color: rgba(51, 160, 255, 0.6);
-  /* Styles.globalColors.blue_60; */
+  background-color: var(--color-blue_60);
+  border-color: var(--color-blue_60);
 }
 .dropping .hoverbox .icon {
-  color: rgba(51, 160, 255, 0.6);
+  color: var(--color-blue_60);
 }
