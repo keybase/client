@@ -615,7 +615,6 @@ const styles = Styles.styleSheetCreate(
         },
         isElectron: {
           marginRight: 16,
-          marginTop: 4,
           minHeight: 14,
         },
         isMobile: {},
