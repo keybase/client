@@ -127,7 +127,6 @@ export const collapseStyles = (
 }
 export const transition = () => ({})
 export const backgroundURL = () => ({})
-export const styledKeyframes = () => null
 
 export {isMobile, isPhone, isTablet, fileUIName, isIPhoneX, isIOS, isAndroid} from '../constants/platform'
 export {

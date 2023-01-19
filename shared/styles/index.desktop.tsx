@@ -225,8 +225,6 @@ export {
   padding,
 } from './shared'
 
-// @ts-ignore
-export {keyframes as styledKeyframes} from '@emotion/react'
 export {themed as globalColors} from './colors'
 export const statusBarHeight = 0
 export const borderRadius = 4

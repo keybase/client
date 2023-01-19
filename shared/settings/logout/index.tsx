@@ -3,7 +3,6 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Constants from '../../constants/settings'
 import UpdatePassword from '../password'
-import './logout.css'
 
 export type Props = {
   checkPasswordIsCorrect?: boolean

@@ -5,7 +5,6 @@ import pick from 'lodash/pick'
 import logger from '../logger'
 import {checkTextInfo} from './input.shared'
 import type {InternalProps, TextInfo, Selection} from './plain-input'
-import styled from '@emotion/styled'
 
 const maybeParseInt = (input: string | number, radix: number): number =>
   typeof input === 'string' ? parseInt(input, radix) : input
@@ -183,7 +182,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
   }
 
   _getCommonProps = () => {
-    const commonProps: any = {
+    const commonProps = {
       ...pick(this.props, ['maxLength', 'value']), // Props we should only passthrough if supplied
       autoFocus: this.props.autoFocus,
       className: Styles.classNames(this.props.allowKeyboardEvents && 'mousetrap', this.props.className),
@@ -197,11 +196,8 @@ class PlainInput extends React.PureComponent<InternalProps> {
       onKeyUp: this._onKeyUp,
       placeholder: this.props.placeholder,
       placeholderColor: this.props.placeholderColor,
-      placeholderTextType: this.props.placeholderTextType,
       ref: this._input,
-    }
-    if (this.props.disabled) {
-      commonProps.readOnly = 'readonly'
+      ...(this.props.disabled ? {readOnly: true} : {}),
     }
     return commonProps
   }
@@ -308,42 +304,27 @@ class PlainInput extends React.PureComponent<InternalProps> {
   }
 
   render() {
-    const inputProps = this._getInputProps()
-    return <>{this.props.multiline ? <StyledTextArea {...inputProps} /> : <StyledInput {...inputProps} />}</>
+    const {ref, ...inputProps} = this._getInputProps()
+    const realCSS = this.props.multiline
+      ? `
+textarea::-webkit-inner-spin-button {-webkit-appearance: none; margin: 0;}
+textarea::-webkit-input-placeholder { color: ${this.props.placeholderColor || Styles.globalColors.black_35}}
+textarea::-webkit-outer-spin-button {-webkit-appearance: none; margin: 0;}
+`
+      : `
+input::-webkit-inner-spin-button {-webkit-appearance: none; margin: 0;}
+input::-webkit-input-placeholder { color: ${this.props.placeholderColor || Styles.globalColors.black_35}}
+input::-webkit-outer-spin-button {-webkit-appearance: none; margin: 0;}
+`
+
+    return (
+      <>
+        <style>{realCSS}</style>
+        {this.props.multiline ? <textarea {...inputProps} ref={ref as any} /> : <input {...inputProps} />}
+      </>
+    )
   }
 }
-
-// TODO remove styled
-const StyledTextArea = styled.textarea(
-  // @ts-ignore
-  (props: {placeholderColor: any; placeholderTextType: any}) => {
-    const placeholderStyle = props.placeholderTextType ? getTextStyle(props.placeholderTextType) : {}
-    return {
-      '&::-webkit-inner-spin-button': {WebkitAppearance: 'none', margin: 0},
-      '&::-webkit-input-placeholder': {
-        ...placeholderStyle,
-        color: props.placeholderColor || Styles.globalColors.black_35,
-      },
-      '&::-webkit-outer-spin-button': {WebkitAppearance: 'none', margin: 0},
-    }
-  }
-)
-
-// TODO remove styled
-const StyledInput = styled.input(
-  // @ts-ignore
-  (props: {placeholderColor: any; placeholderTextType: any}) => {
-    const placeholderStyle = props.placeholderTextType ? getTextStyle(props.placeholderTextType) : {}
-    return {
-      '&::-webkit-inner-spin-button': {WebkitAppearance: 'none', margin: 0},
-      '&::-webkit-input-placeholder': {
-        ...placeholderStyle,
-        color: props.placeholderColor || Styles.globalColors.black_35,
-      },
-      '&::-webkit-outer-spin-button': {WebkitAppearance: 'none', margin: 0},
-    }
-  }
-)
 
 const styles = Styles.styleSheetCreate(() => ({
   flexable: {
