@@ -20,6 +20,17 @@ import type * as TeamTypes from '../types/teams'
 import type * as UserTypes from '../types/users'
 import type {TypedState} from '../reducer'
 
+export const getMessageRenderType = (m: Types.Message): Types.RenderMessageType | undefined => {
+  switch (m.type) {
+    case 'text':
+      return undefined
+    case 'attachment':
+      return `attachment:${m.attachmentType}`
+    default:
+      return m.type
+  }
+}
+
 export const formatTextForQuoting = (text: string) =>
   text
     .split('\n')

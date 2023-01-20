@@ -1012,10 +1012,10 @@ export const createUpdateReactions = (payload: {
 /**
  * The user has selected an attachment with a preview
  */
-export const createAttachmentPreviewSelect = (payload: {readonly message: Types.MessageAttachment}) => ({
-  payload,
-  type: attachmentPreviewSelect as typeof attachmentPreviewSelect,
-})
+export const createAttachmentPreviewSelect = (payload: {
+  readonly conversationIDKey: Types.ConversationIDKey
+  readonly ordinal: Types.Ordinal
+}) => ({payload, type: attachmentPreviewSelect as typeof attachmentPreviewSelect})
 /**
  * Toggle /giphy text to trigger preview window
  */
@@ -1195,10 +1195,10 @@ export const createUpdateMoreToLoad = (payload: {
 /**
  * We want to save an attachment to the local disk
  */
-export const createAttachmentDownload = (payload: {readonly message: Types.Message}) => ({
-  payload,
-  type: attachmentDownload as typeof attachmentDownload,
-})
+export const createAttachmentDownload = (payload: {
+  readonly conversationIDKey: Types.ConversationIDKey
+  readonly ordinal: Types.Ordinal
+}) => ({payload, type: attachmentDownload as typeof attachmentDownload})
 /**
  * We want to unbox an inbox row
  */

@@ -101,7 +101,13 @@ export default Container.connect(
     _onCopy: (h: Container.HiddenString) => {
       dispatch(ConfigGen.createCopyToClipboard({text: h.stringValue()}))
     },
-    _onDownload: (message: Types.Message) => dispatch(Chat2Gen.createAttachmentDownload({message})),
+    _onDownload: (message: Types.Message) =>
+      dispatch(
+        Chat2Gen.createAttachmentDownload({
+          conversationIDKey: message.conversationIDKey,
+          ordinal: message.id,
+        })
+      ),
     _onEdit: () =>
       dispatch(
         Chat2Gen.createMessageSetEditing({

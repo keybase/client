@@ -314,11 +314,13 @@
     },
     "attachmentPreviewSelect": {
       "_description": "The user has selected an attachment with a preview",
-      "message": "Types.MessageAttachment"
+      "conversationIDKey": "Types.ConversationIDKey",
+      "ordinal": "Types.Ordinal"
     },
     "attachmentDownload": {
       "_description": "We want to save an attachment to the local disk",
-      "message": "Types.Message"
+      "conversationIDKey": "Types.ConversationIDKey",
+      "ordinal": "Types.Ordinal"
     },
     "attachmentMobileSave": {
       "_description": "Saving an attachment to mobile storage",

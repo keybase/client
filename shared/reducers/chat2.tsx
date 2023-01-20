@@ -342,10 +342,10 @@ const attachmentActions: Container.ActionHandler<Actions, Types.State> = {
     }
   },
   [Chat2Gen.attachmentDownload]: (draftState, action) => {
-    const {message} = action.payload
+    const {conversationIDKey, ordinal} = action.payload
     const {messageMap} = draftState
-    const map = messageMap.get(message.conversationIDKey)
-    const m = map?.get(message.ordinal)
+    const map = messageMap.get(conversationIDKey)
+    const m = map?.get(ordinal)
     if (m?.type === 'attachment') {
       m.transferState = 'downloading'
       m.transferErrMsg = null
@@ -365,7 +365,8 @@ const attachmentActions: Container.ActionHandler<Actions, Types.State> = {
       const m = map.get(ordinal)
       map.set(ordinal, m ? Constants.upgradeMessage(m, message) : message)
       const typemap = mapGetEnsureValue(messageTypeMap, conversationIDKey, new Map())
-      typemap.set(ordinal, message.type)
+      const subType = Constants.getMessageRenderType(message)
+      subType && typemap.set(ordinal, subType)
     }
   },
   [EngineGen.chat1NotifyChatChatAttachmentDownloadComplete]: (draftState, action) => {
@@ -673,9 +674,8 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     draftState.messageMap.set(message.conversationIDKey, convMap)
 
     const typemap = mapGetEnsureValue(draftState.messageTypeMap, message.conversationIDKey, new Map())
-    if (message.type !== 'text') {
-      typemap.set(message.ordinal, message.type)
-    }
+    const subType = Constants.getMessageRenderType(message)
+    subType && typemap.set(message.ordinal, subType)
   },
   [Chat2Gen.messagesAdd]: (draftState, action) => {
     const {context, conversationIDKey, shouldClearOthers} = action.payload
@@ -853,7 +853,8 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       if (toSet.type === 'text') {
         typemap.delete(toSet.ordinal)
       } else {
-        typemap.set(toSet.ordinal, toSet.type)
+        const subType = Constants.getMessageRenderType(toSet)
+        subType && typemap.set(toSet.ordinal, subType)
       }
     })
 

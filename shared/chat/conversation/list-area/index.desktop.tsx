@@ -426,7 +426,7 @@ const useItems = (p: {
   centeredOrdinal: Types.Ordinal | undefined
   resizeObserve: ReturnType<typeof useResizeObserver>
   intersectionObserve: ReturnType<typeof useIntersectionObserver>
-  messageTypeMap: Map<Types.Ordinal, Types.MessageType> | undefined
+  messageTypeMap: Map<Types.Ordinal, Types.RenderMessageType> | undefined
 }) => {
   const {messageOrdinals, centeredOrdinal} = p
   const {resizeObserve, intersectionObserve, messageTypeMap} = p

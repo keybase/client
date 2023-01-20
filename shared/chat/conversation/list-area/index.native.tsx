@@ -67,26 +67,28 @@ type SentProps = {
   children?: React.ReactElement
   ordinal: Types.Ordinal
 }
-const Sent_ = ({ordinal}: SentProps) => {
+const Sent = React.memo(function Sent({ordinal}: SentProps) {
   const conversationIDKey = React.useContext(ConvoIDContext)
-  const {type, youSent} = Container.useSelector(state => {
+  const {subType, youSent} = Container.useSelector(state => {
     const you = state.config.username
     const message = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
     const youSent = message && message.author === you && message.ordinal !== message.id
-    const type = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)?.type
-    return {type, youSent}
+    const subType = message ? Constants.getMessageRenderType(message) : undefined
+    return {subType, youSent}
   }, shallowEqual)
   const key = `${conversationIDKey}:${ordinal}`
   const state = animatingMap.get(key)
 
-  if (!type) return null
+  console.log('aaa sent missing', ordinal, subType)
+
+  if (!subType) return null
 
   // if its animating always show it
   if (state) {
     return state
   }
 
-  const Clazz = getMessageRender(type)
+  const Clazz = getMessageRender(subType)
   if (!Clazz) return null
   const children = <Clazz ordinal={ordinal} />
 
@@ -98,8 +100,7 @@ const Sent_ = ({ordinal}: SentProps) => {
   } else {
     return children || null
   }
-}
-const Sent = React.memo(Sent_)
+})
 
 // We load the first thread automatically so in order to mark it read
 // we send an action on the first mount once

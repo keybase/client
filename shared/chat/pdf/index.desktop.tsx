@@ -12,7 +12,13 @@ const ChatPDF = (props: Props) => {
   const url = message?.fileURL
   const dispatch = Container.useDispatch()
   const onDownload = React.useCallback(() => {
-    message && dispatch(Chat2Gen.createAttachmentDownload({message}))
+    message &&
+      dispatch(
+        Chat2Gen.createAttachmentDownload({
+          conversationIDKey: message.conversationIDKey,
+          ordinal: message.id,
+        })
+      )
     dispatch(FsGen.createOpenLocalPathInSystemFileManager({localPath: downloadFolder}))
   }, [dispatch, message])
   return (

@@ -443,14 +443,24 @@ export const useAttachmentSections = (
   }
 
   const onMediaClick = (message: Types.MessageAttachment) =>
-    dispatch(Chat2Gen.createAttachmentPreviewSelect({message}))
+    dispatch(
+      Chat2Gen.createAttachmentPreviewSelect({
+        conversationIDKey: message.conversationIDKey,
+        ordinal: message.id,
+      })
+    )
 
   const onDocDownload = (message: Types.MessageAttachment) => {
     if (Styles.isMobile) {
       dispatch(Chat2Gen.createMessageAttachmentNativeShare({message}))
     } else {
       if (!message.downloadPath) {
-        dispatch(Chat2Gen.createAttachmentDownload({message}))
+        dispatch(
+          Chat2Gen.createAttachmentDownload({
+            conversationIDKey: message.conversationIDKey,
+            ordinal: message.id,
+          })
+        )
       }
     }
   }

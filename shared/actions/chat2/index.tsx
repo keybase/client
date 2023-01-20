@@ -2096,13 +2096,15 @@ const downloadAttachment = async (
 
 // Download an attachment to your device
 const attachmentDownload = async (
-  _: Container.TypedState,
+  state: Container.TypedState,
   action: Chat2Gen.AttachmentDownloadPayload,
   listenerApi: Container.ListenerApi
 ) => {
-  const {message} = action.payload
+  const {conversationIDKey, ordinal} = action.payload
 
-  if (message.type !== 'attachment') {
+  const message = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
+
+  if (message?.type !== 'attachment') {
     throw new Error('Trying to download missing / incorrect message?')
   }
 
@@ -2116,13 +2118,13 @@ const attachmentDownload = async (
 }
 
 const attachmentPreviewSelect = (_: unknown, action: Chat2Gen.AttachmentPreviewSelectPayload) => [
-  Chat2Gen.createAddToMessageMap({message: action.payload.message}),
+  // Chat2Gen.createAddToMessageMap({message: action.payload.message}),
   RouteTreeGen.createNavigateAppend({
     path: [
       {
         props: {
-          conversationIDKey: action.payload.message.conversationIDKey,
-          ordinal: action.payload.message.ordinal,
+          conversationIDKey: action.payload.conversationIDKey,
+          ordinal: action.payload.ordinal,
         },
         selected: 'chatAttachmentFullscreen',
       },
