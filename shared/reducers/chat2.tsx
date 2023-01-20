@@ -274,10 +274,16 @@ const attachmentActions: Container.ActionHandler<Actions, Types.State> = {
   },
   [Chat2Gen.addAttachmentViewMessage]: (draftState, action) => {
     const {conversationIDKey, viewType, message} = action.payload
-    const {attachmentViewMap} = draftState
+    const {attachmentViewMap, messageMap} = draftState
     const viewMap = mapGetEnsureValue(attachmentViewMap, conversationIDKey, new Map())
     const info = mapGetEnsureValue(viewMap, viewType, Constants.makeAttachmentViewInfo())
     viewMap.set(viewType, info)
+
+    // inject them into the message map
+    const mm = mapGetEnsureValue(messageMap, conversationIDKey, new Map())
+    info.messages.forEach(m => {
+      mm.set(m.id, m)
+    })
 
     if (info.messages.findIndex((item: any) => item.id === action.payload.message.id) < 0) {
       info.messages = info.messages.concat(message).sort((l: any, r: any) => r.id - l.id)
@@ -665,17 +671,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
         }
       }
     }
-  },
-  [Chat2Gen.addToMessageMap]: (draftState, action) => {
-    const {message} = action.payload
-    const convMap =
-      draftState.messageMap.get(message.conversationIDKey) ?? new Map<Types.Ordinal, Types.Message>()
-    convMap.set(message.ordinal, message)
-    draftState.messageMap.set(message.conversationIDKey, convMap)
-
-    const typemap = mapGetEnsureValue(draftState.messageTypeMap, message.conversationIDKey, new Map())
-    const subType = Constants.getMessageRenderType(message)
-    subType && typemap.set(message.ordinal, subType)
   },
   [Chat2Gen.messagesAdd]: (draftState, action) => {
     const {context, conversationIDKey, shouldClearOthers} = action.payload

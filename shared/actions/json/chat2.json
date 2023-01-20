@@ -904,9 +904,6 @@
       "cardType": "RPCChatTypes.JourneycardType",
       "ordinal": "Types.Ordinal"
     },
-    "addToMessageMap": {
-      "message": "Types.Message"
-    },
     "refreshMutualTeamsInConv": {
       "_description": "Refresh loaded mutual teams for a conversation",
       "conversationIDKey": "Types.ConversationIDKey"

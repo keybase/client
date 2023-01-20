@@ -11,7 +11,6 @@ export const resetStore = 'common:resetStore' // not a part of chat2 but is hand
 export const typePrefix = 'chat2:'
 export const addAttachmentViewMessage = 'chat2:addAttachmentViewMessage'
 export const addBotMember = 'chat2:addBotMember'
-export const addToMessageMap = 'chat2:addToMessageMap'
 export const addUserToChannel = 'chat2:addUserToChannel'
 export const addUsersToChannel = 'chat2:addUsersToChannel'
 export const attachFromDragAndDrop = 'chat2:attachFromDragAndDrop'
@@ -1316,10 +1315,6 @@ export const createSetLoadedBotPage = (payload: {readonly page: number}) => ({
   payload,
   type: setLoadedBotPage as typeof setLoadedBotPage,
 })
-export const createAddToMessageMap = (payload: {readonly message: Types.Message}) => ({
-  payload,
-  type: addToMessageMap as typeof addToMessageMap,
-})
 export const createAttachFromDragAndDrop = (payload: {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly paths: Array<Types.PathAndOutboxID>
@@ -1416,7 +1411,6 @@ export const createUpdateUserReacjis = (payload: {readonly userReacjis: RPCTypes
 // Action Payloads
 export type AddAttachmentViewMessagePayload = ReturnType<typeof createAddAttachmentViewMessage>
 export type AddBotMemberPayload = ReturnType<typeof createAddBotMember>
-export type AddToMessageMapPayload = ReturnType<typeof createAddToMessageMap>
 export type AddUserToChannelPayload = ReturnType<typeof createAddUserToChannel>
 export type AddUsersToChannelPayload = ReturnType<typeof createAddUsersToChannel>
 export type AttachFromDragAndDropPayload = ReturnType<typeof createAttachFromDragAndDrop>
@@ -1586,7 +1580,6 @@ export type UpdateUserReacjisPayload = ReturnType<typeof createUpdateUserReacjis
 export type Actions =
   | AddAttachmentViewMessagePayload
   | AddBotMemberPayload
-  | AddToMessageMapPayload
   | AddUserToChannelPayload
   | AddUsersToChannelPayload
   | AttachFromDragAndDropPayload

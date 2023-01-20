@@ -2117,8 +2117,7 @@ const attachmentDownload = async (
   await downloadAttachment(false, message, listenerApi)
 }
 
-const attachmentPreviewSelect = (_: unknown, action: Chat2Gen.AttachmentPreviewSelectPayload) => [
-  // Chat2Gen.createAddToMessageMap({message: action.payload.message}),
+const attachmentPreviewSelect = (_: unknown, action: Chat2Gen.AttachmentPreviewSelectPayload) =>
   RouteTreeGen.createNavigateAppend({
     path: [
       {
@@ -2129,8 +2128,7 @@ const attachmentPreviewSelect = (_: unknown, action: Chat2Gen.AttachmentPreviewS
         selected: 'chatAttachmentFullscreen',
       },
     ],
-  }),
-]
+  })
 
 // Handle an image pasted into a conversation
 const attachmentPasted = async (_: unknown, action: Chat2Gen.AttachmentPastedPayload) => {
