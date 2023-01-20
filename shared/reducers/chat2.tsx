@@ -372,7 +372,7 @@ const attachmentActions: Container.ActionHandler<Actions, Types.State> = {
       map.set(ordinal, m ? Constants.upgradeMessage(m, message) : message)
       const typemap = mapGetEnsureValue(messageTypeMap, conversationIDKey, new Map())
       const subType = Constants.getMessageRenderType(message)
-      subType && typemap.set(ordinal, subType)
+      typemap.set(ordinal, subType)
     }
   },
   [EngineGen.chat1NotifyChatChatAttachmentDownloadComplete]: (draftState, action) => {
@@ -849,7 +849,7 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
         typemap.delete(toSet.ordinal)
       } else {
         const subType = Constants.getMessageRenderType(toSet)
-        subType && typemap.set(toSet.ordinal, subType)
+        typemap.set(toSet.ordinal, subType)
       }
     })
 
