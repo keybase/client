@@ -90,7 +90,8 @@ export default Container.connect(
     _onDownload: (message: Types.MessageAttachment) => {
       dispatch(
         Chat2Gen.createAttachmentDownload({
-          message,
+          conversationIDKey: message.conversationIDKey,
+          ordinal: message.id,
         })
       )
     },

@@ -1,5 +1,5 @@
 import Text from '../text/wrapper'
-import Attachment from '../attachment/wrapper'
+import {WrapperAttachmentAudio, WrapperAttachmentFile, WrapperAttachmentImage} from '../attachment/wrapper'
 import JourneyCard from '../cards/team-journey/wrapper'
 import Placeholder from '../placeholder/wrapper'
 import Payment from '../account-payment/wrapper'
@@ -23,7 +23,9 @@ import {type Props} from './wrapper'
 import type * as Types from '../../../../constants/types/chat2'
 
 const typeMap = {
-  attachment: Attachment,
+  'attachment:audio': WrapperAttachmentAudio,
+  'attachment:file': WrapperAttachmentFile,
+  'attachment:image': WrapperAttachmentImage,
   journeycard: JourneyCard,
   pin: Pin,
   placeholder: Placeholder,
@@ -45,11 +47,11 @@ const typeMap = {
   systemText: SystemText,
   systemUsersAddedToConversation: SystemUsersAddedToConv,
   text: Text,
-} satisfies Partial<Record<Types.MessageType, React.NamedExoticComponent<Props>>> as Record<
-  Types.MessageType,
+} satisfies Partial<Record<Types.RenderMessageType, React.NamedExoticComponent<Props>>> as Record<
+  Types.RenderMessageType,
   React.NamedExoticComponent<Props> | undefined
 >
 
-export const getMessageRender = (type: Types.MessageType) => {
+export const getMessageRender = (type: Types.RenderMessageType) => {
   return type === 'deleted' ? undefined : typeMap[type]
 }

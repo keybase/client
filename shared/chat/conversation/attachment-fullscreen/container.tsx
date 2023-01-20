@@ -54,9 +54,6 @@ const Connected = (props: OwnProps) => {
     previewHeight,
     imgMaxWidthRaw()
   )
-  const addToMessageMap = (message: Types.Message) => {
-    dispatch(Chat2Gen.createAddToMessageMap({message}))
-  }
 
   const submit = Container.useRPC(RPCChatTypes.localGetNextAttachmentMessageLocalRpcPromise)
 
@@ -83,7 +80,6 @@ const Connected = (props: OwnProps) => {
             )
             if (goodMessage && goodMessage.type === 'attachment') {
               setAutoPlay(false)
-              addToMessageMap(goodMessage)
               setOrdinal(goodMessage.ordinal)
             }
           }
@@ -106,7 +102,16 @@ const Connected = (props: OwnProps) => {
       }
       onClose={() => dispatch(RouteTreeGen.createNavigateUp())}
       onDownloadAttachment={
-        message.downloadPath ? undefined : () => dispatch(Chat2Gen.createAttachmentDownload({message}))
+        message.downloadPath
+          ? undefined
+          : () => {
+              dispatch(
+                Chat2Gen.createAttachmentDownload({
+                  conversationIDKey: message.conversationIDKey,
+                  ordinal: message.id,
+                })
+              )
+            }
       }
       onNextAttachment={() => {
         onSwitchAttachment(false)
