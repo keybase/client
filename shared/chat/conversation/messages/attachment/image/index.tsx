@@ -297,9 +297,7 @@ const styles = Styles.styleSheetCreate(
         position: 'relative',
       },
       collapse: Styles.platformStyles({
-        isMobile: {
-          alignSelf: 'center',
-        },
+        isMobile: {alignSelf: 'center'},
       }),
       collapseBox: {
         ...Styles.globalStyles.flexBoxRow,
@@ -355,9 +353,7 @@ const styles = Styles.styleSheetCreate(
         paddingBottom: Styles.globalMargins.xtiny,
         paddingTop: Styles.globalMargins.xtiny,
       },
-      link: {
-        color: Styles.globalColors.black_50,
-      },
+      link: {color: Styles.globalColors.black_50},
       playButton: {
         bottom: '50%',
         left: '50%',
