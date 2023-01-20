@@ -79,8 +79,6 @@ const Sent = React.memo(function Sent({ordinal}: SentProps) {
   const key = `${conversationIDKey}:${ordinal}`
   const state = animatingMap.get(key)
 
-  console.log('aaa sent missing', ordinal, subType)
-
   if (!subType) return null
 
   // if its animating always show it
