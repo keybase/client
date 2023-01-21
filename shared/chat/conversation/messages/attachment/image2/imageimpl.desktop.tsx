@@ -27,7 +27,7 @@ const Image2Impl = () => {
 
   const {height, width} = Constants.clampImageSize(previewWidth, previewHeight, Math.min(320, 320))
 
-  const imageRenderStyle = Styles.collapseStyles([
+  const style = Styles.collapseStyles([
     styles.image,
     {
       backgroundColor: undefined,
@@ -36,7 +36,15 @@ const Image2Impl = () => {
     },
   ])
 
-  return 'an image'
+  // onLoad = {onLoad}
+  return (
+    <img
+      draggable={false}
+      src={previewURL}
+      style={style}
+      // Styles.collapseStyles([style, !loaded && {opacity: 0}])}
+    />
+  )
 }
 
 const styles = Styles.styleSheetCreate(() => ({

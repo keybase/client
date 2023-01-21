@@ -83,10 +83,6 @@ const ShowInFinder = (p: {onShowInFinder: (e: React.BaseSyntheticEvent) => void}
   )
 }
 
-const Video = () => {
-  return null
-}
-
 const Title = (p: {title: string; isHighlighted: boolean; isEditing: boolean}) => {
   const {title, isHighlighted, isEditing} = p
   const containerStyle = isHighlighted ? styles.highlighted : isEditing ? styles.sentEditing : styles.sent
