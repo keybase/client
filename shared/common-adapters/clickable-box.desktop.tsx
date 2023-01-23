@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {collapseStyles, globalStyles, desktopStyles} from '../styles'
+import * as Styles from '../styles'
 
 import type {Props as _Props, Props2} from './clickable-box'
 import type {_StylesCrossPlatform} from '../styles/css'
@@ -70,7 +70,7 @@ const ClickableBox = React.forwardRef<HTMLDivElement, Props>(function ClickableB
     underlay = (
       <div
         style={{
-          ...globalStyles.fillAbsolute,
+          ...Styles.globalStyles.fillAbsolute,
           backgroundColor,
           borderRadius,
         }}
@@ -88,9 +88,9 @@ const ClickableBox = React.forwardRef<HTMLDivElement, Props>(function ClickableB
       onMouseUp={onMouseUp}
       onDoubleClick={onDoubleClick}
       onClick={onClick}
-      style={collapseStyles([
+      style={Styles.collapseStyles([
         _containerStyle,
-        onClick || props.onMouseDown ? desktopStyles.clickable : null,
+        onClick || props.onMouseDown ? Styles.desktopStyles.clickable : null,
         style,
       ] as any)}
     >
@@ -119,7 +119,7 @@ export default ClickableBox
 export const ClickableBox2 = (p: Props2) => {
   const {onClick, children, style, className} = p
   return (
-    <div onClick={onClick} style={style as any} className={className}>
+    <div onClick={onClick} style={style as any} className={Styles.classNames('clickable-box2', className)}>
       {children}
     </div>
   )

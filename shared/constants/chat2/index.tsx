@@ -23,6 +23,9 @@ import type {TypedState} from '../reducer'
 export const getMessageRenderType = (m: Types.Message): Types.RenderMessageType => {
   switch (m.type) {
     case 'attachment':
+      if (m.inlineVideoPlayable) {
+        return 'attachment:video'
+      }
       return `attachment:${m.attachmentType}`
     default:
       return m.type

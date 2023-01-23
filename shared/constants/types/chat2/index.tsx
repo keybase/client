@@ -206,6 +206,7 @@ export type RenderMessageType =
   | 'attachment:image'
   | 'attachment:audio'
   | 'attachment:file'
+  | 'attachment:video'
 
 export type State = {
   readonly accountsInfoMap: Map<
