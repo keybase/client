@@ -20,7 +20,7 @@ const authorIsCollapsible = (type?: Types.MessageType) =>
 const getUsernameToShow = (message: Types.Message, pMessage: Types.Message | undefined, you: string) => {
   switch (message.type) {
     case 'journeycard':
-      return 'placeholder'
+      return ''
     case 'systemAddedToTeam':
       return message.adder
     case 'systemInviteAccepted':
