@@ -103,7 +103,7 @@ const styles = Styles.styleSheetCreate(() => {
       backgroundColor: Styles.globalColors.black_05_on_white,
       borderRadius: Styles.borderRadius,
       maxWidth: Styles.isMobile ? '100%' : 330,
-      padding: Styles.globalMargins.xtiny,
+      padding: Styles.globalMargins.tiny,
       position: 'relative',
     },
     imageContainer: {alignSelf: 'center'},
