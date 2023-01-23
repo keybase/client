@@ -104,66 +104,18 @@ const TeamJourneyContainer = (props: Props) => {
       }
       break
     case RPCChatTypes.JourneycardType.addPeople:
-      actions = [{label: 'Add people to the team', onClick: props.onAddPeopleToTeam}]
-      image = 'icon-illustration-friends-96'
-      textComponent = props.message.openTeam ? (
-        <Kb.Text type="BodySmall">
-          Do you know people interested in joining?{' '}
-          <Kb.Text onClick={props.onShowTeam} type="BodySmallBold">
-            {props.teamname}
-          </Kb.Text>{' '}
-          is open to anyone.
-        </Kb.Text>
-      ) : (
-        <Kb.Text type="BodySmall">
-          Do you know people interested in joining{' '}
-          <Kb.Text onClick={props.onShowTeam} type="BodySmallBold">
-            {props.teamname}
-          </Kb.Text>
-          ?
-        </Kb.Text>
-      )
-      break
+      return null
     case RPCChatTypes.JourneycardType.createChannels:
-      actions = [{label: 'Create chat channels', onClick: props.onCreateChatChannels}]
-      image = 'icon-illustration-happy-chat-96'
-      textComponent = (
-        <Kb.Text type="BodySmall">
-          Go ahead and create <Kb.Text type="BodySmallBold">#channels</Kb.Text> around topics you think are
-          missing.
-        </Kb.Text>
-      )
-      break
+      return null
     case RPCChatTypes.JourneycardType.msgAttention:
-      // XXX: implement
-      image = 'icon-illustration-attention-64'
-      textComponent = <Kb.Text type="BodySmall">One of your messages is getting a lot of attention!</Kb.Text>
-      break
+      return null
     case RPCChatTypes.JourneycardType.channelInactive:
-      image = 'icon-illustration-sleepy-96'
-      textComponent = (
-        <Kb.Text type="BodySmall">Zzz… This channel hasn’t been very active…. Revive it?</Kb.Text>
-      )
-      break
+      return null
     case RPCChatTypes.JourneycardType.msgNoAnswer:
-      {
-        const otherChannelsForNoAnswer = otherChannelsBase
-          .slice(0, Container.isMobile ? 2 : 3)
-          .map(info => info.channelname)
-        actions = otherChannelsForNoAnswer.map(chan => ({
-          label: `#${chan}`,
-          onClick: () => props.onGoToChannel(chan),
-        }))
-        textComponent = (
-          <Kb.Text type="BodySmall">
-            People haven’t been talkative in a while. Perhaps post in another channel?
-          </Kb.Text>
-        )
-      }
-      break
+      return null
     default:
       console.warn(`Unexpected journey card type: ${props.message.cardType}`)
-      return <Kb.Box2 direction="horizontal" />
+      return null
   }
 
   return props.teamname ? (
