@@ -2811,8 +2811,12 @@ const setConvRetentionPolicy = async (_: unknown, action: Chat2Gen.SetConvRetent
   return false
 }
 
-const toggleMessageCollapse = async (_: unknown, action: Chat2Gen.ToggleMessageCollapsePayload) => {
-  const {collapse, conversationIDKey, messageID} = action.payload
+const toggleMessageCollapse = async (
+  state: Container.TypedState,
+  action: Chat2Gen.ToggleMessageCollapsePayload
+) => {
+  const {conversationIDKey, messageID} = action.payload
+  const collapse = !state.chat2.messageMap.get(conversationIDKey)?.get(messageID)?.isCollapsed
   await RPCChatTypes.localToggleMessageCollapseRpcPromise({
     collapse,
     convID: Types.keyToConversationID(conversationIDKey),

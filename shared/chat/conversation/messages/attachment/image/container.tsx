@@ -63,14 +63,8 @@ const ImageAttachmentContainer = React.memo(function ImageAttachmentContainer(p:
   }, [dispatch, conversationIDKey, ordinal])
   const onDoubleClick = onClick
   const onCollapse = React.useCallback(() => {
-    dispatch(
-      Chat2Gen.createToggleMessageCollapse({
-        collapse: !isCollapsed,
-        conversationIDKey,
-        messageID: ordinal,
-      })
-    )
-  }, [dispatch, isCollapsed, conversationIDKey, ordinal])
+    dispatch(Chat2Gen.createToggleMessageCollapse({conversationIDKey, messageID: ordinal}))
+  }, [dispatch, conversationIDKey, ordinal])
   const onRetry = React.useCallback(() => {
     dispatch(Chat2Gen.createAttachmentDownload({conversationIDKey, ordinal}))
   }, [dispatch, conversationIDKey, ordinal])
