@@ -93,15 +93,16 @@ const Image2 = React.memo(function Image2(p: Props) {
 
 const styles = Styles.styleSheetCreate(() => {
   return {
-    container: {alignSelf: 'center'},
+    container: {alignSelf: 'center', paddingRight: Styles.globalMargins.tiny},
     containerHighlighted: {
       alignSelf: 'center',
       backgroundColor: Styles.globalColors.yellowLight,
+      paddingRight: Styles.globalMargins.tiny,
     },
     contentContainer: {
       backgroundColor: Styles.globalColors.black_05_on_white,
       borderRadius: Styles.borderRadius,
-      maxWidth: 330,
+      maxWidth: Styles.isMobile ? '100%' : 330,
       padding: Styles.globalMargins.xtiny,
       position: 'relative',
     },
