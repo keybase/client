@@ -11,7 +11,7 @@ import * as Kb from '../common-adapters'
 import Loading from '../login/loading'
 import type {Theme} from '@react-navigation/native'
 import {isDarkMode} from '../styles/dark-mode'
-import {colors, darkColors} from '../styles/colors'
+import {colors, darkColors, themed} from '../styles/colors'
 import type {NavState} from '../constants/types/route-tree'
 
 export enum AppState {
@@ -163,23 +163,23 @@ const styles = Styles.styleSheetCreate(() => ({
   },
 }))
 
-// nav isn't compatible with dynamiccolorsios so we just reach in just here
+// the nav assumes plain colors for animation in some cases so we can't use the themed colors there
 export const theme: Theme = {
   colors: {
     get background() {
-      return (isDarkMode() ? darkColors.fastBlank : colors.fastBlank) as string
+      return themed.fastBlank as string
     },
     get border() {
-      return (isDarkMode() ? darkColors.black_10 : colors.black_10) as string
+      return themed.black_10 as string
     },
     get card() {
       return (isDarkMode() ? darkColors.fastBlank : colors.fastBlank) as string
     },
     get notification() {
-      return (isDarkMode() ? darkColors.black : colors.black) as string
+      return themed.black as string
     },
     get primary() {
-      return (isDarkMode() ? darkColors.black : colors.black) as string
+      return themed.black as string
     },
     get text() {
       return (isDarkMode() ? darkColors.black : colors.black) as string
