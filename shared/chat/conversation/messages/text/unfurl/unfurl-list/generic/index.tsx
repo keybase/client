@@ -97,12 +97,8 @@ const styles = Styles.styleSheetCreate(
   () =>
     ({
       bottomImage: Styles.platformStyles({
-        common: {
-          marginTop: Styles.globalMargins.xtiny,
-        },
-        isMobile: {
-          alignSelf: 'center',
-        },
+        common: {marginTop: Styles.globalMargins.xtiny},
+        isMobile: {alignSelf: 'center'},
       }),
       closeBox: Styles.platformStyles({
         isElectron: {
@@ -111,17 +107,11 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       collapseBox: Styles.platformStyles({
-        isElectron: {
-          display: 'inline',
-        },
+        isElectron: {display: 'inline'},
       }),
       container: Styles.platformStyles({
-        common: {
-          alignSelf: 'flex-start',
-        },
-        isElectron: {
-          maxWidth: 500,
-        },
+        common: {alignSelf: 'flex-start'},
+        isElectron: {maxWidth: 500},
       }),
       favicon: Styles.platformStyles({
         common: {
@@ -156,15 +146,9 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       siteNameContainer: Styles.platformStyles({
-        common: {
-          alignSelf: 'flex-start',
-        },
-        isElectron: {
-          minHeight: 16,
-        },
-        isMobile: {
-          minHeight: 21,
-        },
+        common: {alignSelf: 'flex-start'},
+        isElectron: {minHeight: 16},
+        isMobile: {minHeight: 21},
       }),
       url: {
         ...Styles.globalStyles.fontSemibold,
