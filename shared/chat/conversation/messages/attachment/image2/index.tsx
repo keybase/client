@@ -52,8 +52,8 @@ const styles = Styles.styleSheetCreate(() => {
       paddingRight: Styles.globalMargins.tiny,
     },
     contentContainer: {
-      backgroundColor: Styles.globalColors.black_05_on_white,
-      borderRadius: Styles.isMobile ? undefined : Styles.borderRadius,
+      backgroundColor: Styles.isAndroid ? undefined : Styles.globalColors.black_05_on_white,
+      borderRadius: Styles.borderRadius,
       maxWidth: Styles.isMobile ? '100%' : 330,
       padding: Styles.globalMargins.tiny,
       position: 'relative',
