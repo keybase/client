@@ -39,7 +39,6 @@ export const ShowToastAfterSaving = Container.isMobile
     }
   : () => null
 
-// TOO remofe
 export const getEditStyle = (isEditing: boolean, isHighlighted?: boolean) => {
   if (isHighlighted) {
     return Styles.collapseStyles([sharedStyles.sent, sharedStyles.highlighted])
