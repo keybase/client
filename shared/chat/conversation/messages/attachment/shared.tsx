@@ -53,8 +53,22 @@ export const Title = () => {
     const m = Constants.getMessage(state, conversationIDKey, ordinal)
     return m?.type === 'attachment' ? m.title : ''
   })
+
+  const styleOverride = React.useMemo(
+    () =>
+      Styles.isMobile
+        ? ({paragraph: {backgroundColor: Styles.globalColors.black_05_on_white}} as any)
+        : undefined,
+    []
+  )
+
   return (
-    <Kb.Markdown messageType="attachment" selectable={true} allowFontScaling={true}>
+    <Kb.Markdown
+      messageType="attachment"
+      selectable={true}
+      allowFontScaling={true}
+      styleOverride={styleOverride}
+    >
       {title}
     </Kb.Markdown>
   )
@@ -73,13 +87,21 @@ const CollapseLabel = () => {
   }, shallowEqual)
   return (
     <>
-      <Kb.Text type="BodyTiny" lineClamp={1}>
+      <Kb.Text type="BodyTiny" lineClamp={1} style={styles.collapseLabel}>
         {filename}
       </Kb.Text>
-      <Kb.Icon sizeType="Tiny" type={isCollapsed ? 'iconfont-caret-right' : 'iconfont-caret-down'} />
+      <Kb.Icon
+        style={styles.collapseLabel}
+        sizeType="Tiny"
+        type={isCollapsed ? 'iconfont-caret-right' : 'iconfont-caret-down'}
+      />
     </>
   )
 }
+
+const styles = Styles.styleSheetCreate(() => ({
+  collapseLabel: {backgroundColor: Styles.globalColors.fastBlank},
+}))
 
 export const useCollapseLabel = () => {
   const getIds = React.useContext(GetIdsContext)

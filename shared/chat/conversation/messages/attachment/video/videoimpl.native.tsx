@@ -62,7 +62,10 @@ const VideoImpl = (_p: Props) => {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      duration: {alignSelf: 'flex-end'},
+      duration: {
+        alignSelf: 'flex-end',
+        backgroundColor: Styles.globalColors.black_05_on_white,
+      },
       playButton: {
         ...Styles.globalStyles.fillAbsolute,
         bottom: '50%',

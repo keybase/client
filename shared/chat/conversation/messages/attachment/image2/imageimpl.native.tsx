@@ -17,7 +17,8 @@ const Image2Impl = () => {
 
 const styles = Styles.styleSheetCreate(() => ({
   image: {
-    ...Styles.globalStyles.rounded,
+    // ...Styles.globalStyles.rounded,
+    backgroundColor: Styles.globalColors.black_05_on_white,
     maxHeight: 320,
     maxWidth: '100%',
   },

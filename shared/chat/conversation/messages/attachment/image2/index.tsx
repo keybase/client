@@ -53,7 +53,7 @@ const styles = Styles.styleSheetCreate(() => {
     },
     contentContainer: {
       backgroundColor: Styles.globalColors.black_05_on_white,
-      borderRadius: Styles.borderRadius,
+      borderRadius: Styles.isMobile ? undefined : Styles.borderRadius,
       maxWidth: Styles.isMobile ? '100%' : 330,
       padding: Styles.globalMargins.tiny,
       position: 'relative',
