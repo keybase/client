@@ -62,7 +62,6 @@ const VideoImpl = (p: Props) => {
         >
           {downloadOrShow}
         </Kb.Text>
-
         <Kb.Text type="BodyTinyBold">{videoDuration}</Kb.Text>
       </Kb.Box2>
     </>

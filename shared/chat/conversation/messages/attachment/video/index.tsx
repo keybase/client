@@ -3,7 +3,6 @@ import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
 import VideoImpl from './videoimpl'
 import {useCollapseLabel, Title, useAttachmentRedux} from '../shared'
-// import {ConvoIDContext, OrdinalContext} from '../../ids-context'
 
 type Props = {
   toggleMessageMenu: () => void
@@ -13,12 +12,8 @@ type Props = {
 const Video = React.memo(function Video(p: Props) {
   const {isHighlighted, toggleMessageMenu} = p
   const {isCollapsed, showTitle, openFullscreen} = useAttachmentRedux()
-  // const conversationIDKey = React.useContext(ConvoIDContext)
-  // const ordinal = React.useContext(OrdinalContext)
   const containerStyle = isHighlighted ? styles.containerHighlighted : styles.container
   const collapseLabel = useCollapseLabel()
-  // TODO
-  //onClick={onClick}
   const content = React.useMemo(() => {
     return (
       <Kb.Box2
@@ -56,9 +51,6 @@ const styles = Styles.styleSheetCreate(
         maxWidth: Styles.isMobile ? '100%' : 330,
         padding: Styles.globalMargins.tiny,
         position: 'relative',
-      },
-      overlay: {
-        ...Styles.globalStyles.fillAbsolute,
       },
     } as const)
 )
