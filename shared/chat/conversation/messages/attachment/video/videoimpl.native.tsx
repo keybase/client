@@ -46,6 +46,7 @@ const VideoImpl = (_p: Props) => {
           shouldPlay={!showPoster}
           usePoster={showPoster}
           posterSource={posterSource}
+          posterStyle={styles.poster}
           style={Styles.collapseStyles([styles.video, {height, width}])}
           resizeMode={ResizeMode.CONTAIN}
         />
@@ -73,6 +74,7 @@ const styles = Styles.styleSheetCreate(
         right: '50%',
         top: '50%',
       },
+      poster: {backgroundColor: Styles.globalColors.black_05_on_white},
       pressable: {position: 'relative'},
       video: {
         maxHeight: 320,

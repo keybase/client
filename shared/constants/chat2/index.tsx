@@ -460,12 +460,12 @@ const numMessagesOnScrollback = isMobile ? 100 : 100
 export const clampImageSize = (width: number, height: number, maxSize: number) =>
   height > width
     ? {
-        height: clamp(height || 0, 0, maxSize),
-        width: (clamp(height || 0, 0, maxSize) * width) / (height || 1),
+        height: Math.ceil(clamp(height || 0, 0, maxSize)),
+        width: Math.ceil((clamp(height || 0, 0, maxSize) * width) / (height || 1)),
       }
     : {
-        height: (clamp(width || 0, 0, maxSize) * height) / (width || 1),
-        width: clamp(width || 0, 0, maxSize),
+        height: Math.ceil((clamp(width || 0, 0, maxSize) * height) / (width || 1)),
+        width: Math.ceil(clamp(width || 0, 0, maxSize)),
       }
 
 export const zoomImage = (width: number, height: number, maxThumbSize: number) => {

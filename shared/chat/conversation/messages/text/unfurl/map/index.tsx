@@ -4,7 +4,7 @@ import * as Container from '../../../../../../util/container'
 import * as RouteTreeGen from '../../../../../../actions/route-tree-gen'
 import * as Styles from '../../../../../../styles'
 import type * as Types from '../../../../../../constants/types/chat2'
-import {imgMaxWidth} from '../../../attachment/image/image-render'
+import {maxWidth} from '../../../attachment/shared'
 import {formatDurationForLocation} from '../../../../../../util/timestamp'
 import UnfurlImage from '../image'
 
@@ -60,7 +60,7 @@ const UnfurlMap = (props: Props) => {
       {!!props.liveLocationEndTime && (
         <Kb.Box2
           direction="horizontal"
-          style={Styles.collapseStyles([styles.liveLocation, {width: imgMaxWidth()}])}
+          style={Styles.collapseStyles([styles.liveLocation, {width: maxWidth}])}
           fullWidth={true}
         >
           <Kb.Box2 direction="vertical">
