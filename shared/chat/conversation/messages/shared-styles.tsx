@@ -1,5 +1,6 @@
 import * as Styles from '../../../styles'
 
+// TODO remove
 export const sharedStyles = Styles.styleSheetCreate(() => {
   const editing = {
     backgroundColor: Styles.globalColors.yellowLight,

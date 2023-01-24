@@ -865,14 +865,6 @@ export const createDismissBottomBanner = (payload: {
   readonly conversationIDKey: Types.ConversationIDKey
 }) => ({payload, type: dismissBottomBanner as typeof dismissBottomBanner})
 /**
- * Set the collapse status of a message
- */
-export const createToggleMessageCollapse = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly messageID: Types.MessageID
-  readonly collapse: boolean
-}) => ({payload, type: toggleMessageCollapse as typeof toggleMessageCollapse})
-/**
  * Set the minimum role required to write into a conversation. Valid only for team conversations.
  */
 export const createSetMinWriterRole = (payload: {
@@ -1047,6 +1039,13 @@ export const createToggleInboxSearch = (payload: {readonly enabled: boolean}) =>
   payload,
   type: toggleInboxSearch as typeof toggleInboxSearch,
 })
+/**
+ * Toggle the collapse status of a message
+ */
+export const createToggleMessageCollapse = (payload: {
+  readonly conversationIDKey: Types.ConversationIDKey
+  readonly messageID: Types.MessageID
+}) => ({payload, type: toggleMessageCollapse as typeof toggleMessageCollapse})
 /**
  * Toggle the display of the thread search window
  */

@@ -495,3 +495,7 @@ body {
 .clickable {
   cursor: pointer;
 }
+
+.clickable-box2 {
+  cursor: pointer;
+}

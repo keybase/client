@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {imgMaxWidthRaw} from '../messages/attachment/image/image-render'
+import {maxWidth} from '../messages/attachment/shared'
 import * as Styles from '../../../styles'
 import * as ChatConstants from '../../../constants/chat2'
 import type * as ChatTypes from '../../../constants/types/chat2'
@@ -9,7 +9,7 @@ import * as TeamsGen from '../../../actions/teams-gen'
 import shallowEqual from 'shallowequal'
 
 export const infoPanelWidthElectron = 320
-export const infoPanelWidthPhone = imgMaxWidthRaw()
+export const infoPanelWidthPhone = maxWidth
 export const infoPanelWidthTablet = 350
 
 export function infoPanelWidth() {

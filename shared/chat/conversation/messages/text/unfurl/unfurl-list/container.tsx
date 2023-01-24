@@ -23,15 +23,15 @@ const UnfurlListContainer = React.memo(function UnfurlListContainer(p: OwnProps)
   const onClose = (messageID: Types.MessageID) => {
     dispatch(Chat2Gen.createUnfurlRemove({conversationIDKey, messageID}))
   }
-  const onCollapse = (messageID: Types.MessageID, collapse: boolean) => {
-    dispatch(Chat2Gen.createToggleMessageCollapse({collapse, conversationIDKey, messageID}))
+  const onCollapse = (messageID: Types.MessageID) => {
+    dispatch(Chat2Gen.createToggleMessageCollapse({conversationIDKey, messageID}))
   }
   const unfurls = _unfurls
     ? [..._unfurls.values()].map(u => {
         return {
           isCollapsed: u.isCollapsed,
           onClose: isAuthor ? () => onClose(Types.numberToMessageID(u.unfurlMessageID)) : undefined,
-          onCollapse: () => onCollapse(Types.numberToMessageID(u.unfurlMessageID), !u.isCollapsed),
+          onCollapse: () => onCollapse(Types.numberToMessageID(u.unfurlMessageID)),
           unfurl: u.unfurl,
           url: u.url,
         }

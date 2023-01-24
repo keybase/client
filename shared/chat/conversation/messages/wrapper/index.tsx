@@ -1,5 +1,10 @@
 import Text from '../text/wrapper'
-import {WrapperAttachmentAudio, WrapperAttachmentFile, WrapperAttachmentImage} from '../attachment/wrapper'
+import {
+  WrapperAttachmentAudio,
+  WrapperAttachmentFile,
+  WrapperAttachmentImage,
+  WrapperAttachmentVideo,
+} from '../attachment/wrapper'
 import JourneyCard from '../cards/team-journey/wrapper'
 import Placeholder from '../placeholder/wrapper'
 import Payment from '../account-payment/wrapper'
@@ -26,6 +31,7 @@ const typeMap = {
   'attachment:audio': WrapperAttachmentAudio,
   'attachment:file': WrapperAttachmentFile,
   'attachment:image': WrapperAttachmentImage,
+  'attachment:video': WrapperAttachmentVideo,
   journeycard: JourneyCard,
   pin: Pin,
   placeholder: Placeholder,

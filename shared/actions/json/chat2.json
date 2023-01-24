@@ -606,10 +606,9 @@
       "messageID": "Types.MessageID"
     },
     "toggleMessageCollapse": {
-      "_description": "Set the collapse status of a message",
+      "_description": "Toggle the collapse status of a message",
       "conversationIDKey": "Types.ConversationIDKey",
-      "messageID": "Types.MessageID",
-      "collapse": "boolean"
+      "messageID": "Types.MessageID"
     },
     "updateCoinFlipStatus": {
       "_description": "Update status of a coin flip game",

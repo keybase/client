@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../../../../../common-adapters/index'
 import * as Constants from '../../../../../../constants/chat2'
 import * as Styles from '../../../../../../styles'
-import {imgMaxWidth} from '../../../attachment/image/image-render'
+import {maxWidth} from '../../../../messages/attachment/shared'
 import {Video} from './video'
 import openURL from '../../../../../../util/open-url'
 
@@ -20,7 +20,7 @@ export type Props = {
 
 class UnfurlImage extends React.Component<Props> {
   _getDimensions() {
-    const maxSize = Math.min(imgMaxWidth(), 320) - (this.props.widthPadding || 0)
+    const maxSize = Math.min(maxWidth, 320) - (this.props.widthPadding || 0)
     const {height, width} = Constants.clampImageSize(this.props.width, this.props.height, maxSize)
     return {
       flexGrow: 0,

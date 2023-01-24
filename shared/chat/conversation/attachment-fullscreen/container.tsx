@@ -8,8 +8,8 @@ import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as FsGen from '../../../actions/fs-gen'
 import Fullscreen from '.'
 import * as Container from '../../../util/container'
-import {imgMaxWidthRaw} from '../messages/attachment/image/image-render'
 import shallowEqual from 'shallowequal'
+import {maxWidth} from '../messages/attachment/shared'
 
 const blankMessage = Constants.makeMessageAttachment({})
 
@@ -52,7 +52,7 @@ const Connected = (props: OwnProps) => {
   const {height: clampedHeight, width: clampedWidth} = Constants.clampImageSize(
     previewWidth,
     previewHeight,
-    imgMaxWidthRaw()
+    maxWidth
   )
 
   const submit = Container.useRPC(RPCChatTypes.localGetNextAttachmentMessageLocalRpcPromise)
