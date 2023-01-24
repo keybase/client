@@ -147,10 +147,16 @@ const styles = Styles.styleSheetCreate(
         right: Styles.globalMargins.small,
       },
       error: {color: Styles.globalColors.redDark},
-      iconStyle: {
-        height: 32,
-        width: 32,
-      },
+      iconStyle: Styles.platformStyles({
+        common: {
+          height: 32,
+          width: 32,
+        },
+        isElectron: {
+          display: 'block',
+          height: 35,
+        },
+      }),
       linkStyle: {color: Styles.globalColors.black_50},
       progressContainerStyle: {
         ...Styles.globalStyles.flexBoxRow,
