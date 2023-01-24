@@ -1,9 +1,9 @@
 import * as React from 'react'
-import * as Kb from '../../../../../../common-adapters/index'
-import * as Styles from '../../../../../../styles'
-import logger from '../../../../../../logger'
+import * as Kb from '../../../../../../../common-adapters/index'
+import * as Styles from '../../../../../../../styles'
+import logger from '../../../../../../../logger'
 import {Video as AVVideo, ResizeMode} from 'expo-av'
-import type {Props} from './video.types'
+import type {Props} from './video'
 
 export const Video = (props: Props) => {
   const {autoPlay, onClick, url, style, width, height} = props

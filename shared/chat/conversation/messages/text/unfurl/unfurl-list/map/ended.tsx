@@ -1,6 +1,6 @@
-import * as Styles from '../../../../../../styles'
-import * as Kb from '../../../../../../common-adapters'
-import {formatTimeForChat} from '../../../../../../util/timestamp'
+import * as Styles from '../../../../../../../styles'
+import * as Kb from '../../../../../../../common-adapters'
+import {formatTimeForChat} from '../../../../../../../util/timestamp'
 
 type Props = {
   endTime?: number

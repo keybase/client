@@ -1,4 +1,4 @@
-import type * as RPCChatTypes from '../../../../../../constants/types/rpc-chat-gen'
+import type * as RPCChatTypes from '../../../../../../../constants/types/rpc-chat-gen'
 import UnfurlGeneric from '.'
 
 type Props = {

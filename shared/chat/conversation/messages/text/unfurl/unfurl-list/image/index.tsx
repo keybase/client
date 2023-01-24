@@ -1,10 +1,10 @@
 import * as React from 'react'
-import * as Kb from '../../../../../../common-adapters/index'
-import * as Constants from '../../../../../../constants/chat2'
-import * as Styles from '../../../../../../styles'
-import {maxWidth} from '../../../../messages/attachment/shared'
+import * as Kb from '../../../../../../../common-adapters/index'
+import * as Constants from '../../../../../../../constants/chat2'
+import * as Styles from '../../../../../../../styles'
+import {maxWidth} from '../../../../../messages/attachment/shared'
 import {Video} from './video'
-import openURL from '../../../../../../util/open-url'
+import openURL from '../../../../../../../util/open-url'
 
 export type Props = {
   autoplayVideo: boolean

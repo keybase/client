@@ -1,11 +1,11 @@
 import * as React from 'react'
-import * as Kb from '../../../../../../common-adapters/index'
-import * as Container from '../../../../../../util/container'
-import * as RouteTreeGen from '../../../../../../actions/route-tree-gen'
-import * as Styles from '../../../../../../styles'
-import type * as Types from '../../../../../../constants/types/chat2'
-import {maxWidth} from '../../../attachment/shared'
-import {formatDurationForLocation} from '../../../../../../util/timestamp'
+import * as Kb from '../../../../../../../common-adapters/index'
+import * as Container from '../../../../../../../util/container'
+import * as RouteTreeGen from '../../../../../../../actions/route-tree-gen'
+import * as Styles from '../../../../../../../styles'
+import type * as Types from '../../../../../../../constants/types/chat2'
+import {maxWidth} from '../../../../attachment/shared'
+import {formatDurationForLocation} from '../../../../../../../util/timestamp'
 import UnfurlImage from '../image'
 
 type Props = {

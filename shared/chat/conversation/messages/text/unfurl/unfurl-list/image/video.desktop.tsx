@@ -1,7 +1,7 @@
 import * as React from 'react'
-import * as Kb from '../../../../../../common-adapters/index'
-import * as Styles from '../../../../../../styles'
-import type {Props} from './video.types'
+import * as Kb from '../../../../../../../common-adapters/index'
+import * as Styles from '../../../../../../../styles'
+import type {Props} from './video'
 
 type State = {
   playingVideo: boolean

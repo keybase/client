@@ -3,10 +3,10 @@ import type * as Types from '../../../../../../constants/types/chat2'
 import * as RPCChatTypes from '../../../../../../constants/types/rpc-chat-gen'
 import * as Styles from '../../../../../../styles'
 import {Box2} from '../../../../../../common-adapters/index'
-import UnfurlGeneric from '../generic/container'
-import UnfurlGiphy from '../giphy/container'
-import UnfurlMap from '../map'
-import UnfurlSharingEnded from '../map/ended'
+import UnfurlGeneric from './generic/container'
+import UnfurlGiphy from './giphy/container'
+import UnfurlMap from './map'
+import UnfurlSharingEnded from './map/ended'
 
 export type UnfurlListItem = {
   unfurl: RPCChatTypes.UnfurlDisplay

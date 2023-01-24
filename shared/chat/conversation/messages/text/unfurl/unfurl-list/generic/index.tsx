@@ -1,6 +1,6 @@
-import * as Kb from '../../../../../../common-adapters/index'
-import * as Styles from '../../../../../../styles'
-import {formatTimeForMessages} from '../../../../../../util/timestamp'
+import * as Kb from '../../../../../../../common-adapters/index'
+import * as Styles from '../../../../../../../styles'
+import {formatTimeForMessages} from '../../../../../../../util/timestamp'
 import UnfurlImage from '../image'
 
 export type Props = {
