@@ -14,8 +14,9 @@ export const useRedux = () => {
   return Container.useSelector(state => {
     const m = Constants.getMessage(state, conversationIDKey, ordinal)
     const message = m?.type === 'attachment' ? m : missingMessage
-    const {previewURL, previewHeight, previewWidth, fileURL} = message
+    const {previewURL, previewHeight, previewWidth} = message
+    const {fileURL, downloadPath, transferState, videoDuration} = message
     const {height, width} = Constants.clampImageSize(previewWidth, previewHeight, maxWidth)
-    return {height, previewURL, url: fileURL, width}
+    return {downloadPath, height, previewURL, transferState, url: fileURL, videoDuration, width}
   }, shallowEqual)
 }
