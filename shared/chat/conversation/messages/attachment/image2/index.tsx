@@ -11,7 +11,7 @@ type Props = {
 
 const Image2 = React.memo(function Image2(p: Props) {
   const {isHighlighted, toggleMessageMenu} = p
-  const {isCollapsed, isEditing, showTitle, onClick} = useAttachmentRedux()
+  const {isCollapsed, isEditing, showTitle, openFullscreen} = useAttachmentRedux()
   const containerStyle = isHighlighted || isEditing ? styles.containerHighlighted : styles.container
   const collapseLabel = useCollapseLabel()
 
@@ -23,13 +23,17 @@ const Image2 = React.memo(function Image2(p: Props) {
         alignSelf="flex-start"
         alignItems="flex-start"
       >
-        <Kb.ClickableBox onClick={onClick} onLongPress={toggleMessageMenu} style={styles.imageContainer}>
+        <Kb.ClickableBox
+          onClick={openFullscreen}
+          onLongPress={toggleMessageMenu}
+          style={styles.imageContainer}
+        >
           <ImageImpl />
         </Kb.ClickableBox>
         {showTitle ? <Title /> : null}
       </Kb.Box2>
     )
-  }, [onClick, toggleMessageMenu, showTitle])
+  }, [openFullscreen, toggleMessageMenu, showTitle])
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={containerStyle} alignItems="flex-start">

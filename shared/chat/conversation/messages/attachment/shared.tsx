@@ -13,7 +13,7 @@ type Props = {
   transferState: Types.MessageAttachmentTransferState
 }
 
-const missingMessage = Constants.makeMessageAttachment()
+export const missingMessage = Constants.makeMessageAttachment()
 
 export const ShowToastAfterSaving = Container.isMobile
   ? ({transferState}: Props) => {
@@ -105,7 +105,7 @@ export const useAttachmentRedux = () => {
   const ordinal = React.useContext(OrdinalContext)
   const dispatch = Container.useDispatch()
   const getIds = React.useContext(GetIdsContext)
-  const onClick = React.useCallback(() => {
+  const openFullscreen = React.useCallback(() => {
     const {conversationIDKey, ordinal} = getIds()
     dispatch(Chat2Gen.createAttachmentPreviewSelect({conversationIDKey, ordinal}))
   }, [dispatch, getIds])
@@ -120,5 +120,5 @@ export const useAttachmentRedux = () => {
     return {isCollapsed, isEditing, showTitle}
   }, shallowEqual)
 
-  return {isCollapsed, isEditing, onClick, showTitle}
+  return {isCollapsed, isEditing, openFullscreen, showTitle}
 }

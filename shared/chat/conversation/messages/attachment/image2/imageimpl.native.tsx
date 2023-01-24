@@ -1,23 +1,10 @@
 import * as React from 'react'
 import * as Styles from '../../../../../styles'
 import * as Kb from '../../../../../common-adapters/mobile.native'
-import * as Constants from '../../../../../constants/chat2'
-import * as Container from '../../../../../util/container'
-import {ConvoIDContext, OrdinalContext} from '../../ids-context'
-import shallowEqual from 'shallowequal'
-
-const missingMessage = Constants.makeMessageAttachment()
+import {useRedux} from './use-redux'
 
 const Image2Impl = () => {
-  const conversationIDKey = React.useContext(ConvoIDContext)
-  const ordinal = React.useContext(OrdinalContext)
-  const {previewURL, height, width} = Container.useSelector(state => {
-    const m = Constants.getMessage(state, conversationIDKey, ordinal)
-    const message = m?.type === 'attachment' ? m : missingMessage
-    const {previewURL, previewHeight, previewWidth} = message
-    return {height: previewHeight, previewURL, width: previewWidth}
-  }, shallowEqual)
-
+  const {previewURL, height, width} = useRedux()
   const fiSrc = React.useMemo(() => ({uri: previewURL}), [previewURL])
   return (
     <Kb.NativeFastImage
