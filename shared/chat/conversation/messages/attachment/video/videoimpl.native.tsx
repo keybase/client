@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as Kb from '../../../../../common-adapters'
+import * as Kb from '../../../../../common-adapters/mobile.native'
 import * as Styles from '../../../../../styles'
 import {useRedux} from './use-redux'
 import {ShowToastAfterSaving} from '../shared'
@@ -11,7 +11,7 @@ const VideoImpl = (_p: Props) => {
   const {previewURL, height, width, url, transferState, videoDuration} = useRedux()
   const source = React.useMemo(() => ({uri: `${url}&contentforce=true`}), [url])
 
-  const posterSource = React.useMemo(() => ({uri: previewURL}), [previewURL])
+  // const posterSource = React.useMemo(() => ({uri: previewURL}), [previewURL])
   const ref = React.useRef<Video | null>(null)
 
   const [showPoster, setShowPoster] = React.useState(true)
@@ -34,22 +34,29 @@ const VideoImpl = (_p: Props) => {
     }
   }, [])
 
+  const fiSrc = React.useMemo(() => ({uri: previewURL}), [previewURL])
+
   return (
     <>
       <ShowToastAfterSaving transferState={transferState} />
       <Pressable onPress={onPress} style={styles.pressable}>
-        <Video
-          ref={ref}
-          onPlaybackStatusUpdate={onPlaybackStatusUpdate}
-          source={source}
-          useNativeControls={true}
-          shouldPlay={!showPoster}
-          usePoster={showPoster}
-          posterSource={posterSource}
-          posterStyle={styles.poster}
-          style={Styles.collapseStyles([styles.video, {height, width}])}
-          resizeMode={ResizeMode.CONTAIN}
-        />
+        {showPoster ? (
+          <Kb.NativeFastImage
+            source={fiSrc}
+            style={Styles.collapseStyles([styles.poster, {height, width}])}
+          />
+        ) : (
+          <Video
+            ref={ref}
+            onPlaybackStatusUpdate={onPlaybackStatusUpdate}
+            source={source}
+            useNativeControls={true}
+            shouldPlay={true}
+            usePoster={false}
+            style={Styles.collapseStyles([styles.video, {height, width}])}
+            resizeMode={ResizeMode.CONTAIN}
+          />
+        )}
         {showPoster ? <Kb.Icon type="icon-play-64" style={styles.playButton} /> : null}
       </Pressable>
       <Kb.Text type="BodyTinyBold" style={styles.duration}>
