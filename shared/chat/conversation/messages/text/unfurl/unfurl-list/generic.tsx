@@ -1,13 +1,13 @@
-import * as Container from '../../../../../../../util/container'
-import * as Kb from '../../../../../../../common-adapters/index'
-import * as RPCChatTypes from '../../../../../../../constants/types/rpc-chat-gen'
+import * as Container from '../../../../../../util/container'
+import * as Kb from '../../../../../../common-adapters/index'
+import * as RPCChatTypes from '../../../../../../constants/types/rpc-chat-gen'
 import * as React from 'react'
-import * as Styles from '../../../../../../../styles'
-import UnfurlImage from '../image'
+import * as Styles from '../../../../../../styles'
+import UnfurlImage from './image'
 import shallowEqual from 'shallowequal'
-import {ConvoIDContext, OrdinalContext} from '../../../../ids-context'
-import {formatTimeForMessages} from '../../../../../../../util/timestamp'
-import {getUnfurlInfo, useActions} from '../use-redux'
+import {ConvoIDContext, OrdinalContext} from '../../../ids-context'
+import {formatTimeForMessages} from '../../../../../../util/timestamp'
+import {getUnfurlInfo, useActions} from './use-redux'
 
 const UnfurlGeneric = (p: {idx: number}) => {
   const {idx} = p
