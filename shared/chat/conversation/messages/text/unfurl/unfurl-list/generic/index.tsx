@@ -1,94 +1,147 @@
+import * as Container from '../../../../../../../util/container'
 import * as Kb from '../../../../../../../common-adapters/index'
+import * as RPCChatTypes from '../../../../../../../constants/types/rpc-chat-gen'
+import * as React from 'react'
 import * as Styles from '../../../../../../../styles'
-import {formatTimeForMessages} from '../../../../../../../util/timestamp'
 import UnfurlImage from '../image'
+import shallowEqual from 'shallowequal'
+import {ConvoIDContext, OrdinalContext} from '../../../../ids-context'
+import {formatTimeForMessages} from '../../../../../../../util/timestamp'
+import {getUnfurlInfo, useActions} from '../use-redux'
 
-export type Props = {
-  isCollapsed: boolean
-  title: string
-  url: string
-  siteName: string
-  description?: string
-  publishTime?: number
-  imageURL?: string
-  imageHeight?: number
-  imageWidth?: number
-  imageIsVideo?: boolean
-  faviconURL?: string
-  onClose?: () => void
-  onCollapse: () => void
-  showImageOnSide: boolean
-}
+const UnfurlGeneric = (p: {idx: number}) => {
+  const {idx} = p
+  const conversationIDKey = React.useContext(ConvoIDContext)
+  const ordinal = React.useContext(OrdinalContext)
 
-const UnfurlGeneric = (props: Props) => {
-  const {imageURL, imageHeight, imageWidth, showImageOnSide, siteName, publishTime} = props
-  const {onClose, title, description, isCollapsed, url, imageIsVideo, onCollapse, faviconURL} = props
-  const showBottomImage = !!imageHeight && !!imageWidth && !showImageOnSide
+  const data = Container.useSelector(state => {
+    const {unfurl, isCollapsed, unfurlMessageID, youAreAuthor} = getUnfurlInfo(
+      state,
+      conversationIDKey,
+      ordinal,
+      idx
+    )
+    if (unfurl?.unfurlType !== RPCChatTypes.UnfurlType.generic) {
+      return null
+    }
+    const {generic} = unfurl
+    const {description, publishTime, favicon, media, siteName, title} = generic
+    const {height, width, isVideo, url} = media || {height: 0, isVideo: false, url: '', width: 0}
+    const showImageOnSide =
+      !Styles.isMobile && height >= width && !isVideo && (title.length > 0 || !!description)
+    const imageLocation = isCollapsed
+      ? 'none'
+      : showImageOnSide
+      ? 'side'
+      : width > 0 && height > 0
+      ? 'bottom'
+      : 'none'
+
+    return {
+      description: description || undefined,
+      favicon: favicon?.url,
+      height,
+      imageLocation,
+      isCollapsed,
+      isVideo,
+      publishTime: publishTime ? publishTime * 1000 : 0,
+      siteName,
+      title,
+      unfurlMessageID,
+      url,
+      width,
+      youAreAuthor,
+    }
+  }, shallowEqual)
+
+  const {onClose, onCollapse} = useActions(
+    conversationIDKey,
+    data?.youAreAuthor ?? false,
+    data?.unfurlMessageID ?? 0
+  )
+
+  if (!data) return null
+
+  const {description, favicon, height, isCollapsed, isVideo, publishTime} = data
+  const {siteName, title, url, width, imageLocation} = data
+
+  const publisher = (
+    <Kb.Box2 style={styles.siteNameContainer} gap="tiny" fullWidth={true} direction="horizontal">
+      {favicon ? <Kb.Image src={favicon} style={styles.favicon} /> : null}
+      <Kb.BoxGrow>
+        <Kb.Text type="BodySmall" lineClamp={1}>
+          {siteName}
+          {publishTime ? (
+            <Kb.Text type="BodySmall"> • Published {formatTimeForMessages(publishTime)}</Kb.Text>
+          ) : null}
+        </Kb.Text>
+      </Kb.BoxGrow>
+      {!!onClose && (
+        <Kb.Icon
+          type="iconfont-close"
+          onClick={onClose}
+          style={styles.closeBox}
+          padding="xtiny"
+          className="unfurl-closebox"
+          fontSize={12}
+        />
+      )}
+    </Kb.Box2>
+  )
+
+  const snippet = description ? (
+    <Kb.Text type="Body" lineClamp={5} selectable={true}>
+      {description}
+      {imageLocation === 'bottom' && (
+        <>
+          {' '}
+          <Kb.Icon
+            boxStyle={styles.collapseBox}
+            noContainer={Styles.isMobile}
+            onClick={onCollapse}
+            sizeType="Tiny"
+            type={isCollapsed ? 'iconfont-caret-right' : 'iconfont-caret-down'}
+          />
+        </>
+      )}
+    </Kb.Text>
+  ) : null
+
+  const bottomImage =
+    imageLocation === 'bottom' ? (
+      <Kb.Box2 direction="vertical" fullWidth={true}>
+        <UnfurlImage
+          url={url || ''}
+          linkURL={url}
+          height={height || 0}
+          width={width || 0}
+          widthPadding={Styles.isMobile ? Styles.globalMargins.tiny : undefined}
+          style={styles.bottomImage}
+          isVideo={isVideo || false}
+          autoplayVideo={false}
+        />
+      </Kb.Box2>
+    ) : null
+
+  const rightImage =
+    imageLocation === 'side' && url ? (
+      <Kb.Box2 direction="vertical">
+        <Kb.Image src={url} style={styles.sideImage} />
+      </Kb.Box2>
+    ) : null
+
   return (
     <Kb.Box2 style={styles.container} gap="tiny" direction="horizontal">
       {!Styles.isMobile && <Kb.Box2 direction="horizontal" style={styles.quoteContainer} />}
-      <Kb.Box2 style={styles.innerContainer} gap="xxtiny" direction="vertical">
-        <Kb.Box2 style={styles.siteNameContainer} gap="tiny" fullWidth={true} direction="horizontal">
-          {!!faviconURL && <Kb.Image src={faviconURL} style={styles.favicon} />}
-          <Kb.BoxGrow>
-            <Kb.Text type="BodySmall" lineClamp={1}>
-              {siteName}
-              {!!publishTime && (
-                <Kb.Text type="BodySmall"> • Published {formatTimeForMessages(publishTime)}</Kb.Text>
-              )}
-            </Kb.Text>
-          </Kb.BoxGrow>
-          {!!onClose && (
-            <Kb.Icon
-              type="iconfont-close"
-              onClick={onClose}
-              style={styles.closeBox}
-              padding="xtiny"
-              className="unfurl-closebox"
-              fontSize={12}
-            />
-          )}
-        </Kb.Box2>
+      <Kb.Box2 style={styles.innerContainer} gap="xxtiny" direction="vertical" fullWidth={true}>
+        {publisher}
         <Kb.Text type="BodyPrimaryLink" style={styles.url} onClickURL={url}>
           {title}
         </Kb.Text>
-        {!!description && (
-          <Kb.Text type="Body" lineClamp={5} selectable={true}>
-            {description}
-            {showBottomImage && (
-              <>
-                {' '}
-                <Kb.Icon
-                  boxStyle={styles.collapseBox}
-                  noContainer={Styles.isMobile}
-                  onClick={onCollapse}
-                  sizeType="Tiny"
-                  type={isCollapsed ? 'iconfont-caret-right' : 'iconfont-caret-down'}
-                />
-              </>
-            )}
-          </Kb.Text>
-        )}
-        {showBottomImage && !isCollapsed && (
-          <Kb.Box2 direction="vertical" fullWidth={true}>
-            <UnfurlImage
-              url={imageURL || ''}
-              linkURL={url}
-              height={imageHeight || 0}
-              width={imageWidth || 0}
-              widthPadding={Styles.isMobile ? Styles.globalMargins.tiny : undefined}
-              style={styles.bottomImage}
-              isVideo={imageIsVideo || false}
-              autoplayVideo={false}
-            />
-          </Kb.Box2>
-        )}
+        {snippet}
+        {bottomImage}
       </Kb.Box2>
-      {!Styles.isMobile && showImageOnSide && (
-        <Kb.Box2 direction="vertical" style={styles.sideImage}>
-          {!!imageURL && <Kb.Image src={imageURL} style={styles.sideImage} />}
-        </Kb.Box2>
-      )}
+      {rightImage}
     </Kb.Box2>
   )
 }
