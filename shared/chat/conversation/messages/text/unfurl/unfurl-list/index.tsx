@@ -1,11 +1,10 @@
-// import * as Chat2Gen from '../../../../../../actions/chat2-gen'
 import * as Constants from '../../../../../../constants/chat2'
 import * as Container from '../../../../../../util/container'
-import type * as RPCChatTypes from '../../../../../../constants/types/rpc-chat-gen'
+import * as RPCChatTypes from '../../../../../../constants/types/rpc-chat-gen'
 import * as React from 'react'
 import * as Styles from '../../../../../../styles'
 import UnfurlGeneric from './generic'
-import UnfurlGiphy from './giphy/container'
+import UnfurlGiphy from './giphy'
 import UnfurlMap from './map'
 import UnfurlSharingEnded from './map/ended'
 import type * as Types from '../../../../../../constants/types/chat2'
@@ -76,6 +75,14 @@ const UnfurlListContainer = React.memo(function UnfurlListContainer(_p: OwnProps
       [...(Constants.getMessage(state, conversationIDKey, ordinal)?.unfurls?.values() ?? [])].map(u => {
         const ut = u.unfurl.unfurlType
         switch (ut) {
+          case RPCChatTypes.UnfurlType.giphy:
+            return 'giphy'
+          case RPCChatTypes.UnfurlType.maps:
+            return 'generic'
+          // TODO
+          case RPCChatTypes.UnfurlType.youtube:
+            return 'generic'
+          // TODO
           default:
             return 'generic'
         }

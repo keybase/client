@@ -9,7 +9,7 @@ import {ConvoIDContext, OrdinalContext} from '../../../ids-context'
 import {formatTimeForMessages} from '../../../../../../util/timestamp'
 import {getUnfurlInfo, useActions} from './use-redux'
 
-const UnfurlGeneric = (p: {idx: number}) => {
+const UnfurlGeneric = React.memo(function UnfurlGeneric(p: {idx: number}) {
   const {idx} = p
   const conversationIDKey = React.useContext(ConvoIDContext)
   const ordinal = React.useContext(OrdinalContext)
@@ -144,7 +144,7 @@ const UnfurlGeneric = (p: {idx: number}) => {
       {rightImage}
     </Kb.Box2>
   )
-}
+})
 
 const styles = Styles.styleSheetCreate(
   () =>
