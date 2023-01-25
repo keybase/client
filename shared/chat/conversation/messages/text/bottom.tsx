@@ -53,8 +53,7 @@ export const useBottom = (
 }
 
 const WrapperTextBottom = function WrapperTextBottom(p: Props) {
-  const {hasBeenEdited, hasUnfurlPrompts, hasUnfurlList, hasCoinFlip} = p
-  const {toggleShowingPopup, showCenteredHighlight} = p
+  const {showCenteredHighlight, hasBeenEdited, hasUnfurlPrompts, hasUnfurlList, hasCoinFlip} = p
   const edited = hasBeenEdited ? (
     <Kb.Text
       key="isEdited"
@@ -78,7 +77,7 @@ const WrapperTextBottom = function WrapperTextBottom(p: Props) {
   const unfurlList = (() => {
     const UnfurlList = require('./unfurl/unfurl-list').default as typeof UnfurlListType
     if (hasUnfurlList) {
-      return <UnfurlList key="UnfurlList" toggleMessagePopup={toggleShowingPopup} />
+      return <UnfurlList key="UnfurlList" />
     }
     return null
   })()

@@ -53,10 +53,6 @@ const styles = Styles.styleSheetCreate(
     } as const)
 )
 
-type OwnProps = {
-  toggleMessagePopup: () => void
-}
-
 type UnfurlRenderType = 'generic' | 'map' | 'mapdone' | 'giphy'
 
 const renderTypeToClass = new Map<UnfurlRenderType, any /*TODOlReact.ExoticComponent<{idx: number}>*/>([
@@ -66,8 +62,7 @@ const renderTypeToClass = new Map<UnfurlRenderType, any /*TODOlReact.ExoticCompo
   ['giphy', UnfurlGiphy],
 ])
 
-const UnfurlListContainer = React.memo(function UnfurlListContainer(_p: OwnProps) {
-  // const {toggleMessagePopup} = p
+const UnfurlListContainer = React.memo(function UnfurlListContainer() {
   const conversationIDKey = React.useContext(ConvoIDContext)
   const ordinal = React.useContext(OrdinalContext)
   const unfurlTypes: Array<UnfurlRenderType> = Container.useSelector(
@@ -89,29 +84,6 @@ const UnfurlListContainer = React.memo(function UnfurlListContainer(_p: OwnProps
       }),
     shallowEqual
   )
-  // const message = Container.useSelector(state => Constants.getMessage(state, conversationIDKey, ordinal))
-  // const you = Container.useSelector(state => state.config.username)
-  // const _unfurls = message && message.type === 'text' ? message.unfurls : null
-  // const author = message ? message.author : undefined
-  // const isAuthor = message ? you === message.author : false
-  // const dispatch = Container.useDispatch()
-  // const onClose = (messageID: Types.MessageID) => {
-  //   dispatch(Chat2Gen.createUnfurlRemove({conversationIDKey, messageID}))
-  // }
-  // const onCollapse = (messageID: Types.MessageID) => {
-  //   dispatch(Chat2Gen.createToggleMessageCollapse({conversationIDKey, messageID}))
-  // }
-  // const unfurls = _unfurls
-  //   ? [..._unfurls.values()].map(u => {
-  //       return {
-  //         isCollapsed: u.isCollapsed,
-  //         onClose: isAuthor ? () => onClose(Types.numberToMessageID(u.unfurlMessageID)) : undefined,
-  //         onCollapse: () => onCollapse(Types.numberToMessageID(u.unfurlMessageID)),
-  //         unfurl: u.unfurl,
-  //         url: u.url,
-  //       }
-  //     })
-  //   : []
   return (
     <Kb.Box2 direction="vertical" gap="tiny" style={styles.container}>
       {unfurlTypes.map((ut, idx) => {
