@@ -22,7 +22,7 @@ import type ChatPaymentsConfirm from './payments/confirm/container'
 import type ChatRoot from './inbox/container'
 import type ChatSearchBot from './conversation/bot/search'
 import type ChatShowNewTeamDialog from './new-team-dialog-container'
-import type ChatUnfurlMapPopup from './conversation/messages/text/unfurl/map/popup'
+import type ChatUnfurlMapPopup from './conversation/messages/text/unfurl/unfurl-list/map-popup'
 import type PunycodeLinkWarning from './punycode-link-warning'
 import type SendToChat from './send-to-chat'
 import type {RenderableEmoji} from '../util/emoji'
@@ -107,7 +107,7 @@ export const newModalRoutes = {
   },
   chatUnfurlMapPopup: {
     getScreen: (): typeof ChatUnfurlMapPopup =>
-      require('./conversation/messages/text/unfurl/map/popup').default,
+      require('./conversation/messages/text/unfurl/unfurl-list/map-popup').default,
   },
   sendToChat: {
     getScreen: (): typeof SendToChat => require('./send-to-chat').default,

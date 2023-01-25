@@ -1,21 +1,20 @@
 import * as React from 'react'
-import {Box2} from '../../../../../../common-adapters/index'
-import Prompt, {type Props as PromptProps} from '../prompt'
+import * as Kb from '../../../../../../common-adapters'
+import Prompt, {type Props as PromptProps} from './prompt'
 
 export type Props = {
   prompts: Array<PromptProps>
 }
 
-class UnfurlPromptList extends React.PureComponent<Props> {
-  render() {
-    return (
-      <Box2 direction="vertical" gap="tiny" fullWidth={true}>
-        {this.props.prompts.map(p => (
-          <Prompt {...p} key={p.domain} />
-        ))}
-      </Box2>
-    )
-  }
+const UnfurlPromptList = (p: Props) => {
+  const {prompts} = p
+  return (
+    <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
+      {prompts.map(prompt => (
+        <Prompt {...prompt} key={prompt.domain} />
+      ))}
+    </Kb.Box2>
+  )
 }
 
 export default UnfurlPromptList

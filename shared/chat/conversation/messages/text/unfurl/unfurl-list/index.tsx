@@ -1,12 +1,15 @@
-import * as React from 'react'
-import type * as Types from '../../../../../../constants/types/chat2'
+import * as Constants from '../../../../../../constants/chat2'
+import * as Container from '../../../../../../util/container'
 import * as RPCChatTypes from '../../../../../../constants/types/rpc-chat-gen'
+import * as React from 'react'
 import * as Styles from '../../../../../../styles'
-import {Box2} from '../../../../../../common-adapters/index'
-import UnfurlGeneric from '../generic/container'
-import UnfurlGiphy from '../giphy/container'
-import UnfurlMap from '../map'
-import UnfurlSharingEnded from '../map/ended'
+import UnfurlGeneric from './generic'
+import UnfurlGiphy from './giphy'
+import UnfurlMap from './map'
+import type * as Types from '../../../../../../constants/types/chat2'
+import * as Kb from '../../../../../../common-adapters'
+import {ConvoIDContext, OrdinalContext} from '../../../ids-context'
+import shallowEqual from 'shallowequal'
 
 export type UnfurlListItem = {
   unfurl: RPCChatTypes.UnfurlDisplay
@@ -35,76 +38,6 @@ export type UnfurlProps = {
   unfurl: RPCChatTypes.UnfurlDisplay
 }
 
-class Unfurl extends React.PureComponent<UnfurlProps> {
-  render() {
-    switch (this.props.unfurl.unfurlType) {
-      case RPCChatTypes.UnfurlType.generic:
-        return this.props.unfurl.generic ? (
-          this.props.unfurl.generic.mapInfo ? (
-            this.props.unfurl.generic.mapInfo.isLiveLocationDone ? (
-              <UnfurlSharingEnded endTime={this.props.unfurl.generic.mapInfo.time} />
-            ) : (
-              <UnfurlMap
-                conversationIDKey={this.props.conversationIDKey}
-                coord={this.props.unfurl.generic.mapInfo.coord}
-                imageHeight={this.props.unfurl.generic.media ? this.props.unfurl.generic.media.height : 0}
-                imageURL={this.props.unfurl.generic.media ? this.props.unfurl.generic.media.url : ''}
-                imageWidth={this.props.unfurl.generic.media ? this.props.unfurl.generic.media.width : 0}
-                isAuthor={this.props.isAuthor}
-                author={this.props.author}
-                isLiveLocationDone={this.props.unfurl.generic.mapInfo.isLiveLocationDone}
-                liveLocationEndTime={this.props.unfurl.generic.mapInfo.liveLocationEndTime || undefined}
-                time={this.props.unfurl.generic.mapInfo.time}
-                toggleMessagePopup={this.props.toggleMessagePopup}
-                url={this.props.unfurl.generic.url}
-              />
-            )
-          ) : (
-            <UnfurlGeneric
-              unfurl={this.props.unfurl.generic}
-              isCollapsed={this.props.isCollapsed}
-              onClose={this.props.onClose}
-              onCollapse={this.props.onCollapse}
-            />
-          )
-        ) : null
-      case RPCChatTypes.UnfurlType.giphy:
-        return this.props.unfurl.giphy ? (
-          <UnfurlGiphy
-            unfurl={this.props.unfurl.giphy}
-            isCollapsed={this.props.isCollapsed}
-            onClose={this.props.onClose}
-            onCollapse={this.props.onCollapse}
-          />
-        ) : null
-      default:
-        return null
-    }
-  }
-}
-
-class UnfurlList extends React.PureComponent<ListProps> {
-  render() {
-    return (
-      <Box2 direction="vertical" gap="tiny" style={styles.container}>
-        {this.props.unfurls.map(u => (
-          <Unfurl
-            conversationIDKey={this.props.conversationIDKey}
-            isAuthor={this.props.isAuthor}
-            author={this.props.author}
-            isCollapsed={u.isCollapsed}
-            key={u.url}
-            unfurl={u.unfurl}
-            onClose={u.onClose}
-            onCollapse={u.onCollapse}
-            toggleMessagePopup={this.props.toggleMessagePopup}
-          />
-        ))}
-      </Box2>
-    )
-  }
-}
-
 const styles = Styles.styleSheetCreate(
   () =>
     ({
@@ -119,4 +52,39 @@ const styles = Styles.styleSheetCreate(
     } as const)
 )
 
-export default UnfurlList
+type UnfurlRenderType = 'generic' | 'map' | 'giphy'
+
+const renderTypeToClass = new Map<UnfurlRenderType, React.ExoticComponent<{idx: number}>>([
+  ['generic', UnfurlGeneric],
+  ['map', UnfurlMap],
+  ['giphy', UnfurlGiphy],
+])
+
+const UnfurlListContainer = React.memo(function UnfurlListContainer() {
+  const conversationIDKey = React.useContext(ConvoIDContext)
+  const ordinal = React.useContext(OrdinalContext)
+  const unfurlTypes: Array<UnfurlRenderType | 'none'> = Container.useSelector(
+    state =>
+      [...(Constants.getMessage(state, conversationIDKey, ordinal)?.unfurls?.values() ?? [])].map(u => {
+        const ut = u.unfurl.unfurlType
+        switch (ut) {
+          case RPCChatTypes.UnfurlType.giphy:
+            return 'giphy'
+          case RPCChatTypes.UnfurlType.generic:
+            return u.unfurl.generic.mapInfo ? 'map' : 'generic'
+          default:
+            return 'none'
+        }
+      }),
+    shallowEqual
+  )
+  return (
+    <Kb.Box2 direction="vertical" gap="tiny" style={styles.container}>
+      {unfurlTypes.map((ut, idx) => {
+        const Clazz = ut === 'none' ? null : renderTypeToClass.get(ut)
+        return Clazz ? <Clazz key={String(idx)} idx={idx} /> : null
+      })}
+    </Kb.Box2>
+  )
+})
+export default UnfurlListContainer

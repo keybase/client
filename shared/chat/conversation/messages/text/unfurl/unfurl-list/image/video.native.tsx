@@ -1,16 +1,16 @@
 import * as React from 'react'
-import * as Kb from '../../../../../../common-adapters/index'
-import * as Styles from '../../../../../../styles'
-import logger from '../../../../../../logger'
+import * as Kb from '../../../../../../../common-adapters/index'
+import * as Styles from '../../../../../../../styles'
+import logger from '../../../../../../../logger'
 import {Video as AVVideo, ResizeMode} from 'expo-av'
-import type {Props} from './video.types'
+import type {Props} from './video'
 
 export const Video = (props: Props) => {
   const {autoPlay, onClick, url, style, width, height} = props
-  const [playingVideo, setPlayingVideo] = React.useState(autoPlay)
+  const [playing, setPlaying] = React.useState(autoPlay)
 
   React.useEffect(() => {
-    setPlayingVideo(autoPlay)
+    setPlaying(autoPlay)
   }, [url, autoPlay])
 
   const vidRef = React.useRef<AVVideo>(null)
@@ -20,8 +20,8 @@ export const Video = (props: Props) => {
       onClick()
       return
     }
-    setPlayingVideo(v => !v)
-  }, [setPlayingVideo, onClick])
+    setPlaying(p => !p)
+  }, [setPlaying, onClick])
 
   /*
     The video library thinks any URI that doesn't start with /https?:// to be an asset bundled
@@ -45,18 +45,10 @@ export const Video = (props: Props) => {
         style={Styles.collapseStyles([styles.player, style])}
         isLooping={true}
         isMuted={true}
-        shouldPlay={playingVideo}
+        shouldPlay={playing}
       />
-      <Kb.Box
-        style={Styles.collapseStyles([
-          styles.absoluteContainer,
-          {
-            height,
-            width,
-          },
-        ])}
-      >
-        {!playingVideo && <Kb.Icon type="icon-play-64" style={styles.playButton} />}
+      <Kb.Box style={Styles.collapseStyles([styles.absoluteContainer, {height, width}])}>
+        {!playing && <Kb.Icon type="icon-play-64" style={styles.playButton} />}
       </Kb.Box>
     </Kb.ClickableBox>
   )

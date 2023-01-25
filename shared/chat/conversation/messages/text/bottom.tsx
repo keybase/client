@@ -5,7 +5,7 @@ import * as Styles from '../../../../styles'
 import {ConvoIDContext} from '../ids-context'
 import type * as Types from '../../../../constants/types/chat2'
 import type CoinFlipType from './coinflip'
-import type UnfurlListType from './unfurl/unfurl-list/container'
+import type UnfurlListType from './unfurl/unfurl-list'
 import type UnfurlPromptListType from './unfurl/prompt-list/container'
 import shallowEqual from 'shallowequal'
 
@@ -53,8 +53,7 @@ export const useBottom = (
 }
 
 const WrapperTextBottom = function WrapperTextBottom(p: Props) {
-  const {hasBeenEdited, hasUnfurlPrompts, hasUnfurlList, hasCoinFlip} = p
-  const {toggleShowingPopup, showCenteredHighlight} = p
+  const {showCenteredHighlight, hasBeenEdited, hasUnfurlPrompts, hasUnfurlList, hasCoinFlip} = p
   const edited = hasBeenEdited ? (
     <Kb.Text
       key="isEdited"
@@ -76,9 +75,9 @@ const WrapperTextBottom = function WrapperTextBottom(p: Props) {
   })()
 
   const unfurlList = (() => {
-    const UnfurlList = require('./unfurl/unfurl-list/container').default as typeof UnfurlListType
+    const UnfurlList = require('./unfurl/unfurl-list').default as typeof UnfurlListType
     if (hasUnfurlList) {
-      return <UnfurlList key="UnfurlList" toggleMessagePopup={toggleShowingPopup} />
+      return <UnfurlList key="UnfurlList" />
     }
     return null
   })()
