@@ -6,7 +6,6 @@ import * as Styles from '../../../../../../styles'
 import UnfurlGeneric from './generic'
 import UnfurlGiphy from './giphy'
 import UnfurlMap from './map'
-import UnfurlSharingEnded from './map/ended'
 import type * as Types from '../../../../../../constants/types/chat2'
 import * as Kb from '../../../../../../common-adapters'
 import {ConvoIDContext, OrdinalContext} from '../../../ids-context'
@@ -53,12 +52,11 @@ const styles = Styles.styleSheetCreate(
     } as const)
 )
 
-type UnfurlRenderType = 'generic' | 'map' | 'mapdone' | 'giphy'
+type UnfurlRenderType = 'generic' | 'map' | 'giphy'
 
 const renderTypeToClass = new Map<UnfurlRenderType, React.ExoticComponent<{idx: number}>>([
   ['generic', UnfurlGeneric],
   ['map', UnfurlMap],
-  ['mapdone', UnfurlSharingEnded],
   ['giphy', UnfurlGiphy],
 ])
 
@@ -73,11 +71,7 @@ const UnfurlListContainer = React.memo(function UnfurlListContainer() {
           case RPCChatTypes.UnfurlType.giphy:
             return 'giphy'
           case RPCChatTypes.UnfurlType.generic:
-            return u.unfurl.generic.mapInfo
-              ? u.unfurl.generic.mapInfo.isLiveLocationDone // this is never true?
-                ? 'mapdone'
-                : 'map'
-              : 'generic'
+            return u.unfurl.generic.mapInfo ? 'map' : 'generic'
           default:
             return 'none'
         }

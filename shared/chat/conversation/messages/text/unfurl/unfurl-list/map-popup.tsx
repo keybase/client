@@ -1,12 +1,12 @@
-import * as Kb from '../../../../../../../common-adapters/index'
-import * as Container from '../../../../../../../util/container'
-import * as RouteTreeGen from '../../../../../../../actions/route-tree-gen'
-import * as Chat2Gen from '../../../../../../../actions/chat2-gen'
-import * as Constants from '../../../../../../../constants/chat2'
-import * as Styles from '../../../../../../../styles'
-import openURL from '../../../../../../../util/open-url'
-import LocationMap from '../../../../../../location-map'
-import HiddenString from '../../../../../../../util/hidden-string'
+import * as Kb from '../../../../../../common-adapters/index'
+import * as Container from '../../../../../../util/container'
+import * as RouteTreeGen from '../../../../../../actions/route-tree-gen'
+import * as Chat2Gen from '../../../../../../actions/chat2-gen'
+import * as Constants from '../../../../../../constants/chat2'
+import * as Styles from '../../../../../../styles'
+import openURL from '../../../../../../util/open-url'
+import LocationMap from '../../../../../location-map'
+import HiddenString from '../../../../../../util/hidden-string'
 
 type Props = Container.RouteProps<'chatUnfurlMapPopup'>
 
