@@ -59,30 +59,33 @@ class Conversation extends React.PureComponent<Props> {
           fullHeight={true}
           fullWidth={true}
           rejectReason={this.props.dragAndDropRejectReason}
+          gap="tiny"
         >
           {this.props.threadLoadedOffline && <Offline />}
-          <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.innerContainer}>
-            <ListArea
-              onFocusInput={this.props.onFocusInput}
-              requestScrollUpRef={this.props.requestScrollUpRef}
-              requestScrollToBottomRef={this.props.requestScrollToBottomRef}
-              requestScrollDownRef={this.props.requestScrollDownRef}
-              conversationIDKey={this.props.conversationIDKey}
-            />
-            <Kb.Box2 direction="vertical" fullWidth={true} style={{left: 0, position: 'absolute', top: 0}}>
-              <ThreadLoadStatus conversationIDKey={this.props.conversationIDKey} />
-              {!this.props.showThreadSearch && (
-                <PinnedMessage conversationIDKey={this.props.conversationIDKey} />
-              )}
-            </Kb.Box2>
-            {this.props.showThreadSearch && (
-              <ThreadSearch
-                style={styles.threadSearchStyle}
+          <Kb.BoxGrow>
+            <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.innerContainer}>
+              <ListArea
+                onFocusInput={this.props.onFocusInput}
+                requestScrollUpRef={this.props.requestScrollUpRef}
+                requestScrollToBottomRef={this.props.requestScrollToBottomRef}
+                requestScrollDownRef={this.props.requestScrollDownRef}
                 conversationIDKey={this.props.conversationIDKey}
               />
-            )}
-            <LoadingLine conversationIDKey={this.props.conversationIDKey} />
-          </Kb.Box2>
+              <Kb.Box2 direction="vertical" fullWidth={true} style={{left: 0, position: 'absolute', top: 0}}>
+                <ThreadLoadStatus conversationIDKey={this.props.conversationIDKey} />
+                {!this.props.showThreadSearch && (
+                  <PinnedMessage conversationIDKey={this.props.conversationIDKey} />
+                )}
+              </Kb.Box2>
+              {this.props.showThreadSearch && (
+                <ThreadSearch
+                  style={styles.threadSearchStyle}
+                  conversationIDKey={this.props.conversationIDKey}
+                />
+              )}
+              <LoadingLine conversationIDKey={this.props.conversationIDKey} />
+            </Kb.Box2>
+          </Kb.BoxGrow>
           <InvitationToBlock conversationID={this.props.conversationIDKey} />
           <Banner conversationIDKey={this.props.conversationIDKey} />
           <InputArea

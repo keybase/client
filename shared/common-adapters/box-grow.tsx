@@ -22,7 +22,7 @@ class BoxGrow extends React.Component<Props> {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      inner: {...Styles.globalStyles.fillAbsolute},
+      inner: {...Styles.globalStyles.fillAbsolute, display: 'flex'},
       outer: {
         flexGrow: 1,
         position: 'relative',

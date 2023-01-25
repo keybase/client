@@ -2,7 +2,7 @@ import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Constants from '../../../constants/chat2'
 import * as Container from '../../../util/container'
 import * as Hooks from './hooks'
-import * as Kb from '../../../common-adapters/mobile.native'
+import * as Kb from '../../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../../styles'
 import Separator from '../messages/separator'
@@ -167,7 +167,9 @@ const useScrolling = (p: {
   }, [listRef, centeredOrdinal, getOrdinalIndex])
 
   const onEndReached = React.useCallback(() => {
-    loadOlderMessages()
+    console.log('aaa on end reached')
+    // TEMP
+    // loadOlderMessages()
   }, [loadOlderMessages])
 
   return {
@@ -213,7 +215,23 @@ const ConversationList = React.memo(function ConversationList(p: {
       if (!type) return null
       const Clazz = getMessageRender(type)
       if (!Clazz) return null
-      return <Clazz ordinal={ordinal} />
+      if (Styles.isMobile) {
+        return <Clazz ordinal={ordinal} />
+      } else {
+        return (
+          <div
+            key={String(ordinal)}
+            className={Styles.classNames(
+              'hover-container',
+              'WrapperMessage-hoverBox',
+              'WrapperMessage-decorated',
+              'WrapperMessage-hoverColor'
+            )}
+          >
+            <Clazz ordinal={ordinal} />
+          </div>
+        )
+      }
     },
     [messageOrdinals, messageTypeMap]
   )
@@ -267,12 +285,28 @@ const ConversationList = React.memo(function ConversationList(p: {
     setExtraData(d => d + 1)
   }, [])
 
+  // fix web scrolling
+  React.useEffect(() => {
+    if (Container.isPhone) {
+      return
+    }
+    const scrollNode: any = listRef.current?.getScrollableNode()
+    if (!scrollNode) {
+      return
+    }
+    const listener = scrollNode.addEventListener('wheel', (e: any) => {
+      scrollNode.scrollTop -= e.deltaY
+      e.preventDefault()
+    })
+    return () => scrollNode.removeEventListener('wheel', listener)
+  }, [])
+
   return (
     <Kb.ErrorBoundary>
       <ConvoIDContext.Provider value={conversationIDKey}>
         <SetRecycleTypeContext.Provider value={setRecycleType}>
           <ForceListRedrawContext.Provider value={forceListRedraw}>
-            <Kb.Box style={styles.container}>
+            <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true}>
               <FlashList
                 extraData={extraData}
                 removeClippedSubviews={Styles.isAndroid}
@@ -295,7 +329,7 @@ const ConversationList = React.memo(function ConversationList(p: {
                 ref={listRef}
               />
               {jumpToRecent}
-            </Kb.Box>
+            </Kb.Box2>
           </ForceListRedrawContext.Provider>
         </SetRecycleTypeContext.Provider>
       </ConvoIDContext.Provider>
@@ -306,11 +340,22 @@ const ConversationList = React.memo(function ConversationList(p: {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      container: {flex: 1, position: 'relative'},
-      contentContainer: {
-        paddingBottom: 0,
-        paddingTop: mobileTypingContainerHeight,
-      },
+      container: Styles.platformStyles({
+        common: {flex: 1, position: 'relative'},
+        isElectron: {
+          height: '100%',
+          transform: 'scaleY(-1)',
+        },
+      }),
+      contentContainer: Styles.platformStyles({
+        common: {
+          paddingBottom: 0,
+          paddingTop: mobileTypingContainerHeight,
+        },
+        isElectron: {
+          height: '100%',
+        },
+      }),
     } as const)
 )
 

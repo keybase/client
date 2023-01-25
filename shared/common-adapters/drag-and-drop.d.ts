@@ -11,6 +11,7 @@ export type Props = {
   onAttach: ((array: Array<string>) => void) | null
   prompt?: string
   rejectReason?: string
+  gap: any
 }
 
 export default class DragAndDrop extends React.Component<Props> {}

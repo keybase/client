@@ -91,6 +91,7 @@ class DragAndDrop extends React.PureComponent<Props, State> {
         fullWidth={this.props.fullWidth}
         onDragOver={this._onDragOver}
         style={Styles.collapseStyles([styles.containerStyle, this.props.containerStyle])}
+        gap={this.props.gap}
       >
         {this.props.children}
         {this.state.showDropOverlay && this._dropOverlay()}
