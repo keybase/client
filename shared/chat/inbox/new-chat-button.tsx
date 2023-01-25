@@ -15,27 +15,27 @@ const HeaderNewChatButton = () => {
 
   const dispatch = Container.useDispatch()
   const onNewChat = React.useCallback(() => dispatch(appendNewChatBuilder()), [dispatch])
-  if (hide) {
-    return null
-  }
-  return (
-    <Kb.Box style={styles.rainbowButtonContainer}>
-      <Kb.Box2 direction="vertical" style={styles.gradientContainer}>
-        <Kb.Box style={styles.gradientRed} />
-        <Kb.Box style={styles.gradientOrange} />
-        <Kb.Box style={styles.gradientYellow} />
-        <Kb.Box style={styles.gradientGreen} />
-      </Kb.Box2>
-      <Kb.Button
-        label={'New chat'}
-        mode="Primary"
-        onClick={onNewChat}
-        small={true}
-        style={styles.rainbowButton}
-        type="Default"
-      />
-    </Kb.Box>
-  )
+  const content = React.useMemo(() => {
+    return (
+      <Kb.Box style={styles.rainbowButtonContainer}>
+        <Kb.Box2 direction="vertical" style={styles.gradientContainer}>
+          <Kb.Box style={styles.gradientRed} />
+          <Kb.Box style={styles.gradientOrange} />
+          <Kb.Box style={styles.gradientYellow} />
+          <Kb.Box style={styles.gradientGreen} />
+        </Kb.Box2>
+        <Kb.Button
+          label={'New chat'}
+          mode="Primary"
+          onClick={onNewChat}
+          small={true}
+          style={styles.rainbowButton}
+          type="Default"
+        />
+      </Kb.Box>
+    )
+  }, [onNewChat])
+  return hide ? null : content
 }
 
 const styles = Styles.styleSheetCreate(

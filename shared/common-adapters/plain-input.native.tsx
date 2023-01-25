@@ -14,7 +14,7 @@ import PasteInput from '@mattermost/react-native-paste-input'
 
 // A plain text input component. Handles callbacks, text styling, and auto resizing but
 // adds no styling.
-class PlainInput extends React.Component<InternalProps> {
+class PlainInput extends React.PureComponent<InternalProps> {
   static defaultProps = {
     keyboardType: 'default',
     textType: 'Body',

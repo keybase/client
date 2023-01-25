@@ -13,11 +13,10 @@ type OwnProps = {
   onRequestScrollDown: () => void
   onRequestScrollToBottom: () => void
   onRequestScrollUp: () => void
-  maxInputArea?: number
 }
 
 const InputAreaContainer = (p: OwnProps) => {
-  const {conversationIDKey, focusInputCounter, jumpToRecent, maxInputArea} = p
+  const {conversationIDKey, focusInputCounter, jumpToRecent} = p
   const {onRequestScrollUp, onRequestScrollDown, onRequestScrollToBottom} = p
   const {membershipType, resetParticipants, showThreadSearch, wasFinalizedBy} = Container.useSelector(
     state => {
@@ -56,7 +55,6 @@ const InputAreaContainer = (p: OwnProps) => {
       onRequestScrollToBottom={onRequestScrollToBottom}
       onRequestScrollUp={onRequestScrollUp}
       conversationIDKey={conversationIDKey}
-      maxInputArea={maxInputArea}
     />
   )
 }

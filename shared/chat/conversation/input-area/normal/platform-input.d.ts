@@ -12,7 +12,6 @@ type Props = {
   inputSetRef: React.MutableRefObject<PlainInput | null>
   isEditing: boolean
   isExploding: boolean
-  maxInputArea?: number
   minWriterRole: TeamTypes.TeamRoleType
   onCancelEditing: () => void
   onChangeText: (newText: string) => void

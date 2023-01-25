@@ -17,6 +17,7 @@ import type * as Types from '../../../constants/types/chat2'
 import type {LayoutEvent} from '../../../common-adapters/box'
 import type {Props} from '.'
 import {PortalHost} from '@gorhom/portal'
+import {MaxInputAreaContext} from '../input-area/normal/max-input-area-context'
 
 const Offline = () => (
   <Kb.Banner color="grey" small={true} style={styles.offline}>
@@ -38,7 +39,7 @@ const LoadingLine = (p: {conversationIDKey: Types.ConversationIDKey}) => {
 
 const Conversation = React.memo(function Conversation(props: Props) {
   const {conversationIDKey} = props
-  const [maxInputArea, setMaxInputArea] = React.useState<number | undefined>(undefined)
+  const [maxInputArea, setMaxInputArea] = React.useState(0)
   const onLayout = React.useCallback((e: LayoutEvent) => {
     setMaxInputArea(e.nativeEvent.layout.height)
   }, [])
@@ -59,15 +60,16 @@ const Conversation = React.memo(function Conversation(props: Props) {
       </Kb.Box2>
       <InvitationToBlock conversationID={conversationIDKey} />
       <Banner conversationIDKey={conversationIDKey} />
-      <InputArea
-        focusInputCounter={props.focusInputCounter}
-        jumpToRecent={props.jumpToRecent}
-        onRequestScrollDown={props.onRequestScrollDown}
-        onRequestScrollToBottom={props.onRequestScrollToBottom}
-        onRequestScrollUp={props.onRequestScrollUp}
-        conversationIDKey={conversationIDKey}
-        maxInputArea={maxInputArea}
-      />
+      <MaxInputAreaContext.Provider value={maxInputArea}>
+        <InputArea
+          focusInputCounter={props.focusInputCounter}
+          jumpToRecent={props.jumpToRecent}
+          onRequestScrollDown={props.onRequestScrollDown}
+          onRequestScrollToBottom={props.onRequestScrollToBottom}
+          onRequestScrollUp={props.onRequestScrollUp}
+          conversationIDKey={conversationIDKey}
+        />
+      </MaxInputAreaContext.Provider>
     </Kb.BoxGrow>
   )
 
