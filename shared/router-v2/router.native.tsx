@@ -74,15 +74,18 @@ const makeNavScreens = (rs, Screen, isModal) => {
 
 const TabBarIcon = React.memo(function TabBarIcon(props: {isFocused: boolean; routeName: Tabs.Tab}) {
   const {isFocused, routeName} = props
-  const onSettings = routeName === Tabs.settingsTab
-  const navBadges = Container.useSelector(state => state.notifications.navBadges)
-  const pushHasPermissions = Container.useSelector(state => state.push.hasPermissions)
-  const tabsToCount: ReadonlyArray<Tabs.Tab> = onSettings ? settingsTabChildren : [routeName]
-  const badgeNumber = tabsToCount.reduce(
-    (res, tab) => res + (navBadges.get(tab) || 0),
-    // notifications gets badged on native if there's no push, special case
-    onSettings && !pushHasPermissions ? 1 : 0
-  )
+  const badgeNumber = Container.useSelector(state => {
+    const {navBadges} = state.notifications
+    const {hasPermissions} = state.push
+    const onSettings = routeName === Tabs.settingsTab
+    const tabsToCount: ReadonlyArray<Tabs.Tab> = onSettings ? settingsTabChildren : [routeName]
+    const badgeNumber = tabsToCount.reduce(
+      (res, tab) => res + (navBadges.get(tab) || 0),
+      // notifications gets badged on native if there's no push, special case
+      onSettings && !hasPermissions ? 1 : 0
+    )
+    return badgeNumber
+  })
 
   return tabToData[routeName] ? (
     <Kb.NativeView style={styles.container}>

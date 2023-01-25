@@ -21,6 +21,7 @@ import {parseUri, launchCameraAsync, launchImageLibraryAsync} from '../../../../
 import {standardTransformer} from '../suggestors/common'
 import {useSuggestors} from '../suggestors'
 import {type PastedFile} from '@mattermost/react-native-paste-input'
+import {MaxInputAreaContext} from '../../input-area/normal/max-input-area-context'
 import {
   createAnimatedComponent,
   skipAnimations,
@@ -52,7 +53,7 @@ type ButtonsProps = Pick<
   setShowAudioSend: (s: boolean) => void
 }
 
-const Buttons = (p: ButtonsProps) => {
+const Buttons = React.memo(function Buttons(p: ButtonsProps) {
   const {conversationIDKey, insertText, ourShowMenu, onSubmit, onCancelEditing} = p
   const {hasText, isEditing, isExploding, explodingModeSeconds, cannotWrite, toggleShowingMenu} = p
   const {showAudioSend, setShowAudioSend} = p
@@ -140,7 +141,7 @@ const Buttons = (p: ButtonsProps) => {
       )}
     </Kb.Box2>
   )
-}
+})
 
 const AnimatedIcon = createAnimatedComponent(Kb.Icon)
 const AnimatedExpand = (() => {
@@ -269,7 +270,7 @@ const PlatformInput = (p: Props) => {
   })
   const {cannotWrite, conversationIDKey, isEditing, isExploding} = p
   const {onSubmit, explodingModeSeconds, hintText, onCancelEditing} = p
-  const {inputSetRef, showTypingStatus, maxInputArea} = p
+  const {inputSetRef, showTypingStatus} = p
 
   const lastText = React.useRef('')
   const whichMenu = React.useRef<MenuType | undefined>()
@@ -395,6 +396,10 @@ const PlatformInput = (p: Props) => {
     [whichMenu, toggleShowingPopup]
   )
 
+  const openExplodingMenu = React.useCallback(() => {
+    ourShowMenu('exploding')
+  }, [ourShowMenu])
+
   const dispatch = Container.useDispatch()
   const onPasteImage = React.useCallback(
     (error: string | null | undefined, files: Array<PastedFile>) => {
@@ -469,7 +474,6 @@ const PlatformInput = (p: Props) => {
               autoCapitalize="sentences"
               disabled={cannotWrite ?? false}
               placeholder={hintText}
-              maxInputArea={maxInputArea}
               multiline={true}
               onBlur={onBlur}
               onFocus={onFocusAndMaybeSubmit}
@@ -495,7 +499,7 @@ const PlatformInput = (p: Props) => {
             isExploding={isExploding}
             explodingModeSeconds={explodingModeSeconds}
             cannotWrite={cannotWrite}
-            toggleShowingMenu={() => ourShowMenu('exploding')}
+            toggleShowingMenu={openExplodingMenu}
             showAudioSend={showAudioSend}
             setShowAudioSend={setShowAudioSend}
           />
@@ -513,24 +517,29 @@ const PlatformInput = (p: Props) => {
 const AnimatedPlainInput = createAnimatedComponent(Kb.PlainInput)
 const AnimatedInput = (() => {
   if (skipAnimations) {
-    return React.forwardRef<any, any>(function AnimatedInput(p: any, ref) {
-      const {expanded, ...rest} = p
-      return <AnimatedPlainInput {...rest} ref={ref} style={[rest.style]} />
-    })
+    return React.memo(
+      React.forwardRef<any, any>(function AnimatedInput(p: any, ref) {
+        const {expanded, ...rest} = p
+        return <AnimatedPlainInput {...rest} ref={ref} style={[rest.style]} />
+      })
+    )
   } else {
-    return React.forwardRef<any, any>(function AnimatedInput(p: any, ref) {
-      const {maxInputArea, expanded, ...rest} = p
-      const offset = useSharedValue(expanded ? 1 : 0)
-      const maxHeight = maxInputArea - inputAreaHeight - 15
-      const as = useAnimatedStyle(() => ({
-        maxHeight: withTiming(offset.value ? maxHeight : threeLineHeight),
-        minHeight: withTiming(offset.value ? maxHeight : singleLineHeight),
-      }))
-      React.useEffect(() => {
-        offset.value = expanded ? 1 : 0
-      }, [expanded, offset])
-      return <AnimatedPlainInput {...rest} ref={ref} style={[rest.style, as]} />
-    })
+    return React.memo(
+      React.forwardRef<any, any>(function AnimatedInput(p: any, ref) {
+        const maxInputArea = React.useContext(MaxInputAreaContext)
+        const {expanded, ...rest} = p
+        const offset = useSharedValue(expanded ? 1 : 0)
+        const maxHeight = maxInputArea - inputAreaHeight - 15
+        const as = useAnimatedStyle(() => ({
+          maxHeight: withTiming(offset.value ? maxHeight : threeLineHeight),
+          minHeight: withTiming(offset.value ? maxHeight : singleLineHeight),
+        }))
+        React.useEffect(() => {
+          offset.value = expanded ? 1 : 0
+        }, [expanded, offset])
+        return <AnimatedPlainInput {...rest} ref={ref} style={[rest.style, as]} />
+      })
+    )
   }
 })()
 

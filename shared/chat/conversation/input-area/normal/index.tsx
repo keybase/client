@@ -22,7 +22,6 @@ type Props = {
   conversationIDKey: Types.ConversationIDKey
   focusInputCounter: number
   jumpToRecent: () => void
-  maxInputArea?: number
   onRequestScrollDown: () => void
   onRequestScrollToBottom: () => void
   onRequestScrollUp: () => void
@@ -86,7 +85,7 @@ const useHintText = (p: {
 }
 
 const Input = (p: Props) => {
-  const {conversationIDKey, maxInputArea, jumpToRecent, focusInputCounter} = p
+  const {conversationIDKey, jumpToRecent, focusInputCounter} = p
   const {onRequestScrollDown, onRequestScrollUp, onRequestScrollToBottom} = p
 
   const {replyTo, showCommandMarkdown, showCommandStatus, showGiphySearch} = Container.useSelector(state => {
@@ -109,7 +108,6 @@ const Input = (p: Props) => {
       {showGiphySearch && <Giphy conversationIDKey={conversationIDKey} />}
       <ConnectedPlatformInput
         conversationIDKey={conversationIDKey}
-        maxInputArea={maxInputArea}
         jumpToRecent={jumpToRecent}
         focusInputCounter={focusInputCounter}
         onRequestScrollDown={onRequestScrollDown}
@@ -254,25 +252,22 @@ const useSubmit = (
     },
     [dispatch, conversationIDKey, editOrdinal]
   )
-  const onSubmit = React.useCallback(
-    (text: string) => {
-      // don't submit empty
-      if (!text) {
-        return
-      }
-      if (editOrdinal) {
-        onEditMessage(text)
-      } else {
-        onPostMessage(text)
-      }
-      if (containsLatestMessage) {
-        onRequestScrollToBottom()
-      } else {
-        jumpToRecent()
-      }
-    },
-    [editOrdinal, onEditMessage, onPostMessage, containsLatestMessage, onRequestScrollToBottom, jumpToRecent]
-  )
+  const onSubmit = Container.useEvent((text: string) => {
+    // don't submit empty
+    if (!text) {
+      return
+    }
+    if (editOrdinal) {
+      onEditMessage(text)
+    } else {
+      onPostMessage(text)
+    }
+    if (containsLatestMessage) {
+      onRequestScrollToBottom()
+    } else {
+      jumpToRecent()
+    }
+  })
 
   return {onSubmit}
 }
@@ -293,7 +288,6 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
   p: Pick<
     Props,
     | 'conversationIDKey'
-    | 'maxInputArea'
     | 'jumpToRecent'
     | 'focusInputCounter'
     | 'onRequestScrollDown'
@@ -302,7 +296,7 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
   > & {showGiphySearch: boolean; showCommandMarkdown: boolean; replyTo: Types.Ordinal | undefined}
 ) {
   const {conversationIDKey, focusInputCounter, showCommandMarkdown, onRequestScrollToBottom} = p
-  const {onRequestScrollDown, onRequestScrollUp, showGiphySearch, replyTo, jumpToRecent, maxInputArea} = p
+  const {onRequestScrollDown, onRequestScrollUp, showGiphySearch, replyTo, jumpToRecent} = p
   const dispatch = Container.useDispatch()
   const {editOrdinal, isEditExploded} = Container.useSelector(state => {
     const editOrdinal = state.chat2.editingMap.get(conversationIDKey)
@@ -424,7 +418,6 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
   return (
     <PlatformInput
       hintText={hintText}
-      maxInputArea={maxInputArea}
       suggestionOverlayStyle={
         infoPanelShowing ? styles.suggestionOverlayInfoShowing : styles.suggestionOverlay
       }
