@@ -55,7 +55,9 @@ const UnfurlGiphy = React.memo(function UnfurlGiphy(p: {idx: number}) {
         <Kb.Box2 style={styles.siteNameContainer} gap="tiny" fullWidth={true} direction="horizontal">
           <Kb.Box2 direction="horizontal" gap="tiny">
             {favicon ? <Kb.Image src={favicon} style={styles.favicon} /> : null}
-            <Kb.Text type="BodySmall">Giphy</Kb.Text>
+            <Kb.Text type="BodySmall" style={styles.fastStyle}>
+              Giphy
+            </Kb.Text>
             <Kb.Icon
               boxStyle={styles.collapseBox}
               style={styles.collapse}
@@ -67,6 +69,7 @@ const UnfurlGiphy = React.memo(function UnfurlGiphy(p: {idx: number}) {
           {onClose ? (
             <Kb.Icon
               type="iconfont-close"
+              boxStyle={styles.fastStyle}
               onClick={onClose}
               className="unfurl-closebox"
               padding="xtiny"
@@ -97,6 +100,7 @@ const styles = Styles.styleSheetCreate(
       collapseBox: {
         ...Styles.globalStyles.flexBoxRow,
         alignItems: 'center',
+        backgroundColor: Styles.globalColors.fastBlank,
       },
       container: Styles.platformStyles({
         common: {
@@ -106,6 +110,7 @@ const styles = Styles.styleSheetCreate(
           maxWidth: 500,
         },
       }),
+      fastStyle: {backgroundColor: Styles.globalColors.fastBlank},
       favicon: {
         borderRadius: Styles.borderRadius,
         height: 16,
@@ -123,6 +128,7 @@ const styles = Styles.styleSheetCreate(
           minWidth: 150,
         },
         isMobile: {
+          backgroundColor: Styles.globalColors.fastBlank,
           borderColor: Styles.globalColors.grey,
           borderRadius: Styles.borderRadius,
           borderWidth: 1,

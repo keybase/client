@@ -68,8 +68,8 @@ const UnfurlGeneric = React.memo(function UnfurlGeneric(p: {idx: number}) {
   const publisher = (
     <Kb.Box2 style={styles.siteNameContainer} gap="tiny" fullWidth={true} direction="horizontal">
       {favicon ? <Kb.Image src={favicon} style={styles.favicon} /> : null}
-      <Kb.BoxGrow>
-        <Kb.Text type="BodySmall" lineClamp={1}>
+      <Kb.BoxGrow style={styles.fastStyle}>
+        <Kb.Text type="BodySmall" lineClamp={1} style={styles.fastStyle}>
           {siteName}
           {publishTime ? (
             <Kb.Text type="BodySmall"> • Published {formatTimeForMessages(publishTime)}</Kb.Text>
@@ -90,7 +90,7 @@ const UnfurlGeneric = React.memo(function UnfurlGeneric(p: {idx: number}) {
   )
 
   const snippet = description ? (
-    <Kb.Text type="Body" lineClamp={5} selectable={true}>
+    <Kb.Text type="Body" lineClamp={5} selectable={true} style={styles.fastStyle}>
       {description}
       {imageLocation === 'bottom' && (
         <>
@@ -154,6 +154,9 @@ const styles = Styles.styleSheetCreate(
         isMobile: {alignSelf: 'center'},
       }),
       closeBox: Styles.platformStyles({
+        common: {
+          backgroundColor: Styles.globalColors.fastBlank,
+        },
         isElectron: {
           alignSelf: 'flex-start',
           marginLeft: 'auto',
@@ -163,9 +166,10 @@ const styles = Styles.styleSheetCreate(
         isElectron: {display: 'inline'},
       }),
       container: Styles.platformStyles({
-        common: {alignSelf: 'flex-start'},
+        common: {alignSelf: 'flex-start', backgroundColor: Styles.globalColors.fastBlank},
         isElectron: {maxWidth: 500},
       }),
+      fastStyle: {backgroundColor: Styles.globalColors.fastBlank},
       favicon: Styles.platformStyles({
         common: {
           borderRadius: Styles.borderRadius,
@@ -176,6 +180,7 @@ const styles = Styles.styleSheetCreate(
       innerContainer: Styles.platformStyles({
         common: {
           alignSelf: 'flex-start',
+          backgroundColor: Styles.globalColors.fastBlank,
           minWidth: 150,
         },
         isMobile: {
@@ -199,11 +204,12 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       siteNameContainer: Styles.platformStyles({
-        common: {alignSelf: 'flex-start'},
+        common: {alignSelf: 'flex-start', backgroundColor: Styles.globalColors.fastBlank},
         isElectron: {minHeight: 16},
         isMobile: {minHeight: 21},
       }),
       url: {
+        backgroundColor: Styles.globalColors.fastBlank,
         ...Styles.globalStyles.fontSemibold,
       },
     } as const)
