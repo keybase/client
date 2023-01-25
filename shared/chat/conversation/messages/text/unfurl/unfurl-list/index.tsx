@@ -55,7 +55,7 @@ const styles = Styles.styleSheetCreate(
 
 type UnfurlRenderType = 'generic' | 'map' | 'mapdone' | 'giphy'
 
-const renderTypeToClass = new Map<UnfurlRenderType, any /*TODOlReact.ExoticComponent<{idx: number}>*/>([
+const renderTypeToClass = new Map<UnfurlRenderType, React.ExoticComponent<{idx: number}>>([
   ['generic', UnfurlGeneric],
   ['map', UnfurlMap],
   ['mapdone', UnfurlSharingEnded],
@@ -65,21 +65,21 @@ const renderTypeToClass = new Map<UnfurlRenderType, any /*TODOlReact.ExoticCompo
 const UnfurlListContainer = React.memo(function UnfurlListContainer() {
   const conversationIDKey = React.useContext(ConvoIDContext)
   const ordinal = React.useContext(OrdinalContext)
-  const unfurlTypes: Array<UnfurlRenderType> = Container.useSelector(
+  const unfurlTypes: Array<UnfurlRenderType | 'none'> = Container.useSelector(
     state =>
       [...(Constants.getMessage(state, conversationIDKey, ordinal)?.unfurls?.values() ?? [])].map(u => {
         const ut = u.unfurl.unfurlType
         switch (ut) {
           case RPCChatTypes.UnfurlType.giphy:
             return 'giphy'
-          case RPCChatTypes.UnfurlType.maps:
-            return 'generic'
-          // TODO
-          case RPCChatTypes.UnfurlType.youtube:
-            return 'generic'
-          // TODO
+          case RPCChatTypes.UnfurlType.generic:
+            return u.unfurl.generic.mapInfo
+              ? u.unfurl.generic.mapInfo.isLiveLocationDone
+                ? 'mapdone'
+                : 'map'
+              : 'generic'
           default:
-            return 'generic'
+            return 'none'
         }
       }),
     shallowEqual
@@ -87,7 +87,7 @@ const UnfurlListContainer = React.memo(function UnfurlListContainer() {
   return (
     <Kb.Box2 direction="vertical" gap="tiny" style={styles.container}>
       {unfurlTypes.map((ut, idx) => {
-        const Clazz = renderTypeToClass.get(ut)
+        const Clazz = ut === 'none' ? null : renderTypeToClass.get(ut)
         return Clazz ? <Clazz key={String(idx)} idx={idx} /> : null
       })}
     </Kb.Box2>

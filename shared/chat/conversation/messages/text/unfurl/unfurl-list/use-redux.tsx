@@ -26,11 +26,13 @@ export const getUnfurlInfo = (
   idx: number
 ) => {
   const message = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
-  const youAreAuthor = message?.author === state.config.username
+  const author = message?.author
+  const youAreAuthor = author === state.config.username
   const unfurlInfo = [...(message?.unfurls?.values() ?? [])][idx]
 
-  if (!unfurlInfo) return {isCollapsed: false, unfurl: null, unfurlMessageID: 0, youAreAuthor: false}
+  if (!unfurlInfo)
+    return {author: '', isCollapsed: false, unfurl: null, unfurlMessageID: 0, youAreAuthor: false}
 
   const {isCollapsed, unfurl, unfurlMessageID} = unfurlInfo
-  return {isCollapsed, unfurl, unfurlMessageID, youAreAuthor}
+  return {author, isCollapsed, unfurl, unfurlMessageID, youAreAuthor}
 }

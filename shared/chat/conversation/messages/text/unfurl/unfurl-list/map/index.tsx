@@ -1,81 +1,106 @@
-import * as React from 'react'
-import * as Kb from '../../../../../../../common-adapters/index'
 import * as Container from '../../../../../../../util/container'
+import * as Kb from '../../../../../../../common-adapters/index'
+import * as RPCChatTypes from '../../../../../../../constants/types/rpc-chat-gen'
+import * as React from 'react'
 import * as RouteTreeGen from '../../../../../../../actions/route-tree-gen'
 import * as Styles from '../../../../../../../styles'
-import type * as Types from '../../../../../../../constants/types/chat2'
-import {maxWidth} from '../../../../attachment/shared'
-import {formatDurationForLocation} from '../../../../../../../util/timestamp'
 import UnfurlImage from '../image'
+import shallowEqual from 'shallowequal'
+import {ConvoIDContext, OrdinalContext} from '../../../../ids-context'
+import {formatDurationForLocation} from '../../../../../../../util/timestamp'
+import {getUnfurlInfo} from '../use-redux'
+import {maxWidth} from '../../../../attachment/shared'
 
-type Props = {
-  conversationIDKey: Types.ConversationIDKey
-  coord: Types.Coordinate
-  imageHeight: number
-  imageWidth: number
-  imageURL: string
-  isAuthor: boolean
-  author?: string
-  liveLocationEndTime?: number
-  isLiveLocationDone: boolean
-  time: number
-  toggleMessagePopup: () => void
-  url: string
-}
+const UnfurlMap = React.memo(function UnfurlGeneric(p: {idx: number}) {
+  const {idx} = p
+  const conversationIDKey = React.useContext(ConvoIDContext)
+  const ordinal = React.useContext(OrdinalContext)
 
-const UnfurlMap = (props: Props) => {
+  const data = Container.useSelector(state => {
+    const {unfurl, youAreAuthor, author} = getUnfurlInfo(state, conversationIDKey, ordinal, idx)
+    if (unfurl?.unfurlType !== RPCChatTypes.UnfurlType.generic) {
+      return null
+    }
+    const {generic} = unfurl
+    const {mapInfo, media, url} = generic
+    const {coord, isLiveLocationDone, liveLocationEndTime, time} = mapInfo || {
+      coord: 0,
+      isLiveLocationDone: false,
+      liveLocationEndTime: 0,
+      time: 0,
+    }
+    const {height, width, url: imageURL} = media || {height: 0, url: '', width: 0}
+
+    return {
+      author,
+      coord,
+      height,
+      imageURL,
+      isLiveLocationDone,
+      liveLocationEndTime,
+      time,
+      url,
+      width,
+      youAreAuthor,
+    }
+  }, shallowEqual)
+
   const dispatch = Container.useDispatch()
-  const onViewMap = !Styles.isMobile
-    ? props.toggleMessagePopup
-    : () => {
-        dispatch(
-          RouteTreeGen.createNavigateAppend({
-            path: [
-              {
-                props: {
-                  author: props.author,
-                  conversationIDKey: props.conversationIDKey,
-                  coord: props.coord,
-                  isAuthor: props.isAuthor,
-                  isLiveLocation: !!props.liveLocationEndTime && !props.isLiveLocationDone,
-                  url: props.url,
-                },
-                selected: 'chatUnfurlMapPopup',
-              },
-            ],
-          })
-        )
-      }
+
+  if (!data) {
+    return null
+  }
+
+  const {author, url, coord, isLiveLocationDone, liveLocationEndTime} = data
+  const {height, width, imageURL, youAreAuthor, time} = data
+  const onViewMap = () => {
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [
+          {
+            props: {
+              author,
+              conversationIDKey,
+              coord,
+              isAuthor: youAreAuthor,
+              isLiveLocation: !!liveLocationEndTime && !isLiveLocationDone,
+              url,
+            },
+            selected: 'chatUnfurlMapPopup',
+          },
+        ],
+      })
+    )
+  }
 
   return (
     <Kb.Box2 direction="vertical">
       <UnfurlImage
-        url={props.imageURL}
-        height={props.imageHeight}
-        width={props.imageWidth}
+        url={imageURL}
+        height={height}
+        width={width}
         isVideo={false}
         autoplayVideo={false}
         onClick={onViewMap}
       />
-      {!!props.liveLocationEndTime && (
+      {!!liveLocationEndTime && (
         <Kb.Box2
           direction="horizontal"
           style={Styles.collapseStyles([styles.liveLocation, {width: maxWidth}])}
           fullWidth={true}
         >
           <Kb.Box2 direction="vertical">
-            <Kb.Text type="BodyTinySemibold">Live location</Kb.Text>
-            <UpdateAge time={props.time} />
+            <Kb.Text type="BodyTinySemibold" style={styles.fastStyle}>
+              Live location
+            </Kb.Text>
+            <UpdateAge time={time} />
           </Kb.Box2>
-          <LiveDuration
-            liveLocationEndTime={props.liveLocationEndTime}
-            isLiveLocationDone={props.isLiveLocationDone}
-          />
+          <LiveDuration liveLocationEndTime={liveLocationEndTime} isLiveLocationDone={isLiveLocationDone} />
         </Kb.Box2>
       )}
     </Kb.Box2>
   )
-}
+})
 
 type AgeProps = {
   time: number
@@ -100,7 +125,11 @@ const UpdateAge = (props: AgeProps) => {
   } else {
     durationText = `updated ${formatDurationForLocation(duration)} ago`
   }
-  return <Kb.Text type="BodyTiny">{durationText}</Kb.Text>
+  return (
+    <Kb.Text type="BodyTiny" style={styles.fastStyle}>
+      {durationText}
+    </Kb.Text>
+  )
 }
 
 type DurationProps = {
@@ -121,7 +150,7 @@ const LiveDuration = (props: DurationProps) => {
   }, [liveLocationEndTime])
 
   return (
-    <Kb.Text type="BodyTinySemibold">
+    <Kb.Text type="BodyTinySemibold" style={styles.fastStyle}>
       {props.isLiveLocationDone || duration <= 0 ? '(finished)' : formatDurationForLocation(duration)}
     </Kb.Text>
   )
@@ -130,6 +159,7 @@ const LiveDuration = (props: DurationProps) => {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
+      fastStyle: {backgroundColor: Styles.globalColors.blueGrey},
       liveLocation: {
         backgroundColor: Styles.globalColors.blueGrey,
         borderBottomLeftRadius: Styles.borderRadius,
