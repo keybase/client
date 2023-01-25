@@ -74,7 +74,7 @@ const UnfurlListContainer = React.memo(function UnfurlListContainer() {
             return 'giphy'
           case RPCChatTypes.UnfurlType.generic:
             return u.unfurl.generic.mapInfo
-              ? u.unfurl.generic.mapInfo.isLiveLocationDone
+              ? u.unfurl.generic.mapInfo.isLiveLocationDone // this is never true?
                 ? 'mapdone'
                 : 'map'
               : 'generic'
