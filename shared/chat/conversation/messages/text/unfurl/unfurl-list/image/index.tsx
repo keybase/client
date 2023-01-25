@@ -18,43 +18,40 @@ export type Props = {
   widthPadding?: number
 }
 
-class UnfurlImage extends React.Component<Props> {
-  _getDimensions() {
-    const maxSize = Math.min(maxWidth, 320) - (this.props.widthPadding || 0)
-    const {height, width} = Constants.clampImageSize(this.props.width, this.props.height, maxSize)
-    return {
-      flexGrow: 0,
-      flexShrink: 0,
-      height,
-      minHeight: height,
-      minWidth: width,
-      width,
-    }
-  }
-  _onClick = () => {
-    if (this.props.linkURL) {
-      openURL(this.props.linkURL)
-    }
-  }
+const UnfurlImage = (p: Props) => {
+  const {autoplayVideo, isVideo, linkURL, onClick, url, style, widthPadding} = p
 
-  render() {
-    const dims = this._getDimensions()
-    const style = Styles.collapseStyles([dims, styles.image, this.props.style])
-    return this.props.isVideo ? (
-      <Video
-        autoPlay={this.props.autoplayVideo}
-        height={dims.height}
-        onClick={this.props.onClick}
-        style={style}
-        url={this.props.url}
-        width={dims.width}
+  const onOpenURL = React.useCallback(() => {
+    linkURL && openURL(linkURL)
+  }, [linkURL])
+  const maxSize = Math.min(maxWidth, 320) - (widthPadding || 0)
+  const {height, width} = Constants.clampImageSize(p.width, p.height, maxSize)
+
+  return isVideo ? (
+    <Video
+      autoPlay={autoplayVideo}
+      height={height}
+      onClick={onClick}
+      style={Styles.collapseStyles([
+        styles.image,
+        {height, minHeight: height, minWidth: width, width},
+        style,
+      ])}
+      url={url}
+      width={width}
+    />
+  ) : (
+    <Kb.ClickableBox onClick={onClick || onOpenURL}>
+      <Kb.Image
+        src={url}
+        style={Styles.collapseStyles([
+          styles.video,
+          {height, minHeight: height, minWidth: width, width},
+          style,
+        ])}
       />
-    ) : (
-      <Kb.ClickableBox onClick={this.props.onClick || this._onClick}>
-        <Kb.Image {...dims} src={this.props.url} style={style} />
-      </Kb.ClickableBox>
-    )
-  }
+    </Kb.ClickableBox>
+  )
 }
 
 const styles = Styles.styleSheetCreate(
@@ -62,6 +59,12 @@ const styles = Styles.styleSheetCreate(
     ({
       image: {
         borderRadius: Styles.borderRadius,
+        flexGrow: 0,
+        flexShrink: 0,
+      },
+      video: {
+        flexGrow: 0,
+        flexShrink: 0,
       },
     } as const)
 )

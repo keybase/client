@@ -3,57 +3,48 @@ import * as Kb from '../../../../../../../common-adapters/index'
 import * as Styles from '../../../../../../../styles'
 import type {Props} from './video'
 
-type State = {
-  playingVideo: boolean
-}
-
-export class Video extends React.Component<Props, State> {
-  _videoRef = React.createRef<HTMLVideoElement>()
-  state = {playingVideo: this.props.autoPlay}
-  _onClick = () => {
-    if (this.props.onClick) {
-      this.props.onClick()
+export const Video = (p: Props) => {
+  const {autoPlay, onClick, height, width, style, url} = p
+  const videoRef = React.useRef<HTMLVideoElement | null>(null)
+  const [playing, setPlaying] = React.useState(autoPlay)
+  React.useEffect(() => {
+    setPlaying(autoPlay)
+  }, [url, autoPlay])
+  const _onClick = React.useCallback(() => {
+    if (onClick) {
+      onClick()
       return
     }
-    if (!this._videoRef.current) {
+    if (!videoRef.current) {
       return
     }
-    if (!this.state.playingVideo) {
-      this._videoRef.current
+    if (!playing) {
+      videoRef.current
         .play()
         .then(() => {})
         .catch(() => {})
     } else {
-      this._videoRef.current.pause()
+      videoRef.current.pause()
     }
-    this.setState(s => ({playingVideo: !s.playingVideo}))
-  }
-  render() {
-    return (
-      <Kb.Box2 direction="horizontal" style={styles.container}>
-        <Kb.Box
-          style={Styles.collapseStyles([
-            styles.absoluteContainer,
-            {
-              height: this.props.height,
-              width: this.props.width,
-            },
-          ])}
-        >
-          {!this.state.playingVideo && <Kb.Icon type="icon-play-64" style={styles.playButton} />}
-        </Kb.Box>
-        <video
-          ref={this._videoRef}
-          onClick={this._onClick}
-          autoPlay={this.props.autoPlay}
-          muted={true}
-          src={this.props.url}
-          style={this.props.style}
-          loop={true}
-        />
-      </Kb.Box2>
-    )
-  }
+    setPlaying(p => !p)
+  }, [playing, onClick])
+
+  return (
+    <Kb.Box2 direction="horizontal" style={styles.container}>
+      <Kb.Box style={Styles.collapseStyles([styles.absoluteContainer, {height, width}])}>
+        {!playing && <Kb.Icon type="icon-play-64" style={styles.playButton} />}
+      </Kb.Box>
+      <video
+        ref={videoRef}
+        onClick={_onClick}
+        autoPlay={autoPlay}
+        muted={true}
+        src={url}
+        style={style}
+        loop={true}
+      />
+    </Kb.Box2>
+  )
 }
 
 const styles = Styles.styleSheetCreate(
