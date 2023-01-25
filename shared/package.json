@@ -110,6 +110,7 @@
     "lottie-ios": "3.5.0",
     "lottie-react-native": "5.1.4",
     "lottie-web": "5.10.0",
+    "marked": "4.2.12",
     "memoize-one": "6.0.0",
     "menubar": "9.2.3",
     "mousetrap": "1.6.5",

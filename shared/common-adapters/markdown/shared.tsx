@@ -2,10 +2,12 @@ import * as Styles from '../../styles'
 import * as React from 'react'
 import SimpleMarkdown from 'simple-markdown'
 import Text from '../text'
+import {Box2} from '../box'
 import logger from '../../logger'
 import type {Props as MarkdownProps} from '.'
 import {emojiIndexByChar, emojiRegex, commonTlds} from './emoji-gen'
 import {reactOutput, previewOutput, bigEmojiOutput, markdownStyles, serviceOnlyOutput} from './react'
+import TEMP from '../markdown2'
 
 const serviceBeginDecorationTag = '\\$\\>kb\\$'
 const serviceEndDecorationTag = '\\$\\<kb\\$'
@@ -277,6 +279,17 @@ class SimpleMarkdownComponent extends React.PureComponent<MarkdownProps, {hasErr
   }
 
   render() {
+    const old = this.renderOLD()
+
+    return (
+      <Box2 direction="vertical" fullWidth={true} style={{position: 'relative'}}>
+        {old}
+        <TEMP>{this.props.children}</TEMP>
+      </Box2>
+    )
+  }
+
+  renderOLD() {
     if (this.state.hasError) {
       return (
         <Text
