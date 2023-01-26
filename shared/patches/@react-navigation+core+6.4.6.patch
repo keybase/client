@@ -11,10 +11,10 @@ index 0cdb6c0..2ad63e5 100644
      screens: PathConfigMap<ParamList>;
  };
 diff --git a/node_modules/@react-navigation/core/lib/typescript/src/types.d.ts b/node_modules/@react-navigation/core/lib/typescript/src/types.d.ts
-index f959586..519c9ea 100644
+index 42792c6..ff56030 100644
 --- a/node_modules/@react-navigation/core/lib/typescript/src/types.d.ts
 +++ b/node_modules/@react-navigation/core/lib/typescript/src/types.d.ts
-@@ -516,7 +516,7 @@ export declare type PathConfig<ParamList extends {}> = {
+@@ -507,7 +507,7 @@ export declare type PathConfig<ParamList extends {}> = {
      initialRouteName?: keyof ParamList;
  };
  export declare type PathConfigMap<ParamList extends {}> = {
