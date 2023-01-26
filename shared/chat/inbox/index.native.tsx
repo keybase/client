@@ -251,17 +251,18 @@ class Inbox extends React.PureComponent<T.Props, State> {
             </Kb.Box2>
           ) : (
             <FlashList
-              estimatedItemSize={64}
-              overScrollMode="never"
               ListHeaderComponent={HeadComponent}
               data={this.props.rows}
-              keyExtractor={this.keyExtractor}
+              estimatedItemSize={64}
               getItemType={this.getItemType}
-              renderItem={this.renderItem}
-              ref={this.listRef}
-              onViewableItemsChanged={this.onViewChanged}
+              keyExtractor={this.keyExtractor}
               keyboardShouldPersistTaps="handled"
+              onViewableItemsChanged={this.onViewChanged}
+              overScrollMode="never"
               overrideItemLayout={this.overrideItemLayout}
+              ref={this.listRef}
+              removeClippedSubviews={Styles.isAndroid}
+              renderItem={this.renderItem}
             />
           )}
           {noChats}
