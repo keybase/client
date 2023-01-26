@@ -6,11 +6,10 @@ import TeamMenu from '../../../conversation/info-panel/menu/container'
 import type * as Types from '../../../../constants/types/chat2'
 import shallowEqual from 'shallowequal'
 import {formatTimeForConversationList} from '../../../../util/timestamp'
+import {TopContext, ConversationIDKeyContext, ParticipantsContext} from './contexts'
 
 type Props = {
-  conversationIDKey: Types.ConversationIDKey
   isSelected: boolean
-  showGear: boolean
   layoutName?: string
   layoutIsTeam?: boolean
   isInWidget: boolean
@@ -20,26 +19,20 @@ type Props = {
 const getMeta = (state: Container.TypedState, conversationIDKey: Types.ConversationIDKey) =>
   state.chat2.metaMap.get(conversationIDKey)
 
-const SimpleTopLine = React.memo(function SimpleTopLine(props: Props) {
-  const {conversationIDKey, isSelected, showGear, layoutTime, layoutIsTeam, layoutName, isInWidget} = props
-
-  const {hasUnread, teamname, channelname, timeNum, hasBadge} = Container.useSelector(state => {
-    const hasUnread = (state.chat2.unreadMap.get(conversationIDKey) ?? 0) > 0
-    const teamname = (getMeta(state, conversationIDKey)?.teamname || layoutIsTeam ? layoutName : '') || ''
-    const channelname = isInWidget ? getMeta(state, conversationIDKey)?.channelname ?? '' : ''
+const Timestamp = React.memo(function Timestamp() {
+  const conversationIDKey = React.useContext(ConversationIDKeyContext)
+  const {layoutTime} = React.useContext(TopContext)
+  const timeNum = Container.useSelector(state => {
     const timeNum = (getMeta(state, conversationIDKey)?.timestamp ?? layoutTime) || 0
-    const hasBadge = (state.chat2.badgeMap.get(conversationIDKey) ?? 0) > 0
-    return {
-      channelname,
-      hasBadge,
-      hasUnread,
-      teamname,
-      timeNum,
-    }
-  }, shallowEqual)
+    return timeNum
+  })
+  const timestamp = timeNum ? formatTimeForConversationList(timeNum) : ''
+  return <>{timestamp}</>
+})
 
-  const timestamp = React.useMemo(() => (timeNum ? formatTimeForConversationList(timeNum) : ''), [timeNum])
-
+const Names = React.memo(function Names(p: {isSelected?: boolean; showBold: boolean; isInWidget: boolean}) {
+  const participants = React.useContext(ParticipantsContext)
+  const {isSelected, isInWidget, showBold} = p
   const usernameColor = isSelected ? Styles.globalColors.white : Styles.globalColors.black
   const backgroundColor = isInWidget
     ? Styles.globalColors.white
@@ -48,41 +41,6 @@ const SimpleTopLine = React.memo(function SimpleTopLine(props: Props) {
     : Styles.isPhone
     ? Styles.globalColors.fastBlank
     : Styles.globalColors.blueGrey
-  const showBold = !isSelected && hasUnread
-  const subColor = isSelected
-    ? Styles.globalColors.white
-    : hasUnread
-    ? Styles.globalColors.black
-    : Styles.globalColors.black_50
-
-  const participants = Container.useSelector(state => {
-    const participantInfo = state.chat2.participantMap.get(conversationIDKey)
-    if (participantInfo?.name.length) {
-      const you = state.config.username
-      // Filter out ourselves unless it's our 1:1 conversation
-      return participantInfo.name.filter((participant, _, list) =>
-        list.length === 1 ? true : participant !== you
-      )
-    }
-    if (layoutIsTeam && layoutName) {
-      return [layoutName]
-    }
-    return layoutName?.split(',') ?? []
-  }, shallowEqual)
-
-  const iconHoverColor = isSelected ? Styles.globalColors.white_75 : Styles.globalColors.black
-
-  const {showingPopup, toggleShowingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
-    <TeamMenu
-      visible={showingPopup}
-      attachTo={attachTo}
-      onHidden={toggleShowingPopup}
-      hasHeader={true}
-      isSmallTeam={true}
-      conversationIDKey={conversationIDKey}
-    />
-  ))
-
   const nameContainerStyle = React.useMemo(
     () =>
       Styles.collapseStyles([
@@ -103,6 +61,83 @@ const SimpleTopLine = React.memo(function SimpleTopLine(props: Props) {
       ]) as Styles.StylesCrossPlatform,
     [showBold, usernameColor]
   )
+  return typeof participants === 'string' ? (
+    <Kb.Box2 direction="horizontal" fullWidth={true}>
+      <Kb.Text type="BodySemibold" style={teamContainerStyle}>
+        {participants}
+      </Kb.Text>
+    </Kb.Box2>
+  ) : (
+    <Kb.ConnectedUsernames
+      backgroundMode={isSelected ? 'Terminal' : 'Normal'}
+      type={showBold ? 'BodyBold' : 'BodySemibold'}
+      inline={true}
+      withProfileCardPopup={false}
+      underline={false}
+      colorBroken={false}
+      colorFollowing={false}
+      colorYou={false}
+      commaColor={usernameColor}
+      containerStyle={nameContainerStyle}
+      usernames={participants}
+      title={typeof participants === 'string' ? participants : participants.join(', ')}
+    />
+  )
+})
+
+const SimpleTopLine = React.memo(function SimpleTopLine(p: Props) {
+  const conversationIDKey = React.useContext(ConversationIDKeyContext)
+  const {isSelected, isInWidget} = p
+
+  const data = Container.useSelector(state => {
+    const hasUnread = (state.chat2.unreadMap.get(conversationIDKey) ?? 0) > 0
+    const hasBadge = (state.chat2.badgeMap.get(conversationIDKey) ?? 0) > 0
+    return {
+      hasBadge,
+      hasUnread,
+    }
+  }, shallowEqual)
+
+  const props = {
+    ...data,
+    isInWidget,
+    isSelected,
+  }
+
+  return <SimpleTopLineImpl {...props} />
+})
+
+type IProps = {
+  isSelected?: boolean
+  isInWidget: boolean
+  hasBadge: boolean
+  hasUnread: boolean
+}
+const SimpleTopLineImpl = React.memo(function SimpleTopLineImpl(p: IProps) {
+  const {isSelected, isInWidget, hasBadge, hasUnread} = p
+  const showGear = !isInWidget
+  const showBold = !isSelected && hasUnread
+  const subColor = isSelected
+    ? Styles.globalColors.white
+    : hasUnread
+    ? Styles.globalColors.black
+    : Styles.globalColors.black_50
+
+  const iconHoverColor = isSelected ? Styles.globalColors.white_75 : Styles.globalColors.black
+
+  // TODO remove when popup doen'st need it
+  const conversationIDKey = React.useContext(ConversationIDKeyContext)
+
+  const {showingPopup, toggleShowingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
+    <TeamMenu
+      visible={showingPopup}
+      attachTo={attachTo}
+      onHidden={toggleShowingPopup}
+      hasHeader={true}
+      isSmallTeam={true}
+      conversationIDKey={conversationIDKey}
+    />
+  ))
 
   const tssubColor = (!hasBadge || isSelected) && subColor
   const timestampStyle = React.useMemo(
@@ -120,28 +155,7 @@ const SimpleTopLine = React.memo(function SimpleTopLine(props: Props) {
       {showGear && showingPopup && popup}
       <Kb.Box style={styles.insideContainer}>
         <Kb.Box style={styles.nameContainer}>
-          {teamname && channelname ? (
-            <Kb.Box2 direction="horizontal" fullWidth={true}>
-              <Kb.Text type="BodySemibold" style={teamContainerStyle}>
-                {teamname + '#' + channelname}
-              </Kb.Text>
-            </Kb.Box2>
-          ) : (
-            <Kb.ConnectedUsernames
-              backgroundMode={isSelected ? 'Terminal' : 'Normal'}
-              type={showBold ? 'BodyBold' : 'BodySemibold'}
-              inline={true}
-              withProfileCardPopup={false}
-              underline={false}
-              colorBroken={false}
-              colorFollowing={false}
-              colorYou={false}
-              commaColor={usernameColor}
-              containerStyle={nameContainerStyle}
-              usernames={participants}
-              title={typeof participants === 'string' ? participants : participants.join(', ')}
-            />
-          )}
+          <Names isSelected={isSelected} showBold={showBold} isInWidget={isInWidget} />
         </Kb.Box>
       </Kb.Box>
       <Kb.Text
@@ -150,7 +164,7 @@ const SimpleTopLine = React.memo(function SimpleTopLine(props: Props) {
         className={Styles.classNames({'conversation-timestamp': showGear})}
         style={timestampStyle}
       >
-        {timestamp}
+        <Timestamp />
       </Kb.Text>
       {!Styles.isMobile && showGear && (
         <Kb.Icon

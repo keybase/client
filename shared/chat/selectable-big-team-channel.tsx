@@ -5,6 +5,7 @@ import {TeamAvatar} from './avatars'
 import {pluralize} from '../util/string'
 import {BottomLine} from './inbox/row/small-team/bottom-line'
 import type * as RPCChatTypes from '../constants/types/rpc-chat-gen'
+import {SnippetContext} from './inbox/row/small-team/contexts'
 
 type Props = {
   isSelected: boolean
@@ -82,11 +83,9 @@ class SelectableBigTeamChannel extends React.PureComponent<Props, State> {
             </Kb.Text>
           </Kb.Box2>
           {!this.props.numSearchHits && (
-            <BottomLine
-              conversationIDKey=""
-              layoutSnippet={this.props.snippet}
-              isSelected={this.props.isSelected}
-            />
+            <SnippetContext.Provider value={this.props.snippet ?? ''}>
+              <BottomLine isDecryptingSnippet={false} isSelected={this.props.isSelected} />
+            </SnippetContext.Provider>
           )}
           {!!this.props.numSearchHits && (
             <Kb.Text

@@ -5,6 +5,7 @@ import {FilteredTopLine} from './top-line'
 import {BottomLine} from './inbox/row/small-team/bottom-line'
 import {Avatars, TeamAvatar} from './avatars'
 import type * as RPCChatTypes from '../constants/types/rpc-chat-gen'
+import {SnippetContext} from './inbox/row/small-team/contexts'
 
 type Props = {
   backgroundColor?: string
@@ -91,7 +92,9 @@ class SelectableSmallTeam extends React.PureComponent<Props, State> {
               usernameColor={props.usernameColor}
             />
             {!props.numSearchHits && (
-              <BottomLine conversationIDKey="" layoutSnippet={props.snippet} isSelected={props.isSelected} />
+              <SnippetContext.Provider value={props.snippet ?? ''}>
+                <BottomLine isDecryptingSnippet={false} isSelected={props.isSelected} />
+              </SnippetContext.Provider>
             )}
           </Kb.Box2>
           {this.props.showBadge && <Kb.Box2 direction="horizontal" style={styles.badge} />}

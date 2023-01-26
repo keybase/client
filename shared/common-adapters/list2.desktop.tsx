@@ -16,7 +16,7 @@ class List2<T> extends React.PureComponent<Props<T>> {
     }
 
     const keyProp = this.props.keyProperty || 'key'
-    return item[keyProp]
+    return item[keyProp] ?? String(index)
   }
 
   // This has to be a separate variable since if we construct it inside render

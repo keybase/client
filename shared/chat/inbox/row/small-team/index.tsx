@@ -11,7 +11,7 @@ import type * as Types from '../../../../constants/types/chat2'
 import SwipeConvActions from './swipe-conv-actions'
 import shallowEqual from 'shallowequal'
 import './small-team.css'
-import {ConversationIDKeyContext, SnippetContext} from './contexts'
+import {ParticipantsContext, TopContext, ConversationIDKeyContext, SnippetContext} from './contexts'
 
 export type Props = {
   conversationIDKey: Types.ConversationIDKey
@@ -48,6 +48,27 @@ const SmallTeam = React.memo(function SmallTeam(p: Props) {
         ? !trustedState || trustedState === 'requesting' || trustedState === 'untrusted'
         : false
     return {isDecryptingSnippet, isMuted, snippet}
+  }, shallowEqual)
+
+  const participants = Container.useSelector(state => {
+    const meta = state.chat2.metaMap.get(conversationIDKey)
+    const teamname = (meta?.teamname || layoutIsTeam ? layoutName : '') || ''
+    const channelname = isInWidget ? meta?.channelname ?? '' : ''
+    if (teamname && channelname) {
+      return `${teamname}#${channelname}`
+    }
+    const participantInfo = state.chat2.participantMap.get(conversationIDKey)
+    if (participantInfo?.name.length) {
+      const you = state.config.username
+      // Filter out ourselves unless it's our 1:1 conversation
+      return participantInfo.name.filter((participant, _, list) =>
+        list.length === 1 ? true : participant !== you
+      )
+    }
+    if (layoutIsTeam && layoutName) {
+      return [layoutName]
+    }
+    return layoutName?.split(',') ?? []
   }, shallowEqual)
 
   const dispatch = Container.useDispatch()
@@ -104,15 +125,17 @@ const SmallTeam = React.memo(function SmallTeam(p: Props) {
             />
             <Kb.Box style={Styles.collapseStyles([styles.conversationRow, styles.fastBlank])}>
               <Kb.Box2 direction="vertical" style={styles.withBottomLine} fullWidth={true}>
-                <SimpleTopLine
-                  isSelected={isSelected}
-                  isInWidget={isInWidget}
-                  showGear={!isInWidget}
-                  layoutName={layoutName}
-                  layoutIsTeam={layoutIsTeam}
-                  layoutTime={layoutTime}
-                  conversationIDKey={conversationIDKey}
-                />
+                <ParticipantsContext.Provider value={participants}>
+                  <TopContext.Provider
+                    value={{
+                      layoutIsTeam,
+                      layoutName,
+                      layoutTime,
+                    }}
+                  >
+                    <SimpleTopLine isSelected={isSelected} isInWidget={isInWidget} />
+                  </TopContext.Provider>
+                </ParticipantsContext.Provider>
               </Kb.Box2>
               <SnippetContext.Provider value={snippet}>
                 <BottomLine
