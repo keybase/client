@@ -11,6 +11,7 @@ import type * as Types from '../../../../constants/types/chat2'
 import SwipeConvActions from './swipe-conv-actions'
 import shallowEqual from 'shallowequal'
 import './small-team.css'
+import {ConversationIDKeyContext, SnippetContext} from './contexts'
 
 export type Props = {
   conversationIDKey: Types.ConversationIDKey
@@ -24,26 +25,45 @@ export type Props = {
 }
 
 const SmallTeam = React.memo(function SmallTeam(p: Props) {
-  const {isSelected, layoutTime} = p
-  const {layoutSnippet} = p
+  const {layoutName, layoutIsTeam, layoutSnippet, isSelected, layoutTime} = p
   const {conversationIDKey, isInWidget, swipeCloseRef} = p
-  const {layoutName, layoutIsTeam} = p
+  const {isDecryptingSnippet, isMuted, snippet} = Container.useSelector(state => {
+    const isMuted = state.chat2.mutedMap.get(conversationIDKey) ?? false
+    const meta = state.chat2.metaMap.get(conversationIDKey)
+    let typingSnippet = ''
+    if (!isInWidget) {
+      const typers = state.chat2.typingMap.get(conversationIDKey)
+      if (typers?.size) {
+        typingSnippet =
+          typers.size === 1
+            ? `${typers.values().next().value as string} is typing...`
+            : 'Multiple people typing...'
+      }
+    }
 
-  const isMuted = Container.useSelector(state => state.chat2.mutedMap.get(conversationIDKey) ?? false)
+    const snippet = typingSnippet || meta?.snippetDecorated || layoutSnippet || ''
+    const trustedState = meta?.trustedState
+    const isDecryptingSnippet =
+      conversationIDKey && !snippet
+        ? !trustedState || trustedState === 'requesting' || trustedState === 'untrusted'
+        : false
+    return {isDecryptingSnippet, isMuted, snippet}
+  }, shallowEqual)
+
   const dispatch = Container.useDispatch()
-  const onHideConversation = React.useCallback(() => {
+  const onHideConversation = Container.useEvent(() => {
     dispatch(Chat2Gen.createHideConversation({conversationIDKey}))
-  }, [dispatch, conversationIDKey])
-  const onMuteConversation = React.useCallback(() => {
+  })
+  const onMuteConversation = Container.useEvent(() => {
     dispatch(Chat2Gen.createMuteConversation({conversationIDKey, muted: !isMuted}))
-  }, [dispatch, conversationIDKey, isMuted])
-  const _onSelectConversation = React.useCallback(() => {
+  })
+  const _onSelectConversation = Container.useEvent(() => {
     if (isInWidget) {
       dispatch(Chat2Gen.createOpenChatFromWidget({conversationIDKey}))
     } else {
       dispatch(Chat2Gen.createNavigateToThread({conversationIDKey, reason: 'inboxSmall'}))
     }
-  }, [dispatch, conversationIDKey, isInWidget])
+  })
 
   const onSelectConversation = isSelected ? undefined : _onSelectConversation
 
@@ -56,56 +76,57 @@ const SmallTeam = React.memo(function SmallTeam(p: Props) {
     : Styles.globalColors.blueGrey
 
   return (
-    <SwipeConvActions
-      isMuted={isMuted}
-      onHideConversation={onHideConversation}
-      onMuteConversation={onMuteConversation}
-      swipeCloseRef={swipeCloseRef}
-      extraData={conversationIDKey}
-    >
-      <Kb.ClickableBox
-        className={Styles.classNames('small-row', {selected: isSelected})}
-        onClick={onSelectConversation}
-        style={
-          isInWidget
-            ? Styles.collapseStyles([styles.container, {backgroundColor: backgroundColor}])
-            : styles.container
-        }
+    <ConversationIDKeyContext.Provider value={conversationIDKey}>
+      <SwipeConvActions
+        isMuted={isMuted}
+        onHideConversation={onHideConversation}
+        onMuteConversation={onMuteConversation}
+        swipeCloseRef={swipeCloseRef}
+        extraData={conversationIDKey}
       >
-        <Kb.Box style={Styles.collapseStyles([styles.rowContainer, styles.fastBlank] as const)}>
-          <RowAvatars
-            layoutName={layoutName}
-            layoutIsTeam={layoutIsTeam}
-            conversationIDKey={conversationIDKey}
-            backgroundColor={backgroundColor}
-            isMuted={isMuted}
-            isSelected={isSelected}
-          />
-          <Kb.Box style={Styles.collapseStyles([styles.conversationRow, styles.fastBlank])}>
-            <Kb.Box2 direction="vertical" style={styles.withBottomLine} fullWidth={true}>
-              <SimpleTopLine
-                isSelected={isSelected}
-                isInWidget={isInWidget}
-                showGear={!isInWidget}
-                layoutName={layoutName}
-                layoutIsTeam={layoutIsTeam}
-                layoutTime={layoutTime}
-                conversationIDKey={conversationIDKey}
-              />
-            </Kb.Box2>
-            <Kb.Box2 direction="vertical" style={styles.bottom} fullWidth={true}>
-              <BottomLine
-                isInWidget={isInWidget}
-                conversationIDKey={conversationIDKey}
-                backgroundColor={backgroundColor}
-                layoutSnippet={layoutSnippet}
-                isSelected={isSelected}
-              />
-            </Kb.Box2>
+        <Kb.ClickableBox
+          className={Styles.classNames('small-row', {selected: isSelected})}
+          onClick={onSelectConversation}
+          style={
+            isInWidget
+              ? Styles.collapseStyles([styles.container, {backgroundColor: backgroundColor}])
+              : styles.container
+          }
+        >
+          <Kb.Box style={Styles.collapseStyles([styles.rowContainer, styles.fastBlank] as const)}>
+            <RowAvatars
+              layoutName={layoutName}
+              layoutIsTeam={layoutIsTeam}
+              conversationIDKey={conversationIDKey}
+              backgroundColor={backgroundColor}
+              isMuted={isMuted}
+              isSelected={isSelected}
+            />
+            <Kb.Box style={Styles.collapseStyles([styles.conversationRow, styles.fastBlank])}>
+              <Kb.Box2 direction="vertical" style={styles.withBottomLine} fullWidth={true}>
+                <SimpleTopLine
+                  isSelected={isSelected}
+                  isInWidget={isInWidget}
+                  showGear={!isInWidget}
+                  layoutName={layoutName}
+                  layoutIsTeam={layoutIsTeam}
+                  layoutTime={layoutTime}
+                  conversationIDKey={conversationIDKey}
+                />
+              </Kb.Box2>
+              <SnippetContext.Provider value={snippet}>
+                <BottomLine
+                  isDecryptingSnippet={isDecryptingSnippet}
+                  isInWidget={isInWidget}
+                  backgroundColor={backgroundColor}
+                  isSelected={isSelected}
+                />
+              </SnippetContext.Provider>
+            </Kb.Box>
           </Kb.Box>
-        </Kb.Box>
-      </Kb.ClickableBox>
-    </SwipeConvActions>
+        </Kb.ClickableBox>
+      </SwipeConvActions>
+    </ConversationIDKeyContext.Provider>
   )
 })
 
@@ -162,7 +183,6 @@ const RowAvatars = React.memo(function RowAvatars(p: RowAvatarProps) {
 })
 
 const styles = Styles.styleSheetCreate(() => ({
-  bottom: {justifyContent: 'flex-start'},
   container: Styles.platformStyles({
     common: {
       flexShrink: 0,
