@@ -1,4 +1,3 @@
-import * as Constants from '../../../constants/chat2'
 import * as Container from '../../../util/container'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
@@ -37,7 +36,6 @@ const BigTeamHeader = React.memo(function BigTeamHeader(props: Props) {
       attachTo={attachTo}
       visible={showingPopup}
       onHidden={toggleShowingPopup}
-      conversationIDKey={Constants.noConversationIDKey}
       teamID={teamID}
       hasHeader={true}
       isSmallTeam={false}

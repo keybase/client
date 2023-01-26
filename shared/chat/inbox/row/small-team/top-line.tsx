@@ -125,9 +125,6 @@ const SimpleTopLineImpl = React.memo(function SimpleTopLineImpl(p: IProps) {
 
   const iconHoverColor = isSelected ? Styles.globalColors.white_75 : Styles.globalColors.black
 
-  // TODO remove when popup doen'st need it
-  const conversationIDKey = React.useContext(ConversationIDKeyContext)
-
   const {showingPopup, toggleShowingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
     <TeamMenu
       visible={showingPopup}
@@ -135,7 +132,6 @@ const SimpleTopLineImpl = React.memo(function SimpleTopLineImpl(p: IProps) {
       onHidden={toggleShowingPopup}
       hasHeader={true}
       isSmallTeam={true}
-      conversationIDKey={conversationIDKey}
     />
   ))
 

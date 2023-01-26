@@ -9,8 +9,8 @@ import * as TeamConstants from '../../../../constants/teams'
 import * as TeamTypes from '../../../../constants/types/teams'
 import * as TeamsGen from '../../../../actions/teams-gen'
 import shallowEqual from 'shallowequal'
-import type * as ChatTypes from '../../../../constants/types/chat2'
 import {InfoPanelMenu} from '.'
+import {ConvoIDContext} from '../../messages/ids-context'
 
 export type OwnProps = {
   attachTo?: () => React.Component<any> | null
@@ -19,7 +19,6 @@ export type OwnProps = {
   hasHeader: boolean
   isSmallTeam: boolean
   teamID?: TeamTypes.TeamID
-  conversationIDKey: ChatTypes.ConversationIDKey
   visible: boolean
 }
 
@@ -29,8 +28,9 @@ const InfoPanelMenuConnectorVisible = React.memo(function InfoPanelMenuConnector
 })
 
 const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: OwnProps) {
+  const conversationIDKey = React.useContext(ConvoIDContext)
   const {attachTo, onHidden, floatingMenuContainerStyle, hasHeader} = p
-  const {isSmallTeam, teamID: pteamID, conversationIDKey} = p
+  const {isSmallTeam, teamID: pteamID} = p
   const visible = true
 
   const data = Container.useSelector(state => {
