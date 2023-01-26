@@ -6,7 +6,7 @@ import prettierCommands from './prettier'
 import {execSync} from 'child_process'
 import path from 'path'
 import fs from 'fs'
-import rimraf from 'rimraf'
+import {rimrafSync} from 'rimraf'
 
 const [, , command, ...rest] = process.argv
 
@@ -182,7 +182,6 @@ const patchIosKBLib = () => {
 }
 
 const clearAndroidBuild = () => {
-  const warnFail = err => err && console.warn(`Error cleaning android build dir, likely fine`)
   const paths = [
     '../../android/build',
     '../../../rnmodules/react-native-kb/android/build',
@@ -191,16 +190,13 @@ const clearAndroidBuild = () => {
   ]
   for (const p of paths) {
     try {
-      const glob = path.resolve(__dirname, p)
-      rimraf(glob, {}, warnFail)
+      rimrafSync(path.resolve(__dirname, p))
     } catch {}
   }
 }
 
 const clearTSCache = () => {
-  const warnFail = err => err && console.warn(`Error cleaning tscache ${err}, tsc may be inaccurate.`)
-  const glob = path.resolve(__dirname, '..', '..', '.tsOuts', '.tsOut*')
-  rimraf(glob, {}, warnFail)
+  rimrafSync(path.resolve(__dirname, '..', '..', '.tsOuts'))
 }
 
 function main() {
