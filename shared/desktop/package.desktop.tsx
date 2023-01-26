@@ -1,4 +1,4 @@
-import rimraf from 'rimraf'
+import {rimrafSync} from 'rimraf'
 import fs from 'fs-extra'
 import klawSync from 'klaw-sync'
 import minimist from 'minimist'
@@ -119,8 +119,8 @@ async function main() {
       console.log('TEMP_SKIP_BUILD true@!!')
     }
   } else {
-    rimraf.sync(desktopPath('dist'))
-    rimraf.sync(desktopPath('build'))
+    rimrafSync(desktopPath('dist'))
+    rimrafSync(desktopPath('build'))
   }
 
   copySync('Icon.png', 'build/desktop/Icon.png')
@@ -200,7 +200,7 @@ async function startPack() {
     copySyncFolder('./dist', 'build/desktop/dist', ['.js', '.ttf', '.png', '.html'])
     fs.removeSync(desktopPath('build/desktop/dist/fonts'))
 
-    rimraf.sync(desktopPath('release'))
+    rimrafSync(desktopPath('release'))
 
     let aps = [[platform, arch]]
     await Promise.all(
