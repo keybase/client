@@ -189,8 +189,8 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
     onUnhideConv,
     onViewTeam,
     teamID,
-    teamname,
     teamType,
+    teamname,
     visible,
   }
 
