@@ -1020,3 +1020,16 @@ func TestTLFIsTeamID(t *testing.T) {
 	tlfID = chat1.TLFID(uid.ToBytes())
 	require.False(t, tlfID.IsTeamID())
 }
+
+func TestSearchableRemoteConversationName(t *testing.T) {
+	require.Equal(t, "zoommikem", searchableRemoteConversationNameFromStr("mikem,zoommikem", "mikem"))
+	require.Equal(t, "zoommikem", searchableRemoteConversationNameFromStr("zoommikem,mikem", "mikem"))
+	require.Equal(t, "zoommikem,max",
+		searchableRemoteConversationNameFromStr("zoommikem,mikem,max", "mikem"))
+	require.Equal(t, "zoommikem,zoomua",
+		searchableRemoteConversationNameFromStr("zoommikem,mikem,zoomua", "mikem"))
+	require.Equal(t, "joshblum,zoommikem,zoomua",
+		searchableRemoteConversationNameFromStr("joshblum,zoommikem,mikem,zoomua", "mikem"))
+	require.Equal(t, "joshblum,zoommikem,zoomua",
+		searchableRemoteConversationNameFromStr("joshblum,zoommikem,mikem,zoomua,mikem", "mikem"))
+}
