@@ -561,7 +561,7 @@ const styles = Styles.styleSheetCreate(
       highlighted: {
         backgroundColor: Styles.globalColors.yellowOrYellowAlt,
         bottom: 0,
-        left: 52,
+        left: Styles.isMobile ? 45 : 52,
         position: 'absolute',
         right: 0,
         top: 0,
