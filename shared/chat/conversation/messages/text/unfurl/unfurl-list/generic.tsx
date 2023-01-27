@@ -125,7 +125,7 @@ const UnfurlGeneric = React.memo(function UnfurlGeneric(p: {idx: number}) {
     ) : null
 
   const rightImage =
-    imageLocation === 'side' && url ? (
+    imageLocation === 'side' && mediaUrl ? (
       <Kb.Box2 direction="vertical">
         <Kb.Image src={mediaUrl} style={styles.sideImage} />
       </Kb.Box2>
