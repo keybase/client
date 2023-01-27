@@ -14,11 +14,10 @@ import debounce from 'lodash/debounce'
 import shallowEqual from 'shallowequal'
 import type * as T from './index.d'
 import type * as Types from '../../constants/types/chat2'
-import type {ViewToken} from 'react-native'
+import {type ViewToken, View} from 'react-native'
 import {FlashList, type ListRenderItemInfo} from '@shopify/flash-list'
 import {anyWaiting} from '../../constants/waiting'
 import {makeRow} from './row'
-import {virtualListMarks} from '../../local-debug'
 
 type RowItem = Types.ChatInboxRowItem
 
@@ -82,6 +81,7 @@ class Inbox extends React.PureComponent<T.Props, State> {
     }
   }
 
+  TEMP = new Map<any>()
   private renderItem = ({item}: ListRenderItemInfo<RowItem>): React.ReactElement | null => {
     const row = item
     let element: React.ReactElement | null
@@ -100,26 +100,48 @@ class Inbox extends React.PureComponent<T.Props, State> {
       element = makeRow(row, this.props.navKey, this.swipeCloseRef)
     }
 
-    if (virtualListMarks) {
-      return <Kb.Box style={{backgroundColor: 'purple', overflow: 'hidden'}}>{element}</Kb.Box>
-    }
+    // TEMP
+    return (
+      <View
+        style={{
+          backgroundColor: `rgba(${Math.floor(Math.random() * 255)}, ${Math.floor(
+            Math.random() * 255
+          )}, ${Math.floor(Math.random() * 255)}, 255)`,
+          width: '100%',
+        }}
+        onLayout={e => {
+          let warn = ''
+          let old = undefined
+          if (item.conversationIDKey) {
+            old = this.TEMP.get(item.conversationIDKey)
+          }
+          if (old !== undefined && old !== e.nativeEvent.layout.height) {
+            warn = '>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>' + old
+          }
+          console.log('aaa', e.nativeEvent.layout, warn)
+          this.TEMP.set(item.conversationIDKey, e.nativeEvent.layout.height)
+        }}
+      >
+        {element}
+      </View>
+    )
 
     return element
   }
 
-  private keyExtractor = (item: RowItem) => {
+  private keyExtractor = (item: RowItem, idx: number) => {
     const row = item
-
-    if (row.type === 'divider' || row.type === 'bigTeamsLabel' || row.type === 'teamBuilder') {
-      return row.type
+    switch (row.type) {
+      case 'divider': // fallthrough
+      case 'teamBuilder': // fallthrough
+      case 'bigTeamsLabel':
+        return row.type
+      case 'small': // fallthrough
+      case 'big':
+        return row.conversationIDKey
+      default:
+        return String(idx)
     }
-
-    return (
-      (row.type === 'small' && row.conversationIDKey) ||
-      (row.type === 'bigHeader' && row.teamname) ||
-      (row.type === 'big' && row.conversationIDKey) ||
-      'missingkey'
-    )
   }
 
   private askForUnboxing = (rows: Array<RowItem>) => {
@@ -241,6 +263,9 @@ class Inbox extends React.PureComponent<T.Props, State> {
     const floatingDivider = this.state.showFloating &&
       !this.props.isSearching &&
       this.props.allowShowFloatingButton && <BigTeamsDivider toggle={this.props.toggleSmallTeamsExpanded} />
+
+    console.log('aaa', this.props.rows)
+
     return (
       <Kb.ErrorBoundary>
         <Kb.Box style={styles.container}>

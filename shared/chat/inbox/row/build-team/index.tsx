@@ -6,7 +6,7 @@ import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import * as TeamsGen from '../../../../actions/teams-gen'
 import {teamsTab} from '../../../../constants/tabs'
 
-const BuildTeam = React.memo(function BuildTeam(_: {}) {
+const BuildTeam = React.memo(function BuildTeam() {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
 

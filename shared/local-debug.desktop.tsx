@@ -26,7 +26,6 @@ let config = {
   skipExtensions: true, // if true dont load devtools extensions
   skipSecondaryDevtools: true,
   userTimings: false, // Add user timings api to timeline in chrome
-  virtualListMarks: false, // If true add constraints to items in virtual lists so we can tell when measuring is incorrect
 }
 
 // Developer settings
@@ -78,7 +77,6 @@ if (config.PERF) {
   config.printRPC = false
   config.skipExtensions = true
   config.userTimings = false
-  config.virtualListMarks = false
 }
 
 export const {
@@ -104,5 +102,4 @@ export const {
   skipExtensions,
   skipSecondaryDevtools,
   userTimings,
-  virtualListMarks,
 } = config

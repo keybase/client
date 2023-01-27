@@ -6,6 +6,7 @@ import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import * as RowSizes from './sizes'
 import {memoize} from '../../../util/memoize'
+import shallowEqual from 'shallowequal'
 
 type Props = {
   hiddenCountDelta?: number
@@ -32,9 +33,12 @@ const getRowCounts = memoize((badges: Types.ConversationCountMap, rows: Array<Ty
 
 const TeamsDivider = React.memo(function TeamsDivider(props: Props) {
   const {rows, showButton, style, hiddenCountDelta, toggle, smallTeamsExpanded} = props
-  const badges = Container.useSelector(state => state.chat2.badgeMap)
-  const smallTeamBadgeCount = Container.useSelector(state => state.chat2.smallTeamBadgeCount)
-  const totalSmallTeams = Container.useSelector(state => state.chat2.inboxLayout?.totalSmallTeams ?? 0)
+  const {badges, smallTeamBadgeCount, totalSmallTeams} = Container.useSelector(state => {
+    const badges = state.chat2.badgeMap
+    const smallTeamBadgeCount = state.chat2.smallTeamBadgeCount
+    const totalSmallTeams = state.chat2.inboxLayout?.totalSmallTeams ?? 0
+    return {badges, smallTeamBadgeCount, totalSmallTeams}
+  }, shallowEqual)
   // we remove the badge count of the stuff we're showing
   let {badgeCount, hiddenCount} = getRowCounts(badges, rows)
   badgeCount += smallTeamBadgeCount

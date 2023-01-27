@@ -19,4 +19,3 @@ export declare const showDevTools: boolean
 export declare const skipAppFocusActions: boolean
 export declare const skipSecondaryDevtools: boolean
 export declare const userTimings: boolean
-export declare const virtualListMarks: boolean
