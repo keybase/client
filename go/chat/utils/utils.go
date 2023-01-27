@@ -1396,12 +1396,18 @@ func PresentRemoteConversations(ctx context.Context, g *globals.Context, uid gre
 
 func SearchableRemoteConversationName(conv types.RemoteConversation, username string) string {
 	name := GetRemoteConvDisplayName(conv)
+	return searchableRemoteConversationNameFromStr(name, username)
+}
+
+func searchableRemoteConversationNameFromStr(name string, username string) string {
 	// Check for self conv or big team conv
 	if name == username || strings.Contains(name, "#") {
 		return name
 	}
-	name = strings.ReplaceAll(name, fmt.Sprintf(",%s", username), "")
-	name = strings.ReplaceAll(name, fmt.Sprintf("%s,", username), "")
+
+	name = strings.TrimPrefix(name, fmt.Sprintf("%s,", username))
+	name = strings.TrimSuffix(name, fmt.Sprintf(",%s", username))
+	name = strings.ReplaceAll(name, fmt.Sprintf(",%s,", username), ",")
 	return name
 }
 
