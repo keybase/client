@@ -1405,10 +1405,8 @@ func searchableRemoteConversationNameFromStr(name string, username string) strin
 		return name
 	}
 
-	prefix := fmt.Sprintf("%s,", username)
-	suffix := fmt.Sprintf(",%s", username)
-	name = strings.TrimPrefix(name, prefix)
-	name = strings.TrimSuffix(name, suffix)
+	name = strings.TrimPrefix(name, fmt.Sprintf("%s,", username))
+	name = strings.TrimSuffix(name, fmt.Sprintf(",%s", username))
 	name = strings.ReplaceAll(name, fmt.Sprintf(",%s,", username), ",")
 	return name
 }
