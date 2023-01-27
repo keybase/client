@@ -630,12 +630,10 @@
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)",
-					"$(PROJECT_DIR)/cocoalumberjack",
 				);
 				"FRAMEWORK_SEARCH_PATHS[sdk=iphoneos*]" = (
 					"$(inherited)",
 					"$(PROJECT_DIR)",
-					"$(PROJECT_DIR)/cocoalumberjack",
 					"$(PROJECT_DIR)/keybase.xcframework/ios-arm64",
 				);
 				HEADER_SEARCH_PATHS = (
@@ -651,7 +649,6 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(SDKROOT)/usr/lib/swift",
 					"$(inherited)",
-					"\"$(SRCROOT)/Keybase/System/Library/Frameworks\"",
 				);
 				OTHER_CFLAGS = "-mno-thumb";
 				OTHER_LDFLAGS = (
@@ -687,12 +684,10 @@
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)",
-					"$(PROJECT_DIR)/cocoalumberjack",
 				);
 				"FRAMEWORK_SEARCH_PATHS[sdk=iphoneos*]" = (
 					"$(inherited)",
 					"$(PROJECT_DIR)",
-					"$(PROJECT_DIR)/cocoalumberjack",
 					"$(PROJECT_DIR)/keybase.xcframework/ios-arm64",
 				);
 				HEADER_SEARCH_PATHS = (
@@ -708,7 +703,6 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(SDKROOT)/usr/lib/swift",
 					"$(inherited)",
-					"\"$(SRCROOT)/Keybase/System/Library/Frameworks\"",
 				);
 				OTHER_CFLAGS = "-mno-thumb";
 				OTHER_LDFLAGS = (
