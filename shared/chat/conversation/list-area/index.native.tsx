@@ -8,7 +8,6 @@ import * as Styles from '../../../styles'
 import Separator from '../messages/separator'
 import SpecialBottomMessage from '../messages/special-bottom-message'
 import SpecialTopMessage from '../messages/special-top-message'
-import sortedIndexOf from 'lodash/sortedIndexOf'
 import type * as Types from '../../../constants/types/chat2'
 import type {ItemType} from '.'
 import {Animated} from 'react-native'
@@ -117,31 +116,28 @@ const useScrolling = (p: {
   messageOrdinals: Array<Types.Ordinal>
   conversationIDKey: Types.ConversationIDKey
   listRef: React.MutableRefObject<FlashList<ItemType> | null>
+  requestScrollToBottomRef: React.MutableRefObject<(() => void) | undefined>
 }) => {
-  const {listRef, centeredOrdinal, messageOrdinals, conversationIDKey} = p
+  const {listRef, centeredOrdinal, messageOrdinals, conversationIDKey, requestScrollToBottomRef} = p
   const dispatch = Container.useDispatch()
   const lastLoadOrdinal = React.useRef<Types.Ordinal>(-1)
   const oldestOrdinal = messageOrdinals[messageOrdinals.length - 1] ?? -1
-  const loadOlderMessages = React.useCallback(() => {
+  const loadOlderMessages = Container.useEvent(() => {
     // already loaded and nothing has changed
     if (lastLoadOrdinal.current === oldestOrdinal) {
       return
     }
     lastLoadOrdinal.current = oldestOrdinal
     dispatch(Chat2Gen.createLoadOlderMessagesDueToScroll({conversationIDKey}))
-  }, [dispatch, conversationIDKey, oldestOrdinal])
-
-  const getOrdinalIndex = React.useCallback(
-    (target: Types.Ordinal) => {
-      const idx = sortedIndexOf(messageOrdinals, target)
-      return idx === -1 ? -1 : messageOrdinals.length - idx
-    },
-    [messageOrdinals]
-  )
+  })
 
   const scrollToBottom = React.useCallback(() => {
     listRef.current?.scrollToOffset({animated: false, offset: 0})
   }, [listRef])
+
+  requestScrollToBottomRef.current = () => {
+    scrollToBottom()
+  }
 
   // only scroll to center once per
   const lastScrollToCentered = React.useRef(-1)
@@ -149,22 +145,20 @@ const useScrolling = (p: {
     lastScrollToCentered.current = -1
   }, [conversationIDKey])
 
-  const scrollToCentered = React.useCallback(() => {
-    const list = listRef.current
-    if (!list) {
-      return
-    }
-    if (lastScrollToCentered.current === centeredOrdinal) {
-      return
-    }
+  const scrollToCentered = Container.useEvent(() => {
+    setTimeout(() => {
+      const list = listRef.current
+      if (!list) {
+        return
+      }
+      if (lastScrollToCentered.current === centeredOrdinal) {
+        return
+      }
 
-    lastScrollToCentered.current = centeredOrdinal
-    const _index = centeredOrdinal === -1 ? -1 : getOrdinalIndex(centeredOrdinal)
-    if (_index >= 0) {
-      const index = _index + 1 // include the top item
-      list.scrollToIndex({animated: false, index, viewPosition: 0.5})
-    }
-  }, [listRef, centeredOrdinal, getOrdinalIndex])
+      lastScrollToCentered.current = centeredOrdinal
+      list.scrollToItem({animated: false, item: centeredOrdinal, viewPosition: 0.5})
+    }, 100)
+  })
 
   const onEndReached = React.useCallback(() => {
     loadOlderMessages()
@@ -179,8 +173,9 @@ const useScrolling = (p: {
 
 const ConversationList = React.memo(function ConversationList(p: {
   conversationIDKey: Types.ConversationIDKey
+  requestScrollToBottomRef: React.MutableRefObject<(() => void) | undefined>
 }) {
-  const {conversationIDKey} = p
+  const {conversationIDKey, requestScrollToBottomRef} = p
   const {centeredOrdinal, _messageOrdinals, messageTypeMap} = Container.useSelector(state => {
     const centeredOrdinal = Constants.getMessageCenterOrdinal(state, conversationIDKey)?.ordinal ?? -1
     const _messageOrdinals = Constants.getMessageOrdinals(state, conversationIDKey)
@@ -228,24 +223,22 @@ const ConversationList = React.memo(function ConversationList(p: {
 
   const numOrdinals = messageOrdinals.length
 
-  const getItemType = React.useCallback(
-    (ordinal: Types.Ordinal, idx: number) => {
-      if (!ordinal) {
-        return 'null'
-      }
-      if (numOrdinals - 1 === idx) {
-        return 'sent'
-      }
-      return recycleTypeRef.current.get(ordinal) ?? messageTypeMap?.get(ordinal) ?? 'text'
-    },
-    [numOrdinals, messageTypeMap]
-  )
+  const getItemType = Container.useEvent((ordinal: Types.Ordinal, idx: number) => {
+    if (!ordinal) {
+      return 'null'
+    }
+    if (numOrdinals - 1 === idx) {
+      return 'sent'
+    }
+    return recycleTypeRef.current.get(ordinal) ?? messageTypeMap?.get(ordinal) ?? 'text'
+  })
 
   const {scrollToCentered, scrollToBottom, onEndReached} = useScrolling({
     centeredOrdinal,
     conversationIDKey,
     listRef,
     messageOrdinals,
+    requestScrollToBottomRef,
   })
 
   const jumpToRecent = Hooks.useJumpToRecent(conversationIDKey, scrollToBottom, messageOrdinals.length)
