@@ -117,8 +117,9 @@ const useScrolling = (p: {
   messageOrdinals: Array<Types.Ordinal>
   conversationIDKey: Types.ConversationIDKey
   listRef: React.MutableRefObject<FlashList<ItemType> | null>
+  requestScrollToBottomRef: React.MutableRefObject<(() => void) | undefined>
 }) => {
-  const {listRef, centeredOrdinal, messageOrdinals, conversationIDKey} = p
+  const {listRef, centeredOrdinal, messageOrdinals, conversationIDKey, requestScrollToBottomRef} = p
   const dispatch = Container.useDispatch()
   const lastLoadOrdinal = React.useRef<Types.Ordinal>(-1)
   const oldestOrdinal = messageOrdinals[messageOrdinals.length - 1] ?? -1
@@ -142,6 +143,10 @@ const useScrolling = (p: {
   const scrollToBottom = React.useCallback(() => {
     listRef.current?.scrollToOffset({animated: false, offset: 0})
   }, [listRef])
+
+  requestScrollToBottomRef.current = () => {
+    scrollToBottom()
+  }
 
   // only scroll to center once per
   const lastScrollToCentered = React.useRef(-1)
@@ -179,8 +184,9 @@ const useScrolling = (p: {
 
 const ConversationList = React.memo(function ConversationList(p: {
   conversationIDKey: Types.ConversationIDKey
+  requestScrollToBottomRef: React.MutableRefObject<(() => void) | undefined>
 }) {
-  const {conversationIDKey} = p
+  const {conversationIDKey, requestScrollToBottomRef} = p
   const {centeredOrdinal, _messageOrdinals, messageTypeMap} = Container.useSelector(state => {
     const centeredOrdinal = Constants.getMessageCenterOrdinal(state, conversationIDKey)?.ordinal ?? -1
     const _messageOrdinals = Constants.getMessageOrdinals(state, conversationIDKey)
@@ -246,6 +252,7 @@ const ConversationList = React.memo(function ConversationList(p: {
     conversationIDKey,
     listRef,
     messageOrdinals,
+    requestScrollToBottomRef,
   })
 
   const jumpToRecent = Hooks.useJumpToRecent(conversationIDKey, scrollToBottom, messageOrdinals.length)
