@@ -25,8 +25,8 @@ const UnfurlGeneric = React.memo(function UnfurlGeneric(p: {idx: number}) {
       return null
     }
     const {generic} = unfurl
-    const {description, publishTime, favicon, media, siteName, title} = generic
-    const {height, width, isVideo, url} = media || {height: 0, isVideo: false, url: '', width: 0}
+    const {description, publishTime, favicon, media, siteName, title, url} = generic
+    const {height, width, isVideo, url: mediaUrl} = media || {height: 0, isVideo: false, url: '', width: 0}
     const showImageOnSide =
       !Styles.isMobile && height >= width && !isVideo && (title.length > 0 || !!description)
     const imageLocation = isCollapsed
@@ -44,6 +44,7 @@ const UnfurlGeneric = React.memo(function UnfurlGeneric(p: {idx: number}) {
       imageLocation,
       isCollapsed,
       isVideo,
+      mediaUrl,
       publishTime: publishTime ? publishTime * 1000 : 0,
       siteName,
       title,
@@ -63,7 +64,7 @@ const UnfurlGeneric = React.memo(function UnfurlGeneric(p: {idx: number}) {
   if (!data) return null
 
   const {description, favicon, height, isCollapsed, isVideo, publishTime} = data
-  const {siteName, title, url, width, imageLocation} = data
+  const {siteName, title, url, width, imageLocation, mediaUrl} = data
 
   const publisher = (
     <Kb.Box2 style={styles.siteNameContainer} gap="tiny" fullWidth={true} direction="horizontal">
@@ -111,7 +112,7 @@ const UnfurlGeneric = React.memo(function UnfurlGeneric(p: {idx: number}) {
     imageLocation === 'bottom' ? (
       <Kb.Box2 direction="vertical" fullWidth={true}>
         <UnfurlImage
-          url={url || ''}
+          url={mediaUrl || ''}
           linkURL={url}
           height={height || 0}
           width={width || 0}
@@ -126,7 +127,7 @@ const UnfurlGeneric = React.memo(function UnfurlGeneric(p: {idx: number}) {
   const rightImage =
     imageLocation === 'side' && url ? (
       <Kb.Box2 direction="vertical">
-        <Kb.Image src={url} style={styles.sideImage} />
+        <Kb.Image src={mediaUrl} style={styles.sideImage} />
       </Kb.Box2>
     ) : null
 
