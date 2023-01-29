@@ -43,22 +43,20 @@ const BigTeamHeader = React.memo(function BigTeamHeader(props: Props) {
   ))
 
   return (
-    <Kb.Box style={styles.teamRowContainer}>
+    <Kb.Box2 fullWidth={true} direction="horizontal" style={styles.teamRowContainer}>
       {popup}
       <Kb.Avatar onClick={onClick} teamname={teamname} size={32} />
-      <Kb.BoxGrow style={styles.teamnameContainer}>
-        <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true} style={{alignItems: 'center'}}>
-          <Kb.Text
-            ellipsizeMode="middle"
-            onClick={onClick}
-            type="BodySmallSemibold"
-            style={styles.team}
-            lineClamp={1}
-          >
-            {teamname}
-          </Kb.Text>
-        </Kb.Box2>
-      </Kb.BoxGrow>
+      <Kb.BoxGrow2>
+        <Kb.Text
+          ellipsizeMode="middle"
+          onClick={onClick}
+          type="BodySmallSemibold"
+          style={styles.team}
+          lineClamp={1}
+        >
+          {teamname}
+        </Kb.Text>
+      </Kb.BoxGrow2>
       <Kb.ClickableBox
         className="hover_container"
         onClick={toggleShowingPopup}
@@ -73,7 +71,7 @@ const BigTeamHeader = React.memo(function BigTeamHeader(props: Props) {
         />
         <Kb.Box style={Styles.collapseStyles([styles.badge, badgeSubscribe && styles.badgeVisible])} />
       </Kb.ClickableBox>
-    </Kb.Box>
+    </Kb.Box2>
   )
 })
 
@@ -109,6 +107,7 @@ const styles = Styles.styleSheetCreate(
       }),
       team: Styles.platformStyles({
         common: {
+          alignSelf: 'center',
           color: Styles.globalColors.black_50,
           letterSpacing: 0.2,
           marginLeft: Styles.globalMargins.tiny,
@@ -118,8 +117,6 @@ const styles = Styles.styleSheetCreate(
       }),
       teamRowContainer: Styles.platformStyles({
         common: {
-          ...Styles.globalStyles.flexBoxRow,
-          alignItems: 'center',
           flexShrink: 0,
           height: RowSizes.bigHeaderHeight,
         },
@@ -131,11 +128,6 @@ const styles = Styles.styleSheetCreate(
         isMobile: {
           paddingLeft: Styles.globalMargins.small,
           paddingRight: Styles.globalMargins.small,
-        },
-      }),
-      teamnameContainer: Styles.platformStyles({
-        isMobile: {
-          height: '100%',
         },
       }),
     } as const)

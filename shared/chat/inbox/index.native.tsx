@@ -62,7 +62,12 @@ class Inbox extends React.PureComponent<T.Props, State> {
 
   state = {showFloating: false, showUnread: false, unreadCount: 0}
 
+  // TEMPID = setInterval(() => {
+  //   console.log('aaa', this.listRef.current?.state.layoutProvider._lastLayoutManager._layouts)
+  // }, 2000)
   componentWillUnmount(): void {
+    // clearInterval(this.TEMPID)
+    // this.TEMPID = 0
     this.swipeCloseRef.current?.()
     // @ts-ignore
     this.swipeCloseRef.current = null
@@ -100,6 +105,9 @@ class Inbox extends React.PureComponent<T.Props, State> {
       element = makeRow(row, this.props.navKey, this.swipeCloseRef)
     }
 
+    if (item.type === 'bigHeader' && item.teamname === 'cnojimatest7') {
+      console.log('aaaa renderitem', item)
+    }
     // TEMP
     return (
       <View
@@ -110,6 +118,10 @@ class Inbox extends React.PureComponent<T.Props, State> {
           width: '100%',
         }}
         onLayout={e => {
+          if (item.type === 'bigHeader' && item.teamname === 'cnojimatest7') {
+            console.log('aaaa cnojimatet7layout', item, e.nativeEvent.layout.height)
+          }
+
           let warn = ''
           let old = undefined
           if (item.conversationIDKey) {
@@ -118,7 +130,7 @@ class Inbox extends React.PureComponent<T.Props, State> {
           if (old !== undefined && old !== e.nativeEvent.layout.height) {
             warn = '>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>' + old
           }
-          console.log('aaa', e.nativeEvent.layout, warn)
+          // console.log('aaa', e.nativeEvent.layout, warn)
           this.TEMP.set(item.conversationIDKey, e.nativeEvent.layout.height)
         }}
       >
@@ -129,20 +141,22 @@ class Inbox extends React.PureComponent<T.Props, State> {
     return element
   }
 
-  private keyExtractor = (item: RowItem, idx: number) => {
-    const row = item
-    switch (row.type) {
-      case 'divider': // fallthrough
-      case 'teamBuilder': // fallthrough
-      case 'bigTeamsLabel':
-        return row.type
-      case 'small': // fallthrough
-      case 'big':
-        return row.conversationIDKey
-      default:
-        return String(idx)
-    }
-  }
+  // private keyExtractor = (item: RowItem, idx: number) => {
+  //   const row = item
+  //   switch (row.type) {
+  //     case 'divider': // fallthrough
+  //     case 'teamBuilder': // fallthrough
+  //     case 'bigTeamsLabel':
+  //       return row.type
+  //     case 'small': // fallthrough
+  //     case 'big':
+  //       return row.conversationIDKey
+  //     case 'bigHeader':
+  //       return row.teamname
+  //     default:
+  //       return String(idx)
+  //   }
+  // }
 
   private askForUnboxing = (rows: Array<RowItem>) => {
     const toUnbox = rows.reduce<Array<Types.ConversationIDKey>>((arr, r) => {
@@ -264,8 +278,6 @@ class Inbox extends React.PureComponent<T.Props, State> {
       !this.props.isSearching &&
       this.props.allowShowFloatingButton && <BigTeamsDivider toggle={this.props.toggleSmallTeamsExpanded} />
 
-    console.log('aaa', this.props.rows)
-
     return (
       <Kb.ErrorBoundary>
         <Kb.Box style={styles.container}>
@@ -280,7 +292,7 @@ class Inbox extends React.PureComponent<T.Props, State> {
               data={this.props.rows}
               estimatedItemSize={64}
               getItemType={this.getItemType}
-              keyExtractor={this.keyExtractor}
+              keyExtractor={/*this.keyExtractor*/ undefined}
               keyboardShouldPersistTaps="handled"
               onViewableItemsChanged={this.onViewChanged}
               overScrollMode="never"
