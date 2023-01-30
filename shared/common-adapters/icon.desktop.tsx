@@ -129,6 +129,7 @@ const Icon = React.memo<Props>(
           ])}
         >
           <span
+            title={hint}
             style={Styles.collapseStyles([
               mergedStyle,
               padding && Shared.paddingStyles[padding],
