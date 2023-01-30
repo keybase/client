@@ -317,14 +317,21 @@ const styles = Styles.styleSheetCreate(
           paddingTop: 5,
         },
       }),
-      orangeLine: {
-        backgroundColor: Styles.globalColors.orange,
-        flexShrink: 0,
-        height: 1,
-        position: 'absolute',
-        top: 0,
-        width: '100%',
-      },
+      orangeLine: Styles.platformStyles({
+        common: {
+          backgroundColor: Styles.globalColors.orange,
+          flexShrink: 0,
+          height: 1,
+          left: 0,
+          position: 'absolute',
+          right: 0,
+          top: 0,
+        },
+        isElectron: {
+          // we're inside a padded container so just bust out a little
+          right: -16,
+        },
+      }),
       timestampHighlighted: {color: Styles.globalColors.black_50OrBlack_40},
       usernameCrown: Styles.platformStyles({
         isElectron: {

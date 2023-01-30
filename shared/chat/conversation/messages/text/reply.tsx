@@ -169,7 +169,10 @@ const styles = Styles.styleSheetCreate(
         backgroundColor: Styles.globalColors.grey,
         paddingLeft: Styles.globalMargins.xtiny,
       },
-      replyContainer: {paddingTop: Styles.globalMargins.xtiny},
+      replyContainer: {
+        paddingBottom: Styles.globalMargins.tiny,
+        paddingTop: Styles.globalMargins.xtiny,
+      },
       replyContentContainer: {flex: 1},
       replyEdited: {color: Styles.globalColors.black_35},
       replyImageContainer: {
