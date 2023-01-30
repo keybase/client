@@ -74,55 +74,66 @@ export const Title = () => {
   )
 }
 
-const CollapseLabel = () => {
+const CollapseIcon = ({isWhite}: {isWhite: boolean}) => {
   const conversationIDKey = React.useContext(ConvoIDContext)
   const ordinal = React.useContext(OrdinalContext)
-  const {filename, isCollapsed} = Container.useSelector(state => {
+  const isCollapsed = Container.useSelector(state => {
     const m = Constants.getMessage(state, conversationIDKey, ordinal)
     const message = m?.type === 'attachment' ? m : missingMessage
-    const {isCollapsed, fileName, deviceType} = message
-    const mobileImageFilename = deviceType === 'mobile'
-    const filename = mobileImageFilename ? 'Image from mobile' : fileName
-    return {filename, isCollapsed}
-  }, shallowEqual)
+    const {isCollapsed} = message
+    return isCollapsed
+  })
   return (
-    <>
-      <Kb.Text type="BodyTiny" lineClamp={1} style={styles.collapseLabel}>
-        {filename}
-      </Kb.Text>
-      <Kb.Icon
-        style={styles.collapseLabel}
-        sizeType="Tiny"
-        type={isCollapsed ? 'iconfont-caret-right' : 'iconfont-caret-down'}
-      />
-    </>
+    <Kb.Icon
+      hint="Collapse"
+      style={isWhite ? styles.collapseLabelWhite : (styles.collapseLabel as any)}
+      sizeType="Tiny"
+      type={isCollapsed ? 'iconfont-caret-right' : 'iconfont-caret-down'}
+    />
   )
 }
 
 const styles = Styles.styleSheetCreate(() => ({
-  collapseLabel: {backgroundColor: Styles.globalColors.fastBlank},
+  collapseLabel: {
+    backgroundColor: Styles.globalColors.fastBlank,
+  },
+  collapseLabelWhite: {
+    color: Styles.globalColors.white_75,
+  },
 }))
 
-export const useCollapseLabel = () => {
+const useCollapseAction = () => {
   const getIds = React.useContext(GetIdsContext)
   const dispatch = Container.useDispatch()
-  const onCollapse = React.useCallback(() => {
-    const {conversationIDKey, ordinal} = getIds()
-    dispatch(Chat2Gen.createToggleMessageCollapse({conversationIDKey, messageID: ordinal}))
-  }, [dispatch, getIds])
+  const onCollapse = React.useCallback(
+    (e: React.BaseSyntheticEvent) => {
+      e.stopPropagation()
+      const {conversationIDKey, ordinal} = getIds()
+      dispatch(Chat2Gen.createToggleMessageCollapse({conversationIDKey, messageID: ordinal}))
+    },
+    [dispatch, getIds]
+  )
+  return onCollapse
+}
 
-  const collapseLabel = React.useMemo(() => {
+// not showing this for now
+const useCollapseIconDesktop = (isWhite: boolean) => {
+  const onCollapse = useCollapseAction()
+  const collapseIcon = React.useMemo(() => {
     return (
       <Kb.ClickableBox2 onClick={onCollapse}>
         <Kb.Box2 alignSelf="flex-start" direction="horizontal" gap="xtiny">
-          <CollapseLabel />
+          <CollapseIcon isWhite={isWhite} />
         </Kb.Box2>
       </Kb.ClickableBox2>
     )
-  }, [onCollapse])
+  }, [onCollapse, isWhite])
 
-  return collapseLabel
+  return collapseIcon
 }
+const useCollapseIconMobile = (_isWhite: boolean) => null
+
+export const useCollapseIcon = Container.isMobile ? useCollapseIconMobile : useCollapseIconDesktop
 
 export const useAttachmentRedux = () => {
   const conversationIDKey = React.useContext(ConvoIDContext)
@@ -145,4 +156,17 @@ export const useAttachmentRedux = () => {
   }, shallowEqual)
 
   return {isCollapsed, isEditing, openFullscreen, showTitle}
+}
+
+export const Collapsed = () => {
+  const onCollapse = useCollapseAction()
+  const collapseIcon = useCollapseIcon(false)
+  return (
+    <Kb.Box2 direction="horizontal" fullWidth={true}>
+      <Kb.Text type="BodyTiny" onClick={onCollapse}>
+        Collapsed
+      </Kb.Text>
+      {collapseIcon}
+    </Kb.Box2>
+  )
 }

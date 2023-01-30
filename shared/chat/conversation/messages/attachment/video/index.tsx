@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
 import VideoImpl from './videoimpl'
-import {useCollapseLabel, Title, useAttachmentRedux} from '../shared'
+import {Title, useAttachmentRedux, Collapsed} from '../shared'
 
 type Props = {
   toggleMessageMenu: () => void
@@ -13,7 +13,6 @@ const Video = React.memo(function Video(p: Props) {
   const {isHighlighted, toggleMessageMenu} = p
   const {isCollapsed, showTitle, openFullscreen} = useAttachmentRedux()
   const containerStyle = isHighlighted ? styles.containerHighlighted : styles.container
-  const collapseLabel = useCollapseLabel()
   const content = React.useMemo(() => {
     return (
       <Kb.Box2
@@ -28,10 +27,10 @@ const Video = React.memo(function Video(p: Props) {
       </Kb.Box2>
     )
   }, [openFullscreen, toggleMessageMenu, showTitle])
+
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={containerStyle} alignItems="flex-start">
-      {collapseLabel}
-      {isCollapsed ? null : content}
+      {isCollapsed ? <Collapsed /> : content}
     </Kb.Box2>
   )
 })
@@ -49,7 +48,7 @@ const styles = Styles.styleSheetCreate(
         backgroundColor: Styles.globalColors.black_05_on_white,
         borderRadius: Styles.borderRadius,
         maxWidth: Styles.isMobile ? '100%' : 330,
-        padding: Styles.globalMargins.tiny,
+        padding: 3,
         position: 'relative',
       },
     } as const)
