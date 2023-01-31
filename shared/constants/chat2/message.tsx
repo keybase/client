@@ -1234,13 +1234,21 @@ const journeycardUIMessageToMessage = (
   conversationIDKey: Types.ConversationIDKey,
   m: RPCChatTypes.UIMessageJourneycard
 ) => {
-  return makeMessageJourneycard({
-    cardType: m.cardType,
-    conversationIDKey,
-    highlightMsgID: m.highlightMsgID,
-    openTeam: m.openTeam,
-    ordinal: Types.numberToOrdinal(m.ordinal),
-  })
+  // only support these now
+  if (
+    m.cardType === RPCChatTypes.JourneycardType.welcome ||
+    m.cardType === RPCChatTypes.JourneycardType.popularChannels
+  ) {
+    return makeMessageJourneycard({
+      cardType: m.cardType,
+      conversationIDKey,
+      highlightMsgID: m.highlightMsgID,
+      openTeam: m.openTeam,
+      ordinal: Types.numberToOrdinal(m.ordinal),
+    })
+  }
+
+  return null
 }
 
 export const uiMessageToMessage = (

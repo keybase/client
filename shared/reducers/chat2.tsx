@@ -896,24 +896,25 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       })
     })
 
+    // we no longer make this card
     // Identify convs that have a zzz CHANNEL_INACTIVE journeycard.
     // Convs that used to have a zzz journeycard and just got a newer message should delete the journeycard.
-    const jc = messages.find(
-      m => m.type == 'journeycard' && m.cardType == RPCChatTypes.JourneycardType.channelInactive
-    ) as Types.MessageJourneycard | undefined
-    if (jc) {
-      draftState.hasZzzJourneycard.set(conversationIDKey, jc)
-      draftState.shouldDeleteZzzJourneycard.delete(conversationIDKey)
-    } else {
-      const priorJc = draftState.hasZzzJourneycard.get(conversationIDKey)
-      if (priorJc) {
-        // Find a message that has a later ordinal and so should cause the zzz to disappear.
-        if (messages.some(m => m.ordinal > priorJc.ordinal)) {
-          draftState.hasZzzJourneycard.delete(conversationIDKey)
-          draftState.shouldDeleteZzzJourneycard.set(conversationIDKey, priorJc)
-        }
-      }
-    }
+    // const jc = messages.find(
+    //   m => m.type == 'journeycard' && m.cardType == RPCChatTypes.JourneycardType.channelInactive
+    // ) as Types.MessageJourneycard | undefined
+    // if (jc) {
+    //   draftState.hasZzzJourneycard.set(conversationIDKey, jc)
+    //   draftState.shouldDeleteZzzJourneycard.delete(conversationIDKey)
+    // } else {
+    //   const priorJc = draftState.hasZzzJourneycard.get(conversationIDKey)
+    //   if (priorJc) {
+    //     // Find a message that has a later ordinal and so should cause the zzz to disappear.
+    //     if (messages.some(m => m.ordinal > priorJc.ordinal)) {
+    //       draftState.hasZzzJourneycard.delete(conversationIDKey)
+    //       draftState.shouldDeleteZzzJourneycard.set(conversationIDKey, priorJc)
+    //     }
+    //   }
+    // }
     draftState.messageMap = messageMap
     draftState.messageTypeMap = oldMessageTypeMap
     if (centeredMessageIDs.length > 0) {
