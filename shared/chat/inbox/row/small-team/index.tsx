@@ -100,7 +100,7 @@ const SmallTeam = React.memo(function SmallTeam(p: Props) {
       <SwipeConvActions swipeCloseRef={swipeCloseRef}>
         <Kb.ClickableBox
           className={Styles.classNames('small-row', {selected: isSelected})}
-          onClick={onSelectConversation}
+          onClick={/*onSelectConversation*/ undefined}
           style={
             isInWidget
               ? Styles.collapseStyles([styles.container, {backgroundColor: backgroundColor}])

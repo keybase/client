@@ -87,7 +87,7 @@ class Inbox extends React.PureComponent<T.Props, State> {
   }
 
   TEMP = new Map<any>()
-  private renderItem = ({item}: ListRenderItemInfo<RowItem>): React.ReactElement | null => {
+  private renderItem = ({index, item}: ListRenderItemInfo<RowItem>): React.ReactElement | null => {
     const row = item
     let element: React.ReactElement | null
     if (row.type === 'divider') {
@@ -116,6 +116,8 @@ class Inbox extends React.PureComponent<T.Props, State> {
             Math.random() * 255
           )}, ${Math.floor(Math.random() * 255)}, 255)`,
           width: '100%',
+          height: 100,
+          overflow: 'hidden',
         }}
         onLayout={e => {
           if (item.type === 'bigHeader' && item.teamname === 'cnojimatest7') {
@@ -135,6 +137,9 @@ class Inbox extends React.PureComponent<T.Props, State> {
         }}
       >
         {element}
+        <Kb.Text type="Body" style={{position: 'absolute', right: 10, color: 'red'}}>
+          {index}
+        </Kb.Text>
       </View>
     )
 
@@ -248,26 +253,27 @@ class Inbox extends React.PureComponent<T.Props, State> {
   }
 
   private overrideItemLayout = (layout: {span?: number; size?: number}, item: RowItem) => {
-    switch (item.type) {
-      case 'small':
-        layout.size = RowSizes.smallRowHeight
-        break
-      case 'bigTeamsLabel':
-        layout.size = 32
-        break
-      case 'bigHeader':
-        layout.size = RowSizes.bigHeaderHeight
-        break
-      case 'big':
-        layout.size = RowSizes.bigRowHeight
-        break
-      case 'divider':
-        layout.size = 68
-        break
-      case 'teamBuilder':
-        layout.size = 120
-        break
-    }
+    layout.size = 100
+    // switch (item.type) {
+    //   case 'small':
+    //     layout.size = RowSizes.smallRowHeight
+    //     break
+    //   case 'bigTeamsLabel':
+    //     layout.size = 32
+    //     break
+    //   case 'bigHeader':
+    //     layout.size = RowSizes.bigHeaderHeight
+    //     break
+    //   case 'big':
+    //     layout.size = RowSizes.bigRowHeight
+    //     break
+    //   case 'divider':
+    //     layout.size = 68
+    //     break
+    //   case 'teamBuilder':
+    //     layout.size = 120
+    //     break
+    // }
   }
 
   render() {
@@ -288,9 +294,9 @@ class Inbox extends React.PureComponent<T.Props, State> {
             </Kb.Box2>
           ) : (
             <FlashList
-              ListHeaderComponent={HeadComponent}
+              ListHeaderComponent={undefined /*HeadComponent*/}
               data={this.props.rows}
-              estimatedItemSize={64}
+              estimatedItemSize={100 /*64*/}
               getItemType={this.getItemType}
               keyExtractor={/*this.keyExtractor*/ undefined}
               keyboardShouldPersistTaps="handled"

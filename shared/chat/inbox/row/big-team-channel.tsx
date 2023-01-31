@@ -113,7 +113,7 @@ const BigTeamChannel = React.memo(function BigTeamChannel(props: Props) {
   ) : null
 
   return (
-    <Kb.ClickableBox onClick={onSelectConversation} style={styles.container}>
+    <Kb.ClickableBox onClick={/*onSelectConversation*/ undefined} style={styles.container}>
       <Kb.Box2 direction="horizontal" fullHeight={true} style={styles.rowContainer}>
         <Kb.Box2
           className="hover_background_color_blueGreyDark"
