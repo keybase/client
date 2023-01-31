@@ -418,7 +418,9 @@ const RightSide = React.memo(function RightSide(p: RProps) {
 
   // On mobile there is no ... menu
   // On Desktop we float the menu on top, if there are no items
-  // if there are items we show them, and also keep space for the ... on float with opacity
+  // if there are items we show them. We want the ... to take space but not be visible, so we move it to the
+  // left, then on hover we invert the list so its on the right. Theres usually only 1 non menu item so this
+  // is fine
 
   const menu = Container.isMobile ? null : (
     <Kb.WithTooltip
@@ -432,22 +434,23 @@ const RightSide = React.memo(function RightSide(p: RProps) {
     </Kb.WithTooltip>
   )
 
-  const className = !hasVisibleItems && menu ? 'hover-visible' : undefined
-
   return hasVisibleItems || menu ? (
     <Kb.Box2
       direction="horizontal"
       alignSelf="flex-start"
       style={hasVisibleItems ? styles.rightSideItems : styles.rightSide}
       gap="tiny"
-      className={className}
+      className={Styles.classNames({
+        'hover-reverse-row': hasVisibleItems && menu,
+        'hover-visible': !hasVisibleItems && menu,
+      })}
     >
+      {menu}
       {sendIndicator}
       {explodingCountdown}
       {revokedIcon}
       {coinsIcon}
       {bot}
-      {menu}
     </Kb.Box2>
   ) : null
 })
@@ -611,10 +614,8 @@ const styles = Styles.styleSheetCreate(
           borderRadius: Styles.borderRadius,
           minHeight: 20,
           paddingLeft: Styles.globalMargins.tiny,
-          paddingRight: Styles.globalMargins.tiny,
         },
         isElectron: {
-          marginRight: 16,
           minHeight: 14,
         },
         isMobile: {},

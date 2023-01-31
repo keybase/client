@@ -369,6 +369,10 @@ body {
   opacity: 1;
 }
 
+.hover-container:hover .hover-reverse-row {
+  flex-direction: row-reverse;
+}
+
 .hover-container .hover-visible {
   display: none;
 }
