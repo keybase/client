@@ -9,6 +9,7 @@ type Props = {
 const WrapperJourneyCard = React.memo(function WrapperJourneyCard(p: Props) {
   const {ordinal} = p
   const conversationIDKey = React.useContext(ConvoIDContext)
+
   const TeamJourney = require('./container').default as typeof TeamJourneyType
   return <TeamJourney key="journey" conversationIDKey={conversationIDKey} ordinal={ordinal} />
 })
