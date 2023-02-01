@@ -394,12 +394,7 @@ type RProps = {
 const RightSide = React.memo(function RightSide(p: RProps) {
   const {showCenteredHighlight, toggleShowingPopup, showSendIndicator, showCoinsIcon} = p
   const {showExplodingCountdown, showRevoked, botname} = p
-  const hasShownSendIndicator = React.useRef(showSendIndicator)
-  const sendIndicator = showSendIndicator ? (
-    <SendIndicator />
-  ) : hasShownSendIndicator.current ? (
-    <Kb.Box2 direction="vertical" style={styles.sendIndicatorPlaceholder} />
-  ) : null
+  const sendIndicator = showSendIndicator ? <SendIndicator /> : null
 
   const explodingCountdown = showExplodingCountdown ? (
     <ExplodingMeta isParentHighlighted={showCenteredHighlight} onClick={toggleShowingPopup} />
@@ -419,7 +414,7 @@ const RightSide = React.memo(function RightSide(p: RProps) {
     </Kb.WithTooltip>
   ) : null
 
-  const hasVisibleItems = sendIndicator || explodingCountdown || revokedIcon || coinsIcon || bot
+  const hasVisibleItems = explodingCountdown || revokedIcon || coinsIcon || bot
 
   // On mobile there is no ... menu
   // On Desktop we float the menu on top, if there are no items
@@ -439,24 +434,26 @@ const RightSide = React.memo(function RightSide(p: RProps) {
     </Kb.WithTooltip>
   )
 
-  return hasVisibleItems || menu ? (
-    <Kb.Box2
-      direction="horizontal"
-      alignSelf="flex-start"
-      style={hasVisibleItems ? styles.rightSideItems : styles.rightSide}
-      gap="tiny"
-      className={Styles.classNames({
-        'hover-reverse-row': hasVisibleItems && menu,
-        'hover-visible': !hasVisibleItems && menu,
-      })}
-    >
-      {menu}
+  return hasVisibleItems || menu || sendIndicator ? (
+    <>
+      <Kb.Box2
+        direction="horizontal"
+        alignSelf="flex-start"
+        style={hasVisibleItems ? styles.rightSideItems : styles.rightSide}
+        gap="tiny"
+        className={Styles.classNames({
+          'hover-reverse-row': hasVisibleItems && menu,
+          'hover-visible': !hasVisibleItems && menu,
+        })}
+      >
+        {menu}
+        {explodingCountdown}
+        {revokedIcon}
+        {coinsIcon}
+        {bot}
+      </Kb.Box2>
       {sendIndicator}
-      {explodingCountdown}
-      {revokedIcon}
-      {coinsIcon}
-      {bot}
-    </Kb.Box2>
+    </>
   ) : null
 })
 
