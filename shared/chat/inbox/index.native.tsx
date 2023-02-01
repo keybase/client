@@ -294,6 +294,7 @@ class Inbox extends React.PureComponent<T.Props, State> {
             </Kb.Box2>
           ) : (
             <FlashList
+              disableAutoLayout={true}
               ListHeaderComponent={undefined /*HeadComponent*/}
               data={this.props.rows}
               estimatedItemSize={100 /*64*/}
