@@ -394,7 +394,9 @@ type RProps = {
 const RightSide = React.memo(function RightSide(p: RProps) {
   const {showCenteredHighlight, toggleShowingPopup, showSendIndicator, showCoinsIcon} = p
   const {showExplodingCountdown, showRevoked, botname} = p
-  const sendIndicator = showSendIndicator ? <SendIndicator /> : null
+  // if we're sending always keep it so we don't change our width after sending
+  const hasShownSendIndicator = React.useRef(showSendIndicator)
+  const sendIndicator = hasShownSendIndicator.current ? <SendIndicator /> : null
 
   const explodingCountdown = showExplodingCountdown ? (
     <ExplodingMeta isParentHighlighted={showCenteredHighlight} onClick={toggleShowingPopup} />
