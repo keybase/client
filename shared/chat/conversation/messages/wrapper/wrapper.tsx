@@ -394,9 +394,7 @@ type RProps = {
 const RightSide = React.memo(function RightSide(p: RProps) {
   const {showCenteredHighlight, toggleShowingPopup, showSendIndicator, showCoinsIcon} = p
   const {showExplodingCountdown, showRevoked, botname} = p
-  // if we're sending always keep it so we don't change our width after sending
-  const hasShownSendIndicator = React.useRef(showSendIndicator)
-  const sendIndicator = hasShownSendIndicator.current ? <SendIndicator /> : null
+  const sendIndicator = showSendIndicator ? <SendIndicator /> : null
 
   const explodingCountdown = showExplodingCountdown ? (
     <ExplodingMeta isParentHighlighted={showCenteredHighlight} onClick={toggleShowingPopup} />
@@ -416,7 +414,7 @@ const RightSide = React.memo(function RightSide(p: RProps) {
     </Kb.WithTooltip>
   ) : null
 
-  const hasVisibleItems = sendIndicator || explodingCountdown || revokedIcon || coinsIcon || bot
+  const hasVisibleItems = explodingCountdown || revokedIcon || coinsIcon || bot
 
   // On mobile there is no ... menu
   // On Desktop we float the menu on top, if there are no items
@@ -436,24 +434,26 @@ const RightSide = React.memo(function RightSide(p: RProps) {
     </Kb.WithTooltip>
   )
 
-  return hasVisibleItems || menu ? (
-    <Kb.Box2
-      direction="horizontal"
-      alignSelf="flex-start"
-      style={hasVisibleItems ? styles.rightSideItems : styles.rightSide}
-      gap="tiny"
-      className={Styles.classNames({
-        'hover-reverse-row': hasVisibleItems && menu,
-        'hover-visible': !hasVisibleItems && menu,
-      })}
-    >
-      {menu}
+  return hasVisibleItems || menu || sendIndicator ? (
+    <>
+      <Kb.Box2
+        direction="horizontal"
+        alignSelf="flex-start"
+        style={hasVisibleItems ? styles.rightSideItems : styles.rightSide}
+        gap="tiny"
+        className={Styles.classNames({
+          'hover-reverse-row': hasVisibleItems && menu,
+          'hover-visible': !hasVisibleItems && menu,
+        })}
+      >
+        {menu}
+        {explodingCountdown}
+        {revokedIcon}
+        {coinsIcon}
+        {bot}
+      </Kb.Box2>
       {sendIndicator}
-      {explodingCountdown}
-      {revokedIcon}
-      {coinsIcon}
-      {bot}
-    </Kb.Box2>
+    </>
   ) : null
 })
 
@@ -591,9 +591,7 @@ const styles = Styles.styleSheetCreate(
         paddingRight: 4,
         position: 'relative',
       },
-      moreActionsTooltip: {
-        marginRight: -Styles.globalMargins.xxtiny,
-      },
+      moreActionsTooltip: {marginRight: -Styles.globalMargins.xxtiny},
       paddingLeftTiny: {paddingLeft: Styles.globalMargins.tiny},
       rightSide: Styles.platformStyles({
         common: {
@@ -609,7 +607,6 @@ const styles = Styles.styleSheetCreate(
           right: 16,
           top: 4,
         },
-        isMobile: {},
       }),
       rightSideItems: Styles.platformStyles({
         common: {
@@ -617,11 +614,12 @@ const styles = Styles.styleSheetCreate(
           minHeight: 20,
           paddingLeft: Styles.globalMargins.tiny,
         },
-        isElectron: {
-          minHeight: 14,
-        },
-        isMobile: {},
+        isElectron: {minHeight: 14},
       }),
+      sendIndicatorPlaceholder: {
+        height: 20,
+        width: 20,
+      },
       timestamp: Styles.platformStyles({
         isElectron: {
           flexShrink: 0,

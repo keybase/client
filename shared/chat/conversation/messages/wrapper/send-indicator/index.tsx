@@ -132,7 +132,14 @@ const styles = Styles.styleSheetCreate(
         common: {height: 20, opacity: 1, width: 20},
         isMobile: {backgroundColor: Styles.globalColors.white},
       }),
-      send: Styles.platformStyles({isElectron: {pointerEvents: 'none'}}),
+      send: Styles.platformStyles({
+        common: {
+          position: 'absolute',
+          right: 16,
+          top: 0,
+        },
+        isElectron: {pointerEvents: 'none'},
+      }),
     } as const)
 )
 
