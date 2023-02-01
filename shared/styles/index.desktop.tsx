@@ -6,6 +6,8 @@ import {isDarkMode} from './dark-mode'
 import {themed, colors, darkColors} from './colors'
 import {getAssetPath} from '../constants/platform.desktop'
 import * as Path from '../util/path'
+import isArray from 'lodash/isArray'
+import shallowEqual from 'shallowequal'
 
 type _Elem = Object | null | false | void
 // CollapsibleStyle is a generic version of ?StylesMobile and family,
@@ -187,6 +189,47 @@ export const initDesktopStyles = () => {
 
 export const hairlineWidth = 1
 export const styleSheetCreate = (obj: any) => styleSheetCreateProxy(obj, o => o)
+
+export const useCollapseStyles = (
+  styles: CSS.StylesCrossPlatform,
+  memo: boolean = false
+): undefined | CSS._StylesCrossPlatform => {
+  const old = React.useRef<undefined | CSS._StylesCrossPlatform>(undefined)
+
+  if (!isArray(styles)) {
+    const ret = styles || undefined
+    if (memo) {
+      if (shallowEqual(old.current, ret)) return old.current
+      old.current = ret
+    }
+    return ret
+  }
+
+  // fast path for a single style that passes. Often we do stuff like
+  // collapseStyle([styles.myStyle, this.props.something && {backgroundColor: 'red'}]), so in the false
+  // case we can just take styles.myStyle and not render thrash
+  const nonNull = styles.filter(s => {
+    return !!s && Object.keys(s).length
+  })
+  if (nonNull.length === 0) {
+    old.current = undefined
+    return undefined
+  }
+  if (nonNull.length === 1) {
+    const ret = nonNull[0] || undefined
+    if (memo) {
+      if (shallowEqual(old.current, ret)) return old.current
+      old.current = ret
+    }
+    return ret
+  }
+
+  const collapsed = Object.assign({}, ...nonNull) as CSS._StylesCrossPlatform
+  const ret = Object.keys(collapsed).length ? collapsed : undefined
+  if (shallowEqual(old.current, ret)) return old.current
+  old.current = ret
+  return ret
+}
 export const collapseStyles = (styles: ReadonlyArray<CollapsibleStyle>): Object | undefined => {
   // fast path for a single style that passes. Often we do stuff like
   // collapseStyle([styles.myStyle, this.props.something && {backgroundColor: 'red'}]), so in the false

@@ -6,6 +6,7 @@ import styleSheetCreateProxy from './style-sheet-proxy'
 import {StyleSheet, Dimensions} from 'react-native'
 import {isDarkMode} from './dark-mode'
 import {isIOS, isTablet} from '../constants/platform'
+import type {StylesCrossPlatform} from './css'
 
 type _Elem = Object | null | false | void
 // CollapsibleStyle is a generic version of ?StylesMobile and family,
@@ -99,6 +100,55 @@ export const styleSheetCreate = (obj: any) => styleSheetCreateProxy(obj, o => St
 //   })
 // }
 export {isDarkMode}
+
+// we don't need this at all on mobile
+export const useCollapseStyles = (
+  styles: StylesCrossPlatform,
+  _memo: boolean = false
+): undefined | StylesCrossPlatform => {
+  return styles
+  // const old = React.useRef<undefined | StylesCrossPlatform>(undefined)
+
+  // if (!isArray(styles)) {
+  //   const ret = styles || undefined
+  //   if (memo) {
+  //     if (shallowEqual(old.current, ret)) return old.current
+  //     old.current = ret
+  //   }
+  //   return ret
+  // }
+  // // if we have no / singular values we pass those on in the hopes they're consts
+  // const nonNull = styles.reduce<Array<_StylesCrossPlatform>>((arr, s) => {
+  //   // has a value?
+  //   if (s && !isEmpty(s)) {
+  //     arr.push(s)
+  //   }
+  //   return arr
+  // }, [])
+  // if (!nonNull.length) {
+  //   old.current = undefined
+  //   return undefined
+  // }
+  // if (nonNull.length === 1) {
+  //   const ret = nonNull[0]
+  //   if (memo) {
+  //     if (shallowEqual(old.current, ret)) return old.current
+  //     old.current = ret
+  //   }
+  //   return ret
+  // }
+
+  // // take advantage of memo by collapsing
+  // if (memo) {
+  //   const collapsed = Object.assign({}, ...nonNull) as _StylesCrossPlatform
+  //   const ret = Object.keys(collapsed).length ? collapsed : undefined
+  //   if (shallowEqual(old.current, ret)) return old.current
+  //   old.current = ret
+  //   return ret
+  // }
+  // // rn allows falsy values so let memoized values through
+  // return styles
+}
 export const collapseStyles = (
   styles: ReadonlyArray<CollapsibleStyle>
 ): ReadonlyArray<Object | null | false> => {
