@@ -100,7 +100,6 @@ const styles = Styles.styleSheetCreate(
         opacity: 0,
       },
       posterContainer: {
-        backgroundColor: 'red',
         position: 'relative',
       },
       pressable: {position: 'relative'},
