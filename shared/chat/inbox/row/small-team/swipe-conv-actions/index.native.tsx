@@ -1,3 +1,5 @@
+import * as Chat2Gen from '../../../../../actions/chat2-gen'
+import * as Container from '../../../../../util/container'
 import * as Kb from '../../../../../common-adapters/mobile.native'
 import * as React from 'react'
 import * as Reanimated from 'react-native-reanimated'
@@ -6,6 +8,7 @@ import * as Styles from '../../../../../styles'
 import type {Props} from '.'
 import {RectButton} from 'react-native-gesture-handler'
 import {Swipeable} from '../../../../../common-adapters/swipeable.native'
+import {ConversationIDKeyContext} from '../contexts'
 
 const Action = (p: {
   text: string
@@ -32,43 +35,78 @@ const Action = (p: {
   )
 }
 
-const SwipeConvActions = (props: Props) => {
-  const {children, isMuted, onMuteConversation, onHideConversation, swipeCloseRef, extraData} = props
+const SwipeConvActions = React.memo(function SwipeConvActions(p: Props) {
+  const {swipeCloseRef, children} = p
+  const conversationIDKey = React.useContext(ConversationIDKeyContext)
+  const [extraData, setExtraData] = React.useState(0)
 
-  const onMute = React.useCallback(() => {
+  React.useEffect(() => {
+    // only if open
+    if (swipeCloseRef?.current) {
+      setExtraData(d => d + 1)
+    }
+  }, [swipeCloseRef, conversationIDKey])
+
+  const dispatch = Container.useDispatch()
+  const onHideConversation = Container.useEvent(() => {
+    dispatch(Chat2Gen.createHideConversation({conversationIDKey}))
+  })
+  const onMuteConversation = Container.useEvent(() => {
+    dispatch(Chat2Gen.createMuteConversation({conversationIDKey, muted: !isMuted}))
+  })
+
+  const isMuted = Container.useSelector(state => state.chat2.mutedMap.get(conversationIDKey) ?? false)
+
+  const onMute = Container.useEvent(() => {
     onMuteConversation()
     swipeCloseRef?.current?.()
-  }, [swipeCloseRef, onMuteConversation])
+  })
 
-  const onHide = React.useCallback(() => {
+  const onHide = Container.useEvent(() => {
     onHideConversation()
     swipeCloseRef?.current?.()
-  }, [swipeCloseRef, onHideConversation])
+  })
 
-  const makeActions = React.useCallback(
-    (progress: Reanimated.SharedValue<number>) => (
-      <Kb.NativeView style={styles.container}>
-        <Action
-          text={isMuted ? 'Unmute' : 'Mute'}
-          color={Styles.globalColors.orange}
-          iconType="iconfont-shh"
-          onClick={onMute}
-          mult={0}
-          progress={progress}
-        />
-        <Action
-          text="Hide"
-          color={Styles.globalColors.greyDarker}
-          iconType="iconfont-hide"
-          onClick={onHide}
-          mult={0.5}
-          progress={progress}
-        />
-      </Kb.NativeView>
-    ),
-    [isMuted, onHide, onMute]
-  )
+  const makeActions = Container.useEvent((progress: Reanimated.SharedValue<number>) => (
+    <Kb.NativeView style={styles.container}>
+      <Action
+        text={isMuted ? 'Unmute' : 'Mute'}
+        color={Styles.globalColors.orange}
+        iconType="iconfont-shh"
+        onClick={onMute}
+        mult={0}
+        progress={progress}
+      />
+      <Action
+        text="Hide"
+        color={Styles.globalColors.greyDarker}
+        iconType="iconfont-hide"
+        onClick={onHide}
+        mult={0.5}
+        progress={progress}
+      />
+    </Kb.NativeView>
+  ))
 
+  const props = {
+    children,
+    extraData,
+    makeActions,
+    swipeCloseRef,
+  }
+
+  return <SwipeConvActionsImpl {...props} />
+})
+
+type IProps = {
+  children: React.ReactNode
+  extraData: unknown
+  swipeCloseRef: Props['swipeCloseRef']
+  makeActions: (progress: Reanimated.SharedValue<number>) => React.ReactNode
+}
+
+const SwipeConvActionsImpl = React.memo(function SwipeConvActionsImpl(props: IProps) {
+  const {children, swipeCloseRef, makeActions, extraData} = props
   return (
     <Swipeable
       actionWidth={128}
@@ -80,7 +118,7 @@ const SwipeConvActions = (props: Props) => {
       {children}
     </Swipeable>
   )
-}
+})
 
 const styles = Styles.styleSheetCreate(
   () =>

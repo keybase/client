@@ -14,11 +14,10 @@ import debounce from 'lodash/debounce'
 import shallowEqual from 'shallowequal'
 import type * as T from './index.d'
 import type * as Types from '../../constants/types/chat2'
-import type {ViewToken} from 'react-native'
+import {type ViewToken} from 'react-native'
 import {FlashList, type ListRenderItemInfo} from '@shopify/flash-list'
 import {anyWaiting} from '../../constants/waiting'
 import {makeRow} from './row'
-import {virtualListMarks} from '../../local-debug'
 
 type RowItem = Types.ChatInboxRowItem
 
@@ -100,26 +99,24 @@ class Inbox extends React.PureComponent<T.Props, State> {
       element = makeRow(row, this.props.navKey, this.swipeCloseRef)
     }
 
-    if (virtualListMarks) {
-      return <Kb.Box style={{backgroundColor: 'purple', overflow: 'hidden'}}>{element}</Kb.Box>
-    }
-
     return element
   }
 
-  private keyExtractor = (item: RowItem) => {
+  private keyExtractor = (item: RowItem, idx: number) => {
     const row = item
-
-    if (row.type === 'divider' || row.type === 'bigTeamsLabel' || row.type === 'teamBuilder') {
-      return row.type
+    switch (row.type) {
+      case 'divider': // fallthrough
+      case 'teamBuilder': // fallthrough
+      case 'bigTeamsLabel':
+        return row.type
+      case 'small': // fallthrough
+      case 'big':
+        return row.conversationIDKey
+      case 'bigHeader':
+        return row.teamname
+      default:
+        return String(idx)
     }
-
-    return (
-      (row.type === 'small' && row.conversationIDKey) ||
-      (row.type === 'bigHeader' && row.teamname) ||
-      (row.type === 'big' && row.conversationIDKey) ||
-      'missingkey'
-    )
   }
 
   private askForUnboxing = (rows: Array<RowItem>) => {
@@ -241,6 +238,7 @@ class Inbox extends React.PureComponent<T.Props, State> {
     const floatingDivider = this.state.showFloating &&
       !this.props.isSearching &&
       this.props.allowShowFloatingButton && <BigTeamsDivider toggle={this.props.toggleSmallTeamsExpanded} />
+
     return (
       <Kb.ErrorBoundary>
         <Kb.Box style={styles.container}>
@@ -251,17 +249,19 @@ class Inbox extends React.PureComponent<T.Props, State> {
             </Kb.Box2>
           ) : (
             <FlashList
-              estimatedItemSize={64}
-              overScrollMode="never"
+              disableAutoLayout={true}
               ListHeaderComponent={HeadComponent}
               data={this.props.rows}
-              keyExtractor={this.keyExtractor}
+              estimatedItemSize={64}
               getItemType={this.getItemType}
-              renderItem={this.renderItem}
-              ref={this.listRef}
-              onViewableItemsChanged={this.onViewChanged}
+              keyExtractor={this.keyExtractor}
               keyboardShouldPersistTaps="handled"
+              onViewableItemsChanged={this.onViewChanged}
+              overScrollMode="never"
               overrideItemLayout={this.overrideItemLayout}
+              ref={this.listRef}
+              removeClippedSubviews={Styles.isAndroid}
+              renderItem={this.renderItem}
             />
           )}
           {noChats}

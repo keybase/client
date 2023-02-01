@@ -10,6 +10,7 @@ import type * as ChatTypes from '../../../constants/types/chat2'
 import * as InfoPanelCommon from './common'
 import AddPeople from './add-people'
 import shallowEqual from 'shallowequal'
+import {ConvoIDContext} from '../messages/ids-context'
 
 type SmallProps = {conversationIDKey: ChatTypes.ConversationIDKey}
 
@@ -45,15 +46,16 @@ const TeamHeader = (props: SmallProps) => {
   const isGeneralChannel = !!(channelname && channelname === 'general')
 
   const {toggleShowingPopup, showingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
-    <InfoPanelMenu
-      attachTo={attachTo}
-      floatingMenuContainerStyle={styles.floatingMenuContainerStyle}
-      onHidden={toggleShowingPopup}
-      hasHeader={false}
-      isSmallTeam={isSmallTeam}
-      conversationIDKey={conversationIDKey}
-      visible={showingPopup}
-    />
+    <ConvoIDContext.Provider value={conversationIDKey}>
+      <InfoPanelMenu
+        attachTo={attachTo}
+        floatingMenuContainerStyle={styles.floatingMenuContainerStyle}
+        onHidden={toggleShowingPopup}
+        hasHeader={false}
+        isSmallTeam={isSmallTeam}
+        visible={showingPopup}
+      />
+    </ConvoIDContext.Provider>
   ))
 
   return (

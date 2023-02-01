@@ -7,22 +7,16 @@ import * as InfoPanelCommon from '../common'
 import {Avatars, TeamAvatar} from '../../../avatars'
 import {TeamsSubscriberMountOnly} from '../../../../teams/subscriber'
 
-export type ConvProps = {
-  fullname: string
-  teamType: ChatTypes.TeamType
-  teamname: string
-  teamID: TeamTypes.TeamID
-  ignored: boolean
-  muted: boolean
-  conversationIDKey: ChatTypes.ConversationIDKey
-}
-
 export type Props = {
   attachTo?: () => React.Component<any> | null
   badgeSubscribe: boolean
   canAddPeople: boolean
   channelname?: string
-  convProps?: ConvProps
+  fullname?: string
+  teamType?: ChatTypes.TeamType
+  ignored?: boolean
+  muted?: boolean
+  conversationIDKey?: ChatTypes.ConversationIDKey
   floatingMenuContainerStyle?: Styles.StylesCrossPlatform
   hasHeader: boolean
   isInChannel: boolean
@@ -30,7 +24,7 @@ export type Props = {
   manageChannelsSubtitle: string
   manageChannelsTitle: string
   teamname?: string
-  teamID: TeamTypes.TeamID
+  teamID?: TeamTypes.TeamID
   visible: boolean
   onAddPeople: () => void
   onBlockConv: () => void
@@ -188,8 +182,7 @@ class InfoPanelMenu extends React.Component<Props> {
     const hideItem = this.hideItem()
     const muteItem = this.muteItem()
 
-    const isAdhoc =
-      (props.isSmallTeam && !props.convProps) || !!(props.convProps && props.convProps.teamType === 'adhoc')
+    const isAdhoc = (props.isSmallTeam && !props.conversationIDKey) || !!(props.teamType === 'adhoc')
     const items: Kb.MenuItems = []
     if (isAdhoc) {
       if (muteItem) {
@@ -258,15 +251,15 @@ class InfoPanelMenu extends React.Component<Props> {
     }
 
     const header = props.hasHeader ? (
-      isAdhoc && props.convProps ? (
+      isAdhoc && props.conversationIDKey ? (
         <AdhocHeader
-          isMuted={props.convProps.muted}
-          fullname={props.convProps.fullname}
-          conversationIDKey={props.convProps.conversationIDKey}
+          isMuted={!!props.muted}
+          fullname={props.fullname ?? ''}
+          conversationIDKey={props.conversationIDKey}
         />
-      ) : props.teamname ? (
+      ) : props.teamname && props.teamID ? (
         <TeamHeader
-          isMuted={props.convProps === null || props.convProps === undefined ? false : props.convProps.muted}
+          isMuted={!!props.muted}
           teamname={props.teamname}
           teamID={props.teamID}
           onViewTeam={props.onViewTeam}
@@ -292,12 +285,11 @@ class InfoPanelMenu extends React.Component<Props> {
   }
 
   hideItem() {
-    if (this.props.convProps == null) {
+    if (!this.props.conversationIDKey) {
       return null
     }
-    const convProps = this.props.convProps
-    if (convProps.teamType === 'adhoc' || convProps.teamType === 'small') {
-      if (convProps.ignored) {
+    if (this.props.teamType === 'adhoc' || this.props.teamType === 'small') {
+      if (this.props.ignored) {
         return {
           icon: 'iconfont-unhide',
           iconIsVisible: false,
@@ -320,15 +312,14 @@ class InfoPanelMenu extends React.Component<Props> {
   }
 
   muteItem() {
-    if (this.props.convProps == null || !this.props.isInChannel) {
+    if (!this.props.conversationIDKey || !this.props.isInChannel) {
       return null
     }
-    const convProps = this.props.convProps
-    const title = convProps.muted ? 'Unmute' : 'Mute'
+    const title = this.props.muted ? 'Unmute' : 'Mute'
     return {
       icon: 'iconfont-shh',
       iconIsVisible: false,
-      onClick: () => this.props.onMuteConv(!convProps.muted),
+      onClick: () => this.props.onMuteConv(!this.props.muted),
       title,
     }
   }

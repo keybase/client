@@ -13,7 +13,6 @@ import debounce from 'lodash/debounce'
 import throttle from 'lodash/throttle'
 import {inboxWidth, getRowHeight, smallRowHeight, dividerHeight} from './row/sizes'
 import {makeRow} from './row'
-import {virtualListMarks} from '../../local-debug'
 import shallowEqual from 'shallowequal'
 import './inbox.css'
 
@@ -126,7 +125,7 @@ class Inbox extends React.Component<T.Props, State> {
       // likely small teams were just collapsed
       return null
     }
-    const divStyle = Styles.collapseStyles([style, virtualListMarks && styles.divider])
+    const divStyle = style
     if (row.type === 'divider') {
       const newSmallRows = this.deltaNewSmallRows()
       let expandingRows: Array<string> = []
@@ -198,7 +197,7 @@ class Inbox extends React.Component<T.Props, State> {
 
     // pointer events on so you can click even right after a scroll
     return (
-      <div style={Styles.collapseStyles([divStyle, {pointerEvents: 'auto'}])}>
+      <div style={Styles.collapseStyles([divStyle, {pointerEvents: 'auto'} as any])}>
         {makeRow(row, this.props.navKey)}
       </div>
     )
