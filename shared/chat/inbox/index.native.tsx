@@ -295,11 +295,11 @@ class Inbox extends React.PureComponent<T.Props, State> {
           ) : (
             <FlashList
               disableAutoLayout={true}
-              ListHeaderComponent={undefined /*HeadComponent*/}
+              ListHeaderComponent={HeadComponent}
               data={this.props.rows}
-              estimatedItemSize={100 /*64*/}
+              estimatedItemSize={64}
               getItemType={this.getItemType}
-              keyExtractor={/*this.keyExtractor*/ undefined}
+              keyExtractor={this.keyExtractor}
               keyboardShouldPersistTaps="handled"
               onViewableItemsChanged={this.onViewChanged}
               overScrollMode="never"
