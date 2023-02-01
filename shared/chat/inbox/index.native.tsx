@@ -62,12 +62,7 @@ class Inbox extends React.PureComponent<T.Props, State> {
 
   state = {showFloating: false, showUnread: false, unreadCount: 0}
 
-  // TEMPID = setInterval(() => {
-  //   console.log('aaa', this.listRef.current?.state.layoutProvider._lastLayoutManager._layouts)
-  // }, 2000)
   componentWillUnmount(): void {
-    // clearInterval(this.TEMPID)
-    // this.TEMPID = 0
     this.swipeCloseRef.current?.()
     // @ts-ignore
     this.swipeCloseRef.current = null
@@ -86,7 +81,6 @@ class Inbox extends React.PureComponent<T.Props, State> {
     }
   }
 
-  TEMP = new Map<any>()
   private renderItem = ({index, item}: ListRenderItemInfo<RowItem>): React.ReactElement | null => {
     const row = item
     let element: React.ReactElement | null
@@ -105,63 +99,25 @@ class Inbox extends React.PureComponent<T.Props, State> {
       element = makeRow(row, this.props.navKey, this.swipeCloseRef)
     }
 
-    if (item.type === 'bigHeader' && item.teamname === 'cnojimatest7') {
-      console.log('aaaa renderitem', item)
-    }
-    // TEMP
-    return (
-      <View
-        style={{
-          backgroundColor: `rgba(${Math.floor(Math.random() * 255)}, ${Math.floor(
-            Math.random() * 255
-          )}, ${Math.floor(Math.random() * 255)}, 255)`,
-          width: '100%',
-          height: 100,
-          overflow: 'hidden',
-        }}
-        onLayout={e => {
-          if (item.type === 'bigHeader' && item.teamname === 'cnojimatest7') {
-            console.log('aaaa cnojimatet7layout', item, e.nativeEvent.layout.height)
-          }
-
-          let warn = ''
-          let old = undefined
-          if (item.conversationIDKey) {
-            old = this.TEMP.get(item.conversationIDKey)
-          }
-          if (old !== undefined && old !== e.nativeEvent.layout.height) {
-            warn = '>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>' + old
-          }
-          // console.log('aaa', e.nativeEvent.layout, warn)
-          this.TEMP.set(item.conversationIDKey, e.nativeEvent.layout.height)
-        }}
-      >
-        {element}
-        <Kb.Text type="Body" style={{position: 'absolute', right: 10, color: 'red'}}>
-          {index}
-        </Kb.Text>
-      </View>
-    )
-
     return element
   }
 
-  // private keyExtractor = (item: RowItem, idx: number) => {
-  //   const row = item
-  //   switch (row.type) {
-  //     case 'divider': // fallthrough
-  //     case 'teamBuilder': // fallthrough
-  //     case 'bigTeamsLabel':
-  //       return row.type
-  //     case 'small': // fallthrough
-  //     case 'big':
-  //       return row.conversationIDKey
-  //     case 'bigHeader':
-  //       return row.teamname
-  //     default:
-  //       return String(idx)
-  //   }
-  // }
+  private keyExtractor = (item: RowItem, idx: number) => {
+    const row = item
+    switch (row.type) {
+      case 'divider': // fallthrough
+      case 'teamBuilder': // fallthrough
+      case 'bigTeamsLabel':
+        return row.type
+      case 'small': // fallthrough
+      case 'big':
+        return row.conversationIDKey
+      case 'bigHeader':
+        return row.teamname
+      default:
+        return String(idx)
+    }
+  }
 
   private askForUnboxing = (rows: Array<RowItem>) => {
     const toUnbox = rows.reduce<Array<Types.ConversationIDKey>>((arr, r) => {
@@ -253,27 +209,26 @@ class Inbox extends React.PureComponent<T.Props, State> {
   }
 
   private overrideItemLayout = (layout: {span?: number; size?: number}, item: RowItem) => {
-    layout.size = 100
-    // switch (item.type) {
-    //   case 'small':
-    //     layout.size = RowSizes.smallRowHeight
-    //     break
-    //   case 'bigTeamsLabel':
-    //     layout.size = 32
-    //     break
-    //   case 'bigHeader':
-    //     layout.size = RowSizes.bigHeaderHeight
-    //     break
-    //   case 'big':
-    //     layout.size = RowSizes.bigRowHeight
-    //     break
-    //   case 'divider':
-    //     layout.size = 68
-    //     break
-    //   case 'teamBuilder':
-    //     layout.size = 120
-    //     break
-    // }
+    switch (item.type) {
+      case 'small':
+        layout.size = RowSizes.smallRowHeight
+        break
+      case 'bigTeamsLabel':
+        layout.size = 32
+        break
+      case 'bigHeader':
+        layout.size = RowSizes.bigHeaderHeight
+        break
+      case 'big':
+        layout.size = RowSizes.bigRowHeight
+        break
+      case 'divider':
+        layout.size = 68
+        break
+      case 'teamBuilder':
+        layout.size = 120
+        break
+    }
   }
 
   render() {

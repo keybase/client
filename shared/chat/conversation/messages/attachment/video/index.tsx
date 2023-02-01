@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
 import VideoImpl from './videoimpl'
-import {Title, useAttachmentRedux, Collapsed} from '../shared'
+import {Title, useAttachmentRedux, Collapsed, useCollapseIcon} from '../shared'
 
 type Props = {
   toggleMessageMenu: () => void
@@ -11,22 +11,37 @@ type Props = {
 
 const Video = React.memo(function Video(p: Props) {
   const {isHighlighted, toggleMessageMenu} = p
-  const {isCollapsed, showTitle, openFullscreen} = useAttachmentRedux()
+  const {fileName, isCollapsed, showTitle, openFullscreen} = useAttachmentRedux()
   const containerStyle = isHighlighted ? styles.containerHighlighted : styles.container
-  const content = React.useMemo(() => {
-    return (
-      <Kb.Box2
-        direction="vertical"
-        style={styles.contentContainer}
-        alignSelf="flex-start"
-        alignItems="flex-start"
-        gap="xxtiny"
-      >
-        <VideoImpl openFullscreen={openFullscreen} toggleMessageMenu={toggleMessageMenu} />
-        {showTitle ? <Title /> : null}
+
+  const collapseIcon = useCollapseIcon(false)
+
+  const filename = React.useMemo(() => {
+    return Styles.isMobile || !fileName ? null : (
+      <Kb.Box2 direction="horizontal" alignSelf="flex-start" gap="xtiny">
+        <Kb.Text type="BodySmall">{fileName}</Kb.Text>
+        {collapseIcon}
       </Kb.Box2>
     )
-  }, [openFullscreen, toggleMessageMenu, showTitle])
+  }, [collapseIcon, fileName])
+
+  const content = React.useMemo(() => {
+    return (
+      <>
+        {filename}
+        <Kb.Box2
+          direction="vertical"
+          style={styles.contentContainer}
+          alignSelf="flex-start"
+          alignItems="flex-start"
+          gap="xxtiny"
+        >
+          <VideoImpl openFullscreen={openFullscreen} toggleMessageMenu={toggleMessageMenu} />
+          {showTitle ? <Title /> : null}
+        </Kb.Box2>
+      </>
+    )
+  }, [openFullscreen, toggleMessageMenu, showTitle, filename])
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={containerStyle} alignItems="flex-start">
