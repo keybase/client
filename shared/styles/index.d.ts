@@ -105,6 +105,12 @@ type CollapsibleStyle = CSS.StylesCrossPlatform | RemovedStyle
 // TODO better styles that aren't slow
 export declare function collapseStyles(styles: ReadonlyArray<CollapsibleStyle>): any
 
+// new style, used in the common-adapters, not the components, can memo for you
+export declare function useCollapseStyles<
+  IsMobile = false,
+  Ret = IsMobile extends false ? CSS._StylesCrossPlatform : CSS.StylesCrossPlatform
+>(styles: CSS.StylesCrossPlatform, memo?: boolean): undefined | Ret
+
 export declare const windowStyle: {
   minWidth: number
   minHeight: number

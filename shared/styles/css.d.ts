@@ -113,10 +113,14 @@ type _StylesDesktopFalsy = _StylesDesktop | undefined | null | false
 export type StylesDesktop = _StylesDesktopFalsy | ReadonlyArray<_StylesDesktopFalsy>
 
 type _StylesMobileOverride = {
-  textAlignVertical?: 'auto' | 'top' | 'bottom' | 'center'
+  textAlignVertical?: 'top' | 'bottom' | 'center'
+  textAlign?: 'left' | 'right' | 'center' | 'justify'
 }
 
-export type _StylesMobile = ViewStyle & TextStyle & ImageStyle & _StylesMobileOverride
+export type _StylesMobile = ViewStyle &
+  Omit<TextStyle, 'textAlignVertical' | 'textAlign'> &
+  ImageStyle &
+  _StylesMobileOverride
 type _StylesMobileFalsy = _StylesMobile | undefined | null | false
 export type StylesMobile = _StylesMobileFalsy | ReadonlyArray<_StylesMobileFalsy>
 

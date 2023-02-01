@@ -39,7 +39,7 @@ const ReactButton = React.memo(function ReactButton(p: Props) {
       className={Styles.classNames('react-button', className, {noShadow: active})}
       onLongPress={onLongPress}
       onClick={onClick}
-      style={Styles.collapseStyles([styles.borderBase, styles.buttonBox, active && styles.active, style])}
+      style={[styles.borderBase, styles.buttonBox, active && styles.active, style]}
     >
       <Box2 centerChildren={true} fullHeight={true} direction="horizontal" style={styles.container}>
         <Box2 direction="horizontal" style={styles.containerInner} gap="xtiny">
@@ -147,12 +147,12 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
         className={Styles.classNames('react-button', {border: this.props.showBorder})}
         onLongPress={this.props.onLongPress}
         onClick={this._onShowPicker}
-        style={Styles.collapseStyles([
+        style={[
           styles.borderBase,
           styles.newReactionButtonBox,
           this.props.showBorder && styles.buttonBox,
           this.props.style,
-        ])}
+        ]}
       >
         <Box2
           centerChildren={true}
