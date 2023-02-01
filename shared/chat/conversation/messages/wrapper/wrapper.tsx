@@ -591,9 +591,7 @@ const styles = Styles.styleSheetCreate(
         paddingRight: 4,
         position: 'relative',
       },
-      moreActionsTooltip: {
-        marginRight: -Styles.globalMargins.xxtiny,
-      },
+      moreActionsTooltip: {marginRight: -Styles.globalMargins.xxtiny},
       paddingLeftTiny: {paddingLeft: Styles.globalMargins.tiny},
       rightSide: Styles.platformStyles({
         common: {
@@ -609,7 +607,6 @@ const styles = Styles.styleSheetCreate(
           right: 16,
           top: 4,
         },
-        isMobile: {},
       }),
       rightSideItems: Styles.platformStyles({
         common: {
@@ -617,14 +614,11 @@ const styles = Styles.styleSheetCreate(
           minHeight: 20,
           paddingLeft: Styles.globalMargins.tiny,
         },
-        isElectron: {
-          minHeight: 14,
-        },
-        isMobile: {},
+        isElectron: {minHeight: 14},
       }),
       sendIndicatorPlaceholder: {
-        width: 20,
         height: 20,
+        width: 20,
       },
       timestamp: Styles.platformStyles({
         isElectron: {
