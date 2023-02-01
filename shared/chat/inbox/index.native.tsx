@@ -14,7 +14,7 @@ import debounce from 'lodash/debounce'
 import shallowEqual from 'shallowequal'
 import type * as T from './index.d'
 import type * as Types from '../../constants/types/chat2'
-import {type ViewToken, View} from 'react-native'
+import {type ViewToken} from 'react-native'
 import {FlashList, type ListRenderItemInfo} from '@shopify/flash-list'
 import {anyWaiting} from '../../constants/waiting'
 import {makeRow} from './row'
@@ -81,7 +81,7 @@ class Inbox extends React.PureComponent<T.Props, State> {
     }
   }
 
-  private renderItem = ({index, item}: ListRenderItemInfo<RowItem>): React.ReactElement | null => {
+  private renderItem = ({item}: ListRenderItemInfo<RowItem>): React.ReactElement | null => {
     const row = item
     let element: React.ReactElement | null
     if (row.type === 'divider') {
