@@ -394,9 +394,12 @@ type RProps = {
 const RightSide = React.memo(function RightSide(p: RProps) {
   const {showCenteredHighlight, toggleShowingPopup, showSendIndicator, showCoinsIcon} = p
   const {showExplodingCountdown, showRevoked, botname} = p
-  // if we're sending always keep it so we don't change our width after sending
   const hasShownSendIndicator = React.useRef(showSendIndicator)
-  const sendIndicator = hasShownSendIndicator.current ? <SendIndicator /> : null
+  const sendIndicator = showSendIndicator ? (
+    <SendIndicator />
+  ) : hasShownSendIndicator.current ? (
+    <Kb.Box2 direction="vertical" style={styles.sendIndicatorPlaceholder} />
+  ) : null
 
   const explodingCountdown = showExplodingCountdown ? (
     <ExplodingMeta isParentHighlighted={showCenteredHighlight} onClick={toggleShowingPopup} />
@@ -622,6 +625,10 @@ const styles = Styles.styleSheetCreate(
         },
         isMobile: {},
       }),
+      sendIndicatorPlaceholder: {
+        width: 20,
+        height: 20,
+      },
       timestamp: Styles.platformStyles({
         isElectron: {
           flexShrink: 0,
