@@ -10,7 +10,7 @@ import rootConfig from './webpack.config.babel'
 
 const TEMP_SKIP_BUILD: boolean = false
 
-const electronVersion = '22.0.0'
+const electronVersion = '22.1.0'
 
 // To get the hashes download the SHASUMS.txt file and run
 /*
