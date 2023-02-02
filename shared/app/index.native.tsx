@@ -2,6 +2,7 @@ import * as ConfigGen from '../actions/config-gen'
 import * as Styles from '../styles'
 import * as DeeplinksGen from '../actions/deeplinks-gen'
 import * as React from 'react'
+import {chatDebugEnabled} from '../constants/chat2/debug'
 import Main from './main.native'
 import makeStore from '../store/configure-store'
 import {AppRegistry, AppState, Appearance, Linking} from 'react-native'
@@ -80,7 +81,7 @@ const ensureStore = () => {
     return
   }
   _store = makeStore()
-  if (__DEV__) {
+  if (__DEV__ || chatDebugEnabled) {
     global.DEBUGStore = _store
   }
 

@@ -6,6 +6,8 @@ import * as Types from '../../../../constants/types/chat2'
 import {WrapperMessage, type Props} from '../wrapper/wrapper'
 import {ForceListRedrawContext} from '../../force-list-redraw-context'
 import {ConvoIDContext} from '../ids-context'
+import {useChatDebugDump} from '../../../../constants/chat2/debug'
+
 const noop = () => {}
 
 const baseWidth = Styles.isMobile ? 100 : 150
@@ -24,6 +26,14 @@ const WrapperPlaceholder = React.memo(function WrapperPlaceholder(p: Props) {
   const type = Container.useSelector(
     state => state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)?.type
   )
+
+  useChatDebugDump(
+    `wrapper${o}`,
+    Container.useEvent(() => {
+      return `placeholder: ${o}: ${type ?? ''}`
+    })
+  )
+
   React.useEffect(() => {
     if (type !== 'placeholder') {
       forceListRedraw()
