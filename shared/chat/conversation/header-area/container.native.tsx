@@ -24,9 +24,23 @@ export const HeaderAreaRight = (props: OwnProps) => {
   const dispatch = Container.useDispatch()
 
   const {chatDebugDump} = React.useContext(DebugChatDumpContext)
+  const [showToast, setShowToast] = React.useState(false)
 
   const dumpIcon = chatDebugDump ? (
-    <Kb.Icon type="iconfont-keybase" onClick={chatDebugDump} style={{marginLeft: -40}} />
+    <>
+      <Kb.SimpleToast iconType="iconfont-check" text="Logged, send feedback" visible={showToast} />
+      <Kb.Icon
+        type="iconfont-keybase"
+        onClick={() => {
+          chatDebugDump()
+          setShowToast(true)
+          setTimeout(() => {
+            setShowToast(false)
+          }, 2000)
+        }}
+        style={{marginLeft: -40}}
+      />
+    </>
   ) : null
 
   const onShowInfoPanel = React.useCallback(
