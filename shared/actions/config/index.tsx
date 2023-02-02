@@ -42,7 +42,7 @@ const onLog = (_: unknown, action: EngineGen.Keybase1LogUiLogPayload) => {
 const onConnected = () => ConfigGen.createStartHandshake()
 const onDisconnected = () => {
   logger
-    .flush()
+    .dump()
     .then(() => {})
     .catch(() => {})
   return ConfigGen.createDaemonError({daemonError: new Error('Disconnected')})
