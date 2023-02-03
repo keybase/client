@@ -1,5 +1,4 @@
 import {printOutstandingTimerListeners} from '../local-debug'
-import {localLog} from './forward-logs'
 import logger from '../logger'
 
 /**
@@ -34,7 +33,7 @@ class Timers {
     if (debug) {
       setInterval(() => {
         if (Object.keys(this._refs).length) {
-          localLog('Outstanding shared timer listener debugger:', this._refs)
+          logger.localLog('Outstanding shared timer listener debugger:', this._refs)
         }
       }, 10000)
     }

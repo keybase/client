@@ -3,7 +3,6 @@
 // start drawing. If you need access to these values you need to call `waitOnKB2Loaded`
 // the electron preload scripts will create kb2 on the node side and plumb it back and then call `injectPreload`
 import type {TypedActions} from '../actions/typed-actions-gen'
-import type {LogLineWithLevelISOTimestamp} from '../logger/types'
 import type * as RPCTypes from '../constants/types/rpc-gen'
 
 export type OpenDialogOptions = {
@@ -72,7 +71,7 @@ export type KB2 = {
     showContextMenu?: (url: string) => void
     installCachedDokan?: () => Promise<void>
     uninstallDokan?: (execPath: string) => Promise<void>
-    dumpNodeLogger?: () => Promise<Array<LogLineWithLevelISOTimestamp>>
+    dumpNodeLogger?: () => Promise<void>
     ipcRendererOn?: (channel: string, cb: (event: any, action: any) => void) => void
     hideWindow?: () => void
     getPathType?: (path: string) => Promise<'file' | 'directory'>

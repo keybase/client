@@ -15,7 +15,6 @@ import * as Container from '../util/container'
 import type * as Types from '../constants/types/settings'
 import {RPCError} from '../util/errors'
 import {isAndroidNewerThanN, androidIsTestDevice, pprofDir, version} from '../constants/platform'
-import {writeLogLinesToFile} from '../util/forward-logs'
 
 const onUpdatePGPSettings = async () => {
   try {
@@ -538,8 +537,7 @@ const sendFeedback = async (state: Container.TypedState, action: SettingsGen.Sen
   const {feedback, sendLogs, sendMaxBytes} = action.payload
   try {
     if (sendLogs) {
-      const lines = await logger.dump()
-      await writeLogLinesToFile(lines)
+      await logger.dump()
     }
     const status = {version}
     logger.info(`Sending ${sendLogs ? 'log' : 'feedback'} to daemon`)

@@ -4,7 +4,6 @@ import Session, {type CancelHandlerType} from './session'
 import {initEngine, initEngineListener} from './require'
 import {type RPCError, convertToError} from '../util/errors'
 import {isMobile} from '../constants/platform'
-import {localLog} from '../util/forward-logs'
 import {printOutstandingRPCs, isTesting} from '../local-debug'
 import {resetClient, createClient, rpcLog, type createClientType} from './index.platform'
 import {createBatchChangeWaiting} from '../actions/waiting-gen'
@@ -88,7 +87,7 @@ class Engine {
     if (printOutstandingRPCs) {
       setInterval(() => {
         if (Object.keys(this._sessionsMap).filter(k => !this._sessionsMap[k].getDangling()).length) {
-          localLog('outstandingSessionDebugger: ', this._sessionsMap)
+          logger.localLog('outstandingSessionDebugger: ', this._sessionsMap)
         }
       }, 10 * 1000)
     }

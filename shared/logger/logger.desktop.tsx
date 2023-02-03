@@ -1,6 +1,5 @@
-import type * as Types from './types'
+import type * as Types from '.'
 import {toStringForLog} from '../util/string'
-import {writeLogLinesToFile} from '../util/forward-logs'
 
 const levelToFunction = {
   Action: 'log',
@@ -10,66 +9,45 @@ const levelToFunction = {
   Warn: 'warn',
 } as const
 
-// Simple in memory ring Logger that dumps itself periodically
-class RingAndPeriodLogger {
-  private _ringSize: number
-  private _currentWriteIdx: number = 0
-  private _ringBuffer: Array<Types.LogLine> = []
-  private _logLevel: Types.LogLevel
-  private _writePeriod: number
-  private _consoleLog: (...s: Array<any>) => void
-  private _timerID: ReturnType<typeof requestIdleCallback> = 0
+// Simple in memory ring Logger
+class RingLogger {
+  private ringSize: number
+  private currentWriteIdx: number = 0
+  private ringBuffer: Array<Types.LogLine> = []
+  private logLevel: Types.LogLevel
+  private consoleLog: (...s: Array<any>) => void
 
-  constructor(logLevel: Types.LogLevel, ringSize: number, writePeriod: number) {
-    this._logLevel = logLevel
-    this._ringSize = ringSize
-    this._writePeriod = writePeriod
-    this._consoleLog = console[levelToFunction[logLevel]].bind(console)
-    this.resetPeriodic()
+  constructor(logLevel: Types.LogLevel, ringSize: number) {
+    this.logLevel = logLevel
+    this.ringSize = ringSize
+    this.consoleLog = console[levelToFunction[logLevel]].bind(console)
   }
 
   log = (...s: Array<any>) => {
     const singleString = s.map(toStringForLog).join(' ')
 
     if (__DEV__) {
-      this._consoleLog(s)
+      this.consoleLog(this.logLevel, ...s)
     }
 
-    if (this._ringSize) {
-      this._ringBuffer[this._currentWriteIdx] = [Date.now(), singleString]
-      this._currentWriteIdx = (this._currentWriteIdx + 1) % this._ringSize
+    if (this.ringSize) {
+      this.ringBuffer[this.currentWriteIdx] = [Date.now(), singleString]
+      this.currentWriteIdx = (this.currentWriteIdx + 1) % this.ringSize
     }
-  }
-
-  private resetPeriodic = () => {
-    if (!this._writePeriod) {
-      return
-    }
-
-    this._timerID && cancelIdleCallback(this._timerID)
-    this._timerID = requestIdleCallback(
-      () => {
-        this.dump()
-          .then(() => {})
-          .catch(() => {})
-      },
-      {timeout: this._writePeriod}
-    ) as any as typeof this._timerID
   }
 
   dump = async () => {
-    const toDump: Array<Types.LogLineWithLevelISOTimestamp> = []
-    for (let i = 0; i < this._ringSize; i++) {
-      const idxWrapped = (this._currentWriteIdx + i) % this._ringSize
-      const s = this._ringBuffer[idxWrapped]
+    const toDump: Array<Types.LogLineWithLevel> = []
+    for (let i = 0; i < this.ringSize; i++) {
+      const idxWrapped = (this.currentWriteIdx + i) % this.ringSize
+      const s = this.ringBuffer[idxWrapped]
       if (s) {
-        delete this._ringBuffer[idxWrapped]
-        toDump.push([this._logLevel, new Date(s[0]).toISOString(), s[1]])
+        delete this.ringBuffer[idxWrapped]
+        toDump.push([this.logLevel, s[0], s[1]])
       }
     }
-    await writeLogLinesToFile(toDump)
-    this.resetPeriodic()
+    return Promise.resolve(toDump)
   }
 }
 
-export default RingAndPeriodLogger
+export default RingLogger

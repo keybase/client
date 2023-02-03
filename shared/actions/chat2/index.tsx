@@ -25,14 +25,14 @@ import * as UsersGen from '../users-gen'
 import * as WaitingGen from '../waiting-gen'
 import * as WalletTypes from '../../constants/types/wallets'
 import * as WalletsGen from '../wallets-gen'
-import {commonListenActions, filterForNs} from '../team-building'
+import KB2 from '../../util/electron'
+import NotifyPopup from '../../util/notify-popup'
+import logger from '../../logger'
 import {RPCError} from '../../util/errors'
-import {NotifyPopup} from '../../native/notifications'
+import {commonListenActions, filterForNs} from '../team-building'
 import {isIOS} from '../../constants/platform'
 import {privateFolderWithUsers, teamFolder} from '../../constants/config'
 import {saveAttachmentToCameraRoll, showShareActionSheet} from '../platform-specific'
-import KB2 from '../../util/electron'
-import logger from '../../logger'
 
 const {darwinCopyToChatTempUploadFile} = KB2.functions
 
@@ -65,6 +65,7 @@ const inboxRefresh = (
   state: Container.TypedState,
   action: Chat2Gen.InboxRefreshPayload | EngineGen.Chat1NotifyChatChatInboxStalePayload
 ) => {
+  logger.error('aaaNOJIMA chat action started')
   const {username, loggedIn} = state.config
   if (!loggedIn || !username) {
     return false

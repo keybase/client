@@ -1,5 +1,5 @@
 import {printOutstandingTimerListeners} from '../local-debug'
-import {localLog} from './forward-logs'
+import logger from '../logger'
 
 /**
  * A synchronized clock that ticks once every second
@@ -53,7 +53,7 @@ class Ticker {
       logCounter++
       if (logCounter % 10 === 0 && this.refs.length > 0) {
         // 10 seconds
-        localLog('Outstanding second timer listener debugger:', this.refs)
+        logger.localLog('Outstanding second timer listener debugger:', this.refs)
       }
     }
   }

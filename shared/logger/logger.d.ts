@@ -1,7 +1,9 @@
-import type * as Types from './types'
-export declare class Logger {
-  constructor(logLevel: Types.LogLevel, ringSize: number, writePeriod: number)
+import type {LogLevel, LogLineWithLevel} from '.'
+declare class Logger {
+  constructor(logLevel: LogLevel, ringSize: number)
   log(...s: Array<any>): void
-  // dump all lines to the service
-  dump(): Promise<Array<Types.LogLineWithLevel>>
+  // dump all lines
+  dump(): Promise<Array<LogLineWithLevel>>
 }
+
+export default Logger

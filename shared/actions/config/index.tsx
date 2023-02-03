@@ -1,21 +1,20 @@
-import logger from '../../logger'
-import {log} from '../../native/log/logui'
 import * as ConfigGen from '../config-gen'
-import * as GregorGen from '../gregor-gen'
-import * as SettingsGen from '../settings-gen'
-import * as EngineGen from '../engine-gen-gen'
-import * as DevicesGen from '../devices-gen'
-import * as PushGen from '../push-gen'
-import * as RouteTreeGen from '../route-tree-gen'
-import * as RPCTypes from '../../constants/types/rpc-gen'
-import * as SettingsConstants from '../../constants/settings'
-import * as LoginConstants from '../../constants/login'
-import {initPlatformListener} from '../platform-specific'
-import * as Tabs from '../../constants/tabs'
-import * as Router2 from '../../constants/router2'
-import * as Platform from '../../constants/platform'
-import {noVersion} from '../../constants/whats-new'
 import * as Container from '../../util/container'
+import * as DevicesGen from '../devices-gen'
+import * as EngineGen from '../engine-gen-gen'
+import * as GregorGen from '../gregor-gen'
+import * as LoginConstants from '../../constants/login'
+import * as Platform from '../../constants/platform'
+import * as PushGen from '../push-gen'
+import * as RPCTypes from '../../constants/types/rpc-gen'
+import * as RouteTreeGen from '../route-tree-gen'
+import * as Router2 from '../../constants/router2'
+import * as SettingsConstants from '../../constants/settings'
+import * as SettingsGen from '../settings-gen'
+import * as Tabs from '../../constants/tabs'
+import logger from '../../logger'
+import {initPlatformListener} from '../platform-specific'
+import {noVersion} from '../../constants/whats-new'
 
 const onLoggedIn = (state: Container.TypedState, action: EngineGen.Keybase1NotifySessionLoggedInPayload) => {
   logger.info('keybase.1.NotifySession.loggedIn')
@@ -33,10 +32,6 @@ const onLoggedOut = (state: Container.TypedState) => {
     return ConfigGen.createLoggedOut()
   }
   return undefined
-}
-
-const onLog = (_: unknown, action: EngineGen.Keybase1LogUiLogPayload) => {
-  log(action.payload.params)
 }
 
 const onConnected = () => ConfigGen.createStartHandshake()
@@ -648,7 +643,6 @@ const initConfig = () => {
 
   Container.listenAction(EngineGen.keybase1NotifySessionLoggedIn, onLoggedIn)
   Container.listenAction(EngineGen.keybase1NotifySessionLoggedOut, onLoggedOut)
-  Container.listenAction(EngineGen.keybase1LogUiLog, onLog)
   Container.listenAction(EngineGen.connected, onConnected)
   Container.listenAction(EngineGen.disconnected, onDisconnected)
   Container.listenAction(EngineGen.keybase1NotifyTrackingTrackingInfo, onTrackingInfo)
