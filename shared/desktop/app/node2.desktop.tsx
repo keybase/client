@@ -725,7 +725,6 @@ const plumbEvents = () => {
         }
         break
       case 'appStartedUp':
-        logger.error('aaaNOJIMA node started')
         appStartedUp = true
         // tell mainwindow we're connected
         nodeEngine.listenersAreReady()

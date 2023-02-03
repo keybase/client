@@ -95,8 +95,6 @@ class AggregateLoggerImpl {
   }
 
   dump = async (periodic: boolean = false) => {
-    console._log('aaaa root dump', periodic)
-
     const loggers = periodic ? this.periodLoggers : this.allLoggers
     const lines = loggers.map(l => l.dump())
     const sortedLogs = lines
@@ -110,16 +108,13 @@ class AggregateLoggerImpl {
   }
 
   sendLogsToService = async (lines: Array<LogLineWithLevelISOTimestamp>) => {
-    console._log('aaaa sending logs to service', lines)
     if (!isMobile) {
       // don't want main node thread making these calls
       try {
         if (!getEngine()) {
-          console._log('aaaa BAIL on node side?')
           return Promise.resolve()
         }
       } catch (_) {
-        console._log('aaaa BAIL on node side?')
         return Promise.resolve()
       }
     }
@@ -130,13 +125,8 @@ class AggregateLoggerImpl {
         })
       : Promise.resolve()
     await send
-    console._log('aaaa sent logs to service')
   }
 }
-
-// flush = async () => {
-//   await Promise.all(this.allLoggers.map(l => l.flush()))
-// }
 
 const theOnlyLogger = new AggregateLoggerImpl()
 export default theOnlyLogger

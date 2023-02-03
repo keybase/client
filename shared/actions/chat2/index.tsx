@@ -65,7 +65,6 @@ const inboxRefresh = (
   state: Container.TypedState,
   action: Chat2Gen.InboxRefreshPayload | EngineGen.Chat1NotifyChatChatInboxStalePayload
 ) => {
-  logger.error('aaaNOJIMA chat action started')
   const {username, loggedIn} = state.config
   if (!loggedIn || !username) {
     return false

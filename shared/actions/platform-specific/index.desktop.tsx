@@ -69,7 +69,6 @@ const initializeInputMonitor = (listenerApi: Container.ListenerApi) => {
 }
 
 export const dumpLogs = async (_?: unknown, action?: ConfigGen.DumpLogsPayload) => {
-  console._log('aaa action dump logs')
   await logger.dump()
   await (dumpNodeLogger?.() ?? Promise.resolve([]))
   // quit as soon as possible
