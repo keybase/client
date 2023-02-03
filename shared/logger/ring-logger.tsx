@@ -36,7 +36,7 @@ class RingLogger {
     }
   }
 
-  dump = async () => {
+  dump = () => {
     const toDump: Array<Types.LogLineWithLevel> = []
     for (let i = 0; i < this.ringSize; i++) {
       const idxWrapped = (this.currentWriteIdx + i) % this.ringSize
@@ -46,7 +46,7 @@ class RingLogger {
         toDump.push([this.logLevel, s[0], s[1]])
       }
     }
-    return Promise.resolve(toDump)
+    return toDump
   }
 }
 

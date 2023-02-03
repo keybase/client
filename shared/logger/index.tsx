@@ -1,5 +1,5 @@
 import * as RPCTypes from '../constants/types/rpc-gen'
-import Logger from './logger'
+import Logger from './ring-logger'
 import noop from 'lodash/noop'
 import {getEngine} from '../engine/require'
 import {isMobile} from '../constants/platform'
@@ -91,7 +91,6 @@ class AggregateLoggerImpl {
     }
 
     this.allLoggers = [this._action, this._debug, this._error, this._info, this._warn]
-
     this.resetPeriodic()
   }
 
@@ -99,7 +98,7 @@ class AggregateLoggerImpl {
     console._log('aaaa root dump', periodic)
 
     const loggers = periodic ? this.periodLoggers : this.allLoggers
-    const lines = await Promise.all(loggers.map(l => l.dump()))
+    const lines = loggers.map(l => l.dump())
     const sortedLogs = lines
       .flat()
       .sort(([, tsA], [, tsB]) => tsA - tsB)
