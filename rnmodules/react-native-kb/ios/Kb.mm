@@ -90,11 +90,9 @@ RCT_EXPORT_MODULE()
         auto values = PrepRpcOnJS(jsiRuntime, (uint8_t *)[data bytes], size);
         
         RpcOnJS(jsiRuntime, values, [](const std::string &err) {
-//            DDLogInfo(@"%@%@: [%@,\"jsi rpconjs error: %@\"]", @"d", @"NativeLogger",
-//                      [NSString stringWithFormat:@"%f", [[NSDate date]
-//                                                         timeIntervalSince1970] *
-//                       1000],
-//                      [NSString stringWithUTF8String:err.c_str()]);
+            KeybaseLogToService([NSString stringWithFormat: @"dNativeLogger: [%f,\"jsi rpconjs error: %@\"]",
+                      [[NSDate date] timeIntervalSince1970] * 1000,
+                      [NSString stringWithUTF8String:err.c_str()]]);
         });
     });
 }
@@ -155,10 +153,8 @@ public:
         return;
     }
     
-    KeybaseLogToService([NSString stringWithFormat:@"%@%@: [%@,\"%@\"]", @"d", @"NativeLogger",
-              [NSString
-               stringWithFormat:@"%f", [[NSDate date] timeIntervalSince1970] * 1000],
-              @"jsi install success"]);
+    KeybaseLogToService([NSString stringWithFormat:@"dNativeLogger: [%f,\"jsi install success\"]",
+             [[NSDate date] timeIntervalSince1970] * 1000]);
     
     
     auto& jsiRuntime = *jsRuntimePtr;
