@@ -4,8 +4,6 @@ export interface Spec extends TurboModule {
     getDefaultCountryCode(): Promise<string>;
     logSend(status: string, feedback: string, sendLogs: boolean, sendMaxBytes: boolean, traceDir: string, cpuProfileDir: string): Promise<string>;
     iosGetHasShownPushPrompt(): Promise<boolean>;
-    iosLog(tagsAndLogs: Array<[string, string]>): void;
-    logDump(prefix: string): Promise<Array<string>>;
     androidOpenSettings(): void;
     androidSetSecureFlagSetting(s: boolean): Promise<boolean>;
     androidGetSecureFlagSetting(): Promise<boolean>;
