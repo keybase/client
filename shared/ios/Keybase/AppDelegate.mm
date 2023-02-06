@@ -111,7 +111,7 @@ didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
 #if DEBUG
   [[RCTBundleURLProvider sharedSettings] setEnableDev: true];
   // uncomment to get a prod bundle.
-//   [[RCTBundleURLProvider sharedSettings] setEnableDev: false];
+   [[RCTBundleURLProvider sharedSettings] setEnableDev: false];
   return
   [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@"index"];
 #else
