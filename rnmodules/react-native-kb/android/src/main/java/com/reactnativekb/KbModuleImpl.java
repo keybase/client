@@ -220,28 +220,6 @@ public class KbModuleImpl  {
         }
     }
 
-    public void logDump(String tagPrefix, Promise promise) {
-        try {
-            String cmd = "logcat -m 10000 -d " + RN_NAME + ":I *:S";
-
-            Process process = Runtime.getRuntime().exec(cmd);
-            BufferedReader r = new BufferedReader(new InputStreamReader(process.getInputStream()));
-            String line;
-            final WritableArray totalArray = Arguments.createArray();
-            final Pattern pattern = Pattern.compile(".*" + tagPrefix + NAME + ": (.*)");
-            while ((line = r.readLine()) != null) {
-                Matcher m = pattern.matcher(line);
-                if (m.matches()) {
-                    totalArray.pushString(m.group(1));
-                }
-            }
-            promise.resolve(totalArray);
-        } catch (IOException e) {
-            promise.reject(e);
-            NativeLogger.error("Exception in dump: ", e);
-        }
-    }
-
     // Settings
     public void androidOpenSettings() {
         Intent intent = new Intent();

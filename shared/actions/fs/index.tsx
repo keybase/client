@@ -14,7 +14,7 @@ import * as RouteTreeGen from '../route-tree-gen'
 import * as Platform from '../../constants/platform'
 import {tlfToPreferredOrder} from '../../util/kbfs'
 import {errorToActionOrThrow} from './shared'
-import {NotifyPopup} from '../../native/notifications'
+import NotifyPopup from '../../util/notify-popup'
 import {RPCError} from '../../util/errors'
 import KB2 from '../../util/electron'
 

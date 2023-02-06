@@ -8,12 +8,6 @@ import noop from 'lodash/noop'
 // Toggle this to disable yellowboxes
 LogBox.ignoreAllLogs()
 
-// store the vanilla console helpers
-window.console._log = window.console.log
-window.console._warn = window.console.warn
-window.console._error = window.console.error
-window.console._info = window.console.info
-
 // uncomment this to watch the RN bridge traffic: https://github.com/facebook/react-native/commit/77e48f17824870d30144a583be77ec5c9cf9f8c5
 // require('react-native/Libraries/BatchedBridge/MessageQueue').spy(msg => {
 //   if (msg.module !== 'WebSocketModule') {

@@ -22,7 +22,6 @@ using namespace facebook::jsi;
 using namespace facebook;
 using namespace std;
 
-static const DDLogLevel ddLogLevel = DDLogLevelDebug;
 static const NSString *tagName = @"NativeLogger";
 static NSString *const eventName = @"kb-engine-event";
 static NSString *const metaEventName = @"kb-meta-engine-event";
@@ -91,11 +90,9 @@ RCT_EXPORT_MODULE()
         auto values = PrepRpcOnJS(jsiRuntime, (uint8_t *)[data bytes], size);
         
         RpcOnJS(jsiRuntime, values, [](const std::string &err) {
-            DDLogInfo(@"%@%@: [%@,\"jsi rpconjs error: %@\"]", @"d", @"NativeLogger",
-                      [NSString stringWithFormat:@"%f", [[NSDate date]
-                                                         timeIntervalSince1970] *
-                       1000],
-                      [NSString stringWithUTF8String:err.c_str()]);
+            KeybaseLogToService([NSString stringWithFormat: @"dNativeLogger: [%f,\"jsi rpconjs error: %@\"]",
+                      [[NSDate date] timeIntervalSince1970] * 1000,
+                      [NSString stringWithUTF8String:err.c_str()]]);
         });
     });
 }
@@ -156,11 +153,8 @@ public:
         return;
     }
     
-    DDLogInfo(
-              @"%@%@: [%@,\"%@\"]", @"d", @"NativeLogger",
-              [NSString
-               stringWithFormat:@"%f", [[NSDate date] timeIntervalSince1970] * 1000],
-              @"jsi install success");
+    KeybaseLogToService([NSString stringWithFormat:@"dNativeLogger: [%f,\"jsi install success\"]",
+             [[NSDate date] timeIntervalSince1970] * 1000]);
     
     
     auto& jsiRuntime = *jsRuntimePtr;
@@ -222,64 +216,6 @@ RCT_REMAP_METHOD(iosGetHasShownPushPrompt, getHasShownPushPromptWithResolver
                                                             }];
 }
 
-RCT_REMAP_METHOD(iosLog, tagsAndLogs : (NSArray *)tagsAndLogs) {
-    for (NSArray *tagAndLog in tagsAndLogs) {
-        DDLogInfo(@"%@%@: %@", tagAndLog[0], tagName, tagAndLog[1]);
-        // uncomment this to get logs in xcode from the js side with the native
-        // logger. NSLogs don't show
-        //    printf("DEBUGJS: %s\n", [tagAndLog[1] UTF8String]);
-    }
-}
-
-- (void)setupLogger {
-    if (self.fileLogger != nil) {
-        return;
-    }
-    self.fileLogger = [[DDFileLogger alloc] init];
-    self.fileLogger.rollingFrequency = 60 * 60 * 24;            // 24 hour rolling
-    self.fileLogger.logFileManager.maximumNumberOfLogFiles = 3; // 3 days
-    [DDLog addLogger:self.fileLogger];
-    
-    DDLogInfo(
-              @"%@%@: [%@,\"%@\"]", @"d", @"NativeLogger",
-              [NSString
-               stringWithFormat:@"%f", [[NSDate date] timeIntervalSince1970] * 1000],
-              @"logger setup success");
-}
-
-RCT_REMAP_METHOD(logDump, tagPrefix
-                 : (NSString *)tagPrefix resolver
-                 : (RCTPromiseResolveBlock)resolve rejecter
-                 : (RCTPromiseRejectBlock)reject) {
-    dispatch_async(dispatch_get_main_queue(), ^{
-        [self setupLogger];
-        DDFileLogger *fileLogger = self.fileLogger;
-        
-        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_LOW, 0), ^{
-            NSMutableArray<NSString *> *lines = [[NSMutableArray alloc] init];
-            NSArray<NSString *> *paths =
-            [[fileLogger logFileManager] sortedLogFilePaths];
-            for (NSString *path in paths) {
-                NSString *fileContents =
-                [NSString stringWithContentsOfFile:path
-                                          encoding:NSUTF8StringEncoding
-                                             error:NULL];
-                for (NSString *line in
-                     [fileContents componentsSeparatedByCharactersInSet:
-                      [NSCharacterSet newlineCharacterSet]]) {
-                    NSRange range = [line
-                                     rangeOfString:[NSString stringWithFormat:@"%@%@: ", tagPrefix,
-                                                    tagName]];
-                    if (range.location != NSNotFound) {
-                        [lines addObject:[line substringFromIndex:range.location +
-                                          range.length]];
-                    }
-                }
-            }
-            resolve(lines);
-        });
-    });
-}
 
 // from react-native-localize
 - (bool)uses24HourClockForLocale:(NSLocale *_Nonnull)locale {

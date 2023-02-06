@@ -49,10 +49,6 @@ public class KbModule extends ReactContextBaseJavaModule {
         this.impl.logSend(status, feedback, sendLogs, sendMaxBytes, traceDir, cpuProfileDir, promise);
     }
     @ReactMethod
-    public void logDump(String tagPrefix, Promise promise) {
-        this.impl.logDump(tagPrefix, promise);
-    }
-    @ReactMethod
     public void androidOpenSettings() {
         this.impl.androidOpenSettings();
     }
