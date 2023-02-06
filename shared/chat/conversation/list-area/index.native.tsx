@@ -18,6 +18,7 @@ import {mobileTypingContainerHeight} from '../input-area/normal/typing'
 import {SetRecycleTypeContext} from '../recycle-type-context'
 import {ForceListRedrawContext} from '../force-list-redraw-context'
 import shallowEqual from 'shallowequal'
+import {useChatDebugDump} from '../../../constants/chat2/debug'
 
 // Bookkeep whats animating so it finishes and isn't replaced, if we've animated it we keep the key and use null
 const animatingMap = new Map<string, null | React.ReactElement>()
@@ -259,6 +260,47 @@ const ConversationList = React.memo(function ConversationList(p: {
   const forceListRedraw = React.useCallback(() => {
     setExtraData(d => d + 1)
   }, [])
+
+  useChatDebugDump(
+    'listArea',
+    Container.useEvent(() => {
+      if (!listRef.current) return ''
+      const {props, state} = listRef.current
+      const {extraData, data} = props
+
+      // @ts-ignore
+      const layoutManager = state.layoutProvider._lastLayoutManager ?? ({} as any)
+      const {_layouts, _renderWindowSize, _totalHeight, _totalWidth} = layoutManager
+      // @ts-ignore
+      const mm = window.DEBUGStore.store.getState().chat2.messageMap.get(conversationIDKey)
+      // const reduxItems = messageOrdinals.map(o => ({o, type: mm.get(o)?.type}))
+
+      console.log(listRef.current)
+
+      const items = data?.map((ordinal, idx) => {
+        const layout = _layouts[idx]
+        const m = mm.get(ordinal) ?? ({} as any)
+        return {
+          idx,
+          layout,
+          ordinal,
+          rid: m.id,
+          rtype: m.type,
+        }
+      })
+
+      const details = {
+        // children,
+        _renderWindowSize,
+        _totalHeight,
+        _totalWidth,
+        data,
+        extraData,
+        items,
+      }
+      return JSON.stringify(details)
+    })
+  )
 
   return (
     <Kb.ErrorBoundary>

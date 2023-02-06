@@ -1,6 +1,7 @@
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Constants from '../../../constants/chat2'
 import * as Container from '../../../util/container'
+import {DebugChatDumpContext} from '../../../constants/chat2/debug'
 import * as Kb from '../../../common-adapters/mobile.native'
 import * as React from 'react'
 import * as Tabs from '../../../constants/tabs'
@@ -22,6 +23,26 @@ export const HeaderAreaRight = (props: OwnProps) => {
 
   const dispatch = Container.useDispatch()
 
+  const {chatDebugDump} = React.useContext(DebugChatDumpContext)
+  const [showToast, setShowToast] = React.useState(false)
+
+  const dumpIcon = chatDebugDump ? (
+    <>
+      <Kb.SimpleToast iconType="iconfont-check" text="Logged, send feedback" visible={showToast} />
+      <Kb.Icon
+        type="iconfont-keybase"
+        onClick={() => {
+          chatDebugDump()
+          setShowToast(true)
+          setTimeout(() => {
+            setShowToast(false)
+          }, 2000)
+        }}
+        style={{marginLeft: -40}}
+      />
+    </>
+  ) : null
+
   const onShowInfoPanel = React.useCallback(
     () => dispatch(Chat2Gen.createShowInfoPanel({conversationIDKey, show: true})),
     [dispatch, conversationIDKey]
@@ -32,6 +53,7 @@ export const HeaderAreaRight = (props: OwnProps) => {
   )
   return pendingWaiting ? null : (
     <Kb.Box2 direction="horizontal" gap="small">
+      {dumpIcon}
       <Kb.Icon type="iconfont-search" onClick={onToggleThreadSearch} />
       <Kb.Icon type="iconfont-info" onClick={onShowInfoPanel} />
     </Kb.Box2>
