@@ -21,8 +21,13 @@ import {makeRow} from './row'
 
 type RowItem = Types.ChatInboxRowItem
 
-const useFlashlist = false
-const List = useFlashlist ? FlashList : FlatList
+const usingFlashList = false
+const List = usingFlashList ? FlashList : FlatList
+const debugWhichList = __DEV__ ? (
+  <Kb.Text type="HeaderBig" style={{backgroundColor: 'red', left: 0, position: 'absolute', top: 0}}>
+    {usingFlashList ? 'FLASH' : 'old'}
+  </Kb.Text>
+) : null
 
 const NoChats = (props: {onNewChat: () => void}) => (
   <>
@@ -273,6 +278,7 @@ class Inbox extends React.PureComponent<T.Props, State> {
           {this.state.showUnread && !this.props.isSearching && !this.state.showFloating && (
             <UnreadShortcut onClick={this.scrollToUnread} unreadCount={this.state.unreadCount} />
           )}
+          {debugWhichList}
         </Kb.Box>
       </Kb.ErrorBoundary>
     )
