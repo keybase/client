@@ -1,5 +1,5 @@
-import debounce from 'lodash/debounce'
 import logger from '../logger'
+import debounce from 'lodash/debounce'
 
 const rateLimit: {[K in string]: () => void} = {}
 const rateLimitPayloads: {
@@ -10,7 +10,7 @@ const rateLimitPayloads: {
   }
 } = {}
 
-export function NotifyPopup(
+function NotifyPopup(
   title: string,
   opts: any | null,
   rateLimitSeconds: number = -1,
@@ -46,3 +46,5 @@ export function NotifyPopup(
   notification.onclick = onClick || null
   notification.onclose = onClose || null
 }
+
+export default NotifyPopup

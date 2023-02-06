@@ -314,6 +314,10 @@ func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 	return nil
 }
 
+func LogToService(str string)  {
+		kbCtx.Log.Info(str)
+}
+
 type serviceCn struct{}
 
 func (s serviceCn) NewKeybaseService(config libkbfs.Config, params libkbfs.InitParams, ctx libkbfs.Context, log logger.Logger) (libkbfs.KeybaseService, error) {

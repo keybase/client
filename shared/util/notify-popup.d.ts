@@ -1,8 +1,10 @@
-export function NotifyPopup(
+declare function NotifyPopup(
   title: string,
-  opts?: Object | null,
+  opts: any | null,
   rateLimitSeconds?: number,
   rateLimitKey?: string,
   onClick?: (() => void) | null,
   onClose?: (() => void) | null
 ): void
+
+export default NotifyPopup

@@ -40,8 +40,6 @@ static NSString *const kRNConcurrentRoot = @"concurrentRoot";
 
 #import "AppDelegate+KB.h"
 
-static const DDLogLevel ddLogLevel = DDLogLevelDebug;
-
 @implementation AppDelegate
 
 - (BOOL)application:(UIApplication *)application

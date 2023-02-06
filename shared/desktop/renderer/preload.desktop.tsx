@@ -6,7 +6,6 @@ import {
   type OpenDialogOptions,
   type SaveDialogOptions,
 } from '../../util/electron.desktop'
-import type {LogLineWithLevelISOTimestamp} from '../../logger/types'
 import type * as RPCTypes from '../../constants/types/rpc-gen'
 import type {Action} from '../app/ipctypes'
 
@@ -76,9 +75,9 @@ if (isRenderer) {
           })) as string
         },
         dumpNodeLogger: async () => {
-          return (await invoke({
+          await invoke({
             type: 'dumpNodeLogger',
-          })) as Array<LogLineWithLevelISOTimestamp>
+          })
         },
         engineSend: (buf: unknown) => {
           // @ts-ignore
