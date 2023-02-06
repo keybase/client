@@ -51,11 +51,6 @@ public class KbModule extends NativeKbSpec {
     }
     @Override
     @ReactMethod
-    public void logDump(String tagPrefix, Promise promise) {
-        this.impl.logDump(tagPrefix, promise);
-    }
-    @Override
-    @ReactMethod
     public void androidOpenSettings() {
         this.impl.androidOpenSettings();
     }

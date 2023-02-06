@@ -6,18 +6,16 @@ type TimeoutInfo = {
   timeRemaining: () => number
 }
 
-function immediateCallback(cb: (info: TimeoutInfo) => void): ReturnType<typeof setImmediate> {
-  cb({didTimeout: true, timeRemaining: () => 0})
-  const r = {
-    _onImmediate: () => {},
-    hasRef: () => false,
-    ref: () => r,
-    unref: () => r,
-  }
-  return r
+type Options = {
+  timeout?: number
 }
 
-function timeoutFallback(cb: (info: TimeoutInfo) => void): ReturnType<typeof setTimeout> {
+function immediateCallback(cb: (info: TimeoutInfo) => void): number {
+  cb({didTimeout: true, timeRemaining: () => 0})
+  return 0
+}
+
+function timeoutFallback(cb: (info: TimeoutInfo) => void): number {
   return setTimeout(function () {
     cb({
       didTimeout: true,
@@ -25,7 +23,7 @@ function timeoutFallback(cb: (info: TimeoutInfo) => void): ReturnType<typeof set
         return 0
       },
     })
-  }, 20)
+  }, 20) as any as number
 }
 
 const useFallback =
@@ -35,13 +33,21 @@ const useFallback =
   (isMobile && isDebuggingInChrome) ||
   isMobile // AND.. idle timers are entirely broken on ios on device https://github.com/facebook/react-native/pull/29895
 
-const requestIdleCallback = forceImmediateLogging
+type CBType = (cb: (info: TimeoutInfo) => void, opt?: Options) => number
+const requestIdleCallback: CBType = forceImmediateLogging
   ? immediateCallback
   : useFallback
   ? timeoutFallback
   : window.requestIdleCallback.bind(window)
 
+type CancelType = (id: number) => void
+const cancelIdleCallback: CancelType = forceImmediateLogging
+  ? () => {}
+  : useFallback
+  ? (id: number) => clearTimeout(id)
+  : window.cancelIdleCallback.bind(window)
+
 const onIdlePromise = async (timeout: number = 100): Promise<TimeoutInfo> =>
   new Promise(resolve => requestIdleCallback(resolve, {timeout}))
 
-export {requestIdleCallback, onIdlePromise}
+export {cancelIdleCallback, requestIdleCallback, onIdlePromise}

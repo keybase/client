@@ -1,7 +1,7 @@
-import PushNotificationIOS from '@react-native-community/push-notification-ios'
 import {isIOS} from '../constants/platform'
+import PushNotificationIOS from '@react-native-community/push-notification-ios'
 
-export function NotifyPopup(title: string, opts: Object, _: number = -1, __?: string): void {
+function NotifyPopup(title: string, opts: Object, _: number = -1, __?: string): void {
   console.log('NotifyPopup: ', title, opts)
   isIOS &&
     PushNotificationIOS.addNotificationRequest({
@@ -9,3 +9,5 @@ export function NotifyPopup(title: string, opts: Object, _: number = -1, __?: st
       id: Math.floor(Math.random() * Math.pow(2, 32)).toString(),
     })
 }
+
+export default NotifyPopup

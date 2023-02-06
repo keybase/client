@@ -1,6 +1,7 @@
 package com.reactnativekb;
 
 import android.util.Log;
+import keybase.Keybase;
 
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.Promise;
@@ -24,27 +25,27 @@ public class NativeLogger extends ReactContextBaseJavaModule {
     }
 
     public static void error(String log) {
-        Log.e(RN_NAME, formatLine("e", log));
+        Keybase.logToService(formatLine("e", log));
     }
 
     public static void error(String log, Throwable tr) {
-        Log.e(RN_NAME, formatLine("e", log + Log.getStackTraceString(tr)));
+        Keybase.logToService(formatLine("e", log + Log.getStackTraceString(tr)));
     }
 
     public static void info(String log) {
-        Log.i(RN_NAME, formatLine("i", log));
+        Keybase.logToService(formatLine("i", log));
     }
 
     public static void info(String log, Throwable tr) {
-        Log.i(RN_NAME, formatLine("i", log + Log.getStackTraceString(tr)));
+        Keybase.logToService(formatLine("i", log + Log.getStackTraceString(tr)));
     }
 
     public static void warn(String log) {
-        Log.i(RN_NAME, formatLine("w", log));
+        Keybase.logToService(formatLine("w", log));
     }
 
     public static void warn(String log, Throwable tr) {
-        Log.i(RN_NAME, formatLine("w", log + Log.getStackTraceString(tr)));
+        Keybase.logToService(formatLine("w", log + Log.getStackTraceString(tr)));
     }
 
     public NativeLogger(final ReactApplicationContext reactContext) {

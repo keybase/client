@@ -1,38 +1,34 @@
-import logger from '../../logger'
-import * as RPCTypes from '../../constants/types/rpc-gen'
-import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
-import * as SettingsConstants from '../../constants/settings'
-import * as PushConstants from '../../constants/push'
-import * as RouterConstants from '../../constants/router2'
-import * as ConfigGen from '../config-gen'
 import * as Chat2Gen from '../chat2-gen'
-import * as ProfileGen from '../profile-gen'
-import * as SettingsGen from '../settings-gen'
-import * as WaitingGen from '../waiting-gen'
-import * as EngineGen from '../engine-gen-gen'
-import * as Tabs from '../../constants/tabs'
-import * as RouteTreeGen from '../route-tree-gen'
-import * as LoginGen from '../login-gen'
-import * as Types from '../../constants/types/chat2'
-import * as MediaLibrary from 'expo-media-library'
-import type * as FsTypes from '../../constants/types/fs'
-import {getEngine} from '../../engine/require'
-import {Alert, Linking, ActionSheetIOS, PermissionsAndroid} from 'react-native'
-import Clipboard from '@react-native-clipboard/clipboard'
-import NetInfo from '@react-native-community/netinfo'
-import PushNotificationIOS from '@react-native-community/push-notification-ios'
-import {isIOS, isAndroid} from '../../constants/platform'
-import {
-  initPushListener,
-  getStartupDetailsFromInitialPush,
-  getStartupDetailsFromInitialShare,
-} from './push.native'
-import * as Container from '../../util/container'
+import * as ConfigGen from '../config-gen'
 import * as Contacts from 'expo-contacts'
-import {launchImageLibraryAsync} from '../../util/expo-image-picker'
-import {_getNavigator} from '../../constants/router2'
+import * as Container from '../../util/container'
+import * as EngineGen from '../engine-gen-gen'
 import * as ExpoLocation from 'expo-location'
 import * as ExpoTaskManager from 'expo-task-manager'
+import * as LoginGen from '../login-gen'
+import * as MediaLibrary from 'expo-media-library'
+import * as ProfileGen from '../profile-gen'
+import * as PushConstants from '../../constants/push'
+import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
+import * as RPCTypes from '../../constants/types/rpc-gen'
+import * as RouteTreeGen from '../route-tree-gen'
+import * as RouterConstants from '../../constants/router2'
+import * as SettingsConstants from '../../constants/settings'
+import * as SettingsGen from '../settings-gen'
+import * as Tabs from '../../constants/tabs'
+import * as Types from '../../constants/types/chat2'
+import * as WaitingGen from '../waiting-gen'
+import Clipboard from '@react-native-clipboard/clipboard'
+import NetInfo from '@react-native-community/netinfo'
+import NotifyPopup from '../../util/notify-popup'
+import PushNotificationIOS from '@react-native-community/push-notification-ios'
+import logger from '../../logger'
+import type * as FsTypes from '../../constants/types/fs'
+import {Alert, Linking, ActionSheetIOS, PermissionsAndroid} from 'react-native'
+import {_getNavigator} from '../../constants/router2'
+import {getEngine} from '../../engine/require'
+import {isIOS, isAndroid} from '../../constants/platform'
+import {launchImageLibraryAsync} from '../../util/expo-image-picker'
 import {
   getDefaultCountryCode,
   androidOpenSettings,
@@ -43,6 +39,20 @@ import {
   fsDownloadDir,
   androidAppColorSchemeChanged,
 } from 'react-native-kb'
+import {
+  initPushListener,
+  getStartupDetailsFromInitialPush,
+  getStartupDetailsFromInitialShare,
+} from './push.native'
+
+const onLog = (_: unknown, action: EngineGen.Keybase1LogUiLogPayload) => {
+  const {params} = action.payload
+  const {level, text} = params
+  logger.info('keybase.1.logUi.log:', params.text.data)
+  if (level >= RPCTypes.LogLevel.error) {
+    NotifyPopup(text.data, {})
+  }
+}
 
 const requestPermissionsToWrite = async () => {
   if (isAndroid) {
@@ -740,6 +750,8 @@ export const initPlatformListener = () => {
   Container.listenAction(ConfigGen.setDarkModePreference, notifyNativeOfDarkModeChange)
 
   Container.listenAction(RouteTreeGen.onNavChanged, onPersistRoute)
+
+  Container.listenAction(EngineGen.keybase1LogUiLog, onLog)
 
   // Start this immediately instead of waiting so we can do more things in parallel
   Container.spawn(loadStartupDetails, 'loadStartupDetails')
