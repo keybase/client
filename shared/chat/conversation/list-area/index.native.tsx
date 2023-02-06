@@ -10,7 +10,7 @@ import SpecialBottomMessage from '../messages/special-bottom-message'
 import SpecialTopMessage from '../messages/special-top-message'
 import type * as Types from '../../../constants/types/chat2'
 import type {ItemType} from '.'
-import {Animated} from 'react-native'
+import {Animated, FlatList} from 'react-native'
 import {ConvoIDContext} from '../messages/ids-context'
 import {FlashList, type ListRenderItemInfo} from '@shopify/flash-list'
 import {getMessageRender} from '../messages/wrapper'
@@ -19,6 +19,14 @@ import {SetRecycleTypeContext} from '../recycle-type-context'
 import {ForceListRedrawContext} from '../force-list-redraw-context'
 import shallowEqual from 'shallowequal'
 import {useChatDebugDump} from '../../../constants/chat2/debug'
+
+const usingFlashList = true
+const List = usingFlashList ? FlashList : FlatList
+const debugWhichList = __DEV__ ? (
+  <Kb.Text type="HeaderBig" style={{backgroundColor: 'red', left: 0, position: 'absolute', top: 0}}>
+    {usingFlashList ? 'FLASH' : 'old'}
+  </Kb.Text>
+) : null
 
 // Bookkeep whats animating so it finishes and isn't replaced, if we've animated it we keep the key and use null
 const animatingMap = new Map<string, null | React.ReactElement>()
@@ -116,7 +124,7 @@ const useScrolling = (p: {
   centeredOrdinal: Types.Ordinal
   messageOrdinals: Array<Types.Ordinal>
   conversationIDKey: Types.ConversationIDKey
-  listRef: React.MutableRefObject<FlashList<ItemType> | null>
+  listRef: React.MutableRefObject<FlashList<ItemType> | FlatList<ItemType> | null>
   requestScrollToBottomRef: React.MutableRefObject<(() => void) | undefined>
 }) => {
   const {listRef, centeredOrdinal, messageOrdinals, conversationIDKey, requestScrollToBottomRef} = p
@@ -188,7 +196,7 @@ const ConversationList = React.memo(function ConversationList(p: {
     return [..._messageOrdinals].reverse()
   }, [_messageOrdinals])
 
-  const listRef = React.useRef<FlashList<ItemType> | null>(null)
+  const listRef = React.useRef<FlashList<ItemType> | FlatList<ItemType> | null>(null)
   const {markInitiallyLoadedThreadAsRead} = Hooks.useActions({conversationIDKey})
   const keyExtractor = React.useCallback((ordinal: ItemType) => {
     return String(ordinal)
@@ -308,7 +316,7 @@ const ConversationList = React.memo(function ConversationList(p: {
         <SetRecycleTypeContext.Provider value={setRecycleType}>
           <ForceListRedrawContext.Provider value={forceListRedraw}>
             <Kb.Box style={styles.container}>
-              <FlashList
+              <List
                 extraData={extraData}
                 removeClippedSubviews={Styles.isAndroid}
                 drawDistance={100}
@@ -330,6 +338,7 @@ const ConversationList = React.memo(function ConversationList(p: {
                 ref={listRef}
               />
               {jumpToRecent}
+              {debugWhichList}
             </Kb.Box>
           </ForceListRedrawContext.Provider>
         </SetRecycleTypeContext.Provider>

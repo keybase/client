@@ -14,12 +14,20 @@ import debounce from 'lodash/debounce'
 import shallowEqual from 'shallowequal'
 import type * as T from './index.d'
 import type * as Types from '../../constants/types/chat2'
-import {type ViewToken} from 'react-native'
+import {type ViewToken, FlatList} from 'react-native'
 import {FlashList, type ListRenderItemInfo} from '@shopify/flash-list'
 import {anyWaiting} from '../../constants/waiting'
 import {makeRow} from './row'
 
 type RowItem = Types.ChatInboxRowItem
+
+const usingFlashList = true
+const List = usingFlashList ? FlashList : FlatList
+const debugWhichList = __DEV__ ? (
+  <Kb.Text type="HeaderBig" style={{backgroundColor: 'red', left: 0, position: 'absolute', top: 0}}>
+    {usingFlashList ? 'FLASH' : 'old'}
+  </Kb.Text>
+) : null
 
 const NoChats = (props: {onNewChat: () => void}) => (
   <>
@@ -55,7 +63,7 @@ type State = {
 class Inbox extends React.PureComponent<T.Props, State> {
   // used to close other rows
   private swipeCloseRef = React.createRef<() => void>()
-  private listRef = React.createRef<FlashList<RowItem>>()
+  private listRef = React.createRef<FlashList<RowItem> | FlatList<RowItem>>()
   // stash first offscreen index for callback
   private firstOffscreenIdx: number = -1
   private lastVisibleIdx: number = -1
@@ -248,7 +256,7 @@ class Inbox extends React.PureComponent<T.Props, State> {
               <InboxSearch header={HeadComponent} />
             </Kb.Box2>
           ) : (
-            <FlashList
+            <List
               disableAutoLayout={true}
               ListHeaderComponent={HeadComponent}
               data={this.props.rows}
@@ -270,6 +278,7 @@ class Inbox extends React.PureComponent<T.Props, State> {
           {this.state.showUnread && !this.props.isSearching && !this.state.showFloating && (
             <UnreadShortcut onClick={this.scrollToUnread} unreadCount={this.state.unreadCount} />
           )}
+          {debugWhichList}
         </Kb.Box>
       </Kb.ErrorBoundary>
     )

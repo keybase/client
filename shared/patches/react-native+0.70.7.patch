@@ -1,0 +1,30 @@
+diff --git a/node_modules/react-native/Libraries/Lists/VirtualizedList.js b/node_modules/react-native/Libraries/Lists/VirtualizedList.js
+index 69e6309..cc802af 100644
+--- a/node_modules/react-native/Libraries/Lists/VirtualizedList.js
++++ b/node_modules/react-native/Libraries/Lists/VirtualizedList.js
+@@ -34,6 +34,7 @@ const RefreshControl = require('../Components/RefreshControl/RefreshControl');
+ const ScrollView = require('../Components/ScrollView/ScrollView');
+ const View = require('../Components/View/View');
+ const Batchinator = require('../Interaction/Batchinator');
++const Platform = require('../Utilities/Platform');
+ const ReactNative = require('../Renderer/shims/ReactNative');
+ const flattenStyle = require('../StyleSheet/flattenStyle');
+ const StyleSheet = require('../StyleSheet/StyleSheet');
+@@ -2170,9 +2171,14 @@ function describeNestedLists(childList: {
+ }
+ 
+ const styles = StyleSheet.create({
+-  verticallyInverted: {
+-    transform: [{scaleY: -1}],
+-  },
++  verticallyInverted:
++    Platform.OS === 'android'
++      ? {
++          scaleY: -1,
++        }
++      : {
++          transform: [{scaleY: -1}]
++        },
+   horizontallyInverted: {
+     transform: [{scaleX: -1}],
+   },
