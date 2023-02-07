@@ -66,7 +66,7 @@ const Video = React.memo(function Video(p: Props) {
         </Kb.Box2>
       </>
     )
-  }, [openFullscreen, toggleMessageMenu, showTitle, filename, isUploading, transferProgress])
+  }, [openFullscreen, toggleMessageMenu, showTitle, filename, isUploading, transferProgress, transferState])
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={containerStyle} alignItems="flex-start">
