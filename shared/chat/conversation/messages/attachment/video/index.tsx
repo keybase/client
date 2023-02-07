@@ -9,11 +9,31 @@ type Props = {
   isHighlighted?: boolean
 }
 
+const Transferring = (p: {ratio: number}) => {
+  const {ratio} = p
+  return (
+    <Kb.Box2
+      direction="horizontal"
+      style={styles.transferring}
+      alignItems="center"
+      gap="xtiny"
+      gapEnd={true}
+      gapStart={true}
+    >
+      <Kb.Text type="BodySmall" negative={true}>
+        Uploading
+      </Kb.Text>
+      <Kb.ProgressBar ratio={ratio} />
+    </Kb.Box2>
+  )
+}
+
 const Video = React.memo(function Video(p: Props) {
   const {isHighlighted, toggleMessageMenu} = p
-  const {fileName, isCollapsed, showTitle, openFullscreen} = useAttachmentRedux()
+  const {fileName, isCollapsed, showTitle, openFullscreen, transferState, transferProgress} =
+    useAttachmentRedux()
   const containerStyle = isHighlighted ? styles.containerHighlighted : styles.container
-
+  const isUploading = transferState === 'uploading'
   const collapseIcon = useCollapseIcon(false)
 
   const filename = React.useMemo(() => {
@@ -36,12 +56,17 @@ const Video = React.memo(function Video(p: Props) {
           alignItems="flex-start"
           gap="xxtiny"
         >
-          <VideoImpl openFullscreen={openFullscreen} toggleMessageMenu={toggleMessageMenu} />
+          <VideoImpl
+            openFullscreen={openFullscreen}
+            toggleMessageMenu={toggleMessageMenu}
+            allowPlay={transferState !== 'uploading'}
+          />
           {showTitle ? <Title /> : null}
+          {isUploading ? <Transferring ratio={transferProgress} /> : null}
         </Kb.Box2>
       </>
     )
-  }, [openFullscreen, toggleMessageMenu, showTitle, filename])
+  }, [openFullscreen, toggleMessageMenu, showTitle, filename, isUploading, transferProgress])
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={containerStyle} alignItems="flex-start">
@@ -53,7 +78,7 @@ const Video = React.memo(function Video(p: Props) {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      container: {alignSelf: 'center', paddingRight: Styles.globalMargins.tiny},
+      container: {alignSelf: 'center', paddingRight: Styles.globalMargins.tiny, position: 'relative'},
       containerHighlighted: {
         alignSelf: 'center',
         backgroundColor: Styles.globalColors.yellowLight,
@@ -65,6 +90,14 @@ const styles = Styles.styleSheetCreate(
         maxWidth: Styles.isMobile ? '100%' : 330,
         padding: 3,
         position: 'relative',
+      },
+      transferring: {
+        backgroundColor: Styles.globalColors.black_50,
+        borderRadius: 2,
+        left: Styles.globalMargins.tiny,
+        overflow: 'hidden',
+        position: 'absolute',
+        top: Styles.globalMargins.tiny,
       },
     } as const)
 )

@@ -145,20 +145,30 @@ export const useAttachmentRedux = () => {
     dispatch(Chat2Gen.createAttachmentPreviewSelect({conversationIDKey, ordinal}))
   }, [dispatch, getIds])
 
-  const {fileName, isCollapsed, isEditing, showTitle} = Container.useSelector(state => {
-    const m = Constants.getMessage(state, conversationIDKey, ordinal)
-    const message = m?.type === 'attachment' ? m : missingMessage
-    const {isCollapsed, title, fileName: fileNameRaw, deviceType, inlineVideoPlayable} = message
-    const editInfo = Constants.getEditInfo(state, conversationIDKey)
-    const isEditing = !!(editInfo && editInfo.ordinal === ordinal)
-    const showTitle = !!title
-    const fileName =
-      deviceType === 'desktop' ? fileNameRaw : `${inlineVideoPlayable ? 'Video' : 'Image'} from mobile`
+  const {fileName, isCollapsed, isEditing, showTitle, transferProgress, transferState} =
+    Container.useSelector(state => {
+      const m = Constants.getMessage(state, conversationIDKey, ordinal)
+      const message = m?.type === 'attachment' ? m : missingMessage
+      const {isCollapsed, title, fileName: fileNameRaw, transferProgress} = message
+      const {deviceType, inlineVideoPlayable, transferState} = message
+      const editInfo = Constants.getEditInfo(state, conversationIDKey)
+      const isEditing = !!(editInfo && editInfo.ordinal === ordinal)
+      const showTitle = !!title
+      const fileName =
+        deviceType === 'desktop' ? fileNameRaw : `${inlineVideoPlayable ? 'Video' : 'Image'} from mobile`
 
-    return {fileName, isCollapsed, isEditing, showTitle}
-  }, shallowEqual)
+      return {fileName, isCollapsed, isEditing, showTitle, transferProgress, transferState}
+    }, shallowEqual)
 
-  return {fileName, isCollapsed, isEditing, openFullscreen, showTitle}
+  return {
+    fileName,
+    isCollapsed,
+    isEditing,
+    openFullscreen,
+    showTitle,
+    transferProgress,
+    transferState,
+  }
 }
 
 export const Collapsed = () => {

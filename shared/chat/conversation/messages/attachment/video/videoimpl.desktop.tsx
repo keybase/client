@@ -6,9 +6,8 @@ import {useRedux} from './use-redux'
 
 // its important we use explicit height/width so we never CLS while loading
 const VideoImpl = (p: Props) => {
-  const {openFullscreen} = p
+  const {openFullscreen, allowPlay} = p
   const {previewURL, height, width, url, videoDuration} = useRedux()
-
   const [showPoster, setShowPoster] = React.useState(true)
 
   React.useEffect(() => {
@@ -29,7 +28,7 @@ const VideoImpl = (p: Props) => {
   return showPoster ? (
     <div onClick={onPress} style={styles.posterContainer}>
       <Kb.Image src={previewURL} style={{height, width}} />
-      <Kb.Icon type="icon-play-64" style={styles.playButton} />
+      {allowPlay ? <Kb.Icon type="icon-play-64" style={styles.playButton} /> : null}
       <Kb.Box2 direction="vertical" style={styles.durationContainer}>
         <Kb.Text type="BodyTinyBold" style={styles.durationText}>
           {videoDuration}
@@ -39,6 +38,7 @@ const VideoImpl = (p: Props) => {
   ) : (
     <video
       ref={ref}
+      autoPlay={true}
       onDoubleClick={onDoubleClick}
       height={height}
       width={width}
@@ -57,18 +57,6 @@ const VideoImpl = (p: Props) => {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      actionContainer: {
-        alignSelf: 'flex-end',
-        backgroundColor: Styles.globalColors.black_50,
-        borderRadius: 2,
-        overflow: 'hidden',
-        padding: 1,
-        paddingLeft: 4,
-        paddingRight: 4,
-        position: 'absolute',
-        right: Styles.globalMargins.tiny,
-        top: Styles.globalMargins.tiny,
-      },
       downloadIcon: Styles.platformStyles({
         isElectron: {
           display: 'inline-flex',
