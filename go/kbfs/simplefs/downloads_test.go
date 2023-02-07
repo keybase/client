@@ -32,10 +32,10 @@ func TestDownloadManager(t *testing.T) {
 		ctx, t, sfs, pathAppend(pathPriv, `test.txt`), []byte(`foo`))
 	syncFS(ctx, t, sfs, "/private/jdoe")
 
-	cacheDir, err := os.MkdirTemp("", "simplefs-downloadtest-cache")
+	cacheDir, err := os.MkdirTemp(TempDirBase, "simplefs-downloadtest-cache")
 	require.NoError(t, err)
 	defer os.RemoveAll(cacheDir)
-	downloadDir, err := os.MkdirTemp("", "simplefs-downloadtest-download")
+	downloadDir, err := os.MkdirTemp(TempDirBase, "simplefs-downloadtest-download")
 	require.NoError(t, err)
 	defer os.RemoveAll(downloadDir)
 
@@ -81,8 +81,9 @@ func TestDownloadManager(t *testing.T) {
 				require.Equal(t, filepath.Join(downloadDir, fmt.Sprintf("test (%d).txt", regularDownloadIndex)), status.States[0].LocalPath)
 			}
 		} else {
-			require.True(t, strings.HasPrefix(status.States[0].LocalPath, cacheDir))
-			require.True(t, strings.HasSuffix(status.States[0].LocalPath, ".txt"))
+			lpath := filepath.Clean(status.States[0].LocalPath)
+			require.True(t, strings.HasPrefix(lpath, filepath.Clean(cacheDir)))
+			require.True(t, strings.HasSuffix(lpath, ".txt"))
 		}
 		err = sfs.SimpleFSDismissDownload(ctx, downloadID)
 		require.NoError(t, err)
