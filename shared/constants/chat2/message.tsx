@@ -1141,7 +1141,7 @@ const outboxUIMessagetoMessage = (
       const title = o.title
       const fileName = o.filename
       let previewURL = ''
-      let pre = previewSpecs(null, null)
+      let pre
       if (o.preview) {
         previewURL =
           o.preview.location && o.preview.location.ltyp === RPCChatTypes.PreviewLocationTyp.url
@@ -1150,6 +1150,8 @@ const outboxUIMessagetoMessage = (
         const md = (o.preview && o.preview.metadata) || null
         const baseMd = (o.preview && o.preview.baseMetadata) || null
         pre = previewSpecs(md, baseMd)
+      } else {
+        pre = previewSpecs(null, null)
       }
       return makePendingAttachmentMessage(
         conversationIDKey,
@@ -1351,6 +1353,7 @@ export const makePendingAttachmentMessage = (
     exploding,
     fileName: fileName,
     id: Types.numberToMessageID(0),
+    inlineVideoPlayable: previewSpec.showPlayButton,
     isCollapsed: false,
     ordinal: ordinal,
     outboxID: outboxID,

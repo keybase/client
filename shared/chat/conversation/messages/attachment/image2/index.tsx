@@ -13,7 +13,6 @@ const Image2 = React.memo(function Image2(p: Props) {
   const {isHighlighted, toggleMessageMenu} = p
   const {fileName, isCollapsed, isEditing, showTitle, openFullscreen} = useAttachmentRedux()
   const containerStyle = isHighlighted || isEditing ? styles.containerHighlighted : styles.container
-
   const collapseIcon = useCollapseIcon(false)
 
   const filename = React.useMemo(() => {

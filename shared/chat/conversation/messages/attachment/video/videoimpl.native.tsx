@@ -7,7 +7,8 @@ import {Video, ResizeMode, type AVPlaybackStatus} from 'expo-av'
 import {Pressable} from 'react-native'
 import type {Props} from './videoimpl'
 
-const VideoImpl = (_p: Props) => {
+const VideoImpl = (p: Props) => {
+  const {allowPlay} = p
   const {previewURL, height, width, url, transferState, videoDuration} = useRedux()
   const source = React.useMemo(() => ({uri: `${url}&contentforce=true`}), [url])
 
@@ -47,7 +48,7 @@ const VideoImpl = (_p: Props) => {
               source={fiSrc}
               style={Styles.collapseStyles([styles.poster, {height, width}])}
             />
-            <Kb.Icon type="icon-play-64" style={styles.playButton} />
+            {allowPlay ? <Kb.Icon type="icon-play-64" style={styles.playButton} /> : null}
             <Kb.Box2 direction="vertical" style={styles.durationContainer}>
               <Kb.Text type="BodyTinyBold" style={styles.durationText}>
                 {videoDuration}
