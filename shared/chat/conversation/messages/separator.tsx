@@ -19,28 +19,25 @@ const authorIsCollapsible = (type?: Types.MessageType) =>
 
 const getUsernameToShow = (message: Types.Message, pMessage: Types.Message | undefined, you: string) => {
   switch (message.type) {
-    case 'journeycard':
+    case 'journeycard': // fallthrough
+    case 'systemJoined':
       return ''
     case 'systemAddedToTeam':
       return message.adder
     case 'systemInviteAccepted':
       return message.invitee === you ? '' : message.invitee
-    case 'setDescription':
-    case 'pin':
+    case 'setDescription': // fallthrough
+    case 'pin': // fallthrough
     case 'systemUsersAddedToConversation':
       return message.author
-    case 'systemJoined': {
-      const joinLeaveLength = (message?.joiners?.length ?? 0) + (message?.leavers?.length ?? 0)
-      return joinLeaveLength > 1 ? '' : message.author
-    }
     case 'systemSBSResolved':
       return message.prover
     case 'setChannelname':
       // suppress this message for the #general channel, it is redundant.
       return message.newChannelname !== 'general' ? message.author : ''
-    case 'attachment':
-    case 'requestPayment':
-    case 'sendPayment':
+    case 'attachment': // fallthrough
+    case 'requestPayment': // fallthrough
+    case 'sendPayment': // fallthrough
     case 'text':
       break
     default:
