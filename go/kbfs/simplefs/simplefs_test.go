@@ -31,6 +31,8 @@ import (
 	billy "gopkg.in/src-d/go-billy.v4"
 )
 
+const TempDirBase = "."
+
 func syncFS(ctx context.Context, t *testing.T, fs *SimpleFS, tlf string) {
 	ctx, err := fs.startOpWrapContext(ctx)
 	require.NoError(t, err)
@@ -478,7 +480,7 @@ func TestCopyToLocal(t *testing.T) {
 	writeRemoteFile(ctx, t, sfs, pathAppend(path1, "test1.txt"), []byte("foo"))
 
 	// make a temp local dest directory + files we will clean up later
-	tempdir2, err := os.MkdirTemp("", "simpleFstest")
+	tempdir2, err := os.MkdirTemp(TempDirBase, "simpleFstest")
 	defer os.RemoveAll(tempdir2)
 	require.NoError(t, err)
 	path2 := keybase1.NewPathWithLocal(tempdir2)
@@ -516,7 +518,7 @@ func TestCopyRecursive(t *testing.T) {
 	defer closeSimpleFS(ctx, t, sfs)
 
 	// make a temp local dest directory + files we will clean up later
-	tempdir, err := os.MkdirTemp("", "simpleFstest")
+	tempdir, err := os.MkdirTemp(TempDirBase, "simpleFstest")
 	require.NoError(t, err)
 	defer os.RemoveAll(tempdir)
 
@@ -574,7 +576,7 @@ func TestCopyRecursive(t *testing.T) {
 		string(readRemoteFile(ctx, t, sfs, pathAppend(pathKbfs, "test2.txt"))))
 
 	// Copy it back.
-	tempdir2, err := os.MkdirTemp("", "simpleFstest")
+	tempdir2, err := os.MkdirTemp(TempDirBase, "simpleFstest")
 	require.NoError(t, err)
 	defer os.RemoveAll(tempdir2)
 	path3 := keybase1.NewPathWithLocal(
@@ -643,7 +645,7 @@ func TestCopyToRemote(t *testing.T) {
 	path2 := keybase1.NewPathWithKbfsPath(`/private/jdoe`)
 
 	// make a temp local dest directory + files we will clean up later
-	tempdir, err := os.MkdirTemp("", "simpleFstest")
+	tempdir, err := os.MkdirTemp(TempDirBase, "simpleFstest")
 	defer os.RemoveAll(tempdir)
 	require.NoError(t, err)
 	path1 := keybase1.NewPathWithLocal(tempdir)
@@ -844,7 +846,7 @@ func TestCopyProgress(t *testing.T) {
 	sfs.newFS = maker.makeNewBlocker
 
 	// make a temp local dest directory + files we will clean up later
-	tempdir, err := os.MkdirTemp("", "simpleFstest")
+	tempdir, err := os.MkdirTemp(TempDirBase, "simpleFstest")
 	require.NoError(t, err)
 	defer os.RemoveAll(tempdir)
 
@@ -1453,7 +1455,7 @@ func TestOverallStatusFile(t *testing.T) {
 
 func TestFavoriteConflicts(t *testing.T) {
 	ctx := context.Background()
-	tempdir, err := os.MkdirTemp(os.TempDir(), "journal_for_simplefs_cr")
+	tempdir, err := os.MkdirTemp(TempDirBase, "journal_for_simplefs_cr")
 	defer os.RemoveAll(tempdir)
 	require.NoError(t, err)
 	sfs := newSimpleFS(
@@ -1592,7 +1594,7 @@ func TestFavoriteConflicts(t *testing.T) {
 func TestSyncConfigFavorites(t *testing.T) {
 	ctx := context.Background()
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
-	tempdir, err := os.MkdirTemp(os.TempDir(), "journal_for_simplefs_favs")
+	tempdir, err := os.MkdirTemp(TempDirBase, "journal_for_simplefs_favs")
 	require.NoError(t, err)
 	defer os.RemoveAll(tempdir)
 	err = config.EnableDiskLimiter(tempdir)
@@ -1701,7 +1703,7 @@ func TestRemoveFavorite(t *testing.T) {
 
 func TestBadgeState(t *testing.T) {
 	ctx := context.Background()
-	tempdir, err := os.MkdirTemp(os.TempDir(), "journal_for_simplefs_badge")
+	tempdir, err := os.MkdirTemp(TempDirBase, "journal_for_simplefs_badge")
 	defer os.RemoveAll(tempdir)
 	require.NoError(t, err)
 	sfs := newSimpleFS(

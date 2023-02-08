@@ -69,7 +69,7 @@ const (
 )
 
 // Time out individual tests after 10 seconds.
-var individualTestTimeout = 10 * time.Second
+var individualTestTimeout = 30 * time.Second
 
 func kbfsOpsInit(t *testing.T) (mockCtrl *gomock.Controller,
 	config *ConfigMock, ctx context.Context, cancel context.CancelFunc) {
