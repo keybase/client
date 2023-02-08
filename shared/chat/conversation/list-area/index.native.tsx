@@ -198,7 +198,7 @@ const ConversationList = React.memo(function ConversationList(p: {
 
   const messageOrdinals = React.useMemo(() => {
     return [..._messageOrdinals].reverse()
-  }, [_messageOrdinals /*, extraData*/])
+  }, [_messageOrdinals])
 
   const listRef = React.useRef<FlashList<ItemType> | FlatList<ItemType> | null>(null)
   const {markInitiallyLoadedThreadAsRead} = Hooks.useActions({conversationIDKey})
@@ -206,7 +206,6 @@ const ConversationList = React.memo(function ConversationList(p: {
     return String(ordinal)
   }, [])
 
-  const TEMPREF = React.useRef(3)
   const renderItem = React.useCallback(
     (info: ListRenderItemInfo<ItemType> | null | undefined) => {
       const index = info?.index ?? 0
@@ -220,18 +219,7 @@ const ConversationList = React.memo(function ConversationList(p: {
 
       const type = messageTypeMap?.get(ordinal) ?? 'text'
       if (!type) return null
-      let Clazz = getMessageRender(type)
-      if (ordinal === 5844) {
-        // console.log('aaa rendering <<<<<', ordinal, type)
-        if (TEMPREF.current > 0) {
-          console.log('aaa inject placeholder <<<<<<<<<<', TEMPREF.current)
-          TEMPREF.current--
-          Clazz = Placeholder
-        } else {
-          console.log('aaa inject real >>>>>>')
-        }
-      }
-      // console.log('aaa rendering done', ordinal, type)
+      const Clazz = getMessageRender(type)
       if (!Clazz) return null
       return <Clazz ordinal={ordinal} />
     },
@@ -255,15 +243,7 @@ const ConversationList = React.memo(function ConversationList(p: {
     if (numOrdinals - 1 === idx) {
       return 'sent'
     }
-    const TEMP = recycleTypeRef.current.get(ordinal) ?? messageTypeMap?.get(ordinal) ?? 'text'
-    // console.log(
-    //   'aaaa getitemtype',
-    //   ordinal,
-    //   TEMP,
-    //   recycleTypeRef.current.get(ordinal),
-    //   messageTypeMap?.get(ordinal)
-    // )
-    return TEMP
+    return recycleTypeRef.current.get(ordinal) ?? messageTypeMap?.get(ordinal) ?? 'text'
   })
 
   const {scrollToCentered, scrollToBottom, onEndReached} = useScrolling({
@@ -337,8 +317,6 @@ const ConversationList = React.memo(function ConversationList(p: {
       return JSON.stringify(details)
     })
   )
-
-  console.log('aaa list render force val', extraData)
 
   return (
     <Kb.ErrorBoundary>

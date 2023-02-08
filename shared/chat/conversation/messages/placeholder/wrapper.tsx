@@ -35,16 +35,10 @@ const WrapperPlaceholder = React.memo(function WrapperPlaceholder(p: Props) {
   )
 
   React.useEffect(() => {
-    console.log('aaa type in placeholder is', type, o)
     if (type !== 'placeholder') {
-      console.log('aaa type in placeholder incorrect, forece', o)
       forceListRedraw()
     }
   }, [forceListRedraw, type])
-
-  if (ordinal === 5844) {
-    console.log('bbb placeholderwrapper render ===================', type)
-  }
 
   return (
     <WrapperMessage
@@ -56,7 +50,6 @@ const WrapperPlaceholder = React.memo(function WrapperPlaceholder(p: Props) {
       popupAnchor={noAnchor}
     >
       <Kb.Box2 direction="horizontal" gap="tiny" style={styles.container}>
-        <Kb.Text>{ordinal}</Kb.Text>
         <Kb.Placeholder width={width} />
       </Kb.Box2>
     </WrapperMessage>
