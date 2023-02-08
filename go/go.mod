@@ -13,7 +13,7 @@ require (
 	// for bbolt at the bottom of this go.mod
 	github.com/blevesearch/bleve v0.8.2-0.20191030071327-189ee421f71e
 	github.com/btcsuite/btcutil v0.0.0-20180706230648-ab6388e0c60a
-	github.com/buger/jsonparser v0.0.0-20180131123142-4be68c93a244
+	github.com/buger/jsonparser v1.1.1
 	github.com/coreos/go-systemd v0.0.0-20190620071333-e64a0ec8b42a
 	github.com/davecgh/go-spew v1.1.1
 	github.com/deckarep/golang-set v1.7.2-0.20180927150649-699df6a3acf6
