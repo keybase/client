@@ -19,6 +19,7 @@ import {SetRecycleTypeContext} from '../recycle-type-context'
 import {ForceListRedrawContext} from '../force-list-redraw-context'
 import shallowEqual from 'shallowequal'
 import {useChatDebugDump} from '../../../constants/chat2/debug'
+import Placeholder from '../messages/placeholder/wrapper'
 
 const usingFlashList = true
 const List = usingFlashList ? FlashList : FlatList
@@ -184,6 +185,9 @@ const ConversationList = React.memo(function ConversationList(p: {
   conversationIDKey: Types.ConversationIDKey
   requestScrollToBottomRef: React.MutableRefObject<(() => void) | undefined>
 }) {
+  // used to force a rerender when a type changes, aka placeholder resolves
+  const [extraData, setExtraData] = React.useState(0)
+
   const {conversationIDKey, requestScrollToBottomRef} = p
   const {centeredOrdinal, _messageOrdinals, messageTypeMap} = Container.useSelector(state => {
     const centeredOrdinal = Constants.getMessageCenterOrdinal(state, conversationIDKey)?.ordinal ?? -1
@@ -194,7 +198,7 @@ const ConversationList = React.memo(function ConversationList(p: {
 
   const messageOrdinals = React.useMemo(() => {
     return [..._messageOrdinals].reverse()
-  }, [_messageOrdinals])
+  }, [_messageOrdinals /*, extraData*/])
 
   const listRef = React.useRef<FlashList<ItemType> | FlatList<ItemType> | null>(null)
   const {markInitiallyLoadedThreadAsRead} = Hooks.useActions({conversationIDKey})
@@ -202,6 +206,7 @@ const ConversationList = React.memo(function ConversationList(p: {
     return String(ordinal)
   }, [])
 
+  const TEMPREF = React.useRef(3)
   const renderItem = React.useCallback(
     (info: ListRenderItemInfo<ItemType> | null | undefined) => {
       const index = info?.index ?? 0
@@ -215,7 +220,18 @@ const ConversationList = React.memo(function ConversationList(p: {
 
       const type = messageTypeMap?.get(ordinal) ?? 'text'
       if (!type) return null
-      const Clazz = getMessageRender(type)
+      let Clazz = getMessageRender(type)
+      if (ordinal === 5844) {
+        // console.log('aaa rendering <<<<<', ordinal, type)
+        if (TEMPREF.current > 0) {
+          console.log('aaa inject placeholder <<<<<<<<<<', TEMPREF.current)
+          TEMPREF.current--
+          Clazz = Placeholder
+        } else {
+          console.log('aaa inject real >>>>>>')
+        }
+      }
+      // console.log('aaa rendering done', ordinal, type)
       if (!Clazz) return null
       return <Clazz ordinal={ordinal} />
     },
@@ -225,7 +241,7 @@ const ConversationList = React.memo(function ConversationList(p: {
   const recycleTypeRef = React.useRef(new Map<Types.Ordinal, string>())
   React.useEffect(() => {
     recycleTypeRef.current = new Map()
-  }, [conversationIDKey])
+  }, [conversationIDKey, extraData])
   const setRecycleType = React.useCallback((ordinal: Types.Ordinal, type: string) => {
     recycleTypeRef.current.set(ordinal, type)
   }, [])
@@ -239,7 +255,15 @@ const ConversationList = React.memo(function ConversationList(p: {
     if (numOrdinals - 1 === idx) {
       return 'sent'
     }
-    return recycleTypeRef.current.get(ordinal) ?? messageTypeMap?.get(ordinal) ?? 'text'
+    const TEMP = recycleTypeRef.current.get(ordinal) ?? messageTypeMap?.get(ordinal) ?? 'text'
+    // console.log(
+    //   'aaaa getitemtype',
+    //   ordinal,
+    //   TEMP,
+    //   recycleTypeRef.current.get(ordinal),
+    //   messageTypeMap?.get(ordinal)
+    // )
+    return TEMP
   })
 
   const {scrollToCentered, scrollToBottom, onEndReached} = useScrolling({
@@ -263,11 +287,15 @@ const ConversationList = React.memo(function ConversationList(p: {
     }
   }, [markInitiallyLoadedThreadAsRead])
 
-  // used to force a rerender when a type changes, aka placeholder resolves
-  const [extraData, setExtraData] = React.useState(0)
+  // We use context to inject a way for items to force the list to rerender when they notice something about their
+  // internals have changed (aka a placeholder isn't a placeholder anymore). This can be racy as if you detect this
+  // and call you can get effectively memoized. In order to allow the item to re-render if they're still in this state
+  // we make this callback mutate, so they have a chance to rerender and recall it
+  // A repro is a placeholder resolving as a placeholder multiple times before resolving for real
   const forceListRedraw = React.useCallback(() => {
+    extraData // just to silence eslint
     setExtraData(d => d + 1)
-  }, [])
+  }, [extraData])
 
   useChatDebugDump(
     'listArea',
@@ -309,6 +337,8 @@ const ConversationList = React.memo(function ConversationList(p: {
       return JSON.stringify(details)
     })
   )
+
+  console.log('aaa list render force val', extraData)
 
   return (
     <Kb.ErrorBoundary>
