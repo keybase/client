@@ -314,8 +314,8 @@ func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 	return nil
 }
 
-func LogToService(str string)  {
-		kbCtx.Log.Info(str)
+func LogToService(str string) {
+	kbCtx.Log.Info(str)
 }
 
 type serviceCn struct{}
