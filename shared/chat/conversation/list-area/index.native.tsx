@@ -19,7 +19,6 @@ import {SetRecycleTypeContext} from '../recycle-type-context'
 import {ForceListRedrawContext} from '../force-list-redraw-context'
 import shallowEqual from 'shallowequal'
 import {useChatDebugDump} from '../../../constants/chat2/debug'
-import Placeholder from '../messages/placeholder/wrapper'
 
 const usingFlashList = true
 const List = usingFlashList ? FlashList : FlatList
