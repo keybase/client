@@ -42,7 +42,7 @@ class Text extends React.Component<Props> {
     const meta = metaData()[props.type]
     return Styles.classNames(`text_${props.type}`, props.className, {
       clickable: !!props.onClick,
-      color_white: props.negative,
+      color_white_important: props.negative,
       underline: props.underline || (meta.isLink && props.negative),
       'underline-never': props.underlineNever,
       // eslint-disable-next-line sort-keys
