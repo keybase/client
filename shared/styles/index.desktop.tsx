@@ -174,11 +174,11 @@ export const initDesktopStyles = () => {
   const helpers = colorNames.reduce((s, name) => {
     return (
       s +
-      `.color_${name} {color: var(--color-${name}) !important;}\n` +
-      `.hover_color_${name}:hover {color: var(--color-${name}) !important;}\n` +
+      `.color_${name} {color: var(--color-${name});}\n` +
+      `.hover_color_${name}:hover {color: var(--color-${name});}\n` +
       `.hover_container:hover .hover_contained_color_${name} {color: var(--color-${name}) !important;}\n` +
-      `.background_color_${name} {background-color: var(--color-${name}) !important;}\n` +
-      `.hover_background_color_${name}:hover {background-color: var(--color-${name}) !important;}\n`
+      `.background_color_${name} {background-color: var(--color-${name});}\n` +
+      `.hover_background_color_${name}:hover {background-color: var(--color-${name});}\n`
     )
   }, '')
   const css = colorVars + helpers
