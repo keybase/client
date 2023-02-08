@@ -184,6 +184,9 @@ const ConversationList = React.memo(function ConversationList(p: {
   conversationIDKey: Types.ConversationIDKey
   requestScrollToBottomRef: React.MutableRefObject<(() => void) | undefined>
 }) {
+  // used to force a rerender when a type changes, aka placeholder resolves
+  const [extraData, setExtraData] = React.useState(0)
+
   const {conversationIDKey, requestScrollToBottomRef} = p
   const {centeredOrdinal, _messageOrdinals, messageTypeMap} = Container.useSelector(state => {
     const centeredOrdinal = Constants.getMessageCenterOrdinal(state, conversationIDKey)?.ordinal ?? -1
@@ -225,7 +228,7 @@ const ConversationList = React.memo(function ConversationList(p: {
   const recycleTypeRef = React.useRef(new Map<Types.Ordinal, string>())
   React.useEffect(() => {
     recycleTypeRef.current = new Map()
-  }, [conversationIDKey])
+  }, [conversationIDKey, extraData])
   const setRecycleType = React.useCallback((ordinal: Types.Ordinal, type: string) => {
     recycleTypeRef.current.set(ordinal, type)
   }, [])
@@ -263,11 +266,15 @@ const ConversationList = React.memo(function ConversationList(p: {
     }
   }, [markInitiallyLoadedThreadAsRead])
 
-  // used to force a rerender when a type changes, aka placeholder resolves
-  const [extraData, setExtraData] = React.useState(0)
+  // We use context to inject a way for items to force the list to rerender when they notice something about their
+  // internals have changed (aka a placeholder isn't a placeholder anymore). This can be racy as if you detect this
+  // and call you can get effectively memoized. In order to allow the item to re-render if they're still in this state
+  // we make this callback mutate, so they have a chance to rerender and recall it
+  // A repro is a placeholder resolving as a placeholder multiple times before resolving for real
   const forceListRedraw = React.useCallback(() => {
+    extraData // just to silence eslint
     setExtraData(d => d + 1)
-  }, [])
+  }, [extraData])
 
   useChatDebugDump(
     'listArea',
