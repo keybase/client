@@ -51,7 +51,7 @@ export const Title = () => {
   const ordinal = React.useContext(OrdinalContext)
   const title = Container.useSelector(state => {
     const m = Constants.getMessage(state, conversationIDKey, ordinal)
-    return m?.type === 'attachment' ? m.title : ''
+    return m?.type === 'attachment' ? m.decoratedText?.stringValue() : ''
   })
 
   const styleOverride = React.useMemo(
