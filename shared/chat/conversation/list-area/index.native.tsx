@@ -284,7 +284,7 @@ const ConversationList = React.memo(function ConversationList(p: {
       const {extraData, data} = props
 
       // @ts-ignore
-      const layoutManager = state.layoutProvider._lastLayoutManager ?? ({} as any)
+      const layoutManager = state?.layoutProvider?._lastLayoutManager ?? ({} as any)
       const {_layouts, _renderWindowSize, _totalHeight, _totalWidth} = layoutManager
       // @ts-ignore
       const mm = window.DEBUGStore.store.getState().chat2.messageMap.get(conversationIDKey)
@@ -293,7 +293,7 @@ const ConversationList = React.memo(function ConversationList(p: {
       console.log(listRef.current)
 
       const items = data?.map((ordinal, idx) => {
-        const layout = _layouts[idx]
+        const layout = _layouts?.[idx]
         const m = mm.get(ordinal) ?? ({} as any)
         return {
           idx,
