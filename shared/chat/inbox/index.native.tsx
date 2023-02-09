@@ -21,7 +21,7 @@ import {makeRow} from './row'
 
 type RowItem = Types.ChatInboxRowItem
 
-const usingFlashList = true
+const usingFlashList = false
 const List = usingFlashList ? FlashList : FlatList
 const debugWhichList = __DEV__ ? (
   <Kb.Text type="HeaderBig" style={{backgroundColor: 'red', left: 0, position: 'absolute', top: 0}}>
