@@ -19,8 +19,8 @@ import {SetRecycleTypeContext} from '../recycle-type-context'
 import {ForceListRedrawContext} from '../force-list-redraw-context'
 import shallowEqual from 'shallowequal'
 import {useChatDebugDump} from '../../../constants/chat2/debug'
+import {usingFlashList} from './flashlist-config'
 
-const usingFlashList = false
 const List = usingFlashList ? FlashList : FlatList
 const debugWhichList = __DEV__ ? (
   <Kb.Text type="HeaderBig" style={{backgroundColor: 'red', left: 0, position: 'absolute', top: 0}}>
@@ -212,6 +212,7 @@ const ConversationList = React.memo(function ConversationList(p: {
       if (!ordinal) {
         return null
       }
+
       if (!index) {
         return <Sent ordinal={ordinal} />
       }
