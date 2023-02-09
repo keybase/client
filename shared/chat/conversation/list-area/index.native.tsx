@@ -20,7 +20,7 @@ import {ForceListRedrawContext} from '../force-list-redraw-context'
 import shallowEqual from 'shallowequal'
 import {useChatDebugDump} from '../../../constants/chat2/debug'
 
-const usingFlashList = false
+const usingFlashList = true
 const List = usingFlashList ? FlashList : FlatList
 const debugWhichList = __DEV__ ? (
   <Kb.Text type="HeaderBig" style={{backgroundColor: 'red', left: 0, position: 'absolute', top: 0}}>
