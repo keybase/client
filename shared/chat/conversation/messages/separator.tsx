@@ -219,12 +219,6 @@ type SProps = {
 }
 const Separator = React.memo(function Separator(p: SProps) {
   const {conversationIDKey, ordinal, orangeLineAbove, showUsername, previous} = p
-
-  return (
-    <Kb.Text type="Body">
-      ord: {ordinal} prev: {previous}
-    </Kb.Text>
-  )
   const mdata = useRedux(conversationIDKey, ordinal)
   const {botAlias, authorRoleInTeam, authorIsBot, timestamp} = mdata
 

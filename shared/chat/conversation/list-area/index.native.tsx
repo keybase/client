@@ -102,7 +102,6 @@ const Sent = React.memo(function Sent({ordinal, previous}: SentProps) {
   ) : (
     <>
       <Clazz ordinal={ordinal} />
-      <Kb.Text type="Body">{ordinal}</Kb.Text>
       <Separator trailingItem={ordinal} leadingItem={previous} />
     </>
   )
@@ -240,7 +239,6 @@ const ConversationList = React.memo(function ConversationList(p: {
         return (
           <>
             <Clazz ordinal={ordinal} />
-            <Kb.Text type="Body">{ordinal}</Kb.Text>
             <Separator trailingItem={ordinal} leadingItem={previous} />
           </>
         )

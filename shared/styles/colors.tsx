@@ -545,10 +545,10 @@ export const themed: {[P in keyof typeof colors]: (typeof colors)[P]} = names.re
     // eslint-disable-next-line
   },
   {
-    random: () =>
-      `rgba(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(
-        Math.random() * 256
-      )}, 1)`,
+    // random: () =>
+    //   `rgba(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(
+    //     Math.random() * 256
+    //   )}, 1)`,
   } as any as Color
 )
 
