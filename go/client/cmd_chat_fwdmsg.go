@@ -96,6 +96,7 @@ func (c *CmdChatForwardMsg) Run() error {
 		DstConvID:        dstConv.GetConvID(),
 		MsgID:            c.msgID,
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+        Title:            "",
 	})
 	return err
 }

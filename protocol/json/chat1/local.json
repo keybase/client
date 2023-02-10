@@ -4506,6 +4506,10 @@
         {
           "name": "identifyBehavior",
           "type": "keybase1.TLFIdentifyBehavior"
+        },
+        {
+          "name": "title",
+          "type": "string"
         }
       ],
       "response": "PostLocalRes"
@@ -4531,6 +4535,10 @@
         {
           "name": "identifyBehavior",
           "type": "keybase1.TLFIdentifyBehavior"
+        },
+        {
+          "name": "title",
+          "type": "string"
         }
       ],
       "response": "PostLocalNonblockRes",

@@ -351,7 +351,7 @@ export type MessageTypes = {
     outParam: Array<ConvSearchHit> | null
   }
   'chat.1.local.forwardMessageNonblock': {
-    inParam: {readonly srcConvID: ConversationID; readonly dstConvID: ConversationID; readonly msgID: MessageID; readonly identifyBehavior: Keybase1.TLFIdentifyBehavior}
+    inParam: {readonly srcConvID: ConversationID; readonly dstConvID: ConversationID; readonly msgID: MessageID; readonly identifyBehavior: Keybase1.TLFIdentifyBehavior; readonly title: String}
     outParam: PostLocalNonblockRes
   }
   'chat.1.local.getBotMemberSettings': {
