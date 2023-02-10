@@ -177,16 +177,16 @@ const useReduxFast = (
   return Container.useSelector(state => {
     let ordinal = trailingItem
     let previous = leadingItem
-    if (!usingFlashList) {
-      ordinal = leadingItem
-      const mo = state.chat2.messageOrdinals.get(conversationIDKey)
-      if (mo) {
-        const idx = mo.indexOf(ordinal) ?? -1
-        if (idx !== -1) {
-          previous = mo[idx - 1]
-        }
-      }
-    }
+    // if (!usingFlashList) {
+    //   ordinal = leadingItem
+    //   const mo = state.chat2.messageOrdinals.get(conversationIDKey)
+    //   if (mo) {
+    //     const idx = mo.indexOf(ordinal) ?? -1
+    //     if (idx !== -1) {
+    //       previous = mo[idx - 1]
+    //     }
+    //   }
+    // }
 
     console.log('aaa', {ordinal, previous})
     const you = state.config.username
@@ -278,7 +278,14 @@ const SeparatorConnector = (p: Props) => {
     trailingItem ?? 0,
     leadingItem ?? 0
   )
-  return ordinal && (showUsername || orangeLineAbove) ? (
+
+  return (
+    <Kb.Box2 direction="vertical" fullWidth={true} style={{backgroundColor: Styles.globalColors.random()}}>
+      <Kb.Text type="Body">{JSON.stringify({leadingItem, trailingItem, ordinal, previous})}</Kb.Text>
+    </Kb.Box2>
+  )
+
+  return true /*ordinal && (showUsername || orangeLineAbove)*/ ? (
     <Separator
       conversationIDKey={conversationIDKey}
       ordinal={ordinal}
