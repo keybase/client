@@ -51,12 +51,28 @@ const TeamPicker = (props: Props) => {
 
   const [title, setTitle] = React.useState('')
 
-  const previewImage = message?.fileURL ?? message?.previewURL
-  const preview = previewImage ? (
-    <Kb.ZoomableImage src={previewImage} style={styles.image} />
-  ) : (
-    <Kb.Text type="Header">No preview available</Kb.Text>
+  let preview: React.ReactNode = (
+    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} centerChildren={true}>
+      <Kb.Icon type="icon-file-uploading-48" />
+    </Kb.Box2>
   )
+
+  if (message?.type === 'attachment') {
+    switch (message.attachmentType) {
+      case 'image':
+        {
+          if (message.inlineVideoPlayable) {
+            const url = message.fileURL
+            // url={Styles.isAndroid ? `${path.substring(2)}` : `file://${encodeURI(path)}`}
+            preview = url ? <Kb.Video allowFile={true} url={url} /> : null
+          } else {
+            const src = message.fileURL ?? message.previewURL
+            preview = src ? <Kb.ZoomableImage src={src} style={styles.image} /> : null
+          }
+        }
+        break
+    }
+  }
 
   const onSubmit = (event?: React.BaseSyntheticEvent) => {
     event?.stopPropagation()
@@ -188,7 +204,7 @@ const TeamPicker = (props: Props) => {
             {'Cancel'}
           </Kb.Text>
         ) : undefined,
-        title: 'Forward to team or chat',
+        title: pickerState === 'picker' ? 'Forward to team or chat' : 'Add a caption',
       }}
     >
       {content}
@@ -199,7 +215,7 @@ const TeamPicker = (props: Props) => {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      boxGrow: {},
+      boxGrow: {margin: Styles.globalMargins.small},
       container: Styles.platformStyles({
         isElectron: {height: 450},
       }),
