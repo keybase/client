@@ -223,7 +223,6 @@ const ConversationList = React.memo(function ConversationList(p: {
       }
 
       const previous = messageOrdinals[index + 1] ?? 0
-      console.log('aaaa', {previous, index, messageOrdinals, ordinal})
 
       if (!index) {
         return <Sent ordinal={ordinal} previous={previous} />

@@ -177,18 +177,6 @@ const useReduxFast = (
   return Container.useSelector(state => {
     let ordinal = trailingItem
     let previous = leadingItem
-    // if (!usingFlashList) {
-    //   ordinal = leadingItem
-    //   const mo = state.chat2.messageOrdinals.get(conversationIDKey)
-    //   if (mo) {
-    //     const idx = mo.indexOf(ordinal) ?? -1
-    //     if (idx !== -1) {
-    //       previous = mo[idx - 1]
-    //     }
-    //   }
-    // }
-
-    console.log('aaa', {ordinal, previous})
     const you = state.config.username
     const pmessage = (previous && Constants.getMessage(state, conversationIDKey, previous)) || undefined
     const m = Constants.getMessage(state, conversationIDKey, ordinal) ?? missingMessage
