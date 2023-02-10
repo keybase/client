@@ -62,7 +62,7 @@ const TeamPicker = (props: Props) => {
       case 'image':
         {
           if (message.inlineVideoPlayable) {
-            const url = message.fileURL
+            const url = `${message.fileURL}&contentforce=true`
             // url={Styles.isAndroid ? `${path.substring(2)}` : `file://${encodeURI(path)}`}
             preview = url ? <Kb.Video allowFile={true} url={url} /> : null
           } else {
@@ -75,6 +75,7 @@ const TeamPicker = (props: Props) => {
   }
 
   const onSubmit = (event?: React.BaseSyntheticEvent) => {
+    event?.preventDefault()
     event?.stopPropagation()
     if (!dstConvID || !message) return
     console.log('Forward title: ', title)
@@ -172,24 +173,21 @@ const TeamPicker = (props: Props) => {
         </Kb.Box2>
       </Kb.Box2>
     ) : (
-      <Kb.Box2 direction="vertical" fullWidth={true}>
-        <Kb.Box2 alignItems="center" direction="vertical" fullWidth={true} style={styles.container}>
-          <Kb.BoxGrow2 style={styles.boxGrow}>{preview}</Kb.BoxGrow2>
-          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.inputContainer}>
-            <Kb.PlainInput
-              style={styles.input}
-              autoFocus={true}
-              autoCorrect={true}
-              placeholder="Add a caption..."
-              multiline={true}
-              rowsMin={2}
-              padding="tiny"
-              onEnterKeyDown={onSubmit}
-              onChangeText={setTitle}
-              value={title}
-              selectTextOnFocus={true}
-            />
-          </Kb.Box2>
+      <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.container}>
+        <Kb.BoxGrow2 style={styles.boxGrow}>{preview}</Kb.BoxGrow2>
+        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.inputContainer}>
+          <Kb.PlainInput
+            style={styles.input}
+            autoFocus={true}
+            autoCorrect={true}
+            placeholder="Add a caption..."
+            multiline={false}
+            padding="tiny"
+            onEnterKeyDown={onSubmit}
+            onChangeText={setTitle}
+            value={title}
+            selectTextOnFocus={true}
+          />
         </Kb.Box2>
       </Kb.Box2>
     )
@@ -215,9 +213,13 @@ const TeamPicker = (props: Props) => {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      boxGrow: {margin: Styles.globalMargins.small},
+      boxGrow: {
+        flexGrow: 1,
+        margin: Styles.globalMargins.small,
+      },
       container: Styles.platformStyles({
         isElectron: {height: 450},
+        isMobile: {padding: Styles.globalMargins.small},
       }),
       image: {
         height: '100%',
@@ -231,6 +233,8 @@ const styles = Styles.styleSheetCreate(
           borderRadius: Styles.borderRadius,
           borderWidth: 1,
           marginBottom: Styles.globalMargins.tiny,
+          minHeight: 40,
+          padding: Styles.globalMargins.xtiny,
           width: '100%',
         },
         isElectron: {maxHeight: 100},
