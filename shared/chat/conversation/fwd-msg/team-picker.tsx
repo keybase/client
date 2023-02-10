@@ -77,7 +77,6 @@ const TeamPicker = (props: Props) => {
     event?.preventDefault()
     event?.stopPropagation()
     if (!dstConvID || !message) return
-    console.log('Forward title: ', title)
     fwdMsg(
       [
         {
@@ -85,7 +84,7 @@ const TeamPicker = (props: Props) => {
           identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
           msgID: message.id,
           srcConvID: Types.keyToConversationID(srcConvID),
-          // title,
+          title,
         },
       ],
       () => {

@@ -6625,6 +6625,7 @@ type ForwardMessageArg struct {
 	DstConvID        ConversationID               `codec:"dstConvID" json:"dstConvID"`
 	MsgID            MessageID                    `codec:"msgID" json:"msgID"`
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
+	Title            string                       `codec:"title" json:"title"`
 }
 
 type ForwardMessageNonblockArg struct {
@@ -6633,6 +6634,7 @@ type ForwardMessageNonblockArg struct {
 	DstConvID        ConversationID               `codec:"dstConvID" json:"dstConvID"`
 	MsgID            MessageID                    `codec:"msgID" json:"msgID"`
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
+	Title            string                       `codec:"title" json:"title"`
 }
 
 type PostTextNonblockArg struct {
