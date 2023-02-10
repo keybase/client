@@ -1514,6 +1514,11 @@ export const upgradeMessage = (old: Types.Message, m: Types.Message): Types.Mess
     }
   }
 
+  // we never want to convert a non placeholder into a placeholder
+  if (m.type === 'placeholder' && old.type !== 'placeholder') {
+    return old
+  }
+
   return m
 }
 
