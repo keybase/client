@@ -14,11 +14,15 @@ import logger from '../../../logger'
 
 type Props = Container.RouteProps<'chatForwardMsgPick'>
 
+type PickerState = 'picker' | 'title'
+
 const TeamPicker = (props: Props) => {
   const srcConvID = props.route.params?.srcConvID ?? ''
   const ordinal = props.route.params?.ordinal ?? 0
   const message = Container.useSelector(state => Constants.getMessage(state, srcConvID, ordinal))
+  const [pickerState, setPickerState] = React.useState<PickerState>('picker')
   const [term, setTerm] = React.useState('')
+  const [dstConvID, setDstConvID] = React.useState<Buffer | undefined>()
   const [results, setResults] = React.useState<Array<RPCChatTypes.ConvSearchHit>>([])
   const [waiting, setWaiting] = React.useState(false)
   const [error, setError] = React.useState('')
@@ -44,11 +48,20 @@ const TeamPicker = (props: Props) => {
   const onClose = () => {
     dispatch(RouteTreeGen.createClearModals())
   }
-  const onSelect = (dstConvID: RPCChatTypes.ConversationID) => {
-    if (!message) {
-      setError('Something went wrong, please try again.')
-      return
-    }
+
+  const [title, setTitle] = React.useState('')
+
+  const previewImage = message?.fileURL ?? message?.previewURL
+  const preview = previewImage ? (
+    <Kb.ZoomableImage src={previewImage} style={styles.image} />
+  ) : (
+    <Kb.Text type="Header">No preview available</Kb.Text>
+  )
+
+  const onSubmit = (event?: React.BaseSyntheticEvent) => {
+    event?.stopPropagation()
+    if (!dstConvID || !message) return
+    console.log('Forward title: ', title)
     fwdMsg(
       [
         {
@@ -56,6 +69,7 @@ const TeamPicker = (props: Props) => {
           identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
           msgID: message.id,
           srcConvID: Types.keyToConversationID(srcConvID),
+          // title,
         },
       ],
       () => {
@@ -74,6 +88,16 @@ const TeamPicker = (props: Props) => {
         reason: 'forward',
       })
     )
+  }
+
+  const onSelect = (dstConvID: RPCChatTypes.ConversationID) => {
+    if (!message) {
+      setError('Something went wrong, please try again.')
+      return
+    }
+
+    setDstConvID(dstConvID)
+    setPickerState('title')
   }
   React.useEffect(() => {
     doSearch()
@@ -100,19 +124,9 @@ const TeamPicker = (props: Props) => {
       </Kb.ClickableBox>
     )
   }
-  return (
-    <Kb.Modal
-      noScrollView={true}
-      onClose={onClose}
-      header={{
-        leftButton: Styles.isMobile ? (
-          <Kb.Text type="BodyBigLink" onClick={onClose}>
-            {'Cancel'}
-          </Kb.Text>
-        ) : undefined,
-        title: 'Forward to team or chat',
-      }}
-    >
+
+  const content =
+    pickerState === 'picker' ? (
       <Kb.Box2 direction="vertical" fullWidth={true}>
         <Kb.Box2 direction="horizontal" fullWidth={true}>
           <Kb.SearchFilter
@@ -141,6 +155,43 @@ const TeamPicker = (props: Props) => {
           )}
         </Kb.Box2>
       </Kb.Box2>
+    ) : (
+      <Kb.Box2 direction="vertical" fullWidth={true}>
+        <Kb.Box2 alignItems="center" direction="vertical" fullWidth={true} style={styles.container}>
+          <Kb.BoxGrow2 style={styles.boxGrow}>{preview}</Kb.BoxGrow2>
+          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.inputContainer}>
+            <Kb.PlainInput
+              style={styles.input}
+              autoFocus={true}
+              autoCorrect={true}
+              placeholder="Add a caption..."
+              multiline={true}
+              rowsMin={2}
+              padding="tiny"
+              onEnterKeyDown={onSubmit}
+              onChangeText={setTitle}
+              value={title}
+              selectTextOnFocus={true}
+            />
+          </Kb.Box2>
+        </Kb.Box2>
+      </Kb.Box2>
+    )
+
+  return (
+    <Kb.Modal
+      noScrollView={true}
+      onClose={onClose}
+      header={{
+        leftButton: Styles.isMobile ? (
+          <Kb.Text type="BodyBigLink" onClick={onClose}>
+            {'Cancel'}
+          </Kb.Text>
+        ) : undefined,
+        title: 'Forward to team or chat',
+      }}
+    >
+      {content}
     </Kb.Modal>
   )
 }
@@ -148,9 +199,34 @@ const TeamPicker = (props: Props) => {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
+      boxGrow: {},
       container: Styles.platformStyles({
+        isElectron: {height: 450},
+      }),
+      image: {
+        height: '100%',
+        maxHeight: '100%',
+        maxWidth: '100%',
+        width: '100%',
+      },
+      input: Styles.platformStyles({
+        common: {
+          borderColor: Styles.globalColors.blue,
+          borderRadius: Styles.borderRadius,
+          borderWidth: 1,
+          marginBottom: Styles.globalMargins.tiny,
+          width: '100%',
+        },
+        isElectron: {maxHeight: 100},
+        isTablet: {
+          alignSelf: 'center',
+          maxWidth: 460,
+        },
+      }),
+      inputContainer: Styles.platformStyles({
         isElectron: {
-          height: 450,
+          paddingLeft: Styles.globalMargins.small,
+          paddingRight: Styles.globalMargins.small,
         },
       }),
       results: Styles.platformStyles({
@@ -158,9 +234,7 @@ const styles = Styles.styleSheetCreate(
           paddingLeft: Styles.globalMargins.tiny,
           paddingRight: Styles.globalMargins.tiny,
         },
-        isMobile: {
-          paddingBottom: Styles.globalMargins.tiny,
-        },
+        isMobile: {paddingBottom: Styles.globalMargins.tiny},
       }),
       searchFilter: Styles.platformStyles({
         common: {

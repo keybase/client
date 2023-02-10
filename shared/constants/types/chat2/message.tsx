@@ -62,8 +62,10 @@ export type PathAndOutboxID = {
 
 // optional props here may never get set depending on the type
 type _MessageCommon = {
+  title?: string
   isCollapsed?: boolean
   previewURL?: string
+  fileURL?: string
   previewHeight?: number
   previewWidth?: number
   attachmentType?: AttachmentType
