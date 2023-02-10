@@ -63,7 +63,6 @@ export type PathAndOutboxID = {
 // optional props here may never get set depending on the type
 type _MessageCommon = {
   inlineVideoPlayable?: boolean
-  isCollapsed: boolean
   title?: string
   isCollapsed?: boolean
   previewURL?: string
