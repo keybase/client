@@ -170,16 +170,18 @@ const missingMessage = Constants.makeMessageDeleted({})
 
 const useReduxFast = (
   conversationIDKey: Types.ConversationIDKey,
-  ordinal: Types.Ordinal,
-  previous?: Types.Ordinal
+  trailingItem: Types.Ordinal,
+  leadingItem: Types.Ordinal
 ) => {
   return Container.useSelector(state => {
+    let ordinal = trailingItem
+    let previous = leadingItem
     const you = state.config.username
     const pmessage = (previous && Constants.getMessage(state, conversationIDKey, previous)) || undefined
     const m = Constants.getMessage(state, conversationIDKey, ordinal) ?? missingMessage
     const showUsername = m && getUsernameToShow(m, pmessage, you)
     const orangeLineAbove = state.chat2.orangeLineMap.get(conversationIDKey) === ordinal
-    return {orangeLineAbove, showUsername}
+    return {orangeLineAbove, ordinal, previous, showUsername}
   }, shallowEqual)
 }
 
@@ -209,7 +211,6 @@ const useRedux = (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ord
 
 type SProps = {
   ordinal: Types.Ordinal
-  previous?: Types.Ordinal
   conversationIDKey: Types.ConversationIDKey
   showUsername: string
   orangeLineAbove: boolean
@@ -248,15 +249,18 @@ type Props = {
 
 const SeparatorConnector = (p: Props) => {
   const {leadingItem, trailingItem} = p
-  const ordinal = trailingItem
-  const previous = leadingItem
+
   const conversationIDKey = React.useContext(ConvoIDContext)
-  const {showUsername, orangeLineAbove} = useReduxFast(conversationIDKey, ordinal, previous)
+  const {ordinal, showUsername, orangeLineAbove} = useReduxFast(
+    conversationIDKey,
+    trailingItem ?? 0,
+    leadingItem ?? 0
+  )
+
   return ordinal && (showUsername || orangeLineAbove) ? (
     <Separator
       conversationIDKey={conversationIDKey}
       ordinal={ordinal}
-      previous={previous}
       showUsername={showUsername}
       orangeLineAbove={orangeLineAbove}
     />

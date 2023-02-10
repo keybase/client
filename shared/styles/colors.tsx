@@ -500,7 +500,7 @@ type Names = keyof Color
 
 const names: Array<Names> = Object.keys(colors) as any
 
-let iosDynamicColors: {[P in keyof typeof colors]: typeof colors[P]}
+let iosDynamicColors: {[P in keyof typeof colors]: (typeof colors)[P]}
 if (isIOS) {
   iosDynamicColors = names.reduce<Color>((obj, name) => {
     const {DynamicColorIOS} = require('react-native')
@@ -513,7 +513,7 @@ if (isIOS) {
   iosDynamicColors = colors
 }
 
-export const themed: {[P in keyof typeof colors]: typeof colors[P]} = names.reduce<Color>((obj, name) => {
+export const themed: {[P in keyof typeof colors]: (typeof colors)[P]} = names.reduce<Color>((obj, name) => {
   if (isIOS) {
     // ios actually handles this nicely natively
     return Object.defineProperty(obj, name, {
@@ -543,5 +543,13 @@ export const themed: {[P in keyof typeof colors]: typeof colors[P]} = names.redu
   }
   // eslint-disable-next-line
 }, {} as Color)
+
+if (__DEV__) {
+  const t = themed as any
+  t.random = () =>
+    `rgba(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(
+      Math.random() * 256
+    )}, 1)`
+}
 
 export default colors

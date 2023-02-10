@@ -19,8 +19,8 @@ import {SetRecycleTypeContext} from '../recycle-type-context'
 import {ForceListRedrawContext} from '../force-list-redraw-context'
 import shallowEqual from 'shallowequal'
 import {useChatDebugDump} from '../../../constants/chat2/debug'
+import {usingFlashList} from './flashlist-config'
 
-const usingFlashList = true
 const List = usingFlashList ? FlashList : FlatList
 const debugWhichList = __DEV__ ? (
   <Kb.Text type="HeaderBig" style={{backgroundColor: 'red', left: 0, position: 'absolute', top: 0}}>
@@ -74,8 +74,9 @@ const AnimatedChild = React.memo(function AnimatedChild({children, animatingKey}
 type SentProps = {
   children?: React.ReactElement
   ordinal: Types.Ordinal
+  previous: Types.Ordinal
 }
-const Sent = React.memo(function Sent({ordinal}: SentProps) {
+const Sent = React.memo(function Sent({ordinal, previous}: SentProps) {
   const conversationIDKey = React.useContext(ConvoIDContext)
   const {subType, youSent} = Container.useSelector(state => {
     const you = state.config.username
@@ -96,7 +97,14 @@ const Sent = React.memo(function Sent({ordinal}: SentProps) {
 
   const Clazz = getMessageRender(subType)
   if (!Clazz) return null
-  const children = <Clazz ordinal={ordinal} />
+  const children = usingFlashList ? (
+    <Clazz ordinal={ordinal} />
+  ) : (
+    <>
+      <Clazz ordinal={ordinal} />
+      <Separator trailingItem={ordinal} leadingItem={previous} />
+    </>
+  )
 
   // if state is null we already animated it
   if (youSent && state === undefined) {
@@ -212,15 +220,29 @@ const ConversationList = React.memo(function ConversationList(p: {
       if (!ordinal) {
         return null
       }
+
+      const previous = messageOrdinals[index + 1] ?? 0
+
       if (!index) {
-        return <Sent ordinal={ordinal} />
+        return <Sent ordinal={ordinal} previous={previous} />
       }
 
       const type = messageTypeMap?.get(ordinal) ?? 'text'
       if (!type) return null
       const Clazz = getMessageRender(type)
       if (!Clazz) return null
-      return <Clazz ordinal={ordinal} />
+
+      if (usingFlashList) {
+        return <Clazz ordinal={ordinal} />
+      } else {
+        // how separators work on flashlist and flatlist are different
+        return (
+          <>
+            <Clazz ordinal={ordinal} />
+            <Separator trailingItem={ordinal} leadingItem={previous} />
+          </>
+        )
+      }
     },
     [messageOrdinals, messageTypeMap]
   )
@@ -330,7 +352,7 @@ const ConversationList = React.memo(function ConversationList(p: {
                 estimatedItemSize={100}
                 ListHeaderComponent={SpecialBottomMessage}
                 ListFooterComponent={SpecialTopMessage}
-                ItemSeparatorComponent={Separator}
+                ItemSeparatorComponent={usingFlashList ? Separator : undefined}
                 overScrollMode="never"
                 contentContainerStyle={styles.contentContainer}
                 data={messageOrdinals}
