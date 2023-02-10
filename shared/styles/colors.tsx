@@ -513,43 +513,43 @@ if (isIOS) {
   iosDynamicColors = colors
 }
 
-export const themed: {[P in keyof typeof colors]: (typeof colors)[P]} = names.reduce<Color>(
-  (obj, name) => {
-    if (isIOS) {
-      // ios actually handles this nicely natively
-      return Object.defineProperty(obj, name, {
-        configurable: false,
-        enumerable: true,
-        get() {
-          // if we're in auto mode, use ios native dynamic colors
-          if (isDarkModePreference() === 'system') {
-            return iosDynamicColors[name]
-          }
-          return isDarkMode() ? darkColors[name] : colors[name]
-        },
-      })
-    } else {
-      return Object.defineProperty(obj, name, {
-        configurable: false,
-        enumerable: true,
-        get() {
-          if (partyMode && isDarkMode()) {
-            // sets all non-grayscale colors to magenta in dark mode when enabled
-            return (partyFallbackColors as any)[name] || '#FF00FF'
-          }
+export const themed: {[P in keyof typeof colors]: (typeof colors)[P]} = names.reduce<Color>((obj, name) => {
+  if (isIOS) {
+    // ios actually handles this nicely natively
+    return Object.defineProperty(obj, name, {
+      configurable: false,
+      enumerable: true,
+      get() {
+        // if we're in auto mode, use ios native dynamic colors
+        if (isDarkModePreference() === 'system') {
+          return iosDynamicColors[name]
+        }
+        return isDarkMode() ? darkColors[name] : colors[name]
+      },
+    })
+  } else {
+    return Object.defineProperty(obj, name, {
+      configurable: false,
+      enumerable: true,
+      get() {
+        if (partyMode && isDarkMode()) {
+          // sets all non-grayscale colors to magenta in dark mode when enabled
+          return (partyFallbackColors as any)[name] || '#FF00FF'
+        }
 
-          return isDarkMode() ? darkColors[name] : colors[name]
-        },
-      })
-    }
-    // eslint-disable-next-line
-  },
-  {
-    // random: () =>
-    //   `rgba(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(
-    //     Math.random() * 256
-    //   )}, 1)`,
-  } as any as Color
-)
+        return isDarkMode() ? darkColors[name] : colors[name]
+      },
+    })
+  }
+  // eslint-disable-next-line
+}, {} as Color)
+
+if (__DEV__) {
+  const t = themed as any
+  t.random = () =>
+    `rgba(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(
+      Math.random() * 256
+    )}, 1)`
+}
 
 export default colors
