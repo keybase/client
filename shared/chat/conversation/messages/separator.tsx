@@ -9,7 +9,6 @@ import type * as Types from '../../../constants/types/chat2'
 import {formatTimeForChat} from '../../../util/timestamp'
 import {ConvoIDContext} from './ids-context'
 import shallowEqual from 'shallowequal'
-import {usingFlashList} from '../list-area/flashlist-config'
 
 const enoughTimeBetweenMessages = (mtimestamp?: number, ptimestamp?: number): boolean =>
   !!ptimestamp && !!mtimestamp && mtimestamp - ptimestamp > 1000 * 60 * 15
@@ -212,13 +211,12 @@ const useRedux = (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ord
 
 type SProps = {
   ordinal: Types.Ordinal
-  previous?: Types.Ordinal
   conversationIDKey: Types.ConversationIDKey
   showUsername: string
   orangeLineAbove: boolean
 }
 const Separator = React.memo(function Separator(p: SProps) {
-  const {conversationIDKey, ordinal, orangeLineAbove, showUsername, previous} = p
+  const {conversationIDKey, ordinal, orangeLineAbove, showUsername} = p
   const mdata = useRedux(conversationIDKey, ordinal)
   const {botAlias, authorRoleInTeam, authorIsBot, timestamp} = mdata
 
@@ -253,7 +251,7 @@ const SeparatorConnector = (p: Props) => {
   const {leadingItem, trailingItem} = p
 
   const conversationIDKey = React.useContext(ConvoIDContext)
-  const {ordinal, previous, showUsername, orangeLineAbove} = useReduxFast(
+  const {ordinal, showUsername, orangeLineAbove} = useReduxFast(
     conversationIDKey,
     trailingItem ?? 0,
     leadingItem ?? 0
@@ -263,7 +261,6 @@ const SeparatorConnector = (p: Props) => {
     <Separator
       conversationIDKey={conversationIDKey}
       ordinal={ordinal}
-      previous={previous}
       showUsername={showUsername}
       orangeLineAbove={orangeLineAbove}
     />
