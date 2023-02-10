@@ -63,7 +63,6 @@ const TeamPicker = (props: Props) => {
         {
           if (message.inlineVideoPlayable) {
             const url = `${message.fileURL}&contentforce=true`
-            // url={Styles.isAndroid ? `${path.substring(2)}` : `file://${encodeURI(path)}`}
             preview = url ? <Kb.Video allowFile={true} url={url} /> : null
           } else {
             const src = message.fileURL ?? message.previewURL
