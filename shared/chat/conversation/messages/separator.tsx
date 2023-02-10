@@ -270,8 +270,6 @@ type Props = {
 const SeparatorConnector = (p: Props) => {
   const {leadingItem, trailingItem} = p
 
-  // const ordinal = trailingItem
-  // const previous = leadingItem
   const conversationIDKey = React.useContext(ConvoIDContext)
   const {ordinal, previous, showUsername, orangeLineAbove} = useReduxFast(
     conversationIDKey,
@@ -279,13 +277,7 @@ const SeparatorConnector = (p: Props) => {
     leadingItem ?? 0
   )
 
-  return (
-    <Kb.Box2 direction="vertical" fullWidth={true} style={{backgroundColor: Styles.globalColors.random()}}>
-      <Kb.Text type="Body">{JSON.stringify({leadingItem, trailingItem, ordinal, previous})}</Kb.Text>
-    </Kb.Box2>
-  )
-
-  return true /*ordinal && (showUsername || orangeLineAbove)*/ ? (
+  return ordinal && (showUsername || orangeLineAbove) ? (
     <Separator
       conversationIDKey={conversationIDKey}
       ordinal={ordinal}

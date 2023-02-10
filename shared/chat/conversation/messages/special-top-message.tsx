@@ -15,6 +15,7 @@ import NewChatCard from './cards/new-chat'
 import ProfileResetNotice from './system-profile-reset-notice/container'
 import RetentionNotice from './retention-notice/container'
 import shallowEqual from 'shallowequal'
+import {usingFlashList} from '../list-area/flashlist-config'
 
 const ErrorMessage = () => {
   const createConversationError = Container.useSelector(state => state.chat2.createConversationError)
@@ -227,7 +228,9 @@ const SpecialTopMessage = React.memo(function SpecialTopMessage() {
           <Kb.Text type="BodySmallSemibold">Digging ancient messages...</Kb.Text>
         </Kb.Box>
       )}
-      <Separator trailingItem={ordinal} leadingItem={undefined} />
+      {!Styles.isMobile || usingFlashList ? (
+        <Separator trailingItem={ordinal} leadingItem={undefined} />
+      ) : null}
     </Kb.Box>
   )
 })
