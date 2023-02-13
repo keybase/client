@@ -90,9 +90,6 @@ const TextPopupMenu = (props: Props) => {
     ...(props.onReplyPrivately
       ? [{icon: 'iconfont-reply', onClick: props.onReplyPrivately, title: 'Reply privately'}]
       : []),
-    ...(props.onPinMessage
-      ? [{icon: 'iconfont-pin', onClick: props.onPinMessage, title: 'Pin message'}]
-      : []),
     ...(props.isDeleteable
       ? [
           {
@@ -104,6 +101,9 @@ const TextPopupMenu = (props: Props) => {
             title: 'Delete',
           },
         ]
+      : []),
+    ...(props.onPinMessage
+      ? [{icon: 'iconfont-pin', onClick: props.onPinMessage, title: 'Pin message'}]
       : []),
     ...(props.onViewProfile || props.isKickable || !props.yourMessage ? ['Divider' as const] : []),
     ...(props.onViewProfile
