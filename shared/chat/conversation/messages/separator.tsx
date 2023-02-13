@@ -7,7 +7,8 @@ import * as Kb from '../../../common-adapters'
 import * as React from 'react'
 import type * as Types from '../../../constants/types/chat2'
 import {formatTimeForChat} from '../../../util/timestamp'
-import {ConvoIDContext} from './ids-context'
+import {ConvoIDContext, SeparatorMapContext} from './ids-context'
+import {usingFlashList} from '../list-area/flashlist-config'
 import shallowEqual from 'shallowequal'
 
 const enoughTimeBetweenMessages = (mtimestamp?: number, ptimestamp?: number): boolean =>
@@ -173,15 +174,23 @@ const useReduxFast = (
   trailingItem: Types.Ordinal,
   leadingItem: Types.Ordinal
 ) => {
+  const sm = React.useContext(SeparatorMapContext)
+  // in flat list we get the leadingItem but its the opposite of what we want
+  // we derive the previous by using SeparatorMapContext
+  if (Styles.isMobile && !usingFlashList) {
+    trailingItem = leadingItem
+    leadingItem = sm.get(trailingItem) ?? 0
+  }
   return Container.useSelector(state => {
     let ordinal = trailingItem
     let previous = leadingItem
+
     const you = state.config.username
     const pmessage = (previous && Constants.getMessage(state, conversationIDKey, previous)) || undefined
     const m = Constants.getMessage(state, conversationIDKey, ordinal) ?? missingMessage
     const showUsername = m && getUsernameToShow(m, pmessage, you)
     const orangeLineAbove = state.chat2.orangeLineMap.get(conversationIDKey) === ordinal
-    return {orangeLineAbove, ordinal, previous, showUsername}
+    return {orangeLineAbove, ordinal, showUsername}
   }, shallowEqual)
 }
 

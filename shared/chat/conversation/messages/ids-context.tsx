@@ -10,3 +10,5 @@ export const GetIdsContext = React.createContext<
   conversationIDKey: '',
   ordinal: 0,
 }))
+
+export const SeparatorMapContext = React.createContext(new Map<Types.Ordinal, Types.Ordinal>())

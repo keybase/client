@@ -11,7 +11,7 @@ import SpecialTopMessage from '../messages/special-top-message'
 import type * as Types from '../../../constants/types/chat2'
 import type {ItemType} from '.'
 import {Animated, FlatList} from 'react-native'
-import {ConvoIDContext} from '../messages/ids-context'
+import {ConvoIDContext, SeparatorMapContext} from '../messages/ids-context'
 import {FlashList, type ListRenderItemInfo} from '@shopify/flash-list'
 import {getMessageRender} from '../messages/wrapper'
 import {mobileTypingContainerHeight} from '../input-area/normal/typing'
@@ -74,9 +74,8 @@ const AnimatedChild = React.memo(function AnimatedChild({children, animatingKey}
 type SentProps = {
   children?: React.ReactElement
   ordinal: Types.Ordinal
-  previous: Types.Ordinal
 }
-const Sent = React.memo(function Sent({ordinal, previous}: SentProps) {
+const Sent = React.memo(function Sent({ordinal}: SentProps) {
   const conversationIDKey = React.useContext(ConvoIDContext)
   const {subType, youSent} = Container.useSelector(state => {
     const you = state.config.username
@@ -97,15 +96,7 @@ const Sent = React.memo(function Sent({ordinal, previous}: SentProps) {
 
   const Clazz = getMessageRender(subType)
   if (!Clazz) return null
-  const children = usingFlashList ? (
-    <Clazz ordinal={ordinal} />
-  ) : (
-    <>
-      <Clazz ordinal={ordinal} />
-      <Separator trailingItem={ordinal} leadingItem={previous} />
-    </>
-  )
-
+  const children = <Clazz ordinal={ordinal} />
   // if state is null we already animated it
   if (youSent && state === undefined) {
     const c = <AnimatedChild animatingKey={key}>{children}</AnimatedChild>
@@ -188,6 +179,8 @@ const useScrolling = (p: {
   }
 }
 
+const emptyMap = new Map()
+
 const ConversationList = React.memo(function ConversationList(p: {
   conversationIDKey: Types.ConversationIDKey
   requestScrollToBottomRef: React.MutableRefObject<(() => void) | undefined>
@@ -207,6 +200,18 @@ const ConversationList = React.memo(function ConversationList(p: {
     return [..._messageOrdinals].reverse()
   }, [_messageOrdinals])
 
+  // map to help the sep know the previous value
+  const separatorMap = React.useMemo(() => {
+    if (usingFlashList) return emptyMap
+    const sm = new Map<Types.Ordinal, Types.Ordinal>()
+    let p = 0
+    for (const o of _messageOrdinals) {
+      sm.set(o, p)
+      p = o
+    }
+    return sm
+  }, [_messageOrdinals])
+
   const listRef = React.useRef<FlashList<ItemType> | FlatList<ItemType> | null>(null)
   const {markInitiallyLoadedThreadAsRead} = Hooks.useActions({conversationIDKey})
   const keyExtractor = React.useCallback((ordinal: ItemType) => {
@@ -221,28 +226,15 @@ const ConversationList = React.memo(function ConversationList(p: {
         return null
       }
 
-      const previous = messageOrdinals[index + 1] ?? 0
-
       if (!index) {
-        return <Sent ordinal={ordinal} previous={previous} />
+        return <Sent ordinal={ordinal} />
       }
 
       const type = messageTypeMap?.get(ordinal) ?? 'text'
       if (!type) return null
       const Clazz = getMessageRender(type)
       if (!Clazz) return null
-
-      if (usingFlashList) {
-        return <Clazz ordinal={ordinal} />
-      } else {
-        // how separators work on flashlist and flatlist are different
-        return (
-          <>
-            <Clazz ordinal={ordinal} />
-            <Separator trailingItem={ordinal} leadingItem={previous} />
-          </>
-        )
-      }
+      return <Clazz ordinal={ordinal} />
     },
     [messageOrdinals, messageTypeMap]
   )
@@ -344,31 +336,33 @@ const ConversationList = React.memo(function ConversationList(p: {
       <ConvoIDContext.Provider value={conversationIDKey}>
         <SetRecycleTypeContext.Provider value={setRecycleType}>
           <ForceListRedrawContext.Provider value={forceListRedraw}>
-            <Kb.Box style={styles.container}>
-              <List
-                extraData={extraData}
-                removeClippedSubviews={Styles.isAndroid}
-                drawDistance={100}
-                estimatedItemSize={100}
-                ListHeaderComponent={SpecialBottomMessage}
-                ListFooterComponent={SpecialTopMessage}
-                ItemSeparatorComponent={usingFlashList ? Separator : undefined}
-                overScrollMode="never"
-                contentContainerStyle={styles.contentContainer}
-                data={messageOrdinals}
-                getItemType={getItemType}
-                inverted={true}
-                renderItem={renderItem}
-                maintainVisibleContentPosition={maintainVisibleContentPosition}
-                onEndReached={onEndReached}
-                keyboardDismissMode="on-drag"
-                keyboardShouldPersistTaps="handled"
-                keyExtractor={keyExtractor}
-                ref={listRef}
-              />
-              {jumpToRecent}
-              {debugWhichList}
-            </Kb.Box>
+            <SeparatorMapContext.Provider value={separatorMap}>
+              <Kb.Box style={styles.container}>
+                <List
+                  extraData={extraData}
+                  removeClippedSubviews={Styles.isAndroid}
+                  drawDistance={100}
+                  estimatedItemSize={100}
+                  ListHeaderComponent={SpecialBottomMessage}
+                  ListFooterComponent={SpecialTopMessage}
+                  ItemSeparatorComponent={Separator}
+                  overScrollMode="never"
+                  contentContainerStyle={styles.contentContainer}
+                  data={messageOrdinals}
+                  getItemType={getItemType}
+                  inverted={true}
+                  renderItem={renderItem}
+                  maintainVisibleContentPosition={maintainVisibleContentPosition}
+                  onEndReached={onEndReached}
+                  keyboardDismissMode="on-drag"
+                  keyboardShouldPersistTaps="handled"
+                  keyExtractor={keyExtractor}
+                  ref={listRef}
+                />
+                {jumpToRecent}
+                {debugWhichList}
+              </Kb.Box>
+            </SeparatorMapContext.Provider>
           </ForceListRedrawContext.Provider>
         </SetRecycleTypeContext.Provider>
       </ConvoIDContext.Provider>
