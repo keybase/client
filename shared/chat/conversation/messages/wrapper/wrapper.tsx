@@ -157,7 +157,9 @@ const useRedux = (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ord
     const isPendingPayment = Constants.isPendingPaymentMessage(state, m)
     const decorate = !exploded && !m.errorReason
     const type = m.type
-    const showSendIndicator = !!submitState && !exploded && you === author && id !== ordinal
+    const isShowingUploadProgressBar = you === author && m.type === 'attachment' && m.inlineVideoPlayable
+    const showSendIndicator =
+      !!submitState && !exploded && you === author && id !== ordinal && !isShowingUploadProgressBar
     const showRevoked = !!m?.deviceRevokedAt
     const showExplodingCountdown = !!exploding && !exploded && submitState !== 'failed'
     const showCoinsIcon = Constants.hasSuccessfulInlinePayments(state, m)
