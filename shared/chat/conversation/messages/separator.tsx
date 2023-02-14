@@ -197,18 +197,12 @@ const useReduxFast = (
 const useRedux = (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ordinal) => {
   return Container.useSelector(state => {
     const m = Constants.getMessage(state, conversationIDKey, ordinal) ?? missingMessage
-    const {author, timestamp} = m
+    const {author, timestamp, botUsername} = m
     const meta = Constants.getMeta(state, conversationIDKey)
-    const {teamname, teamType, teamID} = meta
-
+    const {teamID, botAliases} = meta
     const authorRoleInTeam = state.teams.teamIDToMembers.get(teamID ?? '')?.get(author)?.type
-    const botAlias = meta.botAliases[author] ?? ''
-    const participantInfoNames = Constants.getParticipantInfo(state, conversationIDKey).name
-    const authorIsBot = teamname
-      ? authorRoleInTeam === 'restrictedbot' || authorRoleInTeam === 'bot'
-      : teamType === 'adhoc' && participantInfoNames.length > 0 // teams without info may have type adhoc with an empty participant name list
-      ? !participantInfoNames.includes(author) // if adhoc, check if author in participants
-      : false // if we don't have team information, don't show bot icon
+    const botAlias = botAliases[author] ?? ''
+    const authorIsBot = botUsername === author
     return {
       authorIsBot,
       authorRoleInTeam,

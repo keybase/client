@@ -17,7 +17,6 @@ import ReactionsRow from '../reactions-row'
 import SendIndicator from './send-indicator'
 import type * as Types from '../../../../constants/types/chat2'
 import capitalize from 'lodash/capitalize'
-import type {TeamRoleType} from '../../../../constants/types/teams'
 
 export type Props = {
   ordinal: Types.Ordinal
@@ -88,20 +87,11 @@ type WMProps = {
 } & Props
 
 const useRedux = (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ordinal) => {
-  const getBotname = (
-    state: Container.TypedState,
-    message: Types.Message,
-    meta: Types.ConversationMeta,
-    authorRoleInTeam?: TeamRoleType
-  ) => {
-    const keyedBot = message.botUsername
+  const getBotname = (message: Types.Message) => {
+    const {botUsername, author} = message
+    const keyedBot = botUsername
     if (!keyedBot) return ''
-    const participantInfoNames = Constants.getParticipantInfo(state, message.conversationIDKey).name
-    const authorIsBot = meta.teamname
-      ? authorRoleInTeam === 'restrictedbot' || authorRoleInTeam === 'bot'
-      : meta.teamType === 'adhoc' && participantInfoNames.length > 0 // teams without info may have type adhoc with an empty participant name list
-      ? !participantInfoNames.includes(message.author) // if adhoc, check if author in participants
-      : false // if we don't have team information, don't show bot icon
+    const authorIsBot = author === botUsername
     return !authorIsBot ? keyedBot : ''
   }
 
@@ -164,9 +154,7 @@ const useRedux = (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ord
     const showExplodingCountdown = !!exploding && !exploded && submitState !== 'failed'
     const showCoinsIcon = Constants.hasSuccessfulInlinePayments(state, m)
     const hasReactions = (m.reactions?.size ?? 0) > 0
-    const meta = Constants.getMeta(state, conversationIDKey)
-    const authorRoleInTeam = state.teams.teamIDToMembers.get(meta?.teamID ?? '')?.get(author)?.type
-    const botname = getBotname(state, m, meta, authorRoleInTeam)
+    const botname = getBotname(m)
     const reactionsPopupPosition = getReactionsPopupPosition(hasReactions, m, state)
     const ecrType = getEcrType(m, you)
     return {
