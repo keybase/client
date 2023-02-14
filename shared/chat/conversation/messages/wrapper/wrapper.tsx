@@ -87,14 +87,6 @@ type WMProps = {
 } & Props
 
 const useRedux = (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ordinal) => {
-  const getBotname = (message: Types.Message) => {
-    const {botUsername, author} = message
-    const keyedBot = botUsername
-    if (!keyedBot) return ''
-    const authorIsBot = author === botUsername
-    return !authorIsBot ? keyedBot : ''
-  }
-
   const getReactionsPopupPosition = (
     hasReactions: boolean,
     message: Types.Message,
@@ -142,7 +134,7 @@ const useRedux = (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ord
   return Container.useSelector(state => {
     const you = state.config.username
     const m = Constants.getMessage(state, conversationIDKey, ordinal) ?? missingMessage
-    const {exploded, submitState, author, id} = m
+    const {exploded, submitState, author, id, botUsername} = m
     const exploding = !!m.exploding
     const isPendingPayment = Constants.isPendingPaymentMessage(state, m)
     const decorate = !exploded && !m.errorReason
@@ -154,7 +146,8 @@ const useRedux = (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ord
     const showExplodingCountdown = !!exploding && !exploded && submitState !== 'failed'
     const showCoinsIcon = Constants.hasSuccessfulInlinePayments(state, m)
     const hasReactions = (m.reactions?.size ?? 0) > 0
-    const botname = getBotname(m)
+    // hide if the bot is writing to itself
+    const botname = botUsername === author ? '' : botUsername ?? ''
     const reactionsPopupPosition = getReactionsPopupPosition(hasReactions, m, state)
     const ecrType = getEcrType(m, you)
     return {
@@ -379,7 +372,7 @@ type RProps = {
   showExplodingCountdown: boolean
   showRevoked: boolean
   showCoinsIcon: boolean
-  botname?: string
+  botname: string
 }
 const RightSide = React.memo(function RightSide(p: RProps) {
   const {showCenteredHighlight, toggleShowingPopup, showSendIndicator, showCoinsIcon} = p
