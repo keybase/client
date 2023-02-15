@@ -3,7 +3,7 @@ import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as Shim from '../router-v2/shim'
 import * as Styles from '../styles'
-import {createStackNavigator} from '@react-navigation/stack'
+import {createNativeStackNavigator} from '@react-navigation/native-stack'
 import type AccountReloaderType from './common/account-reloader'
 import type Wallet from './wallet/container'
 import type WalletListType from './wallet-list/container'
@@ -95,7 +95,7 @@ const WalletSubNavigator = () => (
   </TabNavigator.Navigator>
 )
 
-const RootStack = createStackNavigator()
+const RootStack = createNativeStackNavigator()
 
 const WalletsRootNav = () => {
   const acceptedDisclaimer = Container.useSelector(state => state.wallets.acceptedDisclaimer)
