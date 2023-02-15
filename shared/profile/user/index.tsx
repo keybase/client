@@ -334,9 +334,9 @@ class User extends React.Component<Props, State> {
         <HeaderLeftArrow canGoBack={canGoBack} onPress={onPress} tintColor={tintColor} />
       </Styles.CanFixOverdrawContext.Provider>
     ),
+    headerStyle: {backgroundColor: 'transparent'},
     headerTitle: () => <ProfileSearch />,
     headerTransparent: true,
-    headerStyle: {backgroundColor: 'transparent'},
   })
 
   constructor(props: Props) {

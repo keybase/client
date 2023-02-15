@@ -48,23 +48,9 @@ const makeNavScreens = (rs, Screen, isModal) => {
         options={({route, navigation}) => {
           const no = rs[name].getOptions ?? rs[name].getScreen().navigationOptions
           const opt = typeof no === 'function' ? no({navigation, route}) : no
-          const skipAnim =
-            route.params?.animationEnabled === undefined
-              ? {}
-              : {
-                  // immediate pop in, default back animation
-                  transitionSpec: {
-                    close: TransitionPresets.DefaultTransition,
-                    open: {
-                      animation: 'timing',
-                      config: {duration: 0},
-                    },
-                  },
-                }
           return {
             ...opt,
             ...(isModal ? {animationEnabled: true} : {}),
-            ...skipAnim,
           }
         }}
       />
@@ -377,8 +363,6 @@ const RNApp = React.memo(function RNApp() {
         <RootStack.Navigator
           key="root"
           screenOptions={{
-            animationEnabled: false,
-            cardStyle: Styles.isAndroid ? {backgroundColor: Styles.globalColors.fastBlank} : undefined,
             headerLeft: () => <HeaderLeftCancel />,
             headerShown: false, // eventually do this after we pull apart modal2 etc
             // hard to fight overdraw on android with this on so just treat modals as screens

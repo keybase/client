@@ -155,7 +155,6 @@ const ElectronApp = () => {
       <RootStack.Navigator
         key="root"
         screenOptions={{
-          animationEnabled: false,
           headerLeft: () => <HeaderLeftCancel />,
           headerShown: false, // eventually do this after we pull apart modal2 etc
           presentation: 'transparentModal',
