@@ -4,40 +4,40 @@ import * as Styles from '../../styles'
 import {appendPeopleBuilder} from '../../actions/typed-routes'
 import {useDispatch} from 'react-redux'
 
-type Props = {
-  style?: Styles.StylesCrossPlatform
-  whiteText?: boolean
-}
-
-const ProfileSearch = (props: Props) => {
+const ProfileSearch = () => {
   const dispatch = useDispatch()
   const onSearch = React.useCallback(() => dispatch(appendPeopleBuilder()), [dispatch])
-  const color = props.whiteText ? Styles.globalColors.white_75 : undefined
   return (
-    <Kb.SearchFilter
-      hotkey="k"
-      icon="iconfont-search"
-      iconColor={color}
-      onFocus={Styles.isMobile ? undefined : onSearch}
-      onClick={!Styles.isMobile ? undefined : onSearch}
-      placeholderColor={color}
-      placeholderText={`Search${Styles.isMobile ? '' : ' people'}`}
-      size="full-width"
-      style={Styles.collapseStyles([Styles.isMobile ? styles.filterMobile : styles.filter, props.style])}
-    />
+    <Kb.Box2 direction="vertical" style={styles.container}>
+      <Kb.SearchFilter
+        hotkey="k"
+        icon="iconfont-search"
+        onFocus={Styles.isMobile ? undefined : onSearch}
+        onClick={!Styles.isMobile ? undefined : onSearch}
+        placeholderText={`Search${Styles.isMobile ? '' : ' people'}`}
+        size="full-width"
+        style={styles.filter}
+      />
+    </Kb.Box2>
   )
 }
 
 const styles = Styles.styleSheetCreate(() => ({
-  filter: {
-    marginLeft: Styles.globalMargins.xsmall,
-    marginRight: Styles.globalMargins.xsmall,
-  },
-  filterMobile: {
-    height: 40,
-    paddingLeft: 0,
-    paddingRight: 0,
-  },
+  container: Styles.platformStyles({
+    isElectron: {width: '100%'},
+    isMobile: {width: 215},
+  }),
+  filter: Styles.platformStyles({
+    isElectron: {
+      marginLeft: Styles.globalMargins.xsmall,
+      marginRight: Styles.globalMargins.xsmall,
+    },
+    isMobile: {
+      height: 40,
+      paddingLeft: 0,
+      paddingRight: 0,
+    },
+  }),
 }))
 
 export default ProfileSearch

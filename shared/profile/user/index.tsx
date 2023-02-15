@@ -336,6 +336,7 @@ class User extends React.Component<Props, State> {
     ),
     headerTitle: () => <ProfileSearch />,
     headerTransparent: true,
+    headerStyle: {backgroundColor: 'transparent'},
   })
 
   constructor(props: Props) {

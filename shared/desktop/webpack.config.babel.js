@@ -67,6 +67,15 @@ const config = (_, {mode}) => {
         ...(isDev ? {type: 'asset/resource'} : {use: ['null-loader']}),
       },
       {
+        include: path.resolve(
+          __dirname,
+          '../node_modules/@react-navigation/native-stack/node_modules/@react-navigation/elements/lib/module/assets'
+        ),
+        test: /\.(native\.js|gif|png|jpg)$/,
+        use: ['null-loader'],
+      },
+
+      {
         include: path.resolve(__dirname, '../node_modules/@react-navigation/elements/lib/module/assets'),
         test: /\.(native\.js|gif|png|jpg)$/,
         use: ['null-loader'],
