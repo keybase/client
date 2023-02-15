@@ -17,7 +17,7 @@ import {NavigationContainer} from '@react-navigation/native'
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs'
 import {modalRoutes, routes, loggedOutRoutes, tabRoots} from './routes'
 import {enableFreeze} from 'react-native-screens'
-import {createStackNavigator, TransitionPresets} from '@react-navigation/stack'
+import {createNativeStackNavigator} from '@react-navigation/native-stack'
 
 enableFreeze()
 
@@ -160,7 +160,7 @@ const fastTransitionSpec = {
 // we must ensure we don't keep remaking these components
 const tabScreensCache = new Map()
 const makeTabStack = (tab: string) => {
-  const S = createStackNavigator()
+  const S = createNativeStackNavigator()
 
   let tabScreens = tabScreensCache.get(tab)
   if (!tabScreens) {
@@ -190,6 +190,11 @@ const makeTabStack = (tab: string) => {
   return Comp
 }
 
+const makeLongPressHandler = (dispatch: Container.TypedDispatch, tab: Tabs.AppTab) => {
+  return () => {
+    dispatch(RouteTreeGen.createTabLongPress({tab}))
+  }
+}
 const AppTabs = React.memo(
   function AppTabs() {
     const dispatch = Container.useDispatch()
@@ -202,11 +207,7 @@ const AppTabs = React.memo(
             key={tab}
             name={tab}
             component={makeTabStack(tab)}
-            listeners={() => ({
-              tabLongPress: () => {
-                dispatch(RouteTreeGen.createTabLongPress({tab}))
-              },
-            })}
+            listeners={{tabLongPress: makeLongPressHandler(dispatch, tab)}}
           />
         )),
       [dispatch]
@@ -261,7 +262,8 @@ const AppTabs = React.memo(
   () => true // ignore all props
 )
 
-const LoggedOutStack = createStackNavigator()
+const LoggedOutStack = createNativeStackNavigator()
+
 const LoggedOutScreens = makeNavScreens(Shim.shim(loggedOutRoutes, false, true), LoggedOutStack.Screen, false)
 const LoggedOut = React.memo(function LoggedOut() {
   return (
@@ -319,7 +321,7 @@ enum GoodLinkingState {
   GoodLinkingHandled,
 }
 
-const RootStack = createStackNavigator()
+const RootStack = createNativeStackNavigator()
 const ModalScreens = makeNavScreens(Shim.shim(modalRoutes, true, false), RootStack.Screen, true)
 
 const useBarStyle = () => {

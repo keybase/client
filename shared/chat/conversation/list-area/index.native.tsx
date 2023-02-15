@@ -22,11 +22,6 @@ import {useChatDebugDump} from '../../../constants/chat2/debug'
 import {usingFlashList} from './flashlist-config'
 
 const List = usingFlashList ? FlashList : FlatList
-const debugWhichList = __DEV__ ? (
-  <Kb.Text type="HeaderBig" style={{backgroundColor: 'red', left: 0, position: 'absolute', top: 0}}>
-    {usingFlashList ? 'FLASH' : 'old'}
-  </Kb.Text>
-) : null
 
 // Bookkeep whats animating so it finishes and isn't replaced, if we've animated it we keep the key and use null
 const animatingMap = new Map<string, null | React.ReactElement>()
@@ -185,6 +180,12 @@ const ConversationList = React.memo(function ConversationList(p: {
   conversationIDKey: Types.ConversationIDKey
   requestScrollToBottomRef: React.MutableRefObject<(() => void) | undefined>
 }) {
+  const debugWhichList = __DEV__ ? (
+    <Kb.Text type="HeaderBig" style={{backgroundColor: 'red', left: 0, position: 'absolute', top: 0}}>
+      {usingFlashList ? 'FLASH' : 'old'}
+    </Kb.Text>
+  ) : null
+
   // used to force a rerender when a type changes, aka placeholder resolves
   const [extraData, setExtraData] = React.useState(0)
 
