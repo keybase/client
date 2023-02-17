@@ -18,6 +18,7 @@ import type * as ImagePicker from 'expo-image-picker'
 import type * as Types from '../constants/types/teams'
 import type {PlatformsExpandedType} from '../constants/types/more'
 import type {SiteIconSet} from '../constants/types/tracker2'
+import {HeaderLeftCancel} from '../common-adapters/header-hoc'
 
 export const newRoutes = {
   profile: {getScreen: (): typeof Profile => require('./user/container').default},
@@ -36,6 +37,15 @@ export const newModalRoutes = {
   },
   profileGenericProofResult: {
     getScreen: (): typeof ProfileGenericProofResult => require('./generic/result/container').default,
+  },
+  profileModal: {
+    getOptions: () => {
+      console.log('aaaa proifle modal getoptions')
+      return {
+        headerShown: false,
+      }
+    },
+    getScreen: (): typeof Profile => require('./user/container').default,
   },
   profilePostProof: {getScreen: (): typeof ProfilePostProof => require('./post-proof/container').default},
   profileProofsList: {
@@ -97,6 +107,7 @@ export type RootParamListProfile = {
   }
   profile: {
     username: string
+    // isModal?: boolean
   }
 
   profileConfirmOrPending: undefined

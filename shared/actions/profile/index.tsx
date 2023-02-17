@@ -56,9 +56,25 @@ const finishRevoking = (state: Container.TypedState) => [
 
 const showUserProfile = (_: unknown, action: ProfileGen.ShowUserProfilePayload) => {
   const {username} = action.payload
+
+  // TEMP
+  // if (action.payload.modal) {
+  // return RouteTreeGen.createNavigateAppend({
+  //   path: [],
+  //   forceNavigate: ['afterChat', {screen: 'tabs.chatTab', params: {screen: 'profile', params: {username}}}],
+  // })
+  // }
   return [
     ...(Container.isMobile ? [RouteTreeGen.createClearModals()] : []),
-    RouteTreeGen.createNavigateAppend({path: [{props: {username}, selected: 'profile'}]}),
+    RouteTreeGen.createNavigateAppend({
+      path: [
+        {
+          props: {/*isModal: action.payload.modal, */ username},
+          selected: 'profile',
+          // selected: action.payload.modal ? 'profileModal' : 'profile',
+        },
+      ],
+    }),
   ]
 }
 

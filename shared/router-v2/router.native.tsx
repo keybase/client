@@ -13,7 +13,7 @@ import * as ConfigConstants from '../constants/config'
 import {useMemo} from '../util/memoize'
 import {StatusBar} from 'react-native'
 import {HeaderLeftCancel} from '../common-adapters/header-hoc'
-import {NavigationContainer} from '@react-navigation/native'
+import {NavigationContainer, getFocusedRouteNameFromRoute} from '@react-navigation/native'
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs'
 import {modalRoutes, routes, loggedOutRoutes, tabRoots} from './routes'
 import {enableFreeze} from 'react-native-screens'
@@ -48,6 +48,9 @@ const makeNavScreens = (rs, Screen, isModal) => {
         options={({route, navigation}) => {
           const no = rs[name].getOptions ?? rs[name].getScreen().navigationOptions
           const opt = typeof no === 'function' ? no({navigation, route}) : no
+          if (name === 'profileModal') {
+            console.log('aaa', opt)
+          }
           return {
             ...opt,
             ...(isModal ? {animationEnabled: true} : {}),
@@ -143,6 +146,15 @@ const fastTransitionSpec = {
   },
 }
 
+const tabRoutes = Object.keys(routes).reduce<Container.RouteMap>((obj, name) => {
+  // on phones we hide the tab bar on convos
+  // if (Container.isPhone && name === 'chatConversation') {
+  //   return obj
+  // }
+  obj[name] = routes[name]
+  return obj
+}, {})
+
 // we must ensure we don't keep remaking these components
 const tabScreensCache = new Map()
 const makeTabStack = (tab: string) => {
@@ -150,7 +162,7 @@ const makeTabStack = (tab: string) => {
 
   let tabScreens = tabScreensCache.get(tab)
   if (!tabScreens) {
-    tabScreens = makeNavScreens(Shim.shim(routes, false, false), S.Screen, false)
+    tabScreens = makeNavScreens(Shim.shim(tabRoutes, false, false), S.Screen, false)
     tabScreensCache.set(tab, tabScreens)
   }
 
@@ -193,6 +205,12 @@ const AppTabs = React.memo(
             key={tab}
             name={tab}
             component={makeTabStack(tab)}
+            // options={({route}) => {
+            //   const routeName = getFocusedRouteNameFromRoute(route)
+            //   return {
+            //     tabBarStyle: routeName === 'chatConversation' ? Common.tabBarStyleHidden : Common.tabBarStyle,
+            //   }
+            // }}
             listeners={{tabLongPress: makeLongPressHandler(dispatch, tab)}}
           />
         )),
@@ -310,6 +328,28 @@ enum GoodLinkingState {
 const RootStack = createNativeStackNavigator()
 const ModalScreens = makeNavScreens(Shim.shim(modalRoutes, true, false), RootStack.Screen, true)
 
+// const ChatStack = createNativeStackNavigator()
+
+// ? makeNavScreens(Shim.shim(routes, false, false), ChatStack.Screen, true)
+const ChatScreens = Container.isPhone
+  ? makeNavScreens(Shim.shim(routes, false, false), RootStack.Screen, true)
+  : null
+
+// const ChatConvo = () => {
+//   return (
+//     <ChatStack.Navigator
+//       screenOptions={({route}) => {
+//         return {
+//           ...Common.defaultNavigationOptions,
+//           presentation: undefined,
+//         }
+//       }}
+//     >
+//       {ChatScreens}
+//     </ChatStack.Navigator>
+//   )
+// }
+
 const useBarStyle = () => {
   const isDarkMode = Container.useSelector(state => ConfigConstants.isDarkMode(state.config))
   const darkModePreference = Container.useSelector(state => state.config.darkModePreference)
@@ -363,11 +403,7 @@ const RNApp = React.memo(function RNApp() {
         <RootStack.Navigator
           key="root"
           screenOptions={{
-            headerLeft: () => <HeaderLeftCancel />,
             headerShown: false, // eventually do this after we pull apart modal2 etc
-            // hard to fight overdraw on android with this on so just treat modals as screens
-            presentation: Styles.isAndroid ? undefined : 'modal',
-            title: '',
           }}
         >
           {!loggedInLoaded && (
@@ -376,7 +412,18 @@ const RNApp = React.memo(function RNApp() {
           {loggedInLoaded && loggedIn && (
             <>
               <RootStack.Screen name="loggedIn" component={AppTabs} />
-              {ModalScreens}
+              {/* {ChatScreens} */}
+              {/* <RootStack.Screen name="afterChat" component={AppTabs} /> */}
+              <RootStack.Group
+                screenOptions={{
+                  headerLeft: () => <HeaderLeftCancel />,
+                  // hard to fight overdraw on android with this on so just treat modals as screens
+                  presentation: Styles.isAndroid ? undefined : 'modal',
+                  title: '',
+                }}
+              >
+                {ModalScreens}
+              </RootStack.Group>
             </>
           )}
           {loggedInLoaded && !loggedIn && <RootStack.Screen name="loggedOut" component={LoggedOut} />}

@@ -123,7 +123,7 @@ export const createRevokeFinish = (payload: {readonly error?: string} = {}) => (
   payload,
   type: revokeFinish as typeof revokeFinish,
 })
-export const createShowUserProfile = (payload: {readonly username: string}) => ({
+export const createShowUserProfile = (payload: {readonly username: string; readonly modal?: boolean}) => ({
   payload,
   type: showUserProfile as typeof showUserProfile,
 })

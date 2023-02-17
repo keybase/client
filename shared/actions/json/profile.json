@@ -46,7 +46,7 @@
       "username": "string",
       "openWebsite?": "boolean"
     },
-    "showUserProfile": {"username": "string"},
+    "showUserProfile": {"username": "string", "modal?": "boolean"},
     "submitZcashAddress": {},
     "submitBTCAddress": {},
     "submitRevokeProof": {"proofId": "string"},

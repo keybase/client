@@ -28,6 +28,7 @@ const filterWebOfTrustEntries = memoize(
 const connected = Container.connect(
   (state, ownProps: OwnProps) => {
     const username = ownProps.route.params?.username ?? ''
+    // const isModal = ownProps.route.params?.isModal ?? false
     const d = Constants.getDetails(state, username)
     const myName = state.config.username
     const notAUser = d.state === 'notAUserYet'
@@ -45,6 +46,7 @@ const connected = Container.connect(
       fullName: '',
       guiID: d.guiID,
       hidFromFollowers: d.hidFromFollowers,
+      // isModal,
       myName,
       name: '',
       reason: d.reason,
@@ -169,6 +171,7 @@ const connected = Container.connect(
       followingCount: stateProps.followingCount,
       fullName: stateProps.fullName,
       hidFromFollowers: stateProps.hidFromFollowers,
+      // isModal: stateProps.isModal,
       name: stateProps.name,
       notAUser,
       onAddIdentity,
