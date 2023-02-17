@@ -72,7 +72,7 @@ const LeftSide = React.memo(function LeftSide(p: LProps) {
     if (!username) return
 
     if (Container.isMobile) {
-      dispatch(ProfileGen.createShowUserProfile({username, modal: Container.isPhone}))
+      dispatch(ProfileGen.createShowUserProfile({username}))
     } else {
       dispatch(Tracker2Gen.createShowUser({asTracker: true, username}))
     }
@@ -102,8 +102,7 @@ const TopSide = React.memo(function TopSide(p: TProps) {
   const dispatch = Container.useDispatch()
   const onAuthorClick = React.useCallback(() => {
     if (Container.isMobile) {
-      showUsername &&
-        dispatch(ProfileGen.createShowUserProfile({username: showUsername, modal: Container.isPhone}))
+      showUsername && dispatch(ProfileGen.createShowUserProfile({username: showUsername}))
     } else {
       showUsername && dispatch(Tracker2Gen.createShowUser({asTracker: true, username: showUsername}))
     }

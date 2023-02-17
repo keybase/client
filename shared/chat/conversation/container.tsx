@@ -16,8 +16,8 @@ type SwitchProps = RouteProps<'chatConversation'>
 
 const hideTabBarStyle = {display: 'none'}
 
-// due to timing issues if we go between convos we can 'lose track' o f focus in / out
-// so instead we keep a count and only bring back the tab if we're en  tirely gone
+// due to timing issues if we go between convos we can 'lose track' of focus in / out
+// so instead we keep a count and only bring back the tab if we're entirely gone
 // let focusRefCount = 0
 
 // let showDeferId: any = 0

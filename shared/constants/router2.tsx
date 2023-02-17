@@ -93,11 +93,6 @@ const oldActionToNewActions = (action: RTGActions, navigationState: any, allowAp
         return
       }
 
-      // TEMP
-      if (action.payload.forceNavigate) {
-        return [CommonActions.navigate(...action.payload.forceNavigate)]
-      }
-
       const p = action.payload.path[action.payload.path.length - 1]
       if (!p) {
         return
@@ -157,15 +152,7 @@ const oldActionToNewActions = (action: RTGActions, navigationState: any, allowAp
     }
     case RouteTreeGen.clearModals: {
       if (_isLoggedIn(navigationState) && navigationState?.routes?.length > 1) {
-        // leave chat and root alone
-        const numToPop = navigationState.routes.reduce((num, r) => {
-          if (r.name === 'loggedIn' || r.name === 'chatConversation') {
-            return num
-          }
-
-          return num + 1
-        }, 0)
-        return [{...StackActions.pop(numToPop), target: navigationState.key}]
+        return [{...StackActions.popToTop(), target: navigationState.key}]
       }
       return []
     }

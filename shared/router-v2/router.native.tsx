@@ -13,7 +13,7 @@ import * as ConfigConstants from '../constants/config'
 import {useMemo} from '../util/memoize'
 import {StatusBar} from 'react-native'
 import {HeaderLeftCancel} from '../common-adapters/header-hoc'
-import {NavigationContainer, getFocusedRouteNameFromRoute} from '@react-navigation/native'
+import {NavigationContainer} from '@react-navigation/native'
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs'
 import {modalRoutes, routes, loggedOutRoutes, tabRoots} from './routes'
 import {enableFreeze} from 'react-native-screens'
@@ -48,9 +48,6 @@ const makeNavScreens = (rs, Screen, isModal) => {
         options={({route, navigation}) => {
           const no = rs[name].getOptions ?? rs[name].getScreen().navigationOptions
           const opt = typeof no === 'function' ? no({navigation, route}) : no
-          if (name === 'profileModal') {
-            console.log('aaa', opt)
-          }
           return {
             ...opt,
             ...(isModal ? {animationEnabled: true} : {}),
@@ -205,12 +202,6 @@ const AppTabs = React.memo(
             key={tab}
             name={tab}
             component={makeTabStack(tab)}
-            // options={({route}) => {
-            //   const routeName = getFocusedRouteNameFromRoute(route)
-            //   return {
-            //     tabBarStyle: routeName === 'chatConversation' ? Common.tabBarStyleHidden : Common.tabBarStyle,
-            //   }
-            // }}
             listeners={{tabLongPress: makeLongPressHandler(dispatch, tab)}}
           />
         )),
@@ -327,28 +318,6 @@ enum GoodLinkingState {
 
 const RootStack = createNativeStackNavigator()
 const ModalScreens = makeNavScreens(Shim.shim(modalRoutes, true, false), RootStack.Screen, true)
-
-// const ChatStack = createNativeStackNavigator()
-
-// ? makeNavScreens(Shim.shim(routes, false, false), ChatStack.Screen, true)
-const ChatScreens = Container.isPhone
-  ? makeNavScreens(Shim.shim(routes, false, false), RootStack.Screen, true)
-  : null
-
-// const ChatConvo = () => {
-//   return (
-//     <ChatStack.Navigator
-//       screenOptions={({route}) => {
-//         return {
-//           ...Common.defaultNavigationOptions,
-//           presentation: undefined,
-//         }
-//       }}
-//     >
-//       {ChatScreens}
-//     </ChatStack.Navigator>
-//   )
-// }
 
 const useBarStyle = () => {
   const isDarkMode = Container.useSelector(state => ConfigConstants.isDarkMode(state.config))
