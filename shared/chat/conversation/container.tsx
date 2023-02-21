@@ -21,14 +21,24 @@ const Conversation = (p: SwitchProps) => {
     tabNav = undefined
   }
 
-  // wait till the animation is over, works but maybe we can fix the resize thing later, its an issue in react-native-screens
   React.useEffect(() => {
-    const unsubscribe = navigation.addListener('transitionEnd' as any, () => {
+    if (!Container.isPhone) {
+      return
+    }
+    if (Container.isAndroid) {
       tabNav?.setOptions({tabBarStyle: hideTabBarStyle})
-    })
-    return () => {
-      unsubscribe()
-      tabNav?.setOptions({tabBarStyle})
+      return () => {
+        tabNav?.setOptions({tabBarStyle})
+      }
+    } else {
+      // wait till the animation is over, works but maybe we can fix the resize thing later, its an issue in react-native-screens
+      const unsubscribe = navigation.addListener('transitionEnd' as any, () => {
+        tabNav?.setOptions({tabBarStyle: hideTabBarStyle})
+      })
+      return () => {
+        unsubscribe()
+        tabNav?.setOptions({tabBarStyle})
+      }
     }
   }, [navigation, tabNav])
 
