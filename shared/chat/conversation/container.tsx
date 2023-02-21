@@ -25,20 +25,9 @@ const Conversation = (p: SwitchProps) => {
     if (!Container.isPhone) {
       return
     }
-    if (Container.isAndroid) {
-      tabNav?.setOptions({tabBarStyle: hideTabBarStyle})
-      return () => {
-        tabNav?.setOptions({tabBarStyle})
-      }
-    } else {
-      // wait till the animation is over, works but maybe we can fix the resize thing later, its an issue in react-native-screens
-      const unsubscribe = navigation.addListener('transitionEnd' as any, () => {
-        tabNav?.setOptions({tabBarStyle: hideTabBarStyle})
-      })
-      return () => {
-        unsubscribe()
-        tabNav?.setOptions({tabBarStyle})
-      }
+    tabNav?.setOptions({tabBarStyle: hideTabBarStyle})
+    return () => {
+      tabNav?.setOptions({tabBarStyle})
     }
   }, [navigation, tabNav])
 
