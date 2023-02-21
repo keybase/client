@@ -55,8 +55,12 @@ const styles = Styles.styleSheetCreate(
         },
         isMobile: {
           backgroundColor: Styles.globalColors.fastBlank,
+          bottom: 0,
           flexShrink: 0,
           height: RowSizes.floatingDivider,
+          left: 0,
+          position: 'absolute',
+          right: 0,
         },
       }),
       dividerBox: Styles.platformStyles({
