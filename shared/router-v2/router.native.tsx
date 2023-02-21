@@ -130,15 +130,7 @@ const styles = Styles.styleSheetCreate(
 )
 
 const Tab = createBottomTabNavigator()
-
-const tabRoutes = Object.keys(routes).reduce<Container.RouteMap>((obj, name) => {
-  // on phones we hide the tab bar on convos
-  // if (Container.isPhone && name === 'chatConversation') {
-  //   return obj
-  // }
-  obj[name] = routes[name]
-  return obj
-}, {})
+const tabRoutes = routes
 
 // we must ensure we don't keep remaking these components
 const tabScreensCache = new Map()
@@ -367,8 +359,6 @@ const RNApp = React.memo(function RNApp() {
           {loggedInLoaded && loggedIn && (
             <>
               <RootStack.Screen name="loggedIn" component={AppTabs} />
-              {/* {ChatScreens} */}
-              {/* <RootStack.Screen name="afterChat" component={AppTabs} /> */}
               <RootStack.Group
                 screenOptions={{
                   headerLeft: () => <HeaderLeftCancel />,

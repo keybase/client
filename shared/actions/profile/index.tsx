@@ -56,12 +56,9 @@ const finishRevoking = (state: Container.TypedState) => [
 
 const showUserProfile = (_: unknown, action: ProfileGen.ShowUserProfilePayload) => {
   const {username} = action.payload
-
   return [
     ...(Container.isMobile ? [RouteTreeGen.createClearModals()] : []),
-    RouteTreeGen.createNavigateAppend({
-      path: [{props: {username}, selected: 'profile'}],
-    }),
+    RouteTreeGen.createNavigateAppend({path: [{props: {username}, selected: 'profile'}]}),
   ]
 }
 

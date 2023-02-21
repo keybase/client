@@ -70,7 +70,6 @@ const LeftSide = React.memo(function LeftSide(p: LProps) {
   const dispatch = Container.useDispatch()
   const onAuthorClick = React.useCallback(() => {
     if (!username) return
-
     if (Container.isMobile) {
       dispatch(ProfileGen.createShowUserProfile({username}))
     } else {
