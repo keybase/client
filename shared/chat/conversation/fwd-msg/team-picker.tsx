@@ -22,7 +22,7 @@ const TeamPicker = (props: Props) => {
   const message = Container.useSelector(state => Constants.getMessage(state, srcConvID, ordinal))
   const [pickerState, setPickerState] = React.useState<PickerState>('picker')
   const [term, setTerm] = React.useState('')
-  const [dstConvID, setDstConvID] = React.useState<Buffer | undefined>()
+  const dstConvIDRef = React.useRef<Buffer | undefined>()
   const [results, setResults] = React.useState<Array<RPCChatTypes.ConvSearchHit>>([])
   const [waiting, setWaiting] = React.useState(false)
   const [error, setError] = React.useState('')
@@ -76,11 +76,11 @@ const TeamPicker = (props: Props) => {
   const onSubmit = (event?: React.BaseSyntheticEvent) => {
     event?.preventDefault()
     event?.stopPropagation()
-    if (!dstConvID || !message) return
+    if (!dstConvIDRef.current || !message) return
     fwdMsg(
       [
         {
-          dstConvID,
+          dstConvID: dstConvIDRef.current,
           identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
           msgID: message.id,
           srcConvID: Types.keyToConversationID(srcConvID),
@@ -99,7 +99,7 @@ const TeamPicker = (props: Props) => {
     dispatch(RouteTreeGen.createClearModals())
     dispatch(
       Chat2Gen.createPreviewConversation({
-        conversationIDKey: Types.conversationIDToKey(dstConvID),
+        conversationIDKey: Types.conversationIDToKey(dstConvIDRef.current),
         reason: 'forward',
       })
     )
@@ -111,9 +111,16 @@ const TeamPicker = (props: Props) => {
       return
     }
 
-    setDstConvID(dstConvID)
-    setPickerState('title')
+    dstConvIDRef.current = dstConvID
+
+    // add caption on files, otherwise we have an effect below which will submit
+    if (message.type === 'attachment') {
+      setPickerState('title')
+    } else {
+      onSubmit()
+    }
   }
+
   React.useEffect(() => {
     doSearch()
   }, [doSearch])
@@ -187,6 +194,12 @@ const TeamPicker = (props: Props) => {
             selectTextOnFocus={true}
           />
         </Kb.Box2>
+        <Kb.ButtonBar fullWidth={true} small={true} style={styles.buttonContainer}>
+          {Styles.isMobile ? null : (
+            <Kb.Button fullWidth={true} type="Dim" onClick={onClose} label="Cancel" />
+          )}
+          <Kb.Button fullWidth={true} onClick={onSubmit} label="Send" />
+        </Kb.ButtonBar>
       </Kb.Box2>
     )
 
@@ -215,6 +228,18 @@ const styles = Styles.styleSheetCreate(
         flexGrow: 1,
         margin: Styles.globalMargins.small,
       },
+      buttonContainer: Styles.platformStyles({
+        isElectron: {
+          alignSelf: 'flex-end',
+          borderStyle: 'solid',
+          borderTopColor: Styles.globalColors.black_10,
+          borderTopWidth: 1,
+          flexShrink: 0,
+          padding: Styles.globalMargins.small,
+          width: '100%',
+        },
+        isMobile: {width: '100%'},
+      }),
       container: Styles.platformStyles({
         isElectron: {height: 450},
         isMobile: {padding: Styles.globalMargins.small},
