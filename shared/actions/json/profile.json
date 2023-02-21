@@ -31,17 +31,13 @@
       "fullname": "string",
       "location": "string"
     },
-    "revokeFinish": {
-      "error?": "string"
-    },
+    "revokeFinish": {"error?": "string"},
     "finishRevoking": {},
     "finishedWithKeyGen": {
       "shouldStoreKeyOnServer": "boolean"
     },
     "generatePgp": {},
-    "hideStellar": {
-      "hidden": "boolean"
-    },
+    "hideStellar": {"hidden": "boolean"},
     "onClickAvatar": {
       "username": "string",
       "openWebsite?": "boolean"
@@ -56,9 +52,7 @@
       "username": "string",
       "guiID": "string"
     },
-    "finishBlockUser": {
-      "error?": "string"
-    },
+    "finishBlockUser": {"error?": "string"},
     "updateErrorText": {
       "errorText": "string",
       "errorCode?": "number"

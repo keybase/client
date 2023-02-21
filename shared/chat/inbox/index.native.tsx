@@ -23,11 +23,6 @@ type RowItem = Types.ChatInboxRowItem
 
 const usingFlashList = false
 const List = usingFlashList ? FlashList : FlatList
-const debugWhichList = __DEV__ ? (
-  <Kb.Text type="HeaderBig" style={{backgroundColor: 'red', left: 0, position: 'absolute', top: 0}}>
-    {usingFlashList ? 'FLASH' : 'old'}
-  </Kb.Text>
-) : null
 
 const NoChats = (props: {onNewChat: () => void}) => (
   <>
@@ -240,12 +235,20 @@ class Inbox extends React.PureComponent<T.Props, State> {
   }
 
   render() {
+    const debugWhichList = __DEV__ ? (
+      <Kb.Text type="HeaderBig" style={{backgroundColor: 'red', left: 0, position: 'absolute', top: 0}}>
+        {usingFlashList ? 'FLASH' : 'old'}
+      </Kb.Text>
+    ) : null
+
     const noChats = !this.props.neverLoaded && !this.props.isSearching && !this.props.rows.length && (
       <NoChats onNewChat={this.props.onNewChat} />
     )
     const floatingDivider = this.state.showFloating &&
       !this.props.isSearching &&
       this.props.allowShowFloatingButton && <BigTeamsDivider toggle={this.props.toggleSmallTeamsExpanded} />
+
+    const HeadComponent = <ChatInboxHeader headerContext="inbox-header" />
 
     return (
       <Kb.ErrorBoundary>
@@ -300,7 +303,6 @@ const LoadingLine = () => {
     </Kb.Box>
   ) : null
 }
-const HeadComponent = <ChatInboxHeader headerContext="inbox-header" />
 
 const styles = Styles.styleSheetCreate(
   () =>

@@ -6,9 +6,7 @@ import {HeaderLeftArrow} from '../common-adapters/header-hoc'
 import {TabActions} from '@react-navigation/core'
 import type {useSubnavTabAction as useSubnavTabActionType} from './common'
 
-export const headerDefaultStyle = {
-  height: 80,
-}
+export const headerDefaultStyle = {}
 export const tabBarStyle = {
   get backgroundColor() {
     return Styles.globalColors.blueDarkOrGreyDarkest

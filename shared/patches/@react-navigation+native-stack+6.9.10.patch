@@ -1,8 +1,8 @@
-diff --git a/node_modules/@react-navigation/stack/src/navigators/createStackNavigator.tsx b/node_modules/@react-navigation/stack/src/navigators/createStackNavigator.tsx
-index 40f3bc1..1ed566f 100644
---- a/node_modules/@react-navigation/stack/src/navigators/createStackNavigator.tsx
-+++ b/node_modules/@react-navigation/stack/src/navigators/createStackNavigator.tsx
-@@ -6,7 +6,7 @@ import {
+diff --git a/node_modules/@react-navigation/native-stack/src/navigators/createNativeStackNavigator.tsx b/node_modules/@react-navigation/native-stack/src/navigators/createNativeStackNavigator.tsx
+index 6ad44d2..abbb1c4 100644
+--- a/node_modules/@react-navigation/native-stack/src/navigators/createNativeStackNavigator.tsx
++++ b/node_modules/@react-navigation/native-stack/src/navigators/createNativeStackNavigator.tsx
+@@ -5,7 +5,7 @@ import {
    StackActionHelpers,
    StackActions,
    StackNavigationState,
@@ -11,10 +11,10 @@ index 40f3bc1..1ed566f 100644
    StackRouterOptions,
    useNavigationBuilder,
  } from '@react-navigation/native';
-@@ -20,6 +20,36 @@ import type {
-   StackNavigationOptions,
+@@ -18,6 +18,37 @@ import type {
  } from '../types';
- import StackView from '../views/Stack/StackView';
+ import NativeStackView from '../views/NativeStackView';
+ 
 +import isEqual from 'lodash/isEqual'
 +
 +const StackRouter = options => {
@@ -45,6 +45,7 @@ index 40f3bc1..1ed566f 100644
 +    },
 +  }
 +}
- 
- type Props = DefaultNavigatorOptions<
-   ParamListBase,
++
+ function NativeStackNavigator({
+   id,
+   initialRouteName,
