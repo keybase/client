@@ -59,18 +59,18 @@ type WarningLinkProps = {
 
 const WarningLink = (props: WarningLinkProps) => {
   const dispatch = Container.useDispatch()
-  const {display, punycode} = props
+  const {display, punycode, url} = props
   if (Styles.isMobile) {
     return (
       <Text
         className="hover-underline"
         type="BodyPrimaryLink"
         style={Styles.collapseStyles([props.wrapStyle, linkStyle, props.linkStyle])}
-        title={props.display}
+        title={display}
         onClick={() =>
           dispatch(
             RouteTreeGen.createNavigateAppend({
-              path: [{props: {display, punycode}, selected: 'chatConfirmNavigateExternal'}],
+              path: [{props: {display, punycode, url}, selected: 'chatConfirmNavigateExternal'}],
             })
           )
         }
@@ -84,19 +84,17 @@ const WarningLink = (props: WarningLinkProps) => {
       className="hover-underline"
       type="BodyPrimaryLink"
       style={Styles.collapseStyles([props.wrapStyle, linkStyle, props.linkStyle])}
-      title={props.display}
-      onClickURL={props.url}
-      onLongPressURL={props.url}
+      title={display}
+      onClickURL={url}
+      onLongPressURL={url}
     >
       <WithTooltip
-        tooltip={props.punycode}
+        tooltip={punycode}
         containerStyle={Styles.platformStyles({
-          isElectron: {
-            display: 'inline-block',
-          },
+          isElectron: {display: 'inline-block'},
         })}
       >
-        {props.display}
+        {display}
       </WithTooltip>
     </Text>
   )
