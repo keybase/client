@@ -2,7 +2,7 @@
 import * as React from 'react'
 import logger from '../../logger'
 
-export const chatDebugEnabled = true
+export const chatDebugEnabled = false
 
 if (chatDebugEnabled) {
   for (let i = 0; i < 10; ++i) {
@@ -26,11 +26,13 @@ const chatDebugDump = chatDebugEnabled
 
 export const DebugChatDumpContext = React.createContext({chatDebugDump})
 
-export const useChatDebugDump = (key: string, dumpCB: () => string) => {
-  React.useEffect(() => {
-    dumpMap.set(key, dumpCB)
-    return () => {
-      dumpMap.delete(key)
+export const useChatDebugDump = chatDebugEnabled
+  ? (key: string, dumpCB: () => string) => {
+      React.useEffect(() => {
+        dumpMap.set(key, dumpCB)
+        return () => {
+          dumpMap.delete(key)
+        }
+      }, [key, dumpCB])
     }
-  }, [key, dumpCB])
-}
+  : (_key: string, _dumpCB: () => string) => {}
