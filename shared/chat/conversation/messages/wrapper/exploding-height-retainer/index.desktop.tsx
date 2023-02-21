@@ -51,7 +51,7 @@ class ExplodingHeightRetainer extends React.PureComponent<Props, State> {
     this.setHeight()
   }
 
-  setHeight() {
+  private setHeight() {
     const node = this._boxRef.current
     if (node instanceof HTMLElement) {
       const height = node.clientHeight
@@ -64,6 +64,11 @@ class ExplodingHeightRetainer extends React.PureComponent<Props, State> {
 
   componentWillUnmount() {
     this.timerID && SharedTimer.removeObserver(this.props.messageKey, this.timerID)
+  }
+
+  private _setBoxRef = (r: HTMLDivElement | null) => {
+    this._boxRef = {current: r}
+    this.setHeight()
   }
 
   render() {
@@ -80,7 +85,7 @@ class ExplodingHeightRetainer extends React.PureComponent<Props, State> {
             position: 'relative',
           },
         ])}
-        forwardedRef={this._boxRef}
+        forwardedRef={this._setBoxRef}
       >
         {this.state.children}
         <Ashes
