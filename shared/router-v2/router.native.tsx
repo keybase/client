@@ -131,18 +131,6 @@ const styles = Styles.styleSheetCreate(
 
 const Tab = createBottomTabNavigator()
 
-const fastTransitionSpec = {
-  animation: 'spring',
-  config: {
-    damping: 500,
-    mass: 0.3,
-    overshootClamping: true,
-    restDisplacementThreshold: 10,
-    restSpeedThreshold: 10,
-    stiffness: 1000,
-  },
-}
-
 const tabRoutes = Object.keys(routes).reduce<Container.RouteMap>((obj, name) => {
   // on phones we hide the tab bar on convos
   // if (Container.isPhone && name === 'chatConversation') {
@@ -170,10 +158,8 @@ const makeTabStack = (tab: string) => {
           initialRouteName={tabRoots[tab]}
           screenOptions={{
             ...Common.defaultNavigationOptions,
-            transitionSpec: {
-              close: fastTransitionSpec,
-              open: fastTransitionSpec,
-            },
+            animation: 'simple_push',
+            animationDuration: 250,
           }}
         >
           {tabScreens}
