@@ -578,7 +578,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "BITCODE_STRIP=\"$(xcrun -sdk iphoneos --find bitcode_strip)\"\n#FRAMEWORK=\"${BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.app/Frameworks/hermes.framework/hermes\"\nFRAMEWORK=\"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/hermes.framework/hermes\"\nif [ -f \"$FRAMEWORK\" ]; then\n    echo \"stripping hermes\"\n    ls -la \"${FRAMEWORK}\"\n    \"${BITCODE_STRIP}\" -r \"${FRAMEWORK}\" -o \"${FRAMEWORK}\"\n    echo \"done stripping hermes\"\n    ls -la \"${FRAMEWORK}\"\nelse \n    echo \"hermes not found, skipping strip\"\n    ls -la \"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/hermes.framework\"\nfi\n";
+			shellScript = "BITCODE_STRIP=\"$(xcrun -sdk iphoneos --find bitcode_strip)\"\nFRAMEWORK=\"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/hermes.framework/hermes\"\nif [ -f \"$FRAMEWORK\" ]; then\n    echo \"stripping hermes\"\n    ls -la \"${FRAMEWORK}\"\n    \"${BITCODE_STRIP}\" -r \"${FRAMEWORK}\" -o \"${FRAMEWORK}\"\n    echo \"done stripping hermes\"\n    ls -la \"${FRAMEWORK}\"\nelse \n    echo \"hermes not found, skipping strip\"\n    ls -la \"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}\"\nfi\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
