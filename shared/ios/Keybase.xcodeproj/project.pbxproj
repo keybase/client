@@ -314,6 +314,7 @@
 				279FB5D82139AB6A005E4864 /* Embed App Extensions */,
 				84EE85CB003D1A22493F22FE /* [CP] Copy Pods Resources */,
 				7ECF27A06905DA9ADCC54B37 /* [CP] Embed Pods Frameworks */,
+				DB3A5F8F29A5686A002BF5A5 /* Strip hermes */,
 			);
 			buildRules = (
 			);
@@ -560,6 +561,24 @@
 			shellPath = /bin/sh;
 			shellScript = "set -e\n\nWITH_ENVIRONMENT=\"../node_modules/react-native/scripts/xcode/with-environment.sh\"\nREACT_NATIVE_XCODE=\"../node_modules/react-native/scripts/react-native-xcode.sh\"\n\n/bin/sh -c \"$WITH_ENVIRONMENT $REACT_NATIVE_XCODE\"\n";
 			showEnvVarsInLog = 0;
+		};
+		DB3A5F8F29A5686A002BF5A5 /* Strip hermes */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Strip hermes";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "BITCODE_STRIP=\"$(xcrun -sdk iphoneos --find bitcode_strip)\"\n#FRAMEWORK=\"${BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.app/Frameworks/hermes.framework/hermes\"\nFRAMEWORK=\"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/hermes.framework/hermes\"\nif [ -f \"$FRAMEWORK\" ]; then\n    echo \"stripping hermes\"\n    ls -la \"${FRAMEWORK}\"\n    \"${BITCODE_STRIP}\" -r \"${FRAMEWORK}\" -o \"${FRAMEWORK}\"\n    echo \"done stripping hermes\"\n    ls -la \"${FRAMEWORK}\"\nelse \n    echo \"hermes not found, skipping strip\"\n    ls -la \"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/hermes.framework\"\nfi\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -891,6 +910,7 @@
 				"OTHER_SWIFT_FLAGS[sdk=iphonesimulator*]" = "-DDEBUG -DSIMULATOR";
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
+				STRIP_BITCODE_FROM_COPIED_FILES = YES;
 				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
@@ -953,6 +973,7 @@
 				OTHER_SWIFT_FLAGS = "";
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
+				STRIP_BITCODE_FROM_COPIED_FILES = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_VERSION = 5.0;
 				VALIDATE_PRODUCT = YES;
