@@ -24,9 +24,7 @@ export const tabBarStyle = {
 
 export const tabBarStyleHidden = {
   display: 'none',
-  height: 0,
-  maxHeight: 0,
-}
+} as const
 
 const actionWidth = 64
 const DEBUGCOLORS = __DEV__ && false
