@@ -7,30 +7,11 @@ import Error from './error/container'
 import YouAreReset from './you-are-reset'
 import Rekey from './rekey/container'
 import {headerNavigationOptions} from './header-area/container'
-import {useNavigation} from '@react-navigation/core'
 import type {RouteProps} from '../../router-v2/route-params'
-import {tabBarStyle} from '../../router-v2/common'
 
 type SwitchProps = RouteProps<'chatConversation'>
-const hideTabBarStyle = {display: 'none'}
 
 const Conversation = (p: SwitchProps) => {
-  const navigation = useNavigation()
-  let tabNav: any = navigation.getParent()
-  if (tabNav?.getState()?.type !== 'tab') {
-    tabNav = undefined
-  }
-
-  React.useEffect(() => {
-    if (!Container.isPhone) {
-      return
-    }
-    tabNav?.setOptions({tabBarStyle: hideTabBarStyle})
-    return () => {
-      tabNav?.setOptions({tabBarStyle})
-    }
-  }, [navigation, tabNav])
-
   const conversationIDKey = p.route.params?.conversationIDKey ?? Constants.noConversationIDKey
   const type = Container.useSelector(state => {
     const meta = Constants.getMeta(state, conversationIDKey)

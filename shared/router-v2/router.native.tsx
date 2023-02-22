@@ -13,7 +13,7 @@ import * as ConfigConstants from '../constants/config'
 import {useMemo} from '../util/memoize'
 import {StatusBar} from 'react-native'
 import {HeaderLeftCancel} from '../common-adapters/header-hoc'
-import {NavigationContainer} from '@react-navigation/native'
+import {NavigationContainer, getFocusedRouteNameFromRoute} from '@react-navigation/native'
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs'
 import {modalRoutes, routes, loggedOutRoutes, tabRoots} from './routes'
 import {enableFreeze} from 'react-native-screens'
@@ -180,6 +180,12 @@ const AppTabs = React.memo(
             key={tab}
             name={tab}
             component={makeTabStack(tab)}
+            options={({route}) => {
+              const routeName = getFocusedRouteNameFromRoute(route)
+              return {
+                tabBarStyle: routeName === 'chatConversation' ? Common.tabBarStyleHidden : Common.tabBarStyle,
+              }
+            }}
             listeners={{tabLongPress: makeLongPressHandler(dispatch, tab)}}
           />
         )),
