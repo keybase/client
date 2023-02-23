@@ -37,9 +37,10 @@ export const defaultNavigationOptions: any = {
     flexShrink: 0,
     ...(DEBUGCOLORS ? {backgroundColor: 'pink'} : {}),
   },
-  headerLeft: ({canGoBack, onPress, tintColor}) => (
-    <HeaderLeftArrow canGoBack={canGoBack} onPress={onPress} tintColor={tintColor} />
-  ),
+  headerLeft: ({canGoBack, onPress, tintColor}) => {
+    console.log('aaa headerleft commonnative', {canGoBack, onPress})
+    return <HeaderLeftArrow canGoBack={canGoBack} onPress={onPress} tintColor={tintColor} />
+  },
   headerLeftContainerStyle: {
     flexGrow: 0,
     flexShrink: 0,
