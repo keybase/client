@@ -26,6 +26,7 @@ const SectionList = React.forwardRef<NativeSectionList, Props<any>>(function Sec
     <NativeSectionListAny
       overScrollMode="never"
       onScrollToIndexFailed={noop}
+      keyboardDismissMode="on-drag"
       ref={forwardedRef}
       {...rest}
       getItemLayout={getItemLayout as any}

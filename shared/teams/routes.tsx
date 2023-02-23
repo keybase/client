@@ -134,6 +134,7 @@ export const newModalRoutes = {
     getScreen: (): typeof TeamEditTeamDescription => require('./edit-team-description').default,
   },
   teamEditTeamInfo: {
+    getOptions: () => ({needsKeyboard: true}),
     getScreen: (): typeof TeamEditTeamInfo => require('./team/team-info').default,
   },
   teamEditWelcomeMessage: {

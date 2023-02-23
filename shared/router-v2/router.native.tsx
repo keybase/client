@@ -341,7 +341,7 @@ const RNApp = React.memo(function RNApp() {
   const barStyle = useBarStyle()
 
   return (
-    <Kb.KeyboardAvoidingView style={styles.keyboard} behavior={Styles.isIOS ? 'padding' : undefined}>
+    <Kb.Box2 direction="vertical" pointerEvents="box-none" fullWidth={true} fullHeight={true}>
       <StatusBar barStyle={barStyle} />
       <NavigationContainer
         fallback={<Kb.NativeView style={{backgroundColor: Styles.globalColors.white, flex: 1}} />}
@@ -380,7 +380,7 @@ const RNApp = React.memo(function RNApp() {
           {loggedInLoaded && !loggedIn && <RootStack.Screen name="loggedOut" component={LoggedOut} />}
         </RootStack.Navigator>
       </NavigationContainer>
-    </Kb.KeyboardAvoidingView>
+    </Kb.Box2>
   )
 })
 

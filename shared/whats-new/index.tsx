@@ -57,7 +57,6 @@ const Wrapper = ({children}: {children: React.ReactNode}) => (
 )
 
 class WhatsNew extends React.PureComponent<Props> {
-  static navigationOptions = {}
   componentWillUnmount() {
     this.props.onBack()
   }

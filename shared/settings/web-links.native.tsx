@@ -15,9 +15,5 @@ const WebLinks = (props: Props) => {
     </Kb.Box2>
   )
 }
-WebLinks.navigationOptions = ({route}) => ({
-  header: undefined,
-  title: Container.getRouteParamsFromRoute<'privacyPolicy'>(route)?.title,
-})
 
 export default WebLinks

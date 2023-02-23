@@ -10,6 +10,7 @@ import {ChannelHeader, UsernameHeader, PhoneOrEmailHeader} from './index.native'
 import {HeaderLeftArrow} from '../../../common-adapters/header-hoc'
 import {getVisiblePath} from '../../../constants/router2'
 import {getRouteParamsFromRoute} from '../../../router-v2/route-params'
+import {Keyboard} from 'react-native'
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
@@ -47,10 +48,13 @@ export const HeaderAreaRight = (props: OwnProps) => {
     () => dispatch(Chat2Gen.createShowInfoPanel({conversationIDKey, show: true})),
     [dispatch, conversationIDKey]
   )
-  const onToggleThreadSearch = React.useCallback(
-    () => dispatch(Chat2Gen.createToggleThreadSearch({conversationIDKey})),
-    [dispatch, conversationIDKey]
-  )
+  const onToggleThreadSearch = React.useCallback(() => {
+    // fix a race with the keyboard going away and coming back quickly
+    Keyboard.dismiss()
+    setTimeout(() => {
+      dispatch(Chat2Gen.createToggleThreadSearch({conversationIDKey}))
+    }, 100)
+  }, [dispatch, conversationIDKey])
   return pendingWaiting ? null : (
     <Kb.Box2 direction="horizontal" gap="small">
       {dumpIcon}

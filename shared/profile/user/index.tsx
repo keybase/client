@@ -320,7 +320,7 @@ type ChunkType = Array<
   | {type: 'loading'; text: string}
 >
 class User extends React.Component<Props, State> {
-  static navigationOptions = () => ({
+  static navigationOptions = {
     headerLeft: ({
       canGoBack,
       onPress,
@@ -338,7 +338,7 @@ class User extends React.Component<Props, State> {
     headerStyle: {backgroundColor: 'transparent'},
     headerTitle: () => <ProfileSearch />,
     headerTransparent: true,
-  })
+  }
 
   constructor(props: Props) {
     super(props)

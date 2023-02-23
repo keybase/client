@@ -3,10 +3,37 @@ import * as React from 'react'
 import * as Styles from '../styles'
 import * as Shared from './shim.shared'
 import * as Container from '../util/container'
-import {SafeAreaView} from 'react-native'
+import {useSafeAreaInsets, SafeAreaView} from 'react-native-safe-area-context'
+import {useHeaderHeight} from '@react-navigation/elements'
 
 export const shim = (routes: any, isModal: boolean, isLoggedOut: boolean) =>
   Shared.shim(routes, shimNewRoute, isModal, isLoggedOut)
+
+const KAV = (p: {children: React.ReactNode}) => {
+  const {children} = p
+  const headerHeight = useHeaderHeight()
+  // const insets = useSafeAreaInsets()
+  // const {top, bottom} = insets
+  // const [_bottomPadding, setBottomPadding] = React.useState(bottom)
+  // const [topPadding, setTopPadding] = React.useState(top)
+  // React.useEffect(() => {
+  //   setBottomPadding(bottom)
+  //   setTopPadding(top)
+  // }, [bottom, top])
+
+  const keyboardVerticalOffset = headerHeight
+  // console.log('aaa kav', {top, bottom, headerHeight, sbh: Kb.NativeStatusBar.currentHeight})
+
+  return (
+    <Kb.KeyboardAvoidingView
+      style={styles.keyboard}
+      behavior={Container.isIOS ? 'padding' : 'height'}
+      keyboardVerticalOffset={keyboardVerticalOffset}
+    >
+      {children}
+    </Kb.KeyboardAvoidingView>
+  )
+}
 
 const shimNewRoute = (Original: any, isModal: boolean, isLoggedOut: boolean) => {
   // Wrap everything in a keyboard avoiding view (maybe this is opt in/out?)
@@ -18,6 +45,10 @@ const shimNewRoute = (Original: any, isModal: boolean, isLoggedOut: boolean) => 
     const original = <Original {...props} />
     const body = original
     let wrap = body
+
+    if (navigationOptions?.needsKeyboard) {
+      wrap = <KAV>{wrap}</KAV>
+    }
 
     const isSafe = navigationOptions?.needsSafe || isModal || isLoggedOut
     if (isSafe) {

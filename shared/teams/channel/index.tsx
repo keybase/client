@@ -250,11 +250,11 @@ const Channel = (props: OwnProps) => {
     </Kb.Box>
   )
 }
-Channel.navigationOptions = () => ({
+Channel.navigationOptions = {
   headerHideBorder: true,
   headerTitle: '',
   underNotch: true,
-})
+}
 
 const styles = Styles.styleSheetCreate(() => ({
   backButton: {

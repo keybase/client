@@ -17,15 +17,9 @@ const Main = () => {
         pointerEvents="box-none"
         style={Styles.globalStyles.fillAbsolute}
       />
-      <Kb.KeyboardAvoidingView
-        style={Styles.globalStyles.fillAbsolute}
-        pointerEvents="box-none"
-        behavior={Styles.isIOS ? 'padding' : undefined}
-      >
-        <Kb.Box2 direction="vertical" pointerEvents="box-none" fullWidth={true} style={styles.portalParent}>
-          <PortalHost name="keyboard-avoiding-root" />
-        </Kb.Box2>
-      </Kb.KeyboardAvoidingView>
+      <Kb.Box2 direction="vertical" pointerEvents="box-none" fullWidth={true} style={styles.portalParent}>
+        <PortalHost name="keyboard-avoiding-root" />
+      </Kb.Box2>
       <ResetModal />
       <GlobalError />
       <OutOfDate />

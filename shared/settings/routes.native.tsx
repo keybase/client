@@ -30,8 +30,20 @@ export const newRoutes = {
     getScreen: (): typeof ManageContactsTab => require('./manage-contacts.native').default,
   },
 
-  privacyPolicy: {getScreen: (): typeof WebLink => require('./web-links.native').default},
-  terms: {getScreen: (): typeof WebLink => require('./web-links.native').default},
+  privacyPolicy: {
+    getOptions: ({route}) => ({
+      header: undefined,
+      title: Container.getRouteParamsFromRoute<'privacyPolicy'>(route)?.title,
+    }),
+    getScreen: (): typeof WebLink => require('./web-links.native').default,
+  },
+  terms: {
+    getOptions: ({route}) => ({
+      header: undefined,
+      title: Container.getRouteParamsFromRoute<'terms'>(route)?.title,
+    }),
+    getScreen: (): typeof WebLink => require('./web-links.native').default,
+  },
 }
 
 export const newModalRoutes = {
