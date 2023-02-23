@@ -4,7 +4,7 @@ import * as Constants from '../../constants/crypto'
 import NavRow from './nav-row'
 import {useNavigation} from '@react-navigation/core'
 
-const SubNav = () => {
+const CryptoSubNav = () => {
   const navigator = useNavigation()
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} gap="tiny" style={styles.container}>
@@ -35,4 +35,4 @@ const styles = Styles.styleSheetCreate(
     } as const)
 )
 
-export default SubNav
+export default CryptoSubNav

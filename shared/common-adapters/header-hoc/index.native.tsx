@@ -341,7 +341,7 @@ export const HeaderLeftArrow = React.memo(function HeaderLeftArrow(hp: {
   onPress: () => void
   tintColor: string
 }) {
-  hp.canGoBack ?? true ? (
+  return hp.canGoBack ?? true ? (
     <LeftAction
       badgeNumber={hp.badgeNumber ?? 0}
       leftAction="back"

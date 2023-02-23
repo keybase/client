@@ -34,7 +34,7 @@ export const sharedNewRoutes = {
   [Constants.advancedTab]: {getScreen: (): typeof AdvancedTab => require('./advanced').default},
   [Constants.chatTab]: {getScreen: (): typeof ChatTab => require('./chat/container').default},
   [Constants.cryptoTab]: {
-    getOptions: () => ({title: 'aaaCrypto'}),
+    getOptions: () => ({title: 'Crypto'}),
     getScreen: (): typeof ChatTab => require('../crypto/sub-nav').default,
   },
   [Constants.devicesTab]: {getScreen: (): typeof DevicesTab => require('../devices/container').default},
