@@ -10,7 +10,6 @@ import {
   noVersion,
   getSeenVersions,
   anyVersionsUnseen,
-  keybaseFM,
 } from '../constants/whats-new'
 import {Current, Last, LastLast} from './versions'
 import WhatsNew from '.'
@@ -21,14 +20,6 @@ type OwnProps = {
   // when navigating within the app
   onBack?: () => void
 }
-
-WhatsNew.navigationOptions = Container.isMobile
-  ? {
-      HeaderTitle: keybaseFM,
-      header: undefined,
-      title: keybaseFM,
-    }
-  : {}
 
 const WhatsNewContainer = Container.connect(
   (state: Container.TypedState) => ({

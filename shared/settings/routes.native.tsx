@@ -29,18 +29,10 @@ export const newRoutes = {
   [Constants.contactsTab]: {
     getScreen: (): typeof ManageContactsTab => require('./manage-contacts.native').default,
   },
-
-  privacyPolicy: {
+  webLinks: {
     getOptions: ({route}) => ({
       header: undefined,
-      title: Container.getRouteParamsFromRoute<'privacyPolicy'>(route)?.title,
-    }),
-    getScreen: (): typeof WebLink => require('./web-links.native').default,
-  },
-  terms: {
-    getOptions: ({route}) => ({
-      header: undefined,
-      title: Container.getRouteParamsFromRoute<'terms'>(route)?.title,
+      title: Container.getRouteParamsFromRoute<'webLinks'>(route)?.title,
     }),
     getScreen: (): typeof WebLink => require('./web-links.native').default,
   },

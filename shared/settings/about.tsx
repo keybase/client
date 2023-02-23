@@ -12,7 +12,7 @@ const About = () => {
         path: [
           {
             props: {title: 'Privacy Policy', url: 'https://keybase.io/_/webview/privacypolicy'},
-            selected: 'privacyPolicy',
+            selected: 'webLinks',
           },
         ],
       })
@@ -23,7 +23,7 @@ const About = () => {
         path: [
           {
             props: {title: 'Terms', url: 'https://keybase.io/_/webview/terms'},
-            selected: 'terms',
+            selected: 'webLinks',
           },
         ],
       })

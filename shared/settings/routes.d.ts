@@ -13,7 +13,7 @@ export type RootParamListSettings = {
     email: string
     link: string
   }
-  privacyPolicy: {
+  webLinks: {
     url: string
     title: string
   }
@@ -47,10 +47,6 @@ export type RootParamListSettings = {
   settingsAddPhone: undefined
   settingsVerifyPhone: undefined
   settingsRoot: undefined
-  terms: {
-    url: string
-    title: string
-  }
   checkPassphraseBeforeDeleteAccount: undefined
   settingsContactsJoined: undefined
   settingsPushPrompt: undefined

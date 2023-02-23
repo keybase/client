@@ -6,6 +6,7 @@ import * as Kb from '../common-adapters'
 import {EscapeHandler} from '../util/key-event-handler.desktop'
 import {useFocusEffect} from '@react-navigation/native'
 
+export const getOptions = Shared.getOptions
 export const shim = (routes: any, isModal: boolean, isLoggedOut: boolean) =>
   Shared.shim(routes, shimNewRoute, isModal, isLoggedOut)
 
@@ -218,12 +219,12 @@ const styles = Styles.styleSheetCreate(() => {
   } as const
 })
 
-const shimNewRoute = (Original: any, isModal: boolean, _isLoggedOut: boolean) => {
+const shimNewRoute = (Original: any, isModal: boolean, _isLoggedOut: boolean, getOptions: any) => {
   const ShimmedNew = React.memo(function ShimmedNew(props: any) {
     const navigationOptions =
-      typeof Original.navigationOptions === 'function'
-        ? Original.navigationOptions({navigation: props.navigation, route: props.route})
-        : Original.navigationOptions
+      typeof getOptions === 'function'
+        ? getOptions({navigation: props.navigation, route: props.route})
+        : getOptions
     const original = <Original {...props} />
     let body = original
 

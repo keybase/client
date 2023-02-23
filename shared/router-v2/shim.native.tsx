@@ -3,27 +3,19 @@ import * as React from 'react'
 import * as Styles from '../styles'
 import * as Shared from './shim.shared'
 import * as Container from '../util/container'
-import {useSafeAreaInsets, SafeAreaView} from 'react-native-safe-area-context'
+import {SafeAreaView} from 'react-native-safe-area-context'
 import {useHeaderHeight} from '@react-navigation/elements'
 
 export const shim = (routes: any, isModal: boolean, isLoggedOut: boolean) =>
   Shared.shim(routes, shimNewRoute, isModal, isLoggedOut)
 
-const KAV = (p: {children: React.ReactNode}) => {
-  const {children} = p
+export const getOptions = Shared.getOptions
+
+const KAV = (p: {isModal: boolean; children: React.ReactNode}) => {
+  const {children, isModal} = p
   const headerHeight = useHeaderHeight()
-  // const insets = useSafeAreaInsets()
-  // const {top, bottom} = insets
-  // const [_bottomPadding, setBottomPadding] = React.useState(bottom)
-  // const [topPadding, setTopPadding] = React.useState(top)
-  // React.useEffect(() => {
-  //   setBottomPadding(bottom)
-  //   setTopPadding(top)
-  // }, [bottom, top])
-
-  const keyboardVerticalOffset = headerHeight
-  // console.log('aaa kav', {top, bottom, headerHeight, sbh: Kb.NativeStatusBar.currentHeight})
-
+  const modalHeight = isModal ? 40 : 0
+  const keyboardVerticalOffset = headerHeight + modalHeight
   return (
     <Kb.KeyboardAvoidingView
       style={styles.keyboard}
@@ -35,23 +27,25 @@ const KAV = (p: {children: React.ReactNode}) => {
   )
 }
 
-const shimNewRoute = (Original: any, isModal: boolean, isLoggedOut: boolean) => {
+const shimNewRoute = (Original: any, isModal: boolean, isLoggedOut: boolean, getOptions: any) => {
   // Wrap everything in a keyboard avoiding view (maybe this is opt in/out?)
   const ShimmedNew = React.memo(function ShimmedNew(props: any) {
     const navigationOptions =
-      typeof Original.navigationOptions === 'function'
-        ? Original.navigationOptions({navigation: props.navigation, route: props.route})
-        : Original.navigationOptions
+      typeof getOptions === 'function'
+        ? getOptions({navigation: props.navigation, route: props.route})
+        : getOptions
     const original = <Original {...props} />
     const body = original
     let wrap = body
 
-    if (navigationOptions?.needsKeyboard) {
-      wrap = <KAV>{wrap}</KAV>
+    const wrapInKeyboard = navigationOptions?.needsKeyboard || (isModal && !navigationOptions?.needsKeyboard)
+
+    if (wrapInKeyboard) {
+      wrap = <KAV isModal={isModal}>{wrap}</KAV>
     }
 
-    const isSafe = navigationOptions?.needsSafe || isModal || isLoggedOut
-    if (isSafe) {
+    const wrapInSafe = navigationOptions?.needsSafe || isModal || isLoggedOut
+    if (wrapInSafe) {
       wrap = (
         <SafeAreaView style={Styles.collapseStyles([styles.keyboard, navigationOptions?.safeAreaStyle])}>
           {wrap}

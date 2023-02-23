@@ -1,4 +1,5 @@
 import * as Constants from '../constants/settings'
+import {isMobile} from '../constants/platform'
 import type AboutTab from './about'
 import type AccountTab from './account/container'
 import type AdvancedTab from './advanced'
@@ -38,7 +39,16 @@ export const sharedNewRoutes = {
   [Constants.notificationsTab]: {
     getScreen: (): typeof NotificationsTab => require('./notifications/container').default,
   },
-  [Constants.whatsNewTab]: {getScreen: (): typeof WhatsNewTab => require('../whats-new/container').default},
+  [Constants.whatsNewTab]: {
+    getOptions: isMobile
+      ? {
+          HeaderTitle: 'Keybase FM 87.7',
+          header: undefined,
+          title: 'Keybase FM 87.7',
+        }
+      : {},
+    getScreen: (): typeof WhatsNewTab => require('../whats-new/container').default,
+  },
   addEmail: {getScreen: (): typeof Email => require('./account/add-modals').Email},
   addPhone: {getScreen: (): typeof Phone => require('./account/add-modals').Phone},
   dbNukeConfirm: {getScreen: (): typeof DbNukeConfirm => require('./db-nuke-confirm/container').default},

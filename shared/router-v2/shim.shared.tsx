@@ -4,6 +4,12 @@ export const toggleRenderDebug = () => {
 }
 export const getRenderDebug = () => _renderDebug
 
+// TODO better types
+export const getOptions = (route: any): any => {
+  const no = route?.getOptions ?? route?.getScreen().navigationOptions
+  return no
+}
+
 export const shim = (routes: any, platformWrapper: any, isModal: boolean, isLoggedOut: boolean) => {
   return Object.keys(routes).reduce((map, route) => {
     let _cached = null
@@ -18,7 +24,12 @@ export const shim = (routes: any, platformWrapper: any, isModal: boolean, isLogg
                 return _cached
               }
 
-              _cached = platformWrapper(routes[route].getScreen(), isModal, isLoggedOut)
+              _cached = platformWrapper(
+                routes[route].getScreen(),
+                isModal,
+                isLoggedOut,
+                getOptions(routes[route])
+              )
               return _cached
             },
           }

@@ -1,9 +1,8 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters/mobile.native'
-import * as Container from '../util/container'
+import type * as Container from '../util/container'
 
-// this is used by acouple of routes, TODO just make this 'webLinks'
-type Props = Container.RouteProps<'privacyPolicy'>
+type Props = Container.RouteProps<'webLinks'>
 
 const WebLinks = (props: Props) => {
   const uri = props.route.params?.url ?? ''
