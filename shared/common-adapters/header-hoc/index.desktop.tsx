@@ -5,6 +5,7 @@ import Box from '../box'
 import Icon from '../icon'
 import * as Styles from '../../styles'
 import type {Props, LeftActionProps} from '.'
+import {useNavigation} from '@react-navigation/core'
 
 export const HeaderHocHeader = ({
   headerStyle,
@@ -178,3 +179,14 @@ export const HeaderLeftCancel = hp =>
       customIconColor={hp.tintColor}
     />
   ) : null
+
+export const HeaderLeftCancel2 = hp => {
+  const navigation = useNavigation()
+  const onBack = React.useCallback(() => {
+    navigation.pop()
+  }, [navigation])
+
+  return hp.canGoBack ?? true ? (
+    <LeftAction badgeNumber={0} leftAction="cancel" customIconColor={hp.tintColor} onLeftAction={onBack} />
+  ) : null
+}

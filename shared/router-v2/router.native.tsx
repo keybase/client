@@ -12,7 +12,7 @@ import * as Common from './common.native'
 import * as ConfigConstants from '../constants/config'
 import {useMemo} from '../util/memoize'
 import {StatusBar} from 'react-native'
-import {HeaderLeftCancel} from '../common-adapters/header-hoc'
+import {HeaderLeftCancel2} from '../common-adapters/header-hoc'
 import {NavigationContainer, getFocusedRouteNameFromRoute} from '@react-navigation/native'
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs'
 import {modalRoutes, routes, loggedOutRoutes, tabRoots} from './routes'
@@ -366,14 +366,11 @@ const RNApp = React.memo(function RNApp() {
             <>
               <RootStack.Screen name="loggedIn" component={AppTabs} />
               <RootStack.Group
-                screenOptions={({route}) => {
-                  console.log('aaaa', route)
-                  return {
-                    headerLeft: () => <HeaderLeftCancel />,
-                    // hard to fight overdraw on android with this on so just treat modals as screens
-                    presentation: Styles.isAndroid ? undefined : 'modal',
-                    title: '',
-                  }
+                screenOptions={{
+                  headerLeft: () => <HeaderLeftCancel2 />,
+                  // hard to fight overdraw on android with this on so just treat modals as screens
+                  presentation: Styles.isAndroid ? undefined : 'modal',
+                  title: '',
                 }}
               >
                 {ModalScreens}

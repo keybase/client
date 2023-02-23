@@ -1,11 +1,10 @@
-import * as Kb from '../common-adapters'
+import {HeaderLeftCancel2} from '../common-adapters/header-hoc'
 import * as Constants from '../constants/crypto'
 import type TeamBuilder from '../team-building/container'
 import type {EncryptInput, EncryptOutput} from './operations/encrypt'
 import type {DecryptInput, DecryptOutput} from './operations/decrypt'
 import type {SignInput, SignOutput} from './operations/sign'
 import type {VerifyInput, VerifyOutput} from './operations/verify'
-import {View} from 'react-native'
 
 const inputOptions = {
   headerShown: true,
@@ -13,14 +12,7 @@ const inputOptions = {
 } as const
 
 const outputOptions = {
-  headerLeft: p => {
-    console.log('aaa modal ', p)
-    return (
-      <View style={{width: 100, height: 100, backgroundColor: 'red'}}>
-        <Kb.HeaderLeftCancel {...p} />
-      </View>
-    )
-  },
+  headerLeft: p => <HeaderLeftCancel2 {...p} />,
   headerShown: true,
   needsKeyboard: false,
 } as const

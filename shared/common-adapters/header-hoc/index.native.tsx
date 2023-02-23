@@ -7,6 +7,7 @@ import Icon from '../icon'
 import SafeAreaView, {SafeAreaViewTop} from '../safe-area-view'
 import * as Styles from '../../styles'
 import type {Action, Props, LeftActionProps} from '.'
+import {useNavigation} from '@react-navigation/core'
 
 const MAX_RIGHT_ACTIONS = 3
 
@@ -363,5 +364,21 @@ export const HeaderLeftCancel = React.memo(function HeaderLeftCancel(hp: {
       onLeftAction={hp.onPress} // react navigation makes sure this onPress can only happen once
       customIconColor={hp.tintColor}
     />
+  ) : null
+})
+
+export const HeaderLeftCancel2 = React.memo(function HeaderLeftCancel(hp: {
+  canGoBack?: boolean
+  badgeNumber?: number
+  tintColor: string
+}) {
+  const navigation = useNavigation()
+  const onBack = React.useCallback(() => {
+    // @ts-ignore
+    navigation.pop()
+  }, [navigation])
+
+  return hp.canGoBack ?? true ? (
+    <LeftAction badgeNumber={0} leftAction="cancel" customIconColor={hp.tintColor} onLeftAction={onBack} />
   ) : null
 })

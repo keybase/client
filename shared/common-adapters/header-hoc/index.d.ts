@@ -64,3 +64,4 @@ export declare class LeftAction extends React.Component<LeftActionProps> {}
 export declare class HeaderLeftArrow extends React.Component<any> {}
 export declare class HeaderLeftBlank extends React.Component<any> {}
 export declare class HeaderLeftCancel extends React.Component<any> {}
+export declare class HeaderLeftCancel2 extends React.Component<any> {}
