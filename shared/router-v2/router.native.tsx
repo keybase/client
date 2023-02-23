@@ -366,11 +366,14 @@ const RNApp = React.memo(function RNApp() {
             <>
               <RootStack.Screen name="loggedIn" component={AppTabs} />
               <RootStack.Group
-                screenOptions={{
-                  headerLeft: () => <HeaderLeftCancel />,
-                  // hard to fight overdraw on android with this on so just treat modals as screens
-                  presentation: Styles.isAndroid ? undefined : 'modal',
-                  title: '',
+                screenOptions={({route}) => {
+                  console.log('aaaa', route)
+                  return {
+                    headerLeft: () => <HeaderLeftCancel />,
+                    // hard to fight overdraw on android with this on so just treat modals as screens
+                    presentation: Styles.isAndroid ? undefined : 'modal',
+                    title: '',
+                  }
                 }}
               >
                 {ModalScreens}

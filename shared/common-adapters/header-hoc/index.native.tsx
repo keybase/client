@@ -327,17 +327,19 @@ const styles = Styles.styleSheetCreate(() => ({
 }))
 
 const noop = () => {}
-const HeaderLeftBlank_ = () => (
-  <LeftAction badgeNumber={0} leftAction="back" onLeftAction={noop} style={{opacity: 0}} />
+export const HeaderLeftBlank = React.memo(
+  function HeaderLeftBlank() {
+    return <LeftAction badgeNumber={0} leftAction="back" onLeftAction={noop} style={{opacity: 0}} />
+  },
+  () => true
 )
-export const HeaderLeftBlank = React.memo(HeaderLeftBlank_, () => true)
 
-const HeaderLeftArrow_ = (hp: {
+export const HeaderLeftArrow = React.memo(function HeaderLeftArrow(hp: {
   canGoBack?: boolean
   badgeNumber?: number
   onPress: () => void
   tintColor: string
-}) =>
+}) {
   hp.canGoBack ?? true ? (
     <LeftAction
       badgeNumber={hp.badgeNumber ?? 0}
@@ -346,16 +348,15 @@ const HeaderLeftArrow_ = (hp: {
       customIconColor={hp.tintColor}
     />
   ) : null
+})
 
-export const HeaderLeftArrow = React.memo(HeaderLeftArrow_)
-
-const HeaderLeftCancel_ = (hp: {
+export const HeaderLeftCancel = React.memo(function HeaderLeftCancel(hp: {
   canGoBack?: boolean
   badgeNumber?: number
   onPress: () => void
   tintColor: string
-}) =>
-  hp.canGoBack ?? true ? (
+}) {
+  return hp.canGoBack ?? true ? (
     <LeftAction
       badgeNumber={0}
       leftAction="cancel"
@@ -363,5 +364,4 @@ const HeaderLeftCancel_ = (hp: {
       customIconColor={hp.tintColor}
     />
   ) : null
-
-export const HeaderLeftCancel = React.memo(HeaderLeftCancel_)
+})
