@@ -23,11 +23,20 @@ import type {DeleteModal} from './account/confirm-delete'
 import type {Email, Phone, VerifyPhone} from './account/add-modals'
 
 export const sharedNewRoutes = {
-  [Constants.aboutTab]: {getScreen: (): typeof AboutTab => require('./about').default},
+  [Constants.aboutTab]: {
+    getOptions: {
+      header: undefined,
+      title: 'About',
+    },
+    getScreen: (): typeof AboutTab => require('./about').default,
+  },
   [Constants.accountTab]: {getScreen: (): typeof AccountTab => require('./account/container').default},
   [Constants.advancedTab]: {getScreen: (): typeof AdvancedTab => require('./advanced').default},
   [Constants.chatTab]: {getScreen: (): typeof ChatTab => require('./chat/container').default},
-  [Constants.cryptoTab]: {getScreen: (): typeof ChatTab => require('../crypto/sub-nav').default},
+  [Constants.cryptoTab]: {
+    getOptions: () => ({title: 'Crypto'}),
+    getScreen: (): typeof ChatTab => require('../crypto/sub-nav').default,
+  },
   [Constants.devicesTab]: {getScreen: (): typeof DevicesTab => require('../devices/container').default},
   [Constants.displayTab]: {getScreen: (): typeof DisplayTab => require('./display').default},
   [Constants.feedbackTab]: {getScreen: (): typeof FeedbackTab => require('./feedback/container').default},

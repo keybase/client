@@ -35,8 +35,4 @@ const styles = Styles.styleSheetCreate(
     } as const)
 )
 
-SubNav.navigationOptions = {
-  title: 'Crypto',
-}
-
 export default SubNav

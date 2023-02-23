@@ -49,11 +49,6 @@ const About = () => {
     </Kb.Box2>
   )
 }
-About.navigationOptions = {
-  header: undefined,
-  title: 'About',
-}
-
 const styles = Styles.styleSheetCreate(() => ({
   container: {
     alignItems: 'center',

@@ -38,7 +38,9 @@ const shimNewRoute = (Original: any, isModal: boolean, isLoggedOut: boolean, get
     const body = original
     let wrap = body
 
-    const wrapInKeyboard = navigationOptions?.needsKeyboard || (isModal && !navigationOptions?.needsKeyboard)
+    // either they want it, or its a modal and they haven't explicitly opted out
+    const wrapInKeyboard =
+      navigationOptions?.needsKeyboard || (isModal && (navigationOptions?.needsKeyboard ?? true))
 
     if (wrapInKeyboard) {
       wrap = <KAV isModal={isModal}>{wrap}</KAV>
@@ -53,8 +55,14 @@ const shimNewRoute = (Original: any, isModal: boolean, isLoggedOut: boolean, get
       )
     }
 
+    // if (wrapInKeyboard || wrapInSafe) {
+    console.log('aaa', {Original, wrapInKeyboard, wrapInSafe, navigationOptions, getOptions})
+    // }
+
     // TODO remove and make all root views have a good background
-    wrap = <Kb.NativeView style={isModal ? styles.modal : styles.keyboard}>{wrap}</Kb.NativeView>
+    if (isModal) {
+      wrap = <Kb.NativeView style={isModal ? styles.modal : styles.keyboard}>{wrap}</Kb.NativeView>
+    }
     return wrap
   })
   Container.hoistNonReactStatic(ShimmedNew, Original)
