@@ -48,12 +48,13 @@ export const LeftAction = ({
   theme,
 }: LeftActionProps) => (
   <Box style={Styles.collapseStyles([styles.leftAction, hasTextTitle && styles.grow])}>
-    {onLeftAction &&
-      (leftAction === 'cancel' ? (
-        <Text type="BodyBigLink" style={styles.action} onClick={onLeftAction}>
-          {leftActionText || customCancelText || 'Cancel'}
-        </Text>
-      ) : (
+    {onLeftAction && leftAction === 'cancel' ? (
+      <Text type="BodyBigLink" style={styles.action} onClick={onLeftAction}>
+        {leftActionText || customCancelText || 'Cancel'}
+      </Text>
+    ) : (
+      onLeftAction ||
+      (leftAction === 'back' && (
         <BackButton
           badgeNumber={badgeNumber}
           hideBackLabel={hideBackLabel}
@@ -66,9 +67,10 @@ export const LeftAction = ({
           }
           style={styles.action}
           textStyle={disabled ? styles.disabledText : undefined}
-          onClick={disabled ? undefined : onLeftAction}
+          onClick={disabled ? undefined : onLeftAction ?? undefined}
         />
-      ))}
+      ))
+    )}
   </Box>
 )
 
@@ -183,6 +185,7 @@ export const HeaderLeftCancel = hp =>
 export const HeaderLeftCancel2 = hp => {
   const navigation = useNavigation()
   const onBack = React.useCallback(() => {
+    // @ts-ignore
     navigation.pop()
   }, [navigation])
 
