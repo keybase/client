@@ -54,7 +54,7 @@ const styles = Styles.styleSheetCreate(
           top: undefined,
         },
         isMobile: {
-          backgroundColor: Styles.globalColors.fastBlank,
+          backgroundColor: Styles.globalColors.white,
           bottom: 0,
           flexShrink: 0,
           height: RowSizes.floatingDivider,

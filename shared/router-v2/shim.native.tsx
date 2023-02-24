@@ -22,9 +22,11 @@ const shimNewRoute = (Original: any, isModal: boolean, isLoggedOut: boolean, get
     const body = original
     let wrap = body
 
-    // either they want it, or its a modal and they haven't explicitly opted out
+    // either they want it, or its a modal/loggedout and they haven't explicitly opted out
     const wrapInKeyboard =
-      navigationOptions?.needsKeyboard || (isModal && (navigationOptions?.needsKeyboard ?? true))
+      navigationOptions?.needsKeyboard ||
+      (isModal && (navigationOptions?.needsKeyboard ?? true)) ||
+      (isLoggedOut && (navigationOptions?.needsKeyboard ?? true))
 
     if (wrapInKeyboard) {
       wrap = <Kb.KeyboardAvoidingView2 isModal={isModal}>{wrap}</Kb.KeyboardAvoidingView2>
