@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as Styles from '../styles'
 import FloatingBox from './floating-box'
 import Box from './box'
+import {KeyboardAvoidingView2} from './keyboard-avoiding-view'
 import {useTimeout} from './use-timers'
 import {NativeAnimated, NativeEasing} from './native-wrappers.native'
 import type {Props} from './toast'
@@ -11,6 +12,7 @@ import {isDarkMode} from '../styles/dark-mode'
 const Kb = {
   Box,
   FloatingBox,
+  KeyboardAvoidingView2,
 }
 
 const noop = () => {}
@@ -55,18 +57,20 @@ const Toast = (props: Props) => {
   }, [shouldRender])
 
   return shouldRender ? (
-    <Kb.FloatingBox dest="keyboard-avoiding-root">
-      <Kb.Box pointerEvents="none" style={styles.wrapper}>
-        <NativeAnimated.View
-          style={Styles.collapseStyles([
-            styles.container,
-            props.containerStyle,
-            {opacity: opacityRef.current},
-          ] as any)}
-        >
-          {props.children}
-        </NativeAnimated.View>
-      </Kb.Box>
+    <Kb.FloatingBox>
+      <Kb.KeyboardAvoidingView2>
+        <Kb.Box pointerEvents="none" style={styles.wrapper}>
+          <NativeAnimated.View
+            style={Styles.collapseStyles([
+              styles.container,
+              props.containerStyle,
+              {opacity: opacityRef.current},
+            ] as any)}
+          >
+            {props.children}
+          </NativeAnimated.View>
+        </Kb.Box>
+      </Kb.KeyboardAvoidingView2>
     </Kb.FloatingBox>
   ) : null
 }

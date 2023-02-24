@@ -14,7 +14,7 @@ export default class FloatingBox extends React.Component<Props> {
   render() {
     const props = this.props
     return (
-      <Portal hostName={props.dest || 'popup-root'}>
+      <Portal hostName={'popup-root'}>
         <Box pointerEvents="box-none" style={[globalStyles.fillAbsolute, props.containerStyle]}>
           {props.children}
         </Box>

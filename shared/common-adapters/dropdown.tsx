@@ -33,17 +33,13 @@ type DropdownButtonProps = {
   inline?: boolean
   loading?: boolean
 }
-const noTheme = {}
 export const DropdownButton = (props: DropdownButtonProps) => (
   <Kb.ClickableBox
     onClick={!props.disabled ? props.toggleOpen : undefined}
     style={Styles.collapseStyles([styles.dropdownBoxContainer, props.style])}
   >
     <Kb.Box
-      inline={props.inline}
-      disabled={props.disabled}
       ref={props.popupAnchor as any}
-      theme={noTheme}
       className={Styles.classNames('dropdown_border', {
         hover: !props.disabled,
       })}
@@ -67,11 +63,7 @@ export const DropdownButton = (props: DropdownButtonProps) => (
           ? Styles.globalMargins.large
           : Styles.globalMargins.small,
         width: props.inline ? undefined : '100%',
-        ...(Styles.isTablet
-          ? {
-              maxWidth: 460,
-            }
-          : {}),
+        ...(Styles.isTablet ? {maxWidth: 460} : {}),
       }}
     >
       <Kb.Box style={Styles.collapseStyles([styles.selectedBox, props.selectedBoxStyle])}>

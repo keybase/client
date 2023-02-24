@@ -358,12 +358,8 @@ const Popup = (p: PopupProps) => {
   const getAttachmentRef = React.useCallback(() => inputRef.current?._input.current, [inputRef])
 
   return Styles.isMobile ? (
-    <Kb.FloatingBox
-      containerStyle={suggestionOverlayStyle}
-      dest="keyboard-avoiding-root"
-      onHidden={setInactive}
-    >
-      {children}
+    <Kb.FloatingBox containerStyle={suggestionOverlayStyle} onHidden={setInactive}>
+      <Kb.KeyboardAvoidingView2>{children}</Kb.KeyboardAvoidingView2>
     </Kb.FloatingBox>
   ) : (
     <Kb.Overlay

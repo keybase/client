@@ -9,7 +9,7 @@ const Overlay = (props: Props) => {
     return null
   }
   return (
-    <FloatingBox onHidden={() => {}} dest={props.dest} hideKeyboard={true}>
+    <FloatingBox onHidden={() => {}} hideKeyboard={true}>
       <Box2
         direction="vertical"
         style={Styles.collapseStyles([styles.container, !!props.color && {color: props.color}])}

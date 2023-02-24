@@ -16,8 +16,6 @@ import type {StylesCrossPlatform} from '../../styles/css'
 
 export type Props = {
   attachTo?: () => React.Component<any> | null
-  // Mobile only - select which GatewayDest to use. Default is 'popup-root'
-  dest?: 'popup-root' | 'keyboard-avoiding-root'
   children: React.ReactNode
   color?: string
   matchDimension?: boolean

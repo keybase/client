@@ -1,31 +1,15 @@
-import * as Kb from '../common-adapters/mobile.native'
+import * as Kb from '../common-adapters'
 import * as React from 'react'
 import * as Styles from '../styles'
 import * as Shared from './shim.shared'
 import * as Container from '../util/container'
 import {SafeAreaView} from 'react-native-safe-area-context'
-import {useHeaderHeight} from '@react-navigation/elements'
+import {View} from 'react-native'
 
 export const shim = (routes: any, isModal: boolean, isLoggedOut: boolean) =>
   Shared.shim(routes, shimNewRoute, isModal, isLoggedOut)
 
 export const getOptions = Shared.getOptions
-
-const KAV = (p: {isModal: boolean; children: React.ReactNode}) => {
-  const {children, isModal} = p
-  const headerHeight = useHeaderHeight()
-  const modalHeight = isModal ? 40 : 0
-  const keyboardVerticalOffset = headerHeight + modalHeight
-  return (
-    <Kb.KeyboardAvoidingView
-      style={styles.keyboard}
-      behavior={Container.isIOS ? 'padding' : 'height'}
-      keyboardVerticalOffset={keyboardVerticalOffset}
-    >
-      {children}
-    </Kb.KeyboardAvoidingView>
-  )
-}
 
 const shimNewRoute = (Original: any, isModal: boolean, isLoggedOut: boolean, getOptions: any) => {
   // Wrap everything in a keyboard avoiding view (maybe this is opt in/out?)
@@ -43,7 +27,7 @@ const shimNewRoute = (Original: any, isModal: boolean, isLoggedOut: boolean, get
       navigationOptions?.needsKeyboard || (isModal && (navigationOptions?.needsKeyboard ?? true))
 
     if (wrapInKeyboard) {
-      wrap = <KAV isModal={isModal}>{wrap}</KAV>
+      wrap = <Kb.KeyboardAvoidingView2 isModal={isModal}>{wrap}</Kb.KeyboardAvoidingView2>
     }
 
     const wrapInSafe = navigationOptions?.needsSafe || isModal || isLoggedOut
@@ -56,12 +40,12 @@ const shimNewRoute = (Original: any, isModal: boolean, isLoggedOut: boolean, get
     }
 
     // if (wrapInKeyboard || wrapInSafe) {
-    console.log('aaa', {Original, wrapInKeyboard, wrapInSafe, navigationOptions, getOptions})
+    // console.log('aaa', {Original, wrapInKeyboard, wrapInSafe, navigationOptions, getOptions})
     // }
 
     // TODO remove and make all root views have a good background
     if (isModal) {
-      wrap = <Kb.NativeView style={isModal ? styles.modal : styles.keyboard}>{wrap}</Kb.NativeView>
+      wrap = <View style={isModal ? styles.modal : styles.keyboard}>{wrap}</View>
     }
     return wrap
   })

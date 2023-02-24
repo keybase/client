@@ -1,11 +1,10 @@
-import * as Kb from '../common-adapters/mobile.native'
-import * as Styles from '../styles'
 import Router from '../router-v2/router'
 import {PortalHost} from '@gorhom/portal'
 import ResetModal from '../login/reset/modal'
 import GlobalError from './global-errors/container'
 import OutOfDate from './out-of-date'
 import RuntimeStats from './runtime-stats'
+import {StyleSheet} from 'react-native'
 
 const Main = () => {
   return (
@@ -15,11 +14,8 @@ const Main = () => {
         name="popup-root"
         // @ts-ignore
         pointerEvents="box-none"
-        style={Styles.globalStyles.fillAbsolute}
+        style={StyleSheet.absoluteFill}
       />
-      <Kb.Box2 direction="vertical" pointerEvents="box-none" fullWidth={true} style={styles.portalParent}>
-        <PortalHost name="keyboard-avoiding-root" />
-      </Kb.Box2>
       <ResetModal />
       <GlobalError />
       <OutOfDate />
@@ -27,9 +23,5 @@ const Main = () => {
     </>
   )
 }
-
-const styles = Styles.styleSheetCreate(() => ({
-  portalParent: {flexGrow: 1, position: 'relative'},
-}))
 
 export default Main

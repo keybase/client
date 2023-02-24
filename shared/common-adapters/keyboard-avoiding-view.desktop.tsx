@@ -1,5 +1,3 @@
 import type * as React from 'react'
-
-const RenderChildren = ({children}: {children?: React.ReactNode}) => children || null
-
-export default RenderChildren
+export const KeyboardAvoidingView2 = ({children}: {children?: React.ReactNode}) => children || null
+export default KeyboardAvoidingView2

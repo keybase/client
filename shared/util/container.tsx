@@ -74,7 +74,7 @@ export function useDepChangeEffect(f: () => void, deps: Array<unknown>) {
 
 export type RouteDef = {
   getScreen: () => React.ComponentType<any>
-  getOptions?: (p: {navigation: NavigationContainerRef<{}>; route: Route}) => Object
+  getOptions?: Object | ((p: {navigation: NavigationContainerRef<{}>; route: Route}) => Object)
   screen?: React.ComponentType
 }
 export type RouteMap = {[K in string]: RouteDef}
