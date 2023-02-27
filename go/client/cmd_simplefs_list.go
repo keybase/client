@@ -36,6 +36,7 @@ type CmdSimpleFSList struct {
 	libkb.Contextified
 	paths    []keybase1.Path
 	recurse  bool
+	noglob   bool
 	winStyle bool
 	options  ListOptions
 }
@@ -54,6 +55,10 @@ func NewCmdSimpleFSList(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 			cli.BoolFlag{
 				Name:  "rec, recursive",
 				Usage: "recurse into subdirectories",
+			},
+			cli.BoolFlag{
+				Name:  "no-glob",
+				Usage: "Do not perform glob expansion",
 			},
 			/* TODO: currently this option does nothing.
 			cli.BoolFlag{
@@ -164,9 +169,13 @@ func (c *CmdSimpleFSList) Run() error {
 
 	ctx := context.TODO()
 
-	paths, err := doSimpleFSGlob(ctx, c.G(), cli, c.paths)
-	if err != nil {
-		return err
+	paths := c.paths
+
+	if ! c.noglob {
+		paths, err = doSimpleFSGlob(ctx, c.G(), cli, c.paths)
+		if err != nil {
+			return err
+		}
 	}
 
 	// If the argument was globbed, we really just want a stat of each item
@@ -283,6 +292,7 @@ func (c *CmdSimpleFSList) ParseArgv(ctx *cli.Context) error {
 
 	c.recurse = ctx.Bool("rec") || ctx.Bool("recursive")
 	c.winStyle = ctx.Bool("windows")
+	c.noglob = ctx.Bool("no-glob")
 	c.options.all = ctx.Bool("all")
 	c.options.long = ctx.Bool("long")
 	c.options.one = ctx.Bool("one")
