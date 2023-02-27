@@ -1,23 +1,25 @@
 import * as React from 'react'
 import Box from '../box'
-import {NativeKeyboard} from '../native-wrappers.native'
+import {Keyboard, StyleSheet} from 'react-native'
 import {Portal} from '@gorhom/portal'
+import {FullWindowOverlay} from 'react-native-screens'
 import type {Props} from '.'
-import {globalStyles} from '../../styles'
 
 export default class FloatingBox extends React.Component<Props> {
   componentDidMount() {
     if (this.props.hideKeyboard) {
-      NativeKeyboard.dismiss()
+      Keyboard.dismiss()
     }
   }
   render() {
     const props = this.props
     return (
       <Portal hostName="popup-root">
-        <Box pointerEvents="box-none" style={[globalStyles.fillAbsolute, props.containerStyle]}>
-          {props.children}
-        </Box>
+        <FullWindowOverlay>
+          <Box pointerEvents="box-none" style={[StyleSheet.absoluteFill, props.containerStyle]}>
+            {props.children}
+          </Box>
+        </FullWindowOverlay>
       </Portal>
     )
   }

@@ -1,8 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters/mobile.native'
 import * as Styles from '../../../styles'
-import * as Container from '../../../util/container'
-import * as RouteTreeGen from '../../../actions/route-tree-gen'
+import MessagePopup from '../messages/message-popup'
 import {Video, ResizeMode} from 'expo-av'
 import logger from '../../../logger'
 import {ShowToastAfterSaving} from '../messages/attachment/shared'
@@ -68,21 +67,18 @@ class AutoMaxSizeImage extends React.Component<
 
 const Fullscreen = (p: Props) => {
   const {path, previewHeight, message, onAllMedia, onClose, isVideo} = p
-  const {conversationIDKey, id} = message
   const [loaded, setLoaded] = React.useState(false)
-  const dispatch = Container.useDispatch()
-  const showPopup = React.useCallback(() => {
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [
-          {
-            props: {conversationIDKey, id},
-            selected: 'chatMessagePopup',
-          },
-        ],
-      })
-    )
-  }, [dispatch, conversationIDKey, id])
+
+  const {toggleShowingPopup, showingPopup, popup} = Kb.usePopup(attachTo => (
+    <MessagePopup
+      attachTo={attachTo}
+      conversationIDKey={message.conversationIDKey}
+      ordinal={message.id}
+      onHidden={toggleShowingPopup}
+      position="bottom left"
+      visible={showingPopup}
+    />
+  ))
 
   let content: React.ReactNode = null
   let spinner: React.ReactNode = null
@@ -150,7 +146,8 @@ const Fullscreen = (p: Props) => {
         </Kb.Text>
       </Kb.Box2>
       <Kb.BoxGrow>{content}</Kb.BoxGrow>
-      <Kb.Button icon="iconfont-ellipsis" style={styles.headerFooter} onClick={showPopup} />
+      <Kb.Button icon="iconfont-ellipsis" style={styles.headerFooter} onClick={toggleShowingPopup} />
+      {popup}
     </Kb.Box2>
   )
 }

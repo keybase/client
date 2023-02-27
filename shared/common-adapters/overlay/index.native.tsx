@@ -4,23 +4,30 @@ import FloatingBox from '../floating-box'
 import type {Props} from '.'
 import * as Styles from '../../styles'
 
+const Kb = {
+  Box,
+  Box2,
+  FloatingBox,
+  NativeTouchableWithoutFeedback,
+}
+
 const Overlay = (props: Props) => {
   if (Object.prototype.hasOwnProperty.call(props, 'visible') && !props.visible) {
     return null
   }
   return (
-    <FloatingBox onHidden={() => {}} hideKeyboard={true}>
-      <Box2
+    <Kb.FloatingBox onHidden={() => {}} hideKeyboard={true}>
+      <Kb.Box2
         direction="vertical"
         style={Styles.collapseStyles([styles.container, !!props.color && {color: props.color}])}
       >
-        <NativeTouchableWithoutFeedback onPress={props.onHidden}>
+        <Kb.NativeTouchableWithoutFeedback onPress={props.onHidden}>
           {/* This has to be a `Box` so `TouchableWithoutFeedback`'s touch responders get piped through to the `View` */}
-          <Box style={styles.touchArea} />
-        </NativeTouchableWithoutFeedback>
+          <Kb.Box style={styles.touchArea} />
+        </Kb.NativeTouchableWithoutFeedback>
         {props.children}
-      </Box2>
-    </FloatingBox>
+      </Kb.Box2>
+    </Kb.FloatingBox>
   )
 }
 
