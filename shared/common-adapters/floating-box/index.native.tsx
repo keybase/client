@@ -1,7 +1,7 @@
 import * as React from 'react'
 import Box from '../box'
 import {Keyboard, StyleSheet} from 'react-native'
-import {Portal} from '@gorhom/portal'
+import {Portal} from '../portal.native'
 import {FullWindowOverlay} from 'react-native-screens'
 import type {Props} from '.'
 

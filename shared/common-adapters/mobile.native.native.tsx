@@ -6,6 +6,7 @@ module.hot?.accept(() => {
 
 const Index = require('./index.native')
 const NativeWrappers = require('./native-wrappers.native')
+const GPortal = require('./portal.native')
 
 module.exports = {
   get Animated() {
@@ -310,6 +311,15 @@ module.exports = {
   },
   get PopupHeaderText() {
     return Index.PopupHeaderText
+  },
+  get PortalProvider() {
+    return require('./portal.native').PortalProvider
+  },
+  get PortalHost() {
+    return require('./portal.native').PortalHost
+  },
+  get Portal() {
+    return require('./portal.native').Portal
   },
   get ProgressBar() {
     return Index.ProgressBar

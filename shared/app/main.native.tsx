@@ -1,5 +1,5 @@
 import Router from '../router-v2/router'
-import {PortalHost} from '@gorhom/portal'
+import {PortalHost} from '../common-adapters/portal.native'
 import ResetModal from '../login/reset/modal'
 import GlobalError from './global-errors/container'
 import OutOfDate from './out-of-date'
