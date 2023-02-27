@@ -9,6 +9,9 @@ import Overlay from '../overlay'
 import MenuLayout, {type MenuItems as _MenuItems} from './menu-layout'
 import type {Position, Color, StylesCrossPlatform} from '../../styles'
 
+// if we don't want to actually pop it up
+export const InlineFloatingMenuContext = React.createContext(false)
+
 export type MenuItems = _MenuItems
 
 export type Props = {
@@ -30,9 +33,29 @@ export type Props = {
 }
 
 const FloatingMenu = (props: Props) => {
+  const inline = React.useContext(InlineFloatingMenuContext)
+
   if (!props.visible) {
     return null
   }
+
+  const layout = (
+    <MenuLayout
+      header={props.header}
+      onHidden={props.onHidden}
+      items={props.items}
+      closeOnClick={props.closeOnSelect}
+      closeText={props.closeText}
+      listStyle={props.listStyle}
+      textColor={props.textColor}
+      backgroundColor={props.backgroundColor}
+    />
+  )
+
+  if (inline) {
+    return layout
+  }
+
   return (
     <Overlay
       position={props.position}
@@ -44,16 +67,7 @@ const FloatingMenu = (props: Props) => {
       style={props.containerStyle}
       propagateOutsideClicks={props.propagateOutsideClicks}
     >
-      <MenuLayout
-        header={props.header}
-        onHidden={props.onHidden}
-        items={props.items}
-        closeOnClick={props.closeOnSelect}
-        closeText={props.closeText}
-        listStyle={props.listStyle}
-        textColor={props.textColor}
-        backgroundColor={props.backgroundColor}
-      />
+      {layout}
     </Overlay>
   )
 }

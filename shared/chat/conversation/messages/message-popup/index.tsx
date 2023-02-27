@@ -19,7 +19,7 @@ type Props = {
   visible: boolean
 }
 
-const MessageAction = React.memo(function MessageAction(p: Props) {
+const MessagePopup = React.memo(function MessagePopup(p: Props) {
   const {conversationIDKey, ordinal, attachTo, onHidden, position, style, visible} = p
   const exploding = Container.useSelector(
     state => Constants.getMessage(state, conversationIDKey, ordinal)?.exploding
@@ -129,4 +129,4 @@ const MessageAction = React.memo(function MessageAction(p: Props) {
   return null
 })
 
-export default MessageAction
+export default MessagePopup
