@@ -42,7 +42,6 @@ const Header = (props: Props) => {
   const nameAndInfo = props.walletName ? (
     <MaybeSwitcher>
       <Kb.Box2 direction="vertical" fullWidth={true}>
-        {backButton}
         <Kb.Box2
           direction="horizontal"
           fullWidth={true}
@@ -63,6 +62,7 @@ const Header = (props: Props) => {
         <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true}>
           <SmallAccountID accountID={props.accountID} style={styles.smallAccountID} />
         </Kb.Box2>
+        {backButton}
       </Kb.Box2>
     </MaybeSwitcher>
   ) : (
@@ -121,7 +121,6 @@ const styles = Styles.styleSheetCreate(
         left: 0,
         position: 'absolute',
         top: 0,
-        zIndex: 1,
       },
       caret: {
         marginLeft: Styles.globalMargins.xtiny,
