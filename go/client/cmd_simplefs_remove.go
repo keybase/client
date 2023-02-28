@@ -38,7 +38,7 @@ func NewCmdSimpleFSRemove(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cl
 				Usage: "Recursively delete everything in a directory",
 			},
 			cli.BoolFlag{
-				Name:  "no-glob",
+				Name:  "G, no-glob",
 				Usage: "Do not perform glob expansion",
 			},
 		},

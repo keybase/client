@@ -55,7 +55,7 @@ func NewCmdSimpleFSCopy(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 				Usage: "force overwrite",
 			},
 			cli.BoolFlag{
-				Name:  "no-glob",
+				Name:  "G, no-glob",
 				Usage: "Do not perform glob expansion",
 			},
 			cli.IntFlag{

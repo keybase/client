@@ -129,7 +129,7 @@ func (c *CmdSimpleFSMove) ParseArgv(ctx *cli.Context) error {
 	var err error
 	c.interactive = ctx.Bool("interactive")
 	c.force = ctx.Bool("force")
-	c.noglob = ctx.Bool("no-glob")
+	c.noglob = ctx.Bool("G, no-glob")
 
 	if c.force && c.interactive {
 		return errors.New("force and interactive are incompatible")

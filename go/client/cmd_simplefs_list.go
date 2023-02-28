@@ -57,7 +57,7 @@ func NewCmdSimpleFSList(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 				Usage: "recurse into subdirectories",
 			},
 			cli.BoolFlag{
-				Name:  "no-glob",
+				Name:  "G, no-glob",
 				Usage: "Do not perform glob expansion",
 			},
 			/* TODO: currently this option does nothing.
