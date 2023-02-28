@@ -27,6 +27,9 @@ const WalletOrOnboarding = (props: Props) =>
 
 WalletOrOnboarding.navigationOptions = {
   header: () => <Header />,
+  headerLeft: () => null,
+  headerRight: () => null,
+  headerTitle: () => null,
 }
 
 export default Container.connect(
