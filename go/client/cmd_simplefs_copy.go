@@ -83,9 +83,9 @@ func (c *CmdSimpleFSCopy) Run() error {
 
 	ctx := context.TODO()
 
-	destPaths := c.src
-
 	c.G().Log.Debug("SimpleFSCopy (recursive: %v) to: %s", c.recurse, c.dest)
+
+	destPaths := c.src
 
 	if ! c.noglob {
 		destPaths, err = doSimpleFSGlob(ctx, c.G(), cli, c.src)
