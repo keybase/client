@@ -127,12 +127,14 @@ export const Swipeable = React.memo(function Swipeable2(p: {
   return (
     <GestureDetector gesture={gesture}>
       <View style={[styles.container, style]}>
-        <Reanimated.default.View
-          style={[styles.actionContainer, actionStyle]}
-          pointerEvents={actionsEnabled ? undefined : 'none'}
-        >
-          {actions}
-        </Reanimated.default.View>
+        {actions ? (
+          <Reanimated.default.View
+            style={[styles.actionContainer, actionStyle]}
+            pointerEvents={actionsEnabled ? undefined : 'none'}
+          >
+            {actions}
+          </Reanimated.default.View>
+        ) : null}
         <Reanimated.default.View style={[styles.rowContainer, rowStyle]}>
           <Pressable
             pointerEvents={actionsEnabled ? 'box-only' : undefined}
