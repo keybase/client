@@ -62,6 +62,7 @@ export const defaultNavigationOptions: any = {
       {hp.children}
     </Kb.Text>
   ),
+  headerTitleAlign: Styles.isAndroid ? 'center' : undefined,
   headerTitleContainerStyle: {
     alignItems: 'stretch',
     flexGrow: 1,
