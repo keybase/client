@@ -107,7 +107,10 @@ export async function saveAttachmentToCameraRoll(filePath: string, mimeType: str
   const saveType: 'video' | 'photo' = mimeType.startsWith('video') ? 'video' : 'photo'
   const logPrefix = '[saveAttachmentToCameraRoll] '
   try {
-    await requestPermissionsToWrite()
+    try {
+      // see it we can keep going anyways, android perms are needed sometimes and sometimes not w/ 33
+      await requestPermissionsToWrite()
+    } catch {}
     logger.info(logPrefix + `Attempting to save as ${saveType}`)
     await MediaLibrary.saveToLibraryAsync(fileURL)
     logger.info(logPrefix + 'Success')

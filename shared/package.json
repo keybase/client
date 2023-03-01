@@ -99,7 +99,7 @@
     "expo-image-picker": "14.1.0",
     "expo-location": "15.0.1",
     "expo-mail-composer": "12.0.0",
-    "expo-media-library": "15.0.0",
+    "expo-media-library": "15.2.2",
     "expo-sms": "11.0.0",
     "expo-task-manager": "11.0.1",
     "framed-msgpack-rpc": "1.1.23",

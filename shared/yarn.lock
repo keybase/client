@@ -5109,10 +5109,10 @@ expo-mail-composer@12.0.0:
   dependencies:
     query-string "^6.2.0"
 
-expo-media-library@15.0.0:
-  version "15.0.0"
-  resolved "https://registry.yarnpkg.com/expo-media-library/-/expo-media-library-15.0.0.tgz#12b05bb2c3cc209a08acbd2d3e35ba0a6a141003"
-  integrity sha512-BO17VEElQHf2kK45Vuqm4QtutWsT5X4clO8DjTp2BUNvmY+JgOTKsjPs1LIQcNaaum64u/Gfp3V4HV2a6JnHJg==
+expo-media-library@15.2.2:
+  version "15.2.2"
+  resolved "https://registry.yarnpkg.com/expo-media-library/-/expo-media-library-15.2.2.tgz#71ece905e425f606422cd16019d78b135040e003"
+  integrity sha512-GebBavV9H+m0Qzoy4G7++BWmwUcddLnCee1qGYkCyHT6CvuLNhXUgC3FV9NINEwlii3HGAuCzk1auaEY60SGDA==
 
 expo-modules-autolinking@1.0.2:
   version "1.0.2"
