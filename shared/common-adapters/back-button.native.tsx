@@ -1,29 +1,34 @@
 import {createNavigateUp} from '../actions/route-tree-gen'
 import * as React from 'react'
-import {NativeTouchableWithoutFeedback} from './native-wrappers.native'
+import {TouchableWithoutFeedback, Keyboard} from 'react-native'
 import Badge from './badge'
 import Box from './box'
 import Icon from './icon'
 import * as Container from '../util/container'
 import * as Styles from '../styles'
 import type {Props} from './back-button'
+import noop from 'lodash/noop'
 
 const Kb = {
   Badge,
   Box,
   Icon,
-  NativeTouchableWithoutFeedback,
 }
 
 const BackButton = React.memo(function BackButton(props: Props) {
   const canFixOverdraw = React.useContext(Styles.CanFixOverdrawContext)
   const dispatch = Container.useDispatch()
-  const onBack = props.disabled ? () => {} : props.onClick ?? (() => dispatch(createNavigateUp()))
+  const onNavUp = React.useCallback(() => {
+    // this helps with some timing issues w/ dismissing keyboard avoiding views
+    Keyboard.dismiss()
+    dispatch(createNavigateUp())
+  }, [dispatch])
+  const onBack = props.disabled ? noop : props.onClick ?? onNavUp
   return (
-    <Kb.NativeTouchableWithoutFeedback
+    <TouchableWithoutFeedback
       onPress={(event: React.BaseSyntheticEvent) => {
-        event && event.preventDefault && event.preventDefault()
-        event && event.stopPropagation && event.stopPropagation()
+        event?.preventDefault?.()
+        event?.stopPropagation?.()
         onBack()
       }}
     >
@@ -36,7 +41,7 @@ const BackButton = React.memo(function BackButton(props: Props) {
         />
         {!!props.badgeNumber && <Kb.Badge badgeNumber={props.badgeNumber} />}
       </Kb.Box>
-    </Kb.NativeTouchableWithoutFeedback>
+    </TouchableWithoutFeedback>
   )
 })
 
