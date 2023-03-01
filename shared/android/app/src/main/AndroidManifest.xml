@@ -20,7 +20,6 @@
         android:icon="@mipmap/ic_launcher"
         android:theme="@style/AppTheme"
         android:networkSecurityConfig="@xml/network_security_config"
-        android:requestLegacyExternalStorage="true"
         android:largeHeap="true">
         <activity 
             android:name=".MainActivity" 
