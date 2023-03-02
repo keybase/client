@@ -63,14 +63,16 @@ export const Title = () => {
   )
 
   return (
-    <Kb.Markdown
-      messageType="attachment"
-      selectable={true}
-      allowFontScaling={true}
-      styleOverride={styleOverride}
-    >
-      {title}
-    </Kb.Markdown>
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.titleContainer}>
+      <Kb.Markdown
+        messageType="attachment"
+        selectable={true}
+        allowFontScaling={true}
+        styleOverride={styleOverride}
+      >
+        {title}
+      </Kb.Markdown>
+    </Kb.Box2>
   )
 }
 
@@ -94,12 +96,9 @@ const CollapseIcon = ({isWhite}: {isWhite: boolean}) => {
 }
 
 const styles = Styles.styleSheetCreate(() => ({
-  collapseLabel: {
-    backgroundColor: Styles.globalColors.fastBlank,
-  },
-  collapseLabelWhite: {
-    color: Styles.globalColors.white_75,
-  },
+  collapseLabel: {backgroundColor: Styles.globalColors.fastBlank},
+  collapseLabelWhite: {color: Styles.globalColors.white_75},
+  titleContainer: {paddingTop: Styles.globalMargins.xxtiny},
 }))
 
 const useCollapseAction = () => {
