@@ -70,20 +70,9 @@ export const getOptions = ({navigation, route}) => {
       headerRightContainerStyle: {maxWidth: 0},
       headerStyle: {},
       headerTitle: () => (
-        <Kb.Box2
-          direction="horizontal"
-          fullWidth={true}
-          fullHeight={true}
-          // ios only allows centered so we do some margin to help spread it out
-          style={{
-            height: 48,
-            marginLeft: -20,
-            maxWidth: undefined,
-            width: Styles.dimensionWidth - 0,
-          }}
-        >
+        <Common.TabletWrapper>
           <Header navigation={navigation} route={route} />
-        </Kb.Box2>
+        </Common.TabletWrapper>
       ),
       headerTitleContainerStyle: {},
     }
