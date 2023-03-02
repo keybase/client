@@ -11,11 +11,117 @@ index 8cb70cf..92f50e0 100644
    }
  
    override fun getName(): String {
+diff --git a/node_modules/@mattermost/react-native-paste-input/ios/PasteInputManager.m b/node_modules/@mattermost/react-native-paste-input/ios/PasteInputManager.m
+index b4fed6b..4f2eef6 100644
+--- a/node_modules/@mattermost/react-native-paste-input/ios/PasteInputManager.m
++++ b/node_modules/@mattermost/react-native-paste-input/ios/PasteInputManager.m
+@@ -20,7 +20,7 @@ RCT_EXPORT_MODULE(PasteInput)
+ 
+ RCT_EXPORT_VIEW_PROPERTY(disableCopyPaste, BOOL)
+ RCT_EXPORT_VIEW_PROPERTY(onPaste, RCTBubblingEventBlock)
+-
++RCT_EXPORT_VIEW_PROPERTY(onDropped, RCTBubblingEventBlock)
+ 
+ 
+ @end
+diff --git a/node_modules/@mattermost/react-native-paste-input/ios/PasteInputTextView.h b/node_modules/@mattermost/react-native-paste-input/ios/PasteInputTextView.h
+index 93d0feb..3b491f4 100644
+--- a/node_modules/@mattermost/react-native-paste-input/ios/PasteInputTextView.h
++++ b/node_modules/@mattermost/react-native-paste-input/ios/PasteInputTextView.h
+@@ -9,12 +9,15 @@
+ #import <UIKit/UIKit.h>
+ #import <React/RCTUITextView.h>
+ #import <React/RCTComponent.h>
++#import "../../../../ios/Keybase/ItemProviderHelper.h"
+ 
+ NS_ASSUME_NONNULL_BEGIN
+ 
+ @interface PasteInputTextView : RCTUITextView
+     @property (nonatomic, assign) BOOL disableCopyPaste;
+     @property (nonatomic, copy, nullable) RCTDirectEventBlock onPaste;
++    @property(nonatomic, strong) ItemProviderHelper *iph;
++    @property(nonatomic, copy) RCTBubblingEventBlock onDropped;
+ @end
+ 
+ NS_ASSUME_NONNULL_END
 diff --git a/node_modules/@mattermost/react-native-paste-input/ios/PasteInputTextView.m b/node_modules/@mattermost/react-native-paste-input/ios/PasteInputTextView.m
-index 73ed099..a0326ae 100644
+index 73ed099..6a09c2a 100644
 --- a/node_modules/@mattermost/react-native-paste-input/ios/PasteInputTextView.m
 +++ b/node_modules/@mattermost/react-native-paste-input/ios/PasteInputTextView.m
-@@ -35,20 +35,23 @@
+@@ -8,9 +8,72 @@
+ 
+ #import "PasteInputTextView.h"
+ #import "UIPasteboard+GetImageInfo.h"
++#import <React/RCTViewManager.h>
+ 
+ @implementation PasteInputTextView
+ 
++- (id)init {
++  if (self = [super init]) {
++    UIDropInteraction *udi = [[UIDropInteraction alloc] initWithDelegate:self];
++    udi.allowsSimultaneousDropSessions = YES;
++    [self addInteraction:udi];
++  }
++  return self;
++}
++
++- (id)initWithCoder:(NSCoder *)coder {
++  if (self = [super initWithCoder:coder]) {
++    UIDropInteraction *udi = [[UIDropInteraction alloc] initWithDelegate:self];
++    udi.allowsSimultaneousDropSessions = YES;
++    [self addInteraction:udi];
++  }
++  return self;
++}
++
++- (id)initWithFrame:(CGRect)frame {
++  if (self = [super initWithFrame:frame]) {
++    UIDropInteraction *udi = [[UIDropInteraction alloc] initWithDelegate:self];
++    udi.allowsSimultaneousDropSessions = YES;
++    [self addInteraction:udi];
++  }
++  return self;
++}
++
++- (BOOL)dropInteraction:(UIDropInteraction *)interaction
++       canHandleSession:(id<UIDropSession>)session {
++  return YES;
++}
++
++- (UIDropProposal *)dropInteraction:(UIDropInteraction *)interaction
++                   sessionDidUpdate:(id<UIDropSession>)session {
++  return [[UIDropProposal alloc] initWithDropOperation:UIDropOperationCopy];
++}
++
++- (void)dropInteraction:(UIDropInteraction *)interaction
++            performDrop:(id<UIDropSession>)session {
++  NSMutableArray *items =
++      [NSMutableArray arrayWithCapacity:session.items.count];
++  [session.items
++      enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
++        UIDragItem *i = obj;
++        [items addObject:i.itemProvider];
++      }];
++  __weak typeof(self) weakSelf = self;
++  self.iph = [[ItemProviderHelper alloc]
++           initForShare:false
++              withItems:items
++             attrString:@""
++      completionHandler:^{
++      if (weakSelf.onDropped != nil) {
++          weakSelf.onDropped(@{@"manifest" : weakSelf.iph.manifest});
++      }
++        weakSelf.iph = nil;
++      }];
++  [self.iph startProcessing];
++}
++
++RCT_EXPORT_VIEW_PROPERTY(onDropped, RCTBubblingEventBlock)
++
+ #pragma mark - Overrides
+ 
+ - (BOOL)canPerformAction:(SEL)action withSender:(id)sender
+@@ -35,20 +98,23 @@
  }
  
  -(void)paste:(id)sender {
@@ -44,7 +150,7 @@ index 73ed099..a0326ae 100644
      
      if (_onPaste) {
          NSArray<NSDictionary *> *files = [pasteboard getCopiedFiles];
-@@ -56,11 +59,11 @@
+@@ -56,11 +122,11 @@
              _onPaste(@{
                  @"data": files,
              });
@@ -58,10 +164,10 @@ index 73ed099..a0326ae 100644
      [self resignFirstResponder];
  }
 diff --git a/node_modules/@mattermost/react-native-paste-input/ios/PasteInputView.h b/node_modules/@mattermost/react-native-paste-input/ios/PasteInputView.h
-index be73123..900fd06 100644
+index be73123..1ce7f4d 100644
 --- a/node_modules/@mattermost/react-native-paste-input/ios/PasteInputView.h
 +++ b/node_modules/@mattermost/react-native-paste-input/ios/PasteInputView.h
-@@ -10,7 +10,7 @@
+@@ -10,9 +10,10 @@
  
  NS_ASSUME_NONNULL_BEGIN
  
@@ -69,9 +175,12 @@ index be73123..900fd06 100644
 +@interface PasteInputView : RCTMultilineTextInputView<UIDropInteractionDelegate>
      @property (nonatomic, assign) BOOL disableCopyPaste;
      @property (nonatomic, copy, nullable) RCTDirectEventBlock onPaste;
++    @property (nonatomic, copy, nullable) RCTDirectEventBlock onDropped;
  @end
+ 
+ NS_ASSUME_NONNULL_END
 diff --git a/node_modules/@mattermost/react-native-paste-input/ios/PasteInputView.m b/node_modules/@mattermost/react-native-paste-input/ios/PasteInputView.m
-index 4d3b464..026d3ff 100644
+index 4d3b464..e3f7b27 100644
 --- a/node_modules/@mattermost/react-native-paste-input/ios/PasteInputView.m
 +++ b/node_modules/@mattermost/react-native-paste-input/ios/PasteInputView.m
 @@ -24,6 +24,7 @@
@@ -94,6 +203,17 @@ index 4d3b464..026d3ff 100644
  - (id<RCTBackedTextInputViewProtocol>)backedTextInputView
  {
    return _backedTextInputView;
+@@ -44,6 +50,10 @@
+     _backedTextInputView.onPaste = onPaste;
+ }
+ 
++- (void)setOnDropped:(RCTDirectEventBlock)onDropped {
++    _backedTextInputView.onDropped = onDropped;
++}
++
+ 
+ #pragma mark - UIScrollViewDelegate
+ 
 diff --git a/node_modules/@mattermost/react-native-paste-input/ios/UIPasteboard+GetImageInfo.m b/node_modules/@mattermost/react-native-paste-input/ios/UIPasteboard+GetImageInfo.m
 index df52bb7..92872b7 100644
 --- a/node_modules/@mattermost/react-native-paste-input/ios/UIPasteboard+GetImageInfo.m

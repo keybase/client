@@ -11,6 +11,7 @@ import {checkTextInfo} from './input.shared'
 import {getStyle as getTextStyle} from './text'
 import {isIOS} from '../constants/platform'
 import PasteInput from '@mattermost/react-native-paste-input'
+import noop from 'lodash/noop'
 
 // A plain text input component. Handles callbacks, text styling, and auto resizing but
 // adds no styling.
@@ -200,7 +201,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
   }
 
   _getProps = () => {
-    const common = {
+    let common = {
       ...pick(this.props, ['maxLength', 'value']), // Props we should only passthrough if supplied
       allowFontScaling: this.props.allowFontScaling,
       autoCapitalize: this.props.autoCapitalize || 'none',
@@ -229,6 +230,14 @@ class PlainInput extends React.PureComponent<InternalProps> {
       textContentType: this.props.textContentType,
       underlineColorAndroid: 'transparent',
     } as const
+
+    if (this.props.allowImagePaste) {
+      common = {
+        ...common,
+        // @ts-ignore, we let this just bubble up
+        onDropped: noop,
+      }
+    }
 
     if (this.props.multiline) {
       return {
