@@ -1,5 +1,5 @@
 diff --git a/node_modules/react-native/Libraries/Components/Keyboard/KeyboardAvoidingView.js b/node_modules/react-native/Libraries/Components/Keyboard/KeyboardAvoidingView.js
-index 6a343d8..e96be8a 100644
+index 6a343d8..6e9a8d7 100644
 --- a/node_modules/react-native/Libraries/Components/Keyboard/KeyboardAvoidingView.js
 +++ b/node_modules/react-native/Libraries/Components/Keyboard/KeyboardAvoidingView.js
 @@ -14,6 +14,7 @@ import Platform from '../../Utilities/Platform';
@@ -40,7 +40,7 @@ index 6a343d8..e96be8a 100644
      if (this._keyboardEvent == null) {
 -      this.setState({bottom: 0});
 +      if (Keyboard.isVisible()) {
-+	      this.setState({bottom: Keyboard.metrics()?.height});
++	      this.setState({bottom: Keyboard.metrics()?.height ?? 0});
 +      } else {
 +	      this.setState({bottom: 0});
 +      }
