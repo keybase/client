@@ -272,10 +272,10 @@ const TeamMember = (props: OwnProps) => {
   )
 }
 
-TeamMember.navigationOptions = () => ({
+TeamMember.navigationOptions = {
   headerHideBorder: true,
   headerTitle: '',
-})
+}
 
 type NodeNotInRowProps = {
   idx: number

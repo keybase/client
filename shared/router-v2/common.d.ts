@@ -1,3 +1,4 @@
+import * as React from 'react'
 import type {NavigationContainerRef} from '@react-navigation/core'
 import type {NavState} from '../constants/types/route-tree'
 import type * as Styles from '../styles'
@@ -15,6 +16,8 @@ export const defaultNavigationOptions: {
   headerTitle?: (hp: any) => React.ReactNode
   headerTitleContainerStyle?: Styles.StylesCrossPlatform
 }
+
+export declare class TabletWrapper extends React.Component<{children: React.ReactNode}> {}
 
 export function useSubnavTabAction(
   navigation: NavigationContainerRef<{}>,

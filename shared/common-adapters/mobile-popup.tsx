@@ -2,11 +2,13 @@ import * as React from 'react'
 import * as Styles from '../styles'
 import FloatingBox from './floating-box'
 import {Box2} from './box'
+import {KeyboardAvoidingView2} from './keyboard-avoiding-view'
 import {windowHeight} from '../constants/platform'
 
 const Kb = {
   Box2,
   FloatingBox,
+  KeyboardAvoidingView2,
 }
 
 type Props = {
@@ -15,16 +17,18 @@ type Props = {
 }
 
 const MobilePopup = (props: Props) => (
-  <Kb.FloatingBox dest="keyboard-avoiding-root">
-    <Kb.Box2 direction="vertical" centerChildren={true} style={styles.underlay}>
-      <Kb.Box2
-        direction="vertical"
-        fullWidth={true}
-        style={Styles.collapseStyles([styles.overlay, props.overlayStyle])}
-      >
-        {props.children}
+  <Kb.FloatingBox>
+    <KeyboardAvoidingView2>
+      <Kb.Box2 direction="vertical" centerChildren={true} style={styles.underlay}>
+        <Kb.Box2
+          direction="vertical"
+          fullWidth={true}
+          style={Styles.collapseStyles([styles.overlay, props.overlayStyle])}
+        >
+          {props.children}
+        </Kb.Box2>
       </Kb.Box2>
-    </Kb.Box2>
+    </KeyboardAvoidingView2>
   </Kb.FloatingBox>
 )
 

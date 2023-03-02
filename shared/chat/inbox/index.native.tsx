@@ -322,7 +322,7 @@ const styles = Styles.styleSheetCreate(
         },
         isTablet: {
           backgroundColor: Styles.globalColors.blueGrey,
-          width: Styles.globalStyles.mediumSubNavWidth,
+          maxWidth: Styles.globalStyles.mediumSubNavWidth,
         },
       }),
       loadingContainer: {

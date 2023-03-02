@@ -49,7 +49,6 @@ const Header = (props: Props) => {
           centerChildren={true}
           style={styles.topContainer}
         >
-          {backButton}
           {props.isDefaultWallet && <Kb.Avatar size={16} username={props.keybaseUser} />}
           <Kb.Text type="BodyBig">{props.walletName}</Kb.Text>
           {caret}
@@ -63,6 +62,7 @@ const Header = (props: Props) => {
         <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true}>
           <SmallAccountID accountID={props.accountID} style={styles.smallAccountID} />
         </Kb.Box2>
+        {backButton}
       </Kb.Box2>
     </MaybeSwitcher>
   ) : (
@@ -82,7 +82,7 @@ const Header = (props: Props) => {
       direction="vertical"
       fullWidth={true}
       gap="tiny"
-      gapStart={true}
+      pointerEvents="box-none"
       gapEnd={true}
       style={Styles.collapseStyles([
         styles.container,
@@ -120,6 +120,7 @@ const styles = Styles.styleSheetCreate(
       backButton: {
         left: 0,
         position: 'absolute',
+        top: 0,
       },
       caret: {
         marginLeft: Styles.globalMargins.xtiny,

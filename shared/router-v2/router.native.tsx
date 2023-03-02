@@ -12,7 +12,7 @@ import * as Common from './common.native'
 import * as ConfigConstants from '../constants/config'
 import {useMemo} from '../util/memoize'
 import {StatusBar} from 'react-native'
-import {HeaderLeftCancel} from '../common-adapters/header-hoc'
+import {HeaderLeftCancel2} from '../common-adapters/header-hoc'
 import {NavigationContainer, getFocusedRouteNameFromRoute} from '@react-navigation/native'
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs'
 import {modalRoutes, routes, loggedOutRoutes, tabRoots} from './routes'
@@ -46,7 +46,7 @@ const makeNavScreens = (rs, Screen, isModal) => {
         name={name}
         getComponent={rs[name].getScreen}
         options={({route, navigation}) => {
-          const no = rs[name].getOptions ?? rs[name].getScreen().navigationOptions
+          const no = Shim.getOptions(rs[name])
           const opt = typeof no === 'function' ? no({navigation, route}) : no
           return {
             ...opt,
@@ -341,7 +341,7 @@ const RNApp = React.memo(function RNApp() {
   const barStyle = useBarStyle()
 
   return (
-    <Kb.KeyboardAvoidingView style={styles.keyboard} behavior={Styles.isIOS ? 'padding' : undefined}>
+    <Kb.Box2 direction="vertical" pointerEvents="box-none" fullWidth={true} fullHeight={true}>
       <StatusBar barStyle={barStyle} />
       <NavigationContainer
         fallback={<Kb.NativeView style={{backgroundColor: Styles.globalColors.white, flex: 1}} />}
@@ -367,7 +367,7 @@ const RNApp = React.memo(function RNApp() {
               <RootStack.Screen name="loggedIn" component={AppTabs} />
               <RootStack.Group
                 screenOptions={{
-                  headerLeft: () => <HeaderLeftCancel />,
+                  headerLeft: () => <HeaderLeftCancel2 />,
                   // hard to fight overdraw on android with this on so just treat modals as screens
                   presentation: Styles.isAndroid ? undefined : 'modal',
                   title: '',
@@ -380,7 +380,7 @@ const RNApp = React.memo(function RNApp() {
           {loggedInLoaded && !loggedIn && <RootStack.Screen name="loggedOut" component={LoggedOut} />}
         </RootStack.Navigator>
       </NavigationContainer>
-    </Kb.KeyboardAvoidingView>
+    </Kb.Box2>
   )
 })
 

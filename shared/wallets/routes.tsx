@@ -24,6 +24,10 @@ export const sharedRoutes = {
   settings: {getScreen: (): typeof Settings => require('./wallet/settings/container').default},
   // TODO connect broken
   transactionDetails: {
+    getOptions: {
+      header: undefined,
+      title: 'Transaction details',
+    },
     getScreen: (): typeof TransactionDetails => require('./transaction-details/container').default,
   },
 }

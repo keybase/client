@@ -1,6 +1,6 @@
 import * as React from 'react'
 import {NativeDimensions, NativeView} from './native-wrappers.native'
-import {Portal} from '@gorhom/portal'
+import {Portal} from './portal.native'
 import {useTimeout} from './use-timers'
 import useMounted from './use-mounted'
 import Box from './box'
@@ -21,6 +21,7 @@ const Kb = {
   ClickableBox,
   NativeDimensions,
   NativeView,
+  Portal,
   Text,
 }
 
@@ -36,11 +37,11 @@ const measureCb =
     resolve({height, left: pageX, top: pageY, width})
 
 const FloatingBox = props => (
-  <Portal hostName="popup-root">
-    <Box pointerEvents="box-none" style={[Styles.globalStyles.fillAbsolute, props.style]}>
+  <Kb.Portal hostName="popup-root">
+    <Kb.Box pointerEvents="box-none" style={[Styles.globalStyles.fillAbsolute, props.style]}>
       {props.children}
-    </Box>
-  </Portal>
+    </Kb.Box>
+  </Kb.Portal>
 )
 
 const AnimatedFloatingBox = animated(FloatingBox)

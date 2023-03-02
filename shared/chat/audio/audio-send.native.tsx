@@ -1,8 +1,7 @@
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
+import * as Kb from '../../common-adapters/mobile.native'
 import * as Styles from '../../styles'
 import AudioPlayer from './audio-player'
-import {Portal, PortalHost} from '@gorhom/portal'
 import type {AmpTracker} from './amptracker'
 
 type Props = {
@@ -19,7 +18,7 @@ export const ShowAudioSendContext = React.createContext({
 })
 
 export const AudioSendWrapper = () => {
-  return <PortalHost name="audioSend" />
+  return <Kb.PortalHost name="audioSend" />
 }
 
 // This is created and driven by the AudioRecorder button but its ultimately rendered
@@ -40,7 +39,7 @@ const AudioSend = (props: Props) => {
     />
   )
   return (
-    <Portal hostName="audioSend">
+    <Kb.Portal hostName="audioSend">
       <Kb.Box2 direction="horizontal" style={styles.container} fullWidth={true}>
         <Kb.Box2 direction="horizontal" alignItems="center">
           <Kb.Box style={styles.icon}>
@@ -50,7 +49,7 @@ const AudioSend = (props: Props) => {
         </Kb.Box2>
         <Kb.Button type="Default" small={true} style={styles.send} onClick={sendRecording} label="Send" />
       </Kb.Box2>
-    </Portal>
+    </Kb.Portal>
   )
 }
 

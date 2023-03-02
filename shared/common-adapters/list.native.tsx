@@ -49,6 +49,7 @@ class List<Item> extends React.PureComponent<Props<Item>> {
             onScrollToIndexFailed={noop}
             bounces={this.props.bounces}
             contentContainerStyle={this.props.contentContainerStyle}
+            keyboardDismissMode="on-drag"
             renderItem={this._itemRender}
             data={this.props.items}
             getItemLayout={this.props.fixedHeight ? this._getItemLayout : undefined}

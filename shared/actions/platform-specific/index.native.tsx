@@ -24,7 +24,7 @@ import NotifyPopup from '../../util/notify-popup'
 import PushNotificationIOS from '@react-native-community/push-notification-ios'
 import logger from '../../logger'
 import type * as FsTypes from '../../constants/types/fs'
-import {Alert, Linking, ActionSheetIOS, PermissionsAndroid} from 'react-native'
+import {Alert, Linking, ActionSheetIOS} from 'react-native'
 import {_getNavigator} from '../../constants/router2'
 import {getEngine} from '../../engine/require'
 import {isIOS, isAndroid} from '../../constants/platform'
@@ -56,19 +56,10 @@ const onLog = (_: unknown, action: EngineGen.Keybase1LogUiLogPayload) => {
 
 const requestPermissionsToWrite = async () => {
   if (isAndroid) {
-    const permissionStatus = await PermissionsAndroid.request(
-      PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
-      {
-        buttonNegative: 'Cancel',
-        buttonNeutral: 'Ask me later',
-        buttonPositive: 'OK',
-        message: 'Keybase needs access to your storage so we can download a file.',
-        title: 'Keybase Storage Permission',
-      }
-    )
-    return permissionStatus !== 'granted'
-      ? Promise.reject(new Error('Unable to acquire storage permissions'))
-      : Promise.resolve()
+    const p = await MediaLibrary.requestPermissionsAsync(false)
+    return p.accessPrivileges === 'all'
+      ? Promise.resolve()
+      : Promise.reject('Unable to acquire storage permissions')
   }
   return Promise.resolve()
 }
@@ -107,7 +98,10 @@ export async function saveAttachmentToCameraRoll(filePath: string, mimeType: str
   const saveType: 'video' | 'photo' = mimeType.startsWith('video') ? 'video' : 'photo'
   const logPrefix = '[saveAttachmentToCameraRoll] '
   try {
-    await requestPermissionsToWrite()
+    try {
+      // see it we can keep going anyways, android perms are needed sometimes and sometimes not w/ 33
+      await requestPermissionsToWrite()
+    } catch {}
     logger.info(logPrefix + `Attempting to save as ${saveType}`)
     await MediaLibrary.saveToLibraryAsync(fileURL)
     logger.info(logPrefix + 'Success')

@@ -320,7 +320,7 @@ type ChunkType = Array<
   | {type: 'loading'; text: string}
 >
 class User extends React.Component<Props, State> {
-  static navigationOptions = () => ({
+  static navigationOptions = {
     headerLeft: ({
       canGoBack,
       onPress,
@@ -338,7 +338,7 @@ class User extends React.Component<Props, State> {
     headerStyle: {backgroundColor: 'transparent'},
     headerTitle: () => <ProfileSearch />,
     headerTransparent: true,
-  })
+  }
 
   constructor(props: Props) {
     super(props)
@@ -503,7 +503,13 @@ class User extends React.Component<Props, State> {
 const usernameSelectedTab = {}
 
 const avatarSize = 128
-const headerHeight = Styles.isAndroid ? 56 : Styles.isIOS ? Styles.statusBarHeight + 46 : 80
+const headerHeight = Styles.isAndroid
+  ? 56
+  : Styles.isTablet
+  ? 80
+  : Styles.isIOS
+  ? Styles.statusBarHeight + 46
+  : 80
 
 export const styles = Styles.styleSheetCreate(() => ({
   addIdentityButton: {

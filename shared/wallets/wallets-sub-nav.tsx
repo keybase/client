@@ -111,21 +111,23 @@ const WalletsRootNav = () => {
             ...Common.defaultNavigationOptions,
             // @ts-ignore this is used by desktops implementation, TODO better typing / naming
             headerRightActions: () => <HeaderRightActions />,
-            headerTitle: () => <HeaderTitle />,
             ...(Container.isTablet
               ? {
                   headerLeftContainerStyle: {maxWidth: 0},
                   headerRightContainerStyle: {maxWidth: 0},
                   headerStyle: {height: 60},
-                  headerTitleContainerStyle: {
-                    ...Common.defaultNavigationOptions.headerTitleContainerStyle,
-                    alignSelf: 'stretch',
-                    marginHorizontal: 0,
-                    marginRight: 8,
-                    maxWidth: 9999,
-                  },
+                  headerTitle: () => (
+                    <Common.TabletWrapper>
+                      <Kb.Box2 fullWidth={true} direction="vertical">
+                        <HeaderTitle />
+                      </Kb.Box2>
+                    </Common.TabletWrapper>
+                  ),
+                  headerTitleContainerStyle: {},
                 }
-              : {}),
+              : {
+                  headerTitle: () => <HeaderTitle />,
+                }),
           }}
         />
       ) : (

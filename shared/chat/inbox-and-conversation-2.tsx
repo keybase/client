@@ -47,36 +47,39 @@ const InboxAndConversation = (props: Props) => {
   }, [])
 
   return (
-    <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true}>
-      {!Container.isTablet && inboxSearch ? (
-        <InboxSearch />
-      ) : (
-        <Inbox navKey={navKey} conversationIDKey={conversationIDKey} />
-      )}
-      <Conversation navigation={props.navigation} route={props.route as any} />
-      {infoPanelShowing && <InfoPanel conversationIDKey={conversationIDKey} />}
-    </Kb.Box2>
+    <Kb.KeyboardAvoidingView2 extraOffset={0} rawHeight={true}>
+      <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true}>
+        {!Container.isTablet && inboxSearch ? (
+          <InboxSearch />
+        ) : (
+          <Inbox navKey={navKey} conversationIDKey={conversationIDKey} />
+        )}
+        <Conversation navigation={props.navigation} route={props.route as any} />
+        {infoPanelShowing && <InfoPanel conversationIDKey={conversationIDKey} />}
+      </Kb.Box2>
+    </Kb.KeyboardAvoidingView2>
   )
 }
 
-export const getOptions = ({navigation, route}) => ({
-  headerTitle: () => <Header navigation={navigation} route={route} />,
-  ...(Styles.isTablet
-    ? {
-        headerLeft: null,
-        headerLeftContainerStyle: {maxWidth: 0},
-        headerRight: null,
-        headerRightContainerStyle: {maxWidth: 0},
-        headerTitleContainerStyle: {
-          ...Common.defaultNavigationOptions.headerTitleContainerStyle,
-          alignSelf: 'stretch',
-          marginHorizontal: 0,
-          marginRight: 8,
-          maxWidth: 9999,
-        },
-      }
-    : {}),
-})
+export const getOptions = ({navigation, route}) => {
+  if (Styles.isTablet) {
+    return {
+      headerLeft: null,
+      headerLeftContainerStyle: {maxWidth: 0},
+      headerRight: null,
+      headerRightContainerStyle: {maxWidth: 0},
+      headerStyle: {},
+      headerTitle: () => (
+        <Common.TabletWrapper>
+          <Header navigation={navigation} route={route} />
+        </Common.TabletWrapper>
+      ),
+      headerTitleContainerStyle: {},
+    }
+  } else {
+    return {headerTitle: () => <Header navigation={navigation} route={route} />}
+  }
+}
 
 const Memoed = React.memo(InboxAndConversation)
 Container.hoistNonReactStatic(Memoed, InboxAndConversation)

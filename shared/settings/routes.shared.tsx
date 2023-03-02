@@ -1,4 +1,5 @@
 import * as Constants from '../constants/settings'
+import {isMobile} from '../constants/platform'
 import type AboutTab from './about'
 import type AccountTab from './account/container'
 import type AdvancedTab from './advanced'
@@ -22,11 +23,20 @@ import type {DeleteModal} from './account/confirm-delete'
 import type {Email, Phone, VerifyPhone} from './account/add-modals'
 
 export const sharedNewRoutes = {
-  [Constants.aboutTab]: {getScreen: (): typeof AboutTab => require('./about').default},
+  [Constants.aboutTab]: {
+    getOptions: {
+      header: undefined,
+      title: 'About',
+    },
+    getScreen: (): typeof AboutTab => require('./about').default,
+  },
   [Constants.accountTab]: {getScreen: (): typeof AccountTab => require('./account/container').default},
   [Constants.advancedTab]: {getScreen: (): typeof AdvancedTab => require('./advanced').default},
   [Constants.chatTab]: {getScreen: (): typeof ChatTab => require('./chat/container').default},
-  [Constants.cryptoTab]: {getScreen: (): typeof ChatTab => require('../crypto/sub-nav').default},
+  [Constants.cryptoTab]: {
+    getOptions: () => ({title: 'Crypto'}),
+    getScreen: (): typeof ChatTab => require('../crypto/sub-nav').default,
+  },
   [Constants.devicesTab]: {getScreen: (): typeof DevicesTab => require('../devices/container').default},
   [Constants.displayTab]: {getScreen: (): typeof DisplayTab => require('./display').default},
   [Constants.feedbackTab]: {getScreen: (): typeof FeedbackTab => require('./feedback/container').default},
@@ -38,7 +48,16 @@ export const sharedNewRoutes = {
   [Constants.notificationsTab]: {
     getScreen: (): typeof NotificationsTab => require('./notifications/container').default,
   },
-  [Constants.whatsNewTab]: {getScreen: (): typeof WhatsNewTab => require('../whats-new/container').default},
+  [Constants.whatsNewTab]: {
+    getOptions: isMobile
+      ? {
+          HeaderTitle: 'Keybase FM 87.7',
+          header: undefined,
+          title: 'Keybase FM 87.7',
+        }
+      : {},
+    getScreen: (): typeof WhatsNewTab => require('../whats-new/container').default,
+  },
   addEmail: {getScreen: (): typeof Email => require('./account/add-modals').Email},
   addPhone: {getScreen: (): typeof Phone => require('./account/add-modals').Phone},
   dbNukeConfirm: {getScreen: (): typeof DbNukeConfirm => require('./db-nuke-confirm/container').default},

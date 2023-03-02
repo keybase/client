@@ -91,7 +91,7 @@ const SmallTeam = React.memo(function SmallTeam(p: Props) {
     ? Styles.globalColors.white
     : isSelected
     ? Styles.globalColors.blue
-    : Styles.isPhone
+    : Styles.isPhone && !Styles.isTablet
     ? Styles.globalColors.fastBlank
     : Styles.globalColors.blueGrey
 
@@ -102,7 +102,7 @@ const SmallTeam = React.memo(function SmallTeam(p: Props) {
           className={Styles.classNames('small-row', {selected: isSelected})}
           onClick={onSelectConversation}
           style={
-            isInWidget
+            isInWidget || Styles.isTablet
               ? Styles.collapseStyles([styles.container, {backgroundColor: backgroundColor}])
               : styles.container
           }
@@ -205,6 +205,7 @@ const styles = Styles.styleSheetCreate(() => ({
   },
   fastBlank: Styles.platformStyles({
     isPhone: {backgroundColor: Styles.globalColors.fastBlank},
+    isTablet: {backgroundColor: undefined},
   }),
   flexOne: {flex: 1},
   rowContainer: Styles.platformStyles({

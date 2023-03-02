@@ -25,7 +25,7 @@ PODS:
     - React-Core
   - EXLocation (15.0.1):
     - ExpoModulesCore
-  - EXMediaLibrary (15.0.0):
+  - EXMediaLibrary (15.2.2):
     - ExpoModulesCore
     - React-Core
   - Expo (47.0.13):
@@ -447,7 +447,7 @@ PODS:
     - React-Core
   - RNGestureHandler (2.9.0):
     - React-Core
-  - RNReanimated (3.0.0-rc.10):
+  - RNReanimated (3.0.0):
     - DoubleConversion
     - FBLazyVector
     - FBReactNativeSpec
@@ -769,7 +769,7 @@ SPEC CHECKSUMS:
   EXFont: 319606bfe48c33b5b5063fb0994afdc496befe80
   EXImageLoader: 84b65e6bd9d3345d6fbb3ab936a546c54496a64d
   EXLocation: 7d08926d931f4fb619bfa25e73669f1e19b102c6
-  EXMediaLibrary: b1c4f78878e45f6a359aff3a059e1660c41b73ab
+  EXMediaLibrary: 792fe9b828b5bfa2c5a8b629730f175af2938285
   Expo: b9fa98bf260992312ee3c424400819fb9beadafe
   ExpoHaptics: 5a56d30a87ea213dd00b09566dc4b441a4dff97f
   ExpoImagePicker: 3851acac688e36cbf49973ff03fe395fa7f0fbf4
@@ -837,7 +837,7 @@ SPEC CHECKSUMS:
   RNFastImage: 65fc4932ac71ad7569adc60b66db6a6ed30dad89
   RNFlashList: 8ec7f7454721145fe84566bb9e88bcf58981c9fe
   RNGestureHandler: 071d7a9ad81e8b83fe7663b303d132406a7d8f39
-  RNReanimated: 3eb05867410b44acaa81dd423945af3093305bd4
+  RNReanimated: 34ffdce9b09d4c6fc03f03e8939a423cc86284c6
   RNScreens: ea4cd3a853063cda19a4e3c28d2e52180c80f4eb
   SDWebImage: a47aea9e3d8816015db4e523daff50cfd294499d
   SDWebImageWebPCoder: 908b83b6adda48effe7667cd2b7f78c897e5111d

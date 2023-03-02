@@ -7,6 +7,26 @@ import {initialWindowMetrics} from 'react-native-safe-area-context'
 
 const initialSafeHeight = Styles.isIOS ? Math.max(0, initialWindowMetrics?.insets?.top ?? 0) : 0
 
+export const TabletWrapper = (p: {children: React.ReactNode}) => {
+  const {children} = p
+  return (
+    <Kb.Box2
+      direction="horizontal"
+      fullWidth={true}
+      fullHeight={true}
+      // ios only allows centered so we do some margin to help spread it out
+      style={{
+        height: 48,
+        marginLeft: -20,
+        maxWidth: undefined,
+        width: Styles.dimensionWidth,
+      }}
+    >
+      {children}
+    </Kb.Box2>
+  )
+}
+
 export const headerDefaultStyle = {
   get backgroundColor() {
     return Styles.globalColors.fastBlank
@@ -62,6 +82,7 @@ export const defaultNavigationOptions: any = {
       {hp.children}
     </Kb.Text>
   ),
+  headerTitleAlign: Styles.isAndroid ? 'center' : undefined,
   headerTitleContainerStyle: {
     alignItems: 'stretch',
     flexGrow: 1,

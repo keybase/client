@@ -30,7 +30,7 @@ const UnmutedNotificationPrefs = (props: UnmutedProps) => {
     ignoreMentionsSuffix = '(desktop)'
   }
   return (
-    <>
+    <Kb.Box2 direction="vertical" fullWidth={true} gap="small">
       {!allNotifsEnabled && (
         <Kb.Checkbox
           checked={!channelWide}
@@ -47,64 +47,62 @@ const UnmutedNotificationPrefs = (props: UnmutedProps) => {
         />
       )}
 
-      <Kb.Box style={styles.header}>
+      <Kb.Box2 direction="vertical" fullWidth={true}>
         <Kb.Text type="BodySmallSemibold">Desktop notifications</Kb.Text>
-      </Kb.Box>
+        <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" style={styles.radioButton}>
+          <Kb.RadioButton
+            style={{marginTop: Styles.globalMargins.xtiny}}
+            onSelect={() => setDesktop('onAnyActivity')}
+            selected={desktop === 'onAnyActivity'}
+            label="On any activity"
+          />
+        </Kb.Box2>
+        <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" style={styles.radioButton}>
+          <Kb.RadioButton
+            style={{marginTop: Styles.globalMargins.xtiny}}
+            onSelect={() => setDesktop('onWhenAtMentioned')}
+            selected={desktop === 'onWhenAtMentioned'}
+            label="Only when @mentioned"
+          />
+        </Kb.Box2>
+        <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" style={styles.radioButton}>
+          <Kb.RadioButton
+            style={{marginTop: Styles.globalMargins.xtiny}}
+            onSelect={() => setDesktop('never')}
+            selected={desktop === 'never'}
+            label="Never"
+          />
+        </Kb.Box2>
+      </Kb.Box2>
 
-      <Kb.Box style={styles.radioButton}>
-        <Kb.RadioButton
-          style={{marginTop: Styles.globalMargins.xtiny}}
-          onSelect={() => setDesktop('onAnyActivity')}
-          selected={desktop === 'onAnyActivity'}
-          label="On any activity"
-        />
-      </Kb.Box>
-      <Kb.Box style={styles.radioButton}>
-        <Kb.RadioButton
-          style={{marginTop: Styles.globalMargins.xtiny}}
-          onSelect={() => setDesktop('onWhenAtMentioned')}
-          selected={desktop === 'onWhenAtMentioned'}
-          label="Only when @mentioned"
-        />
-      </Kb.Box>
-      <Kb.Box style={styles.radioButton}>
-        <Kb.RadioButton
-          style={{marginTop: Styles.globalMargins.xtiny}}
-          onSelect={() => setDesktop('never')}
-          selected={desktop === 'never'}
-          label="Never"
-        />
-      </Kb.Box>
-
-      <Kb.Box style={styles.header}>
+      <Kb.Box2 direction="vertical" fullWidth={true}>
         <Kb.Text type="BodySmallSemibold">Mobile notifications</Kb.Text>
-      </Kb.Box>
-
-      <Kb.Box style={styles.radioButton}>
-        <Kb.RadioButton
-          style={{marginTop: Styles.globalMargins.xtiny}}
-          onSelect={() => setMobile('onAnyActivity')}
-          selected={mobile === 'onAnyActivity'}
-          label="On any activity"
-        />
-      </Kb.Box>
-      <Kb.Box style={styles.radioButton}>
-        <Kb.RadioButton
-          style={{marginTop: Styles.globalMargins.xtiny}}
-          onSelect={() => setMobile('onWhenAtMentioned')}
-          selected={mobile === 'onWhenAtMentioned'}
-          label="Only when @mentioned"
-        />
-      </Kb.Box>
-      <Kb.Box style={styles.radioButton}>
-        <Kb.RadioButton
-          style={{marginTop: Styles.globalMargins.xtiny}}
-          onSelect={() => setMobile('never')}
-          selected={mobile === 'never'}
-          label="Never"
-        />
-      </Kb.Box>
-    </>
+        <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" style={styles.radioButton}>
+          <Kb.RadioButton
+            style={{marginTop: Styles.globalMargins.xtiny}}
+            onSelect={() => setMobile('onAnyActivity')}
+            selected={mobile === 'onAnyActivity'}
+            label="On any activity"
+          />
+        </Kb.Box2>
+        <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" style={styles.radioButton}>
+          <Kb.RadioButton
+            style={{marginTop: Styles.globalMargins.xtiny}}
+            onSelect={() => setMobile('onWhenAtMentioned')}
+            selected={mobile === 'onWhenAtMentioned'}
+            label="Only when @mentioned"
+          />
+        </Kb.Box2>
+        <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" style={styles.radioButton}>
+          <Kb.RadioButton
+            style={{marginTop: Styles.globalMargins.xtiny}}
+            onSelect={() => setMobile('never')}
+            selected={mobile === 'never'}
+            label="Never"
+          />
+        </Kb.Box2>
+      </Kb.Box2>
+    </Kb.Box2>
   )
 }
 
@@ -146,9 +144,10 @@ const Notifications = (props: Props) => {
     setMuted(meta.isMuted)
     setChannelWide(meta.notificationsGlobalIgnoreMentions)
   }, [meta])
+
   return (
-    <Kb.Box style={styles.container}>
-      <Kb.Box style={styles.top}>
+    <Kb.Box2 direction="vertical" fullWidth={true} gap="small">
+      <Kb.Box2 direction="horizontal" fullWidth={true}>
         <Kb.Checkbox
           checked={muted}
           onCheck={() => {
@@ -158,7 +157,7 @@ const Notifications = (props: Props) => {
           label="Mute all notifications"
         />
         <Kb.Icon type="iconfont-shh" style={styles.icon} color={Styles.globalColors.black_20} />
-      </Kb.Box>
+      </Kb.Box2>
       {!muted && (
         <UnmutedNotificationPrefs
           channelWide={channelWide}
@@ -179,37 +178,17 @@ const Notifications = (props: Props) => {
         />
       )}
       <Kb.SaveIndicator saving={saving} minSavingTimeMs={300} savedTimeoutMs={2500} />
-    </Kb.Box>
+    </Kb.Box2>
   )
 }
 
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      container: {
-        ...Styles.globalStyles.flexBoxColumn,
-        paddingLeft: Styles.globalMargins.small,
-        paddingRight: Styles.globalMargins.small,
-      },
-      header: Styles.platformStyles({
-        common: {
-          ...Styles.globalStyles.flexBoxRow,
-          paddingTop: Styles.globalMargins.small,
-        },
-        isMobile: {
-          paddingBottom: Styles.globalMargins.tiny,
-          paddingTop: Styles.globalMargins.medium,
-        },
-      }),
       icon: {marginLeft: Styles.globalMargins.xtiny},
       radioButton: {
         ...Styles.globalStyles.flexBoxRow,
         marginLeft: Styles.globalMargins.tiny,
-      },
-      top: {
-        ...Styles.globalStyles.flexBoxRow,
-        alignItems: 'center',
-        marginBottom: Styles.globalMargins.xtiny,
       },
     } as const)
 )

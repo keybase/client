@@ -15,14 +15,13 @@ import {
   type GestureUpdateEvent,
   type PanGestureHandlerEventPayload,
 } from 'react-native-gesture-handler'
-import {Portal} from '@gorhom/portal'
 import {View} from 'react-native'
 import {formatAudioRecordDuration} from '../../util/timestamp'
 import {Audio, InterruptionModeIOS, InterruptionModeAndroid} from 'expo-av'
 import logger from '../../logger'
 import * as Haptics from 'expo-haptics'
 import * as FileSystem from 'expo-file-system'
-import AudioSend from './audio-send'
+import AudioSend from './audio-send.native'
 
 const {useSharedValue, withTiming, useAnimatedStyle, withDelay, withSequence, withSpring} = Reanimated
 const {useAnimatedReaction, runOnJS, Extrapolation, interpolate, interpolateColor} = Reanimated
@@ -67,7 +66,7 @@ const useTooltip = () => {
   }, [showTooltip])
 
   const tooltip = showTooltip ? (
-    <Portal hostName="convOverlay">
+    <Kb.Portal hostName="convOverlay">
       <Animated.View style={animatedStyles}>
         <Kb.Box2 direction="horizontal" style={styles.tooltipContainer}>
           <Kb.Text type="BodySmall" negative={true}>
@@ -75,7 +74,7 @@ const useTooltip = () => {
           </Kb.Text>
         </Kb.Box2>
       </Animated.View>
-    </Portal>
+    </Kb.Portal>
   ) : null
 
   const flashTip = React.useCallback(() => {
@@ -280,7 +279,7 @@ const useIconAndOverlay = (p: {
 
   const overlay =
     visible === Visible.HIDDEN ? null : (
-      <Portal hostName="convOverlay">
+      <Kb.Portal hostName="convOverlay">
         <Animated.View style={styles.container} pointerEvents="box-none">
           <BigBackground fadeSV={fadeSV} />
           <AmpCircle fadeSV={fadeSV} ampSV={ampSV} dragXSV={dragXSV} dragYSV={dragYSV} lockedSV={lockedSV} />
@@ -296,7 +295,7 @@ const useIconAndOverlay = (p: {
           <SendRecordingButton fadeSV={fadeSV} lockedSV={lockedSV} sendRecording={onSendRecording} />
           <AudioCounter fadeSV={fadeSV} />
         </Animated.View>
-      </Portal>
+      </Kb.Portal>
     )
 
   return {icon, overlay}

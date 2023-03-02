@@ -16,7 +16,6 @@ import ThreadLoadStatus from '../load-status/container'
 import type * as Types from '../../../constants/types/chat2'
 import type {LayoutEvent} from '../../../common-adapters/box'
 import type {Props} from '.'
-import {PortalHost} from '@gorhom/portal'
 import {MaxInputAreaContext} from '../input-area/normal/max-input-area-context'
 
 const Offline = () => (
@@ -118,7 +117,7 @@ const Conversation = React.memo(function Conversation(props: Props) {
           {props.threadLoadedOffline && <Offline />}
           {innerComponent}
         </Kb.Box2>
-        <PortalHost name="convOverlay" />
+        <Kb.PortalHost name="convOverlay" />
       </DropView>
     </Kb.Box>
   )

@@ -4,12 +4,9 @@ import {Position} from '../../styles'
 
 // GatewayDests:
 // popup-root: At the root of the app. Sibling to root route renderer.
-// keyboard-avoiding-root: Within route renderer inside KeyboardAvoidingView. Sibling to route stack.
 
 export type Props = {
   children?: React.ReactNode
-  // Mobile only - select which GatewayDest to use. Default is 'popup-root'
-  dest?: 'popup-root' | 'keyboard-avoiding-root'
   // Desktop only - will be triggered automatically only on click outside the box
   onHidden?: () => void
   // Desktop only - the node that we should aim for

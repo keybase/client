@@ -154,6 +154,9 @@ module.exports = {
   get KeyboardAvoidingView() {
     return require('./keyboard-avoiding-view').default
   },
+  get KeyboardAvoidingView2() {
+    return require('./keyboard-avoiding-view').KeyboardAvoidingView2
+  },
   get LabeledInput() {
     return require('./labeled-input').default
   },

@@ -79,8 +79,4 @@ const CryptoSubNavigator = () => (
   </TabNavigator.Navigator>
 )
 
-CryptoSubNavigator.navigationOptions = {
-  title: 'Crypto tools',
-}
-
 export default CryptoSubNavigator

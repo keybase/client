@@ -29,9 +29,13 @@ export const newRoutes = {
   [Constants.contactsTab]: {
     getScreen: (): typeof ManageContactsTab => require('./manage-contacts.native').default,
   },
-
-  privacyPolicy: {getScreen: (): typeof WebLink => require('./web-links.native').default},
-  terms: {getScreen: (): typeof WebLink => require('./web-links.native').default},
+  webLinks: {
+    getOptions: ({route}) => ({
+      header: undefined,
+      title: Container.getRouteParamsFromRoute<'webLinks'>(route)?.title,
+    }),
+    getScreen: (): typeof WebLink => require('./web-links.native').default,
+  },
 }
 
 export const newModalRoutes = {

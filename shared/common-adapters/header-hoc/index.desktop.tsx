@@ -5,6 +5,7 @@ import Box from '../box'
 import Icon from '../icon'
 import * as Styles from '../../styles'
 import type {Props, LeftActionProps} from '.'
+import {useNavigation} from '@react-navigation/core'
 
 export const HeaderHocHeader = ({
   headerStyle,
@@ -47,12 +48,13 @@ export const LeftAction = ({
   theme,
 }: LeftActionProps) => (
   <Box style={Styles.collapseStyles([styles.leftAction, hasTextTitle && styles.grow])}>
-    {onLeftAction &&
-      (leftAction === 'cancel' ? (
-        <Text type="BodyBigLink" style={styles.action} onClick={onLeftAction}>
-          {leftActionText || customCancelText || 'Cancel'}
-        </Text>
-      ) : (
+    {onLeftAction && leftAction === 'cancel' ? (
+      <Text type="BodyBigLink" style={styles.action} onClick={onLeftAction}>
+        {leftActionText || customCancelText || 'Cancel'}
+      </Text>
+    ) : (
+      onLeftAction ||
+      (leftAction === 'back' && (
         <BackButton
           badgeNumber={badgeNumber}
           hideBackLabel={hideBackLabel}
@@ -65,9 +67,10 @@ export const LeftAction = ({
           }
           style={styles.action}
           textStyle={disabled ? styles.disabledText : undefined}
-          onClick={disabled ? undefined : onLeftAction}
+          onClick={disabled ? undefined : onLeftAction ?? undefined}
         />
-      ))}
+      ))
+    )}
   </Box>
 )
 
@@ -178,3 +181,15 @@ export const HeaderLeftCancel = hp =>
       customIconColor={hp.tintColor}
     />
   ) : null
+
+export const HeaderLeftCancel2 = hp => {
+  const navigation = useNavigation()
+  const onBack = React.useCallback(() => {
+    // @ts-ignore
+    navigation.pop()
+  }, [navigation])
+
+  return hp.canGoBack ?? true ? (
+    <LeftAction badgeNumber={0} leftAction="cancel" customIconColor={hp.tintColor} onLeftAction={onBack} />
+  ) : null
+}

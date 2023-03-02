@@ -30,7 +30,7 @@ import {
   withTiming,
 } from '../../../../common-adapters/reanimated'
 import logger from '../../../../logger'
-import {AudioSendWrapper} from '../../../audio/audio-send'
+import {AudioSendWrapper} from '../../../audio/audio-send.native'
 
 const singleLineHeight = 36
 const threeLineHeight = 78
