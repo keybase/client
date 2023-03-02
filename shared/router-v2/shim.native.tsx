@@ -12,6 +12,8 @@ export const shim = (routes: any, isModal: boolean, isLoggedOut: boolean) =>
 
 export const getOptions = Shared.getOptions
 
+const edges = ['right', 'bottom', 'left'] as const
+
 const shimNewRoute = (Original: any, isModal: boolean, isLoggedOut: boolean, getOptions: any) => {
   // Wrap everything in a keyboard avoiding view (maybe this is opt in/out?)
   const ShimmedNew = React.memo(function ShimmedNew(props: any) {
@@ -36,7 +38,10 @@ const shimNewRoute = (Original: any, isModal: boolean, isLoggedOut: boolean, get
     const wrapInSafe = navigationOptions?.needsSafe || isModal || isLoggedOut
     if (wrapInSafe) {
       wrap = (
-        <SafeAreaView style={Styles.collapseStyles([styles.keyboard, navigationOptions?.safeAreaStyle])}>
+        <SafeAreaView
+          style={Styles.collapseStyles([styles.keyboard, navigationOptions?.safeAreaStyle])}
+          edges={edges}
+        >
           {wrap}
         </SafeAreaView>
       )
