@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Constants from '../../constants/chat2'
 import * as Container from '../../util/container'
-import * as Styles from '../../styles'
 import Normal from './normal/container'
 import NoConversation from './no-conversation'
 import Error from './error/container'
@@ -69,16 +68,5 @@ Conversation.navigationOptions = ({route}) => ({
 
 const ConversationMemoed = React.memo(Conversation)
 Container.hoistNonReactStatic(ConversationMemoed, Conversation)
-
-const styles = Styles.styleSheetCreate(
-  () =>
-    ({
-      sav: {
-        flexGrow: 1,
-        maxHeight: '100%',
-        position: 'relative',
-      },
-    } as const)
-)
 
 export default ConversationMemoed
