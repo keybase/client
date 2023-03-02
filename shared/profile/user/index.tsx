@@ -503,7 +503,13 @@ class User extends React.Component<Props, State> {
 const usernameSelectedTab = {}
 
 const avatarSize = 128
-const headerHeight = Styles.isAndroid ? 56 : Styles.isIOS ? Styles.statusBarHeight + 46 : 80
+const headerHeight = Styles.isAndroid
+  ? 56
+  : Styles.isTablet
+  ? 80
+  : Styles.isIOS
+  ? Styles.statusBarHeight + 46
+  : 80
 
 export const styles = Styles.styleSheetCreate(() => ({
   addIdentityButton: {

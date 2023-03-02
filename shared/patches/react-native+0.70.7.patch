@@ -1,8 +1,16 @@
 diff --git a/node_modules/react-native/Libraries/Components/Keyboard/KeyboardAvoidingView.js b/node_modules/react-native/Libraries/Components/Keyboard/KeyboardAvoidingView.js
-index 6a343d8..7b28813 100644
+index 6a343d8..e96be8a 100644
 --- a/node_modules/react-native/Libraries/Components/Keyboard/KeyboardAvoidingView.js
 +++ b/node_modules/react-native/Libraries/Components/Keyboard/KeyboardAvoidingView.js
-@@ -93,6 +93,13 @@ class KeyboardAvoidingView extends React.Component<Props, State> {
+@@ -14,6 +14,7 @@ import Platform from '../../Utilities/Platform';
+ import * as React from 'react';
+ import StyleSheet from '../../StyleSheet/StyleSheet';
+ import View from '../View/View';
++import Dimensions from '../../Utilities/Dimensions';
+ 
+ import type {ViewStyleProp} from '../../StyleSheet/StyleSheet';
+ import {type EventSubscription} from '../../vendor/emitter/EventEmitter';
+@@ -93,6 +94,23 @@ class KeyboardAvoidingView extends React.Component<Props, State> {
      const keyboardY =
        keyboardFrame.screenY - (this.props.keyboardVerticalOffset ?? 0);
  
@@ -13,16 +21,26 @@ index 6a343d8..7b28813 100644
 +      );
 +    }
 +
++// just use the keyboard height
++    if (this.props.rawHeight) {
++    // showing?
++     	const windowHeight = Dimensions.get('window').height
++	if (keyboardFrame.screenY + keyboardFrame.height === windowHeight) {
++	    return keyboardFrame.height
++	} 
++	return 0;
++    }
++
      // Calculate the displacement needed for the view such that it
      // no longer overlaps with the keyboard
      return Math.max(frame.y + frame.height - keyboardY, 0);
-@@ -122,7 +129,11 @@ class KeyboardAvoidingView extends React.Component<Props, State> {
+@@ -122,7 +140,11 @@ class KeyboardAvoidingView extends React.Component<Props, State> {
  
    _updateBottomIfNecessary = async () => {
      if (this._keyboardEvent == null) {
 -      this.setState({bottom: 0});
 +      if (Keyboard.isVisible()) {
-+	      this.setState({bottom: Keyboard.metrics().height});
++	      this.setState({bottom: Keyboard.metrics()?.height});
 +      } else {
 +	      this.setState({bottom: 0});
 +      }

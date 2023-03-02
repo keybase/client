@@ -14,15 +14,18 @@ const useSafeHeaderHeight = () => {
 }
 
 export const KeyboardAvoidingView2 = (p: Props) => {
-  const {children, isModal} = p
+  const {children, isModal, extraOffset, rawHeight} = p
   const headerHeight = useSafeHeaderHeight()
   const modalHeight = isModal ? 40 : 0
-  const keyboardVerticalOffset = headerHeight + modalHeight
+  const keyboardVerticalOffset = headerHeight + modalHeight + (extraOffset ?? 0)
+
   return (
     <KeyboardAvoidingView
       keyboardVerticalOffset={keyboardVerticalOffset}
       style={styles.keyboard}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      // @ts-ignore patched in
+      rawHeight={rawHeight}
     >
       {children}
     </KeyboardAvoidingView>
