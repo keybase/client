@@ -39,11 +39,23 @@ const AnimatedChild = React.memo(function AnimatedChild({children, animatingKey}
       animatingMap.set(animatingKey, null)
     }
   }, [animatingKey])
+
+  // only animate up once
+  const onceRef = React.useRef(false)
+
+  React.useEffect(() => {
+    onceRef.current = false
+  }, [animatingKey])
+
   return (
     <Animated.View
       style={{opacity, overflow: 'hidden', transform: [{translateY}], width: '100%'}}
       onLayout={(e: any) => {
         const {height} = e.nativeEvent.layout
+        if (onceRef.current) {
+          return
+        }
+        onceRef.current = true
         translateY.setValue(height + 10)
         Animated.parallel([
           Animated.timing(opacity, {
