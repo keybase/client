@@ -35,7 +35,7 @@ const shimNewRoute = (Original: any, isModal: boolean, isLoggedOut: boolean, get
       wrap = <Kb.KeyboardAvoidingView2 isModal={isModal}>{wrap}</Kb.KeyboardAvoidingView2>
     }
 
-    const wrapInSafe = isModal || isLoggedOut
+    const wrapInSafe = navigationOptions?.needsSafe || isModal || isLoggedOut
     if (wrapInSafe) {
       wrap = (
         <SafeAreaView

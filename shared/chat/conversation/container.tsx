@@ -7,13 +7,11 @@ import NoConversation from './no-conversation'
 import Error from './error/container'
 import YouAreReset from './you-are-reset'
 import Rekey from './rekey/container'
-import {SafeAreaView} from 'react-native-safe-area-context'
 import {headerNavigationOptions} from './header-area/container'
 import type {RouteProps} from '../../router-v2/route-params'
 
 type SwitchProps = RouteProps<'chatConversation'>
 
-const edges = ['right', 'bottom', 'left'] as const
 const Conversation = (p: SwitchProps) => {
   const conversationIDKey = p.route.params?.conversationIDKey ?? Constants.noConversationIDKey
   const type = Container.useSelector(state => {
@@ -51,11 +49,7 @@ const Conversation = (p: SwitchProps) => {
       return Container.isPhone ? null : <NoConversation />
     case 'normal':
       // the id as key is so we entirely force a top down redraw to ensure nothing is possibly from another convo
-      return (
-        <SafeAreaView style={styles.sav} edges={edges}>
-          <Normal key={conversationIDKey} conversationIDKey={conversationIDKey} />
-        </SafeAreaView>
-      )
+      return <Normal key={conversationIDKey} conversationIDKey={conversationIDKey} />
     case 'youAreReset':
       return <YouAreReset />
     case 'rekey':
@@ -69,6 +63,7 @@ const Conversation = (p: SwitchProps) => {
 Conversation.navigationOptions = ({route}) => ({
   ...headerNavigationOptions(route),
   needsKeyboard: true,
+  needsSafe: true,
   presentation: undefined,
 })
 
