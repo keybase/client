@@ -35,7 +35,7 @@ const shimNewRoute = (Original: any, isModal: boolean, isLoggedOut: boolean, get
       wrap = <Kb.KeyboardAvoidingView2 isModal={isModal}>{wrap}</Kb.KeyboardAvoidingView2>
     }
 
-    const wrapInSafe = navigationOptions?.needsSafe || isModal || isLoggedOut
+    const wrapInSafe = isModal || isLoggedOut
     if (wrapInSafe) {
       wrap = (
         <SafeAreaView
@@ -47,11 +47,6 @@ const shimNewRoute = (Original: any, isModal: boolean, isLoggedOut: boolean, get
       )
     }
 
-    // if (wrapInKeyboard || wrapInSafe) {
-    // console.log('aaa', {Original, wrapInKeyboard, wrapInSafe, navigationOptions, getOptions})
-    // }
-
-    // TODO remove and make all root views have a good background
     if (isModal) {
       wrap = <ModalWrapper>{wrap}</ModalWrapper>
     }
