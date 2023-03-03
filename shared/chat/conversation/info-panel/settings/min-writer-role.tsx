@@ -55,12 +55,7 @@ const MinWriterRole = (props: Props) => {
   }))
 
   return (
-    <Kb.Box2
-      direction="vertical"
-      gap={canSetMinWriterRole ? 'tiny' : 'xxtiny'}
-      fullWidth={true}
-      style={styles.container}
-    >
+    <Kb.Box2 direction="vertical" gap={canSetMinWriterRole ? 'tiny' : 'xxtiny'} fullWidth={true}>
       <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny">
         <Kb.Text type="BodySmallSemibold">Minimum role to post</Kb.Text>
       </Kb.Box2>
@@ -126,10 +121,6 @@ const Display = ({minWriterRole}: {minWriterRole: TeamTypes.TeamRoleType}) => (
 const styles = Style.styleSheetCreate(
   () =>
     ({
-      container: {
-        paddingLeft: Style.globalMargins.small,
-        paddingRight: Style.globalMargins.small,
-      },
       dropdown: Style.platformStyles({
         common: {
           ...Style.globalStyles.flexBoxRow,
