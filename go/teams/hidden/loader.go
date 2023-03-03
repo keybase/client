@@ -284,16 +284,15 @@ func (l *LoaderPackage) VerifyOldChainLinksAreCommitted(mctx libkb.MetaContext, 
 	if l.data == nil || l.data.LinkReceiptTimes == nil {
 		return nil
 	}
-	/*
-		for s, t := range l.data.LinkReceiptTimes {
-			if s <= newCommittedSeqno {
-				continue
-			}
-			if mctx.G().Clock().Since(t.Time()) > MaxDelayInCommittingHiddenLinks {
-				return libkb.NewHiddenMerkleError(libkb.HiddenMerkleErrorOldLinkNotYetCommitted,
-					"Link for seqno %v was added %v ago and has not been included in the blind tree yet.", s, mctx.G().Clock().Since(t.Time()))
-			}
-		}*/
+	for s, t := range l.data.LinkReceiptTimes {
+		if s <= newCommittedSeqno {
+			continue
+		}
+		if mctx.G().Clock().Since(t.Time()) > MaxDelayInCommittingHiddenLinks {
+			return libkb.NewHiddenMerkleError(libkb.HiddenMerkleErrorOldLinkNotYetCommitted,
+				"Link for seqno %v was added %v ago and has not been included in the blind tree yet.", s, mctx.G().Clock().Since(t.Time()))
+		}
+	}
 	return nil
 }
 
