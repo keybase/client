@@ -81,6 +81,8 @@ const SettingsPanel = (props: SettingsPanelProps) => {
 
   const onLeaveConversation = () => dispatch(Chat2Gen.createLeaveConversation({conversationIDKey}))
 
+  const showDangerZone = canDeleteHistory || entityType === 'adhoc' || entityType !== 'channel'
+
   return (
     <Kb.ScrollView>
       <Kb.Box2
@@ -122,47 +124,49 @@ const SettingsPanel = (props: SettingsPanelProps) => {
           <MinWriterRole conversationIDKey={conversationIDKey} />
         )}
 
-        <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
-          <Kb.Text type="BodySmallSemibold">Danger zone</Kb.Text>
-          {canDeleteHistory && (
-            <Kb.Button
-              type="Danger"
-              mode="Secondary"
-              label="Clear entire conversation"
-              onClick={onShowClearConversationDialog}
-            />
-          )}
-          {entityType === 'adhoc' && (
-            <Kb.Button
-              type="Danger"
-              mode="Primary"
-              label="Block"
-              onClick={onShowBlockConversationDialog}
-              icon="iconfont-remove"
-              iconColor={Styles.globalColors.red}
-            />
-          )}
-          {entityType !== 'channel' &&
-            (ignored ? (
+        {showDangerZone ? (
+          <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
+            <Kb.Text type="BodySmallSemibold">Danger zone</Kb.Text>
+            {canDeleteHistory && (
               <Kb.Button
                 type="Danger"
                 mode="Secondary"
-                label="Unhide this conversation"
-                onClick={onUnhideConv}
-                icon="iconfont-unhide"
-                iconColor={Styles.globalColors.red}
+                label="Clear entire conversation"
+                onClick={onShowClearConversationDialog}
               />
-            ) : (
+            )}
+            {entityType === 'adhoc' && (
               <Kb.Button
                 type="Danger"
-                mode="Secondary"
-                label="Hide this conversation"
-                onClick={onHideConv}
-                icon="iconfont-unhide"
+                mode="Primary"
+                label="Block"
+                onClick={onShowBlockConversationDialog}
+                icon="iconfont-remove"
                 iconColor={Styles.globalColors.red}
               />
-            ))}
-        </Kb.Box2>
+            )}
+            {entityType !== 'channel' &&
+              (ignored ? (
+                <Kb.Button
+                  type="Danger"
+                  mode="Secondary"
+                  label="Unhide this conversation"
+                  onClick={onUnhideConv}
+                  icon="iconfont-unhide"
+                  iconColor={Styles.globalColors.red}
+                />
+              ) : (
+                <Kb.Button
+                  type="Danger"
+                  mode="Secondary"
+                  label="Hide this conversation"
+                  onClick={onHideConv}
+                  icon="iconfont-unhide"
+                  iconColor={Styles.globalColors.red}
+                />
+              ))}
+          </Kb.Box2>
+        ) : null}
       </Kb.Box2>
     </Kb.ScrollView>
   )
