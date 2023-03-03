@@ -359,7 +359,7 @@ const Popup = (p: PopupProps) => {
 
   return Styles.isMobile ? (
     <Kb.FloatingBox containerStyle={suggestionOverlayStyle} onHidden={setInactive}>
-      <Kb.KeyboardAvoidingView2>{children}</Kb.KeyboardAvoidingView2>
+      <Kb.KeyboardAvoidingView2 rawHeight={true}>{children}</Kb.KeyboardAvoidingView2>
     </Kb.FloatingBox>
   ) : (
     <Kb.Overlay

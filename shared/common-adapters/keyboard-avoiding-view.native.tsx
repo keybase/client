@@ -22,6 +22,7 @@ export const KeyboardAvoidingView2 = (p: Props) => {
   return (
     <KeyboardAvoidingView
       keyboardVerticalOffset={keyboardVerticalOffset}
+      pointerEvents="box-none"
       style={styles.keyboard}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       // @ts-ignore patched in
