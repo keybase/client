@@ -68,7 +68,9 @@
               withItems:items
              attrString:@""
       completionHandler:^{
-        weakSelf.onDropped(@{@"manifest" : weakSelf.iph.manifest});
+      if (weakSelf.onDropped != nil) {
+          weakSelf.onDropped(@{@"manifest" : weakSelf.iph.manifest});
+      }
         weakSelf.iph = nil;
       }];
   [self.iph startProcessing];
