@@ -184,6 +184,20 @@ NSInteger TEXT_LENGTH_THRESHOLD = 512; // TODO make this match the actual limit 
 
 // processItem will invoke the correct function on the Go side for the given attachment type.
 - (void)processItem:(NSItemProvider*)item {
+  // It's hard to figure out what will actually decode so we try a bunch of methods and keep falling back
+  NSMutableArray * decodes = [NSMutableArray new];
+  
+  void (^tryNextDecode)(void) = ^void() {
+    if (decodes.count == 0) {
+      [self completeItemAndAppendManifestAndLogErrorWithText:@"dataHandler: unable to decode share" error:nil];
+      return;
+    }
+    
+    void (^next)(void) = [decodes objectAtIndex:0];
+    [decodes removeObjectAtIndex:0];
+    next();
+  };
+  
   
   NSItemProviderCompletionHandler urlHandler = ^(NSURL* url, NSError* error) {
     if (self.attributedContentText.length > 0){
@@ -194,10 +208,14 @@ NSInteger TEXT_LENGTH_THRESHOLD = 512; // TODO make this match the actual limit 
   };
   
   NSItemProviderCompletionHandler dataHandler = ^(NSData* data, NSError* error) {
+    if (error != nil) {
+      tryNextDecode();
+      return;
+    }
     NSURL* filePayloadURL = [self getPayloadURLFromExt:@"data"];
     BOOL OK = [data writeToURL:filePayloadURL atomically:true];
     if (!OK) {
-      [self completeItemAndAppendManifestAndLogErrorWithText:@"dataHandler: unable to write payload file" error:nil];
+      tryNextDecode();
       return;
     }
     [self completeItemAndAppendManifestType: @"file" originalFileURL:filePayloadURL];
@@ -205,51 +223,43 @@ NSInteger TEXT_LENGTH_THRESHOLD = 512; // TODO make this match the actual limit 
   
   NSItemProviderCompletionHandler fileHandlerSimple = ^(NSURL* url, NSError* error) {
     if (error != nil) {
-      if ([item hasItemConformingToTypeIdentifier:@"public.data"]) {
-        [item loadItemForTypeIdentifier:@"public.data" options:nil completionHandler: dataHandler];
-        return;
-      }
-      [self completeItemAndAppendManifestAndLogErrorWithText:@"fileHandlerSimple: no url or public.data" error:error];
+      tryNextDecode();
       return;
     }
     NSURL * filePayloadURL = [self getPayloadURLFromURL:url];
-       [[NSFileManager defaultManager] copyItemAtURL:url toURL:filePayloadURL error:&error];
-       if (error != nil) {
-         [self completeItemAndAppendManifestAndLogErrorWithText:@"fileHandlerSimple: copy error" error:error];
-         return;
+    [[NSFileManager defaultManager] copyItemAtURL:url toURL:filePayloadURL error:&error];
+    if (error != nil) {
+      [self completeItemAndAppendManifestAndLogErrorWithText:@"fileHandlerSimple: copy error" error:error];
+      return;
     }
     [self completeItemAndAppendManifestType: @"file" originalFileURL:filePayloadURL];
   };
   
   NSItemProviderCompletionHandler textHandler = ^(NSString* text, NSError* error) {
     if (error != nil) {
-      if ([item hasItemConformingToTypeIdentifier:@"public.data"]) {
-        [item loadItemForTypeIdentifier:@"public.data" options:nil completionHandler: fileHandlerSimple];
-        return;
-      }
-      [self completeItemAndAppendManifestAndLogErrorWithText:@"textHandler: error and no public.data" error:nil];
+      tryNextDecode();
       return;
     }
     [self handleText:text chatOnly:false loadError:error];
   };
-    
+  
   NSItemProviderCompletionHandler imageHandler = ^(UIImage* image, NSError* error) {
     if (error != nil) {
-      [self completeItemAndAppendManifestAndLogErrorWithText:@"imageHandler: load error" error:error];
+      tryNextDecode();
       return;
     }
     CGImageAlphaInfo alpha = CGImageGetAlphaInfo(image.CGImage);
     BOOL hasAlpha = (
-                alpha == kCGImageAlphaFirst ||
-                alpha == kCGImageAlphaLast ||
-                alpha == kCGImageAlphaPremultipliedFirst ||
-                alpha == kCGImageAlphaPremultipliedLast
-                );
+                     alpha == kCGImageAlphaFirst ||
+                     alpha == kCGImageAlphaLast ||
+                     alpha == kCGImageAlphaPremultipliedFirst ||
+                     alpha == kCGImageAlphaPremultipliedLast
+                     );
     NSData * imageData = hasAlpha ? UIImagePNGRepresentation(image) : UIImageJPEGRepresentation(image, .85);
     NSURL * originalFileURL = [self getPayloadURLFromExt: hasAlpha ? @"png" : @"jpg"];
     BOOL OK = [imageData writeToURL:originalFileURL atomically:true];
     if (!OK){
-      [self completeItemAndAppendManifestAndLogErrorWithText:@"handleData: unable to write payload file" error:nil];
+      tryNextDecode();
       return;
     }
     [self handleAndCompleteMediaFile:originalFileURL isVideo:false ];
@@ -262,21 +272,15 @@ NSInteger TEXT_LENGTH_THRESHOLD = 512; // TODO make this match the actual limit 
     BOOL hasImage = [item hasItemConformingToTypeIdentifier:@"public.image"];
     BOOL hasVideo = [item hasItemConformingToTypeIdentifier:@"public.movie"];
     
-    // We use the fileHandler for images because it might have not been possible for the OS to give us a URL. But if not, go through the regular imageHandler.
     if (error != nil) {
-      if (hasImage) {
-        // Try to handle with our imageHandler function
-        [item loadItemForTypeIdentifier:@"public.image" options:nil completionHandler:imageHandler];
-        return;
-      }
-      [self completeItemAndAppendManifestAndLogErrorWithText:@"fileHandler: no url or public.image" error:error];
+      tryNextDecode();
       return;
     }
     
     NSURL * filePayloadURL = [self getPayloadURLFromURL:url];
     [[NSFileManager defaultManager] copyItemAtURL:url toURL:filePayloadURL error:&error];
     if (error != nil) {
-      [self completeItemAndAppendManifestAndLogErrorWithText:@"fileHandler: copy error" error:error];
+      tryNextDecode();
       return;
     }
     
@@ -293,48 +297,84 @@ NSInteger TEXT_LENGTH_THRESHOLD = 512; // TODO make this match the actual limit 
   
   if ([item hasItemConformingToTypeIdentifier:@"public.movie"]) {
     if (self.isShare) {
-      [item loadItemForTypeIdentifier:@"public.movie" options:nil completionHandler:fileHandlerMedia];
+      [decodes addObject:^(){
+        [item loadItemForTypeIdentifier:@"public.movie" options:nil completionHandler:fileHandlerMedia];
+      }];
+      
     } else {
       // drag drop doesn't give us working urls
-      [item loadFileRepresentationForTypeIdentifier:@"public.movie" completionHandler:fileHandlerMedia];
+      [decodes addObject:^(){
+        [item loadFileRepresentationForTypeIdentifier:@"public.movie" completionHandler:fileHandlerMedia];
+      }];
     }
-  } else if ([item hasItemConformingToTypeIdentifier:@"public.image"]) {
+  }
+  
+  if ([item hasItemConformingToTypeIdentifier:@"public.image"]) {
     if (self.isShare) {
       // Use the fileHandler here, so if the image is from e.g. the Photos app,
       // we'd go with the copy routine instead of having to encode an NSImage.
       // This is important for staying under the mem limit.
-      [item loadItemForTypeIdentifier:@"public.image" options:nil completionHandler:fileHandlerMedia];
+      [decodes addObject:^(){
+        [item loadItemForTypeIdentifier:@"public.image" options:nil completionHandler:fileHandlerMedia];
+      }];
     } else {
+      [decodes addObject:^(){
+        [item loadFileRepresentationForTypeIdentifier:@"public.image" completionHandler:fileHandlerMedia];
+      }];
       // drag drop doesn't give us working urls
-      [item loadObjectOfClass:[UIImage class] completionHandler:imageHandler];
-    }
-  } else if ([item hasItemConformingToTypeIdentifier:@"public.file-url"]) {
-    if (self.isShare) {
-      // Although this will be covered in the catch-all below, do it before public.text and public.url so that we get the file instead of a web URL when user shares a downloaded file from safari.
-      [item loadItemForTypeIdentifier:@"public.file-url" options:nil completionHandler:fileHandlerSimple];
-    } else {
-      [item loadFileRepresentationForTypeIdentifier:@"public.file-url" completionHandler:fileHandlerSimple];
-    }
-  } else if ([item hasItemConformingToTypeIdentifier:@"public.text"]) {
-    if (self.isShare) {
-      [item loadItemForTypeIdentifier:@"public.text" options:nil completionHandler:textHandler];
-    } else {
-      [item loadFileRepresentationForTypeIdentifier:@"public.text" completionHandler:textHandler];
-      }
-  } else if ([item hasItemConformingToTypeIdentifier:@"public.url"]) {
-    if (self.isShare) {
-      [item loadItemForTypeIdentifier:@"public.url" options:nil completionHandler:urlHandler];
-    } else {
-      [item loadObjectOfClass:[NSString class] completionHandler:textHandler];
-    }
-  } else {
-    if (self.isShare) {
-      // catch-all, including file-url or stuff like pdf from safari, or contact card.
-      [item loadItemForTypeIdentifier:@"public.item" options:nil completionHandler: fileHandlerSimple];
-    } else {
-      [item loadFileRepresentationForTypeIdentifier:@"public.item" completionHandler:fileHandlerSimple];
+      [decodes addObject:^(){
+        [item loadObjectOfClass:[UIImage class] completionHandler:imageHandler];
+      }];
     }
   }
+  if ([item hasItemConformingToTypeIdentifier:@"public.file-url"]) {
+    if (self.isShare) {
+      // Although this will be covered in the catch-all below, do it before public.text and public.url so that we get the file instead of a web URL when user shares a downloaded file from safari.
+      [decodes addObject:^(){
+        [item loadItemForTypeIdentifier:@"public.file-url" options:nil completionHandler:fileHandlerSimple];
+      }];
+    } else {
+      [decodes addObject:^(){
+        [item loadFileRepresentationForTypeIdentifier:@"public.file-url" completionHandler:fileHandlerSimple];
+      }];
+    }
+  }
+  if ([item hasItemConformingToTypeIdentifier:@"public.text"]) {
+    if (self.isShare) {
+      [decodes addObject:^(){
+        [item loadItemForTypeIdentifier:@"public.text" options:nil completionHandler:textHandler];
+      }];
+    } else {
+      [decodes addObject:^(){
+        [item loadFileRepresentationForTypeIdentifier:@"public.text" completionHandler:textHandler];
+      }];
+    }
+  }
+  if ([item hasItemConformingToTypeIdentifier:@"public.url"]) {
+    if (self.isShare) {
+      [decodes addObject:^(){
+        [item loadItemForTypeIdentifier:@"public.url" options:nil completionHandler:urlHandler];
+      }];
+    } else {
+      [decodes addObject:^(){
+        [item loadObjectOfClass:[NSString class] completionHandler:textHandler];
+      }];
+    }
+  }
+  
+  if (self.isShare) {
+    // catch-all, including file-url or stuff like pdf from safari, or contact card.
+    [decodes addObject:^(){
+      [item loadItemForTypeIdentifier:@"public.item" options:nil completionHandler: fileHandlerSimple];
+    }];
+  } else {
+    [decodes addObject:^(){
+      [item loadFileRepresentationForTypeIdentifier:@"public.item" completionHandler:fileHandlerSimple];
+    }];
+  }
+  
+  tryNextDecode();
+
 }
 
 -(void) startProcessing {
