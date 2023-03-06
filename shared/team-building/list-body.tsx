@@ -16,7 +16,7 @@ import UserResult from './search-result/user-result'
 import throttle from 'lodash/throttle'
 import type * as Types from './types'
 import {useRoute} from '@react-navigation/native'
-import {useAnimatedScrollHandler} from '../common-adapters/reanimated'
+// import {useAnimatedScrollHandler} from '../common-adapters/reanimated'
 
 const Suggestions = (props: Pick<Types.Props, 'namespace' | 'selectedService'>) => {
   const {namespace, selectedService} = props
@@ -212,7 +212,7 @@ export const ListBody = (
   const teamID = params?.teamID
   const {searchString, selectedService} = props
   const {onAdd, onRemove, teamSoFar, onSearchForMore, onChangeText} = props
-  const {namespace, highlightedIndex, offset, enterInputCounter, onFinishTeamBuilding} = props
+  const {namespace, highlightedIndex, /*offset, */ enterInputCounter, onFinishTeamBuilding} = props
 
   const contactsImported = Container.useSelector(state => state.settings.contacts.importEnabled)
   const contactsPermissionStatus = Container.useSelector(state => state.settings.contacts.permissionStatus)
