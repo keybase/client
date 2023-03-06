@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as Styles from '../styles'
 import * as Shared from './shim.shared'
 import * as Container from '../util/container'
-import {SafeAreaView} from 'react-native-safe-area-context'
+import {SafeAreaProvider} from 'react-native-safe-area-context'
 import {useHeaderHeight} from '@react-navigation/elements'
 import {View} from 'react-native'
 
@@ -12,8 +12,6 @@ export const shim = (routes: any, isModal: boolean, isLoggedOut: boolean) =>
 
 export const getOptions = Shared.getOptions
 
-const edges = ['right', 'bottom', 'left'] as const
-
 const shimNewRoute = (Original: any, isModal: boolean, isLoggedOut: boolean, getOptions: any) => {
   // Wrap everything in a keyboard avoiding view (maybe this is opt in/out?)
   const ShimmedNew = React.memo(function ShimmedNew(props: any) {
@@ -21,9 +19,19 @@ const shimNewRoute = (Original: any, isModal: boolean, isLoggedOut: boolean, get
       typeof getOptions === 'function'
         ? getOptions({navigation: props.navigation, route: props.route})
         : getOptions
-    const original = <Original {...props} />
-    const body = original
-    let wrap = body
+
+    let wrap = <Original {...props} />
+
+    const wrapInSafe = navigationOptions?.needsSafe || isModal || isLoggedOut
+    if (wrapInSafe) {
+      wrap = (
+        <SafeAreaProvider>
+          <Kb.SafeAreaView style={Styles.collapseStyles([styles.keyboard, navigationOptions?.safeAreaStyle])}>
+            {wrap}
+          </Kb.SafeAreaView>
+        </SafeAreaProvider>
+      )
+    }
 
     // either they want it, or its a modal/loggedout and they haven't explicitly opted out
     const wrapInKeyboard =
@@ -32,18 +40,10 @@ const shimNewRoute = (Original: any, isModal: boolean, isLoggedOut: boolean, get
       (isLoggedOut && (navigationOptions?.needsKeyboard ?? true))
 
     if (wrapInKeyboard) {
-      wrap = <Kb.KeyboardAvoidingView2 isModal={isModal}>{wrap}</Kb.KeyboardAvoidingView2>
-    }
-
-    const wrapInSafe = navigationOptions?.needsSafe || isModal || isLoggedOut
-    if (wrapInSafe) {
       wrap = (
-        <SafeAreaView
-          style={Styles.collapseStyles([styles.keyboard, navigationOptions?.safeAreaStyle])}
-          edges={edges}
-        >
+        <Kb.KeyboardAvoidingView2 isModal={isModal} rawHeight={true}>
           {wrap}
-        </SafeAreaView>
+        </Kb.KeyboardAvoidingView2>
       )
     }
 
