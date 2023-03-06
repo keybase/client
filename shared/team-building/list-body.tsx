@@ -244,7 +244,10 @@ export const ListBody = (
     preExistingTeamMembers
   )
 
-  const onScroll: any = useAnimatedScrollHandler({onScroll: e => (offset.value = e.contentOffset.y)})
+  // TODO this crashes out renimated 3 https://github.com/software-mansion/react-native-reanimated/issues/2285
+  // in the tab bar, so we just disconnect the shared value for now, likely can just leave this as-is
+  // const onScroll: any = useAnimatedScrollHandler({onScroll: e => (offset.value = e.contentOffset.y)})
+  const onScroll = undefined
   const oldEnterInputCounter = Container.usePrevious(enterInputCounter)
 
   const showResults = !!searchString
