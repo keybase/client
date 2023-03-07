@@ -44,3 +44,4 @@ ios/.xcode.env.local
 
 main.jsbundle
 .eslintcache
+.metro-health-check*

@@ -1,0 +1,2 @@
+patch package expo image, rn, mattermost
+android

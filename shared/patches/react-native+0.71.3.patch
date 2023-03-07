@@ -1,32 +1,25 @@
 diff --git a/node_modules/react-native/Libraries/Components/Keyboard/KeyboardAvoidingView.js b/node_modules/react-native/Libraries/Components/Keyboard/KeyboardAvoidingView.js
-index 6a343d8..6e9a8d7 100644
+index 2f48f9e..127c5f3 100644
 --- a/node_modules/react-native/Libraries/Components/Keyboard/KeyboardAvoidingView.js
 +++ b/node_modules/react-native/Libraries/Components/Keyboard/KeyboardAvoidingView.js
-@@ -14,6 +14,7 @@ import Platform from '../../Utilities/Platform';
- import * as React from 'react';
- import StyleSheet from '../../StyleSheet/StyleSheet';
+@@ -22,6 +22,7 @@ import Platform from '../../Utilities/Platform';
+ import {type EventSubscription} from '../../vendor/emitter/EventEmitter';
+ import AccessibilityInfo from '../AccessibilityInfo/AccessibilityInfo';
  import View from '../View/View';
 +import Dimensions from '../../Utilities/Dimensions';
+ import Keyboard from './Keyboard';
+ import * as React from 'react';
  
- import type {ViewStyleProp} from '../../StyleSheet/StyleSheet';
- import {type EventSubscription} from '../../vendor/emitter/EventEmitter';
-@@ -93,6 +94,23 @@ class KeyboardAvoidingView extends React.Component<Props, State> {
-     const keyboardY =
-       keyboardFrame.screenY - (this.props.keyboardVerticalOffset ?? 0);
+@@ -100,6 +101,16 @@ class KeyboardAvoidingView extends React.Component<Props, State> {
+       );
+     }
  
-+    if (this.props.behavior === 'height') {
-+      return Math.max(
-+        this.state.bottom + frame.y + frame.height - keyboardY,
-+        0,
-+      );
-+    }
-+
-+// just use the keyboard height
++    // just use the keyboard height
 +    if (this.props.rawHeight) {
 +    // showing?
 +     	const windowHeight = Dimensions.get('window').height
 +	if (keyboardFrame.screenY + keyboardFrame.height === windowHeight) {
-+	    return keyboardFrame.height
++	   return keyboardFrame.height
 +	} 
 +	return 0;
 +    }
@@ -34,32 +27,32 @@ index 6a343d8..6e9a8d7 100644
      // Calculate the displacement needed for the view such that it
      // no longer overlaps with the keyboard
      return Math.max(frame.y + frame.height - keyboardY, 0);
-@@ -122,7 +140,11 @@ class KeyboardAvoidingView extends React.Component<Props, State> {
+@@ -129,7 +140,11 @@ class KeyboardAvoidingView extends React.Component<Props, State> {
  
    _updateBottomIfNecessary = async () => {
      if (this._keyboardEvent == null) {
 -      this.setState({bottom: 0});
 +      if (Keyboard.isVisible()) {
-+	      this.setState({bottom: Keyboard.metrics()?.height ?? 0});
++	     this.setState({bottom: Keyboard.metrics()?.height ?? 0});
 +      } else {
-+	      this.setState({bottom: 0});
++	     this.setState({bottom: 0});
 +      }
        return;
      }
  
 diff --git a/node_modules/react-native/Libraries/Lists/VirtualizedList.js b/node_modules/react-native/Libraries/Lists/VirtualizedList.js
-index 69e6309..cc802af 100644
+index e948a85..48952cf 100644
 --- a/node_modules/react-native/Libraries/Lists/VirtualizedList.js
 +++ b/node_modules/react-native/Libraries/Lists/VirtualizedList.js
-@@ -34,6 +34,7 @@ const RefreshControl = require('../Components/RefreshControl/RefreshControl');
- const ScrollView = require('../Components/ScrollView/ScrollView');
- const View = require('../Components/View/View');
- const Batchinator = require('../Interaction/Batchinator');
-+const Platform = require('../Utilities/Platform');
- const ReactNative = require('../Renderer/shims/ReactNative');
- const flattenStyle = require('../StyleSheet/flattenStyle');
- const StyleSheet = require('../StyleSheet/StyleSheet');
-@@ -2170,9 +2171,14 @@ function describeNestedLists(childList: {
+@@ -25,6 +25,7 @@ import RefreshControl from '../Components/RefreshControl/RefreshControl';
+ import ScrollView from '../Components/ScrollView/ScrollView';
+ import View from '../Components/View/View';
+ import Batchinator from '../Interaction/Batchinator';
++import Platform from '../Utilities/Platform';
+ import {findNodeHandle} from '../ReactNative/RendererProxy';
+ import flattenStyle from '../StyleSheet/flattenStyle';
+ import StyleSheet from '../StyleSheet/StyleSheet';
+@@ -1843,9 +1844,14 @@ export default class VirtualizedList extends StateSafePureComponent<
  }
  
  const styles = StyleSheet.create({

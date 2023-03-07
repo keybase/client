@@ -28,7 +28,8 @@ export const options = {
 let lastRefresh: number = 0
 const waitToRefresh = 1000 * 60 * 5
 
-const LoadOnMount = () => {
+const PeopleReloadable = () => {
+  return <Kb.Box2 fullWidth={true} fullHeight={true} direction="vertical" style={{backgroundColor: 'red'}} />
   const followSuggestions = Container.useSelector(state => state.people.followSuggestions)
   const username = Container.useSelector(state => state.config.username)
   const newItems = Container.useSelector(state => state.people.newItems)
@@ -76,4 +77,4 @@ const LoadOnMount = () => {
     </Kb.Reloadable>
   )
 }
-export default LoadOnMount
+export default PeopleReloadable

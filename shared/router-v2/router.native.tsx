@@ -11,13 +11,15 @@ import * as RouterLinking from './router-linking.native'
 import * as Common from './common.native'
 import * as ConfigConstants from '../constants/config'
 import {useMemo} from '../util/memoize'
-import {StatusBar} from 'react-native'
+import {StatusBar, View} from 'react-native'
 import {HeaderLeftCancel2} from '../common-adapters/header-hoc'
 import {NavigationContainer, getFocusedRouteNameFromRoute} from '@react-navigation/native'
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs'
 import {modalRoutes, routes, loggedOutRoutes, tabRoots} from './routes'
 import {enableFreeze} from 'react-native-screens'
 import {createNativeStackNavigator} from '@react-navigation/native-stack'
+
+import {useNavigation} from '@react-navigation/core'
 
 enableFreeze()
 
@@ -132,6 +134,11 @@ const styles = Styles.styleSheetCreate(
 const Tab = createBottomTabNavigator()
 const tabRoutes = routes
 
+const TEMP = () => {
+  const nav = useNavigation()
+  return <View style={{backgroundColor: 'blue', width: '100%', height: '100%'}} />
+}
+
 // we must ensure we don't keep remaking these components
 const tabScreensCache = new Map()
 const makeTabStack = (tab: string) => {
@@ -154,7 +161,8 @@ const makeTabStack = (tab: string) => {
             animationDuration: 250,
           }}
         >
-          {tabScreens}
+          <S.Screen name="TEMP" component={TEMP} />
+          {/*tabScreens*/}
         </S.Navigator>
       )
     },
