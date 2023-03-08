@@ -18,7 +18,7 @@ type Props = {
 
 const MobilePopup = (props: Props) => (
   <Kb.FloatingBox>
-    <KeyboardAvoidingView2>
+    <Kb.KeyboardAvoidingView2>
       <Kb.Box2 direction="vertical" centerChildren={true} style={styles.underlay}>
         <Kb.Box2
           direction="vertical"
@@ -28,7 +28,7 @@ const MobilePopup = (props: Props) => (
           {props.children}
         </Kb.Box2>
       </Kb.Box2>
-    </KeyboardAvoidingView2>
+    </Kb.KeyboardAvoidingView2>
   </Kb.FloatingBox>
 )
 

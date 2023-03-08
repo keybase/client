@@ -47,7 +47,7 @@ const InboxAndConversation = (props: Props) => {
   }, [])
 
   return (
-    <Kb.KeyboardAvoidingView2 extraOffset={0} rawHeight={true}>
+    <Kb.KeyboardAvoidingView2>
       <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true}>
         {!Container.isTablet && inboxSearch ? (
           <InboxSearch />

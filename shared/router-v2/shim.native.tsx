@@ -40,11 +40,7 @@ const shimNewRoute = (Original: any, isModal: boolean, isLoggedOut: boolean, get
       (isLoggedOut && (navigationOptions?.needsKeyboard ?? true))
 
     if (wrapInKeyboard) {
-      wrap = (
-        <Kb.KeyboardAvoidingView2 isModal={isModal} rawHeight={true}>
-          {wrap}
-        </Kb.KeyboardAvoidingView2>
-      )
+      wrap = <Kb.KeyboardAvoidingView2 extraOffset={40}>{wrap}</Kb.KeyboardAvoidingView2>
     }
 
     if (isModal) {
