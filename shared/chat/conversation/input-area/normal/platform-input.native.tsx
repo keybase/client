@@ -230,7 +230,7 @@ const ChatFilePicker = (p: ChatFilePickerProps) => {
             .catch(error => onFilePickerError(new Error(error)))
           break
         case 'library':
-          launchImageLibraryAsync(mediaType)
+          launchImageLibraryAsync(mediaType, true, true)
             .then(handleSelection)
             .catch(error => onFilePickerError(new Error(error)))
           break
