@@ -64,14 +64,14 @@ export const launchImageLibraryAsync = async (
 ): Promise<ImagePicker.ImagePickerResult> => {
   return ImagePicker.launchImageLibraryAsync({
     ...defaultOptions,
-    allowsMultipleSelection: allowsMultipleSelection ?? false,
+    allowsMultipleSelection,
     ...(mediaType === 'video' ? {allowsEditing: true} : {}),
     mediaTypes: mediaTypeToImagePickerMediaType(mediaType),
   }).catch(
     retyAfterAskingPerm(
       false,
       true,
-      askPermAndRetry ? async () => launchImageLibraryAsync(mediaType, false) : null
+      askPermAndRetry ? async () => launchImageLibraryAsync(mediaType, false, allowsMultipleSelection) : null
     )
   )
 }
