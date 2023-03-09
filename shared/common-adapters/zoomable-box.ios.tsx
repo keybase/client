@@ -7,6 +7,7 @@ const Kb = {
 
 export const ZoomableBox = (props: Props) => (
   <Kb.ScrollView
+    centerContent={true}
     alwaysBounceVertical={false}
     bounces={props.bounces}
     children={props.children}
