@@ -230,7 +230,10 @@ const SpecialTopMessage = React.memo(function SpecialTopMessage() {
       )}
       {!Styles.isMobile || usingFlashList ? (
         <Separator trailingItem={ordinal} leadingItem={undefined} />
-      ) : null}
+      ) : (
+        // special case here with the sep. The flatlist and flashlist invert the leading-trailing, see useReduxFast
+        <Separator trailingItem={0} leadingItem={ordinal} />
+      )}
     </Kb.Box>
   )
 })
