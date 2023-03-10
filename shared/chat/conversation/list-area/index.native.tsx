@@ -300,7 +300,10 @@ const ConversationList = React.memo(function ConversationList(p: {
   // A repro is a placeholder resolving as a placeholder multiple times before resolving for real
   const forceListRedraw = React.useCallback(() => {
     extraData // just to silence eslint
-    setExtraData(d => d + 1)
+    // wrap in timeout so we don't get max update depths sometimes
+    setTimeout(() => {
+      setExtraData(d => d + 1)
+    }, 100)
   }, [extraData])
 
   useChatDebugDump(
