@@ -41,6 +41,7 @@ export default Container.connect(
     if (_canPinMessage && meta.teamname) {
       _canPinMessage = yourOperations.pinMessage
     }
+    const _canMarkAsUnread = true // always true?
     // you can reply privately *if* text message, someone else's message, and not in a 1-on-1 chat
     const _canReplyPrivately =
       message.type === 'text' && (['small', 'big'].includes(meta.teamType) || participantInfo.all.length > 2)
@@ -51,6 +52,7 @@ export default Container.connect(
       _canAdminDelete,
       _canDeleteHistory,
       _canPinMessage,
+      _canMarkAsUnread,
       _canReplyPrivately,
       _isDeleteable: message.isDeleteable,
       _isEditable: message.isEditable,
@@ -145,6 +147,14 @@ export default Container.connect(
         })
       )
     },
+    _onMarkAsUnread: (message: Types.Message) => {
+      dispatch(
+        Chat2Gen.createMarkAsUnread({
+          conversationIDKey: message.conversationIDKey,
+          readMsgID: message.id,
+        })
+      )
+    },
     _onReact: (message: Types.Message, emoji: string) => {
       dispatch(
         Chat2Gen.createToggleMessageReaction({
@@ -230,6 +240,7 @@ export default Container.connect(
       onInstallBot: stateProps._authorIsBot ? () => dispatchProps._onInstallBot(message) : undefined,
       onKick: () => dispatchProps._onKick(stateProps._teamID, message.author),
       onPinMessage: stateProps._canPinMessage ? () => dispatchProps._onPinMessage(message) : undefined,
+      onMarkAsUnread: stateProps._canMarkAsUnread ? () => dispatchProps._onMarkAsUnread(message) : undefined,
       onReact: (emoji: string) => dispatchProps._onReact(message, emoji),
       onReply: message.type === 'text' ? () => dispatchProps._onReply(message) : undefined,
       onReplyPrivately:

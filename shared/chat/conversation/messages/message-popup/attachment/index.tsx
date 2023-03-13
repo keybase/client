@@ -22,6 +22,7 @@ type Props = {
   onInstallBot?: () => void
   onKick: () => void
   onPinMessage?: () => void
+  onMarkAsUnread?: () => void
   onReact: (emoji: string) => void
   onReply: () => void
   onSaveAttachment?: () => void
@@ -103,6 +104,9 @@ const AttachmentPopupMenu = (props: Props) => {
     ...(props.onForward ? [{icon: 'iconfont-forward', onClick: props.onForward, title: 'Forward'}] : []),
     ...(props.onPinMessage
       ? [{icon: 'iconfont-pin', onClick: props.onPinMessage, title: 'Pin message'}]
+      : []),
+    ...(props.onMarkAsUnread
+      ? [{icon: 'iconfont-envelope-solid', onClick: props.onMarkAsUnread, title: 'Mark as unread'}]
       : []),
     ...(props.isDeleteable
       ? ([

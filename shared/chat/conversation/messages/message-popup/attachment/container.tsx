@@ -38,6 +38,7 @@ export default Container.connect(
     const _canDeleteHistory = yourOperations.deleteChatHistory
     const _canAdminDelete = yourOperations.deleteOtherMessages
     const _canPinMessage = !isTeam || yourOperations.pinMessage
+    const _canMarkAsUnread = true // always true?
     const _authorIsBot = Constants.messageAuthorIsBot(state, meta, message, participantInfo)
     const _teamMembers = state.teams.teamIDToMembers.get(meta.teamID)
     const _label = Constants.getConversationLabel(state, meta, true)
@@ -46,6 +47,7 @@ export default Container.connect(
       _canAdminDelete,
       _canDeleteHistory,
       _canPinMessage,
+      _canMarkAsUnread,
       _label,
       _teamID: meta.teamID,
       _teamMembers,
@@ -136,6 +138,14 @@ export default Container.connect(
         })
       )
     },
+    _onMarkAsUnread: (message: Types.Message) => {
+      dispatch(
+        Chat2Gen.createMarkAsUnread({
+          conversationIDKey: message.conversationIDKey,
+          readMsgID: message.id,
+        })
+      )
+    },
     _onReact: (message: Types.Message, emoji: string) => {
       dispatch(
         Chat2Gen.createToggleMessageReaction({
@@ -198,6 +208,7 @@ export default Container.connect(
       onInstallBot: stateProps._authorIsBot ? () => dispatchProps._onInstallBot(message) : undefined,
       onKick: () => dispatchProps._onKick(stateProps._teamID, message.author),
       onPinMessage: stateProps._canPinMessage ? () => dispatchProps._onPinMessage(message) : undefined,
+      onMarkAsUnread: stateProps._canMarkAsUnread ? () => dispatchProps._onMarkAsUnread(message) : undefined,
       onReact: (emoji: string) => dispatchProps._onReact(message, emoji),
       onReply: () => dispatchProps._onReply(message),
       onSaveAttachment:

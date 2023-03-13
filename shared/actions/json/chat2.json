@@ -395,6 +395,15 @@
       "_description": "Mark all conversations in a team as read",
       "teamID": "TeamsTypes.TeamID"
     },
+    "markAsUnread": {
+      "_description": "Mark the converstation as unread to the given message ID",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "readMsgID": "RPCChatTypes.MessageID"
+    },
+    "clearMarkAsUnread": {
+      "_description": "When leaving a thread view, clear the force mark as unread bit",
+      "conversationIDKey": "Types.ConversationIDKey"
+    },
     "markConversationsStale": {
       "_description": "Server told us a conversation is out of date",
       "conversationIDKeys": "Array<Types.ConversationIDKey>",
@@ -603,7 +612,7 @@
     "updateUnreadline": {
       "_description": "Update the unreadline line position for a conversation",
       "conversationIDKey": "Types.ConversationIDKey",
-      "messageID": "Types.MessageID"
+      "messageID": "Types.MessageID",
     },
     "toggleMessageCollapse": {
       "_description": "Toggle the collapse status of a message",

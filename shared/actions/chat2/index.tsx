@@ -1,4 +1,3 @@
-import * as BotsGen from '../bots-gen'
 import * as Chat2Gen from '../chat2-gen'
 import * as ConfigGen from '../config-gen'
 import * as Constants from '../../constants/chat2'
@@ -1267,12 +1266,21 @@ const getUnreadline = async (
       readMsgID: readMsgID < 0 ? 0 : readMsgID,
     })
     const unreadlineID = unreadlineRes.unreadlineID ? unreadlineRes.unreadlineID : 0
+    logger.info(`marking unreadline ${conversationIDKey} ${unreadlineID}`)
     listenerApi.dispatch(
       Chat2Gen.createUpdateUnreadline({
         conversationIDKey,
         messageID: Types.numberToMessageID(unreadlineID),
       })
     )
+    if (state.chat2.markedAsUnreadMap.get(conversationIDKey)) {
+      listenerApi.dispatch(
+        // Remove the force unread bit for the next time we view the thread.
+        Chat2Gen.createClearMarkAsUnread({
+          conversationIDKey,
+        })
+      )
+    }
   } catch (error) {
     if (error instanceof RPCError) {
       if (error.code === RPCTypes.StatusCode.scchatnotinteam) {
@@ -2353,7 +2361,32 @@ const markThreadAsRead = async (
   if (meta) {
     readMsgID = message ? (message.id > meta.maxMsgID ? message.id : meta.maxMsgID) : meta.maxMsgID
   }
-  logger.info(`marking read messages ${conversationIDKey} ${readMsgID}`)
+
+  logger.info(`marking read messages ${conversationIDKey} ${readMsgID} for ${action.type}`)
+  await RPCChatTypes.localMarkAsReadLocalRpcPromise({
+    conversationID: Types.keyToConversationID(conversationIDKey),
+    msgID: readMsgID,
+  })
+}
+
+const markAsUnread = async (
+  state: Container.TypedState,
+  action: Chat2Gen.MarkAsUnreadPayload,
+  listenerApi: Container.ListenerApi
+) => {
+  if (!state.config.loggedIn) {
+    logger.info('bail on not logged in')
+    return
+  }
+  const conversationIDKey = action.payload.conversationIDKey
+  const readMsgID = action.payload.readMsgID
+  listenerApi.dispatch(
+    Chat2Gen.createUpdateUnreadline({
+      conversationIDKey,
+      messageID: readMsgID,
+    })
+  )
+  logger.info(`marking unread messages ${conversationIDKey} ${readMsgID}`)
   await RPCChatTypes.localMarkAsReadLocalRpcPromise({
     conversationID: Types.keyToConversationID(conversationIDKey),
     msgID: readMsgID,
@@ -3829,6 +3862,7 @@ const initChat = () => {
     markThreadAsRead
   )
   Container.listenAction([Chat2Gen.markTeamAsRead], markTeamAsRead)
+  Container.listenAction([Chat2Gen.markAsUnread], markAsUnread)
   Container.listenAction(Chat2Gen.messagesAdd, messagesAdd)
   Container.listenAction(
     [

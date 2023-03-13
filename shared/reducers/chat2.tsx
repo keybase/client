@@ -559,6 +559,21 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       orangeLineMap.delete(action.payload.conversationIDKey)
     }
   },
+  [Chat2Gen.markAsUnread]: (draftState, action) => {
+    const {conversationIDKey, readMsgID} = action.payload
+    const {markedAsUnreadMap, metaMap} = draftState
+    markedAsUnreadMap.set(conversationIDKey, true)
+    let old = metaMap.get(conversationIDKey)
+    if (old) {
+      old.readMsgID = readMsgID
+      metaMap.set(conversationIDKey, old)
+    }
+  },
+  [Chat2Gen.clearMarkAsUnread]: (draftState, action) => {
+    const {conversationIDKey} = action.payload
+    const {markedAsUnreadMap} = draftState
+    markedAsUnreadMap.delete(conversationIDKey)
+  },
   [Chat2Gen.unfurlTogglePrompt]: (draftState, action) => {
     const {show, domain, conversationIDKey, messageID} = action.payload
     const {unfurlPromptMap} = draftState
