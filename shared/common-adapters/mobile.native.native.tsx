@@ -243,9 +243,6 @@ module.exports = {
   get NativeRefreshControl() {
     return NativeWrappers.NativeRefreshControl
   },
-  get NativeSafeAreaView() {
-    return NativeWrappers.NativeSafeAreaView
-  },
   get NativeScrollView() {
     return NativeWrappers.NativeScrollView
   },

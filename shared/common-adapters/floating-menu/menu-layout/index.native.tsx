@@ -1,5 +1,5 @@
 import * as Styles from '../../../styles'
-import {NativeTouchableOpacity, NativeSafeAreaView} from '../../native-wrappers.native'
+import {NativeTouchableOpacity} from '../../native-wrappers.native'
 import Badge from '../../badge'
 import Box, {Box2} from '../../box'
 import Icon from '../../icon'
@@ -8,6 +8,7 @@ import Meta from '../../meta'
 import Divider from '../../divider'
 import ScrollView from '../../scroll-view'
 import ProgressIndicator from '../../progress-indicator'
+import SafeAreaView from '../../safe-area-view'
 import type {MenuItem, MenuLayoutProps} from '.'
 
 type MenuRowProps = {
@@ -100,7 +101,7 @@ const MenuLayout = (props: MenuLayoutProps) => {
   const firstIsUnWrapped = props.items[0] !== 'Divider' && props.items[0]?.unWrapped
 
   return (
-    <NativeSafeAreaView
+    <SafeAreaView
       style={Styles.collapseStyles([
         styles.safeArea,
         props.backgroundColor && {backgroundColor: props.backgroundColor},
@@ -153,7 +154,7 @@ const MenuLayout = (props: MenuLayoutProps) => {
           />
         </Box>
       </Box>
-    </NativeSafeAreaView>
+    </SafeAreaView>
   )
 }
 
