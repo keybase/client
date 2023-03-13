@@ -49,8 +49,8 @@ const descent = fontHeight / descentFraction
 const baseCharCode = 0xe900
 
 const iconfontRegex = /^(\d+)-kb-iconfont-(.*)-(\d+).svg$/
-const computeCounter = counter => baseCharCode + counter - 1
-const mapPaths = skipUnmatchedFile => path => {
+const computeCounter = (counter: number) => baseCharCode + counter - 1
+const mapPaths = (skipUnmatchedFile: boolean) => (path: string) => {
   const match = path.match(iconfontRegex)
   if (!match || match.length !== 4) {
     return skipUnmatchedFile ? undefined : console.error(`Filename did not match, skipping ${path}`)
@@ -79,7 +79,7 @@ const getSvgNames = (
     // @ts-ignore codemode issue
     .sort((x, y) => x.counter - y.counter)
 
-const getSvgPaths = skipUnmatchedFile =>
+const getSvgPaths = (skipUnmatchedFile: boolean) =>
   getSvgNames(skipUnmatchedFile).map(i => path.resolve(paths.iconfont, i.filePath))
 
 /*
@@ -89,13 +89,14 @@ const getSvgPaths = skipUnmatchedFile =>
  *
  * For config options: https://github.com/sunflowerdeath/webfonts-generator
  */
-function updateIconFont(web) {
+type FontResult = {ttf: string; woff: string; svg: string}
+function updateIconFont(web: boolean) {
   if (!web) {
     // Check if fontforge is installed, required to generate the font
     try {
       execSync('fontforge')
     } catch (error_) {
-      const error = error_ as any
+      const error = error_ as {message: string}
       if (error.message.includes('not found')) {
         throw new Error(
           'FontForge is required to generate the icon font. Run `yarn`, install FontForge CLI globally, and try again.'
@@ -105,7 +106,7 @@ function updateIconFont(web) {
     }
   }
 
-  let webfontsGenerator
+  let webfontsGenerator: (...a: Array<any>) => void
   try {
     webfontsGenerator = require('webfonts-generator')
   } catch (e) {
@@ -167,12 +168,13 @@ function updateIconFont(web) {
         },
       },
     },
-    (error, result) => (error ? fontsGeneratedError(error) : fontsGeneratedSuccess(web, result))
+    (error: unknown, result: FontResult) =>
+      error ? fontsGeneratedError(error) : fontsGeneratedSuccess(web, result)
   )
   console.log('Created new font')
 }
 
-const fontsGeneratedSuccess = (web, result) => {
+const fontsGeneratedSuccess = (web: boolean, result: FontResult) => {
   console.log('Generator success')
   if (web) {
     generateWebCSS(result)
@@ -184,9 +186,9 @@ const fontsGeneratedSuccess = (web, result) => {
   }
 }
 
-const generateWebCSS = result => {
+const generateWebCSS = (result: FontResult) => {
   const svgFilenames = getSvgNames(false /* print skipped */)
-  const rules = svgFilenames.reduce((map, {counter, name}) => {
+  const rules: {[key: string]: number} = svgFilenames.reduce((map, {counter, name}) => {
     map[`kb-iconfont-${name}`] = computeCounter(counter)
     return map
   }, {})
@@ -198,7 +200,7 @@ const generateWebCSS = result => {
   }
 
   // hash and write
-  const types = ['ttf', 'woff', 'svg'].map(type => {
+  const types = (['ttf', 'woff', 'svg'] as const).map(type => {
     const hash = crypto.createHash('md5')
     hash.update(result[type])
     try {
@@ -261,14 +263,14 @@ ${Object.keys(rules)
   }
 }
 
-const fontsGeneratedError = error => {
+const fontsGeneratedError = (error: unknown) => {
   console.log(
     `webfonts-generator failed to generate ttf iconfont file. Check that all svgs exist and the destination directory exits. ${error}`
   )
   process.exit(1)
 }
 
-function insertIconAssets(iconFiles) {
+function insertIconAssets(iconFiles: Array<string>) {
   const icons = {}
 
   // light
