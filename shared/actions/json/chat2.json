@@ -612,7 +612,7 @@
     "updateUnreadline": {
       "_description": "Update the unreadline line position for a conversation",
       "conversationIDKey": "Types.ConversationIDKey",
-      "messageID": "Types.MessageID",
+      "messageID": "Types.MessageID"
     },
     "toggleMessageCollapse": {
       "_description": "Toggle the collapse status of a message",
