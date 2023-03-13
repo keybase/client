@@ -32,6 +32,9 @@ declare class ClickableBox extends React.Component<Props> {}
 export type Props2 = {
   // mobile only
   onLongPress?: () => void
+  // desktop only
+  onMouseOver?: (event: React.MouseEvent) => void
+
   onClick?: (event: React.BaseSyntheticEvent) => void
   children: React.ReactNode
   className?: string

@@ -114,14 +114,15 @@ const goToAddEmoji = (dispatch: Container.TypedDispatch, conversationIDKey: Type
 }
 
 const useCanManageEmoji = (conversationIDKey: Types.ConversationIDKey) => {
-  const meta = Container.useSelector(s => Constants.getMeta(s, conversationIDKey))
-  const canManageEmoji = Container.useSelector(
-    s => !meta.teamname || Teams.getCanPerformByID(s, meta.teamID).manageEmojis
-  )
+  const canManageEmoji = Container.useSelector(s => {
+    const meta = Constants.getMeta(s, conversationIDKey)
+    return !meta.teamname || Teams.getCanPerformByID(s, meta.teamID).manageEmojis
+  })
   return canManageEmoji
 }
 
 const WrapperMobile = (props: Props) => {
+  const {conversationIDKey} = props
   const {filter, onChoose, setFilter, topReacjis} = useReacji(props)
   const {waiting, customEmojiGroups} = useCustomReacji(
     props.conversationIDKey,
@@ -133,9 +134,12 @@ const WrapperMobile = (props: Props) => {
   const {currentSkinTone, setSkinTone} = useSkinTone()
   const [skinTonePickerExpanded, setSkinTonePickerExpanded] = React.useState(false)
   const dispatch = Container.useDispatch()
-  const onCancel = () => dispatch(RouteTreeGen.createNavigateUp())
-  const addEmoji = () => goToAddEmoji(dispatch, props.conversationIDKey)
-  const canManageEmoji = useCanManageEmoji(props.conversationIDKey)
+  const onCancel = React.useCallback(() => dispatch(RouteTreeGen.createNavigateUp()), [dispatch])
+  const addEmoji = React.useCallback(
+    () => goToAddEmoji(dispatch, conversationIDKey),
+    [dispatch, conversationIDKey]
+  )
+  const canManageEmoji = useCanManageEmoji(conversationIDKey)
 
   return (
     <Kb.Box2
@@ -191,19 +195,20 @@ const WrapperMobile = (props: Props) => {
 }
 
 export const EmojiPickerDesktop = (props: Props) => {
+  const {conversationIDKey} = props
   const {filter, onChoose, setFilter, topReacjis} = useReacji(props)
   const {currentSkinTone, setSkinTone} = useSkinTone()
   const [hoveredEmoji, setHoveredEmoji] = React.useState<EmojiData>(Data.defaultHoverEmoji)
   const {waiting, customEmojiGroups} = useCustomReacji(
-    props.conversationIDKey,
+    conversationIDKey,
     props.onlyTeamCustomEmoji,
     props.disableCustomEmoji
   )
-  const canManageEmoji = useCanManageEmoji(props.conversationIDKey)
+  const canManageEmoji = useCanManageEmoji(conversationIDKey)
   const dispatch = Container.useDispatch()
   const addEmoji = () => {
     props.onDidPick?.()
-    goToAddEmoji(dispatch, props.conversationIDKey)
+    goToAddEmoji(dispatch, conversationIDKey)
   }
 
   return (
