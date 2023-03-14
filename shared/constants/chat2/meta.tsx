@@ -89,8 +89,8 @@ export const unverifiedInboxUIItemToConversationMeta = (
     readMsgID: i.readMsgID,
     resetParticipants,
     retentionPolicy,
-    snippet: i.localMetadata ? i.localMetadata.snippet : '',
-    snippetDecorated: '',
+    snippet: i.localMetadata ? i.localMetadata.snippet : undefined,
+    snippetDecorated: undefined,
     snippetDecoration: i.localMetadata
       ? i.localMetadata.snippetDecoration
       : RPCChatTypes.SnippetDecoration.none,
