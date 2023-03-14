@@ -41,7 +41,9 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
       badgeSubscribe: false,
       canAddPeople: false,
       channelname: '',
+      ignored: false,
       isInChannel: false,
+      isMuted: false,
       manageChannelsSubtitle,
       manageChannelsTitle,
       participants: [],
@@ -92,8 +94,8 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
     return {...common}
   }, shallowEqual)
 
-  const {teamname, teamID, badgeSubscribe, canAddPeople, channelname, isInChannel} = data
-  const {manageChannelsSubtitle, manageChannelsTitle, participants, teamType} = data
+  const {teamname, teamID, badgeSubscribe, canAddPeople, channelname, isInChannel, ignored} = data
+  const {manageChannelsSubtitle, manageChannelsTitle, participants, teamType, isMuted} = data
 
   const dispatch = Container.useDispatch()
 
@@ -171,7 +173,9 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
     conversationIDKey,
     floatingMenuContainerStyle,
     hasHeader,
+    ignored,
     isInChannel,
+    isMuted,
     isSmallTeam,
     manageChannelsSubtitle,
     manageChannelsTitle,
