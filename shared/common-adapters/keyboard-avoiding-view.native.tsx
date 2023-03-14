@@ -136,10 +136,6 @@ class KeyboardAvoidingView extends React.Component<Props, State> {
     const {duration, easing, endCoordinates} = this._keyboardEvent
     const height = await this._relativeKeyboardHeight(endCoordinates)
 
-    if (this.state.bottom === height) {
-      return
-    }
-
     if (duration && easing) {
       LayoutAnimation.configureNext({
         // We have to pass the duration equal to minimal accepted duration defined here: RCTLayoutAnimation.m
