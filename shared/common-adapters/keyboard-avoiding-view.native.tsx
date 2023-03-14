@@ -47,6 +47,7 @@ type State = {
 
 // Pulling this from RN since we patch it up
 class KeyboardAvoidingView extends React.Component<Props, State> {
+  _bottom: number = 0
   _frame?: ViewLayout
   _keyboardEvent?: KeyboardEvent
   _subscriptions: Array<EventSubscription> = []
@@ -121,13 +122,17 @@ class KeyboardAvoidingView extends React.Component<Props, State> {
 
   _updateBottomIfNecessary = async () => {
     if (!this._keyboardEvent) {
+      this._bottom = 0
       this.setState({bottom: 0})
 
       // @ts-ignore actually exists but not in the api until 71
       if (Keyboard.isVisible()) {
         // @ts-ignore actually exists but not in the api until 71
-        this.setState({bottom: Keyboard.metrics()?.height ?? 0})
+        const h = Keyboard.metrics()?.height ?? 0
+        this._bottom = h
+        this.setState({bottom: h})
       } else {
+        this._bottom = 0
         this.setState({bottom: 0})
       }
       return
@@ -135,6 +140,11 @@ class KeyboardAvoidingView extends React.Component<Props, State> {
 
     const {duration, easing, endCoordinates} = this._keyboardEvent
     const height = await this._relativeKeyboardHeight(endCoordinates)
+
+    // do NOT use state here as its async and we can race
+    if (this._bottom === height) {
+      return
+    }
 
     if (duration && easing) {
       LayoutAnimation.configureNext({
@@ -146,6 +156,7 @@ class KeyboardAvoidingView extends React.Component<Props, State> {
         },
       })
     }
+    this._bottom = height
     this.setState({bottom: height})
   }
 
