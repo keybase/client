@@ -124,13 +124,18 @@ const useCanManageEmoji = (conversationIDKey: Types.ConversationIDKey) => {
 const WrapperMobile = (props: Props) => {
   const {conversationIDKey} = props
   const {filter, onChoose, setFilter, topReacjis} = useReacji(props)
+
+  const setFilterTextChangedThrottled = Container.useThrottledCallback(setFilter, 200)
   const {waiting, customEmojiGroups} = useCustomReacji(
     props.conversationIDKey,
     props.onlyTeamCustomEmoji,
     props.disableCustomEmoji
   )
   const [width, setWidth] = React.useState(0)
-  const onLayout = (evt: LayoutEvent) => evt.nativeEvent && setWidth(evt.nativeEvent.layout.width)
+  const onLayout = React.useCallback(
+    (evt: LayoutEvent) => evt.nativeEvent && setWidth(evt.nativeEvent.layout.width),
+    [setWidth]
+  )
   const {currentSkinTone, setSkinTone} = useSkinTone()
   const [skinTonePickerExpanded, setSkinTonePickerExpanded] = React.useState(false)
   const dispatch = Container.useDispatch()
@@ -158,7 +163,7 @@ const WrapperMobile = (props: Props) => {
           size="small"
           icon="iconfont-search"
           placeholderText="Search"
-          onChange={debounce(setFilter, 200)}
+          onChange={setFilterTextChangedThrottled}
           style={styles.searchFilter}
         />
       </Kb.Box2>
@@ -371,6 +376,11 @@ export const Routable = (routableProps: RoutableProps) => {
         navigateUp()
       }
     : navigateUp
+
+  React.useEffect(() => {
+    Kb.keyboardDismiss()
+  }, [])
+
   return (
     <WrapperMobile
       conversationIDKey={conversationIDKey}

@@ -7,13 +7,14 @@ const SectionList = React.forwardRef<NativeSectionList, Props<any>>(function Sec
   T extends Section<any, any>
 >(props: Props<T>, forwardedRef: React.Ref<NativeSectionList>) {
   const {getItemHeight, getSectionHeaderHeight, onSectionChange, ...rest} = props
-  const getItemLayout =
-    getItemHeight && getSectionHeaderHeight
+  const getItemLayout = React.useMemo(() => {
+    return getItemHeight && getSectionHeaderHeight
       ? getGetItemLayout({
           getItemHeight,
           getSectionHeaderHeight,
         })
       : undefined
+  }, [getItemHeight, getSectionHeaderHeight])
   const onViewableItemsChanged = onSectionChange
     ? e => {
         const section = e.viewableItems[0]?.section
