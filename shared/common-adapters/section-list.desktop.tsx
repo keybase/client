@@ -256,23 +256,22 @@ class SectionList<T extends Section<any, any>> extends React.Component<Props<T>,
     return this._flat.length - 1
   }
 
-  private getItemSizeGetter = () => {
+  private getItemSizeGetter = (index: number) => {
     const {getItemHeight, getSectionHeaderHeight} = this.props
-    return getItemHeight && getSectionHeaderHeight
-      ? (index: number): number => {
-          const item = this._flat[index]
-          if (!item) {
-            // data is switching out from under us. let things settle
-            return 0
-          }
-          return item.type === 'header'
-            ? getSectionHeaderHeight(item.sectionIndex)
-            : item.type === 'body'
-            ? getItemHeight(item.item, item.sectionIndex, item.indexWithinSection)
-            : 0
-        }
-      : undefined
+    if (!getItemHeight || !getSectionHeaderHeight) return 0
+    const item = this._flat[index]
+    if (!item) {
+      // data is switching out from under us. let things settle
+      return 0
+    }
+    return item.type === 'header'
+      ? getSectionHeaderHeight(item.sectionIndex)
+      : item.type === 'body'
+      ? getItemHeight(item.item, item.sectionIndex, item.indexWithinSection)
+      : 0
   }
+
+  private itemRenderer = (index, key) => this._itemRenderer(index, key, false)
 
   render() {
     this._flatten(this.props.sections)
@@ -290,9 +289,13 @@ class SectionList<T extends Section<any, any>> extends React.Component<Props<T>,
         >
           {renderElementOrComponentOrNot(this.props.ListHeaderComponent)}
           <SafeReactList
-            itemRenderer={(index, key) => this._itemRenderer(index, key, false)}
+            itemRenderer={this.itemRenderer}
             itemSizeEstimator={this.props.desktopItemSizeEstimatorOverride}
-            itemSizeGetter={this.getItemSizeGetter()}
+            itemSizeGetter={
+              this.props.getItemHeight && this.props.getSectionHeaderHeight
+                ? this.getItemSizeGetter
+                : undefined
+            }
             length={this._flat.length}
             // @ts-ignore
             retrigger={this._flat}

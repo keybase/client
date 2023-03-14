@@ -117,10 +117,15 @@ const _containerStyle = {
 export default ClickableBox
 
 export const ClickableBox2 = (p: Props2) => {
-  const {onClick, children, style, className} = p
+  const {onClick, children, style, className, onMouseOver} = p
   const collapsed = Styles.useCollapseStyles(style, true)
   return (
-    <div onClick={onClick} style={collapsed} className={Styles.classNames('clickable-box2', className)}>
+    <div
+      onClick={onClick}
+      onMouseOver={onMouseOver}
+      style={collapsed}
+      className={Styles.classNames('clickable-box2', className)}
+    >
       {children}
     </div>
   )
