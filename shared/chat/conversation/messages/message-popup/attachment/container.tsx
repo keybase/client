@@ -38,7 +38,6 @@ export default Container.connect(
     const _canDeleteHistory = yourOperations.deleteChatHistory
     const _canAdminDelete = yourOperations.deleteOtherMessages
     const _canPinMessage = !isTeam || yourOperations.pinMessage
-    const _canMarkAsUnread = true // always true?
     const _authorIsBot = Constants.messageAuthorIsBot(state, meta, message, participantInfo)
     const _teamMembers = state.teams.teamIDToMembers.get(meta.teamID)
     const _label = Constants.getConversationLabel(state, meta, true)
@@ -47,7 +46,6 @@ export default Container.connect(
       _canAdminDelete,
       _canDeleteHistory,
       _canPinMessage,
-      _canMarkAsUnread,
       _label,
       _teamID: meta.teamID,
       _teamMembers,
@@ -208,7 +206,7 @@ export default Container.connect(
       onInstallBot: stateProps._authorIsBot ? () => dispatchProps._onInstallBot(message) : undefined,
       onKick: () => dispatchProps._onKick(stateProps._teamID, message.author),
       onPinMessage: stateProps._canPinMessage ? () => dispatchProps._onPinMessage(message) : undefined,
-      onMarkAsUnread: stateProps._canMarkAsUnread ? () => dispatchProps._onMarkAsUnread(message) : undefined,
+      onMarkAsUnread: () => dispatchProps._onMarkAsUnread(message),
       onReact: (emoji: string) => dispatchProps._onReact(message, emoji),
       onReply: () => dispatchProps._onReply(message),
       onSaveAttachment:

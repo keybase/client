@@ -560,14 +560,9 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     }
   },
   [Chat2Gen.markAsUnread]: (draftState, action) => {
-    const {conversationIDKey, readMsgID} = action.payload
-    const {markedAsUnreadMap, metaMap} = draftState
+    const {conversationIDKey} = action.payload
+    const {markedAsUnreadMap} = draftState
     markedAsUnreadMap.set(conversationIDKey, true)
-    let old = metaMap.get(conversationIDKey)
-    if (old) {
-      old.readMsgID = readMsgID
-      metaMap.set(conversationIDKey, old)
-    }
   },
   [Chat2Gen.clearMarkAsUnread]: (draftState, action) => {
     const {conversationIDKey} = action.payload

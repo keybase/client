@@ -23,7 +23,7 @@ type Props = {
   onInstallBot?: () => void
   onKick: () => void
   onPinMessage?: () => void
-  onMarkAsUnread?: () => void
+  onMarkAsUnread: () => void
   onReact: (emoji: string) => void
   onReply?: () => void
   onReplyPrivately?: () => void
@@ -106,9 +106,7 @@ const TextPopupMenu = (props: Props) => {
     ...(props.onPinMessage
       ? [{icon: 'iconfont-pin', onClick: props.onPinMessage, title: 'Pin message'}]
       : []),
-    ...(props.onMarkAsUnread
-      ? [{icon: 'iconfont-envelope-solid', onClick: props.onMarkAsUnread, title: 'Mark as unread'}]
-      : []),
+    ...[{icon: 'iconfont-envelope-solid', onClick: props.onMarkAsUnread, title: 'Mark as unread'}],
     ...(props.onViewProfile || props.isKickable || !props.yourMessage ? ['Divider' as const] : []),
     ...(props.onViewProfile
       ? [{icon: 'iconfont-person', onClick: props.onViewProfile, title: 'View profile'}]

@@ -2362,6 +2362,10 @@ const markThreadAsRead = async (
   if (meta) {
     readMsgID = message ? (message.id > meta.maxMsgID ? message.id : meta.maxMsgID) : meta.maxMsgID
   }
+  if (action.type === Chat2Gen.updateUnreadline && readMsgID && readMsgID > action.payload.messageID) {
+    // If we are marking as unread, don't send the local RPC.
+    return
+  }
 
   logger.info(`marking read messages ${conversationIDKey} ${readMsgID} for ${action.type}`)
   await RPCChatTypes.localMarkAsReadLocalRpcPromise({
@@ -2370,27 +2374,37 @@ const markThreadAsRead = async (
   })
 }
 
-const markAsUnread = async (
-  state: Container.TypedState,
-  action: Chat2Gen.MarkAsUnreadPayload,
-  listenerApi: Container.ListenerApi
-) => {
+const markAsUnread = async (state: Container.TypedState, action: Chat2Gen.MarkAsUnreadPayload) => {
   if (!state.config.loggedIn) {
     logger.info('bail on not logged in')
     return
   }
-  const conversationIDKey = action.payload.conversationIDKey
-  const readMsgID = action.payload.readMsgID
-  listenerApi.dispatch(
-    Chat2Gen.createUpdateUnreadline({
-      conversationIDKey,
-      messageID: readMsgID,
+  const {conversationIDKey, readMsgID} = action.payload
+  const meta = state.chat2.metaMap.get(conversationIDKey)
+  const unreadLineID = readMsgID ? readMsgID : meta ? meta.maxMsgID : 0
+
+  // Find first visible message prior to what we have marked as unread. The
+  // server will use this value to calculate our badge state.
+  const messageMap = state.chat2.messageMap.get(conversationIDKey)
+  const ordinals = state.chat2.messageOrdinals.get(conversationIDKey) ?? []
+  const ord =
+    messageMap &&
+    ordinals.find(o => {
+      const message = messageMap.get(o)
+      return !!(message && message.id >= unreadLineID - 1)
     })
-  )
+  const message = ord ? messageMap?.get(ord) : null
+
   logger.info(`marking unread messages ${conversationIDKey} ${readMsgID}`)
-  await RPCChatTypes.localMarkAsReadLocalRpcPromise({
+  RPCChatTypes.localMarkAsReadLocalRpcPromise({
     conversationID: Types.keyToConversationID(conversationIDKey),
-    msgID: readMsgID,
+    msgID: message ? message.id : unreadLineID,
+  })
+    .then(() => {})
+    .catch(() => {})
+  return Chat2Gen.createUpdateUnreadline({
+    conversationIDKey,
+    messageID: unreadLineID,
   })
 }
 
@@ -3862,8 +3876,8 @@ const initChat = () => {
     ],
     markThreadAsRead
   )
-  Container.listenAction([Chat2Gen.markTeamAsRead], markTeamAsRead)
-  Container.listenAction([Chat2Gen.markAsUnread], markAsUnread)
+  Container.listenAction(Chat2Gen.markTeamAsRead, markTeamAsRead)
+  Container.listenAction(Chat2Gen.markAsUnread, markAsUnread)
   Container.listenAction(Chat2Gen.messagesAdd, messagesAdd)
   Container.listenAction(
     [

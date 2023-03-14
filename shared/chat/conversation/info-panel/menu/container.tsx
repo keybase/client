@@ -148,6 +148,10 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
     dispatch(RouteTreeGen.createClearModals())
     dispatch(ChatGen.createMarkTeamAsRead({teamID}))
   }, [dispatch, teamID])
+  const onMarkAsUnread = React.useCallback(() => {
+    dispatch(RouteTreeGen.createClearModals())
+    dispatch(ChatGen.createMarkAsUnread({conversationIDKey, readMsgID: null}))
+  }, [dispatch, conversationIDKey])
   const onViewTeam = React.useCallback(() => {
     dispatch(RouteTreeGen.createClearModals())
     dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'team'}]}))
@@ -189,6 +193,7 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
     onLeaveTeam,
     onManageChannels,
     onMarkAsRead,
+    onMarkAsUnread,
     onMuteConv,
     onUnhideConv,
     onViewTeam,

@@ -38,6 +38,7 @@ export type Props = {
   onUnhideConv: () => void
   onManageChannels: () => void
   onMarkAsRead: () => void
+  onMarkAsUnread: () => void
   onViewTeam: () => void
 }
 

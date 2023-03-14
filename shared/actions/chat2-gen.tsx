@@ -540,7 +540,7 @@ export const createMarkTeamAsRead = (payload: {readonly teamID: TeamsTypes.TeamI
  */
 export const createMarkAsUnread = (payload: {
   readonly conversationIDKey: Types.ConversationIDKey
-  readonly readMsgID: RPCChatTypes.MessageID
+  readonly readMsgID: RPCChatTypes.MessageID | null
 }) => ({payload, type: markAsUnread as typeof markAsUnread})
 /**
  * Navigation helper. Nav is slightly different on mobile / desktop.

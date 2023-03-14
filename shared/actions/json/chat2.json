@@ -398,7 +398,7 @@
     "markAsUnread": {
       "_description": "Mark the converstation as unread to the given message ID",
       "conversationIDKey": "Types.ConversationIDKey",
-      "readMsgID": "RPCChatTypes.MessageID"
+      "readMsgID": "RPCChatTypes.MessageID | null"
     },
     "clearMarkAsUnread": {
       "_description": "When leaving a thread view, clear the force mark as unread bit",

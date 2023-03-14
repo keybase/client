@@ -159,7 +159,7 @@ export default Container.connect(
       dispatch(
         Chat2Gen.createMarkAsUnread({
           conversationIDKey: ownProps.conversationIDKey,
-          readMessageID: id,
+          readMsgID: id,
         })
       )
     },
