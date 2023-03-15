@@ -475,7 +475,7 @@ export type MessageTypes = {
     outParam: String
   }
   'chat.1.local.markAsReadLocal': {
-    inParam: {readonly conversationID: ConversationID; readonly msgID?: MessageID | null}
+    inParam: {readonly conversationID: ConversationID; readonly msgID?: MessageID | null; readonly forceUnread: Boolean}
     outParam: MarkAsReadLocalRes
   }
   'chat.1.local.markTLFAsReadLocal': {

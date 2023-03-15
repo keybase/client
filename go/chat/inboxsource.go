@@ -347,7 +347,7 @@ func (s *RemoteInboxSource) ReadUnverified(ctx context.Context, uid gregor1.UID,
 }
 
 func (s *RemoteInboxSource) MarkAsRead(ctx context.Context, convID chat1.ConversationID,
-	uid gregor1.UID, msgID *chat1.MessageID) (err error) {
+	uid gregor1.UID, msgID *chat1.MessageID, forceUnread bool) (err error) {
 	defer s.Trace(ctx, &err, "MarkAsRead(%s,%v)", convID, msgID)()
 	if msgID == nil {
 		conv, err := utils.GetUnverifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
@@ -360,6 +360,7 @@ func (s *RemoteInboxSource) MarkAsRead(ctx context.Context, convID chat1.Convers
 	if _, err = s.getChatInterface().MarkAsRead(ctx, chat1.MarkAsReadArg{
 		ConversationID: convID,
 		MsgID:          *msgID,
+		ForceUnread:    forceUnread,
 	}); err != nil {
 		return err
 	}
@@ -648,9 +649,10 @@ func (s *HybridInboxSource) markAsReadDeliver(ctx context.Context) (err error) {
 		if _, err := s.getChatInterface().MarkAsRead(ctx, chat1.MarkAsReadArg{
 			ConversationID: rec.ConvID,
 			MsgID:          rec.MsgID,
+			ForceUnread:    rec.ForceUnread,
 		}); err != nil {
-			s.Debug(ctx, "markAsReadDeliver: failed to mark as read: convID: %s msgID: %s err: %s",
-				rec.ConvID, rec.MsgID, err)
+			s.Debug(ctx, "markAsReadDeliver: failed to mark as read: convID: %s msgID: %s forceUnread: %v err: %s",
+				rec.ConvID, rec.MsgID, rec.ForceUnread, err)
 			// check for an immediate failure from the server, and get the attempt out if it fails
 			if berr, ok := err.(DelivererInfoError); ok {
 				if _, ok := berr.IsImmediateFail(); ok {
@@ -860,14 +862,13 @@ func (s *HybridInboxSource) IncrementLocalConvVersion(ctx context.Context, uid g
 }
 
 func (s *HybridInboxSource) MarkAsRead(ctx context.Context, convID chat1.ConversationID,
-	uid gregor1.UID, msgID *chat1.MessageID) (err error) {
+	uid gregor1.UID, msgID *chat1.MessageID, forceUnread bool) (err error) {
 	defer s.Trace(ctx, &err, "MarkAsRead(%s,%d)", convID, msgID)()
 	defer s.maybeNuke(ctx, uid, &convID, &err)
 	// Check local copy to see if we have this convo, and have fully read it. If so, we skip the remote call
 	readRes, err := s.createInbox().GetConversation(ctx, uid, convID)
 	if err == nil && readRes.GetConvID().Eq(convID) &&
-		readRes.Conv.ReaderInfo.ReadMsgid == readRes.Conv.ReaderInfo.MaxMsgid &&
-		(msgID == nil || readRes.Conv.ReaderInfo.ReadMsgid == *msgID) {
+		readRes.Conv.ReaderInfo.ReadMsgid == readRes.Conv.ReaderInfo.MaxMsgid && !forceUnread {
 		s.Debug(ctx, "MarkAsRead: conversation fully read: %s, not sending remote call", convID)
 		return nil
 	}
@@ -886,7 +887,7 @@ func (s *HybridInboxSource) MarkAsRead(ctx context.Context, convID chat1.Convers
 			return err
 		}
 	}
-	if err := s.readOutbox.PushRead(ctx, convID, *msgID); err != nil {
+	if err := s.readOutbox.PushRead(ctx, convID, *msgID, forceUnread); err != nil {
 		return err
 	}
 	s.flushMarkAsRead(ctx)
