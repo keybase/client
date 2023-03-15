@@ -19,8 +19,6 @@ import Upload from '../fs/footer/upload'
 import {useUploadCountdown} from '../fs/footer/use-upload-countdown'
 import {Loading} from '../fs/simple-screens'
 import {type _InnerMenuItem} from '../common-adapters/floating-menu/menu-layout'
-// import Container from 'login/forms/container'
-// import SpaceWarning from './space-warning'
 
 export type Props = {
   daemonHandshakeState: ConfigTypes.DaemonHandshakeState
@@ -67,75 +65,6 @@ const UploadWithCountdown = (p: UWCDProps) => {
   })
 
   return <Upload {...np} />
-}
-
-const LoggingIn = () => {
-  return null
-  // const text =
-  //   this.props.daemonHandshakeState === 'waitingForWaiters'
-  //     ? `Connecting interface to crypto engine... This may take a few seconds.`
-  //     : `Starting up Keybase...`
-
-  // return (
-  //   <Kb.Box
-  //     style={styles.widgetContainer}
-  //     className={this.props.darkMode ? 'darkMode' : 'lightMode'}
-  //     key={this.props.darkMode ? 'darkMode' : 'light'}
-  //   >
-  //     {isDarwin && <style>{_realCSS}</style>}
-  //     {isDarwin && <ArrowTick />}
-  //     <Kb.Box
-  //       style={Styles.collapseStyles([
-  //         styles.topRow,
-  //         {justifyContent: 'flex-end'},
-  //         Styles.desktopStyles.clickable,
-  //       ] as any)}
-  //     >
-  //       <Kb.Icon
-  //         color={Styles.globalColors.blueDarker}
-  //         hoverColor={Styles.globalColors.white}
-  //         type="iconfont-nav-2-hamburger"
-  //         sizeType="Big"
-  //         style={styles.hamburgerIcon}
-  //         onClick={() => this.setState(prevState => ({showingMenu: !prevState.showingMenu}))}
-  //         ref={this.attachmentRef}
-  //       />
-  //       <Kb.FloatingMenu
-  //         closeOnSelect={true}
-  //         visible={this.state.showingMenu}
-  //         attachTo={this._getAttachmentRef}
-  //         items={this._menuItems()}
-  //         onHidden={() => this.setState({showingMenu: false})}
-  //       />
-  //     </Kb.Box>
-  //     <OutOfDate outOfDate={this.props.outOfDate} updateNow={this.props.updateNow} />
-  //     <Kb.Box
-  //       style={{
-  //         ...Styles.globalStyles.flexBoxColumn,
-  //         alignItems: 'center',
-  //         flex: 1,
-  //         justifyContent: 'center',
-  //       }}
-  //     >
-  //       <Kb.Icon
-  //         type="icon-keybase-logo-logged-out-64"
-  //         style={styles.logo}
-  //         color={Styles.globalColors.yellow}
-  //       />
-  //       <Kb.Text
-  //         type="BodySmall"
-  //         style={{
-  //           alignSelf: 'center',
-  //           marginTop: 6,
-  //           paddingLeft: Styles.globalMargins.small,
-  //           paddingRight: Styles.globalMargins.small,
-  //         }}
-  //       >
-  //         {text}
-  //       </Kb.Text>
-  //     </Kb.Box>
-  //   </Kb.Box>
-  // )
 }
 
 const useMenuItems = (
@@ -246,7 +175,6 @@ const IconBar = (p: Props & {showBadges?: boolean}) => {
     />
   ))
 
-  // TODO move this into container
   const badgeCountInMenu = badgesInMenu.reduce((acc, val) => navBadges.get(val) ?? 0 + acc, 0)
 
   return (
@@ -285,7 +213,7 @@ const IconBar = (p: Props & {showBadges?: boolean}) => {
 const badgeTypesInHeader = [Tabs.peopleTab, Tabs.chatTab, Tabs.fsTab, Tabs.teamsTab]
 const badgesInMenu = [Tabs.walletsTab, Tabs.gitTab, Tabs.devicesTab, Tabs.settingsTab]
 const LoggedIn = (p: Props) => {
-  const {darkMode, endEstimate, files, kbfsDaemonStatus, totalSyncingBytes, fileName} = p
+  const {endEstimate, files, kbfsDaemonStatus, totalSyncingBytes, fileName} = p
   const {outOfDate, updateNow, windowShownCount} = p
 
   const dispatch = Container.useDispatch()
@@ -298,14 +226,7 @@ const LoggedIn = (p: Props) => {
   }, [refreshUserFileEdits, windowShownCount])
 
   return (
-    <Kb.Box
-      style={styles.widgetContainer}
-      className={darkMode ? 'darkMode' : 'lightMode'}
-      key={darkMode ? 'darkMode' : 'light'}
-    >
-      {isDarwin && <style>{_realCSS}</style>}
-      {isDarwin && <ArrowTick />}
-      <IconBar {...p} showBadges={true} />
+    <>
       <OutOfDate outOfDate={outOfDate} updateNow={updateNow} />
       <Kb.ScrollView style={styles.flexOne}>
         <ChatContainer convLimit={5} />
@@ -327,12 +248,20 @@ const LoggedIn = (p: Props) => {
           smallMode={true}
         />
       </Kb.Box>
-    </Kb.Box>
+    </>
   )
 }
 
-const LoggedOut = (p: Props) => {
-  const {darkMode} = p
+const LoggedOut = (p: {daemonHandshakeState: ConfigTypes.DaemonHandshakeState; loggedIn: boolean}) => {
+  const {daemonHandshakeState, loggedIn} = p
+
+  const fullyLoggedOut = daemonHandshakeState === 'done' && !loggedIn
+
+  const text = fullyLoggedOut
+    ? 'You are logged out of Keybase.'
+    : daemonHandshakeState === 'waitingForWaiters'
+    ? 'Connecting interface to crypto engine... This may take a few seconds.'
+    : 'Starting up Keybase...'
 
   const dispatch = Container.useDispatch()
   const logIn = () => {
@@ -340,21 +269,13 @@ const LoggedOut = (p: Props) => {
     dispatch(RouteTreeGen.createNavigateAppend({path: [Tabs.loginTab]}))
   }
   return (
-    <Kb.Box2
-      direction="vertical"
-      className={darkMode ? 'darkMode' : 'lightMode'}
-      key={darkMode ? 'darkMode' : 'light'}
-      style={styles.widgetContainer}
-    >
-      {isDarwin && <style>{_realCSS}</style>}
-      {isDarwin && <ArrowTick />}
-      <IconBar {...p} />
+    <>
       <Kb.BoxGrow>
         <Kb.Box2
           direction="vertical"
           fullWidth={true}
           fullHeight={true}
-          style={{alignItems: 'center', justifyContent: 'center'}}
+          style={{alignItems: 'center', justifyContent: 'center', padding: Styles.globalMargins.small}}
         >
           <Kb.Box2 direction="vertical">
             <Kb.Icon
@@ -363,26 +284,43 @@ const LoggedOut = (p: Props) => {
               color={Styles.globalColors.yellow}
             />
             <Kb.Text type="Body" style={{alignSelf: 'center', marginTop: 6}}>
-              You are logged out of Keybase.
+              {text}
             </Kb.Text>
-            <Kb.ButtonBar direction="row">
-              <Kb.Button label="Log in" onClick={logIn} />
-            </Kb.ButtonBar>
+            {fullyLoggedOut ? (
+              <Kb.ButtonBar direction="row">
+                <Kb.Button label="Log in" onClick={logIn} />
+              </Kb.ButtonBar>
+            ) : null}
           </Kb.Box2>
         </Kb.Box2>
       </Kb.BoxGrow>
-    </Kb.Box2>
+    </>
   )
 }
 
 const MenubarRender = (p: Props) => {
   const {darkMode, loggedIn, daemonHandshakeState} = p
-
   _setDarkModePreference(darkMode ? 'alwaysDark' : 'alwaysLight')
-  if (daemonHandshakeState !== 'done') {
-    return <LoggingIn />
+  let content: React.ReactNode = null
+  if (daemonHandshakeState === 'done' && loggedIn) {
+    content = <LoggedIn {...p} />
+  } else {
+    content = <LoggedOut daemonHandshakeState={daemonHandshakeState} loggedIn={loggedIn} />
   }
-  return loggedIn ? <LoggedIn {...p} /> : <LoggedOut {...p} />
+
+  return (
+    <Kb.Box2
+      direction="vertical"
+      style={styles.widgetContainer}
+      className={darkMode ? 'darkMode' : 'lightMode'}
+      key={darkMode ? 'darkMode' : 'light'}
+    >
+      {isDarwin && <style>{_realCSS}</style>}
+      {isDarwin && <ArrowTick />}
+      <IconBar {...p} showBadges={loggedIn} />
+      {content}
+    </Kb.Box2>
+  )
 }
 
 const TabView = (p: {title: string; iconType: Kb.IconType; count?: number}) => {
