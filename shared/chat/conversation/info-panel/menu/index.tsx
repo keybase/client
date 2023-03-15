@@ -223,7 +223,7 @@ const InfoPanelMenu = (p: Props) => {
     }
   })()
   const markAsUnread = (() => {
-    if (!this.props.conversationIDKey) {
+    if (!conversationIDKey) {
       return null
     }
     return {
@@ -285,7 +285,7 @@ const InfoPanelMenu = (p: Props) => {
     if (hasChannelSection) {
       items.push(teamHeader)
     }
-    if (!props.isSmallTeam) {
+    if (!isSmallTeam) {
       // Only show if we have multiple channels
       items.push({
         icon: 'iconfont-envelope',
