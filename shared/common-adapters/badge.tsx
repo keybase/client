@@ -33,6 +33,7 @@ const Badge = React.memo(function Badge(p: Badge2Props) {
     return (
       <Kb.Box2
         direction="vertical"
+        pointerEvents="none"
         centerChildren={true}
         style={Styles.collapseStyles([
           styles.container,
@@ -44,7 +45,8 @@ const Badge = React.memo(function Badge(p: Badge2Props) {
           containerStyle,
         ])}
       >
-        <Kb.Box
+        <Kb.Box2
+          direction="vertical"
           className={className}
           style={Styles.collapseStyles([
             styles.badge,
@@ -75,13 +77,15 @@ const Badge = React.memo(function Badge(p: Badge2Props) {
               {badgeNumber}
             </Kb.Text>
           )}
-        </Kb.Box>
+        </Kb.Box2>
       </Kb.Box2>
     )
   } else {
     return (
-      <Kb.Box
+      <Kb.Box2
+        direction="vertical"
         className={className}
+        pointerEvents="none"
         style={Styles.collapseStyles([
           styles.badge,
           {
@@ -111,7 +115,7 @@ const Badge = React.memo(function Badge(p: Badge2Props) {
             {badgeNumber}
           </Kb.Text>
         )}
-      </Kb.Box>
+      </Kb.Box2>
     )
   }
 })
@@ -119,7 +123,6 @@ export default Badge
 
 const styles = Styles.styleSheetCreate(() => ({
   badge: {
-    ...Styles.globalStyles.flexBoxRow,
     ...Styles.globalStyles.flexBoxCenter,
     backgroundColor: Styles.globalColors.orange,
   },

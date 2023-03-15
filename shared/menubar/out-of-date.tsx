@@ -1,17 +1,22 @@
 import * as Kb from '../common-adapters'
+import * as Container from '../util/container'
+import * as ConfigGen from '../actions/config-gen'
 import * as Styles from '../styles'
+import {isWindows, isDarwin} from '../constants/platform'
 import type * as ConfigTypes from '../constants/types/config'
 
 type Props = {
   outOfDate?: ConfigTypes.OutOfDate
-  updateNow?: () => void
 }
 
 const getOutOfDateText = (outOfDate: ConfigTypes.OutOfDate) =>
   `Your Keybase app is ${outOfDate.critical ? 'critically ' : ''}out of date` +
   (outOfDate.message ? `: ${outOfDate.message}` : '.')
 
-const OutOfDate = ({outOfDate, updateNow}: Props) => {
+const OutOfDate = ({outOfDate}: Props) => {
+  const dispatch = Container.useDispatch()
+  const updateNow = isWindows || isDarwin ? () => dispatch(ConfigGen.createUpdateNow()) : undefined
+
   if (!outOfDate) return null
   const bannerColor = outOfDate.critical ? 'red' : 'yellow'
   return (
