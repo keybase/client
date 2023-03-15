@@ -1,8 +1,14 @@
 import * as React from 'react'
+import * as FsConstants from '../constants/fs'
+import * as FsGen from '../actions/fs-gen'
+import * as ConfigGen from '../actions/config-gen'
+import * as RouteTreeGen from '../actions/route-tree-gen'
+import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as FsTypes from '../constants/types/fs'
 import * as Tabs from '../constants/tabs'
 import * as Styles from '../styles'
+import openUrl from '../util/open-url'
 import type * as ConfigTypes from '../constants/types/config'
 import {_setDarkModePreference} from '../styles/dark-mode'
 import ChatContainer from './chat-container.desktop'
@@ -12,30 +18,23 @@ import OutOfDate from './out-of-date'
 import Upload from '../fs/footer/upload'
 import {useUploadCountdown} from '../fs/footer/use-upload-countdown'
 import {Loading} from '../fs/simple-screens'
-import SpaceWarning from './space-warning'
+import {type _InnerMenuItem} from '../common-adapters/floating-menu/menu-layout'
+// import Container from 'login/forms/container'
+// import SpaceWarning from './space-warning'
 
 export type Props = {
   daemonHandshakeState: ConfigTypes.DaemonHandshakeState
   darkMode: boolean
   diskSpaceStatus: FsTypes.DiskSpaceStatus
-  logIn: () => void
   loggedIn: boolean
   kbfsDaemonStatus: FsTypes.KbfsDaemonStatus
   kbfsEnabled: boolean
   updateNow?: () => void
-  onHideDiskSpaceBanner: () => void
-  onRekey: (path: string) => void
-  onRetrySync: () => void
-  openApp: (tab?: Tabs.AppTab) => void
   outOfDate?: ConfigTypes.OutOfDate
-  showInFinder: () => void
   quit: () => void
-  refreshUserFileEdits: () => void
-  showBug: () => void
-  showHelp: () => void
-  showUser: (username?: string) => void
+  hideWindow?: () => void
   showingDiskSpaceBanner: boolean
-  username: string | null
+  username: string
   navBadges: Map<string, number>
   windowShownCount: number
 
@@ -44,10 +43,6 @@ export type Props = {
   files: number
   fileName: string | null
   totalSyncingBytes: number
-}
-
-type State = {
-  showingMenu: boolean
 }
 
 const ArrowTick = () => <Kb.Box style={styles.arrowTick} />
@@ -74,311 +69,338 @@ const UploadWithCountdown = (p: UWCDProps) => {
   return <Upload {...np} />
 }
 
-class MenubarRender extends React.Component<Props, State> {
-  state: State = {showingMenu: false}
-  attachmentRef = React.createRef<Kb.Icon>()
+const LoggingIn = () => {
+  return null
+  // const text =
+  //   this.props.daemonHandshakeState === 'waitingForWaiters'
+  //     ? `Connecting interface to crypto engine... This may take a few seconds.`
+  //     : `Starting up Keybase...`
 
-  componentDidUpdate(prev: Props) {
-    if (prev.windowShownCount !== this.props.windowShownCount) {
-      this.props.refreshUserFileEdits()
-    }
+  // return (
+  //   <Kb.Box
+  //     style={styles.widgetContainer}
+  //     className={this.props.darkMode ? 'darkMode' : 'lightMode'}
+  //     key={this.props.darkMode ? 'darkMode' : 'light'}
+  //   >
+  //     {isDarwin && <style>{_realCSS}</style>}
+  //     {isDarwin && <ArrowTick />}
+  //     <Kb.Box
+  //       style={Styles.collapseStyles([
+  //         styles.topRow,
+  //         {justifyContent: 'flex-end'},
+  //         Styles.desktopStyles.clickable,
+  //       ] as any)}
+  //     >
+  //       <Kb.Icon
+  //         color={Styles.globalColors.blueDarker}
+  //         hoverColor={Styles.globalColors.white}
+  //         type="iconfont-nav-2-hamburger"
+  //         sizeType="Big"
+  //         style={styles.hamburgerIcon}
+  //         onClick={() => this.setState(prevState => ({showingMenu: !prevState.showingMenu}))}
+  //         ref={this.attachmentRef}
+  //       />
+  //       <Kb.FloatingMenu
+  //         closeOnSelect={true}
+  //         visible={this.state.showingMenu}
+  //         attachTo={this._getAttachmentRef}
+  //         items={this._menuItems()}
+  //         onHidden={() => this.setState({showingMenu: false})}
+  //       />
+  //     </Kb.Box>
+  //     <OutOfDate outOfDate={this.props.outOfDate} updateNow={this.props.updateNow} />
+  //     <Kb.Box
+  //       style={{
+  //         ...Styles.globalStyles.flexBoxColumn,
+  //         alignItems: 'center',
+  //         flex: 1,
+  //         justifyContent: 'center',
+  //       }}
+  //     >
+  //       <Kb.Icon
+  //         type="icon-keybase-logo-logged-out-64"
+  //         style={styles.logo}
+  //         color={Styles.globalColors.yellow}
+  //       />
+  //       <Kb.Text
+  //         type="BodySmall"
+  //         style={{
+  //           alignSelf: 'center',
+  //           marginTop: 6,
+  //           paddingLeft: Styles.globalMargins.small,
+  //           paddingRight: Styles.globalMargins.small,
+  //         }}
+  //       >
+  //         {text}
+  //       </Kb.Text>
+  //     </Kb.Box>
+  //   </Kb.Box>
+  // )
+}
+
+const useMenuItems = (
+  p: Props & {showBadges?: boolean; openApp: (tab?: Tabs.AppTab) => void}
+): ReadonlyArray<_InnerMenuItem> => {
+  const {showBadges, navBadges, daemonHandshakeState, username, quit, kbfsEnabled, hideWindow, openApp} = p
+  const dispatch = Container.useDispatch()
+  const countMap = navBadges
+  const startingUp = daemonHandshakeState !== 'done'
+  const common = [
+    {onClick: () => openUrl(`https://keybase.io/${username || ''}`), title: 'Keybase.io'},
+    {
+      onClick: () => {
+        const version = __VERSION__
+        openUrl(
+          `https://github.com/keybase/client/issues/new?body=Keybase%20GUI%20Version:%20${encodeURIComponent(
+            version
+          )}`
+        )
+      },
+      title: 'Report a bug',
+    },
+    {
+      onClick: () => {
+        openUrl('https://keybase.io/docs')
+        hideWindow?.()
+      },
+      title: 'Help',
+    },
+    {onClick: quit, title: 'Quit Keybase'},
+  ]
+
+  if (startingUp) {
+    return common
   }
 
-  componentDidMount() {
-    this.props.refreshUserFileEdits()
-  }
+  const openAppItem = [{onClick: () => openApp(), title: 'Open main app'}, 'Divider'] as const
 
-  render() {
-    _setDarkModePreference(this.props.darkMode ? 'alwaysDark' : 'alwaysLight')
-    // TODO: refactor all this duplicated code!
-    if (this.props.daemonHandshakeState !== 'done') {
-      return this._renderDaemonHandshakeWait()
-    }
-    return this.props.loggedIn ? this._renderLoggedIn() : this._renderLoggedOut()
-  }
-
-  _renderLoggedOut() {
-    return (
-      <Kb.Box
-        className={this.props.darkMode ? 'darkMode' : 'lightMode'}
-        key={this.props.darkMode ? 'darkMode' : 'light'}
-        style={styles.widgetContainer}
-      >
-        {isDarwin && <style>{_realCSS}</style>}
-        {isDarwin && <ArrowTick />}
-        <Kb.Box
-          style={Styles.collapseStyles([
-            styles.topRow,
-            {justifyContent: 'flex-end'},
-            Styles.desktopStyles.clickable,
-          ] as any)}
-        >
-          <Kb.Icon
-            color={Styles.isDarkMode() ? 'rgba(255, 255, 255, 0.85)' : Styles.globalColors.blueDarker}
-            hoverColor={Styles.globalColors.white}
-            type="iconfont-nav-2-hamburger"
-            sizeType="Big"
-            style={styles.hamburgerIcon}
-            onClick={() => this.setState(prevState => ({showingMenu: !prevState.showingMenu}))}
-            ref={this.attachmentRef}
+  if (showBadges) {
+    return [
+      {
+        onClick: () => openApp(Tabs.walletsTab),
+        title: 'Wallet',
+        view: (
+          <TabView title="Wallet" iconType="iconfont-nav-2-wallets" count={countMap.get(Tabs.walletsTab)} />
+        ),
+      },
+      {
+        onClick: () => openApp(Tabs.gitTab),
+        title: 'Git',
+        view: <TabView title="Git" iconType="iconfont-nav-2-git" count={countMap.get(Tabs.gitTab)} />,
+      },
+      {
+        onClick: () => openApp(Tabs.devicesTab),
+        title: 'Devices',
+        view: (
+          <TabView title="Devices" iconType="iconfont-nav-2-devices" count={countMap.get(Tabs.devicesTab)} />
+        ),
+      },
+      {
+        onClick: () => openApp(Tabs.settingsTab),
+        title: 'Settings',
+        view: (
+          <TabView
+            title="Settings"
+            iconType="iconfont-nav-2-settings"
+            count={countMap.get(Tabs.settingsTab)}
           />
-          <Kb.FloatingMenu
-            closeOnSelect={true}
-            visible={this.state.showingMenu}
-            attachTo={this._getAttachmentRef}
-            items={this._menuItems()}
-            onHidden={() => this.setState({showingMenu: false})}
-          />
-        </Kb.Box>
-        <OutOfDate outOfDate={this.props.outOfDate} updateNow={this.props.updateNow} />
-        <SpaceWarning
-          diskSpaceStatus={this.props.diskSpaceStatus}
-          onRetry={this.props.onRetrySync}
-          onClose={this.props.onHideDiskSpaceBanner}
-          hidden={!this.props.showingDiskSpaceBanner}
-        />
-        <Kb.Box
-          style={{
-            ...Styles.globalStyles.flexBoxColumn,
-            alignItems: 'center',
-            flex: 1,
-            justifyContent: 'center',
-          }}
-        >
-          <Kb.Icon
-            type="icon-keybase-logo-logged-out-64"
-            style={styles.logo}
-            color={Styles.globalColors.yellow}
-          />
-          <Kb.Text type="Body" style={{alignSelf: 'center', marginTop: 6}}>
-            You are logged out of Keybase.
-          </Kb.Text>
-          <Kb.ButtonBar direction="row">
-            <Kb.Button label="Log in" onClick={this.props.logIn} />
-          </Kb.ButtonBar>
-        </Kb.Box>
-      </Kb.Box>
-    )
-  }
-
-  _renderDaemonHandshakeWait() {
-    const text =
-      this.props.daemonHandshakeState === 'waitingForWaiters'
-        ? `Connecting interface to crypto engine... This may take a few seconds.`
-        : `Starting up Keybase...`
-
-    return (
-      <Kb.Box
-        style={styles.widgetContainer}
-        className={this.props.darkMode ? 'darkMode' : 'lightMode'}
-        key={this.props.darkMode ? 'darkMode' : 'light'}
-      >
-        {isDarwin && <style>{_realCSS}</style>}
-        {isDarwin && <ArrowTick />}
-        <Kb.Box
-          style={Styles.collapseStyles([
-            styles.topRow,
-            {justifyContent: 'flex-end'},
-            Styles.desktopStyles.clickable,
-          ] as any)}
-        >
-          <Kb.Icon
-            color={Styles.globalColors.blueDarker}
-            hoverColor={Styles.globalColors.white}
-            type="iconfont-nav-2-hamburger"
-            sizeType="Big"
-            style={styles.hamburgerIcon}
-            onClick={() => this.setState(prevState => ({showingMenu: !prevState.showingMenu}))}
-            ref={this.attachmentRef}
-          />
-          <Kb.FloatingMenu
-            closeOnSelect={true}
-            visible={this.state.showingMenu}
-            attachTo={this._getAttachmentRef}
-            items={this._menuItems()}
-            onHidden={() => this.setState({showingMenu: false})}
-          />
-        </Kb.Box>
-        <OutOfDate outOfDate={this.props.outOfDate} updateNow={this.props.updateNow} />
-        <Kb.Box
-          style={{
-            ...Styles.globalStyles.flexBoxColumn,
-            alignItems: 'center',
-            flex: 1,
-            justifyContent: 'center',
-          }}
-        >
-          <Kb.Icon
-            type="icon-keybase-logo-logged-out-64"
-            style={styles.logo}
-            color={Styles.globalColors.yellow}
-          />
-          <Kb.Text
-            type="BodySmall"
-            style={{
-              alignSelf: 'center',
-              marginTop: 6,
-              paddingLeft: Styles.globalMargins.small,
-              paddingRight: Styles.globalMargins.small,
-            }}
-          >
-            {text}
-          </Kb.Text>
-        </Kb.Box>
-      </Kb.Box>
-    )
-  }
-
-  _menuView(title, iconType, count) {
-    return (
-      <Kb.Box2 direction="horizontal" fullWidth={true} style={{alignItems: 'center'}}>
-        <Kb.Box style={{marginRight: Styles.globalMargins.tiny, position: 'relative'}}>
-          <Kb.Icon type={iconType} color={Styles.globalColors.blue} sizeType="Big" />
-          {!!count && <Kb.Badge badgeNumber={count || 0} badgeStyle={styles.badge} />}
-        </Kb.Box>
-        <Kb.Text className="title" type="BodySemibold" style={Styles.collapseStyles([{color: undefined}])}>
-          {title}
-        </Kb.Text>
-      </Kb.Box2>
-    )
-  }
-
-  _menuItems(): Kb.MenuItems {
-    const countMap = this.props.navBadges
-    const startingUp = this.props.daemonHandshakeState !== 'done'
-    const loggedOut = !this.props.username
-
-    const sectionTabs =
-      startingUp || loggedOut
-        ? []
-        : ([
+        ),
+      },
+      'Divider' as const,
+      ...openAppItem,
+      ...(kbfsEnabled
+        ? ([
             {
-              onClick: () => this.props.openApp(Tabs.walletsTab),
-              title: 'Wallet',
-              view: this._menuView('Wallet', 'iconfont-nav-2-wallets', countMap.get(Tabs.walletsTab)),
-            },
-            {
-              onClick: () => this.props.openApp(Tabs.gitTab),
-              title: 'Git',
-              view: this._menuView('Git', 'iconfont-nav-2-git', countMap.get(Tabs.gitTab)),
-            },
-            {
-              onClick: () => this.props.openApp(Tabs.devicesTab),
-              title: 'Devices',
-              view: this._menuView('Devices', 'iconfont-nav-2-devices', countMap.get(Tabs.devicesTab)),
-            },
-            {
-              onClick: () => this.props.openApp(Tabs.settingsTab),
-              title: 'Settings',
-              view: this._menuView('Settings', 'iconfont-nav-2-settings', countMap.get(Tabs.settingsTab)),
+              onClick: () => {
+                dispatch(FsGen.createOpenPathInSystemFileManager({path: FsConstants.defaultPath}))
+              },
+              title: `Open folders in ${Styles.fileUIName}`,
             },
             'Divider',
           ] as const)
-
-    const openApp = startingUp
-      ? []
-      : [{onClick: () => this.props.openApp(), title: 'Open main app'}, 'Divider']
-
-    const showFinder =
-      startingUp || loggedOut || !this.props.kbfsEnabled
-        ? []
-        : [{onClick: this.props.showInFinder, title: `Open folders in ${Styles.fileUIName}`}, 'Divider']
-
-    const webLink = startingUp ? [] : [{onClick: () => this.props.showUser(), title: 'Keybase.io'}]
-
-    return [
-      ...sectionTabs,
-      ...openApp,
-      ...showFinder,
-      ...webLink,
-      {onClick: this.props.showBug, title: 'Report a bug'},
-      {onClick: this.props.showHelp, title: 'Help'},
-      {onClick: this.props.quit, title: 'Quit Keybase'},
-    ] as any
+        : []),
+      ...common,
+    ] as const
   }
-
-  _getAttachmentRef = () => this.attachmentRef.current
-
-  _renderLoggedIn() {
-    const badgeTypesInHeader = [Tabs.peopleTab, Tabs.chatTab, Tabs.fsTab, Tabs.teamsTab]
-    const badgesInMenu = [Tabs.walletsTab, Tabs.gitTab, Tabs.devicesTab, Tabs.settingsTab]
-    // TODO move this into container
-    const badgeCountInMenu = badgesInMenu.reduce((acc, val) => this.props.navBadges.get(val) ?? 0 + acc, 0)
-
-    return (
-      <Kb.Box
-        style={styles.widgetContainer}
-        className={this.props.darkMode ? 'darkMode' : 'lightMode'}
-        key={this.props.darkMode ? 'darkMode' : 'light'}
-      >
-        {isDarwin && <style>{_realCSS}</style>}
-        {isDarwin && <ArrowTick />}
-        <Kb.Box style={styles.topRow}>
-          <Kb.Box style={styles.headerBadgesContainer}>
-            {badgeTypesInHeader.map(tab => (
-              <BadgeIcon key={tab} tab={tab} countMap={this.props.navBadges} openApp={this.props.openApp} />
-            ))}
-          </Kb.Box>
-          <Kb.Box
-            style={Styles.collapseStyles([
-              Styles.desktopStyles.clickable,
-              {
-                marginRight: Styles.globalMargins.tiny,
-                position: 'relative',
-              },
-            ] as any)}
-          >
-            <Kb.Icon
-              color={
-                Styles.isDarkMode() ? Styles.globalColors.black_50OrBlack_60 : Styles.globalColors.blueDarker
-              }
-              hoverColor={Styles.globalColors.whiteOrWhite}
-              onClick={() => this.setState(prevState => ({showingMenu: !prevState.showingMenu}))}
-              type="iconfont-nav-2-hamburger"
-              sizeType="Big"
-              ref={this.attachmentRef}
-            />
-            {!!badgeCountInMenu && <Kb.Badge badgeNumber={badgeCountInMenu} badgeStyle={styles.badge} />}
-          </Kb.Box>
-          <Kb.FloatingMenu
-            closeOnSelect={true}
-            items={this._menuItems()}
-            visible={this.state.showingMenu}
-            onHidden={() =>
-              this.setState({
-                showingMenu: false,
-              })
-            }
-            attachTo={this._getAttachmentRef}
-            position="bottom right"
-          />
-        </Kb.Box>
-        <OutOfDate outOfDate={this.props.outOfDate} updateNow={this.props.updateNow} />
-        <Kb.ScrollView style={styles.flexOne}>
-          <ChatContainer convLimit={5} />
-          {this.props.kbfsDaemonStatus.rpcStatus === FsTypes.KbfsDaemonRpcStatus.Connected ? (
-            <FilesPreview />
-          ) : (
-            <Kb.Box2 direction="vertical" fullWidth={true} style={{height: 200}}>
-              <Loading />
-            </Kb.Box2>
-          )}
-        </Kb.ScrollView>
-        <Kb.Box style={styles.footer}>
-          <UploadWithCountdown
-            endEstimate={this.props.endEstimate}
-            isOnline={this.props.kbfsDaemonStatus.onlineStatus !== FsTypes.KbfsDaemonOnlineStatus.Offline}
-            files={this.props.files}
-            fileName={this.props.fileName}
-            totalSyncingBytes={this.props.totalSyncingBytes}
-            smallMode={true}
-          />
-        </Kb.Box>
-      </Kb.Box>
-    )
-  }
+  return [...openAppItem, ...common] as const
 }
 
+const IconBar = (p: Props & {showBadges?: boolean}) => {
+  const {navBadges, showBadges} = p
+  const dispatch = Container.useDispatch()
+  const openApp = (tab?: Tabs.AppTab) => {
+    dispatch(ConfigGen.createShowMain())
+    tab && dispatch(RouteTreeGen.createSwitchTab({tab}))
+  }
+
+  const menuItems = useMenuItems({...p, openApp})
+
+  const {toggleShowingPopup, showingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
+    <Kb.FloatingMenu
+      closeOnSelect={true}
+      items={menuItems}
+      visible={showingPopup}
+      onHidden={toggleShowingPopup}
+      attachTo={attachTo}
+      position="bottom right"
+    />
+  ))
+
+  // TODO move this into container
+  const badgeCountInMenu = badgesInMenu.reduce((acc, val) => navBadges.get(val) ?? 0 + acc, 0)
+
+  return (
+    <Kb.Box style={styles.topRow}>
+      <Kb.Box style={styles.headerBadgesContainer}>
+        {showBadges
+          ? badgeTypesInHeader.map(tab => (
+              <BadgeIcon key={tab} tab={tab} countMap={navBadges} openApp={openApp} />
+            ))
+          : null}
+      </Kb.Box>
+      <Kb.Box
+        style={{
+          ...Styles.desktopStyles.clickable,
+          marginRight: Styles.globalMargins.tiny,
+          position: 'relative',
+        }}
+      >
+        <Kb.Icon
+          color={
+            Styles.isDarkMode() ? Styles.globalColors.black_50OrBlack_60 : Styles.globalColors.blueDarker
+          }
+          hoverColor={Styles.globalColors.whiteOrWhite}
+          onClick={toggleShowingPopup}
+          type="iconfont-nav-2-hamburger"
+          sizeType="Big"
+          ref={popupAnchor as any}
+        />
+        {!!badgeCountInMenu && <Kb.Badge badgeNumber={badgeCountInMenu} badgeStyle={styles.badge} />}
+      </Kb.Box>
+      {popup}
+    </Kb.Box>
+  )
+}
+
+const badgeTypesInHeader = [Tabs.peopleTab, Tabs.chatTab, Tabs.fsTab, Tabs.teamsTab]
+const badgesInMenu = [Tabs.walletsTab, Tabs.gitTab, Tabs.devicesTab, Tabs.settingsTab]
+const LoggedIn = (p: Props) => {
+  const {darkMode, endEstimate, files, kbfsDaemonStatus, totalSyncingBytes, fileName} = p
+  const {outOfDate, updateNow, windowShownCount} = p
+
+  const dispatch = Container.useDispatch()
+  const refreshUserFileEdits = Container.useThrottledCallback(() => {
+    dispatch(FsGen.createUserFileEditsLoad())
+  }, 5000)
+
+  React.useEffect(() => {
+    refreshUserFileEdits()
+  }, [refreshUserFileEdits, windowShownCount])
+
+  return (
+    <Kb.Box
+      style={styles.widgetContainer}
+      className={darkMode ? 'darkMode' : 'lightMode'}
+      key={darkMode ? 'darkMode' : 'light'}
+    >
+      {isDarwin && <style>{_realCSS}</style>}
+      {isDarwin && <ArrowTick />}
+      <IconBar {...p} showBadges={true} />
+      <OutOfDate outOfDate={outOfDate} updateNow={updateNow} />
+      <Kb.ScrollView style={styles.flexOne}>
+        <ChatContainer convLimit={5} />
+        {kbfsDaemonStatus.rpcStatus === FsTypes.KbfsDaemonRpcStatus.Connected ? (
+          <FilesPreview />
+        ) : (
+          <Kb.Box2 direction="vertical" fullWidth={true} style={{height: 200}}>
+            <Loading />
+          </Kb.Box2>
+        )}
+      </Kb.ScrollView>
+      <Kb.Box style={styles.footer}>
+        <UploadWithCountdown
+          endEstimate={endEstimate}
+          isOnline={kbfsDaemonStatus.onlineStatus !== FsTypes.KbfsDaemonOnlineStatus.Offline}
+          files={files}
+          fileName={fileName}
+          totalSyncingBytes={totalSyncingBytes}
+          smallMode={true}
+        />
+      </Kb.Box>
+    </Kb.Box>
+  )
+}
+
+const LoggedOut = (p: Props) => {
+  const {darkMode} = p
+
+  const dispatch = Container.useDispatch()
+  const logIn = () => {
+    dispatch(ConfigGen.createShowMain())
+    dispatch(RouteTreeGen.createNavigateAppend({path: [Tabs.loginTab]}))
+  }
+  return (
+    <Kb.Box2
+      direction="vertical"
+      className={darkMode ? 'darkMode' : 'lightMode'}
+      key={darkMode ? 'darkMode' : 'light'}
+      style={styles.widgetContainer}
+    >
+      {isDarwin && <style>{_realCSS}</style>}
+      {isDarwin && <ArrowTick />}
+      <IconBar {...p} />
+      <Kb.BoxGrow>
+        <Kb.Box2
+          direction="vertical"
+          fullWidth={true}
+          fullHeight={true}
+          style={{alignItems: 'center', justifyContent: 'center'}}
+        >
+          <Kb.Box2 direction="vertical">
+            <Kb.Icon
+              type="icon-keybase-logo-logged-out-64"
+              style={styles.logo}
+              color={Styles.globalColors.yellow}
+            />
+            <Kb.Text type="Body" style={{alignSelf: 'center', marginTop: 6}}>
+              You are logged out of Keybase.
+            </Kb.Text>
+            <Kb.ButtonBar direction="row">
+              <Kb.Button label="Log in" onClick={logIn} />
+            </Kb.ButtonBar>
+          </Kb.Box2>
+        </Kb.Box2>
+      </Kb.BoxGrow>
+    </Kb.Box2>
+  )
+}
+
+const MenubarRender = (p: Props) => {
+  const {darkMode, loggedIn, daemonHandshakeState} = p
+
+  _setDarkModePreference(darkMode ? 'alwaysDark' : 'alwaysLight')
+  if (daemonHandshakeState !== 'done') {
+    return <LoggingIn />
+  }
+  return loggedIn ? <LoggedIn {...p} /> : <LoggedOut {...p} />
+}
+
+const TabView = (p: {title: string; iconType: Kb.IconType; count?: number}) => {
+  const {count, iconType, title} = p
+  return (
+    <Kb.Box2 direction="horizontal" fullWidth={true} style={{alignItems: 'center'}}>
+      <Kb.Box style={{marginRight: Styles.globalMargins.tiny, position: 'relative'}}>
+        <Kb.Icon type={iconType} color={Styles.globalColors.blue} sizeType="Big" />
+        {!!count && <Kb.Badge badgeNumber={count} badgeStyle={styles.badge} />}
+      </Kb.Box>
+      <Kb.Text className="title" type="BodySemibold" style={Styles.collapseStyles([{color: undefined}])}>
+        {title}
+      </Kb.Text>
+    </Kb.Box2>
+  )
+}
+
+// TODO
 const _realCSS = `
 body {
   background-color: ${Styles.globalColors.transparent};
@@ -468,7 +490,6 @@ const styles = Styles.styleSheetCreate(() => ({
     paddingRight: 8,
   },
   widgetContainer: {
-    ...Styles.globalStyles.flexBoxColumn,
     backgroundColor: Styles.globalColors.white,
     borderTopLeftRadius: Styles.globalMargins.xtiny,
     borderTopRightRadius: Styles.globalMargins.xtiny,
