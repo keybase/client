@@ -2390,9 +2390,9 @@ const markAsUnread = async (state: Container.TypedState, action: Chat2Gen.MarkAs
   const ordinals = state.chat2.messageOrdinals.get(conversationIDKey) ?? []
   const ord =
     messageMap &&
-    ordinals.find(o => {
+    [...ordinals].reverse().find(o => {
       const message = messageMap.get(o)
-      return !!(message && message.id >= unreadLineID - 1)
+      return !!(message && message.id < unreadLineID)
     })
   const message = ord ? messageMap?.get(ord) : null
 
