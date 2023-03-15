@@ -348,7 +348,7 @@ func (s *RemoteInboxSource) ReadUnverified(ctx context.Context, uid gregor1.UID,
 
 func (s *RemoteInboxSource) MarkAsRead(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, msgID *chat1.MessageID, forceUnread bool) (err error) {
-	defer s.Trace(ctx, &err, "MarkAsRead(%s,%v)", convID, msgID)()
+	defer s.Trace(ctx, &err, "MarkAsRead(%s,%v,%v)", convID, msgID, forceUnread)()
 	if msgID == nil {
 		conv, err := utils.GetUnverifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
 		if err != nil {
@@ -863,14 +863,17 @@ func (s *HybridInboxSource) IncrementLocalConvVersion(ctx context.Context, uid g
 
 func (s *HybridInboxSource) MarkAsRead(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, msgID *chat1.MessageID, forceUnread bool) (err error) {
-	defer s.Trace(ctx, &err, "MarkAsRead(%s,%d)", convID, msgID)()
+	defer s.Trace(ctx, &err, "MarkAsRead(%s,%d, %v)", convID, msgID, forceUnread)()
 	defer s.maybeNuke(ctx, uid, &convID, &err)
-	// Check local copy to see if we have this convo, and have fully read it. If so, we skip the remote call
-	readRes, err := s.createInbox().GetConversation(ctx, uid, convID)
-	if err == nil && readRes.GetConvID().Eq(convID) &&
-		readRes.Conv.ReaderInfo.ReadMsgid == readRes.Conv.ReaderInfo.MaxMsgid && !forceUnread {
-		s.Debug(ctx, "MarkAsRead: conversation fully read: %s, not sending remote call", convID)
-		return nil
+	if !forceUnread {
+		// Check local copy to see if we have this convo, and have fully read
+		// it. If so, we skip the remote call unless
+		readRes, err := s.createInbox().GetConversation(ctx, uid, convID)
+		if err == nil && readRes.GetConvID().Eq(convID) &&
+			readRes.Conv.ReaderInfo.ReadMsgid == readRes.Conv.ReaderInfo.MaxMsgid {
+			s.Debug(ctx, "MarkAsRead: conversation fully read: %s, not sending remote call", convID)
+			return nil
+		}
 	}
 	if msgID == nil {
 		conv, err := utils.GetUnverifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)

@@ -3458,6 +3458,7 @@ func TestChatSrvGetUnreadLine(t *testing.T) {
 			chat1.MarkAsReadLocalArg{
 				ConversationID: conv.Id,
 				MsgID:          &msgID0,
+				ForceUnread:    true,
 			})
 		require.NoError(t, err)
 		assertUnreadline(ctx2, g2, users[1], msgID0, msgID1)

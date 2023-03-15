@@ -2362,7 +2362,7 @@ const markThreadAsRead = async (
   if (meta) {
     readMsgID = message ? (message.id > meta.maxMsgID ? message.id : meta.maxMsgID) : meta.maxMsgID
   }
-  if (action.type === Chat2Gen.updateUnreadline && readMsgID && readMsgID > action.payload.messageID) {
+  if (action.type === Chat2Gen.updateUnreadline && readMsgID && readMsgID >= action.payload.messageID) {
     // If we are marking as unread, don't send the local RPC.
     return
   }
@@ -2382,7 +2382,7 @@ const markAsUnread = async (state: Container.TypedState, action: Chat2Gen.MarkAs
   }
   const {conversationIDKey, readMsgID} = action.payload
   const meta = state.chat2.metaMap.get(conversationIDKey)
-  const unreadLineID = readMsgID ? readMsgID : meta ? meta.maxMsgID : 0
+  const unreadLineID = readMsgID ? readMsgID : meta ? meta.maxVisibleMsgID : 0
 
   // Find first visible message prior to what we have marked as unread. The
   // server will use this value to calculate our badge state.
